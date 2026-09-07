@@ -323,7 +323,10 @@ where not exists (
 -- --- Markt: B2B, Kontingente, Preislisten ---------------------------------
 insert into public.b2b_kunden (name, kontakt) values
   ('Handelskette A', 'Einkauf Frischeobst'),
-  ('Gastro-Distributor Almaty', 'Beschaffung')
+  ('Gastro-Distributor Almaty', 'Beschaffung'),
+  -- Firma des kunde@malina.demo-Demokontos (siehe supabase/seed-auth.mjs) -
+  -- die Verknuepfung profiles.b2b_kunde_id zeigt auf diese Zeile.
+  ('Almaty Fresh Market', 'Einkauf Frischware')
   on conflict do nothing;
 
 insert into public.kontingente (sorte_id, b2b_kunde_id, menge_kg, reserviert_kg, saison)
@@ -571,6 +574,78 @@ select k.id, 'ISESF - elektronische Rechnungsstellung', z.id,
    and not exists (
      select 1 from public.drittweitergaben d
       where d.betroffener_b2b_kunde_id = k.id and d.empfaenger = 'ISESF - elektronische Rechnungsstellung'
+   );
+
+-- --- Reklamationsmanagement (WMCNL-1455) ------------------------------------
+-- CH-0902-12 hatte laut audit_events oben tatsaechlich einen
+-- Kuehlkette-Verstoss (72 Minuten) - die erste Reklamation greift genau das
+-- auf, damit die Nachweiskette von der Reklamation bis zur Messung durchgeht.
+insert into public.reklamationen
+  (code, charge_id, b2b_kunde_id, grund, betreff, beschreibung, betroffene_menge_kg, status, gemeldet_am)
+select 'REK-20260903-0001', c.id, k.id, 'temperatur'::public.reklamation_grund,
+       'Ware bei Anlieferung zu warm',
+       'Kuehlkette laut Messprotokoll erst nach 72 Minuten erreicht (siehe audit_events kuehlkette.verstoss). Kunde meldet weiche, ueberreife Beeren bei Anlieferung.',
+       44.2, 'in_pruefung'::public.reklamation_status, '2026-09-03T09:10:00+06'::timestamptz
+  from public.chargen c, public.b2b_kunden k
+ where c.code = 'CH-0902-12' and k.name = 'Handelskette A'
+   and not exists (select 1 from public.reklamationen where code = 'REK-20260903-0001');
+
+insert into public.reklamationen
+  (code, charge_id, b2b_kunde_id, grund, betreff, beschreibung, betroffene_menge_kg, status, gemeldet_am)
+select 'REK-20260903-0002', c.id, k.id, 'menge'::public.reklamation_grund,
+       'Gelieferte Menge unter Bestellmenge',
+       'Laut Lieferschein 49,5 kg angekuendigt, im Wareneingang wurden nur 46,0 kg gewogen.',
+       3.5, 'offen'::public.reklamation_status, '2026-09-03T14:20:00+06'::timestamptz
+  from public.chargen c, public.b2b_kunden k
+ where c.code = 'CH-0901-07' and k.name = 'Gastro-Distributor Almaty'
+   and not exists (select 1 from public.reklamationen where code = 'REK-20260903-0002');
+
+-- Bereits abgeschlossener Fall ohne Chargenbezug (der Kunde ordnet die
+-- durchnaessten Kartons keiner einzelnen Charge zu) - zeigt, dass charge_id
+-- bewusst nullable ist.
+insert into public.reklamationen
+  (code, b2b_kunde_id, grund, betreff, beschreibung, status, gemeldet_am, erledigt_am, loesung, gutschrift_tenge)
+select 'REK-20260821-0003', k.id, 'verpackung'::public.reklamation_grund,
+       'Kartons bei Anlieferung durchnaesst',
+       'Zwei von acht Kartons waren an der Unterseite durchnaesst, Ware in diesen Kartons nicht mehr verkaufsfaehig.',
+       'erledigt'::public.reklamation_status, '2026-08-20T10:00:00+06'::timestamptz,
+       '2026-08-22T09:00:00+06'::timestamptz,
+       'Gutschrift fuer zwei Kartons erteilt, Verpackungsvorgabe an die Logistik nachgeschaerft.',
+       15000
+  from public.b2b_kunden k
+ where k.name = 'Almaty Fresh Market'
+   and not exists (select 1 from public.reklamationen where code = 'REK-20260821-0003');
+
+-- Verlauf von Hand statt ueber den Status-Protokoll-Trigger: der Trigger
+-- feuert nur bei UPDATE (siehe Migration), Seed-Zeilen werden aber direkt mit
+-- ihrem Zielstatus eingefuegt.
+insert into public.reklamation_ereignisse (reklamation_id, text, sichtbar_fuer_kunde, created_at)
+select r.id, 'Reklamation gemeldet: ' || r.betreff, true, r.gemeldet_am
+  from public.reklamationen r
+ where r.code in ('REK-20260903-0001', 'REK-20260903-0002', 'REK-20260821-0003')
+   and not exists (
+     select 1 from public.reklamation_ereignisse e
+      where e.reklamation_id = r.id and e.text = 'Reklamation gemeldet: ' || r.betreff
+   );
+
+insert into public.reklamation_ereignisse (reklamation_id, neuer_status, text, sichtbar_fuer_kunde, created_at)
+select r.id, 'in_pruefung'::public.reklamation_status,
+       'Kuehlkurve wird mit dem Messprotokoll der Charge abgeglichen.', true,
+       '2026-09-03T15:00:00+06'::timestamptz
+  from public.reklamationen r
+ where r.code = 'REK-20260903-0001'
+   and not exists (
+     select 1 from public.reklamation_ereignisse e
+      where e.reklamation_id = r.id and e.neuer_status = 'in_pruefung'
+   );
+
+insert into public.reklamation_ereignisse (reklamation_id, neuer_status, text, sichtbar_fuer_kunde, created_at)
+select r.id, 'erledigt'::public.reklamation_status, r.loesung, true, r.erledigt_am
+  from public.reklamationen r
+ where r.code = 'REK-20260821-0003'
+   and not exists (
+     select 1 from public.reklamation_ereignisse e
+      where e.reklamation_id = r.id and e.neuer_status = 'erledigt'
    );
 
 insert into public.audit_events (actor, aktion, ressource, metadata) values

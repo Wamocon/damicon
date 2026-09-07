@@ -33,6 +33,7 @@ export const resources = [
   "foerdermittel",
   "sortenkatalog",
   "b2b_portal",
+  "reklamationen",
   "ki_assistent",
   "aggregator",
   "schulungen",
@@ -153,6 +154,9 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...crud("foerdermittel"),
     ...crud("sortenkatalog"),
     ...crud("b2b_portal"),
+    // Bearbeiten und Schliessen einer Reklamation inklusive Gutschrift.
+    ...crud("reklamationen"),
+    `reklamationen:approve`,
     ...view("ki_assistent"),
     ...crud("aggregator"),
     ...crud("schulungen"),
@@ -170,6 +174,10 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...crud("integrationen"),
     ...crud("foerdermittel"),
     ...view("b2b_portal"),
+    // Die Gutschrift ist eine Finanzbuchung - deshalb auch fuer die
+    // Buchhaltung Bearbeitungsrecht, nicht nur Ansicht.
+    ...crud("reklamationen"),
+    `reklamationen:approve`,
     ...view("aggregator"),
   ],
   brigade: [
@@ -197,6 +205,10 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...view("dashboard"),
     ...view("sortenkatalog"),
     ...crud("b2b_portal"),
+    // Eigene Reklamation anlegen und einsehen - Bearbeiten und Schliessen
+    // bleibt dem Buero vorbehalten (siehe RLS in der Migration).
+    ...view("reklamationen"),
+    `reklamationen:create`,
     ...view("ki_assistent"),
     ...view("dokumente"),
   ],

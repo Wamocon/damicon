@@ -1527,6 +1527,7 @@ export type Database = {
       profiles: {
         Row: {
           auth_user_id: string | null
+          b2b_kunde_id: string | null
           brigade_id: string | null
           created_at: string
           email: string | null
@@ -1537,6 +1538,7 @@ export type Database = {
         }
         Insert: {
           auth_user_id?: string | null
+          b2b_kunde_id?: string | null
           brigade_id?: string | null
           created_at?: string
           email?: string | null
@@ -1547,6 +1549,7 @@ export type Database = {
         }
         Update: {
           auth_user_id?: string | null
+          b2b_kunde_id?: string | null
           brigade_id?: string | null
           created_at?: string
           email?: string | null
@@ -1561,6 +1564,13 @@ export type Database = {
             columns: ["brigade_id"]
             isOneToOne: false
             referencedRelation: "brigaden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_b2b_kunde_id_fkey"
+            columns: ["b2b_kunde_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_kunden"
             referencedColumns: ["id"]
           },
         ]
@@ -1674,6 +1684,137 @@ export type Database = {
             columns: ["feldparzelle_id"]
             isOneToOne: false
             referencedRelation: "feldparzellen"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reklamation_ereignisse: {
+        Row: {
+          autor_id: string | null
+          created_at: string
+          id: string
+          neuer_status: Database["public"]["Enums"]["reklamation_status"] | null
+          reklamation_id: string
+          sichtbar_fuer_kunde: boolean
+          text: string
+        }
+        Insert: {
+          autor_id?: string | null
+          created_at?: string
+          id?: string
+          neuer_status?:
+            | Database["public"]["Enums"]["reklamation_status"]
+            | null
+          reklamation_id: string
+          sichtbar_fuer_kunde?: boolean
+          text: string
+        }
+        Update: {
+          autor_id?: string | null
+          created_at?: string
+          id?: string
+          neuer_status?:
+            | Database["public"]["Enums"]["reklamation_status"]
+            | null
+          reklamation_id?: string
+          sichtbar_fuer_kunde?: boolean
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reklamation_ereignisse_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reklamation_ereignisse_reklamation_id_fkey"
+            columns: ["reklamation_id"]
+            isOneToOne: false
+            referencedRelation: "reklamationen"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reklamationen: {
+        Row: {
+          b2b_kunde_id: string
+          beschreibung: string | null
+          betreff: string
+          betroffene_menge_kg: number | null
+          charge_id: string | null
+          code: string
+          created_at: string
+          erledigt_am: string | null
+          frist_am: string | null
+          gemeldet_am: string
+          gemeldet_von: string | null
+          grund: Database["public"]["Enums"]["reklamation_grund"]
+          gutschrift_tenge: number | null
+          id: string
+          loesung: string | null
+          status: Database["public"]["Enums"]["reklamation_status"]
+          updated_at: string
+        }
+        Insert: {
+          b2b_kunde_id: string
+          beschreibung?: string | null
+          betreff: string
+          betroffene_menge_kg?: number | null
+          charge_id?: string | null
+          code: string
+          created_at?: string
+          erledigt_am?: string | null
+          frist_am?: string | null
+          gemeldet_am?: string
+          gemeldet_von?: string | null
+          grund: Database["public"]["Enums"]["reklamation_grund"]
+          gutschrift_tenge?: number | null
+          id?: string
+          loesung?: string | null
+          status?: Database["public"]["Enums"]["reklamation_status"]
+          updated_at?: string
+        }
+        Update: {
+          b2b_kunde_id?: string
+          beschreibung?: string | null
+          betreff?: string
+          betroffene_menge_kg?: number | null
+          charge_id?: string | null
+          code?: string
+          created_at?: string
+          erledigt_am?: string | null
+          frist_am?: string | null
+          gemeldet_am?: string
+          gemeldet_von?: string | null
+          grund?: Database["public"]["Enums"]["reklamation_grund"]
+          gutschrift_tenge?: number | null
+          id?: string
+          loesung?: string | null
+          status?: Database["public"]["Enums"]["reklamation_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reklamationen_b2b_kunde_id_fkey"
+            columns: ["b2b_kunde_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_kunden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reklamationen_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "chargen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reklamationen_gemeldet_von_fkey"
+            columns: ["gemeldet_von"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -2036,6 +2177,7 @@ export type Database = {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
       }
+      current_b2b_kunde_id: { Args: never; Returns: string }
       has_office_access: { Args: never; Returns: boolean }
       has_role: {
         Args: { erlaubt: Database["public"]["Enums"]["app_role"][] }
@@ -2126,6 +2268,19 @@ export type Database = {
         | "ruhend"
         | "rueckschnitt"
         | "wartezeitgesperrt"
+      reklamation_grund:
+        | "qualitaet"
+        | "menge"
+        | "verspaetung"
+        | "verpackung"
+        | "temperatur"
+        | "sonstiges"
+      reklamation_status:
+        | "offen"
+        | "in_pruefung"
+        | "angenommen"
+        | "abgelehnt"
+        | "erledigt"
       sorte_typ: "remontierend" | "sommertragend"
       spalierrichtung: "n_s" | "o_w"
       vorbestellung_status:
@@ -2310,6 +2465,21 @@ export const Constants = {
         "ruhend",
         "rueckschnitt",
         "wartezeitgesperrt",
+      ],
+      reklamation_grund: [
+        "qualitaet",
+        "menge",
+        "verspaetung",
+        "verpackung",
+        "temperatur",
+        "sonstiges",
+      ],
+      reklamation_status: [
+        "offen",
+        "in_pruefung",
+        "angenommen",
+        "abgelehnt",
+        "erledigt",
       ],
       sorte_typ: ["remontierend", "sommertragend"],
       spalierrichtung: ["n_s", "o_w"],

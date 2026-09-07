@@ -306,7 +306,7 @@
       "buchhaltung": "Contribution margin, pay, payments, state filings. No user management, no field sign-offs.",
       "brigade": "Accepts picking tasks, records volume and photo evidence in the field, sees rotation and pre-harvest-interval locks.",
       "erzeuger": "Neighbouring farm supplying produce. Sees its own row blocks, batches, settlement and contracts.",
-      "kunde": "Quotas, pre-orders, price lists, AI chat and released documents."
+      "kunde": "Quotas, pre-orders, price lists, AI chat, released documents and own complaints."
     }
   },
   "klassifikation": {
@@ -341,7 +341,8 @@
     "finanzen": "Finance",
     "dokumente": "Documents",
     "compliance": "Compliance",
-    "b2b_portal": "B2B portal"
+    "b2b_portal": "B2B portal",
+    "reklamationen": "Complaints"
   },
   "reihenblockStatus": {
     "bepflanzt": "planted",
@@ -545,6 +546,12 @@
       "description": "Multilingual, image-based short onboarding of seasonal workers on the phone - videos per core process, with pictures instead of text.",
       "summary": "Short image-based videos per core process, multilingual, with progress tracking per person.",
       "todo": "Video content per core process, Kazakh and Russian language versions, progress tracking per person."
+    },
+    "reklamationen": {
+      "title": "Complaint management",
+      "description": "A B2B client's complaint per batch - reason, deadline and history, with a status flow through to a credit note. A client reports and sees only their own complaint; the office handles and closes it.",
+      "summary": "List, detail and history per complaint, linked to the batch - traceable from there to the row block, picker and cooling curve.",
+      "todo": "Admin screen to link a client login to a B2B client record, automatic complaint rate in the KPI cockpit, notification as a deadline approaches."
     }
   },
   "reihenblockStatusHint": {
@@ -624,7 +631,10 @@
       "einwilligungWiderrufen": "Consent revoked.",
       "vorfallErfasst": "Data incident recorded.",
       "vorfallGemeldet": "Incident marked as reported.",
-      "drittweitergabeBenachrichtigt": "Notification recorded."
+      "drittweitergabeBenachrichtigt": "Notification recorded.",
+      "reklamation": "Complaint {wert} reported.",
+      "reklamationStatus": "Complaint {wert} updated.",
+      "reklamationNachricht": "Message added."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -639,7 +649,8 @@
       "regel": "Not possible: the waiting period has not elapsed yet.",
       "unbekannt": "Action failed. Details are in the server log.",
       "keineCharge": "This task has no batch.",
-      "kuehlkette": "Limit broken: {wert} minutes until measurement. The goods have to be downgraded."
+      "kuehlkette": "Limit broken: {wert} minutes until measurement. The goods have to be downgraded.",
+      "keinKunde": "Your account has no B2B client assigned. Please contact the administration."
     }
   },
   "standortVerwaltung": {
@@ -1151,5 +1162,87 @@
     "q3Text": "Grey coating, even at just one spot. Stays in the field: inside a closed punnet it infects the whole layer overnight.",
     "trayTitle": "The costliest mistake is a height",
     "trayText": "Seen from above, the overfilled punnet looks best: full, dense, no gap. But the lid presses on the top layer, and the bottom layer carries the weight. Raspberries carry no weight of their own - by the time it's in the shop, the bottom layer is juice. That is visible only from the side."
+  },
+  "reklamationStatus": {
+    "offen": "Open",
+    "in_pruefung": "Under review",
+    "angenommen": "Accepted",
+    "abgelehnt": "Rejected",
+    "erledigt": "Resolved"
+  },
+  "reklamationGrund": {
+    "qualitaet": "Quality",
+    "menge": "Quantity",
+    "verspaetung": "Delay",
+    "verpackung": "Packaging",
+    "temperatur": "Temperature",
+    "sonstiges": "Other"
+  },
+  "reklamationenAnsicht": {
+    "listTitle": "Complaints",
+    "listLead": "Sorted by report date - open and under-review ones also show the deadline.",
+    "empty": "No complaint recorded yet.",
+    "detailEmpty": "Select a complaint to see details and history.",
+    "kunde": "Client",
+    "charge": "Batch",
+    "reihenblock": "Row block",
+    "ohneCharge": "no batch reference",
+    "grund": "Reason",
+    "menge": "Affected quantity",
+    "gemeldetAm": "Reported on",
+    "gemeldetVon": "Reported by",
+    "frist": "Deadline",
+    "erledigtAm": "Closed on",
+    "loesung": "Resolution",
+    "gutschrift": "Credit note",
+    "verlaufTitel": "History",
+    "verlaufLeer": "No entry in the history yet.",
+    "internMarkierung": "internal",
+    "col": {
+      "code": "Reference",
+      "kunde": "Client",
+      "betreff": "Subject",
+      "grund": "Reason",
+      "status": "Status",
+      "frist": "Deadline",
+      "gemeldetAm": "Reported on"
+    },
+    "ablauf": {
+      "titel": "Handling",
+      "lead": "A status change is logged and - where visible to the client - shown in the history.",
+      "inPruefungKnopf": "Start review",
+      "annehmenKnopf": "Accept",
+      "ablehnenKnopf": "Reject",
+      "erledigtKnopf": "Close as resolved"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Report a complaint",
+        "leadKunde": "Sent to the office and handled there.",
+        "leadBuero": "Create for a B2B client.",
+        "knopf": "Report complaint"
+      },
+      "feld": {
+        "kunde": "B2B client",
+        "charge": "Batch (optional)",
+        "ohneCharge": "no batch reference",
+        "grund": "Reason",
+        "betreff": "Subject",
+        "beschreibung": "Description",
+        "menge": "Affected quantity in kg",
+        "frist": "Deadline (optional, otherwise automatically +5 days)"
+      },
+      "entscheidung": {
+        "loesung": "Resolution / justification",
+        "gutschrift": "Credit note in ₸ (optional)"
+      },
+      "nachricht": {
+        "titel": "Add a message",
+        "platzhalter": "Message for the history ...",
+        "intern": "Internal (not visible to the client)",
+        "knopf": "Add"
+      }
+    },
+    "note": "Every complaint is linked to the chain of evidence through the batch - traceable from there to the row block, picker and cooling curve."
   }
 }
