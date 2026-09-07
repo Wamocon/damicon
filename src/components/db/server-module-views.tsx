@@ -6,6 +6,8 @@ import { DokumenteAnsicht } from "@/components/db/dokumente-ansicht";
 import { ComplianceAnsicht } from "@/components/db/compliance-ansicht";
 import { ReklamationenAnsicht } from "@/components/db/reklamationen-ansicht";
 import { LohnAnsicht } from "@/components/db/lohn-ansicht";
+import { FinanzenAnsicht } from "@/components/db/finanzen-ansicht";
+import { RotationsplanAnsicht } from "@/components/db/rotationsplan-ansicht";
 import { ZukaufAnsicht } from "@/components/db/zukauf-ansicht";
 import { QrSteigenAnsicht } from "@/components/db/qr-steigen-ansicht";
 import type { ModuleDef } from "@/lib/modules";
@@ -48,6 +50,10 @@ export function serverModulAnsicht(
       );
     case "lohn":
       return <LohnAnsicht />;
+    case "finanzen":
+      return <FinanzenAnsicht />;
+    case "rotationsplan":
+      return <RotationsplanAnsicht />;
     case "aggregator":
       return <ZukaufAnsicht />;
     case "qr_steigen":

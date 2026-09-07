@@ -14,7 +14,11 @@ const handleI18nRouting = createMiddleware(routing);
 
 const localePrefix = routing.locales.join("|");
 const dashboardPfad = new RegExp(`^/(?:${localePrefix})/dashboard(?:/|$)`);
-const loginPfad = new RegExp(`^/(?:${localePrefix})/login(?:/|$)`);
+// Exakt "/login" (nicht "/login/mfa" mit) - die Challenge-Seite braucht eine
+// eigene, AAL-bewusste Behandlung weiter unten, sonst wuerde diese Regel sie
+// sofort wieder zum Dashboard umleiten, bevor sie ueberhaupt rendert.
+const loginPfad = new RegExp(`^/(?:${localePrefix})/login/?$`);
+const mfaPfad = new RegExp(`^/(?:${localePrefix})/login/mfa(?:/|$)`);
 
 function localeAus(pfad: string): string {
   const kandidat = pfad.split("/")[1];
@@ -67,8 +71,32 @@ export async function proxy(request: NextRequest) {
     return weiterleiten(ziel, response);
   }
 
-  if (user && loginPfad.test(pfad)) {
-    return weiterleiten(new URL(`/${locale}/dashboard`, request.url), response);
+  if (user) {
+    // Mehrfaktor-Authentifizierung (Anforderung 4.9): eine AAL1-Sitzung (nur
+    // Passwort) reicht nicht, wenn ein verifizierter zweiter Faktor verlangt
+    // wird. Diese Pruefung gehoert in den Proxy, nicht nur in die
+    // Login-Server-Action - sonst genuegt ein direkter Aufruf von
+    // /dashboard mit einer bestehenden AAL1-Sitzung, um die Challenge zu
+    // umgehen (siehe login/actions.ts fuer denselben Vergleich beim Login).
+    const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    const mfaOffen = !!aal && aal.nextLevel === "aal2" && aal.nextLevel !== aal.currentLevel;
+
+    if (mfaOffen && dashboardPfad.test(pfad)) {
+      const ziel = new URL(`/${locale}/login/mfa`, request.url);
+      ziel.searchParams.set("weiter", pfad);
+      return weiterleiten(ziel, response);
+    }
+
+    if (mfaOffen && loginPfad.test(pfad)) {
+      const ziel = new URL(`/${locale}/login/mfa`, request.url);
+      const weiterParam = request.nextUrl.searchParams.get("weiter");
+      if (weiterParam) ziel.searchParams.set("weiter", weiterParam);
+      return weiterleiten(ziel, response);
+    }
+
+    if (!mfaOffen && (loginPfad.test(pfad) || mfaPfad.test(pfad))) {
+      return weiterleiten(new URL(`/${locale}/dashboard`, request.url), response);
+    }
   }
 
   return response;

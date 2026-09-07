@@ -82,7 +82,14 @@ export const modules: ModuleDef[] = [
     icon: "calendar-sync",
     resource: "rotationsplan",
     klassifikation: "neu-bauen",
-    reifegrad: "in-entwicklung",
+    // Anforderung 2.2 (P1, "die erste zu bauende Funktion"): Zyklusrechnung
+    // und Sperrlogik laufen jetzt vollstaendig in der Datenbank (Migration
+    // 20260910000000) - Generator-RPC, automatisches Sperren/Entsperren bei
+    // Behandlung/Freigabe, automatisches Erledigen bei neuer Pflueckaufgabe.
+    // Wetterszenarien (dritter Teil der Anforderung) fehlen bewusst, siehe
+    // src/lib/domain/rotationsplan.ts - die Wetteranbindung (2.13) selbst
+    // ist noch nicht gebaut.
+    reifegrad: "angebunden",
   },
   {
     key: "wetter",
@@ -160,7 +167,12 @@ export const modules: ModuleDef[] = [
     icon: "coins",
     resource: "finanzen",
     klassifikation: "anpassen",
-    reifegrad: "demo",
+    // Anforderung 4.2 (P0): Kostentraeger und Ledger-Buchungen laufen jetzt
+    // ueber echte Schreibpfade unter RLS (Migration 20260909000000), der
+    // Deckungsbeitrag kommt aus der Datenbank-View
+    // deckungsbeitrag_je_kostentraeger - kein Mock mehr, siehe
+    // src/components/db/finanzen-ansicht.tsx.
+    reifegrad: "angebunden",
   },
   {
     key: "personal",

@@ -1,7 +1,8 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { Bell, LogOut, Search } from "lucide-react";
+import { Bell, LogOut, Search, ShieldCheck } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import { LocaleSwitcher } from "@/components/site/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PersonaSwitcher, usePersona } from "@/components/dashboard/persona";
@@ -39,6 +40,14 @@ function Benutzerbereich() {
           </span>
         </span>
       </div>
+      <Link
+        href="/dashboard/sicherheit"
+        aria-label={t("security")}
+        title={t("security")}
+        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-colors hover:bg-muted"
+      >
+        <ShieldCheck className="h-4 w-4" />
+      </Link>
       <form action={abmelden}>
         <input type="hidden" name="locale" value={locale} />
         <button

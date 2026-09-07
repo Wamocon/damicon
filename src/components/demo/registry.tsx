@@ -4,7 +4,7 @@ import type { ComponentType } from "react";
 import type { ModuleDef } from "@/lib/modules";
 import { ModulePlaceholder } from "@/components/dashboard/module-meta";
 import { PflanzenschutzDemo } from "@/components/demo/feld-extra";
-import { FinanzenDemo, PersonalDemo, RollenDemo } from "@/components/demo/buero";
+import { PersonalDemo, RollenDemo } from "@/components/demo/buero";
 import { SchulungenDemo, SortenkatalogDemo } from "@/components/demo/markt";
 import { KiAssistentMock, KuehlketteMock } from "@/components/demo/mocks";
 
@@ -20,7 +20,6 @@ const plain = (Cmp: ComponentType): ModuleView =>
 const registry: Record<string, ModuleView> = {
   pflanzenschutz: plain(PflanzenschutzDemo),
   rollen: plain(RollenDemo),
-  finanzen: plain(FinanzenDemo),
   personal: plain(PersonalDemo),
   sortenkatalog: plain(SortenkatalogDemo),
   schulungen: plain(SchulungenDemo),

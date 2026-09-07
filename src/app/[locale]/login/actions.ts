@@ -2,30 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { routing } from "@/i18n/routing";
+import { sicheresLocale, sicheresZiel } from "@/lib/auth-nav";
 
 export interface AnmeldeStatus {
   fehler: "ungueltig" | "unbekannt" | "eingabe" | null;
-}
-
-function sicheresLocale(wert: FormDataEntryValue | null): string {
-  const kandidat = String(wert ?? "");
-  return (routing.locales as readonly string[]).includes(kandidat)
-    ? kandidat
-    : routing.defaultLocale;
-}
-
-// Nur interne Pfade als Rueckkehrziel zulassen (kein Open Redirect).
-// "//fremd.example" und "/\fremd.example" sind protokollrelative Adressen und
-// fuehren aus der Anwendung heraus - beide Zeichen an zweiter Stelle sperren.
-function sicheresZiel(wert: FormDataEntryValue | null, locale: string): string {
-  const kandidat = String(wert ?? "");
-  const intern =
-    kandidat.startsWith("/") &&
-    kandidat[1] !== "/" &&
-    kandidat[1] !== "\\" &&
-    !kandidat.includes("\\");
-  return intern ? kandidat : `/${locale}/dashboard`;
 }
 
 export async function anmelden(
@@ -50,6 +30,17 @@ export async function anmelden(
   if (error) {
     // Kein Unterschied zwischen "Nutzer unbekannt" und "Passwort falsch".
     return { fehler: error.status === 400 ? "ungueltig" : "unbekannt" };
+  }
+
+  // Mehrfaktor-Authentifizierung (Anforderung 4.9): Passwort allein ergibt
+  // nach erfolgreichem signInWithPassword nur AAL1. Ist fuer dieses Konto ein
+  // verifizierter TOTP-Faktor eingerichtet, verlangt Supabase AAL2 - die
+  // Sitzung ist dann angelegt, aber fuer geschuetzte Aktionen noch nicht
+  // ausreichend. Ohne eingerichteten Faktor bleiben currentLevel und
+  // nextLevel gleich, der Login laeuft wie bisher direkt durch.
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  if (aal && aal.nextLevel === "aal2" && aal.nextLevel !== aal.currentLevel) {
+    redirect(`/${locale}/login/mfa?weiter=${encodeURIComponent(ziel)}`);
   }
 
   // redirect() wirft intern - deshalb ausserhalb jedes try/catch.

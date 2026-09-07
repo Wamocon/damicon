@@ -32,6 +32,7 @@ const demoKonten: Record<string, string> = {
   betriebsleitung: "leitung@malina.demo",
   buchhaltung: "buchhaltung@malina.demo",
   brigade: "brigade@malina.demo",
+  picker: "pfluecker@malina.demo",
   erzeuger: "erzeuger@malina.demo",
   kunde: "kunde@malina.demo",
 };

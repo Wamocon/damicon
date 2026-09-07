@@ -100,7 +100,7 @@
       "milestoneBDue": "en geç 19.09.2026",
       "dbCount": "{count} bağlı",
       "milestoneBItems": {
-        "rbac": "Altı temel rol ve yetki matrisiyle roller ve yetkiler",
+        "rbac": "Yedi temel rol ve yetki matrisiyle roller ve yetkiler",
         "hierarchy": "Konum hiyerarşisi: işletme, plantasyon, tarla parseli, sıra grubu, sıra bloğu - yönetim ekranıyla birlikte",
         "status": "Bitki koruma işleminden sonraki kilit durumu dahil sıra bloğu durum yönetimi",
         "tasks": "Ekip ve sıra bloğu bazında, satış kabının fotoğraf kanıtıyla toplama görevleri",
@@ -123,7 +123,7 @@
       "fehlerHint": "Sorgu başarısız oldu. Yerine örnek veriler gösteriliyor - bunlar işletmeden gelmiyor."
     },
     "rbacHintLabel": "Roller",
-    "rbacHint": "Hangi modüllerin görüneceği, oturum açan hesabın rolüne bağlıdır. Yönetimden tarladaki ekibe kadar altı temel rol - aynı rol veri tabanında okuma ve yazma yetkilerini de belirler."
+    "rbacHint": "Hangi modüllerin görüneceği, oturum açan hesabın rolüne bağlıdır. Yönetimden tarladaki tekil toplayıcıya kadar yedi temel rol - aynı rol veri tabanında okuma ve yazma yetkilerini de belirler."
   },
   "roles": {
     "switcherHint": "Demo rolünü değiştir - görünen navigasyonu belirler",
@@ -131,6 +131,7 @@
     "betriebsleitung": "İşletme yönetimi",
     "buchhaltung": "Muhasebe",
     "brigade": "Ekip / tarla",
+    "picker": "Toplayıcı",
     "erzeuger": "Üretici / komşu işletme",
     "kunde": "B2B müşteri",
     "descriptions": {
@@ -138,6 +139,7 @@
       "betriebsleitung": "Günlük plantasyon işleri, görevler, rotasyon, personel ve onaylar. Finansı görebilir ama kayıt yapamaz.",
       "buchhaltung": "Katkı payı, ücret, ödemeler, devlet bildirimleri. Kullanıcı yönetimi ve saha görevi kapatma yok.",
       "brigade": "Toplama görevlerini kabul eder, tarlada miktar ve fotoğraf kanıtını kaydeder, rotasyonu ve bekleme kilitlerini görür.",
+      "picker": "Yalnızca kendi toplama performansını ve bordrosunu görür. Kaydedilen miktarlara veya başkasının verilerine yazma yetkisi yoktur.",
       "erzeuger": "Alımdaki komşu işletme. Kendi sıra bloklarını, partilerini, hesaplarını ve sözleşmelerini görür.",
       "kunde": "Kontenjanlar, ön sipariş, fiyat listeleri, yapay zeka sohbeti, paylaşılan belgeler ve kendi şikâyetleri."
     },
@@ -191,6 +193,50 @@
     "in_arbeit": "işlemde",
     "beleg_pruefung": "kanıt incelemesi",
     "abgeschlossen": "tamamlandı"
+  },
+  "rotationsplanStatus": {
+    "geplant": "planlandı",
+    "gesperrt": "kilitli",
+    "erledigt": "tamamlandı",
+    "uebersprungen": "atlandı"
+  },
+  "rotationsplanAnsicht": {
+    "uebersichtTitel": "Bir bakışta rotasyon planı",
+    "uebersichtLead": "Sıra bloğu başına döngüsel toplama tarihleri. Kilitler ve serbest bırakmalar işlemlerden ve bekleme sürelerinden otomatik alınır.",
+    "stat": {
+      "geplant": "Hâlâ planlı",
+      "ueberfaellig": "Gecikmiş",
+      "ueberfaelligHinweis": "Tarih geçti, henüz toplama görevi yok",
+      "gesperrt": "Kilitli",
+      "gesperrtHinweis": "Devam eden bir bekleme süresi kilidine denk geliyor",
+      "erledigt": "Tamamlandı"
+    },
+    "tabelleTitel": "Tarihler",
+    "tabelleLead": "Bir hafta geriden iki hafta ileriye, tarihe göre sıralı. \"Plan oluştur\" burada hepsi bir arada gösterilmese de daha ileriye planlar.",
+    "keineEintraege": "Henüz plan oluşturulmadı.",
+    "col": {
+      "reihenblock": "Sıra bloğu",
+      "sorte": "Çeşit",
+      "brigade": "Ekip",
+      "termin": "Tarih",
+      "intervall": "Aralık",
+      "status": "Durum",
+      "aufgabe": "Toplama görevi",
+      "aktion": "İşlem"
+    },
+    "tage": "gün",
+    "ueberfaelligLabel": "gecikmiş",
+    "ueberspringenKnopf": "Atla",
+    "reaktivierenKnopf": "Yeniden etkinleştir",
+    "note": "Hava durumu senaryoları (ör. sıcaklıkta tarihleri öne çekme) henüz dahil değil - hava durumu entegrasyonu (büyüme derece günü hesaplaması) kendisi henüz kurulmadı. Kilit mantığı tamdır: yeni bir işlem etkilenen tarihleri otomatik kilitler, serbest bırakma tekrar açar, ve ilk uyan toplama görevi bir tarihi tamamlandı olarak işaretler.",
+    "formular": {
+      "generieren": {
+        "titel": "Plan oluştur / genişlet",
+        "lead": "Her sıra bloğu için döngüyü son planlanan veya gerçek hasat tarihinden devam ettirir. Tekrar çalıştırmak yinelenen kayıt oluşturmaz.",
+        "wochen": "Kaç hafta ileri",
+        "knopf": "Plan oluştur"
+      }
+    }
   },
   "pflueckaufgabenDemo": {
     "listTitle": "Bugünün toplama görevleri",
@@ -249,27 +295,75 @@
     "note": "Her blok iki üç günde bir toplandığı, bitkilerin ise ilaçlanmaya devam etmesi gerektiği için bir blok bekleme süresi içinde yanlışlıkla hasat edilebilir. Otomatik kilit tam olarak bunu engeller."
   },
   "rollenDemo": {
-    "rolesTitle": "Altı çekirdek rol",
+    "rolesTitle": "Yedi çekirdek rol",
     "scope": "Alan",
     "matrixTitle": "Yetki matrisi (kesit, görüntüleme eylemi)",
     "resource": "Kaynak",
-    "rolesLead": "Yönetim, işletme müdürlüğü, muhasebe, tarladaki ekip, üretici ve B2B müşterisi. Her rol yalnızca ihtiyaç duyduğu modülleri görür.",
+    "rolesLead": "Yönetim, işletme müdürlüğü, muhasebe, tarladaki ekip, toplayıcı, üretici ve B2B müşterisi. Her rol yalnızca ihtiyaç duyduğu modülleri görür.",
     "matrixLead": "Roller çarpı kaynaklar - yeni rollerin mantığa dokunmadan eklenmesini sağlayan açık bir veri yapısı.",
     "matrixNote": "Tüm kaynaklar ve eylemler için eksiksiz matris. Veri tabanı düzeyindeki erişim kuralları her kaynak için ayrı yazılır.",
     "note": "Kimlikler ve roller dört alanın tamamını keser - kayıt tutma, şifreleme ve çok faktörlü kimlik doğrulamayla birlikte."
   },
-  "finanzenDemo": {
-    "dbTitle": "Sıra bloğu ve hasat günü başına katkı payı",
+  "finanzenAnsicht": {
+    "uebersichtTitel": "Bir bakışta katkı payı",
+    "uebersichtLead": "Tüm maliyet nesneleri ve kayıtların toplamı. Gelir ve gider, değiştirilemeyen finans defterinden gelir (gereksinim 4.1).",
+    "stat": {
+      "erloes": "Toplam gelir",
+      "kosten": "Toplam maliyet",
+      "deckungsbeitrag": "Toplam katkı payı",
+      "deckungsbeitragHinweis": "Gelir eksi maliyet, veritabanında hesaplanır"
+    },
+    "erloes": "Gelir",
+    "kosten": "Maliyet",
+    "kostentraegerTitel": "Maliyet nesneleri ve katkı payı",
+    "kostentraegerLead": "Maliyet yeri: sıra bloğu. Dar anlamda maliyet nesnesi: çeşit ve müşteri. Bir maliyet nesnesi ikisini birden taşıyabilir.",
+    "keineKostentraeger": "Henüz maliyet nesnesi oluşturulmadı.",
     "col": {
-      "block": "Sıra bloğu",
+      "bezeichnung": "Ad",
+      "reihenblock": "Sıra bloğu",
       "sorte": "Çeşit",
-      "erntetag": "Hasat günü",
+      "kunde": "Müşteri",
       "erloes": "Gelir",
       "kosten": "Maliyet",
-      "db": "Katkı payı"
+      "deckungsbeitrag": "Katkı payı",
+      "datum": "Tarih",
+      "kostentraegerSpalte": "Maliyet nesnesi",
+      "typ": "Tür",
+      "kategorie": "Kategori",
+      "betrag": "Tutar"
     },
-    "dbLead": "Maliyet nesneleri: sıra bloğu, çeşit, hasat günü. Gelir ve giderler parti bazında işlenir, kayıtlar değiştirilemez.",
-    "note": "Kilogram başına katkı payı temel yönetim ölçüsüdür. Yıl sonunda değil, sıra bloğu, çeşit ve hasat günü bazında oluşur."
+    "ledgerTitel": "Kayıtlar",
+    "ledgerLead": "Yalnızca ekleme: yanlış bir kayıt, ilkini değiştirerek değil, ters kayıtla düzeltilir.",
+    "keineBuchungen": "Henüz kayıt işlenmedi.",
+    "note": "Kilogram başına katkı payı temel yönetim ölçüsüdür (\"deckungsbeitrag\" göstergesi). Yıl sonunda değil, sıra bloğu, çeşit, hasat günü ve müşteri bazında oluşur. Kayıtlar değiştirilemez; veritabanı arayüzden bağımsız olarak finans defterinde UPDATE ve DELETE'i reddeder.",
+    "formular": {
+      "kostentraeger": {
+        "titel": "Yeni maliyet nesnesi oluştur",
+        "lead": "Sıra bloğu, çeşit ve müşteri tek tek isteğe bağlıdır - en az bir bağlantı zorunludur, aksi halde katkı payı sonradan ilişkilendirilemez.",
+        "bezeichnung": "Ad",
+        "reihenblock": "Sıra bloğu",
+        "sorte": "Çeşit",
+        "kunde": "Müşteri",
+        "keinBezug": "bağlantı yok",
+        "erntetag": "Hasat günü",
+        "knopf": "Maliyet nesnesi oluştur"
+      },
+      "buchung": {
+        "titel": "Kayıt işle",
+        "lead": "Mevcut bir maliyet nesnesi için gelir veya gider. Kayıt sonradan değiştirilemez, yalnızca ters kayıtla düzeltilebilir.",
+        "kostentraeger": "Maliyet nesnesi",
+        "bitteWaehlen": "lütfen seçin",
+        "typ": "Tür",
+        "erloes": "Gelir",
+        "kosten": "Maliyet",
+        "kategorie": "Kategori",
+        "kategoriePlatzhalter": "ör. hasat + soğutma",
+        "betrag": "Tutar (₸)",
+        "buchungsdatum": "Kayıt tarihi",
+        "beschreibung": "Açıklama (isteğe bağlı)",
+        "knopf": "Kaydı işle"
+      }
+    }
   },
   "personalDemo": {
     "brigadenTitle": "Ekipler",
@@ -536,7 +630,38 @@
     "demoModeTitle": "Veri tabanı olmadan demo modu",
     "demoModeLead": "Tanımlı bir Supabase ortamı yok. Panel örnek verilerle çalışır, rol serbestçe değiştirilebilir.",
     "toDashboard": "Panele git",
-    "signOut": "Oturumu kapat"
+    "signOut": "Oturumu kapat",
+    "security": "Güvenlik",
+    "mfaChallenge": {
+      "title": "İkinci faktör",
+      "lead": "Bu hesap için ikinci bir faktör tanımlı. Lütfen kimlik doğrulayıcı uygulamadaki güncel kodu girin.",
+      "codeLabel": "6 haneli kod",
+      "submit": "Onayla",
+      "submitting": "Kontrol ediliyor ...",
+      "error": {
+        "code": "Kod yanlış veya süresi doldu.",
+        "unbekannt": "Kontrol başarısız oldu. Lütfen daha sonra tekrar deneyin."
+      }
+    }
+  },
+  "mfa": {
+    "title": "Güvenlik",
+    "description": "Çok faktörlü kimlik doğrulama (gereksinim 4.9). Bir kimlik doğrulayıcı uygulama üzerinden ikinci faktör, parola ele geçirilse bile hesabı korur.",
+    "keineUmgebung": "Supabase ortamı olmadan gerçek bir hesap yok - çok faktörlü kimlik doğrulama ancak oturum açıldıktan sonra devreye girer.",
+    "faktorenTitel": "Tanımlı faktörler",
+    "faktorenLead": "Bir TOTP faktörü yeterlidir. Örneğin yedek bir cihaz için birden fazlası da mümkündür.",
+    "keinFaktor": "Henüz ikinci faktör tanımlanmadı.",
+    "nichtGeschuetzt": "korumasız",
+    "entfernen": "Kaldır",
+    "hinzufuegenKnopf": "İkinci faktör kur",
+    "schrittZweiTitel": "Kimlik doğrulayıcı uygulamayı bağla",
+    "schrittZweiLead": "QR kodu kimlik doğrulayıcı uygulamayla tarayın (örn. Google Authenticator, Authy) veya secret'ı elle girin, ardından gösterilen 6 haneli kodu onaylayın.",
+    "qrAlt": "Kimlik doğrulayıcı uygulama için QR kod",
+    "qrHinweis": "Tarayıcı yok mu? Secret'ı uygulamaya elle girin:",
+    "codeLabel": "Uygulamadaki kod",
+    "bestaetigenKnopf": "Onayla",
+    "erfolg": "İkinci faktör kuruldu ve etkin.",
+    "note": "Bir sonraki oturum açışta parolaya ek olarak kod istenecektir. Faktör tanımlanmamışsa oturum açma eskisi gibi devam eder - çok faktörlü kimlik doğrulama gereksinim 4.9 için zorunludur, rol bazında zorunlu kılınması ileriki bir geliştirme adımıdır."
   },
   "kpis": {
     "verlustquote": {
@@ -645,7 +770,7 @@
     },
     "rollen": {
       "title": "Roller ve yetkiler",
-      "description": "Yönetimden işletme müdürlüğüne, muhasebeden tarladaki ekibe, üreticiye ve B2B müşterisine kadar altı temel rol - kaynaklar ve eylemler üzerinden bir yetki matrisiyle.",
+      "description": "Yönetimden işletme müdürlüğüne, muhasebeden tarladaki ekibe ve toplayıcıya, üreticiye ve B2B müşterisine kadar yedi temel rol - kaynaklar ve eylemler üzerinden bir yetki matrisiyle.",
       "summary": "Roller, kaynak çarpı eylem şeklinde açık bir veri yapısı olarak. Yeni roller mantığa dokunmadan eklenir.",
       "todo": "Kullanıcı yönetimi, rol atama, kaynak bazında ayrıntılı erişim kuralları."
     },
@@ -799,7 +924,12 @@
       "lohnBerechnet": "{wert} bordro hesaplandı - zaten onaylanmış veya ödenmiş satırlar değişmeden kalır.",
       "lohnStatus": "{wert} için bordro güncellendi.",
       "zukaufImport": "{wert} pozisyon içe aktarıldı.",
-      "zukaufPreis": "Fiyat eklendi."
+      "zukaufPreis": "Fiyat eklendi.",
+      "kostentraeger": "\"{wert}\" maliyet nesnesi oluşturuldu.",
+      "buchung": "\"{wert}\" kaydı işlendi.",
+      "mfaEntfernt": "İkinci faktör kaldırıldı.",
+      "rotationsplanGeneriert": "{wert} yeni tarih oluşturuldu.",
+      "rotationsplanStatus": "{wert} için tarih güncellendi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -816,7 +946,9 @@
       "keineCharge": "Bu göreve ait bir parti yok.",
       "kuehlkette": "Sınır aşıldı: ölçüme kadar {wert} dakika. Ürünün değeri düşürülmeli.",
       "keinKunde": "Hesabınıza bağlı bir B2B müşterisi yok. Lütfen yönetimle iletişime geçin.",
-      "zukaufBefunde": "Girişte {wert} hata bulundu - hiçbir şey içe aktarılmadı. Aşağıdaki kontrol sonuçlarına bakın."
+      "zukaufBefunde": "Girişte {wert} hata bulundu - hiçbir şey içe aktarılmadı. Aşağıdaki kontrol sonuçlarına bakın.",
+      "code": "Kod yanlış veya süresi doldu. Lütfen kimlik doğrulayıcı uygulamadaki güncel 6 haneli kodu girin.",
+      "zustand": "Tarih bu sırada değişti (ör. kilitlendi veya zaten tamamlandı). Lütfen sayfayı yeniden yükleyin."
     }
   },
   "standortVerwaltung": {

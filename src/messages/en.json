@@ -233,7 +233,38 @@
     "demoModeTitle": "Demo mode without database",
     "demoModeLead": "No Supabase environment is configured. The dashboard runs on sample data and the role can be switched freely.",
     "toDashboard": "Go to dashboard",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "security": "Security",
+    "mfaChallenge": {
+      "title": "Second factor",
+      "lead": "A second factor is set up for this account. Please enter the current code from your authenticator app.",
+      "codeLabel": "6-digit code",
+      "submit": "Confirm",
+      "submitting": "Checking ...",
+      "error": {
+        "code": "The code is wrong or expired.",
+        "unbekannt": "Check failed. Please try again later."
+      }
+    }
+  },
+  "mfa": {
+    "title": "Security",
+    "description": "Multi-factor authentication (requirement 4.9). A second factor via an authenticator app protects the account even if the password becomes known.",
+    "keineUmgebung": "Without a Supabase environment there is no real account - multi-factor authentication only applies after signing in.",
+    "faktorenTitel": "Configured factors",
+    "faktorenLead": "One TOTP factor is enough. Several are possible, for instance for a backup device.",
+    "keinFaktor": "No second factor set up yet.",
+    "nichtGeschuetzt": "unprotected",
+    "entfernen": "Remove",
+    "hinzufuegenKnopf": "Set up second factor",
+    "schrittZweiTitel": "Connect authenticator app",
+    "schrittZweiLead": "Scan the QR code with your authenticator app (e.g. Google Authenticator, Authy) or enter the secret manually, then confirm the displayed 6-digit code.",
+    "qrAlt": "QR code for the authenticator app",
+    "qrHinweis": "No scanner at hand? Enter the secret into the app manually:",
+    "codeLabel": "Code from the app",
+    "bestaetigenKnopf": "Confirm",
+    "erfolg": "Second factor set up and active.",
+    "note": "At the next sign-in the code will be requested in addition to the password. Without a configured factor, sign-in stays as before - multi-factor authentication is required by requirement 4.9, enforcing it per role is a later expansion step."
   },
   "dashboard": {
     "searchPlaceholder": "Search row block, batch, picker, document ...",
@@ -249,7 +280,7 @@
       "fehlerHint": "The query failed. Sample data is shown instead - it does not come from the farm."
     },
     "rbacHintLabel": "Roles",
-    "rbacHint": "Which modules are visible depends on the role of the signed-in account. Six core roles, from administration to the brigade in the field - the same role also governs read and write permissions in the database.",
+    "rbacHint": "Which modules are visible depends on the role of the signed-in account. Seven core roles, from administration to the individual picker in the field - the same role also governs read and write permissions in the database.",
     "home": {
       "eyebrow": "Farm management",
       "title": "Damicon operations overview",
@@ -277,7 +308,7 @@
       "milestoneBName": "Milestone B - foundation build with real main functions",
       "milestoneBDue": "by 19 Sep 2026 at the latest",
       "milestoneBItems": {
-        "rbac": "Roles and permissions with six core roles and a permission matrix",
+        "rbac": "Roles and permissions with seven core roles and a permission matrix",
         "hierarchy": "Location hierarchy - farm, plantation, field plot, row group, row block - including administration",
         "status": "Row-block status management including the lock state after a plant-protection treatment",
         "tasks": "Picking tasks with a photo of the retail punnet, per brigade and row block",
@@ -299,6 +330,7 @@
     "betriebsleitung": "Farm management",
     "buchhaltung": "Accounting",
     "brigade": "Brigade / field",
+    "picker": "Picker",
     "erzeuger": "Grower / neighbouring farm",
     "kunde": "B2B client",
     "descriptions": {
@@ -306,6 +338,7 @@
       "betriebsleitung": "Daily plantation operations, tasks, rotation, staff and approvals. Can view finance but not post entries.",
       "buchhaltung": "Contribution margin, pay, payments, state filings. No user management, no field sign-offs.",
       "brigade": "Accepts picking tasks, records volume and photo evidence in the field, sees rotation and pre-harvest-interval locks.",
+      "picker": "Sees only their own picking performance and payslip. No write access to posted quantities or anyone else's data.",
       "erzeuger": "Neighbouring farm supplying produce. Sees its own row blocks, batches, settlement and contracts.",
       "kunde": "Quotas, pre-orders, price lists, AI chat, released documents and own complaints."
     }
@@ -358,6 +391,50 @@
     "in_arbeit": "in progress",
     "beleg_pruefung": "evidence review",
     "abgeschlossen": "completed"
+  },
+  "rotationsplanStatus": {
+    "geplant": "planned",
+    "gesperrt": "locked",
+    "erledigt": "done",
+    "uebersprungen": "skipped"
+  },
+  "rotationsplanAnsicht": {
+    "uebersichtTitel": "Rotation plan at a glance",
+    "uebersichtLead": "Cyclical picking dates per row block. Locks and releases are taken automatically from treatments and pre-harvest intervals.",
+    "stat": {
+      "geplant": "Still planned",
+      "ueberfaellig": "Overdue",
+      "ueberfaelligHinweis": "Date has passed, no picking task yet",
+      "gesperrt": "Locked",
+      "gesperrtHinweis": "Falls within an active pre-harvest-interval lock",
+      "erledigt": "Done"
+    },
+    "tabelleTitel": "Dates",
+    "tabelleLead": "One week back to two weeks ahead, sorted by date. \"Generate plan\" plans further ahead even though not everything is shown here at once.",
+    "keineEintraege": "No plan generated yet.",
+    "col": {
+      "reihenblock": "Row block",
+      "sorte": "Variety",
+      "brigade": "Brigade",
+      "termin": "Date",
+      "intervall": "Interval",
+      "status": "Status",
+      "aufgabe": "Picking task",
+      "aktion": "Action"
+    },
+    "tage": "days",
+    "ueberfaelligLabel": "overdue",
+    "ueberspringenKnopf": "Skip",
+    "reaktivierenKnopf": "Reactivate",
+    "note": "Weather scenarios (e.g. moving dates forward in heat) are not yet included - the weather integration (growing-degree-day calculation) itself is not built yet. The lock logic is complete: a new treatment automatically locks the affected dates, the release unlocks them again, and the first matching picking task marks a date as done.",
+    "formular": {
+      "generieren": {
+        "titel": "Generate / extend plan",
+        "lead": "Continues the cycle per row block from the last planned or actual harvest date. Running it repeatedly creates no duplicates.",
+        "wochen": "Weeks ahead",
+        "knopf": "Generate plan"
+      }
+    }
   },
   "kpis": {
     "verlustquote": {
@@ -466,7 +543,7 @@
     },
     "rollen": {
       "title": "Roles and permissions",
-      "description": "Six core roles, from administration through farm management and accounting to the brigade in the field, the grower and the B2B client - with a permission matrix over resources and actions.",
+      "description": "Seven core roles, from administration through farm management and accounting to the brigade and the individual picker in the field, the grower and the B2B client - with a permission matrix over resources and actions.",
       "summary": "Roles as a clear data structure over resources by actions. New roles without touching the logic.",
       "todo": "User management, role assignment, fine-grained access rules per resource."
     },
@@ -640,7 +717,12 @@
       "lohnBerechnet": "{wert} settlement(s) calculated - already approved or paid rows stay unchanged.",
       "lohnStatus": "Settlement for {wert} updated.",
       "zukaufImport": "{wert} position(s) imported.",
-      "zukaufPreis": "Price added."
+      "zukaufPreis": "Price added.",
+      "kostentraeger": "Cost object \"{wert}\" created.",
+      "buchung": "Posting \"{wert}\" recorded.",
+      "mfaEntfernt": "Second factor removed.",
+      "rotationsplanGeneriert": "{wert} new dates created.",
+      "rotationsplanStatus": "Date for {wert} updated."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -657,7 +739,9 @@
       "keineCharge": "This task has no batch.",
       "kuehlkette": "Limit broken: {wert} minutes until measurement. The goods have to be downgraded.",
       "keinKunde": "Your account has no B2B client assigned. Please contact the administration.",
-      "zukaufBefunde": "{wert} error(s) found in the input - nothing was imported. See the check results below."
+      "zukaufBefunde": "{wert} error(s) found in the input - nothing was imported. See the check results below.",
+      "code": "The code is wrong or expired. Please enter the current 6-digit code from your authenticator app.",
+      "zustand": "The date has changed in the meantime (e.g. locked or already done). Please reload the page."
     }
   },
   "standortVerwaltung": {
@@ -818,8 +902,8 @@
     "note": "Because every block is picked every two to three days while the crop still has to be treated, a block can be harvested inside the pre-harvest interval by mistake. That is exactly what the automatic lock prevents."
   },
   "rollenDemo": {
-    "rolesTitle": "Six core roles",
-    "rolesLead": "Administration, farm management, accounting, brigade in the field, grower and B2B client. Each role sees exactly the modules it needs.",
+    "rolesTitle": "Seven core roles",
+    "rolesLead": "Administration, farm management, accounting, brigade in the field, picker, grower and B2B client. Each role sees exactly the modules it needs.",
     "scope": "Scope",
     "matrixTitle": "Permission matrix (excerpt, view action)",
     "matrixLead": "Roles by resources - a clear data structure that allows new roles without touching the logic.",
@@ -827,18 +911,66 @@
     "matrixNote": "Full matrix across all resources and actions. The database-level access rules are written per resource individually.",
     "note": "Identities and roles run across all four areas - together with logging, encryption and multi-factor authentication."
   },
-  "finanzenDemo": {
-    "dbTitle": "Contribution margin per row block and harvest day",
-    "dbLead": "Cost object: row block, variety, harvest day. Revenue and cost are posted per batch, the postings are immutable.",
+  "finanzenAnsicht": {
+    "uebersichtTitel": "Contribution margin at a glance",
+    "uebersichtLead": "Total across all cost objects and postings. Revenue and cost come from the immutable finance ledger (requirement 4.1).",
+    "stat": {
+      "erloes": "Total revenue",
+      "kosten": "Total cost",
+      "deckungsbeitrag": "Total contribution margin",
+      "deckungsbeitragHinweis": "Revenue minus cost, computed by the database"
+    },
+    "erloes": "Revenue",
+    "kosten": "Cost",
+    "kostentraegerTitel": "Cost objects and contribution margin",
+    "kostentraegerLead": "Cost centre: row block. Cost object in the narrow sense: variety and client. One cost object can carry both at once.",
+    "keineKostentraeger": "No cost object created yet.",
     "col": {
-      "block": "Row block",
+      "bezeichnung": "Name",
+      "reihenblock": "Row block",
       "sorte": "Variety",
-      "erntetag": "Harvest day",
+      "kunde": "Client",
       "erloes": "Revenue",
       "kosten": "Cost",
-      "db": "Contribution margin"
+      "deckungsbeitrag": "Contribution margin",
+      "datum": "Date",
+      "kostentraegerSpalte": "Cost object",
+      "typ": "Type",
+      "kategorie": "Category",
+      "betrag": "Amount"
     },
-    "note": "The contribution margin per kilogram is the central steering figure. It is formed per row block, variety and harvest day - not only at year end."
+    "ledgerTitel": "Postings",
+    "ledgerLead": "Append only: a wrong posting is corrected with a reversing entry, not by changing the original.",
+    "keineBuchungen": "No posting recorded yet.",
+    "note": "The contribution margin per kilogram is the central steering figure (KPI \"deckungsbeitrag\"). It is formed per row block, variety, harvest day and client - not only at year end. Postings are immutable; the database rejects UPDATE and DELETE on the finance ledger regardless of the interface.",
+    "formular": {
+      "kostentraeger": {
+        "titel": "Create new cost object",
+        "lead": "Row block, variety and client are each optional - at least one reference is required, otherwise the contribution margin cannot be attributed later.",
+        "bezeichnung": "Name",
+        "reihenblock": "Row block",
+        "sorte": "Variety",
+        "kunde": "Client",
+        "keinBezug": "no reference",
+        "erntetag": "Harvest day",
+        "knopf": "Create cost object"
+      },
+      "buchung": {
+        "titel": "Record a posting",
+        "lead": "Revenue or cost for an existing cost object. The posting cannot be changed afterwards, only corrected with a reversing entry.",
+        "kostentraeger": "Cost object",
+        "bitteWaehlen": "please choose",
+        "typ": "Type",
+        "erloes": "Revenue",
+        "kosten": "Cost",
+        "kategorie": "Category",
+        "kategoriePlatzhalter": "e.g. harvest + cooling",
+        "betrag": "Amount in ₸",
+        "buchungsdatum": "Posting date",
+        "beschreibung": "Description (optional)",
+        "knopf": "Record posting"
+      }
+    }
   },
   "personalDemo": {
     "brigadenTitle": "Brigades",

@@ -1,13 +1,17 @@
 // Rollen von Malina - direkt aus 1Cati `apps/web/lib/rbac.ts` uebernommen
 // ([UEBERNEHMEN], Analyse Kapitel 5). Die Guardianship-/Kind-Rollen aus 1Cati
 // (guest, service_provider, child_owner, child_tenant, child_guest) sind wie in
-// der Analyse gefordert entfernt. Es bleiben sechs Kernrollen mit Agrar-Bezug.
+// der Analyse gefordert entfernt. Es bleiben sechs Kernrollen mit Agrar-Bezug,
+// dazu "picker" als siebte, neue Rolle ohne 1Cati-Entsprechung (Anforderung
+// 7.1 aus dem Masterplan): der einzelne Pfluecker, beschraenkt auf die eigene
+// Leistung, ohne Schreibrecht auf gebuchte Mengen.
 
 export const roles = [
   "admin",
   "betriebsleitung",
   "buchhaltung",
   "brigade",
+  "picker",
   "erzeuger",
   "kunde",
 ] as const;
@@ -59,7 +63,7 @@ export interface RoleDefinition {
   labelKey: string;
   descriptionKey: string;
   level: number;
-  scope: "betrieb" | "plantage" | "finanzen" | "feld" | "erzeugerbetrieb" | "kunde";
+  scope: "betrieb" | "plantage" | "finanzen" | "feld" | "pfluecker" | "erzeugerbetrieb" | "kunde";
   catiRole: string;
 }
 
@@ -97,6 +101,14 @@ export const roleDefinitions: RoleDefinition[] = [
     level: 40,
     scope: "feld",
     catiRole: "staff",
+  },
+  {
+    key: "picker",
+    labelKey: "roles.picker",
+    descriptionKey: "roles.descriptions.picker",
+    level: 25,
+    scope: "pfluecker",
+    catiRole: "keine Entsprechung - neu ab Anforderung 7.1",
   },
   {
     key: "erzeuger",
@@ -191,6 +203,14 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...view("kuehlkette"),
     ...view("schulungen"),
   ],
+  // Sieht nur die eigene Leistung (Anforderung 7.1): view("lohn") oeffnet
+  // dasselbe Lohn-Modul wie betriebsleitung/buchhaltung, die RLS-Policies
+  // lohn_abrechnungen_select_own/lohn_positionen_select_own (Migration
+  // 20260909010000) lassen dabei ausschliesslich die eigene Zeile durch, ueber
+  // profiles.pfluecker_id. Kein view("pflueckaufgaben"): das waere
+  // betriebsweite Sicht statt "nur die eigene Leistung" - fuer die
+  // Aufgabenzuweisung im Feld bleibt die Rolle brigade zustaendig.
+  picker: [...view("dashboard"), ...view("lohn"), ...view("schulungen")],
   erzeuger: [
     ...view("dashboard"),
     ...view("reihenbloecke"),
