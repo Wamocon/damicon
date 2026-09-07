@@ -200,6 +200,54 @@ await mussScheitern(
   "23514",
 );
 
+// --- 6. Oeffentliche Herkunftsauskunft (WMCNL-1456) -------------------------
+// Schneller Vorab-Check der drei wichtigsten Eigenschaften; der massgebliche
+// Nachweis, dass SECURITY DEFINER die "force row level security" aus
+// 20260905160000_haerten.sql zuverlaessig umgeht, bleibt der echte
+// db:test-Lauf (siehe Kommentar am Dateikopf).
+{
+  const { rows: charge } = await db.query(
+    "select oeffentlicher_code from public.chargen where oeffentlicher_code is not null limit 1;",
+  );
+  const echterCode = charge[0]?.oeffentlicher_code;
+  check(
+    "Herkunft: eine Seed-Charge traegt einen gueltigen oeffentlichen Code",
+    typeof echterCode === "string" && /^hk_[0-9a-f]{16}$/.test(echterCode),
+    `code: ${echterCode}`,
+  );
+
+  await alsRolle(db, "anon");
+
+  const { rows: treffer } = await db.query(
+    "select * from public.herkunftsauskunft($1);",
+    [echterCode],
+  );
+  check(
+    "Herkunft: anon liest ueber den echten Code eine Zeile (SECURITY DEFINER umgeht RLS)",
+    treffer.length === 1,
+    `Zeilen: ${treffer.length}`,
+  );
+
+  const { rows: keinTreffer } = await db.query(
+    "select * from public.herkunftsauskunft($1);",
+    ["hk_0000000000000000"],
+  );
+  check(
+    "Herkunft: anon liest ueber einen falschen Code keine Zeile",
+    keinTreffer.length === 0,
+    `Zeilen: ${keinTreffer.length}`,
+  );
+
+  const { rows: chargenDirekt } = await db.query("select id from public.chargen limit 5;");
+  check(
+    "Herkunft-Regression: anon liest chargen weiterhin nicht direkt",
+    chargenDirekt.length === 0,
+    `Zeilen: ${chargenDirekt.length}`,
+  );
+
+  await alsAdmin(db);
+}
+
 // --- Aufraeumen ---------------------------------------------------------------
 await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [behandlungId]);
 await db.query("update public.reihenbloecke set status = 'ruhend' where id = $1;", [blockId]);

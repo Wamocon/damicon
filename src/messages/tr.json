@@ -1116,6 +1116,38 @@
       "temperatur": "Sıcaklık, °C"
     }
   },
+  "oeffentlicheHerkunft": {
+    "title": "Menşe kaydı",
+    "lead": "Bu tek parti için sıra bloğu, çeşit, hasat günü ve soğutma süresi - oturum açmadan.",
+    "notFoundTitle": "Eşleşme yok",
+    "notFound": "Bu kod için kayıt bulunmuyor. Lütfen yazımı kontrol edin.",
+    "backToSearch": "Başka bir kod kontrol et",
+    "keinePersonen": "Bu kayıt hiçbir kişiyi belirtmez.",
+    "fields": {
+      "reihenblock": "Sıra bloğu",
+      "sorte": "Çeşit",
+      "ernteDatum": "Hasat günü",
+      "gepflueckt": "Toplandı",
+      "vorgekuehlt": "Ön soğutuldu"
+    },
+    "kuehlung": {
+      "minuten": "Ön soğutmaya {minuten} dakika",
+      "offen": "Ön soğutma bekliyor",
+      "gehalten": "60 dakikalık sınır tutuldu",
+      "gerissen": "60 dakikalık sınır aşıldı"
+    },
+    "wartezeit": {
+      "eingehalten": "Bekleme süresine uyuldu",
+      "verletzt": "Bekleme süresi ihlal edildi"
+    },
+    "suche": {
+      "title": "Menşei kontrol et",
+      "lead": "Kasadaki veya irsaliyedeki kodu girin.",
+      "label": "Kod",
+      "placeholder": "hk_...",
+      "submit": "Kontrol et"
+    }
+  },
   "fehlerseite": {
     "titel": "Bu görünüm yüklenemedi",
     "lead": "Veriler şu anda erişilebilir değil. İşlem yapılmadı, hiçbir şey kaybolmadı.",

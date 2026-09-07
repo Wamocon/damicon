@@ -1717,6 +1717,134 @@ if (leitung && brigade) {
     await admin.from("chargen").delete().in("id", zukaufTestChargeIds);
   }
   await admin.from("nachbarbetriebe").delete().eq("id", nbNeu.id);
+
+  // --- 14. Oeffentliche Herkunftsauskunft (WMCNL-1456) ---------------------
+  // Kernfrage der Aufgabenstellung: anon darf GENAU die eine Charge lesen, zu
+  // der der Code passt - keine andere, und schon gar nicht per fortlaufender
+  // ID oder benachbartem Code erraten.
+
+  const { data: herkunftBlock } = await admin
+    .from("reihenbloecke")
+    .select("id, code")
+    .neq("status", "wartezeitgesperrt")
+    .limit(1)
+    .single();
+
+  // oeffentlicher_code bewusst nicht mitgegeben - der Spalten-Default muss
+  // ihn ohne Zutun der Anwendung vergeben ("ganz ohne Backfill-Funktion").
+  const { data: herkunftCharge, error: herkunftChargeFehler } = await admin
+    .from("chargen")
+    .insert({
+      code: `CH-IT-HK-${Date.now()}`,
+      reihenblock_id: herkunftBlock.id,
+      ernte_datum: new Date().toISOString().slice(0, 10),
+      pflueck_zeitpunkt: new Date(Date.now() - 30 * 60_000).toISOString(),
+      vorkuehlung_zeitpunkt: new Date(Date.now() - 10 * 60_000).toISOString(),
+    })
+    .select("id, oeffentlicher_code")
+    .single();
+  check(
+    "Herkunft: eine neu angelegte Charge bekommt automatisch einen oeffentlichen Code",
+    !herkunftChargeFehler &&
+      typeof herkunftCharge?.oeffentlicher_code === "string" &&
+      /^hk_[0-9a-f]{16}$/.test(herkunftCharge.oeffentlicher_code),
+    herkunftChargeFehler?.message ?? `code: ${herkunftCharge?.oeffentlicher_code}`,
+  );
+
+  const { data: herkunftZeilen, error: herkunftFehler } = await anon.rpc(
+    "herkunftsauskunft",
+    { p_code: herkunftCharge.oeffentlicher_code },
+  );
+  const herkunftZeile = herkunftZeilen?.[0];
+  check(
+    "Herkunft: anon liest ueber den korrekten Code genau eine Zeile",
+    !herkunftFehler && herkunftZeilen?.length === 1,
+    herkunftFehler?.message ?? `${herkunftZeilen?.length} Zeilen`,
+  );
+  check(
+    "Herkunft: die Zeile nennt den richtigen Reihenblock",
+    herkunftZeile?.reihenblock_code === herkunftBlock.code,
+    `erwartet ${herkunftBlock.code}, erhalten ${herkunftZeile?.reihenblock_code}`,
+  );
+  check(
+    "Herkunft: 20 Minuten bis zur Vorkuehlung werden richtig errechnet und als eingehalten gewertet",
+    herkunftZeile?.minuten_bis_vorkuehlung === 20 &&
+      herkunftZeile?.kuehlkette_eingehalten === true,
+    `minuten: ${herkunftZeile?.minuten_bis_vorkuehlung}, eingehalten: ${herkunftZeile?.kuehlkette_eingehalten}`,
+  );
+  check(
+    "Herkunft: die Wartezeit-Bewertung ist ein Boolean (rueckstandsnachweis wird intern wiederverwendet)",
+    typeof herkunftZeile?.wartezeit_eingehalten === "boolean",
+    `typeof: ${typeof herkunftZeile?.wartezeit_eingehalten}`,
+  );
+
+  const verboteneSpalten = [
+    "id", "charge_id", "pflueckaufgabe_id", "reihenblock_id", "sorte_id",
+    "menge_kg", "ausschuss_kg", "pfluecker_id", "pfluecker", "name", "preis",
+    "preis_tenge_kg", "code",
+  ];
+  const gefundeneVerboteneSpalten = herkunftZeile
+    ? verboteneSpalten.filter((spalte) => spalte in herkunftZeile)
+    : verboteneSpalten;
+  check(
+    "Herkunft: die Auskunft enthaelt keine verbotene Spalte (ID, Pfluecker, Menge, Preis)",
+    herkunftZeile !== undefined && gefundeneVerboteneSpalten.length === 0,
+    `gefunden: ${gefundeneVerboteneSpalten.join(", ") || "keine"}`,
+  );
+
+  // Die eigentliche Sicherheitsfrage: nicht nur "gibt es einen Treffer",
+  // sondern "kann ich mir einen Treffer erschleichen". Drei Varianten:
+  // ein benachbarter (nur ein Zeichen anderer) Code, ein formal falscher
+  // Code, und die reale Chargen-ID direkt statt des oeffentlichen Codes.
+  const randChar = herkunftCharge.oeffentlicher_code.slice(-1);
+  const ersatzChar = "0123456789abcdef".split("").find((z) => z !== randChar);
+  const benachbarterCode = herkunftCharge.oeffentlicher_code.slice(0, -1) + ersatzChar;
+  const { data: benachbarteZeilen, error: benachbarterFehler } = await anon.rpc(
+    "herkunftsauskunft",
+    { p_code: benachbarterCode },
+  );
+  check(
+    "Herkunft: ein benachbarter, geratener Code liefert keine Zeile",
+    !benachbarterFehler && (benachbarteZeilen?.length ?? 0) === 0,
+    benachbarterFehler?.message ?? `${benachbarteZeilen?.length} Zeilen`,
+  );
+
+  const { data: formatZeilen, error: formatFehler } = await anon.rpc("herkunftsauskunft", {
+    p_code: "hk_zz",
+  });
+  check(
+    "Herkunft: ein formal falscher Code liefert eine leere Menge statt eines Fehlers",
+    !formatFehler && (formatZeilen?.length ?? 0) === 0,
+    formatFehler?.message ?? `${formatZeilen?.length} Zeilen`,
+  );
+
+  const { data: perIdZeilen, error: perIdFehler } = await anon.rpc("herkunftsauskunft", {
+    p_code: herkunftCharge.id,
+  });
+  check(
+    "Herkunft: die interne Chargen-ID funktioniert nicht als Code (kein Durchzaehlen ueber die ID)",
+    !perIdFehler && (perIdZeilen?.length ?? 0) === 0,
+    perIdFehler?.message ?? `${perIdZeilen?.length} Zeilen`,
+  );
+
+  // Regressionsschutz: die Haertungsmigration verriegelt chargen/reihenbloecke
+  // fuer anon - das darf diese Migration nicht wieder aufweichen. Der Zugriff
+  // bleibt ausschliesslich ueber die RPC-Funktion moeglich, niemals ueber
+  // ein direktes SELECT.
+  const { data: anonChargenDirekt } = await anon.from("chargen").select("id");
+  check(
+    "Herkunft-Regression: anon liest chargen weiterhin nicht direkt",
+    (anonChargenDirekt?.length ?? 0) === 0,
+    `sichtbare Zeilen: ${anonChargenDirekt?.length}`,
+  );
+  const { data: anonReihenbloeckeDirekt } = await anon.from("reihenbloecke").select("id");
+  check(
+    "Herkunft-Regression: anon liest reihenbloecke weiterhin nicht direkt",
+    (anonReihenbloeckeDirekt?.length ?? 0) === 0,
+    `sichtbare Zeilen: ${anonReihenbloeckeDirekt?.length}`,
+  );
+
+  await admin.from("chargen").delete().eq("id", herkunftCharge.id);
 }
 
 console.log("");

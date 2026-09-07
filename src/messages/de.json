@@ -1116,6 +1116,38 @@
       "temperatur": "Temperatur in °C"
     }
   },
+  "oeffentlicheHerkunft": {
+    "title": "Herkunftsauskunft",
+    "lead": "Reihenblock, Sorte, Erntetag und Kühlzeit zu dieser einen Charge - ohne Anmeldung.",
+    "notFoundTitle": "Kein Treffer",
+    "notFound": "Zu diesem Code gibt es keine Auskunft. Bitte die Schreibweise prüfen.",
+    "backToSearch": "Anderen Code prüfen",
+    "keinePersonen": "Diese Auskunft nennt keine Personen.",
+    "fields": {
+      "reihenblock": "Reihenblock",
+      "sorte": "Sorte",
+      "ernteDatum": "Erntetag",
+      "gepflueckt": "Gepflückt",
+      "vorgekuehlt": "Vorgekühlt"
+    },
+    "kuehlung": {
+      "minuten": "{minuten} Minuten bis zur Vorkühlung",
+      "offen": "Vorkühlung steht aus",
+      "gehalten": "60-Minuten-Grenze gehalten",
+      "gerissen": "60-Minuten-Grenze gerissen"
+    },
+    "wartezeit": {
+      "eingehalten": "Wartezeit eingehalten",
+      "verletzt": "Wartezeit verletzt"
+    },
+    "suche": {
+      "title": "Herkunft prüfen",
+      "lead": "Code von der Steige oder dem Lieferschein eingeben.",
+      "label": "Code",
+      "placeholder": "hk_...",
+      "submit": "Prüfen"
+    }
+  },
   "fehlerseite": {
     "titel": "Diese Ansicht konnte nicht geladen werden",
     "lead": "Die Daten sind gerade nicht erreichbar. Der Vorgang wurde nicht ausgeführt - es ist nichts verloren gegangen.",
