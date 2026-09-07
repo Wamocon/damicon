@@ -1847,6 +1847,86 @@ if (leitung && brigade) {
   await admin.from("chargen").delete().eq("id", herkunftCharge.id);
 }
 
+// --- QR-Steigen: Lesezugriff fuer Etiketten und Pfluecker-Ausweise (WMCNL-1439) ---
+// Reine Anzeige-/Druckansicht ohne eigenen Schreibpfad (siehe Kommentar an
+// src/lib/modules.ts) - geprueft wird deshalb nur Lesezugriff: genau die
+// Abfragen aus src/lib/data/qr-steigen.ts muessen fuer brigade/betriebsleitung
+// funktionieren und einen gueltigen oeffentlichen Code liefern, waehrend
+// kunde/erzeuger weiterhin ausgeschlossen bleiben (Personenbezug ueber
+// pfluecker/steigen, siehe 20260905200000_kette_haerten.sql und
+// 20260905160000_haerten.sql).
+{
+  // Etiketten: Steige verknuepft mit dem oeffentlichen Code der Charge - exakt
+  // die Abfrage aus ladeSteigenEtiketten().
+  const { data: brigadeEtiketten, error: brigadeEtikettenFehler } = await brigade
+    .from("steigen")
+    .select("id, code, chargen ( oeffentlicher_code )")
+    .order("created_at", { ascending: false })
+    .limit(5);
+  check(
+    "QR-Steigen: brigade liest Steigen mit verknuepftem oeffentlichem Code (Etiketten)",
+    !brigadeEtikettenFehler && (brigadeEtiketten?.length ?? 0) > 0,
+    brigadeEtikettenFehler?.message ?? `${brigadeEtiketten?.length} Zeile(n)`,
+  );
+  const codeAus = (zeile) =>
+    Array.isArray(zeile?.chargen) ? zeile.chargen[0]?.oeffentlicher_code : zeile?.chargen?.oeffentlicher_code;
+  const alleCodesGueltig = (brigadeEtiketten ?? []).every((s) =>
+    /^hk_[0-9a-f]{16}$/.test(codeAus(s) ?? ""),
+  );
+  check(
+    "QR-Steigen: jeder gelesene oeffentliche Code hat das Format hk_ + 16 Hexstellen",
+    alleCodesGueltig,
+  );
+
+  // Ausweise: Pfluecker-Stammdaten - exakt die Abfrage aus ladePfleuckerAusweise().
+  const { data: leitungAusweise, error: leitungAusweiseFehler } = await leitung
+    .from("pfluecker")
+    .select("id, name, ausweis")
+    .order("name")
+    .limit(5);
+  check(
+    "QR-Steigen: betriebsleitung liest Pfluecker-Stammdaten (Ausweise)",
+    !leitungAusweiseFehler && (leitungAusweise?.length ?? 0) > 0,
+    leitungAusweiseFehler?.message ?? `${leitungAusweise?.length} Zeile(n)`,
+  );
+
+  // Abnahme: kunde und erzeuger duerfen weder Steigen noch Pfluecker lesen.
+  const { client: kunde } = await anmelden("kunde@malina.demo");
+  const { client: erzeuger } = await anmelden("erzeuger@malina.demo");
+
+  const { data: kundeEtiketten } = await kunde
+    .from("steigen")
+    .select("id, chargen ( oeffentlicher_code )");
+  check(
+    "QR-Steigen: die Rolle kunde liest keine Steigen (Etiketten-Abfrage)",
+    (kundeEtiketten?.length ?? 0) === 0,
+    `sichtbare Zeilen: ${kundeEtiketten?.length}`,
+  );
+
+  const { data: erzeugerEtiketten } = await erzeuger
+    .from("steigen")
+    .select("id, chargen ( oeffentlicher_code )");
+  check(
+    "QR-Steigen: die Rolle erzeuger liest keine Steigen (Etiketten-Abfrage)",
+    (erzeugerEtiketten?.length ?? 0) === 0,
+    `sichtbare Zeilen: ${erzeugerEtiketten?.length}`,
+  );
+
+  const { data: kundeAusweise } = await kunde.from("pfluecker").select("id, name, ausweis");
+  check(
+    "QR-Steigen: die Rolle kunde liest keine Pfluecker-Stammdaten (Ausweis-Abfrage)",
+    (kundeAusweise?.length ?? 0) === 0,
+    `sichtbare Zeilen: ${kundeAusweise?.length}`,
+  );
+
+  const { data: erzeugerAusweise } = await erzeuger.from("pfluecker").select("id, name, ausweis");
+  check(
+    "QR-Steigen: die Rolle erzeuger liest keine Pfluecker-Stammdaten (Ausweis-Abfrage)",
+    (erzeugerAusweise?.length ?? 0) === 0,
+    `sichtbare Zeilen: ${erzeugerAusweise?.length}`,
+  );
+}
+
 console.log("");
 if (failures > 0) {
   console.error(`${failures} Test(s) fehlgeschlagen.`);

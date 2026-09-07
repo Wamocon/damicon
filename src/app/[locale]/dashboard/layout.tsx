@@ -34,7 +34,7 @@ export default async function DashboardLayout({
         <DashboardSidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <DashboardTopbar />
-          <main id="main" className="min-w-0 flex-1 p-4 md:p-6 lg:p-8">
+          <main id="main" className="min-w-0 flex-1 p-4 md:p-6 lg:p-8 print:p-0">
             {children}
           </main>
         </div>

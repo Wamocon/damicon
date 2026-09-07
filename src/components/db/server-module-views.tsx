@@ -7,6 +7,7 @@ import { ComplianceAnsicht } from "@/components/db/compliance-ansicht";
 import { ReklamationenAnsicht } from "@/components/db/reklamationen-ansicht";
 import { LohnAnsicht } from "@/components/db/lohn-ansicht";
 import { ZukaufAnsicht } from "@/components/db/zukauf-ansicht";
+import { QrSteigenAnsicht } from "@/components/db/qr-steigen-ansicht";
 import type { ModuleDef } from "@/lib/modules";
 
 // Module, die in Meilenstein B an der Datenbank haengen. Sie werden als Server
@@ -49,6 +50,8 @@ export function serverModulAnsicht(
       return <LohnAnsicht />;
     case "aggregator":
       return <ZukaufAnsicht />;
+    case "qr_steigen":
+      return <QrSteigenAnsicht />;
     default:
       return null;
   }

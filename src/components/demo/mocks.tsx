@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { QrCode, Send, ThermometerSnowflake } from "lucide-react";
+import { Send, ThermometerSnowflake } from "lucide-react";
 import { Card, Section, StatusPill } from "@/components/ui/kit";
 import { ModulePlaceholder } from "@/components/dashboard/module-meta";
 import type { ModuleDef } from "@/lib/modules";
@@ -71,54 +71,13 @@ export function KuehlketteMock({ module }: { module: ModuleDef }) {
   );
 }
 
-// QR-Steigenkennung: Scan-Intake bleibt aus 1Cati (Migration 28), Zielobjekt
-// wechselt von QR-pro-Zone zu QR-pro-Steige.
-export function QrSteigenMock({ module }: { module: ModuleDef }) {
-  const t = useTranslations("qrSteigenMock");
-  const [scans, setScans] = useState<string[]>([
-    "STG-2026-000481",
-    "STG-2026-000480",
-  ]);
-
-  return (
-    <div className="space-y-6">
-      <Section title={t("scanTitle")} description={t("scanLead")}>
-        <div className="grid gap-4 sm:grid-cols-[220px_1fr]">
-          <div className="flex aspect-square items-center justify-center rounded-2xl border border-dashed border-border bg-muted/40">
-            <QrCode className="h-24 w-24 text-muted-foreground/50" />
-          </div>
-          <div>
-            <button
-              type="button"
-              onClick={() =>
-                setScans((prev) => [
-                  `STG-2026-${String(482 + prev.length).padStart(6, "0")}`,
-                  ...prev,
-                ])
-              }
-              className="inline-flex h-10 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-bold text-primary-foreground"
-            >
-              <QrCode className="h-4 w-4" />
-              {t("simulateScan")}
-            </button>
-            <ul className="mt-3 space-y-1.5">
-              {scans.map((scan) => (
-                <li
-                  key={scan}
-                  className="flex items-center justify-between rounded-lg border border-border bg-card px-3 py-2 text-sm"
-                >
-                  <span className="font-mono text-xs font-semibold">{scan}</span>
-                  <StatusPill tone="success">{t("registered")}</StatusPill>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </Section>
-      <ModulePlaceholder module={module} />
-    </div>
-  );
-}
+// QrSteigenMock entfaellt (WMCNL-1439): das Modul "qr_steigen" laeuft jetzt
+// ueber die datenbankgestuetzte Ansicht in
+// src/components/db/qr-steigen-ansicht.tsx, analog zu
+// dokumente/standort/pflueckaufgaben/reihenbloecke/compliance. Die
+// Scan-Oberflaeche am Ausgabepunkt (Server-Abgleich beim Abgeben) bleibt
+// offen - dieser Ausbauschritt deckt Erzeugung/Anzeige/Druck ab, siehe
+// modules.ts.
 
 // Retrieval-only-KI-Chat: Architektur aus 1Cati [UEBERNEHMEN], im Prototyp nur
 // ein Platzhalter-Chatfenster ohne befuellte Wissensbasis.

@@ -236,3 +236,48 @@
       );
   }
 }
+
+/*
+  Drucken (WMCNL-1439): Etiketten, Pfluecker-Ausweise und das Aushang-Poster
+  sind fuer Papier gedacht, nicht fuer den Bildschirm. Navigation/UI-Chrome
+  blendet "print:hidden" an den jeweiligen Komponenten aus (Sidebar/Topbar,
+  SiteNavbar/SiteFooter, der Druckknopf selbst); hier bleibt nur, was sich
+  nicht ueber eine einzelne Tailwind-Klasse ausdruecken laesst:
+
+    1. Ein Papier-Theme, das unabhaengig vom gerade aktiven Dark-/Light-Modus
+       gilt. ":root" UND ".dark" werden hier bewusst BEIDE ueberschrieben und
+       stehen bewusst NACH dem ".dark"-Block oben in der Datei - bei gleicher
+       Spezifitaet gewinnt die spaetere Regel, unabhaengig davon, ob die
+       Seite gerade im Dark Mode war.
+    2. Eine sinnvolle Papiergroesse, weil Tailwind fuer "@page" keine
+       Utility-Klasse anbietet.
+*/
+@media print {
+  :root,
+  .dark {
+    color-scheme: light;
+    --background: #ffffff;
+    --foreground: #000000;
+    --card: #ffffff;
+    --card-foreground: #000000;
+    --muted: #f2f2f2;
+    --muted-foreground: #333333;
+    --border: #999999;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Das dekorative Rasterbild des Dashboards ist Bildschirmschmuck, keine
+     Druckvorlage - auf Papier bleibt es weiss, sonst verbraucht es nur Tinte. */
+  .dashboard-shell {
+    background: #ffffff !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+}

@@ -453,9 +453,9 @@
     },
     "qr_steigen": {
       "title": "QR crate identification",
-      "description": "A QR label on the crate, issued at the brigade's dispatch point. When handed over, the picker ID is scanned - volume, row block, time and person in one step. A UI mock in the prototype.",
-      "summary": "The identity is assigned in the field, not at the weighing point. One scan captures volume, block, time and person.",
-      "todo": "Label printing per crate, scan at the dispatch point with server reconciliation, mapping crate to batch and task."
+      "description": "QR labels for crates (linking to the public origin lookup), picker ID badges without biometrics (linking to the internal task view), and a sign-in-free wall poster - all generated server-side as SVG and print-ready via the browser print function.",
+      "summary": "The QR code carries identity from the field to the shop counter - generated server-side, no dedicated label printer, no PDF tooling.",
+      "todo": "The scan interface at the dispatch point with server reconciliation (volume, row block, time and person in one step) is not part of this build-out."
     },
     "esf": {
       "title": "Electronic delivery note (ЭСФ)",
@@ -1148,6 +1148,13 @@
       "submit": "Check"
     }
   },
+  "aushangPoster": {
+    "eyebrow": "Check origin",
+    "title": "Where does this raspberry come from?",
+    "lead": "Scan the QR code or enter the address and type in the code from the crate or delivery note.",
+    "fallbackHinweis": "If the camera can't read the code: enter the address by hand.",
+    "drucken": "Print"
+  },
   "fehlerseite": {
     "titel": "This view could not be loaded",
     "lead": "The data is currently unreachable. Nothing was executed and nothing was lost.",
@@ -1407,6 +1414,25 @@
       "preis": "Price (₸/kg)",
       "rechnungsdatum": "Invoice date",
       "knopf": "Save"
+    }
+  },
+  "qrSteigenAnsicht": {
+    "drucken": "Print",
+    "etiketten": {
+      "title": "Crate labels",
+      "lead": "QR code and plain-text code for each crate, print-ready. The QR code links to the public origin lookup for the crate's batch.",
+      "empty": "No crate with a linked batch yet.",
+      "scanHinweis": "Scan for origin"
+    },
+    "ausweise": {
+      "title": "Picker ID badges",
+      "lead": "A QR code per picker, linking to the internal task view - deliberately without a photo or biometrics.",
+      "empty": "No picker recorded yet.",
+      "rolle": "Picker"
+    },
+    "aushang": {
+      "hinweis": "There is also a sign-in-free wall poster for the farm with a QR code to the general code entry page.",
+      "oeffnen": "Open wall poster"
     }
   }
 }

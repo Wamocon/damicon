@@ -20,7 +20,7 @@ export function SiteNavbar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="glass fixed inset-x-0 top-0 z-50 border-b border-border/60">
+    <header className="glass fixed inset-x-0 top-0 z-50 border-b border-border/60 print:hidden">
       <div className="container flex h-16 items-center justify-between gap-3">
         <Link href="/" className="flex min-w-0 items-center gap-2.5">
           <MalinaLogo className="shadow-lg shadow-primary/20" />
