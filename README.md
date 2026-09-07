@@ -129,7 +129,8 @@ die Wartezeit eingehalten?
 | `npm run db:reset` | Datenbank zurücksetzen: Migrationen, Seed, Demo-Benutzer |
 | `npm run db:seed-auth` | Nur die sechs Demo-Benutzer anlegen bzw. auffrischen |
 | `npm run db:types` | TypeScript-Typen aus dem lokalen Schema erzeugen |
-| `npm run db:test` | Integrationstests: Round-Trip, RLS je Rolle, Sperrlogik |
+| `npm run db:test` | Integrationstests: Round-Trip, RLS je Rolle, Sperrlogik (braucht laufendes lokales Supabase) |
+| `npm run db:test:fast` | Dieselbe Art Fachregeln gegen PGlite statt Docker - kein `supabase start` nötig, für den schnellen Zwischenstand während der Entwicklung; ersetzt `db:test` nicht |
 
 ## Dokumentation
 
