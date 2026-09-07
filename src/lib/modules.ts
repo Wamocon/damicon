@@ -82,7 +82,14 @@ export const modules: ModuleDef[] = [
     icon: "calendar-sync",
     resource: "rotationsplan",
     klassifikation: "neu-bauen",
-    reifegrad: "in-entwicklung",
+    // Anforderung 2.2 (P1, "die erste zu bauende Funktion"): Zyklusrechnung
+    // und Sperrlogik laufen jetzt vollstaendig in der Datenbank (Migration
+    // 20260910000000) - Generator-RPC, automatisches Sperren/Entsperren bei
+    // Behandlung/Freigabe, automatisches Erledigen bei neuer Pflueckaufgabe.
+    // Wetterszenarien (dritter Teil der Anforderung) fehlen bewusst, siehe
+    // src/lib/domain/rotationsplan.ts - die Wetteranbindung (2.13) selbst
+    // ist noch nicht gebaut.
+    reifegrad: "angebunden",
   },
   {
     key: "wetter",

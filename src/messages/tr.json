@@ -194,6 +194,50 @@
     "beleg_pruefung": "kanıt incelemesi",
     "abgeschlossen": "tamamlandı"
   },
+  "rotationsplanStatus": {
+    "geplant": "planlandı",
+    "gesperrt": "kilitli",
+    "erledigt": "tamamlandı",
+    "uebersprungen": "atlandı"
+  },
+  "rotationsplanAnsicht": {
+    "uebersichtTitel": "Bir bakışta rotasyon planı",
+    "uebersichtLead": "Sıra bloğu başına döngüsel toplama tarihleri. Kilitler ve serbest bırakmalar işlemlerden ve bekleme sürelerinden otomatik alınır.",
+    "stat": {
+      "geplant": "Hâlâ planlı",
+      "ueberfaellig": "Gecikmiş",
+      "ueberfaelligHinweis": "Tarih geçti, henüz toplama görevi yok",
+      "gesperrt": "Kilitli",
+      "gesperrtHinweis": "Devam eden bir bekleme süresi kilidine denk geliyor",
+      "erledigt": "Tamamlandı"
+    },
+    "tabelleTitel": "Tarihler",
+    "tabelleLead": "Bir hafta geriden iki hafta ileriye, tarihe göre sıralı. \"Plan oluştur\" burada hepsi bir arada gösterilmese de daha ileriye planlar.",
+    "keineEintraege": "Henüz plan oluşturulmadı.",
+    "col": {
+      "reihenblock": "Sıra bloğu",
+      "sorte": "Çeşit",
+      "brigade": "Ekip",
+      "termin": "Tarih",
+      "intervall": "Aralık",
+      "status": "Durum",
+      "aufgabe": "Toplama görevi",
+      "aktion": "İşlem"
+    },
+    "tage": "gün",
+    "ueberfaelligLabel": "gecikmiş",
+    "ueberspringenKnopf": "Atla",
+    "reaktivierenKnopf": "Yeniden etkinleştir",
+    "note": "Hava durumu senaryoları (ör. sıcaklıkta tarihleri öne çekme) henüz dahil değil - hava durumu entegrasyonu (büyüme derece günü hesaplaması) kendisi henüz kurulmadı. Kilit mantığı tamdır: yeni bir işlem etkilenen tarihleri otomatik kilitler, serbest bırakma tekrar açar, ve ilk uyan toplama görevi bir tarihi tamamlandı olarak işaretler.",
+    "formular": {
+      "generieren": {
+        "titel": "Plan oluştur / genişlet",
+        "lead": "Her sıra bloğu için döngüyü son planlanan veya gerçek hasat tarihinden devam ettirir. Tekrar çalıştırmak yinelenen kayıt oluşturmaz.",
+        "wochen": "Kaç hafta ileri",
+        "knopf": "Plan oluştur"
+      }
+    }
+  },
   "pflueckaufgabenDemo": {
     "listTitle": "Bugünün toplama görevleri",
     "listLead": "Ekip ve sıra bloğu başına. İlerleme, gerçek miktarın hedefe oranıdır.",
@@ -883,7 +927,9 @@
       "zukaufPreis": "Fiyat eklendi.",
       "kostentraeger": "\"{wert}\" maliyet nesnesi oluşturuldu.",
       "buchung": "\"{wert}\" kaydı işlendi.",
-      "mfaEntfernt": "İkinci faktör kaldırıldı."
+      "mfaEntfernt": "İkinci faktör kaldırıldı.",
+      "rotationsplanGeneriert": "{wert} yeni tarih oluşturuldu.",
+      "rotationsplanStatus": "{wert} için tarih güncellendi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -901,7 +947,8 @@
       "kuehlkette": "Sınır aşıldı: ölçüme kadar {wert} dakika. Ürünün değeri düşürülmeli.",
       "keinKunde": "Hesabınıza bağlı bir B2B müşterisi yok. Lütfen yönetimle iletişime geçin.",
       "zukaufBefunde": "Girişte {wert} hata bulundu - hiçbir şey içe aktarılmadı. Aşağıdaki kontrol sonuçlarına bakın.",
-      "code": "Kod yanlış veya süresi doldu. Lütfen kimlik doğrulayıcı uygulamadaki güncel 6 haneli kodu girin."
+      "code": "Kod yanlış veya süresi doldu. Lütfen kimlik doğrulayıcı uygulamadaki güncel 6 haneli kodu girin.",
+      "zustand": "Tarih bu sırada değişti (ör. kilitlendi veya zaten tamamlandı). Lütfen sayfayı yeniden yükleyin."
     }
   },
   "standortVerwaltung": {

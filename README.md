@@ -122,6 +122,13 @@ API-Zugriff und lassen sich durch kein Formular umgehen:
   (`lohn_abrechnungen_select_own`, `lohn_positionen_select_own`) - dieselbe
   Seite wie Betriebsleitung/Buchhaltung, nur RLS-gefiltert auf
   `profiles.pfluecker_id`.
+- **Rotationsplan:** `rotationsplan_generieren()` setzt den 2-3-Tage-Zyklus
+  je Reihenblock am zuletzt geplanten bzw. tatsaechlichen Erntetermin fort.
+  Eine neue Behandlung sperrt betroffene Plantermine automatisch
+  (`rotationsplan_sperren`), die Freigabe gibt sie wieder frei
+  (`rotationsplan_entsperren`), und die erste passende Pflueckaufgabe
+  markiert einen Termin als erledigt (`rotationsplan_erledigen`) - alles
+  als Trigger, nicht als Anwendungslogik.
 
 ## Kennzahlen
 

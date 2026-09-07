@@ -1910,8 +1910,9 @@ export type Database = {
           geplant_fuer: string
           id: string
           intervall_tage: number
+          pflueckaufgabe_id: string | null
           reihenblock_id: string
-          status: string
+          status: Database["public"]["Enums"]["rotationsplan_status"]
           updated_at: string
         }
         Insert: {
@@ -1920,8 +1921,9 @@ export type Database = {
           geplant_fuer: string
           id?: string
           intervall_tage?: number
+          pflueckaufgabe_id?: string | null
           reihenblock_id: string
-          status?: string
+          status?: Database["public"]["Enums"]["rotationsplan_status"]
           updated_at?: string
         }
         Update: {
@@ -1930,8 +1932,9 @@ export type Database = {
           geplant_fuer?: string
           id?: string
           intervall_tage?: number
+          pflueckaufgabe_id?: string | null
           reihenblock_id?: string
-          status?: string
+          status?: Database["public"]["Enums"]["rotationsplan_status"]
           updated_at?: string
         }
         Relationships: [
@@ -1940,6 +1943,13 @@ export type Database = {
             columns: ["brigade_id"]
             isOneToOne: false
             referencedRelation: "brigaden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rotationsplan_eintraege_pflueckaufgabe_id_fkey"
+            columns: ["pflueckaufgabe_id"]
+            isOneToOne: false
+            referencedRelation: "pflueckaufgaben"
             referencedColumns: ["id"]
           },
           {
@@ -2343,6 +2353,13 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      rotationsplan_generieren: {
+        Args: { p_ab?: string; p_wochen?: number }
+        Returns: {
+          betroffener_block_id: string
+          neue_termine: number
+        }[]
+      }
       rueckstandsnachweis: {
         Args: { p_charge: string }
         Returns: {
@@ -2413,6 +2430,11 @@ export type Database = {
         | "angenommen"
         | "abgelehnt"
         | "erledigt"
+      rotationsplan_status:
+        | "geplant"
+        | "gesperrt"
+        | "erledigt"
+        | "uebersprungen"
       sorte_typ: "remontierend" | "sommertragend"
       spalierrichtung: "n_s" | "o_w"
       vorbestellung_status:
@@ -2613,6 +2635,12 @@ export const Constants = {
         "angenommen",
         "abgelehnt",
         "erledigt",
+      ],
+      rotationsplan_status: [
+        "geplant",
+        "gesperrt",
+        "erledigt",
+        "uebersprungen",
       ],
       sorte_typ: ["remontierend", "sommertragend"],
       spalierrichtung: ["n_s", "o_w"],

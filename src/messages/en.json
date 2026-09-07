@@ -392,6 +392,50 @@
     "beleg_pruefung": "evidence review",
     "abgeschlossen": "completed"
   },
+  "rotationsplanStatus": {
+    "geplant": "planned",
+    "gesperrt": "locked",
+    "erledigt": "done",
+    "uebersprungen": "skipped"
+  },
+  "rotationsplanAnsicht": {
+    "uebersichtTitel": "Rotation plan at a glance",
+    "uebersichtLead": "Cyclical picking dates per row block. Locks and releases are taken automatically from treatments and pre-harvest intervals.",
+    "stat": {
+      "geplant": "Still planned",
+      "ueberfaellig": "Overdue",
+      "ueberfaelligHinweis": "Date has passed, no picking task yet",
+      "gesperrt": "Locked",
+      "gesperrtHinweis": "Falls within an active pre-harvest-interval lock",
+      "erledigt": "Done"
+    },
+    "tabelleTitel": "Dates",
+    "tabelleLead": "One week back to two weeks ahead, sorted by date. \"Generate plan\" plans further ahead even though not everything is shown here at once.",
+    "keineEintraege": "No plan generated yet.",
+    "col": {
+      "reihenblock": "Row block",
+      "sorte": "Variety",
+      "brigade": "Brigade",
+      "termin": "Date",
+      "intervall": "Interval",
+      "status": "Status",
+      "aufgabe": "Picking task",
+      "aktion": "Action"
+    },
+    "tage": "days",
+    "ueberfaelligLabel": "overdue",
+    "ueberspringenKnopf": "Skip",
+    "reaktivierenKnopf": "Reactivate",
+    "note": "Weather scenarios (e.g. moving dates forward in heat) are not yet included - the weather integration (growing-degree-day calculation) itself is not built yet. The lock logic is complete: a new treatment automatically locks the affected dates, the release unlocks them again, and the first matching picking task marks a date as done.",
+    "formular": {
+      "generieren": {
+        "titel": "Generate / extend plan",
+        "lead": "Continues the cycle per row block from the last planned or actual harvest date. Running it repeatedly creates no duplicates.",
+        "wochen": "Weeks ahead",
+        "knopf": "Generate plan"
+      }
+    }
+  },
   "kpis": {
     "verlustquote": {
       "label": "Loss rate from picking to the client"
@@ -676,7 +720,9 @@
       "zukaufPreis": "Price added.",
       "kostentraeger": "Cost object \"{wert}\" created.",
       "buchung": "Posting \"{wert}\" recorded.",
-      "mfaEntfernt": "Second factor removed."
+      "mfaEntfernt": "Second factor removed.",
+      "rotationsplanGeneriert": "{wert} new dates created.",
+      "rotationsplanStatus": "Date for {wert} updated."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -694,7 +740,8 @@
       "kuehlkette": "Limit broken: {wert} minutes until measurement. The goods have to be downgraded.",
       "keinKunde": "Your account has no B2B client assigned. Please contact the administration.",
       "zukaufBefunde": "{wert} error(s) found in the input - nothing was imported. See the check results below.",
-      "code": "The code is wrong or expired. Please enter the current 6-digit code from your authenticator app."
+      "code": "The code is wrong or expired. Please enter the current 6-digit code from your authenticator app.",
+      "zustand": "The date has changed in the meantime (e.g. locked or already done). Please reload the page."
     }
   },
   "standortVerwaltung": {

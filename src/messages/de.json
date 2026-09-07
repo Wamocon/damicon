@@ -392,6 +392,50 @@
     "beleg_pruefung": "Belegprüfung",
     "abgeschlossen": "abgeschlossen"
   },
+  "rotationsplanStatus": {
+    "geplant": "geplant",
+    "gesperrt": "gesperrt",
+    "erledigt": "erledigt",
+    "uebersprungen": "übersprungen"
+  },
+  "rotationsplanAnsicht": {
+    "uebersichtTitel": "Rotationsplan auf einen Blick",
+    "uebersichtLead": "Zyklische Pflücktermine je Reihenblock. Sperren und Freigaben werden automatisch aus Behandlungen und Wartezeiten übernommen.",
+    "stat": {
+      "geplant": "Offen geplant",
+      "ueberfaellig": "Überfällig",
+      "ueberfaelligHinweis": "Termin verstrichen, noch keine Pflückaufgabe dazu",
+      "gesperrt": "Gesperrt",
+      "gesperrtHinweis": "Fällt in eine laufende Wartezeitsperre",
+      "erledigt": "Erledigt"
+    },
+    "tabelleTitel": "Termine",
+    "tabelleLead": "Eine Woche zurück bis zwei Wochen voraus, nach Termin sortiert. \"Plan erzeugen\" plant weiter voraus, auch wenn hier nicht alles auf einmal angezeigt wird.",
+    "keineEintraege": "Noch kein Plan erzeugt.",
+    "col": {
+      "reihenblock": "Reihenblock",
+      "sorte": "Sorte",
+      "brigade": "Brigade",
+      "termin": "Termin",
+      "intervall": "Intervall",
+      "status": "Status",
+      "aufgabe": "Pflückaufgabe",
+      "aktion": "Aktion"
+    },
+    "tage": "Tage",
+    "ueberfaelligLabel": "überfällig",
+    "ueberspringenKnopf": "Überspringen",
+    "reaktivierenKnopf": "Reaktivieren",
+    "note": "Wetterszenarien (z. B. Vorziehen bei Hitze) sind hier noch nicht berücksichtigt - die Wetteranbindung (Temperatursummenrechnung) ist selbst noch nicht gebaut. Die Sperrlogik ist vollständig: eine neue Behandlung sperrt betroffene Termine automatisch, die Freigabe gibt sie wieder frei, und die erste passende Pflückaufgabe markiert einen Termin als erledigt.",
+    "formular": {
+      "generieren": {
+        "titel": "Plan erzeugen / erweitern",
+        "lead": "Setzt den Zyklus je Reihenblock am zuletzt geplanten bzw. tatsächlichen Erntetermin fort. Mehrfaches Ausführen erzeugt keine Duplikate.",
+        "wochen": "Wochen voraus",
+        "knopf": "Plan erzeugen"
+      }
+    }
+  },
   "kpis": {
     "verlustquote": {
       "label": "Verlustquote vom Pflücken bis zum Kunden"
@@ -676,7 +720,9 @@
       "zukaufPreis": "Preis nachgetragen.",
       "kostentraeger": "Kostenträger \"{wert}\" angelegt.",
       "buchung": "Buchung \"{wert}\" erfasst.",
-      "mfaEntfernt": "Zweiter Faktor entfernt."
+      "mfaEntfernt": "Zweiter Faktor entfernt.",
+      "rotationsplanGeneriert": "{wert} neue Termine erzeugt.",
+      "rotationsplanStatus": "Termin für {wert} aktualisiert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -694,7 +740,8 @@
       "kuehlkette": "Grenzwert gerissen: {wert} Minuten bis zur Messung. Die Ware ist abzuwerten.",
       "keinKunde": "Ihrem Zugang ist kein B2B-Kunde zugeordnet. Bitte an die Administration wenden.",
       "zukaufBefunde": "{wert} Fehler in der Eingabe gefunden - nichts wurde übernommen. Siehe Prüfergebnis unten.",
-      "code": "Der Code ist falsch oder abgelaufen. Bitte den aktuellen 6-stelligen Code aus der Authenticator-App eingeben."
+      "code": "Der Code ist falsch oder abgelaufen. Bitte den aktuellen 6-stelligen Code aus der Authenticator-App eingeben.",
+      "zustand": "Der Termin hat sich zwischenzeitlich geändert (z. B. gesperrt oder bereits erledigt). Bitte Seite neu laden."
     }
   },
   "standortVerwaltung": {
