@@ -3,6 +3,7 @@ import { StandortAnsicht } from "@/components/db/standort-ansicht";
 import { ReihenbloeckeAnsicht } from "@/components/db/reihenbloecke-ansicht";
 import { PflueckaufgabenAnsicht } from "@/components/db/pflueckaufgaben-ansicht";
 import { DokumenteAnsicht } from "@/components/db/dokumente-ansicht";
+import { ComplianceAnsicht } from "@/components/db/compliance-ansicht";
 import type { ModuleDef } from "@/lib/modules";
 
 // Module, die in Meilenstein B an der Datenbank haengen. Sie werden als Server
@@ -32,6 +33,8 @@ export function serverModulAnsicht(
       );
     case "dokumente":
       return <DokumenteAnsicht />;
+    case "compliance":
+      return <ComplianceAnsicht />;
     default:
       return null;
   }

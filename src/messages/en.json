@@ -494,8 +494,8 @@
     },
     "compliance": {
       "title": "Compliance cockpit",
-      "description": "An overview of consents, retention periods, the audit log and data residency - with the legal references of the 2026 Kazakh framework.",
-      "summary": "Consents, retention, the audit log and data residency in one place, under Kazakh law.",
+      "description": "Processing purposes, consents, data incidents and third-party disclosures from five granular tables - reading and writing reserved to office roles only.",
+      "summary": "Granular data-protection schema: processing purposes, consents, incidents and disclosures in one place.",
       "todo": "Legal references for Tax Code, AI Act, Digital Code, retention rules per data product, hosting-location review."
     },
     "integrationen": {
@@ -619,7 +619,12 @@
       "dokument": "Document \"{wert}\" added.",
       "steige": "Crate {wert} recorded.",
       "arbeitszeit": "{wert} minutes of working time reported.",
-      "kuehlmessung": "Measurement recorded - {wert} minutes after picking."
+      "kuehlmessung": "Measurement recorded - {wert} minutes after picking.",
+      "einwilligungErfasst": "Consent recorded.",
+      "einwilligungWiderrufen": "Consent revoked.",
+      "vorfallErfasst": "Data incident recorded.",
+      "vorfallGemeldet": "Incident marked as reported.",
+      "drittweitergabeBenachrichtigt": "Notification recorded."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -856,50 +861,131 @@
     },
     "note": "Every document is linked to a row block or a batch. Residue proof per batch is therefore available at the press of a button for trade and authorities."
   },
-  "complianceDemo": {
+  "complianceAnsicht": {
     "cockpitTitle": "Compliance cockpit",
-    "cockpitLead": "Consents, retention periods, the audit log and data residency - under the 2026 Kazakh legal framework.",
-    "items": {
-      "consent": {
-        "title": "Consents",
-        "state": "active",
-        "text": "Purpose-bound consent per processing, with a retention period and a named controller."
+    "cockpitLead": "Processing purposes, consents, data incidents and third-party disclosures from the database - under the 2026 Kazakhstani legal framework.",
+    "stat": {
+      "einwilligungenAktiv": "Active consents",
+      "einwilligungenWiderrufen": "Revoked consents",
+      "vorfaelleUeberfaellig": "Overdue report deadlines",
+      "vorfaelleUeberfaelligHinweis": "Reporting deadline: one working day after detection.",
+      "drittweitergabenUeberfaellig": "Due notifications",
+      "drittweitergabenUeberfaelligHinweis": "Deadline: 14 days after disclosure."
+    },
+    "col": {
+      "betroffener": "Data subject",
+      "zweck": "Purpose",
+      "kanal": "Channel",
+      "erteiltAm": "Granted on",
+      "status": "Status",
+      "festgestelltAm": "Detected on",
+      "art": "Type",
+      "beschreibung": "Description",
+      "meldefristAm": "Report deadline",
+      "empfaenger": "Recipient",
+      "weitergegebenAm": "Disclosed on",
+      "benachrichtigungsfristAm": "Notification deadline",
+      "bezeichnung": "Purpose",
+      "rechtsgrundlage": "Legal basis",
+      "aufbewahrung": "Retention",
+      "automatisiert": "Automated decision"
+    },
+    "status": {
+      "aktiv": "active",
+      "widerrufen": "revoked",
+      "offen": "open",
+      "ueberfaellig": "overdue",
+      "gemeldet": "reported",
+      "benachrichtigt": "notified"
+    },
+    "kanal": {
+      "papier": "Paper",
+      "app": "App",
+      "web": "Web",
+      "sms": "SMS"
+    },
+    "sprache": {
+      "de": "German",
+      "en": "English",
+      "ru": "Russian",
+      "kk": "Kazakh",
+      "tr": "Turkish"
+    },
+    "vorfallArt": {
+      "unbefugter_zugriff": "Unauthorized access",
+      "verlust": "Loss",
+      "offenlegung": "Disclosure",
+      "sonstiges": "Other"
+    },
+    "rechtsgrundlage": {
+      "einwilligung": "Consent",
+      "vertrag": "Contract",
+      "gesetzliche_pflicht": "Legal obligation"
+    },
+    "einwilligungen": {
+      "titel": "Consents",
+      "lead": "Who agreed to what - with timestamp, channel and revocation status."
+    },
+    "vorfaelle": {
+      "titel": "Data incidents",
+      "lead": "Reporting deadline: one working day after detection."
+    },
+    "drittweitergaben": {
+      "titel": "Third-party disclosures",
+      "lead": "Disclosure to third parties with a 14-day notification deadline."
+    },
+    "zwecke": {
+      "titel": "Processing purposes",
+      "lead": "Purpose register with legal basis and retention period."
+    },
+    "monate": "{anzahl, plural, one {# month} other {# months}}",
+    "ja": "yes",
+    "nein": "no",
+    "formular": {
+      "einwilligung": {
+        "titel": "Record a consent",
+        "lead": "Exactly one data subject - picker, profile or B2B customer.",
+        "keineAuswahl": "-",
+        "feld": {
+          "pfluecker": "Picker",
+          "profil": "Profile (staff or customer with login)",
+          "b2bKunde": "B2B customer",
+          "zweck": "Processing purpose",
+          "kanal": "Channel",
+          "sprache": "Language of the text version",
+          "textfassung": "Text version",
+          "nachweis": "Evidence reference"
+        },
+        "hinweisGenauEiner": "Choose exactly one of the three subjects - picker, profile or B2B customer.",
+        "textfassungPlatzhalter": "Consent text, version 2026-1",
+        "nachweisPlatzhalter": "Personnel file 2026/03, sheet 17",
+        "knopf": "Record consent"
       },
-      "retention": {
-        "title": "Retention",
-        "state": "active",
-        "text": "Retention periods per data product, then automatic deletion or anonymisation."
+      "widerruf": {
+        "platzhalter": "Reason for revocation",
+        "knopf": "Revoke"
       },
-      "audit": {
-        "title": "Audit log",
-        "state": "active",
-        "text": "Every security-relevant action is logged - immutable and searchable per resource."
+      "vorfall": {
+        "titel": "Record a data incident",
+        "lead": "The database sets the one-working-day reporting deadline automatically.",
+        "feld": {
+          "festgestellt": "Detected on",
+          "art": "Type",
+          "betroffeneAnzahl": "Number affected",
+          "beschreibung": "Description"
+        },
+        "beschreibungPlatzhalter": "Short and factual account of what happened.",
+        "knopf": "Record incident"
       },
-      "residency": {
-        "title": "Data residency",
-        "state": "open",
-        "text": "Digital Code No. 255-VIII restricts storage of certain data products outside Kazakhstan. The hosting location must be reviewed."
+      "vorfallMelden": {
+        "platzhalter": "Report reference",
+        "knopf": "Report"
       },
-      "ai": {
-        "title": "AI transparency",
-        "state": "open",
-        "text": "Law No. 230-VIII: a visible transparency notice and consent for the AI chat, emotion analysis prohibited."
+      "drittweitergabe": {
+        "knopf": "Mark as notified"
       }
     },
-    "integrationTitle": "State integrations",
-    "integrationLead": "One connector per target system with status feedback. Accounting stays with a solution established in the country.",
-    "col": {
-      "name": "Integration",
-      "system": "Target system",
-      "status": "Status",
-      "queue": "Queue"
-    },
-    "intStatus": {
-      "verbunden": "connected",
-      "sandbox": "sandbox",
-      "geplant": "planned"
-    },
-    "note": "Fines run up to 2,000 MRP - about 16,200 euro. Relative to this farm's annual turnover, an existentially relevant figure."
+    "note": "Reading and writing stays reserved to office roles (admin, farm management, accounting) - a data subject's right of access is deliberately not part of this step. Two topics remain open from the previous cockpit: data residency (Digital Code No. 255-VIII) and AI transparency (Law No. 230-VIII)."
   },
   "sortenkatalogDemo": {
     "catalogTitle": "Varieties and quotas",

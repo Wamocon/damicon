@@ -443,11 +443,135 @@ insert into public.foerderdossiers (portal, antragsnummer, titel, status, einger
   ('gosagro.kz', '2026-114', 'Foerderung Vorkuehlanlage', 'eingereicht', '2026-08-30')
   on conflict do nothing;
 
--- --- Compliance: Consent, Audit, Integrationen ---------------------------
-insert into public.consent_records (subjekt, zweck, rechtsgrundlage, erteilt_am) values
-  ('Saisonkraefte 2026', 'Personaleinsatz und Lohnabrechnung', 'Vertragserfuellung', '2026-08-20T08:00:00+06'),
-  ('B2B-Kunden',         'Auftragsabwicklung und Lieferung',   'Vertragserfuellung', '2026-08-15T08:00:00+06')
-  on conflict do nothing;
+-- --- Compliance: Zweckverzeichnis, Einwilligungen, Vorfaelle --------------
+-- public.profiles ist an dieser Stelle noch leer (Auth-Nutzer entstehen erst
+-- ueber `npm run db:seed-auth` NACH diesem Skript) - Betroffene und Akteure
+-- werden deshalb ausschliesslich ueber pfluecker/b2b_kunden gesetzt.
+insert into public.verarbeitungszwecke
+  (code, bezeichnung, beschreibung, rechtsgrundlage, aufbewahrung_monate, automatisierte_entscheidung)
+values
+  ('personaleinsatz', 'Personaleinsatz und Lohnabrechnung',
+   'Einsatzplanung, Arbeitszeit und Qualitaetsfaktor-Lohn der Saisonkraefte.',
+   'vertrag', 36, true),
+  ('auftragsabwicklung', 'Auftragsabwicklung und Lieferung',
+   'Kontingent, Bestellung und Lieferschein je B2B-Kunde.',
+   'vertrag', 60, false),
+  ('esutd_meldung', 'Meldung an ESUTD (enbek.kz)',
+   'Gesetzlich vorgeschriebene Arbeitsvertragserfassung der Saisonkraefte.',
+   'gesetzliche_pflicht', 60, false),
+  ('ki_chat', 'KI-Chat-Assistent im B2B-Portal',
+   'Automatisierte Beantwortung von Kundenanfragen (Gesetz Nr. 230-VIII: Transparenzpflicht).',
+   'einwilligung', 12, true)
+  on conflict (code) do nothing;
+
+insert into public.einwilligungen
+  (betroffener_pfluecker_id, zweck_id, textfassung, sprache, erteilt_am, kanal, nachweis_referenz)
+select p.id, z.id, v.textfassung, v.sprache, v.erteilt::timestamptz, v.kanal::public.einwilligung_kanal, v.nachweis
+from (values
+  ('D. Sarsenbaj',  'personaleinsatz', 'Einwilligungstext Saisonkraefte, Fassung 2026-1', 'ru', '2026-08-20T08:00:00+06', 'papier', 'Ordner Personal 2026/03, Blatt 17'),
+  ('N. Erbolat',    'personaleinsatz', 'Einwilligungstext Saisonkraefte, Fassung 2026-1', 'ru', '2026-08-21T08:00:00+06', 'papier', 'Ordner Personal 2026/03, Blatt 22')
+) as v(pfluecker, zweck, textfassung, sprache, erteilt, kanal, nachweis)
+join public.pfluecker p on p.name = v.pfluecker
+join public.verarbeitungszwecke z on z.code = v.zweck
+where not exists (
+  select 1 from public.einwilligungen e
+   where e.betroffener_pfluecker_id = p.id and e.zweck_id = z.id
+);
+
+-- Eine widerrufene Einwilligung, damit das Cockpit "offene Widerrufe" nicht
+-- nur auf leeren Daten zeigt.
+insert into public.einwilligungen
+  (betroffener_pfluecker_id, zweck_id, textfassung, sprache, erteilt_am, kanal, nachweis_referenz,
+   widerrufen_am, widerruf_grund)
+select p.id, z.id, 'Einwilligungstext Saisonkraefte, Fassung 2026-1', 'ru',
+       '2026-07-01T08:00:00+06', 'papier', 'Ordner Personal 2026/02, Blatt 05',
+       '2026-08-10T09:00:00+06', 'Beschaeftigungsverhaeltnis beendet'
+  from public.pfluecker p, public.verarbeitungszwecke z
+ where p.name = 'A. Tulegenowa' and z.code = 'personaleinsatz'
+   and not exists (
+     select 1 from public.einwilligungen e
+      where e.betroffener_pfluecker_id = p.id and e.widerrufen_am is not null
+   );
+
+insert into public.einwilligungen
+  (betroffener_b2b_kunde_id, zweck_id, textfassung, sprache, erteilt_am, kanal, nachweis_referenz)
+select k.id, z.id, v.textfassung, 'ru', v.erteilt::timestamptz, v.kanal::public.einwilligung_kanal, v.nachweis
+from (values
+  ('Handelskette A',             'auftragsabwicklung', 'Rahmenvereinbarung Datenverarbeitung B2B, Fassung 2026-1', '2026-08-15T08:00:00+06', 'web', 'Portal-Registrierung #A-2026-041'),
+  ('Gastro-Distributor Almaty',  'auftragsabwicklung', 'Rahmenvereinbarung Datenverarbeitung B2B, Fassung 2026-1', '2026-08-18T08:00:00+06', 'app', 'Portal-Registrierung #A-2026-052')
+) as v(kunde, zweck, textfassung, erteilt, kanal, nachweis)
+join public.b2b_kunden k on k.name = v.kunde
+join public.verarbeitungszwecke z on z.code = v.zweck
+where not exists (
+  select 1 from public.einwilligungen e
+   where e.betroffener_b2b_kunde_id = k.id and e.zweck_id = z.id
+);
+
+-- Fachliches Zugriffsprotokoll: nur die Faelle export/druck/uebermittlung,
+-- kein Eintrag je Seitenaufruf (siehe Kommentar in der Migration).
+insert into public.personenbezogene_zugriffe
+  (betroffener_pfluecker_id, zweck_id, aktion, entitaet, client_info)
+select p.id, z.id, 'export'::public.zugriffsaktion, 'lohn_abrechnungen', 'Buchhaltung - Monatsabschluss August 2026'
+  from public.pfluecker p, public.verarbeitungszwecke z
+ where p.name = 'D. Sarsenbaj' and z.code = 'personaleinsatz'
+   and not exists (
+     select 1 from public.personenbezogene_zugriffe g
+      where g.betroffener_pfluecker_id = p.id and g.entitaet = 'lohn_abrechnungen'
+   );
+
+insert into public.personenbezogene_zugriffe
+  (betroffener_b2b_kunde_id, zweck_id, aktion, entitaet, client_info)
+select k.id, z.id, 'uebermittlung'::public.zugriffsaktion, 'lieferungen', 'ISESF-Uebermittlung Lieferschein CH-0902-14'
+  from public.b2b_kunden k, public.verarbeitungszwecke z
+ where k.name = 'Handelskette A' and z.code = 'auftragsabwicklung'
+   and not exists (
+     select 1 from public.personenbezogene_zugriffe g
+      where g.betroffener_b2b_kunde_id = k.id and g.entitaet = 'lieferungen'
+   );
+
+-- Datenschutzvorfaelle: einer noch offen (Meldefrist bereits ueberschritten -
+-- das Cockpit soll den kritischen Fall auch mit Beispieldaten zeigen koennen),
+-- einer bereits ordnungsgemaess gemeldet und behoben.
+insert into public.datenschutzvorfaelle (festgestellt_am, art, beschreibung, betroffene_anzahl)
+select '2026-08-25T14:00:00+06'::timestamptz, 'unbefugter_zugriff'::public.vorfall_art,
+       'Unpersoenliches Konto im Buero blieb nach Personalwechsel eine Woche aktiv.', 1
+where not exists (
+  select 1 from public.datenschutzvorfaelle
+   where beschreibung = 'Unpersoenliches Konto im Buero blieb nach Personalwechsel eine Woche aktiv.'
+);
+
+insert into public.datenschutzvorfaelle
+  (festgestellt_am, art, beschreibung, betroffene_anzahl, gemeldet_am, meldereferenz, behoben_am)
+select '2026-07-10T09:00:00+06'::timestamptz, 'verlust'::public.vorfall_art,
+       'USB-Stick mit ESUTD-Sammelnachweis auf dem Transport zur Plantage Issyk verlegt, am Folgetag wiedergefunden.',
+       42, '2026-07-11T08:00:00+06'::timestamptz, 'Meldung enbek.kz Nr. 2026-0710', '2026-07-11T16:00:00+06'::timestamptz
+where not exists (
+  select 1 from public.datenschutzvorfaelle
+   where meldereferenz = 'Meldung enbek.kz Nr. 2026-0710'
+);
+
+-- Drittweitergaben: eine noch nicht benachrichtigte (Frist bereits ueberschritten)
+-- und eine bereits benachrichtigte.
+insert into public.drittweitergaben
+  (betroffener_pfluecker_id, empfaenger, zweck_id, weitergegeben_am)
+select p.id, 'ESUTD (enbek.kz)', z.id, '2026-08-05T08:00:00+06'::timestamptz
+  from public.pfluecker p, public.verarbeitungszwecke z
+ where p.name = 'M. Qojschybaj' and z.code = 'esutd_meldung'
+   and not exists (
+     select 1 from public.drittweitergaben d
+      where d.betroffener_pfluecker_id = p.id and d.empfaenger = 'ESUTD (enbek.kz)'
+   );
+
+insert into public.drittweitergaben
+  (betroffener_b2b_kunde_id, empfaenger, zweck_id, weitergegeben_am, benachrichtigt_am)
+select k.id, 'ISESF - elektronische Rechnungsstellung', z.id,
+       '2026-08-15T08:00:00+06'::timestamptz, '2026-08-16T09:00:00+06'::timestamptz
+  from public.b2b_kunden k, public.verarbeitungszwecke z
+ where k.name = 'Handelskette A' and z.code = 'auftragsabwicklung'
+   and not exists (
+     select 1 from public.drittweitergaben d
+      where d.betroffener_b2b_kunde_id = k.id and d.empfaenger = 'ISESF - elektronische Rechnungsstellung'
+   );
 
 insert into public.audit_events (actor, aktion, ressource, metadata) values
   ('system', 'behandlung.erfasst', 'pflanzenschutz_behandlungen', '{"block":"T-N-A-04","mittel":"Signum"}'),

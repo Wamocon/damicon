@@ -92,6 +92,15 @@ try {
 
   const { rows: ledger } = await db.query("select id from public.finance_ledger_entries limit 5;");
   check("RLS: anon sieht keine Finanzdaten", ledger.length === 0, `sichtbare Zeilen: ${ledger.length}`);
+
+  // Compliance-Cockpit (WMCNL-1446): granulares Datenschutz-Schema statt
+  // consent_records - auch unter PGlite nur fuer Buero-Rollen lesbar.
+  const { rows: zwecke } = await db.query("select id from public.verarbeitungszwecke limit 5;");
+  check(
+    "Compliance-RLS: anon liest keine Verarbeitungszwecke",
+    zwecke.length === 0,
+    `sichtbare Zeilen: ${zwecke.length}`,
+  );
   await alsAdmin(db);
 }
 

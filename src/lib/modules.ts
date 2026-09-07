@@ -185,7 +185,7 @@ export const modules: ModuleDef[] = [
     icon: "scale",
     resource: "compliance",
     klassifikation: "anpassen",
-    reifegrad: "demo",
+    reifegrad: "angebunden",
   },
   {
     key: "integrationen",
