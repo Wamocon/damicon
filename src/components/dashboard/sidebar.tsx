@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { LayoutDashboard, Menu, X } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
-import { MalinaLogo } from "@/components/brand/malina-logo";
+import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { Icon } from "@/components/icon";
 import { usePersona } from "@/components/dashboard/persona";
 import { hasPermission } from "@/lib/rbac";
@@ -34,10 +34,10 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
         className="flex items-center gap-2.5"
         onClick={onNavigate}
       >
-        <MalinaLogo className="shadow-lg shadow-primary/20" />
+        <DamiconLogo className="shadow-lg shadow-primary/20" />
         <span className="min-w-0">
           <span className="block text-lg font-black leading-tight text-sidebar-foreground">
-            Malina
+            Damicon
           </span>
           <span className="block truncate text-[11px] font-semibold text-muted-foreground">
             {nav("platformSubtitle")}

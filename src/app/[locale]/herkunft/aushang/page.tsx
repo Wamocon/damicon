@@ -3,7 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { SiteNavbar } from "@/components/site/navbar";
 import { SiteFooter } from "@/components/site/footer";
 import { PrintButton } from "@/components/ui/print-button";
-import { MalinaLogo } from "@/components/brand/malina-logo";
+import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { absoluteUrl, qrSvg } from "@/lib/qr";
 
 /**
@@ -58,8 +58,8 @@ export default async function AushangPage({
                      print:aspect-auto print:min-h-[96vh] print:w-full print:max-w-none print:rounded-none print:border-0 print:bg-white print:p-6 print:shadow-none"
         >
           <div className="flex items-center gap-2.5">
-            <MalinaLogo />
-            <span className="text-lg font-black text-foreground print:text-black">Malina</span>
+            <DamiconLogo />
+            <span className="text-lg font-black text-foreground print:text-black">Damicon</span>
           </div>
 
           <div className="space-y-4">

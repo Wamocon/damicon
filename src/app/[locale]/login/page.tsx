@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ArrowLeft, Database, ShieldCheck } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { MalinaLogo } from "@/components/brand/malina-logo";
+import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { LoginForm } from "@/components/auth/login-form";
 import { PlantationBackdrop } from "@/components/site/plantation-backdrop";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -69,7 +69,7 @@ export default async function LoginPage({
 
         <div className="rounded-3xl border border-border bg-card p-6 shadow-2xl shadow-black/30 sm:p-8">
           <div className="flex items-center gap-3">
-            <MalinaLogo className="h-11 w-11" />
+            <DamiconLogo className="h-11 w-11" />
             <div>
               <p className="text-lg font-black leading-5 text-card-foreground">
                 {t("title")}

@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { MalinaLogo } from "@/components/brand/malina-logo";
+import { DamiconLogo } from "@/components/brand/damicon-logo";
 
 export function SiteFooter() {
   const t = useTranslations("footer");
@@ -11,8 +11,8 @@ export function SiteFooter() {
       <div className="container grid gap-8 py-12 md:grid-cols-[1.5fr_1fr_1fr]">
         <div>
           <div className="flex items-center gap-2.5">
-            <MalinaLogo />
-            <span className="text-lg font-black text-foreground">Malina</span>
+            <DamiconLogo />
+            <span className="text-lg font-black text-foreground">Damicon</span>
           </div>
           <p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
             {t("blurb")}

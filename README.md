@@ -1,7 +1,7 @@
-# Malina
+# Damicon
 
 Interner Prototyp einer Betriebssteuerung für einen **Himbeerbetrieb im Umland Almaty**.
-Malina überträgt das bestehende **1Çatı**-ERP-Ökosystem (Immobilienbranche) identisch,
+Damicon überträgt das bestehende **1Çatı**-ERP-Ökosystem (Immobilienbranche) identisch,
 nur mit anderem fachlichen Fokus, auf den Agrar-Kontext.
 
 > **Status:** Meilenstein C - geschlossene Nachweiskette, vorführbereit.

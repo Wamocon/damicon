@@ -21,7 +21,7 @@ import { roles, type Role } from "@/lib/rbac";
 //                 Admins duerfen zusaetzlich "Ansicht als" umschalten. Das
 //                 wirkt ausschliesslich auf die Darstellung - serverseitig
 //                 entscheidet weiterhin RLS anhand der echten Profilrolle.
-const STORAGE_KEY = "malina-persona";
+const STORAGE_KEY = "damicon-persona";
 const listeners = new Set<() => void>();
 
 function subscribe(callback: () => void) {
