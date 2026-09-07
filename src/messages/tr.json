@@ -664,7 +664,7 @@
       "title": "Kalite katsayılı ücret",
       "description": "Temel ücret, miktar bileşeni ve kalite katsayısından oluşan karma model. Salt parça başı ücret miktara baskı yapar, meyveyi ezer ve ahudududa değer yok eder.",
       "summary": "Temel ücret artı miktar artı kalite katsayısı. Kalite katsayısı bir seçenek değil, ön koşuldur.",
-      "todo": "Ücret formülü düzenleyicisi, kanıt incelemesinden gelen kalite katsayısı, dönem bazlı hesap çalışması, avans hesabı."
+      "todo": "Asgari ücret bağlantısı, koridor önizlemeli ücret editörü, toplayıcı bazlı PDF bordroları, avans hesabı."
     },
     "dokumente": {
       "title": "Doküman yönetimi",
@@ -793,7 +793,10 @@
       "drittweitergabeBenachrichtigt": "Bilgilendirme kaydedildi.",
       "reklamation": "{wert} şikâyeti bildirildi.",
       "reklamationStatus": "{wert} şikâyeti güncellendi.",
-      "reklamationNachricht": "Mesaj eklendi."
+      "reklamationNachricht": "Mesaj eklendi.",
+      "lohnSatz": "{wert} tarihinden itibaren geçerli ücret oranı eklendi.",
+      "lohnBerechnet": "{wert} bordro hesaplandı - zaten onaylanmış veya ödenmiş satırlar değişmeden kalır.",
+      "lohnStatus": "{wert} için bordro güncellendi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -1244,5 +1247,70 @@
       }
     },
     "note": "Her şikâyet, parti üzerinden kanıt zincirine bağlıdır - oradan sıraya, toplayıcıya ve soğutma eğrisine kadar izlenebilir."
+  },
+  "lohnStatus": {
+    "entwurf": "Taslak",
+    "freigegeben": "Onaylandı",
+    "ausgezahlt": "Ödendi"
+  },
+  "lohnAnsicht": {
+    "satzTitel": "Ücret oranı",
+    "satzLead": "Hesaplamanın temeli: saatlik ücret, kg başına ücret ve kalite katsayısı koridoru. Buna göre ödeme alan kişi temeli görebilmelidir.",
+    "keinSatz": "Henüz bir ücret oranı tanımlanmadı - o olmadan bir dönem hesaplanamaz.",
+    "wirkungslos": "Gösterilen bordroların tamamında kalite katsayısı 1,00'den uzaklaşmıyor - şu anda ücrete gözle görülür bir etkisi yok. Bunun nedeni formül değil, eksik fire verileri olabilir.",
+    "stat": {
+      "stundenlohn": "Saatlik ücret",
+      "kgSatz": "Kg başına ücret",
+      "ziel": "Hedef fire oranı",
+      "zielHinweis": "Bu oranda katsayı 1,00 olur",
+      "korridor": "Katsayı koridoru",
+      "gueltigAb": "geçerlilik başlangıcı"
+    },
+    "abrechnungenTitel": "Bordrolar",
+    "abrechnungenLead": "Toplayıcı ve dönem başına bir satır. Temel ücret ve miktar bileşeni ayrı gösterilir, böylece toplam yeniden hesaplanabilir kalır.",
+    "keineAbrechnungen": "Henüz bir bordro hesaplanmadı.",
+    "col": {
+      "pfluecker": "Toplayıcı",
+      "periode": "Dönem",
+      "stunden": "Saat",
+      "menge": "Miktar",
+      "ausschussquote": "Fire",
+      "faktor": "Katsayı",
+      "grundlohn": "Temel ücret",
+      "mengenKomponente": "Miktar (₸)",
+      "gesamt": "Toplam",
+      "status": "Durum",
+      "aktion": "İşlem",
+      "aufgabe": "Görev",
+      "ausschussAnteilig": "Fire (pay)",
+      "betrag": "Tutar"
+    },
+    "freigebenKnopf": "Onayla",
+    "auszahlenKnopf": "Ödendi olarak işaretle",
+    "positionenTitel": "Toplama görevi başına kalemler",
+    "positionenLead": "Miktar bileşeninin görev başına nasıl oluştuğu - görevin firesinin dağıtımının temeli.",
+    "keinePositionen": "Henüz bir kalem hesaplanmadı.",
+    "note": "Fire yalnızca toplama görevi başına kaydedilir, kasa veya kişi başına değil - bu yüzden toplayıcı başına pay, kg payına göre dağıtılan bir değerdir, doğrudan ölçülen bireysel bir değer değildir. Burada hesaplanan kalite katsayısı, fire oranından türetilen ayrı ve nesnel bir ücret katsayısıdır ve işletme yönetiminin toplama görevinin kendisinde elle tuttuğu kalite katsayısının yerini almaz - ikisi farklı sorulara cevap verir.",
+    "formular": {
+      "satz": {
+        "titel": "Yeni ücret oranı ekle",
+        "lead": "Mevcut, henüz kapanmamış bir oran yeni başlangıç tarihinde otomatik olarak kapatılır.",
+        "gueltigAb": "Geçerlilik başlangıcı",
+        "stundenlohn": "Saatlik ücret, ₸",
+        "kgSatz": "Kg başına ücret, ₸",
+        "ziel": "Hedef fire oranı, %",
+        "min": "Katsayı minimum",
+        "max": "Katsayı maksimum",
+        "notiz": "Not (opsiyonel)",
+        "knopf": "Oran ekle"
+      },
+      "berechnen": {
+        "titel": "Dönem hesapla",
+        "lead": "Seçilen dönem için toplayıcı başına temel ücreti, miktar bileşenini ve kalite katsayısını hesaplar. Zaten onaylanmış veya ödenmiş bordrolar değişmeden kalır.",
+        "periodeStart": "Dönem başlangıcı",
+        "periodeEnde": "Dönem bitişi",
+        "knopf": "Dönemi hesapla"
+      }
+    }
   }
 }

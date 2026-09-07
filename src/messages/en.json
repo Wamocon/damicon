@@ -485,7 +485,7 @@
       "title": "Quality-factor pay",
       "description": "A combined model of base pay, a volume component and a quality factor. A pure piece rate pushes for volume, squeezes berries and is value-destroying for the raspberry.",
       "summary": "Base pay plus volume plus a quality factor. The quality factor is not optional but a precondition.",
-      "todo": "Pay-formula editor, quality factor from the evidence review, settlement run per period, advance account."
+      "todo": "Minimum-wage anchoring, a rate editor with a UI-guided corridor preview, per-picker PDF pay slips, an advance account."
     },
     "dokumente": {
       "title": "Document management",
@@ -634,7 +634,10 @@
       "drittweitergabeBenachrichtigt": "Notification recorded.",
       "reklamation": "Complaint {wert} reported.",
       "reklamationStatus": "Complaint {wert} updated.",
-      "reklamationNachricht": "Message added."
+      "reklamationNachricht": "Message added.",
+      "lohnSatz": "Pay rate valid from {wert} added.",
+      "lohnBerechnet": "{wert} settlement(s) calculated - already approved or paid rows stay unchanged.",
+      "lohnStatus": "Settlement for {wert} updated."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1244,5 +1247,70 @@
       }
     },
     "note": "Every complaint is linked to the chain of evidence through the batch - traceable from there to the row block, picker and cooling curve."
+  },
+  "lohnStatus": {
+    "entwurf": "Draft",
+    "freigegeben": "Approved",
+    "ausgezahlt": "Paid"
+  },
+  "lohnAnsicht": {
+    "satzTitel": "Pay rate",
+    "satzLead": "Basis of the calculation: hourly rate, per-kg rate and the quality-factor corridor. Whoever is paid by it may see the basis.",
+    "keinSatz": "No pay rate on file yet - no period can be calculated without one.",
+    "wirkungslos": "The quality factor does not move away from 1.00 across the settlements shown - it currently has no visible effect on pay here. This can be due to missing waste data, not necessarily the formula.",
+    "stat": {
+      "stundenlohn": "Hourly rate",
+      "kgSatz": "Per-kg rate",
+      "ziel": "Target waste rate",
+      "zielHinweis": "At this rate the factor equals 1.00",
+      "korridor": "Factor corridor",
+      "gueltigAb": "valid from"
+    },
+    "abrechnungenTitel": "Settlements",
+    "abrechnungenLead": "One row per picker and period. Base pay and volume component shown separately, so the total stays verifiable.",
+    "keineAbrechnungen": "No settlement calculated yet.",
+    "col": {
+      "pfluecker": "Picker",
+      "periode": "Period",
+      "stunden": "Hrs.",
+      "menge": "Quantity",
+      "ausschussquote": "Waste",
+      "faktor": "Factor",
+      "grundlohn": "Base pay",
+      "mengenKomponente": "Volume (₸)",
+      "gesamt": "Total",
+      "status": "Status",
+      "aktion": "Action",
+      "aufgabe": "Task",
+      "ausschussAnteilig": "Waste (allocated)",
+      "betrag": "Amount"
+    },
+    "freigebenKnopf": "Approve",
+    "auszahlenKnopf": "Mark as paid",
+    "positionenTitel": "Line items per picking task",
+    "positionenLead": "How the volume component is made up per task - the basis for allocating the task's waste.",
+    "keinePositionen": "No line item calculated yet.",
+    "note": "Waste is only recorded per picking task, not per crate or person - the share per picker is therefore an allocation by kg share, not a directly measured individual value. The quality factor calculated here is a separate, objective pay factor derived from the waste rate and does not replace the quality factor management maintains manually on the picking task itself - both answer different questions.",
+    "formular": {
+      "satz": {
+        "titel": "Add a new pay rate",
+        "lead": "An existing, still open rate is automatically closed at the new start date.",
+        "gueltigAb": "Valid from",
+        "stundenlohn": "Hourly rate in ₸",
+        "kgSatz": "Per-kg rate in ₸",
+        "ziel": "Target waste rate in %",
+        "min": "Factor minimum",
+        "max": "Factor maximum",
+        "notiz": "Note (optional)",
+        "knopf": "Add rate"
+      },
+      "berechnen": {
+        "titel": "Calculate period",
+        "lead": "Calculates base pay, volume component and quality factor per picker for the chosen period. Already approved or paid settlements stay unchanged.",
+        "periodeStart": "Period from",
+        "periodeEnde": "Period to",
+        "knopf": "Calculate period"
+      }
+    }
   }
 }

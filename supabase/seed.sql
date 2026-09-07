@@ -416,7 +416,28 @@ where not exists (
   where fle.kostentraeger_id = kt.id and fle.typ = v.typ::public.ledger_typ and fle.betrag_tenge = v.betrag::numeric
 );
 
--- --- Lohn ---------------------------------------------------------------
+-- --- Lohn (WMCNL-1444) ---------------------------------------------------
+-- Lohnsatz: Grundlage der neuen Berechnungsfunktion public.lohn_periode_berechnen().
+-- Zahlen sind Annahmen (wie beim Vorbild aus dem Schwesterprojekt: "ein
+-- erfundener Satz in einer Lohnrechnung ist schlimmer als ein leeres Feld") -
+-- gueltig ab Saisonbeginn, damit sowohl die Alt-Periode unten als auch echte
+-- Berechnungslaeufe ueber die granularen Arbeitszeiten/Steigen einen Satz
+-- finden.
+insert into public.lohn_saetze
+  (gueltig_ab, stundenlohn_tenge, kg_satz_tenge, qualitaets_ziel_ausschussquote,
+   qualitaetsfaktor_min, qualitaetsfaktor_max, notiz)
+select '2026-01-01'::date, 900, 850, 5.00, 0.90, 1.10,
+       'Annahme fuer den Prototyp - noch keine mit dem Kunden bestaetigte Zahl.'
+where not exists (select 1 from public.lohn_saetze where gueltig_ab = '2026-01-01'::date);
+
+-- Diese zwei Zeilen stammen aus der Zeit vor der Satztabelle und tragen
+-- hartkodierte Betraege ohne Rechengrundlage (der Bug, den WMCNL-1444 behebt).
+-- Sie bleiben als Bestandsdaten stehen (Periode 25.-31.08. hat ohnehin keine
+-- granularen Arbeitszeiten/Steigen hinterlegt, eine Neuberechnung wuerde sie
+-- schlicht nicht antreffen); die tatsaechlich berechneten Abrechnungen fuer
+-- die Tage mit echten Erfassungen (01.-02.09., siehe Pflueckaufgaben/Steigen/
+-- Arbeitszeiten unten) entstehen ueber public.lohn_periode_berechnen(), von
+-- der Buchhaltung im Dashboard ausgeloest oder im Integrationstest.
 insert into public.lohn_abrechnungen
   (pfluecker_id, periode_start, periode_ende, grundlohn_tenge, mengen_komponente_tenge, qualitaetsfaktor, gesamt_tenge, status)
 select p.id, '2026-08-25'::date, '2026-08-31'::date, 35000, v.menge, v.qf, v.gesamt, 'entwurf'

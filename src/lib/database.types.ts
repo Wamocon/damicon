@@ -986,42 +986,51 @@ export type Database = {
       }
       lohn_abrechnungen: {
         Row: {
+          ausschussquote: number | null
           created_at: string
           gesamt_tenge: number
           grundlohn_tenge: number
           id: string
+          menge_kg: number
           mengen_komponente_tenge: number
           periode_ende: string
           periode_start: string
           pfluecker_id: string
           qualitaetsfaktor: number
           status: Database["public"]["Enums"]["lohn_status"]
+          stunden: number
           updated_at: string
         }
         Insert: {
+          ausschussquote?: number | null
           created_at?: string
           gesamt_tenge?: number
           grundlohn_tenge?: number
           id?: string
+          menge_kg?: number
           mengen_komponente_tenge?: number
           periode_ende: string
           periode_start: string
           pfluecker_id: string
           qualitaetsfaktor?: number
           status?: Database["public"]["Enums"]["lohn_status"]
+          stunden?: number
           updated_at?: string
         }
         Update: {
+          ausschussquote?: number | null
           created_at?: string
           gesamt_tenge?: number
           grundlohn_tenge?: number
           id?: string
+          menge_kg?: number
           mengen_komponente_tenge?: number
           periode_ende?: string
           periode_start?: string
           pfluecker_id?: string
           qualitaetsfaktor?: number
           status?: Database["public"]["Enums"]["lohn_status"]
+          stunden?: number
           updated_at?: string
         }
         Relationships: [
@@ -1036,6 +1045,7 @@ export type Database = {
       }
       lohn_positionen: {
         Row: {
+          ausschuss_anteilig_kg: number
           betrag_tenge: number
           created_at: string
           id: string
@@ -1045,6 +1055,7 @@ export type Database = {
           qualitaetsfaktor: number
         }
         Insert: {
+          ausschuss_anteilig_kg?: number
           betrag_tenge?: number
           created_at?: string
           id?: string
@@ -1054,6 +1065,7 @@ export type Database = {
           qualitaetsfaktor?: number
         }
         Update: {
+          ausschuss_anteilig_kg?: number
           betrag_tenge?: number
           created_at?: string
           id?: string
@@ -1078,6 +1090,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      lohn_saetze: {
+        Row: {
+          created_at: string
+          gueltig_ab: string
+          gueltig_bis: string | null
+          id: string
+          kg_satz_tenge: number
+          notiz: string | null
+          qualitaets_ziel_ausschussquote: number
+          qualitaetsfaktor_max: number
+          qualitaetsfaktor_min: number
+          stundenlohn_tenge: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          gueltig_ab?: string
+          gueltig_bis?: string | null
+          id?: string
+          kg_satz_tenge: number
+          notiz?: string | null
+          qualitaets_ziel_ausschussquote?: number
+          qualitaetsfaktor_max?: number
+          qualitaetsfaktor_min?: number
+          stundenlohn_tenge: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          gueltig_ab?: string
+          gueltig_bis?: string | null
+          id?: string
+          kg_satz_tenge?: number
+          notiz?: string | null
+          qualitaets_ziel_ausschussquote?: number
+          qualitaetsfaktor_max?: number
+          qualitaetsfaktor_min?: number
+          stundenlohn_tenge?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       media_belege: {
         Row: {
@@ -2192,6 +2246,22 @@ export type Database = {
           schluessel: string
           wert: number
         }[]
+      }
+      lohn_periode_berechnen: {
+        Args: { p_periode_ende: string; p_periode_start: string }
+        Returns: {
+          uebersprungen: number
+          verarbeitet: number
+        }[]
+      }
+      lohn_qualitaetsfaktor: {
+        Args: {
+          p_ausschussquote: number
+          p_max: number
+          p_min: number
+          p_ziel: number
+        }
+        Returns: number
       }
       reihenblock_freigeben: {
         Args: {

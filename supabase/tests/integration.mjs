@@ -1237,6 +1237,250 @@ if (leitung && brigade) {
   await admin.from("pflueckaufgaben").delete().eq("id", neueAufgabe.id);
   await admin.from("pflanzenschutz_behandlungen").delete().eq("id", behandlung.id);
   await admin.from("reihenbloecke").update({ status: block.status }).eq("id", block.id);
+
+  // --- 13. Lohnabrechnung mit Qualitaetsfaktor (WMCNL-1444) ----------------
+  // Die Kette liefert seit Meilenstein C echte Arbeitszeiten und Steigen fuer
+  // den 01.-02.09. (siehe supabase/seed.sql): D. Sarsenbaj (MAL-0417) und
+  // A. Tulegenowa (MAL-0418) teilen sich zwei Pflueckaufgaben zu je gleichen
+  // Anteilen (eine davon mit spuerbarem Ausschuss), M. Qojschybaj (MAL-0421)
+  // hat eine einzelne, makellose Aufgabe ohne Ausschuss. Die Tests rechnen
+  // gegen diese realen Daten nach, statt nur den Vertrag (wer darf was)
+  // isoliert zu pruefen - beides faellt hier zusammen.
+
+  const { client: buchhaltung, fehler: buchhaltungFehler } = await anmelden("buchhaltung@malina.demo");
+  check("Auth: Buchhaltung meldet sich an", !!buchhaltung, buchhaltungFehler ?? "");
+
+  const { data: lohnSatzAnon } = await anon.from("lohn_saetze").select("id");
+  check(
+    "Lohn-RLS: anon liest keinen Lohnsatz",
+    (lohnSatzAnon?.length ?? 0) === 0,
+    `sichtbare Zeilen: ${lohnSatzAnon?.length}`,
+  );
+
+  const { data: lohnSatzLeitung, error: lohnSatzLeitungFehler } = await leitung
+    .from("lohn_saetze")
+    .select("id");
+  check(
+    "Lohn-RLS: Betriebsleitung liest den Lohnsatz (view, aber kein Schreibrecht)",
+    !lohnSatzLeitungFehler && (lohnSatzLeitung?.length ?? 0) > 0,
+    lohnSatzLeitungFehler?.message ?? `${lohnSatzLeitung?.length} Saetze`,
+  );
+
+  const { error: lohnSatzLeitungSchreibenFehler } = await leitung.from("lohn_saetze").insert({
+    gueltig_ab: "2031-01-01",
+    stundenlohn_tenge: 100,
+    kg_satz_tenge: 100,
+  });
+  check(
+    "Lohn-RLS: Betriebsleitung legt keinen Lohnsatz an (rbac: nur view('lohn'))",
+    lohnSatzLeitungSchreibenFehler?.code === "42501",
+    lohnSatzLeitungSchreibenFehler?.code ?? "kein Fehler",
+  );
+
+  const { error: lohnBerechnenLeitungFehler } = await leitung.rpc("lohn_periode_berechnen", {
+    p_periode_start: "2026-09-01",
+    p_periode_ende: "2026-09-02",
+  });
+  check(
+    "Lohn-RPC: Betriebsleitung berechnet keine Periode",
+    lohnBerechnenLeitungFehler?.code === "42501",
+    lohnBerechnenLeitungFehler?.code ?? "kein Fehler",
+  );
+
+  const { error: lohnBerechnenBrigadeFehler } = await brigade.rpc("lohn_periode_berechnen", {
+    p_periode_start: "2026-09-01",
+    p_periode_ende: "2026-09-02",
+  });
+  check(
+    "Lohn-RPC: Brigade berechnet keine Periode",
+    lohnBerechnenBrigadeFehler?.code === "42501",
+    lohnBerechnenBrigadeFehler?.code ?? "kein Fehler",
+  );
+
+  const { error: lohnKeinSatzFehler } = await buchhaltung.rpc("lohn_periode_berechnen", {
+    p_periode_start: "2025-01-01",
+    p_periode_ende: "2025-01-02",
+  });
+  check(
+    "Lohn-RPC: ohne hinterlegten Satz wird die Periode abgelehnt",
+    lohnKeinSatzFehler?.code === "P0002",
+    lohnKeinSatzFehler?.code ?? "kein Fehler",
+  );
+
+  const { data: lohnBerechnung, error: lohnBerechnenFehler } = await buchhaltung.rpc(
+    "lohn_periode_berechnen",
+    { p_periode_start: "2026-09-01", p_periode_ende: "2026-09-02" },
+  );
+  const lohnBerechnungErgebnis = Array.isArray(lohnBerechnung) ? lohnBerechnung[0] : lohnBerechnung;
+  check(
+    "Lohn-RPC: Buchhaltung berechnet die Periode 01.-02.09. fuer alle drei erfassten Pfluecker",
+    !lohnBerechnenFehler &&
+      lohnBerechnungErgebnis?.verarbeitet === 3 &&
+      lohnBerechnungErgebnis?.uebersprungen === 0,
+    lohnBerechnenFehler?.message ?? JSON.stringify(lohnBerechnungErgebnis),
+  );
+
+  const { data: lohnPflueckerMap } = await admin
+    .from("pfluecker")
+    .select("id, ausweis")
+    .in("ausweis", ["MAL-0417", "MAL-0421"]);
+  const lohnSarsenbajId = lohnPflueckerMap?.find((p) => p.ausweis === "MAL-0417")?.id;
+  const lohnQojschybajId = lohnPflueckerMap?.find((p) => p.ausweis === "MAL-0421")?.id;
+
+  const { data: lohnSarsenbaj } = await admin
+    .from("lohn_abrechnungen")
+    .select(
+      "id, stunden, menge_kg, ausschussquote, grundlohn_tenge, mengen_komponente_tenge, qualitaetsfaktor, gesamt_tenge, status",
+    )
+    .eq("periode_start", "2026-09-01")
+    .eq("periode_ende", "2026-09-02")
+    .eq("pfluecker_id", lohnSarsenbajId)
+    .single();
+  check(
+    "Lohn-Berechnung: Grundlohn aus Arbeitszeit (7,2 h x 900 Tenge)",
+    Number(lohnSarsenbaj?.grundlohn_tenge) === 6480,
+    `grundlohn_tenge: ${lohnSarsenbaj?.grundlohn_tenge}`,
+  );
+  check(
+    "Lohn-Berechnung: Mengenkomponente inklusive Qualitaetsfaktor je Aufgabe",
+    Number(lohnSarsenbaj?.mengen_komponente_tenge) === 37659.25,
+    `mengen_komponente_tenge: ${lohnSarsenbaj?.mengen_komponente_tenge}`,
+  );
+  check(
+    "Lohn-Berechnung: Gesamt-Qualitaetsfaktor unter 1.00 bei ueberdurchschnittlichem Ausschuss",
+    Number(lohnSarsenbaj?.qualitaetsfaktor) === 0.91,
+    `qualitaetsfaktor: ${lohnSarsenbaj?.qualitaetsfaktor}, ausschussquote: ${lohnSarsenbaj?.ausschussquote}`,
+  );
+  check(
+    "Lohn-Berechnung: Gesamtbetrag = Grundlohn + Mengenkomponente",
+    Number(lohnSarsenbaj?.gesamt_tenge) ===
+      Number(lohnSarsenbaj?.grundlohn_tenge) + Number(lohnSarsenbaj?.mengen_komponente_tenge),
+    `gesamt_tenge: ${lohnSarsenbaj?.gesamt_tenge}`,
+  );
+
+  const { data: lohnPositionenSarsenbaj } = await admin
+    .from("lohn_positionen")
+    .select("menge_kg, qualitaetsfaktor, ausschuss_anteilig_kg, betrag_tenge")
+    .eq("lohn_abrechnung_id", lohnSarsenbaj.id)
+    .order("menge_kg", { ascending: false });
+  check(
+    "Lohn-Positionen: zwei Positionen, Ausschuss ueber den kg-Anteil umgelegt (symmetrischer Seed: 50/50 je Aufgabe)",
+    lohnPositionenSarsenbaj?.length === 2 &&
+      Number(lohnPositionenSarsenbaj[0].ausschuss_anteilig_kg) === 2.1 &&
+      Number(lohnPositionenSarsenbaj[1].ausschuss_anteilig_kg) === 2.95,
+    JSON.stringify(lohnPositionenSarsenbaj),
+  );
+
+  const { data: lohnQojschybaj } = await admin
+    .from("lohn_abrechnungen")
+    .select("qualitaetsfaktor, ausschussquote")
+    .eq("periode_start", "2026-09-01")
+    .eq("periode_ende", "2026-09-02")
+    .eq("pfluecker_id", lohnQojschybajId)
+    .single();
+  check(
+    "Lohn-Berechnung: 0% Ausschuss hebt den Qualitaetsfaktor auf das Maximum des Korridors",
+    Number(lohnQojschybaj?.qualitaetsfaktor) === 1.1 && Number(lohnQojschybaj?.ausschussquote) === 0,
+    `qualitaetsfaktor: ${lohnQojschybaj?.qualitaetsfaktor}, ausschussquote: ${lohnQojschybaj?.ausschussquote}`,
+  );
+
+  // Freigabe: die Buchhaltung darf, die Brigade nicht (rbac: lohn:approve nur
+  // admin/buchhaltung; RLS lohn_abrechnungen_update_buchhaltung).
+  const { error: lohnFreigabeBrigadeFehler, data: lohnFreigabeBrigadeUpdate } = await brigade
+    .from("lohn_abrechnungen")
+    .update({ status: "freigegeben" })
+    .eq("id", lohnSarsenbaj.id)
+    .select("id");
+  check(
+    "Lohn-RLS: Brigade gibt keine Abrechnung frei",
+    !lohnFreigabeBrigadeFehler && (lohnFreigabeBrigadeUpdate?.length ?? 0) === 0,
+    lohnFreigabeBrigadeFehler?.message ?? `geaenderte Zeilen: ${lohnFreigabeBrigadeUpdate?.length}`,
+  );
+
+  const { error: lohnFreigabeFehler } = await buchhaltung
+    .from("lohn_abrechnungen")
+    .update({ status: "freigegeben" })
+    .eq("id", lohnSarsenbaj.id);
+  check(
+    "Lohn: Buchhaltung gibt die Abrechnung frei",
+    !lohnFreigabeFehler,
+    lohnFreigabeFehler?.message ?? "",
+  );
+
+  // Ein zweiter Rechenlauf ueber dieselbe Periode ueberschreibt die bereits
+  // freigegebene Zeile nicht - sie wird uebersprungen und separat gezaehlt.
+  const { data: lohnZweiterLauf, error: lohnZweiterLaufFehler } = await buchhaltung.rpc(
+    "lohn_periode_berechnen",
+    { p_periode_start: "2026-09-01", p_periode_ende: "2026-09-02" },
+  );
+  const lohnZweiterLaufErgebnis = Array.isArray(lohnZweiterLauf) ? lohnZweiterLauf[0] : lohnZweiterLauf;
+  check(
+    "Lohn-RPC: ein zweiter Lauf ueberspringt die bereits freigegebene Abrechnung",
+    !lohnZweiterLaufFehler &&
+      lohnZweiterLaufErgebnis?.verarbeitet === 2 &&
+      lohnZweiterLaufErgebnis?.uebersprungen === 1,
+    lohnZweiterLaufFehler?.message ?? JSON.stringify(lohnZweiterLaufErgebnis),
+  );
+
+  const { data: lohnSarsenbajNachLauf } = await admin
+    .from("lohn_abrechnungen")
+    .select("status, gesamt_tenge")
+    .eq("id", lohnSarsenbaj.id)
+    .single();
+  check(
+    "Lohn: freigegebene Abrechnung bleibt nach dem erneuten Lauf unveraendert",
+    lohnSarsenbajNachLauf?.status === "freigegeben" &&
+      Number(lohnSarsenbajNachLauf?.gesamt_tenge) === Number(lohnSarsenbaj.gesamt_tenge),
+    JSON.stringify(lohnSarsenbajNachLauf),
+  );
+
+  // Freigabe-Schutz: Betraege einer freigegebenen Abrechnung sind per
+  // direktem Update nicht mehr aenderbar (trg_lohn_abrechnung_freigabe).
+  const { error: lohnBetragAendernFehler } = await buchhaltung
+    .from("lohn_abrechnungen")
+    .update({ gesamt_tenge: 1 })
+    .eq("id", lohnSarsenbaj.id);
+  check(
+    "Lohn-Trigger: Betraege einer freigegebenen Abrechnung sind gesperrt",
+    lohnBetragAendernFehler?.code === "23514",
+    lohnBetragAendernFehler?.code ?? "kein Fehler",
+  );
+
+  // Auszahlen, danach pruefen, dass 'ausgezahlt' nicht mehr zurueckgenommen wird.
+  const { error: lohnAuszahlenFehler } = await buchhaltung
+    .from("lohn_abrechnungen")
+    .update({ status: "ausgezahlt" })
+    .eq("id", lohnSarsenbaj.id);
+  check(
+    "Lohn: Buchhaltung markiert die Abrechnung als ausgezahlt",
+    !lohnAuszahlenFehler,
+    lohnAuszahlenFehler?.message ?? "",
+  );
+
+  const { error: lohnRuecknahmeFehler } = await admin
+    .from("lohn_abrechnungen")
+    .update({ status: "entwurf" })
+    .eq("id", lohnSarsenbaj.id);
+  check(
+    "Lohn-Trigger: eine ausgezahlte Abrechnung laesst sich nicht zurueckstufen",
+    lohnRuecknahmeFehler?.code === "23514",
+    lohnRuecknahmeFehler?.code ?? "kein Fehler",
+  );
+
+  // Cleanup: die in diesem Testlauf berechneten Lohndaten wieder entfernen,
+  // damit ein erneuter Testlauf von denselben Ausgangsdaten startet. lohn_
+  // positionen haengt per on-delete-cascade an lohn_abrechnungen, ein
+  // Aufraeumen der Positionen zuerst ist trotzdem explizit, nicht implizit.
+  const { data: lohnTestAbrechnungen } = await admin
+    .from("lohn_abrechnungen")
+    .select("id")
+    .eq("periode_start", "2026-09-01")
+    .eq("periode_ende", "2026-09-02");
+  const lohnTestAbrechnungIds = (lohnTestAbrechnungen ?? []).map((a) => a.id);
+  if (lohnTestAbrechnungIds.length > 0) {
+    await admin.from("lohn_positionen").delete().in("lohn_abrechnung_id", lohnTestAbrechnungIds);
+    await admin.from("lohn_abrechnungen").delete().in("id", lohnTestAbrechnungIds);
+  }
 }
 
 console.log("");

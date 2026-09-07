@@ -167,7 +167,7 @@ export const modules: ModuleDef[] = [
     icon: "calculator",
     resource: "lohn",
     klassifikation: "neu-bauen",
-    reifegrad: "in-entwicklung",
+    reifegrad: "angebunden",
   },
   {
     key: "dokumente",
