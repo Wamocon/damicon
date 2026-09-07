@@ -81,7 +81,7 @@ jobs:
             echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$ANON_KEY"
             echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY"
             echo "NEXT_PUBLIC_APP_URL=http://localhost:3000"
-            echo "NEXT_PUBLIC_SITE_NAME=Malina"
+            echo "NEXT_PUBLIC_SITE_NAME=Damicon"
           } >> .env.local
 
       - name: Demo-Zugänge anlegen

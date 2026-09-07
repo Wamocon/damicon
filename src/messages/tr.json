@@ -25,7 +25,7 @@
   "hero": {
     "badge": "Ahududu plantasyonu için işletme yönetimi · Almatı çevresi",
     "headline": "Pazar liderliği tonlarla değil, belgelenebilirlikle kazanılır.",
-    "subheadline": "Ahududunun koruyucu bir kabuğu yoktur ve 60 dakika içinde soğutulmalıdır. Malina, haftalarca süren hasat sürecini yönetir, soğuk zinciri korur ve her teslimatı sıra bloğuna, soğutma süresine ve kişiye kadar belgeler.",
+    "subheadline": "Ahududunun koruyucu bir kabuğu yoktur ve 60 dakika içinde soğutulmalıdır. Damicon, haftalarca süren hasat sürecini yönetir, soğuk zinciri korur ve her teslimatı sıra bloğuna, soğutma süresine ve kişiye kadar belgeler.",
     "imageAlt": "Ahududu plantasyonunun telli sıraları - yer tutucu görsel, sonra değiştirilir",
     "ctaPrimary": "Prototipi aç",
     "ctaSecondary": "Ahududu neden farklı",
@@ -66,7 +66,7 @@
     "privacy": "Gizlilik",
     "copyright": "© {year} WAMOCON GmbH",
     "madeBy": "Almanya'da geliştirildi",
-    "blurb": "Malina, Rusça ahududu demek. Almatı çevresindeki bir ahududu işletmesi için yönetim sistemi - hasat akışından soğuk zincire ve her teslimatın kanıtına kadar."
+    "blurb": "Damicon, Almatı çevresindeki bir ahududu işletmesi için yönetim sistemi - hasat akışından soğuk zincire ve her teslimatın kanıtına kadar."
   },
   "dashboard": {
     "searchPlaceholder": "Sıra bloğu, parti, toplayıcı, belge ara ...",
@@ -75,7 +75,7 @@
     "zoneEmpty": "Etkin rol için bu bölgede yetkili modül yok.",
     "home": {
       "eyebrow": "İşletme yönetimi",
-      "title": "Malina işletme genel bakışı",
+      "title": "Damicon işletme genel bakışı",
       "description": "Almatı çevresi toplayıcı. Prototip, ilk aşamanın yapısını ve görünümünü gösterir - ana işlevler kullanılabilir demo, alt işlevler durum etiketli görünür menü öğeleri.",
       "kpiTitle": "14 taban göstergesi",
       "kpiDescription": "01.10.2026'da müşteriyle taban çizgisi olarak imzalanır.",
@@ -356,7 +356,7 @@
   "legal": {
     "imprintTitle": "Künye",
     "privacyTitle": "Gizlilik",
-    "prototypeDisclaimer": "Not: Malina, WAMOCON GmbH'nin iç prototipidir (proof-of-concept). İşletme veya kişisel verilerin gerçek işlenmesi yapılmaz. Gösterilen tüm veriler yer tutucudur.",
+    "prototypeDisclaimer": "Not: Damicon, WAMOCON GmbH'nin iç prototipidir (proof-of-concept). İşletme veya kişisel verilerin gerçek işlenmesi yapılmaz. Gösterilen tüm veriler yer tutucudur.",
     "managingDirector": "Yetkili genel müdür",
     "registration": "Sicil kaydı",
     "controller": "Sorumlu",
@@ -371,8 +371,8 @@
     "residencyText": "Sonraki gerçek işletim için Kazak Dijital Kod No. 255-VIII bazı veri ürünlerinin Kazakistan dışında saklanmasını sınırlar. QR, çevrimdışı senkron ve yapay zeka mimarisi için barındırma yeri üretime geçmeden önce hukuken kontrol edilir."
   },
   "meta": {
-    "title": "Malina - ahududu plantasyonu için işletme yönetimi",
-    "description": "Malina, Almatı çevresindeki bir ahududu işletmesinin yönetim sistemidir: hasat akışı, 60 dakikalık eşiği olan soğuk zincir, tarlada kasa kimliği, hasat günü başına katkı payı ve her teslimat için kesintisiz kanıt zinciri."
+    "title": "Damicon - ahududu plantasyonu için işletme yönetimi",
+    "description": "Damicon, Almatı çevresindeki bir ahududu işletmesinin yönetim sistemidir: hasat akışı, 60 dakikalık eşiği olan soğuk zincir, tarlada kasa kimliği, hasat günü başına katkı payı ve her teslimat için kesintisiz kanıt zinciri."
   },
   "landing": {
     "openZone": "Alanı aç",
@@ -455,7 +455,7 @@
     },
     "proofClosing": "Bir şikâyette ürünün hangi bloktan, kimden ve hangi soğutma süresiyle geldiği saniyeler içinde belirlenebilir.",
     "leversEyebrow": "Pazar liderliğine giden yol",
-    "leversTitle": "Malina'nın beslediği dört kaldıraç",
+    "leversTitle": "Damicon'un beslediği dört kaldıraç",
     "leversLead": "Her kaldıraç kendi başına durur ama birbirinin üzerine kurulur. Birincisi olmadan diğer üçü etkisizdir.",
     "leverItems": {
       "stunde": {
@@ -518,7 +518,7 @@
   },
   "auth": {
     "title": "Oturum aç",
-    "lead": "Malina - ahududu işletmesi için ERP ekosistemi",
+    "lead": "Damicon - ahududu işletmesi için ERP ekosistemi",
     "email": "E-posta",
     "password": "Parola",
     "submit": "Oturum aç",

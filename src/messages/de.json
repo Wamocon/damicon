@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Malina - Betriebssteuerung für die Himbeerplantage",
-    "description": "Malina ist die Betriebssteuerung für einen Himbeerbetrieb im Umland Almaty: Erntestrecke, Kühlkette mit 60-Minuten-Grenzwert, Steigen-Identität im Feld, Deckungsbeitrag je Erntetag und eine lückenlose Nachweiskette für jede Lieferung."
+    "title": "Damicon - Betriebssteuerung für die Himbeerplantage",
+    "description": "Damicon ist die Betriebssteuerung für einen Himbeerbetrieb im Umland Almaty: Erntestrecke, Kühlkette mit 60-Minuten-Grenzwert, Steigen-Identität im Feld, Deckungsbeitrag je Erntetag und eine lückenlose Nachweiskette für jede Lieferung."
   },
   "common": {
     "skipToContent": "Zum Inhalt springen",
@@ -29,7 +29,7 @@
   "hero": {
     "badge": "Betriebssteuerung für die Himbeerplantage · Umland Almaty",
     "headline": "Marktführerschaft entsteht nicht über Tonnen, sondern über Belegbarkeit.",
-    "subheadline": "Die Himbeere hat keine schützende Schale und muss innerhalb von 60 Minuten gekühlt werden. Malina steuert die mehrwöchige Erntestrecke, hält die Kühlkette und belegt jede Lieferung bis zum Reihenblock, zur Kühlzeit und zur Person.",
+    "subheadline": "Die Himbeere hat keine schützende Schale und muss innerhalb von 60 Minuten gekühlt werden. Damicon steuert die mehrwöchige Erntestrecke, hält die Kühlkette und belegt jede Lieferung bis zum Reihenblock, zur Kühlzeit und zur Person.",
     "imageAlt": "Spalierreihen einer Himbeerplantage - Platzhalterbild, wird durch echtes Betriebsmaterial ersetzt",
     "ctaPrimary": "Prototyp öffnen",
     "ctaSecondary": "Warum die Himbeere anders ist",
@@ -121,7 +121,7 @@
     },
     "proofClosing": "Bei einer Reklamation ist in Sekunden feststellbar, aus welchem Block, von wem und mit welcher Kühlzeit die Ware stammt.",
     "leversEyebrow": "Weg zur Marktführerschaft",
-    "leversTitle": "Vier Hebel, auf die Malina einzahlt",
+    "leversTitle": "Vier Hebel, auf die Damicon einzahlt",
     "leversLead": "Jeder Hebel steht für sich, aber sie bauen aufeinander auf. Ohne den ersten sind die anderen drei wirkungslos.",
     "leverItems": {
       "stunde": {
@@ -205,7 +205,7 @@
     }
   },
   "footer": {
-    "blurb": "Malina, russisch für Himbeere. Betriebssteuerung für einen Himbeerbetrieb im Umland Almaty - von der Erntestrecke über die Kühlkette bis zum Nachweis jeder Lieferung.",
+    "blurb": "Damicon ist die Betriebssteuerung für einen Himbeerbetrieb im Umland Almaty - von der Erntestrecke über die Kühlkette bis zum Nachweis jeder Lieferung.",
     "prototypeNote": "Interner Proof-of-Concept. Kein vertraglich zugesicherter Leistungsumfang. Betriebsfotos zeigen die reale Anlage im Umland Almaty, übriges Bildmaterial sind Platzhalter aus lizenzfreien Quellen.",
     "productHeading": "Produkt",
     "legalHeading": "Rechtliches",
@@ -216,7 +216,7 @@
   },
   "auth": {
     "title": "Anmeldung",
-    "lead": "Malina - ERP-Ökosystem für den Himbeerbetrieb",
+    "lead": "Damicon - ERP-Ökosystem für den Himbeerbetrieb",
     "email": "E-Mail",
     "password": "Passwort",
     "submit": "Anmelden",
@@ -252,7 +252,7 @@
     "rbacHint": "Welche Module sichtbar sind, hängt von der Rolle des angemeldeten Kontos ab. Sechs Kernrollen von der Administration bis zur Brigade im Feld - dieselbe Rolle entscheidet auch in der Datenbank über Lese- und Schreibrechte.",
     "home": {
       "eyebrow": "Betriebssteuerung",
-      "title": "Betriebsübersicht Malina",
+      "title": "Betriebsübersicht Damicon",
       "description": "Aggregator Umland Almaty. Die Hauptfunktionen laufen gegen die Datenbank - mit Anmeldung, Rollenrechten und echten Schreibvorgängen. Unterfunktionen bleiben sichtbare Menüpunkte mit Status.",
       "kpiTitle": "14 Baseline-Kennzahlen",
       "kpiDescription": "Werden am 01.10.2026 mit dem Kunden als Baseline unterschrieben.",
@@ -1051,7 +1051,7 @@
   "legal": {
     "imprintTitle": "Impressum",
     "privacyTitle": "Datenschutz",
-    "prototypeDisclaimer": "Hinweis: Malina ist ein interner Prototyp (Proof-of-Concept) der WAMOCON GmbH. Es findet keine echte Datenverarbeitung von Betriebs- oder Personendaten statt. Alle angezeigten Daten sind Platzhalter.",
+    "prototypeDisclaimer": "Hinweis: Damicon ist ein interner Prototyp (Proof-of-Concept) der WAMOCON GmbH. Es findet keine echte Datenverarbeitung von Betriebs- oder Personendaten statt. Alle angezeigten Daten sind Platzhalter.",
     "managingDirector": "Vertretungsberechtigter Geschäftsführer",
     "registration": "Registereintrag",
     "controller": "Verantwortlicher",

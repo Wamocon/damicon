@@ -100,7 +100,7 @@ export async function QrSteigenAnsicht() {
                 className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card p-4 text-center print:break-inside-avoid print:border-black print:bg-white"
               >
                 <div className="flex w-full items-center justify-between text-[10px] font-black uppercase tracking-wide text-primary print:text-black">
-                  <span>Malina</span>
+                  <span>Damicon</span>
                   <span>{t("ausweise.rolle")}</span>
                 </div>
                 <div

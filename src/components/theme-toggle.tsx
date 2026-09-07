@@ -54,7 +54,7 @@ export function ThemeToggle({ className }: { className?: string }) {
     const next = !isDark();
     document.documentElement.classList.toggle("dark", next);
     try {
-      localStorage.setItem("malina-theme", next ? "dark" : "light");
+      localStorage.setItem("damicon-theme", next ? "dark" : "light");
     } catch {
       // localStorage nicht verfuegbar - Auswahl gilt nur fuer diese Sitzung
     }
@@ -76,4 +76,4 @@ export function ThemeToggle({ className }: { className?: string }) {
   );
 }
 
-export const themeInitScript = `(function(){try{var t=localStorage.getItem('malina-theme');var m=window.matchMedia('(prefers-color-scheme: dark)').matches;if(t==='dark'||(!t&&m)){document.documentElement.classList.add('dark');}}catch(e){}})();`;
+export const themeInitScript = `(function(){try{var t=localStorage.getItem('damicon-theme');var m=window.matchMedia('(prefers-color-scheme: dark)').matches;if(t==='dark'||(!t&&m)){document.documentElement.classList.add('dark');}}catch(e){}})();`;

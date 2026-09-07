@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "Malina - farm management for the raspberry plantation",
-    "description": "Malina is the farm-management system for a raspberry farm near Almaty: the harvest run, the cold chain with a 60-minute threshold, crate identity in the field, contribution margin per harvest day and an unbroken chain of evidence for every delivery."
+    "title": "Damicon - farm management for the raspberry plantation",
+    "description": "Damicon is the farm-management system for a raspberry farm near Almaty: the harvest run, the cold chain with a 60-minute threshold, crate identity in the field, contribution margin per harvest day and an unbroken chain of evidence for every delivery."
   },
   "common": {
     "skipToContent": "Skip to content",
@@ -29,7 +29,7 @@
   "hero": {
     "badge": "Farm management for the raspberry plantation · near Almaty",
     "headline": "Market leadership is won not through tonnage, but through verifiable traceability.",
-    "subheadline": "The raspberry has no protective shell and has to be cooled within 60 minutes. Malina runs the multi-week harvest, holds the cold chain and documents every delivery down to the row block, the cooling time and the person.",
+    "subheadline": "The raspberry has no protective shell and has to be cooled within 60 minutes. Damicon runs the multi-week harvest, holds the cold chain and documents every delivery down to the row block, the cooling time and the person.",
     "imageAlt": "Trellised rows of a raspberry plantation - placeholder image, to be replaced with real material from the farm",
     "ctaPrimary": "Open the prototype",
     "ctaSecondary": "Why the raspberry is different",
@@ -121,7 +121,7 @@
     },
     "proofClosing": "On a complaint it can be established within seconds which block, which person and which cooling time the ware came from.",
     "leversEyebrow": "The path to market leadership",
-    "leversTitle": "Four levers that Malina feeds",
+    "leversTitle": "Four levers that Damicon feeds",
     "leversLead": "Each lever stands on its own, but they build on each other. Without the first, the other three are worthless.",
     "leverItems": {
       "stunde": {
@@ -205,7 +205,7 @@
     }
   },
   "footer": {
-    "blurb": "Malina, Russian for raspberry. Farm management for a raspberry farm near Almaty - from the harvest run through the cold chain to the evidence for every delivery.",
+    "blurb": "Damicon is the farm-management system for a raspberry farm near Almaty - from the harvest run through the cold chain to the evidence for every delivery.",
     "prototypeNote": "Internal proof of concept. Not a contractually committed scope. Farm photos show the real site near Almaty; remaining imagery is placeholder material from royalty-free sources.",
     "productHeading": "Product",
     "legalHeading": "Legal",
@@ -216,7 +216,7 @@
   },
   "auth": {
     "title": "Sign in",
-    "lead": "Malina - ERP ecosystem for the raspberry farm",
+    "lead": "Damicon - ERP ecosystem for the raspberry farm",
     "email": "Email",
     "password": "Password",
     "submit": "Sign in",
@@ -252,7 +252,7 @@
     "rbacHint": "Which modules are visible depends on the role of the signed-in account. Six core roles, from administration to the brigade in the field - the same role also governs read and write permissions in the database.",
     "home": {
       "eyebrow": "Farm management",
-      "title": "Malina operations overview",
+      "title": "Damicon operations overview",
       "description": "Aggregator, Almaty region. The main functions run against the database - with sign-in, role permissions and real write operations. Sub-functions remain visible menu entries with a status.",
       "kpiTitle": "14 baseline key figures",
       "kpiDescription": "To be signed off with the client as the baseline on 01 Oct 2026.",
@@ -1051,7 +1051,7 @@
   "legal": {
     "imprintTitle": "Imprint",
     "privacyTitle": "Privacy",
-    "prototypeDisclaimer": "Note: Malina is an internal prototype (proof of concept) of WAMOCON GmbH. No real processing of operational or personal data takes place. All data shown is placeholder data.",
+    "prototypeDisclaimer": "Note: Damicon is an internal prototype (proof of concept) of WAMOCON GmbH. No real processing of operational or personal data takes place. All data shown is placeholder data.",
     "managingDirector": "Authorised managing director",
     "registration": "Register entry",
     "controller": "Controller",

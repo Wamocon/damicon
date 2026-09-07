@@ -1,11 +1,11 @@
 import { cn } from "@/lib/utils";
 
-// Bildmarke Malina - Himbeere aus Drupeln plus Blatt. Analog zu 1Cati
+// Bildmarke Damicon - Himbeere aus Drupeln plus Blatt. Analog zu 1Cati
 // `cati-logo.tsx` bewusst als Code-generiertes SVG (kein eingebranntes Foto),
 // damit sich Farbwerte ueber die Design-Tokens tauschen lassen.
-export function MalinaLogo({
+export function DamiconLogo({
   className,
-  title = "Malina",
+  title = "Damicon",
 }: {
   className?: string;
   title?: string;

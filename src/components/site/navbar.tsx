@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Menu, X } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { MalinaLogo } from "@/components/brand/malina-logo";
+import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { LocaleSwitcher } from "@/components/site/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -23,10 +23,10 @@ export function SiteNavbar() {
     <header className="glass fixed inset-x-0 top-0 z-50 border-b border-border/60 print:hidden">
       <div className="container flex h-16 items-center justify-between gap-3">
         <Link href="/" className="flex min-w-0 items-center gap-2.5">
-          <MalinaLogo className="shadow-lg shadow-primary/20" />
+          <DamiconLogo className="shadow-lg shadow-primary/20" />
           <span className="hidden min-w-0 flex-col min-[420px]:flex">
             <span className="text-sm font-black leading-tight text-foreground">
-              Malina
+              Damicon
             </span>
             <span className="text-[10px] font-medium text-muted-foreground">
               {t("platformSubtitle")}
