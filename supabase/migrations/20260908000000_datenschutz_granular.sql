@@ -1,5 +1,5 @@
 -- =============================================================================
--- Malina - Compliance-Cockpit mit granularem Datenschutz-Schema (WMCNL-1446)
+-- Damicon - Compliance-Cockpit mit granularem Datenschutz-Schema (WMCNL-1446)
 -- =============================================================================
 -- public.consent_records war eine einzige, grob strukturierte Tabelle mit
 -- Freitext-Subjekt und Freitext-Zweck - fuer ein Compliance-Cockpit zu grob:
@@ -23,7 +23,7 @@
 --   5. drittweitergaben              - Weitergabe an Dritte mit automatisch
 --                                      gesetzter Benachrichtigungsfrist.
 --
--- Subjekt-Modellierung: ein Betroffener ist in Malina einer von drei
+-- Subjekt-Modellierung: ein Betroffener ist in Damicon einer von drei
 -- Tabellen - Pfluecker ohne Login, Profil mit Login oder B2B-Kunde. Statt
 -- eines generischen subjekt_typ+subjekt_id-Paares (keine erzwungene
 -- Fremdschluessel-Integritaet, genau die Schwaeche von consent_records.subjekt)

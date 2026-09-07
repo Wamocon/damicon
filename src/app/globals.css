@@ -3,7 +3,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
-  Malina Design-Tokens - Himbeer-Palette.
+  Damicon Design-Tokens - Himbeer-Palette.
   Ersetzt die 1Cati-Tuerkis/Amber-Palette (--primary:#066B63, --accent:#B9822B)
   durch "Tiefes Himbeerrot + Blattgruen". Struktur, Variablennamen und
   Dark-Mode-Gegenstueck bleiben identisch zu 1Cati (apps/web/app/globals.css),

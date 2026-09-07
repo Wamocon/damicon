@@ -1,10 +1,10 @@
 // =============================================================================
-// Malina - Demo-Benutzer anlegen (Meilenstein B)
+// Damicon - Demo-Benutzer anlegen (Meilenstein B)
 // =============================================================================
 // Ausfuehren:  npm run db:seed-auth
 //              (bzw. node --env-file=.env.local supabase/seed-auth.mjs)
 //
-// Legt je Malina-Rolle genau einen Auth-Benutzer an. Das Profil entsteht ueber
+// Legt je Damicon-Rolle genau einen Auth-Benutzer an. Das Profil entsteht ueber
 // den Trigger public.handle_new_auth_user() aus der Migration
 // 20260905120000_auth_und_schreibrechte.sql - Rolle und Name kommen aus den
 // user_metadata.

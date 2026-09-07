@@ -53,7 +53,7 @@ export function zukaufDbFehler(
   befunde: ZukaufBefund[] = [],
   uebernommen = 0,
 ): ZukaufImportStatus {
-  console.error("[malina] Zukauf-Import: Schreibvorgang fehlgeschlagen:", error.message);
+  console.error("[damicon] Zukauf-Import: Schreibvorgang fehlgeschlagen:", error.message);
   switch (error.code) {
     case "42501":
       return zukaufImportFehler("fehler.berechtigung", befunde, uebernommen);
@@ -73,6 +73,6 @@ export function zukaufZugriffsFehler(error: unknown): ZukaufImportStatus {
   const nachricht = error instanceof Error ? error.message : String(error);
   if (nachricht === "nicht-angemeldet") return zukaufImportFehler("fehler.angemeldet");
   if (nachricht === "keine-berechtigung") return zukaufImportFehler("fehler.berechtigung");
-  console.error("[malina] Zukauf-Import fehlgeschlagen:", nachricht);
+  console.error("[damicon] Zukauf-Import fehlgeschlagen:", nachricht);
   return zukaufImportFehler("fehler.unbekannt");
 }

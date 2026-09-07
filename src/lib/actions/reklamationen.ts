@@ -119,7 +119,7 @@ export async function reklamationAnlegen(
     autor_id: profil.id,
   });
   if (ereignisFehler) {
-    console.error("[malina] Verlaufseintrag fehlgeschlagen:", ereignisFehler.message);
+    console.error("[damicon] Verlaufseintrag fehlgeschlagen:", ereignisFehler.message);
   }
 
   await protokolliere(profil, "reklamation.angelegt", data.id, { code: data.code, grund });

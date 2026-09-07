@@ -1,5 +1,5 @@
 -- =============================================================================
--- Malina - Haertung nach dem Sicherheitsaudit vom 05.09.2026
+-- Damicon - Haertung nach dem Sicherheitsaudit vom 05.09.2026
 -- =============================================================================
 -- Das Audit zu Meilenstein B hat vier kritische Loecher in der eigenen Arbeit
 -- gefunden. Diese Migration schliesst sie:

@@ -1,5 +1,5 @@
 // =============================================================================
-// Malina - Schneller PGlite-Testlauf (Ergaenzung, kein Ersatz)
+// Damicon - Schneller PGlite-Testlauf (Ergaenzung, kein Ersatz)
 // =============================================================================
 // Ausfuehren:  npm run db:test:fast   (kein Docker, kein `supabase start` noetig)
 //

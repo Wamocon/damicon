@@ -1,5 +1,5 @@
 -- =============================================================================
--- Malina - Aggregator: Zukauf Nachbarbetriebe & Import-Parser (WMCNL-1453)
+-- Damicon - Aggregator: Zukauf Nachbarbetriebe & Import-Parser (WMCNL-1453)
 -- =============================================================================
 -- nachbarbetriebe und zukauf_positionen bestehen bereits seit der
 -- Initialmigration, aber ohne jedes Schreibrecht: 20260902090100_rls_policies.sql

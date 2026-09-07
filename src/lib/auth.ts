@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { hasPermission, roles, type Action, type Resource, type Role } from "@/lib/rbac";
 
-// Angemeldeter Nutzer inklusive Malina-Profil. Die Rolle kommt aus
+// Angemeldeter Nutzer inklusive Damicon-Profil. Die Rolle kommt aus
 // public.profiles und ist zugleich die Rolle, gegen die die RLS-Policies in der
 // Datenbank pruefen (public.current_app_role()).
 export interface SessionProfile {

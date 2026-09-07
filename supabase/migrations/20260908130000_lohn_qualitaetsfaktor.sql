@@ -1,5 +1,5 @@
 -- =============================================================================
--- Malina - Lohnabrechnung mit Qualitaetsfaktor (WMCNL-1444)
+-- Damicon - Lohnabrechnung mit Qualitaetsfaktor (WMCNL-1444)
 -- =============================================================================
 -- lohn_abrechnungen/lohn_positionen bestehen bereits seit der Initialmigration
 -- (inklusive Qualitaetsfaktor-Spalten), aber ohne jede Rechengrundlage: keine
@@ -8,11 +8,11 @@
 -- Migration schliesst das.
 --
 -- Vorbild ist das Schwesterprojekt Digitalisierung-Himbeerenbetrieb
--- (payroll_rates/calculate_payroll()/quality_factor()), uebersetzt auf malinas
+-- (payroll_rates/calculate_payroll()/quality_factor()), uebersetzt auf Damicons
 -- Datenmodell und mit zwei Anpassungen, die sich aus dem tatsaechlichen
 -- Datenschnitt hier ergeben:
 --
---   1. GRANULARITAET DES AUSSCHUSSES. Ausschuss liegt in malina nur je
+--   1. GRANULARITAET DES AUSSCHUSSES. Ausschuss liegt in Damicon nur je
 --      Pflueckaufgabe vor (Brigade-Ebene, siehe pflueckaufgaben.ausschuss_kg
 --      aus 20260905200000_kette_haerten.sql), nicht je Steige oder Person. Die
 --      Zurechnung auf einen einzelnen Pfluecker ist deshalb zwingend eine
@@ -33,13 +33,13 @@
 --
 -- Bewusst NICHT uebernommen: die Mindestlohn-Anhebung des Vorbilds
 -- (minimum_topup_kzt, gebunden an eine dort hinterlegte gesetzliche Rate).
--- Malina hat keine Tabelle fuer gesetzliche Saetze und keine bestaetigte Zahl
+-- Damicon hat keine Tabelle fuer gesetzliche Saetze und keine bestaetigte Zahl
 -- fuer diesen Betrieb - ein erfundener Mindestlohn waere schlimmer als eine
 -- offene Frage. Bleibt als Folgearbeit dokumentiert, bis eine belastbare Zahl
 -- vorliegt.
 --
 -- Ebenfalls bewusst NICHT uebernommen: eine eigene payroll_periods-Tabelle.
--- Der Status haengt in malina direkt an jeder lohn_abrechnungen-Zeile (Spalte
+-- Der Status haengt in Damicon direkt an jeder lohn_abrechnungen-Zeile (Spalte
 -- status vom Typ lohn_status), nicht an einem gemeinsamen Periodenobjekt. Ein
 -- Berechnungslauf ueber viele Personen kann deshalb inkonsistent aussehen,
 -- wenn einzelne bereits freigegeben/ausgezahlt sind und andere noch nicht -

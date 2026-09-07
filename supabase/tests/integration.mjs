@@ -1,5 +1,5 @@
 // =============================================================================
-// Malina - Supabase Integrationstest (lokal)
+// Damicon - Supabase Integrationstest (lokal)
 // =============================================================================
 // Ausfuehren:  node --env-file=.env.local supabase/tests/integration.mjs
 //

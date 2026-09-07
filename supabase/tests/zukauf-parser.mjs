@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // =============================================================================
-// Malina - Test des Zukauf-Import-Parsers (WMCNL-1453)
+// Damicon - Test des Zukauf-Import-Parsers (WMCNL-1453)
 // =============================================================================
 // Ausfuehren:  node supabase/tests/zukauf-parser.mjs
 //
@@ -12,7 +12,7 @@
 // Dezimalkomma, ein Byte Order Mark, mehrsprachige Kopfzeilen, unbekannte
 // Sorten/Nachbarbetriebe, Duplikate, Grenzwerte - Muster uebernommen aus dem
 // Schwesterprojekt Digitalisierung-Himbeerenbetrieb
-// (scripts/test-import-parser.mjs), auf malinas eigenen Parser zugeschnitten.
+// (scripts/test-import-parser.mjs), auf Damicons eigenen Parser zugeschnitten.
 // =============================================================================
 
 import { parseZukauf } from "../../src/lib/import/zukauf-parser.ts";

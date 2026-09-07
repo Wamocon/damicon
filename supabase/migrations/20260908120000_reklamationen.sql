@@ -1,8 +1,8 @@
 -- =============================================================================
--- Malina - Reklamationsmanagement (WMCNL-1455)
+-- Damicon - Reklamationsmanagement (WMCNL-1455)
 -- =============================================================================
 -- Neues Modul, angelehnt an das Schwesterprojekt Digitalisierung-Himbeerenbetrieb
--- (public.complaints/complaint_events), aber auf malinas Muster uebersetzt:
+-- (public.complaints/complaint_events), aber auf Damicons Muster uebersetzt:
 -- deutsche Namen, echte Postgres-Enums statt text+check, und vor allem eine
 -- Anbindung an public.chargen statt an ein eigenes allocations/sales_documents-
 -- Paar - von der Charge aus lassen sich Reihenblock, Pfluecker und Kuehlkurve

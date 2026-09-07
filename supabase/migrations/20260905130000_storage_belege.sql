@@ -1,5 +1,5 @@
 -- =============================================================================
--- Malina - Meilenstein B: Ablage fuer Fotobelege und Dokumente
+-- Damicon - Meilenstein B: Ablage fuer Fotobelege und Dokumente
 -- =============================================================================
 -- Zwei private Buckets:
 --   belege     - Fotobelege zur Pflueckaufgabe (Schale, Reihenblock, Steige).

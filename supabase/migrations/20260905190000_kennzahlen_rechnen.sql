@@ -1,5 +1,5 @@
 -- =============================================================================
--- Malina - Meilenstein C: Kennzahlen rechnen statt behaupten
+-- Damicon - Meilenstein C: Kennzahlen rechnen statt behaupten
 -- =============================================================================
 -- Vor dieser Migration waren alle 14 Baseline-Kennzahlen Textkonstanten. Von den
 -- 14 war genau eine ueberhaupt berechenbar. Mit der geschlossenen Nachweiskette

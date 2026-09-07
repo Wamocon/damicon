@@ -49,7 +49,7 @@ jobs:
   # --- Step 3: Build und Datenbank ------------------------------------------
   # Typecheck und Lint fangen den Build nicht: Server-/Client-Grenzen, fehlende
   # Uebersetzungsschluessel und kaputte Migrationen fallen erst hier auf.
-  # Die Fachregeln von Malina liegen in der Datenbank - ohne diesen Lauf
+  # Die Fachregeln von Damicon liegen in der Datenbank - ohne diesen Lauf
   # waeren Sperrlogik und Rollenrechte in der CI ungeprueft.
   datenbank:
     name: Build und Integrationstests

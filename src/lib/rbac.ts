@@ -1,4 +1,4 @@
-// Rollen von Malina - direkt aus 1Cati `apps/web/lib/rbac.ts` uebernommen
+// Rollen von Damicon - direkt aus 1Cati `apps/web/lib/rbac.ts` uebernommen
 // ([UEBERNEHMEN], Analyse Kapitel 5). Die Guardianship-/Kind-Rollen aus 1Cati
 // (guest, service_provider, child_owner, child_tenant, child_guest) sind wie in
 // der Analyse gefordert entfernt. Es bleiben sechs Kernrollen mit Agrar-Bezug,

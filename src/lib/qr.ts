@@ -9,7 +9,7 @@ import QRCode from "qrcode";
 //
 // Muster uebernommen aus dem Schwesterprojekt Digitalisierung-Himbeerenbetrieb
 // (dortige apps/web/lib/qr.ts), 1:1 uebertragbar - lediglich die Zielgroessen
-// und die Erzeugung der absoluten URL sind auf malinas eigene Routen und die
+// und die Erzeugung der absoluten URL sind auf Damicons eigene Routen und die
 // Env-Variable NEXT_PUBLIC_APP_URL (siehe .env.example) zugeschnitten.
 
 export type QrGroesse = "etikett" | "ausweis" | "aushang";

@@ -1,5 +1,5 @@
 -- =============================================================================
--- Malina - Seed-Daten (Prototyp)
+-- Damicon - Seed-Daten (Prototyp)
 -- =============================================================================
 -- Spiegelt die Mock-Daten aus src/lib/domain/. Alle Werte sind Platzhalter.
 -- Wird bei `supabase db reset` nach den Migrationen geladen.
@@ -9,7 +9,7 @@
 set search_path = public;
 
 -- --- Betrieb & Sorten -------------------------------------------------------
-insert into public.betriebe (name) values ('Malina Aggregator - Umland Almaty')
+insert into public.betriebe (name) values ('Damicon Aggregator - Umland Almaty')
   on conflict do nothing;
 
 insert into public.sorten (name, typ, erntefenster, schale_g) values

@@ -1,5 +1,5 @@
 -- =============================================================================
--- Malina - Oeffentliche Herkunftsauskunft (WMCNL-1456)
+-- Damicon - Oeffentliche Herkunftsauskunft (WMCNL-1456)
 -- =============================================================================
 -- Wer eine Schale in der Hand haelt, soll die Herkunft pruefen koennen, ohne
 -- sich anzumelden. Seit der Haertungsmigration (20260905160000_haerten.sql)

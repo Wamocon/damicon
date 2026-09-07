@@ -1,5 +1,5 @@
 -- =============================================================================
--- Malina - Meilenstein C: die Nachweiskette schliessen
+-- Damicon - Meilenstein C: die Nachweiskette schliessen
 -- =============================================================================
 -- Befund aus der Pruefung zu Meilenstein B: die Kette traegt sieben Stufen weit
 -- und reisst dann. Jede ueber die Oberflaeche angelegte Pflueckaufgabe hatte

@@ -1,10 +1,10 @@
 -- =============================================================================
--- Malina - Initiales Datenbankschema
+-- Damicon - Initiales Datenbankschema
 -- =============================================================================
 -- Betriebssteuerung fuer einen Himbeerbetrieb, Domaenenmodell-Remapping aus dem
 -- 1Cati-ERP-Oekosystem (Analyse Kapitel 4). Vier Zonen: Feld, Hof, Buero, Markt.
 --
--- 1Cati-Entitaet          -> Malina-Aequivalent
+-- 1Cati-Entitaet          -> Damicon-Aequivalent
 --   companies             -> betriebe
 --   sites                 -> plantagen
 --   site_blocks           -> feldparzellen
