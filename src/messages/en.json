@@ -1116,6 +1116,38 @@
       "temperatur": "Temperature in °C"
     }
   },
+  "oeffentlicheHerkunft": {
+    "title": "Origin record",
+    "lead": "Row block, variety, harvest day and cooling time for this one batch - no login required.",
+    "notFoundTitle": "No match",
+    "notFound": "There is no record for this code. Please check the spelling.",
+    "backToSearch": "Check another code",
+    "keinePersonen": "This record names no individuals.",
+    "fields": {
+      "reihenblock": "Row block",
+      "sorte": "Variety",
+      "ernteDatum": "Harvest day",
+      "gepflueckt": "Picked",
+      "vorgekuehlt": "Pre-cooled"
+    },
+    "kuehlung": {
+      "minuten": "{minuten} minutes to pre-cooling",
+      "offen": "Pre-cooling pending",
+      "gehalten": "60-minute limit held",
+      "gerissen": "60-minute limit broken"
+    },
+    "wartezeit": {
+      "eingehalten": "Withholding period respected",
+      "verletzt": "Withholding period violated"
+    },
+    "suche": {
+      "title": "Check origin",
+      "lead": "Enter the code from the crate or the delivery note.",
+      "label": "Code",
+      "placeholder": "hk_...",
+      "submit": "Check"
+    }
+  },
   "fehlerseite": {
     "titel": "This view could not be loaded",
     "lead": "The data is currently unreachable. Nothing was executed and nothing was lost.",

@@ -203,6 +203,7 @@ export type Database = {
           ernte_datum: string
           id: string
           menge_kg: number
+          oeffentlicher_code: string
           pflueck_zeitpunkt: string | null
           pflueckaufgabe_id: string | null
           reihenblock_id: string | null
@@ -218,6 +219,7 @@ export type Database = {
           ernte_datum?: string
           id?: string
           menge_kg?: number
+          oeffentlicher_code?: string
           pflueck_zeitpunkt?: string | null
           pflueckaufgabe_id?: string | null
           reihenblock_id?: string | null
@@ -233,6 +235,7 @@ export type Database = {
           ernte_datum?: string
           id?: string
           menge_kg?: number
+          oeffentlicher_code?: string
           pflueck_zeitpunkt?: string | null
           pflueckaufgabe_id?: string | null
           reihenblock_id?: string | null
@@ -2236,6 +2239,19 @@ export type Database = {
       has_role: {
         Args: { erlaubt: Database["public"]["Enums"]["app_role"][] }
         Returns: boolean
+      }
+      herkunftsauskunft: {
+        Args: { p_code: string }
+        Returns: {
+          ernte_datum: string
+          kuehlkette_eingehalten: boolean
+          minuten_bis_vorkuehlung: number
+          pflueck_zeitpunkt: string
+          reihenblock_code: string
+          sorte_name: string
+          vorkuehlung_zeitpunkt: string
+          wartezeit_eingehalten: boolean
+        }[]
       }
       kpi_aktuell: {
         Args: never
