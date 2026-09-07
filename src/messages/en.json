@@ -286,8 +286,9 @@
         "kpi": "Dashboard skeleton with the 14 baseline key figures as tiles"
       },
       "milestoneBNote": "All main functions are connected to the database: sign-in, role permissions through row level security, location management, row block lock, picking task with photo proof and document storage. The sub-functions remain visible menu entries with a status, as planned.",
-      "kpiSummary": "{berechenbar} measurable today · {erfassung} capture missing · {tabelle} function missing",
+      "kpiSummary": "{berechenbar} measurable today · {erfassung} capture missing · {tabelle} function missing · {ungeklaert} legally unconfirmed",
       "kpiGerechnet": "computed from {anzahl} records",
+      "kpiGerechnetUngeklaert": "computed from {anzahl} records - legal basis unconfirmed",
       "kpiSummaryLive": "{gerechnet} computed from real data · {offen} waiting for the function behind them"
     }
   },
@@ -1068,7 +1069,8 @@
   "kpiHerkunft": {
     "berechenbar": "measurable today",
     "erfassung-fehlt": "capture missing",
-    "tabelle-fehlt": "function missing"
+    "tabelle-fehlt": "function missing",
+    "rechtlich-ungeklaert": "legally unconfirmed"
   },
   "nachweiskette": {
     "titel": "Chain of evidence",
