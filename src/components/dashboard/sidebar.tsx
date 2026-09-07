@@ -139,17 +139,17 @@ export function DashboardSidebar() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label={nav("openMenu")}
-        className="fixed left-4 top-4 z-50 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-foreground shadow-sm md:hidden"
+        className="fixed left-4 top-4 z-50 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-foreground shadow-sm md:hidden print:hidden"
       >
         <Menu className="h-5 w-5" />
       </button>
 
-      <aside className="sticky top-0 hidden h-svh w-72 shrink-0 self-start overflow-hidden border-r border-sidebar-border bg-sidebar/95 backdrop-blur-xl md:block">
+      <aside className="sticky top-0 hidden h-svh w-72 shrink-0 self-start overflow-hidden border-r border-sidebar-border bg-sidebar/95 backdrop-blur-xl md:block print:hidden">
         <SidebarBody />
       </aside>
 
       {open ? (
-        <div className="fixed inset-0 z-[100] md:hidden">
+        <div className="fixed inset-0 z-[100] md:hidden print:hidden">
           <button
             type="button"
             aria-label={nav("closeMenu")}

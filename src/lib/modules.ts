@@ -120,7 +120,18 @@ export const modules: ModuleDef[] = [
     icon: "qr-code",
     resource: "qr_steigen",
     klassifikation: "anpassen",
-    reifegrad: "in-entwicklung",
+    // WMCNL-1439: QR-Etiketten (Steigen), Pfluecker-Ausweise und ein
+    // Aushang-Poster werden serverseitig aus echten steigen/chargen/
+    // pfluecker-Zeilen erzeugt (kein Mock mehr, siehe
+    // src/components/db/qr-steigen-ansicht.tsx) - deshalb "angebunden",
+    // obwohl rbac.ts fuer diese Ressource bewusst nur "view" vergibt: Steigen
+    // entstehen bereits ueber die Nachweiskette (pflueckaufgaben), dieses
+    // Modul erzeugt daraus nur Erzeugnisse zum Anzeigen/Drucken, es hat also
+    // planmaessig keinen eigenen Schreibpfad. Was WEITERHIN offen bleibt: die
+    // Scan-Oberflaeche am Ausgabepunkt mit Server-Abgleich (Menge,
+    // Reihenblock, Uhrzeit, Person in einem Vorgang) - das war ausdruecklich
+    // nicht Teil dieses Ausbauschritts.
+    reifegrad: "angebunden",
   },
   {
     key: "esf",

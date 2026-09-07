@@ -7,7 +7,7 @@ export function SiteFooter() {
   const nav = useTranslations("nav");
 
   return (
-    <footer className="border-t border-border bg-card">
+    <footer className="border-t border-border bg-card print:hidden">
       <div className="container grid gap-8 py-12 md:grid-cols-[1.5fr_1fr_1fr]">
         <div>
           <div className="flex items-center gap-2.5">

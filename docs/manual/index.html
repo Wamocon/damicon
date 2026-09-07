@@ -473,7 +473,7 @@
             <tr><td>Wetter und Temperatursumme</td><td class="no">in Entwicklung</td><td>Neu bauen</td></tr>
             <tr><td rowspan="4">Hof</td><td>K&uuml;hlketten-Uhr</td><td class="no">in Entwicklung (Mock)</td><td>Neu bauen</td></tr>
             <tr><td>Abholrunden und Tourenplanung</td><td class="no">in Entwicklung</td><td>Anpassen</td></tr>
-            <tr><td>QR-Steigenkennung</td><td class="no">in Entwicklung (Mock)</td><td>Anpassen</td></tr>
+            <tr><td>QR-Steigenkennung</td><td class="yes">DB angebunden</td><td>Anpassen</td></tr>
             <tr><td>Elektronischer Lieferschein (&#1069;&#1057;&#1060;)</td><td class="no">in Entwicklung</td><td>Neu bauen</td></tr>
             <tr><td rowspan="8">B&uuml;ro</td><td>Rollen und Rechte</td><td class="yes">Demo</td><td>&Uuml;bernehmen</td></tr>
             <tr><td>Deckungsbeitrag und Finanzen</td><td class="yes">Demo</td><td>Anpassen</td></tr>
@@ -500,7 +500,7 @@
           <tbody>
             <tr><td><strong>DB angebunden</strong></td><td>Hauptfunktion mit echter Persistenz: liest und schreibt in die Datenbank, Schreibvorgänge sind &uuml;ber Row Level Security an die Rolle gebunden und werden im Audit-Protokoll festgehalten.</td></tr>
             <tr><td><strong>Demo</strong></td><td>Hauptfunktion, als bedienbare Oberfl&auml;che mit Beispieldaten gebaut (noch ohne Persistenz).</td></tr>
-            <tr><td><strong>in Entwicklung</strong></td><td>Unterfunktion, sichtbarer Men&uuml;punkt mit Status-Badge, jedoch ohne vollst&auml;ndige Logik. Drei Module haben einen zus&auml;tzlichen UI-Mock (K&uuml;hlketten-Uhr, QR-Steigen, KI-Chat).</td></tr>
+            <tr><td><strong>in Entwicklung</strong></td><td>Unterfunktion, sichtbarer Men&uuml;punkt mit Status-Badge, jedoch ohne vollst&auml;ndige Logik. Zwei Module haben einen zus&auml;tzlichen UI-Mock (K&uuml;hlketten-Uhr, KI-Chat). QR-Steigen ist seit WMCNL-1439 kein Mock mehr, siehe Zeile oben.</td></tr>
             <tr><td><strong>&Uuml;bernehmen</strong></td><td>Code und Architektur aus 1&Ccedil;at&#305; bleiben, nur die Beschriftung &auml;ndert sich.</td></tr>
             <tr><td><strong>Anpassen</strong></td><td>Das Muster bleibt, Datenmodell und Logik werden umgebaut.</td></tr>
             <tr><td><strong>Neu bauen</strong></td><td>Es gibt kein Vorbild in 1&Ccedil;at&#305;. Genau die vier Bausteine, an denen der Business Case h&auml;ngt.</td></tr>

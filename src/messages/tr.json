@@ -632,9 +632,9 @@
     },
     "qr_steigen": {
       "title": "QR kasa kimliği",
-      "description": "Kasadaki QR etiketi ekibin dağıtım noktasında verilir. Teslimde toplayıcı kartı okutulur - miktar, sıra bloğu, saat ve kişi tek işlemde. Prototipte arayüz taklidi.",
-      "summary": "Kimlik tartıda değil, tarlada verilir. Tek okutma miktarı, bloğu, zamanı ve kişiyi kaydeder.",
-      "todo": "Kasa başına etiket baskısı, dağıtım noktasında sunucu doğrulamalı okutma, kasanın partiye ve göreve bağlanması."
+      "description": "Kasalar için QR etiketleri (kamuya açık köken sayfasına bağlantı), biyometrisiz toplayıcı kimlik kartları (dahili görev görünümüne bağlantı) ve giriş gerektirmeyen bir duvar afişi - hepsi sunucu tarafında SVG olarak üretilir ve tarayıcının yazdırma işleviyle baskıya hazırdır.",
+      "summary": "QR kodu kimliği tarladan tezgaha taşır - sunucuda üretilir, ayrı bir etiket yazıcısı ve PDF aracı gerekmez.",
+      "todo": "Dağıtım noktasında sunucu doğrulamalı tarama arayüzü (miktar, sıra bloğu, saat ve kişi tek işlemde) bu aşamanın kapsamında değildir."
     },
     "esf": {
       "title": "Elektronik irsaliye (ЭСФ)",
@@ -1148,6 +1148,13 @@
       "submit": "Kontrol et"
     }
   },
+  "aushangPoster": {
+    "eyebrow": "Kökeni doğrula",
+    "title": "Bu ahududu nereden geliyor?",
+    "lead": "QR kodunu tarayın veya adresi girip kasadaki ya da irsaliyedeki kodu yazın.",
+    "fallbackHinweis": "Kamera kodu okumazsa: adresi elle girin.",
+    "drucken": "Yazdır"
+  },
   "fehlerseite": {
     "titel": "Bu görünüm yüklenemedi",
     "lead": "Veriler şu anda erişilebilir değil. İşlem yapılmadı, hiçbir şey kaybolmadı.",
@@ -1407,6 +1414,25 @@
       "preis": "Fiyat (₸/kg)",
       "rechnungsdatum": "Fatura tarihi",
       "knopf": "Kaydet"
+    }
+  },
+  "qrSteigenAnsicht": {
+    "drucken": "Yazdır",
+    "etiketten": {
+      "title": "Kasa etiketleri",
+      "lead": "Her kasa için QR kodu ve düz metin kodu, baskıya hazır. QR kodu, kasanın partisinin kamuya açık köken sayfasına bağlanır.",
+      "empty": "Henüz partiye bağlı bir kasa yok.",
+      "scanHinweis": "Kökeni taramak için"
+    },
+    "ausweise": {
+      "title": "Toplayıcı kimlik kartları",
+      "lead": "Her toplayıcı için dahili görev görünümüne bağlanan bir QR kodu - bilerek fotoğrafsız ve biyometrisiz.",
+      "empty": "Henüz kayıtlı toplayıcı yok.",
+      "rolle": "Toplayıcı"
+    },
+    "aushang": {
+      "hinweis": "İşletme için ayrıca genel kod girişine QR kodu ile giriş gerektirmeyen bir duvar afişi de bulunur.",
+      "oeffnen": "Duvar afişini aç"
     }
   }
 }

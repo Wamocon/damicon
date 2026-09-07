@@ -6,11 +6,7 @@ import { ModulePlaceholder } from "@/components/dashboard/module-meta";
 import { PflanzenschutzDemo } from "@/components/demo/feld-extra";
 import { FinanzenDemo, PersonalDemo, RollenDemo } from "@/components/demo/buero";
 import { SchulungenDemo, SortenkatalogDemo } from "@/components/demo/markt";
-import {
-  KiAssistentMock,
-  KuehlketteMock,
-  QrSteigenMock,
-} from "@/components/demo/mocks";
+import { KiAssistentMock, KuehlketteMock } from "@/components/demo/mocks";
 
 type ModuleView = ComponentType<{ module: ModuleDef }>;
 
@@ -29,7 +25,6 @@ const registry: Record<string, ModuleView> = {
   sortenkatalog: plain(SortenkatalogDemo),
   schulungen: plain(SchulungenDemo),
   kuehlkette: KuehlketteMock,
-  qr_steigen: QrSteigenMock,
   ki_assistent: KiAssistentMock,
 };
 

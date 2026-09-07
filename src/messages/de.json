@@ -453,9 +453,9 @@
     },
     "qr_steigen": {
       "title": "QR-Steigenkennung",
-      "description": "QR-Etikett auf der Steige, ausgegeben am Ausgabepunkt der Brigade. Beim Abgeben wird der Pflückerausweis gescannt - Menge, Reihenblock, Uhrzeit und Person in einem Vorgang. Im Prototyp UI-Mock.",
-      "summary": "Die Identität wird im Feld vergeben, nicht erst am Wiegepunkt. Ein Scan erfasst Menge, Block, Zeit und Person.",
-      "todo": "Etikettendruck je Steige, Scan am Ausgabepunkt mit Server-Abgleich, Zuordnung Steige zu Charge und Aufgabe."
+      "description": "QR-Etiketten für Steigen (Link zur öffentlichen Herkunftsauskunft), Pflückerausweise ohne Biometrie (Link zur internen Pflückaufgaben-Ansicht) und ein anmeldungsfreies Aushang-Poster - alle serverseitig als SVG erzeugt und über die Browser-Druckfunktion druckfertig.",
+      "summary": "Der QR-Code trägt die Identität vom Feld bis zur Ladentheke - serverseitig erzeugt, ohne eigenen Etikettendrucker und ohne PDF-Werkzeug.",
+      "todo": "Die Scan-Oberfläche am Ausgabepunkt mit Server-Abgleich (Menge, Reihenblock, Uhrzeit und Person in einem Vorgang) ist nicht Teil dieses Ausbauschritts."
     },
     "esf": {
       "title": "Elektronischer Lieferschein (ЭСФ)",
@@ -1148,6 +1148,13 @@
       "submit": "Prüfen"
     }
   },
+  "aushangPoster": {
+    "eyebrow": "Herkunft prüfen",
+    "title": "Woher kommt diese Himbeere?",
+    "lead": "QR-Code scannen oder die Adresse eingeben und den Code von der Steige oder dem Lieferschein eintippen.",
+    "fallbackHinweis": "Falls die Kamera den Code nicht liest: Adresse von Hand eingeben.",
+    "drucken": "Drucken"
+  },
   "fehlerseite": {
     "titel": "Diese Ansicht konnte nicht geladen werden",
     "lead": "Die Daten sind gerade nicht erreichbar. Der Vorgang wurde nicht ausgeführt - es ist nichts verloren gegangen.",
@@ -1407,6 +1414,25 @@
       "preis": "Preis (₸/kg)",
       "rechnungsdatum": "Rechnungsdatum",
       "knopf": "Speichern"
+    }
+  },
+  "qrSteigenAnsicht": {
+    "drucken": "Drucken",
+    "etiketten": {
+      "title": "Etiketten für Steigen",
+      "lead": "QR-Code und Klartext-Code je Steige, druckfertig. Der QR-Code verlinkt auf die öffentliche Herkunftsauskunft der zugehörigen Charge.",
+      "empty": "Noch keine Steige mit verknüpfter Charge vorhanden.",
+      "scanHinweis": "Herkunft scannen"
+    },
+    "ausweise": {
+      "title": "Pflückerausweise",
+      "lead": "QR-Code je Pflücker, verlinkt auf die interne Pflückaufgaben-Ansicht - bewusst ohne Foto oder Biometrie.",
+      "empty": "Noch kein Pflücker erfasst.",
+      "rolle": "Pflücker"
+    },
+    "aushang": {
+      "hinweis": "Für den Betrieb gibt es zusätzlich ein anmeldungsfreies Aushang-Poster mit QR-Code auf die allgemeine Codeeingabe.",
+      "oeffnen": "Aushang-Poster öffnen"
     }
   }
 }
