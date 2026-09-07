@@ -226,6 +226,18 @@ export const modules: ModuleDef[] = [
     reifegrad: "in-entwicklung",
   },
   {
+    // Zone "markt", nicht "buero": anders als Lohn/Compliance/Foerdermittel hat
+    // eine Reklamation eine Kunde-Sichtseite - der B2B-Kunde muss das Modul
+    // selbst oeffnen koennen, um anzulegen und den eigenen Stand einzusehen.
+    key: "reklamationen",
+    zone: "markt",
+    slug: "reklamationen",
+    icon: "message-square-warning",
+    resource: "reklamationen",
+    klassifikation: "neu-bauen",
+    reifegrad: "angebunden",
+  },
+  {
     key: "preislisten",
     zone: "markt",
     slug: "preislisten",

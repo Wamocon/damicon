@@ -306,7 +306,7 @@
       "buchhaltung": "Deckungsbeitrag, Lohn, Zahlungen, staatliche Meldungen. Keine Nutzerverwaltung, keine Feldabschlüsse.",
       "brigade": "Nimmt Pflückaufgaben an, erfasst Menge und Fotobeleg im Feld, sieht Rotation und Wartezeitsperren.",
       "erzeuger": "Nachbarbetrieb im Zukauf. Sieht eigene Reihenblöcke, Chargen, Abrechnung und Verträge.",
-      "kunde": "Kontingente, Vorbestellung, Preislisten, KI-Chat und freigegebene Dokumente."
+      "kunde": "Kontingente, Vorbestellung, Preislisten, KI-Chat, freigegebene Dokumente und eigene Reklamationen."
     }
   },
   "klassifikation": {
@@ -341,7 +341,8 @@
     "finanzen": "Finanzen",
     "dokumente": "Dokumente",
     "compliance": "Compliance",
-    "b2b_portal": "B2B-Portal"
+    "b2b_portal": "B2B-Portal",
+    "reklamationen": "Reklamationen"
   },
   "reihenblockStatus": {
     "bepflanzt": "bepflanzt",
@@ -545,6 +546,12 @@
       "description": "Mehrsprachige, bildbasierte Kurzeinarbeitung der Saisonkräfte auf dem Telefon - Videos je Kernprozess, mit Bildern statt Text.",
       "summary": "Kurze, bildbasierte Videos je Kernprozess, mehrsprachig, mit Fortschrittsverfolgung je Person.",
       "todo": "Videoinhalte je Kernprozess, Sprachfassungen Kasachisch und Russisch, Fortschrittsverfolgung je Person."
+    },
+    "reklamationen": {
+      "title": "Reklamationsmanagement",
+      "description": "Reklamation eines B2B-Kunden je Charge - Grund, Frist und Verlauf, mit Statuswechsel bis zur Gutschrift. Ein Kunde meldet und sieht nur die eigene Reklamation, das Büro bearbeitet und schließt ab.",
+      "summary": "Liste, Detail und Verlauf je Reklamation, angebunden an die Charge - von dort zu Reihenblock, Pflücker und Kühlkurve zurückverfolgbar.",
+      "todo": "Admin-Oberfläche für die Zuordnung Kunde-Login zu B2B-Kunde, automatische Reklamationsquote im Kennzahlen-Cockpit, Benachrichtigung bei nahender Frist."
     }
   },
   "reihenblockStatusHint": {
@@ -624,7 +631,10 @@
       "einwilligungWiderrufen": "Einwilligung widerrufen.",
       "vorfallErfasst": "Datenschutzvorfall erfasst.",
       "vorfallGemeldet": "Vorfall als gemeldet markiert.",
-      "drittweitergabeBenachrichtigt": "Benachrichtigung erfasst."
+      "drittweitergabeBenachrichtigt": "Benachrichtigung erfasst.",
+      "reklamation": "Reklamation {wert} gemeldet.",
+      "reklamationStatus": "Reklamation {wert} aktualisiert.",
+      "reklamationNachricht": "Nachricht hinzugefügt."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -639,7 +649,8 @@
       "regel": "Nicht möglich: Die Wartezeit ist noch nicht abgelaufen.",
       "unbekannt": "Vorgang fehlgeschlagen. Details stehen im Server-Log.",
       "keineCharge": "Zu dieser Aufgabe gehört keine Charge.",
-      "kuehlkette": "Grenzwert gerissen: {wert} Minuten bis zur Messung. Die Ware ist abzuwerten."
+      "kuehlkette": "Grenzwert gerissen: {wert} Minuten bis zur Messung. Die Ware ist abzuwerten.",
+      "keinKunde": "Ihrem Zugang ist kein B2B-Kunde zugeordnet. Bitte an die Administration wenden."
     }
   },
   "standortVerwaltung": {
@@ -1151,5 +1162,87 @@
     "q3Text": "Grauer Belag, auch nur an einer Stelle. Bleibt im Feld: In der geschlossenen Schale befällt er über Nacht die ganze Lage.",
     "trayTitle": "Der teuerste Fehler ist eine Höhe",
     "trayText": "Von oben sieht die überfüllte Schale am besten aus: voll, dicht, kein Spalt. Der Deckel drückt jedoch auf die obere Lage, und die untere trägt das Gewicht. Himbeeren tragen kein Eigengewicht - im Laden ist die unterste Lage Saft. Sichtbar wird das nur von der Seite."
+  },
+  "reklamationStatus": {
+    "offen": "offen",
+    "in_pruefung": "In Prüfung",
+    "angenommen": "Angenommen",
+    "abgelehnt": "Abgelehnt",
+    "erledigt": "Erledigt"
+  },
+  "reklamationGrund": {
+    "qualitaet": "Qualität",
+    "menge": "Menge",
+    "verspaetung": "Verspätung",
+    "verpackung": "Verpackung",
+    "temperatur": "Temperatur",
+    "sonstiges": "Sonstiges"
+  },
+  "reklamationenAnsicht": {
+    "listTitle": "Reklamationen",
+    "listLead": "Nach Meldedatum sortiert - offene und in Prüfung befindliche zeigen zusätzlich die Frist.",
+    "empty": "Noch keine Reklamation erfasst.",
+    "detailEmpty": "Reklamation auswählen, um Details und Verlauf zu sehen.",
+    "kunde": "Kunde",
+    "charge": "Charge",
+    "reihenblock": "Reihenblock",
+    "ohneCharge": "ohne Chargenbezug",
+    "grund": "Grund",
+    "menge": "Betroffene Menge",
+    "gemeldetAm": "Gemeldet am",
+    "gemeldetVon": "Gemeldet von",
+    "frist": "Frist",
+    "erledigtAm": "Abgeschlossen am",
+    "loesung": "Lösung",
+    "gutschrift": "Gutschrift",
+    "verlaufTitel": "Verlauf",
+    "verlaufLeer": "Noch kein Eintrag im Verlauf.",
+    "internMarkierung": "intern",
+    "col": {
+      "code": "Kennung",
+      "kunde": "Kunde",
+      "betreff": "Betreff",
+      "grund": "Grund",
+      "status": "Status",
+      "frist": "Frist",
+      "gemeldetAm": "Gemeldet am"
+    },
+    "ablauf": {
+      "titel": "Bearbeitung",
+      "lead": "Ein Statuswechsel wird protokolliert und - sofern für den Kunden sichtbar - im Verlauf angezeigt.",
+      "inPruefungKnopf": "In Prüfung nehmen",
+      "annehmenKnopf": "Annehmen",
+      "ablehnenKnopf": "Ablehnen",
+      "erledigtKnopf": "Als erledigt abschließen"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Reklamation melden",
+        "leadKunde": "Wird an das Büro übermittelt und dort bearbeitet.",
+        "leadBuero": "Für einen B2B-Kunden anlegen.",
+        "knopf": "Reklamation melden"
+      },
+      "feld": {
+        "kunde": "B2B-Kunde",
+        "charge": "Charge (optional)",
+        "ohneCharge": "ohne Chargenbezug",
+        "grund": "Grund",
+        "betreff": "Betreff",
+        "beschreibung": "Beschreibung",
+        "menge": "Betroffene Menge in kg",
+        "frist": "Frist (optional, sonst automatisch +5 Tage)"
+      },
+      "entscheidung": {
+        "loesung": "Lösung / Begründung",
+        "gutschrift": "Gutschrift in ₸ (optional)"
+      },
+      "nachricht": {
+        "titel": "Nachricht hinzufügen",
+        "platzhalter": "Nachricht an den Verlauf ...",
+        "intern": "Intern (für den Kunden nicht sichtbar)",
+        "knopf": "Hinzufügen"
+      }
+    },
+    "note": "Jede Reklamation ist über die Charge mit der Nachweiskette verknüpft - Reihenblock, Pflücker und Kühlkurve lassen sich von dort zurückverfolgen."
   }
 }

@@ -36,6 +36,7 @@ export default async function ModulePage({
         suche: {
           status: typeof suche.status === "string" ? suche.status : undefined,
           aufgabe: typeof suche.aufgabe === "string" ? suche.aufgabe : undefined,
+          reklamation: typeof suche.reklamation === "string" ? suche.reklamation : undefined,
         },
       })
     : null;

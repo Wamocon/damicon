@@ -130,6 +130,24 @@ async function main() {
       .eq("email", "brigade@malina.demo");
   }
 
+  // Die Kunde-Rolle bekommt eine echte B2B-Kunde-Zuordnung (WMCNL-1455) -
+  // ohne sie sieht "kunde@malina.demo" keine einzige Reklamation, weil RLS
+  // ausschliesslich ueber profiles.b2b_kunde_id filtert. Ueber den
+  // service_role-Schluessel gesetzt, weil eine Anmeldung sich diese
+  // Zuordnung nicht selbst geben darf (siehe trg_profil_b2b_kunde).
+  const { data: b2bKunde } = await admin
+    .from("b2b_kunden")
+    .select("id")
+    .eq("name", "Almaty Fresh Market")
+    .maybeSingle();
+
+  if (b2bKunde) {
+    await admin
+      .from("profiles")
+      .update({ b2b_kunde_id: b2bKunde.id })
+      .eq("email", "kunde@malina.demo");
+  }
+
   console.log(
     `\n${angelegt} Benutzer angelegt, ${aktualisiert} aktualisiert. Passwort fuer alle: ${demoPasswort}`,
   );

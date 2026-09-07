@@ -138,7 +138,7 @@
       "buchhaltung": "Katkı payı, ücret, ödemeler, devlet bildirimleri. Kullanıcı yönetimi ve saha görevi kapatma yok.",
       "brigade": "Toplama görevlerini kabul eder, tarlada miktar ve fotoğraf kanıtını kaydeder, rotasyonu ve bekleme kilitlerini görür.",
       "erzeuger": "Alımdaki komşu işletme. Kendi sıra bloklarını, partilerini, hesaplarını ve sözleşmelerini görür.",
-      "kunde": "Kontenjanlar, ön sipariş, fiyat listeleri, yapay zeka sohbeti ve paylaşılan belgeler."
+      "kunde": "Kontenjanlar, ön sipariş, fiyat listeleri, yapay zeka sohbeti, paylaşılan belgeler ve kendi şikâyetleri."
     },
     "viewAsHint": "Rol olarak görüntüle - yalnızca görünümü değiştirir, yazma yetkileri profilinize göre belirlenmeye devam eder"
   },
@@ -174,7 +174,8 @@
     "finanzen": "Finans",
     "dokumente": "Belgeler",
     "compliance": "Uyum",
-    "b2b_portal": "B2B portalı"
+    "b2b_portal": "B2B portalı",
+    "reklamationen": "Şikâyetler"
   },
   "reihenblockStatus": {
     "bepflanzt": "dikili",
@@ -724,6 +725,12 @@
       "description": "Mevsimlik işçiler için telefonda çok dilli, görsele dayalı kısa oryantasyon - her temel süreç için bir video, metin yerine görsellerle.",
       "summary": "Her temel süreç için kısa, görsele dayalı videolar, çok dilli, kişi bazında ilerleme takibiyle.",
       "todo": "Temel süreç bazında video içerikleri, Kazakça ve Rusça dil sürümleri, kişi bazında ilerleme takibi."
+    },
+    "reklamationen": {
+      "title": "Şikâyet yönetimi",
+      "description": "Bir B2B müşterisinin parti başına şikâyeti - neden, süre ve geçmiş, alacak dekontuna kadar durum akışıyla. Müşteri yalnızca kendi şikâyetini bildirir ve görür, ofis bunu işler ve kapatır.",
+      "summary": "Partiye bağlı her şikâyet için liste, ayrıntı ve geçmiş - oradan sıraya, toplayıcıya ve soğutma eğrisine kadar izlenebilir.",
+      "todo": "Müşteri girişini bir B2B müşteri kaydına bağlayan yönetici ekranı, KPI panosunda otomatik şikâyet oranı, süre yaklaştığında bildirim."
     }
   },
   "reihenblockStatusHint": {
@@ -783,7 +790,10 @@
       "einwilligungWiderrufen": "Rıza iptal edildi.",
       "vorfallErfasst": "Veri ihlali kaydedildi.",
       "vorfallGemeldet": "İhlal bildirildi olarak işaretlendi.",
-      "drittweitergabeBenachrichtigt": "Bilgilendirme kaydedildi."
+      "drittweitergabeBenachrichtigt": "Bilgilendirme kaydedildi.",
+      "reklamation": "{wert} şikâyeti bildirildi.",
+      "reklamationStatus": "{wert} şikâyeti güncellendi.",
+      "reklamationNachricht": "Mesaj eklendi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -798,7 +808,8 @@
       "regel": "Mümkün değil: bekleme süresi henüz dolmadı.",
       "unbekannt": "İşlem başarısız. Ayrıntılar sunucu kaydında.",
       "keineCharge": "Bu göreve ait bir parti yok.",
-      "kuehlkette": "Sınır aşıldı: ölçüme kadar {wert} dakika. Ürünün değeri düşürülmeli."
+      "kuehlkette": "Sınır aşıldı: ölçüme kadar {wert} dakika. Ürünün değeri düşürülmeli.",
+      "keinKunde": "Hesabınıza bağlı bir B2B müşterisi yok. Lütfen yönetimle iletişime geçin."
     }
   },
   "standortVerwaltung": {
@@ -1151,5 +1162,87 @@
     "q3Text": "Tek bir noktada bile olsa gri kaplama. Tarlada kalır: kapalı bir kapta bir gecede tüm katmana bulaşır.",
     "trayTitle": "En pahalı hata bir yükseklik",
     "trayText": "Yukarıdan bakıldığında aşırı dolu kap en iyi görünür: dolu, sık, boşluk yok. Ama kapak üst katmana baskı yapar, alt katman ise ağırlığı taşır. Ahududu kendi ağırlığını taşımaz - markete ulaştığında alt katman artık sudur. Bu sadece yandan görülebilir."
+  },
+  "reklamationStatus": {
+    "offen": "Açık",
+    "in_pruefung": "İnceleniyor",
+    "angenommen": "Kabul edildi",
+    "abgelehnt": "Reddedildi",
+    "erledigt": "Tamamlandı"
+  },
+  "reklamationGrund": {
+    "qualitaet": "Kalite",
+    "menge": "Miktar",
+    "verspaetung": "Gecikme",
+    "verpackung": "Ambalaj",
+    "temperatur": "Sıcaklık",
+    "sonstiges": "Diğer"
+  },
+  "reklamationenAnsicht": {
+    "listTitle": "Şikâyetler",
+    "listLead": "Bildirim tarihine göre sıralı - açık ve incelenen şikâyetlerde süre de gösterilir.",
+    "empty": "Henüz kayıtlı şikâyet yok.",
+    "detailEmpty": "Ayrıntıları ve geçmişi görmek için bir şikâyet seçin.",
+    "kunde": "Müşteri",
+    "charge": "Parti",
+    "reihenblock": "Sıra",
+    "ohneCharge": "parti bağlantısı yok",
+    "grund": "Neden",
+    "menge": "Etkilenen miktar",
+    "gemeldetAm": "Bildirim tarihi",
+    "gemeldetVon": "Bildiren",
+    "frist": "Süre",
+    "erledigtAm": "Kapatılma tarihi",
+    "loesung": "Çözüm",
+    "gutschrift": "Alacak dekontu",
+    "verlaufTitel": "Geçmiş",
+    "verlaufLeer": "Geçmişte henüz kayıt yok.",
+    "internMarkierung": "dahili",
+    "col": {
+      "code": "Referans",
+      "kunde": "Müşteri",
+      "betreff": "Konu",
+      "grund": "Neden",
+      "status": "Durum",
+      "frist": "Süre",
+      "gemeldetAm": "Bildirim tarihi"
+    },
+    "ablauf": {
+      "titel": "İşleme",
+      "lead": "Durum değişikliği kaydedilir ve müşteriye görünürse geçmişte gösterilir.",
+      "inPruefungKnopf": "İncelemeye al",
+      "annehmenKnopf": "Kabul et",
+      "ablehnenKnopf": "Reddet",
+      "erledigtKnopf": "Tamamlandı olarak kapat"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Şikâyet bildir",
+        "leadKunde": "Ofise iletilir ve orada işlenir.",
+        "leadBuero": "Bir B2B müşterisi için oluştur.",
+        "knopf": "Şikâyeti bildir"
+      },
+      "feld": {
+        "kunde": "B2B müşterisi",
+        "charge": "Parti (opsiyonel)",
+        "ohneCharge": "parti bağlantısı yok",
+        "grund": "Neden",
+        "betreff": "Konu",
+        "beschreibung": "Açıklama",
+        "menge": "Etkilenen miktar, kg",
+        "frist": "Süre (opsiyonel, aksi halde otomatik +5 gün)"
+      },
+      "entscheidung": {
+        "loesung": "Çözüm / gerekçe",
+        "gutschrift": "Alacak dekontu, ₸ (opsiyonel)"
+      },
+      "nachricht": {
+        "titel": "Mesaj ekle",
+        "platzhalter": "Geçmişe mesaj ...",
+        "intern": "Dahili (müşteriye görünmez)",
+        "knopf": "Ekle"
+      }
+    },
+    "note": "Her şikâyet, parti üzerinden kanıt zincirine bağlıdır - oradan sıraya, toplayıcıya ve soğutma eğrisine kadar izlenebilir."
   }
 }

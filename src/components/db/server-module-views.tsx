@@ -4,6 +4,7 @@ import { ReihenbloeckeAnsicht } from "@/components/db/reihenbloecke-ansicht";
 import { PflueckaufgabenAnsicht } from "@/components/db/pflueckaufgaben-ansicht";
 import { DokumenteAnsicht } from "@/components/db/dokumente-ansicht";
 import { ComplianceAnsicht } from "@/components/db/compliance-ansicht";
+import { ReklamationenAnsicht } from "@/components/db/reklamationen-ansicht";
 import type { ModuleDef } from "@/lib/modules";
 
 // Module, die in Meilenstein B an der Datenbank haengen. Sie werden als Server
@@ -18,7 +19,10 @@ import type { ModuleDef } from "@/lib/modules";
 // src/components/demo/registry.tsx.
 export function serverModulAnsicht(
   module: ModuleDef,
-  kontext: { pfad: string; suche: Record<string, string | undefined> },
+  kontext: {
+    pfad: string;
+    suche: { status?: string; aufgabe?: string; reklamation?: string };
+  },
 ): ReactNode | null {
   switch (module.key) {
     case "standort":
@@ -35,6 +39,10 @@ export function serverModulAnsicht(
       return <DokumenteAnsicht />;
     case "compliance":
       return <ComplianceAnsicht />;
+    case "reklamationen":
+      return (
+        <ReklamationenAnsicht pfad={kontext.pfad} auswahl={kontext.suche.reklamation} />
+      );
     default:
       return null;
   }

@@ -979,6 +979,257 @@ if (leitung && brigade) {
     zugriffLoeschenFehler?.code ?? "kein Fehler",
   );
 
+  // --- 12. Reklamationsmanagement (WMCNL-1455) -----------------------------
+  // Groesstes Risiko laut Vorab-Recherche: ohne profiles.b2b_kunde_id liesse
+  // sich "Kunde sieht nur eigene Reklamation" nicht RLS-sauber pruefen. Die
+  // Tests decken deshalb sowohl die Sichtbarkeit als auch den Selbstschutz der
+  // Zuordnung (trg_profil_b2b_kunde) ab, nicht nur die beiden neuen Tabellen.
+
+  const { data: reklamationenAnon } = await anon.from("reklamationen").select("id");
+  check(
+    "Reklamation-RLS: anon liest keine Reklamationen",
+    (reklamationenAnon?.length ?? 0) === 0,
+    `sichtbare Zeilen: ${reklamationenAnon?.length}`,
+  );
+
+  const { data: reklamationenBrigade } = await brigade.from("reklamationen").select("id");
+  check(
+    "Reklamation-RLS: Brigade liest keine Reklamationen",
+    (reklamationenBrigade?.length ?? 0) === 0,
+    `sichtbare Zeilen: ${reklamationenBrigade?.length}`,
+  );
+
+  const { data: reklamationenLeitung, error: reklamationenLeitungFehler } = await leitung
+    .from("reklamationen")
+    .select("id, code");
+  check(
+    "Reklamation-RLS: Betriebsleitung sieht alle drei Seed-Reklamationen",
+    !reklamationenLeitungFehler && (reklamationenLeitung?.length ?? 0) >= 3,
+    reklamationenLeitungFehler?.message ?? `${reklamationenLeitung?.length} Reklamationen`,
+  );
+
+  const { client: kunde, fehler: kundeFehler } = await anmelden("kunde@malina.demo");
+  check("Auth: Kunde meldet sich an", !!kunde, kundeFehler ?? "");
+
+  const { data: handelskette } = await admin
+    .from("b2b_kunden")
+    .select("id")
+    .eq("name", "Handelskette A")
+    .single();
+  const { data: almatyFresh } = await admin
+    .from("b2b_kunden")
+    .select("id")
+    .eq("name", "Almaty Fresh Market")
+    .single();
+  const { data: kundeProfil } = await admin
+    .from("profiles")
+    .select("b2b_kunde_id")
+    .eq("email", "kunde@malina.demo")
+    .single();
+  check(
+    "Reklamation-Setup: kunde@malina.demo ist Almaty Fresh Market zugeordnet",
+    kundeProfil?.b2b_kunde_id === almatyFresh?.id,
+    `b2b_kunde_id: ${kundeProfil?.b2b_kunde_id}`,
+  );
+
+  if (kunde) {
+    const { data: reklamationenKunde, error: reklamationenKundeFehler } = await kunde
+      .from("reklamationen")
+      .select("id, b2b_kunde_id");
+    check(
+      "Reklamation-RLS: Kunde sieht mindestens die eigene Reklamation",
+      !reklamationenKundeFehler && (reklamationenKunde?.length ?? 0) >= 1,
+      reklamationenKundeFehler?.message ?? `${reklamationenKunde?.length} Reklamationen`,
+    );
+    check(
+      "Reklamation-RLS: Kunde sieht ausschliesslich die eigene Firma",
+      (reklamationenKunde ?? []).every((r) => r.b2b_kunde_id === almatyFresh.id),
+      `fremde b2b_kunde_id dabei: ${(reklamationenKunde ?? [])
+        .filter((r) => r.b2b_kunde_id !== almatyFresh.id)
+        .map((r) => r.b2b_kunde_id)
+        .join(", ") || "keine"}`,
+    );
+
+    // KRITISCH: ein Kunde darf keine Reklamation fuer eine fremde Firma anlegen.
+    const { data: fremdeReklamation, error: fremdeReklamationFehler } = await kunde
+      .from("reklamationen")
+      .insert({
+        code: `REK-IT-FREMD-${Date.now()}`,
+        b2b_kunde_id: handelskette.id,
+        grund: "sonstiges",
+        betreff: "Integrationstest - fremde Firma",
+      })
+      .select("id");
+    check(
+      "Reklamation-RLS: Kunde legt keine Reklamation fuer eine fremde Firma an",
+      !!fremdeReklamationFehler || (fremdeReklamation?.length ?? 0) === 0,
+      fremdeReklamationFehler?.code ?? `eingefuegte Zeilen: ${fremdeReklamation?.length}`,
+    );
+
+    // Aber die eigene Firma funktioniert - und die Frist wird automatisch gesetzt.
+    const { data: eigeneReklamation, error: eigeneReklamationFehler } = await kunde
+      .from("reklamationen")
+      .insert({
+        code: `REK-IT-EIGEN-${Date.now()}`,
+        b2b_kunde_id: almatyFresh.id,
+        grund: "qualitaet",
+        betreff: "Integrationstest - eigene Firma",
+      })
+      .select("id, frist_am, gemeldet_am")
+      .single();
+    check(
+      "Reklamation: Kunde legt eine Reklamation fuer die eigene Firma an",
+      !eigeneReklamationFehler && !!eigeneReklamation,
+      eigeneReklamationFehler?.message ?? "",
+    );
+    // frist_am ist ein reines Datum (kein Zeitstempel) - der Vergleich laeuft
+    // deshalb ueber das Kalenderdatum, nicht ueber eine Millisekunden-Distanz,
+    // die an der Uhrzeitkomponente von gemeldet_am vorbeilaufen wuerde.
+    const erwarteteFrist = eigeneReklamationFehler
+      ? null
+      : new Date(new Date(eigeneReklamation.gemeldet_am).getTime() + 5 * 24 * 60 * 60 * 1000)
+          .toISOString()
+          .slice(0, 10);
+    check(
+      "Reklamation: Frist wird automatisch auf +5 Tage gesetzt",
+      !eigeneReklamationFehler && eigeneReklamation.frist_am === erwarteteFrist,
+      `gemeldet: ${eigeneReklamation?.gemeldet_am}, frist: ${eigeneReklamation?.frist_am}, erwartet: ${erwarteteFrist}`,
+    );
+
+    // HOCH: der groesste Befund aus der Vorab-Recherche - ein Kunde darf sich
+    // nicht selbst einer anderen Firma zuordnen und damit deren Reklamationen
+    // lesen (trg_profil_b2b_kunde).
+    const { error: selbstZuordnungFehler } = await kunde
+      .from("profiles")
+      .update({ b2b_kunde_id: handelskette.id })
+      .eq("email", "kunde@malina.demo");
+    check(
+      "Reklamation-Haertung: Kunde ordnet sich nicht selbst einer fremden Firma zu",
+      selbstZuordnungFehler?.code === "42501",
+      selbstZuordnungFehler?.code ?? "kein Fehler",
+    );
+    const { data: profilNachVersuch } = await admin
+      .from("profiles")
+      .select("b2b_kunde_id")
+      .eq("email", "kunde@malina.demo")
+      .single();
+    check(
+      "Reklamation-Haertung: b2b_kunde_id bleibt unveraendert",
+      profilNachVersuch?.b2b_kunde_id === almatyFresh.id,
+      `b2b_kunde_id: ${profilNachVersuch?.b2b_kunde_id}`,
+    );
+
+    if (eigeneReklamation?.id) {
+      await admin.from("reklamationen").delete().eq("id", eigeneReklamation.id);
+    }
+  }
+
+  // Check-Constraint: eine Entscheidung braucht Loesung + Abschlusszeitpunkt.
+  const { data: neueTestReklamation } = await admin
+    .from("reklamationen")
+    .insert({
+      code: `REK-IT-CHECK-${Date.now()}`,
+      b2b_kunde_id: handelskette.id,
+      grund: "sonstiges",
+      betreff: "Integrationstest - Check-Constraints",
+    })
+    .select("id")
+    .single();
+
+  const { error: erledigtOhneLoesungFehler } = await admin
+    .from("reklamationen")
+    .update({ status: "erledigt" })
+    .eq("id", neueTestReklamation.id);
+  check(
+    "Reklamation-Schema: 'erledigt' ohne Loesung wird abgelehnt",
+    erledigtOhneLoesungFehler?.code === "23514",
+    erledigtOhneLoesungFehler?.code ?? "kein Fehler",
+  );
+
+  // KRITISCH: eine abgelehnte Reklamation darf keine Gutschrift bekommen.
+  const { error: gutschriftBeiAblehnungFehler } = await admin
+    .from("reklamationen")
+    .update({ status: "abgelehnt", loesung: "Kein Anspruch nach Pruefung.", gutschrift_tenge: 5000 })
+    .eq("id", neueTestReklamation.id);
+  check(
+    "Reklamation-Schema: Gutschrift bei Ablehnung wird abgelehnt",
+    gutschriftBeiAblehnungFehler?.code === "23514",
+    gutschriftBeiAblehnungFehler?.code ?? "kein Fehler",
+  );
+
+  // Trigger: der Abschlusszeitpunkt wird automatisch gesetzt, auch wenn die
+  // Anwendung ihn vergisst - und der Statuswechsel schreibt sich selbst in
+  // reklamation_ereignisse fort.
+  const { data: angenommeneReklamation, error: annahmeFehler } = await leitung
+    .from("reklamationen")
+    .update({ status: "angenommen", loesung: "Reklamation anerkannt.", gutschrift_tenge: 12000 })
+    .eq("id", neueTestReklamation.id)
+    .select("erledigt_am")
+    .single();
+  check(
+    "Reklamation: Annahme mit Gutschrift wird angenommen",
+    !annahmeFehler && !!angenommeneReklamation,
+    annahmeFehler?.message ?? "",
+  );
+  check(
+    "Reklamation-Trigger: erledigt_am wird automatisch gesetzt",
+    !!angenommeneReklamation?.erledigt_am,
+    `erledigt_am: ${angenommeneReklamation?.erledigt_am}`,
+  );
+
+  const { data: ereignisNachAnnahme } = await admin
+    .from("reklamation_ereignisse")
+    .select("id, neuer_status, text")
+    .eq("reklamation_id", neueTestReklamation.id)
+    .eq("neuer_status", "angenommen");
+  check(
+    "Reklamation-Trigger: Statuswechsel protokolliert sich automatisch im Verlauf",
+    (ereignisNachAnnahme?.length ?? 0) === 1 && ereignisNachAnnahme[0].text === "Reklamation anerkannt.",
+    JSON.stringify(ereignisNachAnnahme),
+  );
+
+  // Append-only: der Verlauf laesst sich nicht nachtraeglich umschreiben oder loeschen.
+  if (ereignisNachAnnahme?.[0]?.id) {
+    const { error: ereignisUpdateFehler } = await admin
+      .from("reklamation_ereignisse")
+      .update({ text: "nachtraeglich geaendert" })
+      .eq("id", ereignisNachAnnahme[0].id);
+    check(
+      "Reklamation: der Verlauf ist append-only (kein Update)",
+      ereignisUpdateFehler?.code === "P0001",
+      ereignisUpdateFehler?.code ?? "kein Fehler",
+    );
+
+    const { error: ereignisDeleteFehler } = await admin
+      .from("reklamation_ereignisse")
+      .delete()
+      .eq("id", ereignisNachAnnahme[0].id);
+    check(
+      "Reklamation: der Verlauf ist append-only (kein Delete)",
+      ereignisDeleteFehler?.code === "P0001",
+      ereignisDeleteFehler?.code ?? "kein Fehler",
+    );
+  }
+
+  // KRITISCH: die Brigade darf weder eine Reklamation bearbeiten noch anlegen -
+  // "reklamationen" taucht in rolePermissions fuer brigade gar nicht auf.
+  const { data: brigadeReklamationUpdate, error: brigadeReklamationUpdateFehler } = await brigade
+    .from("reklamationen")
+    .update({ status: "in_pruefung" })
+    .eq("id", neueTestReklamation.id)
+    .select("id");
+  check(
+    "Reklamation-RLS: Brigade bearbeitet keine Reklamation",
+    !!brigadeReklamationUpdateFehler || (brigadeReklamationUpdate?.length ?? 0) === 0,
+    brigadeReklamationUpdateFehler?.code ?? `geaenderte Zeilen: ${brigadeReklamationUpdate?.length}`,
+  );
+
+  // Kein Cleanup fuer neueTestReklamation: sie traegt inzwischen einen
+  // Verlaufseintrag, und reklamation_ereignisse ist append-only - ein Loeschen
+  // der Reklamation wuerde per on-delete-cascade denselben Trigger treffen,
+  // der genau das verhindern soll. Die Testzeile bleibt bewusst stehen, wie
+  // schon der Einwilligungs-Testfall in Abschnitt 11 fuer dieselbe Situation.
+
   // Cleanup: Testaufgabe samt Kette entfernen, Ursprungsstatus wiederherstellen.
   await admin.from("steigen").delete().eq("pflueckaufgabe_id", neueAufgabe.id);
   await admin.from("kuehlketten_messungen").delete().eq("charge_id", autoCharge.id);
