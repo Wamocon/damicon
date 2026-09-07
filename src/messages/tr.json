@@ -109,8 +109,9 @@
         "kpi": "14 başlangıç göstergesinin kart olarak yer aldığı panel iskeleti"
       },
       "milestoneBNote": "Tüm ana işlevler veri tabanına bağlı: oturum açma, Row Level Security ile rol yetkileri, konum yönetimi, sıra bloğu kilidi, fotoğraf kanıtlı toplama görevi ve doküman arşivi. Alt işlevler planlandığı gibi durum etiketli menü girdileri olarak kalır.",
-      "kpiSummary": "{berechenbar} bugün ölçülebilir · {erfassung} kayıt eksik · {tabelle} işlev eksik",
+      "kpiSummary": "{berechenbar} bugün ölçülebilir · {erfassung} kayıt eksik · {tabelle} işlev eksik · {ungeklaert} hukuki dayanağı belirsiz",
       "kpiGerechnet": "{anzahl} kayıttan hesaplandı",
+      "kpiGerechnetUngeklaert": "{anzahl} kayıttan hesaplandı - hukuki dayanağı belirsiz",
       "kpiSummaryLive": "{gerechnet} gerçek veriden hesaplandı · {offen} arkasındaki işlevi bekliyor"
     },
     "dataSource": {
@@ -1068,7 +1069,8 @@
   "kpiHerkunft": {
     "berechenbar": "bugün ölçülebilir",
     "erfassung-fehlt": "kayıt eksik",
-    "tabelle-fehlt": "işlev eksik"
+    "tabelle-fehlt": "işlev eksik",
+    "rechtlich-ungeklaert": "hukuki dayanağı belirsiz"
   },
   "nachweiskette": {
     "titel": "Kanıt zinciri",

@@ -286,8 +286,9 @@
         "kpi": "Dashboard-Grundgerüst mit den 14 Baseline-Kennzahlen als Kacheln"
       },
       "milestoneBNote": "Alle Hauptfunktionen sind an die Datenbank angebunden: Anmeldung, Rollenrechte über Row Level Security, Standortverwaltung, Reihenblock-Sperre, Pflückaufgabe mit Fotobeleg und Dokumentenablage. Die Unterfunktionen bleiben planmäßig sichtbare Menüpunkte mit Status.",
-      "kpiSummary": "{berechenbar} heute messbar · {erfassung} Erfassung fehlt · {tabelle} Funktion fehlt",
+      "kpiSummary": "{berechenbar} heute messbar · {erfassung} Erfassung fehlt · {tabelle} Funktion fehlt · {ungeklaert} rechtlich ungeklärt",
       "kpiGerechnet": "gerechnet aus {anzahl} Datensätzen",
+      "kpiGerechnetUngeklaert": "aus {anzahl} Datensätzen gerechnet - rechtliche Grundlage ungeklärt",
       "kpiSummaryLive": "{gerechnet} aus echten Daten gerechnet · {offen} warten auf die Funktion dahinter"
     }
   },
@@ -1068,7 +1069,8 @@
   "kpiHerkunft": {
     "berechenbar": "heute messbar",
     "erfassung-fehlt": "Erfassung fehlt",
-    "tabelle-fehlt": "Funktion fehlt"
+    "tabelle-fehlt": "Funktion fehlt",
+    "rechtlich-ungeklaert": "rechtlich ungeklärt"
   },
   "nachweiskette": {
     "titel": "Nachweiskette",

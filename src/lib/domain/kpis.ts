@@ -6,14 +6,30 @@
 export type KpiTrend = "up" | "down" | "flat";
 
 // Kann das System diese Kennzahl heute fortschreiben?
-//   "berechenbar"    - aus den vorhandenen Tabellen ableitbar, nur die
-//                      Aggregation fehlt noch.
-//   "erfassung-fehlt"- die Tabellen stehen, aber niemand traegt die Werte ein.
-//   "tabelle-fehlt"  - das Datenmodell hat dafuer noch keinen Platz.
+//   "berechenbar"        - aus den vorhandenen Tabellen ableitbar, nur die
+//                          Aggregation fehlt noch.
+//   "erfassung-fehlt"    - die Tabellen stehen, aber niemand traegt die
+//                          Werte ein.
+//   "tabelle-fehlt"      - das Datenmodell hat dafuer noch keinen Platz.
+//   "rechtlich-ungeklaert" - technisch berechenbar, aber die rechtliche
+//                          Grundlage der Kennzahl selbst ist nicht durch
+//                          eine gepruefte Primaerquelle belegt (Fund aus dem
+//                          Vergleich mit dem Schwesterprojekt: die ЕСУТД-
+//                          Pflicht war zunaechst in keinem gepruefeten
+//                          Primaertext belegt; der Masterplan vom 01.09.2026
+//                          nennt inzwischen enbek.kz als Anbindungspunkt,
+//                          siehe WMCNL-1447 - eine Rechtsprüfung der Pflicht
+//                          selbst steht weiterhin aus). Eine Zahl aus
+//                          unsicherer Rechtsgrundlage gehoert nicht
+//                          kommentarlos unter eine Baseline-Unterschrift.
 //
 // Diese Einordnung gehoert an die Kachel, nicht in eine Anlage: wer eine
 // Baseline unterschreibt, muss sehen, welche Zusage heute schon messbar ist.
-export type Datenherkunft = "berechenbar" | "erfassung-fehlt" | "tabelle-fehlt";
+export type Datenherkunft =
+  | "berechenbar"
+  | "erfassung-fehlt"
+  | "tabelle-fehlt"
+  | "rechtlich-ungeklaert";
 
 export interface Kpi {
   key: string;
@@ -177,8 +193,9 @@ export const kpis: Kpi[] = [
     trend: "up",
     gutRichtung: "up",
     platzhalter: true,
-    datenherkunft: "berechenbar",
-    braucht: "nichts - Vertragsstatus je Saisonkraft",
+    datenherkunft: "rechtlich-ungeklaert",
+    braucht:
+      "rechtliche Bestaetigung der ЕСУТД-Pflicht ueber enbek.kz (siehe WMCNL-1447) - Anbindungspunkt benannt, Rechtsprüfung der Pflicht selbst steht noch aus",
   },
   {
     key: "websiteAnfragen",
@@ -199,6 +216,7 @@ export function herkunftZaehlen(liste: Kpi[] = kpis): Record<Datenherkunft, numb
     berechenbar: 0,
     "erfassung-fehlt": 0,
     "tabelle-fehlt": 0,
+    "rechtlich-ungeklaert": 0,
   };
   for (const kpi of liste) zaehler[kpi.datenherkunft] += 1;
   return zaehler;

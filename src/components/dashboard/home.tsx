@@ -28,12 +28,14 @@ const herkunftFarbe: Record<Datenherkunft, string> = {
   berechenbar: "text-success",
   "erfassung-fehlt": "text-warning",
   "tabelle-fehlt": "text-muted-foreground",
+  "rechtlich-ungeklaert": "text-warning",
 };
 
 const herkunftPunkt: Record<Datenherkunft, string> = {
   berechenbar: "bg-success",
   "erfassung-fehlt": "bg-warning",
   "tabelle-fehlt": "bg-muted-foreground/50",
+  "rechtlich-ungeklaert": "bg-warning",
 };
 
 export function DashboardHome({
@@ -76,6 +78,7 @@ export function DashboardHome({
                 berechenbar: herkunft.berechenbar,
                 erfassung: herkunft["erfassung-fehlt"],
                 tabelle: herkunft["tabelle-fehlt"],
+                ungeklaert: herkunft["rechtlich-ungeklaert"],
               })
         }`}
         action={
@@ -98,6 +101,12 @@ export function DashboardHome({
             const anzeige = kpi.gerechnet
               ? `${format.number(kpi.gerechnet.zahl, { maximumFractionDigits: 1 })} ${kpi.gerechnet.einheit}`.trim()
               : kpi.wert;
+            // Eine rechtlich ungeklaerte Kennzahl bleibt gelb, auch wenn sie
+            // technisch schon aus echten Daten gerechnet wird - "berechnet"
+            // ist keine Aussage darueber, ob die Kennzahl ueberhaupt verlangt
+            // ist. Sonst verschwindet der Vorbehalt genau dann, wenn die
+            // Zahl zum ersten Mal echt ist.
+            const rechtlichUngeklaert = kpi.datenherkunft === "rechtlich-ungeklaert";
             return (
               <Card key={kpi.key} className="p-3">
                 <div className="flex items-start justify-between gap-1">
@@ -119,20 +128,38 @@ export function DashboardHome({
                   {t("home.target")}: {kpi.ziel}
                 </p>
                 <p
-                  title={kpi.gerechnet ? kpi.gerechnet.basis : kpi.braucht}
+                  title={
+                    rechtlichUngeklaert
+                      ? kpi.braucht
+                      : kpi.gerechnet
+                        ? kpi.gerechnet.basis
+                        : kpi.braucht
+                  }
                   className={`mt-2 flex items-start gap-1 border-t border-border pt-1.5 text-[10px] leading-3 ${
-                    kpi.gerechnet ? "text-success" : herkunftFarbe[kpi.datenherkunft]
+                    rechtlichUngeklaert
+                      ? herkunftFarbe[kpi.datenherkunft]
+                      : kpi.gerechnet
+                        ? "text-success"
+                        : herkunftFarbe[kpi.datenherkunft]
                   }`}
                 >
                   <span
                     aria-hidden="true"
                     className={`mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full ${
-                      kpi.gerechnet ? "bg-success" : herkunftPunkt[kpi.datenherkunft]
+                      rechtlichUngeklaert
+                        ? herkunftPunkt[kpi.datenherkunft]
+                        : kpi.gerechnet
+                          ? "bg-success"
+                          : herkunftPunkt[kpi.datenherkunft]
                     }`}
                   />
-                  {kpi.gerechnet
-                    ? t("home.kpiGerechnet", { anzahl: kpi.gerechnet.datensaetze })
-                    : herkunftT(kpi.datenherkunft)}
+                  {rechtlichUngeklaert
+                    ? kpi.gerechnet
+                      ? t("home.kpiGerechnetUngeklaert", { anzahl: kpi.gerechnet.datensaetze })
+                      : herkunftT(kpi.datenherkunft)
+                    : kpi.gerechnet
+                      ? t("home.kpiGerechnet", { anzahl: kpi.gerechnet.datensaetze })
+                      : herkunftT(kpi.datenherkunft)}
                 </p>
               </Card>
             );
