@@ -262,7 +262,11 @@ export const modules: ModuleDef[] = [
     icon: "network",
     resource: "aggregator",
     klassifikation: "anpassen",
-    reifegrad: "in-entwicklung",
+    // WMCNL-1453: CSV-Import (src/lib/import/zukauf-parser.ts) schreibt unter
+    // RLS echte zukauf_positionen/chargen-Zeilen ueber die atomare RPC
+    // public.zukauf_positionen_importieren() - Ende-zu-Ende-Erfassung
+    // funktioniert, "angebunden" ist damit ehrlich (siehe module-meta.tsx).
+    reifegrad: "angebunden",
   },
   {
     key: "schulungen",

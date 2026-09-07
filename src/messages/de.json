@@ -637,7 +637,9 @@
       "reklamationNachricht": "Nachricht hinzugefügt.",
       "lohnSatz": "Lohnsatz gültig ab {wert} angelegt.",
       "lohnBerechnet": "{wert} Abrechnung(en) berechnet - bereits freigegebene oder ausgezahlte Zeilen bleiben unverändert.",
-      "lohnStatus": "Abrechnung von {wert} aktualisiert."
+      "lohnStatus": "Abrechnung von {wert} aktualisiert.",
+      "zukaufImport": "{wert} Position(en) importiert.",
+      "zukaufPreis": "Preis nachgetragen."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -653,7 +655,8 @@
       "unbekannt": "Vorgang fehlgeschlagen. Details stehen im Server-Log.",
       "keineCharge": "Zu dieser Aufgabe gehört keine Charge.",
       "kuehlkette": "Grenzwert gerissen: {wert} Minuten bis zur Messung. Die Ware ist abzuwerten.",
-      "keinKunde": "Ihrem Zugang ist kein B2B-Kunde zugeordnet. Bitte an die Administration wenden."
+      "keinKunde": "Ihrem Zugang ist kein B2B-Kunde zugeordnet. Bitte an die Administration wenden.",
+      "zukaufBefunde": "{wert} Fehler in der Eingabe gefunden - nichts wurde übernommen. Siehe Prüfergebnis unten."
     }
   },
   "standortVerwaltung": {
@@ -1311,6 +1314,67 @@
         "periodeEnde": "Periode bis",
         "knopf": "Periode berechnen"
       }
+    }
+  },
+  "zukaufAnsicht": {
+    "statsTitle": "Zukauf auf einen Blick",
+    "statsLead": "Kennzahlen über alle erfassten Zukaufpositionen der Nachbarbetriebe.",
+    "stat": {
+      "positionen": "Positionen",
+      "menge": "Menge gesamt",
+      "nachbarbetriebe": "Nachbarbetriebe",
+      "offenePreise": "Preis ausstehend",
+      "offenePreiseHinweis": "Rechnung des Nachbarbetriebs noch nicht eingegangen."
+    },
+    "listTitle": "Zukaufpositionen",
+    "listLead": "Jede Position trägt eine eigene Charge ohne Reihenblock - getrennte Herkunftsführung, zurückverfolgbar auf den liefernden Betrieb.",
+    "empty": "Noch keine Zukaufposition erfasst.",
+    "col": {
+      "nachbarbetrieb": "Nachbarbetrieb",
+      "sorte": "Sorte",
+      "charge": "Charge",
+      "menge": "Menge",
+      "erntedatum": "Datum",
+      "preis": "Preis",
+      "rechnungsdatum": "Rechnungsdatum"
+    },
+    "preisOffen": "Preis ausstehend",
+    "keinRecht": "Ihre Rolle darf den Zukauf lesen, aber nicht importieren oder Preise nachtragen. Das ist der Betriebsleitung und der Administration vorbehalten.",
+    "note": "Menge, Sorte, Datum und Nachbarbetrieb kommen aus dem CSV-Import. Der Preis ist beim Import bewusst offen - er wird nachgetragen, sobald die Rechnung des Nachbarbetriebs vorliegt. Ein Selbstbedienungszugang für den Nachbarbetrieb selbst ist noch nicht angebunden.",
+    "import": {
+      "titel": "Zukauf importieren",
+      "lead": "Menge, Sorte, Datum und Nachbarbetrieb einfügen - eine Zeile je Anlieferung. Trennzeichen und Sprache der Kopfzeile werden automatisch erkannt.",
+      "hilfe": "Pflichtspalten: Menge (kg), Sorte, Datum, Nachbarbetrieb. Unbekannte Sorten- oder Nachbarbetriebsnamen werden nicht automatisch angelegt.",
+      "bekannteBetriebe": "Bekannte Nachbarbetriebe",
+      "bekannteSorten": "Bekannte Sorten",
+      "feldLabel": "CSV-Daten",
+      "platzhalter": "menge;sorte;datum;nachbarbetrieb\n210;Polka;2026-09-01;Nachbarbetrieb Kaskelen",
+      "knopf": "Prüfen und importieren",
+      "befundeTitle": "Prüfergebnis",
+      "spalteAllgemein": "allgemein",
+      "spalte": {
+        "menge": "Menge",
+        "sorte": "Sorte",
+        "datum": "Datum",
+        "nachbarbetrieb": "Nachbarbetrieb"
+      },
+      "befund": {
+        "empty": "Die Eingabe enthält keine Zeilen.",
+        "column_missing": "Die Spalte „{spalte}“ wurde nicht erkannt.",
+        "required_missing": "Zeile {zeile}: Pflichtangabe „{spalte}“ fehlt.",
+        "value_format": "Zeile {zeile}: Wert bei „{spalte}“ wird nicht erkannt: {wert}",
+        "value_range": "Zeile {zeile}: Wert bei „{spalte}“ liegt außerhalb des gültigen Bereichs: {wert}",
+        "value_suspicious": "Zeile {zeile}: Ungewöhnlicher Wert bei „{spalte}“, wird aber übernommen: {wert}",
+        "unknown_reference": "Zeile {zeile}: „{wert}“ ist bei „{spalte}“ nicht bekannt und wird nicht automatisch angelegt.",
+        "duplicate_verdacht": "Zeile {zeile}: gleicht Zeile {wert} - möglicherweise doppelt erfasst, wird aber übernommen.",
+        "no_rows": "Keine verwertbare Datenzeile gefunden.",
+        "summary": "{wert}"
+      }
+    },
+    "preisNachtragen": {
+      "preis": "Preis (₸/kg)",
+      "rechnungsdatum": "Rechnungsdatum",
+      "knopf": "Speichern"
     }
   }
 }

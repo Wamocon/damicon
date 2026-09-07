@@ -14,7 +14,8 @@
     "db:seed-auth": "node --env-file=.env.local supabase/seed-auth.mjs",
     "db:types": "supabase gen types typescript --local > src/lib/database.types.ts",
     "db:test": "node --env-file=.env.local supabase/tests/integration.mjs",
-    "db:test:fast": "node supabase/tests/pglite-fast.mjs"
+    "db:test:fast": "node supabase/tests/pglite-fast.mjs",
+    "test:zukauf-parser": "node supabase/tests/zukauf-parser.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
