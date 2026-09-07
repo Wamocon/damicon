@@ -265,33 +265,45 @@ export type Database = {
           },
         ]
       }
-      consent_records: {
+      datenschutzvorfaelle: {
         Row: {
+          art: Database["public"]["Enums"]["vorfall_art"]
+          behoben_am: string | null
+          beschreibung: string
+          betroffene_anzahl: number | null
           created_at: string
-          erteilt_am: string
+          festgestellt_am: string
+          gemeldet_am: string | null
           id: string
-          rechtsgrundlage: string | null
-          subjekt: string
-          widerrufen_am: string | null
-          zweck: string
+          meldefrist_am: string | null
+          meldereferenz: string | null
+          updated_at: string
         }
         Insert: {
+          art: Database["public"]["Enums"]["vorfall_art"]
+          behoben_am?: string | null
+          beschreibung: string
+          betroffene_anzahl?: number | null
           created_at?: string
-          erteilt_am?: string
+          festgestellt_am: string
+          gemeldet_am?: string | null
           id?: string
-          rechtsgrundlage?: string | null
-          subjekt: string
-          widerrufen_am?: string | null
-          zweck: string
+          meldefrist_am?: string | null
+          meldereferenz?: string | null
+          updated_at?: string
         }
         Update: {
+          art?: Database["public"]["Enums"]["vorfall_art"]
+          behoben_am?: string | null
+          beschreibung?: string
+          betroffene_anzahl?: number | null
           created_at?: string
-          erteilt_am?: string
+          festgestellt_am?: string
+          gemeldet_am?: string | null
           id?: string
-          rechtsgrundlage?: string | null
-          subjekt?: string
-          widerrufen_am?: string | null
-          zweck?: string
+          meldefrist_am?: string | null
+          meldereferenz?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
@@ -348,6 +360,154 @@ export type Database = {
             columns: ["reihenblock_id"]
             isOneToOne: false
             referencedRelation: "reihenbloecke"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      drittweitergaben: {
+        Row: {
+          benachrichtigt_am: string | null
+          benachrichtigungsfrist_am: string | null
+          betroffener_b2b_kunde_id: string | null
+          betroffener_pfluecker_id: string | null
+          betroffener_profil_id: string | null
+          created_at: string
+          empfaenger: string
+          id: string
+          updated_at: string
+          weitergegeben_am: string
+          zweck_id: string | null
+        }
+        Insert: {
+          benachrichtigt_am?: string | null
+          benachrichtigungsfrist_am?: string | null
+          betroffener_b2b_kunde_id?: string | null
+          betroffener_pfluecker_id?: string | null
+          betroffener_profil_id?: string | null
+          created_at?: string
+          empfaenger: string
+          id?: string
+          updated_at?: string
+          weitergegeben_am?: string
+          zweck_id?: string | null
+        }
+        Update: {
+          benachrichtigt_am?: string | null
+          benachrichtigungsfrist_am?: string | null
+          betroffener_b2b_kunde_id?: string | null
+          betroffener_pfluecker_id?: string | null
+          betroffener_profil_id?: string | null
+          created_at?: string
+          empfaenger?: string
+          id?: string
+          updated_at?: string
+          weitergegeben_am?: string
+          zweck_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "drittweitergaben_betroffener_b2b_kunde_id_fkey"
+            columns: ["betroffener_b2b_kunde_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_kunden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drittweitergaben_betroffener_pfluecker_id_fkey"
+            columns: ["betroffener_pfluecker_id"]
+            isOneToOne: false
+            referencedRelation: "pfluecker"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drittweitergaben_betroffener_profil_id_fkey"
+            columns: ["betroffener_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drittweitergaben_zweck_id_fkey"
+            columns: ["zweck_id"]
+            isOneToOne: false
+            referencedRelation: "verarbeitungszwecke"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      einwilligungen: {
+        Row: {
+          betroffener_b2b_kunde_id: string | null
+          betroffener_pfluecker_id: string | null
+          betroffener_profil_id: string | null
+          created_at: string
+          erteilt_am: string
+          id: string
+          kanal: Database["public"]["Enums"]["einwilligung_kanal"]
+          nachweis_referenz: string | null
+          sprache: string
+          textfassung: string
+          widerruf_grund: string | null
+          widerrufen_am: string | null
+          zweck_id: string
+        }
+        Insert: {
+          betroffener_b2b_kunde_id?: string | null
+          betroffener_pfluecker_id?: string | null
+          betroffener_profil_id?: string | null
+          created_at?: string
+          erteilt_am?: string
+          id?: string
+          kanal: Database["public"]["Enums"]["einwilligung_kanal"]
+          nachweis_referenz?: string | null
+          sprache?: string
+          textfassung: string
+          widerruf_grund?: string | null
+          widerrufen_am?: string | null
+          zweck_id: string
+        }
+        Update: {
+          betroffener_b2b_kunde_id?: string | null
+          betroffener_pfluecker_id?: string | null
+          betroffener_profil_id?: string | null
+          created_at?: string
+          erteilt_am?: string
+          id?: string
+          kanal?: Database["public"]["Enums"]["einwilligung_kanal"]
+          nachweis_referenz?: string | null
+          sprache?: string
+          textfassung?: string
+          widerruf_grund?: string | null
+          widerrufen_am?: string | null
+          zweck_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "einwilligungen_betroffener_b2b_kunde_id_fkey"
+            columns: ["betroffener_b2b_kunde_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_kunden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "einwilligungen_betroffener_pfluecker_id_fkey"
+            columns: ["betroffener_pfluecker_id"]
+            isOneToOne: false
+            referencedRelation: "pfluecker"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "einwilligungen_betroffener_profil_id_fkey"
+            columns: ["betroffener_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "einwilligungen_zweck_id_fkey"
+            columns: ["zweck_id"]
+            isOneToOne: false
+            referencedRelation: "verarbeitungszwecke"
             referencedColumns: ["id"]
           },
         ]
@@ -990,6 +1150,84 @@ export type Database = {
         }
         Relationships: []
       }
+      personenbezogene_zugriffe: {
+        Row: {
+          akteur_id: string | null
+          aktion: Database["public"]["Enums"]["zugriffsaktion"]
+          betroffener_b2b_kunde_id: string | null
+          betroffener_pfluecker_id: string | null
+          betroffener_profil_id: string | null
+          client_info: string | null
+          entitaet: string
+          entitaet_id: string | null
+          id: string
+          stattgefunden_am: string
+          zweck_id: string | null
+        }
+        Insert: {
+          akteur_id?: string | null
+          aktion: Database["public"]["Enums"]["zugriffsaktion"]
+          betroffener_b2b_kunde_id?: string | null
+          betroffener_pfluecker_id?: string | null
+          betroffener_profil_id?: string | null
+          client_info?: string | null
+          entitaet: string
+          entitaet_id?: string | null
+          id?: string
+          stattgefunden_am?: string
+          zweck_id?: string | null
+        }
+        Update: {
+          akteur_id?: string | null
+          aktion?: Database["public"]["Enums"]["zugriffsaktion"]
+          betroffener_b2b_kunde_id?: string | null
+          betroffener_pfluecker_id?: string | null
+          betroffener_profil_id?: string | null
+          client_info?: string | null
+          entitaet?: string
+          entitaet_id?: string | null
+          id?: string
+          stattgefunden_am?: string
+          zweck_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "personenbezogene_zugriffe_akteur_id_fkey"
+            columns: ["akteur_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personenbezogene_zugriffe_betroffener_b2b_kunde_id_fkey"
+            columns: ["betroffener_b2b_kunde_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_kunden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personenbezogene_zugriffe_betroffener_pfluecker_id_fkey"
+            columns: ["betroffener_pfluecker_id"]
+            isOneToOne: false
+            referencedRelation: "pfluecker"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personenbezogene_zugriffe_betroffener_profil_id_fkey"
+            columns: ["betroffener_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personenbezogene_zugriffe_zweck_id_fkey"
+            columns: ["zweck_id"]
+            isOneToOne: false
+            referencedRelation: "verarbeitungszwecke"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pflanzenschutz_behandlungen: {
         Row: {
           behandelt_am: string
@@ -1609,6 +1847,42 @@ export type Database = {
           },
         ]
       }
+      verarbeitungszwecke: {
+        Row: {
+          aufbewahrung_monate: number
+          automatisierte_entscheidung: boolean
+          beschreibung: string | null
+          bezeichnung: string
+          code: string
+          created_at: string
+          id: string
+          rechtsgrundlage: Database["public"]["Enums"]["rechtsgrundlage_typ"]
+          updated_at: string
+        }
+        Insert: {
+          aufbewahrung_monate: number
+          automatisierte_entscheidung?: boolean
+          beschreibung?: string | null
+          bezeichnung: string
+          code: string
+          created_at?: string
+          id?: string
+          rechtsgrundlage: Database["public"]["Enums"]["rechtsgrundlage_typ"]
+          updated_at?: string
+        }
+        Update: {
+          aufbewahrung_monate?: number
+          automatisierte_entscheidung?: boolean
+          beschreibung?: string | null
+          bezeichnung?: string
+          code?: string
+          created_at?: string
+          id?: string
+          rechtsgrundlage?: Database["public"]["Enums"]["rechtsgrundlage_typ"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       vorbestellungen: {
         Row: {
           b2b_kunde_id: string
@@ -1831,6 +2105,7 @@ export type Database = {
         | "zertifikat"
         | "sonstiges"
       dokument_status: "gueltig" | "prueflauf" | "abgelaufen"
+      einwilligung_kanal: "papier" | "app" | "web" | "sms"
       esutd_status: "erfasst" | "offen"
       integration_status: "verbunden" | "sandbox" | "geplant"
       kuehlkette_ergebnis: "ok" | "warnung" | "verstoss"
@@ -1844,6 +2119,7 @@ export type Database = {
         | "beleg_pruefung"
         | "abgeschlossen"
       plantage_typ: "eigen" | "nachbarbetrieb"
+      rechtsgrundlage_typ: "einwilligung" | "vertrag" | "gesetzliche_pflicht"
       reihenblock_status:
         | "bepflanzt"
         | "erntereif"
@@ -1857,6 +2133,12 @@ export type Database = {
         | "bestaetigt"
         | "geliefert"
         | "storniert"
+      vorfall_art:
+        | "unbefugter_zugriff"
+        | "verlust"
+        | "offenlegung"
+        | "sonstiges"
+      zugriffsaktion: "lesen" | "export" | "druck" | "uebermittlung"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2006,6 +2288,7 @@ export const Constants = {
         "sonstiges",
       ],
       dokument_status: ["gueltig", "prueflauf", "abgelaufen"],
+      einwilligung_kanal: ["papier", "app", "web", "sms"],
       esutd_status: ["erfasst", "offen"],
       integration_status: ["verbunden", "sandbox", "geplant"],
       kuehlkette_ergebnis: ["ok", "warnung", "verstoss"],
@@ -2020,6 +2303,7 @@ export const Constants = {
         "abgeschlossen",
       ],
       plantage_typ: ["eigen", "nachbarbetrieb"],
+      rechtsgrundlage_typ: ["einwilligung", "vertrag", "gesetzliche_pflicht"],
       reihenblock_status: [
         "bepflanzt",
         "erntereif",
@@ -2035,6 +2319,13 @@ export const Constants = {
         "geliefert",
         "storniert",
       ],
+      vorfall_art: [
+        "unbefugter_zugriff",
+        "verlust",
+        "offenlegung",
+        "sonstiges",
+      ],
+      zugriffsaktion: ["lesen", "export", "druck", "uebermittlung"],
     },
   },
 } as const

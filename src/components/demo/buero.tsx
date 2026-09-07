@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { Check, Minus } from "lucide-react";
 import { Card, DataTable, Section, StatusPill } from "@/components/ui/kit";
 import { hasPermission, roleDefinitions, type Resource } from "@/lib/rbac";
-import { pfluecker, brigaden, integrationen } from "@/lib/domain/betrieb-data";
+import { pfluecker, brigaden } from "@/lib/domain/betrieb-data";
 
 export function RollenDemo() {
   const t = useTranslations("rollenDemo");
@@ -161,48 +161,6 @@ export function PersonalDemo() {
   );
 }
 
-export function ComplianceDemo() {
-  const t = useTranslations("complianceDemo");
-  const items = [
-    { key: "consent", tone: "success" as const },
-    { key: "retention", tone: "success" as const },
-    { key: "audit", tone: "success" as const },
-    { key: "residency", tone: "warning" as const },
-    { key: "ai", tone: "warning" as const },
-  ];
-  return (
-    <div className="space-y-6">
-      <Section title={t("cockpitTitle")} description={t("cockpitLead")}>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((item) => (
-            <Card key={item.key}>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-bold text-card-foreground">{t(`items.${item.key}.title`)}</p>
-                <StatusPill tone={item.tone}>{t(`items.${item.key}.state`)}</StatusPill>
-              </div>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">{t(`items.${item.key}.text`)}</p>
-            </Card>
-          ))}
-        </div>
-      </Section>
-
-      <Section title={t("integrationTitle")} description={t("integrationLead")}>
-        <DataTable head={[t("col.name"), t("col.system"), t("col.status"), t("col.queue")]}>
-          {integrationen.map((int) => (
-            <tr key={int.id}>
-              <td className="px-3 py-2.5 font-semibold text-foreground">{int.name}</td>
-              <td className="px-3 py-2.5 text-muted-foreground">{int.system}</td>
-              <td className="px-3 py-2.5">
-                <StatusPill tone={int.status === "verbunden" ? "success" : int.status === "sandbox" ? "warning" : "neutral"}>
-                  {t(`intStatus.${int.status}`)}
-                </StatusPill>
-              </td>
-              <td className="px-3 py-2.5 text-muted-foreground">{int.wartend}</td>
-            </tr>
-          ))}
-        </DataTable>
-      </Section>
-      <Card className="bg-muted/30 text-xs leading-5 text-muted-foreground">{t("note")}</Card>
-    </div>
-  );
-}
+// ComplianceDemo entfaellt (WMCNL-1446): das Modul "compliance" laeuft jetzt
+// ueber die datenbankgestuetzte Ansicht in src/components/db/compliance-ansicht.tsx,
+// analog zu dokumente/standort/pflueckaufgaben/reihenbloecke.

@@ -743,6 +743,242 @@ if (leitung && brigade) {
     `charge_id: ${aufgabeMitCharge?.charge_id}`,
   );
 
+  // --- 11. Compliance-Cockpit: granulares Datenschutz-Schema (WMCNL-1446) --
+  // Loest das bisherige public.consent_records ab: verarbeitungszwecke,
+  // einwilligungen, personenbezogene_zugriffe, datenschutzvorfaelle,
+  // drittweitergaben. Nur Buero-Rollen lesen/schreiben.
+
+  const { data: zweckeAnon } = await anon.from("verarbeitungszwecke").select("id");
+  check(
+    "Compliance-RLS: anon liest keine Verarbeitungszwecke",
+    (zweckeAnon?.length ?? 0) === 0,
+    `sichtbare Zeilen: ${zweckeAnon?.length}`,
+  );
+
+  const { data: einwilligungenBrigade } = await brigade.from("einwilligungen").select("id");
+  check(
+    "Compliance-RLS: Brigade liest keine Einwilligungen",
+    (einwilligungenBrigade?.length ?? 0) === 0,
+    `sichtbare Zeilen: ${einwilligungenBrigade?.length}`,
+  );
+
+  const { data: zweckeLeitung, error: zweckeLeitungFehler } = await leitung
+    .from("verarbeitungszwecke")
+    .select("id, code");
+  check(
+    "Compliance-RLS: Betriebsleitung liest Verarbeitungszwecke",
+    !zweckeLeitungFehler && (zweckeLeitung?.length ?? 0) > 0,
+    zweckeLeitungFehler?.message ?? `${zweckeLeitung?.length} Zwecke`,
+  );
+
+  const { data: testPfluecker } = await admin.from("pfluecker").select("id").limit(1).single();
+  const { data: zweckFuerTest } = await admin
+    .from("verarbeitungszwecke")
+    .select("id")
+    .eq("code", "personaleinsatz")
+    .single();
+
+  // Genau ein Betroffener wird per Check-Constraint erzwungen (kein
+  // Subjekt-Freitext mehr wie bei der abgeloesten consent_records-Tabelle).
+  // Ueber admin getestet (bypasst RLS), damit ausschliesslich der
+  // Check-Constraint geprueft wird, nicht das Rollen-Recht der Schreib-Policy.
+  const { error: keinBetroffenerFehler } = await admin.from("einwilligungen").insert({
+    zweck_id: zweckFuerTest.id,
+    textfassung: "Test ohne Betroffenen",
+    kanal: "papier",
+  });
+  check(
+    "Compliance-Schema: Einwilligung ohne Betroffenen wird abgelehnt",
+    keinBetroffenerFehler?.code === "23514",
+    keinBetroffenerFehler?.code ?? "kein Fehler",
+  );
+
+  const { data: einB2bKunde } = await admin.from("b2b_kunden").select("id").limit(1).single();
+  const { error: zweiBetroffeneFehler } = await admin.from("einwilligungen").insert({
+    betroffener_pfluecker_id: testPfluecker.id,
+    betroffener_b2b_kunde_id: einB2bKunde.id,
+    zweck_id: zweckFuerTest.id,
+    textfassung: "Test mit zwei Betroffenen",
+    kanal: "papier",
+  });
+  check(
+    "Compliance-Schema: Einwilligung mit zwei Betroffenen wird abgelehnt",
+    zweiBetroffeneFehler?.code === "23514",
+    zweiBetroffeneFehler?.code ?? "kein Fehler",
+  );
+
+  const { error: brigadeEinwilligungFehler } = await brigade.from("einwilligungen").insert({
+    betroffener_pfluecker_id: testPfluecker.id,
+    zweck_id: zweckFuerTest.id,
+    textfassung: "Von der Brigade versucht",
+    kanal: "papier",
+  });
+  check(
+    "Compliance-RLS: Brigade darf keine Einwilligung erfassen",
+    brigadeEinwilligungFehler?.code === "42501",
+    brigadeEinwilligungFehler?.code ?? "kein Fehler",
+  );
+
+  const { data: neueEinwilligung, error: einwilligungAnlegenFehler } = await leitung
+    .from("einwilligungen")
+    .insert({
+      betroffener_pfluecker_id: testPfluecker.id,
+      zweck_id: zweckFuerTest.id,
+      textfassung: "Einwilligungstext Integrationstest",
+      kanal: "papier",
+    })
+    .select("id, widerrufen_am")
+    .single();
+  check(
+    "Compliance: Betriebsleitung erfasst eine Einwilligung",
+    !einwilligungAnlegenFehler && !!neueEinwilligung && neueEinwilligung.widerrufen_am === null,
+    einwilligungAnlegenFehler?.message ?? "",
+  );
+
+  const { error: einwilligungAendernFehler } = await admin
+    .from("einwilligungen")
+    .update({ textfassung: "nachtraeglich geaendert" })
+    .eq("id", neueEinwilligung.id);
+  check(
+    "Compliance: eine erteilte Einwilligung ist unveraenderlich",
+    einwilligungAendernFehler?.code === "23514",
+    einwilligungAendernFehler?.code ?? "kein Fehler",
+  );
+
+  const { data: widerrufen, error: widerrufFehler } = await leitung
+    .from("einwilligungen")
+    .update({ widerrufen_am: new Date().toISOString(), widerruf_grund: "Testwiderruf" })
+    .eq("id", neueEinwilligung.id)
+    .select("widerrufen_am, widerruf_grund")
+    .single();
+  check(
+    "Compliance: der Widerruf ist als Update zulaessig",
+    !widerrufFehler && !!widerrufen?.widerrufen_am,
+    widerrufFehler?.message ?? "",
+  );
+
+  const { error: einwilligungLoeschenFehler } = await admin
+    .from("einwilligungen")
+    .delete()
+    .eq("id", neueEinwilligung.id);
+  check(
+    "Compliance: eine Einwilligung wird nicht geloescht, sondern widerrufen",
+    einwilligungLoeschenFehler?.code === "23514",
+    einwilligungLoeschenFehler?.code ?? "kein Fehler",
+  );
+  // Der Trigger blockt DELETE endgueltig - die Testzeile bleibt bewusst stehen,
+  // wie schon der bestehende Audit-Test (aktion "__it_test") es fuer die
+  // gleichermassen unveraenderliche audit_events-Tabelle tut.
+
+  // --- Datenschutzvorfaelle: Meldefrist automatisch, Meldung braucht Referenz
+  const { data: neuerVorfall, error: vorfallAnlegenFehler } = await leitung
+    .from("datenschutzvorfaelle")
+    .insert({
+      festgestellt_am: new Date().toISOString(),
+      art: "sonstiges",
+      beschreibung: "Integrationstest-Vorfall",
+      betroffene_anzahl: 1,
+    })
+    .select("id, festgestellt_am, meldefrist_am")
+    .single();
+  check(
+    "Compliance: Meldefrist eines Vorfalls wird automatisch gesetzt",
+    !vorfallAnlegenFehler && !!neuerVorfall?.meldefrist_am,
+    vorfallAnlegenFehler?.message ??
+      `festgestellt: ${neuerVorfall?.festgestellt_am}, meldefrist: ${neuerVorfall?.meldefrist_am}`,
+  );
+
+  const { error: meldungOhneReferenzFehler } = await leitung
+    .from("datenschutzvorfaelle")
+    .update({ gemeldet_am: new Date().toISOString() })
+    .eq("id", neuerVorfall.id);
+  check(
+    "Compliance: eine Meldung ohne Meldereferenz wird abgelehnt",
+    meldungOhneReferenzFehler?.code === "23514",
+    meldungOhneReferenzFehler?.code ?? "kein Fehler",
+  );
+
+  const { data: gemeldeterVorfall, error: meldungFehler } = await leitung
+    .from("datenschutzvorfaelle")
+    .update({ gemeldet_am: new Date().toISOString(), meldereferenz: "IT-TEST-001" })
+    .eq("id", neuerVorfall.id)
+    .select("gemeldet_am")
+    .single();
+  check(
+    "Compliance: eine Meldung mit Referenz wird angenommen",
+    !meldungFehler && !!gemeldeterVorfall?.gemeldet_am,
+    meldungFehler?.message ?? "",
+  );
+  await admin.from("datenschutzvorfaelle").delete().eq("id", neuerVorfall.id);
+
+  // --- Drittweitergaben: Benachrichtigungsfrist automatisch (14 Tage) ------
+  const { data: neueDrittweitergabe, error: drittweitergabeFehler } = await leitung
+    .from("drittweitergaben")
+    .insert({
+      betroffener_pfluecker_id: testPfluecker.id,
+      empfaenger: "Integrationstest-Empfaenger",
+      weitergegeben_am: "2026-01-01T00:00:00+06:00",
+    })
+    .select("weitergegeben_am, benachrichtigungsfrist_am")
+    .single();
+  const erwarteteFrist = new Date("2026-01-15T00:00:00+06:00").getTime();
+  check(
+    "Compliance: Benachrichtigungsfrist einer Drittweitergabe wird auf +14 Tage gesetzt",
+    !drittweitergabeFehler &&
+      new Date(neueDrittweitergabe?.benachrichtigungsfrist_am ?? 0).getTime() === erwarteteFrist,
+    drittweitergabeFehler?.message ?? `frist: ${neueDrittweitergabe?.benachrichtigungsfrist_am}`,
+  );
+  await admin
+    .from("drittweitergaben")
+    .delete()
+    .eq("betroffener_pfluecker_id", testPfluecker.id)
+    .eq("empfaenger", "Integrationstest-Empfaenger");
+
+  // --- personenbezogene_zugriffe: append-only Zugriffsprotokoll -----------
+  const { data: zugriffAnon } = await anon.from("personenbezogene_zugriffe").select("id");
+  check(
+    "Compliance-RLS: anon liest keine personenbezogenen Zugriffe",
+    (zugriffAnon?.length ?? 0) === 0,
+    `sichtbare Zeilen: ${zugriffAnon?.length}`,
+  );
+
+  const { data: neuerZugriff, error: zugriffAnlegenFehler } = await leitung
+    .from("personenbezogene_zugriffe")
+    .insert({
+      betroffener_pfluecker_id: testPfluecker.id,
+      zweck_id: zweckFuerTest.id,
+      aktion: "export",
+      entitaet: "lohn_abrechnungen",
+      client_info: "Integrationstest",
+    })
+    .select("id")
+    .single();
+  check(
+    "Compliance: ein Zugriff auf personenbezogene Daten wird protokolliert",
+    !zugriffAnlegenFehler && !!neuerZugriff,
+    zugriffAnlegenFehler?.message ?? "",
+  );
+
+  const { error: zugriffAendernFehler } = await admin
+    .from("personenbezogene_zugriffe")
+    .update({ aktion: "lesen" })
+    .eq("id", neuerZugriff.id);
+  check(
+    "Compliance: das Zugriffsprotokoll ist append-only (kein Update)",
+    zugriffAendernFehler?.code === "P0001",
+    zugriffAendernFehler?.code ?? "kein Fehler",
+  );
+
+  const { error: zugriffLoeschenFehler } = await admin
+    .from("personenbezogene_zugriffe")
+    .delete()
+    .eq("id", neuerZugriff.id);
+  check(
+    "Compliance: das Zugriffsprotokoll ist append-only (kein Delete)",
+    zugriffLoeschenFehler?.code === "P0001",
+    zugriffLoeschenFehler?.code ?? "kein Fehler",
+  );
+
   // Cleanup: Testaufgabe samt Kette entfernen, Ursprungsstatus wiederherstellen.
   await admin.from("steigen").delete().eq("pflueckaufgabe_id", neueAufgabe.id);
   await admin.from("kuehlketten_messungen").delete().eq("charge_id", autoCharge.id);

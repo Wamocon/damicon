@@ -673,8 +673,8 @@
     },
     "compliance": {
       "title": "Uyum paneli",
-      "description": "Onaylar, saklama süreleri, denetim kaydı ve veri yerleşimi genel görünümü - 2026 Kazakistan çerçevesinin hukuki atıflarıyla.",
-      "summary": "Onaylar, saklama, denetim kaydı ve veri yerleşimi tek yerde, Kazakistan hukukuna göre.",
+      "description": "Beş ayrıntılı tablodan işleme amaçları, rızalar, veri ihlalleri ve üçüncü taraf aktarımları - okuma ve yazma yalnızca ofis rollerine ait.",
+      "summary": "Ayrıntılı veri koruma şeması: işleme amaçları, rızalar, ihlaller ve aktarımlar tek yerde.",
       "todo": "Vergi Kanunu, Yapay Zekâ Kanunu, Dijital Kanun atıfları, veri türü bazında saklama kuralları, barındırma yeri incelemesi."
     },
     "integrationen": {
@@ -778,7 +778,12 @@
       "dokument": "\"{wert}\" dokümanı kaydedildi.",
       "steige": "{wert} kasası kaydedildi.",
       "arbeitszeit": "{wert} dakika çalışma süresi bildirildi.",
-      "kuehlmessung": "Ölçüm kaydedildi - toplamadan {wert} dakika sonra."
+      "kuehlmessung": "Ölçüm kaydedildi - toplamadan {wert} dakika sonra.",
+      "einwilligungErfasst": "Rıza kaydedildi.",
+      "einwilligungWiderrufen": "Rıza iptal edildi.",
+      "vorfallErfasst": "Veri ihlali kaydedildi.",
+      "vorfallGemeldet": "İhlal bildirildi olarak işaretlendi.",
+      "drittweitergabeBenachrichtigt": "Bilgilendirme kaydedildi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -917,50 +922,131 @@
       "datum": "İşlem tarihi"
     }
   },
-  "complianceDemo": {
-    "cockpitTitle": "Uyum paneli",
-    "cockpitLead": "Onaylar, saklama süreleri, denetim kaydı ve veri yerleşimi - 2026 Kazakistan hukuk çerçevesine göre.",
-    "items": {
-      "consent": {
-        "title": "Onaylar",
-        "state": "etkin",
-        "text": "Her işleme için amaca bağlı onay, saklama süresi ve atanmış sorumluyla."
+  "complianceAnsicht": {
+    "cockpitTitle": "Uyumluluk kokpiti",
+    "cockpitLead": "Veritabanındaki işleme amaçları, rızalar, veri ihlalleri ve üçüncü taraflara aktarımlar - 2026 Kazakistan hukuki çerçevesine göre.",
+    "stat": {
+      "einwilligungenAktiv": "Etkin rızalar",
+      "einwilligungenWiderrufen": "İptal edilen rızalar",
+      "vorfaelleUeberfaellig": "Süresi geçen bildirim süreleri",
+      "vorfaelleUeberfaelligHinweis": "Bildirim süresi: tespitten sonra bir iş günü.",
+      "drittweitergabenUeberfaellig": "Süresi gelen bilgilendirmeler",
+      "drittweitergabenUeberfaelligHinweis": "Süre: aktarımdan sonra 14 gün."
+    },
+    "col": {
+      "betroffener": "İlgili kişi",
+      "zweck": "Amaç",
+      "kanal": "Kanal",
+      "erteiltAm": "Verildiği tarih",
+      "status": "Durum",
+      "festgestelltAm": "Tespit tarihi",
+      "art": "Tür",
+      "beschreibung": "Açıklama",
+      "meldefristAm": "Bildirim süresi",
+      "empfaenger": "Alıcı",
+      "weitergegebenAm": "Aktarıldığı tarih",
+      "benachrichtigungsfristAm": "Bilgilendirme süresi",
+      "bezeichnung": "Amaç",
+      "rechtsgrundlage": "Hukuki dayanak",
+      "aufbewahrung": "Saklama süresi",
+      "automatisiert": "Otomatik karar"
+    },
+    "status": {
+      "aktiv": "geçerli",
+      "widerrufen": "iptal edildi",
+      "offen": "açık",
+      "ueberfaellig": "süresi dolmuş",
+      "gemeldet": "bildirildi",
+      "benachrichtigt": "bilgilendirildi"
+    },
+    "kanal": {
+      "papier": "Kağıt",
+      "app": "Uygulama",
+      "web": "Web",
+      "sms": "SMS"
+    },
+    "sprache": {
+      "de": "Almanca",
+      "en": "İngilizce",
+      "ru": "Rusça",
+      "kk": "Kazakça",
+      "tr": "Türkçe"
+    },
+    "vorfallArt": {
+      "unbefugter_zugriff": "Yetkisiz erişim",
+      "verlust": "Kayıp",
+      "offenlegung": "İfşa",
+      "sonstiges": "Diğer"
+    },
+    "rechtsgrundlage": {
+      "einwilligung": "Rıza",
+      "vertrag": "Sözleşme",
+      "gesetzliche_pflicht": "Yasal yükümlülük"
+    },
+    "einwilligungen": {
+      "titel": "Rızalar",
+      "lead": "Kim neye rıza gösterdi - tarih, kanal ve iptal durumuyla."
+    },
+    "vorfaelle": {
+      "titel": "Veri ihlalleri",
+      "lead": "Bildirim süresi: tespitten sonra bir iş günü."
+    },
+    "drittweitergaben": {
+      "titel": "Üçüncü taraf aktarımları",
+      "lead": "Üçüncü taraflara aktarım, 14 günlük bilgilendirme süresiyle."
+    },
+    "zwecke": {
+      "titel": "İşleme amaçları",
+      "lead": "Hukuki dayanak ve saklama süresiyle amaç sicili."
+    },
+    "monate": "{anzahl, plural, other {# ay}}",
+    "ja": "evet",
+    "nein": "hayır",
+    "formular": {
+      "einwilligung": {
+        "titel": "Rıza kaydet",
+        "lead": "Tam olarak bir ilgili kişi - toplayıcı, profil veya B2B müşterisi.",
+        "keineAuswahl": "-",
+        "feld": {
+          "pfluecker": "Toplayıcı",
+          "profil": "Profil (girişi olan personel veya müşteri)",
+          "b2bKunde": "B2B müşterisi",
+          "zweck": "İşleme amacı",
+          "kanal": "Alınma kanalı",
+          "sprache": "Metin dili",
+          "textfassung": "Metin sürümü",
+          "nachweis": "Kanıt referansı"
+        },
+        "hinweisGenauEiner": "Üç ilgili kişiden tam olarak birini seçin - toplayıcı, profil veya B2B müşterisi.",
+        "textfassungPlatzhalter": "Rıza metni, sürüm 2026-1",
+        "nachweisPlatzhalter": "Personel klasörü 2026/03, sayfa 17",
+        "knopf": "Rıza kaydet"
       },
-      "retention": {
-        "title": "Saklama",
-        "state": "etkin",
-        "text": "Veri türü bazında saklama süreleri, ardından otomatik silme veya anonimleştirme."
+      "widerruf": {
+        "platzhalter": "İptal nedeni",
+        "knopf": "İptal et"
       },
-      "audit": {
-        "title": "Denetim kaydı",
-        "state": "etkin",
-        "text": "Güvenlik açısından önemli her işlem kaydedilir - değiştirilemez ve kaynak bazında aranabilir."
+      "vorfall": {
+        "titel": "Veri ihlali kaydet",
+        "lead": "Bir iş günlük bildirim süresini veritabanı otomatik olarak belirler.",
+        "feld": {
+          "festgestellt": "Tespit tarihi",
+          "art": "Tür",
+          "betroffeneAnzahl": "Etkilenen kişi sayısı",
+          "beschreibung": "Açıklama"
+        },
+        "beschreibungPlatzhalter": "Ne olduğunu kısa ve öz biçimde yazın.",
+        "knopf": "İhlali kaydet"
       },
-      "residency": {
-        "title": "Veri yerleşimi",
-        "state": "açık",
-        "text": "255-VIII sayılı Dijital Kanun, belirli veri türlerinin Kazakistan dışında saklanmasını sınırlar. Barındırma yeri incelenmelidir."
+      "vorfallMelden": {
+        "platzhalter": "Bildirim referansı",
+        "knopf": "Bildir"
       },
-      "ai": {
-        "title": "Yapay zekâ şeffaflığı",
-        "state": "açık",
-        "text": "230-VIII sayılı Kanun: yapay zekâ sohbeti için görünür şeffaflık bildirimi ve onay, duygu analizi yasak."
+      "drittweitergabe": {
+        "knopf": "Bilgilendirildi olarak işaretle"
       }
     },
-    "integrationTitle": "Devlet entegrasyonları",
-    "integrationLead": "Her hedef sistem için durum bildirimli bir bağlayıcı. Muhasebe, ülkede yerleşik bir çözümde kalır.",
-    "col": {
-      "name": "Entegrasyon",
-      "system": "Hedef sistem",
-      "status": "Durum",
-      "queue": "Kuyruk"
-    },
-    "intStatus": {
-      "verbunden": "bağlı",
-      "sandbox": "test ortamı",
-      "geplant": "planlandı"
-    },
-    "note": "Para cezaları 2.000 MRP'ye kadar çıkar - yaklaşık 16.200 avro. Bu işletmenin yıllık cirosuna göre varlığını tehdit eden bir büyüklük."
+    "note": "Okuma ve yazma yalnızca ofis rollerine (yönetici, işletme yönetimi, muhasebe) aittir - ilgili kişilerin kendi verilerine erişim hakkı bu adımın bilinçli olarak dışında tutulmuştur. Önceki kokpitten iki konu açık kalıyor: veri yerelliği (255-VIII sayılı Dijital Kod) ve yapay zeka şeffaflığı (230-VIII sayılı Kanun)."
   },
   "kpiHerkunft": {
     "berechenbar": "bugün ölçülebilir",

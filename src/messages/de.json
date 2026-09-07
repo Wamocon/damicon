@@ -494,8 +494,8 @@
     },
     "compliance": {
       "title": "Compliance-Cockpit",
-      "description": "Übersicht über Einwilligungen, Aufbewahrungsfristen, Audit-Log und Datenresidenz - mit den Rechtszitaten des kasachstanischen Rahmens von 2026.",
-      "summary": "Einwilligungen, Aufbewahrung, Audit-Log und Datenresidenz an einem Ort, nach kasachstanischem Recht.",
+      "description": "Verarbeitungszwecke, Einwilligungen, Datenschutzvorfälle und Drittweitergaben aus fünf granularen Tabellen - Lesen und Schreiben ausschließlich für die Büro-Rollen.",
+      "summary": "Granulares Datenschutz-Schema: Verarbeitungszwecke, Einwilligungen, Vorfälle und Drittweitergaben an einem Ort.",
       "todo": "Rechtszitate Steuergesetzbuch, KI-Gesetz, Digitalkodex, Retention-Regeln je Datenprodukt, Hosting-Standort-Prüfung."
     },
     "integrationen": {
@@ -619,7 +619,12 @@
       "dokument": "Dokument \"{wert}\" aufgenommen.",
       "steige": "Steige {wert} erfasst.",
       "arbeitszeit": "{wert} Minuten Arbeitszeit gemeldet.",
-      "kuehlmessung": "Messung erfasst - {wert} Minuten nach dem Pflücken."
+      "kuehlmessung": "Messung erfasst - {wert} Minuten nach dem Pflücken.",
+      "einwilligungErfasst": "Einwilligung erfasst.",
+      "einwilligungWiderrufen": "Einwilligung widerrufen.",
+      "vorfallErfasst": "Datenschutzvorfall erfasst.",
+      "vorfallGemeldet": "Vorfall als gemeldet markiert.",
+      "drittweitergabeBenachrichtigt": "Benachrichtigung erfasst."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -856,50 +861,131 @@
     },
     "note": "Jedes Dokument ist mit Reihenblock oder Charge verknüpft. Der Rückstandsnachweis je Charge steht damit auf Knopfdruck für Handel und Behörden bereit."
   },
-  "complianceDemo": {
+  "complianceAnsicht": {
     "cockpitTitle": "Compliance-Cockpit",
-    "cockpitLead": "Einwilligungen, Aufbewahrungsfristen, Audit-Log und Datenresidenz - nach dem kasachstanischen Rechtsrahmen von 2026.",
-    "items": {
-      "consent": {
-        "title": "Einwilligungen",
-        "state": "aktiv",
-        "text": "Zweckgebundene Einwilligung je Verarbeitung, mit Speicherfrist und benanntem Verantwortlichen."
+    "cockpitLead": "Verarbeitungszwecke, Einwilligungen, Datenschutzvorfälle und Drittweitergaben aus der Datenbank - nach dem kasachstanischen Rechtsrahmen von 2026.",
+    "stat": {
+      "einwilligungenAktiv": "Aktive Einwilligungen",
+      "einwilligungenWiderrufen": "Widerrufene Einwilligungen",
+      "vorfaelleUeberfaellig": "Überfällige Meldefristen",
+      "vorfaelleUeberfaelligHinweis": "Meldefrist: ein Arbeitstag nach Feststellung.",
+      "drittweitergabenUeberfaellig": "Fällige Benachrichtigungen",
+      "drittweitergabenUeberfaelligHinweis": "Frist: 14 Tage nach Weitergabe."
+    },
+    "col": {
+      "betroffener": "Betroffener",
+      "zweck": "Zweck",
+      "kanal": "Kanal",
+      "erteiltAm": "Erteilt am",
+      "status": "Status",
+      "festgestelltAm": "Festgestellt am",
+      "art": "Art",
+      "beschreibung": "Beschreibung",
+      "meldefristAm": "Meldefrist",
+      "empfaenger": "Empfänger",
+      "weitergegebenAm": "Weitergegeben am",
+      "benachrichtigungsfristAm": "Frist Benachrichtigung",
+      "bezeichnung": "Zweck",
+      "rechtsgrundlage": "Rechtsgrundlage",
+      "aufbewahrung": "Aufbewahrung",
+      "automatisiert": "Automatisierte Entscheidung"
+    },
+    "status": {
+      "aktiv": "aktiv",
+      "widerrufen": "widerrufen",
+      "offen": "offen",
+      "ueberfaellig": "überfällig",
+      "gemeldet": "gemeldet",
+      "benachrichtigt": "benachrichtigt"
+    },
+    "kanal": {
+      "papier": "Papier",
+      "app": "App",
+      "web": "Web",
+      "sms": "SMS"
+    },
+    "sprache": {
+      "de": "Deutsch",
+      "en": "Englisch",
+      "ru": "Russisch",
+      "kk": "Kasachisch",
+      "tr": "Türkisch"
+    },
+    "vorfallArt": {
+      "unbefugter_zugriff": "Unbefugter Zugriff",
+      "verlust": "Verlust",
+      "offenlegung": "Offenlegung",
+      "sonstiges": "Sonstiges"
+    },
+    "rechtsgrundlage": {
+      "einwilligung": "Einwilligung",
+      "vertrag": "Vertrag",
+      "gesetzliche_pflicht": "Gesetzliche Pflicht"
+    },
+    "einwilligungen": {
+      "titel": "Einwilligungen",
+      "lead": "Wer hat wozu zugestimmt - mit Zeitpunkt, Kanal und Widerrufsstatus."
+    },
+    "vorfaelle": {
+      "titel": "Datenschutzvorfälle",
+      "lead": "Meldefrist: ein Arbeitstag nach Feststellung."
+    },
+    "drittweitergaben": {
+      "titel": "Drittweitergaben",
+      "lead": "Weitergabe an Dritte mit Benachrichtigungsfrist von 14 Tagen."
+    },
+    "zwecke": {
+      "titel": "Verarbeitungszwecke",
+      "lead": "Zweckverzeichnis mit Rechtsgrundlage und Aufbewahrungsfrist."
+    },
+    "monate": "{anzahl, plural, one {# Monat} other {# Monate}}",
+    "ja": "ja",
+    "nein": "nein",
+    "formular": {
+      "einwilligung": {
+        "titel": "Einwilligung erfassen",
+        "lead": "Genau ein Betroffener - Pflücker, Profil oder B2B-Kunde.",
+        "keineAuswahl": "-",
+        "feld": {
+          "pfluecker": "Pflücker",
+          "profil": "Profil (Mitarbeiter oder Kunde mit Login)",
+          "b2bKunde": "B2B-Kunde",
+          "zweck": "Verarbeitungszweck",
+          "kanal": "Erteilungsweg",
+          "sprache": "Sprache der Textfassung",
+          "textfassung": "Textfassung",
+          "nachweis": "Nachweis-Referenz"
+        },
+        "hinweisGenauEiner": "Genau einen der drei Betroffenen auswählen - Pflücker, Profil oder B2B-Kunde.",
+        "textfassungPlatzhalter": "Einwilligungstext, Fassung 2026-1",
+        "nachweisPlatzhalter": "Ordner Personal 2026/03, Blatt 17",
+        "knopf": "Einwilligung erfassen"
       },
-      "retention": {
-        "title": "Aufbewahrung",
-        "state": "aktiv",
-        "text": "Aufbewahrungsfristen je Datenprodukt, danach automatische Löschung oder Anonymisierung."
+      "widerruf": {
+        "platzhalter": "Grund des Widerrufs",
+        "knopf": "Widerrufen"
       },
-      "audit": {
-        "title": "Audit-Log",
-        "state": "aktiv",
-        "text": "Jede sicherheitsrelevante Aktion wird protokolliert - unveränderlich und je Ressource durchsuchbar."
+      "vorfall": {
+        "titel": "Datenschutzvorfall erfassen",
+        "lead": "Die Meldefrist von einem Arbeitstag setzt die Datenbank automatisch.",
+        "feld": {
+          "festgestellt": "Festgestellt am",
+          "art": "Art",
+          "betroffeneAnzahl": "Betroffene Anzahl",
+          "beschreibung": "Beschreibung"
+        },
+        "beschreibungPlatzhalter": "Kurz und sachlich, was passiert ist.",
+        "knopf": "Vorfall erfassen"
       },
-      "residency": {
-        "title": "Datenresidenz",
-        "state": "offen",
-        "text": "Digitalkodex Nr. 255-VIII schränkt die Speicherung bestimmter Datenprodukte außerhalb Kasachstans ein. Hosting-Standort ist zu prüfen."
+      "vorfallMelden": {
+        "platzhalter": "Meldereferenz",
+        "knopf": "Melden"
       },
-      "ai": {
-        "title": "KI-Transparenz",
-        "state": "offen",
-        "text": "Gesetz Nr. 230-VIII: sichtbarer Transparenzhinweis und Einwilligung für den KI-Chat, Emotionsanalyse untersagt."
+      "drittweitergabe": {
+        "knopf": "Als benachrichtigt markieren"
       }
     },
-    "integrationTitle": "Staatliche Integrationen",
-    "integrationLead": "Ein Konnektor je Zielsystem mit Statusrückmeldung. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.",
-    "col": {
-      "name": "Integration",
-      "system": "Zielsystem",
-      "status": "Status",
-      "queue": "Warteschlange"
-    },
-    "intStatus": {
-      "verbunden": "verbunden",
-      "sandbox": "Sandbox",
-      "geplant": "geplant"
-    },
-    "note": "Bußgelder reichen bis 2.000 MRP - rund 16.200 Euro. Bezogen auf den Jahresumsatz dieses Betriebs eine existenzrelevante Größe."
+    "note": "Lesen und Schreiben bleibt den Büro-Rollen vorbehalten (admin, Betriebsleitung, Buchhaltung) - ein Selbstauskunftsrecht der Betroffenen ist bewusst nicht Teil dieses Schritts. Offen bleiben zwei weitere Themen aus dem bisherigen Cockpit: Datenresidenz (Digitalkodex Nr. 255-VIII) und KI-Transparenz (Gesetz Nr. 230-VIII)."
   },
   "sortenkatalogDemo": {
     "catalogTitle": "Sorten und Kontingente",
