@@ -485,7 +485,7 @@
       "title": "Qualitätsfaktor-Lohn",
       "description": "Kombimodell aus Grundvergütung, Mengenkomponente und Qualitätsfaktor. Reiner Stücklohn drückt auf Menge, quetscht Beeren und ist bei der Himbeere wertvernichtend.",
       "summary": "Grundlohn plus Menge plus Qualitätsfaktor. Der Qualitätsfaktor ist keine Option, sondern Voraussetzung.",
-      "todo": "Lohnformel-Editor, Qualitätsfaktor aus der Belegprüfung, Abrechnungslauf je Periode, Vorschusskonto."
+      "todo": "Mindestlohn-Verankerung, Lohnsatz-Editor mit UI-gestützter Korridor-Vorschau, PDF-Lohnzettel je Pflücker, Vorschusskonto."
     },
     "dokumente": {
       "title": "Dokumentenverwaltung",
@@ -634,7 +634,10 @@
       "drittweitergabeBenachrichtigt": "Benachrichtigung erfasst.",
       "reklamation": "Reklamation {wert} gemeldet.",
       "reklamationStatus": "Reklamation {wert} aktualisiert.",
-      "reklamationNachricht": "Nachricht hinzugefügt."
+      "reklamationNachricht": "Nachricht hinzugefügt.",
+      "lohnSatz": "Lohnsatz gültig ab {wert} angelegt.",
+      "lohnBerechnet": "{wert} Abrechnung(en) berechnet - bereits freigegebene oder ausgezahlte Zeilen bleiben unverändert.",
+      "lohnStatus": "Abrechnung von {wert} aktualisiert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1244,5 +1247,70 @@
       }
     },
     "note": "Jede Reklamation ist über die Charge mit der Nachweiskette verknüpft - Reihenblock, Pflücker und Kühlkurve lassen sich von dort zurückverfolgen."
+  },
+  "lohnStatus": {
+    "entwurf": "Entwurf",
+    "freigegeben": "Freigegeben",
+    "ausgezahlt": "Ausgezahlt"
+  },
+  "lohnAnsicht": {
+    "satzTitel": "Lohnsatz",
+    "satzLead": "Grundlage der Berechnung: Stundenlohn, kg-Satz und der Korridor des Qualitätsfaktors. Wer danach bezahlt wird, darf die Grundlage sehen.",
+    "keinSatz": "Noch kein Lohnsatz hinterlegt - ohne ihn lässt sich keine Periode berechnen.",
+    "wirkungslos": "Der Qualitätsfaktor bewegt sich in den angezeigten Abrechnungen nicht von 1,00 weg - er hat hier aktuell keine erkennbare Lohnwirkung. Das kann an fehlenden Ausschusswerten liegen, nicht zwingend an der Formel.",
+    "stat": {
+      "stundenlohn": "Stundenlohn",
+      "kgSatz": "kg-Satz",
+      "ziel": "Ziel-Ausschussquote",
+      "zielHinweis": "Bei dieser Quote ergibt sich Faktor 1,00",
+      "korridor": "Faktor-Korridor",
+      "gueltigAb": "gültig ab"
+    },
+    "abrechnungenTitel": "Abrechnungen",
+    "abrechnungenLead": "Eine Zeile je Pflücker und Periode. Grundlohn und Mengenkomponente einzeln ausgewiesen, damit die Summe nachrechenbar bleibt.",
+    "keineAbrechnungen": "Noch keine Abrechnung berechnet.",
+    "col": {
+      "pfluecker": "Pflücker",
+      "periode": "Periode",
+      "stunden": "Std.",
+      "menge": "Menge",
+      "ausschussquote": "Ausschuss",
+      "faktor": "Faktor",
+      "grundlohn": "Grundlohn",
+      "mengenKomponente": "Menge (₸)",
+      "gesamt": "Gesamt",
+      "status": "Status",
+      "aktion": "Aktion",
+      "aufgabe": "Aufgabe",
+      "ausschussAnteilig": "Ausschuss (anteilig)",
+      "betrag": "Betrag"
+    },
+    "freigebenKnopf": "Freigeben",
+    "auszahlenKnopf": "Als ausgezahlt markieren",
+    "positionenTitel": "Positionen je Pflückaufgabe",
+    "positionenLead": "Wie sich die Mengenkomponente je Aufgabe zusammensetzt - Grundlage der Umlage aus dem Ausschuss der Aufgabe.",
+    "keinePositionen": "Noch keine Position berechnet.",
+    "note": "Ausschuss liegt nur je Pflückaufgabe vor, nicht je Steige oder Person - der Anteil je Pflücker ist deshalb eine Umlage nach kg-Anteil, kein direkt gemessener Einzelwert. Der hier berechnete Qualitätsfaktor ist ein eigener, objektiver Lohnfaktor aus der Ausschussquote und ersetzt nicht den manuell von der Betriebsleitung gepflegten Qualitätsfaktor der Pflückaufgabe selbst - beide beantworten unterschiedliche Fragen.",
+    "formular": {
+      "satz": {
+        "titel": "Neuen Lohnsatz anlegen",
+        "lead": "Ein bestehender, noch offener Satz wird automatisch zum neuen Gültigkeitsbeginn geschlossen.",
+        "gueltigAb": "Gültig ab",
+        "stundenlohn": "Stundenlohn in ₸",
+        "kgSatz": "kg-Satz in ₸",
+        "ziel": "Ziel-Ausschussquote in %",
+        "min": "Faktor minimal",
+        "max": "Faktor maximal",
+        "notiz": "Notiz (optional)",
+        "knopf": "Satz anlegen"
+      },
+      "berechnen": {
+        "titel": "Periode berechnen",
+        "lead": "Rechnet Grundlohn, Mengenkomponente und Qualitätsfaktor je Pflücker für den gewählten Zeitraum. Bereits freigegebene oder ausgezahlte Abrechnungen bleiben unverändert.",
+        "periodeStart": "Periode von",
+        "periodeEnde": "Periode bis",
+        "knopf": "Periode berechnen"
+      }
+    }
   }
 }
