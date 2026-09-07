@@ -65,7 +65,7 @@ export async function dokumentAnlegen(
       .upload(storagePfad, datei, { contentType: datei.type, upsert: false });
 
     if (uploadFehler) {
-      console.error("[malina] Upload fehlgeschlagen:", uploadFehler.message);
+      console.error("[damicon] Upload fehlgeschlagen:", uploadFehler.message);
       return fehler("fehler.upload");
     }
   }

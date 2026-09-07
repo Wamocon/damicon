@@ -1,5 +1,5 @@
 -- =============================================================================
--- Malina - Meilenstein B: keine Pflueckaufgabe auf gesperrtem Reihenblock
+-- Damicon - Meilenstein B: keine Pflueckaufgabe auf gesperrtem Reihenblock
 -- =============================================================================
 -- "Der Pflueckplan zeigt einen wartezeitgesperrten Block schlicht nicht an."
 -- Das darf keine reine Anzeigeregel sein: die Datenbank verweigert das Anlegen

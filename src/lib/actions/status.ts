@@ -23,7 +23,7 @@ export function fehler(meldung: string, wert?: string): AktionsStatus {
 // Datenbankfehler auf sprechende Schluessel abbilden. Der Rohtext bleibt im
 // Server-Log; die Oberflaeche zeigt eine uebersetzte Meldung.
 export function dbFehler(error: PostgrestError | { code?: string; message: string }): AktionsStatus {
-  console.error("[malina] Schreibvorgang fehlgeschlagen:", error.message);
+  console.error("[damicon] Schreibvorgang fehlgeschlagen:", error.message);
 
   switch (error.code) {
     case "42501":
@@ -47,6 +47,6 @@ export function zugriffsFehler(error: unknown): AktionsStatus {
   const nachricht = error instanceof Error ? error.message : String(error);
   if (nachricht === "nicht-angemeldet") return fehler("fehler.angemeldet");
   if (nachricht === "keine-berechtigung") return fehler("fehler.berechtigung");
-  console.error("[malina] Aktion fehlgeschlagen:", nachricht);
+  console.error("[damicon] Aktion fehlgeschlagen:", nachricht);
   return fehler("fehler.unbekannt");
 }

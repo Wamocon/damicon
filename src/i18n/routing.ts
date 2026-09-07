@@ -1,6 +1,6 @@
 import { defineRouting } from "next-intl/routing";
 
-// Sprachen von Malina. Analyse Kapitel 7 gibt de/tr/kk/ru vor und laesst
+// Sprachen von Damicon. Analyse Kapitel 7 gibt de/tr/kk/ru vor und laesst
 // Englisch (en) bewusst weg. Englisch wurde auf ausdrueckliche Anweisung wieder
 // aufgenommen - das deckt sich mit dem Pitch-Dossier, das Dokumente in Russisch
 // UND Englisch empfiehlt. Kasachisch (kk) bleibt neu gegenueber 1Cati.

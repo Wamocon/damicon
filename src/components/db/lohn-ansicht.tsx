@@ -35,7 +35,7 @@ export async function LohnAnsicht() {
 
   // Derselbe Befund wie im Vorbild (D-H: Warnung, wenn die Mindestlohn-
   // Anhebung jede Zeile trifft und der Faktor damit folgenlos bleibt) - hier
-  // uebersetzt auf malinas Formel: bewegt sich der Faktor ueber alle
+  // uebersetzt auf Damicons Formel: bewegt sich der Faktor ueber alle
   // angezeigten Abrechnungen exakt auf 1.00, hat er in diesem Zeitraum keine
   // erkennbare Lohnwirkung. Das ist ein Datenbefund (z. B. noch kein erfasster
   // Ausschuss), kein Rechenfehler - das Dashboard sagt es trotzdem offen.

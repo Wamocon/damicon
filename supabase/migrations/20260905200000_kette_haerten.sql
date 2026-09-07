@@ -1,5 +1,5 @@
 -- =============================================================================
--- Malina - Abnahmepruefung von Meilenstein C: 19 bestaetigte Befunde
+-- Damicon - Abnahmepruefung von Meilenstein C: 19 bestaetigte Befunde
 -- =============================================================================
 -- Eine adversarische Pruefung vor dem Kundentermin hat 19 Befunde bestaetigt,
 -- vier davon kritisch. Diese Migration schliesst die, die sich als Regel in

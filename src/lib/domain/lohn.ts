@@ -1,6 +1,6 @@
 // Lohnabrechnung mit Qualitaetsfaktor (WMCNL-1444). [NEU-BAUEN] - Idee aus
 // dem Schwesterprojekt Digitalisierung-Himbeerenbetrieb (public.payroll_rates
-// / calculate_payroll() / quality_factor()), auf malinas Datenmodell
+// / calculate_payroll() / quality_factor()), auf Damicons Datenmodell
 // uebersetzt: Ausschuss liegt hier nur je Pflueckaufgabe vor (Brigade-Ebene),
 // nicht je Steige oder Person - die Berechnung legt ihn deshalb ueber den
 // kg-Anteil der Steigen auf die beteiligten Pfluecker um (siehe

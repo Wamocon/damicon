@@ -1,10 +1,10 @@
 // =============================================================================
-// Malina - Demo-Benutzer anlegen (Meilenstein B)
+// Damicon - Demo-Benutzer anlegen (Meilenstein B)
 // =============================================================================
 // Ausfuehren:  npm run db:seed-auth
 //              (bzw. node --env-file=.env.local supabase/seed-auth.mjs)
 //
-// Legt je Malina-Rolle genau einen Auth-Benutzer an. Das Profil entsteht ueber
+// Legt je Damicon-Rolle genau einen Auth-Benutzer an. Das Profil entsteht ueber
 // den Trigger public.handle_new_auth_user() aus der Migration
 // 20260905120000_auth_und_schreibrechte.sql - Rolle und Name kommen aus den
 // user_metadata.
@@ -27,19 +27,19 @@ if (!url || !serviceKey) {
 
 const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
 
-export const demoPasswort = "MalinaDemo2026!";
+export const demoPasswort = "DamiconDemo2026!";
 
 const demoBenutzer = [
-  { email: "admin@malina.demo", role: "admin", full_name: "Aigerim Serikbaj" },
-  { email: "leitung@malina.demo", role: "betriebsleitung", full_name: "Daniyar Omarov" },
-  { email: "buchhaltung@malina.demo", role: "buchhaltung", full_name: "Saltanat Nurlan" },
-  { email: "brigade@malina.demo", role: "brigade", full_name: "Ruslan Beisenov" },
+  { email: "admin@damicon.demo", role: "admin", full_name: "Aigerim Serikbaj" },
+  { email: "leitung@damicon.demo", role: "betriebsleitung", full_name: "Daniyar Omarov" },
+  { email: "buchhaltung@damicon.demo", role: "buchhaltung", full_name: "Saltanat Nurlan" },
+  { email: "brigade@damicon.demo", role: "brigade", full_name: "Ruslan Beisenov" },
   // Rolle picker (Anforderung 7.1, neu): sieht ausschliesslich die eigene
   // Leistung. Der Name ist bewusst der des verknuepften Pfluecker-Stammsatzes
   // (siehe unten), nicht frei erfunden - beides muss zusammenpassen.
-  { email: "pfluecker@malina.demo", role: "picker", full_name: "D. Sarsenbaj" },
-  { email: "erzeuger@malina.demo", role: "erzeuger", full_name: "Rashid Baitulin" },
-  { email: "kunde@malina.demo", role: "kunde", full_name: "Almaty Fresh Market" },
+  { email: "pfluecker@damicon.demo", role: "picker", full_name: "D. Sarsenbaj" },
+  { email: "erzeuger@damicon.demo", role: "erzeuger", full_name: "Rashid Baitulin" },
+  { email: "kunde@damicon.demo", role: "kunde", full_name: "Almaty Fresh Market" },
 ];
 
 // Nach `supabase db reset` startet der Auth-Dienst neu und bekommt eine neue
@@ -131,11 +131,11 @@ async function main() {
     await admin
       .from("profiles")
       .update({ brigade_id: brigade.id })
-      .eq("email", "brigade@malina.demo");
+      .eq("email", "brigade@damicon.demo");
   }
 
   // Die Kunde-Rolle bekommt eine echte B2B-Kunde-Zuordnung (WMCNL-1455) -
-  // ohne sie sieht "kunde@malina.demo" keine einzige Reklamation, weil RLS
+  // ohne sie sieht "kunde@damicon.demo" keine einzige Reklamation, weil RLS
   // ausschliesslich ueber profiles.b2b_kunde_id filtert. Ueber den
   // service_role-Schluessel gesetzt, weil eine Anmeldung sich diese
   // Zuordnung nicht selbst geben darf (siehe trg_profil_b2b_kunde).
@@ -149,11 +149,11 @@ async function main() {
     await admin
       .from("profiles")
       .update({ b2b_kunde_id: b2bKunde.id })
-      .eq("email", "kunde@malina.demo");
+      .eq("email", "kunde@damicon.demo");
   }
 
   // Die picker-Rolle bekommt eine echte Pfluecker-Zuordnung (Anforderung
-  // 7.1) - ohne sie sieht "pfluecker@malina.demo" keine einzige eigene
+  // 7.1) - ohne sie sieht "pfluecker@damicon.demo" keine einzige eigene
   // Abrechnung, weil RLS ausschliesslich ueber profiles.pfluecker_id filtert
   // (Migration 20260909010000). Ausweis MAL-0417 traegt bereits eine
   // vorseedete Abrechnung (Status "entwurf", siehe Abschnitt "Lohn" in
@@ -169,7 +169,7 @@ async function main() {
     await admin
       .from("profiles")
       .update({ pfluecker_id: pfluecker.id })
-      .eq("email", "pfluecker@malina.demo");
+      .eq("email", "pfluecker@damicon.demo");
   }
 
   console.log(

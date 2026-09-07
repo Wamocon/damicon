@@ -1,5 +1,5 @@
 // =============================================================================
-// Malina - Supabase Integrationstest (lokal)
+// Damicon - Supabase Integrationstest (lokal)
 // =============================================================================
 // Ausfuehren:  node --env-file=.env.local supabase/tests/integration.mjs
 //
@@ -117,14 +117,14 @@ async function anmelden(email) {
   const client = createClient(url, anonKey, { auth: { persistSession: false } });
   const { error } = await client.auth.signInWithPassword({
     email,
-    password: "MalinaDemo2026!",
+    password: "DamiconDemo2026!",
   });
   if (error) return { client: null, fehler: error.message };
   return { client, fehler: null };
 }
 
-const { client: leitung, fehler: leitungFehler } = await anmelden("leitung@malina.demo");
-const { client: brigade, fehler: brigadeFehler } = await anmelden("brigade@malina.demo");
+const { client: leitung, fehler: leitungFehler } = await anmelden("leitung@damicon.demo");
+const { client: brigade, fehler: brigadeFehler } = await anmelden("brigade@damicon.demo");
 
 check("Auth: Betriebsleitung meldet sich an", !!leitung, leitungFehler ?? "");
 check("Auth: Brigade meldet sich an", !!brigade, brigadeFehler ?? "");
@@ -553,7 +553,7 @@ if (leitung && brigade) {
     `kg/h: ${kennzahlen?.find((k) => k.schluessel === "pflueckleistung")?.wert}`,
   );
 
-  const { data: kundeSieht } = await (await anmelden("kunde@malina.demo")).client
+  const { data: kundeSieht } = await (await anmelden("kunde@damicon.demo")).client
     .from("arbeitszeiten")
     .select("id");
   check(
@@ -613,7 +613,7 @@ if (leitung && brigade) {
   const { data: eigeneBrigade } = await admin
     .from("profiles")
     .select("brigade_id")
-    .eq("email", "brigade@malina.demo")
+    .eq("email", "brigade@damicon.demo")
     .single();
   const { data: fremderPfluecker } = await admin
     .from("pfluecker")
@@ -640,7 +640,7 @@ if (leitung && brigade) {
   }
 
   // HOCH: Steigen mit Personenbezug waren fuer kunde/erzeuger lesbar.
-  const { data: kundeSteigen } = await (await anmelden("kunde@malina.demo")).client
+  const { data: kundeSteigen } = await (await anmelden("kunde@damicon.demo")).client
     .from("steigen")
     .select("id");
   check(
@@ -1008,7 +1008,7 @@ if (leitung && brigade) {
     reklamationenLeitungFehler?.message ?? `${reklamationenLeitung?.length} Reklamationen`,
   );
 
-  const { client: kunde, fehler: kundeFehler } = await anmelden("kunde@malina.demo");
+  const { client: kunde, fehler: kundeFehler } = await anmelden("kunde@damicon.demo");
   check("Auth: Kunde meldet sich an", !!kunde, kundeFehler ?? "");
 
   const { data: handelskette } = await admin
@@ -1024,10 +1024,10 @@ if (leitung && brigade) {
   const { data: kundeProfil } = await admin
     .from("profiles")
     .select("b2b_kunde_id")
-    .eq("email", "kunde@malina.demo")
+    .eq("email", "kunde@damicon.demo")
     .single();
   check(
-    "Reklamation-Setup: kunde@malina.demo ist Almaty Fresh Market zugeordnet",
+    "Reklamation-Setup: kunde@damicon.demo ist Almaty Fresh Market zugeordnet",
     kundeProfil?.b2b_kunde_id === almatyFresh?.id,
     `b2b_kunde_id: ${kundeProfil?.b2b_kunde_id}`,
   );
@@ -1102,7 +1102,7 @@ if (leitung && brigade) {
     const { error: selbstZuordnungFehler } = await kunde
       .from("profiles")
       .update({ b2b_kunde_id: handelskette.id })
-      .eq("email", "kunde@malina.demo");
+      .eq("email", "kunde@damicon.demo");
     check(
       "Reklamation-Haertung: Kunde ordnet sich nicht selbst einer fremden Firma zu",
       selbstZuordnungFehler?.code === "42501",
@@ -1111,7 +1111,7 @@ if (leitung && brigade) {
     const { data: profilNachVersuch } = await admin
       .from("profiles")
       .select("b2b_kunde_id")
-      .eq("email", "kunde@malina.demo")
+      .eq("email", "kunde@damicon.demo")
       .single();
     check(
       "Reklamation-Haertung: b2b_kunde_id bleibt unveraendert",
@@ -1247,7 +1247,7 @@ if (leitung && brigade) {
   // gegen diese realen Daten nach, statt nur den Vertrag (wer darf was)
   // isoliert zu pruefen - beides faellt hier zusammen.
 
-  const { client: buchhaltung, fehler: buchhaltungFehler } = await anmelden("buchhaltung@malina.demo");
+  const { client: buchhaltung, fehler: buchhaltungFehler } = await anmelden("buchhaltung@damicon.demo");
   check("Auth: Buchhaltung meldet sich an", !!buchhaltung, buchhaltungFehler ?? "");
 
   const { data: lohnSatzAnon } = await anon.from("lohn_saetze").select("id");
@@ -1561,7 +1561,7 @@ if (leitung && brigade) {
   // uebergehen: die RLS-Policy laesst nur admin/betriebsleitung zu und faengt
   // eine erzeuger-Anmeldung kontrolliert ab, statt fremde Stammdaten zu
   // schreiben.
-  const { client: erzeuger, fehler: erzeugerFehler } = await anmelden("erzeuger@malina.demo");
+  const { client: erzeuger, fehler: erzeugerFehler } = await anmelden("erzeuger@damicon.demo");
   check("Auth: Erzeuger meldet sich an", !!erzeuger, erzeugerFehler ?? "");
   if (erzeuger) {
     const { error: zpErzeugerFehler, data: zpErzeugerInsert } = await erzeuger
@@ -1891,8 +1891,8 @@ if (leitung && brigade) {
   );
 
   // Abnahme: kunde und erzeuger duerfen weder Steigen noch Pfluecker lesen.
-  const { client: kunde } = await anmelden("kunde@malina.demo");
-  const { client: erzeuger } = await anmelden("erzeuger@malina.demo");
+  const { client: kunde } = await anmelden("kunde@damicon.demo");
+  const { client: erzeuger } = await anmelden("erzeuger@damicon.demo");
 
   const { data: kundeEtiketten } = await kunde
     .from("steigen")

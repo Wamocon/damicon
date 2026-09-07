@@ -530,10 +530,10 @@
       <div class="info-box">
         <div class="info-box-title">Demo-Zug&auml;nge</div>
         <p>
-          Je Rolle ein Konto, Passwort f&uuml;r alle <code>MalinaDemo2026!</code>:
-          <code>admin@malina.demo</code>, <code>leitung@malina.demo</code>,
-          <code>buchhaltung@malina.demo</code>, <code>brigade@malina.demo</code>,
-          <code>erzeuger@malina.demo</code>, <code>kunde@malina.demo</code>.
+          Je Rolle ein Konto, Passwort f&uuml;r alle <code>DamiconDemo2026!</code>:
+          <code>admin@damicon.demo</code>, <code>leitung@damicon.demo</code>,
+          <code>buchhaltung@damicon.demo</code>, <code>brigade@damicon.demo</code>,
+          <code>erzeuger@damicon.demo</code>, <code>kunde@damicon.demo</code>.
           Ohne Supabase-Umgebung entf&auml;llt die Anmeldung und der Prototyp l&auml;uft
           mit Beispieldaten &ndash; jede Ansicht zeigt oben rechts, welche Quelle sie liest.
         </p>
@@ -561,7 +561,7 @@
 
       <h3 id="ht-profil">4.1 Wartezeitsperre ausl&ouml;sen und aufheben</h3>
       <ol>
-        <li>Als <code>leitung@malina.demo</code> anmelden, <code>Dashboard &rarr; Feld &rarr; Reihenbl&ouml;cke und Status</code> &ouml;ffnen</li>
+        <li>Als <code>leitung@damicon.demo</code> anmelden, <code>Dashboard &rarr; Feld &rarr; Reihenbl&ouml;cke und Status</code> &ouml;ffnen</li>
         <li>Unten <strong>Behandlung erfassen</strong>: Reihenblock und Pflanzenschutzmittel w&auml;hlen. Die Wartezeit kommt aus dem Mittelkatalog</li>
         <li>Der Block steht sofort auf <strong>wartezeitgesperrt</strong>, die Spalte &bdquo;Sperre&ldquo; zeigt Mittel, Behandlungsdatum, Wartezeit, Freigabedatum und die Resttage</li>
         <li>Ein Statuswechsel ist jetzt nicht mehr m&ouml;glich &ndash; die Regel liegt als Trigger in der Datenbank und greift auch bei direktem Datenbankzugriff</li>
@@ -691,13 +691,13 @@
       </div>
       <div class="info-box">
         <div class="info-box-title">Design-Token-Umstellung</div>
-        <p>Statt der 1&Ccedil;at&#305;-T&uuml;rkis/Amber-Palette (<code>--primary:#066B63</code>) nutzt Malina &bdquo;Tiefes Himbeerrot + Blattgr&uuml;n&ldquo; (<code>--primary:#b11742</code>, <code>--accent:#4f7c3a</code>). Struktur und Variablennamen bleiben identisch, sodass sp&auml;ter nur Farbwerte und Bildsubjekte getauscht werden.</p>
+        <p>Statt der 1&Ccedil;at&#305;-T&uuml;rkis/Amber-Palette (<code>--primary:#066B63</code>) nutzt Damicon &bdquo;Tiefes Himbeerrot + Blattgr&uuml;n&ldquo; (<code>--primary:#b11742</code>, <code>--accent:#4f7c3a</code>). Struktur und Variablennamen bleiben identisch, sodass sp&auml;ter nur Farbwerte und Bildsubjekte getauscht werden.</p>
       </div>
 
       <h3 id="tech-schema">6.2 Herkunft aus 1&Ccedil;at&#305;</h3>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Malina</th><th>1&Ccedil;at&#305;-Quelle</th><th>&Uuml;bertragbarkeit</th></tr></thead>
+          <thead><tr><th>Damicon</th><th>1&Ccedil;at&#305;-Quelle</th><th>&Uuml;bertragbarkeit</th></tr></thead>
           <tbody>
             <tr><td>Standort-Hierarchie</td><td>Migration 2, <code>site-management-data.ts</code></td><td>zentrale Analogie, eine Ebene tiefer</td></tr>
             <tr><td>Reihenblock-Zustandsautomat</td><td><code>units</code> (occupied/vacant/reserved/maintenance/blocked)</td><td>1:1, <code>blocked</code> = wartezeitgesperrt</td></tr>
@@ -750,7 +750,7 @@
       </p>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Rechtsgrundlage 2026</th><th>Auswirkung auf Malina</th></tr></thead>
+          <thead><tr><th>Rechtsgrundlage 2026</th><th>Auswirkung auf Damicon</th></tr></thead>
           <tbody>
             <tr><td>Steuergesetzbuch 2026</td><td>Wirkt auf Deckungsbeitrag und Kostentr&auml;ger.</td></tr>
             <tr><td>Elektronischer Warenbegleitschein (&#1069;&#1057;&#1060;)</td><td>&Uuml;ber <code>integration_outbox</code>-Muster, kein Eigenbau der Buchhaltung.</td></tr>
@@ -774,7 +774,7 @@
         <table>
           <thead><tr><th>Begriff</th><th>Erkl&auml;rung</th></tr></thead>
           <tbody>
-            <tr><td><strong>1&Ccedil;at&#305;</strong></td><td>Bestehendes ERP-&Ouml;kosystem aus der Immobilienbranche, das Malina als Blaupause dient.</td></tr>
+            <tr><td><strong>1&Ccedil;at&#305;</strong></td><td>Bestehendes ERP-&Ouml;kosystem aus der Immobilienbranche, das Damicon als Blaupause dient.</td></tr>
             <tr><td><strong>Reihenblock</strong></td><td>Kleinste Einheit der Standort-Hierarchie. Entspricht der Wohneinheit (<code>unit</code>) in 1&Ccedil;at&#305;.</td></tr>
             <tr><td><strong>wartezeitgesperrt</strong></td><td>Reihenblock-Status: Ernte nach Pflanzenschutzbehandlung bis Ablauf der Wartezeit gesperrt. Entspricht <code>blocked</code>.</td></tr>
             <tr><td><strong>Steige</strong></td><td>Transportgebinde f&uuml;r geerntete Himbeeren, per QR einer Charge zugeordnet.</td></tr>
@@ -782,7 +782,7 @@
             <tr><td><strong>Qualit&auml;tsfaktor-Lohn</strong></td><td>Grundverg&uuml;tung plus Mengenkomponente plus Qualit&auml;tsfaktor. Reiner St&uuml;cklohn ist bei der Himbeere wertvernichtend.</td></tr>
             <tr><td><strong>RBAC</strong></td><td>Role-Based Access Control &ndash; Rollen- und Ressourcen-Rechtematrix, &uuml;bernommen aus 1&Ccedil;at&#305;.</td></tr>
             <tr><td><strong>&#1069;&#1057;&#1060; / &#1045;&#1057;&#1059;&#1058;&#1044;</strong></td><td>Kasachstanische Pflichtsysteme f&uuml;r elektronische Rechnungen bzw. Arbeitsvertragserfassung.</td></tr>
-            <tr><td><strong>WAMOCON</strong></td><td>WAMOCON GmbH &ndash; Auftraggeber und Entwickler von Malina.</td></tr>
+            <tr><td><strong>WAMOCON</strong></td><td>WAMOCON GmbH &ndash; Auftraggeber und Entwickler von Damicon.</td></tr>
           </tbody>
         </table>
       </div>

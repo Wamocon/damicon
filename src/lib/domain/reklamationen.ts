@@ -1,6 +1,6 @@
 // Reklamationsmanagement (WMCNL-1455). [NEU-BAUEN] - im Schwesterprojekt
 // Digitalisierung-Himbeerenbetrieb als public.complaints/complaint_events
-// umgesetzt, hier auf malinas Nachweiskette uebersetzt: eine Reklamation
+// umgesetzt, hier auf Damicons Nachweiskette uebersetzt: eine Reklamation
 // haengt an einer Charge statt an einem eigenen Beleg-Paar - von der Charge
 // aus lassen sich Reihenblock, Pfluecker und Kuehlkurve bereits
 // zurueckverfolgen (siehe public.rueckstandsnachweis()).

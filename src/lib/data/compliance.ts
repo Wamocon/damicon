@@ -278,7 +278,7 @@ export async function ladeCompliance(): Promise<ComplianceCockpit> {
 
   if (zweckeErg.error || einwilligungenErg.error || vorfaelleErg.error || drittweitergabenErg.error) {
     console.error(
-      "[malina] Compliance-Daten konnten nicht geladen werden:",
+      "[damicon] Compliance-Daten konnten nicht geladen werden:",
       zweckeErg.error?.message ?? einwilligungenErg.error?.message ??
         vorfaelleErg.error?.message ?? drittweitergabenErg.error?.message,
     );

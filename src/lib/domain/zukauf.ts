@@ -2,7 +2,7 @@
 // Schwesterprojekt Digitalisierung-Himbeerenbetrieb traegt der Enum-Wert
 // 'sourcing' keine eigene Import-/Commit-Strecke (die dortige zukauf/page.tsx
 // zeigt ein anderes, umfangreicheres Wareneingangsmodell mit Temperatur/
-// Trefferquote, fachlich nicht 1:1 uebertragbar). Malina fuehrt zugekaufte
+// Trefferquote, fachlich nicht 1:1 uebertragbar). Damicon fuehrt zugekaufte
 // Ware stattdessen als eigene Charge mit reihenblock_id = null - "eigene
 // Charge je Fremdbetrieb", strukturell bereits im initialen Schema angelegt
 // (siehe Kommentar an public.chargen: "Charge = Herkunftsblock + Sorte +

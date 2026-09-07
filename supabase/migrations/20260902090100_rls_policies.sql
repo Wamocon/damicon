@@ -1,5 +1,5 @@
 -- =============================================================================
--- Malina - Row Level Security
+-- Damicon - Row Level Security
 -- =============================================================================
 -- Analyse Kapitel 10: "RLS ist kein Copy-Paste." Policies sind an Rollen und
 -- Ressourcen gebunden und werden je Ressource geschrieben, nicht nur umbenannt.

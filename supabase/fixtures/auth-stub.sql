@@ -1,5 +1,5 @@
 -- =============================================================================
--- Malina - Supabase-Grundlagen fuer den PGlite-Schnelltest
+-- Damicon - Supabase-Grundlagen fuer den PGlite-Schnelltest
 -- =============================================================================
 -- PGlite ist reines Postgres ohne die Supabase-Plattform drumherum. Die
 -- Migrationen setzen aber auth.users, auth.uid(), die Rollen anon/authenticated/
@@ -9,7 +9,7 @@
 --
 -- Uebernommen aus dem Muster des Schwesterprojekts
 -- "Digitalisierung-Himbeerenbetrieb" (dortiges supabase/fixtures/auth-stub.sql),
--- auf das reduziert, was Malinas eigene Migrationen brauchen.
+-- auf das reduziert, was Damicons eigene Migrationen brauchen.
 -- =============================================================================
 
 do $$

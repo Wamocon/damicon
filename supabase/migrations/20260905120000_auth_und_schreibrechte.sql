@@ -1,9 +1,9 @@
 -- =============================================================================
--- Malina - Meilenstein B: echte Auth + rollenabhaengige Schreibrechte
+-- Damicon - Meilenstein B: echte Auth + rollenabhaengige Schreibrechte
 -- =============================================================================
 -- Meilenstein A hatte nur Lese-Policies; geschrieben hat ausschliesslich der
 -- service_role-Key. Mit echter Auth (Supabase Auth) bekommt jede Ressource
--- eigene Schreib-Policies, die an die sechs Malina-Rollen gebunden sind
+-- eigene Schreib-Policies, die an die sieben Damicon-Rollen gebunden sind
 -- (Analyse Kapitel 10: "RLS ist kein Copy-Paste").
 --
 -- Enthalten:

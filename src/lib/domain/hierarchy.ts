@@ -1,6 +1,6 @@
 // Vierstufige Standort-Hierarchie - "die wertvollste einzelne Uebernahme"
 // (Analyse Kapitel 4). 1Cati: Company > Site > Block > Floor > Unit.
-// Malina: Betrieb > Plantage > Feldparzelle > Reihengruppe > Reihenblock.
+// Damicon: Betrieb > Plantage > Feldparzelle > Reihengruppe > Reihenblock.
 
 export interface Reihengruppe {
   id: string;
@@ -32,8 +32,8 @@ export interface Betrieb {
 }
 
 export const betrieb: Betrieb = {
-  id: "malina-almaty",
-  name: "Malina Aggregator - Umland Almaty",
+  id: "damicon-almaty",
+  name: "Damicon Aggregator - Umland Almaty",
   plantagen: [
     {
       id: "p-talgar",

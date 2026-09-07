@@ -6,7 +6,7 @@
 // Form der Datei (Trennzeichen, Spaltenreihenfolge, Sprache der Kopfzeile)
 // darf variieren, jede fachliche Unstimmigkeit wird gemeldet statt stumm
 // uebernommen oder stumm verworfen. Der Code selbst ist eigenstaendig auf
-// malinas vier Pflichtspalten geschrieben, nicht uebersetzt.
+// Damicons vier Pflichtspalten geschrieben, nicht uebersetzt.
 //
 // Bewusst eine reine Funktion ohne Datenbankzugriff: Sorten und
 // Nachbarbetriebe werden vom Aufrufer als Referenzliste mitgegeben (siehe

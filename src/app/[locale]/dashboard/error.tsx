@@ -18,7 +18,7 @@ export default function DashboardFehler({
   const t = useTranslations("fehlerseite");
 
   useEffect(() => {
-    console.error("[malina] Dashboard-Fehler:", error);
+    console.error("[damicon] Dashboard-Fehler:", error);
   }, [error]);
 
   return (

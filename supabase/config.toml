@@ -166,7 +166,7 @@ enable_refresh_token_rotation = true
 # Requires enable_refresh_token_rotation = true.
 refresh_token_reuse_interval = 10
 # Allow/disallow new user signups to your project.
-# Malina hat keine Selbstregistrierung: Konten legt die Administration an
+# Damicon hat keine Selbstregistrierung: Konten legt die Administration an
 # (supabase/seed-auth.mjs bzw. die Admin-API). Andernfalls koennte sich jeder
 # selbst ein Konto anlegen - die Rolle vergibt zwar nur der service_role-Pfad,
 # ein unbekanntes Konto im Betrieb ist aber trotzdem nicht gewollt.

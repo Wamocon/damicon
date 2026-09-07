@@ -54,17 +54,17 @@ npm run dev
 ```
 
 Anmeldung unter `/de/login`. Die sieben Demo-Konten werden von `npm run db:seed-auth`
-angelegt - je Rolle eines, Passwort für alle `MalinaDemo2026!`:
+angelegt - je Rolle eines, Passwort für alle `DamiconDemo2026!`:
 
 | Rolle | Konto |
 |---|---|
-| Administration | `admin@malina.demo` |
-| Betriebsleitung | `leitung@malina.demo` |
-| Buchhaltung | `buchhaltung@malina.demo` |
-| Brigade / Feld | `brigade@malina.demo` |
-| Pflücker | `pfluecker@malina.demo` |
-| Erzeuger | `erzeuger@malina.demo` |
-| Kunde | `kunde@malina.demo` |
+| Administration | `admin@damicon.demo` |
+| Betriebsleitung | `leitung@damicon.demo` |
+| Buchhaltung | `buchhaltung@damicon.demo` |
+| Brigade / Feld | `brigade@damicon.demo` |
+| Pflücker | `pfluecker@damicon.demo` |
+| Erzeuger | `erzeuger@damicon.demo` |
+| Kunde | `kunde@damicon.demo` |
 
 Mehrfaktor-Authentifizierung (TOTP) ist optional je Konto - einrichten unter
 `/de/dashboard/sicherheit`. Ist ein Faktor aktiv, verlangt sowohl der Login als
