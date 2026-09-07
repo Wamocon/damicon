@@ -637,7 +637,9 @@
       "reklamationNachricht": "Message added.",
       "lohnSatz": "Pay rate valid from {wert} added.",
       "lohnBerechnet": "{wert} settlement(s) calculated - already approved or paid rows stay unchanged.",
-      "lohnStatus": "Settlement for {wert} updated."
+      "lohnStatus": "Settlement for {wert} updated.",
+      "zukaufImport": "{wert} position(s) imported.",
+      "zukaufPreis": "Price added."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -653,7 +655,8 @@
       "unbekannt": "Action failed. Details are in the server log.",
       "keineCharge": "This task has no batch.",
       "kuehlkette": "Limit broken: {wert} minutes until measurement. The goods have to be downgraded.",
-      "keinKunde": "Your account has no B2B client assigned. Please contact the administration."
+      "keinKunde": "Your account has no B2B client assigned. Please contact the administration.",
+      "zukaufBefunde": "{wert} error(s) found in the input - nothing was imported. See the check results below."
     }
   },
   "standortVerwaltung": {
@@ -1311,6 +1314,67 @@
         "periodeEnde": "Period to",
         "knopf": "Calculate period"
       }
+    }
+  },
+  "zukaufAnsicht": {
+    "statsTitle": "Purchasing at a glance",
+    "statsLead": "Key figures across all recorded purchase positions from neighbouring farms.",
+    "stat": {
+      "positionen": "Positions",
+      "menge": "Total volume",
+      "nachbarbetriebe": "Neighbouring farms",
+      "offenePreise": "Price pending",
+      "offenePreiseHinweis": "Invoice from the neighbouring farm not received yet."
+    },
+    "listTitle": "Purchase positions",
+    "listLead": "Each position carries its own batch without a row block - separate origin tracking, traceable back to the supplying farm.",
+    "empty": "No purchase position recorded yet.",
+    "col": {
+      "nachbarbetrieb": "Neighbouring farm",
+      "sorte": "Variety",
+      "charge": "Batch",
+      "menge": "Volume",
+      "erntedatum": "Date",
+      "preis": "Price",
+      "rechnungsdatum": "Invoice date"
+    },
+    "preisOffen": "Price pending",
+    "keinRecht": "Your role may read the purchasing data, but not import or add prices. That is reserved for management and administration.",
+    "note": "Volume, variety, date and neighbouring farm come from the CSV import. The price is deliberately left open at import time - it is added once the neighbouring farm's invoice arrives. A self-service login for the neighbouring farm itself is not connected yet.",
+    "import": {
+      "titel": "Import purchases",
+      "lead": "Paste volume, variety, date and neighbouring farm - one row per delivery. Delimiter and header language are detected automatically.",
+      "hilfe": "Required columns: volume (kg), variety, date, neighbouring farm. Unknown variety or farm names are not created automatically.",
+      "bekannteBetriebe": "Known neighbouring farms",
+      "bekannteSorten": "Known varieties",
+      "feldLabel": "CSV data",
+      "platzhalter": "menge;sorte;datum;nachbarbetrieb\n210;Polka;2026-09-01;Nachbarbetrieb Kaskelen",
+      "knopf": "Check and import",
+      "befundeTitle": "Check results",
+      "spalteAllgemein": "general",
+      "spalte": {
+        "menge": "Volume",
+        "sorte": "Variety",
+        "datum": "Date",
+        "nachbarbetrieb": "Neighbouring farm"
+      },
+      "befund": {
+        "empty": "The input contains no rows.",
+        "column_missing": "The column \"{spalte}\" was not recognised.",
+        "required_missing": "Row {zeile}: required value \"{spalte}\" is missing.",
+        "value_format": "Row {zeile}: value at \"{spalte}\" is not recognised: {wert}",
+        "value_range": "Row {zeile}: value at \"{spalte}\" is outside the valid range: {wert}",
+        "value_suspicious": "Row {zeile}: unusual value at \"{spalte}\", imported anyway: {wert}",
+        "unknown_reference": "Row {zeile}: \"{wert}\" is unknown at \"{spalte}\" and is not created automatically.",
+        "duplicate_verdacht": "Row {zeile}: matches row {wert} - possibly a duplicate entry, imported anyway.",
+        "no_rows": "No usable data row found.",
+        "summary": "{wert}"
+      }
+    },
+    "preisNachtragen": {
+      "preis": "Price (₸/kg)",
+      "rechnungsdatum": "Invoice date",
+      "knopf": "Save"
     }
   }
 }

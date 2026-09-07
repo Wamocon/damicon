@@ -20,8 +20,13 @@ insert into public.sorten (name, typ, erntefenster, schale_g) values
   on conflict (name) do nothing;
 
 -- --- Nachbarbetrieb -------------------------------------------------------
+-- Zwei Betriebe, damit der Aggregator-Import (WMCNL-1453) echte Referenzdaten
+-- zum Aufloesen hat: Kaskelen traegt den "alten" Zukauf-Fall mit bereits
+-- eingetragenem Preis, Uzynagash unten den "neuen" Fall, wie ihn der
+-- CSV-Import erzeugt (Preis noch offen).
 insert into public.nachbarbetriebe (name, ort, kontakt) values
-  ('Nachbarbetrieb Kaskelen', 'Kaskelen, Gebiet Almaty', 'R. Baitulin')
+  ('Nachbarbetrieb Kaskelen', 'Kaskelen, Gebiet Almaty', 'R. Baitulin'),
+  ('Nachbarbetrieb Uzynagash', 'Uzynagash, Gebiet Almaty', 'A. Dzhaksybekov')
   on conflict do nothing;
 
 -- --- Plantagen -------------------------------------------------------------
@@ -374,6 +379,22 @@ insert into public.zukauf_positionen (nachbarbetrieb_id, charge_id, sorte_id, me
 select n.id, null, s.id, 210, 1400, '2026-09-01'::date
 from public.nachbarbetriebe n, public.sorten s
 where n.name = 'Nachbarbetrieb Kaskelen' and s.name = 'Polka'
+and not exists (select 1 from public.zukauf_positionen z where z.nachbarbetrieb_id = n.id);
+
+-- Zweiter Fall: eine eigene Charge je Fremdbetrieb (reihenblock_id = null),
+-- genau das Muster, das public.zukauf_positionen_importieren() beim
+-- CSV-Import anlegt (WMCNL-1453) - Preis und Rechnungsdatum bewusst noch
+-- offen, wie es der echte Ablauf vor dem Rechnungseingang zeigt.
+insert into public.chargen (code, sorte_id, ernte_datum, status)
+select 'ZUK-SEED-0001', s.id, '2026-09-05'::date, 'offen'
+from public.sorten s
+where s.name = 'Polana'
+on conflict (code) do nothing;
+
+insert into public.zukauf_positionen (nachbarbetrieb_id, charge_id, sorte_id, menge_kg, preis_tenge_kg, rechnungsdatum)
+select n.id, c.id, c.sorte_id, 150, null, null
+from public.nachbarbetriebe n, public.chargen c
+where n.name = 'Nachbarbetrieb Uzynagash' and c.code = 'ZUK-SEED-0001'
 and not exists (select 1 from public.zukauf_positionen z where z.nachbarbetrieb_id = n.id);
 
 -- --- Schulungsvideos --------------------------------------------------------

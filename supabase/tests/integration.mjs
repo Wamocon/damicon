@@ -1481,6 +1481,242 @@ if (leitung && brigade) {
     await admin.from("lohn_positionen").delete().in("lohn_abrechnung_id", lohnTestAbrechnungIds);
     await admin.from("lohn_abrechnungen").delete().in("id", lohnTestAbrechnungIds);
   }
+
+  // --- 14. Aggregator: Zukauf Nachbarbetriebe & Import-Parser (WMCNL-1453) --
+  // Der Parser selbst (reine Funktion, keine Datenbank) hat einen eigenen
+  // Test ohne jede Supabase-Verbindung: supabase/tests/zukauf-parser.mjs
+  // (npm run test:zukauf-parser). Hier wird ausschliesslich geprueft, was
+  // dieser Parsertest nicht pruefen kann: die vorher komplett fehlenden
+  // RLS-Schreibrechte, die geoeffnete preis_tenge_kg-Spalte und vor allem die
+  // Atomaritaet der Import-RPC public.zukauf_positionen_importieren().
+
+  const { data: nbAnon } = await anon.from("nachbarbetriebe").select("id");
+  check(
+    "Zukauf-RLS: anon liest keine Nachbarbetriebe",
+    (nbAnon?.length ?? 0) === 0,
+    `sichtbare Zeilen: ${nbAnon?.length}`,
+  );
+
+  const { data: nbLeitung, error: nbLeitungFehler } = await leitung
+    .from("nachbarbetriebe")
+    .select("id, name");
+  check(
+    "Zukauf-RLS: Betriebsleitung sieht die Seed-Nachbarbetriebe (Kaskelen, Uzynagash)",
+    !nbLeitungFehler && (nbLeitung?.length ?? 0) >= 2,
+    nbLeitungFehler?.message ?? `${nbLeitung?.length} Nachbarbetriebe`,
+  );
+
+  const { error: nbBrigadeFehler, data: nbBrigadeInsert } = await brigade
+    .from("nachbarbetriebe")
+    .insert({ name: "IT-Fremdbetrieb (sollte nicht entstehen)" })
+    .select("id");
+  check(
+    "Zukauf-RLS: Brigade legt keinen Nachbarbetrieb an",
+    !!nbBrigadeFehler || (nbBrigadeInsert?.length ?? 0) === 0,
+    nbBrigadeFehler?.code ?? `eingefuegte Zeilen: ${nbBrigadeInsert?.length}`,
+  );
+
+  const { data: nbNeu, error: nbNeuFehler } = await leitung
+    .from("nachbarbetriebe")
+    .insert({ name: "IT-Nachbarbetrieb WMCNL-1453", ort: "Testort" })
+    .select("id, name")
+    .single();
+  check(
+    "Zukauf: Betriebsleitung legt einen Nachbarbetrieb an",
+    !nbNeuFehler && !!nbNeu,
+    nbNeuFehler?.message ?? "",
+  );
+
+  const { data: sortePolka } = await admin.from("sorten").select("id").eq("name", "Polka").single();
+  const { data: sortePolana } = await admin.from("sorten").select("id").eq("name", "Polana").single();
+
+  // preis_tenge_kg war bislang "not null" - ein Import ohne Preis (Menge,
+  // Sorte, Datum, Nachbarbetrieb - keine der vier Pflichtspalten ist der
+  // Preis) haette daran scheitern muessen. Diese Zeile beweist die Oeffnung.
+  const { data: zpOhnePreis, error: zpOhnePreisFehler } = await leitung
+    .from("zukauf_positionen")
+    .insert({ nachbarbetrieb_id: nbNeu.id, sorte_id: sortePolka.id, menge_kg: 42 })
+    .select("id, preis_tenge_kg")
+    .single();
+  check(
+    "Zukauf-Schema: preis_tenge_kg ist nullable - Import ohne Preis gelingt",
+    !zpOhnePreisFehler && zpOhnePreis?.preis_tenge_kg === null,
+    zpOhnePreisFehler?.message ?? `preis_tenge_kg: ${zpOhnePreis?.preis_tenge_kg}`,
+  );
+
+  const { error: zpBrigadeFehler, data: zpBrigadeInsert } = await brigade
+    .from("zukauf_positionen")
+    .insert({ nachbarbetrieb_id: nbNeu.id, sorte_id: sortePolka.id, menge_kg: 10 })
+    .select("id");
+  check(
+    "Zukauf-RLS: Brigade legt keine Zukaufposition an",
+    !!zpBrigadeFehler || (zpBrigadeInsert?.length ?? 0) === 0,
+    zpBrigadeFehler?.code ?? `eingefuegte Zeilen: ${zpBrigadeInsert?.length}`,
+  );
+
+  // HOCH (Vorab-Recherche, Risiko 3): rbac.ts gewaehrt "erzeuger" bereits
+  // crud("aggregator"), aber ohne profiles->nachbarbetrieb-Verknuepfung ist
+  // kein echtes Self-Service-Szenario erreichbar (siehe Migrationskopf, Punkt
+  // 3). Dieser Test dokumentiert die Luecke, statt sie stillschweigend zu
+  // uebergehen: die RLS-Policy laesst nur admin/betriebsleitung zu und faengt
+  // eine erzeuger-Anmeldung kontrolliert ab, statt fremde Stammdaten zu
+  // schreiben.
+  const { client: erzeuger, fehler: erzeugerFehler } = await anmelden("erzeuger@malina.demo");
+  check("Auth: Erzeuger meldet sich an", !!erzeuger, erzeugerFehler ?? "");
+  if (erzeuger) {
+    const { error: zpErzeugerFehler, data: zpErzeugerInsert } = await erzeuger
+      .from("zukauf_positionen")
+      .insert({ nachbarbetrieb_id: nbNeu.id, sorte_id: sortePolka.id, menge_kg: 10 })
+      .select("id");
+    check(
+      "Zukauf-RLS-Luecke dokumentiert: erzeuger hat laut rbac.ts crud(aggregator), scheitert aber an RLS (kein Self-Service ohne Nachbarbetrieb-Verknuepfung)",
+      !!zpErzeugerFehler || (zpErzeugerInsert?.length ?? 0) === 0,
+      zpErzeugerFehler?.code ?? `eingefuegte Zeilen: ${zpErzeugerInsert?.length}`,
+    );
+  }
+
+  const { error: zpMengeNullFehler } = await leitung
+    .from("zukauf_positionen")
+    .insert({ nachbarbetrieb_id: nbNeu.id, sorte_id: sortePolka.id, menge_kg: 0 });
+  check(
+    "Zukauf-Schema: Menge 0 wird abgelehnt (check zukauf_positionen_menge_positiv)",
+    zpMengeNullFehler?.code === "23514",
+    zpMengeNullFehler?.code ?? "kein Fehler",
+  );
+
+  const { error: zpPreisNegativFehler } = await leitung
+    .from("zukauf_positionen")
+    .insert({ nachbarbetrieb_id: nbNeu.id, sorte_id: sortePolka.id, menge_kg: 5, preis_tenge_kg: -1 });
+  check(
+    "Zukauf-Schema: negativer Preis wird abgelehnt (check zukauf_positionen_preis_positiv)",
+    zpPreisNegativFehler?.code === "23514",
+    zpPreisNegativFehler?.code ?? "kein Fehler",
+  );
+
+  // Preis nachtragen (zukaufPreisNachtragen()): die Betriebsleitung darf,
+  // die Brigade nicht - dieselbe Update-Policy wie fuer den Import.
+  const { error: zpPreisBrigadeFehler, data: zpPreisBrigadeUpdate } = await brigade
+    .from("zukauf_positionen")
+    .update({ preis_tenge_kg: 999 })
+    .eq("id", zpOhnePreis.id)
+    .select("id");
+  check(
+    "Zukauf-RLS: Brigade traegt keinen Preis nach",
+    !!zpPreisBrigadeFehler || (zpPreisBrigadeUpdate?.length ?? 0) === 0,
+    zpPreisBrigadeFehler?.code ?? `geaenderte Zeilen: ${zpPreisBrigadeUpdate?.length}`,
+  );
+
+  const { error: zpPreisFehler, data: zpPreisUpdate } = await leitung
+    .from("zukauf_positionen")
+    .update({ preis_tenge_kg: 1500, rechnungsdatum: "2026-09-06" })
+    .eq("id", zpOhnePreis.id)
+    .select("preis_tenge_kg")
+    .single();
+  check(
+    "Zukauf: Betriebsleitung traegt den Preis nach",
+    !zpPreisFehler && Number(zpPreisUpdate?.preis_tenge_kg) === 1500,
+    zpPreisFehler?.message ?? "",
+  );
+
+  // RPC public.zukauf_positionen_importieren(): SECURITY INVOKER - die
+  // RLS-Policies des Aufrufers gelten unveraendert innerhalb der Funktion.
+  // Die Brigade darf chargen anlegen (chargen_insert_feld), aber nicht
+  // zukauf_positionen (zukauf_positionen_insert_leitung) - die zweite,
+  // fehlschlagende INSERT-Anweisung muss die GESAMTE Funktion inklusive der
+  // bereits eingefuegten Charge zurueckrollen. Kein Transaktionsrahmen ueber
+  // mehrere Aufrufe hinweg noetig: eine einzelne RPC-Ausfuehrung IST bereits
+  // eine Transaktion.
+  const { count: chargenVorherCount } = await admin
+    .from("chargen")
+    .select("id", { count: "exact", head: true });
+
+  const { error: importBrigadeFehler } = await brigade.rpc("zukauf_positionen_importieren", {
+    p_zeilen: [
+      { nachbarbetrieb_id: nbNeu.id, sorte_id: sortePolka.id, menge_kg: 77, ernte_datum: "2026-09-05" },
+    ],
+  });
+  check(
+    "Zukauf-RPC: Brigade importiert nicht - RLS auf zukauf_positionen greift auch innerhalb der SECURITY-INVOKER-Funktion",
+    importBrigadeFehler?.code === "42501",
+    importBrigadeFehler?.code ?? "kein Fehler",
+  );
+
+  const { count: chargenNachBrigadeCount } = await admin
+    .from("chargen")
+    .select("id", { count: "exact", head: true });
+  check(
+    "Zukauf-RPC: keine Teiluebernahme - der abgelehnte Versuch hinterlaesst keine verwaiste Charge",
+    chargenNachBrigadeCount === chargenVorherCount,
+    `vorher: ${chargenVorherCount}, nachher: ${chargenNachBrigadeCount}`,
+  );
+
+  // Unvollstaendige Zeile (ernte_datum fehlt) wird abgewiesen, bevor
+  // irgendetwas geschrieben wird - auch mit vollem Schreibrecht.
+  const { error: importUnvollstaendigFehler } = await leitung.rpc("zukauf_positionen_importieren", {
+    p_zeilen: [{ nachbarbetrieb_id: nbNeu.id, sorte_id: sortePolka.id, menge_kg: 5 }],
+  });
+  check(
+    "Zukauf-RPC: unvollstaendige Zeile (ernte_datum fehlt) wird abgewiesen",
+    importUnvollstaendigFehler?.code === "23502",
+    importUnvollstaendigFehler?.code ?? "kein Fehler",
+  );
+
+  // Erfolgreicher Import mit zwei Zeilen durch die Betriebsleitung.
+  const { data: importAnzahl, error: importFehler } = await leitung.rpc(
+    "zukauf_positionen_importieren",
+    {
+      p_zeilen: [
+        { nachbarbetrieb_id: nbNeu.id, sorte_id: sortePolka.id, menge_kg: 88, ernte_datum: "2026-09-05" },
+        { nachbarbetrieb_id: nbNeu.id, sorte_id: sortePolana.id, menge_kg: 33, ernte_datum: "2026-09-06" },
+      ],
+    },
+  );
+  check(
+    "Zukauf-RPC: Betriebsleitung importiert zwei Zeilen atomar",
+    !importFehler && importAnzahl === 2,
+    importFehler?.message ?? `Rueckgabe: ${importAnzahl}`,
+  );
+
+  const { data: importiertePositionen } = await admin
+    .from("zukauf_positionen")
+    .select("id, menge_kg, preis_tenge_kg, charge_id, chargen ( code, status, reihenblock_id, ernte_datum )")
+    .eq("nachbarbetrieb_id", nbNeu.id)
+    .in("menge_kg", [88, 33]);
+  check(
+    "Zukauf-RPC: legt je Zeile eine Zukaufposition ohne Preis an, verknuepft mit einer neuen Charge",
+    importiertePositionen?.length === 2 &&
+      importiertePositionen.every((p) => p.preis_tenge_kg === null && !!p.charge_id),
+    JSON.stringify(importiertePositionen),
+  );
+  const importierteChargen = (importiertePositionen ?? [])
+    .map((p) => (Array.isArray(p.chargen) ? p.chargen[0] : p.chargen))
+    .filter(Boolean);
+  check(
+    "Zukauf-RPC: jede neue Charge ist offen, ohne Reihenblock (eigene Charge je Fremdbetrieb) und mit code-Praefix ZUK-",
+    importierteChargen.length === 2 &&
+      importierteChargen.every(
+        (c) => c.status === "offen" && c.reihenblock_id === null && c.code.startsWith("ZUK-"),
+      ),
+    JSON.stringify(importierteChargen),
+  );
+  check(
+    "Zukauf-RPC: ernte_datum der Charge entspricht dem CSV-Datum der jeweiligen Zeile",
+    importierteChargen.some((c) => c.ernte_datum === "2026-09-05") &&
+      importierteChargen.some((c) => c.ernte_datum === "2026-09-06"),
+    JSON.stringify(importierteChargen.map((c) => c.ernte_datum)),
+  );
+
+  // Cleanup: alles, was dieser Testlauf unter dem Testbetrieb angelegt hat.
+  const { data: zukaufTestPositionen } = await admin
+    .from("zukauf_positionen")
+    .select("id, charge_id")
+    .eq("nachbarbetrieb_id", nbNeu.id);
+  const zukaufTestChargeIds = (zukaufTestPositionen ?? []).map((p) => p.charge_id).filter(Boolean);
+  await admin.from("zukauf_positionen").delete().eq("nachbarbetrieb_id", nbNeu.id);
+  if (zukaufTestChargeIds.length > 0) {
+    await admin.from("chargen").delete().in("id", zukaufTestChargeIds);
+  }
+  await admin.from("nachbarbetriebe").delete().eq("id", nbNeu.id);
 }
 
 console.log("");

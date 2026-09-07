@@ -796,7 +796,9 @@
       "reklamationNachricht": "Mesaj eklendi.",
       "lohnSatz": "{wert} tarihinden itibaren geçerli ücret oranı eklendi.",
       "lohnBerechnet": "{wert} bordro hesaplandı - zaten onaylanmış veya ödenmiş satırlar değişmeden kalır.",
-      "lohnStatus": "{wert} için bordro güncellendi."
+      "lohnStatus": "{wert} için bordro güncellendi.",
+      "zukaufImport": "{wert} pozisyon içe aktarıldı.",
+      "zukaufPreis": "Fiyat eklendi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -812,7 +814,8 @@
       "unbekannt": "İşlem başarısız. Ayrıntılar sunucu kaydında.",
       "keineCharge": "Bu göreve ait bir parti yok.",
       "kuehlkette": "Sınır aşıldı: ölçüme kadar {wert} dakika. Ürünün değeri düşürülmeli.",
-      "keinKunde": "Hesabınıza bağlı bir B2B müşterisi yok. Lütfen yönetimle iletişime geçin."
+      "keinKunde": "Hesabınıza bağlı bir B2B müşterisi yok. Lütfen yönetimle iletişime geçin.",
+      "zukaufBefunde": "Girişte {wert} hata bulundu - hiçbir şey içe aktarılmadı. Aşağıdaki kontrol sonuçlarına bakın."
     }
   },
   "standortVerwaltung": {
@@ -1311,6 +1314,67 @@
         "periodeEnde": "Dönem bitişi",
         "knopf": "Dönemi hesapla"
       }
+    }
+  },
+  "zukaufAnsicht": {
+    "statsTitle": "Toplu alım genel bakış",
+    "statsLead": "Komşu çiftliklerden kaydedilen tüm alım kalemlerine ait rakamlar.",
+    "stat": {
+      "positionen": "Kalemler",
+      "menge": "Toplam miktar",
+      "nachbarbetriebe": "Komşu çiftlikler",
+      "offenePreise": "Fiyat bekleniyor",
+      "offenePreiseHinweis": "Komşu çiftliğin faturası henüz gelmedi."
+    },
+    "listTitle": "Alım kalemleri",
+    "listLead": "Her kalem, sıra bloğu olmadan kendi partisini taşır - ayrı köken takibi, teslim eden çiftliğe kadar izlenebilir.",
+    "empty": "Henüz bir alım kalemi kaydedilmedi.",
+    "col": {
+      "nachbarbetrieb": "Komşu çiftlik",
+      "sorte": "Çeşit",
+      "charge": "Parti",
+      "menge": "Miktar",
+      "erntedatum": "Tarih",
+      "preis": "Fiyat",
+      "rechnungsdatum": "Fatura tarihi"
+    },
+    "preisOffen": "Fiyat bekleniyor",
+    "keinRecht": "Rolünüz toplu alımı görüntüleyebilir, ancak içe aktaramaz veya fiyat ekleyemez. Bu yalnızca yönetim ve idareye aittir.",
+    "note": "Miktar, çeşit, tarih ve komşu çiftlik CSV içe aktarımından gelir. Fiyat, içe aktarma sırasında bilerek boş bırakılır - komşu çiftliğin faturası geldiğinde eklenir. Komşu çiftliğin kendisi için bir self-servis girişi henüz bağlanmadı.",
+    "import": {
+      "titel": "Toplu alımı içe aktar",
+      "lead": "Miktar, çeşit, tarih ve komşu çiftliği yapıştırın - her teslimat için bir satır. Ayırıcı ve başlık dili otomatik olarak algılanır.",
+      "hilfe": "Zorunlu sütunlar: miktar (kg), çeşit, tarih, komşu çiftlik. Bilinmeyen çeşit veya çiftlik adları otomatik olarak oluşturulmaz.",
+      "bekannteBetriebe": "Bilinen komşu çiftlikler",
+      "bekannteSorten": "Bilinen çeşitler",
+      "feldLabel": "CSV verisi",
+      "platzhalter": "menge;sorte;datum;nachbarbetrieb\n210;Polka;2026-09-01;Nachbarbetrieb Kaskelen",
+      "knopf": "Kontrol et ve içe aktar",
+      "befundeTitle": "Kontrol sonucu",
+      "spalteAllgemein": "genel",
+      "spalte": {
+        "menge": "Miktar",
+        "sorte": "Çeşit",
+        "datum": "Tarih",
+        "nachbarbetrieb": "Komşu çiftlik"
+      },
+      "befund": {
+        "empty": "Girişte satır yok.",
+        "column_missing": "\"{spalte}\" sütunu tanınmadı.",
+        "required_missing": "Satır {zeile}: zorunlu \"{spalte}\" değeri eksik.",
+        "value_format": "Satır {zeile}: \"{spalte}\" değeri tanınmıyor: {wert}",
+        "value_range": "Satır {zeile}: \"{spalte}\" değeri geçerli aralığın dışında: {wert}",
+        "value_suspicious": "Satır {zeile}: \"{spalte}\" değeri alışılmadık, yine de içe aktarıldı: {wert}",
+        "unknown_reference": "Satır {zeile}: \"{wert}\", \"{spalte}\" için bilinmiyor ve otomatik olarak oluşturulmuyor.",
+        "duplicate_verdacht": "Satır {zeile}: satır {wert} ile eşleşiyor - muhtemelen mükerrer kayıt, yine de içe aktarıldı.",
+        "no_rows": "Kullanılabilir veri satırı bulunamadı.",
+        "summary": "{wert}"
+      }
+    },
+    "preisNachtragen": {
+      "preis": "Fiyat (₸/kg)",
+      "rechnungsdatum": "Fatura tarihi",
+      "knopf": "Kaydet"
     }
   }
 }

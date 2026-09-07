@@ -2174,7 +2174,7 @@ export type Database = {
           id: string
           menge_kg: number
           nachbarbetrieb_id: string
-          preis_tenge_kg: number
+          preis_tenge_kg: number | null
           rechnungsdatum: string | null
           sorte_id: string | null
         }
@@ -2184,7 +2184,7 @@ export type Database = {
           id?: string
           menge_kg: number
           nachbarbetrieb_id: string
-          preis_tenge_kg: number
+          preis_tenge_kg?: number | null
           rechnungsdatum?: string | null
           sorte_id?: string | null
         }
@@ -2194,7 +2194,7 @@ export type Database = {
           id?: string
           menge_kg?: number
           nachbarbetrieb_id?: string
-          preis_tenge_kg?: number
+          preis_tenge_kg?: number | null
           rechnungsdatum?: string | null
           sorte_id?: string | null
         }
@@ -2297,6 +2297,10 @@ export type Database = {
           wartezeit_tage: number
           wirkstoff: string
         }[]
+      }
+      zukauf_positionen_importieren: {
+        Args: { p_zeilen: Json }
+        Returns: number
       }
     }
     Enums: {
