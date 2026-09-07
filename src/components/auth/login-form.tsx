@@ -46,7 +46,7 @@ export function LoginForm({ weiter }: { weiter?: string }) {
           type="email"
           autoComplete="email"
           required
-          placeholder="leitung@malina.demo"
+          placeholder="leitung@damicon.demo"
           className="h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground outline-none transition focus:border-primary"
         />
       </div>

@@ -329,7 +329,7 @@ where not exists (
 insert into public.b2b_kunden (name, kontakt) values
   ('Handelskette A', 'Einkauf Frischeobst'),
   ('Gastro-Distributor Almaty', 'Beschaffung'),
-  -- Firma des kunde@malina.demo-Demokontos (siehe supabase/seed-auth.mjs) -
+  -- Firma des kunde@damicon.demo-Demokontos (siehe supabase/seed-auth.mjs) -
   -- die Verknuepfung profiles.b2b_kunde_id zeigt auf diese Zeile.
   ('Almaty Fresh Market', 'Einkauf Frischware')
   on conflict do nothing;

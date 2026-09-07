@@ -28,13 +28,13 @@ function zeigeDemoZugaenge(): boolean {
 }
 
 const demoKonten: Record<string, string> = {
-  admin: "admin@malina.demo",
-  betriebsleitung: "leitung@malina.demo",
-  buchhaltung: "buchhaltung@malina.demo",
-  brigade: "brigade@malina.demo",
-  picker: "pfluecker@malina.demo",
-  erzeuger: "erzeuger@malina.demo",
-  kunde: "kunde@malina.demo",
+  admin: "admin@damicon.demo",
+  betriebsleitung: "leitung@damicon.demo",
+  buchhaltung: "buchhaltung@damicon.demo",
+  brigade: "brigade@damicon.demo",
+  picker: "pfluecker@damicon.demo",
+  erzeuger: "erzeuger@damicon.demo",
+  kunde: "kunde@damicon.demo",
 };
 
 export default async function LoginPage({
@@ -134,7 +134,7 @@ export default async function LoginPage({
               <p className="mt-3 rounded-lg bg-muted/50 px-2.5 py-1.5 text-[11px] text-muted-foreground">
                 {t("demoPassword")}{" "}
                 <span className="font-mono font-semibold text-foreground">
-                  MalinaDemo2026!
+                  DamiconDemo2026!
                 </span>
               </p>
             </div>

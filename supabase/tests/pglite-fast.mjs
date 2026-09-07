@@ -112,12 +112,12 @@ let leitungAuthId, brigadeAuthId, blockId;
 {
   const { rows: leitung } = await db.query(
     `insert into auth.users (email, raw_app_meta_data)
-     values ('it-leitung@malina.demo', '{"role":"betriebsleitung"}'::jsonb)
+     values ('it-leitung@damicon.demo', '{"role":"betriebsleitung"}'::jsonb)
      returning id;`,
   );
   const { rows: brigade } = await db.query(
     `insert into auth.users (email, raw_app_meta_data)
-     values ('it-brigade@malina.demo', '{"role":"brigade"}'::jsonb)
+     values ('it-brigade@damicon.demo', '{"role":"brigade"}'::jsonb)
      returning id;`,
   );
   leitungAuthId = leitung[0].id;
