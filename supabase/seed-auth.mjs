@@ -34,6 +34,10 @@ const demoBenutzer = [
   { email: "leitung@malina.demo", role: "betriebsleitung", full_name: "Daniyar Omarov" },
   { email: "buchhaltung@malina.demo", role: "buchhaltung", full_name: "Saltanat Nurlan" },
   { email: "brigade@malina.demo", role: "brigade", full_name: "Ruslan Beisenov" },
+  // Rolle picker (Anforderung 7.1, neu): sieht ausschliesslich die eigene
+  // Leistung. Der Name ist bewusst der des verknuepften Pfluecker-Stammsatzes
+  // (siehe unten), nicht frei erfunden - beides muss zusammenpassen.
+  { email: "pfluecker@malina.demo", role: "picker", full_name: "D. Sarsenbaj" },
   { email: "erzeuger@malina.demo", role: "erzeuger", full_name: "Rashid Baitulin" },
   { email: "kunde@malina.demo", role: "kunde", full_name: "Almaty Fresh Market" },
 ];
@@ -146,6 +150,26 @@ async function main() {
       .from("profiles")
       .update({ b2b_kunde_id: b2bKunde.id })
       .eq("email", "kunde@malina.demo");
+  }
+
+  // Die picker-Rolle bekommt eine echte Pfluecker-Zuordnung (Anforderung
+  // 7.1) - ohne sie sieht "pfluecker@malina.demo" keine einzige eigene
+  // Abrechnung, weil RLS ausschliesslich ueber profiles.pfluecker_id filtert
+  // (Migration 20260909010000). Ausweis MAL-0417 traegt bereits eine
+  // vorseedete Abrechnung (Status "entwurf", siehe Abschnitt "Lohn" in
+  // supabase/seed.sql) - direkt nach db:reset sichtbar, ohne dass die
+  // Buchhaltung vorher "Periode berechnen" auslösen muss.
+  const { data: pfluecker } = await admin
+    .from("pfluecker")
+    .select("id")
+    .eq("ausweis", "MAL-0417")
+    .maybeSingle();
+
+  if (pfluecker) {
+    await admin
+      .from("profiles")
+      .update({ pfluecker_id: pfluecker.id })
+      .eq("email", "pfluecker@malina.demo");
   }
 
   console.log(

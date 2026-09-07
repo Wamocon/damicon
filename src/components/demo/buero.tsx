@@ -75,47 +75,6 @@ export function RollenDemo() {
   );
 }
 
-export function FinanzenDemo() {
-  const t = useTranslations("finanzenDemo");
-  const rows = [
-    { block: "T-N-A-01", sorte: "Polka", erntetag: "2026-08-30", erloes: "108 780 ₸", kosten: "41 200 ₸", db: "67 580 ₸" },
-    { block: "T-N-A-03", sorte: "Polka", erntetag: "2026-08-29", erloes: "92 820 ₸", kosten: "38 900 ₸", db: "53 920 ₸" },
-    { block: "T-O-A-01", sorte: "Polana", erntetag: "2026-08-31", erloes: "61 500 ₸", kosten: "27 300 ₸", db: "34 200 ₸" },
-    { block: "K-A-01", sorte: "Polka (Zukauf)", erntetag: "2026-08-30", erloes: "54 600 ₸", kosten: "44 100 ₸", db: "10 500 ₸" },
-  ];
-
-  return (
-    <div className="space-y-6">
-      <Section title={t("dbTitle")} description={t("dbLead")}>
-        <DataTable
-          head={[
-            t("col.block"),
-            t("col.sorte"),
-            t("col.erntetag"),
-            t("col.erloes"),
-            t("col.kosten"),
-            t("col.db"),
-          ]}
-        >
-          {rows.map((row) => (
-            <tr key={row.block}>
-              <td className="px-3 py-2.5 font-mono text-xs font-semibold">{row.block}</td>
-              <td className="px-3 py-2.5 text-muted-foreground">{row.sorte}</td>
-              <td className="px-3 py-2.5 text-muted-foreground">{row.erntetag}</td>
-              <td className="px-3 py-2.5 text-muted-foreground">{row.erloes}</td>
-              <td className="px-3 py-2.5 text-muted-foreground">{row.kosten}</td>
-              <td className="px-3 py-2.5 font-semibold text-success">{row.db}</td>
-            </tr>
-          ))}
-        </DataTable>
-      </Section>
-      <Card className="bg-muted/30 text-xs leading-5 text-muted-foreground">
-        {t("note")}
-      </Card>
-    </div>
-  );
-}
-
 export function PersonalDemo() {
   const t = useTranslations("personalDemo");
   return (

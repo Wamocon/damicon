@@ -286,9 +286,14 @@ auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 max_enrolled_factors = 10
 
 # Control MFA via App Authenticator (TOTP)
+# Anforderung 4.9 (P0): Mehrfaktor-Authentifizierung. Nur TOTP (Authenticator-
+# App) - Phone/SMS bleibt aus, dafuer fehlt eine Anbindung an einen lokalen
+# SMS-Anbieter. Auf dem gehosteten Projekt ist MFA laut Supabase an den
+# Pro-Plan gebunden (siehe Kommentar oben an [auth.mfa]) - vor dem Deploy dort
+# pruefen, ob der Tarif das traegt.
 [auth.mfa.totp]
-enroll_enabled = false
-verify_enabled = false
+enroll_enabled = true
+verify_enabled = true
 
 # Configure MFA via Phone Messaging
 [auth.mfa.phone]

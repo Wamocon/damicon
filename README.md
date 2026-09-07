@@ -53,7 +53,7 @@ npm run db:reset        # Migrationen + Seed + Demo-Benutzer
 npm run dev
 ```
 
-Anmeldung unter `/de/login`. Die sechs Demo-Konten werden von `npm run db:seed-auth`
+Anmeldung unter `/de/login`. Die sieben Demo-Konten werden von `npm run db:seed-auth`
 angelegt - je Rolle eines, Passwort für alle `MalinaDemo2026!`:
 
 | Rolle | Konto |
@@ -62,8 +62,15 @@ angelegt - je Rolle eines, Passwort für alle `MalinaDemo2026!`:
 | Betriebsleitung | `leitung@malina.demo` |
 | Buchhaltung | `buchhaltung@malina.demo` |
 | Brigade / Feld | `brigade@malina.demo` |
+| Pflücker | `pfluecker@malina.demo` |
 | Erzeuger | `erzeuger@malina.demo` |
 | Kunde | `kunde@malina.demo` |
+
+Mehrfaktor-Authentifizierung (TOTP) ist optional je Konto - einrichten unter
+`/de/dashboard/sicherheit`. Ist ein Faktor aktiv, verlangt sowohl der Login als
+auch jeder direkte Aufruf von `/dashboard/*` zusätzlich zum Passwort den
+6-stelligen Code (`src/proxy.ts`, AAL-Prüfung über
+`supabase.auth.mfa.getAuthenticatorAssuranceLevel()`).
 
 ## Struktur
 
@@ -73,7 +80,7 @@ angelegt - je Rolle eines, Passwort für alle `MalinaDemo2026!`:
 | `src/app/[locale]/login/` | Anmeldung und Server Actions für An-/Abmeldung |
 | `src/app/[locale]/dashboard/` | Dashboard-Shell + Zonen `feld`, `hof`, `buero`, `markt` |
 | `src/lib/modules.ts` | Zonen- und Modul-Registry (Reifegrad, Klassifikation) |
-| `src/lib/rbac.ts` | Sechs Kernrollen und Rechtematrix |
+| `src/lib/rbac.ts` | Sieben Kernrollen und Rechtematrix |
 | `src/lib/auth.ts` | Session, Profil und Berechtigungsprüfung für Server Actions |
 | `src/lib/data/` | Datenbankabfragen mit Rückfall auf die Beispieldaten |
 | `src/lib/actions/` | Server Actions (Schreibvorgänge, jeweils RBAC- und RLS-geprüft) |
@@ -104,9 +111,17 @@ API-Zugriff und lassen sich durch kein Formular umgehen:
   `kuehlkette_bewerten` aus dem Pflückzeitpunkt - nicht das Formular.
 - **Rollen:** Die Rolle eines neuen Zugangs kommt aus `app_metadata`
   (nur service_role) und lässt sich vom eigenen Profil aus nicht anheben.
+  Dasselbe gilt für die Zuordnung zu Brigade, B2B-Kunde und Pflückerstamm
+  (`profil_zuordnung_schuetzen`) - nur das Büro darf sie setzen, sonst liesse
+  sich fremde Lohn- bzw. Reklamationssicht erschleichen.
 - **Append-only:** Finanzjournal und Audit-Protokoll lassen sich weder ändern
   noch löschen (`block_ledger_mutation`); der Urheber im Protokoll wird
   serverseitig gesetzt (`audit_actor_setzen`).
+- **Eigene Leistung statt Betriebssicht:** Die Rolle `picker` sieht im
+  Lohn-Modul ausschliesslich die eigene Abrechnung
+  (`lohn_abrechnungen_select_own`, `lohn_positionen_select_own`) - dieselbe
+  Seite wie Betriebsleitung/Buchhaltung, nur RLS-gefiltert auf
+  `profiles.pfluecker_id`.
 
 ## Kennzahlen
 
@@ -127,7 +142,7 @@ die Wartezeit eingehalten?
 | `npm run lint` | ESLint |
 | `npm run verify` | typecheck + lint + build |
 | `npm run db:reset` | Datenbank zurücksetzen: Migrationen, Seed, Demo-Benutzer |
-| `npm run db:seed-auth` | Nur die sechs Demo-Benutzer anlegen bzw. auffrischen |
+| `npm run db:seed-auth` | Nur die sieben Demo-Benutzer anlegen bzw. auffrischen |
 | `npm run db:types` | TypeScript-Typen aus dem lokalen Schema erzeugen |
 | `npm run db:test` | Integrationstests: Round-Trip, RLS je Rolle, Sperrlogik (braucht laufendes lokales Supabase) |
 | `npm run db:test:fast` | Dieselbe Art Fachregeln gegen PGlite statt Docker - kein `supabase start` nötig, für den schnellen Zwischenstand während der Entwicklung; ersetzt `db:test` nicht |

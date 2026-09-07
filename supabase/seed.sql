@@ -406,16 +406,21 @@ insert into public.schulungsvideos (titel, thema, dauer_sekunden, sprachen) valu
   on conflict do nothing;
 
 -- --- Finanzen: Kostentraeger + Ledger ------------------------------------
-insert into public.kostentraeger (reihenblock_id, sorte_id, erntetag, bezeichnung)
-select rb.id, s.id, v.tag::date, v.code || ' / ' || v.tag
+-- b2b_kunde_id (Migration 20260909000000, Anforderung 4.2): derselbe Kunde
+-- wie in der zugehoerigen Ledger-Buchung unten ("Lieferung Handelskette A"
+-- usw.) - der Zukauf-Kostentraeger K-A-01 bleibt ohne Kunde, weil die
+-- Weiterverkaufsseite dort noch nicht aufgeloest ist.
+insert into public.kostentraeger (reihenblock_id, sorte_id, b2b_kunde_id, erntetag, bezeichnung)
+select rb.id, s.id, k.id, v.tag::date, v.code || ' / ' || v.tag
 from (values
-  ('T-N-A-01','Polka','2026-08-30'),
-  ('T-N-A-03','Polka','2026-08-29'),
-  ('T-O-A-01','Polana','2026-08-31'),
-  ('K-A-01','Polka','2026-08-30')
-) as v(code, sorte, tag)
+  ('T-N-A-01','Polka','Handelskette A','2026-08-30'),
+  ('T-N-A-03','Polka','Handelskette A','2026-08-29'),
+  ('T-O-A-01','Polana','Gastro-Distributor Almaty','2026-08-31'),
+  ('K-A-01','Polka',null,'2026-08-30')
+) as v(code, sorte, kunde, tag)
 join public.reihenbloecke rb on rb.code = v.code
 join public.sorten s on s.name = v.sorte
+left join public.b2b_kunden k on k.name = v.kunde
 on conflict (reihenblock_id, sorte_id, erntetag) do nothing;
 
 insert into public.finance_ledger_entries (kostentraeger_id, typ, kategorie, betrag_tenge, buchungsdatum, beschreibung)

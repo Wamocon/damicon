@@ -651,6 +651,13 @@ export type Database = {
             foreignKeyName: "finance_ledger_entries_kostentraeger_id_fkey"
             columns: ["kostentraeger_id"]
             isOneToOne: false
+            referencedRelation: "deckungsbeitrag_je_kostentraeger"
+            referencedColumns: ["kostentraeger_id"]
+          },
+          {
+            foreignKeyName: "finance_ledger_entries_kostentraeger_id_fkey"
+            columns: ["kostentraeger_id"]
+            isOneToOne: false
             referencedRelation: "kostentraeger"
             referencedColumns: ["id"]
           },
@@ -808,6 +815,7 @@ export type Database = {
       }
       kostentraeger: {
         Row: {
+          b2b_kunde_id: string | null
           bezeichnung: string
           created_at: string
           erntetag: string | null
@@ -816,6 +824,7 @@ export type Database = {
           sorte_id: string | null
         }
         Insert: {
+          b2b_kunde_id?: string | null
           bezeichnung: string
           created_at?: string
           erntetag?: string | null
@@ -824,6 +833,7 @@ export type Database = {
           sorte_id?: string | null
         }
         Update: {
+          b2b_kunde_id?: string | null
           bezeichnung?: string
           created_at?: string
           erntetag?: string | null
@@ -832,6 +842,13 @@ export type Database = {
           sorte_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "kostentraeger_b2b_kunde_id_fkey"
+            columns: ["b2b_kunde_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_kunden"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "kostentraeger_reihenblock_id_fkey"
             columns: ["reihenblock_id"]
@@ -1590,6 +1607,7 @@ export type Database = {
           email: string | null
           full_name: string
           id: string
+          pfluecker_id: string | null
           role: Database["public"]["Enums"]["app_role"]
           updated_at: string
         }
@@ -1601,6 +1619,7 @@ export type Database = {
           email?: string | null
           full_name: string
           id?: string
+          pfluecker_id?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
         }
@@ -1612,6 +1631,7 @@ export type Database = {
           email?: string | null
           full_name?: string
           id?: string
+          pfluecker_id?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           updated_at?: string
         }
@@ -1628,6 +1648,13 @@ export type Database = {
             columns: ["b2b_kunde_id"]
             isOneToOne: false
             referencedRelation: "b2b_kunden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_pfluecker_id_fkey"
+            columns: ["pfluecker_id"]
+            isOneToOne: false
+            referencedRelation: "pfluecker"
             referencedColumns: ["id"]
           },
         ]
@@ -2227,7 +2254,21 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      deckungsbeitrag_je_kostentraeger: {
+        Row: {
+          b2b_kunde_name: string | null
+          bezeichnung: string | null
+          buchungen: number | null
+          deckungsbeitrag_tenge: number | null
+          erloes_tenge: number | null
+          erntetag: string | null
+          kosten_tenge: number | null
+          kostentraeger_id: string | null
+          reihenblock_code: string | null
+          sorte_name: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       current_app_role: {
@@ -2325,6 +2366,7 @@ export type Database = {
         | "betriebsleitung"
         | "buchhaltung"
         | "brigade"
+        | "picker"
         | "erzeuger"
         | "kunde"
       beleg_art: "schale" | "reihenblock" | "steige"
@@ -2519,6 +2561,7 @@ export const Constants = {
         "betriebsleitung",
         "buchhaltung",
         "brigade",
+        "picker",
         "erzeuger",
         "kunde",
       ],

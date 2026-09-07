@@ -160,7 +160,12 @@ export const modules: ModuleDef[] = [
     icon: "coins",
     resource: "finanzen",
     klassifikation: "anpassen",
-    reifegrad: "demo",
+    // Anforderung 4.2 (P0): Kostentraeger und Ledger-Buchungen laufen jetzt
+    // ueber echte Schreibpfade unter RLS (Migration 20260909000000), der
+    // Deckungsbeitrag kommt aus der Datenbank-View
+    // deckungsbeitrag_je_kostentraeger - kein Mock mehr, siehe
+    // src/components/db/finanzen-ansicht.tsx.
+    reifegrad: "angebunden",
   },
   {
     key: "personal",

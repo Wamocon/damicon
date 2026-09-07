@@ -233,7 +233,38 @@
     "demoModeTitle": "Demo-Modus ohne Datenbank",
     "demoModeLead": "Es ist keine Supabase-Umgebung hinterlegt. Das Dashboard läuft mit Beispieldaten, die Rolle lässt sich frei umschalten.",
     "toDashboard": "Zum Dashboard",
-    "signOut": "Abmelden"
+    "signOut": "Abmelden",
+    "security": "Sicherheit",
+    "mfaChallenge": {
+      "title": "Zweiter Faktor",
+      "lead": "Für dieses Konto ist ein zweiter Faktor eingerichtet. Bitte den aktuellen Code aus der Authenticator-App eingeben.",
+      "codeLabel": "6-stelliger Code",
+      "submit": "Bestätigen",
+      "submitting": "Wird geprüft ...",
+      "error": {
+        "code": "Der Code ist falsch oder abgelaufen.",
+        "unbekannt": "Prüfung fehlgeschlagen. Bitte später erneut versuchen."
+      }
+    }
+  },
+  "mfa": {
+    "title": "Sicherheit",
+    "description": "Mehrfaktor-Authentifizierung (Anforderung 4.9). Ein zweiter Faktor über eine Authenticator-App schützt das Konto, falls das Passwort bekannt wird.",
+    "keineUmgebung": "Ohne Supabase-Umgebung gibt es kein echtes Konto - die Mehrfaktor-Authentifizierung greift erst mit Anmeldung.",
+    "faktorenTitel": "Eingerichtete Faktoren",
+    "faktorenLead": "Ein TOTP-Faktor genügt. Mehrere sind möglich, etwa für ein Ersatzgerät.",
+    "keinFaktor": "Noch kein zweiter Faktor eingerichtet.",
+    "nichtGeschuetzt": "ungeschützt",
+    "entfernen": "Entfernen",
+    "hinzufuegenKnopf": "Zweiten Faktor einrichten",
+    "schrittZweiTitel": "Authenticator-App verbinden",
+    "schrittZweiLead": "QR-Code mit der Authenticator-App scannen (z. B. Google Authenticator, Authy) oder das Secret manuell eingeben, dann den angezeigten 6-stelligen Code bestätigen.",
+    "qrAlt": "QR-Code für die Authenticator-App",
+    "qrHinweis": "Kein Scanner zur Hand? Das Secret manuell in der App eintragen:",
+    "codeLabel": "Code aus der App",
+    "bestaetigenKnopf": "Bestätigen",
+    "erfolg": "Zweiter Faktor eingerichtet und aktiv.",
+    "note": "Bei der nächsten Anmeldung wird der Code zusätzlich zum Passwort abgefragt. Ohne eingerichteten Faktor bleibt die Anmeldung wie bisher - Mehrfaktor-Authentifizierung ist Pflicht für Anforderung 4.9, ihre Durchsetzung je Rolle ist ein späterer Ausbauschritt."
   },
   "dashboard": {
     "searchPlaceholder": "Reihenblock, Charge, Pflücker, Dokument suchen ...",
@@ -249,7 +280,7 @@
       "fehlerHint": "Die Abfrage ist fehlgeschlagen. Angezeigt werden ersatzweise Beispieldaten - sie stammen nicht aus dem Betrieb."
     },
     "rbacHintLabel": "Rollen",
-    "rbacHint": "Welche Module sichtbar sind, hängt von der Rolle des angemeldeten Kontos ab. Sechs Kernrollen von der Administration bis zur Brigade im Feld - dieselbe Rolle entscheidet auch in der Datenbank über Lese- und Schreibrechte.",
+    "rbacHint": "Welche Module sichtbar sind, hängt von der Rolle des angemeldeten Kontos ab. Sieben Kernrollen von der Administration bis zum einzelnen Pflücker im Feld - dieselbe Rolle entscheidet auch in der Datenbank über Lese- und Schreibrechte.",
     "home": {
       "eyebrow": "Betriebssteuerung",
       "title": "Betriebsübersicht Damicon",
@@ -277,7 +308,7 @@
       "milestoneBName": "Meilenstein B - Grundgerüst mit echten Hauptfunktionen",
       "milestoneBDue": "spätestens 19.09.2026",
       "milestoneBItems": {
-        "rbac": "Rollen und Rechte mit sechs Kernrollen und Rechtematrix",
+        "rbac": "Rollen und Rechte mit sieben Kernrollen und Rechtematrix",
         "hierarchy": "Standort-Hierarchie Betrieb, Plantage, Feldparzelle, Reihengruppe, Reihenblock inklusive Verwaltung",
         "status": "Reihenblock-Statusverwaltung inklusive Sperrzustand nach Pflanzenschutzbehandlung",
         "tasks": "Pflückaufgaben mit Fotobeleg der Verkaufsschale, je Brigade und Reihenblock",
@@ -299,6 +330,7 @@
     "betriebsleitung": "Betriebsleitung",
     "buchhaltung": "Buchhaltung",
     "brigade": "Brigade / Feld",
+    "picker": "Pflücker",
     "erzeuger": "Erzeuger / Nachbarbetrieb",
     "kunde": "B2B-Kunde",
     "descriptions": {
@@ -306,6 +338,7 @@
       "betriebsleitung": "Täglicher Plantagenbetrieb, Aufgaben, Rotation, Personal und Freigaben. Kann Finanzen einsehen, aber nicht buchen.",
       "buchhaltung": "Deckungsbeitrag, Lohn, Zahlungen, staatliche Meldungen. Keine Nutzerverwaltung, keine Feldabschlüsse.",
       "brigade": "Nimmt Pflückaufgaben an, erfasst Menge und Fotobeleg im Feld, sieht Rotation und Wartezeitsperren.",
+      "picker": "Sieht ausschließlich die eigene Pflückleistung und Lohnabrechnung. Keine Schreibrechte auf gebuchte Mengen oder auf Daten anderer.",
       "erzeuger": "Nachbarbetrieb im Zukauf. Sieht eigene Reihenblöcke, Chargen, Abrechnung und Verträge.",
       "kunde": "Kontingente, Vorbestellung, Preislisten, KI-Chat, freigegebene Dokumente und eigene Reklamationen."
     }
@@ -466,7 +499,7 @@
     },
     "rollen": {
       "title": "Rollen und Rechte",
-      "description": "Sechs Kernrollen von der Administration über Betriebsleitung und Buchhaltung bis zur Brigade im Feld, dem Erzeuger und dem B2B-Kunden - mit einer Rechtematrix über Ressourcen und Aktionen.",
+      "description": "Sieben Kernrollen von der Administration über Betriebsleitung und Buchhaltung bis zur Brigade und dem einzelnen Pflücker im Feld, dem Erzeuger und dem B2B-Kunden - mit einer Rechtematrix über Ressourcen und Aktionen.",
       "summary": "Rollen als klare Datenstruktur über Ressourcen mal Aktionen. Neue Rollen ohne Eingriff in die Logik.",
       "todo": "Nutzerverwaltung, Rollenzuweisung, feingranulare Zugriffsregeln je Ressource."
     },
@@ -640,7 +673,10 @@
       "lohnBerechnet": "{wert} Abrechnung(en) berechnet - bereits freigegebene oder ausgezahlte Zeilen bleiben unverändert.",
       "lohnStatus": "Abrechnung von {wert} aktualisiert.",
       "zukaufImport": "{wert} Position(en) importiert.",
-      "zukaufPreis": "Preis nachgetragen."
+      "zukaufPreis": "Preis nachgetragen.",
+      "kostentraeger": "Kostenträger \"{wert}\" angelegt.",
+      "buchung": "Buchung \"{wert}\" erfasst.",
+      "mfaEntfernt": "Zweiter Faktor entfernt."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -657,7 +693,8 @@
       "keineCharge": "Zu dieser Aufgabe gehört keine Charge.",
       "kuehlkette": "Grenzwert gerissen: {wert} Minuten bis zur Messung. Die Ware ist abzuwerten.",
       "keinKunde": "Ihrem Zugang ist kein B2B-Kunde zugeordnet. Bitte an die Administration wenden.",
-      "zukaufBefunde": "{wert} Fehler in der Eingabe gefunden - nichts wurde übernommen. Siehe Prüfergebnis unten."
+      "zukaufBefunde": "{wert} Fehler in der Eingabe gefunden - nichts wurde übernommen. Siehe Prüfergebnis unten.",
+      "code": "Der Code ist falsch oder abgelaufen. Bitte den aktuellen 6-stelligen Code aus der Authenticator-App eingeben."
     }
   },
   "standortVerwaltung": {
@@ -818,8 +855,8 @@
     "note": "Weil jeder Block alle zwei bis drei Tage abgepflückt wird, während der Bestand weiter behandelt werden muss, kann ein Block versehentlich innerhalb der Wartezeit geerntet werden. Genau das verhindert die automatische Sperre."
   },
   "rollenDemo": {
-    "rolesTitle": "Sechs Kernrollen",
-    "rolesLead": "Administration, Betriebsleitung, Buchhaltung, Brigade im Feld, Erzeuger und B2B-Kunde. Jede Rolle sieht genau die Module, die sie braucht.",
+    "rolesTitle": "Sieben Kernrollen",
+    "rolesLead": "Administration, Betriebsleitung, Buchhaltung, Brigade im Feld, Pflücker, Erzeuger und B2B-Kunde. Jede Rolle sieht genau die Module, die sie braucht.",
     "scope": "Bereich",
     "matrixTitle": "Rechtematrix (Auszug, Aktion ansehen)",
     "matrixLead": "Rollen mal Ressourcen - eine klare Datenstruktur, die neue Rollen ohne Eingriff in die Logik erlaubt.",
@@ -827,18 +864,66 @@
     "matrixNote": "Vollständige Matrix über alle Ressourcen und Aktionen. Die Zugriffsregeln auf Datenbankebene werden je Ressource einzeln geschrieben.",
     "note": "Identitäten und Rollen liegen quer über allen vier Bereichen - zusammen mit Protokollierung, Verschlüsselung und Mehrfaktor-Authentifizierung."
   },
-  "finanzenDemo": {
-    "dbTitle": "Deckungsbeitrag je Reihenblock und Erntetag",
-    "dbLead": "Kostenträger: Reihenblock, Sorte, Erntetag. Erlöse und Kosten werden je Charge gebucht, die Buchungen sind unveränderlich.",
+  "finanzenAnsicht": {
+    "uebersichtTitel": "Deckungsbeitrag auf einen Blick",
+    "uebersichtLead": "Summe über alle Kostenträger und Buchungen. Erlöse und Kosten kommen aus dem unveränderlichen Finanzjournal (Anforderung 4.1).",
+    "stat": {
+      "erloes": "Erlöse gesamt",
+      "kosten": "Kosten gesamt",
+      "deckungsbeitrag": "Deckungsbeitrag gesamt",
+      "deckungsbeitragHinweis": "Erlöse minus Kosten, aus der Datenbank gerechnet"
+    },
+    "erloes": "Erlös",
+    "kosten": "Kosten",
+    "kostentraegerTitel": "Kostenträger und Deckungsbeitrag",
+    "kostentraegerLead": "Kostenstelle: Reihenblock. Kostenträger im engeren Sinn: Sorte und Kunde. Ein Kostenträger kann beides zugleich tragen.",
+    "keineKostentraeger": "Noch kein Kostenträger angelegt.",
     "col": {
-      "block": "Reihenblock",
+      "bezeichnung": "Bezeichnung",
+      "reihenblock": "Reihenblock",
       "sorte": "Sorte",
-      "erntetag": "Erntetag",
+      "kunde": "Kunde",
       "erloes": "Erlös",
       "kosten": "Kosten",
-      "db": "Deckungsbeitrag"
+      "deckungsbeitrag": "Deckungsbeitrag",
+      "datum": "Datum",
+      "kostentraegerSpalte": "Kostenträger",
+      "typ": "Typ",
+      "kategorie": "Kategorie",
+      "betrag": "Betrag"
     },
-    "note": "Der Deckungsbeitrag je Kilogramm ist die zentrale Steuerungsgröße. Er entsteht je Reihenblock, Sorte und Erntetag - nicht erst am Jahresende."
+    "ledgerTitel": "Buchungen",
+    "ledgerLead": "Append-only: eine falsche Buchung wird durch eine Gegenbuchung korrigiert, nicht durch Ändern der ersten.",
+    "keineBuchungen": "Noch keine Buchung erfasst.",
+    "note": "Der Deckungsbeitrag je Kilogramm ist die zentrale Steuerungsgröße (Kennzahl \"deckungsbeitrag\"). Er entsteht je Reihenblock, Sorte, Erntetag und Kunde - nicht erst am Jahresende. Buchungen sind unveränderlich; die Datenbank verweigert UPDATE und DELETE auf dem Finanzjournal unabhängig von der Oberfläche.",
+    "formular": {
+      "kostentraeger": {
+        "titel": "Neuen Kostenträger anlegen",
+        "lead": "Reihenblock, Sorte und Kunde sind einzeln optional - mindestens ein Bezug ist Pflicht, sonst lässt sich der Deckungsbeitrag später nicht zuordnen.",
+        "bezeichnung": "Bezeichnung",
+        "reihenblock": "Reihenblock",
+        "sorte": "Sorte",
+        "kunde": "Kunde",
+        "keinBezug": "kein Bezug",
+        "erntetag": "Erntetag",
+        "knopf": "Kostenträger anlegen"
+      },
+      "buchung": {
+        "titel": "Buchung erfassen",
+        "lead": "Erlös oder Kosten für einen bestehenden Kostenträger. Die Buchung lässt sich danach nicht mehr ändern, nur durch eine Gegenbuchung korrigieren.",
+        "kostentraeger": "Kostenträger",
+        "bitteWaehlen": "bitte wählen",
+        "typ": "Typ",
+        "erloes": "Erlös",
+        "kosten": "Kosten",
+        "kategorie": "Kategorie",
+        "kategoriePlatzhalter": "z. B. Ernte + Kühlung",
+        "betrag": "Betrag in ₸",
+        "buchungsdatum": "Buchungsdatum",
+        "beschreibung": "Beschreibung (optional)",
+        "knopf": "Buchung erfassen"
+      }
+    }
   },
   "personalDemo": {
     "brigadenTitle": "Brigaden",
