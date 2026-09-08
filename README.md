@@ -255,8 +255,28 @@ Speicherpfad ist deterministisch aus der `aktionId` abgeleitet statt aus
 Storage-Upload überschreibt ihn dann harmlos, statt eine zweite Datei
 anzulegen.
 
-Noch offen: ein minimaler App-Shell-Service-Worker (Phase 7, bewusst kein
-next-pwa/Workbox).
+**App-Shell-Service-Worker (Phase 7).** Ein von Hand geschriebener, bewusst
+minimaler Service Worker (`public/sw.js`, kein next-pwa/Workbox) - ein
+separates Anliegen von der eigentlichen Offline-Synchronisierung oben, die
+ohne Service Worker auskommt. Zweck: eine Brigade, die eine bereits besuchte
+Seite offline neu lädt, soll den letzten Stand sehen statt eines
+Browser-Fehlers. `/_next/static/`-Dateien (inhaltsadressiert, unveränderlich)
+werden Cache-First bedient; Seitenaufrufe laufen Network-First, ein
+erfolgreich geladenes Dokument wird zusätzlich zwischengespeichert; schlägt
+beides fehl, greift eine statische Fallback-Seite (`public/offline.html`).
+Nur GET-Anfragen werden überhaupt betrachtet - Server Actions und
+`/api/sync` laufen unverändert direkt gegen das Netz.
+
+Versionierung: `ServiceWorkerRegistrierung` (`src/components/site/`) hängt
+die aktuelle App-Version (`VERCEL_GIT_COMMIT_SHA`, lokal `"dev"`) als
+Query-Parameter an die Skript-URL, der Service Worker liest sie über
+`self.location.search` aus und bildet daraus seinen Cache-Namen - bei jedem
+neuen Deployment entsteht so ein neuer Cache, `activate()` räumt alle
+älteren auf. Ohne das könnte eine gecachte Seite einer alten Version auf
+inzwischen nicht mehr existierende, inhaltsadressierte Asset-Dateien
+verweisen.
+
+Damit ist der Umsetzungsplan für Anforderung 2.5 vollständig.
 
 ## Kennzahlen
 

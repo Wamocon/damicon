@@ -5,6 +5,8 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { ThemeScript } from "@/components/theme-toggle";
+import { ServiceWorkerRegistrierung } from "@/components/site/service-worker-registrierung";
+import { appVersion } from "@/lib/pwa-version";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -46,6 +48,7 @@ export default async function LocaleLayout({
     >
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <ThemeScript />
+        <ServiceWorkerRegistrierung version={appVersion()} />
         <NextIntlClientProvider>
           <a href="#main" className="skip-link">
             {t("skipToContent")}
