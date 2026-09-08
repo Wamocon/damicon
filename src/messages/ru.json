@@ -917,6 +917,7 @@
       "steige": "Ящик {wert} записан.",
       "arbeitszeit": "Отмечено {wert} минут рабочего времени.",
       "kuehlmessung": "Замер записан - {wert} минут после сбора.",
+      "offlineEingereiht": "Записано - будет отправлено при восстановлении сети.",
       "einwilligungErfasst": "Согласие зафиксировано.",
       "einwilligungWiderrufen": "Согласие отозвано.",
       "vorfallErfasst": "Инцидент зафиксирован.",

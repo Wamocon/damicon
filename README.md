@@ -160,19 +160,52 @@ Warteschlange in `src/lib/offline/` (IndexedDB über die Bibliothek `idb`):
 - `db.ts` - Schema für die Warteschlange (`warteschlange`) und den
   Referenzdaten-Cache (`referenz_aufgaben`, `referenz_pfluecker`,
   `referenz_ketten`).
-- `warteschlange.ts` / `referenzcache.ts` - Lese-/Schreibzugriff.
+- `warteschlange.ts` / `referenzcache.ts` - Lese-/Schreibzugriff. Jede
+  Änderung an der Warteschlange löst das Fenster-Ereignis
+  `damicon:warteschlange-geaendert` aus, damit unabhängige
+  Client-Komponenten (Formular und Sync-Panel) ohne gemeinsamen React-State
+  synchron bleiben.
 - `use-online-status.ts` - Online-/Offline-Erkennung über
   `useSyncExternalStore`.
-- `<SyncStatus />` (Topbar, nur Rolle `brigade`) zeigt den Verbindungsstatus
-  und wartende Einträge; `<ReferenzCacheSync />` spiegelt die ohnehin
+- `sync-engine.ts` - `synchronisiere()` sendet wartende (und zuvor
+  fehlgeschlagene) Einträge sequenziell an `/api/sync`.
+- `<SyncStatus />` (Topbar, nur Rolle `brigade`) synchronisiert automatisch
+  bei Mount, Fokus, `online`-Ereignis und im 30-Sekunden-Intervall, zusätzlich
+  über einen manuellen Knopf; `<ReferenzCacheSync />` spiegelt die ohnehin
   serverseitig geladenen Pflückaufgaben/Pflücker/Ketten in den Cache, kein
   zusätzlicher Netzwerk-Pfad.
 
-Stand: die Warteschlange existiert und ist bedienbar, aber noch leer - kein
-Formular reiht bisher ein (kommt mit dem ersten Pilot-Workflow). Vorbereitet
-in derselben Umsetzungswelle: `aufgabeStatusSetzen()`/`mengeMelden()` prüfen
-den erwarteten Vorzustand statt blind zu schreiben (siehe oben), Arbeitszeit
-und Fotobeleg tragen jetzt ebenfalls einen Geräte-Zeitstempel.
+**Pilot-Workflows (Phase 2/3): Kühlmessung und Arbeitszeit erfassen.**
+Beide Server Actions in `src/lib/actions/nachweiskette.ts` sind in eine
+Kernfunktion (`kuehlmessungKern()`/`arbeitszeitKern()`, ruft
+`requirePermission()` selbst auf) und einen dünnen FormData-Wrapper
+aufgeteilt. `src/app/api/sync/route.ts` - der erste Route Handler des
+Projekts - ruft dieselbe Kernfunktion wie das Formular auf, inklusive
+eigener AAL2-Prüfung (`requireAal2Aktuell()` in `lib/auth.ts`), da
+`src/proxy.ts`s `config.matcher` `/api` ausdrücklich ausschließt. Die
+Kernfunktionen unterscheiden `erledigt` (wurde die Zeile geschrieben, ggf.
+schon bei einem früheren Versuch) von `status.stand` (fachlicher
+Anzeige-Status) - eine Kühlmessung mit Kühlketten-Verstoß ist erfolgreich
+geschrieben, obwohl die Meldung ein Alarm ist.
+
+Der Hook `useOfflineFormular()` (`src/components/db/use-offline-formular.ts`)
+verbindet ein bestehendes `useActionState`-Formular mit der Warteschlange,
+ohne das Formular selbst umzubauen: online läuft `dispatch()` wie bisher,
+offline verhindert `event.preventDefault()` in einem regulären
+`onSubmit`-Handler auf demselben Formular das Auslösen der Server Action
+(React-19-Verhalten) und puffert stattdessen den Eintrag lokal.
+
+Idempotenz bei den vier reinen INSERT-Workflows (Steige, Kühlmessung,
+Arbeitszeit, Fotobeleg): der Client generiert die künftige Zeilen-`id`
+bereits beim Einreihen, der Sync-Endpunkt schreibt
+`upsert(..., {onConflict:"id", ignoreDuplicates:true})` statt `.insert()` -
+ein erneut gesendeter Eintrag (z. B. nach einer nie angekommenen Antwort)
+legt keine zweite Zeile an.
+
+Noch offen: Steige (braucht einen atomaren Zähler statt `SELECT COUNT`,
+Phase 5), die drei UPDATE-Workflows mit Konfliktauflösung über
+`sync_protokoll` (Phase 4), Fotobeleg mit gepuffertem Blob (Phase 6) und ein
+minimaler App-Shell-Service-Worker (Phase 7, bewusst kein next-pwa/Workbox).
 
 ## Kennzahlen
 

@@ -16,6 +16,7 @@ import {
   Feld,
   mitGeraetZeitstempel,
 } from "@/components/db/formular-kit";
+import { useOfflineFormular } from "@/components/db/use-offline-formular";
 import type { AuswahlOption } from "@/components/db/standort-formulare";
 
 function PfadFeld() {
@@ -73,15 +74,18 @@ export function ArbeitszeitFormular({
   aufgabeId: string;
   pfluecker: AuswahlOption[];
 }) {
-  const [status, action] = useActionState(arbeitszeitErfassen, leer);
+  // Anforderung 2.5: online unveraendertes Verhalten, offline puffert der
+  // Hook den Eintrag in IndexedDB statt die Server Action aufzurufen.
+  const { status, action, onSubmit } = useOfflineFormular(
+    arbeitszeitErfassen,
+    "arbeitszeit_erfassen",
+    "geraet_zeitpunkt",
+    ["aufgabe_id", "pfluecker_id", "minuten"],
+  );
   const t = useTranslations("nachweiskette");
 
   return (
-    <form
-      action={action}
-      className="space-y-2"
-      onSubmit={mitGeraetZeitstempel("geraet_zeitpunkt")}
-    >
+    <form action={action} className="space-y-2" onSubmit={onSubmit}>
       <PfadFeld />
       <input type="hidden" name="aufgabe_id" value={aufgabeId} />
       {/* Anforderung 2.6: Moment der Meldung, nicht des Servereingangs -
@@ -103,15 +107,18 @@ export function ArbeitszeitFormular({
 
 // Kühlmessung: Minuten und Urteil rechnet die Datenbank.
 export function KuehlmessungFormular({ aufgabeId }: { aufgabeId: string }) {
-  const [status, action] = useActionState(kuehlmessungErfassen, leer);
+  // Anforderung 2.5: online unveraendertes Verhalten, offline puffert der
+  // Hook den Eintrag in IndexedDB statt die Server Action aufzurufen.
+  const { status, action, onSubmit } = useOfflineFormular(
+    kuehlmessungErfassen,
+    "kuehlmessung_erfassen",
+    "geraet_zeitpunkt",
+    ["aufgabe_id", "temperatur_c"],
+  );
   const t = useTranslations("nachweiskette");
 
   return (
-    <form
-      action={action}
-      className="space-y-2"
-      onSubmit={mitGeraetZeitstempel("geraet_zeitpunkt")}
-    >
+    <form action={action} className="space-y-2" onSubmit={onSubmit}>
       <PfadFeld />
       <input type="hidden" name="aufgabe_id" value={aufgabeId} />
       {/* Anforderung 2.6: Moment der Messung, nicht des Servereingangs -
