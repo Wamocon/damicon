@@ -12,6 +12,7 @@ import {
 } from "@/components/db/pflueckaufgaben-formulare";
 import { NachweiskettenKarte } from "@/components/db/nachweiskette-ansicht";
 import { FaelligkeitAnzeige } from "@/components/db/faelligkeit-anzeige";
+import { ReferenzCacheSync } from "@/components/db/referenzcache-sync";
 import { ladeBrigaden, ladePflueckaufgaben } from "@/lib/data/pflueckaufgaben";
 import { ladeNachweiskette, ladePfluecker } from "@/lib/data/nachweiskette";
 import { ladeReihenbloecke } from "@/lib/data/reihenbloecke";
@@ -73,6 +74,32 @@ export async function PflueckaufgabenAnsicht({
 
   return (
     <div className="space-y-6">
+      {live ? (
+        <ReferenzCacheSync
+          aufgaben={liste.aufgaben.map((a) => ({
+            id: a.id,
+            code: a.code,
+            reihenblock: a.reihenblock,
+            reihenblockId: a.reihenblockId,
+            sorte: a.sorte,
+            status: a.status,
+            zielmengeKg: a.zielmengeKg,
+            istMengeKg: a.istMengeKg,
+            ausschussKg: a.ausschussKg,
+            pflueckerAnzahl: a.pflueckerAnzahl,
+          }))}
+          pfluecker={pflueckerListe}
+          kette={
+            kette?.charge
+              ? {
+                  aufgabeId: gewaehlt!.id,
+                  chargeId: kette.charge.id,
+                  chargeCode: kette.charge.code,
+                }
+              : null
+          }
+        />
+      ) : null}
       <div className="grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <Section
           title={t("listTitle")}

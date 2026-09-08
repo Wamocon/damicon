@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { LocaleSwitcher } from "@/components/site/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PersonaSwitcher, usePersona } from "@/components/dashboard/persona";
+import { SyncStatus } from "@/components/dashboard/sync-status";
 import { abmelden } from "@/app/[locale]/login/actions";
 
 function initialen(name: string): string {
@@ -65,6 +66,12 @@ function Benutzerbereich() {
 
 export function DashboardTopbar() {
   const t = useTranslations("dashboard");
+  // Anforderung 2.5: der Sync-Indikator ist nur fuer echte, angemeldete
+  // Brigade-Sitzungen relevant - im Demo-Modus gibt es keine echte
+  // Supabase-Session, die eine Warteschlange fuellen koennte, und andere
+  // Rollen erfassen keine Felddaten.
+  const { echteRolle, demoModus } = usePersona();
+  const zeigeSync = !demoModus && echteRolle === "brigade";
 
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 pl-16 backdrop-blur-xl md:px-6 md:pl-6 print:hidden">
@@ -76,6 +83,7 @@ export function DashboardTopbar() {
         <PersonaSwitcher className="hidden lg:inline-flex" />
         <LocaleSwitcher compact />
         <ThemeToggle />
+        {zeigeSync ? <SyncStatus /> : null}
         <button
           type="button"
           aria-label={t("notifications")}

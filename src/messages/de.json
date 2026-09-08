@@ -1152,6 +1152,32 @@
     },
     "note": "Lesen und Schreiben bleibt den Büro-Rollen vorbehalten (admin, Betriebsleitung, Buchhaltung) - ein Selbstauskunftsrecht der Betroffenen ist bewusst nicht Teil dieses Schritts. Offen bleiben zwei weitere Themen aus dem bisherigen Cockpit: Datenresidenz (Digitalkodex Nr. 255-VIII) und KI-Transparenz (Gesetz Nr. 230-VIII)."
   },
+  "sync": {
+    "knopf": {
+      "label": "Synchronisierung"
+    },
+    "panelTitel": "Synchronisierung",
+    "online": "Online",
+    "offline": "Offline",
+    "keineEintraege": "Keine wartenden Einträge.",
+    "jetztSynchronisieren": "Jetzt synchronisieren",
+    "aktionstyp": {
+      "aufgabe_annehmen": "Aufgabe angenommen",
+      "aufgabe_arbeit_starten": "Arbeit gestartet",
+      "menge_melden": "Menge gemeldet",
+      "steige_erfassen": "Steige erfasst",
+      "kuehlmessung_erfassen": "Kühlmessung erfasst",
+      "arbeitszeit_erfassen": "Arbeitszeit gemeldet",
+      "beleg_hochladen": "Fotobeleg hochgeladen"
+    },
+    "status": {
+      "wartend": "wartend",
+      "wird_gesendet": "wird gesendet",
+      "gesendet": "gesendet",
+      "fehler": "Fehler",
+      "konflikt": "Konflikt"
+    }
+  },
   "sortenkatalogDemo": {
     "catalogTitle": "Sorten und Kontingente",
     "catalogLead": "Sorte, Erntefenster, Schalengewicht, reserviertes Kontingent und Preis an einem Ort.",

@@ -151,6 +151,29 @@ API-Zugriff und lassen sich durch kein Formular umgehen:
   `lib/actions/compliance.ts`); bestehende Einträge ohne Zuordnung lassen
   sich im Compliance-Cockpit nachträglich zuweisen.
 
+## Offline-first (Anforderung 2.5, im Aufbau)
+
+Brigade-Mitarbeitende müssen auf der Plantage ohne Netzverbindung
+weiterarbeiten können - dafür entsteht schrittweise eine lokale
+Warteschlange in `src/lib/offline/` (IndexedDB über die Bibliothek `idb`):
+
+- `db.ts` - Schema für die Warteschlange (`warteschlange`) und den
+  Referenzdaten-Cache (`referenz_aufgaben`, `referenz_pfluecker`,
+  `referenz_ketten`).
+- `warteschlange.ts` / `referenzcache.ts` - Lese-/Schreibzugriff.
+- `use-online-status.ts` - Online-/Offline-Erkennung über
+  `useSyncExternalStore`.
+- `<SyncStatus />` (Topbar, nur Rolle `brigade`) zeigt den Verbindungsstatus
+  und wartende Einträge; `<ReferenzCacheSync />` spiegelt die ohnehin
+  serverseitig geladenen Pflückaufgaben/Pflücker/Ketten in den Cache, kein
+  zusätzlicher Netzwerk-Pfad.
+
+Stand: die Warteschlange existiert und ist bedienbar, aber noch leer - kein
+Formular reiht bisher ein (kommt mit dem ersten Pilot-Workflow). Vorbereitet
+in derselben Umsetzungswelle: `aufgabeStatusSetzen()`/`mengeMelden()` prüfen
+den erwarteten Vorzustand statt blind zu schreiben (siehe oben), Arbeitszeit
+und Fotobeleg tragen jetzt ebenfalls einen Geräte-Zeitstempel.
+
 ## Kennzahlen
 
 `public.kpi_aktuell()` rechnet die Baseline-Kennzahlen, die sich aus den

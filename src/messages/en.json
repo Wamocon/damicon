@@ -1152,6 +1152,32 @@
     },
     "note": "Reading and writing stays reserved to office roles (admin, farm management, accounting) - a data subject's right of access is deliberately not part of this step. Two topics remain open from the previous cockpit: data residency (Digital Code No. 255-VIII) and AI transparency (Law No. 230-VIII)."
   },
+  "sync": {
+    "knopf": {
+      "label": "Sync status"
+    },
+    "panelTitel": "Sync status",
+    "online": "Online",
+    "offline": "Offline",
+    "keineEintraege": "No pending entries.",
+    "jetztSynchronisieren": "Sync now",
+    "aktionstyp": {
+      "aufgabe_annehmen": "Task accepted",
+      "aufgabe_arbeit_starten": "Work started",
+      "menge_melden": "Quantity reported",
+      "steige_erfassen": "Crate recorded",
+      "kuehlmessung_erfassen": "Cooling reading recorded",
+      "arbeitszeit_erfassen": "Work time reported",
+      "beleg_hochladen": "Photo evidence uploaded"
+    },
+    "status": {
+      "wartend": "pending",
+      "wird_gesendet": "sending",
+      "gesendet": "sent",
+      "fehler": "error",
+      "konflikt": "conflict"
+    }
+  },
   "sortenkatalogDemo": {
     "catalogTitle": "Varieties and quotas",
     "catalogLead": "Variety, harvest window, punnet weight, reserved quota and price in one place.",

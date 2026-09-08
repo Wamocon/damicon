@@ -1213,6 +1213,32 @@
     },
     "note": "Okuma ve yazma yalnızca ofis rollerine (yönetici, işletme yönetimi, muhasebe) aittir - ilgili kişilerin kendi verilerine erişim hakkı bu adımın bilinçli olarak dışında tutulmuştur. Önceki kokpitten iki konu açık kalıyor: veri yerelliği (255-VIII sayılı Dijital Kod) ve yapay zeka şeffaflığı (230-VIII sayılı Kanun)."
   },
+  "sync": {
+    "knopf": {
+      "label": "Senkronizasyon"
+    },
+    "panelTitel": "Senkronizasyon",
+    "online": "Çevrimiçi",
+    "offline": "Çevrimdışı",
+    "keineEintraege": "Bekleyen kayıt yok.",
+    "jetztSynchronisieren": "Şimdi senkronize et",
+    "aktionstyp": {
+      "aufgabe_annehmen": "Görev kabul edildi",
+      "aufgabe_arbeit_starten": "Çalışma başlatıldı",
+      "menge_melden": "Miktar bildirildi",
+      "steige_erfassen": "Kasa kaydedildi",
+      "kuehlmessung_erfassen": "Soğutma ölçümü kaydedildi",
+      "arbeitszeit_erfassen": "Çalışma süresi bildirildi",
+      "beleg_hochladen": "Fotoğraf kanıtı yüklendi"
+    },
+    "status": {
+      "wartend": "bekliyor",
+      "wird_gesendet": "gönderiliyor",
+      "gesendet": "gönderildi",
+      "fehler": "hata",
+      "konflikt": "çakışma"
+    }
+  },
   "kpiHerkunft": {
     "berechenbar": "bugün ölçülebilir",
     "erfassung-fehlt": "kayıt eksik",
