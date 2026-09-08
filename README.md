@@ -209,10 +209,37 @@ bereits beim Einreihen, der Sync-Endpunkt schreibt
 ein erneut gesendeter Eintrag (z. B. nach einer nie angekommenen Antwort)
 legt keine zweite Zeile an.
 
-Noch offen: Steige (braucht einen atomaren Zähler statt `SELECT COUNT`,
-Phase 5), die drei UPDATE-Workflows mit Konfliktauflösung über
-`sync_protokoll` (Phase 4), Fotobeleg mit gepuffertem Blob (Phase 6) und ein
-minimaler App-Shell-Service-Worker (Phase 7, bewusst kein next-pwa/Workbox).
+**Die drei UPDATE-Workflows (Phase 4): Aufgabe annehmen, Pflücken starten,
+Menge melden.** Anders als bei den reinen INSERTs existiert die Zielzeile
+hier schon vor der Aktion - ein Retry nach einer nie angekommenen Antwort
+lässt sich vom serverseitig hartcodierten CAS-Guard (erwarteter Vorzustand)
+nicht mehr von einem echten Konflikt unterscheiden. Neue Tabelle
+`sync_protokoll` (client-generierte `aktion_id`) plus zwei
+`SECURITY INVOKER`-RPCs (`sync_aufgabe_status_setzen`, `sync_menge_melden`)
+lösen beides: ein Retry der eigenen `aktion_id` meldet Erfolg ohne erneut zu
+schreiben, ein neuer `aktion_id`-Versuch mit fehlgeschlagenem CAS-Guard ist
+ein echter Konflikt - im Sync-Panel sichtbar mit einem "Verwerfen"-Knopf.
+
+**Steige erfassen (Phase 5).** Die Laufnummer/den Code berechnete bisher der
+Client per `SELECT COUNT(*)` - nicht atomar, zwei nahezu gleichzeitige
+Erfassungen (zwei Geräte, oder mehrere gepufferte Steigen einer
+Offline-Warteschlange kurz hintereinander synchronisiert) könnten denselben
+Code vergeben. Jetzt übernimmt ein `BEFORE INSERT`-Trigger
+(`steige_nummer_vergeben()`, Migration `20260915000000`) die Nummerierung
+atomar über einen Zähler an der Pflückaufgabe
+(`pflueckaufgaben.steigen_zaehler`, per `UPDATE ... RETURNING` erhöht - der
+Zeilenlock serialisiert konkurrierende Inserts von selbst). Damit ist "Steige
+erfassen" strukturell ein reiner INSERT wie Kühlmessung/Arbeitszeit; der
+Client berechnet Code/QR-Token gar nicht mehr selbst. Der Trigger erkennt
+einen bereits durch `ON CONFLICT DO NOTHING` verworfenen Sync-Retry (gleiche
+Zeilen-`id` existiert schon) und überspringt die Nummerierung dafür - sonst
+würde jeder Retry stillschweigend eine Nummer verbrauchen, ohne dass je eine
+zweite Zeile entsteht. Offline zeigt die Warteschlange bewusst keine
+vorläufige Nummer - der echte Code ist erst nach der Synchronisierung
+bekannt, dieselbe Erfahrung wie bei Kühlmessung/Arbeitszeit.
+
+Noch offen: Fotobeleg mit gepuffertem Blob (Phase 6) und ein minimaler
+App-Shell-Service-Worker (Phase 7, bewusst kein next-pwa/Workbox).
 
 ## Kennzahlen
 

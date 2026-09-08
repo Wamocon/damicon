@@ -3,6 +3,7 @@ import { requireAal2Aktuell } from "@/lib/auth";
 import {
   arbeitszeitKern,
   kuehlmessungKern,
+  steigeKern,
   type KernErgebnis,
 } from "@/lib/actions/nachweiskette";
 import { aufgabeStatusKern, mengeMeldenKern } from "@/lib/actions/pflueckaufgaben";
@@ -87,6 +88,15 @@ export async function POST(request: Request) {
         aktionId,
       });
       break;
+    case "steige_erfassen":
+      kernErgebnis = await steigeKern({
+        aufgabeId: antwortText(nutzlast, "aufgabe_id"),
+        pflueckerId: antwortText(nutzlast, "pfluecker_id"),
+        gewichtKg: antwortZahl(nutzlast, "gewicht_kg"),
+        geraetZeitpunkt: geraetZeitpunkt || null,
+        aktionId,
+      });
+      break;
     case "arbeitszeit_erfassen":
       kernErgebnis = await arbeitszeitKern({
         aufgabeId: antwortText(nutzlast, "aufgabe_id"),
@@ -122,8 +132,7 @@ export async function POST(request: Request) {
       });
       break;
     default:
-      // Weitere Aktionstypen (Steige, Fotobeleg) kommen mit den jeweiligen
-      // Phasen 5/6 hinzu.
+      // Fotobeleg kommt mit Phase 6 hinzu.
       return json({ ergebnis: "fehler", meldung: "fehler.eingabe" }, 400);
   }
 

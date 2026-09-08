@@ -163,6 +163,83 @@ export async function kuehlmessungKern(
   };
 }
 
+export interface SteigeParams {
+  aufgabeId: string;
+  pflueckerId: string;
+  gewichtKg: number | null;
+  geraetZeitpunkt: string | null;
+  /** Nur beim Sync-Aufruf gesetzt - macht den Insert idempotent. Die
+   * Laufnummer/den Code berechnet in jedem Fall der Trigger
+   * steige_nummer_vergeben() (Migration 20260915000000) atomar aus
+   * pflueckaufgaben.steigen_zaehler, nie der Client - das ist der Punkt: ein
+   * Retry mit derselben aktionId legt dank ON CONFLICT keine zweite Zeile an,
+   * verbraucht also auch keine zweite Nummer. */
+  aktionId?: string;
+}
+
+export async function steigeKern(
+  params: SteigeParams,
+): Promise<KernErgebnis<{ code: string }>> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("pflueckaufgaben", "create");
+  } catch (error) {
+    return { erledigt: false, status: zugriffsFehler(error) };
+  }
+
+  const { aufgabeId, pflueckerId, gewichtKg, geraetZeitpunkt, aktionId } = params;
+  if (!aufgabeId || !pflueckerId) return { erledigt: false, status: fehler("fehler.eingabe") };
+
+  const charge = await chargeZurAufgabe(aufgabeId);
+  if (!charge) return { erledigt: false, status: fehler("fehler.keineCharge") };
+
+  const supabase = await createClient();
+
+  // Anforderung 2.6: geraet_zeitpunkt kommt vom Client (Moment des Scans),
+  // scan_zeitpunkt setzt der Trigger trg_steige_zeitpunkt daraus - geprueft
+  // gegen den tatsaechlichen Servereingang, nicht blind uebernommen.
+  const zeile = {
+    charge_id: charge.id,
+    pflueckaufgabe_id: aufgabeId,
+    pfluecker_id: pflueckerId,
+    gewicht_kg: gewichtKg ?? 2,
+    geraet_zeitpunkt: geraetZeitpunkt,
+    // Leer statt selbst berechnet: steige_nummer_vergeben() (Migration
+    // 20260915000000) erkennt einen leeren Code als "bitte automatisch und
+    // atomar nummerieren" - nur Seed-Daten liefern hier bewusst einen echten
+    // Wert. code/qr_token sind NOT NULL ohne Default, deshalb muss irgendein
+    // Wert mitgegeben werden; der Trigger ueberschreibt ihn vor dem Schreiben.
+    code: "",
+    qr_token: "",
+  };
+
+  const { data, error } = aktionId
+    ? await supabase
+        .from("steigen")
+        .upsert({ id: aktionId, ...zeile }, { onConflict: "id", ignoreDuplicates: true })
+        .select("id, code")
+        .maybeSingle()
+    : await supabase.from("steigen").insert(zeile).select("id, code").single();
+
+  if (error) return { erledigt: false, status: dbFehler(error) };
+  if (!data) {
+    // Nur erreichbar mit aktionId: der Konflikt hat gegriffen, diese Steige
+    // wurde bei einem frueheren Versuch bereits erfolgreich geschrieben - der
+    // genaue Code ist hier nicht mehr bekannt, war beim ersten Versuch aber
+    // schon in der Erfolgsmeldung zu sehen.
+    return { erledigt: true, status: ok("ok.steige", "") };
+  }
+
+  await supabase.from("audit_events").insert({
+    aktion: "steige.erfasst",
+    ressource: "steigen",
+    ressource_id: data.id,
+    metadata: { code: data.code, gewicht_kg: gewichtKg ?? 2, aktor_rolle: profil.role },
+  });
+
+  return { erledigt: true, status: ok("ok.steige", data.code), daten: { code: data.code } };
+}
+
 export interface ArbeitszeitParams {
   aufgabeId: string;
   pflueckerId: string;
@@ -228,63 +305,18 @@ export async function arbeitszeitKern(params: ArbeitszeitParams): Promise<KernEr
 // ---------------------------------------------------------------------------
 
 // Steige mit Person: der Vorgang, an dem die Kette bis zum Pfluecker reicht.
-// Bleibt bewusst ausserhalb des Kernfunktions-Musters - die Steigen-Nummer
-// wird ueber SELECT COUNT vergeben (nicht atomar), das ist offline
-// strukturell unmoeglich (siehe Umsetzungsplan, Phase 5).
 export async function steigeErfassen(
   _status: AktionsStatus,
   formData: FormData,
 ): Promise<AktionsStatus> {
-  let profil: SessionProfile;
-  try {
-    profil = await requirePermission("pflueckaufgaben", "create");
-  } catch (error) {
-    return zugriffsFehler(error);
-  }
-
-  const aufgabeId = text(formData, "aufgabe_id");
-  const pflueckerId = text(formData, "pfluecker_id");
-  const gewicht = zahl(formData, "gewicht_kg") ?? 2;
-  if (!aufgabeId || !pflueckerId) return fehler("fehler.eingabe");
-
-  const charge = await chargeZurAufgabe(aufgabeId);
-  if (!charge) return fehler("fehler.keineCharge");
-
-  const supabase = await createClient();
-  const { count } = await supabase
-    .from("steigen")
-    .select("id", { count: "exact", head: true })
-    .eq("pflueckaufgabe_id", aufgabeId);
-
-  const laufnummer = (count ?? 0) + 1;
-  const code = `${charge.code}-S${String(laufnummer).padStart(3, "0")}`;
-
-  // Anforderung 2.6: geraet_zeitpunkt kommt vom Client (Moment des Scans),
-  // scan_zeitpunkt setzt der Trigger trg_steige_zeitpunkt daraus - geprueft
-  // gegen den tatsaechlichen Servereingang, nicht blind uebernommen.
-  const geraetZeitpunkt = text(formData, "geraet_zeitpunkt") || null;
-
-  const { error } = await supabase.from("steigen").insert({
-    code,
-    qr_token: `qr-${charge.code.toLowerCase()}-${laufnummer}`,
-    charge_id: charge.id,
-    pflueckaufgabe_id: aufgabeId,
-    pfluecker_id: pflueckerId,
-    gewicht_kg: gewicht,
-    geraet_zeitpunkt: geraetZeitpunkt,
+  const { status } = await steigeKern({
+    aufgabeId: text(formData, "aufgabe_id"),
+    pflueckerId: text(formData, "pfluecker_id"),
+    gewichtKg: zahl(formData, "gewicht_kg"),
+    geraetZeitpunkt: text(formData, "geraet_zeitpunkt") || null,
   });
-
-  if (error) return dbFehler(error);
-
-  await supabase.from("audit_events").insert({
-    aktion: "steige.erfasst",
-    ressource: "steigen",
-    ressource_id: charge.id,
-    metadata: { code, gewicht_kg: gewicht, aktor_rolle: profil.role },
-  });
-
   aktualisiere(formData);
-  return ok("ok.steige", code);
+  return status;
 }
 
 // Arbeitszeit: der Nenner der Pflueckleistung.
