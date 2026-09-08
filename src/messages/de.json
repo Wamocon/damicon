@@ -1162,6 +1162,7 @@
     "offline": "Offline",
     "keineEintraege": "Keine wartenden Einträge.",
     "jetztSynchronisieren": "Jetzt synchronisieren",
+    "verwerfen": "Verwerfen",
     "aktionstyp": {
       "aufgabe_annehmen": "Aufgabe angenommen",
       "aufgabe_arbeit_starten": "Arbeit gestartet",

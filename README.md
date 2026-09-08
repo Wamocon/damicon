@@ -48,10 +48,17 @@ npm run dev
 
 ```bash
 npm install
-supabase start          # lokale Supabase-Instanz (Docker)
-npm run db:reset        # Migrationen + Seed + Demo-Benutzer
+cp .env.example .env.local   # Zugangsdaten des gehosteten Supabase-Projekts eintragen
+npm run db:seed-auth         # Demo-Benutzer im gehosteten Projekt anlegen/auffrischen
 npm run dev
 ```
+
+Damicon läuft entwicklungsseitig gegen das gehostete Supabase-Projekt (Zugangsdaten in
+`.env.local`), nicht gegen eine lokale Docker-Instanz - `npm run dev`, `npm run db:test`
+und `npm run db:seed-auth` sprechen alle direkt mit dem gehosteten Projekt. Neue
+Migrationen werden mit `npm run db:push` dorthin übertragen. Einzige Ausnahme:
+`npm run db:test:fast` läuft vollständig isoliert gegen eine eingebettete PGlite-Instanz
+und braucht keine Netzverbindung.
 
 Anmeldung unter `/de/login`. Die sieben Demo-Konten werden von `npm run db:seed-auth`
 angelegt - je Rolle eines, Passwort für alle `DamiconDemo2026!`:
@@ -232,11 +239,11 @@ zweiten, weniger prominenten Abschnitt. Rollen ohne betriebsweite Sicht
 | `npm run typecheck` | TypeScript-Prüfung |
 | `npm run lint` | ESLint |
 | `npm run verify` | typecheck + lint + build |
-| `npm run db:reset` | Datenbank zurücksetzen: Migrationen, Seed, Demo-Benutzer |
-| `npm run db:seed-auth` | Nur die sieben Demo-Benutzer anlegen bzw. auffrischen |
-| `npm run db:types` | TypeScript-Typen aus dem lokalen Schema erzeugen |
-| `npm run db:test` | Integrationstests: Round-Trip, RLS je Rolle, Sperrlogik (braucht laufendes lokales Supabase) |
-| `npm run db:test:fast` | Dieselbe Art Fachregeln gegen PGlite statt Docker - kein `supabase start` nötig, für den schnellen Zwischenstand während der Entwicklung; ersetzt `db:test` nicht |
+| `npm run db:push` | Neue Migrationen aufs gehostete Supabase-Projekt übertragen |
+| `npm run db:seed-auth` | Die sieben Demo-Benutzer im gehosteten Projekt anlegen bzw. auffrischen |
+| `npm run db:types` | TypeScript-Typen aus dem Schema des verlinkten (gehosteten) Projekts erzeugen |
+| `npm run db:test` | Integrationstests: Round-Trip, RLS je Rolle, Sperrlogik (läuft gegen das gehostete Projekt aus `.env.local`) |
+| `npm run db:test:fast` | Dieselbe Art Fachregeln gegen eine eingebettete PGlite-Instanz statt gegen das gehostete Projekt - keine Netzverbindung nötig, für den schnellen Zwischenstand während der Entwicklung; ersetzt `db:test` nicht |
 
 ## Dokumentation
 

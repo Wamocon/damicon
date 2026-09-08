@@ -63,9 +63,10 @@ At the **start of every new project or major feature**, always ask:
 > - **(A) Local development** - I will set up Supabase locally using Docker and the Supabase CLI, establish a migration-based workflow, and develop everything on your machine first.
 > - **(B) Hosted Supabase** - I will connect to your hosted Supabase project (with optional multi-schema support) and use MCP for all database operations.
 
-- If the user chooses **(A)**: follow the `localsupabase.instructions.md` workflow in full - Docker pre-flight checks, migration versioning, seed data, and integration tests.
+- If the user chooses **(A)**: follow the `supabase-workflow.instructions.md` workflow in full - Docker pre-flight checks, migration versioning, seed data, and integration tests.
 - If the user chooses **(B)**: follow the `supabase.instructions.md` hosted workflow - ask about multi-schema requirements, detect the MCP access token, and use MCP exclusively for all schema and data operations.
 - If the context makes the choice obvious (e.g. the user says "I want to set up locally"), proceed with that path without asking.
+- **Damicon specifically has already answered this: hosted (B).** `.env.local` deliberately points at the hosted project; `supabase-workflow.instructions.md` documents this choice and why local Docker is not part of the dev loop here. Do not re-ask or switch back to local without the user explicitly requesting it.
 
 ### Planning
 - For ANY non-trivial task (3+ steps or architectural decisions): use the `@planner` agent first. Do not start coding without a plan.

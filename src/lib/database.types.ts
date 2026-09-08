@@ -2123,6 +2123,30 @@ export type Database = {
           },
         ]
       }
+      sync_protokoll: {
+        Row: {
+          aktion_id: string
+          aktion_typ: string
+          ergebnis: string
+          erstellt_am: string
+          ressource_id: string
+        }
+        Insert: {
+          aktion_id: string
+          aktion_typ: string
+          ergebnis: string
+          erstellt_am?: string
+          ressource_id: string
+        }
+        Update: {
+          aktion_id?: string
+          aktion_typ?: string
+          ergebnis?: string
+          erstellt_am?: string
+          ressource_id?: string
+        }
+        Relationships: []
+      }
       verarbeitungszwecke: {
         Row: {
           aufbewahrung_monate: number
@@ -2426,6 +2450,32 @@ export type Database = {
           tage_vor_ernte: number
           wartezeit_tage: number
           wirkstoff: string
+        }[]
+      }
+      sync_aufgabe_status_setzen: {
+        Args: {
+          p_aktion_id: string
+          p_arbeitsbeginn_geraet_zeitpunkt?: string
+          p_aufgabe_id: string
+          p_neuer_status: string
+          p_vorzustand: string
+        }
+        Returns: {
+          code: string
+          ergebnis: string
+        }[]
+      }
+      sync_menge_melden: {
+        Args: {
+          p_aktion_id: string
+          p_aufgabe_id: string
+          p_ausschuss_kg?: number
+          p_ist_menge_kg: number
+          p_pfluecker_anzahl?: number
+        }
+        Returns: {
+          code: string
+          ergebnis: string
         }[]
       }
       zukauf_positionen_importieren: {
