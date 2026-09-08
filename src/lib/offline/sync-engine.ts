@@ -20,6 +20,32 @@ export interface SyncErgebnis {
 }
 
 async function eintragSenden(eintrag: WarteschlangenEintrag): Promise<SyncAntwort> {
+  // Fotobeleg (Phase 6) traegt eine Bilddatei mit - dafuer multipart/form-data
+  // statt JSON, sonst muesste die Datei als Base64-String durch JSON, ~33%
+  // groesser als das Original (relevant bei Vercels
+  // Route-Handler-Payloadgrenze). Kein Content-Type-Header hier von Hand
+  // gesetzt: der Browser ergaenzt die multipart-Boundary selbst, ein manuell
+  // gesetzter Header ohne Boundary macht den Request auf Serverseite
+  // unlesbar.
+  if (eintrag.datei) {
+    // Die Endung im mitgegebenen Dateinamen muss zum tatsaechlichen
+    // MIME-Typ des Blobs passen - belegKern() liest die Endung serverseitig
+    // aus genau diesem Namen. Ein hartcodiertes "beleg.jpg" wuerde die echte
+    // Endung immer auf "jpg" verfaelschen, auch wenn
+    // bildFuerWarteschlangeVerkleinern() aus gutem Grund (z. B. ein bereits
+    // kleines Original) beim urspruenglichen Format (PNG, WebP, ...)
+    // geblieben ist.
+    const erweiterung = eintrag.datei.type.split("/")[1]?.split("+")[0] ?? "jpg";
+    const form = new FormData();
+    form.set("aktionId", eintrag.aktionId);
+    form.set("aktionTyp", eintrag.aktionTyp);
+    form.set("geraetZeitpunkt", eintrag.geraetZeitpunkt);
+    form.set("nutzlast", JSON.stringify(eintrag.nutzlast));
+    form.set("datei", eintrag.datei, `beleg.${erweiterung}`);
+    const antwort = await fetch("/api/sync", { method: "POST", body: form });
+    return (await antwort.json()) as SyncAntwort;
+  }
+
   const antwort = await fetch("/api/sync", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

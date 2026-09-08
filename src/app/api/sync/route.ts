@@ -6,7 +6,7 @@ import {
   steigeKern,
   type KernErgebnis,
 } from "@/lib/actions/nachweiskette";
-import { aufgabeStatusKern, mengeMeldenKern } from "@/lib/actions/pflueckaufgaben";
+import { aufgabeStatusKern, belegKern, mengeMeldenKern } from "@/lib/actions/pflueckaufgaben";
 
 // Anforderung 2.5: fester HTTP-Endpunkt fuer die Offline-Warteschlange
 // (src/lib/offline/sync-engine.ts). Ruft dieselben Kernfunktionen auf wie
@@ -65,14 +65,49 @@ export async function POST(request: Request) {
     return json({ ergebnis: "fehler", meldung: "fehler.angemeldet" }, 403);
   }
 
-  let anfrage: SyncAnfrage;
-  try {
-    anfrage = await request.json();
-  } catch {
-    return json({ ergebnis: "fehler", meldung: "fehler.eingabe" }, 400);
+  // Fotobeleg (Phase 6) traegt eine Bilddatei mit - JSON kann das nicht ohne
+  // Base64-Aufblaehung (~33% groesser, relevant bei Vercels
+  // Route-Handler-Payloadgrenze). sync-engine.ts sendet einen Eintrag mit
+  // Datei deshalb als multipart/form-data, alle anderen Aktionstypen weiterhin
+  // als JSON - hier entsprechend verzweigt, auf dieselbe interne Form gebracht.
+  let aktionId: string;
+  let aktionTyp: string;
+  let geraetZeitpunkt: string | null;
+  let nutzlast: Record<string, unknown>;
+  let datei: File | null = null;
+
+  const contentType = request.headers.get("content-type") ?? "";
+  if (contentType.includes("multipart/form-data")) {
+    let form: FormData;
+    try {
+      form = await request.formData();
+    } catch {
+      return json({ ergebnis: "fehler", meldung: "fehler.eingabe" }, 400);
+    }
+    aktionId = String(form.get("aktionId") ?? "");
+    aktionTyp = String(form.get("aktionTyp") ?? "");
+    geraetZeitpunkt = (form.get("geraetZeitpunkt") as string | null) || null;
+    const nutzlastRoh = form.get("nutzlast");
+    try {
+      nutzlast = typeof nutzlastRoh === "string" ? JSON.parse(nutzlastRoh) : {};
+    } catch {
+      return json({ ergebnis: "fehler", meldung: "fehler.eingabe" }, 400);
+    }
+    const dateiRoh = form.get("datei");
+    datei = dateiRoh instanceof File ? dateiRoh : null;
+  } else {
+    let anfrage: SyncAnfrage;
+    try {
+      anfrage = await request.json();
+    } catch {
+      return json({ ergebnis: "fehler", meldung: "fehler.eingabe" }, 400);
+    }
+    aktionId = anfrage.aktionId;
+    aktionTyp = anfrage.aktionTyp;
+    geraetZeitpunkt = anfrage.geraetZeitpunkt;
+    nutzlast = anfrage.nutzlast;
   }
 
-  const { aktionId, aktionTyp, geraetZeitpunkt, nutzlast } = anfrage;
   if (!aktionId || !aktionTyp || typeof nutzlast !== "object" || nutzlast === null) {
     return json({ ergebnis: "fehler", meldung: "fehler.eingabe" }, 400);
   }
@@ -131,8 +166,20 @@ export async function POST(request: Request) {
         aktionId,
       });
       break;
+    case "beleg_hochladen":
+      if (!datei) {
+        return json({ ergebnis: "fehler", meldung: "fehler.keineDatei" }, 400);
+      }
+      kernErgebnis = await belegKern({
+        aufgabeId: antwortText(nutzlast, "aufgabe_id"),
+        art: antwortText(nutzlast, "art"),
+        hinweis: antwortText(nutzlast, "hinweis") || null,
+        geraetZeitpunkt: geraetZeitpunkt || null,
+        datei,
+        aktionId,
+      });
+      break;
     default:
-      // Fotobeleg kommt mit Phase 6 hinzu.
       return json({ ergebnis: "fehler", meldung: "fehler.eingabe" }, 400);
   }
 
