@@ -311,73 +311,119 @@ export async function mengeMelden(
   return status;
 }
 
-export async function belegHochladen(
-  _status: AktionsStatus,
-  formData: FormData,
-): Promise<AktionsStatus> {
+// ---------------------------------------------------------------------------
+// Kernfunktion (Anforderung 2.5, Phase 6): Fotobeleg hochladen. Zweistufig
+// wie zuvor (Storage-Upload, dann Tabellenzeile), aber mit deterministischem
+// Speicherpfad statt Date.now() - ein Sync-Retry mit derselben aktionId
+// berechnet exakt denselben Pfad, upsert:true auf den Storage-Upload
+// ueberschreibt dieselbe Datei dann harmlos erneut statt eine zweite
+// anzulegen. Die Tabellenzeile selbst folgt dem etablierten
+// Kernfunktions-Muster (client-generierte id + idempotenter Upsert).
+// ---------------------------------------------------------------------------
+
+export interface BelegParams {
+  aufgabeId: string;
+  art: string;
+  hinweis: string | null;
+  geraetZeitpunkt: string | null;
+  datei: File | Blob;
+  aktionId?: string;
+}
+
+function belegEndung(datei: File | Blob): string {
+  if (datei instanceof File && datei.name.includes(".")) {
+    return datei.name.split(".").pop()!.toLowerCase();
+  }
+  // Ohne Dateinamen (z. B. ein in der Warteschlange verkleinertes Blob) aus
+  // dem MIME-Typ ableiten - canvas.toBlob() liefert immer "image/jpeg".
+  return (datei.type || "image/jpeg").split("/")[1]?.split("+")[0] ?? "jpg";
+}
+
+export async function belegKern(
+  params: BelegParams,
+): Promise<KernErgebnis<{ storagePath: string }>> {
   let profil: SessionProfile;
   try {
     profil = await requirePermission("pflueckaufgaben", "create");
   } catch (error) {
-    return zugriffsFehler(error);
+    return { erledigt: false, status: zugriffsFehler(error) };
   }
 
-  const aufgabeId = text(formData, "aufgabe_id");
-  const art = text(formData, "art");
-  const datei = formData.get("datei");
-
+  const { aufgabeId, art, hinweis, geraetZeitpunkt, datei, aktionId } = params;
   if (!aufgabeId || !(belegArten as readonly string[]).includes(art)) {
-    return fehler("fehler.eingabe");
+    return { erledigt: false, status: fehler("fehler.eingabe") };
   }
-  if (!(datei instanceof File) || datei.size === 0) return fehler("fehler.keineDatei");
-  if (datei.size > maxDateigroesse) return fehler("fehler.zuGross");
+  if (!datei || datei.size === 0) return { erledigt: false, status: fehler("fehler.keineDatei") };
+  if (datei.size > maxDateigroesse) return { erledigt: false, status: fehler("fehler.zuGross") };
 
   const supabase = await createClient();
 
-  const endung = datei.name.split(".").pop()?.toLowerCase() ?? "jpg";
-  const pfad = `${aufgabeId}/${Date.now()}-${art}.${endung}`;
+  // Deterministisch aus aktionId statt Date.now(): der Sync-Fall braucht
+  // Wiederholbarkeit, der Online-Fall (kein aktionId) erzeugt sich seine
+  // eigene, garantiert einmalige Kennung.
+  const pfad = `${aufgabeId}/${aktionId ?? crypto.randomUUID()}-${art}.${belegEndung(datei)}`;
 
   const { error: uploadFehler } = await supabase.storage
     .from("belege")
-    .upload(pfad, datei, { contentType: datei.type, upsert: false });
+    .upload(pfad, datei, { contentType: datei.type || "image/jpeg", upsert: !!aktionId });
 
   if (uploadFehler) {
     console.error("[damicon] Upload fehlgeschlagen:", uploadFehler.message);
-    return fehler("fehler.upload");
+    return { erledigt: false, status: fehler("fehler.upload") };
   }
 
   // Anforderung 2.6 (Vorstufe 2.5): geraet_zeitpunkt kommt vom Client (Moment
   // der Aufnahme), der Trigger beleg_zeitpunkt_stempeln() (Migration
   // 20260913000000) setzt aufgenommen_am daraus, wenn plausibel.
-  const geraetZeitpunkt = text(formData, "geraet_zeitpunkt") || null;
+  const zeile = {
+    pflueckaufgabe_id: aufgabeId,
+    art: art as (typeof belegArten)[number],
+    hinweis: hinweis || null,
+    storage_path: pfad,
+    geraet_zeitpunkt: geraetZeitpunkt,
+    // aufgenommen_am hat seit Migration 20260913000000 keinen Spalten-Default
+    // mehr - der Trigger berechnet ihn. Der generierte Insert-/Upsert-Typ
+    // kennt trigger-gesetzte Spalten nicht und haelt sie faelschlich fuer
+    // erforderlich; eingefuegt wird nie tatsaechlich NULL.
+    aufgenommen_am: null as unknown as string,
+  };
 
-  const { data, error } = await supabase
-    .from("media_belege")
-    .insert({
-      pflueckaufgabe_id: aufgabeId,
-      art: art as (typeof belegArten)[number],
-      hinweis: text(formData, "hinweis") || null,
-      storage_path: pfad,
-      geraet_zeitpunkt: geraetZeitpunkt,
-      // aufgenommen_am hat seit dieser Migration keinen Spalten-Default mehr
-      // (siehe Kommentar dort) - der Trigger berechnet ihn. Der generierte
-      // Insert-Typ kennt trigger-gesetzte Spalten nicht und haelt sie
-      // faelschlich fuer erforderlich; eingefuegt wird nie tatsaechlich NULL.
-      aufgenommen_am: null as unknown as string,
-    })
-    .select("id")
-    .single();
+  const { data, error } = aktionId
+    ? await supabase
+        .from("media_belege")
+        .upsert({ id: aktionId, ...zeile }, { onConflict: "id", ignoreDuplicates: true })
+        .select("id")
+        .maybeSingle()
+    : await supabase.from("media_belege").insert(zeile).select("id").single();
 
   if (error) {
-    // Verwaiste Datei wieder entfernen, damit Bucket und Tabelle im Takt bleiben.
+    // Nur beim echten Fehlschlag aufraeumen - beim ignorierten Konflikt (kein
+    // error, aber auch keine Zeile) referenziert der frueher erfolgreiche
+    // Versuch dieselbe (gerade erneut hochgeladene) Datei weiterhin gueltig.
     await supabase.storage.from("belege").remove([pfad]);
-    return dbFehler(error);
+    return { erledigt: false, status: dbFehler(error) };
+  }
+  if (!data) {
+    return { erledigt: true, status: ok("ok.beleg") };
   }
 
-  await protokolliere(profil, "beleg.hochgeladen", aufgabeId, {
-    beleg_id: data.id,
-    art,
+  await protokolliere(profil, "beleg.hochgeladen", aufgabeId, { beleg_id: data.id, art });
+
+  return { erledigt: true, status: ok("ok.beleg"), daten: { storagePath: pfad } };
+}
+
+export async function belegHochladen(
+  _status: AktionsStatus,
+  formData: FormData,
+): Promise<AktionsStatus> {
+  const datei = formData.get("datei");
+  const { status } = await belegKern({
+    aufgabeId: text(formData, "aufgabe_id"),
+    art: text(formData, "art"),
+    hinweis: text(formData, "hinweis") || null,
+    geraetZeitpunkt: text(formData, "geraet_zeitpunkt") || null,
+    datei: datei instanceof File ? datei : new Blob(),
   });
   aktualisiere(formData);
-  return ok("ok.beleg");
+  return status;
 }

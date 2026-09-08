@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState, type FormEvent } from "react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Camera, Check } from "lucide-react";
@@ -10,7 +10,7 @@ import {
   belegHochladen,
   mengeMelden,
 } from "@/lib/actions/pflueckaufgaben";
-import { leer } from "@/lib/actions/status";
+import { fehler, leer, ok, type AktionsStatus } from "@/lib/actions/status";
 import {
   AktionsMeldung,
   Auswahl,
@@ -20,6 +20,8 @@ import {
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 import { useOfflineFormular } from "@/components/db/use-offline-formular";
+import { eintragen } from "@/lib/offline/warteschlange";
+import { bildFuerWarteschlangeVerkleinern } from "@/lib/offline/bild";
 import type { AktionTyp } from "@/lib/offline/db";
 import type { AuswahlOption } from "@/components/db/standort-formulare";
 
@@ -137,16 +139,56 @@ export function MengeFormular({
 
 // Fotobeleg hochladen. Auf dem Telefon oeffnet capture="environment" direkt die
 // Kamera - der Beleg entsteht dort, wo gepflueckt wird.
+//
+// Anforderung 2.5, Phase 6: passt nicht in useOfflineFormular() - das
+// generische Muster liest jedes Warteschlangenfeld direkt als JSON-Wert aus
+// dem FormData, eine Bilddatei ist aber weder JSON-serialisierbar noch ohne
+// Weiteres puffergerecht (Handyfotos oft 5-15 MB). Deshalb eigene
+// Offline-Verzweigung: die Datei wird vor dem Einreihen clientseitig
+// verkleinert (bildFuerWarteschlangeVerkleinern(), Canvas-basiert) und als
+// Blob mitgegeben.
 export function BelegUploadFormular({ aufgabeId }: { aufgabeId: string }) {
-  const [status, action] = useActionState(belegHochladen, leer);
+  const [status, dispatch] = useActionState(belegHochladen, leer);
+  const [lokalerStatus, setLokalerStatus] = useState<AktionsStatus | null>(null);
   const t = useTranslations("pflueckaufgabenVerwaltung");
 
+  function onSubmit(event: FormEvent<HTMLFormElement>) {
+    mitGeraetZeitstempel("geraet_zeitpunkt")(event);
+    setLokalerStatus(null);
+
+    if (typeof navigator === "undefined" || navigator.onLine) return;
+
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const datei = formData.get("datei");
+    if (!(datei instanceof File) || datei.size === 0) {
+      setLokalerStatus(fehler("fehler.keineDatei"));
+      return;
+    }
+
+    void bildFuerWarteschlangeVerkleinern(datei)
+      .then((verkleinert) =>
+        eintragen({
+          aktionId: crypto.randomUUID(),
+          aktionTyp: "beleg_hochladen",
+          nutzlast: {
+            aufgabe_id: aufgabeId,
+            art: String(formData.get("art") ?? ""),
+            hinweis: String(formData.get("hinweis") ?? ""),
+          },
+          geraetZeitpunkt: String(formData.get("geraet_zeitpunkt") ?? ""),
+          datei: verkleinert,
+        }),
+      )
+      .then(() => {
+        setLokalerStatus(ok("ok.offlineEingereiht"));
+        form.reset();
+      });
+  }
+
   return (
-    <form
-      action={action}
-      className="space-y-2.5"
-      onSubmit={mitGeraetZeitstempel("geraet_zeitpunkt")}
-    >
+    <form action={dispatch} className="space-y-2.5" onSubmit={onSubmit}>
       <PfadFeld />
       <input type="hidden" name="aufgabe_id" value={aufgabeId} />
       {/* Anforderung 2.6: Moment der Aufnahme, nicht des Servereingangs. */}
@@ -181,7 +223,7 @@ export function BelegUploadFormular({ aufgabeId }: { aufgabeId: string }) {
         <Camera className="h-4 w-4" />
         {t("beleg.knopf")}
       </button>
-      <AktionsMeldung status={status} />
+      <AktionsMeldung status={lokalerStatus ?? status} />
     </form>
   );
 }

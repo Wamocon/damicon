@@ -238,8 +238,25 @@ zweite Zeile entsteht. Offline zeigt die Warteschlange bewusst keine
 vorläufige Nummer - der echte Code ist erst nach der Synchronisierung
 bekannt, dieselbe Erfahrung wie bei Kühlmessung/Arbeitszeit.
 
-Noch offen: Fotobeleg mit gepuffertem Blob (Phase 6) und ein minimaler
-App-Shell-Service-Worker (Phase 7, bewusst kein next-pwa/Workbox).
+**Fotobeleg (Phase 6).** Passt nicht in `useOfflineFormular()` - eine
+Bilddatei ist weder JSON-serialisierbar noch ohne Weiteres puffergerecht
+(Handyfotos oft 5-15 MB), `BelegUploadFormular` hat deshalb eine eigene
+Offline-Verzweigung. Vor dem Einreihen verkleinert
+`bildFuerWarteschlangeVerkleinern()` (`src/lib/offline/bild.ts`,
+Canvas-basiert, max. 1600 px Kantenlänge, JPEG-Qualität 0,8) das Bild - nicht
+nur wegen IndexedDB-Speicherplatz, sondern weil der Sync-Endpunkt ein Route
+Handler ist: Vercels Serverless-Payload-Grenze (~4,5 MB) gilt dort, anders
+als bei Server Actions (eigene, höhere Grenze aus `next.config.ts`). Fällt
+die JPEG-Neukodierung größer aus als das Original (z. B. bei einem bereits
+kleinen Bild), bleibt das Original erhalten. Der Sync-Versand läuft über
+`multipart/form-data` statt JSON (keine Base64-Aufblähung), der
+Speicherpfad ist deterministisch aus der `aktionId` abgeleitet statt aus
+`Date.now()` - ein Sync-Retry berechnet denselben Pfad, der erneute
+Storage-Upload überschreibt ihn dann harmlos, statt eine zweite Datei
+anzulegen.
+
+Noch offen: ein minimaler App-Shell-Service-Worker (Phase 7, bewusst kein
+next-pwa/Workbox).
 
 ## Kennzahlen
 
