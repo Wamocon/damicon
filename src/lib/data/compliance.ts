@@ -20,6 +20,9 @@ export interface VerarbeitungszweckZeile {
   rechtsgrundlage: Rechtsgrundlage;
   aufbewahrungMonate: number;
   automatisierteEntscheidung: boolean;
+  /** Anforderung 4.8: benannte verantwortliche Person, sofern gesetzt. */
+  verantwortlichProfilId: string | null;
+  verantwortlicher: string | null;
 }
 
 export interface EinwilligungZeile {
@@ -43,6 +46,9 @@ export interface VorfallZeile {
   meldereferenz: string | null;
   behobenAm: string | null;
   ueberfaellig: boolean;
+  /** Anforderung 4.8: wer diesen Vorfall bearbeitet, sofern gesetzt. */
+  verantwortlichProfilId: string | null;
+  verantwortlicher: string | null;
 }
 
 export interface DrittweitergabeZeile {
@@ -85,6 +91,8 @@ function demoCockpit(quelle: ComplianceCockpit["quelle"] = "demo"): ComplianceCo
       rechtsgrundlage: "vertrag",
       aufbewahrungMonate: 36,
       automatisierteEntscheidung: true,
+      verantwortlichProfilId: "demo-leitung",
+      verantwortlicher: "N. Amanschajewa (Betriebsleitung)",
     },
     {
       id: "demo-auftragsabwicklung",
@@ -93,6 +101,8 @@ function demoCockpit(quelle: ComplianceCockpit["quelle"] = "demo"): ComplianceCo
       rechtsgrundlage: "vertrag",
       aufbewahrungMonate: 60,
       automatisierteEntscheidung: false,
+      verantwortlichProfilId: "demo-leitung",
+      verantwortlicher: "N. Amanschajewa (Betriebsleitung)",
     },
     {
       id: "demo-esutd",
@@ -101,6 +111,8 @@ function demoCockpit(quelle: ComplianceCockpit["quelle"] = "demo"): ComplianceCo
       rechtsgrundlage: "gesetzliche_pflicht",
       aufbewahrungMonate: 60,
       automatisierteEntscheidung: false,
+      verantwortlichProfilId: null,
+      verantwortlicher: null,
     },
   ];
 
@@ -146,6 +158,8 @@ function demoCockpit(quelle: ComplianceCockpit["quelle"] = "demo"): ComplianceCo
       meldereferenz: null,
       behobenAm: null,
       ueberfaellig: true,
+      verantwortlichProfilId: null,
+      verantwortlicher: null,
     },
     {
       id: "demo-v2",
@@ -158,6 +172,8 @@ function demoCockpit(quelle: ComplianceCockpit["quelle"] = "demo"): ComplianceCo
       meldereferenz: "Meldung enbek.kz Nr. 2026-0710",
       behobenAm: "2026-07-11T16:00:00+06:00",
       ueberfaellig: false,
+      verantwortlichProfilId: "demo-leitung",
+      verantwortlicher: "N. Amanschajewa (Betriebsleitung)",
     },
   ];
 
@@ -246,7 +262,10 @@ export async function ladeCompliance(): Promise<ComplianceCockpit> {
   const [zweckeErg, einwilligungenErg, vorfaelleErg, drittweitergabenErg] = await Promise.all([
     supabase
       .from("verarbeitungszwecke")
-      .select("id, code, bezeichnung, rechtsgrundlage, aufbewahrung_monate, automatisierte_entscheidung")
+      .select(
+        `id, code, bezeichnung, rechtsgrundlage, aufbewahrung_monate, automatisierte_entscheidung,
+         verantwortlich_profil_id, profiles ( full_name )`,
+      )
       .order("bezeichnung"),
     supabase
       .from("einwilligungen")
@@ -261,7 +280,8 @@ export async function ladeCompliance(): Promise<ComplianceCockpit> {
     supabase
       .from("datenschutzvorfaelle")
       .select(
-        "id, festgestellt_am, art, beschreibung, betroffene_anzahl, meldefrist_am, gemeldet_am, meldereferenz, behoben_am",
+        `id, festgestellt_am, art, beschreibung, betroffene_anzahl, meldefrist_am, gemeldet_am,
+         meldereferenz, behoben_am, verantwortlich_profil_id, profiles ( full_name )`,
       )
       .order("festgestellt_am", { ascending: false }),
     supabase
@@ -292,6 +312,8 @@ export async function ladeCompliance(): Promise<ComplianceCockpit> {
     rechtsgrundlage: z.rechtsgrundlage,
     aufbewahrungMonate: z.aufbewahrung_monate,
     automatisierteEntscheidung: z.automatisierte_entscheidung,
+    verantwortlichProfilId: z.verantwortlich_profil_id,
+    verantwortlicher: einsAus(z.profiles)?.full_name ?? null,
   }));
 
   const einwilligungen: EinwilligungZeile[] = (einwilligungenErg.data ?? []).map((e) => {
@@ -321,6 +343,8 @@ export async function ladeCompliance(): Promise<ComplianceCockpit> {
     meldereferenz: v.meldereferenz,
     behobenAm: v.behoben_am,
     ueberfaellig: !v.gemeldet_am && !!v.meldefrist_am && v.meldefrist_am < jetzt,
+    verantwortlichProfilId: v.verantwortlich_profil_id,
+    verantwortlicher: einsAus(v.profiles)?.full_name ?? null,
   }));
 
   const drittweitergaben: DrittweitergabeZeile[] = (drittweitergabenErg.data ?? []).map((d) => {

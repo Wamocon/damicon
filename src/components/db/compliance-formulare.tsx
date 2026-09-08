@@ -10,6 +10,8 @@ import {
   einwilligungWiderrufen,
   vorfallErfassen,
   vorfallMelden,
+  vorfallVerantwortlichenSetzen,
+  zweckVerantwortlichenSetzen,
 } from "@/lib/actions/compliance";
 import { leer } from "@/lib/actions/status";
 import {
@@ -123,7 +125,7 @@ export function EinwilligungWiderrufFormular({ id }: { id: string }) {
   );
 }
 
-export function VorfallErfassenFormular() {
+export function VorfallErfassenFormular({ profile }: { profile: AuswahlOption[] }) {
   const [status, action] = useActionState(vorfallErfassen, leer);
   const t = useTranslations("complianceAnsicht.formular.vorfall");
   const a = useTranslations("complianceAnsicht.vorfallArt");
@@ -140,6 +142,14 @@ export function VorfallErfassenFormular() {
         />
         <Feld label={t("feld.betroffeneAnzahl")} name="betroffene_anzahl" inputMode="decimal" placeholder="1" />
         <Feld label={t("feld.beschreibung")} name="beschreibung" required placeholder={t("beschreibungPlatzhalter")} />
+        {/* Anforderung 4.8: benannte verantwortliche Person - Pflichtfeld
+            schon beim Erfassen, nicht erst nachtraeglich. */}
+        <Auswahl
+          label={t("feld.verantwortlich")}
+          name="verantwortlich_profil_id"
+          options={profile}
+          required
+        />
         <div className="flex items-end">
           <SubmitKnopf label={t("knopf")} />
         </div>
@@ -148,6 +158,91 @@ export function VorfallErfassenFormular() {
         </div>
       </form>
     </FormularKarte>
+  );
+}
+
+// Anforderung 4.8: verantwortliche Person nachtragen bzw. neu zuweisen -
+// dieselbe kompakte Inline-Form fuer Zweck und Vorfall, nur die Server
+// Action unterscheidet sich.
+export function ZweckVerantwortlichenFormular({
+  id,
+  profile,
+}: {
+  id: string;
+  profile: AuswahlOption[];
+}) {
+  const [status, action] = useActionState(zweckVerantwortlichenSetzen, leer);
+  const t = useTranslations("complianceAnsicht.formular.verantwortlich");
+
+  return (
+    <form action={action} className="flex flex-wrap items-center gap-1.5">
+      <PfadFeld />
+      <input type="hidden" name="id" value={id} />
+      <select
+        name="verantwortlich_profil_id"
+        required
+        aria-label={t("label")}
+        defaultValue=""
+        className="h-7 rounded-md border border-border bg-background px-2 text-[11px] text-foreground outline-none focus:border-primary"
+      >
+        <option value="" disabled>
+          {t("platzhalter")}
+        </option>
+        {profile.map((p) => (
+          <option key={p.wert} value={p.wert}>
+            {p.text}
+          </option>
+        ))}
+      </select>
+      <button
+        type="submit"
+        className="inline-flex h-7 items-center gap-1 rounded-md border border-border px-2 text-[11px] font-semibold text-foreground transition hover:border-primary"
+      >
+        {t("knopf")}
+      </button>
+      <AktionsMeldung status={status} />
+    </form>
+  );
+}
+
+export function VorfallVerantwortlichenFormular({
+  id,
+  profile,
+}: {
+  id: string;
+  profile: AuswahlOption[];
+}) {
+  const [status, action] = useActionState(vorfallVerantwortlichenSetzen, leer);
+  const t = useTranslations("complianceAnsicht.formular.verantwortlich");
+
+  return (
+    <form action={action} className="flex flex-wrap items-center gap-1.5">
+      <PfadFeld />
+      <input type="hidden" name="id" value={id} />
+      <select
+        name="verantwortlich_profil_id"
+        required
+        aria-label={t("label")}
+        defaultValue=""
+        className="h-7 rounded-md border border-border bg-background px-2 text-[11px] text-foreground outline-none focus:border-primary"
+      >
+        <option value="" disabled>
+          {t("platzhalter")}
+        </option>
+        {profile.map((p) => (
+          <option key={p.wert} value={p.wert}>
+            {p.text}
+          </option>
+        ))}
+      </select>
+      <button
+        type="submit"
+        className="inline-flex h-7 items-center gap-1 rounded-md border border-border px-2 text-[11px] font-semibold text-foreground transition hover:border-primary"
+      >
+        {t("knopf")}
+      </button>
+      <AktionsMeldung status={status} />
+    </form>
   );
 }
 

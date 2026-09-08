@@ -163,8 +163,18 @@ export async function vorfallErfassen(
   const art = text(formData, "art");
   const beschreibung = text(formData, "beschreibung");
   const betroffeneAnzahl = zahl(formData, "betroffene_anzahl");
+  // Anforderung 4.8: eine benannte verantwortliche Person je Vorfall ist
+  // Pflicht - die Datenbankspalte bleibt nullable (Seed-Reihenfolge, siehe
+  // Migration 20260912000000), aber ein neu erfasster Vorfall bekommt sie
+  // immer schon beim Anlegen, nicht erst nachtraeglich.
+  const verantwortlichProfilId = text(formData, "verantwortlich_profil_id");
 
-  if (!festgestelltAm || !beschreibung || !(vorfallArten as readonly string[]).includes(art)) {
+  if (
+    !festgestelltAm ||
+    !beschreibung ||
+    !verantwortlichProfilId ||
+    !(vorfallArten as readonly string[]).includes(art)
+  ) {
     return fehler("fehler.eingabe");
   }
 
@@ -176,6 +186,7 @@ export async function vorfallErfassen(
       art: art as (typeof vorfallArten)[number],
       beschreibung,
       betroffene_anzahl: betroffeneAnzahl,
+      verantwortlich_profil_id: verantwortlichProfilId,
     })
     .select("id")
     .single();
@@ -185,6 +196,65 @@ export async function vorfallErfassen(
   await protokolliere(profil, "vorfall.erfasst", data.id, { art });
   aktualisiere(formData);
   return ok("ok.vorfallErfasst");
+}
+
+// Anforderung 4.8: verantwortliche Person nachtragen bzw. neu zuweisen -
+// fuer bereits vorhandene Zwecke/Vorfaelle ohne benannte Person (z. B.
+// Seed-Daten, siehe Migrationskommentar 20260912000000).
+export async function zweckVerantwortlichenSetzen(
+  _status: AktionsStatus,
+  formData: FormData,
+): Promise<AktionsStatus> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("compliance", "update");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+
+  const id = text(formData, "id");
+  const verantwortlichProfilId = text(formData, "verantwortlich_profil_id");
+  if (!id || !verantwortlichProfilId) return fehler("fehler.eingabe");
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("verarbeitungszwecke")
+    .update({ verantwortlich_profil_id: verantwortlichProfilId })
+    .eq("id", id);
+
+  if (error) return dbFehler(error);
+
+  await protokolliere(profil, "zweck.verantwortlicher_gesetzt", id, {});
+  aktualisiere(formData);
+  return ok("ok.zweckVerantwortlich");
+}
+
+export async function vorfallVerantwortlichenSetzen(
+  _status: AktionsStatus,
+  formData: FormData,
+): Promise<AktionsStatus> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("compliance", "update");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+
+  const id = text(formData, "id");
+  const verantwortlichProfilId = text(formData, "verantwortlich_profil_id");
+  if (!id || !verantwortlichProfilId) return fehler("fehler.eingabe");
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("datenschutzvorfaelle")
+    .update({ verantwortlich_profil_id: verantwortlichProfilId })
+    .eq("id", id);
+
+  if (error) return dbFehler(error);
+
+  await protokolliere(profil, "vorfall.verantwortlicher_gesetzt", id, {});
+  aktualisiere(formData);
+  return ok("ok.vorfallVerantwortlich");
 }
 
 export async function vorfallMelden(

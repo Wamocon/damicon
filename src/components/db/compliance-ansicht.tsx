@@ -7,6 +7,8 @@ import {
   EinwilligungWiderrufFormular,
   VorfallErfassenFormular,
   VorfallMeldenFormular,
+  VorfallVerantwortlichenFormular,
+  ZweckVerantwortlichenFormular,
 } from "@/components/db/compliance-formulare";
 import { ladeBetroffenenOptionen, ladeCompliance } from "@/lib/data/compliance";
 import { getSessionProfile } from "@/lib/auth";
@@ -36,6 +38,7 @@ export async function ComplianceAnsicht() {
     iso ? format.dateTime(new Date(iso), { dateStyle: "medium", timeStyle: "short" }) : "-";
 
   const k = cockpit.kennzahlen;
+  const profilOptionen = betroffenenOptionen.profile.map((p) => ({ wert: p.id, text: p.label }));
 
   return (
     <div className="space-y-6">
@@ -119,6 +122,7 @@ export async function ComplianceAnsicht() {
             t("col.art"),
             t("col.beschreibung"),
             t("col.meldefristAm"),
+            t("col.verantwortlich"),
             t("col.status"),
           ]}
         >
@@ -128,6 +132,15 @@ export async function ComplianceAnsicht() {
               <td className="px-3 py-2.5 font-semibold text-foreground">{artT(v.art)}</td>
               <td className="px-3 py-2.5 text-muted-foreground">{v.beschreibung}</td>
               <td className="px-3 py-2.5 text-muted-foreground">{datum(v.meldefristAm)}</td>
+              <td className="px-3 py-2.5 text-muted-foreground">
+                {v.verantwortlicher ?? (
+                  darfSchreiben ? (
+                    <VorfallVerantwortlichenFormular id={v.id} profile={profilOptionen} />
+                  ) : (
+                    "-"
+                  )
+                )}
+              </td>
               <td className="px-3 py-2.5">
                 {v.gemeldetAm ? (
                   <StatusPill tone="success">{t("status.gemeldet")}</StatusPill>
@@ -144,7 +157,7 @@ export async function ComplianceAnsicht() {
         </DataTable>
       </Section>
 
-      {darfSchreiben ? <VorfallErfassenFormular /> : null}
+      {darfSchreiben ? <VorfallErfassenFormular profile={profilOptionen} /> : null}
 
       <Section title={t("drittweitergaben.titel")} description={t("drittweitergaben.lead")}>
         <DataTable
@@ -180,7 +193,13 @@ export async function ComplianceAnsicht() {
 
       <Section title={t("zwecke.titel")} description={t("zwecke.lead")}>
         <DataTable
-          head={[t("col.bezeichnung"), t("col.rechtsgrundlage"), t("col.aufbewahrung"), t("col.automatisiert")]}
+          head={[
+            t("col.bezeichnung"),
+            t("col.rechtsgrundlage"),
+            t("col.aufbewahrung"),
+            t("col.automatisiert"),
+            t("col.verantwortlich"),
+          ]}
         >
           {cockpit.zwecke.map((z) => (
             <tr key={z.id}>
@@ -193,6 +212,15 @@ export async function ComplianceAnsicht() {
                 <StatusPill tone={z.automatisierteEntscheidung ? "warning" : "neutral"}>
                   {z.automatisierteEntscheidung ? t("ja") : t("nein")}
                 </StatusPill>
+              </td>
+              <td className="px-3 py-2.5 text-muted-foreground">
+                {z.verantwortlicher ?? (
+                  darfSchreiben ? (
+                    <ZweckVerantwortlichenFormular id={z.id} profile={profilOptionen} />
+                  ) : (
+                    "-"
+                  )
+                )}
               </td>
             </tr>
           ))}

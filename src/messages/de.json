@@ -320,7 +320,10 @@
       "kpiSummary": "{berechenbar} heute messbar · {erfassung} Erfassung fehlt · {tabelle} Funktion fehlt · {ungeklaert} rechtlich ungeklärt",
       "kpiGerechnet": "gerechnet aus {anzahl} Datensätzen",
       "kpiGerechnetUngeklaert": "aus {anzahl} Datensätzen gerechnet - rechtliche Grundlage ungeklärt",
-      "kpiSummaryLive": "{gerechnet} aus echten Daten gerechnet · {offen} warten auf die Funktion dahinter"
+      "kpiSummaryLive": "{gerechnet} aus echten Daten gerechnet · {offen} warten auf die Funktion dahinter",
+      "kpiExtendedTitle": "Weitere Kennzahlen",
+      "kpiExtendedDescription": "Teil der unterschriebenen Baseline, aber außerhalb der zwölf Kern-Kennzahlen im Cockpit.",
+      "kpiNoneForRole": "Für Ihre Rolle sind hier keine betriebsweiten Kennzahlen hinterlegt. Die eigene Leistung finden Sie im Lohn-Modul."
     }
   },
   "roles": {
@@ -686,6 +689,7 @@
     "laeuft": "...",
     "spalte": "Aktion",
     "statusLabel": "Status wählen",
+    "bearbeiten": "Bearbeiten",
     "faellig": "Wartezeit abgelaufen",
     "resttage": "noch {tage} Tage",
     "gesperrtHinweis": "Freigabe erst nach Ablauf der Wartezeit",
@@ -694,6 +698,7 @@
       "parzelle": "Feldparzelle \"{wert}\" angelegt.",
       "reihengruppe": "Reihengruppe \"{wert}\" angelegt.",
       "reihenblock": "Reihenblock {wert} angelegt.",
+      "reihenblockStammdaten": "Reihenblock {wert} aktualisiert.",
       "status": "Status von {wert} gespeichert.",
       "behandlung": "Behandlung erfasst - Block gesperrt bis {wert}.",
       "freigabe": "Reihenblock {wert} freigegeben.",
@@ -709,6 +714,8 @@
       "einwilligungWiderrufen": "Einwilligung widerrufen.",
       "vorfallErfasst": "Datenschutzvorfall erfasst.",
       "vorfallGemeldet": "Vorfall als gemeldet markiert.",
+      "zweckVerantwortlich": "Verantwortliche Person zugewiesen.",
+      "vorfallVerantwortlich": "Verantwortliche Person zugewiesen.",
       "drittweitergabeBenachrichtigt": "Benachrichtigung erfasst.",
       "reklamation": "Reklamation {wert} gemeldet.",
       "reklamationStatus": "Reklamation {wert} aktualisiert.",
@@ -1039,7 +1046,8 @@
       "bezeichnung": "Zweck",
       "rechtsgrundlage": "Rechtsgrundlage",
       "aufbewahrung": "Aufbewahrung",
-      "automatisiert": "Automatisierte Entscheidung"
+      "automatisiert": "Automatisierte Entscheidung",
+      "verantwortlich": "Verantwortlich"
     },
     "status": {
       "aktiv": "aktiv",
@@ -1123,7 +1131,8 @@
           "festgestellt": "Festgestellt am",
           "art": "Art",
           "betroffeneAnzahl": "Betroffene Anzahl",
-          "beschreibung": "Beschreibung"
+          "beschreibung": "Beschreibung",
+          "verantwortlich": "Verantwortlich"
         },
         "beschreibungPlatzhalter": "Kurz und sachlich, was passiert ist.",
         "knopf": "Vorfall erfassen"
@@ -1131,6 +1140,11 @@
       "vorfallMelden": {
         "platzhalter": "Meldereferenz",
         "knopf": "Melden"
+      },
+      "verantwortlich": {
+        "label": "Verantwortliche Person wählen",
+        "platzhalter": "Verantwortliche Person wählen",
+        "knopf": "Zuweisen"
       },
       "drittweitergabe": {
         "knopf": "Als benachrichtigt markieren"

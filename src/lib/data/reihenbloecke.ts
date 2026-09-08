@@ -26,6 +26,8 @@ export interface ReihenblockZeile {
   parzelle: string;
   reihengruppe: string;
   sorte: string;
+  /** Anforderung 2.1: Rohwert fuer die Bearbeitung - null im Demo-Modus. */
+  sorteId: string | null;
   status: ReihenblockStatus;
   laengeM: number | null;
   letzteErnte: string | null;
@@ -70,6 +72,7 @@ function demoListe(quelle: ReihenblockListe["quelle"] = "demo"): ReihenblockList
     parzelle: block.parzelle,
     reihengruppe: block.reihengruppe,
     sorte: block.sorte,
+    sorteId: null,
     status: block.status,
     laengeM: block.laengeM,
     letzteErnte: block.letzteErnte,
@@ -94,7 +97,7 @@ export async function ladeReihenbloecke(): Promise<ReihenblockListe> {
   const { data, error } = await supabase
     .from("reihenbloecke")
     .select(
-      `id, code, status, laenge_m, letzte_ernte,
+      `id, code, status, laenge_m, letzte_ernte, sorte_id,
        sorten ( name ),
        reihengruppen ( name, feldparzellen ( name ) ),
        pflanzenschutz_behandlungen (
@@ -125,6 +128,7 @@ export async function ladeReihenbloecke(): Promise<ReihenblockListe> {
       parzelle: parzelle?.name ?? "",
       reihengruppe: gruppe?.name ?? "",
       sorte: einsAus(row.sorten)?.name ?? "",
+      sorteId: row.sorte_id,
       status: row.status,
       laengeM: row.laenge_m === null ? null : Number(row.laenge_m),
       letzteErnte: row.letzte_ernte,

@@ -112,7 +112,10 @@
       "kpiSummary": "{berechenbar} бүгін өлшенеді · {erfassung} тіркеу жоқ · {tabelle} функция жоқ · {ungeklaert} заңды негізі анықталмаған",
       "kpiGerechnet": "{anzahl} жазба бойынша есептелді",
       "kpiGerechnetUngeklaert": "{anzahl} жазба бойынша есептелді - заңды негізі анықталмаған",
-      "kpiSummaryLive": "{gerechnet} нақты деректер бойынша есептелді · {offen} оларды жасайтын функцияны күтуде"
+      "kpiSummaryLive": "{gerechnet} нақты деректер бойынша есептелді · {offen} оларды жасайтын функцияны күтуде",
+      "kpiExtendedTitle": "Қосымша көрсеткіштер",
+      "kpiExtendedDescription": "Қол қойылған негізгі көрсеткіштердің бөлігі, бірақ кокпиттегі он екі негізгі көрсеткіштен тыс.",
+      "kpiNoneForRole": "Сіздің рөліңіз үшін мұнда кәсіпорын бойынша көрсеткіштер белгіленбеген. Өз еңбек нәтижеңізді жалақы модулінен табасыз."
     },
     "dataSource": {
       "db": "Дерекқор деректері",
@@ -893,6 +896,7 @@
     "laeuft": "...",
     "spalte": "Әрекет",
     "statusLabel": "Күйді таңдау",
+    "bearbeiten": "Өзгерту",
     "faellig": "күту мерзімі аяқталды",
     "resttage": "тағы {tage} күн",
     "gesperrtHinweis": "Босату тек күту мерзімі аяқталғаннан кейін",
@@ -901,6 +905,7 @@
       "parzelle": "«{wert}» дала учаскесі құрылды.",
       "reihengruppe": "«{wert}» қатарлар тобы құрылды.",
       "reihenblock": "{wert} қатар блогы құрылды.",
+      "reihenblockStammdaten": "{wert} қатар блогы жаңартылды.",
       "status": "{wert} күйі сақталды.",
       "behandlung": "Өңдеу тіркелді - блок {wert} дейін бұғатталды.",
       "freigabe": "{wert} қатар блогы босатылды.",
@@ -916,6 +921,8 @@
       "einwilligungWiderrufen": "Келісім кері қайтарылды.",
       "vorfallErfasst": "Оқиға тіркелді.",
       "vorfallGemeldet": "Оқиға хабарланды деп белгіленді.",
+      "zweckVerantwortlich": "Жауапты адам тағайындалды.",
+      "vorfallVerantwortlich": "Жауапты адам тағайындалды.",
       "drittweitergabeBenachrichtigt": "Хабарландыру тіркелді.",
       "reklamation": "{wert} шағымы тіркелді.",
       "reklamationStatus": "{wert} шағымы жаңартылды.",
@@ -1100,7 +1107,8 @@
       "bezeichnung": "Мақсаты",
       "rechtsgrundlage": "Құқықтық негіз",
       "aufbewahrung": "Сақтау мерзімі",
-      "automatisiert": "Автоматтандырылған шешім"
+      "automatisiert": "Автоматтандырылған шешім",
+      "verantwortlich": "Жауапты"
     },
     "status": {
       "aktiv": "жарамды",
@@ -1184,7 +1192,8 @@
           "festgestellt": "Анықталған күні",
           "art": "Түрі",
           "betroffeneAnzahl": "Қамтылған адамдар саны",
-          "beschreibung": "Сипаттама"
+          "beschreibung": "Сипаттама",
+          "verantwortlich": "Жауапты"
         },
         "beschreibungPlatzhalter": "Не болғаны туралы қысқаша және нақты.",
         "knopf": "Оқиғаны тіркеу"
@@ -1192,6 +1201,11 @@
       "vorfallMelden": {
         "platzhalter": "Хабарлама нөмірі",
         "knopf": "Хабарлау"
+      },
+      "verantwortlich": {
+        "label": "Жауапты адамды таңдау",
+        "platzhalter": "Жауапты адамды таңдау",
+        "knopf": "Тағайындау"
       },
       "drittweitergabe": {
         "knopf": "Хабардар етілді деп белгілеу"

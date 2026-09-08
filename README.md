@@ -136,6 +136,12 @@ API-Zugriff und lassen sich durch kein Formular umgehen:
   (`rotationsplan_entsperren`), und die erste passende Pflueckaufgabe
   markiert einen Termin als erledigt (`rotationsplan_erledigen`) - alles
   als Trigger, nicht als Anwendungslogik.
+- **Benannte Verantwortliche (Anforderung 4.8):** Jeder Verarbeitungszweck
+  und jeder Datenschutzvorfall trägt eine verantwortliche Person
+  (`verantwortlich_profil_id`, Bezug auf `profiles`). Ein neu erfasster
+  Vorfall verlangt sie schon beim Anlegen (`vorfallErfassen()` in
+  `lib/actions/compliance.ts`); bestehende Einträge ohne Zuordnung lassen
+  sich im Compliance-Cockpit nachträglich zuweisen.
 
 ## Kennzahlen
 
@@ -145,6 +151,13 @@ liefert, bleibt Platzhalter aus `kpi_baseline`, und die Kachel nennt die
 fehlende Funktion. `public.rueckstandsnachweis(charge)` beantwortet die Frage
 von Handel und Behörde: welche Behandlungen betreffen diese Lieferung, und war
 die Wartezeit eingehalten?
+
+Das Cockpit auf der Startseite zeigt höchstens zwölf Kern-Kennzahlen je Rolle
+(Anforderung 4.11, `kpisFuerRolle()` in `lib/domain/kpis.ts`) - die übrigen
+zwei bleiben Teil der unterschriebenen Baseline, stehen aber in einem
+zweiten, weniger prominenten Abschnitt. Rollen ohne betriebsweite Sicht
+(`picker`, `erzeuger`, `kunde`) sehen hier bewusst keine Kachel, da keine der
+14 Kennzahlen eine persönliche Leistungszahl ist.
 
 ## Scripts
 

@@ -172,6 +172,30 @@ async function main() {
       .eq("email", "pfluecker@damicon.demo");
   }
 
+  // Anforderung 4.8: benannte verantwortliche Person je Verarbeitungszweck
+  // und Datenschutzvorfall. supabase/seed.sql legt beide Tabellen VOR den
+  // Profilen an (Profile entstehen erst hier, durch die Auth-Anmeldung) -
+  // die Zuordnung wird deshalb hier nachgetragen, sobald ein Profil
+  // existiert. Nur dort, wo noch keine gesetzt ist (is("verantwortlich_
+  // profil_id", null)) - ein spaeterer Lauf ueberschreibt keine bereits
+  // im Compliance-Cockpit zugewiesene Person.
+  const { data: leitungProfil } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("email", "leitung@damicon.demo")
+    .maybeSingle();
+
+  if (leitungProfil) {
+    await admin
+      .from("verarbeitungszwecke")
+      .update({ verantwortlich_profil_id: leitungProfil.id })
+      .is("verantwortlich_profil_id", null);
+    await admin
+      .from("datenschutzvorfaelle")
+      .update({ verantwortlich_profil_id: leitungProfil.id })
+      .is("verantwortlich_profil_id", null);
+  }
+
   console.log(
     `\n${angelegt} Benutzer angelegt, ${aktualisiert} aktualisiert. Passwort fuer alle: ${demoPasswort}`,
   );

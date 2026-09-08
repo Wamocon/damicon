@@ -81,6 +81,44 @@ export async function statusSetzen(
   return ok("ok.status", data.code);
 }
 
+// Anforderung 2.1: Reihenbloecke liessen sich bisher nur anlegen, nicht mehr
+// umbenennen oder im Sortenprofil korrigieren. Dieselbe Berechtigung wie
+// statusSetzen (reihenbloecke:update) - die RLS-Policy reihenbloecke_update_
+// leitung (Migration 20260905120000) ist spaltenunabhaengig, kein neuer
+// Datenbankschritt noetig.
+export async function stammdatenBearbeiten(
+  _status: AktionsStatus,
+  formData: FormData,
+): Promise<AktionsStatus> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("reihenbloecke", "update");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+
+  const id = text(formData, "id");
+  const code = text(formData, "code").toUpperCase();
+  if (!id || !code) return fehler("fehler.eingabe");
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("reihenbloecke")
+    .update({ code, sorte_id: text(formData, "sorte_id") || null })
+    .eq("id", id)
+    .select("id, code")
+    .maybeSingle();
+
+  if (error) return dbFehler(error);
+  // Kein Treffer trotz fehlerfreiem Update: die RLS-Policy hat die Zeile
+  // ausgefiltert.
+  if (!data) return fehler("fehler.berechtigung");
+
+  await protokolliere(profil, "reihenblock.stammdaten", data.id, { code });
+  aktualisiere(formData);
+  return ok("ok.reihenblockStammdaten", data.code);
+}
+
 export async function behandlungErfassen(
   _status: AktionsStatus,
   formData: FormData,

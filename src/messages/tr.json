@@ -112,7 +112,10 @@
       "kpiSummary": "{berechenbar} bugün ölçülebilir · {erfassung} kayıt eksik · {tabelle} işlev eksik · {ungeklaert} hukuki dayanağı belirsiz",
       "kpiGerechnet": "{anzahl} kayıttan hesaplandı",
       "kpiGerechnetUngeklaert": "{anzahl} kayıttan hesaplandı - hukuki dayanağı belirsiz",
-      "kpiSummaryLive": "{gerechnet} gerçek veriden hesaplandı · {offen} arkasındaki işlevi bekliyor"
+      "kpiSummaryLive": "{gerechnet} gerçek veriden hesaplandı · {offen} arkasındaki işlevi bekliyor",
+      "kpiExtendedTitle": "Diğer göstergeler",
+      "kpiExtendedDescription": "İmzalanan taban değerin parçası, ancak kokpitteki on iki temel göstergenin dışında.",
+      "kpiNoneForRole": "Rolünüz için burada işletme geneli gösterge tanımlanmadı. Kendi performansınızı bordro modülünde bulabilirsiniz."
     },
     "dataSource": {
       "db": "Canlı veri",
@@ -893,6 +896,7 @@
     "laeuft": "...",
     "spalte": "İşlem",
     "statusLabel": "Durum seç",
+    "bearbeiten": "Düzenle",
     "faellig": "bekleme süresi doldu",
     "resttage": "{tage} gün kaldı",
     "gesperrtHinweis": "Serbest bırakma ancak bekleme süresi dolduktan sonra",
@@ -901,6 +905,7 @@
       "parzelle": "\"{wert}\" tarla parseli oluşturuldu.",
       "reihengruppe": "\"{wert}\" sıra grubu oluşturuldu.",
       "reihenblock": "{wert} sıra bloğu oluşturuldu.",
+      "reihenblockStammdaten": "{wert} sıra bloğu güncellendi.",
       "status": "{wert} durumu kaydedildi.",
       "behandlung": "İşlem kaydedildi - blok {wert} tarihine kadar kilitli.",
       "freigabe": "{wert} sıra bloğu serbest bırakıldı.",
@@ -916,6 +921,8 @@
       "einwilligungWiderrufen": "Rıza iptal edildi.",
       "vorfallErfasst": "Veri ihlali kaydedildi.",
       "vorfallGemeldet": "İhlal bildirildi olarak işaretlendi.",
+      "zweckVerantwortlich": "Sorumlu kişi atandı.",
+      "vorfallVerantwortlich": "Sorumlu kişi atandı.",
       "drittweitergabeBenachrichtigt": "Bilgilendirme kaydedildi.",
       "reklamation": "{wert} şikâyeti bildirildi.",
       "reklamationStatus": "{wert} şikâyeti güncellendi.",
@@ -1100,7 +1107,8 @@
       "bezeichnung": "Amaç",
       "rechtsgrundlage": "Hukuki dayanak",
       "aufbewahrung": "Saklama süresi",
-      "automatisiert": "Otomatik karar"
+      "automatisiert": "Otomatik karar",
+      "verantwortlich": "Sorumlu"
     },
     "status": {
       "aktiv": "geçerli",
@@ -1184,7 +1192,8 @@
           "festgestellt": "Tespit tarihi",
           "art": "Tür",
           "betroffeneAnzahl": "Etkilenen kişi sayısı",
-          "beschreibung": "Açıklama"
+          "beschreibung": "Açıklama",
+          "verantwortlich": "Sorumlu"
         },
         "beschreibungPlatzhalter": "Ne olduğunu kısa ve öz biçimde yazın.",
         "knopf": "İhlali kaydet"
@@ -1192,6 +1201,11 @@
       "vorfallMelden": {
         "platzhalter": "Bildirim referansı",
         "knopf": "Bildir"
+      },
+      "verantwortlich": {
+        "label": "Sorumlu kişi seç",
+        "platzhalter": "Sorumlu kişi seç",
+        "knopf": "Ata"
       },
       "drittweitergabe": {
         "knopf": "Bilgilendirildi olarak işaretle"

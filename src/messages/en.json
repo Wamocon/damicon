@@ -320,7 +320,10 @@
       "kpiSummary": "{berechenbar} measurable today · {erfassung} capture missing · {tabelle} function missing · {ungeklaert} legally unconfirmed",
       "kpiGerechnet": "computed from {anzahl} records",
       "kpiGerechnetUngeklaert": "computed from {anzahl} records - legal basis unconfirmed",
-      "kpiSummaryLive": "{gerechnet} computed from real data · {offen} waiting for the function behind them"
+      "kpiSummaryLive": "{gerechnet} computed from real data · {offen} waiting for the function behind them",
+      "kpiExtendedTitle": "Further metrics",
+      "kpiExtendedDescription": "Part of the signed baseline, but outside the twelve core metrics in the cockpit.",
+      "kpiNoneForRole": "No company-wide metrics are configured for your role here. Your own performance is in the payroll module."
     }
   },
   "roles": {
@@ -686,6 +689,7 @@
     "laeuft": "...",
     "spalte": "Action",
     "statusLabel": "Select status",
+    "bearbeiten": "Edit",
     "faellig": "waiting period elapsed",
     "resttage": "{tage} days left",
     "gesperrtHinweis": "Release only after the waiting period",
@@ -694,6 +698,7 @@
       "parzelle": "Field plot \"{wert}\" created.",
       "reihengruppe": "Row group \"{wert}\" created.",
       "reihenblock": "Row block {wert} created.",
+      "reihenblockStammdaten": "Row block {wert} updated.",
       "status": "Status of {wert} saved.",
       "behandlung": "Treatment recorded - block locked until {wert}.",
       "freigabe": "Row block {wert} released.",
@@ -709,6 +714,8 @@
       "einwilligungWiderrufen": "Consent revoked.",
       "vorfallErfasst": "Data incident recorded.",
       "vorfallGemeldet": "Incident marked as reported.",
+      "zweckVerantwortlich": "Responsible person assigned.",
+      "vorfallVerantwortlich": "Responsible person assigned.",
       "drittweitergabeBenachrichtigt": "Notification recorded.",
       "reklamation": "Complaint {wert} reported.",
       "reklamationStatus": "Complaint {wert} updated.",
@@ -1039,7 +1046,8 @@
       "bezeichnung": "Purpose",
       "rechtsgrundlage": "Legal basis",
       "aufbewahrung": "Retention",
-      "automatisiert": "Automated decision"
+      "automatisiert": "Automated decision",
+      "verantwortlich": "Responsible"
     },
     "status": {
       "aktiv": "active",
@@ -1123,7 +1131,8 @@
           "festgestellt": "Detected on",
           "art": "Type",
           "betroffeneAnzahl": "Number affected",
-          "beschreibung": "Description"
+          "beschreibung": "Description",
+          "verantwortlich": "Responsible"
         },
         "beschreibungPlatzhalter": "Short and factual account of what happened.",
         "knopf": "Record incident"
@@ -1131,6 +1140,11 @@
       "vorfallMelden": {
         "platzhalter": "Report reference",
         "knopf": "Report"
+      },
+      "verantwortlich": {
+        "label": "Choose responsible person",
+        "platzhalter": "Choose responsible person",
+        "knopf": "Assign"
       },
       "drittweitergabe": {
         "knopf": "Mark as notified"
