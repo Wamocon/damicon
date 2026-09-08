@@ -77,9 +77,17 @@ export function ArbeitszeitFormular({
   const t = useTranslations("nachweiskette");
 
   return (
-    <form action={action} className="space-y-2">
+    <form
+      action={action}
+      className="space-y-2"
+      onSubmit={mitGeraetZeitstempel("geraet_zeitpunkt")}
+    >
       <PfadFeld />
       <input type="hidden" name="aufgabe_id" value={aufgabeId} />
+      {/* Anforderung 2.6: Moment der Meldung, nicht des Servereingangs -
+          sonst zeichnet eine verzoegert synchronisierte Meldung die
+          Sync-Zeit statt der tatsaechlichen Arbeitszeit auf. */}
+      <input type="hidden" name="geraet_zeitpunkt" />
       <div className="grid grid-cols-2 gap-2">
         <Auswahl label={t("feld.pfluecker")} name="pfluecker_id" options={pfluecker} required />
         <Feld label={t("feld.minuten")} name="minuten" inputMode="decimal" required placeholder="90" />

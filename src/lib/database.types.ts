@@ -39,28 +39,34 @@ export type Database = {
           beginn: string
           created_at: string
           ende: string | null
+          geraet_zeitpunkt: string | null
           id: string
           minuten: number | null
           pflueckaufgabe_id: string | null
           pfluecker_id: string
+          server_eingang_zeitpunkt: string | null
         }
         Insert: {
           beginn: string
           created_at?: string
           ende?: string | null
+          geraet_zeitpunkt?: string | null
           id?: string
           minuten?: number | null
           pflueckaufgabe_id?: string | null
           pfluecker_id: string
+          server_eingang_zeitpunkt?: string | null
         }
         Update: {
           beginn?: string
           created_at?: string
           ende?: string | null
+          geraet_zeitpunkt?: string | null
           id?: string
           minuten?: number | null
           pflueckaufgabe_id?: string | null
           pfluecker_id?: string
+          server_eingang_zeitpunkt?: string | null
         }
         Relationships: [
           {
@@ -1176,19 +1182,23 @@ export type Database = {
           aufgenommen_am: string
           created_at: string
           digest: string | null
+          geraet_zeitpunkt: string | null
           hinweis: string | null
           id: string
           pflueckaufgabe_id: string
+          server_eingang_zeitpunkt: string | null
           storage_path: string | null
         }
         Insert: {
           art: Database["public"]["Enums"]["beleg_art"]
-          aufgenommen_am?: string
+          aufgenommen_am: string
           created_at?: string
           digest?: string | null
+          geraet_zeitpunkt?: string | null
           hinweis?: string | null
           id?: string
           pflueckaufgabe_id: string
+          server_eingang_zeitpunkt?: string | null
           storage_path?: string | null
         }
         Update: {
@@ -1196,9 +1206,11 @@ export type Database = {
           aufgenommen_am?: string
           created_at?: string
           digest?: string | null
+          geraet_zeitpunkt?: string | null
           hinweis?: string | null
           id?: string
           pflueckaufgabe_id?: string
+          server_eingang_zeitpunkt?: string | null
           storage_path?: string | null
         }
         Relationships: [

@@ -11,7 +11,22 @@ import {
   type AktionsStatus,
 } from "@/lib/actions/status";
 import type { Json } from "@/lib/database.types";
-import { aufgabenStatus } from "@/lib/domain/pflueckaufgaben";
+import { aufgabenStatus, type AufgabenStatus } from "@/lib/domain/pflueckaufgaben";
+
+// Vorstufe zu Anforderung 2.5 (Offline-first): aufgabeStatusSetzen() und
+// mengeMelden() aktualisierten bisher blind per .eq("id", id), ohne den
+// Ist-Zustand zu pruefen - ein verzoegert synchronisierter, veralteter
+// Schreibvorgang haette den Status stillschweigend zuruecksetzen koennen
+// (mengeMelden erzwang "beleg_pruefung" sogar unabhaengig vom Ist-Zustand,
+// auch auf einer bereits abgeschlossenen Aufgabe). Die Kette ist strikt
+// linear (siehe aufgabenStatus), der erwartete Vorzustand steht deshalb hier
+// fest und wird NICHT vom Aufrufer uebernommen - sonst liesse sich die
+// Pruefung durch eine manipulierte Anfrage selbst aushebeln.
+const erwarteterVorzustand: Partial<Record<AufgabenStatus, AufgabenStatus>> = {
+  angenommen: "offen",
+  in_arbeit: "angenommen",
+  abgeschlossen: "beleg_pruefung",
+};
 
 // Pflueckaufgaben mit Fotobeleg (Meilenstein B). Der Beleg landet im privaten
 // Storage-Bucket "belege"; in der Tabelle steht nur der Pfad.
@@ -145,7 +160,7 @@ export async function aufgabeStatusSetzen(
   // verzoegert hat.
   const geraetZeitpunkt = text(formData, "arbeitsbeginn_geraet_zeitpunkt");
 
-  const { data, error } = await supabase
+  let anfrage = supabase
     .from("pflueckaufgaben")
     .update({
       status: neuerStatus as (typeof aufgabenStatus)[number],
@@ -154,9 +169,12 @@ export async function aufgabeStatusSetzen(
         ? { arbeitsbeginn_geraet_zeitpunkt: geraetZeitpunkt }
         : {}),
     })
-    .eq("id", id)
-    .select("id, code")
-    .maybeSingle();
+    .eq("id", id);
+
+  const vorzustand = erwarteterVorzustand[neuerStatus as AufgabenStatus];
+  if (vorzustand) anfrage = anfrage.eq("status", vorzustand);
+
+  const { data, error } = await anfrage.select("id, code").maybeSingle();
 
   if (error) return dbFehler(error);
   if (!data) return fehler("fehler.berechtigung");
@@ -197,6 +215,12 @@ export async function mengeMelden(
       status: "beleg_pruefung",
     })
     .eq("id", id)
+    // MengeFormular wird sowohl fuer "in_arbeit" (erste Meldung) als auch fuer
+    // "beleg_pruefung" (Korrektur vor der Freigabe) gerendert - beide Zustaende
+    // sind hier ein gueltiger Vorzustand. Ohne diese Schranke wuerde eine
+    // verzoegert synchronisierte Meldung eine laengst abgeschlossene Aufgabe
+    // stillschweigend auf "beleg_pruefung" zuruecksetzen.
+    .in("status", ["in_arbeit", "beleg_pruefung"])
     .select("id, code")
     .maybeSingle();
 
@@ -247,6 +271,11 @@ export async function belegHochladen(
     return fehler("fehler.upload");
   }
 
+  // Anforderung 2.6 (Vorstufe 2.5): geraet_zeitpunkt kommt vom Client (Moment
+  // der Aufnahme), der Trigger beleg_zeitpunkt_stempeln() (Migration
+  // 20260913000000) setzt aufgenommen_am daraus, wenn plausibel.
+  const geraetZeitpunkt = text(formData, "geraet_zeitpunkt") || null;
+
   const { data, error } = await supabase
     .from("media_belege")
     .insert({
@@ -254,6 +283,12 @@ export async function belegHochladen(
       art: art as (typeof belegArten)[number],
       hinweis: text(formData, "hinweis") || null,
       storage_path: pfad,
+      geraet_zeitpunkt: geraetZeitpunkt,
+      // aufgenommen_am hat seit dieser Migration keinen Spalten-Default mehr
+      // (siehe Kommentar dort) - der Trigger berechnet ihn. Der generierte
+      // Insert-Typ kennt trigger-gesetzte Spalten nicht und haelt sie
+      // faelschlich fuer erforderlich; eingefuegt wird nie tatsaechlich NULL.
+      aufgenommen_am: null as unknown as string,
     })
     .select("id")
     .single();

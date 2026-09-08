@@ -130,9 +130,15 @@ export function BelegUploadFormular({ aufgabeId }: { aufgabeId: string }) {
   const t = useTranslations("pflueckaufgabenVerwaltung");
 
   return (
-    <form action={action} className="space-y-2.5">
+    <form
+      action={action}
+      className="space-y-2.5"
+      onSubmit={mitGeraetZeitstempel("geraet_zeitpunkt")}
+    >
       <PfadFeld />
       <input type="hidden" name="aufgabe_id" value={aufgabeId} />
+      {/* Anforderung 2.6: Moment der Aufnahme, nicht des Servereingangs. */}
+      <input type="hidden" name="geraet_zeitpunkt" />
       <Auswahl
         label={t("feld.art")}
         name="art"
