@@ -5,6 +5,7 @@ import {
   kuehlmessungKern,
   type KernErgebnis,
 } from "@/lib/actions/nachweiskette";
+import { aufgabeStatusKern, mengeMeldenKern } from "@/lib/actions/pflueckaufgaben";
 
 // Anforderung 2.5: fester HTTP-Endpunkt fuer die Offline-Warteschlange
 // (src/lib/offline/sync-engine.ts). Ruft dieselben Kernfunktionen auf wie
@@ -95,9 +96,34 @@ export async function POST(request: Request) {
         aktionId,
       });
       break;
+    case "aufgabe_annehmen":
+      kernErgebnis = await aufgabeStatusKern({
+        aufgabeId: antwortText(nutzlast, "id"),
+        neuerStatus: "angenommen",
+        arbeitsbeginnGeraetZeitpunkt: null,
+        aktionId,
+      });
+      break;
+    case "aufgabe_arbeit_starten":
+      kernErgebnis = await aufgabeStatusKern({
+        aufgabeId: antwortText(nutzlast, "id"),
+        neuerStatus: "in_arbeit",
+        arbeitsbeginnGeraetZeitpunkt: geraetZeitpunkt || null,
+        aktionId,
+      });
+      break;
+    case "menge_melden":
+      kernErgebnis = await mengeMeldenKern({
+        aufgabeId: antwortText(nutzlast, "id"),
+        istMengeKg: antwortZahl(nutzlast, "ist_menge_kg"),
+        ausschussKg: antwortZahl(nutzlast, "ausschuss_kg"),
+        pflueckerAnzahl: antwortZahl(nutzlast, "pfluecker_anzahl"),
+        aktionId,
+      });
+      break;
     default:
-      // Weitere Aktionstypen (Steige, die drei Update-Workflows, Fotobeleg)
-      // kommen mit den jeweiligen Phasen 4-6 hinzu.
+      // Weitere Aktionstypen (Steige, Fotobeleg) kommen mit den jeweiligen
+      // Phasen 5/6 hinzu.
       return json({ ergebnis: "fehler", meldung: "fehler.eingabe" }, 400);
   }
 
@@ -106,7 +132,16 @@ export async function POST(request: Request) {
   // (status.stand ist trotzdem "fehler", weil das ein fachlicher Alarm fuer
   // die Oberflaeche ist, kein technischer Fehlschlag) - siehe Kommentar in
   // src/lib/actions/nachweiskette.ts bei KernErgebnis.
-  const ergebnis: SyncAntwort["ergebnis"] = kernErgebnis.erledigt ? "angewendet" : "fehler";
+  //
+  // Bei den drei UPDATE-Workflows (Phase 4) signalisiert die Meldung
+  // "fehler.zustand" gezielt einen echten Konflikt (CAS-Guard fehlgeschlagen,
+  // sync_protokoll bestaetigt: kein eigener Retry) - der Client soll diesen
+  // Eintrag NICHT automatisch erneut senden, sondern als Konflikt anzeigen.
+  const ergebnis: SyncAntwort["ergebnis"] = kernErgebnis.erledigt
+    ? "angewendet"
+    : kernErgebnis.status.meldung === "fehler.zustand"
+      ? "konflikt"
+      : "fehler";
 
   return json(
     {

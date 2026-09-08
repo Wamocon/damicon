@@ -10,9 +10,9 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
     "verify": "npm run typecheck && npm run lint && npm run build",
-    "db:reset": "supabase db reset --local && npm run db:seed-auth",
+    "db:push": "supabase db push",
     "db:seed-auth": "node --env-file=.env.local supabase/seed-auth.mjs",
-    "db:types": "supabase gen types typescript --local > src/lib/database.types.ts",
+    "db:types": "supabase gen types typescript --linked > src/lib/database.types.ts",
     "db:test": "node --env-file=.env.local supabase/tests/integration.mjs",
     "db:test:fast": "node supabase/tests/pglite-fast.mjs",
     "test:zukauf-parser": "node supabase/tests/zukauf-parser.mjs"

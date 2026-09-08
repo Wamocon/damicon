@@ -1223,6 +1223,7 @@
     "offline": "Офлайн",
     "keineEintraege": "Нет ожидающих записей.",
     "jetztSynchronisieren": "Синхронизировать сейчас",
+    "verwerfen": "Отклонить",
     "aktionstyp": {
       "aufgabe_annehmen": "Задача принята",
       "aufgabe_arbeit_starten": "Работа начата",

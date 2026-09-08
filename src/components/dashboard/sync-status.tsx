@@ -3,9 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { CloudOff, RefreshCw, Wifi } from "lucide-react";
+import { CloudOff, RefreshCw, Wifi, X } from "lucide-react";
 import { useOnlineStatus } from "@/lib/offline/use-online-status";
-import { alleEintraege, WARTESCHLANGE_GEAENDERT_EREIGNIS } from "@/lib/offline/warteschlange";
+import {
+  alleEintraege,
+  eintragEntfernen,
+  WARTESCHLANGE_GEAENDERT_EREIGNIS,
+} from "@/lib/offline/warteschlange";
 import { synchronisiere } from "@/lib/offline/sync-engine";
 import type { AktionTyp, WarteschlangenEintrag } from "@/lib/offline/db";
 import { StatusPill, type Tone } from "@/components/ui/kit";
@@ -170,9 +174,31 @@ export function SyncStatus() {
                         {new Date(eintrag.geraetZeitpunkt).toLocaleTimeString()}
                       </p>
                     </div>
-                    <StatusPill tone={statusTon[eintrag.status]}>
-                      {t(`status.${eintrag.status}`)}
-                    </StatusPill>
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <StatusPill tone={statusTon[eintrag.status]}>
+                        {t(`status.${eintrag.status}`)}
+                      </StatusPill>
+                      {eintrag.status === "konflikt" ? (
+                        // Anforderung 2.5, Phase 4: ein Konflikt (CAS-Guard
+                        // fehlgeschlagen, jemand/etwas anderes hat den
+                        // Zustand zwischenzeitlich veraendert) wird nicht
+                        // automatisch erneut gesendet (siehe
+                        // sendbareEintraege()) - ohne diesen Knopf bliebe der
+                        // Eintrag dauerhaft in der Warteschlange stehen, ohne
+                        // dass die Brigade ihn loswerden kann. Die Aenderung
+                        // selbst ist damit verworfen, nicht nachtraeglich
+                        // angewendet - die Brigade muss den aktuellen Stand
+                        // pruefen und bei Bedarf neu erfassen.
+                        <button
+                          type="button"
+                          aria-label={t("verwerfen")}
+                          onClick={() => void eintragEntfernen(eintrag.aktionId)}
+                          className="inline-flex h-5 w-5 items-center justify-center rounded-md text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
                 ))
             )}

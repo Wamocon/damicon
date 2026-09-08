@@ -22,26 +22,37 @@ type AktionsFunktion = (status: AktionsStatus, formData: FormData) => Promise<Ak
 // ausloest (bestaetigtes React-19-Verhalten) - stattdessen wird der Eintrag
 // direkt in IndexedDB gepuffert und ein lokaler Status angezeigt, ohne dass
 // dispatch() je aufgerufen wurde.
+//
+// aktionTyp: null (Phase 4) - fuer ein Formular, das denselben
+// Komponentencode wie ein offline-faehiges Geschwister teilt, aber selbst
+// nie offline gehen soll (z. B. AufgabeStatusFormular mit ziel
+// "abgeschlossen": Buero/Leitung-Vorgang, kein Feld-Workflow). onSubmit tut
+// dann in jedem Fall nichts Besonderes - der Online-Pfad bleibt der einzige.
+//
+// geraetZeitpunktFeld: null - fuer Aktionen ohne eigenes zeitkritisches
+// Geraete-Zeitstempelfeld (z. B. Menge melden). Der Warteschlangen-Eintrag
+// braucht trotzdem einen geraetZeitpunkt (zeigt im Sync-Panel, wann er
+// entstand) - dafuer zaehlt dann schlicht der Moment des Einreihens.
 export function useOfflineFormular(
   aktion: AktionsFunktion,
-  aktionTyp: AktionTyp,
-  geraetZeitpunktFeld: string,
+  aktionTyp: AktionTyp | null,
+  geraetZeitpunktFeld: string | null,
   nutzlastFelder: readonly string[],
 ) {
   const [status, dispatch] = useActionState(aktion, leer);
   const [lokalerStatus, setLokalerStatus] = useState<AktionsStatus | null>(null);
-  const zeitstempeln = mitGeraetZeitstempel(geraetZeitpunktFeld);
+  const zeitstempeln = geraetZeitpunktFeld ? mitGeraetZeitstempel(geraetZeitpunktFeld) : null;
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     // Zeitstempel immer setzen, online wie offline - der Trigger auf
     // Datenbankseite braucht ihn so oder so (Anforderung 2.6).
-    zeitstempeln(event);
+    zeitstempeln?.(event);
     setLokalerStatus(null);
 
     // navigator.onLine direkt gelesen statt useOnlineStatus(): im
     // Submit-Handler zaehlt der Wert im exakten Moment des Absendens, nicht
     // der zuletzt gerenderte Hook-Zustand.
-    if (typeof navigator === "undefined" || navigator.onLine) {
+    if (!aktionTyp || typeof navigator === "undefined" || navigator.onLine) {
       return;
     }
 
@@ -52,7 +63,9 @@ export function useOfflineFormular(
     for (const feld of nutzlastFelder) {
       nutzlast[feld] = formData.get(feld);
     }
-    const geraetZeitpunkt = String(formData.get(geraetZeitpunktFeld) ?? "");
+    const geraetZeitpunkt = geraetZeitpunktFeld
+      ? String(formData.get(geraetZeitpunktFeld) ?? "")
+      : new Date().toISOString();
 
     void eintragen({
       aktionId: crypto.randomUUID(),

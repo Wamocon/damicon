@@ -10,6 +10,7 @@ import {
   zugriffsFehler,
   type AktionsStatus,
 } from "@/lib/actions/status";
+import type { KernErgebnis } from "@/lib/actions/nachweiskette";
 import type { Json } from "@/lib/database.types";
 import { aufgabenStatus, type AufgabenStatus } from "@/lib/domain/pflueckaufgaben";
 
@@ -127,113 +128,187 @@ export async function aufgabeAnlegen(
   return ok("ok.aufgabe", data.code);
 }
 
+// ---------------------------------------------------------------------------
+// Kernfunktionen (Anforderung 2.5, Phase 4): "Aufgabe annehmen" (offen ->
+// angenommen) und "Arbeit starten" (angenommen -> in_arbeit) sind die beiden
+// im Feld offline ausgeloesten Statusuebergaenge - anders als bei den reinen
+// INSERTs aus Phase 2/3 macht hier eine client-generierte Zeilen-id den
+// Schreibvorgang nicht von selbst idempotent (die Zielzeile existiert schon).
+// Die eigentliche Idempotenz- und Konfliktlogik steckt deshalb in den
+// SECURITY-INVOKER-RPCs sync_aufgabe_status_setzen()/sync_menge_melden()
+// (Migration 20260914000000) - RLS greift dabei exakt wie bei einem
+// direkten Update, keine Rechteausweitung. Diese Kernfunktionen sind der
+// duenne, gemeinsame TS-Wrapper, den sowohl der Online-Teil von
+// aufgabeStatusSetzen() als auch der Sync-Endpunkt aufrufen.
+//
+// "abgeschlossen" (Buero/Leitung, eigene "approve"-Berechtigung, schreibt
+// den Qualitaetsfaktor) bleibt bewusst aussen vor - kein Feld-Workflow, dafuer
+// braucht es keine Offline-Idempotenz.
+// ---------------------------------------------------------------------------
+
+export interface AufgabeStatusParams {
+  aufgabeId: string;
+  neuerStatus: "angenommen" | "in_arbeit";
+  arbeitsbeginnGeraetZeitpunkt: string | null;
+  /** Nur beim Sync-Aufruf gesetzt - macht den Aufruf idempotent (siehe
+   * sync_protokoll: ein Retry nach einer nie angekommenen Antwort wird als
+   * "das war schon ich" erkannt, kein echter Konflikt). */
+  aktionId?: string;
+}
+
+export async function aufgabeStatusKern(
+  params: AufgabeStatusParams,
+): Promise<KernErgebnis<{ code: string }>> {
+  try {
+    await requirePermission("pflueckaufgaben", "update");
+  } catch (error) {
+    return { erledigt: false, status: zugriffsFehler(error) };
+  }
+
+  const { aufgabeId, neuerStatus, arbeitsbeginnGeraetZeitpunkt, aktionId } = params;
+  const vorzustand = erwarteterVorzustand[neuerStatus];
+  if (!aufgabeId || !vorzustand) return { erledigt: false, status: fehler("fehler.eingabe") };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .rpc("sync_aufgabe_status_setzen", {
+      p_aktion_id: aktionId ?? crypto.randomUUID(),
+      p_aufgabe_id: aufgabeId,
+      p_neuer_status: neuerStatus,
+      p_vorzustand: vorzustand,
+      p_arbeitsbeginn_geraet_zeitpunkt: arbeitsbeginnGeraetZeitpunkt ?? undefined,
+    })
+    .single();
+
+  if (error) return { erledigt: false, status: dbFehler(error) };
+  if (data.ergebnis === "konflikt" || !data.code) {
+    // Jemand/etwas anderes hat den Status zwischenzeitlich veraendert (z. B.
+    // ein zweites Geraet, oder die Aufgabe wurde storniert) - kein
+    // technischer Fehler, sondern ein echter Konflikt.
+    return { erledigt: false, status: fehler("fehler.zustand") };
+  }
+
+  return { erledigt: true, status: ok("ok.aufgabeStatus", data.code), daten: { code: data.code } };
+}
+
+export interface MengeMeldenParams {
+  aufgabeId: string;
+  istMengeKg: number | null;
+  ausschussKg: number | null;
+  pflueckerAnzahl: number | null;
+  aktionId?: string;
+}
+
+export async function mengeMeldenKern(
+  params: MengeMeldenParams,
+): Promise<KernErgebnis<{ code: string }>> {
+  try {
+    await requirePermission("pflueckaufgaben", "update");
+  } catch (error) {
+    return { erledigt: false, status: zugriffsFehler(error) };
+  }
+
+  const { aufgabeId, istMengeKg, ausschussKg, pflueckerAnzahl, aktionId } = params;
+  if (!aufgabeId || istMengeKg === null || istMengeKg < 0 || (ausschussKg ?? 0) < 0) {
+    return { erledigt: false, status: fehler("fehler.eingabe") };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .rpc("sync_menge_melden", {
+      p_aktion_id: aktionId ?? crypto.randomUUID(),
+      p_aufgabe_id: aufgabeId,
+      p_ist_menge_kg: istMengeKg,
+      p_ausschuss_kg: ausschussKg ?? 0,
+      p_pfluecker_anzahl: pflueckerAnzahl ?? undefined,
+    })
+    .single();
+
+  if (error) return { erledigt: false, status: dbFehler(error) };
+  if (data.ergebnis === "konflikt" || !data.code) {
+    return { erledigt: false, status: fehler("fehler.zustand") };
+  }
+
+  return { erledigt: true, status: ok("ok.menge", data.code), daten: { code: data.code } };
+}
+
+// ---------------------------------------------------------------------------
+// Server Actions
+// ---------------------------------------------------------------------------
+
 export async function aufgabeStatusSetzen(
   _status: AktionsStatus,
   formData: FormData,
 ): Promise<AktionsStatus> {
   const neuerStatus = text(formData, "status");
-  const abschluss = neuerStatus === "abgeschlossen";
-
-  let profil: SessionProfile;
-  try {
-    profil = await requirePermission(
-      "pflueckaufgaben",
-      abschluss ? "approve" : "update",
-    );
-  } catch (error) {
-    return zugriffsFehler(error);
-  }
-
   const id = text(formData, "id");
   if (!id || !(aufgabenStatus as readonly string[]).includes(neuerStatus)) {
     return fehler("fehler.eingabe");
   }
 
-  const supabase = await createClient();
-  const qualitaet = zahl(formData, "qualitaetsfaktor");
+  // Abschluss ist ein Buero/Leitung-Vorgang (eigene "approve"-Berechtigung,
+  // schreibt zusaetzlich den Qualitaetsfaktor) - kein Feld-Workflow, bleibt
+  // deshalb ausserhalb der Kernfunktion/RPC, die nur die beiden
+  // offline-relevanten Uebergaenge kennt.
+  if (neuerStatus === "abgeschlossen") {
+    let profil: SessionProfile;
+    try {
+      profil = await requirePermission("pflueckaufgaben", "approve");
+    } catch (error) {
+      return zugriffsFehler(error);
+    }
+
+    const supabase = await createClient();
+    const qualitaet = zahl(formData, "qualitaetsfaktor");
+    const { data, error } = await supabase
+      .from("pflueckaufgaben")
+      .update({
+        status: "abgeschlossen",
+        ...(qualitaet !== null ? { qualitaetsfaktor: qualitaet } : {}),
+      })
+      .eq("id", id)
+      .eq("status", "beleg_pruefung")
+      .select("id, code")
+      .maybeSingle();
+
+    if (error) return dbFehler(error);
+    if (!data) return fehler("fehler.zustand");
+
+    await protokolliere(profil, "aufgabe.status", data.id, { code: data.code, status: neuerStatus });
+    aktualisiere(formData);
+    return ok("ok.aufgabeStatus", data.code);
+  }
+
+  if (neuerStatus !== "angenommen" && neuerStatus !== "in_arbeit") {
+    return fehler("fehler.eingabe");
+  }
 
   // Anforderung 2.6: beim Start der Arbeit liefert das Formular die lokale
-  // Geraetezeit mit (gesetzt im Moment des Tippens, siehe
-  // pflueckaufgaben-formulare.tsx) - nicht die Serverzeit beim Eintreffen der
-  // Anfrage. Der Trigger aufgabe_fortschreiben() startet die Kuehlkettenuhr
-  // damit am tatsaechlichen Arbeitsbeginn, auch wenn die Synchronisierung sich
-  // verzoegert hat.
-  const geraetZeitpunkt = text(formData, "arbeitsbeginn_geraet_zeitpunkt");
-
-  let anfrage = supabase
-    .from("pflueckaufgaben")
-    .update({
-      status: neuerStatus as (typeof aufgabenStatus)[number],
-      ...(abschluss && qualitaet !== null ? { qualitaetsfaktor: qualitaet } : {}),
-      ...(neuerStatus === "in_arbeit" && geraetZeitpunkt
-        ? { arbeitsbeginn_geraet_zeitpunkt: geraetZeitpunkt }
-        : {}),
-    })
-    .eq("id", id);
-
-  const vorzustand = erwarteterVorzustand[neuerStatus as AufgabenStatus];
-  if (vorzustand) anfrage = anfrage.eq("status", vorzustand);
-
-  const { data, error } = await anfrage.select("id, code").maybeSingle();
-
-  if (error) return dbFehler(error);
-  if (!data) return fehler("fehler.berechtigung");
-
-  await protokolliere(profil, "aufgabe.status", data.id, {
-    code: data.code,
-    status: neuerStatus,
+  // Geraetezeit mit (gesetzt im Moment des Tippens) - nicht die Serverzeit
+  // beim Eintreffen der Anfrage. Der Trigger aufgabe_fortschreiben() startet
+  // die Kuehlkettenuhr damit am tatsaechlichen Arbeitsbeginn, auch wenn die
+  // Synchronisierung sich verzoegert hat.
+  const { status } = await aufgabeStatusKern({
+    aufgabeId: id,
+    neuerStatus,
+    arbeitsbeginnGeraetZeitpunkt: text(formData, "arbeitsbeginn_geraet_zeitpunkt") || null,
   });
   aktualisiere(formData);
-  return ok("ok.aufgabeStatus", data.code);
+  return status;
 }
 
 export async function mengeMelden(
   _status: AktionsStatus,
   formData: FormData,
 ): Promise<AktionsStatus> {
-  let profil: SessionProfile;
-  try {
-    profil = await requirePermission("pflueckaufgaben", "update");
-  } catch (error) {
-    return zugriffsFehler(error);
-  }
-
-  const id = text(formData, "id");
-  const menge = zahl(formData, "ist_menge_kg");
-  const ausschuss = zahl(formData, "ausschuss_kg") ?? 0;
-  if (!id || menge === null || menge < 0 || ausschuss < 0) return fehler("fehler.eingabe");
-
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("pflueckaufgaben")
-    .update({
-      ist_menge_kg: menge,
-      ausschuss_kg: ausschuss,
-      ...(zahl(formData, "pfluecker_anzahl") !== null
-        ? { pfluecker_anzahl: zahl(formData, "pfluecker_anzahl")! }
-        : {}),
-      status: "beleg_pruefung",
-    })
-    .eq("id", id)
-    // MengeFormular wird sowohl fuer "in_arbeit" (erste Meldung) als auch fuer
-    // "beleg_pruefung" (Korrektur vor der Freigabe) gerendert - beide Zustaende
-    // sind hier ein gueltiger Vorzustand. Ohne diese Schranke wuerde eine
-    // verzoegert synchronisierte Meldung eine laengst abgeschlossene Aufgabe
-    // stillschweigend auf "beleg_pruefung" zuruecksetzen.
-    .in("status", ["in_arbeit", "beleg_pruefung"])
-    .select("id, code")
-    .maybeSingle();
-
-  if (error) return dbFehler(error);
-  if (!data) return fehler("fehler.berechtigung");
-
-  await protokolliere(profil, "aufgabe.menge", data.id, {
-    code: data.code,
-    ist_menge_kg: menge,
-    ausschuss_kg: ausschuss,
+  const { status } = await mengeMeldenKern({
+    aufgabeId: text(formData, "id"),
+    istMengeKg: zahl(formData, "ist_menge_kg"),
+    ausschussKg: zahl(formData, "ausschuss_kg"),
+    pflueckerAnzahl: zahl(formData, "pfluecker_anzahl"),
   });
   aktualisiere(formData);
-  return ok("ok.menge", data.code);
+  return status;
 }
 
 export async function belegHochladen(

@@ -1162,6 +1162,7 @@
     "offline": "Offline",
     "keineEintraege": "No pending entries.",
     "jetztSynchronisieren": "Sync now",
+    "verwerfen": "Discard",
     "aktionstyp": {
       "aufgabe_annehmen": "Task accepted",
       "aufgabe_arbeit_starten": "Work started",

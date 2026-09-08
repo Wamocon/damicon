@@ -19,6 +19,8 @@ import {
   mitGeraetZeitstempel,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
+import { useOfflineFormular } from "@/components/db/use-offline-formular";
+import type { AktionTyp } from "@/lib/offline/db";
 import type { AuswahlOption } from "@/components/db/standort-formulare";
 
 function PfadFeld() {
@@ -89,11 +91,21 @@ export function MengeFormular({
   ausschussKg: number;
   pflueckerAnzahl: number;
 }) {
-  const [status, action] = useActionState(mengeMelden, leer);
+  // Anforderung 2.5: online unveraendertes Verhalten, offline puffert der
+  // Hook den Eintrag in IndexedDB statt die Server Action aufzurufen. Kein
+  // eigenes Geraete-Zeitstempelfeld noetig (anders als bei den zeitkritischen
+  // Nachweiskette-Formularen) - der Zeitpunkt des Einreihens reicht fuer die
+  // Sync-Panel-Anzeige.
+  const { status, action, onSubmit } = useOfflineFormular(
+    mengeMelden,
+    "menge_melden",
+    null,
+    ["id", "ist_menge_kg", "ausschuss_kg", "pfluecker_anzahl"],
+  );
   const t = useTranslations("pflueckaufgabenVerwaltung");
 
   return (
-    <form action={action} className="space-y-2.5">
+    <form action={action} className="space-y-2.5" onSubmit={onSubmit}>
       <PfadFeld />
       <input type="hidden" name="id" value={id} />
       <div className="grid grid-cols-2 gap-2.5">
@@ -186,19 +198,27 @@ export function AufgabeStatusFormular({
   label: string;
   mitQualitaet?: boolean;
 }) {
-  const [status, action] = useActionState(aufgabeStatusSetzen, leer);
-  const t = useTranslations("pflueckaufgabenVerwaltung");
   // Anforderung 2.6: nur beim Start der Arbeit relevant - der Wechsel auf
   // in_arbeit startet die Kuehlkettenuhr, dafuer zaehlt der Moment auf dem
   // Feld, nicht der Moment, in dem die Anfrage beim Server ankommt.
   const brauchtGeraetZeit = ziel === "in_arbeit";
+  // Anforderung 2.5, Phase 4: "annehmen" und "starten" sind Feld-Workflows,
+  // offline-faehig. "abgeschlossen" (mitQualitaet) ist ein Buero/Leitung-
+  // Vorgang - aktionTyp null haelt dieses eine Formular fuer diesen Fall
+  // dauerhaft im Online-Pfad, ohne die Komponente aufzuspalten.
+  const aktionTyp: AktionTyp | null =
+    ziel === "angenommen" ? "aufgabe_annehmen" : ziel === "in_arbeit" ? "aufgabe_arbeit_starten" : null;
+
+  const { status, action, onSubmit } = useOfflineFormular(
+    aufgabeStatusSetzen,
+    aktionTyp,
+    brauchtGeraetZeit ? "arbeitsbeginn_geraet_zeitpunkt" : null,
+    ["id"],
+  );
+  const t = useTranslations("pflueckaufgabenVerwaltung");
 
   return (
-    <form
-      action={action}
-      className="space-y-2"
-      onSubmit={brauchtGeraetZeit ? mitGeraetZeitstempel("arbeitsbeginn_geraet_zeitpunkt") : undefined}
-    >
+    <form action={action} className="space-y-2" onSubmit={onSubmit}>
       <PfadFeld />
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="status" value={ziel} />
