@@ -7,6 +7,7 @@ import { ShieldCheck, Sprout } from "lucide-react";
 import {
   behandlungErfassen,
   sperreFreigeben,
+  stammdatenBearbeiten,
   statusSetzen,
 } from "@/lib/actions/reihenbloecke";
 import { leer } from "@/lib/actions/status";
@@ -59,6 +60,55 @@ export function StatusWechsel({
           ))}
         </select>
         <SubmitKnopf label={a("speichern")} variante="leise" />
+      </div>
+      <AktionsMeldung status={ergebnis} />
+    </form>
+  );
+}
+
+// Anforderung 2.1: Code und Sortenprofil eines bestehenden Reihenblocks
+// waren bisher nur beim Anlegen setzbar. Unabhaengig vom Sperrzustand
+// verfuegbar - Umbenennung/Sortenkorrektur ist keine Ernteaktion.
+export function StammdatenBearbeiten({
+  id,
+  code,
+  sorteId,
+  sorten,
+}: {
+  id: string;
+  code: string;
+  sorteId: string | null;
+  sorten: AuswahlOption[];
+}) {
+  const [ergebnis, action] = useActionState(stammdatenBearbeiten, leer);
+  const t = useTranslations("standortVerwaltung");
+  const a = useTranslations("aktionen");
+
+  return (
+    <form action={action} className="space-y-1">
+      <PfadFeld />
+      <input type="hidden" name="id" value={id} />
+      <div className="flex items-center gap-1.5">
+        <input
+          name="code"
+          defaultValue={code}
+          aria-label={t("feld.code")}
+          className="h-9 w-24 rounded-lg border border-border bg-background px-2 font-mono text-[11px] font-semibold uppercase text-foreground outline-none transition focus:border-primary"
+        />
+        <select
+          name="sorte_id"
+          defaultValue={sorteId ?? ""}
+          aria-label={t("feld.sorte")}
+          className="h-9 rounded-lg border border-border bg-background px-2 text-[11px] font-semibold text-foreground outline-none transition focus:border-primary"
+        >
+          <option value="">{t("feld.ohneSorte")}</option>
+          {sorten.map((sorte) => (
+            <option key={sorte.wert} value={sorte.wert}>
+              {sorte.text}
+            </option>
+          ))}
+        </select>
+        <SubmitKnopf label={a("bearbeiten")} variante="leise" />
       </div>
       <AktionsMeldung status={ergebnis} />
     </form>

@@ -2,8 +2,20 @@
 // werden am 01.10.2026 gemeinsam mit dem Kunden als Ausgangswert unterschrieben.
 // Im Prototyp Platzhalterwerte - die echte Berechnung folgt mit den Erntedaten
 // der ersten vollstaendig gemessenen Saison.
+//
+// Anforderung 4.11 verlangt ein "Management-Cockpit mit hoechstens zwoelf
+// Kennzahlen" mit Rollenfilterung. Alle 14 bleiben bestehen - sie sind die mit
+// dem Kunden zu unterschreibende Baseline, keine davon wird geloescht. Zwei
+// (stufe: "erweitert") stehen ausserhalb des Zwoelfer-Cockpits in einem
+// zweiten, weniger prominenten Abschnitt; die restlichen zwoelf ("kern")
+// bilden das eigentliche Cockpit. sichtbarFuer filtert zusaetzlich nach
+// Rolle: eine Kennzahl ist eine betriebsweite Kennzahl, keine persoenliche -
+// Rollen ohne betriebsweite Sicht (picker, erzeuger, kunde) sehen hier
+// bewusst keine.
+import type { Role } from "@/lib/rbac";
 
 export type KpiTrend = "up" | "down" | "flat";
+export type KpiStufe = "kern" | "erweitert";
 
 // Kann das System diese Kennzahl heute fortschreiben?
 //   "berechenbar"        - aus den vorhandenen Tabellen ableitbar, nur die
@@ -41,6 +53,10 @@ export interface Kpi {
   gutRichtung: "up" | "down";
   platzhalter: true;
   datenherkunft: Datenherkunft;
+  /** kern = Teil der zwoelf Cockpit-Kacheln, erweitert = Baseline, aber ausserhalb des Cockpits (Anforderung 4.11). */
+  stufe: KpiStufe;
+  /** Welche Rollen diese betriebsweite Kennzahl sehen - keine Kennzahl hier ist eine persoenliche Leistungszahl. */
+  sichtbarFuer: Role[];
   /** Was fehlt, damit die Kennzahl gemessen werden kann. */
   braucht: string;
   /** Aus echten Daten gerechneter Istwert, falls vorhanden. */
@@ -62,6 +78,8 @@ export const kpis: Kpi[] = [
     gutRichtung: "down",
     platzhalter: true,
     datenherkunft: "berechenbar",
+    stufe: "kern",
+    sichtbarFuer: ["admin", "betriebsleitung", "buchhaltung"],
     braucht: "nichts - Ausschuss je Charge wird erfasst",
   },
   {
@@ -73,6 +91,8 @@ export const kpis: Kpi[] = [
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",
+    stufe: "kern",
+    sichtbarFuer: ["admin", "betriebsleitung"],
     braucht: "Qualitaetssortierung je Schale",
   },
   {
@@ -84,6 +104,8 @@ export const kpis: Kpi[] = [
     gutRichtung: "down",
     platzhalter: true,
     datenherkunft: "berechenbar",
+    stufe: "kern",
+    sichtbarFuer: ["admin", "betriebsleitung", "brigade"],
     braucht: "nichts - Pflueck- und Kuehlzeitpunkt je Charge",
   },
   {
@@ -95,6 +117,8 @@ export const kpis: Kpi[] = [
     gutRichtung: "down",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",
+    stufe: "kern",
+    sichtbarFuer: ["admin", "betriebsleitung"],
     braucht: "Lieferungen mit Abfahrt und Ankunft",
   },
   {
@@ -106,6 +130,8 @@ export const kpis: Kpi[] = [
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "berechenbar",
+    stufe: "kern",
+    sichtbarFuer: ["admin", "betriebsleitung", "brigade"],
     braucht: "nichts - Steige mit Person gegen Arbeitszeit",
   },
   {
@@ -117,6 +143,8 @@ export const kpis: Kpi[] = [
     gutRichtung: "down",
     platzhalter: true,
     datenherkunft: "berechenbar",
+    stufe: "kern",
+    sichtbarFuer: ["admin", "betriebsleitung", "brigade"],
     braucht: "nichts - Leistung je Person ueber die Saison",
   },
   {
@@ -128,6 +156,8 @@ export const kpis: Kpi[] = [
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "berechenbar",
+    stufe: "kern",
+    sichtbarFuer: ["admin", "betriebsleitung", "brigade"],
     braucht: "nichts - Erntefolge je Reihenblock aus den Chargen",
   },
   {
@@ -139,6 +169,8 @@ export const kpis: Kpi[] = [
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "berechenbar",
+    stufe: "kern",
+    sichtbarFuer: ["admin", "betriebsleitung", "brigade"],
     braucht: "nichts - aus Behandlung und Sperrlogik ableitbar",
   },
   {
@@ -150,6 +182,8 @@ export const kpis: Kpi[] = [
     gutRichtung: "down",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",
+    stufe: "kern",
+    sichtbarFuer: ["admin", "betriebsleitung", "buchhaltung"],
     braucht: "Reklamationen mit Bezug zur Charge",
   },
   {
@@ -161,6 +195,8 @@ export const kpis: Kpi[] = [
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",
+    stufe: "kern",
+    sichtbarFuer: ["admin", "betriebsleitung", "buchhaltung"],
     braucht: "Zugesagte gegen tatsaechliche Lieferung",
   },
   {
@@ -172,6 +208,8 @@ export const kpis: Kpi[] = [
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",
+    stufe: "kern",
+    sichtbarFuer: ["admin", "betriebsleitung", "buchhaltung"],
     braucht: "Anbindung an ЭСФ und Warenbegleitschein",
   },
   {
@@ -183,6 +221,8 @@ export const kpis: Kpi[] = [
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "berechenbar",
+    stufe: "kern",
+    sichtbarFuer: ["admin", "betriebsleitung", "buchhaltung"],
     braucht: "nichts - Buchungen je Charge gegen Erntemenge",
   },
   {
@@ -194,6 +234,8 @@ export const kpis: Kpi[] = [
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "rechtlich-ungeklaert",
+    stufe: "erweitert",
+    sichtbarFuer: ["admin", "betriebsleitung", "buchhaltung"],
     braucht:
       "rechtliche Bestaetigung der ЕСУТД-Pflicht ueber enbek.kz (siehe WMCNL-1447) - Anbindungspunkt benannt, Rechtsprüfung der Pflicht selbst steht noch aus",
   },
@@ -206,6 +248,8 @@ export const kpis: Kpi[] = [
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",
+    stufe: "erweitert",
+    sichtbarFuer: ["admin", "betriebsleitung"],
     braucht: "Kontaktformular auf der Website",
   },
 ];
@@ -220,4 +264,21 @@ export function herkunftZaehlen(liste: Kpi[] = kpis): Record<Datenherkunft, numb
   };
   for (const kpi of liste) zaehler[kpi.datenherkunft] += 1;
   return zaehler;
+}
+
+// Anforderung 4.11: das Cockpit zeigt je Rolle nur die eigenen betriebsweiten
+// Kennzahlen, und davon hoechstens zwoelf ("kern") prominent - die restlichen
+// zwei ("erweitert") bleiben Teil der unterschriebenen Baseline, stehen aber
+// in einem zweiten, weniger prominenten Abschnitt. Rollen ohne betriebsweite
+// Sicht (picker, erzeuger, kunde) bekommen leere Listen zurueck - ihre
+// Leistung steht im Lohn-Modul, nicht hier.
+export function kpisFuerRolle(
+  role: Role,
+  liste: Kpi[] = kpis,
+): { kern: Kpi[]; erweitert: Kpi[] } {
+  const sichtbar = liste.filter((kpi) => kpi.sichtbarFuer.includes(role));
+  return {
+    kern: sichtbar.filter((kpi) => kpi.stufe === "kern"),
+    erweitert: sichtbar.filter((kpi) => kpi.stufe === "erweitert"),
+  };
 }

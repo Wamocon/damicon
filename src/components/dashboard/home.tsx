@@ -10,6 +10,7 @@ import { hasPermission } from "@/lib/rbac";
 import { modulesForZone, zones } from "@/lib/modules";
 import {
   herkunftZaehlen,
+  kpisFuerRolle,
   type Datenherkunft,
   type Kpi,
   type KpiTrend,
@@ -55,6 +56,84 @@ export function DashboardHome({
   const format = useFormatter();
   const herkunft = herkunftZaehlen(kpis);
   const gerechnet = kpis.filter((kpi) => kpi.gerechnet).length;
+  // Anforderung 4.11: Cockpit auf hoechstens zwoelf Kennzahlen begrenzt
+  // ("kern"), zusaetzlich nach Rolle gefiltert - eine betriebsweite Kennzahl
+  // ist keine persoenliche Leistungszahl, siehe kpisFuerRolle().
+  const { kern, erweitert } = kpisFuerRolle(role, kpis);
+
+  const kpiKachel = (kpi: Kpi) => {
+    const TrendCmp = trendIcon[kpi.trend];
+    const positive =
+      (kpi.trend === "up" && kpi.gutRichtung === "up") ||
+      (kpi.trend === "down" && kpi.gutRichtung === "down");
+    // Gerechnete Kennzahlen zeigen den Istwert aus der Datenbank, die
+    // uebrigen weiter den unterschriebenen Platzhalter.
+    const anzeige = kpi.gerechnet
+      ? `${format.number(kpi.gerechnet.zahl, { maximumFractionDigits: 1 })} ${kpi.gerechnet.einheit}`.trim()
+      : kpi.wert;
+    // Eine rechtlich ungeklaerte Kennzahl bleibt gelb, auch wenn sie
+    // technisch schon aus echten Daten gerechnet wird - "berechnet"
+    // ist keine Aussage darueber, ob die Kennzahl ueberhaupt verlangt
+    // ist. Sonst verschwindet der Vorbehalt genau dann, wenn die
+    // Zahl zum ersten Mal echt ist.
+    const rechtlichUngeklaert = kpi.datenherkunft === "rechtlich-ungeklaert";
+    return (
+      <Card key={kpi.key} className="p-3">
+        <div className="flex items-start justify-between gap-1">
+          <p className="text-lg font-black text-foreground">{anzeige}</p>
+          <TrendCmp
+            className={`h-4 w-4 shrink-0 ${
+              kpi.trend === "flat"
+                ? "text-muted-foreground"
+                : positive
+                  ? "text-success"
+                  : "text-destructive"
+            }`}
+          />
+        </div>
+        <p className="mt-1 text-[11px] font-medium leading-4 text-muted-foreground">
+          {kpiT(`${kpi.key}.label`)}
+        </p>
+        <p className="mt-2 text-[10px] uppercase tracking-wide text-muted-foreground">
+          {t("home.target")}: {kpi.ziel}
+        </p>
+        <p
+          title={
+            rechtlichUngeklaert
+              ? kpi.braucht
+              : kpi.gerechnet
+                ? kpi.gerechnet.basis
+                : kpi.braucht
+          }
+          className={`mt-2 flex items-start gap-1 border-t border-border pt-1.5 text-[10px] leading-3 ${
+            rechtlichUngeklaert
+              ? herkunftFarbe[kpi.datenherkunft]
+              : kpi.gerechnet
+                ? "text-success"
+                : herkunftFarbe[kpi.datenherkunft]
+          }`}
+        >
+          <span
+            aria-hidden="true"
+            className={`mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full ${
+              rechtlichUngeklaert
+                ? herkunftPunkt[kpi.datenherkunft]
+                : kpi.gerechnet
+                  ? "bg-success"
+                  : herkunftPunkt[kpi.datenherkunft]
+            }`}
+          />
+          {rechtlichUngeklaert
+            ? kpi.gerechnet
+              ? t("home.kpiGerechnetUngeklaert", { anzahl: kpi.gerechnet.datensaetze })
+              : herkunftT(kpi.datenherkunft)
+            : kpi.gerechnet
+              ? t("home.kpiGerechnet", { anzahl: kpi.gerechnet.datensaetze })
+              : herkunftT(kpi.datenherkunft)}
+        </p>
+      </Card>
+    );
+  };
 
   return (
     <div className="space-y-8">
@@ -90,82 +169,27 @@ export function DashboardHome({
           </div>
         }
       >
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
-          {kpis.map((kpi) => {
-            const TrendCmp = trendIcon[kpi.trend];
-            const positive =
-              (kpi.trend === "up" && kpi.gutRichtung === "up") ||
-              (kpi.trend === "down" && kpi.gutRichtung === "down");
-            // Gerechnete Kennzahlen zeigen den Istwert aus der Datenbank, die
-            // uebrigen weiter den unterschriebenen Platzhalter.
-            const anzeige = kpi.gerechnet
-              ? `${format.number(kpi.gerechnet.zahl, { maximumFractionDigits: 1 })} ${kpi.gerechnet.einheit}`.trim()
-              : kpi.wert;
-            // Eine rechtlich ungeklaerte Kennzahl bleibt gelb, auch wenn sie
-            // technisch schon aus echten Daten gerechnet wird - "berechnet"
-            // ist keine Aussage darueber, ob die Kennzahl ueberhaupt verlangt
-            // ist. Sonst verschwindet der Vorbehalt genau dann, wenn die
-            // Zahl zum ersten Mal echt ist.
-            const rechtlichUngeklaert = kpi.datenherkunft === "rechtlich-ungeklaert";
-            return (
-              <Card key={kpi.key} className="p-3">
-                <div className="flex items-start justify-between gap-1">
-                  <p className="text-lg font-black text-foreground">{anzeige}</p>
-                  <TrendCmp
-                    className={`h-4 w-4 shrink-0 ${
-                      kpi.trend === "flat"
-                        ? "text-muted-foreground"
-                        : positive
-                          ? "text-success"
-                          : "text-destructive"
-                    }`}
-                  />
-                </div>
-                <p className="mt-1 text-[11px] font-medium leading-4 text-muted-foreground">
-                  {kpiT(`${kpi.key}.label`)}
-                </p>
-                <p className="mt-2 text-[10px] uppercase tracking-wide text-muted-foreground">
-                  {t("home.target")}: {kpi.ziel}
-                </p>
-                <p
-                  title={
-                    rechtlichUngeklaert
-                      ? kpi.braucht
-                      : kpi.gerechnet
-                        ? kpi.gerechnet.basis
-                        : kpi.braucht
-                  }
-                  className={`mt-2 flex items-start gap-1 border-t border-border pt-1.5 text-[10px] leading-3 ${
-                    rechtlichUngeklaert
-                      ? herkunftFarbe[kpi.datenherkunft]
-                      : kpi.gerechnet
-                        ? "text-success"
-                        : herkunftFarbe[kpi.datenherkunft]
-                  }`}
-                >
-                  <span
-                    aria-hidden="true"
-                    className={`mt-0.5 h-1.5 w-1.5 shrink-0 rounded-full ${
-                      rechtlichUngeklaert
-                        ? herkunftPunkt[kpi.datenherkunft]
-                        : kpi.gerechnet
-                          ? "bg-success"
-                          : herkunftPunkt[kpi.datenherkunft]
-                    }`}
-                  />
-                  {rechtlichUngeklaert
-                    ? kpi.gerechnet
-                      ? t("home.kpiGerechnetUngeklaert", { anzahl: kpi.gerechnet.datensaetze })
-                      : herkunftT(kpi.datenherkunft)
-                    : kpi.gerechnet
-                      ? t("home.kpiGerechnet", { anzahl: kpi.gerechnet.datensaetze })
-                      : herkunftT(kpi.datenherkunft)}
-                </p>
-              </Card>
-            );
-          })}
-        </div>
+        {kern.length > 0 ? (
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+            {kern.map(kpiKachel)}
+          </div>
+        ) : (
+          <p className="rounded-xl border border-dashed border-border p-4 text-sm text-muted-foreground">
+            {t("home.kpiNoneForRole")}
+          </p>
+        )}
       </Section>
+
+      {erweitert.length > 0 ? (
+        <Section
+          title={t("home.kpiExtendedTitle")}
+          description={t("home.kpiExtendedDescription")}
+        >
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+            {erweitert.map(kpiKachel)}
+          </div>
+        </Section>
+      ) : null}
 
       <Section title={t("home.zonesTitle")} description={t("home.zonesDescription")}>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -6,9 +6,11 @@ import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   BehandlungFormular,
   FreigabeKnopf,
+  StammdatenBearbeiten,
   StatusWechsel,
 } from "@/components/db/reihenblock-formulare";
 import { ladePsmMittel, ladeReihenbloecke } from "@/lib/data/reihenbloecke";
+import { ladeSorten } from "@/lib/data/standort";
 import { heuteIso } from "@/lib/data/util";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
@@ -32,12 +34,14 @@ export async function ReihenbloeckeAnsicht({
   pfad: string;
   statusFilter?: string;
 }) {
-  const [liste, mittel, profil, t] = await Promise.all([
+  const [liste, mittel, sorten, profil, t] = await Promise.all([
     ladeReihenbloecke(),
     ladePsmMittel(),
+    ladeSorten(),
     getSessionProfile(),
     getTranslations("reihenbloeckeDemo"),
   ]);
+  const sortenOptionen = sorten.map((sorte) => ({ wert: sorte.id, text: sorte.name }));
   const s = await getTranslations("reihenblockStatus");
   const hint = await getTranslations("reihenblockStatusHint");
   const a = await getTranslations("aktionen");
@@ -162,21 +166,33 @@ export async function ReihenbloeckeAnsicht({
                 </td>
                 {darfStatusAendern || darfFreigeben ? (
                   <td className="px-3 py-2.5">
-                    {gesperrt ? (
-                      block.sperre?.faellig && darfFreigeben ? (
-                        <FreigabeKnopf id={block.id} />
-                      ) : (
-                        <span className="text-[11px] text-muted-foreground">
-                          {a("gesperrtHinweis")}
-                        </span>
-                      )
-                    ) : darfStatusAendern ? (
-                      <StatusWechsel
-                        id={block.id}
-                        code={block.code}
-                        status={block.status}
-                      />
-                    ) : null}
+                    <div className="space-y-1.5">
+                      {gesperrt ? (
+                        block.sperre?.faellig && darfFreigeben ? (
+                          <FreigabeKnopf id={block.id} />
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground">
+                            {a("gesperrtHinweis")}
+                          </span>
+                        )
+                      ) : darfStatusAendern ? (
+                        <StatusWechsel
+                          id={block.id}
+                          code={block.code}
+                          status={block.status}
+                        />
+                      ) : null}
+                      {/* Anforderung 2.1: Umbenennung/Sortenkorrektur ist keine
+                          Ernteaktion - unabhaengig vom Sperrzustand verfuegbar. */}
+                      {darfStatusAendern ? (
+                        <StammdatenBearbeiten
+                          id={block.id}
+                          code={block.code}
+                          sorteId={block.sorteId}
+                          sorten={sortenOptionen}
+                        />
+                      ) : null}
+                    </div>
                   </td>
                 ) : null}
               </tr>

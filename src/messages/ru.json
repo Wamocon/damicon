@@ -112,7 +112,10 @@
       "kpiSummary": "{berechenbar} измеримо сегодня · {erfassung} нет фиксации · {tabelle} нет функции · {ungeklaert} юридически не подтверждено",
       "kpiGerechnet": "рассчитано по {anzahl} записям",
       "kpiGerechnetUngeklaert": "рассчитано по {anzahl} записям - правовое основание не подтверждено",
-      "kpiSummaryLive": "{gerechnet} рассчитано по реальным данным · {offen} ждут функции, которая их создаёт"
+      "kpiSummaryLive": "{gerechnet} рассчитано по реальным данным · {offen} ждут функции, которая их создаёт",
+      "kpiExtendedTitle": "Дополнительные показатели",
+      "kpiExtendedDescription": "Часть подписанной базовой линии, но вне двенадцати основных показателей кокпита.",
+      "kpiNoneForRole": "Для вашей роли здесь не предусмотрены общекорпоративные показатели. Собственную производительность вы найдёте в модуле «Зарплата»."
     },
     "dataSource": {
       "db": "Данные из базы",
@@ -893,6 +896,7 @@
     "laeuft": "...",
     "spalte": "Действие",
     "statusLabel": "Выбрать статус",
+    "bearbeiten": "Редактировать",
     "faellig": "срок ожидания истёк",
     "resttage": "ещё {tage} дн.",
     "gesperrtHinweis": "Разблокировка только после окончания срока ожидания",
@@ -901,6 +905,7 @@
       "parzelle": "Полевой участок «{wert}» создан.",
       "reihengruppe": "Группа рядов «{wert}» создана.",
       "reihenblock": "Рядный блок {wert} создан.",
+      "reihenblockStammdaten": "Рядный блок {wert} обновлён.",
       "status": "Статус {wert} сохранён.",
       "behandlung": "Обработка зафиксирована - блок заблокирован до {wert}.",
       "freigabe": "Рядный блок {wert} разблокирован.",
@@ -916,6 +921,8 @@
       "einwilligungWiderrufen": "Согласие отозвано.",
       "vorfallErfasst": "Инцидент зафиксирован.",
       "vorfallGemeldet": "Инцидент отмечен как переданный.",
+      "zweckVerantwortlich": "Ответственный назначен.",
+      "vorfallVerantwortlich": "Ответственный назначен.",
       "drittweitergabeBenachrichtigt": "Уведомление зафиксировано.",
       "reklamation": "Рекламация {wert} зарегистрирована.",
       "reklamationStatus": "Рекламация {wert} обновлена.",
@@ -1100,7 +1107,8 @@
       "bezeichnung": "Цель",
       "rechtsgrundlage": "Правовое основание",
       "aufbewahrung": "Срок хранения",
-      "automatisiert": "Автоматизированное решение"
+      "automatisiert": "Автоматизированное решение",
+      "verantwortlich": "Ответственный"
     },
     "status": {
       "aktiv": "действует",
@@ -1184,7 +1192,8 @@
           "festgestellt": "Дата обнаружения",
           "art": "Вид",
           "betroffeneAnzahl": "Число затронутых лиц",
-          "beschreibung": "Описание"
+          "beschreibung": "Описание",
+          "verantwortlich": "Ответственный"
         },
         "beschreibungPlatzhalter": "Кратко и по существу о произошедшем.",
         "knopf": "Зафиксировать инцидент"
@@ -1192,6 +1201,11 @@
       "vorfallMelden": {
         "platzhalter": "Номер уведомления",
         "knopf": "Передать"
+      },
+      "verantwortlich": {
+        "label": "Выбрать ответственного",
+        "platzhalter": "Выбрать ответственного",
+        "knopf": "Назначить"
       },
       "drittweitergabe": {
         "knopf": "Отметить как уведомлено"

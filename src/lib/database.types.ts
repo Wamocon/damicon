@@ -281,6 +281,7 @@ export type Database = {
           meldefrist_am: string | null
           meldereferenz: string | null
           updated_at: string
+          verantwortlich_profil_id: string | null
         }
         Insert: {
           art: Database["public"]["Enums"]["vorfall_art"]
@@ -294,6 +295,7 @@ export type Database = {
           meldefrist_am?: string | null
           meldereferenz?: string | null
           updated_at?: string
+          verantwortlich_profil_id?: string | null
         }
         Update: {
           art?: Database["public"]["Enums"]["vorfall_art"]
@@ -307,8 +309,17 @@ export type Database = {
           meldefrist_am?: string | null
           meldereferenz?: string | null
           updated_at?: string
+          verantwortlich_profil_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "datenschutzvorfaelle_verantwortlich_profil_id_fkey"
+            columns: ["verantwortlich_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dokumente: {
         Row: {
@@ -2111,6 +2122,7 @@ export type Database = {
           id: string
           rechtsgrundlage: Database["public"]["Enums"]["rechtsgrundlage_typ"]
           updated_at: string
+          verantwortlich_profil_id: string | null
         }
         Insert: {
           aufbewahrung_monate: number
@@ -2122,6 +2134,7 @@ export type Database = {
           id?: string
           rechtsgrundlage: Database["public"]["Enums"]["rechtsgrundlage_typ"]
           updated_at?: string
+          verantwortlich_profil_id?: string | null
         }
         Update: {
           aufbewahrung_monate?: number
@@ -2133,8 +2146,17 @@ export type Database = {
           id?: string
           rechtsgrundlage?: Database["public"]["Enums"]["rechtsgrundlage_typ"]
           updated_at?: string
+          verantwortlich_profil_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "verarbeitungszwecke_verantwortlich_profil_id_fkey"
+            columns: ["verantwortlich_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       vorbestellungen: {
         Row: {
