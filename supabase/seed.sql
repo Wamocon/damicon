@@ -247,6 +247,18 @@ join public.pfluecker pf on pf.ausweis = v.ausweis
 cross join lateral generate_series(0, v.anzahl - 1) as g(i)
 on conflict (code) do nothing;
 
+-- pflueckaufgaben.steigen_zaehler (Migration 20260915000000) treibt die
+-- atomare Nummerierung neuer, echter Steigen an - der Backfill in der
+-- Migration selbst laeuft zwangslaeufig VOR diesem Seed (Migrationen zuerst,
+-- dann Seed), sieht also noch keine Zeile. Deshalb hier, direkt nach dem
+-- Einfuegen der Demo-Steigen, der tatsaechliche Bestand nachgezogen - sonst
+-- wuerde die erste echte, neu erfasste Steige eines Demo-Auftrags wieder bei
+-- "-S001" beginnen, obwohl schon Steigen existieren.
+update public.pflueckaufgaben p
+   set steigen_zaehler = (
+     select count(*) from public.steigen s where s.pflueckaufgabe_id = p.id
+   );
+
 -- --- Arbeitszeiten -------------------------------------------------------
 -- Nenner der Pflueckleistung. Ohne diese Tabelle ist kg je Person und Stunde
 -- strukturell nicht messbar - und damit auch das Lohnmodell nicht.

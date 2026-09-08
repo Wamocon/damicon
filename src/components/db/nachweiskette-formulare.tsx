@@ -1,6 +1,5 @@
 "use client";
 
-import { useActionState } from "react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Package, Snowflake, Timer } from "lucide-react";
@@ -9,13 +8,7 @@ import {
   kuehlmessungErfassen,
   steigeErfassen,
 } from "@/lib/actions/nachweiskette";
-import { leer } from "@/lib/actions/status";
-import {
-  AktionsMeldung,
-  Auswahl,
-  Feld,
-  mitGeraetZeitstempel,
-} from "@/components/db/formular-kit";
+import { AktionsMeldung, Auswahl, Feld } from "@/components/db/formular-kit";
 import { useOfflineFormular } from "@/components/db/use-offline-formular";
 import type { AuswahlOption } from "@/components/db/standort-formulare";
 
@@ -35,15 +28,23 @@ export function SteigeFormular({
   aufgabeId: string;
   pfluecker: AuswahlOption[];
 }) {
-  const [status, action] = useActionState(steigeErfassen, leer);
+  // Anforderung 2.5, Phase 5: online unveraendertes Verhalten, offline
+  // puffert der Hook den Eintrag in IndexedDB statt die Server Action
+  // aufzurufen. Die Steigen-Nummer bleibt dabei unbekannt, bis der Eintrag
+  // tatsaechlich beim Server ankommt (Trigger steige_nummer_vergeben(),
+  // Migration 20260915000000) - dieselbe "kein Ergebnis bis zur
+  // Synchronisierung"-Erfahrung wie bei Kuehlmessung/Arbeitszeit, keine
+  // eigene Vorab-Nummerierung noetig.
+  const { status, action, onSubmit } = useOfflineFormular(
+    steigeErfassen,
+    "steige_erfassen",
+    "geraet_zeitpunkt",
+    ["aufgabe_id", "pfluecker_id", "gewicht_kg"],
+  );
   const t = useTranslations("nachweiskette");
 
   return (
-    <form
-      action={action}
-      className="space-y-2"
-      onSubmit={mitGeraetZeitstempel("geraet_zeitpunkt")}
-    >
+    <form action={action} className="space-y-2" onSubmit={onSubmit}>
       <PfadFeld />
       <input type="hidden" name="aufgabe_id" value={aufgabeId} />
       {/* Anforderung 2.6: Moment des Scans, nicht des Servereingangs. */}
