@@ -738,6 +738,7 @@
       "unbekannt": "Action failed. Details are in the server log.",
       "keineCharge": "This task has no batch.",
       "kuehlkette": "Limit broken: {wert} minutes until measurement. The goods have to be downgraded.",
+      "geraetezeit": "The device clock deviates too far from server time (future, or more than 24 hours off). Please check the device's clock and try again.",
       "keinKunde": "Your account has no B2B client assigned. Please contact the administration.",
       "zukaufBefunde": "{wert} error(s) found in the input - nothing was imported. See the check results below.",
       "code": "The code is wrong or expired. Please enter the current 6-digit code from your authenticator app.",

@@ -945,6 +945,7 @@
       "unbekannt": "İşlem başarısız. Ayrıntılar sunucu kaydında.",
       "keineCharge": "Bu göreve ait bir parti yok.",
       "kuehlkette": "Sınır aşıldı: ölçüme kadar {wert} dakika. Ürünün değeri düşürülmeli.",
+      "geraetezeit": "Cihaz saati sunucu saatinden çok farklı (gelecekte veya 24 saatten fazla fark). Lütfen cihazın saatini kontrol edip tekrar deneyin.",
       "keinKunde": "Hesabınıza bağlı bir B2B müşterisi yok. Lütfen yönetimle iletişime geçin.",
       "zukaufBefunde": "Girişte {wert} hata bulundu - hiçbir şey içe aktarılmadı. Aşağıdaki kontrol sonuçlarına bakın.",
       "code": "Kod yanlış veya süresi doldu. Lütfen kimlik doğrulayıcı uygulamadaki güncel 6 haneli kodu girin.",

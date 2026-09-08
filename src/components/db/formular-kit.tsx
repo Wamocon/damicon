@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { useTranslations } from "next-intl";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
@@ -12,6 +12,22 @@ import type { AktionsStatus } from "@/lib/actions/status";
 
 const feldKlassen =
   "h-9 w-full rounded-lg border border-border bg-background px-2.5 text-xs text-foreground outline-none transition focus:border-primary";
+
+// Anforderung 2.6: bei zeitkritischen Aktionen (Pflueckbeginn, Kuehlmessung,
+// Steigen-Scan) muss die lokale Geraeteuhr im Moment des Tippens in ein
+// verstecktes Feld geschrieben werden - nicht die Serverzeit beim Eintreffen
+// der Anfrage, die bei verzoegerter Synchronisierung (kein Netz im Feld) weit
+// vom tatsaechlichen Ereignis abweichen kann. onSubmit statt onClick: laeuft
+// synchron unmittelbar vor dem Absenden, auch bei Enter-Bestaetigung im
+// Formular, nicht nur bei Klick auf den Knopf.
+export function mitGeraetZeitstempel(feld: string) {
+  return (event: FormEvent<HTMLFormElement>) => {
+    const eingabe = event.currentTarget.elements.namedItem(feld);
+    if (eingabe instanceof HTMLInputElement) {
+      eingabe.value = new Date().toISOString();
+    }
+  };
+}
 
 export function Feld({
   label,

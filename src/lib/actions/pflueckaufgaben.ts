@@ -137,11 +137,22 @@ export async function aufgabeStatusSetzen(
   const supabase = await createClient();
   const qualitaet = zahl(formData, "qualitaetsfaktor");
 
+  // Anforderung 2.6: beim Start der Arbeit liefert das Formular die lokale
+  // Geraetezeit mit (gesetzt im Moment des Tippens, siehe
+  // pflueckaufgaben-formulare.tsx) - nicht die Serverzeit beim Eintreffen der
+  // Anfrage. Der Trigger aufgabe_fortschreiben() startet die Kuehlkettenuhr
+  // damit am tatsaechlichen Arbeitsbeginn, auch wenn die Synchronisierung sich
+  // verzoegert hat.
+  const geraetZeitpunkt = text(formData, "arbeitsbeginn_geraet_zeitpunkt");
+
   const { data, error } = await supabase
     .from("pflueckaufgaben")
     .update({
       status: neuerStatus as (typeof aufgabenStatus)[number],
       ...(abschluss && qualitaet !== null ? { qualitaetsfaktor: qualitaet } : {}),
+      ...(neuerStatus === "in_arbeit" && geraetZeitpunkt
+        ? { arbeitsbeginn_geraet_zeitpunkt: geraetZeitpunkt }
+        : {}),
     })
     .eq("id", id)
     .select("id, code")

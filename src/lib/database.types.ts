@@ -910,17 +910,21 @@ export type Database = {
           created_at: string
           ergebnis: Database["public"]["Enums"]["kuehlkette_ergebnis"]
           gemessen_am: string
+          geraet_zeitpunkt: string | null
           id: string
           minuten_seit_pfluecken: number | null
+          server_eingang_zeitpunkt: string | null
           temperatur_c: number
         }
         Insert: {
           charge_id: string
           created_at?: string
           ergebnis?: Database["public"]["Enums"]["kuehlkette_ergebnis"]
-          gemessen_am?: string
+          gemessen_am: string
+          geraet_zeitpunkt?: string | null
           id?: string
           minuten_seit_pfluecken?: number | null
+          server_eingang_zeitpunkt?: string | null
           temperatur_c: number
         }
         Update: {
@@ -928,8 +932,10 @@ export type Database = {
           created_at?: string
           ergebnis?: Database["public"]["Enums"]["kuehlkette_ergebnis"]
           gemessen_am?: string
+          geraet_zeitpunkt?: string | null
           id?: string
           minuten_seit_pfluecken?: number | null
+          server_eingang_zeitpunkt?: string | null
           temperatur_c?: number
         }
         Relationships: [
@@ -1362,6 +1368,8 @@ export type Database = {
       }
       pflueckaufgaben: {
         Row: {
+          arbeitsbeginn_geraet_zeitpunkt: string | null
+          arbeitsbeginn_server_eingang: string | null
           ausschuss_kg: number
           brigade_id: string | null
           charge_id: string | null
@@ -1379,6 +1387,8 @@ export type Database = {
           zielmenge_kg: number
         }
         Insert: {
+          arbeitsbeginn_geraet_zeitpunkt?: string | null
+          arbeitsbeginn_server_eingang?: string | null
           ausschuss_kg?: number
           brigade_id?: string | null
           charge_id?: string | null
@@ -1396,6 +1406,8 @@ export type Database = {
           zielmenge_kg?: number
         }
         Update: {
+          arbeitsbeginn_geraet_zeitpunkt?: string | null
+          arbeitsbeginn_server_eingang?: string | null
           ausschuss_kg?: number
           brigade_id?: string | null
           charge_id?: string | null
@@ -2029,34 +2041,40 @@ export type Database = {
           charge_id: string | null
           code: string
           created_at: string
+          geraet_zeitpunkt: string | null
           gewicht_kg: number | null
           id: string
           pflueckaufgabe_id: string | null
           pfluecker_id: string | null
           qr_token: string
           scan_zeitpunkt: string | null
+          server_eingang_zeitpunkt: string | null
         }
         Insert: {
           charge_id?: string | null
           code: string
           created_at?: string
+          geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
           pflueckaufgabe_id?: string | null
           pfluecker_id?: string | null
           qr_token: string
           scan_zeitpunkt?: string | null
+          server_eingang_zeitpunkt?: string | null
         }
         Update: {
           charge_id?: string | null
           code?: string
           created_at?: string
+          geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
           pflueckaufgabe_id?: string | null
           pfluecker_id?: string | null
           qr_token?: string
           scan_zeitpunkt?: string | null
+          server_eingang_zeitpunkt?: string | null
         }
         Relationships: [
           {
@@ -2286,6 +2304,10 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       current_b2b_kunde_id: { Args: never; Returns: string }
+      geraet_zeitpunkt_pruefen: {
+        Args: { p_geraet: string; p_server?: string }
+        Returns: string
+      }
       has_office_access: { Args: never; Returns: boolean }
       has_role: {
         Args: { erlaubt: Database["public"]["Enums"]["app_role"][] }
