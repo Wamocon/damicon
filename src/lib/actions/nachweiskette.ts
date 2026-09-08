@@ -117,7 +117,16 @@ export async function arbeitszeitErfassen(
     return fehler("fehler.eingabe");
   }
 
-  const ende = new Date();
+  // Anforderung 2.6 (Vorstufe 2.5): ende kommt vom Client (Moment der
+  // Meldung), nicht mehr von der Serverzeit - eine verzoegert synchronisierte
+  // Meldung wuerde sonst die Sync-Zeit statt der tatsaechlichen Arbeitszeit
+  // aufzeichnen. beginn/minuten bleiben rein rechnerisch aus ende abgeleitet.
+  // Der Trigger arbeitszeit_zeitpunkt_pruefen() (Migration 20260913000000)
+  // prueft geraet_zeitpunkt nur auf Plausibilitaet, berechnet aber nichts -
+  // ohne einen mitgegebenen Zeitpunkt bleibt die bisherige Serverzeit der
+  // ehrliche Rueckfall.
+  const geraetZeitpunkt = text(formData, "geraet_zeitpunkt") || null;
+  const ende = geraetZeitpunkt ? new Date(geraetZeitpunkt) : new Date();
   const beginn = new Date(ende.getTime() - minuten * 60_000);
 
   const supabase = await createClient();
@@ -128,6 +137,7 @@ export async function arbeitszeitErfassen(
       pflueckaufgabe_id: aufgabeId,
       beginn: beginn.toISOString(),
       ende: ende.toISOString(),
+      geraet_zeitpunkt: geraetZeitpunkt,
     })
     .select("id")
     .single();

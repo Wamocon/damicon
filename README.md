@@ -109,13 +109,21 @@ API-Zugriff und lassen sich durch kein Formular umgehen:
   Ist-Erntetermin fort (`aufgabe_fortschreiben`).
 - **60-Minuten-Regel:** Minuten und Urteil einer Kühlmessung rechnet
   `kuehlkette_bewerten` aus dem Pflückzeitpunkt - nicht das Formular.
-- **Geräte- statt Servereingang-Zeitstempel:** Arbeitsbeginn, Kühlmessung und
-  Steigen-Scan tragen den Zeitpunkt des Geräts, nicht die Serverankunft
-  (`geraet_zeitpunkt_pruefen`) - sonst verschiebt eine Synchronisierung ohne
-  Netz auf der Fläche die Kühlkettenuhr um genau die Verzögerung. Der
+- **Geräte- statt Servereingang-Zeitstempel:** Arbeitsbeginn, Kühlmessung,
+  Steigen-Scan, Arbeitszeitmeldung und Fotobeleg tragen den Zeitpunkt des
+  Geräts, nicht die Serverankunft (`geraet_zeitpunkt_pruefen`) - sonst
+  verschiebt eine Synchronisierung ohne Netz auf der Fläche die
+  Kühlkettenuhr bzw. die gemeldete Arbeitszeit um genau die Verzögerung. Der
   Servereingang wird zusätzlich, unverändert mitgeschrieben statt überschrieben.
   Ein unplausibler Geräte-Zeitstempel (Zukunft, mehr als 24 Stunden Abweichung)
   wird abgelehnt statt stillschweigend übernommen.
+- **Statusübergänge nur aus dem erwarteten Vorzustand:** Eine Pflückaufgabe
+  lässt sich nicht mehr blind umschreiben - `aufgabeStatusSetzen()` und
+  `mengeMelden()` prüfen den bisherigen Status mit (`offen→angenommen→
+  in_arbeit→beleg_pruefung→abgeschlossen` ist eine strikte Kette), bevor sie
+  schreiben. Ein verzögert synchronisierter, veralteter Schreibvorgang trifft
+  dadurch keine Zeile mehr statt eine längst fortgeschrittene Aufgabe
+  stillschweigend zurückzudrehen - Vorstufe zu Anforderung 2.5.
 - **Rollen:** Die Rolle eines neuen Zugangs kommt aus `app_metadata`
   (nur service_role) und lässt sich vom eigenen Profil aus nicht anheben.
   Dasselbe gilt für die Zuordnung zu Brigade, B2B-Kunde und Pflückerstamm
