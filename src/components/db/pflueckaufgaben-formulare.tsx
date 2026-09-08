@@ -16,6 +16,7 @@ import {
   Auswahl,
   Feld,
   FormularKarte,
+  mitGeraetZeitstempel,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 import type { AuswahlOption } from "@/components/db/standort-formulare";
@@ -181,12 +182,23 @@ export function AufgabeStatusFormular({
 }) {
   const [status, action] = useActionState(aufgabeStatusSetzen, leer);
   const t = useTranslations("pflueckaufgabenVerwaltung");
+  // Anforderung 2.6: nur beim Start der Arbeit relevant - der Wechsel auf
+  // in_arbeit startet die Kuehlkettenuhr, dafuer zaehlt der Moment auf dem
+  // Feld, nicht der Moment, in dem die Anfrage beim Server ankommt.
+  const brauchtGeraetZeit = ziel === "in_arbeit";
 
   return (
-    <form action={action} className="space-y-2">
+    <form
+      action={action}
+      className="space-y-2"
+      onSubmit={brauchtGeraetZeit ? mitGeraetZeitstempel("arbeitsbeginn_geraet_zeitpunkt") : undefined}
+    >
       <PfadFeld />
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="status" value={ziel} />
+      {brauchtGeraetZeit ? (
+        <input type="hidden" name="arbeitsbeginn_geraet_zeitpunkt" />
+      ) : null}
       {mitQualitaet ? (
         <Feld
           label={t("feld.qualitaet")}

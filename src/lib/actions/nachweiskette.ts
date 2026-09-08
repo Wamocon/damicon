@@ -70,6 +70,11 @@ export async function steigeErfassen(
   const laufnummer = (count ?? 0) + 1;
   const code = `${charge.code}-S${String(laufnummer).padStart(3, "0")}`;
 
+  // Anforderung 2.6: geraet_zeitpunkt kommt vom Client (Moment des Scans),
+  // scan_zeitpunkt setzt der Trigger trg_steige_zeitpunkt daraus - geprueft
+  // gegen den tatsaechlichen Servereingang, nicht blind uebernommen.
+  const geraetZeitpunkt = text(formData, "geraet_zeitpunkt") || null;
+
   const { error } = await supabase.from("steigen").insert({
     code,
     qr_token: `qr-${charge.code.toLowerCase()}-${laufnummer}`,
@@ -77,7 +82,7 @@ export async function steigeErfassen(
     pflueckaufgabe_id: aufgabeId,
     pfluecker_id: pflueckerId,
     gewicht_kg: gewicht,
-    scan_zeitpunkt: new Date().toISOString(),
+    geraet_zeitpunkt: geraetZeitpunkt,
   });
 
   if (error) return dbFehler(error);
@@ -162,13 +167,25 @@ export async function kuehlmessungErfassen(
   const charge = await chargeZurAufgabe(aufgabeId);
   if (!charge) return fehler("fehler.keineCharge");
 
+  // Anforderung 2.6: geraet_zeitpunkt kommt vom Client (Moment der Messung),
+  // der Trigger kuehlkette_bewerten() setzt gemessen_am daraus - geprueft,
+  // sonst waere die 60-Minuten-Kennzahl bei verzoegerter Synchronisierung
+  // nicht messbar (siehe Migration 20260911000000).
+  const geraetZeitpunkt = text(formData, "geraet_zeitpunkt") || null;
+
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("kuehlketten_messungen")
     .insert({
       charge_id: charge.id,
-      gemessen_am: new Date().toISOString(),
+      geraet_zeitpunkt: geraetZeitpunkt,
       temperatur_c: temperatur,
+      // gemessen_am hat seit Migration 20260911000000 keinen Spalten-Default
+      // mehr (siehe Kommentar dort) - der Trigger kuehlkette_bewerten()
+      // berechnet ihn aus geraet_zeitpunkt. Der generierte Insert-Typ kennt
+      // trigger-gesetzte Spalten nicht und haelt sie faelschlich fuer
+      // erforderlich; eingefuegt wird nie tatsaechlich NULL.
+      gemessen_am: null as unknown as string,
     })
     .select("id, minuten_seit_pfluecken, ergebnis")
     .single();

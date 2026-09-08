@@ -10,7 +10,12 @@ import {
   steigeErfassen,
 } from "@/lib/actions/nachweiskette";
 import { leer } from "@/lib/actions/status";
-import { AktionsMeldung, Auswahl, Feld } from "@/components/db/formular-kit";
+import {
+  AktionsMeldung,
+  Auswahl,
+  Feld,
+  mitGeraetZeitstempel,
+} from "@/components/db/formular-kit";
 import type { AuswahlOption } from "@/components/db/standort-formulare";
 
 function PfadFeld() {
@@ -33,9 +38,15 @@ export function SteigeFormular({
   const t = useTranslations("nachweiskette");
 
   return (
-    <form action={action} className="space-y-2">
+    <form
+      action={action}
+      className="space-y-2"
+      onSubmit={mitGeraetZeitstempel("geraet_zeitpunkt")}
+    >
       <PfadFeld />
       <input type="hidden" name="aufgabe_id" value={aufgabeId} />
+      {/* Anforderung 2.6: Moment des Scans, nicht des Servereingangs. */}
+      <input type="hidden" name="geraet_zeitpunkt" />
       <div className="grid grid-cols-2 gap-2">
         <Auswahl label={t("feld.pfluecker")} name="pfluecker_id" options={pfluecker} required />
         <Feld
@@ -88,9 +99,17 @@ export function KuehlmessungFormular({ aufgabeId }: { aufgabeId: string }) {
   const t = useTranslations("nachweiskette");
 
   return (
-    <form action={action} className="space-y-2">
+    <form
+      action={action}
+      className="space-y-2"
+      onSubmit={mitGeraetZeitstempel("geraet_zeitpunkt")}
+    >
       <PfadFeld />
       <input type="hidden" name="aufgabe_id" value={aufgabeId} />
+      {/* Anforderung 2.6: Moment der Messung, nicht des Servereingangs -
+          sonst ist die 60-Minuten-Kennzahl bei verzoegerter Synchronisierung
+          nicht verlaesslich. */}
+      <input type="hidden" name="geraet_zeitpunkt" />
       <Feld
         label={t("feld.temperatur")}
         name="temperatur_c"

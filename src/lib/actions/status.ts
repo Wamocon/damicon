@@ -37,6 +37,10 @@ export function dbFehler(error: PostgrestError | { code?: string; message: strin
     case "P0001":
       // Eigene raise-Bedingungen, u. a. die Wartezeitsperre.
       return fehler("fehler.regel");
+    case "DA001":
+      // geraet_zeitpunkt_pruefen() (Anforderung 2.6): Geraete-Zeitstempel
+      // unplausibel (Zukunft oder > 24h Abweichung vom Servereingang).
+      return fehler("fehler.geraetezeit");
     default:
       return fehler("fehler.unbekannt");
   }
