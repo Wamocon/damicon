@@ -710,6 +710,7 @@
       "steige": "Crate {wert} recorded.",
       "arbeitszeit": "{wert} minutes of working time reported.",
       "kuehlmessung": "Measurement recorded - {wert} minutes after picking.",
+      "offlineEingereiht": "Recorded - will be sent once back online.",
       "einwilligungErfasst": "Consent recorded.",
       "einwilligungWiderrufen": "Consent revoked.",
       "vorfallErfasst": "Data incident recorded.",

@@ -1,21 +1,21 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { CloudOff, RefreshCw, Wifi } from "lucide-react";
 import { useOnlineStatus } from "@/lib/offline/use-online-status";
-import { alleEintraege } from "@/lib/offline/warteschlange";
+import { alleEintraege, WARTESCHLANGE_GEAENDERT_EREIGNIS } from "@/lib/offline/warteschlange";
+import { synchronisiere } from "@/lib/offline/sync-engine";
 import type { AktionTyp, WarteschlangenEintrag } from "@/lib/offline/db";
 import { StatusPill, type Tone } from "@/components/ui/kit";
 
-// Anforderung 2.5, Phase 1: der Indikator ist bereits vollstaendig
-// funktionsfaehig (Online-/Offline-Erkennung, Warteschlangen-Anzeige) - nur
-// die Warteschlange selbst bleibt in dieser Phase strukturell leer, weil noch
-// kein Formular in sie einreiht (das beginnt mit dem Pilot-Workflow in
-// Phase 2). Kein Service-Worker-Background-Sync (schwache/keine
-// Unterstuetzung auf iOS Safari, relevant fuer Feldgeraete) - der Abgleich
-// laeuft ueber das online-Ereignis, Fokus/Mount und ein Intervall als
-// Sicherheitsnetz.
+// Anforderung 2.5: Online-/Offline-Erkennung und Warteschlangen-Anzeige seit
+// Phase 1, echter Abgleich gegen /api/sync seit Phase 2. Kein
+// Service-Worker-Background-Sync (schwache/keine Unterstuetzung auf iOS
+// Safari, relevant fuer Feldgeraete) - der Abgleich laeuft ueber das
+// online-Ereignis, Fokus/Mount, ein Intervall als Sicherheitsnetz und den
+// manuellen Knopf.
 
 const AKTUALISIERUNGS_INTERVALL_MS = 30_000;
 
@@ -29,26 +29,65 @@ const statusTon: Record<WarteschlangenEintrag["status"], Tone> = {
 
 export function SyncStatus() {
   const t = useTranslations("sync");
+  const router = useRouter();
   const online = useOnlineStatus();
   const [eintraege, setEintraege] = useState<WarteschlangenEintrag[]>([]);
   const [offen, setOffen] = useState(false);
+  const [laeuft, setLaeuft] = useState(false);
+  const laeuftRef = useRef(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const neuLaden = useCallback(() => {
     void alleEintraege().then(setEintraege);
   }, []);
 
+  // Ein Sync-Lauf nach dem anderen, nie ueberlappend - laeuftRef statt nur
+  // des laeuft-States, weil die Trigger (Intervall, online-Ereignis, Fokus)
+  // synchron und schnell hintereinander feuern koennen, bevor der State aus
+  // einem vorherigen Aufruf ueberhaupt neu gerendert wurde.
+  const synchronisierenUndLaden = useCallback(() => {
+    if (laeuftRef.current || !navigator.onLine) {
+      neuLaden();
+      return;
+    }
+    laeuftRef.current = true;
+    setLaeuft(true);
+    void synchronisiere()
+      .then((ergebnis) => {
+        if (ergebnis.verarbeitet > 0) router.refresh();
+      })
+      .finally(() => {
+        laeuftRef.current = false;
+        setLaeuft(false);
+        neuLaden();
+      });
+  }, [neuLaden, router]);
+
   useEffect(() => {
-    neuLaden();
-    window.addEventListener("online", neuLaden);
-    window.addEventListener("focus", neuLaden);
-    const intervall = window.setInterval(neuLaden, AKTUALISIERUNGS_INTERVALL_MS);
+    // setTimeout statt direktem Aufruf: synchronisierenUndLaden() setzt
+    // synchron laeuft=true, bevor der eigentliche (asynchrone) Sync beginnt -
+    // ein direkter Aufruf im Effekt-Koerper waere ein synchrones setState
+    // waehrend des Effekts (react-hooks/set-state-in-effect). Die Verzoegerung
+    // um einen Tick ist fuer einen Mount-Trigger nicht wahrnehmbar.
+    const anfangslauf = window.setTimeout(synchronisierenUndLaden, 0);
+    window.addEventListener("online", synchronisierenUndLaden);
+    window.addEventListener("focus", synchronisierenUndLaden);
+    // Ein Formular ausserhalb dieser Komponente (useOfflineFormular) hat
+    // gerade in dieselbe IndexedDB geschrieben - ohne dieses Ereignis wuerde
+    // das Panel bis zum naechsten Fokus/Intervall "keine wartenden
+    // Eintraege" zeigen, obwohl gerade einer entstanden ist. Nur neu laden,
+    // nicht synchronisieren - ein aktiver Sync-Lauf stoesst sich daran
+    // ohnehin selbst nicht (laeuftRef).
+    window.addEventListener(WARTESCHLANGE_GEAENDERT_EREIGNIS, neuLaden);
+    const intervall = window.setInterval(synchronisierenUndLaden, AKTUALISIERUNGS_INTERVALL_MS);
     return () => {
-      window.removeEventListener("online", neuLaden);
-      window.removeEventListener("focus", neuLaden);
+      window.clearTimeout(anfangslauf);
+      window.removeEventListener("online", synchronisierenUndLaden);
+      window.removeEventListener("focus", synchronisierenUndLaden);
+      window.removeEventListener(WARTESCHLANGE_GEAENDERT_EREIGNIS, neuLaden);
       window.clearInterval(intervall);
     };
-  }, [neuLaden]);
+  }, [synchronisierenUndLaden, neuLaden]);
 
   useEffect(() => {
     if (!offen) return;
@@ -139,17 +178,13 @@ export function SyncStatus() {
             )}
           </div>
 
-          {/* Ab Phase 2 ruft dieser Knopf den echten Sync-Endpunkt auf - in
-              Phase 1 bleibt die Warteschlange strukturell leer, der Knopf ist
-              deshalb immer deaktiviert und neuLaden() dient nur dazu, die
-              Anzeige nicht veraltet stehen zu lassen. */}
           <button
             type="button"
-            disabled={wartend === 0}
-            onClick={neuLaden}
+            disabled={wartend === 0 || !online || laeuft}
+            onClick={synchronisierenUndLaden}
             className="mt-3 inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-background text-xs font-bold text-foreground transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <RefreshCw className="h-3.5 w-3.5" />
+            <RefreshCw className={`h-3.5 w-3.5 ${laeuft ? "animate-spin" : ""}`} />
             {t("jetztSynchronisieren")}
           </button>
         </div>

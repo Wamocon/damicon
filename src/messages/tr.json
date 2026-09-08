@@ -917,6 +917,7 @@
       "steige": "{wert} kasası kaydedildi.",
       "arbeitszeit": "{wert} dakika çalışma süresi bildirildi.",
       "kuehlmessung": "Ölçüm kaydedildi - toplamadan {wert} dakika sonra.",
+      "offlineEingereiht": "Kaydedildi - tekrar çevrimiçi olunca gönderilecek.",
       "einwilligungErfasst": "Rıza kaydedildi.",
       "einwilligungWiderrufen": "Rıza iptal edildi.",
       "vorfallErfasst": "Veri ihlali kaydedildi.",

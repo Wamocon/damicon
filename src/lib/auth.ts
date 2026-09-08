@@ -67,3 +67,20 @@ export async function requirePermission(
   }
   return profil;
 }
+
+// Anforderung 2.5: fuer den Sync-Endpunkt (src/app/api/sync/route.ts).
+// src/proxy.ts schuetzt den gesamten /dashboard-Baum inklusive
+// AAL2-Weiterleitung, aber sein config.matcher schliesst /api ausdruecklich
+// aus - ein Route Handler bekaeme sonst ueberhaupt keine AAL2-Pruefung,
+// obwohl er dieselben schreibenden Kernfunktionen aufruft wie die
+// Formulare. Dieselbe Pruefung wie dort, hier als eigene Funktion, weil ein
+// Route Handler kein Redirect zurueckgeben soll, sondern einen Fehlerstatus.
+export async function requireAal2Aktuell(): Promise<void> {
+  if (!isSupabaseConfigured()) return;
+  const supabase = await createClient();
+  const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+  const mfaOffen = !!aal && aal.nextLevel === "aal2" && aal.nextLevel !== aal.currentLevel;
+  if (mfaOffen) {
+    throw new Error("mfa-erforderlich");
+  }
+}

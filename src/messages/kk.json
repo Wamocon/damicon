@@ -917,6 +917,7 @@
       "steige": "{wert} жәшігі тіркелді.",
       "arbeitszeit": "{wert} минут жұмыс уақыты белгіленді.",
       "kuehlmessung": "Өлшем тіркелді - терімнен кейін {wert} минут.",
+      "offlineEingereiht": "Тіркелді - желі қалпына келген соң жіберіледі.",
       "einwilligungErfasst": "Келісім тіркелді.",
       "einwilligungWiderrufen": "Келісім кері қайтарылды.",
       "vorfallErfasst": "Оқиға тіркелді.",

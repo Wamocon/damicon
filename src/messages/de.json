@@ -710,6 +710,7 @@
       "steige": "Steige {wert} erfasst.",
       "arbeitszeit": "{wert} Minuten Arbeitszeit gemeldet.",
       "kuehlmessung": "Messung erfasst - {wert} Minuten nach dem Pflücken.",
+      "offlineEingereiht": "Erfasst - wird gesendet, sobald wieder Netz da ist.",
       "einwilligungErfasst": "Einwilligung erfasst.",
       "einwilligungWiderrufen": "Einwilligung widerrufen.",
       "vorfallErfasst": "Datenschutzvorfall erfasst.",
