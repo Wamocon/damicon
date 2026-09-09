@@ -1395,6 +1395,16 @@
     "trayTitle": "En pahalı hata bir yükseklik",
     "trayText": "Yukarıdan bakıldığında aşırı dolu kap en iyi görünür: dolu, sık, boşluk yok. Ama kapak üst katmana baskı yapar, alt katman ise ağırlığı taşır. Ahududu kendi ağırlığını taşımaz - markete ulaştığında alt katman artık sudur. Bu sadece yandan görülebilir."
   },
+  "qualitaetsReferenz": {
+    "aufklappen": "Kalite referansını göster",
+    "gut": "İyi",
+    "zerfallen": "Dağılmış",
+    "unreif": "Olgunlaşmadan toplanmış",
+    "druckstelle": "Ezik",
+    "schimmel": "Küf",
+    "schaleGut": "Kap iyi doldurulmuş",
+    "schaleUeberfuellt": "Kap aşırı dolu"
+  },
   "reklamationStatus": {
     "offen": "Açık",
     "in_pruefung": "İnceleniyor",

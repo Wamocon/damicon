@@ -1395,6 +1395,16 @@
     "trayTitle": "Der teuerste Fehler ist eine Höhe",
     "trayText": "Von oben sieht die überfüllte Schale am besten aus: voll, dicht, kein Spalt. Der Deckel drückt jedoch auf die obere Lage, und die untere trägt das Gewicht. Himbeeren tragen kein Eigengewicht - im Laden ist die unterste Lage Saft. Sichtbar wird das nur von der Seite."
   },
+  "qualitaetsReferenz": {
+    "aufklappen": "Qualitätsreferenz zeigen",
+    "gut": "Gut",
+    "zerfallen": "Zerfallen",
+    "unreif": "Unreif geerntet",
+    "druckstelle": "Druckstelle",
+    "schimmel": "Schimmel",
+    "schaleGut": "Schale gut befüllt",
+    "schaleUeberfuellt": "Schale überfüllt"
+  },
   "reklamationStatus": {
     "offen": "offen",
     "in_pruefung": "In Prüfung",

@@ -1395,6 +1395,16 @@
     "trayTitle": "The costliest mistake is a height",
     "trayText": "Seen from above, the overfilled punnet looks best: full, dense, no gap. But the lid presses on the top layer, and the bottom layer carries the weight. Raspberries carry no weight of their own - by the time it's in the shop, the bottom layer is juice. That is visible only from the side."
   },
+  "qualitaetsReferenz": {
+    "aufklappen": "Show quality reference",
+    "gut": "Good",
+    "zerfallen": "Falling apart",
+    "unreif": "Picked unripe",
+    "druckstelle": "Bruise",
+    "schimmel": "Mould",
+    "schaleGut": "Punnet well filled",
+    "schaleUeberfuellt": "Punnet overfilled"
+  },
   "reklamationStatus": {
     "offen": "Open",
     "in_pruefung": "Under review",
