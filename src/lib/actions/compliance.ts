@@ -129,13 +129,16 @@ export async function einwilligungWiderrufen(
   if (!id || !grund) return fehler("fehler.eingabe");
 
   const supabase = await createClient();
-  // Der Trigger einwilligung_nur_widerruf() laesst ausschliesslich diese
-  // beiden Spalten als Update zu - jedes andere Feld wuerde die Datenbank
-  // ablehnen, unabhaengig davon, was hier geschickt wird.
-  const { error } = await supabase
-    .from("einwilligungen")
-    .update({ widerrufen_am: new Date().toISOString(), widerruf_grund: grund })
-    .eq("id", id);
+  // Anforderung 4.8: widerrufen_am wird ueber die RPC serverseitig per now()
+  // gesetzt, nicht clientseitig mit new Date() - sonst kann ein Uhrenversatz
+  // zwischen App- und Datenbankserver den Check-Constraint
+  // einwilligung_widerruf_nach_erteilung (widerrufen_am >= erteilt_am, das
+  // ebenfalls per DB-now() gesetzt wird) faelschlich ausloesen. Der Trigger
+  // einwilligung_nur_widerruf() bleibt als zweite Verteidigungslinie aktiv.
+  const { error } = await supabase.rpc("einwilligung_widerrufen", {
+    p_id: id,
+    p_grund: grund,
+  });
 
   if (error) return dbFehler(error);
 
