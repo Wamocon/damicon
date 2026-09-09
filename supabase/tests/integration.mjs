@@ -176,6 +176,34 @@ if (leitung && brigade) {
   );
   await admin.from("reihenbloecke").update({ status: block.status }).eq("id", block.id);
 
+  // Anforderung 2.1: ein bestehender Reihenblock laesst sich umbenennen und
+  // im Sortenprofil korrigieren, nicht nur beim Anlegen setzen.
+  const urspruenglicherCode = block.code;
+  const neuerCode = `${urspruenglicherCode}-IT`;
+  const { data: umbenannterBlock, error: umbenennenFehler } = await leitung
+    .from("reihenbloecke")
+    .update({ code: neuerCode })
+    .eq("id", block.id)
+    .select("id, code")
+    .single();
+  check(
+    "Anforderung 2.1: Betriebsleitung benennt einen bestehenden Reihenblock um",
+    !umbenennenFehler && umbenannterBlock?.code === neuerCode,
+    umbenennenFehler?.message ?? "",
+  );
+  await admin.from("reihenbloecke").update({ code: urspruenglicherCode }).eq("id", block.id);
+
+  const { data: brigadeUmbenennenVersuch, error: brigadeUmbenennenFehler } = await brigade
+    .from("reihenbloecke")
+    .update({ code: `${urspruenglicherCode}-BR` })
+    .eq("id", block.id)
+    .select("id");
+  check(
+    "Anforderung 2.1 RLS: Brigade darf einen Reihenblock nicht umbenennen",
+    !brigadeUmbenennenFehler && (brigadeUmbenennenVersuch?.length ?? 0) === 0,
+    brigadeUmbenennenFehler?.message ?? `geaenderte Zeilen: ${brigadeUmbenennenVersuch?.length}`,
+  );
+
   const { data: mittel } = await admin
     .from("psm_mittel")
     .select("id, wartezeit_tage")
@@ -211,6 +239,80 @@ if (leitung && brigade) {
     "Sperre: Betriebsleitung erfasst eine Behandlung",
     !behandlungFehler && !!behandlung?.freigabe_am,
     behandlungFehler?.message ?? "",
+  );
+
+  // Anforderung 2.4: Aufwandmenge und durchfuehrende Person lassen sich
+  // strukturiert erfassen, statt als Freitext im Audit-Log zu verschwinden.
+  const { data: irgendeinProfil } = await admin
+    .from("profiles")
+    .select("id")
+    .limit(1)
+    .single();
+  const { data: behandlungMitMenge, error: behandlungMengeFehler } = await leitung
+    .from("pflanzenschutz_behandlungen")
+    .insert({
+      reihenblock_id: block.id,
+      psm_mittel_id: mittel.id,
+      behandelt_am: new Date().toISOString().slice(0, 10),
+      wartezeit_tage: mittel.wartezeit_tage,
+      aufwandmenge: 1.5,
+      aufwandmenge_einheit: "kg_ha",
+      durchgefuehrt_von_profil_id: irgendeinProfil.id,
+    })
+    .select("id, aufwandmenge, aufwandmenge_einheit, durchgefuehrt_von_profil_id")
+    .single();
+  check(
+    "Anforderung 2.4: Aufwandmenge, Einheit und durchfuehrende Person werden gespeichert",
+    !behandlungMengeFehler &&
+      Number(behandlungMitMenge?.aufwandmenge) === 1.5 &&
+      behandlungMitMenge?.aufwandmenge_einheit === "kg_ha" &&
+      behandlungMitMenge?.durchgefuehrt_von_profil_id === irgendeinProfil.id,
+    behandlungMengeFehler?.message ?? "",
+  );
+  if (behandlungMitMenge?.id) {
+    await admin.from("pflanzenschutz_behandlungen").delete().eq("id", behandlungMitMenge.id);
+  }
+
+  const { error: mengeOhneEinheitFehler } = await admin
+    .from("pflanzenschutz_behandlungen")
+    .insert({
+      reihenblock_id: block.id,
+      psm_mittel_id: mittel.id,
+      behandelt_am: new Date().toISOString().slice(0, 10),
+      wartezeit_tage: mittel.wartezeit_tage,
+      aufwandmenge: 1.5,
+    });
+  check(
+    "Anforderung 2.4: Aufwandmenge ohne Einheit wird abgelehnt (Check-Constraint)",
+    mengeOhneEinheitFehler?.code === "23514",
+    mengeOhneEinheitFehler?.code ?? "kein Fehler",
+  );
+
+  // Anforderung 4.1: behandelt_am darf ueber die Anwendung nicht rueckdatiert
+  // werden, sonst liesse sich die Wartezeitsperre (freigabe_am = behandelt_am
+  // + wartezeit_tage) rueckwirkend unterlaufen.
+  const { error: rueckdatierungFehler } = await leitung
+    .from("pflanzenschutz_behandlungen")
+    .update({ behandelt_am: "2020-01-01" })
+    .eq("id", behandlung.id);
+  check(
+    "Anforderung 4.1: behandelt_am laesst sich ueber die Anwendung nicht rueckdatieren",
+    rueckdatierungFehler?.code === "23514",
+    rueckdatierungFehler?.code ?? "kein Fehler",
+  );
+
+  const { data: behandlungLoeschenVersuch, error: behandlungLoeschenFehler } = await leitung
+    .from("pflanzenschutz_behandlungen")
+    .delete()
+    .eq("id", behandlung.id)
+    .select("id");
+  check(
+    "Anforderung 4.1: eine Behandlung laesst sich ueber die Anwendung nicht loeschen",
+    // Blockiert entweder die RLS-Policy still (0 Zeilen, keine Delete-Policy
+    // vorgesehen) oder der Trigger mit einer Exception - beides ist ein Pass.
+    behandlungLoeschenFehler?.code === "23514" ||
+      (behandlungLoeschenVersuch?.length ?? 0) === 0,
+    behandlungLoeschenFehler?.code ?? `geloeschte Zeilen: ${behandlungLoeschenVersuch?.length}`,
   );
 
   const { error: entsperrFehler } = await leitung
@@ -438,6 +540,45 @@ if (leitung && brigade) {
     steigeFehler?.message ?? "",
   );
 
+  // Anforderung 2.10: Stichprobenkontrolle je einzelner Steige.
+  const { data: neueSteige } = await admin
+    .from("steigen")
+    .select("id, kontrolliert_am")
+    .eq("pflueckaufgabe_id", neueAufgabe.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+  check(
+    "Anforderung 2.10: eine neu erfasste Steige ist noch nicht kontrolliert",
+    neueSteige?.kontrolliert_am === null,
+    `kontrolliert_am: ${neueSteige?.kontrolliert_am}`,
+  );
+
+  const { data: brigadeKontrollVersuch, error: brigadeKontrollFehler } = await brigade
+    .from("steigen")
+    .update({ kontrolliert_am: new Date().toISOString() })
+    .eq("id", neueSteige.id)
+    .select("id");
+  check(
+    "Anforderung 2.10: die Brigade kontrolliert die eigene Steige nicht selbst",
+    !!brigadeKontrollFehler || (brigadeKontrollVersuch?.length ?? 0) === 0,
+    brigadeKontrollFehler?.code ?? `geaenderte Zeilen: ${brigadeKontrollVersuch?.length}`,
+  );
+
+  const { data: kontrollierteSteige, error: kontrollFehler } = await leitung
+    .from("steigen")
+    .update({ kontrolliert_am: new Date().toISOString(), kontrolliert_von_profil_id: irgendeinProfil.id })
+    .eq("id", neueSteige.id)
+    .select("kontrolliert_am, kontrolliert_von_profil_id")
+    .single();
+  check(
+    "Anforderung 2.10: Betriebsleitung kontrolliert eine einzelne Steige",
+    !kontrollFehler &&
+      !!kontrollierteSteige?.kontrolliert_am &&
+      kontrollierteSteige?.kontrolliert_von_profil_id === irgendeinProfil.id,
+    kontrollFehler?.message ?? "",
+  );
+
   // Die 60-Minuten-Regel urteilt in der Datenbank, nicht im Formular.
   await admin
     .from("chargen")
@@ -461,6 +602,28 @@ if (leitung && brigade) {
       messung?.ergebnis === "verstoss" &&
       messung.minuten_seit_pfluecken >= 74,
     messungFehler?.message ?? `${messung?.minuten_seit_pfluecken} min, ${messung?.ergebnis}`,
+  );
+
+  // Anforderung 4.1: eine Kuehlmessung ist ein Zeitpunkt-Fakt, eine Korrektur
+  // ist fachlich eine neue Messung, keine Aenderung der alten.
+  const { data: messungMitId } = await admin
+    .from("kuehlketten_messungen")
+    .select("id")
+    .eq("charge_id", autoCharge.id)
+    .order("gemessen_am", { ascending: false })
+    .limit(1)
+    .single();
+  const { data: messungAendernVersuch, error: messungAendernFehler } = await leitung
+    .from("kuehlketten_messungen")
+    .update({ temperatur_c: 2 })
+    .eq("id", messungMitId.id)
+    .select("id");
+  check(
+    "Anforderung 4.1: eine Kuehlmessung laesst sich ueber die Anwendung nicht aendern",
+    // Blockiert entweder die RLS-Policy still (0 Zeilen, keine Update-Policy
+    // vorgesehen) oder der Trigger mit einer Exception - beides ist ein Pass.
+    messungAendernFehler?.code === "23514" || (messungAendernVersuch?.length ?? 0) === 0,
+    messungAendernFehler?.code ?? `geaenderte Zeilen: ${messungAendernVersuch?.length}`,
   );
 
   // Abschluss schreibt den Ist-Erntetermin fort - Grundlage des Rotationsplans.
@@ -605,6 +768,29 @@ if (leitung && brigade) {
     // pflueckaufgabe_freigabe_pruefen mit einer Exception - beides ist ein Pass.
     !!brigadeMengeFehler || (brigadeMengeUpdate?.length ?? 0) === 0,
     brigadeMengeFehler?.message ?? `geaenderte Zeilen: ${brigadeMengeUpdate?.length}`,
+  );
+
+  // Anforderung 4.1: vor dieser Migration durfte die Betriebsleitung eine
+  // abgeschlossene Menge noch ueberschreiben (nur die Brigade war
+  // ausgeschlossen). Das war die eigentliche Luecke aus dem Masterplan-Audit.
+  const { error: leitungMengeFehler } = await leitung
+    .from("pflueckaufgaben")
+    .update({ ist_menge_kg: Number(abgeschlosseneAufgabe.ist_menge_kg) + 100 })
+    .eq("id", abgeschlosseneAufgabe.id);
+  check(
+    "Anforderung 4.1: auch die Betriebsleitung aendert die Menge einer abgeschlossenen Aufgabe nicht mehr",
+    leitungMengeFehler?.code === "23514",
+    leitungMengeFehler?.code ?? "kein Fehler",
+  );
+
+  const { error: leitungQualitaetFehler } = await leitung
+    .from("pflueckaufgaben")
+    .update({ qualitaetsfaktor: 0.5 })
+    .eq("id", abgeschlosseneAufgabe.id);
+  check(
+    "Anforderung 4.1: der Qualitaetsfaktor einer abgeschlossenen Aufgabe ist ebenfalls gesperrt",
+    leitungQualitaetFehler?.code === "23514",
+    leitungQualitaetFehler?.code ?? "kein Fehler",
   );
 
   // HOCH: eine Brigade-Anmeldung konnte Arbeitszeit fuer eine Person aus
@@ -845,11 +1031,20 @@ if (leitung && brigade) {
     einwilligungAendernFehler?.code ?? "kein Fehler",
   );
 
-  const { data: widerrufen, error: widerrufFehler } = await leitung
+  // Anforderung 4.8: der Widerruf laeuft ueber die RPC, die widerrufen_am
+  // serverseitig per now() setzt (siehe Migration 20260916000000) - ein
+  // direktes Update mit clientseitigem new Date() koennte bei Uhrenversatz
+  // zwischen Testmaschine und gehostetem Datenbankserver am Check-Constraint
+  // einwilligung_widerruf_nach_erteilung scheitern, unabhaengig davon, ob
+  // der Widerruf inhaltlich korrekt ist.
+  const { error: widerrufFehler } = await leitung.rpc("einwilligung_widerrufen", {
+    p_id: neueEinwilligung.id,
+    p_grund: "Testwiderruf",
+  });
+  const { data: widerrufen } = await admin
     .from("einwilligungen")
-    .update({ widerrufen_am: new Date().toISOString(), widerruf_grund: "Testwiderruf" })
-    .eq("id", neueEinwilligung.id)
     .select("widerrufen_am, widerruf_grund")
+    .eq("id", neueEinwilligung.id)
     .single();
   check(
     "Compliance: der Widerruf ist als Update zulaessig",
@@ -910,6 +1105,68 @@ if (leitung && brigade) {
     meldungFehler?.message ?? "",
   );
   await admin.from("datenschutzvorfaelle").delete().eq("id", neuerVorfall.id);
+
+  // --- Anforderung 4.8: benannte verantwortliche Person je Zweck/Vorfall ---
+  const { data: verantwortlichesProfil } = await admin
+    .from("profiles")
+    .select("id")
+    .limit(1)
+    .single();
+
+  const { data: vorfallMitVerantwortlichem, error: vorfallVerantwortlichFehler } = await leitung
+    .from("datenschutzvorfaelle")
+    .insert({
+      festgestellt_am: new Date().toISOString(),
+      art: "sonstiges",
+      beschreibung: "Integrationstest-Vorfall mit Verantwortlichem",
+      betroffene_anzahl: 1,
+      verantwortlich_profil_id: verantwortlichesProfil.id,
+    })
+    .select("id, verantwortlich_profil_id")
+    .single();
+  check(
+    "Anforderung 4.8: Vorfall speichert die benannte verantwortliche Person",
+    !vorfallVerantwortlichFehler &&
+      vorfallMitVerantwortlichem?.verantwortlich_profil_id === verantwortlichesProfil.id,
+    vorfallVerantwortlichFehler?.message ?? "",
+  );
+  if (vorfallMitVerantwortlichem?.id) {
+    await admin.from("datenschutzvorfaelle").delete().eq("id", vorfallMitVerantwortlichem.id);
+  }
+
+  const { data: zweckVorher } = await admin
+    .from("verarbeitungszwecke")
+    .select("id, verantwortlich_profil_id")
+    .eq("code", "personaleinsatz")
+    .single();
+  const { data: zweckAktualisiert, error: zweckVerantwortlichFehler } = await leitung
+    .from("verarbeitungszwecke")
+    .update({ verantwortlich_profil_id: verantwortlichesProfil.id })
+    .eq("id", zweckVorher.id)
+    .select("verantwortlich_profil_id")
+    .single();
+  check(
+    "Anforderung 4.8: verantwortliche Person laesst sich einem Verarbeitungszweck zuweisen",
+    !zweckVerantwortlichFehler &&
+      zweckAktualisiert?.verantwortlich_profil_id === verantwortlichesProfil.id,
+    zweckVerantwortlichFehler?.message ?? "",
+  );
+  // Ursprungszustand wiederherstellen, damit der Testlauf wiederholbar bleibt.
+  await admin
+    .from("verarbeitungszwecke")
+    .update({ verantwortlich_profil_id: zweckVorher.verantwortlich_profil_id })
+    .eq("id", zweckVorher.id);
+
+  const { data: brigadeVerantwortlichUpdate, error: brigadeVerantwortlichFehler } = await brigade
+    .from("verarbeitungszwecke")
+    .update({ verantwortlich_profil_id: verantwortlichesProfil.id })
+    .eq("id", zweckVorher.id)
+    .select("id");
+  check(
+    "Anforderung 4.8 RLS: Brigade darf die verantwortliche Person nicht setzen",
+    !brigadeVerantwortlichFehler && (brigadeVerantwortlichUpdate?.length ?? 0) === 0,
+    brigadeVerantwortlichFehler?.message ?? `geaenderte Zeilen: ${brigadeVerantwortlichUpdate?.length}`,
+  );
 
   // --- Drittweitergaben: Benachrichtigungsfrist automatisch (14 Tage) ------
   const { data: neueDrittweitergabe, error: drittweitergabeFehler } = await leitung

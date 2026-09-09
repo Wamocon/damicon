@@ -21,6 +21,8 @@ export interface SteigeZeile {
   gewichtKg: number | null;
   scanZeitpunkt: string | null;
   pfluecker: string | null;
+  /** Anforderung 2.10: Stichprobenkontrolle je einzelner Steige. */
+  kontrolliertAm: string | null;
 }
 
 export interface BehandlungsNachweis {
@@ -80,7 +82,7 @@ export async function ladeNachweiskette(
   const [{ data: steigen }, { data: behandlungen }] = await Promise.all([
     supabase
       .from("steigen")
-      .select("id, code, gewicht_kg, scan_zeitpunkt, pfluecker ( name )")
+      .select("id, code, gewicht_kg, scan_zeitpunkt, kontrolliert_am, pfluecker ( name )")
       .eq("pflueckaufgabe_id", aufgabeId)
       .order("code"),
     supabase.rpc("rueckstandsnachweis", { p_charge: charge.id }),
@@ -123,6 +125,7 @@ export async function ladeNachweiskette(
       gewichtKg: s.gewicht_kg === null ? null : Number(s.gewicht_kg),
       scanZeitpunkt: s.scan_zeitpunkt,
       pfluecker: einsAus(s.pfluecker)?.name ?? null,
+      kontrolliertAm: s.kontrolliert_am,
     })),
     behandlungen: (behandlungen ?? []).map((b) => ({
       mittel: b.mittel,

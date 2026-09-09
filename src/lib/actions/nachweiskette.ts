@@ -347,3 +347,43 @@ export async function kuehlmessungErfassen(
   aktualisiere(formData);
   return status;
 }
+
+// Anforderung 2.10: Stichprobenkontrolle je einzelner Steige, unabhaengig vom
+// Abschluss der gesamten Pflueckaufgabe. Dieselbe Berechtigungsstufe wie der
+// Aufgabenabschluss (pflueckaufgaben:approve, siehe aufgabeStatusSetzen in
+// lib/actions/pflueckaufgaben.ts) - eine Stichprobenkontrolle ist fachlich
+// dieselbe Belegpruefung, nur auf Steigen-Ebene statt Aufgaben-Ebene.
+export async function steigeKontrollieren(
+  _status: AktionsStatus,
+  formData: FormData,
+): Promise<AktionsStatus> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("pflueckaufgaben", "approve");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+
+  const id = text(formData, "id");
+  if (!id) return fehler("fehler.eingabe");
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("steigen")
+    .update({
+      kontrolliert_am: new Date().toISOString(),
+      kontrolliert_von_profil_id: profil.id,
+    })
+    .eq("id", id)
+    .is("kontrolliert_am", null)
+    .select("id, code")
+    .maybeSingle();
+
+  if (error) return dbFehler(error);
+  // Kein Treffer trotz fehlerfreiem Update: entweder keine Berechtigung
+  // (RLS hat die Zeile ausgefiltert) oder bereits kontrolliert.
+  if (!data) return fehler("fehler.zustand");
+
+  aktualisiere(formData);
+  return ok("ok.steigeKontrolliert", data.code);
+}

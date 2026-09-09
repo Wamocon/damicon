@@ -1,13 +1,16 @@
 "use client";
 
+import { useActionState } from "react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Package, Snowflake, Timer } from "lucide-react";
+import { CheckCircle2, Package, Snowflake, Timer } from "lucide-react";
 import {
   arbeitszeitErfassen,
   kuehlmessungErfassen,
   steigeErfassen,
+  steigeKontrollieren,
 } from "@/lib/actions/nachweiskette";
+import { leer } from "@/lib/actions/status";
 import { AktionsMeldung, Auswahl, Feld } from "@/components/db/formular-kit";
 import { useOfflineFormular } from "@/components/db/use-offline-formular";
 import type { AuswahlOption } from "@/components/db/standort-formulare";
@@ -136,6 +139,30 @@ export function KuehlmessungFormular({ aufgabeId }: { aufgabeId: string }) {
       <button type="submit" className={knopf}>
         <Snowflake className="h-4 w-4" />
         {t("kuehlung.knopf")}
+      </button>
+      <AktionsMeldung status={status} />
+    </form>
+  );
+}
+
+// Anforderung 2.10: Stichprobenkontrolle einer einzelnen Steige, ein Klick.
+// Kein Offline-Formular - die Kontrolle ist ein Buero-/Leitungsvorgang, keine
+// Feldtaetigkeit unter Netzausfall.
+export function SteigeKontrollierenKnopf({ id, code }: { id: string; code: string }) {
+  const [status, action] = useActionState(steigeKontrollieren, leer);
+  const t = useTranslations("nachweiskette");
+
+  return (
+    <form action={action} className="inline-flex items-center gap-1">
+      <PfadFeld />
+      <input type="hidden" name="id" value={id} />
+      <button
+        type="submit"
+        className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold text-foreground transition hover:border-primary hover:text-primary"
+        aria-label={t("steigenKontrollierenAria", { code })}
+      >
+        <CheckCircle2 className="h-3 w-3" />
+        {t("steigenKontrollieren")}
       </button>
       <AktionsMeldung status={status} />
     </form>

@@ -143,13 +143,19 @@ export function BehandlungFormular({
   bloecke,
   mittel,
   heute,
+  profile,
 }: {
   bloecke: AuswahlOption[];
   mittel: AuswahlOption[];
   heute: string;
+  profile: AuswahlOption[];
 }) {
   const [ergebnis, action] = useActionState(behandlungErfassen, leer);
   const t = useTranslations("pflanzenschutzVerwaltung");
+  const einheiten: AuswahlOption[] = [
+    { wert: "l_ha", text: "l/ha" },
+    { wert: "kg_ha", text: "kg/ha" },
+  ];
 
   return (
     <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
@@ -172,6 +178,27 @@ export function BehandlungFormular({
           name="behandelt_am"
           type="date"
           defaultValue={heute}
+        />
+        {/* Anforderung 2.4: Aufwandmenge und durchfuehrende Person sind
+            Pflichtfelder, nicht erst nachtraeglich zu erfassen. */}
+        <Feld
+          label={t("feld.menge")}
+          name="aufwandmenge"
+          inputMode="decimal"
+          placeholder="1,5"
+          required
+        />
+        <Auswahl
+          label={t("feld.einheit")}
+          name="aufwandmenge_einheit"
+          options={einheiten}
+          required
+        />
+        <Auswahl
+          label={t("feld.person")}
+          name="durchgefuehrt_von_profil_id"
+          options={profile}
+          required
         />
         <div className="flex items-end">
           <SubmitKnopf label={t("erfassen")} />

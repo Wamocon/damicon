@@ -285,6 +285,7 @@ export async function PflueckaufgabenAnsicht({
               aufgabeId={gewaehlt.id}
               pfluecker={pflueckerListe}
               darfErfassen={darfBearbeiten}
+              darfKontrollieren={darfAbschliessen}
             />
           ) : null}
 
