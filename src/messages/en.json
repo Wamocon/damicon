@@ -1273,7 +1273,10 @@
       "regel": "No more than 60 minutes may pass between picking and cooling. Break that limit and every further measure is worthless.",
       "nachMinuten": "after {minuten} minutes",
       "knopf": "Record cooling measurement",
-      "grenzwertig": "borderline"
+      "grenzwertig": "borderline",
+      "verbleibend": "{minuten} minutes left before the limit",
+      "fristUeberschritten": "60-minute limit exceeded by {minuten} minutes",
+      "alarm": "Alarm"
     },
     "ergebnis": {
       "ok": "ok",

@@ -7,6 +7,7 @@ import {
   SteigeFormular,
   SteigeKontrollierenKnopf,
 } from "@/components/db/nachweiskette-formulare";
+import { KuehlkettenAlarm } from "@/components/db/kuehlketten-alarm";
 import type { KuehlMessung, Nachweiskette, PflueckerOption } from "@/lib/data/nachweiskette";
 
 const ergebnisTon: Record<string, Tone> = {
@@ -68,61 +69,74 @@ export async function NachweiskettenKarte({
       </div>
       <p className="mt-1 text-xs leading-5 text-muted-foreground">{t("lead")}</p>
 
-      {/* Kühlkette: die Zahl, an der der Preisunterschied hängt */}
-      <div
-        className={`mt-4 rounded-xl border p-3 ${
-          gerissen
-            ? "border-destructive/25 bg-destructive/[0.06]"
-            : offen || warnung
-              ? "border-warning/25 bg-warning/[0.06]"
-              : "border-success/25 bg-success/[0.06]"
-        }`}
-      >
-        <div className="flex items-center gap-2">
-          <Snowflake
-            className={`h-4 w-4 ${
-              gerissen ? "text-destructive" : offen || warnung ? "text-warning" : "text-success"
-            }`}
-          />
-          <p className="text-xs font-black text-foreground">
-            {offen
-              ? t("kuehlung.offen")
-              : t("kuehlung.minuten", { minuten: c.minutenBisVorkuehlung ?? 0 })}
+      {/* Kühlkette: die Zahl, an der der Preisunterschied hängt.
+          Anforderung 3.1: solange noch keine Messung vorliegt, aber die Uhr
+          bereits läuft (pflückZeitpunkt gesetzt), zeigt eine live
+          mitzählende Warnung die verbleibende Zeit statt nur rückblickend
+          "läuft" zu melden. */}
+      {offen && c.pflueckZeitpunkt ? (
+        <div className="mt-4">
+          <KuehlkettenAlarm key={c.pflueckZeitpunkt} pflueckZeitpunkt={c.pflueckZeitpunkt} />
+          <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
+            {t("kuehlung.regel")}
           </p>
-          <StatusPill tone={gerissen ? "danger" : offen || warnung ? "warning" : "success"}>
-            {gerissen
-              ? t("kuehlung.gerissen")
-              : offen
-                ? t("kuehlung.laeuft")
-                : warnung
-                  ? t("kuehlung.grenzwertig")
-                  : t("kuehlung.gehalten")}
-          </StatusPill>
         </div>
-        <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
-          {t("kuehlung.regel")}
-        </p>
-        {kette.messungen.length > 0 ? (
-          <ul className="mt-2 space-y-1">
-            {kette.messungen.map((m) => (
-              <li
-                key={m.id}
-                className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground"
-              >
-                <StatusPill tone={ergebnisTon[m.ergebnis] ?? "neutral"}>
-                  {t(`ergebnis.${m.ergebnis}`)}
-                </StatusPill>
-                <span className="font-mono">
-                  {format.number(m.temperaturC, { maximumFractionDigits: 1 })} °C
-                </span>
-                {m.minutenSeitPfluecken !== null ? (
-                  <span>{t("kuehlung.nachMinuten", { minuten: m.minutenSeitPfluecken })}</span>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        ) : null}
-      </div>
+      ) : (
+        <div
+          className={`mt-4 rounded-xl border p-3 ${
+            gerissen
+              ? "border-destructive/25 bg-destructive/[0.06]"
+              : offen || warnung
+                ? "border-warning/25 bg-warning/[0.06]"
+                : "border-success/25 bg-success/[0.06]"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <Snowflake
+              className={`h-4 w-4 ${
+                gerissen ? "text-destructive" : offen || warnung ? "text-warning" : "text-success"
+              }`}
+            />
+            <p className="text-xs font-black text-foreground">
+              {offen
+                ? t("kuehlung.offen")
+                : t("kuehlung.minuten", { minuten: c.minutenBisVorkuehlung ?? 0 })}
+            </p>
+            <StatusPill tone={gerissen ? "danger" : offen || warnung ? "warning" : "success"}>
+              {gerissen
+                ? t("kuehlung.gerissen")
+                : offen
+                  ? t("kuehlung.laeuft")
+                  : warnung
+                    ? t("kuehlung.grenzwertig")
+                    : t("kuehlung.gehalten")}
+            </StatusPill>
+          </div>
+          <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
+            {t("kuehlung.regel")}
+          </p>
+        </div>
+      )}
+      {kette.messungen.length > 0 ? (
+        <ul className="mt-2 space-y-1">
+          {kette.messungen.map((m) => (
+            <li
+              key={m.id}
+              className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground"
+            >
+              <StatusPill tone={ergebnisTon[m.ergebnis] ?? "neutral"}>
+                {t(`ergebnis.${m.ergebnis}`)}
+              </StatusPill>
+              <span className="font-mono">
+                {format.number(m.temperaturC, { maximumFractionDigits: 1 })} °C
+              </span>
+              {m.minutenSeitPfluecken !== null ? (
+                <span>{t("kuehlung.nachMinuten", { minuten: m.minutenSeitPfluecken })}</span>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       {/* Menge und Ausschuss */}
       <dl className="mt-4 grid grid-cols-3 gap-2 text-center">

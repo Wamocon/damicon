@@ -1273,7 +1273,10 @@
       "regel": "Zwischen Pflücken und Herunterkühlen dürfen höchstens 60 Minuten liegen. Wird diese Grenze gerissen, ist jede weitere Maßnahme wirkungslos.",
       "nachMinuten": "nach {minuten} Minuten",
       "knopf": "Kühlmessung erfassen",
-      "grenzwertig": "grenzwertig"
+      "grenzwertig": "grenzwertig",
+      "verbleibend": "noch {minuten} Minuten bis zur Grenze",
+      "fristUeberschritten": "60-Minuten-Grenze seit {minuten} Minuten überschritten",
+      "alarm": "Alarm"
     },
     "ergebnis": {
       "ok": "ok",

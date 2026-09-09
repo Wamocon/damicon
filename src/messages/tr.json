@@ -1273,7 +1273,10 @@
       "regel": "Toplama ile soğutma arasında en fazla 60 dakika geçebilir. Bu sınır aşılırsa sonraki her önlem etkisizdir.",
       "nachMinuten": "{minuten} dakika sonra",
       "knopf": "Soğutma ölçümü kaydet",
-      "grenzwertig": "sınırda"
+      "grenzwertig": "sınırda",
+      "verbleibend": "sınıra {minuten} dakika kaldı",
+      "fristUeberschritten": "60 dakikalık sınır {minuten} dakika aşıldı",
+      "alarm": "Alarm"
     },
     "ergebnis": {
       "ok": "uygun",
