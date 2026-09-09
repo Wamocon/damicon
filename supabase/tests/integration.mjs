@@ -845,11 +845,20 @@ if (leitung && brigade) {
     einwilligungAendernFehler?.code ?? "kein Fehler",
   );
 
-  const { data: widerrufen, error: widerrufFehler } = await leitung
+  // Anforderung 4.8: der Widerruf laeuft ueber die RPC, die widerrufen_am
+  // serverseitig per now() setzt (siehe Migration 20260916000000) - ein
+  // direktes Update mit clientseitigem new Date() koennte bei Uhrenversatz
+  // zwischen Testmaschine und gehostetem Datenbankserver am Check-Constraint
+  // einwilligung_widerruf_nach_erteilung scheitern, unabhaengig davon, ob
+  // der Widerruf inhaltlich korrekt ist.
+  const { error: widerrufFehler } = await leitung.rpc("einwilligung_widerrufen", {
+    p_id: neueEinwilligung.id,
+    p_grund: "Testwiderruf",
+  });
+  const { data: widerrufen } = await admin
     .from("einwilligungen")
-    .update({ widerrufen_am: new Date().toISOString(), widerruf_grund: "Testwiderruf" })
-    .eq("id", neueEinwilligung.id)
     .select("widerrufen_am, widerruf_grund")
+    .eq("id", neueEinwilligung.id)
     .single();
   check(
     "Compliance: der Widerruf ist als Update zulaessig",
@@ -910,6 +919,68 @@ if (leitung && brigade) {
     meldungFehler?.message ?? "",
   );
   await admin.from("datenschutzvorfaelle").delete().eq("id", neuerVorfall.id);
+
+  // --- Anforderung 4.8: benannte verantwortliche Person je Zweck/Vorfall ---
+  const { data: verantwortlichesProfil } = await admin
+    .from("profiles")
+    .select("id")
+    .limit(1)
+    .single();
+
+  const { data: vorfallMitVerantwortlichem, error: vorfallVerantwortlichFehler } = await leitung
+    .from("datenschutzvorfaelle")
+    .insert({
+      festgestellt_am: new Date().toISOString(),
+      art: "sonstiges",
+      beschreibung: "Integrationstest-Vorfall mit Verantwortlichem",
+      betroffene_anzahl: 1,
+      verantwortlich_profil_id: verantwortlichesProfil.id,
+    })
+    .select("id, verantwortlich_profil_id")
+    .single();
+  check(
+    "Anforderung 4.8: Vorfall speichert die benannte verantwortliche Person",
+    !vorfallVerantwortlichFehler &&
+      vorfallMitVerantwortlichem?.verantwortlich_profil_id === verantwortlichesProfil.id,
+    vorfallVerantwortlichFehler?.message ?? "",
+  );
+  if (vorfallMitVerantwortlichem?.id) {
+    await admin.from("datenschutzvorfaelle").delete().eq("id", vorfallMitVerantwortlichem.id);
+  }
+
+  const { data: zweckVorher } = await admin
+    .from("verarbeitungszwecke")
+    .select("id, verantwortlich_profil_id")
+    .eq("code", "personaleinsatz")
+    .single();
+  const { data: zweckAktualisiert, error: zweckVerantwortlichFehler } = await leitung
+    .from("verarbeitungszwecke")
+    .update({ verantwortlich_profil_id: verantwortlichesProfil.id })
+    .eq("id", zweckVorher.id)
+    .select("verantwortlich_profil_id")
+    .single();
+  check(
+    "Anforderung 4.8: verantwortliche Person laesst sich einem Verarbeitungszweck zuweisen",
+    !zweckVerantwortlichFehler &&
+      zweckAktualisiert?.verantwortlich_profil_id === verantwortlichesProfil.id,
+    zweckVerantwortlichFehler?.message ?? "",
+  );
+  // Ursprungszustand wiederherstellen, damit der Testlauf wiederholbar bleibt.
+  await admin
+    .from("verarbeitungszwecke")
+    .update({ verantwortlich_profil_id: zweckVorher.verantwortlich_profil_id })
+    .eq("id", zweckVorher.id);
+
+  const { data: brigadeVerantwortlichUpdate, error: brigadeVerantwortlichFehler } = await brigade
+    .from("verarbeitungszwecke")
+    .update({ verantwortlich_profil_id: verantwortlichesProfil.id })
+    .eq("id", zweckVorher.id)
+    .select("id");
+  check(
+    "Anforderung 4.8 RLS: Brigade darf die verantwortliche Person nicht setzen",
+    !brigadeVerantwortlichFehler && (brigadeVerantwortlichUpdate?.length ?? 0) === 0,
+    brigadeVerantwortlichFehler?.message ?? `geaenderte Zeilen: ${brigadeVerantwortlichUpdate?.length}`,
+  );
 
   // --- Drittweitergaben: Benachrichtigungsfrist automatisch (14 Tage) ------
   const { data: neueDrittweitergabe, error: drittweitergabeFehler } = await leitung
