@@ -39,8 +39,8 @@ export function PlantageFormular({ betriebId }: { betriebId: string }) {
       <form action={action} className="space-y-2.5">
         <PfadFeld />
         <input type="hidden" name="betrieb_id" value={betriebId} />
-        <Feld label={t("feld.name")} name="name" required placeholder="Plantage Talgar" />
-        <Feld label={t("feld.ort")} name="ort" placeholder="Talgar, Gebiet Almaty" />
+        <Feld label={t("feld.name")} name="name" required placeholder={t("beispiel.plantageName")} />
+        <Feld label={t("feld.ort")} name="ort" placeholder={t("beispiel.plantageOrt")} />
         <Auswahl
           label={t("feld.typ")}
           name="typ"
@@ -76,12 +76,12 @@ export function ParzelleFormular({
           options={plantagen}
           required
         />
-        <Feld label={t("feld.name")} name="name" required placeholder="Parzelle West" />
+        <Feld label={t("feld.name")} name="name" required placeholder={t("beispiel.parzelleName")} />
         <Feld
           label={t("feld.flaeche")}
           name="flaeche_ha"
           inputMode="decimal"
-          placeholder="2,5"
+          placeholder={t("beispiel.flaeche")}
         />
         <Auswahl
           label={t("feld.sorte")}
@@ -120,14 +120,14 @@ export function ReihengruppeFormular({
           label={t("feld.name")}
           name="name"
           required
-          placeholder="Reihengruppe C"
+          placeholder={t("beispiel.reihengruppeName")}
         />
         <Auswahl
           label={t("feld.spalier")}
           name="spalierrichtung"
           options={[
-            { wert: "n_s", text: "N-S" },
-            { wert: "o_w", text: "O-W" },
+            { wert: "n_s", text: t("spalier.n_s") },
+            { wert: "o_w", text: t("spalier.o_w") },
           ]}
         />
         <SubmitKnopf />

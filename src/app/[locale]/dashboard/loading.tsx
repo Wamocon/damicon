@@ -1,7 +1,10 @@
+import { getTranslations } from "next-intl/server";
+
 // Ladezustand des Dashboards. Ohne ihn bleibt beim Wechsel zwischen Modulen
 // die alte Seite stehen, bis die Datenbank geantwortet hat - in einer
 // Vorfuehrung sieht das aus, als reagiere die Anwendung nicht.
-export default function DashboardLaedt() {
+export default async function DashboardLaedt() {
+  const t = await getTranslations("dashboard");
   return (
     <div className="space-y-6" aria-busy="true">
       <div className="space-y-3">
@@ -18,7 +21,7 @@ export default function DashboardLaedt() {
         ))}
       </div>
       <div className="h-64 animate-pulse rounded-xl border border-border bg-card" />
-      <span className="sr-only">Daten werden geladen</span>
+      <span className="sr-only">{t("loading")}</span>
     </div>
   );
 }

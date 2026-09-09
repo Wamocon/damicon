@@ -14,18 +14,18 @@
         justify-content: center;
         padding: 24px;
         font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-        background: #f7f7f5;
-        color: #1c1c1a;
+        background: #f6fafb;
+        color: #0b1e26;
       }
       @media (prefers-color-scheme: dark) {
-        body { background: #171715; color: #f0f0ee; }
-        .karte { background: #201f1c !important; border-color: #34332e !important; }
-        button { background: #f0f0ee !important; color: #171715 !important; }
+        body { background: #04161c; color: #e6f4f8; }
+        .karte { background: #092129 !important; border-color: #1b2b30 !important; }
+        button { background: #3fd0e6 !important; color: #01222b !important; }
       }
       .karte {
         max-width: 360px;
         text-align: center;
-        border: 1px solid #e3e2dd;
+        border: 1px solid #dbe8ec;
         border-radius: 16px;
         background: #ffffff;
         padding: 32px 28px;
@@ -35,7 +35,7 @@
       button {
         border: none;
         border-radius: 10px;
-        background: #1c1c1a;
+        background: #00768f;
         color: #fff;
         font-weight: 700;
         font-size: 0.8125rem;
@@ -46,14 +46,88 @@
   </head>
   <body>
     <div class="karte">
-      <h1>Keine Verbindung</h1>
-      <p>
+      <h1 id="titel">Keine Verbindung</h1>
+      <p id="text">
         Diese Seite wurde noch nicht geladen und ist deshalb ohne Netz nicht
         verfügbar. Bereits besuchte Seiten und offen erfasste Formulardaten
         bleiben erhalten und werden automatisch gesendet, sobald wieder Netz
         da ist.
       </p>
-      <button onclick="location.reload()">Erneut versuchen</button>
+      <button id="knopf" onclick="location.reload()">Erneut versuchen</button>
     </div>
+
+    <!--
+      Diese Seite liegt statisch im Cache und kann next-intl nicht nutzen - der
+      Service Worker liefert sie fuer jede Navigation aus (sw.js, OFFLINE_URL).
+      Die Sprache steht aber trotzdem fest: der Browser behaelt die
+      angeforderte Adresse, also traegt location.pathname noch das
+      Locale-Praefix der Seite, die der Nutzer eigentlich wollte
+      (/kk/dashboard -> kk). Nur wenn dort nichts Verwertbares steht, faellt
+      die Auswahl auf die Browsersprache und zuletzt auf Deutsch zurueck.
+
+      Die Texte stehen hier doppelt: einmal als HTML fuer den Fall, dass kein
+      JavaScript laeuft, und einmal in TEXTE. Deutsch ist deshalb im Markup
+      vorbelegt und fehlt in TEXTE nicht - beides muss zusammen gepflegt
+      werden, wenn sich der Wortlaut aendert.
+    -->
+    <script>
+      (function () {
+        var TEXTE = {
+          de: {
+            titel: "Keine Verbindung",
+            text: "Diese Seite wurde noch nicht geladen und ist deshalb ohne Netz nicht verfügbar. Bereits besuchte Seiten und offen erfasste Formulardaten bleiben erhalten und werden automatisch gesendet, sobald wieder Netz da ist.",
+            knopf: "Erneut versuchen",
+            titelTag: "Damicon - Offline"
+          },
+          en: {
+            titel: "No connection",
+            text: "This page has not been loaded yet, so it is not available without a network. Pages you have already visited and any form data you have entered are kept and sent automatically as soon as the network is back.",
+            knopf: "Try again",
+            titelTag: "Damicon - Offline"
+          },
+          tr: {
+            titel: "Bağlantı yok",
+            text: "Bu sayfa henüz yüklenmedi, bu yüzden ağ olmadan kullanılamıyor. Daha önce ziyaret ettiğiniz sayfalar ve girdiğiniz form verileri saklanır ve ağ geri geldiğinde otomatik olarak gönderilir.",
+            knopf: "Yeniden dene",
+            titelTag: "Damicon - Çevrimdışı"
+          },
+          kk: {
+            titel: "Байланыс жоқ",
+            text: "Бұл бет әлі жүктелмеген, сондықтан желісіз қолжетімсіз. Бұрын ашылған беттер мен енгізілген форма деректері сақталады және желі қалпына келген бойда автоматты түрде жіберіледі.",
+            knopf: "Қайталап көру",
+            titelTag: "Damicon - Желісіз"
+          },
+          ru: {
+            titel: "Нет соединения",
+            text: "Эта страница ещё не загружалась, поэтому без сети недоступна. Уже посещённые страницы и введённые данные форм сохраняются и отправляются автоматически, как только сеть появится.",
+            knopf: "Повторить",
+            titelTag: "Damicon - Офлайн"
+          }
+        };
+
+        function sprache() {
+          var ausPfad = (location.pathname.split("/")[1] || "").toLowerCase();
+          if (TEXTE[ausPfad]) return ausPfad;
+          var liste = navigator.languages || [navigator.language || ""];
+          for (var i = 0; i < liste.length; i++) {
+            var kurz = String(liste[i]).slice(0, 2).toLowerCase();
+            if (TEXTE[kurz]) return kurz;
+          }
+          return "de";
+        }
+
+        try {
+          var l = sprache();
+          var t = TEXTE[l];
+          document.documentElement.lang = l;
+          document.title = t.titelTag;
+          document.getElementById("titel").textContent = t.titel;
+          document.getElementById("text").textContent = t.text;
+          document.getElementById("knopf").textContent = t.knopf;
+        } catch (e) {
+          /* Ohne JavaScript bleibt die deutsche Fassung aus dem Markup stehen. */
+        }
+      })();
+    </script>
   </body>
 </html>

@@ -76,7 +76,7 @@
     "home": {
       "eyebrow": "İşletme yönetimi",
       "title": "Damicon işletme genel bakışı",
-      "description": "Almatı çevresi toplayıcı. Prototip, ilk aşamanın yapısını ve görünümünü gösterir - ana işlevler kullanılabilir demo, alt işlevler durum etiketli görünür menü öğeleri.",
+      "description": "Almatı çevresi toplulaştırıcı. Ana işlevler veri tabanına karşı çalışır - oturum açma, rol yetkileri ve gerçek yazma işlemleriyle. Alt işlevler durum etiketli görünür menü öğeleri olarak kalır.",
       "kpiTitle": "14 taban göstergesi",
       "kpiDescription": "01.10.2026'da müşteriyle taban çizgisi olarak imzalanır.",
       "placeholderBadge": "Yer tutucu değerler",
@@ -91,7 +91,7 @@
       "milestoneAName": "Kilometre taşı A - görünüm ve işlev kapsamı olan prototip",
       "milestoneADue": "06.09.2026'ya kadar",
       "milestoneAItems": {
-        "tokens": "Tasarım token'larının ahududu paletine geçişi",
+        "tokens": "Tasarım token’larının “Kök & Altyn” paletine (Kazakistan’ın ulusal renkleri) geçişi",
         "landing": "Yer tutucu metin ve görsellerle açılış sayfası, beş dil için dil değiştirici",
         "zones": "Navigasyon yapısı olarak dört bölgeli pano iskeleti",
         "workflows": "Örnek ana süreçler: sıra bloğu genel bakışı ve fotoğraf kanıtlı toplama görevi"
@@ -126,7 +126,8 @@
       "fehlerHint": "Sorgu başarısız oldu. Yerine örnek veriler gösteriliyor - bunlar işletmeden gelmiyor."
     },
     "rbacHintLabel": "Roller",
-    "rbacHint": "Hangi modüllerin görüneceği, oturum açan hesabın rolüne bağlıdır. Yönetimden tarladaki tekil toplayıcıya kadar yedi temel rol - aynı rol veri tabanında okuma ve yazma yetkilerini de belirler."
+    "rbacHint": "Hangi modüllerin görüneceği, oturum açan hesabın rolüne bağlıdır. Yönetimden tarladaki tekil toplayıcıya kadar yedi temel rol - aynı rol veri tabanında okuma ve yazma yetkilerini de belirler.",
+    "loading": "Veriler yükleniyor"
   },
   "roles": {
     "switcherHint": "Demo rolünü değiştir - görünen navigasyonu belirler",
@@ -466,7 +467,7 @@
     "privacyScopeTitle": "Kapsam",
     "privacyScopeText": "Prototip kişisel veri işlemez. Analiz amaçlı çerez konmaz. Tema seçimi (açık/koyu) ve demo rolü yalnızca tarayıcıda yerel olarak saklanır.",
     "residencyTitle": "Veri yerleşimi (planlanan işletim)",
-    "residencyText": "Sonraki gerçek işletim için Kazak Dijital Kod No. 255-VIII bazı veri ürünlerinin Kazakistan dışında saklanmasını sınırlar. QR, çevrimdışı senkron ve yapay zeka mimarisi için barındırma yeri üretime geçmeden önce hukuken kontrol edilir."
+    "residencyText": "Sonraki gerçek işletim için 255-VIII sayılı Kazakistan Dijital Kanunu bazı veri ürünlerinin Kazakistan dışında saklanmasını sınırlar. QR, çevrimdışı senkron ve yapay zeka mimarisi için barındırma yeri üretime geçmeden önce hukuken kontrol edilir."
   },
   "meta": {
     "title": "Damicon - ahududu plantasyonu için işletme yönetimi",
@@ -658,9 +659,9 @@
     "entfernen": "Kaldır",
     "hinzufuegenKnopf": "İkinci faktör kur",
     "schrittZweiTitel": "Kimlik doğrulayıcı uygulamayı bağla",
-    "schrittZweiLead": "QR kodu kimlik doğrulayıcı uygulamayla tarayın (örn. Google Authenticator, Authy) veya secret'ı elle girin, ardından gösterilen 6 haneli kodu onaylayın.",
+    "schrittZweiLead": "QR kodu kimlik doğrulayıcı uygulamayla tarayın (örn. Google Authenticator, Authy) veya gizli anahtarı elle girin, ardından gösterilen 6 haneli kodu onaylayın.",
     "qrAlt": "Kimlik doğrulayıcı uygulama için QR kod",
-    "qrHinweis": "Tarayıcı yok mu? Secret'ı uygulamaya elle girin:",
+    "qrHinweis": "Tarayıcı yok mu? Gizli anahtarı uygulamaya elle girin:",
     "codeLabel": "Uygulamadaki kod",
     "bestaetigenKnopf": "Onayla",
     "erfolg": "İkinci faktör kuruldu ve etkin.",
@@ -1001,6 +1002,17 @@
     "leer": {
       "parzellen": "Henüz tarla parseli oluşturulmadı.",
       "reihengruppen": "Henüz sıra grubu oluşturulmadı."
+    },
+    "spalier": {
+      "n_s": "K-G",
+      "o_w": "D-B"
+    },
+    "beispiel": {
+      "plantageName": "Talgar plantasyonu",
+      "plantageOrt": "Talgar, Almatı bölgesi",
+      "parzelleName": "Batı parseli",
+      "flaeche": "2,5",
+      "reihengruppeName": "C sıra grubu"
     }
   },
   "dokumentKategorie": {
@@ -1028,6 +1040,9 @@
       "stand": "Tarih",
       "status": "Durum",
       "datei": "Dosya"
+    },
+    "beispiel": {
+      "name": "İlaçlama kaydı 37. hafta - Kuzey parseli"
     }
   },
   "pflueckaufgabenVerwaltung": {
@@ -1212,7 +1227,7 @@
         "knopf": "Bilgilendirildi olarak işaretle"
       }
     },
-    "note": "Okuma ve yazma yalnızca ofis rollerine (yönetici, işletme yönetimi, muhasebe) aittir - ilgili kişilerin kendi verilerine erişim hakkı bu adımın bilinçli olarak dışında tutulmuştur. Önceki kokpitten iki konu açık kalıyor: veri yerelliği (255-VIII sayılı Dijital Kod) ve yapay zeka şeffaflığı (230-VIII sayılı Kanun)."
+    "note": "Okuma ve yazma yalnızca ofis rollerine (yönetici, işletme yönetimi, muhasebe) aittir - ilgili kişilerin kendi verilerine erişim hakkı bu adımın bilinçli olarak dışında tutulmuştur. Önceki kokpitten iki konu açık kalıyor: veri yerelliği (255-VIII sayılı Dijital Kanun) ve yapay zeka şeffaflığı (230-VIII sayılı Kanun)."
   },
   "sync": {
     "knopf": {
@@ -1351,7 +1366,7 @@
     "eyebrow": "Fotoğraf arşivi değil, işletmenin kendisi",
     "title": "Stok fotoğraf yerine gerçek görüntüler",
     "lead": "Bu görseller Almatı yakınındaki plantasyonu dijitalleşmeden önce gösteriyor - henüz doğru olmayanlar dahil. Sadece başarıları gösteren bir sunum alıcıya reklam gibi görünür; açık sorunu kendisi adlandıran bir sunum ise durum tespiti gibi görünür.",
-    "bandCaption": "Plantasyon, güneye, Zailiyskiy Alatau sırasına bakış",
+    "bandCaption": "Plantasyon, güneye, Zailiyskiy Alatau sıradağlarına bakış",
     "photo1Title": "Polka çeşidi",
     "photo1Text": "Yıl içinde iki kez ürün veren, bir yaşındaki sürgünde meyve verir. Olgun ve yeşil meyveler aynı anda asılıdır - bu yüzden her blok iki üç günde bir toplanır.",
     "photo2Title": "Hasat",
@@ -1564,7 +1579,7 @@
       "bekannteBetriebe": "Bilinen komşu çiftlikler",
       "bekannteSorten": "Bilinen çeşitler",
       "feldLabel": "CSV verisi",
-      "platzhalter": "menge;sorte;datum;nachbarbetrieb\n210;Polka;2026-09-01;Nachbarbetrieb Kaskelen",
+      "platzhalter": "miktar;çeşit;tarih;çiftlik\n210;Polka;2026-09-01;Kaskelen komşu işletmesi",
       "knopf": "Kontrol et ve içe aktar",
       "befundeTitle": "Kontrol sonucu",
       "spalteAllgemein": "genel",

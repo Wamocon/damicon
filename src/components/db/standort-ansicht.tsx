@@ -106,7 +106,7 @@ export async function StandortAnsicht() {
                           key={gruppe.id}
                           className="rounded-md border border-border bg-muted/40 px-2 py-0.5 text-[11px] text-muted-foreground"
                         >
-                          {gruppe.name} · {gruppe.spalierrichtung} ·{" "}
+                          {gruppe.name} · {v(`spalier.${gruppe.spalierrichtung}`)} ·{" "}
                           {gruppe.reihenbloecke} {t("blocksShort")}
                         </span>
                       ))}

@@ -39,7 +39,7 @@ export function DokumentFormular() {
           label={t("feld.name")}
           name="name"
           required
-          placeholder="Spritzprotokoll KW 37 - Parzelle Nord"
+          placeholder={t("beispiel.name")}
         />
         <Auswahl
           label={t("feld.kategorie")}
