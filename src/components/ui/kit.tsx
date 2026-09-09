@@ -5,7 +5,7 @@ export type Tone = "success" | "info" | "neutral" | "warning" | "danger";
 
 const toneClasses: Record<Tone, string> = {
   success: "bg-success/10 text-success border-success/25",
-  info: "bg-[color-mix(in_srgb,var(--chart-5)_12%,transparent)] text-[var(--chart-5)] border-[color-mix(in_srgb,var(--chart-5)_28%,transparent)]",
+  info: "bg-primary/10 text-primary border-primary/25",
   neutral: "bg-muted text-muted-foreground border-border",
   warning: "bg-warning/12 text-warning border-warning/25",
   danger: "bg-destructive/10 text-destructive border-destructive/25",
@@ -132,7 +132,7 @@ export function Stat({
 }) {
   const accent: Record<Tone, string> = {
     success: "text-success",
-    info: "text-[var(--chart-5)]",
+    info: "text-primary",
     neutral: "text-foreground",
     warning: "text-warning",
     danger: "text-destructive",

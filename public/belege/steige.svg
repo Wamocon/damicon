@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 288" role="img" aria-label="Platzhalter Steige mit Verkaufsschalen">
   <defs>
     <linearGradient id="grund" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#2a0a14"/>
-      <stop offset="1" stop-color="#3d1220"/>
+      <stop offset="0" stop-color="#062028"/>
+      <stop offset="1" stop-color="#0b3140"/>
     </linearGradient>
   </defs>
   <rect width="640" height="288" fill="url(#grund)"/>
@@ -12,7 +12,7 @@
   <!-- Steige 2 kg mit acht Schalen -->
   <g transform="translate(72 56)">
     <rect x="-12" y="-12" width="440" height="188" rx="14"
-          fill="#f7e2e8" fill-opacity="0.08" stroke="#f7e2e8" stroke-opacity="0.4" stroke-width="3"/>
+          fill="#e2f0f4" fill-opacity="0.08" stroke="#e2f0f4" stroke-opacity="0.4" stroke-width="3"/>
     <g fill="#b11742" fill-opacity="0.9">
       <rect x="8" y="8" width="96" height="68" rx="8"/>
       <rect x="116" y="8" width="96" height="68" rx="8"/>
@@ -30,7 +30,7 @@
     </g>
   </g>
   <!-- QR-Etikett -->
-  <g transform="translate(536 176)" fill="#f7e2e8" fill-opacity="0.55">
+  <g transform="translate(536 176)" fill="#e2f0f4" fill-opacity="0.55">
     <rect width="72" height="72" rx="8" fill-opacity="0.12"/>
     <rect x="12" y="12" width="18" height="18"/><rect x="42" y="12" width="18" height="18"/>
     <rect x="12" y="42" width="18" height="18"/><rect x="42" y="42" width="8" height="8"/>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
+import { Inter, Manrope } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
@@ -8,6 +9,30 @@ import { ThemeScript } from "@/components/theme-toggle";
 import { ServiceWorkerRegistrierung } from "@/components/site/service-worker-registrierung";
 import { appVersion } from "@/lib/pwa-version";
 import "../globals.css";
+
+// Schriften der Oberflaeche. Entscheidend fuer Damicon ist nicht der Look
+// allein, sondern die Zeichenabdeckung: `kk` und `ru` brauchen Kyrillisch
+// inklusive der neun kasachischen Sonderbuchstaben (Ә Ғ Қ Ң Ө Ұ Ү Һ І, davon
+// liegen acht in `cyrillic-ext`), `tr` das erweiterte Latein (ğ ş ı İ).
+// Fehlt ein Subset, ersetzt der Browser einzelne Zeichen aus einer anderen
+// Schrift - im Kasachischen faellt genau das sofort auf.
+//
+// next/font laedt beide Familien zur Bauzeit herunter und liefert sie aus
+// /_next/static/ aus. Das ist auch fuer den Offline-Betrieb richtig: der
+// Service Worker cacht diesen Pfad bereits (public/sw.js), waehrend ein
+// Google-Fonts-Link ohne Netz ins Leere liefe. Der Build braucht dafuer
+// einmalig Internetzugang.
+const inter = Inter({
+  subsets: ["latin", "latin-ext", "cyrillic", "cyrillic-ext"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const manrope = Manrope({
+  subsets: ["latin", "latin-ext", "cyrillic", "cyrillic-ext"],
+  variable: "--font-manrope",
+  display: "swap",
+});
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -44,6 +69,7 @@ export default async function LocaleLayout({
     <html
       lang={locale}
       data-scroll-behavior="smooth"
+      className={`${inter.variable} ${manrope.variable}`}
       suppressHydrationWarning
     >
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">

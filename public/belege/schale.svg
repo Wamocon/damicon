@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 288" role="img" aria-label="Platzhalter Verkaufsschale">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#2a0a14"/>
-      <stop offset="1" stop-color="#4a0f22"/>
+      <stop offset="0" stop-color="#062028"/>
+      <stop offset="1" stop-color="#0d3a47"/>
     </linearGradient>
   </defs>
   <rect width="640" height="288" fill="url(#g)"/>
@@ -12,7 +12,7 @@
   <!-- Verkaufsschale 125 g -->
   <g transform="translate(320 168)">
     <path d="M-130 -30h260l-22 84a18 18 0 0 1-18 12h-180a18 18 0 0 1-18-12z"
-          fill="#f7e2e8" fill-opacity="0.12" stroke="#f7e2e8" stroke-opacity="0.4" stroke-width="3"/>
+          fill="#e2f0f4" fill-opacity="0.12" stroke="#e2f0f4" stroke-opacity="0.4" stroke-width="3"/>
     <g fill="#b11742">
       <circle cx="-84" cy="-44" r="26"/><circle cx="-28" cy="-52" r="30"/>
       <circle cx="30" cy="-46" r="28"/><circle cx="86" cy="-40" r="24"/>

@@ -32,7 +32,7 @@ export function DamiconLogo({
       </g>
       <path
         d="M63 50c0-12 9-22 22-24-1 13-10 23-22 24Z"
-        className="fill-accent"
+        className="fill-brand-altyn"
       />
     </svg>
   );

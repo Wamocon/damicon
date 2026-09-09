@@ -8,8 +8,8 @@
     APP_NAME        : Damicon
     APP_VERSION     : 0.1.0
     LAST_UPDATED    : September 2026
-    PRIMARY_COLOR   : #b11742
-    PRIMARY_DARK    : #8c1236
+    PRIMARY_COLOR   : #00768f
+    PRIMARY_DARK    : #005a6e
     LOGO_EMOJI      : &#127827;
   -->
   <title>Damicon &ndash; Produkthandbuch | WAMOCON</title>
@@ -18,10 +18,14 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      /* Brand colors - Copilot updates these to match the app */
-      --primary:      #d6336c;
-      --primary-dark: #b11742;
-      --primary-glow: rgba(214,51,108,0.18);
+      /* Brand colors - Copilot updates these to match the app.
+         Das Handbuch hat ein dunkles Theme (--bg-page #0d1526). Dort traegt
+         das App-Primary #00768f zu wenig Kontrast, deshalb steht hier das
+         helle Flaggenblau #00afca (App: --ring/--chart-4) und #00768f als
+         --primary-dark. Beide Werte stammen aus der Palette der App. */
+      --primary:      #00afca;
+      --primary-dark: #00768f;
+      --primary-glow: rgba(0,175,202,0.18);
       --success:      #10b981;
       --warning:      #f59e0b;
       --danger:       #ef4444;
@@ -691,7 +695,7 @@
       </div>
       <div class="info-box">
         <div class="info-box-title">Design-Token-Umstellung</div>
-        <p>Statt der 1&Ccedil;at&#305;-T&uuml;rkis/Amber-Palette (<code>--primary:#066B63</code>) nutzt Damicon &bdquo;Tiefes Himbeerrot + Blattgr&uuml;n&ldquo; (<code>--primary:#b11742</code>, <code>--accent:#4f7c3a</code>). Struktur und Variablennamen bleiben identisch, sodass sp&auml;ter nur Farbwerte und Bildsubjekte getauscht werden.</p>
+        <p>Damicon f&uuml;hrt die Landesfarben Kasachstans: &bdquo;K&ouml;k &amp; Altyn&ldquo; (<code>--primary:#00768f</code>, <code>--accent:#8c6209</code>) statt der vorherigen Himbeer-Palette (<code>#b11742</code>/<code>#4f7c3a</code>) und der 1&Ccedil;at&#305;-T&uuml;rkis/Amber-Palette (<code>#066B63</code>). K&ouml;k ist das Himmelblau der Flagge (<code>#00afca</code>), Altyn ihr Gold (<code>#fec50c</code>) &ndash; beide Originalwerte sind f&uuml;r Text zu hell (2,6:1 bzw. 1,4:1 auf Wei&szlig;) und stehen deshalb nur als Fl&auml;chenfarbe auf <code>--ring</code>, <code>--chart-4</code> ; Altyn sitzt als leicht abgetoentes <code>#f2c14b</code> auf <code>--brand-altyn</code>. Struktur und Variablennamen bleiben identisch; neu ist allein <code>--brand-altyn</code> f&uuml;r das Blatt der Bildmarke, das auf <code>--primary</code> sitzt. Schriften: Manrope f&uuml;r &Uuml;berschriften, Inter f&uuml;r Flie&szlig;text und Tabellen, beide mit <code>cyrillic-ext</code> f&uuml;r das kasachische Alphabet.</p>
       </div>
 
       <h3 id="tech-schema">6.2 Herkunft aus 1&Ccedil;at&#305;</h3>
@@ -724,7 +728,7 @@
             <tr>
               <td><strong>A &ndash; Prototyp</strong> <span class="badge badge-success">erledigt</span></td>
               <td>bis 06.09.2026</td>
-              <td>Himbeer-Design-Tokens, Landingpage mit Platzhaltern und Sprachumschalter, Dashboard-Ger&uuml;st mit vier Zonen, Kern-Workflows (Reihenblock-&Uuml;bersicht, Pfl&uuml;ckaufgabe mit Fotobeleg).</td>
+              <td>Design-Token-Fundament (inzwischen Palette &bdquo;K&ouml;k &amp; Altyn&ldquo;), Landingpage mit Platzhaltern und Sprachumschalter, Dashboard-Ger&uuml;st mit vier Zonen, Kern-Workflows (Reihenblock-&Uuml;bersicht, Pfl&uuml;ckaufgabe mit Fotobeleg).</td>
             </tr>
             <tr>
               <td><strong>B &ndash; Grundger&uuml;st</strong> <span class="badge badge-primary">dieser Stand</span></td>

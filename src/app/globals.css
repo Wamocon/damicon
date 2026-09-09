@@ -3,15 +3,35 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
-  Damicon Design-Tokens - Himbeer-Palette.
-  Ersetzt die 1Cati-Tuerkis/Amber-Palette (--primary:#066B63, --accent:#B9822B)
-  durch "Tiefes Himbeerrot + Blattgruen". Struktur, Variablennamen und
-  Dark-Mode-Gegenstueck bleiben identisch zu 1Cati (apps/web/app/globals.css),
-  sodass spaeter nur Farbwerte und Bildsubjekte getauscht werden.
+  Damicon Design-Tokens - Palette "Koek & Altyn" (Himmel & Gold).
+
+  Der Betrieb steht in Kasachstan, die Oberflaeche sprach aber die Farben der
+  Frucht (Himbeerrot #b11742 + Blattgruen #4f7c3a, davor 1Cati-Tuerkis/Amber
+  #066B63/#B9822B). Ab hier fuehrt die Landesfarbigkeit:
+
+    Koek  - das Himmelblau der Flagge (#00afca, Pantone 3125). "Koek aspan",
+            der ewige blaue Himmel, ist das staerkste nationale Farbzeichen.
+            Reines #00afca traegt auf Weiss nur 2,6:1 Kontrast und ist damit
+            als Text-/Buttonfarbe unbrauchbar - --primary ist deshalb der
+            gleiche Farbton in tiefer (#00768f, 5,5:1), das Signalblau selbst
+            sitzt auf --ring und --chart-4, wo es als Flaeche wirken darf.
+    Altyn - das Gold der Sonne und des Steppenadlers (#fec50c, Pantone 116).
+            Ebenfalls zu hell fuer Text, deshalb im Light-Mode als
+            Steppengold #8c6209 (5,1:1) und erst im Dark-Mode als volles
+            Gold #f2c14b.
+
+  Ergaenzt um Steppengruen und Terrakotta (gebrannter Ton der Teppiche und
+  Jurtenbaender) fuer die Diagrammreihen. Struktur, Variablennamen und
+  Dark-Mode-Gegenstueck bleiben unveraendert - getauscht sind nur Farbwerte.
+
+  Die Illustrationen (beere-schale.tsx, public/belege/*.svg) behalten ihre
+  Objektfarben: Himbeerrot der Frucht, Blattgruen des Laubs, der Bodenton der
+  Reihen. Das sind Abbildungen, keine Markenzeichen - getauscht wurden dort nur
+  die Hintergruende, die vorher die Markenfarbe trugen.
 */
 
 @theme inline {
-  --font-heading: var(--font-sans);
+  --font-heading: var(--font-display);
   --font-sans: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -26,6 +46,7 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  --color-brand-altyn: var(--brand-altyn);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -55,80 +76,102 @@
 }
 
 :root {
-  --font-sans: "Aptos", "Segoe UI", system-ui, sans-serif;
+  /* Inter und Manrope kommen ueber next/font (siehe app/[locale]/layout.tsx)
+     und decken beide das kasachische Kyrillisch (Ә Ғ Қ Ң Ө Ұ Ү Һ І) sowie
+     das tuerkische Latein ab. Die Systemschriften bleiben als Fallback.
+
+     Die Fallback-Form var(--font-inter, "Segoe UI") ist Absicht: die beiden
+     Variablen setzt next/font ueber die className am <html> des Locale-Layouts.
+     Die 404-Seite rendert aber ueber das Root-Layout, wo sie fehlen - und eine
+     font-family mit undefinierter var() wird als Ganzes ungueltig, nicht nur
+     an dieser Stelle. Ohne den Fallback landet die Seite auf der Serifen-
+     Default des Browsers. */
+  --font-sans: var(--font-inter, "Segoe UI"), system-ui, sans-serif;
+  --font-display: var(--font-manrope, var(--font-inter, "Segoe UI")), system-ui,
+    sans-serif;
   color-scheme: light;
-  --background: #fbf6f7;
-  --foreground: #1a1013;
+  --background: #f6fafb;
+  --foreground: #0b1e26;
   --card: #ffffff;
-  --card-foreground: #1a1013;
+  --card-foreground: #0b1e26;
   --popover: #ffffff;
-  --popover-foreground: #1a1013;
-  --primary: #b11742;
+  --popover-foreground: #0b1e26;
+  --primary: #00768f;
   --primary-foreground: #ffffff;
-  --secondary: #f6e7ec;
-  --secondary-foreground: #3d1f2a;
-  --muted: #f3ebed;
-  --muted-foreground: #6f5b62;
-  --accent: #4f7c3a;
+  --secondary: #e3f2f6;
+  --secondary-foreground: #10353f;
+  --muted: #eaf2f4;
+  --muted-foreground: #5a7078;
+  --accent: #8c6209;
   --accent-foreground: #ffffff;
-  --destructive: #d0445b;
-  --success: #3f8f4f;
-  --warning: #c26a1d;
-  --border: #ecdfe3;
-  --input: #e6d6db;
-  --ring: #c53a5f;
+  --destructive: #c23b4e;
+  --success: #2f8a63;
+  --warning: #b9740f;
+  --border: #dbe8ec;
+  --input: #cfe0e6;
+  --ring: #00afca;
   --radius: 0.625rem;
-  --chart-1: #b11742;
-  --chart-2: #4f7c3a;
-  --chart-3: #c26a1d;
-  --chart-4: #7a4a8c;
-  --chart-5: #2f6f8f;
+  --chart-1: #00768f;
+  --chart-2: #d8a507;
+  --chart-3: #2f8a63;
+  --chart-4: #00afca;
+  --chart-5: #b65c33;
   --sidebar: #ffffff;
-  --sidebar-foreground: #1a1013;
-  --sidebar-primary: #b11742;
+  --sidebar-foreground: #0b1e26;
+  --sidebar-primary: #00768f;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f6ecef;
-  --sidebar-accent-foreground: #1a1013;
-  --sidebar-border: #eadde2;
-  --sidebar-ring: #c53a5f;
-  --backdrop-line: rgba(177, 23, 66, 0.06);
+  --sidebar-accent: #eaf4f7;
+  --sidebar-accent-foreground: #0b1e26;
+  --sidebar-border: #dceaee;
+  --sidebar-ring: #00afca;
+  --backdrop-line: rgba(0, 118, 143, 0.07);
+  /* Das Flaggengold, leicht abgetoent. Eigenes Token, weil --accent zwei Rollen nicht
+     zugleich erfuellen kann: als Textfarbe braucht es 4,5:1 auf hellem
+     Grund (deshalb das tiefe #8c6209), in der Bildmarke sitzt es dagegen
+     auf --primary und muesste dort aufhellen - #8c6209 auf #00768f traegt
+     nur 1,1:1. --brand-altyn gilt in beiden Farbschemata unveraendert,
+     weil die Flaeche darunter immer dieselbe ist. */
+  --brand-altyn: #f2c14b;
 }
 
+/* Dark Mode = der Nachthimmel ueber der Steppe: tiefes Blaugruen statt
+   Schwarz, darauf das volle Flaggenblau und das volle Gold, die im hellen
+   Schema aus Kontrastgruenden nicht einsetzbar sind. */
 .dark {
   color-scheme: dark;
-  --background: #0e0407;
-  --foreground: #fbeef2;
-  --card: rgba(28, 12, 17, 0.74);
-  --card-foreground: #fbeef2;
-  --popover: #1a0a0f;
-  --popover-foreground: #fbeef2;
-  --primary: #ff5c86;
-  --primary-foreground: #2a0410;
-  --secondary: rgba(48, 20, 30, 0.72);
-  --secondary-foreground: #fbeef2;
-  --muted: rgba(44, 22, 30, 0.58);
-  --muted-foreground: #c7a9b3;
-  --accent: #8fd06a;
-  --accent-foreground: #10230a;
+  --background: #04161c;
+  --foreground: #e6f4f8;
+  --card: rgba(9, 33, 41, 0.74);
+  --card-foreground: #e6f4f8;
+  --popover: #06212a;
+  --popover-foreground: #e6f4f8;
+  --primary: #3fd0e6;
+  --primary-foreground: #01222b;
+  --secondary: rgba(13, 47, 58, 0.72);
+  --secondary-foreground: #e6f4f8;
+  --muted: rgba(12, 41, 51, 0.58);
+  --muted-foreground: #9ab8c1;
+  --accent: #f2c14b;
+  --accent-foreground: #241900;
   --destructive: #fb7185;
-  --success: #6fce7f;
-  --warning: #e6a54f;
+  --success: #5ecfa0;
+  --warning: #e8b34a;
   --border: rgba(255, 255, 255, 0.09);
   --input: rgba(255, 255, 255, 0.13);
-  --ring: #ff7aa0;
-  --chart-1: #ff5c86;
-  --chart-2: #8fd06a;
-  --chart-3: #e6a54f;
-  --chart-4: #c79ad6;
-  --chart-5: #79b8d0;
-  --sidebar: rgba(20, 8, 12, 0.86);
-  --sidebar-foreground: #fbeef2;
-  --sidebar-primary: #ff5c86;
-  --sidebar-primary-foreground: #2a0410;
-  --sidebar-accent: #2a1219;
-  --sidebar-accent-foreground: #fbeef2;
+  --ring: #5fdcef;
+  --chart-1: #3fd0e6;
+  --chart-2: #f2c14b;
+  --chart-3: #5ecfa0;
+  --chart-4: #8fd6e8;
+  --chart-5: #e08a5f;
+  --sidebar: rgba(5, 27, 34, 0.86);
+  --sidebar-foreground: #e6f4f8;
+  --sidebar-primary: #3fd0e6;
+  --sidebar-primary-foreground: #01222b;
+  --sidebar-accent: #0c2b35;
+  --sidebar-accent-foreground: #e6f4f8;
   --sidebar-border: rgba(255, 255, 255, 0.09);
-  --sidebar-ring: #ff7aa0;
+  --sidebar-ring: #5fdcef;
   --backdrop-line: rgba(255, 255, 255, 0.05);
 }
 
@@ -146,6 +189,19 @@
     max-width: 100%;
     overflow-x: clip;
     overflow-wrap: break-word;
+  }
+  /* Ueberschriften auf Manrope (geometrische Grotesk, wie sie die moderne
+     kasachische Markenkommunikation nutzt), Fliesstext und alle Tabellen im
+     Dashboard bleiben auf Inter - das liest sich in kleinen Groessen und in
+     Kyrillisch deutlich ruhiger. Manrope endet bei 800; `font-black` faellt
+     auf dieses Maximum zurueck, was optisch nicht auffaellt. */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading;
   }
   img,
   svg,
@@ -219,12 +275,14 @@
   }
   .dark .dashboard-shell {
     background:
-      linear-gradient(135deg, #120508 0%, var(--background) 46%, color-mix(in srgb, var(--primary) 11%, #120508) 100%),
+      linear-gradient(135deg, #031218 0%, var(--background) 46%, color-mix(in srgb, var(--primary) 11%, #031218) 100%),
       linear-gradient(90deg, color-mix(in srgb, var(--border) 28%, transparent) 1px, transparent 1px),
       linear-gradient(color-mix(in srgb, var(--border) 24%, transparent) 1px, transparent 1px);
     background-size: auto, 96px 96px, 96px 96px;
   }
 
+  /* Schraege Streifen als Feld-Andeutung. Mit dem Gold aus --accent liest
+     sich das jetzt wie reifer Weizen der Steppe statt wie Blattgruen. */
   .berry-field {
     background-image:
       repeating-linear-gradient(

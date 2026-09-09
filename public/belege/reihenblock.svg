@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 288" role="img" aria-label="Platzhalter Reihenblock am Spalier">
   <defs>
     <linearGradient id="himmel" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#2a0a14"/>
+      <stop offset="0" stop-color="#062028"/>
       <stop offset="1" stop-color="#183018"/>
     </linearGradient>
   </defs>
@@ -10,10 +10,10 @@
     <path d="M0 72h640M0 144h640M0 216h640M160 0v288M320 0v288M480 0v288"/>
   </g>
   <!-- Spalierreihe: Pfosten, Draehte, Ruten -->
-  <g stroke="#f7e2e8" stroke-opacity="0.35" stroke-width="3">
+  <g stroke="#e2f0f4" stroke-opacity="0.35" stroke-width="3">
     <path d="M0 118h640M0 164h640"/>
   </g>
-  <g stroke="#f7e2e8" stroke-opacity="0.55" stroke-width="6" stroke-linecap="round">
+  <g stroke="#e2f0f4" stroke-opacity="0.55" stroke-width="6" stroke-linecap="round">
     <path d="M96 82v152M320 72v162M544 82v152"/>
   </g>
   <g fill="#4f7c3a" fill-opacity="0.85">

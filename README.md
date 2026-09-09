@@ -18,7 +18,7 @@ nur mit anderem fachlichen Fokus, auf den Agrar-Kontext.
 
 - **Framework:** Next.js 16 (App Router, `src/app/`)
 - **Sprache:** TypeScript (strict)
-- **Styling:** Tailwind CSS v4, Design-Tokens in `src/app/globals.css` (Himbeer-Palette)
+- **Styling:** Tailwind CSS v4, Design-Tokens in `src/app/globals.css` (Palette „Kök & Altyn“ – Landesfarben Kasachstans), Schriften Manrope und Inter über `next/font`
 - **i18n:** next-intl v4 - Deutsch, Englisch, Türkisch, Kasachisch, Russisch (`src/messages/`)
 - **Locale-Routing und Session:** `src/proxy.ts` (Next.js 16 Proxy)
 - **Datenbank:** Supabase (PostgreSQL, RLS, Auth, Storage) - lokal über die Supabase CLI

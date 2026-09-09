@@ -38,7 +38,7 @@ export function QualityStandard() {
                   Schattierung) - eine feste dunkle Kachel statt des
                   themenabhaengigen Kartenhintergrunds haelt sie in beiden
                   Farbschemata lesbar. */}
-              <div className="mx-auto flex w-fit items-center justify-center rounded-xl bg-[#1a0308] p-4">
+              <div className="mx-auto flex w-fit items-center justify-center rounded-xl bg-[#04161c] p-4">
                 <Beere variante={variante} groesse={92} titel={t(`${key}Title`)} />
               </div>
               <p className="mt-4 text-sm font-black text-card-foreground">
@@ -52,7 +52,7 @@ export function QualityStandard() {
         </div>
 
         <div className="mt-4 flex flex-col items-center gap-5 rounded-2xl border border-border bg-card p-6 sm:flex-row">
-          <div className="flex w-fit shrink-0 items-center justify-center rounded-xl bg-[#1a0308] p-4">
+          <div className="flex w-fit shrink-0 items-center justify-center rounded-xl bg-[#04161c] p-4">
             <Schale variante="overfilled" groesse={160} titel={t("trayTitle")} />
           </div>
           <div>

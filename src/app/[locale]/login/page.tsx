@@ -55,7 +55,7 @@ export default async function LoginPage({
   return (
     <main
       id="main"
-      className="relative flex min-h-svh items-center justify-center overflow-hidden bg-[#1a0308] px-4 py-12"
+      className="relative flex min-h-svh items-center justify-center overflow-hidden bg-[#04161c] px-4 py-12"
     >
       <PlantationBackdrop className="absolute inset-0 -z-10" />
 

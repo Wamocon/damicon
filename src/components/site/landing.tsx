@@ -213,7 +213,7 @@ export function Levers() {
             className="rounded-2xl border border-border bg-card p-6"
           >
             <div className="flex items-center gap-2">
-              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent/15 text-accent">
+              <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-accent/15 text-foreground">
                 <span className="text-sm font-black">{index + 1}</span>
               </span>
               <h3 className="text-base font-black text-card-foreground">
@@ -315,12 +315,12 @@ export function LandingCta() {
         <h2 className="max-w-2xl text-3xl font-black md:text-4xl">
           {s("ctaTitle")}
         </h2>
-        <p className="mt-3 max-w-xl text-sm leading-6 text-primary-foreground/80">
+        <p className="mt-3 max-w-xl text-sm leading-6 text-primary-foreground/90">
           {s("ctaLead")}
         </p>
         <Link
           href="/dashboard"
-          className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-7 text-sm font-black text-primary shadow-xl transition hover:-translate-y-0.5"
+          className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-7 text-sm font-black text-[#04161c] shadow-xl transition hover:-translate-y-0.5"
         >
           {s("ctaButton")}
           <ArrowRight className="h-4 w-4" />
