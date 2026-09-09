@@ -589,8 +589,8 @@
     "foerdermittel": {
       "title": "Grant application dossier",
       "description": "Application templates, evidence lists and a deadline monitor for the Kazakh subsidy portals - eligibility as a by-product of ongoing bookkeeping.",
-      "summary": "Application templates and evidence checklists per grant programme, deadline monitor and decision-letter filing.",
-      "todo": "Application templates, evidence checklists, deadline monitor, decision-letter filing."
+      "summary": "Deadline monitor and per-dossier evidence documents are connected (requirement 4.12). Application templates and evidence checklists per grant programme remain open.",
+      "todo": "Application templates and evidence checklists per grant programme - a domain decision on what fields and evidence gosagro.kz/qoldau.kz actually require per programme."
     },
     "sortenkatalog": {
       "title": "Variety and quota catalogue",
@@ -733,7 +733,9 @@
       "rotationsplanStatus": "Date for {wert} updated.",
       "steigeKontrolliert": "Crate {wert} inspected.",
       "einarbeitungSchritt": "Step checked off.",
-      "pflichtschulungTeilnahme": "Attendance recorded."
+      "pflichtschulungTeilnahme": "Attendance recorded.",
+      "foerderdossier": "Dossier \"{wert}\" created.",
+      "foerderdossierStatus": "Dossier \"{wert}\" updated."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1674,6 +1676,50 @@
       "ueberfaellig": "overdue",
       "bald_faellig": "due soon",
       "aktuell": "current"
+    }
+  },
+  "foerdermittelAnsicht": {
+    "titel": "Grant dossiers",
+    "lead": "Status and deadline per dossier, with attached evidence documents. Application templates per grant programme are deliberately not part of this view (a domain decision).",
+    "keineDossiers": "No dossier created yet.",
+    "note": "Grant dossiers are a by-product of ongoing bookkeeping, not a standalone application system. Evidence documents are attached via the documents module.",
+    "col": {
+      "titel": "Dossier",
+      "portal": "Portal",
+      "status": "Status",
+      "eingereichtAm": "Submitted on",
+      "fristAm": "Deadline",
+      "dokumente": "Evidence documents"
+    },
+    "status": {
+      "entwurf": "draft",
+      "eingereicht": "submitted",
+      "in_pruefung": "under review",
+      "bewilligt": "approved",
+      "abgelehnt": "rejected",
+      "ausgezahlt": "paid out"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Create dossier",
+        "lead": "Portal and title are required, everything else can be added later.",
+        "portal": "Grant portal",
+        "dossierTitel": "Title",
+        "antragsnummer": "Application number (optional)",
+        "fristAm": "Deadline (optional)",
+        "knopf": "Create dossier"
+      },
+      "aktualisieren": {
+        "titel": "Update status and deadline",
+        "lead": "Maintain status, deadline, submission date and notes of an existing dossier.",
+        "dossier": "Dossier",
+        "bitteWaehlen": "please choose",
+        "status": "Status",
+        "eingereichtAm": "Submitted on (optional)",
+        "fristAm": "Deadline (optional)",
+        "notizen": "Notes (optional)",
+        "knopf": "Update"
+      }
     }
   }
 }

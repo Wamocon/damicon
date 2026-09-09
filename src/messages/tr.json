@@ -823,8 +823,8 @@
     "foerdermittel": {
       "title": "Destek dosyası",
       "description": "Kazakistan destek portalları için başvuru şablonları, kanıt listeleri ve süre takibi - başvuru yeterliliği, günlük muhasebenin yan ürünü olarak.",
-      "summary": "Program bazında başvuru şablonları ve kanıt kontrol listeleri, süre takibi ve karar arşivi.",
-      "todo": "Başvuru şablonları, kanıt kontrol listeleri, süre takibi, karar arşivi."
+      "summary": "Süre takibi ve dosya başına kanıt belgeleri bağlandı (gereksinim 4.12). Program bazında başvuru şablonları ve kanıt kontrol listeleri açık kalıyor.",
+      "todo": "Program bazında başvuru şablonları ve kanıt kontrol listeleri - gosagro.kz/qoldau.kz'nin program başına gerçekte hangi alanları ve kanıtları istediğine dair uzmanlık kararı."
     },
     "sortenkatalog": {
       "title": "Çeşit ve kota kataloğu",
@@ -947,7 +947,9 @@
       "rotationsplanStatus": "{wert} için tarih güncellendi.",
       "steigeKontrolliert": "{wert} kasası kontrol edildi.",
       "einarbeitungSchritt": "Adım işaretlendi.",
-      "pflichtschulungTeilnahme": "Katılım kaydedildi."
+      "pflichtschulungTeilnahme": "Katılım kaydedildi.",
+      "foerderdossier": "\"{wert}\" dosyası oluşturuldu.",
+      "foerderdossierStatus": "\"{wert}\" dosyası güncellendi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -1674,6 +1676,50 @@
       "ueberfaellig": "süresi geçti",
       "bald_faellig": "yakında gerekiyor",
       "aktuell": "güncel"
+    }
+  },
+  "foerdermittelAnsicht": {
+    "titel": "Destek dosyaları",
+    "lead": "Her dosya için durum ve son tarih, ekli kanıt belgeleriyle birlikte. Program bazında başvuru şablonları bilerek bu görünümün parçası değildir (uzmanlık kararı).",
+    "keineDossiers": "Henüz dosya oluşturulmadı.",
+    "note": "Destek dosyaları, ayrı bir başvuru sistemi değil, sürekli muhasebenin bir yan ürünüdür. Kanıt belgeleri Belgeler modülü üzerinden eklenir.",
+    "col": {
+      "titel": "Dosya",
+      "portal": "Portal",
+      "status": "Durum",
+      "eingereichtAm": "Gönderim tarihi",
+      "fristAm": "Son tarih",
+      "dokumente": "Kanıt belgeleri"
+    },
+    "status": {
+      "entwurf": "taslak",
+      "eingereicht": "gönderildi",
+      "in_pruefung": "inceleniyor",
+      "bewilligt": "onaylandı",
+      "abgelehnt": "reddedildi",
+      "ausgezahlt": "ödendi"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Dosya oluştur",
+        "lead": "Portal ve başlık zorunludur, diğer her şey sonradan eklenebilir.",
+        "portal": "Destek portalı",
+        "dossierTitel": "Başlık",
+        "antragsnummer": "Başvuru numarası (isteğe bağlı)",
+        "fristAm": "Son tarih (isteğe bağlı)",
+        "knopf": "Dosya oluştur"
+      },
+      "aktualisieren": {
+        "titel": "Durum ve son tarihi güncelle",
+        "lead": "Mevcut bir dosyanın durumunu, son tarihini, gönderim tarihini ve notlarını güncelle.",
+        "dossier": "Dosya",
+        "bitteWaehlen": "lütfen seçin",
+        "status": "Durum",
+        "eingereichtAm": "Gönderim tarihi (isteğe bağlı)",
+        "fristAm": "Son tarih (isteğe bağlı)",
+        "notizen": "Notlar (isteğe bağlı)",
+        "knopf": "Güncelle"
+      }
     }
   }
 }

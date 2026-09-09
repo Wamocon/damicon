@@ -344,6 +344,7 @@ export type Database = {
           bezug: string | null
           charge_id: string | null
           created_at: string
+          foerderdossier_id: string | null
           id: string
           kategorie: Database["public"]["Enums"]["dokument_kategorie"]
           name: string
@@ -357,6 +358,7 @@ export type Database = {
           bezug?: string | null
           charge_id?: string | null
           created_at?: string
+          foerderdossier_id?: string | null
           id?: string
           kategorie?: Database["public"]["Enums"]["dokument_kategorie"]
           name: string
@@ -370,6 +372,7 @@ export type Database = {
           bezug?: string | null
           charge_id?: string | null
           created_at?: string
+          foerderdossier_id?: string | null
           id?: string
           kategorie?: Database["public"]["Enums"]["dokument_kategorie"]
           name?: string
@@ -393,6 +396,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "deckungsbeitrag_je_charge"
             referencedColumns: ["charge_id"]
+          },
+          {
+            foreignKeyName: "dokumente_foerderdossier_id_fkey"
+            columns: ["foerderdossier_id"]
+            isOneToOne: false
+            referencedRelation: "foerderdossiers"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "dokumente_reihenblock_id_fkey"
@@ -794,7 +804,9 @@ export type Database = {
           antragsnummer: string | null
           created_at: string
           eingereicht_am: string | null
+          frist_am: string | null
           id: string
+          notizen: string | null
           portal: string
           status: string
           titel: string
@@ -804,7 +816,9 @@ export type Database = {
           antragsnummer?: string | null
           created_at?: string
           eingereicht_am?: string | null
+          frist_am?: string | null
           id?: string
+          notizen?: string | null
           portal: string
           status?: string
           titel: string
@@ -814,7 +828,9 @@ export type Database = {
           antragsnummer?: string | null
           created_at?: string
           eingereicht_am?: string | null
+          frist_am?: string | null
           id?: string
+          notizen?: string | null
           portal?: string
           status?: string
           titel?: string

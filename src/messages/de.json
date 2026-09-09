@@ -589,8 +589,8 @@
     "foerdermittel": {
       "title": "Fördermitteldossier",
       "description": "Antragsvorlagen, Nachweislisten und Fristenmonitor für die kasachstanischen Förderportale - Antragsfähigkeit als Nebenprodukt der laufenden Buchführung.",
-      "summary": "Antragsvorlagen und Nachweis-Checklisten je Förderprogramm, Fristenmonitor und Bescheid-Ablage.",
-      "todo": "Antragsvorlagen, Nachweis-Checklisten, Fristenmonitor, Bescheid-Ablage."
+      "summary": "Fristenmonitor und Nachweisdokumente je Dossier sind angebunden (Anforderung 4.12). Antragsvorlagen und Nachweis-Checklisten je Förderprogramm bleiben offen.",
+      "todo": "Antragsvorlagen und Nachweis-Checklisten je Förderprogramm - fachliche Festlegung, welche Felder und Nachweise gosagro.kz/qoldau.kz je Programm tatsächlich verlangen."
     },
     "sortenkatalog": {
       "title": "Sorten- und Kontingentkatalog",
@@ -733,7 +733,9 @@
       "rotationsplanStatus": "Termin für {wert} aktualisiert.",
       "steigeKontrolliert": "Steige {wert} kontrolliert.",
       "einarbeitungSchritt": "Schritt abgehakt.",
-      "pflichtschulungTeilnahme": "Teilnahme erfasst."
+      "pflichtschulungTeilnahme": "Teilnahme erfasst.",
+      "foerderdossier": "Dossier \"{wert}\" angelegt.",
+      "foerderdossierStatus": "Dossier \"{wert}\" aktualisiert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1674,6 +1676,50 @@
       "ueberfaellig": "überfällig",
       "bald_faellig": "bald fällig",
       "aktuell": "aktuell"
+    }
+  },
+  "foerdermittelAnsicht": {
+    "titel": "Fördermitteldossiers",
+    "lead": "Status und Frist je Dossier, mit angehängten Nachweisdokumenten. Antragsvorlagen je Förderprogramm sind bewusst nicht Teil dieser Ansicht (fachliche Festlegung).",
+    "keineDossiers": "Noch kein Dossier angelegt.",
+    "note": "Fördermitteldossiers sind ein Nebenprodukt der laufenden Buchführung, kein eigenständiges Antragssystem. Nachweisdokumente werden über das Dokumente-Modul angehängt.",
+    "col": {
+      "titel": "Dossier",
+      "portal": "Portal",
+      "status": "Status",
+      "eingereichtAm": "Eingereicht am",
+      "fristAm": "Frist",
+      "dokumente": "Nachweisdokumente"
+    },
+    "status": {
+      "entwurf": "Entwurf",
+      "eingereicht": "eingereicht",
+      "in_pruefung": "in Prüfung",
+      "bewilligt": "bewilligt",
+      "abgelehnt": "abgelehnt",
+      "ausgezahlt": "ausgezahlt"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Dossier anlegen",
+        "lead": "Portal und Titel sind Pflicht, alles Weitere lässt sich später ergänzen.",
+        "portal": "Förderportal",
+        "dossierTitel": "Titel",
+        "antragsnummer": "Antragsnummer (optional)",
+        "fristAm": "Frist (optional)",
+        "knopf": "Dossier anlegen"
+      },
+      "aktualisieren": {
+        "titel": "Status und Frist aktualisieren",
+        "lead": "Status, Frist, Einreichungsdatum und Notizen eines bestehenden Dossiers pflegen.",
+        "dossier": "Dossier",
+        "bitteWaehlen": "bitte wählen",
+        "status": "Status",
+        "eingereichtAm": "Eingereicht am (optional)",
+        "fristAm": "Frist (optional)",
+        "notizen": "Notizen (optional)",
+        "knopf": "Aktualisieren"
+      }
     }
   }
 }

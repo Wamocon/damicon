@@ -12,6 +12,7 @@ import { ZukaufAnsicht } from "@/components/db/zukauf-ansicht";
 import { QrSteigenAnsicht } from "@/components/db/qr-steigen-ansicht";
 import { EinarbeitungAnsicht } from "@/components/db/einarbeitung-ansicht";
 import { PflichtschulungenAnsicht } from "@/components/db/pflichtschulungen-ansicht";
+import { FoerdermittelAnsicht } from "@/components/db/foerdermittel-ansicht";
 import type { ModuleDef } from "@/lib/modules";
 
 // Module, die in Meilenstein B an der Datenbank haengen. Sie werden als Server
@@ -69,6 +70,10 @@ export function serverModulAnsicht(
       return <ZukaufAnsicht />;
     case "qr_steigen":
       return <QrSteigenAnsicht />;
+    // Anforderung 4.12: Foerdermitteldossier als bedienbares UI-Modul statt
+    // reinem Container-Datenmodell.
+    case "foerdermittel":
+      return <FoerdermittelAnsicht />;
     // Anforderung 2.12: bebilderte Kurzeinarbeitung, mehrsprachig ueber
     // einarbeitung_schritte, personalisierter Fortschritt fuer Picker.
     // Anforderung 4.10: jaehrliche Pflichtschulung mit Nachweis und

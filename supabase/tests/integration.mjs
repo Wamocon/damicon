@@ -2925,6 +2925,116 @@ if (leitung && brigade) {
         .in("profil_id", [leitungProfilRow.id, brigadeProfilRow.id]);
     }
   }
+
+  // --- Anforderung 4.12: Foerdermitteldossier als bedienbares UI-Modul -------
+  {
+    const { data: seedDossier, error: seedDossierFehler } = await admin
+      .from("foerderdossiers")
+      .select("id, status, frist_am")
+      .eq("antragsnummer", "2026-114")
+      .single();
+    check(
+      "Anforderung 4.12: Seed-Dossier ist ueber den erweiterten Wertebereich weiterhin gueltig",
+      !seedDossierFehler && seedDossier?.status === "eingereicht",
+      seedDossierFehler?.message ?? JSON.stringify(seedDossier),
+    );
+
+    const { data: verknuepftesDokument } = await admin
+      .from("dokumente")
+      .select("id, foerderdossier_id")
+      .eq("bezug", "Antrag 2026-114")
+      .single();
+    check(
+      "Anforderung 4.12: das Seed-Dokument ist ueber eine echte Fremdschluessel-Spalte mit dem Dossier verknuepft (Backfill)",
+      verknuepftesDokument?.foerderdossier_id === seedDossier?.id,
+      `foerderdossier_id: ${verknuepftesDokument?.foerderdossier_id}, dossier: ${seedDossier?.id}`,
+    );
+
+    // RLS: nur Buero-Rollen lesen/schreiben foerderdossiers.
+    const { data: brigadeSieht } = await brigade.from("foerderdossiers").select("id");
+    check(
+      "Anforderung 4.12: Brigade liest keine Foerderdossiers (RLS foerderdossiers_select_office)",
+      (brigadeSieht?.length ?? 0) === 0,
+      `sichtbare Zeilen: ${brigadeSieht?.length}`,
+    );
+
+    const { data: leitungSieht, error: leitungSiehtFehler } = await leitung
+      .from("foerderdossiers")
+      .select("id")
+      .eq("id", seedDossier?.id);
+    check(
+      "Anforderung 4.12: Betriebsleitung liest Foerderdossiers",
+      !leitungSiehtFehler && (leitungSieht?.length ?? 0) === 1,
+      leitungSiehtFehler?.message ?? `Zeilen: ${leitungSieht?.length}`,
+    );
+
+    const { error: brigadeInsertFehler } = await brigade
+      .from("foerderdossiers")
+      .insert({ portal: "gosagro.kz", titel: "Integrationstest - unzulaessig" });
+    check(
+      "Anforderung 4.12: Brigade legt kein Foerderdossier an (RLS foerderdossiers_insert_buero)",
+      !!brigadeInsertFehler,
+      brigadeInsertFehler?.code ?? "kein Fehler - RLS-Luecke!",
+    );
+
+    // Betriebsleitung legt ein neues Dossier an, aktualisiert es (Frist +
+    // Notiz), und die Schema-Absicherung (Status-Wertebereich) greift.
+    const { data: neuesDossier, error: neuesDossierFehler } = await leitung
+      .from("foerderdossiers")
+      .insert({
+        portal: "qoldau.kz",
+        titel: "Integrationstest Foerderdossier",
+        antragsnummer: `IT-${Date.now()}`,
+      })
+      .select("id, status")
+      .single();
+    check(
+      "Anforderung 4.12: Betriebsleitung legt ein Foerderdossier an, Status startet als 'entwurf'",
+      !neuesDossierFehler && neuesDossier?.status === "entwurf",
+      neuesDossierFehler?.message ?? JSON.stringify(neuesDossier),
+    );
+
+    if (neuesDossier?.id) {
+      const { error: ungueltigerStatusFehler } = await leitung
+        .from("foerderdossiers")
+        .update({ status: "erledigt" })
+        .eq("id", neuesDossier.id);
+      check(
+        "Anforderung 4.12: ein Status ausserhalb des Wertebereichs wird abgelehnt (check foerderdossiers_status_wertebereich)",
+        ungueltigerStatusFehler?.code === "23514",
+        ungueltigerStatusFehler?.code ?? "kein Fehler",
+      );
+
+      const { data: aktualisiertesDossier, error: aktualisierenFehler } = await leitung
+        .from("foerderdossiers")
+        .update({ status: "in_pruefung", frist_am: "2030-01-01", notizen: "Integrationstest" })
+        .eq("id", neuesDossier.id)
+        .select("status, frist_am, notizen")
+        .single();
+      check(
+        "Anforderung 4.12: Betriebsleitung aktualisiert Status, Frist und Notiz",
+        !aktualisierenFehler &&
+          aktualisiertesDossier?.status === "in_pruefung" &&
+          aktualisiertesDossier?.frist_am === "2030-01-01",
+        aktualisierenFehler?.message ?? JSON.stringify(aktualisiertesDossier),
+      );
+
+      const { error: brigadeUpdateFehler, data: brigadeUpdate } = await brigade
+        .from("foerderdossiers")
+        .update({ status: "bewilligt" })
+        .eq("id", neuesDossier.id)
+        .select("id");
+      check(
+        "Anforderung 4.12: Brigade aktualisiert kein Foerderdossier (RLS foerderdossiers_update_buero)",
+        !!brigadeUpdateFehler || (brigadeUpdate?.length ?? 0) === 0,
+        brigadeUpdateFehler?.code ?? `geaenderte Zeilen: ${brigadeUpdate?.length}`,
+      );
+
+      // Aufraeumen: foerderdossiers ist normal loeschbar (kein Immutability-
+      // Trigger, anders als finance_ledger_entries).
+      await admin.from("foerderdossiers").delete().eq("id", neuesDossier.id);
+    }
+  }
 }
 
 console.log("");
