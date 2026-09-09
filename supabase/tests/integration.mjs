@@ -213,6 +213,33 @@ if (leitung && brigade) {
     behandlungFehler?.message ?? "",
   );
 
+  // Anforderung 4.1: behandelt_am darf ueber die Anwendung nicht rueckdatiert
+  // werden, sonst liesse sich die Wartezeitsperre (freigabe_am = behandelt_am
+  // + wartezeit_tage) rueckwirkend unterlaufen.
+  const { error: rueckdatierungFehler } = await leitung
+    .from("pflanzenschutz_behandlungen")
+    .update({ behandelt_am: "2020-01-01" })
+    .eq("id", behandlung.id);
+  check(
+    "Anforderung 4.1: behandelt_am laesst sich ueber die Anwendung nicht rueckdatieren",
+    rueckdatierungFehler?.code === "23514",
+    rueckdatierungFehler?.code ?? "kein Fehler",
+  );
+
+  const { data: behandlungLoeschenVersuch, error: behandlungLoeschenFehler } = await leitung
+    .from("pflanzenschutz_behandlungen")
+    .delete()
+    .eq("id", behandlung.id)
+    .select("id");
+  check(
+    "Anforderung 4.1: eine Behandlung laesst sich ueber die Anwendung nicht loeschen",
+    // Blockiert entweder die RLS-Policy still (0 Zeilen, keine Delete-Policy
+    // vorgesehen) oder der Trigger mit einer Exception - beides ist ein Pass.
+    behandlungLoeschenFehler?.code === "23514" ||
+      (behandlungLoeschenVersuch?.length ?? 0) === 0,
+    behandlungLoeschenFehler?.code ?? `geloeschte Zeilen: ${behandlungLoeschenVersuch?.length}`,
+  );
+
   const { error: entsperrFehler } = await leitung
     .from("reihenbloecke")
     .update({ status: "erntereif" })
@@ -463,6 +490,28 @@ if (leitung && brigade) {
     messungFehler?.message ?? `${messung?.minuten_seit_pfluecken} min, ${messung?.ergebnis}`,
   );
 
+  // Anforderung 4.1: eine Kuehlmessung ist ein Zeitpunkt-Fakt, eine Korrektur
+  // ist fachlich eine neue Messung, keine Aenderung der alten.
+  const { data: messungMitId } = await admin
+    .from("kuehlketten_messungen")
+    .select("id")
+    .eq("charge_id", autoCharge.id)
+    .order("gemessen_am", { ascending: false })
+    .limit(1)
+    .single();
+  const { data: messungAendernVersuch, error: messungAendernFehler } = await leitung
+    .from("kuehlketten_messungen")
+    .update({ temperatur_c: 2 })
+    .eq("id", messungMitId.id)
+    .select("id");
+  check(
+    "Anforderung 4.1: eine Kuehlmessung laesst sich ueber die Anwendung nicht aendern",
+    // Blockiert entweder die RLS-Policy still (0 Zeilen, keine Update-Policy
+    // vorgesehen) oder der Trigger mit einer Exception - beides ist ein Pass.
+    messungAendernFehler?.code === "23514" || (messungAendernVersuch?.length ?? 0) === 0,
+    messungAendernFehler?.code ?? `geaenderte Zeilen: ${messungAendernVersuch?.length}`,
+  );
+
   // Abschluss schreibt den Ist-Erntetermin fort - Grundlage des Rotationsplans.
   await admin
     .from("pflueckaufgaben")
@@ -605,6 +654,29 @@ if (leitung && brigade) {
     // pflueckaufgabe_freigabe_pruefen mit einer Exception - beides ist ein Pass.
     !!brigadeMengeFehler || (brigadeMengeUpdate?.length ?? 0) === 0,
     brigadeMengeFehler?.message ?? `geaenderte Zeilen: ${brigadeMengeUpdate?.length}`,
+  );
+
+  // Anforderung 4.1: vor dieser Migration durfte die Betriebsleitung eine
+  // abgeschlossene Menge noch ueberschreiben (nur die Brigade war
+  // ausgeschlossen). Das war die eigentliche Luecke aus dem Masterplan-Audit.
+  const { error: leitungMengeFehler } = await leitung
+    .from("pflueckaufgaben")
+    .update({ ist_menge_kg: Number(abgeschlosseneAufgabe.ist_menge_kg) + 100 })
+    .eq("id", abgeschlosseneAufgabe.id);
+  check(
+    "Anforderung 4.1: auch die Betriebsleitung aendert die Menge einer abgeschlossenen Aufgabe nicht mehr",
+    leitungMengeFehler?.code === "23514",
+    leitungMengeFehler?.code ?? "kein Fehler",
+  );
+
+  const { error: leitungQualitaetFehler } = await leitung
+    .from("pflueckaufgaben")
+    .update({ qualitaetsfaktor: 0.5 })
+    .eq("id", abgeschlosseneAufgabe.id);
+  check(
+    "Anforderung 4.1: der Qualitaetsfaktor einer abgeschlossenen Aufgabe ist ebenfalls gesperrt",
+    leitungQualitaetFehler?.code === "23514",
+    leitungQualitaetFehler?.code ?? "kein Fehler",
   );
 
   // HOCH: eine Brigade-Anmeldung konnte Arbeitszeit fuer eine Person aus
