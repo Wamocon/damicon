@@ -730,7 +730,8 @@
       "buchung": "Buchung \"{wert}\" erfasst.",
       "mfaEntfernt": "Zweiter Faktor entfernt.",
       "rotationsplanGeneriert": "{wert} neue Termine erzeugt.",
-      "rotationsplanStatus": "Termin für {wert} aktualisiert."
+      "rotationsplanStatus": "Termin für {wert} aktualisiert.",
+      "steigeKontrolliert": "Steige {wert} kontrolliert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1260,6 +1261,9 @@
     "steigenTitel": "Steigen mit Person",
     "ohnePerson": "ohne Person",
     "weitereSteigen": "und {anzahl} weitere",
+    "steigenKontrollieren": "Kontrollieren",
+    "steigenKontrollierenAria": "Steige {code} kontrollieren",
+    "steigenKontrolliertLabel": "kontrolliert",
     "kuehlung": {
       "minuten": "{minuten} Minuten bis zur Vorkühlung",
       "offen": "Vorkühlung steht aus",

@@ -937,7 +937,8 @@
       "buchung": "\"{wert}\" kaydı işlendi.",
       "mfaEntfernt": "İkinci faktör kaldırıldı.",
       "rotationsplanGeneriert": "{wert} yeni tarih oluşturuldu.",
-      "rotationsplanStatus": "{wert} için tarih güncellendi."
+      "rotationsplanStatus": "{wert} için tarih güncellendi.",
+      "steigeKontrolliert": "{wert} kasası kontrol edildi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -1257,6 +1258,9 @@
     "menge": "Miktar",
     "ausschuss": "Fire",
     "steigen": "Kasa",
+    "steigenKontrollieren": "Kontrol et",
+    "steigenKontrollierenAria": "{code} kasasını kontrol et",
+    "steigenKontrolliertLabel": "kontrol edildi",
     "steigenTitel": "Kişiyle birlikte kasalar",
     "ohnePerson": "kişi yok",
     "weitereSteigen": "ve {anzahl} tane daha",

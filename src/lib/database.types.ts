@@ -2097,6 +2097,8 @@ export type Database = {
           geraet_zeitpunkt: string | null
           gewicht_kg: number | null
           id: string
+          kontrolliert_am: string | null
+          kontrolliert_von_profil_id: string | null
           pflueckaufgabe_id: string | null
           pfluecker_id: string | null
           qr_token: string
@@ -2110,6 +2112,8 @@ export type Database = {
           geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
+          kontrolliert_am?: string | null
+          kontrolliert_von_profil_id?: string | null
           pflueckaufgabe_id?: string | null
           pfluecker_id?: string | null
           qr_token: string
@@ -2123,6 +2127,8 @@ export type Database = {
           geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
+          kontrolliert_am?: string | null
+          kontrolliert_von_profil_id?: string | null
           pflueckaufgabe_id?: string | null
           pfluecker_id?: string | null
           qr_token?: string
@@ -2135,6 +2141,13 @@ export type Database = {
             columns: ["charge_id"]
             isOneToOne: false
             referencedRelation: "chargen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "steigen_kontrolliert_von_profil_id_fkey"
+            columns: ["kontrolliert_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {

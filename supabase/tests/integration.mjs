@@ -540,6 +540,45 @@ if (leitung && brigade) {
     steigeFehler?.message ?? "",
   );
 
+  // Anforderung 2.10: Stichprobenkontrolle je einzelner Steige.
+  const { data: neueSteige } = await admin
+    .from("steigen")
+    .select("id, kontrolliert_am")
+    .eq("pflueckaufgabe_id", neueAufgabe.id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .single();
+  check(
+    "Anforderung 2.10: eine neu erfasste Steige ist noch nicht kontrolliert",
+    neueSteige?.kontrolliert_am === null,
+    `kontrolliert_am: ${neueSteige?.kontrolliert_am}`,
+  );
+
+  const { data: brigadeKontrollVersuch, error: brigadeKontrollFehler } = await brigade
+    .from("steigen")
+    .update({ kontrolliert_am: new Date().toISOString() })
+    .eq("id", neueSteige.id)
+    .select("id");
+  check(
+    "Anforderung 2.10: die Brigade kontrolliert die eigene Steige nicht selbst",
+    !!brigadeKontrollFehler || (brigadeKontrollVersuch?.length ?? 0) === 0,
+    brigadeKontrollFehler?.code ?? `geaenderte Zeilen: ${brigadeKontrollVersuch?.length}`,
+  );
+
+  const { data: kontrollierteSteige, error: kontrollFehler } = await leitung
+    .from("steigen")
+    .update({ kontrolliert_am: new Date().toISOString(), kontrolliert_von_profil_id: irgendeinProfil.id })
+    .eq("id", neueSteige.id)
+    .select("kontrolliert_am, kontrolliert_von_profil_id")
+    .single();
+  check(
+    "Anforderung 2.10: Betriebsleitung kontrolliert eine einzelne Steige",
+    !kontrollFehler &&
+      !!kontrollierteSteige?.kontrolliert_am &&
+      kontrollierteSteige?.kontrolliert_von_profil_id === irgendeinProfil.id,
+    kontrollFehler?.message ?? "",
+  );
+
   // Die 60-Minuten-Regel urteilt in der Datenbank, nicht im Formular.
   await admin
     .from("chargen")

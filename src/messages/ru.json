@@ -937,7 +937,8 @@
       "buchung": "Проводка «{wert}» зафиксирована.",
       "mfaEntfernt": "Второй фактор удалён.",
       "rotationsplanGeneriert": "Создано новых сроков: {wert}.",
-      "rotationsplanStatus": "Срок для {wert} обновлён."
+      "rotationsplanStatus": "Срок для {wert} обновлён.",
+      "steigeKontrolliert": "Ящик {wert} проверен."
     },
     "fehler": {
       "eingabe": "Заполните все обязательные поля.",
@@ -1257,6 +1258,9 @@
     "menge": "Объём",
     "ausschuss": "Отбраковка",
     "steigen": "Ящики",
+    "steigenKontrollieren": "Проверить",
+    "steigenKontrollierenAria": "Проверить ящик {code}",
+    "steigenKontrolliertLabel": "проверено",
     "steigenTitel": "Ящики с указанием человека",
     "ohnePerson": "без человека",
     "weitereSteigen": "и ещё {anzahl}",

@@ -730,7 +730,8 @@
       "buchung": "Posting \"{wert}\" recorded.",
       "mfaEntfernt": "Second factor removed.",
       "rotationsplanGeneriert": "{wert} new dates created.",
-      "rotationsplanStatus": "Date for {wert} updated."
+      "rotationsplanStatus": "Date for {wert} updated.",
+      "steigeKontrolliert": "Crate {wert} inspected."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1257,6 +1258,9 @@
     "menge": "Quantity",
     "ausschuss": "Rejects",
     "steigen": "Crates",
+    "steigenKontrollieren": "Inspect",
+    "steigenKontrollierenAria": "Inspect crate {code}",
+    "steigenKontrolliertLabel": "inspected",
     "steigenTitel": "Crates with the person",
     "ohnePerson": "no person",
     "weitereSteigen": "and {anzahl} more",

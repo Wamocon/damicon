@@ -5,6 +5,7 @@ import {
   ArbeitszeitFormular,
   KuehlmessungFormular,
   SteigeFormular,
+  SteigeKontrollierenKnopf,
 } from "@/components/db/nachweiskette-formulare";
 import type { KuehlMessung, Nachweiskette, PflueckerOption } from "@/lib/data/nachweiskette";
 
@@ -21,11 +22,14 @@ export async function NachweiskettenKarte({
   aufgabeId,
   pfluecker,
   darfErfassen,
+  darfKontrollieren,
 }: {
   kette: Nachweiskette;
   aufgabeId: string;
   pfluecker: PflueckerOption[];
   darfErfassen: boolean;
+  /** Anforderung 2.10: Stichprobenkontrolle je Steige - Buero-/Leitungsrecht. */
+  darfKontrollieren: boolean;
 }) {
   const t = await getTranslations("nachweiskette");
   const format = await getFormatter();
@@ -157,6 +161,14 @@ export async function NachweiskettenKarte({
                     ? `${format.number(s.gewichtKg, { maximumFractionDigits: 1 })} kg`
                     : "-"}
                 </span>
+                {s.kontrolliertAm ? (
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-success">
+                    <CheckCircle2 className="h-3 w-3" />
+                    {t("steigenKontrolliertLabel")}
+                  </span>
+                ) : darfKontrollieren ? (
+                  <SteigeKontrollierenKnopf id={s.id} code={s.code} />
+                ) : null}
               </li>
             ))}
             {kette.steigen.length > 6 ? (
