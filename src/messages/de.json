@@ -1442,6 +1442,15 @@
     "verlaufTitel": "Verlauf",
     "verlaufLeer": "Noch kein Eintrag im Verlauf.",
     "internMarkierung": "intern",
+    "rueckverfolgung": {
+      "titel": "Rückverfolgung",
+      "lead": "Nur für das Büro sichtbar: von der Reklamation bis zur pflückenden Person, zur Kühlmessung und, bei Zukaufware, zum liefernden Nachbarbetrieb.",
+      "pfluecker": "Beteiligte Pflücker",
+      "kuehlkette": "Kühlmessungen der Charge",
+      "minuten": "{minuten} Minuten nach dem Pflücken",
+      "ohneZeitpunkt": "ohne bekannten Pflückzeitpunkt",
+      "nachbarbetrieb": "Liefernder Nachbarbetrieb"
+    },
     "col": {
       "code": "Kennung",
       "kunde": "Kunde",

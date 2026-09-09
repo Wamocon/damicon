@@ -1442,6 +1442,15 @@
     "verlaufTitel": "Geçmiş",
     "verlaufLeer": "Geçmişte henüz kayıt yok.",
     "internMarkierung": "dahili",
+    "rueckverfolgung": {
+      "titel": "Geriye izlenebilirlik",
+      "lead": "Yalnızca ofis görür: şikayetten toplayan kişiye, soğutma ölçümüne ve satın alınan üründe tedarikçi komşu işletmeye kadar.",
+      "pfluecker": "İlgili toplayıcılar",
+      "kuehlkette": "Partinin soğutma ölçümleri",
+      "minuten": "toplamadan {minuten} dakika sonra",
+      "ohneZeitpunkt": "toplama zamanı bilinmiyor",
+      "nachbarbetrieb": "Tedarikçi komşu işletme"
+    },
     "col": {
       "code": "Referans",
       "kunde": "Müşteri",

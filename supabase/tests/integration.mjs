@@ -2436,6 +2436,301 @@ if (leitung && brigade) {
         .eq("schritt_id", ersterSchritt.id);
     }
   }
+
+  // --- Anforderung 3.4 und 6.3: Rueckverfolgung einer Reklamation ------------
+  // bis zur pfleuckenden Person, zur Kuehlmessung und, bei Zukaufware, zum
+  // liefernden Nachbarbetrieb. Eigener Erntetag (2030-02-01) fuer
+  // Kollisionsfreiheit mit dem 4.3-Testblock (2030-01-01), der ebenfalls einen
+  // Kostentraeger-Erntetag verwendet.
+  {
+    // 1. RLS-Haertung: kuehlketten_messungen war fuer JEDE angemeldete Rolle
+    //    lesbar (Migration 20260922000000 schliesst das, analog zu steigen).
+    const { data: kkLeitung, error: kkLeitungFehler } = await leitung
+      .from("kuehlketten_messungen")
+      .select("id")
+      .limit(1);
+    check(
+      "Anforderung 3.4: Betriebsleitung liest kuehlketten_messungen (RLS kuehlketten_messungen_select_feld)",
+      !kkLeitungFehler,
+      kkLeitungFehler?.message ?? `Zeilen: ${kkLeitung?.length}`,
+    );
+
+    const { client: kundeRv, fehler: kundeRvFehler } = await anmelden("kunde@damicon.demo");
+    check("Auth: Kunde meldet sich an (Rueckverfolgung)", !!kundeRv, kundeRvFehler ?? "");
+
+    if (kundeRv) {
+      const { data: kkKunde } = await kundeRv.from("kuehlketten_messungen").select("id");
+      check(
+        "Anforderung 3.4: Kunde liest kuehlketten_messungen nicht mehr (vorher jede angemeldete Rolle)",
+        (kkKunde?.length ?? 0) === 0,
+        `sichtbare Zeilen: ${kkKunde?.length}`,
+      );
+    }
+
+    const { client: erzeugerRv } = await anmelden("erzeuger@damicon.demo");
+    if (erzeugerRv) {
+      const { data: kkErzeuger } = await erzeugerRv.from("kuehlketten_messungen").select("id");
+      check(
+        "Anforderung 3.4: Erzeuger liest kuehlketten_messungen nicht mehr",
+        (kkErzeuger?.length ?? 0) === 0,
+        `sichtbare Zeilen: ${kkErzeuger?.length}`,
+      );
+    }
+
+    // 2. Volle Kette bei eigener Ernte: Person + Kuehlzeit.
+    const rvErntetag = "2030-02-01";
+    const { data: rvBlock, error: rvBlockFehler } = await admin
+      .from("reihenbloecke")
+      .select("id")
+      .neq("status", "wartezeitgesperrt")
+      .limit(1)
+      .single();
+    const { data: rvSorte, error: rvSorteFehler } = await admin
+      .from("sorten")
+      .select("id")
+      .limit(1)
+      .single();
+    const { data: rvPfluecker, error: rvPflueckerFehler } = await admin
+      .from("pfluecker")
+      .select("id, name, ausweis")
+      .limit(1)
+      .single();
+    const { data: almatyFreshRv, error: almatyFreshRvFehler } = await admin
+      .from("b2b_kunden")
+      .select("id")
+      .eq("name", "Almaty Fresh Market")
+      .single();
+
+    // Fester pflueck_zeitpunkt statt leer: kuehlkette_bewerten() ueberschreibt
+    // minuten_seit_pfluecken sonst hart auf null und ergebnis auf "warnung"
+    // (Migration 20260905200000, Abschnitt 6 - ein unbekannter Pflueckzeitpunkt
+    // gilt seit der Haertung bewusst nicht mehr als "ok").
+    const rvPflueckZeitpunkt = "2030-02-01T08:00:00.000Z";
+    const rvGemessenAm = "2030-02-01T08:25:00.000Z";
+    const { data: rvCharge, error: rvChargeFehler } = await admin
+      .from("chargen")
+      .insert({
+        code: `__it_rv_${Date.now()}`,
+        reihenblock_id: rvBlock?.id,
+        sorte_id: rvSorte?.id,
+        ernte_datum: rvErntetag,
+        pflueck_zeitpunkt: rvPflueckZeitpunkt,
+      })
+      .select("id")
+      .single();
+
+    const { data: rvSteige, error: rvSteigeFehler } = await admin
+      .from("steigen")
+      .insert({
+        // Eigener Code + eigenes Token: der Trigger steige_nummer_vergeben()
+        // vergibt die atomare Nummer nur bei leerem Code, hier bewusst
+        // umgangen, weil diese Steige keine echte Pflueckaufgabe hat.
+        code: `__IT-RV-${Date.now()}`,
+        qr_token: `__it_rv_token_${Date.now()}`,
+        charge_id: rvCharge?.id,
+        pfluecker_id: rvPfluecker?.id,
+        gewicht_kg: 5,
+      })
+      .select("id")
+      .single();
+
+    const { data: rvMessung, error: rvMessungFehler } = await admin
+      .from("kuehlketten_messungen")
+      .insert({
+        charge_id: rvCharge?.id,
+        temperatur_c: 3,
+        gemessen_am: rvGemessenAm,
+        // minuten_seit_pfluecken wird von kuehlkette_bewerten() aus
+        // gemessen_am - chargen.pflueck_zeitpunkt errechnet (hier: genau 25),
+        // ein mitgegebener Wert wuerde ohnehin ueberschrieben.
+      })
+      .select("id")
+      .single();
+
+    const { data: rvReklamation, error: rvReklamationFehler } = await admin
+      .from("reklamationen")
+      .insert({
+        code: `REK-IT-RV-${Date.now()}`,
+        b2b_kunde_id: almatyFreshRv?.id,
+        charge_id: rvCharge?.id,
+        grund: "qualitaet",
+        betreff: "Integrationstest Rueckverfolgung",
+      })
+      .select("id")
+      .single();
+
+    const rvAufbauFehler =
+      rvBlockFehler ||
+      rvSorteFehler ||
+      rvPflueckerFehler ||
+      almatyFreshRvFehler ||
+      rvChargeFehler ||
+      rvSteigeFehler ||
+      rvMessungFehler ||
+      rvReklamationFehler;
+    check(
+      "Anforderung 3.4: Testaufbau (Charge/Steige/Messung/Reklamation) gelingt",
+      !rvAufbauFehler,
+      rvAufbauFehler?.message ?? "",
+    );
+
+    if (!rvAufbauFehler) {
+      const rvSelect = `id, chargen (
+           steigen ( pfluecker_id, pfluecker ( name, ausweis ) ),
+           kuehlketten_messungen ( id, minuten_seit_pfluecken, ergebnis )
+         )`;
+
+      const { data: rvDetail, error: rvDetailFehler } = await leitung
+        .from("reklamationen")
+        .select(rvSelect)
+        .eq("id", rvReklamation.id)
+        .single();
+
+      const rvChargeEmbed = Array.isArray(rvDetail?.chargen) ? rvDetail.chargen[0] : rvDetail?.chargen;
+      const rvSteigenEmbed = rvChargeEmbed?.steigen ?? [];
+      const rvPflueckerRoh = rvSteigenEmbed[0]?.pfluecker;
+      const rvPflueckerEmbed = Array.isArray(rvPflueckerRoh) ? rvPflueckerRoh[0] : rvPflueckerRoh;
+
+      check(
+        "Anforderung 3.4: Betriebsleitung liest ueber die Reklamation bis zur pfleuckenden Person durch",
+        !rvDetailFehler && rvPflueckerEmbed?.name === rvPfluecker.name,
+        rvDetailFehler?.message ?? `gefunden: ${JSON.stringify(rvPflueckerEmbed)}`,
+      );
+      check(
+        "Anforderung 3.4: Betriebsleitung liest ueber die Reklamation bis zur Kuehlmessung durch",
+        (rvChargeEmbed?.kuehlketten_messungen?.length ?? 0) === 1 &&
+          Number(rvChargeEmbed.kuehlketten_messungen[0].minuten_seit_pfluecken) === 25,
+        JSON.stringify(rvChargeEmbed?.kuehlketten_messungen),
+      );
+
+      // Kunde: dieselbe Reklamation (eigene Firma, also per RLS sichtbar),
+      // aber steigen/kuehlketten_messungen bleiben ueber die eingebettete
+      // Relation leer statt eines Fehlers - RLS wirkt durch den Join hindurch.
+      if (kundeRv) {
+        const { data: rvKundeDetail, error: rvKundeDetailFehler } = await kundeRv
+          .from("reklamationen")
+          .select(rvSelect)
+          .eq("id", rvReklamation.id)
+          .maybeSingle();
+        const rvKundeChargeEmbed = Array.isArray(rvKundeDetail?.chargen)
+          ? rvKundeDetail.chargen[0]
+          : rvKundeDetail?.chargen;
+        check(
+          "Anforderung 3.4: Kunde sieht ueber dieselbe Reklamation weder Pfluecker noch Kuehlmessung (RLS durch den Join)",
+          !rvKundeDetailFehler &&
+            !!rvKundeDetail &&
+            (rvKundeChargeEmbed?.steigen?.length ?? 0) === 0 &&
+            (rvKundeChargeEmbed?.kuehlketten_messungen?.length ?? 0) === 0,
+          rvKundeDetailFehler?.message ?? JSON.stringify(rvKundeChargeEmbed),
+        );
+      }
+    }
+
+    // 3. Zukauf-Kette: liefernder Nachbarbetrieb (Anforderung 6.3).
+    const { data: rvNachbarbetrieb, error: rvNachbarbetriebFehler } = await admin
+      .from("nachbarbetriebe")
+      .select("id, name")
+      .limit(1)
+      .single();
+
+    const { data: rvZukaufCharge, error: rvZukaufChargeFehler } = await admin
+      .from("chargen")
+      .insert({
+        code: `__it_rv_zuk_${Date.now()}`,
+        reihenblock_id: null,
+        sorte_id: rvSorte?.id,
+        ernte_datum: rvErntetag,
+      })
+      .select("id")
+      .single();
+
+    const { data: rvZukaufPosition, error: rvZukaufPositionFehler } = await admin
+      .from("zukauf_positionen")
+      .insert({
+        nachbarbetrieb_id: rvNachbarbetrieb?.id,
+        sorte_id: rvSorte?.id,
+        charge_id: rvZukaufCharge?.id,
+        menge_kg: 10,
+      })
+      .select("id")
+      .single();
+
+    const { data: rvZukaufReklamation, error: rvZukaufReklamationFehler } = await admin
+      .from("reklamationen")
+      .insert({
+        code: `REK-IT-RV-ZUK-${Date.now()}`,
+        b2b_kunde_id: almatyFreshRv?.id,
+        charge_id: rvZukaufCharge?.id,
+        grund: "qualitaet",
+        betreff: "Integrationstest Rueckverfolgung Zukauf",
+      })
+      .select("id")
+      .single();
+
+    const rvZukaufAufbauFehler =
+      rvNachbarbetriebFehler ||
+      rvZukaufChargeFehler ||
+      rvZukaufPositionFehler ||
+      rvZukaufReklamationFehler;
+    check(
+      "Anforderung 6.3: Testaufbau Zukauf-Kette (Charge/Zukaufposition/Reklamation) gelingt",
+      !rvZukaufAufbauFehler,
+      rvZukaufAufbauFehler?.message ?? "",
+    );
+
+    if (!rvZukaufAufbauFehler) {
+      const { data: rvZukaufDetail, error: rvZukaufDetailFehler } = await leitung
+        .from("reklamationen")
+        .select(`id, chargen ( zukauf_positionen ( nachbarbetriebe ( name ) ) )`)
+        .eq("id", rvZukaufReklamation.id)
+        .single();
+      const rvZukaufChargeEmbed = Array.isArray(rvZukaufDetail?.chargen)
+        ? rvZukaufDetail.chargen[0]
+        : rvZukaufDetail?.chargen;
+      const rvZukaufPositionRoh = rvZukaufChargeEmbed?.zukauf_positionen;
+      const rvZukaufPositionEmbed = Array.isArray(rvZukaufPositionRoh)
+        ? rvZukaufPositionRoh[0]
+        : rvZukaufPositionRoh;
+      const rvNachbarbetriebRoh = rvZukaufPositionEmbed?.nachbarbetriebe;
+      const rvNachbarbetriebEmbed = Array.isArray(rvNachbarbetriebRoh)
+        ? rvNachbarbetriebRoh[0]
+        : rvNachbarbetriebRoh;
+      check(
+        "Anforderung 6.3: Betriebsleitung liest ueber die Reklamation bis zum liefernden Nachbarbetrieb durch",
+        !rvZukaufDetailFehler && rvNachbarbetriebEmbed?.name === rvNachbarbetrieb.name,
+        rvZukaufDetailFehler?.message ?? JSON.stringify(rvNachbarbetriebEmbed),
+      );
+    }
+
+    // 4. Regressionsschutz: eigene Ernte ohne Zukaufbezug liefert keine
+    //    zukauf_positionen-Zeile statt einer Fehlinterpretation.
+    if (!rvAufbauFehler) {
+      const { data: rvEigeneKetteDetail } = await admin
+        .from("reklamationen")
+        .select(`id, chargen ( zukauf_positionen ( id ) )`)
+        .eq("id", rvReklamation.id)
+        .single();
+      const rvEigeneChargeEmbed = Array.isArray(rvEigeneKetteDetail?.chargen)
+        ? rvEigeneKetteDetail.chargen[0]
+        : rvEigeneKetteDetail?.chargen;
+      check(
+        "Anforderung 6.3: eigene Ernte ohne Zukaufbezug liefert keine zukauf_positionen-Zeile",
+        (rvEigeneChargeEmbed?.zukauf_positionen?.length ?? 0) === 0,
+        JSON.stringify(rvEigeneChargeEmbed?.zukauf_positionen),
+      );
+    }
+
+    // Aufraeumen (Kind vor Eltern wegen FKs).
+    if (rvReklamation?.id) await admin.from("reklamationen").delete().eq("id", rvReklamation.id);
+    if (rvZukaufReklamation?.id)
+      await admin.from("reklamationen").delete().eq("id", rvZukaufReklamation.id);
+    if (rvZukaufPosition?.id)
+      await admin.from("zukauf_positionen").delete().eq("id", rvZukaufPosition.id);
+    if (rvMessung?.id) await admin.from("kuehlketten_messungen").delete().eq("id", rvMessung.id);
+    if (rvSteige?.id) await admin.from("steigen").delete().eq("id", rvSteige.id);
+    if (rvCharge?.id) await admin.from("chargen").delete().eq("id", rvCharge.id);
+    if (rvZukaufCharge?.id) await admin.from("chargen").delete().eq("id", rvZukaufCharge.id);
+  }
 }
 
 console.log("");

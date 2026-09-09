@@ -1442,6 +1442,15 @@
     "verlaufTitel": "History",
     "verlaufLeer": "No entry in the history yet.",
     "internMarkierung": "internal",
+    "rueckverfolgung": {
+      "titel": "Traceability",
+      "lead": "Office view only: from the complaint back to the picker, the cooling measurement and, for purchased produce, the supplying neighbour farm.",
+      "pfluecker": "Pickers involved",
+      "kuehlkette": "Cooling measurements for this batch",
+      "minuten": "{minuten} minutes after picking",
+      "ohneZeitpunkt": "no known picking time",
+      "nachbarbetrieb": "Supplying neighbour farm"
+    },
     "col": {
       "code": "Reference",
       "kunde": "Client",
