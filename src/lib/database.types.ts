@@ -2370,6 +2370,10 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       current_b2b_kunde_id: { Args: never; Returns: string }
+      einwilligung_widerrufen: {
+        Args: { p_grund: string; p_id: string }
+        Returns: undefined
+      }
       geraet_zeitpunkt_pruefen: {
         Args: { p_geraet: string; p_server?: string }
         Returns: string
