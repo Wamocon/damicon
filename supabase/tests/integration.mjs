@@ -176,6 +176,34 @@ if (leitung && brigade) {
   );
   await admin.from("reihenbloecke").update({ status: block.status }).eq("id", block.id);
 
+  // Anforderung 2.1: ein bestehender Reihenblock laesst sich umbenennen und
+  // im Sortenprofil korrigieren, nicht nur beim Anlegen setzen.
+  const urspruenglicherCode = block.code;
+  const neuerCode = `${urspruenglicherCode}-IT`;
+  const { data: umbenannterBlock, error: umbenennenFehler } = await leitung
+    .from("reihenbloecke")
+    .update({ code: neuerCode })
+    .eq("id", block.id)
+    .select("id, code")
+    .single();
+  check(
+    "Anforderung 2.1: Betriebsleitung benennt einen bestehenden Reihenblock um",
+    !umbenennenFehler && umbenannterBlock?.code === neuerCode,
+    umbenennenFehler?.message ?? "",
+  );
+  await admin.from("reihenbloecke").update({ code: urspruenglicherCode }).eq("id", block.id);
+
+  const { data: brigadeUmbenennenVersuch, error: brigadeUmbenennenFehler } = await brigade
+    .from("reihenbloecke")
+    .update({ code: `${urspruenglicherCode}-BR` })
+    .eq("id", block.id)
+    .select("id");
+  check(
+    "Anforderung 2.1 RLS: Brigade darf einen Reihenblock nicht umbenennen",
+    !brigadeUmbenennenFehler && (brigadeUmbenennenVersuch?.length ?? 0) === 0,
+    brigadeUmbenennenFehler?.message ?? `geaenderte Zeilen: ${brigadeUmbenennenVersuch?.length}`,
+  );
+
   const { data: mittel } = await admin
     .from("psm_mittel")
     .select("id, wartezeit_tage")
