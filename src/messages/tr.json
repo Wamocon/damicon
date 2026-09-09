@@ -1078,7 +1078,10 @@
     "feld": {
       "block": "Sıra bloğu",
       "mittel": "Bitki koruma ilacı",
-      "datum": "İşlem tarihi"
+      "datum": "İşlem tarihi",
+      "menge": "Uygulama miktarı",
+      "einheit": "Birim",
+      "person": "Uygulayan"
     }
   },
   "complianceAnsicht": {

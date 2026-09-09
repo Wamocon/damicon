@@ -871,7 +871,10 @@
     "feld": {
       "block": "Row block",
       "mittel": "Plant protection product",
-      "datum": "Treated on"
+      "datum": "Treated on",
+      "menge": "Application rate",
+      "einheit": "Unit",
+      "person": "Applied by"
     }
   },
   "standortDemo": {

@@ -1338,9 +1338,14 @@ export type Database = {
       }
       pflanzenschutz_behandlungen: {
         Row: {
+          aufwandmenge: number | null
+          aufwandmenge_einheit:
+            | Database["public"]["Enums"]["aufwandmenge_einheit"]
+            | null
           behandelt_am: string
           created_at: string
           dokument_id: string | null
+          durchgefuehrt_von_profil_id: string | null
           freigabe_am: string | null
           freigegeben: boolean
           id: string
@@ -1349,9 +1354,14 @@ export type Database = {
           wartezeit_tage: number
         }
         Insert: {
+          aufwandmenge?: number | null
+          aufwandmenge_einheit?:
+            | Database["public"]["Enums"]["aufwandmenge_einheit"]
+            | null
           behandelt_am: string
           created_at?: string
           dokument_id?: string | null
+          durchgefuehrt_von_profil_id?: string | null
           freigabe_am?: string | null
           freigegeben?: boolean
           id?: string
@@ -1360,9 +1370,14 @@ export type Database = {
           wartezeit_tage: number
         }
         Update: {
+          aufwandmenge?: number | null
+          aufwandmenge_einheit?:
+            | Database["public"]["Enums"]["aufwandmenge_einheit"]
+            | null
           behandelt_am?: string
           created_at?: string
           dokument_id?: string | null
+          durchgefuehrt_von_profil_id?: string | null
           freigabe_am?: string | null
           freigegeben?: boolean
           id?: string
@@ -1376,6 +1391,13 @@ export type Database = {
             columns: ["dokument_id"]
             isOneToOne: false
             referencedRelation: "dokumente"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pflanzenschutz_behandlungen_durchgefuehrt_von_profil_id_fkey"
+            columns: ["durchgefuehrt_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -2504,6 +2526,7 @@ export type Database = {
         | "picker"
         | "erzeuger"
         | "kunde"
+      aufwandmenge_einheit: "l_ha" | "kg_ha"
       beleg_art: "schale" | "reihenblock" | "steige"
       charge_status: "offen" | "gekuehlt" | "verladen" | "ausgeliefert"
       dokument_kategorie:
@@ -2705,6 +2728,7 @@ export const Constants = {
         "erzeuger",
         "kunde",
       ],
+      aufwandmenge_einheit: ["l_ha", "kg_ha"],
       beleg_art: ["schale", "reihenblock", "steige"],
       charge_status: ["offen", "gekuehlt", "verladen", "ausgeliefert"],
       dokument_kategorie: [

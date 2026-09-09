@@ -871,7 +871,10 @@
     "feld": {
       "block": "Reihenblock",
       "mittel": "Pflanzenschutzmittel",
-      "datum": "Behandelt am"
+      "datum": "Behandelt am",
+      "menge": "Aufwandmenge",
+      "einheit": "Einheit",
+      "person": "Durchgeführt von"
     }
   },
   "standortDemo": {

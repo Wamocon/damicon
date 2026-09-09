@@ -23,6 +23,15 @@ function text(formData: FormData, feld: string): string {
   return String(formData.get(feld) ?? "").trim();
 }
 
+function zahl(formData: FormData, feld: string): number | null {
+  const roh = text(formData, feld).replace(",", ".");
+  if (!roh) return null;
+  const wert = Number(roh);
+  return Number.isFinite(wert) ? wert : null;
+}
+
+const aufwandmengeEinheiten = ["l_ha", "kg_ha"] as const;
+
 async function protokolliere(
   profil: SessionProfile,
   aktion: string,
@@ -133,7 +142,23 @@ export async function behandlungErfassen(
   const blockId = text(formData, "reihenblock_id");
   const mittelId = text(formData, "psm_mittel_id");
   const behandeltAm = text(formData, "behandelt_am") || heuteIso();
-  if (!blockId || !mittelId) return fehler("fehler.eingabe");
+  // Anforderung 2.4: Aufwandmenge und durchfuehrende Person sind Pflichtfelder
+  // beim Erfassen, nicht erst nachtraeglich - die Datenbankspalten bleiben
+  // nullable (Seed-Reihenfolge, siehe Migration 20260918000000), aber ein neu
+  // erfasster Vorgang bekommt beide immer schon beim Anlegen.
+  const aufwandmenge = zahl(formData, "aufwandmenge");
+  const aufwandmengeEinheit = text(formData, "aufwandmenge_einheit");
+  const durchgefuehrtVonProfilId = text(formData, "durchgefuehrt_von_profil_id");
+  if (
+    !blockId ||
+    !mittelId ||
+    aufwandmenge === null ||
+    aufwandmenge <= 0 ||
+    !(aufwandmengeEinheiten as readonly string[]).includes(aufwandmengeEinheit) ||
+    !durchgefuehrtVonProfilId
+  ) {
+    return fehler("fehler.eingabe");
+  }
 
   const supabase = await createClient();
 
@@ -155,6 +180,9 @@ export async function behandlungErfassen(
       psm_mittel_id: mittel.id,
       behandelt_am: behandeltAm,
       wartezeit_tage: mittel.wartezeit_tage,
+      aufwandmenge,
+      aufwandmenge_einheit: aufwandmengeEinheit as (typeof aufwandmengeEinheiten)[number],
+      durchgefuehrt_von_profil_id: durchgefuehrtVonProfilId,
     })
     .select("id, freigabe_am")
     .single();
@@ -165,6 +193,8 @@ export async function behandlungErfassen(
     mittel: mittel.name,
     behandelt_am: behandeltAm,
     freigabe_am: data.freigabe_am,
+    aufwandmenge,
+    aufwandmenge_einheit: aufwandmengeEinheit,
   });
   aktualisiere(formData);
   return ok("ok.behandlung", data.freigabe_am ?? behandeltAm);

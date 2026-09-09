@@ -9,7 +9,7 @@ import {
   StammdatenBearbeiten,
   StatusWechsel,
 } from "@/components/db/reihenblock-formulare";
-import { ladePsmMittel, ladeReihenbloecke } from "@/lib/data/reihenbloecke";
+import { ladePsmMittel, ladeProfile, ladeReihenbloecke } from "@/lib/data/reihenbloecke";
 import { ladeSorten } from "@/lib/data/standort";
 import { heuteIso } from "@/lib/data/util";
 import { getSessionProfile } from "@/lib/auth";
@@ -34,10 +34,11 @@ export async function ReihenbloeckeAnsicht({
   pfad: string;
   statusFilter?: string;
 }) {
-  const [liste, mittel, sorten, profil, t] = await Promise.all([
+  const [liste, mittel, sorten, ausfuehrendeProfile, profil, t] = await Promise.all([
     ladeReihenbloecke(),
     ladePsmMittel(),
     ladeSorten(),
+    ladeProfile(),
     getSessionProfile(),
     getTranslations("reihenbloeckeDemo"),
   ]);
@@ -214,6 +215,7 @@ export async function ReihenbloeckeAnsicht({
             wert: m.id,
             text: `${m.name} (${m.wartezeitTage} ${t("days")})`,
           }))}
+          profile={ausfuehrendeProfile.map((p) => ({ wert: p.id, text: p.vollerName }))}
         />
       ) : null}
 

@@ -241,6 +241,53 @@ if (leitung && brigade) {
     behandlungFehler?.message ?? "",
   );
 
+  // Anforderung 2.4: Aufwandmenge und durchfuehrende Person lassen sich
+  // strukturiert erfassen, statt als Freitext im Audit-Log zu verschwinden.
+  const { data: irgendeinProfil } = await admin
+    .from("profiles")
+    .select("id")
+    .limit(1)
+    .single();
+  const { data: behandlungMitMenge, error: behandlungMengeFehler } = await leitung
+    .from("pflanzenschutz_behandlungen")
+    .insert({
+      reihenblock_id: block.id,
+      psm_mittel_id: mittel.id,
+      behandelt_am: new Date().toISOString().slice(0, 10),
+      wartezeit_tage: mittel.wartezeit_tage,
+      aufwandmenge: 1.5,
+      aufwandmenge_einheit: "kg_ha",
+      durchgefuehrt_von_profil_id: irgendeinProfil.id,
+    })
+    .select("id, aufwandmenge, aufwandmenge_einheit, durchgefuehrt_von_profil_id")
+    .single();
+  check(
+    "Anforderung 2.4: Aufwandmenge, Einheit und durchfuehrende Person werden gespeichert",
+    !behandlungMengeFehler &&
+      Number(behandlungMitMenge?.aufwandmenge) === 1.5 &&
+      behandlungMitMenge?.aufwandmenge_einheit === "kg_ha" &&
+      behandlungMitMenge?.durchgefuehrt_von_profil_id === irgendeinProfil.id,
+    behandlungMengeFehler?.message ?? "",
+  );
+  if (behandlungMitMenge?.id) {
+    await admin.from("pflanzenschutz_behandlungen").delete().eq("id", behandlungMitMenge.id);
+  }
+
+  const { error: mengeOhneEinheitFehler } = await admin
+    .from("pflanzenschutz_behandlungen")
+    .insert({
+      reihenblock_id: block.id,
+      psm_mittel_id: mittel.id,
+      behandelt_am: new Date().toISOString().slice(0, 10),
+      wartezeit_tage: mittel.wartezeit_tage,
+      aufwandmenge: 1.5,
+    });
+  check(
+    "Anforderung 2.4: Aufwandmenge ohne Einheit wird abgelehnt (Check-Constraint)",
+    mengeOhneEinheitFehler?.code === "23514",
+    mengeOhneEinheitFehler?.code ?? "kein Fehler",
+  );
+
   // Anforderung 4.1: behandelt_am darf ueber die Anwendung nicht rueckdatiert
   // werden, sonst liesse sich die Wartezeitsperre (freigabe_am = behandelt_am
   // + wartezeit_tage) rueckwirkend unterlaufen.

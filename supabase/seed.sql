@@ -96,12 +96,13 @@ insert into public.psm_mittel (name, wirkstoff, wartezeit_tage) values
   ('SpinTor', 'Spinosad', 3)
   on conflict do nothing;
 
-insert into public.pflanzenschutz_behandlungen (reihenblock_id, psm_mittel_id, behandelt_am, wartezeit_tage)
-select rb.id, m.id, v.datum::date, v.wz
+insert into public.pflanzenschutz_behandlungen
+  (reihenblock_id, psm_mittel_id, behandelt_am, wartezeit_tage, aufwandmenge, aufwandmenge_einheit)
+select rb.id, m.id, v.datum::date, v.wz, v.menge, v.einheit::public.aufwandmenge_einheit
 from (values
-  ('T-N-A-04', 'Signum', '2026-09-01', 3),
-  ('T-N-B-01', 'SpinTor', '2026-08-31', 3)
-) as v(code, mittel, datum, wz)
+  ('T-N-A-04', 'Signum', '2026-09-01', 3, 1.50, 'kg_ha'),
+  ('T-N-B-01', 'SpinTor', '2026-08-31', 3, 0.30, 'l_ha')
+) as v(code, mittel, datum, wz, menge, einheit)
 join public.reihenbloecke rb on rb.code = v.code
 join public.psm_mittel m on m.name = v.mittel
 where not exists (
@@ -285,8 +286,8 @@ where not exists (
 -- drei Tage, geerntet ab dem 26.08. So sieht ein sauberer Rueckstandsnachweis
 -- aus - der Beleg, den Handel und Behoerde sehen wollen.
 insert into public.pflanzenschutz_behandlungen
-  (reihenblock_id, psm_mittel_id, behandelt_am, wartezeit_tage, freigegeben)
-select rb.id, m.id, '2026-08-20'::date, 3, true
+  (reihenblock_id, psm_mittel_id, behandelt_am, wartezeit_tage, freigegeben, aufwandmenge, aufwandmenge_einheit)
+select rb.id, m.id, '2026-08-20'::date, 3, true, 1.50, 'kg_ha'::public.aufwandmenge_einheit
 from public.reihenbloecke rb, public.psm_mittel m
 where rb.code = 'T-N-A-01' and m.name = 'Signum'
   and not exists (
