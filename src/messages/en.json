@@ -730,7 +730,8 @@
       "buchung": "Posting \"{wert}\" recorded.",
       "mfaEntfernt": "Second factor removed.",
       "rotationsplanGeneriert": "{wert} new dates created.",
-      "rotationsplanStatus": "Date for {wert} updated."
+      "rotationsplanStatus": "Date for {wert} updated.",
+      "steigeKontrolliert": "Crate {wert} inspected."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -871,7 +872,10 @@
     "feld": {
       "block": "Row block",
       "mittel": "Plant protection product",
-      "datum": "Treated on"
+      "datum": "Treated on",
+      "menge": "Application rate",
+      "einheit": "Unit",
+      "person": "Applied by"
     }
   },
   "standortDemo": {
@@ -1254,6 +1258,9 @@
     "menge": "Quantity",
     "ausschuss": "Rejects",
     "steigen": "Crates",
+    "steigenKontrollieren": "Inspect",
+    "steigenKontrollierenAria": "Inspect crate {code}",
+    "steigenKontrolliertLabel": "inspected",
     "steigenTitel": "Crates with the person",
     "ohnePerson": "no person",
     "weitereSteigen": "and {anzahl} more",
@@ -1266,7 +1273,10 @@
       "regel": "No more than 60 minutes may pass between picking and cooling. Break that limit and every further measure is worthless.",
       "nachMinuten": "after {minuten} minutes",
       "knopf": "Record cooling measurement",
-      "grenzwertig": "borderline"
+      "grenzwertig": "borderline",
+      "verbleibend": "{minuten} minutes left before the limit",
+      "fristUeberschritten": "60-minute limit exceeded by {minuten} minutes",
+      "alarm": "Alarm"
     },
     "ergebnis": {
       "ok": "ok",
@@ -1384,6 +1394,16 @@
     "q3Text": "Grey coating, even at just one spot. Stays in the field: inside a closed punnet it infects the whole layer overnight.",
     "trayTitle": "The costliest mistake is a height",
     "trayText": "Seen from above, the overfilled punnet looks best: full, dense, no gap. But the lid presses on the top layer, and the bottom layer carries the weight. Raspberries carry no weight of their own - by the time it's in the shop, the bottom layer is juice. That is visible only from the side."
+  },
+  "qualitaetsReferenz": {
+    "aufklappen": "Show quality reference",
+    "gut": "Good",
+    "zerfallen": "Falling apart",
+    "unreif": "Picked unripe",
+    "druckstelle": "Bruise",
+    "schimmel": "Mould",
+    "schaleGut": "Punnet well filled",
+    "schaleUeberfuellt": "Punnet overfilled"
   },
   "reklamationStatus": {
     "offen": "Open",

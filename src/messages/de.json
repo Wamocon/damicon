@@ -730,7 +730,8 @@
       "buchung": "Buchung \"{wert}\" erfasst.",
       "mfaEntfernt": "Zweiter Faktor entfernt.",
       "rotationsplanGeneriert": "{wert} neue Termine erzeugt.",
-      "rotationsplanStatus": "Termin für {wert} aktualisiert."
+      "rotationsplanStatus": "Termin für {wert} aktualisiert.",
+      "steigeKontrolliert": "Steige {wert} kontrolliert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -871,7 +872,10 @@
     "feld": {
       "block": "Reihenblock",
       "mittel": "Pflanzenschutzmittel",
-      "datum": "Behandelt am"
+      "datum": "Behandelt am",
+      "menge": "Aufwandmenge",
+      "einheit": "Einheit",
+      "person": "Durchgeführt von"
     }
   },
   "standortDemo": {
@@ -1257,6 +1261,9 @@
     "steigenTitel": "Steigen mit Person",
     "ohnePerson": "ohne Person",
     "weitereSteigen": "und {anzahl} weitere",
+    "steigenKontrollieren": "Kontrollieren",
+    "steigenKontrollierenAria": "Steige {code} kontrollieren",
+    "steigenKontrolliertLabel": "kontrolliert",
     "kuehlung": {
       "minuten": "{minuten} Minuten bis zur Vorkühlung",
       "offen": "Vorkühlung steht aus",
@@ -1266,7 +1273,10 @@
       "regel": "Zwischen Pflücken und Herunterkühlen dürfen höchstens 60 Minuten liegen. Wird diese Grenze gerissen, ist jede weitere Maßnahme wirkungslos.",
       "nachMinuten": "nach {minuten} Minuten",
       "knopf": "Kühlmessung erfassen",
-      "grenzwertig": "grenzwertig"
+      "grenzwertig": "grenzwertig",
+      "verbleibend": "noch {minuten} Minuten bis zur Grenze",
+      "fristUeberschritten": "60-Minuten-Grenze seit {minuten} Minuten überschritten",
+      "alarm": "Alarm"
     },
     "ergebnis": {
       "ok": "ok",
@@ -1384,6 +1394,16 @@
     "q3Text": "Grauer Belag, auch nur an einer Stelle. Bleibt im Feld: In der geschlossenen Schale befällt er über Nacht die ganze Lage.",
     "trayTitle": "Der teuerste Fehler ist eine Höhe",
     "trayText": "Von oben sieht die überfüllte Schale am besten aus: voll, dicht, kein Spalt. Der Deckel drückt jedoch auf die obere Lage, und die untere trägt das Gewicht. Himbeeren tragen kein Eigengewicht - im Laden ist die unterste Lage Saft. Sichtbar wird das nur von der Seite."
+  },
+  "qualitaetsReferenz": {
+    "aufklappen": "Qualitätsreferenz zeigen",
+    "gut": "Gut",
+    "zerfallen": "Zerfallen",
+    "unreif": "Unreif geerntet",
+    "druckstelle": "Druckstelle",
+    "schimmel": "Schimmel",
+    "schaleGut": "Schale gut befüllt",
+    "schaleUeberfuellt": "Schale überfüllt"
   },
   "reklamationStatus": {
     "offen": "offen",

@@ -194,6 +194,14 @@ async function main() {
       .from("datenschutzvorfaelle")
       .update({ verantwortlich_profil_id: leitungProfil.id })
       .is("verantwortlich_profil_id", null);
+
+    // Anforderung 2.4: dieselbe Seed-Reihenfolge-Luecke wie oben - die
+    // Behandlungen aus seed.sql entstehen vor den Profilen, die
+    // durchfuehrende Person wird deshalb hier nachgetragen.
+    await admin
+      .from("pflanzenschutz_behandlungen")
+      .update({ durchgefuehrt_von_profil_id: leitungProfil.id })
+      .is("durchgefuehrt_von_profil_id", null);
   }
 
   console.log(

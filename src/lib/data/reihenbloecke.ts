@@ -164,3 +164,20 @@ export async function ladePsmMittel(): Promise<PsmOption[]> {
     wartezeitTage: m.wartezeit_tage,
   }));
 }
+
+export interface ProfilOption {
+  id: string;
+  vollerName: string;
+}
+
+// Anforderung 2.4: fuer die Auswahl der durchfuehrenden Person beim Erfassen
+// einer Behandlung.
+export async function ladeProfile(): Promise<ProfilOption[]> {
+  if (!isSupabaseConfigured()) return [];
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("profiles")
+    .select("id, full_name")
+    .order("full_name");
+  return (data ?? []).map((p) => ({ id: p.id, vollerName: p.full_name }));
+}

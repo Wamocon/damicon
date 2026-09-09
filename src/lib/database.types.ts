@@ -1338,9 +1338,14 @@ export type Database = {
       }
       pflanzenschutz_behandlungen: {
         Row: {
+          aufwandmenge: number | null
+          aufwandmenge_einheit:
+            | Database["public"]["Enums"]["aufwandmenge_einheit"]
+            | null
           behandelt_am: string
           created_at: string
           dokument_id: string | null
+          durchgefuehrt_von_profil_id: string | null
           freigabe_am: string | null
           freigegeben: boolean
           id: string
@@ -1349,9 +1354,14 @@ export type Database = {
           wartezeit_tage: number
         }
         Insert: {
+          aufwandmenge?: number | null
+          aufwandmenge_einheit?:
+            | Database["public"]["Enums"]["aufwandmenge_einheit"]
+            | null
           behandelt_am: string
           created_at?: string
           dokument_id?: string | null
+          durchgefuehrt_von_profil_id?: string | null
           freigabe_am?: string | null
           freigegeben?: boolean
           id?: string
@@ -1360,9 +1370,14 @@ export type Database = {
           wartezeit_tage: number
         }
         Update: {
+          aufwandmenge?: number | null
+          aufwandmenge_einheit?:
+            | Database["public"]["Enums"]["aufwandmenge_einheit"]
+            | null
           behandelt_am?: string
           created_at?: string
           dokument_id?: string | null
+          durchgefuehrt_von_profil_id?: string | null
           freigabe_am?: string | null
           freigegeben?: boolean
           id?: string
@@ -1376,6 +1391,13 @@ export type Database = {
             columns: ["dokument_id"]
             isOneToOne: false
             referencedRelation: "dokumente"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pflanzenschutz_behandlungen_durchgefuehrt_von_profil_id_fkey"
+            columns: ["durchgefuehrt_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -2075,6 +2097,8 @@ export type Database = {
           geraet_zeitpunkt: string | null
           gewicht_kg: number | null
           id: string
+          kontrolliert_am: string | null
+          kontrolliert_von_profil_id: string | null
           pflueckaufgabe_id: string | null
           pfluecker_id: string | null
           qr_token: string
@@ -2088,6 +2112,8 @@ export type Database = {
           geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
+          kontrolliert_am?: string | null
+          kontrolliert_von_profil_id?: string | null
           pflueckaufgabe_id?: string | null
           pfluecker_id?: string | null
           qr_token: string
@@ -2101,6 +2127,8 @@ export type Database = {
           geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
+          kontrolliert_am?: string | null
+          kontrolliert_von_profil_id?: string | null
           pflueckaufgabe_id?: string | null
           pfluecker_id?: string | null
           qr_token?: string
@@ -2113,6 +2141,13 @@ export type Database = {
             columns: ["charge_id"]
             isOneToOne: false
             referencedRelation: "chargen"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "steigen_kontrolliert_von_profil_id_fkey"
+            columns: ["kontrolliert_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -2370,6 +2405,10 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       current_b2b_kunde_id: { Args: never; Returns: string }
+      einwilligung_widerrufen: {
+        Args: { p_grund: string; p_id: string }
+        Returns: undefined
+      }
       geraet_zeitpunkt_pruefen: {
         Args: { p_geraet: string; p_server?: string }
         Returns: string
@@ -2500,6 +2539,7 @@ export type Database = {
         | "picker"
         | "erzeuger"
         | "kunde"
+      aufwandmenge_einheit: "l_ha" | "kg_ha"
       beleg_art: "schale" | "reihenblock" | "steige"
       charge_status: "offen" | "gekuehlt" | "verladen" | "ausgeliefert"
       dokument_kategorie:
@@ -2701,6 +2741,7 @@ export const Constants = {
         "erzeuger",
         "kunde",
       ],
+      aufwandmenge_einheit: ["l_ha", "kg_ha"],
       beleg_art: ["schale", "reihenblock", "steige"],
       charge_status: ["offen", "gekuehlt", "verladen", "ausgeliefert"],
       dokument_kategorie: [

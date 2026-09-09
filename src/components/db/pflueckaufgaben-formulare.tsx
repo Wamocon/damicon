@@ -11,6 +11,7 @@ import {
   mengeMelden,
 } from "@/lib/actions/pflueckaufgaben";
 import { fehler, leer, ok, type AktionsStatus } from "@/lib/actions/status";
+import { QualitaetsReferenz } from "@/components/db/qualitaets-referenz";
 import {
   AktionsMeldung,
   Auswahl,
@@ -202,6 +203,7 @@ export function BelegUploadFormular({ aufgabeId }: { aufgabeId: string }) {
           { wert: "steige", text: t("art.steige") },
         ]}
       />
+      <QualitaetsReferenz />
       <label className="block space-y-1">
         <span className="text-[11px] font-semibold text-card-foreground">
           {t("feld.datei")}

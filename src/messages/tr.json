@@ -937,7 +937,8 @@
       "buchung": "\"{wert}\" kaydı işlendi.",
       "mfaEntfernt": "İkinci faktör kaldırıldı.",
       "rotationsplanGeneriert": "{wert} yeni tarih oluşturuldu.",
-      "rotationsplanStatus": "{wert} için tarih güncellendi."
+      "rotationsplanStatus": "{wert} için tarih güncellendi.",
+      "steigeKontrolliert": "{wert} kasası kontrol edildi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -1078,7 +1079,10 @@
     "feld": {
       "block": "Sıra bloğu",
       "mittel": "Bitki koruma ilacı",
-      "datum": "İşlem tarihi"
+      "datum": "İşlem tarihi",
+      "menge": "Uygulama miktarı",
+      "einheit": "Birim",
+      "person": "Uygulayan"
     }
   },
   "complianceAnsicht": {
@@ -1254,6 +1258,9 @@
     "menge": "Miktar",
     "ausschuss": "Fire",
     "steigen": "Kasa",
+    "steigenKontrollieren": "Kontrol et",
+    "steigenKontrollierenAria": "{code} kasasını kontrol et",
+    "steigenKontrolliertLabel": "kontrol edildi",
     "steigenTitel": "Kişiyle birlikte kasalar",
     "ohnePerson": "kişi yok",
     "weitereSteigen": "ve {anzahl} tane daha",
@@ -1266,7 +1273,10 @@
       "regel": "Toplama ile soğutma arasında en fazla 60 dakika geçebilir. Bu sınır aşılırsa sonraki her önlem etkisizdir.",
       "nachMinuten": "{minuten} dakika sonra",
       "knopf": "Soğutma ölçümü kaydet",
-      "grenzwertig": "sınırda"
+      "grenzwertig": "sınırda",
+      "verbleibend": "sınıra {minuten} dakika kaldı",
+      "fristUeberschritten": "60 dakikalık sınır {minuten} dakika aşıldı",
+      "alarm": "Alarm"
     },
     "ergebnis": {
       "ok": "uygun",
@@ -1384,6 +1394,16 @@
     "q3Text": "Tek bir noktada bile olsa gri kaplama. Tarlada kalır: kapalı bir kapta bir gecede tüm katmana bulaşır.",
     "trayTitle": "En pahalı hata bir yükseklik",
     "trayText": "Yukarıdan bakıldığında aşırı dolu kap en iyi görünür: dolu, sık, boşluk yok. Ama kapak üst katmana baskı yapar, alt katman ise ağırlığı taşır. Ahududu kendi ağırlığını taşımaz - markete ulaştığında alt katman artık sudur. Bu sadece yandan görülebilir."
+  },
+  "qualitaetsReferenz": {
+    "aufklappen": "Kalite referansını göster",
+    "gut": "İyi",
+    "zerfallen": "Dağılmış",
+    "unreif": "Olgunlaşmadan toplanmış",
+    "druckstelle": "Ezik",
+    "schimmel": "Küf",
+    "schaleGut": "Kap iyi doldurulmuş",
+    "schaleUeberfuellt": "Kap aşırı dolu"
   },
   "reklamationStatus": {
     "offen": "Açık",

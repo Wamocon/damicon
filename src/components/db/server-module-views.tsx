@@ -36,6 +36,15 @@ export function serverModulAnsicht(
       return (
         <ReihenbloeckeAnsicht pfad={kontext.pfad} statusFilter={kontext.suche.status} />
       );
+    // Anforderung 2.4: eigenstaendiger Dashboard-Eintrag "Pflanzenschutz"
+    // zeigte bisher reine Mock-Daten (PflanzenschutzDemo), obwohl die echte
+    // Behandlungserfassung samt Aufwandmenge und Person bereits als Teil der
+    // Reihenbloecke-Ansicht existiert. Dieselbe echte Ansicht statt einer
+    // zweiten, separat zu pflegenden Oberflaeche.
+    case "pflanzenschutz":
+      return (
+        <ReihenbloeckeAnsicht pfad={kontext.pfad} statusFilter={kontext.suche.status} />
+      );
     case "pflueckaufgaben":
       return (
         <PflueckaufgabenAnsicht pfad={kontext.pfad} auswahl={kontext.suche.aufgabe} />

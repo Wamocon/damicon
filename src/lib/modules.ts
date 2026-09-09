@@ -73,7 +73,10 @@ export const modules: ModuleDef[] = [
     icon: "shield-alert",
     resource: "pflanzenschutz",
     klassifikation: "anpassen",
-    reifegrad: "demo",
+    // Anforderung 2.4: zeigt jetzt dieselbe echte Reihenbloecke-Ansicht wie
+    // das Modul "reihenbloecke" (siehe server-module-views.tsx), nicht mehr
+    // die reine Demo-Komponente.
+    reifegrad: "angebunden",
   },
   {
     key: "rotationsplan",
