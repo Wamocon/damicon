@@ -532,6 +532,18 @@ insert into public.foerderdossiers (portal, antragsnummer, titel, status, einger
   ('gosagro.kz', '2026-114', 'Foerderung Vorkuehlanlage', 'eingereicht', '2026-08-30')
   on conflict do nothing;
 
+-- Anforderung 4.12: Verknuepfung zum Nachweisdokument oben. Der gleichlautende
+-- Backfill in der Migration 20260925000000 wirkt nur auf der bereits laenger
+-- gepflegten gehosteten Instanz (dort standen beide Zeilen schon, bevor die
+-- Migration lief) - bei einem frischen Aufbau (Migrationen laufen VOR diesem
+-- Skript) traf er noch auf leere Tabellen. Hier, nachdem beide Zeilen oben
+-- garantiert existieren, greift er zuverlaessig.
+update public.dokumente d
+   set foerderdossier_id = f.id
+  from public.foerderdossiers f
+ where d.bezug = 'Antrag ' || f.antragsnummer
+   and d.foerderdossier_id is null;
+
 -- --- Compliance: Zweckverzeichnis, Einwilligungen, Vorfaelle --------------
 -- public.profiles ist an dieser Stelle noch leer (Auth-Nutzer entstehen erst
 -- ueber `npm run db:seed-auth` NACH diesem Skript) - Betroffene und Akteure
