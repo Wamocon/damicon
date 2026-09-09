@@ -946,6 +946,7 @@
       "erloes": "Revenue",
       "kosten": "Cost",
       "deckungsbeitrag": "Contribution margin",
+      "deckungsbeitragJeKg": "per kilogram",
       "datum": "Date",
       "kostentraegerSpalte": "Cost object",
       "typ": "Type",

@@ -26,6 +26,10 @@ export interface DeckungsbeitragZeile {
   kostenTenge: number;
   deckungsbeitragTenge: number;
   buchungen: number;
+  /** Anforderung 4.3: tatsaechlich geerntete Menge, null bei Zukauf-Kostentraegern ohne eigenen Reihenblock. */
+  mengeKg: number | null;
+  /** Anforderung 4.3: deckungsbeitragTenge / mengeKg, null wenn mengeKg fehlt oder 0 ist. */
+  deckungsbeitragJeKgTenge: number | null;
 }
 
 export interface LedgerEintrag {
@@ -74,6 +78,8 @@ export const demoDeckungsbeitrag: DeckungsbeitragZeile[] = [
     kostenTenge: 41200,
     deckungsbeitragTenge: 67580,
     buchungen: 2,
+    mengeKg: 145.5,
+    deckungsbeitragJeKgTenge: 464.47,
   },
   {
     kostentraegerId: "demo-kt-2",
@@ -86,6 +92,8 @@ export const demoDeckungsbeitrag: DeckungsbeitragZeile[] = [
     kostenTenge: 38900,
     deckungsbeitragTenge: 53920,
     buchungen: 2,
+    mengeKg: 128.0,
+    deckungsbeitragJeKgTenge: 421.25,
   },
   {
     kostentraegerId: "demo-kt-3",
@@ -98,6 +106,8 @@ export const demoDeckungsbeitrag: DeckungsbeitragZeile[] = [
     kostenTenge: 27300,
     deckungsbeitragTenge: 34200,
     buchungen: 2,
+    mengeKg: 98.5,
+    deckungsbeitragJeKgTenge: 347.21,
   },
   {
     kostentraegerId: "demo-kt-4",
@@ -110,6 +120,10 @@ export const demoDeckungsbeitrag: DeckungsbeitragZeile[] = [
     kostenTenge: 44100,
     deckungsbeitragTenge: 10500,
     buchungen: 2,
+    // Zukauf-Kostentraeger ohne eigenen Reihenblock: keine Pflueckaufgabe,
+    // also auch im Demo-Modus konsistent keine Menge/kein Wert je Kilogramm.
+    mengeKg: null,
+    deckungsbeitragJeKgTenge: null,
   },
 ];
 

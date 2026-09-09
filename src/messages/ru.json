@@ -329,6 +329,7 @@
       "erloes": "Выручка",
       "kosten": "Затраты",
       "deckungsbeitrag": "Маржинальный доход",
+      "deckungsbeitragJeKg": "за килограмм",
       "datum": "Дата",
       "kostentraegerSpalte": "Объект затрат",
       "typ": "Тип",

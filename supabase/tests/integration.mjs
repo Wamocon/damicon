@@ -2182,6 +2182,132 @@ if (leitung && brigade) {
     (erzeugerAusweise?.length ?? 0) === 0,
     `sichtbare Zeilen: ${erzeugerAusweise?.length}`,
   );
+
+  // --- Anforderung 4.3: Deckungsbeitrag je Kilogramm --------------------------
+  // Eigenstaendiges, isoliertes Testszenario mit einem klar erkennbaren
+  // Test-Erntetag (2030-01-01), damit keine Kollision mit der
+  // Unique-Constraint (reihenblock_id, sorte_id, erntetag) auf bestehenden
+  // Kostentraegern der Demo-/Seed-Daten entstehen kann.
+  {
+    // WICHTIG: finance_ledger_entries ist fuer niemanden loeschbar
+    // (block_ledger_mutation(), bereits im urspruenglichen Schema so
+    // angelegt) - dieser Test legt deshalb bewusst KEINE Ledger-Zeilen an,
+    // nur Kostentraeger/Charge/Pflueckaufgabe (die sind normal loeschbar).
+    // Ohne Ledger-Buchungen liefert coalesce(sum(...),0) korrekt 0, die
+    // Rechnung 0 / menge_kg = 0 bleibt trotzdem aussagekraeftig: sie beweist,
+    // dass der CASE-Zweig tatsaechlich rechnet (0 statt null), waehrend der
+    // Zukauf-Fall unten zeigt, dass ohne Menge korrekt null zurueckkommt.
+    const testErntetag = "2030-01-01";
+    const { data: dbBlock, error: dbBlockFehler } = await admin
+      .from("reihenbloecke")
+      .select("id")
+      .neq("status", "wartezeitgesperrt")
+      .limit(1)
+      .single();
+    const { data: dbSorte, error: dbSorteFehler } = await admin
+      .from("sorten")
+      .select("id")
+      .limit(1)
+      .single();
+
+    const { data: dbCharge, error: dbChargeFehler } = await admin
+      .from("chargen")
+      .insert({
+        code: `__it_dbkg_${Date.now()}`,
+        reihenblock_id: dbBlock?.id,
+        sorte_id: dbSorte?.id,
+        ernte_datum: testErntetag,
+      })
+      .select("id")
+      .single();
+
+    const { data: dbAufgabe, error: dbAufgabeFehler } = await admin
+      .from("pflueckaufgaben")
+      .insert({
+        code: `__it_dbkg_${Date.now()}`,
+        reihenblock_id: dbBlock?.id,
+        sorte_id: dbSorte?.id,
+        charge_id: dbCharge?.id,
+        status: "abgeschlossen",
+        zielmenge_kg: 100,
+        ist_menge_kg: 40,
+      })
+      .select("id")
+      .single();
+
+    const { data: dbKostentraeger, error: dbKostentraegerFehler } = await admin
+      .from("kostentraeger")
+      .insert({
+        reihenblock_id: dbBlock?.id,
+        sorte_id: dbSorte?.id,
+        erntetag: testErntetag,
+        bezeichnung: `__it_dbkg_${Date.now()}`,
+      })
+      .select("id")
+      .single();
+
+    const aufbauFehler =
+      dbBlockFehler || dbSorteFehler || dbChargeFehler || dbAufgabeFehler || dbKostentraegerFehler;
+    check(
+      "Anforderung 4.3: Testaufbau (Charge/Aufgabe/Kostentraeger) gelingt",
+      !aufbauFehler,
+      aufbauFehler?.message ?? "",
+    );
+
+    if (!aufbauFehler) {
+      const { data: dbView } = await admin
+        .from("deckungsbeitrag_je_kostentraeger")
+        .select("menge_kg, deckungsbeitrag_tenge, deckungsbeitrag_je_kg_tenge")
+        .eq("kostentraeger_id", dbKostentraeger.id)
+        .single();
+
+      check(
+        "Anforderung 4.3: die View summiert die tatsaechlich geerntete Menge korrekt",
+        Number(dbView?.menge_kg) === 40,
+        `menge_kg: ${dbView?.menge_kg}`,
+      );
+      check(
+        "Anforderung 4.3: Deckungsbeitrag je Kilogramm wird berechnet (0 Buchungen -> 0, nicht null)",
+        Number(dbView?.deckungsbeitrag_tenge) === 0 &&
+          Number(dbView?.deckungsbeitrag_je_kg_tenge) === 0,
+        `deckungsbeitrag_tenge: ${dbView?.deckungsbeitrag_tenge}, je_kg: ${dbView?.deckungsbeitrag_je_kg_tenge}`,
+      );
+    }
+
+    // Zukauf-analoger Fall: Kostentraeger ohne reihenblock_id bekommt keine
+    // Menge und keinen Wert je Kilogramm, statt eines falschen 0-Divisors.
+    const { data: zukaufKostentraeger, error: zukaufFehler } = await admin
+      .from("kostentraeger")
+      .insert({
+        reihenblock_id: null,
+        sorte_id: dbSorte?.id,
+        erntetag: testErntetag,
+        bezeichnung: `__it_dbkg_zukauf_${Date.now()}`,
+      })
+      .select("id")
+      .single();
+    if (!zukaufFehler) {
+      const { data: zukaufView } = await admin
+        .from("deckungsbeitrag_je_kostentraeger")
+        .select("menge_kg, deckungsbeitrag_je_kg_tenge")
+        .eq("kostentraeger_id", zukaufKostentraeger.id)
+        .single();
+      check(
+        "Anforderung 4.3: ein Kostentraeger ohne eigenen Reihenblock liefert keinen Wert je Kilogramm",
+        zukaufView?.menge_kg === null && zukaufView?.deckungsbeitrag_je_kg_tenge === null,
+        `menge_kg: ${zukaufView?.menge_kg}, je_kg: ${zukaufView?.deckungsbeitrag_je_kg_tenge}`,
+      );
+    }
+
+    // Aufraeumen: nur Kostentraeger/Pflueckaufgabe/Charge, niemals
+    // finance_ledger_entries (siehe Hinweis oben).
+    const aufzuraeumendeKt = [dbKostentraeger?.id, zukaufKostentraeger?.id].filter(Boolean);
+    if (aufzuraeumendeKt.length) {
+      await admin.from("kostentraeger").delete().in("id", aufzuraeumendeKt);
+    }
+    if (dbAufgabe?.id) await admin.from("pflueckaufgaben").delete().eq("id", dbAufgabe.id);
+    if (dbCharge?.id) await admin.from("chargen").delete().eq("id", dbCharge.id);
+  }
 }
 
 console.log("");

@@ -84,11 +84,12 @@ export async function FinanzenAnsicht() {
             t("col.erloes"),
             t("col.kosten"),
             t("col.deckungsbeitrag"),
+            t("col.deckungsbeitragJeKg"),
           ]}
         >
           {deckungsbeitrag.length === 0 ? (
             <tr>
-              <td colSpan={7} className="px-3 py-4 text-center text-xs text-muted-foreground">
+              <td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground">
                 {t("keineKostentraeger")}
               </td>
             </tr>
@@ -112,6 +113,13 @@ export async function FinanzenAnsicht() {
                   <StatusPill tone={z.deckungsbeitragTenge >= 0 ? "success" : "warning"}>
                     {geld(z.deckungsbeitragTenge)}
                   </StatusPill>
+                </td>
+                {/* Anforderung 4.3: Deckungsbeitrag je Kilogramm, null bei
+                    Zukauf-Kostentraegern ohne eigene Pflueckaufgabe. */}
+                <td className="px-3 py-2.5 text-muted-foreground">
+                  {z.deckungsbeitragJeKgTenge === null
+                    ? "–"
+                    : `${format.number(z.deckungsbeitragJeKgTenge, { maximumFractionDigits: 0 })} ₸/kg`}
                 </td>
               </tr>
             ))

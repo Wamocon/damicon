@@ -72,6 +72,9 @@ export async function ladeFinanzenUebersicht(): Promise<FinanzenUebersicht> {
       kostenTenge: Number(r.kosten_tenge),
       deckungsbeitragTenge: Number(r.deckungsbeitrag_tenge),
       buchungen: Number(r.buchungen),
+      mengeKg: r.menge_kg === null ? null : Number(r.menge_kg),
+      deckungsbeitragJeKgTenge:
+        r.deckungsbeitrag_je_kg_tenge === null ? null : Number(r.deckungsbeitrag_je_kg_tenge),
     }));
 
   const ledger: LedgerEintrag[] = (ledgerRows ?? []).map((l) => ({

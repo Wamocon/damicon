@@ -2388,11 +2388,13 @@ export type Database = {
           b2b_kunde_name: string | null
           bezeichnung: string | null
           buchungen: number | null
+          deckungsbeitrag_je_kg_tenge: number | null
           deckungsbeitrag_tenge: number | null
           erloes_tenge: number | null
           erntetag: string | null
           kosten_tenge: number | null
           kostentraeger_id: string | null
+          menge_kg: number | null
           reihenblock_code: string | null
           sorte_name: string | null
         }
