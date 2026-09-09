@@ -381,6 +381,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "dokumente_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "deckungsbeitrag_je_charge"
+            referencedColumns: ["charge_id"]
+          },
+          {
             foreignKeyName: "dokumente_reihenblock_id_fkey"
             columns: ["reihenblock_id"]
             isOneToOne: false
@@ -739,6 +746,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "finance_ledger_entries_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "deckungsbeitrag_je_charge"
+            referencedColumns: ["charge_id"]
+          },
+          {
             foreignKeyName: "finance_ledger_entries_kostentraeger_id_fkey"
             columns: ["kostentraeger_id"]
             isOneToOne: false
@@ -1037,6 +1051,13 @@ export type Database = {
             referencedRelation: "chargen"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "kuehlketten_messungen_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "deckungsbeitrag_je_charge"
+            referencedColumns: ["charge_id"]
+          },
         ]
       }
       lieferungen: {
@@ -1091,6 +1112,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "chargen"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lieferungen_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "deckungsbeitrag_je_charge"
+            referencedColumns: ["charge_id"]
           },
           {
             foreignKeyName: "lieferungen_vorbestellung_id_fkey"
@@ -1562,6 +1590,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "pflueckaufgaben_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "deckungsbeitrag_je_charge"
+            referencedColumns: ["charge_id"]
+          },
+          {
             foreignKeyName: "pflueckaufgaben_reihenblock_id_fkey"
             columns: ["reihenblock_id"]
             isOneToOne: false
@@ -2029,6 +2064,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reklamationen_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "deckungsbeitrag_je_charge"
+            referencedColumns: ["charge_id"]
+          },
+          {
             foreignKeyName: "reklamationen_gemeldet_von_fkey"
             columns: ["gemeldet_von"]
             isOneToOne: false
@@ -2211,6 +2253,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "chargen"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "steigen_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "deckungsbeitrag_je_charge"
+            referencedColumns: ["charge_id"]
           },
           {
             foreignKeyName: "steigen_kontrolliert_von_profil_id_fkey"
@@ -2435,6 +2484,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "zukauf_positionen_charge_id_fkey"
+            columns: ["charge_id"]
+            isOneToOne: false
+            referencedRelation: "deckungsbeitrag_je_charge"
+            referencedColumns: ["charge_id"]
+          },
+          {
             foreignKeyName: "zukauf_positionen_nachbarbetrieb_id_fkey"
             columns: ["nachbarbetrieb_id"]
             isOneToOne: false
@@ -2452,6 +2508,22 @@ export type Database = {
       }
     }
     Views: {
+      deckungsbeitrag_je_charge: {
+        Row: {
+          buchungen: number | null
+          charge_code: string | null
+          charge_id: string | null
+          deckungsbeitrag_je_kg_tenge: number | null
+          deckungsbeitrag_tenge: number | null
+          erloes_tenge: number | null
+          ernte_datum: string | null
+          kosten_tenge: number | null
+          menge_kg: number | null
+          reihenblock_code: string | null
+          sorte_name: string | null
+        }
+        Relationships: []
+      }
       deckungsbeitrag_je_kostentraeger: {
         Row: {
           b2b_kunde_name: string | null

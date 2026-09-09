@@ -42,6 +42,27 @@ export interface LedgerEintrag {
   beschreibung: string | null;
 }
 
+// Anforderung 3.3: Deckungsbeitrag je einzelner Charge statt nur pauschal je
+// Kostentraeger, sobald eine Buchung direkt mit charge_id erfasst wurde.
+export interface DeckungsbeitragChargeZeile {
+  chargeId: string;
+  chargeCode: string;
+  ernteDatum: string | null;
+  reihenblockCode: string | null;
+  sorteName: string | null;
+  mengeKg: number | null;
+  erloesTenge: number;
+  kostenTenge: number;
+  deckungsbeitragTenge: number;
+  deckungsbeitragJeKgTenge: number | null;
+  buchungen: number;
+}
+
+export interface ChargeOption {
+  id: string;
+  code: string;
+}
+
 export interface KostentraegerOption {
   id: string;
   bezeichnung: string;
@@ -126,6 +147,44 @@ export const demoDeckungsbeitrag: DeckungsbeitragZeile[] = [
     deckungsbeitragJeKgTenge: null,
   },
 ];
+
+// Anforderung 3.3: zwei Chargen desselben Tages/Blocks wie der erste
+// Kostentraeger oben (T-N-A-01 / 2026-08-30), Erloes/Kosten/Menge summieren
+// sich exakt zu dessen Werten - im Demo-Modus sichtbar dieselbe Aufteilung
+// wie in der echten Datenbank, wenn ein Kostentraeger mehrere Chargen buendelt.
+export const demoDeckungsbeitragJeCharge: DeckungsbeitragChargeZeile[] = [
+  {
+    chargeId: "demo-charge-1",
+    chargeCode: "CH-T-N-A-01-2608301015-7F2A",
+    ernteDatum: "2026-08-30",
+    reihenblockCode: "T-N-A-01",
+    sorteName: "Polka",
+    mengeKg: 82.0,
+    erloesTenge: 61200,
+    kostenTenge: 23100,
+    deckungsbeitragTenge: 38100,
+    deckungsbeitragJeKgTenge: 464.63,
+    buchungen: 2,
+  },
+  {
+    chargeId: "demo-charge-2",
+    chargeCode: "CH-T-N-A-01-2608301430-C93B",
+    ernteDatum: "2026-08-30",
+    reihenblockCode: "T-N-A-01",
+    sorteName: "Polka",
+    mengeKg: 63.5,
+    erloesTenge: 47580,
+    kostenTenge: 18100,
+    deckungsbeitragTenge: 29480,
+    deckungsbeitragJeKgTenge: 464.25,
+    buchungen: 2,
+  },
+];
+
+export const demoChargeOptionen: ChargeOption[] = demoDeckungsbeitragJeCharge.map((z) => ({
+  id: z.chargeId,
+  code: z.chargeCode,
+}));
 
 export const demoLedgerEintraege: LedgerEintrag[] = [
   { id: "demo-le-1", kostentraegerBezeichnung: "T-N-A-01 / 2026-08-30", typ: "erloes", kategorie: "B2B-Verkauf", betragTenge: 108780, buchungsdatum: "2026-08-30", beschreibung: "Lieferung Handelskette A" },

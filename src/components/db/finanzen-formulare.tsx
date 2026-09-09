@@ -14,6 +14,7 @@ import {
 } from "@/components/db/formular-kit";
 import type {
   B2bKundeOption,
+  ChargeOption,
   KostentraegerOption,
   ReihenblockOption,
   SorteOption,
@@ -85,8 +86,11 @@ export function KostentraegerAnlegenFormular({
 
 export function BuchungErfassenFormular({
   kostentraeger,
+  chargen,
 }: {
   kostentraeger: KostentraegerOption[];
+  /** Anforderung 3.3: optionaler direkter Chargenbezug. */
+  chargen: ChargeOption[];
 }) {
   const [status, action] = useActionState(ledgerBuchungErfassen, leer);
   const t = useTranslations("finanzenAnsicht.formular.buchung");
@@ -103,6 +107,14 @@ export function BuchungErfassenFormular({
           options={[
             { wert: leerOption.wert, text: t("bitteWaehlen") },
             ...kostentraeger.map((k) => ({ wert: k.id, text: k.bezeichnung })),
+          ]}
+        />
+        <Auswahl
+          label={t("charge")}
+          name="charge_id"
+          options={[
+            { wert: leerOption.wert, text: t("keinBezug") },
+            ...chargen.map((c) => ({ wert: c.id, text: c.code })),
           ]}
         />
         <Auswahl

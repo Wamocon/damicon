@@ -2731,6 +2731,76 @@ if (leitung && brigade) {
     if (rvCharge?.id) await admin.from("chargen").delete().eq("id", rvCharge.id);
     if (rvZukaufCharge?.id) await admin.from("chargen").delete().eq("id", rvZukaufCharge.id);
   }
+
+  // --- Anforderung 3.3: Deckungsbeitrag je Charge -----------------------------
+  // finance_ledger_entries ist unloeschbar (siehe Anforderung 4.3-Zwischenfall
+  // oben) - dieser Test legt deshalb KEINE eigenen Buchungen an, sondern liest
+  // ausschliesslich das permanente Beispiel aus Migration
+  // 20260923010000_deckungsbeitrag_je_charge_beispiel.sql.
+  {
+    const { data: dbcView, error: dbcViewFehler } = await admin
+      .from("deckungsbeitrag_je_charge")
+      .select("charge_id, erloes_tenge, kosten_tenge, deckungsbeitrag_tenge, buchungen, menge_kg")
+      .eq("charge_code", "CH-BEISPIEL-JE-CHARGE")
+      .single();
+    check(
+      "Anforderung 3.3: Deckungsbeitrag je Charge wird korrekt berechnet (Erloes minus Kosten, direkt an charge_id)",
+      !dbcViewFehler &&
+        Number(dbcView?.erloes_tenge) === 20000 &&
+        Number(dbcView?.kosten_tenge) === 8000 &&
+        Number(dbcView?.deckungsbeitrag_tenge) === 12000 &&
+        Number(dbcView?.buchungen) === 2,
+      dbcViewFehler?.message ?? JSON.stringify(dbcView),
+    );
+    check(
+      "Anforderung 3.3: ohne verknuepfte Pflueckaufgabe bleibt menge_kg korrekt leer statt eines falschen Werts",
+      dbcView?.menge_kg === null,
+      `menge_kg: ${dbcView?.menge_kg}`,
+    );
+
+    if (dbcView?.charge_id) {
+      const { data: dbcLeitung } = await leitung
+        .from("deckungsbeitrag_je_charge")
+        .select("charge_id")
+        .eq("charge_id", dbcView.charge_id);
+      check(
+        "Anforderung 3.3: Betriebsleitung liest die View (RLS der Basistabellen gilt per security_invoker durch)",
+        (dbcLeitung?.length ?? 0) === 1,
+        `Zeilen: ${dbcLeitung?.length}`,
+      );
+
+      const { data: dbcBrigade } = await brigade
+        .from("deckungsbeitrag_je_charge")
+        .select("charge_id")
+        .eq("charge_id", dbcView.charge_id);
+      check(
+        "Anforderung 3.3: Brigade liest die View nicht (finance_ledger_entries bleibt Buero-only)",
+        (dbcBrigade?.length ?? 0) === 0,
+        `Zeilen: ${dbcBrigade?.length}`,
+      );
+    }
+
+    // Regressionsschutz: eine beliebige Charge ohne direkt zugeordnete Buchung
+    // taucht in der View nicht auf (INNER JOIN, kein Rauschen aus der Menge an
+    // Chargen ohne eigene Buchung).
+    const { data: irgendeineCharge } = await admin
+      .from("chargen")
+      .select("id")
+      .neq("code", "CH-BEISPIEL-JE-CHARGE")
+      .limit(1)
+      .single();
+    if (irgendeineCharge?.id) {
+      const { data: irgendeineChargeView } = await admin
+        .from("deckungsbeitrag_je_charge")
+        .select("charge_id")
+        .eq("charge_id", irgendeineCharge.id);
+      check(
+        "Anforderung 3.3: eine Charge ohne direkt zugeordnete Buchung erscheint nicht in der View",
+        (irgendeineChargeView?.length ?? 0) === 0,
+        `Zeilen: ${irgendeineChargeView?.length}`,
+      );
+    }
+  }
 }
 
 console.log("");
