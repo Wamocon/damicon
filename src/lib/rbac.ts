@@ -177,6 +177,10 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...view("ki_assistent"),
     ...crud("aggregator"),
     ...crud("schulungen"),
+    // Anforderung 4.10: die eigene Pflichtschulung nachweisen, dasselbe
+    // schmale Verb wie bei picker unten (siehe dortiger Kommentar) - crud()
+    // deckt "complete" nicht ab.
+    "schulungen:complete",
     ...view("rollen"),
   ],
   buchhaltung: [
@@ -196,6 +200,10 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...crud("reklamationen"),
     `reklamationen:approve`,
     ...view("aggregator"),
+    // Anforderung 4.10: Buchhaltung sitzt im Buero wie betriebsleitung, faellt
+    // unter dieselbe Pflichtschulungs-Zielgruppe (has_office_access()).
+    ...view("schulungen"),
+    "schulungen:complete",
   ],
   brigade: [
     ...view("dashboard"),
@@ -207,6 +215,9 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...view("qr_steigen"),
     ...view("kuehlkette"),
     ...view("schulungen"),
+    // Anforderung 4.10: Brigade ist Arbeitskraft im Feld wie picker, braucht
+    // denselben Nachweis-Vorgang fuer die eigene Pflichtschulung.
+    "schulungen:complete",
   ],
   // Sieht nur die eigene Leistung (Anforderung 7.1): view("lohn") oeffnet
   // dasselbe Lohn-Modul wie betriebsleitung/buchhaltung, die RLS-Policies

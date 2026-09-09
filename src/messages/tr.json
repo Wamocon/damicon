@@ -946,7 +946,8 @@
       "rotationsplanGeneriert": "{wert} yeni tarih oluşturuldu.",
       "rotationsplanStatus": "{wert} için tarih güncellendi.",
       "steigeKontrolliert": "{wert} kasası kontrol edildi.",
-      "einarbeitungSchritt": "Adım işaretlendi."
+      "einarbeitungSchritt": "Adım işaretlendi.",
+      "pflichtschulungTeilnahme": "Katılım kaydedildi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -1655,5 +1656,24 @@
     "leadReferenz": "Toplayıcılar için kısa oryantasyonun altı adımı, kendi dilinizde referans olarak.",
     "fortschritt": "{gesamt} adımdan {erledigt} tamamlandı",
     "abhaken": "Tamamlandı"
+  },
+  "pflichtschulungenAnsicht": {
+    "titel": "Zorunlu eğitimler",
+    "lead": "Her yıl katılım kanıtıyla yenilenmesi gereken eğitimler, örneğin iş güvenliği. \"Yakında gerekiyor\" ve \"süresi geçti\" her eğitim için belirlenen geçerlilik süresine göre belirlenir.",
+    "keineZeilen": "Henüz zorunlu eğitim tanımlanmadı.",
+    "nachweisen": "Katılımı kaydet",
+    "col": {
+      "person": "Kişi",
+      "schulung": "Eğitim",
+      "letzteTeilnahme": "Son katılım",
+      "faelligAm": "Son tarih",
+      "status": "Durum"
+    },
+    "status": {
+      "nie": "hiç",
+      "ueberfaellig": "süresi geçti",
+      "bald_faellig": "yakında gerekiyor",
+      "aktuell": "güncel"
+    }
   }
 }

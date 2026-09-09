@@ -11,6 +11,7 @@ import { RotationsplanAnsicht } from "@/components/db/rotationsplan-ansicht";
 import { ZukaufAnsicht } from "@/components/db/zukauf-ansicht";
 import { QrSteigenAnsicht } from "@/components/db/qr-steigen-ansicht";
 import { EinarbeitungAnsicht } from "@/components/db/einarbeitung-ansicht";
+import { PflichtschulungenAnsicht } from "@/components/db/pflichtschulungen-ansicht";
 import type { ModuleDef } from "@/lib/modules";
 
 // Module, die in Meilenstein B an der Datenbank haengen. Sie werden als Server
@@ -70,8 +71,17 @@ export function serverModulAnsicht(
       return <QrSteigenAnsicht />;
     // Anforderung 2.12: bebilderte Kurzeinarbeitung, mehrsprachig ueber
     // einarbeitung_schritte, personalisierter Fortschritt fuer Picker.
+    // Anforderung 4.10: jaehrliche Pflichtschulung mit Nachweis und
+    // Fristueberwachung, eigenstaendige Tabelle im selben Modul - andere
+    // Zielgruppe (die ganze Belegschaft statt nur Picker) und anderer
+    // fachlicher Charakter (wiederkehrend statt einmalig).
     case "schulungen":
-      return <EinarbeitungAnsicht />;
+      return (
+        <div className="space-y-6">
+          <EinarbeitungAnsicht />
+          <PflichtschulungenAnsicht />
+        </div>
+      );
     default:
       return null;
   }

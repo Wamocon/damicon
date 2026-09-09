@@ -732,7 +732,8 @@
       "rotationsplanGeneriert": "{wert} neue Termine erzeugt.",
       "rotationsplanStatus": "Termin für {wert} aktualisiert.",
       "steigeKontrolliert": "Steige {wert} kontrolliert.",
-      "einarbeitungSchritt": "Schritt abgehakt."
+      "einarbeitungSchritt": "Schritt abgehakt.",
+      "pflichtschulungTeilnahme": "Teilnahme erfasst."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1655,5 +1656,24 @@
     "leadReferenz": "Sechs Schritte der Kurzeinarbeitung für Pflückerinnen und Pflücker, als Referenz in der eigenen Sprache.",
     "fortschritt": "{erledigt} von {gesamt} Schritten erledigt",
     "abhaken": "Erledigt"
+  },
+  "pflichtschulungenAnsicht": {
+    "titel": "Pflichtschulungen",
+    "lead": "Jährlich aufzufrischende Schulungen mit Nachweis, zum Beispiel Arbeitssicherheit. Der Status „bald fällig“ und „überfällig“ richtet sich nach der Frist je Schulung.",
+    "keineZeilen": "Keine Pflichtschulung hinterlegt.",
+    "nachweisen": "Teilnahme nachweisen",
+    "col": {
+      "person": "Person",
+      "schulung": "Schulung",
+      "letzteTeilnahme": "Letzte Teilnahme",
+      "faelligAm": "Fällig am",
+      "status": "Status"
+    },
+    "status": {
+      "nie": "noch nie",
+      "ueberfaellig": "überfällig",
+      "bald_faellig": "bald fällig",
+      "aktuell": "aktuell"
+    }
   }
 }

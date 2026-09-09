@@ -732,7 +732,8 @@
       "rotationsplanGeneriert": "{wert} new dates created.",
       "rotationsplanStatus": "Date for {wert} updated.",
       "steigeKontrolliert": "Crate {wert} inspected.",
-      "einarbeitungSchritt": "Step checked off."
+      "einarbeitungSchritt": "Step checked off.",
+      "pflichtschulungTeilnahme": "Attendance recorded."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1655,5 +1656,24 @@
     "leadReferenz": "Six steps of the quick onboarding checklist for pickers, shown here as reference material in your own language.",
     "fortschritt": "{erledigt} of {gesamt} steps done",
     "abhaken": "Done"
+  },
+  "pflichtschulungenAnsicht": {
+    "titel": "Mandatory training",
+    "lead": "Training that must be refreshed every year with proof of attendance, for example workplace safety. \"Due soon\" and \"overdue\" follow the validity period set on each training.",
+    "keineZeilen": "No mandatory training set up yet.",
+    "nachweisen": "Record attendance",
+    "col": {
+      "person": "Person",
+      "schulung": "Training",
+      "letzteTeilnahme": "Last attended",
+      "faelligAm": "Due on",
+      "status": "Status"
+    },
+    "status": {
+      "nie": "never",
+      "ueberfaellig": "overdue",
+      "bald_faellig": "due soon",
+      "aktuell": "current"
+    }
   }
 }

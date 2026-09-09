@@ -330,6 +330,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "datenschutzvorfaelle_verantwortlich_profil_id_fkey"
+            columns: ["verantwortlich_profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
         ]
       }
       dokumente: {
@@ -457,6 +464,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "drittweitergaben_betroffener_profil_id_fkey"
+            columns: ["betroffener_profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
           },
           {
             foreignKeyName: "drittweitergaben_zweck_id_fkey"
@@ -603,6 +617,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "einwilligungen_betroffener_profil_id_fkey"
+            columns: ["betroffener_profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
           },
           {
             foreignKeyName: "einwilligungen_zweck_id_fkey"
@@ -1404,6 +1425,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "personenbezogene_zugriffe_akteur_id_fkey"
+            columns: ["akteur_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+          {
             foreignKeyName: "personenbezogene_zugriffe_betroffener_b2b_kunde_id_fkey"
             columns: ["betroffener_b2b_kunde_id"]
             isOneToOne: false
@@ -1423,6 +1451,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personenbezogene_zugriffe_betroffener_profil_id_fkey"
+            columns: ["betroffener_profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
           },
           {
             foreignKeyName: "personenbezogene_zugriffe_zweck_id_fkey"
@@ -1496,6 +1531,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pflanzenschutz_behandlungen_durchgefuehrt_von_profil_id_fkey"
+            columns: ["durchgefuehrt_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
           },
           {
             foreignKeyName: "pflanzenschutz_behandlungen_psm_mittel_id_fkey"
@@ -1982,6 +2024,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "reklamation_ereignisse_autor_id_fkey"
+            columns: ["autor_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+          {
             foreignKeyName: "reklamation_ereignisse_reklamation_id_fkey"
             columns: ["reklamation_id"]
             isOneToOne: false
@@ -2077,6 +2126,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "reklamationen_gemeldet_von_fkey"
+            columns: ["gemeldet_von"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
         ]
       }
       rotationsplan_eintraege: {
@@ -2137,11 +2193,83 @@ export type Database = {
           },
         ]
       }
+      schulungsteilnahmen: {
+        Row: {
+          abgeschlossen_am: string
+          created_at: string
+          erfasst_von_profil_id: string | null
+          id: string
+          profil_id: string
+          schulungsvideo_id: string
+        }
+        Insert: {
+          abgeschlossen_am?: string
+          created_at?: string
+          erfasst_von_profil_id?: string | null
+          id?: string
+          profil_id: string
+          schulungsvideo_id: string
+        }
+        Update: {
+          abgeschlossen_am?: string
+          created_at?: string
+          erfasst_von_profil_id?: string | null
+          id?: string
+          profil_id?: string
+          schulungsvideo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "schulungsteilnahmen_erfasst_von_profil_id_fkey"
+            columns: ["erfasst_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schulungsteilnahmen_erfasst_von_profil_id_fkey"
+            columns: ["erfasst_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+          {
+            foreignKeyName: "schulungsteilnahmen_profil_id_fkey"
+            columns: ["profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "schulungsteilnahmen_profil_id_fkey"
+            columns: ["profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+          {
+            foreignKeyName: "schulungsteilnahmen_schulungsvideo_id_fkey"
+            columns: ["schulungsvideo_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["schulungsvideo_id"]
+          },
+          {
+            foreignKeyName: "schulungsteilnahmen_schulungsvideo_id_fkey"
+            columns: ["schulungsvideo_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsvideos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       schulungsvideos: {
         Row: {
           created_at: string
           dauer_sekunden: number | null
+          frist_monate: number
           id: string
+          pflicht: boolean
           sprachen: string[]
           storage_path: string | null
           thema: string | null
@@ -2151,7 +2279,9 @@ export type Database = {
         Insert: {
           created_at?: string
           dauer_sekunden?: number | null
+          frist_monate?: number
           id?: string
+          pflicht?: boolean
           sprachen?: string[]
           storage_path?: string | null
           thema?: string | null
@@ -2161,7 +2291,9 @@ export type Database = {
         Update: {
           created_at?: string
           dauer_sekunden?: number | null
+          frist_monate?: number
           id?: string
+          pflicht?: boolean
           sprachen?: string[]
           storage_path?: string | null
           thema?: string | null
@@ -2269,6 +2401,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "steigen_kontrolliert_von_profil_id_fkey"
+            columns: ["kontrolliert_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+          {
             foreignKeyName: "steigen_pflueckaufgabe_id_fkey"
             columns: ["pflueckaufgabe_id"]
             isOneToOne: false
@@ -2352,6 +2491,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "verarbeitungszwecke_verantwortlich_profil_id_fkey"
+            columns: ["verantwortlich_profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
           },
         ]
       }
@@ -2538,6 +2684,20 @@ export type Database = {
           menge_kg: number | null
           reihenblock_code: string | null
           sorte_name: string | null
+        }
+        Relationships: []
+      }
+      schulungsteilnahmen_status: {
+        Row: {
+          faellig_am: string | null
+          frist_monate: number | null
+          full_name: string | null
+          letzte_teilnahme_am: string | null
+          profil_id: string | null
+          role: Database["public"]["Enums"]["app_role"] | null
+          schulungsvideo_id: string | null
+          status: string | null
+          titel: string | null
         }
         Relationships: []
       }

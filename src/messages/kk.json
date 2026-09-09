@@ -946,7 +946,8 @@
       "rotationsplanGeneriert": "{wert} жаңа мерзім құрылды.",
       "rotationsplanStatus": "{wert} үшін мерзім жаңартылды.",
       "steigeKontrolliert": "{wert} жәшігі тексерілді.",
-      "einarbeitungSchritt": "Қадам белгіленді."
+      "einarbeitungSchritt": "Қадам белгіленді.",
+      "pflichtschulungTeilnahme": "Қатысу тіркелді."
     },
     "fehler": {
       "eingabe": "Барлық міндетті өрістерді толтырыңыз.",
@@ -1655,5 +1656,24 @@
     "leadReferenz": "Терімшілерге арналған қысқа кіріспе оқытудың алты қадамы, өз тіліңізде анықтама ретінде.",
     "fortschritt": "{gesamt} қадамның {erledigt} орындалды",
     "abhaken": "Орындалды"
+  },
+  "pflichtschulungenAnsicht": {
+    "titel": "Міндетті оқыту",
+    "lead": "Әр жыл сайын қатысу дәлелдемесімен жаңартылуы тиіс оқыту, мысалы еңбек қауіпсіздігі. \"Жақында керек\" және \"мерзімі өтті\" әр оқытуға белгіленген жарамдылық мерзіміне байланысты.",
+    "keineZeilen": "Әзірге міндетті оқыту белгіленбеген.",
+    "nachweisen": "Қатысуды тіркеу",
+    "col": {
+      "person": "Адам",
+      "schulung": "Оқыту",
+      "letzteTeilnahme": "Соңғы қатысу",
+      "faelligAm": "Мерзімі",
+      "status": "Мәртебесі"
+    },
+    "status": {
+      "nie": "ешқашан",
+      "ueberfaellig": "мерзімі өтті",
+      "bald_faellig": "жақында керек",
+      "aktuell": "өзекті"
+    }
   }
 }

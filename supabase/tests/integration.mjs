@@ -2801,6 +2801,130 @@ if (leitung && brigade) {
       );
     }
   }
+
+  // --- Anforderung 4.10: Jaehrliche Pflichtschulung mit Nachweis und Fristueberwachung ---
+  {
+    const { data: pflichtvideo, error: pflichtvideoFehler } = await admin
+      .from("schulungsvideos")
+      .select("id, pflicht, frist_monate")
+      .eq("titel", "Arbeitssicherheit auf der Plantage")
+      .single();
+    check(
+      "Anforderung 4.10: Beispiel-Pflichtschulung ist angelegt (pflicht=true, frist_monate=12)",
+      !pflichtvideoFehler && pflichtvideo?.pflicht === true && pflichtvideo?.frist_monate === 12,
+      pflichtvideoFehler?.message ?? JSON.stringify(pflichtvideo),
+    );
+
+    const { data: leitungProfilRow } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("email", "leitung@damicon.demo")
+      .single();
+    const { data: brigadeProfilRow } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("email", "brigade@damicon.demo")
+      .single();
+
+    if (pflichtvideo?.id && leitungProfilRow?.id && brigadeProfilRow?.id) {
+      // Aufraeumen von einem etwaigen Vorlauf, damit der Testlauf wiederholbar
+      // bleibt - schulungsteilnahmen ist normal loeschbar (kein Immutability-
+      // Trigger, anders als finance_ledger_entries).
+      await admin
+        .from("schulungsteilnahmen")
+        .delete()
+        .eq("schulungsvideo_id", pflichtvideo.id)
+        .in("profil_id", [leitungProfilRow.id, brigadeProfilRow.id]);
+
+      const { data: vorherView } = await admin
+        .from("schulungsteilnahmen_status")
+        .select("status")
+        .eq("schulungsvideo_id", pflichtvideo.id)
+        .eq("profil_id", leitungProfilRow.id)
+        .single();
+      check(
+        "Anforderung 4.10: ohne Teilnahme zeigt die Fristueberwachung 'nie'",
+        vorherView?.status === "nie",
+        `status: ${vorherView?.status}`,
+      );
+
+      // Selbstauskunft: Brigade meldet die eigene Teilnahme.
+      const { error: brigadeEigeneFehler } = await brigade
+        .from("schulungsteilnahmen")
+        .insert({ schulungsvideo_id: pflichtvideo.id, profil_id: brigadeProfilRow.id });
+      check(
+        "Anforderung 4.10: Brigade meldet die eigene Teilnahme (RLS schulungsteilnahmen_insert_own)",
+        !brigadeEigeneFehler,
+        brigadeEigeneFehler?.message ?? "",
+      );
+
+      // Brigade darf nicht fuer die Betriebsleitung erfassen (fremde profil_id,
+      // kein Buero-Recht).
+      const { error: brigadeFremdFehler } = await brigade
+        .from("schulungsteilnahmen")
+        .insert({ schulungsvideo_id: pflichtvideo.id, profil_id: leitungProfilRow.id });
+      check(
+        "Anforderung 4.10: Brigade kann keine Teilnahme fuer eine fremde profil_id erfassen (RLS-WITH-CHECK)",
+        !!brigadeFremdFehler,
+        brigadeFremdFehler?.code ?? "kein Fehler - RLS-Luecke!",
+      );
+
+      // Betriebsleitung (Buero) meldet die eigene Teilnahme.
+      const { error: leitungEigeneFehler } = await leitung
+        .from("schulungsteilnahmen")
+        .insert({ schulungsvideo_id: pflichtvideo.id, profil_id: leitungProfilRow.id });
+      check(
+        "Anforderung 4.10: Betriebsleitung meldet die eigene Teilnahme",
+        !leitungEigeneFehler,
+        leitungEigeneFehler?.message ?? "",
+      );
+
+      const { data: nachherView, error: nachherViewFehler } = await admin
+        .from("schulungsteilnahmen_status")
+        .select("status, faellig_am, letzte_teilnahme_am")
+        .eq("schulungsvideo_id", pflichtvideo.id)
+        .eq("profil_id", leitungProfilRow.id)
+        .single();
+      check(
+        "Anforderung 4.10: nach der Teilnahme zeigt die Fristueberwachung 'aktuell' mit errechnetem Faelligkeitsdatum",
+        !nachherViewFehler &&
+          nachherView?.status === "aktuell" &&
+          !!nachherView?.faellig_am &&
+          !!nachherView?.letzte_teilnahme_am,
+        nachherViewFehler?.message ?? JSON.stringify(nachherView),
+      );
+
+      // RLS-Sichtbarkeit: Brigade sieht in der Fristueberwachung nur die
+      // eigene Zeile, nicht die der Betriebsleitung.
+      const { data: brigadeSichtLeitung } = await brigade
+        .from("schulungsteilnahmen_status")
+        .select("profil_id")
+        .eq("schulungsvideo_id", pflichtvideo.id)
+        .eq("profil_id", leitungProfilRow.id);
+      check(
+        "Anforderung 4.10: Brigade sieht die Fristueberwachungszeile der Betriebsleitung nicht (RLS profiles_select_self)",
+        (brigadeSichtLeitung?.length ?? 0) === 0,
+        `Zeilen: ${brigadeSichtLeitung?.length}`,
+      );
+
+      const { data: leitungSichtAlle } = await leitung
+        .from("schulungsteilnahmen_status")
+        .select("profil_id")
+        .eq("schulungsvideo_id", pflichtvideo.id)
+        .in("profil_id", [leitungProfilRow.id, brigadeProfilRow.id]);
+      check(
+        "Anforderung 4.10: Betriebsleitung sieht die Fristueberwachungszeilen beider Personen (Buero-Sicht)",
+        (leitungSichtAlle?.length ?? 0) === 2,
+        `Zeilen: ${leitungSichtAlle?.length}`,
+      );
+
+      await admin
+        .from("schulungsteilnahmen")
+        .delete()
+        .eq("schulungsvideo_id", pflichtvideo.id)
+        .in("profil_id", [leitungProfilRow.id, brigadeProfilRow.id]);
+    }
+  }
 }
 
 console.log("");
