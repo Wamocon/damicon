@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { Send, ThermometerSnowflake } from "lucide-react";
 import { Card, Section, StatusPill } from "@/components/ui/kit";
 import { ModulePlaceholder } from "@/components/dashboard/module-meta";
@@ -11,10 +11,11 @@ import type { ModuleDef } from "@/lib/modules";
 // 60-Minuten-Grenze zwischen Pfluecken und Vorkuehlung, Zieltemperatur 0-1 C.
 export function KuehlketteMock({ module }: { module: ModuleDef }) {
   const t = useTranslations("kuehlketteMock");
+  const format = useFormatter();
   const chargen = [
-    { id: "CH-0902-14", block: "T-N-A-01", minuten: 41, temp: "3,8 °C" },
-    { id: "CH-0902-15", block: "T-O-A-01", minuten: 58, temp: "6,1 °C" },
-    { id: "CH-0902-12", block: "T-N-A-03", minuten: 72, temp: "8,4 °C" },
+    { id: "CH-0902-14", block: "T-N-A-01", minuten: 41, temp: 3.8 },
+    { id: "CH-0902-15", block: "T-O-A-01", minuten: 58, temp: 6.1 },
+    { id: "CH-0902-12", block: "T-N-A-03", minuten: 72, temp: 8.4 },
   ];
 
   return (
@@ -40,7 +41,7 @@ export function KuehlketteMock({ module }: { module: ModuleDef }) {
                   </StatusPill>
                 </div>
                 <p className="mt-2 text-3xl font-black text-foreground">
-                  {charge.temp}
+                  {format.number(charge.temp, { minimumFractionDigits: 1 })} °C
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {t("block")} {charge.block}

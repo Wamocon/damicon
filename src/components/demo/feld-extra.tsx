@@ -1,11 +1,12 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { Card, DataTable, Section, StatusPill } from "@/components/ui/kit";
 import { reihenbloecke } from "@/lib/domain/reihenbloecke";
 
 export function PflanzenschutzDemo() {
   const t = useTranslations("pflanzenschutzDemo");
+  const format = useFormatter();
   const gesperrt = reihenbloecke.filter(
     (block) => block.status === "wartezeitgesperrt" && block.sperre,
   );
@@ -37,13 +38,13 @@ export function PflanzenschutzDemo() {
                 {block.sperre!.mittel}
               </td>
               <td className="px-3 py-2.5 text-muted-foreground">
-                {block.sperre!.behandeltAm}
+                {format.dateTime(new Date(block.sperre!.behandeltAm), { dateStyle: "medium" })}
               </td>
               <td className="px-3 py-2.5 text-muted-foreground">
                 {block.sperre!.wartezeitTage} {t("days")}
               </td>
               <td className="px-3 py-2.5 font-semibold text-foreground">
-                {block.sperre!.freigabeAm}
+                {format.dateTime(new Date(block.sperre!.freigabeAm), { dateStyle: "medium" })}
               </td>
               <td className="px-3 py-2.5">
                 <StatusPill tone="danger">{t("locked")}</StatusPill>

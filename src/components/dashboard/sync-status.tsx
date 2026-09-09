@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { CloudOff, RefreshCw, Wifi, X } from "lucide-react";
 import { useOnlineStatus } from "@/lib/offline/use-online-status";
 import {
@@ -33,6 +33,7 @@ const statusTon: Record<WarteschlangenEintrag["status"], Tone> = {
 
 export function SyncStatus() {
   const t = useTranslations("sync");
+  const format = useFormatter();
   const router = useRouter();
   const online = useOnlineStatus();
   const [eintraege, setEintraege] = useState<WarteschlangenEintrag[]>([]);
@@ -171,7 +172,7 @@ export function SyncStatus() {
                         {t(`aktionstyp.${eintrag.aktionTyp}` as `aktionstyp.${AktionTyp}`)}
                       </p>
                       <p className="text-[10px] text-muted-foreground">
-                        {new Date(eintrag.geraetZeitpunkt).toLocaleTimeString()}
+                        {format.dateTime(new Date(eintrag.geraetZeitpunkt), { timeStyle: "medium" })}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-1.5">

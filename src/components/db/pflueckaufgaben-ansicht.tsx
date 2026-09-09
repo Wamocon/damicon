@@ -154,7 +154,11 @@ export async function PflueckaufgabenAnsicht({
                     </span>
                     {aufgabe.qualitaetsfaktor ? (
                       <span>
-                        {t("qFactor")} {aufgabe.qualitaetsfaktor.toFixed(2)}
+                        {t("qFactor")}{" "}
+                        {format.number(aufgabe.qualitaetsfaktor, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </span>
                     ) : null}
                   </div>

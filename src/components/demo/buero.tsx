@@ -1,6 +1,6 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { Check, Minus } from "lucide-react";
 import { Card, DataTable, Section, StatusPill } from "@/components/ui/kit";
 import { hasPermission, roleDefinitions, type Resource } from "@/lib/rbac";
@@ -33,13 +33,15 @@ export function RollenDemo() {
                 <p className="text-sm font-black text-card-foreground">
                   {roleT(role.key)}
                 </p>
-                <StatusPill tone="neutral">1Çatı: {role.catiRole}</StatusPill>
+                <StatusPill tone="neutral">
+                  1Çatı: {role.catiRole ?? t("catiRole.keine")}
+                </StatusPill>
               </div>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
                 {roleT(`descriptions.${role.key}`)}
               </p>
               <p className="mt-2 text-[11px] uppercase tracking-wide text-muted-foreground">
-                {t("scope")}: {role.scope} · Level {role.level}
+                {t("scope")}: {t(`scopeWert.${role.scope}`)} · {t("level")} {role.level}
               </p>
             </Card>
           ))}
@@ -77,6 +79,7 @@ export function RollenDemo() {
 
 export function PersonalDemo() {
   const t = useTranslations("personalDemo");
+  const format = useFormatter();
   return (
     <div className="space-y-6">
       <Section title={t("brigadenTitle")} description={t("brigadenLead")}>
@@ -110,7 +113,10 @@ export function PersonalDemo() {
                 </StatusPill>
               </td>
               <td className="px-3 py-2.5 text-muted-foreground">{p.schnitt7dKg} kg / 7 {t("days")}</td>
-              <td className="px-3 py-2.5 font-semibold text-foreground">{p.qualitaetsfaktor.toFixed(2)}</td>
+              <td className="px-3 py-2.5 font-semibold text-foreground">{format.number(p.qualitaetsfaktor, {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}</td>
             </tr>
           ))}
         </DataTable>

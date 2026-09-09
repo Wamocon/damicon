@@ -1,12 +1,13 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import { PlayCircle } from "lucide-react";
 import { Card, DataTable, Section, StatusPill } from "@/components/ui/kit";
 import { schulungsvideos, sorten } from "@/lib/domain/betrieb-data";
 
 export function SortenkatalogDemo() {
   const t = useTranslations("sortenkatalogDemo");
+  const format = useFormatter();
 
   return (
     <div className="space-y-6">
@@ -30,10 +31,10 @@ export function SortenkatalogDemo() {
                   </StatusPill>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  {t("window")}: {sorte.fenster}
+                  {t("window")}: {t(`fenster.${sorte.id}`)}
                 </p>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  {t("shale")}: {sorte.schaleG} g · {sorte.preis}
+                  {t("shale")}: {sorte.schaleG} g · {format.number(sorte.preisTengeKg)} ₸/kg
                 </p>
                 <div className="mt-3">
                   <div className="flex justify-between text-[11px] text-muted-foreground">
@@ -75,10 +76,12 @@ export function SchulungenDemo() {
               <td className="px-3 py-2.5">
                 <span className="inline-flex items-center gap-2 font-semibold text-foreground">
                   <PlayCircle className="h-4 w-4 text-primary" />
-                  {video.titel}
+                  {t(`video.${video.id}`)}
                 </span>
               </td>
-              <td className="px-3 py-2.5 text-muted-foreground">{video.thema}</td>
+              <td className="px-3 py-2.5 text-muted-foreground">
+                {t(`thema.${video.thema}`)}
+              </td>
               <td className="px-3 py-2.5 text-muted-foreground">{video.dauer}</td>
               <td className="px-3 py-2.5">
                 <span className="flex flex-wrap gap-1">

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
 import { Inter, Manrope } from "next/font/google";
@@ -33,6 +33,16 @@ const manrope = Manrope({
   variable: "--font-manrope",
   display: "swap",
 });
+
+// Faerbt die Browserleiste auf Mobilgeraeten - bisher blieb sie grau, waehrend
+// die Seite darunter die Landesfarben traegt. Zwei Werte, damit sie dem
+// Farbschema folgt: Koek im hellen, das Nachtblau des Dark Mode im dunklen.
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#00768f" },
+    { media: "(prefers-color-scheme: dark)", color: "#04161c" },
+  ],
+};
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
