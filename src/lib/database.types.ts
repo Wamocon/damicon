@@ -460,6 +460,75 @@ export type Database = {
           },
         ]
       }
+      einarbeitung_fortschritt: {
+        Row: {
+          created_at: string
+          erledigt_am: string
+          id: string
+          pfluecker_id: string
+          schritt_id: string
+        }
+        Insert: {
+          created_at?: string
+          erledigt_am?: string
+          id?: string
+          pfluecker_id: string
+          schritt_id: string
+        }
+        Update: {
+          created_at?: string
+          erledigt_am?: string
+          id?: string
+          pfluecker_id?: string
+          schritt_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "einarbeitung_fortschritt_pfluecker_id_fkey"
+            columns: ["pfluecker_id"]
+            isOneToOne: false
+            referencedRelation: "pfluecker"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "einarbeitung_fortschritt_schritt_id_fkey"
+            columns: ["schritt_id"]
+            isOneToOne: false
+            referencedRelation: "einarbeitung_schritte"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      einarbeitung_schritte: {
+        Row: {
+          beschreibung: Json
+          created_at: string
+          icon: string
+          id: string
+          reihenfolge: number
+          titel: Json
+          updated_at: string
+        }
+        Insert: {
+          beschreibung: Json
+          created_at?: string
+          icon: string
+          id?: string
+          reihenfolge: number
+          titel: Json
+          updated_at?: string
+        }
+        Update: {
+          beschreibung?: Json
+          created_at?: string
+          icon?: string
+          id?: string
+          reihenfolge?: number
+          titel?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       einwilligungen: {
         Row: {
           betroffener_b2b_kunde_id: string | null

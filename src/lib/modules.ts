@@ -301,7 +301,10 @@ export const modules: ModuleDef[] = [
     icon: "graduation-cap",
     resource: "schulungen",
     klassifikation: "uebernehmen",
-    reifegrad: "demo",
+    // Anforderung 2.12: mehrsprachige Kurzeinarbeitung als bebilderte
+    // Checkliste (einarbeitung_schritte/-fortschritt) loest die bisherige
+    // Mock-Ansicht ab, siehe EinarbeitungAnsicht.
+    reifegrad: "angebunden",
   },
 ];
 

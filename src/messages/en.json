@@ -731,7 +731,8 @@
       "mfaEntfernt": "Second factor removed.",
       "rotationsplanGeneriert": "{wert} new dates created.",
       "rotationsplanStatus": "Date for {wert} updated.",
-      "steigeKontrolliert": "Crate {wert} inspected."
+      "steigeKontrolliert": "Crate {wert} inspected.",
+      "einarbeitungSchritt": "Step checked off."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1632,5 +1633,12 @@
       "hinweis": "There is also a sign-in-free wall poster for the farm with a QR code to the general code entry page.",
       "oeffnen": "Open wall poster"
     }
+  },
+  "einarbeitungAnsicht": {
+    "titel": "Quick onboarding",
+    "leadEigen": "Six steps for getting started in the harvest season. Each step can be checked off individually, progress is saved.",
+    "leadReferenz": "Six steps of the quick onboarding checklist for pickers, shown here as reference material in your own language.",
+    "fortschritt": "{erledigt} of {gesamt} steps done",
+    "abhaken": "Done"
   }
 }

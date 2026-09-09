@@ -939,7 +939,8 @@
       "mfaEntfernt": "İkinci faktör kaldırıldı.",
       "rotationsplanGeneriert": "{wert} yeni tarih oluşturuldu.",
       "rotationsplanStatus": "{wert} için tarih güncellendi.",
-      "steigeKontrolliert": "{wert} kasası kontrol edildi."
+      "steigeKontrolliert": "{wert} kasası kontrol edildi.",
+      "einarbeitungSchritt": "Adım işaretlendi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -1632,5 +1633,12 @@
       "hinweis": "İşletme için ayrıca genel kod girişine QR kodu ile giriş gerektirmeyen bir duvar afişi de bulunur.",
       "oeffnen": "Duvar afişini aç"
     }
+  },
+  "einarbeitungAnsicht": {
+    "titel": "Kısa oryantasyon",
+    "leadEigen": "Hasat sezonuna başlangıç için altı adım. Her adım tek tek işaretlenebilir, ilerleme kaydedilir.",
+    "leadReferenz": "Toplayıcılar için kısa oryantasyonun altı adımı, kendi dilinizde referans olarak.",
+    "fortschritt": "{gesamt} adımdan {erledigt} tamamlandı",
+    "abhaken": "Tamamlandı"
   }
 }

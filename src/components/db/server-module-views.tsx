@@ -10,6 +10,7 @@ import { FinanzenAnsicht } from "@/components/db/finanzen-ansicht";
 import { RotationsplanAnsicht } from "@/components/db/rotationsplan-ansicht";
 import { ZukaufAnsicht } from "@/components/db/zukauf-ansicht";
 import { QrSteigenAnsicht } from "@/components/db/qr-steigen-ansicht";
+import { EinarbeitungAnsicht } from "@/components/db/einarbeitung-ansicht";
 import type { ModuleDef } from "@/lib/modules";
 
 // Module, die in Meilenstein B an der Datenbank haengen. Sie werden als Server
@@ -67,6 +68,10 @@ export function serverModulAnsicht(
       return <ZukaufAnsicht />;
     case "qr_steigen":
       return <QrSteigenAnsicht />;
+    // Anforderung 2.12: bebilderte Kurzeinarbeitung, mehrsprachig ueber
+    // einarbeitung_schritte, personalisierter Fortschritt fuer Picker.
+    case "schulungen":
+      return <EinarbeitungAnsicht />;
     default:
       return null;
   }

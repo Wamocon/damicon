@@ -731,7 +731,8 @@
       "mfaEntfernt": "Zweiter Faktor entfernt.",
       "rotationsplanGeneriert": "{wert} neue Termine erzeugt.",
       "rotationsplanStatus": "Termin für {wert} aktualisiert.",
-      "steigeKontrolliert": "Steige {wert} kontrolliert."
+      "steigeKontrolliert": "Steige {wert} kontrolliert.",
+      "einarbeitungSchritt": "Schritt abgehakt."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1632,5 +1633,12 @@
       "hinweis": "Für den Betrieb gibt es zusätzlich ein anmeldungsfreies Aushang-Poster mit QR-Code auf die allgemeine Codeeingabe.",
       "oeffnen": "Aushang-Poster öffnen"
     }
+  },
+  "einarbeitungAnsicht": {
+    "titel": "Kurzeinarbeitung",
+    "leadEigen": "Sechs Schritte für den Einstieg in die Erntesaison. Jeder Schritt lässt sich einzeln abhaken, der Fortschritt bleibt gespeichert.",
+    "leadReferenz": "Sechs Schritte der Kurzeinarbeitung für Pflückerinnen und Pflücker, als Referenz in der eigenen Sprache.",
+    "fortschritt": "{erledigt} von {gesamt} Schritten erledigt",
+    "abhaken": "Erledigt"
   }
 }

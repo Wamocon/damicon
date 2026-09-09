@@ -2308,6 +2308,134 @@ if (leitung && brigade) {
     if (dbAufgabe?.id) await admin.from("pflueckaufgaben").delete().eq("id", dbAufgabe.id);
     if (dbCharge?.id) await admin.from("chargen").delete().eq("id", dbCharge.id);
   }
+
+  // --- Anforderung 2.12: Mehrsprachige Kurzeinarbeitung als bebilderte Checkliste --
+  {
+    const { client: pfluecker, fehler: pflueckerFehler } = await anmelden("pfluecker@damicon.demo");
+    check("Auth: Pfluecker meldet sich an", !!pfluecker, pflueckerFehler ?? "");
+
+    const { data: katalog, error: katalogFehler } = await admin
+      .from("einarbeitung_schritte")
+      .select("id, reihenfolge")
+      .order("reihenfolge");
+    check(
+      "Anforderung 2.12: Katalog enthaelt die sechs Migrations-Schritte",
+      !katalogFehler && katalog?.length === 6,
+      katalogFehler?.message ?? `Zeilen: ${katalog?.length}`,
+    );
+
+    const { data: pflueckerProfil } = await admin
+      .from("profiles")
+      .select("pfluecker_id")
+      .eq("email", "pfluecker@damicon.demo")
+      .single();
+
+    if (pfluecker && katalog?.length && pflueckerProfil?.pfluecker_id) {
+      const eigenePflueckerId = pflueckerProfil.pfluecker_id;
+      const ersterSchritt = katalog[0];
+
+      // Aufraeumen von einem etwaigen Vorlauf, damit der Testlauf wiederholbar
+      // bleibt (kein UPDATE-Pfad in der App, nur delete+redo korrigiert ein
+      // Haekchen, siehe Migrationskopf).
+      await admin
+        .from("einarbeitung_fortschritt")
+        .delete()
+        .eq("pfluecker_id", eigenePflueckerId)
+        .eq("schritt_id", ersterSchritt.id);
+
+      const { data: katalogPfluecker, error: katalogPflueckerFehler } = await pfluecker
+        .from("einarbeitung_schritte")
+        .select("id")
+        .order("reihenfolge");
+      check(
+        "Anforderung 2.12: Picker liest den Einarbeitungskatalog (RLS einarbeitung_schritte_select)",
+        !katalogPflueckerFehler && katalogPfluecker?.length === 6,
+        katalogPflueckerFehler?.message ?? `Zeilen: ${katalogPfluecker?.length}`,
+      );
+
+      const { data: katalogBrigade, error: katalogBrigadeFehler } = await brigade
+        .from("einarbeitung_schritte")
+        .select("id")
+        .order("reihenfolge");
+      check(
+        "Anforderung 2.12: Brigade liest den Einarbeitungskatalog mit (Nachtrag 20260921010000, rbac.ts view(schulungen))",
+        !katalogBrigadeFehler && katalogBrigade?.length === 6,
+        katalogBrigadeFehler?.message ?? `Zeilen: ${katalogBrigade?.length}`,
+      );
+
+      const { error: abhakenFehler } = await pfluecker
+        .from("einarbeitung_fortschritt")
+        .insert({ pfluecker_id: eigenePflueckerId, schritt_id: ersterSchritt.id });
+      check(
+        "Anforderung 2.12: Picker hakt den eigenen Schritt ab (RLS einarbeitung_fortschritt_insert_own)",
+        !abhakenFehler,
+        abhakenFehler?.message ?? "",
+      );
+
+      const { error: doppeltFehler } = await pfluecker
+        .from("einarbeitung_fortschritt")
+        .insert({ pfluecker_id: eigenePflueckerId, schritt_id: ersterSchritt.id });
+      check(
+        "Anforderung 2.12: zweites Abhaken desselben Schritts kollidiert mit der Unique-Constraint (kein Duplikat)",
+        doppeltFehler?.code === "23505",
+        doppeltFehler?.code ?? "kein Fehler",
+      );
+
+      // Fremde pfluecker_id: die RLS-WITH-CHECK laesst nur die eigene zu. Ein
+      // zweiter, nicht angemeldeter Pfluecker-Stammsatz dient als Fremd-ID,
+      // ohne dass dafuer ein eigenes Demo-Login noetig ist.
+      const { data: fremderPfluecker } = await admin
+        .from("pfluecker")
+        .select("id")
+        .neq("id", eigenePflueckerId)
+        .limit(1)
+        .single();
+      if (fremderPfluecker && katalog[1]) {
+        const { error: fremdFehler } = await pfluecker
+          .from("einarbeitung_fortschritt")
+          .insert({ pfluecker_id: fremderPfluecker.id, schritt_id: katalog[1].id });
+        check(
+          "Anforderung 2.12: Picker kann keinen Fortschritt fuer eine fremde pfluecker_id anlegen (RLS-WITH-CHECK)",
+          !!fremdFehler,
+          fremdFehler?.code ?? "kein Fehler - RLS-Luecke!",
+        );
+      }
+
+      // Buero-Rolle sieht den Fortschritt jeder Saisonkraft, authentisiert
+      // statt ueber den Service-Role-Bypass (RLS
+      // einarbeitung_fortschritt_select_buero).
+      const { data: leitungSieht, error: leitungSiehtFehler } = await leitung
+        .from("einarbeitung_fortschritt")
+        .select("id")
+        .eq("pfluecker_id", eigenePflueckerId)
+        .eq("schritt_id", ersterSchritt.id);
+      check(
+        "Anforderung 2.12: Betriebsleitung sieht den Fortschritt des Pfluecker (RLS einarbeitung_fortschritt_select_buero)",
+        !leitungSiehtFehler && (leitungSieht?.length ?? 0) === 1,
+        leitungSiehtFehler?.message ?? `Zeilen: ${leitungSieht?.length}`,
+      );
+
+      // Brigade hat kein schulungen:complete und liest laut RLS nur den
+      // Katalog, keinen personenbezogenen Fortschritt.
+      const { data: brigadeSieht } = await brigade
+        .from("einarbeitung_fortschritt")
+        .select("id")
+        .eq("pfluecker_id", eigenePflueckerId);
+      check(
+        "Anforderung 2.12: Brigade sieht keinen Einarbeitungsfortschritt (keine select_buero/select_own-Policy greift)",
+        (brigadeSieht?.length ?? 0) === 0,
+        `Zeilen: ${brigadeSieht?.length}`,
+      );
+
+      // Aufraeumen: neue Tabelle ohne Immutability-Trigger, Loeschen ist
+      // sicher (anders als finance_ledger_entries, siehe Anforderung 4.3).
+      await admin
+        .from("einarbeitung_fortschritt")
+        .delete()
+        .eq("pfluecker_id", eigenePflueckerId)
+        .eq("schritt_id", ersterSchritt.id);
+    }
+  }
 }
 
 console.log("");

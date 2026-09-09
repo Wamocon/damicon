@@ -54,6 +54,11 @@ export const actions = [
   "manage",
   "approve",
   "assign",
+  // Anforderung 2.12: ein picker hakt die eigene Kurzeinarbeitung ab - kein
+  // generelles Schreibrecht auf das Modul "schulungen", nur dieser eine,
+  // schmale Vorgang. Gleiches Prinzip wie approve/assign: eigener Verb statt
+  // des breiteren "update".
+  "complete",
 ] as const;
 
 export type Action = (typeof actions)[number];
@@ -210,7 +215,16 @@ export const rolePermissions: Record<Role, Permission[]> = {
   // profiles.pfluecker_id. Kein view("pflueckaufgaben"): das waere
   // betriebsweite Sicht statt "nur die eigene Leistung" - fuer die
   // Aufgabenzuweisung im Feld bleibt die Rolle brigade zustaendig.
-  picker: [...view("dashboard"), ...view("lohn"), ...view("schulungen")],
+  // schulungen:complete-own (Anforderung 2.12): ein picker hakt die eigene
+  // Kurzeinarbeitung ab, RLS (einarbeitung_fortschritt_insert_own) laesst
+  // dabei ausschliesslich die eigene pfluecker_id durch, gleiches Muster wie
+  // die Lohn-Eigenzeile oben.
+  picker: [
+    ...view("dashboard"),
+    ...view("lohn"),
+    ...view("schulungen"),
+    "schulungen:complete",
+  ],
   erzeuger: [
     ...view("dashboard"),
     ...view("reihenbloecke"),
