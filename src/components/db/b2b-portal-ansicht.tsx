@@ -9,6 +9,12 @@ const statusTon: Record<string, Tone> = {
   storniert: "danger",
 };
 
+const kuehlTon: Record<string, Tone> = {
+  ok: "success",
+  warnung: "warning",
+  verstoss: "danger",
+};
+
 // B2B-Portal (Anforderung 5.1/5.2): bisher ohne jede Oberflaeche. Diese
 // erste Sektion zeigt "Meine Lieferungen" (Anforderung 5.2 Teil 2a) - RLS
 // (lieferungen_select_kunde_buero) laesst eine Kunden-Anmeldung nur die
@@ -23,6 +29,7 @@ export async function B2bPortalAnsicht() {
     getTranslations("b2bPortalAnsicht"),
   ]);
   const lt = await getTranslations("lieferungenAnsicht");
+  const kkT = await getTranslations("nachweiskette");
   const format = await getFormatter();
 
   const datum = (iso: string | null) =>
@@ -58,6 +65,22 @@ export async function B2bPortalAnsicht() {
                   <p className="text-xs text-muted-foreground">
                     {lt("empfaengerName")}: {l.empfaengerName}
                   </p>
+                ) : null}
+                {l.letzteKuehlmessung || l.transportMessungen.length > 0 ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-border pt-2">
+                    <span className="text-[11px] text-muted-foreground">{lt("temperatur")}:</span>
+                    {l.letzteKuehlmessung ? (
+                      <StatusPill tone={kuehlTon[l.letzteKuehlmessung.ergebnis] ?? "neutral"}>
+                        {l.letzteKuehlmessung.temperaturC} °C ·{" "}
+                        {kkT(`ergebnis.${l.letzteKuehlmessung.ergebnis}`)}
+                      </StatusPill>
+                    ) : null}
+                    {l.transportMessungen.map((m) => (
+                      <StatusPill key={m.id} tone={kuehlTon[m.ergebnis] ?? "neutral"}>
+                        {m.temperaturC} °C
+                      </StatusPill>
+                    ))}
+                  </div>
                 ) : null}
               </Card>
             ))}

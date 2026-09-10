@@ -228,6 +228,7 @@ export async function ReklamationenAnsicht({
               {istBuero &&
               (detail.pflueckerListe.length > 0 ||
                 detail.kuehlmessungen.length > 0 ||
+                detail.transportMessungen.length > 0 ||
                 detail.nachbarbetrieb) ? (
                 <Card className="space-y-3">
                   <div>
@@ -274,6 +275,24 @@ export async function ReklamationenAnsicht({
                                 : t("rueckverfolgung.ohneZeitpunkt")}
                             </span>
                             <span className="text-muted-foreground">· {datum(m.gemessenAm)}</span>
+                          </div>
+                        ))}
+                      </dd>
+                    </div>
+                  ) : null}
+
+                  {detail.transportMessungen.length > 0 ? (
+                    <div>
+                      <dt className="text-xs text-muted-foreground">
+                        {t("rueckverfolgung.transport")}
+                      </dt>
+                      <dd className="mt-1 space-y-1">
+                        {detail.transportMessungen.map((m) => (
+                          <div key={m.id} className="flex flex-wrap items-center gap-1.5 text-xs">
+                            <StatusPill tone={ergebnisTon[m.ergebnis] ?? "neutral"}>
+                              {m.temperaturC} °C · {kkT(`ergebnis.${m.ergebnis}`)}
+                            </StatusPill>
+                            <span className="text-muted-foreground">{datum(m.gemessenAm)}</span>
                           </div>
                         ))}
                       </dd>

@@ -41,6 +41,12 @@ export function dbFehler(error: PostgrestError | { code?: string; message: strin
       // geraet_zeitpunkt_pruefen() (Anforderung 2.6): Geraete-Zeitstempel
       // unplausibel (Zukunft oder > 24h Abweichung vom Servereingang).
       return fehler("fehler.geraetezeit");
+    case "DA002":
+      // transport_kuehlkette_bewerten() (Anforderung 3.2): Transportmessung
+      // auf einer stornierten Lieferung - eigener Code statt der
+      // ueberladenen 23514/P0001-Sammelklasse (adversarischer Review-Fund,
+      // dieselbe Ueberlegung wie bei DA001).
+      return fehler("fehler.lieferungStorniert");
     default:
       return fehler("fehler.unbekannt");
   }

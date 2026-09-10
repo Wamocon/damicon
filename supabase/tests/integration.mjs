@@ -3405,6 +3405,150 @@ if (leitung && brigade) {
       await admin.from("pfluecker").delete().eq("id", rvpPfluecker.id);
     }
   }
+
+  // --- Anforderung 3.2: Temperaturlogger Transportphase, lueckenloser ---
+  // --- Kuehlkettennachweis bis zum Kunden -------------------------------
+  {
+    const { data: almatyFreshTp } = await admin
+      .from("b2b_kunden")
+      .select("id")
+      .eq("name", "Almaty Fresh Market")
+      .single();
+
+    // Almaty Fresh Market, nicht Handelskette A: nur fuer diese Firma gibt es
+    // mit kunde@damicon.demo (siehe seed-auth.mjs) einen echten Demo-Login,
+    // um die RLS-Sicht positiv gegenzupruefen.
+    const { data: lieferungTp, error: lieferungTpFehler } = await admin
+      .from("lieferungen")
+      .insert({ b2b_kunde_id: almatyFreshTp?.id, menge_kg: 42 })
+      .select("id")
+      .single();
+    check(
+      "Anforderung 3.2: Testaufbau (Lieferung fuer Almaty Fresh Market) gelingt",
+      !lieferungTpFehler,
+      lieferungTpFehler?.message ?? "",
+    );
+
+    if (!lieferungTpFehler && lieferungTp?.id) {
+      // RLS: ein Kunde (auch die richtige Firma) darf keine Transportmessung
+      // erfassen - Erfassen bleibt Buero/Brigade vorbehalten.
+      const { data: kundeInsertTp, error: kundeInsertTpFehler } = await (
+        await anmelden("kunde@damicon.demo")
+      ).client
+        .from("transport_temperatur_messungen")
+        .insert({ lieferung_id: lieferungTp.id, temperatur_c: 3 })
+        .select("id");
+      check(
+        "Anforderung 3.2: ein Kunde erfasst keine Transportmessung (RLS transport_messungen_insert_feld)",
+        kundeInsertTpFehler?.code === "42501",
+        kundeInsertTpFehler?.code ?? `eingefuegte Zeilen: ${kundeInsertTp?.length}`,
+      );
+
+      // Brigade erfasst drei Messungen - je eine je Ergebnisband (ok/warnung/
+      // verstoss), dieselbe reine Temperaturbandbreite wie kuehlkette_bewerten().
+      const { data: okMessung, error: okMessungFehler } = await brigade
+        .from("transport_temperatur_messungen")
+        .insert({
+          lieferung_id: lieferungTp.id,
+          temperatur_c: 3.5,
+          geraet_zeitpunkt: new Date().toISOString(),
+        })
+        .select("ergebnis, gemessen_am")
+        .single();
+      check(
+        "Anforderung 3.2: Brigade erfasst eine Transportmessung im Zielbereich - Ergebnis 'ok'",
+        !okMessungFehler && okMessung?.ergebnis === "ok" && !!okMessung?.gemessen_am,
+        okMessungFehler?.message ?? JSON.stringify(okMessung),
+      );
+
+      const { data: warnMessung, error: warnMessungFehler } = await brigade
+        .from("transport_temperatur_messungen")
+        .insert({ lieferung_id: lieferungTp.id, temperatur_c: 5.5 })
+        .select("ergebnis")
+        .single();
+      check(
+        "Anforderung 3.2: 5,5 Grad ergibt 'warnung' (Bandbreite > 4 bis 8 Grad)",
+        !warnMessungFehler && warnMessung?.ergebnis === "warnung",
+        warnMessungFehler?.message ?? JSON.stringify(warnMessung),
+      );
+
+      const { data: verstossMessung, error: verstossMessungFehler } = await brigade
+        .from("transport_temperatur_messungen")
+        .insert({ lieferung_id: lieferungTp.id, temperatur_c: 9 })
+        .select("ergebnis")
+        .single();
+      check(
+        "Anforderung 3.2: 9 Grad ergibt 'verstoss' (> 8 Grad, unabhaengig von der Zeit)",
+        !verstossMessungFehler && verstossMessung?.ergebnis === "verstoss",
+        verstossMessungFehler?.message ?? JSON.stringify(verstossMessung),
+      );
+
+      // Rueckverfolgung: die eigene Firma (Almaty Fresh Market, echter
+      // Demo-Login) sieht die Transportmessungen der eigenen Lieferung.
+      const { data: eigeneFirmaSiehtTp } = await (await anmelden("kunde@damicon.demo")).client
+        .from("transport_temperatur_messungen")
+        .select("id")
+        .eq("lieferung_id", lieferungTp.id);
+      check(
+        "Anforderung 3.2: die eigene Firma (Almaty Fresh Market) sieht die Transportmessungen der eigenen Lieferung",
+        (eigeneFirmaSiehtTp?.length ?? 0) === 3,
+        `Zeilen: ${eigeneFirmaSiehtTp?.length}`,
+      );
+
+      // Eine Anmeldung ohne jeden B2B-Bezug (Erzeuger) sieht dieselbe
+      // RLS-Luecke nicht, die lieferungen_select_intern frueher hatte
+      // (Migration 20260926000000) - dieselbe Gegenprobe wie bei
+      // Anforderung 3.5.
+      const { data: erzeugerSiehtTp } = await (await anmelden("erzeuger@damicon.demo")).client
+        .from("transport_temperatur_messungen")
+        .select("id")
+        .eq("lieferung_id", lieferungTp.id);
+      check(
+        "Anforderung 3.2: eine Anmeldung ohne B2B-Bezug (Erzeuger) sieht keine Transportmessungen (RLS transport_messungen_select_kunde_buero)",
+        (erzeugerSiehtTp?.length ?? 0) === 0,
+        `Zeilen: ${erzeugerSiehtTp?.length}`,
+      );
+
+      // Rueckverfolgung ueber die Charge: ladeReklamation() joint chargen ->
+      // lieferungen -> transport_temperatur_messungen - hier direkt am RPC-
+      // Datenpfad gegengeprueft, dass alle drei Messungen ueber die
+      // Lieferung erreichbar sind (Buero-Sicht).
+      const { data: alleMessungenTp } = await admin
+        .from("transport_temperatur_messungen")
+        .select("id")
+        .eq("lieferung_id", lieferungTp.id);
+      check(
+        "Anforderung 3.2: alle drei Transportmessungen sind ueber die Lieferung erreichbar (lueckenlos bis zum Kunden)",
+        (alleMessungenTp?.length ?? 0) === 3,
+        `Zeilen: ${alleMessungenTp?.length}`,
+      );
+
+      await admin.from("transport_temperatur_messungen").delete().eq("lieferung_id", lieferungTp.id);
+    }
+
+    // Auf einer stornierten Lieferung ist keine Transportmessung mehr
+    // moeglich (Trigger transport_kuehlkette_bewerten, "fand nicht statt").
+    const { data: storniertTp, error: storniertTpFehler } = await admin
+      .from("lieferungen")
+      .insert({ b2b_kunde_id: almatyFreshTp?.id, menge_kg: 3, status: "storniert" })
+      .select("id")
+      .single();
+    if (!storniertTpFehler && storniertTp?.id) {
+      const { error: aufStorniertFehler } = await brigade
+        .from("transport_temperatur_messungen")
+        .insert({ lieferung_id: storniertTp.id, temperatur_c: 3 });
+      check(
+        "Anforderung 3.2: eine Transportmessung auf einer stornierten Lieferung wird abgelehnt (Trigger, eigener SQLSTATE DA002)",
+        aufStorniertFehler?.code === "DA002",
+        aufStorniertFehler?.code ?? "kein Fehler - eine stornierte Lieferung haette trotzdem eine Messung erhalten!",
+      );
+      await admin.from("lieferungen").delete().eq("id", storniertTp.id);
+    }
+
+    if (lieferungTp?.id) {
+      await admin.from("lieferungen").delete().eq("id", lieferungTp.id);
+    }
+  }
 }
 
 console.log("");

@@ -17,6 +17,16 @@ export interface KuehlmessungHinweis {
   ergebnis: string;
 }
 
+// Transportphase-Temperaturlogger (Anforderung 3.2). Eigene, schlanke Zeile
+// statt einer Erweiterung von KuehlmessungHinweis - anderer Zeitbezug (keine
+// Minuten seit Pfluecken), siehe Migrationskommentar 20260928000000.
+export interface TransportMessungZeile {
+  id: string;
+  temperaturC: number;
+  ergebnis: string;
+  gemessenAm: string;
+}
+
 export interface LieferungZeile {
   id: string;
   kunde: string;
@@ -31,6 +41,8 @@ export interface LieferungZeile {
   belegStoragePath: string | null;
   /** Juengste Kuehlmessung der verknuepften Charge, fuer den Temperaturabgleich. */
   letzteKuehlmessung: KuehlmessungHinweis | null;
+  /** Transportmessungen dieser Lieferung, chronologisch aufsteigend. */
+  transportMessungen: TransportMessungZeile[];
 }
 
 export const demoLieferungen: LieferungZeile[] = [
@@ -46,6 +58,10 @@ export const demoLieferungen: LieferungZeile[] = [
     empfaengerName: "A. Seitkali (Wareneingang)",
     belegStoragePath: null,
     letzteKuehlmessung: { temperaturC: 3.2, minutenSeitPfluecken: 25, ergebnis: "ok" },
+    transportMessungen: [
+      { id: "demo-transport-1", temperaturC: 3.5, ergebnis: "ok", gemessenAm: "2026-08-30T13:10:00.000Z" },
+      { id: "demo-transport-2", temperaturC: 3.8, ergebnis: "ok", gemessenAm: "2026-08-30T15:20:00.000Z" },
+    ],
   },
   {
     id: "demo-lieferung-2",
@@ -59,5 +75,6 @@ export const demoLieferungen: LieferungZeile[] = [
     empfaengerName: null,
     belegStoragePath: null,
     letzteKuehlmessung: null,
+    transportMessungen: [],
   },
 ];

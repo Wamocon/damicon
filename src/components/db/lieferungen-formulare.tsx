@@ -3,10 +3,11 @@
 import { useActionState } from "react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { CheckCircle2, Ban } from "lucide-react";
+import { CheckCircle2, Ban, Thermometer } from "lucide-react";
 import {
   lieferungAnlegen,
   lieferungStornieren,
+  transportMessungErfassen,
   uebergabeErfassen,
 } from "@/lib/actions/lieferungen";
 import { leer } from "@/lib/actions/status";
@@ -119,6 +120,45 @@ export function UebergabeErfassenFormular({ lieferungId }: { lieferungId: string
         <CheckCircle2 className="h-3.5 w-3.5" />
         {t("uebergabeErfassen")}
       </button>
+      <AktionsMeldung status={status} />
+    </form>
+  );
+}
+
+// Transportphase-Temperaturmessung (Anforderung 3.2). Bewusst ein eigenes,
+// minimales Formular statt Wiederverwendung von KuehlmessungFormular
+// (nachweiskette-formulare.tsx): dort haengt die Messung an einer
+// Pfleuckaufgabe, hier an einer Lieferung - andere Kernfunktion, anderer
+// Geraete-Zeitstempel-Kontext. Bewusst ebenfalls ohne useOfflineFormular()
+// (wie UebergabeErfassenFormular oben) - die Transportphase waere fachlich
+// der naheliegendste Kandidat fuer die Offline-Warteschlange (Fahrzeug, oft
+// ohne Netz), das ist aber ein eigener, hier nicht angeforderter
+// Ausbauschritt (Anforderung 2.5), keine Voraussetzung fuer diese Funktion.
+export function TransportMessungFormular({ lieferungId }: { lieferungId: string }) {
+  const [status, action] = useActionState(transportMessungErfassen, leer);
+  const t = useTranslations("lieferungenAnsicht");
+
+  return (
+    <form action={action} className="mt-2 space-y-1.5 border-t border-border pt-2">
+      <PfadFeld />
+      <GeraetZeitpunktFeld />
+      <input type="hidden" name="lieferung_id" value={lieferungId} />
+      <div className="flex items-end gap-2">
+        <Feld
+          label={t("transportTemperatur")}
+          name="temperatur_c"
+          inputMode="decimal"
+          required
+          placeholder="3,5"
+        />
+        <button
+          type="submit"
+          className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary hover:text-primary"
+        >
+          <Thermometer className="h-3.5 w-3.5" />
+          {t("transportMessungErfassen")}
+        </button>
+      </div>
       <AktionsMeldung status={status} />
     </form>
   );

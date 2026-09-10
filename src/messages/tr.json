@@ -763,8 +763,8 @@
     "logistik": {
       "title": "Toplama turları ve güzergâh planlama",
       "description": "Dolu kasalar güneşte kalmasın diye tarlada sabit toplama turları, ayrıca müşterilerin teslimat pencerelerine göre güzergâh planlama.",
-      "summary": "Tarlada toplama turları, araç bazında güzergâh listesi, sıcaklık ve miktar karşılaştırmalı teslim tutanağı.",
-      "todo": "Araç bazında güzergâh listesi, zaman pencereleri, sıcaklık ve miktar karşılaştırmalı teslim tutanağı."
+      "summary": "Miktar ve sıcaklık karşılaştırmalı (ön soğutma ve taşıma) teslim tutanağı, müşteriye kadar kesintisiz soğuk zincir kanıtı.",
+      "todo": "Araç bazında güzergâh listesi ve teslimat zaman pencereleri (Gereksinim 3.5 Bölüm 1) hâlâ eksik."
     },
     "qr_steigen": {
       "title": "QR kasa kimliği",
@@ -951,6 +951,7 @@
       "foerderdossier": "\"{wert}\" dosyası oluşturuldu.",
       "foerderdossierStatus": "\"{wert}\" dosyası güncellendi.",
       "lieferung": "Teslimat oluşturuldu.",
+      "transportMessung": "Taşıma ölçümü kaydedildi.",
       "uebergabe": "Teslim alma kaydedildi.",
       "lieferungStorniert": "Teslimat iptal edildi.",
       "pfleuckerBrigadeZugewiesen": "{wert} bir ekibe atandı."
@@ -970,6 +971,8 @@
       "unbekannt": "İşlem başarısız. Ayrıntılar sunucu kaydında.",
       "keineCharge": "Bu göreve ait bir parti yok.",
       "kuehlkette": "Sınır aşıldı: ölçüme kadar {wert} dakika. Ürünün değeri düşürülmeli.",
+      "transportKuehlkette": "Sınır aşıldı: taşıma sıcaklığı 8 derecenin üzerindeydi. Ürünün değeri düşürülmeli.",
+      "lieferungStorniert": "Bu teslimat iptal edildi - artık bunun için taşıma ölçümü kaydedilemez.",
       "geraetezeit": "Cihaz saati sunucu saatinden çok farklı (gelecekte veya 24 saatten fazla fark). Lütfen cihazın saatini kontrol edip tekrar deneyin.",
       "keinKunde": "Hesabınıza bağlı bir B2B müşterisi yok. Lütfen yönetimle iletişime geçin.",
       "zukaufBefunde": "Girişte {wert} hata bulundu - hiçbir şey içe aktarılmadı. Aşağıdaki kontrol sonuçlarına bakın.",
@@ -1458,11 +1461,12 @@
     "internMarkierung": "dahili",
     "rueckverfolgung": {
       "titel": "Geriye izlenebilirlik",
-      "lead": "Yalnızca ofis görür: şikayetten toplayan kişiye, soğutma ölçümüne ve satın alınan üründe tedarikçi komşu işletmeye kadar.",
+      "lead": "Yalnızca ofis görür: şikayetten toplayan kişiye, ön soğutma ölçümüne, müşteriye kadar taşıma sıcaklığına ve satın alınan üründe tedarikçi komşu işletmeye kadar.",
       "pfluecker": "İlgili toplayıcılar",
       "kuehlkette": "Partinin soğutma ölçümleri",
       "minuten": "toplamadan {minuten} dakika sonra",
       "ohneZeitpunkt": "toplama zamanı bilinmiyor",
+      "transport": "Müşteriye kadar taşıma ölçümleri",
       "nachbarbetrieb": "Tedarikçi komşu işletme"
     },
     "col": {
@@ -1741,6 +1745,9 @@
     "uebergabeErfassen": "Teslim almayı kaydet",
     "stornieren": "İptal et",
     "temperatur": "Teslim anında soğuk zincir",
+    "transportTitel": "Taşıma ölçümleri",
+    "transportTemperatur": "Sıcaklık (°C)",
+    "transportMessungErfassen": "Ölçüm kaydet",
     "status": {
       "geplant": "planlandı",
       "zugestellt": "teslim edildi",

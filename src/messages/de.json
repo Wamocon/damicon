@@ -529,8 +529,8 @@
     "logistik": {
       "title": "Abholrunden und Tourenplanung",
       "description": "Feste Abholrunden im Feld, damit gefüllte Steigen nicht in der Sonne stehen, plus Tourenplanung nach den Lieferfenstern der Kunden.",
-      "summary": "Abholrunden im Feld, Tourenliste je Fahrzeug, Übergabequittung mit Temperatur- und Mengenabgleich.",
-      "todo": "Tourenliste je Fahrzeug, Zeitfenster, Übergabequittung mit Temperatur- und Mengenabgleich."
+      "summary": "Übergabequittung mit Mengen- und Temperaturabgleich (Vorkühlung und Transport), lückenloser Kühlkettennachweis bis zum Kunden.",
+      "todo": "Tourenliste je Fahrzeug und Zeitfenster (Anforderung 3.5 Teil 1) fehlen noch."
     },
     "qr_steigen": {
       "title": "QR-Steigenkennung",
@@ -737,6 +737,7 @@
       "foerderdossier": "Dossier \"{wert}\" angelegt.",
       "foerderdossierStatus": "Dossier \"{wert}\" aktualisiert.",
       "lieferung": "Lieferung angelegt.",
+      "transportMessung": "Transportmessung erfasst.",
       "uebergabe": "Übergabe erfasst.",
       "lieferungStorniert": "Lieferung storniert.",
       "pfleuckerBrigadeZugewiesen": "{wert} einer Brigade zugewiesen."
@@ -756,6 +757,8 @@
       "unbekannt": "Vorgang fehlgeschlagen. Details stehen im Server-Log.",
       "keineCharge": "Zu dieser Aufgabe gehört keine Charge.",
       "kuehlkette": "Grenzwert gerissen: {wert} Minuten bis zur Messung. Die Ware ist abzuwerten.",
+      "transportKuehlkette": "Grenzwert überschritten: Die Transporttemperatur lag über 8 Grad. Die Ware ist abzuwerten.",
+      "lieferungStorniert": "Diese Lieferung wurde storniert - dafür lässt sich keine Transportmessung mehr erfassen.",
       "geraetezeit": "Die Geräteuhr weicht zu stark von der Serverzeit ab (Zukunft oder mehr als 24 Stunden Differenz). Bitte die Uhrzeit des Geräts prüfen und erneut versuchen.",
       "keinKunde": "Ihrem Zugang ist kein B2B-Kunde zugeordnet. Bitte an die Administration wenden.",
       "zukaufBefunde": "{wert} Fehler in der Eingabe gefunden - nichts wurde übernommen. Siehe Prüfergebnis unten.",
@@ -1458,11 +1461,12 @@
     "internMarkierung": "intern",
     "rueckverfolgung": {
       "titel": "Rückverfolgung",
-      "lead": "Nur für das Büro sichtbar: von der Reklamation bis zur pflückenden Person, zur Kühlmessung und, bei Zukaufware, zum liefernden Nachbarbetrieb.",
+      "lead": "Nur für das Büro sichtbar: von der Reklamation bis zur pflückenden Person, zur Kühlmessung bei der Vorkühlung, zur Transporttemperatur bis zum Kunden und, bei Zukaufware, zum liefernden Nachbarbetrieb.",
       "pfluecker": "Beteiligte Pflücker",
       "kuehlkette": "Kühlmessungen der Charge",
       "minuten": "{minuten} Minuten nach dem Pflücken",
       "ohneZeitpunkt": "ohne bekannten Pflückzeitpunkt",
+      "transport": "Transportmessungen bis zum Kunden",
       "nachbarbetrieb": "Liefernder Nachbarbetrieb"
     },
     "col": {
@@ -1741,6 +1745,9 @@
     "uebergabeErfassen": "Übergabe erfassen",
     "stornieren": "Stornieren",
     "temperatur": "Kühlkette bei Übergabe",
+    "transportTitel": "Transportmessungen",
+    "transportTemperatur": "Temperatur in °C",
+    "transportMessungErfassen": "Messung erfassen",
     "status": {
       "geplant": "geplant",
       "zugestellt": "zugestellt",

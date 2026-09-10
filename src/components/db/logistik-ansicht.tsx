@@ -4,6 +4,7 @@ import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   LieferungAnlegenFormular,
   LieferungStornierenKnopf,
+  TransportMessungFormular,
   UebergabeErfassenFormular,
 } from "@/components/db/lieferungen-formulare";
 import {
@@ -111,6 +112,27 @@ export async function LogistikAnsicht() {
                     </div>
                   ) : null}
                 </dl>
+
+                {l.transportMessungen.length > 0 ? (
+                  <div className="mt-2 border-t border-border pt-2">
+                    <p className="text-[11px] font-semibold text-muted-foreground">
+                      {t("transportTitel")}
+                    </p>
+                    <ul className="mt-1 flex flex-wrap gap-1.5">
+                      {l.transportMessungen.map((m) => (
+                        <li key={m.id}>
+                          <StatusPill tone={kuehlTon[m.ergebnis] ?? "neutral"}>
+                            {m.temperaturC} °C
+                          </StatusPill>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+
+                {darfErfassen && l.status !== "storniert" ? (
+                  <TransportMessungFormular lieferungId={l.id} />
+                ) : null}
 
                 {darfErfassen && l.status === "geplant" ? (
                   <>

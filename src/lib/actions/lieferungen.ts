@@ -139,6 +139,56 @@ export async function uebergabeErfassen(
   return ok("ok.uebergabe");
 }
 
+// Anforderung 3.2: Temperaturmessung waehrend des Transports erfassen.
+// Dieselbe Berechtigung wie uebergabeErfassen/lieferungStornieren
+// (logistik:update, rbac.ts), RLS-Policy transport_messungen_insert_feld
+// (Migration 20260928000000) prueft dieselbe Rollenmenge ein zweites Mal.
+// Bewertung/Zeitstempel-Pruefung/Storno-Sperre liegen im Trigger
+// transport_kuehlkette_bewerten(), nicht hier verdoppelt.
+export async function transportMessungErfassen(
+  _status: AktionsStatus,
+  formData: FormData,
+): Promise<AktionsStatus> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("logistik", "update");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+
+  const lieferungId = text(formData, "lieferung_id");
+  const temperaturRoh = text(formData, "temperatur_c").replace(",", ".");
+  const temperaturC = Number(temperaturRoh);
+  const geraetZeitpunkt = text(formData, "geraet_zeitpunkt") || null;
+
+  if (!lieferungId || !temperaturRoh || !Number.isFinite(temperaturC)) {
+    return fehler("fehler.eingabe");
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("transport_temperatur_messungen")
+    .insert({
+      lieferung_id: lieferungId,
+      temperatur_c: temperaturC,
+      geraet_zeitpunkt: geraetZeitpunkt,
+      // Wie bei kuehlmessungKern (nachweiskette.ts): gemessen_am hat keinen
+      // Spalten-Default, der Trigger berechnet ihn aus geraet_zeitpunkt. Der
+      // generierte Insert-Typ kennt trigger-gesetzte Pflichtspalten nicht.
+      gemessen_am: null as unknown as string,
+    })
+    .select("id, ergebnis")
+    .single();
+
+  if (error) return dbFehler(error);
+
+  await protokolliere(profil, "lieferung.transportmessung_erfasst", data.id);
+  aktualisiere(formData);
+  return data.ergebnis === "verstoss"
+    ? fehler("fehler.transportKuehlkette")
+    : ok("ok.transportMessung");
+}
+
 export async function lieferungStornieren(
   _status: AktionsStatus,
   formData: FormData,

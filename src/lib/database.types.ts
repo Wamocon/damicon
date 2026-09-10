@@ -2523,6 +2523,47 @@ export type Database = {
         }
         Relationships: []
       }
+      transport_temperatur_messungen: {
+        Row: {
+          created_at: string
+          ergebnis: Database["public"]["Enums"]["kuehlkette_ergebnis"]
+          gemessen_am: string
+          geraet_zeitpunkt: string | null
+          id: string
+          lieferung_id: string
+          server_eingang_zeitpunkt: string | null
+          temperatur_c: number
+        }
+        Insert: {
+          created_at?: string
+          ergebnis?: Database["public"]["Enums"]["kuehlkette_ergebnis"]
+          gemessen_am: string
+          geraet_zeitpunkt?: string | null
+          id?: string
+          lieferung_id: string
+          server_eingang_zeitpunkt?: string | null
+          temperatur_c: number
+        }
+        Update: {
+          created_at?: string
+          ergebnis?: Database["public"]["Enums"]["kuehlkette_ergebnis"]
+          gemessen_am?: string
+          geraet_zeitpunkt?: string | null
+          id?: string
+          lieferung_id?: string
+          server_eingang_zeitpunkt?: string | null
+          temperatur_c?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_temperatur_messungen_lieferung_id_fkey"
+            columns: ["lieferung_id"]
+            isOneToOne: false
+            referencedRelation: "lieferungen"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       verarbeitungszwecke: {
         Row: {
           aufbewahrung_monate: number

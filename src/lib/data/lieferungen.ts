@@ -33,7 +33,8 @@ export async function ladeLieferungen(): Promise<LieferungenUebersicht> {
       `id, menge_kg, status, geliefert_am, empfaenger_name, beleg_storage_path,
        b2b_kunden ( id, name ),
        chargen ( code, kuehlketten_messungen ( temperatur_c, minuten_seit_pfluecken, ergebnis, gemessen_am ) ),
-       vorbestellungen ( menge_kg )`,
+       vorbestellungen ( menge_kg ),
+       transport_temperatur_messungen ( id, temperatur_c, ergebnis, gemessen_am )`,
     )
     .order("created_at", { ascending: false });
 
@@ -69,6 +70,14 @@ export async function ladeLieferungen(): Promise<LieferungenUebersicht> {
             ergebnis: letzteMessung.ergebnis,
           }
         : null,
+      transportMessungen: (l.transport_temperatur_messungen ?? [])
+        .map((m) => ({
+          id: m.id,
+          temperaturC: Number(m.temperatur_c),
+          ergebnis: m.ergebnis,
+          gemessenAm: m.gemessen_am,
+        }))
+        .sort((a, b) => a.gemessenAm.localeCompare(b.gemessenAm)),
     };
   });
 
