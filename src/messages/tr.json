@@ -952,7 +952,8 @@
       "foerderdossierStatus": "\"{wert}\" dosyası güncellendi.",
       "lieferung": "Teslimat oluşturuldu.",
       "uebergabe": "Teslim alma kaydedildi.",
-      "lieferungStorniert": "Teslimat iptal edildi."
+      "lieferungStorniert": "Teslimat iptal edildi.",
+      "pfleuckerBrigadeZugewiesen": "{wert} bir ekibe atandı."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -1763,5 +1764,45 @@
     "lieferungenLead": "Teslimatlarınızın durumu ve teslim alma belgesi.",
     "keineLieferungen": "Henüz teslimat kaydedilmedi.",
     "note": "Kontenjanlar, fiyat listesi ve ön siparişler sonraki bir genişletme adımında eklenecek."
+  },
+  "personalAnsicht": {
+    "brigadenTitel": "Ekipler",
+    "brigadenLead": "Tüm hasat dönemi için vardiyalı ve yedek listeli ekip planlaması.",
+    "vorarbeiter": "Ekip başı",
+    "personen": "kişi",
+    "bedarfTitel": "İhtiyaç hesabı",
+    "bedarfLead": "Her planlanan hasat günü için: toplam kaç sıra bloğu, bunlardan kaçı bir ekibe atandı ve kaçı hâlâ açık.",
+    "keinBedarf": "Önümüzdeki günler için planlanan hasat günü yok.",
+    "offeneTermineTitel": "Açık tarihler",
+    "offeneTermineLead": "Ekip atanmamış sıra blokları - doğrudan burada bir ekibe atayın.",
+    "einsatzplanTitel": "Vardiya planı",
+    "einsatzplanLead": "Hangi ekibin hangi günde kaç sıra bloğu için görevlendirildiği.",
+    "keinEinsatzplan": "Önümüzdeki günler için planlanmış vardiya yok.",
+    "pflueckerTitel": "Toplayıcı kütüğü",
+    "pflueckerLead": "Toplayıcı kartı, her sözleşme için ЕСУТД kaydı, kişi bazında verim ve kalite katsayısı içeren personel kaydı.",
+    "reservelisteTitel": "Yedek liste",
+    "reservelisteLead": "Şu anda bir ekibe atanmamış, çağrı üzerine hazır toplayıcılar.",
+    "keineReserve": "Şu anda ekibe atanmamış toplayıcı yok.",
+    "bitteWaehlen": "lütfen seçin",
+    "zuweisen": "Ata",
+    "brigade": "Ekip",
+    "col": {
+      "datum": "Tarih",
+      "bloeckeGesamt": "Toplam blok",
+      "bloeckeZugewiesen": "atanan",
+      "bloeckeOffen": "açık",
+      "brigade": "Ekip",
+      "staerke": "Kişi sayısı",
+      "name": "Ad",
+      "ausweis": "Kimlik",
+      "esutd": "ЕСУТД",
+      "leistung": "Verim",
+      "qfaktor": "K faktörü"
+    },
+    "esutd": {
+      "erfasst": "kaydedildi",
+      "offen": "açık"
+    },
+    "note": "İhtiyaç hesabı ve vardiya planı doğrudan rotasyon planından gelir (hangi sıra bloğunun hangi gün hasat edilmesi gerektiği). Hava durumu senaryoları bilerek bu görünümün parçası değildir - hava durumu bağlantısı (gereksinim 2.13) ertelendi."
   }
 }

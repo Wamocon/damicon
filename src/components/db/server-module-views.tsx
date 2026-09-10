@@ -15,6 +15,7 @@ import { PflichtschulungenAnsicht } from "@/components/db/pflichtschulungen-ansi
 import { FoerdermittelAnsicht } from "@/components/db/foerdermittel-ansicht";
 import { LogistikAnsicht } from "@/components/db/logistik-ansicht";
 import { B2bPortalAnsicht } from "@/components/db/b2b-portal-ansicht";
+import { PersonalAnsicht } from "@/components/db/personal-ansicht";
 import type { ModuleDef } from "@/lib/modules";
 
 // Module, die in Meilenstein B an der Datenbank haengen. Sie werden als Server
@@ -85,6 +86,11 @@ export function serverModulAnsicht(
       return <LogistikAnsicht />;
     case "b2b_portal":
       return <B2bPortalAnsicht />;
+    // Anforderung 2.11: Schicht-Konzept, Bedarfsrechnung und Reserveliste
+    // statt reiner Demo-Ansicht. Wetterszenarien bleiben offen
+    // (Anforderung 2.13, bewusst zurueckgestellt auf 2027).
+    case "personal":
+      return <PersonalAnsicht />;
     // Anforderung 2.12: bebilderte Kurzeinarbeitung, mehrsprachig ueber
     // einarbeitung_schritte, personalisierter Fortschritt fuer Picker.
     // Anforderung 4.10: jaehrliche Pflichtschulung mit Nachweis und

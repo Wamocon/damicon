@@ -738,7 +738,8 @@
       "foerderdossierStatus": "Dossier \"{wert}\" aktualisiert.",
       "lieferung": "Lieferung angelegt.",
       "uebergabe": "Übergabe erfasst.",
-      "lieferungStorniert": "Lieferung storniert."
+      "lieferungStorniert": "Lieferung storniert.",
+      "pfleuckerBrigadeZugewiesen": "{wert} einer Brigade zugewiesen."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1763,5 +1764,45 @@
     "lieferungenLead": "Status und Übergabequittung Ihrer Lieferungen.",
     "keineLieferungen": "Noch keine Lieferung erfasst.",
     "note": "Kontingente, Preisliste und Vorbestellung folgen in einem späteren Ausbauschritt."
+  },
+  "personalAnsicht": {
+    "brigadenTitel": "Brigaden",
+    "brigadenLead": "Brigadenplanung mit Schichten und Reserveliste über die gesamte Erntestrecke.",
+    "vorarbeiter": "Vorarbeiter",
+    "personen": "Personen",
+    "bedarfTitel": "Bedarfsrechnung",
+    "bedarfLead": "Für jeden geplanten Erntetag: wie viele Reihenblöcke insgesamt, bereits einer Brigade zugewiesen und noch offen sind.",
+    "keinBedarf": "Keine geplanten Erntetage in den kommenden Tagen.",
+    "offeneTermineTitel": "Offene Termine",
+    "offeneTermineLead": "Reihenblöcke ohne zugewiesene Brigade - direkt hier einer Brigade zuweisen.",
+    "einsatzplanTitel": "Schichtplan",
+    "einsatzplanLead": "Welche Brigade an welchem Tag für wie viele Reihenblöcke eingeteilt ist.",
+    "keinEinsatzplan": "Keine Einsätze in den kommenden Tagen geplant.",
+    "pflueckerTitel": "Pflückerstamm",
+    "pflueckerLead": "Personenstamm mit Pflückerausweis, ЕСУТД-Erfassung je Vertrag, Leistungs- und Qualitätsfaktor je Person.",
+    "reservelisteTitel": "Reserveliste",
+    "reservelisteLead": "Pflücker ohne aktuelle Brigadenzuordnung, auf Abruf verfügbar.",
+    "keineReserve": "Aktuell kein Pflücker ohne Brigadenzuordnung.",
+    "bitteWaehlen": "bitte wählen",
+    "zuweisen": "Zuweisen",
+    "brigade": "Brigade",
+    "col": {
+      "datum": "Datum",
+      "bloeckeGesamt": "Blöcke gesamt",
+      "bloeckeZugewiesen": "zugewiesen",
+      "bloeckeOffen": "offen",
+      "brigade": "Brigade",
+      "staerke": "Stärke",
+      "name": "Name",
+      "ausweis": "Ausweis",
+      "esutd": "ЕСУТД",
+      "leistung": "Leistung",
+      "qfaktor": "Q-Faktor"
+    },
+    "esutd": {
+      "erfasst": "erfasst",
+      "offen": "offen"
+    },
+    "note": "Bedarfsrechnung und Schichtplan stammen direkt aus dem Rotationsplan (welcher Reihenblock an welchem Tag geerntet werden muss). Wetterszenarien sind bewusst nicht Teil dieser Ansicht - die Wetteranbindung (Anforderung 2.13) ist zurückgestellt."
   }
 }

@@ -188,7 +188,11 @@ export const modules: ModuleDef[] = [
     icon: "users",
     resource: "personal",
     klassifikation: "anpassen",
-    reifegrad: "demo",
+    // Anforderung 2.11: Schicht-Konzept (brigade_einsatzplan),
+    // Bedarfsrechnung (brigadenplanung_bedarf) und Reserveliste sind
+    // angebunden. Wetterszenarien bleiben offen (Anforderung 2.13, bewusst
+    // zurueckgestellt auf 2027, siehe PersonalAnsicht).
+    reifegrad: "angebunden",
   },
   {
     key: "lohn",

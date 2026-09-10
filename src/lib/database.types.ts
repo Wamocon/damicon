@@ -1669,6 +1669,13 @@ export type Database = {
             foreignKeyName: "pflueckaufgaben_brigade_id_fkey"
             columns: ["brigade_id"]
             isOneToOne: false
+            referencedRelation: "brigade_einsatzplan"
+            referencedColumns: ["brigade_id"]
+          },
+          {
+            foreignKeyName: "pflueckaufgaben_brigade_id_fkey"
+            columns: ["brigade_id"]
+            isOneToOne: false
             referencedRelation: "brigaden"
             referencedColumns: ["id"]
           },
@@ -1731,6 +1738,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "pfluecker_brigade_id_fkey"
+            columns: ["brigade_id"]
+            isOneToOne: false
+            referencedRelation: "brigade_einsatzplan"
+            referencedColumns: ["brigade_id"]
+          },
           {
             foreignKeyName: "pfluecker_brigade_id_fkey"
             columns: ["brigade_id"]
@@ -1895,6 +1909,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_profiles_brigade"
+            columns: ["brigade_id"]
+            isOneToOne: false
+            referencedRelation: "brigade_einsatzplan"
+            referencedColumns: ["brigade_id"]
+          },
           {
             foreignKeyName: "fk_profiles_brigade"
             columns: ["brigade_id"]
@@ -2218,6 +2239,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "rotationsplan_eintraege_brigade_id_fkey"
+            columns: ["brigade_id"]
+            isOneToOne: false
+            referencedRelation: "brigade_einsatzplan"
+            referencedColumns: ["brigade_id"]
+          },
           {
             foreignKeyName: "rotationsplan_eintraege_brigade_id_fkey"
             columns: ["brigade_id"]
@@ -2702,6 +2730,25 @@ export type Database = {
       }
     }
     Views: {
+      brigade_einsatzplan: {
+        Row: {
+          bloecke_zugewiesen: number | null
+          brigade_id: string | null
+          brigade_name: string | null
+          geplant_fuer: string | null
+          staerke: number | null
+        }
+        Relationships: []
+      }
+      brigadenplanung_bedarf: {
+        Row: {
+          bloecke_gesamt: number | null
+          bloecke_offen: number | null
+          bloecke_zugewiesen: number | null
+          geplant_fuer: string | null
+        }
+        Relationships: []
+      }
       deckungsbeitrag_je_charge: {
         Row: {
           buchungen: number | null

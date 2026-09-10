@@ -738,7 +738,8 @@
       "foerderdossierStatus": "Dossier \"{wert}\" updated.",
       "lieferung": "Delivery created.",
       "uebergabe": "Handover recorded.",
-      "lieferungStorniert": "Delivery cancelled."
+      "lieferungStorniert": "Delivery cancelled.",
+      "pfleuckerBrigadeZugewiesen": "{wert} assigned to a crew."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1763,5 +1764,45 @@
     "lieferungenLead": "Status and handover receipt of your deliveries.",
     "keineLieferungen": "No delivery recorded yet.",
     "note": "Contingents, price list and pre-orders follow in a later expansion step."
+  },
+  "personalAnsicht": {
+    "brigadenTitel": "Crews",
+    "brigadenLead": "Crew planning with shifts and a reserve list across the whole harvest area.",
+    "vorarbeiter": "Foreman",
+    "personen": "People",
+    "bedarfTitel": "Demand calculation",
+    "bedarfLead": "For each planned harvest day: how many row blocks in total, already assigned to a crew, and still open.",
+    "keinBedarf": "No harvest days planned for the coming days.",
+    "offeneTermineTitel": "Open slots",
+    "offeneTermineLead": "Row blocks without an assigned crew - assign a crew directly here.",
+    "einsatzplanTitel": "Shift plan",
+    "einsatzplanLead": "Which crew is scheduled for how many row blocks on which day.",
+    "keinEinsatzplan": "No shifts planned for the coming days.",
+    "pflueckerTitel": "Picker roster",
+    "pflueckerLead": "Personnel roster with picker badge, ЕСУТД record per contract, performance and quality factor per person.",
+    "reservelisteTitel": "Reserve list",
+    "reservelisteLead": "Pickers without a current crew assignment, available on call.",
+    "keineReserve": "No picker currently without a crew assignment.",
+    "bitteWaehlen": "please choose",
+    "zuweisen": "Assign",
+    "brigade": "Crew",
+    "col": {
+      "datum": "Date",
+      "bloeckeGesamt": "Blocks total",
+      "bloeckeZugewiesen": "assigned",
+      "bloeckeOffen": "open",
+      "brigade": "Crew",
+      "staerke": "Strength",
+      "name": "Name",
+      "ausweis": "Badge",
+      "esutd": "ЕСУТД",
+      "leistung": "Performance",
+      "qfaktor": "Quality factor"
+    },
+    "esutd": {
+      "erfasst": "recorded",
+      "offen": "open"
+    },
+    "note": "Demand calculation and shift plan come directly from the rotation plan (which row block must be harvested on which day). Weather scenarios are deliberately not part of this view - the weather connection (requirement 2.13) has been deferred."
   }
 }

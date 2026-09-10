@@ -3244,6 +3244,167 @@ if (leitung && brigade) {
       await admin.from("lieferungen").delete().eq("id", stornoTest.id);
     }
   }
+
+  // --- Anforderung 2.11: Brigadenplanung (Schicht, Reserveliste, Bedarf) ---
+  {
+    const { data: rvpBlock, error: rvpBlockFehler } = await admin
+      .from("reihenbloecke")
+      .select("id")
+      .neq("status", "wartezeitgesperrt")
+      .limit(1)
+      .single();
+    const { data: rvpBrigade, error: rvpBrigadeFehler } = await admin
+      .from("brigaden")
+      .select("id")
+      .limit(1)
+      .single();
+
+    const rvpTag = "2030-04-01";
+    const { data: rvpTermin, error: rvpTerminFehler } = await admin
+      .from("rotationsplan_eintraege")
+      .insert({ reihenblock_id: rvpBlock?.id, geplant_fuer: rvpTag, intervall_tage: 3 })
+      .select("id")
+      .single();
+
+    const rvpAufbauFehler = rvpBlockFehler || rvpBrigadeFehler || rvpTerminFehler;
+    check(
+      "Anforderung 2.11: Testaufbau (Reihenblock/Brigade/offener Rotationsplan-Termin) gelingt",
+      !rvpAufbauFehler,
+      rvpAufbauFehler?.message ?? "",
+    );
+
+    if (!rvpAufbauFehler) {
+      // Bedarfsrechnung: der neue, noch unzugewiesene Termin zaehlt als
+      // "offen" am geplanten Tag.
+      const { data: bedarfZeile } = await admin
+        .from("brigadenplanung_bedarf")
+        .select("bloecke_offen, bloecke_zugewiesen")
+        .eq("geplant_fuer", rvpTag)
+        .single();
+      check(
+        "Anforderung 2.11: Bedarfsrechnung zaehlt den neuen Termin als offen",
+        bedarfZeile?.bloecke_offen === 1,
+        JSON.stringify(bedarfZeile),
+      );
+
+      // Brigade (Feldrolle) darf keinen Termin verplanen, nur Buero. RLS
+      // blockt ein UPDATE ohne passende Zeile still (0 betroffene Zeilen,
+      // kein Fehler) - deshalb .select() plus Laengenpruefung statt nur
+      // error zu pruefen.
+      const { data: brigadeZuweisungUpdate, error: brigadeZuweisungFehler } = await brigade
+        .from("rotationsplan_eintraege")
+        .update({ brigade_id: rvpBrigade.id })
+        .eq("id", rvpTermin.id)
+        .select("id");
+      check(
+        "Anforderung 2.11: Brigade weist sich selbst keinen Termin zu (RLS rotationsplan_eintraege_update_planung)",
+        !!brigadeZuweisungFehler || (brigadeZuweisungUpdate?.length ?? 0) === 0,
+        brigadeZuweisungFehler?.code ?? `geaenderte Zeilen: ${brigadeZuweisungUpdate?.length}`,
+      );
+
+      // Betriebsleitung schliesst die Bedarfsluecke.
+      const { error: leitungZuweisungFehler } = await leitung
+        .from("rotationsplan_eintraege")
+        .update({ brigade_id: rvpBrigade.id })
+        .eq("id", rvpTermin.id);
+      check(
+        "Anforderung 2.11: Betriebsleitung weist dem offenen Termin eine Brigade zu",
+        !leitungZuweisungFehler,
+        leitungZuweisungFehler?.message ?? "",
+      );
+
+      // Adversarischer Fund: eine bereits zugewiesene Brigade laesst sich
+      // nicht mehr stillschweigend umbiegen (Trigger
+      // rotationsplan_brigade_aendern_pruefen, direkt gegen die Tabelle
+      // getestet, nicht nur ueber die Server Action).
+      const { data: zweiteBrigade } = await admin
+        .from("brigaden")
+        .select("id")
+        .neq("id", rvpBrigade.id)
+        .limit(1)
+        .maybeSingle();
+      if (zweiteBrigade?.id) {
+        const { error: umbiegenFehler } = await leitung
+          .from("rotationsplan_eintraege")
+          .update({ brigade_id: zweiteBrigade.id })
+          .eq("id", rvpTermin.id);
+        check(
+          "Anforderung 2.11: eine bereits zugewiesene Brigade laesst sich nicht auf eine andere umbiegen (Trigger)",
+          umbiegenFehler?.code === "23514",
+          umbiegenFehler?.code ?? "kein Fehler - stille Neuzuweisung moeglich!",
+        );
+      }
+
+      // Schicht-Konzept: der Einsatzplan zeigt die Brigade jetzt am
+      // geplanten Tag mit einem zugewiesenen Block.
+      const { data: einsatzZeile } = await admin
+        .from("brigade_einsatzplan")
+        .select("bloecke_zugewiesen")
+        .eq("geplant_fuer", rvpTag)
+        .eq("brigade_id", rvpBrigade.id)
+        .single();
+      check(
+        "Anforderung 2.11: der Schichtplan zeigt die zugewiesene Brigade am geplanten Tag",
+        einsatzZeile?.bloecke_zugewiesen === 1,
+        JSON.stringify(einsatzZeile),
+      );
+
+      // Bedarfsrechnung ist jetzt gedeckt (kein offener Block mehr an
+      // diesem Tag).
+      const { data: bedarfZeileNachher } = await admin
+        .from("brigadenplanung_bedarf")
+        .select("bloecke_offen, bloecke_zugewiesen")
+        .eq("geplant_fuer", rvpTag)
+        .single();
+      check(
+        "Anforderung 2.11: nach der Zuweisung ist der Bedarf gedeckt",
+        bedarfZeileNachher?.bloecke_offen === 0 && bedarfZeileNachher?.bloecke_zugewiesen === 1,
+        JSON.stringify(bedarfZeileNachher),
+      );
+
+      await admin.from("rotationsplan_eintraege").delete().eq("id", rvpTermin.id);
+    }
+
+    // Reserveliste: ein Pfluecker ohne Brigade gilt als Reserve, nach
+    // Zuweisung nicht mehr.
+    const { data: rvpPfluecker, error: rvpPflueckerFehler } = await admin
+      .from("pfluecker")
+      .insert({ name: "Integrationstest Reserve", ausweis: `IT-RES-${Date.now()}` })
+      .select("id, brigade_id")
+      .single();
+    check(
+      "Anforderung 2.11: ein neu angelegter Pfluecker ohne Brigade gilt als Reserve",
+      !rvpPflueckerFehler && rvpPfluecker?.brigade_id === null,
+      rvpPflueckerFehler?.message ?? JSON.stringify(rvpPfluecker),
+    );
+
+    if (!rvpPflueckerFehler && rvpPfluecker?.id && rvpBrigade?.id) {
+      const { data: brigadeReservenUpdate, error: brigadeReservenFehler } = await brigade
+        .from("pfluecker")
+        .update({ brigade_id: rvpBrigade.id })
+        .eq("id", rvpPfluecker.id)
+        .select("id");
+      check(
+        "Anforderung 2.11: Brigade weist einen Reserve-Pfluecker nicht selbst zu (RLS pfluecker_update_leitung)",
+        !!brigadeReservenFehler || (brigadeReservenUpdate?.length ?? 0) === 0,
+        brigadeReservenFehler?.code ?? `geaenderte Zeilen: ${brigadeReservenUpdate?.length}`,
+      );
+
+      const { data: nachZuweisung, error: leitungReservenFehler } = await leitung
+        .from("pfluecker")
+        .update({ brigade_id: rvpBrigade.id })
+        .eq("id", rvpPfluecker.id)
+        .select("brigade_id")
+        .single();
+      check(
+        "Anforderung 2.11: Betriebsleitung weist den Reserve-Pfluecker einer Brigade zu",
+        !leitungReservenFehler && nachZuweisung?.brigade_id === rvpBrigade.id,
+        leitungReservenFehler?.message ?? JSON.stringify(nachZuweisung),
+      );
+
+      await admin.from("pfluecker").delete().eq("id", rvpPfluecker.id);
+    }
+  }
 }
 
 console.log("");
