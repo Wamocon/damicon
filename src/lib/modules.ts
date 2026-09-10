@@ -141,10 +141,14 @@ export const modules: ModuleDef[] = [
     // obwohl rbac.ts fuer diese Ressource bewusst nur "view" vergibt: Steigen
     // entstehen bereits ueber die Nachweiskette (pflueckaufgaben), dieses
     // Modul erzeugt daraus nur Erzeugnisse zum Anzeigen/Drucken, es hat also
-    // planmaessig keinen eigenen Schreibpfad. Was WEITERHIN offen bleibt: die
-    // Scan-Oberflaeche am Ausgabepunkt mit Server-Abgleich (Menge,
-    // Reihenblock, Uhrzeit, Person in einem Vorgang) - das war ausdruecklich
-    // nicht Teil dieses Ausbauschritts.
+    // planmaessig keinen eigenen Schreibpfad.
+    // Anforderung 2.7/2.8: die Scan-Oberflaeche am Ausgabepunkt ist jetzt
+    // ebenfalls angebunden - der Ausweis-QR kodiert seither den eigenen
+    // Ausweis-Code der Person statt einer fuer alle Ausweise identischen
+    // Navigations-URL, gescannt wird in SteigeFormular/ArbeitszeitFormular
+    // (nachweiskette-formulare.tsx, AusweisScanFeld), wo Menge/Reihenblock/
+    // Uhrzeit ueber die Aufgabe ohnehin schon feststehen - nur die Person kam
+    // bisher per Dropdown, nicht per Scan.
     reifegrad: "angebunden",
   },
   {

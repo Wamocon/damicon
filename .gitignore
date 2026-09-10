@@ -47,3 +47,8 @@ next-env.d.ts
 /*-leitung.md
 /*-brigade.md
 /*-kunde.md
+
+# qr-scanner-Worker: von scripts/copy-qr-scanner-worker.mjs ("postinstall")
+# aus node_modules kopiert, nicht eingecheckt (sonst veraltet er bei einem
+# Versions-Update von qr-scanner stillschweigend).
+/public/qr-scanner-worker.min.js

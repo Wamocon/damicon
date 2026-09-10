@@ -768,9 +768,9 @@
     },
     "qr_steigen": {
       "title": "QR kasa kimliği",
-      "description": "Kasalar için QR etiketleri (kamuya açık köken sayfasına bağlantı), biyometrisiz toplayıcı kimlik kartları (dahili görev görünümüne bağlantı) ve giriş gerektirmeyen bir duvar afişi - hepsi sunucu tarafında SVG olarak üretilir ve tarayıcının yazdırma işleviyle baskıya hazırdır.",
-      "summary": "QR kodu kimliği tarladan tezgaha taşır - sunucuda üretilir, ayrı bir etiket yazıcısı ve PDF aracı gerekmez.",
-      "todo": "Dağıtım noktasında sunucu doğrulamalı tarama arayüzü (miktar, sıra bloğu, saat ve kişi tek işlemde) bu aşamanın kapsamında değildir."
+      "description": "Kasalar için QR etiketleri (kamuya açık köken sayfasına bağlantı), kendi kimlik koduna sahip biyometrisiz toplayıcı kimlik kartları ve giriş gerektirmeyen bir duvar afişi - hepsi sunucu tarafında SVG olarak üretilir ve tarayıcının yazdırma işleviyle baskıya hazırdır.",
+      "summary": "QR kodu kimliği tarladan tezgaha taşır - kimlik kartı, toplama noktasında kamerayla taranarak kasa veya çalışma süresi o kişiye atanabilir, açılır listeden seçmek yerine.",
+      "todo": "Sadece toplayıcı kimliği değil, kasa etiketlerinin de kamerayla taranması bu aşamanın kapsamında değildir."
     },
     "esf": {
       "title": "Elektronik irsaliye (ЭСФ)",
@@ -1655,7 +1655,7 @@
     },
     "ausweise": {
       "title": "Toplayıcı kimlik kartları",
-      "lead": "Her toplayıcı için dahili görev görünümüne bağlanan bir QR kodu - bilerek fotoğrafsız ve biyometrisiz.",
+      "lead": "Her toplayıcı için kendi kimlik kodunu taşıyan bir QR kodu - toplama noktasında kamerayla taranarak kasa veya çalışma süresi o kişiye atanır. Bilerek fotoğrafsız ve biyometrisiz.",
       "empty": "Henüz kayıtlı toplayıcı yok.",
       "rolle": "Toplayıcı"
     },
@@ -1663,6 +1663,17 @@
       "hinweis": "İşletme için ayrıca genel kod girişine QR kodu ile giriş gerektirmeyen bir duvar afişi de bulunur.",
       "oeffnen": "Duvar afişini aç"
     }
+  },
+  "ausweisScan": {
+    "label": "Toplayıcı",
+    "ausweisScannen": "Kimlik tara",
+    "manuellStattdessen": "bunun yerine manuel seç",
+    "scanStattdessen": "bunun yerine tara",
+    "hinweis": "Kimlik QR kodunu kameraya doğru tutun.",
+    "keinTreffer": "Bu kod bilinen bir toplayıcıya ait değil. Lütfen doğru kimliği tarayın.",
+    "keineKamera": "Kameraya erişilemiyor. Lütfen manuel olarak seçin.",
+    "aendern": "Değiştir",
+    "bitteWaehlen": "lütfen seçin"
   },
   "einarbeitungAnsicht": {
     "titel": "Kısa oryantasyon",

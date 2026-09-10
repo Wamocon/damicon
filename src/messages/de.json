@@ -534,9 +534,9 @@
     },
     "qr_steigen": {
       "title": "QR-Steigenkennung",
-      "description": "QR-Etiketten für Steigen (Link zur öffentlichen Herkunftsauskunft), Pflückerausweise ohne Biometrie (Link zur internen Pflückaufgaben-Ansicht) und ein anmeldungsfreies Aushang-Poster - alle serverseitig als SVG erzeugt und über die Browser-Druckfunktion druckfertig.",
-      "summary": "Der QR-Code trägt die Identität vom Feld bis zur Ladentheke - serverseitig erzeugt, ohne eigenen Etikettendrucker und ohne PDF-Werkzeug.",
-      "todo": "Die Scan-Oberfläche am Ausgabepunkt mit Server-Abgleich (Menge, Reihenblock, Uhrzeit und Person in einem Vorgang) ist nicht Teil dieses Ausbauschritts."
+      "description": "QR-Etiketten für Steigen (Link zur öffentlichen Herkunftsauskunft), Pflückerausweise mit dem eigenen Ausweis-Code ohne Biometrie und ein anmeldungsfreies Aushang-Poster - alle serverseitig als SVG erzeugt und über die Browser-Druckfunktion druckfertig.",
+      "summary": "Der QR-Code trägt die Identität vom Feld bis zur Ladentheke - der Ausweis lässt sich am Sammelpunkt per Kamera scannen, um Steige und Arbeitszeit der Person zuzuordnen, statt sie aus einem Dropdown zu wählen.",
+      "todo": "Ein Kamera-Scan der Steigen-Etiketten selbst (statt nur des Pflückerausweises) ist nicht Teil dieses Ausbauschritts."
     },
     "esf": {
       "title": "Elektronischer Lieferschein (ЭСФ)",
@@ -1655,7 +1655,7 @@
     },
     "ausweise": {
       "title": "Pflückerausweise",
-      "lead": "QR-Code je Pflücker, verlinkt auf die interne Pflückaufgaben-Ansicht - bewusst ohne Foto oder Biometrie.",
+      "lead": "QR-Code je Pflücker mit dem eigenen Ausweis-Code - am Sammelpunkt per Kamera scannbar, um Steige und Arbeitszeit der Person zuzuordnen. Bewusst ohne Foto oder Biometrie.",
       "empty": "Noch kein Pflücker erfasst.",
       "rolle": "Pflücker"
     },
@@ -1663,6 +1663,17 @@
       "hinweis": "Für den Betrieb gibt es zusätzlich ein anmeldungsfreies Aushang-Poster mit QR-Code auf die allgemeine Codeeingabe.",
       "oeffnen": "Aushang-Poster öffnen"
     }
+  },
+  "ausweisScan": {
+    "label": "Pflücker",
+    "ausweisScannen": "Ausweis scannen",
+    "manuellStattdessen": "stattdessen manuell auswählen",
+    "scanStattdessen": "stattdessen scannen",
+    "hinweis": "Ausweis-QR vor die Kamera halten.",
+    "keinTreffer": "Dieser Code gehört zu keinem bekannten Pflücker. Bitte den richtigen Ausweis scannen.",
+    "keineKamera": "Kein Kamerazugriff möglich. Bitte manuell auswählen.",
+    "aendern": "Ändern",
+    "bitteWaehlen": "bitte wählen"
   },
   "einarbeitungAnsicht": {
     "titel": "Kurzeinarbeitung",
