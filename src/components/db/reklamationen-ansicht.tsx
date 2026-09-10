@@ -18,6 +18,15 @@ import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { reklamationStatusMeta } from "@/lib/domain/reklamationen";
 
+// Dieselbe Zuordnung wie nachweiskette-ansicht.tsx (dort nicht exportiert,
+// nur drei Zeilen - eine eigene kleine Kopie ist hier zumutbarer als eine
+// gemeinsame Utility fuer eine Drei-Werte-Tabelle.
+const ergebnisTon: Record<string, Tone> = {
+  ok: "success",
+  warnung: "warning",
+  verstoss: "danger",
+};
+
 // Reklamationsmanagement (WMCNL-1455). Liste + Detail wie bei
 // pflueckaufgaben-ansicht.tsx: die Auswahl laeuft ueber die Adresszeile, damit
 // die Ansicht serverseitig bleibt und ein Link auf eine Reklamation teilbar
@@ -37,6 +46,9 @@ export async function ReklamationenAnsicht({
   ]);
   const st = await getTranslations("reklamationStatus");
   const grundT = await getTranslations("reklamationGrund");
+  // Wiederverwendung der bestehenden ok/warnung/verstoss-Beschriftungen aus
+  // der Nachweiskette statt einer zweiten Uebersetzung derselben drei Werte.
+  const kkT = await getTranslations("nachweiskette");
   const format = await getFormatter();
 
   const gewaehlt = liste.reklamationen.find((r) => r.id === auswahl) ?? liste.reklamationen[0];
@@ -212,6 +224,75 @@ export async function ReklamationenAnsicht({
                   </p>
                 ) : null}
               </Card>
+
+              {istBuero &&
+              (detail.pflueckerListe.length > 0 ||
+                detail.kuehlmessungen.length > 0 ||
+                detail.nachbarbetrieb) ? (
+                <Card className="space-y-3">
+                  <div>
+                    <p className="text-sm font-black text-card-foreground">
+                      {t("rueckverfolgung.titel")}
+                    </p>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                      {t("rueckverfolgung.lead")}
+                    </p>
+                  </div>
+
+                  {detail.pflueckerListe.length > 0 ? (
+                    <div>
+                      <dt className="text-xs text-muted-foreground">
+                        {t("rueckverfolgung.pfluecker")}
+                      </dt>
+                      <dd className="mt-1 flex flex-wrap gap-1.5">
+                        {detail.pflueckerListe.map((p) => (
+                          <span
+                            key={p.ausweis}
+                            className="rounded-full border border-border px-2 py-0.5 text-[11px] font-semibold text-foreground"
+                          >
+                            {p.name} · {p.ausweis}
+                          </span>
+                        ))}
+                      </dd>
+                    </div>
+                  ) : null}
+
+                  {detail.kuehlmessungen.length > 0 ? (
+                    <div>
+                      <dt className="text-xs text-muted-foreground">
+                        {t("rueckverfolgung.kuehlkette")}
+                      </dt>
+                      <dd className="mt-1 space-y-1">
+                        {detail.kuehlmessungen.map((m) => (
+                          <div key={m.id} className="flex flex-wrap items-center gap-1.5 text-xs">
+                            <StatusPill tone={ergebnisTon[m.ergebnis] ?? "neutral"}>
+                              {kkT(`ergebnis.${m.ergebnis}`)}
+                            </StatusPill>
+                            <span className="text-foreground">
+                              {m.minutenSeitPfluecken !== null
+                                ? t("rueckverfolgung.minuten", { minuten: m.minutenSeitPfluecken })
+                                : t("rueckverfolgung.ohneZeitpunkt")}
+                            </span>
+                            <span className="text-muted-foreground">· {datum(m.gemessenAm)}</span>
+                          </div>
+                        ))}
+                      </dd>
+                    </div>
+                  ) : null}
+
+                  {detail.nachbarbetrieb ? (
+                    <div>
+                      <dt className="text-xs text-muted-foreground">
+                        {t("rueckverfolgung.nachbarbetrieb")}
+                      </dt>
+                      <dd className="mt-1 text-xs font-semibold text-foreground">
+                        {detail.nachbarbetrieb.name}
+                        {detail.nachbarbetrieb.ort ? ` · ${detail.nachbarbetrieb.ort}` : ""}
+                      </dd>
+                    </div>
+                  ) : null}
+                </Card>
+              ) : null}
 
               {darfInPruefungNehmen && detail.status === "offen" ? (
                 <Card>

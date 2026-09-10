@@ -15,6 +15,8 @@ export interface SessionProfile {
   brigadeId: string | null;
   /** B2B-Kunde einer "kunde"-Anmeldung (WMCNL-1455) - null fuer alle anderen Rollen. */
   b2bKundeId: string | null;
+  /** Pfluecker-Stammsatz einer "picker"-Anmeldung (Anforderung 7.1/2.12) - null fuer alle anderen Rollen. */
+  pflueckerId: string | null;
 }
 
 // `cache` dedupliziert den Aufruf innerhalb eines Requests - Layout, Seite und
@@ -31,7 +33,7 @@ export const getSessionProfile = cache(async (): Promise<SessionProfile | null> 
 
   const { data } = await supabase
     .from("profiles")
-    .select("id, full_name, email, role, brigade_id, b2b_kunde_id")
+    .select("id, full_name, email, role, brigade_id, b2b_kunde_id, pfluecker_id")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
@@ -49,6 +51,7 @@ export const getSessionProfile = cache(async (): Promise<SessionProfile | null> 
     role,
     brigadeId: data.brigade_id,
     b2bKundeId: data.b2b_kunde_id,
+    pflueckerId: data.pfluecker_id,
   };
 });
 

@@ -114,6 +114,11 @@ export async function ledgerBuchungErfassen(
   }
 
   const kostentraegerId = text(formData, "kostentraeger_id");
+  // Anforderung 3.3: optionaler direkter Chargenbezug fuer die
+  // Rueckverfolgung bis zur einzelnen Charge statt nur zum groeberen
+  // Kostentraeger. Bewusst optional, nicht jede Buchung (z. B. allgemeine
+  // Betriebskosten) laesst sich einer einzelnen Charge zuordnen.
+  const chargeId = text(formData, "charge_id") || null;
   const typ = text(formData, "typ");
   const kategorie = text(formData, "kategorie");
   const betrag = zahl(formData, "betrag_tenge");
@@ -135,6 +140,7 @@ export async function ledgerBuchungErfassen(
     .from("finance_ledger_entries")
     .insert({
       kostentraeger_id: kostentraegerId,
+      charge_id: chargeId,
       typ: typ as LedgerTyp,
       kategorie,
       betrag_tenge: betrag,

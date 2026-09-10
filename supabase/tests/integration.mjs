@@ -2182,6 +2182,859 @@ if (leitung && brigade) {
     (erzeugerAusweise?.length ?? 0) === 0,
     `sichtbare Zeilen: ${erzeugerAusweise?.length}`,
   );
+
+  // --- Anforderung 4.3: Deckungsbeitrag je Kilogramm --------------------------
+  // Eigenstaendiges, isoliertes Testszenario mit einem klar erkennbaren
+  // Test-Erntetag (2030-01-01), damit keine Kollision mit der
+  // Unique-Constraint (reihenblock_id, sorte_id, erntetag) auf bestehenden
+  // Kostentraegern der Demo-/Seed-Daten entstehen kann.
+  {
+    // WICHTIG: finance_ledger_entries ist fuer niemanden loeschbar
+    // (block_ledger_mutation(), bereits im urspruenglichen Schema so
+    // angelegt) - dieser Test legt deshalb bewusst KEINE Ledger-Zeilen an,
+    // nur Kostentraeger/Charge/Pflueckaufgabe (die sind normal loeschbar).
+    // Ohne Ledger-Buchungen liefert coalesce(sum(...),0) korrekt 0, die
+    // Rechnung 0 / menge_kg = 0 bleibt trotzdem aussagekraeftig: sie beweist,
+    // dass der CASE-Zweig tatsaechlich rechnet (0 statt null), waehrend der
+    // Zukauf-Fall unten zeigt, dass ohne Menge korrekt null zurueckkommt.
+    const testErntetag = "2030-01-01";
+    const { data: dbBlock, error: dbBlockFehler } = await admin
+      .from("reihenbloecke")
+      .select("id")
+      .neq("status", "wartezeitgesperrt")
+      .limit(1)
+      .single();
+    const { data: dbSorte, error: dbSorteFehler } = await admin
+      .from("sorten")
+      .select("id")
+      .limit(1)
+      .single();
+
+    const { data: dbCharge, error: dbChargeFehler } = await admin
+      .from("chargen")
+      .insert({
+        code: `__it_dbkg_${Date.now()}`,
+        reihenblock_id: dbBlock?.id,
+        sorte_id: dbSorte?.id,
+        ernte_datum: testErntetag,
+      })
+      .select("id")
+      .single();
+
+    const { data: dbAufgabe, error: dbAufgabeFehler } = await admin
+      .from("pflueckaufgaben")
+      .insert({
+        code: `__it_dbkg_${Date.now()}`,
+        reihenblock_id: dbBlock?.id,
+        sorte_id: dbSorte?.id,
+        charge_id: dbCharge?.id,
+        status: "abgeschlossen",
+        zielmenge_kg: 100,
+        ist_menge_kg: 40,
+      })
+      .select("id")
+      .single();
+
+    const { data: dbKostentraeger, error: dbKostentraegerFehler } = await admin
+      .from("kostentraeger")
+      .insert({
+        reihenblock_id: dbBlock?.id,
+        sorte_id: dbSorte?.id,
+        erntetag: testErntetag,
+        bezeichnung: `__it_dbkg_${Date.now()}`,
+      })
+      .select("id")
+      .single();
+
+    const aufbauFehler =
+      dbBlockFehler || dbSorteFehler || dbChargeFehler || dbAufgabeFehler || dbKostentraegerFehler;
+    check(
+      "Anforderung 4.3: Testaufbau (Charge/Aufgabe/Kostentraeger) gelingt",
+      !aufbauFehler,
+      aufbauFehler?.message ?? "",
+    );
+
+    if (!aufbauFehler) {
+      const { data: dbView } = await admin
+        .from("deckungsbeitrag_je_kostentraeger")
+        .select("menge_kg, deckungsbeitrag_tenge, deckungsbeitrag_je_kg_tenge")
+        .eq("kostentraeger_id", dbKostentraeger.id)
+        .single();
+
+      check(
+        "Anforderung 4.3: die View summiert die tatsaechlich geerntete Menge korrekt",
+        Number(dbView?.menge_kg) === 40,
+        `menge_kg: ${dbView?.menge_kg}`,
+      );
+      check(
+        "Anforderung 4.3: Deckungsbeitrag je Kilogramm wird berechnet (0 Buchungen -> 0, nicht null)",
+        Number(dbView?.deckungsbeitrag_tenge) === 0 &&
+          Number(dbView?.deckungsbeitrag_je_kg_tenge) === 0,
+        `deckungsbeitrag_tenge: ${dbView?.deckungsbeitrag_tenge}, je_kg: ${dbView?.deckungsbeitrag_je_kg_tenge}`,
+      );
+    }
+
+    // Zukauf-analoger Fall: Kostentraeger ohne reihenblock_id bekommt keine
+    // Menge und keinen Wert je Kilogramm, statt eines falschen 0-Divisors.
+    const { data: zukaufKostentraeger, error: zukaufFehler } = await admin
+      .from("kostentraeger")
+      .insert({
+        reihenblock_id: null,
+        sorte_id: dbSorte?.id,
+        erntetag: testErntetag,
+        bezeichnung: `__it_dbkg_zukauf_${Date.now()}`,
+      })
+      .select("id")
+      .single();
+    if (!zukaufFehler) {
+      const { data: zukaufView } = await admin
+        .from("deckungsbeitrag_je_kostentraeger")
+        .select("menge_kg, deckungsbeitrag_je_kg_tenge")
+        .eq("kostentraeger_id", zukaufKostentraeger.id)
+        .single();
+      check(
+        "Anforderung 4.3: ein Kostentraeger ohne eigenen Reihenblock liefert keinen Wert je Kilogramm",
+        zukaufView?.menge_kg === null && zukaufView?.deckungsbeitrag_je_kg_tenge === null,
+        `menge_kg: ${zukaufView?.menge_kg}, je_kg: ${zukaufView?.deckungsbeitrag_je_kg_tenge}`,
+      );
+    }
+
+    // Aufraeumen: nur Kostentraeger/Pflueckaufgabe/Charge, niemals
+    // finance_ledger_entries (siehe Hinweis oben).
+    const aufzuraeumendeKt = [dbKostentraeger?.id, zukaufKostentraeger?.id].filter(Boolean);
+    if (aufzuraeumendeKt.length) {
+      await admin.from("kostentraeger").delete().in("id", aufzuraeumendeKt);
+    }
+    if (dbAufgabe?.id) await admin.from("pflueckaufgaben").delete().eq("id", dbAufgabe.id);
+    if (dbCharge?.id) await admin.from("chargen").delete().eq("id", dbCharge.id);
+  }
+
+  // --- Anforderung 2.12: Mehrsprachige Kurzeinarbeitung als bebilderte Checkliste --
+  {
+    const { client: pfluecker, fehler: pflueckerFehler } = await anmelden("pfluecker@damicon.demo");
+    check("Auth: Pfluecker meldet sich an", !!pfluecker, pflueckerFehler ?? "");
+
+    const { data: katalog, error: katalogFehler } = await admin
+      .from("einarbeitung_schritte")
+      .select("id, reihenfolge")
+      .order("reihenfolge");
+    check(
+      "Anforderung 2.12: Katalog enthaelt die sechs Migrations-Schritte",
+      !katalogFehler && katalog?.length === 6,
+      katalogFehler?.message ?? `Zeilen: ${katalog?.length}`,
+    );
+
+    const { data: pflueckerProfil } = await admin
+      .from("profiles")
+      .select("pfluecker_id")
+      .eq("email", "pfluecker@damicon.demo")
+      .single();
+
+    if (pfluecker && katalog?.length && pflueckerProfil?.pfluecker_id) {
+      const eigenePflueckerId = pflueckerProfil.pfluecker_id;
+      const ersterSchritt = katalog[0];
+
+      // Aufraeumen von einem etwaigen Vorlauf, damit der Testlauf wiederholbar
+      // bleibt (kein UPDATE-Pfad in der App, nur delete+redo korrigiert ein
+      // Haekchen, siehe Migrationskopf).
+      await admin
+        .from("einarbeitung_fortschritt")
+        .delete()
+        .eq("pfluecker_id", eigenePflueckerId)
+        .eq("schritt_id", ersterSchritt.id);
+
+      const { data: katalogPfluecker, error: katalogPflueckerFehler } = await pfluecker
+        .from("einarbeitung_schritte")
+        .select("id")
+        .order("reihenfolge");
+      check(
+        "Anforderung 2.12: Picker liest den Einarbeitungskatalog (RLS einarbeitung_schritte_select)",
+        !katalogPflueckerFehler && katalogPfluecker?.length === 6,
+        katalogPflueckerFehler?.message ?? `Zeilen: ${katalogPfluecker?.length}`,
+      );
+
+      const { data: katalogBrigade, error: katalogBrigadeFehler } = await brigade
+        .from("einarbeitung_schritte")
+        .select("id")
+        .order("reihenfolge");
+      check(
+        "Anforderung 2.12: Brigade liest den Einarbeitungskatalog mit (Nachtrag 20260921010000, rbac.ts view(schulungen))",
+        !katalogBrigadeFehler && katalogBrigade?.length === 6,
+        katalogBrigadeFehler?.message ?? `Zeilen: ${katalogBrigade?.length}`,
+      );
+
+      const { error: abhakenFehler } = await pfluecker
+        .from("einarbeitung_fortschritt")
+        .insert({ pfluecker_id: eigenePflueckerId, schritt_id: ersterSchritt.id });
+      check(
+        "Anforderung 2.12: Picker hakt den eigenen Schritt ab (RLS einarbeitung_fortschritt_insert_own)",
+        !abhakenFehler,
+        abhakenFehler?.message ?? "",
+      );
+
+      const { error: doppeltFehler } = await pfluecker
+        .from("einarbeitung_fortschritt")
+        .insert({ pfluecker_id: eigenePflueckerId, schritt_id: ersterSchritt.id });
+      check(
+        "Anforderung 2.12: zweites Abhaken desselben Schritts kollidiert mit der Unique-Constraint (kein Duplikat)",
+        doppeltFehler?.code === "23505",
+        doppeltFehler?.code ?? "kein Fehler",
+      );
+
+      // Fremde pfluecker_id: die RLS-WITH-CHECK laesst nur die eigene zu. Ein
+      // zweiter, nicht angemeldeter Pfluecker-Stammsatz dient als Fremd-ID,
+      // ohne dass dafuer ein eigenes Demo-Login noetig ist.
+      const { data: fremderPfluecker } = await admin
+        .from("pfluecker")
+        .select("id")
+        .neq("id", eigenePflueckerId)
+        .limit(1)
+        .single();
+      if (fremderPfluecker && katalog[1]) {
+        const { error: fremdFehler } = await pfluecker
+          .from("einarbeitung_fortschritt")
+          .insert({ pfluecker_id: fremderPfluecker.id, schritt_id: katalog[1].id });
+        check(
+          "Anforderung 2.12: Picker kann keinen Fortschritt fuer eine fremde pfluecker_id anlegen (RLS-WITH-CHECK)",
+          !!fremdFehler,
+          fremdFehler?.code ?? "kein Fehler - RLS-Luecke!",
+        );
+      }
+
+      // Buero-Rolle sieht den Fortschritt jeder Saisonkraft, authentisiert
+      // statt ueber den Service-Role-Bypass (RLS
+      // einarbeitung_fortschritt_select_buero).
+      const { data: leitungSieht, error: leitungSiehtFehler } = await leitung
+        .from("einarbeitung_fortschritt")
+        .select("id")
+        .eq("pfluecker_id", eigenePflueckerId)
+        .eq("schritt_id", ersterSchritt.id);
+      check(
+        "Anforderung 2.12: Betriebsleitung sieht den Fortschritt des Pfluecker (RLS einarbeitung_fortschritt_select_buero)",
+        !leitungSiehtFehler && (leitungSieht?.length ?? 0) === 1,
+        leitungSiehtFehler?.message ?? `Zeilen: ${leitungSieht?.length}`,
+      );
+
+      // Brigade hat kein schulungen:complete und liest laut RLS nur den
+      // Katalog, keinen personenbezogenen Fortschritt.
+      const { data: brigadeSieht } = await brigade
+        .from("einarbeitung_fortschritt")
+        .select("id")
+        .eq("pfluecker_id", eigenePflueckerId);
+      check(
+        "Anforderung 2.12: Brigade sieht keinen Einarbeitungsfortschritt (keine select_buero/select_own-Policy greift)",
+        (brigadeSieht?.length ?? 0) === 0,
+        `Zeilen: ${brigadeSieht?.length}`,
+      );
+
+      // Aufraeumen: neue Tabelle ohne Immutability-Trigger, Loeschen ist
+      // sicher (anders als finance_ledger_entries, siehe Anforderung 4.3).
+      await admin
+        .from("einarbeitung_fortschritt")
+        .delete()
+        .eq("pfluecker_id", eigenePflueckerId)
+        .eq("schritt_id", ersterSchritt.id);
+    }
+  }
+
+  // --- Anforderung 3.4 und 6.3: Rueckverfolgung einer Reklamation ------------
+  // bis zur pfleuckenden Person, zur Kuehlmessung und, bei Zukaufware, zum
+  // liefernden Nachbarbetrieb. Eigener Erntetag (2030-02-01) fuer
+  // Kollisionsfreiheit mit dem 4.3-Testblock (2030-01-01), der ebenfalls einen
+  // Kostentraeger-Erntetag verwendet.
+  {
+    // 1. RLS-Haertung: kuehlketten_messungen war fuer JEDE angemeldete Rolle
+    //    lesbar (Migration 20260922000000 schliesst das, analog zu steigen).
+    const { data: kkLeitung, error: kkLeitungFehler } = await leitung
+      .from("kuehlketten_messungen")
+      .select("id")
+      .limit(1);
+    check(
+      "Anforderung 3.4: Betriebsleitung liest kuehlketten_messungen (RLS kuehlketten_messungen_select_feld)",
+      !kkLeitungFehler,
+      kkLeitungFehler?.message ?? `Zeilen: ${kkLeitung?.length}`,
+    );
+
+    const { client: kundeRv, fehler: kundeRvFehler } = await anmelden("kunde@damicon.demo");
+    check("Auth: Kunde meldet sich an (Rueckverfolgung)", !!kundeRv, kundeRvFehler ?? "");
+
+    if (kundeRv) {
+      const { data: kkKunde } = await kundeRv.from("kuehlketten_messungen").select("id");
+      check(
+        "Anforderung 3.4: Kunde liest kuehlketten_messungen nicht mehr (vorher jede angemeldete Rolle)",
+        (kkKunde?.length ?? 0) === 0,
+        `sichtbare Zeilen: ${kkKunde?.length}`,
+      );
+    }
+
+    const { client: erzeugerRv } = await anmelden("erzeuger@damicon.demo");
+    if (erzeugerRv) {
+      const { data: kkErzeuger } = await erzeugerRv.from("kuehlketten_messungen").select("id");
+      check(
+        "Anforderung 3.4: Erzeuger liest kuehlketten_messungen nicht mehr",
+        (kkErzeuger?.length ?? 0) === 0,
+        `sichtbare Zeilen: ${kkErzeuger?.length}`,
+      );
+    }
+
+    // 2. Volle Kette bei eigener Ernte: Person + Kuehlzeit.
+    const rvErntetag = "2030-02-01";
+    const { data: rvBlock, error: rvBlockFehler } = await admin
+      .from("reihenbloecke")
+      .select("id")
+      .neq("status", "wartezeitgesperrt")
+      .limit(1)
+      .single();
+    const { data: rvSorte, error: rvSorteFehler } = await admin
+      .from("sorten")
+      .select("id")
+      .limit(1)
+      .single();
+    const { data: rvPfluecker, error: rvPflueckerFehler } = await admin
+      .from("pfluecker")
+      .select("id, name, ausweis")
+      .limit(1)
+      .single();
+    const { data: almatyFreshRv, error: almatyFreshRvFehler } = await admin
+      .from("b2b_kunden")
+      .select("id")
+      .eq("name", "Almaty Fresh Market")
+      .single();
+
+    // Fester pflueck_zeitpunkt statt leer: kuehlkette_bewerten() ueberschreibt
+    // minuten_seit_pfluecken sonst hart auf null und ergebnis auf "warnung"
+    // (Migration 20260905200000, Abschnitt 6 - ein unbekannter Pflueckzeitpunkt
+    // gilt seit der Haertung bewusst nicht mehr als "ok").
+    const rvPflueckZeitpunkt = "2030-02-01T08:00:00.000Z";
+    const rvGemessenAm = "2030-02-01T08:25:00.000Z";
+    const { data: rvCharge, error: rvChargeFehler } = await admin
+      .from("chargen")
+      .insert({
+        code: `__it_rv_${Date.now()}`,
+        reihenblock_id: rvBlock?.id,
+        sorte_id: rvSorte?.id,
+        ernte_datum: rvErntetag,
+        pflueck_zeitpunkt: rvPflueckZeitpunkt,
+      })
+      .select("id")
+      .single();
+
+    const { data: rvSteige, error: rvSteigeFehler } = await admin
+      .from("steigen")
+      .insert({
+        // Eigener Code + eigenes Token: der Trigger steige_nummer_vergeben()
+        // vergibt die atomare Nummer nur bei leerem Code, hier bewusst
+        // umgangen, weil diese Steige keine echte Pflueckaufgabe hat.
+        code: `__IT-RV-${Date.now()}`,
+        qr_token: `__it_rv_token_${Date.now()}`,
+        charge_id: rvCharge?.id,
+        pfluecker_id: rvPfluecker?.id,
+        gewicht_kg: 5,
+      })
+      .select("id")
+      .single();
+
+    const { data: rvMessung, error: rvMessungFehler } = await admin
+      .from("kuehlketten_messungen")
+      .insert({
+        charge_id: rvCharge?.id,
+        temperatur_c: 3,
+        gemessen_am: rvGemessenAm,
+        // minuten_seit_pfluecken wird von kuehlkette_bewerten() aus
+        // gemessen_am - chargen.pflueck_zeitpunkt errechnet (hier: genau 25),
+        // ein mitgegebener Wert wuerde ohnehin ueberschrieben.
+      })
+      .select("id")
+      .single();
+
+    const { data: rvReklamation, error: rvReklamationFehler } = await admin
+      .from("reklamationen")
+      .insert({
+        code: `REK-IT-RV-${Date.now()}`,
+        b2b_kunde_id: almatyFreshRv?.id,
+        charge_id: rvCharge?.id,
+        grund: "qualitaet",
+        betreff: "Integrationstest Rueckverfolgung",
+      })
+      .select("id")
+      .single();
+
+    const rvAufbauFehler =
+      rvBlockFehler ||
+      rvSorteFehler ||
+      rvPflueckerFehler ||
+      almatyFreshRvFehler ||
+      rvChargeFehler ||
+      rvSteigeFehler ||
+      rvMessungFehler ||
+      rvReklamationFehler;
+    check(
+      "Anforderung 3.4: Testaufbau (Charge/Steige/Messung/Reklamation) gelingt",
+      !rvAufbauFehler,
+      rvAufbauFehler?.message ?? "",
+    );
+
+    if (!rvAufbauFehler) {
+      const rvSelect = `id, chargen (
+           steigen ( pfluecker_id, pfluecker ( name, ausweis ) ),
+           kuehlketten_messungen ( id, minuten_seit_pfluecken, ergebnis )
+         )`;
+
+      const { data: rvDetail, error: rvDetailFehler } = await leitung
+        .from("reklamationen")
+        .select(rvSelect)
+        .eq("id", rvReklamation.id)
+        .single();
+
+      const rvChargeEmbed = Array.isArray(rvDetail?.chargen) ? rvDetail.chargen[0] : rvDetail?.chargen;
+      const rvSteigenEmbed = rvChargeEmbed?.steigen ?? [];
+      const rvPflueckerRoh = rvSteigenEmbed[0]?.pfluecker;
+      const rvPflueckerEmbed = Array.isArray(rvPflueckerRoh) ? rvPflueckerRoh[0] : rvPflueckerRoh;
+
+      check(
+        "Anforderung 3.4: Betriebsleitung liest ueber die Reklamation bis zur pfleuckenden Person durch",
+        !rvDetailFehler && rvPflueckerEmbed?.name === rvPfluecker.name,
+        rvDetailFehler?.message ?? `gefunden: ${JSON.stringify(rvPflueckerEmbed)}`,
+      );
+      check(
+        "Anforderung 3.4: Betriebsleitung liest ueber die Reklamation bis zur Kuehlmessung durch",
+        (rvChargeEmbed?.kuehlketten_messungen?.length ?? 0) === 1 &&
+          Number(rvChargeEmbed.kuehlketten_messungen[0].minuten_seit_pfluecken) === 25,
+        JSON.stringify(rvChargeEmbed?.kuehlketten_messungen),
+      );
+
+      // Kunde: dieselbe Reklamation (eigene Firma, also per RLS sichtbar),
+      // aber steigen/kuehlketten_messungen bleiben ueber die eingebettete
+      // Relation leer statt eines Fehlers - RLS wirkt durch den Join hindurch.
+      if (kundeRv) {
+        const { data: rvKundeDetail, error: rvKundeDetailFehler } = await kundeRv
+          .from("reklamationen")
+          .select(rvSelect)
+          .eq("id", rvReklamation.id)
+          .maybeSingle();
+        const rvKundeChargeEmbed = Array.isArray(rvKundeDetail?.chargen)
+          ? rvKundeDetail.chargen[0]
+          : rvKundeDetail?.chargen;
+        check(
+          "Anforderung 3.4: Kunde sieht ueber dieselbe Reklamation weder Pfluecker noch Kuehlmessung (RLS durch den Join)",
+          !rvKundeDetailFehler &&
+            !!rvKundeDetail &&
+            (rvKundeChargeEmbed?.steigen?.length ?? 0) === 0 &&
+            (rvKundeChargeEmbed?.kuehlketten_messungen?.length ?? 0) === 0,
+          rvKundeDetailFehler?.message ?? JSON.stringify(rvKundeChargeEmbed),
+        );
+      }
+    }
+
+    // 3. Zukauf-Kette: liefernder Nachbarbetrieb (Anforderung 6.3).
+    const { data: rvNachbarbetrieb, error: rvNachbarbetriebFehler } = await admin
+      .from("nachbarbetriebe")
+      .select("id, name")
+      .limit(1)
+      .single();
+
+    const { data: rvZukaufCharge, error: rvZukaufChargeFehler } = await admin
+      .from("chargen")
+      .insert({
+        code: `__it_rv_zuk_${Date.now()}`,
+        reihenblock_id: null,
+        sorte_id: rvSorte?.id,
+        ernte_datum: rvErntetag,
+      })
+      .select("id")
+      .single();
+
+    const { data: rvZukaufPosition, error: rvZukaufPositionFehler } = await admin
+      .from("zukauf_positionen")
+      .insert({
+        nachbarbetrieb_id: rvNachbarbetrieb?.id,
+        sorte_id: rvSorte?.id,
+        charge_id: rvZukaufCharge?.id,
+        menge_kg: 10,
+      })
+      .select("id")
+      .single();
+
+    const { data: rvZukaufReklamation, error: rvZukaufReklamationFehler } = await admin
+      .from("reklamationen")
+      .insert({
+        code: `REK-IT-RV-ZUK-${Date.now()}`,
+        b2b_kunde_id: almatyFreshRv?.id,
+        charge_id: rvZukaufCharge?.id,
+        grund: "qualitaet",
+        betreff: "Integrationstest Rueckverfolgung Zukauf",
+      })
+      .select("id")
+      .single();
+
+    const rvZukaufAufbauFehler =
+      rvNachbarbetriebFehler ||
+      rvZukaufChargeFehler ||
+      rvZukaufPositionFehler ||
+      rvZukaufReklamationFehler;
+    check(
+      "Anforderung 6.3: Testaufbau Zukauf-Kette (Charge/Zukaufposition/Reklamation) gelingt",
+      !rvZukaufAufbauFehler,
+      rvZukaufAufbauFehler?.message ?? "",
+    );
+
+    if (!rvZukaufAufbauFehler) {
+      const { data: rvZukaufDetail, error: rvZukaufDetailFehler } = await leitung
+        .from("reklamationen")
+        .select(`id, chargen ( zukauf_positionen ( nachbarbetriebe ( name ) ) )`)
+        .eq("id", rvZukaufReklamation.id)
+        .single();
+      const rvZukaufChargeEmbed = Array.isArray(rvZukaufDetail?.chargen)
+        ? rvZukaufDetail.chargen[0]
+        : rvZukaufDetail?.chargen;
+      const rvZukaufPositionRoh = rvZukaufChargeEmbed?.zukauf_positionen;
+      const rvZukaufPositionEmbed = Array.isArray(rvZukaufPositionRoh)
+        ? rvZukaufPositionRoh[0]
+        : rvZukaufPositionRoh;
+      const rvNachbarbetriebRoh = rvZukaufPositionEmbed?.nachbarbetriebe;
+      const rvNachbarbetriebEmbed = Array.isArray(rvNachbarbetriebRoh)
+        ? rvNachbarbetriebRoh[0]
+        : rvNachbarbetriebRoh;
+      check(
+        "Anforderung 6.3: Betriebsleitung liest ueber die Reklamation bis zum liefernden Nachbarbetrieb durch",
+        !rvZukaufDetailFehler && rvNachbarbetriebEmbed?.name === rvNachbarbetrieb.name,
+        rvZukaufDetailFehler?.message ?? JSON.stringify(rvNachbarbetriebEmbed),
+      );
+    }
+
+    // 4. Regressionsschutz: eigene Ernte ohne Zukaufbezug liefert keine
+    //    zukauf_positionen-Zeile statt einer Fehlinterpretation.
+    if (!rvAufbauFehler) {
+      const { data: rvEigeneKetteDetail } = await admin
+        .from("reklamationen")
+        .select(`id, chargen ( zukauf_positionen ( id ) )`)
+        .eq("id", rvReklamation.id)
+        .single();
+      const rvEigeneChargeEmbed = Array.isArray(rvEigeneKetteDetail?.chargen)
+        ? rvEigeneKetteDetail.chargen[0]
+        : rvEigeneKetteDetail?.chargen;
+      check(
+        "Anforderung 6.3: eigene Ernte ohne Zukaufbezug liefert keine zukauf_positionen-Zeile",
+        (rvEigeneChargeEmbed?.zukauf_positionen?.length ?? 0) === 0,
+        JSON.stringify(rvEigeneChargeEmbed?.zukauf_positionen),
+      );
+    }
+
+    // Aufraeumen (Kind vor Eltern wegen FKs).
+    if (rvReklamation?.id) await admin.from("reklamationen").delete().eq("id", rvReklamation.id);
+    if (rvZukaufReklamation?.id)
+      await admin.from("reklamationen").delete().eq("id", rvZukaufReklamation.id);
+    if (rvZukaufPosition?.id)
+      await admin.from("zukauf_positionen").delete().eq("id", rvZukaufPosition.id);
+    if (rvMessung?.id) await admin.from("kuehlketten_messungen").delete().eq("id", rvMessung.id);
+    if (rvSteige?.id) await admin.from("steigen").delete().eq("id", rvSteige.id);
+    if (rvCharge?.id) await admin.from("chargen").delete().eq("id", rvCharge.id);
+    if (rvZukaufCharge?.id) await admin.from("chargen").delete().eq("id", rvZukaufCharge.id);
+  }
+
+  // --- Anforderung 3.3: Deckungsbeitrag je Charge -----------------------------
+  // finance_ledger_entries ist unloeschbar (siehe Anforderung 4.3-Zwischenfall
+  // oben) - dieser Test legt deshalb KEINE eigenen Buchungen an, sondern liest
+  // ausschliesslich das permanente Beispiel aus Migration
+  // 20260923010000_deckungsbeitrag_je_charge_beispiel.sql.
+  {
+    const { data: dbcView, error: dbcViewFehler } = await admin
+      .from("deckungsbeitrag_je_charge")
+      .select("charge_id, erloes_tenge, kosten_tenge, deckungsbeitrag_tenge, buchungen, menge_kg")
+      .eq("charge_code", "CH-BEISPIEL-JE-CHARGE")
+      .single();
+    check(
+      "Anforderung 3.3: Deckungsbeitrag je Charge wird korrekt berechnet (Erloes minus Kosten, direkt an charge_id)",
+      !dbcViewFehler &&
+        Number(dbcView?.erloes_tenge) === 20000 &&
+        Number(dbcView?.kosten_tenge) === 8000 &&
+        Number(dbcView?.deckungsbeitrag_tenge) === 12000 &&
+        Number(dbcView?.buchungen) === 2,
+      dbcViewFehler?.message ?? JSON.stringify(dbcView),
+    );
+    check(
+      "Anforderung 3.3: ohne verknuepfte Pflueckaufgabe bleibt menge_kg korrekt leer statt eines falschen Werts",
+      dbcView?.menge_kg === null,
+      `menge_kg: ${dbcView?.menge_kg}`,
+    );
+
+    if (dbcView?.charge_id) {
+      const { data: dbcLeitung } = await leitung
+        .from("deckungsbeitrag_je_charge")
+        .select("charge_id")
+        .eq("charge_id", dbcView.charge_id);
+      check(
+        "Anforderung 3.3: Betriebsleitung liest die View (RLS der Basistabellen gilt per security_invoker durch)",
+        (dbcLeitung?.length ?? 0) === 1,
+        `Zeilen: ${dbcLeitung?.length}`,
+      );
+
+      const { data: dbcBrigade } = await brigade
+        .from("deckungsbeitrag_je_charge")
+        .select("charge_id")
+        .eq("charge_id", dbcView.charge_id);
+      check(
+        "Anforderung 3.3: Brigade liest die View nicht (finance_ledger_entries bleibt Buero-only)",
+        (dbcBrigade?.length ?? 0) === 0,
+        `Zeilen: ${dbcBrigade?.length}`,
+      );
+    }
+
+    // Regressionsschutz: eine beliebige Charge ohne direkt zugeordnete Buchung
+    // taucht in der View nicht auf (INNER JOIN, kein Rauschen aus der Menge an
+    // Chargen ohne eigene Buchung).
+    const { data: irgendeineCharge } = await admin
+      .from("chargen")
+      .select("id")
+      .neq("code", "CH-BEISPIEL-JE-CHARGE")
+      .limit(1)
+      .single();
+    if (irgendeineCharge?.id) {
+      const { data: irgendeineChargeView } = await admin
+        .from("deckungsbeitrag_je_charge")
+        .select("charge_id")
+        .eq("charge_id", irgendeineCharge.id);
+      check(
+        "Anforderung 3.3: eine Charge ohne direkt zugeordnete Buchung erscheint nicht in der View",
+        (irgendeineChargeView?.length ?? 0) === 0,
+        `Zeilen: ${irgendeineChargeView?.length}`,
+      );
+    }
+  }
+
+  // --- Anforderung 4.10: Jaehrliche Pflichtschulung mit Nachweis und Fristueberwachung ---
+  {
+    const { data: pflichtvideo, error: pflichtvideoFehler } = await admin
+      .from("schulungsvideos")
+      .select("id, pflicht, frist_monate")
+      .eq("titel", "Arbeitssicherheit auf der Plantage")
+      .single();
+    check(
+      "Anforderung 4.10: Beispiel-Pflichtschulung ist angelegt (pflicht=true, frist_monate=12)",
+      !pflichtvideoFehler && pflichtvideo?.pflicht === true && pflichtvideo?.frist_monate === 12,
+      pflichtvideoFehler?.message ?? JSON.stringify(pflichtvideo),
+    );
+
+    const { data: leitungProfilRow } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("email", "leitung@damicon.demo")
+      .single();
+    const { data: brigadeProfilRow } = await admin
+      .from("profiles")
+      .select("id")
+      .eq("email", "brigade@damicon.demo")
+      .single();
+
+    if (pflichtvideo?.id && leitungProfilRow?.id && brigadeProfilRow?.id) {
+      // Aufraeumen von einem etwaigen Vorlauf, damit der Testlauf wiederholbar
+      // bleibt - schulungsteilnahmen ist normal loeschbar (kein Immutability-
+      // Trigger, anders als finance_ledger_entries).
+      await admin
+        .from("schulungsteilnahmen")
+        .delete()
+        .eq("schulungsvideo_id", pflichtvideo.id)
+        .in("profil_id", [leitungProfilRow.id, brigadeProfilRow.id]);
+
+      const { data: vorherView } = await admin
+        .from("schulungsteilnahmen_status")
+        .select("status")
+        .eq("schulungsvideo_id", pflichtvideo.id)
+        .eq("profil_id", leitungProfilRow.id)
+        .single();
+      check(
+        "Anforderung 4.10: ohne Teilnahme zeigt die Fristueberwachung 'nie'",
+        vorherView?.status === "nie",
+        `status: ${vorherView?.status}`,
+      );
+
+      // Selbstauskunft: Brigade meldet die eigene Teilnahme.
+      const { error: brigadeEigeneFehler } = await brigade
+        .from("schulungsteilnahmen")
+        .insert({ schulungsvideo_id: pflichtvideo.id, profil_id: brigadeProfilRow.id });
+      check(
+        "Anforderung 4.10: Brigade meldet die eigene Teilnahme (RLS schulungsteilnahmen_insert_own)",
+        !brigadeEigeneFehler,
+        brigadeEigeneFehler?.message ?? "",
+      );
+
+      // Brigade darf nicht fuer die Betriebsleitung erfassen (fremde profil_id,
+      // kein Buero-Recht).
+      const { error: brigadeFremdFehler } = await brigade
+        .from("schulungsteilnahmen")
+        .insert({ schulungsvideo_id: pflichtvideo.id, profil_id: leitungProfilRow.id });
+      check(
+        "Anforderung 4.10: Brigade kann keine Teilnahme fuer eine fremde profil_id erfassen (RLS-WITH-CHECK)",
+        !!brigadeFremdFehler,
+        brigadeFremdFehler?.code ?? "kein Fehler - RLS-Luecke!",
+      );
+
+      // Betriebsleitung (Buero) meldet die eigene Teilnahme.
+      const { error: leitungEigeneFehler } = await leitung
+        .from("schulungsteilnahmen")
+        .insert({ schulungsvideo_id: pflichtvideo.id, profil_id: leitungProfilRow.id });
+      check(
+        "Anforderung 4.10: Betriebsleitung meldet die eigene Teilnahme",
+        !leitungEigeneFehler,
+        leitungEigeneFehler?.message ?? "",
+      );
+
+      const { data: nachherView, error: nachherViewFehler } = await admin
+        .from("schulungsteilnahmen_status")
+        .select("status, faellig_am, letzte_teilnahme_am")
+        .eq("schulungsvideo_id", pflichtvideo.id)
+        .eq("profil_id", leitungProfilRow.id)
+        .single();
+      check(
+        "Anforderung 4.10: nach der Teilnahme zeigt die Fristueberwachung 'aktuell' mit errechnetem Faelligkeitsdatum",
+        !nachherViewFehler &&
+          nachherView?.status === "aktuell" &&
+          !!nachherView?.faellig_am &&
+          !!nachherView?.letzte_teilnahme_am,
+        nachherViewFehler?.message ?? JSON.stringify(nachherView),
+      );
+
+      // RLS-Sichtbarkeit: Brigade sieht in der Fristueberwachung nur die
+      // eigene Zeile, nicht die der Betriebsleitung.
+      const { data: brigadeSichtLeitung } = await brigade
+        .from("schulungsteilnahmen_status")
+        .select("profil_id")
+        .eq("schulungsvideo_id", pflichtvideo.id)
+        .eq("profil_id", leitungProfilRow.id);
+      check(
+        "Anforderung 4.10: Brigade sieht die Fristueberwachungszeile der Betriebsleitung nicht (RLS profiles_select_self)",
+        (brigadeSichtLeitung?.length ?? 0) === 0,
+        `Zeilen: ${brigadeSichtLeitung?.length}`,
+      );
+
+      const { data: leitungSichtAlle } = await leitung
+        .from("schulungsteilnahmen_status")
+        .select("profil_id")
+        .eq("schulungsvideo_id", pflichtvideo.id)
+        .in("profil_id", [leitungProfilRow.id, brigadeProfilRow.id]);
+      check(
+        "Anforderung 4.10: Betriebsleitung sieht die Fristueberwachungszeilen beider Personen (Buero-Sicht)",
+        (leitungSichtAlle?.length ?? 0) === 2,
+        `Zeilen: ${leitungSichtAlle?.length}`,
+      );
+
+      await admin
+        .from("schulungsteilnahmen")
+        .delete()
+        .eq("schulungsvideo_id", pflichtvideo.id)
+        .in("profil_id", [leitungProfilRow.id, brigadeProfilRow.id]);
+    }
+  }
+
+  // --- Anforderung 4.12: Foerdermitteldossier als bedienbares UI-Modul -------
+  {
+    const { data: seedDossier, error: seedDossierFehler } = await admin
+      .from("foerderdossiers")
+      .select("id, status, frist_am")
+      .eq("antragsnummer", "2026-114")
+      .single();
+    check(
+      "Anforderung 4.12: Seed-Dossier ist ueber den erweiterten Wertebereich weiterhin gueltig",
+      !seedDossierFehler && seedDossier?.status === "eingereicht",
+      seedDossierFehler?.message ?? JSON.stringify(seedDossier),
+    );
+
+    const { data: verknuepftesDokument } = await admin
+      .from("dokumente")
+      .select("id, foerderdossier_id")
+      .eq("bezug", "Antrag 2026-114")
+      .single();
+    check(
+      "Anforderung 4.12: das Seed-Dokument ist ueber eine echte Fremdschluessel-Spalte mit dem Dossier verknuepft (Backfill)",
+      verknuepftesDokument?.foerderdossier_id === seedDossier?.id,
+      `foerderdossier_id: ${verknuepftesDokument?.foerderdossier_id}, dossier: ${seedDossier?.id}`,
+    );
+
+    // RLS: nur Buero-Rollen lesen/schreiben foerderdossiers.
+    const { data: brigadeSieht } = await brigade.from("foerderdossiers").select("id");
+    check(
+      "Anforderung 4.12: Brigade liest keine Foerderdossiers (RLS foerderdossiers_select_office)",
+      (brigadeSieht?.length ?? 0) === 0,
+      `sichtbare Zeilen: ${brigadeSieht?.length}`,
+    );
+
+    const { data: leitungSieht, error: leitungSiehtFehler } = await leitung
+      .from("foerderdossiers")
+      .select("id")
+      .eq("id", seedDossier?.id);
+    check(
+      "Anforderung 4.12: Betriebsleitung liest Foerderdossiers",
+      !leitungSiehtFehler && (leitungSieht?.length ?? 0) === 1,
+      leitungSiehtFehler?.message ?? `Zeilen: ${leitungSieht?.length}`,
+    );
+
+    const { error: brigadeInsertFehler } = await brigade
+      .from("foerderdossiers")
+      .insert({ portal: "gosagro.kz", titel: "Integrationstest - unzulaessig" });
+    check(
+      "Anforderung 4.12: Brigade legt kein Foerderdossier an (RLS foerderdossiers_insert_buero)",
+      !!brigadeInsertFehler,
+      brigadeInsertFehler?.code ?? "kein Fehler - RLS-Luecke!",
+    );
+
+    // Betriebsleitung legt ein neues Dossier an, aktualisiert es (Frist +
+    // Notiz), und die Schema-Absicherung (Status-Wertebereich) greift.
+    const { data: neuesDossier, error: neuesDossierFehler } = await leitung
+      .from("foerderdossiers")
+      .insert({
+        portal: "qoldau.kz",
+        titel: "Integrationstest Foerderdossier",
+        antragsnummer: `IT-${Date.now()}`,
+      })
+      .select("id, status")
+      .single();
+    check(
+      "Anforderung 4.12: Betriebsleitung legt ein Foerderdossier an, Status startet als 'entwurf'",
+      !neuesDossierFehler && neuesDossier?.status === "entwurf",
+      neuesDossierFehler?.message ?? JSON.stringify(neuesDossier),
+    );
+
+    if (neuesDossier?.id) {
+      const { error: ungueltigerStatusFehler } = await leitung
+        .from("foerderdossiers")
+        .update({ status: "erledigt" })
+        .eq("id", neuesDossier.id);
+      check(
+        "Anforderung 4.12: ein Status ausserhalb des Wertebereichs wird abgelehnt (check foerderdossiers_status_wertebereich)",
+        ungueltigerStatusFehler?.code === "23514",
+        ungueltigerStatusFehler?.code ?? "kein Fehler",
+      );
+
+      const { data: aktualisiertesDossier, error: aktualisierenFehler } = await leitung
+        .from("foerderdossiers")
+        .update({ status: "in_pruefung", frist_am: "2030-01-01", notizen: "Integrationstest" })
+        .eq("id", neuesDossier.id)
+        .select("status, frist_am, notizen")
+        .single();
+      check(
+        "Anforderung 4.12: Betriebsleitung aktualisiert Status, Frist und Notiz",
+        !aktualisierenFehler &&
+          aktualisiertesDossier?.status === "in_pruefung" &&
+          aktualisiertesDossier?.frist_am === "2030-01-01",
+        aktualisierenFehler?.message ?? JSON.stringify(aktualisiertesDossier),
+      );
+
+      const { error: brigadeUpdateFehler, data: brigadeUpdate } = await brigade
+        .from("foerderdossiers")
+        .update({ status: "bewilligt" })
+        .eq("id", neuesDossier.id)
+        .select("id");
+      check(
+        "Anforderung 4.12: Brigade aktualisiert kein Foerderdossier (RLS foerderdossiers_update_buero)",
+        !!brigadeUpdateFehler || (brigadeUpdate?.length ?? 0) === 0,
+        brigadeUpdateFehler?.code ?? `geaenderte Zeilen: ${brigadeUpdate?.length}`,
+      );
+
+      // Aufraeumen: foerderdossiers ist normal loeschbar (kein Immutability-
+      // Trigger, anders als finance_ledger_entries).
+      await admin.from("foerderdossiers").delete().eq("id", neuesDossier.id);
+    }
+  }
 }
 
 console.log("");

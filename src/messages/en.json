@@ -589,8 +589,8 @@
     "foerdermittel": {
       "title": "Grant application dossier",
       "description": "Application templates, evidence lists and a deadline monitor for the Kazakh subsidy portals - eligibility as a by-product of ongoing bookkeeping.",
-      "summary": "Application templates and evidence checklists per grant programme, deadline monitor and decision-letter filing.",
-      "todo": "Application templates, evidence checklists, deadline monitor, decision-letter filing."
+      "summary": "Deadline monitor and per-dossier evidence documents are connected (requirement 4.12). Application templates and evidence checklists per grant programme remain open.",
+      "todo": "Application templates and evidence checklists per grant programme - a domain decision on what fields and evidence gosagro.kz/qoldau.kz actually require per programme."
     },
     "sortenkatalog": {
       "title": "Variety and quota catalogue",
@@ -731,7 +731,11 @@
       "mfaEntfernt": "Second factor removed.",
       "rotationsplanGeneriert": "{wert} new dates created.",
       "rotationsplanStatus": "Date for {wert} updated.",
-      "steigeKontrolliert": "Crate {wert} inspected."
+      "steigeKontrolliert": "Crate {wert} inspected.",
+      "einarbeitungSchritt": "Step checked off.",
+      "pflichtschulungTeilnahme": "Attendance recorded.",
+      "foerderdossier": "Dossier \"{wert}\" created.",
+      "foerderdossierStatus": "Dossier \"{wert}\" updated."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -938,14 +942,19 @@
     "kostentraegerTitel": "Cost objects and contribution margin",
     "kostentraegerLead": "Cost centre: row block. Cost object in the narrow sense: variety and client. One cost object can carry both at once.",
     "keineKostentraeger": "No cost object created yet.",
+    "chargeTitel": "Contribution margin per batch",
+    "chargeLead": "Only batches with at least one posting recorded directly against the batch instead of only the cost object - a finer breakdown when one cost object bundles several batches of the same day.",
     "col": {
       "bezeichnung": "Name",
+      "charge": "Batch",
       "reihenblock": "Row block",
       "sorte": "Variety",
       "kunde": "Client",
+      "menge": "Quantity",
       "erloes": "Revenue",
       "kosten": "Cost",
       "deckungsbeitrag": "Contribution margin",
+      "deckungsbeitragJeKg": "per kilogram",
       "datum": "Date",
       "kostentraegerSpalte": "Cost object",
       "typ": "Type",
@@ -972,6 +981,8 @@
         "titel": "Record a posting",
         "lead": "Revenue or cost for an existing cost object. The posting cannot be changed afterwards, only corrected with a reversing entry.",
         "kostentraeger": "Cost object",
+        "charge": "Batch (optional)",
+        "keinBezug": "no reference",
         "bitteWaehlen": "please choose",
         "typ": "Type",
         "erloes": "Revenue",
@@ -1440,6 +1451,15 @@
     "verlaufTitel": "History",
     "verlaufLeer": "No entry in the history yet.",
     "internMarkierung": "internal",
+    "rueckverfolgung": {
+      "titel": "Traceability",
+      "lead": "Office view only: from the complaint back to the picker, the cooling measurement and, for purchased produce, the supplying neighbour farm.",
+      "pfluecker": "Pickers involved",
+      "kuehlkette": "Cooling measurements for this batch",
+      "minuten": "{minuten} minutes after picking",
+      "ohneZeitpunkt": "no known picking time",
+      "nachbarbetrieb": "Supplying neighbour farm"
+    },
     "col": {
       "code": "Reference",
       "kunde": "Client",
@@ -1630,6 +1650,76 @@
     "aushang": {
       "hinweis": "There is also a sign-in-free wall poster for the farm with a QR code to the general code entry page.",
       "oeffnen": "Open wall poster"
+    }
+  },
+  "einarbeitungAnsicht": {
+    "titel": "Quick onboarding",
+    "leadEigen": "Six steps for getting started in the harvest season. Each step can be checked off individually, progress is saved.",
+    "leadReferenz": "Six steps of the quick onboarding checklist for pickers, shown here as reference material in your own language.",
+    "fortschritt": "{erledigt} of {gesamt} steps done",
+    "abhaken": "Done"
+  },
+  "pflichtschulungenAnsicht": {
+    "titel": "Mandatory training",
+    "lead": "Training that must be refreshed every year with proof of attendance, for example workplace safety. \"Due soon\" and \"overdue\" follow the validity period set on each training.",
+    "keineZeilen": "No mandatory training set up yet.",
+    "nachweisen": "Record attendance",
+    "col": {
+      "person": "Person",
+      "schulung": "Training",
+      "letzteTeilnahme": "Last attended",
+      "faelligAm": "Due on",
+      "status": "Status"
+    },
+    "status": {
+      "nie": "never",
+      "ueberfaellig": "overdue",
+      "bald_faellig": "due soon",
+      "aktuell": "current"
+    }
+  },
+  "foerdermittelAnsicht": {
+    "titel": "Grant dossiers",
+    "lead": "Status and deadline per dossier, with attached evidence documents. Application templates per grant programme are deliberately not part of this view (a domain decision).",
+    "keineDossiers": "No dossier created yet.",
+    "note": "Grant dossiers are a by-product of ongoing bookkeeping, not a standalone application system. Evidence documents are attached via the documents module.",
+    "col": {
+      "titel": "Dossier",
+      "portal": "Portal",
+      "status": "Status",
+      "eingereichtAm": "Submitted on",
+      "fristAm": "Deadline",
+      "dokumente": "Evidence documents"
+    },
+    "status": {
+      "entwurf": "draft",
+      "eingereicht": "submitted",
+      "in_pruefung": "under review",
+      "bewilligt": "approved",
+      "abgelehnt": "rejected",
+      "ausgezahlt": "paid out"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Create dossier",
+        "lead": "Portal and title are required, everything else can be added later.",
+        "portal": "Grant portal",
+        "dossierTitel": "Title",
+        "antragsnummer": "Application number (optional)",
+        "fristAm": "Deadline (optional)",
+        "knopf": "Create dossier"
+      },
+      "aktualisieren": {
+        "titel": "Update status and deadline",
+        "lead": "Maintain status, deadline, submission date and notes of an existing dossier.",
+        "dossier": "Dossier",
+        "bitteWaehlen": "please choose",
+        "status": "Status",
+        "eingereichtAm": "Submitted on (optional)",
+        "fristAm": "Deadline (optional)",
+        "notizen": "Notes (optional)",
+        "knopf": "Update"
+      }
     }
   }
 }

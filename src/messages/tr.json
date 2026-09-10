@@ -321,14 +321,19 @@
     "kostentraegerTitel": "Maliyet nesneleri ve katkı payı",
     "kostentraegerLead": "Maliyet yeri: sıra bloğu. Dar anlamda maliyet nesnesi: çeşit ve müşteri. Bir maliyet nesnesi ikisini birden taşıyabilir.",
     "keineKostentraeger": "Henüz maliyet nesnesi oluşturulmadı.",
+    "chargeTitel": "Parti başına katkı payı",
+    "chargeLead": "Yalnızca yalnızca maliyet nesnesine değil, doğrudan partiye işlenmiş en az bir kaydı olan partiler - bir maliyet nesnesi aynı günün birden fazla partisini bir araya getirdiğinde daha ayrıntılı bir görünüm.",
     "col": {
       "bezeichnung": "Ad",
+      "charge": "Parti",
       "reihenblock": "Sıra bloğu",
       "sorte": "Çeşit",
       "kunde": "Müşteri",
+      "menge": "Miktar",
       "erloes": "Gelir",
       "kosten": "Maliyet",
       "deckungsbeitrag": "Katkı payı",
+      "deckungsbeitragJeKg": "kilogram başına",
       "datum": "Tarih",
       "kostentraegerSpalte": "Maliyet nesnesi",
       "typ": "Tür",
@@ -355,6 +360,8 @@
         "titel": "Kayıt işle",
         "lead": "Mevcut bir maliyet nesnesi için gelir veya gider. Kayıt sonradan değiştirilemez, yalnızca ters kayıtla düzeltilebilir.",
         "kostentraeger": "Maliyet nesnesi",
+        "charge": "Parti (isteğe bağlı)",
+        "keinBezug": "bağlantı yok",
         "bitteWaehlen": "lütfen seçin",
         "typ": "Tür",
         "erloes": "Gelir",
@@ -816,8 +823,8 @@
     "foerdermittel": {
       "title": "Destek dosyası",
       "description": "Kazakistan destek portalları için başvuru şablonları, kanıt listeleri ve süre takibi - başvuru yeterliliği, günlük muhasebenin yan ürünü olarak.",
-      "summary": "Program bazında başvuru şablonları ve kanıt kontrol listeleri, süre takibi ve karar arşivi.",
-      "todo": "Başvuru şablonları, kanıt kontrol listeleri, süre takibi, karar arşivi."
+      "summary": "Süre takibi ve dosya başına kanıt belgeleri bağlandı (gereksinim 4.12). Program bazında başvuru şablonları ve kanıt kontrol listeleri açık kalıyor.",
+      "todo": "Program bazında başvuru şablonları ve kanıt kontrol listeleri - gosagro.kz/qoldau.kz'nin program başına gerçekte hangi alanları ve kanıtları istediğine dair uzmanlık kararı."
     },
     "sortenkatalog": {
       "title": "Çeşit ve kota kataloğu",
@@ -938,7 +945,11 @@
       "mfaEntfernt": "İkinci faktör kaldırıldı.",
       "rotationsplanGeneriert": "{wert} yeni tarih oluşturuldu.",
       "rotationsplanStatus": "{wert} için tarih güncellendi.",
-      "steigeKontrolliert": "{wert} kasası kontrol edildi."
+      "steigeKontrolliert": "{wert} kasası kontrol edildi.",
+      "einarbeitungSchritt": "Adım işaretlendi.",
+      "pflichtschulungTeilnahme": "Katılım kaydedildi.",
+      "foerderdossier": "\"{wert}\" dosyası oluşturuldu.",
+      "foerderdossierStatus": "\"{wert}\" dosyası güncellendi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -1440,6 +1451,15 @@
     "verlaufTitel": "Geçmiş",
     "verlaufLeer": "Geçmişte henüz kayıt yok.",
     "internMarkierung": "dahili",
+    "rueckverfolgung": {
+      "titel": "Geriye izlenebilirlik",
+      "lead": "Yalnızca ofis görür: şikayetten toplayan kişiye, soğutma ölçümüne ve satın alınan üründe tedarikçi komşu işletmeye kadar.",
+      "pfluecker": "İlgili toplayıcılar",
+      "kuehlkette": "Partinin soğutma ölçümleri",
+      "minuten": "toplamadan {minuten} dakika sonra",
+      "ohneZeitpunkt": "toplama zamanı bilinmiyor",
+      "nachbarbetrieb": "Tedarikçi komşu işletme"
+    },
     "col": {
       "code": "Referans",
       "kunde": "Müşteri",
@@ -1630,6 +1650,76 @@
     "aushang": {
       "hinweis": "İşletme için ayrıca genel kod girişine QR kodu ile giriş gerektirmeyen bir duvar afişi de bulunur.",
       "oeffnen": "Duvar afişini aç"
+    }
+  },
+  "einarbeitungAnsicht": {
+    "titel": "Kısa oryantasyon",
+    "leadEigen": "Hasat sezonuna başlangıç için altı adım. Her adım tek tek işaretlenebilir, ilerleme kaydedilir.",
+    "leadReferenz": "Toplayıcılar için kısa oryantasyonun altı adımı, kendi dilinizde referans olarak.",
+    "fortschritt": "{gesamt} adımdan {erledigt} tamamlandı",
+    "abhaken": "Tamamlandı"
+  },
+  "pflichtschulungenAnsicht": {
+    "titel": "Zorunlu eğitimler",
+    "lead": "Her yıl katılım kanıtıyla yenilenmesi gereken eğitimler, örneğin iş güvenliği. \"Yakında gerekiyor\" ve \"süresi geçti\" her eğitim için belirlenen geçerlilik süresine göre belirlenir.",
+    "keineZeilen": "Henüz zorunlu eğitim tanımlanmadı.",
+    "nachweisen": "Katılımı kaydet",
+    "col": {
+      "person": "Kişi",
+      "schulung": "Eğitim",
+      "letzteTeilnahme": "Son katılım",
+      "faelligAm": "Son tarih",
+      "status": "Durum"
+    },
+    "status": {
+      "nie": "hiç",
+      "ueberfaellig": "süresi geçti",
+      "bald_faellig": "yakında gerekiyor",
+      "aktuell": "güncel"
+    }
+  },
+  "foerdermittelAnsicht": {
+    "titel": "Destek dosyaları",
+    "lead": "Her dosya için durum ve son tarih, ekli kanıt belgeleriyle birlikte. Program bazında başvuru şablonları bilerek bu görünümün parçası değildir (uzmanlık kararı).",
+    "keineDossiers": "Henüz dosya oluşturulmadı.",
+    "note": "Destek dosyaları, ayrı bir başvuru sistemi değil, sürekli muhasebenin bir yan ürünüdür. Kanıt belgeleri Belgeler modülü üzerinden eklenir.",
+    "col": {
+      "titel": "Dosya",
+      "portal": "Portal",
+      "status": "Durum",
+      "eingereichtAm": "Gönderim tarihi",
+      "fristAm": "Son tarih",
+      "dokumente": "Kanıt belgeleri"
+    },
+    "status": {
+      "entwurf": "taslak",
+      "eingereicht": "gönderildi",
+      "in_pruefung": "inceleniyor",
+      "bewilligt": "onaylandı",
+      "abgelehnt": "reddedildi",
+      "ausgezahlt": "ödendi"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Dosya oluştur",
+        "lead": "Portal ve başlık zorunludur, diğer her şey sonradan eklenebilir.",
+        "portal": "Destek portalı",
+        "dossierTitel": "Başlık",
+        "antragsnummer": "Başvuru numarası (isteğe bağlı)",
+        "fristAm": "Son tarih (isteğe bağlı)",
+        "knopf": "Dosya oluştur"
+      },
+      "aktualisieren": {
+        "titel": "Durum ve son tarihi güncelle",
+        "lead": "Mevcut bir dosyanın durumunu, son tarihini, gönderim tarihini ve notlarını güncelle.",
+        "dossier": "Dosya",
+        "bitteWaehlen": "lütfen seçin",
+        "status": "Durum",
+        "eingereichtAm": "Gönderim tarihi (isteğe bağlı)",
+        "fristAm": "Son tarih (isteğe bağlı)",
+        "notizen": "Notlar (isteğe bağlı)",
+        "knopf": "Güncelle"
+      }
     }
   }
 }

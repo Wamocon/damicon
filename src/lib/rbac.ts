@@ -54,6 +54,11 @@ export const actions = [
   "manage",
   "approve",
   "assign",
+  // Anforderung 2.12: ein picker hakt die eigene Kurzeinarbeitung ab - kein
+  // generelles Schreibrecht auf das Modul "schulungen", nur dieser eine,
+  // schmale Vorgang. Gleiches Prinzip wie approve/assign: eigener Verb statt
+  // des breiteren "update".
+  "complete",
 ] as const;
 
 export type Action = (typeof actions)[number];
@@ -172,6 +177,10 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...view("ki_assistent"),
     ...crud("aggregator"),
     ...crud("schulungen"),
+    // Anforderung 4.10: die eigene Pflichtschulung nachweisen, dasselbe
+    // schmale Verb wie bei picker unten (siehe dortiger Kommentar) - crud()
+    // deckt "complete" nicht ab.
+    "schulungen:complete",
     ...view("rollen"),
   ],
   buchhaltung: [
@@ -191,6 +200,10 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...crud("reklamationen"),
     `reklamationen:approve`,
     ...view("aggregator"),
+    // Anforderung 4.10: Buchhaltung sitzt im Buero wie betriebsleitung, faellt
+    // unter dieselbe Pflichtschulungs-Zielgruppe (has_office_access()).
+    ...view("schulungen"),
+    "schulungen:complete",
   ],
   brigade: [
     ...view("dashboard"),
@@ -202,6 +215,9 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...view("qr_steigen"),
     ...view("kuehlkette"),
     ...view("schulungen"),
+    // Anforderung 4.10: Brigade ist Arbeitskraft im Feld wie picker, braucht
+    // denselben Nachweis-Vorgang fuer die eigene Pflichtschulung.
+    "schulungen:complete",
   ],
   // Sieht nur die eigene Leistung (Anforderung 7.1): view("lohn") oeffnet
   // dasselbe Lohn-Modul wie betriebsleitung/buchhaltung, die RLS-Policies
@@ -210,7 +226,16 @@ export const rolePermissions: Record<Role, Permission[]> = {
   // profiles.pfluecker_id. Kein view("pflueckaufgaben"): das waere
   // betriebsweite Sicht statt "nur die eigene Leistung" - fuer die
   // Aufgabenzuweisung im Feld bleibt die Rolle brigade zustaendig.
-  picker: [...view("dashboard"), ...view("lohn"), ...view("schulungen")],
+  // schulungen:complete-own (Anforderung 2.12): ein picker hakt die eigene
+  // Kurzeinarbeitung ab, RLS (einarbeitung_fortschritt_insert_own) laesst
+  // dabei ausschliesslich die eigene pfluecker_id durch, gleiches Muster wie
+  // die Lohn-Eigenzeile oben.
+  picker: [
+    ...view("dashboard"),
+    ...view("lohn"),
+    ...view("schulungen"),
+    "schulungen:complete",
+  ],
   erzeuger: [
     ...view("dashboard"),
     ...view("reihenbloecke"),
