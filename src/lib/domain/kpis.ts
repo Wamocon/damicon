@@ -57,7 +57,10 @@ export interface Kpi {
   stufe: KpiStufe;
   /** Welche Rollen diese betriebsweite Kennzahl sehen - keine Kennzahl hier ist eine persoenliche Leistungszahl. */
   sichtbarFuer: Role[];
-  /** Was fehlt, damit die Kennzahl gemessen werden kann. */
+  /** Was fehlt, damit die Kennzahl gemessen werden kann. Fachliche Notiz
+   *  fuer die Codeseite - angezeigt wird die Uebersetzung unter
+   *  kpis.<key>.braucht, sonst stuende der Tooltip in jeder Sprache
+   *  auf Deutsch. Beide muessen zusammen gepflegt werden. */
   braucht: string;
   /** Aus echten Daten gerechneter Istwert, falls vorhanden. */
   gerechnet?: {
@@ -68,6 +71,14 @@ export interface Kpi {
   } | null;
 }
 
+// Bekannte Einschraenkung: wert und ziel sind fertig formatierte Zeichenketten
+// ("8,4 %", "> 90 %"). Das deutsche Dezimalkomma stimmt fuer de, tr, kk und ru,
+// im Englischen muesste dort ein Punkt stehen. Sie sind bewusst so geblieben:
+// wert ist ein Platzhalter, den kpi_aktuell() im Echtbetrieb durch einen ueber
+// format.number formatierten Istwert ersetzt (siehe gerechnet), und ziel traegt
+// Vergleichsoperatoren und Sonderwerte, laesst sich also nicht als blosse Zahl
+// modellieren. Sobald die Zielwerte mit dem Kunden festgeschrieben sind, gehoert
+// hier ein Schema aus Operator, Zahl und Einheit hin.
 export const kpis: Kpi[] = [
   {
     key: "verlustquote",

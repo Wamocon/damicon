@@ -5,7 +5,7 @@
 export interface Reihengruppe {
   id: string;
   name: string;
-  spalierrichtung: "N-S" | "O-W";
+  spalierrichtung: "n_s" | "o_w";
   reihenbloecke: number;
 }
 
@@ -47,8 +47,8 @@ export const betrieb: Betrieb = {
           flaecheHa: 3.2,
           sorte: "Polka (remontierend)",
           reihengruppen: [
-            { id: "rg-t-01-a", name: "Reihengruppe A", spalierrichtung: "N-S", reihenbloecke: 8 },
-            { id: "rg-t-01-b", name: "Reihengruppe B", spalierrichtung: "N-S", reihenbloecke: 8 },
+            { id: "rg-t-01-a", name: "Reihengruppe A", spalierrichtung: "n_s", reihenbloecke: 8 },
+            { id: "rg-t-01-b", name: "Reihengruppe B", spalierrichtung: "n_s", reihenbloecke: 8 },
           ],
         },
         {
@@ -57,7 +57,7 @@ export const betrieb: Betrieb = {
           flaecheHa: 2.5,
           sorte: "Polana (remontierend)",
           reihengruppen: [
-            { id: "rg-t-02-a", name: "Reihengruppe A", spalierrichtung: "O-W", reihenbloecke: 6 },
+            { id: "rg-t-02-a", name: "Reihengruppe A", spalierrichtung: "o_w", reihenbloecke: 6 },
           ],
         },
       ],
@@ -74,8 +74,8 @@ export const betrieb: Betrieb = {
           flaecheHa: 4.1,
           sorte: "Tulameen (Sommertragend)",
           reihengruppen: [
-            { id: "rg-i-01-a", name: "Reihengruppe A", spalierrichtung: "N-S", reihenbloecke: 10 },
-            { id: "rg-i-01-b", name: "Reihengruppe B", spalierrichtung: "N-S", reihenbloecke: 9 },
+            { id: "rg-i-01-a", name: "Reihengruppe A", spalierrichtung: "n_s", reihenbloecke: 10 },
+            { id: "rg-i-01-b", name: "Reihengruppe B", spalierrichtung: "n_s", reihenbloecke: 9 },
           ],
         },
       ],
@@ -92,7 +92,7 @@ export const betrieb: Betrieb = {
           flaecheHa: 1.8,
           sorte: "Polka (remontierend)",
           reihengruppen: [
-            { id: "rg-k-01-a", name: "Reihengruppe A", spalierrichtung: "O-W", reihenbloecke: 5 },
+            { id: "rg-k-01-a", name: "Reihengruppe A", spalierrichtung: "o_w", reihenbloecke: 5 },
           ],
         },
       ],

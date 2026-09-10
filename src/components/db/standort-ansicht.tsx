@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getFormatter, getTranslations } from "next-intl/server";
 import { Card, Section, StatusPill } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
@@ -22,6 +22,7 @@ export async function StandortAnsicht() {
     getTranslations("standortDemo"),
   ]);
   const v = await getTranslations("standortVerwaltung");
+  const f = await getFormatter();
 
   const darfAnlegen =
     baum.quelle === "db" &&
@@ -56,7 +57,10 @@ export async function StandortAnsicht() {
     ["parzellen", baum.stats.parzellen],
     ["reihengruppen", baum.stats.reihengruppen],
     ["reihenbloecke", baum.stats.reihenbloecke],
-    ["flaeche", `${baum.stats.flaecheHa.toFixed(1)} ha`],
+    [
+      "flaeche",
+      `${f.number(baum.stats.flaecheHa, { maximumFractionDigits: 1 })} ha`,
+    ],
   ];
 
   return (
@@ -106,7 +110,7 @@ export async function StandortAnsicht() {
                           key={gruppe.id}
                           className="rounded-md border border-border bg-muted/40 px-2 py-0.5 text-[11px] text-muted-foreground"
                         >
-                          {gruppe.name} · {gruppe.spalierrichtung} ·{" "}
+                          {gruppe.name} · {v(`spalier.${gruppe.spalierrichtung}`)} ·{" "}
                           {gruppe.reihenbloecke} {t("blocksShort")}
                         </span>
                       ))}

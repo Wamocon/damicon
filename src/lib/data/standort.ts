@@ -10,7 +10,7 @@ import { einsAus } from "@/lib/data/util";
 export interface ReihengruppeKnoten {
   id: string;
   name: string;
-  spalierrichtung: "N-S" | "O-W";
+  spalierrichtung: "n_s" | "o_w";
   reihenbloecke: number;
 }
 
@@ -132,9 +132,9 @@ export async function ladeStandortBaum(): Promise<StandortBaum> {
           .map((rg) => ({
             id: rg.id,
             name: rg.name,
-            spalierrichtung: (rg.spalierrichtung === "o_w" ? "O-W" : "N-S") as
-              | "N-S"
-              | "O-W",
+            spalierrichtung: (rg.spalierrichtung === "o_w" ? "o_w" : "n_s") as
+              | "n_s"
+              | "o_w",
             reihenbloecke: (rg.reihenbloecke ?? []).length,
           }))
           .sort((a, b) => a.name.localeCompare(b.name)),

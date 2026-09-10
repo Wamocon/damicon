@@ -69,7 +69,9 @@ export interface RoleDefinition {
   descriptionKey: string;
   level: number;
   scope: "betrieb" | "plantage" | "finanzen" | "feld" | "pfluecker" | "erzeugerbetrieb" | "kunde";
-  catiRole: string;
+  /** Entsprechende Rolle im Vorgaengersystem 1Cati, oder null, wenn es
+   *  keine gibt - die Oberflaeche zeigt dann rollenDemo.catiRole.keine. */
+  catiRole: string | null;
 }
 
 // Remapping der sechs 1Cati-Kernrollen (admin, manager, accountant, staff,
@@ -113,7 +115,7 @@ export const roleDefinitions: RoleDefinition[] = [
     descriptionKey: "roles.descriptions.picker",
     level: 25,
     scope: "pfluecker",
-    catiRole: "keine Entsprechung - neu ab Anforderung 7.1",
+    catiRole: null,
   },
   {
     key: "erzeuger",

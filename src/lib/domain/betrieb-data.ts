@@ -30,18 +30,22 @@ export interface Sorte {
   id: string;
   name: string;
   typ: "remontierend" | "sommertragend";
+  /** Deutsche Notiz fuer die Codeseite - angezeigt wird
+   *  sortenkatalogDemo.fenster.<id>, sonst stuende das Erntefenster in
+   *  jeder Sprache auf Deutsch. */
   fenster: string;
   schaleG: number;
   kontingentKg: number;
   reserviertKg: number;
-  preis: string;
+  /** Preis je Kilogramm in Tenge - die Oberflaeche formatiert nach Locale. */
+  preisTengeKg: number;
 }
 
 export const sorten: Sorte[] = [
-  { id: "s-polka", name: "Polka", typ: "remontierend", fenster: "Aug - erster Frost", schaleG: 125, kontingentKg: 4200, reserviertKg: 3100, preis: "2 100 ₸/kg" },
-  { id: "s-polana", name: "Polana", typ: "remontierend", fenster: "Aug - Okt", schaleG: 125, kontingentKg: 2600, reserviertKg: 1450, preis: "2 050 ₸/kg" },
-  { id: "s-tulameen", name: "Tulameen", typ: "sommertragend", fenster: "Jun - Jul", schaleG: 170, kontingentKg: 0, reserviertKg: 0, preis: "1 850 ₸/kg" },
-  { id: "s-kweli", name: "Kweli", typ: "remontierend", fenster: "Aug - Sep", schaleG: 125, kontingentKg: 1400, reserviertKg: 900, preis: "2 000 ₸/kg" },
+  { id: "s-polka", name: "Polka", typ: "remontierend", fenster: "Aug - erster Frost", schaleG: 125, kontingentKg: 4200, reserviertKg: 3100, preisTengeKg: 2100 },
+  { id: "s-polana", name: "Polana", typ: "remontierend", fenster: "Aug - Okt", schaleG: 125, kontingentKg: 2600, reserviertKg: 1450, preisTengeKg: 2050 },
+  { id: "s-tulameen", name: "Tulameen", typ: "sommertragend", fenster: "Jun - Jul", schaleG: 170, kontingentKg: 0, reserviertKg: 0, preisTengeKg: 1850 },
+  { id: "s-kweli", name: "Kweli", typ: "remontierend", fenster: "Aug - Sep", schaleG: 125, kontingentKg: 1400, reserviertKg: 900, preisTengeKg: 2000 },
 ];
 
 export interface Dokument {
@@ -64,17 +68,20 @@ export const dokumente: Dokument[] = [
 
 export interface Schulungsvideo {
   id: string;
+  /** Deutsche Notiz fuer die Codeseite - angezeigt wird
+   *  schulungenDemo.video.<id>. */
   titel: string;
   dauer: string;
   sprachen: string[];
+  /** Schluessel, kein Anzeigetext - uebersetzt ueber schulungenDemo.thema.<wert>. */
   thema: string;
 }
 
 export const schulungsvideos: Schulungsvideo[] = [
-  { id: "v-01", titel: "Richtig pfluecken - reife Frucht erkennen", dauer: "4:12", sprachen: ["kk", "ru", "tr"], thema: "Ernte" },
-  { id: "v-02", titel: "Steige befuellen und QR-Etikett scannen", dauer: "3:05", sprachen: ["kk", "ru"], thema: "Feld" },
-  { id: "v-03", titel: "Die Stunde nach dem Pfluecken - Kuehlkette", dauer: "5:40", sprachen: ["kk", "ru", "tr", "de", "en"], thema: "Hof" },
-  { id: "v-04", titel: "Hygiene und Handschuhe", dauer: "2:48", sprachen: ["kk", "ru"], thema: "Qualitaet" },
+  { id: "v-01", titel: "Richtig pfluecken - reife Frucht erkennen", dauer: "4:12", sprachen: ["kk", "ru", "tr"], thema: "ernte" },
+  { id: "v-02", titel: "Steige befuellen und QR-Etikett scannen", dauer: "3:05", sprachen: ["kk", "ru"], thema: "feld" },
+  { id: "v-03", titel: "Die Stunde nach dem Pfluecken - Kuehlkette", dauer: "5:40", sprachen: ["kk", "ru", "tr", "de", "en"], thema: "hof" },
+  { id: "v-04", titel: "Hygiene und Handschuhe", dauer: "2:48", sprachen: ["kk", "ru"], thema: "qualitaet" },
 ];
 
 export interface Integration {

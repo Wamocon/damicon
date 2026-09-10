@@ -23,13 +23,13 @@
     "portal": "Open portal",
     "zones": "Four zones",
     "proof": "Traceability",
-    "kpis": "Key figures",
+    "kpis": "KPIs",
     "compliance": "Compliance"
   },
   "hero": {
     "badge": "Farm management for the raspberry plantation · near Almaty",
     "headline": "Market leadership is won not through tonnage, but through verifiable traceability.",
-    "subheadline": "The raspberry has no protective shell and has to be cooled within 60 minutes. Damicon runs the multi-week harvest, holds the cold chain and documents every delivery down to the row block, the cooling time and the person.",
+    "subheadline": "The raspberry has no protective skin and has to be cooled within 60 minutes. Damicon controls the multi-week harvest run, holds the cold chain and documents every delivery down to the row block, the cooling time and the person.",
     "imageAlt": "Trellised rows of a raspberry plantation - placeholder image, to be replaced with real material from the farm",
     "ctaPrimary": "Open the prototype",
     "ctaSecondary": "Why the raspberry is different",
@@ -44,10 +44,10 @@
     "openZone": "Open area",
     "berryEyebrow": "Why the raspberry is different",
     "berryTitle": "The most delicate berry in the fresh-produce range",
-    "berryLead": "It has no protective shell, is hollow inside and highly prone to grey mould. Software alone saves no berry - but it runs exactly the hour, the rotation and the records that the price depends on.",
+    "berryLead": "It has no protective skin, is hollow inside and highly prone to grey mould. Software alone saves no berry - but it runs exactly the hour, the rotation and the records that the price depends on.",
     "berryPoints": {
       "schale": {
-        "title": "No protective shell",
+        "title": "No protective skin",
         "text": "Unrefrigerated, the raspberry is no longer marketable after about a day. Properly pre-cooled it keeps two to three days, up to five with excellent handling."
       },
       "kuehlung": {
@@ -126,7 +126,7 @@
     "leverItems": {
       "stunde": {
         "title": "The hour after picking",
-        "text": "Fixed collection rounds, pre-cooling to 0 – 1 degree, timing with a 60-minute threshold. The price difference collapses in the first hour on the field, not in the sales conversation."
+        "text": "Fixed collection rounds, pre-cooling at 0 to 1 degree, timing with a 60-minute threshold. The price difference collapses in the first hour in the field, not in the sales conversation."
       },
       "herbstfenster": {
         "title": "The autumn window",
@@ -145,7 +145,7 @@
     "zonesTitle": "Field, Yard, Office, Market",
     "zonesLead": "From the row-block map to the B2B portal, from the cold-chain clock to the contribution margin per harvest day. All areas share the same batch and the same role management.",
     "kpiEyebrow": "Baseline 01 Oct 2026",
-    "kpiTitle": "14 key figures the client signs off",
+    "kpiTitle": "14 KPIs the client signs off",
     "kpiLead": "Measured during the analysis week and signed off together as the starting value. Without signed starting values there is no proof of success later.",
     "kpiFootnote": "Prototype: placeholder values. The real calculation follows with the harvest data of the first fully measured season.",
     "complianceEyebrow": "Kazakhstan 2026",
@@ -285,7 +285,7 @@
       "eyebrow": "Farm management",
       "title": "Damicon operations overview",
       "description": "Aggregator, Almaty region. The main functions run against the database - with sign-in, role permissions and real write operations. Sub-functions remain visible menu entries with a status.",
-      "kpiTitle": "14 baseline key figures",
+      "kpiTitle": "14 baseline KPIs",
       "kpiDescription": "To be signed off with the client as the baseline on 01 Oct 2026.",
       "placeholderBadge": "Placeholder values",
       "target": "Target",
@@ -300,7 +300,7 @@
       "milestoneAName": "Milestone A - prototype with look and feature scope",
       "milestoneADue": "by 06 Sep 2026",
       "milestoneAItems": {
-        "tokens": "Design-token switch to the raspberry palette",
+        "tokens": "Design-token switch to the “Kök & Altyn” palette (Kazakhstan’s national colours)",
         "landing": "Landing page with placeholder texts and images, language switcher for five languages",
         "zones": "Dashboard skeleton with the four zones as navigation structure",
         "workflows": "Core workflows by example: row-block overview and picking task with photo evidence"
@@ -311,20 +311,21 @@
         "rbac": "Roles and permissions with seven core roles and a permission matrix",
         "hierarchy": "Location hierarchy - farm, plantation, field plot, row group, row block - including administration",
         "status": "Row-block status management including the lock state after a plant-protection treatment",
-        "tasks": "Picking tasks with a photo of the retail punnet, per brigade and row block",
+        "tasks": "Picking tasks with photo evidence of the retail punnet, per brigade and row block",
         "docs": "Document management for spray records, contracts and ЕСУТД evidence",
         "i18n": "Multilingual interface in five languages",
-        "kpi": "Dashboard skeleton with the 14 baseline key figures as tiles"
+        "kpi": "Dashboard skeleton with the 14 baseline KPIs as tiles"
       },
-      "milestoneBNote": "All main functions are connected to the database: sign-in, role permissions through row level security, location management, row block lock, picking task with photo proof and document storage. The sub-functions remain visible menu entries with a status, as planned.",
+      "milestoneBNote": "All main functions are connected to the database: sign-in, role permissions through row level security, location management, row-block lock, picking task with photo evidence and document storage. The sub-functions remain visible menu entries with a status, as planned.",
       "kpiSummary": "{berechenbar} measurable today · {erfassung} capture missing · {tabelle} function missing · {ungeklaert} legally unconfirmed",
       "kpiGerechnet": "computed from {anzahl} records",
       "kpiGerechnetUngeklaert": "computed from {anzahl} records - legal basis unconfirmed",
       "kpiSummaryLive": "{gerechnet} computed from real data · {offen} waiting for the function behind them",
-      "kpiExtendedTitle": "Further metrics",
-      "kpiExtendedDescription": "Part of the signed baseline, but outside the twelve core metrics in the cockpit.",
-      "kpiNoneForRole": "No company-wide metrics are configured for your role here. Your own performance is in the payroll module."
-    }
+      "kpiExtendedTitle": "Further KPIs",
+      "kpiExtendedDescription": "Part of the signed baseline, but outside the twelve core KPIs in the cockpit.",
+      "kpiNoneForRole": "No company-wide KPIs are configured for your role here. Your own performance is in the payroll module."
+    },
+    "loading": "Loading data"
   },
   "roles": {
     "switcherHint": "Switch demo role - controls the visible navigation",
@@ -441,46 +442,68 @@
   },
   "kpis": {
     "verlustquote": {
-      "label": "Loss rate from picking to the client"
+      "label": "Loss rate from picking to the client",
+      "braucht": "nothing - scrap per batch is recorded",
+      "basis": "scrap against total quantity across all batches"
     },
     "vermarktungsfaehig": {
-      "label": "Share of marketable punnets"
+      "label": "Share of marketable punnets",
+      "braucht": "quality sorting per punnet"
     },
     "zeitBisVorkuehlung": {
-      "label": "Time from picking to pre-cooling"
+      "label": "Time from picking to pre-cooling",
+      "braucht": "nothing - picking and cooling time per batch",
+      "basis": "average across all measured batches, including limit breaches"
     },
     "zeitBisKunde": {
-      "label": "Time from picking to the client"
+      "label": "Time from picking to the client",
+      "braucht": "deliveries with departure and arrival"
     },
     "pflueckleistung": {
-      "label": "Picking output per person and hour"
+      "label": "Picking output per person and hour",
+      "braucht": "nothing - crate with person against working time",
+      "basis": "harvest quantity per crate against recorded working time"
     },
     "pflueckStreuung": {
-      "label": "Spread of picking output (best to weakest)"
+      "label": "Spread of picking output (best to weakest)",
+      "braucht": "nothing - output per person across the season",
+      "basis": "strongest against weakest worker, at least two people required"
     },
     "pflueckintervall": {
-      "label": "Picking interval kept per row block"
+      "label": "Picking interval kept per row block",
+      "braucht": "nothing - harvest sequence per row block from the batches",
+      "basis": "share of actual harvest sequences within at most three days"
     },
     "behandlungenWartezeit": {
-      "label": "Treatments with the pre-harvest interval kept"
+      "label": "Treatments with the pre-harvest interval kept",
+      "braucht": "nothing - derivable from treatment and lock logic",
+      "basis": "treatments without harvesting during the lock period"
     },
     "reklamationsquote": {
-      "label": "Complaint rate"
+      "label": "Complaint rate",
+      "braucht": "complaints linked to the batch"
     },
     "liefertreue": {
-      "label": "Delivery reliability (on time and complete)"
+      "label": "Delivery reliability (on time and complete)",
+      "braucht": "promised against actual delivery"
     },
     "belegteVerkaeufe": {
-      "label": "Share of documented sales (ЭСФ and accompanying document)"
+      "label": "Share of documented sales (ЭСФ and accompanying document)",
+      "braucht": "connection to ЭСФ and the goods accompanying note"
     },
     "deckungsbeitrag": {
-      "label": "Contribution margin per kg"
+      "label": "Contribution margin per kg",
+      "braucht": "nothing - entries per batch against harvest quantity",
+      "basis": "all revenue and cost entries against the total harvest quantity - still without a time window or batch reference per entry"
     },
     "esutdAbdeckung": {
-      "label": "Seasonal-worker coverage in ЕСУТД"
+      "label": "Seasonal-worker coverage in ЕСУТД",
+      "braucht": "legal confirmation of the ЕСУТД obligation via enbek.kz (see WMCNL-1447) - connection point named, the legal review of the obligation itself is still outstanding",
+      "basis": "pickers with a recorded employment contract"
     },
     "websiteAnfragen": {
-      "label": "Enquiries via the website per month"
+      "label": "Enquiries via the website per month",
+      "braucht": "contact form on the website"
     }
   },
   "modules": {
@@ -498,8 +521,8 @@
     },
     "pflueckaufgaben": {
       "title": "Picking tasks with photo evidence",
-      "description": "A picking task per brigade and row block with target and actual volume, quality factor and a photo of the retail punnet right on the task.",
-      "summary": "Task per brigade and row block, photo of the retail punnet, volume and quality factor on the task.",
+      "description": "A picking task per brigade and row block with target and actual volume, quality factor and photo evidence of the retail punnet right on the task.",
+      "summary": "Task per brigade and row block, photo evidence of the retail punnet, volume and quality factor on the task.",
       "todo": "Offline capture in the field, evidence review with release and rework, link to quality-factor pay."
     },
     "pflanzenschutz": {
@@ -680,7 +703,7 @@
       "reihenblock": "Row block",
       "steige": "Crate"
     },
-    "note": "The retail-ready punnet is made in the picker's hand. The photo of the punnet stays on the task and feeds into the quality factor."
+    "note": "The retail-ready punnet is made in the picker's hand. The photo evidence of the punnet stays on the task and feeds into the quality factor."
   },
   "aktionen": {
     "anlegen": "Create",
@@ -690,9 +713,9 @@
     "spalte": "Action",
     "statusLabel": "Select status",
     "bearbeiten": "Edit",
-    "faellig": "waiting period elapsed",
+    "faellig": "pre-harvest interval elapsed",
     "resttage": "{tage} days left",
-    "gesperrtHinweis": "Release only after the waiting period",
+    "gesperrtHinweis": "Release only after the pre-harvest interval",
     "ok": {
       "plantage": "Plantation \"{wert}\" created.",
       "parzelle": "Field plot \"{wert}\" created.",
@@ -705,7 +728,7 @@
       "aufgabe": "Picking task {wert} created.",
       "aufgabeStatus": "Task {wert} updated.",
       "menge": "Quantity reported for {wert} - proof is under review.",
-      "beleg": "Photo proof uploaded.",
+      "beleg": "Photo evidence uploaded.",
       "dokument": "Document \"{wert}\" added.",
       "steige": "Crate {wert} recorded.",
       "arbeitszeit": "{wert} minutes of working time reported.",
@@ -747,7 +770,7 @@
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
-      "gesperrt": "Row block {wert} is locked for the waiting period - no picking task possible.",
+      "gesperrt": "Row block {wert} is locked for the pre-harvest interval - no picking task possible.",
       "keineDatei": "Please select an image file.",
       "zuGross": "The file is larger than 8 MB.",
       "upload": "The photo could not be stored.",
@@ -756,7 +779,7 @@
       "doppelt": "An entry with this identifier already exists.",
       "bezug": "The selected reference record does not exist.",
       "nichtGefunden": "The record was not found or can no longer be edited.",
-      "regel": "Not possible: the waiting period has not elapsed yet.",
+      "regel": "Not possible: the pre-harvest interval has not elapsed yet.",
       "unbekannt": "Action failed. Details are in the server log.",
       "keineCharge": "This task has no batch.",
       "kuehlkette": "Limit broken: {wert} minutes until measurement. The goods have to be downgraded.",
@@ -810,6 +833,17 @@
     "leer": {
       "parzellen": "No field plot created yet.",
       "reihengruppen": "No row group created yet."
+    },
+    "spalier": {
+      "n_s": "N-S",
+      "o_w": "E-W"
+    },
+    "beispiel": {
+      "plantageName": "Talgar plantation",
+      "plantageOrt": "Talgar, Almaty region",
+      "parzelleName": "West plot",
+      "flaeche": "2.5",
+      "reihengruppeName": "Row group C"
     }
   },
   "dokumentKategorie": {
@@ -837,6 +871,9 @@
       "stand": "As of",
       "status": "Status",
       "datei": "File"
+    },
+    "beispiel": {
+      "name": "Spray record week 37 - North plot"
     }
   },
   "pflueckaufgabenVerwaltung": {
@@ -844,14 +881,14 @@
     "platzhalterBild": "Placeholder image - no photo uploaded yet",
     "neu": {
       "titel": "New picking task",
-      "lead": "Row blocks under a waiting period are not offered - the database rejects them as well.",
+      "lead": "Row blocks under a pre-harvest interval are not offered - the database rejects them as well.",
       "knopf": "Create task"
     },
     "menge": {
       "knopf": "Report quantity and send to proof review"
     },
     "beleg": {
-      "knopf": "Upload photo proof"
+      "knopf": "Upload photo evidence"
     },
     "ablauf": {
       "titel": "Task flow",
@@ -881,9 +918,9 @@
   },
   "pflanzenschutzVerwaltung": {
     "titel": "Record treatment",
-    "lead": "The waiting period comes from the product catalogue - the row block is locked automatically.",
+    "lead": "The pre-harvest interval comes from the product catalogue - the row block is locked automatically.",
     "erfassen": "Record treatment",
-    "hinweis": "The lock is set by a database trigger and cannot be bypassed by changing the status. The release button appears only once the waiting period has elapsed.",
+    "hinweis": "The lock is set by a database trigger and cannot be bypassed by changing the status. The release button appears only once the pre-harvest interval has elapsed.",
     "feld": {
       "block": "Row block",
       "mittel": "Plant protection product",
@@ -932,12 +969,25 @@
   "rollenDemo": {
     "rolesTitle": "Seven core roles",
     "rolesLead": "Administration, farm management, accounting, brigade in the field, picker, grower and B2B client. Each role sees exactly the modules it needs.",
-    "scope": "Scope",
     "matrixTitle": "Permission matrix (excerpt, view action)",
     "matrixLead": "Roles by resources - a clear data structure that allows new roles without touching the logic.",
     "resource": "Resource",
     "matrixNote": "Full matrix across all resources and actions. The database-level access rules are written per resource individually.",
-    "note": "Identities and roles run across all four areas - together with logging, encryption and multi-factor authentication."
+    "note": "Identities and roles run across all four areas - together with logging, encryption and multi-factor authentication.",
+    "level": "Level",
+    "catiRole": {
+      "keine": "no equivalent - new from requirement 7.1"
+    },
+    "scopeWert": {
+      "betrieb": "Farm",
+      "plantage": "Plantation",
+      "finanzen": "Finance",
+      "feld": "Field",
+      "pfluecker": "Picker",
+      "erzeugerbetrieb": "Producer farm",
+      "kunde": "Client"
+    },
+    "scope": "Scope"
   },
   "finanzenAnsicht": {
     "uebersichtTitel": "Contribution margin at a glance",
@@ -975,7 +1025,7 @@
     "ledgerTitel": "Postings",
     "ledgerLead": "Append only: a wrong posting is corrected with a reversing entry, not by changing the original.",
     "keineBuchungen": "No posting recorded yet.",
-    "note": "The contribution margin per kilogram is the central steering figure (KPI \"deckungsbeitrag\"). It is formed per row block, variety, harvest day and client - not only at year end. Postings are immutable; the database rejects UPDATE and DELETE on the finance ledger regardless of the interface.",
+    "note": "The contribution margin per kilogram is the central management metric (KPI \"deckungsbeitrag\"). It is formed per row block, variety, harvest day and client - not only at year end. Postings are immutable; the database rejects UPDATE and DELETE on the finance ledger regardless of the interface.",
     "formular": {
       "kostentraeger": {
         "titel": "Create new cost object",
@@ -1098,7 +1148,7 @@
       "tr": "Turkish"
     },
     "vorfallArt": {
-      "unbefugter_zugriff": "Unauthorized access",
+      "unbefugter_zugriff": "Unauthorised access",
       "verlust": "Loss",
       "offenlegung": "Disclosure",
       "sonstiges": "Other"
@@ -1130,19 +1180,19 @@
     "formular": {
       "einwilligung": {
         "titel": "Record a consent",
-        "lead": "Exactly one data subject - picker, profile or B2B customer.",
+        "lead": "Exactly one data subject - picker, profile or B2B client.",
         "keineAuswahl": "-",
         "feld": {
           "pfluecker": "Picker",
-          "profil": "Profile (staff or customer with login)",
-          "b2bKunde": "B2B customer",
+          "profil": "Profile (staff or client with login)",
+          "b2bKunde": "B2B client",
           "zweck": "Processing purpose",
           "kanal": "Channel",
           "sprache": "Language of the text version",
           "textfassung": "Text version",
           "nachweis": "Evidence reference"
         },
-        "hinweisGenauEiner": "Choose exactly one of the three subjects - picker, profile or B2B customer.",
+        "hinweisGenauEiner": "Choose exactly one of the three subjects - picker, profile or B2B client.",
         "textfassungPlatzhalter": "Consent text, version 2026-1",
         "nachweisPlatzhalter": "Personnel file 2026/03, sheet 17",
         "knopf": "Record consent"
@@ -1216,7 +1266,13 @@
     "window": "Harvest window",
     "shale": "Punnet",
     "contingent": "Quota reserved",
-    "note": "Summer-bearing varieties deliver in July, everbearing ones from August to the first frost. The variety mix determines the entire staffing model."
+    "note": "Summer-bearing varieties deliver in July, everbearing ones from August to the first frost. The variety mix determines the entire staffing model.",
+    "fenster": {
+      "s-polka": "Aug - first frost",
+      "s-polana": "Aug - Oct",
+      "s-tulameen": "Jun - Jul",
+      "s-kweli": "Aug - Sep"
+    }
   },
   "schulungenDemo": {
     "libraryTitle": "Video library",
@@ -1227,7 +1283,19 @@
       "dauer": "Length",
       "sprachen": "Languages"
     },
-    "note": "Short onboarding as a guided checklist on the phone, multilingual, with pictures instead of text - one short video per core process."
+    "note": "Short onboarding as a guided checklist on the phone, multilingual, with pictures instead of text - one short video per core process.",
+    "video": {
+      "v-01": "Picking correctly - recognising ripe fruit",
+      "v-02": "Filling the crate and scanning the QR label",
+      "v-03": "The hour after picking - the cold chain",
+      "v-04": "Hygiene and gloves"
+    },
+    "thema": {
+      "ernte": "Harvest",
+      "feld": "Field",
+      "hof": "Yard",
+      "qualitaet": "Quality"
+    }
   },
   "kuehlketteMock": {
     "clockTitle": "Batch clock (mock)",
@@ -1310,7 +1378,7 @@
       "keine": "No treatment in the 90 days before the harvest date.",
       "eingehalten": "respected",
       "verletzt": "violated",
-      "zeile": "Treated on {behandelt}, waiting period {wartezeit} days, free from {frei} - harvested {tage} days after treatment."
+      "zeile": "Treated on {behandelt}, pre-harvest interval {wartezeit} days, free from {frei} - harvested {tage} days after treatment."
     },
     "steige": {
       "knopf": "Record crate"
@@ -1346,8 +1414,8 @@
       "gerissen": "60-minute limit broken"
     },
     "wartezeit": {
-      "eingehalten": "Withholding period respected",
-      "verletzt": "Withholding period violated"
+      "eingehalten": "Pre-harvest interval respected",
+      "verletzt": "Pre-harvest interval violated"
     },
     "suche": {
       "title": "Check origin",
@@ -1398,7 +1466,7 @@
     "asset1Title": "Tractor",
     "asset1Text": "Own tractor for maintenance and transport.",
     "asset2Title": "Crop protection",
-    "asset2Text": "Own spraying equipment. Every treatment triggers a waiting period - the system locks the block for it automatically.",
+    "asset2Text": "Own spraying equipment. Every treatment triggers a pre-harvest interval - the system locks the block for it automatically.",
     "asset3Title": "Irrigation",
     "asset3Text": "Water storage and tanks on site, plus its own transformer station - power does not depend on the local grid.",
     "asset4Title": "Own brand",
@@ -1407,7 +1475,7 @@
   "qualityStandard": {
     "eyebrow": "The same standard as in the system",
     "title": "The standard lives here, not in a brochure",
-    "lead": "Whoever picks for the farm or buys from it sees the same standard that applies in the system - the same drawings as on the picker's phone. The technical basis is UNECE standard FFV-32 for raspberries.",
+    "lead": "Whoever picks for the farm or buys from it sees the same standard that applies in the system - the same criteria the picker's phone asks for. The technical basis is UNECE standard FFV-32 for raspberries.",
     "q1Title": "Marketable",
     "q1Text": "Evenly coloured, hollow inside, the drupelets hold together. The receptacle stays on the cane.",
     "q2Title": "Picked too early",
@@ -1415,7 +1483,12 @@
     "q3Title": "Reject",
     "q3Text": "Grey coating, even at just one spot. Stays in the field: inside a closed punnet it infects the whole layer overnight.",
     "trayTitle": "The costliest mistake is a height",
-    "trayText": "Seen from above, the overfilled punnet looks best: full, dense, no gap. But the lid presses on the top layer, and the bottom layer carries the weight. Raspberries carry no weight of their own - by the time it's in the shop, the bottom layer is juice. That is visible only from the side."
+    "trayText": "Seen from above, the overfilled punnet looks best: full, dense, no gap. But the lid presses on the top layer, and the bottom layer carries the weight. Raspberries carry no weight of their own - by the time it's in the shop, the bottom layer is juice. That is visible only from the side.",
+    "vergleichTitle": "Same angle, two berries",
+    "vergleichText": "On the left an unblemished fruit, on the right one with grey mould - two photographs of the same variety, not the same berry. Drag the slider: the difference takes hours, not days, and in a closed punnet it spreads to the whole layer overnight.",
+    "vergleichLinks": "Sound",
+    "vergleichRechts": "Affected",
+    "vergleichRegler": "Move the comparison slider between the two photographs"
   },
   "qualitaetsReferenz": {
     "aufklappen": "Show quality reference",
@@ -1586,7 +1659,7 @@
   },
   "zukaufAnsicht": {
     "statsTitle": "Purchasing at a glance",
-    "statsLead": "Key figures across all recorded purchase positions from neighbouring farms.",
+    "statsLead": "KPIs across all recorded purchase positions from neighbouring farms.",
     "stat": {
       "positionen": "Positions",
       "menge": "Total volume",
@@ -1616,7 +1689,7 @@
       "bekannteBetriebe": "Known neighbouring farms",
       "bekannteSorten": "Known varieties",
       "feldLabel": "CSV data",
-      "platzhalter": "menge;sorte;datum;nachbarbetrieb\n210;Polka;2026-09-01;Nachbarbetrieb Kaskelen",
+      "platzhalter": "quantity;variety;date;supplier\n210;Polka;2026-09-01;Kaskelen neighbouring farm",
       "knopf": "Check and import",
       "befundeTitle": "Check results",
       "spalteAllgemein": "general",

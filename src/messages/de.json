@@ -300,7 +300,7 @@
       "milestoneAName": "Meilenstein A - Prototyp mit Optik und Funktionsumfang",
       "milestoneADue": "bis 06.09.2026",
       "milestoneAItems": {
-        "tokens": "Design-Token-Umstellung auf die Himbeer-Palette",
+        "tokens": "Design-Token-Umstellung auf die Palette „Kök & Altyn“ (Landesfarben Kasachstans)",
         "landing": "Landingpage mit Platzhaltertexten und -bildern, Sprachumschalter für fünf Sprachen",
         "zones": "Dashboard-Gerüst mit den vier Zonen als Navigationsstruktur",
         "workflows": "Kern-Workflows beispielhaft: Reihenblock-Übersicht und Pflückaufgabe mit Fotobeleg"
@@ -324,7 +324,8 @@
       "kpiExtendedTitle": "Weitere Kennzahlen",
       "kpiExtendedDescription": "Teil der unterschriebenen Baseline, aber außerhalb der zwölf Kern-Kennzahlen im Cockpit.",
       "kpiNoneForRole": "Für Ihre Rolle sind hier keine betriebsweiten Kennzahlen hinterlegt. Die eigene Leistung finden Sie im Lohn-Modul."
-    }
+    },
+    "loading": "Daten werden geladen"
   },
   "roles": {
     "switcherHint": "Demo-Rolle wechseln - steuert die sichtbare Navigation",
@@ -441,46 +442,68 @@
   },
   "kpis": {
     "verlustquote": {
-      "label": "Verlustquote vom Pflücken bis zum Kunden"
+      "label": "Verlustquote vom Pflücken bis zum Kunden",
+      "braucht": "nichts - Ausschuss je Charge wird erfasst",
+      "basis": "Ausschuss gegen Gesamtmenge über alle Chargen"
     },
     "vermarktungsfaehig": {
-      "label": "Anteil vermarktungsfähiger Schalen"
+      "label": "Anteil vermarktungsfähiger Schalen",
+      "braucht": "Qualitaetssortierung je Schale"
     },
     "zeitBisVorkuehlung": {
-      "label": "Zeit vom Pflücken bis zur Vorkühlung"
+      "label": "Zeit vom Pflücken bis zur Vorkühlung",
+      "braucht": "nichts - Pflueck- und Kuehlzeitpunkt je Charge",
+      "basis": "Mittel über alle gemessenen Chargen, inklusive Grenzverletzungen"
     },
     "zeitBisKunde": {
-      "label": "Zeit vom Pflücken bis zum Kunden"
+      "label": "Zeit vom Pflücken bis zum Kunden",
+      "braucht": "Lieferungen mit Abfahrt und Ankunft"
     },
     "pflueckleistung": {
-      "label": "Pflückleistung je Person und Stunde"
+      "label": "Pflückleistung je Person und Stunde",
+      "braucht": "nichts - Steige mit Person gegen Arbeitszeit",
+      "basis": "Erntemenge je Steige gegen erfasste Arbeitszeit"
     },
     "pflueckStreuung": {
-      "label": "Streuung der Pflückleistung (beste zu schwächste Kraft)"
+      "label": "Streuung der Pflückleistung (beste zu schwächste Kraft)",
+      "braucht": "nichts - Leistung je Person ueber die Saison",
+      "basis": "Beste gegen schwächste Kraft, mindestens zwei Personen nötig"
     },
     "pflueckintervall": {
-      "label": "Eingehaltenes Pflückintervall je Reihenblock"
+      "label": "Eingehaltenes Pflückintervall je Reihenblock",
+      "braucht": "nichts - Erntefolge je Reihenblock aus den Chargen",
+      "basis": "Anteil der tatsächlichen Erntefolgen im Abstand von höchstens drei Tagen"
     },
     "behandlungenWartezeit": {
-      "label": "Behandlungen mit eingehaltener Wartezeit"
+      "label": "Behandlungen mit eingehaltener Wartezeit",
+      "braucht": "nichts - aus Behandlung und Sperrlogik ableitbar",
+      "basis": "Behandlungen ohne Ernte im Sperrzeitraum"
     },
     "reklamationsquote": {
-      "label": "Reklamationsquote"
+      "label": "Reklamationsquote",
+      "braucht": "Reklamationen mit Bezug zur Charge"
     },
     "liefertreue": {
-      "label": "Liefertreue (pünktlich und vollständig)"
+      "label": "Liefertreue (pünktlich und vollständig)",
+      "braucht": "Zugesagte gegen tatsaechliche Lieferung"
     },
     "belegteVerkaeufe": {
-      "label": "Anteil belegter Verkäufe (ЭСФ und Warenbegleitschein)"
+      "label": "Anteil belegter Verkäufe (ЭСФ und Warenbegleitschein)",
+      "braucht": "Anbindung an ЭСФ und Warenbegleitschein"
     },
     "deckungsbeitrag": {
-      "label": "Deckungsbeitrag je kg"
+      "label": "Deckungsbeitrag je kg",
+      "braucht": "nichts - Buchungen je Charge gegen Erntemenge",
+      "basis": "Alle Erlös- und Kostenbuchungen gegen die gesamte Erntemenge - noch ohne Zeitfenster oder Chargenbezug je Buchung"
     },
     "esutdAbdeckung": {
-      "label": "Abdeckung der Saisonkräfte in ЕСУТД"
+      "label": "Abdeckung der Saisonkräfte in ЕСУТД",
+      "braucht": "rechtliche Bestaetigung der ЕСУТД-Pflicht ueber enbek.kz (siehe WMCNL-1447) - Anbindungspunkt benannt, Rechtsprüfung der Pflicht selbst steht noch aus",
+      "basis": "Pflücker mit erfasstem Arbeitsvertrag"
     },
     "websiteAnfragen": {
-      "label": "Anfragen über die Website je Monat"
+      "label": "Anfragen über die Website je Monat",
+      "braucht": "Kontaktformular auf der Website"
     }
   },
   "modules": {
@@ -810,6 +833,17 @@
     "leer": {
       "parzellen": "Noch keine Feldparzelle angelegt.",
       "reihengruppen": "Noch keine Reihengruppe angelegt."
+    },
+    "spalier": {
+      "n_s": "N-S",
+      "o_w": "O-W"
+    },
+    "beispiel": {
+      "plantageName": "Plantage Talgar",
+      "plantageOrt": "Talgar, Gebiet Almaty",
+      "parzelleName": "Parzelle West",
+      "flaeche": "2,5",
+      "reihengruppeName": "Reihengruppe C"
     }
   },
   "dokumentKategorie": {
@@ -837,6 +871,9 @@
       "stand": "Stand",
       "status": "Status",
       "datei": "Datei"
+    },
+    "beispiel": {
+      "name": "Spritzprotokoll KW 37 - Parzelle Nord"
     }
   },
   "pflueckaufgabenVerwaltung": {
@@ -932,12 +969,25 @@
   "rollenDemo": {
     "rolesTitle": "Sieben Kernrollen",
     "rolesLead": "Administration, Betriebsleitung, Buchhaltung, Brigade im Feld, Pflücker, Erzeuger und B2B-Kunde. Jede Rolle sieht genau die Module, die sie braucht.",
-    "scope": "Bereich",
     "matrixTitle": "Rechtematrix (Auszug, Aktion ansehen)",
     "matrixLead": "Rollen mal Ressourcen - eine klare Datenstruktur, die neue Rollen ohne Eingriff in die Logik erlaubt.",
     "resource": "Ressource",
     "matrixNote": "Vollständige Matrix über alle Ressourcen und Aktionen. Die Zugriffsregeln auf Datenbankebene werden je Ressource einzeln geschrieben.",
-    "note": "Identitäten und Rollen liegen quer über allen vier Bereichen - zusammen mit Protokollierung, Verschlüsselung und Mehrfaktor-Authentifizierung."
+    "note": "Identitäten und Rollen liegen quer über allen vier Bereichen - zusammen mit Protokollierung, Verschlüsselung und Mehrfaktor-Authentifizierung.",
+    "level": "Stufe",
+    "catiRole": {
+      "keine": "keine Entsprechung - neu ab Anforderung 7.1"
+    },
+    "scopeWert": {
+      "betrieb": "Betrieb",
+      "plantage": "Plantage",
+      "finanzen": "Finanzen",
+      "feld": "Feld",
+      "pfluecker": "Pflücker",
+      "erzeugerbetrieb": "Erzeugerbetrieb",
+      "kunde": "Kunde"
+    },
+    "scope": "Bereich"
   },
   "finanzenAnsicht": {
     "uebersichtTitel": "Deckungsbeitrag auf einen Blick",
@@ -1216,7 +1266,13 @@
     "window": "Erntefenster",
     "shale": "Schale",
     "contingent": "Kontingent reserviert",
-    "note": "Sommertragende Sorten liefern im Juli, remontierende von August bis zum ersten Frost. Das Sortenspektrum bestimmt das gesamte Personalmodell."
+    "note": "Sommertragende Sorten liefern im Juli, remontierende von August bis zum ersten Frost. Das Sortenspektrum bestimmt das gesamte Personalmodell.",
+    "fenster": {
+      "s-polka": "Aug - erster Frost",
+      "s-polana": "Aug - Okt",
+      "s-tulameen": "Jun - Jul",
+      "s-kweli": "Aug - Sep"
+    }
   },
   "schulungenDemo": {
     "libraryTitle": "Videobibliothek",
@@ -1227,7 +1283,19 @@
       "dauer": "Dauer",
       "sprachen": "Sprachen"
     },
-    "note": "Kurzeinarbeitung als geführte Checkliste auf dem Telefon, mehrsprachig, mit Bildern statt Text - je Kernprozess ein kurzes Video."
+    "note": "Kurzeinarbeitung als geführte Checkliste auf dem Telefon, mehrsprachig, mit Bildern statt Text - je Kernprozess ein kurzes Video.",
+    "video": {
+      "v-01": "Richtig pfluecken - reife Frucht erkennen",
+      "v-02": "Steige befuellen und QR-Etikett scannen",
+      "v-03": "Die Stunde nach dem Pfluecken - Kuehlkette",
+      "v-04": "Hygiene und Handschuhe"
+    },
+    "thema": {
+      "ernte": "Ernte",
+      "feld": "Feld",
+      "hof": "Hof",
+      "qualitaet": "Qualität"
+    }
   },
   "kuehlketteMock": {
     "clockTitle": "Charge-Uhr (Mock)",
@@ -1407,7 +1475,7 @@
   "qualityStandard": {
     "eyebrow": "Derselbe Maßstab wie im System",
     "title": "Der Maßstab steht hier, nicht im Prospekt",
-    "lead": "Wer für den Betrieb pflückt oder von ihm kauft, sieht denselben Maßstab, der im System gilt - dieselben Zeichnungen wie auf dem Telefon des Erntehelfers. Fachliche Grundlage ist die UNECE-Norm FFV-32 für Himbeeren.",
+    "lead": "Wer für den Betrieb pflückt oder von ihm kauft, sieht denselben Maßstab, der im System gilt - dieselben Merkmale, die das Telefon des Erntehelfers abfragt. Fachliche Grundlage ist die UNECE-Norm FFV-32 für Himbeeren.",
     "q1Title": "Vermarktungsfähig",
     "q1Text": "Durchgehend ausgefärbt, innen hohl, die Steinfrüchtchen halten zusammen. Der Blütenboden bleibt am Strauch.",
     "q2Title": "Zu früh gepflückt",
@@ -1415,7 +1483,12 @@
     "q3Title": "Ausschuss",
     "q3Text": "Grauer Belag, auch nur an einer Stelle. Bleibt im Feld: In der geschlossenen Schale befällt er über Nacht die ganze Lage.",
     "trayTitle": "Der teuerste Fehler ist eine Höhe",
-    "trayText": "Von oben sieht die überfüllte Schale am besten aus: voll, dicht, kein Spalt. Der Deckel drückt jedoch auf die obere Lage, und die untere trägt das Gewicht. Himbeeren tragen kein Eigengewicht - im Laden ist die unterste Lage Saft. Sichtbar wird das nur von der Seite."
+    "trayText": "Von oben sieht die überfüllte Schale am besten aus: voll, dicht, kein Spalt. Der Deckel drückt jedoch auf die obere Lage, und die untere trägt das Gewicht. Himbeeren tragen kein Eigengewicht - im Laden ist die unterste Lage Saft. Sichtbar wird das nur von der Seite.",
+    "vergleichTitle": "Derselbe Blickwinkel, zwei Beeren",
+    "vergleichText": "Links eine einwandfreie Frucht, rechts eine mit Grauschimmel - zwei Aufnahmen derselben Sorte, nicht dieselbe Beere. Ziehen Sie den Regler: Der Unterschied entsteht in Stunden, nicht in Tagen, und in der geschlossenen Schale überträgt er sich über Nacht auf die ganze Lage.",
+    "vergleichLinks": "Einwandfrei",
+    "vergleichRechts": "Befallen",
+    "vergleichRegler": "Vergleichsregler zwischen beiden Aufnahmen verschieben"
   },
   "qualitaetsReferenz": {
     "aufklappen": "Qualitätsreferenz zeigen",

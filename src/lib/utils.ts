@@ -5,6 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatNumber(value: number, locale = "de-DE") {
-  return new Intl.NumberFormat(locale).format(value);
-}
+// Zahlen werden ueber next-intl formatiert (useFormatter/getFormatter), damit
+// sie dem aktiven Locale folgen. Eine eigene Hilfsfunktion mit fester
+// Locale-Vorgabe stand hier und wurde nie aufgerufen - sie ist entfernt, statt
+// darauf zu warten, dass jemand sie ohne Locale benutzt.

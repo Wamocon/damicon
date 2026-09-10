@@ -52,3 +52,10 @@ next-env.d.ts
 # aus node_modules kopiert, nicht eingecheckt (sonst veraltet er bei einem
 # Versions-Update von qr-scanner stillschweigend).
 /public/qr-scanner-worker.min.js
+
+.gstack/
+
+# Bildoriginale (Rohdateien mehrere MB). Was die Seite ausliefert, liegt als
+# verkleinertes WebP unter public/ und ist versioniert.
+/Bilder/
+/damicon-homepage-stand.html

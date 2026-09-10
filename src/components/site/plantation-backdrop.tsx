@@ -5,8 +5,8 @@ import { useEffect, useRef } from "react";
 // Dynamischer Hintergrund fuer die Landingpage: ein statisches Gitternetz aus
 // 1px-Linien (per CSS, radial ausgeblendet) plus ein leichtes Partikelnetz auf
 // Canvas - Punkte driften, nahe Punkte werden mit Linien verbunden, der Cursor
-// zieht sie an. Angelehnt an das Gitternetz der LFA-Landingpage, hier in der
-// Himbeer-Palette und deutlich zurueckhaltender.
+// zieht sie an. Angelehnt an das Gitternetz der LFA-Landingpage, hier im
+// Koek-Blau der Landesfarben und deutlich zurueckhaltender.
 //
 // Respektiert prefers-reduced-motion (dann nur das statische Gitter), pausiert
 // bei verstecktem Tab und passt sich der Geraeteaufloesung an.
@@ -43,8 +43,10 @@ export function PlantationBackdrop({ className }: { className?: string }) {
     let raf = 0;
     let running = true;
 
-    // Himbeerrot (--primary #b11742) fuer Punkte und Linien.
-    const rgb = "177,23,66";
+    // Flaggenblau (#00afca) fuer Punkte und Linien. Der Backdrop liegt
+    // ausschliesslich auf der dunklen Nachtblau-Flaeche der Login-Seiten,
+    // dort traegt das helle Koek - das tiefere --primary wuerde absaufen.
+    const rgb = "0,175,202";
 
     function countFor(w: number) {
       // ~1 Punkt je 14 000 px2, gedeckelt fuer schwache Geraete.

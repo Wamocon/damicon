@@ -70,7 +70,7 @@ const SPALTEN: Record<ZukaufSpalte, string[]> = {
     "menge", "menge_kg", "menge kg", "kg", "gewicht", "gewicht_kg",
     "quantity", "amount", "qty", "weight",
     "количество", "кол-во", "вес", "кг",
-    "мөлшері", "салмағы", "саны", "кг ",
+    "мөлшері", "мөлшер", "салмағы", "саны", "кг ",
     "miktar", "kilogram", "kg miktar", "agirlik", "ağırlık",
   ],
   sorte: [

@@ -61,6 +61,16 @@ export function DashboardHome({
   // ist keine persoenliche Leistungszahl, siehe kpisFuerRolle().
   const { kern, erweitert } = kpisFuerRolle(role, kpis);
 
+  // Der Rechenweg kommt als deutscher Text aus kpi_aktuell() und waere damit
+  // in jeder Sprache deutsch. Der Schluessel der Kennzahl ist aber eindeutig,
+  // also uebersetzen wir darueber. Liefert die Datenbank eine Kennzahl, fuer
+  // die es noch keinen Schluessel gibt, bleibt der SQL-Text sichtbar - besser
+  // ein deutscher Rechenweg als gar keiner.
+  const basisText = (kpi: Kpi) =>
+    kpiT.has(`${kpi.key}.basis`)
+      ? kpiT(`${kpi.key}.basis`)
+      : (kpi.gerechnet?.basis ?? "");
+
   const kpiKachel = (kpi: Kpi) => {
     const TrendCmp = trendIcon[kpi.trend];
     const positive =
@@ -100,10 +110,10 @@ export function DashboardHome({
         <p
           title={
             rechtlichUngeklaert
-              ? kpi.braucht
+              ? kpiT(`${kpi.key}.braucht`)
               : kpi.gerechnet
-                ? kpi.gerechnet.basis
-                : kpi.braucht
+                ? basisText(kpi)
+                : kpiT(`${kpi.key}.braucht`)
           }
           className={`mt-2 flex items-start gap-1 border-t border-border pt-1.5 text-[10px] leading-3 ${
             rechtlichUngeklaert
