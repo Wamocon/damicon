@@ -552,14 +552,14 @@
     "logistik": {
       "title": "Abholrunden und Tourenplanung",
       "description": "Feste Abholrunden im Feld, damit gefüllte Steigen nicht in der Sonne stehen, plus Tourenplanung nach den Lieferfenstern der Kunden.",
-      "summary": "Abholrunden im Feld, Tourenliste je Fahrzeug, Übergabequittung mit Temperatur- und Mengenabgleich.",
-      "todo": "Tourenliste je Fahrzeug, Zeitfenster, Übergabequittung mit Temperatur- und Mengenabgleich."
+      "summary": "Übergabequittung mit Mengen- und Temperaturabgleich (Vorkühlung und Transport), lückenloser Kühlkettennachweis bis zum Kunden.",
+      "todo": "Tourenliste je Fahrzeug und Zeitfenster (Anforderung 3.5 Teil 1) fehlen noch."
     },
     "qr_steigen": {
       "title": "QR-Steigenkennung",
-      "description": "QR-Etiketten für Steigen (Link zur öffentlichen Herkunftsauskunft), Pflückerausweise ohne Biometrie (Link zur internen Pflückaufgaben-Ansicht) und ein anmeldungsfreies Aushang-Poster - alle serverseitig als SVG erzeugt und über die Browser-Druckfunktion druckfertig.",
-      "summary": "Der QR-Code trägt die Identität vom Feld bis zur Ladentheke - serverseitig erzeugt, ohne eigenen Etikettendrucker und ohne PDF-Werkzeug.",
-      "todo": "Die Scan-Oberfläche am Ausgabepunkt mit Server-Abgleich (Menge, Reihenblock, Uhrzeit und Person in einem Vorgang) ist nicht Teil dieses Ausbauschritts."
+      "description": "QR-Etiketten für Steigen (Link zur öffentlichen Herkunftsauskunft), Pflückerausweise mit dem eigenen Ausweis-Code ohne Biometrie und ein anmeldungsfreies Aushang-Poster - alle serverseitig als SVG erzeugt und über die Browser-Druckfunktion druckfertig.",
+      "summary": "Der QR-Code trägt die Identität vom Feld bis zur Ladentheke - der Ausweis lässt sich am Sammelpunkt per Kamera scannen, um Steige und Arbeitszeit der Person zuzuordnen, statt sie aus einem Dropdown zu wählen.",
+      "todo": "Ein Kamera-Scan der Steigen-Etiketten selbst (statt nur des Pflückerausweises) ist nicht Teil dieses Ausbauschritts."
     },
     "esf": {
       "title": "Elektronischer Lieferschein (ЭСФ)",
@@ -624,8 +624,8 @@
     "b2b_portal": {
       "title": "B2B-Portal",
       "description": "Stammkundenportal mit Kontingenten, Vorbestellung mit Vorlauf, Preisliste nach Kundengruppe, Lieferstatus, Rechnungshistorie und Reklamationsmeldung.",
-      "summary": "Kontingente, Vorbestellung, Preisliste je Kundengruppe, Lieferstatus und Rechnungshistorie für Stammkunden.",
-      "todo": "Kundenkonten, Kontingent-Vorbestellung, Lieferterminbuchung, Rechnungs- und Zahlungsstatus."
+      "summary": "Lieferstatus mit Übergabequittung, Preisliste und Vorbestellung mit manueller Bestätigung durchs Büro sind angebunden.",
+      "todo": "Automatischer Kontingent-Verbrauch, Preisstaffelung je Kundengruppe und Rechnungshistorie fehlen noch (offene fachliche Festlegungen)."
     },
     "preislisten": {
       "title": "Preislisten",
@@ -758,7 +758,15 @@
       "einarbeitungSchritt": "Schritt abgehakt.",
       "pflichtschulungTeilnahme": "Teilnahme erfasst.",
       "foerderdossier": "Dossier \"{wert}\" angelegt.",
-      "foerderdossierStatus": "Dossier \"{wert}\" aktualisiert."
+      "foerderdossierStatus": "Dossier \"{wert}\" aktualisiert.",
+      "lieferung": "Lieferung angelegt.",
+      "transportMessung": "Transportmessung erfasst.",
+      "uebergabe": "Übergabe erfasst.",
+      "lieferungStorniert": "Lieferung storniert.",
+      "pfleuckerBrigadeZugewiesen": "{wert} einer Brigade zugewiesen.",
+      "vorbestellung": "Vorbestellung aufgegeben.",
+      "vorbestellungStatus": "Vorbestellung aktualisiert.",
+      "vorbestellungStorniert": "Vorbestellung storniert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -770,10 +778,13 @@
       "angemeldet": "Sitzung abgelaufen. Bitte erneut anmelden.",
       "doppelt": "Ein Eintrag mit dieser Kennung existiert bereits.",
       "bezug": "Der gewählte Bezugsdatensatz existiert nicht.",
+      "nichtGefunden": "Der Datensatz wurde nicht gefunden oder ist nicht mehr bearbeitbar.",
       "regel": "Nicht möglich: Die Wartezeit ist noch nicht abgelaufen.",
       "unbekannt": "Vorgang fehlgeschlagen. Details stehen im Server-Log.",
       "keineCharge": "Zu dieser Aufgabe gehört keine Charge.",
       "kuehlkette": "Grenzwert gerissen: {wert} Minuten bis zur Messung. Die Ware ist abzuwerten.",
+      "transportKuehlkette": "Grenzwert überschritten: Die Transporttemperatur lag über 8 Grad. Die Ware ist abzuwerten.",
+      "lieferungStorniert": "Diese Lieferung wurde storniert - dafür lässt sich keine Transportmessung mehr erfassen.",
       "geraetezeit": "Die Geräteuhr weicht zu stark von der Serverzeit ab (Zukunft oder mehr als 24 Stunden Differenz). Bitte die Uhrzeit des Geräts prüfen und erneut versuchen.",
       "keinKunde": "Ihrem Zugang ist kein B2B-Kunde zugeordnet. Bitte an die Administration wenden.",
       "zukaufBefunde": "{wert} Fehler in der Eingabe gefunden - nichts wurde übernommen. Siehe Prüfergebnis unten.",
@@ -1526,11 +1537,12 @@
     "internMarkierung": "intern",
     "rueckverfolgung": {
       "titel": "Rückverfolgung",
-      "lead": "Nur für das Büro sichtbar: von der Reklamation bis zur pflückenden Person, zur Kühlmessung und, bei Zukaufware, zum liefernden Nachbarbetrieb.",
+      "lead": "Nur für das Büro sichtbar: von der Reklamation bis zur pflückenden Person, zur Kühlmessung bei der Vorkühlung, zur Transporttemperatur bis zum Kunden und, bei Zukaufware, zum liefernden Nachbarbetrieb.",
       "pfluecker": "Beteiligte Pflücker",
       "kuehlkette": "Kühlmessungen der Charge",
       "minuten": "{minuten} Minuten nach dem Pflücken",
       "ohneZeitpunkt": "ohne bekannten Pflückzeitpunkt",
+      "transport": "Transportmessungen bis zum Kunden",
       "nachbarbetrieb": "Liefernder Nachbarbetrieb"
     },
     "col": {
@@ -1716,7 +1728,7 @@
     },
     "ausweise": {
       "title": "Pflückerausweise",
-      "lead": "QR-Code je Pflücker, verlinkt auf die interne Pflückaufgaben-Ansicht - bewusst ohne Foto oder Biometrie.",
+      "lead": "QR-Code je Pflücker mit dem eigenen Ausweis-Code - am Sammelpunkt per Kamera scannbar, um Steige und Arbeitszeit der Person zuzuordnen. Bewusst ohne Foto oder Biometrie.",
       "empty": "Noch kein Pflücker erfasst.",
       "rolle": "Pflücker"
     },
@@ -1724,6 +1736,17 @@
       "hinweis": "Für den Betrieb gibt es zusätzlich ein anmeldungsfreies Aushang-Poster mit QR-Code auf die allgemeine Codeeingabe.",
       "oeffnen": "Aushang-Poster öffnen"
     }
+  },
+  "ausweisScan": {
+    "label": "Pflücker",
+    "ausweisScannen": "Ausweis scannen",
+    "manuellStattdessen": "stattdessen manuell auswählen",
+    "scanStattdessen": "stattdessen scannen",
+    "hinweis": "Ausweis-QR vor die Kamera halten.",
+    "keinTreffer": "Dieser Code gehört zu keinem bekannten Pflücker. Bitte den richtigen Ausweis scannen.",
+    "keineKamera": "Kein Kamerazugriff möglich. Bitte manuell auswählen.",
+    "aendern": "Ändern",
+    "bitteWaehlen": "bitte wählen"
   },
   "einarbeitungAnsicht": {
     "titel": "Kurzeinarbeitung",
@@ -1794,5 +1817,124 @@
         "knopf": "Aktualisieren"
       }
     }
+  },
+  "lieferungenAnsicht": {
+    "titel": "Lieferungen",
+    "lead": "Digitale Übergabequittung: Menge, Empfänger und Kühlkette der Charge im Moment der Übergabe.",
+    "keineLieferungen": "Noch keine Lieferung angelegt.",
+    "note": "Tourenplanung nach Lieferfenstern mit Routenlogik ist nicht Teil dieser Ansicht. Eine zugestellte oder stornierte Lieferung ist unveränderlich, eine Korrektur ist nur als neue Lieferung möglich.",
+    "menge": "Menge",
+    "bestellt": "bestellt",
+    "geliefertAm": "Zugestellt am",
+    "empfaengerName": "Empfänger",
+    "empfaengerNamePlatzhalter": "Name der entgegennehmenden Person",
+    "beleg": "Foto (optional)",
+    "uebergabeErfassen": "Übergabe erfassen",
+    "stornieren": "Stornieren",
+    "temperatur": "Kühlkette bei Übergabe",
+    "transportTitel": "Transportmessungen",
+    "transportTemperatur": "Temperatur in °C",
+    "transportMessungErfassen": "Messung erfassen",
+    "status": {
+      "geplant": "geplant",
+      "zugestellt": "zugestellt",
+      "storniert": "storniert"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Lieferung anlegen",
+        "lead": "Kunde und Menge sind Pflicht, die Charge lässt sich optional zuordnen.",
+        "kunde": "Kunde",
+        "bitteWaehlen": "bitte wählen",
+        "menge": "Menge in kg",
+        "charge": "Charge (optional)",
+        "keinBezug": "kein Bezug",
+        "knopf": "Lieferung anlegen"
+      }
+    }
+  },
+  "b2bPortalAnsicht": {
+    "lieferungenTitel": "Meine Lieferungen",
+    "lieferungenLead": "Status und Übergabequittung Ihrer Lieferungen.",
+    "keineLieferungen": "Noch keine Lieferung erfasst.",
+    "preislisteTitel": "Preisliste",
+    "preislisteLead": "Aktuell gültige Preisliste je Sorte, mit Mindestmenge.",
+    "keinePreisliste": "Derzeit keine gültige Preisliste hinterlegt.",
+    "gueltigAb": "gültig ab",
+    "gueltigBis": "bis",
+    "vorbestellungenTitel": "Vorbestellungen",
+    "vorbestellungenLead": "Eine Vorbestellung ist eine Anfrage - das Büro bestätigt oder lehnt sie ab, geprüft gegen den bekannten Kontingent-Stand.",
+    "keineVorbestellungen": "Noch keine Vorbestellung aufgegeben.",
+    "bestaetigen": "Bestätigen",
+    "ablehnen": "Ablehnen",
+    "stornieren": "Stornieren",
+    "col": {
+      "kunde": "Kunde",
+      "sorte": "Sorte",
+      "preis": "Preis",
+      "mindestmenge": "Mindestmenge",
+      "menge": "Menge",
+      "liefertermin": "Liefertermin",
+      "status": "Status"
+    },
+    "status": {
+      "angefragt": "angefragt",
+      "bestaetigt": "bestätigt",
+      "geliefert": "geliefert",
+      "storniert": "storniert"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Vorbestellung aufgeben",
+        "lead": "Sorte und Menge sind Pflicht, der Liefertermin ist ein Wunschtermin.",
+        "kunde": "Kunde",
+        "bitteWaehlen": "bitte wählen",
+        "sorte": "Sorte",
+        "menge": "Menge in kg",
+        "liefertermin": "Liefertermin (optional)",
+        "knopf": "Vorbestellung aufgeben"
+      }
+    },
+    "note": "Eine Vorbestellung prüft den Kontingent-Verbrauch nicht automatisch - das bleibt eine manuelle Prüfung des Büros bei der Bestätigung, dieselbe fachliche Festlegung, die für die automatische Kontingent-Fortschreibung noch offen ist. Die Preisliste zeigt allen Kunden dieselben aktiven Preise, eine Staffelung je Kundengruppe ist nicht Teil dieser Ansicht."
+  },
+  "personalAnsicht": {
+    "brigadenTitel": "Brigaden",
+    "brigadenLead": "Brigadenplanung mit Schichten und Reserveliste über die gesamte Erntestrecke.",
+    "vorarbeiter": "Vorarbeiter",
+    "personen": "Personen",
+    "bedarfTitel": "Bedarfsrechnung",
+    "bedarfLead": "Für jeden geplanten Erntetag: wie viele Reihenblöcke insgesamt, bereits einer Brigade zugewiesen und noch offen sind.",
+    "keinBedarf": "Keine geplanten Erntetage in den kommenden Tagen.",
+    "offeneTermineTitel": "Offene Termine",
+    "offeneTermineLead": "Reihenblöcke ohne zugewiesene Brigade - direkt hier einer Brigade zuweisen.",
+    "einsatzplanTitel": "Schichtplan",
+    "einsatzplanLead": "Welche Brigade an welchem Tag für wie viele Reihenblöcke eingeteilt ist.",
+    "keinEinsatzplan": "Keine Einsätze in den kommenden Tagen geplant.",
+    "pflueckerTitel": "Pflückerstamm",
+    "pflueckerLead": "Personenstamm mit Pflückerausweis, ЕСУТД-Erfassung je Vertrag, Leistungs- und Qualitätsfaktor je Person.",
+    "reservelisteTitel": "Reserveliste",
+    "reservelisteLead": "Pflücker ohne aktuelle Brigadenzuordnung, auf Abruf verfügbar.",
+    "keineReserve": "Aktuell kein Pflücker ohne Brigadenzuordnung.",
+    "bitteWaehlen": "bitte wählen",
+    "zuweisen": "Zuweisen",
+    "brigade": "Brigade",
+    "col": {
+      "datum": "Datum",
+      "bloeckeGesamt": "Blöcke gesamt",
+      "bloeckeZugewiesen": "zugewiesen",
+      "bloeckeOffen": "offen",
+      "brigade": "Brigade",
+      "staerke": "Stärke",
+      "name": "Name",
+      "ausweis": "Ausweis",
+      "esutd": "ЕСУТД",
+      "leistung": "Leistung",
+      "qfaktor": "Q-Faktor"
+    },
+    "esutd": {
+      "erfasst": "erfasst",
+      "offen": "offen"
+    },
+    "note": "Bedarfsrechnung und Schichtplan stammen direkt aus dem Rotationsplan (welcher Reihenblock an welchem Tag geerntet werden muss). Wetterszenarien sind bewusst nicht Teil dieser Ansicht - die Wetteranbindung (Anforderung 2.13) ist zurückgestellt."
   }
 }

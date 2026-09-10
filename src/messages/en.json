@@ -552,14 +552,14 @@
     "logistik": {
       "title": "Collection rounds and route planning",
       "description": "Fixed collection rounds in the field so filled crates do not sit in the sun, plus route planning by the clients' delivery windows.",
-      "summary": "Collection rounds in the field, route list per vehicle, handover receipt with temperature and volume reconciliation.",
-      "todo": "Route list per vehicle, time windows, handover receipt with temperature and volume reconciliation."
+      "summary": "Handover receipt with volume and temperature reconciliation (pre-cooling and transport), unbroken cold-chain evidence all the way to the customer.",
+      "todo": "Route list per vehicle and delivery time windows (requirement 3.5 part 1) are still missing."
     },
     "qr_steigen": {
       "title": "QR crate identification",
-      "description": "QR labels for crates (linking to the public origin lookup), picker ID badges without biometrics (linking to the internal task view), and a sign-in-free wall poster - all generated server-side as SVG and print-ready via the browser print function.",
-      "summary": "The QR code carries identity from the field to the shop counter - generated server-side, no dedicated label printer, no PDF tooling.",
-      "todo": "The scan interface at the dispatch point with server reconciliation (volume, row block, time and person in one step) is not part of this build-out."
+      "description": "QR labels for crates (linking to the public origin lookup), picker ID badges carrying the person's own badge code without biometrics, and a sign-in-free wall poster - all generated server-side as SVG and print-ready via the browser print function.",
+      "summary": "The QR code carries identity from the field to the shop counter - the badge can be scanned by camera at the collection point to attribute a crate or work time to that person, instead of choosing them from a dropdown.",
+      "todo": "A camera scan of the crate labels themselves (not just the picker badge) is not part of this build-out."
     },
     "esf": {
       "title": "Electronic delivery note (ЭСФ)",
@@ -624,8 +624,8 @@
     "b2b_portal": {
       "title": "B2B portal",
       "description": "A regular-client portal with quotas, pre-order with lead time, a price list by client group, delivery status, invoice history and complaint reporting.",
-      "summary": "Quotas, pre-order, price list by client group, delivery status and invoice history for regular clients.",
-      "todo": "Client accounts, quota pre-order, delivery-date booking, invoice and payment status."
+      "summary": "Delivery status with handover receipt, price list, and pre-orders with manual office confirmation are connected.",
+      "todo": "Automatic quota consumption, price tiers by client group, and invoice history are still missing (open business decisions)."
     },
     "preislisten": {
       "title": "Price lists",
@@ -758,7 +758,15 @@
       "einarbeitungSchritt": "Step checked off.",
       "pflichtschulungTeilnahme": "Attendance recorded.",
       "foerderdossier": "Dossier \"{wert}\" created.",
-      "foerderdossierStatus": "Dossier \"{wert}\" updated."
+      "foerderdossierStatus": "Dossier \"{wert}\" updated.",
+      "lieferung": "Delivery created.",
+      "transportMessung": "Transport measurement recorded.",
+      "uebergabe": "Handover recorded.",
+      "lieferungStorniert": "Delivery cancelled.",
+      "pfleuckerBrigadeZugewiesen": "{wert} assigned to a crew.",
+      "vorbestellung": "Order placed.",
+      "vorbestellungStatus": "Order updated.",
+      "vorbestellungStorniert": "Order cancelled."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -770,10 +778,13 @@
       "angemeldet": "Session expired. Please sign in again.",
       "doppelt": "An entry with this identifier already exists.",
       "bezug": "The selected reference record does not exist.",
+      "nichtGefunden": "The record was not found or can no longer be edited.",
       "regel": "Not possible: the pre-harvest interval has not elapsed yet.",
       "unbekannt": "Action failed. Details are in the server log.",
       "keineCharge": "This task has no batch.",
       "kuehlkette": "Limit broken: {wert} minutes until measurement. The goods have to be downgraded.",
+      "transportKuehlkette": "Limit exceeded: the transport temperature was above 8 degrees. The goods have to be downgraded.",
+      "lieferungStorniert": "This delivery was cancelled - no transport measurement can be recorded for it anymore.",
       "geraetezeit": "The device clock deviates too far from server time (future, or more than 24 hours off). Please check the device's clock and try again.",
       "keinKunde": "Your account has no B2B client assigned. Please contact the administration.",
       "zukaufBefunde": "{wert} error(s) found in the input - nothing was imported. See the check results below.",
@@ -1526,11 +1537,12 @@
     "internMarkierung": "internal",
     "rueckverfolgung": {
       "titel": "Traceability",
-      "lead": "Office view only: from the complaint back to the picker, the cooling measurement and, for purchased produce, the supplying neighbour farm.",
+      "lead": "Office view only: from the complaint back to the picker, the pre-cooling measurement, the transport temperature all the way to the customer and, for purchased produce, the supplying neighbour farm.",
       "pfluecker": "Pickers involved",
       "kuehlkette": "Cooling measurements for this batch",
       "minuten": "{minuten} minutes after picking",
       "ohneZeitpunkt": "no known picking time",
+      "transport": "Transport measurements to the customer",
       "nachbarbetrieb": "Supplying neighbour farm"
     },
     "col": {
@@ -1716,7 +1728,7 @@
     },
     "ausweise": {
       "title": "Picker ID badges",
-      "lead": "A QR code per picker, linking to the internal task view - deliberately without a photo or biometrics.",
+      "lead": "A QR code per picker with the person's own badge code - scannable by camera at the collection point to attribute a crate or work time to that person. Deliberately without a photo or biometrics.",
       "empty": "No picker recorded yet.",
       "rolle": "Picker"
     },
@@ -1724,6 +1736,17 @@
       "hinweis": "There is also a sign-in-free wall poster for the farm with a QR code to the general code entry page.",
       "oeffnen": "Open wall poster"
     }
+  },
+  "ausweisScan": {
+    "label": "Picker",
+    "ausweisScannen": "Scan badge",
+    "manuellStattdessen": "choose manually instead",
+    "scanStattdessen": "scan instead",
+    "hinweis": "Hold the badge QR code in front of the camera.",
+    "keinTreffer": "This code does not belong to any known picker. Please scan the correct badge.",
+    "keineKamera": "Camera access is not possible. Please choose manually.",
+    "aendern": "Change",
+    "bitteWaehlen": "please choose"
   },
   "einarbeitungAnsicht": {
     "titel": "Quick onboarding",
@@ -1794,5 +1817,124 @@
         "knopf": "Update"
       }
     }
+  },
+  "lieferungenAnsicht": {
+    "titel": "Deliveries",
+    "lead": "Digital handover receipt: quantity, recipient and the batch's cold chain at the moment of handover.",
+    "keineLieferungen": "No delivery created yet.",
+    "note": "Route planning by delivery window is not part of this view. A delivered or cancelled delivery is immutable, a correction is only possible as a new delivery.",
+    "menge": "Quantity",
+    "bestellt": "ordered",
+    "geliefertAm": "Delivered on",
+    "empfaengerName": "Recipient",
+    "empfaengerNamePlatzhalter": "Name of the person receiving the delivery",
+    "beleg": "Photo (optional)",
+    "uebergabeErfassen": "Record handover",
+    "stornieren": "Cancel",
+    "temperatur": "Cold chain at handover",
+    "transportTitel": "Transport measurements",
+    "transportTemperatur": "Temperature in °C",
+    "transportMessungErfassen": "Record measurement",
+    "status": {
+      "geplant": "planned",
+      "zugestellt": "delivered",
+      "storniert": "cancelled"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Create delivery",
+        "lead": "Customer and quantity are required, the batch can optionally be assigned.",
+        "kunde": "Customer",
+        "bitteWaehlen": "please choose",
+        "menge": "Quantity in kg",
+        "charge": "Batch (optional)",
+        "keinBezug": "no reference",
+        "knopf": "Create delivery"
+      }
+    }
+  },
+  "b2bPortalAnsicht": {
+    "lieferungenTitel": "My deliveries",
+    "lieferungenLead": "Status and handover receipt of your deliveries.",
+    "keineLieferungen": "No delivery recorded yet.",
+    "preislisteTitel": "Price list",
+    "preislisteLead": "Currently valid price list by variety, with minimum quantity.",
+    "keinePreisliste": "No valid price list on file at the moment.",
+    "gueltigAb": "valid from",
+    "gueltigBis": "until",
+    "vorbestellungenTitel": "Pre-orders",
+    "vorbestellungenLead": "A pre-order is a request - the office confirms or declines it, checked against the known quota status.",
+    "keineVorbestellungen": "No pre-order placed yet.",
+    "bestaetigen": "Confirm",
+    "ablehnen": "Decline",
+    "stornieren": "Cancel",
+    "col": {
+      "kunde": "Client",
+      "sorte": "Variety",
+      "preis": "Price",
+      "mindestmenge": "Minimum quantity",
+      "menge": "Quantity",
+      "liefertermin": "Delivery date",
+      "status": "Status"
+    },
+    "status": {
+      "angefragt": "requested",
+      "bestaetigt": "confirmed",
+      "geliefert": "delivered",
+      "storniert": "cancelled"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Place a pre-order",
+        "lead": "Variety and quantity are required, the delivery date is a preferred date.",
+        "kunde": "Client",
+        "bitteWaehlen": "please choose",
+        "sorte": "Variety",
+        "menge": "Quantity in kg",
+        "liefertermin": "Delivery date (optional)",
+        "knopf": "Place pre-order"
+      }
+    },
+    "note": "A pre-order does not automatically check quota consumption - that remains a manual check by the office at confirmation time, the same open business decision as for automatic quota tracking. The price list shows the same active prices to every client; tiering by client group is not part of this view."
+  },
+  "personalAnsicht": {
+    "brigadenTitel": "Crews",
+    "brigadenLead": "Crew planning with shifts and a reserve list across the whole harvest area.",
+    "vorarbeiter": "Foreman",
+    "personen": "People",
+    "bedarfTitel": "Demand calculation",
+    "bedarfLead": "For each planned harvest day: how many row blocks in total, already assigned to a crew, and still open.",
+    "keinBedarf": "No harvest days planned for the coming days.",
+    "offeneTermineTitel": "Open slots",
+    "offeneTermineLead": "Row blocks without an assigned crew - assign a crew directly here.",
+    "einsatzplanTitel": "Shift plan",
+    "einsatzplanLead": "Which crew is scheduled for how many row blocks on which day.",
+    "keinEinsatzplan": "No shifts planned for the coming days.",
+    "pflueckerTitel": "Picker roster",
+    "pflueckerLead": "Personnel roster with picker badge, ЕСУТД record per contract, performance and quality factor per person.",
+    "reservelisteTitel": "Reserve list",
+    "reservelisteLead": "Pickers without a current crew assignment, available on call.",
+    "keineReserve": "No picker currently without a crew assignment.",
+    "bitteWaehlen": "please choose",
+    "zuweisen": "Assign",
+    "brigade": "Crew",
+    "col": {
+      "datum": "Date",
+      "bloeckeGesamt": "Blocks total",
+      "bloeckeZugewiesen": "assigned",
+      "bloeckeOffen": "open",
+      "brigade": "Crew",
+      "staerke": "Strength",
+      "name": "Name",
+      "ausweis": "Badge",
+      "esutd": "ЕСУТД",
+      "leistung": "Performance",
+      "qfaktor": "Quality factor"
+    },
+    "esutd": {
+      "erfasst": "recorded",
+      "offen": "open"
+    },
+    "note": "Demand calculation and shift plan come directly from the rotation plan (which row block must be harvested on which day). Weather scenarios are deliberately not part of this view - the weather connection (requirement 2.13) has been deferred."
   }
 }

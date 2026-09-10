@@ -53,6 +53,13 @@ export interface RueckverfolgungNachbarbetrieb {
   ort: string | null;
 }
 
+export interface RueckverfolgungTransportmessung {
+  id: string;
+  temperaturC: number;
+  ergebnis: string;
+  gemessenAm: string;
+}
+
 export interface ReklamationDetail extends ReklamationListenEintrag {
   beschreibung: string | null;
   chargeId: string | null;
@@ -69,6 +76,11 @@ export interface ReklamationDetail extends ReklamationListenEintrag {
   pflueckerListe: RueckverfolgungPfluecker[];
   kuehlmessungen: RueckverfolgungKuehlmessung[];
   nachbarbetrieb: RueckverfolgungNachbarbetrieb | null;
+  // Transportphase-Temperaturlogger (Anforderung 3.2), ueber alle Lieferungen
+  // dieser Charge hinweg - schliesst die Kette Pfluecken -> Vorkuehlung ->
+  // Transport -> Uebergabe beim Kunden. RLS auf transport_temperatur_
+  // messungen (Migration 20260928000000) filtert wie bei kuehlmessungen.
+  transportMessungen: RueckverfolgungTransportmessung[];
 }
 
 function demoListe(quelle: ReklamationenListe["quelle"] = "demo"): ReklamationenListe {
@@ -157,6 +169,7 @@ function demoDetail(id: string): ReklamationDetail | null {
     pflueckerListe: [],
     kuehlmessungen: [],
     nachbarbetrieb: null,
+    transportMessungen: [],
   };
 }
 
@@ -176,7 +189,8 @@ export async function ladeReklamation(id: string): Promise<ReklamationDetail | n
            reihenbloecke ( code ),
            steigen ( pfluecker_id, pfluecker ( name, ausweis ) ),
            kuehlketten_messungen ( id, minuten_seit_pfluecken, ergebnis, gemessen_am ),
-           zukauf_positionen ( nachbarbetriebe ( name, ort ) )
+           zukauf_positionen ( nachbarbetriebe ( name, ort ) ),
+           lieferungen ( transport_temperatur_messungen ( id, temperatur_c, ergebnis, gemessen_am ) )
          ),
          profiles ( full_name )`,
       )
@@ -230,6 +244,20 @@ export async function ladeReklamation(id: string): Promise<ReklamationDetail | n
     ? { name: nachbarbetriebRoh.name, ort: nachbarbetriebRoh.ort }
     : null;
 
+  // Transportphase (Anforderung 3.2): eine Charge kann ueber mehrere
+  // Lieferungen verteilt sein (Teillieferungen) - alle zugehoerigen
+  // Transportmessungen zusammen, chronologisch, schliessen die Kette bis zum
+  // Kunden.
+  const transportMessungen: RueckverfolgungTransportmessung[] = (charge?.lieferungen ?? [])
+    .flatMap((l) => l.transport_temperatur_messungen ?? [])
+    .map((m) => ({
+      id: m.id,
+      temperaturC: Number(m.temperatur_c),
+      ergebnis: m.ergebnis,
+      gemessenAm: m.gemessen_am,
+    }))
+    .sort((a, b) => a.gemessenAm.localeCompare(b.gemessenAm));
+
   const ereignisse: ReklamationEreignis[] = (ereignisRohdaten ?? []).map((e) => {
     const autor = einsAus(e.profiles);
     return {
@@ -265,6 +293,7 @@ export async function ladeReklamation(id: string): Promise<ReklamationDetail | n
     pflueckerListe,
     kuehlmessungen,
     nachbarbetrieb,
+    transportMessungen,
   };
 }
 

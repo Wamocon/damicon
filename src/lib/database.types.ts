@@ -1099,33 +1099,51 @@ export type Database = {
       }
       lieferungen: {
         Row: {
+          abgezeichnet_von_profil_id: string | null
           b2b_kunde_id: string
+          beleg_storage_path: string | null
           charge_id: string | null
           created_at: string
+          empfaenger_name: string | null
           geliefert_am: string | null
+          geraet_zeitpunkt: string | null
           id: string
           lieferschein_outbox_id: string | null
           menge_kg: number
+          server_eingang_zeitpunkt: string | null
+          status: Database["public"]["Enums"]["lieferung_status"]
           vorbestellung_id: string | null
         }
         Insert: {
+          abgezeichnet_von_profil_id?: string | null
           b2b_kunde_id: string
+          beleg_storage_path?: string | null
           charge_id?: string | null
           created_at?: string
+          empfaenger_name?: string | null
           geliefert_am?: string | null
+          geraet_zeitpunkt?: string | null
           id?: string
           lieferschein_outbox_id?: string | null
           menge_kg?: number
+          server_eingang_zeitpunkt?: string | null
+          status?: Database["public"]["Enums"]["lieferung_status"]
           vorbestellung_id?: string | null
         }
         Update: {
+          abgezeichnet_von_profil_id?: string | null
           b2b_kunde_id?: string
+          beleg_storage_path?: string | null
           charge_id?: string | null
           created_at?: string
+          empfaenger_name?: string | null
           geliefert_am?: string | null
+          geraet_zeitpunkt?: string | null
           id?: string
           lieferschein_outbox_id?: string | null
           menge_kg?: number
+          server_eingang_zeitpunkt?: string | null
+          status?: Database["public"]["Enums"]["lieferung_status"]
           vorbestellung_id?: string | null
         }
         Relationships: [
@@ -1135,6 +1153,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "integration_outbox"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lieferungen_abgezeichnet_von_profil_id_fkey"
+            columns: ["abgezeichnet_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lieferungen_abgezeichnet_von_profil_id_fkey"
+            columns: ["abgezeichnet_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
           },
           {
             foreignKeyName: "lieferungen_b2b_kunde_id_fkey"
@@ -1637,6 +1669,13 @@ export type Database = {
             foreignKeyName: "pflueckaufgaben_brigade_id_fkey"
             columns: ["brigade_id"]
             isOneToOne: false
+            referencedRelation: "brigade_einsatzplan"
+            referencedColumns: ["brigade_id"]
+          },
+          {
+            foreignKeyName: "pflueckaufgaben_brigade_id_fkey"
+            columns: ["brigade_id"]
+            isOneToOne: false
             referencedRelation: "brigaden"
             referencedColumns: ["id"]
           },
@@ -1699,6 +1738,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "pfluecker_brigade_id_fkey"
+            columns: ["brigade_id"]
+            isOneToOne: false
+            referencedRelation: "brigade_einsatzplan"
+            referencedColumns: ["brigade_id"]
+          },
           {
             foreignKeyName: "pfluecker_brigade_id_fkey"
             columns: ["brigade_id"]
@@ -1863,6 +1909,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_profiles_brigade"
+            columns: ["brigade_id"]
+            isOneToOne: false
+            referencedRelation: "brigade_einsatzplan"
+            referencedColumns: ["brigade_id"]
+          },
           {
             foreignKeyName: "fk_profiles_brigade"
             columns: ["brigade_id"]
@@ -2190,6 +2243,13 @@ export type Database = {
             foreignKeyName: "rotationsplan_eintraege_brigade_id_fkey"
             columns: ["brigade_id"]
             isOneToOne: false
+            referencedRelation: "brigade_einsatzplan"
+            referencedColumns: ["brigade_id"]
+          },
+          {
+            foreignKeyName: "rotationsplan_eintraege_brigade_id_fkey"
+            columns: ["brigade_id"]
+            isOneToOne: false
             referencedRelation: "brigaden"
             referencedColumns: ["id"]
           },
@@ -2463,6 +2523,47 @@ export type Database = {
         }
         Relationships: []
       }
+      transport_temperatur_messungen: {
+        Row: {
+          created_at: string
+          ergebnis: Database["public"]["Enums"]["kuehlkette_ergebnis"]
+          gemessen_am: string
+          geraet_zeitpunkt: string | null
+          id: string
+          lieferung_id: string
+          server_eingang_zeitpunkt: string | null
+          temperatur_c: number
+        }
+        Insert: {
+          created_at?: string
+          ergebnis?: Database["public"]["Enums"]["kuehlkette_ergebnis"]
+          gemessen_am: string
+          geraet_zeitpunkt?: string | null
+          id?: string
+          lieferung_id: string
+          server_eingang_zeitpunkt?: string | null
+          temperatur_c: number
+        }
+        Update: {
+          created_at?: string
+          ergebnis?: Database["public"]["Enums"]["kuehlkette_ergebnis"]
+          gemessen_am?: string
+          geraet_zeitpunkt?: string | null
+          id?: string
+          lieferung_id?: string
+          server_eingang_zeitpunkt?: string | null
+          temperatur_c?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transport_temperatur_messungen_lieferung_id_fkey"
+            columns: ["lieferung_id"]
+            isOneToOne: false
+            referencedRelation: "lieferungen"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       verarbeitungszwecke: {
         Row: {
           aufbewahrung_monate: number
@@ -2670,6 +2771,25 @@ export type Database = {
       }
     }
     Views: {
+      brigade_einsatzplan: {
+        Row: {
+          bloecke_zugewiesen: number | null
+          brigade_id: string | null
+          brigade_name: string | null
+          geplant_fuer: string | null
+          staerke: number | null
+        }
+        Relationships: []
+      }
+      brigadenplanung_bedarf: {
+        Row: {
+          bloecke_gesamt: number | null
+          bloecke_offen: number | null
+          bloecke_zugewiesen: number | null
+          geplant_fuer: string | null
+        }
+        Relationships: []
+      }
       deckungsbeitrag_je_charge: {
         Row: {
           buchungen: number | null
@@ -2874,6 +2994,7 @@ export type Database = {
       integration_status: "verbunden" | "sandbox" | "geplant"
       kuehlkette_ergebnis: "ok" | "warnung" | "verstoss"
       ledger_typ: "erloes" | "kosten"
+      lieferung_status: "geplant" | "zugestellt" | "storniert"
       lohn_status: "entwurf" | "freigegeben" | "ausgezahlt"
       outbox_status: "pending" | "sent" | "acked" | "failed"
       pflueckaufgabe_status:
@@ -3077,6 +3198,7 @@ export const Constants = {
       integration_status: ["verbunden", "sandbox", "geplant"],
       kuehlkette_ergebnis: ["ok", "warnung", "verstoss"],
       ledger_typ: ["erloes", "kosten"],
+      lieferung_status: ["geplant", "zugestellt", "storniert"],
       lohn_status: ["entwurf", "freigegeben", "ausgezahlt"],
       outbox_status: ["pending", "sent", "acked", "failed"],
       pflueckaufgabe_status: [

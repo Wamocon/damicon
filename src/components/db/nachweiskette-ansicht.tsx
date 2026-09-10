@@ -59,7 +59,6 @@ export async function NachweiskettenKarte({
   const gerissen = schwerste === "verstoss";
   const warnung = schwerste === "warnung";
   const verstoesse = kette.behandlungen.filter((b) => !b.eingehalten);
-  const optionen = pfluecker.map((p) => ({ wert: p.id, text: p.name }));
 
   return (
     <Card>
@@ -234,10 +233,10 @@ export async function NachweiskettenKarte({
         )}
       </div>
 
-      {darfErfassen && optionen.length > 0 ? (
+      {darfErfassen && pfluecker.length > 0 ? (
         <div className="mt-4 space-y-3 border-t border-border pt-4">
-          <SteigeFormular aufgabeId={aufgabeId} pfluecker={optionen} />
-          <ArbeitszeitFormular aufgabeId={aufgabeId} pfluecker={optionen} />
+          <SteigeFormular aufgabeId={aufgabeId} pfluecker={pfluecker} />
+          <ArbeitszeitFormular aufgabeId={aufgabeId} pfluecker={pfluecker} />
           <KuehlmessungFormular aufgabeId={aufgabeId} />
         </div>
       ) : null}

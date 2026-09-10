@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "postinstall": "node scripts/copy-qr-scanner-worker.mjs",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
@@ -15,7 +16,8 @@
     "db:types": "supabase gen types typescript --linked > src/lib/database.types.ts",
     "db:test": "node --env-file=.env.local supabase/tests/integration.mjs",
     "db:test:fast": "node supabase/tests/pglite-fast.mjs",
-    "test:zukauf-parser": "node supabase/tests/zukauf-parser.mjs"
+    "test:zukauf-parser": "node supabase/tests/zukauf-parser.mjs",
+    "test:ausweis-scan": "node supabase/tests/ausweis-scan.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
@@ -26,6 +28,7 @@
     "lucide-react": "^0.469.0",
     "next": "16.2.1",
     "next-intl": "^4.14.2",
+    "qr-scanner": "^1.4.2",
     "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",

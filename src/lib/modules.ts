@@ -121,6 +121,10 @@ export const modules: ModuleDef[] = [
     icon: "truck",
     resource: "logistik",
     klassifikation: "anpassen",
+    // Anforderung 3.5 Teil 2: digitale Uebergabequittung ist angebunden
+    // (LogistikAnsicht). Bleibt bei "in-entwicklung", weil Tourenplanung
+    // nach Lieferfenstern mit ICS-Feed/Routenlogik (Anforderung 3.5 Teil 1)
+    // der deutlich groessere Rest des Modul-Versprechens ist.
     reifegrad: "in-entwicklung",
   },
   {
@@ -137,10 +141,14 @@ export const modules: ModuleDef[] = [
     // obwohl rbac.ts fuer diese Ressource bewusst nur "view" vergibt: Steigen
     // entstehen bereits ueber die Nachweiskette (pflueckaufgaben), dieses
     // Modul erzeugt daraus nur Erzeugnisse zum Anzeigen/Drucken, es hat also
-    // planmaessig keinen eigenen Schreibpfad. Was WEITERHIN offen bleibt: die
-    // Scan-Oberflaeche am Ausgabepunkt mit Server-Abgleich (Menge,
-    // Reihenblock, Uhrzeit, Person in einem Vorgang) - das war ausdruecklich
-    // nicht Teil dieses Ausbauschritts.
+    // planmaessig keinen eigenen Schreibpfad.
+    // Anforderung 2.7/2.8: die Scan-Oberflaeche am Ausgabepunkt ist jetzt
+    // ebenfalls angebunden - der Ausweis-QR kodiert seither den eigenen
+    // Ausweis-Code der Person statt einer fuer alle Ausweise identischen
+    // Navigations-URL, gescannt wird in SteigeFormular/ArbeitszeitFormular
+    // (nachweiskette-formulare.tsx, AusweisScanFeld), wo Menge/Reihenblock/
+    // Uhrzeit ueber die Aufgabe ohnehin schon feststehen - nur die Person kam
+    // bisher per Dropdown, nicht per Scan.
     reifegrad: "angebunden",
   },
   {
@@ -184,7 +192,11 @@ export const modules: ModuleDef[] = [
     icon: "users",
     resource: "personal",
     klassifikation: "anpassen",
-    reifegrad: "demo",
+    // Anforderung 2.11: Schicht-Konzept (brigade_einsatzplan),
+    // Bedarfsrechnung (brigadenplanung_bedarf) und Reserveliste sind
+    // angebunden. Wetterszenarien bleiben offen (Anforderung 2.13, bewusst
+    // zurueckgestellt auf 2027, siehe PersonalAnsicht).
+    reifegrad: "angebunden",
   },
   {
     key: "lohn",
@@ -253,7 +265,15 @@ export const modules: ModuleDef[] = [
     icon: "handshake",
     resource: "b2b_portal",
     klassifikation: "anpassen",
-    reifegrad: "in-entwicklung",
+    // Anforderung 5.2 Teil 2a: "Meine Lieferungen" mit echtem Lieferstatus.
+    // Anforderung 5.1, Teil 2 von 2: Preisliste anzeigen und Vorbestellung
+    // aufgeben (manuelle Buero-Bestaetigung statt automatischem
+    // Kontingent-Verbrauch) sind jetzt ebenfalls angebunden. Bewusst noch
+    // offen, beides eine fachliche statt technische Festlegung: automatischer
+    // Kontingent-Verbrauch (wie kontingente.reserviert_kg verbraucht/
+    // zurueckgesetzt wird), Preisstaffelung je Kundengruppe und
+    // Rechnungshistorie (5.2 Teil 2b, was ueberhaupt als "Rechnung" gilt).
+    reifegrad: "angebunden",
   },
   {
     // Zone "markt", nicht "buero": anders als Lohn/Compliance/Foerdermittel hat

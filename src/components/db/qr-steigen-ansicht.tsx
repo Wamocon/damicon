@@ -6,7 +6,6 @@ import { PrintButton } from "@/components/ui/print-button";
 import { Link } from "@/i18n/navigation";
 import { ladePfleuckerAusweise, ladeSteigenEtiketten } from "@/lib/data/qr-steigen";
 import { absoluteUrl, qrSvg } from "@/lib/qr";
-import { moduleHref, modules } from "@/lib/modules";
 
 // QR-Steigenkennung (WMCNL-1439): QR-Etiketten fuer Steigen und
 // Pfluecker-Ausweise, beide serverseitig als SVG erzeugt (src/lib/qr.ts).
@@ -14,7 +13,6 @@ import { moduleHref, modules } from "@/lib/modules";
 // src/lib/modules.ts. Das dritte Bauelement, das anmeldungsfreie
 // Aushang-Poster, liegt bewusst ausserhalb des Dashboards unter
 // /herkunft/aushang (siehe dortige page.tsx) und wird hier nur verlinkt.
-const pflueckaufgabenModul = modules.find((m) => m.key === "pflueckaufgaben");
 
 export async function QrSteigenAnsicht() {
   const [etikettenListe, ausweisListe, locale, t] = await Promise.all([
@@ -36,16 +34,23 @@ export async function QrSteigenAnsicht() {
     })),
   );
 
-  // Der Ausweis-QR verlinkt auf die interne, anmeldungspflichtige
-  // Pflueckaufgaben-Ansicht - ausdruecklich NICHT auf die oeffentliche
-  // Herkunftsseite. Alle Ausweise zeigen denselben Zielpfad: eine
-  // personenscharfe Vorauswahl ist in der Pflueckaufgaben-Ansicht heute nicht
-  // vorgesehen und wuerde hier eine Filterung vortaeuschen, die es nicht gibt.
-  const ausweisZiel = pflueckaufgabenModul
-    ? absoluteUrl(locale, moduleHref(pflueckaufgabenModul))
-    : absoluteUrl(locale, "/dashboard");
-  const ausweisSvg = await qrSvg(ausweisZiel, "ausweis");
-  const ausweise = ausweisListe.ausweise.map((p) => ({ ...p, svg: ausweisSvg }));
+  // Anforderung 2.7/2.8: der Ausweis-QR kodiert seit dieser Aenderung den
+  // eigenen Ausweis-Code der Person (z. B. "MAL-0417"), nicht mehr eine fuer
+  // alle Ausweise identische Navigations-URL - erst damit laesst sich am
+  // Sammelpunkt per Kamera-Scan ueberhaupt WER (statt nur "irgendein
+  // Ausweis") erkennen (src/components/db/ausweis-scan-feld.tsx,
+  // src/lib/domain/ausweis-scan.ts). Derselbe Code steht ohnehin schon als
+  // Klartext unter dem QR auf demselben Ausweis (siehe
+  // pfluecker.ausweis-Anzeige unten) - ein QR-Code laesst sich aber aus
+  // groesserer Distanz und automatisiert erfassen, waehrend der Klartext
+  // bewusstes Ablesen aus der Naehe braucht. Fuer den engen betrieblichen
+  // Rahmen (Sammelpunkt der eigenen Brigade, kein oeffentlicher Aushang wie
+  // beim Etikett unten) als vertretbar eingestuft, aber bewusst nicht
+  // stillschweigend entschieden - siehe PR-/Jira-Notiz zu 2.7/2.8
+  // (adversarischer Review-Fund).
+  const ausweise = await Promise.all(
+    ausweisListe.ausweise.map(async (p) => ({ ...p, svg: await qrSvg(p.ausweis, "ausweis") })),
+  );
 
   return (
     <div className="space-y-8 print:space-y-6">

@@ -13,6 +13,9 @@ import { QrSteigenAnsicht } from "@/components/db/qr-steigen-ansicht";
 import { EinarbeitungAnsicht } from "@/components/db/einarbeitung-ansicht";
 import { PflichtschulungenAnsicht } from "@/components/db/pflichtschulungen-ansicht";
 import { FoerdermittelAnsicht } from "@/components/db/foerdermittel-ansicht";
+import { LogistikAnsicht } from "@/components/db/logistik-ansicht";
+import { B2bPortalAnsicht } from "@/components/db/b2b-portal-ansicht";
+import { PersonalAnsicht } from "@/components/db/personal-ansicht";
 import type { ModuleDef } from "@/lib/modules";
 
 // Module, die in Meilenstein B an der Datenbank haengen. Sie werden als Server
@@ -74,6 +77,22 @@ export function serverModulAnsicht(
     // reinem Container-Datenmodell.
     case "foerdermittel":
       return <FoerdermittelAnsicht />;
+    // Anforderung 3.5 Teil 2 (Uebergabequittung) und 5.2 Teil 2a
+    // (Lieferstatus): logistik ist die interne Arbeitsansicht (Buero/
+    // Brigade erfassen), b2b_portal die kundenseitige Sicht auf dieselben
+    // Daten, ergaenzt um Preisliste/Vorbestellung (Anforderung 5.1, Teil 2
+    // von 2). Tourenplanung (3.5 Teil 1) und Rechnungshistorie/automatischer
+    // Kontingent-Verbrauch (5.1/5.2 Teil 2b) bleiben offen, siehe
+    // Modulkommentare.
+    case "logistik":
+      return <LogistikAnsicht />;
+    case "b2b_portal":
+      return <B2bPortalAnsicht />;
+    // Anforderung 2.11: Schicht-Konzept, Bedarfsrechnung und Reserveliste
+    // statt reiner Demo-Ansicht. Wetterszenarien bleiben offen
+    // (Anforderung 2.13, bewusst zurueckgestellt auf 2027).
+    case "personal":
+      return <PersonalAnsicht />;
     // Anforderung 2.12: bebilderte Kurzeinarbeitung, mehrsprachig ueber
     // einarbeitung_schritte, personalisierter Fortschritt fuer Picker.
     // Anforderung 4.10: jaehrliche Pflichtschulung mit Nachweis und

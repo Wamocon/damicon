@@ -3035,6 +3035,768 @@ if (leitung && brigade) {
       await admin.from("foerderdossiers").delete().eq("id", neuesDossier.id);
     }
   }
+
+  // --- Anforderung 3.5 (Uebergabequittung) und 5.2 Teil 2a (Lieferstatus) ---
+  {
+    const { data: almatyFreshLf, error: almatyFreshLfFehler } = await admin
+      .from("b2b_kunden")
+      .select("id")
+      .eq("name", "Almaty Fresh Market")
+      .single();
+    const { data: handelsketteLf } = await admin
+      .from("b2b_kunden")
+      .select("id")
+      .eq("name", "Handelskette A")
+      .single();
+    const { data: vorbestellungLf, error: vorbestellungLfFehler } = await admin
+      .from("vorbestellungen")
+      .select("id, status")
+      .eq("b2b_kunde_id", handelsketteLf?.id)
+      .eq("menge_kg", 320)
+      .single();
+
+    const aufbauFehlerLf = almatyFreshLfFehler || vorbestellungLfFehler;
+    check(
+      "Anforderung 3.5: Testaufbau (Almaty Fresh Market, Seed-Vorbestellung Handelskette A) gelingt",
+      !aufbauFehlerLf,
+      aufbauFehlerLf?.message ?? "",
+    );
+
+    if (!aufbauFehlerLf) {
+      // RLS-Haertung: die alte lieferungen_select_intern liess jede
+      // angemeldete Rolle alle Lieferungen aller Kunden lesen.
+      const { data: erzeugerSieht } = await (await anmelden("erzeuger@damicon.demo")).client
+        .from("lieferungen")
+        .select("id");
+      check(
+        "Anforderung 3.5: Erzeuger liest keine Lieferungen (RLS lieferungen_select_kunde_buero)",
+        (erzeugerSieht?.length ?? 0) === 0,
+        `sichtbare Zeilen: ${erzeugerSieht?.length}`,
+      );
+
+      const { error: brigadeInsertLfFehler } = await brigade
+        .from("lieferungen")
+        .insert({ b2b_kunde_id: handelsketteLf.id, menge_kg: 10 });
+      check(
+        "Anforderung 3.5: Brigade legt keine neue Lieferung an (RLS lieferungen_insert_buero, nur Buero plant)",
+        !!brigadeInsertLfFehler,
+        brigadeInsertLfFehler?.code ?? "kein Fehler - RLS-Luecke!",
+      );
+
+      // Betriebsleitung plant eine Lieferung fuer Handelskette A, verknuepft
+      // mit der Seed-Vorbestellung (Mengenabgleich in der Oberflaeche).
+      const { data: neueLieferung, error: neueLieferungFehler } = await leitung
+        .from("lieferungen")
+        .insert({
+          b2b_kunde_id: handelsketteLf.id,
+          vorbestellung_id: vorbestellungLf.id,
+          menge_kg: 320,
+        })
+        .select("id, status")
+        .single();
+      check(
+        "Anforderung 3.5: Betriebsleitung plant eine Lieferung, Status startet als 'geplant'",
+        !neueLieferungFehler && neueLieferung?.status === "geplant",
+        neueLieferungFehler?.message ?? JSON.stringify(neueLieferung),
+      );
+
+      // Adversarischer Fund: eine Lieferung darf nicht mit einer
+      // Vorbestellung einer FREMDEN Firma verknuepft "zugestellt" werden -
+      // sonst wuerde eine fremde Vorbestellung faelschlich als geliefert
+      // fortgeschrieben.
+      const { data: fremdbezugLieferung, error: fremdbezugAufbauFehler } = await admin
+        .from("lieferungen")
+        .insert({ b2b_kunde_id: almatyFreshLf.id, vorbestellung_id: vorbestellungLf.id, menge_kg: 1 })
+        .select("id")
+        .single();
+      if (!fremdbezugAufbauFehler && fremdbezugLieferung?.id) {
+        const { error: fremdbezugFehler } = await leitung
+          .from("lieferungen")
+          .update({ status: "zugestellt", empfaenger_name: "Sollte scheitern" })
+          .eq("id", fremdbezugLieferung.id);
+        check(
+          "Anforderung 3.5: eine Lieferung mit fremder Vorbestellung (anderer Kunde) wird beim Zustellen abgelehnt",
+          fremdbezugFehler?.code === "23514",
+          fremdbezugFehler?.code ?? "kein Fehler - die fremde Vorbestellung waere faelschlich fortgeschrieben worden!",
+        );
+        await admin.from("lieferungen").delete().eq("id", fremdbezugLieferung.id);
+      }
+
+      if (neueLieferung?.id) {
+        // Kunde einer anderen Firma sieht die geplante Lieferung nicht.
+        const { data: fremdeFirmaSieht } = await (await anmelden("kunde@damicon.demo")).client
+          .from("lieferungen")
+          .select("id")
+          .eq("id", neueLieferung.id);
+        check(
+          "Anforderung 3.5: eine andere B2B-Firma (Almaty Fresh Market) sieht die Lieferung von Handelskette A nicht",
+          (fremdeFirmaSieht?.length ?? 0) === 0,
+          `Zeilen: ${fremdeFirmaSieht?.length}`,
+        );
+
+        // Ohne Empfaenger-Namen wird der Uebergang auf "zugestellt" abgelehnt
+        // (Pflichtangabe im Trigger lieferung_uebergabe_pruefen).
+        const { error: ohneEmpfaengerFehler } = await brigade
+          .from("lieferungen")
+          .update({ status: "zugestellt" })
+          .eq("id", neueLieferung.id);
+        check(
+          "Anforderung 3.5: 'zugestellt' ohne Empfaenger-Namen wird abgelehnt (Pflichtangabe im Trigger)",
+          ohneEmpfaengerFehler?.code === "23514",
+          ohneEmpfaengerFehler?.code ?? "kein Fehler",
+        );
+
+        // Brigade erfasst die Uebergabe vollstaendig.
+        const { data: zugestellteLieferung, error: uebergabeFehler } = await brigade
+          .from("lieferungen")
+          .update({
+            status: "zugestellt",
+            empfaenger_name: "Integrationstest Empfaenger",
+            geraet_zeitpunkt: new Date().toISOString(),
+          })
+          .eq("id", neueLieferung.id)
+          .select("status, geliefert_am, empfaenger_name")
+          .single();
+        check(
+          "Anforderung 3.5: Brigade erfasst die Uebergabe (RLS lieferungen_update_feld), geliefert_am wird aus dem Geraete-Zeitstempel gesetzt",
+          !uebergabeFehler &&
+            zugestellteLieferung?.status === "zugestellt" &&
+            !!zugestellteLieferung?.geliefert_am,
+          uebergabeFehler?.message ?? JSON.stringify(zugestellteLieferung),
+        );
+
+        // Fortschreiben: die verknuepfte Vorbestellung wechselt automatisch
+        // auf "geliefert" (Mengenabgleich-Grundlage, gleiche Philosophie wie
+        // aufgabe_fortschreiben()/kuehlkette_bewerten()).
+        const { data: vorbestellungNachher } = await admin
+          .from("vorbestellungen")
+          .select("status")
+          .eq("id", vorbestellungLf.id)
+          .single();
+        check(
+          "Anforderung 3.5: die verknuepfte Vorbestellung wird automatisch auf 'geliefert' fortgeschrieben",
+          vorbestellungNachher?.status === "geliefert",
+          `status: ${vorbestellungNachher?.status}`,
+        );
+
+        // Unveraenderlichkeit: eine bereits zugestellte Lieferung laesst
+        // sich nicht mehr aendern, auch nicht durch das Buero.
+        const { error: erneuteAenderungFehler } = await leitung
+          .from("lieferungen")
+          .update({ empfaenger_name: "Nachtraeglich geaendert" })
+          .eq("id", neueLieferung.id);
+        check(
+          "Anforderung 3.5: eine bereits zugestellte Lieferung ist unveraenderlich",
+          erneuteAenderungFehler?.code === "23514",
+          erneuteAenderungFehler?.code ?? "kein Fehler",
+        );
+
+        await admin.from("lieferungen").delete().eq("id", neueLieferung.id);
+        await admin
+          .from("vorbestellungen")
+          .update({ status: "bestaetigt" })
+          .eq("id", vorbestellungLf.id);
+      }
+    }
+
+    // Storno: eine noch geplante Lieferung laesst sich stornieren, danach
+    // ebenfalls unveraenderlich.
+    const { data: stornoTest, error: stornoAufbauFehler } = await admin
+      .from("lieferungen")
+      .insert({ b2b_kunde_id: almatyFreshLf?.id, menge_kg: 5 })
+      .select("id")
+      .single();
+    if (!stornoAufbauFehler && stornoTest?.id) {
+      // Positive Gegenprobe zur Erzeuger-Sperre oben: die eigene Firma
+      // (Almaty Fresh Market, echter Demo-Login) sieht die eigene Lieferung.
+      const { data: eigeneFirmaSieht } = await (await anmelden("kunde@damicon.demo")).client
+        .from("lieferungen")
+        .select("id")
+        .eq("id", stornoTest.id);
+      check(
+        "Anforderung 3.5: die eigene Firma (Almaty Fresh Market) sieht die eigene Lieferung",
+        (eigeneFirmaSieht?.length ?? 0) === 1,
+        `Zeilen: ${eigeneFirmaSieht?.length}`,
+      );
+
+      const { data: storniert, error: stornoFehler } = await leitung
+        .from("lieferungen")
+        .update({ status: "storniert" })
+        .eq("id", stornoTest.id)
+        .select("status")
+        .single();
+      check(
+        "Anforderung 3.5: eine geplante Lieferung laesst sich stornieren",
+        !stornoFehler && storniert?.status === "storniert",
+        stornoFehler?.message ?? JSON.stringify(storniert),
+      );
+
+      const { error: nachStornoFehler } = await leitung
+        .from("lieferungen")
+        .update({ status: "geplant" })
+        .eq("id", stornoTest.id);
+      check(
+        "Anforderung 3.5: eine stornierte Lieferung ist ebenfalls unveraenderlich",
+        nachStornoFehler?.code === "23514",
+        nachStornoFehler?.code ?? "kein Fehler",
+      );
+
+      await admin.from("lieferungen").delete().eq("id", stornoTest.id);
+    }
+  }
+
+  // --- Anforderung 2.11: Brigadenplanung (Schicht, Reserveliste, Bedarf) ---
+  {
+    const { data: rvpBlock, error: rvpBlockFehler } = await admin
+      .from("reihenbloecke")
+      .select("id")
+      .neq("status", "wartezeitgesperrt")
+      .limit(1)
+      .single();
+    const { data: rvpBrigade, error: rvpBrigadeFehler } = await admin
+      .from("brigaden")
+      .select("id")
+      .limit(1)
+      .single();
+
+    const rvpTag = "2030-04-01";
+    const { data: rvpTermin, error: rvpTerminFehler } = await admin
+      .from("rotationsplan_eintraege")
+      .insert({ reihenblock_id: rvpBlock?.id, geplant_fuer: rvpTag, intervall_tage: 3 })
+      .select("id")
+      .single();
+
+    const rvpAufbauFehler = rvpBlockFehler || rvpBrigadeFehler || rvpTerminFehler;
+    check(
+      "Anforderung 2.11: Testaufbau (Reihenblock/Brigade/offener Rotationsplan-Termin) gelingt",
+      !rvpAufbauFehler,
+      rvpAufbauFehler?.message ?? "",
+    );
+
+    if (!rvpAufbauFehler) {
+      // Bedarfsrechnung: der neue, noch unzugewiesene Termin zaehlt als
+      // "offen" am geplanten Tag.
+      const { data: bedarfZeile } = await admin
+        .from("brigadenplanung_bedarf")
+        .select("bloecke_offen, bloecke_zugewiesen")
+        .eq("geplant_fuer", rvpTag)
+        .single();
+      check(
+        "Anforderung 2.11: Bedarfsrechnung zaehlt den neuen Termin als offen",
+        bedarfZeile?.bloecke_offen === 1,
+        JSON.stringify(bedarfZeile),
+      );
+
+      // Brigade (Feldrolle) darf keinen Termin verplanen, nur Buero. RLS
+      // blockt ein UPDATE ohne passende Zeile still (0 betroffene Zeilen,
+      // kein Fehler) - deshalb .select() plus Laengenpruefung statt nur
+      // error zu pruefen.
+      const { data: brigadeZuweisungUpdate, error: brigadeZuweisungFehler } = await brigade
+        .from("rotationsplan_eintraege")
+        .update({ brigade_id: rvpBrigade.id })
+        .eq("id", rvpTermin.id)
+        .select("id");
+      check(
+        "Anforderung 2.11: Brigade weist sich selbst keinen Termin zu (RLS rotationsplan_eintraege_update_planung)",
+        !!brigadeZuweisungFehler || (brigadeZuweisungUpdate?.length ?? 0) === 0,
+        brigadeZuweisungFehler?.code ?? `geaenderte Zeilen: ${brigadeZuweisungUpdate?.length}`,
+      );
+
+      // Betriebsleitung schliesst die Bedarfsluecke.
+      const { error: leitungZuweisungFehler } = await leitung
+        .from("rotationsplan_eintraege")
+        .update({ brigade_id: rvpBrigade.id })
+        .eq("id", rvpTermin.id);
+      check(
+        "Anforderung 2.11: Betriebsleitung weist dem offenen Termin eine Brigade zu",
+        !leitungZuweisungFehler,
+        leitungZuweisungFehler?.message ?? "",
+      );
+
+      // Adversarischer Fund: eine bereits zugewiesene Brigade laesst sich
+      // nicht mehr stillschweigend umbiegen (Trigger
+      // rotationsplan_brigade_aendern_pruefen, direkt gegen die Tabelle
+      // getestet, nicht nur ueber die Server Action).
+      const { data: zweiteBrigade } = await admin
+        .from("brigaden")
+        .select("id")
+        .neq("id", rvpBrigade.id)
+        .limit(1)
+        .maybeSingle();
+      if (zweiteBrigade?.id) {
+        const { error: umbiegenFehler } = await leitung
+          .from("rotationsplan_eintraege")
+          .update({ brigade_id: zweiteBrigade.id })
+          .eq("id", rvpTermin.id);
+        check(
+          "Anforderung 2.11: eine bereits zugewiesene Brigade laesst sich nicht auf eine andere umbiegen (Trigger)",
+          umbiegenFehler?.code === "23514",
+          umbiegenFehler?.code ?? "kein Fehler - stille Neuzuweisung moeglich!",
+        );
+      }
+
+      // Schicht-Konzept: der Einsatzplan zeigt die Brigade jetzt am
+      // geplanten Tag mit einem zugewiesenen Block.
+      const { data: einsatzZeile } = await admin
+        .from("brigade_einsatzplan")
+        .select("bloecke_zugewiesen")
+        .eq("geplant_fuer", rvpTag)
+        .eq("brigade_id", rvpBrigade.id)
+        .single();
+      check(
+        "Anforderung 2.11: der Schichtplan zeigt die zugewiesene Brigade am geplanten Tag",
+        einsatzZeile?.bloecke_zugewiesen === 1,
+        JSON.stringify(einsatzZeile),
+      );
+
+      // Bedarfsrechnung ist jetzt gedeckt (kein offener Block mehr an
+      // diesem Tag).
+      const { data: bedarfZeileNachher } = await admin
+        .from("brigadenplanung_bedarf")
+        .select("bloecke_offen, bloecke_zugewiesen")
+        .eq("geplant_fuer", rvpTag)
+        .single();
+      check(
+        "Anforderung 2.11: nach der Zuweisung ist der Bedarf gedeckt",
+        bedarfZeileNachher?.bloecke_offen === 0 && bedarfZeileNachher?.bloecke_zugewiesen === 1,
+        JSON.stringify(bedarfZeileNachher),
+      );
+
+      await admin.from("rotationsplan_eintraege").delete().eq("id", rvpTermin.id);
+    }
+
+    // Reserveliste: ein Pfluecker ohne Brigade gilt als Reserve, nach
+    // Zuweisung nicht mehr.
+    const { data: rvpPfluecker, error: rvpPflueckerFehler } = await admin
+      .from("pfluecker")
+      .insert({ name: "Integrationstest Reserve", ausweis: `IT-RES-${Date.now()}` })
+      .select("id, brigade_id")
+      .single();
+    check(
+      "Anforderung 2.11: ein neu angelegter Pfluecker ohne Brigade gilt als Reserve",
+      !rvpPflueckerFehler && rvpPfluecker?.brigade_id === null,
+      rvpPflueckerFehler?.message ?? JSON.stringify(rvpPfluecker),
+    );
+
+    if (!rvpPflueckerFehler && rvpPfluecker?.id && rvpBrigade?.id) {
+      const { data: brigadeReservenUpdate, error: brigadeReservenFehler } = await brigade
+        .from("pfluecker")
+        .update({ brigade_id: rvpBrigade.id })
+        .eq("id", rvpPfluecker.id)
+        .select("id");
+      check(
+        "Anforderung 2.11: Brigade weist einen Reserve-Pfluecker nicht selbst zu (RLS pfluecker_update_leitung)",
+        !!brigadeReservenFehler || (brigadeReservenUpdate?.length ?? 0) === 0,
+        brigadeReservenFehler?.code ?? `geaenderte Zeilen: ${brigadeReservenUpdate?.length}`,
+      );
+
+      const { data: nachZuweisung, error: leitungReservenFehler } = await leitung
+        .from("pfluecker")
+        .update({ brigade_id: rvpBrigade.id })
+        .eq("id", rvpPfluecker.id)
+        .select("brigade_id")
+        .single();
+      check(
+        "Anforderung 2.11: Betriebsleitung weist den Reserve-Pfluecker einer Brigade zu",
+        !leitungReservenFehler && nachZuweisung?.brigade_id === rvpBrigade.id,
+        leitungReservenFehler?.message ?? JSON.stringify(nachZuweisung),
+      );
+
+      await admin.from("pfluecker").delete().eq("id", rvpPfluecker.id);
+    }
+  }
+
+  // --- Anforderung 3.2: Temperaturlogger Transportphase, lueckenloser ---
+  // --- Kuehlkettennachweis bis zum Kunden -------------------------------
+  {
+    const { data: almatyFreshTp } = await admin
+      .from("b2b_kunden")
+      .select("id")
+      .eq("name", "Almaty Fresh Market")
+      .single();
+
+    // Almaty Fresh Market, nicht Handelskette A: nur fuer diese Firma gibt es
+    // mit kunde@damicon.demo (siehe seed-auth.mjs) einen echten Demo-Login,
+    // um die RLS-Sicht positiv gegenzupruefen.
+    const { data: lieferungTp, error: lieferungTpFehler } = await admin
+      .from("lieferungen")
+      .insert({ b2b_kunde_id: almatyFreshTp?.id, menge_kg: 42 })
+      .select("id")
+      .single();
+    check(
+      "Anforderung 3.2: Testaufbau (Lieferung fuer Almaty Fresh Market) gelingt",
+      !lieferungTpFehler,
+      lieferungTpFehler?.message ?? "",
+    );
+
+    if (!lieferungTpFehler && lieferungTp?.id) {
+      // RLS: ein Kunde (auch die richtige Firma) darf keine Transportmessung
+      // erfassen - Erfassen bleibt Buero/Brigade vorbehalten.
+      const { data: kundeInsertTp, error: kundeInsertTpFehler } = await (
+        await anmelden("kunde@damicon.demo")
+      ).client
+        .from("transport_temperatur_messungen")
+        .insert({ lieferung_id: lieferungTp.id, temperatur_c: 3 })
+        .select("id");
+      check(
+        "Anforderung 3.2: ein Kunde erfasst keine Transportmessung (RLS transport_messungen_insert_feld)",
+        kundeInsertTpFehler?.code === "42501",
+        kundeInsertTpFehler?.code ?? `eingefuegte Zeilen: ${kundeInsertTp?.length}`,
+      );
+
+      // Brigade erfasst drei Messungen - je eine je Ergebnisband (ok/warnung/
+      // verstoss), dieselbe reine Temperaturbandbreite wie kuehlkette_bewerten().
+      const { data: okMessung, error: okMessungFehler } = await brigade
+        .from("transport_temperatur_messungen")
+        .insert({
+          lieferung_id: lieferungTp.id,
+          temperatur_c: 3.5,
+          geraet_zeitpunkt: new Date().toISOString(),
+        })
+        .select("ergebnis, gemessen_am")
+        .single();
+      check(
+        "Anforderung 3.2: Brigade erfasst eine Transportmessung im Zielbereich - Ergebnis 'ok'",
+        !okMessungFehler && okMessung?.ergebnis === "ok" && !!okMessung?.gemessen_am,
+        okMessungFehler?.message ?? JSON.stringify(okMessung),
+      );
+
+      const { data: warnMessung, error: warnMessungFehler } = await brigade
+        .from("transport_temperatur_messungen")
+        .insert({ lieferung_id: lieferungTp.id, temperatur_c: 5.5 })
+        .select("ergebnis")
+        .single();
+      check(
+        "Anforderung 3.2: 5,5 Grad ergibt 'warnung' (Bandbreite > 4 bis 8 Grad)",
+        !warnMessungFehler && warnMessung?.ergebnis === "warnung",
+        warnMessungFehler?.message ?? JSON.stringify(warnMessung),
+      );
+
+      const { data: verstossMessung, error: verstossMessungFehler } = await brigade
+        .from("transport_temperatur_messungen")
+        .insert({ lieferung_id: lieferungTp.id, temperatur_c: 9 })
+        .select("ergebnis")
+        .single();
+      check(
+        "Anforderung 3.2: 9 Grad ergibt 'verstoss' (> 8 Grad, unabhaengig von der Zeit)",
+        !verstossMessungFehler && verstossMessung?.ergebnis === "verstoss",
+        verstossMessungFehler?.message ?? JSON.stringify(verstossMessung),
+      );
+
+      // Rueckverfolgung: die eigene Firma (Almaty Fresh Market, echter
+      // Demo-Login) sieht die Transportmessungen der eigenen Lieferung.
+      const { data: eigeneFirmaSiehtTp } = await (await anmelden("kunde@damicon.demo")).client
+        .from("transport_temperatur_messungen")
+        .select("id")
+        .eq("lieferung_id", lieferungTp.id);
+      check(
+        "Anforderung 3.2: die eigene Firma (Almaty Fresh Market) sieht die Transportmessungen der eigenen Lieferung",
+        (eigeneFirmaSiehtTp?.length ?? 0) === 3,
+        `Zeilen: ${eigeneFirmaSiehtTp?.length}`,
+      );
+
+      // Eine Anmeldung ohne jeden B2B-Bezug (Erzeuger) sieht dieselbe
+      // RLS-Luecke nicht, die lieferungen_select_intern frueher hatte
+      // (Migration 20260926000000) - dieselbe Gegenprobe wie bei
+      // Anforderung 3.5.
+      const { data: erzeugerSiehtTp } = await (await anmelden("erzeuger@damicon.demo")).client
+        .from("transport_temperatur_messungen")
+        .select("id")
+        .eq("lieferung_id", lieferungTp.id);
+      check(
+        "Anforderung 3.2: eine Anmeldung ohne B2B-Bezug (Erzeuger) sieht keine Transportmessungen (RLS transport_messungen_select_kunde_buero)",
+        (erzeugerSiehtTp?.length ?? 0) === 0,
+        `Zeilen: ${erzeugerSiehtTp?.length}`,
+      );
+
+      // Rueckverfolgung ueber die Charge: ladeReklamation() joint chargen ->
+      // lieferungen -> transport_temperatur_messungen - hier direkt am RPC-
+      // Datenpfad gegengeprueft, dass alle drei Messungen ueber die
+      // Lieferung erreichbar sind (Buero-Sicht).
+      const { data: alleMessungenTp } = await admin
+        .from("transport_temperatur_messungen")
+        .select("id")
+        .eq("lieferung_id", lieferungTp.id);
+      check(
+        "Anforderung 3.2: alle drei Transportmessungen sind ueber die Lieferung erreichbar (lueckenlos bis zum Kunden)",
+        (alleMessungenTp?.length ?? 0) === 3,
+        `Zeilen: ${alleMessungenTp?.length}`,
+      );
+
+      await admin.from("transport_temperatur_messungen").delete().eq("lieferung_id", lieferungTp.id);
+    }
+
+    // Auf einer stornierten Lieferung ist keine Transportmessung mehr
+    // moeglich (Trigger transport_kuehlkette_bewerten, "fand nicht statt").
+    const { data: storniertTp, error: storniertTpFehler } = await admin
+      .from("lieferungen")
+      .insert({ b2b_kunde_id: almatyFreshTp?.id, menge_kg: 3, status: "storniert" })
+      .select("id")
+      .single();
+    if (!storniertTpFehler && storniertTp?.id) {
+      const { error: aufStorniertFehler } = await brigade
+        .from("transport_temperatur_messungen")
+        .insert({ lieferung_id: storniertTp.id, temperatur_c: 3 });
+      check(
+        "Anforderung 3.2: eine Transportmessung auf einer stornierten Lieferung wird abgelehnt (Trigger, eigener SQLSTATE DA002)",
+        aufStorniertFehler?.code === "DA002",
+        aufStorniertFehler?.code ?? "kein Fehler - eine stornierte Lieferung haette trotzdem eine Messung erhalten!",
+      );
+      await admin.from("lieferungen").delete().eq("id", storniertTp.id);
+    }
+
+    if (lieferungTp?.id) {
+      await admin.from("lieferungen").delete().eq("id", lieferungTp.id);
+    }
+  }
+
+  // --- Anforderung 5.1 (Teil 2 von 2): B2B-Portal Preisliste/Vorbestellung ---
+  {
+    const { data: almatyFreshVb } = await admin
+      .from("b2b_kunden")
+      .select("id")
+      .eq("name", "Almaty Fresh Market")
+      .single();
+    const { data: handelsketteVb } = await admin
+      .from("b2b_kunden")
+      .select("id")
+      .eq("name", "Handelskette A")
+      .single();
+    const { data: sorteVb } = await admin.from("sorten").select("id").eq("name", "Polka").single();
+
+    // kontingente-RLS-Haertung: eigens angelegtes Test-Kontingent, damit die
+    // Sichtbarkeitspruefung nicht von zufaellig vorhandenen Seed-Zeilen
+    // abhaengt.
+    const { data: kontingentVb, error: kontingentVbFehler } = await admin
+      .from("kontingente")
+      .insert({ sorte_id: sorteVb?.id, b2b_kunde_id: almatyFreshVb?.id, menge_kg: 500, saison: "test-5.1" })
+      .select("id")
+      .single();
+    check(
+      "Anforderung 5.1: Testaufbau (Kontingent fuer Almaty Fresh Market) gelingt",
+      !kontingentVbFehler,
+      kontingentVbFehler?.message ?? "",
+    );
+
+    if (!kontingentVbFehler && kontingentVb?.id) {
+      const { data: eigeneFirmaSiehtKontingent } = await (await anmelden("kunde@damicon.demo")).client
+        .from("kontingente")
+        .select("id")
+        .eq("id", kontingentVb.id);
+      check(
+        "Anforderung 5.1: die eigene Firma (Almaty Fresh Market) sieht das eigene Kontingent (RLS kontingente_select_kunde_buero)",
+        (eigeneFirmaSiehtKontingent?.length ?? 0) === 1,
+        `Zeilen: ${eigeneFirmaSiehtKontingent?.length}`,
+      );
+
+      const { data: erzeugerSiehtKontingent } = await (await anmelden("erzeuger@damicon.demo")).client
+        .from("kontingente")
+        .select("id")
+        .eq("id", kontingentVb.id);
+      check(
+        "Anforderung 5.1: eine Anmeldung ohne B2B-Bezug (Erzeuger) sieht das Kontingent nicht mehr (vorher jede angemeldete Rolle)",
+        (erzeugerSiehtKontingent?.length ?? 0) === 0,
+        `Zeilen: ${erzeugerSiehtKontingent?.length}`,
+      );
+
+      await admin.from("kontingente").delete().eq("id", kontingentVb.id);
+    }
+
+    // Anlegen: ein Kunde bestellt nur fuer die eigene Firma vor.
+    const { data: kundeEigeneVb, error: kundeEigeneVbFehler } = await (
+      await anmelden("kunde@damicon.demo")
+    ).client
+      .from("vorbestellungen")
+      .insert({ b2b_kunde_id: almatyFreshVb?.id, sorte_id: sorteVb?.id, menge_kg: 40 })
+      .select("id, status")
+      .single();
+    check(
+      "Anforderung 5.1: ein Kunde legt eine Vorbestellung fuer die eigene Firma an, Status startet als 'angefragt'",
+      !kundeEigeneVbFehler && kundeEigeneVb?.status === "angefragt",
+      kundeEigeneVbFehler?.message ?? JSON.stringify(kundeEigeneVb),
+    );
+
+    // Adversarischer Fall: ein Kunde darf keine Vorbestellung im Namen einer
+    // FREMDEN Firma anlegen (RLS-WITH-CHECK muesste das verhindern, nicht
+    // nur die Server-Action-Logik, die b2b_kunde_id ohnehin aus der Session
+    // nimmt statt aus einem Formularfeld).
+    const { data: kundeFremdeVb, error: kundeFremdeVbFehler } = await (
+      await anmelden("kunde@damicon.demo")
+    ).client
+      .from("vorbestellungen")
+      .insert({ b2b_kunde_id: handelsketteVb?.id, sorte_id: sorteVb?.id, menge_kg: 40 })
+      .select("id");
+    check(
+      "Anforderung 5.1: ein Kunde legt keine Vorbestellung fuer eine fremde Firma an (RLS-WITH-CHECK)",
+      kundeFremdeVbFehler?.code === "42501",
+      kundeFremdeVbFehler?.code ?? `eingefuegte Zeilen: ${kundeFremdeVb?.length}`,
+    );
+
+    const { data: erzeugerVb, error: erzeugerVbFehler } = await (
+      await anmelden("erzeuger@damicon.demo")
+    ).client
+      .from("vorbestellungen")
+      .insert({ b2b_kunde_id: handelsketteVb?.id, sorte_id: sorteVb?.id, menge_kg: 10 })
+      .select("id");
+    check(
+      "Anforderung 5.1: eine Anmeldung ohne B2B-Bezug (Erzeuger) legt keine Vorbestellung an (RLS)",
+      erzeugerVbFehler?.code === "42501",
+      erzeugerVbFehler?.code ?? `eingefuegte Zeilen: ${erzeugerVb?.length}`,
+    );
+
+    // Fuer Almaty Fresh Market angelegt (nicht Handelskette A): nur fuer
+    // diese Firma gibt es mit kunde@damicon.demo einen echten Demo-Login, um
+    // im naechsten Schritt gezielt den Status-Gate (nicht nur den
+    // Firmen-Gate) der Kunden-Storno-Policy zu pruefen.
+    const { data: bueroVb, error: bueroVbFehler } = await leitung
+      .from("vorbestellungen")
+      .insert({ b2b_kunde_id: almatyFreshVb?.id, sorte_id: sorteVb?.id, menge_kg: 75 })
+      .select("id, status")
+      .single();
+    check(
+      "Anforderung 5.1: Betriebsleitung legt eine Vorbestellung fuer eine beliebige Firma an",
+      !bueroVbFehler && bueroVb?.status === "angefragt",
+      bueroVbFehler?.message ?? JSON.stringify(bueroVb),
+    );
+
+    if (!kundeEigeneVbFehler && kundeEigeneVb?.id) {
+      // Direkter Statuswechsel durch den Kunden selbst wird abgelehnt - nur
+      // storniert ist erlaubt (RLS-WITH-CHECK von
+      // vorbestellungen_update_kunde_storno).
+      const { data: kundeSetztBestaetigt, error: kundeSetztBestaetigtFehler } = await (
+        await anmelden("kunde@damicon.demo")
+      ).client
+        .from("vorbestellungen")
+        .update({ status: "bestaetigt" })
+        .eq("id", kundeEigeneVb.id)
+        .select("id");
+      check(
+        "Anforderung 5.1: ein Kunde kann die eigene Vorbestellung nicht direkt auf 'bestaetigt' setzen (RLS-WITH-CHECK)",
+        !!kundeSetztBestaetigtFehler || (kundeSetztBestaetigt?.length ?? 0) === 0,
+        kundeSetztBestaetigtFehler?.code ?? `geaenderte Zeilen: ${kundeSetztBestaetigt?.length}`,
+      );
+
+      // Adversarischer Fund: ein Storno-Aufruf, der gleichzeitig menge_kg
+      // mitaendert, muss trotz gueltiger status/b2b_kunde_id-Kombination am
+      // Trigger scheitern - die RLS-WITH-CHECK von
+      // vorbestellungen_update_kunde_storno allein prueft das nicht (kein
+      // Zugriff auf die alte Zeile).
+      const { data: kundeStornoMitMengenaenderung, error: kundeStornoMitMengenaenderungFehler } = await (
+        await anmelden("kunde@damicon.demo")
+      ).client
+        .from("vorbestellungen")
+        .update({ status: "storniert", menge_kg: 999999 })
+        .eq("id", kundeEigeneVb.id)
+        .select("id");
+      check(
+        "Anforderung 5.1: ein Storno mit gleichzeitiger Mengenaenderung wird abgelehnt (Trigger vorbestellung_kunde_aendern_pruefen)",
+        kundeStornoMitMengenaenderungFehler?.code === "23514",
+        kundeStornoMitMengenaenderungFehler?.code ?? `geaenderte Zeilen: ${kundeStornoMitMengenaenderung?.length}`,
+      );
+
+      // Eigene, noch offene Vorbestellung stornieren.
+      const { data: kundeStorniert, error: kundeStorniertFehler } = await (
+        await anmelden("kunde@damicon.demo")
+      ).client
+        .from("vorbestellungen")
+        .update({ status: "storniert" })
+        .eq("id", kundeEigeneVb.id)
+        .select("status")
+        .single();
+      check(
+        "Anforderung 5.1: ein Kunde storniert die eigene, noch nicht bestaetigte Vorbestellung",
+        !kundeStorniertFehler && kundeStorniert?.status === "storniert",
+        kundeStorniertFehler?.message ?? JSON.stringify(kundeStorniert),
+      );
+
+      // Nach dem Storno ist ein erneuter Storno-Versuch wirkungslos - die
+      // USING-Klausel verlangt weiterhin status = 'angefragt'.
+      const { data: erneutStorno, error: erneutStornoFehler } = await (
+        await anmelden("kunde@damicon.demo")
+      ).client
+        .from("vorbestellungen")
+        .update({ status: "storniert" })
+        .eq("id", kundeEigeneVb.id)
+        .select("id");
+      check(
+        "Anforderung 5.1: eine bereits stornierte Vorbestellung laesst sich kein zweites Mal stornieren (RLS USING)",
+        !!erneutStornoFehler || (erneutStorno?.length ?? 0) === 0,
+        erneutStornoFehler?.code ?? `geaenderte Zeilen: ${erneutStorno?.length}`,
+      );
+
+      await admin.from("vorbestellungen").delete().eq("id", kundeEigeneVb.id);
+    }
+
+    if (!bueroVbFehler && bueroVb?.id) {
+      // Buero bestaetigt eine Anfrage.
+      const { data: bueroBestaetigt, error: bueroBestaetigtFehler } = await leitung
+        .from("vorbestellungen")
+        .update({ status: "bestaetigt" })
+        .eq("id", bueroVb.id)
+        .select("status")
+        .single();
+      check(
+        "Anforderung 5.1: Betriebsleitung bestaetigt eine Vorbestellung",
+        !bueroBestaetigtFehler && bueroBestaetigt?.status === "bestaetigt",
+        bueroBestaetigtFehler?.message ?? JSON.stringify(bueroBestaetigt),
+      );
+
+      // Nach der Bestaetigung kann selbst die eigene Firma (Almaty Fresh
+      // Market, echter Demo-Login, tatsaechlicher Eigentuemer dieser Zeile)
+      // nicht mehr selbst stornieren - der Status-Gate greift, nicht nur
+      // der Firmen-Gate.
+      const { data: eigeneFirmaNachBestaetigung, error: eigeneFirmaNachBestaetigungFehler } = await (
+        await anmelden("kunde@damicon.demo")
+      ).client
+        .from("vorbestellungen")
+        .update({ status: "storniert" })
+        .eq("id", bueroVb.id)
+        .select("id");
+      check(
+        "Anforderung 5.1: nach der Bestaetigung kann selbst die eigene Firma nicht mehr selbst stornieren (RLS USING, Status-Gate)",
+        !!eigeneFirmaNachBestaetigungFehler || (eigeneFirmaNachBestaetigung?.length ?? 0) === 0,
+        eigeneFirmaNachBestaetigungFehler?.code ?? `geaenderte Zeilen: ${eigeneFirmaNachBestaetigung?.length}`,
+      );
+
+      await admin.from("vorbestellungen").delete().eq("id", bueroVb.id);
+    }
+
+    // Adversarischer Fund: eine bereits (z. B. automatisch durch
+    // lieferung_uebergabe_pruefen()) auf 'geliefert' fortgeschriebene
+    // Vorbestellung darf das Buero nicht mehr zurueckdrehen - die USING-
+    // Klausel von vorbestellungen_update_buero grenzt den Vorzustand jetzt
+    // auf 'angefragt'/'bestaetigt' ein.
+    const { data: geliefertVb, error: geliefertVbFehler } = await admin
+      .from("vorbestellungen")
+      .insert({ b2b_kunde_id: almatyFreshVb?.id, sorte_id: sorteVb?.id, menge_kg: 15, status: "geliefert" })
+      .select("id")
+      .single();
+    if (!geliefertVbFehler && geliefertVb?.id) {
+      const { data: bueroDrehtZurueck, error: bueroDrehtZurueckFehler } = await leitung
+        .from("vorbestellungen")
+        .update({ status: "bestaetigt" })
+        .eq("id", geliefertVb.id)
+        .select("id");
+      check(
+        "Anforderung 5.1: eine bereits 'geliefert' fortgeschriebene Vorbestellung laesst sich vom Buero nicht mehr zuruecksetzen (RLS USING)",
+        !!bueroDrehtZurueckFehler || (bueroDrehtZurueck?.length ?? 0) === 0,
+        bueroDrehtZurueckFehler?.code ?? `geaenderte Zeilen: ${bueroDrehtZurueck?.length}`,
+      );
+      await admin.from("vorbestellungen").delete().eq("id", geliefertVb.id);
+    }
+
+    // Preisliste: oeffentlich (authenticated) lesbar, keine Kundengruppen-
+    // Filterung (siehe Migrationskommentar 20260929000000).
+    const { data: preislisteSicht } = await (await anmelden("erzeuger@damicon.demo")).client
+      .from("preislisten")
+      .select("id, preislisten_positionen ( id )")
+      .eq("aktiv", true);
+    check(
+      "Anforderung 5.1: die aktive Preisliste ist fuer jede angemeldete Rolle lesbar",
+      (preislisteSicht?.length ?? 0) >= 1,
+      `Zeilen: ${preislisteSicht?.length}`,
+    );
+  }
 }
 
 console.log("");

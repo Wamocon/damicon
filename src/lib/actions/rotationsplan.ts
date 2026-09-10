@@ -149,3 +149,54 @@ export async function rotationsplanReaktivieren(
   aktualisiere(formData);
   return ok("ok.rotationsplanStatus", block?.code ?? data.geplant_fuer);
 }
+
+// Anforderung 2.11: Bedarfsrechnung schliessen - eine Brigade fuer einen
+// noch offenen (bislang keiner Brigade zugewiesenen) Termin eintragen. Die
+// eigentliche Schreibpruefung liegt in rotationsplan_eintraege_update_planung
+// (admin/betriebsleitung), dieselbe Policy wie bei den beiden Aktionen oben.
+export async function rotationsplanBrigadeZuweisen(
+  _status: AktionsStatus,
+  formData: FormData,
+): Promise<AktionsStatus> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("rotationsplan", "update");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+
+  const id = text(formData, "id");
+  const brigadeId = text(formData, "brigade_id");
+  if (!id || !brigadeId) return fehler("fehler.eingabe");
+
+  // Nur ein tatsaechlich noch offener Termin (geplant, ohne Brigade) laesst
+  // sich zuweisen - wie bei den beiden Aktionen oben grenzt die WHERE-
+  // Klausel selbst den Vorzustand ein, nicht nur ein nachtraeglicher Check.
+  // Das verhindert zugleich zwei Luecken (adversarischer Review-Fund): ein
+  // bereits erledigter/gesperrter/umgebogener Termin wuerde sonst
+  // stillschweigend erneut ueberschrieben (kein Statuswechsel-Trigger
+  // pruefte das), und bei zwei fast gleichzeitigen Zuweisungsversuchen
+  // haette die zweite die erste kommentarlos ueberschrieben (verlorenes
+  // Update) - jetzt trifft nur noch die zuerst ankommende Anfrage die
+  // Zeile, die zweite laeuft kontrolliert in "fehler.nichtGefunden".
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("rotationsplan_eintraege")
+    .update({ brigade_id: brigadeId })
+    .eq("id", id)
+    .eq("status", "geplant")
+    .is("brigade_id", null)
+    .select("id, geplant_fuer, reihenbloecke ( code )")
+    .maybeSingle();
+
+  if (error) return dbFehler(error);
+  if (!data) return fehler("fehler.nichtGefunden");
+
+  const block = Array.isArray(data.reihenbloecke) ? data.reihenbloecke[0] : data.reihenbloecke;
+  await protokolliere(profil, "rotationsplan.brigade_zugewiesen", data.id, {
+    geplant_fuer: data.geplant_fuer,
+    brigade_id: brigadeId,
+  });
+  aktualisiere(formData);
+  return ok("ok.rotationsplanStatus", block?.code ?? data.geplant_fuer);
+}

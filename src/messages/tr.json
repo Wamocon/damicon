@@ -817,14 +817,14 @@
     "logistik": {
       "title": "Toplama turları ve güzergâh planlama",
       "description": "Dolu kasalar güneşte kalmasın diye tarlada sabit toplama turları, ayrıca müşterilerin teslimat pencerelerine göre güzergâh planlama.",
-      "summary": "Tarlada toplama turları, araç bazında güzergâh listesi, sıcaklık ve miktar karşılaştırmalı teslim tutanağı.",
-      "todo": "Araç bazında güzergâh listesi, zaman pencereleri, sıcaklık ve miktar karşılaştırmalı teslim tutanağı."
+      "summary": "Miktar ve sıcaklık karşılaştırmalı (ön soğutma ve taşıma) teslim tutanağı, müşteriye kadar kesintisiz soğuk zincir kanıtı.",
+      "todo": "Araç bazında güzergâh listesi ve teslimat zaman pencereleri (Gereksinim 3.5 Bölüm 1) hâlâ eksik."
     },
     "qr_steigen": {
       "title": "QR kasa kimliği",
-      "description": "Kasalar için QR etiketleri (kamuya açık köken sayfasına bağlantı), biyometrisiz toplayıcı kimlik kartları (dahili görev görünümüne bağlantı) ve giriş gerektirmeyen bir duvar afişi - hepsi sunucu tarafında SVG olarak üretilir ve tarayıcının yazdırma işleviyle baskıya hazırdır.",
-      "summary": "QR kodu kimliği tarladan tezgaha taşır - sunucuda üretilir, ayrı bir etiket yazıcısı ve PDF aracı gerekmez.",
-      "todo": "Dağıtım noktasında sunucu doğrulamalı tarama arayüzü (miktar, sıra bloğu, saat ve kişi tek işlemde) bu aşamanın kapsamında değildir."
+      "description": "Kasalar için QR etiketleri (kamuya açık köken sayfasına bağlantı), kendi kimlik koduna sahip biyometrisiz toplayıcı kimlik kartları ve giriş gerektirmeyen bir duvar afişi - hepsi sunucu tarafında SVG olarak üretilir ve tarayıcının yazdırma işleviyle baskıya hazırdır.",
+      "summary": "QR kodu kimliği tarladan tezgaha taşır - kimlik kartı, toplama noktasında kamerayla taranarak kasa veya çalışma süresi o kişiye atanabilir, açılır listeden seçmek yerine.",
+      "todo": "Sadece toplayıcı kimliği değil, kasa etiketlerinin de kamerayla taranması bu aşamanın kapsamında değildir."
     },
     "esf": {
       "title": "Elektronik irsaliye (ЭСФ)",
@@ -889,8 +889,8 @@
     "b2b_portal": {
       "title": "B2B portalı",
       "description": "Sürekli müşteriler için portal: kotalar, önceden ön sipariş, müşteri grubuna göre fiyat listesi, teslimat durumu, fatura geçmişi ve şikâyet bildirimi.",
-      "summary": "Sürekli müşteriler için kotalar, ön sipariş, müşteri grubuna göre fiyat listesi, teslimat durumu ve fatura geçmişi.",
-      "todo": "Müşteri hesapları, kota ön siparişi, teslimat tarihi rezervasyonu, fatura ve ödeme durumu."
+      "summary": "Teslim tutanaklı teslimat durumu, fiyat listesi ve ofisin manuel onayladığı ön siparişler bağlandı.",
+      "todo": "Otomatik kota tüketimi, müşteri grubuna göre fiyat kademeleri ve fatura geçmişi hâlâ eksik (açık iş kararları)."
     },
     "preislisten": {
       "title": "Fiyat listeleri",
@@ -1003,7 +1003,15 @@
       "einarbeitungSchritt": "Adım işaretlendi.",
       "pflichtschulungTeilnahme": "Katılım kaydedildi.",
       "foerderdossier": "\"{wert}\" dosyası oluşturuldu.",
-      "foerderdossierStatus": "\"{wert}\" dosyası güncellendi."
+      "foerderdossierStatus": "\"{wert}\" dosyası güncellendi.",
+      "lieferung": "Teslimat oluşturuldu.",
+      "transportMessung": "Taşıma ölçümü kaydedildi.",
+      "uebergabe": "Teslim alma kaydedildi.",
+      "lieferungStorniert": "Teslimat iptal edildi.",
+      "pfleuckerBrigadeZugewiesen": "{wert} bir ekibe atandı.",
+      "vorbestellung": "Ön sipariş verildi.",
+      "vorbestellungStatus": "Ön sipariş güncellendi.",
+      "vorbestellungStorniert": "Ön sipariş iptal edildi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -1015,10 +1023,13 @@
       "angemeldet": "Oturum süresi doldu. Lütfen yeniden oturum açın.",
       "doppelt": "Bu tanımla bir kayıt zaten var.",
       "bezug": "Seçilen ilişkili kayıt bulunmuyor.",
+      "nichtGefunden": "Kayıt bulunamadı veya artık düzenlenemiyor.",
       "regel": "Mümkün değil: bekleme süresi henüz dolmadı.",
       "unbekannt": "İşlem başarısız. Ayrıntılar sunucu kaydında.",
       "keineCharge": "Bu göreve ait bir parti yok.",
       "kuehlkette": "Sınır aşıldı: ölçüme kadar {wert} dakika. Ürünün değeri düşürülmeli.",
+      "transportKuehlkette": "Sınır aşıldı: taşıma sıcaklığı 8 derecenin üzerindeydi. Ürünün değeri düşürülmeli.",
+      "lieferungStorniert": "Bu teslimat iptal edildi - artık bunun için taşıma ölçümü kaydedilemez.",
       "geraetezeit": "Cihaz saati sunucu saatinden çok farklı (gelecekte veya 24 saatten fazla fark). Lütfen cihazın saatini kontrol edip tekrar deneyin.",
       "keinKunde": "Hesabınıza bağlı bir B2B müşterisi yok. Lütfen yönetimle iletişime geçin.",
       "zukaufBefunde": "Girişte {wert} hata bulundu - hiçbir şey içe aktarılmadı. Aşağıdaki kontrol sonuçlarına bakın.",
@@ -1526,11 +1537,12 @@
     "internMarkierung": "dahili",
     "rueckverfolgung": {
       "titel": "Geriye izlenebilirlik",
-      "lead": "Yalnızca ofis görür: şikayetten toplayan kişiye, soğutma ölçümüne ve satın alınan üründe tedarikçi komşu işletmeye kadar.",
+      "lead": "Yalnızca ofis görür: şikayetten toplayan kişiye, ön soğutma ölçümüne, müşteriye kadar taşıma sıcaklığına ve satın alınan üründe tedarikçi komşu işletmeye kadar.",
       "pfluecker": "İlgili toplayıcılar",
       "kuehlkette": "Partinin soğutma ölçümleri",
       "minuten": "toplamadan {minuten} dakika sonra",
       "ohneZeitpunkt": "toplama zamanı bilinmiyor",
+      "transport": "Müşteriye kadar taşıma ölçümleri",
       "nachbarbetrieb": "Tedarikçi komşu işletme"
     },
     "col": {
@@ -1716,7 +1728,7 @@
     },
     "ausweise": {
       "title": "Toplayıcı kimlik kartları",
-      "lead": "Her toplayıcı için dahili görev görünümüne bağlanan bir QR kodu - bilerek fotoğrafsız ve biyometrisiz.",
+      "lead": "Her toplayıcı için kendi kimlik kodunu taşıyan bir QR kodu - toplama noktasında kamerayla taranarak kasa veya çalışma süresi o kişiye atanır. Bilerek fotoğrafsız ve biyometrisiz.",
       "empty": "Henüz kayıtlı toplayıcı yok.",
       "rolle": "Toplayıcı"
     },
@@ -1724,6 +1736,17 @@
       "hinweis": "İşletme için ayrıca genel kod girişine QR kodu ile giriş gerektirmeyen bir duvar afişi de bulunur.",
       "oeffnen": "Duvar afişini aç"
     }
+  },
+  "ausweisScan": {
+    "label": "Toplayıcı",
+    "ausweisScannen": "Kimlik tara",
+    "manuellStattdessen": "bunun yerine manuel seç",
+    "scanStattdessen": "bunun yerine tara",
+    "hinweis": "Kimlik QR kodunu kameraya doğru tutun.",
+    "keinTreffer": "Bu kod bilinen bir toplayıcıya ait değil. Lütfen doğru kimliği tarayın.",
+    "keineKamera": "Kameraya erişilemiyor. Lütfen manuel olarak seçin.",
+    "aendern": "Değiştir",
+    "bitteWaehlen": "lütfen seçin"
   },
   "einarbeitungAnsicht": {
     "titel": "Kısa oryantasyon",
@@ -1794,5 +1817,124 @@
         "knopf": "Güncelle"
       }
     }
+  },
+  "lieferungenAnsicht": {
+    "titel": "Teslimatlar",
+    "lead": "Dijital teslim alma belgesi: teslim anındaki miktar, alıcı ve partinin soğuk zinciri.",
+    "keineLieferungen": "Henüz teslimat oluşturulmadı.",
+    "note": "Teslimat zaman aralığına göre rota planlaması bu görünümün parçası değildir. Teslim edilmiş veya iptal edilmiş bir teslimat değiştirilemez, düzeltme yalnızca yeni bir teslimat olarak mümkündür.",
+    "menge": "Miktar",
+    "bestellt": "sipariş edilen",
+    "geliefertAm": "Teslim tarihi",
+    "empfaengerName": "Alıcı",
+    "empfaengerNamePlatzhalter": "Teslimatı alan kişinin adı",
+    "beleg": "Fotoğraf (isteğe bağlı)",
+    "uebergabeErfassen": "Teslim almayı kaydet",
+    "stornieren": "İptal et",
+    "temperatur": "Teslim anında soğuk zincir",
+    "transportTitel": "Taşıma ölçümleri",
+    "transportTemperatur": "Sıcaklık (°C)",
+    "transportMessungErfassen": "Ölçüm kaydet",
+    "status": {
+      "geplant": "planlandı",
+      "zugestellt": "teslim edildi",
+      "storniert": "iptal edildi"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Teslimat oluştur",
+        "lead": "Müşteri ve miktar zorunludur, parti isteğe bağlı olarak atanabilir.",
+        "kunde": "Müşteri",
+        "bitteWaehlen": "lütfen seçin",
+        "menge": "Miktar (kg)",
+        "charge": "Parti (isteğe bağlı)",
+        "keinBezug": "bağlantı yok",
+        "knopf": "Teslimat oluştur"
+      }
+    }
+  },
+  "b2bPortalAnsicht": {
+    "lieferungenTitel": "Teslimatlarım",
+    "lieferungenLead": "Teslimatlarınızın durumu ve teslim alma belgesi.",
+    "keineLieferungen": "Henüz teslimat kaydedilmedi.",
+    "preislisteTitel": "Fiyat listesi",
+    "preislisteLead": "Çeşit bazında güncel geçerli fiyat listesi, asgari miktar ile.",
+    "keinePreisliste": "Şu anda geçerli bir fiyat listesi yok.",
+    "gueltigAb": "geçerlilik başlangıcı",
+    "gueltigBis": "bitiş",
+    "vorbestellungenTitel": "Ön siparişler",
+    "vorbestellungenLead": "Ön sipariş bir taleptir - ofis bunu bilinen kota durumuna göre kontrol ederek onaylar veya reddeder.",
+    "keineVorbestellungen": "Henüz ön sipariş verilmedi.",
+    "bestaetigen": "Onayla",
+    "ablehnen": "Reddet",
+    "stornieren": "İptal et",
+    "col": {
+      "kunde": "Müşteri",
+      "sorte": "Çeşit",
+      "preis": "Fiyat",
+      "mindestmenge": "Asgari miktar",
+      "menge": "Miktar",
+      "liefertermin": "Teslimat tarihi",
+      "status": "Durum"
+    },
+    "status": {
+      "angefragt": "talep edildi",
+      "bestaetigt": "onaylandı",
+      "geliefert": "teslim edildi",
+      "storniert": "iptal edildi"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Ön sipariş ver",
+        "lead": "Çeşit ve miktar zorunludur, teslimat tarihi bir tercih tarihidir.",
+        "kunde": "Müşteri",
+        "bitteWaehlen": "lütfen seçin",
+        "sorte": "Çeşit",
+        "menge": "Miktar (kg)",
+        "liefertermin": "Teslimat tarihi (isteğe bağlı)",
+        "knopf": "Ön sipariş ver"
+      }
+    },
+    "note": "Bir ön sipariş kota tüketimini otomatik olarak kontrol etmez - bu, onay sırasında ofisin manuel kontrolü olarak kalır, otomatik kota takibi için de aynı açık iş kararı geçerlidir. Fiyat listesi tüm müşterilere aynı aktif fiyatları gösterir, müşteri grubuna göre kademelendirme bu görünümün parçası değildir."
+  },
+  "personalAnsicht": {
+    "brigadenTitel": "Ekipler",
+    "brigadenLead": "Tüm hasat dönemi için vardiyalı ve yedek listeli ekip planlaması.",
+    "vorarbeiter": "Ekip başı",
+    "personen": "kişi",
+    "bedarfTitel": "İhtiyaç hesabı",
+    "bedarfLead": "Her planlanan hasat günü için: toplam kaç sıra bloğu, bunlardan kaçı bir ekibe atandı ve kaçı hâlâ açık.",
+    "keinBedarf": "Önümüzdeki günler için planlanan hasat günü yok.",
+    "offeneTermineTitel": "Açık tarihler",
+    "offeneTermineLead": "Ekip atanmamış sıra blokları - doğrudan burada bir ekibe atayın.",
+    "einsatzplanTitel": "Vardiya planı",
+    "einsatzplanLead": "Hangi ekibin hangi günde kaç sıra bloğu için görevlendirildiği.",
+    "keinEinsatzplan": "Önümüzdeki günler için planlanmış vardiya yok.",
+    "pflueckerTitel": "Toplayıcı kütüğü",
+    "pflueckerLead": "Toplayıcı kartı, her sözleşme için ЕСУТД kaydı, kişi bazında verim ve kalite katsayısı içeren personel kaydı.",
+    "reservelisteTitel": "Yedek liste",
+    "reservelisteLead": "Şu anda bir ekibe atanmamış, çağrı üzerine hazır toplayıcılar.",
+    "keineReserve": "Şu anda ekibe atanmamış toplayıcı yok.",
+    "bitteWaehlen": "lütfen seçin",
+    "zuweisen": "Ata",
+    "brigade": "Ekip",
+    "col": {
+      "datum": "Tarih",
+      "bloeckeGesamt": "Toplam blok",
+      "bloeckeZugewiesen": "atanan",
+      "bloeckeOffen": "açık",
+      "brigade": "Ekip",
+      "staerke": "Kişi sayısı",
+      "name": "Ad",
+      "ausweis": "Kimlik",
+      "esutd": "ЕСУТД",
+      "leistung": "Verim",
+      "qfaktor": "K faktörü"
+    },
+    "esutd": {
+      "erfasst": "kaydedildi",
+      "offen": "açık"
+    },
+    "note": "İhtiyaç hesabı ve vardiya planı doğrudan rotasyon planından gelir (hangi sıra bloğunun hangi gün hasat edilmesi gerektiği). Hava durumu senaryoları bilerek bu görünümün parçası değildir - hava durumu bağlantısı (gereksinim 2.13) ertelendi."
   }
 }

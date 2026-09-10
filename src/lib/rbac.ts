@@ -220,6 +220,11 @@ export const rolePermissions: Record<Role, Permission[]> = {
     // Anforderung 4.10: Brigade ist Arbeitskraft im Feld wie picker, braucht
     // denselben Nachweis-Vorgang fuer die eigene Pflichtschulung.
     "schulungen:complete",
+    // Anforderung 3.5: Brigade erfasst die Uebergabequittung (bestehende
+    // Lieferung als zugestellt markieren), plant aber keine neue Lieferung -
+    // das bleibt Planungsaufgabe der Betriebsleitung (kein logistik:create).
+    ...view("logistik"),
+    "logistik:update",
   ],
   // Sieht nur die eigene Leistung (Anforderung 7.1): view("lohn") oeffnet
   // dasselbe Lohn-Modul wie betriebsleitung/buchhaltung, die RLS-Policies

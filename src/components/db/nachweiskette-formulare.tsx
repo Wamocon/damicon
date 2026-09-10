@@ -11,9 +11,10 @@ import {
   steigeKontrollieren,
 } from "@/lib/actions/nachweiskette";
 import { leer } from "@/lib/actions/status";
-import { AktionsMeldung, Auswahl, Feld } from "@/components/db/formular-kit";
+import { AktionsMeldung, Feld } from "@/components/db/formular-kit";
 import { useOfflineFormular } from "@/components/db/use-offline-formular";
-import type { AuswahlOption } from "@/components/db/standort-formulare";
+import { AusweisScanFeld } from "@/components/db/ausweis-scan-feld";
+import type { PflueckerOption } from "@/lib/domain/ausweis-scan";
 
 function PfadFeld() {
   const pfad = usePathname();
@@ -29,7 +30,7 @@ export function SteigeFormular({
   pfluecker,
 }: {
   aufgabeId: string;
-  pfluecker: AuswahlOption[];
+  pfluecker: PflueckerOption[];
 }) {
   // Anforderung 2.5, Phase 5: online unveraendertes Verhalten, offline
   // puffert der Hook den Eintrag in IndexedDB statt die Server Action
@@ -52,15 +53,13 @@ export function SteigeFormular({
       <input type="hidden" name="aufgabe_id" value={aufgabeId} />
       {/* Anforderung 2.6: Moment des Scans, nicht des Servereingangs. */}
       <input type="hidden" name="geraet_zeitpunkt" />
-      <div className="grid grid-cols-2 gap-2">
-        <Auswahl label={t("feld.pfluecker")} name="pfluecker_id" options={pfluecker} required />
-        <Feld
-          label={t("feld.gewicht")}
-          name="gewicht_kg"
-          inputMode="decimal"
-          defaultValue="2"
-        />
-      </div>
+      <AusweisScanFeld name="pfluecker_id" pfluecker={pfluecker} />
+      <Feld
+        label={t("feld.gewicht")}
+        name="gewicht_kg"
+        inputMode="decimal"
+        defaultValue="2"
+      />
       <button type="submit" className={knopf}>
         <Package className="h-4 w-4" />
         {t("steige.knopf")}
@@ -76,7 +75,7 @@ export function ArbeitszeitFormular({
   pfluecker,
 }: {
   aufgabeId: string;
-  pfluecker: AuswahlOption[];
+  pfluecker: PflueckerOption[];
 }) {
   // Anforderung 2.5: online unveraendertes Verhalten, offline puffert der
   // Hook den Eintrag in IndexedDB statt die Server Action aufzurufen.
@@ -96,10 +95,8 @@ export function ArbeitszeitFormular({
           sonst zeichnet eine verzoegert synchronisierte Meldung die
           Sync-Zeit statt der tatsaechlichen Arbeitszeit auf. */}
       <input type="hidden" name="geraet_zeitpunkt" />
-      <div className="grid grid-cols-2 gap-2">
-        <Auswahl label={t("feld.pfluecker")} name="pfluecker_id" options={pfluecker} required />
-        <Feld label={t("feld.minuten")} name="minuten" inputMode="decimal" required placeholder="90" />
-      </div>
+      <AusweisScanFeld name="pfluecker_id" pfluecker={pfluecker} />
+      <Feld label={t("feld.minuten")} name="minuten" inputMode="decimal" required placeholder="90" />
       <button type="submit" className={knopf}>
         <Timer className="h-4 w-4" />
         {t("arbeitszeit.knopf")}
