@@ -455,6 +455,32 @@ where not exists (
   where fle.kostentraeger_id = kt.id and fle.typ = v.typ::public.ledger_typ and fle.betrag_tenge = v.betrag::numeric
 );
 
+-- Anforderung 3.3: eine Buchung, die direkt an einer Charge haengt statt nur
+-- am (groeberen) Kostentraeger - reihenblock_id bleibt bewusst null (wie ein
+-- Zukauf-Fall), damit kein Konflikt mit der Unique-Constraint auf
+-- (reihenblock_id, sorte_id, erntetag) bestehender Chargen entstehen kann.
+-- Dasselbe Beispiel steht fuer die gehostete Instanz in Migration
+-- 20260923010000_deckungsbeitrag_je_charge_beispiel.sql - seed.sql wirkt nur
+-- bei einem lokalen db reset.
+insert into public.chargen (code, reihenblock_id, sorte_id, ernte_datum)
+select 'CH-BEISPIEL-JE-CHARGE', null, s.id, '2026-08-28'::date
+from public.sorten s
+order by s.name
+limit 1
+on conflict do nothing;
+
+insert into public.finance_ledger_entries (charge_id, typ, kategorie, betrag_tenge, buchungsdatum, beschreibung)
+select c.id, v.typ::public.ledger_typ, v.kategorie, v.betrag::numeric, '2026-08-28'::date, v.beschreibung
+from public.chargen c
+join (values
+  ('erloes','B2B-Verkauf','20000','Beispiel Anforderung 3.3 - direkt an der Charge gebucht'),
+  ('kosten','Ernte + Kuehlung','8000','Beispiel Anforderung 3.3 - direkt an der Charge gebucht')
+) as v(typ, kategorie, betrag, beschreibung) on true
+where c.code = 'CH-BEISPIEL-JE-CHARGE'
+and not exists (
+  select 1 from public.finance_ledger_entries fle where fle.charge_id = c.id
+);
+
 -- --- Lohn (WMCNL-1444) ---------------------------------------------------
 -- Lohnsatz: Grundlage der neuen Berechnungsfunktion public.lohn_periode_berechnen().
 -- Zahlen sind Annahmen (wie beim Vorbild aus dem Schwesterprojekt: "ein
@@ -505,6 +531,18 @@ where not exists (select 1 from public.dokumente d where d.name = v.name);
 insert into public.foerderdossiers (portal, antragsnummer, titel, status, eingereicht_am) values
   ('gosagro.kz', '2026-114', 'Foerderung Vorkuehlanlage', 'eingereicht', '2026-08-30')
   on conflict do nothing;
+
+-- Anforderung 4.12: Verknuepfung zum Nachweisdokument oben. Der gleichlautende
+-- Backfill in der Migration 20260925000000 wirkt nur auf der bereits laenger
+-- gepflegten gehosteten Instanz (dort standen beide Zeilen schon, bevor die
+-- Migration lief) - bei einem frischen Aufbau (Migrationen laufen VOR diesem
+-- Skript) traf er noch auf leere Tabellen. Hier, nachdem beide Zeilen oben
+-- garantiert existieren, greift er zuverlaessig.
+update public.dokumente d
+   set foerderdossier_id = f.id
+  from public.foerderdossiers f
+ where d.bezug = 'Antrag ' || f.antragsnummer
+   and d.foerderdossier_id is null;
 
 -- --- Compliance: Zweckverzeichnis, Einwilligungen, Vorfaelle --------------
 -- public.profiles ist an dieser Stelle noch leer (Auth-Nutzer entstehen erst

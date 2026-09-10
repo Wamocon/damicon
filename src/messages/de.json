@@ -612,8 +612,8 @@
     "foerdermittel": {
       "title": "Fördermitteldossier",
       "description": "Antragsvorlagen, Nachweislisten und Fristenmonitor für die kasachstanischen Förderportale - Antragsfähigkeit als Nebenprodukt der laufenden Buchführung.",
-      "summary": "Antragsvorlagen und Nachweis-Checklisten je Förderprogramm, Fristenmonitor und Bescheid-Ablage.",
-      "todo": "Antragsvorlagen, Nachweis-Checklisten, Fristenmonitor, Bescheid-Ablage."
+      "summary": "Fristenmonitor und Nachweisdokumente je Dossier sind angebunden (Anforderung 4.12). Antragsvorlagen und Nachweis-Checklisten je Förderprogramm bleiben offen.",
+      "todo": "Antragsvorlagen und Nachweis-Checklisten je Förderprogramm - fachliche Festlegung, welche Felder und Nachweise gosagro.kz/qoldau.kz je Programm tatsächlich verlangen."
     },
     "sortenkatalog": {
       "title": "Sorten- und Kontingentkatalog",
@@ -754,7 +754,11 @@
       "mfaEntfernt": "Zweiter Faktor entfernt.",
       "rotationsplanGeneriert": "{wert} neue Termine erzeugt.",
       "rotationsplanStatus": "Termin für {wert} aktualisiert.",
-      "steigeKontrolliert": "Steige {wert} kontrolliert."
+      "steigeKontrolliert": "Steige {wert} kontrolliert.",
+      "einarbeitungSchritt": "Schritt abgehakt.",
+      "pflichtschulungTeilnahme": "Teilnahme erfasst.",
+      "foerderdossier": "Dossier \"{wert}\" angelegt.",
+      "foerderdossierStatus": "Dossier \"{wert}\" aktualisiert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -988,14 +992,19 @@
     "kostentraegerTitel": "Kostenträger und Deckungsbeitrag",
     "kostentraegerLead": "Kostenstelle: Reihenblock. Kostenträger im engeren Sinn: Sorte und Kunde. Ein Kostenträger kann beides zugleich tragen.",
     "keineKostentraeger": "Noch kein Kostenträger angelegt.",
+    "chargeTitel": "Deckungsbeitrag je Charge",
+    "chargeLead": "Nur Chargen mit mindestens einer Buchung, die direkt an der Charge statt nur am Kostenträger erfasst wurde - feinere Auflösung, wenn ein Kostenträger mehrere Chargen desselben Tages bündelt.",
     "col": {
       "bezeichnung": "Bezeichnung",
+      "charge": "Charge",
       "reihenblock": "Reihenblock",
       "sorte": "Sorte",
       "kunde": "Kunde",
+      "menge": "Menge",
       "erloes": "Erlös",
       "kosten": "Kosten",
       "deckungsbeitrag": "Deckungsbeitrag",
+      "deckungsbeitragJeKg": "je Kilogramm",
       "datum": "Datum",
       "kostentraegerSpalte": "Kostenträger",
       "typ": "Typ",
@@ -1022,6 +1031,8 @@
         "titel": "Buchung erfassen",
         "lead": "Erlös oder Kosten für einen bestehenden Kostenträger. Die Buchung lässt sich danach nicht mehr ändern, nur durch eine Gegenbuchung korrigieren.",
         "kostentraeger": "Kostenträger",
+        "charge": "Charge (optional)",
+        "keinBezug": "kein Bezug",
         "bitteWaehlen": "bitte wählen",
         "typ": "Typ",
         "erloes": "Erlös",
@@ -1508,6 +1519,15 @@
     "verlaufTitel": "Verlauf",
     "verlaufLeer": "Noch kein Eintrag im Verlauf.",
     "internMarkierung": "intern",
+    "rueckverfolgung": {
+      "titel": "Rückverfolgung",
+      "lead": "Nur für das Büro sichtbar: von der Reklamation bis zur pflückenden Person, zur Kühlmessung und, bei Zukaufware, zum liefernden Nachbarbetrieb.",
+      "pfluecker": "Beteiligte Pflücker",
+      "kuehlkette": "Kühlmessungen der Charge",
+      "minuten": "{minuten} Minuten nach dem Pflücken",
+      "ohneZeitpunkt": "ohne bekannten Pflückzeitpunkt",
+      "nachbarbetrieb": "Liefernder Nachbarbetrieb"
+    },
     "col": {
       "code": "Kennung",
       "kunde": "Kunde",
@@ -1698,6 +1718,76 @@
     "aushang": {
       "hinweis": "Für den Betrieb gibt es zusätzlich ein anmeldungsfreies Aushang-Poster mit QR-Code auf die allgemeine Codeeingabe.",
       "oeffnen": "Aushang-Poster öffnen"
+    }
+  },
+  "einarbeitungAnsicht": {
+    "titel": "Kurzeinarbeitung",
+    "leadEigen": "Sechs Schritte für den Einstieg in die Erntesaison. Jeder Schritt lässt sich einzeln abhaken, der Fortschritt bleibt gespeichert.",
+    "leadReferenz": "Sechs Schritte der Kurzeinarbeitung für Pflückerinnen und Pflücker, als Referenz in der eigenen Sprache.",
+    "fortschritt": "{erledigt} von {gesamt} Schritten erledigt",
+    "abhaken": "Erledigt"
+  },
+  "pflichtschulungenAnsicht": {
+    "titel": "Pflichtschulungen",
+    "lead": "Jährlich aufzufrischende Schulungen mit Nachweis, zum Beispiel Arbeitssicherheit. Der Status „bald fällig“ und „überfällig“ richtet sich nach der Frist je Schulung.",
+    "keineZeilen": "Keine Pflichtschulung hinterlegt.",
+    "nachweisen": "Teilnahme nachweisen",
+    "col": {
+      "person": "Person",
+      "schulung": "Schulung",
+      "letzteTeilnahme": "Letzte Teilnahme",
+      "faelligAm": "Fällig am",
+      "status": "Status"
+    },
+    "status": {
+      "nie": "noch nie",
+      "ueberfaellig": "überfällig",
+      "bald_faellig": "bald fällig",
+      "aktuell": "aktuell"
+    }
+  },
+  "foerdermittelAnsicht": {
+    "titel": "Fördermitteldossiers",
+    "lead": "Status und Frist je Dossier, mit angehängten Nachweisdokumenten. Antragsvorlagen je Förderprogramm sind bewusst nicht Teil dieser Ansicht (fachliche Festlegung).",
+    "keineDossiers": "Noch kein Dossier angelegt.",
+    "note": "Fördermitteldossiers sind ein Nebenprodukt der laufenden Buchführung, kein eigenständiges Antragssystem. Nachweisdokumente werden über das Dokumente-Modul angehängt.",
+    "col": {
+      "titel": "Dossier",
+      "portal": "Portal",
+      "status": "Status",
+      "eingereichtAm": "Eingereicht am",
+      "fristAm": "Frist",
+      "dokumente": "Nachweisdokumente"
+    },
+    "status": {
+      "entwurf": "Entwurf",
+      "eingereicht": "eingereicht",
+      "in_pruefung": "in Prüfung",
+      "bewilligt": "bewilligt",
+      "abgelehnt": "abgelehnt",
+      "ausgezahlt": "ausgezahlt"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Dossier anlegen",
+        "lead": "Portal und Titel sind Pflicht, alles Weitere lässt sich später ergänzen.",
+        "portal": "Förderportal",
+        "dossierTitel": "Titel",
+        "antragsnummer": "Antragsnummer (optional)",
+        "fristAm": "Frist (optional)",
+        "knopf": "Dossier anlegen"
+      },
+      "aktualisieren": {
+        "titel": "Status und Frist aktualisieren",
+        "lead": "Status, Frist, Einreichungsdatum und Notizen eines bestehenden Dossiers pflegen.",
+        "dossier": "Dossier",
+        "bitteWaehlen": "bitte wählen",
+        "status": "Status",
+        "eingereichtAm": "Eingereicht am (optional)",
+        "fristAm": "Frist (optional)",
+        "notizen": "Notizen (optional)",
+        "knopf": "Aktualisieren"
+      }
     }
   }
 }

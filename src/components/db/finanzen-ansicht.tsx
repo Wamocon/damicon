@@ -7,6 +7,7 @@ import {
 } from "@/components/db/finanzen-formulare";
 import {
   ladeB2bKundeOptionen,
+  ladeChargeOptionen,
   ladeFinanzenUebersicht,
   ladeKostentraegerOptionen,
   ladeReihenblockOptionen,
@@ -30,19 +31,20 @@ export async function FinanzenAnsicht() {
   const live = uebersicht.quelle === "db";
   const darfBuchen = live && hasPermission(profil?.role, "finanzen", "create");
 
-  const [reihenbloecke, sorten, kunden, kostentraeger] = darfBuchen
+  const [reihenbloecke, sorten, kunden, kostentraeger, chargen] = darfBuchen
     ? await Promise.all([
         ladeReihenblockOptionen(),
         ladeSorteOptionen(),
         ladeB2bKundeOptionen(),
         ladeKostentraegerOptionen(),
+        ladeChargeOptionen(),
       ])
-    : [[], [], [], []];
+    : [[], [], [], [], []];
 
   const geld = (n: number) => `${format.number(Math.round(n))} ₸`;
   const datum = (iso: string) => format.dateTime(new Date(iso), { dateStyle: "medium" });
 
-  const { deckungsbeitrag, ledger } = uebersicht;
+  const { deckungsbeitrag, deckungsbeitragJeCharge, ledger } = uebersicht;
   const summeErloes = deckungsbeitrag.reduce((s, z) => s + z.erloesTenge, 0);
   const summeKosten = deckungsbeitrag.reduce((s, z) => s + z.kostenTenge, 0);
   const summeDb = summeErloes - summeKosten;
@@ -72,7 +74,9 @@ export async function FinanzenAnsicht() {
           kunden={kunden}
         />
       ) : null}
-      {darfBuchen ? <BuchungErfassenFormular kostentraeger={kostentraeger} /> : null}
+      {darfBuchen ? (
+        <BuchungErfassenFormular kostentraeger={kostentraeger} chargen={chargen} />
+      ) : null}
 
       <Section title={t("kostentraegerTitel")} description={t("kostentraegerLead")}>
         <DataTable
@@ -84,11 +88,12 @@ export async function FinanzenAnsicht() {
             t("col.erloes"),
             t("col.kosten"),
             t("col.deckungsbeitrag"),
+            t("col.deckungsbeitragJeKg"),
           ]}
         >
           {deckungsbeitrag.length === 0 ? (
             <tr>
-              <td colSpan={7} className="px-3 py-4 text-center text-xs text-muted-foreground">
+              <td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground">
                 {t("keineKostentraeger")}
               </td>
             </tr>
@@ -113,11 +118,73 @@ export async function FinanzenAnsicht() {
                     {geld(z.deckungsbeitragTenge)}
                   </StatusPill>
                 </td>
+                {/* Anforderung 4.3: Deckungsbeitrag je Kilogramm, null bei
+                    Zukauf-Kostentraegern ohne eigene Pflueckaufgabe. */}
+                <td className="px-3 py-2.5 text-muted-foreground">
+                  {z.deckungsbeitragJeKgTenge === null
+                    ? "–"
+                    : `${format.number(z.deckungsbeitragJeKgTenge, { maximumFractionDigits: 0 })} ₸/kg`}
+                </td>
               </tr>
             ))
           )}
         </DataTable>
       </Section>
+
+      {/* Anforderung 3.3: nur sichtbar, wenn mindestens eine Buchung direkt an
+          einer Charge statt nur am Kostentraeger haengt - sonst waere die
+          Tabelle fuer jeden Betrieb dauerhaft leer. */}
+      {deckungsbeitragJeCharge.length > 0 ? (
+        <Section
+          title={t("chargeTitel")}
+          description={t("chargeLead")}
+        >
+          <DataTable
+            head={[
+              t("col.charge"),
+              t("col.reihenblock"),
+              t("col.sorte"),
+              t("col.menge"),
+              t("col.erloes"),
+              t("col.kosten"),
+              t("col.deckungsbeitrag"),
+              t("col.deckungsbeitragJeKg"),
+            ]}
+          >
+            {deckungsbeitragJeCharge.map((z) => (
+              <tr key={z.chargeId}>
+                <td className="px-3 py-2.5">
+                  <p className="font-mono text-[11px] font-semibold text-foreground">
+                    {z.chargeCode}
+                  </p>
+                  {z.ernteDatum ? (
+                    <p className="text-[11px] text-muted-foreground">{datum(z.ernteDatum)}</p>
+                  ) : null}
+                </td>
+                <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground">
+                  {z.reihenblockCode ?? "–"}
+                </td>
+                <td className="px-3 py-2.5 text-muted-foreground">{z.sorteName ?? "–"}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">
+                  {z.mengeKg === null ? "–" : `${format.number(z.mengeKg)} kg`}
+                </td>
+                <td className="px-3 py-2.5 text-muted-foreground">{geld(z.erloesTenge)}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{geld(z.kostenTenge)}</td>
+                <td className="px-3 py-2.5">
+                  <StatusPill tone={z.deckungsbeitragTenge >= 0 ? "success" : "warning"}>
+                    {geld(z.deckungsbeitragTenge)}
+                  </StatusPill>
+                </td>
+                <td className="px-3 py-2.5 text-muted-foreground">
+                  {z.deckungsbeitragJeKgTenge === null
+                    ? "–"
+                    : `${format.number(z.deckungsbeitragJeKgTenge, { maximumFractionDigits: 0 })} ₸/kg`}
+                </td>
+              </tr>
+            ))}
+          </DataTable>
+        </Section>
+      ) : null}
 
       <Section title={t("ledgerTitel")} description={t("ledgerLead")}>
         <DataTable

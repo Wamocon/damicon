@@ -36,6 +36,23 @@ export interface ReklamationenListe {
   reklamationen: ReklamationListenEintrag[];
 }
 
+export interface RueckverfolgungPfluecker {
+  name: string;
+  ausweis: string;
+}
+
+export interface RueckverfolgungKuehlmessung {
+  id: string;
+  minutenSeitPfluecken: number | null;
+  ergebnis: string;
+  gemessenAm: string;
+}
+
+export interface RueckverfolgungNachbarbetrieb {
+  name: string;
+  ort: string | null;
+}
+
 export interface ReklamationDetail extends ReklamationListenEintrag {
   beschreibung: string | null;
   chargeId: string | null;
@@ -43,6 +60,15 @@ export interface ReklamationDetail extends ReklamationListenEintrag {
   erledigtAm: string | null;
   loesung: string | null;
   ereignisse: ReklamationEreignis[];
+  // Rueckverfolgung bis Person, Kuehlzeit und liefernder Nachbarbetrieb
+  // (Anforderung 3.4 und 6.3). Kommt fuer eine Kunden-Anmeldung immer leer
+  // zurueck - nicht durch diese Datei gefiltert, sondern durch RLS auf
+  // steigen/kuehlketten_messungen/zukauf_positionen (siehe Migration
+  // 20260922000000 sowie die bereits bestehende Buero-Beschraenkung auf
+  // zukauf_positionen).
+  pflueckerListe: RueckverfolgungPfluecker[];
+  kuehlmessungen: RueckverfolgungKuehlmessung[];
+  nachbarbetrieb: RueckverfolgungNachbarbetrieb | null;
 }
 
 function demoListe(quelle: ReklamationenListe["quelle"] = "demo"): ReklamationenListe {
@@ -128,6 +154,9 @@ function demoDetail(id: string): ReklamationDetail | null {
     erledigtAm: r.erledigtAm,
     loesung: r.loesung,
     ereignisse: r.ereignisse,
+    pflueckerListe: [],
+    kuehlmessungen: [],
+    nachbarbetrieb: null,
   };
 }
 
@@ -142,7 +171,13 @@ export async function ladeReklamation(id: string): Promise<ReklamationDetail | n
         `id, code, grund, betreff, beschreibung, status, betroffene_menge_kg, gemeldet_am,
          frist_am, erledigt_am, loesung, gutschrift_tenge, charge_id, gemeldet_von,
          b2b_kunden ( id, name ),
-         chargen ( code, reihenbloecke ( code ) ),
+         chargen (
+           code,
+           reihenbloecke ( code ),
+           steigen ( pfluecker_id, pfluecker ( name, ausweis ) ),
+           kuehlketten_messungen ( id, minuten_seit_pfluecken, ergebnis, gemessen_am ),
+           zukauf_positionen ( nachbarbetriebe ( name, ort ) )
+         ),
          profiles ( full_name )`,
       )
       .eq("id", id)
@@ -160,6 +195,40 @@ export async function ladeReklamation(id: string): Promise<ReklamationDetail | n
   const charge = einsAus(rekl.chargen);
   const block = charge ? einsAus(charge.reihenbloecke) : null;
   const gemeldetVonProfil = einsAus(rekl.profiles);
+
+  // Rueckverfolgung bis Person (ueber steigen, mehrere Pfluecker je Charge
+  // moeglich, ueber pfluecker_id dedupliziert) und Kuehlzeit (Anforderung
+  // 3.4). Kommt fuer eine Kunden-Anmeldung leer zurueck, weil RLS auf
+  // steigen/kuehlketten_messungen keine Zeilen liefert (siehe Interface-
+  // Kommentar), nicht weil hier gefiltert wuerde.
+  const pflueckerListe: RueckverfolgungPfluecker[] = [];
+  const gesehenePflueckerIds = new Set<string>();
+  for (const s of charge?.steigen ?? []) {
+    const p = einsAus(s.pfluecker);
+    if (p && s.pfluecker_id && !gesehenePflueckerIds.has(s.pfluecker_id)) {
+      gesehenePflueckerIds.add(s.pfluecker_id);
+      pflueckerListe.push({ name: p.name, ausweis: p.ausweis });
+    }
+  }
+
+  const kuehlmessungen: RueckverfolgungKuehlmessung[] = (charge?.kuehlketten_messungen ?? [])
+    .map((m) => ({
+      id: m.id,
+      minutenSeitPfluecken: m.minuten_seit_pfluecken,
+      ergebnis: m.ergebnis,
+      gemessenAm: m.gemessen_am,
+    }))
+    .sort((a, b) => a.gemessenAm.localeCompare(b.gemessenAm));
+
+  // Rueckverfolgung bis zum liefernden Nachbarbetrieb bei Zukaufware
+  // (Anforderung 6.3). Bei eigener Ernte bleibt reihenblock_id gesetzt und es
+  // gibt keine zukauf_positionen-Zeile zur Charge - nachbarbetrieb bleibt
+  // dann bewusst null statt einer Fehlinterpretation.
+  const zukaufPosition = einsAus(charge?.zukauf_positionen);
+  const nachbarbetriebRoh = zukaufPosition ? einsAus(zukaufPosition.nachbarbetriebe) : null;
+  const nachbarbetrieb: RueckverfolgungNachbarbetrieb | null = nachbarbetriebRoh
+    ? { name: nachbarbetriebRoh.name, ort: nachbarbetriebRoh.ort }
+    : null;
 
   const ereignisse: ReklamationEreignis[] = (ereignisRohdaten ?? []).map((e) => {
     const autor = einsAus(e.profiles);
@@ -193,6 +262,9 @@ export async function ladeReklamation(id: string): Promise<ReklamationDetail | n
     erledigtAm: rekl.erledigt_am,
     loesung: rekl.loesung,
     ereignisse,
+    pflueckerListe,
+    kuehlmessungen,
+    nachbarbetrieb,
   };
 }
 

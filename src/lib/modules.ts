@@ -229,7 +229,11 @@ export const modules: ModuleDef[] = [
     icon: "landmark",
     resource: "foerdermittel",
     klassifikation: "anpassen",
-    reifegrad: "in-entwicklung",
+    // Anforderung 4.12: Status/Frist eines Dossiers pflegen und angehaengte
+    // Nachweisdokumente sehen ist angebunden. Echte Antragsvorlagen fuer
+    // gosagro.kz/qoldau.kz bleiben bewusst offen (fachliche Festlegung, siehe
+    // FoerdermittelAnsicht).
+    reifegrad: "angebunden",
   },
 
   // --------------------------------------------------------------- Zone Markt
@@ -301,7 +305,10 @@ export const modules: ModuleDef[] = [
     icon: "graduation-cap",
     resource: "schulungen",
     klassifikation: "uebernehmen",
-    reifegrad: "demo",
+    // Anforderung 2.12: mehrsprachige Kurzeinarbeitung als bebilderte
+    // Checkliste (einarbeitung_schritte/-fortschritt) loest die bisherige
+    // Mock-Ansicht ab, siehe EinarbeitungAnsicht.
+    reifegrad: "angebunden",
   },
 ];
 
