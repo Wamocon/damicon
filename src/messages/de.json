@@ -601,8 +601,8 @@
     "b2b_portal": {
       "title": "B2B-Portal",
       "description": "Stammkundenportal mit Kontingenten, Vorbestellung mit Vorlauf, Preisliste nach Kundengruppe, Lieferstatus, Rechnungshistorie und Reklamationsmeldung.",
-      "summary": "Kontingente, Vorbestellung, Preisliste je Kundengruppe, Lieferstatus und Rechnungshistorie für Stammkunden.",
-      "todo": "Kundenkonten, Kontingent-Vorbestellung, Lieferterminbuchung, Rechnungs- und Zahlungsstatus."
+      "summary": "Lieferstatus mit Übergabequittung, Preisliste und Vorbestellung mit manueller Bestätigung durchs Büro sind angebunden.",
+      "todo": "Automatischer Kontingent-Verbrauch, Preisstaffelung je Kundengruppe und Rechnungshistorie fehlen noch (offene fachliche Festlegungen)."
     },
     "preislisten": {
       "title": "Preislisten",
@@ -740,7 +740,10 @@
       "transportMessung": "Transportmessung erfasst.",
       "uebergabe": "Übergabe erfasst.",
       "lieferungStorniert": "Lieferung storniert.",
-      "pfleuckerBrigadeZugewiesen": "{wert} einer Brigade zugewiesen."
+      "pfleuckerBrigadeZugewiesen": "{wert} einer Brigade zugewiesen.",
+      "vorbestellung": "Vorbestellung aufgegeben.",
+      "vorbestellungStatus": "Vorbestellung aktualisiert.",
+      "vorbestellungStorniert": "Vorbestellung storniert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1770,7 +1773,45 @@
     "lieferungenTitel": "Meine Lieferungen",
     "lieferungenLead": "Status und Übergabequittung Ihrer Lieferungen.",
     "keineLieferungen": "Noch keine Lieferung erfasst.",
-    "note": "Kontingente, Preisliste und Vorbestellung folgen in einem späteren Ausbauschritt."
+    "preislisteTitel": "Preisliste",
+    "preislisteLead": "Aktuell gültige Preisliste je Sorte, mit Mindestmenge.",
+    "keinePreisliste": "Derzeit keine gültige Preisliste hinterlegt.",
+    "gueltigAb": "gültig ab",
+    "gueltigBis": "bis",
+    "vorbestellungenTitel": "Vorbestellungen",
+    "vorbestellungenLead": "Eine Vorbestellung ist eine Anfrage - das Büro bestätigt oder lehnt sie ab, geprüft gegen den bekannten Kontingent-Stand.",
+    "keineVorbestellungen": "Noch keine Vorbestellung aufgegeben.",
+    "bestaetigen": "Bestätigen",
+    "ablehnen": "Ablehnen",
+    "stornieren": "Stornieren",
+    "col": {
+      "kunde": "Kunde",
+      "sorte": "Sorte",
+      "preis": "Preis",
+      "mindestmenge": "Mindestmenge",
+      "menge": "Menge",
+      "liefertermin": "Liefertermin",
+      "status": "Status"
+    },
+    "status": {
+      "angefragt": "angefragt",
+      "bestaetigt": "bestätigt",
+      "geliefert": "geliefert",
+      "storniert": "storniert"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Vorbestellung aufgeben",
+        "lead": "Sorte und Menge sind Pflicht, der Liefertermin ist ein Wunschtermin.",
+        "kunde": "Kunde",
+        "bitteWaehlen": "bitte wählen",
+        "sorte": "Sorte",
+        "menge": "Menge in kg",
+        "liefertermin": "Liefertermin (optional)",
+        "knopf": "Vorbestellung aufgeben"
+      }
+    },
+    "note": "Eine Vorbestellung prüft den Kontingent-Verbrauch nicht automatisch - das bleibt eine manuelle Prüfung des Büros bei der Bestätigung, dieselbe fachliche Festlegung, die für die automatische Kontingent-Fortschreibung noch offen ist. Die Preisliste zeigt allen Kunden dieselben aktiven Preise, eine Staffelung je Kundengruppe ist nicht Teil dieser Ansicht."
   },
   "personalAnsicht": {
     "brigadenTitel": "Brigaden",

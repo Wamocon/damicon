@@ -601,8 +601,8 @@
     "b2b_portal": {
       "title": "B2B portal",
       "description": "A regular-client portal with quotas, pre-order with lead time, a price list by client group, delivery status, invoice history and complaint reporting.",
-      "summary": "Quotas, pre-order, price list by client group, delivery status and invoice history for regular clients.",
-      "todo": "Client accounts, quota pre-order, delivery-date booking, invoice and payment status."
+      "summary": "Delivery status with handover receipt, price list, and pre-orders with manual office confirmation are connected.",
+      "todo": "Automatic quota consumption, price tiers by client group, and invoice history are still missing (open business decisions)."
     },
     "preislisten": {
       "title": "Price lists",
@@ -740,7 +740,10 @@
       "transportMessung": "Transport measurement recorded.",
       "uebergabe": "Handover recorded.",
       "lieferungStorniert": "Delivery cancelled.",
-      "pfleuckerBrigadeZugewiesen": "{wert} assigned to a crew."
+      "pfleuckerBrigadeZugewiesen": "{wert} assigned to a crew.",
+      "vorbestellung": "Order placed.",
+      "vorbestellungStatus": "Order updated.",
+      "vorbestellungStorniert": "Order cancelled."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1770,7 +1773,45 @@
     "lieferungenTitel": "My deliveries",
     "lieferungenLead": "Status and handover receipt of your deliveries.",
     "keineLieferungen": "No delivery recorded yet.",
-    "note": "Contingents, price list and pre-orders follow in a later expansion step."
+    "preislisteTitel": "Price list",
+    "preislisteLead": "Currently valid price list by variety, with minimum quantity.",
+    "keinePreisliste": "No valid price list on file at the moment.",
+    "gueltigAb": "valid from",
+    "gueltigBis": "until",
+    "vorbestellungenTitel": "Pre-orders",
+    "vorbestellungenLead": "A pre-order is a request - the office confirms or declines it, checked against the known quota status.",
+    "keineVorbestellungen": "No pre-order placed yet.",
+    "bestaetigen": "Confirm",
+    "ablehnen": "Decline",
+    "stornieren": "Cancel",
+    "col": {
+      "kunde": "Client",
+      "sorte": "Variety",
+      "preis": "Price",
+      "mindestmenge": "Minimum quantity",
+      "menge": "Quantity",
+      "liefertermin": "Delivery date",
+      "status": "Status"
+    },
+    "status": {
+      "angefragt": "requested",
+      "bestaetigt": "confirmed",
+      "geliefert": "delivered",
+      "storniert": "cancelled"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Place a pre-order",
+        "lead": "Variety and quantity are required, the delivery date is a preferred date.",
+        "kunde": "Client",
+        "bitteWaehlen": "please choose",
+        "sorte": "Variety",
+        "menge": "Quantity in kg",
+        "liefertermin": "Delivery date (optional)",
+        "knopf": "Place pre-order"
+      }
+    },
+    "note": "A pre-order does not automatically check quota consumption - that remains a manual check by the office at confirmation time, the same open business decision as for automatic quota tracking. The price list shows the same active prices to every client; tiering by client group is not part of this view."
   },
   "personalAnsicht": {
     "brigadenTitel": "Crews",

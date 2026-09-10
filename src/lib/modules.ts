@@ -261,14 +261,15 @@ export const modules: ModuleDef[] = [
     icon: "handshake",
     resource: "b2b_portal",
     klassifikation: "anpassen",
-    // Anforderung 5.2 Teil 2a: "Meine Lieferungen" mit echtem Lieferstatus
-    // ist angebunden (B2bPortalAnsicht). Bleibt bei "in-entwicklung", weil
-    // Kontingente/Preisliste/Vorbestellung (Anforderung 5.1) und
-    // Rechnungshistorie (5.2 Teil 2b) noch fehlen - fuer 5.1 fehlt zudem eine
-    // fachliche Festlegung (wie kontingente.reserviert_kg verbraucht/
-    // zurueckgesetzt wird), fuer die Rechnungshistorie, was ueberhaupt als
-    // "Rechnung" gilt.
-    reifegrad: "in-entwicklung",
+    // Anforderung 5.2 Teil 2a: "Meine Lieferungen" mit echtem Lieferstatus.
+    // Anforderung 5.1, Teil 2 von 2: Preisliste anzeigen und Vorbestellung
+    // aufgeben (manuelle Buero-Bestaetigung statt automatischem
+    // Kontingent-Verbrauch) sind jetzt ebenfalls angebunden. Bewusst noch
+    // offen, beides eine fachliche statt technische Festlegung: automatischer
+    // Kontingent-Verbrauch (wie kontingente.reserviert_kg verbraucht/
+    // zurueckgesetzt wird), Preisstaffelung je Kundengruppe und
+    // Rechnungshistorie (5.2 Teil 2b, was ueberhaupt als "Rechnung" gilt).
+    reifegrad: "angebunden",
   },
   {
     // Zone "markt", nicht "buero": anders als Lohn/Compliance/Foerdermittel hat

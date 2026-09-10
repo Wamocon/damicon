@@ -3549,6 +3549,254 @@ if (leitung && brigade) {
       await admin.from("lieferungen").delete().eq("id", lieferungTp.id);
     }
   }
+
+  // --- Anforderung 5.1 (Teil 2 von 2): B2B-Portal Preisliste/Vorbestellung ---
+  {
+    const { data: almatyFreshVb } = await admin
+      .from("b2b_kunden")
+      .select("id")
+      .eq("name", "Almaty Fresh Market")
+      .single();
+    const { data: handelsketteVb } = await admin
+      .from("b2b_kunden")
+      .select("id")
+      .eq("name", "Handelskette A")
+      .single();
+    const { data: sorteVb } = await admin.from("sorten").select("id").eq("name", "Polka").single();
+
+    // kontingente-RLS-Haertung: eigens angelegtes Test-Kontingent, damit die
+    // Sichtbarkeitspruefung nicht von zufaellig vorhandenen Seed-Zeilen
+    // abhaengt.
+    const { data: kontingentVb, error: kontingentVbFehler } = await admin
+      .from("kontingente")
+      .insert({ sorte_id: sorteVb?.id, b2b_kunde_id: almatyFreshVb?.id, menge_kg: 500, saison: "test-5.1" })
+      .select("id")
+      .single();
+    check(
+      "Anforderung 5.1: Testaufbau (Kontingent fuer Almaty Fresh Market) gelingt",
+      !kontingentVbFehler,
+      kontingentVbFehler?.message ?? "",
+    );
+
+    if (!kontingentVbFehler && kontingentVb?.id) {
+      const { data: eigeneFirmaSiehtKontingent } = await (await anmelden("kunde@damicon.demo")).client
+        .from("kontingente")
+        .select("id")
+        .eq("id", kontingentVb.id);
+      check(
+        "Anforderung 5.1: die eigene Firma (Almaty Fresh Market) sieht das eigene Kontingent (RLS kontingente_select_kunde_buero)",
+        (eigeneFirmaSiehtKontingent?.length ?? 0) === 1,
+        `Zeilen: ${eigeneFirmaSiehtKontingent?.length}`,
+      );
+
+      const { data: erzeugerSiehtKontingent } = await (await anmelden("erzeuger@damicon.demo")).client
+        .from("kontingente")
+        .select("id")
+        .eq("id", kontingentVb.id);
+      check(
+        "Anforderung 5.1: eine Anmeldung ohne B2B-Bezug (Erzeuger) sieht das Kontingent nicht mehr (vorher jede angemeldete Rolle)",
+        (erzeugerSiehtKontingent?.length ?? 0) === 0,
+        `Zeilen: ${erzeugerSiehtKontingent?.length}`,
+      );
+
+      await admin.from("kontingente").delete().eq("id", kontingentVb.id);
+    }
+
+    // Anlegen: ein Kunde bestellt nur fuer die eigene Firma vor.
+    const { data: kundeEigeneVb, error: kundeEigeneVbFehler } = await (
+      await anmelden("kunde@damicon.demo")
+    ).client
+      .from("vorbestellungen")
+      .insert({ b2b_kunde_id: almatyFreshVb?.id, sorte_id: sorteVb?.id, menge_kg: 40 })
+      .select("id, status")
+      .single();
+    check(
+      "Anforderung 5.1: ein Kunde legt eine Vorbestellung fuer die eigene Firma an, Status startet als 'angefragt'",
+      !kundeEigeneVbFehler && kundeEigeneVb?.status === "angefragt",
+      kundeEigeneVbFehler?.message ?? JSON.stringify(kundeEigeneVb),
+    );
+
+    // Adversarischer Fall: ein Kunde darf keine Vorbestellung im Namen einer
+    // FREMDEN Firma anlegen (RLS-WITH-CHECK muesste das verhindern, nicht
+    // nur die Server-Action-Logik, die b2b_kunde_id ohnehin aus der Session
+    // nimmt statt aus einem Formularfeld).
+    const { data: kundeFremdeVb, error: kundeFremdeVbFehler } = await (
+      await anmelden("kunde@damicon.demo")
+    ).client
+      .from("vorbestellungen")
+      .insert({ b2b_kunde_id: handelsketteVb?.id, sorte_id: sorteVb?.id, menge_kg: 40 })
+      .select("id");
+    check(
+      "Anforderung 5.1: ein Kunde legt keine Vorbestellung fuer eine fremde Firma an (RLS-WITH-CHECK)",
+      kundeFremdeVbFehler?.code === "42501",
+      kundeFremdeVbFehler?.code ?? `eingefuegte Zeilen: ${kundeFremdeVb?.length}`,
+    );
+
+    const { data: erzeugerVb, error: erzeugerVbFehler } = await (
+      await anmelden("erzeuger@damicon.demo")
+    ).client
+      .from("vorbestellungen")
+      .insert({ b2b_kunde_id: handelsketteVb?.id, sorte_id: sorteVb?.id, menge_kg: 10 })
+      .select("id");
+    check(
+      "Anforderung 5.1: eine Anmeldung ohne B2B-Bezug (Erzeuger) legt keine Vorbestellung an (RLS)",
+      erzeugerVbFehler?.code === "42501",
+      erzeugerVbFehler?.code ?? `eingefuegte Zeilen: ${erzeugerVb?.length}`,
+    );
+
+    // Fuer Almaty Fresh Market angelegt (nicht Handelskette A): nur fuer
+    // diese Firma gibt es mit kunde@damicon.demo einen echten Demo-Login, um
+    // im naechsten Schritt gezielt den Status-Gate (nicht nur den
+    // Firmen-Gate) der Kunden-Storno-Policy zu pruefen.
+    const { data: bueroVb, error: bueroVbFehler } = await leitung
+      .from("vorbestellungen")
+      .insert({ b2b_kunde_id: almatyFreshVb?.id, sorte_id: sorteVb?.id, menge_kg: 75 })
+      .select("id, status")
+      .single();
+    check(
+      "Anforderung 5.1: Betriebsleitung legt eine Vorbestellung fuer eine beliebige Firma an",
+      !bueroVbFehler && bueroVb?.status === "angefragt",
+      bueroVbFehler?.message ?? JSON.stringify(bueroVb),
+    );
+
+    if (!kundeEigeneVbFehler && kundeEigeneVb?.id) {
+      // Direkter Statuswechsel durch den Kunden selbst wird abgelehnt - nur
+      // storniert ist erlaubt (RLS-WITH-CHECK von
+      // vorbestellungen_update_kunde_storno).
+      const { data: kundeSetztBestaetigt, error: kundeSetztBestaetigtFehler } = await (
+        await anmelden("kunde@damicon.demo")
+      ).client
+        .from("vorbestellungen")
+        .update({ status: "bestaetigt" })
+        .eq("id", kundeEigeneVb.id)
+        .select("id");
+      check(
+        "Anforderung 5.1: ein Kunde kann die eigene Vorbestellung nicht direkt auf 'bestaetigt' setzen (RLS-WITH-CHECK)",
+        !!kundeSetztBestaetigtFehler || (kundeSetztBestaetigt?.length ?? 0) === 0,
+        kundeSetztBestaetigtFehler?.code ?? `geaenderte Zeilen: ${kundeSetztBestaetigt?.length}`,
+      );
+
+      // Adversarischer Fund: ein Storno-Aufruf, der gleichzeitig menge_kg
+      // mitaendert, muss trotz gueltiger status/b2b_kunde_id-Kombination am
+      // Trigger scheitern - die RLS-WITH-CHECK von
+      // vorbestellungen_update_kunde_storno allein prueft das nicht (kein
+      // Zugriff auf die alte Zeile).
+      const { data: kundeStornoMitMengenaenderung, error: kundeStornoMitMengenaenderungFehler } = await (
+        await anmelden("kunde@damicon.demo")
+      ).client
+        .from("vorbestellungen")
+        .update({ status: "storniert", menge_kg: 999999 })
+        .eq("id", kundeEigeneVb.id)
+        .select("id");
+      check(
+        "Anforderung 5.1: ein Storno mit gleichzeitiger Mengenaenderung wird abgelehnt (Trigger vorbestellung_kunde_aendern_pruefen)",
+        kundeStornoMitMengenaenderungFehler?.code === "23514",
+        kundeStornoMitMengenaenderungFehler?.code ?? `geaenderte Zeilen: ${kundeStornoMitMengenaenderung?.length}`,
+      );
+
+      // Eigene, noch offene Vorbestellung stornieren.
+      const { data: kundeStorniert, error: kundeStorniertFehler } = await (
+        await anmelden("kunde@damicon.demo")
+      ).client
+        .from("vorbestellungen")
+        .update({ status: "storniert" })
+        .eq("id", kundeEigeneVb.id)
+        .select("status")
+        .single();
+      check(
+        "Anforderung 5.1: ein Kunde storniert die eigene, noch nicht bestaetigte Vorbestellung",
+        !kundeStorniertFehler && kundeStorniert?.status === "storniert",
+        kundeStorniertFehler?.message ?? JSON.stringify(kundeStorniert),
+      );
+
+      // Nach dem Storno ist ein erneuter Storno-Versuch wirkungslos - die
+      // USING-Klausel verlangt weiterhin status = 'angefragt'.
+      const { data: erneutStorno, error: erneutStornoFehler } = await (
+        await anmelden("kunde@damicon.demo")
+      ).client
+        .from("vorbestellungen")
+        .update({ status: "storniert" })
+        .eq("id", kundeEigeneVb.id)
+        .select("id");
+      check(
+        "Anforderung 5.1: eine bereits stornierte Vorbestellung laesst sich kein zweites Mal stornieren (RLS USING)",
+        !!erneutStornoFehler || (erneutStorno?.length ?? 0) === 0,
+        erneutStornoFehler?.code ?? `geaenderte Zeilen: ${erneutStorno?.length}`,
+      );
+
+      await admin.from("vorbestellungen").delete().eq("id", kundeEigeneVb.id);
+    }
+
+    if (!bueroVbFehler && bueroVb?.id) {
+      // Buero bestaetigt eine Anfrage.
+      const { data: bueroBestaetigt, error: bueroBestaetigtFehler } = await leitung
+        .from("vorbestellungen")
+        .update({ status: "bestaetigt" })
+        .eq("id", bueroVb.id)
+        .select("status")
+        .single();
+      check(
+        "Anforderung 5.1: Betriebsleitung bestaetigt eine Vorbestellung",
+        !bueroBestaetigtFehler && bueroBestaetigt?.status === "bestaetigt",
+        bueroBestaetigtFehler?.message ?? JSON.stringify(bueroBestaetigt),
+      );
+
+      // Nach der Bestaetigung kann selbst die eigene Firma (Almaty Fresh
+      // Market, echter Demo-Login, tatsaechlicher Eigentuemer dieser Zeile)
+      // nicht mehr selbst stornieren - der Status-Gate greift, nicht nur
+      // der Firmen-Gate.
+      const { data: eigeneFirmaNachBestaetigung, error: eigeneFirmaNachBestaetigungFehler } = await (
+        await anmelden("kunde@damicon.demo")
+      ).client
+        .from("vorbestellungen")
+        .update({ status: "storniert" })
+        .eq("id", bueroVb.id)
+        .select("id");
+      check(
+        "Anforderung 5.1: nach der Bestaetigung kann selbst die eigene Firma nicht mehr selbst stornieren (RLS USING, Status-Gate)",
+        !!eigeneFirmaNachBestaetigungFehler || (eigeneFirmaNachBestaetigung?.length ?? 0) === 0,
+        eigeneFirmaNachBestaetigungFehler?.code ?? `geaenderte Zeilen: ${eigeneFirmaNachBestaetigung?.length}`,
+      );
+
+      await admin.from("vorbestellungen").delete().eq("id", bueroVb.id);
+    }
+
+    // Adversarischer Fund: eine bereits (z. B. automatisch durch
+    // lieferung_uebergabe_pruefen()) auf 'geliefert' fortgeschriebene
+    // Vorbestellung darf das Buero nicht mehr zurueckdrehen - die USING-
+    // Klausel von vorbestellungen_update_buero grenzt den Vorzustand jetzt
+    // auf 'angefragt'/'bestaetigt' ein.
+    const { data: geliefertVb, error: geliefertVbFehler } = await admin
+      .from("vorbestellungen")
+      .insert({ b2b_kunde_id: almatyFreshVb?.id, sorte_id: sorteVb?.id, menge_kg: 15, status: "geliefert" })
+      .select("id")
+      .single();
+    if (!geliefertVbFehler && geliefertVb?.id) {
+      const { data: bueroDrehtZurueck, error: bueroDrehtZurueckFehler } = await leitung
+        .from("vorbestellungen")
+        .update({ status: "bestaetigt" })
+        .eq("id", geliefertVb.id)
+        .select("id");
+      check(
+        "Anforderung 5.1: eine bereits 'geliefert' fortgeschriebene Vorbestellung laesst sich vom Buero nicht mehr zuruecksetzen (RLS USING)",
+        !!bueroDrehtZurueckFehler || (bueroDrehtZurueck?.length ?? 0) === 0,
+        bueroDrehtZurueckFehler?.code ?? `geaenderte Zeilen: ${bueroDrehtZurueck?.length}`,
+      );
+      await admin.from("vorbestellungen").delete().eq("id", geliefertVb.id);
+    }
+
+    // Preisliste: oeffentlich (authenticated) lesbar, keine Kundengruppen-
+    // Filterung (siehe Migrationskommentar 20260929000000).
+    const { data: preislisteSicht } = await (await anmelden("erzeuger@damicon.demo")).client
+      .from("preislisten")
+      .select("id, preislisten_positionen ( id )")
+      .eq("aktiv", true);
+    check(
+      "Anforderung 5.1: die aktive Preisliste ist fuer jede angemeldete Rolle lesbar",
+      (preislisteSicht?.length ?? 0) >= 1,
+      `Zeilen: ${preislisteSicht?.length}`,
+    );
+  }
 }
 
 console.log("");
