@@ -3035,6 +3035,215 @@ if (leitung && brigade) {
       await admin.from("foerderdossiers").delete().eq("id", neuesDossier.id);
     }
   }
+
+  // --- Anforderung 3.5 (Uebergabequittung) und 5.2 Teil 2a (Lieferstatus) ---
+  {
+    const { data: almatyFreshLf, error: almatyFreshLfFehler } = await admin
+      .from("b2b_kunden")
+      .select("id")
+      .eq("name", "Almaty Fresh Market")
+      .single();
+    const { data: handelsketteLf } = await admin
+      .from("b2b_kunden")
+      .select("id")
+      .eq("name", "Handelskette A")
+      .single();
+    const { data: vorbestellungLf, error: vorbestellungLfFehler } = await admin
+      .from("vorbestellungen")
+      .select("id, status")
+      .eq("b2b_kunde_id", handelsketteLf?.id)
+      .eq("menge_kg", 320)
+      .single();
+
+    const aufbauFehlerLf = almatyFreshLfFehler || vorbestellungLfFehler;
+    check(
+      "Anforderung 3.5: Testaufbau (Almaty Fresh Market, Seed-Vorbestellung Handelskette A) gelingt",
+      !aufbauFehlerLf,
+      aufbauFehlerLf?.message ?? "",
+    );
+
+    if (!aufbauFehlerLf) {
+      // RLS-Haertung: die alte lieferungen_select_intern liess jede
+      // angemeldete Rolle alle Lieferungen aller Kunden lesen.
+      const { data: erzeugerSieht } = await (await anmelden("erzeuger@damicon.demo")).client
+        .from("lieferungen")
+        .select("id");
+      check(
+        "Anforderung 3.5: Erzeuger liest keine Lieferungen (RLS lieferungen_select_kunde_buero)",
+        (erzeugerSieht?.length ?? 0) === 0,
+        `sichtbare Zeilen: ${erzeugerSieht?.length}`,
+      );
+
+      const { error: brigadeInsertLfFehler } = await brigade
+        .from("lieferungen")
+        .insert({ b2b_kunde_id: handelsketteLf.id, menge_kg: 10 });
+      check(
+        "Anforderung 3.5: Brigade legt keine neue Lieferung an (RLS lieferungen_insert_buero, nur Buero plant)",
+        !!brigadeInsertLfFehler,
+        brigadeInsertLfFehler?.code ?? "kein Fehler - RLS-Luecke!",
+      );
+
+      // Betriebsleitung plant eine Lieferung fuer Handelskette A, verknuepft
+      // mit der Seed-Vorbestellung (Mengenabgleich in der Oberflaeche).
+      const { data: neueLieferung, error: neueLieferungFehler } = await leitung
+        .from("lieferungen")
+        .insert({
+          b2b_kunde_id: handelsketteLf.id,
+          vorbestellung_id: vorbestellungLf.id,
+          menge_kg: 320,
+        })
+        .select("id, status")
+        .single();
+      check(
+        "Anforderung 3.5: Betriebsleitung plant eine Lieferung, Status startet als 'geplant'",
+        !neueLieferungFehler && neueLieferung?.status === "geplant",
+        neueLieferungFehler?.message ?? JSON.stringify(neueLieferung),
+      );
+
+      // Adversarischer Fund: eine Lieferung darf nicht mit einer
+      // Vorbestellung einer FREMDEN Firma verknuepft "zugestellt" werden -
+      // sonst wuerde eine fremde Vorbestellung faelschlich als geliefert
+      // fortgeschrieben.
+      const { data: fremdbezugLieferung, error: fremdbezugAufbauFehler } = await admin
+        .from("lieferungen")
+        .insert({ b2b_kunde_id: almatyFreshLf.id, vorbestellung_id: vorbestellungLf.id, menge_kg: 1 })
+        .select("id")
+        .single();
+      if (!fremdbezugAufbauFehler && fremdbezugLieferung?.id) {
+        const { error: fremdbezugFehler } = await leitung
+          .from("lieferungen")
+          .update({ status: "zugestellt", empfaenger_name: "Sollte scheitern" })
+          .eq("id", fremdbezugLieferung.id);
+        check(
+          "Anforderung 3.5: eine Lieferung mit fremder Vorbestellung (anderer Kunde) wird beim Zustellen abgelehnt",
+          fremdbezugFehler?.code === "23514",
+          fremdbezugFehler?.code ?? "kein Fehler - die fremde Vorbestellung waere faelschlich fortgeschrieben worden!",
+        );
+        await admin.from("lieferungen").delete().eq("id", fremdbezugLieferung.id);
+      }
+
+      if (neueLieferung?.id) {
+        // Kunde einer anderen Firma sieht die geplante Lieferung nicht.
+        const { data: fremdeFirmaSieht } = await (await anmelden("kunde@damicon.demo")).client
+          .from("lieferungen")
+          .select("id")
+          .eq("id", neueLieferung.id);
+        check(
+          "Anforderung 3.5: eine andere B2B-Firma (Almaty Fresh Market) sieht die Lieferung von Handelskette A nicht",
+          (fremdeFirmaSieht?.length ?? 0) === 0,
+          `Zeilen: ${fremdeFirmaSieht?.length}`,
+        );
+
+        // Ohne Empfaenger-Namen wird der Uebergang auf "zugestellt" abgelehnt
+        // (Pflichtangabe im Trigger lieferung_uebergabe_pruefen).
+        const { error: ohneEmpfaengerFehler } = await brigade
+          .from("lieferungen")
+          .update({ status: "zugestellt" })
+          .eq("id", neueLieferung.id);
+        check(
+          "Anforderung 3.5: 'zugestellt' ohne Empfaenger-Namen wird abgelehnt (Pflichtangabe im Trigger)",
+          ohneEmpfaengerFehler?.code === "23514",
+          ohneEmpfaengerFehler?.code ?? "kein Fehler",
+        );
+
+        // Brigade erfasst die Uebergabe vollstaendig.
+        const { data: zugestellteLieferung, error: uebergabeFehler } = await brigade
+          .from("lieferungen")
+          .update({
+            status: "zugestellt",
+            empfaenger_name: "Integrationstest Empfaenger",
+            geraet_zeitpunkt: new Date().toISOString(),
+          })
+          .eq("id", neueLieferung.id)
+          .select("status, geliefert_am, empfaenger_name")
+          .single();
+        check(
+          "Anforderung 3.5: Brigade erfasst die Uebergabe (RLS lieferungen_update_feld), geliefert_am wird aus dem Geraete-Zeitstempel gesetzt",
+          !uebergabeFehler &&
+            zugestellteLieferung?.status === "zugestellt" &&
+            !!zugestellteLieferung?.geliefert_am,
+          uebergabeFehler?.message ?? JSON.stringify(zugestellteLieferung),
+        );
+
+        // Fortschreiben: die verknuepfte Vorbestellung wechselt automatisch
+        // auf "geliefert" (Mengenabgleich-Grundlage, gleiche Philosophie wie
+        // aufgabe_fortschreiben()/kuehlkette_bewerten()).
+        const { data: vorbestellungNachher } = await admin
+          .from("vorbestellungen")
+          .select("status")
+          .eq("id", vorbestellungLf.id)
+          .single();
+        check(
+          "Anforderung 3.5: die verknuepfte Vorbestellung wird automatisch auf 'geliefert' fortgeschrieben",
+          vorbestellungNachher?.status === "geliefert",
+          `status: ${vorbestellungNachher?.status}`,
+        );
+
+        // Unveraenderlichkeit: eine bereits zugestellte Lieferung laesst
+        // sich nicht mehr aendern, auch nicht durch das Buero.
+        const { error: erneuteAenderungFehler } = await leitung
+          .from("lieferungen")
+          .update({ empfaenger_name: "Nachtraeglich geaendert" })
+          .eq("id", neueLieferung.id);
+        check(
+          "Anforderung 3.5: eine bereits zugestellte Lieferung ist unveraenderlich",
+          erneuteAenderungFehler?.code === "23514",
+          erneuteAenderungFehler?.code ?? "kein Fehler",
+        );
+
+        await admin.from("lieferungen").delete().eq("id", neueLieferung.id);
+        await admin
+          .from("vorbestellungen")
+          .update({ status: "bestaetigt" })
+          .eq("id", vorbestellungLf.id);
+      }
+    }
+
+    // Storno: eine noch geplante Lieferung laesst sich stornieren, danach
+    // ebenfalls unveraenderlich.
+    const { data: stornoTest, error: stornoAufbauFehler } = await admin
+      .from("lieferungen")
+      .insert({ b2b_kunde_id: almatyFreshLf?.id, menge_kg: 5 })
+      .select("id")
+      .single();
+    if (!stornoAufbauFehler && stornoTest?.id) {
+      // Positive Gegenprobe zur Erzeuger-Sperre oben: die eigene Firma
+      // (Almaty Fresh Market, echter Demo-Login) sieht die eigene Lieferung.
+      const { data: eigeneFirmaSieht } = await (await anmelden("kunde@damicon.demo")).client
+        .from("lieferungen")
+        .select("id")
+        .eq("id", stornoTest.id);
+      check(
+        "Anforderung 3.5: die eigene Firma (Almaty Fresh Market) sieht die eigene Lieferung",
+        (eigeneFirmaSieht?.length ?? 0) === 1,
+        `Zeilen: ${eigeneFirmaSieht?.length}`,
+      );
+
+      const { data: storniert, error: stornoFehler } = await leitung
+        .from("lieferungen")
+        .update({ status: "storniert" })
+        .eq("id", stornoTest.id)
+        .select("status")
+        .single();
+      check(
+        "Anforderung 3.5: eine geplante Lieferung laesst sich stornieren",
+        !stornoFehler && storniert?.status === "storniert",
+        stornoFehler?.message ?? JSON.stringify(storniert),
+      );
+
+      const { error: nachStornoFehler } = await leitung
+        .from("lieferungen")
+        .update({ status: "geplant" })
+        .eq("id", stornoTest.id);
+      check(
+        "Anforderung 3.5: eine stornierte Lieferung ist ebenfalls unveraenderlich",
+        nachStornoFehler?.code === "23514",
+        nachStornoFehler?.code ?? "kein Fehler",
+      );
+
+      await admin.from("lieferungen").delete().eq("id", stornoTest.id);
+    }
+  }
 }
 
 console.log("");

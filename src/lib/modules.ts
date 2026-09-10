@@ -121,6 +121,10 @@ export const modules: ModuleDef[] = [
     icon: "truck",
     resource: "logistik",
     klassifikation: "anpassen",
+    // Anforderung 3.5 Teil 2: digitale Uebergabequittung ist angebunden
+    // (LogistikAnsicht). Bleibt bei "in-entwicklung", weil Tourenplanung
+    // nach Lieferfenstern mit ICS-Feed/Routenlogik (Anforderung 3.5 Teil 1)
+    // der deutlich groessere Rest des Modul-Versprechens ist.
     reifegrad: "in-entwicklung",
   },
   {
@@ -253,6 +257,13 @@ export const modules: ModuleDef[] = [
     icon: "handshake",
     resource: "b2b_portal",
     klassifikation: "anpassen",
+    // Anforderung 5.2 Teil 2a: "Meine Lieferungen" mit echtem Lieferstatus
+    // ist angebunden (B2bPortalAnsicht). Bleibt bei "in-entwicklung", weil
+    // Kontingente/Preisliste/Vorbestellung (Anforderung 5.1) und
+    // Rechnungshistorie (5.2 Teil 2b) noch fehlen - fuer 5.1 fehlt zudem eine
+    // fachliche Festlegung (wie kontingente.reserviert_kg verbraucht/
+    // zurueckgesetzt wird), fuer die Rechnungshistorie, was ueberhaupt als
+    // "Rechnung" gilt.
     reifegrad: "in-entwicklung",
   },
   {

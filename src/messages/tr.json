@@ -949,7 +949,10 @@
       "einarbeitungSchritt": "Adım işaretlendi.",
       "pflichtschulungTeilnahme": "Katılım kaydedildi.",
       "foerderdossier": "\"{wert}\" dosyası oluşturuldu.",
-      "foerderdossierStatus": "\"{wert}\" dosyası güncellendi."
+      "foerderdossierStatus": "\"{wert}\" dosyası güncellendi.",
+      "lieferung": "Teslimat oluşturuldu.",
+      "uebergabe": "Teslim alma kaydedildi.",
+      "lieferungStorniert": "Teslimat iptal edildi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -961,6 +964,7 @@
       "angemeldet": "Oturum süresi doldu. Lütfen yeniden oturum açın.",
       "doppelt": "Bu tanımla bir kayıt zaten var.",
       "bezug": "Seçilen ilişkili kayıt bulunmuyor.",
+      "nichtGefunden": "Kayıt bulunamadı veya artık düzenlenemiyor.",
       "regel": "Mümkün değil: bekleme süresi henüz dolmadı.",
       "unbekannt": "İşlem başarısız. Ayrıntılar sunucu kaydında.",
       "keineCharge": "Bu göreve ait bir parti yok.",
@@ -1721,5 +1725,43 @@
         "knopf": "Güncelle"
       }
     }
+  },
+  "lieferungenAnsicht": {
+    "titel": "Teslimatlar",
+    "lead": "Dijital teslim alma belgesi: teslim anındaki miktar, alıcı ve partinin soğuk zinciri.",
+    "keineLieferungen": "Henüz teslimat oluşturulmadı.",
+    "note": "Teslimat zaman aralığına göre rota planlaması bu görünümün parçası değildir. Teslim edilmiş veya iptal edilmiş bir teslimat değiştirilemez, düzeltme yalnızca yeni bir teslimat olarak mümkündür.",
+    "menge": "Miktar",
+    "bestellt": "sipariş edilen",
+    "geliefertAm": "Teslim tarihi",
+    "empfaengerName": "Alıcı",
+    "empfaengerNamePlatzhalter": "Teslimatı alan kişinin adı",
+    "beleg": "Fotoğraf (isteğe bağlı)",
+    "uebergabeErfassen": "Teslim almayı kaydet",
+    "stornieren": "İptal et",
+    "temperatur": "Teslim anında soğuk zincir",
+    "status": {
+      "geplant": "planlandı",
+      "zugestellt": "teslim edildi",
+      "storniert": "iptal edildi"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Teslimat oluştur",
+        "lead": "Müşteri ve miktar zorunludur, parti isteğe bağlı olarak atanabilir.",
+        "kunde": "Müşteri",
+        "bitteWaehlen": "lütfen seçin",
+        "menge": "Miktar (kg)",
+        "charge": "Parti (isteğe bağlı)",
+        "keinBezug": "bağlantı yok",
+        "knopf": "Teslimat oluştur"
+      }
+    }
+  },
+  "b2bPortalAnsicht": {
+    "lieferungenTitel": "Teslimatlarım",
+    "lieferungenLead": "Teslimatlarınızın durumu ve teslim alma belgesi.",
+    "keineLieferungen": "Henüz teslimat kaydedilmedi.",
+    "note": "Kontenjanlar, fiyat listesi ve ön siparişler sonraki bir genişletme adımında eklenecek."
   }
 }

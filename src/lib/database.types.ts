@@ -1099,33 +1099,51 @@ export type Database = {
       }
       lieferungen: {
         Row: {
+          abgezeichnet_von_profil_id: string | null
           b2b_kunde_id: string
+          beleg_storage_path: string | null
           charge_id: string | null
           created_at: string
+          empfaenger_name: string | null
           geliefert_am: string | null
+          geraet_zeitpunkt: string | null
           id: string
           lieferschein_outbox_id: string | null
           menge_kg: number
+          server_eingang_zeitpunkt: string | null
+          status: Database["public"]["Enums"]["lieferung_status"]
           vorbestellung_id: string | null
         }
         Insert: {
+          abgezeichnet_von_profil_id?: string | null
           b2b_kunde_id: string
+          beleg_storage_path?: string | null
           charge_id?: string | null
           created_at?: string
+          empfaenger_name?: string | null
           geliefert_am?: string | null
+          geraet_zeitpunkt?: string | null
           id?: string
           lieferschein_outbox_id?: string | null
           menge_kg?: number
+          server_eingang_zeitpunkt?: string | null
+          status?: Database["public"]["Enums"]["lieferung_status"]
           vorbestellung_id?: string | null
         }
         Update: {
+          abgezeichnet_von_profil_id?: string | null
           b2b_kunde_id?: string
+          beleg_storage_path?: string | null
           charge_id?: string | null
           created_at?: string
+          empfaenger_name?: string | null
           geliefert_am?: string | null
+          geraet_zeitpunkt?: string | null
           id?: string
           lieferschein_outbox_id?: string | null
           menge_kg?: number
+          server_eingang_zeitpunkt?: string | null
+          status?: Database["public"]["Enums"]["lieferung_status"]
           vorbestellung_id?: string | null
         }
         Relationships: [
@@ -1135,6 +1153,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "integration_outbox"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lieferungen_abgezeichnet_von_profil_id_fkey"
+            columns: ["abgezeichnet_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lieferungen_abgezeichnet_von_profil_id_fkey"
+            columns: ["abgezeichnet_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
           },
           {
             foreignKeyName: "lieferungen_b2b_kunde_id_fkey"
@@ -2874,6 +2906,7 @@ export type Database = {
       integration_status: "verbunden" | "sandbox" | "geplant"
       kuehlkette_ergebnis: "ok" | "warnung" | "verstoss"
       ledger_typ: "erloes" | "kosten"
+      lieferung_status: "geplant" | "zugestellt" | "storniert"
       lohn_status: "entwurf" | "freigegeben" | "ausgezahlt"
       outbox_status: "pending" | "sent" | "acked" | "failed"
       pflueckaufgabe_status:
@@ -3077,6 +3110,7 @@ export const Constants = {
       integration_status: ["verbunden", "sandbox", "geplant"],
       kuehlkette_ergebnis: ["ok", "warnung", "verstoss"],
       ledger_typ: ["erloes", "kosten"],
+      lieferung_status: ["geplant", "zugestellt", "storniert"],
       lohn_status: ["entwurf", "freigegeben", "ausgezahlt"],
       outbox_status: ["pending", "sent", "acked", "failed"],
       pflueckaufgabe_status: [

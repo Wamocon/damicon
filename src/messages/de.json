@@ -735,7 +735,10 @@
       "einarbeitungSchritt": "Schritt abgehakt.",
       "pflichtschulungTeilnahme": "Teilnahme erfasst.",
       "foerderdossier": "Dossier \"{wert}\" angelegt.",
-      "foerderdossierStatus": "Dossier \"{wert}\" aktualisiert."
+      "foerderdossierStatus": "Dossier \"{wert}\" aktualisiert.",
+      "lieferung": "Lieferung angelegt.",
+      "uebergabe": "Übergabe erfasst.",
+      "lieferungStorniert": "Lieferung storniert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -747,6 +750,7 @@
       "angemeldet": "Sitzung abgelaufen. Bitte erneut anmelden.",
       "doppelt": "Ein Eintrag mit dieser Kennung existiert bereits.",
       "bezug": "Der gewählte Bezugsdatensatz existiert nicht.",
+      "nichtGefunden": "Der Datensatz wurde nicht gefunden oder ist nicht mehr bearbeitbar.",
       "regel": "Nicht möglich: Die Wartezeit ist noch nicht abgelaufen.",
       "unbekannt": "Vorgang fehlgeschlagen. Details stehen im Server-Log.",
       "keineCharge": "Zu dieser Aufgabe gehört keine Charge.",
@@ -1721,5 +1725,43 @@
         "knopf": "Aktualisieren"
       }
     }
+  },
+  "lieferungenAnsicht": {
+    "titel": "Lieferungen",
+    "lead": "Digitale Übergabequittung: Menge, Empfänger und Kühlkette der Charge im Moment der Übergabe.",
+    "keineLieferungen": "Noch keine Lieferung angelegt.",
+    "note": "Tourenplanung nach Lieferfenstern mit Routenlogik ist nicht Teil dieser Ansicht. Eine zugestellte oder stornierte Lieferung ist unveränderlich, eine Korrektur ist nur als neue Lieferung möglich.",
+    "menge": "Menge",
+    "bestellt": "bestellt",
+    "geliefertAm": "Zugestellt am",
+    "empfaengerName": "Empfänger",
+    "empfaengerNamePlatzhalter": "Name der entgegennehmenden Person",
+    "beleg": "Foto (optional)",
+    "uebergabeErfassen": "Übergabe erfassen",
+    "stornieren": "Stornieren",
+    "temperatur": "Kühlkette bei Übergabe",
+    "status": {
+      "geplant": "geplant",
+      "zugestellt": "zugestellt",
+      "storniert": "storniert"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Lieferung anlegen",
+        "lead": "Kunde und Menge sind Pflicht, die Charge lässt sich optional zuordnen.",
+        "kunde": "Kunde",
+        "bitteWaehlen": "bitte wählen",
+        "menge": "Menge in kg",
+        "charge": "Charge (optional)",
+        "keinBezug": "kein Bezug",
+        "knopf": "Lieferung anlegen"
+      }
+    }
+  },
+  "b2bPortalAnsicht": {
+    "lieferungenTitel": "Meine Lieferungen",
+    "lieferungenLead": "Status und Übergabequittung Ihrer Lieferungen.",
+    "keineLieferungen": "Noch keine Lieferung erfasst.",
+    "note": "Kontingente, Preisliste und Vorbestellung folgen in einem späteren Ausbauschritt."
   }
 }

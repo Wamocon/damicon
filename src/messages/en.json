@@ -735,7 +735,10 @@
       "einarbeitungSchritt": "Step checked off.",
       "pflichtschulungTeilnahme": "Attendance recorded.",
       "foerderdossier": "Dossier \"{wert}\" created.",
-      "foerderdossierStatus": "Dossier \"{wert}\" updated."
+      "foerderdossierStatus": "Dossier \"{wert}\" updated.",
+      "lieferung": "Delivery created.",
+      "uebergabe": "Handover recorded.",
+      "lieferungStorniert": "Delivery cancelled."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -747,6 +750,7 @@
       "angemeldet": "Session expired. Please sign in again.",
       "doppelt": "An entry with this identifier already exists.",
       "bezug": "The selected reference record does not exist.",
+      "nichtGefunden": "The record was not found or can no longer be edited.",
       "regel": "Not possible: the waiting period has not elapsed yet.",
       "unbekannt": "Action failed. Details are in the server log.",
       "keineCharge": "This task has no batch.",
@@ -1721,5 +1725,43 @@
         "knopf": "Update"
       }
     }
+  },
+  "lieferungenAnsicht": {
+    "titel": "Deliveries",
+    "lead": "Digital handover receipt: quantity, recipient and the batch's cold chain at the moment of handover.",
+    "keineLieferungen": "No delivery created yet.",
+    "note": "Route planning by delivery window is not part of this view. A delivered or cancelled delivery is immutable, a correction is only possible as a new delivery.",
+    "menge": "Quantity",
+    "bestellt": "ordered",
+    "geliefertAm": "Delivered on",
+    "empfaengerName": "Recipient",
+    "empfaengerNamePlatzhalter": "Name of the person receiving the delivery",
+    "beleg": "Photo (optional)",
+    "uebergabeErfassen": "Record handover",
+    "stornieren": "Cancel",
+    "temperatur": "Cold chain at handover",
+    "status": {
+      "geplant": "planned",
+      "zugestellt": "delivered",
+      "storniert": "cancelled"
+    },
+    "formular": {
+      "anlegen": {
+        "titel": "Create delivery",
+        "lead": "Customer and quantity are required, the batch can optionally be assigned.",
+        "kunde": "Customer",
+        "bitteWaehlen": "please choose",
+        "menge": "Quantity in kg",
+        "charge": "Batch (optional)",
+        "keinBezug": "no reference",
+        "knopf": "Create delivery"
+      }
+    }
+  },
+  "b2bPortalAnsicht": {
+    "lieferungenTitel": "My deliveries",
+    "lieferungenLead": "Status and handover receipt of your deliveries.",
+    "keineLieferungen": "No delivery recorded yet.",
+    "note": "Contingents, price list and pre-orders follow in a later expansion step."
   }
 }
