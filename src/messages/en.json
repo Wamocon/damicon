@@ -1464,7 +1464,7 @@
   "qualityStandard": {
     "eyebrow": "The same standard as in the system",
     "title": "The standard lives here, not in a brochure",
-    "lead": "Whoever picks for the farm or buys from it sees the same standard that applies in the system - the same drawings as on the picker's phone. The technical basis is UNECE standard FFV-32 for raspberries.",
+    "lead": "Whoever picks for the farm or buys from it sees the same standard that applies in the system - the same criteria the picker's phone asks for. The technical basis is UNECE standard FFV-32 for raspberries.",
     "q1Title": "Marketable",
     "q1Text": "Evenly coloured, hollow inside, the drupelets hold together. The receptacle stays on the cane.",
     "q2Title": "Picked too early",
@@ -1472,7 +1472,12 @@
     "q3Title": "Reject",
     "q3Text": "Grey coating, even at just one spot. Stays in the field: inside a closed punnet it infects the whole layer overnight.",
     "trayTitle": "The costliest mistake is a height",
-    "trayText": "Seen from above, the overfilled punnet looks best: full, dense, no gap. But the lid presses on the top layer, and the bottom layer carries the weight. Raspberries carry no weight of their own - by the time it's in the shop, the bottom layer is juice. That is visible only from the side."
+    "trayText": "Seen from above, the overfilled punnet looks best: full, dense, no gap. But the lid presses on the top layer, and the bottom layer carries the weight. Raspberries carry no weight of their own - by the time it's in the shop, the bottom layer is juice. That is visible only from the side.",
+    "vergleichTitle": "Same angle, two berries",
+    "vergleichText": "On the left an unblemished fruit, on the right one with grey mould - two photographs of the same variety, not the same berry. Drag the slider: the difference takes hours, not days, and in a closed punnet it spreads to the whole layer overnight.",
+    "vergleichLinks": "Sound",
+    "vergleichRechts": "Affected",
+    "vergleichRegler": "Move the comparison slider between the two photographs"
   },
   "qualitaetsReferenz": {
     "aufklappen": "Show quality reference",

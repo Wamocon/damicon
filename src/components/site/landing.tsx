@@ -2,6 +2,8 @@ import { useTranslations } from "next-intl";
 import { ArrowRight, Check } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Icon } from "@/components/icon";
+import { CountUp } from "@/components/site/count-up";
+import { Reveal } from "@/components/site/reveal";
 import { zones } from "@/lib/modules";
 import { kpis } from "@/lib/domain/kpis";
 
@@ -15,17 +17,19 @@ export function BerryReality() {
       className="berry-field scroll-mt-20 border-b border-border bg-secondary/40 py-16 md:py-24"
     >
       <div className="container">
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-          {s("berryEyebrow")}
-        </p>
-        <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-          {s("berryTitle")}
-        </h2>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-          {s("berryLead")}
-        </p>
+        <Reveal>
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
+            {s("berryEyebrow")}
+          </p>
+          <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
+            {s("berryTitle")}
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+            {s("berryLead")}
+          </p>
+        </Reveal>
 
-        <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <Reveal delay={90} className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {points.map((point) => (
             <div
               key={point}
@@ -39,7 +43,7 @@ export function BerryReality() {
               </p>
             </div>
           ))}
-        </div>
+        </Reveal>
 
         <p className="mt-6 max-w-2xl border-l-2 border-primary/40 pl-4 text-sm font-semibold italic leading-6 text-foreground">
           {s("berryQuote")}
@@ -55,17 +59,19 @@ export function PriceSpread() {
 
   return (
     <section className="container scroll-mt-20 py-16 md:py-24">
-      <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-        {s("spreadEyebrow")}
-      </p>
-      <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-        {s("spreadTitle")}
-      </h2>
-      <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-        {s("spreadLead")}
-      </p>
+      <Reveal>
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
+          {s("spreadEyebrow")}
+        </p>
+        <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
+          {s("spreadTitle")}
+        </h2>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+          {s("spreadLead")}
+        </p>
+      </Reveal>
 
-      <div className="mt-10 grid gap-4 md:grid-cols-3">
+      <Reveal delay={90} className="mt-10 grid gap-4 md:grid-cols-3">
         {tiers.map((tier, index) => (
           <div
             key={tier}
@@ -86,7 +92,7 @@ export function PriceSpread() {
             </p>
           </div>
         ))}
-      </div>
+      </Reveal>
 
       <div className="mt-6 grid gap-4 rounded-2xl border border-border bg-card p-6 sm:grid-cols-[auto_1fr] sm:items-center">
         <p className="text-4xl font-black text-primary">
@@ -106,17 +112,19 @@ export function ZonesOverview() {
 
   return (
     <section id="zonen" className="container scroll-mt-20 py-16 md:py-24">
-      <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-        {s("zonesEyebrow")}
-      </p>
-      <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-        {s("zonesTitle")}
-      </h2>
-      <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-        {s("zonesLead")}
-      </p>
+      <Reveal>
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
+          {s("zonesEyebrow")}
+        </p>
+        <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
+          {s("zonesTitle")}
+        </h2>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+          {s("zonesLead")}
+        </p>
+      </Reveal>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <Reveal delay={90} className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {zones.map((zone) => (
           <Link
             key={zone.key}
@@ -138,7 +146,7 @@ export function ZonesOverview() {
             </span>
           </Link>
         ))}
-      </div>
+      </Reveal>
     </section>
   );
 }
@@ -153,15 +161,17 @@ export function ProofChain() {
       className="scroll-mt-20 border-y border-border bg-secondary/40 py-16 md:py-24"
     >
       <div className="container">
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-          {s("proofEyebrow")}
-        </p>
-        <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-          {s("proofTitle")}
-        </h2>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-          {s("proofLead")}
-        </p>
+        <Reveal>
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
+            {s("proofEyebrow")}
+          </p>
+          <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
+            {s("proofTitle")}
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+            {s("proofLead")}
+          </p>
+        </Reveal>
 
         <ol className="mt-10 grid gap-3 md:grid-cols-5">
           {steps.map((step, index) => (
@@ -196,17 +206,19 @@ export function Levers() {
 
   return (
     <section className="container py-16 md:py-24">
-      <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-        {s("leversEyebrow")}
-      </p>
-      <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-        {s("leversTitle")}
-      </h2>
-      <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-        {s("leversLead")}
-      </p>
+      <Reveal>
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
+          {s("leversEyebrow")}
+        </p>
+        <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
+          {s("leversTitle")}
+        </h2>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+          {s("leversLead")}
+        </p>
+      </Reveal>
 
-      <div className="mt-10 grid gap-4 md:grid-cols-2">
+      <Reveal delay={90} className="mt-10 grid gap-4 md:grid-cols-2">
         {levers.map((lever, index) => (
           <div
             key={lever}
@@ -225,7 +237,7 @@ export function Levers() {
             </p>
           </div>
         ))}
-      </div>
+      </Reveal>
     </section>
   );
 }
@@ -240,29 +252,33 @@ export function KpiPreview() {
       className="scroll-mt-20 border-y border-border bg-secondary/40 py-16 md:py-24"
     >
       <div className="container">
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-          {s("kpiEyebrow")}
-        </p>
-        <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-          {s("kpiTitle")}
-        </h2>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-          {s("kpiLead")}
-        </p>
+        <Reveal>
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
+            {s("kpiEyebrow")}
+          </p>
+          <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
+            {s("kpiTitle")}
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+            {s("kpiLead")}
+          </p>
+        </Reveal>
 
-        <div className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7">
+        <Reveal delay={90} className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7">
           {kpis.map((kpi) => (
             <div
               key={kpi.key}
               className="rounded-xl border border-border bg-card p-3"
             >
-              <p className="text-lg font-black text-foreground">{kpi.wert}</p>
+              <p className="text-lg font-black text-foreground">
+                <CountUp wert={kpi.wert} />
+              </p>
               <p className="mt-1 text-[11px] font-medium leading-4 text-muted-foreground">
                 {k(`${kpi.key}.label`)}
               </p>
             </div>
           ))}
-        </div>
+        </Reveal>
         <p className="mt-4 text-xs text-muted-foreground">{s("kpiFootnote")}</p>
       </div>
     </section>
@@ -275,17 +291,19 @@ export function ComplianceBlock() {
 
   return (
     <section id="compliance" className="container scroll-mt-20 py-16 md:py-24">
-      <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-        {s("complianceEyebrow")}
-      </p>
-      <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-        {s("complianceTitle")}
-      </h2>
-      <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-        {s("complianceLead")}
-      </p>
+      <Reveal>
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
+          {s("complianceEyebrow")}
+        </p>
+        <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
+          {s("complianceTitle")}
+        </h2>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+          {s("complianceLead")}
+        </p>
+      </Reveal>
 
-      <div className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <Reveal delay={90} className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => (
           <div key={item} className="rounded-xl border border-border bg-card p-4">
             <p className="text-sm font-bold text-card-foreground">
@@ -296,7 +314,7 @@ export function ComplianceBlock() {
             </p>
           </div>
         ))}
-      </div>
+      </Reveal>
 
       <div className="mt-6 flex items-start gap-3 rounded-xl border border-accent/25 bg-accent/6 p-4">
         <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />

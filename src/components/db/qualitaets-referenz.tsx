@@ -32,7 +32,7 @@ export function QualitaetsReferenz() {
         <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
           {merkmale.map(({ variante, key }) => (
             <div key={key} className="flex flex-col items-center gap-1 text-center">
-              <div className="flex items-center justify-center rounded-lg bg-[#1a0308] p-1.5">
+              <div className="flex items-center justify-center rounded-lg bg-[#04161c] p-1.5">
                 <Beere variante={variante} groesse={44} titel={t(key)} />
               </div>
               <span className="text-[10px] leading-tight text-muted-foreground">
@@ -42,13 +42,13 @@ export function QualitaetsReferenz() {
           ))}
         </div>
         <div className="flex items-center gap-3 border-t border-border pt-2.5">
-          <div className="flex items-center justify-center rounded-lg bg-[#1a0308] p-1.5">
+          <div className="flex items-center justify-center rounded-lg bg-[#04161c] p-1.5">
             <Schale variante="ok" groesse={70} titel={t("schaleGut")} />
           </div>
           <span className="text-[10px] leading-tight text-muted-foreground">
             {t("schaleGut")}
           </span>
-          <div className="flex items-center justify-center rounded-lg bg-[#1a0308] p-1.5">
+          <div className="flex items-center justify-center rounded-lg bg-[#04161c] p-1.5">
             <Schale variante="overfilled" groesse={70} titel={t("schaleUeberfuellt")} />
           </div>
           <span className="text-[10px] leading-tight text-muted-foreground">

@@ -48,3 +48,8 @@ next-env.d.ts
 /*-brigade.md
 /*-kunde.md
 .gstack/
+
+# Bildoriginale (Rohdateien mehrere MB). Was die Seite ausliefert, liegt als
+# verkleinertes WebP unter public/ und ist versioniert.
+/Bilder/
+/damicon-homepage-stand.html

@@ -13,8 +13,15 @@
             der ewige blaue Himmel, ist das staerkste nationale Farbzeichen.
             Reines #00afca traegt auf Weiss nur 2,6:1 Kontrast und ist damit
             als Text-/Buttonfarbe unbrauchbar - --primary ist deshalb der
-            gleiche Farbton in tiefer (#00768f, 5,5:1), das Signalblau selbst
-            sitzt auf --ring und --chart-4, wo es als Flaeche wirken darf.
+            gleiche Farbton in tiefer (#00768f, 5,5:1). Auf --chart-4 steht
+            das reine Flaggenblau: eine Diagrammreihe wirkt als Flaeche und
+            grenzt sich gegen ihre Nachbarreihe ab, nicht gegen den Grund.
+            --ring dagegen fuehrt den Fokusindikator - der ist nach
+            WCAG 1.4.11 ein Bedienelement und braucht 3:1 gegen jede Flaeche,
+            auf der er liegen kann. Reines #00afca schafft dort nur 2,5:1,
+            deshalb steht --ring auf #0095ac: derselbe Ton, so weit
+            abgedunkelt, dass er auch auf --secondary und --muted, den
+            dunkelsten hellen Flaechen, noch 3,1:1 traegt.
     Altyn - das Gold der Sonne und des Steppenadlers (#fec50c, Pantone 116).
             Ebenfalls zu hell fuer Text, deshalb im Light-Mode als
             Steppengold #8c6209 (5,1:1) und erst im Dark-Mode als volles
@@ -105,15 +112,23 @@
   --accent: #8c6209;
   --accent-foreground: #ffffff;
   --destructive: #c23b4e;
-  --success: #2f8a63;
-  --warning: #b9740f;
+  /* Die drei Statustoene tragen in der StatusPill Text auf einem Grund aus
+     derselben Farbe zu 10-12 % (kit.tsx, toneClasses) - bei 11px halbfett
+     gilt die normale Schwelle 4,5:1, nicht die fuer Grosstext. Success und
+     Warning lagen dort schon in der Himbeer-Palette darunter (3,57:1 und
+     3,39:1) und sind hier so weit abgedunkelt, dass sie sie erreichen:
+     Steppengruen 4,64:1, Bernstein 4,65:1. Als Icon und Flaeche - etwa im
+     Kuehlketten-Alarm - bleiben beide klar ueber den 3:1, die WCAG 1.4.11
+     fuer Grafik verlangt. */
+  --success: #297956;
+  --warning: #945d0c;
   --border: #dbe8ec;
   --input: #cfe0e6;
-  --ring: #00afca;
+  --ring: #0095ac;
   --radius: 0.625rem;
   --chart-1: #00768f;
   --chart-2: #d8a507;
-  --chart-3: #2f8a63;
+  --chart-3: #297956;
   --chart-4: #00afca;
   --chart-5: #b65c33;
   --sidebar: #ffffff;
@@ -123,7 +138,7 @@
   --sidebar-accent: #eaf4f7;
   --sidebar-accent-foreground: #0b1e26;
   --sidebar-border: #dceaee;
-  --sidebar-ring: #00afca;
+  --sidebar-ring: #0095ac;
   --backdrop-line: rgba(0, 118, 143, 0.07);
   /* Das Flaggengold, leicht abgetoent. Eigenes Token, weil --accent zwei Rollen nicht
      zugleich erfuellen kann: als Textfarbe braucht es 4,5:1 auf hellem
@@ -229,6 +244,23 @@
   top: 0;
 }
 
+/* Einblenden beim Scrollen. Der Ausgangszustand steht bewusst nicht im CSS
+   allein, sondern haengt an [data-reveal]: Ohne JavaScript wird das Attribut
+   nie gesetzt, der Inhalt steht sofort sichtbar da. Ein reines
+   "opacity: 0 im CSS, sichtbar per JS" laesst die Seite ohne JS leer. */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.55s ease-out,
+    transform 0.55s ease-out;
+  will-change: opacity, transform;
+}
+[data-reveal="sichtbar"] {
+  opacity: 1;
+  transform: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -237,6 +269,12 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* Ohne Uebergang darf nichts unsichtbar haengenbleiben. */
+  [data-reveal] {
+    opacity: 1;
+    transform: none;
   }
 }
 

@@ -1464,7 +1464,7 @@
   "qualityStandard": {
     "eyebrow": "Derselbe Maßstab wie im System",
     "title": "Der Maßstab steht hier, nicht im Prospekt",
-    "lead": "Wer für den Betrieb pflückt oder von ihm kauft, sieht denselben Maßstab, der im System gilt - dieselben Zeichnungen wie auf dem Telefon des Erntehelfers. Fachliche Grundlage ist die UNECE-Norm FFV-32 für Himbeeren.",
+    "lead": "Wer für den Betrieb pflückt oder von ihm kauft, sieht denselben Maßstab, der im System gilt - dieselben Merkmale, die das Telefon des Erntehelfers abfragt. Fachliche Grundlage ist die UNECE-Norm FFV-32 für Himbeeren.",
     "q1Title": "Vermarktungsfähig",
     "q1Text": "Durchgehend ausgefärbt, innen hohl, die Steinfrüchtchen halten zusammen. Der Blütenboden bleibt am Strauch.",
     "q2Title": "Zu früh gepflückt",
@@ -1472,7 +1472,12 @@
     "q3Title": "Ausschuss",
     "q3Text": "Grauer Belag, auch nur an einer Stelle. Bleibt im Feld: In der geschlossenen Schale befällt er über Nacht die ganze Lage.",
     "trayTitle": "Der teuerste Fehler ist eine Höhe",
-    "trayText": "Von oben sieht die überfüllte Schale am besten aus: voll, dicht, kein Spalt. Der Deckel drückt jedoch auf die obere Lage, und die untere trägt das Gewicht. Himbeeren tragen kein Eigengewicht - im Laden ist die unterste Lage Saft. Sichtbar wird das nur von der Seite."
+    "trayText": "Von oben sieht die überfüllte Schale am besten aus: voll, dicht, kein Spalt. Der Deckel drückt jedoch auf die obere Lage, und die untere trägt das Gewicht. Himbeeren tragen kein Eigengewicht - im Laden ist die unterste Lage Saft. Sichtbar wird das nur von der Seite.",
+    "vergleichTitle": "Derselbe Blickwinkel, zwei Beeren",
+    "vergleichText": "Links eine einwandfreie Frucht, rechts eine mit Grauschimmel - zwei Aufnahmen derselben Sorte, nicht dieselbe Beere. Ziehen Sie den Regler: Der Unterschied entsteht in Stunden, nicht in Tagen, und in der geschlossenen Schale überträgt er sich über Nacht auf die ganze Lage.",
+    "vergleichLinks": "Einwandfrei",
+    "vergleichRechts": "Befallen",
+    "vergleichRegler": "Vergleichsregler zwischen beiden Aufnahmen verschieben"
   },
   "qualitaetsReferenz": {
     "aufklappen": "Qualitätsreferenz zeigen",

@@ -1464,7 +1464,7 @@
   "qualityStandard": {
     "eyebrow": "Sistemdekiyle aynı standart",
     "title": "Standart burada, broşürde değil",
-    "lead": "İşletme için toplayan veya ondan satın alan kişi, sistemde geçerli olan standardı görür - toplayıcının telefonundaki aynı çizimler. Teknik temel, ahududu için UNECE FFV-32 standardıdır.",
+    "lead": "İşletme için toplayan veya ondan satın alan kişi, sistemde geçerli olan standardı görür - toplayıcının telefonunun sorduğu aynı ölçütler. Teknik temel, ahududu için UNECE FFV-32 standardıdır.",
     "q1Title": "Satışa uygun",
     "q1Text": "Düzgün renklenmiş, içi boş, taneler bir arada. Çiçek tablası dalda kalır.",
     "q2Title": "Çok erken toplanmış",
@@ -1472,7 +1472,12 @@
     "q3Title": "Fire",
     "q3Text": "Tek bir noktada bile olsa gri kaplama. Tarlada kalır: kapalı bir kapta bir gecede tüm katmana bulaşır.",
     "trayTitle": "En pahalı hata: doldurma yüksekliği",
-    "trayText": "Yukarıdan bakıldığında aşırı dolu kap en iyi görünür: dolu, sık, boşluk yok. Ama kapak üst katmana baskı yapar, alt katman ise ağırlığı taşır. Ahududu kendi ağırlığını taşımaz - markete ulaştığında alt katman artık sudur. Bu sadece yandan görülebilir."
+    "trayText": "Yukarıdan bakıldığında aşırı dolu kap en iyi görünür: dolu, sık, boşluk yok. Ama kapak üst katmana baskı yapar, alt katman ise ağırlığı taşır. Ahududu kendi ağırlığını taşımaz - markete ulaştığında alt katman artık sudur. Bu sadece yandan görülebilir.",
+    "vergleichTitle": "Aynı açı, iki meyve",
+    "vergleichText": "Solda kusursuz bir meyve, sağda kurşuni küf bulaşmış olanı - aynı çeşidin iki fotoğrafı, aynı meyve değil. Sürgüyü kaydırın: fark günlerle değil saatlerle oluşur ve kapalı kasada bir gecede tüm katmana geçer.",
+    "vergleichLinks": "Sağlam",
+    "vergleichRechts": "Bulaşmış",
+    "vergleichRegler": "Karşılaştırma sürgüsünü iki fotoğraf arasında kaydır"
   },
   "qualitaetsReferenz": {
     "aufklappen": "Kalite referansını göster",
