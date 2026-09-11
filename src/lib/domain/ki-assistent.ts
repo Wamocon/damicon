@@ -1,6 +1,14 @@
 // KI-Assistent (Anforderung 5.4/5.5): reine Typen/Konstanten ohne Server-
 // Import, wie domain/vorbestellungen.ts - Client-Formulare importieren aus
-// dieser Datei, nicht aus data/ki-assistent.ts.
+// dieser Datei, nicht aus data/ki-assistent.ts. Bewusst OHNE Import aus
+// rbac.ts (auch nicht relativ): ein "@/..."-Alias loest unter dem einfachen
+// Node, mit dem supabase/tests/ki-assistent.mjs diese Datei ausfuehrt, nicht
+// auf, ein expliziter ".ts"-Pfad wiederum scheitert an tsc
+// ("allowImportingTsExtensions" ist nicht aktiviert). Deshalb nimmt
+// wissensQuellenFuerRolle() unten bereits fertig ausgewertete Faehigkeiten
+// entgegen - die eigentliche rbac.ts-Abfrage (hasPermission) macht der
+// Aufrufer (actions/ki-assistent.ts), wo der "@/..."-Alias unter Next.js
+// ganz normal funktioniert.
 
 export const kiAnbieterTypen = ["openai_kompatibel", "anthropic"] as const;
 export type KiAnbieterTyp = (typeof kiAnbieterTypen)[number];
@@ -83,17 +91,87 @@ export function baueWissensKontext(preislisten: WissensPreisliste[]): string {
 // Systemanweisung, die den Chat auf die freigegebenen Daten beschraenkt
 // (Masterplan-Formulierung woertlich uebernommen: "auf freigegebenem Produkt-,
 // Preis- und Verfuegbarkeitsbestand"). Zentral an einer Stelle, damit sie
-// unabhaengig vom gewaehlten Anbieter identisch bleibt.
+// unabhaengig vom gewaehlten Anbieter identisch bleibt. Bewusst rollenneutral
+// formuliert (nicht mehr "Sorten, Preisen und Bestellungen"): welche Themen
+// tatsaechlich beantwortbar sind, ergibt sich allein daraus, was im
+// uebergebenen Kontext steht - siehe wissensQuellenFuerRolle() unten.
 export function baueSystemPrompt(wissenKontext: string): string {
   return [
-    "Du bist der Kunden-Assistent von Damicon, einem Himbeerenbetrieb in Kasachstan.",
-    "Beantworte ausschliesslich Fragen zu Sorten, Preisen und Bestellungen, gestuetzt auf die folgenden freigegebenen Daten. Erfinde keine Preise, Mengen oder Termine.",
-    "Wenn eine Frage sich nicht aus den folgenden Daten beantworten laesst, sage das offen und verweise auf das Buero.",
+    "Du bist der Assistent von Damicon, einem Himbeerenbetrieb in Kasachstan.",
+    "Beantworte ausschliesslich Fragen, die sich aus den folgenden freigegebenen Daten und Regeln beantworten lassen. Erfinde keine Preise, Mengen, Termine oder Regeln, die dort nicht stehen.",
+    "Wenn eine Frage sich nicht daraus beantworten laesst - auch wenn du die Antwort aus anderem Wissen zu kennen glaubst - sage das offen und verweise auf das Buero.",
     "Antworte kurz, sachlich und in der Sprache der Frage.",
     "",
-    "Freigegebene Daten:",
+    "Freigegebene Daten und Regeln:",
     wissenKontext,
   ].join("\n");
+}
+
+// --- Rollenbasierte Wissensgrundlage -----------------------------------------
+// Nutzer-Anforderung, ergaenzend zum Masterplan-Text: ein Feldarbeiter darf
+// den Chat nutzen, darf aber keine Finanz-, Lohn- oder Admin-Daten im
+// Antwortkontext bekommen, selbst wenn danach gefragt wird. Die uebliche,
+// sichere Umsetzung (siehe Erlaeuterung an den Nutzer) ist NICHT, dem Modell
+// per Prompt zu verbieten, ueber bestimmte Themen zu reden - ein Prompt ist
+// keine Zugriffsgrenze, ein hartnaeckig oder geschickt formulierter Nutzer
+// kann ihn umgehen. Stattdessen bekommt das Modell die sensiblen Daten
+// schlicht NIE in seinen Kontext, wenn die anfragende Rolle dafuer keine
+// Berechtigung hat - dieselbe Instanz von hasPermission()/rbac.ts, die auch
+// jedes andere Modul verwendet, keine zweite, separat zu pflegende
+// Zugriffsliste fuer den Chat.
+export type WissensQuelle = "preisliste" | "feldregeln";
+
+/** Reine Umsetzung fertig ausgewerteter Faehigkeiten in Wissensquellen - die
+ *  eigentliche rbac.ts-Abfrage steht beim Aufrufer, siehe Kommentar oben. */
+export function wissensQuellenFuerFaehigkeiten(faehigkeiten: {
+  /** Dieselbe Berechtigung, die auch das B2B-Portal bzw. den Sortenkatalog
+   *  freischaltet (betriebsleitung/buchhaltung/admin/erzeuger/kunde - nicht
+   *  brigade/picker). */
+  siehtProdukteUndPreise: boolean;
+  /** Dieselbe Berechtigung, die auch Zugriff auf Pflueckaufgaben/Kuehlkette
+   *  gibt (brigade/admin - nicht kunde/buchhaltung). */
+  siehtFeldbetrieb: boolean;
+}): WissensQuelle[] {
+  const quellen: WissensQuelle[] = [];
+  if (faehigkeiten.siehtProdukteUndPreise) quellen.push("preisliste");
+  if (faehigkeiten.siehtFeldbetrieb) quellen.push("feldregeln");
+  return quellen;
+}
+
+// Bewusst statischer Text, keine Live-Datenbankabfrage: allgemeine,
+// nicht-personenbezogene Verfahrensregeln aus dem Feld-Betrieb, dieselben
+// Regeln, die an anderer Stelle im Code als Kommentar/Constraint stehen
+// (20260905140000_pflueckaufgabe_sperre.sql, transport_kuehlkette_bewerten()).
+// Kein Risiko, versehentlich echte Kunden-, Preis- oder Personendaten
+// preiszugeben, weil hier schlicht keine aus der Datenbank gelesen werden -
+// bewusst der risikoaermste erste Ausbauschritt fuer die Feld-Rollen, ein
+// Anschluss an die eigenen, aktuellen Aufgaben/den Rotationsplan waere der
+// naechste, hier noch nicht gebaute Schritt.
+export function baueFeldregelnKontext(): string {
+  return [
+    "Allgemeine Verfahrensregeln im Feld (keine Kunden-, Preis- oder Personendaten):",
+    "- Zwischen dem Pfluecken einer Steige und der Vorkuehlung duerfen hoechstens 60 Minuten liegen.",
+    "- Nach einer Pflanzenschutzbehandlung ist der betroffene Reihenblock bis zum Ablauf der angegebenen Wartezeit gesperrt, keine Pflueckaufgabe moeglich.",
+    "- Fotobeleg der Verkaufsschale ist bei jeder Pflueckaufgabe Pflicht.",
+    "- Bei Fragen zu Lohn, Personal oder Finanzen: nicht beantworten, an das Buero verweisen.",
+  ].join("\n");
+}
+
+/** Kombiniert die fuer eine Rolle zulaessigen Wissensquellen zu einem
+ *  Kontext-Text. Leere quellen[] (z. B. picker) ergibt einen expliziten
+ *  Hinweistext statt eines leeren Strings - baueSystemPrompt() soll nie mit
+ *  einem inhaltsleeren "Freigegebene Daten und Regeln:"-Abschnitt enden. */
+export function baueGesamtWissenskontext(
+  quellen: WissensQuelle[],
+  preislisten: WissensPreisliste[],
+): string {
+  const teile = quellen.map((quelle) =>
+    quelle === "preisliste" ? baueWissensKontext(preislisten) : baueFeldregelnKontext(),
+  );
+  if (teile.length === 0) {
+    return "Fuer diese Rolle liegt keine Wissensgrundlage vor. Beantworte keine fachliche Frage, verweise auf das Buero.";
+  }
+  return teile.join("\n\n");
 }
 
 // Deterministische Ausweichantwort (Masterplan: "kein 5xx bei Ausfall") - kein

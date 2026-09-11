@@ -26,10 +26,13 @@ import {
   parseOpenAiKompatibelAntwort,
 } from "../../src/lib/ai/anfrage.ts";
 import {
+  baueFeldregelnKontext,
+  baueGesamtWissenskontext,
   baueSystemPrompt,
   baueWissensKontext,
   istGueltigerAnbieterTyp,
   sollteAutomatischEskalieren,
+  wissensQuellenFuerFaehigkeiten,
 } from "../../src/lib/domain/ki-assistent.ts";
 
 let bestanden = 0;
@@ -209,6 +212,90 @@ for (const [name, kaputteAntwort] of [
   pruefe(
     "sollteAutomatischEskalieren: eine erfolgreiche Antwort danach setzt die Zaehlung zurueck",
     !sollteAutomatischEskalieren(einmalFallbackDannErfolg),
+  );
+}
+
+// --- Rollenbasierte Wissensgrundlage ------------------------------------------
+// wissensQuellenFuerFaehigkeiten() prueft nur die reine Abbildung
+// Faehigkeit -> Wissensquelle - die tatsaechliche rbac.ts-Abfrage
+// (hasPermission fuer b2b_portal/sortenkatalog/pflueckaufgaben/kuehlkette je
+// Rolle) steht in actions/ki-assistent.ts und laesst sich aus den oben
+// genannten Gruenden hier nicht mit importieren; die reale Zuordnung je
+// Rolle (z. B. "bekommt brigade wirklich nur Feldregeln") ist live im
+// Browser gegengeprueft, nicht hier.
+
+{
+  pruefe(
+    "wissensQuellenFuerFaehigkeiten: nur Feldbetrieb -> ausschliesslich Feldregeln, keine Preisliste",
+    JSON.stringify(wissensQuellenFuerFaehigkeiten({ siehtProdukteUndPreise: false, siehtFeldbetrieb: true })) ===
+      JSON.stringify(["feldregeln"]),
+  );
+}
+
+{
+  pruefe(
+    "wissensQuellenFuerFaehigkeiten: nur Produkte/Preise -> ausschliesslich Preisliste, keine Feldregeln",
+    JSON.stringify(wissensQuellenFuerFaehigkeiten({ siehtProdukteUndPreise: true, siehtFeldbetrieb: false })) ===
+      JSON.stringify(["preisliste"]),
+  );
+}
+
+{
+  pruefe(
+    "wissensQuellenFuerFaehigkeiten: beide Faehigkeiten -> beide Quellen",
+    JSON.stringify(wissensQuellenFuerFaehigkeiten({ siehtProdukteUndPreise: true, siehtFeldbetrieb: true })) ===
+      JSON.stringify(["preisliste", "feldregeln"]),
+  );
+}
+
+{
+  pruefe(
+    "wissensQuellenFuerFaehigkeiten: keine Faehigkeit -> keine Quelle",
+    wissensQuellenFuerFaehigkeiten({ siehtProdukteUndPreise: false, siehtFeldbetrieb: false }).length === 0,
+  );
+}
+
+{
+  const kontext = baueFeldregelnKontext();
+  pruefe(
+    "baueFeldregelnKontext: enthaelt die 60-Minuten-Regel, keine Preis-/Kundendaten",
+    kontext.includes("60 Minuten") && !kontext.includes("Tenge"),
+    kontext,
+  );
+}
+
+{
+  const kontext = baueGesamtWissenskontext([], []);
+  pruefe(
+    "baueGesamtWissenskontext: ohne jede Quelle (z. B. picker) ein expliziter Hinweis statt leerem Text",
+    kontext.length > 0 && kontext.includes("Buero"),
+    kontext,
+  );
+}
+
+{
+  const kontext = baueGesamtWissenskontext(["feldregeln"], []);
+  pruefe(
+    "baueGesamtWissenskontext: Feldrolle bekommt Feldregeln, aber keine Preisliste im Kontext, selbst wenn welche uebergeben wuerde",
+    kontext.includes("60 Minuten") && !kontext.includes("Tenge"),
+    kontext,
+  );
+}
+
+{
+  const preislisten = [
+    {
+      name: "Saison 2026",
+      gueltigAb: "2026-06-01",
+      gueltigBis: null,
+      positionen: [{ sorte: "Polka", preisTengeKg: 3200, minMengeKg: 50 }],
+    },
+  ];
+  const kontext = baueGesamtWissenskontext(["preisliste"], preislisten);
+  pruefe(
+    "baueGesamtWissenskontext: Bueoro-/Kunden-Rolle bekommt die Preisliste, keine Feldregeln im Kontext",
+    kontext.includes("Polka") && !kontext.includes("Pflanzenschutzbehandlung"),
+    kontext,
   );
 }
 

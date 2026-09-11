@@ -230,6 +230,13 @@ export const rolePermissions: Record<Role, Permission[]> = {
     // das bleibt Planungsaufgabe der Betriebsleitung (kein logistik:create).
     ...view("logistik"),
     "logistik:update",
+    // Anforderung 5.4/5.5, rollenbasierte Wissensgrundlage: Brigade darf den
+    // KI-Assistenten nutzen, bekommt aber ausschliesslich feldbezogene
+    // Verfahrensregeln als Kontext (baueWissensKontextFuerRolle(),
+    // domain/ki-assistent.ts) - kein view("finanzen")/view("lohn") in dieser
+    // Liste, also auch keine Finanz-/Lohndaten im Chat-Kontext.
+    ...view("ki_assistent"),
+    "ki_assistent:create",
   ],
   // Sieht nur die eigene Leistung (Anforderung 7.1): view("lohn") oeffnet
   // dasselbe Lohn-Modul wie betriebsleitung/buchhaltung, die RLS-Policies

@@ -6,7 +6,13 @@ import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { ladeKiChatVerlauf, ladeWissensPreislisten } from "@/lib/data/ki-assistent";
-import { baueSystemPrompt, baueWissensKontext, sollteAutomatischEskalieren } from "@/lib/domain/ki-assistent";
+import {
+  baueGesamtWissenskontext,
+  baueSystemPrompt,
+  sollteAutomatischEskalieren,
+  wissensQuellenFuerFaehigkeiten,
+} from "@/lib/domain/ki-assistent";
+import { hasPermission } from "@/lib/rbac";
 import { sendeChatAnfrage } from "@/lib/ai/anbieter-client";
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
 import type { ChatNachricht } from "@/lib/ai/anfrage";
@@ -120,8 +126,22 @@ export async function kiNachrichtSenden(
       fallback = true;
       antwortText = t("keinAnbieter");
     } else {
-      const preislisten = await ladeWissensPreislisten();
-      const systemPrompt = baueSystemPrompt(baueWissensKontext(preislisten));
+      // Rollenbasierte Wissensgrundlage (Nutzer-Anforderung): welche Themen
+      // ueberhaupt im Kontext landen, richtet sich nach denselben
+      // Berechtigungen wie ueberall sonst im Projekt (rbac.ts), nicht nach
+      // einer Bitte im Prompt - ein Feldarbeiter (brigade) bekommt so nie
+      // Preis-/Kundendaten in seinen Kontext, unabhaengig davon, wonach er
+      // fragt.
+      const quellen = wissensQuellenFuerFaehigkeiten({
+        siehtProdukteUndPreise:
+          hasPermission(profil.role, "b2b_portal", "view") ||
+          hasPermission(profil.role, "sortenkatalog", "view"),
+        siehtFeldbetrieb:
+          hasPermission(profil.role, "pflueckaufgaben", "view") ||
+          hasPermission(profil.role, "kuehlkette", "view"),
+      });
+      const preislisten = quellen.includes("preisliste") ? await ladeWissensPreislisten() : [];
+      const systemPrompt = baueSystemPrompt(baueGesamtWissenskontext(quellen, preislisten));
 
       const verlaufFuerModell: ChatNachricht[] = [
         { rolle: "system", inhalt: systemPrompt },

@@ -3874,6 +3874,14 @@ if (leitung && brigade) {
         standardDurchAdminFehler?.message ?? JSON.stringify(nachStandardSetzen),
       );
 
+      // Hinweis fuer produktive Laeufe gegen die echte, geteilte Datenbank:
+      // ki_anbieter_standard_setzen() ist bewusst so gebaut, dass IMMER nur
+      // ein einziger Anbieter "ist_standard" ist - dieser Test setzt seinen
+      // eigenen Test-Anbieter als Standard und loescht ihn danach zwar
+      // wieder, ein zuvor echt konfigurierter Standard-Anbieter bleibt dabei
+      // aber "ist_standard = false" (keine automatische Wiederherstellung).
+      // Nach einem Testlauf gegen die produktive/gehostete Instanz ggf. den
+      // eigentlichen Standard-Anbieter erneut setzen.
       await admin.from("ki_anbieter").delete().eq("id", neuerAnbieter.id);
     }
   }
