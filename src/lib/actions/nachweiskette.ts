@@ -140,6 +140,11 @@ export async function kuehlmessungKern(
   }
 
   await supabase.from("audit_events").insert({
+    // Vibecode-Cleanup-Fund: actor fehlte hier (anders als bei jeder anderen
+    // Protokollierung im Projekt), nur die Rolle stand in metadata - der
+    // Audit-Log verlor damit ausgerechnet fuer die Feldvorgaenge den
+    // lesbaren Namen der handelnden Person.
+    actor: `${profil.fullName} (${profil.role})`,
     aktion: "kuehlmessung.erfasst",
     ressource: "kuehlketten_messungen",
     ressource_id: data.id,
@@ -231,6 +236,7 @@ export async function steigeKern(
   }
 
   await supabase.from("audit_events").insert({
+    actor: `${profil.fullName} (${profil.role})`,
     aktion: "steige.erfasst",
     ressource: "steigen",
     ressource_id: data.id,
@@ -290,6 +296,7 @@ export async function arbeitszeitKern(params: ArbeitszeitParams): Promise<KernEr
   if (!data) return { erledigt: true, status: ok("ok.arbeitszeit", String(minuten)) };
 
   await supabase.from("audit_events").insert({
+    actor: `${profil.fullName} (${profil.role})`,
     aktion: "arbeitszeit.erfasst",
     ressource: "arbeitszeiten",
     ressource_id: data.id,

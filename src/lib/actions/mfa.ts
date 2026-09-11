@@ -57,6 +57,17 @@ export async function mfaEnrollmentSchritt(
       return { ...status, fehler: "fehler.code" };
     }
 
+    // Vibecode-Cleanup-Fund: die Aktivierung eines zweiten Faktors blieb
+    // bisher ungeloggt, obwohl das ein sicherheitsrelevanter Vorgang ist wie
+    // jeder andere protokollierte Schreibvorgang im Projekt.
+    await supabase.from("audit_events").insert({
+      actor: `${profil.fullName} (${profil.role})`,
+      aktion: "mfa.aktiviert",
+      ressource: "mfa_faktoren",
+      ressource_id: profil.id,
+      metadata: {},
+    });
+
     revalidatePath("/dashboard/sicherheit");
     return { schritt: "fertig", faktorId };
   }
@@ -101,6 +112,14 @@ export async function mfaFaktorEntfernen(
     console.error("[damicon] MFA-Entfernen fehlgeschlagen:", error.message);
     return fehler("fehler.unbekannt");
   }
+
+  await supabase.from("audit_events").insert({
+    actor: `${profil.fullName} (${profil.role})`,
+    aktion: "mfa.entfernt",
+    ressource: "mfa_faktoren",
+    ressource_id: profil.id,
+    metadata: {},
+  });
 
   revalidatePath("/dashboard/sicherheit");
   return ok("ok.mfaEntfernt");

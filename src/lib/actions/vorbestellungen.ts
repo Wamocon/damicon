@@ -90,6 +90,17 @@ export async function vorbestellungStatusSetzen(
     return zugriffsFehler(error);
   }
 
+  // Vibecode-Cleanup-Fund: "kunde" hat ueber crud("b2b_portal") ebenfalls
+  // b2b_portal:update (fuer den eigenen Storno in vorbestellungStornieren()
+  // unten), requirePermission() allein filtert diese Rolle hier also nicht
+  // aus. RLS (vorbestellungen_update_buero) blockt einen kunde-Aufruf zwar
+  // zuverlaessig, dasselbe Muster wie an anderer Stelle im Projekt (siehe
+  // b2b-portal-ansicht.tsx) verlangt aber denselben Ausschluss zusaetzlich
+  // hier in der Aktion, statt sich allein auf RLS zu verlassen.
+  if (profil.role === "kunde") {
+    return zugriffsFehler(new Error("keine-berechtigung"));
+  }
+
   const id = text(formData, "id");
   const neuerStatus = text(formData, "status");
   if (!id || (neuerStatus !== "bestaetigt" && neuerStatus !== "storniert")) {
@@ -101,6 +112,15 @@ export async function vorbestellungStatusSetzen(
     .from("vorbestellungen")
     .update({ status: neuerStatus })
     .eq("id", id)
+    // Vibecode-Cleanup-Fund: derselbe Vorzustands-Schutz wie in der RLS-
+    // Policy vorbestellungen_update_buero (Migration 20260929010000), hier
+    // zusaetzlich in der Aktion statt sich allein auf die Datenbank zu
+    // verlassen - verhindert, dass eine bereits automatisch auf "geliefert"
+    // oder ein bereits "storniert" fortgeschriebene Vorbestellung erneut
+    // umgesetzt wird. Bewusst NICHT nur "angefragt": eine bereits
+    // "bestaetigt" bestellte Menge nachtraeglich zu stornieren, bleibt ein
+    // legitimer Geschaeftsvorgang (Ruecksprache mit dem Kunden).
+    .in("status", ["angefragt", "bestaetigt"])
     .select("id")
     .maybeSingle();
 
