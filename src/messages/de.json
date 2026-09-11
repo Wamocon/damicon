@@ -635,9 +635,9 @@
     },
     "ki_assistent": {
       "title": "KI-Assistent",
-      "description": "Chat, der Standardanfragen beantwortet und Verfügbarkeiten aus dem System zieht - ausschließlich aus freigegebenen Quellen, jede Antwort protokolliert, bei Unsicherheit Übergabe an einen Menschen. Im Prototyp ein Platzhalter-Chatfenster.",
+      "description": "Chat, der Standardanfragen beantwortet und Verfügbarkeiten aus dem System zieht - ausschließlich aus freigegebenen Quellen, jede Antwort protokolliert, bei Unsicherheit Übergabe an einen Menschen. Anbieter (z. B. Sokrates, Claude oder ein selbst gehostetes Modell) sind austauschbar, ein Admin bindet sie per API-Key an.",
       "summary": "Antwortet nur aus freigegebenen Quellen, protokolliert jede Antwort, eskaliert bei Unsicherheit an einen Menschen.",
-      "todo": "Wissensbasis Sortenkatalog und Kunden-FAQ, Zugriffsgate je Rolle, Transparenzhinweis nach KI-Gesetz, Eskalationspfad."
+      "todo": "Wissensbasis bislang nur Preisliste - Sortenkatalog und Kunden-FAQ als weitere Quellen fehlen noch."
     },
     "aggregator": {
       "title": "Aggregator / Nachbarbetriebe",
@@ -766,7 +766,14 @@
       "pfleuckerBrigadeZugewiesen": "{wert} einer Brigade zugewiesen.",
       "vorbestellung": "Vorbestellung aufgegeben.",
       "vorbestellungStatus": "Vorbestellung aktualisiert.",
-      "vorbestellungStorniert": "Vorbestellung storniert."
+      "vorbestellungStorniert": "Vorbestellung storniert.",
+      "kiNachrichtGesendet": "Nachricht gesendet.",
+      "kiEskalationAngefordert": "Anfrage an einen Mitarbeiter weitergegeben.",
+      "kiAnbieterAngelegt": "Anbieter \"{wert}\" angelegt.",
+      "kiAnbieterAktiviert": "Anbieter \"{wert}\" aktiviert.",
+      "kiAnbieterDeaktiviert": "Anbieter \"{wert}\" deaktiviert.",
+      "kiAnbieterStandardGesetzt": "Standard-Anbieter umgestellt.",
+      "kiAnbieterGeloescht": "Anbieter \"{wert}\" gelöscht."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -789,7 +796,8 @@
       "keinKunde": "Ihrem Zugang ist kein B2B-Kunde zugeordnet. Bitte an die Administration wenden.",
       "zukaufBefunde": "{wert} Fehler in der Eingabe gefunden - nichts wurde übernommen. Siehe Prüfergebnis unten.",
       "code": "Der Code ist falsch oder abgelaufen. Bitte den aktuellen 6-stelligen Code aus der Authenticator-App eingeben.",
-      "zustand": "Der Termin hat sich zwischenzeitlich geändert (z. B. gesperrt oder bereits erledigt). Bitte Seite neu laden."
+      "zustand": "Der Termin hat sich zwischenzeitlich geändert (z. B. gesperrt oder bereits erledigt). Bitte Seite neu laden.",
+      "einwilligung": "Bitte den Hinweis oben bestätigen, bevor die erste Nachricht gesendet wird."
     }
   },
   "standortVerwaltung": {
@@ -1309,14 +1317,55 @@
     "simulateScan": "Scan simulieren",
     "registered": "erfasst"
   },
-  "kiAssistentMock": {
-    "chatTitle": "Retrieval-Chat (Platzhalter)",
-    "chatLead": "Antwortet später nur aus freigegebenen Quellen, protokolliert jede Antwort, eskaliert bei Unsicherheit an einen Menschen. Wissensbasis noch nicht befüllt.",
-    "demoQuestion": "Welche Sorten sind ab September lieferbar?",
-    "demoAnswer": "Ab September lieferbar: Polka und Polana (remontierend), auf Anfrage Kweli. Tulameen ist ein Sommerträger und im September nicht verfügbar.",
-    "stubAnswer": "Platzhalter-Antwort. Im Prototyp ist keine Wissensbasis angebunden - der echte Assistent zieht die Antwort aus dem freigegebenen Sortenkatalog und der Kunden-FAQ.",
+  "kiAssistentAnsicht": {
+    "chatTitel": "KI-Assistent",
+    "chatLead": "Antwortet ausschließlich aus freigegebenen Preis- und Sortendaten, protokolliert jede Antwort, eskaliert bei wiederholter Unsicherheit an das Büro.",
+    "transparenzHinweis": "Diese Antworten stammen von einer KI, nicht von einem Mitarbeiter. Grundlage sind ausschließlich freigegebene Preis- und Sortendaten.",
+    "keinVerlauf": "Noch keine Nachricht. Stellen Sie unten Ihre erste Frage.",
     "inputPlaceholder": "Frage eingeben ...",
-    "send": "Senden"
+    "senden": "Senden",
+    "einwilligungText": "Ich habe den Hinweis gelesen und bin einverstanden, dass meine Frage an den konfigurierten KI-Anbieter übermittelt wird.",
+    "eskalationKnopf": "Mit einem Mitarbeiter sprechen",
+    "eskalationAngefordert": "Anfrage an einen Mitarbeiter des Büros weitergegeben - er meldet sich zeitnah.",
+    "eskalationAutomatisch": "Der KI-Assistent konnte zuletzt nicht antworten - das Büro wurde automatisch informiert.",
+    "fallback": {
+      "keinAnbieter": "Der KI-Assistent ist derzeit nicht eingerichtet. Bitte wenden Sie sich an unser Büro.",
+      "antwort": "Der KI-Assistent ist gerade nicht erreichbar. Bitte versuchen Sie es später erneut oder wenden Sie sich an unser Büro.",
+      "badge": "Ausweichantwort"
+    },
+    "anbieterVerwaltung": {
+      "titel": "KI-Anbieter verwalten",
+      "lead": "Nur für Administration sichtbar. Mehrere Anbieter lassen sich anlegen, aktiv ist immer genau der als Standard markierte.",
+      "keineAnbieter": "Noch kein Anbieter angelegt - der Chat zeigt bis dahin die Ausweichantwort.",
+      "standard": "Standard",
+      "aktiv": "aktiv",
+      "inaktiv": "inaktiv",
+      "alsStandard": "Als Standard",
+      "aktivieren": "Aktivieren",
+      "deaktivieren": "Deaktivieren",
+      "loeschen": "Löschen",
+      "loeschenSicher": "Anbieter \"{name}\" wirklich löschen? Ist er der Standard-Anbieter, antwortet der Chat danach mit der Ausweichantwort.",
+      "hinweis": "Der API-Key wird verschlüsselt gespeichert und nie wieder angezeigt. Zum Ändern von Basis-URL, Modell oder Schlüssel den Anbieter löschen und neu anlegen.",
+      "letzteAenderung": "Stand: {datum}",
+      "typOptionen": {
+        "openai_kompatibel": "OpenAI-kompatibel (z. B. Sokrates, selbst gehostete Open-Source-Modelle)",
+        "anthropic": "Anthropic Claude"
+      },
+      "formular": {
+        "titel": "Anbieter hinzufügen",
+        "lead": "Sokrates, Claude oder ein anderes Modell per API-Key anbinden.",
+        "anzeigeName": "Anzeigename",
+        "anzeigeNamePlatzhalter": "Sokrates",
+        "name": "Interner Schlüssel",
+        "typ": "Anfrageform",
+        "bitteWaehlen": "Bitte wählen",
+        "modell": "Modell",
+        "modellPlatzhalter": "z. B. sokrates-chat-1",
+        "basisUrl": "Basis-URL",
+        "apiKey": "API-Key",
+        "knopf": "Anbieter anlegen"
+      }
+    }
   },
   "legal": {
     "imprintTitle": "Impressum",

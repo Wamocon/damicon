@@ -481,14 +481,55 @@
     "registered": "kaydedildi",
     "scanLead": "Her kasada QR etiketi, teslimde okutma. Miktar, sıra bloğu, saat ve kişi tek işlemde - burada gerçek sunucu doğrulaması olmadan."
   },
-  "kiAssistentMock": {
-    "chatTitle": "Retrieval sohbeti (yer tutucu)",
-    "chatLead": "Daha sonra yalnızca onaylı kaynaklardan yanıt verir, her yanıtı kaydeder, belirsizlikte bir insana yükseltir. Bilgi tabanı henüz doldurulmadı.",
-    "demoQuestion": "Eylülden itibaren hangi çeşitler teslim edilebilir?",
-    "demoAnswer": "Eylülden itibaren teslim edilebilir: Polka ve Polana (yıl içinde iki kez ürün veren), talep üzerine Kweli. Tulameen bir yaz çeşididir ve eylülde yoktur.",
-    "stubAnswer": "Yer tutucu yanıt. Prototipte bilgi tabanı bağlı değil - gerçek asistan yanıtı onaylı çeşit kataloğundan ve müşteri SSS'sinden alır.",
+  "kiAssistentAnsicht": {
+    "chatTitel": "Yapay zekâ asistanı",
+    "chatLead": "Yalnızca onaylı fiyat ve çeşit verilerinden yanıt verir, her yanıtı kaydeder, tekrarlayan belirsizlikte ofise yükseltir.",
+    "transparenzHinweis": "Bu yanıtlar bir çalışandan değil, yapay zekâdan gelir. Dayanağı yalnızca onaylı fiyat ve çeşit verileridir.",
+    "keinVerlauf": "Henüz mesaj yok. İlk sorunuzu aşağıya yazın.",
     "inputPlaceholder": "Soru girin ...",
-    "send": "Gönder"
+    "senden": "Gönder",
+    "einwilligungText": "Bildirimi okudum ve sorumun yapılandırılmış yapay zekâ sağlayıcısına iletilmesini kabul ediyorum.",
+    "eskalationKnopf": "Bir çalışanla görüş",
+    "eskalationAngefordert": "Talebiniz ofisten bir çalışana iletildi - kısa süre içinde sizinle iletişime geçecek.",
+    "eskalationAutomatisch": "Yapay zekâ asistanı son zamanlarda yanıt veremedi - ofis otomatik olarak bilgilendirildi.",
+    "fallback": {
+      "keinAnbieter": "Yapay zekâ asistanı şu anda yapılandırılmamış. Lütfen ofisimizle iletişime geçin.",
+      "antwort": "Yapay zekâ asistanına şu anda ulaşılamıyor. Lütfen daha sonra tekrar deneyin veya ofisimizle iletişime geçin.",
+      "badge": "Yedek yanıt"
+    },
+    "anbieterVerwaltung": {
+      "titel": "Yapay zekâ sağlayıcılarını yönet",
+      "lead": "Yalnızca yöneticilere görünür. Birden fazla sağlayıcı tanımlanabilir, standart olarak işaretlenen her zaman etkin olandır.",
+      "keineAnbieter": "Henüz bir sağlayıcı tanımlanmadı - o zamana kadar sohbet yedek yanıtı gösterir.",
+      "standard": "Standart",
+      "aktiv": "etkin",
+      "inaktiv": "etkin değil",
+      "alsStandard": "Standart yap",
+      "aktivieren": "Etkinleştir",
+      "deaktivieren": "Devre dışı bırak",
+      "loeschen": "Sil",
+      "loeschenSicher": "\"{name}\" sağlayıcısı gerçekten silinsin mi? Standart sağlayıcı ise, sohbet bundan sonra yedek yanıta döner.",
+      "hinweis": "API anahtarı şifreli olarak saklanır ve bir daha asla gösterilmez. Temel URL, model veya anahtarı değiştirmek için sağlayıcıyı silip yeniden ekleyin.",
+      "letzteAenderung": "Durum: {datum}",
+      "typOptionen": {
+        "openai_kompatibel": "OpenAI uyumlu (ör. Sokrates, kendi sunucusunda barındırılan açık kaynak modeller)",
+        "anthropic": "Anthropic Claude"
+      },
+      "formular": {
+        "titel": "Sağlayıcı ekle",
+        "lead": "Sokrates, Claude veya başka bir modeli API anahtarıyla bağlayın.",
+        "anzeigeName": "Görünen ad",
+        "anzeigeNamePlatzhalter": "Sokrates",
+        "name": "Dahili anahtar",
+        "typ": "İstek biçimi",
+        "bitteWaehlen": "Lütfen seçin",
+        "modell": "Model",
+        "modellPlatzhalter": "ör. sokrates-chat-1",
+        "basisUrl": "Temel URL",
+        "apiKey": "API anahtarı",
+        "knopf": "Sağlayıcı ekle"
+      }
+    }
   },
   "legal": {
     "imprintTitle": "Künye",
@@ -900,9 +941,9 @@
     },
     "ki_assistent": {
       "title": "Yapay zekâ asistanı",
-      "description": "Standart soruları yanıtlayan ve stok durumunu sistemden çeken sohbet - yalnızca onaylı kaynaklardan, her yanıt kayda geçer, tereddütte insana devreder. Prototipte yer tutucu bir sohbet penceresi.",
+      "description": "Standart soruları yanıtlayan ve stok durumunu sistemden çeken sohbet - yalnızca onaylı kaynaklardan, her yanıt kayda geçer, tereddütte insana devreder. Sağlayıcılar (ör. Sokrates, Claude veya kendi sunucusunda barındırılan bir model) birbirinin yerine geçebilir, bir yönetici bunları API anahtarıyla bağlar.",
       "summary": "Yalnızca onaylı kaynaklardan yanıtlar, her yanıtı kaydeder, tereddütte insana devreder.",
-      "todo": "Bilgi tabanı: çeşit kataloğu ve müşteri soruları, rol bazlı erişim kapısı, Yapay Zekâ Kanunu gereği şeffaflık bildirimi, devretme yolu."
+      "todo": "Bilgi tabanı şimdilik yalnızca fiyat listesi - çeşit kataloğu ve müşteri SSS'si ek kaynak olarak henüz eksik."
     },
     "aggregator": {
       "title": "Toplulaştırma / komşu işletmeler",
@@ -1011,7 +1052,14 @@
       "pfleuckerBrigadeZugewiesen": "{wert} bir ekibe atandı.",
       "vorbestellung": "Ön sipariş verildi.",
       "vorbestellungStatus": "Ön sipariş güncellendi.",
-      "vorbestellungStorniert": "Ön sipariş iptal edildi."
+      "vorbestellungStorniert": "Ön sipariş iptal edildi.",
+      "kiNachrichtGesendet": "Mesaj gönderildi.",
+      "kiEskalationAngefordert": "Talep bir çalışana iletildi.",
+      "kiAnbieterAngelegt": "\"{wert}\" sağlayıcısı eklendi.",
+      "kiAnbieterAktiviert": "\"{wert}\" sağlayıcısı etkinleştirildi.",
+      "kiAnbieterDeaktiviert": "\"{wert}\" sağlayıcısı devre dışı bırakıldı.",
+      "kiAnbieterStandardGesetzt": "Standart sağlayıcı değiştirildi.",
+      "kiAnbieterGeloescht": "\"{wert}\" sağlayıcısı silindi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -1034,7 +1082,8 @@
       "keinKunde": "Hesabınıza bağlı bir B2B müşterisi yok. Lütfen yönetimle iletişime geçin.",
       "zukaufBefunde": "Girişte {wert} hata bulundu - hiçbir şey içe aktarılmadı. Aşağıdaki kontrol sonuçlarına bakın.",
       "code": "Kod yanlış veya süresi doldu. Lütfen kimlik doğrulayıcı uygulamadaki güncel 6 haneli kodu girin.",
-      "zustand": "Tarih bu sırada değişti (ör. kilitlendi veya zaten tamamlandı). Lütfen sayfayı yeniden yükleyin."
+      "zustand": "Tarih bu sırada değişti (ör. kilitlendi veya zaten tamamlandı). Lütfen sayfayı yeniden yükleyin.",
+      "einwilligung": "İlk mesajı göndermeden önce lütfen yukarıdaki bildirimi onaylayın."
     }
   },
   "standortVerwaltung": {

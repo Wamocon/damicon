@@ -177,6 +177,11 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...crud("reklamationen"),
     `reklamationen:approve`,
     ...view("ki_assistent"),
+    // Anforderung 5.4/5.5: eine Chat-Nachricht senden ist ein eigener,
+    // schmalerer Vorgang als "update" (kein Zugriff auf die Anbieterliste
+    // selbst, das bleibt "manage" und damit admin vorbehalten, siehe
+    // rolePermissions.admin ueber all(resource) unten).
+    `ki_assistent:create`,
     ...crud("aggregator"),
     ...crud("schulungen"),
     // Anforderung 4.10: die eigene Pflichtschulung nachweisen, dasselbe
@@ -262,6 +267,7 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...view("reklamationen"),
     `reklamationen:create`,
     ...view("ki_assistent"),
+    `ki_assistent:create`,
     ...view("dokumente"),
   ],
 };

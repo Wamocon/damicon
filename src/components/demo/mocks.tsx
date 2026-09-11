@@ -1,8 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
-import { Send, ThermometerSnowflake } from "lucide-react";
+import { ThermometerSnowflake } from "lucide-react";
 import { Card, Section, StatusPill } from "@/components/ui/kit";
 import { ModulePlaceholder } from "@/components/dashboard/module-meta";
 import type { ModuleDef } from "@/lib/modules";
@@ -80,74 +79,8 @@ export function KuehlketteMock({ module }: { module: ModuleDef }) {
 // offen - dieser Ausbauschritt deckt Erzeugung/Anzeige/Druck ab, siehe
 // modules.ts.
 
-// Retrieval-only-KI-Chat: Architektur aus 1Cati [UEBERNEHMEN], im Prototyp nur
-// ein Platzhalter-Chatfenster ohne befuellte Wissensbasis.
-export function KiAssistentMock({ module }: { module: ModuleDef }) {
-  const t = useTranslations("kiAssistentMock");
-  const [input, setInput] = useState("");
-  const seed = useMemo(
-    () => [
-      { role: "user" as const, text: t("demoQuestion") },
-      { role: "bot" as const, text: t("demoAnswer") },
-    ],
-    [t],
-  );
-  const [messages, setMessages] = useState(seed);
-
-  return (
-    <div className="space-y-6">
-      <Section title={t("chatTitle")} description={t("chatLead")}>
-        <Card className="p-0">
-          <div className="max-h-80 space-y-3 overflow-y-auto p-4">
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={
-                  message.role === "user" ? "flex justify-end" : "flex justify-start"
-                }
-              >
-                <p
-                  className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
-                    message.role === "user"
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-foreground"
-                  }`}
-                >
-                  {message.text}
-                </p>
-              </div>
-            ))}
-          </div>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              if (!input.trim()) return;
-              setMessages((prev) => [
-                ...prev,
-                { role: "user", text: input.trim() },
-                { role: "bot", text: t("stubAnswer") },
-              ]);
-              setInput("");
-            }}
-            className="flex gap-2 border-t border-border p-3"
-          >
-            <input
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              placeholder={t("inputPlaceholder")}
-              className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary"
-            />
-            <button
-              type="submit"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground"
-              aria-label={t("send")}
-            >
-              <Send className="h-4 w-4" />
-            </button>
-          </form>
-        </Card>
-      </Section>
-      <ModulePlaceholder module={module} />
-    </div>
-  );
-}
+// KiAssistentMock entfaellt (Anforderung 5.4/5.5): das Modul "ki_assistent"
+// laeuft jetzt ueber die datenbankgestuetzte Ansicht in
+// src/components/db/ki-assistent-ansicht.tsx, mit echter Anbindung an einen
+// per Admin konfigurierten KI-Anbieter statt eines reinen, lokal
+// nachgestellten Chatfensters ohne Modellaufruf.

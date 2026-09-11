@@ -635,9 +635,9 @@
     },
     "ki_assistent": {
       "title": "AI assistant",
-      "description": "A chat that answers standard enquiries and pulls availability from the system - exclusively from released sources, every answer logged, handed over to a human on uncertainty. A placeholder chat window in the prototype.",
+      "description": "A chat that answers standard enquiries and pulls availability from the system - exclusively from released sources, every answer logged, handed over to a human on uncertainty. Providers (e.g. Sokrates, Claude, or a self-hosted model) are interchangeable, an admin connects them by API key.",
       "summary": "Answers only from released sources, logs every answer, escalates to a human on uncertainty.",
-      "todo": "Knowledge base of variety catalogue and client FAQ, per-role access gate, transparency notice under the AI Act, escalation path."
+      "todo": "Knowledge base currently price list only - variety catalogue and client FAQ as further sources still missing."
     },
     "aggregator": {
       "title": "Aggregator / neighbouring farms",
@@ -766,7 +766,14 @@
       "pfleuckerBrigadeZugewiesen": "{wert} assigned to a crew.",
       "vorbestellung": "Order placed.",
       "vorbestellungStatus": "Order updated.",
-      "vorbestellungStorniert": "Order cancelled."
+      "vorbestellungStorniert": "Order cancelled.",
+      "kiNachrichtGesendet": "Message sent.",
+      "kiEskalationAngefordert": "Handed over to a staff member.",
+      "kiAnbieterAngelegt": "Provider \"{wert}\" added.",
+      "kiAnbieterAktiviert": "Provider \"{wert}\" activated.",
+      "kiAnbieterDeaktiviert": "Provider \"{wert}\" deactivated.",
+      "kiAnbieterStandardGesetzt": "Default provider changed.",
+      "kiAnbieterGeloescht": "Provider \"{wert}\" deleted."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -789,7 +796,8 @@
       "keinKunde": "Your account has no B2B client assigned. Please contact the administration.",
       "zukaufBefunde": "{wert} error(s) found in the input - nothing was imported. See the check results below.",
       "code": "The code is wrong or expired. Please enter the current 6-digit code from your authenticator app.",
-      "zustand": "The date has changed in the meantime (e.g. locked or already done). Please reload the page."
+      "zustand": "The date has changed in the meantime (e.g. locked or already done). Please reload the page.",
+      "einwilligung": "Please confirm the notice above before sending the first message."
     }
   },
   "standortVerwaltung": {
@@ -1309,14 +1317,55 @@
     "simulateScan": "Simulate scan",
     "registered": "registered"
   },
-  "kiAssistentMock": {
-    "chatTitle": "Retrieval chat (placeholder)",
-    "chatLead": "Later answers only from released sources, logs every answer, escalates to a human on uncertainty. Knowledge base not yet populated.",
-    "demoQuestion": "Which varieties are available from September?",
-    "demoAnswer": "Available from September: Polka and Polana (everbearing), Kweli on request. Tulameen is a summer-bearing variety and not available in September.",
-    "stubAnswer": "Placeholder answer. In the prototype no knowledge base is connected - the real assistant draws its answer from the released variety catalogue and the client FAQ.",
+  "kiAssistentAnsicht": {
+    "chatTitel": "AI assistant",
+    "chatLead": "Answers exclusively from released price and variety data, logs every answer, escalates to the office on repeated uncertainty.",
+    "transparenzHinweis": "These answers come from an AI, not a staff member. They are based exclusively on released price and variety data.",
+    "keinVerlauf": "No message yet. Ask your first question below.",
     "inputPlaceholder": "Enter a question ...",
-    "send": "Send"
+    "senden": "Send",
+    "einwilligungText": "I have read the notice and agree that my question is sent to the configured AI provider.",
+    "eskalationKnopf": "Talk to a staff member",
+    "eskalationAngefordert": "Handed over to a staff member of the office - they will get in touch shortly.",
+    "eskalationAutomatisch": "The AI assistant could not answer recently - the office was notified automatically.",
+    "fallback": {
+      "keinAnbieter": "The AI assistant is not currently set up. Please contact our office.",
+      "antwort": "The AI assistant is not reachable right now. Please try again later or contact our office.",
+      "badge": "Fallback answer"
+    },
+    "anbieterVerwaltung": {
+      "titel": "Manage AI providers",
+      "lead": "Visible to administrators only. Several providers can be configured; the one marked as default is always the active one.",
+      "keineAnbieter": "No provider configured yet - the chat shows the fallback answer until one is added.",
+      "standard": "Default",
+      "aktiv": "active",
+      "inaktiv": "inactive",
+      "alsStandard": "Set as default",
+      "aktivieren": "Activate",
+      "deaktivieren": "Deactivate",
+      "loeschen": "Delete",
+      "loeschenSicher": "Really delete provider \"{name}\"? If it is the default provider, the chat will fall back to the fallback answer afterwards.",
+      "hinweis": "The API key is stored encrypted and never shown again. To change the base URL, model, or key, delete the provider and add it again.",
+      "letzteAenderung": "As of: {datum}",
+      "typOptionen": {
+        "openai_kompatibel": "OpenAI-compatible (e.g. Sokrates, self-hosted open-source models)",
+        "anthropic": "Anthropic Claude"
+      },
+      "formular": {
+        "titel": "Add provider",
+        "lead": "Connect Sokrates, Claude, or another model by API key.",
+        "anzeigeName": "Display name",
+        "anzeigeNamePlatzhalter": "Sokrates",
+        "name": "Internal key",
+        "typ": "Request format",
+        "bitteWaehlen": "Please choose",
+        "modell": "Model",
+        "modellPlatzhalter": "e.g. sokrates-chat-1",
+        "basisUrl": "Base URL",
+        "apiKey": "API key",
+        "knopf": "Add provider"
+      }
+    }
   },
   "legal": {
     "imprintTitle": "Imprint",

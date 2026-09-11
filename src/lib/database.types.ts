@@ -907,6 +907,114 @@ export type Database = {
         }
         Relationships: []
       }
+      ki_anbieter: {
+        Row: {
+          aktiv: boolean
+          aktualisiert_am: string
+          anzeige_name: string
+          api_key_chiffrat: string
+          basis_url: string
+          erstellt_am: string
+          erstellt_von: string | null
+          id: string
+          ist_standard: boolean
+          modell: string
+          name: string
+          typ: Database["public"]["Enums"]["ki_anbieter_typ"]
+        }
+        Insert: {
+          aktiv?: boolean
+          aktualisiert_am?: string
+          anzeige_name: string
+          api_key_chiffrat: string
+          basis_url: string
+          erstellt_am?: string
+          erstellt_von?: string | null
+          id?: string
+          ist_standard?: boolean
+          modell: string
+          name: string
+          typ: Database["public"]["Enums"]["ki_anbieter_typ"]
+        }
+        Update: {
+          aktiv?: boolean
+          aktualisiert_am?: string
+          anzeige_name?: string
+          api_key_chiffrat?: string
+          basis_url?: string
+          erstellt_am?: string
+          erstellt_von?: string | null
+          id?: string
+          ist_standard?: boolean
+          modell?: string
+          name?: string
+          typ?: Database["public"]["Enums"]["ki_anbieter_typ"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ki_anbieter_erstellt_von_fkey"
+            columns: ["erstellt_von"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ki_anbieter_erstellt_von_fkey"
+            columns: ["erstellt_von"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+        ]
+      }
+      ki_chat_nachrichten: {
+        Row: {
+          anbieter_name: string | null
+          erstellt_am: string
+          eskaliert: boolean
+          fallback: boolean
+          id: string
+          inhalt: string
+          profil_id: string
+          rolle: string
+        }
+        Insert: {
+          anbieter_name?: string | null
+          erstellt_am?: string
+          eskaliert?: boolean
+          fallback?: boolean
+          id?: string
+          inhalt: string
+          profil_id: string
+          rolle: string
+        }
+        Update: {
+          anbieter_name?: string | null
+          erstellt_am?: string
+          eskaliert?: boolean
+          fallback?: boolean
+          id?: string
+          inhalt?: string
+          profil_id?: string
+          rolle?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ki_chat_nachrichten_profil_id_fkey"
+            columns: ["profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ki_chat_nachrichten_profil_id_fkey"
+            columns: ["profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+        ]
+      }
       kontingente: {
         Row: {
           b2b_kunde_id: string | null
@@ -2870,6 +2978,10 @@ export type Database = {
           wartezeit_eingehalten: boolean
         }[]
       }
+      ki_anbieter_standard_setzen: {
+        Args: { p_id: string }
+        Returns: undefined
+      }
       kpi_aktuell: {
         Args: never
         Returns: {
@@ -2992,6 +3104,7 @@ export type Database = {
       einwilligung_kanal: "papier" | "app" | "web" | "sms"
       esutd_status: "erfasst" | "offen"
       integration_status: "verbunden" | "sandbox" | "geplant"
+      ki_anbieter_typ: "openai_kompatibel" | "anthropic"
       kuehlkette_ergebnis: "ok" | "warnung" | "verstoss"
       ledger_typ: "erloes" | "kosten"
       lieferung_status: "geplant" | "zugestellt" | "storniert"
@@ -3196,6 +3309,7 @@ export const Constants = {
       einwilligung_kanal: ["papier", "app", "web", "sms"],
       esutd_status: ["erfasst", "offen"],
       integration_status: ["verbunden", "sandbox", "geplant"],
+      ki_anbieter_typ: ["openai_kompatibel", "anthropic"],
       kuehlkette_ergebnis: ["ok", "warnung", "verstoss"],
       ledger_typ: ["erloes", "kosten"],
       lieferung_status: ["geplant", "zugestellt", "storniert"],
