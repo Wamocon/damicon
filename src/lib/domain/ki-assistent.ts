@@ -32,6 +32,13 @@ export interface KiAnbieterZeile {
   erstelltAm: string;
 }
 
+// Vibecode-Cleanup-Fund: stand vorher nur als lokale Konstante in
+// actions/ki-assistent.ts (einer "use server"-Datei, vom Client nicht
+// importierbar) - das Chatformular (ki-assistent-formulare.tsx) dupliziert
+// denselben Wert als "maxLength"-Attribut. Hier zentral, von beiden Seiten
+// importierbar, keine zwei Stellen mehr, die synchron bleiben muessen.
+export const MAX_NACHRICHT_LAENGE = 2000;
+
 export const kiChatRollen = ["nutzer", "assistent", "system"] as const;
 export type KiChatRolle = (typeof kiChatRollen)[number];
 

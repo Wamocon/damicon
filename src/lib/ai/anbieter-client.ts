@@ -17,14 +17,28 @@ export type AnbieterAntwort = { ok: true; text: string } | { ok: false; grund: s
 
 const ZEITLIMIT_MS = 20_000;
 
+// Vibecode-Cleanup: vorher zwei getrennte Ternaries (einmal fuers Bauen,
+// einmal fuers Parsen), die beide auf anbieter.typ unterschieden - bei einem
+// dritten Anbietertyp (im Migrationskommentar bereits als Erweiterung
+// angekuendigt) waeren zwei Stellen statt einer zu aendern. Jetzt eine
+// einzige Zuordnungstabelle je Typ.
+const ANBIETER_ADAPTER: Record<
+  KiAnbieterTyp,
+  {
+    bauen: (basisUrl: string, modell: string, apiKey: string, verlauf: ChatNachricht[]) => ReturnType<typeof baueOpenAiKompatibelAnfrage>;
+    parsen: (json: unknown) => string | null;
+  }
+> = {
+  openai_kompatibel: { bauen: baueOpenAiKompatibelAnfrage, parsen: parseOpenAiKompatibelAntwort },
+  anthropic: { bauen: baueAnthropicAnfrage, parsen: parseAnthropicAntwort },
+};
+
 export async function sendeChatAnfrage(
   anbieter: { typ: KiAnbieterTyp; basisUrl: string; modell: string; apiKey: string },
   verlauf: ChatNachricht[],
 ): Promise<AnbieterAntwort> {
-  const anfrage =
-    anbieter.typ === "anthropic"
-      ? baueAnthropicAnfrage(anbieter.basisUrl, anbieter.modell, anbieter.apiKey, verlauf)
-      : baueOpenAiKompatibelAnfrage(anbieter.basisUrl, anbieter.modell, anbieter.apiKey, verlauf);
+  const adapter = ANBIETER_ADAPTER[anbieter.typ];
+  const anfrage = adapter.bauen(anbieter.basisUrl, anbieter.modell, anbieter.apiKey, verlauf);
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), ZEITLIMIT_MS);
@@ -43,8 +57,7 @@ export async function sendeChatAnfrage(
     }
 
     const json = await antwort.json().catch(() => null);
-    const text =
-      anbieter.typ === "anthropic" ? parseAnthropicAntwort(json) : parseOpenAiKompatibelAntwort(json);
+    const text = adapter.parsen(json);
 
     if (!text) return { ok: false, grund: "antwort-unerwartete-form" };
     return { ok: true, text };
