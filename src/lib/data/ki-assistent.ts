@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import { ladePreislisten } from "@/lib/data/vorbestellungen";
+import { getSessionProfile } from "@/lib/auth";
 import type {
   KiAnbieterZeile,
   KiChatNachrichtZeile,
@@ -81,9 +82,21 @@ export interface KiChatVerlauf {
 export async function ladeKiChatVerlauf(): Promise<KiChatVerlauf> {
   if (!isSupabaseConfigured()) return { quelle: "demo", nachrichten: demoVerlauf };
 
+  // Explizit auf die eigene profil_id filtern, NICHT nur auf RLS verlassen
+  // (Live-Test-Fund): ki_chat_nachrichten_select_buero erlaubt einem
+  // Buero-Profil zusaetzlich ALLE Zeilen zu sehen, RLS-Policies wirken
+  // additiv (ODER-verknuepft) - ein ungefilterter Select haette einer
+  // Betriebsleitung in ihrem EIGENEN Chatfenster faelschlich die Gespraeche
+  // sämtlicher Kunden vermischt angezeigt, ununterscheidbar vom eigenen
+  // Verlauf. Diese Funktion bleibt bewusst die persoenliche
+  // "Ich chatte mit der KI"-Ansicht fuer jede Rolle; eine separate
+  // Buero-Einsichtnahme über mehrere Kunden hinweg (aus demselben
+  // RLS-Zugriff heraus technisch moeglich) ist eine eigene, hier noch nicht
+  // gebaute Ansicht.
+  const profil = await getSessionProfile();
+  if (!profil) return { quelle: "fehler", nachrichten: [] };
+
   const supabase = await createClient();
-  // RLS (ki_chat_nachrichten_select_own) grenzt fuer eine normale Anmeldung
-  // ohnehin auf die eigenen Zeilen ein - kein zusaetzlicher Filter noetig.
   //
   // Absteigend sortiert + limitiert, danach in JS wieder aufsteigend gedreht:
   // aufsteigend sortieren UND limitieren haette (adversarischer Review-Fund)
@@ -95,6 +108,7 @@ export async function ladeKiChatVerlauf(): Promise<KiChatVerlauf> {
   const { data, error } = await supabase
     .from("ki_chat_nachrichten")
     .select("id, rolle, inhalt, anbieter_name, fallback, eskaliert, erstellt_am")
+    .eq("profil_id", profil.id)
     .order("erstellt_am", { ascending: false })
     .limit(MAX_VERLAUF);
 

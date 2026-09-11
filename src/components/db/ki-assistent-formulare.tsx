@@ -224,6 +224,12 @@ function KiAnbieterZeileKarte({ anbieter }: { anbieter: KiAnbieterZeile }) {
 
 function KiAnbieterAnlegenFormular() {
   const t = useTranslations("kiAssistentAnsicht.anbieterVerwaltung.formular");
+  // typOptionen liegt in messages/*.json eine Ebene hoeher, als Geschwister
+  // von "formular" statt darunter - eigener, weiter gefasster Uebersetzer statt
+  // eines falsch aufgeloesten Schluessels (t("typOptionen...") haette
+  // "...formular.typOptionen..." gesucht, live im Browser als
+  // MISSING_MESSAGE aufgefallen, von der statischen Pruefung nicht erkannt).
+  const tTyp = useTranslations("kiAssistentAnsicht.anbieterVerwaltung");
   const [status, action] = useActionState(kiAnbieterAnlegen, leer);
 
   return (
@@ -238,7 +244,7 @@ function KiAnbieterAnlegenFormular() {
           required
           options={[
             { wert: "", text: t("bitteWaehlen") },
-            ...kiAnbieterTypen.map((typ) => ({ wert: typ, text: t(`typOptionen.${typ}`) })),
+            ...kiAnbieterTypen.map((typ) => ({ wert: typ, text: tTyp(`typOptionen.${typ}`) })),
           ]}
         />
         <Feld label={t("modell")} name="modell" required placeholder={t("modellPlatzhalter")} />
