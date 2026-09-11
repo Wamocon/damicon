@@ -303,7 +303,11 @@ export const modules: ModuleDef[] = [
     icon: "sparkles",
     resource: "ki_assistent",
     klassifikation: "uebernehmen",
-    reifegrad: "in-entwicklung",
+    // Anforderung 5.4/5.5: echter, anbieteruebergreifender Chat statt reinem
+    // Platzhalter-Chatfenster (KiAssistentMock entfaellt). Ein Admin bindet
+    // Sokrates, Claude (Anthropic) oder ein selbst gehostetes Open-Source-
+    // Modell jeweils per API-Key an (ki-assistent-ansicht.tsx).
+    reifegrad: "angebunden",
   },
   {
     key: "aggregator",

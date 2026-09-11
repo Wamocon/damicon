@@ -177,6 +177,11 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...crud("reklamationen"),
     `reklamationen:approve`,
     ...view("ki_assistent"),
+    // Anforderung 5.4/5.5: eine Chat-Nachricht senden ist ein eigener,
+    // schmalerer Vorgang als "update" (kein Zugriff auf die Anbieterliste
+    // selbst, das bleibt "manage" und damit admin vorbehalten, siehe
+    // rolePermissions.admin ueber all(resource) unten).
+    `ki_assistent:create`,
     ...crud("aggregator"),
     ...crud("schulungen"),
     // Anforderung 4.10: die eigene Pflichtschulung nachweisen, dasselbe
@@ -225,6 +230,13 @@ export const rolePermissions: Record<Role, Permission[]> = {
     // das bleibt Planungsaufgabe der Betriebsleitung (kein logistik:create).
     ...view("logistik"),
     "logistik:update",
+    // Anforderung 5.4/5.5, rollenbasierte Wissensgrundlage: Brigade darf den
+    // KI-Assistenten nutzen, bekommt aber ausschliesslich feldbezogene
+    // Verfahrensregeln als Kontext (baueWissensKontextFuerRolle(),
+    // domain/ki-assistent.ts) - kein view("finanzen")/view("lohn") in dieser
+    // Liste, also auch keine Finanz-/Lohndaten im Chat-Kontext.
+    ...view("ki_assistent"),
+    "ki_assistent:create",
   ],
   // Sieht nur die eigene Leistung (Anforderung 7.1): view("lohn") oeffnet
   // dasselbe Lohn-Modul wie betriebsleitung/buchhaltung, die RLS-Policies
@@ -262,6 +274,7 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...view("reklamationen"),
     `reklamationen:create`,
     ...view("ki_assistent"),
+    `ki_assistent:create`,
     ...view("dokumente"),
   ],
 };

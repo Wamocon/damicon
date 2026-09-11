@@ -3799,6 +3799,159 @@ if (leitung && brigade) {
   }
 }
 
+// --- Anforderung 5.4/5.5: KI-Assistent (Anbieterverwaltung, Chatverlauf) ----
+{
+  const { client: adminClient, fehler: adminFehler } = await anmelden("admin@damicon.demo");
+  check("Anforderung 5.4/5.5: Admin meldet sich an", !!adminClient, adminFehler ?? "");
+
+  if (adminClient) {
+    // api_key_chiffrat ist hier ein Platzhalter-Text, keine echte Verschluesselung -
+    // dieser Test prueft RLS/RPC, nicht src/lib/ai/schluessel.ts (siehe
+    // supabase/tests/ki-assistent.mjs fuer die Verschluesselung selbst).
+    const { data: neuerAnbieter, error: neuerAnbieterFehler } = await adminClient
+      .from("ki_anbieter")
+      .insert({
+        name: `__it_ki_anbieter_${Date.now()}`,
+        anzeige_name: "Integrationstest-Anbieter",
+        typ: "openai_kompatibel",
+        basis_url: "https://api.beispiel.invalid/v1",
+        modell: "test-modell",
+        api_key_chiffrat: "platzhalter-kein-echtes-chiffrat",
+      })
+      .select("id, ist_standard")
+      .single();
+    check(
+      "Anforderung 5.4/5.5: Admin legt einen KI-Anbieter an (RLS ki_anbieter_admin_alles)",
+      !neuerAnbieterFehler && !!neuerAnbieter?.id && neuerAnbieter.ist_standard === false,
+      neuerAnbieterFehler?.message ?? JSON.stringify(neuerAnbieter),
+    );
+
+    if (neuerAnbieter?.id) {
+      const { data: bueroSieht, error: bueroSiehtFehler } = await leitung
+        .from("ki_anbieter")
+        .select("id")
+        .eq("id", neuerAnbieter.id);
+      check(
+        "Anforderung 5.4/5.5: Betriebsleitung sieht die Anbieterliste nicht (RLS admin-only, kein view fuer diese Rolle)",
+        !bueroSiehtFehler && (bueroSieht?.length ?? 0) === 0,
+        bueroSiehtFehler?.message ?? `sichtbare Zeilen: ${bueroSieht?.length}`,
+      );
+
+      const { data: bueroLegtAn, error: bueroLegtAnFehler } = await leitung.from("ki_anbieter").insert({
+        name: `__it_ki_anbieter_buero_${Date.now()}`,
+        anzeige_name: "Sollte scheitern",
+        typ: "anthropic",
+        basis_url: "https://api.beispiel.invalid",
+        modell: "x",
+        api_key_chiffrat: "x",
+      });
+      check(
+        "Anforderung 5.4/5.5: Betriebsleitung legt keinen KI-Anbieter an (RLS ki_anbieter_admin_alles)",
+        bueroLegtAnFehler?.code === "42501",
+        bueroLegtAnFehler?.code ?? JSON.stringify(bueroLegtAn),
+      );
+
+      const { error: standardDurchBueroFehler } = await leitung.rpc("ki_anbieter_standard_setzen", {
+        p_id: neuerAnbieter.id,
+      });
+      check(
+        "Anforderung 5.4/5.5: Betriebsleitung darf ki_anbieter_standard_setzen nicht aufrufen (has_role-Pruefung in der Funktion)",
+        standardDurchBueroFehler?.code === "42501",
+        standardDurchBueroFehler?.code ?? "kein Fehler",
+      );
+
+      const { error: standardDurchAdminFehler } = await adminClient.rpc("ki_anbieter_standard_setzen", {
+        p_id: neuerAnbieter.id,
+      });
+      const { data: nachStandardSetzen } = await admin
+        .from("ki_anbieter")
+        .select("ist_standard")
+        .eq("id", neuerAnbieter.id)
+        .single();
+      check(
+        "Anforderung 5.4/5.5: Admin setzt den Anbieter per RPC atomar als Standard",
+        !standardDurchAdminFehler && nachStandardSetzen?.ist_standard === true,
+        standardDurchAdminFehler?.message ?? JSON.stringify(nachStandardSetzen),
+      );
+
+      // Hinweis fuer produktive Laeufe gegen die echte, geteilte Datenbank:
+      // ki_anbieter_standard_setzen() ist bewusst so gebaut, dass IMMER nur
+      // ein einziger Anbieter "ist_standard" ist - dieser Test setzt seinen
+      // eigenen Test-Anbieter als Standard und loescht ihn danach zwar
+      // wieder, ein zuvor echt konfigurierter Standard-Anbieter bleibt dabei
+      // aber "ist_standard = false" (keine automatische Wiederherstellung).
+      // Nach einem Testlauf gegen die produktive/gehostete Instanz ggf. den
+      // eigentlichen Standard-Anbieter erneut setzen.
+      await admin.from("ki_anbieter").delete().eq("id", neuerAnbieter.id);
+    }
+  }
+
+  // Chatverlauf: eigene Zeilen lesen/schreiben, Buero sieht mit (Eskalation),
+  // eine dritte Rolle ohne Bezug sieht nichts.
+  const { data: kundeProfil } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("email", "kunde@damicon.demo")
+    .single();
+
+  const { client: kundeChatClient } = await anmelden("kunde@damicon.demo");
+  const { data: eigeneNachricht, error: eigeneNachrichtFehler } = await kundeChatClient
+    .from("ki_chat_nachrichten")
+    .insert({ profil_id: kundeProfil?.id, rolle: "nutzer", inhalt: "Welche Sorten gibt es?" })
+    .select("id")
+    .single();
+  check(
+    "Anforderung 5.4/5.5: Kunde schreibt eine eigene Chat-Nachricht (RLS ki_chat_nachrichten_insert_own)",
+    !eigeneNachrichtFehler && !!eigeneNachricht?.id,
+    eigeneNachrichtFehler?.message ?? JSON.stringify(eigeneNachricht),
+  );
+
+  const { data: fremdeProfilId, error: fremdeNachrichtFehler } = await kundeChatClient
+    .from("ki_chat_nachrichten")
+    .insert({ profil_id: (await admin.from("profiles").select("id").eq("email", "leitung@damicon.demo").single()).data?.id, rolle: "nutzer", inhalt: "Untergeschoben" })
+    .select("id");
+  check(
+    "Anforderung 5.4/5.5: ein Kunde kann keine Nachricht unter einer fremden profil_id anlegen (RLS-WITH-CHECK)",
+    !!fremdeNachrichtFehler || (fremdeProfilId?.length ?? 0) === 0,
+    fremdeNachrichtFehler?.code ?? `eingefuegte Zeilen: ${fremdeProfilId?.length}`,
+  );
+
+  if (eigeneNachricht?.id) {
+    const { data: erzeugerSiehtChat } = await (await anmelden("erzeuger@damicon.demo")).client
+      .from("ki_chat_nachrichten")
+      .select("id")
+      .eq("id", eigeneNachricht.id);
+    check(
+      "Anforderung 5.4/5.5: eine Anmeldung ohne Buero-/Eigentuemerbezug (Erzeuger) sieht die Nachricht nicht",
+      (erzeugerSiehtChat?.length ?? 0) === 0,
+      `sichtbare Zeilen: ${erzeugerSiehtChat?.length}`,
+    );
+
+    const { data: bueroSiehtChat, error: bueroSiehtChatFehler } = await leitung
+      .from("ki_chat_nachrichten")
+      .select("id")
+      .eq("id", eigeneNachricht.id);
+    check(
+      "Anforderung 5.4/5.5: Betriebsleitung sieht die Nachricht mit (RLS ki_chat_nachrichten_select_buero, Eskalation an Menschen)",
+      !bueroSiehtChatFehler && (bueroSiehtChat?.length ?? 0) === 1,
+      bueroSiehtChatFehler?.message ?? `sichtbare Zeilen: ${bueroSiehtChat?.length}`,
+    );
+
+    const { data: kundeUpdateVersuch, error: kundeUpdateVersuchFehler } = await kundeChatClient
+      .from("ki_chat_nachrichten")
+      .update({ inhalt: "veraendert" })
+      .eq("id", eigeneNachricht.id)
+      .select("id");
+    check(
+      "Anforderung 5.4/5.5: eine Chat-Nachricht ist unveraenderlich (keine Update-Policy, append-only)",
+      !!kundeUpdateVersuchFehler || (kundeUpdateVersuch?.length ?? 0) === 0,
+      kundeUpdateVersuchFehler?.code ?? `geaenderte Zeilen: ${kundeUpdateVersuch?.length}`,
+    );
+
+    await admin.from("ki_chat_nachrichten").delete().eq("id", eigeneNachricht.id);
+  }
+}
+
 console.log("");
 if (failures > 0) {
   console.error(`${failures} Test(s) fehlgeschlagen.`);

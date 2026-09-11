@@ -6,7 +6,7 @@ import { ModulePlaceholder } from "@/components/dashboard/module-meta";
 import { PflanzenschutzDemo } from "@/components/demo/feld-extra";
 import { PersonalDemo, RollenDemo } from "@/components/demo/buero";
 import { SchulungenDemo, SortenkatalogDemo } from "@/components/demo/markt";
-import { KiAssistentMock, KuehlketteMock } from "@/components/demo/mocks";
+import { KuehlketteMock } from "@/components/demo/mocks";
 
 type ModuleView = ComponentType<{ module: ModuleDef }>;
 
@@ -24,7 +24,6 @@ const registry: Record<string, ModuleView> = {
   sortenkatalog: plain(SortenkatalogDemo),
   schulungen: plain(SchulungenDemo),
   kuehlkette: KuehlketteMock,
-  ki_assistent: KiAssistentMock,
 };
 
 export function ModuleView({ module }: { module: ModuleDef }) {

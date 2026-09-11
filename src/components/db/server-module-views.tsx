@@ -16,6 +16,7 @@ import { FoerdermittelAnsicht } from "@/components/db/foerdermittel-ansicht";
 import { LogistikAnsicht } from "@/components/db/logistik-ansicht";
 import { B2bPortalAnsicht } from "@/components/db/b2b-portal-ansicht";
 import { PersonalAnsicht } from "@/components/db/personal-ansicht";
+import { KiAssistentAnsicht } from "@/components/db/ki-assistent-ansicht";
 import type { ModuleDef } from "@/lib/modules";
 
 // Module, die in Meilenstein B an der Datenbank haengen. Sie werden als Server
@@ -106,6 +107,9 @@ export function serverModulAnsicht(
           <PflichtschulungenAnsicht />
         </div>
       );
+    // Anforderung 5.4/5.5: echte Anbindung statt KiAssistentMock.
+    case "ki_assistent":
+      return <KiAssistentAnsicht />;
     default:
       return null;
   }

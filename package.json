@@ -17,7 +17,8 @@
     "db:test": "node --env-file=.env.local supabase/tests/integration.mjs",
     "db:test:fast": "node supabase/tests/pglite-fast.mjs",
     "test:zukauf-parser": "node supabase/tests/zukauf-parser.mjs",
-    "test:ausweis-scan": "node supabase/tests/ausweis-scan.mjs"
+    "test:ausweis-scan": "node supabase/tests/ausweis-scan.mjs",
+    "test:ki-assistent": "node supabase/tests/ki-assistent.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
