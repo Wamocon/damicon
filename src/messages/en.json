@@ -38,7 +38,11 @@
     "stat2Value": "every 2 – 3 days",
     "stat2Label": "picking cycle per row block in the autumn window",
     "stat3Value": "factor 2.3",
-    "stat3Label": "price gap between loose fresh ware and same-day premium"
+    "stat3Label": "price gap between loose fresh ware and same-day premium",
+    "rotatorPrefix": "Documented",
+    "rotator1": "down to the row block.",
+    "rotator2": "down to the cooling minute.",
+    "rotator3": "down to the person."
   },
   "landing": {
     "openZone": "Open area",
@@ -180,7 +184,36 @@
     "complianceClosing": "Large chains with their own supply chain only take on suppliers who can produce evidence. Compliance here is not a formality but the admission ticket.",
     "ctaTitle": "A tangible system instead of concept slides",
     "ctaLead": "The prototype shows the structure and look of the first release: row-block control with the pre-harvest-interval lock, picking tasks with photo evidence, the cold-chain clock and contribution margin per harvest day.",
-    "ctaButton": "Go to the dashboard"
+    "ctaButton": "Go to the dashboard",
+    "faqEyebrow": "Frequent questions",
+    "faqTitle": "Six questions that always come up in the first meeting",
+    "faqLead": "Short answers with the figures shown on this page.",
+    "faqItems": {
+      "sechzig": {
+        "q": "Why exactly 60 minutes?",
+        "a": "No more than 60 minutes may pass between picking and cooling down. Once that limit is missed, every later measure is ineffective - which is why the system measures this span per batch, not as a daily average."
+      },
+      "durchgang": {
+        "q": "What happens if a picking pass is missed?",
+        "a": "Every row block is picked every two to three days, across three to eight weeks. A missed pass destroys that block for the cycle. The rotation plan keeps the order and shows the gap on the same day."
+      },
+      "beleg": {
+        "q": "How is a delivery documented?",
+        "a": "Every crate carries an identifier assigned in the field and belongs to exactly one batch. Row block, variety, harvest day, picking time, cooling curve and treatment record hang on it - through to the electronic delivery note in the ЭСФ system."
+      },
+      "rollen": {
+        "q": "Who sees which data?",
+        "a": "The role of the signed-in account decides, and it decides in the database, not in the interface. Seven core roles from administration to the individual picker; a gap in the frontend therefore exposes no foreign data."
+      },
+      "stand": {
+        "q": "What is already built today?",
+        "a": "25 modules across four areas. 14 work against the database with real writes, 3 are built as an operable demo, 8 are visible menu entries under development. The figures on the landing page are placeholders until the first fully measured season."
+      },
+      "daten": {
+        "q": "Where is the data held?",
+        "a": "Digital Code No. 255-VIII restricts storing certain data products outside Kazakhstan. The hosting location is therefore reviewed legally before going live; keys and credentials never live in the source code."
+      }
+    }
   },
   "zones": {
     "feld": {
@@ -206,7 +239,7 @@
   },
   "footer": {
     "blurb": "Damicon is the farm-management system for a raspberry farm near Almaty - from the harvest run through the cold chain to the evidence for every delivery.",
-    "prototypeNote": "Internal proof of concept. Not a contractually committed scope. Farm photos show the real site near Almaty; remaining imagery is placeholder material from royalty-free sources.",
+    "prototypeNote": "Internal proof of concept. Not a contractually committed scope. Farm photos show the real site near Almaty; all other images are illustrations or placeholders.",
     "productHeading": "Product",
     "legalHeading": "Legal",
     "imprint": "Imprint",
@@ -1985,5 +2018,67 @@
       "offen": "open"
     },
     "note": "Demand calculation and shift plan come directly from the rotation plan (which row block must be harvested on which day). Weather scenarios are deliberately not part of this view - the weather connection (requirement 2.13) has been deferred."
+  },
+  "erlebnis": {
+    "bento": {
+      "minuten": "minutes",
+      "sechzigLink": "See the first hour",
+      "frost": "Frost"
+    },
+    "sechzig": {
+      "eyebrow": "The first hour",
+      "title": "60 minutes decide the price",
+      "lead": "Scroll through the hour after picking. The clock starts with the scan in the field, and the curve shows the heat leaving the fruit.",
+      "uhrLabel": "after picking",
+      "minute": "min",
+      "kurveTitel": "Cooling curve, schematic",
+      "achseWarm": "Field heat",
+      "achseKalt": "0–1 °C",
+      "grenze": "Limit 60 min",
+      "kuehlraum": "Cold room",
+      "schritte": {
+        "pfluecken": {
+          "title": "Picked straight into the punnet",
+          "text": "The berry goes from the hand into the retail punnet. When the crate is handed over, one scan captures volume, row block, time and person. The clock starts here."
+        },
+        "kuehlraum": {
+          "title": "In the cold room after 5 to 15 minutes",
+          "text": "That is how long it takes today from picking to the cold room. The figure is good and does not need improving."
+        },
+        "vorkuehlung": {
+          "title": "Cooled down to 0 to 1 degree",
+          "text": "The heat has to leave the fruit, not just the room. Only then does the cold slow down ripening and grey mould."
+        },
+        "beleg": {
+          "title": "The cooling curve is on record",
+          "text": "Time and temperature are attached to the batch. If the 60-minute limit is broken, the farm sees it before the buyer does."
+        }
+      }
+    },
+    "belegkette": {
+      "start": "Scan the punnet",
+      "startText": "The code on the punnet opens the chain back to its origin.",
+      "pruefen": "Check the origin yourself"
+    },
+    "lupe": {
+      "hinweisMaus": "Magnifier: move the mouse over the photo",
+      "hinweisTouch": "Magnifier: tap the photo"
+    },
+    "cursor": {
+      "ziehen": "Drag"
+    },
+    "ton": {
+      "an": "Turn field sounds on",
+      "aus": "Turn field sounds off"
+    },
+    "scan": {
+      "eyebrow": "3D walkthrough",
+      "title": "The farm in three dimensions",
+      "lead": "A 3D scan of the farm, recorded on site. Rotate, zoom and view the row blocks from any angle.",
+      "laden": "Load 3D walkthrough ({mb} MB)",
+      "laedt": "Loading … {prozent} %",
+      "bedienung": "Drag to rotate, scroll or pinch to zoom",
+      "fehler": "The 3D walkthrough could not be loaded."
+    }
   }
 }

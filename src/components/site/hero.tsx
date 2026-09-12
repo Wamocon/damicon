@@ -2,6 +2,7 @@ import { useTranslations } from "next-intl";
 import { ArrowRight, Snowflake, Timer, Repeat } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { HeroVideo } from "@/components/site/hero-video";
+import { Wortwechsel } from "@/components/site/wortwechsel";
 
 export function Hero() {
   const t = useTranslations("hero");
@@ -51,6 +52,16 @@ export function Hero() {
         </h1>
         <p className="mt-5 max-w-2xl text-base leading-7 text-white/80 sm:text-lg">
           {t("subheadline")}
+        </p>
+
+        {/* Ein Wort wechselt: die drei Angaben, bis zu denen jede Lieferung
+            belegt ist. Sie stehen schon im Untertitel - hier laufen sie
+            einmal durch und bleiben bei der letzten stehen. */}
+        <p className="mt-4 flex flex-wrap items-baseline gap-x-2 text-base font-black text-white sm:text-lg">
+          {t("rotatorPrefix")}
+          <span className="text-[#3fd0e6]">
+            <Wortwechsel woerter={[t("rotator1"), t("rotator2"), t("rotator3")]} />
+          </span>
         </p>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">

@@ -29,7 +29,7 @@
   "hero": {
     "badge": "Betriebssteuerung für die Himbeerplantage · Umland Almaty",
     "headline": "Marktführerschaft entsteht nicht über Tonnen, sondern über Belegbarkeit.",
-    "subheadline": "Die Himbeere hat keine schützende Schale und muss innerhalb von 60 Minuten gekühlt werden. Damicon steuert die mehrwöchige Erntestrecke, hält die Kühlkette und belegt jede Lieferung bis zum Reihenblock, zur Kühlzeit und zur Person.",
+    "subheadline": "Die Himbeere hat keine schützende Haut und muss innerhalb von 60 Minuten gekühlt werden. Damicon steuert die mehrwöchige Erntestrecke, hält die Kühlkette und belegt jede Lieferung bis zum Reihenblock, zur Kühlzeit und zur Person.",
     "imageAlt": "Spalierreihen einer Himbeerplantage - Platzhalterbild, wird durch echtes Betriebsmaterial ersetzt",
     "ctaPrimary": "Prototyp öffnen",
     "ctaSecondary": "Warum die Himbeere anders ist",
@@ -38,16 +38,20 @@
     "stat2Value": "alle 2 – 3 Tage",
     "stat2Label": "Pflückrhythmus je Reihenblock im Herbstfenster",
     "stat3Value": "Faktor 2,3",
-    "stat3Label": "Preisabstand loser Frischware zu Premium, am selben Tag gepflückt"
+    "stat3Label": "Preisabstand loser Frischware zu Premium, am selben Tag gepflückt",
+    "rotatorPrefix": "Belegbar",
+    "rotator1": "bis zum Reihenblock.",
+    "rotator2": "bis zur Kühlminute.",
+    "rotator3": "bis zur Person."
   },
   "landing": {
     "openZone": "Bereich öffnen",
     "berryEyebrow": "Warum die Himbeere anders ist",
     "berryTitle": "Die empfindlichste Beere im Frischesortiment",
-    "berryLead": "Sie hat keine schützende Schale, ist innen hohl und hoch anfällig für Graufäule. Software allein rettet keine einzige Beere - aber sie steuert genau die Stunde, die Rotation und die Nachweise, an denen der Preis hängt.",
+    "berryLead": "Sie hat keine schützende Haut, ist innen hohl und hoch anfällig für Graufäule. Software allein rettet keine einzige Beere - aber sie steuert genau die Stunde, die Rotation und die Nachweise, an denen der Preis hängt.",
     "berryPoints": {
       "schale": {
-        "title": "Keine schützende Schale",
+        "title": "Keine schützende Haut",
         "text": "Ungekühlt ist die Himbeere nach etwa einem Tag nicht mehr verkaufsfähig. Sauber vorgekühlt hält sie zwei bis drei Tage, bei sehr guter Führung bis zu fünf."
       },
       "kuehlung": {
@@ -180,7 +184,36 @@
     "complianceClosing": "Große Ketten mit eigener Lieferkette nehmen nur Lieferanten auf, die belegfähig sind. Compliance ist hier kein Formalakt, sondern die Eintrittskarte.",
     "ctaTitle": "Ein greifbares System statt Konzeptfolien",
     "ctaLead": "Der Prototyp zeigt Struktur und Optik der ersten Ausbaustufe: Reihenblock-Steuerung mit Wartezeitsperre, Pflückaufgaben mit Fotobeleg, Kühlketten-Uhr und Deckungsbeitrag je Erntetag.",
-    "ctaButton": "Zum Dashboard"
+    "ctaButton": "Zum Dashboard",
+    "faqEyebrow": "Häufige Fragen",
+    "faqTitle": "Sechs Fragen, die im Erstgespräch immer kommen",
+    "faqLead": "Kurze Antworten mit den Zahlen, die auf dieser Seite stehen.",
+    "faqItems": {
+      "sechzig": {
+        "q": "Warum genau 60 Minuten?",
+        "a": "Zwischen Pflücken und Herunterkühlen dürfen nicht mehr als 60 Minuten liegen. Wird diese Grenze gerissen, ist jede weitere Maßnahme wirkungslos - deshalb misst das System diese Spanne je Charge und nicht den Tagesdurchschnitt."
+      },
+      "durchgang": {
+        "q": "Was passiert, wenn ein Pflückdurchgang ausfällt?",
+        "a": "Jeder Reihenblock wird alle zwei bis drei Tage abgepflückt, über drei bis acht Wochen. Ein ausgelassener Durchgang vernichtet den Block für diesen Zyklus. Der Rotationsplan hält die Reihenfolge und zeigt den Ausfall am selben Tag."
+      },
+      "beleg": {
+        "q": "Wie wird eine Lieferung belegt?",
+        "a": "Jede Steige trägt eine im Feld vergebene Kennung und gehört zu genau einer Charge. Daran hängen Reihenblock, Sorte, Erntetag, Pflückzeit, Kühlkurve und Behandlungsnachweis - bis zum elektronischen Warenbegleitschein im ЭСФ-System."
+      },
+      "rollen": {
+        "q": "Wer sieht welche Daten?",
+        "a": "Die Rolle des angemeldeten Kontos entscheidet, und zwar in der Datenbank, nicht in der Oberfläche. Sieben Kernrollen von der Administration bis zum einzelnen Pflücker; eine Lücke im Frontend gibt damit keine fremden Daten frei."
+      },
+      "stand": {
+        "q": "Was ist heute schon gebaut?",
+        "a": "25 Module in vier Bereichen. 14 arbeiten gegen die Datenbank mit echten Schreibvorgängen, 3 sind als bedienbare Demo gebaut, 8 sind sichtbare Menüpunkte in Entwicklung. Die Kennzahlen der Startseite sind Platzhalterwerte bis zur ersten vollständig gemessenen Saison."
+      },
+      "daten": {
+        "q": "Wo liegen die Daten?",
+        "a": "Der Digitalkodex Nr. 255-VIII schränkt die Speicherung bestimmter Datenprodukte außerhalb Kasachstans ein. Der Hosting-Standort wird deshalb vor der Produktivsetzung rechtlich geprüft; Schlüssel und Zugänge liegen nie im Quelltext."
+      }
+    }
   },
   "zones": {
     "feld": {
@@ -206,7 +239,7 @@
   },
   "footer": {
     "blurb": "Damicon ist die Betriebssteuerung für einen Himbeerbetrieb im Umland Almaty - von der Erntestrecke über die Kühlkette bis zum Nachweis jeder Lieferung.",
-    "prototypeNote": "Interner Proof-of-Concept. Kein vertraglich zugesicherter Leistungsumfang. Betriebsfotos zeigen die reale Anlage im Umland Almaty, übriges Bildmaterial sind Platzhalter aus lizenzfreien Quellen.",
+    "prototypeNote": "Interner Proof-of-Concept. Kein vertraglich zugesicherter Leistungsumfang. Betriebsfotos zeigen die reale Anlage im Umland Almaty. Alle übrigen Bilder sind Symbolbilder oder Platzhalter.",
     "productHeading": "Produkt",
     "legalHeading": "Rechtliches",
     "imprint": "Impressum",
@@ -1985,5 +2018,67 @@
       "offen": "offen"
     },
     "note": "Bedarfsrechnung und Schichtplan stammen direkt aus dem Rotationsplan (welcher Reihenblock an welchem Tag geerntet werden muss). Wetterszenarien sind bewusst nicht Teil dieser Ansicht - die Wetteranbindung (Anforderung 2.13) ist zurückgestellt."
+  },
+  "erlebnis": {
+    "bento": {
+      "minuten": "Minuten",
+      "sechzigLink": "Die erste Stunde ansehen",
+      "frost": "Frost"
+    },
+    "sechzig": {
+      "eyebrow": "Die erste Stunde",
+      "title": "60 Minuten entscheiden über den Preis",
+      "lead": "Scrollen Sie durch die Stunde nach dem Pflücken. Die Uhr läuft ab dem Scan im Feld, die Kurve zeigt, wie die Wärme aus der Frucht geht.",
+      "uhrLabel": "nach dem Pflücken",
+      "minute": "Min.",
+      "kurveTitel": "Kühlkurve, schematisch",
+      "achseWarm": "Feldwärme",
+      "achseKalt": "0–1 °C",
+      "grenze": "Grenze 60 Min.",
+      "kuehlraum": "Kühlraum",
+      "schritte": {
+        "pfluecken": {
+          "title": "Gepflückt direkt in die Schale",
+          "text": "Die Beere geht aus der Hand in die Verkaufsschale. Beim Abgeben der Steige erfasst ein Scan Menge, Reihenblock, Uhrzeit und Person. Ab hier läuft die Uhr."
+        },
+        "kuehlraum": {
+          "title": "Im Kühlraum nach 5 bis 15 Minuten",
+          "text": "So lange dauert es heute vom Pflücken bis in den Kühlraum. Diese Zahl ist gut und muss nicht verbessert werden."
+        },
+        "vorkuehlung": {
+          "title": "Heruntergekühlt auf 0 bis 1 °C",
+          "text": "Die Wärme muss aus der Frucht, nicht nur aus dem Raum. Erst dann bremst die Kälte Reife und Graufäule."
+        },
+        "beleg": {
+          "title": "Die Kühlkurve steht im Beleg",
+          "text": "Zeit und Temperatur hängen an der Charge. Wird die 60-Minuten-Grenze gerissen, sieht es der Betrieb vor dem Käufer."
+        }
+      }
+    },
+    "belegkette": {
+      "start": "Schale scannen",
+      "startText": "Der Code auf der Schale öffnet die Kette bis zum Ursprung.",
+      "pruefen": "Herkunft selbst prüfen"
+    },
+    "lupe": {
+      "hinweisMaus": "Lupe: Maus über das Foto führen",
+      "hinweisTouch": "Lupe: auf das Foto tippen"
+    },
+    "cursor": {
+      "ziehen": "Ziehen"
+    },
+    "ton": {
+      "an": "Feldgeräusche einschalten",
+      "aus": "Feldgeräusche ausschalten"
+    },
+    "scan": {
+      "eyebrow": "3D-Rundgang",
+      "title": "Die Anlage im Raum",
+      "lead": "Ein 3D-Scan der Anlage, vor Ort aufgenommen. Drehen, zoomen und die Reihenblöcke aus jedem Blickwinkel ansehen.",
+      "laden": "3D-Rundgang laden ({mb} MB)",
+      "laedt": "Wird geladen … {prozent} %",
+      "bedienung": "Ziehen zum Drehen, Mausrad oder zwei Finger zum Zoomen",
+      "fehler": "Der 3D-Rundgang konnte nicht geladen werden."
+    }
   }
 }

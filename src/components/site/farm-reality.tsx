@@ -15,9 +15,34 @@ export function FarmReality() {
   const t = useTranslations("farmReality");
 
   return (
-    <section className="border-b border-border py-16 md:py-24">
-      <div className="container">
-        <Reveal>
+    <section className="border-b border-border pb-16 md:pb-24">
+      {/* Kapitelbild ueber die volle Breite: Die Groesse der Anlage vor dem
+          Gebirge ging in einer Spalte verloren. Die langsame Kamerafahrt beim
+          Scrollen ist reines CSS (.kapitel-fahrt in globals.css). Die Datei
+          ist 1280 px breit; eine breitere Panoramaaufnahme steht auf der
+          Liste fuer das Shooting (docs/aufnahmeplan.md). */}
+      <figure className="relative h-[52svh] min-h-80 overflow-hidden bg-[#04161c] md:h-[68svh]">
+        <div className="kapitel-fahrt absolute inset-0">
+          <Image
+            src={betriebsBand.quelle}
+            alt={t("bandCaption")}
+            fill
+            sizes="100vw"
+            loading="lazy"
+            className="object-cover"
+          />
+        </div>
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-[linear-gradient(180deg,transparent_55%,rgba(4,22,28,0.78)_100%)]"
+        />
+        <figcaption className="container absolute inset-x-0 bottom-0 pb-5 text-sm font-semibold text-white/90 md:pb-8 md:text-base">
+          {t("bandCaption")}
+        </figcaption>
+      </figure>
+
+      <div className="container pt-16 md:pt-20">
+        <Reveal art="wisch">
           <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
             {t("eyebrow")}
           </p>
@@ -29,27 +54,7 @@ export function FarmReality() {
           </p>
         </Reveal>
 
-        {/* Breites Band zuerst: zeigt die Groesse der Anlage, die in einer
-            Spalte verlorenginge. */}
-        <Reveal delay={90} className="mt-10">
-          <figure className="group overflow-hidden rounded-2xl border border-border">
-            <div className="relative aspect-1280/548 w-full overflow-hidden">
-              <Image
-                src={betriebsBand.quelle}
-                alt={t("bandCaption")}
-                fill
-                sizes="(min-width: 1024px) 1024px, 100vw"
-                loading="lazy"
-                className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-              />
-            </div>
-            <figcaption className="bg-card px-4 py-2.5 text-xs text-muted-foreground">
-              {t("bandCaption")}
-            </figcaption>
-          </figure>
-        </Reveal>
-
-        <Reveal delay={140} className="mt-4 grid gap-4 sm:grid-cols-3">
+        <Reveal staffel className="mt-10 grid gap-4 sm:grid-cols-3">
           {betriebsFotos.map(({ quelle, textKey, offen }) => (
             <figure
               key={textKey}

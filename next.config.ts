@@ -5,6 +5,11 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   images: {
+    // AVIF zuerst, WebP als Rueckfall. Die Reihenfolge entscheidet: Next.js
+    // nimmt das erste Format, das der Browser im Accept-Header anbietet.
+    // AVIF ist bei Fotos mit feinen Strukturen (Steinfruechtchen, Haerchen,
+    // Grauschimmel) spuerbar kleiner als WebP bei gleicher Qualitaet.
+    formats: ["image/avif", "image/webp"],
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
     ],

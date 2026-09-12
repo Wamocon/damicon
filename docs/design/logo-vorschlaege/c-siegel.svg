@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="512" height="512">
+  <title>Damicon - Sonnensiegel</title>
+  <style>
+    .tinte { fill: none; stroke: #00768f; stroke-linecap: round; stroke-linejoin: round; }
+    .beere { fill: #b3123f; }
+    .altyn { fill: #f2c14b; }
+  </style>
+  <circle class="tinte" stroke-width="5.5" cx="64" cy="64" r="56"/>
+  <g class="altyn" stroke="#f2c14b" stroke-width="5" stroke-linecap="round" fill="none">
+    
+<path d="M34.0 70.0 L24.0 70.0"/>    <path d="M35.5 60.7 L26.0 57.6"/>    <path d="M39.7 52.4 L31.6 46.5"/>    <path d="M46.4 45.7 L40.5 37.6"/>    <path d="M54.7 41.5 L51.6 32.0"/>    <path d="M64.0 40.0 L64.0 30.0"/>    <path d="M73.3 41.5 L76.4 32.0"/>    <path d="M81.6 45.7 L87.5 37.6"/>    <path d="M88.3 52.4 L96.4 46.5"/>    <path d="M92.5 60.7 L102.0 57.6"/>    <path d="M94.0 70.0 L104.0 70.0"/>
+  </g>
+  <circle class="beere" cx="64" cy="70" r="19"/>
+  <g class="tinte" stroke-width="6.5">
+    <path d="M26 95 L102 95"/>
+  </g>
+  <path class="tinte" stroke-width="4" stroke-opacity="0.55" d="M36 83 Q64 72 92 83"/>
+</svg>

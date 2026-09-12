@@ -22,11 +22,25 @@ import { useEffect, useRef, type ReactNode } from "react";
 export function Reveal({
   children,
   delay = 0,
+  staffel = false,
+  art,
   className,
 }: {
   children: ReactNode;
   /** Versatz in Millisekunden, um Bloecke nacheinander einzublenden. */
   delay?: number;
+  /**
+   * "wisch" deckt den Block von oben nach unten auf, statt ihn aufsteigen zu
+   * lassen - gedacht fuer Ueberschriftenbloecke. Ohne Angabe steigt der Block
+   * auf wie bisher. Die Regeln dazu stehen in globals.css.
+   */
+  art?: "wisch";
+  /**
+   * Bei einem Raster blendet nicht der Block als Ganzes ein, sondern Kachel
+   * fuer Kachel. Die Verzoegerung je Kachel steht in globals.css - hier reicht
+   * das Attribut, weil die Kacheln direkte Kinder sind.
+   */
+  staffel?: boolean;
   className?: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -60,7 +74,7 @@ export function Reveal({
   }, [delay]);
 
   return (
-    <div ref={ref} className={className}>
+    <div ref={ref} data-staffel={staffel ? "" : undefined} data-art={art} className={className}>
       {children}
     </div>
   );

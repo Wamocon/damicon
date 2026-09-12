@@ -4,6 +4,8 @@
 // damit eine Datenaenderung an einer Stelle - die Komponenten rendern nur noch,
 // was hier steht, und die Texte kommen ohnehin je Sprache aus den Messages.
 
+import type { ZoneKey } from "@/lib/modules";
+
 export type SeitenBild = {
   /** Pfad unter /public, mit fuehrendem Schraegstrich. */
   readonly quelle: string;
@@ -15,12 +17,15 @@ export type SeitenBild = {
 export type QualitaetsBild = SeitenBild & {
   /** Steuert die Rahmenfarbe - Ausschuss wird abgesetzt, nicht nur benannt. */
   readonly ton: "gut" | "grenzfall" | "ausschuss";
+  /** Pixelmasse der Datei. Die Lupe braucht sie, um den Ausschnitt zu treffen. */
+  readonly breite: number;
+  readonly hoehe: number;
 };
 
 export const qualitaetsBeeren: readonly QualitaetsBild[] = [
-  { quelle: "/qualitaet/beere-gut.webp", textKey: "q1", ton: "gut" },
-  { quelle: "/qualitaet/beere-unreif.webp", textKey: "q2", ton: "grenzfall" },
-  { quelle: "/qualitaet/beere-schimmel.webp", textKey: "q3", ton: "ausschuss" },
+  { quelle: "/qualitaet/beere-gut.webp", textKey: "q1", ton: "gut", breite: 1400, hoehe: 757 },
+  { quelle: "/qualitaet/beere-unreif.webp", textKey: "q2", ton: "grenzfall", breite: 1400, hoehe: 757 },
+  { quelle: "/qualitaet/beere-schimmel.webp", textKey: "q3", ton: "ausschuss", breite: 1400, hoehe: 757 },
 ];
 
 /** Die Schale steht bewusst allein und breit: sie zeigt die Folge, nicht ein Merkmal. */
@@ -62,3 +67,65 @@ export const bestandsFotos: readonly BestandsBild[] = [
   { quelle: "/betrieb/bewaesserung.webp", textKey: "asset3", marke: false },
   { quelle: "/betrieb/produkt-glas.webp", textKey: "asset4", marke: true },
 ];
+
+// Bereichskarten "Feld, Hof, Büro, Markt" (ZonesOverview in landing.tsx).
+// Die vier Bilder sind erzeugte Symbolbilder, keine Aufnahmen vom Betrieb. Der
+// Ausschnitt ist in die Datei geschnitten, die Vorlagen liegen unversioniert
+// in Bilder/. Gesichter und Preisschilder bleiben außerhalb. Im Marktbild ist
+// die fremde Marke entfernt (Vorlage Bilder/Markt_ohne-Marke.jpg). Das Hofbild
+// zeigt in voller Auflösung Äpfel; im Ausschnitt ist davon nur eine kleine
+// Kiste zu sehen, so am 11.09.2026 freigegeben.
+export const bereichsBilder: Readonly<Record<ZoneKey, string>> = {
+  feld: "/bereiche/feld.webp",
+  hof: "/bereiche/hof.webp",
+  buero: "/bereiche/buero.webp",
+  markt: "/bereiche/markt-schale.webp",
+};
+
+/** Kurzer, stummer Loop mit Bildausschnitt (components/site/loop-clip.tsx). */
+export type LoopClipQuelle = {
+  readonly quelle: string;
+  readonly poster: string;
+  /** Mittelpunkt des Ausschnitts in Prozent und Vergroesserung. */
+  readonly fokus: { readonly x: number; readonly y: number; readonly zoom: number };
+};
+
+// Nahaufnahme im Bento "Warum die Himbeere anders ist": derselbe Rundgang wie
+// im Hero, eng auf die Fruechte beschnitten. Der Browser hat die Datei vom
+// Hero schon im Cache. Nach dem Makro-Shooting (docs/aufnahmeplan.md) kommt
+// hier ein eigener Clip hinein.
+export const beerenNahaufnahme: LoopClipQuelle = {
+  quelle: "/hero-himbeere.mp4",
+  poster: "/hero-standbild.webp",
+  fokus: { x: 72, y: 40, zoom: 1.6 },
+};
+
+/** Einzelbilder 00.webp bis (anzahl - 1).webp unter `ordner`. */
+export type BildSequenz = {
+  readonly ordner: string;
+  readonly anzahl: number;
+};
+
+// Scroll-Sequenz der 60-Minuten-Szene. Vorlaeufig 36 Einzelbilder aus dem
+// Rundgangsvideo (1024 x 576, zusammen rund 1 MB; schmale Viewports laden nur
+// jedes zweite). Die Drehsequenz aus dem Shooting ersetzt sie: gleicher
+// Ordneraufbau, dann hier nur Ordner und Anzahl aendern.
+export const sechzigMinutenSequenz: BildSequenz = {
+  ordner: "/sequenz/beere",
+  anzahl: 36,
+};
+
+/** Feldgeraeusche fuer den Tonschalter: die Tonspur des Rundgangsvideos. */
+export const feldTon = "/hero-himbeere.mp4";
+
+/** 3D-Scan der Anlage als Gaussian Splat. */
+export type PlantagenScan = {
+  readonly quelle: string;
+  readonly format: "splat" | "ply";
+  /** Dateigroesse, steht auf dem Ladeknopf - niemand soll 30 MB ungefragt laden. */
+  readonly megabyte: number;
+};
+
+// Noch kein Scan vorhanden. Solange hier null steht, erscheint der Abschnitt
+// nicht. Aufnahme und Export beschreibt docs/aufnahmeplan.md.
+export const plantagenScan = null as PlantagenScan | null;

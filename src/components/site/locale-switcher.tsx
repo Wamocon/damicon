@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { ChevronDown, Globe } from "lucide-react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
+import { mitUeberblendung } from "@/lib/seitenwechsel";
 import { cn } from "@/lib/utils";
 
 const labels: Record<Locale, string> = {
@@ -31,9 +32,11 @@ export function LocaleSwitcher({
   const [isPending, startTransition] = useTransition();
 
   function onSelect(next: Locale) {
-    startTransition(() => {
-      // @ts-expect-error - params-Shape haengt von der Route ab
-      router.replace({ pathname, params }, { locale: next });
+    mitUeberblendung(() => {
+      startTransition(() => {
+        // @ts-expect-error - params-Shape haengt von der Route ab
+        router.replace({ pathname, params }, { locale: next });
+      });
     });
   }
 
