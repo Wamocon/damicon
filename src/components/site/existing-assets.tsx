@@ -17,7 +17,7 @@ export function ExistingAssets() {
   return (
     <section className="border-b border-border bg-secondary/40 py-16 md:py-24">
       <div className="container">
-        <Reveal>
+        <Reveal art="wisch">
           <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
             {t("eyebrow")}
           </p>
@@ -29,7 +29,7 @@ export function ExistingAssets() {
           </p>
         </Reveal>
 
-        <Reveal delay={90} className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Reveal staffel className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {bestandsFotos.map(({ quelle, textKey, marke }) => (
             <figure
               key={textKey}

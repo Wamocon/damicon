@@ -54,6 +54,8 @@
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
   --color-brand-altyn: var(--brand-altyn);
+  --color-himbeere: var(--himbeere);
+  --color-himbeere-leuchtend: var(--himbeere-leuchtend);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -261,6 +263,317 @@
   transform: none;
 }
 
+/* Gestaffeltes Einblenden fuer Raster: Der Block bleibt sichtbar, seine
+   Kacheln kommen nacheinander. Zwei Attribute schlagen die Regel oben, ohne
+   dass dort eine Ausnahme noetig ist. Mehr als zwoelf Kacheln in einem Raster
+   gibt es nicht; ab der dreizehnten laeuft alles mit dem letzten Versatz. */
+[data-staffel][data-reveal] {
+  opacity: 1;
+  transform: none;
+}
+[data-staffel] > * {
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-staffel][data-reveal="vorbereitet"] > * {
+  opacity: 0;
+  transform: translateY(18px);
+}
+[data-staffel][data-reveal="sichtbar"] > * {
+  opacity: 1;
+  transform: none;
+  transition-delay: 490ms;
+}
+[data-staffel][data-reveal="sichtbar"] > *:nth-child(1) {
+  transition-delay: 0ms;
+}
+[data-staffel][data-reveal="sichtbar"] > *:nth-child(2) {
+  transition-delay: 70ms;
+}
+[data-staffel][data-reveal="sichtbar"] > *:nth-child(3) {
+  transition-delay: 140ms;
+}
+[data-staffel][data-reveal="sichtbar"] > *:nth-child(4) {
+  transition-delay: 210ms;
+}
+[data-staffel][data-reveal="sichtbar"] > *:nth-child(5) {
+  transition-delay: 280ms;
+}
+[data-staffel][data-reveal="sichtbar"] > *:nth-child(6) {
+  transition-delay: 350ms;
+}
+[data-staffel][data-reveal="sichtbar"] > *:nth-child(7) {
+  transition-delay: 420ms;
+}
+
+/* Zweite Art des Einblendens: Ueberschriftenbloecke werden von oben nach
+   unten aufgedeckt, statt aufzusteigen. Der Text steht dabei von Anfang an
+   an seinem Platz - nur die Maske wandert, deshalb springt keine Zeile.
+   Zeile fuer Zeile mit kleinem Versatz.
+
+   Wichtig: Die Maske liegt auf den Kindern, nicht auf dem Block selbst. Ein
+   beschnittenes Element meldet dem IntersectionObserver in Chrome keine
+   Sichtbarkeit mehr - es bliebe fuer immer zugeklappt, weil genau die
+   Beschneidung das Aufdecken verhindert. */
+[data-reveal][data-art="wisch"] {
+  opacity: 1;
+  transform: none;
+}
+[data-reveal][data-art="wisch"] > * {
+  clip-path: inset(0 0 108% 0);
+  transition: clip-path 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+[data-reveal="sichtbar"][data-art="wisch"] > * {
+  clip-path: inset(0 0 -20% 0);
+}
+[data-reveal="sichtbar"][data-art="wisch"] > *:nth-child(2) {
+  transition-delay: 90ms;
+}
+[data-reveal="sichtbar"][data-art="wisch"] > *:nth-child(3) {
+  transition-delay: 180ms;
+}
+
+/* Bereichs-Orbit (components/site/bereichs-orbit.tsx): vier Bereiche an einer
+   Charge. Die Speichen zeichnen sich, die Bereiche docken nacheinander an. */
+.orbit__speiche {
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.orbit__speiche[data-angedockt="ja"] {
+  stroke-dashoffset: 0;
+}
+.orbit__satellit {
+  opacity: 0.35;
+  transform: scale(0.94);
+  transition:
+    opacity 0.5s ease-out,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.orbit__satellit[data-angedockt="ja"] {
+  opacity: 1;
+  transform: none;
+}
+/* Wechsel der Reitertafel (components/site/modul-reiter.tsx). */
+@keyframes tafel-auf {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes orbit-puls {
+  from {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .orbit__welle {
+    animation: orbit-puls 3.4s ease-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+}
+
+/* Kleine Balkengrafik in Textkarten (Preisstufen). Die Breite steht als
+   Variable am Element, damit die Zahl aus den Daten kommt und nicht aus dem
+   Stylesheet. Sie waechst beim Einblenden mit. */
+.wertbalken {
+  position: relative;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--muted-foreground) 18%, transparent);
+}
+.wertbalken > i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--breite, 0%);
+  border-radius: inherit;
+  background: currentColor;
+  transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
+}
+[data-reveal="vorbereitet"] .wertbalken > i,
+[data-staffel][data-reveal="vorbereitet"] .wertbalken > i {
+  width: 0;
+}
+
+/* Ringmarke an Regelkarten: ein gezeichneter Kreis, kein Symbol aus einer
+   Schriftart - er nimmt die Textfarbe der Karte auf. */
+.ringmarke {
+  position: relative;
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 2px solid currentColor;
+}
+.ringmarke::after {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+/* Schrittliste der 60-Minuten-Szene (components/site/sechzig-minuten-buehne.tsx).
+   Die Schiene fuellt sich mit --fortschritt, das die Szene ohnehin setzt; die
+   Karten ruecken nach, sobald ihr Schritt an der Reihe ist. */
+.schiene {
+  position: absolute;
+  top: 0.9rem;
+  bottom: 0.9rem;
+  left: 0.4rem;
+  width: 2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+}
+.schiene > i {
+  position: absolute;
+  inset: 0;
+  transform-origin: top;
+  border-radius: inherit;
+  background: var(--himbeere-leuchtend);
+}
+.schritt {
+  position: relative;
+}
+.schritt[data-status="kommend"] {
+  transform: translateX(3%);
+}
+.schritt__punkt {
+  position: absolute;
+  top: 1.1rem;
+  left: -1.52rem;
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.3);
+  transition:
+    background-color 0.4s ease-out,
+    box-shadow 0.4s ease-out;
+}
+.schritt[data-status="aktiv"] .schritt__punkt {
+  background: var(--himbeere-leuchtend);
+  box-shadow: 0 0 0 4px rgba(255, 92, 122, 0.22);
+}
+.schritt[data-status="vorbei"] .schritt__punkt {
+  background: var(--himbeere-leuchtend);
+}
+
+/* Wechselndes Wort im Titelbereich (components/site/wortwechsel.tsx). Die
+   Woerter liegen gestapelt in einem Raster, damit die Zeile beim Wechsel
+   nicht springt und die Breite dem laengsten Wort folgt. Sichtbar ist immer
+   genau eines; ohne JavaScript das letzte. */
+.wortwechsel {
+  display: inline-grid;
+  vertical-align: bottom;
+}
+.wortwechsel > span {
+  grid-area: 1 / 1;
+  opacity: 0;
+  transform: translateY(0.3em);
+  transition:
+    opacity 0.5s ease-out,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.wortwechsel > span[data-zustand="da"] {
+  opacity: 1;
+  transform: none;
+  /* Das neue Wort kommt einen Augenblick spaeter, sonst stehen beide
+     halbdurchsichtig uebereinander. */
+  transition-delay: 0.18s;
+}
+.wortwechsel > span[data-zustand="weg"] {
+  opacity: 0;
+  transform: translateY(-0.3em);
+}
+
+/* Haeufige Fragen (components/site/fragen.tsx). <details> bringt die
+   Bedienung mit; hier kommen nur der Zeilenaufbau, das Pluszeichen, das sich
+   beim Aufklappen dreht, und das weiche Erscheinen der Antwort dazu. */
+.frage__kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.05rem 1.25rem;
+  cursor: pointer;
+  list-style: none;
+}
+.frage__kopf::-webkit-details-marker {
+  display: none;
+}
+/* Ohne diese Zeile bleibt in Chromium das Dreieck von <details> stehen:
+   summary ist dort display: list-item mit disclosure-open als Markenzeichen. */
+.frage__kopf::marker {
+  content: "";
+}
+.frage:hover {
+  border-color: color-mix(in oklab, var(--primary) 40%, var(--border));
+}
+.frage__zeichen {
+  transition: transform 0.25s ease-out;
+}
+.frage[open] .frage__zeichen {
+  transform: rotate(45deg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .frage[open] .frage__text {
+    animation: tafel-auf 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
+/* Leseanzeige am oberen Rand (components/site/fortschrittsbalken.tsx). Liegt
+   ueber der Kopfzeile (z-50) und faengt keine Klicks ab. */
+.fortschrittsbalken {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 60;
+  height: 3px;
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--himbeere), var(--primary));
+  pointer-events: none;
+}
+
+/* Zielerreichung einer Kennzahl. Ohne JavaScript steht der Balken sofort auf
+   seinem Wert; erst das vorbereitete Einblenden setzt ihn auf null zurueck,
+   damit er beim Erscheinen der Kachel waechst. */
+.zielbalken {
+  position: relative;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.zielbalken > i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--fuellung, 0%);
+  border-radius: inherit;
+  background: currentColor;
+  transition: width 1s cubic-bezier(0.22, 1, 0.36, 1) 0.15s;
+}
+[data-reveal="vorbereitet"] .zielbalken > i {
+  width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fortschrittsbalken {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -275,6 +588,133 @@
   [data-reveal] {
     opacity: 1;
     transform: none;
+  }
+
+  /* Seitenwechsel ohne Ueberblendung. Die Pseudo-Elemente der View
+     Transitions erfasst die Sternregel oben nicht. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/*
+  Himbeerrot - die Farbe der Frucht, nicht der Marke. Petrol und Gold bleiben
+  die Markenfarben; das Rot steht dort, wo es um die Beere selbst geht (Bento,
+  60-Minuten-Szene, Belegkette-Start). Dieselbe Trennung wie im Hero, wo das
+  Video die Farbe mitbringt.
+
+  Zwei Token, weil ein Wert zwei Rollen nicht erfuellt: --himbeere ist die
+  Textfarbe auf dem Seitengrund (hell: 5,5:1 auf Weiss), --himbeere-leuchtend
+  steht auf den immer dunklen Flaechen (Nachtblau-Kacheln, Szene) und traegt
+  dort rund 7:1 - in beiden Farbschemata gleich, wie --brand-altyn.
+
+  Die Hex-Werte sind der Rueckfall. Mit OKLCH und einem P3-Bildschirm (alle
+  aktuellen iPhones und Macs, viele Android-Geraete) bekommt das Rot mehr
+  Saettigung, als sRGB darstellen kann - bei gleicher Helligkeit, also
+  gleichem Kontrast.
+*/
+:root {
+  --himbeere: #b3123f;
+  --himbeere-leuchtend: #ff5c7a;
+}
+.dark {
+  --himbeere: #ff5c7a;
+}
+@supports (color: oklch(0 0 0)) {
+  :root {
+    --himbeere: oklch(0.52 0.19 13);
+    --himbeere-leuchtend: oklch(0.71 0.18 12);
+  }
+  .dark {
+    --himbeere: oklch(0.71 0.18 12);
+  }
+  @media (color-gamut: p3) {
+    :root {
+      --himbeere: oklch(0.53 0.23 12);
+      --himbeere-leuchtend: oklch(0.72 0.21 11);
+    }
+    .dark {
+      --himbeere: oklch(0.72 0.21 11);
+    }
+  }
+}
+
+/* Weiches Scrollen (components/site/weiches-scrollen.tsx). Regeln aus
+   lenis/dist/lenis.css. Dazu kommt scroll-behavior: auto, sonst animiert der
+   Browser jeden einzelnen Scroll-Schritt von Lenis noch einmal nach. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+html.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+.lenis [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* Kapitelbild: langsame Kamerafahrt, gekoppelt an die Sichtbarkeit des
+   Bildes (scroll-getriebene CSS-Animation, kein JavaScript). Browser ohne
+   animation-timeline - derzeit Firefox - zeigen das Bild ruhig. */
+@keyframes kapitel-fahrt {
+  from {
+    transform: scale(1.16) translateY(-4%);
+  }
+  to {
+    transform: scale(1.02) translateY(4%);
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .kapitel-fahrt {
+      animation: kapitel-fahrt linear both;
+      animation-timeline: view();
+    }
+  }
+}
+
+/* Bento "Warum die Himbeere anders ist" (components/site/beere-bento.tsx).
+   Beide Animationen laufen auf SVG-Elementen, 1px entspricht dort einer
+   Einheit der viewBox. Bei reduzierter Bewegung setzt Tailwind sie gar nicht
+   erst (motion-safe): Die Beere liegt dann in der Schale, der Warnring steht
+   still. */
+@keyframes beere-einlegen {
+  0% {
+    transform: translateY(-60px);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  30% {
+    transform: translateY(0);
+  }
+  85% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+}
+@keyframes schale-warnung {
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  70%,
+  100% {
+    transform: scale(1.9);
+    opacity: 0;
   }
 }
 
@@ -317,19 +757,6 @@
       linear-gradient(90deg, color-mix(in srgb, var(--border) 28%, transparent) 1px, transparent 1px),
       linear-gradient(color-mix(in srgb, var(--border) 24%, transparent) 1px, transparent 1px);
     background-size: auto, 96px 96px, 96px 96px;
-  }
-
-  /* Schraege Streifen als Feld-Andeutung. Mit dem Gold aus --accent liest
-     sich das jetzt wie reifer Weizen der Steppe statt wie Blattgruen. */
-  .berry-field {
-    background-image:
-      repeating-linear-gradient(
-        115deg,
-        color-mix(in srgb, var(--accent) 16%, transparent) 0px,
-        color-mix(in srgb, var(--accent) 16%, transparent) 2px,
-        transparent 2px,
-        transparent 26px
-      );
   }
 }
 

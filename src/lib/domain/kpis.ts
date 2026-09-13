@@ -277,6 +277,23 @@ export function herkunftZaehlen(liste: Kpi[] = kpis): Record<Datenherkunft, numb
   return zaehler;
 }
 
+// Anteil der Zielerreichung zwischen 0 und 1 - Grundlage fuer den Balken an
+// der Kachel. wert und ziel sind formatierte Zeichenketten ("8,4 %", "< 6 %"),
+// deshalb zaehlt die erste Zahl darin. Wo kein Zielwert als Zahl steht
+// ("Ausgangswert"), gibt es keinen Balken, sondern null.
+export function zielerreichung(kpi: Kpi): number | null {
+  const zahl = (text: string) => {
+    const treffer = text.match(/\d+(?:[.,]\d+)?/);
+    return treffer ? Number(treffer[0].replace(",", ".")) : null;
+  };
+  const ist = zahl(kpi.wert);
+  const soll = zahl(kpi.ziel);
+  if (ist === null || soll === null || ist <= 0 || soll <= 0) return null;
+  // Bei "je kleiner, desto besser" dreht sich der Bruch um.
+  const anteil = kpi.gutRichtung === "up" ? ist / soll : soll / ist;
+  return Math.min(1, Math.max(0, anteil));
+}
+
 // Anforderung 4.11: das Cockpit zeigt je Rolle nur die eigenen betriebsweiten
 // Kennzahlen, und davon hoechstens zwoelf ("kern") prominent - die restlichen
 // zwei ("erweitert") bleiben Teil der unterschriebenen Baseline, stehen aber

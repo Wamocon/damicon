@@ -34,7 +34,11 @@
     "stat2Value": "her 2 – 3 günde bir",
     "stat2Label": "sonbahar penceresinde sıra bloğu başına toplama ritmi",
     "stat3Value": "2,3 kat",
-    "stat3Label": "gevşek taze ürün ile aynı gün toplanan premium arasındaki fiyat farkı"
+    "stat3Label": "gevşek taze ürün ile aynı gün toplanan premium arasındaki fiyat farkı",
+    "rotatorPrefix": "Kanıtlanabilir:",
+    "rotator1": "sıra bloğuna kadar.",
+    "rotator2": "soğutma dakikasına kadar.",
+    "rotator3": "kişiye kadar."
   },
   "zones": {
     "feld": {
@@ -59,7 +63,7 @@
     }
   },
   "footer": {
-    "prototypeNote": "İç proof-of-concept. Sözleşmeyle taahhüt edilen hizmet kapsamı değildir. Çiftlik fotoğrafları Almatı yakınındaki gerçek araziyi gösterir, kalan görseller serbest kaynaklardan yer tutuculardır.",
+    "prototypeNote": "İç proof-of-concept. Sözleşmeyle taahhüt edilen hizmet kapsamı değildir. Çiftlik fotoğrafları Almatı yakınındaki gerçek araziyi gösterir; diğer tüm görseller temsili görsel veya yer tutucudur.",
     "productHeading": "Ürün",
     "legalHeading": "Hukuki bilgiler",
     "imprint": "Künye",
@@ -692,7 +696,36 @@
     "complianceClosing": "Kendi tedarik zinciri olan büyük zincirler yalnızca kanıt sunabilen tedarikçileri kabul eder. Burada uyum bir formalite değil, giriş biletidir.",
     "ctaTitle": "Kavram slaytları yerine elle tutulur bir sistem",
     "ctaLead": "Prototip ilk aşamanın yapısını ve görünümünü gösterir: bekleme süresi kilidiyle sıra bloğu yönetimi, fotoğraf kanıtlı toplama görevleri, soğuk zincir sayacı ve hasat günü katkı payı.",
-    "ctaButton": "Panoya git"
+    "ctaButton": "Panoya git",
+    "faqEyebrow": "Sık sorulan sorular",
+    "faqTitle": "İlk görüşmede her zaman gelen altı soru",
+    "faqLead": "Bu sayfadaki sayılarla kısa yanıtlar.",
+    "faqItems": {
+      "sechzig": {
+        "q": "Neden tam 60 dakika?",
+        "a": "Toplama ile soğutma arasında 60 dakikadan fazla geçmemelidir. Bu sınır aşıldığında sonraki her önlem etkisizdir - bu yüzden sistem bu süreyi parti başına ölçer, günlük ortalama olarak değil."
+      },
+      "durchgang": {
+        "q": "Bir toplama turu atlanırsa ne olur?",
+        "a": "Her sıra bloğu üç ile sekiz hafta boyunca iki üç günde bir toplanır. Atlanan bir tur o bloğu bu döngü için yok eder. Rotasyon planı sırayı tutar ve boşluğu aynı gün gösterir."
+      },
+      "beleg": {
+        "q": "Bir teslimat nasıl kanıtlanır?",
+        "a": "Her kasa tarlada verilen bir kimlik taşır ve tam olarak bir partiye aittir. Sıra bloğu, çeşit, hasat günü, toplama saati, soğutma eğrisi ve ilaçlama kaydı buna bağlıdır - ЭСФ sistemindeki elektronik irsaliyeye kadar."
+      },
+      "rollen": {
+        "q": "Hangi veriyi kim görür?",
+        "a": "Oturum açan hesabın rolü karar verir, hem de arayüzde değil veritabanında. Yönetimden tek tek toplayıcıya kadar yedi çekirdek rol; arayüzdeki bir boşluk böylece yabancı veri açığa çıkarmaz."
+      },
+      "stand": {
+        "q": "Bugün ne kadarı hazır?",
+        "a": "Dört alanda 25 modül. 14'ü gerçek yazma işlemleriyle veritabanına bağlı, 3'ü kullanılabilir demo, 8'i geliştirilmekte olan görünür menü maddesi. Ana sayfadaki göstergeler, ilk tam ölçülen sezona kadar yer tutucudur."
+      },
+      "daten": {
+        "q": "Veriler nerede tutulur?",
+        "a": "255-VIII sayılı Dijital Kanun bazı veri ürünlerinin Kazakistan dışında saklanmasını sınırlar. Bu nedenle barındırma yeri üretime geçmeden önce hukuken incelenir; anahtarlar ve erişim bilgileri hiçbir zaman kaynak kodunda durmaz."
+      }
+    }
   },
   "auth": {
     "title": "Oturum aç",
@@ -1985,5 +2018,67 @@
       "offen": "açık"
     },
     "note": "İhtiyaç hesabı ve vardiya planı doğrudan rotasyon planından gelir (hangi sıra bloğunun hangi gün hasat edilmesi gerektiği). Hava durumu senaryoları bilerek bu görünümün parçası değildir - hava durumu bağlantısı (gereksinim 2.13) ertelendi."
+  },
+  "erlebnis": {
+    "bento": {
+      "minuten": "dakika",
+      "sechzigLink": "İlk saati izleyin",
+      "frost": "Don"
+    },
+    "sechzig": {
+      "eyebrow": "İlk saat",
+      "title": "Fiyatı 60 dakika belirler",
+      "lead": "Toplamadan sonraki saati kaydırarak izleyin. Saat tarladaki okutmayla başlar, eğri ise sıcaklığın meyveden nasıl çıktığını gösterir.",
+      "uhrLabel": "toplamadan sonra",
+      "minute": "dk",
+      "kurveTitel": "Soğutma eğrisi, şematik",
+      "achseWarm": "Tarla sıcaklığı",
+      "achseKalt": "0–1 °C",
+      "grenze": "Sınır 60 dk",
+      "kuehlraum": "Soğuk oda",
+      "schritte": {
+        "pfluecken": {
+          "title": "Doğrudan kaba toplanır",
+          "text": "Meyve elden doğrudan satış kabına gider. Kasa teslim edilirken tek bir okutma miktarı, sıra bloğunu, saati ve kişiyi kaydeder. Saat buradan itibaren işler."
+        },
+        "kuehlraum": {
+          "title": "5 ila 15 dakika sonra soğuk odada",
+          "text": "Bugün toplamadan soğuk odaya kadar bu kadar süre geçiyor. Bu değer iyidir ve iyileştirilmesi gerekmez."
+        },
+        "vorkuehlung": {
+          "title": "0-1 dereceye soğutuldu",
+          "text": "Sıcaklık yalnızca odadan değil, meyvenin kendisinden çıkmalıdır. Ancak o zaman soğuk, olgunlaşmayı ve gri küfü yavaşlatır."
+        },
+        "beleg": {
+          "title": "Soğutma eğrisi belgede",
+          "text": "Süre ve sıcaklık partiye bağlıdır. 60 dakika sınırı aşılırsa işletme bunu alıcıdan önce görür."
+        }
+      }
+    },
+    "belegkette": {
+      "start": "Kabı okutun",
+      "startText": "Kabın üzerindeki kod, zinciri kaynağına kadar açar.",
+      "pruefen": "Kaynağı kendiniz kontrol edin"
+    },
+    "lupe": {
+      "hinweisMaus": "Büyüteç: fareyi fotoğrafın üzerine getirin",
+      "hinweisTouch": "Büyüteç: fotoğrafa dokunun"
+    },
+    "cursor": {
+      "ziehen": "Sürükle"
+    },
+    "ton": {
+      "an": "Tarla seslerini aç",
+      "aus": "Tarla seslerini kapat"
+    },
+    "scan": {
+      "eyebrow": "3D tur",
+      "title": "İşletme üç boyutlu",
+      "lead": "İşletmenin yerinde çekilmiş 3D taraması. Döndürün, yakınlaştırın ve sıra bloklarına her açıdan bakın.",
+      "laden": "3D turu yükle ({mb} MB)",
+      "laedt": "Yükleniyor … {prozent} %",
+      "bedienung": "Döndürmek için sürükleyin, yakınlaştırmak için fare tekerleği veya iki parmak",
+      "fehler": "3D tur yüklenemedi."
+    }
   }
 }

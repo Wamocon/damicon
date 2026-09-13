@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="512" height="512">
+  <title>Damicon - Schanyrak-Kranz</title>
+  <style>
+    .tinte { fill: none; stroke: #00768f; stroke-linecap: round; stroke-linejoin: round; }
+    .beere { fill: #b3123f; }
+    .altyn { fill: #f2c14b; }
+  </style>
+  <g>
+    
+<circle class="beere" cx="64.0" cy="19.0" r="7.2"/>    <circle class="beere" cx="86.5" cy="25.0" r="7.2"/>    <circle class="beere" cx="103.0" cy="41.5" r="7.2"/>    <circle class="beere" cx="109.0" cy="64.0" r="7.2"/>    <circle class="beere" cx="103.0" cy="86.5" r="7.2"/>    <circle class="beere" cx="86.5" cy="103.0" r="7.2"/>    <circle class="beere" cx="64.0" cy="109.0" r="7.2"/>    <circle class="beere" cx="41.5" cy="103.0" r="7.2"/>    <circle class="beere" cx="25.0" cy="86.5" r="7.2"/>    <circle class="beere" cx="19.0" cy="64.0" r="7.2"/>    <circle class="beere" cx="25.0" cy="41.5" r="7.2"/>    <circle class="beere" cx="41.5" cy="25.0" r="7.2"/>
+  </g>
+  <g class="tinte" stroke-width="7.5">
+    <path d="M29 64 Q64 41 99 64"/>
+    <path d="M29 64 Q64 87 99 64"/>
+    <path d="M64 29 Q41 64 64 99"/>
+    <path d="M64 29 Q87 64 64 99"/>
+  </g>
+  <circle class="altyn" cx="64" cy="64" r="8"/>
+</svg>

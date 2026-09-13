@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { useTranslations } from "next-intl";
+import { Lupe } from "@/components/site/lupe";
 import { QualityCompare } from "@/components/site/quality-compare";
 import { Reveal } from "@/components/site/reveal";
 import { qualitaetsBeeren, qualitaetsSchale } from "@/lib/site-medien";
@@ -23,11 +24,12 @@ import { qualitaetsBeeren, qualitaetsSchale } from "@/lib/site-medien";
 // nicht mehr zu sehen.
 export function QualityStandard() {
   const t = useTranslations("qualityStandard");
+  const e = useTranslations("erlebnis.lupe");
 
   return (
     <section className="border-b border-border py-16 md:py-24">
       <div className="container">
-        <Reveal>
+        <Reveal art="wisch">
           <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
             {t("eyebrow")}
           </p>
@@ -39,23 +41,34 @@ export function QualityStandard() {
           </p>
         </Reveal>
 
-        <Reveal delay={90} className="mt-10 grid gap-4 sm:grid-cols-3">
-          {qualitaetsBeeren.map(({ quelle, textKey, ton }) => (
+        {/* Die Lupe ersetzt hier den Hover-Zoom der anderen Fotos: der
+            vergroessert das ganze Bild, die Lupe genau die Stelle, an der
+            der Belag sitzt. */}
+        <Reveal staffel className="mt-10 grid gap-4 sm:grid-cols-3">
+          {qualitaetsBeeren.map(({ quelle, textKey, ton, breite, hoehe }) => (
             <figure
               key={textKey}
-              className={`group overflow-hidden rounded-2xl border bg-card ${
+              className={`overflow-hidden rounded-2xl border bg-card ${
                 ton === "ausschuss" ? "border-warning/40" : "border-border"
               }`}
             >
               <div className="relative aspect-3/2 w-full overflow-hidden">
-                <Image
-                  src={quelle}
-                  alt={t(`${textKey}Title`)}
-                  fill
-                  sizes="(min-width: 640px) 33vw, 100vw"
-                  loading="lazy"
-                  className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                />
+                <Lupe
+                  quelle={quelle}
+                  breite={breite}
+                  hoehe={hoehe}
+                  hinweisMaus={e("hinweisMaus")}
+                  hinweisTouch={e("hinweisTouch")}
+                >
+                  <Image
+                    src={quelle}
+                    alt={t(`${textKey}Title`)}
+                    fill
+                    sizes="(min-width: 640px) 33vw, 100vw"
+                    loading="lazy"
+                    className="object-cover"
+                  />
+                </Lupe>
               </div>
               <figcaption className="p-5">
                 <p className="text-sm font-black text-card-foreground">
@@ -71,7 +84,7 @@ export function QualityStandard() {
 
         {/* Zwischen Merkmal und Folge steht der Direktvergleich: die drei
             Karten benennen den Maßstab, der Regler macht ihn nachprüfbar. */}
-        <Reveal>
+        <Reveal art="wisch">
           <QualityCompare />
         </Reveal>
 
