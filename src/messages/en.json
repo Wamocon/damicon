@@ -207,7 +207,7 @@
       },
       "stand": {
         "q": "What is already built today?",
-        "a": "25 modules across four areas. 14 work against the database with real writes, 3 are built as an operable demo, 8 are visible menu entries under development. The figures on the landing page are placeholders until the first fully measured season."
+        "a": "{gesamt} modules across four areas: {angebunden} on the database with real writes, {demo} as a usable demo, {entwicklung} as visible menu entries under development. The figures on the start page are placeholders until the first fully measured season."
       },
       "daten": {
         "q": "Where is the data held?",
@@ -831,6 +831,24 @@
       "code": "The code is wrong or expired. Please enter the current 6-digit code from your authenticator app.",
       "zustand": "The date has changed in the meantime (e.g. locked or already done). Please reload the page.",
       "einwilligung": "Please confirm the notice above before sending the first message."
+    },
+    "einladungen": {
+      "erfolg": {
+        "erstellt": "Invitation issued. Code: {wert}",
+        "zurueckgezogen": "Invitation withdrawn.",
+        "eingeloest": "Access created. You can now sign in with your email address and password."
+      },
+      "fehler": {
+        "email": "Please enter a valid email address.",
+        "nichtOffen": "This invitation is no longer open and cannot be withdrawn.",
+        "ungueltig": "The code or email address is wrong, or the invitation has expired.",
+        "passwortUngleich": "The two passwords do not match.",
+        "passwortKurz": "The password needs at least 12 characters.",
+        "kontoAnlegen": "Access could not be created. Your code remains valid - please try again later or contact the administration.",
+        "demoModus": "No access can be created in demo mode.",
+        "adresseVergeben": "This email address already has access. Please use a different address.",
+        "kontoVorhanden": "This email address already has access. Please sign in instead and reset the password there if needed."
+      }
     }
   },
   "standortVerwaltung": {
@@ -2080,5 +2098,58 @@
       "bedienung": "Drag to rotate, scroll or pinch to zoom",
       "fehler": "The 3D walkthrough could not be loaded."
     }
+  },
+  "einladungenAnsicht": {
+    "titel": "Customer access",
+    "lead": "A B2B customer account is only created through an invitation. The code is shown once and stored as a checksum only.",
+    "leer": "No invitation issued yet.",
+    "zurueckziehen": "Withdraw",
+    "spalte": {
+      "kunde": "Customer",
+      "person": "Contact",
+      "status": "Status",
+      "gueltigBis": "Valid until",
+      "ausgestellt": "Issued"
+    },
+    "status": {
+      "offen": "Open",
+      "eingeloest": "Redeemed",
+      "zurueckgezogen": "Withdrawn",
+      "abgelaufen": "Expired"
+    },
+    "formular": {
+      "titel": "Issue an invitation",
+      "lead": "The code is valid for 14 days and only for the address entered here.",
+      "kunde": "B2B customer",
+      "name": "Contact name",
+      "email": "Email",
+      "knopf": "Issue invitation"
+    },
+    "code": {
+      "titel": "Invitation code",
+      "hinweis": "Write it down now and hand it to the customer. The server keeps only the checksum - once you leave this page the code cannot be shown again. If it is lost, withdraw the invitation and issue a new one.",
+      "wo": "Redeem at {url} - pass on this address together with the code."
+    },
+    "gekuerzt": "Showing {gezeigt} of {gesamt} invitations, open ones first. Older redeemed and withdrawn entries are not listed here."
+  },
+  "einladungSeite": {
+    "titel": "Set up access",
+    "lead": "Damicon - customer portal",
+    "zurueck": "Back to the homepage",
+    "code": "Invitation code",
+    "codeHinweis": "Case does not matter and the hyphens are optional.",
+    "email": "Email",
+    "emailHinweis": "Exactly the address the invitation was issued to.",
+    "passwort": "Password",
+    "passwortHinweis": "At least 12 characters.",
+    "passwortWdh": "Repeat password",
+    "knopf": "Set up access",
+    "laeuft": "Setting up ...",
+    "zurAnmeldung": "Go to sign in",
+    "demoTitel": "Demo mode",
+    "demoLead": "Without a database there is no access to set up. This page only works in database mode.",
+    "angemeldetTitel": "You are already signed in",
+    "angemeldetLead": "A new access is issued for its own account. Sign out first, otherwise you will keep working in the old one.",
+    "abmelden": "Sign out now"
   }
 }

@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { Reveal } from "@/components/site/reveal";
+import { modules } from "@/lib/modules";
 
 // Häufige Fragen als aufklappbare Liste. Bewusst mit <details> und <summary>
 // statt einer eigenen Aufklapp-Logik: Das bringt Tastaturbedienung,
@@ -9,8 +10,24 @@ import { Reveal } from "@/components/site/reveal";
 // der Seite - keine Frage ohne Beleg weiter oben.
 const FRAGEN = ["sechzig", "durchgang", "beleg", "rollen", "stand", "daten"] as const;
 
+// Die Antwort zum Projektstand nennt Zahlen. Sie werden hier aus modules.ts
+// gezaehlt statt in fuenf Sprachdateien von Hand gepflegt: die fest
+// eingetragene Fassung stand am 13.09.2026 bei 14/3/8, waehrend die
+// Modulliste 18/1/6 hergab - eine oeffentliche Seite, die dem eigenen
+// Dashboard widerspricht. next-intl ignoriert Werte, die ein Text nicht
+// verwendet, deshalb koennen sie an jede Antwort gehen.
+function standZahlen() {
+  return {
+    gesamt: modules.length,
+    angebunden: modules.filter((m) => m.reifegrad === "angebunden").length,
+    demo: modules.filter((m) => m.reifegrad === "demo").length,
+    entwicklung: modules.filter((m) => m.reifegrad === "in-entwicklung").length,
+  };
+}
+
 export function Fragen() {
   const s = useTranslations("landing");
+  const zahlen = standZahlen();
 
   return (
     <section id="fragen" className="container scroll-mt-20 py-16 md:py-24">
@@ -34,7 +51,7 @@ export function Fragen() {
               <Plus aria-hidden className="frage__zeichen h-4 w-4 shrink-0 text-primary" />
             </summary>
             <p className="frage__text px-5 pb-5 text-sm leading-6 text-muted-foreground">
-              {s(`faqItems.${frage}.a`)}
+              {s(`faqItems.${frage}.a`, zahlen)}
             </p>
           </details>
         ))}

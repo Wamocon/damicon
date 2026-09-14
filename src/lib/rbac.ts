@@ -42,6 +42,12 @@ export const resources = [
   "aggregator",
   "schulungen",
   "rollen",
+  // Anforderung E.20: Zugangsverwaltung fuer B2B-Kundenkonten. Bewusst eine
+  // eigene Ressource statt eines Schreibrechts auf "rollen": eine Einladung
+  // legt genau ein Kundenkonto an, die Rollenverwaltung dagegen entscheidet
+  // ueber jede Rolle im Betrieb. Wer einladen darf, soll damit nicht auch
+  // Rollen vergeben duerfen.
+  "einladungen",
 ] as const;
 
 export type Resource = (typeof resources)[number];
@@ -189,6 +195,10 @@ export const rolePermissions: Record<Role, Permission[]> = {
     // deckt "complete" nicht ab.
     "schulungen:complete",
     ...view("rollen"),
+    // Anforderung E.20: Kundenzugaenge ausstellen und zurueckziehen. Kein
+    // delete - eine ausgestellte Einladung bleibt nachvollziehbar, die
+    // Migration 20261002000000 kennt dafuer gar keine Policy.
+    ...crud("einladungen"),
   ],
   buchhaltung: [
     ...view("dashboard"),

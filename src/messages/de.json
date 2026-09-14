@@ -207,7 +207,7 @@
       },
       "stand": {
         "q": "Was ist heute schon gebaut?",
-        "a": "25 Module in vier Bereichen. 14 arbeiten gegen die Datenbank mit echten Schreibvorgängen, 3 sind als bedienbare Demo gebaut, 8 sind sichtbare Menüpunkte in Entwicklung. Die Kennzahlen der Startseite sind Platzhalterwerte bis zur ersten vollständig gemessenen Saison."
+        "a": "{gesamt} Module in vier Bereichen: {angebunden} an der Datenbank mit echten Schreibvorgängen, {demo} als bedienbare Demo, {entwicklung} als sichtbare Menüpunkte in Entwicklung. Die Kennzahlen der Startseite sind Platzhalterwerte bis zur ersten vollständig gemessenen Saison."
       },
       "daten": {
         "q": "Wo liegen die Daten?",
@@ -831,6 +831,24 @@
       "code": "Der Code ist falsch oder abgelaufen. Bitte den aktuellen 6-stelligen Code aus der Authenticator-App eingeben.",
       "zustand": "Der Termin hat sich zwischenzeitlich geändert (z. B. gesperrt oder bereits erledigt). Bitte Seite neu laden.",
       "einwilligung": "Bitte den Hinweis oben bestätigen, bevor die erste Nachricht gesendet wird."
+    },
+    "einladungen": {
+      "erfolg": {
+        "erstellt": "Einladung ausgestellt. Code: {wert}",
+        "zurueckgezogen": "Einladung zurückgezogen.",
+        "eingeloest": "Zugang eingerichtet. Sie können sich jetzt mit Ihrer E-Mail-Adresse und Ihrem Passwort anmelden."
+      },
+      "fehler": {
+        "email": "Bitte eine gültige E-Mail-Adresse eingeben.",
+        "nichtOffen": "Diese Einladung ist nicht mehr offen und lässt sich nicht zurückziehen.",
+        "ungueltig": "Code oder E-Mail-Adresse stimmt nicht, oder die Einladung ist abgelaufen.",
+        "passwortUngleich": "Die beiden Passwörter stimmen nicht überein.",
+        "passwortKurz": "Das Passwort braucht mindestens 12 Zeichen.",
+        "kontoAnlegen": "Der Zugang konnte nicht eingerichtet werden. Ihr Code bleibt gültig - bitte später erneut versuchen oder an die Administration wenden.",
+        "demoModus": "Im Demo-Modus lässt sich kein Zugang einrichten.",
+        "adresseVergeben": "Zu dieser E-Mail-Adresse gibt es bereits einen Zugang. Bitte eine andere Adresse verwenden.",
+        "kontoVorhanden": "Zu dieser E-Mail-Adresse gibt es bereits einen Zugang. Bitte über die Anmeldung gehen und dort bei Bedarf das Passwort zurücksetzen."
+      }
     }
   },
   "standortVerwaltung": {
@@ -2080,5 +2098,58 @@
       "bedienung": "Ziehen zum Drehen, Mausrad oder zwei Finger zum Zoomen",
       "fehler": "Der 3D-Rundgang konnte nicht geladen werden."
     }
+  },
+  "einladungenAnsicht": {
+    "titel": "Kundenzugänge",
+    "lead": "Ein B2B-Kundenkonto entsteht nur über eine Einladung. Der Code wird einmal angezeigt und danach nur noch als Prüfsumme gespeichert.",
+    "leer": "Noch keine Einladung ausgestellt.",
+    "zurueckziehen": "Zurückziehen",
+    "spalte": {
+      "kunde": "Kunde",
+      "person": "Ansprechpartner",
+      "status": "Status",
+      "gueltigBis": "Gültig bis",
+      "ausgestellt": "Ausgestellt"
+    },
+    "status": {
+      "offen": "Offen",
+      "eingeloest": "Eingelöst",
+      "zurueckgezogen": "Zurückgezogen",
+      "abgelaufen": "Abgelaufen"
+    },
+    "formular": {
+      "titel": "Einladung ausstellen",
+      "lead": "Der Code gilt 14 Tage und nur für die hier eingetragene Adresse.",
+      "kunde": "B2B-Kunde",
+      "name": "Name der Person",
+      "email": "E-Mail",
+      "knopf": "Einladung ausstellen"
+    },
+    "code": {
+      "titel": "Einladungscode",
+      "hinweis": "Jetzt notieren und dem Kunden übergeben. Der Server speichert nur die Prüfsumme - nach dem Verlassen der Seite lässt sich der Code nicht wieder anzeigen. Ist er verloren, ziehen Sie die Einladung zurück und stellen eine neue aus.",
+      "wo": "Einzulösen unter {url} - diese Adresse zusammen mit dem Code weitergeben."
+    },
+    "gekuerzt": "Es werden {gezeigt} von {gesamt} Einladungen gezeigt, offene zuerst. Ältere eingelöste und zurückgezogene Einträge fehlen in dieser Ansicht."
+  },
+  "einladungSeite": {
+    "titel": "Zugang einrichten",
+    "lead": "Damicon - Kundenportal",
+    "zurueck": "Zurück zur Startseite",
+    "code": "Einladungscode",
+    "codeHinweis": "Groß- und Kleinschreibung spielt keine Rolle, Bindestriche können entfallen.",
+    "email": "E-Mail",
+    "emailHinweis": "Genau die Adresse, an die die Einladung ausgestellt wurde.",
+    "passwort": "Passwort",
+    "passwortHinweis": "Mindestens 12 Zeichen.",
+    "passwortWdh": "Passwort wiederholen",
+    "knopf": "Zugang einrichten",
+    "laeuft": "Wird eingerichtet ...",
+    "zurAnmeldung": "Zur Anmeldung",
+    "demoTitel": "Demo-Modus",
+    "demoLead": "Ohne hinterlegte Datenbank lässt sich kein Zugang einrichten. Diese Seite arbeitet nur im Datenbankbetrieb.",
+    "angemeldetTitel": "Sie sind bereits angemeldet",
+    "angemeldetLead": "Ein neuer Zugang wird auf ein eigenes Konto ausgestellt. Melden Sie sich zuerst ab, sonst arbeiten Sie danach weiter im alten Konto.",
+    "abmelden": "Jetzt abmelden"
   }
 }

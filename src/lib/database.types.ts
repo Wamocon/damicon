@@ -1115,6 +1115,73 @@ export type Database = {
           },
         ]
       }
+      kundeneinladungen: {
+        Row: {
+          b2b_kunde_id: string
+          code_digest: string
+          created_at: string
+          eingeloest_am: string | null
+          eingeloest_profil_id: string | null
+          email: string
+          erstellt_von_profil_id: string | null
+          full_name: string
+          gueltig_bis: string
+          id: string
+          status: Database["public"]["Enums"]["einladung_status"]
+          updated_at: string
+        }
+        Insert: {
+          b2b_kunde_id: string
+          code_digest: string
+          created_at?: string
+          eingeloest_am?: string | null
+          eingeloest_profil_id?: string | null
+          email: string
+          erstellt_von_profil_id?: string | null
+          full_name: string
+          gueltig_bis: string
+          id?: string
+          status?: Database["public"]["Enums"]["einladung_status"]
+          updated_at?: string
+        }
+        Update: {
+          b2b_kunde_id?: string
+          code_digest?: string
+          created_at?: string
+          eingeloest_am?: string | null
+          eingeloest_profil_id?: string | null
+          email?: string
+          erstellt_von_profil_id?: string | null
+          full_name?: string
+          gueltig_bis?: string
+          id?: string
+          status?: Database["public"]["Enums"]["einladung_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kundeneinladungen_b2b_kunde_id_fkey"
+            columns: ["b2b_kunde_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_kunden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kundeneinladungen_eingeloest_profil_id_fkey"
+            columns: ["eingeloest_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kundeneinladungen_erstellt_von_profil_id_fkey"
+            columns: ["erstellt_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kpi_baseline: {
         Row: {
           baseline_wert: string | null
@@ -2952,6 +3019,10 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       current_b2b_kunde_id: { Args: never; Returns: string }
+      einladung_abschliessen: {
+        Args: { p_auth_user_id: string; p_code_digest: string; p_email: string }
+        Returns: string
+      }
       einwilligung_widerrufen: {
         Args: { p_grund: string; p_id: string }
         Returns: undefined
@@ -3101,6 +3172,7 @@ export type Database = {
         | "zertifikat"
         | "sonstiges"
       dokument_status: "gueltig" | "prueflauf" | "abgelaufen"
+      einladung_status: "offen" | "eingeloest" | "zurueckgezogen"
       einwilligung_kanal: "papier" | "app" | "web" | "sms"
       esutd_status: "erfasst" | "offen"
       integration_status: "verbunden" | "sandbox" | "geplant"
@@ -3306,6 +3378,7 @@ export const Constants = {
         "sonstiges",
       ],
       dokument_status: ["gueltig", "prueflauf", "abgelaufen"],
+      einladung_status: ["offen", "eingeloest", "zurueckgezogen"],
       einwilligung_kanal: ["papier", "app", "web", "sms"],
       esutd_status: ["erfasst", "offen"],
       integration_status: ["verbunden", "sandbox", "geplant"],

@@ -16,6 +16,8 @@
     "db:types": "supabase gen types typescript --linked > src/lib/database.types.ts",
     "db:test": "node --env-file=.env.local supabase/tests/integration.mjs",
     "db:test:fast": "node supabase/tests/pglite-fast.mjs",
+    "test:einladungen": "node supabase/tests/einladungen.mjs",
+    "test:bereit": "node --env-file=.env.local scripts/einladung-bereit.mjs",
     "test:zukauf-parser": "node supabase/tests/zukauf-parser.mjs",
     "test:ausweis-scan": "node supabase/tests/ausweis-scan.mjs",
     "test:ki-assistent": "node supabase/tests/ki-assistent.mjs"

@@ -719,7 +719,7 @@
       },
       "stand": {
         "q": "Bugün ne kadarı hazır?",
-        "a": "Dört alanda 25 modül. 14'ü gerçek yazma işlemleriyle veritabanına bağlı, 3'ü kullanılabilir demo, 8'i geliştirilmekte olan görünür menü maddesi. Ana sayfadaki göstergeler, ilk tam ölçülen sezona kadar yer tutucudur."
+        "a": "Dört alanda {gesamt} modül: gerçek yazma işlemleriyle veritabanına bağlı {angebunden}, kullanılabilir demo olarak {demo}, geliştirme aşamasındaki görünür menü girdisi olarak {entwicklung}. Başlangıç sayfasındaki değerler, ilk tam ölçülen sezona kadar yer tutucudur."
       },
       "daten": {
         "q": "Veriler nerede tutulur?",
@@ -1117,6 +1117,24 @@
       "code": "Kod yanlış veya süresi doldu. Lütfen kimlik doğrulayıcı uygulamadaki güncel 6 haneli kodu girin.",
       "zustand": "Tarih bu sırada değişti (ör. kilitlendi veya zaten tamamlandı). Lütfen sayfayı yeniden yükleyin.",
       "einwilligung": "İlk mesajı göndermeden önce lütfen yukarıdaki bildirimi onaylayın."
+    },
+    "einladungen": {
+      "erfolg": {
+        "erstellt": "Davet oluşturuldu. Kod: {wert}",
+        "zurueckgezogen": "Davet geri alındı.",
+        "eingeloest": "Erişim oluşturuldu. Artık e-posta adresiniz ve parolanızla oturum açabilirsiniz."
+      },
+      "fehler": {
+        "email": "Geçerli bir e-posta adresi girin.",
+        "nichtOffen": "Bu davet artık açık değil ve geri alınamaz.",
+        "ungueltig": "Kod veya e-posta adresi yanlış ya da davetin süresi dolmuş.",
+        "passwortUngleich": "İki parola birbiriyle uyuşmuyor.",
+        "passwortKurz": "Parola en az 12 karakter olmalı.",
+        "kontoAnlegen": "Erişim oluşturulamadı. Kodunuz geçerli kalır - lütfen daha sonra tekrar deneyin veya yönetime başvurun.",
+        "demoModus": "Demo modunda erişim oluşturulamaz.",
+        "adresseVergeben": "Bu e-posta adresi için zaten bir erişim var. Lütfen başka bir adres kullanın.",
+        "kontoVorhanden": "Bu e-posta adresi için zaten bir erişim var. Lütfen oturum açın, gerekirse orada parolanızı sıfırlayın."
+      }
     }
   },
   "standortVerwaltung": {
@@ -2080,5 +2098,58 @@
       "bedienung": "Döndürmek için sürükleyin, yakınlaştırmak için fare tekerleği veya iki parmak",
       "fehler": "3D tur yüklenemedi."
     }
+  },
+  "einladungenAnsicht": {
+    "titel": "Müşteri erişimi",
+    "lead": "B2B müşteri hesabı yalnızca davet ile oluşur. Kod bir kez gösterilir ve yalnızca sağlama toplamı olarak saklanır.",
+    "leer": "Henüz davet oluşturulmadı.",
+    "zurueckziehen": "Geri al",
+    "spalte": {
+      "kunde": "Müşteri",
+      "person": "İlgili kişi",
+      "status": "Durum",
+      "gueltigBis": "Geçerlilik",
+      "ausgestellt": "Oluşturuldu"
+    },
+    "status": {
+      "offen": "Açık",
+      "eingeloest": "Kullanıldı",
+      "zurueckgezogen": "Geri alındı",
+      "abgelaufen": "Süresi doldu"
+    },
+    "formular": {
+      "titel": "Davet oluştur",
+      "lead": "Kod 14 gün geçerlidir ve yalnızca buraya girilen adres için çalışır.",
+      "kunde": "B2B müşterisi",
+      "name": "Kişinin adı",
+      "email": "E-posta",
+      "knopf": "Davet oluştur"
+    },
+    "code": {
+      "titel": "Davet kodu",
+      "hinweis": "Şimdi not edin ve müşteriye iletin. Sunucu yalnızca sağlama toplamını saklar - bu sayfadan ayrıldıktan sonra kod bir daha gösterilemez. Kaybolursa daveti geri alın ve yenisini oluşturun.",
+      "wo": "{url} adresinden kullanılır - bu adresi kodla birlikte iletin."
+    },
+    "gekuerzt": "{gesamt} davetten {gezeigt} tanesi gösteriliyor, önce açık olanlar. Daha eski kullanılmış ve geri alınmış kayıtlar bu görünümde yok."
+  },
+  "einladungSeite": {
+    "titel": "Erişim oluştur",
+    "lead": "Damicon - müşteri portalı",
+    "zurueck": "Ana sayfaya dön",
+    "code": "Davet kodu",
+    "codeHinweis": "Büyük küçük harf fark etmez, tireler yazılmayabilir.",
+    "email": "E-posta",
+    "emailHinweis": "Davetin oluşturulduğu adresin aynısı.",
+    "passwort": "Parola",
+    "passwortHinweis": "En az 12 karakter.",
+    "passwortWdh": "Parolayı tekrarlayın",
+    "knopf": "Erişim oluştur",
+    "laeuft": "Oluşturuluyor ...",
+    "zurAnmeldung": "Oturum açmaya git",
+    "demoTitel": "Demo modu",
+    "demoLead": "Veritabanı olmadan erişim oluşturulamaz. Bu sayfa yalnızca veritabanı modunda çalışır.",
+    "angemeldetTitel": "Zaten oturum açtınız",
+    "angemeldetLead": "Yeni erişim kendi hesabına açılır. Önce çıkış yapın, yoksa eski hesapta çalışmaya devam edersiniz.",
+    "abmelden": "Şimdi çıkış yap"
   }
 }

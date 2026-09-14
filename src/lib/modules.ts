@@ -169,7 +169,14 @@ export const modules: ModuleDef[] = [
     icon: "shield-check",
     resource: "rollen",
     klassifikation: "uebernehmen",
-    reifegrad: "demo",
+    // Anforderung E.20: die Einladungsverwaltung (EinladungenAnsicht) schreibt
+    // echte kundeneinladungen-Zeilen unter RLS und legt beim Einloesen ein
+    // Konto an - der erste schreibende Vorgang in diesem Modul ueberhaupt.
+    // Die Rechtematrix darueber bleibt reine Anzeige, zeigt aber die echte
+    // Konfiguration aus rbac.ts, keine Mock-Daten; sie war nie der Grund fuer
+    // "demo". Offen bleibt die Verwaltung bestehender Konten (Rolle aendern,
+    // Zugang sperren) - dafuer gibt es noch keine Anforderung.
+    reifegrad: "angebunden",
   },
   {
     key: "finanzen",
