@@ -16,7 +16,8 @@
 //
 // Deckt ab: Migrationen + Seed wenden fehlerfrei an, RLS fuer anon, rollen-
 // abhaengige Schreibrechte auf Reihenbloecke, der Sperr-Trigger nach einer
-// Pflanzenschutzbehandlung und die Ablehnung eines vorzeitigen Statuswechsels.
+// Pflanzenschutzbehandlung, die Ablehnung eines vorzeitigen Statuswechsels und
+// die Fortschreibung von Menge und Ausschuss in die Charge.
 // =============================================================================
 
 import { PGlite } from "@electric-sql/pglite";
@@ -246,6 +247,79 @@ await mussScheitern(
   );
 
   await alsAdmin(db);
+}
+
+// --- 7. Ausschuss wandert in die Charge (Verlustquote) ----------------------
+// Regression: 20260911000000_geraete_zeitstempel.sql hat aufgabe_fortschreiben()
+// ohne die Ausschuss-Fortschreibung aus 20260905200000_kette_haerten.sql neu
+// definiert - chargen.ausschuss_kg blieb 0, die Verlustquote (kpi_aktuell)
+// rechnete fuer jede neu gemeldete Charge null Verlust. Geprueft wird ueber den
+// echten App-Weg: die Brigade meldet per sync_menge_melden().
+{
+  await alsRolle(db, "authenticated", leitungAuthId);
+  const { rows: freierBlock } = await db.query(
+    `select id from public.reihenbloecke
+      where status <> 'wartezeitgesperrt' and id <> $1
+      limit 1;`,
+    [blockId],
+  );
+  const { rows: aufgabe } = await db.query(
+    `insert into public.pflueckaufgaben (code, reihenblock_id, zielmenge_kg)
+     values ('PA-PGLITE-AUSSCHUSS', $1, 20)
+     returning id;`,
+    [freierBlock[0].id],
+  );
+  const aufgabeId = aufgabe[0].id;
+  await db.query(
+    "update public.pflueckaufgaben set status = 'in_arbeit' where id = $1;",
+    [aufgabeId],
+  );
+  await alsAdmin(db);
+
+  const chargeAusschuss = async () => {
+    const { rows } = await db.query(
+      "select menge_kg, ausschuss_kg from public.chargen where pflueckaufgabe_id = $1;",
+      [aufgabeId],
+    );
+    return rows[0];
+  };
+
+  await alsRolle(db, "authenticated", brigadeAuthId);
+  const { rows: meldung } = await db.query(
+    "select * from public.sync_menge_melden($1, $2, $3, $4);",
+    [crypto.randomUUID(), aufgabeId, 18.5, 1.5],
+  );
+  await alsAdmin(db);
+  const nachMeldung = await chargeAusschuss();
+  check(
+    "Kette: gemeldeter Ausschuss landet in der Charge",
+    meldung[0]?.ergebnis === "angewendet" &&
+      Number(nachMeldung?.menge_kg) === 18.5 &&
+      Number(nachMeldung?.ausschuss_kg) === 1.5,
+    `ergebnis: ${meldung[0]?.ergebnis}, menge_kg: ${nachMeldung?.menge_kg}, ausschuss_kg: ${nachMeldung?.ausschuss_kg}`,
+  );
+
+  // Korrektur in der Belegpruefung: nur der Ausschuss aendert sich, die Menge
+  // bleibt - auch das muss die Charge erreichen.
+  await alsRolle(db, "authenticated", brigadeAuthId);
+  await db.query("select * from public.sync_menge_melden($1, $2, $3, $4);", [
+    crypto.randomUUID(),
+    aufgabeId,
+    18.5,
+    2.25,
+  ]);
+  await alsAdmin(db);
+  const nachKorrektur = await chargeAusschuss();
+  check(
+    "Kette: eine reine Ausschuss-Korrektur landet ebenfalls in der Charge",
+    Number(nachKorrektur?.ausschuss_kg) === 2.25,
+    `ausschuss_kg: ${nachKorrektur?.ausschuss_kg}`,
+  );
+
+  // alsAdmin() setzt nur die Rolle zurueck, nicht auth.uid() - ohne das
+  // Leeren wuerde das Aufraeumen unten als Brigade laufen und an
+  // block_erntebuchung_mutation() scheitern.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
 }
 
 // --- Aufraeumen ---------------------------------------------------------------

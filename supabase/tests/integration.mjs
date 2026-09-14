@@ -629,7 +629,7 @@ if (leitung && brigade) {
   // Abschluss schreibt den Ist-Erntetermin fort - Grundlage des Rotationsplans.
   await admin
     .from("pflueckaufgaben")
-    .update({ status: "beleg_pruefung", ist_menge_kg: 18.5 })
+    .update({ status: "beleg_pruefung", ist_menge_kg: 18.5, ausschuss_kg: 1.5 })
     .eq("id", neueAufgabe.id);
   await leitung
     .from("pflueckaufgaben")
@@ -650,13 +650,20 @@ if (leitung && brigade) {
 
   const { data: chargeMenge } = await admin
     .from("chargen")
-    .select("menge_kg")
+    .select("menge_kg, ausschuss_kg")
     .eq("id", autoCharge.id)
     .single();
   check(
     "Kette: gemeldete Menge landet in der Charge",
     Number(chargeMenge?.menge_kg) === 18.5,
     `menge_kg: ${chargeMenge?.menge_kg}`,
+  );
+  // Regression 20260911000000: der Ausschuss ging auf dem Weg in die Charge
+  // verloren, die Verlustquote rechnete null Verlust.
+  check(
+    "Kette: gemeldeter Ausschuss landet in der Charge",
+    Number(chargeMenge?.ausschuss_kg) === 1.5,
+    `ausschuss_kg: ${chargeMenge?.ausschuss_kg}`,
   );
 
   const { data: nachweis, error: nachweisFehler } = await leitung.rpc(
