@@ -1356,11 +1356,14 @@
       "qualitaet": "Qualität"
     }
   },
-  "kuehlketteMock": {
-    "clockTitle": "Charge-Uhr (Mock)",
-    "clockLead": "Zeit seit Pflücken gegen den 60-Minuten-Grenzwert, aktuelle Kerntemperatur je Charge.",
+  "kuehlketteAnsicht": {
+    "offeneTitel": "Offene Chargen auf der Uhr",
+    "offeneLead": "Zeit seit dem Pflücken gegen die 60-Minuten-Grenze, live mitzählend je Charge.",
+    "keineOffenen": "Aktuell wartet keine Charge auf die Vorkühlung.",
     "block": "Block",
-    "hint": "Zieltemperatur 0 bis 1 Grad. Über 60 Minuten fällt der Preisspread - kein Software-Ersatz für die physische Vorkühlanlage."
+    "letzteTitel": "Zuletzt gemessen",
+    "letzteLead": "Die letzten abgeschlossenen Kühlmessungen, Temperatur und Minuten seit dem Pflücken.",
+    "keineMessungen": "Noch keine Kühlmessung erfasst."
   },
   "qrSteigenMock": {
     "scanTitle": "Scan am Ausgabepunkt (Mock)",

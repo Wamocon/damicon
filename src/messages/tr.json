@@ -473,11 +473,14 @@
       "qualitaet": "Kalite"
     }
   },
-  "kuehlketteMock": {
-    "clockTitle": "Parti saati (taslak)",
-    "clockLead": "Toplamadan bu yana geçen süre 60 dakika sınırına karşı, parti başına güncel çekirdek sıcaklığı.",
+  "kuehlketteAnsicht": {
+    "offeneTitel": "Saatteki açık partiler",
+    "offeneLead": "Toplamadan bu yana geçen süre 60 dakika sınırına karşı, parti başına canlı sayaç.",
+    "keineOffenen": "Şu anda ön soğutmayı bekleyen parti yok.",
     "block": "Blok",
-    "hint": "Hedef sıcaklık 0-1 derece. 60 dakikanın üzerinde fiyat farkı düşer - fiziksel ön soğutma tesisinin yazılım karşılığı yoktur."
+    "letzteTitel": "Son ölçümler",
+    "letzteLead": "Son tamamlanan soğutma ölçümleri, sıcaklık ve toplamadan bu yana geçen dakikalar.",
+    "keineMessungen": "Henüz soğutma ölçümü kaydedilmedi."
   },
   "qrSteigenMock": {
     "scanTitle": "Çıkış noktasında tarama (taslak)",

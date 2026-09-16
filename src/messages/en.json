@@ -1356,11 +1356,14 @@
       "qualitaet": "Quality"
     }
   },
-  "kuehlketteMock": {
-    "clockTitle": "Batch clock (mock)",
-    "clockLead": "Time since picking against the 60-minute threshold, current core temperature per batch.",
+  "kuehlketteAnsicht": {
+    "offeneTitel": "Open batches on the clock",
+    "offeneLead": "Time since picking against the 60-minute threshold, ticking live per batch.",
+    "keineOffenen": "No batch is currently waiting for pre-cooling.",
     "block": "Block",
-    "hint": "Target temperature 0 to 1 degree. Over 60 minutes the price spread collapses - no software substitute for the physical pre-cooling facility."
+    "letzteTitel": "Recently measured",
+    "letzteLead": "The most recently completed cooling measurements, temperature and minutes since picking.",
+    "keineMessungen": "No cooling measurement recorded yet."
   },
   "qrSteigenMock": {
     "scanTitle": "Scan at the dispatch point (mock)",

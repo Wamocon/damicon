@@ -4,7 +4,6 @@ import type { ComponentType } from "react";
 import type { ModuleDef } from "@/lib/modules";
 import { ModulePlaceholder } from "@/components/dashboard/module-meta";
 import { SortenkatalogDemo } from "@/components/demo/markt";
-import { KuehlketteMock } from "@/components/demo/mocks";
 
 type ModuleView = ComponentType<{ module: ModuleDef }>;
 
@@ -18,10 +17,10 @@ const plain = (Cmp: ComponentType): ModuleView =>
 // laeuft dort - auch im Demo-Modus, weil die Datenschicht in beiden
 // Betriebsarten dieselbe Oberflaeche bedient. Ein Eintrag fuer ein solches
 // Modul waere unerreichbar: ModulePageBody nimmt `children ?? <ModuleView>`,
-// und children ist dann nie null.
+// und children ist dann nie null. "kuehlkette" ist seit Anforderung 3.1
+// (kuehlkette-ansicht.tsx) ein solcher Fall, siehe server-module-views.tsx.
 const registry: Record<string, ModuleView> = {
   sortenkatalog: plain(SortenkatalogDemo),
-  kuehlkette: KuehlketteMock,
 };
 
 export function ModuleView({ module }: { module: ModuleDef }) {
