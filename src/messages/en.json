@@ -816,7 +816,8 @@
       "wetterAktualisiert": "Weather data updated.",
       "kanalAngelegt": "Channel created.",
       "kanalAktualisiert": "Channel updated.",
-      "kanalGeloescht": "Channel deleted."
+      "kanalGeloescht": "Channel deleted.",
+      "spanneAktualisiert": "Margin updated."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1564,6 +1565,10 @@
     "notFound": "There is no record for this code. Please check the spelling.",
     "backToSearch": "Check another code",
     "keinePersonen": "This record names no individuals.",
+    "herkunft": {
+      "eigeneErnte": "Own harvest",
+      "zukauf": "Purchased from partner farm {betrieb}"
+    },
     "fields": {
       "reihenblock": "Row block",
       "sorte": "Variety",
@@ -1881,6 +1886,23 @@
       "rechnungsdatum": "Invoice date",
       "knopf": "Save"
     }
+  },
+  "abrechnungAnsicht": {
+    "titel": "Settlement with supplying farms",
+    "lead": "Purchase value per partner farm minus the globally set margin - no quality-grade deductions as long as there is no quality classification for purchased produce.",
+    "keineZeilen": "No purchase line with a recorded price yet from which a settlement could be calculated.",
+    "col": {
+      "nachbarbetrieb": "Partner farm",
+      "menge": "Quantity",
+      "einkaufswert": "Purchase value",
+      "spanne": "Margin",
+      "auszahlung": "Payout"
+    },
+    "formular": {
+      "spanne": "Margin in %",
+      "knopf": "Save"
+    },
+    "hinweis": "The margin applies uniformly to all partner farms. As long as it is at 0 %, the payout equals the purchase value - no invented margin."
   },
   "qrSteigenAnsicht": {
     "drucken": "Print",

@@ -39,6 +39,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      aggregator_einstellungen: {
+        Row: {
+          id: string
+          spanne_prozent: number
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          spanne_prozent?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          spanne_prozent?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       arbeitszeiten: {
         Row: {
           beginn: string
@@ -3064,6 +3082,17 @@ export type Database = {
       }
     }
     Functions: {
+      abrechnung_je_nachbarbetrieb: {
+        Args: never
+        Returns: {
+          auszahlung_tenge: number
+          einkaufswert_tenge: number
+          menge_kg_gesamt: number
+          nachbarbetrieb_id: string
+          nachbarbetrieb_name: string
+          spanne_prozent: number
+        }[]
+      }
       audit_bereich_fuer: {
         Args: { p_tabelle: string }
         Returns: Database["public"]["Enums"]["audit_bereich"]
@@ -3094,8 +3123,10 @@ export type Database = {
         Args: { p_code: string }
         Returns: {
           ernte_datum: string
+          herkunft_typ: string
           kuehlkette_eingehalten: boolean
           minuten_bis_vorkuehlung: number
+          nachbarbetrieb_name: string
           pflueck_zeitpunkt: string
           reihenblock_code: string
           sorte_name: string

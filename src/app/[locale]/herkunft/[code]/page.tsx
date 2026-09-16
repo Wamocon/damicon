@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { getFormatter, getTranslations, setRequestLocale } from "next-intl/server";
-import { CheckCircle2, ShieldAlert, Snowflake } from "lucide-react";
+import { CheckCircle2, ShieldAlert, Snowflake, Sprout, Truck } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { SiteNavbar } from "@/components/site/navbar";
 import { SiteFooter } from "@/components/site/footer";
@@ -109,6 +109,24 @@ export default async function HerkunftCodePage({
           <PageHeader eyebrow={code} title={t("title")} description={t("lead")} />
 
           <div className="mt-6 space-y-4">
+            {/* Anforderung 6.1: Herkunft zuerst offenlegen - wer fremde Ware
+                unter eigener Marke verkauft, haftet dafuer, das darf die
+                Auskunft nicht verschweigen. */}
+            <Card className="border-border bg-muted/30">
+              <div className="flex items-center gap-2">
+                {auskunft.herkunftTyp === "zukauf" ? (
+                  <Truck className="h-4 w-4 shrink-0 text-foreground" />
+                ) : (
+                  <Sprout className="h-4 w-4 shrink-0 text-foreground" />
+                )}
+                <p className="text-xs font-black text-foreground">
+                  {auskunft.herkunftTyp === "zukauf"
+                    ? t("herkunft.zukauf", { betrieb: auskunft.nachbarbetriebName ?? "-" })
+                    : t("herkunft.eigeneErnte")}
+                </p>
+              </div>
+            </Card>
+
             {/* Die Wartezeit zuerst: die einzige Angabe mit
                 lebensmittelrechtlicher Folge. Alles andere ist Qualitaet,
                 das hier ist Zulaessigkeit. */}

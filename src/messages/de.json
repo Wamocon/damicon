@@ -816,7 +816,8 @@
       "wetterAktualisiert": "Wetterdaten aktualisiert.",
       "kanalAngelegt": "Kanal angelegt.",
       "kanalAktualisiert": "Kanal aktualisiert.",
-      "kanalGeloescht": "Kanal gelöscht."
+      "kanalGeloescht": "Kanal gelöscht.",
+      "spanneAktualisiert": "Spanne aktualisiert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1564,6 +1565,10 @@
     "notFound": "Zu diesem Code gibt es keine Auskunft. Bitte die Schreibweise prüfen.",
     "backToSearch": "Anderen Code prüfen",
     "keinePersonen": "Diese Auskunft nennt keine Personen.",
+    "herkunft": {
+      "eigeneErnte": "Eigener Anbau",
+      "zukauf": "Zukauf von Nachbarbetrieb {betrieb}"
+    },
     "fields": {
       "reihenblock": "Reihenblock",
       "sorte": "Sorte",
@@ -1881,6 +1886,23 @@
       "rechnungsdatum": "Rechnungsdatum",
       "knopf": "Speichern"
     }
+  },
+  "abrechnungAnsicht": {
+    "titel": "Abrechnung gegenüber Lieferbetrieben",
+    "lead": "Einkaufswert je Nachbarbetrieb abzüglich der global festgelegten Spanne - keine Klassenabzüge, solange keine Qualitätsklassifizierung für Zukaufware besteht.",
+    "keineZeilen": "Noch keine Zukaufposition mit eingetragenem Preis, aus der sich eine Abrechnung errechnen ließe.",
+    "col": {
+      "nachbarbetrieb": "Nachbarbetrieb",
+      "menge": "Menge",
+      "einkaufswert": "Einkaufswert",
+      "spanne": "Spanne",
+      "auszahlung": "Auszahlung"
+    },
+    "formular": {
+      "spanne": "Spanne in %",
+      "knopf": "Speichern"
+    },
+    "hinweis": "Die Spanne gilt einheitlich für alle Nachbarbetriebe. Solange sie bei 0 % steht, ist die Auszahlung gleich dem Einkaufswert - noch keine erfundene Marge."
   },
   "qrSteigenAnsicht": {
     "drucken": "Drucken",
