@@ -348,6 +348,18 @@ export const modules: ModuleDef[] = [
     // Mock-Ansicht ab, siehe EinarbeitungAnsicht.
     reifegrad: "angebunden",
   },
+  {
+    key: "kanaele",
+    zone: "markt",
+    slug: "kanaele",
+    icon: "message-circle",
+    resource: "kanaele",
+    klassifikation: "neu-bauen",
+    // Anforderung 5.6: lokal etablierte Kontaktkanaele/Zahlungswege, vom
+    // Buero gepflegt und im Seitenfuss oeffentlich sichtbar. Reine Anzeige,
+    // keine echte API-Integration (Nutzer-Entscheidung).
+    reifegrad: "angebunden",
+  },
 ];
 
 export function modulesForZone(zone: ZoneKey): ModuleDef[] {

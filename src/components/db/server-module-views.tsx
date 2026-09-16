@@ -20,6 +20,7 @@ import { KiAssistentAnsicht } from "@/components/db/ki-assistent-ansicht";
 import { EinladungenAnsicht } from "@/components/db/einladungen-ansicht";
 import { KuehletteAnsicht } from "@/components/db/kuehlkette-ansicht";
 import { WetterAnsicht } from "@/components/db/wetter-ansicht";
+import { KanaeleAnsicht } from "@/components/db/kanaele-ansicht";
 import { RollenDemo } from "@/components/demo/buero";
 import type { ModuleDef } from "@/lib/modules";
 
@@ -125,6 +126,9 @@ export function serverModulAnsicht(
     // Anforderung 5.4/5.5: echte Anbindung statt KiAssistentMock.
     case "ki_assistent":
       return <KiAssistentAnsicht />;
+    // Anforderung 5.6: Kontaktkanaele/Zahlungswege verwalten.
+    case "kanaele":
+      return <KanaeleAnsicht />;
     // Anforderung E.20: Kundenzugang ueber Einladung. Die Rechtematrix
     // darueber bleibt, was sie war - eine Anzeige des Rollenmodells aus
     // rbac.ts, die nichts schreibt. Neu darunter ist die einzige schreibende

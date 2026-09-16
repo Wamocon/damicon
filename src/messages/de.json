@@ -684,6 +684,12 @@
       "summary": "Kurze, bildbasierte Videos je Kernprozess, mehrsprachig, mit Fortschrittsverfolgung je Person.",
       "todo": "Videoinhalte je Kernprozess, Sprachfassungen Kasachisch und Russisch, Fortschrittsverfolgung je Person."
     },
+    "kanaele": {
+      "title": "Kontaktkanäle",
+      "description": "Lokal etablierte Kontaktkanäle und Zahlungswege, im Seitenfuß der Website öffentlich sichtbar. Reine Anzeige, keine Anbindung an einen echten Messenger- oder Zahlungsdienst.",
+      "summary": "WhatsApp, Kaspi QR und weitere Kanäle als Kontaktangabe - vom Büro gepflegt, bis dahin als Entwurf verborgen.",
+      "todo": "Echte Kontodaten je Kanal eintragen."
+    },
     "reklamationen": {
       "title": "Reklamationsmanagement",
       "description": "Reklamation eines B2B-Kunden je Charge - Grund, Frist und Verlauf, mit Statuswechsel bis zur Gutschrift. Ein Kunde meldet und sieht nur die eigene Reklamation, das Büro bearbeitet und schließt ab.",
@@ -807,7 +813,10 @@
       "kiAnbieterDeaktiviert": "Anbieter \"{wert}\" deaktiviert.",
       "kiAnbieterStandardGesetzt": "Standard-Anbieter umgestellt.",
       "kiAnbieterGeloescht": "Anbieter \"{wert}\" gelöscht.",
-      "wetterAktualisiert": "Wetterdaten aktualisiert."
+      "wetterAktualisiert": "Wetterdaten aktualisiert.",
+      "kanalAngelegt": "Kanal angelegt.",
+      "kanalAktualisiert": "Kanal aktualisiert.",
+      "kanalGeloescht": "Kanal gelöscht."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -1388,6 +1397,34 @@
       "knopf": "Jetzt aktualisieren"
     },
     "note": "Koordinaten und Basistemperatur sind Platzhalter (Almaty-Stadtgebiet, 5 °C) und sollten durch die tatsächlichen Werte der Plantage ersetzt bzw. von einer Agronomin oder einem Agronomen bestätigt werden."
+  },
+  "kanaeleAnsicht": {
+    "titel": "Kontaktkanäle",
+    "lead": "Welche Kanäle im Seitenfuß der Website erscheinen - erst sichtbar, sobald ein echter Wert eingetragen und aktiv gesetzt ist.",
+    "keineKanaele": "Noch kein Kontaktkanal angelegt.",
+    "footerHeading": "Kontakt & Zahlung",
+    "typ": {
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "instagram": "Instagram",
+      "kaspi_qr": "Kaspi QR",
+      "sonstiges": "Sonstiges"
+    },
+    "col": {
+      "typ": "Typ",
+      "bezeichnung": "Bezeichnung",
+      "wert": "Nummer / Link"
+    },
+    "wertPlatzhalter": "noch nicht eingetragen",
+    "aktivLabel": "aktiv (auf der Website sichtbar)",
+    "aktivPill": "aktiv",
+    "entwurfPill": "Entwurf",
+    "speichern": "Speichern",
+    "loeschen": "Kanal löschen",
+    "anlegenTitel": "Kanal anlegen",
+    "anlegenLead": "Typ und Bezeichnung sind Pflicht, der Wert kann später nachgetragen werden.",
+    "anlegenKnopf": "Anlegen",
+    "note": "Reine Anzeige, keine Anbindung an einen echten Messenger- oder Zahlungsdienst. Ein Kanal erscheint auf der Website erst, wenn ein echter Wert eingetragen und \"aktiv\" gesetzt ist."
   },
   "qrSteigenMock": {
     "scanTitle": "Scan am Ausgabepunkt (Mock)",
