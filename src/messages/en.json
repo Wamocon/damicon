@@ -1960,6 +1960,9 @@
     "lieferungenTitel": "My deliveries",
     "lieferungenLead": "Status and handover receipt of your deliveries.",
     "keineLieferungen": "No delivery recorded yet.",
+    "kontingenteTitel": "Quotas",
+    "kontingenteLead": "Agreed quantity per variety and reserved share - reserved automatically when a pre-order is confirmed.",
+    "keineKontingente": "No quota on file at the moment.",
     "preislisteTitel": "Price list",
     "preislisteLead": "Currently valid price list by variety, with minimum quantity.",
     "keinePreisliste": "No valid price list on file at the moment.",
@@ -1977,6 +1980,8 @@
       "preis": "Price",
       "mindestmenge": "Minimum quantity",
       "menge": "Quantity",
+      "reserviert": "reserved",
+      "verfuegbar": "available",
       "liefertermin": "Delivery date",
       "status": "Status"
     },
@@ -1998,7 +2003,7 @@
         "knopf": "Place pre-order"
       }
     },
-    "note": "A pre-order does not automatically check quota consumption - that remains a manual check by the office at confirmation time, the same open business decision as for automatic quota tracking. The price list shows the same active prices to every client; tiering by client group is not part of this view."
+    "note": "When the office confirms a pre-order, the reserved share of the quota is increased automatically; a cancellation reverses it. Whether enough quota remains available is still checked by the office itself before confirming. The price list shows the same active prices to every client; tiering by client group is not part of this view."
   },
   "personalAnsicht": {
     "brigadenTitel": "Crews",

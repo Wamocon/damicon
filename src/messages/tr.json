@@ -1960,6 +1960,9 @@
     "lieferungenTitel": "Teslimatlarım",
     "lieferungenLead": "Teslimatlarınızın durumu ve teslim alma belgesi.",
     "keineLieferungen": "Henüz teslimat kaydedilmedi.",
+    "kontingenteTitel": "Kotalar",
+    "kontingenteLead": "Çeşit bazında kararlaştırılan miktar ve ayrılan pay - bir ön sipariş onaylandığında otomatik olarak ayrılır.",
+    "keineKontingente": "Şu anda kayıtlı bir kota yok.",
     "preislisteTitel": "Fiyat listesi",
     "preislisteLead": "Çeşit bazında güncel geçerli fiyat listesi, asgari miktar ile.",
     "keinePreisliste": "Şu anda geçerli bir fiyat listesi yok.",
@@ -1977,6 +1980,8 @@
       "preis": "Fiyat",
       "mindestmenge": "Asgari miktar",
       "menge": "Miktar",
+      "reserviert": "ayrılmış",
+      "verfuegbar": "müsait",
       "liefertermin": "Teslimat tarihi",
       "status": "Durum"
     },
@@ -1998,7 +2003,7 @@
         "knopf": "Ön sipariş ver"
       }
     },
-    "note": "Bir ön sipariş kota tüketimini otomatik olarak kontrol etmez - bu, onay sırasında ofisin manuel kontrolü olarak kalır, otomatik kota takibi için de aynı açık iş kararı geçerlidir. Fiyat listesi tüm müşterilere aynı aktif fiyatları gösterir, müşteri grubuna göre kademelendirme bu görünümün parçası değildir."
+    "note": "Ofis bir ön siparişi onayladığında, kotanın ayrılan payı otomatik olarak artar, bir iptal bunu geri alır. Yeterli kota kalıp kalmadığını ofis onaylamadan önce yine kendisi kontrol eder. Fiyat listesi tüm müşterilere aynı aktif fiyatları gösterir, müşteri grubuna göre kademelendirme bu görünümün parçası değildir."
   },
   "personalAnsicht": {
     "brigadenTitel": "Ekipler",

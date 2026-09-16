@@ -1960,6 +1960,9 @@
     "lieferungenTitel": "Meine Lieferungen",
     "lieferungenLead": "Status und Übergabequittung Ihrer Lieferungen.",
     "keineLieferungen": "Noch keine Lieferung erfasst.",
+    "kontingenteTitel": "Kontingente",
+    "kontingenteLead": "Vereinbarte Menge je Sorte und reservierter Anteil - reserviert wird automatisch bei Bestätigung einer Vorbestellung.",
+    "keineKontingente": "Derzeit ist kein Kontingent hinterlegt.",
     "preislisteTitel": "Preisliste",
     "preislisteLead": "Aktuell gültige Preisliste je Sorte, mit Mindestmenge.",
     "keinePreisliste": "Derzeit keine gültige Preisliste hinterlegt.",
@@ -1977,6 +1980,8 @@
       "preis": "Preis",
       "mindestmenge": "Mindestmenge",
       "menge": "Menge",
+      "reserviert": "reserviert",
+      "verfuegbar": "verfügbar",
       "liefertermin": "Liefertermin",
       "status": "Status"
     },
@@ -1998,7 +2003,7 @@
         "knopf": "Vorbestellung aufgeben"
       }
     },
-    "note": "Eine Vorbestellung prüft den Kontingent-Verbrauch nicht automatisch - das bleibt eine manuelle Prüfung des Büros bei der Bestätigung, dieselbe fachliche Festlegung, die für die automatische Kontingent-Fortschreibung noch offen ist. Die Preisliste zeigt allen Kunden dieselben aktiven Preise, eine Staffelung je Kundengruppe ist nicht Teil dieser Ansicht."
+    "note": "Bestätigt das Büro eine Vorbestellung, wird der reservierte Anteil des Kontingents automatisch erhöht, ein Storno setzt ihn zurück. Ob genug Kontingent frei ist, prüft weiterhin das Büro selbst vor der Bestätigung. Die Preisliste zeigt allen Kunden dieselben aktiven Preise, eine Staffelung je Kundengruppe ist nicht Teil dieser Ansicht."
   },
   "personalAnsicht": {
     "brigadenTitel": "Brigaden",
