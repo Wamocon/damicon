@@ -43,6 +43,9 @@ export async function alleEintraege(): Promise<WarteschlangenEintrag[]> {
   return db.getAll("warteschlange");
 }
 
+// Leseseite fuer die Anzeige "x Buchungen warten". Noch kein Aufrufer: die
+// Warteschlange fuellt sich bereits, ein Zaehler in der Oberflaeche fehlt
+// aber noch. Absichtlich vorhanden, kein toter Rest.
 export async function anzahlWartend(): Promise<number> {
   const db = await offlineDb();
   return db.countFromIndex("warteschlange", "by-status", "wartend");

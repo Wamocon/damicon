@@ -351,6 +351,8 @@ export function moduleByPath(zone: string, slug: string): ModuleDef | undefined 
   return modules.find((module) => module.zone === zone && module.slug === slug);
 }
 
+// Einzige Stelle, an der die Modulroute gebaut wird. Wer sie von Hand
+// zusammensetzt, haengt beim naechsten Umbau des Pfades hinterher.
 export function moduleHref(module: ModuleDef): string {
   return `/dashboard/${module.zone}/${module.slug}`;
 }

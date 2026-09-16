@@ -174,12 +174,6 @@ export function baueGesamtWissenskontext(
   return teile.join("\n\n");
 }
 
-// Deterministische Ausweichantwort (Masterplan: "kein 5xx bei Ausfall") - kein
-// Modellaufruf, kein Netzwerk, immer verfuegbar. Der Aufrufer waehlt per
-// Uebersetzungsschluessel die passende Sprachversion; dieser Schluessel selbst
-// ist reine Logik und deshalb hier statt in der Server Action.
-export const KI_FALLBACK_SCHLUESSEL = "kiAssistentAnsicht.fallback.antwort" as const;
-
 // Anforderung 5.5: nach wiederholtem Fallback in Folge automatisch eskalieren,
 // statt den Nutzer beliebig oft an einer nicht antwortenden KI abprallen zu
 // lassen. Reine Zaehlfunktion auf dem bereits geladenen Verlauf.

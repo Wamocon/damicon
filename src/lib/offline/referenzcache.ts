@@ -36,6 +36,10 @@ export async function ketteSpiegeln(
   await db.put("referenz_ketten", { ...eintrag, zwischengespeichertAm: new Date().toISOString() });
 }
 
+// Leseseite des Caches. Sie wird noch von keiner Ansicht aufgerufen: Phase 1
+// spiegelt die Daten nur hinein, gelesen wird weiterhin vom Server. Die drei
+// Funktionen stehen hier, damit die Offline-Ansicht sie nur noch aufrufen
+// muss - absichtlich vorhanden, kein toter Rest.
 export async function gespiegelteAufgaben(): Promise<ReferenzAufgabe[]> {
   const db = await offlineDb();
   return db.getAll("referenz_aufgaben");

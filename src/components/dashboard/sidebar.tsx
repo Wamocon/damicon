@@ -8,7 +8,7 @@ import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { Icon } from "@/components/icon";
 import { usePersona } from "@/components/dashboard/persona";
 import { hasPermission } from "@/lib/rbac";
-import { modulesForZone, zones } from "@/lib/modules";
+import { moduleHref, modulesForZone, zones } from "@/lib/modules";
 import { cn } from "@/lib/utils";
 
 function useIsActive() {
@@ -87,7 +87,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
               </div>
               <div className="space-y-1">
                 {items.map((module) => {
-                  const href = `/dashboard/${module.zone}/${module.slug}`;
+                  const href = moduleHref(module);
                   return (
                     <Link
                       key={module.key}
