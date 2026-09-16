@@ -21,6 +21,7 @@ import { EinladungenAnsicht } from "@/components/db/einladungen-ansicht";
 import { KuehletteAnsicht } from "@/components/db/kuehlkette-ansicht";
 import { WetterAnsicht } from "@/components/db/wetter-ansicht";
 import { KanaeleAnsicht } from "@/components/db/kanaele-ansicht";
+import { PreislistenAnsicht } from "@/components/db/preislisten-ansicht";
 import { RollenDemo } from "@/components/demo/buero";
 import type { ModuleDef } from "@/lib/modules";
 
@@ -103,6 +104,10 @@ export function serverModulAnsicht(
       return <KuehletteAnsicht />;
     case "b2b_portal":
       return <B2bPortalAnsicht />;
+    // Anforderung 5.1/5.2: Preisstaffelung je Kundengruppe - eigenes Modul
+    // statt Teil von b2b_portal, siehe Kommentar bei der Ressource in rbac.ts.
+    case "preislisten":
+      return <PreislistenAnsicht />;
     // Anforderung 2.11: Schicht-Konzept, Bedarfsrechnung und Reserveliste
     // statt reiner Demo-Ansicht. Wetterszenarien bleiben offen
     // (Anforderung 2.13, bewusst zurueckgestellt auf 2027).

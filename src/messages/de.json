@@ -820,7 +820,12 @@
       "spanneAktualisiert": "Spanne aktualisiert.",
       "adresseGeokodiert": "Adresse gespeichert und auf der Karte verortet.",
       "tourErstellt": "Tour erstellt und Route berechnet.",
-      "tourGeloescht": "Tour verworfen."
+      "tourGeloescht": "Tour verworfen.",
+      "preislisteErstellt": "Preisliste angelegt.",
+      "positionHinzugefuegt": "Position hinzugefügt.",
+      "positionGeloescht": "Position entfernt.",
+      "preislisteAktualisiert": "Preisliste aktualisiert.",
+      "kundengruppeGesetzt": "Kundengruppe gespeichert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -2127,7 +2132,57 @@
         "knopf": "Vorbestellung aufgeben"
       }
     },
-    "note": "Bestätigt das Büro eine Vorbestellung, wird der reservierte Anteil des Kontingents automatisch erhöht, ein Storno setzt ihn zurück. Ob genug Kontingent frei ist, prüft weiterhin das Büro selbst vor der Bestätigung. Die Preisliste zeigt allen Kunden dieselben aktiven Preise, eine Staffelung je Kundengruppe ist nicht Teil dieser Ansicht."
+    "note": "Bestätigt das Büro eine Vorbestellung, wird der reservierte Anteil des Kontingents automatisch erhöht, ein Storno setzt ihn zurück. Ob genug Kontingent frei ist, prüft weiterhin das Büro selbst vor der Bestätigung. Die Preisliste zeigt die für die eigene Kundengruppe gültigen Preise, ergänzt um die gruppenlose Standardliste. Preise anderer Kundengruppen bleiben verborgen."
+  },
+  "kundengruppen": {
+    "standard": "Standard",
+    "handel": "Handel",
+    "gastronomie": "Gastronomie",
+    "einzelhandel": "Einzelhandel"
+  },
+  "preislistenAnsicht": {
+    "preislistenTitel": "Preislisten",
+    "preislistenLead": "Preise je Sorte und Mindestmenge, optional einer Kundengruppe zugeordnet. Eine Preisliste ohne Kundengruppe gilt als Standard für alle - auch für noch nicht zugeordnete Kunden.",
+    "keinePreislisten": "Noch keine Preisliste angelegt.",
+    "keinePositionen": "Noch keine Position in dieser Preisliste.",
+    "aktiv": "aktiv",
+    "inaktiv": "inaktiv",
+    "aktivieren": "Aktivieren",
+    "deaktivieren": "Deaktivieren",
+    "positionLoeschen": "Entfernen",
+    "gueltigAb": "gültig ab",
+    "gueltigBis": "bis",
+    "col": {
+      "sorte": "Sorte",
+      "preis": "Preis",
+      "mindestmenge": "Mindestmenge"
+    },
+    "kundengruppenTitel": "Kundengruppen",
+    "kundengruppenLead": "Jeder B2B-Kunde gehört zu höchstens einer Kundengruppe. Ohne Zuordnung sieht der Kunde ausschließlich die gruppenlose Standard-Preisliste.",
+    "keineKunden": "Noch kein B2B-Kunde angelegt.",
+    "hinweis": "Bei überlappenden Preislisten für dieselbe Kundengruppe und Sorte gilt die mit dem späteren Gültigkeitsdatum. Eine bestehende Preisliste wird nie gelöscht, nur deaktiviert - sie bleibt für bereits berechnete Rechnungshistorien (Proforma) maßgeblich.",
+    "formular": {
+      "erstellen": {
+        "titel": "Preisliste anlegen",
+        "lead": "Name und Gültig-ab-Datum sind Pflicht. Ohne Kundengruppe gilt die Liste als Standard für alle.",
+        "name": "Name",
+        "namePlatzhalter": "z. B. Preisliste Winter 2027",
+        "gueltigAb": "Gültig ab",
+        "gueltigBis": "Gültig bis (optional)",
+        "kundengruppe": "Kundengruppe (optional)",
+        "knopf": "Preisliste anlegen"
+      },
+      "position": {
+        "sorte": "Sorte",
+        "preis": "Preis (₸/kg)",
+        "mindestmenge": "Mindestmenge (kg)",
+        "knopf": "Position hinzufügen"
+      },
+      "gruppe": {
+        "label": "Kundengruppe",
+        "knopf": "Speichern"
+      }
+    }
   },
   "personalAnsicht": {
     "brigadenTitel": "Brigaden",

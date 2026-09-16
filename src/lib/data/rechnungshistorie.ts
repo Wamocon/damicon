@@ -41,12 +41,16 @@ export async function ladeRechnungshistorie(): Promise<RechnungenUebersicht> {
     await Promise.all([
       supabase
         .from("lieferungen")
-        .select("id, geliefert_am, menge_kg, b2b_kunden ( name ), chargen ( sorte_id )")
+        .select(
+          "id, geliefert_am, menge_kg, b2b_kunden ( name, kundengruppe ), chargen ( sorte_id )",
+        )
         .eq("status", "zugestellt")
         .order("geliefert_am", { ascending: false }),
       supabase
         .from("preislisten")
-        .select("gueltig_ab, gueltig_bis, preislisten_positionen ( sorte_id, preis_tenge_kg )"),
+        .select(
+          "gueltig_ab, gueltig_bis, kundengruppe, preislisten_positionen ( sorte_id, preis_tenge_kg )",
+        ),
     ]);
 
   if (lieferungenFehler || preislistenFehler || !lieferungen || !preislisten) return demoUebersicht("fehler");
@@ -54,6 +58,7 @@ export async function ladeRechnungshistorie(): Promise<RechnungenUebersicht> {
   const preislistenFuerBerechnung = preislisten.map((p) => ({
     gueltigAb: p.gueltig_ab,
     gueltigBis: p.gueltig_bis,
+    kundengruppe: p.kundengruppe,
     positionen: (p.preislisten_positionen ?? []).map((pos) => ({
       sorteId: pos.sorte_id,
       preisTengeKg: Number(pos.preis_tenge_kg),
@@ -67,6 +72,7 @@ export async function ladeRechnungshistorie(): Promise<RechnungenUebersicht> {
       geliefertAm: l.geliefert_am as string,
       mengeKg: Number(l.menge_kg),
       sorteId: einsAus(l.chargen)?.sorte_id ?? null,
+      kundengruppe: einsAus(l.b2b_kunden)?.kundengruppe ?? null,
     })),
     preislistenFuerBerechnung,
   );

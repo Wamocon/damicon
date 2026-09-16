@@ -820,7 +820,12 @@
       "spanneAktualisiert": "Margin updated.",
       "adresseGeokodiert": "Address saved and located on the map.",
       "tourErstellt": "Route created and calculated.",
-      "tourGeloescht": "Route discarded."
+      "tourGeloescht": "Route discarded.",
+      "preislisteErstellt": "Price list created.",
+      "positionHinzugefuegt": "Position added.",
+      "positionGeloescht": "Position removed.",
+      "preislisteAktualisiert": "Price list updated.",
+      "kundengruppeGesetzt": "Client group saved."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -2127,7 +2132,57 @@
         "knopf": "Place pre-order"
       }
     },
-    "note": "When the office confirms a pre-order, the reserved share of the quota is increased automatically; a cancellation reverses it. Whether enough quota remains available is still checked by the office itself before confirming. The price list shows the same active prices to every client; tiering by client group is not part of this view."
+    "note": "When the office confirms a pre-order, the reserved share of the quota is increased automatically; a cancellation reverses it. Whether enough quota remains available is still checked by the office itself before confirming. The price list shows the prices that apply to your own client group, plus the group-less standard list. Prices for other client groups stay hidden."
+  },
+  "kundengruppen": {
+    "standard": "Standard",
+    "handel": "Retail chains",
+    "gastronomie": "Foodservice",
+    "einzelhandel": "Specialty retail"
+  },
+  "preislistenAnsicht": {
+    "preislistenTitel": "Price lists",
+    "preislistenLead": "Prices by variety and minimum quantity, optionally assigned to a client group. A price list without a client group counts as the standard for everyone - including clients not yet assigned to a group.",
+    "keinePreislisten": "No price list created yet.",
+    "keinePositionen": "No position in this price list yet.",
+    "aktiv": "active",
+    "inaktiv": "inactive",
+    "aktivieren": "Activate",
+    "deaktivieren": "Deactivate",
+    "positionLoeschen": "Remove",
+    "gueltigAb": "valid from",
+    "gueltigBis": "until",
+    "col": {
+      "sorte": "Variety",
+      "preis": "Price",
+      "mindestmenge": "Minimum quantity"
+    },
+    "kundengruppenTitel": "Client groups",
+    "kundengruppenLead": "Every B2B client belongs to at most one client group. Without an assignment, the client sees only the group-less standard price list.",
+    "keineKunden": "No B2B client created yet.",
+    "hinweis": "When price lists overlap for the same client group and variety, the one with the later valid-from date applies. An existing price list is never deleted, only deactivated - it stays authoritative for invoice histories (pro forma) already calculated.",
+    "formular": {
+      "erstellen": {
+        "titel": "Create price list",
+        "lead": "Name and valid-from date are required. Without a client group, the list counts as the standard for everyone.",
+        "name": "Name",
+        "namePlatzhalter": "e.g. Winter 2027 price list",
+        "gueltigAb": "Valid from",
+        "gueltigBis": "Valid until (optional)",
+        "kundengruppe": "Client group (optional)",
+        "knopf": "Create price list"
+      },
+      "position": {
+        "sorte": "Variety",
+        "preis": "Price (₸/kg)",
+        "mindestmenge": "Minimum quantity (kg)",
+        "knopf": "Add position"
+      },
+      "gruppe": {
+        "label": "Client group",
+        "knopf": "Save"
+      }
+    }
   },
   "personalAnsicht": {
     "brigadenTitel": "Crews",

@@ -105,22 +105,46 @@ function demoPreislistenUebersicht(): PreislisteZeile[] {
   return demoPreislisten;
 }
 
-// Nur aktive, derzeit gueltige Preislisten - keine Kundengruppen-Filterung
-// (siehe Migrationskommentar 20260929000000, offene fachliche Festlegung).
-export async function ladePreislisten(): Promise<PreislisteZeile[]> {
+// Nur aktive, derzeit gueltige Preislisten. Anforderung 5.1/5.2
+// (Preisstaffelung je Kundengruppe, Migration 20261011000000): ohne
+// kundeId (Buero-Sicht im B2B-Portal) alle Gruppen unveraendert wie bisher;
+// mit kundeId (eine Kunden-Anmeldung im eigenen Portal) nur die gruppenlose
+// Standardliste plus die zur eigenen Kundengruppe passende Liste - eine
+// Kunden-Anmeldung soll nicht die fuer andere Gruppen verhandelten Preise
+// sehen.
+export async function ladePreislisten(kundeId?: string): Promise<PreislisteZeile[]> {
   if (!isSupabaseConfigured()) return demoPreislistenUebersicht();
 
   const supabase = await createClient();
   const heute = new Date().toISOString().slice(0, 10);
-  const { data, error } = await supabase
+
+  let eigeneKundengruppe: string | null = null;
+  if (kundeId) {
+    const { data: kunde } = await supabase
+      .from("b2b_kunden")
+      .select("kundengruppe")
+      .eq("id", kundeId)
+      .maybeSingle();
+    eigeneKundengruppe = kunde?.kundengruppe ?? null;
+  }
+
+  let query = supabase
     .from("preislisten")
     .select(
-      `id, name, gueltig_ab, gueltig_bis,
+      `id, name, gueltig_ab, gueltig_bis, aktiv, kundengruppe,
        preislisten_positionen ( id, preis_tenge_kg, min_menge_kg, sorten ( name ) )`,
     )
     .eq("aktiv", true)
     .lte("gueltig_ab", heute)
     .order("gueltig_ab", { ascending: false });
+
+  if (kundeId) {
+    query = eigeneKundengruppe
+      ? query.or(`kundengruppe.is.null,kundengruppe.eq.${eigeneKundengruppe}`)
+      : query.is("kundengruppe", null);
+  }
+
+  const { data, error } = await query;
 
   if (error || !data) return demoPreislistenUebersicht();
 
@@ -131,6 +155,8 @@ export async function ladePreislisten(): Promise<PreislisteZeile[]> {
       name: p.name,
       gueltigAb: p.gueltig_ab,
       gueltigBis: p.gueltig_bis,
+      aktiv: p.aktiv,
+      kundengruppe: p.kundengruppe,
       positionen: (p.preislisten_positionen ?? []).map((pos) => {
         const sorte = einsAus(pos.sorten);
         return {

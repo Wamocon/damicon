@@ -111,6 +111,76 @@ const PREISLISTEN = [
   );
 }
 
+// Anforderung 5.1/5.2: Preisstaffelung je Kundengruppe. Eine gruppenspezifische
+// Preisliste geht einer gruppenlosen Standardliste vor, auch wenn die
+// Standardliste das juengere gueltig_ab hat - dieselbe Konstellation wie im
+// Seed (Preisliste Herbst 2026 vs. Preisliste Herbst 2026 - Handel).
+const PREISLISTEN_GRUPPIERT = [
+  {
+    gueltigAb: "2026-08-01",
+    gueltigBis: null,
+    kundengruppe: null,
+    positionen: [{ sorteId: "polka", preisTengeKg: 2100 }],
+  },
+  {
+    gueltigAb: "2026-08-01",
+    gueltigBis: null,
+    kundengruppe: "handel",
+    positionen: [{ sorteId: "polka", preisTengeKg: 1900 }],
+  },
+];
+
+{
+  const preis = preisAmStichtag(PREISLISTEN_GRUPPIERT, "polka", "2026-09-01", "handel");
+  pruefe(
+    "preisAmStichtag: eine zur Kundengruppe passende Preisliste gewinnt gegen die gruppenlose Standardliste",
+    preis === 1900,
+    `preis: ${preis}`,
+  );
+}
+
+{
+  const preis = preisAmStichtag(PREISLISTEN_GRUPPIERT, "polka", "2026-09-01", "gastronomie");
+  pruefe(
+    "preisAmStichtag: eine andere Kundengruppe ohne eigene Liste faellt auf die Standardliste zurueck",
+    preis === 2100,
+    `preis: ${preis}`,
+  );
+}
+
+{
+  const preis = preisAmStichtag(PREISLISTEN_GRUPPIERT, "polka", "2026-09-01", null);
+  pruefe(
+    "preisAmStichtag: ohne Kundengruppe (noch nicht zugeordneter Kunde) gilt die Standardliste",
+    preis === 2100,
+    `preis: ${preis}`,
+  );
+}
+
+{
+  const preis = preisAmStichtag(PREISLISTEN_GRUPPIERT, "polka", "2026-09-01");
+  pruefe(
+    "preisAmStichtag: Kundengruppe ist optional, Standardaufruf ohne vierten Parameter bleibt moeglich",
+    preis === 2100,
+    `preis: ${preis}`,
+  );
+}
+
+{
+  const zeilen = berechneProforma(
+    [
+      { id: "l1", geliefertAm: "2026-09-01T10:00:00Z", mengeKg: 100, sorteId: "polka", kundengruppe: "handel" },
+      { id: "l2", geliefertAm: "2026-09-01T10:00:00Z", mengeKg: 100, sorteId: "polka", kundengruppe: "gastronomie" },
+    ],
+    PREISLISTEN_GRUPPIERT,
+  );
+  pruefe(
+    "berechneProforma: zwei Lieferungen derselben Sorte/desselben Tages bekommen je nach Kundengruppe unterschiedliche Preise",
+    zeilen[0].preisTengeKg === 1900 && zeilen[1].preisTengeKg === 2100,
+    JSON.stringify(zeilen.map((z) => z.preisTengeKg)),
+  );
+}
+
 console.log("\n" + "-".repeat(58));
 console.log(`Pruefungen: ${bestanden + fehlgeschlagen}   bestanden: ${bestanden}   fehlgeschlagen: ${fehlgeschlagen}`);
 if (fehlgeschlagen) process.exit(1);

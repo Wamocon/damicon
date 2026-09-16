@@ -1159,6 +1159,11 @@
       "adresseGeokodiert": "Adres kaydedildi ve haritada konumlandırıldı.",
       "tourErstellt": "Tur oluşturuldu ve güzergâh hesaplandı.",
       "tourGeloescht": "Tur silindi.",
+      "preislisteErstellt": "Fiyat listesi oluşturuldu.",
+      "positionHinzugefuegt": "Kalem eklendi.",
+      "positionGeloescht": "Kalem kaldırıldı.",
+      "preislisteAktualisiert": "Fiyat listesi güncellendi.",
+      "kundengruppeGesetzt": "Müşteri grubu kaydedildi.",
       "wetterAktualisiert": "Hava durumu verileri güncellendi."
     },
     "fehler": {
@@ -2127,7 +2132,57 @@
         "knopf": "Ön sipariş ver"
       }
     },
-    "note": "Ofis bir ön siparişi onayladığında, kotanın ayrılan payı otomatik olarak artar, bir iptal bunu geri alır. Yeterli kota kalıp kalmadığını ofis onaylamadan önce yine kendisi kontrol eder. Fiyat listesi tüm müşterilere aynı aktif fiyatları gösterir, müşteri grubuna göre kademelendirme bu görünümün parçası değildir."
+    "note": "Ofis bir ön siparişi onayladığında, kotanın ayrılan payı otomatik olarak artar, bir iptal bunu geri alır. Yeterli kota kalıp kalmadığını ofis onaylamadan önce yine kendisi kontrol eder. Fiyat listesi kendi müşteri grubunuz için geçerli fiyatları, buna ek olarak grupsuz standart listeyi gösterir. Diğer müşteri gruplarının fiyatları gizli kalır."
+  },
+  "kundengruppen": {
+    "standard": "Standart",
+    "handel": "Toptan ticaret",
+    "gastronomie": "Gastronomi",
+    "einzelhandel": "Perakende"
+  },
+  "preislistenAnsicht": {
+    "preislistenTitel": "Fiyat listeleri",
+    "preislistenLead": "Çeşit ve asgari miktara göre fiyatlar, isteğe bağlı olarak bir müşteri grubuna atanmış. Müşteri grubu olmayan bir fiyat listesi herkes için standart sayılır - henüz bir gruba atanmamış müşteriler dahil.",
+    "keinePreislisten": "Henüz fiyat listesi oluşturulmadı.",
+    "keinePositionen": "Bu fiyat listesinde henüz kalem yok.",
+    "aktiv": "aktif",
+    "inaktiv": "pasif",
+    "aktivieren": "Etkinleştir",
+    "deaktivieren": "Devre dışı bırak",
+    "positionLoeschen": "Kaldır",
+    "gueltigAb": "geçerlilik başlangıcı",
+    "gueltigBis": "bitiş",
+    "col": {
+      "sorte": "Çeşit",
+      "preis": "Fiyat",
+      "mindestmenge": "Asgari miktar"
+    },
+    "kundengruppenTitel": "Müşteri grupları",
+    "kundengruppenLead": "Her B2B müşterisi en fazla bir müşteri grubuna aittir. Atama yapılmazsa müşteri yalnızca grupsuz standart fiyat listesini görür.",
+    "keineKunden": "Henüz B2B müşterisi oluşturulmadı.",
+    "hinweis": "Aynı müşteri grubu ve çeşit için fiyat listeleri çakıştığında, geçerlilik başlangıcı daha geç olan liste uygulanır. Mevcut bir fiyat listesi asla silinmez, yalnızca devre dışı bırakılır - zaten hesaplanmış fatura geçmişi (proforma) için belirleyici olmaya devam eder.",
+    "formular": {
+      "erstellen": {
+        "titel": "Fiyat listesi oluştur",
+        "lead": "Ad ve geçerlilik başlangıcı zorunludur. Müşteri grubu belirtilmezse liste herkes için standart sayılır.",
+        "name": "Ad",
+        "namePlatzhalter": "örn. Kış 2027 fiyat listesi",
+        "gueltigAb": "Geçerlilik başlangıcı",
+        "gueltigBis": "Geçerlilik bitişi (isteğe bağlı)",
+        "kundengruppe": "Müşteri grubu (isteğe bağlı)",
+        "knopf": "Fiyat listesi oluştur"
+      },
+      "position": {
+        "sorte": "Çeşit",
+        "preis": "Fiyat (₸/kg)",
+        "mindestmenge": "Asgari miktar (kg)",
+        "knopf": "Kalem ekle"
+      },
+      "gruppe": {
+        "label": "Müşteri grubu",
+        "knopf": "Kaydet"
+      }
+    }
   },
   "personalAnsicht": {
     "brigadenTitel": "Ekipler",
