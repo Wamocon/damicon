@@ -17,10 +17,11 @@ import { beerenNahaufnahme } from "@/lib/site-medien";
 // gleich hohe Bühne, damit Titel und Text auf einer Linie beginnen und keine
 // Kachel unten leer bleibt.
 //
-// Fotos stehen hier bewusst nicht. Die vorhandenen Aufnahmen tragen bereits
-// die Abschnitte Betrieb, Qualität und Bestand, und dasselbe Foto zweimal auf
-// einer Seite liest sich als Mangel an Material. Nach dem Makro-Shooting
-// (docs/aufnahmeplan.md) können einzelne Kacheln echte Nahaufnahmen bekommen.
+// Nur die große Kachel trägt ein Foto, die übrigen argumentieren mit
+// Zeichnungen. Das ist kein Mangel an Material, sondern die Aufgabenteilung:
+// Was die Frucht ist, zeigt eine Aufnahme; was mit einer Schale passiert, wenn
+// eine Beere ausläuft, zeigt keine - dafür ist die Zeichnung da. Welche Datei
+// in der großen Kachel liegt, entscheidet lib/site-medien.ts.
 
 // Nachtblau wie in der Qualitätsreferenz. Der feine Rand trennt die Kachel im
 // dunklen Farbschema vom gleich dunklen Seitengrund.

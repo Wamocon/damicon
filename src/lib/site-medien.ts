@@ -68,6 +68,18 @@ export const bestandsFotos: readonly BestandsBild[] = [
   { quelle: "/betrieb/produkt-glas.webp", textKey: "asset4", marke: true },
 ];
 
+/**
+ * Bild im Schlussblock. Der Handlungsaufruf war der einzige grosse Abschnitt
+ * der Seite ganz ohne Bild - eine Farbflaeche mit Text, unmittelbar vor dem
+ * Klick ins Dashboard. Die Aufnahme vom 14.09.2026 zeigt den Trieb in der
+ * Hand und dahinter die Bergkette: Der letzte Blick vor dem Prototyp gilt dem
+ * Betrieb, um den es geht, nicht der Software.
+ *
+ * Das Bild traegt keine eigene Aussage, die der Text nicht schon sagt, und ist
+ * deshalb fuer Screenreader ausgeblendet (alt="").
+ */
+export const abschlussBild = "/betrieb/rute-hand.webp";
+
 // Bereichskarten "Feld, Hof, Büro, Markt" (ZonesOverview in landing.tsx).
 // Die vier Bilder sind erzeugte Symbolbilder, keine Aufnahmen vom Betrieb. Der
 // Ausschnitt ist in die Datei geschnitten, die Vorlagen liegen unversioniert
@@ -84,20 +96,29 @@ export const bereichsBilder: Readonly<Record<ZoneKey, string>> = {
 
 /** Kurzer, stummer Loop mit Bildausschnitt (components/site/loop-clip.tsx). */
 export type LoopClipQuelle = {
-  readonly quelle: string;
+  /** `null`, solange es nur das Standbild gibt - dann laeuft kein Video. */
+  readonly quelle: string | null;
   readonly poster: string;
   /** Mittelpunkt des Ausschnitts in Prozent und Vergroesserung. */
   readonly fokus: { readonly x: number; readonly y: number; readonly zoom: number };
 };
 
-// Nahaufnahme im Bento "Warum die Himbeere anders ist": derselbe Rundgang wie
-// im Hero, eng auf die Fruechte beschnitten. Der Browser hat die Datei vom
-// Hero schon im Cache. Nach dem Makro-Shooting (docs/aufnahmeplan.md) kommt
-// hier ein eigener Clip hinein.
+// Nahaufnahme im Bento "Warum die Himbeere anders ist". Hier lief bis zum
+// 16.09.2026 derselbe Rundgang wie im Hero, 1,6-fach in den Ausschnitt
+// gezogen: aus 1280 x 720 wurden damit rund 800 x 450 auf einer Flaeche von
+// etwa 1100 px Breite - sichtbar weich, und dasselbe Material ein zweites Mal
+// auf einer Seite, auf der "echte Aufnahmen statt Stockfotos" das Argument
+// ist. Jetzt steht dort eine eigene Aufnahme vom 14.09.2026: zwei reife
+// Fruechte und eine unreife am selben Trieb, also genau der Punkt der Kachel.
+//
+// `quelle` ist null, es laeuft also kein Video. Die Bewegung kommt stattdessen
+// aus der Scroll-Fahrt (.kapitel-fahrt, siehe loop-clip.tsx). Aufnahme 1 des
+// Aufnahmeplans ersetzt das Standbild spaeter durch einen Loop - dafuer reicht
+// es, hier `quelle` zu fuellen.
 export const beerenNahaufnahme: LoopClipQuelle = {
-  quelle: "/hero-himbeere.mp4",
-  poster: "/hero-standbild.webp",
-  fokus: { x: 72, y: 40, zoom: 1.6 },
+  quelle: null,
+  poster: "/betrieb/frucht-nah.webp",
+  fokus: { x: 50, y: 50, zoom: 1 },
 };
 
 /** Einzelbilder 00.webp bis (anzahl - 1).webp unter `ordner`. */

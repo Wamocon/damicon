@@ -4,6 +4,16 @@ Termin vor Ort: in zwei Wochen, also etwa ab dem 24.09.2026. Die remontierenden 
 
 Die Landingpage läuft bis dahin mit Zwischenmaterial. Jede Aufnahme unten ersetzt genau eine Stelle. Getauscht wird in `src/lib/site-medien.ts`, die Komponenten müssen dafür nicht angefasst werden.
 
+## Stand 16.09.2026
+
+Vier Aufnahmen vom 14.09.2026 sind eingearbeitet (Vorlagen unversioniert in `Bilder/Damicon Bilder 16.09.26`):
+
+- **Nr. 7 erledigt.** Das Panorama ersetzt `public/betrieb/anlage-weit.webp` mit 2800 px Breite statt 1280. Die Schatten im Vordergrund waren zu rund einem Viertel abgesoffen (Gegenlicht) und sind angehoben; mehr gibt die 8-Bit-Aufnahme nicht her. Derselbe Zuschnitt liefert das Vorschaubild beim Teilen (`src/app/[locale]/opengraph-image.jpg`) - das hatte die Seite vorher gar nicht.
+- **Nr. 1 halb erledigt.** Die große Bento-Kachel zeigt statt des 1,6-fach vergrößerten Hero-Ausschnitts eine eigene Aufnahme (`public/betrieb/frucht-nah.webp`). Der Loop fehlt weiterhin: Sobald er da ist, in `beerenNahaufnahme` nur `quelle` füllen, dann läuft er anstelle der Scroll-Fahrt.
+- Zusätzlich neu: `public/betrieb/polka-frucht.webp` (das volle Reifespektrum an einem Trieb, passend zum Text der Kachel zur Sorte Polka) und `public/betrieb/rute-hand.webp` im Schlussblock, der bis dahin ohne Bild war.
+
+Nicht gemacht und bewusst so: Die Bereichskarten Feld, Hof, Büro, Markt bleiben erzeugte Symbolbilder. Die drei übrigen bilden eine einheitliche Reihe, und das Feldbild zeigt die Erfassung im Feld, nicht die Frucht - ein Foto vom Strauch bricht beides.
+
 ## Allgemeine Vorgaben
 
 - Fotos in voller Auflösung, Export als sRGB, 8 Bit. Das Verkleinern auf WebP übernimmt das Projekt.
@@ -16,13 +26,13 @@ Die Landingpage läuft bis dahin mit Zwischenmaterial. Jede Aufnahme unten erset
 
 | Nr. | Motiv | Vorgaben | Ersetzt auf der Seite | Ablage und Eintrag |
 |---|---|---|---|---|
-| 1 | Nahaufnahme-Loop: reife Früchte am Strauch | 6 bis 8 s, Makro, ruhige Einstellung, leichter Wind erlaubt | Große Kachel „Keine schützende Haut“ im Bento | `public/clips/nahaufnahme.mp4` plus Standbild, Eintrag `beerenNahaufnahme` (`fokus.zoom` auf 1 setzen) |
+| 1 | Nahaufnahme-Loop: reife Früchte am Strauch (Standbild steht seit 16.09.2026, Loop fehlt) | 6 bis 8 s, Makro, ruhige Einstellung, leichter Wind erlaubt | Große Kachel „Keine schützende Haut“ im Bento | `public/clips/nahaufnahme.mp4` plus Standbild, Eintrag `beerenNahaufnahme` (`fokus.zoom` auf 1 setzen) |
 | 2 | Loop: Pflücken direkt in die Verkaufsschale | 4 bis 6 s, Hand und Schale formatfüllend | Neue Kachel im Bento („Pflücken in die Verkaufsschale“) | `public/clips/pfluecken.mp4` |
 | 3 | Loop: Steige abgeben, Scan am Telefon | 4 bis 6 s, Display lesbar oder bewusst unscharf | Belegkette, Glied „Pflücker“ | `public/clips/scan.mp4` |
 | 4 | Loop: Kühlraum, Thermometer bei 0 bis 1 °C | 4 bis 6 s, Anzeige lesbar | 60-Minuten-Szene, Schritt „Vorkühlung“ | `public/clips/kuehlraum.mp4` |
 | 5 | Loop: Code auf der Schale scannen | 4 bis 6 s | Belegkette, Glied „Schale scannen“ | `public/clips/schale-scan.mp4` |
 | 6 | Drehsequenz Einzelbeere (Scroll-Sequenz) | Drehteller, 72 Bilder im Abstand von 5°, feste Kamera, Makro, gleiches Licht, dunkler Grund | Hintergrund der 60-Minuten-Szene (heute: Frames aus dem Hero-Video) | `public/sequenz/drehung/00.webp` bis `71.webp` (1600 × 900, WebP), Eintrag `sechzigMinutenSequenz` auf `{ ordner: "/sequenz/drehung", anzahl: 72 }` |
-| 7 | Panorama der Anlage | mindestens 2560 px breit, Standort wie `anlage-weit.webp` | Kapitelbild über „Echte Aufnahmen statt Stockfotos“ | `public/betrieb/anlage-weit.webp` ersetzen |
+| 7 | Panorama der Anlage - erledigt am 16.09.2026 | mindestens 2560 px breit, Standort wie `anlage-weit.webp` | Kapitelbild über „Echte Aufnahmen statt Stockfotos“ | `public/betrieb/anlage-weit.webp` ersetzen |
 | 8 | Makro Druckstelle und auslaufende Beere | wie die vorhandenen Qualitätsfotos (gleicher Grund, gleiches Licht) | Kachel „Eine Beere entwertet die Schale“ | `public/qualitaet/` |
 | 9 | Feldton | 60 s Umgebung, ohne Stimmen, Musik und Motoren, Stereo, 48 kHz | Tonschalter unten rechts | `public/ton/feld.m4a` (AAC), Eintrag `feldTon` |
 | 10 | 3D-Scan eines Reihenblocks | siehe unten | Abschnitt „3D-Rundgang“, erscheint erst mit dieser Datei | `public/scan/reihenblock.splat`, Eintrag `plantagenScan` |
