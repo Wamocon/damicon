@@ -17,6 +17,14 @@ export interface SessionProfile {
   b2bKundeId: string | null;
   /** Pfluecker-Stammsatz einer "picker"-Anmeldung (Anforderung 7.1/2.12) - null fuer alle anderen Rollen. */
   pflueckerId: string | null;
+  /**
+   * Anforderung 2.10: als Vorarbeiter benannt und damit zur Stichprobenkontrolle
+   * berechtigt. Ein Kennzeichen am Profil statt einer achten Rolle, weil
+   * Anforderung 7.1 mit genau sieben Rollen abgenommen ist; die Betriebsleitung
+   * vergibt es. Fuer admin und betriebsleitung ohne Bedeutung - sie duerfen
+   * ohnehin ueber `pflueckaufgaben:approve`.
+   */
+  darfKontrollieren: boolean;
 }
 
 // `cache` dedupliziert den Aufruf innerhalb eines Requests - Layout, Seite und
@@ -33,7 +41,7 @@ export const getSessionProfile = cache(async (): Promise<SessionProfile | null> 
 
   const { data } = await supabase
     .from("profiles")
-    .select("id, full_name, email, role, brigade_id, b2b_kunde_id, pfluecker_id")
+    .select("id, full_name, email, role, brigade_id, b2b_kunde_id, pfluecker_id, darf_kontrollieren")
     .eq("auth_user_id", user.id)
     .maybeSingle();
 
@@ -52,6 +60,7 @@ export const getSessionProfile = cache(async (): Promise<SessionProfile | null> 
     brigadeId: data.brigade_id,
     b2bKundeId: data.b2b_kunde_id,
     pflueckerId: data.pfluecker_id,
+    darfKontrollieren: data.darf_kontrollieren ?? false,
   };
 });
 

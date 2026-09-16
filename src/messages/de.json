@@ -830,7 +830,8 @@
       "zukaufBefunde": "{wert} Fehler in der Eingabe gefunden - nichts wurde übernommen. Siehe Prüfergebnis unten.",
       "code": "Der Code ist falsch oder abgelaufen. Bitte den aktuellen 6-stelligen Code aus der Authenticator-App eingeben.",
       "zustand": "Der Termin hat sich zwischenzeitlich geändert (z. B. gesperrt oder bereits erledigt). Bitte Seite neu laden.",
-      "einwilligung": "Bitte den Hinweis oben bestätigen, bevor die erste Nachricht gesendet wird."
+      "einwilligung": "Bitte den Hinweis oben bestätigen, bevor die erste Nachricht gesendet wird.",
+      "begruendungFehlt": "Eine Abweichung braucht eine Begründung."
     },
     "einladungen": {
       "erfolg": {
@@ -1494,6 +1495,14 @@
       "gewicht": "Gewicht in kg",
       "minuten": "Minuten",
       "temperatur": "Temperatur in °C"
+    },
+    "kontrolle": {
+      "abweichung": "Abweichung",
+      "abweichungAria": "Für Steige {code} eine Abweichung melden",
+      "abweichungMelden": "Abweichung speichern",
+      "grundPlatzhalter": "Was weicht ab?",
+      "grundAria": "Begründung der Abweichung an Steige {code}",
+      "abbrechen": "Abbrechen"
     }
   },
   "oeffentlicheHerkunft": {

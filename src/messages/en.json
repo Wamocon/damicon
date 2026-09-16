@@ -830,7 +830,8 @@
       "zukaufBefunde": "{wert} error(s) found in the input - nothing was imported. See the check results below.",
       "code": "The code is wrong or expired. Please enter the current 6-digit code from your authenticator app.",
       "zustand": "The date has changed in the meantime (e.g. locked or already done). Please reload the page.",
-      "einwilligung": "Please confirm the notice above before sending the first message."
+      "einwilligung": "Please confirm the notice above before sending the first message.",
+      "begruendungFehlt": "A deviation needs a reason."
     },
     "einladungen": {
       "erfolg": {
@@ -1494,6 +1495,14 @@
       "gewicht": "Weight in kg",
       "minuten": "Minutes",
       "temperatur": "Temperature in °C"
+    },
+    "kontrolle": {
+      "abweichung": "Deviation",
+      "abweichungAria": "Report a deviation for crate {code}",
+      "abweichungMelden": "Save deviation",
+      "grundPlatzhalter": "What is deviating?",
+      "grundAria": "Reason for the deviation on crate {code}",
+      "abbrechen": "Cancel"
     }
   },
   "oeffentlicheHerkunft": {

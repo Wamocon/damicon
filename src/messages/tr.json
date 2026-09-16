@@ -1119,7 +1119,8 @@
       "zukaufBefunde": "Girişte {wert} hata bulundu - hiçbir şey içe aktarılmadı. Aşağıdaki kontrol sonuçlarına bakın.",
       "code": "Kod yanlış veya süresi doldu. Lütfen kimlik doğrulayıcı uygulamadaki güncel 6 haneli kodu girin.",
       "zustand": "Tarih bu sırada değişti (ör. kilitlendi veya zaten tamamlandı). Lütfen sayfayı yeniden yükleyin.",
-      "einwilligung": "İlk mesajı göndermeden önce lütfen yukarıdaki bildirimi onaylayın."
+      "einwilligung": "İlk mesajı göndermeden önce lütfen yukarıdaki bildirimi onaylayın.",
+      "begruendungFehlt": "Sapma bir gerekçe gerektirir."
     },
     "einladungen": {
       "erfolg": {
@@ -1494,6 +1495,14 @@
       "gewicht": "Ağırlık, kg",
       "minuten": "Dakika",
       "temperatur": "Sıcaklık, °C"
+    },
+    "kontrolle": {
+      "abweichung": "Sapma",
+      "abweichungAria": "{code} kasası için sapma bildir",
+      "abweichungMelden": "Sapmayı kaydet",
+      "grundPlatzhalter": "Sapma nedir?",
+      "grundAria": "{code} kasasındaki sapmanın gerekçesi",
+      "abbrechen": "İptal"
     }
   },
   "oeffentlicheHerkunft": {

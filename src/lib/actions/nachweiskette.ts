@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
+import { hasPermission } from "@/lib/rbac";
 import {
   dbFehler,
   fehler,
@@ -326,23 +327,46 @@ export async function kuehlmessungErfassen(
 }
 
 // Anforderung 2.10: Stichprobenkontrolle je einzelner Steige, unabhaengig vom
-// Abschluss der gesamten Pflueckaufgabe. Dieselbe Berechtigungsstufe wie der
-// Aufgabenabschluss (pflueckaufgaben:approve, siehe aufgabeStatusSetzen in
-// lib/actions/pflueckaufgaben.ts) - eine Stichprobenkontrolle ist fachlich
-// dieselbe Belegpruefung, nur auf Steigen-Ebene statt Aufgaben-Ebene.
+// Abschluss der gesamten Pflueckaufgabe.
+//
+// Zwei Wege fuehren hierher, und beide sind gewollt: die Belegpruefung des
+// Bueros (pflueckaufgaben:approve, dieselbe Stufe wie der Aufgabenabschluss in
+// lib/actions/pflueckaufgaben.ts) und der am Sammelpunkt benannte Vorarbeiter.
+// Der traegt die Rolle "brigade" und hat damit KEIN approve - eine achte Rolle
+// wuerde Anforderung 7.1 brechen, deshalb das Kennzeichen darfKontrollieren am
+// Profil. Ohne diese zweite Bedingung waere die Anwendungsschicht enger als die
+// Datenbank, und die Anforderung liefe ins Leere: Betriebsleitung und
+// Administration stehen nicht im Feld.
+//
+// Die Datenbank bleibt die letzte Instanz. steige_kontrolle_pruefen()
+// (Migration 20261006000000) setzt Recht, Vier-Augen-Regel, Befundpflicht und
+// Begruendungspflicht unabhaengig von diesem Code durch. Was hier steht, ist
+// die freundliche Fassung derselben Regeln - eine verstaendliche Meldung im
+// Formular statt einer Ausnahme aus dem Trigger.
 export async function steigeKontrollieren(
   _status: AktionsStatus,
   formData: FormData,
 ): Promise<AktionsStatus> {
   let profil: SessionProfile;
   try {
-    profil = await requirePermission("pflueckaufgaben", "approve");
+    profil = await requirePermission("pflueckaufgaben", "view");
   } catch (error) {
     return zugriffsFehler(error);
   }
+  if (!hasPermission(profil.role, "pflueckaufgaben", "approve") && !profil.darfKontrollieren) {
+    return zugriffsFehler(new Error("keine-berechtigung"));
+  }
 
   const id = text(formData, "id");
+  const befund = text(formData, "befund");
+  const begruendung = text(formData, "begruendung").trim();
+
   if (!id) return fehler("fehler.eingabe");
+  if (befund !== "in_ordnung" && befund !== "abweichung") return fehler("fehler.eingabe");
+  // Eine Abweichung ohne Begruendung waere ein Befund ohne Aussage. Die
+  // Nachfrage kommt hier, damit der Vorarbeiter sie im Formular sieht und
+  // nicht als Datenbankfehler.
+  if (befund === "abweichung" && !begruendung) return fehler("fehler.begruendungFehlt");
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -350,6 +374,8 @@ export async function steigeKontrollieren(
     .update({
       kontrolliert_am: new Date().toISOString(),
       kontrolliert_von_profil_id: profil.id,
+      kontroll_befund: befund,
+      kontroll_begruendung: befund === "abweichung" ? begruendung : null,
     })
     .eq("id", id)
     .is("kontrolliert_am", null)
@@ -358,7 +384,8 @@ export async function steigeKontrollieren(
 
   if (error) return dbFehler(error);
   // Kein Treffer trotz fehlerfreiem Update: entweder keine Berechtigung
-  // (RLS hat die Zeile ausgefiltert) oder bereits kontrolliert.
+  // (RLS hat die Zeile ausgefiltert), bereits kontrolliert, oder die
+  // Vier-Augen-Regel hat gegriffen, weil es die eigene Steige ist.
   if (!data) return fehler("fehler.zustand");
 
   aktualisiere(formData);
