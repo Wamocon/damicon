@@ -176,9 +176,25 @@ comment on function public.audit_zeitpunkt_setzen is
 
 -- Bestandszeilen nachziehen, damit die Spalte von Anfang an ueberall gefuellt
 -- ist und eine Auswertung nach Bereich keine Luecke hat.
+--
+-- Reparatur (Erstfassung scheiterte am ersten echten Deploy): trg_audit_no_update
+-- (seit 20260902090000) blockt jedes UPDATE auf audit_events ausnahmslos,
+-- auch das dieses Backfills selbst. Lokal fiel das nie auf - die
+-- PGlite-Testsuite wendet alle Migrationen auf eine LEERE Datenbank an, bevor
+-- ueberhaupt Seed-Daten eingefuegt werden, "where bereich is null" traf dort
+-- null Zeilen und der Trigger feuert nie fuer eine Anweisung ohne betroffene
+-- Zeile. Gegen das gehostete Projekt mit echten Bestandszeilen aus frueheren
+-- Testlaeufen griff der Trigger sofort - genau die Klasse Defekt, vor der
+-- Anforderung 7.5 warnt ("Migrationen gegen echtes Postgres testen, nicht
+-- gegen Seed-Daten"). Fix: den Trigger fuer die Dauer dieses einen Backfills
+-- gezielt abschalten statt die Sperre selbst aufzuweichen.
+alter table public.audit_events disable trigger trg_audit_no_update;
+
 update public.audit_events
    set bereich = public.audit_bereich_fuer(ressource)
  where bereich is null;
+
+alter table public.audit_events enable trigger trg_audit_no_update;
 
 -- ---------------------------------------------------------------------------
 -- 4. Indizes
