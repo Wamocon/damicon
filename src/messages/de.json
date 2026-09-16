@@ -1984,6 +1984,11 @@
     "lieferungenTitel": "Meine Lieferungen",
     "lieferungenLead": "Status und Übergabequittung Ihrer Lieferungen.",
     "keineLieferungen": "Noch keine Lieferung erfasst.",
+    "rechnungenTitel": "Rechnungshistorie (Proforma)",
+    "rechnungenLead": "Errechnet aus Liefermenge und der zum Liefertermin gültigen Preisliste - keine rechtsverbindliche Rechnung.",
+    "keineRechnungen": "Noch keine zugestellte Lieferung, aus der sich eine Proforma errechnen ließe.",
+    "keinPreis": "kein Preis ermittelbar",
+    "rechnungenHinweis": "Diese Übersicht ersetzt keine Rechnung der Buchhaltung. Sie zeigt, was eine Lieferung nach der zum Zeitpunkt gültigen Preisliste ergeben hätte.",
     "kontingenteTitel": "Kontingente",
     "kontingenteLead": "Vereinbarte Menge je Sorte und reservierter Anteil - reserviert wird automatisch bei Bestätigung einer Vorbestellung.",
     "keineKontingente": "Derzeit ist kein Kontingent hinterlegt.",
@@ -2007,7 +2012,10 @@
       "reserviert": "reserviert",
       "verfuegbar": "verfügbar",
       "liefertermin": "Liefertermin",
-      "status": "Status"
+      "status": "Status",
+      "datum": "Zugestellt am",
+      "stueckpreis": "Preis",
+      "betrag": "Betrag"
     },
     "status": {
       "angefragt": "angefragt",

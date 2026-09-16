@@ -1984,6 +1984,11 @@
     "lieferungenTitel": "My deliveries",
     "lieferungenLead": "Status and handover receipt of your deliveries.",
     "keineLieferungen": "No delivery recorded yet.",
+    "rechnungenTitel": "Invoice history (pro forma)",
+    "rechnungenLead": "Calculated from delivered quantity and the price list valid on the delivery date - not a legally binding invoice.",
+    "keineRechnungen": "No delivered shipment yet from which a pro forma could be calculated.",
+    "keinPreis": "no price available",
+    "rechnungenHinweis": "This overview does not replace an invoice from accounting. It shows what a delivery would have amounted to under the price list valid at the time.",
     "kontingenteTitel": "Quotas",
     "kontingenteLead": "Agreed quantity per variety and reserved share - reserved automatically when a pre-order is confirmed.",
     "keineKontingente": "No quota on file at the moment.",
@@ -2007,7 +2012,10 @@
       "reserviert": "reserved",
       "verfuegbar": "available",
       "liefertermin": "Delivery date",
-      "status": "Status"
+      "status": "Status",
+      "datum": "Delivered on",
+      "stueckpreis": "Price",
+      "betrag": "Amount"
     },
     "status": {
       "angefragt": "requested",
