@@ -24,7 +24,7 @@ export function QualityCompare() {
   // beschneidet Kinder, nicht die eigene Outline.
   return (
     <figure className="mt-4 overflow-hidden rounded-2xl border border-border bg-card has-[input:focus-visible]:outline has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-primary">
-      <div className="relative aspect-37/20 w-full select-none">
+      <div data-cursor="ziehen" className="relative aspect-37/20 w-full select-none">
         {/* Rechte Aufnahme liegt vollflaechig darunter. */}
         <Image
           src={qualitaetsVergleich.rechts}

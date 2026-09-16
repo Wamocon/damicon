@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { useTranslations } from "next-intl";
 import { Menu, X } from "lucide-react";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { LocaleSwitcher } from "@/components/site/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { mitUeberblendung } from "@/lib/seitenwechsel";
 
 const links = [
   { key: "zones", href: "/#zonen" },
@@ -18,6 +19,18 @@ const links = [
 export function SiteNavbar() {
   const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
+  const router = useRouter();
+
+  // Sprung ins Portal mit Ueberblendung (lib/seitenwechsel.ts). Klicks mit
+  // Zusatztaste oeffnen wie gewohnt einen neuen Tab und bleiben unberuehrt.
+  function zumPortal(event: MouseEvent<HTMLAnchorElement>) {
+    setOpen(false);
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+      return;
+    }
+    event.preventDefault();
+    mitUeberblendung(() => router.push("/dashboard"));
+  }
 
   return (
     <header className="glass fixed inset-x-0 top-0 z-50 border-b border-border/60 print:hidden">
@@ -51,6 +64,7 @@ export function SiteNavbar() {
           <ThemeToggle />
           <Link
             href="/dashboard"
+            onClick={zumPortal}
             className="inline-flex h-9 items-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition hover:bg-primary/90"
           >
             {t("portal")}
@@ -87,7 +101,7 @@ export function SiteNavbar() {
             ))}
             <Link
               href="/dashboard"
-              onClick={() => setOpen(false)}
+              onClick={zumPortal}
               className="mt-2 inline-flex h-11 items-center justify-center rounded-lg bg-primary px-4 text-sm font-bold text-primary-foreground"
             >
               {t("portal")}

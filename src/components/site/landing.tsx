@@ -1,65 +1,40 @@
+import type { CSSProperties } from "react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { ArrowRight, Check } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Icon } from "@/components/icon";
 import { CountUp } from "@/components/site/count-up";
 import { Reveal } from "@/components/site/reveal";
+import { BereichsOrbit } from "@/components/site/bereichs-orbit";
+import { ModulReiter } from "@/components/site/modul-reiter";
 import { zones } from "@/lib/modules";
-import { kpis } from "@/lib/domain/kpis";
+import { kpis, zielerreichung } from "@/lib/domain/kpis";
+import { abschlussBild, bereichsBilder } from "@/lib/site-medien";
 
-export function BerryReality() {
-  const s = useTranslations("landing");
-  const points = ["schale", "kuehlung", "umpacken", "feld", "rhythmus", "schaden"];
+// "Warum die Himbeere anders ist" steht als Bento in beere-bento.tsx, die
+// Nachweiskette als animierte Kette in belegkette.tsx.
 
-  return (
-    <section
-      id="himbeere"
-      className="berry-field scroll-mt-20 border-b border-border bg-secondary/40 py-16 md:py-24"
-    >
-      <div className="container">
-        <Reveal>
-          <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-            {s("berryEyebrow")}
-          </p>
-          <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-            {s("berryTitle")}
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            {s("berryLead")}
-          </p>
-        </Reveal>
-
-        <Reveal delay={90} className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {points.map((point) => (
-            <div
-              key={point}
-              className="rounded-2xl border border-border bg-card p-5"
-            >
-              <p className="text-sm font-black text-card-foreground">
-                {s(`berryPoints.${point}.title`)}
-              </p>
-              <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
-                {s(`berryPoints.${point}.text`)}
-              </p>
-            </div>
-          ))}
-        </Reveal>
-
-        <p className="mt-6 max-w-2xl border-l-2 border-primary/40 pl-4 text-sm font-semibold italic leading-6 text-foreground">
-          {s("berryQuote")}
-        </p>
-      </div>
-    </section>
+// Groesste Zahl in einer Preisangabe: "1.500 - 1.600 ₸/kg" ergibt 1600. Der
+// Tausenderpunkt faellt weg; ein Dezimalkomma kommt in diesen Angaben nicht
+// vor. Daraus entsteht der Balken je Stufe - die Spanne wird sichtbar, statt
+// nur dazustehen.
+function preisZahl(text: string) {
+  const zahlen = [...text.matchAll(/\d[\d.]*/g)].map((treffer) =>
+    Number(treffer[0].replace(/\./g, "")),
   );
+  return zahlen.length > 0 ? Math.max(...zahlen) : 0;
 }
 
 export function PriceSpread() {
   const s = useTranslations("landing");
   const tiers = ["lose", "schale", "premium"] as const;
+  const preise = tiers.map((tier) => preisZahl(s(`spreadTiers.${tier}.price`)));
+  const hoechster = Math.max(...preise, 1);
 
   return (
     <section className="container scroll-mt-20 py-16 md:py-24">
-      <Reveal>
+      <Reveal art="wisch">
         <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
           {s("spreadEyebrow")}
         </p>
@@ -71,7 +46,7 @@ export function PriceSpread() {
         </p>
       </Reveal>
 
-      <Reveal delay={90} className="mt-10 grid gap-4 md:grid-cols-3">
+      <Reveal staffel className="mt-10 grid gap-4 md:grid-cols-3">
         {tiers.map((tier, index) => (
           <div
             key={tier}
@@ -87,7 +62,18 @@ export function PriceSpread() {
             <p className="mt-2 text-2xl font-black text-foreground">
               {s(`spreadTiers.${tier}.price`)}
             </p>
-            <p className="mt-2 text-xs leading-5 text-muted-foreground">
+            <div className={`mt-3 ${index === 2 ? "text-primary" : "text-himbeere"}`}>
+              <div className="wertbalken">
+                <i
+                  style={
+                    {
+                      "--breite": `${Math.round((preise[index]! / hoechster) * 100)}%`,
+                    } as CSSProperties
+                  }
+                />
+              </div>
+            </div>
+            <p className="mt-3 text-xs leading-5 text-muted-foreground">
               {s(`spreadTiers.${tier}.note`)}
             </p>
           </div>
@@ -112,90 +98,68 @@ export function ZonesOverview() {
 
   return (
     <section id="zonen" className="container scroll-mt-20 py-16 md:py-24">
-      <Reveal>
-        <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-          {s("zonesEyebrow")}
-        </p>
-        <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-          {s("zonesTitle")}
-        </h2>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-          {s("zonesLead")}
-        </p>
-      </Reveal>
+      {/* Links die Aussage, rechts das Bild dazu: Vier Bereiche haengen an
+          derselben Charge. Der Orbit steht neben der Ueberschrift, weil die
+          rechte Haelfte dort sonst leer bleibt. */}
+      <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <Reveal art="wisch">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
+            {s("zonesEyebrow")}
+          </p>
+          <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
+            {s("zonesTitle")}
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+            {s("zonesLead")}
+          </p>
+        </Reveal>
 
-      <Reveal delay={90} className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Reveal>
+          <BereichsOrbit />
+        </Reveal>
+      </div>
+
+      <Reveal staffel className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {zones.map((zone) => (
           <Link
             key={zone.key}
             href={`/dashboard/${zone.key}`}
-            className="group rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40"
+            className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40"
           >
-            <span className="inline-flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
-              <Icon name={zone.icon} className="h-5 w-5" />
-            </span>
-            <h3 className="mt-4 text-lg font-black text-card-foreground">
-              {t(`${zone.key}.name`)}
-            </h3>
-            <p className="mt-1 text-sm leading-6 text-muted-foreground">
-              {t(`${zone.key}.tagline`)}
-            </p>
-            <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-primary">
-              {s("openZone")}
-              <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
-            </span>
+            {/* Symbolbild des Bereichs. Die Überschrift benennt den Bereich
+                schon, deshalb ist das Bild für Screenreader ausgeblendet. */}
+            <div aria-hidden className="relative aspect-4/3 overflow-hidden bg-secondary">
+              <Image
+                src={bereichsBilder[zone.key]}
+                alt=""
+                fill
+                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                loading="lazy"
+                className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+              />
+            </div>
+            <div className="flex flex-1 flex-col p-5">
+              <div className="flex items-center gap-3">
+                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                  <Icon name={zone.icon} className="h-5 w-5" />
+                </span>
+                <h3 className="text-lg font-black text-card-foreground">
+                  {t(`${zone.key}.name`)}
+                </h3>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                {t(`${zone.key}.tagline`)}
+              </p>
+              <span className="mt-auto inline-flex items-center gap-1 pt-4 text-xs font-bold text-primary">
+                {s("openZone")}
+                <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+              </span>
+            </div>
           </Link>
         ))}
       </Reveal>
-    </section>
-  );
-}
 
-export function ProofChain() {
-  const s = useTranslations("landing");
-  const steps = ["kuehlkurve", "charge", "herkunftsblock", "pfluecker", "behandlung"];
-
-  return (
-    <section
-      id="belegbarkeit"
-      className="scroll-mt-20 border-y border-border bg-secondary/40 py-16 md:py-24"
-    >
-      <div className="container">
-        <Reveal>
-          <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
-            {s("proofEyebrow")}
-          </p>
-          <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-            {s("proofTitle")}
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            {s("proofLead")}
-          </p>
-        </Reveal>
-
-        <ol className="mt-10 grid gap-3 md:grid-cols-5">
-          {steps.map((step, index) => (
-            <li
-              key={step}
-              className="relative rounded-2xl border border-border bg-card p-4"
-            >
-              <span className="text-xs font-black text-primary">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-              <p className="mt-1 text-sm font-bold text-card-foreground">
-                {s(`proofSteps.${step}.title`)}
-              </p>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                {s(`proofSteps.${step}.text`)}
-              </p>
-            </li>
-          ))}
-        </ol>
-
-        <p className="mt-6 max-w-2xl text-sm font-semibold leading-6 text-foreground">
-          {s("proofClosing")}
-        </p>
-      </div>
+      <ModulReiter />
     </section>
   );
 }
@@ -206,7 +170,7 @@ export function Levers() {
 
   return (
     <section className="container py-16 md:py-24">
-      <Reveal>
+      <Reveal art="wisch">
         <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
           {s("leversEyebrow")}
         </p>
@@ -218,7 +182,7 @@ export function Levers() {
         </p>
       </Reveal>
 
-      <Reveal delay={90} className="mt-10 grid gap-4 md:grid-cols-2">
+      <Reveal staffel className="mt-10 grid gap-4 md:grid-cols-2">
         {levers.map((lever, index) => (
           <div
             key={lever}
@@ -245,41 +209,93 @@ export function Levers() {
 export function KpiPreview() {
   const s = useTranslations("landing");
   const k = useTranslations("kpis");
+  const z = useTranslations("zones");
+  const d = useTranslations("dashboard.home");
 
+  // Dunkles Band: bricht die Folge heller Kartenabschnitte und gibt den Zahlen
+  // Groesse. Die Flaeche ist in beiden Farbschemata nachtblau, deshalb stehen
+  // hier feste Weiss-Toene statt der Theme-Token - text-muted-foreground
+  // waere im hellen Schema dunkelgrau auf Nachtblau.
+  //
+  // Vierzehn Kennzahlen in einer Reihe liest niemand zu Ende. Sie stehen
+  // deshalb in denselben vier Bereichen, die die Seite ohnehin erzaehlt:
+  // Feld und Hof je vier, Buero und Markt je drei. Der Balken an der Kachel
+  // zeigt, wie weit der heutige Wert vom vereinbarten Ziel entfernt ist, und
+  // waechst, sobald die Kachel im Bild steht. Die beiden Kennzahlen ausserhalb
+  // des Zwoelfer-Cockpits (stufe "erweitert") stehen ohne Fuellung, damit die
+  // Unterscheidung aus kpis.ts auch hier sichtbar bleibt.
   return (
-    <section
-      id="kpis"
-      className="scroll-mt-20 border-y border-border bg-secondary/40 py-16 md:py-24"
-    >
+    <section id="kpis" className="scroll-mt-20 bg-[#04161c] py-16 text-white md:py-24">
       <div className="container">
-        <Reveal>
-          <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
+        <Reveal art="wisch">
+          <p className="text-xs font-black uppercase tracking-[0.14em] text-[#3fd0e6]">
             {s("kpiEyebrow")}
           </p>
-          <h2 className="mt-2 max-w-2xl text-3xl font-black text-foreground md:text-4xl">
-            {s("kpiTitle")}
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
-            {s("kpiLead")}
-          </p>
+          <h2 className="mt-2 max-w-2xl text-3xl font-black md:text-4xl">{s("kpiTitle")}</h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70">{s("kpiLead")}</p>
         </Reveal>
 
-        <Reveal delay={90} className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-4 lg:grid-cols-7">
-          {kpis.map((kpi) => (
-            <div
-              key={kpi.key}
-              className="rounded-xl border border-border bg-card p-3"
-            >
-              <p className="text-lg font-black text-foreground">
-                <CountUp wert={kpi.wert} />
-              </p>
-              <p className="mt-1 text-[11px] font-medium leading-4 text-muted-foreground">
-                {k(`${kpi.key}.label`)}
-              </p>
-            </div>
-          ))}
-        </Reveal>
-        <p className="mt-4 text-xs text-muted-foreground">{s("kpiFootnote")}</p>
+        <div className="mt-10 space-y-9">
+          {zones.map((zone) => {
+            const gruppe = kpis.filter((kpi) => kpi.zone === zone.key);
+            if (gruppe.length === 0) return null;
+
+            return (
+              <div key={zone.key}>
+                <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+                  <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-white/10 text-[#3fd0e6]">
+                    <Icon name={zone.icon} className="h-4 w-4" />
+                  </span>
+                  <h3 className="text-lg font-black">{z(`${zone.key}.name`)}</h3>
+                  <span className="ml-auto text-xs font-bold text-white/40">{gruppe.length}</span>
+                </div>
+
+                <Reveal staffel className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  {gruppe.map((kpi) => {
+                    const anteil = zielerreichung(kpi);
+                    const erreicht = anteil !== null && anteil > 0.999;
+
+                    return (
+                      <article
+                        key={kpi.key}
+                        className={`flex flex-col rounded-2xl border p-4 md:p-5 ${
+                          kpi.stufe === "erweitert"
+                            ? "border-dashed border-white/10"
+                            : "border-white/10 bg-white/[0.04]"
+                        }`}
+                      >
+                        <p className="font-heading text-2xl font-black md:text-3xl">
+                          <CountUp wert={kpi.wert} />
+                        </p>
+                        <p className="mt-1.5 text-[11px] font-medium leading-4 text-white/65">
+                          {k(`${kpi.key}.label`)}
+                        </p>
+                        {anteil === null ? null : (
+                          <div
+                            className={`mt-auto pt-4 ${erreicht ? "text-[#5ecfa0]" : "text-[#3fd0e6]"}`}
+                          >
+                            <div className="zielbalken">
+                              <i
+                                style={
+                                  { "--fuellung": `${Math.round(anteil * 100)}%` } as CSSProperties
+                                }
+                              />
+                            </div>
+                            <p className="mt-1.5 text-[10px] font-semibold text-white/45">
+                              {d("target")} {kpi.ziel}
+                            </p>
+                          </div>
+                        )}
+                      </article>
+                    );
+                  })}
+                </Reveal>
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="mt-8 text-xs text-white/55">{s("kpiFootnote")}</p>
       </div>
     </section>
   );
@@ -291,7 +307,7 @@ export function ComplianceBlock() {
 
   return (
     <section id="compliance" className="container scroll-mt-20 py-16 md:py-24">
-      <Reveal>
+      <Reveal art="wisch">
         <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
           {s("complianceEyebrow")}
         </p>
@@ -303,13 +319,16 @@ export function ComplianceBlock() {
         </p>
       </Reveal>
 
-      <Reveal delay={90} className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <Reveal staffel className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {items.map((item) => (
           <div key={item} className="rounded-xl border border-border bg-card p-4">
-            <p className="text-sm font-bold text-card-foreground">
-              {s(`complianceItems.${item}.title`)}
-            </p>
-            <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            <div className="flex items-start gap-2.5">
+              <span aria-hidden className="ringmarke mt-0.5 shrink-0 text-primary" />
+              <p className="text-sm font-bold text-card-foreground">
+                {s(`complianceItems.${item}.title`)}
+              </p>
+            </div>
+            <p className="mt-2 text-xs leading-5 text-muted-foreground">
               {s(`complianceItems.${item}.text`)}
             </p>
           </div>
@@ -324,25 +343,60 @@ export function ComplianceBlock() {
   );
 }
 
+// Der Schlussblock war bis zum 16.09.2026 eine reine Farbflaeche und damit der
+// einzige grosse Abschnitt der Seite ohne Bild. Jetzt steht rechts eine
+// Aufnahme vom Betrieb: der letzte Blick vor dem Sprung ins Dashboard gilt der
+// Ware, nicht der Oberflaeche.
+//
+// Ab md zwei Spalten, das Bild in der schmaleren rechten. Darunter liegt es
+// ueber der vollen Breite unter dem Text - hochkant beschnitten waere es dort
+// entweder briefmarkengross oder wuerde den Knopf aus dem ersten Bildschirm
+// schieben, deshalb zeigt aspect-16/9 nur den Streifen mit den Fruechten.
 export function LandingCta() {
   const s = useTranslations("landing");
 
   return (
     <section className="container py-16 md:py-24">
-      <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-primary px-6 py-12 text-primary-foreground md:px-12">
-        <h2 className="max-w-2xl text-3xl font-black md:text-4xl">
-          {s("ctaTitle")}
-        </h2>
-        <p className="mt-3 max-w-xl text-sm leading-6 text-primary-foreground/90">
-          {s("ctaLead")}
-        </p>
-        <Link
-          href="/dashboard"
-          className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-7 text-sm font-black text-[#04161c] shadow-xl transition hover:-translate-y-0.5"
-        >
-          {s("ctaButton")}
-          <ArrowRight className="h-4 w-4" />
-        </Link>
+      <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-primary text-primary-foreground">
+        <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_16rem] md:items-center md:gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
+          <div className="px-6 pt-12 md:py-12 md:pl-12 md:pr-0">
+            <h2 className="max-w-2xl text-3xl font-black md:text-4xl">
+              {s("ctaTitle")}
+            </h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-primary-foreground/90">
+              {s("ctaLead")}
+            </p>
+            <Link
+              href="/dashboard"
+              className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-7 text-sm font-black text-[#04161c] shadow-xl transition hover:-translate-y-0.5"
+            >
+              {s("ctaButton")}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          {/* Der Text nennt den Betrieb bereits, das Bild traegt keine eigene
+              Aussage - deshalb ohne Alternativtext und aus dem Baum genommen. */}
+          <div
+            aria-hidden
+            className="relative aspect-16/9 w-full md:aspect-4/5 md:h-full md:min-h-[22rem]"
+          >
+            <Image
+              src={abschlussBild}
+              alt=""
+              fill
+              sizes="(min-width: 1024px) 20rem, (min-width: 768px) 16rem, 100vw"
+              loading="lazy"
+              className="object-cover"
+            />
+            {/* Kante zur Markenflaeche: ohne den Verlauf stoesst das Foto hart
+                gegen das Koek-Blau, auf schmalen Viewports quer ueber die
+                ganze Breite. */}
+            <div
+              className="absolute inset-0 bg-[linear-gradient(0deg,transparent_60%,var(--color-primary)_100%)] md:bg-[linear-gradient(90deg,var(--color-primary)_0%,transparent_28%)]"
+            />
+          </div>
+        </div>
       </div>
     </section>
   );

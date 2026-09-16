@@ -61,7 +61,3 @@ export function SortenkatalogDemo() {
   );
 }
 
-// SchulungenDemo entfaellt (WMC-Vibecode-Cleanup): das Modul "schulungen"
-// laeuft jetzt ueber die datenbankgestuetzten Ansichten EinarbeitungAnsicht/
-// PflichtschulungenAnsicht (server-module-views.tsx), dieser Registry-
-// Eintrag wurde nie mehr erreicht.

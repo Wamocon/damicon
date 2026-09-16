@@ -83,15 +83,3 @@ export const reihenbloecke: Reihenblock[] = [
   { id: "I-S-B-01", parzelle: "Parzelle Sued", reihengruppe: "Reihengruppe B", sorte: "Tulameen", status: "rueckschnitt", laengeM: 44, letzteErnte: "2026-07-15" },
   { id: "K-A-01", parzelle: "Zukauf-Parzelle", reihengruppe: "Reihengruppe A", sorte: "Polka", status: "erntereif", laengeM: 36, letzteErnte: "2026-08-30" },
 ];
-
-export function statusCounts() {
-  const counts = {
-    bepflanzt: 0,
-    erntereif: 0,
-    ruhend: 0,
-    rueckschnitt: 0,
-    wartezeitgesperrt: 0,
-  } satisfies Record<ReihenblockStatus, number>;
-  for (const block of reihenbloecke) counts[block.status] += 1;
-  return counts;
-}

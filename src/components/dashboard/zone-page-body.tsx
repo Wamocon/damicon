@@ -11,7 +11,7 @@ import {
 } from "@/components/dashboard/module-meta";
 import { usePersona } from "@/components/dashboard/persona";
 import { hasPermission } from "@/lib/rbac";
-import { modulesForZone, type ZoneKey } from "@/lib/modules";
+import { moduleHref, modulesForZone, type ZoneKey } from "@/lib/modules";
 
 export function ZonePageBody({ zone }: { zone: ZoneKey }) {
   const { role } = usePersona();
@@ -40,7 +40,7 @@ export function ZonePageBody({ zone }: { zone: ZoneKey }) {
           {items.map((module) => (
             <Link
               key={module.key}
-              href={`/dashboard/${module.zone}/${module.slug}`}
+              href={moduleHref(module)}
               className="group flex flex-col rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40"
             >
               <div className="flex items-start justify-between gap-3">

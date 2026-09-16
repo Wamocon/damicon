@@ -99,26 +99,3 @@ export const betrieb: Betrieb = {
     },
   ],
 };
-
-export function hierarchyStats() {
-  const plantagen = betrieb.plantagen.length;
-  const parzellen = betrieb.plantagen.reduce((sum, p) => sum + p.parzellen.length, 0);
-  const reihengruppen = betrieb.plantagen.reduce(
-    (sum, p) => sum + p.parzellen.reduce((s, f) => s + f.reihengruppen.length, 0),
-    0,
-  );
-  const reihenbloecke = betrieb.plantagen.reduce(
-    (sum, p) =>
-      sum +
-      p.parzellen.reduce(
-        (s, f) => s + f.reihengruppen.reduce((x, rg) => x + rg.reihenbloecke, 0),
-        0,
-      ),
-    0,
-  );
-  const flaecheHa = betrieb.plantagen.reduce(
-    (sum, p) => sum + p.parzellen.reduce((s, f) => s + f.flaecheHa, 0),
-    0,
-  );
-  return { plantagen, parzellen, reihengruppen, reihenbloecke, flaecheHa };
-}

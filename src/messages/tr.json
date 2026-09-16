@@ -34,7 +34,11 @@
     "stat2Value": "her 2 – 3 günde bir",
     "stat2Label": "sonbahar penceresinde sıra bloğu başına toplama ritmi",
     "stat3Value": "2,3 kat",
-    "stat3Label": "gevşek taze ürün ile aynı gün toplanan premium arasındaki fiyat farkı"
+    "stat3Label": "gevşek taze ürün ile aynı gün toplanan premium arasındaki fiyat farkı",
+    "rotatorPrefix": "Kanıtlanabilir:",
+    "rotator1": "sıra bloğuna kadar.",
+    "rotator2": "soğutma dakikasına kadar.",
+    "rotator3": "kişiye kadar."
   },
   "zones": {
     "feld": {
@@ -59,7 +63,7 @@
     }
   },
   "footer": {
-    "prototypeNote": "İç proof-of-concept. Sözleşmeyle taahhüt edilen hizmet kapsamı değildir. Çiftlik fotoğrafları Almatı yakınındaki gerçek araziyi gösterir, kalan görseller serbest kaynaklardan yer tutuculardır.",
+    "prototypeNote": "İç proof-of-concept. Sözleşmeyle taahhüt edilen hizmet kapsamı değildir. Çiftlik fotoğrafları Almatı yakınındaki gerçek araziyi gösterir; diğer tüm görseller temsili görsel veya yer tutucudur.",
     "productHeading": "Ürün",
     "legalHeading": "Hukuki bilgiler",
     "imprint": "Künye",
@@ -692,7 +696,36 @@
     "complianceClosing": "Kendi tedarik zinciri olan büyük zincirler yalnızca kanıt sunabilen tedarikçileri kabul eder. Burada uyum bir formalite değil, giriş biletidir.",
     "ctaTitle": "Kavram slaytları yerine elle tutulur bir sistem",
     "ctaLead": "Prototip ilk aşamanın yapısını ve görünümünü gösterir: bekleme süresi kilidiyle sıra bloğu yönetimi, fotoğraf kanıtlı toplama görevleri, soğuk zincir sayacı ve hasat günü katkı payı.",
-    "ctaButton": "Panoya git"
+    "ctaButton": "Panoya git",
+    "faqEyebrow": "Sık sorulan sorular",
+    "faqTitle": "İlk görüşmede her zaman gelen altı soru",
+    "faqLead": "Bu sayfadaki sayılarla kısa yanıtlar.",
+    "faqItems": {
+      "sechzig": {
+        "q": "Neden tam 60 dakika?",
+        "a": "Toplama ile soğutma arasında 60 dakikadan fazla geçmemelidir. Bu sınır aşıldığında sonraki her önlem etkisizdir - bu yüzden sistem bu süreyi parti başına ölçer, günlük ortalama olarak değil."
+      },
+      "durchgang": {
+        "q": "Bir toplama turu atlanırsa ne olur?",
+        "a": "Her sıra bloğu üç ile sekiz hafta boyunca iki üç günde bir toplanır. Atlanan bir tur o bloğu bu döngü için yok eder. Rotasyon planı sırayı tutar ve boşluğu aynı gün gösterir."
+      },
+      "beleg": {
+        "q": "Bir teslimat nasıl kanıtlanır?",
+        "a": "Her kasa tarlada verilen bir kimlik taşır ve tam olarak bir partiye aittir. Sıra bloğu, çeşit, hasat günü, toplama saati, soğutma eğrisi ve ilaçlama kaydı buna bağlıdır - ЭСФ sistemindeki elektronik irsaliyeye kadar."
+      },
+      "rollen": {
+        "q": "Hangi veriyi kim görür?",
+        "a": "Oturum açan hesabın rolü karar verir, hem de arayüzde değil veritabanında. Yönetimden tek tek toplayıcıya kadar yedi çekirdek rol; arayüzdeki bir boşluk böylece yabancı veri açığa çıkarmaz."
+      },
+      "stand": {
+        "q": "Bugün ne kadarı hazır?",
+        "a": "Dört alanda {gesamt} modül: gerçek yazma işlemleriyle veritabanına bağlı {angebunden}, kullanılabilir demo olarak {demo}, geliştirme aşamasındaki görünür menü girdisi olarak {entwicklung}. Başlangıç sayfasındaki değerler, ilk tam ölçülen sezona kadar yer tutucudur."
+      },
+      "daten": {
+        "q": "Veriler nerede tutulur?",
+        "a": "255-VIII sayılı Dijital Kanun bazı veri ürünlerinin Kazakistan dışında saklanmasını sınırlar. Bu nedenle barındırma yeri üretime geçmeden önce hukuken incelenir; anahtarlar ve erişim bilgileri hiçbir zaman kaynak kodunda durmaz."
+      }
+    }
   },
   "auth": {
     "title": "Oturum aç",
@@ -1084,6 +1117,24 @@
       "code": "Kod yanlış veya süresi doldu. Lütfen kimlik doğrulayıcı uygulamadaki güncel 6 haneli kodu girin.",
       "zustand": "Tarih bu sırada değişti (ör. kilitlendi veya zaten tamamlandı). Lütfen sayfayı yeniden yükleyin.",
       "einwilligung": "İlk mesajı göndermeden önce lütfen yukarıdaki bildirimi onaylayın."
+    },
+    "einladungen": {
+      "erfolg": {
+        "erstellt": "Davet oluşturuldu. Kod: {wert}",
+        "zurueckgezogen": "Davet geri alındı.",
+        "eingeloest": "Erişim oluşturuldu. Artık e-posta adresiniz ve parolanızla oturum açabilirsiniz."
+      },
+      "fehler": {
+        "email": "Geçerli bir e-posta adresi girin.",
+        "nichtOffen": "Bu davet artık açık değil ve geri alınamaz.",
+        "ungueltig": "Kod veya e-posta adresi yanlış ya da davetin süresi dolmuş.",
+        "passwortUngleich": "İki parola birbiriyle uyuşmuyor.",
+        "passwortKurz": "Parola en az 12 karakter olmalı.",
+        "kontoAnlegen": "Erişim oluşturulamadı. Kodunuz geçerli kalır - lütfen daha sonra tekrar deneyin veya yönetime başvurun.",
+        "demoModus": "Demo modunda erişim oluşturulamaz.",
+        "adresseVergeben": "Bu e-posta adresi için zaten bir erişim var. Lütfen başka bir adres kullanın.",
+        "kontoVorhanden": "Bu e-posta adresi için zaten bir erişim var. Lütfen oturum açın, gerekirse orada parolanızı sıfırlayın."
+      }
     }
   },
   "standortVerwaltung": {
@@ -1985,5 +2036,120 @@
       "offen": "açık"
     },
     "note": "İhtiyaç hesabı ve vardiya planı doğrudan rotasyon planından gelir (hangi sıra bloğunun hangi gün hasat edilmesi gerektiği). Hava durumu senaryoları bilerek bu görünümün parçası değildir - hava durumu bağlantısı (gereksinim 2.13) ertelendi."
+  },
+  "erlebnis": {
+    "bento": {
+      "minuten": "dakika",
+      "sechzigLink": "İlk saati izleyin",
+      "frost": "Don"
+    },
+    "sechzig": {
+      "eyebrow": "İlk saat",
+      "title": "Fiyatı 60 dakika belirler",
+      "lead": "Toplamadan sonraki saati kaydırarak izleyin. Saat tarladaki okutmayla başlar, eğri ise sıcaklığın meyveden nasıl çıktığını gösterir.",
+      "uhrLabel": "toplamadan sonra",
+      "minute": "dk",
+      "kurveTitel": "Soğutma eğrisi, şematik",
+      "achseWarm": "Tarla sıcaklığı",
+      "achseKalt": "0–1 °C",
+      "grenze": "Sınır 60 dk",
+      "kuehlraum": "Soğuk oda",
+      "schritte": {
+        "pfluecken": {
+          "title": "Doğrudan kaba toplanır",
+          "text": "Meyve elden doğrudan satış kabına gider. Kasa teslim edilirken tek bir okutma miktarı, sıra bloğunu, saati ve kişiyi kaydeder. Saat buradan itibaren işler."
+        },
+        "kuehlraum": {
+          "title": "5 ila 15 dakika sonra soğuk odada",
+          "text": "Bugün toplamadan soğuk odaya kadar bu kadar süre geçiyor. Bu değer iyidir ve iyileştirilmesi gerekmez."
+        },
+        "vorkuehlung": {
+          "title": "0-1 dereceye soğutuldu",
+          "text": "Sıcaklık yalnızca odadan değil, meyvenin kendisinden çıkmalıdır. Ancak o zaman soğuk, olgunlaşmayı ve gri küfü yavaşlatır."
+        },
+        "beleg": {
+          "title": "Soğutma eğrisi belgede",
+          "text": "Süre ve sıcaklık partiye bağlıdır. 60 dakika sınırı aşılırsa işletme bunu alıcıdan önce görür."
+        }
+      }
+    },
+    "belegkette": {
+      "start": "Kabı okutun",
+      "startText": "Kabın üzerindeki kod, zinciri kaynağına kadar açar.",
+      "pruefen": "Kaynağı kendiniz kontrol edin"
+    },
+    "lupe": {
+      "hinweisMaus": "Büyüteç: fareyi fotoğrafın üzerine getirin",
+      "hinweisTouch": "Büyüteç: fotoğrafa dokunun"
+    },
+    "cursor": {
+      "ziehen": "Sürükle"
+    },
+    "ton": {
+      "an": "Tarla seslerini aç",
+      "aus": "Tarla seslerini kapat"
+    },
+    "scan": {
+      "eyebrow": "3D tur",
+      "title": "İşletme üç boyutlu",
+      "lead": "İşletmenin yerinde çekilmiş 3D taraması. Döndürün, yakınlaştırın ve sıra bloklarına her açıdan bakın.",
+      "laden": "3D turu yükle ({mb} MB)",
+      "laedt": "Yükleniyor … {prozent} %",
+      "bedienung": "Döndürmek için sürükleyin, yakınlaştırmak için fare tekerleği veya iki parmak",
+      "fehler": "3D tur yüklenemedi."
+    }
+  },
+  "einladungenAnsicht": {
+    "titel": "Müşteri erişimi",
+    "lead": "B2B müşteri hesabı yalnızca davet ile oluşur. Kod bir kez gösterilir ve yalnızca sağlama toplamı olarak saklanır.",
+    "leer": "Henüz davet oluşturulmadı.",
+    "zurueckziehen": "Geri al",
+    "spalte": {
+      "kunde": "Müşteri",
+      "person": "İlgili kişi",
+      "status": "Durum",
+      "gueltigBis": "Geçerlilik",
+      "ausgestellt": "Oluşturuldu"
+    },
+    "status": {
+      "offen": "Açık",
+      "eingeloest": "Kullanıldı",
+      "zurueckgezogen": "Geri alındı",
+      "abgelaufen": "Süresi doldu"
+    },
+    "formular": {
+      "titel": "Davet oluştur",
+      "lead": "Kod 14 gün geçerlidir ve yalnızca buraya girilen adres için çalışır.",
+      "kunde": "B2B müşterisi",
+      "name": "Kişinin adı",
+      "email": "E-posta",
+      "knopf": "Davet oluştur"
+    },
+    "code": {
+      "titel": "Davet kodu",
+      "hinweis": "Şimdi not edin ve müşteriye iletin. Sunucu yalnızca sağlama toplamını saklar - bu sayfadan ayrıldıktan sonra kod bir daha gösterilemez. Kaybolursa daveti geri alın ve yenisini oluşturun.",
+      "wo": "{url} adresinden kullanılır - bu adresi kodla birlikte iletin."
+    },
+    "gekuerzt": "{gesamt} davetten {gezeigt} tanesi gösteriliyor, önce açık olanlar. Daha eski kullanılmış ve geri alınmış kayıtlar bu görünümde yok."
+  },
+  "einladungSeite": {
+    "titel": "Erişim oluştur",
+    "lead": "Damicon - müşteri portalı",
+    "zurueck": "Ana sayfaya dön",
+    "code": "Davet kodu",
+    "codeHinweis": "Büyük küçük harf fark etmez, tireler yazılmayabilir.",
+    "email": "E-posta",
+    "emailHinweis": "Davetin oluşturulduğu adresin aynısı.",
+    "passwort": "Parola",
+    "passwortHinweis": "En az 12 karakter.",
+    "passwortWdh": "Parolayı tekrarlayın",
+    "knopf": "Erişim oluştur",
+    "laeuft": "Oluşturuluyor ...",
+    "zurAnmeldung": "Oturum açmaya git",
+    "demoTitel": "Demo modu",
+    "demoLead": "Veritabanı olmadan erişim oluşturulamaz. Bu sayfa yalnızca veritabanı modunda çalışır.",
+    "angemeldetTitel": "Zaten oturum açtınız",
+    "angemeldetLead": "Yeni erişim kendi hesabına açılır. Önce çıkış yapın, yoksa eski hesapta çalışmaya devam edersiniz.",
+    "abmelden": "Şimdi çıkış yap"
   }
 }

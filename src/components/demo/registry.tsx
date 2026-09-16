@@ -3,7 +3,6 @@
 import type { ComponentType } from "react";
 import type { ModuleDef } from "@/lib/modules";
 import { ModulePlaceholder } from "@/components/dashboard/module-meta";
-import { RollenDemo } from "@/components/demo/buero";
 import { SortenkatalogDemo } from "@/components/demo/markt";
 import { KuehlketteMock } from "@/components/demo/mocks";
 
@@ -14,17 +13,13 @@ const plain = (Cmp: ComponentType): ModuleView =>
     return <Cmp />;
   };
 
-// Standort, Reihenbloecke, Pflueckaufgaben, Dokumente und Compliance laufen
-// ueber die serverseitigen Ansichten in src/components/db/ - auch im Demo-Modus.
-//
-// WMC-Vibecode-Cleanup: die fruehere Eintraege pflanzenschutz/personal/
-// schulungen sind entfernt - server-module-views.tsx liefert fuer diese drei
-// Modulschluessel immer eine echte Ansicht als children von ModulePageBody,
-// diese Registry-Zeilen wurden also nie mehr erreicht (siehe dortigen
-// switch). Die zugehoerigen Demo-Komponenten (PflanzenschutzDemo,
-// PersonalDemo, SchulungenDemo) sind ebenfalls entfernt.
+// Diese Registry ist der Rueckfall fuer Module OHNE serverseitige Ansicht.
+// Alles, was in src/components/db/server-module-views.tsx einen case hat,
+// laeuft dort - auch im Demo-Modus, weil die Datenschicht in beiden
+// Betriebsarten dieselbe Oberflaeche bedient. Ein Eintrag fuer ein solches
+// Modul waere unerreichbar: ModulePageBody nimmt `children ?? <ModuleView>`,
+// und children ist dann nie null.
 const registry: Record<string, ModuleView> = {
-  rollen: plain(RollenDemo),
   sortenkatalog: plain(SortenkatalogDemo),
   kuehlkette: KuehlketteMock,
 };

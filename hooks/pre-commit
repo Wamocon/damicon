@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+# Pre-commit Hook fuer Damicon. Zwei Durchgaenge, beide blockierend:
+#
+#   1. Geheimnis-Scanner  - verhindert, dass Schluessel, Tokens oder
+#      .env-Dateien im Repository landen. Spezifikation: HOWTO.md, 1c.
+#   2. Qualitaetspruefung - typecheck und lint, zusammen rund 17 Sekunden.
+#      Sie laeuft nur, wenn ueberhaupt Code vorgemerkt ist; ein Commit, der
+#      nur Bilder oder Markdown enthaelt, wartet nicht darauf.
+#
+# Wichtig zur zweiten Pruefung: tsc und eslint sehen den ARBEITSBAUM, nicht
+# den vorgemerkten Stand. Liegen daneben unfertige Aenderungen an einem
+# anderen Modul, blockieren deren Fehler auch diesen Commit. Genau dafuer
+# gibt es je Modul einen eigenen Arbeitsbaum - siehe HOWTO.md, 1b.
+#
+# Installation: bash hooks/install.sh
+# Notfall-Bypass: git commit --no-verify   (niemals fuer echte Geheimnisse)
+
+set -uo pipefail
+
+ROT=$'\033[31m'; GELB=$'\033[33m'; GRUEN=$'\033[32m'; AUS=$'\033[0m'
+[ -t 1 ] || { ROT=""; GELB=""; GRUEN=""; AUS=""; }
+
+vorgemerkt=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$vorgemerkt" ] && exit 0
+
+# ---------------------------------------------------------------- 1. Geheimnisse
+
+funde=0
+
+melde() {
+  if [ "$funde" -eq 0 ]; then
+    printf '%s[pre-commit] BLOCKED - potential secrets detected%s\n' "$ROT" "$AUS"
+  fi
+  funde=$((funde + 1))
+  printf '  %s✖%s %s:%s\n' "$ROT" "$AUS" "$1" "$2"
+  printf '    Reason: %s\n' "$3"
+  printf '    Content: %s\n' "$(printf '%s' "$4" | cut -c1-100)"
+}
+
+# .env-Dateien gehoeren nie ins Repository, unabhaengig vom Inhalt.
+while IFS= read -r datei; do
+  case "$(basename "$datei")" in
+    .env|.env.*)
+      melde "$datei" 0 ".env-Datei" "gehoert in .gitignore, nicht ins Repository" ;;
+  esac
+done <<< "$vorgemerkt"
+
+# Ein Treffer ist noch kein Geheimnis. Die Muster greifen zwangslaeufig auch
+# in der Dokumentation, die sie beschreibt (HOWTO.md fuehrt "postgres://
+# user:password@host" als Beispiel auf), und in Konfigurationen, die nur auf
+# eine Umgebungsvariable verweisen. Ein Scanner, der bei jedem zweiten Commit
+# grundlos blockiert, wird nach einer Woche mit --no-verify umgangen und
+# schuetzt dann gar nichts mehr. Deshalb faellt hier alles heraus, was den
+# Wert selbst als Platzhalter ausweist.
+#
+# Die Liste bleibt bewusst eng: "example" oder "test" stehen nicht darin,
+# weil ein echter Schluessel neben so einem Wort stehen kann.
+unverdaechtig() {
+  printf '%s' "$1" | grep -qE 'env\(|process\.env|import\.meta\.env' && return 0
+  printf '%s' "$1" | grep -q '\.\.\.'                                  && return 0
+  printf '%s' "$1" | grep -qE '<[A-Za-z_-]+>'                            && return 0
+  printf '%s' "$1" | grep -qiE 'user:password@|postgres:postgres@'       && return 0
+  printf '%s' "$1" | grep -qiE 'your[-_]|dein[-_]|changeme|placeholder|xxxx' && return 0
+  return 1
+}
+
+# Muster nach HOWTO.md 1c. Jedes Paar ist "Regex|Bezeichnung".
+muster=(
+  'AKIA[0-9A-Z]{16}|AWS-Schluessel'
+  'aws_secret_access_key[[:space:]]*[:=]|AWS Secret Access Key'
+  'gh[pousr]_[A-Za-z0-9]{36,}|GitHub-Token'
+  'github_pat_[A-Za-z0-9_]{50,}|GitHub Personal Access Token'
+  'VERCEL_TOKEN[[:space:]]*[:=][[:space:]]*["'"'"']?[A-Za-z0-9]{20,}|Vercel-Token'
+  '-----BEGIN[[:space:]]+[A-Z ]*PRIVATE KEY-----|Private Key (PEM)'
+  'postgres(ql)?://[^:[:space:]]+:[^@[:space:]]+@|Datenbankverbindung mit Passwort'
+  'service_role[[:space:]]*[:=][[:space:]]*["'"'"']?eyJ|Supabase Service Role'
+  'eyJ[A-Za-z0-9_-]{10,}\.eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}|JWT-Token'
+  '(api[_-]?key|client[_-]?secret|auth[_-]?token)[[:space:]]*[:=][[:space:]]*["'"'"'][^"'"'"']{12,}["'"'"']|Generischer Schluessel'
+  'password[[:space:]]*[:=][[:space:]]*["'"'"'][^"'"'"']{8,}["'"'"']|Passwort im Klartext'
+)
+
+while IFS= read -r datei; do
+  [ -f "$datei" ] || continue
+  # Binaerdateien ueberspringen: Bilder, Videos, Schriften.
+  git diff --cached --numstat -- "$datei" | grep -q '^-' && continue
+
+  for eintrag in "${muster[@]}"; do
+    regex="${eintrag%|*}"; bezeichnung="${eintrag##*|}"
+    while IFS=: read -r nummer inhalt; do
+      [ -z "$nummer" ] && continue
+      # Ausnahme laut HOWTO.md: "# notsecret" im Kommentar am Zeilenende.
+      # Dahinter darf eine Begruendung stehen - eine Ausnahme ohne Grund ist
+      # in einem halben Jahr nicht mehr nachvollziehbar.
+      printf '%s' "$inhalt" | grep -qiE '(#|//)[[:space:]]*notsecret([[:space:]]|$)' && continue
+      unverdaechtig "$inhalt" && continue
+      melde "$datei" "$nummer" "$bezeichnung" "$inhalt"
+    done < <(grep -nEI "$regex" "$datei" 2>/dev/null)
+  done
+done <<< "$vorgemerkt"
+
+if [ "$funde" -gt 0 ]; then
+  printf '\n%s%d Fund(e). Der Commit wurde abgebrochen.%s\n' "$ROT" "$funde" "$AUS"
+  printf 'Geheimnis entfernen und in .env.local ablegen, dann erneut committen.\n'
+  printf 'Falsch-Positiv? "# notsecret" ans Zeilenende. Details: HOWTO.md, 1c.\n'
+  exit 1
+fi
+
+# ------------------------------------------------------------- 2. Qualitaet
+
+if ! printf '%s\n' "$vorgemerkt" | grep -qE '\.(ts|tsx|js|jsx|mjs|cjs)$'; then
+  printf '%s[pre-commit]%s kein Code vorgemerkt, Qualitaetspruefung uebersprungen\n' "$GRUEN" "$AUS"
+  exit 0
+fi
+
+printf '%s[pre-commit]%s typecheck und lint, rund 17 Sekunden ...\n' "$GELB" "$AUS"
+
+if ! npm run --silent typecheck; then
+  printf '\n%s[pre-commit] BLOCKED - typecheck fehlgeschlagen%s\n' "$ROT" "$AUS"
+  printf 'Fehler beheben, dann erneut committen. Einzeln pruefen: npm run typecheck\n'
+  exit 1
+fi
+
+if ! npm run --silent lint; then
+  printf '\n%s[pre-commit] BLOCKED - lint fehlgeschlagen%s\n' "$ROT" "$AUS"
+  printf 'Vieles behebt "npm run lint:fix" von selbst.\n'
+  exit 1
+fi
+
+printf '%s[pre-commit]%s in Ordnung\n' "$GRUEN" "$AUS"
+exit 0

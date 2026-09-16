@@ -76,8 +76,7 @@ export function RollenDemo() {
   );
 }
 
-// PersonalDemo und ComplianceDemo entfallen (WMC-Vibecode-Cleanup bzw.
-// WMCNL-1446): beide Module laufen jetzt ueber datenbankgestuetzte Ansichten
-// in src/components/db/ (personal-ansicht.tsx bzw. compliance-ansicht.tsx),
-// server-module-views.tsx liefert dafuer immer eine echte Ansicht, sodass
-// diese Registry-Eintraege nie mehr erreicht wurden.
+
+// ComplianceDemo entfaellt (WMCNL-1446): das Modul "compliance" laeuft jetzt
+// ueber die datenbankgestuetzte Ansicht in src/components/db/compliance-ansicht.tsx,
+// analog zu dokumente/standort/pflueckaufgaben/reihenbloecke.

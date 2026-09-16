@@ -1,40 +1,20 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
 import Image from "next/image";
+import { medienErlaubt, useBrowserBedingung } from "@/lib/bewegung";
 
 // Echtes Rundgangsmaterial aus der Plantage statt eines Stockfotos oder einer
 // gezeichneten Animation - übernommen aus dem parallelen Projekt
 // "Digitalisierung-Himbeerenbetrieb", das dafür bereits vor Ort gedreht hat.
 // Bewusst ohne die dortige mehraktige Notations-Choreografie (die ist an
 // exakt vermessene Bildkoordinaten dieses einen Schnitts gebunden) - hier
-// läuft das Material als ruhige Endlosschleife im Hintergrund, mit denselben
-// zwei Schutzmechanismen wie dort: reduzierte Bewegung und langsame
-// Verbindung zeigen stattdessen nur das Standbild.
-
-function verbindungErlaubtVideo(): boolean {
-  const nav = navigator as Navigator & {
-    connection?: { saveData?: boolean; effectiveType?: string };
-  };
-  const c = nav.connection;
-  if (!c) return true;
-  if (c.saveData) return false;
-  return c.effectiveType !== "slow-2g" && c.effectiveType !== "2g" && c.effectiveType !== "3g";
-}
-
-// window/navigator existieren beim serverseitigen Rendern nicht - die
-// Entscheidung faellt deshalb ueber useSyncExternalStore statt useState im
-// Effekt (Muster wie ThemeScript in theme-toggle.tsx): der Server-Snapshot
-// ist immer "kein Video", der Client-Snapshot wird einmal nach der Hydrierung
-// ermittelt. Kein Abonnement noetig, die Bedingungen aendern sich innerhalb
-// eines Seitenaufrufs nicht.
-const neverSubscribe = () => () => {};
-const serverSnapshot = () => false;
-const clientSnapshot = () =>
-  !window.matchMedia("(prefers-reduced-motion: reduce)").matches && verbindungErlaubtVideo();
+// läuft das Material als ruhige Endlosschleife im Hintergrund. Reduzierte
+// Bewegung und langsame Verbindung zeigen stattdessen nur das Standbild; die
+// Regeln dafuer stehen in lib/bewegung.ts und gelten fuer alle bewegten
+// Medien der Seite.
 
 export function HeroVideo({ className }: { className?: string }) {
-  const zeigeVideo = useSyncExternalStore(neverSubscribe, clientSnapshot, serverSnapshot);
+  const zeigeVideo = useBrowserBedingung(medienErlaubt);
 
   // Kein eigenes "relative" hier: der Aufrufer bestimmt die Positionierung
   // (typischerweise "absolute inset-0" innerhalb einer Bühne mit eigenem

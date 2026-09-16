@@ -117,7 +117,7 @@ async function anmelden(email) {
   const client = createClient(url, anonKey, { auth: { persistSession: false } });
   const { error } = await client.auth.signInWithPassword({
     email,
-    password: "DamiconDemo2026!",
+    password: "DamiconDemo2026!", // notsecret - Demo-Zugang, steht so auch in README.md
   });
   if (error) return { client: null, fehler: error.message };
   return { client, fehler: null };

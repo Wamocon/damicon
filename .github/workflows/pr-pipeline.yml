@@ -90,6 +90,13 @@ jobs:
       - name: Integrationstests (RLS, Rollen, Sperrlogik, Kennzahlen)
         run: npm run db:test
 
+      # Braucht kein laufendes Supabase: PGlite bringt Postgres als WASM mit
+      # und wendet alle Migrationen selbst an. Deckt die Einladungen, den
+      # Zukauf-Parser, den Ausweis-Scan und den KI-Assistenten ab - bis zu
+      # diesem Lauf liefen drei dieser Dateien in keiner Pipeline mit.
+      - name: Unit- und Datenbanktests (PGlite, ohne laufendes Supabase)
+        run: npm test
+
       - name: Produktions-Build
         run: npm run build
 

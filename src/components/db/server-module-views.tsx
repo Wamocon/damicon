@@ -17,6 +17,8 @@ import { LogistikAnsicht } from "@/components/db/logistik-ansicht";
 import { B2bPortalAnsicht } from "@/components/db/b2b-portal-ansicht";
 import { PersonalAnsicht } from "@/components/db/personal-ansicht";
 import { KiAssistentAnsicht } from "@/components/db/ki-assistent-ansicht";
+import { EinladungenAnsicht } from "@/components/db/einladungen-ansicht";
+import { RollenDemo } from "@/components/demo/buero";
 import type { ModuleDef } from "@/lib/modules";
 
 // Module, die in Meilenstein B an der Datenbank haengen. Sie werden als Server
@@ -110,6 +112,19 @@ export function serverModulAnsicht(
     // Anforderung 5.4/5.5: echte Anbindung statt KiAssistentMock.
     case "ki_assistent":
       return <KiAssistentAnsicht />;
+    // Anforderung E.20: Kundenzugang ueber Einladung. Die Rechtematrix
+    // darueber bleibt, was sie war - eine Anzeige des Rollenmodells aus
+    // rbac.ts, die nichts schreibt. Neu darunter ist die einzige schreibende
+    // Zugangsverwaltung, die es im Betrieb gibt: bisher entstand ein
+    // Kundenkonto ausschliesslich ueber den service_role-Schluessel in
+    // supabase/seed-auth.mjs.
+    case "rollen":
+      return (
+        <div className="space-y-6">
+          <RollenDemo />
+          <EinladungenAnsicht />
+        </div>
+      );
     default:
       return null;
   }
