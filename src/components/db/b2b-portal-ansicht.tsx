@@ -14,6 +14,7 @@ import {
   ladeSortenOptionenFuerVorbestellung,
   ladeVorbestellungen,
 } from "@/lib/data/vorbestellungen";
+import { ladeRechnungshistorie } from "@/lib/data/rechnungshistorie";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 
@@ -42,12 +43,17 @@ const vorbestellungTon: Record<string, Tone> = {
 // das um den zweiten fehlenden Baustein. Kontingent-Verbrauch (ebenfalls
 // Anforderung 5.1) schreibt seit Migration 20261006000000 automatisch fort -
 // diese Ansicht zeigt den so entstehenden Stand, eine Vorbestellung bleibt
-// trotzdem eine Anfrage, die das Buero manuell bestaetigt.
+// trotzdem eine Anfrage, die das Buero manuell bestaetigt. Die
+// Rechnungshistorie (5.2, Teil 2b) ist eine errechnete PROFORMA aus
+// Liefermenge und der zum Liefertermin gueltigen Preisliste, keine
+// rechtsverbindliche Rechnung - siehe domain/rechnungshistorie.ts fuer die
+// fachliche Festlegung.
 export async function B2bPortalAnsicht() {
-  const [uebersicht, vorbestellungen, kontingente, preislisten, profil, t] = await Promise.all([
+  const [uebersicht, vorbestellungen, kontingente, rechnungen, preislisten, profil, t] = await Promise.all([
     ladeLieferungen(),
     ladeVorbestellungen(),
     ladeKontingente(),
+    ladeRechnungshistorie(),
     ladePreislisten(),
     getSessionProfile(),
     getTranslations("b2bPortalAnsicht"),
@@ -131,6 +137,37 @@ export async function B2bPortalAnsicht() {
             ))}
           </div>
         )}
+      </Section>
+
+      <Section title={t("rechnungenTitel")} description={t("rechnungenLead")}>
+        {rechnungen.zeilen.length === 0 ? (
+          <Card className="text-center text-xs text-muted-foreground">{t("keineRechnungen")}</Card>
+        ) : (
+          <DataTable
+            head={
+              fuerBuero
+                ? [t("col.kunde"), t("col.datum"), t("col.menge"), t("col.stueckpreis"), t("col.betrag")]
+                : [t("col.datum"), t("col.menge"), t("col.stueckpreis"), t("col.betrag")]
+            }
+          >
+            {rechnungen.zeilen.map((r) => (
+              <tr key={r.lieferungId}>
+                {fuerBuero ? (
+                  <td className="px-3 py-2.5 font-semibold text-foreground">{r.kunde}</td>
+                ) : null}
+                <td className="px-3 py-2.5 text-muted-foreground">{datum(r.geliefertAm)}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{format.number(r.mengeKg)} kg</td>
+                <td className="px-3 py-2.5 text-muted-foreground">
+                  {r.preisTengeKg === null ? "-" : `${format.number(r.preisTengeKg)} ₸/kg`}
+                </td>
+                <td className="px-3 py-2.5 font-semibold text-foreground">
+                  {r.betragTenge === null ? t("keinPreis") : `${format.number(r.betragTenge)} ₸`}
+                </td>
+              </tr>
+            ))}
+          </DataTable>
+        )}
+        <p className="text-[11px] leading-4 text-muted-foreground">{t("rechnungenHinweis")}</p>
       </Section>
 
       <Section title={t("kontingenteTitel")} description={t("kontingenteLead")}>

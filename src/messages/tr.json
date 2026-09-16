@@ -1984,6 +1984,11 @@
     "lieferungenTitel": "Teslimatlarım",
     "lieferungenLead": "Teslimatlarınızın durumu ve teslim alma belgesi.",
     "keineLieferungen": "Henüz teslimat kaydedilmedi.",
+    "rechnungenTitel": "Fatura geçmişi (proforma)",
+    "rechnungenLead": "Teslim edilen miktar ve teslimat tarihinde geçerli fiyat listesinden hesaplanır - yasal olarak bağlayıcı bir fatura değildir.",
+    "keineRechnungen": "Henüz proforma hesaplanabilecek teslim edilmiş bir sevkiyat yok.",
+    "keinPreis": "fiyat belirlenemedi",
+    "rechnungenHinweis": "Bu genel bakış muhasebenin faturasının yerini tutmaz. Bir teslimatın o tarihte geçerli fiyat listesine göre ne tutacağını gösterir.",
     "kontingenteTitel": "Kotalar",
     "kontingenteLead": "Çeşit bazında kararlaştırılan miktar ve ayrılan pay - bir ön sipariş onaylandığında otomatik olarak ayrılır.",
     "keineKontingente": "Şu anda kayıtlı bir kota yok.",
@@ -2007,7 +2012,10 @@
       "reserviert": "ayrılmış",
       "verfuegbar": "müsait",
       "liefertermin": "Teslimat tarihi",
-      "status": "Durum"
+      "status": "Durum",
+      "datum": "Teslim tarihi",
+      "stueckpreis": "Fiyat",
+      "betrag": "Tutar"
     },
     "status": {
       "angefragt": "talep edildi",
