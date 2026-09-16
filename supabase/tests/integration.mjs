@@ -4193,6 +4193,150 @@ if (leitung && brigade) {
   }
 }
 
+// --- Anforderung 3.5: Tourenplanung mit Routenoptimierung -----------------
+{
+  const { data: almatyFreshTour } = await admin
+    .from("b2b_kunden")
+    .select("id, adresse")
+    .eq("name", "Almaty Fresh Market")
+    .single();
+
+  const { data: lieferungTour, error: lieferungTourFehler } = await admin
+    .from("lieferungen")
+    .insert({ b2b_kunde_id: almatyFreshTour?.id, menge_kg: 15 })
+    .select("id")
+    .single();
+  check(
+    "Anforderung 3.5: Testaufbau (Lieferung ohne Tour fuer Almaty Fresh Market) gelingt",
+    !lieferungTourFehler,
+    lieferungTourFehler?.message ?? "",
+  );
+
+  if (!lieferungTourFehler && lieferungTour?.id) {
+    const { data: erzeugerTourVersuch, error: erzeugerTourFehler } = await (
+      await anmelden("erzeuger@damicon.demo")
+    ).client
+      .from("touren")
+      .insert({ datum: "2026-09-20" })
+      .select("id");
+    check(
+      "Anforderung 3.5: eine Rolle ohne Buero-Zugriff (Erzeuger) legt keine Tour an (RLS touren_write_buero)",
+      erzeugerTourFehler?.code === "42501",
+      erzeugerTourFehler?.code ?? `eingefuegte Zeilen: ${erzeugerTourVersuch?.length}`,
+    );
+
+    // has_office_access() grenzt auf admin/betriebsleitung/buchhaltung ein -
+    // Brigade faehrt zwar die Tour, plant sie aber nicht selbst.
+    const { data: brigadeTourVersuch, error: brigadeTourFehler } = await brigade
+      .from("touren")
+      .insert({ datum: "2026-09-20" })
+      .select("id");
+    check(
+      "Anforderung 3.5: Brigade legt ebenfalls keine Tour an (RLS touren_write_buero)",
+      brigadeTourFehler?.code === "42501",
+      brigadeTourFehler?.code ?? `eingefuegte Zeilen: ${brigadeTourVersuch?.length}`,
+    );
+
+    const { data: tour, error: tourFehler } = await leitung
+      .from("touren")
+      .insert({ datum: "2026-09-20", distanz_km: 12.5, dauer_minuten: 20 })
+      .select("id")
+      .single();
+    check(
+      "Anforderung 3.5: Betriebsleitung legt eine Tour an (RLS touren_write_buero)",
+      !tourFehler && !!tour?.id,
+      tourFehler?.message ?? "",
+    );
+
+    if (!tourFehler && tour?.id) {
+      await admin
+        .from("lieferungen")
+        .update({ tour_id: tour.id, tour_reihenfolge: 0 })
+        .eq("id", lieferungTour.id);
+
+      const { data: erzeugerSiehtTour } = await (await anmelden("erzeuger@damicon.demo")).client
+        .from("touren")
+        .select("id")
+        .eq("id", tour.id);
+      check(
+        "Anforderung 3.5: eine Rolle ohne Buero-Zugriff (Erzeuger) sieht die Tour nicht (RLS touren_select_buero)",
+        (erzeugerSiehtTour?.length ?? 0) === 0,
+        `Zeilen: ${erzeugerSiehtTour?.length}`,
+      );
+
+      const { data: bueroSiehtTour } = await leitung
+        .from("touren")
+        .select("id, lieferungen(id, tour_reihenfolge)")
+        .eq("id", tour.id)
+        .single();
+      check(
+        "Anforderung 3.5: Betriebsleitung sieht die Tour mit der zugeordneten Lieferung",
+        (bueroSiehtTour?.lieferungen?.length ?? 0) === 1 &&
+          bueroSiehtTour.lieferungen[0].tour_reihenfolge === 0,
+        JSON.stringify(bueroSiehtTour),
+      );
+
+      const { error: tourLoeschenFehler } = await leitung.from("touren").delete().eq("id", tour.id);
+      check(
+        "Anforderung 3.5: Betriebsleitung loescht die Tour (RLS touren_write_buero)",
+        !tourLoeschenFehler,
+        tourLoeschenFehler?.message ?? "",
+      );
+
+      const { data: lieferungNachLoeschen } = await admin
+        .from("lieferungen")
+        .select("id, tour_id")
+        .eq("id", lieferungTour.id)
+        .single();
+      check(
+        "Anforderung 3.5: nach dem Loeschen der Tour bleibt die Lieferung erhalten, tour_id wird null (on delete set null)",
+        !!lieferungNachLoeschen && lieferungNachLoeschen.tour_id === null,
+        JSON.stringify(lieferungNachLoeschen),
+      );
+    }
+
+    // Eine reine USING-Klausel (kein WITH-CHECK-Verstoss, da kein Insert)
+    // filtert die Zeile vor dem UPDATE heraus - das ergibt 0 geaenderte
+    // Zeilen ohne Fehlercode, nicht 42501 (siehe z. B. "Zukauf-RLS: Brigade
+    // traegt keinen Preis nach" weiter oben, derselbe UPDATE-vs-INSERT-
+    // Unterschied).
+    const { data: erzeugerAdresseVersuch, error: erzeugerAdresseFehler } = await (
+      await anmelden("erzeuger@damicon.demo")
+    ).client
+      .from("b2b_kunden")
+      .update({ adresse: "Unbefugt 1, Almaty" })
+      .eq("id", almatyFreshTour?.id)
+      .select("id");
+    check(
+      "Anforderung 3.5: eine Rolle ohne Buero-Zugriff (Erzeuger) pflegt keine Kundenadresse (RLS b2b_kunden_update_buero)",
+      !erzeugerAdresseFehler && (erzeugerAdresseVersuch?.length ?? 0) === 0,
+      erzeugerAdresseFehler?.message ?? `geaenderte Zeilen: ${erzeugerAdresseVersuch?.length}`,
+    );
+
+    const testAdresse = `__it_adresse_${Date.now()}`;
+    const { data: bueroAdresseUpdate, error: bueroAdresseFehler } = await leitung
+      .from("b2b_kunden")
+      .update({ adresse: testAdresse })
+      .eq("id", almatyFreshTour?.id)
+      .select("adresse")
+      .single();
+    check(
+      "Anforderung 3.5: Betriebsleitung pflegt die Kundenadresse (RLS b2b_kunden_update_buero)",
+      !bueroAdresseFehler && bueroAdresseUpdate?.adresse === testAdresse,
+      bueroAdresseFehler?.message ?? JSON.stringify(bueroAdresseUpdate),
+    );
+
+    // Ursprungszustand wiederherstellen (vor diesem Testlauf war noch keine
+    // Adresse hinterlegt).
+    await admin
+      .from("b2b_kunden")
+      .update({ adresse: almatyFreshTour?.adresse ?? null })
+      .eq("id", almatyFreshTour?.id);
+
+    await admin.from("lieferungen").delete().eq("id", lieferungTour.id);
+  }
+}
+
 console.log("");
 if (failures > 0) {
   console.error(`${failures} Test(s) fehlgeschlagen.`);
