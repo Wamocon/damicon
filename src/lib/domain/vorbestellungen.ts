@@ -21,6 +21,19 @@ export interface VorbestellungZeile {
   erstelltAm: string;
 }
 
+// Anforderung 5.1: Kontingent-Stand je Sorte (und, im Buero, je Kunde).
+// reserviertKg wird seit der Migration 20261006000000 automatisch fortge-
+// schrieben (angefragt->bestaetigt erhoeht, bestaetigt->storniert senkt).
+export interface KontingentZeile {
+  id: string;
+  kunde: string;
+  kundeId: string;
+  sorte: string;
+  saison: string | null;
+  mengeKg: number;
+  reserviertKg: number;
+}
+
 export interface PreislistenPositionZeile {
   id: string;
   sorte: string;
@@ -56,6 +69,27 @@ export const demoVorbestellungen: VorbestellungZeile[] = [
     liefertermin: null,
     status: "angefragt",
     erstelltAm: "2026-09-08T14:20:00.000Z",
+  },
+];
+
+export const demoKontingente: KontingentZeile[] = [
+  {
+    id: "demo-kontingent-1",
+    kunde: "Handelskette A",
+    kundeId: "demo-kunde-1",
+    sorte: "Polka",
+    saison: "2026",
+    mengeKg: 4200,
+    reserviertKg: 3420,
+  },
+  {
+    id: "demo-kontingent-2",
+    kunde: "Handelskette A",
+    kundeId: "demo-kunde-1",
+    sorte: "Tulameen",
+    saison: "2026",
+    mengeKg: 1200,
+    reserviertKg: 340,
   },
 ];
 

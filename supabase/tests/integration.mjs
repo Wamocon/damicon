@@ -3796,6 +3796,91 @@ if (leitung && brigade) {
       (preislisteSicht?.length ?? 0) >= 1,
       `Zeilen: ${preislisteSicht?.length}`,
     );
+
+    // --- Anforderung 5.1: automatischer Kontingent-Verbrauch (Migration
+    // 20261006000000) - angefragt->bestaetigt erhoeht reserviert_kg, eine
+    // anschliessende Stornierung setzt es wieder zurueck. Eine nie
+    // bestaetigte, direkt stornierte Anfrage veraendert nichts.
+    const { data: verbrauchKontingent, error: verbrauchKontingentFehler } = await admin
+      .from("kontingente")
+      .insert({
+        sorte_id: sorteVb?.id,
+        b2b_kunde_id: almatyFreshVb?.id,
+        menge_kg: 500,
+        reserviert_kg: 100,
+        saison: "test-5.1-verbrauch",
+      })
+      .select("id, reserviert_kg")
+      .single();
+    check(
+      "Anforderung 5.1: Testaufbau (zweites Kontingent fuer den Verbrauchstest) gelingt",
+      !verbrauchKontingentFehler,
+      verbrauchKontingentFehler?.message ?? "",
+    );
+
+    if (!verbrauchKontingentFehler && verbrauchKontingent?.id) {
+      const { data: verbrauchVb, error: verbrauchVbFehler } = await leitung
+        .from("vorbestellungen")
+        .insert({ b2b_kunde_id: almatyFreshVb?.id, sorte_id: sorteVb?.id, menge_kg: 60 })
+        .select("id")
+        .single();
+
+      if (!verbrauchVbFehler && verbrauchVb?.id) {
+        await leitung.from("vorbestellungen").update({ status: "bestaetigt" }).eq("id", verbrauchVb.id);
+
+        const { data: nachBestaetigung } = await admin
+          .from("kontingente")
+          .select("reserviert_kg")
+          .eq("id", verbrauchKontingent.id)
+          .single();
+        check(
+          "Anforderung 5.1: Bestaetigung einer Vorbestellung erhoeht kontingente.reserviert_kg automatisch",
+          Number(nachBestaetigung?.reserviert_kg) === 160,
+          `reserviert_kg: ${nachBestaetigung?.reserviert_kg}`,
+        );
+
+        await leitung.from("vorbestellungen").update({ status: "storniert" }).eq("id", verbrauchVb.id);
+
+        const { data: nachStorno } = await admin
+          .from("kontingente")
+          .select("reserviert_kg")
+          .eq("id", verbrauchKontingent.id)
+          .single();
+        check(
+          "Anforderung 5.1: Stornierung einer bereits bestaetigten Vorbestellung setzt kontingente.reserviert_kg wieder zurueck",
+          Number(nachStorno?.reserviert_kg) === 100,
+          `reserviert_kg: ${nachStorno?.reserviert_kg}`,
+        );
+
+        await admin.from("vorbestellungen").delete().eq("id", verbrauchVb.id);
+      }
+
+      // Eine nie bestaetigte Anfrage hat nie etwas verbraucht - direkte
+      // Stornierung darf reserviert_kg nicht anfassen.
+      const { data: unbestaetigtVb, error: unbestaetigtVbFehler } = await leitung
+        .from("vorbestellungen")
+        .insert({ b2b_kunde_id: almatyFreshVb?.id, sorte_id: sorteVb?.id, menge_kg: 25 })
+        .select("id")
+        .single();
+      if (!unbestaetigtVbFehler && unbestaetigtVb?.id) {
+        await leitung.from("vorbestellungen").update({ status: "storniert" }).eq("id", unbestaetigtVb.id);
+
+        const { data: nachDirektstorno } = await admin
+          .from("kontingente")
+          .select("reserviert_kg")
+          .eq("id", verbrauchKontingent.id)
+          .single();
+        check(
+          "Anforderung 5.1: eine direkt stornierte, nie bestaetigte Anfrage veraendert kontingente.reserviert_kg nicht",
+          Number(nachDirektstorno?.reserviert_kg) === 100,
+          `reserviert_kg: ${nachDirektstorno?.reserviert_kg}`,
+        );
+
+        await admin.from("vorbestellungen").delete().eq("id", unbestaetigtVb.id);
+      }
+
+      await admin.from("kontingente").delete().eq("id", verbrauchKontingent.id);
+    }
   }
 }
 
