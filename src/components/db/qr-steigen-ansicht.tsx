@@ -6,6 +6,10 @@ import { PrintButton } from "@/components/ui/print-button";
 import { Link } from "@/i18n/navigation";
 import { ladePfleuckerAusweise, ladeSteigenEtiketten } from "@/lib/data/qr-steigen";
 import { absoluteUrl, qrSvg } from "@/lib/qr";
+// Derselbe Parametername, mit dem der Scan die Kennung wieder herausliest.
+// Beide Seiten aus einer Quelle: Wer ihn hier von Hand schriebe, liesse den
+// Scan beim naechsten Umbenennen ins Leere laufen.
+import { STEIGE_PARAMETER } from "@/lib/domain/steige-scan";
 
 // QR-Steigenkennung (WMCNL-1439): QR-Etiketten fuer Steigen und
 // Pfluecker-Ausweise, beide serverseitig als SVG erzeugt (src/lib/qr.ts).
@@ -49,7 +53,7 @@ export async function QrSteigenAnsicht() {
       svg: await qrSvg(
         absoluteUrl(
           locale,
-          `/herkunft/${e.oeffentlicherCode}?steige=${encodeURIComponent(e.code)}`,
+          `/herkunft/${e.oeffentlicherCode}?${STEIGE_PARAMETER}=${encodeURIComponent(e.code)}`,
         ),
         "etikett",
       ),
