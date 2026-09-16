@@ -806,7 +806,8 @@
       "kiAnbieterAktiviert": "Provider \"{wert}\" activated.",
       "kiAnbieterDeaktiviert": "Provider \"{wert}\" deactivated.",
       "kiAnbieterStandardGesetzt": "Default provider changed.",
-      "kiAnbieterGeloescht": "Provider \"{wert}\" deleted."
+      "kiAnbieterGeloescht": "Provider \"{wert}\" deleted.",
+      "wetterAktualisiert": "Weather data updated."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -830,7 +831,8 @@
       "zukaufBefunde": "{wert} error(s) found in the input - nothing was imported. See the check results below.",
       "code": "The code is wrong or expired. Please enter the current 6-digit code from your authenticator app.",
       "zustand": "The date has changed in the meantime (e.g. locked or already done). Please reload the page.",
-      "einwilligung": "Please confirm the notice above before sending the first message."
+      "einwilligung": "Please confirm the notice above before sending the first message.",
+      "wetterdienst": "The weather service did not return any data just now. Please try again later."
     },
     "einladungen": {
       "erfolg": {
@@ -1364,6 +1366,28 @@
     "letzteTitel": "Recently measured",
     "letzteLead": "The most recently completed cooling measurements, temperature and minutes since picking.",
     "keineMessungen": "No cooling measurement recorded yet."
+  },
+  "wetterAnsicht": {
+    "summeTitel": "Temperature sum",
+    "summeLead": "Cumulative heat units above a 5 °C base temperature since the start of the season - a heuristic for the yield forecast, not a forecast model.",
+    "seit": "since",
+    "hinweis": "A pure observation figure. A link to actual harvest volume can only be evaluated reliably after a full season with real comparison data.",
+    "keineDaten": "No weather data recorded yet.",
+    "tageTitel": "Last 14 days",
+    "tageLead": "Daily minimum, daily maximum, precipitation and the cumulative temperature sum up to that day.",
+    "col": {
+      "datum": "Date",
+      "min": "Min.",
+      "max": "Max.",
+      "niederschlag": "Precipitation",
+      "summe": "Sum"
+    },
+    "formular": {
+      "titel": "Update weather data",
+      "lead": "Fetches the season since January 1 plus the last few days from Open-Meteo and recomputes the temperature sum.",
+      "knopf": "Update now"
+    },
+    "note": "Coordinates and base temperature are placeholders (Almaty city area, 5 °C) and should be replaced with the plantation's actual values or confirmed by an agronomist."
   },
   "qrSteigenMock": {
     "scanTitle": "Scan at the dispatch point (mock)",

@@ -482,6 +482,28 @@
     "letzteLead": "Son tamamlanan soğutma ölçümleri, sıcaklık ve toplamadan bu yana geçen dakikalar.",
     "keineMessungen": "Henüz soğutma ölçümü kaydedilmedi."
   },
+  "wetterAnsicht": {
+    "summeTitel": "Sıcaklık toplamı",
+    "summeLead": "Sezon başından bu yana 5 °C taban sıcaklığının üzerindeki birikmiş ısı birimleri - miktar tahmini için bir sezgisel yöntem, bir tahmin modeli değil.",
+    "seit": "beri",
+    "hinweis": "Yalnızca gözlem amaçlı bir değer. Gerçek hasat miktarıyla ilişkisi ancak gerçek karşılaştırma verileriyle geçirilen tam bir sezondan sonra güvenilir şekilde değerlendirilebilir.",
+    "keineDaten": "Henüz hava durumu verisi kaydedilmedi.",
+    "tageTitel": "Son 14 gün",
+    "tageLead": "Günlük minimum, günlük maksimum, yağış ve o güne kadar birikmiş sıcaklık toplamı.",
+    "col": {
+      "datum": "Tarih",
+      "min": "Min.",
+      "max": "Maks.",
+      "niederschlag": "Yağış",
+      "summe": "Toplam"
+    },
+    "formular": {
+      "titel": "Hava durumu verilerini güncelle",
+      "lead": "1 Ocak'tan bu yana sezonu ve son birkaç günü Open-Meteo'dan alır, sıcaklık toplamını yeniden hesaplar.",
+      "knopf": "Şimdi güncelle"
+    },
+    "note": "Koordinatlar ve taban sıcaklık yer tutuculardır (Almatı şehir merkezi, 5 °C) ve plantasyonun gerçek değerleriyle değiştirilmeli veya bir agronomist tarafından onaylanmalıdır."
+  },
   "qrSteigenMock": {
     "scanTitle": "Çıkış noktasında tarama (taslak)",
     "simulateScan": "Taramayı benzet",
@@ -1095,7 +1117,8 @@
       "kiAnbieterAktiviert": "\"{wert}\" sağlayıcısı etkinleştirildi.",
       "kiAnbieterDeaktiviert": "\"{wert}\" sağlayıcısı devre dışı bırakıldı.",
       "kiAnbieterStandardGesetzt": "Standart sağlayıcı değiştirildi.",
-      "kiAnbieterGeloescht": "\"{wert}\" sağlayıcısı silindi."
+      "kiAnbieterGeloescht": "\"{wert}\" sağlayıcısı silindi.",
+      "wetterAktualisiert": "Hava durumu verileri güncellendi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -1119,7 +1142,8 @@
       "zukaufBefunde": "Girişte {wert} hata bulundu - hiçbir şey içe aktarılmadı. Aşağıdaki kontrol sonuçlarına bakın.",
       "code": "Kod yanlış veya süresi doldu. Lütfen kimlik doğrulayıcı uygulamadaki güncel 6 haneli kodu girin.",
       "zustand": "Tarih bu sırada değişti (ör. kilitlendi veya zaten tamamlandı). Lütfen sayfayı yeniden yükleyin.",
-      "einwilligung": "İlk mesajı göndermeden önce lütfen yukarıdaki bildirimi onaylayın."
+      "einwilligung": "İlk mesajı göndermeden önce lütfen yukarıdaki bildirimi onaylayın.",
+      "wetterdienst": "Hava durumu servisi şu anda veri döndürmedi. Lütfen daha sonra tekrar deneyin."
     },
     "einladungen": {
       "erfolg": {

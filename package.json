@@ -21,7 +21,8 @@
     "test:zukauf-parser": "node supabase/tests/zukauf-parser.mjs",
     "test:ausweis-scan": "node supabase/tests/ausweis-scan.mjs",
     "test:ki-assistent": "node supabase/tests/ki-assistent.mjs",
-    "test": "npm run db:test:fast && npm run test:einladungen && npm run test:abnahme-4-1 && npm run test:abnahme-4-7 && npm run test:zukauf-parser && npm run test:ausweis-scan && npm run test:ki-assistent",
+    "test:wetter": "node supabase/tests/wetter.mjs",
+    "test": "npm run db:test:fast && npm run test:einladungen && npm run test:abnahme-4-1 && npm run test:abnahme-4-7 && npm run test:zukauf-parser && npm run test:ausweis-scan && npm run test:ki-assistent && npm run test:wetter",
     "test:abnahme-4-1": "node supabase/tests/abnahme-4-1.mjs",
     "test:abnahme-4-7": "node supabase/tests/abnahme-4-7.mjs"
   },

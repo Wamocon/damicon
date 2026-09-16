@@ -806,7 +806,8 @@
       "kiAnbieterAktiviert": "Anbieter \"{wert}\" aktiviert.",
       "kiAnbieterDeaktiviert": "Anbieter \"{wert}\" deaktiviert.",
       "kiAnbieterStandardGesetzt": "Standard-Anbieter umgestellt.",
-      "kiAnbieterGeloescht": "Anbieter \"{wert}\" gelöscht."
+      "kiAnbieterGeloescht": "Anbieter \"{wert}\" gelöscht.",
+      "wetterAktualisiert": "Wetterdaten aktualisiert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -830,7 +831,8 @@
       "zukaufBefunde": "{wert} Fehler in der Eingabe gefunden - nichts wurde übernommen. Siehe Prüfergebnis unten.",
       "code": "Der Code ist falsch oder abgelaufen. Bitte den aktuellen 6-stelligen Code aus der Authenticator-App eingeben.",
       "zustand": "Der Termin hat sich zwischenzeitlich geändert (z. B. gesperrt oder bereits erledigt). Bitte Seite neu laden.",
-      "einwilligung": "Bitte den Hinweis oben bestätigen, bevor die erste Nachricht gesendet wird."
+      "einwilligung": "Bitte den Hinweis oben bestätigen, bevor die erste Nachricht gesendet wird.",
+      "wetterdienst": "Der Wetterdienst hat gerade keine Daten geliefert. Bitte später erneut versuchen."
     },
     "einladungen": {
       "erfolg": {
@@ -1364,6 +1366,28 @@
     "letzteTitel": "Zuletzt gemessen",
     "letzteLead": "Die letzten abgeschlossenen Kühlmessungen, Temperatur und Minuten seit dem Pflücken.",
     "keineMessungen": "Noch keine Kühlmessung erfasst."
+  },
+  "wetterAnsicht": {
+    "summeTitel": "Temperatursumme",
+    "summeLead": "Kumulierte Wärmeeinheiten über 5 °C Basistemperatur seit Saisonbeginn - eine Heuristik für die Mengenprognose, kein Prognosemodell.",
+    "seit": "seit",
+    "hinweis": "Reine Beobachtungsgröße. Ein Zusammenhang mit der tatsächlichen Erntemenge ist erst nach einer vollen Saison mit echten Vergleichsdaten belastbar auswertbar.",
+    "keineDaten": "Noch keine Wetterdaten erfasst.",
+    "tageTitel": "Letzte 14 Tage",
+    "tageLead": "Tagesminimum, Tagesmaximum, Niederschlag und die kumulierte Temperatursumme bis zu diesem Tag.",
+    "col": {
+      "datum": "Datum",
+      "min": "Min.",
+      "max": "Max.",
+      "niederschlag": "Niederschlag",
+      "summe": "Summe"
+    },
+    "formular": {
+      "titel": "Wetterdaten aktualisieren",
+      "lead": "Holt die Saison seit dem 1. Januar sowie die letzten Tage von Open-Meteo und schreibt die Temperatursumme neu.",
+      "knopf": "Jetzt aktualisieren"
+    },
+    "note": "Koordinaten und Basistemperatur sind Platzhalter (Almaty-Stadtgebiet, 5 °C) und sollten durch die tatsächlichen Werte der Plantage ersetzt bzw. von einer Agronomin oder einem Agronomen bestätigt werden."
   },
   "qrSteigenMock": {
     "scanTitle": "Scan am Ausgabepunkt (Mock)",
