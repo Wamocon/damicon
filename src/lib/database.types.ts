@@ -150,6 +150,7 @@ export type Database = {
           id: string
           identitaets_digest: string | null
           kontakt: string | null
+          kundengruppe: Database["public"]["Enums"]["kundengruppe"] | null
           laengengrad: number | null
           name: string
           updated_at: string
@@ -162,6 +163,7 @@ export type Database = {
           id?: string
           identitaets_digest?: string | null
           kontakt?: string | null
+          kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
           laengengrad?: number | null
           name: string
           updated_at?: string
@@ -174,6 +176,7 @@ export type Database = {
           id?: string
           identitaets_digest?: string | null
           kontakt?: string | null
+          kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
           laengengrad?: number | null
           name?: string
           updated_at?: string
@@ -2077,6 +2080,7 @@ export type Database = {
           gueltig_ab: string
           gueltig_bis: string | null
           id: string
+          kundengruppe: Database["public"]["Enums"]["kundengruppe"] | null
           name: string
         }
         Insert: {
@@ -2085,6 +2089,7 @@ export type Database = {
           gueltig_ab?: string
           gueltig_bis?: string | null
           id?: string
+          kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
           name: string
         }
         Update: {
@@ -2093,6 +2098,7 @@ export type Database = {
           gueltig_ab?: string
           gueltig_bis?: string | null
           id?: string
+          kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
           name?: string
         }
         Relationships: []
@@ -3351,6 +3357,7 @@ export type Database = {
         | "kaspi_qr"
         | "sonstiges"
       kuehlkette_ergebnis: "ok" | "warnung" | "verstoss"
+      kundengruppe: "handel" | "gastronomie" | "einzelhandel"
       ledger_typ: "erloes" | "kosten"
       lieferung_status: "geplant" | "zugestellt" | "storniert"
       lohn_status: "entwurf" | "freigegeben" | "ausgezahlt"
@@ -3572,6 +3579,7 @@ export const Constants = {
         "sonstiges",
       ],
       kuehlkette_ergebnis: ["ok", "warnung", "verstoss"],
+      kundengruppe: ["handel", "gastronomie", "einzelhandel"],
       ledger_typ: ["erloes", "kosten"],
       lieferung_status: ["geplant", "zugestellt", "storniert"],
       lohn_status: ["entwurf", "freigegeben", "ausgezahlt"],

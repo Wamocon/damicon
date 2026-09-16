@@ -306,9 +306,12 @@ export const modules: ModuleDef[] = [
     zone: "markt",
     slug: "preislisten",
     icon: "tag",
-    resource: "b2b_portal",
+    resource: "preislisten",
     klassifikation: "anpassen",
-    reifegrad: "in-entwicklung",
+    // Anforderung 5.1/5.2: Preisstaffelung je Kundengruppe (Migration
+    // 20261011000000) - feste Kundengruppe an b2b_kunden, eine Preisliste
+    // optional einer Gruppe zugeordnet, gruppenlos = Standard-Fallback.
+    reifegrad: "angebunden",
   },
   {
     key: "ki_assistent",

@@ -4337,6 +4337,163 @@ if (leitung && brigade) {
   }
 }
 
+// --- Anforderung 5.1/5.2: Preisstaffelung je Kundengruppe -----------------
+{
+  const { data: erzeugerPreislisteVersuch, error: erzeugerPreislisteFehler } = await (
+    await anmelden("erzeuger@damicon.demo")
+  ).client
+    .from("preislisten")
+    .insert({ name: "Unbefugt", gueltig_ab: "2026-09-20" })
+    .select("id");
+  check(
+    "Anforderung 5.1/5.2: eine Rolle ohne Buero-Zugriff (Erzeuger) legt keine Preisliste an (RLS preislisten_write_buero)",
+    erzeugerPreislisteFehler?.code === "42501",
+    erzeugerPreislisteFehler?.code ?? `eingefuegte Zeilen: ${erzeugerPreislisteVersuch?.length}`,
+  );
+
+  const { data: testListe, error: testListeFehler } = await leitung
+    .from("preislisten")
+    .insert({ name: "__it_preisliste_handel", gueltig_ab: "2026-09-20", kundengruppe: "handel" })
+    .select("id")
+    .single();
+  check(
+    "Anforderung 5.1/5.2: Betriebsleitung legt eine gruppenspezifische Preisliste an (RLS preislisten_write_buero)",
+    !testListeFehler && !!testListe?.id,
+    testListeFehler?.message ?? "",
+  );
+
+  if (!testListeFehler && testListe?.id) {
+    const { data: sortePolka } = await admin.from("sorten").select("id").eq("name", "Polka").single();
+
+    const { data: erzeugerPositionVersuch, error: erzeugerPositionFehler } = await (
+      await anmelden("erzeuger@damicon.demo")
+    ).client
+      .from("preislisten_positionen")
+      .insert({ preisliste_id: testListe.id, sorte_id: sortePolka.id, preis_tenge_kg: 1 })
+      .select("id");
+    check(
+      "Anforderung 5.1/5.2: eine Rolle ohne Buero-Zugriff (Erzeuger) fuegt keine Preislisten-Position hinzu (RLS preislisten_positionen_write_buero)",
+      erzeugerPositionFehler?.code === "42501",
+      erzeugerPositionFehler?.code ?? `eingefuegte Zeilen: ${erzeugerPositionVersuch?.length}`,
+    );
+
+    const { data: testPosition, error: testPositionFehler } = await leitung
+      .from("preislisten_positionen")
+      .insert({ preisliste_id: testListe.id, sorte_id: sortePolka.id, preis_tenge_kg: 1900 })
+      .select("id")
+      .single();
+    check(
+      "Anforderung 5.1/5.2: Betriebsleitung fuegt eine Preislisten-Position hinzu",
+      !testPositionFehler && !!testPosition?.id,
+      testPositionFehler?.message ?? "",
+    );
+
+    // Reine USING-Klausel bei UPDATE: eine unbefugte Rolle bewirkt 0
+    // geaenderte Zeilen statt eines Fehlercodes, derselbe Unterschied wie bei
+    // b2b_kunden_update_buero weiter oben (Anforderung 3.5).
+    const { data: erzeugerAktivVersuch, error: erzeugerAktivFehler } = await (
+      await anmelden("erzeuger@damicon.demo")
+    ).client
+      .from("preislisten")
+      .update({ aktiv: false })
+      .eq("id", testListe.id)
+      .select("id");
+    check(
+      "Anforderung 5.1/5.2: eine Rolle ohne Buero-Zugriff (Erzeuger) schaltet keine Preisliste um (RLS preislisten_write_buero)",
+      !erzeugerAktivFehler && (erzeugerAktivVersuch?.length ?? 0) === 0,
+      erzeugerAktivFehler?.message ?? `geaenderte Zeilen: ${erzeugerAktivVersuch?.length}`,
+    );
+
+    const { data: bueroAktivUpdate, error: bueroAktivFehler } = await leitung
+      .from("preislisten")
+      .update({ aktiv: false })
+      .eq("id", testListe.id)
+      .select("aktiv")
+      .single();
+    check(
+      "Anforderung 5.1/5.2: Betriebsleitung schaltet eine Preisliste inaktiv",
+      !bueroAktivFehler && bueroAktivUpdate?.aktiv === false,
+      bueroAktivFehler?.message ?? JSON.stringify(bueroAktivUpdate),
+    );
+
+    // Kundengruppen-Filterung wie in ladePreislisten() (data/vorbestellungen.ts):
+    // Almaty Fresh Market gehoert laut Seed zu "einzelhandel" - die
+    // gruppenlose Standardliste ist sichtbar, die eben angelegte
+    // "handel"-Liste nicht.
+    const { data: almatyFreshPl } = await admin
+      .from("b2b_kunden")
+      .select("kundengruppe")
+      .eq("name", "Almaty Fresh Market")
+      .single();
+    const { client: kundeClientPl, fehler: kundeLoginPlFehler } = await anmelden("kunde@damicon.demo");
+    const eigeneGruppePl = almatyFreshPl?.kundengruppe;
+    const { data: kundenSichtPl, error: kundenSichtPlFehler } = kundeClientPl
+      ? await (eigeneGruppePl
+          ? kundeClientPl
+              .from("preislisten")
+              .select("id, kundengruppe")
+              .eq("aktiv", true)
+              .or(`kundengruppe.is.null,kundengruppe.eq.${eigeneGruppePl}`)
+          : kundeClientPl.from("preislisten").select("id, kundengruppe").eq("aktiv", true).is("kundengruppe", null))
+      : { data: null, error: null };
+    check(
+      "Anforderung 5.1/5.2: die Kundengruppen-Filterung blendet eine fremde Gruppenliste aus, gruppenlose Listen bleiben sichtbar",
+      !!kundenSichtPl &&
+        kundenSichtPl.some((p) => p.kundengruppe === null) &&
+        !kundenSichtPl.some((p) => p.id === testListe.id),
+      kundeLoginPlFehler ?? kundenSichtPlFehler?.message ?? JSON.stringify(kundenSichtPl?.map((p) => p.kundengruppe)),
+    );
+
+    const { data: positionNachLoeschen, error: loeschFehler } = await leitung
+      .from("preislisten_positionen")
+      .delete()
+      .eq("id", testPosition.id)
+      .select("id");
+    check(
+      "Anforderung 5.1/5.2: Betriebsleitung entfernt eine Preislisten-Position",
+      !loeschFehler && (positionNachLoeschen?.length ?? 0) === 1,
+      loeschFehler?.message ?? `geloeschte Zeilen: ${positionNachLoeschen?.length}`,
+    );
+
+    await admin.from("preislisten").delete().eq("id", testListe.id);
+  }
+
+  // Kundengruppe je B2B-Kunde setzen (kundeGruppeSetzen()): ueber dieselbe
+  // b2b_kunden_update_buero-Policy wie die Adresse (Anforderung 3.5) -
+  // Ursprungswert aus dem Seed wird danach wiederhergestellt.
+  const { data: gastroKunde } = await admin
+    .from("b2b_kunden")
+    .select("id, kundengruppe")
+    .eq("name", "Gastro-Distributor Almaty")
+    .single();
+  const { data: erzeugerGruppeVersuch, error: erzeugerGruppeFehler } = await (
+    await anmelden("erzeuger@damicon.demo")
+  ).client
+    .from("b2b_kunden")
+    .update({ kundengruppe: "handel" })
+    .eq("id", gastroKunde.id)
+    .select("id");
+  check(
+    "Anforderung 5.1/5.2: eine Rolle ohne Buero-Zugriff (Erzeuger) aendert keine Kundengruppe (RLS b2b_kunden_update_buero)",
+    !erzeugerGruppeFehler && (erzeugerGruppeVersuch?.length ?? 0) === 0,
+    erzeugerGruppeFehler?.message ?? `geaenderte Zeilen: ${erzeugerGruppeVersuch?.length}`,
+  );
+
+  const { data: bueroGruppeUpdate, error: bueroGruppeFehler } = await leitung
+    .from("b2b_kunden")
+    .update({ kundengruppe: "einzelhandel" })
+    .eq("id", gastroKunde.id)
+    .select("kundengruppe")
+    .single();
+  check(
+    "Anforderung 5.1/5.2: Betriebsleitung aendert die Kundengruppe eines B2B-Kunden",
+    !bueroGruppeFehler && bueroGruppeUpdate?.kundengruppe === "einzelhandel",
+    bueroGruppeFehler?.message ?? JSON.stringify(bueroGruppeUpdate),
+  );
+
+  await admin.from("b2b_kunden").update({ kundengruppe: gastroKunde.kundengruppe }).eq("id", gastroKunde.id);
+}
+
 console.log("");
 if (failures > 0) {
   console.error(`${failures} Test(s) fehlgeschlagen.`);

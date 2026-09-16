@@ -49,22 +49,29 @@ const vorbestellungTon: Record<string, Tone> = {
 // rechtsverbindliche Rechnung - siehe domain/rechnungshistorie.ts fuer die
 // fachliche Festlegung.
 export async function B2bPortalAnsicht() {
-  const [uebersicht, vorbestellungen, kontingente, rechnungen, preislisten, profil, t] = await Promise.all([
+  const [profil, t] = await Promise.all([
+    getSessionProfile(),
+    getTranslations("b2bPortalAnsicht"),
+  ]);
+  const istKundeVorab = profil?.role === "kunde";
+  const [uebersicht, vorbestellungen, kontingente, rechnungen, preislisten] = await Promise.all([
     ladeLieferungen(),
     ladeVorbestellungen(),
     ladeKontingente(),
     ladeRechnungshistorie(),
-    ladePreislisten(),
-    getSessionProfile(),
-    getTranslations("b2bPortalAnsicht"),
+    // Anforderung 5.1/5.2: eine Kunden-Anmeldung sieht nur die eigene
+    // Kundengruppe plus die gruppenlose Standardliste, siehe
+    // ladePreislisten() in data/vorbestellungen.ts.
+    ladePreislisten(istKundeVorab ? (profil?.b2bKundeId ?? undefined) : undefined),
   ]);
   const lt = await getTranslations("lieferungenAnsicht");
   const kkT = await getTranslations("nachweiskette");
+  const kg = await getTranslations("kundengruppen");
   const format = await getFormatter();
 
   const live = uebersicht.quelle === "db";
   const darfAnlegen = live && hasPermission(profil?.role, "b2b_portal", "create");
-  const istKunde = profil?.role === "kunde";
+  const istKunde = istKundeVorab;
   // "kunde" hat laut rbac.ts dieselbe crud("b2b_portal")-Berechtigungsmenge
   // wie betriebsleitung (view/create/update) - ohne den Ausschluss wuerde
   // ein Kunde hier zusaetzlich die fuers Buero gedachten Bestaetigen-/
@@ -218,7 +225,12 @@ export async function B2bPortalAnsicht() {
         ) : (
           preislisten.map((p) => (
             <Card key={p.id} className="mb-3">
-              <p className="text-sm font-black text-card-foreground">{p.name}</p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-black text-card-foreground">{p.name}</p>
+                {p.kundengruppe ? (
+                  <StatusPill tone="info">{kg(p.kundengruppe)}</StatusPill>
+                ) : null}
+              </div>
               <p className="mt-1 text-[11px] text-muted-foreground">
                 {t("gueltigAb")} {tag(p.gueltigAb)}
                 {p.gueltigBis ? ` · ${t("gueltigBis")} ${tag(p.gueltigBis)}` : ""}

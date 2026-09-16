@@ -52,6 +52,12 @@ export const resources = [
   // (WhatsApp, Kaspi QR o. Ae.), oeffentlich sichtbar auf der Website, vom
   // Buero gepflegt. Reine Anzeige/Verwaltung, keine echte API-Integration.
   "kanaele",
+  // Anforderung 5.1/5.2: Preislisten-Verwaltung und Kundengruppen-Zuordnung.
+  // Bewusst eine eigene Ressource statt einer Mitnutzung von "b2b_portal" -
+  // kunde/erzeuger haben dort view/create/update (fuer die eigene
+  // Vorbestellung), sollen darueber aber nicht auch Preislisten fuer alle
+  // Kundengruppen anlegen oder aendern koennen.
+  "preislisten",
 ] as const;
 
 export type Resource = (typeof resources)[number];
@@ -208,6 +214,14 @@ export const rolePermissions: Record<Role, Permission[]> = {
     // Nachweisinteresse an alten Zeilen).
     ...crud("kanaele"),
     "kanaele:delete",
+    // Anforderung 5.1/5.2: Preislisten anlegen/aendern und Positionen
+    // entfernen (ein falsch angelegter Preis soll wieder verschwinden
+    // koennen, dieselbe Begruendung wie bei "kanaele:delete" oben) sowie
+    // Kunden einer Kundengruppe zuordnen. Preislisten selbst bleiben ohne
+    // delete - nur deaktivierbar, sie bleiben historisch massgeblich fuer
+    // bereits berechnete Proforma-Betraege (siehe domain/rechnungshistorie.ts).
+    ...crud("preislisten"),
+    "preislisten:delete",
   ],
   buchhaltung: [
     ...view("dashboard"),

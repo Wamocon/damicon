@@ -339,12 +339,12 @@ where not exists (
 );
 
 -- --- Markt: B2B, Kontingente, Preislisten ---------------------------------
-insert into public.b2b_kunden (name, kontakt) values
-  ('Handelskette A', 'Einkauf Frischeobst'),
-  ('Gastro-Distributor Almaty', 'Beschaffung'),
+insert into public.b2b_kunden (name, kontakt, kundengruppe) values
+  ('Handelskette A', 'Einkauf Frischeobst', 'handel'),
+  ('Gastro-Distributor Almaty', 'Beschaffung', 'gastronomie'),
   -- Firma des kunde@damicon.demo-Demokontos (siehe supabase/seed-auth.mjs) -
   -- die Verknuepfung profiles.b2b_kunde_id zeigt auf diese Zeile.
-  ('Almaty Fresh Market', 'Einkauf Frischware')
+  ('Almaty Fresh Market', 'Einkauf Frischware', 'einzelhandel')
   on conflict do nothing;
 
 insert into public.kontingente (sorte_id, b2b_kunde_id, menge_kg, reserviert_kg, saison)
@@ -371,6 +371,26 @@ from (values
 ) as v(sorte, preis)
 join public.sorten s on s.name = v.sorte
 cross join (select id from public.preislisten where name = 'Preisliste Herbst 2026') pl
+where not exists (
+  select 1 from public.preislisten_positionen p where p.preisliste_id = pl.id and p.sorte_id = s.id
+);
+
+-- Beispiel fuer eine gruppenspezifische Preisliste (Anforderung 5.1/5.2,
+-- Preisstaffelung je Kundengruppe): Handelsketten kaufen in groesseren
+-- Mengen ein und bekommen deshalb einen guenstigeren Polka-Preis als die
+-- gruppenlose Standardliste oben - dieselbe Sorte, derselbe Zeitraum, aber
+-- ein zweiter, spezifischerer Treffer in preisAmStichtag().
+insert into public.preislisten (name, gueltig_ab, aktiv, kundengruppe) values
+  ('Preisliste Herbst 2026 - Handel', '2026-08-01', true, 'handel')
+  on conflict do nothing;
+
+insert into public.preislisten_positionen (preisliste_id, sorte_id, preis_tenge_kg, min_menge_kg)
+select pl.id, s.id, v.preis, 0
+from (values
+  ('Polka', 1900)
+) as v(sorte, preis)
+join public.sorten s on s.name = v.sorte
+cross join (select id from public.preislisten where name = 'Preisliste Herbst 2026 - Handel') pl
 where not exists (
   select 1 from public.preislisten_positionen p where p.preisliste_id = pl.id and p.sorte_id = s.id
 );

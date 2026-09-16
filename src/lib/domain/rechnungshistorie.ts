@@ -17,6 +17,9 @@ export interface PreislistenPositionEintrag {
 export interface PreislisteEintrag {
   gueltigAb: string;
   gueltigBis: string | null;
+  // Anforderung 5.1/5.2: null = Standard-Preisliste (Fallback fuer alle
+  // Kundengruppen), gesetzt = gilt nur fuer diese Kundengruppe.
+  kundengruppe: string | null;
   positionen: PreislistenPositionEintrag[];
 }
 
@@ -25,6 +28,7 @@ export interface LieferungFuerProforma {
   geliefertAm: string;
   mengeKg: number;
   sorteId: string | null;
+  kundengruppe: string | null;
 }
 
 export interface ProformaZeile {
@@ -40,17 +44,37 @@ export interface ProformaZeile {
 // ueberlappenden Preislisten (sollte durch fachliche Pflege nicht vorkommen)
 // gewinnt die mit dem spaeteren gueltig_ab - dieselbe "je juenger, desto
 // massgeblicher"-Regel wie bei ladePreislisten() fuer die aktuell gueltige.
+//
+// Anforderung 5.1/5.2 (Preisstaffelung je Kundengruppe): eine zur
+// Kundengruppe passende Preisliste geht einer gruppenlosen Standardliste
+// vor, unabhaengig vom jeweiligen gueltig_ab - eine gezielt fuer "handel"
+// hinterlegte Liste soll nicht von einer juengeren, aber gruppenlosen
+// Standardliste verdraengt werden. Erst innerhalb derselben Spezifitaet
+// (gruppengleich bzw. beide gruppenlos) entscheidet gueltig_ab.
 export function preisAmStichtag(
   preislisten: PreislisteEintrag[],
   sorteId: string,
   stichtag: string,
+  kundengruppe: string | null = null,
 ): number | null {
   const tag = stichtag.slice(0, 10);
-  const treffer = preislisten
-    .filter((p) => p.gueltigAb <= tag && (!p.gueltigBis || p.gueltigBis >= tag))
-    .sort((a, b) => b.gueltigAb.localeCompare(a.gueltigAb));
+  const gueltig = preislisten.filter(
+    (p) => p.gueltigAb <= tag && (!p.gueltigBis || p.gueltigBis >= tag),
+  );
 
-  for (const preisliste of treffer) {
+  const sortiertNachDatum = (liste: PreislisteEintrag[]) =>
+    [...liste].sort((a, b) => b.gueltigAb.localeCompare(a.gueltigAb));
+
+  // "== null" bewusst statt "=== null": aeltere Aufrufer (u. a. bestehende
+  // Tests) kennen das Feld kundengruppe noch nicht und liefern dann
+  // "undefined" statt "null" - beides soll als gruppenlose Standardliste
+  // gelten, nicht stillschweigend gar keine Preisliste mehr finden.
+  const gruppenspezifisch = kundengruppe
+    ? sortiertNachDatum(gueltig.filter((p) => p.kundengruppe === kundengruppe))
+    : [];
+  const standard = sortiertNachDatum(gueltig.filter((p) => p.kundengruppe == null));
+
+  for (const preisliste of [...gruppenspezifisch, ...standard]) {
     const position = preisliste.positionen.find((pos) => pos.sorteId === sorteId);
     if (position) return position.preisTengeKg;
   }
@@ -62,7 +86,9 @@ export function berechneProforma(
   preislisten: PreislisteEintrag[],
 ): ProformaZeile[] {
   return lieferungen.map((l) => {
-    const preisTengeKg = l.sorteId ? preisAmStichtag(preislisten, l.sorteId, l.geliefertAm) : null;
+    const preisTengeKg = l.sorteId
+      ? preisAmStichtag(preislisten, l.sorteId, l.geliefertAm, l.kundengruppe)
+      : null;
     return {
       lieferungId: l.id,
       geliefertAm: l.geliefertAm,
