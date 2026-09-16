@@ -2163,5 +2163,21 @@
     "angemeldetTitel": "Sie sind bereits angemeldet",
     "angemeldetLead": "Ein neuer Zugang wird auf ein eigenes Konto ausgestellt. Melden Sie sich zuerst ab, sonst arbeiten Sie danach weiter im alten Konto.",
     "abmelden": "Jetzt abmelden"
+  },
+  "steigeScan": {
+    "label": "Steige am Sammelpunkt",
+    "steigeScannen": "Steige scannen",
+    "hinweis": "Etikett der Steige vor die Kamera halten.",
+    "keineKamera": "Keine Kamera verfügbar. Kennung von Hand eingeben.",
+    "keinSteigenCode": "Auf diesem Code steht keine Steigenkennung.",
+    "nichtInDieserAufgabe": "{code} gehört nicht zu dieser Pflückaufgabe.",
+    "manuellStattdessen": "Kennung eingeben",
+    "scanStattdessen": "Doch scannen",
+    "codePlatzhalter": "Kennung vom Etikett",
+    "codeAria": "Steigenkennung von Hand eingeben",
+    "ohnePerson": "ohne Person",
+    "bereitsKontrolliert": "Bereits kontrolliert",
+    "keinKontrollrecht": "Kontrolle durch Betriebsleitung oder Vorarbeiter",
+    "naechste": "Nächste"
   }
 }

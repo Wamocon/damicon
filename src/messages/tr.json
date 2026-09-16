@@ -2163,5 +2163,21 @@
     "angemeldetTitel": "Zaten oturum açtınız",
     "angemeldetLead": "Yeni erişim kendi hesabına açılır. Önce çıkış yapın, yoksa eski hesapta çalışmaya devam edersiniz.",
     "abmelden": "Şimdi çıkış yap"
+  },
+  "steigeScan": {
+    "label": "Toplama noktasındaki kasa",
+    "steigeScannen": "Kasayı tara",
+    "hinweis": "Kasa etiketini kameraya tutun.",
+    "keineKamera": "Kamera yok. Numarayı elle girin.",
+    "keinSteigenCode": "Bu kodda kasa numarası yok.",
+    "nichtInDieserAufgabe": "{code} bu toplama görevine ait değil.",
+    "manuellStattdessen": "Numara gir",
+    "scanStattdessen": "Yine de tara",
+    "codePlatzhalter": "Etiketteki numara",
+    "codeAria": "Kasa numarasını elle gir",
+    "ohnePerson": "kişi yok",
+    "bereitsKontrolliert": "Zaten kontrol edildi",
+    "keinKontrollrecht": "Kontrol yönetim veya ustabaşı tarafından",
+    "naechste": "Sonraki"
   }
 }

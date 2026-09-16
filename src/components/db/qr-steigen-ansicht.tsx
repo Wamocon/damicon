@@ -27,10 +27,32 @@ export async function QrSteigenAnsicht() {
   // supabase/migrations/20260908150000_oeffentliche_herkunft.sql) - genau die
   // volle URL, nicht der nackte Code, damit eine Kamera-App direkt navigieren
   // kann.
+  //
+  // Anforderung 2.7, "ein Scan am Sammelpunkt ruft die Steige auf": Der
+  // Chargen-Code allein kann das nicht leisten, weil eine Charge viele Steigen
+  // umfasst - der Scan wuesste nur, aus welcher Ernte die Ware stammt, nicht
+  // welche Steige in der Hand liegt. Deshalb traegt die URL zusaetzlich die
+  // Steigenkennung.
+  //
+  // Ein QR statt zweier: Das Druckbild bleibt unveraendert, und beide Zwecke
+  // laufen ueber denselben Code. Die Kamera-App eines Kunden landet weiterhin
+  // auf der oeffentlichen Herkunftsseite, die den Parameter schlicht ignoriert;
+  // die Scan-Oberflaeche im Dashboard liest ihn aus (steige-scan-feld.tsx).
+  // Bewusst in Kauf genommen: Die Steigenkennung steht damit in einem
+  // oeffentlich lesbaren Code. Sie ist eine laufende Nummer ohne Personenbezug,
+  // und die Daten dahinter schuetzt die RLS - wer den Code kennt, sieht nichts,
+  // wofuer er nicht angemeldet ist. Entscheidung des Auftraggebers vom
+  // 16.09.2026.
   const etiketten = await Promise.all(
     etikettenListe.etiketten.map(async (e) => ({
       ...e,
-      svg: await qrSvg(absoluteUrl(locale, `/herkunft/${e.oeffentlicherCode}`), "etikett"),
+      svg: await qrSvg(
+        absoluteUrl(
+          locale,
+          `/herkunft/${e.oeffentlicherCode}?steige=${encodeURIComponent(e.code)}`,
+        ),
+        "etikett",
+      ),
     })),
   );
 

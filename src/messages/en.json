@@ -2163,5 +2163,21 @@
     "angemeldetTitel": "You are already signed in",
     "angemeldetLead": "A new access is issued for its own account. Sign out first, otherwise you will keep working in the old one.",
     "abmelden": "Sign out now"
+  },
+  "steigeScan": {
+    "label": "Crate at the collection point",
+    "steigeScannen": "Scan crate",
+    "hinweis": "Hold the crate label in front of the camera.",
+    "keineKamera": "No camera available. Enter the code by hand.",
+    "keinSteigenCode": "This code carries no crate number.",
+    "nichtInDieserAufgabe": "{code} does not belong to this picking task.",
+    "manuellStattdessen": "Enter code",
+    "scanStattdessen": "Scan instead",
+    "codePlatzhalter": "Code from the label",
+    "codeAria": "Enter crate number by hand",
+    "ohnePerson": "no person",
+    "bereitsKontrolliert": "Already inspected",
+    "keinKontrollrecht": "Inspection by management or foreman",
+    "naechste": "Next"
   }
 }
