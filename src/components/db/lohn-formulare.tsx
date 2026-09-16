@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   lohnPeriodeBerechnen,
@@ -13,17 +12,13 @@ import {
   AktionsMeldung,
   Feld,
   FormularKarte,
+  PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 import type { LohnStatus } from "@/lib/domain/lohn";
 
 // Formulare der Lohnabrechnung mit Qualitaetsfaktor (WMCNL-1444): Lohnsatz
 // anlegen, Periode berechnen, Status setzen (Freigeben/Auszahlen).
-
-function PfadFeld() {
-  const pfad = usePathname();
-  return <input type="hidden" name="pfad" value={pfad} />;
-}
 
 // Neuer Lohnsatz. Ein vorheriger, noch offener Satz wird von der Datenbank
 // automatisch zum neuen Gueltigkeitsbeginn geschlossen - kein Feld dafuer noetig.

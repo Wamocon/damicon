@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState, useState, type FormEvent } from "react";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Camera, Check } from "lucide-react";
 import {
@@ -18,6 +17,7 @@ import {
   Feld,
   FormularKarte,
   mitGeraetZeitstempel,
+  PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 import { useOfflineFormular } from "@/components/db/use-offline-formular";
@@ -25,11 +25,6 @@ import { eintragen } from "@/lib/offline/warteschlange";
 import { bildFuerWarteschlangeVerkleinern } from "@/lib/offline/bild";
 import type { AktionTyp } from "@/lib/offline/db";
 import type { AuswahlOption } from "@/components/db/standort-formulare";
-
-function PfadFeld() {
-  const pfad = usePathname();
-  return <input type="hidden" name="pfad" value={pfad} />;
-}
 
 // Neue Pflueckaufgabe. Gesperrte Reihenbloecke stehen gar nicht erst zur Wahl -
 // und die Datenbank weist sie zusaetzlich ab (Trigger trg_pflueckaufgabe_sperre).

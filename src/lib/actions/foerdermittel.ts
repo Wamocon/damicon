@@ -1,33 +1,17 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { foerderdossierStatus, type FoerderdossierStatus } from "@/lib/domain/foerdermittel";
+import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 
 // Foerdermitteldossier (Anforderung 4.12). requirePermission() ist die erste
 // Verteidigungslinie, RLS (foerderdossiers_insert_buero/-update_buero,
 // Migration 20260925000000) die zweite.
 
-function text(formData: FormData, feld: string): string {
-  return String(formData.get(feld) ?? "").trim();
-}
-
-function aktualisiere(formData: FormData) {
-  const pfad = text(formData, "pfad");
-  if (pfad.startsWith("/")) revalidatePath(pfad);
-}
-
-async function protokolliere(profil: SessionProfile, aktion: string, ressourceId: string, titel: string) {
-  const supabase = await createClient();
-  await supabase.from("audit_events").insert({
-    actor: `${profil.fullName} (${profil.role})`,
-    aktion,
-    ressource: "foerdermittel",
-    ressource_id: ressourceId,
-    metadata: { titel },
-  });
+function protokolliere(profil: SessionProfile, aktion: string, ressourceId: string, titel: string) {
+  return protokolliereBasis(profil, aktion, "foerdermittel", ressourceId, { titel });
 }
 
 export async function dossierAnlegen(

@@ -1,9 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
+import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 
 // Lieferungen: Uebergabequittung und Lieferstatus (Anforderung 3.5 Teil 2,
 // 5.2 Teil 2a). requirePermission() ist die erste Verteidigungslinie, RLS
@@ -14,24 +14,8 @@ import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/
 
 const maxDateigroesse = 8 * 1024 * 1024;
 
-function text(formData: FormData, feld: string): string {
-  return String(formData.get(feld) ?? "").trim();
-}
-
-function aktualisiere(formData: FormData) {
-  const pfad = text(formData, "pfad");
-  if (pfad.startsWith("/")) revalidatePath(pfad);
-}
-
-async function protokolliere(profil: SessionProfile, aktion: string, ressourceId: string) {
-  const supabase = await createClient();
-  await supabase.from("audit_events").insert({
-    actor: `${profil.fullName} (${profil.role})`,
-    aktion,
-    ressource: "logistik",
-    ressource_id: ressourceId,
-    metadata: {},
-  });
+function protokolliere(profil: SessionProfile, aktion: string, ressourceId: string) {
+  return protokolliereBasis(profil, aktion, "logistik", ressourceId);
 }
 
 export async function lieferungAnlegen(

@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { MessageSquarePlus } from "lucide-react";
 import {
@@ -15,6 +14,7 @@ import {
   Auswahl,
   Feld,
   FormularKarte,
+  PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 import type { AuswahlOption } from "@/components/db/standort-formulare";
@@ -22,11 +22,6 @@ import { reklamationGruende, type ReklamationStatus } from "@/lib/domain/reklama
 
 // Formulare des Reklamationsmanagements (WMCNL-1455): Reklamation melden,
 // Status setzen inklusive Loesung/Gutschrift, Nachricht an den Verlauf.
-
-function PfadFeld() {
-  const pfad = usePathname();
-  return <input type="hidden" name="pfad" value={pfad} />;
-}
 
 // Neue Reklamation. Ein Kunde legt ausschliesslich fuer die eigene Firma an -
 // die Kundenauswahl erscheint deshalb nur fuer Buero-Rollen (die Action

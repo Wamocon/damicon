@@ -1,9 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
+import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 
 // B2B-Portal: Preisliste und Vorbestellung (Anforderung 5.1, Teil 2 von 2).
 // requirePermission() ist die erste Verteidigungslinie, RLS
@@ -11,28 +11,8 @@ import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/
 // Migration 20260929000000) die zweite. Kontingent-Verbrauch wird bewusst
 // nicht geprueft/fortgeschrieben - siehe Migrationskommentar.
 
-function text(formData: FormData, feld: string): string {
-  return String(formData.get(feld) ?? "").trim();
-}
-
-function aktualisiere(formData: FormData) {
-  const pfad = text(formData, "pfad");
-  if (pfad.startsWith("/")) revalidatePath(pfad);
-}
-
-async function protokolliere(
-  profil: SessionProfile,
-  aktion: string,
-  ressourceId: string,
-) {
-  const supabase = await createClient();
-  await supabase.from("audit_events").insert({
-    actor: `${profil.fullName} (${profil.role})`,
-    aktion,
-    ressource: "vorbestellungen",
-    ressource_id: ressourceId,
-    metadata: {},
-  });
+function protokolliere(profil: SessionProfile, aktion: string, ressourceId: string) {
+  return protokolliereBasis(profil, aktion, "vorbestellungen", ressourceId);
 }
 
 // Ein Kunde bestellt fuer die eigene Firma vor, das Buero kann fuer jede
@@ -90,6 +70,17 @@ export async function vorbestellungStatusSetzen(
     return zugriffsFehler(error);
   }
 
+  // Vibecode-Cleanup-Fund: "kunde" hat ueber crud("b2b_portal") ebenfalls
+  // b2b_portal:update (fuer den eigenen Storno in vorbestellungStornieren()
+  // unten), requirePermission() allein filtert diese Rolle hier also nicht
+  // aus. RLS (vorbestellungen_update_buero) blockt einen kunde-Aufruf zwar
+  // zuverlaessig, dasselbe Muster wie an anderer Stelle im Projekt (siehe
+  // b2b-portal-ansicht.tsx) verlangt aber denselben Ausschluss zusaetzlich
+  // hier in der Aktion, statt sich allein auf RLS zu verlassen.
+  if (profil.role === "kunde") {
+    return zugriffsFehler(new Error("keine-berechtigung"));
+  }
+
   const id = text(formData, "id");
   const neuerStatus = text(formData, "status");
   if (!id || (neuerStatus !== "bestaetigt" && neuerStatus !== "storniert")) {
@@ -101,6 +92,15 @@ export async function vorbestellungStatusSetzen(
     .from("vorbestellungen")
     .update({ status: neuerStatus })
     .eq("id", id)
+    // Vibecode-Cleanup-Fund: derselbe Vorzustands-Schutz wie in der RLS-
+    // Policy vorbestellungen_update_buero (Migration 20260929010000), hier
+    // zusaetzlich in der Aktion statt sich allein auf die Datenbank zu
+    // verlassen - verhindert, dass eine bereits automatisch auf "geliefert"
+    // oder ein bereits "storniert" fortgeschriebene Vorbestellung erneut
+    // umgesetzt wird. Bewusst NICHT nur "angefragt": eine bereits
+    // "bestaetigt" bestellte Menge nachtraeglich zu stornieren, bleibt ein
+    // legitimer Geschaeftsvorgang (Ruecksprache mit dem Kunden).
+    .in("status", ["angefragt", "bestaetigt"])
     .select("id")
     .maybeSingle();
 

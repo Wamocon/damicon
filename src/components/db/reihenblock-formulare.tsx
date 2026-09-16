@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ShieldCheck, Sprout } from "lucide-react";
 import {
@@ -16,15 +15,11 @@ import {
   Auswahl,
   Feld,
   FormularKarte,
+  PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 import { reihenblockStatus } from "@/lib/domain/reihenbloecke";
 import type { AuswahlOption } from "@/components/db/standort-formulare";
-
-function PfadFeld() {
-  const pfad = usePathname();
-  return <input type="hidden" name="pfad" value={pfad} />;
-}
 
 // Statuswechsel direkt in der Tabellenzeile. Die Datenbank laesst den Wechsel
 // weg von "wartezeitgesperrt" nur zu, wenn keine Wartezeit mehr laeuft.

@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import {
@@ -12,6 +11,7 @@ import {
 } from "@/lib/actions/status";
 import type { Json } from "@/lib/database.types";
 import { ledgerTyp, type LedgerTyp } from "@/lib/domain/finanzen";
+import { text, zahl, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 
 // Kostentraeger/Ledger (Anforderung 4.2, P0). Wie bei actions/lohn.ts:
 // requirePermission() ist die erste Verteidigungslinie, RLS
@@ -19,36 +19,13 @@ import { ledgerTyp, type LedgerTyp } from "@/lib/domain/finanzen";
 // 20260909000000) die zweite. Der Ledger-Eintrag selbst bleibt append-only -
 // eine Korrektur ist nur eine Gegenbuchung mit umgekehrtem Typ, kein Update.
 
-function text(formData: FormData, feld: string): string {
-  return String(formData.get(feld) ?? "").trim();
-}
-
-function zahl(formData: FormData, feld: string): number | null {
-  const roh = text(formData, feld).replace(",", ".");
-  if (!roh) return null;
-  const wert = Number(roh);
-  return Number.isFinite(wert) ? wert : null;
-}
-
-function aktualisiere(formData: FormData) {
-  const pfad = text(formData, "pfad");
-  if (pfad.startsWith("/")) revalidatePath(pfad);
-}
-
-async function protokolliere(
+function protokolliere(
   profil: SessionProfile,
   aktion: string,
   ressourceId: string | null,
   metadata: Record<string, Json> = {},
 ) {
-  const supabase = await createClient();
-  await supabase.from("audit_events").insert({
-    actor: `${profil.fullName} (${profil.role})`,
-    aktion,
-    ressource: "finanzen",
-    ressource_id: ressourceId,
-    metadata,
-  });
+  return protokolliereBasis(profil, aktion, "finanzen", ressourceId, metadata);
 }
 
 // Neuer Kostentraeger. reihenblock_id, sorte_id und b2b_kunde_id sind einzeln

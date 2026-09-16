@@ -1,17 +1,11 @@
 "use client";
 
 import { useActionState } from "react";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { CheckCircle2 } from "lucide-react";
 import { schrittAbhaken } from "@/lib/actions/einarbeitung";
 import { leer } from "@/lib/actions/status";
-import { AktionsMeldung } from "@/components/db/formular-kit";
-
-function PfadFeld() {
-  const pfad = usePathname();
-  return <input type="hidden" name="pfad" value={pfad} />;
-}
+import { AktionsMeldung, PfadFeld } from "@/components/db/formular-kit";
 
 // Anforderung 2.12: ein Klick je Schritt, kein Formular mit mehreren Feldern -
 // dieselbe kompakte Interaktion wie SteigeKontrollierenKnopf (Anforderung 2.10).

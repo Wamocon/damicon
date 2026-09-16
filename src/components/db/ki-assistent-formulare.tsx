@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { usePathname } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { MessageSquareWarning, Sparkles } from "lucide-react";
 import { Card, StatusPill } from "@/components/ui/kit";
@@ -10,6 +9,7 @@ import {
   Auswahl,
   Feld,
   FormularKarte,
+  PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 import { kiEskalationAnfordern, kiNachrichtSenden } from "@/lib/actions/ki-assistent";
@@ -20,12 +20,12 @@ import {
   kiAnbieterStandardSetzen,
 } from "@/lib/actions/ki-anbieter";
 import { leer } from "@/lib/actions/status";
-import { kiAnbieterTypen, type KiAnbieterZeile, type KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
-
-function PfadFeld() {
-  const pfad = usePathname();
-  return <input type="hidden" name="pfad" value={pfad} />;
-}
+import {
+  kiAnbieterTypen,
+  MAX_NACHRICHT_LAENGE,
+  type KiAnbieterZeile,
+  type KiChatNachrichtZeile,
+} from "@/lib/domain/ki-assistent";
 
 // --- Chatfenster -------------------------------------------------------------
 
@@ -90,7 +90,7 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
             <input
               name="nachricht"
               required
-              maxLength={2000}
+              maxLength={MAX_NACHRICHT_LAENGE}
               placeholder={t("inputPlaceholder")}
               className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary"
             />
@@ -147,6 +147,58 @@ export function KiAnbieterVerwaltung({ anbieter }: { anbieter: KiAnbieterZeile[]
   );
 }
 
+// Vibecode-Cleanup: fasst die drei fast identischen Formulare (PfadFeld,
+// versteckte id, ein Knopf) zusammen. Bewusst NUR das Formular-Markup
+// zusammengefasst, nicht die useActionState-Aufrufe oder die Platzierung der
+// AktionsMeldung - beides bleibt in KiAnbieterZeileKarte, damit sich am
+// bestehenden Layout (drei Knoepfe nebeneinander, drei Meldungen darunter
+// gestapelt) nichts aendert.
+function AnbieterAktionsKnopf({
+  action,
+  anbieterId,
+  zusatzFeld,
+  label,
+  destruktiv,
+  bestaetigung,
+}: {
+  // Bereits an useActionState gebundener Dispatcher aus dem Aufrufer
+  // (KiAnbieterZeileKarte), NICHT die rohe Server Action - siehe Kommentar
+  // dort, wieso das der eigentliche useActionState-Aufruf bleibt.
+  action: (payload: FormData) => void;
+  anbieterId: string;
+  zusatzFeld?: { name: string; wert: string };
+  label: string;
+  destruktiv?: boolean;
+  bestaetigung?: string;
+}) {
+  return (
+    <form
+      action={action}
+      onSubmit={
+        bestaetigung
+          ? (event) => {
+              if (!window.confirm(bestaetigung)) event.preventDefault();
+            }
+          : undefined
+      }
+    >
+      <PfadFeld />
+      <input type="hidden" name="id" value={anbieterId} />
+      {zusatzFeld ? <input type="hidden" name={zusatzFeld.name} value={zusatzFeld.wert} /> : null}
+      <button
+        type="submit"
+        className={
+          destruktiv
+            ? "inline-flex h-7 items-center rounded-lg border border-destructive/30 px-2.5 text-[11px] font-semibold text-destructive transition hover:border-destructive"
+            : "inline-flex h-7 items-center rounded-lg border border-border px-2.5 text-[11px] font-semibold text-foreground transition hover:border-primary"
+        }
+      >
+        {label}
+      </button>
+    </form>
+  );
+}
+
 function KiAnbieterZeileKarte({ anbieter }: { anbieter: KiAnbieterZeile }) {
   const t = useTranslations("kiAssistentAnsicht.anbieterVerwaltung");
   const [aktivStatus, aktivAction] = useActionState(kiAnbieterAktivSetzen, leer);
@@ -175,45 +227,25 @@ function KiAnbieterZeileKarte({ anbieter }: { anbieter: KiAnbieterZeile }) {
 
       <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-border pt-2.5">
         {!anbieter.istStandard ? (
-          <form action={standardAction}>
-            <PfadFeld />
-            <input type="hidden" name="id" value={anbieter.id} />
-            <button
-              type="submit"
-              className="inline-flex h-7 items-center rounded-lg border border-border px-2.5 text-[11px] font-semibold text-foreground transition hover:border-primary"
-            >
-              {t("alsStandard")}
-            </button>
-          </form>
+          <AnbieterAktionsKnopf
+            action={standardAction}
+            anbieterId={anbieter.id}
+            label={t("alsStandard")}
+          />
         ) : null}
-        <form action={aktivAction}>
-          <PfadFeld />
-          <input type="hidden" name="id" value={anbieter.id} />
-          <input type="hidden" name="aktiv" value={(!anbieter.aktiv).toString()} />
-          <button
-            type="submit"
-            className="inline-flex h-7 items-center rounded-lg border border-border px-2.5 text-[11px] font-semibold text-foreground transition hover:border-primary"
-          >
-            {anbieter.aktiv ? t("deaktivieren") : t("aktivieren")}
-          </button>
-        </form>
-        <form
+        <AnbieterAktionsKnopf
+          action={aktivAction}
+          anbieterId={anbieter.id}
+          zusatzFeld={{ name: "aktiv", wert: (!anbieter.aktiv).toString() }}
+          label={anbieter.aktiv ? t("deaktivieren") : t("aktivieren")}
+        />
+        <AnbieterAktionsKnopf
           action={loeschenAction}
-          onSubmit={(event) => {
-            if (!window.confirm(t("loeschenSicher", { name: anbieter.anzeigeName }))) {
-              event.preventDefault();
-            }
-          }}
-        >
-          <PfadFeld />
-          <input type="hidden" name="id" value={anbieter.id} />
-          <button
-            type="submit"
-            className="inline-flex h-7 items-center rounded-lg border border-destructive/30 px-2.5 text-[11px] font-semibold text-destructive transition hover:border-destructive"
-          >
-            {t("loeschen")}
-          </button>
-        </form>
+          anbieterId={anbieter.id}
+          label={t("loeschen")}
+          destruktiv
+          bestaetigung={t("loeschenSicher", { name: anbieter.anzeigeName })}
+        />
       </div>
       <AktionsMeldung status={aktivStatus} />
       <AktionsMeldung status={standardStatus} />

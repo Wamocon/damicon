@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import {
@@ -10,6 +9,7 @@ import {
   zugriffsFehler,
   type AktionsStatus,
 } from "@/lib/actions/status";
+import { text, aktualisiere, protokolliere } from "@/lib/actions/formular-helfer";
 
 // Dokumentenverwaltung (Meilenstein B). Die Datei ist optional: ein Dokument
 // darf zuerst als Eintrag entstehen und die Datei spaeter bekommen - so
@@ -26,10 +26,6 @@ const kategorien = [
 
 const statusWerte = ["gueltig", "prueflauf", "abgelaufen"] as const;
 const maxDateigroesse = 16 * 1024 * 1024;
-
-function text(formData: FormData, feld: string): string {
-  return String(formData.get(feld) ?? "").trim();
-}
 
 export async function dokumentAnlegen(
   _status: AktionsStatus,
@@ -90,16 +86,13 @@ export async function dokumentAnlegen(
     return dbFehler(error);
   }
 
-  await supabase.from("audit_events").insert({
-    actor: `${profil.fullName} (${profil.role})`,
-    aktion: "dokument.angelegt",
-    ressource: "dokumente",
-    ressource_id: data.id,
-    metadata: { name: data.name, kategorie, datei: Boolean(storagePfad) },
+  await protokolliere(profil, "dokument.angelegt", "dokumente", data.id, {
+    name: data.name,
+    kategorie,
+    datei: Boolean(storagePfad),
   });
 
-  const pfad = text(formData, "pfad");
-  if (pfad.startsWith("/")) revalidatePath(pfad);
+  aktualisiere(formData);
 
   return ok("ok.dokument", data.name);
 }

@@ -1,9 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
+import { text, aktualisiere } from "@/lib/actions/formular-helfer";
 
 // Anforderung 4.10: eine Teilnahme an einer Pflichtschulung erfassen. Ein
 // Formularfeld, zwei Anwendungsfaelle: ohne profil_id im Formular ist es die
@@ -12,15 +12,9 @@ import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/
 // grobe Berechtigungsstufe (schulungen:complete), die eigentliche
 // Einschraenkung "eigene Zeile oder Buero" liegt in der RLS-Policy
 // schulungsteilnahmen_insert_own (WITH CHECK).
-
-function text(formData: FormData, feld: string): string {
-  return String(formData.get(feld) ?? "").trim();
-}
-
-function aktualisiere(formData: FormData) {
-  const pfad = text(formData, "pfad");
-  if (pfad.startsWith("/")) revalidatePath(pfad);
-}
+//
+// WMC-Vibecode-Cleanup: wie einarbeitung.ts bislang ohne protokolliere()-
+// Aufruf, bewusst nicht in diesem Durchgang nachgezogen (Grundprinzip 6).
 
 export async function teilnahmeErfassen(
   _status: AktionsStatus,

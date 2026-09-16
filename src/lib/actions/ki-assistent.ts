@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
@@ -9,14 +8,17 @@ import { ladeKiChatVerlauf, ladeWissensPreislisten } from "@/lib/data/ki-assiste
 import {
   baueGesamtWissenskontext,
   baueSystemPrompt,
+  MAX_NACHRICHT_LAENGE,
   sollteAutomatischEskalieren,
   wissensQuellenFuerFaehigkeiten,
+  type KiChatNachrichtZeile,
 } from "@/lib/domain/ki-assistent";
 import { hasPermission } from "@/lib/rbac";
 import { sendeChatAnfrage } from "@/lib/ai/anbieter-client";
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
 import type { ChatNachricht } from "@/lib/ai/anfrage";
 import type { Json } from "@/lib/database.types";
+import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 
 // Chat-Aktionen des KI-Assistenten (Anforderung 5.4/5.5). Masterplan-Vorgabe
 // woertlich: "RBAC-Gate vor dem Modellaufruf, deterministischer Fallback,
@@ -42,31 +44,53 @@ import type { Json } from "@/lib/database.types";
 // Knopf waehrend eines laufenden Requests deaktiviert, dasselbe Mass an
 // Schutz wie bei jedem anderen Formular in diesem Projekt.
 
-const MAX_NACHRICHT_LAENGE = 2000;
 const MAX_VERLAUF_FUER_MODELL = 10;
 
-function text(formData: FormData, feld: string): string {
-  return String(formData.get(feld) ?? "").trim();
-}
-
-function aktualisiere(formData: FormData) {
-  const pfad = text(formData, "pfad");
-  if (pfad.startsWith("/")) revalidatePath(pfad);
-}
-
-async function protokolliere(
+function protokolliere(
   profil: SessionProfile,
   aktion: string,
   metadata: Record<string, Json> = {},
 ) {
-  const supabase = await createClient();
-  await supabase.from("audit_events").insert({
-    actor: `${profil.fullName} (${profil.role})`,
-    aktion,
-    ressource: "ki_chat_nachrichten",
-    ressource_id: profil.id,
-    metadata,
-  });
+  return protokolliereBasis(profil, aktion, "ki_chat_nachrichten", profil.id, metadata);
+}
+
+// Vibecode-Cleanup: aus kiNachrichtSenden() herausgezogen (die Funktion
+// vermischte RBAC-Gate, Eingabevalidierung, Anbieter laden, Kontext bauen und
+// Modellaufruf in einem Block). Liest die Zeile des aktiven Standard-
+// Anbieters ueber den service_role-Client - RLS auf ki_anbieter ist
+// admin-only, dieser Aufruf laeuft aber erst NACH requirePermission() im
+// Aufrufer, derselbe Aufbau wie vorher, nur benannt und isoliert testbar.
+async function ladeAktivenStandardAnbieter() {
+  const dienst = createServiceRoleClient();
+  const { data } = await dienst
+    .from("ki_anbieter")
+    .select("name, anzeige_name, typ, basis_url, modell, api_key_chiffrat")
+    .eq("aktiv", true)
+    .eq("ist_standard", true)
+    .maybeSingle();
+  return data;
+}
+
+// Baut den an das Modell uebergebenen Verlauf: Systemprompt zuerst, danach
+// die letzten echten Gespraechsbeitraege (keine system-Zeilen, siehe
+// Kommentar unten), zuletzt die neue Nutzernachricht.
+function baueVerlaufFuerModell(
+  systemPrompt: string,
+  bisherigerVerlauf: KiChatNachrichtZeile[],
+  nachricht: string,
+): ChatNachricht[] {
+  return [
+    { rolle: "system", inhalt: systemPrompt },
+    // Nur echte Gespraechsbeitraege, keine system-Zeilen aus dem Verlauf
+    // (Eskalationshinweise u. Ae.) - sonst mischten sich die bei
+    // baueAnthropicAnfrage() alle in dasselbe system-Feld wie der
+    // eigentliche Systemprompt.
+    ...bisherigerVerlauf
+      .filter((n) => n.rolle !== "system")
+      .slice(-MAX_VERLAUF_FUER_MODELL)
+      .map((n) => ({ rolle: n.rolle, inhalt: n.inhalt })),
+    { rolle: "nutzer", inhalt: nachricht },
+  ];
 }
 
 export async function kiNachrichtSenden(
@@ -114,13 +138,7 @@ export async function kiNachrichtSenden(
   let fallback = false;
 
   try {
-    const dienst = createServiceRoleClient();
-    const { data: anbieter } = await dienst
-      .from("ki_anbieter")
-      .select("name, anzeige_name, typ, basis_url, modell, api_key_chiffrat")
-      .eq("aktiv", true)
-      .eq("ist_standard", true)
-      .maybeSingle();
+    const anbieter = await ladeAktivenStandardAnbieter();
 
     if (!anbieter) {
       fallback = true;
@@ -142,19 +160,7 @@ export async function kiNachrichtSenden(
       });
       const preislisten = quellen.includes("preisliste") ? await ladeWissensPreislisten() : [];
       const systemPrompt = baueSystemPrompt(baueGesamtWissenskontext(quellen, preislisten));
-
-      const verlaufFuerModell: ChatNachricht[] = [
-        { rolle: "system", inhalt: systemPrompt },
-        // Nur echte Gespraechsbeitraege, keine system-Zeilen aus dem Verlauf
-        // (Eskalationshinweise u. Ae.) - sonst mischten sich die bei
-        // baueAnthropicAnfrage() alle in dasselbe system-Feld wie der
-        // eigentliche Systemprompt.
-        ...bisherigerVerlauf.nachrichten
-          .filter((n) => n.rolle !== "system")
-          .slice(-MAX_VERLAUF_FUER_MODELL)
-          .map((n) => ({ rolle: n.rolle, inhalt: n.inhalt })),
-        { rolle: "nutzer", inhalt: nachricht },
-      ];
+      const verlaufFuerModell = baueVerlaufFuerModell(systemPrompt, bisherigerVerlauf.nachrichten, nachricht);
 
       const apiKey = entschluessleApiKey(anbieter.api_key_chiffrat);
       const antwort = await sendeChatAnfrage(
