@@ -48,6 +48,10 @@ export const resources = [
   // ueber jede Rolle im Betrieb. Wer einladen darf, soll damit nicht auch
   // Rollen vergeben duerfen.
   "einladungen",
+  // Anforderung 5.6: lokal etablierte Kontaktkanaele und Zahlungswege
+  // (WhatsApp, Kaspi QR o. Ae.), oeffentlich sichtbar auf der Website, vom
+  // Buero gepflegt. Reine Anzeige/Verwaltung, keine echte API-Integration.
+  "kanaele",
 ] as const;
 
 export type Resource = (typeof resources)[number];
@@ -199,6 +203,11 @@ export const rolePermissions: Record<Role, Permission[]> = {
     // delete - eine ausgestellte Einladung bleibt nachvollziehbar, die
     // Migration 20261002000000 kennt dafuer gar keine Policy.
     ...crud("einladungen"),
+    // Anforderung 5.6: Kontaktkanaele/Zahlungswege pflegen, inklusive
+    // Loeschen eines falsch angelegten Kanals (anders als "einladungen" kein
+    // Nachweisinteresse an alten Zeilen).
+    ...crud("kanaele"),
+    "kanaele:delete",
   ],
   buchhaltung: [
     ...view("dashboard"),

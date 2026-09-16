@@ -684,6 +684,12 @@
       "summary": "Short image-based videos per core process, multilingual, with progress tracking per person.",
       "todo": "Video content per core process, Kazakh and Russian language versions, progress tracking per person."
     },
+    "kanaele": {
+      "title": "Contact channels",
+      "description": "Locally established contact channels and payment methods, shown publicly in the website footer. Display only, no connection to a real messenger or payment service.",
+      "summary": "WhatsApp, Kaspi QR and other channels as contact details - maintained by the office, hidden as a draft until then.",
+      "todo": "Enter the real account details for each channel."
+    },
     "reklamationen": {
       "title": "Complaint management",
       "description": "A B2B client's complaint per batch - reason, deadline and history, with a status flow through to a credit note. A client reports and sees only their own complaint; the office handles and closes it.",
@@ -807,7 +813,10 @@
       "kiAnbieterDeaktiviert": "Provider \"{wert}\" deactivated.",
       "kiAnbieterStandardGesetzt": "Default provider changed.",
       "kiAnbieterGeloescht": "Provider \"{wert}\" deleted.",
-      "wetterAktualisiert": "Weather data updated."
+      "wetterAktualisiert": "Weather data updated.",
+      "kanalAngelegt": "Channel created.",
+      "kanalAktualisiert": "Channel updated.",
+      "kanalGeloescht": "Channel deleted."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -1388,6 +1397,34 @@
       "knopf": "Update now"
     },
     "note": "Coordinates and base temperature are placeholders (Almaty city area, 5 °C) and should be replaced with the plantation's actual values or confirmed by an agronomist."
+  },
+  "kanaeleAnsicht": {
+    "titel": "Contact channels",
+    "lead": "Which channels appear in the website footer - visible only once a real value is entered and set to active.",
+    "keineKanaele": "No contact channel created yet.",
+    "footerHeading": "Contact & payment",
+    "typ": {
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "instagram": "Instagram",
+      "kaspi_qr": "Kaspi QR",
+      "sonstiges": "Other"
+    },
+    "col": {
+      "typ": "Type",
+      "bezeichnung": "Label",
+      "wert": "Number / link"
+    },
+    "wertPlatzhalter": "not entered yet",
+    "aktivLabel": "active (visible on the website)",
+    "aktivPill": "active",
+    "entwurfPill": "draft",
+    "speichern": "Save",
+    "loeschen": "Delete channel",
+    "anlegenTitel": "Add a channel",
+    "anlegenLead": "Type and label are required, the value can be added later.",
+    "anlegenKnopf": "Add",
+    "note": "Display only, no connection to a real messenger or payment service. A channel appears on the website only once a real value is entered and set to \"active\"."
   },
   "qrSteigenMock": {
     "scanTitle": "Scan at the dispatch point (mock)",

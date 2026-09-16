@@ -504,6 +504,34 @@
     },
     "note": "Koordinatlar ve taban sıcaklık yer tutuculardır (Almatı şehir merkezi, 5 °C) ve plantasyonun gerçek değerleriyle değiştirilmeli veya bir agronomist tarafından onaylanmalıdır."
   },
+  "kanaeleAnsicht": {
+    "titel": "İletişim kanalları",
+    "lead": "Web sitesinin alt bilgisinde hangi kanalların göründüğü - yalnızca gerçek bir değer girilip etkin olarak ayarlandığında görünür.",
+    "keineKanaele": "Henüz bir iletişim kanalı oluşturulmadı.",
+    "footerHeading": "İletişim ve ödeme",
+    "typ": {
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "instagram": "Instagram",
+      "kaspi_qr": "Kaspi QR",
+      "sonstiges": "Diğer"
+    },
+    "col": {
+      "typ": "Tür",
+      "bezeichnung": "Etiket",
+      "wert": "Numara / bağlantı"
+    },
+    "wertPlatzhalter": "henüz girilmedi",
+    "aktivLabel": "etkin (web sitesinde görünür)",
+    "aktivPill": "etkin",
+    "entwurfPill": "taslak",
+    "speichern": "Kaydet",
+    "loeschen": "Kanalı sil",
+    "anlegenTitel": "Kanal ekle",
+    "anlegenLead": "Tür ve etiket zorunludur, değer daha sonra eklenebilir.",
+    "anlegenKnopf": "Ekle",
+    "note": "Yalnızca görüntüleme, gerçek bir mesajlaşma veya ödeme hizmetine bağlantı yoktur. Bir kanal, gerçek bir değer girilip \"etkin\" olarak ayarlandığında web sitesinde görünür."
+  },
   "qrSteigenMock": {
     "scanTitle": "Çıkış noktasında tarama (taslak)",
     "simulateScan": "Taramayı benzet",
@@ -1015,6 +1043,12 @@
       "summary": "Her temel süreç için kısa, görsele dayalı videolar, çok dilli, kişi bazında ilerleme takibiyle.",
       "todo": "Temel süreç bazında video içerikleri, Kazakça ve Rusça dil sürümleri, kişi bazında ilerleme takibi."
     },
+    "kanaele": {
+      "title": "İletişim kanalları",
+      "description": "Yerel olarak yerleşik iletişim kanalları ve ödeme yöntemleri, web sitesinin alt bilgisinde herkese açık gösterilir. Yalnızca görüntüleme, gerçek bir mesajlaşma veya ödeme hizmetine bağlantı yoktur.",
+      "summary": "WhatsApp, Kaspi QR ve diğer kanallar iletişim bilgisi olarak - ofis tarafından yönetilir, o zamana kadar taslak olarak gizli kalır.",
+      "todo": "Her kanal için gerçek hesap bilgilerini girin."
+    },
     "reklamationen": {
       "title": "Şikâyet yönetimi",
       "description": "Bir B2B müşterisinin parti başına şikâyeti - neden, süre ve geçmiş, alacak dekontuna kadar durum akışıyla. Müşteri yalnızca kendi şikâyetini bildirir ve görür, ofis bunu işler ve kapatır.",
@@ -1118,6 +1152,9 @@
       "kiAnbieterDeaktiviert": "\"{wert}\" sağlayıcısı devre dışı bırakıldı.",
       "kiAnbieterStandardGesetzt": "Standart sağlayıcı değiştirildi.",
       "kiAnbieterGeloescht": "\"{wert}\" sağlayıcısı silindi.",
+      "kanalAngelegt": "Kanal oluşturuldu.",
+      "kanalAktualisiert": "Kanal güncellendi.",
+      "kanalGeloescht": "Kanal silindi.",
       "wetterAktualisiert": "Hava durumu verileri güncellendi."
     },
     "fehler": {

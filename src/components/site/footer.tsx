@@ -1,6 +1,7 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { DamiconLogo } from "@/components/brand/damicon-logo";
+import { KontaktkanaeleFooter } from "@/components/site/kontaktkanaele-footer";
 
 export function SiteFooter() {
   const t = useTranslations("footer");
@@ -8,7 +9,7 @@ export function SiteFooter() {
 
   return (
     <footer className="border-t border-border bg-card print:hidden">
-      <div className="container grid gap-8 py-12 md:grid-cols-[1.5fr_1fr_1fr]">
+      <div className="container grid gap-8 py-12 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
         <div>
           <div className="flex items-center gap-2.5">
             <DamiconLogo />
@@ -60,6 +61,8 @@ export function SiteFooter() {
             </li>
           </ul>
         </div>
+
+        <KontaktkanaeleFooter />
       </div>
 
       <div className="border-t border-border">

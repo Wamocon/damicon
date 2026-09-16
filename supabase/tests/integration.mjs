@@ -4037,6 +4037,71 @@ if (leitung && brigade) {
   }
 }
 
+// --- Anforderung 5.6: Kontaktkanaele/Zahlungswege -------------------------
+{
+  const { data: neuerKanal, error: neuerKanalFehler } = await leitung
+    .from("kontaktkanaele")
+    .insert({ typ: "whatsapp", bezeichnung: "Test-Kanal 5.6", wert: null, aktiv: false })
+    .select("id")
+    .single();
+  check(
+    "Anforderung 5.6: Betriebsleitung legt einen Kontaktkanal an",
+    !neuerKanalFehler && !!neuerKanal?.id,
+    neuerKanalFehler?.message ?? "",
+  );
+
+  if (!neuerKanalFehler && neuerKanal?.id) {
+    const { data: erzeugerLegtAnVersuch, error: erzeugerLegtAnFehler } = await (
+      await anmelden("erzeuger@damicon.demo")
+    ).client
+      .from("kontaktkanaele")
+      .insert({ typ: "whatsapp", bezeichnung: "Unbefugt", wert: null, aktiv: false })
+      .select("id");
+    check(
+      "Anforderung 5.6: eine Rolle ohne Buero-Zugriff (Erzeuger) legt keinen Kontaktkanal an (RLS)",
+      erzeugerLegtAnFehler?.code === "42501",
+      erzeugerLegtAnFehler?.code ?? `eingefuegte Zeilen: ${erzeugerLegtAnVersuch?.length}`,
+    );
+
+    const { data: anonSiehtEntwurf } = await anon
+      .from("kontaktkanaele")
+      .select("id")
+      .eq("id", neuerKanal.id);
+    check(
+      "Anforderung 5.6: ein inaktiver Kanal (Entwurf) ist fuer anon nicht sichtbar (kontaktkanaele_select_public)",
+      (anonSiehtEntwurf?.length ?? 0) === 0,
+      `Zeilen: ${anonSiehtEntwurf?.length}`,
+    );
+
+    const { data: erzeugerSiehtEntwurf } = await (await anmelden("erzeuger@damicon.demo")).client
+      .from("kontaktkanaele")
+      .select("id")
+      .eq("id", neuerKanal.id);
+    check(
+      "Anforderung 5.6: jede angemeldete Rolle sieht auch Entwuerfe (kontaktkanaele_select_intern)",
+      (erzeugerSiehtEntwurf?.length ?? 0) === 1,
+      `Zeilen: ${erzeugerSiehtEntwurf?.length}`,
+    );
+
+    await leitung
+      .from("kontaktkanaele")
+      .update({ wert: "+7 700 000 00 00", aktiv: true })
+      .eq("id", neuerKanal.id);
+
+    const { data: anonSiehtAktiven } = await anon
+      .from("kontaktkanaele")
+      .select("id, wert")
+      .eq("id", neuerKanal.id);
+    check(
+      "Anforderung 5.6: ein aktivierter Kanal mit echtem Wert ist fuer anon sichtbar",
+      (anonSiehtAktiven?.length ?? 0) === 1 && anonSiehtAktiven?.[0]?.wert === "+7 700 000 00 00",
+      JSON.stringify(anonSiehtAktiven),
+    );
+
+    await admin.from("kontaktkanaele").delete().eq("id", neuerKanal.id);
+  }
+}
+
 console.log("");
 if (failures > 0) {
   console.error(`${failures} Test(s) fehlgeschlagen.`);
