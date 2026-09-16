@@ -27,6 +27,9 @@ export interface OeffentlicheHerkunft {
   /** null = Vorkühlung steht noch aus, es gibt also noch kein Urteil. */
   kuehlketteEingehalten: boolean | null;
   wartezeitEingehalten: boolean;
+  /** Anforderung 6.1: eigene Ernte oder zugekaufte Ware eines Nachbarbetriebs. */
+  herkunftTyp: "eigene_ernte" | "zukauf";
+  nachbarbetriebName: string | null;
 }
 
 export async function ladeOeffentlicheHerkunft(
@@ -51,5 +54,7 @@ export async function ladeOeffentlicheHerkunft(
     minutenBisVorkuehlung: zeile.minuten_bis_vorkuehlung,
     kuehlketteEingehalten: zeile.kuehlkette_eingehalten,
     wartezeitEingehalten: zeile.wartezeit_eingehalten,
+    herkunftTyp: zeile.herkunft_typ === "zukauf" ? "zukauf" : "eigene_ernte",
+    nachbarbetriebName: zeile.nachbarbetrieb_name,
   };
 }

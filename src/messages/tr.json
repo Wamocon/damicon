@@ -1155,6 +1155,7 @@
       "kanalAngelegt": "Kanal oluşturuldu.",
       "kanalAktualisiert": "Kanal güncellendi.",
       "kanalGeloescht": "Kanal silindi.",
+      "spanneAktualisiert": "Marj güncellendi.",
       "wetterAktualisiert": "Hava durumu verileri güncellendi."
     },
     "fehler": {
@@ -1564,6 +1565,10 @@
     "notFound": "Bu kod için kayıt bulunmuyor. Lütfen yazımı kontrol edin.",
     "backToSearch": "Başka bir kod kontrol et",
     "keinePersonen": "Bu kayıt hiçbir kişiyi belirtmez.",
+    "herkunft": {
+      "eigeneErnte": "Kendi hasadı",
+      "zukauf": "{betrieb} komşu işletmesinden satın alındı"
+    },
     "fields": {
       "reihenblock": "Sıra bloğu",
       "sorte": "Çeşit",
@@ -1881,6 +1886,23 @@
       "rechnungsdatum": "Fatura tarihi",
       "knopf": "Kaydet"
     }
+  },
+  "abrechnungAnsicht": {
+    "titel": "Tedarikçi işletmelerle hesaplaşma",
+    "lead": "Her komşu işletme için satın alma değeri, global olarak belirlenen marj düşülerek - satın alınan ürün için bir kalite sınıflandırması olmadığı sürece kalite bazlı kesinti yok.",
+    "keineZeilen": "Henüz fiyatı girilmiş, hesaplaşma hesaplanabilecek bir satın alma kalemi yok.",
+    "col": {
+      "nachbarbetrieb": "Komşu işletme",
+      "menge": "Miktar",
+      "einkaufswert": "Satın alma değeri",
+      "spanne": "Marj",
+      "auszahlung": "Ödeme"
+    },
+    "formular": {
+      "spanne": "Marj (%)",
+      "knopf": "Kaydet"
+    },
+    "hinweis": "Marj tüm komşu işletmeler için aynı şekilde uygulanır. %0 olduğu sürece ödeme satın alma değerine eşittir - uydurulmuş bir marj yok."
   },
   "qrSteigenAnsicht": {
     "drucken": "Yazdır",

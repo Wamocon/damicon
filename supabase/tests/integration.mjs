@@ -2720,6 +2720,97 @@ if (leitung && brigade) {
       );
     }
 
+    // 5. Anforderung 6.1: die oeffentliche Herkunftsauskunft legt Zukauf-Ware
+    //    offen statt sie stillschweigend leer zu lassen.
+    if (!rvZukaufAufbauFehler) {
+      const { data: rvZukaufChargeVoll } = await admin
+        .from("chargen")
+        .select("oeffentlicher_code")
+        .eq("id", rvZukaufCharge.id)
+        .single();
+
+      const { data: rvHerkunft, error: rvHerkunftFehler } = await anon.rpc("herkunftsauskunft", {
+        p_code: rvZukaufChargeVoll?.oeffentlicher_code,
+      });
+      const rvHerkunftZeile = rvHerkunft?.[0];
+      check(
+        "Anforderung 6.1: die oeffentliche Herkunftsauskunft weist eine Zukauf-Charge als solche aus",
+        !rvHerkunftFehler &&
+          rvHerkunftZeile?.herkunft_typ === "zukauf" &&
+          rvHerkunftZeile?.nachbarbetrieb_name === rvNachbarbetrieb.name,
+        rvHerkunftFehler?.message ?? JSON.stringify(rvHerkunftZeile),
+      );
+
+      // Regressionsschutz: die eigene, bereits weiter oben angelegte Ernte-Charge
+      // (rvCharge, mit reihenblock_id) bleibt "eigene_ernte", nicht "zukauf".
+      const { data: rvEigeneChargeVoll } = await admin
+        .from("chargen")
+        .select("oeffentlicher_code")
+        .eq("id", rvCharge.id)
+        .single();
+      const { data: rvEigeneHerkunft } = await anon.rpc("herkunftsauskunft", {
+        p_code: rvEigeneChargeVoll?.oeffentlicher_code,
+      });
+      check(
+        "Anforderung 6.1: eine eigene Ernte-Charge bleibt weiterhin 'eigene_ernte'",
+        rvEigeneHerkunft?.[0]?.herkunft_typ === "eigene_ernte" &&
+          rvEigeneHerkunft?.[0]?.nachbarbetrieb_name === null,
+        JSON.stringify(rvEigeneHerkunft?.[0]),
+      );
+    }
+
+    // 6. Anforderung 6.4: Abrechnung gegenueber dem Lieferbetrieb.
+    if (!rvZukaufAufbauFehler) {
+      await admin
+        .from("zukauf_positionen")
+        .update({ preis_tenge_kg: 1000 })
+        .eq("id", rvZukaufPosition.id);
+      const { data: rvEinstellung } = await admin
+        .from("aggregator_einstellungen")
+        .select("id")
+        .limit(1)
+        .single();
+      await admin
+        .from("aggregator_einstellungen")
+        .update({ spanne_prozent: 10 })
+        .eq("id", rvEinstellung.id);
+
+      const { data: erzeugerAbrechnungVersuch, error: erzeugerAbrechnungFehler } = await (
+        await anmelden("erzeuger@damicon.demo")
+      ).client.rpc("abrechnung_je_nachbarbetrieb");
+      check(
+        "Anforderung 6.4: eine Rolle ohne Buero-Zugriff (Erzeuger) ruft die Abrechnung nicht ab",
+        erzeugerAbrechnungFehler?.code === "42501",
+        erzeugerAbrechnungFehler?.code ?? JSON.stringify(erzeugerAbrechnungVersuch),
+      );
+
+      const { data: bueroAbrechnung, error: bueroAbrechnungFehler } = await leitung.rpc(
+        "abrechnung_je_nachbarbetrieb",
+      );
+      const bueroAbrechnungZeile = bueroAbrechnung?.find(
+        (z) => z.nachbarbetrieb_id === rvNachbarbetrieb.id,
+      );
+      // Die Summe laeuft ueber ALLE Zukaufpositionen dieses Nachbarbetriebs im
+      // gehosteten Bestand, nicht nur die eben angelegte Testzeile - deshalb
+      // hier die Rechenbeziehung selbst pruefen (Auszahlung = Einkaufswert x
+      // (1 - Spanne)), nicht einen aus der Testzeile allein erwarteten
+      // absoluten Betrag.
+      const erwarteteAuszahlung =
+        Math.round(Number(bueroAbrechnungZeile?.einkaufswert_tenge) * 0.9 * 100) / 100;
+      check(
+        "Anforderung 6.4: die Abrechnung errechnet Einkaufswert abzueglich 10 % Spanne korrekt",
+        !bueroAbrechnungFehler &&
+          Number(bueroAbrechnungZeile?.menge_kg_gesamt) >= 10 &&
+          Number(bueroAbrechnungZeile?.auszahlung_tenge) === erwarteteAuszahlung,
+        bueroAbrechnungFehler?.message ?? JSON.stringify(bueroAbrechnungZeile),
+      );
+
+      await admin
+        .from("aggregator_einstellungen")
+        .update({ spanne_prozent: 0 })
+        .eq("id", rvEinstellung.id);
+    }
+
     // Aufraeumen (Kind vor Eltern wegen FKs).
     if (rvReklamation?.id) await admin.from("reklamationen").delete().eq("id", rvReklamation.id);
     if (rvZukaufReklamation?.id)
