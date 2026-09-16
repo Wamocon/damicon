@@ -18,6 +18,7 @@ import { B2bPortalAnsicht } from "@/components/db/b2b-portal-ansicht";
 import { PersonalAnsicht } from "@/components/db/personal-ansicht";
 import { KiAssistentAnsicht } from "@/components/db/ki-assistent-ansicht";
 import { EinladungenAnsicht } from "@/components/db/einladungen-ansicht";
+import { KuehletteAnsicht } from "@/components/db/kuehlkette-ansicht";
 import { RollenDemo } from "@/components/demo/buero";
 import type { ModuleDef } from "@/lib/modules";
 
@@ -89,6 +90,13 @@ export function serverModulAnsicht(
     // Modulkommentare.
     case "logistik":
       return <LogistikAnsicht />;
+    // Anforderung 3.1: die Live-Alarmlogik (KuehlkettenAlarm) lief bisher nur
+    // eingebettet in der Nachweiskette EINER Pflueckaufgabe. Dieses Modul
+    // zeigt dieselbe Komponente betriebsweit fuer alle gerade offenen Chargen
+    // statt der bisherigen drei fest verdrahteten Beispielchargen
+    // (KuehlketteMock).
+    case "kuehlkette":
+      return <KuehletteAnsicht />;
     case "b2b_portal":
       return <B2bPortalAnsicht />;
     // Anforderung 2.11: Schicht-Konzept, Bedarfsrechnung und Reserveliste

@@ -112,7 +112,11 @@ export const modules: ModuleDef[] = [
     icon: "thermometer-snowflake",
     resource: "kuehlkette",
     klassifikation: "neu-bauen",
-    reifegrad: "in-entwicklung",
+    // Anforderung 3.1: die Live-Alarmlogik (KuehlkettenAlarm, mitzaehlend vor
+    // Ablauf der 60-Minuten-Grenze statt nur rueckblickend zu urteilen) gab es
+    // bereits je Pflueckaufgabe - hier jetzt betriebsweit fuer alle offenen
+    // Chargen, siehe kuehlkette-ansicht.tsx.
+    reifegrad: "angebunden",
   },
   {
     key: "logistik",
