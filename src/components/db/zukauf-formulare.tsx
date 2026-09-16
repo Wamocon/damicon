@@ -1,22 +1,16 @@
 "use client";
 
 import { useActionState } from "react";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AlertCircle, AlertTriangle, CheckCircle2, Info } from "lucide-react";
 import { zukaufImportieren, zukaufPreisNachtragen } from "@/lib/actions/zukauf";
 import { leerZukaufImport } from "@/lib/actions/zukauf-status";
 import { leer } from "@/lib/actions/status";
-import { AktionsMeldung, FormularKarte, SubmitKnopf } from "@/components/db/formular-kit";
+import { AktionsMeldung, FormularKarte, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
 import type { ZukaufBefund } from "@/lib/import/zukauf-parser";
 
 // Formulare des Aggregator-Zukaufs (WMCNL-1453): CSV-Import mit Befundliste,
 // Preis nachtragen sobald die Rechnung des Nachbarbetriebs vorliegt.
-
-function PfadFeld() {
-  const pfad = usePathname();
-  return <input type="hidden" name="pfad" value={pfad} />;
-}
 
 const STUFE_SYMBOL = { fehler: AlertCircle, warnung: AlertTriangle, hinweis: Info } as const;
 const STUFE_KLASSE = {

@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import {
@@ -10,26 +9,11 @@ import {
   zugriffsFehler,
   type AktionsStatus,
 } from "@/lib/actions/status";
+import { text, zahl, aktualisiere, protokolliere } from "@/lib/actions/formular-helfer";
 
 // Feldvorgaenge, die die Nachweiskette fuellen: Steige mit Person erfassen,
 // Arbeitszeit melden, Kuehlmessung aufnehmen. Erst diese drei Vorgaenge machen
 // aus der Struktur eine Kette.
-
-function text(formData: FormData, feld: string): string {
-  return String(formData.get(feld) ?? "").trim();
-}
-
-function zahl(formData: FormData, feld: string): number | null {
-  const roh = text(formData, feld).replace(",", ".");
-  if (!roh) return null;
-  const wert = Number(roh);
-  return Number.isFinite(wert) ? wert : null;
-}
-
-function aktualisiere(formData: FormData) {
-  const pfad = text(formData, "pfad");
-  if (pfad.startsWith("/")) revalidatePath(pfad);
-}
 
 async function chargeZurAufgabe(aufgabeId: string) {
   const supabase = await createClient();
@@ -139,21 +123,11 @@ export async function kuehlmessungKern(
     return { erledigt: true, status: ok("ok.kuehlmessung", "") };
   }
 
-  await supabase.from("audit_events").insert({
-    // Vibecode-Cleanup-Fund: actor fehlte hier (anders als bei jeder anderen
-    // Protokollierung im Projekt), nur die Rolle stand in metadata - der
-    // Audit-Log verlor damit ausgerechnet fuer die Feldvorgaenge den
-    // lesbaren Namen der handelnden Person.
-    actor: `${profil.fullName} (${profil.role})`,
-    aktion: "kuehlmessung.erfasst",
-    ressource: "kuehlketten_messungen",
-    ressource_id: data.id,
-    metadata: {
-      charge: charge.code,
-      temperatur_c: temperaturC,
-      ergebnis: data.ergebnis,
-      aktor_rolle: profil.role,
-    },
+  await protokolliere(profil, "kuehlmessung.erfasst", "kuehlketten_messungen", data.id, {
+    charge: charge.code,
+    temperatur_c: temperaturC,
+    ergebnis: data.ergebnis,
+    aktor_rolle: profil.role,
   });
 
   const status =
@@ -235,12 +209,10 @@ export async function steigeKern(
     return { erledigt: true, status: ok("ok.steige", "") };
   }
 
-  await supabase.from("audit_events").insert({
-    actor: `${profil.fullName} (${profil.role})`,
-    aktion: "steige.erfasst",
-    ressource: "steigen",
-    ressource_id: data.id,
-    metadata: { code: data.code, gewicht_kg: gewichtKg ?? 2, aktor_rolle: profil.role },
+  await protokolliere(profil, "steige.erfasst", "steigen", data.id, {
+    code: data.code,
+    gewicht_kg: gewichtKg ?? 2,
+    aktor_rolle: profil.role,
   });
 
   return { erledigt: true, status: ok("ok.steige", data.code), daten: { code: data.code } };
@@ -295,12 +267,10 @@ export async function arbeitszeitKern(params: ArbeitszeitParams): Promise<KernEr
   if (error) return { erledigt: false, status: dbFehler(error) };
   if (!data) return { erledigt: true, status: ok("ok.arbeitszeit", String(minuten)) };
 
-  await supabase.from("audit_events").insert({
-    actor: `${profil.fullName} (${profil.role})`,
-    aktion: "arbeitszeit.erfasst",
-    ressource: "arbeitszeiten",
-    ressource_id: data.id,
-    metadata: { pfluecker_id: pflueckerId, minuten, aktor_rolle: profil.role },
+  await protokolliere(profil, "arbeitszeit.erfasst", "arbeitszeiten", data.id, {
+    pfluecker_id: pflueckerId,
+    minuten,
+    aktor_rolle: profil.role,
   });
 
   return { erledigt: true, status: ok("ok.arbeitszeit", String(minuten)) };

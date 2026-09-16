@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { usePathname } from "next/navigation";
 import { useFormatter, useTranslations } from "next-intl";
 import { MessageSquareWarning, Sparkles } from "lucide-react";
 import { Card, StatusPill } from "@/components/ui/kit";
@@ -10,6 +9,7 @@ import {
   Auswahl,
   Feld,
   FormularKarte,
+  PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 import { kiEskalationAnfordern, kiNachrichtSenden } from "@/lib/actions/ki-assistent";
@@ -21,11 +21,6 @@ import {
 } from "@/lib/actions/ki-anbieter";
 import { leer } from "@/lib/actions/status";
 import { kiAnbieterTypen, type KiAnbieterZeile, type KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
-
-function PfadFeld() {
-  const pfad = usePathname();
-  return <input type="hidden" name="pfad" value={pfad} />;
-}
 
 // --- Chatfenster -------------------------------------------------------------
 

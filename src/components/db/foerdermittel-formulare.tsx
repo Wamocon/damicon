@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { dossierAktualisieren, dossierAnlegen } from "@/lib/actions/foerdermittel";
 import { foerderdossierStatus, type FoerderdossierZeile } from "@/lib/domain/foerdermittel";
@@ -11,6 +10,7 @@ import {
   Auswahl,
   Feld,
   FormularKarte,
+  PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 
@@ -18,11 +18,6 @@ import {
 // finanzen-formulare.tsx: "Anlegen" fuer ein neues Dossier, "Aktualisieren"
 // verweist per Auswahl auf ein bestehendes statt eines Inline-Formulars je
 // Tabellenzeile.
-
-function PfadFeld() {
-  const pfad = usePathname();
-  return <input type="hidden" name="pfad" value={pfad} />;
-}
 
 export function DossierAnlegenFormular() {
   const [status, action] = useActionState(dossierAnlegen, leer);

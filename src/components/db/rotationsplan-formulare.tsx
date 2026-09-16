@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   rotationsplanGenerieren,
@@ -13,16 +12,12 @@ import {
   AktionsMeldung,
   Feld,
   FormularKarte,
+  PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 
 // Formulare des Rotationsplans (Anforderung 2.2, P1): Plan erzeugen/erweitern,
 // einzelnen Termin ueberspringen oder reaktivieren.
-
-function PfadFeld() {
-  const pfad = usePathname();
-  return <input type="hidden" name="pfad" value={pfad} />;
-}
 
 export function RotationsplanGenerierenFormular() {
   const [status, action] = useActionState(rotationsplanGenerieren, leer);

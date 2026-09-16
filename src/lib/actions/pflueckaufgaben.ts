@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import {
@@ -13,6 +12,7 @@ import {
 import type { KernErgebnis } from "@/lib/actions/nachweiskette";
 import type { Json } from "@/lib/database.types";
 import { aufgabenStatus, type AufgabenStatus } from "@/lib/domain/pflueckaufgaben";
+import { text, zahl, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 
 // Vorstufe zu Anforderung 2.5 (Offline-first): aufgabeStatusSetzen() und
 // mengeMelden() aktualisierten bisher blind per .eq("id", id), ohne den
@@ -35,36 +35,13 @@ const erwarteterVorzustand: Partial<Record<AufgabenStatus, AufgabenStatus>> = {
 const belegArten = ["schale", "reihenblock", "steige"] as const;
 const maxDateigroesse = 8 * 1024 * 1024;
 
-function text(formData: FormData, feld: string): string {
-  return String(formData.get(feld) ?? "").trim();
-}
-
-function zahl(formData: FormData, feld: string): number | null {
-  const roh = text(formData, feld).replace(",", ".");
-  if (!roh) return null;
-  const wert = Number(roh);
-  return Number.isFinite(wert) ? wert : null;
-}
-
-function aktualisiere(formData: FormData) {
-  const pfad = text(formData, "pfad");
-  if (pfad.startsWith("/")) revalidatePath(pfad);
-}
-
-async function protokolliere(
+function protokolliere(
   profil: SessionProfile,
   aktion: string,
   ressourceId: string | null,
   metadata: Record<string, Json> = {},
 ) {
-  const supabase = await createClient();
-  await supabase.from("audit_events").insert({
-    actor: `${profil.fullName} (${profil.role})`,
-    aktion,
-    ressource: "pflueckaufgaben",
-    ressource_id: ressourceId,
-    metadata,
-  });
+  return protokolliereBasis(profil, aktion, "pflueckaufgaben", ressourceId, metadata);
 }
 
 export async function aufgabeAnlegen(

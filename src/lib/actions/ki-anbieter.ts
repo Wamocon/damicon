@@ -1,12 +1,12 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { istGueltigerAnbieterTyp } from "@/lib/domain/ki-assistent";
 import { verschluessleApiKey } from "@/lib/ai/schluessel";
 import type { Json } from "@/lib/database.types";
+import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 
 // Admin-Verwaltung der KI-Anbieter (Anforderung 5.4/5.5). Nur "manage" auf
 // die Ressource "ki_assistent" - laut rbac.ts hat ausschliesslich admin diese
@@ -14,29 +14,13 @@ import type { Json } from "@/lib/database.types";
 // "view"/"create" (Chat lesen/nutzen). RLS auf ki_anbieter (nur admin, siehe
 // Migration) ist die zweite Verteidigungslinie.
 
-function text(formData: FormData, feld: string): string {
-  return String(formData.get(feld) ?? "").trim();
-}
-
-function aktualisiere(formData: FormData) {
-  const pfad = text(formData, "pfad");
-  if (pfad.startsWith("/")) revalidatePath(pfad);
-}
-
-async function protokolliere(
+function protokolliere(
   profil: SessionProfile,
   aktion: string,
   ressourceId: string | null,
   metadata: Record<string, Json> = {},
 ) {
-  const supabase = await createClient();
-  await supabase.from("audit_events").insert({
-    actor: `${profil.fullName} (${profil.role})`,
-    aktion,
-    ressource: "ki_anbieter",
-    ressource_id: ressourceId,
-    metadata,
-  });
+  return protokolliereBasis(profil, aktion, "ki_anbieter", ressourceId, metadata);
 }
 
 export async function kiAnbieterAnlegen(

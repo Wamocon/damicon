@@ -1,17 +1,11 @@
 "use client";
 
 import { useActionState } from "react";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { CheckCircle2 } from "lucide-react";
 import { teilnahmeErfassen } from "@/lib/actions/pflichtschulungen";
 import { leer } from "@/lib/actions/status";
-import { AktionsMeldung } from "@/components/db/formular-kit";
-
-function PfadFeld() {
-  const pfad = usePathname();
-  return <input type="hidden" name="pfad" value={pfad} />;
-}
+import { AktionsMeldung, PfadFeld } from "@/components/db/formular-kit";
 
 // Anforderung 4.10: ein Klick je Zeile der Fristueberwachungstabelle. Ohne
 // profilId ist es die eigene Selbstauskunft, mit profilId erfasst das Buero

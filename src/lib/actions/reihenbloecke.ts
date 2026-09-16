@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import type { Json } from "@/lib/database.types";
@@ -13,44 +12,22 @@ import {
 } from "@/lib/actions/status";
 import { reihenblockStatus } from "@/lib/domain/reihenbloecke";
 import { heuteIso } from "@/lib/data/util";
+import { text, zahl, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 
 // Statusverwaltung der Reihenbloecke inklusive Wartezeitsperre.
 // Die eigentliche Regel liegt in der Datenbank (Trigger trg_reihenblock_sperre
 // und Funktion reihenblock_freigeben) - die Anwendung fuehrt sie nur aus und
 // uebersetzt die Fehlermeldung.
 
-function text(formData: FormData, feld: string): string {
-  return String(formData.get(feld) ?? "").trim();
-}
-
-function zahl(formData: FormData, feld: string): number | null {
-  const roh = text(formData, feld).replace(",", ".");
-  if (!roh) return null;
-  const wert = Number(roh);
-  return Number.isFinite(wert) ? wert : null;
-}
-
 const aufwandmengeEinheiten = ["l_ha", "kg_ha"] as const;
 
-async function protokolliere(
+function protokolliere(
   profil: SessionProfile,
   aktion: string,
   ressourceId: string | null,
   metadata: Record<string, Json> = {},
 ) {
-  const supabase = await createClient();
-  await supabase.from("audit_events").insert({
-    actor: `${profil.fullName} (${profil.role})`,
-    aktion,
-    ressource: "reihenbloecke",
-    ressource_id: ressourceId,
-    metadata,
-  });
-}
-
-function aktualisiere(formData: FormData) {
-  const pfad = text(formData, "pfad");
-  if (pfad.startsWith("/")) revalidatePath(pfad);
+  return protokolliereBasis(profil, aktion, "reihenbloecke", ressourceId, metadata);
 }
 
 export async function statusSetzen(

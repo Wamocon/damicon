@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
@@ -17,6 +16,7 @@ import { sendeChatAnfrage } from "@/lib/ai/anbieter-client";
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
 import type { ChatNachricht } from "@/lib/ai/anfrage";
 import type { Json } from "@/lib/database.types";
+import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 
 // Chat-Aktionen des KI-Assistenten (Anforderung 5.4/5.5). Masterplan-Vorgabe
 // woertlich: "RBAC-Gate vor dem Modellaufruf, deterministischer Fallback,
@@ -45,28 +45,12 @@ import type { Json } from "@/lib/database.types";
 const MAX_NACHRICHT_LAENGE = 2000;
 const MAX_VERLAUF_FUER_MODELL = 10;
 
-function text(formData: FormData, feld: string): string {
-  return String(formData.get(feld) ?? "").trim();
-}
-
-function aktualisiere(formData: FormData) {
-  const pfad = text(formData, "pfad");
-  if (pfad.startsWith("/")) revalidatePath(pfad);
-}
-
-async function protokolliere(
+function protokolliere(
   profil: SessionProfile,
   aktion: string,
   metadata: Record<string, Json> = {},
 ) {
-  const supabase = await createClient();
-  await supabase.from("audit_events").insert({
-    actor: `${profil.fullName} (${profil.role})`,
-    aktion,
-    ressource: "ki_chat_nachrichten",
-    ressource_id: profil.id,
-    metadata,
-  });
+  return protokolliereBasis(profil, aktion, "ki_chat_nachrichten", profil.id, metadata);
 }
 
 export async function kiNachrichtSenden(

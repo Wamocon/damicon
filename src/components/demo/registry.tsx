@@ -3,9 +3,8 @@
 import type { ComponentType } from "react";
 import type { ModuleDef } from "@/lib/modules";
 import { ModulePlaceholder } from "@/components/dashboard/module-meta";
-import { PflanzenschutzDemo } from "@/components/demo/feld-extra";
-import { PersonalDemo, RollenDemo } from "@/components/demo/buero";
-import { SchulungenDemo, SortenkatalogDemo } from "@/components/demo/markt";
+import { RollenDemo } from "@/components/demo/buero";
+import { SortenkatalogDemo } from "@/components/demo/markt";
 import { KuehlketteMock } from "@/components/demo/mocks";
 
 type ModuleView = ComponentType<{ module: ModuleDef }>;
@@ -17,12 +16,16 @@ const plain = (Cmp: ComponentType): ModuleView =>
 
 // Standort, Reihenbloecke, Pflueckaufgaben, Dokumente und Compliance laufen
 // ueber die serverseitigen Ansichten in src/components/db/ - auch im Demo-Modus.
+//
+// WMC-Vibecode-Cleanup: die fruehere Eintraege pflanzenschutz/personal/
+// schulungen sind entfernt - server-module-views.tsx liefert fuer diese drei
+// Modulschluessel immer eine echte Ansicht als children von ModulePageBody,
+// diese Registry-Zeilen wurden also nie mehr erreicht (siehe dortigen
+// switch). Die zugehoerigen Demo-Komponenten (PflanzenschutzDemo,
+// PersonalDemo, SchulungenDemo) sind ebenfalls entfernt.
 const registry: Record<string, ModuleView> = {
-  pflanzenschutz: plain(PflanzenschutzDemo),
   rollen: plain(RollenDemo),
-  personal: plain(PersonalDemo),
   sortenkatalog: plain(SortenkatalogDemo),
-  schulungen: plain(SchulungenDemo),
   kuehlkette: KuehlketteMock,
 };
 

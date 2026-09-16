@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
   parzelleAnlegen,
@@ -15,6 +14,7 @@ import {
   Auswahl,
   Feld,
   FormularKarte,
+  PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 
@@ -25,10 +25,6 @@ export interface AuswahlOption {
 
 // Vier Formulare fuer die vier Ebenen unter dem Betrieb. Jedes schickt den
 // aktuellen Pfad mit, damit die Server Action die Seite gezielt neu laden kann.
-function PfadFeld() {
-  const pfad = usePathname();
-  return <input type="hidden" name="pfad" value={pfad} />;
-}
 
 export function PlantageFormular({ betriebId }: { betriebId: string }) {
   const [status, action] = useActionState(plantageAnlegen, leer);

@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import type { Json } from "@/lib/database.types";
@@ -16,6 +15,7 @@ import {
   type ZukaufImportStatus,
 } from "@/lib/actions/zukauf-status";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
+import { text, zahl, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 
 // Aggregator / Zukauf von Nachbarbetrieben (WMCNL-1453). Die Vorpruefung
 // steht in src/lib/import/zukauf-parser.ts (reine Funktion, kein
@@ -33,36 +33,13 @@ import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/
 // Datei darf ausschliesslich async Functions exportieren, ein Re-Export
 // dieser Konstante wuerde den Build brechen.
 
-function text(formData: FormData, feld: string): string {
-  return String(formData.get(feld) ?? "").trim();
-}
-
-function zahl(formData: FormData, feld: string): number | null {
-  const roh = text(formData, feld).replace(",", ".");
-  if (!roh) return null;
-  const wert = Number(roh);
-  return Number.isFinite(wert) ? wert : null;
-}
-
-function aktualisiere(formData: FormData) {
-  const pfad = text(formData, "pfad");
-  if (pfad.startsWith("/")) revalidatePath(pfad);
-}
-
-async function protokolliere(
+function protokolliere(
   profil: SessionProfile,
   aktion: string,
   ressourceId: string | null,
   metadata: Record<string, Json> = {},
 ) {
-  const supabase = await createClient();
-  await supabase.from("audit_events").insert({
-    actor: `${profil.fullName} (${profil.role})`,
-    aktion,
-    ressource: "aggregator",
-    ressource_id: ressourceId,
-    metadata,
-  });
+  return protokolliereBasis(profil, aktion, "aggregator", ressourceId, metadata);
 }
 
 // Prueft die eingefuegte Eingabe und schreibt nur, wenn KEIN Fehlerbefund

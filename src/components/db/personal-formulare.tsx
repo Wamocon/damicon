@@ -1,22 +1,16 @@
 "use client";
 
 import { useActionState } from "react";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { rotationsplanBrigadeZuweisen } from "@/lib/actions/rotationsplan";
 import { pfleuckerBrigadeZuweisen } from "@/lib/actions/personal";
 import { leer } from "@/lib/actions/status";
-import { AktionsMeldung, Auswahl, SubmitKnopf } from "@/components/db/formular-kit";
+import { AktionsMeldung, Auswahl, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
 import type { BrigadeOption } from "@/lib/domain/personal";
 
 // Formulare der Brigadenplanung (Anforderung 2.11): einen offenen
 // Rotationsplan-Termin (Bedarfsrechnung) oder einen Reserve-Pflücker einer
 // Brigade zuweisen - dieselbe kompakte Inline-Auswahl an beiden Stellen.
-
-function PfadFeld() {
-  const pfad = usePathname();
-  return <input type="hidden" name="pfad" value={pfad} />;
-}
 
 export function TerminBrigadeZuweisenFormular({
   terminId,

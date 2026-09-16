@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { ShieldAlert, Undo2 } from "lucide-react";
 import {
@@ -19,6 +18,7 @@ import {
   Auswahl,
   Feld,
   FormularKarte,
+  PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 import type { AuswahlOption } from "@/components/db/standort-formulare";
@@ -26,11 +26,6 @@ import type { AuswahlOption } from "@/components/db/standort-formulare";
 // Formulare des Compliance-Cockpits (WMCNL-1446): eine Einwilligung erfassen
 // bzw. widerrufen, einen Datenschutzvorfall erfassen bzw. melden, eine
 // Drittweitergabe als benachrichtigt markieren.
-
-function PfadFeld() {
-  const pfad = usePathname();
-  return <input type="hidden" name="pfad" value={pfad} />;
-}
 
 const kanaele = ["papier", "app", "web", "sms"] as const;
 const sprachen = ["de", "en", "ru", "kk", "tr"] as const;

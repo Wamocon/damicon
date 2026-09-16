@@ -2,6 +2,7 @@
 
 import type { FormEvent, ReactNode } from "react";
 import { useFormStatus } from "react-dom";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import type { AktionsStatus } from "@/lib/actions/status";
@@ -12,6 +13,15 @@ import type { AktionsStatus } from "@/lib/actions/status";
 
 const feldKlassen =
   "h-9 w-full rounded-lg border border-border bg-background px-2.5 text-xs text-foreground outline-none transition focus:border-primary";
+
+// WMC-Vibecode-Cleanup-Fund: bis hierher praktisch wortgleich in rund 15
+// *-formulare.tsx-Dateien einzeln neu geschrieben (immer derselbe versteckte
+// "pfad"-Pfad, den aktualisiere() in den jeweiligen Server Actions ausliest,
+// um gezielt revalidatePath() aufzurufen). Jetzt eine einzige Stelle.
+export function PfadFeld() {
+  const pfad = usePathname();
+  return <input type="hidden" name="pfad" value={pfad} />;
+}
 
 // Anforderung 2.6: bei zeitkritischen Aktionen (Pflueckbeginn, Kuehlmessung,
 // Steigen-Scan) muss die lokale Geraeteuhr im Moment des Tippens in ein

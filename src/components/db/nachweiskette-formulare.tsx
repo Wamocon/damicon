@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { CheckCircle2, Package, Snowflake, Timer } from "lucide-react";
 import {
@@ -11,15 +10,10 @@ import {
   steigeKontrollieren,
 } from "@/lib/actions/nachweiskette";
 import { leer } from "@/lib/actions/status";
-import { AktionsMeldung, Feld } from "@/components/db/formular-kit";
+import { AktionsMeldung, Feld, PfadFeld } from "@/components/db/formular-kit";
 import { useOfflineFormular } from "@/components/db/use-offline-formular";
 import { AusweisScanFeld } from "@/components/db/ausweis-scan-feld";
 import type { PflueckerOption } from "@/lib/domain/ausweis-scan";
-
-function PfadFeld() {
-  const pfad = usePathname();
-  return <input type="hidden" name="pfad" value={pfad} />;
-}
 
 const knopf =
   "inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-border bg-card text-xs font-bold text-foreground transition hover:bg-muted";

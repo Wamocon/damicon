@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import {
@@ -11,6 +10,7 @@ import {
   type AktionsStatus,
 } from "@/lib/actions/status";
 import type { Json } from "@/lib/database.types";
+import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 
 // Rotationsplan-Engine (Anforderung 2.2, P1). Die Rechenarbeit steht in der
 // Datenbank (public.rotationsplan_generieren(), SECURITY INVOKER - die
@@ -19,29 +19,13 @@ import type { Json } from "@/lib/database.types";
 // rotationsplan_eintraege_insert_planung/-update_planung (Migration
 // 20260910000000) die zweite.
 
-function text(formData: FormData, feld: string): string {
-  return String(formData.get(feld) ?? "").trim();
-}
-
-function aktualisiere(formData: FormData) {
-  const pfad = text(formData, "pfad");
-  if (pfad.startsWith("/")) revalidatePath(pfad);
-}
-
-async function protokolliere(
+function protokolliere(
   profil: SessionProfile,
   aktion: string,
   ressourceId: string | null,
   metadata: Record<string, Json> = {},
 ) {
-  const supabase = await createClient();
-  await supabase.from("audit_events").insert({
-    actor: `${profil.fullName} (${profil.role})`,
-    aktion,
-    ressource: "rotationsplan",
-    ressource_id: ressourceId,
-    metadata,
-  });
+  return protokolliereBasis(profil, aktion, "rotationsplan", ressourceId, metadata);
 }
 
 // Erzeugt/erweitert den Plan fuer alle aktiven Reihenbloecke. Setzt den

@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { CheckCircle2, Ban } from "lucide-react";
 import {
@@ -15,6 +14,7 @@ import {
   Auswahl,
   Feld,
   FormularKarte,
+  PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 import type { AuswahlZeile } from "@/lib/domain/vorbestellungen";
@@ -23,11 +23,6 @@ import type { AuswahlZeile } from "@/lib/domain/vorbestellungen";
 // LieferungAnlegenFormular (lieferungen-formulare.tsx), Statuspflege getrennt
 // nach Buero (bestaetigen/ablehnen) und Kunde (nur Storno der eigenen, noch
 // nicht bestaetigten Anfrage).
-
-function PfadFeld() {
-  const pfad = usePathname();
-  return <input type="hidden" name="pfad" value={pfad} />;
-}
 
 const leerOption = { wert: "", text: "" };
 

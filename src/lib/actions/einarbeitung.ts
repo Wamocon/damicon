@@ -1,23 +1,20 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
+import { text, aktualisiere } from "@/lib/actions/formular-helfer";
 
 // Anforderung 2.12: ein Schritt der Kurzeinarbeitung wird abgehakt. Die
 // eigentliche Einschraenkung auf die eigene pfluecker_id liegt in der
 // RLS-Policy einarbeitung_fortschritt_insert_own, requirePermission prueft
 // nur die grobe Berechtigungsstufe (schulungen:complete, nur Rolle picker).
-
-function text(formData: FormData, feld: string): string {
-  return String(formData.get(feld) ?? "").trim();
-}
-
-function aktualisiere(formData: FormData) {
-  const pfad = text(formData, "pfad");
-  if (pfad.startsWith("/")) revalidatePath(pfad);
-}
+//
+// WMC-Vibecode-Cleanup: kein protokolliere()-Aufruf, diese Datei loggt
+// bislang keine audit_events (anders als die meisten Schreibaktionen im
+// Projekt). Bewusst nicht in diesem Durchgang nachgezogen, da eine neue
+// Protokollierungspflicht eine fachliche Entscheidung ist (Grundprinzip 6),
+// keine mechanische - siehe Abschlussbericht.
 
 export async function schrittAbhaken(
   _status: AktionsStatus,

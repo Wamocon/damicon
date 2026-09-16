@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import {
@@ -12,6 +11,7 @@ import {
 } from "@/lib/actions/status";
 import type { Json } from "@/lib/database.types";
 import { reklamationGruende, reklamationStatus } from "@/lib/domain/reklamationen";
+import { text, zahl, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 
 // Reklamationsmanagement (WMCNL-1455). Wer eine Reklamation anlegen darf und
 // wer sie bearbeiten darf, entscheidet rbac.ts ("reklamationen:create" fuer
@@ -19,36 +19,13 @@ import { reklamationGruende, reklamationStatus } from "@/lib/domain/reklamatione
 // Migration 20260908120000_reklamationen.sql ist die zweite Verteidigungslinie
 // und die, die tatsaechlich auf die eigene Firma eingrenzt.
 
-function text(formData: FormData, feld: string): string {
-  return String(formData.get(feld) ?? "").trim();
-}
-
-function zahl(formData: FormData, feld: string): number | null {
-  const roh = text(formData, feld).replace(",", ".");
-  if (!roh) return null;
-  const wert = Number(roh);
-  return Number.isFinite(wert) ? wert : null;
-}
-
-function aktualisiere(formData: FormData) {
-  const pfad = text(formData, "pfad");
-  if (pfad.startsWith("/")) revalidatePath(pfad);
-}
-
-async function protokolliere(
+function protokolliere(
   profil: SessionProfile,
   aktion: string,
   ressourceId: string | null,
   metadata: Record<string, Json> = {},
 ) {
-  const supabase = await createClient();
-  await supabase.from("audit_events").insert({
-    actor: `${profil.fullName} (${profil.role})`,
-    aktion,
-    ressource: "reklamationen",
-    ressource_id: ressourceId,
-    metadata,
-  });
+  return protokolliereBasis(profil, aktion, "reklamationen", ressourceId, metadata);
 }
 
 export async function reklamationAnlegen(

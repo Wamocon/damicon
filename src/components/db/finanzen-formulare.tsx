@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState } from "react";
-import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { kostentraegerAnlegen, ledgerBuchungErfassen } from "@/lib/actions/finanzen";
 import { leer } from "@/lib/actions/status";
@@ -10,6 +9,7 @@ import {
   Auswahl,
   Feld,
   FormularKarte,
+  PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 import type {
@@ -23,11 +23,6 @@ import type {
 // Formulare der Finanzen-Anbindung (Anforderung 4.2, P0): Kostentraeger
 // anlegen, Ledger-Buchung erfassen. Wie lohn-formulare.tsx: eigenes verstecktes
 // Pfad-Feld je Formular fuer revalidatePath() nach dem Schreiben.
-
-function PfadFeld() {
-  const pfad = usePathname();
-  return <input type="hidden" name="pfad" value={pfad} />;
-}
 
 const leerOption = { wert: "", text: "" };
 
