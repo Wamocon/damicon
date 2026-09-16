@@ -19,6 +19,7 @@ import { PersonalAnsicht } from "@/components/db/personal-ansicht";
 import { KiAssistentAnsicht } from "@/components/db/ki-assistent-ansicht";
 import { EinladungenAnsicht } from "@/components/db/einladungen-ansicht";
 import { KuehletteAnsicht } from "@/components/db/kuehlkette-ansicht";
+import { WetterAnsicht } from "@/components/db/wetter-ansicht";
 import { RollenDemo } from "@/components/demo/buero";
 import type { ModuleDef } from "@/lib/modules";
 
@@ -73,6 +74,10 @@ export function serverModulAnsicht(
       return <FinanzenAnsicht />;
     case "rotationsplan":
       return <RotationsplanAnsicht />;
+    // Anforderung 2.13: Temperatursummen-Heuristik statt reinem
+    // "in Entwicklung"-Platzhalter.
+    case "wetter":
+      return <WetterAnsicht />;
     case "aggregator":
       return <ZukaufAnsicht />;
     case "qr_steigen":

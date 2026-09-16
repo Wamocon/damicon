@@ -101,7 +101,10 @@ export const modules: ModuleDef[] = [
     icon: "cloud-sun",
     resource: "rotationsplan",
     klassifikation: "neu-bauen",
-    reifegrad: "in-entwicklung",
+    // Anforderung 2.13: Temperatursummen-Heuristik ueber Open-Meteo, siehe
+    // wetter-ansicht.tsx. Bewusst kein Prognosemodell ("Prognosemodelle erst
+    // ab der zweiten Saison") - die Kennzahl wird sichtbar, nicht bewertet.
+    reifegrad: "angebunden",
   },
 
   // ----------------------------------------------------------------- Zone Hof
