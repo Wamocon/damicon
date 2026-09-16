@@ -3,9 +3,7 @@
 import type { ComponentType } from "react";
 import type { ModuleDef } from "@/lib/modules";
 import { ModulePlaceholder } from "@/components/dashboard/module-meta";
-import { PflanzenschutzDemo } from "@/components/demo/feld-extra";
-import { PersonalDemo, RollenDemo } from "@/components/demo/buero";
-import { SchulungenDemo, SortenkatalogDemo } from "@/components/demo/markt";
+import { SortenkatalogDemo } from "@/components/demo/markt";
 import { KuehlketteMock } from "@/components/demo/mocks";
 
 type ModuleView = ComponentType<{ module: ModuleDef }>;
@@ -15,14 +13,14 @@ const plain = (Cmp: ComponentType): ModuleView =>
     return <Cmp />;
   };
 
-// Standort, Reihenbloecke, Pflueckaufgaben, Dokumente und Compliance laufen
-// ueber die serverseitigen Ansichten in src/components/db/ - auch im Demo-Modus.
+// Diese Registry ist der Rueckfall fuer Module OHNE serverseitige Ansicht.
+// Alles, was in src/components/db/server-module-views.tsx einen case hat,
+// laeuft dort - auch im Demo-Modus, weil die Datenschicht in beiden
+// Betriebsarten dieselbe Oberflaeche bedient. Ein Eintrag fuer ein solches
+// Modul waere unerreichbar: ModulePageBody nimmt `children ?? <ModuleView>`,
+// und children ist dann nie null.
 const registry: Record<string, ModuleView> = {
-  pflanzenschutz: plain(PflanzenschutzDemo),
-  rollen: plain(RollenDemo),
-  personal: plain(PersonalDemo),
   sortenkatalog: plain(SortenkatalogDemo),
-  schulungen: plain(SchulungenDemo),
   kuehlkette: KuehlketteMock,
 };
 

@@ -1,9 +1,8 @@
 "use client";
 
 import { useFormatter, useTranslations } from "next-intl";
-import { PlayCircle } from "lucide-react";
-import { Card, DataTable, Section, StatusPill } from "@/components/ui/kit";
-import { schulungsvideos, sorten } from "@/lib/domain/betrieb-data";
+import { Card, Section, StatusPill } from "@/components/ui/kit";
+import { sorten } from "@/lib/domain/betrieb-data";
 
 export function SortenkatalogDemo() {
   const t = useTranslations("sortenkatalogDemo");
@@ -62,43 +61,3 @@ export function SortenkatalogDemo() {
   );
 }
 
-export function SchulungenDemo() {
-  const t = useTranslations("schulungenDemo");
-
-  return (
-    <div className="space-y-6">
-      <Section title={t("libraryTitle")} description={t("libraryLead")}>
-        <DataTable
-          head={[t("col.titel"), t("col.thema"), t("col.dauer"), t("col.sprachen")]}
-        >
-          {schulungsvideos.map((video) => (
-            <tr key={video.id}>
-              <td className="px-3 py-2.5">
-                <span className="inline-flex items-center gap-2 font-semibold text-foreground">
-                  <PlayCircle className="h-4 w-4 text-primary" />
-                  {t(`video.${video.id}`)}
-                </span>
-              </td>
-              <td className="px-3 py-2.5 text-muted-foreground">
-                {t(`thema.${video.thema}`)}
-              </td>
-              <td className="px-3 py-2.5 text-muted-foreground">{video.dauer}</td>
-              <td className="px-3 py-2.5">
-                <span className="flex flex-wrap gap-1">
-                  {video.sprachen.map((lang) => (
-                    <StatusPill key={lang} tone="neutral">
-                      {lang.toUpperCase()}
-                    </StatusPill>
-                  ))}
-                </span>
-              </td>
-            </tr>
-          ))}
-        </DataTable>
-      </Section>
-      <Card className="bg-muted/30 text-xs leading-5 text-muted-foreground">
-        {t("note")}
-      </Card>
-    </div>
-  );
-}

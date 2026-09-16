@@ -91,10 +91,11 @@ jobs:
         run: npm run db:test
 
       # Braucht kein laufendes Supabase: PGlite bringt Postgres als WASM mit
-      # und wendet alle Migrationen selbst an. Steht trotzdem hier, damit ein
-      # Fehlschlag im selben Lauf sichtbar wird wie die uebrigen Datentests.
-      - name: Zugangsweg der Kundeneinladungen (Anforderung E.20)
-        run: npm run test:einladungen
+      # und wendet alle Migrationen selbst an. Deckt die Einladungen, den
+      # Zukauf-Parser, den Ausweis-Scan und den KI-Assistenten ab - bis zu
+      # diesem Lauf liefen drei dieser Dateien in keiner Pipeline mit.
+      - name: Unit- und Datenbanktests (PGlite, ohne laufendes Supabase)
+        run: npm test
 
       - name: Produktions-Build
         run: npm run build

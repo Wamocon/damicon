@@ -1,10 +1,9 @@
 "use client";
 
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Check, Minus } from "lucide-react";
 import { Card, DataTable, Section, StatusPill } from "@/components/ui/kit";
 import { hasPermission, roleDefinitions, type Resource } from "@/lib/rbac";
-import { pfluecker, brigaden } from "@/lib/domain/betrieb-data";
 
 export function RollenDemo() {
   const t = useTranslations("rollenDemo");
@@ -77,54 +76,6 @@ export function RollenDemo() {
   );
 }
 
-export function PersonalDemo() {
-  const t = useTranslations("personalDemo");
-  const format = useFormatter();
-  return (
-    <div className="space-y-6">
-      <Section title={t("brigadenTitle")} description={t("brigadenLead")}>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {brigaden.map((b) => (
-            <Card key={b.id} className="p-4">
-              <p className="text-sm font-black text-card-foreground">{b.name}</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {t("foreman")}: {b.vorarbeiter}
-              </p>
-              <p className="mt-2 text-xs text-muted-foreground">
-                {b.staerke} {t("people")} · {b.plantage}
-              </p>
-            </Card>
-          ))}
-        </div>
-      </Section>
-
-      <Section title={t("pflueckerTitle")} description={t("pflueckerLead")}>
-        <DataTable
-          head={[t("col.name"), t("col.brigade"), t("col.ausweis"), t("col.esutd"), t("col.leistung"), t("col.qfaktor")]}
-        >
-          {pfluecker.map((p) => (
-            <tr key={p.id}>
-              <td className="px-3 py-2.5 font-semibold text-foreground">{p.name}</td>
-              <td className="px-3 py-2.5 text-muted-foreground">{p.brigade}</td>
-              <td className="px-3 py-2.5 font-mono text-xs text-muted-foreground">{p.ausweis}</td>
-              <td className="px-3 py-2.5">
-                <StatusPill tone={p.esutd === "erfasst" ? "success" : "warning"}>
-                  {t(`esutd.${p.esutd}`)}
-                </StatusPill>
-              </td>
-              <td className="px-3 py-2.5 text-muted-foreground">{p.schnitt7dKg} kg / 7 {t("days")}</td>
-              <td className="px-3 py-2.5 font-semibold text-foreground">{format.number(p.qualitaetsfaktor, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}</td>
-            </tr>
-          ))}
-        </DataTable>
-      </Section>
-      <Card className="bg-muted/30 text-xs leading-5 text-muted-foreground">{t("note")}</Card>
-    </div>
-  );
-}
 
 // ComplianceDemo entfaellt (WMCNL-1446): das Modul "compliance" laeuft jetzt
 // ueber die datenbankgestuetzte Ansicht in src/components/db/compliance-ansicht.tsx,

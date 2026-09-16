@@ -298,10 +298,3 @@ export function hasPermission(
   return rolePermissions[role].includes(`${resource}:${action}` as Permission);
 }
 
-export function accessibleResources(role: Role): Resource[] {
-  const seen = new Set<Resource>();
-  for (const permission of rolePermissions[role]) {
-    seen.add(permission.split(":")[0] as Resource);
-  }
-  return [...seen];
-}
