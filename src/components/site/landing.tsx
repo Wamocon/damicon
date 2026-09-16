@@ -10,7 +10,7 @@ import { BereichsOrbit } from "@/components/site/bereichs-orbit";
 import { ModulReiter } from "@/components/site/modul-reiter";
 import { zones } from "@/lib/modules";
 import { kpis, zielerreichung } from "@/lib/domain/kpis";
-import { bereichsBilder } from "@/lib/site-medien";
+import { abschlussBild, bereichsBilder } from "@/lib/site-medien";
 
 // "Warum die Himbeere anders ist" steht als Bento in beere-bento.tsx, die
 // Nachweiskette als animierte Kette in belegkette.tsx.
@@ -343,25 +343,60 @@ export function ComplianceBlock() {
   );
 }
 
+// Der Schlussblock war bis zum 16.09.2026 eine reine Farbflaeche und damit der
+// einzige grosse Abschnitt der Seite ohne Bild. Jetzt steht rechts eine
+// Aufnahme vom Betrieb: der letzte Blick vor dem Sprung ins Dashboard gilt der
+// Ware, nicht der Oberflaeche.
+//
+// Ab md zwei Spalten, das Bild in der schmaleren rechten. Darunter liegt es
+// ueber der vollen Breite unter dem Text - hochkant beschnitten waere es dort
+// entweder briefmarkengross oder wuerde den Knopf aus dem ersten Bildschirm
+// schieben, deshalb zeigt aspect-16/9 nur den Streifen mit den Fruechten.
 export function LandingCta() {
   const s = useTranslations("landing");
 
   return (
     <section className="container py-16 md:py-24">
-      <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-primary px-6 py-12 text-primary-foreground md:px-12">
-        <h2 className="max-w-2xl text-3xl font-black md:text-4xl">
-          {s("ctaTitle")}
-        </h2>
-        <p className="mt-3 max-w-xl text-sm leading-6 text-primary-foreground/90">
-          {s("ctaLead")}
-        </p>
-        <Link
-          href="/dashboard"
-          className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-7 text-sm font-black text-[#04161c] shadow-xl transition hover:-translate-y-0.5"
-        >
-          {s("ctaButton")}
-          <ArrowRight className="h-4 w-4" />
-        </Link>
+      <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-primary text-primary-foreground">
+        <div className="grid gap-8 md:grid-cols-[minmax(0,1fr)_16rem] md:items-center md:gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
+          <div className="px-6 pt-12 md:py-12 md:pl-12 md:pr-0">
+            <h2 className="max-w-2xl text-3xl font-black md:text-4xl">
+              {s("ctaTitle")}
+            </h2>
+            <p className="mt-3 max-w-xl text-sm leading-6 text-primary-foreground/90">
+              {s("ctaLead")}
+            </p>
+            <Link
+              href="/dashboard"
+              className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-7 text-sm font-black text-[#04161c] shadow-xl transition hover:-translate-y-0.5"
+            >
+              {s("ctaButton")}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          {/* Der Text nennt den Betrieb bereits, das Bild traegt keine eigene
+              Aussage - deshalb ohne Alternativtext und aus dem Baum genommen. */}
+          <div
+            aria-hidden
+            className="relative aspect-16/9 w-full md:aspect-4/5 md:h-full md:min-h-[22rem]"
+          >
+            <Image
+              src={abschlussBild}
+              alt=""
+              fill
+              sizes="(min-width: 1024px) 20rem, (min-width: 768px) 16rem, 100vw"
+              loading="lazy"
+              className="object-cover"
+            />
+            {/* Kante zur Markenflaeche: ohne den Verlauf stoesst das Foto hart
+                gegen das Koek-Blau, auf schmalen Viewports quer ueber die
+                ganze Breite. */}
+            <div
+              className="absolute inset-0 bg-[linear-gradient(0deg,transparent_60%,var(--color-primary)_100%)] md:bg-[linear-gradient(90deg,var(--color-primary)_0%,transparent_28%)]"
+            />
+          </div>
+        </div>
       </div>
     </section>
   );

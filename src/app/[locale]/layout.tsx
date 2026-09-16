@@ -48,6 +48,16 @@ export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
 
+// Basis fuer alle absoluten Adressen in den Metadaten, allen voran das
+// Vorschaubild: Ein Netzwerk laedt og:image nur ueber eine vollstaendige URL,
+// ein relativer Pfad bleibt wirkungslos. Auf Vercel steht die Produktionsadresse
+// in der Umgebung, lokal faellt sie auf den Entwicklungsserver zurueck. Eine
+// eigene Domain wird spaeter ueber NEXT_PUBLIC_SITE_URL gesetzt.
+const produktionsUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+const seitenUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (produktionsUrl ? `https://${produktionsUrl}` : "http://localhost:3000");
+
 export async function generateMetadata({
   params,
 }: {
@@ -55,9 +65,28 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "meta" });
+
+  // Das Vorschaubild liegt als opengraph-image.jpg neben dieser Datei; Next
+  // traegt es selbst ein, samt Groesse und Alternativtext aus der zugehoerigen
+  // .alt.txt. Ohne den openGraph-Block daneben stuende in der Vorschau zwar das
+  // Bild, aber der Titel der Seite nur als HTML-<title> - und genau den liest
+  // WhatsApp, Telegram oder LinkedIn nicht zuverlaessig aus.
   return {
+    metadataBase: new URL(seitenUrl),
     title: t("title"),
     description: t("description"),
+    openGraph: {
+      type: "website",
+      siteName: "Damicon",
+      locale,
+      title: t("title"),
+      description: t("description"),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: t("title"),
+      description: t("description"),
+    },
   };
 }
 

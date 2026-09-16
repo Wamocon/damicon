@@ -13,6 +13,15 @@ import type { LoopClipQuelle } from "@/lib/site-medien";
 // `fokus` vergroessert auf einen Bildausschnitt. So traegt eine Datei zwei
 // Einstellungen: im Hero die ganze Szene, hier die einzelne Frucht.
 //
+// Steht in `clip.quelle` null, gibt es zu dieser Stelle noch kein Video,
+// sondern nur eine Aufnahme. Damit die Flaeche dann nicht stillsteht,
+// uebernimmt die Scroll-Fahrt aus globals.css (.kapitel-fahrt) die Bewegung:
+// eine langsame Annaeherung, an den Scrollfortschritt gebunden statt an eine
+// Laufzeit, ohne zweiten Videodekoder und ohne Datenverbrauch. Sie sitzt auf
+// einem eigenen Wrapper, weil sie mit `transform` arbeitet - demselben
+// Attribut, das den Bildausschnitt setzt. Bei reduzierter Bewegung steht sie
+// still, das regelt die Media Query in globals.css.
+//
 // Wie HeroVideo ohne eigenes "relative": der Aufrufer positioniert.
 export function LoopClip({
   clip,
@@ -45,17 +54,21 @@ export function LoopClip({
     transformOrigin: `${clip.fokus.x}% ${clip.fokus.y}%`,
   };
 
+  const clipVorhanden = clip.quelle !== null;
+
   return (
     <div aria-hidden className={`overflow-hidden ${className ?? ""}`}>
-      <Image
-        src={clip.poster}
-        alt=""
-        fill
-        sizes={sizes}
-        className="object-cover"
-        style={ausschnitt}
-      />
-      {erlaubt ? (
+      <div className={clipVorhanden ? "absolute inset-0" : "kapitel-fahrt absolute inset-0"}>
+        <Image
+          src={clip.poster}
+          alt=""
+          fill
+          sizes={sizes}
+          className="object-cover"
+          style={ausschnitt}
+        />
+      </div>
+      {erlaubt && clipVorhanden ? (
         <video
           ref={video}
           className="absolute inset-0 h-full w-full object-cover"
@@ -66,7 +79,7 @@ export function LoopClip({
           preload="none"
           poster={clip.poster}
         >
-          <source src={clip.quelle} type="video/mp4" />
+          <source src={clip.quelle ?? undefined} type="video/mp4" />
         </video>
       ) : null}
     </div>
