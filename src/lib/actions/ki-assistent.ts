@@ -8,8 +8,10 @@ import { ladeKiChatVerlauf, ladeWissensPreislisten } from "@/lib/data/ki-assiste
 import {
   baueGesamtWissenskontext,
   baueSystemPrompt,
+  MAX_NACHRICHT_LAENGE,
   sollteAutomatischEskalieren,
   wissensQuellenFuerFaehigkeiten,
+  type KiChatNachrichtZeile,
 } from "@/lib/domain/ki-assistent";
 import { hasPermission } from "@/lib/rbac";
 import { sendeChatAnfrage } from "@/lib/ai/anbieter-client";
@@ -42,7 +44,6 @@ import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/a
 // Knopf waehrend eines laufenden Requests deaktiviert, dasselbe Mass an
 // Schutz wie bei jedem anderen Formular in diesem Projekt.
 
-const MAX_NACHRICHT_LAENGE = 2000;
 const MAX_VERLAUF_FUER_MODELL = 10;
 
 function protokolliere(
@@ -51,6 +52,45 @@ function protokolliere(
   metadata: Record<string, Json> = {},
 ) {
   return protokolliereBasis(profil, aktion, "ki_chat_nachrichten", profil.id, metadata);
+}
+
+// Vibecode-Cleanup: aus kiNachrichtSenden() herausgezogen (die Funktion
+// vermischte RBAC-Gate, Eingabevalidierung, Anbieter laden, Kontext bauen und
+// Modellaufruf in einem Block). Liest die Zeile des aktiven Standard-
+// Anbieters ueber den service_role-Client - RLS auf ki_anbieter ist
+// admin-only, dieser Aufruf laeuft aber erst NACH requirePermission() im
+// Aufrufer, derselbe Aufbau wie vorher, nur benannt und isoliert testbar.
+async function ladeAktivenStandardAnbieter() {
+  const dienst = createServiceRoleClient();
+  const { data } = await dienst
+    .from("ki_anbieter")
+    .select("name, anzeige_name, typ, basis_url, modell, api_key_chiffrat")
+    .eq("aktiv", true)
+    .eq("ist_standard", true)
+    .maybeSingle();
+  return data;
+}
+
+// Baut den an das Modell uebergebenen Verlauf: Systemprompt zuerst, danach
+// die letzten echten Gespraechsbeitraege (keine system-Zeilen, siehe
+// Kommentar unten), zuletzt die neue Nutzernachricht.
+function baueVerlaufFuerModell(
+  systemPrompt: string,
+  bisherigerVerlauf: KiChatNachrichtZeile[],
+  nachricht: string,
+): ChatNachricht[] {
+  return [
+    { rolle: "system", inhalt: systemPrompt },
+    // Nur echte Gespraechsbeitraege, keine system-Zeilen aus dem Verlauf
+    // (Eskalationshinweise u. Ae.) - sonst mischten sich die bei
+    // baueAnthropicAnfrage() alle in dasselbe system-Feld wie der
+    // eigentliche Systemprompt.
+    ...bisherigerVerlauf
+      .filter((n) => n.rolle !== "system")
+      .slice(-MAX_VERLAUF_FUER_MODELL)
+      .map((n) => ({ rolle: n.rolle, inhalt: n.inhalt })),
+    { rolle: "nutzer", inhalt: nachricht },
+  ];
 }
 
 export async function kiNachrichtSenden(
@@ -98,13 +138,7 @@ export async function kiNachrichtSenden(
   let fallback = false;
 
   try {
-    const dienst = createServiceRoleClient();
-    const { data: anbieter } = await dienst
-      .from("ki_anbieter")
-      .select("name, anzeige_name, typ, basis_url, modell, api_key_chiffrat")
-      .eq("aktiv", true)
-      .eq("ist_standard", true)
-      .maybeSingle();
+    const anbieter = await ladeAktivenStandardAnbieter();
 
     if (!anbieter) {
       fallback = true;
@@ -126,19 +160,7 @@ export async function kiNachrichtSenden(
       });
       const preislisten = quellen.includes("preisliste") ? await ladeWissensPreislisten() : [];
       const systemPrompt = baueSystemPrompt(baueGesamtWissenskontext(quellen, preislisten));
-
-      const verlaufFuerModell: ChatNachricht[] = [
-        { rolle: "system", inhalt: systemPrompt },
-        // Nur echte Gespraechsbeitraege, keine system-Zeilen aus dem Verlauf
-        // (Eskalationshinweise u. Ae.) - sonst mischten sich die bei
-        // baueAnthropicAnfrage() alle in dasselbe system-Feld wie der
-        // eigentliche Systemprompt.
-        ...bisherigerVerlauf.nachrichten
-          .filter((n) => n.rolle !== "system")
-          .slice(-MAX_VERLAUF_FUER_MODELL)
-          .map((n) => ({ rolle: n.rolle, inhalt: n.inhalt })),
-        { rolle: "nutzer", inhalt: nachricht },
-      ];
+      const verlaufFuerModell = baueVerlaufFuerModell(systemPrompt, bisherigerVerlauf.nachrichten, nachricht);
 
       const apiKey = entschluessleApiKey(anbieter.api_key_chiffrat);
       const antwort = await sendeChatAnfrage(
