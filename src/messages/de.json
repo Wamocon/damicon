@@ -817,7 +817,10 @@
       "kanalAngelegt": "Kanal angelegt.",
       "kanalAktualisiert": "Kanal aktualisiert.",
       "kanalGeloescht": "Kanal gelöscht.",
-      "spanneAktualisiert": "Spanne aktualisiert."
+      "spanneAktualisiert": "Spanne aktualisiert.",
+      "adresseGeokodiert": "Adresse gespeichert und auf der Karte verortet.",
+      "tourErstellt": "Tour erstellt und Route berechnet.",
+      "tourGeloescht": "Tour verworfen."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -842,7 +845,10 @@
       "code": "Der Code ist falsch oder abgelaufen. Bitte den aktuellen 6-stelligen Code aus der Authenticator-App eingeben.",
       "zustand": "Der Termin hat sich zwischenzeitlich geändert (z. B. gesperrt oder bereits erledigt). Bitte Seite neu laden.",
       "einwilligung": "Bitte den Hinweis oben bestätigen, bevor die erste Nachricht gesendet wird.",
-      "wetterdienst": "Der Wetterdienst hat gerade keine Daten geliefert. Bitte später erneut versuchen."
+      "wetterdienst": "Der Wetterdienst hat gerade keine Daten geliefert. Bitte später erneut versuchen.",
+      "geokodierung": "Die Adresse wurde gespeichert, konnte aber nicht auf der Karte verortet werden. Bitte Schreibweise prüfen.",
+      "keineKoordinaten": "Keine der ausgewählten Lieferungen hat eine verortete Adresse.",
+      "routendienst": "Die Tour wurde angelegt, aber der Routendienst hat gerade keine Antwort geliefert. Reihenfolge und Strecke sind vorläufig."
     },
     "einladungen": {
       "erfolg": {
@@ -1904,6 +1910,33 @@
     },
     "hinweis": "Die Spanne gilt einheitlich für alle Nachbarbetriebe. Solange sie bei 0 % steht, ist die Auszahlung gleich dem Einkaufswert - noch keine erfundene Marge."
   },
+  "tourenplanungAnsicht": {
+    "titel": "Tourenplanung",
+    "lead": "Abholrunden aus mehreren Lieferungen bilden, Reihenfolge und Strecke automatisch optimiert (OSRM/OpenStreetMap).",
+    "keineTouren": "Noch keine Tour geplant.",
+    "status": {
+      "geplant": "geplant",
+      "unterwegs": "unterwegs",
+      "abgeschlossen": "abgeschlossen"
+    },
+    "strecke": "{km} km, rund {minuten} Minuten Fahrzeit",
+    "tourLoeschen": "Tour verwerfen",
+    "hinweis": "Die Route ist eine Schätzung des Routendienstes, keine Grundlage für Arbeitszeit- oder Kraftstoffabrechnung. Fahrzeugkapazität und Zeitfenster sind nicht Teil dieser ersten Stufe.",
+    "formular": {
+      "adresse": {
+        "label": "Adresse",
+        "platzhalter": "Straße, Hausnummer, Stadt",
+        "knopf": "Speichern"
+      },
+      "erstellen": {
+        "titel": "Tour bilden",
+        "lead": "Lieferungen auswählen und einen Tag festlegen. Die Reihenfolge wird beim Speichern automatisch optimiert.",
+        "datum": "Datum",
+        "knopf": "Tour erstellen",
+        "keineKoordinaten": "Adresse fehlt noch"
+      }
+    }
+  },
   "qrSteigenAnsicht": {
     "drucken": "Drucken",
     "etiketten": {
@@ -2008,7 +2041,7 @@
     "titel": "Lieferungen",
     "lead": "Digitale Übergabequittung: Menge, Empfänger und Kühlkette der Charge im Moment der Übergabe.",
     "keineLieferungen": "Noch keine Lieferung angelegt.",
-    "note": "Tourenplanung nach Lieferfenstern mit Routenlogik ist nicht Teil dieser Ansicht. Eine zugestellte oder stornierte Lieferung ist unveränderlich, eine Korrektur ist nur als neue Lieferung möglich.",
+    "note": "Eine zugestellte oder stornierte Lieferung ist unveränderlich, eine Korrektur ist nur als neue Lieferung möglich.",
     "menge": "Menge",
     "bestellt": "bestellt",
     "geliefertAm": "Zugestellt am",

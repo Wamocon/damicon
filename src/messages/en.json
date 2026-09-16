@@ -817,7 +817,10 @@
       "kanalAngelegt": "Channel created.",
       "kanalAktualisiert": "Channel updated.",
       "kanalGeloescht": "Channel deleted.",
-      "spanneAktualisiert": "Margin updated."
+      "spanneAktualisiert": "Margin updated.",
+      "adresseGeokodiert": "Address saved and located on the map.",
+      "tourErstellt": "Route created and calculated.",
+      "tourGeloescht": "Route discarded."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -842,7 +845,10 @@
       "code": "The code is wrong or expired. Please enter the current 6-digit code from your authenticator app.",
       "zustand": "The date has changed in the meantime (e.g. locked or already done). Please reload the page.",
       "einwilligung": "Please confirm the notice above before sending the first message.",
-      "wetterdienst": "The weather service did not return any data just now. Please try again later."
+      "wetterdienst": "The weather service did not return any data just now. Please try again later.",
+      "geokodierung": "The address was saved but could not be located on the map. Please check the spelling.",
+      "keineKoordinaten": "None of the selected deliveries have a located address.",
+      "routendienst": "The route was created, but the routing service did not respond just now. Order and distance are preliminary."
     },
     "einladungen": {
       "erfolg": {
@@ -1904,6 +1910,33 @@
     },
     "hinweis": "The margin applies uniformly to all partner farms. As long as it is at 0 %, the payout equals the purchase value - no invented margin."
   },
+  "tourenplanungAnsicht": {
+    "titel": "Route planning",
+    "lead": "Build delivery rounds from several deliveries, sequence and distance optimized automatically (OSRM/OpenStreetMap).",
+    "keineTouren": "No route planned yet.",
+    "status": {
+      "geplant": "planned",
+      "unterwegs": "in progress",
+      "abgeschlossen": "completed"
+    },
+    "strecke": "{km} km, about {minuten} minutes driving time",
+    "tourLoeschen": "Discard route",
+    "hinweis": "The route is an estimate from the routing service, not a basis for working-time or fuel billing. Vehicle capacity and time windows are not part of this first stage.",
+    "formular": {
+      "adresse": {
+        "label": "Address",
+        "platzhalter": "Street, number, city",
+        "knopf": "Save"
+      },
+      "erstellen": {
+        "titel": "Build a route",
+        "lead": "Select deliveries and set a day. The sequence is optimized automatically when saved.",
+        "datum": "Date",
+        "knopf": "Create route",
+        "keineKoordinaten": "address missing"
+      }
+    }
+  },
   "qrSteigenAnsicht": {
     "drucken": "Print",
     "etiketten": {
@@ -2008,7 +2041,7 @@
     "titel": "Deliveries",
     "lead": "Digital handover receipt: quantity, recipient and the batch's cold chain at the moment of handover.",
     "keineLieferungen": "No delivery created yet.",
-    "note": "Route planning by delivery window is not part of this view. A delivered or cancelled delivery is immutable, a correction is only possible as a new delivery.",
+    "note": "A delivered or cancelled delivery is immutable, a correction is only possible as a new delivery.",
     "menge": "Quantity",
     "bestellt": "ordered",
     "geliefertAm": "Delivered on",

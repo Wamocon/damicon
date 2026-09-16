@@ -143,26 +143,38 @@ export type Database = {
       }
       b2b_kunden: {
         Row: {
+          adresse: string | null
+          breitengrad: number | null
           created_at: string
+          geokodiert_am: string | null
           id: string
           identitaets_digest: string | null
           kontakt: string | null
+          laengengrad: number | null
           name: string
           updated_at: string
         }
         Insert: {
+          adresse?: string | null
+          breitengrad?: number | null
           created_at?: string
+          geokodiert_am?: string | null
           id?: string
           identitaets_digest?: string | null
           kontakt?: string | null
+          laengengrad?: number | null
           name: string
           updated_at?: string
         }
         Update: {
+          adresse?: string | null
+          breitengrad?: number | null
           created_at?: string
+          geokodiert_am?: string | null
           id?: string
           identitaets_digest?: string | null
           kontakt?: string | null
+          laengengrad?: number | null
           name?: string
           updated_at?: string
         }
@@ -1355,6 +1367,8 @@ export type Database = {
           menge_kg: number
           server_eingang_zeitpunkt: string | null
           status: Database["public"]["Enums"]["lieferung_status"]
+          tour_id: string | null
+          tour_reihenfolge: number | null
           vorbestellung_id: string | null
         }
         Insert: {
@@ -1371,6 +1385,8 @@ export type Database = {
           menge_kg?: number
           server_eingang_zeitpunkt?: string | null
           status?: Database["public"]["Enums"]["lieferung_status"]
+          tour_id?: string | null
+          tour_reihenfolge?: number | null
           vorbestellung_id?: string | null
         }
         Update: {
@@ -1387,6 +1403,8 @@ export type Database = {
           menge_kg?: number
           server_eingang_zeitpunkt?: string | null
           status?: Database["public"]["Enums"]["lieferung_status"]
+          tour_id?: string | null
+          tour_reihenfolge?: number | null
           vorbestellung_id?: string | null
         }
         Relationships: [
@@ -1431,6 +1449,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "deckungsbeitrag_je_charge"
             referencedColumns: ["charge_id"]
+          },
+          {
+            foreignKeyName: "lieferungen_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "touren"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "lieferungen_vorbestellung_id_fkey"
@@ -2766,6 +2791,57 @@ export type Database = {
         }
         Relationships: []
       }
+      touren: {
+        Row: {
+          created_at: string
+          datum: string
+          dauer_minuten: number | null
+          distanz_km: number | null
+          erstellt_von_profil_id: string | null
+          id: string
+          routen_geometrie: Json | null
+          status: Database["public"]["Enums"]["tour_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          datum: string
+          dauer_minuten?: number | null
+          distanz_km?: number | null
+          erstellt_von_profil_id?: string | null
+          id?: string
+          routen_geometrie?: Json | null
+          status?: Database["public"]["Enums"]["tour_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          datum?: string
+          dauer_minuten?: number | null
+          distanz_km?: number | null
+          erstellt_von_profil_id?: string | null
+          id?: string
+          routen_geometrie?: Json | null
+          status?: Database["public"]["Enums"]["tour_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "touren_erstellt_von_profil_id_fkey"
+            columns: ["erstellt_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "touren_erstellt_von_profil_id_fkey"
+            columns: ["erstellt_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+        ]
+      }
       transport_temperatur_messungen: {
         Row: {
           created_at: string
@@ -3313,6 +3389,7 @@ export type Database = {
         | "uebersprungen"
       sorte_typ: "remontierend" | "sommertragend"
       spalierrichtung: "n_s" | "o_w"
+      tour_status: "geplant" | "unterwegs" | "abgeschlossen"
       vorbestellung_status:
         | "angefragt"
         | "bestaetigt"
@@ -3538,6 +3615,7 @@ export const Constants = {
       ],
       sorte_typ: ["remontierend", "sommertragend"],
       spalierrichtung: ["n_s", "o_w"],
+      tour_status: ["geplant", "unterwegs", "abgeschlossen"],
       vorbestellung_status: [
         "angefragt",
         "bestaetigt",

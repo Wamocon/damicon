@@ -47,6 +47,7 @@ export function Feld({
   placeholder,
   defaultValue,
   inputMode,
+  form,
 }: {
   label: string;
   name: string;
@@ -55,6 +56,7 @@ export function Feld({
   placeholder?: string;
   defaultValue?: string;
   inputMode?: "text" | "decimal";
+  form?: string;
 }) {
   return (
     <label className="block space-y-1">
@@ -68,6 +70,7 @@ export function Feld({
         placeholder={placeholder}
         defaultValue={defaultValue}
         inputMode={inputMode}
+        form={form}
         className={feldKlassen}
       />
     </label>
@@ -111,17 +114,27 @@ export function Auswahl({
 export function SubmitKnopf({
   label,
   variante = "primaer",
+  form,
+  pending: pendingProp,
 }: {
   label?: string;
   variante?: "primaer" | "leise";
+  // Nur gesetzt, wenn der Knopf ausserhalb des eigenen <form> steht (per
+  // form-Attribut verknuepft) - dann greift useFormStatus() nicht, da es den
+  // umschliessenden <form>-Vorfahren im Baum braucht, keine HTML-Verknuepfung
+  // per form="...". Ohne form-Prop bleibt das bisherige Verhalten unveraendert.
+  form?: string;
+  pending?: boolean;
 }) {
-  const { pending } = useFormStatus();
+  const { pending: kontextPending } = useFormStatus();
+  const pending = form ? (pendingProp ?? false) : kontextPending;
   const t = useTranslations("aktionen");
   const text = label ?? t("anlegen");
 
   return (
     <button
       type="submit"
+      form={form}
       disabled={pending}
       className={
         variante === "primaer"

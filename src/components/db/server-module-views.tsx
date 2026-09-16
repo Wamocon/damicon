@@ -87,13 +87,11 @@ export function serverModulAnsicht(
     // reinem Container-Datenmodell.
     case "foerdermittel":
       return <FoerdermittelAnsicht />;
-    // Anforderung 3.5 Teil 2 (Uebergabequittung) und 5.2 Teil 2a
-    // (Lieferstatus): logistik ist die interne Arbeitsansicht (Buero/
-    // Brigade erfassen), b2b_portal die kundenseitige Sicht auf dieselben
-    // Daten, ergaenzt um Preisliste/Vorbestellung (Anforderung 5.1, Teil 2
-    // von 2). Tourenplanung (3.5 Teil 1) und Rechnungshistorie/automatischer
-    // Kontingent-Verbrauch (5.1/5.2 Teil 2b) bleiben offen, siehe
-    // Modulkommentare.
+    // Anforderung 3.5 Teil 2 (Uebergabequittung), Teil 1 (Tourenplanung mit
+    // Routenoptimierung) und 5.2 Teil 2a (Lieferstatus): logistik ist die
+    // interne Arbeitsansicht (Buero/Brigade erfassen), b2b_portal die
+    // kundenseitige Sicht auf dieselben Daten, ergaenzt um Preisliste/
+    // Vorbestellung (Anforderung 5.1, Teil 2 von 2).
     case "logistik":
       return <LogistikAnsicht />;
     // Anforderung 3.1: die Live-Alarmlogik (KuehlkettenAlarm) lief bisher nur

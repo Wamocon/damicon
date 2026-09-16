@@ -128,11 +128,11 @@ export const modules: ModuleDef[] = [
     icon: "truck",
     resource: "logistik",
     klassifikation: "anpassen",
-    // Anforderung 3.5 Teil 2: digitale Uebergabequittung ist angebunden
-    // (LogistikAnsicht). Bleibt bei "in-entwicklung", weil Tourenplanung
-    // nach Lieferfenstern mit ICS-Feed/Routenlogik (Anforderung 3.5 Teil 1)
-    // der deutlich groessere Rest des Modul-Versprechens ist.
-    reifegrad: "in-entwicklung",
+    // Anforderung 3.5 Teil 1 (Tourenplanung mit Routenoptimierung ueber
+    // OSRM/Nominatim) und Teil 2 (digitale Uebergabequittung) sind beide
+    // angebunden (LogistikAnsicht). Fahrzeugkapazitaet und Lieferzeitfenster
+    // bleiben bewusst aussen vor, siehe Migration 20261010000000.
+    reifegrad: "angebunden",
   },
   {
     key: "qr_steigen",

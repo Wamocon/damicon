@@ -1156,6 +1156,9 @@
       "kanalAktualisiert": "Kanal güncellendi.",
       "kanalGeloescht": "Kanal silindi.",
       "spanneAktualisiert": "Marj güncellendi.",
+      "adresseGeokodiert": "Adres kaydedildi ve haritada konumlandırıldı.",
+      "tourErstellt": "Tur oluşturuldu ve güzergâh hesaplandı.",
+      "tourGeloescht": "Tur silindi.",
       "wetterAktualisiert": "Hava durumu verileri güncellendi."
     },
     "fehler": {
@@ -1181,7 +1184,10 @@
       "code": "Kod yanlış veya süresi doldu. Lütfen kimlik doğrulayıcı uygulamadaki güncel 6 haneli kodu girin.",
       "zustand": "Tarih bu sırada değişti (ör. kilitlendi veya zaten tamamlandı). Lütfen sayfayı yeniden yükleyin.",
       "einwilligung": "İlk mesajı göndermeden önce lütfen yukarıdaki bildirimi onaylayın.",
-      "wetterdienst": "Hava durumu servisi şu anda veri döndürmedi. Lütfen daha sonra tekrar deneyin."
+      "wetterdienst": "Hava durumu servisi şu anda veri döndürmedi. Lütfen daha sonra tekrar deneyin.",
+      "geokodierung": "Adres kaydedildi, ancak haritada konumlandırılamadı. Lütfen yazımı kontrol edin.",
+      "keineKoordinaten": "Seçilen teslimatların hiçbirinin konumlandırılmış bir adresi yok.",
+      "routendienst": "Tur oluşturuldu, ancak güzergâh hizmeti şu anda yanıt vermedi. Sıra ve mesafe geçicidir."
     },
     "einladungen": {
       "erfolg": {
@@ -1904,6 +1910,33 @@
     },
     "hinweis": "Marj tüm komşu işletmeler için aynı şekilde uygulanır. %0 olduğu sürece ödeme satın alma değerine eşittir - uydurulmuş bir marj yok."
   },
+  "tourenplanungAnsicht": {
+    "titel": "Tur planlama",
+    "lead": "Birden fazla teslimattan toplama turu oluşturulur, sıra ve güzergâh otomatik olarak optimize edilir (OSRM/OpenStreetMap).",
+    "keineTouren": "Henüz planlanmış bir tur yok.",
+    "status": {
+      "geplant": "planlandı",
+      "unterwegs": "yolda",
+      "abgeschlossen": "tamamlandı"
+    },
+    "strecke": "{km} km, yaklaşık {minuten} dakika sürüş süresi",
+    "tourLoeschen": "Turu sil",
+    "hinweis": "Güzergâh, güzergâh hizmetinin yalnızca bir tahminidir, çalışma süresi veya yakıt hesaplaması için temel oluşturmaz. Araç kapasitesi ve zaman pencereleri bu ilk aşamanın parçası değildir.",
+    "formular": {
+      "adresse": {
+        "label": "Adres",
+        "platzhalter": "Sokak, kapı numarası, şehir",
+        "knopf": "Kaydet"
+      },
+      "erstellen": {
+        "titel": "Tur oluştur",
+        "lead": "Teslimatları seçin ve bir gün belirleyin. Sıra, kaydedildiğinde otomatik olarak optimize edilir.",
+        "datum": "Tarih",
+        "knopf": "Tur oluştur",
+        "keineKoordinaten": "Adres henüz eksik"
+      }
+    }
+  },
   "qrSteigenAnsicht": {
     "drucken": "Yazdır",
     "etiketten": {
@@ -2008,7 +2041,7 @@
     "titel": "Teslimatlar",
     "lead": "Dijital teslim alma belgesi: teslim anındaki miktar, alıcı ve partinin soğuk zinciri.",
     "keineLieferungen": "Henüz teslimat oluşturulmadı.",
-    "note": "Teslimat zaman aralığına göre rota planlaması bu görünümün parçası değildir. Teslim edilmiş veya iptal edilmiş bir teslimat değiştirilemez, düzeltme yalnızca yeni bir teslimat olarak mümkündür.",
+    "note": "Teslim edilmiş veya iptal edilmiş bir teslimat değiştirilemez, düzeltme yalnızca yeni bir teslimat olarak mümkündür.",
     "menge": "Miktar",
     "bestellt": "sipariş edilen",
     "geliefertAm": "Teslim tarihi",
