@@ -10,7 +10,7 @@
 // verlangt das Abnahmekriterium ausdruecklich.
 //
 // Dieselbe Zuordnung und dieselbe Pruefziffer stehen in der Datenbank
-// (Migration 20261013000000, Funktionen nummernart_fuer_rechtsform und
+// (Migration 20261021000000, Funktionen nummernart_fuer_rechtsform und
 // pruefziffer_stimmt). Doppelt, weil beide Seiten sie unabhaengig brauchen:
 // das Formular, um vor dem Absenden zu warnen, die Datenbank, um einen
 // direkten Zugriff nicht durchzulassen. Wer eine Seite aendert, aendert beide.

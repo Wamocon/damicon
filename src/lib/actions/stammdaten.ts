@@ -11,7 +11,7 @@ import { istStammdatenGruppe, TABELLE_JE_GRUPPE } from "@/lib/domain/stammdaten"
 //
 // Die Pruefung laeuft zweimal: hier, damit der Nutzer eine uebersetzte Meldung
 // bekommt statt eines Datenbankfehlers, und im check-Constraint der Migration
-// 20261013000000, damit auch ein direkter Zugriff nichts Unstimmiges ablegt.
+// 20261021000000, damit auch ein direkter Zugriff nichts Unstimmiges ablegt.
 // Die Regel selbst steht nur einmal - in domain/rechtsform.ts und der
 // gleichnamigen SQL-Funktion, die der Abnahmetest E.11 gegeneinander prueft.
 

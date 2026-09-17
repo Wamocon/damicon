@@ -19,7 +19,7 @@ import { AktionsMeldung, Auswahl, Feld, PfadFeld, SubmitKnopf } from "@/componen
 // unkontrollierten Feldern, und es fuer ein einzelnes Formular auf React-State
 // umzubauen waere Ueberbau. Die Server Action prueft dieselbe Regel und
 // antwortet uebersetzt; darunter faengt der check-Constraint der Migration
-// 20261013000000 auch den direkten Zugriff ab.
+// 20261021000000 auch den direkten Zugriff ab.
 
 export function StammdatenZeileFormular({ zeile }: { zeile: StammdatenZeile }) {
   const [status, action] = useActionState(stammdatenAktualisieren, leer);
