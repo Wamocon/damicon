@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
-import { CheckCircle2, Package, Snowflake, Timer } from "lucide-react";
+import { CheckCircle2, Package, Snowflake, Timer, TriangleAlert } from "lucide-react";
 import {
   arbeitszeitErfassen,
   kuehlmessungErfassen,
@@ -136,25 +136,89 @@ export function KuehlmessungFormular({ aufgabeId }: { aufgabeId: string }) {
   );
 }
 
-// Anforderung 2.10: Stichprobenkontrolle einer einzelnen Steige, ein Klick.
-// Kein Offline-Formular - die Kontrolle ist ein Buero-/Leitungsvorgang, keine
-// Feldtaetigkeit unter Netzausfall.
+// Anforderung 2.10: Stichprobenkontrolle einer einzelnen Steige.
+//
+// Das Abnahmekriterium verlangt zweierlei, das sich widerspricht, wenn man es
+// wortwoertlich in ein Formular uebersetzt: "ein Klick je Steige" und "eine
+// Abweichung verlangt eine Begruendung". Deshalb zwei Wege statt eines
+// Auswahlfelds - der Regelfall bleibt ein Klick, nur die Ausnahme fragt nach.
+// Ein Auswahlfeld mit anschliessendem Absenden haette auch den Regelfall auf
+// drei Handgriffe gebracht, und der ist am Sammelpunkt der haeufige.
+//
+// Kein Offline-Formular: Die Kontrolle braucht die Vier-Augen-Pruefung der
+// Datenbank (steige_kontrolle_pruefen(), Migration 20261014000000), und die
+// laesst sich auf dem Geraet nicht nachbilden. Eine offline gepufferte
+// Kontrolle koennte beim spaeteren Abgleich abgewiesen werden, nachdem der
+// Vorarbeiter sie laengst fuer erledigt haelt.
 export function SteigeKontrollierenKnopf({ id, code }: { id: string; code: string }) {
   const [status, action] = useActionState(steigeKontrollieren, leer);
+  const [fragtNachGrund, setFragtNachGrund] = useState(false);
   const t = useTranslations("nachweiskette");
 
+  const kleinerKnopf =
+    "inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold transition";
+
   return (
-    <form action={action} className="inline-flex items-center gap-1">
+    <form action={action} className="inline-flex flex-wrap items-center gap-1">
       <PfadFeld />
       <input type="hidden" name="id" value={id} />
-      <button
-        type="submit"
-        className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[10px] font-semibold text-foreground transition hover:border-primary hover:text-primary"
-        aria-label={t("steigenKontrollierenAria", { code })}
-      >
-        <CheckCircle2 className="h-3 w-3" />
-        {t("steigenKontrollieren")}
-      </button>
+
+      {fragtNachGrund ? (
+        <>
+          {/* Sichtbares Pflichtfeld statt stiller Ablehnung: required faengt den
+              leeren Fall im Browser ab, die Server Action und der Trigger
+              pruefen ihn noch einmal. */}
+          <input
+            type="text"
+            name="begruendung"
+            required
+            autoFocus
+            maxLength={500}
+            placeholder={t("kontrolle.grundPlatzhalter")}
+            aria-label={t("kontrolle.grundAria", { code })}
+            className="h-7 w-48 rounded-lg border border-border bg-card px-2 text-[11px] text-foreground"
+          />
+          <button
+            type="submit"
+            name="befund"
+            value="abweichung"
+            className={`${kleinerKnopf} border-destructive text-destructive hover:bg-destructive/10`}
+          >
+            <TriangleAlert className="h-3 w-3" />
+            {t("kontrolle.abweichungMelden")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setFragtNachGrund(false)}
+            className={`${kleinerKnopf} text-muted-foreground hover:text-foreground`}
+          >
+            {t("kontrolle.abbrechen")}
+          </button>
+        </>
+      ) : (
+        <>
+          <button
+            type="submit"
+            name="befund"
+            value="in_ordnung"
+            className={`${kleinerKnopf} text-foreground hover:border-primary hover:text-primary`}
+            aria-label={t("steigenKontrollierenAria", { code })}
+          >
+            <CheckCircle2 className="h-3 w-3" />
+            {t("steigenKontrollieren")}
+          </button>
+          <button
+            type="button"
+            onClick={() => setFragtNachGrund(true)}
+            className={`${kleinerKnopf} text-muted-foreground hover:border-destructive hover:text-destructive`}
+            aria-label={t("kontrolle.abweichungAria", { code })}
+          >
+            <TriangleAlert className="h-3 w-3" />
+            {t("kontrolle.abweichung")}
+          </button>
+        </>
+      )}
+
       <AktionsMeldung status={status} />
     </form>
   );

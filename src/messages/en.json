@@ -861,13 +861,15 @@
       "code": "The code is wrong or expired. Please enter the current 6-digit code from your authenticator app.",
       "zustand": "The date has changed in the meantime (e.g. locked or already done). Please reload the page.",
       "einwilligung": "Please confirm the notice above before sending the first message.",
+      "begruendungFehlt": "A deviation needs a reason.",
       "wetterdienst": "The weather service did not return any data just now. Please try again later.",
       "geokodierung": "The address was saved but could not be located on the map. Please check the spelling.",
       "keineKoordinaten": "None of the selected deliveries have a located address.",
       "routendienst": "The route was created, but the routing service did not respond just now. Order and distance are preliminary.",
       "stammdatenOhneRechtsform": "Please choose the legal form first - it decides whether an IIN or a BIN applies.",
       "stammdatenFormat": "The number consists of exactly twelve digits.",
-      "stammdatenPruefziffer": "The check digit does not match. Usually two digits have been transposed."
+      "stammdatenPruefziffer": "The check digit does not match. Usually two digits have been transposed.",
+      "selbstkontrolle": "Whoever recorded a crate does not inspect it themselves. Someone else needs to check this crate."
     },
     "einladungen": {
       "erfolg": {
@@ -1581,6 +1583,14 @@
       "gewicht": "Weight in kg",
       "minuten": "Minutes",
       "temperatur": "Temperature in °C"
+    },
+    "kontrolle": {
+      "abweichung": "Deviation",
+      "abweichungAria": "Report a deviation for crate {code}",
+      "abweichungMelden": "Save deviation",
+      "grundPlatzhalter": "What is deviating?",
+      "grundAria": "Reason for the deviation on crate {code}",
+      "abbrechen": "Cancel"
     }
   },
   "oeffentlicheHerkunft": {
@@ -2444,5 +2454,21 @@
       "iin": "IIN",
       "bin": "BIN"
     }
+  },
+  "steigeScan": {
+    "label": "Crate at the collection point",
+    "steigeScannen": "Scan crate",
+    "hinweis": "Hold the crate label in front of the camera.",
+    "keineKamera": "No camera available. Enter the code by hand.",
+    "keinSteigenCode": "This code carries no crate number.",
+    "nichtInDieserAufgabe": "{code} does not belong to this picking task.",
+    "manuellStattdessen": "Enter code",
+    "scanStattdessen": "Scan instead",
+    "codePlatzhalter": "Code from the label",
+    "codeAria": "Enter crate number by hand",
+    "ohnePerson": "no person",
+    "bereitsKontrolliert": "Already inspected",
+    "keinKontrollrecht": "Inspection by management or foreman",
+    "naechste": "Next"
   }
 }

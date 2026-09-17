@@ -2169,6 +2169,7 @@ export type Database = {
           b2b_kunde_id: string | null
           brigade_id: string | null
           created_at: string
+          darf_kontrollieren: boolean
           email: string | null
           full_name: string
           id: string
@@ -2181,6 +2182,7 @@ export type Database = {
           b2b_kunde_id?: string | null
           brigade_id?: string | null
           created_at?: string
+          darf_kontrollieren?: boolean
           email?: string | null
           full_name: string
           id?: string
@@ -2193,6 +2195,7 @@ export type Database = {
           b2b_kunde_id?: string | null
           brigade_id?: string | null
           created_at?: string
+          darf_kontrollieren?: boolean
           email?: string | null
           full_name?: string
           id?: string
@@ -2705,9 +2708,12 @@ export type Database = {
           charge_id: string | null
           code: string
           created_at: string
+          erfasst_von_profil_id: string | null
           geraet_zeitpunkt: string | null
           gewicht_kg: number | null
           id: string
+          kontroll_befund: Database["public"]["Enums"]["kontroll_befund"] | null
+          kontroll_begruendung: string | null
           kontrolliert_am: string | null
           kontrolliert_von_profil_id: string | null
           pflueckaufgabe_id: string | null
@@ -2720,9 +2726,12 @@ export type Database = {
           charge_id?: string | null
           code: string
           created_at?: string
+          erfasst_von_profil_id?: string | null
           geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
+          kontroll_befund?: Database["public"]["Enums"]["kontroll_befund"] | null
+          kontroll_begruendung?: string | null
           kontrolliert_am?: string | null
           kontrolliert_von_profil_id?: string | null
           pflueckaufgabe_id?: string | null
@@ -2735,9 +2744,12 @@ export type Database = {
           charge_id?: string | null
           code?: string
           created_at?: string
+          erfasst_von_profil_id?: string | null
           geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
+          kontroll_befund?: Database["public"]["Enums"]["kontroll_befund"] | null
+          kontroll_begruendung?: string | null
           kontrolliert_am?: string | null
           kontrolliert_von_profil_id?: string | null
           pflueckaufgabe_id?: string | null
@@ -3392,6 +3404,7 @@ export type Database = {
         | "instagram"
         | "kaspi_qr"
         | "sonstiges"
+      kontroll_befund: "in_ordnung" | "abweichung"
       kuehlkette_ergebnis: "ok" | "warnung" | "verstoss"
       kundengruppe: "handel" | "gastronomie" | "einzelhandel"
       ledger_typ: "erloes" | "kosten"
