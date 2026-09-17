@@ -1175,7 +1175,9 @@
       "kontingentErstellt": "Kota oluşturuldu.",
       "kontingentAktualisiert": "Miktar güncellendi.",
       "wetterAktualisiert": "Hava durumu verileri güncellendi.",
-      "stammdatenGespeichert": "Ana veriler kaydedildi."
+      "stammdatenGespeichert": "Ana veriler kaydedildi.",
+      "nachbarbetrieb": "Komşu işletme “{wert}” eklendi.",
+      "dokumentGeaendert": "Belge “{wert}” güncellendi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -1299,7 +1301,8 @@
     "oeffnen": "Aç",
     "keineDatei": "dosya yok",
     "col": {
-      "datei": "Dosya"
+      "datei": "Dosya",
+      "aendern": "Düzenle"
     },
     "feld": {
       "name": "Ad",
@@ -1307,11 +1310,14 @@
       "bezug": "İlişki",
       "stand": "Güncel tarih",
       "status": "Durum",
-      "datei": "Dosya"
+      "datei": "Dosya",
+      "foerderdossier": "Destek dosyası"
     },
     "beispiel": {
       "name": "İlaçlama kaydı 37. hafta - Kuzey parseli"
-    }
+    },
+    "keinDossier": "dosya yok",
+    "aendernKnopf": "Kaydet"
   },
   "pflueckaufgabenVerwaltung": {
     "ohneBrigade": "Ekipsiz",
@@ -1920,6 +1926,14 @@
       "preis": "Fiyat (₸/kg)",
       "rechnungsdatum": "Fatura tarihi",
       "knopf": "Kaydet"
+    },
+    "betriebAufnehmen": {
+      "titel": "Komşu işletme ekle",
+      "lead": "CSV içe aktarımı satırlarını kabul etmeden önce işletme burada olmalıdır.",
+      "knopf": "İşletme ekle",
+      "name": "Ad",
+      "ort": "Yer",
+      "kontakt": "İletişim"
     }
   },
   "abrechnungAnsicht": {
@@ -2470,5 +2484,36 @@
     "bereitsKontrolliert": "Zaten kontrol edildi",
     "keinKontrollrecht": "Kontrol yönetim veya ustabaşı tarafından",
     "naechste": "Sonraki"
+  },
+  "pflanzenschutzProtokoll": {
+    "titel": "Uygulamalar ve bekleme süreleri",
+    "lead": "Kaydedilen her bitki koruma uygulaması; doz, uygulayan kişi ve bekleme süresiyle. Kayıt ve serbest bırakma sıra bloğunda yapılır.",
+    "note": "Protokol yüklemesi henüz yapılmadı: protokol belgesi sütunu şimdilik boş kalıyor.",
+    "wartezeitTage": "{tage} gün",
+    "stat": {
+      "gesamt": "Uygulama",
+      "gesperrt": "bekleme süresi devam ediyor",
+      "ohneProtokoll": "protokolsüz"
+    },
+    "col": {
+      "block": "Sıra bloğu",
+      "mittel": "İlaç",
+      "behandeltAm": "Uygulama tarihi",
+      "aufwand": "Doz",
+      "person": "Uygulayan",
+      "wartezeit": "Bekleme / serbest",
+      "zustand": "Durum"
+    },
+    "zustand": {
+      "gesperrt": "bekleme sürüyor",
+      "freigegeben": "serbest",
+      "abgelaufen": "bekleme doldu"
+    },
+    "einheit": {
+      "l_ha": "l/ha",
+      "kg_ha": "kg/ha",
+      "ml_100l": "ml/100 l",
+      "g_100l": "g/100 l"
+    }
   }
 }

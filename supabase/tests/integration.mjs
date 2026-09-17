@@ -385,6 +385,49 @@ if (leitung && brigade) {
     `sichtbare Zeilen: ${nachweise?.length}`,
   );
 
+  // Dokumente bearbeiten: die UPDATE-Policy dokumente_update_buero gab es seit
+  // 20260905120000, die Anwendung rief sie nie auf (dokumentAendern, neu).
+  {
+    const { data: dokNeu, error: dokNeuFehler } = await leitung
+      .from("dokumente")
+      .insert({ name: "IT-Dokument Entwurf", kategorie: "sonstiges", status: "prueflauf" })
+      .select("id, name, status")
+      .single();
+    check(
+      "Dokumente: Buero legt ein Dokument im Pruefstand an",
+      !dokNeuFehler && dokNeu?.status === "prueflauf",
+      dokNeuFehler?.message ?? `status: ${dokNeu?.status}`,
+    );
+
+    const { data: dokGeaendert, error: dokAendernFehler } = await leitung
+      .from("dokumente")
+      .update({ name: "IT-Dokument geprueft", bezug: "T-N-A-04", status: "gueltig" })
+      .eq("id", dokNeu?.id)
+      .select("id, name, bezug, status")
+      .maybeSingle();
+    check(
+      "Dokumente: Buero fuehrt Bezeichnung, Bezug und Status nach",
+      !dokAendernFehler &&
+        dokGeaendert?.status === "gueltig" &&
+        dokGeaendert?.name === "IT-Dokument geprueft" &&
+        dokGeaendert?.bezug === "T-N-A-04",
+      dokAendernFehler?.message ?? JSON.stringify(dokGeaendert),
+    );
+
+    const { data: brigadeAendernVersuch, error: brigadeAendernFehler } = await brigade
+      .from("dokumente")
+      .update({ status: "abgelaufen" })
+      .eq("id", dokNeu?.id)
+      .select("id");
+    check(
+      "Dokumente: die Brigade aendert kein Dokument (RLS dokumente_update_buero)",
+      !!brigadeAendernFehler || (brigadeAendernVersuch?.length ?? 0) === 0,
+      brigadeAendernFehler?.code ?? `geaenderte Zeilen: ${brigadeAendernVersuch?.length}`,
+    );
+
+    if (dokNeu?.id) await admin.from("dokumente").delete().eq("id", dokNeu.id);
+  }
+
   const { data: aufgabe } = await admin
     .from("pflueckaufgaben")
     .select("id, code, status, qualitaetsfaktor")
@@ -3058,6 +3101,93 @@ if (leitung && brigade) {
       verknuepftesDokument?.foerderdossier_id === seedDossier?.id,
       `foerderdossier_id: ${verknuepftesDokument?.foerderdossier_id}, dossier: ${seedDossier?.id}`,
     );
+
+    // Dossieransicht: ein angehaengter Nachweis muss herunterladbar sein.
+    // ladeFoerdermittel() liest dafuer denselben Weg - Pfad am Dokument, dann
+    // eine signierte URL aus dem Bucket "dokumente" (data/foerdermittel.ts).
+    // Vorher lud die Ansicht den Pfad zwar, zeigte aber nur den Namen.
+    const dossierBelegPfad = `dossier/it-${Date.now()}.pdf`;
+    const { error: dossierBelegUploadFehler } = await leitung.storage
+      .from("dokumente")
+      .upload(dossierBelegPfad, new Blob(["Integrationstest-Nachweis"], { type: "application/pdf" }));
+    const { data: dossierBeleg, error: dossierBelegFehler } = await leitung
+      .from("dokumente")
+      .insert({
+        name: "IT-Nachweis Dossier",
+        kategorie: "foerderdossier",
+        bezug: "Antrag 2026-114",
+        status: "gueltig",
+        storage_path: dossierBelegPfad,
+        foerderdossier_id: seedDossier?.id,
+      })
+      .select("id, storage_path, foerderdossier_id")
+      .single();
+    check(
+      "Fördermittel: Nachweis mit Datei am Dossier angelegt",
+      !dossierBelegUploadFehler && !dossierBelegFehler &&
+        dossierBeleg?.foerderdossier_id === seedDossier?.id,
+      dossierBelegUploadFehler?.message ?? dossierBelegFehler?.message ?? "",
+    );
+
+    const { data: signierteBelege } = await leitung.storage
+      .from("dokumente")
+      .createSignedUrls([dossierBelegPfad], 3600);
+    const signierterBeleg = (signierteBelege ?? [])[0];
+    check(
+      "Fördermittel: der angehaengte Nachweis liefert eine signierte Download-URL",
+      !!signierterBeleg?.signedUrl && signierterBeleg.path === dossierBelegPfad,
+      signierterBeleg?.signedUrl ? "URL erzeugt" : "keine signierte URL",
+    );
+
+    if (dossierBeleg?.id) await admin.from("dokumente").delete().eq("id", dossierBeleg.id);
+    await admin.storage.from("dokumente").remove([dossierBelegPfad]);
+
+    // Anhaengen ueber den Weg der Anwendung: dokumentAnlegen() gibt
+    // foerderdossier_id jetzt mit. Vorher fuellte die Spalte ausschliesslich
+    // der einmalige Backfill aus 20260925000000.
+    const { data: neuerNachweis, error: neuerNachweisFehler } = await leitung
+      .from("dokumente")
+      .insert({
+        name: "IT-Nachweis ohne Datei",
+        kategorie: "foerderdossier",
+        status: "gueltig",
+        foerderdossier_id: seedDossier?.id,
+      })
+      .select("id, foerderdossier_id")
+      .single();
+    check(
+      "Fördermittel: Buero haengt einen neuen Nachweis an ein Dossier",
+      !neuerNachweisFehler && neuerNachweis?.foerderdossier_id === seedDossier?.id,
+      neuerNachweisFehler?.message ?? `dossier: ${neuerNachweis?.foerderdossier_id}`,
+    );
+
+    const { data: dossierMitNachweis } = await leitung
+      .from("foerderdossiers")
+      .select("id, dokumente ( id )")
+      .eq("id", seedDossier?.id)
+      .single();
+    check(
+      "Fördermittel: der angehaengte Nachweis erscheint an seinem Dossier",
+      (dossierMitNachweis?.dokumente ?? []).some((d) => d.id === neuerNachweis?.id),
+      `angehaengte Dokumente: ${(dossierMitNachweis?.dokumente ?? []).length}`,
+    );
+
+    const { data: brigadeNachweisVersuch, error: brigadeNachweisFehler } = await brigade
+      .from("dokumente")
+      .insert({
+        name: "IT-Nachweis unzulaessig",
+        kategorie: "foerderdossier",
+        status: "gueltig",
+        foerderdossier_id: seedDossier?.id,
+      })
+      .select("id");
+    check(
+      "Fördermittel: die Brigade haengt keinen Nachweis an (RLS dokumente_insert_buero)",
+      !!brigadeNachweisFehler || (brigadeNachweisVersuch?.length ?? 0) === 0,
+      brigadeNachweisFehler?.code ?? `geschriebene Zeilen: ${brigadeNachweisVersuch?.length}`,
+    );
+
+    if (neuerNachweis?.id) await admin.from("dokumente").delete().eq("id", neuerNachweis.id);
 
     // RLS: nur Buero-Rollen lesen/schreiben foerderdossiers.
     const { data: brigadeSieht } = await brigade.from("foerderdossiers").select("id");

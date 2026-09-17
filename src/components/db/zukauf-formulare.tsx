@@ -3,10 +3,10 @@
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import { AlertCircle, AlertTriangle, CheckCircle2, Info } from "lucide-react";
-import { zukaufImportieren, zukaufPreisNachtragen } from "@/lib/actions/zukauf";
+import { nachbarbetriebAnlegen, zukaufImportieren, zukaufPreisNachtragen } from "@/lib/actions/zukauf";
 import { leerZukaufImport } from "@/lib/actions/zukauf-status";
 import { leer } from "@/lib/actions/status";
-import { AktionsMeldung, FormularKarte, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
+import { AktionsMeldung, Feld, FormularKarte, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
 import type { ZukaufBefund } from "@/lib/import/zukauf-parser";
 
 // Formulare des Aggregator-Zukaufs (WMCNL-1453): CSV-Import mit Befundliste,
@@ -162,5 +162,28 @@ export function ZukaufPreisNachtragenFormular({ id }: { id: string }) {
       </button>
       <AktionsMeldung status={status} />
     </form>
+  );
+}
+
+// Nachbarbetrieb aufnehmen (Aggregator). Bewusst neben dem Import-Formular:
+// wer beim Import auf "unbekannter Betrieb" stoesst, legt ihn genau hier an
+// und laedt die Datei erneut - ohne die Seite zu verlassen.
+export function NachbarbetriebFormular() {
+  const [status, action] = useActionState(nachbarbetriebAnlegen, leer);
+  const t = useTranslations("zukaufAnsicht.betriebAufnehmen");
+
+  return (
+    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+      <form action={action} className="grid gap-2.5 sm:grid-cols-3">
+        <PfadFeld />
+        <Feld label={t("name")} name="name" required placeholder="Nachbarbetrieb Kaskelen" />
+        <Feld label={t("ort")} name="ort" placeholder="Kaskelen" />
+        <Feld label={t("kontakt")} name="kontakt" placeholder="+7 ..." />
+        <div className="sm:col-span-3 flex flex-wrap items-center gap-3">
+          <SubmitKnopf label={t("knopf")} />
+          <AktionsMeldung status={status} />
+        </div>
+      </form>
+    </FormularKarte>
   );
 }

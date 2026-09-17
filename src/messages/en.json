@@ -836,7 +836,9 @@
       "sorteAktualisiert": "Variety updated.",
       "kontingentErstellt": "Quota created.",
       "kontingentAktualisiert": "Quantity updated.",
-      "stammdatenGespeichert": "Master data saved."
+      "stammdatenGespeichert": "Master data saved.",
+      "nachbarbetrieb": "Neighbouring farm “{wert}” added.",
+      "dokumentGeaendert": "Document “{wert}” updated."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -960,7 +962,8 @@
     "oeffnen": "Open",
     "keineDatei": "no file",
     "col": {
-      "datei": "File"
+      "datei": "File",
+      "aendern": "Edit"
     },
     "feld": {
       "name": "Name",
@@ -968,11 +971,14 @@
       "bezug": "Reference",
       "stand": "As of",
       "status": "Status",
-      "datei": "File"
+      "datei": "File",
+      "foerderdossier": "Funding dossier"
     },
     "beispiel": {
       "name": "Spray record week 37 - North plot"
-    }
+    },
+    "keinDossier": "no dossier",
+    "aendernKnopf": "Save"
   },
   "pflueckaufgabenVerwaltung": {
     "ohneBrigade": "No brigade",
@@ -1920,6 +1926,14 @@
       "preis": "Price (₸/kg)",
       "rechnungsdatum": "Invoice date",
       "knopf": "Save"
+    },
+    "betriebAufnehmen": {
+      "titel": "Add neighbouring farm",
+      "lead": "A farm must be listed here before the CSV import accepts its rows.",
+      "knopf": "Add farm",
+      "name": "Name",
+      "ort": "Location",
+      "kontakt": "Contact"
     }
   },
   "abrechnungAnsicht": {
@@ -2470,5 +2484,36 @@
     "bereitsKontrolliert": "Already inspected",
     "keinKontrollrecht": "Inspection by management or foreman",
     "naechste": "Next"
+  },
+  "pflanzenschutzProtokoll": {
+    "titel": "Treatments and waiting periods",
+    "lead": "Every recorded plant-protection treatment with dose, operator and waiting period. Entry and release happen at the row block.",
+    "note": "The protocol upload is not built yet: the protocol document column stays empty for now.",
+    "wartezeitTage": "{tage} days",
+    "stat": {
+      "gesamt": "Treatments",
+      "gesperrt": "waiting period running",
+      "ohneProtokoll": "without protocol"
+    },
+    "col": {
+      "block": "Row block",
+      "mittel": "Agent",
+      "behandeltAm": "Treated on",
+      "aufwand": "Dose",
+      "person": "Operator",
+      "wartezeit": "Waiting period / release",
+      "zustand": "State"
+    },
+    "zustand": {
+      "gesperrt": "waiting period running",
+      "freigegeben": "released",
+      "abgelaufen": "waiting period elapsed"
+    },
+    "einheit": {
+      "l_ha": "l/ha",
+      "kg_ha": "kg/ha",
+      "ml_100l": "ml/100 l",
+      "g_100l": "g/100 l"
+    }
   }
 }

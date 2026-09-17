@@ -131,3 +131,41 @@ export async function zukaufPreisNachtragen(
   aktualisiere(formData);
   return ok("ok.zukaufPreis");
 }
+
+// Nachbarbetrieb aufnehmen. Bis hierher entstanden Nachbarbetriebe
+// ausschliesslich ueber Seed/Migration - die Schreibpolicies aus
+// 20260908140000_aggregator_zukauf.sql gab es zwar, nur rief sie niemand auf.
+// Folge: der Import wies jede Zeile eines noch unbekannten Betriebs ab
+// (referenzAufloesen() in lib/import/zukauf-parser.ts), ohne einen Weg
+// anzubieten, ihn anzulegen.
+export async function nachbarbetriebAnlegen(
+  _status: AktionsStatus,
+  formData: FormData,
+): Promise<AktionsStatus> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("aggregator", "create");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+
+  const name = text(formData, "name");
+  if (!name) return fehler("fehler.eingabe");
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("nachbarbetriebe")
+    .insert({
+      name,
+      ort: text(formData, "ort") || null,
+      kontakt: text(formData, "kontakt") || null,
+    })
+    .select("id, name")
+    .single();
+
+  if (error) return dbFehler(error);
+
+  await protokolliere(profil, "zukauf.nachbarbetriebAngelegt", data.id, { name: data.name });
+  aktualisiere(formData);
+  return ok("ok.nachbarbetrieb", data.name);
+}

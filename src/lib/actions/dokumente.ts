@@ -66,6 +66,12 @@ export async function dokumentAnlegen(
     }
   }
 
+  // Anforderung 4.12: ein Nachweis kann direkt an ein Foerderdossier haengen.
+  // Die Spalte samt Fremdschluessel gibt es seit 20260925000000, gefuellt hat
+  // sie bisher nur der einmalige Backfill - ueber die Anwendung liess sich
+  // kein Nachweis anhaengen.
+  const dossierId = text(formData, "foerderdossier_id") || null;
+
   const { data, error } = await supabase
     .from("dokumente")
     .insert({
@@ -77,6 +83,7 @@ export async function dokumentAnlegen(
         ? status
         : "gueltig") as (typeof statusWerte)[number],
       storage_path: storagePfad,
+      foerderdossier_id: dossierId,
     })
     .select("id, name")
     .single();
@@ -90,9 +97,59 @@ export async function dokumentAnlegen(
     name: data.name,
     kategorie,
     datei: Boolean(storagePfad),
+    foerderdossier_id: dossierId,
   });
 
   aktualisiere(formData);
 
   return ok("ok.dokument", data.name);
+}
+
+// Metadaten und Status eines Dokuments nachfuehren. Die UPDATE-Policy
+// dokumente_update_buero (20260905120000) gab es von Anfang an - nur rief sie
+// niemand auf: bis hierher liess sich ein einmal aufgenommenes Dokument weder
+// umbenennen noch von "prueflauf" auf "gueltig" setzen. Die Datei selbst
+// bleibt unangetastet (Ersetzen ist ein eigener Vorgang, siehe Modulnotiz).
+export async function dokumentAendern(
+  _status: AktionsStatus,
+  formData: FormData,
+): Promise<AktionsStatus> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("dokumente", "update");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+
+  const id = text(formData, "id");
+  const name = text(formData, "name");
+  const status = text(formData, "status");
+  if (!id || !name || !(statusWerte as readonly string[]).includes(status)) {
+    return fehler("fehler.eingabe");
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("dokumente")
+    .update({
+      name,
+      bezug: text(formData, "bezug") || null,
+      stand: text(formData, "stand") || null,
+      status: status as (typeof statusWerte)[number],
+    })
+    .eq("id", id)
+    .select("id, name")
+    .maybeSingle();
+
+  if (error) return dbFehler(error);
+  // Keine Zeile getroffen: die Policy laesst diese Rolle nicht an das Dokument.
+  if (!data) return fehler("fehler.berechtigung");
+
+  await protokolliere(profil, "dokument.geaendert", "dokumente", data.id, {
+    name: data.name,
+    status,
+  });
+
+  aktualisiere(formData);
+  return ok("ok.dokumentGeaendert", data.name);
 }

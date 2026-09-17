@@ -1,7 +1,11 @@
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Card, DataTable, Section, Stat, StatusPill } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
-import { ZukaufImportFormular, ZukaufPreisNachtragenFormular } from "@/components/db/zukauf-formulare";
+import {
+  NachbarbetriebFormular,
+  ZukaufImportFormular,
+  ZukaufPreisNachtragenFormular,
+} from "@/components/db/zukauf-formulare";
 import { SpanneFormular } from "@/components/db/abrechnung-formulare";
 import { ladeNachbarbetriebe, ladeZukaufPositionen } from "@/lib/data/zukauf";
 import { ladeAbrechnung } from "@/lib/data/abrechnung";
@@ -134,10 +138,13 @@ export async function ZukaufAnsicht() {
       ) : null}
 
       {darfImportieren ? (
-        <ZukaufImportFormular
-          nachbarbetriebe={nachbarbetriebe.map((n) => n.name)}
-          sorten={sorten.map((s) => s.name)}
-        />
+        <>
+          <NachbarbetriebFormular />
+          <ZukaufImportFormular
+            nachbarbetriebe={nachbarbetriebe.map((n) => n.name)}
+            sorten={sorten.map((s) => s.name)}
+          />
+        </>
       ) : live ? (
         <Card className="bg-muted/30 text-xs leading-5 text-muted-foreground">
           {t("keinRecht")}

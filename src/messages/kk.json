@@ -1175,7 +1175,9 @@
       "sorteAktualisiert": "Сорт жаңартылды.",
       "kontingentErstellt": "Квота құрылды.",
       "kontingentAktualisiert": "Мөлшер жаңартылды.",
-      "stammdatenGespeichert": "Анықтамалық деректер сақталды."
+      "stammdatenGespeichert": "Анықтамалық деректер сақталды.",
+      "nachbarbetrieb": "“{wert}” көрші шаруашылығы қосылды.",
+      "dokumentGeaendert": "“{wert}” құжаты жаңартылды."
     },
     "fehler": {
       "eingabe": "Барлық міндетті өрістерді толтырыңыз.",
@@ -1299,7 +1301,8 @@
     "oeffnen": "Ашу",
     "keineDatei": "файл жоқ",
     "col": {
-      "datei": "Файл"
+      "datei": "Файл",
+      "aendern": "Өзгерту"
     },
     "feld": {
       "name": "Атауы",
@@ -1307,11 +1310,14 @@
       "bezug": "Байланыс",
       "stand": "Жаңартылған күні",
       "status": "Күйі",
-      "datei": "Файл"
+      "datei": "Файл",
+      "foerderdossier": "Қолдау дерекнамасы"
     },
     "beispiel": {
       "name": "Дәрілеу хаттамасы 37-апта - Солтүстік телім"
-    }
+    },
+    "keinDossier": "дерекнама жоқ",
+    "aendernKnopf": "Сақтау"
   },
   "pflueckaufgabenVerwaltung": {
     "ohneBrigade": "Бригадасыз",
@@ -1920,6 +1926,14 @@
       "preis": "Баға (₸/кг)",
       "rechnungsdatum": "Шот күні",
       "knopf": "Сақтау"
+    },
+    "betriebAufnehmen": {
+      "titel": "Көрші шаруашылықты қосу",
+      "lead": "CSV импорты жолдарды қабылдамас бұрын шаруашылық осында болуы керек.",
+      "knopf": "Шаруашылықты қосу",
+      "name": "Атауы",
+      "ort": "Орны",
+      "kontakt": "Байланыс"
     }
   },
   "abrechnungAnsicht": {
@@ -2470,5 +2484,36 @@
     "bereitsKontrolliert": "Тексерілген",
     "keinKontrollrecht": "Тексеруді басшылық не бригадир жүргізеді",
     "naechste": "Келесі"
+  },
+  "pflanzenschutzProtokoll": {
+    "titel": "Өңдеулер және күту мерзімдері",
+    "lead": "Әр тіркелген өсімдік қорғау өңдеуі: мөлшері, орындаушысы және күту мерзімі. Тіркеу мен рұқсат қатар блогында жасалады.",
+    "note": "Хаттаманы жүктеу әзірге жасалмаған: хаттама құжатының бағаны бос қалады.",
+    "wartezeitTage": "{tage} күн",
+    "stat": {
+      "gesamt": "Өңдеулер",
+      "gesperrt": "күту мерзімі жүруде",
+      "ohneProtokoll": "хаттамасыз"
+    },
+    "col": {
+      "block": "Қатар блогы",
+      "mittel": "Препарат",
+      "behandeltAm": "Өңделген күні",
+      "aufwand": "Мөлшері",
+      "person": "Орындаушы",
+      "wartezeit": "Күту / рұқсат",
+      "zustand": "Күйі"
+    },
+    "zustand": {
+      "gesperrt": "күту жүруде",
+      "freigegeben": "рұқсат етілген",
+      "abgelaufen": "күту аяқталды"
+    },
+    "einheit": {
+      "l_ha": "l/ha",
+      "kg_ha": "kg/ha",
+      "ml_100l": "ml/100 l",
+      "g_100l": "g/100 l"
+    }
   }
 }

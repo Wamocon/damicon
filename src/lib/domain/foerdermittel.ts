@@ -18,6 +18,9 @@ export interface FoerderdossierDokument {
   id: string;
   name: string;
   storagePath: string | null;
+  /** Signierte, zeitlich begrenzte URL zur Datei - null ohne hinterlegte
+   *  Datei oder im Demo-Modus (dasselbe Muster wie dokumente.dateiUrl). */
+  dateiUrl: string | null;
 }
 
 export interface FoerderdossierZeile {
@@ -42,6 +45,13 @@ export const demoDossiers: FoerderdossierZeile[] = [
     eingereichtAm: "2026-08-30",
     fristAm: "2026-10-15",
     notizen: "Nachweis der Rechnungen steht noch aus.",
-    dokumente: [{ id: "demo-doc-1", name: "Foerderdossier gosagro.kz - Kuehlhaus", storagePath: null }],
+    dokumente: [
+      {
+        id: "demo-doc-1",
+        name: "Foerderdossier gosagro.kz - Kuehlhaus",
+        storagePath: null,
+        dateiUrl: null,
+      },
+    ],
   },
 ];

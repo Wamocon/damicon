@@ -149,6 +149,29 @@ console.log("\n== Fehlerfaelle je Zeile ==");
   const rBetrieb = parse(unbekannterBetrieb);
   pruefe("Unbekannter Nachbarbetrieb wird gemeldet, nicht automatisch angelegt", codes(rBetrieb, "fehler").includes("unknown_reference"));
   pruefe("Zeile mit unbekanntem Nachbarbetrieb wird nicht uebernommen", rBetrieb.zeilen.length === 0);
+
+  // Aufnahme des Betriebs loest genau diese Ablehnung auf: derselbe CSV-Inhalt,
+  // nur die Referenzliste kennt den Betrieb jetzt - das ist der Zweck des neuen
+  // Formulars (nachbarbetriebAnlegen, actions/zukauf.ts). Vorher gab es im
+  // Bestand keinen Weg, einen Nachbarbetrieb ueber die Anwendung anzulegen.
+  const nachAufnahme = parseZukauf(
+    unbekannterBetrieb,
+    {
+      sorten: REFERENZEN.sorten,
+      nachbarbetriebe: [...REFERENZEN.nachbarbetriebe, { id: "n-mars", name: "Nachbarbetrieb Mars" }],
+    },
+    HEUTE,
+  );
+  pruefe(
+    "Nach Aufnahme des Betriebs wird dieselbe Zeile uebernommen",
+    nachAufnahme.zeilen.length === 1 && codes(nachAufnahme, "fehler").length === 0,
+    `Zeilen: ${nachAufnahme.zeilen.length}`,
+  );
+  pruefe(
+    "Die uebernommene Zeile traegt die id des neu aufgenommenen Betriebs",
+    nachAufnahme.zeilen[0]?.nachbarbetriebId === "n-mars",
+    `id: ${nachAufnahme.zeilen[0]?.nachbarbetriebId}`,
+  );
 }
 
 console.log("\n== Auffaellige, aber zulaessige Werte (Warnung statt Ablehnung) ==");

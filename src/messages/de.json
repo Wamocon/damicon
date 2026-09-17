@@ -836,7 +836,9 @@
       "sorteAktualisiert": "Sorte aktualisiert.",
       "kontingentErstellt": "Kontingent angelegt.",
       "kontingentAktualisiert": "Menge aktualisiert.",
-      "stammdatenGespeichert": "Stammdaten gespeichert."
+      "stammdatenGespeichert": "Stammdaten gespeichert.",
+      "nachbarbetrieb": "Nachbarbetrieb „{wert}“ aufgenommen.",
+      "dokumentGeaendert": "Dokument „{wert}“ aktualisiert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -960,7 +962,8 @@
     "oeffnen": "Öffnen",
     "keineDatei": "keine Datei",
     "col": {
-      "datei": "Datei"
+      "datei": "Datei",
+      "aendern": "Ändern"
     },
     "feld": {
       "name": "Bezeichnung",
@@ -968,11 +971,14 @@
       "bezug": "Bezug",
       "stand": "Stand",
       "status": "Status",
-      "datei": "Datei"
+      "datei": "Datei",
+      "foerderdossier": "Fördermitteldossier"
     },
     "beispiel": {
       "name": "Spritzprotokoll KW 37 - Parzelle Nord"
-    }
+    },
+    "keinDossier": "kein Dossier",
+    "aendernKnopf": "Speichern"
   },
   "pflueckaufgabenVerwaltung": {
     "ohneBrigade": "Ohne Brigade",
@@ -1920,6 +1926,14 @@
       "preis": "Preis (₸/kg)",
       "rechnungsdatum": "Rechnungsdatum",
       "knopf": "Speichern"
+    },
+    "betriebAufnehmen": {
+      "titel": "Nachbarbetrieb aufnehmen",
+      "lead": "Neue Betriebe müssen hier stehen, bevor der CSV-Import ihre Zeilen annimmt.",
+      "knopf": "Betrieb aufnehmen",
+      "name": "Name",
+      "ort": "Ort",
+      "kontakt": "Kontakt"
     }
   },
   "abrechnungAnsicht": {
@@ -2470,5 +2484,36 @@
     "bereitsKontrolliert": "Bereits kontrolliert",
     "keinKontrollrecht": "Kontrolle durch Betriebsleitung oder Vorarbeiter",
     "naechste": "Nächste"
+  },
+  "pflanzenschutzProtokoll": {
+    "titel": "Behandlungen und Wartezeiten",
+    "lead": "Jede erfasste Pflanzenschutzbehandlung mit Aufwandmenge, ausführender Person und Wartezeit. Erfasst und freigegeben wird am Reihenblock.",
+    "note": "Der Protokoll-Upload ist noch nicht gebaut: die Spalte für das Protokolldokument bleibt vorerst leer.",
+    "wartezeitTage": "{tage} Tage",
+    "stat": {
+      "gesamt": "Behandlungen",
+      "gesperrt": "laufende Wartezeit",
+      "ohneProtokoll": "ohne Protokoll"
+    },
+    "col": {
+      "block": "Reihenblock",
+      "mittel": "Mittel",
+      "behandeltAm": "Behandelt am",
+      "aufwand": "Aufwandmenge",
+      "person": "Person",
+      "wartezeit": "Wartezeit / Freigabe",
+      "zustand": "Zustand"
+    },
+    "zustand": {
+      "gesperrt": "Wartezeit läuft",
+      "freigegeben": "freigegeben",
+      "abgelaufen": "Wartezeit abgelaufen"
+    },
+    "einheit": {
+      "l_ha": "l/ha",
+      "kg_ha": "kg/ha",
+      "ml_100l": "ml/100 l",
+      "g_100l": "g/100 l"
+    }
   }
 }

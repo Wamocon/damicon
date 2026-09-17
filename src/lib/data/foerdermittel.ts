@@ -19,6 +19,9 @@ export interface FoerdermittelUebersicht {
   dossiers: FoerderdossierZeile[];
 }
 
+/** Gueltigkeit der signierten Datei-Links, wie in data/dokumente.ts. */
+const SIGNATUR_SEKUNDEN = 60 * 60;
+
 function demoUebersicht(quelle: FoerdermittelUebersicht["quelle"] = "demo"): FoerdermittelUebersicht {
   return { quelle, dossiers: demoDossiers };
 }
@@ -37,6 +40,24 @@ export async function ladeFoerdermittel(): Promise<FoerdermittelUebersicht> {
 
   if (error || !data) return demoUebersicht("fehler");
 
+  // Angehaengte Nachweise als signierte Links ausgeben - dasselbe Muster wie
+  // in data/dokumente.ts: ein Pfad allein nuetzt der Oberflaeche nichts, der
+  // Bucket ist nicht oeffentlich lesbar.
+  const pfade = data
+    .flatMap((d) => (Array.isArray(d.dokumente) ? d.dokumente : []))
+    .map((doc) => doc.storage_path)
+    .filter((pfad): pfad is string => Boolean(pfad));
+
+  const signiert = new Map<string, string>();
+  if (pfade.length > 0) {
+    const { data: urls } = await supabase.storage
+      .from("dokumente")
+      .createSignedUrls(pfade, SIGNATUR_SEKUNDEN);
+    for (const eintrag of urls ?? []) {
+      if (eintrag.path && eintrag.signedUrl) signiert.set(eintrag.path, eintrag.signedUrl);
+    }
+  }
+
   return {
     quelle: "db",
     dossiers: data.map((d) => ({
@@ -52,9 +73,30 @@ export async function ladeFoerdermittel(): Promise<FoerdermittelUebersicht> {
         id: doc.id,
         name: doc.name,
         storagePath: doc.storage_path,
+        dateiUrl: doc.storage_path ? (signiert.get(doc.storage_path) ?? null) : null,
       })),
     })),
   };
+}
+
+/** Auswahlliste fuer das Dokumentenformular: an welches Dossier haengt der
+ *  Nachweis? Leer ohne Datenbank - dann bietet das Formular nur "kein Dossier"
+ *  an, so wie jede andere Auswahl im Demo-Modus. */
+export async function ladeDossierOptionen(): Promise<{ id: string; bezeichnung: string }[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("foerderdossiers")
+    .select("id, antragsnummer, titel, portal")
+    .order("frist_am", { ascending: true, nullsFirst: false });
+
+  if (error || !data) return [];
+
+  return data.map((d) => ({
+    id: d.id,
+    bezeichnung: [d.antragsnummer, d.titel ?? d.portal].filter(Boolean).join(" - "),
+  }));
 }
 
 /** Ueberfaellig: Frist verstrichen, ohne dass der Vorgang bereits abgeschlossen ist. */
