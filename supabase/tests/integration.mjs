@@ -565,17 +565,35 @@ if (leitung && brigade) {
     brigadeKontrollFehler?.code ?? `geaenderte Zeilen: ${brigadeKontrollVersuch?.length}`,
   );
 
+  // Seit der Migration 20261020000000 (Stichprobenkontrolle vervollstaendigen)
+  // gehoert zu jeder Kontrolle ein Befund, und der Trigger setzt
+  // kontrolliert_von_profil_id zwingend auf die aufrufende Person selbst -
+  // ein mitgesendeter Wert (hier zuvor irgendeinProfil.id) wird ueberschrieben.
+  const {
+    data: { user: leitungUserFuerKontrolle },
+  } = await leitung.auth.getUser();
+  const { data: leitungProfilFuerKontrolle } = await admin
+    .from("profiles")
+    .select("id")
+    .eq("auth_user_id", leitungUserFuerKontrolle.id)
+    .single();
+
   const { data: kontrollierteSteige, error: kontrollFehler } = await leitung
     .from("steigen")
-    .update({ kontrolliert_am: new Date().toISOString(), kontrolliert_von_profil_id: irgendeinProfil.id })
+    .update({
+      kontrolliert_am: new Date().toISOString(),
+      kontrolliert_von_profil_id: irgendeinProfil.id,
+      kontroll_befund: "in_ordnung",
+    })
     .eq("id", neueSteige.id)
-    .select("kontrolliert_am, kontrolliert_von_profil_id")
+    .select("kontrolliert_am, kontrolliert_von_profil_id, kontroll_befund")
     .single();
   check(
     "Anforderung 2.10: Betriebsleitung kontrolliert eine einzelne Steige",
     !kontrollFehler &&
       !!kontrollierteSteige?.kontrolliert_am &&
-      kontrollierteSteige?.kontrolliert_von_profil_id === irgendeinProfil.id,
+      kontrollierteSteige?.kontroll_befund === "in_ordnung" &&
+      kontrollierteSteige?.kontrolliert_von_profil_id === leitungProfilFuerKontrolle?.id,
     kontrollFehler?.message ?? "",
   );
 
