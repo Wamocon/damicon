@@ -418,6 +418,81 @@ await mussScheitern(
   await db.query("select set_config('request.jwt.claim.sub', '', false);");
 }
 
+// --- 9. Kuehlkette: Messzeitpunkt kommt vom Server --------------------------
+// Regression: kuehlkette_bewerten() uebernahm einen mitgegebenen gemessen_am
+// unveraendert. Die Rolle brigade hat eine INSERT-Policy auf
+// kuehlketten_messungen - ein direkter REST-Aufruf konnte damit aus einem
+// 75-Minuten-Verstoss ein "ok" machen. 20261016000000 setzt den Zeitpunkt
+// serverseitig und lehnt einen mitgegebenen Wert ab.
+{
+  // Charge mit Pflueckzeitpunkt vor 75 Minuten - jede ehrliche Messung von
+  // jetzt ist damit ein Verstoss.
+  const { rows: charge } = await db.query(
+    `select id from public.chargen where pflueckaufgabe_id is not null limit 1;`,
+  );
+  const chargeId = charge[0].id;
+  await db.query(
+    `update public.chargen set pflueck_zeitpunkt = now() - interval '75 minutes' where id = $1;`,
+    [chargeId],
+  );
+  await db.query("delete from public.kuehlketten_messungen where charge_id = $1;", [chargeId]);
+
+  await alsRolle(db, "authenticated", brigadeAuthId);
+  let gefaelschtFehler = null;
+  try {
+    await db.query(
+      `insert into public.kuehlketten_messungen (charge_id, temperatur_c, gemessen_am)
+       values ($1, 3, now() - interval '70 minutes');`,
+      [chargeId],
+    );
+  } catch (e) {
+    gefaelschtFehler = e?.cause?.code ?? e?.code;
+  }
+  check(
+    "Kuehlkette: Brigade kann den Messzeitpunkt nicht selbst setzen",
+    gefaelschtFehler === "23514",
+    gefaelschtFehler ? `errcode: ${gefaelschtFehler}` : "der Insert war erfolgreich",
+  );
+
+  // Der ehrliche Weg der Anwendung: nur geraet_zeitpunkt, alles andere rechnet
+  // der Server - und der Verstoss bleibt ein Verstoss.
+  const { rows: ehrlich } = await db.query(
+    `insert into public.kuehlketten_messungen (charge_id, temperatur_c, geraet_zeitpunkt)
+     values ($1, 3, now())
+     returning ergebnis, minuten_seit_pfluecken, server_eingang_zeitpunkt is not null as eingang;`,
+    [chargeId],
+  );
+  await alsAdmin(db);
+  check(
+    "Kuehlkette: der Server rechnet 75 Minuten und bleibt beim Verstoss",
+    ehrlich[0].ergebnis === "verstoss" &&
+      ehrlich[0].minuten_seit_pfluecken >= 74 &&
+      ehrlich[0].eingang === true,
+    `ergebnis: ${ehrlich[0].ergebnis}, Minuten: ${ehrlich[0].minuten_seit_pfluecken}`,
+  );
+
+  // Serverseitig (auth.uid() null, wie Seed und Fixtures) bleibt das
+  // Zurueckdatieren moeglich - sonst liesse sich kein Testbestand aufbauen.
+  // alsAdmin() setzt nur die Rolle zurueck, nicht auth.uid() - erst das
+  // Leeren der Claim macht daraus wirklich einen serverseitigen Aufruf.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+  const { rows: serverseitig } = await db.query(
+    `insert into public.kuehlketten_messungen (charge_id, temperatur_c, gemessen_am)
+     values ($1, 3, now() - interval '70 minutes')
+     returning minuten_seit_pfluecken;`,
+    [chargeId],
+  );
+  check(
+    "Kuehlkette: service_role darf weiterhin zurueckdatieren (Seed/Fixtures)",
+    serverseitig[0].minuten_seit_pfluecken <= 10,
+    `Minuten: ${serverseitig[0].minuten_seit_pfluecken}`,
+  );
+
+  await db.query("delete from public.kuehlketten_messungen where charge_id = $1;", [chargeId]);
+  // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
 // --- Aufraeumen ---------------------------------------------------------------
 await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [behandlungId]);
 await db.query("update public.reihenbloecke set status = 'ruhend' where id = $1;", [blockId]);

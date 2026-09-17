@@ -587,11 +587,13 @@ if (leitung && brigade) {
     })
     .eq("id", autoCharge.id);
 
+  // Wie die Anwendung schreibt (kuehlmessungKern): nur geraet_zeitpunkt,
+  // gemessen_am rechnet der Trigger - seit 20261016000000 verbindlich.
   const { data: messung, error: messungFehler } = await brigade
     .from("kuehlketten_messungen")
     .insert({
       charge_id: autoCharge.id,
-      gemessen_am: new Date().toISOString(),
+      geraet_zeitpunkt: new Date().toISOString(),
       temperatur_c: 7.5,
     })
     .select("minuten_seit_pfluecken, ergebnis")
@@ -602,6 +604,21 @@ if (leitung && brigade) {
       messung?.ergebnis === "verstoss" &&
       messung.minuten_seit_pfluecken >= 74,
     messungFehler?.message ?? `${messung?.minuten_seit_pfluecken} min, ${messung?.ergebnis}`,
+  );
+
+  // KRITISCH: ueber die REST-API liess sich der Messzeitpunkt frei setzen und
+  // damit ein Verstoss in ein "ok" verwandeln - ohne jedes Formular.
+  const { error: gefaelschteMessungFehler } = await brigade
+    .from("kuehlketten_messungen")
+    .insert({
+      charge_id: autoCharge.id,
+      gemessen_am: new Date(Date.now() - 70 * 60_000).toISOString(),
+      temperatur_c: 3,
+    });
+  check(
+    "Kuehlkette: Brigade setzt den Messzeitpunkt nicht selbst (60-Minuten-Regel)",
+    gefaelschteMessungFehler?.code === "23514",
+    gefaelschteMessungFehler?.code ?? "kein Fehler",
   );
 
   // Anforderung 4.1: eine Kuehlmessung ist ein Zeitpunkt-Fakt, eine Korrektur
