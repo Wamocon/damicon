@@ -1748,6 +1748,57 @@ if (leitung && brigade) {
     lohnRuecknahmeFehler?.code ?? "kein Fehler",
   );
 
+  // KRITISCH: Freigabe und Ruecknahme lagen in einer Hand - dieselbe
+  // Buchhaltung konnte freigeben, zurueckziehen und neu rechnen lassen
+  // (Vier-Augen-Prinzip, Migration 20261017000000).
+  const { data: lohnQojschybajZeile } = await admin
+    .from("lohn_abrechnungen")
+    .select("id, status")
+    .neq("id", lohnSarsenbaj.id)
+    .eq("status", "entwurf")
+    .limit(1)
+    .maybeSingle();
+
+  if (lohnQojschybajZeile?.id) {
+    const { error: freigabeFehler } = await buchhaltung
+      .from("lohn_abrechnungen")
+      .update({ status: "freigegeben" })
+      .eq("id", lohnQojschybajZeile.id);
+    check(
+      "Vier-Augen: Buchhaltung gibt frei",
+      !freigabeFehler,
+      freigabeFehler?.message ?? "",
+    );
+
+    const { error: selbstRuecknahmeFehler } = await buchhaltung
+      .from("lohn_abrechnungen")
+      .update({ status: "entwurf" })
+      .eq("id", lohnQojschybajZeile.id);
+    check(
+      "Vier-Augen: wer freigegeben hat, nimmt nicht selbst zurueck",
+      selbstRuecknahmeFehler?.code === "42501",
+      selbstRuecknahmeFehler?.code ?? "kein Fehler",
+    );
+
+    const { client: adminClient } = await anmelden("admin@damicon.demo");
+    const { error: zweitRuecknahmeFehler } = await adminClient
+      .from("lohn_abrechnungen")
+      .update({ status: "entwurf" })
+      .eq("id", lohnQojschybajZeile.id);
+    const { data: nachZweitRuecknahme } = await admin
+      .from("lohn_abrechnungen")
+      .select("status, freigegeben_von_profil_id")
+      .eq("id", lohnQojschybajZeile.id)
+      .single();
+    check(
+      "Vier-Augen: eine zweite Person nimmt die Freigabe zurueck",
+      !zweitRuecknahmeFehler &&
+        nachZweitRuecknahme?.status === "entwurf" &&
+        nachZweitRuecknahme?.freigegeben_von_profil_id === null,
+      zweitRuecknahmeFehler?.message ?? `Status: ${nachZweitRuecknahme?.status}`,
+    );
+  }
+
   // Cleanup: die in diesem Testlauf berechneten Lohndaten wieder entfernen,
   // damit ein erneuter Testlauf von denselben Ausgangsdaten startet. lohn_
   // positionen haengt per on-delete-cascade an lohn_abrechnungen, ein

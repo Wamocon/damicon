@@ -493,6 +493,117 @@ await mussScheitern(
   await db.query("select set_config('request.jwt.claim.sub', '', false);");
 }
 
+// --- 10. Lohn: Ruecknahme einer Freigabe braucht eine zweite Person ----------
+// Regression: lohn_abrechnung_freigabe_pruefen() sperrte nur den Weg aus
+// 'ausgezahlt'. Dieselbe Person konnte freigeben, zurueckziehen und die
+// Periode neu rechnen lassen - Freigabe und Korrektur in einer Hand.
+{
+  const buchhaltungA = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-buchhaltung-a@damicon.demo', '{"role":"buchhaltung"}'::jsonb) returning id;`,
+  );
+  const buchhaltungB = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-buchhaltung-b@damicon.demo', '{"role":"buchhaltung"}'::jsonb) returning id;`,
+  );
+  const aAuthId = buchhaltungA.rows[0].id;
+  const bAuthId = buchhaltungB.rows[0].id;
+
+  const { rows: abrechnung } = await db.query(
+    `select id from public.lohn_abrechnungen where status = 'entwurf' limit 1;`,
+  );
+  const abrechnungId = abrechnung[0].id;
+
+  // Die Freigabe-Spalten ueber to_jsonb lesen, nicht direkt: ohne die
+  // Migration gaebe es sie nicht, und der Testlauf wuerde mit
+  // "column does not exist" abbrechen statt die Pruefung rot zu melden.
+  const status = async () => {
+    const { rows } = await db.query(
+      `select status,
+              to_jsonb(l) ->> 'freigegeben_von_profil_id' as freigegeben_von_profil_id,
+              to_jsonb(l) ->> 'freigegeben_am'            as freigegeben_am
+         from public.lohn_abrechnungen l where id = $1;`,
+      [abrechnungId],
+    );
+    return rows[0];
+  };
+
+  // A gibt frei - der Server schreibt mit, wer das war.
+  await alsRolle(db, "authenticated", aAuthId);
+  await db.query(
+    "update public.lohn_abrechnungen set status = 'freigegeben' where id = $1;",
+    [abrechnungId],
+  );
+  const nachFreigabe = await status();
+  const { rows: profilA } = await db.query(
+    "select id from public.profiles where auth_user_id = $1;",
+    [aAuthId],
+  );
+  await alsAdmin(db);
+  check(
+    "Lohn: die Freigabe haelt fest, wer sie erteilt hat",
+    nachFreigabe.status === "freigegeben" &&
+      nachFreigabe.freigegeben_von_profil_id === profilA[0].id &&
+      nachFreigabe.freigegeben_am !== null,
+    `Status ${nachFreigabe.status}, Profil ${nachFreigabe.freigegeben_von_profil_id === profilA[0].id}`,
+  );
+
+  // A nimmt die eigene Freigabe zurueck - abgelehnt.
+  await alsRolle(db, "authenticated", aAuthId);
+  let selbstFehler = null;
+  try {
+    await db.query(
+      "update public.lohn_abrechnungen set status = 'entwurf' where id = $1;",
+      [abrechnungId],
+    );
+  } catch (e) {
+    selbstFehler = e?.cause?.code ?? e?.code;
+  }
+  await alsAdmin(db);
+  check(
+    "Lohn: wer freigegeben hat, nimmt nicht selbst zurueck",
+    selbstFehler === "42501" && (await status()).status === "freigegeben",
+    selbstFehler ? `errcode: ${selbstFehler}` : "die Ruecknahme war erfolgreich",
+  );
+
+  // B - eine zweite Person - darf zurueckziehen.
+  await alsRolle(db, "authenticated", bAuthId);
+  await db.query(
+    "update public.lohn_abrechnungen set status = 'entwurf' where id = $1;",
+    [abrechnungId],
+  );
+  await alsAdmin(db);
+  const nachRuecknahme = await status();
+  check(
+    "Lohn: eine zweite Person nimmt die Freigabe zurueck",
+    nachRuecknahme.status === "entwurf" &&
+      nachRuecknahme.freigegeben_von_profil_id === null &&
+      nachRuecknahme.freigegeben_am === null,
+    `Status ${nachRuecknahme.status}, Freigeber zurueckgesetzt: ${nachRuecknahme.freigegeben_von_profil_id === null}`,
+  );
+
+  // Auszahlen ohne Freigabe - abgelehnt.
+  await alsRolle(db, "authenticated", aAuthId);
+  let sprungFehler = null;
+  try {
+    await db.query(
+      "update public.lohn_abrechnungen set status = 'ausgezahlt' where id = $1;",
+      [abrechnungId],
+    );
+  } catch (e) {
+    sprungFehler = e?.cause?.code ?? e?.code;
+  }
+  await alsAdmin(db);
+  check(
+    "Lohn: keine Auszahlung ohne vorherige Freigabe",
+    sprungFehler === "23514",
+    sprungFehler ? `errcode: ${sprungFehler}` : "der Sprung war erfolgreich",
+  );
+
+  // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
 // --- Aufraeumen ---------------------------------------------------------------
 await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [behandlungId]);
 await db.query("update public.reihenbloecke set status = 'ruhend' where id = $1;", [blockId]);

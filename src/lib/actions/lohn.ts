@@ -126,10 +126,19 @@ export async function lohnPeriodeBerechnen(
   return ok("ok.lohnBerechnet", String(verarbeitet));
 }
 
-// Statuswechsel: entwurf -> freigegeben -> ausgezahlt. Die Datenbank
-// (lohn_abrechnung_freigabe_pruefen) blockt jede Ruecknahme und jede stille
-// Betragsaenderung nach der Freigabe - diese Aktion aendert deshalb
-// ausschliesslich die Statusspalte.
+// Statuswechsel: entwurf -> freigegeben -> ausgezahlt. Diese Aktion aendert
+// ausschliesslich die Statusspalte; welcher Wechsel erlaubt ist, entscheidet
+// die Datenbank (lohn_abrechnung_freigabe_pruefen):
+//   * aus 'ausgezahlt' heraus fuehrt kein Weg zurueck,
+//   * 'entwurf' -> 'ausgezahlt' direkt ist nicht moeglich (erst freigeben),
+//   * Betraege einer freigegebenen Abrechnung aendern sich nicht still,
+//   * die Ruecknahme 'freigegeben' -> 'entwurf' bleibt als Korrekturweg
+//     moeglich, aber nur durch eine andere Person als die, die freigegeben
+//     hat (Vier-Augen-Prinzip, Migration 20261017000000). Der Versuch der
+//     eigenen Ruecknahme kommt als 42501 zurueck, also als
+//     "fehler.berechtigung".
+// Die Freigabe selbst verlangt weiterhin keine zweite Person - dass
+// Buchhaltung rechnet und freigibt, ist eine offene betriebliche Festlegung.
 export async function lohnStatusSetzen(
   _status: AktionsStatus,
   formData: FormData,
