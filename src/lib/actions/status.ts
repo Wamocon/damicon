@@ -47,6 +47,13 @@ export function dbFehler(error: PostgrestError | { code?: string; message: strin
       // ueberladenen 23514/P0001-Sammelklasse (adversarischer Review-Fund,
       // dieselbe Ueberlegung wie bei DA001).
       return fehler("fehler.lieferungStorniert");
+    case "DA003":
+      // steige_kontrolle_pruefen() (Anforderung 2.10, QA-Ultra-Fund
+      // 17.09.2026): Vier-Augen-Regel. Eigener Code statt 42501/
+      // insufficient_privilege, sonst zeigt die Oberflaeche "Ihre Rolle darf
+      // diesen Vorgang nicht ausfuehren" - irrefuehrend, denn die Rolle darf
+      // den Vorgang durchaus, nur nicht an der selbst erfassten Steige.
+      return fehler("fehler.selbstkontrolle");
     default:
       return fehler("fehler.unbekannt");
   }

@@ -57,6 +57,11 @@ export const resources = [
   // kunde/erzeuger haben dort view/create/update (fuer die eigene
   // Vorbestellung), sollen darueber aber nicht auch Preislisten fuer alle
   // Kundengruppen anlegen oder aendern koennen.
+  // Anforderung E.11: Rechtsform und Steueridentifikation (ИИН/БИН) von
+  // Betrieb, Zulieferern und Kunden. Eigene Ressource, weil die Nummern
+  // belegrelevant sind: wer sie aendert, aendert, was auf einer Rechnung
+  // steht. Das ist eine andere Befugnis als Kunden oder Preise pflegen.
+  "stammdaten",
   "preislisten",
 ] as const;
 
@@ -167,6 +172,7 @@ const crud = (resource: Resource): Permission[] => [
 export const rolePermissions: Record<Role, Permission[]> = {
   admin: resources.flatMap((resource) => all(resource)),
   betriebsleitung: [
+    ...crud("stammdaten"),
     ...view("dashboard"),
     ...crud("standort"),
     ...crud("reihenbloecke"),
@@ -224,6 +230,9 @@ export const rolePermissions: Record<Role, Permission[]> = {
     "preislisten:delete",
   ],
   buchhaltung: [
+    // Anforderung E.11: Die Buchhaltung stellt die Belege aus, auf denen
+    // ИИН und БИН stehen - sie muss sie auch pflegen koennen.
+    ...crud("stammdaten"),
     ...view("dashboard"),
     ...view("reihenbloecke"),
     ...view("pflueckaufgaben"),

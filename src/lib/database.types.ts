@@ -148,11 +148,13 @@ export type Database = {
           created_at: string
           geokodiert_am: string | null
           id: string
+          identifikationsnummer: string | null
           identitaets_digest: string | null
           kontakt: string | null
           kundengruppe: Database["public"]["Enums"]["kundengruppe"] | null
           laengengrad: number | null
           name: string
+          rechtsform: Database["public"]["Enums"]["rechtsform"] | null
           updated_at: string
         }
         Insert: {
@@ -161,11 +163,13 @@ export type Database = {
           created_at?: string
           geokodiert_am?: string | null
           id?: string
+          identifikationsnummer?: string | null
           identitaets_digest?: string | null
           kontakt?: string | null
           kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
           laengengrad?: number | null
           name: string
+          rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
           updated_at?: string
         }
         Update: {
@@ -174,11 +178,13 @@ export type Database = {
           created_at?: string
           geokodiert_am?: string | null
           id?: string
+          identifikationsnummer?: string | null
           identitaets_digest?: string | null
           kontakt?: string | null
           kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
           laengengrad?: number | null
           name?: string
+          rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
           updated_at?: string
         }
         Relationships: []
@@ -187,19 +193,25 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          identifikationsnummer: string | null
           name: string
+          rechtsform: Database["public"]["Enums"]["rechtsform"] | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
+          identifikationsnummer?: string | null
           name: string
+          rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
+          identifikationsnummer?: string | null
           name?: string
+          rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
           updated_at?: string
         }
         Relationships: []
@@ -1669,28 +1681,34 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          identifikationsnummer: string | null
           identitaets_digest: string | null
           kontakt: string | null
           name: string
           ort: string | null
+          rechtsform: Database["public"]["Enums"]["rechtsform"] | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
+          identifikationsnummer?: string | null
           identitaets_digest?: string | null
           kontakt?: string | null
           name: string
           ort?: string | null
+          rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
+          identifikationsnummer?: string | null
           identitaets_digest?: string | null
           kontakt?: string | null
           name?: string
           ort?: string | null
+          rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
           updated_at?: string
         }
         Relationships: []
@@ -2151,6 +2169,7 @@ export type Database = {
           b2b_kunde_id: string | null
           brigade_id: string | null
           created_at: string
+          darf_kontrollieren: boolean
           email: string | null
           full_name: string
           id: string
@@ -2163,6 +2182,7 @@ export type Database = {
           b2b_kunde_id?: string | null
           brigade_id?: string | null
           created_at?: string
+          darf_kontrollieren?: boolean
           email?: string | null
           full_name: string
           id?: string
@@ -2175,6 +2195,7 @@ export type Database = {
           b2b_kunde_id?: string | null
           brigade_id?: string | null
           created_at?: string
+          darf_kontrollieren?: boolean
           email?: string | null
           full_name?: string
           id?: string
@@ -2687,9 +2708,12 @@ export type Database = {
           charge_id: string | null
           code: string
           created_at: string
+          erfasst_von_profil_id: string | null
           geraet_zeitpunkt: string | null
           gewicht_kg: number | null
           id: string
+          kontroll_befund: Database["public"]["Enums"]["kontroll_befund"] | null
+          kontroll_begruendung: string | null
           kontrolliert_am: string | null
           kontrolliert_von_profil_id: string | null
           pflueckaufgabe_id: string | null
@@ -2702,9 +2726,12 @@ export type Database = {
           charge_id?: string | null
           code: string
           created_at?: string
+          erfasst_von_profil_id?: string | null
           geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
+          kontroll_befund?: Database["public"]["Enums"]["kontroll_befund"] | null
+          kontroll_begruendung?: string | null
           kontrolliert_am?: string | null
           kontrolliert_von_profil_id?: string | null
           pflueckaufgabe_id?: string | null
@@ -2717,9 +2744,12 @@ export type Database = {
           charge_id?: string | null
           code?: string
           created_at?: string
+          erfasst_von_profil_id?: string | null
           geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
+          kontroll_befund?: Database["public"]["Enums"]["kontroll_befund"] | null
+          kontroll_begruendung?: string | null
           kontrolliert_am?: string | null
           kontrolliert_von_profil_id?: string | null
           pflueckaufgabe_id?: string | null
@@ -3256,6 +3286,14 @@ export type Database = {
         }
         Returns: number
       }
+      nummernart_fuer_rechtsform: {
+        Args: { p_rechtsform: Database["public"]["Enums"]["rechtsform"] }
+        Returns: string
+      }
+      pruefziffer_stimmt: {
+        Args: { p_nummer: string }
+        Returns: boolean
+      }
       reihenblock_freigeben: {
         Args: {
           p_block: string
@@ -3366,6 +3404,7 @@ export type Database = {
         | "instagram"
         | "kaspi_qr"
         | "sonstiges"
+      kontroll_befund: "in_ordnung" | "abweichung"
       kuehlkette_ergebnis: "ok" | "warnung" | "verstoss"
       kundengruppe: "handel" | "gastronomie" | "einzelhandel"
       ledger_typ: "erloes" | "kosten"
@@ -3379,6 +3418,13 @@ export type Database = {
         | "beleg_pruefung"
         | "abgeschlossen"
       plantage_typ: "eigen" | "nachbarbetrieb"
+      rechtsform:
+        | "kh_fh"
+        | "ip"
+        | "privatperson"
+        | "too"
+        | "ao"
+        | "pk"
       rechtsgrundlage_typ: "einwilligung" | "vertrag" | "gesetzliche_pflicht"
       reihenblock_status:
         | "bepflanzt"

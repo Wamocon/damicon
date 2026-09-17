@@ -64,6 +64,14 @@ export async function PflueckaufgabenAnsicht({
   const darfAnlegen = live && hasPermission(profil?.role, "pflueckaufgaben", "create");
   const darfAbschliessen =
     live && hasPermission(profil?.role, "pflueckaufgaben", "approve");
+  // Anforderung 2.10: Die Stichprobenkontrolle je Steige ist ein anderes Recht
+  // als der Abschluss der ganzen Aufgabe. Sie steht zusaetzlich dem am
+  // Sammelpunkt benannten Vorarbeiter offen, der die Rolle "brigade" traegt und
+  // damit kein approve hat. Dieselbe Bedingung prueft steigeKontrollieren()
+  // (lib/actions/nachweiskette.ts); waere sie hier enger, bliebe der Knopf
+  // unsichtbar und die Anforderung liefe ins Leere.
+  const darfKontrollieren =
+    live && (darfAbschliessen || profil?.darfKontrollieren === true);
 
   const offeneBloecke = bloecke.bloecke
     .filter((block) => block.status !== "wartezeitgesperrt")
@@ -285,7 +293,7 @@ export async function PflueckaufgabenAnsicht({
               aufgabeId={gewaehlt.id}
               pfluecker={pflueckerListe}
               darfErfassen={darfBearbeiten}
-              darfKontrollieren={darfAbschliessen}
+              darfKontrollieren={darfKontrollieren}
             />
           ) : null}
 

@@ -8,6 +8,7 @@ import {
   SteigeKontrollierenKnopf,
 } from "@/components/db/nachweiskette-formulare";
 import { KuehlkettenAlarm } from "@/components/db/kuehlketten-alarm";
+import { SteigeScanFeld } from "@/components/db/steige-scan-feld";
 import type { KuehlMessung, Nachweiskette, PflueckerOption } from "@/lib/data/nachweiskette";
 
 const ergebnisTon: Record<string, Tone> = {
@@ -159,6 +160,22 @@ export async function NachweiskettenKarte({
           <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
             {t("steigenTitel")}
           </p>
+          {/* Anforderung 2.7: "ein Scan am Sammelpunkt ruft die Steige auf".
+              Steht ueber der Liste, weil er sie ersetzt, sobald am Erntetag
+              mehr Steigen zusammenkommen, als sich ueberblicken lassen - die
+              Liste selbst zeigt ohnehin nur die ersten sechs. */}
+          <div className="mt-1.5">
+            <SteigeScanFeld
+              steigen={kette.steigen.map((s) => ({
+                id: s.id,
+                code: s.code,
+                pfluecker: s.pfluecker,
+                gewichtKg: s.gewichtKg,
+                kontrolliertAm: s.kontrolliertAm,
+              }))}
+              darfKontrollieren={darfKontrollieren}
+            />
+          </div>
           <ul className="mt-1.5 space-y-1">
             {kette.steigen.slice(0, 6).map((s) => (
               <li

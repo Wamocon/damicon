@@ -695,6 +695,12 @@
       "description": "Reklamation eines B2B-Kunden je Charge - Grund, Frist und Verlauf, mit Statuswechsel bis zur Gutschrift. Ein Kunde meldet und sieht nur die eigene Reklamation, das Büro bearbeitet und schließt ab.",
       "summary": "Liste, Detail und Verlauf je Reklamation, angebunden an die Charge - von dort zu Reihenblock, Pflücker und Kühlkurve zurückverfolgbar.",
       "todo": "Admin-Oberfläche für die Zuordnung Kunde-Login zu B2B-Kunde, automatische Reklamationsquote im Kennzahlen-Cockpit, Benachrichtigung bei nahender Frist."
+    },
+    "stammdaten": {
+      "title": "Stammdaten und Steuernummern",
+      "description": "Rechtsform und ИИН oder БИН für den eigenen Betrieb, die Zulieferbetriebe und die Kunden - die Angaben, die auf jedem Beleg stehen müssen.",
+      "summary": "Ein bäuerlicher Betrieb trägt einen ИИН, eine juristische Person einen БИН. Die Prüfziffer weist einen Zahlendreher ab, bevor er auf eine Rechnung gerät.",
+      "todo": "Nummern für Zulieferbetriebe und Kunden erheben."
     }
   },
   "reihenblockStatusHint": {
@@ -829,7 +835,8 @@
       "sorteErstellt": "Sorte angelegt.",
       "sorteAktualisiert": "Sorte aktualisiert.",
       "kontingentErstellt": "Kontingent angelegt.",
-      "kontingentAktualisiert": "Menge aktualisiert."
+      "kontingentAktualisiert": "Menge aktualisiert.",
+      "stammdatenGespeichert": "Stammdaten gespeichert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -854,10 +861,15 @@
       "code": "Der Code ist falsch oder abgelaufen. Bitte den aktuellen 6-stelligen Code aus der Authenticator-App eingeben.",
       "zustand": "Der Termin hat sich zwischenzeitlich geändert (z. B. gesperrt oder bereits erledigt). Bitte Seite neu laden.",
       "einwilligung": "Bitte den Hinweis oben bestätigen, bevor die erste Nachricht gesendet wird.",
+      "begruendungFehlt": "Eine Abweichung braucht eine Begründung.",
       "wetterdienst": "Der Wetterdienst hat gerade keine Daten geliefert. Bitte später erneut versuchen.",
       "geokodierung": "Die Adresse wurde gespeichert, konnte aber nicht auf der Karte verortet werden. Bitte Schreibweise prüfen.",
       "keineKoordinaten": "Keine der ausgewählten Lieferungen hat eine verortete Adresse.",
-      "routendienst": "Die Tour wurde angelegt, aber der Routendienst hat gerade keine Antwort geliefert. Reihenfolge und Strecke sind vorläufig."
+      "routendienst": "Die Tour wurde angelegt, aber der Routendienst hat gerade keine Antwort geliefert. Reihenfolge und Strecke sind vorläufig.",
+      "stammdatenOhneRechtsform": "Bitte zuerst die Rechtsform wählen - davon hängt ab, ob ein ИИН oder ein БИН gilt.",
+      "stammdatenFormat": "Die Nummer besteht aus genau zwölf Ziffern.",
+      "stammdatenPruefziffer": "Die Prüfziffer stimmt nicht. Meist steckt ein Zahlendreher in der Nummer.",
+      "selbstkontrolle": "Wer eine Steige erfasst hat, kontrolliert sie nicht selbst. Eine andere Person muss diese Steige prüfen."
     },
     "einladungen": {
       "erfolg": {
@@ -1571,6 +1583,14 @@
       "gewicht": "Gewicht in kg",
       "minuten": "Minuten",
       "temperatur": "Temperatur in °C"
+    },
+    "kontrolle": {
+      "abweichung": "Abweichung",
+      "abweichungAria": "Für Steige {code} eine Abweichung melden",
+      "abweichungMelden": "Abweichung speichern",
+      "grundPlatzhalter": "Was weicht ab?",
+      "grundAria": "Begründung der Abweichung an Steige {code}",
+      "abbrechen": "Abbrechen"
     }
   },
   "oeffentlicheHerkunft": {
@@ -2397,5 +2417,58 @@
     "angemeldetTitel": "Sie sind bereits angemeldet",
     "angemeldetLead": "Ein neuer Zugang wird auf ein eigenes Konto ausgestellt. Melden Sie sich zuerst ab, sonst arbeiten Sie danach weiter im alten Konto.",
     "abmelden": "Jetzt abmelden"
+  },
+  "stammdatenAnsicht": {
+    "titel": "Rechtsform und Steuernummer",
+    "lead": "Ein bäuerlicher Betrieb (КХ/ФХ) trägt einen ИИН, eine juristische Person einen БИН. Beide bestehen aus zwölf Ziffern - deshalb steht bei jeder Rechtsform, welche der beiden gilt.",
+    "note": "Die zwölfte Ziffer ist eine Prüfziffer. Stimmt sie nicht, weist das System die Nummer ab - ein Zahlendreher fällt beim Eintragen auf und nicht erst auf der Rechnung.",
+    "alleGepflegt": "Alle Nummern erhoben",
+    "nochOffen": "{anzahl} ohne Nummer",
+    "gesamt": "{anzahl} Einträge insgesamt",
+    "speichern": "Speichern",
+    "rechtsformOffen": "noch nicht erhoben",
+    "nummerPlatzhalter": "zwölf Ziffern",
+    "gruppe": {
+      "betrieb": "Eigener Betrieb",
+      "zulieferer": "Zulieferbetriebe",
+      "kunde": "Kunden"
+    },
+    "gruppeLead": {
+      "betrieb": "Ohne diese Nummer lässt sich kein eigener Beleg ausstellen.",
+      "zulieferer": "Nötig für die Abrechnung der Zukaufware.",
+      "kunde": "Nötig für Rechnung und Lieferschein."
+    },
+    "col": {
+      "rechtsform": "Rechtsform",
+      "nummer": "ИИН / БИН"
+    },
+    "rechtsform": {
+      "kh_fh": "КХ/ФХ - bäuerlicher Betrieb",
+      "ip": "ИП - Einzelunternehmer",
+      "privatperson": "Privatperson",
+      "too": "ТОО",
+      "ao": "АО",
+      "pk": "ПК - Produktionsgenossenschaft"
+    },
+    "nummernart": {
+      "iin": "ИИН",
+      "bin": "БИН"
+    }
+  },
+  "steigeScan": {
+    "label": "Steige am Sammelpunkt",
+    "steigeScannen": "Steige scannen",
+    "hinweis": "Etikett der Steige vor die Kamera halten.",
+    "keineKamera": "Keine Kamera verfügbar. Kennung von Hand eingeben.",
+    "keinSteigenCode": "Auf diesem Code steht keine Steigenkennung.",
+    "nichtInDieserAufgabe": "{code} gehört nicht zu dieser Pflückaufgabe.",
+    "manuellStattdessen": "Kennung eingeben",
+    "scanStattdessen": "Doch scannen",
+    "codePlatzhalter": "Kennung vom Etikett",
+    "codeAria": "Steigenkennung von Hand eingeben",
+    "ohnePerson": "ohne Person",
+    "bereitsKontrolliert": "Bereits kontrolliert",
+    "keinKontrollrecht": "Kontrolle durch Betriebsleitung oder Vorarbeiter",
+    "naechste": "Nächste"
   }
 }
