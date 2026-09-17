@@ -825,7 +825,11 @@
       "positionHinzugefuegt": "Position added.",
       "positionGeloescht": "Position removed.",
       "preislisteAktualisiert": "Price list updated.",
-      "kundengruppeGesetzt": "Client group saved."
+      "kundengruppeGesetzt": "Client group saved.",
+      "sorteErstellt": "Variety created.",
+      "sorteAktualisiert": "Variety updated.",
+      "kontingentErstellt": "Quota created.",
+      "kontingentAktualisiert": "Quantity updated."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -2140,6 +2144,10 @@
     "gastronomie": "Foodservice",
     "einzelhandel": "Specialty retail"
   },
+  "sorteTypen": {
+    "remontierend": "everbearing",
+    "sommertragend": "summer-bearing"
+  },
   "preislistenAnsicht": {
     "preislistenTitel": "Price lists",
     "preislistenLead": "Prices by variety and minimum quantity, optionally assigned to a client group. A price list without a client group counts as the standard for everyone - including clients not yet assigned to a group.",
@@ -2180,6 +2188,57 @@
       },
       "gruppe": {
         "label": "Client group",
+        "knopf": "Save"
+      }
+    }
+  },
+  "sortenkatalogAnsicht": {
+    "sortenTitel": "Varieties",
+    "sortenLead": "Master data per variety: type, harvest window and punnet size.",
+    "keineSorten": "No variety created yet.",
+    "erntefenster": "Harvest window",
+    "schaleG": "Punnet size",
+    "verfuegbarkeitTitel": "Availability by season",
+    "verfuegbarkeitLead": "Sum across all clients per variety and season, without any individual client assignment.",
+    "keineVerfuegbarkeit": "No quota on file yet.",
+    "vergeben": "allocated",
+    "verfuegbar": "available",
+    "verfuegbarkeitHinweis": "This overview shows no assignment to individual clients - a B2B client still sees their own reservation in their own portal.",
+    "kontingenteTitel": "Manage quotas",
+    "kontingenteLead": "Create or change the agreed quantity per client, variety and season. The reserved quantity is updated automatically by the system whenever a pre-order is confirmed or cancelled.",
+    "keineKontingente": "No quota created yet.",
+    "col": {
+      "kunde": "Client",
+      "sorte": "Variety",
+      "saison": "Season",
+      "menge": "Quantity",
+      "reserviert": "reserved"
+    },
+    "hinweis": "A variety is never deleted, only edited - price lists and quotas reference it. A quota also stays on file even when nothing is reserved against it anymore.",
+    "formular": {
+      "sorteErstellen": {
+        "titel": "Create variety",
+        "lead": "Name and type are required, harvest window and punnet size are optional.",
+        "name": "Name",
+        "namePlatzhalter": "e.g. Vintage",
+        "typ": "Type",
+        "erntefenster": "Harvest window",
+        "erntefensterPlatzhalter": "e.g. Aug - Oct",
+        "schaleG": "Punnet size (g)",
+        "knopf": "Create variety",
+        "speichernKnopf": "Save"
+      },
+      "kontingentErstellen": {
+        "titel": "Create quota",
+        "lead": "Client, variety and quantity are required, the season is a free-text field (e.g. a year).",
+        "kunde": "Client",
+        "sorte": "Variety",
+        "saison": "Season",
+        "menge": "Quantity in kg",
+        "knopf": "Create quota"
+      },
+      "kontingentMenge": {
+        "label": "Quantity in kg",
         "knopf": "Save"
       }
     }

@@ -3220,6 +3220,16 @@ export type Database = {
         Args: { p_id: string }
         Returns: undefined
       }
+      kontingent_verfuegbarkeit_je_sorte: {
+        Args: never
+        Returns: {
+          menge_kg_gesamt: number
+          reserviert_kg_gesamt: number
+          saison: string
+          sorte_id: string
+          sorte_name: string
+        }[]
+      }
       kpi_aktuell: {
         Args: never
         Returns: {

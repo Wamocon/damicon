@@ -825,7 +825,11 @@
       "positionHinzugefuegt": "Position hinzugefügt.",
       "positionGeloescht": "Position entfernt.",
       "preislisteAktualisiert": "Preisliste aktualisiert.",
-      "kundengruppeGesetzt": "Kundengruppe gespeichert."
+      "kundengruppeGesetzt": "Kundengruppe gespeichert.",
+      "sorteErstellt": "Sorte angelegt.",
+      "sorteAktualisiert": "Sorte aktualisiert.",
+      "kontingentErstellt": "Kontingent angelegt.",
+      "kontingentAktualisiert": "Menge aktualisiert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -2140,6 +2144,10 @@
     "gastronomie": "Gastronomie",
     "einzelhandel": "Einzelhandel"
   },
+  "sorteTypen": {
+    "remontierend": "remontierend",
+    "sommertragend": "sommertragend"
+  },
   "preislistenAnsicht": {
     "preislistenTitel": "Preislisten",
     "preislistenLead": "Preise je Sorte und Mindestmenge, optional einer Kundengruppe zugeordnet. Eine Preisliste ohne Kundengruppe gilt als Standard für alle - auch für noch nicht zugeordnete Kunden.",
@@ -2180,6 +2188,57 @@
       },
       "gruppe": {
         "label": "Kundengruppe",
+        "knopf": "Speichern"
+      }
+    }
+  },
+  "sortenkatalogAnsicht": {
+    "sortenTitel": "Sorten",
+    "sortenLead": "Stammdaten je Sorte: Typ, Erntefenster und Schalengröße.",
+    "keineSorten": "Noch keine Sorte angelegt.",
+    "erntefenster": "Erntefenster",
+    "schaleG": "Schalengröße",
+    "verfuegbarkeitTitel": "Verfügbarkeit je Saison",
+    "verfuegbarkeitLead": "Summe über alle Kunden je Sorte und Saison, ohne einzelne Kundenzuordnung.",
+    "keineVerfuegbarkeit": "Noch kein Kontingent hinterlegt.",
+    "vergeben": "vergeben",
+    "verfuegbar": "verfügbar",
+    "verfuegbarkeitHinweis": "Diese Übersicht zeigt keine Zuordnung zu einzelnen Kunden - die eigene Reservierung sieht ein B2B-Kunde weiterhin im eigenen Portal.",
+    "kontingenteTitel": "Kontingente verwalten",
+    "kontingenteLead": "Vereinbarte Menge je Kunde, Sorte und Saison anlegen oder ändern. Die reservierte Menge schreibt das System automatisch fort, sobald eine Vorbestellung bestätigt oder storniert wird.",
+    "keineKontingente": "Noch kein Kontingent angelegt.",
+    "col": {
+      "kunde": "Kunde",
+      "sorte": "Sorte",
+      "saison": "Saison",
+      "menge": "Menge",
+      "reserviert": "reserviert"
+    },
+    "hinweis": "Eine Sorte wird nie gelöscht, nur bearbeitet - Preislisten und Kontingente verweisen auf sie. Ein Kontingent bleibt ebenfalls bestehen, auch wenn nichts mehr reserviert ist.",
+    "formular": {
+      "sorteErstellen": {
+        "titel": "Sorte anlegen",
+        "lead": "Name und Typ sind Pflicht, Erntefenster und Schalengröße sind optional.",
+        "name": "Name",
+        "namePlatzhalter": "z. B. Vintage",
+        "typ": "Typ",
+        "erntefenster": "Erntefenster",
+        "erntefensterPlatzhalter": "z. B. Aug - Okt",
+        "schaleG": "Schalengröße (g)",
+        "knopf": "Sorte anlegen",
+        "speichernKnopf": "Speichern"
+      },
+      "kontingentErstellen": {
+        "titel": "Kontingent anlegen",
+        "lead": "Kunde, Sorte und Menge sind Pflicht, die Saison ist ein freies Textfeld (z. B. Jahreszahl).",
+        "kunde": "Kunde",
+        "sorte": "Sorte",
+        "saison": "Saison",
+        "menge": "Menge in kg",
+        "knopf": "Kontingent anlegen"
+      },
+      "kontingentMenge": {
+        "label": "Menge in kg",
         "knopf": "Speichern"
       }
     }

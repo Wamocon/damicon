@@ -270,7 +270,11 @@ export const modules: ModuleDef[] = [
     icon: "book-open",
     resource: "sortenkatalog",
     klassifikation: "anpassen",
-    reifegrad: "demo",
+    // Sorten-Stammdaten (Name/Typ/Erntefenster/Schalengroesse) und
+    // Kontingent-Verwaltung (Menge je Kunde/Sorte/Saison) sowie eine
+    // aggregierte Verfuegbarkeits-Uebersicht je Sorte/Saison, siehe Migration
+    // 20261012000000.
+    reifegrad: "angebunden",
   },
   {
     key: "b2b_portal",
