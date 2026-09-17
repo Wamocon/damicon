@@ -146,7 +146,7 @@ export function KuehlmessungFormular({ aufgabeId }: { aufgabeId: string }) {
 // drei Handgriffe gebracht, und der ist am Sammelpunkt der haeufige.
 //
 // Kein Offline-Formular: Die Kontrolle braucht die Vier-Augen-Pruefung der
-// Datenbank (steige_kontrolle_pruefen(), Migration 20261006000000), und die
+// Datenbank (steige_kontrolle_pruefen(), Migration 20261020000000), und die
 // laesst sich auf dem Geraet nicht nachbilden. Eine offline gepufferte
 // Kontrolle koennte beim spaeteren Abgleich abgewiesen werden, nachdem der
 // Vorarbeiter sie laengst fuer erledigt haelt.
