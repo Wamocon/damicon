@@ -148,11 +148,13 @@ export type Database = {
           created_at: string
           geokodiert_am: string | null
           id: string
+          identifikationsnummer: string | null
           identitaets_digest: string | null
           kontakt: string | null
           kundengruppe: Database["public"]["Enums"]["kundengruppe"] | null
           laengengrad: number | null
           name: string
+          rechtsform: Database["public"]["Enums"]["rechtsform"] | null
           updated_at: string
         }
         Insert: {
@@ -161,11 +163,13 @@ export type Database = {
           created_at?: string
           geokodiert_am?: string | null
           id?: string
+          identifikationsnummer?: string | null
           identitaets_digest?: string | null
           kontakt?: string | null
           kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
           laengengrad?: number | null
           name: string
+          rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
           updated_at?: string
         }
         Update: {
@@ -174,11 +178,13 @@ export type Database = {
           created_at?: string
           geokodiert_am?: string | null
           id?: string
+          identifikationsnummer?: string | null
           identitaets_digest?: string | null
           kontakt?: string | null
           kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
           laengengrad?: number | null
           name?: string
+          rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
           updated_at?: string
         }
         Relationships: []
@@ -187,19 +193,25 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          identifikationsnummer: string | null
           name: string
+          rechtsform: Database["public"]["Enums"]["rechtsform"] | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
+          identifikationsnummer?: string | null
           name: string
+          rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
+          identifikationsnummer?: string | null
           name?: string
+          rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
           updated_at?: string
         }
         Relationships: []
@@ -1669,28 +1681,34 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          identifikationsnummer: string | null
           identitaets_digest: string | null
           kontakt: string | null
           name: string
           ort: string | null
+          rechtsform: Database["public"]["Enums"]["rechtsform"] | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
+          identifikationsnummer?: string | null
           identitaets_digest?: string | null
           kontakt?: string | null
           name: string
           ort?: string | null
+          rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
+          identifikationsnummer?: string | null
           identitaets_digest?: string | null
           kontakt?: string | null
           name?: string
           ort?: string | null
+          rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
           updated_at?: string
         }
         Relationships: []
@@ -3268,6 +3286,14 @@ export type Database = {
         }
         Returns: number
       }
+      nummernart_fuer_rechtsform: {
+        Args: { p_rechtsform: Database["public"]["Enums"]["rechtsform"] }
+        Returns: string
+      }
+      pruefziffer_stimmt: {
+        Args: { p_nummer: string }
+        Returns: boolean
+      }
       reihenblock_freigeben: {
         Args: {
           p_block: string
@@ -3392,6 +3418,13 @@ export type Database = {
         | "beleg_pruefung"
         | "abgeschlossen"
       plantage_typ: "eigen" | "nachbarbetrieb"
+      rechtsform:
+        | "kh_fh"
+        | "ip"
+        | "privatperson"
+        | "too"
+        | "ao"
+        | "pk"
       rechtsgrundlage_typ: "einwilligung" | "vertrag" | "gesetzliche_pflicht"
       reihenblock_status:
         | "bepflanzt"

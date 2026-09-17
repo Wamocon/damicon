@@ -695,6 +695,12 @@
       "description": "A B2B client's complaint per batch - reason, deadline and history, with a status flow through to a credit note. A client reports and sees only their own complaint; the office handles and closes it.",
       "summary": "List, detail and history per complaint, linked to the batch - traceable from there to the row block, picker and cooling curve.",
       "todo": "Admin screen to link a client login to a B2B client record, automatic complaint rate in the KPI cockpit, notification as a deadline approaches."
+    },
+    "stammdaten": {
+      "title": "Master data and tax numbers",
+      "description": "Legal form and IIN or BIN for the farm itself, its supplying farms and its customers - the details that must appear on every document.",
+      "summary": "A peasant farm carries an IIN, a legal entity a BIN. The check digit rejects a transposed number before it reaches an invoice.",
+      "todo": "Collect numbers for supplying farms and customers."
     }
   },
   "reihenblockStatusHint": {
@@ -829,7 +835,8 @@
       "sorteErstellt": "Variety created.",
       "sorteAktualisiert": "Variety updated.",
       "kontingentErstellt": "Quota created.",
-      "kontingentAktualisiert": "Quantity updated."
+      "kontingentAktualisiert": "Quantity updated.",
+      "stammdatenGespeichert": "Master data saved."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -859,6 +866,9 @@
       "geokodierung": "The address was saved but could not be located on the map. Please check the spelling.",
       "keineKoordinaten": "None of the selected deliveries have a located address.",
       "routendienst": "The route was created, but the routing service did not respond just now. Order and distance are preliminary.",
+      "stammdatenOhneRechtsform": "Please choose the legal form first - it decides whether an IIN or a BIN applies.",
+      "stammdatenFormat": "The number consists of exactly twelve digits.",
+      "stammdatenPruefziffer": "The check digit does not match. Usually two digits have been transposed.",
       "selbstkontrolle": "Whoever recorded a crate does not inspect it themselves. Someone else needs to check this crate."
     },
     "einladungen": {
@@ -2407,6 +2417,43 @@
     "angemeldetTitel": "You are already signed in",
     "angemeldetLead": "A new access is issued for its own account. Sign out first, otherwise you will keep working in the old one.",
     "abmelden": "Sign out now"
+  },
+  "stammdatenAnsicht": {
+    "titel": "Legal form and tax number",
+    "lead": "A peasant farm (KH/FH) carries an IIN, a legal entity a BIN. Both are twelve digits long, so each legal form states which of the two applies.",
+    "note": "The twelfth digit is a check digit. If it does not match, the system rejects the number - a transposed digit shows up on entry, not on the invoice.",
+    "alleGepflegt": "All numbers recorded",
+    "nochOffen": "{anzahl} without a number",
+    "gesamt": "{anzahl} entries in total",
+    "speichern": "Save",
+    "rechtsformOffen": "not recorded yet",
+    "nummerPlatzhalter": "twelve digits",
+    "gruppe": {
+      "betrieb": "Own farm",
+      "zulieferer": "Supplying farms",
+      "kunde": "Customers"
+    },
+    "gruppeLead": {
+      "betrieb": "Without this number the farm cannot issue a document of its own.",
+      "zulieferer": "Required to settle purchased produce.",
+      "kunde": "Required for invoice and delivery note."
+    },
+    "col": {
+      "rechtsform": "Legal form",
+      "nummer": "IIN / BIN"
+    },
+    "rechtsform": {
+      "kh_fh": "KH/FH - peasant farm",
+      "ip": "IP - sole trader",
+      "privatperson": "Private individual",
+      "too": "TOO - limited liability partnership",
+      "ao": "AO - joint-stock company",
+      "pk": "PK - production cooperative"
+    },
+    "nummernart": {
+      "iin": "IIN",
+      "bin": "BIN"
+    }
   },
   "steigeScan": {
     "label": "Crate at the collection point",

@@ -356,6 +356,19 @@ export const modules: ModuleDef[] = [
     reifegrad: "angebunden",
   },
   {
+    key: "stammdaten",
+    zone: "buero",
+    slug: "stammdaten",
+    icon: "building-2",
+    resource: "stammdaten",
+    klassifikation: "neu-bauen",
+    // Anforderung E.11: Rechtsform und ИИН/БИН von Betrieb, Zulieferern
+    // und Kunden an einer Stelle. Im Buero und nicht bei den drei
+    // Fachbereichen, weil dieselbe Person sie fuer alle drei Gruppen
+    // pflegt: wer Belege ausstellt.
+    reifegrad: "angebunden",
+  },
+  {
     key: "kanaele",
     zone: "markt",
     slug: "kanaele",
