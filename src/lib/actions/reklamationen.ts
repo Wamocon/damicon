@@ -11,7 +11,13 @@ import {
 } from "@/lib/actions/status";
 import type { Json } from "@/lib/database.types";
 import { reklamationGruende, reklamationStatus } from "@/lib/domain/reklamationen";
-import { text, zahl, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
+import {
+  text,
+  zahl,
+  aktualisiere,
+  generiereTicketCode,
+  protokolliere as protokolliereBasis,
+} from "@/lib/actions/formular-helfer";
 
 // Reklamationsmanagement (WMCNL-1455). Wer eine Reklamation anlegen darf und
 // wer sie bearbeiten darf, entscheidet rbac.ts ("reklamationen:create" fuer
@@ -62,11 +68,7 @@ export async function reklamationAnlegen(
 
   const supabase = await createClient();
 
-  const heute = new Date();
-  const stempel = `${heute.getFullYear()}${String(heute.getMonth() + 1).padStart(2, "0")}${String(
-    heute.getDate(),
-  ).padStart(2, "0")}`;
-  const code = `REK-${stempel}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+  const code = generiereTicketCode("REK");
 
   const { data, error } = await supabase
     .from("reklamationen")

@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { sicheresLocale, sicheresZiel } from "@/lib/auth-nav";
 
@@ -50,6 +51,9 @@ export async function mfaAnmeldenBestaetigen(
     return { fehler: "code" };
   }
 
+  // Wie login/actions.ts::anmelden() - Router Cache kennt keine Sitzung, siehe
+  // dortiger Kommentar (WMC-Vibecode-Cleanup-Fund).
+  revalidatePath("/", "layout");
   // redirect() wirft intern - deshalb ausserhalb jedes try/catch.
   redirect(ziel);
 }
