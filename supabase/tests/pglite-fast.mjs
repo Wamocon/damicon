@@ -326,7 +326,7 @@ await mussScheitern(
 // Regression: 20260905160000_haerten.sql hat die Betriebsdaten pauschal fuer
 // jede angemeldete Rolle lesbar gemacht (using(true)). picker und kunde sahen
 // damit ueber die REST-API Chargen, Aufgaben, Reihenbloecke und Brigaden,
-// obwohl rbac.ts ihnen kein solches Modul zeigt. 20261015000000 verengt das.
+// obwohl rbac.ts ihnen kein solches Modul zeigt. 20261023000000 verengt das.
 {
   const anlegen = async (email, rolle) => {
     const { rows } = await db.query(
