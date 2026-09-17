@@ -160,6 +160,14 @@ export async function aufgabeStatusKern(
     .single();
 
   if (error) return { erledigt: false, status: dbFehler(error) };
+  // QA-Fund (20261019000000): sync_aufgabe_status_setzen() unterscheidet
+  // jetzt einen echten Zustandskonflikt ("konflikt") von einer reinen
+  // Schreibsperre ("berechtigung", z. B. nach Brigade-Umzuweisung waehrend
+  // die Aktion noch in der Warteschlange stand) - letztere ist kein
+  // Zustandsproblem, das ein Reload beheben wuerde.
+  if (data.ergebnis === "berechtigung") {
+    return { erledigt: false, status: fehler("fehler.berechtigung") };
+  }
   if (data.ergebnis === "konflikt" || !data.code) {
     // Jemand/etwas anderes hat den Status zwischenzeitlich veraendert (z. B.
     // ein zweites Geraet, oder die Aufgabe wurde storniert) - kein
@@ -204,6 +212,10 @@ export async function mengeMeldenKern(
     .single();
 
   if (error) return { erledigt: false, status: dbFehler(error) };
+  // QA-Fund (20261019000000): siehe aufgabeStatusKern() oben.
+  if (data.ergebnis === "berechtigung") {
+    return { erledigt: false, status: fehler("fehler.berechtigung") };
+  }
   if (data.ergebnis === "konflikt" || !data.code) {
     return { erledigt: false, status: fehler("fehler.zustand") };
   }
