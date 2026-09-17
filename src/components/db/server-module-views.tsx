@@ -21,6 +21,7 @@ import { EinladungenAnsicht } from "@/components/db/einladungen-ansicht";
 import { KuehletteAnsicht } from "@/components/db/kuehlkette-ansicht";
 import { WetterAnsicht } from "@/components/db/wetter-ansicht";
 import { KanaeleAnsicht } from "@/components/db/kanaele-ansicht";
+import { StammdatenAnsicht } from "@/components/db/stammdaten-ansicht";
 import { PreislistenAnsicht } from "@/components/db/preislisten-ansicht";
 import { SortenkatalogAnsicht } from "@/components/db/sortenkatalog-ansicht";
 import { RollenDemo } from "@/components/demo/buero";
@@ -138,6 +139,8 @@ export function serverModulAnsicht(
     // Anforderung 5.6: Kontaktkanaele/Zahlungswege verwalten.
     case "kanaele":
       return <KanaeleAnsicht />;
+    case "stammdaten":
+      return <StammdatenAnsicht />;
     // Anforderung E.20: Kundenzugang ueber Einladung. Die Rechtematrix
     // darueber bleibt, was sie war - eine Anzeige des Rollenmodells aus
     // rbac.ts, die nichts schreibt. Neu darunter ist die einzige schreibende

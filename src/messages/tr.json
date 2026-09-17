@@ -1054,6 +1054,12 @@
       "description": "Bir B2B müşterisinin parti başına şikâyeti - neden, süre ve geçmiş, alacak dekontuna kadar durum akışıyla. Müşteri yalnızca kendi şikâyetini bildirir ve görür, ofis bunu işler ve kapatır.",
       "summary": "Partiye bağlı her şikâyet için liste, ayrıntı ve geçmiş - oradan sıra bloğuna, toplayıcıya ve soğutma eğrisine kadar izlenebilir.",
       "todo": "Müşteri girişini bir B2B müşteri kaydına bağlayan yönetici ekranı, KPI kokpitinde otomatik şikâyet oranı, süre yaklaştığında bildirim."
+    },
+    "stammdaten": {
+      "title": "Ana veriler ve vergi numaraları",
+      "description": "Kendi işletmesi, tedarikçi işletmeler ve müşteriler için hukuki biçim ve IIN ya da BIN - her belgede bulunması gereken bilgiler.",
+      "summary": "Çiftçi işletmesi IIN, tüzel kişi BIN taşır. Kontrol hanesi, rakam yer değiştirmesini faturaya geçmeden önce geri çevirir.",
+      "todo": "Tedarikçi işletmelerin ve müşterilerin numaralarını topla."
     }
   },
   "reihenblockStatusHint": {
@@ -1168,7 +1174,8 @@
       "sorteAktualisiert": "Çeşit güncellendi.",
       "kontingentErstellt": "Kota oluşturuldu.",
       "kontingentAktualisiert": "Miktar güncellendi.",
-      "wetterAktualisiert": "Hava durumu verileri güncellendi."
+      "wetterAktualisiert": "Hava durumu verileri güncellendi.",
+      "stammdatenGespeichert": "Ana veriler kaydedildi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -1196,7 +1203,10 @@
       "wetterdienst": "Hava durumu servisi şu anda veri döndürmedi. Lütfen daha sonra tekrar deneyin.",
       "geokodierung": "Adres kaydedildi, ancak haritada konumlandırılamadı. Lütfen yazımı kontrol edin.",
       "keineKoordinaten": "Seçilen teslimatların hiçbirinin konumlandırılmış bir adresi yok.",
-      "routendienst": "Tur oluşturuldu, ancak güzergâh hizmeti şu anda yanıt vermedi. Sıra ve mesafe geçicidir."
+      "routendienst": "Tur oluşturuldu, ancak güzergâh hizmeti şu anda yanıt vermedi. Sıra ve mesafe geçicidir.",
+      "stammdatenOhneRechtsform": "Önce hukuki biçimi seçin - IIN mi BIN mi geçerli olduğu buna bağlıdır.",
+      "stammdatenFormat": "Numara tam olarak on iki haneden oluşur.",
+      "stammdatenPruefziffer": "Kontrol hanesi tutmuyor. Çoğunlukla numarada iki rakam yer değiştirmiştir."
     },
     "einladungen": {
       "erfolg": {
@@ -2397,5 +2407,42 @@
     "angemeldetTitel": "Zaten oturum açtınız",
     "angemeldetLead": "Yeni erişim kendi hesabına açılır. Önce çıkış yapın, yoksa eski hesapta çalışmaya devam edersiniz.",
     "abmelden": "Şimdi çıkış yap"
+  },
+  "stammdatenAnsicht": {
+    "titel": "Hukuki biçim ve vergi numarası",
+    "lead": "Çiftçi işletmesi (KH/FH) IIN, tüzel kişi BIN taşır. İkisi de on iki hanelidir; bu yüzden her hukuki biçimin yanında hangisinin geçerli olduğu yazar.",
+    "note": "On ikinci hane bir kontrol hanesidir. Tutmazsa sistem numarayı geri çevirir - rakam yer değiştirmesi faturada değil, girişte ortaya çıkar.",
+    "alleGepflegt": "Tüm numaralar kayıtlı",
+    "nochOffen": "{anzahl} numarasız",
+    "gesamt": "toplam {anzahl} kayıt",
+    "speichern": "Kaydet",
+    "rechtsformOffen": "henüz kaydedilmedi",
+    "nummerPlatzhalter": "on iki hane",
+    "gruppe": {
+      "betrieb": "Kendi işletmesi",
+      "zulieferer": "Tedarikçi işletmeler",
+      "kunde": "Müşteriler"
+    },
+    "gruppeLead": {
+      "betrieb": "Bu numara olmadan kendi belgesi düzenlenemez.",
+      "zulieferer": "Satın alınan ürünün mahsuplaşması için gerekli.",
+      "kunde": "Fatura ve irsaliye için gerekli."
+    },
+    "col": {
+      "rechtsform": "Hukuki biçim",
+      "nummer": "IIN / BIN"
+    },
+    "rechtsform": {
+      "kh_fh": "KH/FH - çiftçi işletmesi",
+      "ip": "IP - şahıs işletmesi",
+      "privatperson": "Gerçek kişi",
+      "too": "TOO - limited şirket",
+      "ao": "AO - anonim şirket",
+      "pk": "PK - üretim kooperatifi"
+    },
+    "nummernart": {
+      "iin": "IIN",
+      "bin": "BIN"
+    }
   }
 }
