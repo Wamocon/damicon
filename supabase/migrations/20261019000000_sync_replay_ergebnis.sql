@@ -30,6 +30,23 @@
 -- Das sauber zu schliessen hiesse, die beiden Funktionen auf SECURITY DEFINER
 -- umzustellen und die RLS-Pruefung der Aufgabe selbst zu uebernehmen - ein
 -- groesserer Umbau mit eigenem Testbedarf, kein Nebenzug dieser Korrektur.
+--
+-- QA-Nachbesserung (zwei weitere Funde vor dem Merge):
+--   * Der "angewendet"-Insert hatte, anders als der "konflikt"-Insert
+--     daneben, kein ON CONFLICT DO NOTHING - eine Asymmetrie ohne
+--     fachlichen Grund, jetzt in beiden Funktionen angeglichen.
+--   * 0 betroffene Zeilen beim UPDATE bedeuteten bisher immer "konflikt",
+--     auch wenn nur die Schreibberechtigung fehlte (RLS aus
+--     20261018000000_brigade_schreibumfang.sql, z. B. nach einer
+--     Brigade-Umzuweisung waehrend eine Aktion noch in der Warteschlange
+--     stand). Ein solcher permanenter "konflikt"-Eintrag haette einen
+--     spaeteren, nach Korrektur der Zuweisung eigentlich erfolgreichen
+--     Versuch fuer immer blockiert. Beide Funktionen stellen den Ist-Status
+--     jetzt vorab per SELECT fest (breitere RLS als das UPDATE) und
+--     unterscheiden echten Zustandskonflikt (weiterhin dauerhaft als
+--     'konflikt' protokolliert) von reiner Schreibsperre (neues Ergebnis
+--     'berechtigung', bewusst nicht protokolliert, damit ein Retry nach
+--     korrigierter Zuweisung greifen kann).
 -- =============================================================================
 
 set search_path = public;
@@ -48,6 +65,7 @@ as $$
 declare
   v_code             text;
   v_frueher_ergebnis text;
+  v_ist_status       public.pflueckaufgabe_status;
 begin
   if (p_neuer_status, p_vorzustand) not in (('angenommen', 'offen'), ('in_arbeit', 'angenommen')) then
     raise exception 'Ungueltiger Statusuebergang.' using errcode = '22023';
@@ -70,6 +88,17 @@ begin
     return;
   end if;
 
+  -- QA-Fund: der Ist-Status vorab per SELECT (breitere RLS als das folgende
+  -- UPDATE, siehe pflueckaufgaben_select_* vs. pflueckaufgaben_update_feld in
+  -- 20261018000000_brigade_schreibumfang.sql) - damit laesst sich unten
+  -- unterscheiden, ob 0 betroffene Zeilen einen echten Zustandskonflikt
+  -- bedeuten oder nur eine fehlende Schreibberechtigung (z. B. Aufgabe
+  -- zwischenzeitlich einer anderen Brigade zugewiesen). Nur ein echter
+  -- Zustandskonflikt wird dauerhaft im Sync-Protokoll festgehalten, sonst
+  -- bliebe ein spaeterer Versuch nach einer korrigierten Zuweisung fuer
+  -- immer an demselben aktion_id-Replay haengen.
+  select t.status into v_ist_status from public.pflueckaufgaben t where t.id = p_aufgabe_id;
+
   update public.pflueckaufgaben t
      set status = p_neuer_status::public.pflueckaufgabe_status,
          arbeitsbeginn_geraet_zeitpunkt =
@@ -79,15 +108,28 @@ begin
   returning t.code into v_code;
 
   if v_code is null then
-    insert into public.sync_protokoll (aktion_id, aktion_typ, ressource_id, ergebnis)
-    values (p_aktion_id, 'aufgabe_status_' || p_neuer_status, p_aufgabe_id, 'konflikt')
-    on conflict (aktion_id) do nothing;
-    return query select 'konflikt'::text, null::text;
+    if v_ist_status is distinct from p_vorzustand::public.pflueckaufgabe_status then
+      insert into public.sync_protokoll (aktion_id, aktion_typ, ressource_id, ergebnis)
+      values (p_aktion_id, 'aufgabe_status_' || p_neuer_status, p_aufgabe_id, 'konflikt')
+      on conflict (aktion_id) do nothing;
+      return query select 'konflikt'::text, null::text;
+      return;
+    end if;
+    -- Zustand passte, nur die Schreibberechtigung fehlte (RLS) - bewusst
+    -- nicht im Protokoll festgehalten, damit ein Retry nach einer
+    -- korrigierten Zuweisung greifen kann.
+    return query select 'berechtigung'::text, null::text;
     return;
   end if;
 
+  -- QA-Fund: der Konflikt-Zweig oben hatte bereits ON CONFLICT DO NOTHING,
+  -- dieser Zweig nicht - eine Asymmetrie ohne fachlichen Grund. v_code kommt
+  -- aus dem eigenen, bereits erfolgreichen UPDATE dieser Transaktion, der
+  -- Rueckgabewert bleibt also auch dann richtig, wenn das Protokoll die
+  -- Zeile schon (von anderswo) traegt.
   insert into public.sync_protokoll (aktion_id, aktion_typ, ressource_id, ergebnis)
-  values (p_aktion_id, 'aufgabe_status_' || p_neuer_status, p_aufgabe_id, 'angewendet');
+  values (p_aktion_id, 'aufgabe_status_' || p_neuer_status, p_aufgabe_id, 'angewendet')
+  on conflict (aktion_id) do nothing;
 
   insert into public.audit_events (aktion, ressource, ressource_id, metadata)
   values ('aufgabe.status', 'pflueckaufgaben', p_aufgabe_id,
@@ -98,7 +140,7 @@ end;
 $$;
 
 comment on function public.sync_aufgabe_status_setzen is
-  'Anforderung 2.5: idempotenter Statuswechsel aus der Offline-Warteschlange. Ein Replay derselben aktion_id liefert das gespeicherte Ergebnis - ein Konflikt bleibt ein Konflikt (20261019000000).';
+  'Anforderung 2.5: idempotenter Statuswechsel aus der Offline-Warteschlange. Ein Replay derselben aktion_id liefert das gespeicherte Ergebnis - ein echter Zustandskonflikt bleibt ein Konflikt, eine reine Schreibsperre (RLS, z. B. nach Brigade-Umzuweisung) liefert stattdessen "berechtigung" und wird nicht dauerhaft protokolliert (20261019000000, QA-Nachbesserung).';
 
 create or replace function public.sync_menge_melden(
   p_aktion_id uuid,
@@ -114,6 +156,7 @@ as $$
 declare
   v_code             text;
   v_frueher_ergebnis text;
+  v_ist_status       public.pflueckaufgabe_status;
 begin
   if p_ist_menge_kg is null or p_ist_menge_kg < 0 or coalesce(p_ausschuss_kg, 0) < 0 then
     raise exception 'Ungueltige Menge.' using errcode = '22023';
@@ -134,6 +177,11 @@ begin
     return;
   end if;
 
+  -- QA-Fund: siehe sync_aufgabe_status_setzen() oben - Ist-Status vorab
+  -- feststellen, um einen echten Zustandskonflikt von einer reinen
+  -- Schreibsperre (RLS, z. B. nach Brigade-Umzuweisung) zu unterscheiden.
+  select t.status into v_ist_status from public.pflueckaufgaben t where t.id = p_aufgabe_id;
+
   update public.pflueckaufgaben t
      set ist_menge_kg = p_ist_menge_kg,
          ausschuss_kg = coalesce(p_ausschuss_kg, 0),
@@ -144,15 +192,21 @@ begin
   returning t.code into v_code;
 
   if v_code is null then
-    insert into public.sync_protokoll (aktion_id, aktion_typ, ressource_id, ergebnis)
-    values (p_aktion_id, 'menge_melden', p_aufgabe_id, 'konflikt')
-    on conflict (aktion_id) do nothing;
-    return query select 'konflikt'::text, null::text;
+    if v_ist_status is null or v_ist_status not in ('in_arbeit', 'beleg_pruefung') then
+      insert into public.sync_protokoll (aktion_id, aktion_typ, ressource_id, ergebnis)
+      values (p_aktion_id, 'menge_melden', p_aufgabe_id, 'konflikt')
+      on conflict (aktion_id) do nothing;
+      return query select 'konflikt'::text, null::text;
+      return;
+    end if;
+    return query select 'berechtigung'::text, null::text;
     return;
   end if;
 
+  -- QA-Fund: dieselbe Asymmetrie wie in sync_aufgabe_status_setzen() oben.
   insert into public.sync_protokoll (aktion_id, aktion_typ, ressource_id, ergebnis)
-  values (p_aktion_id, 'menge_melden', p_aufgabe_id, 'angewendet');
+  values (p_aktion_id, 'menge_melden', p_aufgabe_id, 'angewendet')
+  on conflict (aktion_id) do nothing;
 
   insert into public.audit_events (aktion, ressource, ressource_id, metadata)
   values ('aufgabe.menge', 'pflueckaufgaben', p_aufgabe_id,
@@ -168,4 +222,4 @@ end;
 $$;
 
 comment on function public.sync_menge_melden is
-  'Anforderung 2.5: idempotente Mengenmeldung aus der Offline-Warteschlange. Ein Replay derselben aktion_id liefert das gespeicherte Ergebnis - ein Konflikt bleibt ein Konflikt (20261019000000).';
+  'Anforderung 2.5: idempotente Mengenmeldung aus der Offline-Warteschlange. Ein Replay derselben aktion_id liefert das gespeicherte Ergebnis - ein echter Zustandskonflikt bleibt ein Konflikt, eine reine Schreibsperre (RLS, z. B. nach Brigade-Umzuweisung) liefert stattdessen "berechtigung" und wird nicht dauerhaft protokolliert (20261019000000, QA-Nachbesserung).';

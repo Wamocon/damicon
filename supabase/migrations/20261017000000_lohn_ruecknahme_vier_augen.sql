@@ -46,6 +46,52 @@ comment on column public.lohn_abrechnungen.freigegeben_von_profil_id is
 comment on column public.lohn_abrechnungen.freigegeben_am is
   'Zeitpunkt der Freigabe, serverseitig gesetzt.';
 
+-- ---------------------------------------------------------------------------
+-- 1a. Bestand nachtragen (QA-Fund): ohne diesen Nachtrag bleibt jede zum
+--     Migrationszeitpunkt bereits freigegebene oder ausgezahlte Abrechnung
+--     ungeschuetzt, weil freigegeben_von_profil_id fuer sie null ist und die
+--     Sperre unten nur greift, wenn alte_zeile.freigegeben_von_profil_id
+--     gesetzt ist - der erste Ruecksprung nach dieser Migration liesse sich
+--     fuer den Bestand also weiterhin von derselben Person durchfuehren,
+--     genau der Fall, den die Migration eigentlich schliessen soll.
+--
+--     Es gibt keine Profil-Id im Bestand, nur den Namen im Audit-Log
+--     (protokolliere() in lohn.ts, aktion "lohn.status", actor als Text
+--     "<full_name> (<role>)"). Nachgetragen wird deshalb nur dort, wo der
+--     jeweils letzte "freigegeben"-Audit-Eintrag einer Abrechnung einen
+--     Namen traegt, der eindeutig (kein Namensgleichstand) auf ein Profil
+--     passt. Bleibt kein Treffer, bleibt die Zeile wie zuvor ungeschuetzt
+--     bis zur naechsten echten Freigabe - kein falscher Treffer wird
+--     erzwungen.
+-- ---------------------------------------------------------------------------
+with letzte_freigabe as (
+  select distinct on (ae.ressource_id)
+    ae.ressource_id as lohn_id,
+    regexp_replace(ae.actor, '\s*\([a-z_]+\)$', '') as freigeber_name,
+    ae.created_at
+  from public.audit_events ae
+  where ae.ressource = 'lohn'
+    and ae.aktion = 'lohn.status'
+    and ae.metadata ->> 'status' = 'freigegeben'
+  order by ae.ressource_id, ae.created_at desc
+),
+eindeutiges_profil as (
+  select p.id, p.full_name
+    from public.profiles p
+   where not exists (
+     select 1 from public.profiles p2
+      where p2.full_name = p.full_name and p2.id <> p.id
+   )
+)
+update public.lohn_abrechnungen la
+   set freigegeben_von_profil_id = p.id,
+       freigegeben_am = coalesce(la.freigegeben_am, lf.created_at)
+  from letzte_freigabe lf
+  join eindeutiges_profil p on p.full_name = lf.freigeber_name
+ where la.id = lf.lohn_id
+   and la.status in ('freigegeben', 'ausgezahlt')
+   and la.freigegeben_von_profil_id is null;
+
 create or replace function public.current_profil_id()
 returns uuid
 language sql

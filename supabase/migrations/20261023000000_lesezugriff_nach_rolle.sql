@@ -68,21 +68,39 @@ $$;
 -- ---------------------------------------------------------------------------
 -- 2. Nur Buero und Feld
 -- ---------------------------------------------------------------------------
+-- QA-Fund: buchhaltung stand hier fuer alle fuenf Tabellen in einer Liste,
+-- hat aber laut rolePermissions in rbac.ts weder "standort" noch
+-- "rotationsplan" - keine Anwendungsabfrage fuer diese Rolle liest betriebe,
+-- plantagen, rotationsplan_eintraege oder wetter_messungen, weder direkt noch
+-- ueber einen Join (anders als bei reihengruppen/feldparzellen in Abschnitt 1,
+-- die data/reihenbloecke.ts fuer jede Rolle mit view("reihenbloecke")
+-- tatsaechlich mitliest). brigaden ist bewusst eine eigene, zweite Schleife:
+-- buchhaltung und brigade lesen es ueber den brigaden(name)-Join in
+-- data/pflueckaufgaben.ts (beide haben view/crud("pflueckaufgaben")), auch
+-- ohne eigene Ressource "personal" - hier bleibt der bisherige Rollenkreis
+-- also unveraendert richtig.
 do $$
 declare
   t text;
-  intern text[] := array[
-    'betriebe','plantagen','brigaden','rotationsplan_eintraege','wetter_messungen'
+  betrieb text[] := array[
+    'betriebe','plantagen','rotationsplan_eintraege','wetter_messungen'
   ];
 begin
-  foreach t in array intern loop
+  foreach t in array betrieb loop
     execute format('drop policy if exists %I on public.%I;', t || '_select_intern', t);
     execute format(
       'create policy %I on public.%I for select to authenticated
-         using (public.has_role(''admin'', ''betriebsleitung'', ''buchhaltung'', ''brigade''));',
+         using (public.has_role(''admin'', ''betriebsleitung'', ''brigade''));',
       t || '_select_betrieb', t
     );
   end loop;
+
+  execute format('drop policy if exists %I on public.%I;', 'brigaden_select_intern', 'brigaden');
+  execute format(
+    'create policy %I on public.%I for select to authenticated
+       using (public.has_role(''admin'', ''betriebsleitung'', ''buchhaltung'', ''brigade''));',
+    'brigaden_select_betrieb', 'brigaden'
+  );
 end;
 $$;
 

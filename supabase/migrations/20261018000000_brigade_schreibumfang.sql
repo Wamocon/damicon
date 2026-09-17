@@ -90,6 +90,24 @@ create policy pflueckaufgaben_update_feld on public.pflueckaufgaben
 -- ---------------------------------------------------------------------------
 -- Eine Steige ohne Aufgabenbezug (pflueckaufgabe_id is null) gehoert keinem
 -- Feldablauf an - sie bleibt dem Buero vorbehalten.
+--
+-- QA-Fund vor dem Merge: die urspruengliche Fassung dieser Policy liess eine
+-- Rolle brigade nur an der eigenen Brigade zu - das bricht die
+-- Stichprobenkontrolle (Anforderung 2.10, 20261014000000, seit PR #55 auf
+-- main): ein benannter Vorarbeiter ist technisch weiterhin role=brigade,
+-- kontrolliert aber gerade FREMDE Steigen (das ist der Zweck der Kontrolle).
+-- Ohne diese Ergaenzung waere ein Kontrollversuch schon durch RLS mit 0
+-- betroffenen Zeilen abgewiesen worden, bevor steige_kontrolle_pruefen()
+-- (der eigentliche fachliche Waechter: Kontrollrecht, Vier-Augen,
+-- Befundpflicht) ueberhaupt greifen konnte. Ein Vorarbeiter mit
+-- profiles.darf_kontrollieren darf deshalb jede Steige anfassen, nicht nur
+-- die der eigenen Brigade - bewusst ohne Beschraenkung auf die
+-- Kontrollfelder an dieser Stelle (RLS ist zeilen-, keine spaltenweise
+-- Politik), die uebrigen Felder (gewicht_kg, pfluecker_id,
+-- erfasst_von_profil_id) bleiben aber durch steige_kontrolle_pruefen()
+-- selbst geschuetzt (erfasst_von_profil_id ist dort ab dem Insert
+-- unveraenderlich, eine gesetzte Kontrolle ist nach dem ersten Befund
+-- unveraenderlich).
 drop policy if exists steigen_update_feld on public.steigen;
 create policy steigen_update_feld on public.steigen
   for update to authenticated
@@ -97,10 +115,16 @@ create policy steigen_update_feld on public.steigen
     public.has_role('admin', 'betriebsleitung')
     or (
       public.has_role('brigade')
-      and exists (
-        select 1 from public.pflueckaufgaben a
-         where a.id = steigen.pflueckaufgabe_id
-           and (a.brigade_id is null or a.brigade_id = public.current_brigade_id())
+      and (
+        exists (
+          select 1 from public.pflueckaufgaben a
+           where a.id = steigen.pflueckaufgabe_id
+             and (a.brigade_id is null or a.brigade_id = public.current_brigade_id())
+        )
+        or coalesce(
+          (select p.darf_kontrollieren from public.profiles p where p.auth_user_id = auth.uid()),
+          false
+        )
       )
     )
   )
@@ -108,10 +132,16 @@ create policy steigen_update_feld on public.steigen
     public.has_role('admin', 'betriebsleitung')
     or (
       public.has_role('brigade')
-      and exists (
-        select 1 from public.pflueckaufgaben a
-         where a.id = steigen.pflueckaufgabe_id
-           and (a.brigade_id is null or a.brigade_id = public.current_brigade_id())
+      and (
+        exists (
+          select 1 from public.pflueckaufgaben a
+           where a.id = steigen.pflueckaufgabe_id
+             and (a.brigade_id is null or a.brigade_id = public.current_brigade_id())
+        )
+        or coalesce(
+          (select p.darf_kontrollieren from public.profiles p where p.auth_user_id = auth.uid()),
+          false
+        )
       )
     )
   );
