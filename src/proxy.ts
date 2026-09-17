@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { routing } from "@/i18n/routing";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { mfaHerausforderungOffen } from "@/lib/domain/mfa";
 
 // Next.js 16: `src/proxy.ts` ersetzt das veraltete `middleware.ts`.
 // Zwei Aufgaben, in dieser Reihenfolge:
@@ -77,9 +78,12 @@ export async function proxy(request: NextRequest) {
     // wird. Diese Pruefung gehoert in den Proxy, nicht nur in die
     // Login-Server-Action - sonst genuegt ein direkter Aufruf von
     // /dashboard mit einer bestehenden AAL1-Sitzung, um die Challenge zu
-    // umgehen (siehe login/actions.ts fuer denselben Vergleich beim Login).
+    // umgehen. mfaHerausforderungOffen() (domain/mfa.ts) buendelt dieselbe
+    // Bedingung, die auch login/actions.ts und login/mfa/page.tsx pruefen -
+    // WMC-Vibecode-Cleanup-Fund, vier wortgleiche Kopien dieser einen
+    // Bedingung.
     const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-    const mfaOffen = !!aal && aal.nextLevel === "aal2" && aal.nextLevel !== aal.currentLevel;
+    const mfaOffen = mfaHerausforderungOffen(aal);
 
     if (mfaOffen && dashboardPfad.test(pfad)) {
       const ziel = new URL(`/${locale}/login/mfa`, request.url);
