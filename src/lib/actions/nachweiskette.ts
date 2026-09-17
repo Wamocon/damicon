@@ -339,7 +339,7 @@ export async function kuehlmessungErfassen(
 // Administration stehen nicht im Feld.
 //
 // Die Datenbank bleibt die letzte Instanz. steige_kontrolle_pruefen()
-// (Migration 20261006000000) setzt Recht, Vier-Augen-Regel, Befundpflicht und
+// (Migration 20261014000000) setzt Recht, Vier-Augen-Regel, Befundpflicht und
 // Begruendungspflicht unabhaengig von diesem Code durch. Was hier steht, ist
 // die freundliche Fassung derselben Regeln - eine verstaendliche Meldung im
 // Formular statt einer Ausnahme aus dem Trigger.
