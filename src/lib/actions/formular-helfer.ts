@@ -43,3 +43,21 @@ export async function protokolliere(
     metadata,
   });
 }
+
+// WMC-Vibecode-Cleanup-Fund: derselbe Datumsstempel-plus-Zufallssuffix-Code
+// stand wortgleich (bis auf das Praefix) in reklamationen.ts und
+// pflueckaufgaben.ts, beide mit Math.random().toString(36).slice(2, 6) - vier
+// Zeichen im Basis-36-Alphabet, rund 1,68 Mio. Kombinationen je Tag. Beide
+// Zielspalten (code) sind unique constraint, ein Insert bei einer Kollision
+// haette ohne Wiederholung mit einem rohen 23505-Fehler abgebrochen. Acht
+// Hex-Zeichen aus randomUUID() (rund 4,3 Mrd. Kombinationen je Tag) senken das
+// Kollisionsrisiko deutlich, randomUUID() ist ausserdem bereits ueberall sonst
+// im Projekt die etablierte Quelle fuer Zufalls-IDs (z. B. Sync-Warteschlange).
+export function generiereTicketCode(praefix: string): string {
+  const heute = new Date();
+  const stempel = `${heute.getFullYear()}${String(heute.getMonth() + 1).padStart(2, "0")}${String(
+    heute.getDate(),
+  ).padStart(2, "0")}`;
+  const zufall = crypto.randomUUID().replace(/-/g, "").slice(0, 8).toUpperCase();
+  return `${praefix}-${stempel}-${zufall}`;
+}
