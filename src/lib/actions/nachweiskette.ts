@@ -388,6 +388,17 @@ export async function steigeKontrollieren(
   // Vier-Augen-Regel hat gegriffen, weil es die eigene Steige ist.
   if (!data) return fehler("fehler.zustand");
 
+  // Sicherheits-Review 17.09.2026: der generische Protokoll-Trigger auf
+  // steigen (Anforderung 4.7) erfasst das UPDATE ohnehin, aber ohne Befund im
+  // Klartext - anders als steige.erfasst/arbeitszeit.erfasst/kuehlmessung.erfasst
+  // fehlte hier der fachlich benannte Eintrag mit Detail. Nachgezogen, damit
+  // der Befund einer Stichprobenkontrolle direkt im Protokoll auffindbar ist.
+  await protokolliere(profil, "steige.kontrolliert", "steigen", data.id, {
+    code: data.code,
+    befund,
+    aktor_rolle: profil.role,
+  });
+
   aktualisiere(formData);
   return ok("ok.steigeKontrolliert", data.code);
 }

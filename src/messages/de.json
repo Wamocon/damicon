@@ -858,7 +858,8 @@
       "wetterdienst": "Der Wetterdienst hat gerade keine Daten geliefert. Bitte später erneut versuchen.",
       "geokodierung": "Die Adresse wurde gespeichert, konnte aber nicht auf der Karte verortet werden. Bitte Schreibweise prüfen.",
       "keineKoordinaten": "Keine der ausgewählten Lieferungen hat eine verortete Adresse.",
-      "routendienst": "Die Tour wurde angelegt, aber der Routendienst hat gerade keine Antwort geliefert. Reihenfolge und Strecke sind vorläufig."
+      "routendienst": "Die Tour wurde angelegt, aber der Routendienst hat gerade keine Antwort geliefert. Reihenfolge und Strecke sind vorläufig.",
+      "selbstkontrolle": "Wer eine Steige erfasst hat, kontrolliert sie nicht selbst. Eine andere Person muss diese Steige prüfen."
     },
     "einladungen": {
       "erfolg": {

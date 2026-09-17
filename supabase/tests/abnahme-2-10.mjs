@@ -290,6 +290,41 @@ await mussGelingen(
 );
 
 // --- Was dieser Test nicht abdeckt -----------------------------------------
+// --- Sicherheits-Review 17.09.2026: zwei per Direktzugriff gefundene und in
+// PGlite bestaetigte Umgehungen der Vier-Augen-Regel, jetzt als Regression -----
+// Vorher liess sich das Kontrollergebnis nachtraeglich ueberschreiben (siehe
+// zweiter Fall unten) und erfasst_von_profil_id im Nachhinein loeschen, um die
+// Vier-Augen-Regel damit fuer den eigentlichen Erfasser auszuhebeln (erster
+// Fall). Beide Pfade gehen direkt per UPDATE, unter Umgehung der Server
+// Action - genau der Weg, den ein eigenes, gueltiges Session-JWT eroeffnet.
+
+await alsRolle(db, "authenticated", vorarbeiter);
+const { rows: st4 } = await db.query(
+  `insert into public.steigen (code, qr_token, pflueckaufgabe_id, pfluecker_id, gewicht_kg, scan_zeitpunkt)
+   values ('ABN-2-10-003', 'abn-2-10-token-3', $1, $2, 3.10, now()) returning id;`,
+  [aufg[0].id, pf[0].id],
+);
+// Der Vorarbeiter erfasst diese Steige selbst - die Vier-Augen-Regel muesste
+// eine eigene Kontrolle verhindern.
+await mussAbweisenMit(
+  db,
+  "2.10 Sicherheit: erfasst_von_profil_id laesst sich nicht nachtraeglich loeschen, um die Vier-Augen-Regel zu umgehen",
+  `update public.steigen set erfasst_von_profil_id = null where id = $1;`,
+  [st4[0].id],
+  "laesst sich nachtraeglich nicht mehr aendern",
+);
+
+await alsRolle(db, "authenticated", leitung);
+await mussAbweisenMit(
+  db,
+  "2.10 Sicherheit: eine bereits durchgefuehrte Kontrolle laesst sich nicht per Direkt-UPDATE ueberschreiben",
+  `update public.steigen
+      set kontroll_befund = 'abweichung', kontroll_begruendung = 'nachtraeglich veraendert'
+    where id = $1;`,
+  [steige],
+  "laesst sich nicht mehr aendern",
+);
+
 console.log("");
 console.log("NICHT abgedeckt (bewusst, kein automatisierter Nachweis moeglich):");
 console.log("  - 2.10 Bedienung mit Handschuhen und im Sonnenlicht: nur im Feldtest");

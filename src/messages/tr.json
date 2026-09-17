@@ -1197,7 +1197,8 @@
       "wetterdienst": "Hava durumu servisi şu anda veri döndürmedi. Lütfen daha sonra tekrar deneyin.",
       "geokodierung": "Adres kaydedildi, ancak haritada konumlandırılamadı. Lütfen yazımı kontrol edin.",
       "keineKoordinaten": "Seçilen teslimatların hiçbirinin konumlandırılmış bir adresi yok.",
-      "routendienst": "Tur oluşturuldu, ancak güzergâh hizmeti şu anda yanıt vermedi. Sıra ve mesafe geçicidir."
+      "routendienst": "Tur oluşturuldu, ancak güzergâh hizmeti şu anda yanıt vermedi. Sıra ve mesafe geçicidir.",
+      "selbstkontrolle": "Kasayı kaydeden kişi kendisi kontrol edemez. Bu kasayı başka biri kontrol etmelidir."
     },
     "einladungen": {
       "erfolg": {

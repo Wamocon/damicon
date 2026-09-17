@@ -858,7 +858,8 @@
       "wetterdienst": "The weather service did not return any data just now. Please try again later.",
       "geokodierung": "The address was saved but could not be located on the map. Please check the spelling.",
       "keineKoordinaten": "None of the selected deliveries have a located address.",
-      "routendienst": "The route was created, but the routing service did not respond just now. Order and distance are preliminary."
+      "routendienst": "The route was created, but the routing service did not respond just now. Order and distance are preliminary.",
+      "selbstkontrolle": "Whoever recorded a crate does not inspect it themselves. Someone else needs to check this crate."
     },
     "einladungen": {
       "erfolg": {

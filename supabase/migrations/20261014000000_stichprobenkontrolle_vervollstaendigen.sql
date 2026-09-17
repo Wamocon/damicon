@@ -162,6 +162,40 @@ declare
   eigenes_profil uuid;
   darf boolean;
 begin
+  -- Sicherheits-Review vom 17.09.2026 (QA-Ultra zu 2.7/2.8/2.10), empirisch
+  -- gegen PGlite bestaetigt: erfasst_von_profil_id war NICHT Teil dieser
+  -- Bedingung, liess sich also per direktem UPDATE (unter Umgehung der
+  -- Oberflaeche, z. B. via PostgREST mit dem eigenen Session-JWT) auf null
+  -- setzen, ohne dass dieser Trigger ueberhaupt auslöste - die Vier-Augen-Pruefung
+  -- weiter unten behandelt alte Zeilen ohne Erfasser bewusst als "nicht pruefbar,
+  -- also zulassen" (Altbestand-Fall), und genau dieser Fall liess sich damit
+  -- durch die eigentliche Erfasserin/den Erfasser selbst herbeifuehren. Die Spalte
+  -- ist deshalb ab dem ersten INSERT unveraendert: JEDER Aenderungsversuch wird
+  -- abgewiesen, unabhaengig davon, ob sich sonst etwas an der Zeile aendert -
+  -- diese Pruefung muss daher VOR dem Kurzschluss unten stehen, sonst wuerde ein
+  -- isolierter Aenderungsversuch an nur dieser einen Spalte den Kurzschluss
+  -- treffen und ungeprueft durchlaufen.
+  if new.erfasst_von_profil_id is distinct from old.erfasst_von_profil_id then
+    raise exception 'Wer eine Steige erfasst hat, laesst sich nachtraeglich nicht mehr aendern.'
+      using errcode = 'insufficient_privilege';
+  end if;
+
+  -- Sicherheits-Review, Zusatzfund: eine bereits gesetzte Kontrolle liess sich
+  -- per direktem UPDATE erneut ueberschreiben - auch von der urspruenglich
+  -- kontrollierenden Person selbst, ohne zweiten Blick. Die Server Action filtert
+  -- das nur ueber .is("kontrolliert_am", null) im Query, was denselben Bypass wie
+  -- oben zulaesst. Ab dem ersten gesetzten Befund ist die Kontrolle deshalb
+  -- unveraendert - Korrekturen brauchen einen fachlichen Weg (neue Kontrolle
+  -- eines Ausschusses o. ae.), keinen stillen Overwrite.
+  if old.kontrolliert_am is not null
+     and (new.kontrolliert_am is distinct from old.kontrolliert_am
+          or new.kontroll_befund is distinct from old.kontroll_befund
+          or new.kontroll_begruendung is distinct from old.kontroll_begruendung
+          or new.kontrolliert_von_profil_id is distinct from old.kontrolliert_von_profil_id) then
+    raise exception 'Eine bereits durchgefuehrte Stichprobenkontrolle laesst sich nicht mehr aendern.'
+      using errcode = 'insufficient_privilege';
+  end if;
+
   -- Nichts an der Kontrolle geaendert: durchlassen. Die Brigade pflegt hier
   -- Gewicht, Scan-Zeitpunkt und Pfluecker, das darf sie weiterhin.
   if new.kontrolliert_am is not distinct from old.kontrolliert_am
@@ -185,7 +219,9 @@ begin
 
   -- b) Vier Augen: nicht die selbst erfasste Steige. Traegt die Zeile keinen
   --    Erfasser (Altbestand), laesst sich die Regel nicht pruefen; sie wird
-  --    dann nicht erfunden, sondern die Kontrolle zugelassen.
+  --    dann nicht erfunden, sondern die Kontrolle zugelassen. Seit dem Fix oben
+  --    kann alter Bestand ohne Erfasser nicht mehr nachtraeglich herbeigefuehrt
+  --    werden - er bleibt nur echter Altbestand aus der Zeit vor dieser Spalte.
   if old.erfasst_von_profil_id is not null
      and eigenes_profil is not null
      and old.erfasst_von_profil_id = eigenes_profil then
@@ -223,4 +259,4 @@ end;
 $$;
 
 comment on function public.steige_kontrolle_pruefen is
-  'Anforderung 2.10: setzt das vollstaendige Abnahmekriterium durch - Kontrollrecht (Betriebsleitung oder benannter Vorarbeiter), Vier-Augen-Regel gegen erfasst_von_profil_id, Befundpflicht, Begruendungspflicht bei Abweichung. Ersetzt die Fassung aus 20260919010000.';
+  'Anforderung 2.10: setzt das vollstaendige Abnahmekriterium durch - Kontrollrecht (Betriebsleitung oder benannter Vorarbeiter), Vier-Augen-Regel gegen erfasst_von_profil_id, Befundpflicht, Begruendungspflicht bei Abweichung. erfasst_von_profil_id ist ab dem Insert unveraenderlich, eine gesetzte Kontrolle ist nach dem ersten Befund unveraenderlich (Sicherheits-Review 17.09.2026: beides liess sich zuvor per direktem UPDATE umgehen). Ersetzt die Fassung aus 20260919010000.';
