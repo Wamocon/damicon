@@ -22,6 +22,7 @@ import { KuehletteAnsicht } from "@/components/db/kuehlkette-ansicht";
 import { WetterAnsicht } from "@/components/db/wetter-ansicht";
 import { KanaeleAnsicht } from "@/components/db/kanaele-ansicht";
 import { PreislistenAnsicht } from "@/components/db/preislisten-ansicht";
+import { SortenkatalogAnsicht } from "@/components/db/sortenkatalog-ansicht";
 import { RollenDemo } from "@/components/demo/buero";
 import type { ModuleDef } from "@/lib/modules";
 
@@ -102,6 +103,11 @@ export function serverModulAnsicht(
     // (KuehlketteMock).
     case "kuehlkette":
       return <KuehletteAnsicht />;
+    // Anforderung Sorten- und Kontingentkatalog: Sorten-Stammdaten (bereits
+    // seit Migration 20260905120000 schreibbar) und Kontingent-Verwaltung
+    // (neu, Migration 20261012000000) statt der bisherigen Demo-Oberflaeche.
+    case "sortenkatalog":
+      return <SortenkatalogAnsicht />;
     case "b2b_portal":
       return <B2bPortalAnsicht />;
     // Anforderung 5.1/5.2: Preisstaffelung je Kundengruppe - eigenes Modul

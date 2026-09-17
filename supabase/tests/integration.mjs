@@ -4494,6 +4494,108 @@ if (leitung && brigade) {
   await admin.from("b2b_kunden").update({ kundengruppe: gastroKunde.kundengruppe }).eq("id", gastroKunde.id);
 }
 
+// --- Sorten- und Kontingentkatalog -----------------------------------------
+{
+  const { data: erzeugerSorteVersuch, error: erzeugerSorteFehler } = await (
+    await anmelden("erzeuger@damicon.demo")
+  ).client
+    .from("sorten")
+    .insert({ name: "__it_sorte", typ: "sommertragend" })
+    .select("id");
+  check(
+    "Sortenkatalog: eine Rolle ohne Buero-Zugriff (Erzeuger) legt keine Sorte an (RLS sorten_insert_leitung)",
+    erzeugerSorteFehler?.code === "42501",
+    erzeugerSorteFehler?.code ?? `eingefuegte Zeilen: ${erzeugerSorteVersuch?.length}`,
+  );
+
+  const { data: testSorte, error: testSorteFehler } = await leitung
+    .from("sorten")
+    .insert({ name: "__it_sorte", typ: "sommertragend", erntefenster: "Jul", schale_g: 150 })
+    .select("id")
+    .single();
+  check(
+    "Sortenkatalog: Betriebsleitung legt eine Sorte an (RLS sorten_insert_leitung)",
+    !testSorteFehler && !!testSorte?.id,
+    testSorteFehler?.message ?? "",
+  );
+
+  if (!testSorteFehler && testSorte?.id) {
+    const { data: sorteUpdate, error: sorteUpdateFehler } = await leitung
+      .from("sorten")
+      .update({ erntefenster: "Jul - Aug" })
+      .eq("id", testSorte.id)
+      .select("erntefenster")
+      .single();
+    check(
+      "Sortenkatalog: Betriebsleitung bearbeitet eine Sorte (RLS sorten_update_leitung)",
+      !sorteUpdateFehler && sorteUpdate?.erntefenster === "Jul - Aug",
+      sorteUpdateFehler?.message ?? JSON.stringify(sorteUpdate),
+    );
+
+    const { data: almatyFreshSk } = await admin
+      .from("b2b_kunden")
+      .select("id")
+      .eq("name", "Almaty Fresh Market")
+      .single();
+
+    const { data: erzeugerKontingentVersuch, error: erzeugerKontingentFehler } = await (
+      await anmelden("erzeuger@damicon.demo")
+    ).client
+      .from("kontingente")
+      .insert({ sorte_id: testSorte.id, b2b_kunde_id: almatyFreshSk.id, menge_kg: 1, saison: "__it" })
+      .select("id");
+    check(
+      "Sortenkatalog: eine Rolle ohne Buero-Zugriff (Erzeuger) legt kein Kontingent an (RLS kontingente_write_leitung)",
+      erzeugerKontingentFehler?.code === "42501",
+      erzeugerKontingentFehler?.code ?? `eingefuegte Zeilen: ${erzeugerKontingentVersuch?.length}`,
+    );
+
+    const { data: testKontingent, error: testKontingentFehler } = await leitung
+      .from("kontingente")
+      .insert({ sorte_id: testSorte.id, b2b_kunde_id: almatyFreshSk.id, menge_kg: 500, saison: "__it" })
+      .select("id")
+      .single();
+    check(
+      "Sortenkatalog: Betriebsleitung legt ein Kontingent an (RLS kontingente_write_leitung)",
+      !testKontingentFehler && !!testKontingent?.id,
+      testKontingentFehler?.message ?? "",
+    );
+
+    if (!testKontingentFehler && testKontingent?.id) {
+      const { data: kontingentUpdate, error: kontingentUpdateFehler } = await leitung
+        .from("kontingente")
+        .update({ menge_kg: 650 })
+        .eq("id", testKontingent.id)
+        .select("menge_kg")
+        .single();
+      check(
+        "Sortenkatalog: Betriebsleitung aendert die Menge eines Kontingents (RLS kontingente_write_leitung)",
+        !kontingentUpdateFehler && Number(kontingentUpdate?.menge_kg) === 650,
+        kontingentUpdateFehler?.message ?? JSON.stringify(kontingentUpdate),
+      );
+
+      // kontingent_verfuegbarkeit_je_sorte(): jede angemeldete Rolle darf die
+      // Funktion aufrufen (keine has_role()-Pruefung, siehe Migration
+      // 20261012000000), das Ergebnis enthaelt aber keine Kundenzuordnung.
+      const { data: verfuegbarkeitErzeuger, error: verfuegbarkeitFehler } = await (
+        await anmelden("erzeuger@damicon.demo")
+      ).client.rpc("kontingent_verfuegbarkeit_je_sorte");
+      const testZeile = verfuegbarkeitErzeuger?.find(
+        (z) => z.sorte_id === testSorte.id && z.saison === "__it",
+      );
+      check(
+        "Sortenkatalog: kontingent_verfuegbarkeit_je_sorte() ist fuer jede angemeldete Rolle abrufbar und summiert korrekt",
+        !verfuegbarkeitFehler && Number(testZeile?.menge_kg_gesamt) === 650,
+        verfuegbarkeitFehler?.message ?? JSON.stringify(testZeile),
+      );
+
+      await admin.from("kontingente").delete().eq("id", testKontingent.id);
+    }
+
+    await admin.from("sorten").delete().eq("id", testSorte.id);
+  }
+}
+
 console.log("");
 if (failures > 0) {
   console.error(`${failures} Test(s) fehlgeschlagen.`);

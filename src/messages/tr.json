@@ -1164,6 +1164,10 @@
       "positionGeloescht": "Kalem kaldırıldı.",
       "preislisteAktualisiert": "Fiyat listesi güncellendi.",
       "kundengruppeGesetzt": "Müşteri grubu kaydedildi.",
+      "sorteErstellt": "Çeşit oluşturuldu.",
+      "sorteAktualisiert": "Çeşit güncellendi.",
+      "kontingentErstellt": "Kota oluşturuldu.",
+      "kontingentAktualisiert": "Miktar güncellendi.",
       "wetterAktualisiert": "Hava durumu verileri güncellendi."
     },
     "fehler": {
@@ -2140,6 +2144,10 @@
     "gastronomie": "Gastronomi",
     "einzelhandel": "Perakende"
   },
+  "sorteTypen": {
+    "remontierend": "sürekli meyve veren",
+    "sommertragend": "yaz meyveli"
+  },
   "preislistenAnsicht": {
     "preislistenTitel": "Fiyat listeleri",
     "preislistenLead": "Çeşit ve asgari miktara göre fiyatlar, isteğe bağlı olarak bir müşteri grubuna atanmış. Müşteri grubu olmayan bir fiyat listesi herkes için standart sayılır - henüz bir gruba atanmamış müşteriler dahil.",
@@ -2180,6 +2188,57 @@
       },
       "gruppe": {
         "label": "Müşteri grubu",
+        "knopf": "Kaydet"
+      }
+    }
+  },
+  "sortenkatalogAnsicht": {
+    "sortenTitel": "Çeşitler",
+    "sortenLead": "Çeşit bazında temel veriler: tür, hasat penceresi ve kap ağırlığı.",
+    "keineSorten": "Henüz çeşit oluşturulmadı.",
+    "erntefenster": "Hasat penceresi",
+    "schaleG": "Kap ağırlığı",
+    "verfuegbarkeitTitel": "Sezona göre uygunluk",
+    "verfuegbarkeitLead": "Çeşit ve sezon bazında tüm müşteriler toplamı, tek tek müşteri ataması olmadan.",
+    "keineVerfuegbarkeit": "Henüz kota kaydedilmedi.",
+    "vergeben": "tahsis edildi",
+    "verfuegbar": "müsait",
+    "verfuegbarkeitHinweis": "Bu genel bakış tek tek müşterilere atamayı göstermez - bir B2B müşterisi kendi rezervasyonunu yine de kendi portalında görür.",
+    "kontingenteTitel": "Kotaları yönet",
+    "kontingenteLead": "Müşteri, çeşit ve sezon bazında kararlaştırılan miktarı oluşturun veya değiştirin. Ayrılan miktar, bir ön sipariş her onaylandığında veya iptal edildiğinde sistem tarafından otomatik olarak güncellenir.",
+    "keineKontingente": "Henüz kota oluşturulmadı.",
+    "col": {
+      "kunde": "Müşteri",
+      "sorte": "Çeşit",
+      "saison": "Sezon",
+      "menge": "Miktar",
+      "reserviert": "ayrılmış"
+    },
+    "hinweis": "Bir çeşit asla silinmez, yalnızca düzenlenir - fiyat listeleri ve kotalar ona referans verir. Bir kota da artık hiçbir şey ayrılmamış olsa bile kayıtlı kalır.",
+    "formular": {
+      "sorteErstellen": {
+        "titel": "Çeşit oluştur",
+        "lead": "Ad ve tür zorunludur, hasat penceresi ve kap ağırlığı isteğe bağlıdır.",
+        "name": "Ad",
+        "namePlatzhalter": "örn. Vintage",
+        "typ": "Tür",
+        "erntefenster": "Hasat penceresi",
+        "erntefensterPlatzhalter": "örn. Ağu - Eki",
+        "schaleG": "Kap ağırlığı (g)",
+        "knopf": "Çeşit oluştur",
+        "speichernKnopf": "Kaydet"
+      },
+      "kontingentErstellen": {
+        "titel": "Kota oluştur",
+        "lead": "Müşteri, çeşit ve miktar zorunludur, sezon serbest metin alanıdır (örn. bir yıl).",
+        "kunde": "Müşteri",
+        "sorte": "Çeşit",
+        "saison": "Sezon",
+        "menge": "Miktar (kg)",
+        "knopf": "Kota oluştur"
+      },
+      "kontingentMenge": {
+        "label": "Miktar (kg)",
         "knopf": "Kaydet"
       }
     }
