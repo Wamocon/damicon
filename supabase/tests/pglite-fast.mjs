@@ -604,6 +604,169 @@ await mussScheitern(
   await db.query("select set_config('request.jwt.claim.sub', '', false);");
 }
 
+// --- 11. Schreibumfang der Brigade: eigene Aufgaben, Feldfelder --------------
+// Regression: pflueckaufgaben_update_feld und steigen_update_feld fragten nur
+// nach der Rolle. Jede Brigade-Anmeldung konnte jede Aufgabe und jede Steige
+// im Betrieb aendern - auch die einer fremden Brigade, und auch
+// Planungsfelder wie zielmenge_kg oder die Brigadenzuteilung selbst.
+// 20261018000000 grenzt beides ein.
+{
+  const { rows: brigaden } = await db.query(
+    "select id, name from public.brigaden order by name;",
+  );
+  // Nicht auf einem wartezeitgesperrten Reihenblock: dort greift zuerst
+  // pflueckaufgabe_sperre_pruefen() (Abschnitt 4 sperrt einen Block), und der
+  // Test wuerde die falsche Regel messen.
+  const { rows: eigene } = await db.query(
+    `select a.id, a.status, a.brigade_id
+       from public.pflueckaufgaben a
+       join public.reihenbloecke r on r.id = a.reihenblock_id
+      where a.brigade_id is not null
+        and a.status <> 'abgeschlossen'
+        and r.status <> 'wartezeitgesperrt'
+      limit 1;`,
+  );
+  const eigeneAufgabe = eigene[0];
+  const { rows: fremde } = await db.query(
+    `select a.id from public.pflueckaufgaben a
+      where a.brigade_id is not null
+        and a.brigade_id <> $1
+        and a.status <> 'abgeschlossen'
+      limit 1;`,
+    [eigeneAufgabe.brigade_id],
+  );
+  const fremdeAufgabeId = fremde[0].id;
+
+  // Die Testbrigade bekommt die Brigade der eigenen Aufgabe.
+  await db.query("update public.profiles set brigade_id = $1 where auth_user_id = $2;", [
+    eigeneAufgabe.brigade_id,
+    brigadeAuthId,
+  ]);
+
+  await alsRolle(db, "authenticated", brigadeAuthId);
+
+  const fremdUpdate = await db.query(
+    "update public.pflueckaufgaben set pfluecker_anzahl = pfluecker_anzahl + 1 where id = $1;",
+    [fremdeAufgabeId],
+  );
+  check(
+    "Brigade: fremde Pflueckaufgabe bleibt unberuehrt",
+    fremdUpdate.affectedRows === 0,
+    `geaenderte Zeilen: ${fremdUpdate.affectedRows}`,
+  );
+
+  const eigenUpdate = await db.query(
+    "update public.pflueckaufgaben set ist_menge_kg = ist_menge_kg + 1 where id = $1;",
+    [eigeneAufgabe.id],
+  );
+  check(
+    "Brigade: die eigene Aufgabe bleibt bearbeitbar (gemeldete Menge)",
+    eigenUpdate.affectedRows === 1,
+    `geaenderte Zeilen: ${eigenUpdate.affectedRows}`,
+  );
+
+  const planungsFehler = async (sql, params = [eigeneAufgabe.id]) => {
+    try {
+      await db.query(sql, params);
+      return null;
+    } catch (e) {
+      return e?.cause?.code ?? e?.code;
+    }
+  };
+
+  const zielFehler = await planungsFehler(
+    "update public.pflueckaufgaben set zielmenge_kg = zielmenge_kg + 10 where id = $1;",
+  );
+  check(
+    "Brigade: Zielmenge bleibt Planung der Betriebsleitung",
+    zielFehler === "42501",
+    zielFehler ? `errcode: ${zielFehler}` : "die Aenderung war erfolgreich",
+  );
+
+  const andereBrigade = brigaden.find((b) => b.id !== eigeneAufgabe.brigade_id);
+  const zuteilungFehler = await planungsFehler(
+    "update public.pflueckaufgaben set brigade_id = $2 where id = $1;",
+    [eigeneAufgabe.id, andereBrigade.id],
+  );
+  check(
+    "Brigade: die eigene Zuteilung laesst sich nicht umhaengen",
+    zuteilungFehler === "42501",
+    zuteilungFehler ? `errcode: ${zuteilungFehler}` : "die Aenderung war erfolgreich",
+  );
+
+  // Definierter Ausgangspunkt: die Aufgabe steht auf 'in_arbeit', der Versuch
+  // geht zurueck auf 'offen'. Ohne diesen Schritt haette die Aufgabe je nach
+  // Seed schon 'offen' stehen koennen - dann waere der Test gruen, ohne die
+  // Regel je beruehrt zu haben.
+  await alsAdmin(db);
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+  await db.query(
+    "update public.pflueckaufgaben set status = 'in_arbeit' where id = $1;",
+    [eigeneAufgabe.id],
+  );
+  await alsRolle(db, "authenticated", brigadeAuthId);
+
+  const rueckFehler = await planungsFehler(
+    "update public.pflueckaufgaben set status = 'offen' where id = $1;",
+  );
+  check(
+    "Brigade: kein Ruecksprung in einen frueheren Status",
+    rueckFehler === "23514",
+    rueckFehler ? `errcode: ${rueckFehler}` : "der Ruecksprung war erfolgreich",
+  );
+
+  // Steigen: nur die an der eigenen Aufgabe.
+  // Die fremde Aufgabe darf nicht abgeschlossen sein: sonst greift zuerst
+  // steige_nach_abschluss_fest() (20261003000000), und der Test wuerde die
+  // fremde Regel messen statt der Brigadengrenze.
+  const { rows: fremdeSteige } = await db.query(
+    `select s.id from public.steigen s
+       join public.pflueckaufgaben a on a.id = s.pflueckaufgabe_id
+      where a.brigade_id is not null
+        and a.brigade_id <> $1
+        and a.status <> 'abgeschlossen'
+      limit 1;`,
+    [eigeneAufgabe.brigade_id],
+  );
+  if (fremdeSteige.length) {
+    let fremdSteigeZeilen = null;
+    try {
+      fremdSteigeZeilen = (
+        await db.query("update public.steigen set gewicht_kg = gewicht_kg + 1 where id = $1;", [
+          fremdeSteige[0].id,
+        ])
+      ).affectedRows;
+    } catch (e) {
+      fremdSteigeZeilen = `Fehler ${e?.cause?.code ?? e?.code}`;
+    }
+    check(
+      "Brigade: Steige einer fremden Aufgabe bleibt unberuehrt",
+      fremdSteigeZeilen === 0,
+      `geaenderte Zeilen: ${fremdSteigeZeilen}`,
+    );
+  } else {
+    check("Brigade: Steige einer fremden Aufgabe bleibt unberuehrt", false, "keine Testdaten gefunden");
+  }
+
+  await alsAdmin(db);
+
+  // Gegenprobe: die Betriebsleitung plant weiterhin ohne Einschraenkung.
+  await alsRolle(db, "authenticated", leitungAuthId);
+  const leitungPlanung = await db.query(
+    "update public.pflueckaufgaben set zielmenge_kg = zielmenge_kg + 5 where id = $1;",
+    [fremdeAufgabeId],
+  );
+  await alsAdmin(db);
+  check(
+    "Brigade-Regression: die Betriebsleitung plant weiterhin jede Aufgabe",
+    leitungPlanung.affectedRows === 1,
+    `geaenderte Zeilen: ${leitungPlanung.affectedRows}`,
+  );
+
+  // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
 // --- Aufraeumen ---------------------------------------------------------------
 await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [behandlungId]);
 await db.query("update public.reihenbloecke set status = 'ruhend' where id = $1;", [blockId]);

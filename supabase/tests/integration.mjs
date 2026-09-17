@@ -393,24 +393,30 @@ if (leitung && brigade) {
     .maybeSingle();
 
   if (aufgabe) {
-    const { error: abschlussFehler } = await brigade
+    // Seit 20261018000000 kann schon die Policy greifen: gehoert die Aufgabe
+    // einer fremden Brigade, trifft das UPDATE keine Zeile (still), sonst
+    // wirft pflueckaufgabe_freigabe_pruefen(). Beides ist ein Pass - gleiche
+    // Lesart wie bei "Abnahme: Brigade aendert die Menge ... nicht".
+    const { data: abschlussVersuch, error: abschlussFehler } = await brigade
       .from("pflueckaufgaben")
       .update({ status: "abgeschlossen" })
-      .eq("id", aufgabe.id);
+      .eq("id", aufgabe.id)
+      .select("id");
     check(
       "Haertung: Brigade schliesst die eigene Aufgabe nicht ab",
-      !!abschlussFehler,
-      abschlussFehler?.code ?? "kein Fehler",
+      !!abschlussFehler || (abschlussVersuch?.length ?? 0) === 0,
+      abschlussFehler?.code ?? `geaenderte Zeilen: ${abschlussVersuch?.length}`,
     );
 
-    const { error: faktorFehler } = await brigade
+    const { data: faktorVersuch, error: faktorFehler } = await brigade
       .from("pflueckaufgaben")
       .update({ qualitaetsfaktor: 1.5 })
-      .eq("id", aufgabe.id);
+      .eq("id", aufgabe.id)
+      .select("id");
     check(
       "Haertung: Brigade setzt keinen Qualitaetsfaktor",
-      !!faktorFehler,
-      faktorFehler?.code ?? "kein Fehler",
+      !!faktorFehler || (faktorVersuch?.length ?? 0) === 0,
+      faktorFehler?.code ?? `geaenderte Zeilen: ${faktorVersuch?.length}`,
     );
   }
 
