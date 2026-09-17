@@ -854,10 +854,12 @@
       "code": "Der Code ist falsch oder abgelaufen. Bitte den aktuellen 6-stelligen Code aus der Authenticator-App eingeben.",
       "zustand": "Der Termin hat sich zwischenzeitlich geändert (z. B. gesperrt oder bereits erledigt). Bitte Seite neu laden.",
       "einwilligung": "Bitte den Hinweis oben bestätigen, bevor die erste Nachricht gesendet wird.",
+      "begruendungFehlt": "Eine Abweichung braucht eine Begründung.",
       "wetterdienst": "Der Wetterdienst hat gerade keine Daten geliefert. Bitte später erneut versuchen.",
       "geokodierung": "Die Adresse wurde gespeichert, konnte aber nicht auf der Karte verortet werden. Bitte Schreibweise prüfen.",
       "keineKoordinaten": "Keine der ausgewählten Lieferungen hat eine verortete Adresse.",
-      "routendienst": "Die Tour wurde angelegt, aber der Routendienst hat gerade keine Antwort geliefert. Reihenfolge und Strecke sind vorläufig."
+      "routendienst": "Die Tour wurde angelegt, aber der Routendienst hat gerade keine Antwort geliefert. Reihenfolge und Strecke sind vorläufig.",
+      "selbstkontrolle": "Wer eine Steige erfasst hat, kontrolliert sie nicht selbst. Eine andere Person muss diese Steige prüfen."
     },
     "einladungen": {
       "erfolg": {
@@ -1571,6 +1573,14 @@
       "gewicht": "Gewicht in kg",
       "minuten": "Minuten",
       "temperatur": "Temperatur in °C"
+    },
+    "kontrolle": {
+      "abweichung": "Abweichung",
+      "abweichungAria": "Für Steige {code} eine Abweichung melden",
+      "abweichungMelden": "Abweichung speichern",
+      "grundPlatzhalter": "Was weicht ab?",
+      "grundAria": "Begründung der Abweichung an Steige {code}",
+      "abbrechen": "Abbrechen"
     }
   },
   "oeffentlicheHerkunft": {
@@ -2397,5 +2407,21 @@
     "angemeldetTitel": "Sie sind bereits angemeldet",
     "angemeldetLead": "Ein neuer Zugang wird auf ein eigenes Konto ausgestellt. Melden Sie sich zuerst ab, sonst arbeiten Sie danach weiter im alten Konto.",
     "abmelden": "Jetzt abmelden"
+  },
+  "steigeScan": {
+    "label": "Steige am Sammelpunkt",
+    "steigeScannen": "Steige scannen",
+    "hinweis": "Etikett der Steige vor die Kamera halten.",
+    "keineKamera": "Keine Kamera verfügbar. Kennung von Hand eingeben.",
+    "keinSteigenCode": "Auf diesem Code steht keine Steigenkennung.",
+    "nichtInDieserAufgabe": "{code} gehört nicht zu dieser Pflückaufgabe.",
+    "manuellStattdessen": "Kennung eingeben",
+    "scanStattdessen": "Doch scannen",
+    "codePlatzhalter": "Kennung vom Etikett",
+    "codeAria": "Steigenkennung von Hand eingeben",
+    "ohnePerson": "ohne Person",
+    "bereitsKontrolliert": "Bereits kontrolliert",
+    "keinKontrollrecht": "Kontrolle durch Betriebsleitung oder Vorarbeiter",
+    "naechste": "Nächste"
   }
 }

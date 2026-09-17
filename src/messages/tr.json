@@ -1193,10 +1193,12 @@
       "code": "Kod yanlış veya süresi doldu. Lütfen kimlik doğrulayıcı uygulamadaki güncel 6 haneli kodu girin.",
       "zustand": "Tarih bu sırada değişti (ör. kilitlendi veya zaten tamamlandı). Lütfen sayfayı yeniden yükleyin.",
       "einwilligung": "İlk mesajı göndermeden önce lütfen yukarıdaki bildirimi onaylayın.",
+      "begruendungFehlt": "Sapma bir gerekçe gerektirir.",
       "wetterdienst": "Hava durumu servisi şu anda veri döndürmedi. Lütfen daha sonra tekrar deneyin.",
       "geokodierung": "Adres kaydedildi, ancak haritada konumlandırılamadı. Lütfen yazımı kontrol edin.",
       "keineKoordinaten": "Seçilen teslimatların hiçbirinin konumlandırılmış bir adresi yok.",
-      "routendienst": "Tur oluşturuldu, ancak güzergâh hizmeti şu anda yanıt vermedi. Sıra ve mesafe geçicidir."
+      "routendienst": "Tur oluşturuldu, ancak güzergâh hizmeti şu anda yanıt vermedi. Sıra ve mesafe geçicidir.",
+      "selbstkontrolle": "Kasayı kaydeden kişi kendisi kontrol edemez. Bu kasayı başka biri kontrol etmelidir."
     },
     "einladungen": {
       "erfolg": {
@@ -1571,6 +1573,14 @@
       "gewicht": "Ağırlık, kg",
       "minuten": "Dakika",
       "temperatur": "Sıcaklık, °C"
+    },
+    "kontrolle": {
+      "abweichung": "Sapma",
+      "abweichungAria": "{code} kasası için sapma bildir",
+      "abweichungMelden": "Sapmayı kaydet",
+      "grundPlatzhalter": "Sapma nedir?",
+      "grundAria": "{code} kasasındaki sapmanın gerekçesi",
+      "abbrechen": "İptal"
     }
   },
   "oeffentlicheHerkunft": {
@@ -2397,5 +2407,21 @@
     "angemeldetTitel": "Zaten oturum açtınız",
     "angemeldetLead": "Yeni erişim kendi hesabına açılır. Önce çıkış yapın, yoksa eski hesapta çalışmaya devam edersiniz.",
     "abmelden": "Şimdi çıkış yap"
+  },
+  "steigeScan": {
+    "label": "Toplama noktasındaki kasa",
+    "steigeScannen": "Kasayı tara",
+    "hinweis": "Kasa etiketini kameraya tutun.",
+    "keineKamera": "Kamera yok. Numarayı elle girin.",
+    "keinSteigenCode": "Bu kodda kasa numarası yok.",
+    "nichtInDieserAufgabe": "{code} bu toplama görevine ait değil.",
+    "manuellStattdessen": "Numara gir",
+    "scanStattdessen": "Yine de tara",
+    "codePlatzhalter": "Etiketteki numara",
+    "codeAria": "Kasa numarasını elle gir",
+    "ohnePerson": "kişi yok",
+    "bereitsKontrolliert": "Zaten kontrol edildi",
+    "keinKontrollrecht": "Kontrol yönetim veya ustabaşı tarafından",
+    "naechste": "Sonraki"
   }
 }
