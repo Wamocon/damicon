@@ -322,6 +322,102 @@ await mussScheitern(
   await db.query("select set_config('request.jwt.claim.sub', '', false);");
 }
 
+// --- 8. Lesezugriff auf Betriebsdaten nach Rolle ----------------------------
+// Regression: 20260905160000_haerten.sql hat die Betriebsdaten pauschal fuer
+// jede angemeldete Rolle lesbar gemacht (using(true)). picker und kunde sahen
+// damit ueber die REST-API Chargen, Aufgaben, Reihenbloecke und Brigaden,
+// obwohl rbac.ts ihnen kein solches Modul zeigt. 20261015000000 verengt das.
+{
+  const anlegen = async (email, rolle) => {
+    const { rows } = await db.query(
+      `insert into auth.users (email, raw_app_meta_data)
+       values ($1, jsonb_build_object('role', $2::text))
+       returning id;`,
+      [email, rolle],
+    );
+    return rows[0].id;
+  };
+  const pickerAuthId = await anlegen("it-picker@damicon.demo", "picker");
+  const kundeAuthId = await anlegen("it-kunde@damicon.demo", "kunde");
+  const erzeugerAuthId = await anlegen("it-erzeuger@damicon.demo", "erzeuger");
+
+  // Der Kunde bekommt den B2B-Kunden der ersten Seed-Reklamation - nur ueber
+  // diese Reklamation soll er spaeter genau eine Charge sehen.
+  const { rows: rek } = await db.query(
+    `select b2b_kunde_id, charge_id from public.reklamationen
+      where charge_id is not null limit 1;`,
+  );
+  await db.query(
+    "update public.profiles set b2b_kunde_id = $1 where auth_user_id = $2;",
+    [rek[0].b2b_kunde_id, kundeAuthId],
+  );
+
+  const zaehle = async (tabelle) => {
+    const { rows } = await db.query(`select count(*)::int as n from public.${tabelle};`);
+    return rows[0].n;
+  };
+
+  await alsAdmin(db);
+  const chargenGesamt = await zaehle("chargen");
+
+  await alsRolle(db, "authenticated", pickerAuthId);
+  const picker = {
+    aufgaben: await zaehle("pflueckaufgaben"),
+    chargen: await zaehle("chargen"),
+    bloecke: await zaehle("reihenbloecke"),
+    brigaden: await zaehle("brigaden"),
+  };
+  await alsAdmin(db);
+  check(
+    "RLS: picker liest keine Betriebsdaten mehr",
+    picker.aufgaben === 0 && picker.chargen === 0 && picker.bloecke === 0 && picker.brigaden === 0,
+    `Aufgaben ${picker.aufgaben}, Chargen ${picker.chargen}, Bloecke ${picker.bloecke}, Brigaden ${picker.brigaden}`,
+  );
+
+  await alsRolle(db, "authenticated", kundeAuthId);
+  const kunde = {
+    aufgaben: await zaehle("pflueckaufgaben"),
+    bloecke: await zaehle("reihenbloecke"),
+    chargen: await zaehle("chargen"),
+  };
+  await alsAdmin(db);
+  check(
+    "RLS: kunde liest keine Aufgaben und Reihenbloecke",
+    kunde.aufgaben === 0 && kunde.bloecke === 0,
+    `Aufgaben ${kunde.aufgaben}, Bloecke ${kunde.bloecke}`,
+  );
+  check(
+    "RLS: kunde liest genau die Charge hinter der eigenen Reklamation",
+    kunde.chargen > 0 && kunde.chargen < chargenGesamt,
+    `sichtbar ${kunde.chargen} von ${chargenGesamt}`,
+  );
+
+  await alsRolle(db, "authenticated", erzeugerAuthId);
+  const erzeuger = {
+    bloecke: await zaehle("reihenbloecke"),
+    aufgaben: await zaehle("pflueckaufgaben"),
+  };
+  await alsAdmin(db);
+  check(
+    "RLS: erzeuger behaelt die Produktionssicht (rbac: view reihenbloecke/pflueckaufgaben)",
+    erzeuger.bloecke > 0 && erzeuger.aufgaben > 0,
+    `Bloecke ${erzeuger.bloecke}, Aufgaben ${erzeuger.aufgaben}`,
+  );
+
+  await alsRolle(db, "authenticated", brigadeAuthId);
+  const brigadeAufgaben = await zaehle("pflueckaufgaben");
+  const brigadeChargen = await zaehle("chargen");
+  await alsAdmin(db);
+  check(
+    "RLS: Brigade liest Aufgaben und Chargen weiterhin",
+    brigadeAufgaben > 0 && brigadeChargen > 0,
+    `Aufgaben ${brigadeAufgaben}, Chargen ${brigadeChargen}`,
+  );
+
+  // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
 // --- Aufraeumen ---------------------------------------------------------------
 await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [behandlungId]);
 await db.query("update public.reihenbloecke set status = 'ruhend' where id = $1;", [blockId]);
