@@ -684,6 +684,12 @@
       "summary": "Short image-based videos per core process, multilingual, with progress tracking per person.",
       "todo": "Video content per core process, Kazakh and Russian language versions, progress tracking per person."
     },
+    "kanaele": {
+      "title": "Contact channels",
+      "description": "Locally established contact channels and payment methods, shown publicly in the website footer. Display only, no connection to a real messenger or payment service.",
+      "summary": "WhatsApp, Kaspi QR and other channels as contact details - maintained by the office, hidden as a draft until then.",
+      "todo": "Enter the real account details for each channel."
+    },
     "reklamationen": {
       "title": "Complaint management",
       "description": "A B2B client's complaint per batch - reason, deadline and history, with a status flow through to a credit note. A client reports and sees only their own complaint; the office handles and closes it.",
@@ -806,7 +812,24 @@
       "kiAnbieterAktiviert": "Provider \"{wert}\" activated.",
       "kiAnbieterDeaktiviert": "Provider \"{wert}\" deactivated.",
       "kiAnbieterStandardGesetzt": "Default provider changed.",
-      "kiAnbieterGeloescht": "Provider \"{wert}\" deleted."
+      "kiAnbieterGeloescht": "Provider \"{wert}\" deleted.",
+      "wetterAktualisiert": "Weather data updated.",
+      "kanalAngelegt": "Channel created.",
+      "kanalAktualisiert": "Channel updated.",
+      "kanalGeloescht": "Channel deleted.",
+      "spanneAktualisiert": "Margin updated.",
+      "adresseGeokodiert": "Address saved and located on the map.",
+      "tourErstellt": "Route created and calculated.",
+      "tourGeloescht": "Route discarded.",
+      "preislisteErstellt": "Price list created.",
+      "positionHinzugefuegt": "Position added.",
+      "positionGeloescht": "Position removed.",
+      "preislisteAktualisiert": "Price list updated.",
+      "kundengruppeGesetzt": "Client group saved.",
+      "sorteErstellt": "Variety created.",
+      "sorteAktualisiert": "Variety updated.",
+      "kontingentErstellt": "Quota created.",
+      "kontingentAktualisiert": "Quantity updated."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -831,7 +854,11 @@
       "code": "The code is wrong or expired. Please enter the current 6-digit code from your authenticator app.",
       "zustand": "The date has changed in the meantime (e.g. locked or already done). Please reload the page.",
       "einwilligung": "Please confirm the notice above before sending the first message.",
-      "begruendungFehlt": "A deviation needs a reason."
+      "begruendungFehlt": "A deviation needs a reason.",
+      "wetterdienst": "The weather service did not return any data just now. Please try again later.",
+      "geokodierung": "The address was saved but could not be located on the map. Please check the spelling.",
+      "keineKoordinaten": "None of the selected deliveries have a located address.",
+      "routendienst": "The route was created, but the routing service did not respond just now. Order and distance are preliminary."
     },
     "einladungen": {
       "erfolg": {
@@ -1366,6 +1393,56 @@
     "letzteLead": "The most recently completed cooling measurements, temperature and minutes since picking.",
     "keineMessungen": "No cooling measurement recorded yet."
   },
+  "wetterAnsicht": {
+    "summeTitel": "Temperature sum",
+    "summeLead": "Cumulative heat units above a 5 °C base temperature since the start of the season - a heuristic for the yield forecast, not a forecast model.",
+    "seit": "since",
+    "hinweis": "A pure observation figure. A link to actual harvest volume can only be evaluated reliably after a full season with real comparison data.",
+    "keineDaten": "No weather data recorded yet.",
+    "tageTitel": "Last 14 days",
+    "tageLead": "Daily minimum, daily maximum, precipitation and the cumulative temperature sum up to that day.",
+    "col": {
+      "datum": "Date",
+      "min": "Min.",
+      "max": "Max.",
+      "niederschlag": "Precipitation",
+      "summe": "Sum"
+    },
+    "formular": {
+      "titel": "Update weather data",
+      "lead": "Fetches the season since January 1 plus the last few days from Open-Meteo and recomputes the temperature sum.",
+      "knopf": "Update now"
+    },
+    "note": "Coordinates and base temperature are placeholders (Almaty city area, 5 °C) and should be replaced with the plantation's actual values or confirmed by an agronomist."
+  },
+  "kanaeleAnsicht": {
+    "titel": "Contact channels",
+    "lead": "Which channels appear in the website footer - visible only once a real value is entered and set to active.",
+    "keineKanaele": "No contact channel created yet.",
+    "footerHeading": "Contact & payment",
+    "typ": {
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "instagram": "Instagram",
+      "kaspi_qr": "Kaspi QR",
+      "sonstiges": "Other"
+    },
+    "col": {
+      "typ": "Type",
+      "bezeichnung": "Label",
+      "wert": "Number / link"
+    },
+    "wertPlatzhalter": "not entered yet",
+    "aktivLabel": "active (visible on the website)",
+    "aktivPill": "active",
+    "entwurfPill": "draft",
+    "speichern": "Save",
+    "loeschen": "Delete channel",
+    "anlegenTitel": "Add a channel",
+    "anlegenLead": "Type and label are required, the value can be added later.",
+    "anlegenKnopf": "Add",
+    "note": "Display only, no connection to a real messenger or payment service. A channel appears on the website only once a real value is entered and set to \"active\"."
+  },
   "qrSteigenMock": {
     "scanTitle": "Scan at the dispatch point (mock)",
     "scanLead": "A QR label per crate, scanned on handover. Volume, row block, time and person in one step - here without a real server reconciliation.",
@@ -1512,6 +1589,10 @@
     "notFound": "There is no record for this code. Please check the spelling.",
     "backToSearch": "Check another code",
     "keinePersonen": "This record names no individuals.",
+    "herkunft": {
+      "eigeneErnte": "Own harvest",
+      "zukauf": "Purchased from partner farm {betrieb}"
+    },
     "fields": {
       "reihenblock": "Row block",
       "sorte": "Variety",
@@ -1830,6 +1911,50 @@
       "knopf": "Save"
     }
   },
+  "abrechnungAnsicht": {
+    "titel": "Settlement with supplying farms",
+    "lead": "Purchase value per partner farm minus the globally set margin - no quality-grade deductions as long as there is no quality classification for purchased produce.",
+    "keineZeilen": "No purchase line with a recorded price yet from which a settlement could be calculated.",
+    "col": {
+      "nachbarbetrieb": "Partner farm",
+      "menge": "Quantity",
+      "einkaufswert": "Purchase value",
+      "spanne": "Margin",
+      "auszahlung": "Payout"
+    },
+    "formular": {
+      "spanne": "Margin in %",
+      "knopf": "Save"
+    },
+    "hinweis": "The margin applies uniformly to all partner farms. As long as it is at 0 %, the payout equals the purchase value - no invented margin."
+  },
+  "tourenplanungAnsicht": {
+    "titel": "Route planning",
+    "lead": "Build delivery rounds from several deliveries, sequence and distance optimized automatically (OSRM/OpenStreetMap).",
+    "keineTouren": "No route planned yet.",
+    "status": {
+      "geplant": "planned",
+      "unterwegs": "in progress",
+      "abgeschlossen": "completed"
+    },
+    "strecke": "{km} km, about {minuten} minutes driving time",
+    "tourLoeschen": "Discard route",
+    "hinweis": "The route is an estimate from the routing service, not a basis for working-time or fuel billing. Vehicle capacity and time windows are not part of this first stage.",
+    "formular": {
+      "adresse": {
+        "label": "Address",
+        "platzhalter": "Street, number, city",
+        "knopf": "Save"
+      },
+      "erstellen": {
+        "titel": "Build a route",
+        "lead": "Select deliveries and set a day. The sequence is optimized automatically when saved.",
+        "datum": "Date",
+        "knopf": "Create route",
+        "keineKoordinaten": "address missing"
+      }
+    }
+  },
   "qrSteigenAnsicht": {
     "drucken": "Print",
     "etiketten": {
@@ -1934,7 +2059,7 @@
     "titel": "Deliveries",
     "lead": "Digital handover receipt: quantity, recipient and the batch's cold chain at the moment of handover.",
     "keineLieferungen": "No delivery created yet.",
-    "note": "Route planning by delivery window is not part of this view. A delivered or cancelled delivery is immutable, a correction is only possible as a new delivery.",
+    "note": "A delivered or cancelled delivery is immutable, a correction is only possible as a new delivery.",
     "menge": "Quantity",
     "bestellt": "ordered",
     "geliefertAm": "Delivered on",
@@ -1969,6 +2094,14 @@
     "lieferungenTitel": "My deliveries",
     "lieferungenLead": "Status and handover receipt of your deliveries.",
     "keineLieferungen": "No delivery recorded yet.",
+    "rechnungenTitel": "Invoice history (pro forma)",
+    "rechnungenLead": "Calculated from delivered quantity and the price list valid on the delivery date - not a legally binding invoice.",
+    "keineRechnungen": "No delivered shipment yet from which a pro forma could be calculated.",
+    "keinPreis": "no price available",
+    "rechnungenHinweis": "This overview does not replace an invoice from accounting. It shows what a delivery would have amounted to under the price list valid at the time.",
+    "kontingenteTitel": "Quotas",
+    "kontingenteLead": "Agreed quantity per variety and reserved share - reserved automatically when a pre-order is confirmed.",
+    "keineKontingente": "No quota on file at the moment.",
     "preislisteTitel": "Price list",
     "preislisteLead": "Currently valid price list by variety, with minimum quantity.",
     "keinePreisliste": "No valid price list on file at the moment.",
@@ -1986,8 +2119,13 @@
       "preis": "Price",
       "mindestmenge": "Minimum quantity",
       "menge": "Quantity",
+      "reserviert": "reserved",
+      "verfuegbar": "available",
       "liefertermin": "Delivery date",
-      "status": "Status"
+      "status": "Status",
+      "datum": "Delivered on",
+      "stueckpreis": "Price",
+      "betrag": "Amount"
     },
     "status": {
       "angefragt": "requested",
@@ -2007,7 +2145,112 @@
         "knopf": "Place pre-order"
       }
     },
-    "note": "A pre-order does not automatically check quota consumption - that remains a manual check by the office at confirmation time, the same open business decision as for automatic quota tracking. The price list shows the same active prices to every client; tiering by client group is not part of this view."
+    "note": "When the office confirms a pre-order, the reserved share of the quota is increased automatically; a cancellation reverses it. Whether enough quota remains available is still checked by the office itself before confirming. The price list shows the prices that apply to your own client group, plus the group-less standard list. Prices for other client groups stay hidden."
+  },
+  "kundengruppen": {
+    "standard": "Standard",
+    "handel": "Retail chains",
+    "gastronomie": "Foodservice",
+    "einzelhandel": "Specialty retail"
+  },
+  "sorteTypen": {
+    "remontierend": "everbearing",
+    "sommertragend": "summer-bearing"
+  },
+  "preislistenAnsicht": {
+    "preislistenTitel": "Price lists",
+    "preislistenLead": "Prices by variety and minimum quantity, optionally assigned to a client group. A price list without a client group counts as the standard for everyone - including clients not yet assigned to a group.",
+    "keinePreislisten": "No price list created yet.",
+    "keinePositionen": "No position in this price list yet.",
+    "aktiv": "active",
+    "inaktiv": "inactive",
+    "aktivieren": "Activate",
+    "deaktivieren": "Deactivate",
+    "positionLoeschen": "Remove",
+    "gueltigAb": "valid from",
+    "gueltigBis": "until",
+    "col": {
+      "sorte": "Variety",
+      "preis": "Price",
+      "mindestmenge": "Minimum quantity"
+    },
+    "kundengruppenTitel": "Client groups",
+    "kundengruppenLead": "Every B2B client belongs to at most one client group. Without an assignment, the client sees only the group-less standard price list.",
+    "keineKunden": "No B2B client created yet.",
+    "hinweis": "When price lists overlap for the same client group and variety, the one with the later valid-from date applies. An existing price list is never deleted, only deactivated - it stays authoritative for invoice histories (pro forma) already calculated.",
+    "formular": {
+      "erstellen": {
+        "titel": "Create price list",
+        "lead": "Name and valid-from date are required. Without a client group, the list counts as the standard for everyone.",
+        "name": "Name",
+        "namePlatzhalter": "e.g. Winter 2027 price list",
+        "gueltigAb": "Valid from",
+        "gueltigBis": "Valid until (optional)",
+        "kundengruppe": "Client group (optional)",
+        "knopf": "Create price list"
+      },
+      "position": {
+        "sorte": "Variety",
+        "preis": "Price (₸/kg)",
+        "mindestmenge": "Minimum quantity (kg)",
+        "knopf": "Add position"
+      },
+      "gruppe": {
+        "label": "Client group",
+        "knopf": "Save"
+      }
+    }
+  },
+  "sortenkatalogAnsicht": {
+    "sortenTitel": "Varieties",
+    "sortenLead": "Master data per variety: type, harvest window and punnet size.",
+    "keineSorten": "No variety created yet.",
+    "erntefenster": "Harvest window",
+    "schaleG": "Punnet size",
+    "verfuegbarkeitTitel": "Availability by season",
+    "verfuegbarkeitLead": "Sum across all clients per variety and season, without any individual client assignment.",
+    "keineVerfuegbarkeit": "No quota on file yet.",
+    "vergeben": "allocated",
+    "verfuegbar": "available",
+    "verfuegbarkeitHinweis": "This overview shows no assignment to individual clients - a B2B client still sees their own reservation in their own portal.",
+    "kontingenteTitel": "Manage quotas",
+    "kontingenteLead": "Create or change the agreed quantity per client, variety and season. The reserved quantity is updated automatically by the system whenever a pre-order is confirmed or cancelled.",
+    "keineKontingente": "No quota created yet.",
+    "col": {
+      "kunde": "Client",
+      "sorte": "Variety",
+      "saison": "Season",
+      "menge": "Quantity",
+      "reserviert": "reserved"
+    },
+    "hinweis": "A variety is never deleted, only edited - price lists and quotas reference it. A quota also stays on file even when nothing is reserved against it anymore.",
+    "formular": {
+      "sorteErstellen": {
+        "titel": "Create variety",
+        "lead": "Name and type are required, harvest window and punnet size are optional.",
+        "name": "Name",
+        "namePlatzhalter": "e.g. Vintage",
+        "typ": "Type",
+        "erntefenster": "Harvest window",
+        "erntefensterPlatzhalter": "e.g. Aug - Oct",
+        "schaleG": "Punnet size (g)",
+        "knopf": "Create variety",
+        "speichernKnopf": "Save"
+      },
+      "kontingentErstellen": {
+        "titel": "Create quota",
+        "lead": "Client, variety and quantity are required, the season is a free-text field (e.g. a year).",
+        "kunde": "Client",
+        "sorte": "Variety",
+        "saison": "Season",
+        "menge": "Quantity in kg",
+        "knopf": "Create quota"
+      },
+      "kontingentMenge": {
+        "label": "Quantity in kg",
+        "knopf": "Save"
+      }
+    }
   },
   "personalAnsicht": {
     "brigadenTitel": "Crews",

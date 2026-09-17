@@ -9,10 +9,12 @@ import {
 import { ladeLieferungen } from "@/lib/data/lieferungen";
 import {
   ladeB2bKundeOptionenFuerVorbestellung,
+  ladeKontingente,
   ladePreislisten,
   ladeSortenOptionenFuerVorbestellung,
   ladeVorbestellungen,
 } from "@/lib/data/vorbestellungen";
+import { ladeRechnungshistorie } from "@/lib/data/rechnungshistorie";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 
@@ -38,24 +40,38 @@ const vorbestellungTon: Record<string, Tone> = {
 // B2B-Portal (Anforderung 5.1/5.2). "Meine Lieferungen" (5.2 Teil 2a) zeigt
 // RLS-gefiltert (lieferungen_select_kunde_buero) nur die eigene Firma bzw.
 // fuers Buero alle. Preisliste + Vorbestellung (5.1, Teil 2 von 2) ergaenzen
-// das um den zweiten fehlenden Baustein - Kontingent-Verbrauch bleibt
-// bewusst aussen vor (siehe Migrationskommentar 20260929000000), eine
-// Vorbestellung ist eine reine Anfrage, die das Buero manuell bestaetigt.
+// das um den zweiten fehlenden Baustein. Kontingent-Verbrauch (ebenfalls
+// Anforderung 5.1) schreibt seit Migration 20261006000000 automatisch fort -
+// diese Ansicht zeigt den so entstehenden Stand, eine Vorbestellung bleibt
+// trotzdem eine Anfrage, die das Buero manuell bestaetigt. Die
+// Rechnungshistorie (5.2, Teil 2b) ist eine errechnete PROFORMA aus
+// Liefermenge und der zum Liefertermin gueltigen Preisliste, keine
+// rechtsverbindliche Rechnung - siehe domain/rechnungshistorie.ts fuer die
+// fachliche Festlegung.
 export async function B2bPortalAnsicht() {
-  const [uebersicht, vorbestellungen, preislisten, profil, t] = await Promise.all([
-    ladeLieferungen(),
-    ladeVorbestellungen(),
-    ladePreislisten(),
+  const [profil, t] = await Promise.all([
     getSessionProfile(),
     getTranslations("b2bPortalAnsicht"),
   ]);
+  const istKundeVorab = profil?.role === "kunde";
+  const [uebersicht, vorbestellungen, kontingente, rechnungen, preislisten] = await Promise.all([
+    ladeLieferungen(),
+    ladeVorbestellungen(),
+    ladeKontingente(),
+    ladeRechnungshistorie(),
+    // Anforderung 5.1/5.2: eine Kunden-Anmeldung sieht nur die eigene
+    // Kundengruppe plus die gruppenlose Standardliste, siehe
+    // ladePreislisten() in data/vorbestellungen.ts.
+    ladePreislisten(istKundeVorab ? (profil?.b2bKundeId ?? undefined) : undefined),
+  ]);
   const lt = await getTranslations("lieferungenAnsicht");
   const kkT = await getTranslations("nachweiskette");
+  const kg = await getTranslations("kundengruppen");
   const format = await getFormatter();
 
   const live = uebersicht.quelle === "db";
   const darfAnlegen = live && hasPermission(profil?.role, "b2b_portal", "create");
-  const istKunde = profil?.role === "kunde";
+  const istKunde = istKundeVorab;
   // "kunde" hat laut rbac.ts dieselbe crud("b2b_portal")-Berechtigungsmenge
   // wie betriebsleitung (view/create/update) - ohne den Ausschluss wuerde
   // ein Kunde hier zusaetzlich die fuers Buero gedachten Bestaetigen-/
@@ -130,13 +146,91 @@ export async function B2bPortalAnsicht() {
         )}
       </Section>
 
+      <Section title={t("rechnungenTitel")} description={t("rechnungenLead")}>
+        {rechnungen.zeilen.length === 0 ? (
+          <Card className="text-center text-xs text-muted-foreground">{t("keineRechnungen")}</Card>
+        ) : (
+          <DataTable
+            head={
+              fuerBuero
+                ? [t("col.kunde"), t("col.datum"), t("col.menge"), t("col.stueckpreis"), t("col.betrag")]
+                : [t("col.datum"), t("col.menge"), t("col.stueckpreis"), t("col.betrag")]
+            }
+          >
+            {rechnungen.zeilen.map((r) => (
+              <tr key={r.lieferungId}>
+                {fuerBuero ? (
+                  <td className="px-3 py-2.5 font-semibold text-foreground">{r.kunde}</td>
+                ) : null}
+                <td className="px-3 py-2.5 text-muted-foreground">{datum(r.geliefertAm)}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{format.number(r.mengeKg)} kg</td>
+                <td className="px-3 py-2.5 text-muted-foreground">
+                  {r.preisTengeKg === null ? "-" : `${format.number(r.preisTengeKg)} ₸/kg`}
+                </td>
+                <td className="px-3 py-2.5 font-semibold text-foreground">
+                  {r.betragTenge === null ? t("keinPreis") : `${format.number(r.betragTenge)} ₸`}
+                </td>
+              </tr>
+            ))}
+          </DataTable>
+        )}
+        <p className="text-[11px] leading-4 text-muted-foreground">{t("rechnungenHinweis")}</p>
+      </Section>
+
+      <Section title={t("kontingenteTitel")} description={t("kontingenteLead")}>
+        {kontingente.kontingente.length === 0 ? (
+          <Card className="text-center text-xs text-muted-foreground">{t("keineKontingente")}</Card>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {kontingente.kontingente.map((k) => {
+              const auslastung = k.mengeKg > 0 ? Math.round((k.reserviertKg / k.mengeKg) * 100) : 0;
+              return (
+                <Card key={k.id}>
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-black text-card-foreground">{k.sorte}</p>
+                    {k.saison ? (
+                      <span className="text-[11px] text-muted-foreground">{k.saison}</span>
+                    ) : null}
+                  </div>
+                  {fuerBuero ? (
+                    <p className="mt-0.5 text-[11px] text-muted-foreground">{k.kunde}</p>
+                  ) : null}
+                  <div className="mt-2">
+                    <div className="flex justify-between text-[11px] text-muted-foreground">
+                      <span>{t("col.reserviert")}</span>
+                      <span>
+                        {format.number(k.reserviertKg)} / {format.number(k.mengeKg)} kg
+                      </span>
+                    </div>
+                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className={`h-full rounded-full ${auslastung >= 100 ? "bg-destructive" : auslastung >= 85 ? "bg-warning" : "bg-primary"}`}
+                        style={{ width: `${Math.min(100, auslastung)}%` }}
+                      />
+                    </div>
+                  </div>
+                  <p className="mt-1.5 text-[11px] text-muted-foreground">
+                    {t("col.verfuegbar")}: {format.number(Math.max(0, k.mengeKg - k.reserviertKg))} kg
+                  </p>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </Section>
+
       <Section title={t("preislisteTitel")} description={t("preislisteLead")}>
         {preislisten.length === 0 ? (
           <Card className="text-center text-xs text-muted-foreground">{t("keinePreisliste")}</Card>
         ) : (
           preislisten.map((p) => (
             <Card key={p.id} className="mb-3">
-              <p className="text-sm font-black text-card-foreground">{p.name}</p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-sm font-black text-card-foreground">{p.name}</p>
+                {p.kundengruppe ? (
+                  <StatusPill tone="info">{kg(p.kundengruppe)}</StatusPill>
+                ) : null}
+              </div>
               <p className="mt-1 text-[11px] text-muted-foreground">
                 {t("gueltigAb")} {tag(p.gueltigAb)}
                 {p.gueltigBis ? ` · ${t("gueltigBis")} ${tag(p.gueltigBis)}` : ""}

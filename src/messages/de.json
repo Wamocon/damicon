@@ -684,6 +684,12 @@
       "summary": "Kurze, bildbasierte Videos je Kernprozess, mehrsprachig, mit Fortschrittsverfolgung je Person.",
       "todo": "Videoinhalte je Kernprozess, Sprachfassungen Kasachisch und Russisch, Fortschrittsverfolgung je Person."
     },
+    "kanaele": {
+      "title": "Kontaktkanäle",
+      "description": "Lokal etablierte Kontaktkanäle und Zahlungswege, im Seitenfuß der Website öffentlich sichtbar. Reine Anzeige, keine Anbindung an einen echten Messenger- oder Zahlungsdienst.",
+      "summary": "WhatsApp, Kaspi QR und weitere Kanäle als Kontaktangabe - vom Büro gepflegt, bis dahin als Entwurf verborgen.",
+      "todo": "Echte Kontodaten je Kanal eintragen."
+    },
     "reklamationen": {
       "title": "Reklamationsmanagement",
       "description": "Reklamation eines B2B-Kunden je Charge - Grund, Frist und Verlauf, mit Statuswechsel bis zur Gutschrift. Ein Kunde meldet und sieht nur die eigene Reklamation, das Büro bearbeitet und schließt ab.",
@@ -806,7 +812,24 @@
       "kiAnbieterAktiviert": "Anbieter \"{wert}\" aktiviert.",
       "kiAnbieterDeaktiviert": "Anbieter \"{wert}\" deaktiviert.",
       "kiAnbieterStandardGesetzt": "Standard-Anbieter umgestellt.",
-      "kiAnbieterGeloescht": "Anbieter \"{wert}\" gelöscht."
+      "kiAnbieterGeloescht": "Anbieter \"{wert}\" gelöscht.",
+      "wetterAktualisiert": "Wetterdaten aktualisiert.",
+      "kanalAngelegt": "Kanal angelegt.",
+      "kanalAktualisiert": "Kanal aktualisiert.",
+      "kanalGeloescht": "Kanal gelöscht.",
+      "spanneAktualisiert": "Spanne aktualisiert.",
+      "adresseGeokodiert": "Adresse gespeichert und auf der Karte verortet.",
+      "tourErstellt": "Tour erstellt und Route berechnet.",
+      "tourGeloescht": "Tour verworfen.",
+      "preislisteErstellt": "Preisliste angelegt.",
+      "positionHinzugefuegt": "Position hinzugefügt.",
+      "positionGeloescht": "Position entfernt.",
+      "preislisteAktualisiert": "Preisliste aktualisiert.",
+      "kundengruppeGesetzt": "Kundengruppe gespeichert.",
+      "sorteErstellt": "Sorte angelegt.",
+      "sorteAktualisiert": "Sorte aktualisiert.",
+      "kontingentErstellt": "Kontingent angelegt.",
+      "kontingentAktualisiert": "Menge aktualisiert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -831,7 +854,11 @@
       "code": "Der Code ist falsch oder abgelaufen. Bitte den aktuellen 6-stelligen Code aus der Authenticator-App eingeben.",
       "zustand": "Der Termin hat sich zwischenzeitlich geändert (z. B. gesperrt oder bereits erledigt). Bitte Seite neu laden.",
       "einwilligung": "Bitte den Hinweis oben bestätigen, bevor die erste Nachricht gesendet wird.",
-      "begruendungFehlt": "Eine Abweichung braucht eine Begründung."
+      "begruendungFehlt": "Eine Abweichung braucht eine Begründung.",
+      "wetterdienst": "Der Wetterdienst hat gerade keine Daten geliefert. Bitte später erneut versuchen.",
+      "geokodierung": "Die Adresse wurde gespeichert, konnte aber nicht auf der Karte verortet werden. Bitte Schreibweise prüfen.",
+      "keineKoordinaten": "Keine der ausgewählten Lieferungen hat eine verortete Adresse.",
+      "routendienst": "Die Tour wurde angelegt, aber der Routendienst hat gerade keine Antwort geliefert. Reihenfolge und Strecke sind vorläufig."
     },
     "einladungen": {
       "erfolg": {
@@ -1366,6 +1393,56 @@
     "letzteLead": "Die letzten abgeschlossenen Kühlmessungen, Temperatur und Minuten seit dem Pflücken.",
     "keineMessungen": "Noch keine Kühlmessung erfasst."
   },
+  "wetterAnsicht": {
+    "summeTitel": "Temperatursumme",
+    "summeLead": "Kumulierte Wärmeeinheiten über 5 °C Basistemperatur seit Saisonbeginn - eine Heuristik für die Mengenprognose, kein Prognosemodell.",
+    "seit": "seit",
+    "hinweis": "Reine Beobachtungsgröße. Ein Zusammenhang mit der tatsächlichen Erntemenge ist erst nach einer vollen Saison mit echten Vergleichsdaten belastbar auswertbar.",
+    "keineDaten": "Noch keine Wetterdaten erfasst.",
+    "tageTitel": "Letzte 14 Tage",
+    "tageLead": "Tagesminimum, Tagesmaximum, Niederschlag und die kumulierte Temperatursumme bis zu diesem Tag.",
+    "col": {
+      "datum": "Datum",
+      "min": "Min.",
+      "max": "Max.",
+      "niederschlag": "Niederschlag",
+      "summe": "Summe"
+    },
+    "formular": {
+      "titel": "Wetterdaten aktualisieren",
+      "lead": "Holt die Saison seit dem 1. Januar sowie die letzten Tage von Open-Meteo und schreibt die Temperatursumme neu.",
+      "knopf": "Jetzt aktualisieren"
+    },
+    "note": "Koordinaten und Basistemperatur sind Platzhalter (Almaty-Stadtgebiet, 5 °C) und sollten durch die tatsächlichen Werte der Plantage ersetzt bzw. von einer Agronomin oder einem Agronomen bestätigt werden."
+  },
+  "kanaeleAnsicht": {
+    "titel": "Kontaktkanäle",
+    "lead": "Welche Kanäle im Seitenfuß der Website erscheinen - erst sichtbar, sobald ein echter Wert eingetragen und aktiv gesetzt ist.",
+    "keineKanaele": "Noch kein Kontaktkanal angelegt.",
+    "footerHeading": "Kontakt & Zahlung",
+    "typ": {
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "instagram": "Instagram",
+      "kaspi_qr": "Kaspi QR",
+      "sonstiges": "Sonstiges"
+    },
+    "col": {
+      "typ": "Typ",
+      "bezeichnung": "Bezeichnung",
+      "wert": "Nummer / Link"
+    },
+    "wertPlatzhalter": "noch nicht eingetragen",
+    "aktivLabel": "aktiv (auf der Website sichtbar)",
+    "aktivPill": "aktiv",
+    "entwurfPill": "Entwurf",
+    "speichern": "Speichern",
+    "loeschen": "Kanal löschen",
+    "anlegenTitel": "Kanal anlegen",
+    "anlegenLead": "Typ und Bezeichnung sind Pflicht, der Wert kann später nachgetragen werden.",
+    "anlegenKnopf": "Anlegen",
+    "note": "Reine Anzeige, keine Anbindung an einen echten Messenger- oder Zahlungsdienst. Ein Kanal erscheint auf der Website erst, wenn ein echter Wert eingetragen und \"aktiv\" gesetzt ist."
+  },
   "qrSteigenMock": {
     "scanTitle": "Scan am Ausgabepunkt (Mock)",
     "scanLead": "QR-Etikett je Steige, Scan beim Abgeben. Menge, Reihenblock, Uhrzeit und Person in einem Vorgang - hier ohne echten Server-Abgleich.",
@@ -1512,6 +1589,10 @@
     "notFound": "Zu diesem Code gibt es keine Auskunft. Bitte die Schreibweise prüfen.",
     "backToSearch": "Anderen Code prüfen",
     "keinePersonen": "Diese Auskunft nennt keine Personen.",
+    "herkunft": {
+      "eigeneErnte": "Eigener Anbau",
+      "zukauf": "Zukauf von Nachbarbetrieb {betrieb}"
+    },
     "fields": {
       "reihenblock": "Reihenblock",
       "sorte": "Sorte",
@@ -1830,6 +1911,50 @@
       "knopf": "Speichern"
     }
   },
+  "abrechnungAnsicht": {
+    "titel": "Abrechnung gegenüber Lieferbetrieben",
+    "lead": "Einkaufswert je Nachbarbetrieb abzüglich der global festgelegten Spanne - keine Klassenabzüge, solange keine Qualitätsklassifizierung für Zukaufware besteht.",
+    "keineZeilen": "Noch keine Zukaufposition mit eingetragenem Preis, aus der sich eine Abrechnung errechnen ließe.",
+    "col": {
+      "nachbarbetrieb": "Nachbarbetrieb",
+      "menge": "Menge",
+      "einkaufswert": "Einkaufswert",
+      "spanne": "Spanne",
+      "auszahlung": "Auszahlung"
+    },
+    "formular": {
+      "spanne": "Spanne in %",
+      "knopf": "Speichern"
+    },
+    "hinweis": "Die Spanne gilt einheitlich für alle Nachbarbetriebe. Solange sie bei 0 % steht, ist die Auszahlung gleich dem Einkaufswert - noch keine erfundene Marge."
+  },
+  "tourenplanungAnsicht": {
+    "titel": "Tourenplanung",
+    "lead": "Abholrunden aus mehreren Lieferungen bilden, Reihenfolge und Strecke automatisch optimiert (OSRM/OpenStreetMap).",
+    "keineTouren": "Noch keine Tour geplant.",
+    "status": {
+      "geplant": "geplant",
+      "unterwegs": "unterwegs",
+      "abgeschlossen": "abgeschlossen"
+    },
+    "strecke": "{km} km, rund {minuten} Minuten Fahrzeit",
+    "tourLoeschen": "Tour verwerfen",
+    "hinweis": "Die Route ist eine Schätzung des Routendienstes, keine Grundlage für Arbeitszeit- oder Kraftstoffabrechnung. Fahrzeugkapazität und Zeitfenster sind nicht Teil dieser ersten Stufe.",
+    "formular": {
+      "adresse": {
+        "label": "Adresse",
+        "platzhalter": "Straße, Hausnummer, Stadt",
+        "knopf": "Speichern"
+      },
+      "erstellen": {
+        "titel": "Tour bilden",
+        "lead": "Lieferungen auswählen und einen Tag festlegen. Die Reihenfolge wird beim Speichern automatisch optimiert.",
+        "datum": "Datum",
+        "knopf": "Tour erstellen",
+        "keineKoordinaten": "Adresse fehlt noch"
+      }
+    }
+  },
   "qrSteigenAnsicht": {
     "drucken": "Drucken",
     "etiketten": {
@@ -1934,7 +2059,7 @@
     "titel": "Lieferungen",
     "lead": "Digitale Übergabequittung: Menge, Empfänger und Kühlkette der Charge im Moment der Übergabe.",
     "keineLieferungen": "Noch keine Lieferung angelegt.",
-    "note": "Tourenplanung nach Lieferfenstern mit Routenlogik ist nicht Teil dieser Ansicht. Eine zugestellte oder stornierte Lieferung ist unveränderlich, eine Korrektur ist nur als neue Lieferung möglich.",
+    "note": "Eine zugestellte oder stornierte Lieferung ist unveränderlich, eine Korrektur ist nur als neue Lieferung möglich.",
     "menge": "Menge",
     "bestellt": "bestellt",
     "geliefertAm": "Zugestellt am",
@@ -1969,6 +2094,14 @@
     "lieferungenTitel": "Meine Lieferungen",
     "lieferungenLead": "Status und Übergabequittung Ihrer Lieferungen.",
     "keineLieferungen": "Noch keine Lieferung erfasst.",
+    "rechnungenTitel": "Rechnungshistorie (Proforma)",
+    "rechnungenLead": "Errechnet aus Liefermenge und der zum Liefertermin gültigen Preisliste - keine rechtsverbindliche Rechnung.",
+    "keineRechnungen": "Noch keine zugestellte Lieferung, aus der sich eine Proforma errechnen ließe.",
+    "keinPreis": "kein Preis ermittelbar",
+    "rechnungenHinweis": "Diese Übersicht ersetzt keine Rechnung der Buchhaltung. Sie zeigt, was eine Lieferung nach der zum Zeitpunkt gültigen Preisliste ergeben hätte.",
+    "kontingenteTitel": "Kontingente",
+    "kontingenteLead": "Vereinbarte Menge je Sorte und reservierter Anteil - reserviert wird automatisch bei Bestätigung einer Vorbestellung.",
+    "keineKontingente": "Derzeit ist kein Kontingent hinterlegt.",
     "preislisteTitel": "Preisliste",
     "preislisteLead": "Aktuell gültige Preisliste je Sorte, mit Mindestmenge.",
     "keinePreisliste": "Derzeit keine gültige Preisliste hinterlegt.",
@@ -1986,8 +2119,13 @@
       "preis": "Preis",
       "mindestmenge": "Mindestmenge",
       "menge": "Menge",
+      "reserviert": "reserviert",
+      "verfuegbar": "verfügbar",
       "liefertermin": "Liefertermin",
-      "status": "Status"
+      "status": "Status",
+      "datum": "Zugestellt am",
+      "stueckpreis": "Preis",
+      "betrag": "Betrag"
     },
     "status": {
       "angefragt": "angefragt",
@@ -2007,7 +2145,112 @@
         "knopf": "Vorbestellung aufgeben"
       }
     },
-    "note": "Eine Vorbestellung prüft den Kontingent-Verbrauch nicht automatisch - das bleibt eine manuelle Prüfung des Büros bei der Bestätigung, dieselbe fachliche Festlegung, die für die automatische Kontingent-Fortschreibung noch offen ist. Die Preisliste zeigt allen Kunden dieselben aktiven Preise, eine Staffelung je Kundengruppe ist nicht Teil dieser Ansicht."
+    "note": "Bestätigt das Büro eine Vorbestellung, wird der reservierte Anteil des Kontingents automatisch erhöht, ein Storno setzt ihn zurück. Ob genug Kontingent frei ist, prüft weiterhin das Büro selbst vor der Bestätigung. Die Preisliste zeigt die für die eigene Kundengruppe gültigen Preise, ergänzt um die gruppenlose Standardliste. Preise anderer Kundengruppen bleiben verborgen."
+  },
+  "kundengruppen": {
+    "standard": "Standard",
+    "handel": "Handel",
+    "gastronomie": "Gastronomie",
+    "einzelhandel": "Einzelhandel"
+  },
+  "sorteTypen": {
+    "remontierend": "remontierend",
+    "sommertragend": "sommertragend"
+  },
+  "preislistenAnsicht": {
+    "preislistenTitel": "Preislisten",
+    "preislistenLead": "Preise je Sorte und Mindestmenge, optional einer Kundengruppe zugeordnet. Eine Preisliste ohne Kundengruppe gilt als Standard für alle - auch für noch nicht zugeordnete Kunden.",
+    "keinePreislisten": "Noch keine Preisliste angelegt.",
+    "keinePositionen": "Noch keine Position in dieser Preisliste.",
+    "aktiv": "aktiv",
+    "inaktiv": "inaktiv",
+    "aktivieren": "Aktivieren",
+    "deaktivieren": "Deaktivieren",
+    "positionLoeschen": "Entfernen",
+    "gueltigAb": "gültig ab",
+    "gueltigBis": "bis",
+    "col": {
+      "sorte": "Sorte",
+      "preis": "Preis",
+      "mindestmenge": "Mindestmenge"
+    },
+    "kundengruppenTitel": "Kundengruppen",
+    "kundengruppenLead": "Jeder B2B-Kunde gehört zu höchstens einer Kundengruppe. Ohne Zuordnung sieht der Kunde ausschließlich die gruppenlose Standard-Preisliste.",
+    "keineKunden": "Noch kein B2B-Kunde angelegt.",
+    "hinweis": "Bei überlappenden Preislisten für dieselbe Kundengruppe und Sorte gilt die mit dem späteren Gültigkeitsdatum. Eine bestehende Preisliste wird nie gelöscht, nur deaktiviert - sie bleibt für bereits berechnete Rechnungshistorien (Proforma) maßgeblich.",
+    "formular": {
+      "erstellen": {
+        "titel": "Preisliste anlegen",
+        "lead": "Name und Gültig-ab-Datum sind Pflicht. Ohne Kundengruppe gilt die Liste als Standard für alle.",
+        "name": "Name",
+        "namePlatzhalter": "z. B. Preisliste Winter 2027",
+        "gueltigAb": "Gültig ab",
+        "gueltigBis": "Gültig bis (optional)",
+        "kundengruppe": "Kundengruppe (optional)",
+        "knopf": "Preisliste anlegen"
+      },
+      "position": {
+        "sorte": "Sorte",
+        "preis": "Preis (₸/kg)",
+        "mindestmenge": "Mindestmenge (kg)",
+        "knopf": "Position hinzufügen"
+      },
+      "gruppe": {
+        "label": "Kundengruppe",
+        "knopf": "Speichern"
+      }
+    }
+  },
+  "sortenkatalogAnsicht": {
+    "sortenTitel": "Sorten",
+    "sortenLead": "Stammdaten je Sorte: Typ, Erntefenster und Schalengröße.",
+    "keineSorten": "Noch keine Sorte angelegt.",
+    "erntefenster": "Erntefenster",
+    "schaleG": "Schalengröße",
+    "verfuegbarkeitTitel": "Verfügbarkeit je Saison",
+    "verfuegbarkeitLead": "Summe über alle Kunden je Sorte und Saison, ohne einzelne Kundenzuordnung.",
+    "keineVerfuegbarkeit": "Noch kein Kontingent hinterlegt.",
+    "vergeben": "vergeben",
+    "verfuegbar": "verfügbar",
+    "verfuegbarkeitHinweis": "Diese Übersicht zeigt keine Zuordnung zu einzelnen Kunden - die eigene Reservierung sieht ein B2B-Kunde weiterhin im eigenen Portal.",
+    "kontingenteTitel": "Kontingente verwalten",
+    "kontingenteLead": "Vereinbarte Menge je Kunde, Sorte und Saison anlegen oder ändern. Die reservierte Menge schreibt das System automatisch fort, sobald eine Vorbestellung bestätigt oder storniert wird.",
+    "keineKontingente": "Noch kein Kontingent angelegt.",
+    "col": {
+      "kunde": "Kunde",
+      "sorte": "Sorte",
+      "saison": "Saison",
+      "menge": "Menge",
+      "reserviert": "reserviert"
+    },
+    "hinweis": "Eine Sorte wird nie gelöscht, nur bearbeitet - Preislisten und Kontingente verweisen auf sie. Ein Kontingent bleibt ebenfalls bestehen, auch wenn nichts mehr reserviert ist.",
+    "formular": {
+      "sorteErstellen": {
+        "titel": "Sorte anlegen",
+        "lead": "Name und Typ sind Pflicht, Erntefenster und Schalengröße sind optional.",
+        "name": "Name",
+        "namePlatzhalter": "z. B. Vintage",
+        "typ": "Typ",
+        "erntefenster": "Erntefenster",
+        "erntefensterPlatzhalter": "z. B. Aug - Okt",
+        "schaleG": "Schalengröße (g)",
+        "knopf": "Sorte anlegen",
+        "speichernKnopf": "Speichern"
+      },
+      "kontingentErstellen": {
+        "titel": "Kontingent anlegen",
+        "lead": "Kunde, Sorte und Menge sind Pflicht, die Saison ist ein freies Textfeld (z. B. Jahreszahl).",
+        "kunde": "Kunde",
+        "sorte": "Sorte",
+        "saison": "Saison",
+        "menge": "Menge in kg",
+        "knopf": "Kontingent anlegen"
+      },
+      "kontingentMenge": {
+        "label": "Menge in kg",
+        "knopf": "Speichern"
+      }
+    }
   },
   "personalAnsicht": {
     "brigadenTitel": "Brigaden",

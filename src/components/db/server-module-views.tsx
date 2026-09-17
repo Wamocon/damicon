@@ -19,6 +19,10 @@ import { PersonalAnsicht } from "@/components/db/personal-ansicht";
 import { KiAssistentAnsicht } from "@/components/db/ki-assistent-ansicht";
 import { EinladungenAnsicht } from "@/components/db/einladungen-ansicht";
 import { KuehletteAnsicht } from "@/components/db/kuehlkette-ansicht";
+import { WetterAnsicht } from "@/components/db/wetter-ansicht";
+import { KanaeleAnsicht } from "@/components/db/kanaele-ansicht";
+import { PreislistenAnsicht } from "@/components/db/preislisten-ansicht";
+import { SortenkatalogAnsicht } from "@/components/db/sortenkatalog-ansicht";
 import { RollenDemo } from "@/components/demo/buero";
 import type { ModuleDef } from "@/lib/modules";
 
@@ -73,6 +77,10 @@ export function serverModulAnsicht(
       return <FinanzenAnsicht />;
     case "rotationsplan":
       return <RotationsplanAnsicht />;
+    // Anforderung 2.13: Temperatursummen-Heuristik statt reinem
+    // "in Entwicklung"-Platzhalter.
+    case "wetter":
+      return <WetterAnsicht />;
     case "aggregator":
       return <ZukaufAnsicht />;
     case "qr_steigen":
@@ -81,13 +89,11 @@ export function serverModulAnsicht(
     // reinem Container-Datenmodell.
     case "foerdermittel":
       return <FoerdermittelAnsicht />;
-    // Anforderung 3.5 Teil 2 (Uebergabequittung) und 5.2 Teil 2a
-    // (Lieferstatus): logistik ist die interne Arbeitsansicht (Buero/
-    // Brigade erfassen), b2b_portal die kundenseitige Sicht auf dieselben
-    // Daten, ergaenzt um Preisliste/Vorbestellung (Anforderung 5.1, Teil 2
-    // von 2). Tourenplanung (3.5 Teil 1) und Rechnungshistorie/automatischer
-    // Kontingent-Verbrauch (5.1/5.2 Teil 2b) bleiben offen, siehe
-    // Modulkommentare.
+    // Anforderung 3.5 Teil 2 (Uebergabequittung), Teil 1 (Tourenplanung mit
+    // Routenoptimierung) und 5.2 Teil 2a (Lieferstatus): logistik ist die
+    // interne Arbeitsansicht (Buero/Brigade erfassen), b2b_portal die
+    // kundenseitige Sicht auf dieselben Daten, ergaenzt um Preisliste/
+    // Vorbestellung (Anforderung 5.1, Teil 2 von 2).
     case "logistik":
       return <LogistikAnsicht />;
     // Anforderung 3.1: die Live-Alarmlogik (KuehlkettenAlarm) lief bisher nur
@@ -97,8 +103,17 @@ export function serverModulAnsicht(
     // (KuehlketteMock).
     case "kuehlkette":
       return <KuehletteAnsicht />;
+    // Anforderung Sorten- und Kontingentkatalog: Sorten-Stammdaten (bereits
+    // seit Migration 20260905120000 schreibbar) und Kontingent-Verwaltung
+    // (neu, Migration 20261012000000) statt der bisherigen Demo-Oberflaeche.
+    case "sortenkatalog":
+      return <SortenkatalogAnsicht />;
     case "b2b_portal":
       return <B2bPortalAnsicht />;
+    // Anforderung 5.1/5.2: Preisstaffelung je Kundengruppe - eigenes Modul
+    // statt Teil von b2b_portal, siehe Kommentar bei der Ressource in rbac.ts.
+    case "preislisten":
+      return <PreislistenAnsicht />;
     // Anforderung 2.11: Schicht-Konzept, Bedarfsrechnung und Reserveliste
     // statt reiner Demo-Ansicht. Wetterszenarien bleiben offen
     // (Anforderung 2.13, bewusst zurueckgestellt auf 2027).
@@ -120,6 +135,9 @@ export function serverModulAnsicht(
     // Anforderung 5.4/5.5: echte Anbindung statt KiAssistentMock.
     case "ki_assistent":
       return <KiAssistentAnsicht />;
+    // Anforderung 5.6: Kontaktkanaele/Zahlungswege verwalten.
+    case "kanaele":
+      return <KanaeleAnsicht />;
     // Anforderung E.20: Kundenzugang ueber Einladung. Die Rechtematrix
     // darueber bleibt, was sie war - eine Anzeige des Rollenmodells aus
     // rbac.ts, die nichts schreibt. Neu darunter ist die einzige schreibende

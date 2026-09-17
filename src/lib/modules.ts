@@ -101,7 +101,10 @@ export const modules: ModuleDef[] = [
     icon: "cloud-sun",
     resource: "rotationsplan",
     klassifikation: "neu-bauen",
-    reifegrad: "in-entwicklung",
+    // Anforderung 2.13: Temperatursummen-Heuristik ueber Open-Meteo, siehe
+    // wetter-ansicht.tsx. Bewusst kein Prognosemodell ("Prognosemodelle erst
+    // ab der zweiten Saison") - die Kennzahl wird sichtbar, nicht bewertet.
+    reifegrad: "angebunden",
   },
 
   // ----------------------------------------------------------------- Zone Hof
@@ -125,11 +128,11 @@ export const modules: ModuleDef[] = [
     icon: "truck",
     resource: "logistik",
     klassifikation: "anpassen",
-    // Anforderung 3.5 Teil 2: digitale Uebergabequittung ist angebunden
-    // (LogistikAnsicht). Bleibt bei "in-entwicklung", weil Tourenplanung
-    // nach Lieferfenstern mit ICS-Feed/Routenlogik (Anforderung 3.5 Teil 1)
-    // der deutlich groessere Rest des Modul-Versprechens ist.
-    reifegrad: "in-entwicklung",
+    // Anforderung 3.5 Teil 1 (Tourenplanung mit Routenoptimierung ueber
+    // OSRM/Nominatim) und Teil 2 (digitale Uebergabequittung) sind beide
+    // angebunden (LogistikAnsicht). Fahrzeugkapazitaet und Lieferzeitfenster
+    // bleiben bewusst aussen vor, siehe Migration 20261010000000.
+    reifegrad: "angebunden",
   },
   {
     key: "qr_steigen",
@@ -267,7 +270,11 @@ export const modules: ModuleDef[] = [
     icon: "book-open",
     resource: "sortenkatalog",
     klassifikation: "anpassen",
-    reifegrad: "demo",
+    // Sorten-Stammdaten (Name/Typ/Erntefenster/Schalengroesse) und
+    // Kontingent-Verwaltung (Menge je Kunde/Sorte/Saison) sowie eine
+    // aggregierte Verfuegbarkeits-Uebersicht je Sorte/Saison, siehe Migration
+    // 20261012000000.
+    reifegrad: "angebunden",
   },
   {
     key: "b2b_portal",
@@ -303,9 +310,12 @@ export const modules: ModuleDef[] = [
     zone: "markt",
     slug: "preislisten",
     icon: "tag",
-    resource: "b2b_portal",
+    resource: "preislisten",
     klassifikation: "anpassen",
-    reifegrad: "in-entwicklung",
+    // Anforderung 5.1/5.2: Preisstaffelung je Kundengruppe (Migration
+    // 20261011000000) - feste Kundengruppe an b2b_kunden, eine Preisliste
+    // optional einer Gruppe zugeordnet, gruppenlos = Standard-Fallback.
+    reifegrad: "angebunden",
   },
   {
     key: "ki_assistent",
@@ -343,6 +353,18 @@ export const modules: ModuleDef[] = [
     // Anforderung 2.12: mehrsprachige Kurzeinarbeitung als bebilderte
     // Checkliste (einarbeitung_schritte/-fortschritt) loest die bisherige
     // Mock-Ansicht ab, siehe EinarbeitungAnsicht.
+    reifegrad: "angebunden",
+  },
+  {
+    key: "kanaele",
+    zone: "markt",
+    slug: "kanaele",
+    icon: "message-circle",
+    resource: "kanaele",
+    klassifikation: "neu-bauen",
+    // Anforderung 5.6: lokal etablierte Kontaktkanaele/Zahlungswege, vom
+    // Buero gepflegt und im Seitenfuss oeffentlich sichtbar. Reine Anzeige,
+    // keine echte API-Integration (Nutzer-Entscheidung).
     reifegrad: "angebunden",
   },
 ];

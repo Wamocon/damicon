@@ -482,6 +482,56 @@
     "letzteLead": "Son tamamlanan soğutma ölçümleri, sıcaklık ve toplamadan bu yana geçen dakikalar.",
     "keineMessungen": "Henüz soğutma ölçümü kaydedilmedi."
   },
+  "wetterAnsicht": {
+    "summeTitel": "Sıcaklık toplamı",
+    "summeLead": "Sezon başından bu yana 5 °C taban sıcaklığının üzerindeki birikmiş ısı birimleri - miktar tahmini için bir sezgisel yöntem, bir tahmin modeli değil.",
+    "seit": "beri",
+    "hinweis": "Yalnızca gözlem amaçlı bir değer. Gerçek hasat miktarıyla ilişkisi ancak gerçek karşılaştırma verileriyle geçirilen tam bir sezondan sonra güvenilir şekilde değerlendirilebilir.",
+    "keineDaten": "Henüz hava durumu verisi kaydedilmedi.",
+    "tageTitel": "Son 14 gün",
+    "tageLead": "Günlük minimum, günlük maksimum, yağış ve o güne kadar birikmiş sıcaklık toplamı.",
+    "col": {
+      "datum": "Tarih",
+      "min": "Min.",
+      "max": "Maks.",
+      "niederschlag": "Yağış",
+      "summe": "Toplam"
+    },
+    "formular": {
+      "titel": "Hava durumu verilerini güncelle",
+      "lead": "1 Ocak'tan bu yana sezonu ve son birkaç günü Open-Meteo'dan alır, sıcaklık toplamını yeniden hesaplar.",
+      "knopf": "Şimdi güncelle"
+    },
+    "note": "Koordinatlar ve taban sıcaklık yer tutuculardır (Almatı şehir merkezi, 5 °C) ve plantasyonun gerçek değerleriyle değiştirilmeli veya bir agronomist tarafından onaylanmalıdır."
+  },
+  "kanaeleAnsicht": {
+    "titel": "İletişim kanalları",
+    "lead": "Web sitesinin alt bilgisinde hangi kanalların göründüğü - yalnızca gerçek bir değer girilip etkin olarak ayarlandığında görünür.",
+    "keineKanaele": "Henüz bir iletişim kanalı oluşturulmadı.",
+    "footerHeading": "İletişim ve ödeme",
+    "typ": {
+      "whatsapp": "WhatsApp",
+      "telegram": "Telegram",
+      "instagram": "Instagram",
+      "kaspi_qr": "Kaspi QR",
+      "sonstiges": "Diğer"
+    },
+    "col": {
+      "typ": "Tür",
+      "bezeichnung": "Etiket",
+      "wert": "Numara / bağlantı"
+    },
+    "wertPlatzhalter": "henüz girilmedi",
+    "aktivLabel": "etkin (web sitesinde görünür)",
+    "aktivPill": "etkin",
+    "entwurfPill": "taslak",
+    "speichern": "Kaydet",
+    "loeschen": "Kanalı sil",
+    "anlegenTitel": "Kanal ekle",
+    "anlegenLead": "Tür ve etiket zorunludur, değer daha sonra eklenebilir.",
+    "anlegenKnopf": "Ekle",
+    "note": "Yalnızca görüntüleme, gerçek bir mesajlaşma veya ödeme hizmetine bağlantı yoktur. Bir kanal, gerçek bir değer girilip \"etkin\" olarak ayarlandığında web sitesinde görünür."
+  },
   "qrSteigenMock": {
     "scanTitle": "Çıkış noktasında tarama (taslak)",
     "simulateScan": "Taramayı benzet",
@@ -993,6 +1043,12 @@
       "summary": "Her temel süreç için kısa, görsele dayalı videolar, çok dilli, kişi bazında ilerleme takibiyle.",
       "todo": "Temel süreç bazında video içerikleri, Kazakça ve Rusça dil sürümleri, kişi bazında ilerleme takibi."
     },
+    "kanaele": {
+      "title": "İletişim kanalları",
+      "description": "Yerel olarak yerleşik iletişim kanalları ve ödeme yöntemleri, web sitesinin alt bilgisinde herkese açık gösterilir. Yalnızca görüntüleme, gerçek bir mesajlaşma veya ödeme hizmetine bağlantı yoktur.",
+      "summary": "WhatsApp, Kaspi QR ve diğer kanallar iletişim bilgisi olarak - ofis tarafından yönetilir, o zamana kadar taslak olarak gizli kalır.",
+      "todo": "Her kanal için gerçek hesap bilgilerini girin."
+    },
     "reklamationen": {
       "title": "Şikâyet yönetimi",
       "description": "Bir B2B müşterisinin parti başına şikâyeti - neden, süre ve geçmiş, alacak dekontuna kadar durum akışıyla. Müşteri yalnızca kendi şikâyetini bildirir ve görür, ofis bunu işler ve kapatır.",
@@ -1095,7 +1151,24 @@
       "kiAnbieterAktiviert": "\"{wert}\" sağlayıcısı etkinleştirildi.",
       "kiAnbieterDeaktiviert": "\"{wert}\" sağlayıcısı devre dışı bırakıldı.",
       "kiAnbieterStandardGesetzt": "Standart sağlayıcı değiştirildi.",
-      "kiAnbieterGeloescht": "\"{wert}\" sağlayıcısı silindi."
+      "kiAnbieterGeloescht": "\"{wert}\" sağlayıcısı silindi.",
+      "kanalAngelegt": "Kanal oluşturuldu.",
+      "kanalAktualisiert": "Kanal güncellendi.",
+      "kanalGeloescht": "Kanal silindi.",
+      "spanneAktualisiert": "Marj güncellendi.",
+      "adresseGeokodiert": "Adres kaydedildi ve haritada konumlandırıldı.",
+      "tourErstellt": "Tur oluşturuldu ve güzergâh hesaplandı.",
+      "tourGeloescht": "Tur silindi.",
+      "preislisteErstellt": "Fiyat listesi oluşturuldu.",
+      "positionHinzugefuegt": "Kalem eklendi.",
+      "positionGeloescht": "Kalem kaldırıldı.",
+      "preislisteAktualisiert": "Fiyat listesi güncellendi.",
+      "kundengruppeGesetzt": "Müşteri grubu kaydedildi.",
+      "sorteErstellt": "Çeşit oluşturuldu.",
+      "sorteAktualisiert": "Çeşit güncellendi.",
+      "kontingentErstellt": "Kota oluşturuldu.",
+      "kontingentAktualisiert": "Miktar güncellendi.",
+      "wetterAktualisiert": "Hava durumu verileri güncellendi."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -1120,7 +1193,11 @@
       "code": "Kod yanlış veya süresi doldu. Lütfen kimlik doğrulayıcı uygulamadaki güncel 6 haneli kodu girin.",
       "zustand": "Tarih bu sırada değişti (ör. kilitlendi veya zaten tamamlandı). Lütfen sayfayı yeniden yükleyin.",
       "einwilligung": "İlk mesajı göndermeden önce lütfen yukarıdaki bildirimi onaylayın.",
-      "begruendungFehlt": "Sapma bir gerekçe gerektirir."
+      "begruendungFehlt": "Sapma bir gerekçe gerektirir.",
+      "wetterdienst": "Hava durumu servisi şu anda veri döndürmedi. Lütfen daha sonra tekrar deneyin.",
+      "geokodierung": "Adres kaydedildi, ancak haritada konumlandırılamadı. Lütfen yazımı kontrol edin.",
+      "keineKoordinaten": "Seçilen teslimatların hiçbirinin konumlandırılmış bir adresi yok.",
+      "routendienst": "Tur oluşturuldu, ancak güzergâh hizmeti şu anda yanıt vermedi. Sıra ve mesafe geçicidir."
     },
     "einladungen": {
       "erfolg": {
@@ -1512,6 +1589,10 @@
     "notFound": "Bu kod için kayıt bulunmuyor. Lütfen yazımı kontrol edin.",
     "backToSearch": "Başka bir kod kontrol et",
     "keinePersonen": "Bu kayıt hiçbir kişiyi belirtmez.",
+    "herkunft": {
+      "eigeneErnte": "Kendi hasadı",
+      "zukauf": "{betrieb} komşu işletmesinden satın alındı"
+    },
     "fields": {
       "reihenblock": "Sıra bloğu",
       "sorte": "Çeşit",
@@ -1830,6 +1911,50 @@
       "knopf": "Kaydet"
     }
   },
+  "abrechnungAnsicht": {
+    "titel": "Tedarikçi işletmelerle hesaplaşma",
+    "lead": "Her komşu işletme için satın alma değeri, global olarak belirlenen marj düşülerek - satın alınan ürün için bir kalite sınıflandırması olmadığı sürece kalite bazlı kesinti yok.",
+    "keineZeilen": "Henüz fiyatı girilmiş, hesaplaşma hesaplanabilecek bir satın alma kalemi yok.",
+    "col": {
+      "nachbarbetrieb": "Komşu işletme",
+      "menge": "Miktar",
+      "einkaufswert": "Satın alma değeri",
+      "spanne": "Marj",
+      "auszahlung": "Ödeme"
+    },
+    "formular": {
+      "spanne": "Marj (%)",
+      "knopf": "Kaydet"
+    },
+    "hinweis": "Marj tüm komşu işletmeler için aynı şekilde uygulanır. %0 olduğu sürece ödeme satın alma değerine eşittir - uydurulmuş bir marj yok."
+  },
+  "tourenplanungAnsicht": {
+    "titel": "Tur planlama",
+    "lead": "Birden fazla teslimattan toplama turu oluşturulur, sıra ve güzergâh otomatik olarak optimize edilir (OSRM/OpenStreetMap).",
+    "keineTouren": "Henüz planlanmış bir tur yok.",
+    "status": {
+      "geplant": "planlandı",
+      "unterwegs": "yolda",
+      "abgeschlossen": "tamamlandı"
+    },
+    "strecke": "{km} km, yaklaşık {minuten} dakika sürüş süresi",
+    "tourLoeschen": "Turu sil",
+    "hinweis": "Güzergâh, güzergâh hizmetinin yalnızca bir tahminidir, çalışma süresi veya yakıt hesaplaması için temel oluşturmaz. Araç kapasitesi ve zaman pencereleri bu ilk aşamanın parçası değildir.",
+    "formular": {
+      "adresse": {
+        "label": "Adres",
+        "platzhalter": "Sokak, kapı numarası, şehir",
+        "knopf": "Kaydet"
+      },
+      "erstellen": {
+        "titel": "Tur oluştur",
+        "lead": "Teslimatları seçin ve bir gün belirleyin. Sıra, kaydedildiğinde otomatik olarak optimize edilir.",
+        "datum": "Tarih",
+        "knopf": "Tur oluştur",
+        "keineKoordinaten": "Adres henüz eksik"
+      }
+    }
+  },
   "qrSteigenAnsicht": {
     "drucken": "Yazdır",
     "etiketten": {
@@ -1934,7 +2059,7 @@
     "titel": "Teslimatlar",
     "lead": "Dijital teslim alma belgesi: teslim anındaki miktar, alıcı ve partinin soğuk zinciri.",
     "keineLieferungen": "Henüz teslimat oluşturulmadı.",
-    "note": "Teslimat zaman aralığına göre rota planlaması bu görünümün parçası değildir. Teslim edilmiş veya iptal edilmiş bir teslimat değiştirilemez, düzeltme yalnızca yeni bir teslimat olarak mümkündür.",
+    "note": "Teslim edilmiş veya iptal edilmiş bir teslimat değiştirilemez, düzeltme yalnızca yeni bir teslimat olarak mümkündür.",
     "menge": "Miktar",
     "bestellt": "sipariş edilen",
     "geliefertAm": "Teslim tarihi",
@@ -1969,6 +2094,14 @@
     "lieferungenTitel": "Teslimatlarım",
     "lieferungenLead": "Teslimatlarınızın durumu ve teslim alma belgesi.",
     "keineLieferungen": "Henüz teslimat kaydedilmedi.",
+    "rechnungenTitel": "Fatura geçmişi (proforma)",
+    "rechnungenLead": "Teslim edilen miktar ve teslimat tarihinde geçerli fiyat listesinden hesaplanır - yasal olarak bağlayıcı bir fatura değildir.",
+    "keineRechnungen": "Henüz proforma hesaplanabilecek teslim edilmiş bir sevkiyat yok.",
+    "keinPreis": "fiyat belirlenemedi",
+    "rechnungenHinweis": "Bu genel bakış muhasebenin faturasının yerini tutmaz. Bir teslimatın o tarihte geçerli fiyat listesine göre ne tutacağını gösterir.",
+    "kontingenteTitel": "Kotalar",
+    "kontingenteLead": "Çeşit bazında kararlaştırılan miktar ve ayrılan pay - bir ön sipariş onaylandığında otomatik olarak ayrılır.",
+    "keineKontingente": "Şu anda kayıtlı bir kota yok.",
     "preislisteTitel": "Fiyat listesi",
     "preislisteLead": "Çeşit bazında güncel geçerli fiyat listesi, asgari miktar ile.",
     "keinePreisliste": "Şu anda geçerli bir fiyat listesi yok.",
@@ -1986,8 +2119,13 @@
       "preis": "Fiyat",
       "mindestmenge": "Asgari miktar",
       "menge": "Miktar",
+      "reserviert": "ayrılmış",
+      "verfuegbar": "müsait",
       "liefertermin": "Teslimat tarihi",
-      "status": "Durum"
+      "status": "Durum",
+      "datum": "Teslim tarihi",
+      "stueckpreis": "Fiyat",
+      "betrag": "Tutar"
     },
     "status": {
       "angefragt": "talep edildi",
@@ -2007,7 +2145,112 @@
         "knopf": "Ön sipariş ver"
       }
     },
-    "note": "Bir ön sipariş kota tüketimini otomatik olarak kontrol etmez - bu, onay sırasında ofisin manuel kontrolü olarak kalır, otomatik kota takibi için de aynı açık iş kararı geçerlidir. Fiyat listesi tüm müşterilere aynı aktif fiyatları gösterir, müşteri grubuna göre kademelendirme bu görünümün parçası değildir."
+    "note": "Ofis bir ön siparişi onayladığında, kotanın ayrılan payı otomatik olarak artar, bir iptal bunu geri alır. Yeterli kota kalıp kalmadığını ofis onaylamadan önce yine kendisi kontrol eder. Fiyat listesi kendi müşteri grubunuz için geçerli fiyatları, buna ek olarak grupsuz standart listeyi gösterir. Diğer müşteri gruplarının fiyatları gizli kalır."
+  },
+  "kundengruppen": {
+    "standard": "Standart",
+    "handel": "Toptan ticaret",
+    "gastronomie": "Gastronomi",
+    "einzelhandel": "Perakende"
+  },
+  "sorteTypen": {
+    "remontierend": "sürekli meyve veren",
+    "sommertragend": "yaz meyveli"
+  },
+  "preislistenAnsicht": {
+    "preislistenTitel": "Fiyat listeleri",
+    "preislistenLead": "Çeşit ve asgari miktara göre fiyatlar, isteğe bağlı olarak bir müşteri grubuna atanmış. Müşteri grubu olmayan bir fiyat listesi herkes için standart sayılır - henüz bir gruba atanmamış müşteriler dahil.",
+    "keinePreislisten": "Henüz fiyat listesi oluşturulmadı.",
+    "keinePositionen": "Bu fiyat listesinde henüz kalem yok.",
+    "aktiv": "aktif",
+    "inaktiv": "pasif",
+    "aktivieren": "Etkinleştir",
+    "deaktivieren": "Devre dışı bırak",
+    "positionLoeschen": "Kaldır",
+    "gueltigAb": "geçerlilik başlangıcı",
+    "gueltigBis": "bitiş",
+    "col": {
+      "sorte": "Çeşit",
+      "preis": "Fiyat",
+      "mindestmenge": "Asgari miktar"
+    },
+    "kundengruppenTitel": "Müşteri grupları",
+    "kundengruppenLead": "Her B2B müşterisi en fazla bir müşteri grubuna aittir. Atama yapılmazsa müşteri yalnızca grupsuz standart fiyat listesini görür.",
+    "keineKunden": "Henüz B2B müşterisi oluşturulmadı.",
+    "hinweis": "Aynı müşteri grubu ve çeşit için fiyat listeleri çakıştığında, geçerlilik başlangıcı daha geç olan liste uygulanır. Mevcut bir fiyat listesi asla silinmez, yalnızca devre dışı bırakılır - zaten hesaplanmış fatura geçmişi (proforma) için belirleyici olmaya devam eder.",
+    "formular": {
+      "erstellen": {
+        "titel": "Fiyat listesi oluştur",
+        "lead": "Ad ve geçerlilik başlangıcı zorunludur. Müşteri grubu belirtilmezse liste herkes için standart sayılır.",
+        "name": "Ad",
+        "namePlatzhalter": "örn. Kış 2027 fiyat listesi",
+        "gueltigAb": "Geçerlilik başlangıcı",
+        "gueltigBis": "Geçerlilik bitişi (isteğe bağlı)",
+        "kundengruppe": "Müşteri grubu (isteğe bağlı)",
+        "knopf": "Fiyat listesi oluştur"
+      },
+      "position": {
+        "sorte": "Çeşit",
+        "preis": "Fiyat (₸/kg)",
+        "mindestmenge": "Asgari miktar (kg)",
+        "knopf": "Kalem ekle"
+      },
+      "gruppe": {
+        "label": "Müşteri grubu",
+        "knopf": "Kaydet"
+      }
+    }
+  },
+  "sortenkatalogAnsicht": {
+    "sortenTitel": "Çeşitler",
+    "sortenLead": "Çeşit bazında temel veriler: tür, hasat penceresi ve kap ağırlığı.",
+    "keineSorten": "Henüz çeşit oluşturulmadı.",
+    "erntefenster": "Hasat penceresi",
+    "schaleG": "Kap ağırlığı",
+    "verfuegbarkeitTitel": "Sezona göre uygunluk",
+    "verfuegbarkeitLead": "Çeşit ve sezon bazında tüm müşteriler toplamı, tek tek müşteri ataması olmadan.",
+    "keineVerfuegbarkeit": "Henüz kota kaydedilmedi.",
+    "vergeben": "tahsis edildi",
+    "verfuegbar": "müsait",
+    "verfuegbarkeitHinweis": "Bu genel bakış tek tek müşterilere atamayı göstermez - bir B2B müşterisi kendi rezervasyonunu yine de kendi portalında görür.",
+    "kontingenteTitel": "Kotaları yönet",
+    "kontingenteLead": "Müşteri, çeşit ve sezon bazında kararlaştırılan miktarı oluşturun veya değiştirin. Ayrılan miktar, bir ön sipariş her onaylandığında veya iptal edildiğinde sistem tarafından otomatik olarak güncellenir.",
+    "keineKontingente": "Henüz kota oluşturulmadı.",
+    "col": {
+      "kunde": "Müşteri",
+      "sorte": "Çeşit",
+      "saison": "Sezon",
+      "menge": "Miktar",
+      "reserviert": "ayrılmış"
+    },
+    "hinweis": "Bir çeşit asla silinmez, yalnızca düzenlenir - fiyat listeleri ve kotalar ona referans verir. Bir kota da artık hiçbir şey ayrılmamış olsa bile kayıtlı kalır.",
+    "formular": {
+      "sorteErstellen": {
+        "titel": "Çeşit oluştur",
+        "lead": "Ad ve tür zorunludur, hasat penceresi ve kap ağırlığı isteğe bağlıdır.",
+        "name": "Ad",
+        "namePlatzhalter": "örn. Vintage",
+        "typ": "Tür",
+        "erntefenster": "Hasat penceresi",
+        "erntefensterPlatzhalter": "örn. Ağu - Eki",
+        "schaleG": "Kap ağırlığı (g)",
+        "knopf": "Çeşit oluştur",
+        "speichernKnopf": "Kaydet"
+      },
+      "kontingentErstellen": {
+        "titel": "Kota oluştur",
+        "lead": "Müşteri, çeşit ve miktar zorunludur, sezon serbest metin alanıdır (örn. bir yıl).",
+        "kunde": "Müşteri",
+        "sorte": "Çeşit",
+        "saison": "Sezon",
+        "menge": "Miktar (kg)",
+        "knopf": "Kota oluştur"
+      },
+      "kontingentMenge": {
+        "label": "Miktar (kg)",
+        "knopf": "Kaydet"
+      }
+    }
   },
   "personalAnsicht": {
     "brigadenTitel": "Ekipler",

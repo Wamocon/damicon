@@ -39,6 +39,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      aggregator_einstellungen: {
+        Row: {
+          id: string
+          spanne_prozent: number
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          spanne_prozent?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          spanne_prozent?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       arbeitszeiten: {
         Row: {
           beginn: string
@@ -94,6 +112,7 @@ export type Database = {
         Row: {
           actor: string | null
           aktion: string
+          bereich: Database["public"]["Enums"]["audit_bereich"] | null
           created_at: string
           id: string
           metadata: Json
@@ -103,6 +122,7 @@ export type Database = {
         Insert: {
           actor?: string | null
           aktion: string
+          bereich?: Database["public"]["Enums"]["audit_bereich"] | null
           created_at?: string
           id?: string
           metadata?: Json
@@ -112,6 +132,7 @@ export type Database = {
         Update: {
           actor?: string | null
           aktion?: string
+          bereich?: Database["public"]["Enums"]["audit_bereich"] | null
           created_at?: string
           id?: string
           metadata?: Json
@@ -122,26 +143,41 @@ export type Database = {
       }
       b2b_kunden: {
         Row: {
+          adresse: string | null
+          breitengrad: number | null
           created_at: string
+          geokodiert_am: string | null
           id: string
           identitaets_digest: string | null
           kontakt: string | null
+          kundengruppe: Database["public"]["Enums"]["kundengruppe"] | null
+          laengengrad: number | null
           name: string
           updated_at: string
         }
         Insert: {
+          adresse?: string | null
+          breitengrad?: number | null
           created_at?: string
+          geokodiert_am?: string | null
           id?: string
           identitaets_digest?: string | null
           kontakt?: string | null
+          kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
+          laengengrad?: number | null
           name: string
           updated_at?: string
         }
         Update: {
+          adresse?: string | null
+          breitengrad?: number | null
           created_at?: string
+          geokodiert_am?: string | null
           id?: string
           identitaets_digest?: string | null
           kontakt?: string | null
+          kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
+          laengengrad?: number | null
           name?: string
           updated_at?: string
         }
@@ -1015,6 +1051,39 @@ export type Database = {
           },
         ]
       }
+      kontaktkanaele: {
+        Row: {
+          aktiv: boolean
+          bezeichnung: string
+          created_at: string
+          id: string
+          reihenfolge: number
+          typ: Database["public"]["Enums"]["kontaktkanal_typ"]
+          updated_at: string
+          wert: string | null
+        }
+        Insert: {
+          aktiv?: boolean
+          bezeichnung: string
+          created_at?: string
+          id?: string
+          reihenfolge?: number
+          typ: Database["public"]["Enums"]["kontaktkanal_typ"]
+          updated_at?: string
+          wert?: string | null
+        }
+        Update: {
+          aktiv?: boolean
+          bezeichnung?: string
+          created_at?: string
+          id?: string
+          reihenfolge?: number
+          typ?: Database["public"]["Enums"]["kontaktkanal_typ"]
+          updated_at?: string
+          wert?: string | null
+        }
+        Relationships: []
+      }
       kontingente: {
         Row: {
           b2b_kunde_id: string | null
@@ -1115,73 +1184,6 @@ export type Database = {
           },
         ]
       }
-      kundeneinladungen: {
-        Row: {
-          b2b_kunde_id: string
-          code_digest: string
-          created_at: string
-          eingeloest_am: string | null
-          eingeloest_profil_id: string | null
-          email: string
-          erstellt_von_profil_id: string | null
-          full_name: string
-          gueltig_bis: string
-          id: string
-          status: Database["public"]["Enums"]["einladung_status"]
-          updated_at: string
-        }
-        Insert: {
-          b2b_kunde_id: string
-          code_digest: string
-          created_at?: string
-          eingeloest_am?: string | null
-          eingeloest_profil_id?: string | null
-          email: string
-          erstellt_von_profil_id?: string | null
-          full_name: string
-          gueltig_bis: string
-          id?: string
-          status?: Database["public"]["Enums"]["einladung_status"]
-          updated_at?: string
-        }
-        Update: {
-          b2b_kunde_id?: string
-          code_digest?: string
-          created_at?: string
-          eingeloest_am?: string | null
-          eingeloest_profil_id?: string | null
-          email?: string
-          erstellt_von_profil_id?: string | null
-          full_name?: string
-          gueltig_bis?: string
-          id?: string
-          status?: Database["public"]["Enums"]["einladung_status"]
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "kundeneinladungen_b2b_kunde_id_fkey"
-            columns: ["b2b_kunde_id"]
-            isOneToOne: false
-            referencedRelation: "b2b_kunden"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "kundeneinladungen_eingeloest_profil_id_fkey"
-            columns: ["eingeloest_profil_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "kundeneinladungen_erstellt_von_profil_id_fkey"
-            columns: ["erstellt_von_profil_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       kpi_baseline: {
         Row: {
           baseline_wert: string | null
@@ -1272,6 +1274,87 @@ export type Database = {
           },
         ]
       }
+      kundeneinladungen: {
+        Row: {
+          b2b_kunde_id: string
+          code_digest: string
+          created_at: string
+          eingeloest_am: string | null
+          eingeloest_profil_id: string | null
+          email: string
+          erstellt_von_profil_id: string | null
+          full_name: string
+          gueltig_bis: string
+          id: string
+          status: Database["public"]["Enums"]["einladung_status"]
+          updated_at: string
+        }
+        Insert: {
+          b2b_kunde_id: string
+          code_digest: string
+          created_at?: string
+          eingeloest_am?: string | null
+          eingeloest_profil_id?: string | null
+          email: string
+          erstellt_von_profil_id?: string | null
+          full_name: string
+          gueltig_bis: string
+          id?: string
+          status?: Database["public"]["Enums"]["einladung_status"]
+          updated_at?: string
+        }
+        Update: {
+          b2b_kunde_id?: string
+          code_digest?: string
+          created_at?: string
+          eingeloest_am?: string | null
+          eingeloest_profil_id?: string | null
+          email?: string
+          erstellt_von_profil_id?: string | null
+          full_name?: string
+          gueltig_bis?: string
+          id?: string
+          status?: Database["public"]["Enums"]["einladung_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kundeneinladungen_b2b_kunde_id_fkey"
+            columns: ["b2b_kunde_id"]
+            isOneToOne: false
+            referencedRelation: "b2b_kunden"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kundeneinladungen_eingeloest_profil_id_fkey"
+            columns: ["eingeloest_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kundeneinladungen_eingeloest_profil_id_fkey"
+            columns: ["eingeloest_profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+          {
+            foreignKeyName: "kundeneinladungen_erstellt_von_profil_id_fkey"
+            columns: ["erstellt_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kundeneinladungen_erstellt_von_profil_id_fkey"
+            columns: ["erstellt_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+        ]
+      }
       lieferungen: {
         Row: {
           abgezeichnet_von_profil_id: string | null
@@ -1287,6 +1370,8 @@ export type Database = {
           menge_kg: number
           server_eingang_zeitpunkt: string | null
           status: Database["public"]["Enums"]["lieferung_status"]
+          tour_id: string | null
+          tour_reihenfolge: number | null
           vorbestellung_id: string | null
         }
         Insert: {
@@ -1303,6 +1388,8 @@ export type Database = {
           menge_kg?: number
           server_eingang_zeitpunkt?: string | null
           status?: Database["public"]["Enums"]["lieferung_status"]
+          tour_id?: string | null
+          tour_reihenfolge?: number | null
           vorbestellung_id?: string | null
         }
         Update: {
@@ -1319,6 +1406,8 @@ export type Database = {
           menge_kg?: number
           server_eingang_zeitpunkt?: string | null
           status?: Database["public"]["Enums"]["lieferung_status"]
+          tour_id?: string | null
+          tour_reihenfolge?: number | null
           vorbestellung_id?: string | null
         }
         Relationships: [
@@ -1363,6 +1452,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "deckungsbeitrag_je_charge"
             referencedColumns: ["charge_id"]
+          },
+          {
+            foreignKeyName: "lieferungen_tour_id_fkey"
+            columns: ["tour_id"]
+            isOneToOne: false
+            referencedRelation: "touren"
+            referencedColumns: ["id"]
           },
           {
             foreignKeyName: "lieferungen_vorbestellung_id_fkey"
@@ -1984,6 +2080,7 @@ export type Database = {
           gueltig_ab: string
           gueltig_bis: string | null
           id: string
+          kundengruppe: Database["public"]["Enums"]["kundengruppe"] | null
           name: string
         }
         Insert: {
@@ -1992,6 +2089,7 @@ export type Database = {
           gueltig_ab?: string
           gueltig_bis?: string | null
           id?: string
+          kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
           name: string
         }
         Update: {
@@ -2000,6 +2098,7 @@ export type Database = {
           gueltig_ab?: string
           gueltig_bis?: string | null
           id?: string
+          kundengruppe?: Database["public"]["Enums"]["kundengruppe"] | null
           name?: string
         }
         Relationships: []
@@ -2710,6 +2809,57 @@ export type Database = {
         }
         Relationships: []
       }
+      touren: {
+        Row: {
+          created_at: string
+          datum: string
+          dauer_minuten: number | null
+          distanz_km: number | null
+          erstellt_von_profil_id: string | null
+          id: string
+          routen_geometrie: Json | null
+          status: Database["public"]["Enums"]["tour_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          datum: string
+          dauer_minuten?: number | null
+          distanz_km?: number | null
+          erstellt_von_profil_id?: string | null
+          id?: string
+          routen_geometrie?: Json | null
+          status?: Database["public"]["Enums"]["tour_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          datum?: string
+          dauer_minuten?: number | null
+          distanz_km?: number | null
+          erstellt_von_profil_id?: string | null
+          id?: string
+          routen_geometrie?: Json | null
+          status?: Database["public"]["Enums"]["tour_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "touren_erstellt_von_profil_id_fkey"
+            columns: ["erstellt_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "touren_erstellt_von_profil_id_fkey"
+            columns: ["erstellt_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+        ]
+      }
       transport_temperatur_messungen: {
         Row: {
           created_at: string
@@ -3026,6 +3176,21 @@ export type Database = {
       }
     }
     Functions: {
+      abrechnung_je_nachbarbetrieb: {
+        Args: never
+        Returns: {
+          auszahlung_tenge: number
+          einkaufswert_tenge: number
+          menge_kg_gesamt: number
+          nachbarbetrieb_id: string
+          nachbarbetrieb_name: string
+          spanne_prozent: number
+        }[]
+      }
+      audit_bereich_fuer: {
+        Args: { p_tabelle: string }
+        Returns: Database["public"]["Enums"]["audit_bereich"]
+      }
       current_app_role: {
         Args: never
         Returns: Database["public"]["Enums"]["app_role"]
@@ -3052,8 +3217,10 @@ export type Database = {
         Args: { p_code: string }
         Returns: {
           ernte_datum: string
+          herkunft_typ: string
           kuehlkette_eingehalten: boolean
           minuten_bis_vorkuehlung: number
+          nachbarbetrieb_name: string
           pflueck_zeitpunkt: string
           reihenblock_code: string
           sorte_name: string
@@ -3064,6 +3231,16 @@ export type Database = {
       ki_anbieter_standard_setzen: {
         Args: { p_id: string }
         Returns: undefined
+      }
+      kontingent_verfuegbarkeit_je_sorte: {
+        Args: never
+        Returns: {
+          menge_kg_gesamt: number
+          reserviert_kg_gesamt: number
+          saison: string
+          sorte_id: string
+          sorte_name: string
+        }[]
       }
       kpi_aktuell: {
         Args: never
@@ -3173,6 +3350,12 @@ export type Database = {
         | "picker"
         | "erzeuger"
         | "kunde"
+      audit_bereich:
+        | "nachweiskette"
+        | "geld"
+        | "zugang"
+        | "datenschutz"
+        | "stammdaten"
       aufwandmenge_einheit: "l_ha" | "kg_ha"
       beleg_art: "schale" | "reihenblock" | "steige"
       charge_status: "offen" | "gekuehlt" | "verladen" | "ausgeliefert"
@@ -3189,8 +3372,15 @@ export type Database = {
       esutd_status: "erfasst" | "offen"
       integration_status: "verbunden" | "sandbox" | "geplant"
       ki_anbieter_typ: "openai_kompatibel" | "anthropic"
+      kontaktkanal_typ:
+        | "whatsapp"
+        | "telegram"
+        | "instagram"
+        | "kaspi_qr"
+        | "sonstiges"
       kontroll_befund: "in_ordnung" | "abweichung"
       kuehlkette_ergebnis: "ok" | "warnung" | "verstoss"
+      kundengruppe: "handel" | "gastronomie" | "einzelhandel"
       ledger_typ: "erloes" | "kosten"
       lieferung_status: "geplant" | "zugestellt" | "storniert"
       lohn_status: "entwurf" | "freigegeben" | "ausgezahlt"
@@ -3229,6 +3419,7 @@ export type Database = {
         | "uebersprungen"
       sorte_typ: "remontierend" | "sommertragend"
       spalierrichtung: "n_s" | "o_w"
+      tour_status: "geplant" | "unterwegs" | "abgeschlossen"
       vorbestellung_status:
         | "angefragt"
         | "bestaetigt"
@@ -3379,6 +3570,13 @@ export const Constants = {
         "erzeuger",
         "kunde",
       ],
+      audit_bereich: [
+        "nachweiskette",
+        "geld",
+        "zugang",
+        "datenschutz",
+        "stammdaten",
+      ],
       aufwandmenge_einheit: ["l_ha", "kg_ha"],
       beleg_art: ["schale", "reihenblock", "steige"],
       charge_status: ["offen", "gekuehlt", "verladen", "ausgeliefert"],
@@ -3396,7 +3594,15 @@ export const Constants = {
       esutd_status: ["erfasst", "offen"],
       integration_status: ["verbunden", "sandbox", "geplant"],
       ki_anbieter_typ: ["openai_kompatibel", "anthropic"],
+      kontaktkanal_typ: [
+        "whatsapp",
+        "telegram",
+        "instagram",
+        "kaspi_qr",
+        "sonstiges",
+      ],
       kuehlkette_ergebnis: ["ok", "warnung", "verstoss"],
+      kundengruppe: ["handel", "gastronomie", "einzelhandel"],
       ledger_typ: ["erloes", "kosten"],
       lieferung_status: ["geplant", "zugestellt", "storniert"],
       lohn_status: ["entwurf", "freigegeben", "ausgezahlt"],
@@ -3440,6 +3646,7 @@ export const Constants = {
       ],
       sorte_typ: ["remontierend", "sommertragend"],
       spalierrichtung: ["n_s", "o_w"],
+      tour_status: ["geplant", "unterwegs", "abgeschlossen"],
       vorbestellung_status: [
         "angefragt",
         "bestaetigt",

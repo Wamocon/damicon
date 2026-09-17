@@ -2720,6 +2720,97 @@ if (leitung && brigade) {
       );
     }
 
+    // 5. Anforderung 6.1: die oeffentliche Herkunftsauskunft legt Zukauf-Ware
+    //    offen statt sie stillschweigend leer zu lassen.
+    if (!rvZukaufAufbauFehler) {
+      const { data: rvZukaufChargeVoll } = await admin
+        .from("chargen")
+        .select("oeffentlicher_code")
+        .eq("id", rvZukaufCharge.id)
+        .single();
+
+      const { data: rvHerkunft, error: rvHerkunftFehler } = await anon.rpc("herkunftsauskunft", {
+        p_code: rvZukaufChargeVoll?.oeffentlicher_code,
+      });
+      const rvHerkunftZeile = rvHerkunft?.[0];
+      check(
+        "Anforderung 6.1: die oeffentliche Herkunftsauskunft weist eine Zukauf-Charge als solche aus",
+        !rvHerkunftFehler &&
+          rvHerkunftZeile?.herkunft_typ === "zukauf" &&
+          rvHerkunftZeile?.nachbarbetrieb_name === rvNachbarbetrieb.name,
+        rvHerkunftFehler?.message ?? JSON.stringify(rvHerkunftZeile),
+      );
+
+      // Regressionsschutz: die eigene, bereits weiter oben angelegte Ernte-Charge
+      // (rvCharge, mit reihenblock_id) bleibt "eigene_ernte", nicht "zukauf".
+      const { data: rvEigeneChargeVoll } = await admin
+        .from("chargen")
+        .select("oeffentlicher_code")
+        .eq("id", rvCharge.id)
+        .single();
+      const { data: rvEigeneHerkunft } = await anon.rpc("herkunftsauskunft", {
+        p_code: rvEigeneChargeVoll?.oeffentlicher_code,
+      });
+      check(
+        "Anforderung 6.1: eine eigene Ernte-Charge bleibt weiterhin 'eigene_ernte'",
+        rvEigeneHerkunft?.[0]?.herkunft_typ === "eigene_ernte" &&
+          rvEigeneHerkunft?.[0]?.nachbarbetrieb_name === null,
+        JSON.stringify(rvEigeneHerkunft?.[0]),
+      );
+    }
+
+    // 6. Anforderung 6.4: Abrechnung gegenueber dem Lieferbetrieb.
+    if (!rvZukaufAufbauFehler) {
+      await admin
+        .from("zukauf_positionen")
+        .update({ preis_tenge_kg: 1000 })
+        .eq("id", rvZukaufPosition.id);
+      const { data: rvEinstellung } = await admin
+        .from("aggregator_einstellungen")
+        .select("id")
+        .limit(1)
+        .single();
+      await admin
+        .from("aggregator_einstellungen")
+        .update({ spanne_prozent: 10 })
+        .eq("id", rvEinstellung.id);
+
+      const { data: erzeugerAbrechnungVersuch, error: erzeugerAbrechnungFehler } = await (
+        await anmelden("erzeuger@damicon.demo")
+      ).client.rpc("abrechnung_je_nachbarbetrieb");
+      check(
+        "Anforderung 6.4: eine Rolle ohne Buero-Zugriff (Erzeuger) ruft die Abrechnung nicht ab",
+        erzeugerAbrechnungFehler?.code === "42501",
+        erzeugerAbrechnungFehler?.code ?? JSON.stringify(erzeugerAbrechnungVersuch),
+      );
+
+      const { data: bueroAbrechnung, error: bueroAbrechnungFehler } = await leitung.rpc(
+        "abrechnung_je_nachbarbetrieb",
+      );
+      const bueroAbrechnungZeile = bueroAbrechnung?.find(
+        (z) => z.nachbarbetrieb_id === rvNachbarbetrieb.id,
+      );
+      // Die Summe laeuft ueber ALLE Zukaufpositionen dieses Nachbarbetriebs im
+      // gehosteten Bestand, nicht nur die eben angelegte Testzeile - deshalb
+      // hier die Rechenbeziehung selbst pruefen (Auszahlung = Einkaufswert x
+      // (1 - Spanne)), nicht einen aus der Testzeile allein erwarteten
+      // absoluten Betrag.
+      const erwarteteAuszahlung =
+        Math.round(Number(bueroAbrechnungZeile?.einkaufswert_tenge) * 0.9 * 100) / 100;
+      check(
+        "Anforderung 6.4: die Abrechnung errechnet Einkaufswert abzueglich 10 % Spanne korrekt",
+        !bueroAbrechnungFehler &&
+          Number(bueroAbrechnungZeile?.menge_kg_gesamt) >= 10 &&
+          Number(bueroAbrechnungZeile?.auszahlung_tenge) === erwarteteAuszahlung,
+        bueroAbrechnungFehler?.message ?? JSON.stringify(bueroAbrechnungZeile),
+      );
+
+      await admin
+        .from("aggregator_einstellungen")
+        .update({ spanne_prozent: 0 })
+        .eq("id", rvEinstellung.id);
+    }
+
     // Aufraeumen (Kind vor Eltern wegen FKs).
     if (rvReklamation?.id) await admin.from("reklamationen").delete().eq("id", rvReklamation.id);
     if (rvZukaufReklamation?.id)
@@ -3796,6 +3887,91 @@ if (leitung && brigade) {
       (preislisteSicht?.length ?? 0) >= 1,
       `Zeilen: ${preislisteSicht?.length}`,
     );
+
+    // --- Anforderung 5.1: automatischer Kontingent-Verbrauch (Migration
+    // 20261006000000) - angefragt->bestaetigt erhoeht reserviert_kg, eine
+    // anschliessende Stornierung setzt es wieder zurueck. Eine nie
+    // bestaetigte, direkt stornierte Anfrage veraendert nichts.
+    const { data: verbrauchKontingent, error: verbrauchKontingentFehler } = await admin
+      .from("kontingente")
+      .insert({
+        sorte_id: sorteVb?.id,
+        b2b_kunde_id: almatyFreshVb?.id,
+        menge_kg: 500,
+        reserviert_kg: 100,
+        saison: "test-5.1-verbrauch",
+      })
+      .select("id, reserviert_kg")
+      .single();
+    check(
+      "Anforderung 5.1: Testaufbau (zweites Kontingent fuer den Verbrauchstest) gelingt",
+      !verbrauchKontingentFehler,
+      verbrauchKontingentFehler?.message ?? "",
+    );
+
+    if (!verbrauchKontingentFehler && verbrauchKontingent?.id) {
+      const { data: verbrauchVb, error: verbrauchVbFehler } = await leitung
+        .from("vorbestellungen")
+        .insert({ b2b_kunde_id: almatyFreshVb?.id, sorte_id: sorteVb?.id, menge_kg: 60 })
+        .select("id")
+        .single();
+
+      if (!verbrauchVbFehler && verbrauchVb?.id) {
+        await leitung.from("vorbestellungen").update({ status: "bestaetigt" }).eq("id", verbrauchVb.id);
+
+        const { data: nachBestaetigung } = await admin
+          .from("kontingente")
+          .select("reserviert_kg")
+          .eq("id", verbrauchKontingent.id)
+          .single();
+        check(
+          "Anforderung 5.1: Bestaetigung einer Vorbestellung erhoeht kontingente.reserviert_kg automatisch",
+          Number(nachBestaetigung?.reserviert_kg) === 160,
+          `reserviert_kg: ${nachBestaetigung?.reserviert_kg}`,
+        );
+
+        await leitung.from("vorbestellungen").update({ status: "storniert" }).eq("id", verbrauchVb.id);
+
+        const { data: nachStorno } = await admin
+          .from("kontingente")
+          .select("reserviert_kg")
+          .eq("id", verbrauchKontingent.id)
+          .single();
+        check(
+          "Anforderung 5.1: Stornierung einer bereits bestaetigten Vorbestellung setzt kontingente.reserviert_kg wieder zurueck",
+          Number(nachStorno?.reserviert_kg) === 100,
+          `reserviert_kg: ${nachStorno?.reserviert_kg}`,
+        );
+
+        await admin.from("vorbestellungen").delete().eq("id", verbrauchVb.id);
+      }
+
+      // Eine nie bestaetigte Anfrage hat nie etwas verbraucht - direkte
+      // Stornierung darf reserviert_kg nicht anfassen.
+      const { data: unbestaetigtVb, error: unbestaetigtVbFehler } = await leitung
+        .from("vorbestellungen")
+        .insert({ b2b_kunde_id: almatyFreshVb?.id, sorte_id: sorteVb?.id, menge_kg: 25 })
+        .select("id")
+        .single();
+      if (!unbestaetigtVbFehler && unbestaetigtVb?.id) {
+        await leitung.from("vorbestellungen").update({ status: "storniert" }).eq("id", unbestaetigtVb.id);
+
+        const { data: nachDirektstorno } = await admin
+          .from("kontingente")
+          .select("reserviert_kg")
+          .eq("id", verbrauchKontingent.id)
+          .single();
+        check(
+          "Anforderung 5.1: eine direkt stornierte, nie bestaetigte Anfrage veraendert kontingente.reserviert_kg nicht",
+          Number(nachDirektstorno?.reserviert_kg) === 100,
+          `reserviert_kg: ${nachDirektstorno?.reserviert_kg}`,
+        );
+
+        await admin.from("vorbestellungen").delete().eq("id", unbestaetigtVb.id);
+      }
+
+      await admin.from("kontingente").delete().eq("id", verbrauchKontingent.id);
+    }
   }
 }
 
@@ -3949,6 +4125,474 @@ if (leitung && brigade) {
     );
 
     await admin.from("ki_chat_nachrichten").delete().eq("id", eigeneNachricht.id);
+  }
+}
+
+// --- Anforderung 5.6: Kontaktkanaele/Zahlungswege -------------------------
+{
+  const { data: neuerKanal, error: neuerKanalFehler } = await leitung
+    .from("kontaktkanaele")
+    .insert({ typ: "whatsapp", bezeichnung: "Test-Kanal 5.6", wert: null, aktiv: false })
+    .select("id")
+    .single();
+  check(
+    "Anforderung 5.6: Betriebsleitung legt einen Kontaktkanal an",
+    !neuerKanalFehler && !!neuerKanal?.id,
+    neuerKanalFehler?.message ?? "",
+  );
+
+  if (!neuerKanalFehler && neuerKanal?.id) {
+    const { data: erzeugerLegtAnVersuch, error: erzeugerLegtAnFehler } = await (
+      await anmelden("erzeuger@damicon.demo")
+    ).client
+      .from("kontaktkanaele")
+      .insert({ typ: "whatsapp", bezeichnung: "Unbefugt", wert: null, aktiv: false })
+      .select("id");
+    check(
+      "Anforderung 5.6: eine Rolle ohne Buero-Zugriff (Erzeuger) legt keinen Kontaktkanal an (RLS)",
+      erzeugerLegtAnFehler?.code === "42501",
+      erzeugerLegtAnFehler?.code ?? `eingefuegte Zeilen: ${erzeugerLegtAnVersuch?.length}`,
+    );
+
+    const { data: anonSiehtEntwurf } = await anon
+      .from("kontaktkanaele")
+      .select("id")
+      .eq("id", neuerKanal.id);
+    check(
+      "Anforderung 5.6: ein inaktiver Kanal (Entwurf) ist fuer anon nicht sichtbar (kontaktkanaele_select_public)",
+      (anonSiehtEntwurf?.length ?? 0) === 0,
+      `Zeilen: ${anonSiehtEntwurf?.length}`,
+    );
+
+    const { data: erzeugerSiehtEntwurf } = await (await anmelden("erzeuger@damicon.demo")).client
+      .from("kontaktkanaele")
+      .select("id")
+      .eq("id", neuerKanal.id);
+    check(
+      "Anforderung 5.6: jede angemeldete Rolle sieht auch Entwuerfe (kontaktkanaele_select_intern)",
+      (erzeugerSiehtEntwurf?.length ?? 0) === 1,
+      `Zeilen: ${erzeugerSiehtEntwurf?.length}`,
+    );
+
+    await leitung
+      .from("kontaktkanaele")
+      .update({ wert: "+7 700 000 00 00", aktiv: true })
+      .eq("id", neuerKanal.id);
+
+    const { data: anonSiehtAktiven } = await anon
+      .from("kontaktkanaele")
+      .select("id, wert")
+      .eq("id", neuerKanal.id);
+    check(
+      "Anforderung 5.6: ein aktivierter Kanal mit echtem Wert ist fuer anon sichtbar",
+      (anonSiehtAktiven?.length ?? 0) === 1 && anonSiehtAktiven?.[0]?.wert === "+7 700 000 00 00",
+      JSON.stringify(anonSiehtAktiven),
+    );
+
+    await admin.from("kontaktkanaele").delete().eq("id", neuerKanal.id);
+  }
+}
+
+// --- Anforderung 3.5: Tourenplanung mit Routenoptimierung -----------------
+{
+  const { data: almatyFreshTour } = await admin
+    .from("b2b_kunden")
+    .select("id, adresse")
+    .eq("name", "Almaty Fresh Market")
+    .single();
+
+  const { data: lieferungTour, error: lieferungTourFehler } = await admin
+    .from("lieferungen")
+    .insert({ b2b_kunde_id: almatyFreshTour?.id, menge_kg: 15 })
+    .select("id")
+    .single();
+  check(
+    "Anforderung 3.5: Testaufbau (Lieferung ohne Tour fuer Almaty Fresh Market) gelingt",
+    !lieferungTourFehler,
+    lieferungTourFehler?.message ?? "",
+  );
+
+  if (!lieferungTourFehler && lieferungTour?.id) {
+    const { data: erzeugerTourVersuch, error: erzeugerTourFehler } = await (
+      await anmelden("erzeuger@damicon.demo")
+    ).client
+      .from("touren")
+      .insert({ datum: "2026-09-20" })
+      .select("id");
+    check(
+      "Anforderung 3.5: eine Rolle ohne Buero-Zugriff (Erzeuger) legt keine Tour an (RLS touren_write_buero)",
+      erzeugerTourFehler?.code === "42501",
+      erzeugerTourFehler?.code ?? `eingefuegte Zeilen: ${erzeugerTourVersuch?.length}`,
+    );
+
+    // has_office_access() grenzt auf admin/betriebsleitung/buchhaltung ein -
+    // Brigade faehrt zwar die Tour, plant sie aber nicht selbst.
+    const { data: brigadeTourVersuch, error: brigadeTourFehler } = await brigade
+      .from("touren")
+      .insert({ datum: "2026-09-20" })
+      .select("id");
+    check(
+      "Anforderung 3.5: Brigade legt ebenfalls keine Tour an (RLS touren_write_buero)",
+      brigadeTourFehler?.code === "42501",
+      brigadeTourFehler?.code ?? `eingefuegte Zeilen: ${brigadeTourVersuch?.length}`,
+    );
+
+    const { data: tour, error: tourFehler } = await leitung
+      .from("touren")
+      .insert({ datum: "2026-09-20", distanz_km: 12.5, dauer_minuten: 20 })
+      .select("id")
+      .single();
+    check(
+      "Anforderung 3.5: Betriebsleitung legt eine Tour an (RLS touren_write_buero)",
+      !tourFehler && !!tour?.id,
+      tourFehler?.message ?? "",
+    );
+
+    if (!tourFehler && tour?.id) {
+      await admin
+        .from("lieferungen")
+        .update({ tour_id: tour.id, tour_reihenfolge: 0 })
+        .eq("id", lieferungTour.id);
+
+      const { data: erzeugerSiehtTour } = await (await anmelden("erzeuger@damicon.demo")).client
+        .from("touren")
+        .select("id")
+        .eq("id", tour.id);
+      check(
+        "Anforderung 3.5: eine Rolle ohne Buero-Zugriff (Erzeuger) sieht die Tour nicht (RLS touren_select_buero)",
+        (erzeugerSiehtTour?.length ?? 0) === 0,
+        `Zeilen: ${erzeugerSiehtTour?.length}`,
+      );
+
+      const { data: bueroSiehtTour } = await leitung
+        .from("touren")
+        .select("id, lieferungen(id, tour_reihenfolge)")
+        .eq("id", tour.id)
+        .single();
+      check(
+        "Anforderung 3.5: Betriebsleitung sieht die Tour mit der zugeordneten Lieferung",
+        (bueroSiehtTour?.lieferungen?.length ?? 0) === 1 &&
+          bueroSiehtTour.lieferungen[0].tour_reihenfolge === 0,
+        JSON.stringify(bueroSiehtTour),
+      );
+
+      const { error: tourLoeschenFehler } = await leitung.from("touren").delete().eq("id", tour.id);
+      check(
+        "Anforderung 3.5: Betriebsleitung loescht die Tour (RLS touren_write_buero)",
+        !tourLoeschenFehler,
+        tourLoeschenFehler?.message ?? "",
+      );
+
+      const { data: lieferungNachLoeschen } = await admin
+        .from("lieferungen")
+        .select("id, tour_id")
+        .eq("id", lieferungTour.id)
+        .single();
+      check(
+        "Anforderung 3.5: nach dem Loeschen der Tour bleibt die Lieferung erhalten, tour_id wird null (on delete set null)",
+        !!lieferungNachLoeschen && lieferungNachLoeschen.tour_id === null,
+        JSON.stringify(lieferungNachLoeschen),
+      );
+    }
+
+    // Eine reine USING-Klausel (kein WITH-CHECK-Verstoss, da kein Insert)
+    // filtert die Zeile vor dem UPDATE heraus - das ergibt 0 geaenderte
+    // Zeilen ohne Fehlercode, nicht 42501 (siehe z. B. "Zukauf-RLS: Brigade
+    // traegt keinen Preis nach" weiter oben, derselbe UPDATE-vs-INSERT-
+    // Unterschied).
+    const { data: erzeugerAdresseVersuch, error: erzeugerAdresseFehler } = await (
+      await anmelden("erzeuger@damicon.demo")
+    ).client
+      .from("b2b_kunden")
+      .update({ adresse: "Unbefugt 1, Almaty" })
+      .eq("id", almatyFreshTour?.id)
+      .select("id");
+    check(
+      "Anforderung 3.5: eine Rolle ohne Buero-Zugriff (Erzeuger) pflegt keine Kundenadresse (RLS b2b_kunden_update_buero)",
+      !erzeugerAdresseFehler && (erzeugerAdresseVersuch?.length ?? 0) === 0,
+      erzeugerAdresseFehler?.message ?? `geaenderte Zeilen: ${erzeugerAdresseVersuch?.length}`,
+    );
+
+    const testAdresse = `__it_adresse_${Date.now()}`;
+    const { data: bueroAdresseUpdate, error: bueroAdresseFehler } = await leitung
+      .from("b2b_kunden")
+      .update({ adresse: testAdresse })
+      .eq("id", almatyFreshTour?.id)
+      .select("adresse")
+      .single();
+    check(
+      "Anforderung 3.5: Betriebsleitung pflegt die Kundenadresse (RLS b2b_kunden_update_buero)",
+      !bueroAdresseFehler && bueroAdresseUpdate?.adresse === testAdresse,
+      bueroAdresseFehler?.message ?? JSON.stringify(bueroAdresseUpdate),
+    );
+
+    // Ursprungszustand wiederherstellen (vor diesem Testlauf war noch keine
+    // Adresse hinterlegt).
+    await admin
+      .from("b2b_kunden")
+      .update({ adresse: almatyFreshTour?.adresse ?? null })
+      .eq("id", almatyFreshTour?.id);
+
+    await admin.from("lieferungen").delete().eq("id", lieferungTour.id);
+  }
+}
+
+// --- Anforderung 5.1/5.2: Preisstaffelung je Kundengruppe -----------------
+{
+  const { data: erzeugerPreislisteVersuch, error: erzeugerPreislisteFehler } = await (
+    await anmelden("erzeuger@damicon.demo")
+  ).client
+    .from("preislisten")
+    .insert({ name: "Unbefugt", gueltig_ab: "2026-09-20" })
+    .select("id");
+  check(
+    "Anforderung 5.1/5.2: eine Rolle ohne Buero-Zugriff (Erzeuger) legt keine Preisliste an (RLS preislisten_write_buero)",
+    erzeugerPreislisteFehler?.code === "42501",
+    erzeugerPreislisteFehler?.code ?? `eingefuegte Zeilen: ${erzeugerPreislisteVersuch?.length}`,
+  );
+
+  const { data: testListe, error: testListeFehler } = await leitung
+    .from("preislisten")
+    .insert({ name: "__it_preisliste_handel", gueltig_ab: "2026-09-20", kundengruppe: "handel" })
+    .select("id")
+    .single();
+  check(
+    "Anforderung 5.1/5.2: Betriebsleitung legt eine gruppenspezifische Preisliste an (RLS preislisten_write_buero)",
+    !testListeFehler && !!testListe?.id,
+    testListeFehler?.message ?? "",
+  );
+
+  if (!testListeFehler && testListe?.id) {
+    const { data: sortePolka } = await admin.from("sorten").select("id").eq("name", "Polka").single();
+
+    const { data: erzeugerPositionVersuch, error: erzeugerPositionFehler } = await (
+      await anmelden("erzeuger@damicon.demo")
+    ).client
+      .from("preislisten_positionen")
+      .insert({ preisliste_id: testListe.id, sorte_id: sortePolka.id, preis_tenge_kg: 1 })
+      .select("id");
+    check(
+      "Anforderung 5.1/5.2: eine Rolle ohne Buero-Zugriff (Erzeuger) fuegt keine Preislisten-Position hinzu (RLS preislisten_positionen_write_buero)",
+      erzeugerPositionFehler?.code === "42501",
+      erzeugerPositionFehler?.code ?? `eingefuegte Zeilen: ${erzeugerPositionVersuch?.length}`,
+    );
+
+    const { data: testPosition, error: testPositionFehler } = await leitung
+      .from("preislisten_positionen")
+      .insert({ preisliste_id: testListe.id, sorte_id: sortePolka.id, preis_tenge_kg: 1900 })
+      .select("id")
+      .single();
+    check(
+      "Anforderung 5.1/5.2: Betriebsleitung fuegt eine Preislisten-Position hinzu",
+      !testPositionFehler && !!testPosition?.id,
+      testPositionFehler?.message ?? "",
+    );
+
+    // Reine USING-Klausel bei UPDATE: eine unbefugte Rolle bewirkt 0
+    // geaenderte Zeilen statt eines Fehlercodes, derselbe Unterschied wie bei
+    // b2b_kunden_update_buero weiter oben (Anforderung 3.5).
+    const { data: erzeugerAktivVersuch, error: erzeugerAktivFehler } = await (
+      await anmelden("erzeuger@damicon.demo")
+    ).client
+      .from("preislisten")
+      .update({ aktiv: false })
+      .eq("id", testListe.id)
+      .select("id");
+    check(
+      "Anforderung 5.1/5.2: eine Rolle ohne Buero-Zugriff (Erzeuger) schaltet keine Preisliste um (RLS preislisten_write_buero)",
+      !erzeugerAktivFehler && (erzeugerAktivVersuch?.length ?? 0) === 0,
+      erzeugerAktivFehler?.message ?? `geaenderte Zeilen: ${erzeugerAktivVersuch?.length}`,
+    );
+
+    const { data: bueroAktivUpdate, error: bueroAktivFehler } = await leitung
+      .from("preislisten")
+      .update({ aktiv: false })
+      .eq("id", testListe.id)
+      .select("aktiv")
+      .single();
+    check(
+      "Anforderung 5.1/5.2: Betriebsleitung schaltet eine Preisliste inaktiv",
+      !bueroAktivFehler && bueroAktivUpdate?.aktiv === false,
+      bueroAktivFehler?.message ?? JSON.stringify(bueroAktivUpdate),
+    );
+
+    // Kundengruppen-Filterung wie in ladePreislisten() (data/vorbestellungen.ts):
+    // Almaty Fresh Market gehoert laut Seed zu "einzelhandel" - die
+    // gruppenlose Standardliste ist sichtbar, die eben angelegte
+    // "handel"-Liste nicht.
+    const { data: almatyFreshPl } = await admin
+      .from("b2b_kunden")
+      .select("kundengruppe")
+      .eq("name", "Almaty Fresh Market")
+      .single();
+    const { client: kundeClientPl, fehler: kundeLoginPlFehler } = await anmelden("kunde@damicon.demo");
+    const eigeneGruppePl = almatyFreshPl?.kundengruppe;
+    const { data: kundenSichtPl, error: kundenSichtPlFehler } = kundeClientPl
+      ? await (eigeneGruppePl
+          ? kundeClientPl
+              .from("preislisten")
+              .select("id, kundengruppe")
+              .eq("aktiv", true)
+              .or(`kundengruppe.is.null,kundengruppe.eq.${eigeneGruppePl}`)
+          : kundeClientPl.from("preislisten").select("id, kundengruppe").eq("aktiv", true).is("kundengruppe", null))
+      : { data: null, error: null };
+    check(
+      "Anforderung 5.1/5.2: die Kundengruppen-Filterung blendet eine fremde Gruppenliste aus, gruppenlose Listen bleiben sichtbar",
+      !!kundenSichtPl &&
+        kundenSichtPl.some((p) => p.kundengruppe === null) &&
+        !kundenSichtPl.some((p) => p.id === testListe.id),
+      kundeLoginPlFehler ?? kundenSichtPlFehler?.message ?? JSON.stringify(kundenSichtPl?.map((p) => p.kundengruppe)),
+    );
+
+    const { data: positionNachLoeschen, error: loeschFehler } = await leitung
+      .from("preislisten_positionen")
+      .delete()
+      .eq("id", testPosition.id)
+      .select("id");
+    check(
+      "Anforderung 5.1/5.2: Betriebsleitung entfernt eine Preislisten-Position",
+      !loeschFehler && (positionNachLoeschen?.length ?? 0) === 1,
+      loeschFehler?.message ?? `geloeschte Zeilen: ${positionNachLoeschen?.length}`,
+    );
+
+    await admin.from("preislisten").delete().eq("id", testListe.id);
+  }
+
+  // Kundengruppe je B2B-Kunde setzen (kundeGruppeSetzen()): ueber dieselbe
+  // b2b_kunden_update_buero-Policy wie die Adresse (Anforderung 3.5) -
+  // Ursprungswert aus dem Seed wird danach wiederhergestellt.
+  const { data: gastroKunde } = await admin
+    .from("b2b_kunden")
+    .select("id, kundengruppe")
+    .eq("name", "Gastro-Distributor Almaty")
+    .single();
+  const { data: erzeugerGruppeVersuch, error: erzeugerGruppeFehler } = await (
+    await anmelden("erzeuger@damicon.demo")
+  ).client
+    .from("b2b_kunden")
+    .update({ kundengruppe: "handel" })
+    .eq("id", gastroKunde.id)
+    .select("id");
+  check(
+    "Anforderung 5.1/5.2: eine Rolle ohne Buero-Zugriff (Erzeuger) aendert keine Kundengruppe (RLS b2b_kunden_update_buero)",
+    !erzeugerGruppeFehler && (erzeugerGruppeVersuch?.length ?? 0) === 0,
+    erzeugerGruppeFehler?.message ?? `geaenderte Zeilen: ${erzeugerGruppeVersuch?.length}`,
+  );
+
+  const { data: bueroGruppeUpdate, error: bueroGruppeFehler } = await leitung
+    .from("b2b_kunden")
+    .update({ kundengruppe: "einzelhandel" })
+    .eq("id", gastroKunde.id)
+    .select("kundengruppe")
+    .single();
+  check(
+    "Anforderung 5.1/5.2: Betriebsleitung aendert die Kundengruppe eines B2B-Kunden",
+    !bueroGruppeFehler && bueroGruppeUpdate?.kundengruppe === "einzelhandel",
+    bueroGruppeFehler?.message ?? JSON.stringify(bueroGruppeUpdate),
+  );
+
+  await admin.from("b2b_kunden").update({ kundengruppe: gastroKunde.kundengruppe }).eq("id", gastroKunde.id);
+}
+
+// --- Sorten- und Kontingentkatalog -----------------------------------------
+{
+  const { data: erzeugerSorteVersuch, error: erzeugerSorteFehler } = await (
+    await anmelden("erzeuger@damicon.demo")
+  ).client
+    .from("sorten")
+    .insert({ name: "__it_sorte", typ: "sommertragend" })
+    .select("id");
+  check(
+    "Sortenkatalog: eine Rolle ohne Buero-Zugriff (Erzeuger) legt keine Sorte an (RLS sorten_insert_leitung)",
+    erzeugerSorteFehler?.code === "42501",
+    erzeugerSorteFehler?.code ?? `eingefuegte Zeilen: ${erzeugerSorteVersuch?.length}`,
+  );
+
+  const { data: testSorte, error: testSorteFehler } = await leitung
+    .from("sorten")
+    .insert({ name: "__it_sorte", typ: "sommertragend", erntefenster: "Jul", schale_g: 150 })
+    .select("id")
+    .single();
+  check(
+    "Sortenkatalog: Betriebsleitung legt eine Sorte an (RLS sorten_insert_leitung)",
+    !testSorteFehler && !!testSorte?.id,
+    testSorteFehler?.message ?? "",
+  );
+
+  if (!testSorteFehler && testSorte?.id) {
+    const { data: sorteUpdate, error: sorteUpdateFehler } = await leitung
+      .from("sorten")
+      .update({ erntefenster: "Jul - Aug" })
+      .eq("id", testSorte.id)
+      .select("erntefenster")
+      .single();
+    check(
+      "Sortenkatalog: Betriebsleitung bearbeitet eine Sorte (RLS sorten_update_leitung)",
+      !sorteUpdateFehler && sorteUpdate?.erntefenster === "Jul - Aug",
+      sorteUpdateFehler?.message ?? JSON.stringify(sorteUpdate),
+    );
+
+    const { data: almatyFreshSk } = await admin
+      .from("b2b_kunden")
+      .select("id")
+      .eq("name", "Almaty Fresh Market")
+      .single();
+
+    const { data: erzeugerKontingentVersuch, error: erzeugerKontingentFehler } = await (
+      await anmelden("erzeuger@damicon.demo")
+    ).client
+      .from("kontingente")
+      .insert({ sorte_id: testSorte.id, b2b_kunde_id: almatyFreshSk.id, menge_kg: 1, saison: "__it" })
+      .select("id");
+    check(
+      "Sortenkatalog: eine Rolle ohne Buero-Zugriff (Erzeuger) legt kein Kontingent an (RLS kontingente_write_leitung)",
+      erzeugerKontingentFehler?.code === "42501",
+      erzeugerKontingentFehler?.code ?? `eingefuegte Zeilen: ${erzeugerKontingentVersuch?.length}`,
+    );
+
+    const { data: testKontingent, error: testKontingentFehler } = await leitung
+      .from("kontingente")
+      .insert({ sorte_id: testSorte.id, b2b_kunde_id: almatyFreshSk.id, menge_kg: 500, saison: "__it" })
+      .select("id")
+      .single();
+    check(
+      "Sortenkatalog: Betriebsleitung legt ein Kontingent an (RLS kontingente_write_leitung)",
+      !testKontingentFehler && !!testKontingent?.id,
+      testKontingentFehler?.message ?? "",
+    );
+
+    if (!testKontingentFehler && testKontingent?.id) {
+      const { data: kontingentUpdate, error: kontingentUpdateFehler } = await leitung
+        .from("kontingente")
+        .update({ menge_kg: 650 })
+        .eq("id", testKontingent.id)
+        .select("menge_kg")
+        .single();
+      check(
+        "Sortenkatalog: Betriebsleitung aendert die Menge eines Kontingents (RLS kontingente_write_leitung)",
+        !kontingentUpdateFehler && Number(kontingentUpdate?.menge_kg) === 650,
+        kontingentUpdateFehler?.message ?? JSON.stringify(kontingentUpdate),
+      );
+
+      // kontingent_verfuegbarkeit_je_sorte(): jede angemeldete Rolle darf die
+      // Funktion aufrufen (keine has_role()-Pruefung, siehe Migration
+      // 20261012000000), das Ergebnis enthaelt aber keine Kundenzuordnung.
+      const { data: verfuegbarkeitErzeuger, error: verfuegbarkeitFehler } = await (
+        await anmelden("erzeuger@damicon.demo")
+      ).client.rpc("kontingent_verfuegbarkeit_je_sorte");
+      const testZeile = verfuegbarkeitErzeuger?.find(
+        (z) => z.sorte_id === testSorte.id && z.saison === "__it",
+      );
+      check(
+        "Sortenkatalog: kontingent_verfuegbarkeit_je_sorte() ist fuer jede angemeldete Rolle abrufbar und summiert korrekt",
+        !verfuegbarkeitFehler && Number(testZeile?.menge_kg_gesamt) === 650,
+        verfuegbarkeitFehler?.message ?? JSON.stringify(testZeile),
+      );
+
+      await admin.from("kontingente").delete().eq("id", testKontingent.id);
+    }
+
+    await admin.from("sorten").delete().eq("id", testSorte.id);
   }
 }
 

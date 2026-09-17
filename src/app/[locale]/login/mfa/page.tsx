@@ -7,6 +7,7 @@ import { MfaChallengeForm } from "@/components/auth/mfa-challenge-form";
 import { PlantationBackdrop } from "@/components/site/plantation-backdrop";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { mfaHerausforderungOffen } from "@/lib/domain/mfa";
 
 export async function generateMetadata({
   params,
@@ -37,7 +38,7 @@ export default async function MfaChallengePage({
   if (!isSupabaseConfigured()) redirect(`/${locale}/login`);
   const supabase = await createClient();
   const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (!aal || aal.nextLevel !== "aal2" || aal.nextLevel === aal.currentLevel) {
+  if (!mfaHerausforderungOffen(aal)) {
     redirect(`/${locale}/login`);
   }
 

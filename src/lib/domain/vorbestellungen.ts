@@ -5,6 +5,12 @@
 export const vorbestellungStatus = ["angefragt", "bestaetigt", "geliefert", "storniert"] as const;
 export type VorbestellungStatus = (typeof vorbestellungStatus)[number];
 
+// Anforderung 5.1/5.2: feste Kundengruppe fuer die Preisstaffelung (Nutzer-
+// Entscheidung, siehe Migration 20261011000000) - kein frei verwaltbares
+// Gruppen-Register, keine Preis-Zuordnung direkt je einzelnem Kunden.
+export const kundengruppen = ["handel", "gastronomie", "einzelhandel"] as const;
+export type Kundengruppe = (typeof kundengruppen)[number];
+
 export interface AuswahlZeile {
   id: string;
   label: string;
@@ -21,6 +27,19 @@ export interface VorbestellungZeile {
   erstelltAm: string;
 }
 
+// Anforderung 5.1: Kontingent-Stand je Sorte (und, im Buero, je Kunde).
+// reserviertKg wird seit der Migration 20261006000000 automatisch fortge-
+// schrieben (angefragt->bestaetigt erhoeht, bestaetigt->storniert senkt).
+export interface KontingentZeile {
+  id: string;
+  kunde: string;
+  kundeId: string;
+  sorte: string;
+  saison: string | null;
+  mengeKg: number;
+  reserviertKg: number;
+}
+
 export interface PreislistenPositionZeile {
   id: string;
   sorte: string;
@@ -33,7 +52,17 @@ export interface PreislisteZeile {
   name: string;
   gueltigAb: string;
   gueltigBis: string | null;
+  aktiv: boolean;
+  kundengruppe: Kundengruppe | null;
   positionen: PreislistenPositionZeile[];
+}
+
+// Anforderung 5.1/5.2: fuer die Kundengruppen-Zuordnung im Buero-Modul
+// "preislisten" - keine neue Fachdomaene fuer einen einzelnen Namen+Gruppe.
+export interface B2bKundeZeile {
+  id: string;
+  name: string;
+  kundengruppe: Kundengruppe | null;
 }
 
 export const demoVorbestellungen: VorbestellungZeile[] = [
@@ -59,15 +88,44 @@ export const demoVorbestellungen: VorbestellungZeile[] = [
   },
 ];
 
+export const demoKontingente: KontingentZeile[] = [
+  {
+    id: "demo-kontingent-1",
+    kunde: "Handelskette A",
+    kundeId: "demo-kunde-1",
+    sorte: "Polka",
+    saison: "2026",
+    mengeKg: 4200,
+    reserviertKg: 3420,
+  },
+  {
+    id: "demo-kontingent-2",
+    kunde: "Handelskette A",
+    kundeId: "demo-kunde-1",
+    sorte: "Tulameen",
+    saison: "2026",
+    mengeKg: 1200,
+    reserviertKg: 340,
+  },
+];
+
 export const demoPreislisten: PreislisteZeile[] = [
   {
     id: "demo-preisliste-1",
     name: "Saison 2026",
     gueltigAb: "2026-06-01",
     gueltigBis: null,
+    aktiv: true,
+    kundengruppe: null,
     positionen: [
       { id: "demo-pos-1", sorte: "Polka", preisTengeKg: 3200, minMengeKg: 50 },
       { id: "demo-pos-2", sorte: "Tulameen", preisTengeKg: 3600, minMengeKg: 20 },
     ],
   },
+];
+
+export const demoB2bKunden: B2bKundeZeile[] = [
+  { id: "demo-kunde-1", name: "Handelskette A", kundengruppe: "handel" },
+  { id: "demo-kunde-2", name: "Gastro-Distributor Almaty", kundengruppe: "gastronomie" },
+  { id: "demo-kunde-3", name: "Almaty Fresh Market", kundengruppe: "einzelhandel" },
 ];

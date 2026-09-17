@@ -12,7 +12,13 @@ import {
 import type { KernErgebnis } from "@/lib/actions/nachweiskette";
 import type { Json } from "@/lib/database.types";
 import { aufgabenStatus, type AufgabenStatus } from "@/lib/domain/pflueckaufgaben";
-import { text, zahl, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
+import {
+  text,
+  zahl,
+  aktualisiere,
+  generiereTicketCode,
+  protokolliere as protokolliereBasis,
+} from "@/lib/actions/formular-helfer";
 
 // Vorstufe zu Anforderung 2.5 (Offline-first): aufgabeStatusSetzen() und
 // mengeMelden() aktualisierten bisher blind per .eq("id", id), ohne den
@@ -72,11 +78,7 @@ export async function aufgabeAnlegen(
   if (!block) return fehler("fehler.eingabe");
   if (block.status === "wartezeitgesperrt") return fehler("fehler.gesperrt", block.code);
 
-  const heute = new Date();
-  const stempel = `${heute.getFullYear()}${String(heute.getMonth() + 1).padStart(2, "0")}${String(
-    heute.getDate(),
-  ).padStart(2, "0")}`;
-  const code = `PA-${stempel}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+  const code = generiereTicketCode("PA");
 
   const faelligkeit = text(formData, "faelligkeit");
 

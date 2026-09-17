@@ -2,6 +2,7 @@ import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { hasPermission, roles, type Action, type Resource, type Role } from "@/lib/rbac";
+import { mfaHerausforderungOffen } from "@/lib/domain/mfa";
 
 // Angemeldeter Nutzer inklusive Damicon-Profil. Die Rolle kommt aus
 // public.profiles und ist zugleich die Rolle, gegen die die RLS-Policies in der
@@ -91,8 +92,7 @@ export async function requireAal2Aktuell(): Promise<void> {
   if (!isSupabaseConfigured()) return;
   const supabase = await createClient();
   const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  const mfaOffen = !!aal && aal.nextLevel === "aal2" && aal.nextLevel !== aal.currentLevel;
-  if (mfaOffen) {
+  if (mfaHerausforderungOffen(aal)) {
     throw new Error("mfa-erforderlich");
   }
 }
