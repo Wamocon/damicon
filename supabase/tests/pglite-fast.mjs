@@ -767,6 +767,101 @@ await mussScheitern(
   await db.query("select set_config('request.jwt.claim.sub', '', false);");
 }
 
+// --- 12. Sync-Replay meldet das urspruengliche Ergebnis ----------------------
+// Regression: sync_aufgabe_status_setzen()/sync_menge_melden() fragten beim
+// Replay nur, OB die aktion_id im Protokoll steht, nicht WIE sie ausging. Ein
+// Konflikt, dessen Antwort auf dem Rueckweg verloren ging, kam beim naechsten
+// Versuch als "angewendet" zurueck - der Eintrag verschwand aus der
+// Warteschlange, ohne dass je etwas geschrieben wurde.
+{
+  // Definierter Ausgangspunkt: eine Aufgabe auf einem nicht gesperrten Block
+  // steht auf 'angenommen'. Serverseitig gesetzt (auth.uid() null), damit
+  // weder Rollen- noch Statusregeln den Aufbau stoeren.
+  const { rows: aufgabe } = await db.query(
+    `select a.id
+       from public.pflueckaufgaben a
+       join public.reihenbloecke r on r.id = a.reihenblock_id
+      where a.status <> 'abgeschlossen'
+        and r.status <> 'wartezeitgesperrt'
+      limit 1;`,
+  );
+  const aufgabeId = aufgabe[0].id;
+  await db.query(
+    "update public.pflueckaufgaben set status = 'angenommen' where id = $1;",
+    [aufgabeId],
+  );
+
+  await alsRolle(db, "authenticated", brigadeAuthId);
+
+  // Konflikt: die Aufgabe steht auf 'angenommen', der Auftrag erwartet 'offen'.
+  const konfliktAktion = crypto.randomUUID();
+  const { rows: ersterVersuch } = await db.query(
+    "select * from public.sync_aufgabe_status_setzen($1, $2, 'angenommen', 'offen');",
+    [konfliktAktion, aufgabeId],
+  );
+  const { rows: zweiterVersuch } = await db.query(
+    "select * from public.sync_aufgabe_status_setzen($1, $2, 'angenommen', 'offen');",
+    [konfliktAktion, aufgabeId],
+  );
+  check(
+    "Sync: ein wiederholter Konflikt bleibt ein Konflikt",
+    ersterVersuch[0].ergebnis === "konflikt" && zweiterVersuch[0].ergebnis === "konflikt",
+    `erster: ${ersterVersuch[0].ergebnis}, zweiter: ${zweiterVersuch[0].ergebnis}`,
+  );
+
+  // Der Replay darf auch nichts geschrieben haben.
+  const { rows: unveraendert } = await db.query(
+    "select status from public.pflueckaufgaben where id = $1;",
+    [aufgabeId],
+  );
+  check(
+    "Sync: der wiederholte Konflikt schreibt nichts",
+    unveraendert[0].status === "angenommen",
+    `Status: ${unveraendert[0].status}`,
+  );
+
+  // Gegenprobe: eine angewendete Aktion bleibt beim Replay angewendet
+  // (Idempotenz, unveraendert).
+  const erfolgAktion = crypto.randomUUID();
+  const { rows: erfolg } = await db.query(
+    "select * from public.sync_aufgabe_status_setzen($1, $2, 'in_arbeit', 'angenommen');",
+    [erfolgAktion, aufgabeId],
+  );
+  const { rows: erfolgReplay } = await db.query(
+    "select * from public.sync_aufgabe_status_setzen($1, $2, 'in_arbeit', 'angenommen');",
+    [erfolgAktion, aufgabeId],
+  );
+  check(
+    "Sync: eine angewendete Aktion bleibt beim Replay angewendet",
+    erfolg[0].ergebnis === "angewendet" &&
+      erfolgReplay[0].ergebnis === "angewendet" &&
+      erfolgReplay[0].code === erfolg[0].code,
+    `erster: ${erfolg[0].ergebnis}, Replay: ${erfolgReplay[0].ergebnis}`,
+  );
+
+  // Dieselbe Regel fuer die Mengenmeldung: die Aufgabe steht jetzt auf
+  // 'in_arbeit', ein Konflikt entsteht ueber eine unbekannte Aufgabe.
+  const mengenKonflikt = crypto.randomUUID();
+  const fremdeAufgabeId = "00000000-0000-0000-0000-000000000000";
+  const { rows: mengeErst } = await db.query(
+    "select * from public.sync_menge_melden($1, $2, 12.5, 1.0);",
+    [mengenKonflikt, fremdeAufgabeId],
+  );
+  const { rows: mengeReplay } = await db.query(
+    "select * from public.sync_menge_melden($1, $2, 12.5, 1.0);",
+    [mengenKonflikt, fremdeAufgabeId],
+  );
+  check(
+    "Sync: auch die Mengenmeldung meldet den Konflikt erneut",
+    mengeErst[0].ergebnis === "konflikt" && mengeReplay[0].ergebnis === "konflikt",
+    `erster: ${mengeErst[0].ergebnis}, zweiter: ${mengeReplay[0].ergebnis}`,
+  );
+
+  await alsAdmin(db);
+  // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
 // --- Aufraeumen ---------------------------------------------------------------
 await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [behandlungId]);
 await db.query("update public.reihenbloecke set status = 'ruhend' where id = $1;", [blockId]);
