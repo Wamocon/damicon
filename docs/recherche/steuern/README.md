@@ -16,6 +16,7 @@ Diese Sammlung traegt Quellen zusammen und haelt deren Kern fest. **Sie ist kein
 
 | Pfad | Inhalt |
 |---|---|
+| `overview-en.md` | Englische Zusammenfassung der Befunde, fuer Leser ohne Deutsch |
 | `quellenregister-schema.yaml` | Verbindliches Satzformat fuer jeden Quelleneintrag |
 | `rag-ingest-spezifikation.md` | Vertrag fuer die Aufnahme in die Vektordatenbank |
 | `konfliktregister.md` | Widersprueche zwischen Quellen, mit Aufloesungsstand |
