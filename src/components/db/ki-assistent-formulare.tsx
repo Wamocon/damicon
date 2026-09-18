@@ -1,8 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
-import { MessageSquareWarning, Sparkles } from "lucide-react";
+import { Loader2, MessageSquareWarning, Mic, Square, Sparkles } from "lucide-react";
 import { Card, StatusPill } from "@/components/ui/kit";
 import {
   AktionsMeldung,
@@ -12,7 +12,12 @@ import {
   PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
-import { kiEskalationAnfordern, kiNachrichtSenden } from "@/lib/actions/ki-assistent";
+import {
+  kiEskalationAnfordern,
+  kiNachrichtSenden,
+  transkribiereSprachnachricht,
+  waermeSpracherkennungVor,
+} from "@/lib/actions/ki-assistent";
 import {
   kiAnbieterAktivSetzen,
   kiAnbieterAnlegen,
@@ -34,6 +39,14 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
   const format = useFormatter();
   const [sendenStatus, sendenAction] = useActionState(kiNachrichtSenden, leer);
   const [eskalationStatus, eskalationAction] = useActionState(kiEskalationAnfordern, leer);
+  const eingabeRef = useRef<HTMLInputElement>(null);
+
+  // Caesar laedt sein Modell beim ersten Aufruf (gemessen 221 s kalt gegen
+  // 7,2 s warm). Ein Anstoss beim Oeffnen des Moduls sorgt dafuer, dass die
+  // erste echte Aufnahme nicht in diese Ladezeit laeuft. Fehler bleiben still.
+  useEffect(() => {
+    void waermeSpracherkennungVor().catch(() => undefined);
+  }, []);
   const istErsteNachricht = verlauf.length === 0;
 
   return (
@@ -88,12 +101,14 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
           <PfadFeld />
           <div className="flex gap-2">
             <input
+              ref={eingabeRef}
               name="nachricht"
               required
               maxLength={MAX_NACHRICHT_LAENGE}
               placeholder={t("inputPlaceholder")}
               className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary"
             />
+            <MikrofonKnopf eingabeRef={eingabeRef} />
             <SubmitKnopf label={t("senden")} />
           </div>
           {istErsteNachricht ? (
@@ -118,6 +133,118 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
         <AktionsMeldung status={eskalationStatus} />
       </form>
     </div>
+  );
+}
+
+
+// --- Mikrofonknopf -----------------------------------------------------------
+// Aufnehmen im Browser (MediaRecorder), Transkribieren auf dem Server
+// (transkribiereSprachnachricht -> Caesar im Buero-LAN). Der erkannte Text
+// landet im Eingabefeld, NICHT direkt im Chat: ein verhoertes Diktat, das
+// ungeprueft an die Kundschaft ginge, waere schlimmer als ein Tippfehler.
+// Abgeschickt wird weiterhin von Hand.
+function MikrofonKnopf({ eingabeRef }: { eingabeRef: React.RefObject<HTMLInputElement | null> }) {
+  const t = useTranslations("kiAssistentAnsicht.diktat");
+  const [zustand, setZustand] = useState<"bereit" | "aufnahme" | "laeuft">("bereit");
+  const [meldung, setMeldung] = useState<string | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+
+  // Eine laufende Aufnahme darf das Mikrofon nicht behalten, wenn die
+  // Komponente verschwindet (Seitenwechsel mitten im Diktat).
+  useEffect(() => {
+    return () => {
+      const r = recorderRef.current;
+      if (r && r.state !== "inactive") {
+        r.stream.getTracks().forEach((spur) => spur.stop());
+        r.stop();
+      }
+    };
+  }, []);
+
+  async function starten() {
+    setMeldung(null);
+    try {
+      const strom = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(strom);
+      const teile: Blob[] = [];
+
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) teile.push(e.data);
+      };
+
+      recorder.onstop = async () => {
+        strom.getTracks().forEach((spur) => spur.stop());
+        const aufnahme = new Blob(teile, { type: recorder.mimeType || "audio/webm" });
+        if (aufnahme.size === 0) {
+          setZustand("bereit");
+          setMeldung(t("leer"));
+          return;
+        }
+
+        setZustand("laeuft");
+        const daten = new FormData();
+        daten.append("audio", aufnahme, "aufnahme.webm");
+        const status = await transkribiereSprachnachricht(leer, daten);
+        setZustand("bereit");
+
+        // Erfolg traegt den erkannten Text im wert-Feld (siehe ok() in
+        // actions/status.ts). Er wird eingesetzt, nicht angehaengt - wer
+        // diktiert, will das Gesagte sehen, nicht einen Anbau an alten Text.
+        if (status.stand === "ok" && status.wert) {
+          const feld = eingabeRef.current;
+          if (feld) {
+            feld.value = status.wert;
+            feld.focus();
+          }
+        } else {
+          setMeldung(t("fehlgeschlagen"));
+        }
+      };
+
+      recorder.start();
+      recorderRef.current = recorder;
+      setZustand("aufnahme");
+    } catch {
+      // Kein Mikrofon, keine Erlaubnis, kein HTTPS - fuer die Nutzerin
+      // dasselbe Ergebnis: es geht gerade nicht.
+      setMeldung(t("keinZugriff"));
+    }
+  }
+
+  function stoppen() {
+    const r = recorderRef.current;
+    if (r && r.state !== "inactive") r.stop();
+  }
+
+  const beschriftung =
+    zustand === "aufnahme" ? t("stoppen") : zustand === "laeuft" ? t("laeuft") : t("starten");
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={zustand === "aufnahme" ? stoppen : starten}
+        disabled={zustand === "laeuft"}
+        title={beschriftung}
+        aria-label={beschriftung}
+        className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-foreground transition disabled:opacity-60 ${
+          zustand === "aufnahme"
+            ? "border-destructive bg-destructive/10 text-destructive"
+            : "border-border bg-card hover:border-primary"
+        }`}
+      >
+        {zustand === "laeuft" ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : zustand === "aufnahme" ? (
+          <Square className="h-4 w-4" />
+        ) : (
+          <Mic className="h-4 w-4" />
+        )}
+      </button>
+      {meldung ? (
+        <p className="self-center text-[11px] text-muted-foreground">{meldung}</p>
+      ) : null}
+    </>
   );
 }
 

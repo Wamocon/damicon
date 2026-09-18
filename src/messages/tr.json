@@ -586,6 +586,14 @@
         "apiKey": "API anahtarı",
         "knopf": "Sağlayıcı ekle"
       }
+    },
+    "diktat": {
+      "starten": "Dikte et",
+      "stoppen": "Kaydı durdur",
+      "laeuft": "Çözümleniyor …",
+      "leer": "Kayıt yok.",
+      "fehlgeschlagen": "Konuşma tanıma kullanılamıyor.",
+      "keinZugriff": "Mikrofon erişimi yok."
     }
   },
   "legal": {
@@ -1175,7 +1183,8 @@
       "kontingentErstellt": "Kota oluşturuldu.",
       "kontingentAktualisiert": "Miktar güncellendi.",
       "wetterAktualisiert": "Hava durumu verileri güncellendi.",
-      "stammdatenGespeichert": "Ana veriler kaydedildi."
+      "stammdatenGespeichert": "Ana veriler kaydedildi.",
+      "transkription": "Dikte alındı."
     },
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
@@ -1208,7 +1217,10 @@
       "stammdatenOhneRechtsform": "Önce hukuki biçimi seçin - IIN mi BIN mi geçerli olduğu buna bağlıdır.",
       "stammdatenFormat": "Numara tam olarak on iki haneden oluşur.",
       "stammdatenPruefziffer": "Kontrol hanesi tutmuyor. Çoğunlukla numarada iki rakam yer değiştirmiştir.",
-      "selbstkontrolle": "Kasayı kaydeden kişi kendisi kontrol edemez. Bu kasayı başka biri kontrol etmelidir."
+      "selbstkontrolle": "Kasayı kaydeden kişi kendisi kontrol edemez. Bu kasayı başka biri kontrol etmelidir.",
+      "transkription": "Konuşma tanıma kullanılamıyor.",
+      "transkriptionDauer": "Konuşma tanıma çok uzun sürdü.",
+      "dateiGross": "Kayıt çok büyük."
     },
     "einladungen": {
       "erfolg": {

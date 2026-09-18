@@ -109,7 +109,6 @@ const VERWEIS_MARKER = [
   "wenden sie sich", "wende dich", "nachfragen",
 ];
 
-const PREIS_ERFINDUNG = /\b\d{3,5}\s*(tenge|tg|₸|kzt)\b/i;
 
 function normalisiere(text) {
   return (text ?? "").toLowerCase();

@@ -836,7 +836,8 @@
       "sorteAktualisiert": "Sorte aktualisiert.",
       "kontingentErstellt": "Kontingent angelegt.",
       "kontingentAktualisiert": "Menge aktualisiert.",
-      "stammdatenGespeichert": "Stammdaten gespeichert."
+      "stammdatenGespeichert": "Stammdaten gespeichert.",
+      "transkription": "Diktat übernommen."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -869,7 +870,10 @@
       "stammdatenOhneRechtsform": "Bitte zuerst die Rechtsform wählen - davon hängt ab, ob ein ИИН oder ein БИН gilt.",
       "stammdatenFormat": "Die Nummer besteht aus genau zwölf Ziffern.",
       "stammdatenPruefziffer": "Die Prüfziffer stimmt nicht. Meist steckt ein Zahlendreher in der Nummer.",
-      "selbstkontrolle": "Wer eine Steige erfasst hat, kontrolliert sie nicht selbst. Eine andere Person muss diese Steige prüfen."
+      "selbstkontrolle": "Wer eine Steige erfasst hat, kontrolliert sie nicht selbst. Eine andere Person muss diese Steige prüfen.",
+      "transkription": "Spracherkennung nicht möglich.",
+      "transkriptionDauer": "Die Spracherkennung hat zu lange gebraucht.",
+      "dateiGross": "Die Aufnahme ist zu groß."
     },
     "einladungen": {
       "erfolg": {
@@ -1508,6 +1512,14 @@
         "apiKey": "API-Key",
         "knopf": "Anbieter anlegen"
       }
+    },
+    "diktat": {
+      "starten": "Diktieren",
+      "stoppen": "Aufnahme beenden",
+      "laeuft": "Wird erkannt …",
+      "leer": "Nichts aufgenommen.",
+      "fehlgeschlagen": "Spracherkennung nicht möglich.",
+      "keinZugriff": "Kein Mikrofonzugriff."
     }
   },
   "legal": {
