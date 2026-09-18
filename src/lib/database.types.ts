@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -2730,7 +2725,9 @@ export type Database = {
           geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
-          kontroll_befund?: Database["public"]["Enums"]["kontroll_befund"] | null
+          kontroll_befund?:
+            | Database["public"]["Enums"]["kontroll_befund"]
+            | null
           kontroll_begruendung?: string | null
           kontrolliert_am?: string | null
           kontrolliert_von_profil_id?: string | null
@@ -2748,7 +2745,9 @@ export type Database = {
           geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
-          kontroll_befund?: Database["public"]["Enums"]["kontroll_befund"] | null
+          kontroll_befund?:
+            | Database["public"]["Enums"]["kontroll_befund"]
+            | null
           kontroll_begruendung?: string | null
           kontrolliert_am?: string | null
           kontrolliert_von_profil_id?: string | null
@@ -2772,6 +2771,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "deckungsbeitrag_je_charge"
             referencedColumns: ["charge_id"]
+          },
+          {
+            foreignKeyName: "steigen_erfasst_von_profil_id_fkey"
+            columns: ["erfasst_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "steigen_erfasst_von_profil_id_fkey"
+            columns: ["erfasst_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
           },
           {
             foreignKeyName: "steigen_kontrolliert_von_profil_id_fkey"
@@ -3250,6 +3263,14 @@ export type Database = {
         Args: { p_id: string }
         Returns: undefined
       }
+      ki_chat_antwort_schreiben: {
+        Args: { p_anbieter_name: string; p_fallback: boolean; p_inhalt: string }
+        Returns: string
+      }
+      ki_chat_eskalation_schreiben: {
+        Args: { p_inhalt: string }
+        Returns: string
+      }
       kontingent_verfuegbarkeit_je_sorte: {
         Args: never
         Returns: {
@@ -3290,10 +3311,7 @@ export type Database = {
         Args: { p_rechtsform: Database["public"]["Enums"]["rechtsform"] }
         Returns: string
       }
-      pruefziffer_stimmt: {
-        Args: { p_nummer: string }
-        Returns: boolean
-      }
+      pruefziffer_stimmt: { Args: { p_nummer: string }; Returns: boolean }
       reihenblock_freigeben: {
         Args: {
           p_block: string
@@ -3362,6 +3380,10 @@ export type Database = {
           ergebnis: string
         }[]
       }
+      temperaturband_bewerten: {
+        Args: { grad: number }
+        Returns: Database["public"]["Enums"]["kuehlkette_ergebnis"]
+      }
       zukauf_positionen_importieren: {
         Args: { p_zeilen: Json }
         Returns: number
@@ -3418,13 +3440,7 @@ export type Database = {
         | "beleg_pruefung"
         | "abgeschlossen"
       plantage_typ: "eigen" | "nachbarbetrieb"
-      rechtsform:
-        | "kh_fh"
-        | "ip"
-        | "privatperson"
-        | "too"
-        | "ao"
-        | "pk"
+      rechtsform: "kh_fh" | "ip" | "privatperson" | "too" | "ao" | "pk"
       rechtsgrundlage_typ: "einwilligung" | "vertrag" | "gesetzliche_pflicht"
       reihenblock_status:
         | "bepflanzt"
@@ -3634,6 +3650,7 @@ export const Constants = {
         "kaspi_qr",
         "sonstiges",
       ],
+      kontroll_befund: ["in_ordnung", "abweichung"],
       kuehlkette_ergebnis: ["ok", "warnung", "verstoss"],
       kundengruppe: ["handel", "gastronomie", "einzelhandel"],
       ledger_typ: ["erloes", "kosten"],
@@ -3648,6 +3665,7 @@ export const Constants = {
         "abgeschlossen",
       ],
       plantage_typ: ["eigen", "nachbarbetrieb"],
+      rechtsform: ["kh_fh", "ip", "privatperson", "too", "ao", "pk"],
       rechtsgrundlage_typ: ["einwilligung", "vertrag", "gesetzliche_pflicht"],
       reihenblock_status: [
         "bepflanzt",
@@ -3696,3 +3714,4 @@ export const Constants = {
     },
   },
 } as const
+
