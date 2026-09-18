@@ -16,6 +16,7 @@ import {
   kiEskalationAnfordern,
   kiNachrichtSenden,
   transkribiereSprachnachricht,
+  waermeKiModellVor,
   waermeSpracherkennungVor,
 } from "@/lib/actions/ki-assistent";
 import {
@@ -44,8 +45,11 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
   // Caesar laedt sein Modell beim ersten Aufruf (gemessen 221 s kalt gegen
   // 7,2 s warm). Ein Anstoss beim Oeffnen des Moduls sorgt dafuer, dass die
   // erste echte Aufnahme nicht in diese Ladezeit laeuft. Fehler bleiben still.
+  // Dieselbe Idee fuer das Chat-Modell selbst (waermeKiModellVor, nur bei
+  // einem selbst gehosteten Anbieter - siehe Kommentar dort).
   useEffect(() => {
     void waermeSpracherkennungVor().catch(() => undefined);
+    void waermeKiModellVor().catch(() => undefined);
   }, []);
   const istErsteNachricht = verlauf.length === 0;
 

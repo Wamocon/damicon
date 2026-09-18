@@ -23,6 +23,7 @@ import {
   baueAnthropicAnfrage,
   baueOpenAiKompatibelAnfrage,
   maxAntwortTokens,
+  verlaufLaenge,
   zeitlimitMs,
   parseAnthropicAntwort,
   parseOpenAiKompatibelAntwort,
@@ -207,6 +208,56 @@ for (const [name, kaputteAntwort] of [
   process.env.KI_ZEITLIMIT_MS = "keine-zahl";
   pruefe("Zeitlimit: unlesbarer Wert faellt auf den Standard zurueck", zeitlimitMs() === 60_000);
   delete process.env.KI_ZEITLIMIT_MS;
+}
+
+// --- 2d. Verlauflaenge (Kurzzeitgedaechtnis) ---------------------------------
+// Frueher fest 10 (baueVerlaufFuerModell(), actions/ki-assistent.ts). Gedeckelt
+// bei 30, weil ladeKiChatVerlauf() (data/ki-assistent.ts) nie mehr laedt.
+{
+  delete process.env.KI_VERLAUF_LAENGE;
+  pruefe("Verlauflaenge: Standard ist 20, nicht mehr 10", verlaufLaenge() === 20);
+
+  process.env.KI_VERLAUF_LAENGE = "30";
+  pruefe("Verlauflaenge: KI_VERLAUF_LAENGE hebt den Wert bis zum Deckel an", verlaufLaenge() === 30);
+
+  process.env.KI_VERLAUF_LAENGE = "31";
+  pruefe("Verlauflaenge: ueber dem Deckel (30) faellt auf den Standard zurueck", verlaufLaenge() === 20);
+
+  process.env.KI_VERLAUF_LAENGE = "0";
+  pruefe("Verlauflaenge: 0 ist gueltig (kein Verlauf, nur die neue Frage)", verlaufLaenge() === 0);
+
+  process.env.KI_VERLAUF_LAENGE = "keine-zahl";
+  pruefe("Verlauflaenge: unlesbarer Wert faellt auf den Standard zurueck", verlaufLaenge() === 20);
+  delete process.env.KI_VERLAUF_LAENGE;
+}
+
+// --- 2e. Reasoning-Unterdrueckung (denkende Modelle) --------------------------
+// Standardmaessig aus - siehe Kommentar in anfrage.ts, warum das "think"-Feld
+// von hier aus nicht gegen Sokrates-2 verifizierbar war.
+{
+  delete process.env.KI_DEAKTIVIERE_REASONING;
+  const ohneFlag = JSON.parse(
+    baueOpenAiKompatibelAnfrage("https://api.beispiel.kz/v1", "m", "k", [
+      { rolle: "nutzer", inhalt: "Hallo" },
+    ]).body,
+  );
+  pruefe("Reasoning-Unterdrueckung: standardmaessig kein think-Feld im Koerper", !("think" in ohneFlag));
+
+  process.env.KI_DEAKTIVIERE_REASONING = "true";
+  const mitFlag = JSON.parse(
+    baueOpenAiKompatibelAnfrage("https://api.beispiel.kz/v1", "m", "k", [
+      { rolle: "nutzer", inhalt: "Hallo" },
+    ]).body,
+  );
+  pruefe("Reasoning-Unterdrueckung: KI_DEAKTIVIERE_REASONING=true setzt think auf false", mitFlag.think === false);
+
+  const anthropicKoerper = JSON.parse(
+    baueAnthropicAnfrage("https://api.anthropic.com", "m", "k", [
+      { rolle: "nutzer", inhalt: "Hallo" },
+    ]).body,
+  );
+  pruefe("Reasoning-Unterdrueckung: betrifft nur openai-kompatibel, nicht Anthropic", !("think" in anthropicKoerper));
+  delete process.env.KI_DEAKTIVIERE_REASONING;
 }
 
 // --- 3. domain/ki-assistent.ts ------------------------------------------------
