@@ -69,7 +69,45 @@ export function zeitlimitMs(): number {
   return Number.isFinite(wert) && wert >= 1_000 && wert <= 300_000 ? wert : STANDARD_ZEITLIMIT_MS;
 }
 
+// Anzahl vorheriger Nachrichten (Kurzzeitgedaechtnis des Chats), die pro
+// Anfrage mit ans Modell gehen (baueVerlaufFuerModell(), actions/ki-assistent.ts)
+// - hier bei den anderen Stellschrauben, gleiches Muster wie
+// maxAntwortTokens()/zeitlimitMs(). Frueher fest 10. Mehr Verlauf heisst mehr
+// Tokens pro Anfrage - bei einem denkenden Modell wie qwen3.6 (Kommentar zu
+// maxAntwortTokens() oben) wirkt sich das nicht nur auf den Preis, sondern auch
+// auf die Antwortzeit aus. Deckel bei 30, weil ladeKiChatVerlauf()
+// (data/ki-assistent.ts, MAX_VERLAUF) ohnehin nie mehr als 30 Zeilen laedt - ein
+// hoeherer Wert haette keine Wirkung, nur eine falsche Erwartung geweckt.
+const STANDARD_VERLAUF_LAENGE = 20;
+
+export function verlaufLaenge(): number {
+  const wert = Number(process.env.KI_VERLAUF_LAENGE);
+  return Number.isFinite(wert) && wert >= 0 && wert <= 30 ? wert : STANDARD_VERLAUF_LAENGE;
+}
+
 // --- OpenAI-kompatibel (Chat Completions) -----------------------------------
+
+// Ollama meldet fuer denkende Modelle (qwen3.6 & Co.) ein "think"-Feld auf der
+// OpenAI-kompatiblen /v1/chat/completions-Route, um die Reasoning-Ausgabe
+// abzuschalten - genau die Tokens, die laut Kommentar zu maxAntwortTokens()
+// oben Antwortbudget und Antwortzeit auffressen.
+//
+// Am 18.09.2026 gegen Sokrates-2 (qwen3.6:35b, 192.168.178.136) nachgemessen,
+// vier Laeufe mit und ohne Feld: KEIN Unterschied. Die Route nimmt "think"
+// entgegen (HTTP 200, keine Fehlermeldung) und ignoriert es - das Modell denkt
+// weiter. Gemessen ohne Feld 1074/1259 Zeichen Reasoning (320/404 Token), mit
+// Feld 949/1245 Zeichen (279/375 Token); in einem fuenften Lauf mit laengerem
+// Prompt lag der Wert MIT Feld sogar hoeher. Reine Streuung, keine Wirkung.
+//
+// Der Schalter bleibt deshalb aus und ist es wert, hier stehen zu bleiben:
+// Ollama kann das in einer neueren Fassung nachliefern, und dann ist der Weg
+// schon gebaut. Wer ihn einschaltet, gewinnt nach heutigem Stand nichts -
+// schaden kann er aber auch nicht, das Feld wird schlicht verworfen.
+// Wirksam gegen die Reasoning-Tokens ist derzeit nur ein Modell ohne
+// Denkschritt oder ein groesseres Antwortbudget (maxAntwortTokens()).
+function reasoningUnterdruecken(): boolean {
+  return process.env.KI_DEAKTIVIERE_REASONING === "true";
+}
 
 export function baueOpenAiKompatibelAnfrage(
   basisUrl: string,
@@ -90,6 +128,7 @@ export function baueOpenAiKompatibelAnfrage(
         content: n.inhalt,
       })),
       max_tokens: maxAntwortTokens(),
+      ...(reasoningUnterdruecken() ? { think: false } : {}),
     }),
   };
 }

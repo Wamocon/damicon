@@ -19,7 +19,7 @@ import { sendeChatAnfrage } from "@/lib/ai/anbieter-client";
 import { sendeAgentAnfrage } from "@/lib/ai/agent";
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
 import { transkribiereAudio, waermeTranskriptionVor } from "@/lib/ai/transkription-client";
-import type { ChatNachricht } from "@/lib/ai/anfrage";
+import { verlaufLaenge, type ChatNachricht } from "@/lib/ai/anfrage";
 import type { Json } from "@/lib/database.types";
 import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 
@@ -46,8 +46,6 @@ import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/a
 // nicht ausgeschlossen, durch SubmitKnopf() (formular-kit.tsx), das den
 // Knopf waehrend eines laufenden Requests deaktiviert, dasselbe Mass an
 // Schutz wie bei jedem anderen Formular in diesem Projekt.
-
-const MAX_VERLAUF_FUER_MODELL = 10;
 
 function protokolliere(
   profil: SessionProfile,
@@ -77,7 +75,7 @@ function baueVerlaufFuerModell(
     // eigentliche Systemprompt.
     ...bisherigerVerlauf
       .filter((n) => n.rolle !== "system")
-      .slice(-MAX_VERLAUF_FUER_MODELL)
+      .slice(-verlaufLaenge())
       .map((n) => ({ rolle: n.rolle, inhalt: n.inhalt })),
     { rolle: "nutzer", inhalt: nachricht },
   ];
@@ -316,4 +314,41 @@ export async function waermeSpracherkennungVor(): Promise<void> {
     return;
   }
   await waermeTranskriptionVor().catch(() => false);
+}
+
+/** Stoesst das Laden des Chat-Modells an, damit die erste echte Frage nicht in
+ *  eine kalte Ladezeit laeuft - dieselbe Idee wie waermeSpracherkennungVor()
+ *  oben, fuer den Chat statt fuer Caesar. Gemessen an Sokrates-2
+ *  (qwen3.6:35b, Buero-LAN) am 18.09.2026: 24,0 s kalt gegen 10,2 s warm
+ *  (Kommentar zu zeitlimitMs() in anfrage.ts) - beides unter dem
+ *  Zeitlimit, aber ein kalter Start soll erst gar nicht in eine echte Frage
+ *  laufen. Absichtlich nur fuer "openai_kompatibel" (Sokrates-2 und jedes
+ *  andere selbst gehostete Modell) - ein Cloud-Anbieter wie Claude
+ *  ("anthropic") hat kein Kaltstart-Problem, dafuer aber echte Kosten pro
+ *  Aufruf; ein Aufwaermversuch waere dort reiner Mehrverbrauch ohne Nutzen.
+ *  Bewusst offen (wie beim Diktat-Aufwaermen): mehrere Personen, die das
+ *  Modul binnen Sekunden oeffnen, loesen ebenso viele parallele
+ *  Aufwaerm-Anfragen aus - fuer einen Anbieter, der Anfragen nacheinander
+ *  abarbeitet, dieselbe Kollisionsgefahr wie bei Caesar
+ *  (transkription-client.ts), hier nicht geloest.
+ *  Die Aufwaermfrage selbst landet nirgends im Verlauf (kein Insert in
+ *  ki_chat_nachrichten) und wird nicht protokolliert - Ergebnis bewusst ohne
+ *  Rueckmeldung, ein misslungener Versuch darf den Chat nicht stoeren. */
+export async function waermeKiModellVor(): Promise<void> {
+  try {
+    await requirePermission("ki_assistent", "create");
+  } catch {
+    return;
+  }
+  try {
+    const anbieter = await ladeAktivenStandardAnbieter();
+    if (!anbieter || anbieter.typ !== "openai_kompatibel") return;
+    const apiKey = entschluessleApiKey(anbieter.api_key_chiffrat);
+    await sendeChatAnfrage(
+      { typ: anbieter.typ, basisUrl: anbieter.basis_url, modell: anbieter.modell, apiKey },
+      [{ rolle: "nutzer", inhalt: "Hallo" }],
+    );
+  } catch {
+    // still, gleiche Begruendung wie oben.
+  }
 }
