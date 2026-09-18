@@ -1,0 +1,1195 @@
+# Quellenregister - P8 (Wissenschaft) und P9 (Buecher)
+#
+# Rechercheeinheit: P9 Buecher + P8 Akademische Quellen.
+# Auftrag: kaufbereite Bibliographie fuer Vektordatenbank-Ingest plus wissenschaftliche
+# Sekundaerliteratur zur kasachischen Steuerreform 2025/2026.
+#
+# Kernbefund vorab: Kasachstan hat seinen Steuerkodex zum 01.01.2026 komplett ersetzt
+# (Gesetz Nr. 214-VIII vom 18.07.2025). Fast der gesamte hier gefundene Buchmarkt
+# stammt aus der Zeit VOR diesem Stichtag. Wo ist_ueberholt=true gesetzt ist, gilt das
+# nach der harten Regel des Schemas (alles vor Kodex 214-VIII), auch wenn der Inhalt
+# (z.B. MSFO-Theorie, Landrecht, empirische Strukturanalyse) fachlich weiterhin trägt.
+# Die jeweilige Notiz erklaert den Unterschied zwischen "Regel veraltet" und
+# "Methode/Struktur weiter brauchbar".
+#
+# Recherchestand: WebSearch-Kontingent der Session wurde waehrend der Recherche
+# erschoepft (gemeinsames Kontingent mehrerer paralleler Rechercheagenten). Ab diesem
+# Punkt wurde ausschliesslich per WebFetch auf bereits bekannte oder konstruierte URLs
+# zugegriffen. Direktzugriff auf die Repositorien von KAZGUU (repository.kazguu.kz,
+# Verbindung verweigert) und Narxoz war in dieser Sitzung nicht moeglich. Fuer eine
+# vertiefte Suche nach KIMEP-/Narxoz-/KAZGUU-Dissertationen speziell zur Steuerreform
+# 2025/2026 wird eine Folge-Recherche mit frischem Suchkontingent und/oder direktem
+# Bibliothekszugang empfohlen.
+#
+# abgerufen_am fuer alle Saetze: 2026-09-18
+
+schema_version: 1
+
+quellen:
+
+  # ---------------------------------------------------------------------
+  # A. NEUER KODEX: TEXTAUSGABEN UND KOMMENTARE
+  # ---------------------------------------------------------------------
+
+  - id: lem-nk-rk-2026-rus
+    name: "Steuerkodex der Republik Kasachstan, Ausgabe 2026 (Russisch)"
+    name_original: "Налоговый кодекс РК на 2026"
+    herausgeber: "Verlag LEM (Almaty)"
+    url: "https://lem.kz/publishing-house/nalogovy-kodeks-rk-2026-god/2290"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 4990
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/nalogovy-kodeks-rk-2026-god/2290"
+    aktualisierung: jaehrlich
+    abdeckung: >-
+      Reiner Textabdruck des neuen Steuerkodex (Gesetz 214-VIII) im A4-Format,
+      544 Seiten, Softcover, mit Randspalten fuer Abschnitts- und Artikelnummern.
+      Keine Kommentierung, keine Erlaeuterung, nur der Gesetzestext selbst.
+    beschaffung: "Direktbestellung im LEM-Online-Shop, Lieferung in Kasachstan. Baugleiche Ausgabe (ISBN 978-601-239-835-9) auch ueber Kaspi.kz Marketplace gelistet: https://kaspi.kz/shop/p/nalogovyi-kodeks-rk-2026g--144784361/"
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur als gedrucktes Buch verfuegbar, kein PDF/E-Book gefunden. Fuer RAG-Ingest ohne Mehrwert gegenueber dem freien Primaertext auf adilet.zan.kz (K2500000214) -- Kauf lohnt nur fuer physisches Nachschlagen, nicht fuer die Vektordatenbank."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Ist der aktuell gueltige Kodex, daher nicht ueberholt. Reprint ohne redaktionelle Kommentierung; die massgebliche Fassung bleibt adilet.zan.kz."
+
+  - id: lem-nk-rk-2026-kaz
+    name: "Steuerkodex der Republik Kasachstan, Ausgabe 2026 (Kasachisch)"
+    name_original: "Қазақстан Республикасының Салық кодексі 2026 ж."
+    herausgeber: "Verlag LEM (Almaty)"
+    url: "https://lem.kz/publishing-house/nalogovy-kodeks-rk-2026-kaz/2291"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [kk]
+    zugang: bezahlt
+    kosten:
+      betrag: 7900
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/nalogovy-kodeks-rk-2026-kaz/2291"
+    aktualisierung: jaehrlich
+    abdeckung: >-
+      Kasachischsprachige Parallelausgabe des neuen Steuerkodex, ebenfalls 544 Seiten,
+      gleiches Layout wie die russische Ausgabe. Amtssprachliche Fassung, keine
+      Uebersetzung eines Privatverlags, sondern die staatlich vorgeschriebene
+      zweite Amtssprachfassung.
+    beschaffung: "Direktbestellung im LEM-Online-Shop. Deutlich teurer als die russische Ausgabe (7900 vs. 4990 KZT) bei identischem Seitenumfang -- vermutlich kleinere Auflage."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt. Fuer eine viersprachige RAG-Abnahme (siehe rag-ingest-spezifikation.md) waere die kasachische Fassung als Normverbund-Partner zur russischen Fassung interessant, aber nur nach Scan/OCR."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Amtssprachliche Parallelfassung, kein reines Uebersetzungsprodukt. Beantwortet Mandatspunkt 7 teilweise: der Kodex selbst existiert vollwertig auf Kasachisch; siehe Notiz bei den Fachbuch-Eintraegen zur Kasachisch-Luecke bei Fachliteratur."
+
+  - id: npp-kommentar-nk-rk-2020
+    name: "Kommentar zum Steuerkodex der Republik Kasachstan (Atameken/NPP, Ausgabe 2020, alter Kodex)"
+    name_original: "Комментарий к Налоговому кодексу Республики Казахстан"
+    herausgeber: "Nationale Kammer der Unternehmer der Republik Kasachstan (Atameken/NPP), in Zusammenarbeit mit Oberstem Gericht, Volkswirtschaftsministerium, Nationalbank, Finanzministerium"
+    url: "https://www.flip.kz/catalog?prod=1863148"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: null
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: statisch
+    abdeckung: >-
+      Bislang einziger auffindbarer gedruckter postateyny (artikelweiser)
+      wissenschaftlich-praktischer Kommentar zum kasachischen Steuerkodex, 1480 Seiten,
+      unter Beteiligung von Justiz, Ministerien und Wirtschaftsverbaenden entstanden.
+      Kommentiert den ALTEN Kodex von 2017, nicht den neuen von 2026.
+    beschaffung: "Aktuell bei Flip.kz vergriffen ('Товар закончился'), kein Nachdruck angekuendigt. Ggf. antiquarisch oder direkt bei der Nationalen Kammer der Unternehmer (Atameken) erfragen."
+    maschinell_abrufbar: false
+    rag_eignung: ungeeignet
+    rag_hinweis: "Kommentiert eine seit 01.01.2026 aufgehobene Rechtsgrundlage; selbst bei Beschaffung waere der Inhalt fuer aktuelle Rechtsfragen irrefuehrend. Nur als Referenz fuer das Format (Artikel-fuer-Artikel-Kommentar) brauchbar, falls ein Verlag ein 2026er Pendant plant."
+    gueltig_ab: "2018-01-01"
+    gueltig_bis: "2025-12-31"
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "WICHTIGSTER NEGATIVBEFUND fuer Mandatspunkt 1: Eine vergleichbare postateyny-Kommentarausgabe zum NEUEN Kodex 214-VIII wurde in dieser Recherche NICHT gefunden -- weder bei LEM, Flip.kz, Kaspi.kz noch Satu.kz. Stand 2026-09-18 scheint der Markt einen 2026er Kommentar dieser Tiefe noch nicht zu haben. Marktbeobachtung wird empfohlen (Verlage LEM, Atameken/NPP, Yurist)."
+
+  - id: kgd-kommentar-nk-rk-online
+    name: "Amtlicher Online-Kommentar zum Steuerkodex (Steuerkomitee des Finanzministeriums)"
+    name_original: "Комментарий к Налоговому кодексу РК"
+    herausgeber: "Komitee fuer Staatseinnahmen des Finanzministeriums der Republik Kasachstan (KGD)"
+    url: "https://kgd.gov.kz/ru/section/kommentariy-k-nalogovomu-kodeksu-rk"
+    perspektiven: [P8, P9]
+    autoritaetsstufe: 3
+    sprachen: [ru, kk]
+    zugang: frei
+    kosten:
+      betrag: 0
+      waehrung: KZT
+      periode: null
+      verifiziert: true
+      beleg_url: "https://kgd.gov.kz/ru/section/kommentariy-k-nalogovomu-kodeksu-rk"
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Amtliche Erlaeuterungen der Steuerbehoerde zu einzelnen Kodex-Bestimmungen,
+      kostenlos auf der KGD-Webseite. Kein Buch, aber die naechstliegende freie
+      Alternative zu einer gedruckten Kommentarausgabe und direkt maschinenlesbar.
+    beschaffung: "Frei zugaenglich, kein Kauf noetig."
+    maschinell_abrufbar: true
+    rag_eignung: mittel
+    rag_hinweis: "HTML-Seite der Behoerde, Struktur (FAQ vs. Artikelbezug) in dieser Recherche nicht im Detail geprueft. Muss vor Ingest darauf verifiziert werden, ob sich die Erlaeuterungen bereits auf den neuen Kodex 214-VIII beziehen oder noch Reste zum alten Kodex enthalten."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Sollte mit P3 (amtliche Erlaeuterungen) abgeglichen werden -- moeglicherweise bereits dort erfasst. Hier aufgenommen, weil es die direkte Antwort auf die Kommentar-Frage aus Mandatspunkt 1 ist."
+
+  - id: lem-tamozhenny-kodeks-eaes-2026
+    name: "Zollkodex der Eurasischen Wirtschaftsunion, Ausgabe 2026 (A4-Format)"
+    name_original: "Таможенный кодекс Евразийского Экономического Союза (форматА4)"
+    herausgeber: "Verlag LEM (Almaty)"
+    url: "https://lem.kz/publishing-house/tamozheny-kodeks-ees/1709"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 3900
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/tamozheny-kodeks-ees/1709"
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Reiner Textabdruck des EAEU-Zollkodex-Vertrags samt zugehoeriger
+      voelkerrechtlicher Vereinbarungen, 236 Seiten. Gilt gleichermassen fuer alle
+      EAEU-Mitgliedstaaten, keine kasachstanspezifische Kommentierung.
+    beschaffung: "LEM-Online-Shop."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt. Primaertext, der vermutlich bereits ueber die EAEU-Kommissionsseite oder adilet.zan.kz frei verfuegbar ist -- vor Kauf pruefen."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Fuer Mandatspunkt 6 (VED/Zoll) ist dies der einzige gefundene kasachstanische Verlagstitel ueberhaupt -- und auch er ist nur der Primaertext, kein Lehrbuch oder Kommentar. Siehe auch urait-tamozhennoe-delo-eaes-novikova fuer ein russisches Lehrbuch zum selben Rechtsraum."
+
+  - id: urait-tamozhennoe-delo-eaes-novikova
+    name: "Zollwesen und Zollregulierung in der EAEU (Lehrbuch, russischer Verlag)"
+    name_original: "Таможенное дело и таможенное регулирование в ЕАЭС"
+    herausgeber: "Verlag Yurayt (Moskau)"
+    url: "https://urait.ru/book/tamozhennoe-delo-i-tamozhennoe-regulirovanie-v-eaes-465852"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: null
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Russisches Hochschullehrbuch zum Zollwesen im EAEU-Rechtsraum, das seiner Natur
+      nach auch fuer Kasachstan gilt (gemeinsamer Zollkodex), aber aus russischer
+      Verwaltungsperspektive geschrieben ist und keine kasachstanspezifischen
+      Verfahrensdetails des KGD abdeckt.
+    beschaffung: "Auf urait.ru als Online-Lesezugang ('читать онлайн') erhaeltlich, IST als E-Book auf der Yurayt-Plattform verfuegbar -- allerdings vermutlich ueber einen proprietaeren DRM-Reader, kein offenes PDF. Kaufmodalitaeten und Preis in dieser Session nicht abschliessend ermittelt, da WebSearch-Kontingent zu diesem Zeitpunkt erschoepft war."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "E-Book-Zugang existiert, aber vermutlich nicht als exportierbares PDF/Text -- vor Kauf klaeren, ob Yurayt einen Download oder nur Streaming-Lesezugriff bietet. Fuer RAG-Ingest waere ein DRM-freier Export Voraussetzung."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "GROESSTE LUECKE im Bereich VED/Zoll: kein kasachstanspezifisches Lehrbuch zu Zollverfahren/KGD-Praxis gefunden, nur der blanke Kodextext (LEM) und dieses russische Lehrbuch. Bedarf gezielter Nachrecherche, falls Handelsabwicklung ein Kernmodul des ERP wird."
+
+  # ---------------------------------------------------------------------
+  # B. BUCHFUEHRUNG, NSFO/MSFO, STEUERBUCHHALTUNG (ALLGEMEIN)
+  # ---------------------------------------------------------------------
+
+  - id: lem-msfo-nachpodgotovka-nurseitov
+    name: "IFRS -- Handbuch zur Erstausbildung des Berufsbuchhalters"
+    name_original: "МСФО. Пособие по начальной подготовке профессионального бухгалтера"
+    herausgeber: "Verlag LEM (Almaty), Autor E.O. Nurseitov"
+    url: "https://lem.kz/publishing-house/catalog/nsfo-i-msfo/185"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 2990
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/nsfo-i-msfo/185"
+    aktualisierung: statisch
+    abdeckung: >-
+      Einfuehrung in IFRS/MSFO fuer angehende Buchhalter in Kasachstan, Grundlagenwerk
+      des bekanntesten kasachischen MSFO-Fachautors E.O. Nurseitov (Audit-Praktiker,
+      Firma Finaudit).
+    beschaffung: "LEM-Online-Shop, Preis auf Kaufseite bestaetigt."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt gefunden. IFRS-Grundlagen aendern sich unabhaengig vom Steuerkodex, daher nicht durch die Kodexreform 2026 unmittelbar betroffen, wohl aber durch IFRS-Aktualisierungen seit Erscheinen."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Erscheinungsjahr auf der Katalogseite nicht angegeben. Ist_ueberholt vorsorglich true gesetzt, da weder Jahr noch IFRS-Versionsstand verifizierbar war -- vor Kauf beim Verlag nach Auflage/Jahr fragen."
+
+  - id: lem-msfo-kz-perekhod-nurseitov
+    name: "IFRS in Kasachstan -- Grundsaetze von Umstellung und Anwendung"
+    name_original: "МСФО в Казахстане: принципы перехода и применения"
+    herausgeber: "Verlag LEM (Almaty), Autoren E.O. Nurseitov, D.E. Nurseitov"
+    url: "https://lem.kz/publishing-house/catalog/nsfo-i-msfo/185"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 3400
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/nsfo-i-msfo/185"
+    aktualisierung: statisch
+    abdeckung: >-
+      Praxisorientierte Darstellung der Umstellung kasachischer Unternehmen von NSFO
+      auf vollstaendiges IFRS/MSFO, Vater-Sohn-Autorenteam Nurseitov.
+    beschaffung: "LEM-Online-Shop."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt. Methodisch wertvoll fuer Kontenrahmen-/Uebergangslogik, unabhaengig vom Steuerkodex-Wechsel."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Jahr nicht verifiziert. Inhaltlich (IFRS-Uebergang) nicht direkt vom Kodexwechsel 2026 betroffen, aber vermutlich mehrere IFRS-Zyklen alt -- vor Kauf Auflage pruefen."
+
+  - id: lem-msfo-teoria-praktika-nurseitov
+    name: "IFRS -- Theorie und Praxis (Nachschlagewerk)"
+    name_original: "МСФО: теория и практика. Справочное пособие"
+    herausgeber: "Verlag LEM (Almaty), Autoren E.O. Nurseitov, D.E. Nurseitov"
+    url: "https://www.flip.kz/catalog?prod=9239"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 3900
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/nsfo-i-msfo/185"
+    aktualisierung: statisch
+    abdeckung: >-
+      Umfangreichstes Nachschlagewerk (568 Seiten, Erstauflage 2007) des Autorenduos
+      Nurseitov zu IFRS-Theorie und -Anwendung in Kasachstan. ISBN 9786000001361.
+      Auch bei Kaspi.kz gelistet.
+    beschaffung: "LEM-Online-Shop 3900 KZT; auch bei Flip.kz und Kaspi.kz gelistet (Preis dort beim Abruf nicht angezeigt)."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt. Erstauflage 2007 -- seither zahlreiche IFRS-Aenderungen (IFRS 9, 15, 16 etc.), moeglicherweise in neueren Auflagen aktualisiert, das war jedoch nicht zu verifizieren."
+    gueltig_ab: "2007-01-01"
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Aelteste identifizierte Ausgabe der Nurseitov-Reihe. Vor Kauf pruefen, ob eine aktuellere Auflage existiert -- der LEM-Katalogeintrag nennt kein Jahr, moeglicherweise handelt es sich um eine spaetere, ueberarbeitete Auflage desselben Titels."
+
+  - id: lem-msfo-os-skala
+    name: "IFRS -- Sachanlagen. Bilanzierungsrichtlinie und Besteuerung"
+    name_original: "МСФО. Основные средства. Учетная политика и налогообложение"
+    herausgeber: "Verlag LEM (Almaty), Autor V.I. Skala"
+    url: "https://lem.kz/publishing-house/catalog/nsfo-i-msfo/185"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 3950
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/nsfo-i-msfo/185"
+    aktualisierung: statisch
+    abdeckung: >-
+      Verknuepft IFRS-Bilanzierung von Sachanlagen mit steuerlicher Behandlung in
+      Kasachstan -- fuer ein Agrar-ERP relevant wegen Maschinen, Geraeten und
+      Betriebsvorrichtungen.
+    beschaffung: "LEM-Online-Shop."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt. Steuerlicher Teil durch Kodexwechsel 2026 vermutlich veraltet (Abschreibungsregeln koennen sich geaendert haben), IFRS-Teil weiterhin brauchbar."
+    gueltig_ab: null
+    gueltig_bis: "2025-12-31"
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Steuerteil (Abschreibung, Grenzwerte) vor Ingest gegen den neuen Kodex 214-VIII pruefen; IFRS-Teil (MSFO/IAS 16) separat bewertbar."
+
+  - id: lem-msfo-na-skala
+    name: "IFRS -- Immaterielle Vermoegenswerte. Bilanzierungsrichtlinie und Besteuerung"
+    name_original: "МСФО. Нематериальные активы. Учетная политика и налогообложение"
+    herausgeber: "Verlag LEM (Almaty), Autor V.I. Skala"
+    url: "https://lem.kz/publishing-house/catalog/nsfo-i-msfo/185"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 3100
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/nsfo-i-msfo/185"
+    aktualisierung: statisch
+    abdeckung: "Pendant zum Sachanlagen-Band, diesmal zu immateriellen Vermoegenswerten (Software, Lizenzen)."
+    beschaffung: "LEM-Online-Shop."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt, gleiche Einschraenkung wie beim Sachanlagen-Band."
+    gueltig_ab: null
+    gueltig_bis: "2025-12-31"
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Fuer ein ERP-Projekt niedrigere Prioritaet als der Sachanlagen-Band, da immaterielle Vermoegenswerte in der Landwirtschaft seltener zentral sind."
+
+  - id: lem-buh-uchet-organizatsiyakh-nurseitov
+    name: "Buchfuehrung in Organisationen"
+    name_original: "Бухгалтерский учет в организациях"
+    herausgeber: "Verlag LEM (Almaty), Autoren E.O. Nurseitov, D.E. Nurseitov"
+    url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 4900
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    aktualisierung: statisch
+    abdeckung: >-
+      Allgemeines Grundlagenwerk zur Buchfuehrung in kasachischen Organisationen,
+      Standardlehrbuch des Autorenduos Nurseitov jenseits reiner IFRS-Themen.
+    beschaffung: "LEM-Online-Shop."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt. Fuer Methode/Kontenlogik brauchbar, fuer aktuelle Steuerverweise vor Ingest pruefen."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Jahr nicht verifiziert."
+
+  - id: lem-buh-provodki-2026-proskurina
+    name: "Buchungssaetze (Ausgabe 2026)"
+    name_original: "Бухгалтерские проводки (2026 год)"
+    herausgeber: "Verlag LEM (Almaty), Autorin V.P. Proskurina"
+    url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 6200
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    aktualisierung: jaehrlich
+    abdeckung: >-
+      Praxisnahes Nachschlagewerk mit vollstaendigen Buchungssaetzen fuer den
+      kasachischen Kontenrahmen, laut Titel explizit auf 2026 aktualisiert --
+      voraussichtlich die einzige hier gefundene laufend gepflegte Publikation, die
+      dem neuen Kodex bereits Rechnung traegt.
+    beschaffung: "LEM-Online-Shop. Hoechste Prioritaet unter den Buchfuehrungstiteln wegen expliziter 2026-Aktualisierung."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt, kein PDF gefunden. Inhaltlich vermutlich der aktuellste Titel im Sortiment -- Scan/OCR fuer die Vektordatenbank lohnt sich hier am ehesten."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Ausgabejahr 2026 steht im Titel, der tatsaechliche Aktualisierungsgrad gegenueber Kodex 214-VIII wurde inhaltlich nicht verifiziert (nur Katalogtitel gesehen, keine Leseprobe). Vor Kauf/Ingest Inhaltsverzeichnis anfordern."
+
+  - id: lem-sbornik-zadach-buh-proskurina
+    name: "Aufgabensammlung zur Buchfuehrung"
+    name_original: "Сборник задач по бухгалтерскому учету"
+    herausgeber: "Verlag LEM (Almaty), Autorin V.P. Proskurina"
+    url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 2800
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    aktualisierung: statisch
+    abdeckung: "Uebungsaufgaben zur Buchfuehrung, didaktisches Begleitmaterial, kein Nachschlagewerk."
+    beschaffung: "LEM-Online-Shop."
+    maschinell_abrufbar: false
+    rag_eignung: ungeeignet
+    rag_hinweis: "Uebungsformat (Aufgabe/Loesung) ohne Rechtsbezug, fuer eine Steuer-RAG-Wissensbasis wenig ergiebig."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Niedrige Prioritaet fuer dieses Projekt, der Vollstaendigkeit halber gelistet."
+
+  - id: lem-nalog-uchet-ip-snr-proskurina
+    name: "Handbuch zur Steuerbuchfuehrung fuer Einzelunternehmer im Sonderregime"
+    name_original: "Пособие по налоговому учету ИП, применяющих специальный налоговый режим"
+    herausgeber: "Verlag LEM (Almaty), Autorin V.P. Proskurina"
+    url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 3100
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    aktualisierung: statisch
+    abdeckung: >-
+      Steuerbuchfuehrung fuer Einzelunternehmer unter Sonderregimen (СНР) --
+      relevant, da auch landwirtschaftliche Einzelbetriebe/Bauernhoefe (КФХ) haeufig
+      unter ein Sonderregime fallen.
+    beschaffung: "LEM-Online-Shop."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt. Sonderregime-Regeln gehoeren zu den am staerksten vom neuen Kodex betroffenen Bereichen -- vor Ingest zwingend gegen aktuelle Regeln pruefen."
+    gueltig_ab: null
+    gueltig_bis: "2025-12-31"
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Sonderregime-Schwellenwerte und -Saetze aendern sich mit dem neuen Kodex voraussichtlich am staerksten von allen hier gelisteten Themen; dieses Buch ohne verifiziertes Update-Jahr ist mit Vorsicht zu verwenden."
+
+  - id: lem-nalog-uch-politika-2022-proskurina
+    name: "Steuerliche Bilanzierungsrichtlinie fuer 2022"
+    name_original: "Налоговая учетная политика на 2022г."
+    herausgeber: "Verlag LEM (Almaty), Autorin V.P. Proskurina"
+    url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 4500
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    aktualisierung: jaehrlich
+    abdeckung: "Musterrichtlinien zur steuerlichen Bilanzierungspolitik, Stand 2022 -- vier Jahre vor dem aktuellen Kodex."
+    beschaffung: "LEM-Online-Shop, aber fuer aktuelle Nutzung nicht empfohlen."
+    maschinell_abrufbar: false
+    rag_eignung: ungeeignet
+    rag_hinweis: "Explizit auf 2022 datiert, also sowohl vom Kodexwechsel als auch von zwischenzeitlichen Aenderungen ueberholt. Nur als Formatbeispiel brauchbar."
+    gueltig_ab: "2022-01-01"
+    gueltig_bis: "2022-12-31"
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Nicht kaufen fuer aktuelle Inhalte. Gelistet nur zur Dokumentation, dass es diese Publikationsreihe gibt -- ein 2026er Nachfolgeband sollte beim Verlag erfragt werden."
+
+  - id: lem-osnovy-audita-tusibaeva
+    name: "Grundlagen und Verfahren der Wirtschaftspruefung"
+    name_original: "Основы и процедуры аудита"
+    herausgeber: "Verlag LEM (Almaty), Autorinnen G.S. Tusibaeva, G.M. Sagindykova"
+    url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 4500
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    aktualisierung: statisch
+    abdeckung: "Lehrbuch zu Wirtschaftspruefungsgrundlagen und -verfahren in Kasachstan."
+    beschaffung: "LEM-Online-Shop."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt. Fuer ein Buchfuehrungs-ERP nachrangig, da Audit-Verfahren kein Kernthema ist."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Niedrige Prioritaet, der Vollstaendigkeit halber gelistet."
+
+  - id: lem-spravochnik-ip-skala
+    name: "Nachschlagewerk fuer den Einzelunternehmer in der Republik Kasachstan"
+    name_original: "Справочное пособие индивидуального предпринимателя в Республике Казахстан"
+    herausgeber: "Verlag LEM (Almaty), Autor V.I. Skala"
+    url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 3800
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    aktualisierung: jaehrlich
+    abdeckung: "Praxisnachschlagewerk fuer Einzelunternehmer (IP) -- Registrierung, Besteuerung, Berichtspflichten."
+    beschaffung: "LEM-Online-Shop."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt. Relevant fuer Mandanten/Nutzer des ERP, die als Einzelunternehmer auftreten (z.B. kleinere Agrarbetriebe)."
+    gueltig_ab: null
+    gueltig_bis: "2025-12-31"
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Jahr nicht verifiziert, IP-Regeln durch neuen Kodex vermutlich veraendert."
+
+  - id: lem-ip-v-rk-yurchenko
+    name: "Einzelunternehmertum in der Republik Kasachstan"
+    name_original: "Индивидуальное предпринимательство в Республике Казахстан"
+    herausgeber: "Verlag LEM (Almaty), Autor M. Yurchenko"
+    url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 3500
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    aktualisierung: statisch
+    abdeckung: "Weiteres Grundlagenwerk zum Einzelunternehmertum, inhaltlich vermutlich mit lem-spravochnik-ip-skala ueberlappend."
+    beschaffung: "LEM-Online-Shop."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt. Vor Doppelkauf mit lem-spravochnik-ip-skala Inhaltsverzeichnisse vergleichen."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Niedrigere Prioritaet als lem-spravochnik-ip-skala, da inhaltliche Ueberschneidung wahrscheinlich."
+
+  # ---------------------------------------------------------------------
+  # C. LANDWIRTSCHAFTLICHE BUCHFUEHRUNG (Mandatspunkt 3 -- Kernthema)
+  # ---------------------------------------------------------------------
+
+  - id: lem-buh-uchet-selskoe-hozyaystvo-nazhikbaeva
+    name: "Buchfuehrung in der Landwirtschaft + elektronische Beilage"
+    name_original: "Бухгалтерский учет в сельском хозяйстве + электронное приложение"
+    herausgeber: "Verlag LEM (Almaty), Autorin K.K. Nazhikbaeva"
+    url: "http://lem.kz/publishing-house/buhgalterskij-uchet-v-selskom-hozyajstve-cd/1242"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 2180
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "http://lem.kz/publishing-house/buhgalterskij-uchet-v-selskom-hozyajstve-cd/1242"
+    aktualisierung: statisch
+    abdeckung: >-
+      Das EINZIGE in dieser Recherche gefundene kasachstanische Fachbuch speziell zur
+      landwirtschaftlichen Buchfuehrung. Organisation der Rechnungslegung in der
+      Landwirtschaft nach internationalen Standards, mit beiliegender CD: Muster einer
+      steuerlichen Bilanzierungsrichtlinie, MSFO 41 (Landwirtschaft), MSFO 20
+      (staatliche Zuwendungen/Subventionen), methodische Empfehlungen und
+      Versicherungsregelungen fuer den Pflanzenbau. Dient sowohl als Lehrbuch fuer
+      Wirtschaftsstudierende als auch als Praxisleitfaden fuer Agrarbetriebe.
+    beschaffung: "LEM-Online-Shop, 2180 KZT inkl. CD-Beilage. Guenstigster Fachtitel dieser gesamten Recherche."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Buchtext nur gedruckt. Die beiliegende CD enthaelt vermutlich Word/Excel-Vorlagen, kein durchsuchbares PDF des Buchtexts selbst -- Format der CD in dieser Recherche nicht verifiziert."
+    gueltig_ab: "2015-01-01"
+    gueltig_bis: "2025-12-31"
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "ZENTRALER FUND fuer Mandatspunkt 3, aber mit Vorbehalt: Erscheinungsjahr 2015, also elf Jahre alt und mit Steuerregeln des alten Kodex. Der MSFO-41/MSFO-20-Teil (internationale Rechnungslegungsstandards fuer Landwirtschaft/Subventionen) ist von der Kodexreform NICHT betroffen und bleibt methodisch wertvoll; der steuerliche Teil (Bilanzierungsrichtlinie, Berichtsmuster) ist zu ueberholen. Dringend empfohlen: pruefen, ob eine Neuauflage geplant ist, da dies die einzige Quelle dieser Art im gesamten kasachischen Buchmarkt zu sein scheint."
+
+  - id: probuh-agrar-lehrbuch-geplant
+    name: "Landwirtschaftliche Buchfuehrung (angekuendigter Titel, noch nicht erschienen)"
+    name_original: "Как вести бухгалтерию в сельском хозяйстве"
+    herausgeber: "probuh.com.kz"
+    url: "https://probuh.com.kz/"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: unbekannt
+    kosten:
+      betrag: null
+      waehrung: KZT
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Von einem kleinen spezialisierten Online-Anbieter fuer Buchfuehrungsliteratur
+      als Titel-Kandidat gelistet ('Abstimmungsphase' fuer 2025/2026), noch nicht
+      veroeffentlicht.
+    beschaffung: "Noch kein Kauf moeglich. Seite periodisch beobachten (probuh.com.kz)."
+    maschinell_abrufbar: false
+    rag_eignung: ungeeignet
+    rag_hinweis: "Existiert noch nicht als Produkt, daher kein Ingest-Kandidat -- nur als Marktbeobachtungs-Hinweis aufgenommen."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Kein echter Kauf-Eintrag, sondern ein Hinweis: falls dieser Titel erscheint, koennte er (anders als die Nazhikbaeva-Ausgabe von 2015) direkt am neuen Kodex ausgerichtet sein. Wiedervorlage empfohlen."
+
+  - id: radostovets-historische-sammlung
+    name: "Historische kasachische/sowjetische Lehrbuchreihe zur landwirtschaftlichen Buchfuehrung (Radostovets, 1964-2002)"
+    name_original: "Бухгалтерский учет в совхозах / Бухгалтерский учет в сельскохозяйственных предприятиях (u.a.)"
+    herausgeber: "Diverse sowjetische/kasachische Verlage, Autor V.K. Radostovets"
+    url: "https://radostovets.kz/rus_posobiya.html"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru, kk]
+    zugang: unbekannt
+    kosten:
+      betrag: null
+      waehrung: KZT
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: statisch
+    abdeckung: >-
+      Gedaechtnisseite listet 179 Publikationen des kasachischen Buchfuehrungs-
+      Klassikers V.K. Radostovets, Schwerpunkt landwirtschaftliche Buchfuehrung in
+      Sowchosen und Agrarbetrieben, Erscheinungszeitraum 1964-2002, auch in
+      kasachischer, usbekischer und georgischer Sprache. Begruendet die kasachische
+      Fachtradition der Agrarbuchfuehrung.
+    beschaffung: "Keine ISBN, kein Preis, kein regulaerer Verkaufskanal auf der Quellseite angegeben -- vermutlich nur antiquarisch oder ueber Bibliotheken (z.B. Nationale Akademische Bibliothek nabrk.kz) zugaenglich."
+    maschinell_abrufbar: false
+    rag_eignung: ungeeignet
+    rag_hinweis: "Nicht kaeuflich im regulaeren Buchhandel, daher fuer eine kaufbasierte Vektordatenbank-Beschaffung praktisch irrelevant. Rein historisch/dokumentarisch aufgenommen."
+    gueltig_ab: "1964-01-01"
+    gueltig_bis: "2002-12-31"
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Kein Kaufkandidat. Aufgenommen, um die Recherche-Frage zu beantworten, ob es eine aeltere kasachische Fachliteraturtradition zur Agrarbuchfuehrung gibt (ja) -- sie ist aber nicht Teil einer Einkaufsliste, da nicht mehr im Handel."
+
+  # ---------------------------------------------------------------------
+  # D. 1C:BUCHHALTUNG FUER KASACHSTAN (Mandatspunkt 4)
+  # ---------------------------------------------------------------------
+
+  - id: lem-1c-buh-samouchitel-kartamysova
+    name: "1C:Enterprise 8 Buchhaltung fuer Kasachstan -- Selbstlernbuch"
+    name_original: "1С:Предприятие 8 Бухгалтерия для Казахстана. Самоучитель"
+    herausgeber: "Verlag LEM (Almaty), Autorin R.S. Kartamysova"
+    url: "https://www.flip.kz/catalog?prod=281012"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 3353
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://www.flip.kz/catalog?prod=281012"
+    aktualisierung: statisch
+    abdeckung: >-
+      Schritt-fuer-Schritt-Anleitung zur Arbeit mit 1C:Buchhaltung fuer Kasachstan:
+      Unternehmensanlage, Stammdatenpflege, Belegerfassung, jeweils mit
+      Bildschirmfotos aus dem Programm. 116 Seiten, ISBN 978-601-239-227-2,
+      Erscheinungsjahr 2016.
+    beschaffung: "Bei Flip.kz gelistet, Status 'Под заказ' (auf Bestellung), 25% Rabatt von 4471 auf 3353 KZT. Auch bei LEM direkt gelistet."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt. 1C-Oberflaechen aendern sich mit jeder Programmversion erheblich -- eine Anleitung von 2016 duerfte an vielen Stellen von der aktuellen 1C:Buchhaltung-8.3-Oberflaeche abweichen."
+    gueltig_ab: "2016-01-01"
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Zehn Jahre alt. Fuer Methodik/Buchungslogik in 1C noch brauchbar, fuer konkrete Menuefuehrung vermutlich veraltet. lem-1c-buh-83-skoblikova (unten) bezieht sich bereits auf Version 8.3 und ist vermutlich die aktuellere Wahl."
+
+  - id: lem-1c-buh-83-skoblikova
+    name: "1C:Enterprise 8.3 Buchhaltung fuer Kasachstan"
+    name_original: "1С: Предприятие 8.3 Бухгалтерия для Казахстана"
+    herausgeber: "Verlag LEM (Almaty), Autorin L.K. Skoblikova"
+    url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 4500
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    aktualisierung: unbekannt
+    abdeckung: "Praxisanleitung zur Versionslinie 1C:Buchhaltung 8.3 fuer Kasachstan, vermutlich neuer als die Kartamysova-Ausgabe von 2016."
+    beschaffung: "LEM-Online-Shop."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt, Erscheinungsjahr nicht verifiziert."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Erscheinungsjahr im Katalog nicht angegeben -- vor Kauf beim Verlag erfragen, ob die Ausgabe bereits die Steuerlogik des neuen Kodex 214-VIII abbildet (1C selbst hat seine Kasachstan-Konfiguration im Zuge der Reform aktualisiert, das Buch moeglicherweise noch nicht)."
+
+  # ---------------------------------------------------------------------
+  # E. LOHN- UND GEHALTSABRECHNUNG / ARBEITSRECHT (Mandatspunkt 5)
+  # ---------------------------------------------------------------------
+
+  - id: lem-zarplata-nachislenie-zagretdinova
+    name: "Besonderheiten der Lohnberechnung und des Lohnabzugs"
+    name_original: "Особенности начисления и удержания заработной платы"
+    herausgeber: "Verlag LEM (Almaty), Autorin Yu. Zagretdinova"
+    url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 2900
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166"
+    aktualisierung: jaehrlich
+    abdeckung: >-
+      Praxishandbuch zur Lohn- und Gehaltsberechnung inkl. Abzuege (Einkommensteuer,
+      Sozialabgaben, Pensionsbeitraege) in Kasachstan -- der zentrale Treffer fuer
+      Mandatspunkt 5.
+    beschaffung: "LEM-Online-Shop."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt. Lohnberechnung haengt an jaehrlich wechselnden Parametern (MRP, MZP, Freibetraege) UND an der Einkommensteuer-Mechanik des Kodex -- laut Recherche aenderte der neue Kodex 2026 z.B. den Freibetrag auf 30 MRP. Ohne verifiziertes Erscheinungsjahr mit Vorsicht zu verwenden."
+    gueltig_ab: null
+    gueltig_bis: "2025-12-31"
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Erscheinungsjahr nicht verifiziert. Fuer Lohnrechnungslogik im ERP zentral, aber Zahlenwerk zwingend gegen aktuelle Parameter (siehe uchet.kz/kadroved.kz-Rechner) pruefen, bevor es in die Vektordatenbank geht."
+
+  - id: lem-kommentarii-trudovoy-kodeks-skala
+    name: "Kommentare zum Arbeitsgesetzbuch der Republik Kasachstan"
+    name_original: "Комментарии к Трудовому кодексу РК"
+    herausgeber: "Verlag LEM (Almaty), Autor V.I. Skala"
+    url: "https://lem.kz/publishing-house/catalog/trud-i-zarabotnaya-plata/179"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 18500
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/trud-i-zarabotnaya-plata/179"
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Umfassender Kommentar zum kasachischen Arbeitsgesetzbuch -- mit Abstand
+      teuerster Einzeltitel dieser gesamten Recherche, vermutlich wegen Umfang/
+      Tiefe. Arbeitsrecht ist vom Steuerkodex-Wechsel nicht direkt betroffen, aber
+      fuer Lohnabrechnung (Kuendigung, Urlaubsberechnung) relevant.
+    beschaffung: "LEM-Online-Shop, mit Abstand teuerster Titel -- Kaufentscheidung sorgfaeltig gegen Nutzenerwartung abwaegen."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt. Bei 18500 KZT fuer ein Kommentarwerk lohnt sich vor Kauf eine Pruefung, ob eine guenstigere/aktuellere Auflage existiert."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Arbeitsgesetzbuch wurde von der Steuerkodex-Reform nicht ersetzt, daher betrifft 'ueberholt' hier primaer das unbekannte Erscheinungsjahr, nicht die Kodexreform 2026 selbst."
+
+  - id: lem-trudovoe-pravo-rk-hamzin-rus
+    name: "Arbeitsrecht Kasachstans. Allgemeiner Teil. Lehrbuch (Russisch)"
+    name_original: "Трудовое право Казахстана. Общая часть. Учебник"
+    herausgeber: "Verlag LEM (Almaty), Autoren A.Sh. Hamzin, Zh.A. Hamzina"
+    url: "https://lem.kz/publishing-house/catalog/trud-i-zarabotnaya-plata/179"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 1980
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/trud-i-zarabotnaya-plata/179"
+    aktualisierung: statisch
+    abdeckung: "Hochschullehrbuch zum allgemeinen Teil des kasachischen Arbeitsrechts."
+    beschaffung: "LEM-Online-Shop."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt. Fuer ERP-Lohnmodul nachrangig gegenueber den direkten Lohnberechnungs-Titeln."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Existiert als Parallelausgabe auf Kasachisch, siehe naechster Eintrag -- guter Beleg dafuer, dass bei LEM manche Fachtitel als echte Parallelausgabe (nicht blosse Uebersetzung) in beiden Sprachen erscheinen."
+
+  - id: lem-enbek-huqygy-hamzin-kaz
+    name: "Arbeitsrecht Kasachstans. Allgemeiner Teil (Kasachisch)"
+    name_original: "Қазақстанның Еңбек құқығы. Жалпы бөлім"
+    herausgeber: "Verlag LEM (Almaty), Autor A. Hamzin"
+    url: "https://lem.kz/publishing-house/catalog/trud-i-zarabotnaya-plata/179"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [kk]
+    zugang: bezahlt
+    kosten:
+      betrag: 2200
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://lem.kz/publishing-house/catalog/trud-i-zarabotnaya-plata/179"
+    aktualisierung: statisch
+    abdeckung: "Kasachischsprachige Parallelausgabe des vorherigen Eintrags."
+    beschaffung: "LEM-Online-Shop."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur gedruckt."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Antwort auf Mandatspunkt 7 (Existenz kasachischsprachiger Fachliteratur): Im Arbeitsrecht existieren echte kasachischsprachige Parallelausgaben bei LEM. Im Kernbereich Steuer/Rechnungswesen wurde dagegen KEIN eigenstaendiger kasachischsprachiger Lehrbuchtitel gefunden (nur der Kodex-Text selbst, siehe lem-nk-rk-2026-kaz) -- moeglicher Hinweis auf eine Marktluecke oder auf unzureichende Sichtbarkeit in den durchsuchten Katalogen."
+
+  # ---------------------------------------------------------------------
+  # F. SONSTIGE PRAXISHEFTE
+  # ---------------------------------------------------------------------
+
+  - id: probuh-pervichnye-dokumenty
+    name: "Primaerbelege von A bis Z"
+    name_original: "Первичные документы: от А до Я"
+    herausgeber: "probuh.com.kz"
+    url: "https://probuh.com.kz/"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 6500
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://probuh.com.kz/"
+    aktualisierung: unbekannt
+    abdeckung: "Praxisheft zu Primaerbelegen (Musterdokumente, Buchungsvermerke, Anordnungen) nach kasachischem Recht."
+    beschaffung: "Direktbestellung ueber probuh.com.kz."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Format (Print/PDF) auf der Anbieterseite nicht eindeutig angegeben -- vor Kauf klaeren, da ein reiner Online-Anbieter moeglicherweise direkt PDF liefert."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Kleiner spezialisierter Anbieter, Autor auf der Seite nicht genannt. Preis und Titel verifiziert, Format nicht."
+
+  - id: probuh-plan-schetov-provodki
+    name: "Kontenplan und typische Buchungssaetze"
+    name_original: "План счетов и типовые проводки"
+    herausgeber: "probuh.com.kz"
+    url: "https://probuh.com.kz/"
+    perspektiven: [P9]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: bezahlt
+    kosten:
+      betrag: 3500
+      waehrung: KZT
+      periode: einmalig
+      verifiziert: true
+      beleg_url: "https://probuh.com.kz/"
+    aktualisierung: unbekannt
+    abdeckung: "Praxisheft mit dem kasachischen Kontenplan und typischen Buchungssaetzen."
+    beschaffung: "Direktbestellung ueber probuh.com.kz."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Format nicht verifiziert, siehe Schwestereintrag probuh-pervichnye-dokumenty."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Autor und Jahr nicht genannt."
+
+  # ---------------------------------------------------------------------
+  # G. AKADEMISCHE QUELLEN (P8)
+  # ---------------------------------------------------------------------
+
+  - id: mdpi-mergenbayeva-shadow-economy-kz-2026
+    name: "Untersuchung der Schattenwirtschaft und Schaetzung ihres Umfangs am Beispiel Kasachstans"
+    name_original: "Research on the Shadow Economy and Assessment of Its Scale: On the Example of Kazakhstan"
+    herausgeber: "MDPI, Zeitschrift 'Economies', Bd. 14, Nr. 4, Artikel 135"
+    url: "https://www.mdpi.com/2227-7099/14/4/135"
+    perspektiven: [P8]
+    autoritaetsstufe: 4
+    sprachen: [en]
+    zugang: frei
+    kosten:
+      betrag: 0
+      waehrung: KZT
+      periode: null
+      verifiziert: true
+      beleg_url: "https://www.mdpi.com/2227-7099/14/4/135"
+    aktualisierung: statisch
+    abdeckung: >-
+      Empirische Untersuchung zur Schattenwirtschaft in Kasachstan, Autoren u.a.
+      A. Mergenbayeva, K. Nurasheva, A. Abishova. Erwaehnt explizit, dass sich
+      Steuerregulierung und -verwaltung durch die Einfuehrung des neuen Steuerkodex
+      verbessert haben -- einer der wenigen bereits vorliegenden akademischen Texte,
+      die sich auf den Kodex 214-VIII beziehen.
+    beschaffung: "Open Access, kostenlos als PDF/HTML abrufbar."
+    maschinell_abrufbar: true
+    rag_eignung: hoch
+    rag_hinweis: "MDPI-Artikel sind durchgehend strukturiert (Abstract, Methodik, Ergebnisse), frei zugaenglich, gut fuer RAG-Ingest geeignet."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "PRIORITAER, da einer von nur zwei in dieser Recherche gefundenen 2026-Artikeln, die die neue Kodexreform explizit erwaehnen. Genaues Publikationsdatum/DOI beim direkten Seitenabruf mit 403 Forbidden blockiert (Bot-Schutz) -- Angaben stammen aus der Google-Scholar-Trefferliste, nicht aus der Originalseite selbst. Vor Verwendung Original nochmals pruefen."
+
+  - id: mdpi-adambekova-fiscal-regional-kz-2026
+    name: "Fiskalische und strukturelle Treiber regionaler Investitionsdivergenz: Kasachstan im Vergleich zu europaeischen Referenzoekonomien"
+    name_original: "Fiscal and Structural Drivers of Regional Investments Divergence: Evidence from Kazakhstan and European Benchmark Economies"
+    herausgeber: "MDPI, Zeitschrift 'Economies', Bd. 14, Nr. 8, Artikel 334"
+    url: "https://www.mdpi.com/2227-7099/14/8/334"
+    perspektiven: [P8]
+    autoritaetsstufe: 4
+    sprachen: [en]
+    zugang: frei
+    kosten:
+      betrag: 0
+      waehrung: KZT
+      periode: null
+      verifiziert: true
+      beleg_url: "https://www.mdpi.com/2227-7099/14/8/334"
+    aktualisierung: statisch
+    abdeckung: >-
+      Vergleichende Studie zu fiskalischen und strukturellen Treibern regionaler
+      Investitionsunterschiede, Kasachstan im Vergleich zu europaeischen
+      Referenzoekonomien, Autoren u.a. A. Adambekova, A. Appazov, R. Muslimov,
+      N. Amankeldi.
+    beschaffung: "Open Access, kostenlos als PDF/HTML abrufbar."
+    maschinell_abrufbar: true
+    rag_eignung: hoch
+    rag_hinweis: "Wie bei mdpi-mergenbayeva-shadow-economy-kz-2026: strukturiertes Open-Access-PDF."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Direktabruf der Originalseite ebenfalls mit 403 blockiert, Angaben aus Google-Scholar-Trefferliste. Fiskalpolitischer Fokus (nicht spezifisch Steuerrecht), aber fuer Standortentscheidungen/Investitionsklima im Agrarsektor von Hintergrundinteresse."
+
+  - id: jpra-shulenbaeva-zemli-selhoz-kz-2025
+    name: "Landwirtschaftsflaechen in Kasachstan: Zustand und Trends der Qualitaetsverbesserung"
+    name_original: "Земли сельхозназначения в Казахстане: состояние, тенденции улучшения качества"
+    herausgeber: "Zeitschrift 'Проблемы агрорынка' (Probleme des Agrarmarkts), Bd. 4, Nr. 4, 2025"
+    url: "https://www.jpra-kazniiapk.kz/jour/article/view/2362"
+    perspektiven: [P8]
+    autoritaetsstufe: 4
+    sprachen: [ru, en]
+    zugang: frei
+    kosten:
+      betrag: 0
+      waehrung: KZT
+      periode: null
+      verifiziert: true
+      beleg_url: "https://www.jpra-kazniiapk.kz/jour/article/view/2362"
+    aktualisierung: statisch
+    abdeckung: >-
+      Untersuchung des kasachischen Marktes fuer landwirtschaftliche Flaechen,
+      Autoren F.A. Shulenbaeva, A.S. Kulmaganbetova, W. Feng. Landwirtschaftsflaechen
+      machen 81,5 Prozent der gesamten Landfonds Kasachstans aus; wegen eines
+      staatlichen Verkaufsmoratoriums (bis Dezember 2026) laufen Transaktionen
+      ueberwiegend ueber Pacht. Empfiehlt bessere Instrumente zur Vermarktung von
+      Agrarland als hochwertiges Produktionsgut.
+    beschaffung: "Frei zugaenglich beim kasachischen Agrarforschungsinstitut KazNIIEAPK."
+    maschinell_abrufbar: true
+    rag_eignung: hoch
+    rag_hinweis: "Frei abrufbares Fachjournal-PDF/HTML, auch in englischer Version verfuegbar."
+    gueltig_ab: "2025-01-01"
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Nach der strikten Schemaregel als ueberholt markiert (Erscheinung 2025, vor Kodex 214-VIII), da Stichtag 01.01.2026 gilt. Inhaltlich geht es um Bodenrecht/Landmoratorium, NICHT um Steuersaetze -- durch die Steuerkodexreform nicht unmittelbar beruehrt und bleibt als Hintergrundwissen zur Landwirtschaftsstruktur Kasachstans (bis mind. Dezember 2026 gueltiges Moratorium) relevant."
+
+  - id: cyberleninka-nazarbekov-tsifra-selhoz-kz-2023
+    name: "Besonderheiten der Digitalisierung der Landwirtschaft in Kasachstan"
+    name_original: "Особенности цифровизации сельского хозяйства в Казахстане"
+    herausgeber: "Zeitschrift 'Столыпинский вестник', Bd. 5, Nr. 7, 2023"
+    url: "https://cyberleninka.ru/article/n/osobennosti-tsifrovizatsii-selskogo-hozyaystva-v-kazahstane"
+    perspektiven: [P8]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: frei
+    kosten:
+      betrag: 0
+      waehrung: KZT
+      periode: null
+      verifiziert: true
+      beleg_url: "https://cyberleninka.ru/article/n/osobennosti-tsifrovizatsii-selskogo-hozyaystva-v-kazahstane"
+    aktualisierung: statisch
+    abdeckung: >-
+      Autor A. Nazarbekov analysiert, wie digitale Technologien in Kasachstans
+      Agrarsektor integriert werden -- staatliche Foerderinitiativen einerseits,
+      Infrastrukturluecken, Qualifikationsdefizite und unterschiedliche Wirkung in
+      Pflanzenbau vs. Tierhaltung andererseits. Nicht steuerspezifisch, aber
+      relevant fuer den digitalen Reifegrad kasachischer Agrarbetriebe (Kontext fuer
+      ESF/Virtueller-Lager-Pflichten).
+    beschaffung: "Frei bei CyberLeninka als PDF herunterladbar."
+    maschinell_abrufbar: true
+    rag_eignung: hoch
+    rag_hinweis: "CyberLeninka liefert durchgehend maschinenlesbare, strukturierte Volltexte mit OCR-Schicht."
+    gueltig_ab: "2023-01-01"
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Vor Kodex 214-VIII erschienen, daher formal ueberholt; Thema (Digitalisierungsgrad der Landwirtschaft) ist aber nicht kodexspezifisch und bleibt als Strukturhintergrund brauchbar."
+
+  - id: cyberleninka-zaurbekova-gospodderzhka-selhoz-eaes-vto-2019
+    name: "Haupttrends bei staatlichen Foerdermassnahmen fuer die Landwirtschaft in Kasachstan unter EAWU- und WTO-Mitgliedschaft"
+    name_original: "Основные тенденции развития мер государственной поддержки сельского хозяйства в Казахстане в условиях членства в ЕАЭС и ВТО"
+    herausgeber: "Zeitschrift 'Торговая политика' (Handelspolitik), 2019"
+    url: "https://cyberleninka.ru/article/n/osnovnye-tendentsii-razvitiya-mer-gosudarstvennoy-podderzhki-selskogo-hozyaystva-v-kazahstane-v-usloviyah-chlenstva-v-eaes-i-vto"
+    perspektiven: [P8]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: frei
+    kosten:
+      betrag: 0
+      waehrung: KZT
+      periode: null
+      verifiziert: true
+      beleg_url: "https://cyberleninka.ru/article/n/osnovnye-tendentsii-razvitiya-mer-gosudarstvennoy-podderzhki-selskogo-hozyaystva-v-kazahstane-v-usloviyah-chlenstva-v-eaes-i-vto"
+    aktualisierung: statisch
+    abdeckung: >-
+      Autorin T.S. Zaurbekova untersucht Foerdermassnahmen fuer die kasachische
+      Landwirtschaft vor und nach EAWU-/WTO-Beitritt und den Uebergang zu WTO-
+      konformen 'Green Box'-Prinzipien; benennt Umsetzungsprobleme und gibt
+      Politikempfehlungen.
+    beschaffung: "Frei bei CyberLeninka als PDF herunterladbar."
+    maschinell_abrufbar: true
+    rag_eignung: hoch
+    rag_hinweis: "Strukturierter freier Volltext."
+    gueltig_ab: "2019-01-01"
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Aeltester der akademischen Funde. Handelspolitische Foerderlogik (EAWU/WTO), nicht steuerkodexspezifisch -- fuer historischen Kontext der Agrarfoerderung weiterhin brauchbar, fuer aktuelle Foerdersaetze nicht mehr."
+
+  - id: proquest-oral-kenzhe-bazarbek-subsidien-kz-2026
+    name: "Von der Erde zum Verderb: Wirksamkeitsanalyse landwirtschaftlicher Subventionen in Kasachstan"
+    name_original: "From Soil to Spoil: Analyzing the Effectiveness of Agricultural Subsidies in Kazakhstan"
+    herausgeber: "ProQuest (Autoren S. Oral, G. Kenzhe, A. Bazarbek)"
+    url: "https://search.proquest.com/openview/"
+    perspektiven: [P8]
+    autoritaetsstufe: 4
+    sprachen: [en]
+    zugang: bezahlt
+    kosten:
+      betrag: null
+      waehrung: KZT
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: statisch
+    abdeckung: >-
+      Wirksamkeitsanalyse landwirtschaftlicher Subventionen in Kasachstan. Ueber
+      Google Scholar mit Jahr 2026 indiziert, exakte Angaben (Institution, genaues
+      Erscheinungsdatum, vollstaendige URL) in dieser Session nicht verifizierbar,
+      da WebSearch-Kontingent zu diesem Zeitpunkt bereits erschoepft war und die
+      ProQuest-Trefferliste keine dauerhafte Artikel-URL preisgibt.
+    beschaffung: "Voraussichtlich nur ueber ProQuest-Abonnement (z.B. Universitaetsbibliothek) oder Einzelkauf zugaenglich."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "URL ist ein ProQuest-Suchresultat, kein Permalink -- verstoesst eigentlich gegen die Schemaregel 'direkter Link, kein Suchergebnis'. Aufgenommen als Rechercheleitfaden mit ausdruecklichem Vorbehalt; vor operativer Nutzung zwingend eine belastbare Permalink-URL nachrecherchieren oder Eintrag verwerfen."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "SCHWACHER BELEG, absichtlich mit Vorbehalt aufgenommen (Titel/Autoren/Thema passen sehr gut zum Mandat), aber URL- und Metadatenqualitaet unterschreiten den sonst in diesem Register gehaltenen Standard. Nachrecherche empfohlen, sobald wieder WebSearch-Kontingent verfuegbar ist."
+
+  - id: apa-shatenova-fiskal-dezentralisierung-2025
+    name: "Verbesserung des Mechanismus fiskalischer Dezentralisierung auf regionaler Ebene (Masterarbeit)"
+    name_original: "Совершенствование механизма фискальной децентрализации на региональном уровне"
+    herausgeber: "Akademie fuer Staatsverwaltung beim Praesidenten der Republik Kasachstan (APA), Repository"
+    url: "https://repository.apa.kz/handle/123456789/1902"
+    perspektiven: [P8]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: frei
+    kosten:
+      betrag: 0
+      waehrung: KZT
+      periode: null
+      verifiziert: true
+      beleg_url: "https://repository.apa.kz/handle/123456789/1902"
+    aktualisierung: statisch
+    abdeckung: >-
+      Masterarbeit von T.S. Shatenova (2025) zur fiskalischen Dezentralisierung auf
+      regionaler Ebene in Kasachstan, mit Bezug auf institutionelle Reformen; erwaehnt
+      laut automatisierter Zusammenfassung auch 2026 im Zusammenhang mit
+      landwirtschaftlichen Haushalten/Betrieben (Details nicht abschliessend
+      verifiziert, da Volltext nicht maschinell auslesbar war).
+    beschaffung: "Frei im APA-Repository als PDF herunterladbar (ca. 1,8 MB, erfolgreich heruntergeladen)."
+    maschinell_abrufbar: true
+    rag_eignung: mittel
+    rag_hinweis: "PDF liess sich laden, aber in dieser Session nicht automatisiert auslesen (kein pdftoppm/Renderer verfuegbar) -- Volltext-Text-Layer nicht verifiziert, vor Ingest pruefen."
+    gueltig_ab: "2025-01-01"
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: "Fiskaldezentralisierung ist kein Kernsteuerthema, aber im Umfeld von Agrarhaushalten/-betrieben und Regionalfoerderung von Interesse. Inhalt nur oberflaechlich verifiziert (Titel/Autor/Jahr/Institution sicher, Feindetails nicht)."
+
+  # ---------------------------------------------------------------------
+  # H. HINWEIS ZU NICHT AUFGENOMMENEN, UNSICHEREN FUNDEN
+  # ---------------------------------------------------------------------
+
+  - id: hinweis-kimep-narxoz-kazguu-luecke
+    name: "Rechercheluecke: Dissertationen von KIMEP, Narxoz, KAZGUU zur Steuerreform 2025/2026"
+    name_original: "N/A"
+    herausgeber: "N/A (Rechercheprotokoll-Eintrag)"
+    url: "http://repository.kazguu.kz/"
+    perspektiven: [P8]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: unbekannt
+    kosten:
+      betrag: null
+      waehrung: KZT
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Kein inhaltlicher Fund, sondern Dokumentation einer Recherchegrenze: Das
+      KAZGUU-Repository (repository.kazguu.kz) war in dieser Sitzung per WebFetch
+      nicht erreichbar (Verbindung verweigert). Narxoz- und KIMEP-spezifische
+      Dissertationen zur Steuerthematik wurden ueber Google Scholar nicht
+      aufgefunden (nur fachfremde Treffer). Eine KAZGUU-Dissertation mit Dateinamen
+      'Жаксылык А. Диссертация.pdf' existiert nachweislich (handle 123456789/918),
+      deren Thema konnte aber mangels PDF-Renderer nicht ermittelt werden.
+    beschaffung: "Nicht anwendbar."
+    maschinell_abrufbar: false
+    rag_eignung: ungeeignet
+    rag_hinweis: "Kein Inhalt, reiner Recherchehinweis."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "EMPFEHLUNG: Folgerecherche mit frischem WebSearch-Kontingent direkt in den Repositorien von KIMEP (kimep.kz/library), Narxoz (repository.narxoz.kz) und KAZGUU (repository.kazguu.kz, ggf. per Browser statt WebFetch) sowie eLibrary.ru mit Filter 'Казахстан' + 'налог' durchfuehren. Diese vier Quellen konnten im Rahmen dieser Sitzung trotz expliziten Mandatsauftrags nicht erschoepfend abgedeckt werden."

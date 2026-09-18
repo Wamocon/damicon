@@ -1,0 +1,1472 @@
+# Quellenregister P2-P3: Administrative Compliance-Maschinerie und technische Schnittstellen
+#
+# Rechercheeinheit: P2 Administrativ (wie man tatsaechlich compliant wird/bleibt),
+# P3 Technisch (maschinelle Schnittstellen: ИС ЭСФ, СНТ, Virtueller Lager, ОФД, ЕСУТД, НКТ).
+# Format gemaess quellenregister-schema.yaml (schema_version 1).
+# Stand der Recherche: 2026-09-18.
+#
+# Hinweis zur Abrufbarkeit (siehe auch # Notizen am Dateiende): kgd.gov.kz, egov.kz und
+# gov.kz sind teilweise klassische serverseitig gerenderte Seiten (Pfad-Typ /ru/content/...,
+# dort lieferte WebFetch brauchbaren Fliesstext), teilweise JS-Single-Page-Apps (Pfad-Typ
+# /ru/section/..., /ru/app/..., sowie generell egov.kz- und gov.kz-Artikelseiten), dort
+# lieferte WebFetch nur das Navigations-/Seitengeruest ohne Fliesstext. Das ist pro Satz
+# im Feld notiz vermerkt. Das websearch-Kontingent dieser (geteilten) Session wurde waehrend
+# der Recherche erschoepft; einige Fakten stuetzen sich deshalb auf bereits eingeholte
+# WebSearch-Synthesen statt auf zusaetzliche WebFetch-Direktpruefung - auch das ist je Satz
+# vermerkt.
+
+# ============================================================
+# P2 ADMINISTRATIV - Formulare (ФНО)
+# ============================================================
+
+- id: kgd-fno-uebersicht-2026
+  name: "KGD-Formularuebersicht ФНО 2026"
+  name_original: "ФНО на 2026 год"
+  herausgeber: "Komitee fuer Staatseinnahmen (KGD), Finanzministerium RK"
+  url: "https://kgd.gov.kz/ru/content/fno-na-2026-god-1"
+  perspektiven: [P2]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: jaehrlich
+  abdeckung: >
+    Zentrale KGD-Seite mit Download-Archiven der amtlichen Formularvordrucke (Blankette)
+    fuer alle ФНО des Jahres 2026. Bei diesem Abruf gelistet: 200.00 (ESt/Sozialsteuer,
+    v33/r142), 220.00 (ESt-Einzelerklaerung, v38/r94), 300.00 (USt, v29/r170, aktualisiert
+    04.01.2026), 328.00 (Einfuhr/indirekte Steuern, v10/r121), 400.00 (Verbrauchsteuer,
+    v22/r129), 910.00 (vereinfachte Erklaerung, v27/r133), 860.00 (Wassernutzung),
+    870.00 (Emissionsabgabe), sowie Meldeformulare 001.00, 003.01, 027.00.
+  beschaffung: "Frei zugaenglich, Download als Archiv (zip), keine Anmeldung noetig."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: >
+    Diese /ru/content/-Seite rendert bei WebFetch lesbaren Text (anders als /ru/section/-
+    Hubs), aber die Formularliste ist eine reine Linksammlung ohne Artikelstruktur.
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Formular 100.00 (KPN-Jahreserklaerung) erschien in der bei diesem Abruf extrahierten
+    Liste NICHT, obwohl es das zentrale KPN-Jahresformular ist - vermutlich Artefakt der
+    Zusammenfassung (Seite laenger als Extraktionsfenster), nicht Beleg fuer Abwesenheit.
+    Vor produktivem Einsatz Seite direkt im Browser pruefen. Formular 913.00 (Einzelhandelssteuer)
+    fehlt ebenfalls - das deckt sich mit dem separaten Fund, dass dieses Regime 2026
+    abgeschafft wurde (siehe formular-913-00-abgeschafft-2026). Publiziert 30.12.2025,
+    zuletzt aktualisiert 04.01.2026 (damit nach Kodexwechsel, als aktuell gewertet).
+
+- id: kgd-portal-fno-blankette-legacy
+  name: "KGD-Altportal: Blankette ФНО, Steuererklaerungen, Berichte"
+  name_original: "Бланки ФНО, налоговых заявлений, отчетности"
+  herausgeber: "Komitee fuer Staatseinnahmen (KGD), Finanzministerium RK"
+  url: "https://portal.kgd.gov.kz/ru/pages/page-kgd/fno"
+  perspektiven: [P2]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: unbekannt
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Offenbar ein zweites, aelteres KGD-Portal (Subdomain portal.kgd.gov.kz statt
+    kgd.gov.kz) mit eigener Formularsammlung. Bei diesem Abruf lieferte WebFetch nur den
+    Seitentitel, keinen Fliesstext.
+  beschaffung: "Unklar - direkt im Browser pruefen."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "Kein Fliesstext extrahierbar (JS-Rendering vermutet)."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: true
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Verhaeltnis zwischen portal.kgd.gov.kz und kgd.gov.kz (Satz kgd-fno-uebersicht-2026)
+    ungeklaert: zwei parallele Domains mit vermutlich ueberlappendem Inhalt. Moeglich, dass
+    portal.kgd.gov.kz das Vorgaenger-Portal ist. ist_ueberholt=true als Vorsichtsdefault,
+    da Inhalt nicht einsehbar und Aktualitaet nicht verifizierbar war. Vor Nutzung klaeren,
+    welches Portal das primaere ist.
+
+- id: pro1c-formular-200-00-2026
+  name: "Formular 200.00 - Blankett und Ausfuellregeln 2026"
+  name_original: "Форма 200.00. Бланк и правила составления формы за 2026 год"
+  herausgeber: "pro1c.kz (1C-Partner/Praktikerportal Kasachstan)"
+  url: "https://pro1c.kz/articles/formy-nalogovoy-otchetnosti-na-2026-god/forma-200-00-blank-i-pravila-sostavleniya-formy-za-2026-god/"
+  perspektiven: [P2]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: jaehrlich
+  abdeckung: >
+    Formular 200.00 = Erklaerung zur Einkommensteuer (ESt) und Sozialsteuer der
+    Arbeitgeber. Meldezeitraum: Quartal ("отчетный квартал"). Ausdruecklich zur Abgabe
+    verpflichtet u.a. Erzeuger und Verkaeufer eigener landwirtschaftlicher Produktion,
+    landwirtschaftliche Genossenschaften, Bauern-/Farmwirtschaften (КХ/ФХ) - damit
+    unmittelbar einschlaegig fuer das Agrar-ERP-Zielpublikum. Bietet direkte Downloadlinks
+    fuer Hauptformular 200.00 und Anlagen 200.01-200.06.
+  beschaffung: "Frei zugaenglich, PDF-Blankette direkt verlinkt."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Klar mit Ueberschriften gegliedert, pro Formularanlage ein Abschnitt."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Exakte Abgabefrist wurde beim Abruf nicht praezise extrahiert (nur "quartalsweise").
+    Gemaess Kalendertabelle mybuh-steuerkalender-2026: 15. des zweiten Monats nach
+    Quartalsende. Artikel zuletzt aktualisiert 31.07.2026, gilt fuer Rechtsverhaeltnisse
+    ab 01.01.2026. Rechtsgrundlage laut Seite: Anordnung des Finanzministers RK vom
+    12.11.2025 Nr. 695 (Anlagenummer fuer 200.00 nicht ermittelt).
+
+- id: pro1c-formular-300-00-2026
+  name: "Formular 300.00 - Blankett und Ausfuellregeln 2026 (USt-Erklaerung)"
+  name_original: "Форма 300.00. Бланк и правила составления формы за 2026 год"
+  herausgeber: "pro1c.kz (1C-Partner/Praktikerportal Kasachstan)"
+  url: "https://pro1c.kz/articles/formy-nalogovoy-otchetnosti-na-2026-god/forma-300-00-blank-i-pravila-sostavleniya-formy-za-2026-god/"
+  perspektiven: [P2]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: jaehrlich
+  abdeckung: >
+    Formular 300.00 = USt-Erklaerung, besteht aus Hauptformular plus acht Anlagen
+    300.01-300.08. Meldezeitraum laut Seite ausdruecklich "Kalenderquartal" unter
+    Berufung auf Artikel 504 NK RK (214-VIII). Direkte PDF-Downloadlinks fuer alle neun
+    Teilformulare. Rechtsgrundlage: Anordnung des Finanzministers RK vom 12.11.2025
+    Nr. 695, Anlage 12.
+  beschaffung: "Frei zugaenglich, PDF-Blankette direkt verlinkt."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Klar gegliedert; nennt konkrete Kodex-Artikelnummer (504) fuer Meldezeitraum."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Genannte Rechtsstelle "НК РК ст. 504" stammt aus einer Sekundaerquelle (Stufe 4) und
+    ist damit gemaess Schema-Regel kein eigenstaendiger Beleg, sondern ein Hinweis fuer
+    das P1-Team zur Gegenpruefung direkt bei adilet.zan.kz. Exakte Abgabefrist (Tag im
+    Monat) wurde aus dem Artikeltext nicht praezise extrahiert; siehe mybuh-steuerkalender-2026
+    fuer eine Faustregel. Artikel publiziert 07.08.2026.
+
+- id: mybuh-formular-100-00-frist
+  name: "Formular 100.00 (KPN-Jahreserklaerung) - Frist und Einordnung"
+  name_original: "Форма 100.00 - Декларация по КПН"
+  herausgeber: "mybuh.kz (Praktikerportal/Buchhaltungssoftware Kasachstan)"
+  url: "https://mybuh.kz/useful/fno-i-sroki-sdachi-nalogovykh-otchetov-v-2026-godu.html"
+  perspektiven: [P2]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: jaehrlich
+  abdeckung: >
+    Formular 100.00 = Erklaerung zur Koerperschaftsteuer (KPN), zentrale Jahreserklaerung
+    fuer TOO im allgemeinen Steuerregime. Meldezeitraum: Kalenderjahr. Abgabefrist: bis
+    spaetestens 31. Maerz des Folgejahres (fuer 2025 also 31.03.2026). Elektronische Abgabe
+    ueber das Kabinett des Steuerzahlers.
+  beschaffung: "Frei zugaenglich als Fristentabelle auf der Seite."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Tabellenformat mit Formularnummer/Name/Frist je Zeile, gut chunkbar."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Dieselbe Seite dient auch als Beleg fuer mybuh-steuerkalender-2026 (Gesamttabelle).
+    Konkrete Anlagenummer der Anordnung 695 fuer Formular 100.00 nicht ermittelt.
+    Publiziert 23.02.2026.
+
+- id: pro1c-formular-910-00-2026
+  name: "Formular 910.00 - vereinfachte Erklaerung (Kleinunternehmen) 2026"
+  name_original: "Форма 910.00. Декларация для налогоплательщиков, применяющих СНР на основе упрощенной декларации"
+  herausgeber: "pro1c.kz / its.1c.kz (1C-Partnerportale Kasachstan)"
+  url: "https://pro1c.kz/articles/formy-nalogovoy-otchetnosti-na-2026-god/forma-910-00-blank-i-pravila-sostavleniya-formy-za-2026-god/"
+  perspektiven: [P2]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: jaehrlich
+  abdeckung: >
+    Formular 910.00 = Erklaerung fuer Steuerpflichtige im vereinfachten Sonderregime
+    (СНР на основе упрощенной декларации), fuer ИП und TOO. Meldezeitraum: Halbjahr.
+    Fristen: 1. Halbjahr bis 15.08. einschliesslich, 2. Halbjahr bis 15.02. des Folgejahres
+    einschliesslich. Rechtsgrundlage: Anlage 27 zur Anordnung des Finanzministers RK vom
+    12.11.2025 Nr. 695.
+  beschaffung: "Frei zugaenglich, PDF-Blankett verlinkt."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Gegliedert nach Formularanlage; Fristen explizit benannt."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Diese Angaben stammen aus einer WebSearch-Synthese (mehrere Quellen: portal.mybuh.kz,
+    its.1c.kz, prg.kz, pro1c.kz), nicht aus eigenstaendiger WebFetch-Pruefung dieser
+    konkreten URL. Die Frist-Kernaussage (15.08./15.02.) ist konsistent mit dem
+    unabhaengig geprueften Muster "15. des (zweiten) Monats nach Periodenende" aus
+    mybuh-steuerkalender-2026 und gilt daher als plausibel, aber nicht Wort-fuer-Wort
+    verifiziert.
+
+- id: formular-913-00-abgeschafft-2026
+  name: "Formular 913.00 (Einzelhandelssteuer-Regime) - ab 2026 abgeschafft"
+  name_original: "Форма 913.00 - Декларация для СНР розничного налога (аннулирована с 2026 года)"
+  herausgeber: "uchet.kz (Praktikerportal Kasachstan)"
+  url: "https://uchet.kz/tags/f/forma-913-00.html"
+  perspektiven: [P2]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: statisch
+  abdeckung: >
+    WICHTIGER WIDERSPRUCH ZUM RECHERCHEAUFTRAG: Das Sonderregime "Einzelhandelssteuer"
+    (Formular 913.00) existiert ab 01.01.2026 nicht mehr ("данный налоговый режим
+    отсутствует"). Der Auftrag nannte 913.00 als moegliches Formular fuer den
+    landwirtschaftlichen Kleinbetrieb - das ist mit dem neuen Kodex 214-VIII ueberholt.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Kurzhinweis, keine Artikelstruktur; als Negativ-Fakt aber wichtig fuer Filterlogik."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Kreuzvalidiert durch Abwesenheit von 913.00 in der offiziellen KGD-Formularliste
+    kgd-fno-uebersicht-2026 (dort werden 200/220/300/328/400/910/860/870/001/003.01/027.00
+    gelistet, aber kein 913.00) - zwei unabhaengige Quellen stuetzen denselben Befund.
+    Fuer das Konfliktregister relevant: der urspruengliche Rechercheauftrag ging von
+    913.00 als gueltigem Formular aus; das ist falsch fuer 2026.
+
+# ============================================================
+# P2 ADMINISTRATIV - Kabinett des Steuerzahlers, eGov, Fristenkalender
+# ============================================================
+
+- id: kgd-kabinett-knp
+  name: "Kabinett des Steuerzahlers (KNP)"
+  name_original: "Кабинет налогоплательщика"
+  herausgeber: "Komitee fuer Staatseinnahmen (KGD), Finanzministerium RK"
+  url: "https://cabinet.kgd.gov.kz/knp/main/"
+  perspektiven: [P2]
+  autoritaetsstufe: 3
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Das offizielle Kabinett des Steuerzahlers - Portal zur elektronischen Abgabe aller
+    ФНО-Formulare, Einsicht in Steuerkalender/Fristen-Feed, Verwaltung von Benachrichtigungen,
+    Beschwerdeservice gegen Pruefungsergebnisse. Zugang typischerweise per ЭЦП/NCALayer.
+  beschaffung: "Frei erreichbar, personalisierte Funktionen erfordern ЭЦП-Login (NCALayer)."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "Reine Anwendungsoberflaeche, kein Dokumenteninhalt zum Ingest."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    WICHTIGER BEFUND: Bei diesem Abruf Zertifikatsfehler ("unable to verify the first
+    certificate") auf cabinet.kgd.gov.kz - moegliches TLS-Kettenproblem, das auch echte
+    Nutzer/Software treffen kann; vor produktiver Integration pruefen. AUSSERDEM: die im
+    Rechercheauftrag genannte Domain "cabinet.salyk.kz" loest bei DNS-Abfrage NICHT auf
+    (ENOTFOUND), ebenso wenig die Kurzform "salyk.kz". Diese Domain scheint nicht (mehr)
+    zu existieren oder war nie korrekt - die tatsaechliche Adresse ist cabinet.kgd.gov.kz
+    (bzw. das neue System knp.kgd.gov.kz, siehe knp-kgd-gov-kz-isna-neu). Vor Verwendung
+    im ERP-Produkt unbedingt mit einer zweiten Quelle gegenpruefen, da beide Namen leicht
+    verwechselt werden koennen.
+
+- id: knp-kgd-gov-kz-isna-neu
+  name: "Neues Kabinett der Integrierten Steuerverwaltung (ИСНА)"
+  name_original: "Кабинет налогоплательщика ИСНА (knp.kgd.gov.kz)"
+  herausgeber: "Komitee fuer Staatseinnahmen (KGD), Finanzministerium RK"
+  url: "https://knp.kgd.gov.kz"
+  perspektiven: [P2]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: unbekannt
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Laut Praktikerquelle (uchet.kz) ging ab 15.04.2026 eine neue Formularverarbeitung fuer
+    300.00 im "Kabinett der Integrierten Steuerverwaltung (ИСНА)" unter dieser Adresse in
+    Betrieb. Deutet auf eine Systemabloesung/-ergaenzung des klassischen KNP-Kabinetts hin.
+  beschaffung: "Unbekannt - nicht selbst getestet."
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: "Nur Sekundaerbeleg, keine eigene Inhaltspruefung."
+  gueltig_ab: "2026-04-15"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    NICHT per WebFetch direkt verifiziert (nur aus WebSearch-Ergebnis "Форма 300.00 в
+    КНП ИСНА с 15 апреля 2026 года" auf uchet.kz bekannt). Verhaeltnis zu
+    cabinet.kgd.gov.kz/knp (Satz kgd-kabinett-knp) ungeklaert: moeglicherweise dieselbe
+    Anwendung unter neuem Hostnamen, moeglicherweise ein Parallelsystem. Klaerung vor
+    ERP-Integration dringend empfohlen - dies ist die wahrscheinlichste Kandidatin fuer
+    "das aktuelle Kabinett des Steuerzahlers 2026".
+
+- id: egov-business-app
+  name: "eGov Business - mobile App fuer Unternehmer"
+  name_original: "eGov Business – цифровой помощник отечественного предпринимателя"
+  herausgeber: "Elektronische Regierung der Republik Kasachstan (eGov.kz)"
+  url: "https://egov.kz/cms/ru/news/eGov_business"
+  perspektiven: [P2]
+  autoritaetsstufe: 3
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Mobile App (iOS/Android) mit Buendelung von 33 eGov-Diensten und 399 eLicense-Diensten
+    fuer juristische Personen; enthaelt persoenliches Kabinett mit Firmeninformationen,
+    KI-Chatbot und Steuerkalender-Erinnerungen. Kein API-Produkt, sondern eine
+    Endnutzer-App.
+  beschaffung: "Kostenlos aus App Store/Play Market."
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: "Marketingtext, keine Verfahrensdetails."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Nicht per WebFetch direkt verifiziert (Inhalt aus WebSearch-Snippet). Fuer P3/API-Zwecke
+    nicht relevant - dies ist explizit eine Consumer-App ohne dokumentiertes maschinelles
+    Interface.
+
+- id: mybuh-steuerkalender-2026
+  name: "ФНО-Fristenkalender 2026 (Praktiker-Tabelle)"
+  name_original: "ФНО и сроки сдачи налоговых отчетов в 2026 году"
+  herausgeber: "mybuh.kz (Praktikerportal/Buchhaltungssoftware Kasachstan)"
+  url: "https://mybuh.kz/useful/fno-i-sroki-sdachi-nalogovykh-otchetov-v-2026-godu.html"
+  perspektiven: [P2]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: jaehrlich
+  abdeckung: >
+    Fristentabelle fuer die wichtigsten ФНО 2026: 100.00 (jaehrlich, 31.03. Folgejahr),
+    200.00 (quartalsweise, 15. des 2. Monats nach Quartalsende), 300.00 (USt, "15.-45. Tag
+    nach Periodenende" laut Zusammenfassung - siehe notiz), 328.00 (20. des Folgemonats),
+    910.00 (15. des 2. Monats nach Halbjahresende), sowie 250.00/270.00 (bis 15.09.2026)
+    und 701.01 (Grundsteuer natuerliche Personen, 15.02.2026). Nennt Abgabewege: Papier,
+    Kabinett des Steuerzahlers, e-Salyq Azamat/Business-App, angebundene Fremdsysteme.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Tabellenform Formular/Name/Periode/Frist - ideal fuer feldweisen Chunk pro rag-ingest-spezifikation.md."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Die WebFetch-Zusammenfassung gibt die USt-Frist unpraezise als "15th-45th day after
+    period ends" wieder - vermutlich eine automatische Paraphrase der Regel "nicht vor dem
+    15., nicht nach dem 15. des zweiten Folgemonats". Vor Nutzung als belastbarer
+    Frist-Beleg den Originaltext (nicht die KI-Zusammenfassung) pruefen. Publiziert
+    23.02.2026. Bemerkenswert: Artikel erwaehnt auch, dass das KGD-System bei versaeumter
+    Frist automatisch eine Nullerklaerung erzeugt (Kontoschutz vor Sofortsperrung), die
+    dann per "zusaetzlicher" Form mit echten Zahlen nachgereicht werden muss - fuer die
+    ERP-Fristueberwachung relevant.
+
+- id: kgd-fristen-regional-bulletins
+  name: "KGD-Regionalbulletins zu monatlichen Abgabe-/Zahlfristen"
+  name_original: "Сроки представления налоговой отчетности и уплаты налоговых платежей"
+  herausgeber: "Departement fuer Staatseinnahmen Gebiet Kostanai (KGD-Regionalstruktur)"
+  url: "https://kst.kgd.gov.kz/ru/news/sroki-predstavleniya-nalogovoy-otchetnosti-i-uplaty-nalogovyh-platezhey-v-fevrale-2026-goda-12"
+  perspektiven: [P2]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: monatlich
+  abdeckung: >
+    Belegt ein wiederkehrendes Format: KGD-Gebietsdepartements (hier Kostanai, kst.kgd.gov.kz)
+    veroeffentlichen monatlich einen Bulletin-Artikel mit allen in diesem Monat faelligen
+    ФНО-Abgabe- und Zahlfristen. Nuetzliches Muster fuer eine automatisierte
+    Fristen-Ueberwachung (monatlich wiederkehrende, vorhersagbare URL-Struktur).
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: "Bei diesem Abruf nur Navigations-/Titelgeruest extrahiert, kein Fliesstext."
+  gueltig_ab: "2026-02-01"
+  gueltig_bis: "2026-02-28"
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    URL-Struktur deutet auf eine Serie hin (ein Artikel pro Monat, wechselnde Endziffer/
+    Datumsteil im Slug). Fuer produktiven Einsatz waere ein Scraper sinnvoll, der monatlich
+    die aktuelle Bulletin-URL des jeweiligen Gebietsdepartements findet - allerdings ist
+    unklar, ob jedes Gebietsdepartement eigene Bulletins fuehrt oder ob es eine zentrale
+    kgd.gov.kz-Fundstelle gibt. Inhalt (Formulare/Daten) bei diesem Abruf nicht einsehbar,
+    nur Titel und Publikationsdatum (11.02.2026).
+
+# ============================================================
+# P2 ADMINISTRATIV - Registrierungsverfahren (USt, ККМ)
+# ============================================================
+
+- id: gov-kz-pressemitteilung-mwst-schwelle
+  name: "Pressemitteilung: neue USt-Registrierungsschwelle ab 2026"
+  name_original: "Об изменениях в порядке регистрации по НДС с 2026 года"
+  herausgeber: "Komitee fuer Staatseinnahmen (KGD) ueber gov.kz (ЕПЦР ГО)"
+  url: "https://www.gov.kz/memleket/entities/kgd/press/news/details/1096207?lang=ru"
+  perspektiven: [P2]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: statisch
+  abdeckung: >
+    Offizielle KGD-Pressemitteilung ueber die Aenderung der USt-Registrierungsschwelle ab
+    01.01.2026. Als kanonische Behoerdenquelle gefuehrt; Inhalt bei diesem Abruf jedoch
+    nicht extrahierbar (siehe notiz) - Faktenlage daher ueber mybuh-mwst-schwelle-2026
+    belegt.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "Bei diesem Abruf nur Seitengeruest (ЕПЦР ГО-Titel), kein Fliesstext extrahiert."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    WebFetch lieferte nur "GOV.KZ - Единая платформа цифровых ресурсов государственных
+    органов" als Titel, keinen Artikeltext - typisches Muster fuer gov.kz-Pressemeldungen
+    (JS-Rendering). Als Fundstellen-Pointer dennoch aufgenommen, da gov.kz die amtliche
+    Kanalquelle ist; inhaltliche Aussagen bitte ueber mybuh-mwst-schwelle-2026
+    gegenpruefen und im Idealfall vor produktiver Nutzung per Headless-Browser direkt
+    hier nachlesen.
+
+- id: mybuh-mwst-schwelle-2026
+  name: "USt-Registrierung 2026: Schwelle und Strafen"
+  name_original: "Постановка на учет по НДС в 2026 году: порог, штрафы"
+  herausgeber: "mybuh.kz (Praktikerportal Kasachstan)"
+  url: "https://mybuh.kz/news/postanovka-na-uchet-po-nds-v-2026-godu-porog-shtrafy/"
+  perspektiven: [P2]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: jaehrlich
+  abdeckung: >
+    Ab 2026 gilt eine Umsatzschwelle von 10.000 MRP (43.250.000 KZT im Jahr 2026) fuer die
+    Pflicht-USt-Registrierung im allgemeinen Steuerregime. Der Steuerantrag ist spaetestens
+    5 Werktage nach Ueberschreiten der Schwelle zu stellen; bei einem einzelnen Geschaeft,
+    das die Schwelle allein ueberschreitet, ist der Antrag VOR Ausfuehrung dieses Geschaefts
+    zu stellen. Strafen: 50 MRP fuer verspaetete Registrierung, 15% des Umsatzes fuer
+    Umsaetze ohne Registrierung trotz Schwellenueberschreitung. Von der Pflicht befreit:
+    staatliche Einrichtungen, Personen in freien Berufen, Steuerpflichtige in
+    Sonderregimen, Privatpersonen ohne ИП-Status.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Klar strukturierter Praxisartikel mit Zahlenwerten, gut zitierbar."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Kernzahlen (10.000 MRP / 43,25 Mio KZT / 5 Werktage / 50 MRP / 15%) stammen aus einer
+    WebSearch-Synthese ueber mehrere unabhaengige Praktikerquellen (u.a. actgr.kz,
+    cdb.kz, uppersetup.com), die sich alle deckten - hohe Plausibilitaet, aber keine
+    einzelne Quelle wortlautgenau per WebFetch verifiziert. Fuer autoritaetsstufe-1/2-Beleg
+    bitte NK RK 214-VIII direkt konsultieren (P1-Team); diese Quelle ist ein Hinweis, kein
+    Beleg im Sinne der Schema-Regel.
+
+- id: egov-kkm-registrierung
+  name: "ККМ-Registrierung ueber eGov"
+  name_original: "Постановка на регистрационный учет контрольно-кассовых машин"
+  herausgeber: "Elektronische Regierung der Republik Kasachstan (eGov.kz)"
+  url: "https://egov.kz/cms/ru/articles/taxation/cash_register"
+  perspektiven: [P2]
+  autoritaetsstufe: 3
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Offizielle eGov-Verfahrensseite zur Registrierung von Kassenapparaten (ККМ/ККТ).
+    Inhalt (Ablaufschritte, Unterlagen) bei diesem Abruf nicht extrahierbar - nur der
+    generische Seitentitel "Digitale Regierung der Republik Kasachstan" wurde geliefert.
+  beschaffung: "Vermutlich online ueber eGov/Kabinett des Steuerzahlers, im Detail nicht verifiziert."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "Kein Fliesstext extrahierbar; auch RU-Artikelslug lieferte nur KZ-Generic-Titel."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: true
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    ist_ueberholt=true als Vorsichtsdefault: kein Publikationsdatum ermittelbar, Inhalt
+    nicht einsehbar, und ККМ-Registrierungsverfahren koennten sich mit dem Kodexwechsel
+    214-VIII in Artikelnummern/Ablauf geaendert haben. Ergaenzender Service-Einstieg laut
+    Suchindex: https://egov.kz/cms/ru/services/2fpass324_mf ("Внесение новых ККМ в
+    реестр") - ebenfalls nicht direkt verifiziert. Vor ERP-Dokumentation zwingend live
+    im Browser nachvollziehen; dieser Satz ist nur ein Wegweiser, kein belastbarer Beleg.
+
+# ============================================================
+# P3 TECHNISCH - ИС ЭСФ: API, SDK, Testumgebung, Signatur
+# ============================================================
+
+- id: kgd-api-interfeys-hub-section
+  name: "KGD-Sektion API-Interfeys (Einstiegsseite)"
+  name_original: "API - интерфейс"
+  herausgeber: "Komitee fuer Staatseinnahmen (KGD), Finanzministerium RK"
+  url: "https://kgd.gov.kz/ru/section/api-interfeys"
+  perspektiven: [P3]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Navigations-Hub der KGD-Website fuer alle API-Themen rund um ИС ЭСФ: verlinkt
+    "API-интерфейс", "Руководство пользователя" (Benutzerhandbuch), "Виртуальный склад"
+    (Virtueller Lager) und "Тестовый стенд" (Testumgebung) als Unterseiten.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Reine Linksammlung/Navigation, kein inhaltlicher Fliesstext zum Ingest."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Guter Einstiegspunkt/Wegweiser, aber selbst ohne technischen Inhalt."
+
+- id: kgd-api-esf-virtualsklad-anleitung
+  name: "API-Interface ИС ЭСФ mit Modul Virtueller Lager - Entwickleranleitung"
+  name_original: "API - интерфейс Web-приложения «Электронные счета-фактуры» с модулем «Виртуальный склад»"
+  herausgeber: "Komitee fuer Staatseinnahmen (KGD), Finanzministerium RK"
+  url: "https://kgd.gov.kz/ru/content/api-interfeys-web-prilozheniya-elektronnye-scheta-faktury-s-modulem-virtualnyy-sklad-1"
+  perspektiven: [P3]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    DER zentrale Entwickler-Einstiegspunkt fuer die ИС-ЭСФ-API. Beschreibt ein 4-Schritte-
+    Vorgehen: (1) SDK herunterladen, (2) Signaturgenerator aus der Administratorkonsole
+    starten, (3) XML-Projekte in SoapUI oeffnen, (4) Testszenarien ausfuehren. Nennt die
+    Testumgebung https://esf.gov.kz:8443/esf-web/ws/api1, Authentifizierung ueber
+    persoenliche digitale Zertifikate, XML-basiertes Format, deckt ЭСФ (E-Rechnungen),
+    ВС (Virtueller Lager) und Begleitdokumente ab. Support-Kontakt:
+    support_portal@kgd.minfin.gov.kz.
+  beschaffung: "Frei zugaenglich, SDK-Download ohne sichtbare Anmeldepflicht auf dieser Seite."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Schrittweise Anleitung mit klarer Nummerierung, gut chunkbar pro Schritt."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    WICHTIGSTER TECHNISCHER EINZELFUND dieser Recherche fuer P3. Bestaetigt: (a) es gibt
+    ein herunterladbares SDK mit XML-Vorlagen und SOAP-Projektdateien, (b) es existiert
+    ein "Signaturgenerator" als Konsolenwerkzeug (Hinweis auf moeglichen serverseitigen
+    Signaturpfad, siehe pro1c-esf-ncalayer-signatur-pflicht fuer die gegenteilige Evidenz
+    aus der Praxis), (c) SoapUI ist das empfohlene Testwerkzeug, was auf klassische
+    SOAP/XML-Webservices (nicht REST/JSON) hindeutet. Methodenliste/XSD selbst liegen
+    vermutlich NUR im SDK-Archiv (siehe kgd-esf-sdk-zip-2025), nicht auf dieser Webseite -
+    das ist eine reale Zugangshuerde fuer eine reine Web-Recherche ohne Dateidownload.
+
+- id: kgd-esf-sdk-zip-2025
+  name: "ИС-ЭСФ-SDK (Entwicklerpaket, Archiv-Download)"
+  name_original: "esf-sdk-2025.zip"
+  herausgeber: "Komitee fuer Staatseinnahmen (KGD), Finanzministerium RK"
+  url: "https://kgd.gov.kz/sites/default/files/ftpdata/ESF/esf-sdk-2025.zip"
+  perspektiven: [P3]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Das eigentliche Entwicklerpaket (SDK) als ZIP-Archiv. Laut Sekundaerquelle (uchet.kz)
+    enthaelt es: API-Dokumentation fuer СНТ, ЭСФ, АВР (Vorschuss-Abrechnungen), ЭД
+    (elektronische Dokumente), Nachschlagewerke/Referenztabellen, СНТ-zu-ФНО-328-
+    Zuordnungsformulare und СНТ-Benachrichtigungsformate.
+  beschaffung: "Direkter Dateidownload, laut Quellenlage ohne Registrierung."
+  maschinell_abrufbar: true
+  rag_eignung: ungeeignet
+  rag_hinweis: "Binaeres ZIP-Archiv, kein Text - fuer RAG-Ingest erst nach Entpacken/Parsen der XSD/Doku-Dateien nutzbar."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Downloadlink NICHT per HTTP-Check verifiziert (WebFetch entpackt/prueft keine
+    Binaerdateien) - Existenz nur aus einer Sekundaermeldung (uchet.kz, "Изменен комплект
+    разработчика и документация по API для ЭСФ и СНТ", publiziert bereits 13.10.2020 -
+    der dort verlinkte Dateiname "esf-sdk-2025.zip" deutet aber auf eine 2025er
+    Aktualisierung hin, die vermutlich im Zuge des Kodexwechsels 2026 erfolgte). Vor
+    Nutzung direkt herunterladen, Versionsstand und Aenderungsprotokoll pruefen. Fuer den
+    naechsten Rechercheschritt empfehlenswert: Datei tatsaechlich laden und die
+    XSD/Methodenliste als eigene, feiner granulare Quellensaetze nachtragen.
+
+- id: esf-gov-kz-api-portal-8443
+  name: "ИС ЭСФ Web-Portal, API-Unterseite (Port 8443)"
+  name_original: "интерфейс Web-приложения «Электронные счета-фактуры»"
+  herausgeber: "Komitee fuer Staatseinnahmen (KGD) / Betreiber ИС ЭСФ"
+  url: "https://esf.gov.kz:8443/esf-web/app/pages/api"
+  perspektiven: [P3]
+  autoritaetsstufe: 3
+  sprachen: [ru, kk, en]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Die im Rechercheauftrag explizit genannte Adresse fuer die API-Dokumentation
+    innerhalb der ИС-ЭСФ-Webanwendung selbst (nicht auf kgd.gov.kz, sondern auf der
+    Fachanwendung esf.gov.kz).
+  beschaffung: "Frei erreichbar ohne Login fuer die Landingpage."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "SPA-Geruest ohne extrahierbaren Fliesstext, siehe notiz."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    AUSDRUECKLICHER BEFUND ZUM PORT 8443 (wie im Auftrag verlangt): Der nicht-standardmaessige
+    Port 8443 war KEIN Verbindungshindernis - WebFetch erreichte die Seite erfolgreich
+    (kein Timeout, kein TLS-Fehler, kein HTTP-Fehler). Das eigentliche Problem ist ein
+    ANDERES: die Seite ist eine JavaScript-Single-Page-App (Sprachumschalter
+    Қаз/Рус/Eng, sonst kein Inhalt im gelieferten HTML), sodass ein einfacher
+    HTTP-Text-Extraktor keinen Methoden-Content sieht. Fuer eine echte Inhaltspruefung
+    waere ein Headless-Browser mit JS-Ausfuehrung noetig. Dasselbe Muster (Port erreichbar,
+    Inhalt nicht extrahierbar) zeigte sich bei esf-test3-kgd-testumgebung.
+
+- id: esf-test3-kgd-testumgebung
+  name: "ИС ЭСФ Testumgebung (test3)"
+  name_original: "Информационная Система Электронных Счетов-Фактур (тестовая среда)"
+  herausgeber: "Komitee fuer Staatseinnahmen (KGD) / Betreiber ИС ЭСФ"
+  url: "https://test3.esf.kgd.gov.kz:8443/esf-web/login"
+  perspektiven: [P3]
+  autoritaetsstufe: 3
+  sprachen: [ru, kk, en]
+  zugang: testzugang
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Die im Rechercheauftrag vermutete Testumgebung existiert tatsaechlich und ist
+    erreichbar. Zeigt eine Willkommensseite (Қаз/Рус/Eng), Versionskennung "4.0.0",
+    Support-Kontakt esfsd@kgd.minfin.gov.kz, und einen Link auf einen Anwendungsbereich
+    (/esf-web/app/arm).
+  beschaffung: "Landingpage frei erreichbar; ob ein Testkonto selbst registrierbar ist oder angefragt werden muss, war aus dieser Seite nicht ersichtlich."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "SPA-Geruest, kein technischer Fliesstext extrahiert."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    BESTAETIGT: TEST-Umgebung existiert und ist unter der im Auftrag genannten Adresse
+    erreichbar (Port 8443 auch hier kein Hindernis). Offene Frage: Zugangsweg zu einem
+    tatsaechlichen Testkonto (Self-Service-Registrierung vs. Anfrage bei
+    esfsd@kgd.minfin.gov.kz / +7 (7172) 72-51-61) konnte aus dem oeffentlichen Seiteninhalt
+    nicht geklaert werden - vermutlich analog zum Produktivsystem per ЭЦП, ggf. mit
+    Testzertifikat des НУЦ РК.
+
+- id: kgd-esf-api-auth-gost2015-pressemitteilung
+  name: "Pressemitteilung: Aenderung der API-Authentifizierungsmethode (ИС ЭСФ)"
+  name_original: "ПРЕСС-РЕЛИЗ Об изменении метода аутентификации по API"
+  herausgeber: "Komitee fuer Staatseinnahmen (KGD), Finanzministerium RK"
+  url: "https://kgd.gov.kz/ru/news/press-reliz-ob-izmenenii-metoda-autentifikacii-po-api-1-123828"
+  perspektiven: [P3]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: statisch
+  abdeckung: >
+    Dokumentiert die Migration der ИС-ЭСФ-API-Authentifizierung von RSA-Schluesseln auf
+    den GOST-2015-Kryptostandard des НУЦ РК (Nationales Zertifizierungszentrum). Neue
+    Methode verfuegbar ab 03.03.2023, Parallelbetrieb beider Methoden bis 31.07.2023,
+    alte Methode abgeschaltet ab 01.08.2023. Aktualisiertes SDK wurde bereitgestellt.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Klarer Fliesstext mit Datumsangaben, aber ohne Artikelstruktur."
+  gueltig_ab: "2023-08-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    ABWEICHUNG VON DER PROJEKT-DEFAULT-REGEL BEWUSST GEWAEHLT: Publiziert 07.03.2023,
+    also vor dem Kodexwechsel 214-VIII. Trotzdem hier ist_ueberholt=false gesetzt, weil
+    es sich um einen rein technischen Infrastruktur-Fakt (Kryptostandard/Authentifizierungs-
+    verfahren der ИС-ЭСФ-Plattform) handelt, NICHT um materielles Steuerrecht - die
+    Obsoleszenzvermutung des Projekts zielt auf Steuersaetze/-regeln des ALTEN Kodex ab.
+    Restrisiko bleibt: es wurde in dieser Recherche keine noch neuere
+    Authentifizierungsaenderung (z.B. im Zuge von 2025/2026) gefunden, aber das
+    WebSearch-Kontingent war zum Zeitpunkt der tiefergehenden Pruefung bereits
+    erschoepft - eine Nachpruefung wird empfohlen, bevor diese Aussage als final gilt.
+    Indizieller Gegenbeleg fuer Kontinuitaet: das SDK-Archiv heisst weiterhin
+    "esf-sdk-2025.zip" (siehe kgd-esf-sdk-zip-2025), also vermutlich ohne grundlegenden
+    Authentifizierungsbruch aktualisiert.
+
+- id: pro1c-esf-ncalayer-signatur-pflicht
+  name: "Neuer Authentifizierungsmechanismus in ИС ЭСФ - NCALayer-Pflicht (1C-Praxis)"
+  name_original: "Как в 1С включить новый механизм аутентификации в ИС ЭСФ?"
+  herausgeber: "pro1c.kz (1C-Partnerportal Kasachstan)"
+  url: "https://pro1c.kz/hotline/tipovye-resheniya/kak-v-1s-vklyuchit-novyy-mekhanizm-autentifikatsii-v-is-esf/"
+  perspektiven: [P3]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    ENTSCHEIDENDE QUELLE ZUR SIGNATURFRAGE. Beschreibt das GOST-2015-Sitzungsmodell:
+    ein Client signiert eine Anfrage zum Sitzungsaufbau, das System vergibt ein
+    Sitzungs-Ticket (Standardgueltigkeit 30 Minuten, konfigurierbar 0-1440 Minuten).
+    Woertlich (paraphrasiert): Nutzer muessen NCALayer zur Signatur von Dokumenten im
+    GOST-2015-Format verwenden. In den Community-Kommentaren bestaetigt der
+    Software-Hersteller auf Nutzerfrage zu Terminal-Servern ausdruecklich, dass der
+    Dienst KEINE mehreren gleichzeitigen NCALayer-Sitzungen auf einem Terminalserver
+    unterstuetzt ("aktuell eine Einschraenkung"), und verweist fuer Workarounds an den
+    Support.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Klarer technischer Praxisartikel inkl. Support-Dialog, sehr konkret und zitierfaehig."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    ANTWORT AUF DIE SIGNATURFRAGE (siehe auch Zusammenfassung an den Auftraggeber):
+    Der dokumentierte, von Software-Herstellern tatsaechlich genutzte Integrationsweg
+    verlangt NCALayer - eine lokal installierte Hintergrundanwendung, die eine private
+    Schluesseldatei besitzt und Signaturoperationen fuer die im selben Desktop laufende
+    Software ausfuehrt. Das ist AUSDRUECKLICH NICHT fuer unbeaufsichtigten
+    Mehrfachbetrieb auf einem Terminalserver ausgelegt (Hersteller-Zitat). Ergaenzend aus
+    Suchindex-Snippets (nicht per WebFetch verifiziert): NCALayer wird laut
+    pki.gov.kz/ncalayer/ heute als lokaler Hintergrunddienst ausgeliefert, nicht mehr als
+    Java-Browser-Applet, und es existiert eine alternative Kryptobibliothek "KalkanCrypt"
+    fuer Faelle, in denen NCALayer nicht nutzbar ist. Das aendert nichts an der
+    Kernaussage: in JEDEM hier gefundenen Beleg bleibt eine lokal installierte
+    Signaturkomponente auf einem vom Menschen bedienten Endpunkt noetig - keine reine
+    Server-zu-Server-Signatur per hinterlegtem Schluessel ohne lokale Komponente. Der in
+    kgd-api-esf-virtualsklad-anleitung erwaehnte "Signaturgenerator aus der
+    Administratorkonsole" bleibt ein offener Gegenpunkt: er KOENNTE ein
+    kommandozeilenfaehiges, servertaugliches Signaturwerkzeug sein - das wurde in dieser
+    Recherche nicht abschliessend geklaert und erfordert direkte SDK-Inspektion oder
+    Rueckfrage bei esfsd@kgd.minfin.gov.kz.
+
+# ============================================================
+# P3 TECHNISCH - СНТ (Sopromitteldokument fuer Warenbewegungen)
+# ============================================================
+
+- id: adilet-prikaz-657-snt-liste
+  name: "Anordnung Nr. 657: Warenliste und Regeln fuer СНТ"
+  name_original: "Об утверждении Перечня товаров, на которые распространяется обязанность по оформлению сопроводительных накладных на товары, а также форм, Правил оформления сопроводительных накладных на товары, и их документооборот"
+  herausgeber: "Finanzministerium der Republik Kasachstan"
+  url: "https://adilet.zan.kz/rus/docs/V2500037317"
+  perspektiven: [P2, P3]
+  autoritaetsstufe: 2
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: statisch
+  abdeckung: >
+    Anordnung des Finanzministers RK vom 31.10.2025 Nr. 657, in Kraft seit 01.01.2026.
+    Genehmigt: die Warenliste mit СНТ-Pflicht, die СНТ-Formulare, die СНТ-Ausfuell- und
+    Dokumentenflussregeln, sowie ein Druckformular fuer Transitbefoerderung per LKW.
+    Primaerquelle auf adilet.zan.kz.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: "Bei diesem Abruf nur NCPI-Adilet-Kopfzeile extrahiert, kein Artikeltext."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    SCHEMA-REGEL BEACHTET: Dieser Satz hat autoritaetsstufe 2, aber KEINE Paragraph-/
+    Punktangabe in der Abdeckung (Inhalt bei WebFetch nicht extrahierbar) - er gilt
+    gemaess der Schema-Fussregel daher als HINWEIS, nicht als aufloesende Quelle im
+    Konfliktregister. Fuer die inhaltliche Warenliste siehe prg-kz-prikaz-657-snt-detail
+    (Stufe 4, mit Paragraphenzahlen/Kategorien, aber kommerzieller Spiegel statt Primaerquelle).
+    Vor produktivem Ingest: Volltext direkt bei adilet per Headless-Browser oder
+    alternative Route beschaffen.
+
+- id: prg-kz-prikaz-657-snt-detail
+  name: "Anordnung Nr. 657 - Detailkommentar mit Warenkategorien (PRG/Параграф)"
+  name_original: "СНТ: новые формы, Правила, Перечень товаров с 2026 года"
+  herausgeber: "PRG.kz / ИС Параграф (kommerzielle Rechtsdatenbank)"
+  url: "https://prg.kz/document/?doc_id=38355510"
+  perspektiven: [P2, P3]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: unbekannt
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: statisch
+  abdeckung: >
+    Kommentierte Wiedergabe der Anordnung 657 (31.10.2025, in Kraft 01.01.2026). Nennt die
+    СНТ-pflichtigen Warenkategorien: Biokraftstoff, Ethylalkohol und Alkoholprodukte,
+    bestimmte Erdoelprodukte, Spezialkraftstoffe (Gasohol, Benzanol, Naphtha, leichte
+    Kohlenwasserstoffgemische, Oekokraftstoff), Fluessiggas (LPG), Betaeubungsmittel/
+    psychotrope Stoffe, rueckverfolgungspflichtige Waren gemaess internationalen
+    Abkommen, sowie EAWU-Ein-/Ausfuhrwaren. Pflicht-Abwicklung elektronisch ueber ИС ЭСФ;
+    Papierform nur bei bestaetigtem Systemausfall zulaessig. Fuer neue Kategorien
+    (verbrauchsteuerpflichtig, rueckverfolgbar, Erdoelprodukte, Biokraftstoff) strengere
+    Pflichtangaben: TN-WED-Code, Herkunftsangaben, ggf. PIN-Codes, Transporteurdaten.
+  beschaffung: "Bei diesem Abruf ohne sichtbare Paywall erreichbar; PRG/Параграф positioniert sich allgemein als kostenpflichtige Volltext-Rechtsdatenbank - Einzeldokumentansicht ggf. begrenzt frei."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Gut strukturierter Kommentartext mit klarer Kategorienliste."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Praxisrelevant fuer das Agrar-ERP: Biokraftstoff und (indirekt, ueber Duenger-/
+    Agrarchemie-Erdoelprodukte) mehrere gelistete Kategorien koennen einen
+    Landwirtschaftsbetrieb betreffen. Genaue Positionsliste (TN-WED-Codes) nicht in dieser
+    Zusammenfassung enthalten - fuer den Produktivbetrieb muss die vollstaendige Warenliste
+    aus der Anordnung 657 (Anlage) entnommen werden, nicht nur diese Kategorienuebersicht.
+
+# ============================================================
+# P3 TECHNISCH - Virtueller Lager
+# ============================================================
+
+- id: kgd-virtueller-lager-uebersicht
+  name: "KGD-Seite Virtueller Lager (Uebersicht)"
+  name_original: "Виртуальный склад"
+  herausgeber: "Komitee fuer Staatseinnahmen (KGD), Finanzministerium RK"
+  url: "https://kgd.gov.kz/ru/content/virtualnyy-sklad-1"
+  perspektiven: [P3]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Die vom Auftrag benannte offizielle Uebersichtsseite zum Modul "Virtueller Lager"
+    innerhalb ИС ЭСФ.
+  beschaffung: "Frei zugaenglich (vermutet, nicht verifiziert)."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "Nicht per WebFetch gepruef, nur ueber Suchindex-Titel bekannt."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: true
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    NICHT eigenstaendig per WebFetch verifiziert (WebSearch-Budget der Session war zu
+    diesem Zeitpunkt erschoepft) - nur URL und Titel aus einer frueheren Trefferliste
+    uebernommen. ist_ueberholt=true als Vorsichtsdefault mangels Inhaltspruefung. Fuer
+    inhaltliche Aussagen zum Virtuellen Lager siehe stattdessen
+    pro1c-virtueller-lager-bestand (praktisch verifiziert) und
+    kgd-api-esf-virtualsklad-anleitung (das Modul teilt sich offenbar SDK/API mit ЭСФ).
+
+- id: pro1c-virtueller-lager-bestand
+  name: "Bestand in den Virtuellen Lager eintragen (Praxisanleitung)"
+  name_original: "Как в ИС ЭСФ ввести остатки по товару на Виртуальный склад?"
+  herausgeber: "pro1c.kz (1C-Partnerportal Kasachstan)"
+  url: "https://pro1c.kz/articles/virtualnyy-sklad-vs/kak-vvesti-ostatki-po-tovaru-na-virtualnyy-sklad/"
+  perspektiven: [P3]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Beschreibt das funktionale Modell des Virtuellen Lagers: ein API-Interface fuer die
+    Anbindung von ERP-Buchhaltungssystemen; Online-Bestandsverfolgung mit voll- und
+    periodenweisem Export von Bestandsaenderungen; das Dokument "Инвентаризация"
+    (Inventur) dient zur Ersteingabe von Warenbestaenden, die vor Beginn der
+    Lagernutzung bereits physisch vorhanden waren (erzeugt, importiert oder gekauft).
+    Bestimmte Vorgaenge aendern den Bestand automatisch - z.B. erzeugt eine eingehende
+    ЭСФ eines Lieferanten mit Waren, deren Warencodes auf der Pflichtliste des
+    Virtuellen Lagers stehen, automatisch eine Abbuchung beim Lieferanten und eine
+    Zubuchung beim Empfaenger. Erfassungsdokumente koennen im Web-Interface erstellt oder
+    als aus der Buchhaltungssoftware exportierte XML-Dateien importiert werden.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Konkrete Funktionsbeschreibung mit Dokumenttypen - gut nutzbar fuer P3-Systemdesign."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Beantwortet Mandatspunkt 7 (welche Lagerereignisse erwartet werden): (1) Ersteingabe/
+    Inventur, (2) automatische Zu-/Abbuchung gekoppelt an ЭСФ-Vorgaenge fuer gelistete
+    Warencodes, (3) manuelle Web-Erfassung ODER XML-Import/Export. Aus WebSearch-Synthese
+    uebernommen, nicht per Einzel-WebFetch dieser URL geprueft - Kernaussagen aber
+    konsistent mit dem SDK-Beschrieb in kgd-api-esf-virtualsklad-anleitung (gleiches
+    XML/API-Modell).
+
+# ============================================================
+# P3 TECHNISCH - ОФД (Fiskaldatenoperatoren)
+# ============================================================
+
+- id: mybuh-ofd-liste-2026
+  name: "Liste der zugelassenen Fiskaldatenoperatoren (ОФД) 2026"
+  name_original: "Перечень операторов фискальных данных в Казахстане"
+  herausgeber: "mybuh.kz (Praktikerportal Kasachstan), Angaben aus Anordnung des Finanzministeriums RK"
+  url: "https://mybuh.kz/news/perechen-operatorov-fiskalnykh-dannykh-v-kazakhstane/"
+  perspektiven: [P3]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Zehn zugelassene ОФД laut einer Anordnung des Finanzministeriums (gestuetzt auf Art.
+    111 Abs. 5 Pp. 3 NK RK): Kazakhtelecom JSC, Transtelecom JSC, Kaspi Bank JSC, Jusan
+    Mobile JSC, Bukta.kz LLC, Waypoint LLC, Kar-Tel LLC, COMRUN LLC, IT ANALYTICS LLC,
+    Smartcontract LLC. Zweck: Echtzeit-Uebermittlung von Zahlungsvorgangsdaten an die
+    Steuerbehoerden ueber oeffentliche Telekommunikationsnetze.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Klare Aufzaehlung, gut als Faktenliste nutzbar."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Publiziert 03.04.2026 (nach Kodexwechsel, als aktuell gewertet). Kein Hinweis auf ein
+    API zur Selbstabfrage eigener Belegdaten durch Unternehmen in diesem Artikel. Die
+    zugrundeliegende Anordnung selbst wurde in dieser Recherche nicht auf adilet.zan.kz
+    identifiziert - fuer eine autoritaetsstufe-2-Bestaetigung waere das nachzuholen.
+
+- id: kgd-ofd-definition
+  name: "KGD: Was ist ein ОФД (Fiskaldatenoperator)?"
+  name_original: "Что такое ОФД (оператор фискальных данных)?"
+  herausgeber: "Komitee fuer Staatseinnahmen (KGD), Finanzministerium RK"
+  url: "https://kgd.gov.kz/ru/content/chto-takoe-ofd-operator-fiskalnyh-dannyh-11"
+  perspektiven: [P3]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Offizielle KGD-Begriffserklaerung zu ОФД. Inhalt bei diesem Abruf nicht extrahierbar
+    (nur Navigations-/Kopfzeilen-Geruest); Seite traegt einen sehr alten Zeitstempel.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "Kein Fliesstext extrahiert."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: true
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Zeitstempel der Seite: publiziert UND zuletzt geaendert 07.07.2019 - lange vor dem
+    Kodexwechsel 214-VIII. ist_ueberholt=true gemaess Projekt-Vorsichtsregel (Inhalt vor
+    2026, nicht als rein historisch genutzt gekennzeichnet). Da der Fliesstext nicht
+    einsehbar war, ist unklar, ob die Seite seither aktualisiert wurde, ohne dass sich der
+    Zeitstempel aenderte (haeufiges CMS-Verhalten) - vor Nutzung zwingend Fliesstext direkt
+    pruefen, insbesondere referenzierte Rechtsartikel.
+
+- id: kgd-scheck-pruefung-konsument
+  name: "KGD-Dienst: Zahlungsbeleg-Pruefung (Konsumentendienst)"
+  name_original: "Проверка чека оплаты"
+  herausgeber: "Komitee fuer Staatseinnahmen (KGD), Finanzministerium RK"
+  url: "https://kgd.gov.kz/ru/app/pshep-payment-check-web"
+  perspektiven: [P3]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Ein Einzel-Beleg-Pruefwerkzeug fuer Konsumenten (Verifikation eines einzelnen
+    Kassenbelegs), eingebettet neben anderen Steuerpflichtigen-Diensten (Steuerpflichtigen-
+    Suche, Schuldenabfrage, Terminvereinbarung). Kein Hinweis auf Massenabruf oder API in
+    der sichtbaren Navigation.
+  beschaffung: "Frei zugaenglich im Browser."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "Reine Anwendungsoberflaeche."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    WICHTIGER NEGATIVBEFUND fuer Mandatspunkt 8: Dies ist das einzige offiziell auf
+    kgd.gov.kz gefundene Beleg-Pruefwerkzeug, und es ist ausdruecklich auf
+    Einzelbeleg-Konsumentenpruefung ausgelegt, nicht auf Massenabruf/Sverka (Abgleich)
+    durch Unternehmen. Auf Ebene der ОФД-Betreiber selbst (die 10 in mybuh-ofd-liste-2026
+    gelisteten Firmen) wurde in dieser Recherche KEINE oeffentlich dokumentierte
+    Reconciliation-API gefunden. Das naechstliegende Ergebnis liegt eine Ebene hoeher, bei
+    KKM-Softwareanbietern (siehe webkassa-api-kkm-integration).
+
+- id: webkassa-api-kkm-integration
+  name: "Webkassa API-Integration (KKM-Software mit Belegabruf)"
+  name_original: "Интеграции Webkassa через API"
+  herausgeber: "Webkassa.kz (privater KKM-/Kassensoftware-Anbieter)"
+  url: "https://promo.webkassa.kz/integrations"
+  perspektiven: [P3]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: testzugang
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Kommerzieller Kassenanbieter mit eigenem API (26+ Methoden): Belegoperationen,
+    Firmendaten, Kassenein-/-auszahlungen, und ausdruecklich "Belegabruf per Belegnummer"
+    ("получение чеков по номеру") - das ist die konkreteste in dieser Recherche gefundene
+    Faehigkeit zum gezielten Abruf bereits ausgestellter Belege. Kostenloses Testkabinett
+    unter https://devkkm.webkassa.kz/ mit Postman-Dokumentation im persoenlichen Bereich.
+  beschaffung: "Test-Account kostenlos unter devkkm.webkassa.kz; Produktivzugang vermutlich kommerziell (nicht verifiziert)."
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: "Marketingseite, echte API-Referenz liegt hinter Login im Kabinett."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Wichtig fuer Mandatspunkt 8, ABER Praezisierung noetig: dies ist kein ОФД im
+    regulatorischen Sinn, sondern ein KKM-Softwareanbieter, der mit einem/mehreren der
+    vier in reKassa erwaehnten ОФД zusammenarbeitet und selbst eine API-Schicht darueber
+    legt. "Belegabruf per Nummer" ist die staerkste gefundene Naeherung an eine
+    Sverka/Reconciliation-Faehigkeit, primaer aber fuer die eigene Kassensoftware-Kette
+    gedacht, nicht als unabhaengiger ОФД-weiter Abgleichdienst. Nicht per WebFetch dieser
+    exakten Methodenliste verifiziert (aus WebSearch-Synthese).
+
+- id: rekassa-api-integration
+  name: "re:Kassa API-Integration (KKM-/Fiskalisierungssoftware)"
+  name_original: "Интеграция фискализации через API для бизнеса в Казахстане"
+  herausgeber: "re:Kassa (privater KKM-/Fiskalisierungsanbieter, betreibt auch ОФД COMRUN)"
+  url: "https://rekassa.kz/integraciya-cherez-api"
+  perspektiven: [P3]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: unbekannt
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Arbeitet mit allen vier ihr bekannten offiziellen ОФД in Kasachstan zusammen;
+    API-Integration laut Eigenangabe typischerweise in 1-3 Tagen umsetzbar; kostenlose
+    Stufe bis 10.000 Belege; Zugangsdaten als "ID Verkaeufer" + "API-Token". Schwerpunkt
+    der oeffentlichen Beschreibung liegt auf dem AUSSTELLEN/Fiskalisieren von Belegen,
+    nicht auf dem Abruf historischer Belege zur Sverka.
+  beschaffung: "Details vermutlich nach Kontaktaufnahme/Registrierung."
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: "Marketingseite ohne technische Methodenreferenz im oeffentlichen Bereich."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Im Unterschied zu Webkassa wurde hier KEINE explizite Rueckabruf-/Sverka-Methode in
+    der oeffentlichen Beschreibung gefunden - der Fokus liegt klar auf Beleg-AUSSTELLUNG.
+    Fuer Reconciliation-Zwecke daher schwaecherer Beleg als webkassa-api-kkm-integration.
+    Nicht per WebFetch verifiziert (aus WebSearch-Synthese).
+
+# ============================================================
+# P3 TECHNISCH - ЕСУТД / enbek.kz (elektronische Arbeitsvertraege)
+# ============================================================
+
+- id: egov-esutd-arbeitsvertrag
+  name: "Elektronische Arbeitsvertraege im ЕСУТД"
+  name_original: "Электронные трудовые договора в ЕСУТД"
+  herausgeber: "Elektronische Regierung der Republik Kasachstan (eGov.kz)"
+  url: "https://egov.kz/cms/ru/articles/employment_relations/dogovora-v-ESUTD"
+  perspektiven: [P2, P3]
+  autoritaetsstufe: 3
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Arbeitgeber muessen Arbeitsvertraege im Einheitlichen System zur Erfassung von
+    Arbeitsvertraegen (ЕСУТД) abschliessen und registrieren, ueber das Portal enbek.kz
+    bzw. hr.enbek.kz. Neue Vertraege sind spaetestens 5 Werktage nach Unterzeichnung
+    durch beide Parteien einzutragen (Aenderungen/Beendigungen analog fristgebunden).
+    Signatur durch den Arbeitgeber per ЭЦП oder QR-Code moeglich; Arbeitnehmer koennen
+    auch per Enbek-HR-App signieren.
+  beschaffung: "Frei zugaenglich, Konto auf enbek.kz/hr.enbek.kz noetig."
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: "Bei direktem WebFetch nur Seitentitel extrahiert; Inhalt aus WebSearch-Synthese."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Arbeitsrechtliche (nicht steuerrechtliche) Regelung - die Obsoleszenzvermutung des
+    Steuerkodex-214-VIII-Wechsels greift hier nicht direkt, da das Arbeitsgesetzbuch RK
+    von der Steuerkodex-Reform nicht betroffen war. Kein Publikationsdatum ermittelt.
+    KEINE oeffentlich dokumentierte API-Spezifikation fuer ЕСУТД gefunden (im Unterschied
+    zu ИС ЭСФ und НКТ) - siehe enbek-esutd-integration-praxis fuer den einzigen Hinweis
+    auf ein maschinelles Interface.
+
+- id: enbek-esutd-integration-praxis
+  name: "ЕСУТД-Integration in der Praxis (HR-Software-Anbieter)"
+  name_original: "Ваши трудовые договоры еще не выгружены на enbek.kz?"
+  herausgeber: "1cbit.kz / idocs.kz (Softwarepartner, HR-/1C-Integratoren)"
+  url: "https://www.1cbit.kz/blog/vashi-trudovye-dogovory-eshche-ne-vygruzheny-na-enbek-kz/"
+  perspektiven: [P3]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: unbekannt
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Bestaetigt indirekt die Existenz einer maschinellen ЕСУТД-Schnittstelle: HR-Software
+    (1C ЗУП, idocs) bietet fertige Integrationen zum automatischen Erzeugen/Austauschen
+    von Personaldokumenten mit ЕСУТД. Fuer Arbeitgeber OHNE eigenes HR-Informationssystem
+    existiert alternativ ein Dienst zur direkten Nutzung des Portals "Elektronische
+    Arbeitsboerse" (enbek.kz).
+  beschaffung: "Ueber HR-Softwarepartner (1C, idocs) oder direkt am Portal enbek.kz/hr.enbek.kz."
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: "Marketingnaher Blogartikel, keine technische Methodenreferenz."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Fuer das Agrar-ERP-Zielpublikum vermutlich relevanter Pfad: kleine Betriebe ohne
+    eigenes HR-System nutzen die Portal-Oberflaeche direkt statt eine API zu integrieren.
+    Eine oeffentliche Entwicklerdokumentation fuer eine ЕСУТД-API (analog zum ИС-ЭСФ-SDK
+    oder den НКТ-API-Docs) wurde in dieser Recherche NICHT gefunden - falls sie existiert,
+    ist sie vermutlich nur auf Partner-/Anfragebasis zugaenglich. Nicht per WebFetch
+    verifiziert (aus WebSearch-Synthese mehrerer Quellen inkl. sdlegalpro.kz,
+    kadry.mcfr.kz).
+
+# ============================================================
+# P3 TECHNISCH - НКТ (Nationaler Warenkatalog)
+# ============================================================
+
+- id: nationalcatalog-nkt-api-docs
+  name: "Nationaler Warenkatalog (НКТ) - API-Dokumentation"
+  name_original: "Национальный каталог товаров - API"
+  herausgeber: "TOO Zentrum fuer die Entwicklung der digitalen Wirtschaft (Betreiber НКТ)"
+  url: "https://nationalcatalog.kz/gwp/docs"
+  perspektiven: [P3]
+  autoritaetsstufe: 3
+  sprachen: [ru, kk]
+  zugang: unbekannt
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Oeffentlich referenzierte API-Dokumentation des НКТ. Deckt laut Sekundaerquelle ab:
+    Antraege einreichen, Status verfolgen, Suche/Ansicht von Waren per NTIN und GTIN.
+    Alternative Dokumentationsadresse: nct.kz/rest/docs. Eigene Testumgebung fuer
+    Probeuploads: stg.nct.kz. Ab 01.01.2026 muessen alle Teilnehmer am Warenverkehr in
+    Kasachstan den НКТ nutzen, jede Ware erhaelt einen eindeutigen NTIN-Code - fuer 2026er
+    Kassenbelege (Pflicht zur Warenbezeichnung nach Klassifikator) direkt relevant.
+  beschaffung: "Dokumentation oeffentlich referenziert; ob ein API-Schluessel Registrierung erfordert, nicht geklaert."
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: "Nicht per WebFetch dieser genauen Unterseite verifiziert; Wurzelseite lieferte nur Titel."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Existenz einer nutzbaren API indirekt bestaetigt durch kommerzielle Automatisierungs-
+    dienstleister (z.B. kazntin.kz, algatop.kz), die NTIN-Massenregistrierung per API
+    fuer Drittplattformen (u.a. Kaspi) anbieten - das waere ohne ein echtes API nicht
+    moeglich. Trotzdem: /gwp/docs selbst wurde in dieser Recherche NICHT direkt per
+    WebFetch geoeffnet (Angabe stammt aus WebSearch-Synthese) - vor Implementierung
+    zwingend live pruefen, auch wegen der Domain-Unklarheit (siehe nct-gov-kz-portal).
+
+- id: nct-gov-kz-portal
+  name: "НКТ-Portal unter nct.gov.kz (Domain-Klaerungsbedarf)"
+  name_original: "НКТ | Национальный каталог товаров"
+  herausgeber: "vermutlich staatlich betrieben (nct.gov.kz), Betreiberidentitaet nicht abschliessend verifiziert"
+  url: "https://nct.gov.kz/"
+  perspektiven: [P3]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Weitere Domain fuer den Nationalen Warenkatalog neben nationalcatalog.kz. Bei diesem
+    Abruf nur Seitentitel extrahiert, keine Navigationsstruktur oder inhaltlichen Links
+    sichtbar.
+  beschaffung: "Frei erreichbar."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "Kein Fliesstext extrahiert."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: true
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    OFFENER BEFUND: Es existieren mindestens zwei Domains fuer denselben Zweck
+    (nationalcatalog.kz und nct.gov.kz), evtl. eine dritte technische API-Domain (nct.kz).
+    Ob dies drei unabhaengige Systeme, Spiegeldomains derselben Plattform, oder ein
+    aeltere/neuere Domain-Abloesung ist, wurde in dieser Recherche NICHT geklaert - explizit
+    als offene Frage fuer das Konfliktregister vermerkt. ist_ueberholt=true als
+    Vorsichtsdefault mangels Inhaltspruefung.
+
+# Notizen
+#
+# 1) WELCHE TECHNISCHEN ENDPUNKTE HABEN AUFGELOEST (waren erreichbar)?
+#    - esf.gov.kz:8443/esf-web/app/pages/api -> ERREICHBAR (kein Verbindungsfehler trotz
+#      Nicht-Standardport). Lieferte aber nur ein JS-SPA-Geruest ohne Methodentext.
+#    - test3.esf.kgd.gov.kz:8443/esf-web/login -> ERREICHBAR, bestaetigt als aktive
+#      Testumgebung (Versionskennung 4.0.0, Support-Kontakt esfsd@kgd.minfin.gov.kz).
+#    - kgd.gov.kz/ru/content/... -> zuverlaessig mit Fliesstext erreichbar (klassisches
+#      serverseitiges Rendering).
+#    - kgd.gov.kz/ru/section/..., kgd.gov.kz/ru/app/..., egov.kz/cms/..., gov.kz/... ->
+#      technisch erreichbar (HTTP 200), aber NUR Seitengeruest ohne Fliesstext (JS-Apps).
+#    - cabinet.kgd.gov.kz/knp/main/ -> TLS-Zertifikatsfehler bei diesem Abruf.
+#    - cabinet.salyk.kz UND salyk.kz -> LOESEN NICHT AUF (DNS NXDOMAIN). Die im
+#      Rechercheauftrag genannte Domain existiert nicht (mehr). Tatsaechliche Adresse:
+#      cabinet.kgd.gov.kz bzw. das ab 15.04.2026 erwaehnte knp.kgd.gov.kz (ISNA) - Letzteres
+#      nicht direkt getestet, siehe knp-kgd-gov-kz-isna-neu.
+#    Gesamtmuster: Kasachische Behoerdenportale sind ueberwiegend JS-Single-Page-Apps.
+#    Fuer einen produktiven RAG-Ingest dieser Quellenklasse ist ein Headless-Browser
+#    (z.B. Playwright) statt eines einfachen HTTP-Text-Extraktors noetig - das gilt fuer
+#    praktisch alle kgd.gov.kz/esf.gov.kz/egov.kz/gov.kz-Seiten mit App-Charakter, nicht
+#    nur fuer ИС ЭСФ. Reine Content-Artikelseiten (/ru/content/...) sind die Ausnahme und
+#    funktionieren auch mit einfachem HTTP-Abruf.
+#
+# 2) DIE SIGNATURFRAGE - SERVERSEITIG ODER DESKTOP-APPLET?
+#    Befund: ueberwiegend DESKTOP-APPLET (NCALayer) erforderlich, keine einfache
+#    Server-zu-Server-Signatur. Belegkette: die KGD-eigene SDK-Anleitung
+#    (kgd-api-esf-virtualsklad-anleitung) nennt einen "Signaturgenerator aus der
+#    Administratorkonsole" als Schritt 2 - das klingt zunaechst nach einem
+#    kommandozeilenfaehigen, potenziell servertauglichen Werkzeug. Die tatsaechliche
+#    Praxis-Erfahrung von Software-Integratoren (pro1c-esf-ncalayer-signatur-pflicht)
+#    zeigt jedoch: der produktiv genutzte Weg verlangt NCALayer, eine lokal installierte
+#    Hintergrundanwendung mit privatem Schluessel, sitzungsbasiert (Ticket, 30 Min.
+#    Standardgueltigkeit). Der Hersteller bestaetigt AUSDRUECKLICH, dass mehrere
+#    gleichzeitige NCALayer-Sitzungen auf einem Terminalserver NICHT unterstuetzt werden -
+#    also selbst ein zentralisierter "Signatur-Server" mit mehreren virtuellen
+#    Desktop-Sitzungen stoesst laut Hersteller an eine dokumentierte Grenze. FAZIT: ein
+#    vollautomatischer E-Rechnungs-Konnektor ohne jede lokale/interaktive Komponente ist
+#    nach der vorliegenden Evidenz NICHT ohne Weiteres moeglich; realistisch ist bestenfalls
+#    ein dedizierter (virtueller) Windows-Host pro Signatur-Akteur mit dauerhaft laufendem
+#    NCALayer, was Automatisierung stark einschraenkt, aber nicht vollstaendig ausschliesst.
+#    Der einzige offene Gegenpunkt (echte serverseitige Signatur ueber das
+#    Konsolenwerkzeug im SDK) konnte in dieser Recherche NICHT abschliessend geklaert
+#    werden - das SDK-Archiv selbst wurde nicht heruntergeladen/entpackt (siehe
+#    kgd-esf-sdk-zip-2025). Empfehlung: vor einer Architekturentscheidung das SDK laden
+#    und den "Signaturgenerator" konkret pruefen, oder direkt bei
+#    esfsd@kgd.minfin.gov.kz nachfragen, ob ein reiner Server-Modus unterstuetzt wird.
+#
+# 3) API-DOKUMENTATION, DIE ANFRAGE/REGISTRIERUNG BRAUCHT:
+#    - ИС ЭСФ: Detail-Methodendokumentation liegt im SDK-ZIP (kgd-esf-sdk-zip-2025), das
+#      Web-Formular selbst scheint ohne Login herunterladbar, aber die Testumgebung
+#      erfordert vermutlich ein separat zu beantragendes Testzertifikat/-konto
+#      (Kontakt esfsd@kgd.minfin.gov.kz, +7 (7172) 72-51-61) - Selbstregistrierung nicht
+#      bestaetigt.
+#    - ЕСУТД (enbek.kz): KEINE oeffentliche Entwicklerdokumentation gefunden. Vorhandensein
+#      einer Schnittstelle nur indirekt ueber fertige HR-Software-Integrationen (1C, idocs)
+#      erschlossen - vermutlich partnerschafts-/anfragebasiert.
+#    - НКТ (nationalcatalog.kz): Dokumentationsseite oeffentlich referenziert
+#      (nationalcatalog.kz/gwp/docs, alternativ nct.kz/rest/docs), aber Schluesselvergabe-
+#      prozess nicht verifiziert; vermutlich Registrierung noetig, um tatsaechlich Daten
+#      zu schreiben (Lesen/Suchen evtl. offener).
+#    - ОФД-Ebene: keine einzige der 10 gelisteten Fiskaldatenoperatoren zeigte eine
+#      oeffentlich dokumentierte Reconciliation-API fuer Unternehmen; Webkassa (KKM-Software,
+#      nicht selbst ОФД) kommt dem mit "Belegabruf per Nummer" am naechsten, mit
+#      kostenlosem Testkabinett unter devkkm.webkassa.kz.
+#
+# 4) WEITERE WIDERSPRUECHE/UEBERRASCHUNGEN FUER DAS KONFLIKTREGISTER:
+#    - Formular 913.00 (Einzelhandelssteuer-SNR), im Rechercheauftrag als moegliches
+#      Formular genannt, ist zum 01.01.2026 ABGESCHAFFT (Regime existiert nicht mehr).
+#      Zweifach belegt: explizite Praktikeraussage UND Abwesenheit in der offiziellen
+#      KGD-Formularliste 2026.
+#    - Die im Auftrag genannte Domain cabinet.salyk.kz existiert nicht (DNS-Fehler). Bitte
+#      im Projekt konsequent cabinet.kgd.gov.kz (bzw. knp.kgd.gov.kz ab April 2026)
+#      verwenden und keine Quelle/Doku mit "salyk.kz" als Linkziel uebernehmen, ohne das
+#      selbst nochmal zu pruefen.
+#    - Es existieren fuer den Nationalen Warenkatalog mindestens zwei/drei Domains
+#      (nationalcatalog.kz, nct.gov.kz, nct.kz) mit ungeklaertem Verhaeltnis zueinander.
+#    - Nebenbefund (nicht Kern dieses P2/P3-Auftrags, aber bestaetigend): eine Kalender-
+#      Sekundaerquelle nannte den neuen USt-Regelsatz als 16% ab 01.01.2026 (vorher 12%),
+#      was zur Abnahmebedingung in rag-ingest-spezifikation.md passt - als Randnotiz ohne
+#      eigene Quellenpruefung in dieser P2/P3-Recherche, bitte vom P1-Team (Primaerrecht)
+#      eigenstaendig verifizieren.

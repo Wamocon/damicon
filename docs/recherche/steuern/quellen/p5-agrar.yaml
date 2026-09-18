@@ -1,0 +1,856 @@
+# Quellenregister P5: Sektoral / Agrar (КХ/ФХ)
+#
+# Rechercheeinheit: P5, sektorale/agrarische Perspektive. Der Betrieb, fuer den dieses
+# System gebaut wird, IST ein КХ/ФХ (крестьянское/фермерское хозяйство). Diese Perspektive
+# ist damit nicht eine von mehreren, sondern die tragende.
+# Format gemaess quellenregister-schema.yaml (schema_version 1).
+# Stand der Recherche: 2026-09-18.
+#
+# Hinweis zur Abrufbarkeit: adilet.zan.kz lieferte bei automatisiertem HTTP-Abruf
+# (WebFetch) in dieser Recherche durchgehend nur das Seitengeruest ohne Fliesstext
+# (JS-Rendering). Ebenso nicht maschinell lesbar waren egov.kz (JS-Geruest ohne Inhalt),
+# ipaa.kz (HTTP 403) und die cdb.kz-Verzeichnisseite (HTTP 403). Artikelnummern und
+# Wortlaut wurden stattdessen ueber mehrere unabhaengige, sich gegenseitig bestaetigende
+# Sekundaerquellen (vor allem mybuh.kz, pro1c.kz, ein privates Kodex-Spiegelportal) sowie
+# ueber zwei amtliche KGD-Gebietsdepartement-Seiten erschlossen. Wo nur eine
+# Sekundaerquelle vorliegt, ist das im jeweiligen notiz-Feld offen ausgewiesen.
+#
+# Zwei-Sprachen-Pflicht erfuellt: Russische und kasachische Suchen liefen getrennt.
+# Ergebnis dieser Recherche (siehe kernwissen/khfh-regime-rohbefund.md, Abschnitt 1):
+# Die russische und die kasachische Fassung ergaben in der Sache DENSELBEN Befund
+# (0,5 % ИПН/ЖТС fuer das КХ/ФХ-Sonderregime), sobald man den 230.000-МРП/АЕК-Satz als
+# eigene, mit dem КХ/ФХ-Regime nicht verwandte Groesse erkennt. Der scheinbare
+# Sprachkonflikt aus der Vorrecherche war ein Kategorienfehler, kein Sprachfassungs-
+# Auseinanderfallen. Siehe konfliktregister.md, K-01.
+
+- id: adilet-nk-214-viii-rus
+  name: "Steuerkodex 214-VIII, Volltext (Primaerquelle)"
+  name_original: "Кодекс Республики Казахстан от 18.07.2025 № 214-VIII ЗРК «О налогах и других обязательных платежах в бюджет (Налоговый кодекс)»"
+  herausgeber: "Republik Kasachstan / NZPI Adilet"
+  url: "https://adilet.zan.kz/rus/docs/K2500000214"
+  perspektiven: [P5]
+  autoritaetsstufe: 1
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Vollstaendiger Text des seit 2026-01-01 geltenden Steuerkodex. Fuer P5 zentral:
+    Art. 715 und Art. 728-733 (Abschnitt "Spezielles Steuerregime fuer krestjanische
+    oder Farmwirtschaften", Nachfolgeregime des einheitlichen Bodensteuer/ЕЗН), davon
+    im Einzelnen rekonstruiert Art. 728 п.3 (erfasste Taetigkeiten: Erzeugung und
+    Verkauf eigener Agrarprodukte, Verarbeitung und Verkauf eigener Verarbeitungs-
+    produkte, Ausschluss verbrauchsteuerpflichtiger Waren), Art. 728 п.4
+    (Steuerperiode = Kalenderjahr), Art. 729 п.1 (Bemessungsgrundlage, inklusive
+    Haushaltssubventionen zur Kostendeckung), Art. 730 (Satz 0,5 %), Art. 731 п.1
+    (Befreiung von Bodensteuer, Vermoegenssteuer, Fahrzeugsteuer, Sozialsteuer,
+    Umweltentgelt und USt ausser Einfuhr-USt/USt fuer Nichtresidenten). Ausserdem
+    Art. 363 пп.4) (progressiver ИПН-Satz 10 % bis 230.000 МРП / 15 % darueber, gilt
+    fuer Einzelunternehmer im allgemeinen Regime ОУР, NICHT fuer das КХ/ФХ-Sonderregime)
+    und Art. 357 (praeferenzielle КПН-Saetze: 3 % fuer juristische Personen als
+    Agrarerzeuger, 6 % fuer landwirtschaftliche Kooperativen). Art. 588 (Vermoegenssteuer-
+    befreiung explizit an die Anwendung des КХ/ФХ-Sonderregimes geknuepft) nur ueber
+    Sekundaerquelle erschlossen, im Wortlaut nicht direkt gelesen.
+  beschaffung: "Frei zugaenglich, keine Anmeldung noetig."
+  maschinell_abrufbar: false
+  rag_eignung: mittel
+  rag_hinweis: >
+    Primaerquelle mit klarer Artikelstruktur, grundsaetzlich ideal fuer Chunking nach
+    rag-ingest-spezifikation.md. In dieser Recherche lieferte WebFetch durchgehend nur
+    das Seitengeruest ("НЦПС «Әділет»") ohne Artikeltext, auch bei gezieltem Ansteuern
+    von file_214.htm. Fuer produktiven Ingest wird ein echter Renderer/Headless-Browser
+    oder eine andere Abrufroute benoetigt. Deckt sich mit dem Befund der P12-P15-
+    Recherche (siehe deren Quellenregister).
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Alle oben genannten Artikelnummern sind ueber mindestens zwei unabhaengige
+    Sekundaerquellen konsistent bestaetigt (siehe mybuh- und pro1c-Eintraege unten),
+    Art. 728-731 zusaetzlich ueber eine amtliche KGD-Gebietsdepartement-Seite
+    (kgd-vko-snr-khfh-rus). Keine dieser Nummern wurde direkt bei adilet gegengelesen.
+    Empfehlung: vor produktivem Ingest stichprobenartig gegen adilet direkt pruefen,
+    sobald ein renderfaehiger Abrufweg besteht.
+
+- id: kgd-vko-snr-khfh-rus
+  name: "KGD-Gebietsdepartement Ostkasachstan: Erlaeuterung Sonderregime КХ/ФХ"
+  name_original: "Особенности применения специального налогового режима для крестьянских и фермерских хозяйств"
+  herausgeber: "Departement fuer Staatseinnahmen der Oblast Ostkasachstan (КГД МФ РК)"
+  url: "https://vko.kgd.gov.kz/ru/news/osobennosti-primeneniya-specialnogo-nalogovogo-rezhima-dlya-krestyanskih-i-fermerskih-hozyaystv"
+  perspektiven: [P5]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: unbekannt
+  abdeckung: >
+    Amtliche Erlaeuterung mit Artikelzitaten zum КХ/ФХ-Sonderregime: Satz 0,5 % ИПН
+    (mit Bezug auf п.3 ст.728), erfasste Taetigkeiten (Erzeugung/Verkauf eigener
+    Agrarprodukte, Verarbeitung/Verkauf eigener Verarbeitungsprodukte, Ausschluss
+    Verbrauchsteuerware), Flaechenobergrenzen nach vier Zonen (5000/3500/1500/500 ha),
+    Befreiung von USt (ausser Einfuhr-USt/USt fuer Nichtresidenten), Bodensteuer,
+    Vermoegenssteuer, Fahrzeugsteuer, Sozialsteuer und Umweltentgelt. Jahreserklaerung
+    bis 31. Maerz.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: >
+    Amtliche Quelle mit direktem Artikelbezug (п.3 ст.728), strukturiert nach Themen.
+    Zentrale Quelle zur Aufloesung von Konfliktregister K-01: eine amtliche KGD-
+    Publikation, die das Regime und seinen Satz einer Artikelnummer im 214-VIII
+    zuordnet, erfuellt die im Konfliktregister selbst definierte Aufloesungsregel.
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Keine Verguetungsformel/kein exaktes Zitat zu Art. 729 im abgerufenen Auszug, nur
+    Paraphrase. Ergaenzt durch mybuh-snr-selkhoz-khfh-2026-rus und pro1c-snr-uebersicht-
+    2026-rus, die dieselben Artikelnummern unabhaengig nennen.
+
+- id: kgd-sko-snr-khfh-rus-veraltet
+  name: "KGD-Gebietsdepartement Nordkasachstan: Erlaeuterung Sonderregime КХ/ФХ (veraltete Artikelnummern)"
+  name_original: "Особенности применения специального налогового режима для крестьянских или фермерских хозяйств"
+  herausgeber: "Departement fuer Staatseinnahmen der Oblast Nordkasachstan (КГД МФ РК)"
+  url: "https://sko.kgd.gov.kz/ru/news/osobennosti-primeneniya-specialnogo-nalogovogo-rezhima-dlya-krestyanskih-ili-fermerskih"
+  perspektiven: [P5]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: unbekannt
+  abdeckung: >
+    Beschreibt inhaltlich dasselbe Regime (0,5 % ИПН, Befreiungen von Bodensteuer,
+    Vermoegenssteuer, Fahrzeugsteuer, Sozialsteuer, Umweltentgelt, USt-Freistellung),
+    zitiert dabei aber Art. 702, 704, 226-240, 490 und 517 - das sind Artikelnummern
+    des VORGAENGERKODEX (K1700000120, ЕЗН-Regime), nicht des 214-VIII (dort 728-731).
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: >
+    WARNBEISPIEL fuer das Kernrisiko der rag-ingest-spezifikation: eine amtliche
+    KGD-Seite, die im September 2026 online steht, beschreibt inhaltlich noch das
+    ЕЗН-Regime mit dessen alten Artikelnummern, obwohl das ЕЗН zum 2026-01-01
+    abgeschafft wurde. Ohne Zeitsperre wuerde dieser Abschnitt widerspruchsfrei neben
+    den korrekten neuen Artikelnummern im Index liegen. Nur mit ist_ueberholt=true und
+    ausdruecklichem Hinweis nutzbar, sonst Gefahr falscher Artikelzitate.
+  gueltig_ab: "2017-01-01"
+  gueltig_bis: "2025-12-31"
+  ist_ueberholt: true
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Die Kernaussage (0,5 %) deckt sich zufaellig mit dem neuen Satz (Kontinuitaet des
+    Satzes wird auch von buh-mcfr-khfh-steuern-2026-rus ausdruecklich behauptet: "auf
+    denselben Bedingungen und zum selben Satz"). Die zitierten Artikelnummern sind aber
+    mit hoher Sicherheit die des aufgehobenen Kodex und duerfen nicht als Beleg fuer
+    214-VIII verwendet werden. Empfehlung an die Betreiber: KGD-Gebietsseiten sind
+    einzeln und nicht kollektiv vertrauenswuerdig, jede Seite braucht eigene Pruefung.
+
+- id: buh-mcfr-khfh-steuern-2026-rus
+  name: "MCFR Glawbuch: Welche Steuern zahlt das Bauernhof-KH in der RK"
+  name_original: "Какие налоги платит крестьянское хозяйство в РК - основные изменения и ставки"
+  herausgeber: "МЦФЭР-Казахстан / Главбух (buh.mcfr.kz)"
+  url: "https://buh.mcfr.kz/article/783-kakie-nalogi-platit-krestyanskoe-hozyaystvo-v-rk-2026"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: unbekannt
+  abdeckung: >
+    Bestaetigt, dass das КХ/ФХ ab 2026 statt ЕЗН "ИПН 0,5 % nach СНР fuer КФХ"
+    zahlt, woertlich: "такие хозяйства будут уплачивать ИПН вместо ЕЗН, на тех же
+    условиях и по той же ставке - 0,5 % от дохода". Betont ausdruecklich Kontinuitaet
+    zum Vorgaengerregime bei identischem Satz.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Fliesstext ohne durchgehende Artikelnummerierung, aber inhaltlich praezise und mit dem KGD-Befund deckungsgleich."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Wichtigster Beleg fuer die Kontinuitaetsthese (0,5 % ist keine Neuerfindung, sondern Fortfuehrung des ЕЗН-Satzes unter neuem Namen)."
+
+- id: ipaa-faq-kgd-snr-2026-rus
+  name: "IPBA: KGD-Antworten zu Fragen zum SNR im neuen Steuerkodex ab 2026"
+  name_original: "Ответы КГД на вопросы по СНР в новом Налоговом кодексе с 2026 года"
+  herausgeber: "Institut der professionellen Buchhalter und Auditoren der RK (IPBA/ИПБА)"
+  url: "https://ipaa.kz/faq/otvety-kgd-na-voprosy-po-snr-v-novom-nalogovom-kodekse-s-2026-goda"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: unbekannt
+  abdeckung: >
+    Laut Titel und Suchtreffer: KGD-Antworten (weitergereicht durch das Berufsinstitut)
+    zu Praxisfragen zum SNR-System des neuen Kodex, vermutlich einschliesslich КХ/ФХ.
+    Inhalt in dieser Recherche NICHT verifizierbar.
+  beschaffung: "Frei zugaenglich laut Suchtreffer."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "Kein Volltext verfuegbar, daher nicht bewertbar. Vor Nutzung erneuter Abrufversuch noetig (ggf. mit Browser statt HTTP-Client)."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "WebFetch lieferte HTTP 403 Forbidden. Nur als Spur registriert, nicht als Beleg genutzt. Falls die Seite tatsaechlich KGD-Originalantworten wiedergibt, waere sie potenziell Stufe 3 statt 4 - das kann ohne Inhaltszugriff nicht entschieden werden."
+
+- id: pro1c-snr-uebersicht-2026-rus
+  name: "pro1c.kz: Spezielle Steuerregime 2026 (Gesamtuebersicht)"
+  name_original: "Специальные налоговые режимы 2026 года"
+  herausgeber: "pro1c.kz"
+  url: "https://pro1c.kz/articles/spetsialnye-nalogovye-rezhimy/spets-nalogovye-rezhimy/"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: unbekannt
+  abdeckung: >
+    Beschreibt alle drei ab 2026 verbliebenen SNR (Selbstaendige, vereinfachte
+    Erklaerung, КХ/ФХ) im direkten Vergleich. Fuer КХ/ФХ: Flaechenzonen (5000/3500/
+    1500/500 ha je Zone), Satz "0,5 % ИПН auf Verkaufseinkommen aus Agrarproduktion
+    [ст. 730 НК РК]", Bemessungsgrundlage laut п.1 ст.729 ("доход от реализации
+    сельскохозяйственной продукции... продуктов переработки сельскохозяйственной
+    продукции собственного производства"), Befreiungen laut Art. 731. Bestaetigt
+    ausdruecklich: KEINE 10-/15-Prozent-Stufe und KEINE 230.000-МРП-Schwelle im
+    КХ/ФХ-Regime - diese Zahlen kommen aus einem anderen Regime (ОУР fuer ИП).
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Dichte, artikelnummerierte Gegenueberstellung aller drei SNR - fuer RAG sehr gut geeignet, da sie die Abgrenzungsfrage von K-01 explizit mitbehandelt."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Zusammen mit pro1c-ip-our-progressiv-2026-rus die wichtigste Einzelquelle zur Aufloesung von K-01."
+
+- id: pro1c-ip-our-progressiv-2026-rus
+  name: "pro1c.kz: Steuern und Zahlungen ИП (ОУР, СНР) 2026"
+  name_original: "Налоги и платежи ИП (ОУР, СНР) в 2026 году"
+  herausgeber: "pro1c.kz"
+  url: "https://pro1c.kz/articles/spetsialnye-nalogovye-rezhimy/nalogi-i-platezhi-ip-our-snr/"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: unbekannt
+  abdeckung: >
+    Zitiert woertlich: "Для ИП на ОУР введена прогрессивная ставка ИПН в размере
+    ([пп. 4) ст. 363 НК РК]): 10 % - при сумме облагаемого дохода до 230 000 МРП;
+    15 % - с суммы облагаемого дохода, превышающей 230 000 МРП." mit direktem
+    Fragmentlink auf adilet (#z6312). Ordnet diesen Satz ausdruecklich dem
+    allgemeinen Regime fuer Einzelunternehmer (ОУР) zu, nicht dem Agrarsektor.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Woertliches Zitat mit Artikel- und Absatznummer (пп.4 ст.363) und direktem adilet-Fragmentlink - hoher Belegwert trotz Stufe 4."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    SCHLUESSELBELEG fuer K-01: Dieser Satz (10/15 % ab 230.000 МРП) ist der allgemeine
+    ИПН-Progressionstarif fuer Einzelunternehmer im Normalregime, nicht der ЕЗН-
+    Nachfolgesatz. Fuer einen КХ/ФХ im Sonderregime irrelevant; relevant nur fuer den
+    Teil der Taetigkeit, der ausserhalb des Sonderregimes liegt (z.B. Zukaufsweiterverkauf)
+    UND dafuer im ОУР statt in der vereinfachten Erklaerung veranlagt wird.
+
+- id: cdb-khfh-besteuerung-2026-rus
+  name: "CDB: Besteuerung von Bauern- und Farmwirtschaften 2026"
+  name_original: "Налогообложение крестьянских и фермерских хозяйств в 2026 году"
+  herausgeber: "cdb.kz"
+  url: "https://cdb.kz/sistema/biblioteka-bukhgaltera/articles/nalogooblozhenie-krestyanskikh-i-fermerskikh-khozyaystv/"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: unbekannt
+  abdeckung: >
+    Laut Suchmaschinen-Snippet (nicht direkt gelesen): bestaetigt п.3 ст.728 und den
+    0,5-%-Satz in denselben Worten wie mehrere andere Quellen dieses Registers.
+  beschaffung: "Frei zugaenglich laut Suchtreffer."
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: "Nicht direkt abgerufen (Verzeichnisseite der Domain lieferte HTTP 403), Inhalt nur ueber Suchmaschinen-Snippet erschlossen. Vor Nutzung direkten Abruf wiederholen."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "In dieser Recherche nicht als eigenstaendiger Beleg verwendet, da Inhalt nicht direkt verifiziert - nur als Bestaetigungsspur fuer п.3 ст.728 gewertet."
+
+- id: mybuh-selkhoz-lgoty-kategorie-rus
+  name: "mybuh.kz: Bleiben Steuervorteile fuer Agrarerzeuger bei Kategoriewechsel erhalten?"
+  name_original: "Сохраняются ли налоговые льготы для сельхозпроизводителей при смене категории бизнеса"
+  herausgeber: "mybuh.kz"
+  url: "https://mybuh.kz/useful/sokhranyayutsya-li-nalogovye-lgoty-dlya-selkhozproizvoditeley-pri-smene-kategorii-biznesa.html"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: unbekannt
+  abdeckung: "Laut Titel: Steuervorteile fuer Agrarerzeuger bei Rechtsformwechsel. Inhalt in dieser Recherche nicht abrufbar."
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "WebFetch lieferte HTTP 500 Internal Server Error bei jedem Versuch."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Nicht als Beleg genutzt, nur als offene Spur registriert."
+
+- id: mybuh-khfh-dokhod-2026-rus
+  name: "mybuh.kz: Krestjanskoje Chosjaistwo - was zaehlt 2026 zum Einkommen"
+  name_original: "Крестьянское хозяйство: что включать в доход в 2026 г.?"
+  herausgeber: "mybuh.kz"
+  url: "https://mybuh.kz/useful/krestyanskoe-khozyaystvo-chto-vklyuchat-v-dokhod.html"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: statisch
+  abdeckung: >
+    Datiert 30.01.2026. Zitiert Art. 728, 729, 730 НК РК. Zentrales Zitat zur
+    Subventionsfrage: Bemessungsgrundlage umfasst "доходов в виде сумм, полученных из
+    средств государственного бюджета на покрытие затрат" (Einkommen in Form von aus dem
+    Staatshaushalt zur Kostendeckung erhaltenen Betraegen) - Subventionen sind Teil des
+    mit 0,5 % besteuerten Einkommens. Bestaetigt zudem: Einkommen aus dem Weiterverkauf
+    zugekaufter (nicht selbst erzeugter) Produkte faellt NICHT unter das Sonderregime.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Kurzer, dicht mit Artikelnummern belegter Text, Datum nach Inkrafttreten des neuen Kodex - hoher Vertrauenswert."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Primaerbeleg fuer P5-Mandat Punkt 7 (Subventionen sind steuerpflichtiges Einkommen) und Punkt 3 (Zukauf-Weiterverkauf faellt aus dem Sonderregime)."
+
+- id: egov-khfh-besteuerung-rus
+  name: "eGov.kz: Besteuerung von Bauern- oder Farmwirtschaften"
+  name_original: "Налогообложение крестьянских или фермерских хозяйств"
+  herausgeber: "Elektronische Regierung der Republik Kasachstan (eGov)"
+  url: "https://egov.kz/cms/ru/articles/agriculture/nalogooblozhenie-"
+  perspektiven: [P5]
+  autoritaetsstufe: 3
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: unbekannt
+  abdeckung: "Amtliches Regierungsportal, Artikel zur Besteuerung von КХ/ФХ. Inhalt in dieser Recherche nicht abrufbar (RU- und KK-Fassung beide versucht)."
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "WebFetch lieferte nur das JS-Seitengeruest ('Digital Government of the Republic of Kazakhstan') ohne Artikeltext, in beiden Sprachfassungen."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Trotz Stufe-3-Status nicht als Beleg nutzbar, da kein Inhalt zugaenglich war. Fuer produktiven Ingest mit Headless-Browser erneut versuchen."
+
+- id: mybuh-snr-selkhoz-khfh-2026-rus
+  name: "mybuh.kz: Sonderregime fuer Agrarerzeuger und Bauernwirtschaften"
+  name_original: "Специальный режим для крестьянских или фермерских хозяйств (СНР для сельхозпроизводителей и крестьянских хозяйств)"
+  herausgeber: "mybuh.kz"
+  url: "https://mybuh.kz/useful/spetsrezhimy-dlya-selkhozproizvoditeley-i-krestyanskikh-khozyaystv.html"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: statisch
+  abdeckung: >
+    Datiert 31.08.2026, damit die aktuellste Einzelquelle dieses Registers. Reichhaltigster
+    Einzelbeleg zum Sonderregime: Subjektkreis nur RK-Staatsbuerger und Kandasy/Oralmanen,
+    Betriebsleiter muss volljaehrig und voll geschaeftsfaehig sein, Auslaender und
+    auslaendische juristische Personen ausgeschlossen. Flaechenobergrenzen 500-5000 ha
+    je Zone. Zitiert wortgetreu den Taetigkeitsumfang aus п.3 ст.728: "деятельность
+    крестьянских или фермерских хозяйств по производству сельскохозяйственной продукции
+    и ее реализации, переработке сельскохозяйственной продукции собственного
+    производства" - Verarbeitung zugekaufter oder importierter Ware ist ausdruecklich
+    ausgeschlossen. Zitiert п.1 ст.731 zu den Befreiungen (USt ausser Einfuhr-USt/USt
+    fuer Nichtresidenten, Boden-, Fahrzeug-, Vermoegens-, Sozialsteuer, Umweltentgelt).
+    Bestaetigt: Sonderregime ist MIT vereinfachter Erklaerung oder ОУР fuer nicht erfasste
+    Einkuenfte KOMBINIERBAR, Voraussetzung getrennte Buchfuehrung. Steuerperiode
+    Kalenderjahr (п.4 ст.728).
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Dichteste und aktuellste Einzelquelle im gesamten P5-Register, mit durchgehenden Artikelverweisen. Erste Wahl fuer RAG-Ingest zum КХ/ФХ-Thema."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Hauptquelle fuer P5-Mandat Punkt 1 (Bedingungen) und Punkt 3 (Zukauf-Weiterverkauf
+    ausgeschlossen, aber kombinierbares Nebenregime moeglich). Keine Angabe zu
+    Wahlfrist/Meldefrist fuer den Regimewechsel oder zu den Folgen eines unterjaehrigen
+    Bedingungsbruchs (z.B. Flaechenueberschreitung) - insoweit OFFEN.
+
+- id: mybuh-too-vs-khfh-2026-rus
+  name: "mybuh.kz: Was lohnt sich fuer den Tierhalter mehr, ТОО oder КХ"
+  name_original: "Что выгоднее открыть животноводу: ТОО или КХ"
+  herausgeber: "mybuh.kz"
+  url: "https://mybuh.kz/useful/chto-vygodnee-otkryt-zhivotnovodu-too-ili-kkh.html"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: statisch
+  abdeckung: >
+    Datiert 20.08.2026. Vergleicht КХ (0,5 % ИПН auf Sonderregime) mit ТОО auf
+    vereinfachter Erklaerung (4 % КПН, von Akimaten um 2-6 Punkte anpassbar, seit 2026
+    keine Sozialsteuer mehr). Bestaetigt dieselbe Befreiungsliste wie die uebrigen
+    Quellen. Erwaehnt ПК (Produktionskooperative) NICHT als Alternative.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Praxisnaher Vergleichsartikel, nuetzlich fuer Rechtsformwahl-Fragen, aber ohne durchgehende Artikelnummerierung."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Relevant fuer P5-Mandat Punkt 8 (Alternativstruktur), deckt aber nur ТОО ab, keine Kooperative."
+
+- id: mybuh-khfh-our-formulare-2026-rus
+  name: "mybuh.kz: Muss ein КХ im ОУР die Formulare 700.00 und 701.01 einreichen?"
+  name_original: "Нужно ли КХ на ОУР сдавать ф.700.00 и 701.01 в 2026 году?"
+  herausgeber: "mybuh.kz"
+  url: "https://mybuh.kz/useful/nuzhno-li-kkh-na-our-sdavat-f-700-00-i-701-01-v-2023-godu.html"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: statisch
+  abdeckung: >
+    Datiert 23.06.2026 (URL-Fragment "2023" ist ein Altlast-Slug, Inhalt bezieht sich
+    auf 2026). Zentrale Aussage mit Art. 588 НК РК: die Vermoegenssteuerbefreiung gilt
+    nur fuer "индивидуальные предприниматели, применяющие специальный налоговый режим
+    для крестьянских или фермерских хозяйств" - ein КХ, das stattdessen im ОУР veranlagt
+    wird, ist NICHT befreit und muss Vermoegens-/Bodensteuer erklaeren. Formularpflichten
+    im ОУР: 200.00 (Quartal), 220.00 (ИПН-Jahreserklaerung), 700.00 (Vermoegens-/
+    Bodensteuererklaerung, faellig 31. Maerz Folgejahr), 701.01 (laufende Zahlungen,
+    Pflicht ab einer berechneten Steuerschuld ueber 300 МРП zum 1. Januar, faellig 15.
+    Februar).
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Praezise Artikel- und Formularangaben, direkt einschlaegig fuer die Frage 'was passiert, wenn das KH NICHT im Sonderregime ist'."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Wichtigster Beleg fuer P5-Mandat Punkt 5: Boden-, Vermoegens- und Fahrzeugsteuer
+    sind nur INNERHALB des Sonderregimes gebuendelt abgegolten (0,5 % deckt sie ab).
+    Ausserhalb des Sonderregimes (ОУР) werden sie wieder eigenstaendig faellig.
+
+- id: pavlodar-mirror-nk-st357-rus
+  name: "pavlodar.com: Kodex-Spiegel, Art. 357 НК РК (КПН-Saetze)"
+  name_original: "Кодекс Республики Казахстан от 18.07.2025 N 214-VIII ЗРК, Статья 357"
+  herausgeber: "pavlodar.com (privates Rechtsportal, kein amtlicher Herausgeber)"
+  url: "https://pavlodar.com/zakon/?dok=07007&uro=080357"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: unbekannt
+  abdeckung: >
+    Zitiert Art. 357 НК РК woertlich: praeferenzieller КПН-Satz 3 % "от деятельности
+    по производству сельскохозяйственной продукции... полученному юридическими лицами -
+    производителями сельскохозяйственной продукции" und 6 % "от деятельности
+    сельскохозяйственных кооперативов". Ausdruecklich an "юридическими лицами"
+    (juristische Personen) gebunden.
+  beschaffung: "Frei zugaenglich, privates Spiegelportal des Gesetzestexts."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: >
+    Kein amtlicher Herausgeber, daher trotz woertlichem Gesetzeszitat nur Stufe 4.
+    adilet.zan.kz bleibt fuer Art. 357 die massgebliche, aber nicht maschinell lesbare
+    Fundstelle (siehe adilet-nk-214-viii-rus). Deckt sich mit der Vorgehensweise der
+    P12-P15-Recherche, die ein aehnliches Spiegelportal ebenso als Stufe 4 gefuehrt hat.
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    SCHLUESSELBELEG fuer P5-Mandat Punkt 4: КПН 3 %/6 % ist Koerperschaftsteuer fuer
+    juristische Personen (ТОО, ПК). Ein КХ/ФХ, das ИПН im Sonderregime zahlt, zahlt keine
+    КПН und profitiert von diesen Saetzen nicht direkt - nur bei Umwandlung in eine
+    juristische Person waeren sie einschlaegig.
+
+- id: mybuh-khfh-weiterverkauf-fizlitsa-2022-rus-veraltet
+  name: "mybuh.kz: Darf das КХ von Privatpersonen ohne Belege gekaufte Ware weiterverkaufen?"
+  name_original: "Может ли крестьянское хозяйство перепродавать продукцию, приобретенную у физлиц без документов?"
+  herausgeber: "mybuh.kz"
+  url: "https://mybuh.kz/news/mozhet-li-krestyanskoe-khozyaystvo-pereprodavat-produktsiyu-priobretennuyu-u-fizlits-bez-dokumentov/"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: statisch
+  abdeckung: >
+    Datiert 09.03.2022 - VOR dem neuen Kodex. Einzige in dieser Recherche gefundene
+    Quelle, die den Mechanismus konkret beschreibt: Kauf von Agrarware von Privatpersonen
+    muss dokumentiert werden, das KH muss "как налоговый агент удержать с физлица 10%"
+    (als Steueragent 10 % vom Verkaeufer einbehalten). Bestaetigt getrennte Behandlung:
+    Einkommen aus Eigenproduktion im Sonderregime (0,5 %), Einkommen aus Weiterverkauf
+    im Normalregime (Kleinunternehmerregime oder ОУР), mit Pflicht zu getrennter
+    Buchfuehrung. Zitierte Artikel: ст.318-321 und ст.703 п.4 НК РК.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: >
+    Artikelnummern (318-321, 703) stammen mit hoher Wahrscheinlichkeit aus dem
+    VORGAENGERKODEX (K1700000120), da der Artikel von 2022 datiert. Fuer RAG nur mit
+    ist_ueberholt=true und dem Hinweis nutzbar, dass die Rechtsfolge (10-%-
+    Quellensteuerpflicht bei Ankauf von Privatpersonen) als Muster fortbestehen
+    KOENNTE, die neue Artikelnummer aber unbestaetigt ist.
+  gueltig_ab: "2017-01-01"
+  gueltig_bis: "2025-12-31"
+  ist_ueberholt: true
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    EINZIGE in dieser Recherche gefundene Quelle zur Mechanik der Quellensteuerpflicht
+    bei Ankauf von Privatpersonen (P5-Mandat Punkt 6). Die 10-%-Zahl und die
+    Artikelnummern 318-321/703 п.4 sind NICHT gegen den 214-VIII verifiziert - hier
+    besteht das groesste verbleibende Rechercheloch dieses Registers. Dringende
+    Empfehlung: vor produktivem Einsatz mit einem Steuerberater oder einer amtlichen
+    2026er-Quelle gegenpruefen.
+
+- id: mybuh-lpkh-kpn-kooperativ-vorschlag-2026-rus
+  name: "mybuh.kz: Regierung pruefte ИПН-Senkung fuer ЛПХ und КПН-Satz fuer Agrarkooperativen"
+  name_original: "Уменьшение ИПН ЛПХ и ставки КПН для сельхозкооперативов рассмотрело Правительство"
+  herausgeber: "mybuh.kz"
+  url: "https://mybuh.kz/news/umenshenie-ipn-lpkh-i-stavki-kpn-dlya-selkhozkooperativov-rassmotrelo-pravitelstvo/"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: statisch
+  abdeckung: >
+    Datiert 31.03.2026. Zentrales Zitat zur ЛПХ-Bescheinigung: "соответствующая справка
+    исключена из реестра госуслуг из-за рисков злоупотреблений и использования в серых
+    схемах" (die entsprechende Bescheinigung wurde wegen Missbrauchsrisiken und
+    Grauzonen-Nutzung aus dem eGov-Dienstleistungsregister gestrichen). Bestaetigt
+    zusaetzlich die KПН-Saetze aus Art. 357: "ставок корпоративного подоходного налога
+    на уровне 6% - для сельскохозяйственных кооперативов и 3% - для
+    сельхозтоваропроизводителей", mit Regierungskritik, das Satzgefaelle behindere die
+    Kooperationsbildung. Stand am Abrufdatum: KEINE Entscheidung getroffen, Thema zur
+    gesonderten Pruefung im Gesamtkontext staatlicher Foerdermassnahmen vertagt.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Beschreibt einen laufenden politischen Diskussionsstand, kein geltendes Recht. Im RAG nur mit klarer Kennzeichnung als Zwischenstand nutzbar, sonst Gefahr der Verwechslung mit beschlossenem Recht."
+  gueltig_ab: "2026-03-31"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    ZENTRALER BELEG fuer P5-Mandat Punkt 6 (grosse ungepreiste Exponierung): Die
+    ЛПХ-Bescheinigung, auf die sich aeltere Praxisdarstellungen als Befreiungsweg
+    stuetzen, existiert zum Abrufzeitpunkt administrativ NICHT MEHR. Ob und wie ein
+    Ersatzmechanismus kommt, war am 31.03.2026 offen. Muss bis zur Abgabe dieses
+    Registers erneut geprueft werden, ob es zwischenzeitlich eine Regierungsentscheidung
+    gab (in dieser Recherche nicht gefunden, siehe mybuh-nds-befreiung-spk-lpkh-
+    vorschlag-2026-rus fuer den Stand vom 03.04.2026, ebenfalls noch offen).
+
+- id: mybuh-nds-befreiung-spk-lpkh-vorschlag-2026-rus
+  name: "mybuh.kz: SPK und LPCH koennten von der USt befreit werden"
+  name_original: "Освободить от НДС могут СПК и ЛПХ"
+  herausgeber: "mybuh.kz"
+  url: "https://mybuh.kz/news/osvobodit-ot-nds-mogut-spk-i-lpkh/"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: statisch
+  abdeckung: >
+    Datiert 03.04.2026. СПК = сельскохозяйственный производственный кооператив
+    (landwirtschaftliche Produktionskooperative). Zentrales Zitat: "Освободить СПК,
+    закупающие молоко у населения, от уплаты НДС." Bestaetigt die 2026er
+    USt-Registrierungsschwelle mit "43 миллиона тенге в 2026 году" und beschreibt das
+    Problem konkret: ueberschreitet eine Kooperative die Schwelle, wird der GESAMTE
+    Umsatz USt-pflichtig, einschliesslich der Betraege, die faktisch nur an die
+    Landbevoelkerung durchgereicht werden. Ausdruecklich noch Vorschlag: "до конца года
+    будут приняты законодательные поправки" (bis Jahresende sollen Gesetzesaenderungen
+    beschlossen werden).
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Vorschlagsstatus, kein geltendes Recht - klar kennzeichnen. Enthaelt aber eine unabhaengig bestaetigte Zahl zur USt-Schwelle (43 Mio. Tenge / 2026)."
+  gueltig_ab: "2026-04-03"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Zweite unabhaengige Bestaetigung der USt-Schwelle (43 Mio. Tenge), deckt sich mit
+    mybuh-nds-schwelle-2026-strafen-rus und mybuh-nds-schwelle-2026-bestaetigung-rus.
+    Relevant fuer P5-Mandat Punkt 8 (Kooperative als Alternativstruktur) und Punkt 2
+    (Schwellenueberschreitung).
+
+- id: mybuh-nds-zuschlag-konditerei-2025-rus-veraltet
+  name: "mybuh.kz: Welche Erzeuger haben Anspruch auf den zusaetzlichen USt-Vorsteuerabzug"
+  name_original: "Какие производители имеют право на дополнительный зачет по НДС"
+  herausgeber: "mybuh.kz"
+  url: "https://mybuh.kz/useful/proizvoditeli-konditerskikh-izdeliy-imeyut-pravo-na-dopolnitelnyy-zachet-po-nds.html"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: statisch
+  abdeckung: >
+    Datiert 11.11.2025 - vor Inkrafttreten des 214-VIII. Nennt einen zusaetzlichen
+    USt-Vorsteuerabzug von 70 % (nicht 80 %) unter Verweis auf "статья 411 НК РК
+    (п.1 пп.2)". Beguenstigtenliste ist eine geschlossene Liste von VERARBEITERN
+    (Fleisch/Fleischprodukte, Obst-/Gemuesekonservierung, Pflanzen-/Tieroele und -fette,
+    Milchverarbeitung/Kaese, Muehlen-/Grützeindustrie, Tierfutter, Brot, Kindernahrung/
+    Diaetkost, Staerke-/Sirupindustrie, Fell-/Wollverarbeitung, Fischverarbeitung, Hefe,
+    Schokolade/Suesswaren, Zucker) - KEINE Roherzeuger von Agrarrohstoffen als solche.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Artikelnummer (411) vermutlich aus dem Vorgaengerkodex, da Datum vor 2026-01-01. Fuer RAG nur mit ist_ueberholt=true nutzbar."
+  gueltig_ab: "2017-01-01"
+  gueltig_bis: "2025-12-31"
+  ist_ueberholt: true
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    WICHTIGER BEFUND fuer P5-Mandat Punkt 4: In dieser Recherche wurde AN KEINER STELLE
+    eine Quelle gefunden, die eine Erhoehung von 70 % auf 80 % belegt. Die Vorrecherche-
+    Behauptung "70 auf 80 Prozent" bleibt OFFEN/unbestaetigt - moeglich ist eine
+    Verwechslung mit der Erweiterung der BEGUENSTIGTENLISTE (Konditoreiwaren kamen erst
+    2025 per Ministerialerlass hinzu, siehe mybuh-nds-zuschlag-vereinbarung-
+    minselkhoz-2025-rus), nicht mit einer Satzaenderung. Ausserdem: der Mechanismus
+    zielt auf VERARBEITER, nicht auf Rohware-Erzeuger oder Wiederverkaeufer - fuer den
+    hier betrachteten Betrieb (Beeren zukaufen und roh/kaum verarbeitet weiterverkaufen)
+    voraussichtlich nicht einschlaegig, ausser bei eigener Verarbeitung.
+
+- id: mybuh-nds-zuschlag-vereinbarung-minselkhoz-2025-rus-veraltet
+  name: "mybuh.kz: Recht auf zusaetzlichen USt-Vorsteuerabzug fuer Schokoladen-/Zuckerwarenerzeuger"
+  name_original: "Право на отнесение в зачет дополнительной суммы НДС получат производители шоколада, сахаристых кондитерских изделий, печенья и мучных кондитерских изделий"
+  herausgeber: "mybuh.kz"
+  url: "https://mybuh.kz/useful/pravo-na-otnesenie-v-zachet-dopolnitelnoy-summy-nds-poluchat-proizvoditeli-shokolada-sakharnykh-i-mu.html"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: statisch
+  abdeckung: >
+    Datiert 07.10.2025. Beschreibt den VERFAHRENSMECHANISMUS: Zugang zum zusaetzlichen
+    USt-Vorsteuerabzug setzt den Abschluss einer Vereinbarung ("при условии заключения
+    налогоплательщиком соглашения") mit der oertlichen Exekutivbehoerde voraus. Grundlage:
+    "Приказ Минсельхоза РК № 339" vom 30.09.2025, der das Vereinbarungsverfahren regelt.
+    Kein Prozentsatz und keine 214-VIII-Artikelnummer im abgerufenen Auszug.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Ergaenzt den Mechanismus (Vereinbarungspflicht), aber ohne Prozentsatz oder neue Artikelnummer nur begrenzt eigenstaendig nutzbar."
+  gueltig_ab: "2025-09-30"
+  gueltig_bis: null
+  ist_ueberholt: true
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Zeigt, dass der Zugang zum Zusatzabzug an eine FORMELLE VEREINBARUNG mit der
+    Lokalverwaltung gebunden ist, nicht automatisch entsteht - fuer die Mechanismus-
+    Frage in P5-Mandat Punkt 4 wichtig, auch ohne bestaetigten Prozentsatz.
+
+- id: mybuh-nds-schwelle-2026-strafen-rus
+  name: "mybuh.kz: USt-Registrierung 2026 - Schwelle, Strafen"
+  name_original: "Постановка на учет по НДС в 2026 году: порог, штрафы"
+  herausgeber: "mybuh.kz"
+  url: "https://mybuh.kz/news/postanovka-na-uchet-po-nds-v-2026-godu-porog-shtrafy/"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: statisch
+  abdeckung: >
+    Datiert 28.11.2025. Bestaetigt die 2026er USt-Registrierungsschwelle: 10.000 МРП,
+    bei МРП 2026 = 4.325 Tenge also 43.250.000 Tenge. Pflichtregistrierung betrifft
+    "налогоплательщики, применяющие общеустановленный порядок налогообложения" (ОУР).
+    Ausdruecklich: "все налогоплательщики, применяющие специальные налоговые режимы"
+    sind von der PFLICHTregistrierung unabhaengig vom Umsatz befreit - das schliesst
+    ein КХ/ФХ im Sonderregime ein. Strafen: verspaetete Registrierung 50 МРП (Art. 269
+    Teil 3 KoAO), Umsatz waehrend Nichtregistrierung 15 % des Transaktionsbetrags
+    (Art. 275 Teil 5 KoAO).
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Praezise Zahl mit Berechnung und klarer Aussage zur Sonderregime-Ausnahme, aber ohne 214-VIII-Artikelnummer fuer die Schwelle selbst (nur KoAO-Artikel fuer die Strafen)."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Zentraler Beleg fuer P5-Mandat Punkt 2: Ein KХ/ФХ voll im Sonderregime wird durch
+    Umsatz allein NICHT USt-pflichtig. Relevant wird die Schwelle nur fuer einen
+    etwaigen ОУР-veranlagten Betriebsteil (z.B. Weiterverkauf, falls dafuer nicht die
+    vereinfachte Erklaerung gilt). Die konkrete 214-VIII-Artikelnummer der Schwelle
+    selbst ist OFFEN - in dieser Recherche nicht gefunden.
+
+- id: mybuh-nds-schwelle-2026-bestaetigung-rus
+  name: "mybuh.kz: Schwelle fuer die USt-Registrierung 2026"
+  name_original: "Порог для постановки на учет по НДС в 2026 г."
+  herausgeber: "mybuh.kz"
+  url: "https://mybuh.kz/news/porog-dlya-postanovki-na-uchet-po-nds-snizyat-s-2022-g/"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: statisch
+  abdeckung: "Datiert 04.12.2025. Zweite unabhaengige Bestaetigung der Schwelle 10.000 МРП = 43.250.000 Tenge (2026)."
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Bestaetigt dieselbe Zahl wie mybuh-nds-schwelle-2026-strafen-rus, keine 214-VIII-Artikelnummer im Auszug."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Zweitbeleg, erhoeht die Verlaesslichkeit der 43,25-Mio.-Tenge-Zahl auf zwei unabhaengige Sekundaerquellen."
+
+- id: mybuh-nds-schwelle-deputierte-2025-rus
+  name: "mybuh.kz: Abgeordnete schlagen vor, die USt-Schwelle bei 20.000 МРП zu belassen"
+  name_original: "Депутаты предлагают оставить порог по НДС 20 000 МРП"
+  herausgeber: "mybuh.kz"
+  url: "https://mybuh.kz/news/deputaty-predlagayut-ostavit-porog-po-nds-20-000-mrp/"
+  perspektiven: [P5]
+  autoritaetsstufe: 5
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: statisch
+  abdeckung: >
+    Datiert 06.03.2025, aus der Gesetzgebungsdebatte vor Verabschiedung des 214-VIII.
+    Zeigt, dass der spaeter beschlossene Wert (10.000 МРП) eine Verschaerfung
+    gegenueber dem alten Wert (20.000 МРП) ist, den Teile des Parlaments beibehalten
+    wollten.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Reiner Gesetzgebungsverlauf, keine geltende Norm. Nur als Kontext zur Einordnung der Schwellenaenderung nuetzlich, kein eigenstaendiger Beleg."
+  gueltig_ab: "2025-03-06"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Nur als Beleg fuer die GESCHICHTE der Schwelle verwendet (20.000 -> 10.000 МРП), nicht als Beleg fuer den geltenden Wert selbst."
+
+- id: mybuh-privatvermoegen-ipn-2025-rus
+  name: "mybuh.kz: Sind Geraet und Land persoenliches Eigentum und ИПН-pflichtig?"
+  name_original: "Является ли оборудование и земля личным имуществом и облагается ли ИПН?"
+  herausgeber: "mybuh.kz"
+  url: "https://mybuh.kz/useful/yavlyaetsya-li-oborudovanie-i-zemlya-lichnym-imushchestvom-i-oblagaetsya-li-ipn.html"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: statisch
+  abdeckung: >
+    Datiert 22.08.2025. Randthema: Definition "persoenliches Eigentum" (nicht
+    unternehmerisch genutzt), Formular 270.00 (Frist 15. September) fuer den ИПН auf
+    den Verkauf von Privatvermoegen. Kein direkter Bezug zu ЛПХ-Verkauf von
+    Agrarprodukten oder zur Quellensteuerpflicht beim Ankauf.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Nur am Rande einschlaegig (Abgrenzung privat/unternehmerisch), nicht direkt zur ЛПХ-Frage."
+  gueltig_ab: "2025-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Nicht als Kernbeleg verwendet, nur zur Abrundung des Umfelds registriert."
+
+- id: alataucitybank-khfh-gruendung-2026-kaz
+  name: "Ösim-Magazin: Wie man 2026 in Kasachstan ein Schaf-/Farmerhaushalt eroeffnet (KK)"
+  name_original: "2026 жылы Қазақстанда шаруа немесе фермер қожалығын қалай ашуға болады"
+  herausgeber: "Alatau City Bank, Wirtschaftsmagazin Ösim"
+  url: "https://alataucitybank.kz/business/osim/kk/articles/kazakstanda-sharua-nemese-fermer-kozhalygyn-kalay-ashuga-bolady"
+  perspektiven: [P5]
+  autoritaetsstufe: 4
+  sprachen: [kk]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: statisch
+  abdeckung: >
+    Datiert 16.02.2026. Kasachischsprachiger Beleg, der den russischsprachigen Befund
+    unabhaengig bestaetigt. Woertliches Zitat: "ЖТС мөлшерлемесі кірістің 0,5%-ын
+    құрайды" (der ЖТС-Satz betraegt 0,5 % des Einkommens). Nennt dieselben vier
+    Flaechenzonen (5000/3500/1500/500 ha, mit Gebietszuordnung) wie die
+    russischsprachigen Quellen. USt-Befreiung: "ҚҚС-дан... босатылады" (von der USt
+    befreit), mit denselben Ausnahmen (Einfuhr, Nichtresidenten). Dieselbe
+    Befreiungsliste (Boden-, Vermoegens-, Fahrzeugsteuer, Sozialsteuer, Umweltentgelt).
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Wichtigster kasachischsprachiger Einzelbeleg in diesem Register, deckungsgleich mit den russischsprachigen Quellen - entkraeftet die These eines Sprachfassungs-Widerspruchs fuer diese konkrete Frage."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    SCHLUESSELBELEG fuer die kasachische Gegenpruefung (P5-Methode). Bestaetigt: die
+    kasachischsprachige Recherche fuehrt NICHT zu einem anderen Satz fuer das КХ/ФХ-
+    Regime selbst, sondern zu demselben 0,5-%-Satz wie die russischsprachige. Die in
+    der Vorrecherche gefundene 230.000-АЕК/10-15-%-Zahl stammt aus anderen
+    kasachischsprachigen Quellen zu einem ANDEREN Regime (siehe kgd-vko-jts-
+    sozsteuer-2026-kaz).
+
+- id: kgd-vko-jts-sozsteuer-2026-kaz
+  name: "KGD Ostkasachstan (KK): Hauptaenderungen im Steuerkodex ab 1.1.2026 - ЖТС und Sozialsteuer"
+  name_original: "2026 жылғы 1 қаңтардан бастап ҚР Салық кодексіндегі негізгі өзгерістер: ЖТС және әлеуметтік салық бойынша маңыздысы"
+  herausgeber: "Departement fuer Staatseinnahmen der Oblast Ostkasachstan (КГД МФ РК), kasachische Fassung"
+  url: "https://vko.kgd.gov.kz/kk/news/2026-zhylgy-1-kantardan-bastap-kr-salyk-kodeksindegi-negizgi-ozgerister-zhts-zhne-leumettik"
+  perspektiven: [P5]
+  autoritaetsstufe: 3
+  sprachen: [kk]
+  zugang: frei
+  kosten: {betrag: null, waehrung: null, periode: null, verifiziert: false, beleg_url: null}
+  aktualisierung: unbekannt
+  abdeckung: >
+    Amtliche KGD-Erlaeuterung (KK) zu den ЖТС-Progressionsstufen 2026. Woertliches
+    Zitat: "8 500 АЕК-ке дейінгі табыс - 10% [und] 8 500 АЕК-тен жоғары - 15% (тек асқан
+    бөлігіне)" (Einkommen bis 8.500 АЕК - 10 %, darueber - 15 %, nur auf den
+    uebersteigenden Teil). KEIN Bezug auf 230.000 АЕК und KEIN ausdruecklicher Bezug
+    zu Bauern-/Farmwirtschaften im abgerufenen Auszug.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Amtliche Quelle, aber im Auszug ohne Artikelnummer und ohne explizite Aussage, ob 8.500 АЕК Arbeitslohn oder alle ЖТС-Einkuenfte betrifft."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    WICHTIGER NEBENBEFUND: Es gibt mindestens DREI verschiedene Progressionsschwellen
+    im neuen Kodex, keine davon ist der КХ/ФХ-Satz: 8.500 АЕК/МРП (dieser Beleg, vermutlich
+    Arbeitslohn/Quellensteuer), 230.000 МРП (ст.363 пп.4, ИП im ОУР, siehe pro1c-ip-our-
+    progressiv-2026-rus) und implizit die КХ/ФХ-Sonderregime-Flatrate 0,5 % (ст.730),
+    die gar keine Progression kennt. Stuetzt die in konfliktregister.md K-03 formulierte
+    Vermutung (A=Arbeitseinkommen, B=Unternehmenseinkommen), OHNE sie fuer P5
+    abschliessend zu entscheiden - das Zusammenspiel mit Lohnbesteuerung liegt ausserhalb
+    des P5-Mandats.

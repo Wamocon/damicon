@@ -1,0 +1,1852 @@
+# Quellenregister P12-P15: Eigenhandel, Export, Import, Zoll und Klassifikation
+#
+# Rechercheeinheit: P12 Eigenhandel, P13 Export, P14 Import, P15 Zoll/Klassifikation.
+# Format gemaess quellenregister-schema.yaml (schema_version 1).
+# Stand der Recherche: 2026-09-18.
+#
+# Hinweis zur Abrufbarkeit: adilet.zan.kz lieferte bei automatisiertem HTTP-Abruf (WebFetch)
+# in dieser Recherche wiederholt nur das Seitengeruest ohne Fliesstext (vermutlich
+# JS-Rendering oder Bot-Erkennung). Primaerquellen sind trotzdem mit autoritaetsstufe 1
+# gefuehrt (adilet bleibt die massgebliche Fundstelle), Artikeltexte wurden aber ueber
+# das Spiegelportal kodeksy-kz.com (autoritaetsstufe 4) wortlautgenau verifiziert; siehe
+# jeweils die notiz-Felder.
+
+- id: adilet-nk-214-viii-rus
+  name: "Steuerkodex 214-VIII, Volltext"
+  name_original: "Кодекс Республики Казахстан от 18.07.2025 № 214-VIII ЗРК «О налогах и других обязательных платежах в бюджет (Налоговый кодекс)»"
+  herausgeber: "Republik Kasachstan / NZPI Adilet"
+  url: "https://adilet.zan.kz/rus/docs/K2500000214"
+  perspektiven: [P12, P13, P14]
+  autoritaetsstufe: 1
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Vollstaendiger Text des seit 2026-01-01 geltenden Steuerkodex. Fuer P12 zentral:
+    Art. 372 (Definition Оборот по реализации), Art. 455 (Umsatz bei Auftrag/Vollmacht,
+    поручение - Ausschluss vom Umsatz des Beauftragten), Art. 456 (Umsatz bei Kommission,
+    договор комиссии - Ausschluss vom Umsatz des Kommissionaers, Ausnahme bei
+    nichtresidentem, nicht USt-registriertem Komitenten), Art. 480/481 (Voraussetzungen
+    und Zeitpunkt des Vorsteuerabzugs, u.a. Lieferant muss USt-Zahler sein), Art. 484
+    (Kuerzung des Vorsteuerabzugs beim Export von Agrarerzeugnissen um 80%, Abschaffung
+    zum Abrufzeitpunkt vorgeschlagen aber noch nicht beschlossen), Art. 495 (ESF-Regeln
+    fuer Kommissionsgeschaefte).
+  beschaffung: "Frei zugaenglich, keine Anmeldung noetig."
+  maschinell_abrufbar: false
+  rag_eignung: mittel
+  rag_hinweis: >
+    Primaerquelle mit Artikelstruktur, damit grundsaetzlich ideal fuer Chunking nach
+    rag-ingest-spezifikation.md. In dieser Recherche lieferte WebFetch jedoch nur das
+    Seitengeruest ohne Artikeltext - fuer den produktiven Ingest wird ein echter
+    Renderer/Headless-Browser oder eine andere Abrufroute (z.B. offizielle API, falls
+    vorhanden) benoetigt. Mit einfachem HTTP-Text-Extraktor nicht nutzbar.
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Artikelnummern 455, 456, 480, 481, 484, 495, 503, 506, 508, 509, 517, 518, 520,
+    521, 525, 526, 530, 531, 532 in dieser Recherche ueber Spiegelportale (v.a.
+    kodeksy-kz.com, siehe kodeksy-kz-nk-mirror-rus) wortlautgenau bzw. inhaltlich
+    verifiziert, nicht direkt bei adilet gelesen. Empfehlung: vor produktivem Ingest
+    stichprobenartig gegen adilet direkt gegenpruefen.
+
+    WICHTIGER METHODISCHER FUND (aus der P14-Parallelrecherche, durch Auswertung des
+    adilet-Seitenquelltexts direkt bestaetigt): Die Nichtabrufbarkeit von adilet.zan.kz
+    fuer einfache HTTP-Clients ist **kein technischer Zufall, sondern erklaerte
+    Absicht** des Betreibers. Ein Entwicklerkommentar im Seitenquelltext lautet
+    sinngemaess: "Полного текста здесь нет намеренно: цель - чтобы нас цитировали, а
+    не выкачивали корпус одной командой" (Der Volltext fehlt hier absichtlich: das
+    Ziel ist, zitiert zu werden, nicht dass der Korpus mit einem einzigen Befehl
+    abgesaugt wird). Fuer die RAG-Ingestion (rag-ingest-spezifikation.md) bedeutet
+    das: ein Headless-Browser-Ansatz ist nicht nur technisch noetig, sondern läuft
+    einer ausdruecklichen Anti-Bulk-Scraping-Politik des Betreibers zuwider - vor
+    einem automatisierten Volltext-Ingest sollte rechtlich/ethisch geprueft werden,
+    ob eine andere Bezugsquelle (z.B. eine offizielle API, falls vorhanden, oder eine
+    kostenpflichtige Datenbank wie ISS Paragraf/zakon.kz) der beabsichtigten Nutzung
+    des Betreibers eher entspricht als Massenabruf gegen die erklaerte Absicht.
+
+- id: adilet-gk-rk-osobennaya-chast-rus
+  name: "Zivilgesetzbuch RK, Besonderer Teil"
+  name_original: "Гражданский кодекс Республики Казахстан (Особенная часть) от 1 июля 1999 года № 409-I"
+  herausgeber: "Republik Kasachstan / NZPI Adilet"
+  url: "https://adilet.zan.kz/rus/docs/K990000409_"
+  perspektiven: [P12]
+  autoritaetsstufe: 1
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Zivilrechtliche Grundlage der Vertragstypen. Zentral fuer P12: Art. 406 (Definition
+    Kauf-Verkauf, Eigentumsuebergang gegen Kaufpreis), das Kapitel "Комиссия" mit Art. 865
+    (Definition Kommissionsvertrag, Handeln im eigenen Namen auf Rechnung des Komitenten,
+    Schriftformzwang), Art. 867 (Kommissionaer wird selbst Vertragspartner gegenueber
+    Dritten), Art. 871 (Eigentum an Kommissionsgut verbleibt beim Komitenten). Ein
+    weiteres Kapitel regelt daneben den Auftrag/поручение (Kapitelnummer nicht
+    verifiziert, siehe notiz).
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: false
+  rag_eignung: mittel
+  rag_hinweis: >
+    Gleiches Abrufproblem wie beim Steuerkodex (WebFetch lieferte nur Seitengeruest).
+    Artikel 406, 865, 867, 871 wortlautgenau ueber Spiegelportal verifiziert.
+  gueltig_ab: "1999-07-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Vom Steuerkodex-Wechsel 2026 nicht betroffen, da eigenstaendiges Gesetz. Die
+    Kapitelnummer der Komиссия ("Глава 43" laut einer Seitenueberschrift auf
+    pavlodar.com) sowie die Kapitelnummer des Auftrags/поручение sind widerspruechlich
+    belegt: eine automatisiert ausgelesene Inhaltsuebersicht nannte "Kapitel 42" fuer
+    Комиссия (Art. 865-882) und "Kapitel 40" fuer Поручение (Art. 846-864), mit intern
+    ueberlappenden Kapitelgrenzen (Hinweis auf Lesefehler). Artikelnummern 406, 865,
+    867, 871 sind ueber mehrere unabhaengige Quellen konsistent und werden als
+    gesichert behandelt; die Kapitel-UEBERSCHRIFTEN-Nummerierung ist OFFEN.
+
+- id: minfin-prikaz-661-virt-sklad-liste-rus
+  name: "Warenliste fuer das Modul 'Virtuelles Lager' im ESF-System"
+  name_original: "Об утверждении перечня товаров, по которым электронные счета-фактуры выписываются посредством модуля «Виртуальный склад» информационной системы электронных счетов-фактур"
+  herausgeber: "Finanzministerium der Republik Kasachstan"
+  url: "https://adilet.zan.kz/rus/docs/G25E0000661"
+  perspektiven: [P12]
+  autoritaetsstufe: 2
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Legt die Warenliste fest, fuer die ESF-Ausstellung zwingend ueber das Modul
+    "Virtuelles Lager" erfolgen muss (Anordnung Nr. 661 vom 31.10.2025, in Kraft seit
+    2026-01-01; Stand November 2025 laut Sekundaerquelle: 335 Positionen, ueberwiegend
+    verbrauchsteuerpflichtige und kontrollrelevante Waren, keine frischen Agrarerzeugnisse).
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: >
+    Reine Positionsliste, Inhalt nur ueber Sekundaerquellen erschlossen (siehe
+    mybuh-kz-virt-sklad-2026-rus), nicht per Volltextabruf gelesen. Liste aendert sich
+    haeufig per Anordnung - fuer RAG-Ingest Versionsstand besonders wichtig.
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    OFFEN: Ein Entwurf zur Erweiterung dieser Liste auf 467 Positionen (u.a. um
+    Agrarerzeugnisse und Waren mit Mindestpreisniveau) war zum Abrufzeitpunkt in
+    oeffentlicher Diskussion (Frist bis 2026-09-01). Ob und in welcher Form die Liste
+    seither geaendert wurde, konnte nicht verifiziert werden.
+
+- id: kgd-vko-snr-kfh-rus
+  name: "KGD-Erlaeuterung: Sonderregime fuer Bauern-/Farmwirtschaften"
+  name_original: "Особенности применения специального налогового режима для крестьянских и фермерских хозяйств"
+  herausgeber: "Departement fuer Staatseinnahmen der Oblast Ostkasachstan (КГД МФ РК)"
+  url: "https://vko.kgd.gov.kz/ru/news/osobennosti-primeneniya-specialnogo-nalogovogo-rezhima-dlya-krestyanskih-i-fermerskih-hozyaystv"
+  perspektiven: [P12]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Offizielle Erlaeuterung des Sonderregimes fuer крестьянские/фермерские хозяйства
+    unter dem seit 2026-01-01 geltenden Kodex. Beschraenkt den Anwendungsbereich
+    ausdruecklich auf "производство сельхозпродукции; реализация собственной продукции;
+    переработка и продажа продукции собственного производства" - Wiederverkauf
+    zugekaufter Ware faellt nicht darunter. Nennt Steuervorteile: 0,5% Einkommensteuer,
+    Befreiung von Grund-, Vermoegens-, Verkehrs-, Sozialsteuer und grundsaetzlich USt;
+    jaehrliche Erklaerung bis 31. Maerz.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: >
+    Amtliche Erlaeuterung mit klarer Frage-Antwort-Struktur, ausdruecklich auf den neuen
+    Kodex bezogen (Publikationsdatum 2026-02-12), direkt zitierfaehig.
+  gueltig_ab: "2026-02-12"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Regionale KGD-Verlautbarung, keine Artikelnummer des Kodex im Text genannt - daher als Hinweis, nicht als alleinige Stufe-1/2-Fundstelle zu behandeln."
+
+- id: kodeksy-kz-nk-mirror-rus
+  name: "Steuerkodex 214-VIII, Spiegelportal (artikelweise)"
+  name_original: "Налоговый кодекс РК на kodeksy-kz.com, постатейно"
+  herausgeber: "kodeksy-kz.com (privater Rechtsportal-Betreiber, Impressum nicht verifiziert)"
+  url: "https://kodeksy-kz.com/ka/nalogovyj_kodeks/455.htm"
+  perspektiven: [P12]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Spiegelt den Steuerkodex 214-VIII artikelweise unter vorhersagbaren URLs
+    (.../nalogovyj_kodeks/{Artikelnummer}.htm). In dieser Recherche fuer Art. 454, 455,
+    456, 480, 481, 484, 495 genutzt und mit anderen Quellen plausibilisiert.
+  beschaffung: "Frei zugaenglich, kein Login."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: >
+    Gut strukturiert und per HTTP abrufbar (im Gegensatz zu adilet direkt), aber
+    Privatportal ohne erkennbare Redaktionsverantwortung - fuer Stufe-1-Zitate nur als
+    Lesehilfe, die Rechtsquelle bleibt adilet-nk-214-viii-rus.
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Kein Impressum/Betreiber verifiziert; Uebereinstimmung mit adilet-Wortlaut stichprobenartig, nicht vollstaendig geprueft."
+
+- id: kodeksy-kz-gk-mirror-rus
+  name: "Zivilgesetzbuch RK Besonderer Teil, Spiegelportal (artikelweise)"
+  name_original: "Гражданский кодекс РК (Особенная часть) на kodeksy-kz.com, постатейно"
+  herausgeber: "kodeksy-kz.com (privater Rechtsportal-Betreiber, Impressum nicht verifiziert)"
+  url: "https://kodeksy-kz.com/ka/grazhdanskij_kodeks_osobennaya_chast/865.htm"
+  perspektiven: [P12]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Spiegelt das Zivilgesetzbuch (Besonderer Teil) artikelweise. In dieser Recherche fuer
+    Art. 406, 865, 867, 871 genutzt, jeweils mit Volltextzitat.
+  beschaffung: "Frei zugaenglich, kein Login."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Wie kodeksy-kz-nk-mirror-rus: gute technische Abrufbarkeit, aber private Sekundaerquelle."
+  gueltig_ab: "1999-07-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Wortlaut der zitierten Artikel (406, 865, 867, 871) stimmt mit den in weiteren Suchergebnissen zitierten Fassungen ueberein."
+
+- id: uchet-kz-komissioner-oborot-rus
+  name: "uchet.kz: Wie berechnet ein Kommissionaer seinen USt-Umsatz"
+  name_original: "Компания-комиссионер: как считать оборот для НДС"
+  herausgeber: "uchet.kz (Praktikerportal)"
+  url: "https://uchet.kz/question/voprosy-po-nalogooblozheniyu/1014466/"
+  perspektiven: [P12]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Bestaetigt das Grundprinzip, dass bei Kommissionsgeschaeften nur die Verguetung
+    (комиссионное вознаграждение), nicht der volle ueber die Kasse laufende Betrag, den
+    USt-Umsatz des Kommissionaers bildet. Zitiert dazu Art. 375, 381 und 82 - das sind
+    Artikelnummern des VORGAENGERKODEX (bis 2025), nicht des seit 2026 geltenden
+    214-VIII.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Prinzip strukturell weiterhin plausibel (siehe adilet-nk-214-viii-rus Art. 455/456/372), aber Artikelnummern veraltet - fuer Ingest nur mit Ueberholt-Kennzeichnung und Neuzuordnung der Artikelnummern verwendbar."
+  gueltig_ab: "2025-01-05"
+  gueltig_bis: "2025-12-31"
+  ist_ueberholt: true
+  abgerufen_am: "2026-09-18"
+  notiz: "Publikationsdatum 2025-01-05, referenziert Vorgaengerkodex (Art. 375/381/82 und Schwelle 20.000 statt heute 10.000 MRP). Nur als Beleg fuer das strukturelle Prinzip, nicht fuer aktuelle Zahlen/Artikel."
+
+- id: iris-kz-kgd-blog-agent-nds-rus
+  name: "KGD-Vorsitzenden-Blog: Ist Agentenverguetung USt-pflichtig? (2021)"
+  name_original: "Является ли возмещение за услуги агентом облагаемым оборотом по НДС?"
+  herausgeber: "iris.kz, Blog des Vorsitzenden des KGD MF RK"
+  url: "https://iris.kz/how-to/blog-predsedatelya-kgd-mf-rk-/yavlyaetsya-li-vozmeshchenie-za-uslugi-agentom-oblagaemym-oborotom-po-nds/"
+  perspektiven: [P12]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Offizielle KGD-Stellungnahme (2021) zur Abgrenzung поручение vs. комиссия fuer
+    USt-Zwecke; verlangt Pruefung der Vertragsbedingungen (u.a. gegen IFRS 15 Prinzipal-
+    vs.-Agent-Kriterien) statt Verlass auf die Vertragsbezeichnung allein - dieser
+    methodische Hinweis bleibt inhaltlich relevant, auch wenn die zitierten
+    Artikelnummern veraltet sind.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Nur als methodischer Hintergrund brauchbar (Prinzipal-vs-Agent-Pruefung), nicht als Beleg fuer aktuelle Artikelnummern oder Rechtsfolgen."
+  gueltig_ab: "2021-12-29"
+  gueltig_bis: "2025-12-31"
+  ist_ueberholt: true
+  abgerufen_am: "2026-09-18"
+  notiz: "Vor-2026-Quelle, bezieht sich auf den ausser Kraft getretenen Vorgaengerkodex. Ausdruecklich als historisch/methodisch markiert, nicht als aktuelle Rechtslage."
+
+- id: iris-kz-art484-status-rus
+  name: "iris.kz: Voller USt-Ruecktransfer fuer Agrarexporteure bleibt - Art. 484 soll entfallen"
+  name_original: "Полный возврат НДС для экспортёров сельхозпродукции сохранён - статью 484 отменят"
+  herausgeber: "iris.kz"
+  url: "https://iris.kz/news/polnyy-vozvrat-nds-dlya-eksportyerov-selkhozproduktsii-sokhranyen-statyu-484-otmenyat/"
+  perspektiven: [P12, P13]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Berichtet, dass das Projektbuero zur Kodex-Umsetzung die Aufhebung von Art. 484 NK RK
+    (80%ige Kuerzung des Vorsteuerabzugs beim Agrarexport) vorschlaegt, mit
+    rueckwirkendem Inkrafttreten zum Kodex-Start, sofern vom Kurultai beschlossen. Bis
+    dahin gilt Art. 484 unveraendert fort. Nennt "Pyramiden-Methode" als
+    Pruefverfahren der Steuerbehoerde fuer USt-Rueckerstattungsantraege von
+    Agrarexporteuren.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Aktuelle, aber gesetzgeberisch noch nicht abgeschlossene Lage - klar mit Datum und Vorbehalt zu kennzeichnen."
+  gueltig_ab: "2026-06-19"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "OFFEN: Stand der Gesetzesaenderung zum Abrufdatum 2026-09-18 nicht verifiziert - letzte gefundene Meldung datiert 2026-06-19 und beschreibt einen Vorschlag, keinen beschlossenen Rechtsakt."
+
+- id: pro1c-kz-proslezhivaemost-sept2026-rus
+  name: "pro1c.kz: EAWU-Warenrueckverfolgbarkeit ab 1. September 2026"
+  name_original: "Перечень товаров, подлежащих прослеживаемости изменится с 1 сентября 2026 года (пресс-релиз КГД МФ РК)"
+  herausgeber: "pro1c.kz, unter Bezug auf Pressemitteilung des KGD MF RK"
+  url: "https://pro1c.kz/news/zakonodatelstvo/perechen-tovarov-podlezhashchikh-proslezhivaemosti-izmenitsya-s-1-sentyabrya-2026-goda-press-reliz-k/"
+  perspektiven: [P12, P14, P15]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Meldet die EAWU-weite Warenrueckverfolgbarkeit (прослеживаемость, zu unterscheiden
+    vom nationalen "Virtuellen Lager") ab 2026-09-01 nach Beschluss Nr. 5 des Rates der
+    Eurasischen Wirtschaftskommission vom 26.01.2026: 34 Warencodes, ausschliesslich
+    Haushaltsgeraete (Kuehlschraenke, Waschmaschinen, Fernsehgeraete). Frische
+    Agrarerzeugnisse/Beeren sind nicht erfasst.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Relayed amtliche Pressemitteilung; fuer die zugrundeliegende ЕЭК-Entscheidung Nr. 5 vom 26.01.2026 waere eine Primaerquelle bei eec.eaeunion.org nachzutragen (in dieser Teilrecherche nicht separat verifiziert)."
+  gueltig_ab: "2026-09-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Wichtig fuer P12-Frage 'СНТ/виртуальный склад bei Wiederverkauf': belegt, dass die EAWU-Rueckverfolgbarkeit ein eigenstaendiges System neben dem nationalen Virtuellen Lager ist und Agrarerzeugnisse aktuell nicht betrifft."
+
+- id: mybuh-kz-virt-sklad-2026-rus
+  name: "mybuh.kz: Virtuelles Lager 2026 - Warenabschreibung und СНТ ohne Bussgeld"
+  name_original: "Виртуальный склад 2026: Инструкция по списанию товаров и СНТ без штрафов"
+  herausgeber: "mybuh.kz (Praktikerportal)"
+  url: "https://mybuh.kz/useful/virtualnyy-sklad-snt-spisanie-tovarov-2026.html"
+  perspektiven: [P12]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Praxisanleitung zum Modul "Virtuelles Lager" im ESF-System und zur СНТ (Formular und
+    Ausfuellregeln laut Anordnung des Finanzministers Nr. 657 vom 31.10.2025, in Kraft
+    seit 2026-01-01). Pflicht fuer alle Unternehmen im allgemeinen Regime (ОУР) mit
+    USt-Pflicht; СНТ bei EAWU-Einfuhr fuer jede Warenkategorie ausnahmslos Pflicht.
+    Unterscheidet nicht ausdruecklich zwischen eigenerzeugter und zugekaufter Ware -
+    die Pflicht haengt am Produktcode, nicht an der Warenherkunft.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Aktuelle Praxisanleitung (Publikationsdatum 2026-06-23), aber Sekundaerquelle ohne Artikelnummern des Kodex - Verweis auf Anordnung Nr. 657 nur benannt, nicht mit adilet-Link verifiziert."
+  gueltig_ab: "2026-06-23"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "OFFEN: Direkter adilet-Link zur Anordnung Nr. 657 vom 31.10.2025 (СНТ-Regeln) wurde in dieser Recherche nicht gefunden/verifiziert."
+
+- id: adilet-minfin-prikaz-629-esf-2026-rus
+  name: "Ministerialverordnung Nr. 629: Regeln zur Rechnungsausstellung (ESF) 2026"
+  name_original: "Приказ Министра финансов Республики Казахстан от 28 октября 2025 года № 629 «Об утверждении Правил выписки счета-фактуры и его формы»"
+  herausgeber: "Finanzministerium der Republik Kasachstan"
+  url: "https://adilet.zan.kz/rus/docs/V2500037241"
+  perspektiven: [P12]
+  autoritaetsstufe: 2
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Loest ab 2026-01-01 die Vorgaengerregeln (V1900018583 von 2019) ab und regelt Form
+    und Ausstellung der ESF, gestuetzt auf Art. 495 NK RK. Darunter die Sonderregeln fuer
+    Kommissionsgeschaefte: der Kommissionaer fakturiert an den Endkunden (nicht der
+    Komitent), Feld 10 "категория поставщика" mit Auspraegung "комиссионер"/"комитент",
+    Verguetung wird als eigene Zeile ausgewiesen.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: false
+  rag_eignung: mittel
+  rag_hinweis: >
+    Primaerquelle fuer die ESF-Formvorschriften 2026; Inhalt in dieser Recherche nur
+    ueber Suchergebnis-Snippets und einen EY-Tax-Alert erschlossen (adilet-Volltextabruf
+    scheiterte wie bei den uebrigen adilet-Dokumenten dieses Registers).
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    OFFEN: URL-Zuordnung (V2500037241 = Anordnung Nr. 629) ueber Titelübereinstimmung im
+    Suchergebnis erschlossen, nicht durch Oeffnen des Dokuments selbst bestaetigt -
+    Registriernummer V1900018583 (Vorgaengerregeln 2019) zeigte in einer Fundstelle
+    ebenfalls einen Versionsstand "01.01.2026"; Verhaeltnis beider Dokumente zueinander
+    vor Ingest manuell zu klaeren.
+
+- id: kgd-esf-regeln-2015-kategorie-rus
+  name: "KGD: ESF-Dokumentenumlaufregeln (Fassung 2015) - Feld 'Kategorie des Lieferanten'"
+  name_original: "Правила документооборота счетов-фактур, выписываемых в электронном виде (утв. 10.11.2015)"
+  herausgeber: "Komitee fuer Staatseinnahmen, Finanzministerium der Republik Kasachstan"
+  url: "https://kgd.gov.kz/ru/content/pravila-dokumentooborota-schetov-faktur-vypisyvaemyh-v-elektronnom-vide-1"
+  perspektiven: [P12]
+  autoritaetsstufe: 2
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Historische (2015er) Fassung der ESF-Dokumentenumlaufregeln, die das Feld "категория
+    поставщика" (Zeile 10) erstmals detailliert erlaeutert: auszufuellen, wenn der
+    Lieferant Komitent, Kommissionaer, Spediteur, Leasinggeber u.a. ist; sonst
+    leerzulassen ("Ст.31: в строке 10 «Категория поставщика» указывается категория
+    поставщика ... если поставщик ... является комитентом, комиссионером, экспедитором,
+    лизингодателем ... В случае если поставщик не относится ни к одной из перечисленных
+    категорий, строка не заполняется."). Dieses Feld-Konzept setzt sich strukturell in
+    den 2026er-Regeln (Anordnung Nr. 629) fort.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: >
+    Nur als historischer/struktureller Hintergrund zum Verstaendnis des Feldes
+    "категория поставщика" brauchbar, nicht als aktuelle Rechtsgrundlage - durch
+    Anordnung Nr. 629 (2026) abgeloest.
+  gueltig_ab: "2015-11-10"
+  gueltig_bis: "2025-12-31"
+  ist_ueberholt: true
+  abgerufen_am: "2026-09-18"
+  notiz: "Explizit als Vorgaengerregelung gefuehrt; bestaetigt aber die langjaehrige Kontinuitaet des komissionsspezifischen ESF-Feldes, das Abschnitt 1.5 des Rohbefunds fuer 2026 beschreibt."
+
+- id: 1cbit-kz-import-export-uchet-2026-rus
+  name: "1C:BIT Kasachstan: Buchhaltung fuer Import und Export ab 2026"
+  name_original: "Как вести бухгалтерский и налоговый учет импорта и экспорта в Казахстане с 2026 года"
+  herausgeber: "1cbit.kz (1C-Partner/Praktikerportal)"
+  url: "https://www.1cbit.kz/blog/kak-vesti-bukhgalterskiy-i-nalogovyy-uchet-importa-i-eksporta-v-kazakhstane/"
+  perspektiven: [P13, P14]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Praxisueberblick zur Buchhaltung von Import/Export 2026: EAWU-Einfuhr-USt (Formular
+    328.00) mit 16% Satz und Erklaerungs-/Zahlungsfrist zum 20. des Folgemonats nach
+    Wareneingang ("Резидент РК, который импортирует товары с территории ЕАЭС, обязан
+    подать в налоговый орган по месту учета заявление по косвенным налогам");
+    Nullsatz-Voraussetzungen fuer EAWU-Exporte (Liefervertrag, Einfuhrerklaerung mit
+    Steuerstempel des Empfaengerlandes, Transportdokumente, ggf. IP-Bestaetigung); Ausweis
+    des Exportumsatzes in Formular 300.00, Zeile 300.00.002, als nullsatzbesteuert.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: >
+    Aktuelle Praxisquelle (Publikationsdatum 2026-08-21), nennt Formularnummern und
+    Fristen, aber keine Artikelnummern des Kodex - fuer Stufe-1-Beleg muss NK RK direkt
+    gegengeprueft werden (in der Parallelrecherche P13/P14 vorgesehen).
+  gueltig_ab: "2026-08-21"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Guter Einstiegspunkt fuer P13/P14, ersetzt aber keine Primaerquelle. Deadline-Angabe '20. des Folgemonats' deckt sich mit allgemein bekannter EAWU-Systematik, hier erstmals fuer den neuen Kodex bestaetigt."
+
+- id: kgd-astana1-systempage-rus
+  name: "KGD: Informationssystem ASTANA-1 (Zolldeklaration) - Nutzerseite"
+  name_original: "ИС «АСТАНА-1»"
+  herausgeber: "Komitee fuer Staatseinnahmen, Finanzministerium der Republik Kasachstan"
+  url: "https://kgd.gov.kz/ru/content/astana-1-1"
+  perspektiven: [P15]
+  autoritaetsstufe: 3
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Offizielle KGD-Seite zum elektronischen Zolldeklarationssystem "АСТАНА-1". Enthaelt
+    ausschliesslich Anwenderdokumentation (Word-Dokumente): Benutzerhandbuch, Anleitung
+    zur Warendeklaration, Deklaration mit vorangehendem Zollverfahren, FAQ. **Keine**
+    API-Dokumentation, kein SDK, kein Testserver, kein Hinweis auf maschinelle
+    Schnittstellen fuer Drittsysteme/ERP-Integration wurde auf dieser Seite gefunden.
+  beschaffung: "Frei zugaenglich, Dokumente als .docx-Download."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: >
+    Direkte, aktuelle amtliche Antwort auf die Frage nach einer oeffentlichen Astana-1-
+    API: Die offizielle Systemseite selbst bietet keine. Wichtig im Kontrast zu
+    kgd-esf-api-interface-rus (dort existiert fuer ein anderes KGD-System sehr wohl ein
+    oeffentliches SDK) - zeigt, dass das Fehlen bei Astana-1 keine generelle
+    KGD-Politik ist, sondern spezifisch fuer dieses System gilt.
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    WICHTIGSTER EINZELBEFUND ZU P15: Kein oeffentliches API/Web-Service fuer Astana-1
+    auf der offiziellen Seite auffindbar. Das schliesst eine nicht-oeffentliche,
+    nur zertifizierten Zollbrokern/Grossintegratoren zugaengliche Schnittstelle nicht
+    aus (z.B. ueber "информационное взаимодействие"-Vereinbarungen mit dem KGD) - dazu
+    wurden in dieser Recherche keine Belege gefunden. **OFFEN:** ob eine solche
+    nicht-oeffentliche Schnittstelle existiert, bliebe nur durch direkte Anfrage beim
+    KGD zu klaeren.
+
+- id: kgd-esf-api-interface-rus
+  name: "KGD: API-Interface der elektronischen Rechnung (ESF) - Kontrastbeleg"
+  name_original: "API-интерфейс электронные счета-фактуры"
+  herausgeber: "Komitee fuer Staatseinnahmen, Finanzministerium der Republik Kasachstan"
+  url: "https://kgd.gov.kz/ru/content/api-interfeys-elektronnye-scheta-faktury-1"
+  perspektiven: [P15, P12]
+  autoritaetsstufe: 3
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Zeigt, dass das KGD fuer das ESF-System sehr wohl eine oeffentliche, maschinell
+    nutzbare Schnittstelle anbietet: herunterladbares SDK
+    (https://kgd.gov.kz/sites/default/files/ftpdata/ESF/esf-sdk-2025.zip), ein
+    Testserver (https://test3.esf.kgd.gov.kz:8443) und eine Support-Adresse
+    (esfsd@kgd.minfin.gov.kz). Stand: Update fuer Aenderungen zum 1.1.2026
+    (Nichtresidenten-Rechnungen, Bestaetigungs-/Ablehnungsmechanik fuer ESF).
+  beschaffung: "Frei zugaenglich, SDK als ZIP-Download, kein Login fuer die Doku-Seite selbst genannt."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: >
+    Dient als Kontrastbeleg zur Astana-1-Frage (kgd-astana1-systempage-rus): belegt,
+    dass "kein Hinweis auf API gefunden" bei Astana-1 nicht an fehlender genereller
+    KGD-Praxis liegt.
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Formale API-Spezifikation (z.B. OpenAPI/WSDL) nicht direkt verlinkt gefunden, nur SDK-ZIP und Testserver - Detailtiefe der Doku selbst nicht weiter gepr eft."
+
+- id: kgd-nsi-tnved-klassifikator-rus
+  name: "KGD: Nachschlagewerke fuer Aussenhandel (u.a. ТН ВЭД-Klassifikator)"
+  name_original: "Справочники для ВЭД (НСИ)"
+  herausgeber: "Komitee fuer Staatseinnahmen, Finanzministerium der Republik Kasachstan"
+  url: "https://kgd.gov.kz/ru/nsi"
+  perspektiven: [P15, P13, P14]
+  autoritaetsstufe: 3
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Amtliche Nachschlagewerke-Sammlung des KGD fuer den Aussenhandel, darunter der
+    vollstaendige ТН ВЭД-Baum: Abschnitte (nsi/tnved1/10/1), Gruppen (nsi/tnved2/10/1),
+    Warenpositionen (nsi/tnved3/10/1), Unterpositionen (nsi/tnved4/10/1), HS-Code
+    (nsi/tnved6/10/1), 8-stellige (nsi/tnved8/10/1) und 9-stellige (nsi/tnved9/10/1)
+    Codes. Daneben Waehrungskurse, Zollstellen, Transportarten, Zollsaetze,
+    Nichttarifmassnahmen, Laenderklassifikation.
+  beschaffung: "Frei zugaenglich, direkt im Browser navigierbar."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: >
+    Das ist die amtliche, oeffentliche Fundstelle fuer die ТН ВЭД-Codesuche (Antwort auf
+    den P15-Punkt "wo kann ein Code nachgeschlagen werden"). Struktur ist
+    URL-Pfad-basiert und damit grundsaetzlich automatisierbar; ob es zusaetzlich eine
+    Volltext-/Stichwortsuche gibt, wurde nicht ueberprueft.
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Konkrete Codes fuer frische Beeren wurden ueber dieses Tool in dieser Teilrecherche nicht ermittelt (erfordert schrittweise Navigation durch die Hierarchie) - siehe P13-Recherche fuer den konkreten Code."
+
+- id: buh-mcfr-kz-selhoz-zakup-2026-rus
+  name: "МЦФЭР Главбух: USt beim Einkauf von Agrarerzeugnissen ab 2026 (Zugriff blockiert)"
+  name_original: "НДС при закупке сельхозпродукции у производителей с 2026 года"
+  herausgeber: "buh.mcfr.kz (МЦФЭР Главбух Казахстан, kostenpflichtiges Fachportal)"
+  url: "https://buh.mcfr.kz/question/5219-nds-pri-zakupke-selkhozprodukcii-u-proizvoditelei-s-2026-goda"
+  perspektiven: [P12]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: unbekannt
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Laut Titel einschlaegig fuer den USt-Umgang beim Einkauf von Agrarerzeugnissen direkt
+    bei Erzeugern ab 2026 - Inhalt konnte in dieser Recherche nicht gelesen werden
+    (automatisierter Abruf mit HTTP 403 blockiert, vermutlich Paywall/Bot-Schutz).
+  beschaffung: "Vermutlich registrierungs- oder abonnementpflichtig (МЦФЭР Главбух ist in Kasachstan ein kostenpflichtiges Fachportal); genaue Konditionen nicht verifiziert."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "Kein Volltext vorhanden - nur als Spur zu einer moeglicherweise ergiebigen Quelle gefuehrt, nicht als Beleg nutzbar, bis ein Zugang mit lesbarem Inhalt verifiziert ist."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "HTTP 403 beim automatisierten Abruf. Manuelle Pruefung mit Abonnement/Login empfohlen, falls dieser Titel fuer P12 als wichtig genug eingeschaetzt wird."
+
+# ---------------------------------------------------------------------------
+# P15: Zoll und Klassifikation (ergaenzt aus paralleler Hintergrundrecherche)
+# ---------------------------------------------------------------------------
+
+- id: eaeunion-tk-eaes-dogovor-2017-rus
+  name: "Zollkodex der EAWU (ТК ЕАЭС), Vertragstext"
+  name_original: "Договор о Таможенном кодексе Евразийского экономического союза от 11.04.2017"
+  herausgeber: "Eurasische Wirtschaftskommission (ЕЭК) / Vertragsrechtliche Datenbank der EAWU"
+  url: "https://docs.eaeunion.org/docs/ru-ru/01413569/itia_12042017"
+  perspektiven: [P15, P14, P13]
+  autoritaetsstufe: 1
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Vollstaendiger Zollkodex der EAWU (Anlage 1 zum Vertrag), in Kraft seit 2018-01-01.
+    Fuer die Agrar-/Handelsperspektive zentral: Kapitel 29 (Art. 219-226), Zollverfahren
+    "voruebergehende Einfuhr (Zulassung)". Art. 219: Definition (teilweise Befreiung von
+    Einfuhrzoll/-steuern als Regelfall, volle Befreiung nur fuer durch die Kommission
+    gelistete Warenkategorien); Art. 221: Hoechstdauer grundsaetzlich 2 Jahre,
+    verlaengerbar; Art. 223: bei Teilzahlung 3% des vollen Einfuhrabgabenbetrags pro
+    Kalendermonat; Art. 224-226: Beendigung/Ueberfuehrung in freien Verkehr. Direkt
+    anwendbares Unionsrecht, geht nationalem kasachischem Recht vor.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: >
+    Primaerquelle, aber als PDF mit teils bildbasiertem/kodiertem Inhalt verteilt, nicht
+    sauber per Texauszug abrufbar. Fuer Zitate wurden Artikel-Spiegel bei consultant.ru
+    (z.B. .../ee29a14c7168530334042ad8a97ed5e6a3b3fcd1/ fuer Art. 219) und alta.ru
+    (Muster .../codex-2018/R{Abschnitt}/GL{Kapitel}/ST{Artikel}/) verwendet.
+  gueltig_ab: "2018-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Verbatim-Zitat Art. 219: "Таможенная процедура временного ввоза (допуска) - это
+    таможенная процедура, применяемая в отношении иностранных товаров, в соответствии с
+    которой такие товары временно находятся и используются на таможенной территории
+    Союза при соблюдении условий помещения товаров под эту таможенную процедуру и их
+    использования, с частичной уплатой ввозных таможенных пошлин, налогов и без уплаты
+    специальных, антидемпинговых, компенсационных пошлин либо без уплаты ввозных
+    таможенных пошлин и налогов." Art. 223: "За каждый календарный месяц... подлежат
+    уплате 3 процента исчисленной на день регистрации таможенной декларации... суммы
+    ввозных таможенных пошлин, налогов, которая подлежала бы уплате, если бы товары...
+    помещались под таможенную процедуру выпуска для внутреннего потребления." OFFEN: ob
+    und wo Kasachstan diesen Vertrag ergaenzend per Ratifizierungsgesetz auf
+    adilet.zan.kz veroeffentlicht, sowie Titel/Fundstelle des nationalen
+    Ausfuehrungsgesetzes zum Zollkodex, wurden nicht verifiziert.
+
+- id: eek-reshenie-sovet-80-tnved-tarif-rus
+  name: "ЕЭК-Ratsbeschluss Nr. 80: ТН ВЭД ЕАЭС und Einheitlicher Zolltarif"
+  name_original: "Решение Совета ЕЭК от 14.09.2021 № 80 «Об утверждении единой Товарной номенклатуры внешнеэкономической деятельности Евразийского экономического союза и Единого таможенного тарифа Евразийского экономического союза»"
+  herausgeber: "Rat der Eurasischen Wirtschaftskommission (Совет ЕЭК)"
+  url: "https://www.consultant.ru/document/cons_doc_LAW_397176/"
+  perspektiven: [P15, P13, P14]
+  autoritaetsstufe: 2
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Grundlagenbeschluss: genehmigt in zwei Anlagen (1) die ТН ВЭД ЕАЭС selbst und (2) den
+    Einheitlichen Zolltarif (Zollsatztabelle je Code) sowie die "Основные правила
+    интерпретации ТН ВЭД" (Einreihungsgrundregeln, massgeblich z.B. fuer die Abgrenzung
+    frisch/gefroren/getrocknet bei Beeren, Codes 0810/0811/0813). Laufend novelliert,
+    Redaktionsstand beim Abruf: 11.08.2026.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Text ueber private russische Rechtsdatenbank (consultant.ru) gelesen, nicht ueber eaeunion.org selbst - inhaltlich aber ein Unionsrechtsakt, keine private Bearbeitung."
+  gueltig_ab: "2021-09-14"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "OFFEN: direkte eaeunion.org/eec.eaeunion.org-Fundstelle dieses Beschlusses nicht eigenstaendig verifiziert, nur der consultant.ru-Spiegel."
+
+- id: eek-klassifikation-129-tiefkuehl-gemuesemix-rus
+  name: "ЕЭК-Einreihungsentscheidung Nr. 129: gefrorene Gemuesemischungen"
+  name_original: "Решение Коллегии ЕЭК от 02.11.2016 № 129 «О классификации... Замороженные смеси овощей»"
+  herausgeber: "Kollegium der Eurasischen Wirtschaftskommission (Коллегия ЕЭК)"
+  url: "https://docs.eaeunion.org/docs/ru-ru/01411706/clcd_02112016_129"
+  perspektiven: [P15]
+  autoritaetsstufe: 2
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Verbindliche Einreihungsentscheidung fuer gefrorene Gemuesemischungen unter ТН ВЭД
+    0710 90 000 0. Methodisch direkt uebertragbar auf die Einreihung gefrorener
+    Beeren/Beerenmischungen (gleiche Warenfamilie: frisches/gefrorenes Agrarerzeugnis,
+    Behandlung von Mischungen nach den Einreihungsgrundregeln).
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Einzelfallentscheidung, praezise Fundstelle, aber nur mittelbar (per Analogieschluss) auf Beeren anwendbar."
+  gueltig_ab: "2016-11-02"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Nicht direkt zu Beeren, aber als methodisches Muster fuer P13-Folgerecherche (konkreter ТН-ВЭД-Code fuer Beeren) wertvoll."
+
+- id: eek-klassifikation-43-fruchtpueree-rus
+  name: "ЕЭК-Einreihungsentscheidung Nr. 43: Fruchtpueree"
+  name_original: "Решение Коллегии ЕЭК от 08.05.2024 № 43 «О классификации... Фруктовое пюре»"
+  herausgeber: "Kollegium der Eurasischen Wirtschaftskommission (Коллегия ЕЭК)"
+  url: "https://docs.eaeunion.org/docs/ru-ru/01444398/err_08052024_43"
+  perspektiven: [P15, P13]
+  autoritaetsstufe: 2
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Verbindliche Einreihungsentscheidung fuer Fruchtpueree unter ТН ВЭД 2106 (statt
+    Kapitel 20 fuer Frucht-/Beerenzubereitungen). Hohe praktische Relevanz fuer einen
+    Beerenbetrieb, sobald verarbeitete Erzeugnisse (Pueree, Konzentrat) statt nur
+    Frischware gehandelt werden - klassische Abgrenzungsfrage Kapitel 20 vs. 2106.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Direkt einschlaegige Einreihungsentscheidung fuer verarbeitete Beerenprodukte, praezise Fundstelle."
+  gueltig_ab: "2024-05-08"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Betrifft nur verarbeitete Ware (Pueree), nicht frische Beeren - fuer Frischware siehe die P13-Recherche zum konkreten ТН-ВЭД-Code."
+
+- id: eek-klassifikationsliste-rus
+  name: "ЕЭК: Liste aller Einreihungsentscheidungen zur ТН ВЭД ЕАЭС"
+  name_original: "Решения о классификации товаров в соответствии с ТН ВЭД ЕАЭС, принятые Комиссией"
+  herausgeber: "Eurasische Wirtschaftskommission, Departement fuer Zollrecht"
+  url: "https://eec.eaeunion.org/comission/department/dep_tamoj_zak/klassifikatsiya-tovarov-v-sootvetstvii-s-tn-ved-eaes/resheniya-o-klassifikatsii-tovarov.php"
+  perspektiven: [P15, P13]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Durchsuchbare, sortierbare amtliche Liste aller Коллегия-Einreihungsentscheidungen
+    mit Exportfunktion; jede Zeile verlinkt auf eine stabile docs.eaeunion.org-Seite.
+    Laufend aktualisiert (neueste Eintraege beim Abruf wenige Wochen alt).
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: false
+  rag_eignung: mittel
+  rag_hinweis: "Listentabelle selbst JS-geladen (nicht per einfachem HTTP-GET lesbar), einzelne Entscheidungs-URLs (docs.eaeunion.org) dagegen gut abrufbar."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Einstiegspunkt, um bei Bedarf weitere Einreihungsentscheidungen fuer neue Produktkategorien zu finden."
+
+- id: kgd-astana1-faq-verbindung-rus
+  name: "KGD-FAQ: Wie verbindet man sich mit ИС Астана-1?"
+  name_original: "Как подключиться к ИС «АСТАНА-1»?"
+  herausgeber: "Komitee fuer Staatseinnahmen, Finanzministerium der Republik Kasachstan"
+  url: "https://kgd.gov.kz/ru/faq/221/523/53793"
+  perspektiven: [P15]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Offizielle, aber sehr knappe Antwort auf die Verbindungsfrage: "Подключение к ИС
+    «АСТАНА-1» осуществляется по ссылке http://212.154.167.54:8080" - eine reine
+    IP:Port-Adresse ohne Domainnamen, ohne HTTPS, ohne API-/WSDL-/Integrationshinweis.
+    Zentraler Beleg fuer die Feststellung "keine oeffentliche API fuer Astana-1".
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Kurze, praezise amtliche Aussage - fuer die Astana-1-API-Frage die wichtigste Einzelquelle."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Widerspruch zu kgd-eservices-katalog-rus: dort ist fuer denselben Systemzugang eine
+    ANDERE IP:Port-Adresse (87.255.213.54:8080/index.jsf) genannt. Deutet auf schlechte
+    Pflege der Dokumentation hin, nicht auf zwei unterschiedliche Systeme - als
+    Diskrepanz im Konfliktregister-Sinn festgehalten, aber nicht selbst aufgeloest.
+
+- id: kgd-eservices-katalog-rus
+  name: "KGD: Katalog elektronischer Dienste (inkl. API-Sektion)"
+  name_original: "Каталог электронных услуг КГД"
+  herausgeber: "Komitee fuer Staatseinnahmen, Finanzministerium der Republik Kasachstan"
+  url: "https://kgd.gov.kz/ru/all/services"
+  perspektiven: [P15]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Listet "Автоматизированная система таможенного и налогового администрирования
+    АСТАНА-1" mit einer IP:Port-Adresse (87.255.213.54:8080/index.jsf, abweichend von
+    der FAQ-Adresse, siehe kgd-astana1-faq-verbindung-rus) sowie ein separates
+    Web-Deklarant-Vorabmeldeportal (pi.kgd.gov.kz, ebenfalls nur HTTP). Enthaelt eine
+    eigene "API Services"-Sektion mit genau drei APIs - alle steuerlich, keine davon
+    zollbezogen: Steuerschulden-API (ЦУЛС), Steuererklaerungs-Annahme-API,
+    Veranlagungs-API (Grund/Vermoegen/Verkehr).
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Zentraler Beleg dafuer, dass das KGD zwar eine 'API Services'-Kategorie fuehrt, dort aber keine Zoll-/Astana-1-Schnittstelle auflistet."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Die drei gelisteten Steuer-APIs laufen ueber das Smart-Bridge-Portal (sb.egov.kz) des E-Governments, nicht ueber eine zollspezifische Schnittstelle - siehe kgd-api-integration-hub-rus."
+
+- id: kgd-api-integration-hub-rus
+  name: "KGD: zentrale API-Dokumentationsseite"
+  name_original: "API интеграция"
+  herausgeber: "Komitee fuer Staatseinnahmen, Finanzministerium der Republik Kasachstan"
+  url: "https://kgd.gov.kz/ru/content/api-integraciya-1"
+  perspektiven: [P15, P12]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Zentrale KGD-Seite fuer API-Dokumentation. Fuehrt nur die ESF-API (SDK-Download,
+    Testserver, Support-Kontakt) und die NSI-Nachschlagewerke (kgd.gov.kz/ru/nsi) auf.
+    Astana-1/Zolldeklaration ist auf dieser Seite **nicht vertreten**. Fuer die
+    Steuer-APIs (Steuererklaerungsannahme u.a.) verweist die Doku auf ein technisches
+    Paket "Документация.7z" mit "техническими требованиями, WSDL и XSD схемами
+    сервисов", zugaenglich nach Registrierung auf dem E-Government-Portal Smart Bridge
+    (sb.egov.kz/smart-bridge/home), gestuetzt auf Anordnung des amtierenden Ministers
+    fuer Information und Kommunikation Nr. 123 vom 29.03.2018 ("Regeln zur Integration
+    von E-Government-Informatisierungsobjekten").
+  beschaffung: "Frei zugaenglich, SDKs/Doku teils nach Smart-Bridge-Registrierung."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Zusammen mit kgd-astana1-systempage-rus und kgd-eservices-katalog-rus der staerkste Beleg fuer 'keine oeffentliche Astana-1-API', weil hier eine vollstaendige Uebersicht aller vom KGD gefuehrten APIs vorliegt und Zoll fehlt."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Kasachstans Entsprechung zum russischen SMEV-Konzept heisst "шлюз «электронного
+    правительства»" (E-Government-Gateway); keine Belege gefunden, dass dieses Gateway
+    auch Astana-1/Zolldeklarationen erschliesst.
+
+- id: kgd-astana1-hintergrund-asycuda-rus
+  name: "KGD-Dokument: Hintergrund zu ИС Астана-1 (АСИКУДА/ASYCUDA)"
+  name_original: "Информационная система «Астана-1» (АСИКУДА)"
+  herausgeber: "Komitee fuer Staatseinnahmen, Finanzministerium der Republik Kasachstan (via prg.kz-Rechtsdatenbank gelesen)"
+  url: "https://prg.kz/Document/?doc_id=38222616"
+  perspektiven: [P15]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Bestaetigt, dass Astana-1 die kasachische nationale Implementierung der
+    UNCTAD-Plattform "ASYCUDA World" ist (Vereinbarung KGD-UNCTAD September 2015,
+    Pilotstart April 2017 in Astana, Almaty, Karaganda, Gebiet Almaty), Ziel:
+    "оптимизация таможенной политики и процедур, в соответствии с нормами ВТО".
+    ASYCUDA World wird weltweit in ueber 90 Laendern eingesetzt und unterstuetzt in
+    manchen Implementierungen "Direct Trader Input"/EDI-Schnittstellen fuer autorisierte
+    Grossnutzer - fuer Kasachstan wurde dazu keine oeffentliche Bestaetigung gefunden.
+  beschaffung: "Frei zugaenglich ueber prg.kz (Rechtsdatenbank-Spiegel eines amtlichen KGD-Dokuments vom 18.04.2017, Status 'Действующий')."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Liefert den technischen Hintergrund (ASYCUDA-Basis), erklaert aber nicht abschliessend, ob eine EDI-Schnittstelle fuer Kasachstan aktiviert ist."
+  gueltig_ab: "2017-04-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "OFFEN: ob die von ASYCUDA World grundsaetzlich unterstuetzte EDI-Funktionalitaet in der kasachischen Installation aktiviert/verfuegbar ist, aber nicht oeffentlich beworben wird, oder schlicht nicht genutzt wird."
+
+- id: kgd-zollbroker-register-rus
+  name: "KGD: amtliches Register der Zollvertreter (Broker)"
+  name_original: "Реестр таможенных представителей"
+  herausgeber: "Komitee fuer Staatseinnahmen, Finanzministerium der Republik Kasachstan"
+  url: "https://kgd.gov.kz/ru/nsi/tsbrok/10/1"
+  perspektiven: [P15]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Amtliches, durchsuchbares Register lizenzierter Zollvertreter (Broker) mit
+    Exportfunktion (XML/Excel); verwandtes Register fuer Zollbefoerderer unter
+    kgd.gov.kz/ru/nsi/tscar/10/1. Voraussetzungen laut Sekundaerquelle (Artikelnummer
+    des ТК ЕАЭС nicht verifiziert, OFFEN): Haftpflichtversicherung,
+    Sicherheitsleistung (bei auf zollabgabenfreie Exportware beschraenkter Taetigkeit
+    z.B. Aequivalent von 150.000 Euro), keine offenen Zollschulden, Pflicht zur
+    ESF-Nutzung, Meldepflicht von Adressaenderungen binnen 5 Werktagen.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: false
+  rag_eignung: mittel
+  rag_hinweis: "Gleiche technische Basis wie die ТН-ВЭД-NSI-Tools: Tabelle AJAX-geladen, Exportbutton vorhanden, aber Datenendpunkt nicht per einfachem HTTP-Abruf ermittelt."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Rechtsgrundlage fuer die Zulassungsvoraussetzungen (welcher ТК-ЕАЭС-Artikel) OFFEN."
+
+- id: alaics-kz-zollbroker-preise-rus
+  name: "Almaty-Zollbroker: Preisuebersicht Brokerdienstleistungen"
+  name_original: "Сколько стоят услуги таможенного брокера"
+  herausgeber: "alaics.kz (Zollbroker-Unternehmen, Almaty)"
+  url: "https://alaics.kz/tpost/4raxgd71t1-skolko-stoyat-uslugi-tamozhennogo-broker"
+  perspektiven: [P15]
+  autoritaetsstufe: 5
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: 40000
+    waehrung: KZT
+    periode: pro_dokument
+    verifiziert: true
+    beleg_url: "https://alaics.kz/tpost/4raxgd71t1-skolko-stoyat-uslugi-tamozhennogo-broker"
+  aktualisierung: unbekannt
+  abdeckung: >
+    Anbieterseitige Preisangabe: "стоимость услуг может начинаться от 40 000 ₸" bis
+    100.000 KZT je Zolldeklaration, regional gestaffelt (Almaty/Astana ab 40.000 KZT,
+    Grenzuebergaenge wie Aktau/Khorgos/Altynkol ab 60.000 KZT, Regionalzentren ab
+    50.000 KZT); Vertragskunden mit Volumen: 0,1-0,3% vom Warenwert. Ausdruecklich
+    exklusive staatlicher Abgaben (Zoll, USt, Verbrauchsteuer, Lagerkosten, Kontrollen).
+  beschaffung: "Frei zugaenglich, Werbeseite eines einzelnen Anbieters."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Werbliche Einzelquelle eines Anbieters (Stufe 5) - als Richtwert brauchbar, kein amtlicher Tarif, da Zollbrokerage in Kasachstan ein freier Markt ohne regulierten Preis ist."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Zweite, niedrigere Preisspanne bei mybuh.kz gefunden (ab 15.000 KZT fuer einfache
+    Faelle bis 62.000+ KZT, Quelle nicht einzeln im Register gefuehrt, nur als
+    Gegenprobe erwaehnt). tsl.com.kz fuehrt eine detaillierte Preisliste inkl.
+    "Продление временного ввоза на 2-ой срок", Zahlen liessen sich beim automatisierten
+    Abruf nicht auslesen (JS-Tabelle) - manueller Nachabruf empfohlen.
+
+# ---------------------------------------------------------------------------
+# P13: Export (eigene Ergaenzung vorab, Detailrecherche siehe Hintergrundagent)
+# ---------------------------------------------------------------------------
+
+- id: adilet-nk-214-viii-export-kapitel-47-52-rus
+  name: "NK RK, Exportkapitel: Art. 467, 503, 506, 520, 521, 531, 532 (Nullsatz und заявление-о-ввозе-Frist)"
+  name_original: "Налоговый кодекс РК, Глава 47 (ст. 467, 503), Глава 52 (ст. 506, 520, 521, 531, 532)"
+  herausgeber: "Republik Kasachstan / NZPI Adilet"
+  url: "https://adilet.zan.kz/rus/docs/K2500000214"
+  perspektiven: [P13]
+  autoritaetsstufe: 1
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    GEKLAERT (Widerspruch aus fruehrer Fassung dieses Registereintrags aufgeloest, siehe
+    notiz): Kapitel 47 legt mit **Art. 467** ("Оборот по реализации товаров на
+    экспорт") die Nullsatzbesteuerung des Warenexports allgemein fest, rueckverwiesen
+    durch **Art. 503 п.1** ("Обороты по реализации товаров, работ, услуг, указанные в
+    главе 47 настоящего Кодекса, облагаются налогом на добавленную стоимость по
+    нулевой ставке" - und an gleicher Stelle der Regelsatz: "ставка налога на
+    добавленную стоимость составляет 16 процентов"). Kapitel 52 regelt den
+    EAWU-spezifischen Export: **Art. 520** ("Экспорт товаров в ЕАЭС") ordnet den
+    Nullsatz fuer Ausfuhren in EAWU-Mitgliedstaaten an; **Art. 521**
+    ("Подтверждение экспорта товаров") listet die Nachweisdokumente (Vertrag,
+    заявление о ввозе mit Steuerbehoerden-Vermerk, Transportdokumente). **Art. 531**
+    ("Порядок исчисления и уплаты налога при экспорте товаров") ist DIE entscheidende
+    Norm: Bleibt das заявление о ввозе binnen 180 Kalendertagen ab Umsatztag aus, wird
+    der Regelsatz (16 %, Art. 503 п.1) faellig, zahlbar nach Art. 506 (25. Tag des
+    zweiten Folgemonats), mit spaeterer Anrechnungs-/Erstattungsmoeglichkeit bei
+    Nachreichen (Art. 531 п.4), aber ohne Ruckerstattung bereits gezahlter Saeumnis-
+    zuschlaege. **Art. 532** ("Отзыв заявления о ввозе товаров и уплате косвенных
+    налогов") regelt Ruecknahme/Korrektur der Erklaerung.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: false
+  rag_eignung: hoch
+  rag_hinweis: >
+    Zentralster Einzelfund der gesamten P13-Recherche - die Artikelkette 467/503/506/
+    520/521/531/532 beantwortet die Kernfrage vollstaendig mit Artikelnummern und
+    Wortlaut. Adilet selbst beim automatisierten Abruf nicht maschinenlesbar (wie
+    durchgaengig in dieser Recherche), Wortlaut ueber Spiegel (kodeksy-kz.com,
+    pavlodar.com) verifiziert.
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    KORREKTUR einer fruehreren Fassung dieses Eintrags: Dort wurde ein Widerspruch
+    dokumentiert, ob "Отзыв заявления о ввозе" bei Art. 458 steht (eine
+    Navigationsleisten-Auswertung hatte das behauptet, ein Volltextabruf von Art. 458
+    zeigte aber einen voellig anderen Inhalt/Treuhandverwaltung). Die Parallelrecherche
+    P13 hat die korrekte Fundstelle unabhaengig ermittelt: **Art. 532**, nicht 458. Der
+    Fehler lag also in der fruehreren Navigationsleisten-Lesung. Verbatim-Zitate:
+    Art. 531 (sinngemaess): "При непоступлении в электронной форме в налоговый орган
+    Республики Казахстан заявления о ввозе товаров и уплате косвенных налогов в
+    течение ста восьмидесяти календарных дней с даты совершения оборота по реализации
+    товаров при их экспорте... плательщик... обязан уплатить налог по ставке,
+    установленной пунктом 1 статьи 503 настоящего Кодекса, в срок, предусмотренный
+    статьей 506 настоящего Кодекса." Diese 180-Tage-Regel stimmt wortgleich mit der
+    EAWU-Vertragsgrundlage ueberein (siehe eaeunion-protokoll18-kosvennye-nalogi-rus).
+
+- id: qaztrade-org-kz-exportfoerderung-rus
+  name: "QazTrade: Exportfoerderprogramme"
+  name_original: "QazTrade - меры поддержки экспорта"
+  herausgeber: "QazTrade (staatliche Exportfoerderorganisation Kasachstans)"
+  url: "https://qaztrade.org.kz"
+  perspektiven: [P13]
+  autoritaetsstufe: 3
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Uebersicht der Exportfoerderinstrumente: Kostenerstattung fuer Exportaufwendungen
+    ("Экспорт бойынша шығындарды өтеу"/Erstattung von Zertifizierungs-, Logistik- u.a.
+    Exportkosten), QazTrade-Akzelerator-Programm fuer vielversprechende
+    Nicht-Rohstoff-Unternehmen (internationale Experten, Marktleitfaeden,
+    Strategie-Roadmaps), Exportportal "Kasachstan Export", Handels-Wirtschaftsmissionen
+    2026. FAQ-Bereich enthaelt sektorspezifische Anleitungen, u.a. ein
+    Schritt-fuer-Schritt-Algorithmus fuer den Export tierischer Erzeugnisse
+    (Rind-/Hammelfleisch, Honig, Milchprodukte, Fisch, Wolle, Pferde) nach China -
+    zeigt, dass sektorspezifische Exportleitfaeden existieren, auch wenn fuer Beeren
+    noch nicht identifiziert.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Gute Einstiegsseite; ein Beeren-/Obst-spezifischer Exportleitfaden wurde in diesem Zugriff nicht gefunden - OFFEN, ob es einen gibt."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "KazakhExport (kazakhexport.kz, staatliche Exportversicherung/-finanzierung) wurde in dieser Ergaenzungsrecherche nicht mehr erreicht - siehe Parallelrecherche P13 fuer Ergaenzung."
+
+- id: cci-kz-nichtauffindbar-notiz
+  name: "Kasachische Handelskammer (cci.kz) - Domain nicht erreichbar"
+  name_original: "cci.kz - DNS-Fehler"
+  herausgeber: "unbekannt (Zielorganisation nicht identifiziert)"
+  url: "https://cci.kz"
+  perspektiven: [P13]
+  autoritaetsstufe: 5
+  sprachen: [ru]
+  zugang: unbekannt
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Die im Auftrag genannte Domain cci.kz loeste beim Abruf nicht auf (DNS-Fehler
+    "ENOTFOUND"). Auch www.cci.kz nicht erreichbar. Eine Verwechslungspruefung mit
+    atameken.kz ergab: Das ist die "Nationale Kammer der Unternehmer 'Atameken'", eine
+    ANDERE Organisation (Unternehmerverband, nicht explizit als Handelskammer mit
+    СТ-1/СТ-KZ-Zertifizierungsservice identifiziert in diesem Zugriff).
+  beschaffung: "Nicht ermittelt."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "Kein Inhalt - reine Fehlschlag-Dokumentation, um doppelte Fehlversuche zu vermeiden."
+  gueltig_ab: null
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    OFFEN: korrekte Domain der Kasachischen Industrie- und Handelskammer (Торгово-
+    промышленная палата РК) fuer die СТ-1/СТ-KZ-Zertifikatsausstellung nicht ermittelt.
+    Moegliche naechste Schritte: Suche nach "Торгово-промышленная палата Казахстана
+    официальный сайт" oder Pruefung, ob Atameken diese Funktion mittlerweile
+    uebernommen hat (in vielen postsowjetischen Staaten liegt die Ursprungszertifizierung
+    bei der Handelskammer, in KZ moeglicherweise organisatorisch verschmolzen mit
+    Atameken). An Parallelrecherche P13 uebergeben.
+
+- id: kazakhexport-kz-versicherung-rus
+  name: "KazakhExport: Exportkreditversicherung und -finanzierung"
+  name_original: "KazakhExport - страхование и финансирование экспорта"
+  herausgeber: "KazakhExport (staatliche Exportkreditagentur Kasachstans)"
+  url: "https://kazakhexport.kz"
+  perspektiven: [P13]
+  autoritaetsstufe: 3
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Staatliche Exportkreditagentur. Konkrete Produkte (Detailseiten von der
+    Parallelrecherche direkt gepgrueft): **Anzahlungsversicherung**
+    (kazakhexport.kz/ru/page/strahovanie-avansovogo-platezha) schuetzt die Vorauszahlung
+    des auslaendischen Kaeufers bei Lieferausfall des kasachischen Exporteurs.
+    **Exportkreditversicherung** (.../strahovanie-kredita-eksportera) deckt
+    Zahlungsausfall des auslaendischen Abnehmers ab, sowohl kommerzielles Risiko
+    (Insolvenz/Zahlungsverzug) als auch politisches Risiko (Enteignung,
+    Transferbeschraenkung, Krieg/Unruhen), **Deckung bis 80 % des Schadens**, Praemie
+    individuell risikoabhaengig. **Darlehensversicherung** (.../strahovanie-zaymov)
+    schuetzt die kreditgebende Bank, **10 % Selbstbehalt (франшиза)**, vereinfachtes
+    Verfahren fuer Betriebsmitteldarlehen **bis 300 Mio. Tenge** - praktisch relevant
+    fuer saisonale Vorfinanzierung eines Beerenhandelsbetriebs. Keine sektorale
+    Ausschlussklausel fuer Agrarprodukte auf den geprueften Seiten gefunden.
+    Ueberstaatlicher Politikanker: EAWU-Vertrag Art. 41 ("Меры по развитию
+    экспорта") nennt "страхование и кредитование экспорта" ausdruecklich als
+    unionsweite Foerderkategorie.
+  beschaffung: "Antragsbasiert; Callcenter 1408 / info@kazakhexport.kz fuer Detailfragen zu Eignungsschwellen."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Detailseiten (nicht nur Startseite) direkt gepgrueft, mit konkreten Prozentsaetzen (80% Deckung, 10% Selbstbehalt, 300 Mio Tenge Schwelle) - praxisrelevant und praezise."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Detailseiten inzwischen gepgrueft (siehe abdeckung) - kein agrarspezifischer Ausschluss gefunden, aber auch kein agrarspezifisches Sonderprogramm; die Produkte sind sektorneutral. OFFEN bleiben nur die genauen Eignungs-/Mindestvolumenschwellen je Produkt."
+
+# ---------------------------------------------------------------------------
+# P14: Import (eigene Ergaenzung vorab, Detailrecherche siehe Hintergrundagent)
+# ---------------------------------------------------------------------------
+
+- id: kodeksy-kz-nk-479-import-nds-befreiung-rus
+  name: "NK RK Art. 479: Von der USt befreite Importe (Spiegel)"
+  name_original: "Статья 479. Импорт, освобождаемый от налога на добавленную стоимость"
+  herausgeber: "kodeksy-kz.com (Spiegel des Steuerkodex 214-VIII)"
+  url: "https://kodeksy-kz.com/ka/nalogovyj_kodeks/479.htm"
+  perspektiven: [P14]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Abschliessende Liste der von der Einfuhr-USt befreiten Warenkategorien, beginnend
+    mit "Освобождается от налога на добавленную стоимость импорт: 1) банкнот и монет
+    национальной и иностранной валюты...". Fuer P14 zentral: **Punkt 9 erwaehnt
+    "сельскохозяйственной техники" (Landtechnik), aber ausdruecklich nur im Kontext von
+    Sonderwirtschaftszonen (SWZ) unter Investitionsvertraegen** - keine allgemeine
+    USt-Befreiung fuer Landtechnik ausserhalb von SWZ/Investitionsvertraegen erkennbar.
+    Punkt 8 und Punkt 11 verweisen auf zwei GESONDERTE, von der Regierung bzw. einer
+    bevollmaechtigten Stelle zu genehmigende Warenlisten (eine fuer religioese
+    Gegenstaende, eine fuer Astana-Hub-Teilnehmer) - das Listenprinzip fuer
+    Investitions-/Technologiegueter-Befreiungen existiert also strukturell, ist aber in
+    diesem Artikel nicht auf allgemeine Agrareinfuhren (Saatgut, Duenger,
+    Pflanzenschutzmittel, gewoehnliche Landtechnik ausserhalb SWZ) gemuenzt. Keine
+    direkte Erwaehnung von Saatgut/Pflanz-material, Duenger oder
+    Pflanzenschutzmitteln in diesem Artikel gefunden.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Praezise, direkt einschlaegige Fundstelle fuer die P14-Frage nach Importbefreiungen fuer Agrarausruestung - zeigt eine differenzierte statt einer pauschalen Antwort."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    WICHTIG: Diese Recherche fand KEINE allgemeine USt-Befreiung fuer Agrartechnik,
+    Saatgut, Duenger oder Pflanzenschutzmittel bei gewoehnlicher (Nicht-SWZ-)Einfuhr in
+    Art. 479 selbst. Ob es eine SEPARATE Vorschrift (anderer Artikel, gesonderte
+    Regierungsverordnung analog zur alten "Liste der von der Investitionsbefreiung
+    erfassten Technologieausruestung") gibt, die gewoehnliche Agrareinfuhren erfasst,
+    wurde nicht abschliessend gepgrueft. **OFFEN, an Parallelrecherche P14 uebergeben.**
+    Punkt-fuer-Punkt-Volltext (alle 11+ Punkte) nicht vollstaendig zitiert - nur die
+    fuer P14 relevanten Passagen wurden extrahiert.
+
+# ---------------------------------------------------------------------------
+# P13 Nachtrag: Ergebnisse des Hintergrundagenten (vollstaendiger Bericht,
+# 113 Werkzeugaufrufe, direkter Download/Parse der EAWU-Vertragsanlagen)
+# ---------------------------------------------------------------------------
+
+- id: eaeunion-protokoll18-kosvennye-nalogi-rus
+  name: "EAWU-Vertrag, Anlage 18: Protokoll ueber indirekte Steuern bei Export/Import"
+  name_original: "Приложение № 18 к Договору о ЕАЭС (29.05.2014) - Протокол о порядке взимания косвенных налогов и механизме контроля за их уплатой при экспорте и импорте товаров, выполнении работ, оказании услуг"
+  herausgeber: "Eurasische Wirtschaftskommission / Vertragsrechtliche Datenbank der EAWU"
+  url: "https://docs.eaeunion.org/documents/236/8429/"
+  perspektiven: [P13, P14]
+  autoritaetsstufe: 1
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    DIE ueberstaatliche Rechtsgrundlage der заявление-о-ввозе-Mechanik, bindend fuer
+    alle fuenf EAWU-Staaten gleichermassen. Abschnitt II п.3: Nullsatz bei
+    zwischenstaatlichem EAWU-Export unter der Bedingung der Dokumentenvorlage. **п.5,
+    Kernsatz:** "Документы, предусмотренные пунктом 4 настоящего Протокола,
+    представляются в налоговый орган в течение ста восьмидесяти календарных дней с
+    даты отгрузки (передачи) товаров." Bei Fristversaeumnis: "суммы косвенных налогов
+    подлежат уплате в бюджет за налоговый (отчетный) период, на который приходится
+    дата отгрузки товаров... с правом на вычет (зачет) соответствующих сумм НДС
+    согласно законодательству государства-члена, с территории которого экспортированы
+    товары." Bei verspaeteter Nachreichung: Anrechnung/Erstattung moeglich, aber
+    "Суммы пеней, штрафов, уплаченные за нарушение сроков уплаты косвенных налогов,
+    возврату не подлежат." **п.7:** elektronische Behoerde-zu-Behoerde-Bestaetigung
+    kann das physische заявление ersetzen.
+  beschaffung: "Frei zugaenglich; Volltext als DOCX/ZIP-Anlage zum Vertrag, direkt herunterladbar."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Primaerquelle auf Vertragsebene, direkt per Download/Parse verifiziert (nicht nur Spiegel) - hoechste Verlaesslichkeitsstufe in diesem gesamten Register."
+  gueltig_ab: "2015-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Kasachstans NK-RK-Art. 531 (siehe adilet-nk-214-viii-export-kapitel-47-52-rus) ist
+    die wortgleiche nationale Umsetzung dieser 180-Tage-Regel. OFFEN: die genaue
+    Fundstelle des separaten zwischenstaatlichen Abkommens ueber den elektronischen
+    Steuerbehoerden-Datenaustausch (in п.4 Unterpunkt 3 nur als "отдельный
+    международный межведомственный договор" erwaehnt) wurde nicht ermittelt.
+
+- id: kodeksy-kz-nk-125-128-nds-erstattung-export-rus
+  name: "NK RK Art. 125-128: Erstattung des USt-Ueberschusses (Exporteur-Schnellspur)"
+  name_original: "Статьи 125-128 Налогового кодекса РК - возврат суммы превышения НДС"
+  herausgeber: "kodeksy-kz.com (Spiegel des Steuerkodex 214-VIII)"
+  url: "https://kodeksy-kz.com/ka/nalogovyj_kodeks/126.htm"
+  perspektiven: [P13]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Art. 125: allgemeine Regeln zur Erstattung des USt-Ueberschusses. Art. 126:
+    Exporteur-Schnellspur, Zugang bei Nullsatz-Umsatzanteil ueber drei
+    aufeinanderfolgende Steuerperioden von mindestens 70 % (oder generell ab 50 % fuer
+    den vereinfachten Weg, siehe Art. 127). Art. 127 ("Упрощенный порядок"):
+    Erstattung ohne Pruefung ueber das Risikomanagementsystem (СУР), Voraussetzung
+    u.a. keine offenen unerledigten Benachrichtigungen; **Frist: 15 Arbeitstage** ab
+    Antragstellung. Art. 128 (pruefungsbasierter Weg): Erstattung **innerhalb von 55
+    Arbeitstagen** nach Erklaerungsfrist bzw. 10 Arbeitstage nach Pruefungsabschluss -
+    reduziert von vormals 75 Arbeitstagen.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Praezise, mit konkreten Fristen - eine der wertvollsten Fundstellen fuer P13, da Zahlen UND Artikelnummern vorliegen."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Amtliche Bestaetigung der Fristen (15 bzw. 55 Arbeitstage) auch bei einer
+    KGD-Regionalstelle gefunden: https://kst.kgd.gov.kz/ru/news/uproshchennyy-poryadok-vozvrata-nds-s-2026-goda-12-159992
+    (Gebiet Kostanai), die die Durchfuehrungsverordnung "Anordnung des
+    stellvertretenden Finanzministers Nr. 649 vom 30.10.2025" nennt (genauer Titel/
+    adilet-Registriernummer dieser Verordnung nicht unabhaengig bestaetigt - OFFEN).
+    Zentrale KGD-Seite kgd.gov.kz/ru/content/vozvrat-prevysheniya-nds-1 existiert,
+    Inhalt beim automatisierten Abruf nicht zuverlaessig extrahierbar.
+
+- id: eec-tnved-gruppe08-fruechte-beeren-rus
+  name: "ТН ВЭД ЕАЭС Gruppe 08, Position 0810: Codes fuer frische Beeren"
+  name_original: "ТН ВЭД ЕАЭС, Группа 08 «Съедобные фрукты и орехи», товарная позиция 0810 «Прочие фрукты, свежие»"
+  herausgeber: "Eurasische Wirtschaftskommission (Rat), Rechtsgrundlage Beschluss Nr. 80 vom 14.09.2021"
+  url: "https://eec.eaeunion.org/comission/department/catr/ett/ru.2022/ru.08_2022_28.07.2024.pdf"
+  perspektiven: [P13, P15]
+  autoritaetsstufe: 1
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Amtliche Codes fuer frische Beeren unter Position 0810: **0810 10 000 0**
+    Erdbeeren (земляника/клубника); **0810 20 100 0** Himbeeren (малина, direkt
+    verifiziert), 0810 20 900 0 uebrige der Unterposition (Brombeere/Maulbeere/
+    Loganbeere, Code verifiziert, Bezeichnungszuordnung nicht wortlautgenau); **0810
+    30** Johannisbeeren/Stachelbeeren, drei Unterpositionen (0810 30 100 0 / 300 0 /
+    900 0, Codes verifiziert, genaue Zuordnung schwarz/rot-weiss/Stachelbeere mit
+    hoher Zuversicht aber nicht 100% wortlautgenau bestaetigt); **0810 40**
+    Preiselbeeren/Heidelbeeren/Vaccinium-Arten (0810 40 100 0/300 0/500 0/900 0, mit
+    lateinischen botanischen Artbezeichnungen im Originaldokument lesbar bestaetigt);
+    0810 50 000 0 Kiwi; 0810 90 uebrige.
+  beschaffung: "Frei zugaenglich, PDF je Warengruppe."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Direkt per curl+pdftotext aus dem Primaerdokument gelesen, keine Sekundaerquelle. Fuer die Codes selbst hohe Verlaesslichkeit; fuer einzelne Text-Label-Zuordnungen (0810 20 900 0, 0810 30er-Aufteilung) noch eine Bestaetigungsrunde empfohlen."
+  gueltig_ab: "2022-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Rechtsgrundlage EAWU-Vertrag Art. 42 п.1: "На таможенной территории Союза
+    применяются единая Товарная номенклатура внешнеэкономической деятельности
+    Евразийского экономического союза и Единый таможенный тариф... утверждаемые
+    Комиссией." Kasachstan hat keine eigene nationale Klassifikation - kgd.gov.kz
+    (kgd.gov.kz/ru/content/tn-ved-i-ett-eaes) verweist selbst nur auf die
+    unionsweite Nomenklatur. Basisbeschluss seither punktuell novelliert (u.a. ЕЭК-
+    Kollegiumsbeschluss Nr. 104 vom 11.08.2026), Grundakt nicht neu erlassen.
+
+- id: atameken-ct1-ctkz-ursprungszeugnis-rus
+  name: "Ursprungszeugnisse СТ-1 und СТ-KZ: zustaendige Stelle und Verfahren"
+  name_original: "Сертификат о происхождении товара формы СТ-1 / СТ-KZ, НПП РК «Атамекен»"
+  herausgeber: "НПП РК «Атамекен» (Nationale Unternehmerkammer), Verfahrensbeschreibung via Sekundaerquellen"
+  url: "https://uchet.kz/news/sertifikat-stkz-obnovlen-poryadok-vydachi/"
+  perspektiven: [P13]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    WICHTIGE KORREKTUR der im Auftrag genannten Domain: `cci.kz` loest nicht auf
+    (DNS-Fehler, unabhaengig von P15-Recherche zweifach bestaetigt). Zustaendige
+    Stelle ist **НПП РК «Атамекен»** (atameken.kz, JS-lastig/nicht maschinenlesbar),
+    nicht eine separate "Handelskammer". **СТ-1** (fuer GUS-Exporte): Ausstellung laut
+    Vermittler-Sekundaerquelle (unionexpert.kz) binnen eines Tages bei vollstaendigen
+    Unterlagen, ein Jahr gueltig; **Gebuehr in keiner der geprueften Quellen mit
+    konkretem Betrag gefunden - OFFEN, nicht verifiziert.** **СТ-KZ**: entgegen einer
+    kursierenden (falschen) Angabe zum 1.1.2026 NICHT abgeschafft, sondern reformiert -
+    Drittpruforganisationen entfallen, Regionalkammern pruefen direkt ueber das System
+    "Doculite"; dient primaer der Ursprungsbestaetigung fuer Sonderwirtschaftszonen/
+    Inlandsverkehr, nicht als Haupt-GUS-Exportzertifikat (das ist СТ-1). Auch hier
+    keine verifizierte Gebuehr gefunden.
+  beschaffung: "Antrag bei Atameken/Regionalkammer; genaues Online-Verfahren nicht verifiziert (atameken.kz nicht maschinenlesbar)."
+  maschinell_abrufbar: false
+  rag_eignung: mittel
+  rag_hinweis: "Wichtige Korrektur einer falschen Domain-Annahme und einer falschen 'СТ-KZ abgeschafft'-Behauptung, die sonst unbemerkt ins Register gelangt waere - deshalb trotz fehlender Gebuehrenangabe hoch einzustufen als Warnung vor Fehlinformation."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "OFFEN: verifizierte Gebuehren fuer СТ-1 und СТ-KZ; genaues Online-Antragsverfahren bei Atameken direkt (nur via private Vermittler-Sekundaerquellen unionexpert.kz und naceks.kz erschlossen, beide selbst kommerzielle Dienstleister, keine Primaerquelle)."
+
+- id: adilet-v2000020732-phytosanitaer-standard-rus
+  name: "Dienstleistungsstandard: Phytosanitaerzeugnis fuer Ausfuhr"
+  name_original: "Стандарт государственной услуги «Выдача фитосанитарного сертификата на вывоз подкарантинной продукции за пределы Республики Казахстан»"
+  herausgeber: "Ministerium fuer Landwirtschaft der Republik Kasachstan / Ausschuss fuer staatliche Inspektion im Agrarkomplex"
+  url: "https://adilet.zan.kz/rus/docs/V2000020732"
+  perspektiven: [P13]
+  autoritaetsstufe: 2
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: 0
+    waehrung: KZT
+    periode: pro_dokument
+    verifiziert: true
+    beleg_url: "https://adilet.zan.kz/rus/docs/V2000020732"
+  aktualisierung: unbekannt
+  abdeckung: >
+    Zustaendige Stelle: Gebietsinspektionen des Ausschusses fuer staatliche Inspektion
+    im Agrarkomplex (Landwirtschaftsministerium). Verfahren: Antrag (nominell ueber
+    egov.kz-Dienst pass281_msh) → Inspektion/Probenahme → ggf. Laboranalyse →
+    Zertifikatsausstellung je Sendung. **Bearbeitungszeit: 3 Werktage Standard, 3
+    Arbeitsstunden bei vorliegendem phytosanitaeren Pruefbericht** (nicht aelter als 7
+    Kalendertage). **Gebuehr: kostenlos (бесплатно).** Ergebnis: Zertifikat oder
+    begruendete Ablehnung.
+  beschaffung: "Antrag ueber egov.kz-Dienst pass281_msh oder direkt bei der Gebietsinspektion; Dienst kostenlos."
+  maschinell_abrufbar: false
+  rag_eignung: hoch
+  rag_hinweis: "Praezise amtliche Fundstelle mit konkreten Fristen und Nullgebuehr - direkt einschlaegig fuer den Beerenexport."
+  gueltig_ab: "2020-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Registriernummer/Datum der zugrundeliegenden Ministerialverordnung nicht
+    unabhaengig beim direkten adilet-Abruf bestaetigt (JS-Seite), nur ueber
+    Sekundaerquellen (gov4c.kz-Spiegel, akademisches Zitat 2025) korroboriert - OFFEN,
+    eine direkte Pruefung empfohlen. Ueberstaatliche Grundlage: EAWU-Vertrag Art. 56-59
+    und Anlage 12 legen unionsweit fest, WELCHE Erzeugnisse "подкарантинная продукция"
+    sind (Beeren fallen darunter) und welche harmonisierten Anforderungen gelten (Art.
+    59 п.3: "Перечень подкарантинной продукции... утверждаются Комиссией."); die
+    eigentliche Zertifikatsausstellung bleibt nationale Zustaendigkeit.
+
+- id: qaztrade-order314-kostenerstattung-detail-rus
+  name: "QazTrade-Kostenerstattung: Rechtsgrundlage und Saetze"
+  name_original: "Приказ и.о. Министра торговли и интеграции РК от 1 августа 2022 года № 314-НҚ - Правила возмещения части затрат субъектов промышленно-инновационной деятельности"
+  herausgeber: "QazTrade / Ministerium fuer Handel und Integration der Republik Kasachstan"
+  url: "https://qaztrade.org.kz/rus/vozmeshhenie-chasti-zatrat-na-prodvizhen/"
+  perspektiven: [P13]
+  autoritaetsstufe: 3
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Praezisiert den bereits erfassten QazTrade-Fund: Rechtsgrundlage ist Anordnung Nr.
+    314-НҚ vom 1.8.2022. Erstattet werden u.a. Transportkosten fuer Exportware,
+    Kosten fuer Exportfoerderung (Messeteilnahme, Auslandsniederlassungen/-flaechen,
+    Werbung), auslaendische Zertifizierung/Akkreditierung, auslaendische
+    Markenregistrierung. **Erstattungssatz 30-80 %** je nach Kostenart/
+    Verarbeitungsgrad/Unternehmensgroesse, mit jaehrlichen Obergrenzen gekoppelt an
+    Steuerzahlungen. **Wichtige Einschraenkung fuer einen Beeren-Wiederverkaeufer:**
+    Der Verordnungstitel zielt auf "субъекты промышленно-инновационной деятельности"
+    und "отечественные обработанные товары" (VERARBEITETE inlaendische Waren) - ein
+    reiner Einkauf-Weiterverkauf ohne Verarbeitung ist nicht eindeutig erfasst.
+    Historische Praxis zeigt aber reale Agrarsektor-Teilnahme (QazTrade-eigene Zahl
+    2022: "Агропромышленный сектор - 229 одобренных заявок на 3,7 млрд тенге").
+  beschaffung: "Antrag ueber export.gov.kz/export/support."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Praezise Rechtsgrundlage mit Verordnungsnummer und Prozentsaetzen; die Eignungsfrage fuer reinen Wiederverkauf ist eine wichtige Nuance fuer P12/P13-Grenzfaelle."
+  gueltig_ab: "2022-08-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Empfehlung der Parallelrecherche: vor Verlass auf dieses Programm klaeren, ob die konkrete Exporttaetigkeit (Rohware vs. verarbeitete Ware) als foerderfaehig gilt."
+
+- id: kodeksy-kz-nk-518-530-eaeu-import-nds-rus
+  name: "NK RK Art. 518, 530: Bemessungsgrundlage und Frist der EAWU-Einfuhr-USt"
+  name_original: "Статья 518. Определение размера облагаемого импорта; Статья 530 (Frist)"
+  herausgeber: "kodeksy-kz.com (Spiegel des Steuerkodex 214-VIII)"
+  url: "https://kodeksy-kz.com/ka/nalogovyj_kodeks/530.htm"
+  perspektiven: [P14]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Eigenstaendig identifizierte Artikelkette fuer die EAWU-Einfuhr-USt (Formular
+    328.00), analog zur Exportkette (517/520/521/531): **Art. 517** legt die
+    Bemessungsgrundlage beim EXPORT fest (Wert der verkauften Ware, inkl.
+    Leasing-/Warengeschaeft-Sonderfaelle), **Art. 518** ("Определение размера
+    облагаемого импорта") symmetrisch beim IMPORT, mit ausdruecklichem Bezug in
+    п.6-7 auf die Kontrolle der USt-Pflichten bei Einfuhr aus EAWU-Mitgliedstaaten
+    ("налоговые органы при осуществлении контроля за исполнением налоговых
+    обязательств по налогу на добавленную стоимость при импорте товаров на
+    территорию Республики Казахстан с территории государств – членов ЕАЭС"), Zahlung
+    "в срок, предусмотренный статьей 530". **Art. 530 selbst** setzt die Frist: **"не
+    позднее 20 числа месяца, следующего за налоговым периодом"** - fuer Einreichung
+    der Einfuhrerklaerung samt Nachweisdokumenten (Bankbestaetigung, Frachtpapiere,
+    Rechnung, Vertrag) UND fuer die USt-Zahlung selbst, am selben Stichtag.
+    Sonderregeln fuer Leasingvertraege: Fristen orientieren sich an den vertraglichen
+    Leasingzahlungsterminen.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: "Praezise Primaernorm-Kette mit konkretem Datum (20. des Folgemonats), bestaetigt unabhaengig die Praxisangabe aus 1cbit-kz-import-export-uchet-2026-rus mit Artikelnummer."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Der Satz selbst (16 %) ergibt sich aus dem allgemeinen Art. 503 п.1, nicht aus
+    einer eigenen Importvorschrift. Formular "328.00" selbst wird nicht im Kodex,
+    sondern durch Ministerialverordnung benannt (laut mybuh.kz: Приказ Министра
+    финансов РК № 628 vom 28.10.2025, "О некоторых вопросах, связанных с налоговой
+    отчетностью «Заявление о ввозе товаров и уплате косвенных налогов» (форма
+    328.00)", adilet-Referenz laut Sekundaerquelle V2500037237 - nicht direkt
+    verifiziert, OFFEN). Zachet-Bedingungen (Vorsteuerabzug der gezahlten
+    Einfuhr-USt) nicht in dieser Ergaenzung verifiziert - vermutlich ueber die
+    allgemeine Zachet-Norm Art. 480 (siehe adilet-nk-214-viii-rus), aber nicht
+    eigens fuer den EAWU-Importfall bestaetigt - OFFEN, an Parallelrecherche P14
+    uebergeben, falls noch nicht beantwortet.
+
+- id: kodeksy-kz-nk-134-import-nds-stundung-rus
+  name: "NK RK Art. 134: Stundung der Einfuhr-USt fuer Drittlandimporte"
+  name_original: "Статья 134. Изменение срока уплаты налога на добавленную стоимость по импортируемым товарам, за исключением товаров, импортируемых с территории государств – членов ЕАЭС"
+  herausgeber: "kodeksy-kz.com (Spiegel des Steuerkodex 214-VIII)"
+  url: "https://kodeksy-kz.com/ka/nalogovyj_kodeks/134.htm"
+  perspektiven: [P14]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Bestaetigt strukturell die Zweiteilung des kasachischen Einfuhr-USt-Systems:
+    Diese Stundungsvorschrift gilt AUSDRUECKLICH NUR fuer Importe aus Drittlaendern
+    (Nicht-EAWU) - der Titel selbst schliesst EAWU-Importe aus, weil diese ueber das
+    separate Selbstveranlagungssystem (Art. 518/530, Formular 328.00) laufen statt
+    ueber Grenzzoll-Erhebung. Erlaubt eine Verschiebung des USt-Faelligkeitszeitpunkts
+    bei importierten Waren, wenn dafuer **keine inlaendische Produktion existiert oder
+    unzureichendes inlaendisches Angebot besteht** - potenziell relevant fuer
+    importierte Landtechnik/Spezialausruestung ohne kasachisches Pendant. Die genaue
+    Stundungsdauer wird im Artikel selbst NICHT fixiert, sondern an die fuer
+    staatliche Planung zustaendige Behoerde delegiert (Verweis auf Art. 3).
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Bestaetigt die strukturelle Zweiteilung EAWU- vs. Drittlandimport und eine moegliche Stundungsoption fuer nicht-inlaendisch verfuegbare Waren (z.B. Spezial-Landtechnik) - Details (Dauer, Verfahren, Warenliste) OFFEN."
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    OFFEN: die konkrete Stundungsdauer, das Antragsverfahren und ob/welche
+    Warenliste ("keine inlaendische Produktion") landwirtschaftliche Geraete
+    oder Betriebsmittel umfasst - an Parallelrecherche P14 uebergeben. Ebenso OFFEN:
+    der allgemeine Grenz-Erhebungsmechanismus fuer Drittland-Einfuhr-USt und Zoll
+    selbst (Regelfall ohne Stundung) wurde in dieser Ergaenzung nicht separat
+    verifiziert.
+
+# ---------------------------------------------------------------------------
+# P14 Nachtrag: Ergebnisse des Hintergrundagenten (vollstaendiger Bericht,
+# 116 Werkzeugaufrufe)
+# ---------------------------------------------------------------------------
+
+- id: tkeaes-ru-zollwert-berechnung-stundung-rus
+  name: "ТК ЕАЭС Art. 37-60: Zollwert, Berechnung, Faelligkeit, Stundung (inkl. Agrar-Sonderregel)"
+  name_original: "Таможенный кодекс ЕАЭС, ст. 37-45 (Zollwert), 52 (Berechnung), 54-55 (Entstehen/Erfuellung der Pflicht), 57-60 (Fristen, Stundung)"
+  herausgeber: "Eurasische Wirtschaftskommission (Vertragstext); Spiegel tkeaes.ru"
+  url: "https://tkeaes.ru/razdel-2/glava-8/st-59-tk-eaes"
+  perspektiven: [P14, P15]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Ergaenzt eaeunion-tk-eaes-dogovor-2017-rus um die konkrete Artikelkette fuer den
+    Drittlandimport: Art. 37-45 (Zollwertermittlung, Methode 1 = Transaktionswert
+    nach Art. 39, subsidiaer Methoden 2-6 nach Art. 41-45), **Art. 52**
+    ("Таможенные пошлины, налоги исчисляются плательщиком... а в случаях,
+    предусмотренных настоящей статьей, - таможенным органом"), Art. 54 (Entstehen/
+    Erloeschen der Zahlungspflicht), Art. 55 (Erfuellung), Art. 57 (Zahlungsfristen).
+    **Zentraler Fund fuer P14 (Art. 59 п.2 подп.4):** Zinslose Stundung/Ratenzahlung
+    des EINFUHRZOLLS (ausdruecklich NICHT der Steuern - Wortlaut "ввозных таможенных
+    пошлин" ohne "и налогов") fuer bis zu 6 Monate, wenn eine der 5 Gruende in п.2
+    vorliegt, darunter **Unterpunkt 4**: "ввоз на таможенную территорию Союза
+    организациями государств-членов, осуществляющими сельскохозяйственную
+    деятельность, либо поставка для указанных организаций посадочного или посевного
+    материала, средств защиты растений, сельскохозяйственной техники, объектов
+    племенного животноводства" - also ausdruecklich Pflanz-/Saatgut,
+    Pflanzenschutzmittel, Landtechnik UND Zuchttierobjekte. Art. 58 (Form:
+    Stundung/Ratenzahlung), Art. 60 (Zinsberechnung bei der verzinslichen Variante
+    nach п.1, max. 1 Monat).
+  beschaffung: "Frei zugaenglich, gut strukturierte Artikel-Einzelseiten."
+  maschinell_abrufbar: true
+  rag_eignung: hoch
+  rag_hinweis: >
+    DIE zentrale Fundstelle fuer die P14-Frage nach Erleichterungen bei
+    Agrareinfuhren - direkter Wortlaut, unmissverstaendlich. Wichtige Praezisierung:
+    Diese Stundung betrifft NUR den Zoll, nicht die Einfuhr-USt (dafuer siehe die
+    separate Zachet-Methode, Art. 508/509 NK RK).
+  gueltig_ab: "2018-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Unionsrecht, unveraendert durch die kasachische Steuerreform 2026. Gegengeprueft
+    gegen consultant.ru (cons_doc_LAW_215315) zur Bestaetigung der Dokumentidentitaet.
+    Keine einzelne kanonische eec.eaeunion.org-Volltext-URL fuer den ТК ЕАЭС selbst
+    gefunden (nur die Vertragskarte, siehe eaeunion-tk-eaes-dogovor-2017-rus) - OFFEN.
+
+- id: nk-rk-art508-509-zachet-methode-agrartechnik-rus
+  name: "NK RK Art. 508/509 und Warenliste: Einfuhr-USt per Verrechnungsmethode fuer Landtechnik u.a."
+  name_original: "Статья 508/509 НК РК; Перечень импортируемых товаров, по которым НДС уплачивается методом зачета (Приказ № 67 vom 21.02.2018, adilet V1800016509)"
+  herausgeber: "Republik Kasachstan / NZPI Adilet; Ministerium fuer Nationale Wirtschaft (Warenliste)"
+  url: "https://adilet.zan.kz/rus/docs/V1800016509"
+  perspektiven: [P14]
+  autoritaetsstufe: 2
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    ZWEITER, von der Zollstundung (siehe tkeaes-ru-zollwert-berechnung-stundung-rus)
+    UNABHAENGIGER Erleichterungsmechanismus, diesmal fuer die EINFUHR-USt: Fuer eine
+    per Regierungs-/Ministerialliste festgelegte Warengruppe wird die USt nicht bar
+    gezahlt, sondern per "методом зачета" (Verrechnungsmethode: gleichzeitige
+    Belastung und Gutschrift, netto keine Zahlung) verbucht - bedingt durch
+    Verbleib/Nutzung im Land. Warenliste laut Sekundaerquellen (bcc.kz, 1cbit.kz,
+    actgr.kz, uebereinstimmend): Ausruestung, **сельскохозяйственная техника**
+    (Landtechnik), Lkw-Fahrgestelle, Hubschrauber/Flugzeuge, Seeschiffe,
+    Eisenbahnlokomotiven/-waggons, Ersatzteile dafuer, **Zuchttiere und
+    Besamungsausruestung**, lebendes Rindvieh - importiert unter dem Zollverfahren
+    "Ueberfuehrung in den freien Verkehr". Bedingungen (Sekundaerquellen mit
+    Abweichungen, nicht primaerquellen-verifiziert): Verbleib in Kasachstan,
+    Weiterverkaufsverbot, Mindestnutzungsdauer ca. 5 Jahre (18 Monate bei
+    Gefluegelzucht-Ausruestung), Leasing-Ausnahme bei Laufzeit &gt;3 Jahre und ≥90%
+    Kostendeckung. Verstoss → volle rueckwirkende USt-Pflicht plus Verzugszinsen.
+  beschaffung: "Frei zugaenglich."
+  maschinell_abrufbar: false
+  rag_eignung: hoch
+  rag_hinweis: >
+    Zusammen mit der Zollstundung (Art. 59 ТК ЕАЭС) DIE zentrale Antwort auf die
+    P14-Kernfrage zu Agrartechnik-Import: Zoll gestundet (bis 6 Monate, zinslos),
+    USt gar nicht bar faellig (Verrechnungsmethode). Adilet nicht direkt lesbar
+    (JS-Seite), Warenliste nur ueber Sekundaerquellen erschlossen.
+  gueltig_ab: "2018-02-21"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    WICHTIG OFFEN: Ob diese 2018 erlassene Warenliste unter der umnummerierten
+    Kodex-Fassung 214-VIII (2026, Art. 508/509) unveraendert fortgilt oder neu
+    erlassen wurde, konnte nicht bestaetigt werden. Vor produktivem Einsatz direkt
+    bei adilet gegenpruefen. Getrennt von Art. 508 (Drittlandimport) und Art. 509
+    (EAWU-Importe inkl. Leasinganteil) zu halten - beide referenzieren vermutlich
+    dieselbe oder eine sehr aehnliche Warenliste.
+
+- id: adilet-z020000331-pflanzenschutzgesetz-rus
+  name: "Gesetz 'Ueber den Pflanzenschutz' - Pestizid-Registrierungspflicht"
+  name_original: "Закон Республики Казахстан «О защите растений» от 3 июля 2002 года № 331-II, in der Fassung des Gesetzes Nr. 342-VIII vom 08.07.2026"
+  herausgeber: "Republik Kasachstan / NZPI Adilet"
+  url: "https://adilet.zan.kz/rus/docs/Z020000331_"
+  perspektiven: [P14]
+  autoritaetsstufe: 1
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Grundgesetz zur Regulierung von Pestiziden (Art. 1 definiert Pestizide:
+    "химические и (или) биологические препараты (инсектициды, родентициды,
+    фунгициды, гербициды...)"). **Art. 14-6**: staatliche Registrierung zwingend
+    ueber "регистрационные (мелкоделяночные и производственные) испытания"
+    (Registrierungs-Feld-/Produktionsversuche); **Einfuhr nicht registrierter
+    Pestizide ist verboten**, ausser Testmuster mit Sondergenehmigung. **Art. 6
+    подп. 5-2)**: Einfuhrlizenzierung liegt bei der bevollmaechtigten Behoerde.
+    Zuletzt geaendert durch Gesetz Nr. 342-VIII vom 08.07.2026 (60 Tage nach
+    amtlicher Veroeffentlichung in Kraft) - also ein sehr aktueller Rechtsstand.
+    Duenger/Agrochemikalien sind vom Anwendungsbereich NICHT erfasst (Art. 1 nennt
+    nur Pestizide).
+  beschaffung: "Frei zugaenglich; maschinenlesbarer Spiegel bei zakon.uchet.kz/rus/docs/Z020000331_."
+  maschinell_abrufbar: false
+  rag_eignung: hoch
+  rag_hinweis: "Primaerquelle, aktueller Rechtsstand (Novelle Juli 2026), direkt einschlaegig fuer Pflanzenschutzmitteleinfuhr."
+  gueltig_ab: "2026-09-06"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Adilet selbst nicht direkt gelesen (JS-Seite), Inhalt ueber Spiegel
+    zakon.uchet.kz erschlossen. OFFEN: Volltext der Durchfuehrungsregeln
+    (V1500011687 "Правила проведения регистрационных испытаний..."), der
+    Befristungs-Novelle Z1700000073 (befristete Registrierung bis 2 Jahre) und des
+    technischen Reglements V2300032940 - nur Titel/Thema bestaetigt, nicht Inhalt.
+    Duenger-Registrierungsregime gesondert recherchiert (siehe notiz naechster
+    Eintrag) - genuiner Negativbefund, aber wegen Ratenbegrenzung der Suchwerkzeuge
+    nicht abschliessend.
+
+- id: adilet-z030000385-saatgutgesetz-rus
+  name: "Gesetz 'Ueber das Saatgutwesen' - grenzueberschreitender Saatgutverkehr"
+  name_original: "Закон Республики Казахстан «О семеноводстве» от 8 февраля 2003 года № 385-II"
+  herausgeber: "Republik Kasachstan / NZPI Adilet"
+  url: "https://adilet.zan.kz/rus/docs/Z030000385_"
+  perspektiven: [P14]
+  autoritaetsstufe: 1
+  sprachen: [ru, kk]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    **Art. 19**: regelt grenzueberschreitenden Saatgutverkehr - Ein-/Ausfuhr nach
+    allgemeinem Recht; Saatgutpartien muessen von Qualitaetsnachweisen begleitet sein
+    (inkl. Sortenschutz-/Patentrechtsnachweis wo einschlaegig); importiertes Saatgut
+    unterliegt staatlicher phytosanitaerer Kontrolle UND Saatgutexpertise; Partien
+    muessen technische Regelwerks-/Normanforderungen erfuellen. **Art. 6 und 21**:
+    Staatliches Register der Zuechtungsleistungen (nur registrierte Sorten
+    foerderfaehig). **Art. 10**: Attestierungs-/Zertifizierungspflicht fuer
+    Erzeuger/Wiederverkaeufer von Original-/Elitesaatgut.
+  beschaffung: "Frei zugaenglich; maschinenlesbarer Spiegel bei zakon.uchet.kz/rus/docs/Z030000385_."
+  maschinell_abrufbar: false
+  rag_eignung: hoch
+  rag_hinweis: "Primaerquelle, direkt einschlaegig fuer Pflanz-/Saatgutimport, mit konkretem Artikel fuer den Grenzverkehr."
+  gueltig_ab: "2003-02-08"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Laut Spiegel-Metadaten bis 2025 novelliert, aktueller Stand nicht ueber adilet direkt verifiziert (JS-Seite)."
