@@ -18,6 +18,7 @@ import { hasPermission } from "@/lib/rbac";
 import { sendeChatAnfrage } from "@/lib/ai/anbieter-client";
 import { sendeAgentAnfrage } from "@/lib/ai/agent";
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
+import { transkribiereAudio, waermeTranskriptionVor } from "@/lib/ai/transkription-client";
 import type { ChatNachricht } from "@/lib/ai/anfrage";
 import type { Json } from "@/lib/database.types";
 import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
@@ -255,4 +256,64 @@ export async function kiEskalationAnfordern(
   await protokolliere(profil, "ki_chat.eskalation_angefordert");
   aktualisiere(formData);
   return ok("ok.kiEskalationAngefordert");
+}
+
+// --- Sprachnachricht diktieren (Anforderung 5.4, Ergaenzung) -----------------
+// Der Browser nimmt auf, diese Aktion schickt die Datei an Caesar
+// (Transkriptionsdienst im Buero-LAN) und gibt den Text zurueck. Der Browser
+// spricht bewusst NICHT selbst mit Caesar - dieselbe Begruendung wie bei
+// anbieter-client.ts: die Adresse des Dienstes und jeder kuenftige Schluessel
+// bleiben auf dem Server, und das RBAC-Gate greift vor dem Aufruf.
+//
+// Der Text landet im Eingabefeld, nicht im Chat: ein verhoertes Diktat, das
+// ungeprueft an die Kundschaft ginge, waere schlimmer als ein Tippfehler.
+// Abgeschickt wird weiterhin von Hand, ueber denselben Weg wie eine getippte
+// Frage - deshalb braucht dieser Schritt keine eigene Eskalations- oder
+// Sicherheitslogik.
+
+const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
+
+export async function transkribiereSprachnachricht(
+  _status: AktionsStatus,
+  formData: FormData,
+): Promise<AktionsStatus> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("ki_assistent", "create");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+
+  const audio = formData.get("audio");
+  if (!(audio instanceof Blob) || audio.size === 0) return fehler("fehler.eingabe");
+  if (audio.size > MAX_AUDIO_BYTES) return fehler("fehler.dateiGross");
+
+  const name = audio instanceof File && audio.name ? audio.name : "aufnahme.webm";
+  const antwort = await transkribiereAudio(audio, name);
+
+  if (!antwort.ok) {
+    console.error("[damicon] Transkription fehlgeschlagen:", antwort.grund);
+    return fehler(
+      antwort.grund === "zeitueberschreitung" ? "fehler.transkriptionDauer" : "fehler.transkription",
+    );
+  }
+
+  // Der Text selbst wird nicht protokolliert - er steht gleich als Frage im
+  // Verlauf, sobald die Nutzerin ihn abschickt. Hier nur, dass diktiert wurde.
+  await protokolliere(profil, "ki_chat.diktat", { zeichen: antwort.text.length });
+
+  return ok("ok.transkription", antwort.text);
+}
+
+/** Stoesst das Laden des Spracherkennungsmodells an, damit die erste echte
+ *  Aufnahme nicht in die kalte Ladezeit laeuft (gemessen 221 s kalt gegen
+ *  7,2 s warm). Ergebnis bewusst ohne Rueckmeldung an die Oberflaeche: ein
+ *  misslungener Aufwaermversuch darf das Modul nicht stoeren. */
+export async function waermeSpracherkennungVor(): Promise<void> {
+  try {
+    await requirePermission("ki_assistent", "create");
+  } catch {
+    return;
+  }
+  await waermeTranskriptionVor().catch(() => false);
 }

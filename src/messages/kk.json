@@ -608,6 +608,14 @@
         "knopf": "Провайдер қосу"
       }
     },
+    "diktat": {
+      "starten": "Диктовка",
+      "stoppen": "Жазуды тоқтату",
+      "laeuft": "Танылуда …",
+      "leer": "Ештеңе жазылмады.",
+      "fehlgeschlagen": "Сөйлеуді тану қолжетімсіз.",
+      "keinZugriff": "Микрофонға рұқсат жоқ."
+    },
     "laeuft": {
       "mwstStatusAbrufen": "ҚҚС мәртебесін тексеріп жатырмын …",
       "esutdOffeneFristenAbrufen": "ЕСУТД мерзімдерін тексеріп жатырмын …",
@@ -1335,6 +1343,7 @@
       "kontingentErstellt": "Квота құрылды.",
       "kontingentAktualisiert": "Мөлшер жаңартылды.",
       "stammdatenGespeichert": "Анықтамалық деректер сақталды.",
+      "transkription": "Диктовка қабылданды.",
       "nachbarbetrieb": "“{wert}” көрші шаруашылығы қосылды.",
       "dokumentGeaendert": "“{wert}” құжаты жаңартылды."
     },
@@ -1371,6 +1380,9 @@
       "stammdatenFormat": "Нөмір дәл он екі цифрдан тұрады.",
       "stammdatenPruefziffer": "Бақылау саны сәйкес келмейді. Көбінесе нөмірде екі цифр орын ауыстырған.",
       "selbstkontrolle": "Жәшікті тіркеген адам оны өзі тексермейді. Бұл жәшікті басқа адам тексеруі керек.",
+      "transkription": "Сөйлеуді тану қолжетімсіз.",
+      "transkriptionDauer": "Сөйлеуді тану тым ұзаққа созылды.",
+      "dateiGross": "Жазба тым үлкен.",
       "nachbarbetriebVorhanden": "Осындай атаумен көрші шаруашылық бұрыннан бар."
     },
     "einladungen": {
