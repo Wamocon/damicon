@@ -22,6 +22,8 @@ import { entschluessleApiKey, verschluessleApiKey } from "../../src/lib/ai/schlu
 import {
   baueAnthropicAnfrage,
   baueOpenAiKompatibelAnfrage,
+  maxAntwortTokens,
+  zeitlimitMs,
   parseAnthropicAntwort,
   parseOpenAiKompatibelAntwort,
 } from "../../src/lib/ai/anfrage.ts";
@@ -151,6 +153,60 @@ for (const [name, kaputteAntwort] of [
   const antwort = parseAnthropicAntwort({ content: [{ type: "text", text: "Antworttext" }] });
   pruefe("Anthropic: Antworttext wird korrekt ausgelesen", antwort === "Antworttext");
   pruefe("Anthropic: unerwartete Antwortform liefert null", parseAnthropicAntwort({ content: [] }) === null);
+}
+
+
+// --- 2b. Antwortbudget (max_tokens) -----------------------------------------
+// Frueher fest 500 Token. Ein denkendes Modell verbraucht die fuer sein
+// reasoning-Feld, content kommt leer zurueck und die App zeigt die
+// Ausweichantwort - siehe Kommentar in anfrage.ts.
+{
+  delete process.env.KI_MAX_TOKENS;
+  pruefe("Antwortbudget: Standard ist 2000 Token, nicht mehr 500", maxAntwortTokens() === 2000);
+
+  const koerper = JSON.parse(
+    baueOpenAiKompatibelAnfrage("https://api.beispiel.kz/v1", "m", "k", [
+      { rolle: "nutzer", inhalt: "Hallo" },
+    ]).body,
+  );
+  pruefe("Antwortbudget: landet im OpenAI-kompatiblen Koerper", koerper.max_tokens === 2000);
+
+  const anthropicKoerper = JSON.parse(
+    baueAnthropicAnfrage("https://api.anthropic.com", "m", "k", [
+      { rolle: "nutzer", inhalt: "Hallo" },
+    ]).body,
+  );
+  pruefe("Antwortbudget: gilt auch fuer Anthropic", anthropicKoerper.max_tokens === 2000);
+
+  process.env.KI_MAX_TOKENS = "4096";
+  pruefe("Antwortbudget: KI_MAX_TOKENS hebt den Wert an", maxAntwortTokens() === 4096);
+
+  process.env.KI_MAX_TOKENS = "7";
+  pruefe("Antwortbudget: unplausibel kleiner Wert faellt auf den Standard zurueck", maxAntwortTokens() === 2000);
+
+  process.env.KI_MAX_TOKENS = "keine-zahl";
+  pruefe("Antwortbudget: unlesbarer Wert faellt auf den Standard zurueck", maxAntwortTokens() === 2000);
+  delete process.env.KI_MAX_TOKENS;
+}
+
+
+// --- 2c. Zeitlimit -----------------------------------------------------------
+// Frueher fest 20 Sekunden. Ein selbst gehostetes Modell laedt beim ersten
+// Aufruf erst seine Gewichte - gemessen 24,0 s kalt gegen 10,2 s warm, siehe
+// Kommentar in anbieter-client.ts.
+{
+  delete process.env.KI_ZEITLIMIT_MS;
+  pruefe("Zeitlimit: Standard ist 60 Sekunden, nicht mehr 20", zeitlimitMs() === 60_000);
+
+  process.env.KI_ZEITLIMIT_MS = "15000";
+  pruefe("Zeitlimit: KI_ZEITLIMIT_MS senkt den Wert fuer schnelle Anbieter", zeitlimitMs() === 15_000);
+
+  process.env.KI_ZEITLIMIT_MS = "50";
+  pruefe("Zeitlimit: unplausibel kurzer Wert faellt auf den Standard zurueck", zeitlimitMs() === 60_000);
+
+  process.env.KI_ZEITLIMIT_MS = "keine-zahl";
+  pruefe("Zeitlimit: unlesbarer Wert faellt auf den Standard zurueck", zeitlimitMs() === 60_000);
+  delete process.env.KI_ZEITLIMIT_MS;
 }
 
 // --- 3. domain/ki-assistent.ts ------------------------------------------------

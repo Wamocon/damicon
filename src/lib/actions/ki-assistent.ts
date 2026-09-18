@@ -200,13 +200,17 @@ export async function kiNachrichtSenden(
     antwortText = t("antwort");
   }
 
-  const { error: assistentFehler } = await supabase.from("ki_chat_nachrichten").insert({
-    profil_id: profil.id,
-    rolle: "assistent",
-    inhalt: antwortText,
-    anbieter_name: anbieterName,
-    fallback,
-    werkzeugaufrufe: werkzeugaufrufe.length > 0 ? werkzeugaufrufe : null,
+  // Antwort und Eskalation schreibt die Datenbank, nicht dieser Aufruf: die
+  // Insert-Policy laesst direkt nur die eigene Frage durch, sonst koennte
+  // sich jede angemeldete Person eine Assistentenantwort in den eigenen
+  // Verlauf schreiben (Migration 20261030000000). Die Werkzeugaufrufe des
+  // Agenten (Spalte aus 20261026000000) laufen deshalb ebenfalls ueber die
+  // Funktion statt ueber ein direktes Insert.
+  const { error: assistentFehler } = await supabase.rpc("ki_chat_antwort_schreiben", {
+    p_inhalt: antwortText,
+    p_anbieter_name: anbieterName ?? "",
+    p_fallback: fallback,
+    p_werkzeugaufrufe: werkzeugaufrufe.length > 0 ? werkzeugaufrufe : undefined,
   });
   if (assistentFehler) return dbFehler(assistentFehler);
 
@@ -218,11 +222,10 @@ export async function kiNachrichtSenden(
     { rolle: "assistent" as const, fallback },
   ];
   if (fallback && sollteAutomatischEskalieren(aktuellerVerlauf)) {
-    await supabase.from("ki_chat_nachrichten").insert({
-      profil_id: profil.id,
-      rolle: "system",
-      inhalt: await getTranslations("kiAssistentAnsicht").then((tt) => tt("eskalationAutomatisch")),
-      eskaliert: true,
+    await supabase.rpc("ki_chat_eskalation_schreiben", {
+      p_inhalt: await getTranslations("kiAssistentAnsicht").then((tt) =>
+        tt("eskalationAutomatisch"),
+      ),
     });
   }
 
@@ -244,11 +247,8 @@ export async function kiEskalationAnfordern(
 
   const t = await getTranslations("kiAssistentAnsicht");
   const supabase = await createClient();
-  const { error } = await supabase.from("ki_chat_nachrichten").insert({
-    profil_id: profil.id,
-    rolle: "system",
-    inhalt: t("eskalationAngefordert"),
-    eskaliert: true,
+  const { error } = await supabase.rpc("ki_chat_eskalation_schreiben", {
+    p_inhalt: t("eskalationAngefordert"),
   });
   if (error) return dbFehler(error);
 
