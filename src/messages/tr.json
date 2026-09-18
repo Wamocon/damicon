@@ -716,6 +716,14 @@
         "knopf": "Sağlayıcı ekle"
       }
     },
+    "diktat": {
+      "starten": "Dikte et",
+      "stoppen": "Kaydı durdur",
+      "laeuft": "Çözümleniyor …",
+      "leer": "Kayıt yok.",
+      "fehlgeschlagen": "Konuşma tanıma kullanılamıyor.",
+      "keinZugriff": "Mikrofon erişimi yok."
+    },
     "laeuft": {
       "mwstStatusAbrufen": "KDV durumu kontrol ediliyor …",
       "esutdOffeneFristenAbrufen": "ESUTD süreleri kontrol ediliyor …",
@@ -1446,6 +1454,7 @@
       "kontingentAktualisiert": "Miktar güncellendi.",
       "wetterAktualisiert": "Hava durumu verileri güncellendi.",
       "stammdatenGespeichert": "Ana veriler kaydedildi.",
+      "transkription": "Dikte alındı.",
       "nachbarbetrieb": "Komşu işletme “{wert}” eklendi.",
       "dokumentGeaendert": "Belge “{wert}” güncellendi."
     },
@@ -1482,6 +1491,9 @@
       "stammdatenFormat": "Numara tam olarak on iki haneden oluşur.",
       "stammdatenPruefziffer": "Kontrol hanesi tutmuyor. Çoğunlukla numarada iki rakam yer değiştirmiştir.",
       "selbstkontrolle": "Kasayı kaydeden kişi kendisi kontrol edemez. Bu kasayı başka biri kontrol etmelidir.",
+      "transkription": "Konuşma tanıma kullanılamıyor.",
+      "transkriptionDauer": "Konuşma tanıma çok uzun sürdü.",
+      "dateiGross": "Kayıt çok büyük.",
       "nachbarbetriebVorhanden": "Bu adla bir komşu işletme zaten mevcut."
     },
     "einladungen": {

@@ -836,6 +836,7 @@
       "kontingentErstellt": "Quota created.",
       "kontingentAktualisiert": "Quantity updated.",
       "stammdatenGespeichert": "Master data saved.",
+      "transkription": "Dictation accepted.",
       "nachbarbetrieb": "Neighbouring farm “{wert}” added.",
       "dokumentGeaendert": "Document “{wert}” updated."
     },
@@ -872,6 +873,9 @@
       "stammdatenFormat": "The number consists of exactly twelve digits.",
       "stammdatenPruefziffer": "The check digit does not match. Usually two digits have been transposed.",
       "selbstkontrolle": "Whoever recorded a crate does not inspect it themselves. Someone else needs to check this crate.",
+      "transkription": "Speech recognition unavailable.",
+      "transkriptionDauer": "Speech recognition took too long.",
+      "dateiGross": "The recording is too large.",
       "nachbarbetriebVorhanden": "A neighbouring farm with this name already exists."
     },
     "einladungen": {
@@ -1703,6 +1707,14 @@
         "apiKey": "API key",
         "knopf": "Add provider"
       }
+    },
+    "diktat": {
+      "starten": "Dictate",
+      "stoppen": "Stop recording",
+      "laeuft": "Transcribing …",
+      "leer": "Nothing recorded.",
+      "fehlgeschlagen": "Speech recognition unavailable.",
+      "keinZugriff": "No microphone access."
     },
     "laeuft": {
       "mwstStatusAbrufen": "Checking VAT status …",
