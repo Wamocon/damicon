@@ -23,7 +23,11 @@ Diese Sammlung traegt Quellen zusammen und haelt deren Kern fest. **Sie ist kein
 | `quellen/` | Das Register selbst, eine Datei je Rechercheperspektive |
 | `kernwissen/` | Der inhaltliche Befund je Thema, mit woertlichen Zitaten |
 | `preise-rohbefund.md` | Was welche Quelle kostet |
-| `buecherliste.md` | Kaufliste fuer gedruckte und elektronische Fachliteratur |
+| `buecherliste.md` | Ausfuehrliche Einordnung je Titel |
+| `buecher-kaufliste.md` | Bestellhilfe mit Direktlinks, nach Kaufempfehlung sortiert |
+| `erfassungsplan.md` | Wie aus dem Register ein Korpus wird, mit Arbeitsteilung |
+| `korpus/` | Der geerntete Text selbst, je Abschnitt eine Datei mit Frontmatter |
+| `korpus/korpus-index.yaml` | Auszaehlung des Korpus nach Stufe, Sprache und Bereich |
 
 ## Zwei Regeln, die nicht verhandelbar sind
 

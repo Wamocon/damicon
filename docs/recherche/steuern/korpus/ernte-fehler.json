@@ -1,0 +1,52 @@
+[
+  {
+    "id": "kgd-esf-sdk-zip-2025",
+    "url": "https://kgd.gov.kz/sites/default/files/ftpdata/ESF/esf-sdk-2025.zip",
+    "grund": "kein Text (application/zip, 180.7 MB), gesondert behandeln"
+  },
+  {
+    "id": "buh-mcfr-khfh-steuern-2026-rus",
+    "url": "https://buh.mcfr.kz/article/783-kakie-nalogi-platit-krestyanskoe-hozyaystvo-v-rk-2026",
+    "grund": "fetch failed"
+  },
+  {
+    "id": "oecd-tax-policy-review-kasachstan-2020",
+    "url": "https://www.oecd.org/en/publications/oecd-tax-policy-reviews-kazakhstan-2020_872d016c-en.html",
+    "grund": "HTTP 403"
+  },
+  {
+    "id": "imf-artikel-iv-kasachstan-2025",
+    "url": "https://www.imf.org/en/publications/cr/issues/2026/01/26/republic-of-kazakhstan-2025-article-iv-consultation-press-release-staff-report-and-573452",
+    "grund": "HTTP 403"
+  },
+  {
+    "id": "adb-kasachstan-fiskalreform-2026",
+    "url": "https://www.adb.org/countries/kazakhstan/main",
+    "grund": "HTTP 403"
+  },
+  {
+    "id": "atameken-mwst-19000-unternehmer",
+    "url": "https://atameken.kz/en/news/34452-tys-predprinimatelej-popadut-pod-nds",
+    "grund": "nur 8 Zeichen"
+  },
+  {
+    "id": "kpmg-kasachstan-tax-newsflash",
+    "url": "https://kpmg.com/kz/en/home/insights/2026/03/nf-march-02.html",
+    "grund": "HTTP 404"
+  },
+  {
+    "id": "dentons-global-tax-guide-kasachstan",
+    "url": "https://www.dentons.com/en/services-and-solutions/global-tax-guide-to-doing-business-in/kazakhstan",
+    "grund": "HTTP 403"
+  },
+  {
+    "id": "mdpi-mergenbayeva-shadow-economy-kz-2026",
+    "url": "https://www.mdpi.com/2227-7099/14/4/135",
+    "grund": "nur 0 Zeichen"
+  },
+  {
+    "id": "mdpi-adambekova-fiscal-regional-kz-2026",
+    "url": "https://www.mdpi.com/2227-7099/14/8/334",
+    "grund": "nur 0 Zeichen"
+  }
+]

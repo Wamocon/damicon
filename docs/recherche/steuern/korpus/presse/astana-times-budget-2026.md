@@ -1,0 +1,207 @@
+---
+chunk_id: "astana-times-budget-2026"
+quelle_id: "astana-times-budget-2026"
+norm_id: null
+sprache: "en"
+autoritaetsstufe: 5
+rechtsstelle: null
+titel: "Astana Times: Budgetrahmen und Wachstumsprognose 2026"
+perspektiven: [P7]
+gueltig_ab: "2025-11-01"
+gueltig_bis: null
+ist_ueberholt: false
+ersetzt_durch: null
+abgerufen_am: "2026-09-19"
+url: "https://astanatimes.com/2025/11/kazakhstan-projects-5-4-gdp-growth-in-2026-as-government-unveils-budget-framework/"
+konfidenz: "unbestaetigt"
+---
+Kazakhstan Projects 5.4% GDP Growth in 2026 as Government Unveils Budget Framework - The Astana Times
+
+Saturday, 19 September, 2026
+
+Almaty 84 &deg;F / 29 &deg;C
+
+Astana 66 &deg;F / 19 &deg;C
+
+Sections
+All Stories
+
+Nation
+
+Astana
+
+Culture
+
+Sports
+
+People
+
+Kazakhstan Regions
+
+State of the Nation
+
+Election 2022
+
+Election 2023
+
+International
+
+Astana International Forum
+
+Kazakhstan’s Presidency in SCO
+
+5th World Nomad Games
+
+Business
+
+Central Asia
+
+Opinions
+
+All Stories
+
+Nation
+
+Astana
+
+Culture
+
+Sports
+
+People
+
+Kazakhstan Regions
+
+State of the Nation
+
+Election 2022
+
+Election 2023
+
+International
+
+Astana International Forum
+
+Kazakhstan’s Presidency in SCO
+
+5th World Nomad Games
+
+Business
+
+Central Asia
+
+Opinions
+
+Kazakhstan Projects 5.4% GDP Growth in 2026 as Government Unveils Budget Framework
+
+in Business , Editor’s Picks on 20 November 2025
+
+ALMATY — Kazakh government expects the national economy to expand by 5.4% in 2026, according to projections presented in the Senate, an upper chamber of Parliament, on Nov. 20, as Deputy Prime Minister – Minister of National Economy Serik Zhumangarin outlined key macroeconomic indicators.
+
+Photo credit: Prime Minister’s press service
+
+Speaking during the session, Zhumangarin emphasized that local budgets remain fully balanced, and the country will continue a stable growth trajectory over the next three years, reported the Prime Minister’s press service.
+
+Economic growth and GDP outlook
+
+Presenting the baseline scenario, Zhumangarin said real GDP growth is projected at 5.4% in 2026, with an average annual rate of 5.3% through 2028.
+
+“Nominal GDP will increase from 183.8 trillion tenge [US$386 billion] in 2026 to 229.8 trillion tenge [US$443.3 billion] in 2028,” he said.
+
+According to him, economic expansion will be driven by the real sector and services. Growth in the manufacturing industry is expected to accelerate gradually, rising from 6.2% in 2026 to 6.6% in 2028, supported by the implementation of major investment projects.
+
+The mining sector is projected to grow by an average of 2.8%, agriculture by 3.9%, construction by 11%, transport services by 10.1%, and trade by 6.7% during the same period.
+
+Trade forecasts and budget revenues
+
+Zhumangarin emphasized that external trade projections remain positive. Exports are expected to grow from $77.1 billion in 2026 to $83.7 billion by 2028, while imports will expand from $67.7 billion to $75.2 billion.
+
+Inflation is forecast to slow steadily, with estimates set at 9–11% in 2026, 5.5–7.5% in 2027, and 5–7% in 2028.
+
+“Budget revenues excluding transfers are forecast at 19.2 trillion tenge [US$35.6 billion] in 2026. In the planning period, revenues are expected to rise to 23.2 trillion tenge [US$43 billion] by 2028. Generally, the budget’s self-sufficiency ratio will rise from 63.7% in 2025 to 83.5% in 2028,” Zhumangarin said.
+
+National Fund transfers and inflation
+
+According to him, the budget expenditures will amount to 27.7 trillion tenge (US$51.3 billion) in 2026, increasing to 28.8 trillion tenge (US$53.3 billion) in 2027, and reaching 29.8 trillion tenge (US$55.2 billion) in 2028.
+
+“At these levels of revenues and expenditures, the budget ensures financial independence without the need to attract additional targeted transfers from the National Fund,” he said.
+
+Fiscal and non-oil deficits are set to decline from 2.5% and 4.9% of GDP in 2026 to 0.9% and 2.7% respectively by 2028.
+
+Government debt is projected to decrease from 21.4% of GDP in 2026 to 19.6% in 2028.
+
+Kazakhstan’s public debt level
+
+Prime Minister Olzhas Bektenov stressed that Kazakhstan’s public debt remains at a safe and internationally recognized low level. He highlighted that public debt currently stands at 23.6% of GDP, comparing this to levels exceeding 50%, 80% and even 100% of GDP in many developed economies.
+
+“Kazakhstan’s investment-grade rating, the only one in the region, reflects strong financial resilience,” he said, pointing out that the country recently placed Eurobonds at 4.4%, which he described as a clear signal of investor confidence.
+
+High-return infrastructure
+
+Bektenov emphasized that borrowing must be directed primarily toward commercially viable infrastructure projects capable of generating long-term returns. He cited toll road performance as an example.
+
+According to him, last year, toll revenues reached 48 billion tenge (US$88.9 million), with 10 billion tenge (US$18.5 million) generated by foreign vehicles. Over the January-October 2025 period, revenues reached 72 billion tenge (US$133.3 million), including 17 billion tenge (US$31.5 million) from international traffic.
+
+“Where a modern highway is built, economic activity transforms completely as dozens of fueling stations and services emerge, jobs are created, and taxes are generated,” Bektenov said.
+
+Targeting social spending
+
+Bektenov said that during the budget formulation process, baseline expenditures were reduced from 15% to 12%, though social spending continues to account for about 60% of the national budget.
+
+“Social support must reach those who genuinely cannot work due to objective circumstances. The state will not provide long-term support to those who are capable of self-sufficiency,” he said.
+
+Get The Astana Times stories sent directly to you! Sign up via the website or subscribe to our X , Facebook , Instagram , Telegram , YouTube and Tiktok !
+
+Most Recent Stories
+
+Kazakhstan Eyes Cross-Border QR Payments as India’s UPI Offers Blueprint
+
+News Digest: Rybakina’s US Open Triumph, Kazakhstan-South Korea Ties and Oil Export Strategy
+
+Italy, Central Asia Launch B5+Italy Platform to Expand Regional Business Ties
+
+Apple TV Officially Launches in Kazakhstan
+
+Expert: Astana’s Financial Center Rating Rises 18 Points on Structural Progress
+
+Where to Go and What to See in Astana and Almaty This Weekend
+
+Kazakhstan Initiates Trade Push With Canada as Global Supply Chains Shift
+
+Kazakhstan Reshapes Investment Model to Attract More Private Capital
+
+Turkic States Discuss Strengthening Cooperation in Digital Security
+
+‘Our Relationship With Kazakhstan Has Never Been Stronger,’ US Consul General Says
+
+View More »
+
+All Stories
+
+Business
+
+Central Asia
+
+Culture
+
+Editor’s Picks
+
+Nation
+
+Opinions
+
+Regional Eco Summit 2026
+
+Subscribe
+
+Please leave this field empty
+
+Please check your inbox or spam to ensure your subscription.
+
+&copy; 2010-2026 The Astana Times
+
+Privacy Policy
+
+About Us
+
+Contact Us: [email protected]
