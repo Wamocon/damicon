@@ -358,7 +358,9 @@
       "kpiExtendedDescription": "Part of the signed baseline, but outside the twelve core KPIs in the cockpit.",
       "kpiNoneForRole": "No company-wide KPIs are configured for your role here. Your own performance is in the payroll module."
     },
-    "loading": "Loading data"
+    "loading": "Loading data",
+    "askAi": "Ask AI",
+    "askAiHinweis": "Open or close the AI side panel"
   },
   "roles": {
     "switcherHint": "Switch demo role - controls the visible navigation",
@@ -792,6 +794,9 @@
       "lohnSatz": "Pay rate valid from {wert} added.",
       "lohnBerechnet": "{wert} settlement(s) calculated - already approved or paid rows stay unchanged.",
       "lohnStatus": "Settlement for {wert} updated.",
+      "lohnMonatsabzuegeBerechnet": "{wert} monthly deduction(s) calculated.",
+      "mwstSchwelleGeprueft": "Checked - revenue over the last 12 months: {wert} ₸.",
+      "mwstRegistriert": "Marked as VAT-registered, effective {wert}.",
       "zukaufImport": "{wert} position(s) imported.",
       "zukaufPreis": "Price added.",
       "kostentraeger": "Cost object \"{wert}\" created.",
@@ -841,6 +846,7 @@
     "fehler": {
       "eingabe": "Please fill in all required fields.",
       "gesperrt": "Row block {wert} is locked for the pre-harvest interval - no picking task possible.",
+      "mwstSchwelleUeberschritten": "The VAT registration threshold has been crossed - notification due: {wert}.",
       "keineDatei": "Please select an image file.",
       "zuGross": "The file is larger than 8 MB.",
       "upload": "The photo could not be stored.",
@@ -1195,6 +1201,66 @@
     "note": "Every document is linked to a row block or a batch. Residue proof per batch is therefore available at the press of a button for trade and authorities."
   },
   "complianceAnsicht": {
+    "mwst": {
+      "titel": "VAT registration",
+      "lead": "Rolling 12-month revenue against the statutory registration threshold - RK Tax Code 2026.",
+      "ja": "Yes",
+      "nein": "No",
+      "nochNie": "Not checked yet",
+      "quelle": "Source:",
+      "keinSatz": "No statutory VAT rate on file yet.",
+      "schwelleUeberschrittenHinweis": "The registration threshold was crossed on {datum}. Notifying the tax authority is due within 5 working days.",
+      "stat": {
+        "registriert": "VAT-registered",
+        "seit": "since",
+        "satz": "Statutory rate",
+        "satzHinweis": "Standard rate only - no medical goods in the range",
+        "umsatz": "Revenue (12 months)",
+        "schwelle": "Threshold:",
+        "letztePruefung": "Last checked"
+      },
+      "horizontalesMonitoring": {
+        "titel": "Ready for horizontal monitoring",
+        "lead": "Kazakhstan abolished the tax authority's automated risk score - a voluntary model with a real benefit took its place.",
+        "readinessTitel": "The structure already fits",
+        "readinessText": "Horizontal monitoring requires ongoing, structured visibility into a company's own accounting. Damicon already produces that trail by design:",
+        "punktProtokoll": "Every write lands in the audit log (audit_events) - including who did it and when.",
+        "punktUnveraenderlich": "Harvest bookings and batches become immutable once closed - no quiet after-the-fact edits.",
+        "punktKuehlkette": "The 60-minute cold-chain rule is evaluated live, not only checked in hindsight.",
+        "vorteil": "Late-payment fee: {ermaessigt} instead of {normal} of the National Bank base rate per day for horizontal-monitoring participants.",
+        "hinweis": "This is a statement about the data structure's readiness, not a claim that enrollment in horizontal monitoring has already happened - that step is its own deliberate application to the tax authority."
+      },
+      "messer": {
+        "label": "Share of the registration threshold"
+      },
+      "formular": {
+        "pruefen": {
+          "knopf": "Check revenue now"
+        },
+        "registrieren": {
+          "titel": "Mark as registered",
+          "lead": "Record this once the registration has actually been filed with the tax office - not an automatic step.",
+          "registriertAm": "Registered on",
+          "knopf": "Mark as registered"
+        }
+      }
+    },
+    "risikoRadar": {
+      "titel": "Risk radar",
+      "lead": "Every open statutory deadline from tax, labor and data-protection law in one place - sorted by urgency.",
+      "anzahlOffen": "{anzahl} open deadline(s)",
+      "alleErledigt": "No open deadline - tax, labor and data-protection obligations are all on track right now.",
+      "ansehen": "View →",
+      "kategorie": {
+        "steuer": "Tax law",
+        "arbeit": "Labor law",
+        "datenschutz": "Data protection"
+      },
+      "labelMwst": "VAT registration after crossing the threshold",
+      "labelEsutd": "ESUTD filing for {name}",
+      "labelVorfall": "Reporting a data-protection incident to the authority",
+      "labelDrittweitergabe": "Notification about disclosure to {empfaenger}"
+    },
     "cockpitTitle": "Compliance cockpit",
     "cockpitLead": "Processing purposes, consents, data incidents and third-party disclosures from the database - under the 2026 Kazakhstani legal framework.",
     "stat": {
@@ -1462,8 +1528,22 @@
   },
   "kiAssistentAnsicht": {
     "chatTitel": "AI assistant",
-    "chatLead": "Answers exclusively from released price and variety data, logs every answer, escalates to the office on repeated uncertainty.",
-    "transparenzHinweis": "These answers come from an AI, not a staff member. They are based exclusively on released price and variety data.",
+    "chatLead": "Answers from released price and variety data, and - depending on role - from live tax, labor, and compliance data it looks up itself. Logs every answer, escalates to the office on repeated uncertainty.",
+    "transparenzHinweis": "These answers come from an AI, not a staff member. They are based exclusively on released data - which tools were used is shown under each answer.",
+    "werkzeug": {
+      "mwstStatusAbrufen": "Checked VAT status",
+      "esutdOffeneFristenAbrufen": "Checked ESUTD deadlines",
+      "complianceUebersichtAbrufen": "Checked compliance",
+      "kuehlketteAbrufen": "Checked cold chain",
+      "risikoRadarAbrufen": "Checked risk radar",
+      "oeffneBereich": "Opened {bereich}",
+      "unbekannt": "Step completed",
+      "datenmodellErkunden": "Explored data model",
+      "datenLesen": "Read {tabelle}"
+    },
+    "agentDenkt": "Agent is picking the facts …",
+    "agentPrueft": "Agent is checking: {werkzeug} …",
+    "schliessen": "Close",
     "keinVerlauf": "No message yet. Ask your first question below.",
     "inputPlaceholder": "Enter a question ...",
     "senden": "Send",
@@ -1507,6 +1587,126 @@
         "basisUrl": "Base URL",
         "apiKey": "API key",
         "knopf": "Add provider"
+      }
+    },
+    "laeuft": {
+      "mwstStatusAbrufen": "Checking VAT status …",
+      "esutdOffeneFristenAbrufen": "Checking ESUTD deadlines …",
+      "complianceUebersichtAbrufen": "Checking compliance …",
+      "kuehlketteAbrufen": "Checking cold chain …",
+      "risikoRadarAbrufen": "Scanning risk radar …",
+      "oeffneBereich": "Opening {bereich} …",
+      "unbekannt": "Working …",
+      "datenmodellErkunden": "Exploring the data model …",
+      "datenLesen": "Reading {tabelle} …"
+    },
+    "ziel": {
+      "mwstStatusAbrufen": "VAT registration",
+      "esutdOffeneFristenAbrufen": "ESUTD deadlines",
+      "complianceUebersichtAbrufen": "Compliance",
+      "kuehlketteAbrufen": "Cold chain",
+      "risikoRadarAbrufen": "Risk radar",
+      "oeffneBereich": "{bereich}",
+      "unbekannt": "Source",
+      "datenmodellErkunden": "Data model",
+      "datenLesen": "{tabelle}",
+      "mwstSchwellePruefen": "VAT registration",
+      "aufgabeAnlegen": "Picking tasks",
+      "aufgabeStatusSetzen": "Picking tasks",
+      "kuehlmessungErfassen": "Picking tasks",
+      "reklamationAnlegen": "Complaints",
+      "lohnPeriodeBerechnen": "Payroll",
+      "mitarbeiterEinschalten": "Chat"
+    },
+    "bereichAllgemein": "the area",
+    "assistentDenkt": "Assistant is finding the ripest facts …",
+    "leerTitel": "What can I help with?",
+    "modus": {
+      "label": "Mode",
+      "assistent": {
+        "name": "Assistant",
+        "kurz": "Answers with source links – you decide where to go.",
+        "beschreibung": "Ask about VAT, labour deadlines, compliance or the cold chain. Every answer shows the views it is based on – click one to jump there."
+      },
+      "agent": {
+        "name": "Agent",
+        "kurz": "Takes over the screen and guides you while it answers.",
+        "beschreibung": "Ask a question and watch: the agent opens the relevant views next to this panel, scrolls to the evidence and explains as it goes."
+      }
+    },
+    "nachUnten": "Scroll to latest",
+    "stopp": "Stop",
+    "einstellungen": "Manage AI providers",
+    "eskalationText": "Not getting the answer you need? Hand this conversation over to a person on the team.",
+    "fuehrung": {
+      "zeigt": "Agent is showing you: {ziel}",
+      "beenden": "Stop guiding"
+    },
+    "leerBereiche": "{bereiche} areas and {aktionen} actions for your role – discovered live from the app",
+    "aktion": {
+      "titel": {
+        "mwstSchwellePruefen": "Check VAT threshold",
+        "aufgabeAnlegen": "Create picking task",
+        "aufgabeStatusSetzen": "Set task status",
+        "kuehlmessungErfassen": "Record cooling measurement",
+        "reklamationAnlegen": "File complaint",
+        "lohnPeriodeBerechnen": "Calculate payroll",
+        "mitarbeiterEinschalten": "Hand over to a staff member"
+      },
+      "felder": {
+        "reihenblockCode": "Row block",
+        "zielmengeKg": "Target amount (kg)",
+        "pflueckerAnzahl": "Pickers",
+        "faelligkeit": "Due date",
+        "aufgabeCode": "Task",
+        "neuerStatus": "New status",
+        "temperaturC": "Temperature (°C)",
+        "grund": "Reason",
+        "betreff": "Subject",
+        "beschreibung": "Description",
+        "betroffeneMengeKg": "Affected amount (kg)",
+        "chargeCode": "Batch",
+        "kundenName": "Customer",
+        "periodeStart": "From",
+        "periodeEnde": "To"
+      },
+      "werte": {
+        "angenommen": "accepted",
+        "in_arbeit": "in progress",
+        "qualitaet": "Quality",
+        "menge": "Quantity",
+        "verspaetung": "Delay",
+        "verpackung": "Packaging",
+        "temperatur": "Temperature",
+        "sonstiges": "Other"
+      },
+      "bestaetigen": "Confirm",
+      "ablehnen": "Decline",
+      "freigabeNoetig": "Your approval is required",
+      "laeuft": "Running …",
+      "abgelehnt": "Declined – nothing was changed.",
+      "fehlgeschlagen": "Not executed",
+      "erledigt": "Done",
+      "vorbereiten": "Preparing action …",
+      "zeigen": "Show"
+    },
+    "vorschlaege": {
+      "assistent": {
+        "risiko": "Which legal deadlines are overdue?",
+        "mwst": "What is our VAT registration status?",
+        "kuehlkette": "How is the cold chain doing?",
+        "aufgaben": "Which picking tasks are open?",
+        "reklamationen": "Which complaints are open?",
+        "bereiche": "What can I open and do here?"
+      },
+      "agent": {
+        "risiko": "Run a full risk check and show me everything",
+        "mwst": "Show me where we stand on VAT",
+        "kuehlkette": "Walk me through the cold chain status",
+        "aufgabeAnlegen": "Create a picking task for the first free row block: 100 kg, due tomorrow",
+        "lohnBerechnen": "Calculate payroll for last month",
+        "reklamationMelden": "I want to file a complaint: the berries arrived mushy",
+        "bereiche": "Show me what I can open here"
       }
     }
   },
@@ -1858,6 +2058,42 @@
         "periodeStart": "Period from",
         "periodeEnde": "Period to",
         "knopf": "Calculate period"
+      },
+      "abzuegeBerechnen": {
+        "titel": "Calculate monthly deductions",
+        "lead": "Aggregates the selected calendar month's payroll entries per picker and records ОПВ/ВОСМС/ИПН plus the employer burden. Running it again for the same month replaces the rows rather than duplicating them.",
+        "jahr": "Year",
+        "monat": "Month (1–12)",
+        "knopf": "Calculate monthly deductions"
+      }
+    },
+    "kz": {
+      "titel": "Statutory payroll deductions (Kazakhstan)",
+      "lead": "ОПВ (pension), ВОСМС (medical insurance) and ИПН (income tax) per calendar month, plus the additional employer burden (ОПВР/СО/СН/ОСМС). Calculated under the RK Tax Code 2026 – an approximation for the standard case, see the note below.",
+      "keinSatz": "No statutory deduction rate on file yet.",
+      "quelle": "Source:",
+      "steuerfrei": "tax-free",
+      "keineAbzuege": "No monthly deductions calculated yet.",
+      "note": "Approximation for the standard case: the standard 30 МРП deduction is applied by default (the law requires a written request for it), special allowances (disability, war veterans) are not modelled, and СН is shown here as a flat percentage without the СО offset that earlier versions of the law applied. Does not replace review by a qualified accountant.",
+      "stat": {
+        "opv": "ОПВ (pension contribution)",
+        "opvHinweis": "Employee side, capped at the assessment ceiling",
+        "vosms": "ВОСМС (medical insurance)",
+        "vosmsHinweis": "Employee side, capped at the assessment ceiling",
+        "ipn": "ИПН (income tax)",
+        "freibetrag": "Allowance:",
+        "arbeitgeberlast": "Total employer burden",
+        "arbeitgeberlastHinweis": "ОПВР + СО + СН + ОСМС, on top of gross pay"
+      },
+      "col": {
+        "pfluecker": "Picker",
+        "monat": "Month",
+        "brutto": "Gross",
+        "opv": "ОПВ",
+        "vosms": "ВОСМС",
+        "ipn": "ИПН",
+        "netto": "Net",
+        "arbeitgeberkosten": "Employer cost"
       }
     }
   },

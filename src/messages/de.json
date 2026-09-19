@@ -358,7 +358,9 @@
       "kpiExtendedDescription": "Teil der unterschriebenen Baseline, aber außerhalb der zwölf Kern-Kennzahlen im Cockpit.",
       "kpiNoneForRole": "Für Ihre Rolle sind hier keine betriebsweiten Kennzahlen hinterlegt. Die eigene Leistung finden Sie im Lohn-Modul."
     },
-    "loading": "Daten werden geladen"
+    "loading": "Daten werden geladen",
+    "askAi": "KI fragen",
+    "askAiHinweis": "KI-Seitenpanel öffnen oder schließen"
   },
   "roles": {
     "switcherHint": "Demo-Rolle wechseln - steuert die sichtbare Navigation",
@@ -792,6 +794,9 @@
       "lohnSatz": "Lohnsatz gültig ab {wert} angelegt.",
       "lohnBerechnet": "{wert} Abrechnung(en) berechnet - bereits freigegebene oder ausgezahlte Zeilen bleiben unverändert.",
       "lohnStatus": "Abrechnung von {wert} aktualisiert.",
+      "lohnMonatsabzuegeBerechnet": "{wert} Monatsabzug/-abzüge berechnet.",
+      "mwstSchwelleGeprueft": "Geprüft - Umsatz der letzten 12 Monate: {wert} ₸.",
+      "mwstRegistriert": "Als MwSt-registriert markiert, seit {wert}.",
       "zukaufImport": "{wert} Position(en) importiert.",
       "zukaufPreis": "Preis nachgetragen.",
       "kostentraeger": "Kostenträger \"{wert}\" angelegt.",
@@ -841,6 +846,7 @@
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
       "gesperrt": "Reihenblock {wert} ist wartezeitgesperrt - keine Pflückaufgabe möglich.",
+      "mwstSchwelleUeberschritten": "Die MwSt-Registrierungsschwelle wurde überschritten - Meldefrist: {wert}.",
       "keineDatei": "Bitte eine Bilddatei auswählen.",
       "zuGross": "Die Datei ist größer als 8 MB.",
       "upload": "Das Foto konnte nicht gespeichert werden.",
@@ -1197,6 +1203,66 @@
   "complianceAnsicht": {
     "cockpitTitle": "Compliance-Cockpit",
     "cockpitLead": "Verarbeitungszwecke, Einwilligungen, Datenschutzvorfälle und Drittweitergaben aus der Datenbank - nach dem kasachstanischen Rechtsrahmen von 2026.",
+    "mwst": {
+      "titel": "Mehrwertsteuer-Registrierung",
+      "lead": "Rollierender 12-Monats-Umsatz gegen die gesetzliche Registrierungsschwelle - Steuerkodex RK 2026.",
+      "ja": "Ja",
+      "nein": "Nein",
+      "nochNie": "Noch nicht geprüft",
+      "quelle": "Quelle:",
+      "keinSatz": "Noch kein gesetzlicher MwSt-Satz hinterlegt.",
+      "schwelleUeberschrittenHinweis": "Die Registrierungsschwelle wurde am {datum} überschritten. Die Meldung an die Steuerbehörde ist innerhalb von 5 Werktagen fällig.",
+      "stat": {
+        "registriert": "MwSt-registriert",
+        "seit": "seit",
+        "satz": "Gesetzlicher Satz",
+        "satzHinweis": "Nur der Standardsatz - kein Medizinprodukt im Sortiment",
+        "umsatz": "Umsatz (12 Monate)",
+        "schwelle": "Schwelle:",
+        "letztePruefung": "Letzte Prüfung"
+      },
+      "horizontalesMonitoring": {
+        "titel": "Bereit für horizontales Monitoring",
+        "lead": "Kasachstan hat das automatisierte Risiko-Scoring der Steuerbehörde abgeschafft - an seine Stelle tritt ein freiwilliges Modell mit echtem Vorteil.",
+        "readinessTitel": "Die Struktur passt bereits",
+        "readinessText": "Horizontales Monitoring verlangt einen laufenden, strukturierten Einblick in die eigene Buchhaltung. Damicon führt diesen Nachweis bereits von selbst:",
+        "punktProtokoll": "Jeder Schreibvorgang landet im Prüfprotokoll (audit_events) - inklusive Urheber und Zeitstempel.",
+        "punktUnveraenderlich": "Erntebuchungen und Chargen sind nach Abschluss unveränderlich, keine stille Nachbearbeitung möglich.",
+        "punktKuehlkette": "Die 60-Minuten-Kühlkettenregel wird live bewertet, nicht erst rückblickend geprüft.",
+        "vorteil": "Verzugsgebühr bei verspäteter Zahlung: {ermaessigt} statt {normal} des Nationalbank-Leitzinses pro Tag für Teilnehmer des horizontalen Monitorings.",
+        "hinweis": "Das ist eine Aussage über die Bereitschaft der Datenstruktur, keine Behauptung einer bereits erfolgten Anmeldung zum horizontalen Monitoring - dieser Schritt ist ein eigener, bewusster Antrag bei der Steuerbehörde."
+      },
+      "messer": {
+        "label": "Anteil an der Registrierungsschwelle"
+      },
+      "formular": {
+        "pruefen": {
+          "knopf": "Umsatz jetzt prüfen"
+        },
+        "registrieren": {
+          "titel": "Als registriert markieren",
+          "lead": "Nachtragen, sobald die Registrierung beim Finanzamt tatsächlich eingereicht wurde - kein automatischer Vorgang.",
+          "registriertAm": "Registriert am",
+          "knopf": "Als registriert markieren"
+        }
+      }
+    },
+    "risikoRadar": {
+      "titel": "Risiko-Radar",
+      "lead": "Alle offenen gesetzlichen Fristen aus Steuer-, Arbeits- und Datenschutzrecht an einer Stelle - nach Dringlichkeit sortiert.",
+      "anzahlOffen": "{anzahl} offene Frist(en)",
+      "alleErledigt": "Keine offene Frist - Steuer-, Arbeits- und Datenschutzrecht sind aktuell im Plan.",
+      "ansehen": "Ansehen →",
+      "kategorie": {
+        "steuer": "Steuerrecht",
+        "arbeit": "Arbeitsrecht",
+        "datenschutz": "Datenschutz"
+      },
+      "labelMwst": "MwSt-Registrierung nach Schwellenüberschreitung",
+      "labelEsutd": "ESUTD-Meldung für {name}",
+      "labelVorfall": "Meldung eines Datenschutzvorfalls an die Behörde",
+      "labelDrittweitergabe": "Benachrichtigung über Weitergabe an {empfaenger}"
+    },
     "stat": {
       "einwilligungenAktiv": "Aktive Einwilligungen",
       "einwilligungenWiderrufen": "Widerrufene Einwilligungen",
@@ -1462,8 +1528,22 @@
   },
   "kiAssistentAnsicht": {
     "chatTitel": "KI-Assistent",
-    "chatLead": "Antwortet ausschließlich aus freigegebenen Preis- und Sortendaten, protokolliert jede Antwort, eskaliert bei wiederholter Unsicherheit an das Büro.",
-    "transparenzHinweis": "Diese Antworten stammen von einer KI, nicht von einem Mitarbeiter. Grundlage sind ausschließlich freigegebene Preis- und Sortendaten.",
+    "chatLead": "Antwortet aus freigegebenen Preis- und Sortendaten und - je nach Rolle - aus live abgerufenen Steuer-, Arbeits- und Prüfungsdaten. Protokolliert jede Antwort, eskaliert bei wiederholter Unsicherheit an das Büro.",
+    "transparenzHinweis": "Diese Antworten stammen von einer KI, nicht von einem Mitarbeiter. Grundlage sind ausschließlich freigegebene Daten - welche Werkzeuge dabei genutzt wurden, steht unter jeder Antwort.",
+    "werkzeug": {
+      "mwstStatusAbrufen": "MwSt-Status geprüft",
+      "esutdOffeneFristenAbrufen": "ESUTD-Fristen geprüft",
+      "complianceUebersichtAbrufen": "Compliance geprüft",
+      "kuehlketteAbrufen": "Kühlkette geprüft",
+      "risikoRadarAbrufen": "Risiko-Radar geprüft",
+      "oeffneBereich": "{bereich} geöffnet",
+      "unbekannt": "Schritt abgeschlossen",
+      "datenmodellErkunden": "Datenmodell erkundet",
+      "datenLesen": "{tabelle} gelesen"
+    },
+    "agentDenkt": "Agent pflückt die Fakten …",
+    "agentPrueft": "Agent prüft: {werkzeug} …",
+    "schliessen": "Schließen",
     "keinVerlauf": "Noch keine Nachricht. Stellen Sie unten Ihre erste Frage.",
     "inputPlaceholder": "Frage eingeben ...",
     "senden": "Senden",
@@ -1507,6 +1587,126 @@
         "basisUrl": "Basis-URL",
         "apiKey": "API-Key",
         "knopf": "Anbieter anlegen"
+      }
+    },
+    "laeuft": {
+      "mwstStatusAbrufen": "Prüfe MwSt-Status …",
+      "esutdOffeneFristenAbrufen": "Prüfe ESUTD-Fristen …",
+      "complianceUebersichtAbrufen": "Prüfe Compliance …",
+      "kuehlketteAbrufen": "Prüfe Kühlkette …",
+      "risikoRadarAbrufen": "Durchsuche Risiko-Radar …",
+      "oeffneBereich": "Öffne {bereich} …",
+      "unbekannt": "Arbeite …",
+      "datenmodellErkunden": "Erkunde das Datenmodell …",
+      "datenLesen": "Lese {tabelle} …"
+    },
+    "ziel": {
+      "mwstStatusAbrufen": "MwSt-Registrierung",
+      "esutdOffeneFristenAbrufen": "ESUTD-Fristen",
+      "complianceUebersichtAbrufen": "Compliance",
+      "kuehlketteAbrufen": "Kühlkette",
+      "risikoRadarAbrufen": "Risiko-Radar",
+      "oeffneBereich": "{bereich}",
+      "unbekannt": "Quelle",
+      "datenmodellErkunden": "Datenmodell",
+      "datenLesen": "{tabelle}",
+      "mwstSchwellePruefen": "MwSt-Registrierung",
+      "aufgabeAnlegen": "Pflückaufgaben",
+      "aufgabeStatusSetzen": "Pflückaufgaben",
+      "kuehlmessungErfassen": "Pflückaufgaben",
+      "reklamationAnlegen": "Reklamationen",
+      "lohnPeriodeBerechnen": "Lohnabrechnung",
+      "mitarbeiterEinschalten": "Chat"
+    },
+    "bereichAllgemein": "den Bereich",
+    "assistentDenkt": "Assistent sucht die reifsten Fakten …",
+    "leerTitel": "Wobei kann ich helfen?",
+    "modus": {
+      "label": "Modus",
+      "assistent": {
+        "name": "Assistent",
+        "kurz": "Antwortet mit Quellenverweisen – Sie entscheiden, wohin es geht.",
+        "beschreibung": "Fragen Sie zu MwSt, Arbeitsfristen, Compliance oder Kühlkette. Jede Antwort zeigt die Ansichten, auf denen sie beruht – ein Klick springt dorthin."
+      },
+      "agent": {
+        "name": "Agent",
+        "kurz": "Übernimmt den Bildschirm und führt Sie, während er antwortet.",
+        "beschreibung": "Stellen Sie eine Frage und sehen Sie zu: Der Agent öffnet die passenden Ansichten neben diesem Panel, scrollt zum Beleg und erklärt unterwegs."
+      }
+    },
+    "nachUnten": "Zum Neuesten",
+    "stopp": "Stoppen",
+    "einstellungen": "KI-Anbieter verwalten",
+    "eskalationText": "Nicht die gewünschte Antwort erhalten? Übergeben Sie dieses Gespräch an eine Person im Team.",
+    "fuehrung": {
+      "zeigt": "Agent zeigt Ihnen: {ziel}",
+      "beenden": "Führung beenden"
+    },
+    "leerBereiche": "{bereiche} Bereiche und {aktionen} Aktionen Ihrer Rolle – live aus der Anwendung erkannt",
+    "aktion": {
+      "titel": {
+        "mwstSchwellePruefen": "MwSt-Schwelle prüfen",
+        "aufgabeAnlegen": "Pflückaufgabe anlegen",
+        "aufgabeStatusSetzen": "Aufgabenstatus setzen",
+        "kuehlmessungErfassen": "Kühlmessung erfassen",
+        "reklamationAnlegen": "Reklamation melden",
+        "lohnPeriodeBerechnen": "Lohn berechnen",
+        "mitarbeiterEinschalten": "An Mitarbeiter übergeben"
+      },
+      "felder": {
+        "reihenblockCode": "Reihenblock",
+        "zielmengeKg": "Zielmenge (kg)",
+        "pflueckerAnzahl": "Pflücker",
+        "faelligkeit": "Fällig am",
+        "aufgabeCode": "Aufgabe",
+        "neuerStatus": "Neuer Status",
+        "temperaturC": "Temperatur (°C)",
+        "grund": "Grund",
+        "betreff": "Betreff",
+        "beschreibung": "Beschreibung",
+        "betroffeneMengeKg": "Betroffene Menge (kg)",
+        "chargeCode": "Charge",
+        "kundenName": "Kunde",
+        "periodeStart": "Von",
+        "periodeEnde": "Bis"
+      },
+      "werte": {
+        "angenommen": "angenommen",
+        "in_arbeit": "in Arbeit",
+        "qualitaet": "Qualität",
+        "menge": "Menge",
+        "verspaetung": "Verspätung",
+        "verpackung": "Verpackung",
+        "temperatur": "Temperatur",
+        "sonstiges": "Sonstiges"
+      },
+      "bestaetigen": "Bestätigen",
+      "ablehnen": "Ablehnen",
+      "freigabeNoetig": "Ihre Freigabe ist erforderlich",
+      "laeuft": "Wird ausgeführt …",
+      "abgelehnt": "Abgelehnt – es wurde nichts geändert.",
+      "fehlgeschlagen": "Nicht ausgeführt",
+      "erledigt": "Erledigt",
+      "vorbereiten": "Aktion wird vorbereitet …",
+      "zeigen": "Anzeigen"
+    },
+    "vorschlaege": {
+      "assistent": {
+        "risiko": "Welche gesetzlichen Fristen sind überfällig?",
+        "mwst": "Wie ist unser MwSt-Registrierungsstatus?",
+        "kuehlkette": "Wie steht es um die Kühlkette?",
+        "aufgaben": "Welche Pflückaufgaben sind offen?",
+        "reklamationen": "Welche Reklamationen sind offen?",
+        "bereiche": "Was kann ich hier öffnen und tun?"
+      },
+      "agent": {
+        "risiko": "Mach einen vollständigen Risiko-Check und zeig mir alles",
+        "mwst": "Zeig mir, wo wir bei der MwSt stehen",
+        "kuehlkette": "Führ mich durch den Kühlketten-Status",
+        "aufgabeAnlegen": "Lege eine Pflückaufgabe für den ersten freien Reihenblock an: 100 kg, morgen fällig",
+        "lohnBerechnen": "Berechne die Löhne für den letzten Monat",
+        "reklamationMelden": "Ich möchte reklamieren: Die Beeren kamen matschig an",
+        "bereiche": "Zeig mir, was ich hier öffnen kann"
       }
     }
   },
@@ -1858,6 +2058,42 @@
         "periodeStart": "Periode von",
         "periodeEnde": "Periode bis",
         "knopf": "Periode berechnen"
+      },
+      "abzuegeBerechnen": {
+        "titel": "Monatsabzüge berechnen",
+        "lead": "Aggregiert die Abrechnungen des gewählten Kalendermonats je Pflücker und schreibt ОПВ/ВОСМС/ИПН sowie die Arbeitgeberlast fest. Ein erneuter Lauf für denselben Monat ersetzt die Zeilen, legt keine Duplikate an.",
+        "jahr": "Jahr",
+        "monat": "Monat (1–12)",
+        "knopf": "Monatsabzüge berechnen"
+      }
+    },
+    "kz": {
+      "titel": "Gesetzliche Lohnabzüge (Kasachstan)",
+      "lead": "ОПВ, ВОСМС und ИПН je Kalendermonat, plus die zusätzliche Arbeitgeberlast (ОПВР/СО/СН/ОСМС). Berechnet nach dem Steuerkodex RK 2026 – eine Näherung für den Regelfall, siehe Hinweis unten.",
+      "keinSatz": "Noch kein gesetzlicher Abzugssatz hinterlegt.",
+      "quelle": "Quelle:",
+      "steuerfrei": "steuerfrei",
+      "keineAbzuege": "Noch keine Monatsabzüge berechnet.",
+      "note": "Näherung für den Regelfall: der Standardabzug 30 МРП wird grundsätzlich angewendet (setzt gesetzlich einen schriftlichen Antrag voraus), Sonderfreibeträge (Invalidität, Kriegsveteranen) sind nicht abgebildet, und СН ist hier ein einfacher Prozentsatz ohne die in früheren Rechtsfassungen übliche Kürzung um СО. Ersetzt keine Prüfung durch eine Fachkraft.",
+      "stat": {
+        "opv": "ОПВ (Rentenbeitrag)",
+        "opvHinweis": "Vom Arbeitnehmer, gekappt an der Bemessungsgrenze",
+        "vosms": "ВОСМС (Krankenversicherung)",
+        "vosmsHinweis": "Vom Arbeitnehmer, gekappt an der Bemessungsgrenze",
+        "ipn": "ИПН (Einkommensteuer)",
+        "freibetrag": "Freibetrag:",
+        "arbeitgeberlast": "Arbeitgeberlast gesamt",
+        "arbeitgeberlastHinweis": "ОПВР + СО + СН + ОСМС, zusätzlich zum Bruttolohn"
+      },
+      "col": {
+        "pfluecker": "Pflücker",
+        "monat": "Monat",
+        "brutto": "Brutto",
+        "opv": "ОПВ",
+        "vosms": "ВОСМС",
+        "ipn": "ИПН",
+        "netto": "Netto",
+        "arbeitgeberkosten": "Kosten Arbeitgeber"
       }
     }
   },

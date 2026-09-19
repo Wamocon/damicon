@@ -131,7 +131,9 @@
     },
     "rbacHintLabel": "Roller",
     "rbacHint": "Hangi modüllerin görüneceği, oturum açan hesabın rolüne bağlıdır. Yönetimden tarladaki tekil toplayıcıya kadar yedi temel rol - aynı rol veri tabanında okuma ve yazma yetkilerini de belirler.",
-    "loading": "Veriler yükleniyor"
+    "loading": "Veriler yükleniyor",
+    "askAi": "Yapay Zekâya Sor",
+    "askAiHinweis": "Yapay zekâ yan panelini aç veya kapat"
   },
   "roles": {
     "switcherHint": "Demo rolünü değiştir - görünen navigasyonu belirler",
@@ -540,8 +542,22 @@
   },
   "kiAssistentAnsicht": {
     "chatTitel": "Yapay zekâ asistanı",
-    "chatLead": "Yalnızca onaylı fiyat ve çeşit verilerinden yanıt verir, her yanıtı kaydeder, tekrarlayan belirsizlikte ofise yükseltir.",
-    "transparenzHinweis": "Bu yanıtlar bir çalışandan değil, yapay zekâdan gelir. Dayanağı yalnızca onaylı fiyat ve çeşit verileridir.",
+    "chatLead": "Onaylı fiyat ve çeşit verilerinden, ayrıca role bağlı olarak kendisinin sorguladığı canlı vergi, iş hukuku ve uyum verilerinden yanıt verir. Her yanıtı kaydeder, tekrarlayan belirsizlikte ofise yükseltir.",
+    "transparenzHinweis": "Bu yanıtlar bir çalışandan değil, yapay zekâdan gelir. Dayanağı yalnızca onaylı verilerdir - hangi araçların kullanıldığı her yanıtın altında gösterilir.",
+    "werkzeug": {
+      "mwstStatusAbrufen": "KDV durumu kontrol edildi",
+      "esutdOffeneFristenAbrufen": "ESUTD süreleri kontrol edildi",
+      "complianceUebersichtAbrufen": "Uyum kontrol edildi",
+      "kuehlketteAbrufen": "Soğuk zincir kontrol edildi",
+      "risikoRadarAbrufen": "Risk radarı kontrol edildi",
+      "oeffneBereich": "{bereich} açıldı",
+      "unbekannt": "Adım tamamlandı",
+      "datenmodellErkunden": "Veri modeli keşfedildi",
+      "datenLesen": "{tabelle} okundu"
+    },
+    "agentDenkt": "Ajan verileri topluyor …",
+    "agentPrueft": "Ajan kontrol ediyor: {werkzeug} …",
+    "schliessen": "Kapat",
     "keinVerlauf": "Henüz mesaj yok. İlk sorunuzu aşağıya yazın.",
     "inputPlaceholder": "Soru girin ...",
     "senden": "Gönder",
@@ -585,6 +601,126 @@
         "basisUrl": "Temel URL",
         "apiKey": "API anahtarı",
         "knopf": "Sağlayıcı ekle"
+      }
+    },
+    "laeuft": {
+      "mwstStatusAbrufen": "KDV durumu kontrol ediliyor …",
+      "esutdOffeneFristenAbrufen": "ESUTD süreleri kontrol ediliyor …",
+      "complianceUebersichtAbrufen": "Uyum kontrol ediliyor …",
+      "kuehlketteAbrufen": "Soğuk zincir kontrol ediliyor …",
+      "risikoRadarAbrufen": "Risk radarı taranıyor …",
+      "oeffneBereich": "{bereich} açılıyor …",
+      "unbekannt": "Çalışıyor …",
+      "datenmodellErkunden": "Veri modeli keşfediliyor …",
+      "datenLesen": "{tabelle} okunuyor …"
+    },
+    "ziel": {
+      "mwstStatusAbrufen": "KDV kaydı",
+      "esutdOffeneFristenAbrufen": "ESUTD süreleri",
+      "complianceUebersichtAbrufen": "Uyum",
+      "kuehlketteAbrufen": "Soğuk zincir",
+      "risikoRadarAbrufen": "Risk radarı",
+      "oeffneBereich": "{bereich}",
+      "unbekannt": "Kaynak",
+      "datenmodellErkunden": "Veri modeli",
+      "datenLesen": "{tabelle}",
+      "mwstSchwellePruefen": "KDV kaydı",
+      "aufgabeAnlegen": "Toplama görevleri",
+      "aufgabeStatusSetzen": "Toplama görevleri",
+      "kuehlmessungErfassen": "Toplama görevleri",
+      "reklamationAnlegen": "Şikâyetler",
+      "lohnPeriodeBerechnen": "Bordro",
+      "mitarbeiterEinschalten": "Sohbet"
+    },
+    "bereichAllgemein": "bölüm",
+    "assistentDenkt": "Asistan en olgun bilgileri arıyor …",
+    "leerTitel": "Nasıl yardımcı olabilirim?",
+    "modus": {
+      "label": "Mod",
+      "assistent": {
+        "name": "Asistan",
+        "kurz": "Kaynak bağlantılarıyla yanıtlar - nereye gideceğinize siz karar verirsiniz.",
+        "beschreibung": "KDV, çalışma süreleri, uyum veya soğuk zincir hakkında sorun. Her yanıt dayandığı görünümleri gösterir - oraya gitmek için tıklayın."
+      },
+      "agent": {
+        "name": "Ajan",
+        "kurz": "Yanıtlarken ekranı devralır ve sizi yönlendirir.",
+        "beschreibung": "Bir soru sorun ve izleyin: Ajan ilgili görünümleri bu panelin yanında açar, kanıta kadar kaydırır ve yol boyunca açıklar."
+      }
+    },
+    "nachUnten": "En yeniye git",
+    "stopp": "Durdur",
+    "einstellungen": "Yapay zekâ sağlayıcılarını yönet",
+    "eskalationText": "İhtiyacınız olan yanıtı alamadınız mı? Bu görüşmeyi ekipten bir kişiye devredin.",
+    "fuehrung": {
+      "zeigt": "Ajan size gösteriyor: {ziel}",
+      "beenden": "Yönlendirmeyi durdur"
+    },
+    "leerBereiche": "Rolünüz için {bereiche} bölüm ve {aktionen} işlem - uygulamadan canlı olarak keşfedildi",
+    "aktion": {
+      "titel": {
+        "mwstSchwellePruefen": "KDV eşiğini kontrol et",
+        "aufgabeAnlegen": "Toplama görevi oluştur",
+        "aufgabeStatusSetzen": "Görev durumunu ayarla",
+        "kuehlmessungErfassen": "Soğutma ölçümü kaydet",
+        "reklamationAnlegen": "Şikâyet bildir",
+        "lohnPeriodeBerechnen": "Bordroyu hesapla",
+        "mitarbeiterEinschalten": "Bir çalışana devret"
+      },
+      "felder": {
+        "reihenblockCode": "Sıra bloğu",
+        "zielmengeKg": "Hedef miktar (kg)",
+        "pflueckerAnzahl": "Toplayıcılar",
+        "faelligkeit": "Son tarih",
+        "aufgabeCode": "Görev",
+        "neuerStatus": "Yeni durum",
+        "temperaturC": "Sıcaklık (°C)",
+        "grund": "Neden",
+        "betreff": "Konu",
+        "beschreibung": "Açıklama",
+        "betroffeneMengeKg": "Etkilenen miktar (kg)",
+        "chargeCode": "Parti",
+        "kundenName": "Müşteri",
+        "periodeStart": "Başlangıç",
+        "periodeEnde": "Bitiş"
+      },
+      "werte": {
+        "angenommen": "kabul edildi",
+        "in_arbeit": "devam ediyor",
+        "qualitaet": "Kalite",
+        "menge": "Miktar",
+        "verspaetung": "Gecikme",
+        "verpackung": "Ambalaj",
+        "temperatur": "Sıcaklık",
+        "sonstiges": "Diğer"
+      },
+      "bestaetigen": "Onayla",
+      "ablehnen": "Reddet",
+      "freigabeNoetig": "Onayınız gerekiyor",
+      "laeuft": "Çalıştırılıyor …",
+      "abgelehnt": "Reddedildi - hiçbir şey değiştirilmedi.",
+      "fehlgeschlagen": "Çalıştırılmadı",
+      "erledigt": "Tamam",
+      "vorbereiten": "İşlem hazırlanıyor …",
+      "zeigen": "Göster"
+    },
+    "vorschlaege": {
+      "assistent": {
+        "risiko": "Hangi yasal süreler gecikmiş?",
+        "mwst": "KDV kayıt durumumuz nedir?",
+        "kuehlkette": "Soğuk zincir nasıl gidiyor?",
+        "aufgaben": "Hangi toplama görevleri açık?",
+        "reklamationen": "Hangi şikâyetler açık?",
+        "bereiche": "Burada neleri açıp yapabilirim?"
+      },
+      "agent": {
+        "risiko": "Tam bir risk kontrolü yap ve her şeyi göster",
+        "mwst": "KDV konusunda nerede olduğumuzu göster",
+        "kuehlkette": "Soğuk zincir durumunu bana gezdirerek anlat",
+        "aufgabeAnlegen": "İlk boş sıra bloğu için toplama görevi oluştur: 100 kg, yarın son gün",
+        "lohnBerechnen": "Geçen ayın bordrosunu hesapla",
+        "reklamationMelden": "Şikâyet etmek istiyorum: Meyveler ezilmiş geldi",
+        "bereiche": "Burada neleri açabileceğimi göster"
       }
     }
   },
@@ -1131,6 +1267,9 @@
       "lohnSatz": "{wert} tarihinden itibaren geçerli ücret oranı eklendi.",
       "lohnBerechnet": "{wert} bordro hesaplandı - zaten onaylanmış veya ödenmiş satırlar değişmeden kalır.",
       "lohnStatus": "{wert} için bordro güncellendi.",
+      "lohnMonatsabzuegeBerechnet": "{wert} aylık kesinti hesaplandı.",
+      "mwstSchwelleGeprueft": "Kontrol edildi - son 12 aydaki ciro: {wert} ₸.",
+      "mwstRegistriert": "KDV'ye kayıtlı olarak işaretlendi, {wert} tarihinden itibaren.",
       "zukaufImport": "{wert} kalem içe aktarıldı.",
       "zukaufPreis": "Fiyat eklendi.",
       "kostentraeger": "\"{wert}\" maliyet nesnesi oluşturuldu.",
@@ -1180,6 +1319,7 @@
     "fehler": {
       "eingabe": "Lütfen tüm zorunlu alanları doldurun.",
       "gesperrt": "{wert} sıra bloğu bekleme süresi nedeniyle kilitli - toplama görevi oluşturulamaz.",
+      "mwstSchwelleUeberschritten": "KDV kayıt eşiği aşıldı - bildirim tarihi: {wert}.",
       "keineDatei": "Lütfen bir görsel dosyası seçin.",
       "zuGross": "Dosya 8 MB'tan büyük.",
       "upload": "Fotoğraf kaydedilemedi.",
@@ -1368,6 +1508,66 @@
     }
   },
   "complianceAnsicht": {
+    "mwst": {
+      "titel": "KDV kaydı",
+      "lead": "Yasal kayıt eşiğine karşı 12 aylık kayan ciro - KC 2026 Vergi Kanunu.",
+      "ja": "Evet",
+      "nein": "Hayır",
+      "nochNie": "Henüz kontrol edilmedi",
+      "quelle": "Kaynak:",
+      "keinSatz": "Henüz yasal bir KDV oranı tanımlanmadı.",
+      "schwelleUeberschrittenHinweis": "Kayıt eşiği {datum} tarihinde aşıldı. Vergi dairesine bildirim 5 iş günü içinde yapılmalıdır.",
+      "stat": {
+        "registriert": "KDV'ye kayıtlı",
+        "seit": "beri",
+        "satz": "Yasal oran",
+        "satzHinweis": "Yalnızca standart oran - üründe tıbbi malzeme yok",
+        "umsatz": "Ciro (12 ay)",
+        "schwelle": "Eşik:",
+        "letztePruefung": "Son kontrol"
+      },
+      "horizontalesMonitoring": {
+        "titel": "Yatay izlemeye hazır",
+        "lead": "Kazakistan vergi dairesinin otomatik risk puanlama sistemini kaldırdı - yerine gerçek bir avantajı olan gönüllü bir model geldi.",
+        "readinessTitel": "Yapı zaten buna uygun",
+        "readinessText": "Yatay izleme, şirketin kendi hesaplarına sürekli, yapılandırılmış bir görünürlük gerektirir. Damicon bu izi tasarımı gereği zaten üretiyor:",
+        "punktProtokoll": "Her yazma işlemi denetim günlüğüne (audit_events) düşer - kim ve ne zaman yaptığı dahil.",
+        "punktUnveraenderlich": "Hasat kayıtları ve partiler kapatıldıktan sonra değiştirilemez hale gelir - sessizce sonradan düzenleme yapılamaz.",
+        "punktKuehlkette": "60 dakikalık soğuk zincir kuralı geriye dönük değil, canlı olarak değerlendirilir.",
+        "vorteil": "Gecikme cezası: yatay izleme katılımcıları için günlük Ulusal Banka baz oranının {normal} yerine {ermaessigt}.",
+        "hinweis": "Bu, veri yapısının hazır olduğuna dair bir ifadedir, yatay izlemeye kaydın zaten yapıldığına dair bir beyan değildir - bu adım vergi dairesine yapılan ayrı, bilinçli bir başvurudur."
+      },
+      "messer": {
+        "label": "Kayıt eşiğine oranı"
+      },
+      "formular": {
+        "pruefen": {
+          "knopf": "Ciroyu şimdi kontrol et"
+        },
+        "registrieren": {
+          "titel": "Kayıtlı olarak işaretle",
+          "lead": "Kayıt vergi dairesine gerçekten yapıldıktan sonra girin - otomatik bir adım değildir.",
+          "registriertAm": "Kayıt tarihi",
+          "knopf": "Kayıtlı olarak işaretle"
+        }
+      }
+    },
+    "risikoRadar": {
+      "titel": "Risk radarı",
+      "lead": "Vergi, iş ve veri koruma hukukundaki tüm açık yasal süreler bir yerde - aciliyete göre sıralanmış.",
+      "anzahlOffen": "{anzahl} açık süre",
+      "alleErledigt": "Açık süre yok - vergi, iş ve veri koruma yükümlülükleri şu anda düzenli.",
+      "ansehen": "Görüntüle →",
+      "kategorie": {
+        "steuer": "Vergi hukuku",
+        "arbeit": "İş hukuku",
+        "datenschutz": "Veri koruma"
+      },
+      "labelMwst": "Eşik aşıldıktan sonra KDV kaydı",
+      "labelEsutd": "{name} için ESUTD bildirimi",
+      "labelVorfall": "Veri koruma olayının makama bildirilmesi",
+      "labelDrittweitergabe": "{empfaenger} tarafına aktarım bildirimi"
+    },
     "cockpitTitle": "Uyum kokpiti",
     "cockpitLead": "Veri tabanındaki işleme amaçları, rızalar, veri ihlalleri ve üçüncü taraflara aktarımlar - 2026 Kazakistan hukuki çerçevesine göre.",
     "stat": {
@@ -1858,6 +2058,42 @@
         "periodeStart": "Dönem başlangıcı",
         "periodeEnde": "Dönem bitişi",
         "knopf": "Dönem hesapla"
+      },
+      "abzuegeBerechnen": {
+        "titel": "Aylık kesintileri hesapla",
+        "lead": "Seçilen takvim ayındaki bordro kayıtlarını her toplayıcı için toplar ve ОПВ/ВОСМС/ИПН ile işveren yükünü kaydeder. Aynı ay için tekrar çalıştırmak satırları çoğaltmaz, yerine yazar.",
+        "jahr": "Yıl",
+        "monat": "Ay (1–12)",
+        "knopf": "Kesintileri hesapla"
+      }
+    },
+    "kz": {
+      "titel": "Yasal bordro kesintileri (Kazakistan)",
+      "lead": "Takvim ayı başına ОПВ (emeklilik), ВОСМС (sağlık sigortası) ve ИПН (gelir vergisi), ayrıca işverenin ek yükü (ОПВР/СО/СН/ОСМС). KC 2026 Vergi Kanunu'na göre hesaplanmıştır – standart durum için bir yaklaşımdır, aşağıdaki notu inceleyin.",
+      "keinSatz": "Henüz yasal kesinti oranı tanımlanmadı.",
+      "quelle": "Kaynak:",
+      "steuerfrei": "vergiden muaf",
+      "keineAbzuege": "Henüz aylık kesinti hesaplanmadı.",
+      "note": "Standart durum için yaklaşım: 30 МРП standart istisnası varsayılan olarak uygulanır (yasaya göre yazılı talep gerektirir), özel istisnalar (engellilik, gazi) modellenmemiştir ve СН burada, kanunun önceki sürümlerindeki СО indirimi olmadan düz bir yüzde olarak gösterilir. Bir muhasebecinin incelemesinin yerini tutmaz.",
+      "stat": {
+        "opv": "ОПВ (emeklilik katkısı)",
+        "opvHinweis": "Çalışan tarafı, tavan tutarla sınırlı",
+        "vosms": "ВОСМС (sağlık sigortası)",
+        "vosmsHinweis": "Çalışan tarafı, tavan tutarla sınırlı",
+        "ipn": "ИПН (gelir vergisi)",
+        "freibetrag": "İstisna:",
+        "arbeitgeberlast": "Toplam işveren yükü",
+        "arbeitgeberlastHinweis": "ОПВР + СО + СН + ОСМС, brüt ücrete ek olarak"
+      },
+      "col": {
+        "pfluecker": "Toplayıcı",
+        "monat": "Ay",
+        "brutto": "Brüt",
+        "opv": "ОПВ",
+        "vosms": "ВОСМС",
+        "ipn": "ИПН",
+        "netto": "Net",
+        "arbeitgeberkosten": "İşveren maliyeti"
       }
     }
   },
