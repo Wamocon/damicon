@@ -66,6 +66,49 @@ export interface LohnPosition {
   betragTenge: number;
 }
 
+// Gesetzliche Lohnabzuege Kasachstan (Migration 20261024000000). Getrennt von
+// LohnSatz/LohnAbrechnung: ein betrieblicher Lohnsatz und ein gesetzlicher
+// Steuersatz aendern sich aus unabhaengigen Gruenden - siehe Migrationskopf.
+export interface LohnSteuersatzKz {
+  id: string;
+  gueltigAb: string;
+  gueltigBis: string | null;
+  opvProzent: number;
+  opvBemessungsgrenzeTenge: number;
+  vosmsProzent: number;
+  vosmsBemessungsgrenzeTenge: number;
+  ipnProzent: number;
+  ipnFreibetragTenge: number;
+  opvrProzent: number;
+  soProzent: number;
+  snProzent: number;
+  osmsProzent: number;
+  quelle: string;
+  notiz: string | null;
+}
+
+// Ein Monatsaggregat je Pfluecker - siehe Migrationskopf, warum ОПВ/ВОСМС/ИПН
+// auf den Kalendermonat bezogen gerechnet werden, nicht auf eine einzelne,
+// beliebig kurze lohn_abrechnungen-Periode.
+export interface LohnMonatsabzug {
+  id: string;
+  pfluecker: string;
+  pfleuckerAusweis: string;
+  jahr: number;
+  monat: number;
+  bruttoGesamtTenge: number;
+  opvTenge: number;
+  vosmsTenge: number;
+  ipnBemessungsgrundlageTenge: number;
+  ipnTenge: number;
+  nettoTenge: number;
+  opvrTenge: number;
+  soTenge: number;
+  snTenge: number;
+  osmsTenge: number;
+  arbeitgeberkostenGesamtTenge: number;
+}
+
 // Demo-Modus (ohne Supabase-Umgebung): dieselbe Geschichte wie der Seed -
 // D. Sarsenbaj und A. Tulegenowa (Brigade Nord) mit hoeherem Ausschuss auf
 // einer bereits abgeschlossenen Aufgabe, M. Qojschybaj (Brigade Ost) mit
@@ -188,5 +231,67 @@ export const demoLohnPositionen: LohnPosition[] = [
     ausschussAnteiligKg: 0,
     qualitaetsfaktor: 1.1,
     betragTenge: 7480,
+  },
+];
+
+// Steuerkodex RK 2026 (in Kraft seit 01.01.2026) - dieselben Werte wie der
+// Startsatz in Migration 20261024000000, nicht separat erfunden.
+export const demoLohnSteuersatzKz: LohnSteuersatzKz = {
+  id: "demo-steuersatz-kz-1",
+  gueltigAb: "2026-01-01",
+  gueltigBis: null,
+  opvProzent: 10,
+  opvBemessungsgrenzeTenge: 4250000,
+  vosmsProzent: 2,
+  vosmsBemessungsgrenzeTenge: 1700000,
+  ipnProzent: 10,
+  ipnFreibetragTenge: 129750,
+  opvrProzent: 3.5,
+  soProzent: 5,
+  snProzent: 6,
+  osmsProzent: 3,
+  quelle: "Steuerkodex RK 2026; ИПН-Standardabzug 30 МРП, МРП 2026 = 4 325 Tenge.",
+  notiz: "Naeherung: Sonderfreibetraege und die СО-Kuerzung der СН sind hier nicht abgebildet, siehe Migrationskopf 20261024000000.",
+};
+
+// Mit derselben Formel gerechnet wie public.lohn_kz_abzuege_berechnen()
+// (Brutto = Summe der Demo-Abrechnungen von D. Sarsenbaj/A. Tulegenowa oben
+// fuer denselben Monat), keine unabhaengig erfundene Zeile.
+export const demoLohnMonatsabzuege: LohnMonatsabzug[] = [
+  {
+    id: "demo-monatsabzug-1",
+    pfluecker: "D. Sarsenbaj",
+    pfleuckerAusweis: "MAL-0417",
+    jahr: 2026,
+    monat: 9,
+    bruttoGesamtTenge: 44139.25,
+    opvTenge: 4413.93,
+    vosmsTenge: 882.79,
+    ipnBemessungsgrundlageTenge: 0,
+    ipnTenge: 0,
+    nettoTenge: 38842.53,
+    opvrTenge: 1544.87,
+    soTenge: 2206.96,
+    snTenge: 2648.36,
+    osmsTenge: 1324.18,
+    arbeitgeberkostenGesamtTenge: 51863.62,
+  },
+  {
+    id: "demo-monatsabzug-2",
+    pfluecker: "A. Tulegenowa",
+    pfleuckerAusweis: "MAL-0418",
+    jahr: 2026,
+    monat: 9,
+    bruttoGesamtTenge: 44259.25,
+    opvTenge: 4425.93,
+    vosmsTenge: 885.19,
+    ipnBemessungsgrundlageTenge: 0,
+    ipnTenge: 0,
+    nettoTenge: 38948.13,
+    opvrTenge: 1549.07,
+    soTenge: 2212.96,
+    snTenge: 2655.56,
+    osmsTenge: 1327.78,
+    arbeitgeberkostenGesamtTenge: 52004.62,
   },
 ];

@@ -61,6 +61,7 @@ const demoVerlauf: KiChatNachrichtZeile[] = [
     fallback: false,
     eskaliert: false,
     erstelltAm: new Date(0).toISOString(),
+    werkzeugaufrufe: null,
   },
   {
     id: "demo-2",
@@ -71,6 +72,7 @@ const demoVerlauf: KiChatNachrichtZeile[] = [
     fallback: false,
     eskaliert: false,
     erstelltAm: new Date(0).toISOString(),
+    werkzeugaufrufe: null,
   },
 ];
 
@@ -107,7 +109,7 @@ export async function ladeKiChatVerlauf(): Promise<KiChatVerlauf> {
   // Eskalationspruefung (sollteAutomatischEskalieren).
   const { data, error } = await supabase
     .from("ki_chat_nachrichten")
-    .select("id, rolle, inhalt, anbieter_name, fallback, eskaliert, erstellt_am")
+    .select("id, rolle, inhalt, anbieter_name, fallback, eskaliert, erstellt_am, werkzeugaufrufe")
     .eq("profil_id", profil.id)
     .order("erstellt_am", { ascending: false })
     .limit(MAX_VERLAUF);
@@ -125,6 +127,7 @@ export async function ladeKiChatVerlauf(): Promise<KiChatVerlauf> {
         fallback: n.fallback,
         eskaliert: n.eskaliert,
         erstelltAm: n.erstellt_am,
+        werkzeugaufrufe: (n.werkzeugaufrufe as string[] | null) ?? null,
       }))
       .reverse(),
   };

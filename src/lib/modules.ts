@@ -318,19 +318,6 @@ export const modules: ModuleDef[] = [
     reifegrad: "angebunden",
   },
   {
-    key: "ki_assistent",
-    zone: "markt",
-    slug: "ki-assistent",
-    icon: "sparkles",
-    resource: "ki_assistent",
-    klassifikation: "uebernehmen",
-    // Anforderung 5.4/5.5: echter, anbieteruebergreifender Chat statt reinem
-    // Platzhalter-Chatfenster (KiAssistentMock entfaellt). Ein Admin bindet
-    // Sokrates, Claude (Anthropic) oder ein selbst gehostetes Open-Source-
-    // Modell jeweils per API-Key an (ki-assistent-ansicht.tsx).
-    reifegrad: "angebunden",
-  },
-  {
     key: "aggregator",
     zone: "markt",
     slug: "aggregator",

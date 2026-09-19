@@ -383,6 +383,109 @@
   }
 }
 
+/* Risiko-Radar (components/db/risiko-radar.tsx): gestaffeltes Einblenden je
+   Eintrag, ein ruhiges Pulsieren nur auf dem "ueberfaellig"-Zaehler - beides
+   nur bei prefers-reduced-motion: no-preference, sonst stehen die Elemente
+   von Anfang an fertig da statt eine Bewegung zu simulieren, die niemand
+   sehen soll. */
+@keyframes risiko-eintrag-einblenden {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes risiko-puls {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--destructive) 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--destructive) 0%, transparent);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .risiko-radar-eintrag {
+    animation: risiko-eintrag-einblenden 0.4s ease-out both;
+  }
+  .risiko-radar-puls {
+    animation: risiko-puls 2.4s ease-in-out infinite;
+  }
+}
+
+/* Werkzeug-Aufrufkette im KI-Assistenten (ki-assistent-formulare.tsx): jeder
+   Chip blendet gestaffelt ein, dieselbe Wiederverwendungslogik wie das
+   Risiko-Radar oben, aber eine eigene Klasse - der Chat rendert clientseitig
+   bei jeder neuen Nachricht neu, eine geteilte Animation mit dem Radar hätte
+   beide Stellen ungewollt gekoppelt. */
+@keyframes werkzeug-chip-einblenden {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .werkzeug-chip {
+    animation: werkzeug-chip-einblenden 0.3s ease-out both;
+  }
+}
+
+/* Statuszeile ("Agent prueft ..."): ein schmaler, wandernder Balken statt
+   drei springender Punkte - liest sich neben Fliesstext ruhiger. */
+@keyframes ki-agent-balken {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(250%); }
+}
+.ki-agent-status__balken {
+  position: relative;
+  width: 28px;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--muted-foreground) 25%, transparent);
+}
+.ki-agent-status__balken::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  border-radius: 999px;
+  background: var(--primary);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-agent-status__balken::after {
+    animation: ki-agent-balken 1.1s ease-in-out infinite;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ki-agent-status__balken::after {
+    left: 0;
+    width: 100%;
+  }
+}
+
+/* MwSt-Umsatzmesser (components/db/mwst-formulare.tsx): die Fuellung waechst
+   von 0 auf den tatsaechlichen Anteil, statt sofort auf voller Breite zu
+   stehen - reine CSS-Transition auf einer Custom Property, kein JS-Timer.
+   Ohne Bewegungspraeferenz steht der Balken sofort auf seinem Endwert. */
+.mwst-messer {
+  --anteil: 0%;
+}
+.mwst-messer__fuellung {
+  width: var(--anteil);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .mwst-messer__fuellung {
+    transition: width 1.1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
 /* Kleine Balkengrafik in Textkarten (Preisstufen). Die Breite steht als
    Variable am Element, damit die Zahl aus den Daten kommt und nicht aus dem
    Stylesheet. Sie waechst beim Einblenden mit. */

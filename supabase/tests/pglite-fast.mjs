@@ -862,7 +862,228 @@ await mussScheitern(
   await db.query("select set_config('request.jwt.claim.sub', '', false);");
 }
 
-// --- 13. Pflanzenschutz-Protokoll: Behandlungen bleiben nachweisbar --------
+// --- 13. Gesetzliche Lohnabzuege Kasachstan (ОПВ/ВОСМС/ИПН, Arbeitgeberlast) --
+// Migration 20261024000000. Reihenfolge: erst die reine Rechenfunktion isoliert
+// pruefen (kein Datenbestand noetig, siehe deren Kommentar), dann die RPC
+// end-to-end gegen echte Seed-Abrechnungen - beides einzeln, damit ein
+// Fehlschlag erkennen laesst, ob die Formel oder die Aggregation die Ursache
+// ist.
+{
+  const { rows: satzRows } = await db.query(
+    `select * from public.lohn_steuersaetze_kz order by gueltig_ab desc limit 1;`,
+  );
+  const satz = satzRows[0];
+  // Der aktuelle Satz als Subquery statt als JS-Parameter: der PGlite-Treiber
+  // (wie node-postgres) kann ein zusammengesetztes Zeilen-Objekt nicht selbst
+  // in ein Composite-Type-Literal serialisieren - die Datenbank liest die
+  // Zeile deshalb selbst.
+  const satzSubquery = `(select lst from public.lohn_steuersaetze_kz lst order by gueltig_ab desc limit 1)`;
+
+  // 13a. Normalfall, von Hand nachgerechnet: Brutto 300 000 Tenge liegt unter
+  // beiden Bemessungsgrenzen.
+  const { rows: normalRows } = await db.query(
+    `select * from public.lohn_kz_abzuege_berechnen(300000, ${satzSubquery});`,
+  );
+  const normal = normalRows[0];
+  check(
+    "Lohn-KZ: Normalfall trifft die von Hand gerechneten Betraege",
+    Number(normal.opv_tenge) === 30000 &&
+      Number(normal.vosms_tenge) === 6000 &&
+      Number(normal.ipn_bemessungsgrundlage_tenge) === 134250 &&
+      Number(normal.ipn_tenge) === 13425 &&
+      Number(normal.netto_tenge) === 250575 &&
+      Number(normal.arbeitgeberkosten_gesamt_tenge) === 352500,
+    `ОПВ ${normal.opv_tenge}, ИПН ${normal.ipn_tenge}, netto ${normal.netto_tenge}`,
+  );
+
+  // 13b. Bemessungsgrenzen: Brutto 5 000 000 liegt ueber beiden Grenzen -
+  // ОПВ/ВОСМС duerfen NICHT proportional weiter mitwachsen.
+  const { rows: grenzeRows } = await db.query(
+    `select * from public.lohn_kz_abzuege_berechnen(5000000, ${satzSubquery});`,
+  );
+  const grenze = grenzeRows[0];
+  check(
+    "Lohn-KZ: ОПВ/ВОСМС kappen an der Bemessungsgrenze",
+    Number(grenze.opv_tenge) === Number(satz.opv_bemessungsgrenze_tenge) * (satz.opv_prozent / 100) &&
+      Number(grenze.vosms_tenge) === Number(satz.vosms_bemessungsgrenze_tenge) * (satz.vosms_prozent / 100),
+    `ОПВ ${grenze.opv_tenge} (erwartet ${Number(satz.opv_bemessungsgrenze_tenge) * (satz.opv_prozent / 100)})`,
+  );
+
+  // 13c. Bemessungsgrundlage darf nicht negativ werden: ein sehr niedriger
+  // Bruttolohn (unter dem Freibetrag) ergibt ИПН = 0, nicht einen negativen
+  // Betrag.
+  const { rows: niedrigRows } = await db.query(
+    `select * from public.lohn_kz_abzuege_berechnen(50000, ${satzSubquery});`,
+  );
+  check(
+    "Lohn-KZ: ИПН wird bei niedrigem Bruttolohn nie negativ",
+    Number(niedrigRows[0].ipn_bemessungsgrundlage_tenge) === 0 && Number(niedrigRows[0].ipn_tenge) === 0,
+    `Grundlage ${niedrigRows[0].ipn_bemessungsgrundlage_tenge}, ИПН ${niedrigRows[0].ipn_tenge}`,
+  );
+
+  // 13d. Zugriffsschutz: eine Betriebsleitung darf lohn_monat_abzuege_
+  // berechnen() nicht aufrufen - rbac.ts/RPC-Check erlauben nur admin/
+  // buchhaltung, dieselbe Grenze wie lohn_periode_berechnen().
+  const leitung = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-leitung-lohn-kz@damicon.demo', '{"role":"betriebsleitung"}'::jsonb) returning id;`,
+  );
+  await alsRolle(db, "authenticated", leitung.rows[0].id);
+  let zugriffsFehler = null;
+  try {
+    await db.query("select * from public.lohn_monat_abzuege_berechnen(2026, 8);");
+  } catch (e) {
+    zugriffsFehler = e?.cause?.code ?? e?.code;
+  }
+  await alsAdmin(db);
+  check(
+    "Lohn-KZ: Betriebsleitung darf Monatsabzuege nicht berechnen",
+    zugriffsFehler === "42501",
+    zugriffsFehler ? `errcode: ${zugriffsFehler}` : "der Aufruf war erfolgreich",
+  );
+
+  // 13e. Ende-zu-Ende gegen echte Seed-Abrechnungen: zwei Pfluecker mit
+  // August-2026-Abrechnungen (siehe Abschnitt 10 oben, gleicher Seed-Bestand).
+  // Erwartungswert von Hand nachgerechnet fuer den ersten: Brutto 60 420 liegt
+  // unter dem Freibetrag von 129 750 - ИПН muss 0 sein, ein guter Beleg dafuer,
+  // dass die Kappung auf 0 (13c) auch im Aggregat wirkt, nicht nur isoliert.
+  const buchhaltung = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-buchhaltung-lohn-kz@damicon.demo', '{"role":"buchhaltung"}'::jsonb) returning id;`,
+  );
+  await alsRolle(db, "authenticated", buchhaltung.rows[0].id);
+  const { rows: lauf1 } = await db.query(
+    "select * from public.lohn_monat_abzuege_berechnen(2026, 8);",
+  );
+  const { rows: monatsabzuege } = await db.query(
+    `select pfluecker_id, brutto_gesamt_tenge, ipn_tenge, netto_tenge, arbeitgeberkosten_gesamt_tenge
+       from public.lohn_monatsabzuege where jahr = 2026 and monat = 8
+      order by brutto_gesamt_tenge;`,
+  );
+  const niedrigsterFall = monatsabzuege[0];
+  check(
+    "Lohn-KZ: Monatsaggregat uebernimmt die 0-ИПН-Kappung aus der reinen Funktion",
+    monatsabzuege.length === 2 &&
+      Number(niedrigsterFall.ipn_tenge) === 0 &&
+      // netto = brutto - ОПВ(10%) - ВОСМС(2%) - ИПН(0) = brutto * 0.88
+      Number(niedrigsterFall.netto_tenge) === Math.round(Number(niedrigsterFall.brutto_gesamt_tenge) * 0.88 * 100) / 100,
+    `Zeilen ${monatsabzuege.length}, ИПН ${niedrigsterFall?.ipn_tenge}, netto ${niedrigsterFall?.netto_tenge}`,
+  );
+
+  // 13f. Deterministisch wiederholbar: ein zweiter Lauf fuer denselben Monat
+  // ersetzt die Zeilen (Delete+Insert), legt keine Duplikate an - siehe
+  // Funktionskommentar "immer sicher erneut ausfuehrbar".
+  const { rows: lauf2 } = await db.query(
+    "select * from public.lohn_monat_abzuege_berechnen(2026, 8);",
+  );
+  const { rows: nachZweitemLauf } = await db.query(
+    `select count(*)::int as anzahl from public.lohn_monatsabzuege where jahr = 2026 and monat = 8;`,
+  );
+  await alsAdmin(db);
+  check(
+    "Lohn-KZ: ein zweiter Rechenlauf fuer denselben Monat legt keine Duplikate an",
+    lauf1[0].verarbeitet === lauf2[0].verarbeitet && nachZweitemLauf[0].anzahl === 2,
+    `verarbeitet ${lauf1[0].verarbeitet}/${lauf2[0].verarbeitet}, Zeilen danach ${nachZweitemLauf[0].anzahl}`,
+  );
+
+  // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
+// --- 14. Risiko-/Steueroekosystem: Werktage, ESUTD-Frist, MwSt-Schwelle -----
+// Migration 20261025000000.
+{
+  // 14a. Werktage: Freitag + 5 Werktage landet auf dem naechsten Freitag
+  // (zwei Wochenenden dazwischen), Montag + 5 auf dem naechsten Montag.
+  const { rows: werktage } = await db.query(
+    `select public.werktage_addieren('2026-09-18', 5) as freitag_plus5,
+            public.werktage_addieren('2026-09-14', 5) as montag_plus5,
+            public.werktage_addieren('2026-09-19', 1) as samstag_plus1;`,
+  );
+  const w = werktage[0];
+  check(
+    "Risiko: werktage_addieren ueberspringt Wochenenden korrekt",
+    w.freitag_plus5.toISOString().slice(0, 10) === "2026-09-25" &&
+      w.montag_plus5.toISOString().slice(0, 10) === "2026-09-21" &&
+      w.samstag_plus1.toISOString().slice(0, 10) === "2026-09-21",
+    `Fr+5 ${w.freitag_plus5.toISOString().slice(0, 10)}, Mo+5 ${w.montag_plus5.toISOString().slice(0, 10)}, Sa+1 ${w.samstag_plus1.toISOString().slice(0, 10)}`,
+  );
+
+  // 14b. MwSt-Schwelle: Zugriffsschutz - Betriebsleitung darf nicht pruefen,
+  // nur admin/buchhaltung (rbac.ts hat "stammdaten" fuer beide, aber diese
+  // RPC ist bewusst enger als crud("stammdaten") - MwSt-Registrierung ist
+  // buchhalterisch zu verantworten).
+  const leitungMwst = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-leitung-mwst@damicon.demo', '{"role":"betriebsleitung"}'::jsonb) returning id;`,
+  );
+  await alsRolle(db, "authenticated", leitungMwst.rows[0].id);
+  let mwstZugriffsFehler = null;
+  try {
+    await db.query("select * from public.mwst_schwelle_pruefen();");
+  } catch (e) {
+    mwstZugriffsFehler = e?.cause?.code ?? e?.code;
+  }
+  await alsAdmin(db);
+  check(
+    "Risiko: Betriebsleitung darf die MwSt-Schwelle nicht pruefen",
+    mwstZugriffsFehler === "42501",
+    mwstZugriffsFehler ? `errcode: ${mwstZugriffsFehler}` : "der Aufruf war erfolgreich",
+  );
+
+  // 14c. MwSt-Schwelle: Ueberschreiten erkennen, Frist berechnen, Vorgang
+  // bleibt einseitig (ein zweiter Aufruf aendert das einmal gesetzte Datum
+  // nicht mehr).
+  const buchhaltungMwst = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-buchhaltung-mwst@damicon.demo', '{"role":"buchhaltung"}'::jsonb) returning id;`,
+  );
+  await db.query(
+    `insert into public.finance_ledger_entries (typ, kategorie, betrag_tenge, buchungsdatum, beschreibung)
+     values ('erloes', 'test_schwellenpruefung', 50000000, current_date, 'Testzeile Schwellenpruefung');`,
+  );
+  await alsRolle(db, "authenticated", buchhaltungMwst.rows[0].id);
+  const { rows: schwelleLauf1 } = await db.query("select * from public.mwst_schwelle_pruefen();");
+  const { rows: schwelleLauf2 } = await db.query("select * from public.mwst_schwelle_pruefen();");
+  await alsAdmin(db);
+  const e1 = schwelleLauf1[0];
+  const e2 = schwelleLauf2[0];
+  check(
+    "Risiko: MwSt-Schwellenueberschreitung wird erkannt und die Frist stimmt",
+    e1.schwelle_ueberschritten === true &&
+      Number(e1.umsatz_12_monate_tenge) > Number(e1.schwelle_tenge) &&
+      e1.meldefrist_am !== null,
+    `Umsatz ${e1.umsatz_12_monate_tenge}, Schwelle ${e1.schwelle_tenge}, Frist ${e1.meldefrist_am}`,
+  );
+  check(
+    "Risiko: das Ueberschreitungsdatum bleibt bei einem zweiten Lauf unveraendert",
+    e1.schwelle_ueberschritten_am?.toISOString?.() === e2.schwelle_ueberschritten_am?.toISOString?.(),
+    `erster Lauf ${e1.schwelle_ueberschritten_am}, zweiter Lauf ${e2.schwelle_ueberschritten_am}`,
+  );
+
+  // 14d. Sicherheitsfund waehrend des Baus: mwst_umsatz_12_monate() darf NICHT
+  // direkt per RPC aufrufbar sein - sonst koennte jede angemeldete Rolle
+  // (auch picker/kunde) die Umsatzkennzahl abfragen, ohne die has_role()-
+  // Pruefung von mwst_schwelle_pruefen() zu durchlaufen.
+  await alsRolle(db, "authenticated", buchhaltungMwst.rows[0].id);
+  let direkterZugriffFehler = null;
+  try {
+    await db.query("select public.mwst_umsatz_12_monate();");
+  } catch (e) {
+    direkterZugriffFehler = e?.cause?.code ?? e?.code;
+  }
+  await alsAdmin(db);
+  check(
+    "Risiko: mwst_umsatz_12_monate ist nicht direkt per RPC aufrufbar",
+    direkterZugriffFehler === "42501",
+    direkterZugriffFehler ? `errcode: ${direkterZugriffFehler}` : "der Direktaufruf war erfolgreich",
+  );
+
+  // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
+// --- 15. Pflanzenschutz-Protokoll: Behandlungen bleiben nachweisbar --------
 // Die neue Protokollansicht (data/pflanzenschutz.ts) liest die Behandlungen
 // selbst statt der Reihenbloecke. Entscheidend fuer den Nachweis: eine
 // freigegebene Behandlung verschwindet nicht. In der Blocksicht ist sie
