@@ -34,6 +34,7 @@ import { ladeOffeneEsutdFristen } from "@/lib/data/esutd";
 import { ladeCompliance } from "@/lib/data/compliance";
 import { ladeKuehlkettenUebersicht } from "@/lib/data/kuehlkette";
 import { ladeSorten, ladeVerfuegbarkeit } from "@/lib/data/sortenkatalog";
+import { ladeVorbestellungen } from "@/lib/data/vorbestellungen";
 import { baueRisikoEintraege, risikoAufbereiten } from "@/lib/domain/risikoradar";
 import { moduleHref, modules } from "@/lib/modules";
 import { baueAktionen } from "@/lib/ai/aktionen";
@@ -46,6 +47,7 @@ import {
   ZIEL_MWST,
   ZIEL_RISIKO_RADAR,
   ZIEL_SORTENKATALOG,
+  ZIEL_VORBESTELLUNGEN,
 } from "@/lib/ai/ziele";
 import de from "@/messages/de.json";
 
@@ -157,6 +159,36 @@ const sortenkatalogAbrufen = tool({
         kontingentKg: z.mengeKgGesamt,
         reserviertKg: z.reserviertKgGesamt,
         freiKg: z.mengeKgGesamt - z.reserviertKgGesamt,
+      })),
+    };
+  },
+});
+
+// --- Markt: Vorbestellungen (Demo) -------------------------------------------
+// Dieselbe Ladefunktion wie das B2B-Portal (data/vorbestellungen.ts). Wer was
+// sieht, entscheidet RLS (vorbestellungen_select_kunde_buero): das Buero alle
+// Vorbestellungen, eine Kunden-Anmeldung ausschliesslich die der eigenen Firma.
+// Das Werkzeug filtert deshalb NICHT selbst - es gibt weiter, was die Sitzung
+// lesen darf, genau wie die Ansicht.
+const vorbestellungenAbrufen = tool({
+  description:
+    "Ruft die Vorbestellungen ab, die der angemeldete Nutzer sehen darf (Buero: alle Kunden, Kunde: nur die eigene Firma): je Vorbestellung Kunde, Sorte, Menge in kg, Liefertermin und Status (angefragt, bestaetigt, geliefert, storniert), dazu die Anzahl je Status. Nutze dieses Werkzeug fuer Fragen zu Vorbestellungen, Bestellstatus oder anstehenden Lieferterminen. Eine leere Liste heisst: fuer diesen Nutzer gibt es keine Vorbestellungen - dann nichts erfinden.",
+  inputSchema: leeresSchema,
+  execute: async () => {
+    const { quelle, vorbestellungen } = await ladeVorbestellungen();
+    const anzahlJeStatus: Record<string, number> = {};
+    for (const v of vorbestellungen) anzahlJeStatus[v.status] = (anzahlJeStatus[v.status] ?? 0) + 1;
+    return {
+      ziel: ZIEL_VORBESTELLUNGEN,
+      quelle,
+      anzahl: vorbestellungen.length,
+      anzahlJeStatus,
+      vorbestellungen: vorbestellungen.map((v) => ({
+        kunde: v.kunde,
+        sorte: v.sorte,
+        mengeKg: v.mengeKg,
+        liefertermin: v.liefertermin,
+        status: v.status,
       })),
     };
   },
@@ -300,6 +332,7 @@ export function baueWerkzeuge(
     ...(hasPermission(rolle, "compliance", "view") ? { complianceUebersichtAbrufen } : {}),
     ...(hasPermission(rolle, "kuehlkette", "view") ? { kuehlketteAbrufen } : {}),
     ...(hasPermission(rolle, "sortenkatalog", "view") ? { sortenkatalogAbrufen } : {}),
+    ...(hasPermission(rolle, "b2b_portal", "view") ? { vorbestellungenAbrufen } : {}),
     // Das zusammenfassende Werkzeug braucht mindestens eine der drei
     // Rechtsgrundlagen - sonst haette es ohnehin nichts zu zeigen.
     ...(hasPermission(rolle, "stammdaten", "view") ||
