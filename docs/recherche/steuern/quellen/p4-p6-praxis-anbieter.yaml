@@ -1,0 +1,1209 @@
+# Quellenregister P4/P6: Praktiker-Wissensquellen, Anbieter-Teardown, verifizierte Preise
+#
+# Rechercheeinheit: P4 Praktiker, P6 Anbieter-Teardown, plus uebergreifender Auftrag
+# "verifizierte Preise" (Abschnitt A). Format gemaess quellenregister-schema.yaml
+# (schema_version 1). Stand der Recherche: 2026-09-18.
+#
+# Methodik-Hinweis: Preise wurden, wo moeglich, per WebFetch direkt von der
+# Anbieter-Preisseite gelesen (nicht aus Suchergebnis-Schnipseln uebernommen).
+# WebSearch stand nur fuer einen Teil der Recherche zur Verfuegung (Budget wird von
+# allen parallelen Rechercheeinheiten gemeinsam verbraucht und war ab ca. der Haelfte
+# dieser Sitzung erschoepft); der Rest der Recherche laeuft ueber WebFetch auf konkret
+# geratene/gefundene URLs. Wo das zu Luecken fuehrte, ist das im jeweiligen notiz-Feld
+# offen vermerkt statt stillschweigend uebersprungen.
+#
+# Schema-Beobachtung fuer die Schema-Pflege: kosten.periode kennt nur jahr, einmalig,
+# pro_dokument, null. Mehrere Anbieter (asistent.kz, itsheff.kz, iDocs) fakturieren
+# jedoch monatlich. Diese Faelle sind unten mit periode: null und der echten Kadenz im
+# notiz-Feld gefuehrt, um keine falschen Jahreswerte zu erfinden.
+
+# ============================================================
+# ABSCHNITT A: VERIFIZIERTE PREISE (Kernauftrag)
+# ============================================================
+
+- id: prg-buhgalter-tarife
+  name: "ISS Paragraf, Modul Buchhalter (PRG.BUHGALTER)"
+  name_original: "ИС Параграф - Бухгалтер (PRG.BUHGALTER)"
+  herausgeber: "TOO Infotech&Service (Marke PRG / Paragraf), online.zakon.kz"
+  url: "https://prg.kz/accounter_info/buh_price/"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: bezahlt
+  kosten:
+    betrag: 237000
+    waehrung: KZT
+    periode: jahr
+    verifiziert: true
+    beleg_url: "https://prg.kz/accounter_info/buh_price/"
+  aktualisierung: unbekannt
+  abdeckung: >
+    Rechts- und Praxisdatenbank fuer Buchhalter (Buchhaltung, Steuern, IFRS in RK) mit
+    drei Stufen: BIN+ (98400 KZT Bestandskunde / 108000 KZT Neukunde, 2 schriftliche +
+    3 telefonische Auskuenfte/Woche, 20 Webinare), SILVER+ (165600/183000 KZT, 3+4
+    Auskuenfte/Woche, 36 Webinare), GOLD+ (237000/261000 KZT, 5+6 Auskuenfte/Woche, 48
+    Webinare, plus Gerichtsdatenbank und Vertragsgenerator). Alle Stufen inkl. 1C-Videos,
+    Online-Rechner, persoenlicher Kundenbetreuer.
+  beschaffung: >
+    Abo-Kauf direkt auf prg.kz/online.zakon.kz, Zahlung per Karte, Terminal oder
+    Internet-Karte. Kostenloser 3-Tage-Testzugang bestaetigt: Start unter
+    https://lp.prg.kz/three-day-access/, waehrend der Testphase mit BIN+-Funktionsumfang.
+    Telefon +7 (727) 222-21-01, info@prg.kz.
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: >
+    Reine Preis-/Marketingseite, kein Fliesstext mit Rechtsinhalt. Fuer RAG irrelevant,
+    fuer das Preisregister des Projekts aber die primaere Belegstelle.
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Alter/neuer-Kunde-Rabatt ca. 9 Prozent. "Bestandskunde"-Preis als betrag gewaehlt,
+    da realistischer Wiederkaufspreis; Neukundenpreis siehe abdeckung. Bezieht sich nur
+    auf das Modul Buchhalter, nicht auf das separate Modul Jurist (siehe
+    prg-zanger-tarife) oder Buchhalter-Praktikum (siehe prg-buh-praktikum-service).
+
+- id: prg-zanger-tarife
+  name: "ISS Paragraf, Modul Jurist (PRG.ZANGER)"
+  name_original: "ИС Параграф - Юрист (PRG.ZANGER)"
+  herausgeber: "TOO Infotech&Service (Marke PRG / Paragraf)"
+  url: "https://prg.kz/lawyer/"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: bezahlt
+  kosten:
+    betrag: 840000
+    waehrung: KZT
+    periode: jahr
+    verifiziert: true
+    beleg_url: "https://prg.kz/lawyer/"
+  aktualisierung: unbekannt
+  abdeckung: >
+    Juristische Variante derselben Plattform, deutlich teurer als das Buchhalter-Modul:
+    MASTER (840000/1050000 KZT Bestand/Neu, ca. 17,48 Mio. Dokumente inkl. Rechtsprechung),
+    STROJMASTER (1100400/1312800 KZT, plus normativ-technische Dokumentation),
+    JURIST-VIP (1260000/1470000 KZT, plus GUS-weite Gesetzgebung aus neun Staaten).
+    Inklusive PRG.KOMEK, PRG.EDO, PRG.TEKSER, 20 Webinare, 6 Videoseminare.
+  beschaffung: "Abo-Kauf wie prg-buhgalter-tarife. Kein Testzugang auf dieser Seite dokumentiert."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Reine Preisseite, kein inhaltlicher Rechtstext."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Fuer ein Agri-ERP-Projekt vermutlich nicht das relevante Modul (zu breit, zu teuer);
+    aufgefuehrt weil im Auftrag ausdruecklich als Preispunkt genannt.
+
+- id: prg-buh-praktikum-service
+  name: "ISS Paragraf, Buchhalter-Praktikum (bezahlte Einzelauskuenfte)"
+  name_original: "ИС Параграф - Бухгалтер-Практикум"
+  herausgeber: "TOO Infotech&Service (Marke PRG / Paragraf)"
+  url: "https://prg.kz/BuhMain.aspx/"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: auf_anfrage
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: pro_dokument
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Bezahlter Einzelservice neben dem Abo: schriftliche Auskuenfte zu Buchhaltung,
+    Steuern, Arbeitsrecht, Staatsbeschaffung; Erstellung einer Rechnungslegungspolitik
+    fuer das konkrete Unternehmen; Pruefung einer bestehenden Rechnungslegungspolitik auf
+    Gesetzeskonformitaet.
+  beschaffung: "Bestellung ueber online.zakon.kz/PayCons.aspx bzw. prg.kz; Preis nicht oeffentlich gelistet."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "Reine Bestellstrecke ohne Inhalt."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    KEIN VERIFIZIERTER PREIS AUFFINDBAR. Zwei direkte Abrufversuche der Preisseite
+    (online.zakon.kz/PayCons.aspx, prg.kz/PayCons.aspx) endeten in Weiterleitung bzw.
+    404. Empfehlung: Preis per Telefon/Chat erfragen (+7 727 222-21-01) statt zu schaetzen,
+    da Einzelauskuenfte erfahrungsgemaess stark fallabhaengig bepreist werden.
+
+- id: uchet-kz-podpiska-tarife
+  name: "Portal Utschjot, Jahresabo"
+  name_original: "Портал Учёт (uchet.kz) - Подписка"
+  herausgeber: "TOO Utschjot (uchet.kz)"
+  url: "https://uchet.kz/podpiska/"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: bezahlt
+  kosten:
+    betrag: 130000
+    waehrung: KZT
+    periode: jahr
+    verifiziert: true
+    beleg_url: "https://uchet.kz/podpiska/"
+  aktualisierung: unbekannt
+  abdeckung: >
+    Praktikerportal mit drei Einzeltarifen (netto, ohne MwSt): PRAKTIK 130000 KZT/Jahr
+    (2 schriftliche + 1 telefonische Auskunft/Woche, 30h Fortbildung), MASTER 163800 KZT
+    (5+3/Woche, 40h, Gegenparteipruefung 100 Abfragen), EKSPERT 241500 KZT (10 KI-gestuetzte
+    + 10 telefonische + 10 juristische Auskuenfte/Woche, 50h, 500 Abfragen, Staatsbeschaffungs-
+    Modul). Firmentarife ab 5 Nutzern: Praktik+ 260000, Master+ 296100, Ekspert+ 371000 KZT.
+    Zusatz: reiner Lesezugang "Specialist" 72000 KZT/Jahr, digitaler Steuerkodex 10000 KZT/Jahr.
+  beschaffung: "Direktkauf ueber uchet.kz/podpiska/. Kein kostenloser Testzugang auf der Preisseite dokumentiert."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Preistabelle ohne Rechtsinhalt."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Alle Tarife enthalten Mitgliedschaft im Berufsverband POB "Utschjot". Mittlerer
+    Tarif (Master) inkl. einem Exemplar des gedruckten Steuerkodex 2026. Kein Trial
+    gefunden - anders als bei Paragraf (3 Tage) und Assistent (3 Tage).
+
+- id: uchet-kz-konferenz-buhgalter2026
+  name: "Konferenz Buchhalter-2026: Neue Steuern und Digitalisierung"
+  name_original: "Конференция «Бухгалтер-2026: Новые налоги и цифровизация»"
+  herausgeber: "TOO Utschjot (uchet.kz)"
+  url: "https://uchet.kz/conf/bukhgalter-2026-novye-nalogi-i-tsifrovizatsiya.html"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: unbekannt
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: einmalig
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: statisch
+  abdeckung: >
+    Flaggschiff-Konferenz von uchet.kz zum neuen Steuerkodex; Haupttermin war
+    2025-11-11 im Republikpalast Almaty (ueber 2500 Praesenz-, ueber 5000
+    Online-Teilnehmer laut Ankuendigungstext). Weitere Ausgaben/Ableger unter dem Namen
+    "Bukhgalter-2026" und Online-Folgeformate wurden angekuendigt, z.B. zu "16 Prozent
+    MwSt - Spielregeln und Fallstricke fuer Unternehmen".
+  beschaffung: "Anmeldung/Ticketkauf ueber uchet.kz bzw. ticketon.kz."
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: "Eventseite, kein stabiler Rechtsinhalt; bei Abruf lieferte die Konferenz-Detailseite einen serverseitigen PHP-Fehler statt Inhalt."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    KEIN VERIFIZIERTER TICKETPREIS. Ein Suchergebnis-Schnipsel nannte "220000 KZT statt
+    241500 KZT" fuer einen "Experte"-Tarif, das deckt sich aber verdaechtig genau mit dem
+    Ekspert-Abotarif von uchet-kz-podpiska-tarife und wurde direkt per WebFetch NICHT
+    bestaetigt (Seite lieferte einen Fehler: "Call to a member function getValue() on
+    null"). Zahl daher bewusst NICHT uebernommen, um keine Verwechslung Abopreis/
+    Ticketpreis ins Register zu tragen. Fuer eine belastbare Zahl muesste die Seite zu
+    einem Zeitpunkt mit aktiver Konferenzausschreibung erneut abgerufen werden.
+
+- id: mybuh-kz-tarife
+  name: "MyBuh.kz, Buchhaltungs-/Beratungsdienstleistungen"
+  name_original: "MyBuh.kz - тарифы и услуги"
+  herausgeber: "TOO MyBuh.kz, Almaty"
+  url: "https://mybuh.kz/tarif/"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: bezahlt
+  kosten:
+    betrag: 5000
+    waehrung: KZT
+    periode: pro_dokument
+    verifiziert: true
+    beleg_url: "https://2gis.kz/almaty/firm/70000001028535174/tab/prices"
+  aktualisierung: unbekannt
+  abdeckung: >
+    Outsourcing- und Beratungsanbieter mit drei sichtbaren Preispunkten: Buchhalter-
+    Beratung ab 5000 KZT (fallabhaengig), Formular 910 online einreichen ab 14900 KZT,
+    "Persoenlicher Buchhalter" (laufendes Outsourcing) ab 50000 KZT. Daneben ein separates
+    Selbstbedienungsprodukt "Business-Pomoschtschnik" (Formulare 910/200/250 direkt an die
+    Steuerbehoerde) mit 3-Tage-Testzugang.
+  beschaffung: >
+    Preise fuer die Kernservices direkt auf mybuh.kz/tarif/ zwar als Seite vorhanden,
+    aber die konkreten Zahlen wurden dort clientseitig (vermutlich Bitrix24-Widget) nicht
+    ausgeliefert; die hier gefuehrten Zahlen stammen aus der 2GIS-Preisliste des
+    Unternehmens. Business-Pomoschtschnik: 3 Tage kostenlos testen unter mybuh.kz/bookkeeping/.
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: "Preisdaten nur ueber Drittanbieter-Listing (2GIS) maschinell greifbar, nicht ueber die eigene Seite."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    SCHAETZUNG fuer "Business-Pomoschtschnik": Web-Suchergebnisse (nicht per WebFetch
+    bestaetigt) nannten 6500-8000 KZT/Monat fuer das Selbstbedienungsprodukt; dieser Wert
+    ist NICHT verifiziert und fehlt daher bewusst im kosten-Block. Die verifizierten
+    Zahlen oben betreffen die klassischen Beratungs-/Outsourcing-Dienstleistungen, nicht
+    das Software-Abo.
+
+- id: cdb-kz-tarife
+  name: "Zentrales Buchhalterhaus, Informationssystem / Buchhalter-Bibliothek"
+  name_original: "Центральный дом бухгалтера (CDB.KZ) - Подписка на ИС"
+  herausgeber: "TOO CDB.KZ (Zentrales Buchhalterhaus)"
+  url: "https://cdb.kz/sistema/tarify/"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: bezahlt
+  kosten:
+    betrag: 89000
+    waehrung: KZT
+    periode: jahr
+    verifiziert: true
+    beleg_url: "https://cdb.kz/sistema/tarify/"
+  aktualisierung: unbekannt
+  abdeckung: >
+    Informationssystem fuer Buchhalter nach "alles inklusive"-Prinzip: taegliche
+    Fachberatung, "smarte" Tools, unbegrenzte Webinare, Praxisartikel mit Berechnungs-
+    beispielen, aktuelle Formulare/Gesetzestexte. Drei Stufen: Optimal 89000 KZT, Standard
+    149000 KZT, Alles-inklusive 169000 KZT (Bestseller). Unterschiede u.a. in Auskunfts-
+    frequenz (3x/Woche bis taeglich), Telefonberatung (1-3x/Woche), Fortbildungsstunden
+    (30-60h), Geschenk "Steuerkodex 2027".
+  beschaffung: "Anfrageformular auf cdb.kz/subscription/ispodpiska/ bzw. direkter Kauf auf der Tarifseite. Kein Trial dokumentiert."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Preistabelle; die separate 'Buchhalter-Bibliothek' (Artikel/Formulare) ist inhaltlich staerker, aber hinter dem gleichen Abo verborgen."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Periode "jahr" plausibel angenommen (Formulierung "Abo fuer ein Jahr" auf verwandten
+    Seiten, Fortbildungsstunden und Geschenk-Kodex sind Jahresgroessen), auf der
+    Preisseite selbst aber nicht explizit als Jahreszahl beschriftet - kleine
+    Restunsicherheit.
+
+- id: mcfr-glavbuh-kasachstan-tarife
+  name: "MZFER Hauptbuchhalter Kasachstan / ACTUALIS: Glavbuh"
+  name_original: "МЦФЭР Главбух Казахстан / Actualis: Главбух"
+  herausgeber: "MZFER-Kasachstan / Aktion-MZFER (actgr.kz)"
+  url: "https://actgr.kz/systems/1gl"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: bezahlt
+  kosten:
+    betrag: 108000
+    waehrung: KZT
+    periode: jahr
+    verifiziert: true
+    beleg_url: "https://actgr.kz/systems/1gl"
+  aktualisierung: unbekannt
+  abdeckung: >
+    Nachschlagesystem fuer Buchhalter mit Rechtsdatenbank, Musterdokumenten, Experten-
+    antworten ("garantiert richtige Antwort auf jede Buchhaltungsfrage", 24/7 Support,
+    persoenlicher Experte). Drei Tarife pro Jahr: SNR (Sonder-Steuerregime) ab 108000 KZT,
+    Standard ab 108000 KZT, VIP ab 181920 KZT. "Ab"-Preise, da laufend Rabattaktionen
+    (bis 50 Prozent bei frueher Anmeldung) beworben werden.
+  beschaffung: "Antrag auf kostenlosen Zugang ('Zajavka na besplatnyj dostup') moeglich; sonst Direktkauf ueber actgr.kz. Portal buh.mcfr.kz selbst zeigt keine Preise, verweist auf actgr.kz."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Preisseite ohne Rechtsinhalt."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    "Ab"-Preise sind Rabattpreise, kein Listenpreis ohne Aktion gefunden. Die VIP-
+    Domain-Weiterleitung (vip-glavbuh.mcfr.kz -> glavbuh.mcfr.kz -> Cookie-Sync-Seite)
+    verhinderte einen zweiten Bestaetigungsabruf; actgr.kz/systems/1gl bleibt der
+    tragfaehige Beleg. Separater Telegram-Kanal @buh_mcfr siehe telegram-mcfr-glavbuh-kanal.
+
+- id: onec-its-kasachstan-tarife
+  name: "1C:ITS Kasachstan, Informationstechnologische Begleitung"
+  name_original: "1С:ИТС Казахстан"
+  herausgeber: "1C:Pervyj Bit Kasachstan (1cbit.kz), autorisierter 1C-Partner"
+  url: "https://www.1cbit.kz/its/"
+  perspektiven: [P4, P6]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: bezahlt
+  kosten:
+    betrag: 169000
+    waehrung: KZT
+    periode: jahr
+    verifiziert: true
+    beleg_url: "https://www.1cbit.kz/its/"
+  aktualisierung: unbekannt
+  abdeckung: >
+    Pflicht-Supportvertrag fuer produktive 1C-Installationen (Updates, Konsultations-
+    hotline, Sicherungen). Fuenf Stufen, je 6/12 Monate, 12-Monats-Neukundenpreis in
+    Klammern: ITS Ekonom 89700/169000 KZT, ITS Standard 116000/216000 KZT, ITS Biznes
+    164000/312000 KZT, ITS Premium 403500/671500 KZT, ITS Budget Standard (fuer
+    Haushaltsorganisationen) 89700/169000 KZT. Bestandskunden-Verlaengerung ist jeweils
+    guenstiger als der Neukundenpreis.
+  beschaffung: "Kauf ueber 1cbit.kz oder jeden anderen 1C-Franchise-Partner (z.B. itsheff.kz, c-prof.kz), Preise sind zwischen Partnern kartelliert/empfohlen und variieren kaum."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Preistabelle. Fuer den Objektmodell-Teardown relevanter ist its.1c.kz, siehe onec-its-portal-dokumentation."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Ohne aktives ITS verliert die 1C-Installation Updateberechtigung und Zugriff auf
+    its.1c.kz-Inhalte - das ITS ist damit faktisch auch die Bezahlschranke fuer die unter
+    onec-its-portal-dokumentation beschriebene Konfigurationsdokumentation.
+
+- id: pro1c-kz-tarif
+  name: "PRO1C, Informations- und Analyseportal fuer 1C-Anwender"
+  name_original: "Информационно-аналитический портал PRO1C"
+  herausgeber: "1C-Netzwerk Kasachstan (Betrieb ueber stsl.kz / 1C-Franchisenehmer)"
+  url: "https://1c.kz/news/detail/172583/"
+  perspektiven: [P4, P6]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: bezahlt
+  kosten:
+    betrag: 96000
+    waehrung: KZT
+    periode: jahr
+    verifiziert: true
+    beleg_url: "https://1c.kz/news/detail/172583/"
+  aktualisierung: taeglich
+  abdeckung: >
+    Praxisportal speziell fuer 1C-Anwender und Steuerberater: ueber 5000 Fachbeitraege,
+    Wissensdatenbank/Enzyklopaedie, "Buchhalter-Bibliothek". Regulaerpreis 96000 KZT fuer
+    12 Monate; zum Abrufzeitpunkt lief eine dokumentierte Rabattaktion auf 72000 KZT
+    (25 Prozent, befristet 12.-19.12.2025, zum Abrufdatum 2026-09-18 bereits abgelaufen).
+  beschaffung: "Zugang ueber pro1c.kz, Abo-Abschluss ueber stsl.kz/catalog/pro1c/ oder Partnernetzwerk der 1C-Franchisenehmer."
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: "pro1c.kz selbst lieferte bei Direktabruf 404; Preisbeleg stammt aus einer 1c.kz-Partnernews-Meldung."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "96000 KZT/Jahr ist der aktuelle Regulaerpreis; 72000 KZT war eine befristete Dezember-2025-Aktion und nicht mehr gueltig."
+
+- id: iris-kz-tarife
+  name: "IRIS, Nationaler Unternehmerverband - Abo-Pakete"
+  name_original: "IRIS (Национальная ассоциация бизнеса) - тарифы"
+  herausgeber: "Nationale Unternehmensassoziation (NAB), iris.kz"
+  url: "https://iris.kz/tariffs/"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: bezahlt
+  kosten:
+    betrag: 100000
+    waehrung: KZT
+    periode: jahr
+    verifiziert: true
+    beleg_url: "https://iris.kz/tariffs/"
+  aktualisierung: unbekannt
+  abdeckung: >
+    Verbandsportal mit Fachinhalten und Seminarzugang fuer Steuer-/Zoll-/Finanz-/HR-
+    Fachleute. Fuenf Jahrespakete: STANDARD 100000 KZT (250000 KZT fuer Berater-/Bildungs-
+    organisationen; 1 Nutzer, 1 Mailingliste), PAKET-1 200000 KZT (+1 Seminarplatz im
+    40000-KZT-Segment), PAKET-2 700000 KZT (3 Nutzer), PAKET-3 1000000 KZT (5 Nutzer,
+    "beliebtestes" Paket), PAKET-4 2000000 KZT (unbegrenzte Nutzer, fuer Grossunternehmen).
+  beschaffung: "Kontakt pob@nab.kz, +7 727 972 32 95 / +7 708 972 32 95. Kein Online-Self-Checkout, kein Trial gefunden."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Preistabelle ohne Rechtsinhalt."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Deutlich teurer strukturiert als uchet.kz/cdb.kz/Paragraf - Zielgruppe wirkt eher Unternehmen/Verbaende als Einzelbuchhalter."
+
+- id: asistent-kz-tarife
+  name: "Asistent.kz, Elektronischer Buchhalter (Assistant.kz)"
+  name_original: "Электронный бухгалтер asistent.kz"
+  herausgeber: "TOO Asistent.kz"
+  url: "https://asistent.kz/?scroll=p_tarifs"
+  perspektiven: [P4, P6]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: bezahlt
+  kosten:
+    betrag: 16666
+    waehrung: KZT
+    periode: null
+    verifiziert: true
+    beleg_url: "https://asistent.kz/?scroll=p_tarifs"
+  aktualisierung: unbekannt
+  abdeckung: >
+    Selbstbedienungs-Software fuer Steuermeldungen (Formulare 200, 910, 870, 300),
+    ausgehende Belege, Einnahmen/Ausgaben, Schuldenpruefung. Drei nach Steuerregime
+    gestaffelte Monatstarife: "Uproschtschonka" (vereinfachtes Regime) 16666 KZT/Monat,
+    "Obschtschi rezhim" (allgemeines Regime) 26666 KZT/Monat, "NDS" (MwSt-Tarif, inkl.
+    Formular 300) 41666 KZT/Monat. Quartalspreise mit Gratismonat: 200000 / 320000 /
+    500000 KZT. Einzelleistungen: Formular 910 oder 200 ausfuellen 10000 KZT, ausfuellen +
+    einreichen 20000 KZT.
+  beschaffung: "Kostenloser Test: https://web.asistent.kz/ru/register/ (3 Tage laut Landingpage 'Probieren Sie unseren Service absolut kostenlos fuer 3 Tage'). Zahlung per Karte, Rechnung, Kaspi, Ratenkauf 0-0-4 Monate."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Preistabelle; fuer den Objektmodell-Teardown relevant ist die Formular-zentrierte Struktur (200/910/870/300 als Kernobjekte statt klassischer Kontenrahmen), siehe notiz."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    periode=null, weil Monatspreis (Schema kennt nur jahr/einmalig/pro_dokument);
+    Originalkadenz ist monatlich mit Quartalsoption. Dient im Register zugleich als
+    Vendor-Teardown-Eintrag fuer "Assistant.kz" aus Auftragsteil C: Das Produkt modelliert
+    Steuerpflicht ueber die amtlichen Meldeformulare (910/200/870/300) als zentrale
+    Objekte statt ueber einen vollstaendigen Kontenplan - ein einfacheres, formularzentriertes
+    Gegenmodell zu 1C:Buchhaltung.
+
+- id: itsheff-kz-1c-online-tarife
+  name: "ITSheff, 1C Online / 1C Hosting / 1C Fresh"
+  name_original: "ITSheff - 1С Онлайн, 1С Хостинг, 1С Фреш"
+  herausgeber: "TOO ITSheff.kz, 1C-Partner ('1C-Programmiete' seit 2011)"
+  url: "https://itsheff.kz/1c-online/tarifi/"
+  perspektiven: [P4, P6]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: bezahlt
+  kosten:
+    betrag: 5250
+    waehrung: KZT
+    periode: null
+    verifiziert: true
+    beleg_url: "https://itsheff.kz/1c-online/tarifi/"
+  aktualisierung: unbekannt
+  abdeckung: >
+    Cloud-Hosting fuer 1C-Konfigurationen (u.a. 1C:Buchhaltung fuer Kasachstan). 1C
+    Online Basis ab 5250 KZT/Monat (2 Sitzungen, 2 Datenbanken, 1 Konfiguration, inkl.
+    ESF/EAWR/SONO-Einrichtung, 2 Buchhaltungskonsultationen/Monat), Erweitert ab 10000
+    KZT/Monat (5 Sitzungen, 10 Datenbanken, alle Konfigurationen); sitzungsbasiert 8700
+    KZT/Sitzung/Monat. 1C Hosting nutzerbasiert 3900 KZT/Nutzer/Monat. 1C Fresh 8900
+    KZT/Monat.
+  beschaffung: "14 Tage kostenlos testen ('14 dnej v podarok') bei Neuregistrierung, laut Preisseite direkt buchbar."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Preistabelle ohne Rechtsinhalt."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "periode=null, da Monatspreis; Schema kennt keine Monatskadenz. Guenstigster verifizierter Einstiegspreis fuer 1C-Zugriff im gesamten Preisregister."
+
+- id: almaty-steuerberater-honorar-marktbeobachtung
+  name: "Marktbeobachtung: Honorar fuer schriftliche Steuerauskunft, Almaty"
+  name_original: "Стоимость письменной консультации налогового консультанта, Алматы"
+  herausgeber: "Marktplaetze (Profi.kz, Naimi.kz) und Einzelanbieter (GB Consult, Proaccounting)"
+  url: "https://profi.kz/geo-alm/buhgaltery_i_yuristy/nalogovaja_konsul_tatsija_dlja_ip/"
+  perspektiven: [P4]
+  autoritaetsstufe: 5
+  sprachen: [ru]
+  zugang: auf_anfrage
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: pro_dokument
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Kein einzelner Marktpreis fuer eine schriftliche Steuerauskunft (schriftliches
+    Gutachten) auffindbar; Preisbildung ist individuell. Mass fuer die untere Grenze
+    einfacher (nicht schriftlicher) Beratung: Marktplatz-Angebote nennen "ab 2010 KZT"
+    bis "ab 5000 KZT je nach Komplexitaet" fuer eine allgemeine Steuerberatungssitzung.
+    Anbieter mit expliziten schriftlichen Gutachten (z.B. GB Consult) geben keinen
+    Festpreis, sondern "der Preis haengt von der zu loesenden Aufgabe ab", mit
+    kostenloser 20-Minuten-Erstanalyse.
+  beschaffung: "Direktkontakt zu Einzelkonsultanten ueber Profi.kz/Naimi.kz oder Kanzleien wie GB Consult, Proaccounting; Angebot idR nach kurzer Bedarfsklaerung."
+  maschinell_abrufbar: true
+  rag_eignung: ungeeignet
+  rag_hinweis: "Marktplatz-Snippets, kein stabiler Inhalt, hohe Streuung zwischen Anbietern."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    KEIN VERIFIZIERTER FESTPREIS fuer die spezifisch angefragte Leistung ("schriftliches
+    Gutachten"). Das Projekt sollte diesen Preis bei Bedarf per Direktanfrage bei 2-3
+    Almaty-Kanzleien einholen, statt den hier genannten Bereich (2000-5000 KZT) als
+    Gutachtenpreis misszuverstehen - dieser Bereich gilt nachweislich nur fuer kurze
+    muendliche/Chat-Beratung, nicht fuer ein ausformuliertes schriftliches Gutachten.
+
+# ============================================================
+# ABSCHNITT B: PRAKTIKER-WISSENSQUELLEN
+# ============================================================
+
+- id: forum-zakon-kz-buchhalterforum
+  name: "Kasachstanisches Rechtsforum, Unterforum Buchhalter und Steuerzahler"
+  name_original: "КАЗАХСТАНСКИЙ ЮРИДИЧЕСКИЙ ФОРУМ - Форум бухгалтеров и налогоплательщиков"
+  herausgeber: "zakon.kz"
+  url: "https://forum.zakon.kz/forum/209-%D1%84%D0%BE%D1%80%D1%83%D0%BC-%D0%B1%D1%83%D1%85%D0%B3%D0%B0%D0%BB%D1%82%D0%B5%D1%80%D0%BE%D0%B2-%D0%B8-%D0%BD%D0%B0%D0%BB%D0%BE%D0%B3%D0%BE%D0%BF%D0%BB%D0%B0%D1%82%D0%B5%D0%BB%D1%8C%D1%89%D0%B8%D0%BA%D0%BE%D0%B2/"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: woechentlich
+  abdeckung: >
+    Aktives Praktikerforum, 676 Themen im Buchhalter-Unterforum, Beitraege bis in den
+    Berichtszeitraum September 2024 bis Anfang 2026 hinein sichtbar. Diskutiert konkrete
+    2026er Randfaelle, z.B. Besteuerung von Uebersetzungstaetigkeit und YouTube-Einkommen
+    "im Jahr 2026" statt nur Presseerklaerungen zu wiederholen.
+  beschaffung: "Lesen ohne Anmeldung moeglich; Schreiben/Antworten erfordert Registrierung."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: >
+    Thread-strukturiert (Frage + Antworten), passt zum Schnittmuster "ein Thread" aus
+    rag-ingest-spezifikation.md. Inhalte sind Praktiker-Meinungen ohne Gewaehr, NIE als
+    alleiniger Beleg fuer autoritaetsstufe 1/2-Aussagen verwenden, nur als Spur.
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Fruehere separate buhforum.zakon.kz ist als Archiv gekennzeichnet und wurde in dieses Hauptforum ueberfuehrt."
+
+- id: bb-f2-kz-forum
+  name: "Forum der Steuerzahler und Buchhalter Kasachstans (f2.kz)"
+  name_original: "Форум налогоплательщиков и бухгалтеров Казахстана - bb.f2.kz"
+  herausgeber: "f2.kz"
+  url: "http://bb.f2.kz/ru/nalog-buh/"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Aelteres, spezialisiertes Forum mit Unterbereichen zu SGDS/SONO, Steuerzahler-
+    Kabinett, IS Deklarant, 1C-Forum und Steuergesetzgebung. Laut Themenliste seit langem
+    etablierter Treffpunkt fuer 1C- und Meldeformular-Praxisfragen.
+  beschaffung: "Oeffentlich lesbar laut Linkstruktur."
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: "Server lieferte bei zwei unabhaengigen Abrufversuchen HTTP 503; Inhalt konnte in dieser Recherche nicht direkt gelesen werden."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    NICHT VERIFIZIERT, ob das Forum noch aktiv gepflegt wird - Design/URL-Struktur wirkt
+    aelter (vgl. balans.kz-Verweise in den Themen). Vor Aufnahme in den produktiven
+    Korpus pruefen, ob die Seite ueberhaupt noch erreichbar und aktuell ist.
+
+- id: itco-union-account-kz-forum
+  name: "Verband der Buchhalter und Buchhaltungsorganisationen Kasachstans, Forum"
+  name_original: "Союз бухгалтеров и бухгалтерских организаций Казахстана - форум (itco.kz / union-account.kz)"
+  herausgeber: "Verband der Buchhalter und Buchhaltungsorganisationen Kasachstans"
+  url: "https://www.union-account.kz/forum/?PAGE_NAME=topic_new&FID=1"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: unbekannt
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Forum des Berufsverbands (Standorte Almaty und Astana), Teil eines groesseren
+    Verbandsangebots mit persoenlichem Konto, Stellenboerse und Veranstaltungen.
+    Inhaltliche Aktivitaet des Forums selbst in dieser Recherche nicht pruefbar.
+  beschaffung: "Kontakt: nazarenko@union-account.kz (Almaty), souz_astana@mail.ru (Astana), Tel. 8 705 728-15-55."
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: "itco.kz lieferte beim Abruf 'self signed certificate' (TLS-Fehler) - Seite ist mit Standard-HTTP-Tools nicht zuverlaessig erreichbar."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Domain existiert in zwei Varianten (itco.kz und union-account.kz) fuer denselben
+    Verband. TLS-Problem bei itco.kz ist ein handfester Zugangshuerden-Befund fuer die
+    Beschaffungsspalte, kein Rechercheversagen.
+
+- id: telegram-uchet-kz-kanal
+  name: "Telegram-Kanal Utschjot.kz"
+  name_original: "Telegram: uchet_kz"
+  herausgeber: "TOO Utschjot (uchet.kz)"
+  url: "https://t.me/s/uchet_kz"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: taeglich
+  abdeckung: >
+    Aktiver Kanal, 13700 Abonnenten (Stand Abrufdatum). Themen im Beobachtungsfenster:
+    Unterhaltspfaendung vom Lohn, Insolvenzverfahren, KKM-Kassenpflicht ab 2026-09-19,
+    Mindestlohn-Diskussion 2027, vereinfachte IP-Schliessung, RUECKWIRKENDE
+    Steuerkodex-Aenderungen zum 2026-01-01, digitaler Tenge fuer Einfuhr-MwSt,
+    Grenzverkehr China. Bewirbt eine Jubilaeumskonferenz am 10. November.
+  beschaffung: "Oeffentlicher Kanal, ueber t.me/uchet_kz bzw. Telegram-App abonnierbar, Web-Vorschau frei lesbar."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: >
+    Web-Vorschau (t.me/s/...) liefert die juengsten Posts als lesbares HTML - grundsaetzlich
+    per HTTP abrufbar, aber nur ein rollendes Fenster (kein vollstaendiges Archiv ohne
+    Telegram-Client/API). Diskutiert nachweislich konkrete 2026er Randfaelle, nicht nur
+    Pressemeldungen - einer der ergiebigsten Praktikerkanaele in dieser Recherche.
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Bester der drei im Auftrag genannten Telegram-Kandidaten; die anderen beiden Kanalnamen liessen sich nicht sicher verifizieren, siehe telegram-buchhalter-kanaele-unklar."
+
+- id: telegram-mcfr-glavbuh-kanal
+  name: "Telegram-Kanal MZFER Glavbuh"
+  name_original: "Telegram: МЦФЭР - ГлавБух (@buh_mcfr)"
+  herausgeber: "MZFER-Kasachstan"
+  url: "https://t.me/s/buh_mcfr"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: woechentlich
+  abdeckung: >
+    690 Abonnenten (Stand Abrufdatum), deutlich kleiner als uchet_kz. Inhalte:
+    Vergueutungsbuchhaltung, Vermoegenserklaerungen, Reisekosten, 1C-Einfuehrung,
+    Vertragsmuster, Lohnsteuerberechnung, interne Revision, NGO-Buchhaltung. Bewirbt
+    kostenlose Webinare "Neuer Steuerkodex 2026: Uebergangsstrategie" mit Vertretern des
+    Haushaltsausschusses.
+  beschaffung: "Oeffentlicher Kanal, Web-Vorschau frei lesbar. Kontakt bm6@mcfr.kz."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: "Wie telegram-uchet-kz-kanal per Web-Vorschau lesbar, nur begrenztes rollendes Fenster."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Diskutiert 2026-Uebergang aktiv (eigene Webinar-Reihe), wenn auch mit kleinerer Reichweite als uchet_kz."
+
+- id: telegram-buchhalter-kanaele-unklar
+  name: "Nicht sicher verifizierte Telegram-Kanaele (Buchgalter RK, 1C w Kasachstane)"
+  name_original: "«Бухгалтеры РК», «1С в Казахстане» - Kanalnamen aus dem Auftrag"
+  herausgeber: "unbekannt"
+  url: "https://t.me/s/buhgalter_kz"
+  perspektiven: [P4]
+  autoritaetsstufe: 5
+  sprachen: [ru]
+  zugang: unbekannt
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Die im Auftrag genannten Kanalnamen "Buchgalter RK" und "1C w Kasachstane" konnten
+    in dieser Recherche NICHT zweifelsfrei einem konkreten @handle zugeordnet werden, da
+    WebSearch fuer eine Handle-Suche nicht mehr verfuegbar war (Budget erschoepft) und
+    geratene Handles (@buhgalter_kz fuehrte zu einem privaten Einzelkanal "Botagoz -
+    Buchhalterin", @buhgalter1c_kz zeigte nur eine Kontakt-Gateway-Seite ohne Vorschau)
+    keine belastbare Uebereinstimmung ergaben.
+  beschaffung: "Offen - per Telegram-Suche direkt in der App oder per erneuter WebSearch-Recherche zu klaeren, sobald Budget verfuegbar ist."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "Kein verifizierter Kanal, daher keine Inhalte zu bewerten."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    OFFENE RECHERCHELUECKE, bewusst dokumentiert statt eines geratenen Kanals als
+    Treffer auszugeben. Empfehlung fuer Folge-Recherche: gezielte Telegram-interne Suche
+    oder Nachfrage bei uchet_kz/buh_mcfr nach Kanalempfehlungen (Cross-Promotion ist in
+    der Szene ueblich, siehe abdeckung dieser beiden Kanaele).
+
+- id: youtube-cdb-kz-kanal
+  name: "YouTube-Kanal CDB KZ"
+  name_original: "YouTube: CDB KZ"
+  herausgeber: "TOO CDB.KZ (Zentrales Buchhalterhaus)"
+  url: "https://www.youtube.com/cdbkz"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Existenz des Kanals ueber Suchergebnis bestaetigt (verlinkt von cdb.kz als
+    offizieller Kanal). Abonnentenzahl, Upload-Frequenz und konkrete Videotitel konnten
+    in dieser Recherche NICHT ausgelesen werden.
+  beschaffung: "Oeffentlich auf YouTube, kein Login zum Ansehen noetig."
+  maschinell_abrufbar: false
+  rag_eignung: gering
+  rag_hinweis: "WebFetch wurde von YouTube auf eine Cookie-Consent-Zwischenseite (consent.youtube.com) umgeleitet; Kanalinhalt ohne interaktive Cookie-Bestaetigung nicht maschinell auslesbar. Videos selbst (Audio) ohnehin nicht ohne Transkript RAG-tauglich."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Weitere Praktiker-YouTube-Kanaele (z.B. von uchet.kz, MZFER, einzelnen Beratern) wurden aus Zeit-/Budgetgruenden nicht mehr systematisch gesucht, da WebSearch nicht mehr verfuegbar war."
+
+- id: kgd-umz-schulungszentrum
+  name: "KGD Bildungs- und Methodikzentrum"
+  name_original: "Комитет государственных доходов - Учебно-методический центр"
+  herausgeber: "Komitee fuer Staatseinnahmen (KGD), Finanzministerium RK"
+  url: "https://kgd.gov.kz/ru/section/uchebno-metodicheskiy-centr"
+  perspektiven: [P4]
+  autoritaetsstufe: 3
+  sprachen: [ru]
+  zugang: unbekannt
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Offizielle Fortbildungseinheit der Steuerbehoerde mit Unterseiten "Berufliche
+    Entwicklung" und "Lehrplaene". In dieser Recherche liess sich NICHT feststellen, ob
+    dort abrufbare Webinar-Aufzeichnungen zum neuen Steuerkodex existieren - die Seite
+    zeigte nur Navigationsstruktur ohne Veranstaltungsdetails.
+  beschaffung: "Ueber kgd.gov.kz, Unterseite Lehrplaene/Berufliche Entwicklung; Zugangsbedingungen (frei/Anmeldung/Beamtenschulung) nicht ermittelt."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Nur Navigationsgeruest gelesen, kein inhaltlicher Text zu konkreten Webinaren gefunden."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    OFFENE RECHERCHELUECKE: Der Auftrag nennt ausdruecklich "KGD-Webinare" als Quelle;
+    diese Recherche konnte nur die organisatorische Struktur bestaetigen, nicht aber
+    konkrete Aufzeichnungen oder deren Zugangsbedingungen. Folge-Recherche sollte gezielt
+    die Unterseiten "Professionalnoje razvitije" und "Utschebnyje plany UMZ" abrufen.
+
+- id: arqabuh-kz-rechner
+  name: "Arqabuh.kz, Gehalts-/Lohnsteuerrechner 2026"
+  name_original: "arqabuh.kz - калькулятор «Зарплата 2026»"
+  herausgeber: "arqabuh.kz"
+  url: "https://arqabuh.kz/"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: true
+    beleg_url: "https://arqabuh.kz/"
+  aktualisierung: unbekannt
+  abdeckung: >
+    Positioniert sich explizit als "Infrastruktur fuer Buchhalter" zum neuen Steuerkodex
+    2026, nicht als weiterer Blog. Rechner "Zarplata 2026" bietet Hin- und Rueckrechnung
+    auf Basis der neuen 2026er Lohnsaetze. Eingabe: Monatsgehalt (Beispiel 400000 KZT).
+    Ausgabe: OPV (Arbeitnehmer-Rentenbeitrag) 10 Prozent, WOSMS (Sozial-Krankenversicherung)
+    2 Prozent, IPN (Einkommensteuer) 10 Prozent, Standardabzug 30 MRP, OPWR
+    (Arbeitgeber-Rentenbeitrag) 3,5 Prozent, Netto-Auszahlung.
+  beschaffung: "Kostenlos, keine Registrierung, keine Werbung laut Eigenaussage. Export-/Druckfunktion vorhanden."
+  maschinell_abrufbar: true
+  rag_eignung: ungeeignet
+  rag_hinweis: >
+    Interaktives Rechenwerkzeug, kein Fliesstext - fuer den RAG-Textkorpus ungeeignet.
+    HOHER WERT als Test-Orakel: liefert erwartete OPV/WOSMS/IPN/OPWR-Werte fuer 2026 zur
+    Gegenpruefung der eigenen Payroll-Implementierung.
+  gueltig_ab: "2026-01-01"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Einziger der gepruepten Rechner, der sich explizit und ausschliesslich auf den 2026er Kodex bezieht statt generisch 'aktuell' zu sein."
+
+- id: calculators-kz-rechner
+  name: "Calculators.kz, Rechner-Sammlung"
+  name_original: "calculators.kz"
+  herausgeber: "calculators.kz"
+  url: "https://calculators.kz/"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: true
+    beleg_url: "https://calculators.kz/"
+  aktualisierung: jaehrlich
+  abdeckung: >
+    Breite Sammlung kostenloser Rechner "fuer 2025-2026" in fuenf Kategorien. Relevant
+    fuer Payroll-Tests: Gehaltsrechner (brutto-netto mit Steuerabzuegen), MwSt-Rechner
+    (12 Prozent addieren/herausrechnen - ACHTUNG: alter Satz, siehe notiz), IP-Steuer
+    vereinfachtes Regime, Patentsteuer, Urlaubsgeld, Krankengeld, Abfindung,
+    Betriebszugehoerigkeit, Stundenlohn-Umrechner.
+  beschaffung: "Kostenlos, keine Registrierung."
+  maschinell_abrufbar: true
+  rag_eignung: ungeeignet
+  rag_hinweis: "Interaktive Tools, kein Fliesstext. Als Test-Orakel geeignet, aber MwSt-Rechner mit Vorsicht behandeln (siehe notiz)."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    WICHTIGER BEFUND FUER DAS KONFLIKTREGISTER: Der MwSt-Rechner wurde in der
+    Seitenbeschreibung mit 12 Prozent beschrieben - das ist der ALTE, bis 2025 gueltige
+    Satz. Der neue Kodex 214-VIII setzt 16 Prozent an (siehe rag-ingest-spezifikation.md,
+    Abnahmekriterium). Vor Nutzung als Test-Orakel unbedingt pruefen, ob der Rechner
+    zwischenzeitlich aktualisiert wurde - falls nicht, ist er fuer MwSt-Tests fuer dieses
+    Projekt UNBRAUCHBAR bzw. sogar irrefuehrend. Gehaltsrechner (ohne MwSt-Bezug) davon
+    vermutlich nicht betroffen.
+
+- id: profinance-kz-rechner
+  name: "Profinance.kz, Brutto-Netto-Gehaltsrechner"
+  name_original: "Profinance.kz - зарплатный (gross/net) калькулятор"
+  herausgeber: "Profinance.kz (Finanzvergleichsportal)"
+  url: "https://profinance.kz/"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: true
+    beleg_url: "https://profinance.kz/"
+  aktualisierung: unbekannt
+  abdeckung: >
+    In erster Linie ein Finanzvergleichsportal (20 Banken, 58 MFO, 25 Versicherer);
+    Gehaltsrechner (brutto/netto) ist ein Nebenprodukt im Rechner-Bereich. Genaue
+    Ein-/Ausgabefelder des Gehaltsrechners in dieser Recherche nicht im Detail geprueft.
+  beschaffung: "Kostenlos; Geschaeftsmodell ueber Partnerprovisionen bei Kreditvermittlung, nicht ueber den Rechner selbst."
+  maschinell_abrufbar: true
+  rag_eignung: ungeeignet
+  rag_hinweis: "Interaktives Tool; als Test-Orakel nur zweiter Wahl hinter arqabuh.kz, da 2026-Spezifitaet nicht bestaetigt."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Vor Nutzung als Test-Orakel Ein-/Ausgabefelder im Detail nachpruefen (in dieser Recherche nur die Existenz, nicht die Feldliste bestaetigt)."
+
+- id: prodengi-kz-rechner
+  name: "Prodengi.kz, Lohnsteuerrechner"
+  name_original: "Prodengi.kz - калькулятор зарплатных налогов"
+  herausgeber: "Prodengi.kz (Finanzmarktplatz)"
+  url: "https://prodengi.kz/"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: frei
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Wie profinance.kz primaer ein Finanzvergleichsportal (Kredite, Hypotheken, Karten,
+    Einlagen, Versicherung); im Dienstleistungsmenue existiert ein "Kalkulator
+    zarplatnych nalogov" (Lohnsteuerrechner). Konkrete Ein-/Ausgabefelder in dieser
+    Recherche NICHT ermittelt.
+  beschaffung: "Kostenlos laut durchgaengiger Eigenwerbung 'kostenlose Online-Dienste'; fuer den Rechner selbst nicht explizit bestaetigt."
+  maschinell_abrufbar: true
+  rag_eignung: ungeeignet
+  rag_hinweis: "Interaktives Tool. Feldliste noch zu pruefen, bevor es als Test-Orakel verwendet wird."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Schwaechster Befund der fuenf im Auftrag genannten Rechner-Kandidaten - Existenz bestaetigt, Funktionsumfang nicht."
+
+- id: fexpert-kz-abweichung
+  name: "Fexpert.com.kz - Abweichung vom Auftrag: keine Rechner-Seite, sondern Beratungsfirma"
+  name_original: "Finance Expert (fexpert.com.kz)"
+  herausgeber: "Finance Expert (internationale Buchhaltungsfirma, Kasachstan/VAE/Russland)"
+  url: "https://fexpert.com.kz/"
+  perspektiven: [P4]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: bezahlt
+  kosten:
+    betrag: 50000
+    waehrung: KZT
+    periode: null
+    verifiziert: true
+    beleg_url: "https://fexpert.com.kz/"
+  aktualisierung: unbekannt
+  abdeckung: >
+    ABWEICHUNG VOM AUFTRAG: fexpert.com.kz ist entgegen der Erwartung im Auftrag KEIN
+    kostenloser Gehalts-/Steuerrechner, sondern eine internationale Buchhaltungs-
+    Outsourcing-Firma (seit 2018, Bueros Kasachstan/Dubai/Moskau) mit vier Servicepaketen:
+    Startup ab 50000 KZT, Start ab 120000 KZT, Business ab 250000 KZT, Premium ab 500000
+    KZT (Kadenz auf der Seite nicht explizit benannt, vermutlich monatlich fuer laufendes
+    Outsourcing).
+  beschaffung: "Kostenloses Express-Audit als Aktion (befristet bis 30. April) beworben; sonst kostenpflichtige Pakete."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Kein Rechner, daher fuer die Test-Orakel-Funktion aus Auftragsteil B nicht nutzbar."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    Falls im Auftrag ein ANDERER Rechner unter aehnlichem Namen gemeint war, wurde dieser
+    in dieser Recherche nicht gefunden. periode=null da Kadenz unklar (vermutlich Monat,
+    analog zu asistent.kz/itsheff.kz).
+
+# ============================================================
+# ABSCHNITT C: ANBIETER-TEARDOWN
+# ============================================================
+
+- id: onec-buchhaltung-kasachstan-produkt
+  name: "1C:Buchhaltung 8 fuer Kasachstan, Produktbeschreibung"
+  name_original: "1С:Бухгалтерия 8 для Казахстана"
+  herausgeber: "1C:Pervyj Bit Kasachstan (1cbit.kz)"
+  url: "https://www.1cbit.kz/1csoft/1s-predpriyatie-8-bukhgalteriya-dlya-kazakhstana/"
+  perspektiven: [P6]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: unbekannt
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Marktstandard-Buchhaltungssoftware fuer Kasachstan (de-facto validiertes
+    Domaenenmodell laut Auftrag). Produktseite konnte in dieser Recherche wegen
+    wiederholter Ratenbegrenzung (HTTP 429) NICHT im Detail ausgelesen werden. Ueber
+    die verwandten Seiten 1cbit.kz/its/ und its.1c.kz gesichert: das Produkt wird ueber
+    ein Pflicht-Supportabo (ITS, siehe onec-its-kasachstan-tarife) vertrieben und
+    aktualisiert; Lizenzpreis der Grundsoftware selbst blieb unverifiziert.
+  beschaffung: "Kauf ueber 1C-Franchisenehmer-Netzwerk (1cbit.kz, itsheff.kz, c-prof.kz u.a.), typischerweise Einmallizenz plus laufendes ITS-Abo."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Bei erneutem Abruf (nach Ablauf der Ratenbegrenzung) lohnt ein zweiter Versuch fuer die konkrete Feature-/Preisliste."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    OFFENE RECHERCHELUECKE: Lizenzpreis der Basissoftware nicht verifiziert (nur das
+    begleitende ITS-Abo, siehe onec-its-kasachstan-tarife). Fuer den inhaltlichen
+    Objektmodell-Teardown (wie werden MwSt, Lohnabzuege, ESF, Sonderregime als Belege/
+    Register/Konstanten abgebildet) ist ohnehin eher die Konfigurationsdokumentation
+    relevant, siehe onec-its-portal-dokumentation.
+
+- id: onec-its-portal-dokumentation
+  name: "1C:ITS-Portal Kasachstan, Konfigurations- und Fachdokumentation"
+  name_original: "its.1c.kz"
+  herausgeber: "1C Kasachstan"
+  url: "https://its.1c.kz/"
+  perspektiven: [P6]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: bezahlt
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Zentrales Doku-/Newsportal fuer 1C-Konfigurationen in Kasachstan: Buchhaltungs-/
+    Steuer-Compliance, Lohnabrechnung, Konfigurationsdokumentation, ESF (elektronische
+    Rechnungen), Rechts-/Regulatorik-Updates, Schulungen/Webinare. Nennt explizit
+    Sonder-Steuerregime im Kontext der Lohnberechnung. Teils frei (News, allgemeine
+    Doku), Premiumteile (7-Tage-Testaktivierung erwaehnt, Konsultationsservice,
+    Spezialdatenbanken) hinter ITS-Abo.
+  beschaffung: "Oeffentlicher Teil frei browsbar; vertiefte Konfigurations-/Objektmodell-Doku erfordert aktives ITS-Abo (siehe onec-its-kasachstan-tarife). 7-Tage-Testaktivierung fuer Teile des Portals erwaehnt."
+  maschinell_abrufbar: true
+  rag_eignung: mittel
+  rag_hinweis: >
+    Am ehesten geeignete oeffentliche Naeherung an ein "validiertes Domaenenmodell" fuer
+    Kasachstan-Steuerlogik, aber die eigentliche Objektmodell-Referenz (Metadatenbaum mit
+    Dokumenten wie "SchetFaktura", Registern fuer OPV/IPN etc.) liegt technisch im
+    1C-Konfigurator selbst bzw. hinter dem ITS-Login, nicht als frei indexierbarer
+    Fliesstext auf dieser oeffentlichen Portalseite.
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    ZENTRALER TEARDOWN-BEFUND: Das "validierte Domaenenmodell" von 1C ist nicht als
+    lesbare Webseite verfuegbar, sondern als Software-Metadatenbaum (Konfigurator) bzw.
+    Syntax-Helper-Dokumentation, beides praktisch nur mit lizenzierter 1C-Installation
+    plus ITS-Abo einsehbar. Fuer das Projekt heisst das: ein echter 1C-Objektmodell-
+    Abgleich braucht entweder eine eigene 1C:Buchhaltung-fuer-Kasachstan-Testinstallation
+    oder Interviews mit einem 1C-Implementierungspartner, nicht Web-Recherche.
+
+- id: egistic-kz-produkt
+  name: "Egistic, Agrarmanagement-Plattform"
+  name_original: "Egistic - Система управления хозяйством"
+  herausgeber: "Egistic, Astana"
+  url: "https://egistic.kz/"
+  perspektiven: [P6]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: testzugang
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Naechstliegender kasachischer Agri-Wettbewerber laut Auftrag. Produktumfang:
+    Feldmonitoring per Satellit (NDVI, Stickstoff, Feuchte, Chlorophyll),
+    Flottentelematik (GPS, Kraftstoffverbrauch, Arbeitsqualitaet), Fruchtfolgeplanung,
+    Wetterdaten, Lagerverwaltung (Kraftstoff, Saatgut, Chemikalien, Ersatzteile),
+    Berater-/Wissensnetzwerk. Web- und Mobil-App (iOS/Android), kostenlose Testphase
+    beworben.
+  beschaffung: "Kostenlose Testphase laut Landingpage; Vertriebskontakt fuer Preise nicht ermittelt."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Marketingseite ohne Fachtext zu Steuer-/Buchhaltungsfragen."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    ZENTRALER TEARDOWN-BEFUND: Egistic zeigt auf der Startseite KEINERLEI Steuer-,
+    Buchhaltungs-, MwSt-, Lohn- oder klassische ERP-Funktionalitaet. Das Produkt deckt
+    ausschliesslich Agronomie/Flotte/Lager ab. Als Wettbewerber im engeren Sinn (gleiche
+    Zielgruppe: kasachische Agrarbetriebe) relevant, aber NICHT als Vorbild oder
+    Konkurrent fuer die steuerliche Objektmodellierung dieses Projekts - dort besteht
+    eine Luecke, die das eigene Agri-ERP fuellen koennte/muesste.
+
+- id: idocs-kz-produkt
+  name: "iDocs, Elektronischer Dokumentenumlauf und Buchhaltungsbelege"
+  name_original: "iDocs - от ЭДО до автоматизации бизнес-процессов"
+  herausgeber: "iDocs (TOO), Kasachstan"
+  url: "https://idocs.kz/"
+  perspektiven: [P6]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: bezahlt
+  kosten:
+    betrag: 7000
+    waehrung: KZT
+    periode: null
+    verifiziert: true
+    beleg_url: "https://idocs.kz/"
+  aktualisierung: unbekannt
+  abdeckung: >
+    EDO-Plattform (elektronischer Dokumentenumlauf) mit Fokus auf Buchhaltungsbelege und
+    HR-Dokumente; positioniert sich als Prozessautomatisierung "von EDO bis
+    Geschaeftsprozess". Kein explizites ESF- oder MwSt-Feature auf der Startseite,
+    verweist aber auf Erlaeuterungen des Finanzministeriums zur steuerlichen Anerkennung
+    elektronischer Dokumente. Drei SaaS-Stufen: Basis 7000 KZT/Monat (bis 2 Mitarbeiter),
+    Standard 49990 KZT/Monat (3-100 Mitarbeiter), Pro 399990 KZT/Monat (15-1250
+    Mitarbeiter). Angabe: ueber 60000 Kunden, 190000 aktive Nutzer, ueber 8 Mio.
+    signierte Dokumente.
+  beschaffung: "Direkter SaaS-Self-Checkout laut Startseite; Preisstufen oeffentlich gelistet."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Marketingseite; Buchhaltungs-/Steuerbezug nur indirekt (Rechtskonformitaet elektronischer Belege), kein Objektmodell einsehbar."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "periode=null da Monatspreis. Wettbewerber im EDO-Segment, nicht im engeren Sinn ERP/Buchhaltung."
+
+- id: trustme-kz-produkt
+  name: "TrustMe, Dokumentenplattform mit TrustAccounting"
+  name_original: "TrustMe - единая платформа документооборота"
+  herausgeber: "TrustMe, Kasachstan"
+  url: "https://trustme.kz/"
+  perspektiven: [P6]
+  autoritaetsstufe: 4
+  sprachen: [ru]
+  zugang: bezahlt
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Oekosystem aus vier Produkten: TrustContract (Online-Vertragssignatur), TrustDocs
+    (elektronischer Dokumentenaustausch), TrustCare (Kundenservice-Workflows),
+    TrustAccounting (elektronische Buchhaltungsbelege inkl. Signatur "in einem Fenster").
+    Kernfeatures: Cloud-EZP (elektronische digitale Signatur), SMS-Signatur, Face-ID,
+    Blockchain-Verankerung, KI-gestuetzte Dokumentenanalyse. Freemium-Modell (kostenlos
+    bis 6 Signaturen/Monat, danach gestaffelte Abos, Enterprise auf Anfrage).
+  beschaffung: "Freemium-Einstieg direkt online; Enterprise-Pakete auf Anfrage."
+  maschinell_abrufbar: true
+  rag_eignung: gering
+  rag_hinweis: "Marketingseite ohne erkennbares Steuer-/ESF-/MwSt-/Lohn-Feature; TrustAccounting bleibt auf der Startseite vage."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: "Wie iDocs eher EDO/Signatur-Wettbewerber als Buchhaltungs-/Steuer-ERP; TrustAccounting-Modul verdient bei Bedarf eine eigene vertiefte Pruefung."
+
+- id: prosto-unidentifiziert
+  name: "'Prosto' aus dem Auftrag - nicht identifiziert"
+  name_original: "Prosto"
+  herausgeber: "unbekannt"
+  url: "https://prosto.kz/"
+  perspektiven: [P6]
+  autoritaetsstufe: 5
+  sprachen: [ru]
+  zugang: unbekannt
+  kosten:
+    betrag: null
+    waehrung: null
+    periode: null
+    verifiziert: false
+    beleg_url: null
+  aktualisierung: unbekannt
+  abdeckung: >
+    Der im Auftrag neben iDocs/TrustMe/Assistant.kz/Egistic genannte Anbieter "Prosto"
+    liess sich in dieser Recherche NICHT identifizieren. Die naheliegende Domain
+    prosto.kz gehoert nachweislich zu einem fachfremden Anbieter (Bewerbungscoaching-
+    PDF-Guide, ohne jeden Buchhaltungs-/Steuerbezug).
+  beschaffung: "Offen."
+  maschinell_abrufbar: false
+  rag_eignung: ungeeignet
+  rag_hinweis: "Kein passendes Produkt gefunden."
+  gueltig_ab: "2026-09-18"
+  gueltig_bis: null
+  ist_ueberholt: false
+  abgerufen_am: "2026-09-18"
+  notiz: >
+    OFFENE RECHERCHELUECKE. Vermutung: gemeint sein koennte eine kasachische EDO-/
+    Kassensoftware-Marke mit aehnlich klingendem Namen (z.B. im Umfeld von Kassensystemen
+    oder ERP-Light-Produkten), die aber ohne funktionierende WebSearch in dieser Sitzung
+    nicht auffindbar war. Folge-Recherche mit WebSearch empfohlen, sobald Budget
+    verfuegbar ist, statt hier zu raten.

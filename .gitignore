@@ -59,3 +59,6 @@ next-env.d.ts
 # verkleinertes WebP unter public/ und ist versioniert.
 /Bilder/
 /damicon-homepage-stand.html
+
+# Zwischenspeicher der Steuerrecherche (reproduzierbar via scripts/steuer-korpus-ernte.mjs)
+.cache/

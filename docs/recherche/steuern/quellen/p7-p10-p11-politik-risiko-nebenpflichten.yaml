@@ -1,0 +1,1438 @@
+# Quellenregister - P7 Politik/Strategie, P10 Risiko/Durchsetzung, P11 Nebenpflichten
+#
+# Rechercheeinheit: P7 (Policy/strategisch, investorenfacing), P10 (Risiko/Durchsetzung),
+# P11 (Nebenpflichten: Arbeitsrecht, Sozialversicherung, Statistik).
+# Format gemaess quellenregister-schema.yaml, schema_version 1.
+#
+# Zentrale Pruefergebnisse dieser Einheit (siehe auch kernwissen/sanktionen-rohbefund.md):
+# 1. Die "2.000 MRP"-Angabe fuer ESUTD-Vertragsregistrierung aus Marketingtexten ist FALSCH.
+#    Der tatsaechliche Hoechstsatz betraegt 200 MRP (KoAP RK Art. 98 Abs. 1-1/1-2, in Kraft
+#    seit 12.03.2026). Mehrfach unabhaengig bestaetigt, siehe koap-rk-art-98-esutd-verstoesse.
+# 2. taxratesbycountry.com listet fuer 2026 weiterhin MwSt 12% und wirbt mit "verified June 2026" -
+#    klarer Beleg fuer veraltete englischsprachige Aggregatoren. Siehe taxratesbycountry-kasachstan-veraltet.
+# 3. adilet.zan.kz ist per einfachem HTTP-Abruf NICHT maschinell auswertbar (liefert nur ein
+#    JS-Geruest ohne Inhalt). Das betrifft ALLE Primaerrechtsquellen dieser Liste mit
+#    maschinell_abrufbar: false und ist ein Befund fuer die RAG-Ingest-Pipeline, nicht nur
+#    fuer diese Recherche: ein Standard-HTTP-Fetch reicht nicht, es braucht Rendering.
+#
+# Stand: 2026-09-18
+# Abgerufen von: Rechercheeinheit P7/P10/P11
+
+schema_version: 1
+
+quellen:
+
+  # ============================================================
+  # P7 - Politik und Strategie (investorenfacing)
+  # ============================================================
+
+  - id: oecd-tax-policy-review-kasachstan-2020
+    name: "OECD Steuerpolitik-Ueberpruefung Kasachstan 2020"
+    name_original: "OECD Tax Policy Reviews: Kazakhstan 2020"
+    herausgeber: "OECD"
+    url: "https://www.oecd.org/en/publications/oecd-tax-policy-reviews-kazakhstan-2020_872d016c-en.html"
+    perspektiven: [P7]
+    autoritaetsstufe: 4
+    sprachen: [en]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: statisch
+    abdeckung: >-
+      Umfassende OECD-Analyse des kasachischen Steuersystems vor der Reform: Empfehlungen fuer
+      ein breiteres, progressiveres ESt-System, hoehere Sozialversicherungsbeitraege, eine
+      verbesserte MwSt-Struktur und die Vereinfachung der Sonderregime fuer KMU. Kapitelstruktur
+      folgt Steueraufkommen, Verteilungsfragen und Wettbewerbsfaehigkeit.
+    beschaffung: "Frei als PDF von oecd.org oder OECD iLibrary abrufbar."
+    maschinell_abrufbar: true
+    rag_eignung: mittel
+    rag_hinweis: >-
+      Fliesstext ohne Artikel-Zitierweise, daher nicht als Rechtsbeleg nutzbar. Wert liegt in
+      der institutionellen Einordnung: mehrere der 2026 umgesetzten Aenderungen (MwSt-Erhoehung,
+      Verbreiterung KPN-Basis, Vereinfachung SNR) folgen sichtbar der OECD-Linie von 2020. Fuer
+      Investorengespraeche als "seit sechs Jahren angekuendigt, jetzt umgesetzt"-Beleg geeignet.
+    gueltig_ab: "2020-09-01"
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      Explizit als foundational-but-dated einzuordnen: beschreibt das VOR 2026 geltende System.
+      ist_ueberholt=true bezieht sich auf die beschriebenen Steuersaetze, nicht auf die
+      Reformempfehlungen, die als Erklaerung fuer die Reformrichtung weiter relevant sind. Sollte
+      im RAG-Index klar von aktuellem Recht getrennt, aber nicht geloescht werden.
+
+  - id: imf-artikel-iv-kasachstan-2025
+    name: "IWF Artikel-IV-Konsultation Kasachstan 2025"
+    name_original: "Republic of Kazakhstan: 2025 Article IV Consultation-Press Release; Staff Report"
+    herausgeber: "Internationaler Waehrungsfonds (IWF)"
+    url: "https://www.imf.org/en/publications/cr/issues/2026/01/26/republic-of-kazakhstan-2025-article-iv-consultation-press-release-staff-report-and-573452"
+    perspektiven: [P7]
+    autoritaetsstufe: 4
+    sprachen: [en]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: statisch
+    abdeckung: >-
+      IWF-Mission Nov 2025 (Almaty/Astana, Leitung Ali Al-Eyd), veroeffentlicht 26.01.2026. Der
+      neue Steuerkodex wird als wichtiger Schritt zur Reduktion des Nicht-Oel-Defizits bewertet,
+      soll aber durch weiteren Abbau von Steuerbefreiungen ergaenzt werden. Nicht-Oel-Defizit
+      2025 uber 8% des BIP, Ueberhitzungssignale bei 6,2% Wachstum.
+    beschaffung: "Frei auf imf.org als PDF/HTML."
+    maschinell_abrufbar: true
+    rag_eignung: mittel
+    rag_hinweis: "Fliesstext, keine Rechtsstelle. Fuer Investoren-Narrative zur Fiskallage sehr geeignet."
+    gueltig_ab: "2026-01-26"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      Ergaenzend: IMF Staff Concluding Statement vom 20.11.2025 (Kurzfassung derselben Mission)
+      unter https://www.imf.org/en/news/articles/2025/11/20/cs-kazakhstan-staff-concluding-statement-for-the-2025-article-iv-mission
+      - fruehere, knappere Version derselben Kernaussagen, gut fuer Zitate mit Datumsbezug.
+
+  - id: world-bank-economic-update-kasachstan-2025
+    name: "Weltbank Wirtschaftsbericht Kasachstan Januar 2025"
+    name_original: "Kazakhstan Economic Update: New World Bank Report Highlights the Importance of Boosting Revenues"
+    herausgeber: "Weltbank"
+    url: "https://www.worldbank.org/en/news/press-release/2025/01/30/kazakhstan-economic-update"
+    perspektiven: [P7]
+    autoritaetsstufe: 4
+    sprachen: [en]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: statisch
+    abdeckung: >-
+      Weltbank-Reformagenda vor Inkrafttreten des Kodex: Uebergang zu progressiver ESt, Abbau
+      ineffizienter Steueranreize, MwSt-Reform, Anpassung der Verbrauchsteuern an Umweltziele,
+      staerkere Steuerverwaltung. Kernargument: Kasachstans Steueraufkommen liegt deutlich unter
+      Vergleichslaendern und begrenzt Investitionen in oeffentliche Leistungen.
+    beschaffung: "Frei auf worldbank.org, Volltext ueber openknowledge.worldbank.org verlinkt."
+    maschinell_abrufbar: true
+    rag_eignung: mittel
+    rag_hinweis: "Fliesstext. Erschien ein Jahr vor Inkrafttreten - Empfehlungen weitgehend uebernommen, gut fuer Vorher/Nachher-Vergleich."
+    gueltig_ab: "2025-01-30"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Volltext-Report unter openknowledge.worldbank.org/entities/publication/63bca49a-23be-4017-84d3-9529a67f6d44."
+
+  - id: adb-kasachstan-fiskalreform-2026
+    name: "ADB-Darlehen zur Unterstuetzung der Fiskal- und Finanzsektorreform Kasachstans"
+    name_original: "ADB Loan to Support Kazakhstan's Fiscal and Financial Sector Reforms"
+    herausgeber: "Asian Development Bank (ADB)"
+    url: "https://www.adb.org/countries/kazakhstan/main"
+    perspektiven: [P7]
+    autoritaetsstufe: 4
+    sprachen: [en]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: monatlich
+    abdeckung: >-
+      ADB-Laenderportal, meldet am 11.06.2026 ein Darlehen zur Unterstuetzung der Fiskal- und
+      Finanzsektorreform Kasachstans. Zusaetzlich ein "Bond Market Guide for Kazakhstan"
+      (03.05.2026) mit Abschnitt zu Besteuerung von Anleihemarkt-Transaktionen.
+    beschaffung: "Frei, Landingpage mit Verlinkung zu Einzelmeldungen."
+    maschinell_abrufbar: true
+    rag_eignung: gering
+    rag_hinweis: "Portalseite ohne stabile Tiefenlinks zu den Einzelmeldungen in dieser Fassung erfasst; fuer Ingest muesste die konkrete Meldungs-URL nachrecherchiert werden."
+    gueltig_ab: "2026-06-11"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Schwaechste der vier IFI-Quellen in dieser Liste - eher Hinweis auf Bewegung als eigenstaendiger Beleg. EBRD-Laenderseite unter ebrd.com/en/where-we-are/kazakhstan.html lieferte beim Abruf HTTP 404, nicht verwertbar."
+
+  - id: atameken-mwst-19000-unternehmer
+    name: "Atameken: 19.000 Unternehmer werden mwst-pflichtig"
+    name_original: "19,000 entrepreneurs to be subject to VAT in Kazakhstan"
+    herausgeber: "Nationale Kammer der Unternehmer \"Atameken\""
+    url: "https://atameken.kz/en/news/34452-tys-predprinimatelej-popadut-pod-nds"
+    perspektiven: [P7]
+    autoritaetsstufe: 4
+    sprachen: [en, ru]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Atameken-Folgenabschaetzung zur Senkung der MwSt-Registrierungsschwelle auf 10.000 MRP:
+      rund 19.000 zusaetzliche Unternehmer werden erfassungspflichtig. Benennt die urspruengliche
+      20%-Forderung im Entwurf, die nach Druck der Wirtschaft auf 16% gesenkt wurde, sowie
+      wiederkehrende Beschwerden zu den neuen Abzugsfaehigkeitsregeln im B2B-Bereich.
+    beschaffung: "Frei auf atameken.kz, auch englischsprachige Fassung vorhanden."
+    maschinell_abrufbar: true
+    rag_eignung: hoch
+    rag_hinweis: "Konkrete Zahl (19.000 Unternehmer) und klare Positionierung - geeignet als Beleg fuer 'schaerfste verfuegbare Kritik' im Investorenkontext."
+    gueltig_ab: "2025-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      Allgemeiner Erklaer-Hub von Atameken zum Kodex unter kostanay.atameken.kz/en/news/28688
+      ("Tax code from A to Z"). Atameken ist zusammen mit dem Komitee fuer Staatseinnahmen
+      formell an der Nachbesserung des Kodex beteiligt (Projektbuero, vgl. ey-kasachstan-project-office-juli-2026) -
+      also nicht rein externe Kritik, sondern Teil des offiziellen Feedback-Kanals.
+
+  - id: pwc-ceo-survey-2026-kasachstan
+    name: "PwC CEO-Umfrage 2026 Kasachstan: Steuern erstmals Top-Sorge"
+    name_original: "PwC 14th Annual CEO Survey Kazakhstan"
+    herausgeber: "PwC / digitalbusiness.kz"
+    url: "https://digitalbusiness.kz/2026-05-26/kazahstanskie-biznesmeni-rasskazali-kak-adaptiruyutsya-k-novim-nalogovim-usloviyam-opros-pwc/"
+    perspektiven: [P7]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: statisch
+    abdeckung: >-
+      Befragung von 59 Fuehrungskraeften groesster kasachischer Unternehmen (14. jaehrliche
+      PwC-CEO-Umfrage, veroeffentlicht 26.05.2026). Steuerthemen erstmals wichtigstes Anliegen
+      vor Technologie/Geopolitik. Nur 17% sehen den Staat als Wirtschaftspartner (Vorjahr 25%),
+      48% berichten von zunehmend schwierigem Umgang mit Behoerden, nur 12% halten staatliche
+      Steuerbemuehungen fuer wirksam. Top-Forderung: Effizienz des Steuersystems (31%).
+    beschaffung: "Frei online, Originalstudie vermutlich zusaetzlich direkt bei pwc.com/kz verfuegbar."
+    maschinell_abrufbar: true
+    rag_eignung: hoch
+    rag_hinweis: "Belastbare Prozentzahlen mit klarer Quelle und Stichprobengroesse - starkes Investoren-Zitat fuer Vertrauensverlust-Narrativ."
+    gueltig_ab: "2026-05-26"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      STAERKSTE investorenfacing Quelle dieser Recherche: unabhaengig erhobene Zahlen (nicht nur
+      Meinungsartikel), Zeitreihe zum Vorjahr, prominente Auftraggeberin (PwC). Sollte in jeder
+      Investoren-Praesentation zur Steuerreform als Gegengewicht zu offiziellen Reformzielen dienen.
+
+  - id: forbes-kz-steuerkodex-nachbesserung-2026
+    name: "Forbes Kasachstan: Nachbesserungen am Steuerkodex nach Buergerfeedback"
+    name_original: "V Kazahstane predlozhili ryad popravok v Nalogovyy kodeks"
+    herausgeber: "Forbes Kazakhstan"
+    url: "https://forbes.kz/articles/v-kazahstane-predlozhili-ryad-popravok-v-nalogovyy-kodeks-chto-hotyat-izmenit-5a6f22"
+    perspektiven: [P7]
+    autoritaetsstufe: 5
+    sprachen: [ru]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: taeglich
+    abdeckung: >-
+      Laufende Berichterstattung: ueber 60 vom Praesidenten angeordnete Nachbesserungspunkte
+      (Verwaltung, Abzugsfaehigkeit, Sonderregime), im September 2026 neue Aenderungsvorschlaege
+      des Ministeriums fuer Volkswirtschaft zur oeffentlichen Diskussion gestellt, u.a. Befugnis
+      der Steuerbehoerde zur Sperrung von Online-Verkaufsplattformen bei Verstoessen.
+    beschaffung: "Frei, forbes.kz."
+    maschinell_abrufbar: true
+    rag_eignung: mittel
+    rag_hinweis: "Journalistisch, nur als Spur zu Primaerquellen (Gesetzesentwuerfen) nutzbar, nicht als Beleg."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Wichtig fuer P7.5 (Forward Visibility): zeigt, dass der Kodex neun Monate nach Inkrafttreten noch aktiv nachjustiert wird."
+
+  - id: kursiv-media-wirtschaftswarnung-2026
+    name: "Kursiv Media: Forbes-Millionaer warnt vor ungesunder Wirtschaft Kasachstans"
+    name_original: "\"My uvleklis' ideyey rosta\": millioner iz Forbes predupredil o nezdorovoy ekonomike Kazakhstana"
+    herausgeber: "kz.kursiv.media"
+    url: "https://kz.kursiv.media/2026-05-18/kaye-millioner-iz-forbes-predupredil-o-nezdorovoy-ekonomike-kazahstana/"
+    perspektiven: [P7]
+    autoritaetsstufe: 5
+    sprachen: [ru]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: taeglich
+    abdeckung: >-
+      Meinungsstarker Beitrag eines kasachischen Forbes-gelisteten Unternehmers zur Schieflage
+      des Wachstumsmodells (Konsumkredit-getrieben, wenig produktiv) im zeitlichen Umfeld der
+      Steuerreformdebatte. Qualitativ, keine harten Zahlen.
+    beschaffung: "Frei, kz.kursiv.media."
+    maschinell_abrufbar: true
+    rag_eignung: gering
+    rag_hinweis: "Meinungsbeitrag ohne belastbare Zahlen - nur als atmosphaerischer Beleg fuer Investorengespraeche, nicht als Faktenquelle."
+    gueltig_ab: "2026-05-18"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "kursiv.media liefert vor allem laufende Kodex-Berichterstattung (Dividendenbesteuerung, AIFC-Vorteile fuer Investoren); dieser Beitrag ist das pointierteste in dieser Rechercherunde gefundene Einzelstueck."
+
+  - id: apk-news-agrarsteuer-2026
+    name: "APK Novosti: Aenderungen der Agrarbesteuerung ab 2026"
+    name_original: "Kak izmenitsya nalogooblozhenie agrariev s 2026 goda"
+    herausgeber: "apk-news.kz"
+    url: "https://apk-news.kz/news/item-5728"
+    perspektiven: [P7]
+    autoritaetsstufe: 5
+    sprachen: [ru]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Fachjournalistische Zusammenfassung der Agrarerleichterungen im neuen Kodex: KPN 3% fuer
+      Bauern-/Landwirtschaftsbetriebe, keine Grundsteuer, Vorteile bei der Fahrzeugsteuer,
+      Agrar-Genossenschaften KPN 6% (vorher 10%), Sozialabgaben-Gesamtsatz 2026 gesunken auf 18,1%.
+    beschaffung: "Frei, apk-news.kz."
+    maschinell_abrufbar: true
+    rag_eignung: mittel
+    rag_hinweis: "Praxisnah fuer die Zielbranche (Agrar), aber journalistisch ohne Artikelverweis - als Spur zum Kodex-Primaertext nutzen, nicht als Beleg zitieren."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Zweiter einschlaegiger Beitrag derselben Quelle: apk-news.kz/news/item-6361 ('Grundzuege des neuen Steuerkodex'). Fuer ein Agrar-ERP-Projekt die direkteste Branchenquelle in P7."
+
+  - id: astana-times-budget-2026
+    name: "Astana Times: Budgetrahmen und Wachstumsprognose 2026"
+    name_original: "Kazakhstan Projects 5.4% GDP Growth in 2026 as Government Unveils Budget Framework"
+    herausgeber: "The Astana Times"
+    url: "https://astanatimes.com/2025/11/kazakhstan-projects-5-4-gdp-growth-in-2026-as-government-unveils-budget-framework/"
+    perspektiven: [P7]
+    autoritaetsstufe: 5
+    sprachen: [en]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: taeglich
+    abdeckung: >-
+      Budgetrahmen 2026-2028: Haushaltseinnahmen ohne Transfers 19,2 Bio. Tenge 2026, geplanter
+      Anstieg der Eigenfinanzierungsquote von 63,7% (2025) auf 83,5% (2028), Rueckgang von
+      Haushalts- und Nicht-Oel-Defizit von 2,5%/4,9% des BIP (2026) auf 0,9%/2,7% (2028).
+    beschaffung: "Frei, astanatimes.com."
+    maschinell_abrufbar: true
+    rag_eignung: mittel
+    rag_hinweis: "Konkrete Haushaltszahlen mit Zeitreihe - fuer Investoren-Kontext direkt zitierfaehig, aber Sekundaerquelle ohne Verlinkung zum Haushaltsgesetz."
+    gueltig_ab: "2025-11-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Ergaenzung: astanatimes.com/2026/03/kazakhstans-tax-revenues-exceed-plan-by-13-7-in-early-2026 zeigt erste Ist-Zahlen nach Reformstart - starkes Argument fuer 'Reform wirkt fiskalisch bereits'."
+
+  - id: aifc-tax-benefits-offiziell
+    name: "AIFC: Steuerregime (offizielle Darstellung)"
+    name_original: "Tax Regime in AIFC"
+    herausgeber: "Astana International Financial Centre (AIFC)"
+    url: "https://aifc.kz/tax-benefits/"
+    perspektiven: [P7]
+    autoritaetsstufe: 3
+    sprachen: [en]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Offizielle AIFC-Darstellung des Sonderregimes: 0% Koerperschaftsteuer bis 2066 fuer
+      Prioritaetstaetigkeiten, Befreiung von Lohn-/Dividendensteuer fuer dort taetiges Personal,
+      MwSt-Befreiung fuer Finanzdienstleistungen und fuer Warenkaeufe von Nichtansaessigen auf
+      dem AIFC-Gelaende, Befreiung von Grundsteuer/Grundstuecksteuer fuer AIFC-Teilnehmer,
+      "Investment Resident"-Status mit Befreiung auslaendischer Einkuenfte fuer Privatpersonen.
+    beschaffung: "Frei, aifc.kz."
+    maschinell_abrufbar: true
+    rag_eignung: hoch
+    rag_hinweis: "Amtliche Selbstdarstellung des Regimes, gut strukturiert nach Themenbloecken. Fuer Rechtsstellenangaben (konkrete Gesetzesartikel) zusaetzlich AIFC Constitutional Statute pruefen."
+    gueltig_ab: "2018-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      Relevant nur als Option ("falls die Struktur sich je im AIFC ansiedelt"), nicht fuer den
+      laufenden Agrarbetrieb. AFSA-Aenderungen zum 01.01.2026 betreffen primaer Marktregeln,
+      nicht das Kernsteuerregime. AIFC-Regime ist eine Enklave ausserhalb des normalen
+      Steuerkodex 214-VIII - Sonderfall, keine Regel.
+
+  - id: ey-kasachstan-project-office-juli-2026
+    name: "EY Kasachstan: Themen des Projektbueros zur Kodex-Umsetzung (Juli 2026)"
+    name_original: "Issues reviewed by the Tax Code implementation Project Office"
+    herausgeber: "EY Kasachstan"
+    url: "https://www.ey.com/en_kz/technical/tax-alerts/2026/07/kazakhstan-tax-code-project-office-key-issues-july-2026"
+    perspektiven: [P7]
+    autoritaetsstufe: 4
+    sprachen: [en]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Veroeffentlicht 20.07.2026. Vier laufende Verfahrensthemen: automatisiertes "Ein-Klick"-Tool
+      fuer Lohnsteuerabrechnung (Pilot Sept. 2026, Regelbetrieb ab Jan. 2027), Wiederaufnahme der
+      Ausstellung von Steueransaessigkeitsbescheinigungen durch die Steuerbehoerde fuer
+      Auslaender, KEINE Vorsteuerkorrektur fuer Agrarexporteure bei erfolgreicher "Pyramide"-Pruefung
+      plus volle Erstattung, Zusatz-Vorsteuerausgleich zurueck von 80% auf 70%, digitaler
+      Tenge als freiwilliger Mechanismus fuer beschleunigte MwSt-Erstattung an Exporteure.
+    beschaffung: "Frei, ey.com/en_kz, Tax-Alert-Reihe laufend aktualisiert."
+    maschinell_abrufbar: true
+    rag_eignung: hoch
+    rag_hinweis: "Konkrete, datierte Verfahrensaenderungen mit Umsetzungsdatum - direkt fuer 'was kommt als naechstes' nutzbar. Agrarexport-Punkt ist fuer das Agrar-ERP-Projekt hochrelevant."
+    gueltig_ab: "2026-07-20"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      EY unterhaelt eine laufende Tax-Alert-Reihe zu diesem Projektbuero (weitere Ausgaben u.a.
+      2026/06, 2026/04, 2026/02 unter derselben URL-Struktur ey.com/en_kz/technical/tax-alerts/2026/...) -
+      fuer laufendes Monitoring als Quelle mit aktualisierung=unregelmaessig/monatlich eintragen,
+      sobald ein RSS- oder Listenzugang identifiziert ist.
+
+  - id: kpmg-kasachstan-tax-newsflash
+    name: "KPMG Kasachstan Tax NewsFlash"
+    name_original: "Tax NewsFlash - KPMG Kazakhstan"
+    herausgeber: "KPMG Kasachstan"
+    url: "https://kpmg.com/kz/en/home/insights/2026/03/nf-march-02.html"
+    perspektiven: [P7]
+    autoritaetsstufe: 4
+    sprachen: [en]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: monatlich
+    abdeckung: >-
+      Laufende KPMG-Alert-Reihe zu Kodex-Themen, u.a. "Tax Code 2026: What's New in International
+      Taxation" (Nov. 2025) und neue MwSt-Regeln fuer auslaendische Internetplattformen (Nov. 2025).
+    beschaffung: "Frei, kpmg.com/kz/en."
+    maschinell_abrufbar: true
+    rag_eignung: mittel
+    rag_hinweis: "Gut strukturiert nach Themen, aber keine Artikelverweise auf den Kodex - Sekundaerquelle."
+    gueltig_ab: "2026-03-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Vorgaenger-Ausgabe zu internationaler Besteuerung: kpmg.com/kz/en/insights/2025/11/tax-nf-november.html."
+
+  - id: moore-kasachstan-neuer-steuerkodex
+    name: "Moore Kasachstan: Kernaenderungen des neuen Steuerkodex"
+    name_original: "New Tax Code: key changes - Moore Kazakhstan"
+    herausgeber: "Moore Kazakhstan"
+    url: "https://kazakhstan.moore-global.com/new-tax-code-key-changes/"
+    perspektiven: [P7]
+    autoritaetsstufe: 4
+    sprachen: [en]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Ueberblicksartikel zu KPN-Aenderungen (Schwelle fuer KPN-Vorauszahlungspflicht von 350.000
+      auf 600.000 MRP angehoben), ESt-Aenderungen und allgemeine Verwaltungsvereinfachung
+      (Steuererklaerungspflichten um 30% reduziert).
+    beschaffung: "Frei, kazakhstan.moore-global.com."
+    maschinell_abrufbar: true
+    rag_eignung: mittel
+    rag_hinweis: "Klar geschriebene Sekundaerquelle ohne Rechtsstellenangabe."
+    gueltig_ab: "2025-07-18"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Teil einer Serie; verwandte Beitraege 'Corporate Income Tax: changes effective from 2026', 'Individual Income Tax: key changes from 2026', 'Electronic invoices in 2026: key updates' auf derselben Domain."
+
+  - id: dentons-global-tax-guide-kasachstan
+    name: "Dentons: Global Tax Guide - Kasachstan"
+    name_original: "Dentons - Global tax guide to doing business in Kazakhstan"
+    herausgeber: "Dentons"
+    url: "https://www.dentons.com/en/services-and-solutions/global-tax-guide-to-doing-business-in/kazakhstan"
+    perspektiven: [P7]
+    autoritaetsstufe: 4
+    sprachen: [en]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Kanzlei-Uebersicht zum kasachischen Steuersystem fuer auslaendische Investoren. Ergaenzt
+      durch Einzelalert vom 12.12.2025 zu neuen Warenhandelsregeln ab 01.01.2026.
+    beschaffung: "Frei, dentons.com."
+    maschinell_abrufbar: true
+    rag_eignung: gering
+    rag_hinweis: "Breiter Uebersichtstext, Aktualitaetsstand beim Abruf nicht erkennbar - vor Nutzung Datum pruefen."
+    gueltig_ab: "2025-12-12"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Grata International (genannt im Auftrag) wurde in dieser Runde nur als Kanzleiprofil (6 Anwaelte, Praxisgruppe Tax & Customs) gefunden, kein spezifischer 2026-Alert identifiziert - fuer Folgerecherche offen."
+
+  - id: pwc-worldwide-tax-summaries-kasachstan
+    name: "PwC Worldwide Tax Summaries - Kasachstan (aktuell, Kontrollquelle)"
+    name_original: "Kazakhstan - Corporate - Significant developments"
+    herausgeber: "PwC"
+    url: "https://taxsummaries.pwc.com/kazakhstan/corporate/significant-developments"
+    perspektiven: [P7]
+    autoritaetsstufe: 4
+    sprachen: [en]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: jaehrlich
+    abdeckung: >-
+      Korrekt aktualisiert: MwSt-Satz mit 16% ab 01.01.2026 ausgewiesen, ermaessigter Satz 5%
+      (2026) steigend auf 10% (2027) fuer Arzneimittel/Medizinprodukte/-dienstleistungen erfasst.
+    beschaffung: "Frei online, taxsummaries.pwc.com."
+    maschinell_abrufbar: true
+    rag_eignung: hoch
+    rag_hinweis: "Gut strukturiert nach Steuerart, verlaesslich aktualisiert - als Positivkontrast zu taxratesbycountry-kasachstan-veraltet im Register belassen."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      WICHTIGER KONTRASTBEFUND: Diese Quelle ist AKTUELL (16% korrekt ausgewiesen), waehrend
+      taxratesbycountry.com (andere Quelle in dieser Liste) fuer 2026 noch 12% zeigt. Nicht
+      alle englischsprachigen Aggregatoren sind veraltet - Einzelpruefung pro Quelle noetig,
+      keine Pauschalannahme "englisch = unzuverlaessig".
+
+  - id: taxratesbycountry-kasachstan-veraltet
+    name: "taxratesbycountry.com Kasachstan - VERALTETE MwSt-Angabe (Negativbefund)"
+    name_original: "Kazakhstan Tax Rates 2026 - Income 20%, VAT 12%"
+    herausgeber: "taxratesbycountry.com (Betreiber unbekannt/nicht institutionell)"
+    url: "https://taxratesbycountry.com/tax-rates-in-kazakhstan/"
+    perspektiven: [P7]
+    autoritaetsstufe: 5
+    sprachen: [en]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Listet fuer 2026 MwSt 12% (tatsaechlich seit 01.01.2026: 16%) und wirbt dabei explizit mit
+      "Published June 2026", "Updated June 2026", "verified June 2026". Koerperschaftsteuer
+      korrekt mit 20% angegeben, Einkommensteuer-Angaben teils widerspruechlich (20% Spitzensatz
+      neben "10% flat" im selben Dokument).
+    beschaffung: "Frei, keine Registrierung noetig."
+    maschinell_abrufbar: true
+    rag_eignung: ungeeignet
+    rag_hinweis: "Enthaelt eine nachweislich falsche Kernzahl (MwSt-Satz) bei gleichzeitig behaupteter Aktualitaet - aktiv aus jedem RAG-Index ausschliessen, nicht nur zeitlich sperren."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      ZENTRALER STALENESS-BEFUND dieser Recherche (vom Auftrag explizit erwartet): Seite behauptet
+      "verified June 2026", listet aber den seit 01.01.2026 nicht mehr gueltigen 12%-Satz. Dies
+      ist besonders gefaehrlich, weil die Seite sich selbst als aktuell ausweist statt erkennbar
+      alt zu sein - ein Nutzer oder ein RAG-System kann die Falschangabe nicht am Datum erkennen.
+      Klarer Beleg dafuer, dass "zuletzt aktualisiert"-Angaben auf Aggregator-Seiten nicht als
+      Wahrheitsbeweis gelten duerfen; nur Primaer- oder amtliche Sekundaerquellen pruefen.
+
+  - id: cbam-eu-kasachstan-agrarexport
+    name: "EU-Grenzausgleichsmechanismus (CBAM) und Auswirkungen auf kasachische Exporteure"
+    name_original: "Kazakhstanskiy eksport v ES mozhet podorozhat na 114 mln evro iz-za uglerodnogo naloga"
+    herausgeber: "bes.media / informburo.kz"
+    url: "https://bes.media/news/kazahstanskiy-eksport-v-es-mozhet-podorozhat-na-114-mln-evro-iz-za-uglerodnogo-naloga/"
+    perspektiven: [P7]
+    autoritaetsstufe: 5
+    sprachen: [ru]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      CBAM-Endphase seit 01.01.2026 in Kraft, erste Jahresdeklaration bis 30.09.2027 faellig.
+      Kasachische Lieferanten in die EU muessen ab 2026 Treibhausgasemissionen der Produktion
+      melden und bei Normueberschreitung eine Quasi-Steuer zahlen. Geschaetzte Zusatzkosten fuer
+      Aluminium-, Eisen- und Stahlexporte: 114 Mio. Euro/Jahr (5,6 Mio. Aluminium, 108 Mio.
+      Eisen/Stahl). Erste Erfassungsstufe: Stahl, Eisen, Zement, Duenger, Aluminium.
+    beschaffung: "Frei, bes.media."
+    maschinell_abrufbar: true
+    rag_eignung: mittel
+    rag_hinweis: "Konkrete Zahlen, aber journalistisch ohne Primaerquellenverweis auf die EU-CBAM-Verordnung."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      Dies ist ein EU-Instrument (Grenzausgleich), KEINE kasachische Inlandssteuer. Kasachstan
+      betreibt daneben seit 2013 ein eigenes inlaendisches Emissionshandelssystem fuer
+      Grossemittenten (Umweltkodex) - in dieser Rechercherunde keine belastbare 2026er-Primaerquelle
+      dazu gefunden, offene Recherchelücke. Fuer Agrarexporteure (Duenger-Vorprodukte, ggf.
+      Verarbeitungsanlagen) potenziell relevant, direkte Betroffenheit von Rohagrarprodukten
+      im Beschaffungszeitpunkt nicht bestaetigt.
+
+  - id: unicaselaw-budget-deficit-business-burden
+    name: "Unicaselaw: Kasachstans Steuerreform 2026 - vom Haushaltsdefizit zur Unternehmenslast"
+    name_original: "Kazakhstan's 2026 Tax Reform: From Budget Deficit to Business Burden"
+    herausgeber: "Unicase Law Firm"
+    url: "https://www.unicaselaw.com/blog/kazakhstan-tax-reform-2026-eng"
+    perspektiven: [P7]
+    autoritaetsstufe: 4
+    sprachen: [en]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: statisch
+    abdeckung: >-
+      Pointierte Kanzleianalyse mit klarer These im Titel: die Reform loest ein Fiskalproblem
+      auf Kosten der Unternehmen. Fasst MwSt-Anhebung, Schwellenabsenkung und administrative
+      Mehrbelastung aus Unternehmenssicht zusammen; identische Fassung auch bei mondaq.com gespiegelt.
+    beschaffung: "Frei, unicaselaw.com; Spiegel auf mondaq.com/corporate-tax/1802710."
+    maschinell_abrufbar: true
+    rag_eignung: mittel
+    rag_hinweis: "Meinungsstark und klar strukturiert, aber Kanzleimarketing - Fakten gegen Primaerquellen abgleichen."
+    gueltig_ab: "2025-08-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Guter Titel/Kernsatz fuer Investoren-Briefings, da er die Reform-Grunddynamik (Fiskalnot -> Unternehmenslast) in einem Satz zusammenfasst."
+
+  - id: bns-stat-gov-kz-portal
+    name: "Bureau of National Statistics - Hauptportal"
+    name_original: "Byuro natsional'noy statistiki Agentstva po strategicheskomu planirovaniyu i reformam RK"
+    herausgeber: "Bureau of National Statistics, Agentur fuer strategische Planung und Reformen RK"
+    url: "https://stat.gov.kz/ru/"
+    perspektiven: [P7, P11]
+    autoritaetsstufe: 3
+    sprachen: [ru, kk, en]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: monatlich
+    abdeckung: >-
+      Amtliches Statistikportal. Fuer Steuerquote/BIP-Kennzahlen unter "Nationale Konten", fuer
+      Agrarstatistik unter "Statistik der Land-, Forst-, Jagd- und Fischereiwirtschaft", inkl.
+      Nationaler Agrarzensus 2025.
+    beschaffung: "Frei, Navigation auf stat.gov.kz."
+    maschinell_abrufbar: true
+    rag_eignung: mittel
+    rag_hinweis: "Portalstruktur, keine Einzelwerte auf der Startseite - Tiefenlinks zu Einzelpublikationen noetig, siehe bns-agrarstatistik-formulare und bns-agrarzensus-2025."
+    gueltig_ab: null
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      Sekundaerquelle tradingeconomics.com nennt Steuerquote 11,89% des BIP fuer 2023 (Vorjahr
+      12,06%) unter Berufung auf Weltbank-Daten - keine Primaerzahl von stat.gov.kz selbst in
+      dieser Runde gefunden; fuer eine belastbare 2025/2026-Quote muesste die Nationalkonten-Tabelle
+      direkt auf stat.gov.kz gezogen werden.
+
+  # ============================================================
+  # P10 - Risiko und Durchsetzung
+  # ============================================================
+
+  - id: koap-rk-art-280-1-esf-verstoesse
+    name: "KoAO RK Art. 280-1: Verstoss gegen ESF-Ausstellungsfristen"
+    name_original: "Narushenie srokov vypiski i nevypiska schyeta-faktury v elektronnoy forme"
+    herausgeber: "Republik Kasachstan (Kodex ueber Ordnungswidrigkeiten Nr. 235-V vom 05.07.2014)"
+    url: "https://adilet.zan.kz/rus/docs/K1400000235"
+    perspektiven: [P10]
+    autoritaetsstufe: 1
+    sprachen: [ru, kk]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Art. 280-1: Nichtausstellung einer elektronischen Rechnung (ESF) - beim ersten Verstoss
+      innerhalb eines Jahres nur Verwarnung, bei Wiederholung 40/100/150 MRP (klein/mittel/gross).
+      Verspaetete Ausstellung (Fristverstoss) - Verwarnung, bei Wiederholung 20/50/100 MRP.
+      Jede verspaetete/fehlende ESF gilt als eigener Verstoss (keine Sammelstrafe pro Zeitraum).
+    beschaffung: "Primaertext frei auf adilet.zan.kz."
+    maschinell_abrufbar: false
+    rag_eignung: mittel
+    rag_hinweis: >-
+      adilet.zan.kz liefert bei einfachem HTTP-Abruf nur ein leeres JS-Geruest, kein Fliesstext -
+      Ingest braucht gerenderten Abruf (Headless-Browser) oder eine der amtlichen PDF-Exportvarianten
+      (z.B. .../file_235.htm, beim Test ebenfalls ohne auswertbaren Inhalt). Inhalte dieses
+      Eintrags wurden ueber die Rechtsdatenbank kodeksy-kz.com gegengeprueft (Sekundaerspiegel,
+      Wortlaut mit Stand 2026 laut Seitentitel).
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      Fuer das ERP-Projekt zentral: jede verspaetete ESF ist ein Einzelverstoss, nicht pro
+      Abrechnungszeitraum gebuendelt - bei hoher Belegzahl kann sich die Strafsumme schnell
+      addieren. Betragsangaben stammen aus Sekundaerspiegel, nicht direkt von adilet verifiziert -
+      vor Produktivsetzung gegen amtliche Veroeffentlichung (z.B. Zakon.kz PDF-Abo) pruefen.
+
+  - id: koap-rk-art-269-registrierungsfristen-mwst
+    name: "KoAO RK Art. 269: Fristverstoss bei Registrierung, insb. MwSt-Anmeldung"
+    name_original: "Narushenie sroka podachi nalogovogo zayavleniya o postanovke na registratsionnyy uchet"
+    herausgeber: "Republik Kasachstan (Kodex ueber Ordnungswidrigkeiten Nr. 235-V)"
+    url: "https://adilet.zan.kz/rus/docs/K1400000235"
+    perspektiven: [P10]
+    autoritaetsstufe: 1
+    sprachen: [ru, kk]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Abs. 1: verspaetete allgemeine Registrierungsanmeldung (Notare, Gerichtsvollzieher,
+      Rechtsanwaelte, Einzelunternehmer) - Verwarnung beim ersten Mal, bei Wiederholung 8 MRP
+      (natuerliche Person) / 15 MRP (klein) / 30 MRP (mittel) / 70 MRP (gross). Abs. 3 (Wortlaut
+      zitiert): "Narushenie nalogoplatel'shchikom ustanovlennogo... sroka podachi nalogovogo
+      zayavleniya... o postanovke na registratsionnyy uchet po naclolgu na dobavlennuyu
+      stoimost' - vlechet shtraf v razmere pyatidesyati mesyachnykh raschetnykh pokazateley"
+      (50 MRP, pauschal, keine Staffelung nach Unternehmensgroesse erkennbar).
+    beschaffung: "Primaertext frei auf adilet.zan.kz."
+    maschinell_abrufbar: false
+    rag_eignung: mittel
+    rag_hinweis: "Wie koap-rk-art-280-1: adilet nicht per einfachem HTTP-Abruf lesbar, Inhalt via kodeksy-kz.com gegengeprueft."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "50-MRP-Satz fuer verspaetete MwSt-Registrierungsanmeldung durch zwei unabhaengige Sekundaerquellen (kodeksy-kz.com, dogovor24.kz/cdb.kz) uebereinstimmend bestaetigt - hohe Zuverlaessigkeit trotz fehlendem Primaerzugriff."
+
+  - id: koap-rk-art-275-verschweigen-steuerobjekte
+    name: "KoAO RK Art. 275: Verschweigen von Steuerobjekten / Umsatz ohne MwSt-Registrierung"
+    name_original: "Sokrytie ob'ektov nalogooblozheniya"
+    herausgeber: "Republik Kasachstan (Kodex ueber Ordnungswidrigkeiten Nr. 235-V)"
+    url: "https://adilet.zan.kz/rus/docs/K1400000235"
+    perspektiven: [P10]
+    autoritaetsstufe: 1
+    sprachen: [ru, kk]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Zwei getrennte Tatbestaende unter Art. 275: (1) Verschweigen steuerpflichtiger Objekte -
+      Busse in Hoehe von 200% der auf das verschwiegene Objekt entfallenden Steuer- und
+      Pflichtzahlungssumme (fuer natuerliche Personen, Klein-/Non-Profit-, Mittel- und
+      Grossunternehmen gleichermassen als Prozentsatz). (2) Abs. 5: Umsatztaetigkeit waehrend
+      des Zeitraums der Nicht-Registrierung als MwSt-Pflichtiger - Busse in Hoehe von 15% des
+      in diesem Zeitraum erzielten Umsatzes.
+    beschaffung: "Primaertext frei auf adilet.zan.kz."
+    maschinell_abrufbar: false
+    rag_eignung: mittel
+    rag_hinweis: "adilet nicht per einfachem HTTP-Abruf lesbar. Inhalt ueber kodeksy-kz.com und dogovor24.kz/cdb.kz gegengeprueft."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      Beide Tatbestaende sind prozentual, nicht MRP-fix - im ERP-Kontext potenziell die
+      teuerste Einzelsanktion dieser Liste, da ohne Deckelung an die tatsaechliche Steuer- bzw.
+      Umsatzsumme gekoppelt. Fuer die Sanktionstabelle als "variabel" gekennzeichnet.
+
+  - id: koap-rk-art-284-kkm-kassenbeleg
+    name: "KoAO RK Art. 284: Nichtnutzung der Kasse (KKM) und fehlender Kassenbeleg"
+    name_original: "Narushenie poryadka primeneniya kontrol'no-kassovykh mashin"
+    herausgeber: "Republik Kasachstan (Kodex ueber Ordnungswidrigkeiten Nr. 235-V)"
+    url: "https://adilet.zan.kz/rus/docs/K1400000235"
+    perspektiven: [P10]
+    autoritaetsstufe: 1
+    sprachen: [ru, kk]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Nichtnutzung der Registrierkasse bei Bargeschaeften bzw. Nutzung einer defekten/nicht
+      registrierten Kasse: erster Verstoss Verwarnung, Wiederholung binnen 12 Monaten 15 MRP
+      (Kleinstunternehmer/Privatnotare) / 30 MRP (mittel) / 50 MRP (gross). Nichtausgabe eines
+      Kassen- oder Warenbelegs: erster Verstoss Verwarnung, Wiederholung 20 MRP (Kleinstunternehmer) /
+      30 MRP (mittel) / 40 MRP (gross).
+    beschaffung: "Primaertext frei auf adilet.zan.kz."
+    maschinell_abrufbar: false
+    rag_eignung: mittel
+    rag_hinweis: "adilet nicht per einfachem HTTP-Abruf lesbar. Wortlaut ueber kodeksy-kz.com gegengeprueft, Struktur (Verwarnung -> Wiederholungsstrafe) konsistent mit anderen Artikeln dieses Kodex."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Fuer ein Agrarhandelsunternehmen mit Direktverkauf/Marktstand relevant (Belegpflicht bei Bargeschaeften). Erstverstoss folgenlos (nur Verwarnung) - operative Risikoeinschaetzung sollte das beruecksichtigen."
+
+  - id: koap-rk-art-279-steueragent-einbehalt
+    name: "KoAO RK Art. 279 (UNSICHERE Artikelnummer): Nichtabfuehrung einbehaltener Steuern durch Steueragenten"
+    name_original: "Nevypolnenie nalogovym agentom obyazannosti po uderzhaniyu i (ili) perechisleniyu nalogov"
+    herausgeber: "Republik Kasachstan (Kodex ueber Ordnungswidrigkeiten Nr. 235-V)"
+    url: "https://adilet.zan.kz/rus/docs/K1400000235"
+    perspektiven: [P10]
+    autoritaetsstufe: 1
+    sprachen: [ru, kk]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Nichtabfuehrung/nicht vollstaendige Abfuehrung einbehaltener Steuerbetraege (z.B.
+      Lohnsteuer) durch den Steueragenten innerhalb der Frist: 5 MRP (Klein-/Non-Profit) /
+      10 MRP (mittel) / 20 MRP (gross). Bagatellgrenze: keine Ahndung, wenn der betroffene
+      Betrag unter 1 MRP liegt.
+    beschaffung: "Primaertext frei auf adilet.zan.kz."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "NICHT zur direkten Zitierung geeignet, bis die Artikelnummer primaerquellig bestaetigt ist - siehe notiz."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      UNSICHERHEIT AUSDRUECKLICH VERMERKT: In dieser Recherche nannte eine erste KI-gestuetzte
+      Suchzusammenfassung Art. 273 fuer diesen Tatbestand; bei direkter Pruefung war Art. 273
+      tatsaechlich ein anderer Tatbestand (Verrechnungspreisdokumentation, siehe Widerspruch
+      im Text). Eine zweite, unabhaengige Quelle (mybiz24.kz) nennt stattdessen Art. 279 Abs. 2
+      mit den oben genannten Betraegen. NUR EINE Sekundaerquelle konkret fuer Art. 279 gefunden -
+      nicht gegen adilet oder eine zweite Quelle gegengeprueft. Vor Verwendung im Produktivsystem
+      zwingend gegen den Primaertext (adilet, mit Rendering) oder eine kostenpflichtige
+      Rechtsdatenbank (zakon.kz/prg.kz) abgleichen. In der Sanktionstabelle als unverifiziert markiert.
+
+  - id: koap-rk-art-91-92-1-opv-osms-nichtabfuehrung
+    name: "KoAO RK Art. 91 und 92-1: Nichtabfuehrung von Pensions- und Krankenversicherungsbeitraegen"
+    name_original: "Neperechislenie (nepolnoe perechislenie) obyazatel'nykh pensionnykh vznosov i vznosov na OSMS"
+    herausgeber: "Republik Kasachstan (Kodex ueber Ordnungswidrigkeiten Nr. 235-V)"
+    url: "https://adilet.zan.kz/rus/docs/K1400000235"
+    perspektiven: [P10, P11]
+    autoritaetsstufe: 1
+    sprachen: [ru, kk]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Art. 91 Abs. 7 (wiederholter Verstoss binnen Jahresfrist, Pensionsbeitraege ENPF): Busse
+      in Hoehe von 20% (Klein-/Non-Profit) / 30% (mittel) / 50% (gross) der nicht abgefuehrten
+      Summe. Art. 92-1 Abs. 2 (wiederholter Verstoss, OSMS-Beitraege): identische Staffelung
+      20%/30%/50% der nicht abgefuehrten Summe.
+    beschaffung: "Primaertext frei auf adilet.zan.kz."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "Nur eine Sekundaerquelle (mybiz24.kz) fuer beide Artikelnummern - vor Produktivnutzung primaerquellig verifizieren."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Wie koap-rk-art-279-steueragent-einbehalt aus derselben Einzelquelle (mybiz24.kz) - als Bündel unverifiziert markiert, gleiche Vorsicht angebracht."
+
+  - id: uk-rk-art-245-steuerhinterziehung-organisationen
+    name: "StGB RK Art. 245: Steuerhinterziehung durch Organisationen (strafrechtliche Schwelle)"
+    name_original: "Uklonenie ot uplaty naloga i (ili) drugikh obyazatel'nykh platezhey v byudzhet s organizatsiy"
+    herausgeber: "Republik Kasachstan (Strafgesetzbuch Nr. 226-V vom 03.07.2014)"
+    url: "https://adilet.zan.kz/rus/docs/K1400000226"
+    perspektiven: [P10]
+    autoritaetsstufe: 1
+    sprachen: [ru, kk]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Definiert "grossen Umfang" (krupnyy razmer) nach Art. 3 Abs. 38 StGB als nicht gezahlte
+      Pflichtabgaben ueber 50.000 MRP im Pruefzeitraum, sofern die im Rahmen einer Steuerpruefung
+      fuer ein Kalenderjahr festgestellte Steuerschuld 10% der vom Steuerpflichtigen fuer dieses
+      Jahr insgesamt berechneten Abgaben uebersteigt. Rechtsfolge bei "grossem Umfang": Geldstrafe
+      vom Zwei- bis Dreifachen der nicht gezahlten Summe, oder gemeinnuetzige Arbeit bis 800
+      Stunden, oder Freiheitsbeschraenkung/-entzug bis drei Jahre, jeweils mit moeglichem
+      zusaetzlichem Taetigkeitsverbot bis drei Jahre.
+    beschaffung: "Primaertext frei auf adilet.zan.kz."
+    maschinell_abrufbar: false
+    rag_eignung: mittel
+    rag_hinweis: "adilet nicht per einfachem HTTP-Abruf lesbar - Inhalt ueber kodeksy-kz.com/zakonexpert.kz gegengeprueft. Schwellenwert-Definition (50.000 MRP + 10%-Relativkriterium) ist zweistufig und leicht falsch zu vereinfachen - im RAG-Chunk beide Bedingungen gemeinsam halten."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      Schwellenwert 50.000 MRP entspricht bei MRP 2026 = 4.325 Tenge einer Summe von
+      216.250.000 Tenge (ca. 216,25 Mio. Tenge) nicht gezahlter Abgaben im Pruefzeitraum, ab der
+      die strafrechtliche statt nur administrative Ebene greift. Parallelvorschrift fuer
+      Privatpersonen: Art. 244 StGB (Uklonenie grazhdanina...) - in dieser Runde nicht mit
+      eigenem Schwellenwert verifiziert, nur als verwandte Norm identifiziert.
+
+  - id: kgd-sur-anwendungsbereiche-offiziell
+    name: "KGD: Anwendungsbereiche des Risikomanagementsystems (SUR)"
+    name_original: "Oblasti primeneniya sistemy upravleniya riskami"
+    herausgeber: "Komitee fuer Staatseinnahmen (KGD) beim Finanzministerium RK"
+    url: "https://kgd.gov.kz/ru/news/oblasti-primeneniya-sistemy-upravleniya-riskami-1-95794"
+    perspektiven: [P10]
+    autoritaetsstufe: 3
+    sprachen: [ru]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Amtliche KGD-Erklaerung: SUR wirkt in vier getrennten Bereichen mit jeweils eigener
+      Risikoeinstufung fuer denselben Steuerpflichtigen - (1) allgemeine Steuerpflichtigen-Kategorisierung
+      nach Art. 136 Steuerkodex, (2) MwSt-Pilotprojekt basierend auf ESF-Daten fuer
+      Hochrisiko-MwSt-Zahler, (3) Ergebnisse der Kamerakontrolle (Benachrichtigungen/Warnungen),
+      (4) Auswahl fuer Vor-Ort-Steuerpruefungen. Acht offene Kriterien (2 objektive, 6 subjektive)
+      laut gemeinsamer Ministerialverordnung von Nov. 2018; restliche Kriterien sind interne
+      ("dienstliche") Information und nicht veroeffentlicht.
+    beschaffung: "Frei, kgd.gov.kz."
+    maschinell_abrufbar: true
+    rag_eignung: hoch
+    rag_hinweis: "Amtliche Quelle mit klarer Struktur (vier Bereiche, acht offene Kriterien) - fuer die Frage 'was triggert eine Pruefung' die beste in dieser Runde gefundene Antwort, auch wenn Artikelnummer (136) noch gegen den neuen Kodex 214-VIII abzugleichen ist."
+    gueltig_ab: "2018-11-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      Artikelnummer-Diskrepanz beobachtet: diese Seite nennt Art. 136 Steuerkodex fuer die
+      allgemeine Kategorisierung, eine andere Sekundaerquelle (finproverka.kz) nannte an
+      anderer Stelle Art. 137 fuer die offenen Kriterien. Beide Angaben koennten sich noch auf
+      den alten Kodex (120-VI, bis 31.12.2025) beziehen, da das Datum der zugrunde liegenden
+      Ministerialverordnung (Nov. 2018) deutlich vor der Reform liegt. Vor Verwendung gegen den
+      neuen Kodex 214-VIII abgleichen - moeglich, dass die SUR-Vorschriften bislang unter altem
+      Artikelstand fortgelten oder noch nicht neu nummeriert veroeffentlicht sind.
+
+  - id: adilet-sur-kriterien-verordnung-v1800016534
+    name: "Verordnung ueber die nicht-vertraulichen SUR-Kriterien"
+    name_original: "Ob utverzhdenii Pravil primeneniya sistemy upravleniya riskami po kriteriyam, ne yavlyayushchimsya konfidentsial'noy informatsiey"
+    herausgeber: "Finanzministerium RK / Komitee fuer Staatseinnahmen"
+    url: "https://adilet.zan.kz/rus/docs/V1800016534"
+    perspektiven: [P10]
+    autoritaetsstufe: 2
+    sprachen: [ru, kk]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Untergesetzlicher Akt, der die oeffentlich einsehbaren (nicht vertraulichen) SUR-Kriterien
+      regelt - Gegenstueck zu den intern gehaltenen "dienstlichen" Kriterien. Risikominderungsfaktoren
+      u.a. Teilnahme am Steuermonitoring, Nutzung des Standard Audit File, Anwendung von
+      MwSt-Kontrollkonten.
+    beschaffung: "Primaertext frei auf adilet.zan.kz."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "adilet nicht per einfachem HTTP-Abruf lesbar - nur Titel/Fundstelle aus Suchtreffern bestaetigt, Volltext in dieser Runde nicht gegengeprueft. Vor Ingest zwingend mit Rendering abrufen."
+    gueltig_ab: "2018-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Risikoeinstufung erfolgt laut Sekundaerquellen zweimal jaehrlich (Stichtage 1. Januar und 1. Juli). Abfragbar pro BIN/IIN unter kgd.gov.kz, Bereich 'Elektronische Dienste' -> 'Unterstuetzung fuer Unternehmen' -> 'Risikostufe des Steuerpflichtigen'."
+
+  - id: consaltprofi-kameralkontrolle-2026
+    name: "Kamerakontrolle 2026: 30 Tage Antwortfrist, Kontosperrung binnen eines Tages"
+    name_original: "Kameral'nyy kontrol' - iyul' 2026: 30 dney na otvet, blokirovka za sutki"
+    herausgeber: "ConsaltProfi"
+    url: "https://consaltprofi.kz/article-48.html"
+    perspektiven: [P10]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Ab 01.01.2026 vereinheitlichtes "Uvedomlenie o raskhozhdeniyakh" (Abweichungsmitteilung)
+      ersetzt fruehere Benachrichtigungs-/Mitteilungsformen. Antwortfrist: 30 Arbeitstage, in
+      der eigenen oder der pruefenden Dienststelle einreichbar. Nichterfuellung fuehrt zu:
+      Sperrung der Kontobewegungen, Sperrung der ESF-Ausstellung und Zugangsbeschraenkung fuer
+      auslaendische Internetplattformen (Art. 86, 88, 89 des neuen Steuerkodex). Widerspruch
+      vor Gericht moeglich, Vollzugsfrist ruht waehrend laufendem Verfahren bei Vorlage des
+      Gerichtsbeschlusses ueber die Klageannahme.
+    beschaffung: "Frei, consaltprofi.kz."
+    maschinell_abrufbar: true
+    rag_eignung: hoch
+    rag_hinweis: "Konkrete Fristen (30 Arbeitstage) und konkrete Artikelnummern des NEUEN Kodex (86/88/89) - fuer P10.10 die praezisteste in dieser Runde gefundene Quelle."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      Diese Artikelnummern (86, 88, 89) beziehen sich klar auf den NEUEN Kodex 214-VIII (Datum
+      des Artikels: Juli 2026) - im Gegensatz zum veralteten Befund bei
+      kgd-abai-kontosperre-altkodex-veraltet. Fuer P10.11 (Kontosperrung) als aktuelle
+      Referenz bevorzugen, alten Artikel 118/611 nur historisch verwenden.
+
+  - id: kgd-abai-kontosperre-altkodex-veraltet
+    name: "KGD Gebietsabteilung Abai: Kontosperrung - VERALTETE Rechtsgrundlage (Negativbefund)"
+    name_original: "Priostanovlenie raskhodnykh operatsiy po bankovskim schetam nalogoplatel'shchika"
+    herausgeber: "Departament gosudarstvennykh dokhodov po oblasti Abay (KGD-Gebietsdepartement)"
+    url: "https://abai.kgd.gov.kz/ru/content/priostanovlenie-rashodnyh-operaciy-po-bankovskim-schetam-nalogoplatelshchika-19"
+    perspektiven: [P10]
+    autoritaetsstufe: 3
+    sprachen: [ru]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Erklaert das Instrument der Kontosperrung (Ausloeser: Nichtabgabe von Steuererklaerungen,
+      Nichtabgabe der MwSt-Registrierungsanmeldung, Steuerschuld ueber 6 MRP mit
+      risikoabhaengiger Frist - 1 Arbeitstag bei hohem, 10 Arbeitstage bei mittlerem Risiko -,
+      Pruefungsverweigerung, unzustellbare Post, Nichtbefolgen von Nachbesserungsmitteilungen).
+      Ausnahmen: Steuer-, Zoll- und Sozialabgabenzahlungen sowie Schuldentilgung bleiben moeglich.
+    beschaffung: "Frei, regionale KGD-Website."
+    maschinell_abrufbar: true
+    rag_eignung: ungeeignet
+    rag_hinweis: "Zitiert ausdruecklich 'Steuerkodex Nr. 121-VI vom 25.12.2017' - das ist der zum 01.01.2026 AUSSER KRAFT getretene alte Kodex. Als aktuelle Rechtsgrundlage ungeeignet, nur mit klarer historischer Kennzeichnung nutzbar."
+    gueltig_ab: "2018-01-01"
+    gueltig_bis: "2025-12-31"
+    ist_ueberholt: true
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      ZWEITER STALENESS-BEFUND dieser Recherche, diesmal bei einer AMTLICHEN kasachischen
+      Behoerdenseite (nicht nur bei englischsprachigen Aggregatoren wie taxratesbycountry.com):
+      ein regionales KGD-Gebietsdepartement erklaert das Kontosperrungsverfahren beim Abruf im
+      September 2026 immer noch unter Berufung auf den zum Jahreswechsel abgeloesten Kodex
+      121-VI/2017 (Art. 118). Das Mechanismus-Prinzip (Schwelle 6 MRP, risikoabhaengige Frist)
+      duerfte inhaltlich fortgelten, die Rechtsgrundlagen-Angabe selbst ist jedoch falsch.
+      Zeigt: nicht nur private/englischsprachige Quellen hinken der Reform hinterher, sondern
+      auch offizielle Verwaltungsseiten selbst. Fuer aktuelle Artikelnummer siehe
+      consaltprofi-kameralkontrolle-2026 (Art. 86/88/89 des neuen Kodex).
+
+  # ============================================================
+  # P11 - Nebenpflichten (Arbeitsrecht, Sozialversicherung, Statistik)
+  # ============================================================
+
+  - id: koap-rk-art-98-esutd-verstoesse
+    name: "KoAO RK Art. 98 Abs. 1-1/1-2: Verstoesse gegen die ESUTD-Registrierungspflicht (PRUEFERGEBNIS: 2.000-MRP-Angabe falsch)"
+    name_original: "Vnesenie nedostovernoy i (ili) nekorrektnoy informatsii v edinuyu sistemu ucheta trudovykh dogovorov"
+    herausgeber: "Republik Kasachstan (Kodex ueber Ordnungswidrigkeiten Nr. 235-V, geaendert durch Gesetz Nr. 257-VIII vom 09.01.2026)"
+    url: "https://adilet.zan.kz/rus/docs/K1400000235"
+    perspektiven: [P11, P10]
+    autoritaetsstufe: 1
+    sprachen: [ru, kk]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Seit 12.03.2026 in Kraft. Erfasst: keine/verspaetete Eintragung, unvollstaendige Angaben,
+      falsche/inkorrekte Angaben im ESUTD. Ersttatbestand: 30 MRP (verantwortliche Person) /
+      60 MRP (Klein-/Non-Profit) / 80 MRP (mittel) / 150 MRP (gross). Wiederholung binnen
+      Jahresfrist: 60 MRP (verantwortliche Person) / 80 MRP (klein) / 100 MRP (mittel) /
+      200 MRP (gross) - MAXIMALSATZ DER GESAMTEN VORSCHRIFT. Fristen: Arbeitsvertrag binnen
+      10 Kalendertagen, Aenderungen binnen 15 Kalendertagen, Beendigung binnen 3 Arbeitstagen
+      einzutragen; fehlerhafte Eintragung binnen 30 Arbeitstagen folgenlos korrigierbar.
+    beschaffung: "Primaertext frei auf adilet.zan.kz."
+    maschinell_abrufbar: false
+    rag_eignung: hoch
+    rag_hinweis: "adilet nicht per einfachem HTTP-Abruf lesbar - Betraege und Fristen ueber mindestens drei unabhaengige Sekundaerquellen (uchet.kz, cdb.kz, Moore Kazakhstan, pro1c.kz) uebereinstimmend bestaetigt, hohe Zuverlaessigkeit trotz fehlendem Primaerzugriff."
+    gueltig_ab: "2026-03-12"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      KERNBEFUND DIESER RECHERCHE zur Verifizierung der "bis zu 2.000 MRP"-Angabe aus
+      Marketingtexten: DIE ANGABE IST FALSCH. Der tatsaechliche, mehrfach unabhaengig
+      bestaetigte Hoechstsatz betraegt 200 MRP (Grossunternehmen, Wiederholungsfall) = 865.000
+      Tenge bei MRP 2026 = 4.325 Tenge - das ist ein Zehntel der kolportierten Zahl, nicht
+      naeherungsweise dasselbe. Keine der in dieser Recherche gepruefte Quelle (vier unabhaengige
+      Fachportale plus die Gesetzesaenderung selbst laut Sekundaerbeschreibung) nennt einen
+      Wert nahe 2.000 MRP fuer diesen Tatbestand. Moegliche Erklaerung fuer die Falschangabe:
+      Verwechslung mit der Strafandrohung fuer illegale auslaendische Arbeitskraefte (KoAO,
+      Wiederholungsfall Grossunternehmen bis 1.000 MRP - selbst das erreicht 2.000 MRP nicht)
+      oder schlicht Zehnerfehler in der Marketingkommunikation. EMPFEHLUNG: "2.000 MRP" aus
+      allen Vertriebs-/Marketingunterlagen entfernen und durch die verifizierte 30-200-MRP-Staffel ersetzen.
+
+  - id: uchet-esutd-shtrafy-2026
+    name: "uchet.kz: ESUTD - wofuer und in welcher Hoehe wird ab 12.03.2026 gestraft"
+    name_original: "ESUTD: za chto i na skol'ko budut shtrafovat' s 12 marta 2026 goda"
+    herausgeber: "uchet.kz"
+    url: "https://uchet.kz/news/esutd-za-chto-i-na-skolko-budut-shtrafovat-s-12-marta-2026-goda/"
+    perspektiven: [P11]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: statisch
+    abdeckung: >-
+      Bestaetigt unabhaengig dieselbe Betragsstaffel wie koap-rk-art-98-esutd-verstoesse (30/60/80/150
+      MRP Ersttat, 60/80/100/200 MRP Wiederholung) sowie den MRP-2026-Wert von 4.325 Tenge und
+      den Umrechnungsbetrag 865.000 Tenge fuer den Hoechstsatz.
+    beschaffung: "Frei, uchet.kz."
+    maschinell_abrufbar: true
+    rag_eignung: hoch
+    rag_hinweis: "Zentrale Bestaetigungsquelle fuer den 2.000-MRP-Prueffund - explizite Tenge-Umrechnung deckt sich rechnerisch mit MRP 2026 = 4.325 Tenge aus dem Rechercheauftrag."
+    gueltig_ab: "2026-03-12"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Rechtsgrundlage laut dieser Quelle: Gesetz Nr. 257-VIII vom 09.01.2026, neue Absaetze 1-1 und 1-2 in Art. 98 KoAO."
+
+  - id: moore-esutd-strafen-2026
+    name: "Moore Kasachstan: Einheitliches System der Arbeitsvertragserfassung - Strafen bei Verstoessen"
+    name_original: "Edinaya sistema ucheta trudovykh dogovorov: shtrafy za narusheniya"
+    herausgeber: "Moore Kazakhstan"
+    url: "https://kazakhstan.moore-global.com/ru/unified-system-of-employment-contracts-fines-for-violations/"
+    perspektiven: [P11]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: statisch
+    abdeckung: "Dritte unabhaengige Quelle zur Bestaetigung der ESUTD-Strafstaffel (30-200 MRP je nach Betriebsgroesse und Wiederholung) durch eine internationale Beratungsgesellschaft statt eines reinen Fachportals."
+    beschaffung: "Frei, kazakhstan.moore-global.com."
+    maschinell_abrufbar: true
+    rag_eignung: mittel
+    rag_hinweis: "Bestaetigungsquelle, keine neuen Fakten gegenueber uchet-esutd-shtrafy-2026."
+    gueltig_ab: "2026-03-12"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Dritte, von einer internationalen Beratungsgesellschaft (nicht nur lokalen Fachportalen) unabhaengig bestaetigte Quelle fuer die 30-200-MRP-Staffel - erhoeht die Verlaesslichkeit des 2.000-MRP-Falsifizierungsbefunds zusaetzlich."
+
+  - id: enpf-opvr-satz-erhoehung-2026
+    name: "ENPF: Erhoehung des Arbeitgeber-Pflichtpensionsbeitrags (OPVR) auf 3,5% in 2026"
+    name_original: "V Kazakhstane povyshen razmer obyazatel'nogo pensionnogo vznosa rabotodatelya"
+    herausgeber: "Einheitlicher Akkumulativer Pensionsfonds (ENPF)"
+    url: "https://www.enpf.kz/ru/press-center/news/282170/"
+    perspektiven: [P11]
+    autoritaetsstufe: 3
+    sprachen: [ru]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: statisch
+    abdeckung: >-
+      OPVR (Arbeitgeber-Pflichtpensionsbeitrag, fuer Beschaeftigte Jahrgang 1975+) steigt
+      stufenweise: 1,5% (2024) -> 2,5% (2025) -> 3,5% (2026) -> 4,5% (2027) -> 5% (2028).
+      Ueberweisung durch den Arbeitgeber monatlich bis zum 25. des Folgemonats (Regeln Nr. 540).
+    beschaffung: "Frei, enpf.kz."
+    maschinell_abrufbar: true
+    rag_eignung: hoch
+    rag_hinweis: "Amtliche Quelle des Pensionsfonds selbst mit klarer Stufenplan-Tabelle - direkt zitierfaehig."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: "2026-12-31"
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Satz gilt nur fuer 2026 (gueltig_bis gesetzt, da 2027 planmaessig 4,5% folgen) - im RAG-System als Jahreswert kennzeichnen, nicht als Dauerzustand."
+
+  - id: adilet-opvr-regeln-p540
+    name: "Regeln zur Berechnung und Ueberweisung der Arbeitgeber-Pflichtpensionsbeitraege (Nr. 540)"
+    name_original: "Ob utverzhdenii Pravil i srokov ischisleniya (nachisleniya) i perechisleniya obyazatel'nykh pensionnykh vznosov rabotodatelya"
+    herausgeber: "Republik Kasachstan (Regierungsverordnung / zustaendiges Ministerium)"
+    url: "https://adilet.zan.kz/rus/docs/P2300000540"
+    perspektiven: [P11]
+    autoritaetsstufe: 2
+    sprachen: [ru, kk]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: "Untergesetzlicher Akt, der Berechnungsmethode, Faelligkeit (25. des Folgemonats) und Vollstreckung der ENPF-Arbeitgeberbeitraege regelt."
+    beschaffung: "Primaertext frei auf adilet.zan.kz."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "adilet nicht per einfachem HTTP-Abruf lesbar - Existenz und Titel aus Suchtreffern bestaetigt, Volltext nicht gegengeprueft."
+    gueltig_ab: "2023-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Ergaenzt enpf-opvr-satz-erhoehung-2026 um die verfahrensrechtliche Seite (wie/wann zu zahlen, nicht nur wie viel)."
+
+  - id: osms-beitragssaetze-mybuh-2026
+    name: "OSMS-Beitragssaetze 2026: Arbeitgeber 3%, Arbeitnehmer 2%"
+    name_original: "VOSMS i OOSMS v 2026 g.: stavki i predel'nye summy"
+    herausgeber: "mybuh.kz"
+    url: "https://mybuh.kz/news/vosms-i-oosms-v-2024-g-stavki-i-predelnye-summy/"
+    perspektiven: [P11]
+    autoritaetsstufe: 4
+    sprachen: [ru]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      OOSMS (Arbeitgeberbeitrag aus eigenen Mitteln): 3% des Bruttolohns. VOSMS (vom Arbeitgeber
+      einbehaltener Arbeitnehmeranteil): 2%. Bemessungsobergrenze: monatliches Einkommen bis
+      40 MZP (Mindestlohn-Bezugsgroesse), maximaler Arbeitgeberbeitrag damit rechnerisch ca.
+      102.000 Tenge/Monat.
+    beschaffung: "Frei, mybuh.kz."
+    maschinell_abrufbar: true
+    rag_eignung: mittel
+    rag_hinweis: "URL-Slug nennt '2024', Seiteninhalt beansprucht laut Fund jedoch 2026-Werte - Datumsangabe der Seite vor Zitierung gegenpruefen, moeglicherweise wiederverwendete/aktualisierte URL."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: "2026-12-31"
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      Vorsicht: URL enthaelt '2024' im Pfad, was auf eine urspruenglich fuer 2024 verfasste und
+      seither aktualisierte Seite hindeuten koennte - klassisches Muster fuer versteckte
+      Veralterung (aehnlich dem taxratesbycountry-Befund, nur schwaecher ausgepraegt). Fuer
+      Ingest Vorsicht walten lassen und Betrag gegen eine zweite Quelle (z.B. cdb.kz-Artikel
+      'Ob izmenenii platezhey na OSMS v 2026 godu') pruefen.
+
+  - id: bns-agrarstatistik-formulare-29sch-49sch
+    name: "Statistische Meldeformulare fuer die Landwirtschaft: 29-SCH und 49-SCH"
+    name_original: "Statisticheskie formy: 29-skh (o sbore urozhaya), 49-skh (nalichie postroek)"
+    herausgeber: "Bureau of National Statistics RK"
+    url: "https://stat.gov.kz/ru/respondents/statistical-forms/"
+    perspektiven: [P11]
+    autoritaetsstufe: 3
+    sprachen: [ru]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: jaehrlich
+    abdeckung: >-
+      Formular 29-SCH (Ernteertragsmeldung, "O sbore urozhaya sel'skokhozyaystvennykh kul'tur"):
+      jaehrlich, Abgabefrist spaetestens 20. November. Formular 49-SCH (Bestand an
+      landwirtschaftlichen Gebaeuden/Anlagen): alle drei Jahre. Weitere im Suchergebnis genannte,
+      in dieser Runde nicht einzeln verifizierte Formulare: 1-SCH (Anbauflaechen), 2-SCH
+      (Viehbestand) - Periodizitaet dieser beiden nicht bestaetigt, aus KI-Suchzusammenfassung
+      uebernommen, daher hier ausdruecklich als ungeprueft markiert.
+    beschaffung: "Formularliste frei auf stat.gov.kz/ru/respondents/statistical-forms/, jaehrlich neu veroeffentlicht."
+    maschinell_abrufbar: true
+    rag_eignung: mittel
+    rag_hinweis: "Portalseite mit jaehrlich wechselndem Formularsatz - fuer RAG-Ingest muss die Jahresversion (2026) explizit referenziert und bei Jahreswechsel neu gezogen werden."
+    gueltig_ab: "2026-01-01"
+    gueltig_bis: "2026-12-31"
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      ACHTUNG bei Folgerecherche: eine automatisierte Suchzusammenfassung mischte in dieser
+      Runde zunaechst russische Rosstat-Formulare (z.B. '1-fermer', Rosstat-Erlass Nr. 369/2023)
+      in die Ergebnisse zu kasachischer Statistik - diese wurden NICHT uebernommen, da sie sich
+      auf die Russische Foederation, nicht auf Kasachstan beziehen. Nur die hier genannten
+      stat.gov.kz-eigenen Formulare (29-SCH, 49-SCH) gelten als fuer dieses Projekt bestaetigt.
+
+  - id: bns-agrarzensus-2025
+    name: "Nationale Agrarzensus 2025"
+    name_original: "Natsional'naya sel'skokhozyaystvennaya perepis' 2025 goda"
+    herausgeber: "Bureau of National Statistics RK"
+    url: "https://stat.gov.kz/ru/"
+    perspektiven: [P11]
+    autoritaetsstufe: 3
+    sprachen: [ru, kk]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: statisch
+    abdeckung: >-
+      Landesweite Agrarzaehlung 2025, als eigener Menuepunkt unter "Nationale Volkszaehlungen"
+      auf stat.gov.kz gefuehrt - umfassendste, aber nicht laufend wiederkehrende Datenerhebung
+      zum Agrarsektor (im Unterschied zu den jaehrlichen/dreijaehrlichen Formularen unter
+      bns-agrarstatistik-formulare-29sch-49sch).
+    beschaffung: "Frei, stat.gov.kz, genaue Unterseite in dieser Runde nicht bis zur Tiefenlink-Ebene verifiziert."
+    maschinell_abrufbar: true
+    rag_eignung: gering
+    rag_hinweis: "Nur Portal-Navigationspunkt bestaetigt, keine Tiefenlink-URL zur eigentlichen Zensus-Seite in dieser Runde ermittelt - Folgerecherche noetig."
+    gueltig_ab: "2025-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: "Einmalige Grosserhebung, keine laufende Meldepflicht im engeren Sinn - fuer P11.14 als Kontext (Datengrundlage der Agrarstatistik), nicht als wiederkehrende Compliance-Pflicht des einzelnen Betriebs relevant."
+
+  - id: adilet-saisonarbeiter-genehmigungen
+    name: "Regeln zur Erteilung von Genehmigungen fuer die Anwerbung auslaendischer Arbeitskraefte"
+    name_original: "Ob utverzhdenii Pravil i usloviy vydachi ili prodleniya razresheniy rabotodatelyam na privlechenie inostrannoy rabochey sily"
+    herausgeber: "Republik Kasachstan (Ministerialverordnung)"
+    url: "https://adilet.zan.kz/rus/docs/V2300032977"
+    perspektiven: [P11]
+    autoritaetsstufe: 2
+    sprachen: [ru, kk]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Regelt Erteilung/Verlaengerung von Arbeitgebergenehmigungen fuer auslaendische
+      Arbeitskraefte sowie konzerninterne Entsendungen. Saisonarbeiter (Taetigkeit bis zu einem
+      Jahr, klimatisch/saisonal bedingt, Berufsliste durch die Migrationsbehoerde festgelegt):
+      Genehmigungsdauer 90, 180, 270 oder 365 Tage, OHNE Verlaengerungsmoeglichkeit. Zustaendig
+      fuer Erteilung: lokales Exekutivorgan (Bereich Sozialschutz und Beschaeftigung) der
+      jeweiligen Gebiets-/Stadtverwaltung.
+    beschaffung: "Primaertext frei auf adilet.zan.kz."
+    maschinell_abrufbar: false
+    rag_eignung: mittel
+    rag_hinweis: "adilet nicht per einfachem HTTP-Abruf lesbar - Kerninhalt (Fristen 90/180/270/365 Tage, keine Verlaengerung, zustaendige Stelle) aus KI-Suchzusammenfassung mit Bezug auf diese und verwandte Adilet-Dokumente uebernommen, nicht Wort-fuer-Wort gegengeprueft."
+    gueltig_ab: "2023-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      Fuer Agrarbetriebe mit saisonalem Arbeitskraeftebedarf (Ernte) der zentrale Befund in
+      P11.15: feste Hoechstdauer je Genehmigung OHNE Verlaengerung bedeutet, dass bei
+      mehrjaehrigem wiederkehrendem Bedarf jedes Jahr ein neues Genehmigungsverfahren noetig ist -
+      relevant fuer die Planung im ERP-System (keine automatische Fortschreibung moeglich).
+      Verwandte Verordnung zur Kontingentierung: adilet.zan.kz/rus/docs/V2300032955 (Quote fuer
+      auslaendische Arbeitskraefte, Verteilung auf Gebiete).
+
+  - id: arbeitsgesetzbuch-rk-abschnitt5-sicherheit
+    name: "Arbeitsgesetzbuch RK, Abschnitt 5: Arbeitssicherheit und -schutz"
+    name_original: "Trudovoy kodeks Respubliki Kazakhstan, razdel 5 (bezopasnost' i okhrana truda)"
+    herausgeber: "Republik Kasachstan"
+    url: "https://adilet.zan.kz/rus/docs/K1500000414"
+    perspektiven: [P11]
+    autoritaetsstufe: 1
+    sprachen: [ru, kk]
+    zugang: frei
+    kosten:
+      betrag: null
+      waehrung: null
+      periode: null
+      verifiziert: false
+      beleg_url: null
+    aktualisierung: unbekannt
+    abdeckung: >-
+      Abschnitt 5 des Arbeitsgesetzbuchs regelt Arbeitssicherheit/-schutz einschliesslich
+      Untersuchung arbeitsbedingter Unfaelle. Saisonarbeiter haben denselben Pflichten- und
+      Rechtsumfang im Arbeitsschutz wie Stammpersonal - keine Sonderregeln fuer geringeren Schutz.
+      Aufsicht durch die staatliche Arbeitsschutzinspektion.
+    beschaffung: "Primaertext frei auf adilet.zan.kz."
+    maschinell_abrufbar: false
+    rag_eignung: gering
+    rag_hinweis: "adilet nicht per einfachem HTTP-Abruf lesbar. In dieser Runde nur allgemeine Prinzipien bestaetigt (Gleichstellung Saisonarbeiter), KEINE konkreten Meldepflichten/Fristen fuer Arbeitsunfaelle oder Gefaehrdungsbeurteilungen ermittelt - klare Recherchelücke."
+    gueltig_ab: "2016-01-01"
+    gueltig_bis: null
+    ist_ueberholt: false
+    abgerufen_am: "2026-09-18"
+    notiz: >-
+      SCHWAECHSTER Befund dieser Recherche (P11.15, Arbeitsschutz-Meldepflichten): trotz
+      mehrerer Suchanlaeufe keine konkreten Formulare, Fristen oder Bussgeldsaetze fuer
+      Arbeitsunfall-Meldung oder Gefaehrdungsbeurteilung in der Landwirtschaft gefunden -
+      lediglich die allgemeine Rechtsgrundlage (Abschnitt 5) und das Gleichstellungsprinzip fuer
+      Saisonarbeiter. Empfehlung fuer Folgerecherche: gezielt nach "rassledovanie neschastnykh
+      sluchaev na proizvodstve" (Untersuchung von Arbeitsunfaellen) und der zustaendigen
+      Meldeverordnung des Ministeriums fuer Arbeit und Sozialschutz suchen, sowie nach einer
+      branchenspezifischen Regel fuer Landwirtschaft/Landtechnik (erhoehtes Unfallrisiko bei
+      Erntetechnik).

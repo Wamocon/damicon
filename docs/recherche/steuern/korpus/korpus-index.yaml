@@ -1,0 +1,32 @@
+# Korpusindex
+#
+# Erzeugt aus den Frontmatter-Feldern aller Korpusdateien.
+# Neu erzeugen mit: node scripts/steuer-korpus-index.mjs
+
+erzeugt_am: "2026-09-19"
+dateien: 5361
+groesse_mb: 17.7
+als_ueberholt_markiert: 17
+
+# 1 Primaerrecht, 2 untergesetzlich, 3 amtliche Erlaeuterung,
+# 4 Fachquelle, 5 Presse. Siehe quellenregister-schema.yaml.
+nach_autoritaetsstufe:
+  1: 5246
+  2: 18
+  3: 24
+  4: 65
+  5: 8
+
+nach_sprache:
+  en: 17
+  kk: 1934
+  ru: 3410
+
+nach_bereich:
+  amtlich: 24
+  fachquellen: 63
+  nk-214-viii: 1696
+  presse: 8
+  rechnungswesen: 14
+  recht: 3554
+  wissenschaft: 2

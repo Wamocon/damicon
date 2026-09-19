@@ -1,0 +1,58 @@
+# Quellenregister - Satzschema
+#
+# Verbindliches Format fuer jeden Eintrag im Steuer- und Handelsquellenregister.
+# Jede Rechercheeinheit liefert ihre Funde als Liste von Saetzen nach diesem Schema.
+# Wer das Schema aendert, aktualisiert auch rag-ingest-spezifikation.md.
+#
+# Sprache der Feldnamen: Deutsch, ASCII-transliteriert, passend zum Code des Projekts.
+# Sprache der Inhalte: Originalsprache der Quelle, zusaetzlich deutscher Kurztext.
+#
+# Stand: 2026-09-18
+
+schema_version: 1
+
+autoritaetsstufen:
+  1: "Primaerrecht. Kodex, Gesetz, Staatsvertrag. Nur adilet.zan.kz oder amtliche Veroeffentlichung."
+  2: "Untergesetzlicher Akt. Verordnung, Anweisung, Regeln des Finanzministeriums."
+  3: "Amtliche Erlaeuterung. KGD, egov, Gebietsdepartements, amtliche Antwortschreiben."
+  4: "Fachliche Sekundaerquelle. Beratung, Praktikerportale, Wissenschaft, Softwarehersteller."
+  5: "Journalistisch oder werblich. Nur als Spur zu einer besseren Quelle, nie als Beleg."
+
+zugangsarten: [frei, testzugang, bezahlt, auf_anfrage, unbekannt]
+aktualisierungen: [taeglich, woechentlich, monatlich, jaehrlich, statisch, unbekannt]
+rag_eignung: [hoch, mittel, gering, ungeeignet]
+
+# Pflichtfelder sind mit (P) markiert. Fehlt ein Pflichtfeld, ist der Satz unvollstaendig
+# und wird nicht in das Register uebernommen.
+satz_schema:
+  id: "(P) eindeutig, kebab-case, z.B. adilet-nk-214-viii-rus"
+  name: "(P) Bezeichnung auf Deutsch"
+  name_original: "Bezeichnung in der Originalsprache, unveraendert"
+  herausgeber: "(P) Wer veroeffentlicht. Behoerde, Verlag, Firma."
+  url: "(P) direkter Link, kein Suchergebnis"
+  perspektiven: "(P) Liste, z.B. [P1, P5]"
+  autoritaetsstufe: "(P) 1 bis 5, siehe oben"
+  sprachen: "(P) Liste aus ru, kk, en, de"
+  zugang: "(P) siehe zugangsarten"
+  kosten:
+    betrag: "Zahl oder null"
+    waehrung: "KZT oder EUR"
+    periode: "jahr, einmalig, pro_dokument oder null"
+    verifiziert: "(P) true nur mit Preisbeleg. Sonst false."
+    beleg_url: "Wo der Preis steht. Pflicht wenn verifiziert true."
+  aktualisierung: "siehe aktualisierungen"
+  abdeckung: "(P) Was die Quelle inhaltlich abdeckt, zwei bis drei Saetze auf Deutsch"
+  beschaffung: "Wie man Zugang bekommt. Bei bezahlten Quellen konkret."
+  maschinell_abrufbar: "true wenn per HTTP abrufbar, false bei Login, Applet oder Papier"
+  rag_eignung: "siehe rag_eignung"
+  rag_hinweis: "Warum. Z.B. strukturiert nach Artikeln, oder nur Fliesstext ohne Stellenangabe."
+  gueltig_ab: "Zeitliche Geltung des Inhalts, ISO-Datum. Bei Recht das Inkrafttreten."
+  gueltig_bis: "null wenn offen"
+  ist_ueberholt: "(P) true fuer alles vor dem Kodex 214-VIII, sofern nicht rein historisch genutzt"
+  abgerufen_am: "(P) ISO-Datum des Abrufs"
+  notiz: "Auffaelligkeiten, Widersprueche, Zugangshuerden"
+
+# Regel, die keine Ausnahme kennt:
+# Ein Satz mit autoritaetsstufe 1 oder 2 ohne Artikel- oder Paragraphenangabe in der
+# Abdeckung ist kein Beleg, sondern ein Hinweis. Er wird aufgenommen, aber im
+# Konfliktregister nie als aufloesende Quelle verwendet.

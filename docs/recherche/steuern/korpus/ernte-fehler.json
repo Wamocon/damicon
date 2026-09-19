@@ -1,0 +1,37 @@
+[
+  {
+    "id": "kgd-esf-sdk-zip-2025",
+    "url": "https://kgd.gov.kz/sites/default/files/ftpdata/ESF/esf-sdk-2025.zip",
+    "grund": "The operation was aborted due to timeout"
+  },
+  {
+    "id": "buh-mcfr-khfh-steuern-2026-rus",
+    "url": "https://buh.mcfr.kz/article/783-kakie-nalogi-platit-krestyanskoe-hozyaystvo-v-rk-2026",
+    "grund": "fetch failed"
+  },
+  {
+    "id": "imf-artikel-iv-kasachstan-2025",
+    "url": "https://www.imf.org/en/publications/cr/issues/2026/01/26/republic-of-kazakhstan-2025-article-iv-consultation-press-release-staff-report-and-573452",
+    "grund": "HTTP 403"
+  },
+  {
+    "id": "atameken-mwst-19000-unternehmer",
+    "url": "https://atameken.kz/en/news/34452-tys-predprinimatelej-popadut-pod-nds",
+    "grund": "nur 8 Zeichen"
+  },
+  {
+    "id": "kpmg-kasachstan-tax-newsflash",
+    "url": "https://kpmg.com/kz/en/home/insights/2026/03/nf-march-02.html",
+    "grund": "HTTP 404"
+  },
+  {
+    "id": "mdpi-mergenbayeva-shadow-economy-kz-2026",
+    "url": "https://www.mdpi.com/2227-7099/14/4/135",
+    "grund": "nur 0 Zeichen"
+  },
+  {
+    "id": "mdpi-adambekova-fiscal-regional-kz-2026",
+    "url": "https://www.mdpi.com/2227-7099/14/8/334",
+    "grund": "nur 0 Zeichen"
+  }
+]
