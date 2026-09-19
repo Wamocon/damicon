@@ -196,3 +196,95 @@ export function sollteAutomatischEskalieren(
   const letzte = assistentenantworten.slice(-schwelle);
   return letzte.length >= schwelle && letzte.every((n) => n.fallback);
 }
+
+// --- Wissensdokumente (RAG) --------------------------------------------------
+// Ergaenzung zu den beiden Wissensquellen oben (Preisliste, Feldregeln): vom
+// Buero hochgeladene Dokumente, durchsucht per Vektor-Aehnlichkeit statt
+// komplett in den Prompt gestopft - bei mehr als ein paar Dokumenten waere
+// Volltext im Kontext sowohl zu teuer (Tokens) als auch zu unpraezise. Die
+// eigentliche Suche (Einbettung der Frage, Aufruf von
+// ki_wissen_aehnliche_chunks) steht in data/ki-wissen.ts - hier nur reine,
+// netzwerk- und datenbankfreie Bausteine, testbar wie der Rest dieser Datei.
+
+export const alleRollen = [
+  "admin",
+  "betriebsleitung",
+  "buchhaltung",
+  "brigade",
+  "picker",
+  "erzeuger",
+  "kunde",
+] as const;
+// Bewusst dieselbe Liste wie roles in rbac.ts, nicht von dort importiert -
+// derselbe Grund wie beim Verzicht auf den rbac.ts-Import ganz oben in dieser
+// Datei (siehe Kommentar dort): supabase/tests/ki-assistent.mjs fuehrt diese
+// Datei per einfachem Node aus, ein "@/..."-Alias loest dort nicht auf.
+
+export const kiWissenStatusWerte = ["wird_verarbeitet", "bereit", "fehler"] as const;
+export type KiWissenStatus = (typeof kiWissenStatusWerte)[number];
+
+// Vier feste Sachgebiete, keine freie Eingabe und kein "sonstiges" - die
+// Ablage soll sich nicht ueber die Zeit in eine Sammelkategorie entleeren.
+// Die Reihenfolge hier ist die Reihenfolge ueberall: Auswahlfeld, Gruppen in
+// der Liste, Aufzaehlung in der Migration.
+export const kiWissenKategorien = ["risiko", "audit", "recht", "steuern"] as const;
+export type KiWissenKategorie = (typeof kiWissenKategorien)[number];
+
+export interface KiWissenDokumentZeile {
+  id: string;
+  titel: string;
+  dateiname: string;
+  kategorie: KiWissenKategorie;
+  erlaubteRollen: string[];
+  status: KiWissenStatus;
+  fehlermeldung: string | null;
+  hochgeladenAm: string;
+}
+
+export interface KiWissenChunkTreffer {
+  dokumentTitel: string;
+  inhalt: string;
+  aehnlichkeit: number;
+}
+
+// Zerlegt einen Fliesstext in ueberlappende Abschnitte fuer die Einbettung.
+// Ueberlappung, damit ein Satz, der genau auf einer Chunk-Grenze liegt, nicht
+// in beiden Haelften unvollstaendig landet und bei der Suche verlorengeht.
+// Bewusst zeichenbasiert statt satzbasiert (kein Parsing von Satz-/Absatz-
+// grenzen) - fuer den ersten Ausbau robust genug ueber alle fuenf Sprachen
+// der Oberflaeche hinweg, ohne eine sprachspezifische Bibliothek zu brauchen.
+const STANDARD_CHUNK_ZEICHEN = 1000;
+const STANDARD_UEBERLAPPUNG = 150;
+
+export function zerlegeInAbschnitte(
+  text: string,
+  maxZeichen = STANDARD_CHUNK_ZEICHEN,
+  ueberlappung = STANDARD_UEBERLAPPUNG,
+): string[] {
+  const bereinigt = text.trim();
+  if (!bereinigt) return [];
+  if (bereinigt.length <= maxZeichen) return [bereinigt];
+
+  const schritt = Math.max(maxZeichen - ueberlappung, 1);
+  const abschnitte: string[] = [];
+  for (let start = 0; start < bereinigt.length; start += schritt) {
+    const abschnitt = bereinigt.slice(start, start + maxZeichen).trim();
+    if (abschnitt) abschnitte.push(abschnitt);
+    if (start + maxZeichen >= bereinigt.length) break;
+  }
+  return abschnitte;
+}
+
+// Baut den Kontext-Textblock aus den per Aehnlichkeitssuche gefundenen
+// Treffern - eigener Abschnitt, getrennt von Preisliste/Feldregeln (siehe
+// Aufrufer in actions/ki-assistent.ts), damit erkennbar bleibt, aus welchem
+// Dokument eine Angabe stammt. Leere Trefferliste ergibt einen leeren String,
+// nicht "keine Dokumente vorhanden" - anders als
+// baueGesamtWissenskontext() oben ist das Fehlen eines RAG-Treffers der
+// Normalfall (die Frage betrifft z. B. nur die Preisliste), kein Sonderfall,
+// auf den hingewiesen werden muesste.
+export function baueWissensdokumenteKontext(treffer: KiWissenChunkTreffer[]): string {
+  if (treffer.length === 0) return "";
+  const zeilen = treffer.map((t) => `Aus Dokument "${t.dokumentTitel}":\n${t.inhalt}`);
+  return ["Passende Ausschnitte aus hochgeladenen Dokumenten:", ...zeilen].join("\n\n");
+}

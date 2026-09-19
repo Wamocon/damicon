@@ -609,6 +609,44 @@
         "knopf": "Sağlayıcı ekle"
       }
     },
+    "diktat": {
+      "starten": "Dikte et",
+      "stoppen": "Kaydı durdur",
+      "laeuft": "Çözümleniyor …",
+      "leer": "Kayıt yok.",
+      "fehlgeschlagen": "Konuşma tanıma kullanılamıyor.",
+      "keinZugriff": "Mikrofon erişimi yok."
+    },
+    "wissensVerwaltung": {
+      "titel": "Bilgi belgeleri",
+      "lead": "Yüklenen belgeler asistanın yanıt bağlamını genişletir. Bir belge yalnızca burada seçilen rollere görünür.",
+      "keineDokumente": "Henüz belge yüklenmedi.",
+      "rollen": "Roller",
+      "loeschen": "Sil",
+      "loeschenSicher": "“{titel}” belgesi gerçekten silinsin mi? Bölümleri yanıt bağlamından da kaybolur.",
+      "status": {
+        "wird_verarbeitet": "işleniyor",
+        "bereit": "hazır",
+        "fehler": "hata"
+      },
+      "kategorie": {
+        "risiko": "Risk",
+        "audit": "Denetim",
+        "recht": "Hukuk",
+        "steuern": "Vergi"
+      },
+      "formular": {
+        "titel": "Belge yükle",
+        "lead": "Metin dosyası (.txt veya .md) veya PDF, en çok 20 MB. Metin bölümlere ayrılıp gömülür – uzunluğa göre biraz sürer.",
+        "dokumentTitel": "Başlık",
+        "titelPlatzhalter": "Ahududu kalite yönergesi 2026",
+        "kategorieLabel": "Kategori",
+        "datei": "Dosya",
+        "rollenLabel": "Şunlara görünür",
+        "knopf": "Yükle",
+        "hinweis": "En az bir rol seçilmezse belge hiçbir yanıt bağlamına girmez."
+      }
+    },
     "laeuft": {
       "mwstStatusAbrufen": "KDV durumu kontrol ediliyor …",
       "esutdOffeneFristenAbrufen": "ESUTD süreleri kontrol ediliyor …",
@@ -1336,6 +1374,9 @@
       "kontingentAktualisiert": "Miktar güncellendi.",
       "wetterAktualisiert": "Hava durumu verileri güncellendi.",
       "stammdatenGespeichert": "Ana veriler kaydedildi.",
+      "transkription": "Dikte alındı.",
+      "kiWissenHochgeladen": "“{wert}” belgesi yüklendi.",
+      "kiWissenGeloescht": "“{wert}” belgesi silindi.",
       "nachbarbetrieb": "Komşu işletme “{wert}” eklendi.",
       "dokumentGeaendert": "Belge “{wert}” güncellendi."
     },
@@ -1372,6 +1413,12 @@
       "stammdatenFormat": "Numara tam olarak on iki haneden oluşur.",
       "stammdatenPruefziffer": "Kontrol hanesi tutmuyor. Çoğunlukla numarada iki rakam yer değiştirmiştir.",
       "selbstkontrolle": "Kasayı kaydeden kişi kendisi kontrol edemez. Bu kasayı başka biri kontrol etmelidir.",
+      "transkription": "Konuşma tanıma kullanılamıyor.",
+      "transkriptionDauer": "Konuşma tanıma çok uzun sürdü.",
+      "dateiGross": "Kayıt çok büyük.",
+      "dateityp": "Yalnızca .txt ve .md dosyaları desteklenir.",
+      "leeresDokument": "Dosya okunabilir metin içermiyor.",
+      "einbettung": "Gömme başarısız – gömme modeli çalışıyor mu?",
       "nachbarbetriebVorhanden": "Bu adla bir komşu işletme zaten mevcut."
     },
     "einladungen": {

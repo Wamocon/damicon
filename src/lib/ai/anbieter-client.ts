@@ -3,6 +3,7 @@ import {
   baueOpenAiKompatibelAnfrage,
   parseAnthropicAntwort,
   parseOpenAiKompatibelAntwort,
+  zeitlimitMs,
   type ChatNachricht,
 } from "@/lib/ai/anfrage";
 import type { KiAnbieterTyp } from "@/lib/domain/ki-assistent";
@@ -14,8 +15,6 @@ import type { KiAnbieterTyp } from "@/lib/domain/ki-assistent";
 // Exception. Der Aufrufer (actions/ki-assistent.ts) zeigt dann die
 // deterministische Ausweichantwort statt eines Fehlerbildschirms.
 export type AnbieterAntwort = { ok: true; text: string } | { ok: false; grund: string };
-
-const ZEITLIMIT_MS = 20_000;
 
 // Vibecode-Cleanup: vorher zwei getrennte Ternaries (einmal fuers Bauen,
 // einmal fuers Parsen), die beide auf anbieter.typ unterschieden - bei einem
@@ -41,7 +40,7 @@ export async function sendeChatAnfrage(
   const anfrage = adapter.bauen(anbieter.basisUrl, anbieter.modell, anbieter.apiKey, verlauf);
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), ZEITLIMIT_MS);
+  const timeout = setTimeout(() => controller.abort(), zeitlimitMs());
 
   try {
     const antwort = await fetch(anfrage.url, {

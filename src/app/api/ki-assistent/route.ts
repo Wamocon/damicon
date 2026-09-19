@@ -25,8 +25,10 @@ import { ladeAktivenStandardAnbieter, anthropicBasisUrl } from "@/lib/ai/lade-an
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
 import { baueWerkzeuge } from "@/lib/ai/tools";
 import { ladeKiChatVerlauf, ladeWissensPreislisten } from "@/lib/data/ki-assistent";
+import { sucheRelevanteWissenChunks } from "@/lib/data/ki-wissen";
 import {
   baueGesamtWissenskontext,
+  baueWissensdokumenteKontext,
   MAX_NACHRICHT_LAENGE,
   wissensQuellenFuerFaehigkeiten,
 } from "@/lib/domain/ki-assistent";
@@ -290,10 +292,34 @@ export async function POST(req: Request) {
       hasPermission(rolle, "pflueckaufgaben", "view") || hasPermission(rolle, "kuehlkette", "view"),
   });
   const preislisten = quellen.includes("preisliste") ? await ladeWissensPreislisten() : [];
+
+  // Wissensdokumente (RAG) - wie in kiNachrichtSenden(): die hochgeladenen
+  // Dokumente filtert die Datenbank selbst nach der ECHTEN Rolle aus der
+  // Sitzung (ki_wissen_aehnliche_chunks, current_app_role()) - bewusst nicht
+  // nach `rolle` oben, eine Rolle laesst sich dort gar nicht mehr uebergeben
+  // (siehe Migration 20261031000000). Folge fuer die Admin-Vorschau: ein Admin,
+  // der als andere Rolle ansieht, bekommt trotzdem die Dokumente seiner echten
+  // Rolle in den Kontext. In einer Freigabe-Runde gibt es keine neue Frage; dann
+  // zaehlt die letzte Frage aus dem Verlauf, sonst verloere das Modell mitten
+  // in der Aktion den Dokumentenkontext. Eigener try/catch aus demselben Grund
+  // wie dort: kein Treffer heisst kein Zusatzkontext, nie ein Ausfall.
+  const letzteFrage = nachrichten.findLast((n) => n.role === "user");
+  const frageFuerSuche = neueNutzerNachricht || (letzteFrage ? textAusNachricht(letzteFrage) : "");
+  let wissenTreffer: Awaited<ReturnType<typeof sucheRelevanteWissenChunks>> = [];
+  if (frageFuerSuche) {
+    try {
+      wissenTreffer = await sucheRelevanteWissenChunks(frageFuerSuche);
+    } catch (fehler) {
+      console.error("[damicon] Wissensdokumente-Suche unerwartet fehlgeschlagen:", fehler);
+    }
+  }
+  const dokumenteKontext = baueWissensdokumenteKontext(wissenTreffer);
+  const basisKontext = baueGesamtWissenskontext(quellen, preislisten);
+
   const ortHinweis = pfad ? `Der Nutzer sieht gerade diese Ansicht: ${pfad}` : "";
   const heute = `Heutiges Datum: ${new Date().toISOString().slice(0, 10)}`;
   const systemPrompt = [
-    basisPrompt(baueGesamtWissenskontext(quellen, preislisten)),
+    basisPrompt(dokumenteKontext ? `${basisKontext}\n\n${dokumenteKontext}` : basisKontext),
     rollenKontext(rolle, vorschau),
     FORMAT_ANWEISUNG,
     MODUS_ANWEISUNG[modus],
@@ -360,15 +386,20 @@ export async function POST(req: Request) {
         // Browser gleich nachliefert) ist keine Antwort - die folgende Runde speichert
         // den eigentlichen Text.
         if (gesamtText) {
+          // Ueber ki_chat_antwort_schreiben() statt direkt: die Insert-Policy
+          // (Migration 20261030000000) laesst direkt nur die eigene Frage durch.
+          // Ein direktes Insert scheiterte hier an RLS - und weil der Fehler
+          // nicht geprueft wurde, fehlte jede Claude-Antwort still im Verlauf.
           const supabaseFinish = await createClient();
-          await supabaseFinish.from("ki_chat_nachrichten").insert({
-            profil_id: profil.id,
-            rolle: "assistent",
-            inhalt: gesamtText,
-            anbieter_name: anbieter.anzeige_name,
-            fallback: false,
-            werkzeugaufrufe: werkzeugaufrufe.length > 0 ? werkzeugaufrufe : null,
+          const { error: antwortFehler } = await supabaseFinish.rpc("ki_chat_antwort_schreiben", {
+            p_inhalt: gesamtText,
+            p_anbieter_name: anbieter.anzeige_name,
+            p_fallback: false,
+            p_werkzeugaufrufe: werkzeugaufrufe.length > 0 ? werkzeugaufrufe : undefined,
           });
+          if (antwortFehler) {
+            console.error("[damicon] KI-Antwort nicht gespeichert:", antwortFehler.message);
+          }
         }
         await protokolliereBasis(profil, "ki_chat.nachricht", "ki_chat_nachrichten", profil.id, {
           fallback: false,

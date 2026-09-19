@@ -836,6 +836,9 @@
       "kontingentErstellt": "Kontingent angelegt.",
       "kontingentAktualisiert": "Menge aktualisiert.",
       "stammdatenGespeichert": "Stammdaten gespeichert.",
+      "transkription": "Diktat übernommen.",
+      "kiWissenHochgeladen": "Dokument „{wert}“ hochgeladen.",
+      "kiWissenGeloescht": "Dokument „{wert}“ gelöscht.",
       "nachbarbetrieb": "Nachbarbetrieb „{wert}“ aufgenommen.",
       "dokumentGeaendert": "Dokument „{wert}“ aktualisiert."
     },
@@ -872,6 +875,12 @@
       "stammdatenFormat": "Die Nummer besteht aus genau zwölf Ziffern.",
       "stammdatenPruefziffer": "Die Prüfziffer stimmt nicht. Meist steckt ein Zahlendreher in der Nummer.",
       "selbstkontrolle": "Wer eine Steige erfasst hat, kontrolliert sie nicht selbst. Eine andere Person muss diese Steige prüfen.",
+      "transkription": "Spracherkennung nicht möglich.",
+      "transkriptionDauer": "Die Spracherkennung hat zu lange gebraucht.",
+      "dateiGross": "Die Aufnahme ist zu groß.",
+      "dateityp": "Nur .txt- und .md-Dateien werden unterstützt.",
+      "leeresDokument": "Die Datei enthält keinen lesbaren Text.",
+      "einbettung": "Die Einbettung ist fehlgeschlagen – läuft das Einbettungsmodell?",
       "nachbarbetriebVorhanden": "Ein Nachbarbetrieb mit diesem Namen existiert bereits."
     },
     "einladungen": {
@@ -1595,6 +1604,44 @@
         "basisUrl": "Basis-URL",
         "apiKey": "API-Key",
         "knopf": "Anbieter anlegen"
+      }
+    },
+    "diktat": {
+      "starten": "Diktieren",
+      "stoppen": "Aufnahme beenden",
+      "laeuft": "Wird erkannt …",
+      "leer": "Nichts aufgenommen.",
+      "fehlgeschlagen": "Spracherkennung nicht möglich.",
+      "keinZugriff": "Kein Mikrofonzugriff."
+    },
+    "wissensVerwaltung": {
+      "titel": "Wissensdokumente",
+      "lead": "Hochgeladene Dokumente ergänzen den Antwortkontext des Assistenten. Ein Dokument ist nur für die hier gewählten Rollen sichtbar.",
+      "keineDokumente": "Noch keine Dokumente hochgeladen.",
+      "rollen": "Rollen",
+      "loeschen": "Löschen",
+      "loeschenSicher": "Dokument „{titel}“ wirklich löschen? Die Abschnitte verschwinden damit auch aus dem Antwortkontext.",
+      "status": {
+        "wird_verarbeitet": "wird verarbeitet",
+        "bereit": "bereit",
+        "fehler": "Fehler"
+      },
+      "kategorie": {
+        "risiko": "Risiko",
+        "audit": "Audit",
+        "recht": "Recht",
+        "steuern": "Steuern"
+      },
+      "formular": {
+        "titel": "Dokument hochladen",
+        "lead": "Textdatei (.txt oder .md) oder PDF, bis 20 MB. Der Text wird in Abschnitte zerlegt und eingebettet – das dauert je nach Länge einen Moment.",
+        "dokumentTitel": "Titel",
+        "titelPlatzhalter": "Qualitätsrichtlinie Himbeeren 2026",
+        "kategorieLabel": "Sachgebiet",
+        "datei": "Datei",
+        "rollenLabel": "Sichtbar für",
+        "knopf": "Hochladen",
+        "hinweis": "Ohne mindestens eine Rolle wird das Dokument nie in einen Antwortkontext aufgenommen."
       }
     },
     "laeuft": {

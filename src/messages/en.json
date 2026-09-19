@@ -836,6 +836,9 @@
       "kontingentErstellt": "Quota created.",
       "kontingentAktualisiert": "Quantity updated.",
       "stammdatenGespeichert": "Master data saved.",
+      "transkription": "Dictation accepted.",
+      "kiWissenHochgeladen": "Document “{wert}” uploaded.",
+      "kiWissenGeloescht": "Document “{wert}” deleted.",
       "nachbarbetrieb": "Neighbouring farm “{wert}” added.",
       "dokumentGeaendert": "Document “{wert}” updated."
     },
@@ -872,6 +875,12 @@
       "stammdatenFormat": "The number consists of exactly twelve digits.",
       "stammdatenPruefziffer": "The check digit does not match. Usually two digits have been transposed.",
       "selbstkontrolle": "Whoever recorded a crate does not inspect it themselves. Someone else needs to check this crate.",
+      "transkription": "Speech recognition unavailable.",
+      "transkriptionDauer": "Speech recognition took too long.",
+      "dateiGross": "The recording is too large.",
+      "dateityp": "Only .txt and .md files are supported.",
+      "leeresDokument": "The file contains no readable text.",
+      "einbettung": "Embedding failed – is the embedding model running?",
       "nachbarbetriebVorhanden": "A neighbouring farm with this name already exists."
     },
     "einladungen": {
@@ -1595,6 +1604,44 @@
         "basisUrl": "Base URL",
         "apiKey": "API key",
         "knopf": "Add provider"
+      }
+    },
+    "diktat": {
+      "starten": "Dictate",
+      "stoppen": "Stop recording",
+      "laeuft": "Transcribing …",
+      "leer": "Nothing recorded.",
+      "fehlgeschlagen": "Speech recognition unavailable.",
+      "keinZugriff": "No microphone access."
+    },
+    "wissensVerwaltung": {
+      "titel": "Knowledge documents",
+      "lead": "Uploaded documents extend the assistant's answer context. A document is visible only to the roles selected here.",
+      "keineDokumente": "No documents uploaded yet.",
+      "rollen": "Roles",
+      "loeschen": "Delete",
+      "loeschenSicher": "Really delete document “{titel}”? Its sections will also disappear from the answer context.",
+      "status": {
+        "wird_verarbeitet": "processing",
+        "bereit": "ready",
+        "fehler": "error"
+      },
+      "kategorie": {
+        "risiko": "Risk",
+        "audit": "Audit",
+        "recht": "Legal",
+        "steuern": "Tax"
+      },
+      "formular": {
+        "titel": "Upload document",
+        "lead": "Text file (.txt or .md) or PDF, up to 20 MB. The text is split into sections and embedded – this takes a moment depending on length.",
+        "dokumentTitel": "Title",
+        "titelPlatzhalter": "Raspberry quality guideline 2026",
+        "kategorieLabel": "Category",
+        "datei": "File",
+        "rollenLabel": "Visible to",
+        "knopf": "Upload",
+        "hinweis": "Without at least one role the document never enters an answer context."
       }
     },
     "laeuft": {

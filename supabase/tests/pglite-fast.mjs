@@ -21,8 +21,9 @@
 // =============================================================================
 
 import { PGlite } from "@electric-sql/pglite";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
+import { wendeMigrationenAn, migrationenMeldung } from "./pglite-migrationen.mjs";
 import { fileURLToPath } from "node:url";
 
 const WURZEL = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -68,13 +69,8 @@ try {
   await db.exec(readFileSync(AUTH_STUB, "utf8"));
   check("Grundlagen: auth-/storage-Stub angelegt", true);
 
-  const dateien = readdirSync(MIGRATIONEN_DIR)
-    .filter((f) => f.endsWith(".sql"))
-    .sort();
-  for (const datei of dateien) {
-    await db.exec(readFileSync(join(MIGRATIONEN_DIR, datei), "utf8"));
-  }
-  check(`Migrationen angewendet (${dateien.length} Dateien)`, true);
+  const migrationsLage = await wendeMigrationenAn(db, MIGRATIONEN_DIR);
+  check(migrationenMeldung(migrationsLage), true);
 
   await db.exec(readFileSync(SEED, "utf8"));
   check("Seed-Daten angewendet", true);

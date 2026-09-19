@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.5"
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -1078,6 +1073,95 @@ export type Database = {
           {
             foreignKeyName: "ki_chat_nachrichten_profil_id_fkey"
             columns: ["profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+        ]
+      }
+      ki_wissen_chunks: {
+        Row: {
+          dokument_id: string
+          embedding: string
+          erstellt_am: string
+          id: string
+          inhalt: string
+          position: number
+        }
+        Insert: {
+          dokument_id: string
+          embedding: string
+          erstellt_am?: string
+          id?: string
+          inhalt: string
+          position: number
+        }
+        Update: {
+          dokument_id?: string
+          embedding?: string
+          erstellt_am?: string
+          id?: string
+          inhalt?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ki_wissen_chunks_dokument_id_fkey"
+            columns: ["dokument_id"]
+            isOneToOne: false
+            referencedRelation: "ki_wissen_dokumente"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ki_wissen_dokumente: {
+        Row: {
+          dateiname: string
+          erlaubte_rollen: Database["public"]["Enums"]["app_role"][]
+          fehlermeldung: string | null
+          hochgeladen_am: string
+          hochgeladen_von: string | null
+          id: string
+          kategorie: Database["public"]["Enums"]["ki_wissen_kategorie"]
+          status: Database["public"]["Enums"]["ki_wissen_status"]
+          storage_pfad: string
+          titel: string
+        }
+        Insert: {
+          dateiname: string
+          erlaubte_rollen?: Database["public"]["Enums"]["app_role"][]
+          fehlermeldung?: string | null
+          hochgeladen_am?: string
+          hochgeladen_von?: string | null
+          id?: string
+          kategorie: Database["public"]["Enums"]["ki_wissen_kategorie"]
+          status?: Database["public"]["Enums"]["ki_wissen_status"]
+          storage_pfad: string
+          titel: string
+        }
+        Update: {
+          dateiname?: string
+          erlaubte_rollen?: Database["public"]["Enums"]["app_role"][]
+          fehlermeldung?: string | null
+          hochgeladen_am?: string
+          hochgeladen_von?: string | null
+          id?: string
+          kategorie?: Database["public"]["Enums"]["ki_wissen_kategorie"]
+          status?: Database["public"]["Enums"]["ki_wissen_status"]
+          storage_pfad?: string
+          titel?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ki_wissen_dokumente_hochgeladen_von_fkey"
+            columns: ["hochgeladen_von"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ki_wissen_dokumente_hochgeladen_von_fkey"
+            columns: ["hochgeladen_von"]
             isOneToOne: false
             referencedRelation: "schulungsteilnahmen_status"
             referencedColumns: ["profil_id"]
@@ -2949,7 +3033,9 @@ export type Database = {
           geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
-          kontroll_befund?: Database["public"]["Enums"]["kontroll_befund"] | null
+          kontroll_befund?:
+            | Database["public"]["Enums"]["kontroll_befund"]
+            | null
           kontroll_begruendung?: string | null
           kontrolliert_am?: string | null
           kontrolliert_von_profil_id?: string | null
@@ -2967,7 +3053,9 @@ export type Database = {
           geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
-          kontroll_befund?: Database["public"]["Enums"]["kontroll_befund"] | null
+          kontroll_befund?:
+            | Database["public"]["Enums"]["kontroll_befund"]
+            | null
           kontroll_begruendung?: string | null
           kontrolliert_am?: string | null
           kontrolliert_von_profil_id?: string | null
@@ -3566,6 +3654,28 @@ export type Database = {
         Args: { p_id: string }
         Returns: undefined
       }
+      ki_chat_antwort_schreiben: {
+        Args: {
+          p_anbieter_name: string
+          p_fallback: boolean
+          p_id?: string
+          p_inhalt: string
+          p_werkzeugaufrufe?: Json
+        }
+        Returns: string
+      }
+      ki_chat_eskalation_schreiben: {
+        Args: { p_inhalt: string }
+        Returns: string
+      }
+      ki_wissen_aehnliche_chunks: {
+        Args: { p_anzahl?: number; p_embedding: string }
+        Returns: {
+          aehnlichkeit: number
+          dokument_titel: string
+          inhalt: string
+        }[]
+      }
       kontingent_verfuegbarkeit_je_sorte: {
         Args: never
         Returns: {
@@ -3642,10 +3752,7 @@ export type Database = {
         Args: { p_rechtsform: Database["public"]["Enums"]["rechtsform"] }
         Returns: string
       }
-      pruefziffer_stimmt: {
-        Args: { p_nummer: string }
-        Returns: boolean
-      }
+      pruefziffer_stimmt: { Args: { p_nummer: string }; Returns: boolean }
       reihenblock_freigeben: {
         Args: {
           p_block: string
@@ -3758,6 +3865,8 @@ export type Database = {
       esutd_status: "erfasst" | "offen"
       integration_status: "verbunden" | "sandbox" | "geplant"
       ki_anbieter_typ: "openai_kompatibel" | "anthropic"
+      ki_wissen_kategorie: "risiko" | "audit" | "recht" | "steuern"
+      ki_wissen_status: "wird_verarbeitet" | "bereit" | "fehler"
       kontaktkanal_typ:
         | "whatsapp"
         | "telegram"
@@ -3778,13 +3887,7 @@ export type Database = {
         | "beleg_pruefung"
         | "abgeschlossen"
       plantage_typ: "eigen" | "nachbarbetrieb"
-      rechtsform:
-        | "kh_fh"
-        | "ip"
-        | "privatperson"
-        | "too"
-        | "ao"
-        | "pk"
+      rechtsform: "kh_fh" | "ip" | "privatperson" | "too" | "ao" | "pk"
       rechtsgrundlage_typ: "einwilligung" | "vertrag" | "gesetzliche_pflicht"
       reihenblock_status:
         | "bepflanzt"
@@ -3987,6 +4090,8 @@ export const Constants = {
       esutd_status: ["erfasst", "offen"],
       integration_status: ["verbunden", "sandbox", "geplant"],
       ki_anbieter_typ: ["openai_kompatibel", "anthropic"],
+      ki_wissen_kategorie: ["risiko", "audit", "recht", "steuern"],
+      ki_wissen_status: ["wird_verarbeitet", "bereit", "fehler"],
       kontaktkanal_typ: [
         "whatsapp",
         "telegram",

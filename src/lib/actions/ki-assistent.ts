@@ -6,9 +6,11 @@ import { ladeAktivenStandardAnbieter } from "@/lib/ai/lade-anbieter";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { ladeKiChatVerlauf, ladeWissensPreislisten } from "@/lib/data/ki-assistent";
+import { sucheRelevanteWissenChunks } from "@/lib/data/ki-wissen";
 import {
   baueGesamtWissenskontext,
   baueSystemPrompt,
+  baueWissensdokumenteKontext,
   MAX_NACHRICHT_LAENGE,
   sollteAutomatischEskalieren,
   wissensQuellenFuerFaehigkeiten,
@@ -18,7 +20,8 @@ import { hasPermission } from "@/lib/rbac";
 import { sendeChatAnfrage } from "@/lib/ai/anbieter-client";
 import { sendeAgentAnfrage } from "@/lib/ai/agent";
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
-import type { ChatNachricht } from "@/lib/ai/anfrage";
+import { transkribiereAudio, waermeTranskriptionVor } from "@/lib/ai/transkription-client";
+import { verlaufLaenge, type ChatNachricht } from "@/lib/ai/anfrage";
 import type { Json } from "@/lib/database.types";
 import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 
@@ -45,8 +48,6 @@ import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/a
 // nicht ausgeschlossen, durch SubmitKnopf() (formular-kit.tsx), das den
 // Knopf waehrend eines laufenden Requests deaktiviert, dasselbe Mass an
 // Schutz wie bei jedem anderen Formular in diesem Projekt.
-
-const MAX_VERLAUF_FUER_MODELL = 10;
 
 function protokolliere(
   profil: SessionProfile,
@@ -76,7 +77,7 @@ function baueVerlaufFuerModell(
     // eigentliche Systemprompt.
     ...bisherigerVerlauf
       .filter((n) => n.rolle !== "system")
-      .slice(-MAX_VERLAUF_FUER_MODELL)
+      .slice(-verlaufLaenge())
       .map((n) => ({ rolle: n.rolle, inhalt: n.inhalt })),
     { rolle: "nutzer", inhalt: nachricht },
   ];
@@ -149,7 +150,22 @@ export async function kiNachrichtSenden(
           hasPermission(profil.role, "kuehlkette", "view"),
       });
       const preislisten = quellen.includes("preisliste") ? await ladeWissensPreislisten() : [];
-      const systemPrompt = baueSystemPrompt(baueGesamtWissenskontext(quellen, preislisten));
+      // RAG-Ergaenzung (Wissensdokumente): eigener try/catch, obwohl
+      // sucheRelevanteWissenChunks() laut eigenem Vertrag nie wirft - genau
+      // dieselbe Defense-in-Depth-Haltung wie beim Modellaufruf zwei Zeilen
+      // weiter unten. Kein Treffer heisst schlicht kein zusaetzlicher
+      // Kontext, nie ein Ausfall des ganzen Chats.
+      let wissenTreffer: Awaited<ReturnType<typeof sucheRelevanteWissenChunks>> = [];
+      try {
+        wissenTreffer = await sucheRelevanteWissenChunks(nachricht);
+      } catch (error) {
+        console.error("[damicon] Wissensdokumente-Suche unerwartet fehlgeschlagen:", error);
+      }
+      const dokumenteKontext = baueWissensdokumenteKontext(wissenTreffer);
+      const basisKontext = baueGesamtWissenskontext(quellen, preislisten);
+      const systemPrompt = baueSystemPrompt(
+        dokumenteKontext ? `${basisKontext}\n\n${dokumenteKontext}` : basisKontext,
+      );
       const verlaufFuerModell = baueVerlaufFuerModell(systemPrompt, bisherigerVerlauf.nachrichten, nachricht);
 
       const apiKey = entschluessleApiKey(anbieter.api_key_chiffrat);
@@ -200,13 +216,17 @@ export async function kiNachrichtSenden(
     antwortText = t("antwort");
   }
 
-  const { error: assistentFehler } = await supabase.from("ki_chat_nachrichten").insert({
-    profil_id: profil.id,
-    rolle: "assistent",
-    inhalt: antwortText,
-    anbieter_name: anbieterName,
-    fallback,
-    werkzeugaufrufe: werkzeugaufrufe.length > 0 ? werkzeugaufrufe : null,
+  // Antwort und Eskalation schreibt die Datenbank, nicht dieser Aufruf: die
+  // Insert-Policy laesst direkt nur die eigene Frage durch, sonst koennte
+  // sich jede angemeldete Person eine Assistentenantwort in den eigenen
+  // Verlauf schreiben (Migration 20261030000000). Die Werkzeugaufrufe des
+  // Agenten (Spalte aus 20261026000000) laufen deshalb ebenfalls ueber die
+  // Funktion statt ueber ein direktes Insert.
+  const { error: assistentFehler } = await supabase.rpc("ki_chat_antwort_schreiben", {
+    p_inhalt: antwortText,
+    p_anbieter_name: anbieterName ?? "",
+    p_fallback: fallback,
+    p_werkzeugaufrufe: werkzeugaufrufe.length > 0 ? werkzeugaufrufe : undefined,
   });
   if (assistentFehler) return dbFehler(assistentFehler);
 
@@ -218,11 +238,10 @@ export async function kiNachrichtSenden(
     { rolle: "assistent" as const, fallback },
   ];
   if (fallback && sollteAutomatischEskalieren(aktuellerVerlauf)) {
-    await supabase.from("ki_chat_nachrichten").insert({
-      profil_id: profil.id,
-      rolle: "system",
-      inhalt: await getTranslations("kiAssistentAnsicht").then((tt) => tt("eskalationAutomatisch")),
-      eskaliert: true,
+    await supabase.rpc("ki_chat_eskalation_schreiben", {
+      p_inhalt: await getTranslations("kiAssistentAnsicht").then((tt) =>
+        tt("eskalationAutomatisch"),
+      ),
     });
   }
 
@@ -244,15 +263,109 @@ export async function kiEskalationAnfordern(
 
   const t = await getTranslations("kiAssistentAnsicht");
   const supabase = await createClient();
-  const { error } = await supabase.from("ki_chat_nachrichten").insert({
-    profil_id: profil.id,
-    rolle: "system",
-    inhalt: t("eskalationAngefordert"),
-    eskaliert: true,
+  const { error } = await supabase.rpc("ki_chat_eskalation_schreiben", {
+    p_inhalt: t("eskalationAngefordert"),
   });
   if (error) return dbFehler(error);
 
   await protokolliere(profil, "ki_chat.eskalation_angefordert");
   aktualisiere(formData);
   return ok("ok.kiEskalationAngefordert");
+}
+
+// --- Sprachnachricht diktieren (Anforderung 5.4, Ergaenzung) -----------------
+// Der Browser nimmt auf, diese Aktion schickt die Datei an Caesar
+// (Transkriptionsdienst im Buero-LAN) und gibt den Text zurueck. Der Browser
+// spricht bewusst NICHT selbst mit Caesar - dieselbe Begruendung wie bei
+// anbieter-client.ts: die Adresse des Dienstes und jeder kuenftige Schluessel
+// bleiben auf dem Server, und das RBAC-Gate greift vor dem Aufruf.
+//
+// Der Text landet im Eingabefeld, nicht im Chat: ein verhoertes Diktat, das
+// ungeprueft an die Kundschaft ginge, waere schlimmer als ein Tippfehler.
+// Abgeschickt wird weiterhin von Hand, ueber denselben Weg wie eine getippte
+// Frage - deshalb braucht dieser Schritt keine eigene Eskalations- oder
+// Sicherheitslogik.
+
+const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
+
+export async function transkribiereSprachnachricht(
+  _status: AktionsStatus,
+  formData: FormData,
+): Promise<AktionsStatus> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("ki_assistent", "create");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+
+  const audio = formData.get("audio");
+  if (!(audio instanceof Blob) || audio.size === 0) return fehler("fehler.eingabe");
+  if (audio.size > MAX_AUDIO_BYTES) return fehler("fehler.dateiGross");
+
+  const name = audio instanceof File && audio.name ? audio.name : "aufnahme.webm";
+  const antwort = await transkribiereAudio(audio, name);
+
+  if (!antwort.ok) {
+    console.error("[damicon] Transkription fehlgeschlagen:", antwort.grund);
+    return fehler(
+      antwort.grund === "zeitueberschreitung" ? "fehler.transkriptionDauer" : "fehler.transkription",
+    );
+  }
+
+  // Der Text selbst wird nicht protokolliert - er steht gleich als Frage im
+  // Verlauf, sobald die Nutzerin ihn abschickt. Hier nur, dass diktiert wurde.
+  await protokolliere(profil, "ki_chat.diktat", { zeichen: antwort.text.length });
+
+  return ok("ok.transkription", antwort.text);
+}
+
+/** Stoesst das Laden des Spracherkennungsmodells an, damit die erste echte
+ *  Aufnahme nicht in die kalte Ladezeit laeuft (gemessen 221 s kalt gegen
+ *  7,2 s warm). Ergebnis bewusst ohne Rueckmeldung an die Oberflaeche: ein
+ *  misslungener Aufwaermversuch darf das Modul nicht stoeren. */
+export async function waermeSpracherkennungVor(): Promise<void> {
+  try {
+    await requirePermission("ki_assistent", "create");
+  } catch {
+    return;
+  }
+  await waermeTranskriptionVor().catch(() => false);
+}
+
+/** Stoesst das Laden des Chat-Modells an, damit die erste echte Frage nicht in
+ *  eine kalte Ladezeit laeuft - dieselbe Idee wie waermeSpracherkennungVor()
+ *  oben, fuer den Chat statt fuer Caesar. Gemessen an Sokrates-2
+ *  (qwen3.6:35b, Buero-LAN) am 18.09.2026: 24,0 s kalt gegen 10,2 s warm
+ *  (Kommentar zu zeitlimitMs() in anfrage.ts) - beides unter dem
+ *  Zeitlimit, aber ein kalter Start soll erst gar nicht in eine echte Frage
+ *  laufen. Absichtlich nur fuer "openai_kompatibel" (Sokrates-2 und jedes
+ *  andere selbst gehostete Modell) - ein Cloud-Anbieter wie Claude
+ *  ("anthropic") hat kein Kaltstart-Problem, dafuer aber echte Kosten pro
+ *  Aufruf; ein Aufwaermversuch waere dort reiner Mehrverbrauch ohne Nutzen.
+ *  Bewusst offen (wie beim Diktat-Aufwaermen): mehrere Personen, die das
+ *  Modul binnen Sekunden oeffnen, loesen ebenso viele parallele
+ *  Aufwaerm-Anfragen aus - fuer einen Anbieter, der Anfragen nacheinander
+ *  abarbeitet, dieselbe Kollisionsgefahr wie bei Caesar
+ *  (transkription-client.ts), hier nicht geloest.
+ *  Die Aufwaermfrage selbst landet nirgends im Verlauf (kein Insert in
+ *  ki_chat_nachrichten) und wird nicht protokolliert - Ergebnis bewusst ohne
+ *  Rueckmeldung, ein misslungener Versuch darf den Chat nicht stoeren. */
+export async function waermeKiModellVor(): Promise<void> {
+  try {
+    await requirePermission("ki_assistent", "create");
+  } catch {
+    return;
+  }
+  try {
+    const anbieter = await ladeAktivenStandardAnbieter();
+    if (!anbieter || anbieter.typ !== "openai_kompatibel") return;
+    const apiKey = entschluessleApiKey(anbieter.api_key_chiffrat);
+    await sendeChatAnfrage(
+      { typ: anbieter.typ, basisUrl: anbieter.basis_url, modell: anbieter.modell, apiKey },
+      [{ rolle: "nutzer", inhalt: "Hallo" }],
+    );
+  } catch {
+    // still, gleiche Begruendung wie oben.
+  }
 }
