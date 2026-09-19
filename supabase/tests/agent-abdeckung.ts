@@ -8,12 +8,14 @@
 //   * die Rollenzuschnitte stimmen: ein Kunde bekommt keine Lohn- oder
 //     Steuerwerkzeuge, ein Admin bekommt alles
 //   * alle Sprachdateien haben denselben Schluesselsatz
+//   * die Markdown-Zerlegung des Chats liefert beim Streamen dasselbe wie ein Gesamtdurchlauf
 // Aufruf: npm run test:agent (laeuft ueber tsx, damit die @/-Pfade aufloesen).
 
 import { readFileSync } from "node:fs";
 import { AKTIONS_NAMEN } from "@/lib/ai/aktionen-meta";
 import { CLIENT_WERKZEUG_NAMEN } from "@/lib/ai/client-werkzeuge-meta";
 import { baueWerkzeuge } from "@/lib/ai/tools";
+import { zerlege, type Zerlegung } from "@/lib/markdown-bloecke";
 import { modules } from "@/lib/modules";
 import { roles } from "@/lib/rbac";
 
@@ -111,6 +113,29 @@ for (const s of sprachen.filter((x) => x !== "de")) {
   const zuviel = [...menge].filter((k) => !basis.has(k));
   pruefe(`Sprachdatei ${s} hat denselben Schluesselsatz wie de`, fehlt.length === 0 && zuviel.length === 0, `fehlt ${fehlt.length}, zuviel ${zuviel.length}`);
 }
+
+// --- 6. Markdown-Zerlegung: inkrementell == vollstaendig --------------------
+// Beim Streamen wird nur ab dem letzten Block neu geparst. Das darf zu keinem
+// Zeitpunkt etwas anderes ergeben als ein Gesamtdurchlauf desselben Textes.
+const markdownProben: Record<string, string> = {
+  bericht:
+    "**Fazit: alles gut.**\n\n## Abschnitt\n\nText mit **Zahl 12** und `code`.\n\n- eins\n- zwei\n  - verschachtelt\n- drei\n\n| A | B |\n| --- | --- |\n| 1 | 2 |\n| 3 | 4 |\n\nEmpfehlung: weiter so.",
+  lockereListe: "1. Erster\n\n   Absatz im Punkt\n\n2. Zweiter\n\n3. Dritter\n\nEnde",
+  code: "Vorher\n\n```js\nconst a = 1;\n\nconst b = 2;\n```\n\nNachher mit [Link](https://example.com)",
+  zitatUndTrenner: "> Zitat 1\n>\n> Zitat 2\n\n---\n\nText\nnoch eine Zeile\n\n1. a\n2. b",
+};
+for (const [name, text] of Object.entries(markdownProben)) {
+  let stand: Zerlegung | null = null;
+  let abweichung: string | null = null;
+  for (let ende = 1; ende <= text.length && !abweichung; ende += 3) {
+    const teil = text.slice(0, ende);
+    stand = zerlege(teil, stand);
+    const voll = zerlege(teil, null);
+    if (JSON.stringify(stand.bloecke) !== JSON.stringify(voll.bloecke)) abweichung = `bei ${ende} Zeichen`;
+  }
+  pruefe(`Markdown-Zerlegung beim Streamen == Gesamtdurchlauf (${name})`, abweichung === null, abweichung ?? `${text.length} Zeichen`);
+}
+pruefe("Eine lockere Liste bleibt EIN Block (Nummerierung bleibt erhalten)", zerlege(markdownProben.lockereListe!).bloecke.length === 2);
 
 console.log(`\nPruefungen: ${gesamt}   bestanden: ${gesamt - fehler}   fehlgeschlagen: ${fehler}`);
 if (fehler > 0) process.exit(1);
