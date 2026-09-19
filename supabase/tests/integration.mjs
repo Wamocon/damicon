@@ -4358,6 +4358,36 @@ if (leitung && brigade) {
       rpcAntwortFehler?.message ?? `Antwortzeilen: ${verlaufNachRpc?.length}`,
     );
 
+    // Werkzeugaufrufe (20261026000000) sind ebenso privilegiert: selbst gesetzt
+    // an einer eigenen Frage abgewiesen, ueber die Funktion gespeichert - das
+    // ist der Weg, den der streamende Claude-Pfad (api/ki-assistent) nimmt.
+    const { data: gefaelschteWerkzeuge, error: gefaelschteWerkzeugeFehler } = await kundeChat
+      .from("ki_chat_nachrichten")
+      .insert({ profil_id: kundeProfilFuerAufraeumen?.id, rolle: "nutzer", inhalt: "Frage", werkzeugaufrufe: ["mwstStatusAbrufen"] })
+      .select("id");
+    check(
+      "KI-Chat: selbst gesetzte Werkzeugaufrufe werden abgewiesen",
+      !!gefaelschteWerkzeugeFehler || (gefaelschteWerkzeuge?.length ?? 0) === 0,
+      gefaelschteWerkzeugeFehler?.code ?? `geschriebene Zeilen: ${gefaelschteWerkzeuge?.length}`,
+    );
+
+    const { data: werkzeugAntwortId, error: werkzeugAntwortFehler } = await kundeChat.rpc("ki_chat_antwort_schreiben", {
+      p_inhalt: "Laut MwSt-Status ist die Registrierung aktiv.",
+      p_anbieter_name: "IT-Anbieter",
+      p_fallback: false,
+      p_werkzeugaufrufe: ["mwstStatusAbrufen"],
+    });
+    const { data: werkzeugAntwort } = await kundeChat
+      .from("ki_chat_nachrichten")
+      .select("werkzeugaufrufe")
+      .eq("id", werkzeugAntwortId ?? "00000000-0000-0000-0000-000000000000")
+      .maybeSingle();
+    check(
+      "KI-Chat: ki_chat_antwort_schreiben() speichert die Werkzeugaufrufe des Agenten",
+      !werkzeugAntwortFehler && JSON.stringify(werkzeugAntwort?.werkzeugaufrufe) === JSON.stringify(["mwstStatusAbrufen"]),
+      werkzeugAntwortFehler?.message ?? JSON.stringify(werkzeugAntwort?.werkzeugaufrufe),
+    );
+
     const { error: rpcEskalationFehler } = await kundeChat.rpc("ki_chat_eskalation_schreiben", {
       p_inhalt: "Bitte das Buero hinzuziehen.",
     });

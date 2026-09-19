@@ -359,15 +359,20 @@ export async function POST(req: Request) {
         // Browser gleich nachliefert) ist keine Antwort - die folgende Runde speichert
         // den eigentlichen Text.
         if (gesamtText) {
+          // Ueber ki_chat_antwort_schreiben() statt direkt: die Insert-Policy
+          // (Migration 20261030000000) laesst direkt nur die eigene Frage durch.
+          // Ein direktes Insert scheiterte hier an RLS - und weil der Fehler
+          // nicht geprueft wurde, fehlte jede Claude-Antwort still im Verlauf.
           const supabaseFinish = await createClient();
-          await supabaseFinish.from("ki_chat_nachrichten").insert({
-            profil_id: profil.id,
-            rolle: "assistent",
-            inhalt: gesamtText,
-            anbieter_name: anbieter.anzeige_name,
-            fallback: false,
-            werkzeugaufrufe: werkzeugaufrufe.length > 0 ? werkzeugaufrufe : null,
+          const { error: antwortFehler } = await supabaseFinish.rpc("ki_chat_antwort_schreiben", {
+            p_inhalt: gesamtText,
+            p_anbieter_name: anbieter.anzeige_name,
+            p_fallback: false,
+            p_werkzeugaufrufe: werkzeugaufrufe.length > 0 ? werkzeugaufrufe : undefined,
           });
+          if (antwortFehler) {
+            console.error("[damicon] KI-Antwort nicht gespeichert:", antwortFehler.message);
+          }
         }
         await protokolliereBasis(profil, "ki_chat.nachricht", "ki_chat_nachrichten", profil.id, {
           fallback: false,
