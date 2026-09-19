@@ -4468,6 +4468,97 @@ if (leitung && brigade) {
   }
 }
 
+// --- Sicherheit: Rollenfilter der Wissensdokumente (RAG) --------------------
+// Regressionstest fuer eine vor dem Merge gefundene Luecke: die erste Fassung
+// von ki_wissen_aehnliche_chunks() nahm die Rolle als Parameter (p_rolle) und
+// vertraute ihm. Die Funktion ist per PostgREST direkt aus dem Browser
+// aufrufbar - als kunde mit p_rolle = 'admin' kam ein reines Admin-Dokument
+// zurueck. Geprueft wird hier genau dieser Direktaufruf gegen echtes Postgres,
+// nicht der Weg ueber den Servercode: eine angemeldete Person bekommt NIE einen
+// Abschnitt eines Dokuments, dessen erlaubte_rollen ihre Rolle nicht enthaelt -
+// egal, was sie mitschickt.
+{
+  // Alle Abschnitte bekommen denselben Vektor, damit die Aehnlichkeit nichts
+  // aussortiert - uebrig bleibt allein der Rollenfilter.
+  const vektor = "[" + Array.from({ length: 1024 }, (_, i) => Math.sin(i * 0.1).toFixed(5)).join(",") + "]";
+  const testDokumente = [
+    { titel: "__it_wissen_nur_admin", erlaubte_rollen: ["admin"] },
+    { titel: "__it_wissen_nur_leitung", erlaubte_rollen: ["betriebsleitung"] },
+    { titel: "__it_wissen_nur_kunde", erlaubte_rollen: ["kunde"] },
+  ];
+  const angelegt = [];
+  try {
+    for (const d of testDokumente) {
+      const { data: dok, error: dokFehler } = await admin
+        .from("ki_wissen_dokumente")
+        .insert({ ...d, kategorie: "audit", dateiname: "it.txt", storage_pfad: `audit/${d.titel}.txt`, status: "bereit" })
+        .select("id")
+        .single();
+      if (dokFehler) throw new Error(`Vorbereitung ${d.titel}: ${dokFehler.message}`);
+      angelegt.push(dok.id);
+      const { error: chunkFehler } = await admin
+        .from("ki_wissen_chunks")
+        .insert({ dokument_id: dok.id, position: 0, inhalt: `Inhalt von ${d.titel}`, embedding: vektor });
+      if (chunkFehler) throw new Error(`Vorbereitung Abschnitt ${d.titel}: ${chunkFehler.message}`);
+    }
+    check("Wissens-Rollenfilter: Vorbereitung (drei Dokumente, je eine Rolle)", angelegt.length === 3);
+
+    const titelVon = (zeilen) => (zeilen ?? []).map((z) => z.dokument_titel).filter((t) => t.startsWith("__it_wissen_")).sort();
+
+    const { client: kundeWissen, fehler: kundeWissenFehler } = await anmelden("kunde@damicon.demo");
+    const { data: kundeTreffer, error: kundeTrefferFehler } = await kundeWissen.rpc("ki_wissen_aehnliche_chunks", {
+      p_embedding: vektor,
+      p_anzahl: 50,
+    });
+    check(
+      "Wissens-Rollenfilter: kunde bekommt direkt per RPC nur das eigene Dokument, nie das Admin- oder Leitungsdokument",
+      !kundeWissenFehler && !kundeTrefferFehler && JSON.stringify(titelVon(kundeTreffer)) === JSON.stringify(["__it_wissen_nur_kunde"]),
+      kundeTrefferFehler?.message ?? kundeWissenFehler ?? JSON.stringify(titelVon(kundeTreffer)),
+    );
+
+    // Der Angriff von damals, woertlich: eine Rolle mitschicken. Die Funktion
+    // hat diesen Parameter nicht mehr - der Aufruf muss scheitern, nicht bloss
+    // weniger liefern.
+    const { data: gefaelscht, error: gefaelschtFehler } = await kundeWissen.rpc("ki_wissen_aehnliche_chunks", {
+      p_embedding: vektor,
+      p_rolle: "admin",
+      p_anzahl: 50,
+    });
+    check(
+      "Wissens-Rollenfilter: ein mitgeschickter Rollen-Parameter (p_rolle = admin) wird nicht angenommen - die Signatur existiert nicht",
+      !!gefaelschtFehler && titelVon(gefaelscht).length === 0,
+      gefaelschtFehler ? `${gefaelschtFehler.code}: ${gefaelschtFehler.message}` : `Treffer: ${JSON.stringify(titelVon(gefaelscht))}`,
+    );
+
+    const { data: leitungTreffer, error: leitungTrefferFehler } = await leitung.rpc("ki_wissen_aehnliche_chunks", {
+      p_embedding: vektor,
+      p_anzahl: 50,
+    });
+    check(
+      "Wissens-Rollenfilter: betriebsleitung bekommt nur das Leitungsdokument",
+      !leitungTrefferFehler && JSON.stringify(titelVon(leitungTreffer)) === JSON.stringify(["__it_wissen_nur_leitung"]),
+      leitungTrefferFehler?.message ?? JSON.stringify(titelVon(leitungTreffer)),
+    );
+
+    const { data: anonTreffer, error: anonTrefferFehler } = await anon.rpc("ki_wissen_aehnliche_chunks", {
+      p_embedding: vektor,
+      p_anzahl: 50,
+    });
+    // Ausdruecklich 42501 (keine Berechtigung), nicht irgendein Fehler: ein
+    // "Funktion nicht gefunden" (PGRST202) wuerde auch bei falscher Signatur
+    // durchgehen und saehe dann aus wie eine gewollte Sperre.
+    check(
+      "Wissens-Rollenfilter: ohne Anmeldung (anon) ist die Funktion gar nicht aufrufbar",
+      anonTrefferFehler?.code === "42501" && titelVon(anonTreffer).length === 0,
+      anonTrefferFehler ? `${anonTrefferFehler.code}` : `Treffer: ${JSON.stringify(titelVon(anonTreffer))}`,
+    );
+  } catch (error) {
+    check("Wissens-Rollenfilter: Test lief durch", false, error instanceof Error ? error.message : String(error));
+  } finally {
+    if (angelegt.length > 0) await admin.from("ki_wissen_dokumente").delete().in("id", angelegt);
+  }
+}
+
 // --- Anforderung 5.6: Kontaktkanaele/Zahlungswege -------------------------
 {
   const { data: neuerKanal, error: neuerKanalFehler } = await leitung

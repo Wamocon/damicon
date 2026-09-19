@@ -157,7 +157,7 @@ export async function kiNachrichtSenden(
       // Kontext, nie ein Ausfall des ganzen Chats.
       let wissenTreffer: Awaited<ReturnType<typeof sucheRelevanteWissenChunks>> = [];
       try {
-        wissenTreffer = await sucheRelevanteWissenChunks(nachricht, profil.role);
+        wissenTreffer = await sucheRelevanteWissenChunks(nachricht);
       } catch (error) {
         console.error("[damicon] Wissensdokumente-Suche unerwartet fehlgeschlagen:", error);
       }

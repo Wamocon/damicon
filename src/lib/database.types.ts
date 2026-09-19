@@ -3668,11 +3668,7 @@ export type Database = {
         Returns: string
       }
       ki_wissen_aehnliche_chunks: {
-        Args: {
-          p_anzahl?: number
-          p_embedding: string
-          p_rolle: Database["public"]["Enums"]["app_role"]
-        }
+        Args: { p_anzahl?: number; p_embedding: string }
         Returns: {
           aehnlichkeit: number
           dokument_titel: string

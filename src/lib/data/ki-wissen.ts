@@ -2,10 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import { alsVektorLiteral, erzeugeEinbettung } from "@/lib/ai/einbettung-client";
 import type { KiWissenChunkTreffer, KiWissenDokumentZeile } from "@/lib/domain/ki-assistent";
-import type { Database } from "@/lib/database.types";
-
-/** Rollentyp der Datenbank - p_rolle der RPC ist public.app_role, nicht text. */
-type AppRolle = Database["public"]["Enums"]["app_role"];
 
 // RAG-Ergaenzung zum KI-Assistenten (Anforderung 5.4/5.5). Eigene Datei statt
 // in data/ki-assistent.ts, weil hier zusaetzlich ein Netzwerkaufruf
@@ -47,9 +43,12 @@ export async function ladeKiWissenDokumente(): Promise<KiWissenUebersicht> {
 // der fragenden Person gefiltert - die Filterung passiert IN der
 // Postgres-Funktion ki_wissen_aehnliche_chunks (Migration
 // 20261031000000_ki_wissen_dokumente.sql), nicht hier, damit
-// ki_wissen_chunks den Prozess nie ungefiltert verlaesst. p_rolle kommt
-// deshalb ausschliesslich aus dem eigenen SessionProfile des Aufrufers
-// (actions/ki-assistent.ts), nie aus Nutzereingabe.
+// ki_wissen_chunks den Prozess nie ungefiltert verlaesst. Eine Rolle wird
+// bewusst NICHT uebergeben: die Funktion ermittelt die echte Rolle selbst aus
+// der Sitzung (current_app_role()). Die erste Fassung nahm sie als Parameter
+// entgegen - und der war ueber PostgREST direkt aus dem Browser faelschbar
+// (Kommentar in der Migration). Der Client unten muss deshalb die Sitzung der
+// fragenden Person tragen (createClient()), nie den service_role-Client.
 //
 // Wirft nie: eine nicht erreichbare Einbettung oder eine leere Wissensbasis
 // bedeutet schlicht keine Treffer, kein Ausfall des ganzen Chats - dieselbe
@@ -62,7 +61,6 @@ export async function ladeKiWissenDokumente(): Promise<KiWissenUebersicht> {
 // gefunden, als kunde nicht.
 export async function sucheRelevanteWissenChunks(
   frage: string,
-  rolle: AppRolle,
   anzahl = 4,
 ): Promise<KiWissenChunkTreffer[]> {
   if (!isSupabaseConfigured()) return [];
@@ -76,7 +74,6 @@ export async function sucheRelevanteWissenChunks(
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("ki_wissen_aehnliche_chunks", {
     p_embedding: alsVektorLiteral(einbettung.vektor),
-    p_rolle: rolle,
     p_anzahl: anzahl,
   });
 

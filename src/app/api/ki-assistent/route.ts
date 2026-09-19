@@ -293,10 +293,12 @@ export async function POST(req: Request) {
   const preislisten = quellen.includes("preisliste") ? await ladeWissensPreislisten() : [];
 
   // Wissensdokumente (RAG) - wie in kiNachrichtSenden(): die hochgeladenen
-  // Dokumente filtert die Datenbank nach der Rolle (ki_wissen_aehnliche_chunks),
-  // hier dieselbe `rolle` wie fuer alles andere in diesem Aufruf - fuer
-  // Nicht-Admins immer die eigene aus der Sitzung, eine Vorschau-Rolle nur fuer
-  // Admins (siehe oben). In einer Freigabe-Runde gibt es keine neue Frage; dann
+  // Dokumente filtert die Datenbank selbst nach der ECHTEN Rolle aus der
+  // Sitzung (ki_wissen_aehnliche_chunks, current_app_role()) - bewusst nicht
+  // nach `rolle` oben, eine Rolle laesst sich dort gar nicht mehr uebergeben
+  // (siehe Migration 20261031000000). Folge fuer die Admin-Vorschau: ein Admin,
+  // der als andere Rolle ansieht, bekommt trotzdem die Dokumente seiner echten
+  // Rolle in den Kontext. In einer Freigabe-Runde gibt es keine neue Frage; dann
   // zaehlt die letzte Frage aus dem Verlauf, sonst verloere das Modell mitten
   // in der Aktion den Dokumentenkontext. Eigener try/catch aus demselben Grund
   // wie dort: kein Treffer heisst kein Zusatzkontext, nie ein Ausfall.
@@ -305,7 +307,7 @@ export async function POST(req: Request) {
   let wissenTreffer: Awaited<ReturnType<typeof sucheRelevanteWissenChunks>> = [];
   if (frageFuerSuche) {
     try {
-      wissenTreffer = await sucheRelevanteWissenChunks(frageFuerSuche, rolle);
+      wissenTreffer = await sucheRelevanteWissenChunks(frageFuerSuche);
     } catch (fehler) {
       console.error("[damicon] Wissensdokumente-Suche unerwartet fehlgeschlagen:", fehler);
     }

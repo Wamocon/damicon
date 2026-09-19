@@ -158,17 +158,36 @@ alter table public.ki_wissen_chunks enable row level security;
 -- 3. Aehnlichkeitssuche mit Rollenfilter
 -- ---------------------------------------------------------------------------
 -- security definer, weil der aufrufende authenticated-Client
--- (data/ki-wissen.ts, nach eigenem requirePermission("ki_assistent","create")
--- im Aufrufer actions/ki-assistent.ts) die Tabelle sonst gar nicht lesen
--- koennte (siehe Policy-Kommentar oben) - die Rollenpruefung steht deshalb
--- IN der Funktion (p_rolle kommt als Parameter vom Aufrufer, nicht aus
--- auth.uid()/has_role()), nicht als RLS-Bedingung. Wer diese Funktion mit
--- einer falschen p_rolle aufruft, saehe fremde Dokumente - deshalb bleibt sie
--- server-seitig gekapselt (data/ki-wissen.ts liest die Rolle aus dem eigenen
--- SessionProfile, nicht aus Nutzereingabe).
+-- (data/ki-wissen.ts) die Tabellen sonst gar nicht lesen koennte (siehe
+-- Policy-Kommentar oben) - die Rollenpruefung steht deshalb IN der Funktion,
+-- nicht als RLS-Bedingung.
+--
+-- SICHERHEIT - warum es KEINEN Rollen-Parameter gibt: Die erste Fassung
+-- dieser Funktion nahm die Rolle als Parameter (p_rolle) entgegen und
+-- filterte danach. Das war faelschbar. Jede Funktion mit "grant execute ...
+-- to authenticated" ist ueber PostgREST direkt aus dem Browser aufrufbar
+-- (/rest/v1/rpc/...), nicht nur aus unserem Servercode - "bleibt
+-- server-seitig gekapselt" stimmte also nicht. Vor dem Merge nachgestellt
+-- (19.09.2026, lokale Instanz): als kunde angemeldet, mit p_rolle = 'admin'
+-- aufgerufen, kam der Abschnitt eines reinen Admin-Dokuments zurueck.
+--
+-- Deshalb bestimmt die Funktion die Rolle jetzt selbst, ueber
+-- public.current_app_role() (profiles.role zu auth.uid() - dieselbe Quelle,
+-- auf der has_role() und damit jede RLS-Policy im Projekt beruht). Es gibt
+-- keinen Weg mehr, eine Rolle mitzugeben: nicht abgewiesen, sondern gar
+-- nicht vorhanden. Ohne Sitzung oder ohne Profil liefert current_app_role()
+-- null, "null = any(...)" ist nie wahr - also kein Treffer (faellt zu).
+-- Bitte NICHT wieder einen Rollen-Parameter einfuehren, auch nicht "nur fuer
+-- die Admin-Vorschau": die Vorschau ist eine Darstellungsfrage im Client, der
+-- Zugriff auf Dokumente richtet sich nach der echten Rolle.
+--
+-- Die alte Signatur wird zuerst entfernt, damit auf einer Datenbank, die
+-- diese Migration schon in der alten Form kennt, keine faelschbare
+-- Ueberladung neben der neuen stehen bleibt.
+drop function if exists public.ki_wissen_aehnliche_chunks(extensions.vector, public.app_role, integer);
+
 create or replace function public.ki_wissen_aehnliche_chunks(
   p_embedding extensions.vector(1024),
-  p_rolle public.app_role,
   p_anzahl integer default 4
 )
 returns table (
@@ -188,15 +207,20 @@ as $$
   from public.ki_wissen_chunks c
   join public.ki_wissen_dokumente d on d.id = c.dokument_id
   where d.status = 'bereit'
-    and p_rolle = any (d.erlaubte_rollen)
+    and public.current_app_role() = any (d.erlaubte_rollen)
   order by c.embedding <=> p_embedding
   limit greatest(p_anzahl, 0);
 $$;
 comment on function public.ki_wissen_aehnliche_chunks is
-  'Vektor-Aehnlichkeitssuche ueber ki_wissen_chunks, gefiltert auf Dokumente, die p_rolle sehen darf. security definer mit expliziter Rollenpruefung IN der Funktion, weil ki_wissen_chunks/-dokumente sonst fuer authenticated komplett verschlossen sind (Defense-in-Depth, gleiches Muster wie ki_anbieter_standard_setzen).';
+  'Vektor-Aehnlichkeitssuche ueber ki_wissen_chunks, gefiltert auf Dokumente, die die ECHTE Rolle der aufrufenden Person sehen darf (current_app_role(), aus auth.uid()). Bewusst ohne Rollen-Parameter: ein uebergebener Wert war ueber PostgREST faelschbar (20261031000000, Kommentar dort). security definer, weil ki_wissen_chunks/-dokumente sonst fuer authenticated komplett verschlossen sind.';
 
-revoke all on function public.ki_wissen_aehnliche_chunks from public;
-grant execute on function public.ki_wissen_aehnliche_chunks to authenticated;
+-- "from public" allein reicht nicht: Supabase vergibt per Default-Privileges
+-- EXECUTE auf jede neue Funktion ausdruecklich auch an anon - die erste
+-- Fassung war damit sogar ohne Anmeldung aufrufbar. Ohne Sitzung liefert
+-- current_app_role() zwar null und damit keinen Treffer; anon hat hier
+-- trotzdem nichts verloren (zweite Schicht, falls sich die erste je aendert).
+revoke all on function public.ki_wissen_aehnliche_chunks(extensions.vector, integer) from public, anon;
+grant execute on function public.ki_wissen_aehnliche_chunks(extensions.vector, integer) to authenticated;
 
 -- ---------------------------------------------------------------------------
 -- 4. Storage-Bucket fuer die Originaldateien
