@@ -94,8 +94,59 @@ export function trenneFrontmatter(roh: string): { felder: Record<string, unknown
 
 const alsText = (v: unknown): string | null => (typeof v === "string" && v ? v : null);
 
+/** "Russisch", "ru", "ueberwiegend Russisch, teilweise Englisch" -> "ru". Massgeblich ist die
+ *  zuerst genannte Sprache. */
+export function sprachcode(roh: unknown): string | null {
+  if (typeof roh !== "string") return null;
+  const t = roh.toLowerCase();
+  const kandidaten: Array<[string, RegExp]> = [
+    ["ru", /\b(ru|russ\w*)/],
+    ["en", /\b(en|engl\w*)/],
+    ["de", /\b(de|deutsch\w*)/],
+    ["kk", /\b(kk|kasach\w*)/],
+    ["tr", /\b(tr|tuerk\w*|türk\w*)/],
+  ];
+  let bester: { code: string; pos: number } | null = null;
+  for (const [code, muster] of kandidaten) {
+    const treffer = muster.exec(t);
+    if (treffer && (!bester || treffer.index < bester.pos)) bester = { code, pos: treffer.index };
+  }
+  return bester?.code ?? null;
+}
+
+/** Autoritaetsstufe (1 Primaerrecht ... 5 Presse) aus der Quellenart, wenn das Dokument keine
+ *  ausdrueckliche Stufe nennt. Bewusst vorsichtig: im Zweifel Fachquelle (4), nie Recht. */
+export function stufeAusQuellenart(art: unknown): number | null {
+  if (typeof art !== "string") return null;
+  const t = art.toLowerCase();
+  if (/gesetzestext|gesetz\b|kodex|norm\b/.test(t) && !/sekundaer/.test(t)) return 1;
+  if (/forum|blog|presse|news|nachricht/.test(t) && !/fachpresse/.test(t)) return 5;
+  if (t.trim() === "") return null;
+  return 4;
+}
+
+/** Vereinheitlicht die Kopfzeilen unterschiedlicher Quellsammlungen auf die Namen des
+ *  Steuerkorpus. Bekannt sind: Steuerkorpus (titel, url, abgerufen_am ...), Legal-
+ *  Wissensdatenbank (title, thema, quelle_url, quelltyp, sprache_original,
+ *  vertrauenswuerdigkeit) und Audit-Wissensbasis (title, topic, source_url,
+ *  source_type, original_language, retrieval_date, trustworthiness). */
+export function vereinheitliche(felder: Record<string, unknown>): Record<string, unknown> {
+  const erstes = (...namen: string[]) => namen.map((n) => felder[n]).find((v) => v !== undefined && v !== null && v !== "");
+  return {
+    ...felder,
+    titel: erstes("titel", "title"),
+    url: erstes("url", "quelle_url", "source_url"),
+    abgerufen_am: erstes("abgerufen_am", "retrieval_date"),
+    sprache: sprachcode(erstes("sprache", "sprache_original", "original_language")),
+    konfidenz: erstes("konfidenz", "vertrauenswuerdigkeit", "trustworthiness"),
+    autoritaetsstufe:
+      typeof felder.autoritaetsstufe === "number" ? felder.autoritaetsstufe : stufeAusQuellenart(erstes("quelltyp", "source_type")),
+  };
+}
+
 export function parseDokument(pfad: string, roh: string): WissensDokument {
-  const { felder, text } = trenneFrontmatter(roh);
+  const { felder: rohFelder, text } = trenneFrontmatter(roh);
+  const felder = vereinheitliche(rohFelder);
   const norm = pfad.replace(/\\/g, "/");
   const stufe = felder.autoritaetsstufe;
   return {
