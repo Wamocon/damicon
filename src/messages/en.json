@@ -1626,11 +1626,15 @@
         "name": "Agent",
         "kurz": "Takes over the screen and guides you while it answers.",
         "beschreibung": "Ask a question and watch: the agent opens the relevant views next to this panel, scrolls to the evidence and explains as it goes."
-      }
+      },
+      "schalterTitel": "Agent mode",
+      "schalterText": "The AI guides you through the app while it answers: it opens pages, scrolls and highlights sections.",
+      "infoTitel": "What is the difference?",
+      "aktionenHinweis": "In both modes, actions (such as creating a task) always wait for your confirmation."
     },
     "nachUnten": "Scroll to latest",
     "stopp": "Stop",
-    "einstellungen": "Manage AI providers",
+    "einstellungen": "Settings",
     "eskalationText": "Not getting the answer you need? Hand this conversation over to a person on the team.",
     "fuehrung": {
       "zeigt": "Agent is showing you: {ziel}",

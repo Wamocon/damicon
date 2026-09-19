@@ -187,23 +187,59 @@ function baueRadar(rolle: Role | null | undefined) {
 // Aufzaehlung (z.enum) - das Modell kann keine beliebige Adresse erfinden.
 function baueNavigationsWerkzeug(rolle: Role | null | undefined) {
   const sichtbar = modules.filter((m) => hasPermission(rolle, m.resource, "view"));
-  if (sichtbar.length === 0) return null;
+  const texte = de.modules as Record<string, { title?: string; summary?: string; description?: string; todo?: string }>;
   const beschreibung = (schluessel: string) => {
-    const eintrag = (de.modules as Record<string, { title?: string; summary?: string }>)[schluessel];
+    const eintrag = texte[schluessel];
     return eintrag?.title ? `${eintrag.title}${eintrag.summary ? ` - ${eintrag.summary}` : ""}` : schluessel;
   };
-  const liste = sichtbar.map((m) => `${m.key}: ${beschreibung(m.key)}`).join("\n");
+  // Neben den Modulen zwei feste Ziele, die jede Rolle hat: die Startuebersicht
+  // und die Kontosicherheit (Anmeldung, MFA). Sie stehen nicht in modules.ts.
+  const feste: Record<string, { ziel: string; titel: string; text: string }> = {
+    uebersicht: { ziel: "/dashboard", titel: "Uebersicht", text: "Startseite mit den Kennzahlen des Betriebs auf einen Blick." },
+    sicherheit: { ziel: "/dashboard/sicherheit", titel: "Kontosicherheit", text: "Eigene Anmeldung, Zwei-Faktor-Authentifizierung (MFA) und Sitzungssicherheit." },
+  };
+  const liste = [
+    ...Object.entries(feste).map(([k, v]) => `${k}: ${v.titel} - ${v.text}`),
+    ...sichtbar.map((m) => `${m.key}: ${beschreibung(m.key)}`),
+  ].join("\n");
+  const schluessel = [...Object.keys(feste), ...sichtbar.map((m) => m.key)] as [string, ...string[]];
   return tool({
-    description: `Oeffnet einen Bereich der Anwendung im Hauptfenster des Nutzers, ohne Daten abzurufen. Nutze es, wenn der Nutzer dich bittet, ihm einen Bereich zu zeigen, oder als Abschluss einer Tour. Ordne die Formulierung des Nutzers sinngemaess dem passenden Bereich zu (z. B. 'Lohnabrechnung' -> lohn, 'Kuehlung' -> kuehlkette, 'Datenschutz' -> compliance). Erlaubte Bereiche (Schluessel: Titel - Kurzbeschreibung):\n${liste}`,
+    description: `Oeffnet einen Bereich der Anwendung im Hauptfenster des Nutzers und liefert dessen Beschreibung. Nutze es bei JEDER Frage zu einem Bereich oder einer Funktion der Anwendung ('was ist ...', 'wie funktioniert ...', 'wo finde ich ...', 'zeig mir ...') - auch bei Tippfehlern oder unvollstaendigen Fragen: ordne sie dem wahrscheinlichsten Bereich zu (z. B. 'qr crate identification' -> qr_steigen, 'Lohnabrechnung' -> lohn, 'Kuehlung' -> kuehlkette, 'Datenschutz' -> compliance) und erklaere den Bereich anhand der gelieferten Beschreibung. Bei Compliance kannst du mit 'abschnitt' direkt zu einem Abschnitt springen. Erlaubte Bereiche (Schluessel: Titel - Kurzbeschreibung):
+${liste}`,
     inputSchema: z.object({
-      bereich: z.enum(sichtbar.map((m) => m.key) as [string, ...string[]]),
+      bereich: z.enum(schluessel),
+      abschnitt: z
+        .enum(["mwst-registrierung", "risiko-radar", "datenschutzvorfaelle", "drittweitergaben"])
+        .optional()
+        .describe("Nur bei bereich=compliance: Abschnitt, zu dem gescrollt wird"),
     }),
-    execute: async ({ bereich }) => {
+    execute: async ({ bereich, abschnitt }) => {
+      const fest = feste[bereich];
+      if (fest) return { ziel: fest.ziel, bereich, titel: fest.titel, beschreibung: fest.text };
       const modul = sichtbar.find((m) => m.key === bereich);
-      return modul ? { ziel: moduleHref(modul), bereich: modul.key } : { fehler: "unbekannter-bereich" };
+      if (!modul) return { fehler: "unbekannter-bereich" };
+      const eintrag = texte[modul.key];
+      return {
+        ziel: `${moduleHref(modul)}${bereich === "compliance" && abschnitt ? `#${abschnitt}` : ""}`,
+        bereich: modul.key,
+        titel: eintrag?.title ?? modul.key,
+        beschreibung: [eintrag?.description, eintrag?.summary].filter(Boolean).join(" "),
+        nochOffen: eintrag?.todo ?? null,
+      };
     },
   });
 }
+
+// Fluchtweg fuer den Agent-Modus, in dem der erste Schritt IMMER ein Werkzeug
+// aufrufen muss (route.ts, prepareStep): ohne ihn wuerde eine reine Hoeflichkeit
+// ("danke") eine sinnlose Navigation ausloesen. Bewusst ohne "ziel" - der Chat
+// zeigt den Schritt nicht an und das Hauptfenster bleibt, wie es ist.
+const ohneAnsicht = tool({
+  description:
+    "Nur fuer Nachrichten, die weder Daten noch Status noch einen Bereich der Anwendung betreffen (Dank, Gruss, Nachfrage zur Formulierung deiner letzten Antwort). Bei JEDER Frage zu Zahlen, Fristen, Status, Personen, Bereichen oder Funktionen der Anwendung stattdessen das passende Werkzeug aufrufen - auch wenn du die Antwort weiter oben im Gespraech schon einmal gegeben hast.",
+  inputSchema: z.object({}),
+  execute: async () => ({ ok: true }),
+});
 
 /** Welche Werkzeuge diese Rolle bekommt - siehe Migrationskopf: keine
  *  Prompt-Anweisung, sondern schlichte Abwesenheit. Deckungsgleich mit den
@@ -214,6 +250,8 @@ export function baueWerkzeuge(
     vorschau?: boolean;
     /** Ohne Aktionen: fuer Wege ohne Freigabe-Oberflaeche (nicht-streamende Anfrage in agent.ts). */
     nurLesen?: boolean;
+    /** Agent-Modus: ergaenzt ohneAnsicht, den bewussten Verzicht auf eine Ansicht. */
+    agentModus?: boolean;
   } = {},
 ) {
   const oeffneBereich = baueNavigationsWerkzeug(rolle);
@@ -238,5 +276,6 @@ export function baueWerkzeuge(
     ...(oeffneBereich ? { oeffneBereich } : {}),
     ...baueDatenWerkzeuge(rolle, optionen.vorschau ?? false),
     ...(optionen.nurLesen ? {} : baueAktionen(rolle)),
+    ...(optionen.agentModus ? { ohneAnsicht } : {}),
   };
 }

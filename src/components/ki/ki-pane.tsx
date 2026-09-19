@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { Bot, LifeBuoy, MessageSquareText, Settings2, X } from "lucide-react";
+import { Bot, Info, LifeBuoy, MessageSquareText, Settings2, X } from "lucide-react";
 import { Himbeere } from "@/components/ki/himbeere";
 import { KiChat } from "@/components/ki/ki-chat";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
@@ -14,14 +14,66 @@ import { cn } from "@/lib/utils";
 // Hauptfenster statt darueber, damit der Nutzer im Agent-Modus sieht, wie die
 // Ansicht nebenan mitwandert. Geoeffnet wird es ueber den "KI fragen"-Knopf
 // in der Kopfzeile (topbar.tsx); auf schmalen Bildschirmen legt es sich als
-// Schublade ueber die Seite (globals.css, .ki-pane-huelle).
+// Schublade ueber die Seite (ki-pane.css, .ki-pane-huelle).
 //
 // Das Panel bleibt immer gemountet - Zu heisst nur "Breite 0" bzw.
 // "ausserhalb des Bildschirms". Damit laeuft eine begonnene Antwort (und eine
 // Agent-Tour) weiter, auch wenn man das Panel zwischendurch zuklappt, und die
 // Schliessen-Animation ist dieselbe wie die Oeffnen-Animation rueckwaerts.
+//
+// Assistent oder Agent ist bewusst KEIN Schalter im Kopf, sondern eine
+// Einstellung: Standard ist der ruhige Assistent, den Agent-Modus (der das
+// Hauptfenster selbst steuert) schaltet man hier ausdruecklich ein - mit einer
+// Erklaerung beim Ueberfahren, worin der Unterschied besteht.
 
 type Ansicht = "chat" | "einstellungen" | "hilfe";
+
+function ModusEinstellung() {
+  const t = useTranslations("kiAssistentAnsicht");
+  const { modus, setModus } = useKiPane();
+  const agentAn = modus === "agent";
+
+  return (
+    <section className="ki-einstellung">
+      <div className="ki-einstellung__kopf">
+        <div className="ki-einstellung__titel">
+          <Bot className="h-4 w-4" />
+          {t("modus.schalterTitel")}
+          <span className="ki-info" tabIndex={0} aria-describedby="ki-modus-info" aria-label={t("modus.infoTitel")}>
+            <Info className="h-3.5 w-3.5" />
+            <span role="tooltip" id="ki-modus-info" className="ki-info__blase">
+              <strong>{t("modus.infoTitel")}</strong>
+              <span className="ki-info__zeile">
+                <MessageSquareText className="h-3.5 w-3.5" />
+                <span>
+                  <b>{t("modus.assistent.name")}:</b> {t("modus.assistent.kurz")}
+                </span>
+              </span>
+              <span className="ki-info__zeile">
+                <Bot className="h-3.5 w-3.5" />
+                <span>
+                  <b>{t("modus.agent.name")}:</b> {t("modus.agent.kurz")}
+                </span>
+              </span>
+              <span className="ki-info__fuss">{t("modus.aktionenHinweis")}</span>
+            </span>
+          </span>
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={agentAn}
+          aria-label={t("modus.schalterTitel")}
+          onClick={() => setModus(agentAn ? "assistent" : "agent")}
+          className="ki-schalter"
+        >
+          <span className="ki-schalter__knopf" />
+        </button>
+      </div>
+      <p className="ki-einstellung__text">{t("modus.schalterText")}</p>
+    </section>
+  );
+}
 
 export function KiPane({
   verlauf,
@@ -36,12 +88,13 @@ export function KiPane({
   einstellungen: ReactNode | null;
 }) {
   const t = useTranslations("kiAssistentAnsicht");
-  const { verfuegbar, offen, setOffen, modus, setModus } = useKiPane();
+  const { verfuegbar, offen, setOffen, modus } = useKiPane();
   const [ansicht, setAnsicht] = useState<Ansicht>("chat");
 
   if (!verfuegbar) return null;
 
   const agentAktiv = agentFaehig && modus === "agent";
+  const hatEinstellungen = agentFaehig || einstellungen !== null;
   const umschalten = (ziel: Ansicht) => setAnsicht((aktuell) => (aktuell === ziel ? "chat" : ziel));
 
   return (
@@ -66,9 +119,14 @@ export function KiPane({
                 <Himbeere groesse={26} schweben={agentAktiv} />
               </span>
               {t("chatTitel")}
+              {agentAktiv ? (
+                <span className="ki-pane__abzeichen" title={t("modus.agent.kurz")}>
+                  {t("modus.agent.name")}
+                </span>
+              ) : null}
             </div>
             <div className="ki-pane__werkzeuge">
-              {einstellungen ? (
+              {hatEinstellungen ? (
                 <button
                   type="button"
                   onClick={() => umschalten("einstellungen")}
@@ -102,33 +160,6 @@ export function KiPane({
             </div>
           </header>
 
-          {agentFaehig ? (
-            <div className="ki-pane__modus">
-              <div className="ki-modus" role="radiogroup" aria-label={t("modus.label")} data-modus={modus}>
-                <span className="ki-modus__schieber" aria-hidden />
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={modus === "assistent"}
-                  onClick={() => setModus("assistent")}
-                >
-                  <MessageSquareText className="h-3.5 w-3.5" />
-                  {t("modus.assistent.name")}
-                </button>
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={modus === "agent"}
-                  onClick={() => setModus("agent")}
-                >
-                  <Bot className="h-3.5 w-3.5" />
-                  {t("modus.agent.name")}
-                </button>
-              </div>
-              <p className="ki-pane__modus-hinweis">{t(`modus.${modus}.kurz`)}</p>
-            </div>
-          ) : null}
-
           <div className="ki-pane__koerper">
             <div
               className={cn("ki-pane__ansicht", ansicht !== "chat" && "pointer-events-none invisible")}
@@ -142,12 +173,17 @@ export function KiPane({
                 </div>
               )}
             </div>
-            {ansicht === "einstellungen" && einstellungen ? (
-              <div className="ki-pane__ansicht overflow-y-auto p-4">
-                <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                  {t("anbieterVerwaltung.titel")}
-                </p>
-                {einstellungen}
+            {ansicht === "einstellungen" && hatEinstellungen ? (
+              <div className="ki-pane__ansicht space-y-5 overflow-y-auto p-4">
+                {agentFaehig ? <ModusEinstellung /> : null}
+                {einstellungen ? (
+                  <div>
+                    <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                      {t("anbieterVerwaltung.titel")}
+                    </p>
+                    {einstellungen}
+                  </div>
+                ) : null}
               </div>
             ) : null}
             {ansicht === "hilfe" ? (

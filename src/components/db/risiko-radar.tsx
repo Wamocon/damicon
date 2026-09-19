@@ -29,7 +29,7 @@ export async function RisikoRadar({ eintraege }: { eintraege: RisikoEintrag[] })
   const { sortiert, ueberfaelligAnzahl } = risikoAufbereiten(eintraege);
 
   return (
-    <Card className="risiko-radar space-y-4">
+    <Card id="risiko-radar" className="risiko-radar scroll-mt-20 space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-sm font-bold text-foreground">{t("titel")}</h3>

@@ -71,10 +71,31 @@ export function useKiPane(): KiPaneWert {
 /** Scrollt zum Anker des Ziels (falls es einen gibt) und laesst ihn kurz
  *  aufleuchten. Die Zielseite rendert erst nach der Navigation - deshalb
  *  wird kurz auf das Element gewartet, statt einmalig zu suchen. */
+function hebeHervor(element: Element): void {
+  element.classList.remove(FOKUS_KLASSE);
+  void (element as HTMLElement).offsetWidth;
+  element.classList.add(FOKUS_KLASSE);
+  window.setTimeout(() => element.classList.remove(FOKUS_KLASSE), 2800);
+}
+
 function fokussiere(ziel: string): void {
   const anker = ziel.split("#")[1];
   if (!anker) {
-    window.setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 120);
+    // Ohne Anker (ganzes Modul, oder man ist schon dort): nach oben scrollen und
+    // den Kopf der Seite hervorheben - sonst wirkt ein Ziel, das gleich der
+    // aktuellen Seite ist, als sei nichts passiert.
+    let versuche = 0;
+    const kopf = () => {
+      const erstes = document.querySelector("#main > :first-child");
+      if (erstes) {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        hebeHervor(erstes);
+        return;
+      }
+      versuche += 1;
+      if (versuche < 40) window.setTimeout(kopf, 60);
+    };
+    window.setTimeout(kopf, 120);
     return;
   }
   let versuche = 0;
@@ -82,10 +103,7 @@ function fokussiere(ziel: string): void {
     const element = document.getElementById(anker);
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "start" });
-      element.classList.remove(FOKUS_KLASSE);
-      void element.offsetWidth;
-      element.classList.add(FOKUS_KLASSE);
-      window.setTimeout(() => element.classList.remove(FOKUS_KLASSE), 2800);
+      hebeHervor(element);
       return;
     }
     versuche += 1;

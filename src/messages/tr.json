@@ -646,11 +646,15 @@
         "name": "Ajan",
         "kurz": "Yanıtlarken ekranı devralır ve sizi yönlendirir.",
         "beschreibung": "Bir soru sorun ve izleyin: Ajan ilgili görünümleri bu panelin yanında açar, kanıta kadar kaydırır ve yol boyunca açıklar."
-      }
+      },
+      "schalterTitel": "Ajan modu",
+      "schalterText": "Yapay zekâ yanıt verirken sizi uygulamada gezdirir: sayfaları açar, kaydırır ve bölümleri vurgular.",
+      "infoTitel": "Fark nedir?",
+      "aktionenHinweis": "Her iki modda da işlemler (örneğin görev oluşturma) her zaman onayınızı bekler."
     },
     "nachUnten": "En yeniye git",
     "stopp": "Durdur",
-    "einstellungen": "Yapay zekâ sağlayıcılarını yönet",
+    "einstellungen": "Ayarlar",
     "eskalationText": "İhtiyacınız olan yanıtı alamadınız mı? Bu görüşmeyi ekipten bir kişiye devredin.",
     "fuehrung": {
       "zeigt": "Ajan size gösteriyor: {ziel}",

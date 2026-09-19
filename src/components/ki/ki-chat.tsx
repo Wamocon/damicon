@@ -194,6 +194,7 @@ function segmentiere(nachricht: UIMessage): Segment[] {
     }
     if (!isToolUIPart(teil) && !isDynamicToolUIPart(teil)) continue;
     const name = getToolName(teil);
+    if (name === "ohneAnsicht") continue;
     if (istAktion(name)) {
       segmente.push({ art: "aktion", karte: alsKarte(teil, name) });
       continue;
@@ -283,6 +284,8 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const sprache = useLocale();
   const aktionenT = useTranslations("aktionen");
   const moduleT = useTranslations("modules");
+  const navT = useTranslations("nav");
+  const authT = useTranslations("auth");
   const pfad = usePathname();
   const router = useRouter();
   const { role: rolle } = usePersona();
@@ -324,6 +327,8 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const istErsteNachricht = messages.length === 0;
 
   function bereichTitel(bereich: string | null): string {
+    if (bereich === "uebersicht") return navT("overview");
+    if (bereich === "sicherheit") return authT("security");
     return bereich && bekannteBereiche.has(bereich) ? moduleT(`${bereich}.title`) : t("bereichAllgemein");
   }
 

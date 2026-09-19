@@ -37,14 +37,18 @@ export function StatusPill({
 }
 
 export function Card({
+  id,
   children,
   className,
 }: {
+  /** Sprungziel (Anker) fuer Verweise, z. B. vom KI-Agenten. */
+  id?: string;
   children: ReactNode;
   className?: string;
 }) {
   return (
     <div
+      id={id}
       className={cn(
         "rounded-2xl border border-border bg-card p-5 shadow-sm shadow-black/[0.03]",
         className,

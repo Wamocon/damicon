@@ -1626,11 +1626,15 @@
         "name": "Agent",
         "kurz": "Übernimmt den Bildschirm und führt Sie, während er antwortet.",
         "beschreibung": "Stellen Sie eine Frage und sehen Sie zu: Der Agent öffnet die passenden Ansichten neben diesem Panel, scrollt zum Beleg und erklärt unterwegs."
-      }
+      },
+      "schalterTitel": "Agent-Modus",
+      "schalterText": "Die KI führt Sie durch die Anwendung, während sie antwortet: Sie öffnet Seiten, scrollt und hebt Abschnitte hervor.",
+      "infoTitel": "Was ist der Unterschied?",
+      "aktionenHinweis": "In beiden Modi warten Aktionen (z. B. eine Aufgabe anlegen) immer auf Ihre Bestätigung."
     },
     "nachUnten": "Zum Neuesten",
     "stopp": "Stoppen",
-    "einstellungen": "KI-Anbieter verwalten",
+    "einstellungen": "Einstellungen",
     "eskalationText": "Nicht die gewünschte Antwort erhalten? Übergeben Sie dieses Gespräch an eine Person im Team.",
     "fuehrung": {
       "zeigt": "Agent zeigt Ihnen: {ziel}",
