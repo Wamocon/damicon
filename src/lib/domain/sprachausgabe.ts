@@ -12,23 +12,28 @@ export interface Stimme {
   stimme: string;
 }
 
-// Eine Stimme je Sprache - ausgewaehlt nach Lizenz der Trainingsdaten
-// (MODEL_CARD in rhasspy/piper-voices, geprueft am 19.09.2026), nicht nur
-// nach Klang: die Anwendung ist kommerziell.
-//   de thorsten  - CC0
-//   ru denis     - CC0            (irina: Lizenz "Unknown" - bewusst nicht)
-//   kk issai     - CC-BY-4.0      (Namensnennung: IS2AI/Kazakh_TTS)
-//   en alba      - CC-BY-4.0      (lessac: Blizzard-Forschungslizenz - bewusst nicht)
-//   tr           - KEINE: die einzige offizielle Piper-Stimme (dfki) steht unter
-//                  CC BY-NC-SA (nicht kommerziell); fahrettin/fettah haben keine
-//                  ausgewiesene Lizenz. Tuerkische Antworten bekommen deshalb
-//                  (noch) keine Sprachausgabe - lieber keine Stimme als eine,
-//                  die das Haus nicht verwenden darf.
+// Eine Stimme je Sprache - ausgewaehlt nach Lizenz, und zwar nicht nur der
+// Trainingsdaten, sondern auch der ABSTAMMUNG (MODEL_CARD in
+// rhasspy/piper-voices, geprueft am 19.09.2026): die Anwendung ist kommerziell,
+// und sehr viele Piper-Stimmen sind vom US-englischen lessac-Modell aus
+// feinjustiert, dessen Daten unter der Blizzard-2013-Lizenz stehen (nur
+// Forschung, ausdruecklich keine kommerziellen Sprachsyntheseprodukte).
+// Deshalb nur Stimmen, die von Grund auf trainiert sind:
+//   de mls    - CC BY 4.0, von Grund auf (Multilingual LibriSpeech; Namensnennung im Impressum)
+//   en cori   - gemeinfrei, von Grund auf (Bryce Beattie, LibriVox-Aufnahmen)
+//   kk issai  - CC BY 4.0, von Grund auf (KazakhTTS, ISSAI; Namensnennung im Impressum)
+//   ru        - KEINE: alle vier Piper-Stimmen scheiden aus (denis, dmitri,
+//               irina: von lessac abgeleitet, irina zudem Lizenz "Unknown";
+//               ruslan: RUSLAN-Korpus, CC BY-NC-SA)
+//   tr        - KEINE: einzige offizielle Stimme (dfki) ist CC BY-NC-SA
+// Ohne Stimme antwortet api/ki-sprachausgabe mit 422 "keine-stimme" - fuer
+// jede Sprache gleich, kein Sonderfall je Sprache.
+// Einzelheiten und Backlog (eigene russische Stimme): docs/infra/caesar-sprachdienste.md
 export const STIMMEN: Record<SprachausgabeSprache, Stimme | null> = {
-  de: { modell: "speaches-ai/piper-de_DE-thorsten-medium", stimme: "thorsten" },
-  ru: { modell: "speaches-ai/piper-ru_RU-denis-medium", stimme: "denis" },
+  de: { modell: "speaches-ai/piper-de_DE-mls-medium", stimme: "mls" },
+  en: { modell: "speaches-ai/piper-en_GB-cori-high", stimme: "cori" },
   kk: { modell: "speaches-ai/piper-kk_KZ-issai-high", stimme: "issai" },
-  en: { modell: "speaches-ai/piper-en_GB-alba-medium", stimme: "alba" },
+  ru: null,
   tr: null,
 };
 
