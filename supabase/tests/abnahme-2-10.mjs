@@ -151,7 +151,7 @@ await mussGelingen(
 // --- Erfasser wird gesetzt, nicht vom Client bestimmt ----------------------
 await alsAdmin(db);
 const { rows: aufg } = await db.query(
-  `select a.id
+  `select a.id, a.brigade_id
      from public.pflueckaufgaben a
      join public.reihenbloecke r on r.id = a.reihenblock_id
     where a.status <> 'abgeschlossen'
@@ -163,6 +163,18 @@ if (!aufg[0]) {
   process.exit(1);
 }
 const { rows: pf } = await db.query(`select id from public.pfluecker limit 1;`);
+
+// Die Feldkraft gehoert derselben Brigade an wie die Aufgabe - genau wie eine
+// echte Feldkraft im Betrieb einer Brigade zugeordnet ist. Ohne diese Zuordnung
+// (brigade_id bliebe null) blockt bereits steigen_update_feld (20261018000000)
+// jeden Kontrollversuch per RLS, bevor der hier eigentlich geprüfte Trigger
+// (Kennzeichenpflicht) ueberhaupt greifen kann - das Recht bliebe ungetestet.
+if (aufg[0].brigade_id) {
+  await db.query(`update public.profiles set brigade_id = $1 where id = $2;`, [
+    aufg[0].brigade_id,
+    profilFeldkraft,
+  ]);
+}
 
 // Die Feldkraft legt die Steige an und schickt dabei absichtlich ein fremdes
 // Profil mit. Der Trigger muss es ueberschreiben, sonst liesse sich die

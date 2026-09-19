@@ -436,24 +436,30 @@ if (leitung && brigade) {
     .maybeSingle();
 
   if (aufgabe) {
-    const { error: abschlussFehler } = await brigade
+    // Seit 20261018000000 kann schon die Policy greifen: gehoert die Aufgabe
+    // einer fremden Brigade, trifft das UPDATE keine Zeile (still), sonst
+    // wirft pflueckaufgabe_freigabe_pruefen(). Beides ist ein Pass - gleiche
+    // Lesart wie bei "Abnahme: Brigade aendert die Menge ... nicht".
+    const { data: abschlussVersuch, error: abschlussFehler } = await brigade
       .from("pflueckaufgaben")
       .update({ status: "abgeschlossen" })
-      .eq("id", aufgabe.id);
+      .eq("id", aufgabe.id)
+      .select("id");
     check(
       "Haertung: Brigade schliesst die eigene Aufgabe nicht ab",
-      !!abschlussFehler,
-      abschlussFehler?.code ?? "kein Fehler",
+      !!abschlussFehler || (abschlussVersuch?.length ?? 0) === 0,
+      abschlussFehler?.code ?? `geaenderte Zeilen: ${abschlussVersuch?.length}`,
     );
 
-    const { error: faktorFehler } = await brigade
+    const { data: faktorVersuch, error: faktorFehler } = await brigade
       .from("pflueckaufgaben")
       .update({ qualitaetsfaktor: 1.5 })
-      .eq("id", aufgabe.id);
+      .eq("id", aufgabe.id)
+      .select("id");
     check(
       "Haertung: Brigade setzt keinen Qualitaetsfaktor",
-      !!faktorFehler,
-      faktorFehler?.code ?? "kein Fehler",
+      !!faktorFehler || (faktorVersuch?.length ?? 0) === 0,
+      faktorFehler?.code ?? `geaenderte Zeilen: ${faktorVersuch?.length}`,
     );
   }
 
@@ -648,11 +654,13 @@ if (leitung && brigade) {
     })
     .eq("id", autoCharge.id);
 
+  // Wie die Anwendung schreibt (kuehlmessungKern): nur geraet_zeitpunkt,
+  // gemessen_am rechnet der Trigger - seit 20261016000000 verbindlich.
   const { data: messung, error: messungFehler } = await brigade
     .from("kuehlketten_messungen")
     .insert({
       charge_id: autoCharge.id,
-      gemessen_am: new Date().toISOString(),
+      geraet_zeitpunkt: new Date().toISOString(),
       temperatur_c: 7.5,
     })
     .select("minuten_seit_pfluecken, ergebnis")
@@ -663,6 +671,21 @@ if (leitung && brigade) {
       messung?.ergebnis === "verstoss" &&
       messung.minuten_seit_pfluecken >= 74,
     messungFehler?.message ?? `${messung?.minuten_seit_pfluecken} min, ${messung?.ergebnis}`,
+  );
+
+  // KRITISCH: ueber die REST-API liess sich der Messzeitpunkt frei setzen und
+  // damit ein Verstoss in ein "ok" verwandeln - ohne jedes Formular.
+  const { error: gefaelschteMessungFehler } = await brigade
+    .from("kuehlketten_messungen")
+    .insert({
+      charge_id: autoCharge.id,
+      gemessen_am: new Date(Date.now() - 70 * 60_000).toISOString(),
+      temperatur_c: 3,
+    });
+  check(
+    "Kuehlkette: Brigade setzt den Messzeitpunkt nicht selbst (60-Minuten-Regel)",
+    gefaelschteMessungFehler?.code === "23514",
+    gefaelschteMessungFehler?.code ?? "kein Fehler",
   );
 
   // Anforderung 4.1: eine Kuehlmessung ist ein Zeitpunkt-Fakt, eine Korrektur
@@ -690,7 +713,7 @@ if (leitung && brigade) {
   // Abschluss schreibt den Ist-Erntetermin fort - Grundlage des Rotationsplans.
   await admin
     .from("pflueckaufgaben")
-    .update({ status: "beleg_pruefung", ist_menge_kg: 18.5 })
+    .update({ status: "beleg_pruefung", ist_menge_kg: 18.5, ausschuss_kg: 1.5 })
     .eq("id", neueAufgabe.id);
   await leitung
     .from("pflueckaufgaben")
@@ -711,13 +734,20 @@ if (leitung && brigade) {
 
   const { data: chargeMenge } = await admin
     .from("chargen")
-    .select("menge_kg")
+    .select("menge_kg, ausschuss_kg")
     .eq("id", autoCharge.id)
     .single();
   check(
     "Kette: gemeldete Menge landet in der Charge",
     Number(chargeMenge?.menge_kg) === 18.5,
     `menge_kg: ${chargeMenge?.menge_kg}`,
+  );
+  // Regression 20260911000000: der Ausschuss ging auf dem Weg in die Charge
+  // verloren, die Verlustquote rechnete null Verlust.
+  check(
+    "Kette: gemeldeter Ausschuss landet in der Charge",
+    Number(chargeMenge?.ausschuss_kg) === 1.5,
+    `ausschuss_kg: ${chargeMenge?.ausschuss_kg}`,
   );
 
   const { data: nachweis, error: nachweisFehler } = await leitung.rpc(
@@ -1784,6 +1814,57 @@ if (leitung && brigade) {
     lohnRuecknahmeFehler?.code === "23514",
     lohnRuecknahmeFehler?.code ?? "kein Fehler",
   );
+
+  // KRITISCH: Freigabe und Ruecknahme lagen in einer Hand - dieselbe
+  // Buchhaltung konnte freigeben, zurueckziehen und neu rechnen lassen
+  // (Vier-Augen-Prinzip, Migration 20261017000000).
+  const { data: lohnQojschybajZeile } = await admin
+    .from("lohn_abrechnungen")
+    .select("id, status")
+    .neq("id", lohnSarsenbaj.id)
+    .eq("status", "entwurf")
+    .limit(1)
+    .maybeSingle();
+
+  if (lohnQojschybajZeile?.id) {
+    const { error: freigabeFehler } = await buchhaltung
+      .from("lohn_abrechnungen")
+      .update({ status: "freigegeben" })
+      .eq("id", lohnQojschybajZeile.id);
+    check(
+      "Vier-Augen: Buchhaltung gibt frei",
+      !freigabeFehler,
+      freigabeFehler?.message ?? "",
+    );
+
+    const { error: selbstRuecknahmeFehler } = await buchhaltung
+      .from("lohn_abrechnungen")
+      .update({ status: "entwurf" })
+      .eq("id", lohnQojschybajZeile.id);
+    check(
+      "Vier-Augen: wer freigegeben hat, nimmt nicht selbst zurueck",
+      selbstRuecknahmeFehler?.code === "42501",
+      selbstRuecknahmeFehler?.code ?? "kein Fehler",
+    );
+
+    const { client: adminClient } = await anmelden("admin@damicon.demo");
+    const { error: zweitRuecknahmeFehler } = await adminClient
+      .from("lohn_abrechnungen")
+      .update({ status: "entwurf" })
+      .eq("id", lohnQojschybajZeile.id);
+    const { data: nachZweitRuecknahme } = await admin
+      .from("lohn_abrechnungen")
+      .select("status, freigegeben_von_profil_id")
+      .eq("id", lohnQojschybajZeile.id)
+      .single();
+    check(
+      "Vier-Augen: eine zweite Person nimmt die Freigabe zurueck",
+      !zweitRuecknahmeFehler &&
+        nachZweitRuecknahme?.status === "entwurf" &&
+        nachZweitRuecknahme?.freigegeben_von_profil_id === null,
+      zweitRuecknahmeFehler?.message ?? `Status: ${nachZweitRuecknahme?.status}`,
+    );
+  }
 
   // Cleanup: die in diesem Testlauf berechneten Lohndaten wieder entfernen,
   // damit ein erneuter Testlauf von denselben Ausgangsdaten startet. lohn_

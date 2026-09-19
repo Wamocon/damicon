@@ -1,0 +1,390 @@
+{
+  "agent": "W3",
+  "quellenfamilien_genutzt": {
+    "big4": 1,
+    "kanzlei": 4,
+    "behoerde_faq": 5,
+    "atameken": 2,
+    "fachpresse": 22,
+    "kk_en": 2
+  },
+  "suchrunden": 27,
+  "pruefungen": [
+    {
+      "aussage_id": "blick:Staatliche Kontrolle / B-C4-001, B-C4-002, B-C4-003, B-C4-006",
+      "aussage": "Sanepid: Prüfliste V2200030964 Anh. 17 (Fassung April 2026) gilt für Kühllager/Sortierung/Verpackung; Bußgeld KoAP Art. 425 Teil 1: 160/210/1 600 MRP.",
+      "urteil": "eingeschraenkt",
+      "begruendung": "Zuständigkeit: Das Gesetz über Lebensmittelsicherheit 301-III (Fassung 06.04.2024, in Kraft 08.06.2024) teilt Lebensmittel nur in sanepid-überwachte und veterinär-überwachte Produkte; sanepid-überwacht ist alles außer veterinärpflichtigen Produkten. Eine Zuständigkeit des Landwirtschaftsministeriums für die Lebensmittelsicherheit pflanzlicher Primärprodukte war im Gesetzestext nicht zu finden (eine Suchzusammenfassung behauptete sie, ließ sich aber nicht belegen). Das Landwirtschaftsministerium (Komitee für Staatsinspektion im Agrarsektor) kontrolliert Pflanzenschutz und Pflanzenquarantäne, nicht die Lebensmittelhygiene. Ein Beerenbetrieb ist also Objekt der Sanepid-Kontrolle, aber nicht wegen des Feldanbaus: Die Liste epidemisch bedeutsamer Objekte (ҚР ДСМ-220/2020) führt keinen Feldanbau, wohl aber 'объекты оптового хранения и (или) реализации пищевой продукции' und 'объекты по переработке сельскохозяйственной продукции растительного происхождения' als Objekte hoher epidemischer Bedeutung, dazu 'вахтовые поселки'. Die Sanitärregeln ҚР ДСМ-73 ordnen Obst- und Gemüselager ausdrücklich dem Großhandel zu. Für das Kühllager ist deshalb Anh. 18 (Groß- und Einzelhandel) mindestens so einschlägig wie Anh. 17; Anh. 17 passt eher zu Sortierung und Verpackung als Verarbeitung. Die Bußgeldsätze in Art. 425 Teil 1 stimmen (20 natürliche Personen / 160 / 210 / 1 600). Einschränkung: Die Bußgeldquelle kodeksy-kz gehört zur selben Familie wie in Runde 1; eine unabhängige Behördenquelle für die Sätze fehlt.",
+      "belege": [
+        {
+          "url": "https://base.spinform.ru/show_doc.fwx?rgn=19468",
+          "familie": "kk_en",
+          "titel": "Закон РК № 301-III «О безопасности пищевой продукции» (Spiegel spinform, Fassung 06.04.2024)",
+          "zitat": "пищевая продукция, подлежащая санитарно-эпидемиологическому надзору – пищевая продукция, за исключением пищевой продукции, подлежащей ветеринарно-санитарному контролю",
+          "datum_quelle": "2024-04-06",
+          "adilet_id": "Z070000301_"
+        },
+        {
+          "url": "https://prg.kz/Document/?doc_id=35806972",
+          "familie": "fachpresse",
+          "titel": "Приказ МЗ РК от 30.11.2020 № ҚР ДСМ-220/2020 (Перечень продукции и эпидемически значимых объектов)",
+          "zitat": "объекты оптового хранения и (или) реализации пищевой продукции […] 22) плодоперерабатывающие объекты, объекты по переработке сельскохозяйственной продукции растительного происхождения, в том числе соевой продукции […] 32) вахтовые поселки",
+          "datum_quelle": "2020-11-30",
+          "adilet_id": "V2000021710"
+        },
+        {
+          "url": "https://prg.kz/document/?doc_id=36465353",
+          "familie": "fachpresse",
+          "titel": "Приказ МЗ РК от 04.08.2021 № ҚР ДСМ-73 (Санитарные правила, объекты оптовой и розничной торговли), Fassung 05.05.2025",
+          "zitat": "Размещение стационарных торговых объектов оптовой, оптово-розничной торговли пищевой продукцией (оптовые продовольственные рынки, овощехранилища и фруктохранилища, склады пищевой продукции) осуществляется в соответствии с требованиями Приказа № ҚР ДСМ-2.",
+          "datum_quelle": "2025-05-05",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://kodeksy-kz.com/ka/ob_administrativnyh_pravonarusheniyah/425.htm",
+          "familie": "fachpresse",
+          "titel": "КоАП РК Art. 425 Teil 1",
+          "zitat": "Нарушение требований законодательства Республики Казахстан в области санитарно-эпидемиологического благополучия населения, а также гигиенических нормативов, технических регламентов, не повлекшее причинение вреда здоровью человека (Geldbuße 20 / 160 / 210 / 1 600 MRP laut Abruf)",
+          "datum_quelle": "2026",
+          "adilet_id": "K1400000235"
+        }
+      ],
+      "korrektur": "Ein Beerenbetrieb unterliegt der Sanepid-Kontrolle (Komitee für sanitär-epidemiologische Kontrolle des Gesundheitsministeriums), nicht wegen des Feldanbaus, sondern wegen des Kühllagers (Großhandelslager für Lebensmittel, hohe epidemische Bedeutung nach ҚР ДСМ-220/2020), wegen Sortierung und Verpackung (Verarbeitung pflanzlicher Agrarprodukte) und wegen einer Unterkunft für Saisonkräfte. Einschlägige Prüflisten aus V2200030964: Anh. 18 (Groß- und Einzelhandel, Kühllager), Anh. 17 (Lebensmittelproduktion, Sortierung und Verpackung), gegebenenfalls Anh. 24 (vorübergehende Unterkünfte). Das Landwirtschaftsministerium prüft nur Pflanzenschutz und Pflanzenquarantäne. Bußgeld KoAP Art. 425 Teil 1: 160/210/1 600 MRP für kleine, mittlere und große Unternehmen."
+    },
+    {
+      "aussage_id": "blick:Staatliche Kontrolle / B-C4-012, B-C4-013",
+      "aussage": "Arbeitsinspektion: V1500012656, Bußgeld Art. 93: 20/30/120 MRP, Risiko hoch ab 71 Punkten; Änderung vom 29.05.2026.",
+      "urteil": "eingeschraenkt",
+      "begruendung": "Die Änderung vom 29.05.2026 ist bestätigt (mybuh.kz, 05.06.2026: Anwendung ab August 2026; neu u. a. fehlender Vertrag über eine Vorruhestandsrente als erheblicher Verstoß, schwere Arbeitsunfälle als subjektives Kriterium). Die Nummern der Änderungserlasse (Belegregister: МТСЗН № 216 / МНЭ № 59) ließen sich nicht unabhängig bestätigen; die Abruf-Zusammenfassung nannte abweichend '№ 25', das ist nicht belastbar. Die Sätze 20/30/120 MRP gelten nach Art. 93 nur für Arbeitsschutz-Verstöße: Teil 1 betrifft allein das Fehlen eines Arbeitsschutzdienstes oder -beauftragten, Teile 2 bis 4 Pflicht-Vorsorgeuntersuchungen, Schutzausrüstung und Arbeitsschutzschulung (gleiche Sätze). Allgemeine arbeitsrechtliche Verstöße fallen unter andere Artikel mit höheren Sätzen: Art. 86 (Beschäftigung ohne Arbeitsvertrag: 60/80/150 MRP für kleine/mittlere/große Unternehmen), Art. 87 (Lohn nicht voll oder verspätet gezahlt: 60/100/150 MRP). Die Schwelle von 71 Punkten wurde in dieser Runde nicht erneut geprüft.",
+      "belege": [
+        {
+          "url": "https://mybuh.kz/news/proverochnyy-list-po-trudu-menyaetsya-s-avgusta-2026-goda",
+          "familie": "fachpresse",
+          "titel": "Проверочный лист по труду меняется с августа 2026 года",
+          "zitat": "Изменения приняты приказом от 29 мая 2026 года и вводятся в действие с августа 2026 года. […] Отсутствие договора предпенсионного аннуитета будет считаться значительным нарушением",
+          "datum_quelle": "2026-06-05",
+          "adilet_id": "V1500012656"
+        },
+        {
+          "url": "https://kodeksy-kz.com/ka/ob_administrativnyh_pravonarusheniyah/93.htm",
+          "familie": "fachpresse",
+          "titel": "КоАП РК Art. 93",
+          "zitat": "Отсутствие службы (специалиста) безопасности и охраны труда в производственных организациях в соответствии с требованием трудового законодательства Республики Казахстан – влечет штраф на должностных лиц, субъектов малого предпринимательства или некоммерческие организации в размере двадцати, на субъектов среднего предпринимательства – в размере тридцати, на субъектов крупного предпринимательства – в размере ста двадцати месячных расчетных показателей.",
+          "datum_quelle": "2025-01-10",
+          "adilet_id": "K1400000235"
+        },
+        {
+          "url": "https://kodeksy-kz.com/ka/ob_administrativnyh_pravonarusheniyah/86.htm",
+          "familie": "fachpresse",
+          "titel": "КоАП РК Art. 86",
+          "zitat": "Допуск работодателем к работе лица без заключения трудового договора – влечет штраф на должностных лиц в размере тридцати […] (60 klein / 80 mittel / 150 groß MRP laut Abruf)",
+          "datum_quelle": "2026",
+          "adilet_id": "K1400000235"
+        },
+        {
+          "url": "https://kodeksy-kz.com/ka/ob_administrativnyh_pravonarusheniyah/87.htm",
+          "familie": "fachpresse",
+          "titel": "КоАП РК Art. 87",
+          "zitat": "Невыплата заработной платы работодателем в полном объеме и в сроки, которые установлены трудовым законодательством Республики Казахстан (30 Amtsträger / 60 klein / 100 mittel / 150 groß MRP laut Abruf)",
+          "datum_quelle": "2026",
+          "adilet_id": "K1400000235"
+        }
+      ],
+      "korrektur": "Arbeitsinspektion: V1500012656 gilt; die Prüfliste ist durch Erlass vom 29.05.2026 geändert (Anwendung ab August 2026). Bußgeld KoAP Art. 93 (Arbeitsschutz: fehlender Arbeitsschutzbeauftragter, Vorsorgeuntersuchungen, Schutzausrüstung, Schulung): 20/30/120 MRP für kleine/mittlere/große Unternehmen. Beschäftigung ohne Arbeitsvertrag (Art. 86): 60/80/150 MRP; Lohnrückstände (Art. 87): 60/100/150 MRP. Für Erntehelfer ohne Vertrag ist Art. 86 das größere Risiko."
+    },
+    {
+      "aussage_id": "blick:Staatliche Kontrolle / B-C4-007, B-C4-008",
+      "aussage": "Pflanzenschutz: V1500012744, Meldungen FU-3/FU-4; Pestizideinsatz = hohes Risiko.",
+      "urteil": "eingeschraenkt",
+      "begruendung": "Im Kern bestätigt: V1500012744 gilt, letzte Änderung 13.06.2023 (MSH № 226 / MNE № 109); Anwendung, Verkauf, Lagerung und Entsorgung von Pestiziden sind objektiv hohes Risiko; es gibt eigene Prüflisten für landwirtschaftliche Objekte (Anh. 2) und für Pestizidlager (Anh. 6). Ergänzung: Die Meldepflicht FU-3/FU-4 selbst beruht nicht auf der Prüfliste, sondern auf dem Erlass über die Formen des phytosanitären Rechnungswesens V1500011913; die Prüfliste kontrolliert nur deren Einreichung. Nach einer Suchzusammenfassung ist der Bericht über chemische Behandlungen von März bis September monatlich bis zum 15. des Folgemonats einzureichen; der Wortlaut ließ sich nicht abrufen (adilet und zakon.uchet nicht erreichbar). Eine unabhängige Quelle aus einer anderen Familie für die Prüfliste wurde nicht gefunden; Bestätigung nur über den mybuh-Spiegel.",
+      "belege": [
+        {
+          "url": "https://zakon.mybuh.kz/rus/docs/V1500012744/",
+          "familie": "fachpresse",
+          "titel": "V1500012744 (Spiegel mybuh)",
+          "zitat": "совместным приказом Министра сельского хозяйства РК от 13.06.2023 № 226 и Министра национальной экономики РК от 13.06.2023 № 109 […] применению, реализации, хранению и обезвреживанию пестицидов",
+          "datum_quelle": "2023-06-13",
+          "adilet_id": "V1500012744"
+        },
+        {
+          "url": "https://zakon.uchet.kz/rus/docs/V1500011913",
+          "familie": "fachpresse",
+          "titel": "Об утверждении фитосанитарных нормативов, форм фитосанитарного учета, а также Правил их представления",
+          "zitat": "Nur Suchtreffer; Wortlaut nicht abrufbar (HTTP 500). Suchzusammenfassung: Bericht über chemische Behandlungen monatlich März bis September bis zum 15. des Folgemonats.",
+          "datum_quelle": "unbekannt",
+          "adilet_id": "V1500011913"
+        }
+      ],
+      "korrektur": "Pflanzenschutz: V1500012744 gilt (Stand 13.06.2023); wer Pestizide anwendet oder lagert, ist objektiv hohes Risiko und wird nach den Prüflisten Anh. 2 (landwirtschaftliche Objekte) und Anh. 6 (Pestizidlager) geprüft. Die Meldepflicht FU-3 (Lagerung, jährlich) und FU-4 (chemische Behandlungen) folgt aus V1500011913; Fristen im Wortlaut noch zu prüfen."
+    },
+    {
+      "aussage_id": "blick:Staatliche Kontrolle / B-C4-009, B-C4-010, B-C4-015",
+      "aussage": "Pflanzenquarantäne: geltende Prüfliste unbekannt (gemeinsamer Erlass 15-05/1138 vom 28.12.2015?); Bußgeld Art. 400: 20–100 MRP.",
+      "urteil": "widerlegt",
+      "begruendung": "Die Kennung ist gefunden: Der gemeinsame Erlass MSH № 15-05/1138 vom 28.12.2015 / MNE № 819 vom 29.12.2015 ist am 31.12.2015 unter № 12740 registriert, adilet-Kennung V1500012740. Der Titel lautet heute 'Об утверждении критериев оценки степени риска и проверочных листов в области карантина растений'; der Erlass enthält also auch die Risikokriterien. Änderungen: 15.02.2023 (MSH № 63 / MNE № 22) und 09.06.2023/12.06.2023 (MSH № 225 / MNE № 104, Anh. 1 neu gefasst). Weitere Änderungen 2024/2025 nannte nur eine unzuverlässige Abruf-Zusammenfassung; sie sind nicht belegt. Objektiv hohes Risiko: wer 'подкарантинную продукцию высокого фитосанитарного риска' erzeugt, beschafft, lagert oder verarbeitet; dafür gibt es die Prüfliste Anh. 2. Frisches Obst und Gemüse gehört nach EAWU-Beschluss № 157 zur Quarantäneware hohen phytosanitären Risikos (nur Suchzusammenfassung). Ein Beerenbetrieb mit Lager fällt damit voraussichtlich in die hohe Stufe. Art. 400 Teil 1 hat die Stufen 20 (natürliche Personen) / 30 (Amtsträger, Kleinunternehmen) / 40 (mittlere) / 100 (große) MRP und betrifft nicht nur Einfuhren, sondern auch Lagerung und Umgang mit Quarantäneware sowie Saatgut vor der Laboruntersuchung.",
+      "belege": [
+        {
+          "url": "https://prg.kz/Document/?doc_id=39027123",
+          "familie": "fachpresse",
+          "titel": "Совместный приказ МСХ № 63 и МНЭ № 22 от 15.02.2023",
+          "zitat": "совместный приказ Министра сельского хозяйства Республики Казахстан от 28 декабря 2015 года № 15-05/1138 и Министра национальной экономики Республики Казахстан от 29 декабря 2015 года № 819 «Об утверждении проверочных листов в области карантина растений» […] зарегистрирован в Реестре государственной регистрации нормативных правовых актов № 12740",
+          "datum_quelle": "2023-02-15",
+          "adilet_id": "V1500012740"
+        },
+        {
+          "url": "https://zakon.mybuh.kz/rus/docs/V1500012740/",
+          "familie": "fachpresse",
+          "titel": "Об утверждении критериев оценки степени риска и проверочных листов в области карантина растений",
+          "zitat": "Зарегистрирован в Министерстве юстиции Республики Казахстан 31 декабря 2015 года № 12740. […] С изменениями, внесенными совместным приказом Министра сельского хозяйства РК от 09.06.2023 № 225 и Министра национальной экономики РК от 12.06.2023 № 104 […] осуществляющие производство, заготовку, хранение, переработку подкарантинной продукции высокого фитосанитарного риска",
+          "datum_quelle": "2023-06-12",
+          "adilet_id": "V1500012740"
+        },
+        {
+          "url": "https://base.garant.ru/71623910/",
+          "familie": "kk_en",
+          "titel": "Решение Совета ЕЭК от 30.11.2016 № 157 (Единые карантинные фитосанитарные требования)",
+          "zitat": "Suchzusammenfassung: zur ersten Gruppe der Quarantäneware hohen phytosanitären Risikos gehören u. a. frisches Gemüse und Obst; Wortlaut nicht abgerufen.",
+          "datum_quelle": "2016-11-30",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://kodeksy-kz.com/ka/ob_administrativnyh_pravonarusheniyah/400.htm",
+          "familie": "fachpresse",
+          "titel": "КоАП РК Art. 400",
+          "zitat": "Нарушение законодательства Республики Казахстан в области карантина растений (Teil 1: 20 natürliche Personen / 30 Amtsträger, klein / 40 mittel / 100 groß MRP laut Abruf)",
+          "datum_quelle": "2026",
+          "adilet_id": "K1400000235"
+        }
+      ],
+      "korrektur": "Pflanzenquarantäne: Geltend ist V1500012740 (gemeinsamer Erlass MSH № 15-05/1138 vom 28.12.2015 / MNE № 819 vom 29.12.2015, Kriterien und Prüflisten, zuletzt geändert 09.06.2023/12.06.2023). Wer Quarantäneware hohen phytosanitären Risikos erzeugt oder lagert (dazu gehören frische Früchte), ist objektiv hohes Risiko; Prüfliste Anh. 2. Bußgeld KoAP Art. 400 Teil 1: 20/30/40/100 MRP (natürliche Personen/klein/mittel/groß), auch für Verstöße bei Lagerung und Umgang."
+    },
+    {
+      "aussage_id": "blick:Staatliche Kontrolle / B-C4-017, B-C4-018",
+      "aussage": "Land: V1800018000, bewässert >50 ha = hohes Risiko.",
+      "urteil": "eingeschraenkt",
+      "begruendung": "Der Spiegel zeigt keine Änderungen nach dem 17.07.2023; der Schwellenwert 'орошаемые пашни площадью более 50 (пятидесяти) гектаров' steht im Text. Einschränkung: Das Kriterium gilt für bewässertes Ackerland (пашня). Für landwirtschaftliche Nutzflächen außer Acker gilt die Schwelle 300 ha. Ob eine Beerenplantage im Kataster als Acker oder als andere Nutzfläche (Dauerkultur) geführt wird, entscheidet also über die Risikostufe; das ist am Rechtstitel des Grundstücks zu prüfen. Zur Praxis: Das Komitee für Landressourcen des Landwirtschaftsministeriums hat 2026 über 1 Mio. ha ungenutzter Agrarflächen an den Staat zurückgeholt (Forbes, 29.07.2026); die Kontrolle ist aktiv.",
+      "belege": [
+        {
+          "url": "https://zakon.mybuh.kz/rus/docs/V1800018000/",
+          "familie": "fachpresse",
+          "titel": "V1800018000 (Spiegel mybuh)",
+          "zitat": "По объективным критериям к субъектам (объектам) контроля высокой степени риска относятся сельскохозяйственные товаропроизводители, имеющие следующие сельскохозяйственные угодья: […] орошаемые пашни площадью более 50 (пятидесяти) гектаров",
+          "datum_quelle": "2023-07-17",
+          "adilet_id": "V1800018000"
+        },
+        {
+          "url": "https://forbes.kz/articles/skolko-gektarov-zemli-dlya-selskogo-hozyaystva-vernuli-gosudarstvu-v2026-godu-2a9d28",
+          "familie": "fachpresse",
+          "titel": "Сколько гектаров земли для сельского хозяйства вернули государству в 2026 году",
+          "zitat": "Возврат земель осуществляется в рамках системной работы по выявлению неиспользуемых сельскохозяйственных угодий и пресечению нарушений требований земельного законодательства.",
+          "datum_quelle": "2026-07-29",
+          "adilet_id": ""
+        }
+      ],
+      "korrektur": "Land: V1800018000 gilt (Stand 17.07.2023). Hohes Risiko bei bewässertem Ackerland über 50 ha; wird die Beerenfläche im Kataster nicht als Acker geführt, gilt die Schwelle von 300 ha für sonstige Nutzflächen. Kataster-Kategorie am Rechtstitel prüfen."
+    },
+    {
+      "aussage_id": "blick:Staatliche Kontrolle / B-C4-016",
+      "aussage": "Umwelt: V1500012779 gilt, V1500011792 aufgehoben.",
+      "urteil": "bestaetigt",
+      "begruendung": "Eine Veröffentlichung des staatlichen Ökologie-Fonds bestätigt die Änderung von V1500012779 durch gemeinsamen Erlass MEPR № 44 vom 13.03.2026 / MNE № 18 vom 19.03.2026, registriert am 30.04.2026 unter № 38602; Inkrafttreten laut Suchergebnis 60 Kalendertage nach der Veröffentlichung. Die Aufhebung von V1500011792 wurde nicht neu belegt, es widerspricht ihr aber keine Quelle. Die Prüfpunkte selbst ließen sich nicht lesen (PDF).",
+      "belege": [
+        {
+          "url": "https://ecogosfond.kz/2026/05/18/61613/",
+          "familie": "behoerde_faq",
+          "titel": "О внесении изменений и дополнений в совместный приказ исполняющего обязанности Министра национальной экономики от 30 декабря 2015 года № 835 и Министра энергетики Республики Казахстан от 15 декабря 2015 года № 721",
+          "zitat": "Kopfdaten laut Abruf: Приказ Министра экологии и природных ресурсов от 13.03.2026 № 44 и и.о. Министра национальной экономики от 19.03.2026 № 18; зарегистрирован в Министерстве юстиции 30.04.2026 № 38602",
+          "datum_quelle": "2026-05-18",
+          "adilet_id": "V1500012779"
+        }
+      ]
+    },
+    {
+      "aussage_id": "blick:Staatliche Kontrolle / B-C4-021, B-C4-022",
+      "aussage": "Kein allgemeines Prüfungsmoratorium 2026 für KMU (endete 01.01.2024).",
+      "urteil": "bestaetigt",
+      "begruendung": "Unicase (Kanzlei, 13.02.2024) bestätigt das Ende des Moratoriums 2024 und den Übergang zur automatisierten risikobasierten Auswahl. Präsident Tokajew sagte am 10.02.2026, nach dem Ende des Moratoriums sei alles beim Alten geblieben, und forderte, außerplanmäßige Prüfungen bei KMU zu beenden. Ein Rechtsakt, der daraus ein neues Moratorium macht, wurde bis 19.09.2026 nicht gefunden. 2026 gilt nur das steuerliche Moratorium für Zeiträume vor 2026. Hinweis: Die Agentur für strategische Planung und Reformen soll die Regulierungsreform bis Ende 2026 abschließen; Änderungen sind möglich.",
+      "belege": [
+        {
+          "url": "https://www.linkedin.com/pulse/what-amendments-awaited-kazakhstan-2024-unicaselawfirm-qis6f",
+          "familie": "kanzlei",
+          "titel": "Unicase: What Amendments Are Awaited For Kazakhstan in 2024?",
+          "zitat": "In 2024 business inspections moratorium in Kazakhstan was terminated. […] a new automated control system, which will reduce the number of on-site inspections twice",
+          "datum_quelle": "2024-02-13",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://www.zakon.kz/politika/6507370-tokaev-potreboval-prekratit-vneplanovye-proverki-malogo-i-srednego-biznesa.html",
+          "familie": "fachpresse",
+          "titel": "Токаев потребовал прекратить внеплановые проверки малого и среднего бизнеса",
+          "zitat": "однако с момента завершения моратория все вернулось на круги своя […] Пора прекращать эту сомнительную практику",
+          "datum_quelle": "2026-02-10",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://www.inform.kz/ru/prezident-zayavil-o-neobhodimosti-prekrasheniya-vneplanovih-proverok-msb-784e66",
+          "familie": "behoerde_faq",
+          "titel": "Kazinform: Президент заявил о необходимости прекращения внеплановых проверок МСБ",
+          "zitat": "Пора прекращать эту сомнительную практику (Auftrag an Regierung und Atameken: Vorschläge bis 1. April; Regulierungsreform bis Jahresende)",
+          "datum_quelle": "2026-02-10",
+          "adilet_id": ""
+        }
+      ]
+    },
+    {
+      "aussage_id": "blick:Staatliche Kontrolle / B-C4-020",
+      "aussage": "Kontrollformen nach Unternehmerkodex Art. 137 (präventive Kontrolle mit/ohne Besuch, Prüfung).",
+      "urteil": "eingeschraenkt",
+      "begruendung": "Die Formen stimmen, die Aufzählung ist aber unvollständig und das Wort 'Prüfung' missverständlich. Art. 137 kennt präventive Kontrolle (ohne Besuch, mit Besuch, Kontrollkauf), Prüfung und Untersuchung. Eine Prüfung ist nach Abs. 3 nur (1) die Prüfung auf Einhaltung der Anforderungen aus Genehmigungen und Anzeigen nach dem Gesetz über Genehmigungen und Anzeigen oder (2) eine außerplanmäßige Prüfung. Die regelmäßige risikobasierte Kontrolle eines Beerenbetriebs ist die präventive Kontrolle mit Besuch; sie findet nach Art. 141 Abs. 4 nur bei hohem oder mittlerem Risiko statt, bei hohem Risiko höchstens einmal im Jahr, bei mittlerem höchstens alle zwei Jahre. Stand laut Spiegel: letzte Änderung durch Gesetz 71-VIII vom 06.04.2024. Ältere Kanzlei-Leitfäden (Korgan) beschreiben noch das System mit geplanten Prüfungen und 30 Tagen Vorankündigung; sie sind veraltet.",
+      "belege": [
+        {
+          "url": "https://kodeksy-kz.com/ka/predprinimatelskij_kodeks/137.htm",
+          "familie": "fachpresse",
+          "titel": "Предпринимательский кодекс Art. 137 Abs. 3",
+          "zitat": "3. Проверки делятся на следующие виды: 1) проверки, проводимые на соответствие квалификационным или разрешительным требованиям по выданным разрешениям, требованиям по направленным уведомлениям в соответствии с Законом Республики Казахстан \"О разрешениях и уведомлениях\" (далее – проверка на соответствие требованиям); 2) внеплановые проверки.",
+          "datum_quelle": "2024-04-06",
+          "adilet_id": "K1500000375"
+        },
+        {
+          "url": "https://kodeksy-kz.com/ka/predprinimatelskij_kodeks/141.htm",
+          "familie": "fachpresse",
+          "titel": "Предпринимательский кодекс Art. 141 Abs. 4",
+          "zitat": "Для сфер деятельности субъектов (объектов) контроля и надзора, отнесенных к высокой или средней степени риска, проводятся проверка на соответствие требованиям, профилактический контроль с посещением субъекта (объекта) контроля и надзора […] но не чаще одного раза в год",
+          "datum_quelle": "2024-04-06",
+          "adilet_id": "K1500000375"
+        },
+        {
+          "url": "https://korgan-zan.kz/en/the-procedure-for-conducting-inspections-by-regulatory-authorities/",
+          "familie": "kanzlei",
+          "titel": "KORGAN: The procedure for conducting inspections by regulatory authorities",
+          "zitat": "The control and supervision body is obliged to notify in writing the audited subject of the start of the audit […] at least thirty calendar days before the start (veralteter Stand)",
+          "datum_quelle": "unbekannt (vor 2022)",
+          "adilet_id": ""
+        }
+      ],
+      "korrektur": "Kontrollformen nach Unternehmerkodex Art. 137: präventive Kontrolle (ohne Besuch, mit Besuch, Kontrollkauf), Prüfung (nur auf Einhaltung von Genehmigungs- und Anzeigeanforderungen oder außerplanmäßig) und Untersuchung (Art. 144-4). Routinekontrolle für Damicon ist die präventive Kontrolle mit Besuch; sie gibt es nur bei hohem oder mittlerem Risiko, höchstens einmal im Jahr (hoch) bzw. alle zwei Jahre (mittel), Art. 141 Abs. 4."
+    }
+  ],
+  "neue_fakten": [
+    {
+      "id": "N-W3-001",
+      "thema": "Pflanzenquarantäne",
+      "aussage": "Geltende Kriterien und Prüflisten zur Pflanzenquarantäne: V1500012740. Erzeugung, Lagerung und Verarbeitung von Quarantäneware hohen phytosanitären Risikos ist objektiv hohes Risiko.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "Gemeinsamer Erlass MSH № 15-05/1138 / MNE № 819, geändert 15.02.2023 und 09./12.06.2023",
+      "adilet_id": "V1500012740",
+      "zitat": "осуществляющие производство, заготовку, хранение, переработку подкарантинной продукции высокого фитосанитарного риска",
+      "url": "https://zakon.mybuh.kz/rus/docs/V1500012740/",
+      "familie": "fachpresse",
+      "damicon_folge": "Kontrollkarte Pflanzenquarantäne mit Prüfliste Anh. 2 anlegen; Befallsmeldungen und Lagerdesinfektion dokumentieren."
+    },
+    {
+      "id": "N-W3-002",
+      "thema": "Sanepid-Objekte",
+      "aussage": "Großhandelslager für Lebensmittel, Objekte zur Verarbeitung pflanzlicher Agrarprodukte und Wohnsiedlungen für Schichtarbeit gelten als Objekte hoher epidemischer Bedeutung; Feldanbau steht nicht auf der Liste.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "Приказ МЗ РК ҚР ДСМ-220/2020",
+      "adilet_id": "V2000021710",
+      "zitat": "объекты оптового хранения и (или) реализации пищевой продукции […] 32) вахтовые поселки",
+      "url": "https://prg.kz/Document/?doc_id=35806972",
+      "familie": "fachpresse",
+      "damicon_folge": "Kühllager, Packhalle und Unterkunft der Saisonkräfte als eigene Sanepid-Kontrollobjekte führen, das Feld getrennt davon."
+    },
+    {
+      "id": "N-W3-003",
+      "thema": "Wasser/Brunnen",
+      "aussage": "Neuer Wasserkodex 178-VIII seit 10.06.2025. Wer Grundwasser entnimmt, braucht eine Genehmigung zur besonderen Wassernutzung (Antrag bei der Beckenwasserinspektion, Frist 10 Arbeitstage); über 50 m³/Tag sind bestätigte Grundwasservorräte nötig. Laut inform.kz Bußgeld für Nutzung ohne Genehmigung 100/150/850 MRP (klein/mittel/groß); die Artikelangabe der Quelle ('Art. 141 KoAP') ist ungeprüft.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "Водный кодекс РК от 09.04.2025 № 178-VIII",
+      "adilet_id": "K2500000178",
+      "zitat": "при заборе подземных вод свыше 50 м³ в сутки нужно иметь утвержденные запасы участка подземных вод […] Заявление подается в бассейновую водную инспекцию вместе с документами",
+      "url": "https://inform.kz/ru/spetsialnoe-vodopolzovanie-vkazahstane-kogda-nuzhno-razreshenie-ikakego-poluchit-73068f53",
+      "familie": "behoerde_faq",
+      "damicon_folge": "Brunnen und Bewässerung: Genehmigung, Entnahmemengen und Zählerstände im Portal ablegen; Beckenwasserinspektion als Kontrollbehörde ergänzen."
+    },
+    {
+      "id": "N-W3-004",
+      "thema": "Agrochemie-Lizenz",
+      "aussage": "Lizenzpflichtig sind Herstellung (Formulierung) und Verkauf von Pestiziden sowie ihre Anwendung per Aerosol- und Begasungsverfahren; Lizenzgeber sind die Akimate. Bodenspritzung im eigenen Betrieb ist in der Aufzählung nicht genannt.",
+      "einstufung": "unklar",
+      "rechtsgrundlage": "Gesetz über Genehmigungen und Anzeigen; Regeln der staatlichen Leistung V2000021589",
+      "adilet_id": "V2000021589",
+      "zitat": "Выдача лицензии на осуществление деятельности на производство (формуляции) пестицидов, реализацию пестицидов, применение пестицидов аэрозольным и фумигационным способами",
+      "url": "https://egov.kz/cms/ru/services/licensing/pass312_msh",
+      "familie": "behoerde_faq",
+      "damicon_folge": "Begasung des Kühllagers nur durch einen lizenzierten Dienstleister; keinen Verkauf von Restmengen an Dritte."
+    },
+    {
+      "id": "N-W3-005",
+      "thema": "Pestizidlager",
+      "aussage": "Das Landwirtschaftsministerium überarbeitet 2026 den Erlass vom 29.09.2015 zu Entsorgung und Speziallagern für Pestizide und gleicht ihn an das technische Reglement № 249 vom 27.06.2023 an; öffentliche Diskussion bis 23.01.2026.",
+      "einstufung": "unklar",
+      "rechtsgrundlage": "Erlass MSH vom 29.09.2015 (Änderungsentwurf); TR vom 27.06.2023 № 249",
+      "adilet_id": "V2300032940",
+      "zitat": "технический регламент о безопасности средств защиты растений (пестицидов) от 27 июня 2023 года № 249",
+      "url": "https://www.inform.kz/ru/kazahstan-obnovlyaet-pravila-hraneniya-i-utilizatsii-pestitsidov-47c91d",
+      "familie": "fachpresse",
+      "damicon_folge": "Lageranforderungen nach Inkrafttreten der Änderung neu prüfen; bis dahin Prüfliste Anh. 6 zu V1500012744 anwenden."
+    },
+    {
+      "id": "N-W3-006",
+      "thema": "Saatgut",
+      "aussage": "Kriterien und Prüflisten Saatgutwesen V1800017871: hohe Stufe für Erzeuger von Original- und Elitesaatgut, Saatgutbetriebe und Labore; Prüflisten für Saatgutbetriebe (Anh. 4) und Händler (Anh. 5). Eine eigene Prüfliste für Betriebe, die Saatgut nur verwenden, wurde nicht gefunden.",
+      "einstufung": "unklar",
+      "rechtsgrundlage": "Gemeinsamer Erlass MSH № 485 / MNE № 93 vom 30.11.2018",
+      "adilet_id": "V1800017871",
+      "zitat": "производители оригинальных семян, элитно-семеноводческие хозяйства, семеноводческие хозяйства и лаборатории",
+      "url": "https://zakon.mybuh.kz/rus/docs/V1800017871/",
+      "familie": "fachpresse",
+      "damicon_folge": "Pflanzgut (Setzlinge) mit Sorten- und Qualitätsnachweis ablegen; eigene Vermehrung zum Verkauf würde Damicon zum Saatgutbetrieb machen."
+    },
+    {
+      "id": "N-W3-007",
+      "thema": "Arbeitsrecht-Bußgelder",
+      "aussage": "Beschäftigung ohne Arbeitsvertrag (KoAP Art. 86): 60/80/150 MRP (klein/mittel/groß), bei Minderjährigen höher; Arbeitsschutzverstöße nach Art. 93 Teile 2 bis 4 (Vorsorgeuntersuchungen, Schutzausrüstung, Schulung): 20/30/120 MRP.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "КоАП РК Art. 86, 93",
+      "adilet_id": "K1400000235",
+      "zitat": "Допуск работодателем к работе лица без заключения трудового договора",
+      "url": "https://kodeksy-kz.com/ka/ob_administrativnyh_pravonarusheniyah/86.htm",
+      "familie": "fachpresse",
+      "damicon_folge": "Vertrag vor dem ersten Einsatz jedes Erntehelfers im Portal erzwingen."
+    },
+    {
+      "id": "N-W3-008",
+      "thema": "Häufigkeit präventiver Kontrolle",
+      "aussage": "Präventive Kontrolle mit Besuch gibt es nur bei hohem oder mittlerem Risiko: hoch höchstens einmal jährlich, mittel höchstens alle zwei Jahre.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "Предпринимательский кодекс Art. 141 Abs. 4",
+      "adilet_id": "K1500000375",
+      "zitat": "Для сфер деятельности субъектов (объектов) контроля и надзора, отнесенных к высокой или средней степени риска, проводятся проверка на соответствие требованиям, профилактический контроль с посещением",
+      "url": "https://kodeksy-kz.com/ka/predprinimatelskij_kodeks/141.htm",
+      "familie": "fachpresse",
+      "damicon_folge": "Kontrollkalender je Behörde mit Risikostufe und frühestem nächsten Besuch führen."
+    },
+    {
+      "id": "N-W3-009",
+      "thema": "Reform der Kontrolle 2026",
+      "aussage": "Präsident Tokajew verlangte am 10.02.2026 das Ende außerplanmäßiger Prüfungen bei KMU; die Regulierungsreform soll bis Ende 2026 abgeschlossen sein. Ein Rechtsakt lag bis 19.09.2026 nicht vor.",
+      "einstufung": "unklar",
+      "rechtsgrundlage": "Auftrag des Präsidenten (erweiterte Regierungssitzung 10.02.2026)",
+      "adilet_id": "",
+      "zitat": "Пора прекращать эту сомнительную практику",
+      "url": "https://www.zakon.kz/politika/6507370-tokaev-potreboval-prekratit-vneplanovye-proverki-malogo-i-srednego-biznesa.html",
+      "familie": "fachpresse",
+      "damicon_folge": "Regelmäßig prüfen; Änderungen am Unternehmerkodex Ende 2026 möglich."
+    },
+    {
+      "id": "N-W3-010",
+      "thema": "Prüfpläne einsehen",
+      "aussage": "Die Generalstaatsanwaltschaft veröffentlicht halbjährlich Listen der präventiven Kontrollen mit Besuch (2. Halbjahr 2026: 14 Behörden); Abfrage per BIN über qamqor.gov.kz. Nur Suchzusammenfassungen, die Seite war nicht abrufbar (HTTP 403).",
+      "einstufung": "empfehlung",
+      "rechtsgrundlage": "Предпринимательский кодекс (Listen der präventiven Kontrolle)",
+      "adilet_id": "K1500000375",
+      "zitat": "Suchzusammenfassung: Генеральная прокуратура Республики Казахстан опубликовала списки субъектов, которые войдут в плановый профилактический контроль с посещением во втором полугодии 2026 года",
+      "url": "https://kadry.mcfr.kz/news/7188-profilakticheskiy-kontrol-vo-ii-polugodii-2026-goda-genprokuratura-utverdila-spiski-po-14-vedomstvam",
+      "familie": "fachpresse",
+      "damicon_folge": "Halbjährlich die BIN auf qamqor.gov.kz prüfen und den Termin in den Kontrollkalender eintragen."
+    }
+  ]
+}

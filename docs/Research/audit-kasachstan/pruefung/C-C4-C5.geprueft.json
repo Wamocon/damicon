@@ -1,0 +1,1330 @@
+{
+ "agent": "C-C4-C5",
+ "fragen": [
+  "F5",
+  "F6",
+  "F10"
+ ],
+ "suchbegriffe": {
+  "ru": [
+   "критерии оценки степени риска проверочные листы санитарно-эпидемиологического благополучия",
+   "проверочный лист безопасность пищевой продукции критерии оценки степени риска ветеринарии",
+   "критерии оценки степени риска проверочные листы в области карантина растений",
+   "критерии оценки степени риска проверочные листы в области защиты растений",
+   "15-05/1138 карантина растений",
+   "критерии оценки степени риска проверочные листы за соблюдением трудового законодательства",
+   "критерии оценки степени риска проверочные листы в области охраны окружающей среды",
+   "критерии оценки степени риска проверочные листы за использованием и охраной земель",
+   "критерии оценки степени риска проверочные листы в области использования и охраны водного фонда",
+   "мораторий на проверки 2026 Казахстан малый бизнес",
+   "Статья 137 Предпринимательский кодекс формы контроля",
+   "КоАП РК статья 425 / 400 / 93 / 87 штраф",
+   "встречные обязательства получателей субсидий АПК 2026",
+   "Высшая аудиторская палата аудит субсидий АПК",
+   "встречная проверка получателя субсидий внутренний государственный аудит",
+   "государственная информационная система субсидирования gosagro",
+   "правила субсидирования при инвестиционных вложениях 2026",
+   "проект приказа 2026 критерии оценки степени риска проверочные листы"
+  ],
+  "kk": [],
+  "en": []
+ },
+ "suchrunden": [
+  {
+   "nr": 1,
+   "anfrage": "критерии оценки степени риска проверочные листы санитарно-эпидемиологического благополучия V2200030964",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 1
+  },
+  {
+   "nr": 2,
+   "anfrage": "проверочный лист безопасность пищевой продукции критерии оценки степени риска ветеринарии приказ",
+   "sprache": "ru",
+   "filter": "allowed_domains:adilet.zan.kz,zakon.uchet.kz,zakon.mybuh.kz,online.zakon.kz,gov.kz,legalacts.egov.kz",
+   "neue_rang1": 1
+  },
+  {
+   "nr": 3,
+   "anfrage": "мораторий на проверки 2026 Казахстан малый бизнес исключения",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 4,
+   "anfrage": "критерии оценки степени риска проверочные листы в области карантина растений приказ Министра сельского хозяйства",
+   "sprache": "ru",
+   "filter": "allowed_domains:adilet,mirrors,gov.kz,legalacts,cdb.kz",
+   "neue_rang1": 2
+  },
+  {
+   "nr": 5,
+   "anfrage": "критерии оценки степени риска проверочные листы в области защиты растений приказ",
+   "sprache": "ru",
+   "filter": "allowed_domains:adilet,mirrors,gov.kz,legalacts,cdb.kz",
+   "neue_rang1": 2
+  },
+  {
+   "nr": 6,
+   "anfrage": "\"проверочных листов в области карантина растений\" совместный приказ 2015 изменения 2024 2025",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 7,
+   "anfrage": "\"15-05/1138\" карантина растений критерии оценки степени риска",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 8,
+   "anfrage": "Об утверждении критериев оценки степени риска и проверочных листов в области карантина растений",
+   "sprache": "ru",
+   "filter": "allowed_domains:adilet,zakon.uchet.kz,zakon.mybuh.kz,cdb.kz",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 9,
+   "anfrage": "мораторий на проверки субъектов малого и микро предпринимательства 2026 указ профилактический контроль",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 10,
+   "anfrage": "Казахстан мораторий проверки МСБ продлен 2025 2026 профилактический контроль Предпринимательский кодекс",
+   "sprache": "ru",
+   "filter": "allowed_domains:gov.kz,adilet,zakon.kz,uchet.kz,kapital.kz,inform.kz,atameken.kz,kursiv.media,mybuh.kz",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 11,
+   "anfrage": "мораторий на проверки бизнеса Казахстан 2024 2025 отменен продлен Указ Президента",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 12,
+   "anfrage": "\"Статья 137\" \"профилактический контроль с посещением субъекта (объекта) контроля и надзора\" Предпринимательский кодекс",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 13,
+   "anfrage": "критерии оценки степени риска и проверочные листы за соблюдением трудового законодательства совместный приказ",
+   "sprache": "ru",
+   "filter": "allowed_domains:adilet,mirrors,cdb.kz,gov.kz,legalacts",
+   "neue_rang1": 1
+  },
+  {
+   "nr": 14,
+   "anfrage": "критерии оценки степени риска проверочные листы в области охраны окружающей среды приказ 2021 2023 Экологический кодекс",
+   "sprache": "ru",
+   "filter": "allowed_domains:adilet,mirrors,cdb.kz,legalacts",
+   "neue_rang1": 1
+  },
+  {
+   "nr": 15,
+   "anfrage": "проверочный лист в области охраны окружающей среды объекты III категории IV категории изменения 2024 2025",
+   "sprache": "ru",
+   "filter": "allowed_domains:cdb.kz,zakon.uchet.kz,uchet.kz,ecoportal.kz,gov.kz,legalacts",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 16,
+   "anfrage": "\"проверочных листов в области охраны окружающей среды, воспроизводства и использования природных ресурсов\"",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 17,
+   "anfrage": "spinform критерии оценки степени риска проверочных листов охраны окружающей среды Казахстан 2015 № 835",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 18,
+   "anfrage": "критерии оценки степени риска проверочные листы за использованием и охраной земель",
+   "sprache": "ru",
+   "filter": "allowed_domains:adilet,mirrors,cdb.kz,legalacts",
+   "neue_rang1": 2
+  },
+  {
+   "nr": 19,
+   "anfrage": "критерии оценки степени риска проверочные листы в области использования и охраны водного фонда",
+   "sprache": "ru",
+   "filter": "allowed_domains:adilet,mirrors,cdb.kz,legalacts",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 20,
+   "anfrage": "Министр водных ресурсов и ирригации совместный приказ критерии оценки степени риска проверочный лист водопользователей",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 21,
+   "anfrage": "встречные обязательства получателей субсидий АПК 2026 правила субсидирования возврат субсидий",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 2
+  },
+  {
+   "nr": 22,
+   "anfrage": "Высшая аудиторская палата аудит субсидий агропромышленного комплекса 2025 нарушения",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 23,
+   "anfrage": "\"встречные обязательства\" правила субсидирования растениеводства 100 миллионов тенге 2029 приказ 2026",
+   "sprache": "ru",
+   "filter": "allowed_domains:adilet,mirrors,cdb.kz,legalacts,gov.kz,uchet.kz",
+   "neue_rang1": 1
+  },
+  {
+   "nr": 24,
+   "anfrage": "встречная проверка получателя субсидий внутренний государственный аудит сельхозтоваропроизводитель",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 1
+  },
+  {
+   "nr": 25,
+   "anfrage": "\"встречный\" государственный аудит получатели субсидий Закон о государственном аудите и финансовом контроле",
+   "sprache": "ru",
+   "filter": "allowed_domains:adilet,mirrors,cdb.kz,gov.kz,uchet.kz,online.zakon.kz",
+   "neue_rang1": 1
+  },
+  {
+   "nr": 26,
+   "anfrage": "государственная информационная система субсидирования АПК qoldau ГИСС электронные счета-фактуры",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 27,
+   "anfrage": "проект совместного приказа критерии оценки степени риска проверочные листы 2026 сельского хозяйства",
+   "sprache": "ru",
+   "filter": "allowed_domains:legalacts.egov.kz",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 28,
+   "anfrage": "правила субсидирования при инвестиционных вложениях АПК новые правила 2025 2026 V1800017320",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 29,
+   "anfrage": "законопроект 2026 государственный контроль и надзор проверки бизнеса профилактический контроль",
+   "sprache": "ru",
+   "filter": "allowed_domains:gov.kz,zakon.kz,kapital.kz,inform.kz,kursiv.media,atameken.kz,uchet.kz,legalacts,tengrinews.kz,parlam.kz",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 30,
+   "anfrage": "КоАП РК статья Нарушение трудового законодательства штраф субъектов малого предпринимательства",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 31,
+   "anfrage": "КоАП РК нарушение законодательства в области карантина растений / защиты растений штраф",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 32,
+   "anfrage": "adilet \"проверочных листов в области карантина растений\"",
+   "sprache": "ru",
+   "filter": "allowed_domains:adilet.zan.kz",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 33,
+   "anfrage": "проверочный лист карантина растений подкарантинной продукции фитосанитарный сертификат совместный приказ 2023",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 34,
+   "anfrage": "\"№ 191\" \"№ 111\" 2023 критерии оценки степени риска охраны окружающей среды",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 35,
+   "anfrage": "государственный контроль за использованием и охраной земель 2026 какой орган",
+   "sprache": "ru",
+   "filter": "allowed_domains:gov.kz,adilet,zakon.kz,inform.kz,kapital.kz",
+   "neue_rang1": 1
+  },
+  {
+   "nr": 36,
+   "anfrage": "Водный кодекс 2025 государственный контроль водного фонда проверочный лист водопользователи",
+   "sprache": "ru",
+   "filter": "allowed_domains:adilet,legalacts,mirrors,gov.kz",
+   "neue_rang1": 1
+  },
+  {
+   "nr": 37,
+   "anfrage": "проект приказа 2026 изменения совместный приказ проверочные листы карантина защиты растений трудового законодательства",
+   "sprache": "ru",
+   "filter": "allowed_domains:legalacts.egov.kz",
+   "neue_rang1": 0
+  },
+  {
+   "nr": 38,
+   "anfrage": "изменения критерии оценки степени риска проверочные листы санитарно-эпидемиологического благополучия апрель 2026",
+   "sprache": "ru",
+   "filter": "offen",
+   "neue_rang1": 0
+  }
+ ],
+ "quellen": [
+  {
+   "url": "https://zakon.mybuh.kz/rus/docs/V2200030964/",
+   "rang": 2,
+   "titel": "Об утверждении критериев оценки степени риска и проверочных листов в сфере санитарно-эпидемиологического благополучия населения (совм. приказ МЗ № ҚР ДСМ-152 и МНЭ № 117 от 02.12.2022)",
+   "adilet_id": "V2200030964",
+   "status": "gilt",
+   "fassung_stand": "2026-04-27"
+  },
+  {
+   "url": "https://zakon.mybuh.kz/rus/docs/V1500012744/",
+   "rang": 2,
+   "titel": "Об утверждении критериев оценки степени риска и проверочных листов в области защиты растений (МСХ № 15-05/1135 от 28.12.2015, МНЭ № 821 от 29.12.2015)",
+   "adilet_id": "V1500012744",
+   "status": "gilt",
+   "fassung_stand": "2023-06-13"
+  },
+  {
+   "url": "https://adilet.zan.kz/rus/docs/V1300008502",
+   "rang": 1,
+   "titel": "Об утверждении формы проверочного листа и критериев оценки степени рисков в сфере частного предпринимательства в области карантина растений (2013)",
+   "adilet_id": "V1300008502",
+   "status": "unklar",
+   "fassung_stand": ""
+  },
+  {
+   "url": "https://prg.kz/Document/?doc_id=39027123",
+   "rang": 2,
+   "titel": "Совм. приказ МСХ № 63 и МНЭ № 22 от 15.02.2023 о внесении изменений в совм. приказ МСХ от 28.12.2015 № 15-05/1138 и МНЭ от 29.12.2015 № 819 (проверочные листы в области карантина растений) – nur Titel über Suchergebnis, Volltext hinter Paragraph",
+   "adilet_id": "unbekannt",
+   "status": "gilt",
+   "fassung_stand": "2023-02-15"
+  },
+  {
+   "url": "https://zakon.mybuh.kz/rus/docs/v1800017871/",
+   "rang": 2,
+   "titel": "Об утверждении критериев оценки степени рисков и проверочных листов в области семеноводства (совм. приказ № 485 и № 93 от 30.11.2018)",
+   "adilet_id": "V1800017871",
+   "status": "gilt",
+   "fassung_stand": "2023-11-03"
+  },
+  {
+   "url": "https://zakon.mybuh.kz/rus/docs/V1500012656/",
+   "rang": 2,
+   "titel": "Об утверждении Критериев оценки степени риска и проверочных листов за соблюдением трудового законодательства РК (МЗСР № 1022 от 25.12.2015, МНЭ № 801 от 28.12.2015)",
+   "adilet_id": "V1500012656",
+   "status": "gilt",
+   "fassung_stand": "2024-09-05"
+  },
+  {
+   "url": "https://adilet.zan.kz/rus/docs/V1500011744",
+   "rang": 1,
+   "titel": "Об утверждении Критериев оценки степени риска и формы проверочного листа в области трудового законодательства (Vorgänger, nur Suchtreffer)",
+   "adilet_id": "V1500011744",
+   "status": "unklar",
+   "fassung_stand": ""
+  },
+  {
+   "url": "https://adilet.zan.kz/rus/docs/V1500012779",
+   "rang": 1,
+   "titel": "Об утверждении критериев оценки степени риска и проверочных листов в области охраны окружающей среды, воспроизводства и использования природных ресурсов (МНЭ № 835 от 30.12.2015, МЭ № 721 от 15.12.2015)",
+   "adilet_id": "V1500012779",
+   "status": "gilt",
+   "fassung_stand": "2023-06-14"
+  },
+  {
+   "url": "https://adilet.zan.kz/rus/docs/V1500011792",
+   "rang": 1,
+   "titel": "Об утверждении критериев оценки степени риска и формы проверочного листа в области охраны окружающей среды (älterer Erlass 2015, nur Suchtreffer)",
+   "adilet_id": "V1500011792",
+   "status": "unklar",
+   "fassung_stand": ""
+  },
+  {
+   "url": "https://zakon.mybuh.kz/rus/docs/V1800018000/",
+   "rang": 2,
+   "titel": "Об утверждении критериев оценки степени рисков и проверочных листов за использованием и охраной земель, государственного земельного кадастра (совм. приказ 11.12.2018)",
+   "adilet_id": "V1800018000",
+   "status": "gilt",
+   "fassung_stand": "2023-07-17"
+  },
+  {
+   "url": "https://zakon.mybuh.kz/rus/docs/v2300033054/",
+   "rang": 2,
+   "titel": "Об утверждении критериев оценки степени риска и проверочного листа в области земельных правоотношений (МСХ № 254, МНЭ № 133 от 04.07.2023) – betrifft Akimate, nicht Landnutzer",
+   "adilet_id": "V2300033054",
+   "status": "gilt",
+   "fassung_stand": "2023-07-11"
+  },
+  {
+   "url": "https://adilet.zan.kz/rus/docs/K2500000178",
+   "rang": 1,
+   "titel": "Водный кодекс Республики Казахстан от 09.04.2025 (nur Suchtreffer)",
+   "adilet_id": "K2500000178",
+   "status": "gilt",
+   "fassung_stand": ""
+  },
+  {
+   "url": "https://kodeksy-kz.com/ka/predprinimatelskij_kodeks/137.htm",
+   "rang": 2,
+   "titel": "Предпринимательский кодекс РК, ст. 137 Формы контроля",
+   "adilet_id": "K1500000375",
+   "status": "gilt",
+   "fassung_stand": "2026-07-30"
+  },
+  {
+   "url": "https://kodeksy-kz.com/ka/ob_administrativnyh_pravonarusheniyah/425.htm",
+   "rang": 2,
+   "titel": "КоАП РК ст. 425",
+   "adilet_id": "K1400000235",
+   "status": "gilt",
+   "fassung_stand": "2026-07-30"
+  },
+  {
+   "url": "https://kodeksy-kz.com/ka/ob_administrativnyh_pravonarusheniyah/400.htm",
+   "rang": 2,
+   "titel": "КоАП РК ст. 400",
+   "adilet_id": "K1400000235",
+   "status": "gilt",
+   "fassung_stand": "2026-07-30"
+  },
+  {
+   "url": "https://kodeksy-kz.com/ka/ob_administrativnyh_pravonarusheniyah/93.htm",
+   "rang": 2,
+   "titel": "КоАП РК ст. 93",
+   "adilet_id": "K1400000235",
+   "status": "gilt",
+   "fassung_stand": "2026-07-30"
+  },
+  {
+   "url": "https://rsp.gov.kz/public/ru/plan",
+   "rang": 1,
+   "titel": "Проверки бизнеса – план проверок (rsp.gov.kz)",
+   "adilet_id": "",
+   "status": "gilt",
+   "fassung_stand": "2026-09-18"
+  },
+  {
+   "url": "https://rsp.gov.kz/ru",
+   "rang": 1,
+   "titel": "Реестр обязательных требований в сфере предпринимательства",
+   "adilet_id": "",
+   "status": "gilt",
+   "fassung_stand": "2026-09-18"
+  },
+  {
+   "url": "https://adilet.zan.kz/rus/docs/V2000020209",
+   "rang": 1,
+   "titel": "Об утверждении Правил субсидирования повышения урожайности и качества продукции растениеводства (приказ МСХ № 107 от 30.03.2020) – Wortlaut nur über Suchausschnitt",
+   "adilet_id": "V2000020209",
+   "status": "gilt",
+   "fassung_stand": "2026-01-26"
+  },
+  {
+   "url": "https://legalacts.egov.kz/npa/view?id=15054083",
+   "rang": 1,
+   "titel": "Проект: изменения в приказ МСХ № 107 от 30.03.2020 (встречные обязательства, ЭСФ), опубликован 16.05.2024, Archiv",
+   "adilet_id": "V2000020209",
+   "status": "unklar",
+   "fassung_stand": "2024-05-16"
+  },
+  {
+   "url": "https://cdb.kz/sistema/pravovaya-baza/ob-utverzhdenii-pravil-subsidirovaniya-po-vozmeshcheniyu-chasti-raskhodov-ponesennykh-subektom-agropromyshlennogo-kompleksa-pri-investitsionnykh-vlozheniyakh/",
+   "rang": 2,
+   "titel": "Об утверждении Правил субсидирования по возмещению части расходов, понесенных субъектом АПК, при инвестиционных вложениях",
+   "adilet_id": "V1800017320",
+   "status": "gilt",
+   "fassung_stand": "unklar (Suchergebnis nennt Änderung 30.06.2026 № 263)"
+  },
+  {
+   "url": "https://cdb.kz/sistema/pravovaya-baza/o-gosudarstvennom-audite-i-finansovom-kontrole/",
+   "rang": 2,
+   "titel": "Закон РК 392-V О государственном аудите и финансовом контроле",
+   "adilet_id": "Z1500000392",
+   "status": "gilt",
+   "fassung_stand": "unklar (Spiegel zeigt Änderungen bis 2019; prg.kz nennt Stand 29.07.2025)"
+  },
+  {
+   "url": "https://adilet.zan.kz/rus/docs/V1800016689",
+   "rang": 1,
+   "titel": "Об утверждении Правил проведения внутреннего государственного аудита и финансового контроля (nur Suchtreffer)",
+   "adilet_id": "V1800016689",
+   "status": "unklar",
+   "fassung_stand": ""
+  },
+  {
+   "url": "https://www.zakon.kz/pravo/6506594-izmenilis-pravila-subsidirovaniya-zatrat-pererabatyvayushchikh-i-selkhozpredpriyatiy.html",
+   "rang": 3,
+   "titel": "zakon.kz 03.02.2026: Изменились правила субсидирования затрат перерабатывающих и сельхозпредприятий",
+   "adilet_id": "",
+   "status": "gilt",
+   "fassung_stand": "2026-02-03"
+  },
+  {
+   "url": "https://www.nur.kz/politics/kazakhstan/2198867-poteri-i-upushchennaya-vygoda-na-5-mlrd-tenge-smailov-o-vydelennyh-na-selskoe-hozyaystvo-subsidiyah/",
+   "rang": 3,
+   "titel": "nur.kz 11.12.2024: ВАП – аудит господдержки АПК",
+   "adilet_id": "",
+   "status": "gilt",
+   "fassung_stand": "2024-12-11"
+  },
+  {
+   "url": "https://kapital.kz/economic/111786/servis-po-subsidirovaniyu-agrariyev-na-qoldau-otklyuchat-1-yanvarya.html",
+   "rang": 3,
+   "titel": "Сервис по субсидированию аграриев на Qoldau отключат 1 января (Wechsel zu ГИСС / gosagro.kz)",
+   "adilet_id": "",
+   "status": "gilt",
+   "fassung_stand": "2022-12"
+  },
+  {
+   "url": "https://www.zakon.kz/sovety-yurista/6419569-konets-moratoriya-na-proverki-biznesa-informatsiya-dlya-predprinimateley.html",
+   "rang": 3,
+   "titel": "zakon.kz 05.01.2024: Конец моратория на проверки бизнеса",
+   "adilet_id": "",
+   "status": "gilt",
+   "fassung_stand": "2024-01-05"
+  },
+  {
+   "url": "https://kapital.kz/business/111091/moratoriy-na-proverki-biznesa-prodlili-do-1-yanvarya-2024-goda.html",
+   "rang": 3,
+   "titel": "Мораторий на проверки бизнеса продлили до 1 января 2024 года",
+   "adilet_id": "",
+   "status": "gilt",
+   "fassung_stand": "2022-12"
+  },
+  {
+   "url": "https://kz.kursiv.media/2026-01-26/klsv-poslableniya-dlya-mikro-i-malogo-businessa-pridumali-v-pravitelstve/",
+   "rang": 3,
+   "titel": "Kursiv 26.01.2026: «Чистый лист» – Steuer-Moratorium für Mikro- und Kleinbetriebe",
+   "adilet_id": "",
+   "status": "gilt",
+   "fassung_stand": "2026-01-26"
+  },
+  {
+   "url": "https://prg.kz/document/?doc_id=32349390",
+   "rang": 2,
+   "titel": "Совм. приказ МЗ № 45 от 24.04.2026 и МНЭ № 34 от 27.04.2026 о внесении изменений в V2200030964 (nur Titel im Suchergebnis)",
+   "adilet_id": "",
+   "status": "gilt",
+   "fassung_stand": "2026-04-27"
+  },
+  {
+   "url": "https://www.inform.kz/ru/pravitelstvo-kazahstana-rasshirilo-polnomochiya-minvodi-v-sfere-zemel-i-vodnih-r-974ef4bb",
+   "rang": 3,
+   "titel": "inform.kz 27.08.2026: Правительство расширило полномочия Минводы в сфере земель и водных ресурсов",
+   "adilet_id": "",
+   "status": "gilt",
+   "fassung_stand": "2026-08-24"
+  }
+ ],
+ "belege": [
+  {
+   "id": "B-C4-001",
+   "frage": "F5",
+   "aussage": "Sanepid-Prüflisten: V2200030964 (gemeinsamer Erlass MZ № ҚР ДСМ-152 / MNE № 117 vom 02.12.2022) gilt, in Kraft seit 01.01.2023, zuletzt geändert durch gemeinsamen Erlass vom 24.04.2026 (MZ № 45) und 27.04.2026 (MNE № 34).",
+   "quelle_url": "https://zakon.mybuh.kz/rus/docs/V2200030964/",
+   "rang": 1,
+   "dokument": "Об утверждении критериев оценки степени риска и проверочных листов в сфере санитарно-эпидемиологического благополучия населения",
+   "adilet_id": "V2200030964",
+   "fundstelle": "Kopf; Pkt. 5; Fußnote zu Pkt. 1",
+   "fassung_stand": "2026-04-27",
+   "wortlaut_original": "Совместный приказ Министра здравоохранения Республики Казахстан от 2 декабря 2022 года № ҚР ДСМ-152 и Министра национальной экономики Республики Казахстан от 2 декабря 2022 года № 117. […] 5. Настоящий совместный приказ вводится в действие с 1 января 2023 года и подлежит официальному опубликованию. […] Сноска. Пункт 1 с изменениями, внесенными совместным приказом Министра здравоохранения РК от 24.04.2026 № 45 и и.о. Министра национальной экономики РК от 27.04.2026 № 34",
+   "uebersetzung": "Kein wörtliches Zitat gesichert (nur Zusammenfassung des Abrufs); Wortlaut in Phase 3 nachtragen.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "https://prg.kz/document/?doc_id=32349390",
+   "board_karte": "audit-05",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Prüfprofil Sanepid mit Norm-ID und Fassungsstand im System hinterlegen; Änderungsdatum 27.04.2026 als Versionsstand der Checkliste.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+  },
+  {
+   "id": "B-C4-002",
+   "frage": "F5",
+   "aussage": "V2200030964 enthält u. a. Prüflisten für Objekte der Lebensmittelproduktion (Anh. 17), des Groß- und Einzelhandels (Anh. 18), für Produktionsgebäude (Anh. 33), Wasserversorgung (Anh. 31), Abfallbehandlung (Anh. 27) und vorübergehende Unterkünfte (Anh. 24). Für einen Beerenbetrieb mit Verpackung und Kühllager sind vor allem Anh. 17 und 18 einschlägig; ob der reine Feldanbau darunter fällt, ist offen.",
+   "quelle_url": "https://zakon.mybuh.kz/rus/docs/V2200030964/",
+   "rang": 1,
+   "dokument": "V2200030964",
+   "adilet_id": "V2200030964",
+   "fundstelle": "Pkt. 1 Nr. 2 (Aufzählung der Anhänge 17, 18, 24, 27, 31, 33)",
+   "fassung_stand": "2026-04-27",
+   "wortlaut_original": "объектам по производству пищевой продукции согласно приложению 17 к настоящему приказу; […] объектам оптовой и розничной торговли согласно приложению 18 к настоящему приказу; […] объектам временного проживания людей согласно приложению 24 к настоящему приказу; […] водоисточникам, мест водозабора для хозяйственно-питьевого водоснабжения, централизованных и нецентрализованных систем хозяйственно-питьевого водоснабжения согласно приложению 31 к настоящему приказу; […] зданиям, сооружениям и помещениям производственного назначения, согласно приложению 33 к настоящему приказу;",
+   "uebersetzung": "Kein wörtliches Zitat gesichert (nur Zusammenfassung des Abrufs); Wortlaut in Phase 3 nachtragen.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "",
+   "board_karte": "audit-05",
+   "einstufung": "unklar",
+   "rechtsform": "alle",
+   "damicon_folge": "Zuordnung der Betriebsobjekte (Feld, Packhalle, Kühllager, Unterkunft Saisonkräfte) zu Prüflisten-Anhängen als Stammdatum.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; Einschlägigkeit für den reinen Feldanbau bleibt offen"
+  },
+  {
+   "id": "B-C4-003",
+   "frage": "F5",
+   "aussage": "Prüfpunkte Anh. 17 (Lebensmittelproduktion, neu gefasst durch gemeinsamen Erlass vom 24.04.2026/27.04.2026), die Damicon betreffen: Pflicht-Gesundheitsuntersuchungen des Personals (Nr. 7), Hygieneschulung (Nr. 8), Laborbefunde Trinkwasser (Nr. 11), Verträge und Akte zu Desinsektion/Deratisierung (Nr. 13), Temperaturregime und Haltbarkeitsfristen bei Produktion und Lagerung (Nr. 37), Laboruntersuchungen von Rohstoff und Produkt (Nr. 45), Programm der Produktionskontrolle oder HACCP (Nr. 47). Ein eigener Prüfpunkt zum persönlichen Gesundheitsbuch (ЛСК), zu Kühltechnik und zu getrennter Lagerung steht in der geltenden Fassung nicht.",
+   "quelle_url": "https://zakon.mybuh.kz/rus/docs/V2200030964/",
+   "rang": 1,
+   "dokument": "V2200030964",
+   "adilet_id": "V2200030964",
+   "fundstelle": "Anh. 17 (Fassung 24.04.2026/27.04.2026), Punkte 7, 8, 11, 13, 37, 45, 47",
+   "fassung_stand": "2026-04-27",
+   "wortlaut_original": "Наличие гигиенического обучения у лиц декретированной группы населения […] Соответствие документам нормирования результатов лабораторных исследований питьевой воды сети по органолептическим, санитарно-химическим, микробиологическим, паразитологическим, вирусологическим показателям […] Наличие документов (договор на оказание дезинсекционных и дератизационных услуг, акта выполненных работ), подтверждающих своевременное проведение дезинсекционных и дератизационных мероприятий […] 1) наличие программы производственного контроля (или внедрение системы ХАССП);",
+   "uebersetzung": "Gesundheitsbuch mit Vermerken über Pflichtuntersuchungen für jeden Mitarbeiter mit Lebensmittelkontakt; Hygieneschulung mit Nachweis; funktionierende Kühltechnik mit Temperaturregime; Programm der Produktionskontrolle mit Laboruntersuchungen; Vertrag und Leistungsakte zu Desinsektion/Deratisierung.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "",
+   "board_karte": "audit-11",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Personalakte Saisonkraft: Gesundheitsbuch-Nr., Datum Pflichtuntersuchung, Hygieneschulung mit Fristwarnung; Temperaturprotokoll Kühllager; Plan der Produktionskontrolle mit Laborbefunden; Dokumentenablage Schädlingsbekämpfung (Vertrag, Akte). Achtung: Zitat vom Spiegel-Auszug eines KI-Abrufs, Wortlaut am Primärtext abgleichen.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: Nummerierung nach geltender Fassung 2026; das bisherige Zitat (ЛСК, холодильное оборудование) steht nicht im geltenden Anh. 17; Gesundheitsbuch, Kühltechnik und getrennte Lagerung gestrichen"
+  },
+  {
+   "id": "B-C4-004",
+   "frage": "F5",
+   "aussage": "V2200030964 unterscheidet grobe, erhebliche und geringfügige Verstöße; grobe Verstöße sind solche, die Leben, Gesundheit oder Umwelt schaden oder schaden können.",
+   "quelle_url": "https://zakon.mybuh.kz/rus/docs/V2200030964/",
+   "rang": 1,
+   "dokument": "V2200030964",
+   "adilet_id": "V2200030964",
+   "fundstelle": "Anh. 2 zu den Kriterien",
+   "fassung_stand": "2026-04-27",
+   "wortlaut_original": "Умышленное или неосторожное явное и существенное нарушение законодательства Республики Казахстан в сфере санитарно-эпидемиологического благополучия населения, несоблюдение которых повлекло и (или) может повлечь вред жизни, здоровью человека и окружающей среде",
+   "uebersetzung": "Vorsätzliche oder fahrlässige offensichtliche und wesentliche Verletzung ..., deren Nichteinhaltung Schaden für Leben, Gesundheit und Umwelt verursacht hat oder verursachen kann (grober Verstoß).",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "",
+   "board_karte": "audit-11",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Befundklassifikation grob/erheblich/geringfügig im Modul für Abweichungen und Korrekturmaßnahmen.",
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  {
+   "id": "B-C4-005",
+   "frage": "F5",
+   "aussage": "Subjektive Risikokriterien Sanepid (Anh. 1 Pkt. 10): für präventive Kontrolle mit Besuch: Ergebnisse früherer Prüfungen und Besuchskontrollen, Ergebnisse präventiver Kontrolle ohne Besuch, ungünstige Vorfälle; für Prüfungen auf Einhaltung von Anforderungen: frühere Prüfungen, ungünstige Vorfälle und Informationen anderer Behörden. Ungünstige Vorfälle sind registrierte Infektionen, parasitäre Erkrankungen, Vergiftungen und Berufskrankheiten.",
+   "quelle_url": "https://zakon.mybuh.kz/rus/docs/V2200030964/",
+   "rang": 1,
+   "dokument": "V2200030964",
+   "adilet_id": "V2200030964",
+   "fundstelle": "Anh. 1 (Kriterien), Pkt. 10",
+   "fassung_stand": "2026-04-27",
+   "wortlaut_original": "1) результаты предыдущих проверок и профилактического контроля с посещением субъектов (объектов) контроля и надзора; […] 2) результаты профилактического контроля без посещения субъектов (объектов) контроля и надзора; […] 3) наличие неблагоприятных происшествий, возникших по вине субъекта (объекта) контроля и надзора. […] 3) результаты анализа сведений, представляемых государственными органами и организациями.",
+   "uebersetzung": "Ergebnisse früherer Prüfungen und präventiver Kontrollen mit Besuch; Ergebnisse präventiver Kontrollen ohne Besuch; ungünstige Vorfälle durch Verschulden des Kontrollsubjekts.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "",
+   "board_karte": "audit-03",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Register für Vorfälle (Vergiftung, Arbeitsunfall, Berufskrankheit) und frühere Prüfergebnisse, weil sie die Risikostufe beeinflussen.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: präzisiert: zwei Quellensets (präventive Kontrolle bzw. Prüfung); Informationen anderer Behörden nur für Prüfungen"
+  },
+  {
+   "id": "B-C4-006",
+   "frage": "F5",
+   "aussage": "Bußgeld Sanepid (KoAP Art. 425 Teil 1): Kleinunternehmen 160 MRP, mittlere 210 MRP, große 1 600 MRP, natürliche Personen 20 MRP.",
+   "quelle_url": "https://kodeksy-kz.com/ka/ob_administrativnyh_pravonarusheniyah/425.htm",
+   "rang": 1,
+   "dokument": "Кодекс РК об административных правонарушениях 235-V",
+   "adilet_id": "K1400000235",
+   "fundstelle": "Art. 425 Teil 1",
+   "fassung_stand": "2026-07-30",
+   "wortlaut_original": "Нарушение требований законодательства Республики Казахстан в области санитарно-эпидемиологического благополучия населения, а также гигиенических нормативов, технических регламентов, не повлекшее причинение вреда здоровью человека, – влечет штраф на физических лиц в размере двадцати, на должностных лиц, субъектов малого предпринимательства или некоммерческие организации – в размере ста шестидесяти, на субъектов среднего предпринимательства – в размере двухсот десяти, на субъектов крупного предпринимательства – в размере тысячи шестисот месячных расчетных показателей.",
+   "uebersetzung": "Verletzung sanitär-epidemiologischer Anforderungen ohne Gesundheitsschaden: Geldbuße 20 MRP (natürliche Personen), 160 MRP (Amtsträger, Kleinunternehmen), 210 MRP (Mittelstand), 1 600 MRP (Großunternehmen).",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "",
+   "board_karte": "audit-05",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Risikobewertung im Dashboard: Bußgeldrahmen je Prüfbereich anzeigen.",
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  {
+   "id": "B-C4-007",
+   "frage": "F5",
+   "aussage": "Pflanzenschutz: V1500012744 (MSH № 15-05/1135 vom 28.12.2015, MNE № 821 vom 29.12.2015) gilt, zuletzt geändert am 13.06.2023 (MSH № 226, MNE № 109). Wer Pestizide anwendet, lagert oder verkauft, fällt nach objektiven Kriterien in die hohe Risikostufe; subjektiv hoch ab 71 bis 100 Punkten.",
+   "quelle_url": "https://zakon.mybuh.kz/rus/docs/V1500012744/",
+   "rang": 2,
+   "dokument": "Об утверждении критериев оценки степени риска и проверочных листов в области защиты растений",
+   "adilet_id": "V1500012744",
+   "fundstelle": "Kriterien, objektive und subjektive Bewertung",
+   "fassung_stand": "2023-06-13",
+   "wortlaut_original": "от 71 до 100",
+   "uebersetzung": "(hohe Risikostufe bei) 71 bis 100 (Punkten)",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "nur_sekundaer",
+   "gegenquelle": "https://adilet.zan.kz/rus/docs/V1500012744",
+   "board_karte": "audit-05",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Wenn der Betrieb Pestizide einsetzt oder lagert: hohe Risikostufe, also häufigere Kontrollen; Pestizidlager und Anwendung lückenlos dokumentieren.",
+   "pruefvermerk": "Hauptsitzung: Zitat (от 71 до 100) steht im adilet-Text, trägt aber die Aussage zu Pestiziden nicht; zurückgestuft"
+  },
+  {
+   "id": "B-C4-008",
+   "frage": "F5",
+   "aussage": "Prüfliste Pflanzenschutz für landwirtschaftliche Objekte: Meldung Form FU-3 (Pestizidlagerung) und FU-4 (chemische Behandlungen) rechtzeitig einreichen, Schadorganismen über der ökonomischen Schadschwelle, phytosanitäres Monitoring und phytosanitäre Maßnahmen durchführen. Alle als grobe Verstöße eingestuft.",
+   "quelle_url": "https://zakon.mybuh.kz/rus/docs/V1500012744/",
+   "rang": 1,
+   "dokument": "V1500012744",
+   "adilet_id": "V1500012744",
+   "fundstelle": "Anh. 2 zum Erlass (Prüfliste, Fassung 13.06.2023), Nr. 1-5; Schweregrad in Anh. 1 zu den Kriterien",
+   "fassung_stand": "2023-06-13",
+   "wortlaut_original": "Непредставление, а равно несвоевременное представление субъектом (объектом) контроля формы фитосанитарного учета (ФУ-3), а именно отчета о хранении пестицидов, биоагентов ежегодно, до 10 января по месту фактического хранения (ФУ-3) […] Непредставление, а равно несвоевременное представление субъектом (объектом) контроля формы фитосанитарного учета (ФУ-4), а именно отчета о проведении химических обработок ежемесячно, с марта по сентябрь, до 10 числа каждого месяца, следующего за отчетным (ФУ-4)",
+   "uebersetzung": "Nichteinreichung oder verspätete Einreichung der Form FU-3 ... der Form FU-4",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "",
+   "board_karte": "audit-11",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Spritzbuch (Mittel, Menge, Fläche, Datum) als Datenbasis für die Berichte FU-3 und FU-4 mit Fristwarnung; Protokoll phytosanitäres Monitoring je Schlag. Wortlaut der Formen und Fristen am Primärtext nachlesen.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; Fristen: ФУ-3 jährlich bis 10. Januar, ФУ-4 monatlich März bis September bis zum 10.; alle fünf Punkte „грубое“"
+  },
+  {
+   "id": "B-C4-009",
+   "frage": "F5",
+   "aussage": "Pflanzenquarantäne: Die geltende Prüfliste beruht auf dem gemeinsamen Erlass MSH № 15-05/1138 vom 28.12.2015 und MNE № 819 vom 29.12.2015, geändert durch gemeinsamen Erlass MSH № 63 / MNE № 22 vom 15.02.2023. Die adilet-Kennung wurde nicht gefunden. V1300008502 (2013) ist der Vorgänger; sein Status ließ sich nicht prüfen.",
+   "quelle_url": "https://prg.kz/Document/?doc_id=39027123",
+   "rang": 2,
+   "dokument": "Совместный приказ МСХ № 63 и МНЭ № 22 от 15.02.2023",
+   "adilet_id": "unbekannt (V1300008502 = Vorgänger)",
+   "fundstelle": "Titel",
+   "fassung_stand": "2023-02-15",
+   "wortlaut_original": "Совместный приказ Министра сельского хозяйства Республики Казахстан от 15 февраля 2023 года № 63 и и.о. Министра национальной экономики Республики Казахстан от 15 февраля 2023 года № 22 «О внесении изменений и дополнения в совместный приказ Министра сельского хозяйства Республики Каз[ахстан от 28 декабря 2015 года № 15-05/1138 ...]",
+   "uebersetzung": "Gemeinsamer Erlass vom 15.02.2023 zur Änderung des gemeinsamen Erlasses vom 28.12.2015 № 15-05/1138 (Titel im Suchergebnis abgeschnitten).",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "offen",
+   "gegenquelle": "https://adilet.zan.kz/rus/docs/V1300008502",
+   "board_karte": "audit-05",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Phase 3: adilet-Suche nach „проверочных листов в области карантина растений“ mit /browse; Prüfpunkte für Zukauf von Pflanzgut und Lagerung von Quarantäneprodukten nachtragen.",
+   "pruefvermerk": "adilet nicht geprüft (keine Kennung oder Seite nicht geladen)"
+  },
+  {
+   "id": "B-C4-010",
+   "frage": "F5",
+   "aussage": "Im Vorgänger-Erlass V1300008502 wurden Punkte vergeben, u. a. für fehlende vorbeugende Desinfektion der Lager (mindestens einmal jährlich), Quarantäneobjekte in Lagern und auf dem Gelände und fehlende Belege über systematische Kontrolle der Kulturen.",
+   "quelle_url": "https://adilet.zan.kz/rus/docs/V1300008502",
+   "rang": 1,
+   "dokument": "Об утверждении формы проверочного листа и критериев оценки степени рисков в сфере частного предпринимательства в области карантина растений",
+   "adilet_id": "V1300008502",
+   "fundstelle": "Kriterien (nur Suchausschnitt)",
+   "fassung_stand": "",
+   "wortlaut_original": "",
+   "uebersetzung": "Kein Wortlaut, nur Zusammenfassung aus dem Suchergebnis.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "aufgehoben",
+   "gegenquelle": "",
+   "board_karte": "audit-05",
+   "einstufung": "unklar",
+   "rechtsform": "alle",
+   "damicon_folge": "Hinweis auf mögliche Datenpunkte (Desinfektion Kühllager, Kulturkontrollen); erst nach Primärtext übernehmen.",
+   "pruefvermerk": "adilet: Сноска. Утратил силу совместным приказом Министра сельского хозяйства РК от 26.06.2015 № 15-08/579 и Министра национальной экономики РК от 13.07.2015 № 525 (вводится в действие по истечении десяти календарных дней после "
+  },
+  {
+   "id": "B-C4-011",
+   "frage": "F5",
+   "aussage": "Saatgut und Pflanzgut: V1800017871 (gemeinsamer Erlass № 485 / № 93 vom 30.11.2018) gilt, zuletzt geändert am 03.11.2023; enthält neun Prüflisten, u. a. für Saatgutverkäufer und Saatgutverbraucher, und nennt Erzeuger von Obst- und Beerensetzlingen.",
+   "quelle_url": "https://zakon.mybuh.kz/rus/docs/v1800017871/",
+   "rang": 1,
+   "dokument": "Об утверждении критериев оценки степени рисков и проверочных листов в области семеноводства",
+   "adilet_id": "V1800017871",
+   "fundstelle": "Prüflisten (Anhänge)",
+   "fassung_stand": "2023-11-03",
+   "wortlaut_original": "производителей саженцев плодово-ягодных культур",
+   "uebersetzung": "Erzeuger von Setzlingen von Obst- und Beerenkulturen",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "",
+   "board_karte": "audit-05",
+   "einstufung": "unklar",
+   "rechtsform": "alle",
+   "damicon_folge": "Beim Zukauf von Pflanzgut: Lieferant, Sorte, Charge, Sortendokumente speichern; ob der Betrieb als Saatgutverbraucher geprüft wird, ist offen.",
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  {
+   "id": "B-C4-012",
+   "frage": "F5",
+   "aussage": "Arbeitsinspektion: V1500012656 (MZSR № 1022 vom 25.12.2015, MNE № 801 vom 28.12.2015) gilt; Anh. 1 zuletzt geändert am 05.09.2024/10.09.2024. Für Anh. 2 (Prüfliste) ist eine Änderung durch gemeinsamen Erlass vom 29.05.2026 (MTSZN № 216 / MNE № 59, Inkrafttreten 60 Kalendertage nach Veröffentlichung) angekündigt und im adilet-Text noch nicht eingearbeitet. Die Prüfliste umfasst u. a. Arbeitsverträge, Schulung und Unterweisung zum Arbeitsschutz, Pflichtversicherung gegen Arbeitsunfälle, Verbot der Kinderarbeit, Mindestlohn.",
+   "quelle_url": "https://zakon.mybuh.kz/rus/docs/V1500012656/",
+   "rang": 1,
+   "dokument": "Об утверждении Критериев оценки степени риска и проверочных листов за соблюдением трудового законодательства Республики Казахстан",
+   "adilet_id": "V1500012656",
+   "fundstelle": "Anh. 2 Prüfliste, Punkte 15, 16, 20, 21, 24",
+   "fassung_stand": "2024-09-05",
+   "wortlaut_original": "Наличие документации по проведению обучения, инструктирования и проверки знаний по безопасности и охране труда […] Наличие договоров обязательного страхования работника от несчастных случаев при исполнении им трудовых (служебных) обязанностей, обязательного социального страхования работников. […] Наличие трудовых договоров в отношении работников […] Соблюдение запрета на использование детского труда […] Соблюдение гарантий по осуществлению минимального размера месячной заработной платы […] В приложение 2 предусматривается изменение в соответствии с совместным приказом Министра труда и социальной защиты населения РК от 29.05.2026 № 216",
+   "uebersetzung": "Nachweise über Schulung, Unterweisung und Wissensprüfung zu Arbeitssicherheit und -schutz; Verträge der Pflichtversicherung gegen Arbeitsunfälle; Arbeitsverträge für die Beschäftigten.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "https://cdb.kz/sistema/pravovaya-baza/ob-utverzhdenii-kriteriev-otsenki-stepeni-riska-i-proverochnykh-listov-za-soblyudeniem-trudovogo-zakonodatelstva-respubliki-kazakhstan/",
+   "board_karte": "audit-11",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Saisonkräfte: Arbeitsvertrag je Person, Nachweis Arbeitsschutz-Unterweisung (Datum, Unterschrift), Versicherungsnachweis, Altersprüfung (Kinderarbeit), Lohn nicht unter Mindestlohn.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: „zuletzt geändert 05.09.2024“ ist überholt: Änderung von Anh. 2 durch Erlass vom 29.05.2026 angekündigt; Nummerierung 15, 16, 20, 21, 24 am Text bestätigt"
+  },
+  {
+   "id": "B-C4-013",
+   "frage": "F5",
+   "aussage": "Risikobewertung Arbeitsinspektion: Skala 0 bis 100; hoch 71 bis 100, mittel 31 bis 70, niedrig 0 bis 30 Punkte; Quellen sind Monitoring der Berichte und Ergebnisse früherer Prüfungen und präventiver Kontrollen.",
+   "quelle_url": "https://zakon.mybuh.kz/rus/docs/V1500012656/",
+   "rang": 1,
+   "dokument": "V1500012656",
+   "adilet_id": "V1500012656",
+   "fundstelle": "Anh. 1 (Kriterien) Pkt. 3, 15, 23",
+   "fassung_stand": "2024-09-05",
+   "wortlaut_original": "1) к высокой степени риска – при показателе степени риска от 71 до 100 включительно; […] 2) к средней степени риска – при показателе степени риска от 31 до 70 включительно; […] 3) к низкой степени риска – при показателе степени риска от 0 до 30 включительно. […] 1) результаты мониторинга отчетности и сведений, представляемых субъектом контроля; […] 2) результаты предыдущих проверок и профилактического контроля с посещением субъектов (объектов) контроля.",
+   "uebersetzung": "Schwellen aus Zusammenfassung des Spiegels, Wortlaut fehlt.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "",
+   "board_karte": "audit-03",
+   "einstufung": "unklar",
+   "rechtsform": "alle",
+   "damicon_folge": "Keine direkte Folge; zeigt, dass eingereichte Berichte die Risikostufe beeinflussen.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; ein grober Verstoß setzt den Wert auf 100 Punkte (Pkt. 23)"
+  },
+  {
+   "id": "B-C4-014",
+   "frage": "F5",
+   "aussage": "Bußgeld Arbeitsschutz (KoAP Art. 93 Teil 1): Kleinunternehmen 20 MRP, mittlere 30 MRP, große 120 MRP; Art. 87 (Lohnzahlung) laut Suchergebnis 80 MRP für Kleinunternehmen.",
+   "quelle_url": "https://kodeksy-kz.com/ka/ob_administrativnyh_pravonarusheniyah/93.htm",
+   "rang": 1,
+   "dokument": "КоАП РК 235-V",
+   "adilet_id": "K1400000235",
+   "fundstelle": "Art. 93 Teil 1; Art. 87",
+   "fassung_stand": "2026-07-30",
+   "wortlaut_original": "влечет штраф на должностных лиц, субъектов малого предпринимательства или некоммерческие организации в размере двадцати",
+   "uebersetzung": "... zieht eine Geldbuße für Amtsträger, Kleinunternehmen oder gemeinnützige Organisationen in Höhe von zwanzig (MRP) nach sich",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "https://kodeksy-kz.com/ka/ob_administrativnyh_pravonarusheniyah/87.htm",
+   "board_karte": "audit-05",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Bußgeldrahmen je Prüfbereich; Art. 87 noch am Wortlaut prüfen.",
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  {
+   "id": "B-C4-015",
+   "frage": "F5",
+   "aussage": "Bußgeld Pflanzenquarantäne: KoAP Art. 400 „Нарушение законодательства РК в области карантина растений“, Teil 1 von 20 MRP (natürliche Personen) bis 100 MRP (Großunternehmen); Teil 1 betrifft vor allem eingeführte Quarantäneprodukte.",
+   "quelle_url": "https://kodeksy-kz.com/ka/ob_administrativnyh_pravonarusheniyah/400.htm",
+   "rang": 1,
+   "dokument": "КоАП РК 235-V",
+   "adilet_id": "K1400000235",
+   "fundstelle": "Art. 400 Teil 1",
+   "fassung_stand": "2026-07-30",
+   "wortlaut_original": "влечет штраф на физических лиц в размере двадцати ... на субъектов крупного предпринимательства – в размере ста месячных расчетных показателей",
+   "uebersetzung": "Geldbuße 20 MRP für natürliche Personen ... 100 MRP für Großunternehmen (Zwischenstufen fehlen im Auszug).",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "",
+   "board_karte": "audit-05",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Relevant beim Zukauf aus dem Ausland (Pflanzgut, Beeren): Phytosanitärzertifikat je Lieferung ablegen.",
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  {
+   "id": "B-C4-016",
+   "frage": "F5",
+   "aussage": "Umwelt: V1500012779 (MNE № 835 vom 30.12.2015, ME № 721 vom 15.12.2015) ist der geltende Erlass mit Risikokriterien (Anh. 1) und Prüflisten (Anh. 2-4) für Eigentümer und Nutzer von Objekten mit negativer Umweltwirkung. Zuletzt geändert durch gemeinsamen Erlass MEPR № 44 vom 13.03.2026 / MNE № 18 vom 19.03.2026 (u. a. Pkt. 7, 10, 12 und Anh. 1; Inkrafttreten 60 Kalendertage nach Veröffentlichung); frühere Änderung 14.06.2023/13.06.2023. Prüfpunkte wurden nicht gelesen. V1500011792 (Erlass Nr. 431 vom 30.07.2015) ist durch V1500012779 aufgehoben (ab 01.01.2016).",
+   "quelle_url": "https://adilet.zan.kz/rus/docs/V1500012779",
+   "rang": 1,
+   "dokument": "Об утверждении критериев оценки степени риска и проверочных листов в области охраны окружающей среды, воспроизводства и использования природных ресурсов",
+   "adilet_id": "V1500012779",
+   "fundstelle": "Kopf; Pkt. 1; Fußnoten zu Pkt. 7, 10, 12 und Anh. 1",
+   "fassung_stand": "2023-06-14",
+   "wortlaut_original": "Совместный приказ и.о. Министра национальной экономики Республики Казахстан от 30 декабря 2015 года № 835 и Министра энергетики Республики Казахстан от 15 декабря 2015 года № 721. […] в отношении физических или юридических лиц, в собственности или ином законном пользовании которого находится объект, оказывающий негативное воздействие на окружающую среду согласно приложению 2 к настоящему совместному приказу; […] Сноска. Пункт 10 - в редакции совместного приказа Министра экологии и природных ресурсов РК от 13.03.2026 № 44 и и.о. Министра национальной экономики РК от 19.03.2026 № 18",
+   "uebersetzung": "",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "https://adilet.zan.kz/rus/docs/V1500011792",
+   "board_karte": "audit-05",
+   "einstufung": "unklar",
+   "rechtsform": "alle",
+   "damicon_folge": "Phase 3: Prüfliste für Objekte der Kategorie III/IV lesen (Abfälle, Kältemittel, Emissionen). Kategorie des Betriebs nach Ökologischem Kodex als Stammdatum.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: letzte Änderung ist 13.03.2026/19.03.2026, nicht 2023; Status V1500011792 geklärt: aufgehoben durch V1500012779 ab 01.01.2016"
+  },
+  {
+   "id": "B-C4-017",
+   "frage": "F5",
+   "aussage": "Boden/Land: V1800018000 (gemeinsamer Erlass MSH № 502 / MNE № 101 vom 11.12.2018) gilt. Die Prüfliste für Eigentümer und Landnutzer steht in Anh. 6 (neu gefasst am 13.02.2023, MSH № 61, MNE № 20); Anh. 2 enthält die Risikokriterien (neu gefasst am 17.07.2023, MSH № 264, MNE № 141). Sechs Anforderungen: Grenzen und Rechtstitel, Nutzung nach Zweckbestimmung, Rückgabe zeitweise genutzter Staatsflächen, Maßnahmen zum Bodenschutz, rationelle Nutzung landwirtschaftlicher Flächen, Erhalt der Grenzzeichen.",
+   "quelle_url": "https://zakon.mybuh.kz/rus/docs/V1800018000/",
+   "rang": 1,
+   "dokument": "Об утверждении критериев оценки степени рисков и проверочных листов за использованием и охраной земель, государственного земельного кадастра",
+   "adilet_id": "V1800018000",
+   "fundstelle": "Anh. 6 (Prüfliste, Fassung 13.02.2023); Anh. 2 = Risikokriterien (Fassung 17.07.2023)",
+   "fassung_stand": "2023-07-17",
+   "wortlaut_original": "Проверочный лист за использованием и охраной земель в отношении субъектов земельных правоотношений […] Установление фактических границ земельного участка и наличие правоустанавливающих или идентификационных документов на землю […] Использование земель в соответствии с целевым назначением […] Своевременный возврат государственных земель, находящихся во временном пользовании и выполнение обязанностей по приведению их в состояние, пригодное для дальнейшего использования […] Сохранение межевых знаков границы земельных участков",
+   "uebersetzung": "Tatsächliche Grenzen und Rechts-/Identifikationsdokumente; Nutzung nach Zweckbestimmung; rechtzeitige Rückgabe zeitweise genutzter Staatsflächen; Bodenschutzmaßnahmen; rationelle Nutzung landwirtschaftlicher Flächen; Erhalt der Grenzzeichen.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "https://adilet.zan.kz/rus/docs/V1800018000",
+   "board_karte": "audit-05",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Flächenregister: Katasternummer, Rechtstitel, Zweckbestimmung, Pachtende; Nachweis der Bodenschutzmaßnahmen je Schlag.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: Prüfliste ist Anh. 6, nicht Anh. 2; Anh. 2 sind die Risikokriterien; Fassungsdaten zugeordnet"
+  },
+  {
+   "id": "B-C4-018",
+   "frage": "F5",
+   "aussage": "Objektive Kriterien Land: hohe Risikostufe bei Regenfeldbau über 3 000 ha, bewässertem Ackerland über 50 ha oder sonstigen landwirtschaftlichen Flächen über 300 ha. Ein bewässerter Beerenbetrieb über 50 ha fällt damit in die hohe Stufe.",
+   "quelle_url": "https://zakon.mybuh.kz/rus/docs/V1800018000/",
+   "rang": 1,
+   "dokument": "V1800018000",
+   "adilet_id": "V1800018000",
+   "fundstelle": "Kriterien, objektive Kriterien",
+   "fassung_stand": "2023-07-17",
+   "wortlaut_original": "богарные пашни площадью более 3 000 (трех тысяч) гектаров; орошаемые пашни площадью более 50 (пятидесяти) гектаров; сельскохозяйственные угодья (кроме пашни) площадью более 300 (триста) гектаров",
+   "uebersetzung": "Regenfeld-Ackerland über 3 000 ha; bewässertes Ackerland über 50 ha; landwirtschaftliche Nutzflächen (außer Acker) über 300 ha.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "",
+   "board_karte": "audit-03",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Flächenart (bewässert/Regenfeld) und Größe erfassen; Hinweis auf Risikostufe im Compliance-Überblick.",
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  {
+   "id": "B-C4-019",
+   "frage": "F5",
+   "aussage": "V2300033054 (MSH № 254 / MNE № 133 vom 04.07.2023, „в области земельных правоотношений“) richtet sich an Akimate und Landbehörden, nicht an Landnutzer; er ersetzt V1800018000 für Betriebe nicht.",
+   "quelle_url": "https://zakon.mybuh.kz/rus/docs/v2300033054/",
+   "rang": 1,
+   "dokument": "Об утверждении критериев оценки степени риска и проверочного листа в области земельных правоотношений",
+   "adilet_id": "V2300033054",
+   "fundstelle": "Kopf; Pkt. 1",
+   "fassung_stand": "2023-07-11",
+   "wortlaut_original": "Совместный приказ Министра сельского хозяйства Республики Казахстан от 4 июля 2023 года № 254 и Министра национальной экономики Республики Казахстан от 4 июля 2023 года № 133. […] 2) проверочный лист в области земельных правоотношений за законностью принятых решений местных исполнительных органов согласно приложению 2 к настоящему совместному приказу.",
+   "uebersetzung": "",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "",
+   "board_karte": "audit-05",
+   "einstufung": "unklar",
+   "rechtsform": "alle",
+   "damicon_folge": "Keine.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; ersetzt die in V1800018000 gestrichenen Anh. 1 und 5 (Kontrolle der lokalen Exekutivorgane), nicht die Landnutzer-Prüfliste Anh. 6"
+  },
+  {
+   "id": "B-C4-020",
+   "frage": "F5",
+   "aussage": "Formen der Kontrolle nach Unternehmerkodex Art. 137: präventive Kontrolle (ohne Besuch, mit Besuch, Kontrollkauf), Prüfung (auf Einhaltung von Anforderungen, außerplanmäßig) und Untersuchung (Art. 144-4).",
+   "quelle_url": "https://kodeksy-kz.com/ka/predprinimatelskij_kodeks/137.htm",
+   "rang": 1,
+   "dokument": "Предпринимательский кодекс РК 375-V",
+   "adilet_id": "K1500000375",
+   "fundstelle": "Art. 137 Abs. 1 bis 4",
+   "fassung_stand": "2026-07-30",
+   "wortlaut_original": "1) профилактического контроля, носящего предупредительно-профилактический характер […] 3) расследования. […] 1) профилактический контроль без посещения субъекта (объекта) контроля и надзора; […] 2) профилактический контроль с посещением субъекта (объекта) контроля и надзора; […] 3) контрольный закуп. […] 2) внеплановые проверки.",
+   "uebersetzung": "Formen: präventive Kontrolle, Prüfung, Untersuchung; präventiv ohne Besuch, mit Besuch, Kontrollkauf; Prüfungen auf Einhaltung von Anforderungen und außerplanmäßig.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "https://online.zakon.kz/Document/?doc_id=38259854",
+   "board_karte": "audit-03",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Prüfungsakte im System mit Feld „Kontrollform“ (Auswahlliste nach Art. 137).",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; „Prüfung auf Einhaltung von Anforderungen“ betrifft Genehmigungs- und Anzeigeanforderungen"
+  },
+  {
+   "id": "B-C4-021",
+   "frage": "F5",
+   "aussage": "Das allgemeine Prüfungsmoratorium für Mikro- und Kleinunternehmen (2020 bis 2023) endete am 01.01.2024 und wurde nicht verlängert; seitdem gilt die automatisierte risikobasierte Auswahl.",
+   "quelle_url": "https://www.zakon.kz/sovety-yurista/6419569-konets-moratoriya-na-proverki-biznesa-informatsiya-dlya-predprinimateley.html",
+   "rang": 3,
+   "dokument": "zakon.kz 05.01.2024",
+   "adilet_id": "",
+   "fundstelle": "",
+   "fassung_stand": "2024-01-05",
+   "wortlaut_original": "",
+   "uebersetzung": "Kein wörtliches Zitat gesichert (nur Zusammenfassung des Abrufs); Wortlaut in Phase 3 nachtragen.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "nur_sekundaer",
+   "gegenquelle": "https://kapital.kz/business/111091/moratoriy-na-proverki-biznesa-prodlili-do-1-yanvarya-2024-goda.html",
+   "board_karte": "audit-03",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Kein Moratorium für Sanepid, Arbeit, Phyto, Umwelt, Land 2026 gefunden: Betrieb muss prüfbereit sein. Rechtsgrundlage (Präsidialerlass) noch am Primärtext belegen.",
+   "pruefvermerk": "adilet nicht geprüft (keine Kennung oder Seite nicht geladen)"
+  },
+  {
+   "id": "B-C4-022",
+   "frage": "F5",
+   "aussage": "2026 gilt nur ein steuerliches Moratorium: Für Mikro- und Kleinunternehmen keine Steuerprüfungen für Perioden vor dem 01.01.2026, mit Ausnahmen (bereits angeordnete Prüfungen, Gegenprüfungen, Strafverfahren, Anforderung der Staatsanwaltschaft). Nicht-steuerliche Kontrollen sind davon nicht erfasst.",
+   "quelle_url": "https://kz.kursiv.media/2026-01-26/klsv-poslableniya-dlya-mikro-i-malogo-businessa-pridumali-v-pravitelstve/",
+   "rang": 3,
+   "dokument": "Kursiv 26.01.2026",
+   "adilet_id": "",
+   "fundstelle": "",
+   "fassung_stand": "2026-01-26",
+   "wortlaut_original": "мораторий на налоговые проверки за периоды до 1 января 2026 года",
+   "uebersetzung": "Moratorium auf Steuerprüfungen für Perioden vor dem 1. Januar 2026",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "nur_sekundaer",
+   "gegenquelle": "https://mybuh.kz/news/isklyucheniya-v-nalogovykh-proverkakh-mikro-i-malogo-predprinimatelstva",
+   "board_karte": "audit-03",
+   "einstufung": "unklar",
+   "rechtsform": "alle",
+   "damicon_folge": "An Agent C3 (Steuer) weitergeben; Größenklasse des Betriebs (Mikro/Klein) als Stammdatum.",
+   "pruefvermerk": "adilet nicht geprüft (keine Kennung oder Seite nicht geladen)"
+  },
+  {
+   "id": "B-C4-023",
+   "frage": "F5",
+   "aussage": "rsp.gov.kz führt das Register der Pflichtanforderungen mit OKED-Filter (01250 „Выращивание прочих плодов, ягод и орехов“) und einen Prüfplan mit 17 988 Einträgen, suchbar nach BIN; sichtbare Zeiträume reichen bis „2025 год“. Einträge für OKED 01250 ließen sich per WebFetch nicht zuverlässig filtern.",
+   "quelle_url": "https://rsp.gov.kz/public/ru/plan",
+   "rang": 1,
+   "dokument": "Реестр обязательных требований в сфере предпринимательства / План проверок",
+   "adilet_id": "",
+   "fundstelle": "Startseite, Filter",
+   "fassung_stand": "2026-09-18",
+   "wortlaut_original": "Выращивание прочих плодов, ягод и орехов",
+   "uebersetzung": "Anbau von sonstigem Obst, Beeren und Nüssen (OKED 01250)",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "offen",
+   "gegenquelle": "https://rsp.gov.kz/ru",
+   "board_karte": "audit-03",
+   "einstufung": "empfehlung",
+   "rechtsform": "alle",
+   "damicon_folge": "Funktion „Prüfplan beobachten“: BIN des Betriebs halbjährlich gegen rsp.gov.kz prüfen. Register nach OKED 01250 in Phase 3 mit /browse auswerten.",
+   "pruefvermerk": "adilet nicht geprüft (keine Kennung oder Seite nicht geladen)"
+  },
+  {
+   "id": "B-C5-001",
+   "frage": "F6",
+   "aussage": "Gegenleistungspflichten (встречные обязательства) nach Pkt. 10-1 der Regeln V2000020209: Pflicht, wenn ein Betrieb im laufenden Finanzjahr Subventionen von zusammen 100 Mio. Tenge oder mehr erhält (gezählt werden nur Subventionsarten mit gleichartigen Gegenleistungspflichten); ab 01.01.2029 für alle Subventionsempfänger. Inhalt: Bruttoproduktion in Geld wachsen lassen oder auf Vorjahresniveau halten. Pkt. 10-1 eingefügt am 20.06.2024 (in Kraft 01.01.2025), neu gefasst durch Erlass MSH № 36 vom 27.01.2026.",
+   "quelle_url": "https://adilet.zan.kz/rus/docs/V2000020209",
+   "rang": 1,
+   "dokument": "Об утверждении Правил субсидирования повышения урожайности и качества продукции растениеводства (приказ МСХ № 107 от 30.03.2020)",
+   "adilet_id": "V2000020209",
+   "fundstelle": "Pkt. 10-1 (eingefügt durch Erlass MSH № 208 vom 20.06.2024, in Kraft 01.01.2025; neu gefasst durch Erlass MSH № 36 vom 27.01.2026)",
+   "fassung_stand": "2026-01-26",
+   "wortlaut_original": "10-1. Сельхозтоваропроизводителям (сельхозкооперативам), получающим субсидии в растениеводстве, необходимо соблюдать встречные обязательства по обеспечению роста/сохранению на уровне предыдущего года объема валовой продукции […] Встречные обязательства принимаются субъектами агропромышленного комплекса при условии получения в текущем финансовом году субсидий в совокупности по всем видам субсидий, по которым предусмотрено установление аналогичных встречных обязательств, в размере 100 000 000 (ста миллионов) тенге и выше. […] С 1 января 2029 года встречные обязательства распространяются на все субъекты агропромышленного комплекса, получающие субсидии.",
+   "uebersetzung": "Gegenleistungspflichten übernehmen Agrarbetriebe, wenn sie im laufenden Finanzjahr Subventionen aller Arten zusammen von 100 000 000 Tenge oder mehr erhalten.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "https://www.zakon.kz/pravo/6506594-izmenilis-pravila-subsidirovaniya-zatrat-pererabatyvayushchikh-i-selkhozpredpriyatiy.html",
+   "board_karte": "audit-03",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Subventionssumme je Jahr aufaddieren (Schwelle 100 Mio. KZT, ab 2029 alle); Jahresvergleich Bruttoproduktion in KZT als Bericht.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: Fundstelle ist Pkt. 10-1, nicht Pkt. 10; Änderungsdatum 27.01.2026 № 36 (nicht 26.01.2026 № 29, der Pkt. 3 und 42 betrifft); Schwelle zählt nur Subventionen mit gleichartigen Gegenleistungen"
+  },
+  {
+   "id": "B-C5-002",
+   "frage": "F6",
+   "aussage": "Folgen bei Nichterfüllung der Gegenleistungspflicht: beim ersten Mal ohne Nachweis höherer Gewalt ein Jahr Sperre für neue Anträge, bei Wiederholung zwei Jahre. Kontrolle über das Informationssystem für Subventionen; E-Rechnungen und EDS belegen Kauf und Verkauf.",
+   "quelle_url": "https://www.zakon.kz/pravo/6506594-izmenilis-pravila-subsidirovaniya-zatrat-pererabatyvayushchikh-i-selkhozpredpriyatiy.html",
+   "rang": 3,
+   "dokument": "zakon.kz 03.02.2026 zum Erlass des amt. Landwirtschaftsministers vom 27.01.2026 (in Kraft 03.02.2026)",
+   "adilet_id": "",
+   "fundstelle": "",
+   "fassung_stand": "2026-02-03",
+   "wortlaut_original": "",
+   "uebersetzung": "Nur Zusammenfassung, Wortlaut fehlt.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "nur_sekundaer",
+   "gegenquelle": "https://legalacts.egov.kz/npa/view?id=15054083",
+   "board_karte": "audit-03",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Nachweise höherer Gewalt (Dürre, Frost) mit Akten und Datum ablegen; Sperrfristen im Förderkalender anzeigen. Wortlaut und Punktnummer in V2000020209 lesen.",
+   "pruefvermerk": "adilet nicht geprüft (keine Kennung oder Seite nicht geladen)"
+  },
+  {
+   "id": "B-C5-003",
+   "frage": "F6",
+   "aussage": "Die Punkte aus dem Entwurf 2024 sind geltendes Recht in V2000020209: E-Rechnungen, die für einen Subventionsantrag genutzt werden, dürfen nicht widerrufen, annulliert oder korrigiert werden und werden bei Bestätigung der Nutzung automatisch gesperrt; bei Widerruf mit Betragsänderung sind die Subventionen zurückzuzahlen (Pkt. 15). Gekaufte und gepflanzte Elite-Setzlinge von Obst- und Beerenkulturen werden zu 50 % erstattet (Pkt. 42 Nr. 5). Das Meldeformular zu Produktionsmenge und -wert wurde am Text nicht geprüft.",
+   "quelle_url": "https://legalacts.egov.kz/npa/view?id=15054083",
+   "rang": 1,
+   "dokument": "Проект изменений в приказ МСХ № 107 от 30.03.2020 (16.05.2024, Archiv)",
+   "adilet_id": "V2000020209",
+   "fundstelle": "Pkt. 15 (Fassung 22.06.2026, in Kraft 12.07.2026); Pkt. 42 Nr. 5 (Fassung 26.01.2026)",
+   "fassung_stand": "2024-05-16",
+   "wortlaut_original": "15. Не допускается отзыв, аннулирование и корректировка электронных счетов-фактур, использованных для получения субсидий. […] 5) частичного (50 %) возмещения затрат сельхозтоваропроизводителей (сельхозкооперативов) за фактически приобретенные и использованные элитные саженцы плодово-ягодных культур и винограда на закладку многолетних насаждений плодово-ягодных культур и винограда.",
+   "uebersetzung": "Zusammenfassung des Entwurfs; ob so in Kraft, ist am geltenden Text zu prüfen.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "",
+   "board_karte": "audit-03",
+   "einstufung": "unklar",
+   "rechtsform": "alle",
+   "damicon_folge": "Belegsperre: Rechnungen, die einem Subventionsantrag zugeordnet sind, im System gegen Änderung sperren und Antragsbezug speichern.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: kein Entwurf mehr: Inhalte stehen im geltenden Text (Pkt. 15, Pkt. 42 Nr. 5); 50 % gelten für Elite-Setzlinge; Formular nicht geprüft"
+  },
+  {
+   "id": "B-C5-004",
+   "frage": "F6",
+   "aussage": "Investitionssubventionen (V1800017320): Die zuständige Stelle (рабочий орган / услугодатель) überwacht drei Jahre lang im ГЦСС: vierteljährlich Nichtveräußerung und Zweckbindung; jährlich u. a. Übereinstimmung der Tätigkeit mit OKED; Betrieb/Stillstand und Auslastung von mindestens 50 % nur für bestimmte Projektpässe (Nr. 7, 8, 10, 18, 19, 24-29, 32 – nicht Nr. 14 und 23). Anfragen sind binnen 15 Arbeitstagen über ГЦСС zu beantworten, sonst Einstellung und Rückforderung. Besichtigungsakt mit Foto- und Videonachweis gehört zur Prüfung vor der Auszahlung (Pkt. 4), nicht zum Monitoring.",
+   "quelle_url": "https://cdb.kz/sistema/pravovaya-baza/ob-utverzhdenii-pravil-subsidirovaniya-po-vozmeshcheniyu-chasti-raskhodov-ponesennykh-subektom-agropromyshlennogo-kompleksa-pri-investitsionnykh-vlozheniyakh/",
+   "rang": 1,
+   "dokument": "Правила субсидирования по возмещению части расходов, понесенных субъектом АПК, при инвестиционных вложениях",
+   "adilet_id": "V1800017320",
+   "fundstelle": "Pkt. 4 (Besichtigung vor Auszahlung); Pkt. 38 (Fassung 02.04.2026/30.06.2026); Pkt. 39 (Fassung 30.06.2026)",
+   "fassung_stand": "unklar",
+   "wortlaut_original": "38. Мониторинг инвестиционного субсидирования осуществляется в течение 3 (трех) лет с момента субсидирования рабочим органом (услугодателем) в ГЦСС по следующим критериям: […] 1) ежеквартально на предмет не отчуждения (в том числе в части запрета на замену и передачу в аренду объектов инвестиционного субсидирования) и обеспечения целевого использования инвестором (услугополучателем) приобретенной техники, машин и оборудования; […] Инвестор (услугополучатель) в течение 15 (пятнадцати) рабочих дней представляет запрашиваемую информацию рабочему органу (услугодателю) путем ее размещения в ГЦСС.",
+   "uebersetzung": "Besichtigung des Investorobjekts und der gekauften Ausrüstung ... wird mit einem Besichtigungsakt dokumentiert ... binnen 15 Arbeitstagen ... Einstellung der Investitionssubventionierung und Rückforderung der gezahlten Subventionen.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "https://adilet.zan.kz/rus/docs/V1800017320",
+   "board_karte": "audit-03",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Anlagenregister geförderter Objekte (Kühllager, Tropfbewässerung, Anlage Beerenplantage) mit Förderbescheid, 3-Jahres-Bindung, Standortfotos, Auslastung; Frist 15 Arbeitstage für Anfragen als Aufgabe.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: jährliche Auslastungsprüfung nur für aufgezählte Pässe (nicht 14, 23); Besichtigungsakt mit Foto/Video ist Pkt. 4 (vor Auszahlung), nicht Monitoring"
+  },
+  {
+   "id": "B-C5-005",
+   "frage": "F6",
+   "aussage": "Rückforderungsgründe bei Investitionssubventionen: Veräußerung oder zweckwidrige Nutzung, Stillstand des Objekts drei Kalenderjahre, weniger als 50 % der Projektkapazität im Zeitrahmen des Businessplans, OKED-Abweichung, Insolvenz. Die Stelle leitet binnen 30 Kalendertagen nach dem Rückforderungsbeschluss ein Gerichtsverfahren ein. Gegenleistung: statistische Berichte zu Investitionen in das Anlagekapital.",
+   "quelle_url": "https://cdb.kz/sistema/pravovaya-baza/ob-utverzhdenii-pravil-subsidirovaniya-po-vozmeshcheniyu-chasti-raskhodov-ponesennykh-subektom-agropromyshlennogo-kompleksa-pri-investitsionnykh-vlozheniyakh/",
+   "rang": 1,
+   "dokument": "V1800017320",
+   "adilet_id": "V1800017320",
+   "fundstelle": "Pkt. 40 (Fassung 30.06.2026, in Kraft 12.07.2026); Pkt. 20",
+   "fassung_stand": "unklar",
+   "wortlaut_original": "В случае отчуждения и/или нецелевого использования инвестором (услугополучателем) приобретенной техники, машин и/или оборудования, бездействия объекта производства в течение трех календарных лет с момента ввода в эксплуатацию или не выхода объекта на проектную мощность в размере не менее 50 (пятидесяти) % […] рабочий орган (услугодатель) в течение 30 (тридцати) календарных дней, с момента принятия решения о возврате инвестиционных субсидий, инициирует судебное разбирательство по возврату денежных средств. […] Для субъектов АПК, получающих инвестиционные субсидии, встречным обязательством будет предоставление статистической отчетности, начиная с 2020 года по инвестициям в основной капитал сельского хозяйства и производства продуктов питания.",
+   "uebersetzung": "Veräußerung und/oder zweckwidrige Nutzung der gekauften Technik; Stillstand des Produktionsobjekts drei Kalenderjahre ... die Stelle leitet binnen 30 Kalendertagen nach dem Rückforderungsbeschluss ein Gerichtsverfahren ein.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "",
+   "board_karte": "audit-03",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Warnung bei Verkauf/Abgang eines geförderten Anlageguts innerhalb der Bindungsfrist; Kennzahl Kapazitätsauslastung gegen Businessplan.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; weitere Gründe laut Text: Aussetzung der Tätigkeit, Kündigung des Kredit-/Leasingvertrags mit Rücknahme"
+  },
+  {
+   "id": "B-C5-006",
+   "frage": "F6",
+   "aussage": "Förderpässe für Beerenbetriebe in V1800017320: Pass 14 „Anlage von Obst-, Beerenkulturen und Wein ab 5 ha“, Pass 23 „Bau und Erweiterung von Obstlagern ab 1 000 t“. Nachweise nach Pkt. 23: Abnahme- bzw. Inbetriebnahmeakte, Kaufverträge und Rechnungen, Projekt- und Kostendokumentation mit positivem Gutachten, Übergabeakte, Kredit-/Leasingverträge, ggf. НДС-Registrierung. Für Brunnen (Pass Nr. 4) zusätzlich Registrierung der Rechte am Wasserbauwerk, technischer Pass der Bohrung und Unterlagen zum Bohrunternehmer; eine Wassernutzungsgenehmigung wird im Text nicht verlangt.",
+   "quelle_url": "https://cdb.kz/sistema/pravovaya-baza/ob-utverzhdenii-pravil-subsidirovaniya-po-vozmeshcheniyu-chasti-raskhodov-ponesennykh-subektom-agropromyshlennogo-kompleksa-pri-investitsionnykh-vlozheniyakh/",
+   "rang": 1,
+   "dokument": "V1800017320",
+   "adilet_id": "V1800017320",
+   "fundstelle": "Pkt. 23; Anh. Projektpässe Nr. 14 und Nr. 23",
+   "fassung_stand": "unklar",
+   "wortlaut_original": "Паспорт проекта № 14 \"Закладка плодово-ягодных культур и винограда от 5 гектаров\" […] Паспорт проекта № 23 \"Строительство и расширение фруктохранилищ от 1000 тонн *\" […] 2) копии акта ввода оборудования в эксплуатацию между покупателем и поставщиком (при приобретении оборудования); […] 5) копии актов приема-передачи техники, машин, оборудования;",
+   "uebersetzung": "Anlage von Obst- und Beerenkulturen und Wein ab 5 ha; Bau und Erweiterung von Obstlagern ab 1 000 t.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "",
+   "board_karte": "audit-03",
+   "einstufung": "unklar",
+   "rechtsform": "alle",
+   "damicon_folge": "Dokumentenmappe je gefördertem Projekt mit Pflichtbelegen (Akte, Verträge, Rechnungen, Gutachten, Genehmigungen).",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: „Wassernutzungsgenehmigung“ steht nicht im Text; Brunnen-Nachweise nach Pkt. 23 Nr. 10 (Pass Nr. 4) ersetzt"
+  },
+  {
+   "id": "B-C5-007",
+   "frage": "F6",
+   "aussage": "Staatliche Finanzkontrolle: Gesetz 392-V zählt Empfänger von Haushaltsmitteln zu den Objekten des staatlichen Audits; Gegenprüfung (встречная проверка) Dritter nur zu ihren Beziehungen mit dem Hauptobjekt. Prüfende Organe: Oberste Rechnungskammer (Art. 12), Revisionskommissionen der Gebiete (Art. 13), Organ für inneren Staatsaudit (Art. 14).",
+   "quelle_url": "https://cdb.kz/sistema/pravovaya-baza/o-gosudarstvennom-audite-i-finansovom-kontrole/",
+   "rang": 1,
+   "dokument": "Закон РК от 12.11.2015 № 392-V О государственном аудите и финансовом контроле",
+   "adilet_id": "Z1500000392",
+   "fundstelle": "Art. 1 Pkt. 7; Art. 12, 13, 14; Art. 17 Abs. 4 Pkt. 1 (laut Spiegel, Fassung unklar)",
+   "fassung_stand": "unklar",
+   "wortlaut_original": "Проверка третьих лиц, которая проводится исключительно по вопросам взаимоотношений с основным объектом",
+   "uebersetzung": "Prüfung Dritter, die ausschließlich zu Fragen der Beziehungen mit dem Hauptobjekt durchgeführt wird.",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "primaer",
+   "gegenquelle": "https://online.zakon.kz/Document/?doc_id=37724730",
+   "board_karte": "audit-03",
+   "einstufung": "pflicht",
+   "rechtsform": "alle",
+   "damicon_folge": "Subventionsempfänger kann als Objekt oder als Dritter (Gegenprüfung) geprüft werden: Export aller Subventionsbelege je Antrag. Artikelnummern am Stand 29.07.2025 prüfen; neuer Budgetkodex beachten.",
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  {
+   "id": "B-C5-008",
+   "frage": "F6",
+   "aussage": "Die Oberste Rechnungskammer prüfte die Agrarförderung für fünf Jahre (rund 2 Bio. Tenge): 142 Mrd. Tenge ineffizient, 2 Mrd. finanzielle Verstöße; fast 2 Mrd. zurückgeführt, 4 Strafsachen an Strafverfolger, 322 Materialien zur Verwaltungsahndung. In einem anderen Bericht: fiktive Verkäufe desselben Viehs zwischen Subventionsempfängern in 11 Regionen.",
+   "quelle_url": "https://www.nur.kz/politics/kazakhstan/2198867-poteri-i-upushchennaya-vygoda-na-5-mlrd-tenge-smailov-o-vydelennyh-na-selskoe-hozyaystvo-subsidiyah/",
+   "rang": 3,
+   "dokument": "nur.kz 11.12.2024",
+   "adilet_id": "",
+   "fundstelle": "",
+   "fassung_stand": "2024-12-11",
+   "wortlaut_original": "",
+   "uebersetzung": "",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "nur_sekundaer",
+   "gegenquelle": "https://kazpravda.kz/n/gosaudit-za-2-goda-obshchiy-obem-narusheniy-v-apk-sostavil-poryadka-300-mlrd-tenge/",
+   "board_karte": "audit-03",
+   "einstufung": "unklar",
+   "rechtsform": "alle",
+   "damicon_folge": "Prüfer suchen Scheingeschäfte zwischen Subventionsempfängern: Zukauf von Nachbarbetrieben mit Herkunftsnachweis (Fläche, Ernte, Lieferschein, ESF) belegen.",
+   "pruefvermerk": "adilet nicht geprüft (keine Kennung oder Seite nicht geladen)"
+  },
+  {
+   "id": "B-C5-009",
+   "frage": "F6",
+   "aussage": "Seit 01.01.2023 laufen Subventionsanträge über das staatliche Informationssystem für Subventionen (gosagro.kz, ЕГИСС) statt über Qoldau; es ist mit Daten zu Grundstücken, Tieren, Technik und Feldkarten verknüpft.",
+   "quelle_url": "https://kapital.kz/economic/111786/servis-po-subsidirovaniyu-agrariyev-na-qoldau-otklyuchat-1-yanvarya.html",
+   "rang": 3,
+   "dokument": "Kapital.kz",
+   "adilet_id": "",
+   "fundstelle": "",
+   "fassung_stand": "2022-12",
+   "wortlaut_original": "",
+   "uebersetzung": "",
+   "abgerufen_am": "2026-09-18",
+   "verifiziert": "nur_sekundaer",
+   "gegenquelle": "https://agroinfo.kz/servis-subsidirovaniya-agrariev-platformy-qoldau-otklyuchyon-s-1-yanvarya-2023-goda/",
+   "board_karte": "audit-03",
+   "einstufung": "unklar",
+   "rechtsform": "alle",
+   "damicon_folge": "Schnittstelle oder Export für gosagro.kz prüfen (Feldkarten, Flächen, Rechnungen); Antragsnummer ГИСС je Subvention speichern.",
+   "pruefvermerk": "adilet nicht geprüft (keine Kennung oder Seite nicht geladen)"
+  }
+ ],
+ "luecken": [
+  {
+   "frage": "F5",
+   "grund": "Pflanzenquarantäne: adilet-Kennung des geltenden Erlasses (MSH № 15-05/1138 vom 28.12.2015 / MNE № 819, geändert 15.02.2023) nicht gefunden; Spiegel liefern 404/500, Paragraph kostenpflichtig. Status von V1300008502 ungeklärt."
+  },
+  {
+   "frage": "F5",
+   "grund": "Umwelt: Prüfpunkte aus V1500012779 nicht gelesen (mybuh 404, uchet 500, adilet leer). Status von V1500011792 ungeklärt."
+  },
+  {
+   "frage": "F5",
+   "grund": "Wasser: keine Prüfliste für Wassernutzer gefunden. Neuer Wasserkodex K2500000178 vom 09.04.2025; Folgeerlasse zu Risikokriterien nicht gefunden. Regierungsbeschluss vom 24.08.2026 erweitert die Befugnisse des Wasserministeriums."
+  },
+  {
+   "frage": "F5",
+   "grund": "Lebensmittelsicherheit: kein eigener Erlass für Pflanzenprodukte in der Primärproduktion gefunden; unklar, ob Feldanbau und Packstelle unter Anh. 17 von V2200030964 fallen. Veterinär-Erlass V1500012636 ist für Beeren nicht einschlägig."
+  },
+  {
+   "frage": "F5",
+   "grund": "Register der Pflichtanforderungen (rsp.gov.kz) und egov.kz/business_inspections sind JavaScript-Seiten; OKED-Filter 01250 ließ sich per WebFetch nicht auswerten. In Phase 3 mit /browse nachholen."
+  },
+  {
+   "frage": "F5",
+   "grund": "Rechtsgrundlage (Präsidialerlass) und Ende des Moratoriums 2020 bis 2023 nur aus Presse; kein Primärbeleg. Artikel 138, 141, 143, 144-2 des Unternehmerkodex nicht im Wortlaut gelesen (Spiegel abgeschnitten)."
+  },
+  {
+   "frage": "F5",
+   "grund": "Bußgelder für Pflanzenschutz/Pestizide, Umwelt und Land nicht ermittelt; Art. 87 KoAP nur aus Suchergebnis."
+  },
+  {
+   "frage": "F6",
+   "grund": "V2000020209 im Wortlaut nicht lesbar (mybuh 404, uchet 500): Punktnummern zu Gegenleistungspflicht, Rückforderung und Kontrolle durch Akimat/Landwirtschaftsverwaltung fehlen. Regeln der Informationssystem-Führung (ГИСС) nicht gefunden."
+  },
+  {
+   "frage": "F6",
+   "grund": "Rolle der Staatsanwaltschaft und des Komitees für inneren Staatsaudit bei Subventionsempfängern nicht mit Primärtext belegt; Gesetz 392-V nur in älterer Spiegelfassung gelesen, Verhältnis zum neuen Budgetkodex offen."
+  },
+  {
+   "frage": "F10",
+   "grund": "Keine laufenden Entwürfe 2026 zu Prüflisten, Moratorium oder Subventionsregeln auf legalacts.egov.kz über WebSearch gefunden; gefundene Entwürfe betreffen andere Bereiche oder sind archiviert. Suche direkt auf legalacts in Phase 3 wiederholen."
+  }
+ ],
+ "fragen_pruefer": [
+  {
+   "frage_ru": "Какой совместный приказ (номер регистрации в Минюсте) в 2026 году содержит действующие критерии оценки степени риска и проверочные листы в области карантина растений, и утратил ли силу приказ V1300008502?",
+   "frage_de": "Welcher Erlass (Registriernummer) enthält 2026 die gültigen Risikokriterien und Prüflisten zur Pflanzenquarantäne, und ist V1300008502 aufgehoben?",
+   "bezug": "F5 / Pflanzenquarantäne"
+  },
+  {
+   "frage_ru": "Подпадает ли ягодное хозяйство с участком сортировки, упаковки и холодильным складом под проверочный лист для объектов по производству пищевой продукции (приложение 17 к V2200030964) или только под лист для оптовой торговли (приложение 18)?",
+   "frage_de": "Fällt ein Beerenbetrieb mit Sortierung, Verpackung und Kühllager unter die Prüfliste Lebensmittelproduktion (Anh. 17) oder nur Großhandel (Anh. 18) von V2200030964?",
+   "bezug": "F5 / V2200030964"
+  },
+  {
+   "frage_ru": "Действует ли в 2026 году какой-либо мораторий на проверки и профилактический контроль с посещением для субъектов малого предпринимательства в сфере санэпидконтроля, труда и защиты растений?",
+   "frage_de": "Gilt 2026 irgendein Moratorium auf Prüfungen und präventive Kontrolle mit Besuch für Kleinunternehmen in den Bereichen Sanepid, Arbeit und Pflanzenschutz?",
+   "bezug": "F5 / Unternehmerkodex Art. 137 ff."
+  },
+  {
+   "frage_ru": "Какой проверочный лист применяет Комитет по регулированию, охране и использованию водных ресурсов к водопользователям (орошение из скважины) после принятия Водного кодекса 2025 года?",
+   "frage_de": "Welche Prüfliste wendet das Wasserkomitee auf Wassernutzer (Bewässerung aus Brunnen) nach dem Wasserkodex 2025 an?",
+   "bezug": "F5 / Wasser, K2500000178"
+  },
+  {
+   "frage_ru": "Какие пункты Правил субсидирования повышения урожайности (V2000020209) в редакции от 26.01.2026 регулируют встречные обязательства, их подтверждение и последствия неисполнения, и кто проводит проверку (управление сельского хозяйства акимата, выезд на место)?",
+   "frage_de": "Welche Punkte von V2000020209 (Stand 26.01.2026) regeln Gegenleistungspflichten, Nachweis und Folgen, und wer prüft vor Ort?",
+   "bezug": "F6 / V2000020209"
+  },
+  {
+   "frage_ru": "Может ли Высшая аудиторская палата или орган внутреннего государственного аудита проверить ТОО, КХ или ИП как получателя субсидий напрямую или только встречной проверкой, и какие документы при этом запрашиваются?",
+   "frage_de": "Kann die Oberste Rechnungskammer oder der innere Staatsaudit eine TOO, KH oder IP als Subventionsempfänger direkt prüfen oder nur per Gegenprüfung, und welche Unterlagen werden verlangt?",
+   "bezug": "F6 / 392-V"
+  }
+ ],
+ "aenderungen_in_arbeit": [
+  {
+   "titel": "Совм. приказ МЗ № 45 от 24.04.2026 и МНЭ № 34 от 27.04.2026 – Änderung der Sanepid-Prüflisten V2200030964",
+   "url": "https://prg.kz/document/?doc_id=32349390",
+   "status": "in Kraft (Inhalt der Änderung nicht gelesen)"
+  },
+  {
+   "titel": "Приказ МСХ № 29 от 26.01.2026 – Änderung Pkt. 10 der Regeln V2000020209 (Gegenleistungspflichten)",
+   "url": "https://adilet.zan.kz/rus/docs/V2000020209",
+   "status": "in Kraft"
+  },
+  {
+   "titel": "Erlass des amt. Landwirtschaftsministers vom 27.01.2026 – Änderung von Subventionsregeln (Verarbeitung, Tierzucht, Pflanzenbau), in Kraft 03.02.2026",
+   "url": "https://www.zakon.kz/pravo/6506594-izmenilis-pravila-subsidirovaniya-zatrat-pererabatyvayushchikh-i-selkhozpredpriyatiy.html",
+   "status": "in Kraft"
+  },
+  {
+   "titel": "Приказ МСХ № 263 от 30.06.2026 – Änderung der Regeln für Investitionssubventionen V1800017320",
+   "url": "https://adilet.zan.kz/rus/docs/V1800017320",
+   "status": "in Kraft laut Suchergebnis, Inhalt nicht gelesen"
+  },
+  {
+   "titel": "Постановление Правительства от 24.08.2026 – erweiterte Befugnisse des Ministeriums für Wasserressourcen und Bewässerung (Kontrolle Wasserfonds, Wasserschutzzonen)",
+   "url": "https://www.inform.kz/ru/pravitelstvo-kazahstana-rasshirilo-polnomochiya-minvodi-v-sfere-zemel-i-vodnih-r-974ef4bb",
+   "status": "in Kraft ab Unterzeichnung"
+  },
+  {
+   "titel": "Водный кодекс РК от 09.04.2025 und Folgeerlasse (Risikokriterien/Prüflisten Wasser noch nicht gefunden)",
+   "url": "https://adilet.zan.kz/rus/docs/K2500000178",
+   "status": "in Kraft; Folgeerlasse offen"
+  }
+ ]
+}

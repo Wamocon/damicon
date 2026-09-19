@@ -16,7 +16,8 @@
 //
 // Deckt ab: Migrationen + Seed wenden fehlerfrei an, RLS fuer anon, rollen-
 // abhaengige Schreibrechte auf Reihenbloecke, der Sperr-Trigger nach einer
-// Pflanzenschutzbehandlung und die Ablehnung eines vorzeitigen Statuswechsels.
+// Pflanzenschutzbehandlung, die Ablehnung eines vorzeitigen Statuswechsels und
+// die Fortschreibung von Menge und Ausschuss in die Charge.
 // =============================================================================
 
 import { PGlite } from "@electric-sql/pglite";
@@ -248,23 +249,638 @@ await mussScheitern(
   await alsAdmin(db);
 }
 
-// --- 7. Pflanzenschutz-Protokoll: Behandlungen bleiben nachweisbar ----------
+// --- 7. Ausschuss wandert in die Charge (Verlustquote) ----------------------
+// Regression: 20260911000000_geraete_zeitstempel.sql hat aufgabe_fortschreiben()
+// ohne die Ausschuss-Fortschreibung aus 20260905200000_kette_haerten.sql neu
+// definiert - chargen.ausschuss_kg blieb 0, die Verlustquote (kpi_aktuell)
+// rechnete fuer jede neu gemeldete Charge null Verlust. Geprueft wird ueber den
+// echten App-Weg: die Brigade meldet per sync_menge_melden().
+{
+  await alsRolle(db, "authenticated", leitungAuthId);
+  const { rows: freierBlock } = await db.query(
+    `select id from public.reihenbloecke
+      where status <> 'wartezeitgesperrt' and id <> $1
+      limit 1;`,
+    [blockId],
+  );
+  const { rows: aufgabe } = await db.query(
+    `insert into public.pflueckaufgaben (code, reihenblock_id, zielmenge_kg)
+     values ('PA-PGLITE-AUSSCHUSS', $1, 20)
+     returning id;`,
+    [freierBlock[0].id],
+  );
+  const aufgabeId = aufgabe[0].id;
+  await db.query(
+    "update public.pflueckaufgaben set status = 'in_arbeit' where id = $1;",
+    [aufgabeId],
+  );
+  await alsAdmin(db);
+
+  const chargeAusschuss = async () => {
+    const { rows } = await db.query(
+      "select menge_kg, ausschuss_kg from public.chargen where pflueckaufgabe_id = $1;",
+      [aufgabeId],
+    );
+    return rows[0];
+  };
+
+  await alsRolle(db, "authenticated", brigadeAuthId);
+  const { rows: meldung } = await db.query(
+    "select * from public.sync_menge_melden($1, $2, $3, $4);",
+    [crypto.randomUUID(), aufgabeId, 18.5, 1.5],
+  );
+  await alsAdmin(db);
+  const nachMeldung = await chargeAusschuss();
+  check(
+    "Kette: gemeldeter Ausschuss landet in der Charge",
+    meldung[0]?.ergebnis === "angewendet" &&
+      Number(nachMeldung?.menge_kg) === 18.5 &&
+      Number(nachMeldung?.ausschuss_kg) === 1.5,
+    `ergebnis: ${meldung[0]?.ergebnis}, menge_kg: ${nachMeldung?.menge_kg}, ausschuss_kg: ${nachMeldung?.ausschuss_kg}`,
+  );
+
+  // Korrektur in der Belegpruefung: nur der Ausschuss aendert sich, die Menge
+  // bleibt - auch das muss die Charge erreichen.
+  await alsRolle(db, "authenticated", brigadeAuthId);
+  await db.query("select * from public.sync_menge_melden($1, $2, $3, $4);", [
+    crypto.randomUUID(),
+    aufgabeId,
+    18.5,
+    2.25,
+  ]);
+  await alsAdmin(db);
+  const nachKorrektur = await chargeAusschuss();
+  check(
+    "Kette: eine reine Ausschuss-Korrektur landet ebenfalls in der Charge",
+    Number(nachKorrektur?.ausschuss_kg) === 2.25,
+    `ausschuss_kg: ${nachKorrektur?.ausschuss_kg}`,
+  );
+
+  // alsAdmin() setzt nur die Rolle zurueck, nicht auth.uid() - ohne das
+  // Leeren wuerde das Aufraeumen unten als Brigade laufen und an
+  // block_erntebuchung_mutation() scheitern.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
+// --- 8. Lesezugriff auf Betriebsdaten nach Rolle ----------------------------
+// Regression: 20260905160000_haerten.sql hat die Betriebsdaten pauschal fuer
+// jede angemeldete Rolle lesbar gemacht (using(true)). picker und kunde sahen
+// damit ueber die REST-API Chargen, Aufgaben, Reihenbloecke und Brigaden,
+// obwohl rbac.ts ihnen kein solches Modul zeigt. 20261023000000 verengt das.
+{
+  const anlegen = async (email, rolle) => {
+    const { rows } = await db.query(
+      `insert into auth.users (email, raw_app_meta_data)
+       values ($1, jsonb_build_object('role', $2::text))
+       returning id;`,
+      [email, rolle],
+    );
+    return rows[0].id;
+  };
+  const pickerAuthId = await anlegen("it-picker@damicon.demo", "picker");
+  const kundeAuthId = await anlegen("it-kunde@damicon.demo", "kunde");
+  const erzeugerAuthId = await anlegen("it-erzeuger@damicon.demo", "erzeuger");
+
+  // Der Kunde bekommt den B2B-Kunden der ersten Seed-Reklamation - nur ueber
+  // diese Reklamation soll er spaeter genau eine Charge sehen.
+  const { rows: rek } = await db.query(
+    `select b2b_kunde_id, charge_id from public.reklamationen
+      where charge_id is not null limit 1;`,
+  );
+  await db.query(
+    "update public.profiles set b2b_kunde_id = $1 where auth_user_id = $2;",
+    [rek[0].b2b_kunde_id, kundeAuthId],
+  );
+
+  const zaehle = async (tabelle) => {
+    const { rows } = await db.query(`select count(*)::int as n from public.${tabelle};`);
+    return rows[0].n;
+  };
+
+  await alsAdmin(db);
+  const chargenGesamt = await zaehle("chargen");
+
+  await alsRolle(db, "authenticated", pickerAuthId);
+  const picker = {
+    aufgaben: await zaehle("pflueckaufgaben"),
+    chargen: await zaehle("chargen"),
+    bloecke: await zaehle("reihenbloecke"),
+    brigaden: await zaehle("brigaden"),
+  };
+  await alsAdmin(db);
+  check(
+    "RLS: picker liest keine Betriebsdaten mehr",
+    picker.aufgaben === 0 && picker.chargen === 0 && picker.bloecke === 0 && picker.brigaden === 0,
+    `Aufgaben ${picker.aufgaben}, Chargen ${picker.chargen}, Bloecke ${picker.bloecke}, Brigaden ${picker.brigaden}`,
+  );
+
+  await alsRolle(db, "authenticated", kundeAuthId);
+  const kunde = {
+    aufgaben: await zaehle("pflueckaufgaben"),
+    bloecke: await zaehle("reihenbloecke"),
+    chargen: await zaehle("chargen"),
+  };
+  await alsAdmin(db);
+  check(
+    "RLS: kunde liest keine Aufgaben und Reihenbloecke",
+    kunde.aufgaben === 0 && kunde.bloecke === 0,
+    `Aufgaben ${kunde.aufgaben}, Bloecke ${kunde.bloecke}`,
+  );
+  check(
+    "RLS: kunde liest genau die Charge hinter der eigenen Reklamation",
+    kunde.chargen > 0 && kunde.chargen < chargenGesamt,
+    `sichtbar ${kunde.chargen} von ${chargenGesamt}`,
+  );
+
+  await alsRolle(db, "authenticated", erzeugerAuthId);
+  const erzeuger = {
+    bloecke: await zaehle("reihenbloecke"),
+    aufgaben: await zaehle("pflueckaufgaben"),
+  };
+  await alsAdmin(db);
+  check(
+    "RLS: erzeuger behaelt die Produktionssicht (rbac: view reihenbloecke/pflueckaufgaben)",
+    erzeuger.bloecke > 0 && erzeuger.aufgaben > 0,
+    `Bloecke ${erzeuger.bloecke}, Aufgaben ${erzeuger.aufgaben}`,
+  );
+
+  await alsRolle(db, "authenticated", brigadeAuthId);
+  const brigadeAufgaben = await zaehle("pflueckaufgaben");
+  const brigadeChargen = await zaehle("chargen");
+  await alsAdmin(db);
+  check(
+    "RLS: Brigade liest Aufgaben und Chargen weiterhin",
+    brigadeAufgaben > 0 && brigadeChargen > 0,
+    `Aufgaben ${brigadeAufgaben}, Chargen ${brigadeChargen}`,
+  );
+
+  // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
+// --- 9. Kuehlkette: Messzeitpunkt kommt vom Server --------------------------
+// Regression: kuehlkette_bewerten() uebernahm einen mitgegebenen gemessen_am
+// unveraendert. Die Rolle brigade hat eine INSERT-Policy auf
+// kuehlketten_messungen - ein direkter REST-Aufruf konnte damit aus einem
+// 75-Minuten-Verstoss ein "ok" machen. 20261016000000 setzt den Zeitpunkt
+// serverseitig und lehnt einen mitgegebenen Wert ab.
+{
+  // Charge mit Pflueckzeitpunkt vor 75 Minuten - jede ehrliche Messung von
+  // jetzt ist damit ein Verstoss.
+  const { rows: charge } = await db.query(
+    `select id from public.chargen where pflueckaufgabe_id is not null limit 1;`,
+  );
+  const chargeId = charge[0].id;
+  await db.query(
+    `update public.chargen set pflueck_zeitpunkt = now() - interval '75 minutes' where id = $1;`,
+    [chargeId],
+  );
+  await db.query("delete from public.kuehlketten_messungen where charge_id = $1;", [chargeId]);
+
+  await alsRolle(db, "authenticated", brigadeAuthId);
+  let gefaelschtFehler = null;
+  try {
+    await db.query(
+      `insert into public.kuehlketten_messungen (charge_id, temperatur_c, gemessen_am)
+       values ($1, 3, now() - interval '70 minutes');`,
+      [chargeId],
+    );
+  } catch (e) {
+    gefaelschtFehler = e?.cause?.code ?? e?.code;
+  }
+  check(
+    "Kuehlkette: Brigade kann den Messzeitpunkt nicht selbst setzen",
+    gefaelschtFehler === "23514",
+    gefaelschtFehler ? `errcode: ${gefaelschtFehler}` : "der Insert war erfolgreich",
+  );
+
+  // Der ehrliche Weg der Anwendung: nur geraet_zeitpunkt, alles andere rechnet
+  // der Server - und der Verstoss bleibt ein Verstoss.
+  const { rows: ehrlich } = await db.query(
+    `insert into public.kuehlketten_messungen (charge_id, temperatur_c, geraet_zeitpunkt)
+     values ($1, 3, now())
+     returning ergebnis, minuten_seit_pfluecken, server_eingang_zeitpunkt is not null as eingang;`,
+    [chargeId],
+  );
+  await alsAdmin(db);
+  check(
+    "Kuehlkette: der Server rechnet 75 Minuten und bleibt beim Verstoss",
+    ehrlich[0].ergebnis === "verstoss" &&
+      ehrlich[0].minuten_seit_pfluecken >= 74 &&
+      ehrlich[0].eingang === true,
+    `ergebnis: ${ehrlich[0].ergebnis}, Minuten: ${ehrlich[0].minuten_seit_pfluecken}`,
+  );
+
+  // Serverseitig (auth.uid() null, wie Seed und Fixtures) bleibt das
+  // Zurueckdatieren moeglich - sonst liesse sich kein Testbestand aufbauen.
+  // alsAdmin() setzt nur die Rolle zurueck, nicht auth.uid() - erst das
+  // Leeren der Claim macht daraus wirklich einen serverseitigen Aufruf.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+  const { rows: serverseitig } = await db.query(
+    `insert into public.kuehlketten_messungen (charge_id, temperatur_c, gemessen_am)
+     values ($1, 3, now() - interval '70 minutes')
+     returning minuten_seit_pfluecken;`,
+    [chargeId],
+  );
+  check(
+    "Kuehlkette: service_role darf weiterhin zurueckdatieren (Seed/Fixtures)",
+    serverseitig[0].minuten_seit_pfluecken <= 10,
+    `Minuten: ${serverseitig[0].minuten_seit_pfluecken}`,
+  );
+
+  await db.query("delete from public.kuehlketten_messungen where charge_id = $1;", [chargeId]);
+  // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
+// --- 10. Lohn: Ruecknahme einer Freigabe braucht eine zweite Person ----------
+// Regression: lohn_abrechnung_freigabe_pruefen() sperrte nur den Weg aus
+// 'ausgezahlt'. Dieselbe Person konnte freigeben, zurueckziehen und die
+// Periode neu rechnen lassen - Freigabe und Korrektur in einer Hand.
+{
+  const buchhaltungA = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-buchhaltung-a@damicon.demo', '{"role":"buchhaltung"}'::jsonb) returning id;`,
+  );
+  const buchhaltungB = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-buchhaltung-b@damicon.demo', '{"role":"buchhaltung"}'::jsonb) returning id;`,
+  );
+  const aAuthId = buchhaltungA.rows[0].id;
+  const bAuthId = buchhaltungB.rows[0].id;
+
+  const { rows: abrechnung } = await db.query(
+    `select id from public.lohn_abrechnungen where status = 'entwurf' limit 1;`,
+  );
+  const abrechnungId = abrechnung[0].id;
+
+  // Die Freigabe-Spalten ueber to_jsonb lesen, nicht direkt: ohne die
+  // Migration gaebe es sie nicht, und der Testlauf wuerde mit
+  // "column does not exist" abbrechen statt die Pruefung rot zu melden.
+  const status = async () => {
+    const { rows } = await db.query(
+      `select status,
+              to_jsonb(l) ->> 'freigegeben_von_profil_id' as freigegeben_von_profil_id,
+              to_jsonb(l) ->> 'freigegeben_am'            as freigegeben_am
+         from public.lohn_abrechnungen l where id = $1;`,
+      [abrechnungId],
+    );
+    return rows[0];
+  };
+
+  // A gibt frei - der Server schreibt mit, wer das war.
+  await alsRolle(db, "authenticated", aAuthId);
+  await db.query(
+    "update public.lohn_abrechnungen set status = 'freigegeben' where id = $1;",
+    [abrechnungId],
+  );
+  const nachFreigabe = await status();
+  const { rows: profilA } = await db.query(
+    "select id from public.profiles where auth_user_id = $1;",
+    [aAuthId],
+  );
+  await alsAdmin(db);
+  check(
+    "Lohn: die Freigabe haelt fest, wer sie erteilt hat",
+    nachFreigabe.status === "freigegeben" &&
+      nachFreigabe.freigegeben_von_profil_id === profilA[0].id &&
+      nachFreigabe.freigegeben_am !== null,
+    `Status ${nachFreigabe.status}, Profil ${nachFreigabe.freigegeben_von_profil_id === profilA[0].id}`,
+  );
+
+  // A nimmt die eigene Freigabe zurueck - abgelehnt.
+  await alsRolle(db, "authenticated", aAuthId);
+  let selbstFehler = null;
+  try {
+    await db.query(
+      "update public.lohn_abrechnungen set status = 'entwurf' where id = $1;",
+      [abrechnungId],
+    );
+  } catch (e) {
+    selbstFehler = e?.cause?.code ?? e?.code;
+  }
+  await alsAdmin(db);
+  check(
+    "Lohn: wer freigegeben hat, nimmt nicht selbst zurueck",
+    selbstFehler === "42501" && (await status()).status === "freigegeben",
+    selbstFehler ? `errcode: ${selbstFehler}` : "die Ruecknahme war erfolgreich",
+  );
+
+  // B - eine zweite Person - darf zurueckziehen.
+  await alsRolle(db, "authenticated", bAuthId);
+  await db.query(
+    "update public.lohn_abrechnungen set status = 'entwurf' where id = $1;",
+    [abrechnungId],
+  );
+  await alsAdmin(db);
+  const nachRuecknahme = await status();
+  check(
+    "Lohn: eine zweite Person nimmt die Freigabe zurueck",
+    nachRuecknahme.status === "entwurf" &&
+      nachRuecknahme.freigegeben_von_profil_id === null &&
+      nachRuecknahme.freigegeben_am === null,
+    `Status ${nachRuecknahme.status}, Freigeber zurueckgesetzt: ${nachRuecknahme.freigegeben_von_profil_id === null}`,
+  );
+
+  // Auszahlen ohne Freigabe - abgelehnt.
+  await alsRolle(db, "authenticated", aAuthId);
+  let sprungFehler = null;
+  try {
+    await db.query(
+      "update public.lohn_abrechnungen set status = 'ausgezahlt' where id = $1;",
+      [abrechnungId],
+    );
+  } catch (e) {
+    sprungFehler = e?.cause?.code ?? e?.code;
+  }
+  await alsAdmin(db);
+  check(
+    "Lohn: keine Auszahlung ohne vorherige Freigabe",
+    sprungFehler === "23514",
+    sprungFehler ? `errcode: ${sprungFehler}` : "der Sprung war erfolgreich",
+  );
+
+  // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
+// --- 11. Schreibumfang der Brigade: eigene Aufgaben, Feldfelder --------------
+// Regression: pflueckaufgaben_update_feld und steigen_update_feld fragten nur
+// nach der Rolle. Jede Brigade-Anmeldung konnte jede Aufgabe und jede Steige
+// im Betrieb aendern - auch die einer fremden Brigade, und auch
+// Planungsfelder wie zielmenge_kg oder die Brigadenzuteilung selbst.
+// 20261018000000 grenzt beides ein.
+{
+  const { rows: brigaden } = await db.query(
+    "select id, name from public.brigaden order by name;",
+  );
+  // Nicht auf einem wartezeitgesperrten Reihenblock: dort greift zuerst
+  // pflueckaufgabe_sperre_pruefen() (Abschnitt 4 sperrt einen Block), und der
+  // Test wuerde die falsche Regel messen.
+  const { rows: eigene } = await db.query(
+    `select a.id, a.status, a.brigade_id
+       from public.pflueckaufgaben a
+       join public.reihenbloecke r on r.id = a.reihenblock_id
+      where a.brigade_id is not null
+        and a.status <> 'abgeschlossen'
+        and r.status <> 'wartezeitgesperrt'
+      limit 1;`,
+  );
+  const eigeneAufgabe = eigene[0];
+  const { rows: fremde } = await db.query(
+    `select a.id from public.pflueckaufgaben a
+      where a.brigade_id is not null
+        and a.brigade_id <> $1
+        and a.status <> 'abgeschlossen'
+      limit 1;`,
+    [eigeneAufgabe.brigade_id],
+  );
+  const fremdeAufgabeId = fremde[0].id;
+
+  // Die Testbrigade bekommt die Brigade der eigenen Aufgabe.
+  await db.query("update public.profiles set brigade_id = $1 where auth_user_id = $2;", [
+    eigeneAufgabe.brigade_id,
+    brigadeAuthId,
+  ]);
+
+  await alsRolle(db, "authenticated", brigadeAuthId);
+
+  const fremdUpdate = await db.query(
+    "update public.pflueckaufgaben set pfluecker_anzahl = pfluecker_anzahl + 1 where id = $1;",
+    [fremdeAufgabeId],
+  );
+  check(
+    "Brigade: fremde Pflueckaufgabe bleibt unberuehrt",
+    fremdUpdate.affectedRows === 0,
+    `geaenderte Zeilen: ${fremdUpdate.affectedRows}`,
+  );
+
+  const eigenUpdate = await db.query(
+    "update public.pflueckaufgaben set ist_menge_kg = ist_menge_kg + 1 where id = $1;",
+    [eigeneAufgabe.id],
+  );
+  check(
+    "Brigade: die eigene Aufgabe bleibt bearbeitbar (gemeldete Menge)",
+    eigenUpdate.affectedRows === 1,
+    `geaenderte Zeilen: ${eigenUpdate.affectedRows}`,
+  );
+
+  const planungsFehler = async (sql, params = [eigeneAufgabe.id]) => {
+    try {
+      await db.query(sql, params);
+      return null;
+    } catch (e) {
+      return e?.cause?.code ?? e?.code;
+    }
+  };
+
+  const zielFehler = await planungsFehler(
+    "update public.pflueckaufgaben set zielmenge_kg = zielmenge_kg + 10 where id = $1;",
+  );
+  check(
+    "Brigade: Zielmenge bleibt Planung der Betriebsleitung",
+    zielFehler === "42501",
+    zielFehler ? `errcode: ${zielFehler}` : "die Aenderung war erfolgreich",
+  );
+
+  const andereBrigade = brigaden.find((b) => b.id !== eigeneAufgabe.brigade_id);
+  const zuteilungFehler = await planungsFehler(
+    "update public.pflueckaufgaben set brigade_id = $2 where id = $1;",
+    [eigeneAufgabe.id, andereBrigade.id],
+  );
+  check(
+    "Brigade: die eigene Zuteilung laesst sich nicht umhaengen",
+    zuteilungFehler === "42501",
+    zuteilungFehler ? `errcode: ${zuteilungFehler}` : "die Aenderung war erfolgreich",
+  );
+
+  // Definierter Ausgangspunkt: die Aufgabe steht auf 'in_arbeit', der Versuch
+  // geht zurueck auf 'offen'. Ohne diesen Schritt haette die Aufgabe je nach
+  // Seed schon 'offen' stehen koennen - dann waere der Test gruen, ohne die
+  // Regel je beruehrt zu haben.
+  await alsAdmin(db);
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+  await db.query(
+    "update public.pflueckaufgaben set status = 'in_arbeit' where id = $1;",
+    [eigeneAufgabe.id],
+  );
+  await alsRolle(db, "authenticated", brigadeAuthId);
+
+  const rueckFehler = await planungsFehler(
+    "update public.pflueckaufgaben set status = 'offen' where id = $1;",
+  );
+  check(
+    "Brigade: kein Ruecksprung in einen frueheren Status",
+    rueckFehler === "23514",
+    rueckFehler ? `errcode: ${rueckFehler}` : "der Ruecksprung war erfolgreich",
+  );
+
+  // Steigen: nur die an der eigenen Aufgabe.
+  // Die fremde Aufgabe darf nicht abgeschlossen sein: sonst greift zuerst
+  // steige_nach_abschluss_fest() (20261003000000), und der Test wuerde die
+  // fremde Regel messen statt der Brigadengrenze.
+  const { rows: fremdeSteige } = await db.query(
+    `select s.id from public.steigen s
+       join public.pflueckaufgaben a on a.id = s.pflueckaufgabe_id
+      where a.brigade_id is not null
+        and a.brigade_id <> $1
+        and a.status <> 'abgeschlossen'
+      limit 1;`,
+    [eigeneAufgabe.brigade_id],
+  );
+  if (fremdeSteige.length) {
+    let fremdSteigeZeilen = null;
+    try {
+      fremdSteigeZeilen = (
+        await db.query("update public.steigen set gewicht_kg = gewicht_kg + 1 where id = $1;", [
+          fremdeSteige[0].id,
+        ])
+      ).affectedRows;
+    } catch (e) {
+      fremdSteigeZeilen = `Fehler ${e?.cause?.code ?? e?.code}`;
+    }
+    check(
+      "Brigade: Steige einer fremden Aufgabe bleibt unberuehrt",
+      fremdSteigeZeilen === 0,
+      `geaenderte Zeilen: ${fremdSteigeZeilen}`,
+    );
+  } else {
+    check("Brigade: Steige einer fremden Aufgabe bleibt unberuehrt", false, "keine Testdaten gefunden");
+  }
+
+  await alsAdmin(db);
+
+  // Gegenprobe: die Betriebsleitung plant weiterhin ohne Einschraenkung.
+  await alsRolle(db, "authenticated", leitungAuthId);
+  const leitungPlanung = await db.query(
+    "update public.pflueckaufgaben set zielmenge_kg = zielmenge_kg + 5 where id = $1;",
+    [fremdeAufgabeId],
+  );
+  await alsAdmin(db);
+  check(
+    "Brigade-Regression: die Betriebsleitung plant weiterhin jede Aufgabe",
+    leitungPlanung.affectedRows === 1,
+    `geaenderte Zeilen: ${leitungPlanung.affectedRows}`,
+  );
+
+  // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
+// --- 12. Sync-Replay meldet das urspruengliche Ergebnis ----------------------
+// Regression: sync_aufgabe_status_setzen()/sync_menge_melden() fragten beim
+// Replay nur, OB die aktion_id im Protokoll steht, nicht WIE sie ausging. Ein
+// Konflikt, dessen Antwort auf dem Rueckweg verloren ging, kam beim naechsten
+// Versuch als "angewendet" zurueck - der Eintrag verschwand aus der
+// Warteschlange, ohne dass je etwas geschrieben wurde.
+{
+  // Definierter Ausgangspunkt: eine Aufgabe auf einem nicht gesperrten Block
+  // steht auf 'angenommen'. Serverseitig gesetzt (auth.uid() null), damit
+  // weder Rollen- noch Statusregeln den Aufbau stoeren.
+  const { rows: aufgabe } = await db.query(
+    `select a.id
+       from public.pflueckaufgaben a
+       join public.reihenbloecke r on r.id = a.reihenblock_id
+      where a.status <> 'abgeschlossen'
+        and r.status <> 'wartezeitgesperrt'
+      limit 1;`,
+  );
+  const aufgabeId = aufgabe[0].id;
+  await db.query(
+    "update public.pflueckaufgaben set status = 'angenommen' where id = $1;",
+    [aufgabeId],
+  );
+
+  await alsRolle(db, "authenticated", brigadeAuthId);
+
+  // Konflikt: die Aufgabe steht auf 'angenommen', der Auftrag erwartet 'offen'.
+  const konfliktAktion = crypto.randomUUID();
+  const { rows: ersterVersuch } = await db.query(
+    "select * from public.sync_aufgabe_status_setzen($1, $2, 'angenommen', 'offen');",
+    [konfliktAktion, aufgabeId],
+  );
+  const { rows: zweiterVersuch } = await db.query(
+    "select * from public.sync_aufgabe_status_setzen($1, $2, 'angenommen', 'offen');",
+    [konfliktAktion, aufgabeId],
+  );
+  check(
+    "Sync: ein wiederholter Konflikt bleibt ein Konflikt",
+    ersterVersuch[0].ergebnis === "konflikt" && zweiterVersuch[0].ergebnis === "konflikt",
+    `erster: ${ersterVersuch[0].ergebnis}, zweiter: ${zweiterVersuch[0].ergebnis}`,
+  );
+
+  // Der Replay darf auch nichts geschrieben haben.
+  const { rows: unveraendert } = await db.query(
+    "select status from public.pflueckaufgaben where id = $1;",
+    [aufgabeId],
+  );
+  check(
+    "Sync: der wiederholte Konflikt schreibt nichts",
+    unveraendert[0].status === "angenommen",
+    `Status: ${unveraendert[0].status}`,
+  );
+
+  // Gegenprobe: eine angewendete Aktion bleibt beim Replay angewendet
+  // (Idempotenz, unveraendert).
+  const erfolgAktion = crypto.randomUUID();
+  const { rows: erfolg } = await db.query(
+    "select * from public.sync_aufgabe_status_setzen($1, $2, 'in_arbeit', 'angenommen');",
+    [erfolgAktion, aufgabeId],
+  );
+  const { rows: erfolgReplay } = await db.query(
+    "select * from public.sync_aufgabe_status_setzen($1, $2, 'in_arbeit', 'angenommen');",
+    [erfolgAktion, aufgabeId],
+  );
+  check(
+    "Sync: eine angewendete Aktion bleibt beim Replay angewendet",
+    erfolg[0].ergebnis === "angewendet" &&
+      erfolgReplay[0].ergebnis === "angewendet" &&
+      erfolgReplay[0].code === erfolg[0].code,
+    `erster: ${erfolg[0].ergebnis}, Replay: ${erfolgReplay[0].ergebnis}`,
+  );
+
+  // Dieselbe Regel fuer die Mengenmeldung: die Aufgabe steht jetzt auf
+  // 'in_arbeit', ein Konflikt entsteht ueber eine unbekannte Aufgabe.
+  const mengenKonflikt = crypto.randomUUID();
+  const fremdeAufgabeId = "00000000-0000-0000-0000-000000000000";
+  const { rows: mengeErst } = await db.query(
+    "select * from public.sync_menge_melden($1, $2, 12.5, 1.0);",
+    [mengenKonflikt, fremdeAufgabeId],
+  );
+  const { rows: mengeReplay } = await db.query(
+    "select * from public.sync_menge_melden($1, $2, 12.5, 1.0);",
+    [mengenKonflikt, fremdeAufgabeId],
+  );
+  check(
+    "Sync: auch die Mengenmeldung meldet den Konflikt erneut",
+    mengeErst[0].ergebnis === "konflikt" && mengeReplay[0].ergebnis === "konflikt",
+    `erster: ${mengeErst[0].ergebnis}, zweiter: ${mengeReplay[0].ergebnis}`,
+  );
+
+  await alsAdmin(db);
+  // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
+// --- 13. Pflanzenschutz-Protokoll: Behandlungen bleiben nachweisbar --------
 // Die neue Protokollansicht (data/pflanzenschutz.ts) liest die Behandlungen
 // selbst statt der Reihenbloecke. Entscheidend fuer den Nachweis: eine
-// freigegebene Behandlung verschwindet nicht - in der Blocksicht ist sie
+// freigegebene Behandlung verschwindet nicht. In der Blocksicht ist sie
 // unsichtbar, weil dort nur die juengste OFFENE Sperre haengt.
 {
   const { rows: block } = await db.query(
-    "select id from public.reihenbloecke where status <> 'wartezeitgesperrt' and id <> $1 limit 1;",
+    "select id, status from public.reihenbloecke where status <> 'wartezeitgesperrt' and id <> $1 limit 1;",
     [blockId],
   );
   const { rows: mittel } = await db.query("select id from public.psm_mittel limit 1;");
 
-  // Eine laengst abgelaufene, freigegebene Behandlung.
-  await db.query(
+  // Eine laengst abgelaufene, freigegebene Behandlung. Der Sperr-Trigger setzt
+  // den Block dabei auf 'wartezeitgesperrt', unten wird er wieder zurueckgesetzt.
+  const { rows: neu } = await db.query(
     `insert into public.pflanzenschutz_behandlungen
        (reihenblock_id, psm_mittel_id, behandelt_am, wartezeit_tage, freigegeben)
-     values ($1, $2, current_date - 60, 7, true);`,
+     values ($1, $2, current_date - 60, 7, true)
+     returning id;`,
     [block[0].id, mittel[0].id],
   );
 
@@ -294,6 +910,13 @@ await mussScheitern(
     offeneSperren[0].n === 0,
     `offene Sperren: ${offeneSperren[0].n}`,
   );
+
+  // Aufraeumen: Behandlung loeschen, Block auf seinen Ausgangsstatus zurueck.
+  await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [neu[0].id]);
+  await db.query("update public.reihenbloecke set status = $2 where id = $1;", [
+    block[0].id,
+    block[0].status,
+  ]);
 }
 
 // --- Aufraeumen ---------------------------------------------------------------

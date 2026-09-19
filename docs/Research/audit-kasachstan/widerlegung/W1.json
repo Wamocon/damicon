@@ -1,0 +1,477 @@
+{
+  "agent": "W1",
+  "quellenfamilien_genutzt": {
+    "big4": 4,
+    "kanzlei": 3,
+    "behoerde_faq": 6,
+    "atameken": 0,
+    "fachpresse": 16,
+    "kk_en": 2
+  },
+  "suchrunden": 24,
+  "hinweis": "adilet.zan.kz liefert seit dem Build vom 18.09.2026 den Akttext nur per JavaScript; Volltexte wurden daher an den Spiegeln zakon.mybuh.kz und zakon.uchet.kz gelesen, adilet-Kennungen über adilet-Suchtreffer bestätigt. msb.atameken.kz war nicht erreichbar (DNS-Fehler), daher keine Atameken-Quelle. Für Kredite der Аграрная кредитная корпорация wurde keine öffentliche Regel zu Prüfberichten gefunden. Der Baker-McKenzie-Leitfaden wurde als PDF heruntergeladen und lokal ausgewertet.",
+  "pruefungen": [
+    {
+      "aussage_id": "blick:Abschlussprüfung / B-C1-003, B-C1-012, B-C1-013",
+      "aussage": "Abschlussprüfung: Pflicht nur für TOO mit Gesellschafter <10 % UND >250 Beschäftigte und/oder >3 Mio. MRP; KH und IP nie; mittlere TOO auf Verlangen eines Minderheitsgesellschafters (304-I Art. 5).",
+      "urteil": "eingeschraenkt",
+      "begruendung": "Der TOO-Tatbestand und das Minderheitenrecht bei mittleren TOO sind im aktuellen Wortlaut von 304-I Art. 5 Abs. 2 bestätigt (Fußnote zuletzt Gesetz 270-VIII vom 16.03.2026), außerdem von einer Prüfungs- und Beratungsgesellschaft (GSL) und einer Buchhalterkonsultation (uchet.kz). Das Wort 'nur' ist aber zu eng: Art. 5 Abs. 2 hat weitere Tatbestände, die einen Agrarbetrieb treffen können. (a) Juristische Personen mit Investitionsvertrag mit Investitionspräferenzen: Der Beerenanbau (OKED 01.25 'Выращивание прочих плодов, ягод и орехов') steht auf der Regierungsliste der prioritären Tätigkeiten (P1600000013); eine TOO mit Präferenzvertrag ist also prüfpflichtig. Beim vereinfachten Investitionsvertrag verlangt Unternehmerkodex Art. 296-2 Abs. 7 zusätzlich einen Prüfbericht zur Erfüllung des Arbeitsprogramms. (b) Autorisierte Wirtschaftsbeteiligte (УЭО) nach dem Zollkodex, relevant, falls der Betrieb für den Export diesen Status beantragt. (c) Getreideannahmebetriebe (хлебоприемные предприятия), nur bei Getreidelagerung für Dritte. (d) Rechtsform AO. Subventionen allein lösen keine Pflichtprüfung aus: In den Subventionsregeln V1800017320 (Investitionssubventionen) und V2000020209 (Ertragssteigerung Pflanzenbau) kommt 'аудит' im Spiegeltext nicht vor. Für Kredite der Аграрная кредитная корпорация (in die KazAgroFinance aufgegangen ist) fand sich keine gesetzliche Prüfpflicht; eine vertragliche Forderung des Kreditgebers nach einem geprüften Abschluss ist möglich, aber nicht belegt. Staatsbeteiligung macht die TOO zur Organisation öffentlichen Interesses (IFRS, Depositarium), steht aber als eigener Prüfungstatbestand nicht in Art. 5. KH und IP: bestätigt, sie sind keine TOO und in der Liste nicht genannt.",
+      "belege": [
+        {
+          "url": "https://zakon.uchet.kz/rus/docs/Z980000304_",
+          "familie": "fachpresse",
+          "titel": "Закон РК 304-I Об аудиторской деятельности, Art. 5 (Spiegel uchet.kz)",
+          "zitat": "Обязательному аудиту подлежат: акционерные общества; […] хлебоприемные предприятия; […] юридические лица Республики Казахстан, заключившие контракт на осуществление инвестиций, предусматривающий инвестиционные преференции; […] уполномоченные экономические операторы в соответствии с Кодексом Республики Казахстан \"О таможенном регулировании в Республике Казахстан\"; товарищества с ограниченной ответственностью при одновременном выполнении следующих условий: 1) в его составе имеются участники (учредители), владеющие менее десяти процентами долей участия в уставном капитале; 2) среднегодовая численность работников более двухсот пятидесяти человек и (или) среднегодовой доход свыше трехмиллионнократного месячного расчетного показателя […] Аудит годовой финансовой отчетности для товарищества с ограниченной ответственностью, относящегося к субъекту среднего предпринимательства, проводится по требованию участника (учредителя), владеющего менее десяти процентами долей участия в уставном капитале",
+          "datum_quelle": "Fußnote bis Gesetz 270-VIII vom 16.03.2026",
+          "adilet_id": "Z980000304_"
+        },
+        {
+          "url": "https://zakon.uchet.kz/rus/docs/P1600000013",
+          "familie": "fachpresse",
+          "titel": "Постановление Правительства № 13 от 14.01.2016, Перечень приоритетных видов деятельности",
+          "zitat": "Часть 1. Перечень приоритетных видов деятельности для реализации инвестиционных проектов […] 01.2 Выращивание многолетних культур […] 01.25 Выращивание прочих плодов, ягод и орехов",
+          "datum_quelle": "Abruf 19.09.2026",
+          "adilet_id": "P1600000013"
+        },
+        {
+          "url": "https://zakon.uchet.kz/rus/docs/K1500000375",
+          "familie": "fachpresse",
+          "titel": "Предпринимательский кодекс, Art. 296-2 Abs. 7",
+          "zitat": "После завершения реализации рабочей программы юридическое лицо Республики Казахстан, заключившее упрощенный инвестиционный контракт, в течение двух месяцев представляет в уполномоченный орган по инвестициям аудиторский отчет аудиторской организации",
+          "datum_quelle": "Spiegelstand unklar",
+          "adilet_id": "K1500000375"
+        },
+        {
+          "url": "https://gsl.org/en/audit-foreign/audit-kazakhstan/",
+          "familie": "kanzlei",
+          "titel": "GSL (Prüfungs- und Beratungsgesellschaft): Audit of a Kazakh company",
+          "zitat": "limited liability partnerships if the following conditions are met simultaneously: it has members (founders) holding less than 10% share in the authorized capital; average annual number of employees is more than 250 and (or) average annual income is over 3 000 000 MCI.",
+          "datum_quelle": "ohne Datum",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://uchet.kz/question/konsultatsii-po-bukhuchetu/1004411/",
+          "familie": "fachpresse",
+          "titel": "uchet.kz Konsultation: Какие ТОО и по каким критериям подлежат обязательной аудиторской проверке?",
+          "zitat": "Исходя из п. 2 ст. 5 для ТОО, у которого один учредитель, не подпадает под обязательный аудит?",
+          "datum_quelle": "20.11.2024",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://zakon.uchet.kz/rus/docs/V1800017320",
+          "familie": "behoerde_faq",
+          "titel": "Правила субсидирования инвестиционных вложений (Приказ МСХ № 317 от 23.07.2018)",
+          "zitat": "Negativbefund: Volltextsuche nach 'аудит' und 'финансовая отчетность' im Spiegeltext ergibt 0 Treffer",
+          "datum_quelle": "Abruf 19.09.2026",
+          "adilet_id": "V1800017320"
+        },
+        {
+          "url": "https://zakon.uchet.kz/rus/docs/V2000020209",
+          "familie": "behoerde_faq",
+          "titel": "Правила субсидирования повышения урожайности и качества продукции растениеводства (Приказ МСХ № 107 от 30.03.2020)",
+          "zitat": "Negativbefund: Volltextsuche nach 'аудит' im Spiegeltext ergibt 0 Treffer",
+          "datum_quelle": "Abruf 19.09.2026",
+          "adilet_id": "V2000020209"
+        }
+      ],
+      "korrektur": "Pflichtprüfung nach 304-I Art. 5 Abs. 2 trifft eine TOO, wenn sie (1) einen Gesellschafter mit <10 % hat und groß ist (>250 Beschäftigte und/oder >3 Mio. MRP), (2) einen Investitionsvertrag mit Investitionspräferenzen geschlossen hat (Beerenanbau OKED 01.25 ist prioritäre Tätigkeit), (3) autorisierter Wirtschaftsbeteiligter nach Zollkodex ist oder (4) Getreideannahmebetrieb ist; AO immer. Mittlere TOO: Prüfung auf Verlangen eines Gesellschafters mit <10 %. KH und IP: keine Pflichtprüfung. Subventionen begründen keine Pflichtprüfung; Kreditgeber können geprüfte Abschlüsse vertraglich verlangen."
+    },
+    {
+      "aussage_id": "blick:Depositarium / B-C2-007, B-C2-008",
+      "aussage": "Depositarium: nur Organisationen öffentlichen Interesses, Frist 31.08.",
+      "urteil": "eingeschraenkt",
+      "begruendung": "Frist 31.08. und Kreis der Organisationen öffentlichen Interesses bestätigt (Fachpresse; Regeln Nr. 94 vom 28.01.2022, V2200026686; englische Gesetzesfassung). Zusätzlich legen aber Wertpapieremittenten über das Depositarium offen: Nach den Offenlegungsregeln der Nationalbank (V1800017579) platziert ein Emittent, der keine AO ist (z. B. eine TOO mit Anleihen), Bilanz und GuV nach IFRS auf der Internetseite des Depositariums; ein prüfpflichtiger Emittent lädt Jahresabschluss und Prüfbericht bis 31.08. hoch. Für einen Beerenbetrieb ohne Anleihen folgt daraus keine Pflicht, das 'nur' ist aber zu absolut.",
+      "belege": [
+        {
+          "url": "https://mybuh.kz/news/publichnye-organizatsii-dolzhny-sdat-finansovuyu-otchetnost-do-31-avgusta/",
+          "familie": "fachpresse",
+          "titel": "MyBuh: Публичные организации должны сдать финансовую отчетность до 31 августа",
+          "zitat": "Организации публичного интереса (за исключением бездействующих в течение отчетного периода и объявленных до 1 января отчетного периода банкротами) ежегодно не позднее 31 августа года, следующего за отчетным, представляют через интернет-ресурс депозитария годовую финансовую отчетность",
+          "datum_quelle": "ohne Datum (Suchauszug)",
+          "adilet_id": "V2200026686"
+        },
+        {
+          "url": "https://zakon.uchet.kz/rus/docs/V1800017579",
+          "familie": "behoerde_faq",
+          "titel": "Постановление Правления НБ РК № 189 от 27.08.2018, Правила раскрытия эмитентом информации, Pkt. 6 Nr. 5 und Pkt. 7",
+          "zitat": "5) бухгалтерского баланса и отчета о прибылях и убытках, составленных в соответствии с международными стандартами финансовой отчетности (далее - МСФО), - для эмитента, не являющегося акционерным обществом. […] 7. Эмитент, подлежащий обязательному аудиту в соответствии с Законом Республики Казахстан \"Об аудиторской деятельности\", ежегодно не позднее 31 августа года, следующего за отчетным годом, осуществляет размещение на интернет-ресурсе депозитария финансовой отчетности годовой финансовой отчетности и аудиторского отчета",
+          "datum_quelle": "Pkt. 6 in Fassung vom 14.03.2022",
+          "adilet_id": "V1800017579"
+        },
+        {
+          "url": "https://adilet.zan.kz/eng/docs/Z070000234_",
+          "familie": "kk_en",
+          "titel": "Law On Accounting and Financial Reporting (EN, adilet, Suchauszug)",
+          "zitat": "Under a decision of the Government of the Republic of Kazakhstan, a depository shall be established for public interest entities, charged with submitting financial statements thereto in a procedure determined by an authorised body.",
+          "datum_quelle": "engl. Fassung, Stand unklar",
+          "adilet_id": "Z070000234_"
+        }
+      ],
+      "korrektur": "Einreichung ins Depositarium bis 31.08. des Folgejahres: Pflicht für Organisationen öffentlichen Interesses; daneben legen Wertpapieremittenten (auch TOO mit Anleihen) ihre Abschlüsse über das Depositarium offen (V1800017579). Privater Beerenbetrieb ohne Staatsbeteiligung und ohne Wertpapiere: keine Pflicht."
+    },
+    {
+      "aussage_id": "blick:Rechnungslegungsstandard / B-C2-002 bis B-C2-006",
+      "aussage": "Rechnungslegung: klein national, mittel IFRS for SMEs, groß volle IFRS; IP/KH im vereinfachten Regime bis 135 000 MRP ohne Buchführung.",
+      "urteil": "eingeschraenkt",
+      "begruendung": "Die Zuordnung klein/mittel/groß ist bestätigt (234-III Art. 2 Abs. 3, 3-1, 4; IFRS Foundation; PwC). Ein freiwilliger Wechsel nach oben ist erlaubt. Die Einschränkung betrifft KH: 234-III Art. 2 Abs. 2 befreit nur Einzelunternehmer im Sonderregime 'на основе упрощенной декларации'; KH werden im Gesetz nirgends genannt. Seit 01.01.2026 gibt es drei Sonderregime, KH wurden bis 01.03.2026 automatisch in das eigene Sonderregime für Bauern- und Farmerhaushalte überführt. Ein KH in diesem Regime erfüllt Bedingung 1 nicht und ist nach dem Wortlaut buchführungspflichtig; nur ein KH, das die vereinfachte Erklärung gewählt hat, kann die Befreiung nutzen. Wer befreit ist, muss nach den Regeln V2500037054 (Erlass 562 vom 02.10.2025, ab 01.01.2026) trotzdem Steuerbuchhaltung führen: Primärbelege nach V1500010954 Nr. 22–36, Steuerregister, steuerliche Bilanzierungsrichtlinie, Kasse und Inventur. Bei Wegfall einer Bedingung beginnt die Buchführungspflicht ab dem Folgemonat.",
+      "belege": [
+        {
+          "url": "https://www.ifrs.org/use-around-the-world/use-of-ifrs-standards-by-jurisdiction/view-jurisdiction/kazakhstan/",
+          "familie": "kk_en",
+          "titel": "IFRS Foundation, Jurisdictional profile Kazakhstan (Suchauszug)",
+          "zitat": "Medium-sized business enterprises and state enterprises are required to use either full IFRS Standards or the IFRS for SMEs Standard. […] Small enterprises must choose between the IFRS for SMEs Standard and a national standard developed by MoF.",
+          "datum_quelle": "ohne Datum",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://taxsummaries.pwc.com/kazakhstan/corporate/other-issues",
+          "familie": "big4",
+          "titel": "PwC Worldwide Tax Summaries Kazakhstan – Other issues (Suchauszug)",
+          "zitat": "Kazakhstan legal entities should maintain accounts and produce financial statements in accordance with IFRS or national accounting standards (depending on the size of the company and other factors).",
+          "datum_quelle": "2026",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://pro1c.kz/hotline/komitet-gosudarstvennykh-dokhodov/s-2026-goda-ip-na-uproshchennoy-deklaratsii-vprave-ne-vesti-bukh-uchet-esli-dokhod-ne-prevyshaet-135/",
+          "familie": "fachpresse",
+          "titel": "pro1c.kz, Antwort der KGD vom 28.08.2025",
+          "zitat": "Индивидуальные предприниматели […] доход за календарный год у которых превышает 135 000-кратный МРП, обязаны осуществлять ведение бухгалтерского учета",
+          "datum_quelle": "28.08.2025",
+          "adilet_id": "Z070000234_"
+        },
+        {
+          "url": "https://zakon.mybuh.kz/rus/docs/Z070000234_/",
+          "familie": "fachpresse",
+          "titel": "234-III Art. 2 Abs. 2 (Spiegel MyBuh)",
+          "zitat": "Индивидуальные предприниматели вправе не осуществлять ведение бухгалтерского учета (кроме составления и хранения первичных документов) и составление финансовой отчетности при соответствии одновременно следующим условиям: 1) применяют в соответствии с налоговым законодательством Республики Казахстан специальный налоговый режим на основе упрощенной декларации […] При несоответствии одному из условий, указанных в настоящем пункте, индивидуальный предприниматель обязан осуществлять ведение бухгалтерского учета и составление финансовой отчетности с месяца, следующего за месяцем, в котором возникло такое несоответствие.",
+          "datum_quelle": "Abruf 19.09.2026",
+          "adilet_id": "Z070000234_"
+        },
+        {
+          "url": "https://eldala.kz/novosti/kazahstan/23944-krestyanskie-hozyaystva-perevedut-na-novyy-nalogovyy-rezhim-do-1-marta",
+          "familie": "fachpresse",
+          "titel": "ElDala.kz: Крестьянские хозяйства переведут на новый налоговый режим до 1 марта",
+          "zitat": "для крестьянских и фермерских хозяйств предусмотрен автоматический переход до 1 марта 2026 года",
+          "datum_quelle": "20.01.2026",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://zakon.mybuh.kz/rus/docs/v2500037054",
+          "familie": "behoerde_faq",
+          "titel": "Правила организации и ведения налогового учета, Приказ МФ № 562 от 02.10.2025",
+          "zitat": "2. Действие настоящих Правил распространяется на индивидуальных предпринимателей, которые в соответствии с пунктом 2 статьи 2 Закона не осуществляют ведение бухгалтерского учета […] 4. Индивидуальный предприниматель обеспечивает организацию налогового учета, в том числе составление, хранение первичных учетных документов, а также проведение инвентаризации.",
+          "datum_quelle": "in Kraft 01.01.2026",
+          "adilet_id": "V2500037054"
+        }
+      ],
+      "korrektur": "Klein: nationaler Standard (freiwillig IFRS for SMEs oder IFRS); mittel: IFRS for SMEs (freiwillig IFRS); groß und öffentliches Interesse: volle IFRS. Nur IP im Sonderregime 'vereinfachte Erklärung' mit Einkommen ≤135 000 MRP, ohne USt-Registrierung und ohne Monopolstatus dürfen auf Buchführung verzichten; sie führen dann Steuerbuchhaltung nach V2500037054. Ein KH im 2026 eingeführten Sonderregime für Bauern- und Farmerhaushalte fällt nach dem Wortlaut nicht unter die Befreiung und ist buchführungspflichtig."
+    },
+    {
+      "aussage_id": "blick:Größenklassen / B-C1-006 bis B-C1-011",
+      "aussage": "Größenklassen: klein ≤100 Beschäftigte und ≤300 000 MRP; groß >250 oder >3 Mio. MRP; MRP 2026 = 4 325 KZT.",
+      "urteil": "eingeschraenkt",
+      "begruendung": "Schwellen und MRP bestätigt (Baker McKenzie 2026: MCI 4 325 KZT ab 01.01.2026; Unternehmerkodex Art. 24 in Fassung 215-VIII). Ergänzung, die für die Software entscheidend ist: Maßstab ist das 'среднегодовой доход', also die Summe der Jahreseinkommen der letzten drei Jahre geteilt durch drei, bewertet mit dem MRP zum 1. Januar des jeweiligen Finanzjahres. Die Beschäftigtenzahl schließt Filialen und den IP selbst ein. Ein einzelnes Jahr über 300 000 MRP macht einen Betrieb also nicht sofort mittel. Beim Großunternehmen genügt eines der beiden Kriterien ('и (или)').",
+      "belege": [
+        {
+          "url": "https://www.bakermckenzie.com/-/media/files/insight/guides/2026/doing-business-in-kazakhstan-2026.pdf",
+          "familie": "kanzlei",
+          "titel": "Baker McKenzie, Doing Business in Kazakhstan 2026, Fn. 17",
+          "zitat": "The MCI is KZT 4,325, effective 1 January 2026.",
+          "datum_quelle": "2026",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://kodeksy-kz.com/ka/predprinimatelskij_kodeks/24.htm",
+          "familie": "fachpresse",
+          "titel": "Предпринимательский кодекс Art. 24 (Spiegel, Stand 30.07.2026)",
+          "zitat": "сумма совокупных годовых доходов […] за последние три года, поделенная на три […] действующего на 1 января соответствующего финансового года",
+          "datum_quelle": "30.07.2026",
+          "adilet_id": "K1500000375"
+        },
+        {
+          "url": "https://www.gov.kz/situations/99/300?lang=ru",
+          "familie": "behoerde_faq",
+          "titel": "gov.kz Lebenslage Unternehmer (nur Suchauszug, Seite rendert nicht)",
+          "zitat": "Субъектами среднего предпринимательства являются индивидуальные предприниматели и юридические лица с численностью более 100 до 250 человек и среднегодовым доходом свыше 300 000-кратного МРП до 3 000 000-кратного МРП.",
+          "datum_quelle": "Suchauszug 2026",
+          "adilet_id": ""
+        }
+      ],
+      "korrektur": "Klein: ≤100 Beschäftigte und durchschnittliches Jahreseinkommen der letzten drei Jahre ≤300 000 MRP; groß: >250 Beschäftigte und/oder Dreijahresdurchschnitt >3 Mio. MRP; maßgeblich ist der MRP zum 1. Januar (2026: 4 325 KZT). Die Software muss die Größenklasse aus dem Dreijahresdurchschnitt berechnen."
+    },
+    {
+      "aussage_id": "blick:Aufbewahrung / B-C2-011 bis B-C2-018",
+      "aussage": "Aufbewahrung: Primärbelege 5 Jahre, Lohnlisten und Personalanordnungen 75 Jahre, Jahresabschluss dauernd (Archivverzeichnis 279-НҚ vom 17.06.2025); nur sekundär belegt, adilet-Kennung fehlt.",
+      "urteil": "eingeschraenkt",
+      "begruendung": "adilet-Kennung gefunden: G25JC000279 (adilet.zan.kz/rus/docs/G25JC000279). adilet liefert den Text seit dem Build vom 18.09.2026 nur per JavaScript; der Volltext wurde am Spiegel zakon.mybuh.kz gelesen. Fristen bestätigt: Pos. 267 Primärbelege 5 Jahre, Pos. 265 Register 5 Jahre, Pos. 253 Nr. 1 Jahresabschluss 'Постоянно', Pos. 305 Lohnberechnungslisten 75 Jahre, Pos. 12 Nr. 2 Anordnungen zu Einstellung, Versetzung, Entlassung 75 Jahre ЭПК, Pos. 12 Nr. 3 übrige Personalanordnungen (Urlaub, Dienstreise, Prämie) 5 Jahre ЭПК, Pos. 411 Arbeitszeittabellen 5 Jahre (75 bei schweren oder schädlichen Bedingungen), Pos. 294 Steuererklärungen 5 Jahre ЭПК. Drei Einschränkungen: (1) Die 5 Jahre für Primärbelege, Register und Lohnauszahlungsbelege (Pos. 304) gelten nur 'При условии проведения проверки (ревизии)'; ohne Prüfung keine Löschung nach 5 Jahren. (2) 'Постоянно' heißt für Organisationen, die keine Quelle des Nationalen Archivfonds sind, Aufbewahrung bis zur Liquidation. (3) Der Änderungserlass 304-НҚ vom 25.06.2026 (G26JC000304, veröffentlicht 02.07.2026) fasst u. a. Pos. 461 neu: Arbeitsverträge 75 Jahre, der Zusatz 'При наличии соответствующих информационных систем' entfällt. Pos. 12, 253, 265, 267, 305 und 411 ändert 304-НҚ nicht.",
+      "belege": [
+        {
+          "url": "https://adilet.zan.kz/rus/docs/G25JC000279",
+          "familie": "behoerde_faq",
+          "titel": "adilet: Об утверждении Перечня типовых документов, образующихся в деятельности государственных и негосударственных организаций, с указанием срока хранения",
+          "zitat": "Приказ Министра культуры и информации Республики Казахстан от 17 июня 2025 года № 279-НҚ",
+          "datum_quelle": "17.06.2025, in Kraft 06.07.2025",
+          "adilet_id": "G25JC000279"
+        },
+        {
+          "url": "https://zakon.mybuh.kz/rus/docs/G25JC000279/",
+          "familie": "fachpresse",
+          "titel": "Volltext 279-НҚ (Spiegel MyBuh), Pos. 12, 253, 267, 305",
+          "zitat": "2) по личному составу (о приеме (назначении, зачислении на учебу), увольнении (отчислении), перемещении; 75 лет ЭПК […] 253 Бухгалтерская (финансовая) отчетность […] 1) сводная годовая (консолидированная), годовая; Постоянно […] 267 Первичные документы и приложения к ним, зафиксировавшие факт совершения хозяйственной операции и явившиеся основанием для бухгалтерских записей 5 лет Электронные документы*. При условии проведения проверки (ревизии). […] 305 Ведомости начисления заработной платы 75 лет",
+          "datum_quelle": "Abruf 19.09.2026",
+          "adilet_id": "G25JC000279"
+        },
+        {
+          "url": "https://zakon.mybuh.kz/rus/docs/G25JC000279/",
+          "familie": "fachpresse",
+          "titel": "279-НҚ, Примечания",
+          "zitat": "*При отсутствии системы электронного документооборота документы оформляются на бумажном носителе. […] В организациях, не являющихся источниками комплектования Национального архивного фонда Республики Казахстан, документы со сроком хранения «Постоянно» хранятся до ликвидации организации.",
+          "datum_quelle": "Abruf 19.09.2026",
+          "adilet_id": "G25JC000279"
+        },
+        {
+          "url": "https://zakon.uchet.kz/rus/docs/G26JC000304",
+          "familie": "fachpresse",
+          "titel": "Приказ № 304-НҚ vom 25.06.2026 (Änderung 279-НҚ)",
+          "zitat": "строку, порядковый номер 461 изложить в следующей редакции: \" 461 Трудовые договоры, контракты 75 лет Электронные документы*.",
+          "datum_quelle": "25.06.2026, veröffentlicht 02.07.2026",
+          "adilet_id": "G26JC000304"
+        }
+      ],
+      "korrektur": "Archivverzeichnis 279-НҚ (adilet G25JC000279, geändert durch 304-НҚ, G26JC000304): Primärbelege, Buchführungsregister und Lohnauszahlungsbelege 5 Jahre, aber nur wenn eine Prüfung (Revision) stattgefunden hat; Jahresabschluss dauernd (bei Nicht-Archivfondsquellen bis zur Liquidation); Lohnberechnungslisten, Arbeitsverträge und Anordnungen zu Einstellung, Versetzung, Entlassung 75 Jahre; übrige Personalanordnungen und Arbeitszeittabellen 5 Jahre (Tabellen 75 bei schädlichen Bedingungen)."
+    },
+    {
+      "aussage_id": "blick:Aufbewahrung Steuer / B-C2-019, B-C3-021, B-C7-015",
+      "aussage": "Steuerliche Aufbewahrung mind. 5 Jahre, Verjährung 3 Jahre (groß 5) nach Steuerkodex 214-VIII Art. 65/206.",
+      "urteil": "eingeschraenkt",
+      "begruendung": "3/5 Jahre bestätigt (PwC, zuletzt geprüft 23.07.2026; Baker McKenzie 2026; mybuh; asistent.kz). Vor 2026 galten einheitlich 3 Jahre. Die Verjährung verlängert sich aber nach Art. 65 Abs. 8 um ein Jahr bei Nacherklärung, um drei Jahre (Körperschaftsteuer) bei Nacherklärung zum Verlustvortrag, bis zur Erfüllung von Verständigungsentscheidungen und um fünf Jahre nach internationalem Schiedsverfahren; sie ruht ab Prüfungsbeginn bis zur Erfüllung der Ergebnisse und während Beschwerden (Abs. 9). PwC nennt für Verrechnungspreise bis zu sieben Jahre. Da Art. 206 die Aufbewahrung an die Verjährung koppelt ('до истечения срока исковой давности … но не менее пяти лет'), kann die steuerliche Aufbewahrung im Einzelfall deutlich über 5 Jahre liegen.",
+      "belege": [
+        {
+          "url": "https://taxsummaries.pwc.com/kazakhstan/corporate/tax-administration",
+          "familie": "big4",
+          "titel": "PwC Worldwide Tax Summaries Kazakhstan – Tax administration",
+          "zitat": "The statute of limitations for tax purposes in Kazakhstan is three years (a five-year statute of limitations period applies to all large taxpayers); it may be extended up to seven years in the part relating to transfer pricing matters.",
+          "datum_quelle": "last reviewed 23.07.2026",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://www.bakermckenzie.com/-/media/files/insight/guides/2026/doing-business-in-kazakhstan-2026.pdf",
+          "familie": "kanzlei",
+          "titel": "Baker McKenzie, Doing Business in Kazakhstan 2026, Abschn. 7.1",
+          "zitat": "The statute of limitations is generally three years after the end of the relevant tax period. However, for certain taxpayers (e.g., oil and gas companies or major businesses), the statute of limitations is five years.",
+          "datum_quelle": "2026",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://kodeksy-kz.com/ka/nalogovyj_kodeks/65.htm",
+          "familie": "fachpresse",
+          "titel": "Налоговый кодекс 214-VIII Art. 65 Abs. 8",
+          "zitat": "на один календарный год в части начисления и (или) пересмотра исчисленной суммы налогов […] на три календарных года в части начисления и (или) пересмотра исчисленной суммы корпоративного подоходного налога",
+          "datum_quelle": "Stand 2026",
+          "adilet_id": "K2500000214"
+        },
+        {
+          "url": "https://mybuh.kz/news/srok-iskovoy-davnosti-po-sdache-nalogovoy-otchetnosti-v-2026-godu/",
+          "familie": "fachpresse",
+          "titel": "MyBuh: Срок исковой давности по сдаче налоговой отчетности в 2026 году",
+          "zitat": "субъекта крупного предпринимательства […] остальных категорий налогоплательщика",
+          "datum_quelle": "26.09.2025",
+          "adilet_id": "K2500000214"
+        }
+      ],
+      "korrektur": "Steuerliche Buchungsunterlagen bis zum Ablauf der Verjährung nach Art. 65, mindestens 5 Jahre (Art. 206). Verjährung 3 Jahre, 5 Jahre für Großunternehmen; sie verlängert sich bei Nacherklärungen (+1 Jahr, beim Verlustvortrag +3 Jahre für KPN) und ruht während Prüfungen und Beschwerden. Die Löschsperre je Steuerzeitraum muss diese Ereignisse berücksichtigen."
+    },
+    {
+      "aussage_id": "blick:Elektronische Belege / B-C7-004",
+      "aussage": "Korrektur elektronischer Primärbelege nur per neuem Beleg mit Vermerk «исправлено» und erneuter EDS (V1500010954 Nr. 25, Fassung Erlass 206 vom 30.03.2026).",
+      "urteil": "bestaetigt",
+      "begruendung": "Zwei unabhängige Fachpressequellen (zakon.kz und uchet.kz, beide 10.04.2026) bestätigen Inhalt und Erlass. Präzisierungen ohne Widerspruch: in Kraft seit 20.04.2026; der neue Beleg trägt Korrekturnummer und -datum und muss von den Beteiligten unterschrieben werden, die das Original unterschrieben haben (nicht irgendeine EDS); das Original bleibt mit Status 'аннулирован' gespeichert; Kassen- und Bankbelege dürfen weiterhin nicht korrigiert werden. Zusätzlich neu: Der Hauptbuchhalter ist ausdrücklich auch für die Vorlage (представление) des Abschlusses zuständig.",
+      "belege": [
+        {
+          "url": "https://www.zakon.kz/pravo/6514035-v-pravila-vedeniya-bukhucheta-vnesli-izmeneniya.html",
+          "familie": "fachpresse",
+          "titel": "zakon.kz: В правила ведения бухучета внесли изменения",
+          "zitat": "ссылку на ранее составленный первичный документ (номер и дату) c отметкой «исправлено» […] ранее составленный первичный документ со статусом «аннулирован» подлежит хранению",
+          "datum_quelle": "10.04.2026",
+          "adilet_id": "V1500010954"
+        },
+        {
+          "url": "https://uchet.kz/news/elektronnye-dokumenty-i-glavbukhi-obnovleny-pravila-bukhucheta/",
+          "familie": "fachpresse",
+          "titel": "uchet.kz: Электронные документы и главбухи: обновлены правила бухучета",
+          "zitat": "подписи участников операции, ранее подписавших исходный документ",
+          "datum_quelle": "10.04.2026",
+          "adilet_id": "V1500010954"
+        }
+      ],
+      "korrektur": ""
+    },
+    {
+      "aussage_id": "blick:Prüfpfad der Software / B-C7-018",
+      "aussage": "Für den Prüfpfad einer Software außerhalb des Finanzsektors gibt es keine Norm.",
+      "urteil": "bestaetigt",
+      "begruendung": "Keine Quelle nennt eine Pflicht zu einem technischen Prüfpfad (аудиторский след, журнал событий) für Buchhaltungssoftware nichtfinanzieller Unternehmen. Am nächsten kommt der horizontale Monitoring nach dem neuen Steuerkodex (Kap. 14; Erlass 520 vom 22.09.2025, V2500036900): Der Teilnehmer stellt ein Datenschaufenster mit Zugriff bis auf Primärbelege, IT-Logs und Beschreibung des internen Kontrollsystems bereit. Das ist freiwillig, beruht auf Vertrag und zielt auf große, technisch weit entwickelte Steuerpflichtige. Mittelbare Anforderungen bleiben: Belegkette bei Korrektur (V1500010954 Nr. 25), Änderung nach Periodenabschluss nur mit schriftlicher Genehmigung des Hauptbuchhalters (Nr. 11), Aufbewahrung der Buchhaltungsprogramme (234-III Art. 11) und Pos. 341 des Archivverzeichnisses (Programme und Leitfäden automatisierter Buchhaltungssysteme 10 Jahre ЭПК).",
+      "belege": [
+        {
+          "url": "https://www.ey.com/en_kz/technical/tax-alerts/2026/04/horizontal-monitoring-kazakhstan-cooperative-compliance",
+          "familie": "big4",
+          "titel": "EY Kazakhstan Tax Alert: Horizontal Monitoring",
+          "zitat": "Participation remains voluntary and is effected on the basis of an agreement between the taxpayer and the SRC, subject to compliance with specified criteria. […] a mandatory digital data mart […] ensuring transparency of accounting down to the level of source documents and control procedures.",
+          "datum_quelle": "04/2026",
+          "adilet_id": "V2500036900"
+        },
+        {
+          "url": "https://kpmg.com/kz/en/home/insights/2026/02/nf-feb.html",
+          "familie": "big4",
+          "titel": "KPMG Kazakhstan Tax NewsFlash Februar 2026 (Suchauszug)",
+          "zitat": "To participate in horizontal monitoring, a taxpayer must maintain a data showcase, an information system through which the tax authorities obtain continuous remote access to the taxpayer's tax and accounting data.",
+          "datum_quelle": "02/2026",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://zakon.mybuh.kz/rus/docs/G25JC000279/",
+          "familie": "fachpresse",
+          "titel": "279-НҚ Pos. 341",
+          "zitat": "Программы, руководства по организации и внедрению автоматизированных систем бухгалтерского учета и отчетности 10 лет ЭПК",
+          "datum_quelle": "Abruf 19.09.2026",
+          "adilet_id": "G25JC000279"
+        }
+      ],
+      "korrektur": ""
+    }
+  ],
+  "neue_fakten": [
+    {
+      "id": "N-W1-001",
+      "thema": "Pflichtprüfung durch Investitionsvertrag",
+      "aussage": "Schließt eine TOO einen Investitionsvertrag mit Investitionspräferenzen (Beerenanbau OKED 01.25 ist prioritäre Tätigkeit), wird ihr Jahresabschluss unabhängig von Größe und Gesellschafterstruktur prüfpflichtig. Beim vereinfachten Investitionsvertrag ist nach Abschluss des Arbeitsprogramms binnen zwei Monaten zusätzlich ein Prüfbericht vorzulegen.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "304-I Art. 5 Abs. 2; Unternehmerkodex Art. 283-3, 296-2 Abs. 7; Regierungsbeschluss Nr. 13 vom 14.01.2016",
+      "adilet_id": "Z980000304_; K1500000375; P1600000013",
+      "zitat": "юридические лица Республики Казахстан, заключившие контракт на осуществление инвестиций, предусматривающий инвестиционные преференции",
+      "url": "https://zakon.uchet.kz/rus/docs/Z980000304_",
+      "familie": "fachpresse",
+      "damicon_folge": "Stammsatzfeld 'Investitionsvertrag mit Präferenzen (ja/nein, Datum)'; bei ja Pflichtprüfung und Prüfbericht-Frist anzeigen; Förderdossier um Arbeitsprogramm und Anlagennachweise erweitern."
+    },
+    {
+      "id": "N-W1-002",
+      "thema": "Pflichtprüfung für autorisierte Wirtschaftsbeteiligte",
+      "aussage": "Autorisierte Wirtschaftsbeteiligte (УЭО) nach dem Zollkodex sind prüfpflichtig. Betrifft einen Exportbetrieb nur, wenn er diesen Status beantragt.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "304-I Art. 5 Abs. 2",
+      "adilet_id": "Z980000304_",
+      "zitat": "уполномоченные экономические операторы в соответствии с Кодексом Республики Казахстан \"О таможенном регулировании в Республике Казахстан\"",
+      "url": "https://zakon.uchet.kz/rus/docs/Z980000304_",
+      "familie": "fachpresse",
+      "damicon_folge": "Status УЭО als Merkmal führen; bei ja Pflichtprüfung auslösen."
+    },
+    {
+      "id": "N-W1-003",
+      "thema": "KH im neuen Sonderregime ist buchführungspflichtig",
+      "aussage": "Die Befreiung von der Buchführung gilt nur für IP im Regime 'vereinfachte Erklärung'. KH wurden bis 01.03.2026 automatisch in das eigene KH-Sonderregime überführt; in diesem Regime erfüllen sie die Befreiungsbedingung nicht und müssen nach dem Wortlaut von 234-III Buch führen und einen Abschluss erstellen.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "234-III Art. 2 Abs. 2; Steuerkodex 214-VIII (Sonderregime für KH)",
+      "adilet_id": "Z070000234_; K2500000214",
+      "zitat": "применяют в соответствии с налоговым законодательством Республики Казахстан специальный налоговый режим на основе упрощенной декларации",
+      "url": "https://zakon.mybuh.kz/rus/docs/Z070000234_/",
+      "familie": "fachpresse",
+      "damicon_folge": "Schalter 'vereinfachte Buchführung' nur freigeben, wenn Steuerregime = vereinfachte Erklärung; für KH im KH-Regime volle Buchführung und NSFO-Abschluss. Frage an den Prüfer oder die KGD, ob die Praxis das ebenso sieht."
+    },
+    {
+      "id": "N-W1-004",
+      "thema": "Steuerbuchhaltung der befreiten IP",
+      "aussage": "IP, die nach 234-III keine Buchführung führen, müssen seit 01.01.2026 Steuerbuchhaltung nach eigenen Regeln führen: Primärbelege nach V1500010954 Nr. 22–36 (ohne Kontenangabe), Steuerregister, steuerliche Bilanzierungsrichtlinie nach Formular, Kassenführung, Inventur (Pflicht u. a. bei Diebstahl, Katastrophen und beim Übergang zur Buchführung), Kommissionsakt bei Belegverlust.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "Правила организации и ведения налогового учета, Erlass MF Nr. 562 vom 02.10.2025",
+      "adilet_id": "V2500037054",
+      "zitat": "Индивидуальный предприниматель обеспечивает организацию налогового учета, в том числе составление, хранение первичных учетных документов, а также проведение инвентаризации.",
+      "url": "https://zakon.mybuh.kz/rus/docs/v2500037054",
+      "familie": "fachpresse",
+      "damicon_folge": "Modus 'Steuerbuchhaltung IP' mit Steuerregistern, Vorlage der steuerlichen Bilanzierungsrichtlinie, Kassenbuch und Inventurprotokoll."
+    },
+    {
+      "id": "N-W1-005",
+      "thema": "5-Jahres-Frist nur nach Prüfung",
+      "aussage": "Die 5-Jahres-Frist für Primärbelege, Buchführungsregister und Lohnauszahlungsbelege gilt nur unter der Bedingung, dass eine Prüfung (Revision) stattgefunden hat. 'Dauernd' heißt bei Nicht-Archivfondsquellen bis zur Liquidation.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "279-НҚ Pos. 265, 267, 304 und Примечания",
+      "adilet_id": "G25JC000279",
+      "zitat": "5 лет Электронные документы*. При условии проведения проверки (ревизии).",
+      "url": "https://zakon.mybuh.kz/rus/docs/G25JC000279/",
+      "familie": "fachpresse",
+      "damicon_folge": "Löschfreigabe erst nach Fristablauf und erfasster Prüfung des Zeitraums; Feld 'Zeitraum geprüft am/durch'."
+    },
+    {
+      "id": "N-W1-006",
+      "thema": "Arbeitsverträge 75 Jahre (Änderung 2026)",
+      "aussage": "Erlass 304-НҚ vom 25.06.2026 fasst Pos. 461 neu: Arbeitsverträge und Kontrakte 75 Jahre, elektronische Dokumente zulässig; der frühere Zusatz 'bei Vorhandensein entsprechender Informationssysteme' entfällt.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "279-НҚ Pos. 461 in Fassung 304-НҚ",
+      "adilet_id": "G26JC000304",
+      "zitat": "461 Трудовые договоры, контракты 75 лет Электронные документы*.",
+      "url": "https://zakon.uchet.kz/rus/docs/G26JC000304",
+      "familie": "fachpresse",
+      "damicon_folge": "Verträge der Saisonkräfte 75 Jahre aufbewahren, auch wenn sie nur elektronisch vorliegen."
+    },
+    {
+      "id": "N-W1-007",
+      "thema": "Buchhaltungsprogramme 10 Jahre",
+      "aussage": "Programme und Leitfäden zur Einführung automatisierter Buchhaltungssysteme sind 10 Jahre (ЭПК) aufzubewahren, Korrespondenz dazu 5 Jahre.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "279-НҚ Pos. 341, 342; 234-III Art. 11",
+      "adilet_id": "G25JC000279",
+      "zitat": "Программы, руководства по организации и внедрению автоматизированных систем бухгалтерского учета и отчетности 10 лет ЭПК",
+      "url": "https://zakon.mybuh.kz/rus/docs/G25JC000279/",
+      "familie": "fachpresse",
+      "damicon_folge": "Versionsarchiv der Software samt Handbuch 10 Jahre vorhalten; das Damicon-System wird selbst aufbewahrungspflichtig."
+    },
+    {
+      "id": "N-W1-008",
+      "thema": "Verjährung verlängert sich",
+      "aussage": "Die steuerliche Verjährung verlängert sich um ein Jahr bei Nacherklärung, um drei Jahre (KPN) beim Verlustvortrag, und ruht während Prüfungen und Beschwerden. Damit verlängert sich auch die Aufbewahrung nach Art. 206.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "Steuerkodex 214-VIII Art. 65 Abs. 8, 9; Art. 206 Abs. 3",
+      "adilet_id": "K2500000214",
+      "zitat": "на три календарных года в части начисления и (или) пересмотра исчисленной суммы корпоративного подоходного налога",
+      "url": "https://kodeksy-kz.com/ka/nalogovyj_kodeks/65.htm",
+      "familie": "fachpresse",
+      "damicon_folge": "Fristzähler je Steuerzeitraum mit Ereignissen 'Nacherklärung', 'Prüfung begonnen/abgeschlossen', 'Beschwerde'."
+    },
+    {
+      "id": "N-W1-009",
+      "thema": "Neue EDS-Regeln ab 11.09.2026",
+      "aussage": "Erlass Nr. 522/НҚ vom 28.08.2026 (in Kraft 11.09.2026, nach Art. 55 Abs. 5 Digitaler Kodex) ersetzt neun Erlasse von 2015 zu Ausgabe, Aufbewahrung und Widerruf der EDS-Zertifikate. Gültigkeit: drei Jahre für Schlüssel auf ID-Chip, in der Cloud oder auf geschütztem Träger, ein Jahr auf gewöhnlichem Träger oder in der Mobil-App. Zertifikatsarten u. a. für ersten Leiter, Mitarbeiter mit Zeichnungsrecht, Mitarbeiter und digitale Systeme. Widerruf ohne Antrag u. a. bei Reorganisation oder Liquidation der juristischen Person.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "Digitaler Kodex 255-VIII Art. 55 Abs. 5; Erlass 522/НҚ vom 28.08.2026",
+      "adilet_id": "unbekannt",
+      "zitat": "«три года» […] «один год»",
+      "url": "https://uchet.kz/news/etsp-po-novym-pravilam-vydacha-srok-deystviya-i-otzyv-sertifikata/",
+      "familie": "fachpresse",
+      "damicon_folge": "Zertifikatsablauf je Unterzeichner überwachen; Ergebnis der Signaturprüfung mit Zeitpunkt speichern, damit Belege nach Ablauf eines Ein-Jahres-Zertifikats nachweisbar bleiben. adilet-Kennung des Erlasses nachtragen."
+    },
+    {
+      "id": "N-W1-010",
+      "thema": "Horizontaler Monitoring mit Datenschaufenster",
+      "aussage": "Der neue Steuerkodex regelt den freiwilligen horizontalen Monitoring neu (Erlass 520 vom 22.09.2025). Teilnehmer stellen ein Datenschaufenster mit vier Ebenen bereit (Steuererklärung, Steuerregister, Buchführungsregister, Primärbelege als Bild) samt internem Kontrollsystem und IT-Logs. Zielgruppe sind große Steuerpflichtige.",
+      "einstufung": "empfehlung",
+      "rechtsgrundlage": "Steuerkodex 214-VIII Kap. 14; Erlass MF Nr. 520 vom 22.09.2025",
+      "adilet_id": "V2500036900",
+      "zitat": "Participation remains voluntary and is effected on the basis of an agreement between the taxpayer and the SRC",
+      "url": "https://www.ey.com/en_kz/technical/tax-alerts/2026/04/horizontal-monitoring-kazakhstan-cooperative-compliance",
+      "familie": "big4",
+      "damicon_folge": "Nicht für den Start; die Vier-Ebenen-Struktur taugt als Vorbild für den Prüfer-Lesezugang und den Export."
+    },
+    {
+      "id": "N-W1-011",
+      "thema": "Emittenten legen über das Depositarium offen",
+      "aussage": "Eine TOO, die Anleihen ausgibt, muss Bilanz und GuV nach IFRS auf der Internetseite des Depositariums platzieren; bei Prüfpflicht Jahresabschluss und Prüfbericht bis 31.08.",
+      "einstufung": "unklar",
+      "rechtsgrundlage": "Offenlegungsregeln NB Nr. 189 vom 27.08.2018, Pkt. 6 und 7",
+      "adilet_id": "V1800017579",
+      "zitat": "бухгалтерского баланса и отчета о прибылях и убытках, составленных в соответствии с международными стандартами финансовой отчетности (далее - МСФО), - для эмитента, не являющегося акционерным обществом",
+      "url": "https://zakon.uchet.kz/rus/docs/V1800017579",
+      "familie": "behoerde_faq",
+      "damicon_folge": "Nur bei Kapitalmarktfinanzierung relevant; kein Umsetzungsbedarf zum Start."
+    }
+  ]
+}
