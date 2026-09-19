@@ -25,8 +25,10 @@ import { ladeAktivenStandardAnbieter, anthropicBasisUrl } from "@/lib/ai/lade-an
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
 import { baueWerkzeuge } from "@/lib/ai/tools";
 import { ladeKiChatVerlauf, ladeWissensPreislisten } from "@/lib/data/ki-assistent";
+import { sucheRelevanteWissenChunks } from "@/lib/data/ki-wissen";
 import {
   baueGesamtWissenskontext,
+  baueWissensdokumenteKontext,
   MAX_NACHRICHT_LAENGE,
   wissensQuellenFuerFaehigkeiten,
 } from "@/lib/domain/ki-assistent";
@@ -289,10 +291,32 @@ export async function POST(req: Request) {
       hasPermission(rolle, "pflueckaufgaben", "view") || hasPermission(rolle, "kuehlkette", "view"),
   });
   const preislisten = quellen.includes("preisliste") ? await ladeWissensPreislisten() : [];
+
+  // Wissensdokumente (RAG) - wie in kiNachrichtSenden(): die hochgeladenen
+  // Dokumente filtert die Datenbank nach der Rolle (ki_wissen_aehnliche_chunks),
+  // hier dieselbe `rolle` wie fuer alles andere in diesem Aufruf - fuer
+  // Nicht-Admins immer die eigene aus der Sitzung, eine Vorschau-Rolle nur fuer
+  // Admins (siehe oben). In einer Freigabe-Runde gibt es keine neue Frage; dann
+  // zaehlt die letzte Frage aus dem Verlauf, sonst verloere das Modell mitten
+  // in der Aktion den Dokumentenkontext. Eigener try/catch aus demselben Grund
+  // wie dort: kein Treffer heisst kein Zusatzkontext, nie ein Ausfall.
+  const letzteFrage = nachrichten.findLast((n) => n.role === "user");
+  const frageFuerSuche = neueNutzerNachricht || (letzteFrage ? textAusNachricht(letzteFrage) : "");
+  let wissenTreffer: Awaited<ReturnType<typeof sucheRelevanteWissenChunks>> = [];
+  if (frageFuerSuche) {
+    try {
+      wissenTreffer = await sucheRelevanteWissenChunks(frageFuerSuche, rolle);
+    } catch (fehler) {
+      console.error("[damicon] Wissensdokumente-Suche unerwartet fehlgeschlagen:", fehler);
+    }
+  }
+  const dokumenteKontext = baueWissensdokumenteKontext(wissenTreffer);
+  const basisKontext = baueGesamtWissenskontext(quellen, preislisten);
+
   const ortHinweis = pfad ? `Der Nutzer sieht gerade diese Ansicht: ${pfad}` : "";
   const heute = `Heutiges Datum: ${new Date().toISOString().slice(0, 10)}`;
   const systemPrompt = [
-    basisPrompt(baueGesamtWissenskontext(quellen, preislisten)),
+    basisPrompt(dokumenteKontext ? `${basisKontext}\n\n${dokumenteKontext}` : basisKontext),
     rollenKontext(rolle, vorschau),
     FORMAT_ANWEISUNG,
     MODUS_ANWEISUNG[modus],
