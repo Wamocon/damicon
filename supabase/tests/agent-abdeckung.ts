@@ -9,6 +9,7 @@
 //     Steuerwerkzeuge, ein Admin bekommt alles
 //   * alle Sprachdateien haben denselben Schluesselsatz
 //   * die Markdown-Zerlegung des Chats liefert beim Streamen dasselbe wie ein Gesamtdurchlauf
+//   * der Systemprompt verbietet dem Agenten die vorschnelle Ablehnung
 // Aufruf: npm run test:agent (laeuft ueber tsx, damit die @/-Pfade aufloesen).
 
 import { readFileSync } from "node:fs";
@@ -136,6 +137,17 @@ for (const [name, text] of Object.entries(markdownProben)) {
   pruefe(`Markdown-Zerlegung beim Streamen == Gesamtdurchlauf (${name})`, abweichung === null, abweichung ?? `${text.length} Zeichen`);
 }
 pruefe("Eine lockere Liste bleibt EIN Block (Nummerierung bleibt erhalten)", zerlege(markdownProben.lockereListe!).bloecke.length === 2);
+
+// --- 7. Systemprompt: keine vorschnelle Ablehnung ---------------------------
+const routeQuelle = readFileSync("src/app/api/ki-assistent/route.ts", "utf8");
+pruefe(
+  "Agent-Prompt: ohne Aktionswerkzeug ueber die Oberflaeche arbeiten, nicht ablehnen",
+  routeQuelle.includes("KEIN passendes Aktionswerkzeug") && routeQuelle.includes("NIE 'dafuer habe ich kein Werkzeug'"),
+);
+pruefe(
+  "Rollen-Prompt: fehlende Berechtigung nur mit Beleg aus der Anwendung behaupten",
+  routeQuelle.includes("keine fehlende Berechtigung ohne Beleg"),
+);
 
 console.log(`\nPruefungen: ${gesamt}   bestanden: ${gesamt - fehler}   fehlgeschlagen: ${fehler}`);
 if (fehler > 0) process.exit(1);
