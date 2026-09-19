@@ -1805,7 +1805,11 @@
     "privacyScopeTitle": "Umfang",
     "privacyScopeText": "Der Prototyp verarbeitet keine personenbezogenen Daten. Es werden keine Cookies zu Analysezwecken gesetzt. Die Design-Auswahl (hell/dunkel) und die Demo-Rolle werden nur lokal im Browser gespeichert.",
     "residencyTitle": "Datenresidenz (geplanter Betrieb)",
-    "residencyText": "Für den späteren Realbetrieb schränkt der kasachstanische Digitalkodex Nr. 255-VIII die Speicherung bestimmter Datenprodukte außerhalb Kasachstans ein. Der Hosting-Standort für QR-, Offline-Sync- und KI-Architektur wird vor Produktivsetzung rechtlich geprüft."
+    "residencyText": "Für den späteren Realbetrieb schränkt der kasachstanische Digitalkodex Nr. 255-VIII die Speicherung bestimmter Datenprodukte außerhalb Kasachstans ein. Der Hosting-Standort für QR-, Offline-Sync- und KI-Architektur wird vor Produktivsetzung rechtlich geprüft.",
+    "voiceCreditsTitle": "Sprachausgabe: verwendete Stimmen",
+    "voiceCreditsIntro": "Der KI-Assistent kann Antworten vorlesen. Die Stimmen sind Piper-Sprachmodelle (rhasspy/piper-voices), die auf den folgenden Datensätzen trainiert wurden; die Datensätze wurden dafür aufbereitet und verändert.",
+    "voiceKazakh": "Kasachische Stimme",
+    "voiceGerman": "Deutsche Stimme"
   },
   "kpiHerkunft": {
     "berechenbar": "heute messbar",
