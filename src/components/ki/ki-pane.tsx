@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Bot, Info, LifeBuoy, MessageSquareText, Settings2, X } from "lucide-react";
 import { Himbeere } from "@/components/ki/himbeere";
 import { KiChat } from "@/components/ki/ki-chat";
+import { KiPaneGriff } from "@/components/ki/ki-pane-griff";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { EskalationsFormular, KiChatFenster } from "@/components/db/ki-assistent-formulare";
 import type { KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
@@ -113,6 +114,7 @@ export function KiPane({
         className={cn("ki-pane-huelle print:hidden", offen && "ki-pane-huelle--offen")}
       >
         <div className={cn("ki-pane", agentAktiv && "ki-pane--agent")}>
+          <KiPaneGriff />
           <header className="ki-pane__kopf">
             <div className="ki-pane__titel">
               <span className="ki-pane__zeichen" aria-hidden>

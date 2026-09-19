@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  memo,
   useEffect,
   useMemo,
   useRef,
@@ -19,7 +20,7 @@ import {
   type UIMessage,
 } from "ai";
 import { useLocale, useTranslations } from "next-intl";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
   ArrowDown,
@@ -60,6 +61,7 @@ import { fuehreUiWerkzeugAus, type KlickAnfrage } from "@/components/ki/ui-steue
 import { MAX_NACHRICHT_LAENGE, type KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
 import { modules } from "@/lib/modules";
 import { hasPermission, type Role } from "@/lib/rbac";
+import { zerlege } from "@/lib/markdown-bloecke";
 import { cn } from "@/lib/utils";
 
 // Werkzeugfaehiger Agentenchat im Seitenpanel (ki-pane.tsx) - Vercel AI SDK
@@ -104,6 +106,8 @@ const aktionsIcon: Record<AktionsName, ComponentType<{ className?: string }>> = 
 const bekannteBereiche = new Set(modules.map((m) => m.key));
 // Obergrenze fuer automatische Folgerunden je Nutzerfrage (Endlosschleifen-Schutz;
 // der Server begrenzt die Schritte je Anfrage zusaetzlich).
+// Mindestabstand zwischen zwei Aktualisierungen des Chats waehrend des Streamens.
+const STREAM_DROSSEL_MS = 80;
 const MAX_CLIENT_SCHRITTE = 40;
 
 /** Wahr, wenn der letzte Schritt der Assistentenantwort Client-Werkzeuge enthaelt
@@ -300,29 +304,55 @@ function waehleVorschlaege(rolle: Role, modus: KiModus): string[] {
     .slice(0, 4);
 }
 
-function Markdown({ text }: { text: string }) {
+// Plugins und Komponenten ausserhalb der Komponente: Wuerden sie bei jedem
+// Rendern neu angelegt, sieht React fuer jede Tabelle und jeden Link einen
+// neuen Komponententyp und baut sie samt DOM jedes Mal neu auf.
+const MARKDOWN_PLUGINS = [remarkGfm];
+const MARKDOWN_KOMPONENTEN: Components = {
+  table: ({ children }) => (
+    <div className="ki-md__tabelle">
+      <table>{children}</table>
+    </div>
+  ),
+  a: ({ children, href }) => (
+    <a href={href} target="_blank" rel="noreferrer noopener">
+      {children}
+    </a>
+  ),
+};
+
+// Zwei Ebenen von memo, weil beim Streamen fast alles gleich bleibt:
+// - Markdown: fertige Antworten behalten ihren Text und werden gar nicht neu
+//   verarbeitet. Vorher wurde bei jedem Wort der GESAMTE Verlauf neu in Markdown
+//   gewandelt, der Hauptthread war Sekunden lang blockiert (Vercel meldete
+//   INP-Probleme von ueber 4 s auf Klicks im Chat).
+// - MarkdownBlock: innerhalb der laufenden Antwort aendert sich nur der letzte,
+//   noch offene Block; alles darueber wird nicht erneut geparst oder abgeglichen.
+const MarkdownBlock = memo(function MarkdownBlock({ text }: { text: string }) {
+  return (
+    <ReactMarkdown remarkPlugins={MARKDOWN_PLUGINS} components={MARKDOWN_KOMPONENTEN}>
+      {text}
+    </ReactMarkdown>
+  );
+});
+
+const Markdown = memo(function Markdown({ text }: { text: string }) {
+  // Zerlegung des vorigen Renders mitfuehren (React-Muster "Werte aus dem
+  // vorigen Render ableiten"), damit zerlege() nur den Zuwachs verarbeitet.
+  const [zerlegung, setZerlegung] = useState(() => zerlege(text, null));
+  let aktuell = zerlegung;
+  if (zerlegung.text !== text) {
+    aktuell = zerlege(text, zerlegung);
+    setZerlegung(aktuell);
+  }
   return (
     <div className="ki-md">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          table: ({ children }) => (
-            <div className="ki-md__tabelle">
-              <table>{children}</table>
-            </div>
-          ),
-          a: ({ children, href }) => (
-            <a href={href} target="_blank" rel="noreferrer noopener">
-              {children}
-            </a>
-          ),
-        }}
-      >
-        {text}
-      </ReactMarkdown>
+      {aktuell.bloecke.map((block, index) => (
+        <MarkdownBlock key={index} text={block} />
+      ))}
     </div>
   );
-}
+});
 
 export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const t = useTranslations("kiAssistentAnsicht");
@@ -370,6 +400,10 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     id: "damicon-ki-assistent",
     messages: initialMessages,
     transport,
+    // Ein Wort je 12 ms (smoothStream) waeren ~80 Renderpassagen pro Sekunde;
+    // gebuendelt in 80-ms-Schritten sieht der Text genauso fluessig aus, der
+    // Hauptthread bleibt aber frei fuer Klicks.
+    throttle: STREAM_DROSSEL_MS,
     // Zwei Gruende, ohne Zutun des Nutzers weiterzumachen: er hat eine Aktion
     // freigegeben/abgelehnt, oder der Browser hat ein Client-Werkzeug (Seite
     // lesen, klicken ...) fertig ausgefuehrt und das Ergebnis geht zurueck.

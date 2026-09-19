@@ -44,6 +44,7 @@
   }
 }
 .ki-pane {
+  position: relative;
   display: flex;
   flex-direction: column;
   width: var(--ki-pane-breite);
@@ -54,6 +55,66 @@
 }
 .ki-pane-hintergrund {
   display: none;
+}
+
+/* ---- Breite ziehen (ki-pane-griff.tsx) ------------------------------------
+   Schmaler Streifen am linken Rand des Panels. Sichtbar wird er erst beim
+   Ueberfahren, Fokussieren und Ziehen; waehrend des Ziehens ruht die
+   Breiten-Animation, sonst haengt das Panel der Maus hinterher. */
+.ki-griff {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  z-index: 5;
+  width: 0.7rem;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+.ki-griff::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 2px;
+  background: var(--himbeere);
+  opacity: 0;
+}
+.ki-griff::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  width: 4px;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: var(--muted-foreground);
+  opacity: 0.35;
+  transform: translateY(-50%);
+}
+.ki-griff:hover::before,
+.ki-griff:focus-visible::before,
+html[data-ki-zieht] .ki-griff::before {
+  opacity: 1;
+}
+.ki-griff:hover::after,
+.ki-griff:focus-visible::after,
+html[data-ki-zieht] .ki-griff::after {
+  background: var(--himbeere);
+  opacity: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-griff::before,
+  .ki-griff::after {
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+  }
+}
+html[data-ki-zieht] .ki-pane-huelle {
+  transition: none;
+}
+html[data-ki-zieht] body {
+  cursor: col-resize;
+  user-select: none;
 }
 
 /* Schmale Bildschirme: keine Platz fuer zwei Spalten - das Panel legt sich
@@ -74,6 +135,9 @@
   }
   .ki-pane {
     width: 100%;
+  }
+  .ki-griff {
+    display: none;
   }
   .ki-pane-hintergrund {
     display: block;
@@ -342,7 +406,7 @@
   flex-direction: column;
   gap: 1.15rem;
   height: 100%;
-  padding: 1rem 1rem 0.75rem;
+  padding: 1rem max(1rem, calc((100% - 46rem) / 2)) 0.75rem;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -676,7 +740,7 @@
   flex: none;
   flex-direction: column;
   gap: 0.55rem;
-  padding: 0.65rem 1rem 1rem;
+  padding: 0.65rem max(1rem, calc((100% - 46rem) / 2)) 1rem;
   border-top: 1px solid var(--border);
 }
 .ki-composer__einwilligung {

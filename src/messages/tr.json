@@ -563,6 +563,7 @@
     "agentDenkt": "Ajan verileri topluyor …",
     "agentPrueft": "Ajan kontrol ediyor: {werkzeug} …",
     "schliessen": "Kapat",
+    "breiteAendern": "Genişliği değiştir: sürükleyin veya ok tuşları, çift tıklama sıfırlar",
     "keinVerlauf": "Henüz mesaj yok. İlk sorunuzu aşağıya yazın.",
     "inputPlaceholder": "Soru girin ...",
     "senden": "Gönder",
