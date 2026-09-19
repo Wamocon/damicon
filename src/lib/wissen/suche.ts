@@ -13,6 +13,11 @@ import { sparseFrage } from "@/lib/wissen/sparse";
 // 3. Jeder Treffer bringt seinen Beleg mit (Fundstelle, Quelle, Link, Stand,
 //    Autoritaetsstufe), damit die Antwort darauf zeigen kann.
 
+// Wie viele Plaetze der Trefferliste mindestens fuer Recht und amtliche Texte (Stufe 1 bis 3)
+// reserviert sind, sofern es solche Treffer gibt.
+const PRIMAER_PLAETZE = 3;
+const PRIMAER_MAX_STUFE = 3;
+
 export interface Beleg {
   /** Zitierkennung fuer diese Antwort: S1, S2 ... */
   id: string;
@@ -93,12 +98,25 @@ export async function sucheWissen(
   const einbettung = opts.einbettung ?? ollamaEinbettung();
   const dense = await einbettenMitCache(einbettung, formulierungen);
   const t1 = performance.now();
-  const treffer = await hybridSuche(
-    qdrantAusUmgebung(),
-    { dense, sparse: formulierungen.map(sparseFrage) },
-    { rolle, nurAktuell: opts.nurAktuell ?? true },
-    { limit: opts.limit ?? 6 },
-  );
+  const verbindung = qdrantAusUmgebung();
+  const nurAktuell = opts.nurAktuell ?? true;
+  const limit = opts.limit ?? 6;
+  const frage = { dense, sparse: formulierungen.map(sparseFrage) };
+  // Zwei Listen parallel: alle Quellen und nur Recht/amtliche Texte (Stufe 1 bis 3). Fachseiten
+  // und Blogs sind in Alltagssprache geschrieben und ranken bei Sachfragen sonst vor dem
+  // Gesetz - fuer Rechtsfragen muss der Gesetzestext aber immer dabei sein.
+  const [primaer, alle] = await Promise.all([
+    hybridSuche(verbindung, frage, { rolle, nurAktuell, maxStufe: PRIMAER_MAX_STUFE }, { limit: PRIMAER_PLAETZE + 2 }),
+    hybridSuche(verbindung, frage, { rolle, nurAktuell }, { limit }),
+  ]);
+  const gesehen = new Set<string>();
+  const treffer: Treffer[] = [];
+  for (const t of [...primaer.slice(0, PRIMAER_PLAETZE), ...alle, ...primaer.slice(PRIMAER_PLAETZE)]) {
+    if (gesehen.has(t.id)) continue;
+    gesehen.add(t.id);
+    treffer.push(t);
+  }
+  treffer.length = Math.min(treffer.length, limit);
   const t2 = performance.now();
   return {
     belege: treffer.map((t, i) => alsBeleg(t, i + 1)),
