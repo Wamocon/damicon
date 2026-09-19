@@ -1,0 +1,57 @@
+{
+ "stand": "19.09.2026",
+ "version": "2.0 (final)",
+ "fazit": [
+  "Runde 1 hielt der Gegenprobe im Kern stand: Von 33 angegriffenen Aussagen wurde **eine widerlegt**, 22 brauchten eine Einschränkung, 10 sind bestätigt. Die Widerlegung betrifft die Pflanzenquarantäne: Die geltende Prüfliste ist **V1500012740** und nicht unbekannt.",
+  "Die zweite Runde hat das Bild erweitert. Neun Prüfbereiche fehlten in Runde 1: Personendaten, Waagen (Metrologie), Migration der Saisonkräfte, Pflichtversicherung gegen Arbeitsunfälle, Brandschutz, Kälteanlage (Industriesicherheit), Wasser, Statistik und Devisenkontrolle bei Exporterlösen.",
+  "Dringend: Ab dem **21.09.2026** gelten neue Regeln zum Schutz personenbezogener Daten. Danach muss jeder Zugriff auf Personendaten protokolliert werden. Das trifft Damicon direkt. Der Wortlaut des Erlasses ist noch nicht am amtlichen Text geprüft."
+ ],
+ "uebersicht": [
+  {"bereich": "Abschlussprüfung", "trifft": "selten", "kern": "Pflicht für TOO mit Gesellschafter < 10 % **und** Großunternehmen, außerdem bei **Investitionsvertrag mit Präferenzen** (Beerenanbau ist prioritär) und für УЭО. KH/IP nie.", "bussgeld": "–", "status": "eingeschränkt"},
+  {"bereich": "Depositarium", "trifft": "nein", "kern": "Nur Organisationen öffentlichen Interesses und Wertpapieremittenten (z. B. TOO mit Anleihen). Frist 31.08.", "bussgeld": "–", "status": "eingeschränkt"},
+  {"bereich": "Rechnungslegung", "trifft": "ja", "kern": "Klein national, mittel IFRS for SMEs, groß IFRS. Befreiung bis 135 000 MRP nur für IP mit vereinfachter Erklärung, nicht für KH. Größenklasse nach Dreijahresdurchschnitt.", "bussgeld": "Art. 276: Verwarnung, dann 25–75 MRP", "status": "eingeschränkt"},
+  {"bereich": "Aufbewahrung", "trifft": "ja", "kern": "Archivverzeichnis G25JC000279: Primärbelege 5 J. (nur nach durchgeführter Prüfung), Lohn/Personal und Arbeitsverträge 75 J., Jahresabschluss bis Liquidation, Buchhaltungsprogramme 10 J.", "bussgeld": "Art. 276", "status": "eingeschränkt"},
+  {"bereich": "Steuerprüfung", "trifft": "ja", "kern": "Max. 30 Arbeitstage, Dokumente in 10 Arbeitstagen, **Lesezugriff auf die Buchhaltungssoftware Pflicht** (Art. 161). Verjährung 3 J. (groß 5), verlängerbar.", "bussgeld": "Art. 462: 100 MRP", "status": "bestätigt"},
+  {"bereich": "Standard-Prüfdatei", "trifft": "freiwillig", "kern": "10 Kalendertage nach Zustimmung, xml/xlsx, 7 Anhänge. Keine Pflicht 2026/2027 gefunden.", "bussgeld": "–", "status": "bestätigt"},
+  {"bereich": "Steuerregime Agrar 2026", "trifft": "ja", "kern": "Sonderregime für Agrar-TOO abgeschafft: allgemeines Regime mit 3 % КПН und getrennter Buchführung. KH: Sonderregime 0,5 % ИПН. Moratorium nur für Zeiträume vor 2026, ohne veröffentlichte Rechtsnorm.", "bussgeld": "–", "status": "eingeschränkt"},
+  {"bereich": "Sanepid", "trifft": "ja", "kern": "Nicht das Feld, sondern **Kühllager, Packhalle und Unterkunft** als Objekte hoher epidemischer Bedeutung. Wahrscheinlich **Sanepid-Gutachten** nötig. Prüflisten Anh. 17 und 18.", "bussgeld": "Art. 425: 160 MRP", "status": "eingeschränkt"},
+  {"bereich": "Arbeitsinspektion", "trifft": "ja", "kern": "Prüfliste geändert 29.05.2026. Ohne Arbeitsvertrag Art. 86, Lohnrückstand Art. 87, Arbeitsschutz Art. 93.", "bussgeld": "60 / 60 / 20 MRP", "status": "eingeschränkt"},
+  {"bereich": "Pflichtversicherung Arbeitsunfall", "trifft": "ja", "kern": "Vertrag für alle Beschäftigten inkl. Saisonkräfte (Gesetz 30-III).", "bussgeld": "Art. 230: 160 MRP", "status": "neu"},
+  {"bereich": "Migration", "trifft": "ja", "kern": "Usbeken nur als Saisonkräfte mit Erlaubnis des Akimats (Quote 0,3 %), Unterkunftspflicht; Kirgisen ohne Erlaubnis (EAWU), aber ESUTD. Meldung binnen 3 Arbeitstagen.", "bussgeld": "Art. 519: 100 MRP", "status": "neu"},
+  {"bereich": "Personendaten", "trifft": "ja", "kern": "Speicherung in Kasachstan (Art. 12, Fassung 326-VIII). Neue Schutzregeln ab 21.09.2026: Protokoll, Rollen, Backups; Mehrfaktor-Anmeldung bei mittleren Verantwortlichen.", "bussgeld": "Art. 79: 300–750 MRP", "status": "neu"},
+  {"bereich": "Waagen (Metrologie)", "trifft": "ja", "kern": "Waagen bei Verkauf und Zukauf registrier- und jährlich eichpflichtig. Erntewaage für Akkordlohn unklar.", "bussgeld": "Art. 419: 230 MRP", "status": "neu"},
+  {"bereich": "Pflanzenschutz", "trifft": "ja", "kern": "V1500012744; Pestizideinsatz = hohes Risiko. Meldungen FU-3/FU-4 nach V1500011913. Bodenspritzung ohne Lizenz.", "bussgeld": "nicht ermittelt", "status": "eingeschränkt"},
+  {"bereich": "Pflanzenquarantäne", "trifft": "ja", "kern": "**V1500012740** gilt (Kriterien und Prüflisten). Lagerung von Quarantäneware hohen Risikos = hohes Risiko.", "bussgeld": "Art. 400: 20 MRP", "status": "widerlegt"},
+  {"bereich": "Land", "trifft": "ja", "kern": "Hohes Risiko: bewässerter Acker > 50 ha, sonst > 300 ha, je nach Katasterkategorie.", "bussgeld": "nicht ermittelt", "status": "eingeschränkt"},
+  {"bereich": "Wasser", "trifft": "wahrscheinlich", "kern": "Brunnen und Entnahme aus Fluss/Kanal brauchen Erlaubnis (Wasserkodex 178-VIII) und Zähler.", "bussgeld": "Art. 141: 100 MRP", "status": "neu"},
+  {"bereich": "Brandschutz", "trifft": "ja", "kern": "МЧС, risikobasiert. Freiwilliger Brandschutz-Audit befreit ein Jahr (nur sekundär belegt).", "bussgeld": "Art. 410: 15 MRP", "status": "neu"},
+  {"bereich": "Kälteanlage", "trifft": "wahrscheinlich", "kern": "Behälter > 0,07 MPa registrieren, technische Prüfung. Ammoniak-Schwelle offen.", "bussgeld": "Art. 298: 30 MRP", "status": "neu"},
+  {"bereich": "Statistik", "trifft": "ja", "kern": "Formen wie 29-сх (Ernte).", "bussgeld": "Art. 497: 14 MRP", "status": "neu"},
+  {"bereich": "Devisen / Export", "trifft": "bei Export", "kern": "Repatriierung der Exporterlöse, Registriernummer für Devisenverträge. 1. Halbjahr 2026: 141 Fälle, 15,3 Mrd. KZT Bußgeld landesweit.", "bussgeld": "Art. 244, 251", "status": "neu"},
+  {"bereich": "Zoll", "trifft": "bei Export", "kern": "EAWU ohne Zollanmeldung, СНТ vor Verladung. Zollbelege **5 Jahre** (EAWU-Zollkodex Art. 320).", "bussgeld": "–", "status": "eingeschränkt"},
+  {"bereich": "Subventionen", "trifft": "bei Förderung", "kern": "Gegenleistung ab 100 Mio. KZT; Sperre erst nach zwei Jahren Nichterfüllung in Folge. Genutzte ЭСФ **und СНТ** werden gesperrt. 3 Jahre Überwachung.", "bussgeld": "Rückforderung", "status": "eingeschränkt"},
+  {"bereich": "HACCP", "trifft": "teilweise", "kern": "Freilandanbau ausgenommen (TR TS 021 Art. 1), Kühlen keine Verarbeitung. Sanitärregeln ҚР ДСМ-36 verlangen Produktionskontrolle auf HACCP-Grundlage.", "bussgeld": "–", "status": "eingeschränkt"},
+  {"bereich": "GLOBALG.A.P.", "trifft": "freiwillig", "kern": "Kein zertifizierter Beerenbetrieb in KZ bekannt. Als Kettenforderung nur für Metro belegt. Bio-Zertifizierung wird zu 50 % gefördert.", "bussgeld": "–", "status": "eingeschränkt"},
+  {"bereich": "Export Phyto", "trifft": "bei Export", "kern": "Phytosanitärzertifikat kostenlos über egov, 3 Arbeitstage. EU verlangt es für frische Beeren; China ohne Protokoll für KZ-Beeren.", "bussgeld": "–", "status": "neu"},
+  {"bereich": "Prüfpfad Software", "trifft": "keine Norm", "kern": "Bestätigt: keine ausdrückliche Norm außerhalb des Finanzsektors. Mittelbar: Datenschutz-Protokoll ab 21.09.2026.", "bussgeld": "–", "status": "bestätigt"}
+ ],
+ "damicon": [
+  {"prio": 1, "titel": "Datenschutz-Protokoll", "was": "Unveränderliches Protokoll aller Zugriffe auf Personendaten, Rollenmodell, Backups, Mehrfaktor-Anmeldung für Rollen mit IIN/Pass/Gesundheit.", "warum": "Neue Schutzregeln ab 21.09.2026; Art. 79 bis 750 MRP"},
+  {"prio": 2, "titel": "Steuerprüfer-Zugang", "was": "Rolle „Steuerprüfer (nur Lesen)“ mit Zugriffsprotokoll; Belegpakete je Zeitraum und Gegenpartei; Export Standard-Prüfdatei.", "warum": "214-VIII Art. 161, Erlass 567"},
+  {"prio": 3, "titel": "Waagenregister", "was": "Jede Wägung mit Waagen-ID; Eichdatum und nächste Eichung; Sperre bei abgelaufener Eichung.", "warum": "Metrologie, Art. 419: 230 MRP"},
+  {"prio": 4, "titel": "Saisonkräfte-Akte", "was": "Rechtsgrund (EAWU / Akimat-Erlaubnis), Erlaubnisnummer und Laufzeit, Arbeitsvertrag mit ESUTD, ОСНС-Vertrag, Unterkunft, Migrationsmeldung in 3 Tagen; Einsatzsperre ohne gültigen Rechtsgrund.", "warum": "Art. 86, 230, 519"},
+  {"prio": 5, "titel": "Belegkorrektur und Archiv", "was": "Korrektur nur per Neubeleg mit Vermerk „исправлено“; Löschsperre 5 J. nur nach Prüfung, 75 J. für Lohn, Personal, Arbeitsverträge; Programmversion 10 J.", "warum": "V1500010954 Nr. 25; G25JC000279"},
+  {"prio": 6, "titel": "Objektakten", "was": "Kühllager, Packhalle, Unterkunft, Kälteanlage, Brunnen als eigene Kontrollobjekte mit Genehmigungen, Prüffristen und Journalen.", "warum": "Sanepid, МЧС, Wasser"},
+  {"prio": 7, "titel": "Größenklasse live", "was": "Beschäftigte im Jahresmittel und Einkommen im Dreijahresschnitt berechnen; Warnung vor Wechsel klein → mittel (höhere Bußgelder, IFRS for SMEs).", "warum": "Unternehmerkodex Art. 24"},
+  {"prio": 8, "titel": "Export und Förderung", "was": "СНТ vor Verladung, Nullsatz-Dossier, Devisenvertrag mit Registriernummer und Repatriierungsfrist, Phytozertifikat; Förderdossier mit ЭСФ/СНТ-Sperre.", "warum": "Zoll, Devisen, V2000020209"}
+ ],
+ "offen": [
+  "Wortlaut und Nummer des Datenschutz-Erlasses vom 03.09.2026 (in Kraft 21.09.2026) am amtlichen Text prüfen.",
+  "Braucht das Kühllager als Großhandelslager ein Sanepid-Gutachten?",
+  "Ist die Erntewaage für den Akkordlohn eichpflichtig?",
+  "Ammoniak-Schwellenwert für die Deklarationspflicht der Kälteanlage (Verordnung 864).",
+  "Buchführungspflicht für KH im neuen Sonderregime in der Praxis der KGD.",
+  "Gilt das Steuer-Moratorium 2026 ohne veröffentlichte Rechtsnorm vor Gericht?",
+  "Erlass 522/НҚ zu EDS (seit 11.09.2026): adilet-Kennung und Folgen für bestehende Zertifikate."
+ ]
+}

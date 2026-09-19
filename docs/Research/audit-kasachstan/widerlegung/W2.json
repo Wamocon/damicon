@@ -1,0 +1,407 @@
+{
+  "agent": "W2",
+  "quellenfamilien_genutzt": {
+    "big4": 3,
+    "kanzlei": 2,
+    "behoerde_faq": 6,
+    "atameken": 1,
+    "fachpresse": 22,
+    "kk_en": 4
+  },
+  "suchrunden": 27,
+  "pruefungen": [
+    {
+      "aussage_id": "blick:Steuerprüfung / B-C3-012, B-C3-015, B-C3-016, B-C3-018, B-C3-020",
+      "aussage": "Steuerprüfung nach 214-VIII: Formen komplexe, thematische, Gegenprüfung, хронометражное обследование; Dauer max. 30 Arbeitstage (Art. 163); Dokumentanforderung 10 Arbeitstage; bei Mikro/Klein höchstens zwei Anforderungen; Auswahl über СУНР und Erlass 659.",
+      "urteil": "bestaetigt",
+      "begruendung": "KGD-Regionaldepartements (ВКО; ЗКО über prg.kz und cdb.kz) und Fachpresse bestätigen 30 Arbeitstage, 10 Arbeitstage (auf Antrag bis 30) und höchstens zwei Anforderungen. Die Begrenzung auf zwei Anforderungen gilt laut Art. 164 nur für Mikro- und Kleinunternehmen (mittlere und große sind ausgenommen); KGD-Meldungen formulieren sie teils verkürzt ohne diese Einschränkung. Erlass 659 vom 31.10.2025 regelt Anordnung von Steuerprüfungen und хронометражных обследований (mybuh). Ergänzungen, die im Blick fehlen: Gesamtdauer mit Verlängerungen für Mikro-, Klein- und mittlere Unternehmen höchstens 180 Kalendertage (Art. 163 Abs. 2, 3); komplexe Prüfung entfällt bei КНН von mindestens 90 % des Branchenwerts. PwC nennt noch 'selective and unplanned' audits – Leitfadensprache, kein Gegenbeweis.",
+      "belege": [
+        {
+          "url": "https://vko.kgd.gov.kz/ru/news/izmeneniya-v-nalogovom-kodekse-respubliki-kazahstan-v-2026-godu-v-chasti-nalogovyh-proverok-8",
+          "familie": "behoerde_faq",
+          "titel": "ДГД ВКО: Изменения в Налоговом кодексе РК в 2026 году в части налоговых проверок",
+          "zitat": "требование о предоставлении документов в рамках проверки может вручаться не более двух раз ... срок исполнения требования сокращён до 10 рабочих дней (с возможностью продления до 30 рабочих дней по ходатайству налогоплательщика)",
+          "datum_quelle": "2026",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://cdb.kz/sistema/novosti/poryadok_i_sroki_provedeniya_nalogovoy_proverki_v_2026_godu/",
+          "familie": "fachpresse",
+          "titel": "Порядок и сроки проведения налоговой проверки в 2026 году (nach ДГД ВКО)",
+          "zitat": "Срок проведения налоговой проверки, указываемый в предписании налогового органа, не должен превышать 30 рабочих дней ... Общий срок проверки для субъектов микро-, малого и среднего бизнеса не должен превышать 180 календарных дней",
+          "datum_quelle": "2026-04-23",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://pavlodar.com/zakon/?dok=07007&uro=080164",
+          "familie": "fachpresse",
+          "titel": "НК РК 214-VIII Art. 164 (Wortlautkontrolle)",
+          "zitat": "Требование о представлении документов за время проведения проверки вручается не более двух раз, за исключением проверок налогоплательщиков, отнесенных к субъектам среднего и крупного предпринимательства.",
+          "datum_quelle": "2026-07-03",
+          "adilet_id": "K2500000214"
+        },
+        {
+          "url": "https://mybuh.kz/news/nalogovaya-i-khronometrazhnaya-proverki-po-novym-pravilam-s-2026-goda/",
+          "familie": "fachpresse",
+          "titel": "Налоговая и хронометражная проверки по новым правилам с 2026 года",
+          "zitat": "Приказ МФ РК № 659 от 31.10.2025, вступает в силу с 01.01.2026 (sinngemäß laut Abruf)",
+          "datum_quelle": "2025-11-06",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://taxsummaries.pwc.com/kazakhstan/corporate/tax-administration",
+          "familie": "big4",
+          "titel": "PwC Worldwide Tax Summaries Kazakhstan – Tax administration",
+          "zitat": "Comprehensive tax audits cover all applicable taxes, while thematic tax audits may cover only some specific tax liabilities.",
+          "datum_quelle": "2026-07-23",
+          "adilet_id": ""
+        }
+      ],
+      "korrektur": ""
+    },
+    {
+      "aussage_id": "blick:Steuerprüfung / B-C3-010",
+      "aussage": "Pflicht, dem Prüfer Einsicht in die Daten der Buchhaltungssoftware zu geben (Art. 161 Abs. 2 Nr. 6).",
+      "urteil": "bestaetigt",
+      "begruendung": "Wortlaut Art. 161 Abs. 2 Nr. 6 bestätigt; die Pflicht ist nicht neu (Recht der Steuerorgane schon nach altem Kodex, uchet.kz 2016). Verlangt wird 'доступ к просмотру', also Lesezugriff, keine Datenkopie und kein Fernzugriff. Fernzugriff und 'витрина данных' gibt es nur im freiwilligen horizontalen Monitoring (Art. 146–150), das Damicon nicht betrifft. Keine Quelle widerspricht.",
+      "belege": [
+        {
+          "url": "https://pavlodar.com/zakon/?dok=07007&uro=080161",
+          "familie": "fachpresse",
+          "titel": "НК РК 214-VIII Art. 161 Abs. 2 Nr. 6",
+          "zitat": "предоставлять доступ к просмотру данных программного обеспечения, предназначенного для автоматизации бухгалтерского и налогового учетов, и (или) информационной системе",
+          "datum_quelle": "2026-07-03",
+          "adilet_id": "K2500000214"
+        },
+        {
+          "url": "https://uchet.kz/question/konsultatsii-po-bukhuchetu/241987/",
+          "familie": "fachpresse",
+          "titel": "Может ли проверяющий налоговый орган требовать доступа к программе 1С?",
+          "zitat": "требовать от налогоплательщиков предоставления права доступа к просмотру данных программного обеспечения, предназначенного для автоматизации бухгалтерского и налогового учетов (alte Rechtslage)",
+          "datum_quelle": "2016-09-26",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://pro1c.kz/articles/nalogovyy-uchet/gorizontalnyy-monitoring-v-novom-nalogovom-kodekse/",
+          "familie": "fachpresse",
+          "titel": "Горизонтальный мониторинг в новом Налоговом кодексе 2026 года",
+          "zitat": "Fernzugriff auf Buchhaltungsdaten und витрина данных nur nach Vereinbarung über horizontales Monitoring (Art. 146 ff.; Abruf)",
+          "datum_quelle": "2026-01-06",
+          "adilet_id": "K2500000214"
+        }
+      ],
+      "korrektur": ""
+    },
+    {
+      "aussage_id": "blick:Standard-Prüfdatei / B-C3-001..005, B-C7-017",
+      "aussage": "Standard-Prüfdatei (Erlass 567 vom 03.10.2025): freiwillig, 10 Kalendertage nach Zustimmung, xml/xlsx, 7 Anhänge; Pflicht für bestimmte Gruppen oder ab 2027?",
+      "urteil": "bestaetigt",
+      "begruendung": "uchet.kz zitiert Pkt. 4 wörtlich ('на добровольной основе'). Keine Quelle nennt eine Pflicht für Großsteuerzahler, Monitoring-Teilnehmer oder Sonderregime und keine Pflicht ab 2027. Horizontales Monitoring nutzt ein eigenes Instrument (витрина данных). Der Ministererlass vom 26.01.2026 überträgt der KGD nur die Zuständigkeit, Anforderungen an den Standardfile zu entwickeln – eine Kompetenznorm, keine Pflicht; sie kann aber eine spätere Neufassung ankündigen (Beobachtungspunkt). Eine Beratungsfirma (actgr.kz) schreibt verkürzt, die Datei sei 'required'; das widerspricht dem Erlasswortlaut.",
+      "belege": [
+        {
+          "url": "https://uchet.kz/news/standartnyy-fayl-proverki-chto-menyaetsya-v-nalogovykh-proverkakh-s-2026-goda/",
+          "familie": "fachpresse",
+          "titel": "Стандартный файл проверки: что меняется в налоговых проверках с 2026 года?",
+          "zitat": "Стандартный файл проверки предоставляется налогоплательщиком (налоговым агентом) в органы государственных доходов на добровольной основе. ... в течение 10 календарных дней со дня вручения предписания о проведении налоговой проверки",
+          "datum_quelle": "2025-10-09",
+          "adilet_id": "V2500037055"
+        },
+        {
+          "url": "https://mybuh.kz/useful/kak-provoditsya-gorizontalnyy-monitoring-v-2026-godu.html",
+          "familie": "fachpresse",
+          "titel": "Как проводится горизонтальный мониторинг в 2026 году",
+          "zitat": "Участие в горизонтальном мониторинге является добровольным и осуществляется после заключения соглашения о горизонтальном мониторинге (sinngemäß; Art. 146–150)",
+          "datum_quelle": "2025-08-13",
+          "adilet_id": "K2500000214"
+        },
+        {
+          "url": "https://www.zakon.kz/pravo/6506963-komitet-gosdokhodov-nadelili-novymi-funktsiyami.html",
+          "familie": "fachpresse",
+          "titel": "Комитет госдоходов наделили новыми функциями",
+          "zitat": "разработка требований к стандартному файлу, порядка его составления и предоставления",
+          "datum_quelle": "2026-02-06",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://actgr.kz/tpost/5sgnzi4831-kak-podgotovitsya-k-nalogovim-proverkam",
+          "familie": "kanzlei",
+          "titel": "Как подготовиться к налоговым проверкам в 2026 году (Beratungsfirma)",
+          "zitat": "Excel/XML submission required within 10 calendar days of audit notice (Zusammenfassung des Abrufs; widerspricht dem Erlasswortlaut)",
+          "datum_quelle": "2026",
+          "adilet_id": ""
+        }
+      ],
+      "korrektur": ""
+    },
+    {
+      "aussage_id": "blick:Steuerprüfung / B-C3-022, B-C4-022",
+      "aussage": "Moratorium 2026: keine Steuerprüfungen bei Mikro- und Kleinunternehmen für Zeiträume vor 01.01.2026 (Regierungsbeschluss 17.12.2025) – Rechtsgrundlage?",
+      "urteil": "eingeschraenkt",
+      "begruendung": "Inhalt bestätigt durch mehrere KGD-Regionaldepartements, das Portal des Premierministers und die Fachpresse. Eine normative Rechtsgrundlage (Gesetzesartikel oder nummerierter Regierungsbeschluss auf adilet) nennt keine Quelle: KGD und mybuh sprechen von 'решению от 17 декабря 2025 года', Tengrinews (17.12.2025) von einer Regierungssitzung und 'operational measures', kursiv.media (26.01.2026) von Regelentwürfen auf 'Открытые НПА' mit geplantem Inkrafttreten Anfang Februar 2026. Das Moratorium ist damit eine Regierungs- und Verwaltungsentscheidung, keine Gesetzesnorm; ob es vor Gericht durchsetzbar ist, bleibt unsicher. Ergänzungen: Im Mai 2026 hat die Regierung beschlossen, für Mikro/Klein im ganzen Jahr 2026 keine Pени zu berechnen (ausgenommen einbehaltene Steuern, Einfuhr-НДС/Akzisen, Sozialzahlungen). Weitere Ausnahmen vom Moratorium laut KGD-Meldungen: Gegenprüfungen, vor 2026 angeordnete Prüfungen, Bestätigung von Verstößen aus der Kameralkontrolle, Unterbodennutzer, Beschwerden gegen Prüfungsergebnisse.",
+      "belege": [
+        {
+          "url": "https://mybuh.kz/news/kameralnyy-kontrol-nalogovye-proverki-shtrafy-dlya-mikro-i-malogo-biznesa/",
+          "familie": "fachpresse",
+          "titel": "Бизнес с чистого листа 2026: без старых штрафов и проверок",
+          "zitat": "Согласно решению от 17 декабря 2025 года ... Налоговые проверки за налоговые периоды до 1 января 2026 года проводиться не будут",
+          "datum_quelle": "2025-12",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://vko.kgd.gov.kz/ru/news/snizhenie-nalogovoy-nagruzki-dlya-mikro-i-malogo-biznesa-2026-god-s-chistogo-lista-8-161350",
+          "familie": "behoerde_faq",
+          "titel": "ДГД ВКО: Снижение налоговой нагрузки для микро и малого бизнеса 2026 год — с «чистого листа»",
+          "zitat": "Keine Rechtsnorm genannt; Ausnahmen: Berichte nach dem 17.12.2025, Nichtresidenten-Pflichten, Strafverfahren, Staatsanwaltschaft, Prüfungen auf Antrag (Abruf)",
+          "datum_quelle": "2025-12-29",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://en.tengrinews.kz/finance/we-are-starting-from-a-clean-slate-finance-ministry-explains-270484/",
+          "familie": "kk_en",
+          "titel": "“We are starting from a clean slate”: Finance Ministry explains tax reform measures",
+          "zitat": "operational measures have been adopted. They have already been approved, and we will officially announce these changes once again literally this week",
+          "datum_quelle": "2025-12-17",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://kz.kursiv.media/2026-01-26/klsv-poslableniya-dlya-mikro-i-malogo-businessa-pridumali-v-pravitelstve/",
+          "familie": "fachpresse",
+          "titel": "«Чистый лист» для бизнеса: кого освободят от штрафов и проверок",
+          "zitat": "Указанные проекты правил опубликованы на портале «Открытые НПА» для публичного обсуждения. Планируемый срок вступления в силу – начало февраля 2026 года.",
+          "datum_quelle": "2026-01-26",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://kapital.kz/economic/148045/malyj-i-mikrobiznes-prodolzhat-poluchat-nalogovuyu-podderzhku-v-2026-godu.html",
+          "familie": "fachpresse",
+          "titel": "Малый и микробизнес продолжат получать налоговую поддержку в 2026 году",
+          "zitat": "в период с 1 января по 31 декабря 2026 года в отношении субъектов микро- и малого бизнеса не будет начисляться пеня на суммы налогов",
+          "datum_quelle": "2026-05-14",
+          "adilet_id": ""
+        }
+      ],
+      "korrektur": "Moratorium 2026: Für Mikro- und Kleinunternehmen finden für Zeiträume vor dem 01.01.2026 keine Steuerprüfungen und keine Kameralkontrolle statt (Ausnahmen u. a. Berichte nach dem 17.12.2025, Nichtresidenten, Strafverfahren, Staatsanwaltschaft, eigene Anträge, Gegenprüfungen, vor 2026 angeordnete Prüfungen). Grundlage ist eine Regierungsentscheidung vom 17.12.2025, umgesetzt über Verwaltungsregeln; ein Gesetzesartikel oder ein nummerierter Regierungsbeschluss ist nicht auffindbar. Für 2026 werden zusätzlich keine Pени berechnet (Regierungsentscheidung Mai 2026). Für Zeiträume ab 2026 gilt kein Prüfungsmoratorium."
+    },
+    {
+      "aussage_id": "blick:Steuerprüfung / B-C3-024",
+      "aussage": "Bußgeld Behinderung der Prüfung 100/150/200 MRP (КоАП Art. 462).",
+      "urteil": "eingeschraenkt",
+      "begruendung": "Beträge in Art. 462 Teil 1 bestätigt (3 MRP natürliche Personen, 100 Amtsträger/Klein, 150 mittel, 200 groß). Art. 462 ist eine allgemeine Norm für staatliche Inspektionen und Kontrollorgane; eine KGD-Quelle oder ein Urteil, das ihn auf Steuerprüfungen anwendet, wurde nicht gefunden. Runde 1 übersieht die speziellere Steuernorm КоАП Art. 276: Fehlen oder mangelhafte Führung und Aufbewahrung von Buchhaltungs- und Steuerunterlagen – erst Verwarnung, bei Wiederholung 25–75 MRP; nicht verbuchte Waren 3–10 % ihres Werts (Quelle von 2021, Beträge für 2026 gegenprüfen). Für ein Belegarchiv ist Art. 276 die wahrscheinlichere Sanktion.",
+      "belege": [
+        {
+          "url": "https://kodeksy-kz.com/ka/ob_administrativnyh_pravonarusheniyah/462.htm",
+          "familie": "fachpresse",
+          "titel": "КоАП РК Art. 462",
+          "zitat": "fines for individuals (3 MRP), officials/small business/NGOs (100), medium enterprises (150), and large enterprises (200) (Abruf des Wortlauts Teil 1)",
+          "datum_quelle": "2026-07-30",
+          "adilet_id": "K1400000235"
+        },
+        {
+          "url": "https://mybuh.kz/news/kakoy-shtraf-predusmotren-za-otsutstvie-bukhgalterskikh-i-nalogovykh-dokumentov-i-neuchtennye-tovary/",
+          "familie": "fachpresse",
+          "titel": "Какой штраф предусмотрен за отсутствие бухгалтерских и налоговых документов и неучтенные товары",
+          "zitat": "предупреждение ... штраф 25 до 75 МРП ... штраф от 3%-10% от стоимости неучтенных товаров (Art. 276 КоАП)",
+          "datum_quelle": "2021-02-23",
+          "adilet_id": "K1400000235"
+        }
+      ],
+      "korrektur": "Behinderung einer Prüfung (Verweigerung von Unterlagen oder Zutritt, falsche Angaben): КоАП Art. 462 Teil 1 mit 100/150/200 MRP; ob die KGD Art. 462 bei Steuerprüfungen anwendet, ist nicht belegt. Speziell steuerlich greift Art. 276 (fehlende oder mangelhafte Buchhaltungs- und Steuerunterlagen: Verwarnung, bei Wiederholung 25–75 MRP; nicht verbuchte Waren 3–10 % ihres Werts)."
+    },
+    {
+      "aussage_id": "blick:Zollprüfung / B-C8-003..010",
+      "aussage": "Zoll: Export in EAWU ohne Zollanmeldung, СНТ vor Beginn der Beförderung, Nullsatz-Nachweise 180 Tage, Erklärung 328.00 beim EAWU-Zukauf bis 20. Folgemonat; Drittland: kameral 60 Tage, vor Ort 2+1 Monate, Verjährung 3/5 Jahre, Aufbewahrung Zollbelege 3 oder 5 Jahre (ungeklärt).",
+      "urteil": "eingeschraenkt",
+      "begruendung": "Bestätigt: СНТ bei Ausfuhr in die EAWU vor Beginn der Beförderung (Erlass 657 vom 31.10.2025; Ausnahme Pkw bis 2,5 t; Bußgeld bis 400 MRP), Nullsatz (KGD-FAQ) und 180 Tage (Fachpresse), 328.00 bis zum 20. des Folgemonats (Art. 530 Abs. 3 214-VIII laut Fachpresse), kamerale Zollprüfung 60 Kalendertage, Außenprüfung zwei Monate. Die offene Aufbewahrungsfrist ist klärbar: Der EAWU-Zollkodex (Art. 320 Abs. 2) schreibt 5 Jahre vor und gilt in Kasachstan unmittelbar; 3 Jahre (nationale Verjährung Art. 89 123-VI) sind kein sicherer Maßstab. Zusatz: Der Nullsatz setzt eine НДС-Registrierung voraus.",
+      "belege": [
+        {
+          "url": "https://uchet.kz/news/snt-2026-perechen-tovarov-i-poryadok-oformleniya/",
+          "familie": "fachpresse",
+          "titel": "СНТ-2026: новый перечень товаров и порядок оформления",
+          "zitat": "Приказом и.о. Министра финансов РК от 31 октября 2025 года № 657 ... При ввозе и вывозе товаров с территории государств-членов ЕАЭС данные из СНТ будут подтверждаться сотрудниками органов государственных доходов",
+          "datum_quelle": "2025-11-07",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://www.bcc.kz/bcc-journal/snt-transportation/",
+          "familie": "fachpresse",
+          "titel": "СНТ в Казахстане 2026: правила перевозки и оформления документов",
+          "zitat": "продукция экспортируется – подготовить накладную нужно до начала движения груза ... Максимальный размер штрафа – 400 МРП",
+          "datum_quelle": "2026-02-11",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://kgd.gov.kz/ru/faq/104/57354",
+          "familie": "behoerde_faq",
+          "titel": "КГД Вопрос-ответ: ставка НДС при экспорте в ЕАЭС",
+          "zitat": "При экспорте товаров с территории Республики Казахстан на территорию другого государства-члена Евразийского экономического союза применяется нулевая ставка НДС",
+          "datum_quelle": "",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://valuta24.kz/pro_nalogi_rk/411-sroki-i-porjadok-sdachi-f32800-i-uplaty-nds-na-import-v-2026-godu.html",
+          "familie": "fachpresse",
+          "titel": "Сроки и порядок сдачи ф.328.00 и уплаты НДС на импорт в 2026 году",
+          "zitat": "не позднее 20 числа месяца, следующего за налоговым периодом (Art. 530 Abs. 3 214-VIII)",
+          "datum_quelle": "2025-09-03",
+          "adilet_id": "K2500000214"
+        },
+        {
+          "url": "https://www.alta.ru/codex-2018/R6/GL44/ST320/",
+          "familie": "kk_en",
+          "titel": "ТК ЕАЭС Art. 320 Хранение документов, необходимых для проведения таможенного контроля",
+          "zitat": "Documents ... must be stored by persons and customs authorities for 5 years from the date of circumstances specified in paragraphs 7-15 of Article 14 (Abruf)",
+          "datum_quelle": "2018",
+          "adilet_id": ""
+        }
+      ],
+      "korrektur": "Zollbelege (Zollanmeldungen, Unterlagen nach Art. 108 ТК ЕАЭС, bei Zolloperationen erstellte Dokumente) 5 Jahre aufbewahren (ТК ЕАЭС Art. 320 Abs. 2); das nationale Recht (123-VI Art. 405) verweist auf die Verjährung, die höchstens 5 Jahre beträgt. Übrige Angaben unverändert."
+    },
+    {
+      "aussage_id": "blick (neu): Landwirtschaftliche Erzeuger 2026",
+      "aussage": "Besonderheiten für landwirtschaftliche Erzeuger 2026 (Sonderregime für СХТП/KH, 80 % НДС-Reduktion, Steuerregime-Wechsel) und ob sie besondere Prüfungen auslösen.",
+      "urteil": "eingeschraenkt",
+      "begruendung": "Ein Sonderregime gibt es 2026 nur noch für Bauern- und Farmerwirtschaften (КФХ): ИПН 0,5 % auf Erlöse aus eigener Agrarproduktion und deren Verarbeitung (Art. 730), befreit u. a. von Grund-, Transport-, Vermögens- und Sozialsteuer sowie von НДС außer Einfuhr/Nichtresidenten (Art. 731), getrennte Buchführung bei anderen Tätigkeiten. Das frühere СНР für Agrarerzeuger (juristische Personen/СХТП) ist abgeschafft; ТОО wechseln automatisch in die allgemeine Regelung mit ermäßigtem КПН-Satz 3 % (Art. 357) und getrennter Buchführung (Art. 211). НДС 16 %; der zusätzliche Vorsteuerabzug für Agrarerzeuger steigt von 70 % auf 80 %. Keine Quelle nennt eine eigene Prüfungsart für Agrarerzeuger. Prüfungsrisiken entstehen mittelbar: getrennte Buchführung als Grundlage des 3-%-Satzes, НДС-Erstattung als Thema thematischer Prüfungen, Verlust des КФХ-Regimes bei Verstoß gegen die Bedingungen.",
+      "belege": [
+        {
+          "url": "https://prg.kz/document/?doc_id=33381608",
+          "familie": "fachpresse",
+          "titel": "Как изменилось налогообложение в 2026 году у ТОО, применяющего в 2025 году СНР для сельхозпроизводителей? (Г. Умрихина)",
+          "zitat": "КПН устанавливается в размере 3% к налогооблагаемому доходу от деятельности по производству сельскохозяйственной продукции, продукции аквакультуры (рыбоводства) (Art. 357); СНР für Agrarerzeuger besteht nicht mehr, Übergang in ОУР ohne Antrag (Abruf)",
+          "datum_quelle": "2026-02-20",
+          "adilet_id": "K2500000214"
+        },
+        {
+          "url": "https://uchet.kz/news/snr-dlya-kfkh-2026-kakie-lgoty-i-ot-kakikh-nalogov-i-platezhey-osvobozhdeny/",
+          "familie": "fachpresse",
+          "titel": "СНР для КФХ-2026: какие льготы и от каких налогов и платежей освобождены?",
+          "zitat": "ИПН 0,5 % ... освобождение по ст. 731 ... НДС: ставка 16 %, льгота увеличена с 70 % до 80 % (Abruf, sinngemäß)",
+          "datum_quelle": "2026",
+          "adilet_id": "K2500000214"
+        },
+        {
+          "url": "https://mybuh.kz/useful/sokhranyayutsya-li-nalogovye-lgoty-dlya-selkhozproizvoditeley-pri-smene-kategorii-biznesa.html",
+          "familie": "fachpresse",
+          "titel": "Налоговые льготы для сельхозпроизводителей в 2026 г.",
+          "zitat": "раздельный учет bei Einkünften außerhalb des Sonderregimes (Art. 730, 731; Abruf)",
+          "datum_quelle": "2026-01-09",
+          "adilet_id": "K2500000214"
+        },
+        {
+          "url": "https://www.enbekshiqazaq.kz/en/news/397583-procedure-for-tax-calculation-for-peasant-and.html",
+          "familie": "kk_en",
+          "titel": "Procedure for Tax Calculation for Peasant and Farm Enterprises",
+          "zitat": "Individual Income Tax is calculated at 0.5% of the taxable object (Abruf)",
+          "datum_quelle": "2026",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://kazakhstan.moore-global.com/new-tax-code-key-changes/",
+          "familie": "big4",
+          "titel": "Moore Kazakhstan: New Tax Code – key changes",
+          "zitat": "reduces special regimes from 7 to 3, including regime for peasant and farm enterprises (Abruf)",
+          "datum_quelle": "2025",
+          "adilet_id": ""
+        }
+      ],
+      "korrektur": "Landwirtschaft 2026: Sonderregime nur für КФХ (ИПН 0,5 %, Art. 730–731, befreit u. a. von НДС außer Einfuhr). Das СНР für Agrar-ТОО ist abgeschafft; sie stehen in der allgemeinen Regelung mit КПН 3 % (Art. 357) und getrennter Buchführung (Art. 211). НДС 16 % mit 80 % zusätzlichem Vorsteuerabzug für Agrarerzeuger. Eine eigene Prüfungsart gibt es nicht; geprüft wird in thematischen Prüfungen (getrennte Buchführung, НДС-Erstattung, Regimevoraussetzungen)."
+    }
+  ],
+  "neue_fakten": [
+    {
+      "id": "N-W2-001",
+      "thema": "Хронометражное обследование und Kasse",
+      "aussage": "Erlass 659 nennt als Auslöser eines хронометражного обследования u. a. seltene Kassennutzung während des Arbeitstags, mindestens zwei bestätigte Fälle nicht ausgegebener Kassenbons (Beschwerden) und niedrige Steuerlast. Dauer fest 30 Arbeitstage.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "Налоговый кодекс 214-VIII Art. 158; Приказ МФ РК № 659 от 31.10.2025",
+      "adilet_id": "K2500000214",
+      "zitat": "Low periodicity of cash register usage during working day ... Confirmed instances of two or more fiscal receipt non-issuances per complaints (Abruf der Kriterienliste)",
+      "url": "https://mybuh.kz/news/nalogovaya-i-khronometrazhnaya-proverki-po-novym-pravilam-s-2026-goda/",
+      "familie": "fachpresse",
+      "damicon_folge": "Bei Ab-Hof- oder Marktverkauf gegen Bar oder Karte: Kassennutzung und Bonausgabe lückenlos erfassen; Tagesumsätze der Kasse in die Buchhaltung übernehmen."
+    },
+    {
+      "id": "N-W2-002",
+      "thema": "ККМ-Pflicht und Nationaler Warenkatalog",
+      "aussage": "Seit 01.01.2026 neue Regeln zur ККМ (Art. 111 Abs. 2, 5, 6 214-VIII; Erlass Nr. 626 vom 24.10.2025): Der Bon muss den Identifikationscode der Ware nach dem Nationalen Warenkatalog enthalten; derselbe Code ist in ЭСФ und СНТ anzugeben.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "Налоговый кодекс 214-VIII Art. 111; Приказ МФ РК № 626 от 24.10.2025",
+      "adilet_id": "K2500000214",
+      "zitat": "идентификационный код товара в соответствии с национальным каталогом (Abruf)",
+      "url": "https://mybuh.kz/news/pravila-primeneniya-kkm-pomenyayut-v-kazakhstane/",
+      "familie": "fachpresse",
+      "damicon_folge": "Artikelstamm mit Katalogcode je Beerensorte und Verpackung führen, damit ЭСФ, СНТ und Kassenbon denselben Code tragen."
+    },
+    {
+      "id": "N-W2-003",
+      "thema": "ЭСФ-Sperre (Art. 88) und Е-Тамга",
+      "aussage": "Die Ausstellung von ЭСФ kann aus 15 Gründen (Art. 88) binnen eines Arbeitstags gesperrt werden; Käufer werden benachrichtigt, die Sperre wird veröffentlicht. Für 'riskante' Steuerpflichtige gilt seit 01.01.2026 Е-Тамга: ЭСФ nur im Rahmen eines bestätigten НДС-Saldos, Kontrolle 12 Monate.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "Налоговый кодекс 214-VIII Art. 88",
+      "adilet_id": "K2500000214",
+      "zitat": "Решения о приостановлении и об отмене приостановления выписки ЭСФ принимаются налоговым органом в течение одного рабочего дня, следующего за днем возникновения оснований (Abruf); Е-Тамга: выписывать ЭСФ только при наличии подтвержденных легальных расходов",
+      "url": "https://vko.kgd.gov.kz/ru/news/priostanovlenie-vypiski-esf-8-164256",
+      "familie": "behoerde_faq",
+      "damicon_folge": "Lieferanten vor dem Zukauf gegen die Liste gesperrter ЭСФ-Aussteller prüfen (Vorsteuerrisiko); eigene Sperrgefahr bei unbeantworteten Abweichungsmitteilungen – Fristen in der Software überwachen."
+    },
+    {
+      "id": "N-W2-004",
+      "thema": "Devisenkontrolle und Repatriierung",
+      "aussage": "Exporterlöse sind auf Konten bei kasachischen Banken zu repatriieren (Art. 9 Gesetz 167-VI, Änderung 2026). KGD, Nationalbank und Banken kontrollieren; die KGD führt Dokumentarprüfungen. 1. Halbjahr 2026: 1 116 Protokolle nach КоАП Art. 244 (Registrierungsnummer des Devisenvertrags) und 141 Fälle nach Art. 251 (Nicht-Repatriierung) mit 15,3 Mrd. Tenge Bußgeld. Schwelle für die Registrierungsnummer laut Sekundärquelle 50 000 USD je Vertrag.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "Закон РК № 167-VI О валютном регулировании и валютном контроле, Art. 9; КоАП Art. 244, 251",
+      "adilet_id": "Z1800000167",
+      "zitat": "Невыполнение требования репатриации национальной и (или) иностранной валюты (Art. 251 КоАП); КГД ... осуществлению документальных проверок, привлечению к административной ответственности по нарушениям валютного законодательства (Abruf)",
+      "url": "https://uchet.kz/news/razyasnenie-o-repatriatsii-valyuty-dal-kgd/",
+      "familie": "fachpresse",
+      "damicon_folge": "Je Exportvertrag Registrierungsnummer (УНВД) und Repatriierungsfrist erfassen; Zahlungseingänge je Sendung abgleichen und vor Fristablauf warnen."
+    },
+    {
+      "id": "N-W2-005",
+      "thema": "Verrechnungspreise bei Export",
+      "aussage": "Änderungen des Gesetzes 67-IV ab 01.01.2026: Vorrang der wirtschaftlichen Substanz (neuer Art. 10-2), Befugnis zur Umqualifizierung, Frist für Unterlagen auf Anfrage von 90 auf 30 Kalendertage verkürzt, neue Monitoring-Formulare (Erlass MF Nr. 782 vom 17.12.2025). Frischbeeren stehen nicht auf der erweiterten Monitoring-Liste; ob Exporte an unverbundene Abnehmer kontrolliert werden, ist nicht geklärt.",
+      "einstufung": "unklar",
+      "rechtsgrundlage": "Закон РК № 67-IV О трансфертном ценообразовании, Art. 10-2; Приказ МФ № 782 от 17.12.2025",
+      "adilet_id": "Z080000067_",
+      "zitat": "отталкиваться не от буквы договора, а от фактического поведения сторон; Documentation submission deadline reduced from 90 to 30 calendar days (Abruf)",
+      "url": "https://konsugroup.com/ru/news/changes-transfer-pricing-law-kazakhstan-2026/",
+      "familie": "kanzlei",
+      "damicon_folge": "Preisbelege (Marktpreise, Angebote) je Exportvertrag ablegen, vor allem bei verbundenen Abnehmern; 30-Tage-Frist beachten."
+    },
+    {
+      "id": "N-W2-006",
+      "thema": "Keine Pени 2026 für Mikro/Klein",
+      "aussage": "Regierungsentscheidung (Mai 2026): Für Mikro- und Kleinunternehmen werden vom 1.1. bis 31.12.2026 keine Pени auf Steuern berechnet (ausgenommen einbehaltene Steuern, Einfuhr-НДС/Akzisen, Sozialzahlungen); nach dem 31.12.2026 fallen Pени bei Nachmeldungen und Nachveranlagungen an.",
+      "einstufung": "unklar",
+      "rechtsgrundlage": "Regierungsentscheidung, keine veröffentlichte Rechtsnorm (KGD-Meldung)",
+      "adilet_id": "",
+      "zitat": "в период с 1 января по 31 декабря 2026 года в отношении субъектов микро- и малого бизнеса не будет начисляться пеня на суммы налогов",
+      "url": "https://kapital.kz/economic/148045/malyj-i-mikrobiznes-prodolzhat-poluchat-nalogovuyu-podderzhku-v-2026-godu.html",
+      "familie": "fachpresse",
+      "damicon_folge": "Keine Softwarefolge; Hinweis im Bericht, dass Nachveranlagungen für 2026 ab 2027 Pени auslösen."
+    },
+    {
+      "id": "N-W2-007",
+      "thema": "КоАП Art. 276: fehlende Unterlagen",
+      "aussage": "Fehlen oder mangelhafte Führung und Aufbewahrung von Buchhaltungs- und Steuerunterlagen: erst Verwarnung, bei Wiederholung 25–75 MRP; nicht verbuchte Waren 3–10 % ihres Werts. Für ein Belegarchiv einschlägiger als Art. 462.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "КоАП РК Art. 276",
+      "adilet_id": "K1400000235",
+      "zitat": "предупреждение ... штраф 25 до 75 МРП ... штраф от 3%-10% от стоимости неучтенных товаров",
+      "url": "https://mybuh.kz/news/kakoy-shtraf-predusmotren-za-otsutstvie-bukhgalterskikh-i-nalogovykh-dokumentov-i-neuchtennye-tovary/",
+      "familie": "fachpresse",
+      "damicon_folge": "Vollständigkeitsprüfung (jede Buchung mit Beleg) und Abgleich Lagerbestand mit Buchhaltung als Funktion; Quelle von 2021, Beträge 2026 gegenprüfen."
+    },
+    {
+      "id": "N-W2-008",
+      "thema": "Markierung",
+      "aussage": "Die 2026 aktualisierte Liste markierungspflichtiger Waren (Erlass des Handelsministeriums 215-НҚ vom 30.06.2026, in Kraft 10.10.2026) enthält keine frischen Beeren, kein Obst und kein Gemüse. Meldungen über eine Markierung von Obst- und Beerenkonserven ab Oktober 2026 ließen sich keiner kasachischen Norm zuordnen.",
+      "einstufung": "unklar",
+      "rechtsgrundlage": "Приказ Министра торговли и интеграции РК № 215-НҚ от 30.06.2026",
+      "adilet_id": "",
+      "zitat": "Liste: Tabak, Schuhe, Arzneimittel, Saiga-Erzeugnisse, Bier, Motoröle, Nahrungsergänzungsmittel, Leichtindustrie (keine Obst-/Beerenposition; Abruf)",
+      "url": "https://uchet.kz/news/obyazatelnaya-markirovka-obnovlen-perechen-tovarov/",
+      "familie": "fachpresse",
+      "damicon_folge": "Für Frischbeeren keine Markierungspflicht gefunden; bei Verarbeitung (Konserven, Tiefkühlware) neu prüfen."
+    }
+  ]
+}

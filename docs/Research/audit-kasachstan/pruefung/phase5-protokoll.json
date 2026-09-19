@@ -1,0 +1,1200 @@
+[
+ {
+  "id": "B-C1-001",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C1-002",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "aussage": "Die Initiativprüfung erfolgt auf Initiative des geprüften Unternehmens oder eines seiner Gesellschafter; Aufgaben, Fristen und Umfang frei vereinbart.",
+   "wortlaut_original": "Инициативный аудит проводится по инициативе аудируемого субъекта либо его участника с учетом конкретных задач, сроков и объемов аудита.",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "aussage": "Die Initiativprüfung erfolgt auf Initiative des geprüften Unternehmens oder eines seiner Gesellschafter; Aufgaben, Fristen und Umfang richten sich nach dem Prüfungsvertrag zwischen Initiator und Prüfungsgesellschaft.",
+   "wortlaut_original": "3. Инициативный аудит проводится по инициативе аудируемого субъекта либо его участника с учетом конкретных задач, сроков и объемов аудита, предусмотренных договором на проведение аудита между инициатором и аудиторской организацией.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+ },
+ {
+  "id": "B-C1-003",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C1-004",
+  "aufgabe": "B-Stichprobe",
+  "fehler": true,
+  "vorher": {
+   "aussage": "Pflichtprüfer müssen den Prüfbericht zusammen mit dem Jahresabschluss veröffentlichen, wenn sie den Abschluss in Medien veröffentlichen.",
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "aussage": "Organisationen, für die die Prüfung Pflicht ist und die ihren Jahresabschluss nach kasachischem Recht in Massenmedien veröffentlichen, müssen den Prüfbericht zusammen mit dem Jahresabschluss veröffentlichen.",
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: Deutung korrigiert: Pflicht trifft die pflichtgeprüften Organisationen, nicht die Prüfer („Pflichtprüfer“ war Fehlübersetzung von „Организации, для которых аудит является обязательным“)"
+  },
+  "vermerk": "Phase 5 Stichprobe: Deutung korrigiert: Pflicht trifft die pflichtgeprüften Organisationen, nicht die Prüfer („Pflichtprüfer“ war Fehlübersetzung von „Организации, для которых аудит является обязательным“)"
+ },
+ {
+  "id": "B-C1-006",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C1-007",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C1-008",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "offen",
+   "rang": 2,
+   "fundstelle": "Art. 24 Abs. 3 (Teil zu микропредпринимательство)",
+   "aussage": "Kleinstunternehmen: höchstens 15 Beschäftigte oder Jahreseinkommen bis 30 000 MRP (2026: 129 750 000 KZT).",
+   "wortlaut_original": "... не более 15 работников или доход не свыше тридцатитысячекратного месячного расчетного показателя (Wortlaut vom Spiegel nur auszugsweise wiedergegeben)",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Art. 24 Abs. 3 Teil 2",
+   "aussage": "Kleinstunternehmen: höchstens 15 Beschäftigte im Jahresmittel oder durchschnittliches Jahreseinkommen bis 30 000 MRP (MRP zum 1. Januar des Jahres; 2026: 129 750 000 KZT).",
+   "wortlaut_original": "Субъектами микропредпринимательства являются субъекты малого предпринимательства, осуществляющие частное предпринимательство, со среднегодовой численностью работников не более пятнадцати человек или среднегодовым доходом не свыше тридцатитысячекратного месячного расчетного показателя",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+ },
+ {
+  "id": "B-C1-009",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C1-010",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt („одному или двум из критериев“ = und/oder)"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt („одному или двум из критериев“ = und/oder)"
+ },
+ {
+  "id": "B-C1-011",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Art. 7",
+   "wortlaut_original": "с 1 января 2026 года устанавлены следующие регламентированные показатели: месячный расчетный показатель - 4 325 тенге",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Art. 7 Nr. 4",
+   "wortlaut_original": "Статья 7. Установить с 1 января 2026 года: […] 4) месячный расчетный показатель – 4 325 тенге;",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; im Gesetzestext keine Änderungsfußnote zu Art. 7"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; im Gesetzestext keine Änderungsfußnote zu Art. 7"
+ },
+ {
+  "id": "B-C1-012",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Art. 31 Abs. 4; Art. 32 Abs. 3",
+   "aussage": "Das Gesetz über das Bauern- oder Farmerhaushalt (214-I) ist aufgehoben. Nach dem Unternehmerkodex ist KH eine Form des Einzelunternehmertums (persönlich oder als Familienunternehmen); KH ist keine juristische Person und fällt damit nicht unter die TOO-Tatbestände in 304-I Art. 5 Abs. 2.",
+   "wortlaut_original": "Личное предпринимательство может осуществляться с использованием формы фермерского хозяйства. / семейное предпринимательство, осуществляемое на базе общей совместной собственности крестьянского хозяйства ...",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Unternehmerkodex Art. 30 Abs. 2; Art. 31 Abs. 4; Art. 32 Abs. 3 Nr. 2; Art. 41 Abs. 1 und 2",
+   "aussage": "Nach dem Unternehmerkodex (Art. 41) ist das Bauern- oder Farmerhaushalt (KH) eine Form des individuellen Unternehmertums (ohne juristische Person) und tritt in drei Formen auf: Bauernhaushalt als Familienunternehmen auf gemeinsamem Eigentum, Farmerhaushalt als persönliches Unternehmertum oder Farmerhaushalt als einfache Gesellschaft auf Basis eines Vertrags über gemeinsame Tätigkeit. KH ist damit keine juristische Person und fällt nicht unter die TOO-Tatbestände in 304-I Art. 5 Abs. 2. Die Aufhebung des Gesetzes 214-I ist im Kodextext nicht belegt.",
+   "wortlaut_original": "2. Крестьянское или фермерское хозяйство может выступать в формах: […] 1) крестьянского хозяйства, в котором предпринимательская деятельность осуществляется в форме семейного предпринимательства, основанного на базе общей совместной собственности; […] 2) фермерского хозяйства, основанного на осуществлении личного предпринимательства; […] 3) фермерского хозяйства, организованного в форме простого товарищества на базе общей долевой собственности на основе договора о совместной деятельности.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: dritte KH-Form (einfache Gesellschaft, Art. 41 Abs. 2 Nr. 3) ergänzt; Fundstelle um Art. 41 erweitert; Aufhebung von 214-I ist nicht aus diesem Text belegbar"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: dritte KH-Form (einfache Gesellschaft, Art. 41 Abs. 2 Nr. 3) ergänzt; Fundstelle um Art. 41 erweitert; Aufhebung von 214-I ist nicht aus diesem Text belegbar"
+ },
+ {
+  "id": "B-C2-001",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C2-002",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C2-003",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "offen",
+   "rang": 2,
+   "wortlaut_original": "Субъекты среднего предпринимательства ... составляют финансовую отчетность в соответствии с международным стандартом для малого и среднего бизнеса (Auszug, Mittelteil vom Spiegel ausgelassen)",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "wortlaut_original": "3-1. Субъекты среднего предпринимательства, а также государственные предприятия, основанные на праве оперативного управления (казенные предприятия), составляют финансовую отчетность в соответствии с международным стандартом для малого и среднего бизнеса, если иное не предусмотрено настоящей статьей.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+ },
+ {
+  "id": "B-C2-004",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "offen",
+   "rang": 2,
+   "fundstelle": "Art. 2 Abs. 4",
+   "wortlaut_original": "Субъекты крупного предпринимательства и организации публичного интереса обязаны составлять отчетность в соответствии с международными стандартами (Auszug)",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Art. 2 Abs. 4 Teil 1",
+   "wortlaut_original": "4. Субъекты крупного предпринимательства и организации публичного интереса обязаны составлять финансовую отчетность в соответствии с международными стандартами.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+ },
+ {
+  "id": "B-C2-005",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "offen",
+   "rang": 2,
+   "aussage": "Kleine und mittlere Unternehmen dürfen per Beschluss ihrer Leitung freiwillig zu IFRS bzw. IFRS for SMEs übergehen.",
+   "wortlaut_original": "(Wortlaut vom Spiegel nicht wiedergegeben; nur Inhaltsangabe)",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "aussage": "Per Beschluss der Leitungsorgane, die die Rechnungslegungsrichtlinie genehmigen, dürfen Kleinunternehmen freiwillig nach vollen IFRS oder IFRS for SMEs bilanzieren; mittlere Unternehmen (Abs. 3-1, 3-2) dürfen freiwillig zu vollen IFRS wechseln.",
+   "wortlaut_original": "5. По решению руководящих органов, утвердивших учетную политику: […] 1) организации, указанные в пункте 3 настоящей статьи, вправе составлять финансовую отчетность в соответствии с международными стандартами или международным стандартом для малого и среднего бизнеса; […] 2) организации, указанные в пунктах 3-1 и 3-2 настоящей статьи, вправе составлять финансовую отчетность в соответствии с международными стандартами.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: präzisiert: Kleinunternehmen wahlweise IFRS oder IFRS for SMEs, mittlere Unternehmen nur Wechsel zu vollen IFRS"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: präzisiert: Kleinunternehmen wahlweise IFRS oder IFRS for SMEs, mittlere Unternehmen nur Wechsel zu vollen IFRS"
+ },
+ {
+  "id": "B-C2-006",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C2-007",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C2-008",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C2-020",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "offen",
+   "rang": 2,
+   "wortlaut_original": "пять лет, начиная с налогового периода, следующего за последним налоговым периодом ... в течение срока исковой давности, установленного статьей 65 (Auszüge)",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "wortlaut_original": "хранится налогоплательщиком до истечения пяти лет, начиная с налогового периода, следующего за последним налоговым периодом, в котором по такому активу исчислены амортизационные отчисления. […] хранится налогоплательщиком в течение срока исковой давности, установленного статьей 65 настоящего Кодекса, но не менее пяти лет, начиная с налогового периода, следующего за налоговым периодом, в котором такой актив включен в стоимостный баланс группы фиксированных активов.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+ },
+ {
+  "id": "B-C2-021",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "offen",
+   "rang": 2,
+   "aussage": "Elektronisch erstellte steuerliche Unterlagen sind auf Verlangen der Steuerbehörde auf Papier vorzulegen, ausgenommen Rechnungen und Dokumente im E-Rechnungssystem.",
+   "wortlaut_original": "за исключением счетов-фактур, бухгалтерской документации ... (Auszug; Registrierung im System der elektronischen Rechnungen)",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "aussage": "Elektronisch erstellte steuerliche Unterlagen sind bei einer Steuerprüfung auf Verlangen der Steuerbeamten als Papierkopie vorzulegen, ausgenommen Rechnungen, Buchhaltungsunterlagen und Primärbelege, die im Informationssystem der elektronischen Rechnungen registriert sind.",
+   "wortlaut_original": "2. При составлении учетной документации в электронной форме налогоплательщик (налоговый агент) обязан в ходе налоговой проверки по требованию должностных лиц налоговых органов представить копии такой документации на бумажных носителях, за исключением счетов-фактур, бухгалтерской документации и первичных учетных документов, зарегистрированных в информационной системе электронных счетов-фактур.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: Ausnahme umfasst auch im ЭСФ-System registrierte Buchhaltungs- und Primärbelege; Pflicht gilt im Rahmen der Steuerprüfung"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: Ausnahme umfasst auch im ЭСФ-System registrierte Buchhaltungs- und Primärbelege; Pflicht gilt im Rahmen der Steuerprüfung"
+ },
+ {
+  "id": "B-C2-024",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "offen",
+   "rang": 2,
+   "wortlaut_original": "вести учет рабочего времени, в том числе сверхурочных работ, во вредных и (или) опасных условиях труда... / вносить информацию о заключении и прекращении с работником трудового договора...в единую систему учета трудовых договоров",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "wortlaut_original": "20) вести учет рабочего времени, в том числе сверхурочных работ, во вредных и (или) опасных условиях труда, на тяжелых работах, выполняемых каждым работником; […] 27) вносить информацию о заключении и прекращении с работником трудового договора, вносимых в него изменениях и (или) дополнениях",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+ },
+ {
+  "id": "B-C3-001",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C3-002",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C3-003",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C3-004",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C3-005",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Приложения 1-7",
+   "wortlaut_original": "Приложение 1: «Сводные данные по КПН» / «Сводные данные по НДС» / «Сверка показателей между КПН и НДС»; Приложение 3: «Сверка вычета по налогам и платежам в бюджет, по отчислениям в ГФСС, ФСМС, ОПВР»; Приложение 4: «Сверка вычетов по фиксированным активам»; Приложение 5: «НДС за нерезидента»; Приложение 6: «Универсальный регистр по доходам»; Приложение 7: «Универсальный регистр по расходам»",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Приложение 2 к Правилам (Form), Приложения 1-7",
+   "wortlaut_original": "Приложение 1. Сверка данных формы КПН и НДС по доходам […] Приложение 2. \"Сверка данных формы КПН и НДС по расходам\" […] по отчислениям в ГФСС, ФСМС, ОПВР\" […] Приложение 4. \"Сверка вычетов по фиксированным активам\" […] Приложение 5. \"НДС за нерезидента\" […] Приложение 6. \"Универсальный регистр по доходам\" […] Приложение 7. \"Универсальный регистр по расходам\"",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; Zitat aus Überschriften-Fragmenten, je Fragment wörtlich"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; Zitat aus Überschriften-Fragmenten, je Fragment wörtlich"
+ },
+ {
+  "id": "B-C3-006",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Приложение 6, Приложение 7 (Spaltenköpfe)",
+   "wortlaut_original": "Налогоплательщик | Доход | Наименование контрагента (покупателя) | БИН/ИИН контрагента | Вид реализации товаров и работ (услуг) | Регистратор-документ | Счет-фактура бумажный (номер, дата) | Электронная счет-фактура (рег. номер, дата совершения оборота, дата выписки) | Сумма БУ (оборот) | Сумма НДС | Сумма НУ (оборот) | Сумма НДС | Расхождение между данными БУ и НУ (оборот) | Расхождение между данными БУ и НУ (сумма НДС) | Причина расхождения по обороту | Причина расхождения по сумме НДС | Код строки (КПН) / Вид дохода (КПН)",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Приложение 2 к Правилам, Приложения 6 und 7 (Spaltenköpfe)",
+   "wortlaut_original": "Наименование контрагента (покупателя) […] БИН/ИИН контрагента […] Вид реализации товаров и работ (услуг) […] Регистратор-документ […] Счет-фактура бумажный […] Электронная счет-фактура […] Причина расхождения по обороту […] Наименование контрагента (поставщика) […] Вид приобретения товаров и работ (услуг) […] Вид вычета (КПН)",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; Zitat aus Spaltenköpfen, je Fragment wörtlich"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; Zitat aus Spaltenköpfen, je Fragment wörtlich"
+ },
+ {
+  "id": "B-C3-007",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Приложения 1, 2, 5",
+   "wortlaut_original": "Причины расхождений | Документ-основание | Наименование дохода | Вид, номер и дата первичного документа | Рег.номер и дата электронной счет-фактуры",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Приложение 2 к Правилам, Приложения 1 (Tab. 1.1-1.3) und 5",
+   "wortlaut_original": "Причины расхождений […] Документ-основание […] Наименование дохода […] Вид, номер и дата первичного документа […] Период документа […] Контрагент номер налоговой регистрации в стране резидентства […] Страна регистрации […] Документ поступления (номер и дата) […] Дата начисления НДС […] Дата уплаты в бюджет НДС […] Дата принятия к зачету НДС",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; Anh. 5 enthält zusätzlich die Steuernummer der Gegenpartei im Ansässigkeitsstaat"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; Anh. 5 enthält zusätzlich die Steuernummer der Gegenpartei im Ansässigkeitsstaat"
+ },
+ {
+  "id": "B-C3-009",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "wortlaut_original": "предоставлять стандартный файл проверки - данные бухгалтерского учета в электронном формате, позволяющем осуществлять анализ посредством информационных систем налогового органа.",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "wortlaut_original": "5) предоставлять стандартный файл проверки – данные бухгалтерского учета в электронном формате, позволяющем осуществлять анализ посредством информационных систем налогового органа. […] Требования к стандартному файлу, порядок его составления и предоставления устанавливаются уполномоченным органом;",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+ },
+ {
+  "id": "B-C3-010",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C3-011",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "wortlaut_original": "представлять по требованию должностных лиц налогового органа в установленные сроки документы и сведения на бумажном и электронном носителях; представлять учетную документацию, составленную налогоплательщиком (налоговым агентом); обеспечить проведение инвентаризации в ходе налоговых проверок",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "wortlaut_original": "1) представлять по требованию должностных лиц налогового органа в установленные сроки документы и сведения на бумажном и электронном носителях; […] 2) представлять учетную документацию, составленную налогоплательщиком (налоговым агентом); […] 4) обеспечить проведение инвентаризации в ходе налоговых проверок;",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+ },
+ {
+  "id": "B-C3-012",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C3-013",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Art. 155 Abs. 1; Art. 156 Abs. 1; Art. 157 Abs. 1",
+   "wortlaut_original": "Комплексная налоговая проверка - налоговая проверка по вопросам исполнения налогового обязательства по всем видам налогов, платежей в бюджет и социального обязательства. / Тематическая налоговая проверка - налоговая проверка исполнения налогового обязательства по отдельным видам налогов и (или) платежей в бюджет / Встречная налоговая проверка - вспомогательная налоговая проверка лиц, осуществлявших операции с налогоплательщиком (налоговым агентом), в отношении которого проводится комплексная или тематическая налоговая проверка",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Art. 155 Abs. 1; Art. 156 Abs. 1 und Abs. 2 Nr. 7, 21, 23, 34; Art. 157 Abs. 1",
+   "wortlaut_original": "1. Комплексная налоговая проверка – налоговая проверка по вопросам исполнения налогового обязательства по всем видам налогов, платежей в бюджет и социального обязательства. […] 1. Тематическая налоговая проверка – налоговая проверка исполнения налогового обязательства по отдельным видам налогов и (или) платежей в бюджет и (или) социального обязательства […] 1. Встречная налоговая проверка – вспомогательная налоговая проверка лиц, осуществлявших операции с налогоплательщиком (налоговым агентом), в отношении которого проводится комплексная или тематическая налоговая проверка",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; Fundstelle um Art. 156 Abs. 2 (Nr. 7 Frachtbriefe, Nr. 21 НДС-Erstattung, Nr. 23 ЭСФ, Nr. 34 Verrechnungspreise) präzisiert"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; Fundstelle um Art. 156 Abs. 2 (Nr. 7 Frachtbriefe, Nr. 21 НДС-Erstattung, Nr. 23 ЭСФ, Nr. 34 Verrechnungspreise) präzisiert"
+ },
+ {
+  "id": "B-C3-014",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C3-015",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C3-016",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Anh. 2 Pkt. 1-16",
+   "aussage": "Kriterien der KGD für die Prüfungsentscheidung (Erlass 659, Anh. 2, 16 Punkte), u. a.: Steuerlast null oder unter Branchenschnitt in der Verjährungsfrist; Abrechnungen mit Lieferanten mit gesperrter ЭСФ-Ausstellung; Abweichung zwischen eingekauften und verkauften Waren; Jahresverlust über 40 %; ungeprüfter Zeitraum ab 4 (groß) bzw. 3 Jahren (mittel); НДС-Sollsaldo; nicht behobene Abweichungen aus Kameralkontrolle.",
+   "wortlaut_original": "Налоговая нагрузка в пределах срока исковой давности нулевая либо ниже среднеотраслевого значения; Взаиморасчеты с поставщиками, по которым ограничена выписка электронного счета-фактуры; Наличие дебетового сальдо по НДС у налогоплательщика",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Erlass 659, Anlage 1 (Правила), Anh. 2 zu den Regeln, Nr. 1-16 (für Entscheidungen der KGD nach Pkt. 4 Nr. 7)",
+   "aussage": "Kriterien der KGD für die Prüfungsentscheidung (Erlass 659, Anh. 2 zu den Regeln, 16 Punkte), u. a.: Steuerlast in der Verjährungsfrist null oder unter Branchenschnitt; Abrechnungen mit Lieferanten mit gesperrter ЭСФ-Ausstellung bzw. gerichtlich für nichtig erklärten Geschäften/Registrierungen; Abweichung zwischen eingekauften und verkauften Vorräten; Jahresverlust von mehr als 40 % des durchschnittlichen Gesamtjahreseinkommens der drei Vorjahre; ungeprüfter Zeitraum (КПН/НДС) ab 4 Jahren (groß) bzw. 3 Jahren (mittel); НДС-Sollsaldo bei zugelassenen Wirtschaftsbeteiligten (УЭО) oder über 100 Mio. Tenge über zwei Folgejahre (außer Exporteure); nicht behobene Abweichungen aus der Kameralkontrolle.",
+   "wortlaut_original": "1) налоговая нагрузка в пределах срока исковой давности нулевая либо ниже среднеотраслевого значения […] 4) взаиморасчеты с поставщиками, по которым ограничена выписка электронного счета-фактуры, судом сделка/регистрация признаны недействительными; […] 7) наличие сумм убытка по итогам года (более 40 процентов) от среднего совокупного годового дохода (до корректировок) за предшествующие 3 (три) года; […] 9) наличие дебетового сальдо по НДС у налогоплательщика, являющегося уполномоченным экономическим оператором; […] 12) наличие дебетового сальдо по НДС (свыше 100 миллионов тенге) в течение 2 (двух) последующих лет, за исключением экспортеров;",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: Verlustkriterium ist >40 % des durchschnittlichen Jahreseinkommens der drei Vorjahre (nicht Jahresverlust über 40 %); НДС-Sollsaldo nur bei УЭО oder über 100 Mio. Tenge über zwei Jahre; Kriterien gelten für KGD-Entscheidungen nach Pkt. 4 Nr. 7"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: Verlustkriterium ist >40 % des durchschnittlichen Jahreseinkommens der drei Vorjahre (nicht Jahresverlust über 40 %); НДС-Sollsaldo nur bei УЭО oder über 100 Mio. Tenge über zwei Jahre; Kriterien gelten für KGD-Entscheidungen nach Pkt. 4 Nr. 7"
+ },
+ {
+  "id": "B-C3-017",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "fundstelle": "Art. 152 (Absatz nicht nummeriert erfasst)",
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "fundstelle": "Art. 152 Abs. 4 Teil 2 und 3",
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: Aussage korrekt; Fundstelle präzisiert (Art. 152 Abs. 4 Teil 2); Ausnahmen nach Teil 3: Antrag des Steuerpflichtigen, Strafprozess, Staatsanwaltschaft"
+  },
+  "vermerk": "Phase 5 Stichprobe: Aussage korrekt; Fundstelle präzisiert (Art. 152 Abs. 4 Teil 2); Ausnahmen nach Teil 3: Antrag des Steuerpflichtigen, Strafprozess, Staatsanwaltschaft"
+ },
+ {
+  "id": "B-C3-018",
+  "aufgabe": "B-Stichprobe",
+  "fehler": true,
+  "vorher": {
+   "aussage": "Dauer der Steuerprüfung: höchstens 30 Arbeitstage ab Zustellung der Anordnung; Verlängerung bei kleinen Einheiten bis 40 (Steuerorgan) bzw. 50 Arbeitstage (übergeordnetes Organ); Gesamtdauer höchstens 180 Kalendertage.",
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "aussage": "Dauer der Steuerprüfung: höchstens 30 Arbeitstage ab Zustellung der Anordnung (Art. 163 Abs. 1). Verlängerung für juristische Personen ohne Struktureinheiten, IP und Nichtresidenten mit höchstens einem Standort in Kasachstan: durch das Steuerorgan bis 40, durch das übergeordnete Organ bzw. das Finanzministerium bis 50 Arbeitstage (Abs. 2); bei mehreren Standorten bis 65 bzw. 160 Arbeitstage (Abs. 3). Für Abs. 2 und 3 gilt eine Obergrenze von 180 Kalendertagen ab Prüfungsbeginn, außer bei Großunternehmen und Auslandsanfragen.",
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: Deutung korrigiert: Verlängerung bis 40/50 Arbeitstage knüpft an „ohne Struktureinheiten / ein Standort“ an, nicht an die Unternehmensgröße „klein“; 180-Tage-Grenze gilt nicht für Großunternehmen"
+  },
+  "vermerk": "Phase 5 Stichprobe: Deutung korrigiert: Verlängerung bis 40/50 Arbeitstage knüpft an „ohne Struktureinheiten / ein Standort“ an, nicht an die Unternehmensgröße „klein“; 180-Tage-Grenze gilt nicht für Großunternehmen"
+ },
+ {
+  "id": "B-C3-019",
+  "aufgabe": "B-Stichprobe",
+  "fehler": true,
+  "vorher": {
+   "aussage": "Die Prüfungsanordnung ist binnen drei Arbeitstagen nach Ausstellung zuzustellen; Beginn der Prüfung ist das Zustellungsdatum. Weitere Prüfungsdokumente (außer der Anordnung) werden elektronisch über das Kabinett zugestellt.",
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "aussage": "Die Prüfungsanordnung ist binnen drei Arbeitstagen nach Ausstellung zuzustellen, persönlich gegen Unterschrift; Beginn der Prüfung ist das Zustellungsdatum, bei Verweigerung das Datum des Verweigerungsakts (Art. 162). Eine elektronische Zustellung über das Kabinett des Webportals regelt der Kodex nur für einzelne Dokumente, etwa die Mitteilung über Aussetzung/Wiederaufnahme und den Prüfungsakt (Art. 163) sowie die Ergebnismitteilung (Art. 171), mit Rückfall auf persönliche oder postalische Zustellung, wenn der Steuerpflichtige sie nicht öffnet.",
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: Deutung korrigiert: Art. 162 enthält keine allgemeine elektronische Zustellung „aller weiteren Dokumente“; elektronische Zustellung nur für einzelne Dokumente in Art. 163 und 171"
+  },
+  "vermerk": "Phase 5 Stichprobe: Deutung korrigiert: Art. 162 enthält keine allgemeine elektronische Zustellung „aller weiteren Dokumente“; elektronische Zustellung nur für einzelne Dokumente in Art. 163 und 171"
+ },
+ {
+  "id": "B-C3-020",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt (Beschränkung auf zwei Anforderungen gilt für alle außer mittleren und großen Unternehmen)"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt (Beschränkung auf zwei Anforderungen gilt für alle außer mittleren und großen Unternehmen)"
+ },
+ {
+  "id": "B-C3-021",
+  "aufgabe": "B-Stichprobe",
+  "fehler": true,
+  "vorher": {
+   "aussage": "Verjährungsfrist (исковая давность) für Steuerpflichten: drei Jahre für normale Steuerpflichtige (fünf Jahre für bestimmte Kategorien wie Großsteuerzahler im Monitoring und Unterboden-Nutzer); Beginn nach Ende des jeweiligen Steuerzeitraums; ruht während Steuerprüfung und Beschwerde.",
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "aussage": "Verjährungsfrist (исковая давность) für Steuerpflichten: drei Jahre für normale Steuerpflichtige; fünf Jahre für Großunternehmen nach dem Unternehmerkodex, Unterbodennutzer mit Kontrakt, Residenten mit Pflichten nach Kapitel 33 und НДС-Zahler bei im Verrechnungsweg gezahlter Einfuhr-НДС (Art. 65 Abs. 2). Beginn nach Ende des jeweiligen Steuerzeitraums (Abs. 3); ruht von Prüfungsbeginn bis zur Erfüllung der Ergebnismitteilung und während einer Beschwerde (Abs. 9).",
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: Deutung korrigiert: Fünf-Jahres-Frist gilt für Großunternehmen allgemein, nicht für „Großsteuerzahler im Monitoring“; Kategorien vollständig nach Art. 65 Abs. 2 Nr. 1"
+  },
+  "vermerk": "Phase 5 Stichprobe: Deutung korrigiert: Fünf-Jahres-Frist gilt für Großunternehmen allgemein, nicht für „Großsteuerzahler im Monitoring“; Kategorien vollständig nach Art. 65 Abs. 2 Nr. 1"
+ },
+ {
+  "id": "B-C3-023",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "unbekannt",
+   "aussage": "Kameralkontrolle ab 2026: einheitliche Benachrichtigung über Abweichungen (Form nach Erlass Nr. 633 vom 28.10.2025), Erfüllung binnen 30 Arbeitstagen ab dem Folgetag der Zustellung; bei Nichterfüllung Sperre der Ausgabenoperationen auf Bankkonten und der ЭСФ-Ausstellung. Artikelnummer im neuen Kodex nicht bestätigt (Angabe „Art. 96“ aus Sekundärquelle stimmt nicht: Art. 96 im 214-VIII betrifft Abmeldung von Nichtresidenten).",
+   "wortlaut_original": "Срок исполнения уведомления составляет 30 рабочих дней",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Art. 82 Abs. 1 Nr. 4 und Abs. 2; Art. 137 Abs. 3, 4 und 9",
+   "aussage": "Kameralkontrolle ab 2026 (Art. 137): Bei Abweichungen erhält der Steuerpflichtige eine Benachrichtigung über Abweichungen (Art. 82 Abs. 1 Nr. 4, informativ-warnender Charakter). Erfüllungsfrist: 30 Arbeitstage ab dem Tag nach Zustellung (Art. 82 Abs. 2). Erfüllung durch Korrektur der Erklärung oder durch Erläuterung. Bei Nichterfüllung werden binnen eines Arbeitstags nach Fristablauf die Ausgabenoperationen auf Bankkonten und die ЭСФ-Ausstellung gesperrt (Art. 137 Abs. 9). Die Angabe „Art. 96“ aus der Sekundärquelle ist falsch (Art. 96 betrifft die Abmeldung juristischer Personen – Nichtresidenten). Die Form nach Erlass Nr. 633 ist hier nicht geprüft.",
+   "wortlaut_original": "2. Срок исполнения уведомлений информационно-предупредительного характера составляет тридцать рабочих дней, следующих за днем вручения, если иное не установлено настоящим пунктом. […] 2) расходные операции по банковским счетам налогоплательщика (налогового агента), не указанного в подпункте 1) настоящего пункта, приостанавливаются в течение одного рабочего дня, следующего за днем истечения срока исполнения уведомления; […] 3) выписка электронных счетов-фактур налогоплательщика приостанавливается в течение одного рабочего дня, следующего за днем истечения срока исполнения уведомления.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: Artikelnummern ermittelt: Frist in Art. 82 Abs. 2, Sperren in Art. 137 Abs. 9; Formerlass 633 nicht am Primärtext geprüft"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: Artikelnummern ermittelt: Frist in Art. 82 Abs. 2, Sperren in Art. 137 Abs. 9; Formerlass 633 nicht am Primärtext geprüft"
+ },
+ {
+  "id": "B-C3-024",
+  "aufgabe": "B-Stichprobe",
+  "fehler": false,
+  "vorher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026)"
+  },
+  "nachher": {
+   "pruefvermerk": "Zitat wörtlich im amtlichen Text auf adilet gefunden (18.09.2026) | Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+  },
+  "vermerk": "Phase 5 Stichprobe: deutsche Aussage gegen adilet-Wortlaut geprüft, korrekt"
+ },
+ {
+  "id": "B-C8-004",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "wortlaut_original": "1) внеплановая выездная таможенная проверка; 2) встречная внеплановая выездная таможенная проверка; 3) комплексная выездная таможенная проверка. ... Срок проведения выездной таможенной проверки не должен превышать два месяца. ... может быть продлен на один месяц по решению таможенного органа. ... не менее чем за тридцать календарных дней до начала проведения комплексной выездной таможенной проверки направляют или вручают извещение",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "wortlaut_original": "2. Выездные таможенные проверки подразделяются на следующие виды: […] 1) внеплановая выездная таможенная проверка; […] 2) встречная внеплановая выездная таможенная проверка; […] 3) комплексная выездная таможенная проверка. […] 16. Срок проведения выездной таможенной проверки не должен превышать два месяца. […] 17. Срок проведения выездной таможенной проверки может быть продлен на один месяц по решению таможенного органа, который проводит такую проверку. […] Таможенные органы не менее чем за тридцать календарных дней до начала проведения комплексной выездной таможенной проверки направляют или вручают извещение",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+ },
+ {
+  "id": "B-C8-007",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Art. 25 Abs. 1 (Unterpunkt laut Werkzeug 5; gegenprüfen)",
+   "aussage": "Innerhalb der Zollunion der EAWU werden Waren ohne Zollanmeldung und ohne staatliche Kontrolle (Transport, Sanepid, Veterinär, Quarantäne-Phyto) frei bewegt, soweit der Vertrag keine Ausnahmen vorsieht. Beerenexport nach Russland braucht daher keine Zollanmeldung, und eine Zollprüfung im engeren Sinn entfällt.",
+   "wortlaut_original": "осуществляется свободное перемещение товаров между территориями государств-членов без применения таможенного декларирования и государственного контроля (транспортного, санитарно-эпидемиологического, ветеринарного, карантинного фитосанитарного), за исключением случаев, предусмотренных настоящим Договором.",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Art. 25 Abs. 1 Nr. 5",
+   "aussage": "Innerhalb der Zollunion der EAWU werden Waren ohne Zollanmeldung und ohne staatliche Kontrolle (Transport, Sanepid, Veterinär, Quarantäne-Phyto) frei zwischen den Mitgliedstaaten bewegt, soweit der Vertrag keine Ausnahmen vorsieht (Art. 25 Abs. 1 Nr. 5). Beerenexport nach Russland braucht daher keine Zollanmeldung. Dass eine Zollprüfung ganz entfällt, steht nicht im Wortlaut; das ist eine Schlussfolgerung, die an den Ausnahmen des Vertrags und am nationalen Recht (СНТ, Steuerprüfung) zu messen ist.",
+   "wortlaut_original": "5) осуществляется свободное перемещение товаров между территориями государств-членов без применения таможенного декларирования и государственного контроля (транспортного, санитарно- эпидемиологического, ветеринарного, карантинного фитосанитарного), за исключением случаев, предусмотренных настоящим Договором.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: Wortlaut belegt Wegfall von Zollanmeldung und Grenzkontrolle; die Folgerung „Zollprüfung entfällt“ als Ableitung gekennzeichnet"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: Wortlaut belegt Wegfall von Zollanmeldung und Grenzkontrolle; die Folgerung „Zollprüfung entfällt“ als Ableitung gekennzeichnet"
+ },
+ {
+  "id": "B-C8-008",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Правила Pkt. 14 Nr. 4 und 5",
+   "aussage": "Für die Ausfuhr aus Kasachstan in EAWU-Staaten ist eine Warenbegleitrechnung (СНТ) für alle Waren spätestens bei Beginn der Beförderung/Verladung zu erstellen (Ausnahme: Pkw bis 2,5 t). Für Drittländer gilt СНТ nur für die Zeilen 1-7 des Warenverzeichnisses; Obst/Beeren stehen laut Werkzeug dort nicht.",
+   "wortlaut_original": "4) при вывозе с территории Республики Казахстан на территорию государств, не являющихся членами ЕАЭС, товаров, указанных в строках, порядковые номера 1, 2, 3, 4, 5, 6 и 7 Перечня товаров – не позднее начала перемещения, реализации и (или) отгрузки товаров; 5) при вывозе товаров с территории Республики Казахстан на территорию государств-членов ЕАЭС – не позднее начала перемещения, реализации и (или) отгрузки товаров;",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Правила (Anlage 2 zu Erlass 657), Pkt. 14 Nr. 4 und 5, Pkt. 16 Nr. 3 und 4; Anlage 1 (Перечень товаров) Zeilen 1-7",
+   "aussage": "Für die Ausfuhr aus Kasachstan in EAWU-Staaten ist eine Warenbegleitrechnung (СНТ) für alle Waren zu erstellen (Pkt. 14 Nr. 5; Ausnahme: Ausfuhr im Pkw mit zulässiger Höchstnutzlast bis 2,5 t) und spätestens bei Beginn der Beförderung, Realisierung oder Verladung vorzulegen (Pkt. 16 Nr. 4). Für Drittländer gilt СНТ nur für die Zeilen 1-7 des Warenverzeichnisses (Biokraftstoff, Alkohol, Erdölprodukte, Flüssiggas, Betäubungsmittel, rückverfolgbare Waren); Obst/Beeren stehen dort nicht.",
+   "wortlaut_original": "5) при вывозе товаров с территории Республики Казахстан на территорию государств-членов ЕАЭС, за исключением вывоза товаров на легковом автомобиле, разрешенная максимальная грузоподъемность которого не превышает 2,5 (две тысячи пятьсот) тонн; […] 4) вывозе товаров с территории Республики Казахстан на территорию государств-членов ЕАЭС – не позднее начала перемещения, реализации и (или) отгрузки товаров;",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: Frist steht in Pkt. 16, nicht in Pkt. 14; bisheriges Zitat vermischte beide Punkte; Warenverzeichnis Zeilen 1-7 am Text geprüft"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: Frist steht in Pkt. 16, nicht in Pkt. 14; bisheriges Zitat vermischte beide Punkte; Warenverzeichnis Zeilen 1-7 am Text geprüft"
+ },
+ {
+  "id": "B-C4-001",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Kopf und Fußnote der Änderungen",
+   "wortlaut_original": "",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Kopf; Pkt. 5; Fußnote zu Pkt. 1",
+   "wortlaut_original": "Совместный приказ Министра здравоохранения Республики Казахстан от 2 декабря 2022 года № ҚР ДСМ-152 и Министра национальной экономики Республики Казахстан от 2 декабря 2022 года № 117. […] 5. Настоящий совместный приказ вводится в действие с 1 января 2023 года и подлежит официальному опубликованию. […] Сноска. Пункт 1 с изменениями, внесенными совместным приказом Министра здравоохранения РК от 24.04.2026 № 45 и и.о. Министра национальной экономики РК от 27.04.2026 № 34",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+ },
+ {
+  "id": "B-C4-002",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Anhänge 17, 18, 24, 27, 31, 33",
+   "wortlaut_original": "",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Pkt. 1 Nr. 2 (Aufzählung der Anhänge 17, 18, 24, 27, 31, 33)",
+   "wortlaut_original": "объектам по производству пищевой продукции согласно приложению 17 к настоящему приказу; […] объектам оптовой и розничной торговли согласно приложению 18 к настоящему приказу; […] объектам временного проживания людей согласно приложению 24 к настоящему приказу; […] водоисточникам, мест водозабора для хозяйственно-питьевого водоснабжения, централизованных и нецентрализованных систем хозяйственно-питьевого водоснабжения согласно приложению 31 к настоящему приказу; […] зданиям, сооружениям и помещениям производственного назначения, согласно приложению 33 к настоящему приказу;",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; Einschlägigkeit für den reinen Feldanbau bleibt offen"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; Einschlägigkeit für den reinen Feldanbau bleibt offen"
+ },
+ {
+  "id": "B-C4-003",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Anh. 17, Punkte 1, 2, 3, 6, 7, 13, 20, 21, 22 (Nummerierung laut Spiegel-Auszug, am Primärtext prüfen)",
+   "aussage": "Prüfpunkte Anh. 17 (Lebensmittelproduktion), die Damicon betreffen: Pflichtuntersuchungen und Gesundheitsbuch für Personal, Hygieneschulung, Kühltechnik mit Temperaturregime, getrennte Lagerung, Trinkwasser-Laborbefunde, Programm der Produktionskontrolle mit Laboruntersuchungen, Verträge und Akte zu Desinsektion/Deratisierung.",
+   "wortlaut_original": "Наличие личной санитарной книжки (ЛСК) у каждого работника, работающего с пищевой продукцией, с отметками о прохождении обязательных медицинских осмотров; Наличие гигиенического обучения у лиц декретированной группы населения с документальным подтверждением обучения; Наличие и исправность холодильного оборудования с соблюдением требуемых температурных режимов для хранения готовой пищевой продукции; Разработка и ведение программы производственного контроля с осуществлением лабораторных исследований в установленных документами нормирования случаях; Наличие договора на оказание услуг по дезинсекции и дератизации, актов выполненных работ, подтверждающих своевременное проведение мероприятий",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Anh. 17 (Fassung 24.04.2026/27.04.2026), Punkte 7, 8, 11, 13, 37, 45, 47",
+   "aussage": "Prüfpunkte Anh. 17 (Lebensmittelproduktion, neu gefasst durch gemeinsamen Erlass vom 24.04.2026/27.04.2026), die Damicon betreffen: Pflicht-Gesundheitsuntersuchungen des Personals (Nr. 7), Hygieneschulung (Nr. 8), Laborbefunde Trinkwasser (Nr. 11), Verträge und Akte zu Desinsektion/Deratisierung (Nr. 13), Temperaturregime und Haltbarkeitsfristen bei Produktion und Lagerung (Nr. 37), Laboruntersuchungen von Rohstoff und Produkt (Nr. 45), Programm der Produktionskontrolle oder HACCP (Nr. 47). Ein eigener Prüfpunkt zum persönlichen Gesundheitsbuch (ЛСК), zu Kühltechnik und zu getrennter Lagerung steht in der geltenden Fassung nicht.",
+   "wortlaut_original": "Наличие гигиенического обучения у лиц декретированной группы населения […] Соответствие документам нормирования результатов лабораторных исследований питьевой воды сети по органолептическим, санитарно-химическим, микробиологическим, паразитологическим, вирусологическим показателям […] Наличие документов (договор на оказание дезинсекционных и дератизационных услуг, акта выполненных работ), подтверждающих своевременное проведение дезинсекционных и дератизационных мероприятий […] 1) наличие программы производственного контроля (или внедрение системы ХАССП);",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: Nummerierung nach geltender Fassung 2026; das bisherige Zitat (ЛСК, холодильное оборудование) steht nicht im geltenden Anh. 17; Gesundheitsbuch, Kühltechnik und getrennte Lagerung gestrichen"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: Nummerierung nach geltender Fassung 2026; das bisherige Zitat (ЛСК, холодильное оборудование) steht nicht im geltenden Anh. 17; Gesundheitsbuch, Kühltechnik und getrennte Lagerung gestrichen"
+ },
+ {
+  "id": "B-C4-005",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Anh. 1 (Критерии оценки степени риска)",
+   "aussage": "Subjektive Risikokriterien Sanepid: Ergebnisse früherer Prüfungen und des präventiven Kontrolls, ungünstige Vorfälle (Infektionen, Vergiftungen, Berufskrankheiten) sowie Informationen anderer Behörden.",
+   "wortlaut_original": "результаты предыдущих проверок и профилактического контроля с посещением субъектов (объектов) контроля и надзора; результаты профилактического контроля без посещения субъектов (объектов) контроля и надзора; наличие неблагоприятных происшествий, возникших по вине субъекта (объекта) контроля и надзора",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Anh. 1 (Kriterien), Pkt. 10",
+   "aussage": "Subjektive Risikokriterien Sanepid (Anh. 1 Pkt. 10): für präventive Kontrolle mit Besuch: Ergebnisse früherer Prüfungen und Besuchskontrollen, Ergebnisse präventiver Kontrolle ohne Besuch, ungünstige Vorfälle; für Prüfungen auf Einhaltung von Anforderungen: frühere Prüfungen, ungünstige Vorfälle und Informationen anderer Behörden. Ungünstige Vorfälle sind registrierte Infektionen, parasitäre Erkrankungen, Vergiftungen und Berufskrankheiten.",
+   "wortlaut_original": "1) результаты предыдущих проверок и профилактического контроля с посещением субъектов (объектов) контроля и надзора; […] 2) результаты профилактического контроля без посещения субъектов (объектов) контроля и надзора; […] 3) наличие неблагоприятных происшествий, возникших по вине субъекта (объекта) контроля и надзора. […] 3) результаты анализа сведений, представляемых государственными органами и организациями.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: präzisiert: zwei Quellensets (präventive Kontrolle bzw. Prüfung); Informationen anderer Behörden nur für Prüfungen"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: präzisiert: zwei Quellensets (präventive Kontrolle bzw. Prüfung); Informationen anderer Behörden nur für Prüfungen"
+ },
+ {
+  "id": "B-C4-008",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Anh. 2 (Prüfliste für Subjekte auf landwirtschaftlichen Flächen)",
+   "wortlaut_original": "Непредставление или несвоевременное представление формы ФУ-3 ... Непредставление или несвоевременное представление формы ФУ-4",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Anh. 2 zum Erlass (Prüfliste, Fassung 13.06.2023), Nr. 1-5; Schweregrad in Anh. 1 zu den Kriterien",
+   "wortlaut_original": "Непредставление, а равно несвоевременное представление субъектом (объектом) контроля формы фитосанитарного учета (ФУ-3), а именно отчета о хранении пестицидов, биоагентов ежегодно, до 10 января по месту фактического хранения (ФУ-3) […] Непредставление, а равно несвоевременное представление субъектом (объектом) контроля формы фитосанитарного учета (ФУ-4), а именно отчета о проведении химических обработок ежемесячно, с марта по сентябрь, до 10 числа каждого месяца, следующего за отчетным (ФУ-4)",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; Fristen: ФУ-3 jährlich bis 10. Januar, ФУ-4 monatlich März bis September bis zum 10.; alle fünf Punkte „грубое“"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; Fristen: ФУ-3 jährlich bis 10. Januar, ФУ-4 monatlich März bis September bis zum 10.; alle fünf Punkte „грубое“"
+ },
+ {
+  "id": "B-C4-012",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Anh. 2 Prüfliste, Punkte 15, 16, 20, 21, 24 (Nummerierung laut Spiegel-Auszug)",
+   "aussage": "Arbeitsinspektion: V1500012656 (MZSR № 1022 vom 25.12.2015, MNE № 801 vom 28.12.2015) gilt, zuletzt geändert am 05.09.2024. Die Prüfliste umfasst u. a. Arbeitsverträge, Schulung und Unterweisung zum Arbeitsschutz, Pflichtversicherung gegen Arbeitsunfälle, Verbot der Kinderarbeit, Mindestlohn.",
+   "wortlaut_original": "Наличие документации по проведению обучения, инструктирования и проверки знаний по безопасности и охране труда; Наличие договоров обязательного страхования работника от несчастных случаев при исполнении им трудовых обязанностей; Наличие трудовых договоров в отношении работников",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Anh. 2 Prüfliste, Punkte 15, 16, 20, 21, 24",
+   "aussage": "Arbeitsinspektion: V1500012656 (MZSR № 1022 vom 25.12.2015, MNE № 801 vom 28.12.2015) gilt; Anh. 1 zuletzt geändert am 05.09.2024/10.09.2024. Für Anh. 2 (Prüfliste) ist eine Änderung durch gemeinsamen Erlass vom 29.05.2026 (MTSZN № 216 / MNE № 59, Inkrafttreten 60 Kalendertage nach Veröffentlichung) angekündigt und im adilet-Text noch nicht eingearbeitet. Die Prüfliste umfasst u. a. Arbeitsverträge, Schulung und Unterweisung zum Arbeitsschutz, Pflichtversicherung gegen Arbeitsunfälle, Verbot der Kinderarbeit, Mindestlohn.",
+   "wortlaut_original": "Наличие документации по проведению обучения, инструктирования и проверки знаний по безопасности и охране труда […] Наличие договоров обязательного страхования работника от несчастных случаев при исполнении им трудовых (служебных) обязанностей, обязательного социального страхования работников. […] Наличие трудовых договоров в отношении работников […] Соблюдение запрета на использование детского труда […] Соблюдение гарантий по осуществлению минимального размера месячной заработной платы […] В приложение 2 предусматривается изменение в соответствии с совместным приказом Министра труда и социальной защиты населения РК от 29.05.2026 № 216",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: „zuletzt geändert 05.09.2024“ ist überholt: Änderung von Anh. 2 durch Erlass vom 29.05.2026 angekündigt; Nummerierung 15, 16, 20, 21, 24 am Text bestätigt"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: „zuletzt geändert 05.09.2024“ ist überholt: Änderung von Anh. 2 durch Erlass vom 29.05.2026 angekündigt; Nummerierung 15, 16, 20, 21, 24 am Text bestätigt"
+ },
+ {
+  "id": "B-C4-013",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "offen",
+   "rang": 2,
+   "fundstelle": "Anh. 1 Kriterien",
+   "wortlaut_original": "",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Anh. 1 (Kriterien) Pkt. 3, 15, 23",
+   "wortlaut_original": "1) к высокой степени риска – при показателе степени риска от 71 до 100 включительно; […] 2) к средней степени риска – при показателе степени риска от 31 до 70 включительно; […] 3) к низкой степени риска – при показателе степени риска от 0 до 30 включительно. […] 1) результаты мониторинга отчетности и сведений, представляемых субъектом контроля; […] 2) результаты предыдущих проверок и профилактического контроля с посещением субъектов (объектов) контроля.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; ein grober Verstoß setzt den Wert auf 100 Punkte (Pkt. 23)"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; ein grober Verstoß setzt den Wert auf 100 Punkte (Pkt. 23)"
+ },
+ {
+  "id": "B-C4-016",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "offen",
+   "fundstelle": "Titel und Änderungshinweis (Suchausschnitt)",
+   "aussage": "Umwelt: V1500012779 (MNE № 835 vom 30.12.2015, ME № 721 vom 15.12.2015) ist nach Suchergebnis der geltende Erlass mit Kriterien und Prüflisten für Nutzer von Objekten mit negativer Umweltwirkung; zuletzt geändert durch gemeinsamen Erlass MEPR № 191 vom 14.06.2023 / MNE № 111 vom 13.06.2023. Prüfpunkte wurden nicht gelesen. V1500011792 ist ein älterer Erlass mit ähnlichem Titel, Status ungeklärt.",
+   "wortlaut_original": "",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "fundstelle": "Kopf; Pkt. 1; Fußnoten zu Pkt. 7, 10, 12 und Anh. 1",
+   "aussage": "Umwelt: V1500012779 (MNE № 835 vom 30.12.2015, ME № 721 vom 15.12.2015) ist der geltende Erlass mit Risikokriterien (Anh. 1) und Prüflisten (Anh. 2-4) für Eigentümer und Nutzer von Objekten mit negativer Umweltwirkung. Zuletzt geändert durch gemeinsamen Erlass MEPR № 44 vom 13.03.2026 / MNE № 18 vom 19.03.2026 (u. a. Pkt. 7, 10, 12 und Anh. 1; Inkrafttreten 60 Kalendertage nach Veröffentlichung); frühere Änderung 14.06.2023/13.06.2023. Prüfpunkte wurden nicht gelesen. V1500011792 (Erlass Nr. 431 vom 30.07.2015) ist durch V1500012779 aufgehoben (ab 01.01.2016).",
+   "wortlaut_original": "Совместный приказ и.о. Министра национальной экономики Республики Казахстан от 30 декабря 2015 года № 835 и Министра энергетики Республики Казахстан от 15 декабря 2015 года № 721. […] в отношении физических или юридических лиц, в собственности или ином законном пользовании которого находится объект, оказывающий негативное воздействие на окружающую среду согласно приложению 2 к настоящему совместному приказу; […] Сноска. Пункт 10 - в редакции совместного приказа Министра экологии и природных ресурсов РК от 13.03.2026 № 44 и и.о. Министра национальной экономики РК от 19.03.2026 № 18",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: letzte Änderung ist 13.03.2026/19.03.2026, nicht 2023; Status V1500011792 geklärt: aufgehoben durch V1500012779 ab 01.01.2016"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: letzte Änderung ist 13.03.2026/19.03.2026, nicht 2023; Status V1500011792 geklärt: aufgehoben durch V1500012779 ab 01.01.2016"
+ },
+ {
+  "id": "B-C4-017",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Anh. 2 Prüfliste",
+   "aussage": "Boden/Land: V1800018000 (gemeinsamer Erlass vom 11.12.2018) gilt, Anh. 2 neu gefasst am 17.07.2023 (MSH № 264, MNE № 141). Prüfliste für Eigentümer und Landnutzer mit sechs Anforderungen: Grenzen und Rechtstitel, Nutzung nach Zweckbestimmung, Rückgabe zeitweise genutzter Staatsflächen, Maßnahmen zum Bodenschutz, rationelle Nutzung landwirtschaftlicher Flächen, Erhalt der Grenzzeichen.",
+   "wortlaut_original": "Установление фактических границ земельного участка и наличие правоустанавливающих или идентификационных документов на землю; Использование земель в соответствии с целевым назначением; Своевременный возврат государственных земель, находящихся во временном пользовании ...; Проведение мероприятий по охране земель; Проведение мероприятий по рациональному использованию сельскохозяйственных земель; Сохранение межевых знаков границы земельных участков",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Anh. 6 (Prüfliste, Fassung 13.02.2023); Anh. 2 = Risikokriterien (Fassung 17.07.2023)",
+   "aussage": "Boden/Land: V1800018000 (gemeinsamer Erlass MSH № 502 / MNE № 101 vom 11.12.2018) gilt. Die Prüfliste für Eigentümer und Landnutzer steht in Anh. 6 (neu gefasst am 13.02.2023, MSH № 61, MNE № 20); Anh. 2 enthält die Risikokriterien (neu gefasst am 17.07.2023, MSH № 264, MNE № 141). Sechs Anforderungen: Grenzen und Rechtstitel, Nutzung nach Zweckbestimmung, Rückgabe zeitweise genutzter Staatsflächen, Maßnahmen zum Bodenschutz, rationelle Nutzung landwirtschaftlicher Flächen, Erhalt der Grenzzeichen.",
+   "wortlaut_original": "Проверочный лист за использованием и охраной земель в отношении субъектов земельных правоотношений […] Установление фактических границ земельного участка и наличие правоустанавливающих или идентификационных документов на землю […] Использование земель в соответствии с целевым назначением […] Своевременный возврат государственных земель, находящихся во временном пользовании и выполнение обязанностей по приведению их в состояние, пригодное для дальнейшего использования […] Сохранение межевых знаков границы земельных участков",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: Prüfliste ist Anh. 6, nicht Anh. 2; Anh. 2 sind die Risikokriterien; Fassungsdaten zugeordnet"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: Prüfliste ist Anh. 6, nicht Anh. 2; Anh. 2 sind die Risikokriterien; Fassungsdaten zugeordnet"
+ },
+ {
+  "id": "B-C4-019",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "offen",
+   "rang": 2,
+   "fundstelle": "Kontrollsubjekte",
+   "wortlaut_original": "",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Kopf; Pkt. 1",
+   "wortlaut_original": "Совместный приказ Министра сельского хозяйства Республики Казахстан от 4 июля 2023 года № 254 и Министра национальной экономики Республики Казахстан от 4 июля 2023 года № 133. […] 2) проверочный лист в области земельных правоотношений за законностью принятых решений местных исполнительных органов согласно приложению 2 к настоящему совместному приказу.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; ersetzt die in V1800018000 gestrichenen Anh. 1 und 5 (Kontrolle der lokalen Exekutivorgane), nicht die Landnutzer-Prüfliste Anh. 6"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; ersetzt die in V1800018000 gestrichenen Anh. 1 und 5 (Kontrolle der lokalen Exekutivorgane), nicht die Landnutzer-Prüfliste Anh. 6"
+ },
+ {
+  "id": "B-C4-020",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "wortlaut_original": "1) профилактического контроля, носящего предупредительно-профилактический характер; 2) проверки; 3) расследования. ... 1) профилактический контроль без посещения; 2) профилактический контроль с посещением; 3) контрольный закуп. ... 1) проверки на соответствие требованиям; 2) внеплановые проверки.",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "wortlaut_original": "1) профилактического контроля, носящего предупредительно-профилактический характер […] 3) расследования. […] 1) профилактический контроль без посещения субъекта (объекта) контроля и надзора; […] 2) профилактический контроль с посещением субъекта (объекта) контроля и надзора; […] 3) контрольный закуп. […] 2) внеплановые проверки.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; „Prüfung auf Einhaltung von Anforderungen“ betrifft Genehmigungs- und Anzeigeanforderungen"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; „Prüfung auf Einhaltung von Anforderungen“ betrifft Genehmigungs- und Anzeigeanforderungen"
+ },
+ {
+  "id": "B-C5-001",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "fundstelle": "Pkt. 10 und 10-1 (laut Suchausschnitt)",
+   "aussage": "Gegenleistungspflichten (встречные обязательства) in den Regeln zur Förderung von Ertrag und Qualität im Pflanzenbau (V2000020209): Pflicht, wenn ein Betrieb im laufenden Jahr Subventionen von zusammen 100 Mio. Tenge oder mehr erhält; ab 01.01.2029 für alle Subventionsempfänger. Inhalt: Bruttoproduktion in Geld wachsen lassen oder auf Vorjahresniveau halten. Punkt 10 geändert durch Erlass MSH № 29 vom 26.01.2026.",
+   "wortlaut_original": "Встречные обязательства принимаются субъектами агропромышленного комплекса при условии получения в текущем финансовом году субсидий в совокупности по всем видам субсидий в размере 100 000 000 (ста миллионов) тенге и выше.",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "fundstelle": "Pkt. 10-1 (eingefügt durch Erlass MSH № 208 vom 20.06.2024, in Kraft 01.01.2025; neu gefasst durch Erlass MSH № 36 vom 27.01.2026)",
+   "aussage": "Gegenleistungspflichten (встречные обязательства) nach Pkt. 10-1 der Regeln V2000020209: Pflicht, wenn ein Betrieb im laufenden Finanzjahr Subventionen von zusammen 100 Mio. Tenge oder mehr erhält (gezählt werden nur Subventionsarten mit gleichartigen Gegenleistungspflichten); ab 01.01.2029 für alle Subventionsempfänger. Inhalt: Bruttoproduktion in Geld wachsen lassen oder auf Vorjahresniveau halten. Pkt. 10-1 eingefügt am 20.06.2024 (in Kraft 01.01.2025), neu gefasst durch Erlass MSH № 36 vom 27.01.2026.",
+   "wortlaut_original": "10-1. Сельхозтоваропроизводителям (сельхозкооперативам), получающим субсидии в растениеводстве, необходимо соблюдать встречные обязательства по обеспечению роста/сохранению на уровне предыдущего года объема валовой продукции […] Встречные обязательства принимаются субъектами агропромышленного комплекса при условии получения в текущем финансовом году субсидий в совокупности по всем видам субсидий, по которым предусмотрено установление аналогичных встречных обязательств, в размере 100 000 000 (ста миллионов) тенге и выше. […] С 1 января 2029 года встречные обязательства распространяются на все субъекты агропромышленного комплекса, получающие субсидии.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: Fundstelle ist Pkt. 10-1, nicht Pkt. 10; Änderungsdatum 27.01.2026 № 36 (nicht 26.01.2026 № 29, der Pkt. 3 und 42 betrifft); Schwelle zählt nur Subventionen mit gleichartigen Gegenleistungen"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: Fundstelle ist Pkt. 10-1, nicht Pkt. 10; Änderungsdatum 27.01.2026 № 36 (nicht 26.01.2026 № 29, der Pkt. 3 und 42 betrifft); Schwelle zählt nur Subventionen mit gleichartigen Gegenleistungen"
+ },
+ {
+  "id": "B-C5-003",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "offen",
+   "fundstelle": "Pkt. 10-1, 15, 42, Anh. 1 (Entwurf)",
+   "aussage": "Entwurf 2024 zu V2000020209: E-Rechnungen, die für einen Subventionsantrag genutzt werden, dürfen nicht widerrufen oder korrigiert werden und werden gesperrt; Setzlinge von Obst- und Beerenkulturen werden zu 50 % erstattet; neues Formular zur Meldung von Produktionsmenge und -wert.",
+   "wortlaut_original": "",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "fundstelle": "Pkt. 15 (Fassung 22.06.2026, in Kraft 12.07.2026); Pkt. 42 Nr. 5 (Fassung 26.01.2026)",
+   "aussage": "Die Punkte aus dem Entwurf 2024 sind geltendes Recht in V2000020209: E-Rechnungen, die für einen Subventionsantrag genutzt werden, dürfen nicht widerrufen, annulliert oder korrigiert werden und werden bei Bestätigung der Nutzung automatisch gesperrt; bei Widerruf mit Betragsänderung sind die Subventionen zurückzuzahlen (Pkt. 15). Gekaufte und gepflanzte Elite-Setzlinge von Obst- und Beerenkulturen werden zu 50 % erstattet (Pkt. 42 Nr. 5). Das Meldeformular zu Produktionsmenge und -wert wurde am Text nicht geprüft.",
+   "wortlaut_original": "15. Не допускается отзыв, аннулирование и корректировка электронных счетов-фактур, использованных для получения субсидий. […] 5) частичного (50 %) возмещения затрат сельхозтоваропроизводителей (сельхозкооперативов) за фактически приобретенные и использованные элитные саженцы плодово-ягодных культур и винограда на закладку многолетних насаждений плодово-ягодных культур и винограда.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: kein Entwurf mehr: Inhalte stehen im geltenden Text (Pkt. 15, Pkt. 42 Nr. 5); 50 % gelten für Elite-Setzlinge; Formular nicht geprüft"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: kein Entwurf mehr: Inhalte stehen im geltenden Text (Pkt. 15, Pkt. 42 Nr. 5); 50 % gelten für Elite-Setzlinge; Formular nicht geprüft"
+ },
+ {
+  "id": "B-C5-004",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Pkt. 4, 38, 39 (Nummerierung laut Spiegel)",
+   "aussage": "Investitionssubventionen (V1800017320): Die zuständige Stelle (рабочий орган / услугодатель) überwacht drei Jahre lang (vierteljährlich Zweckbindung und keine Veräußerung, jährlich Betrieb des Objekts und Kapazitätsauslastung), mit Besichtigungsakt und Foto-/Videonachweis. Anfragen sind binnen 15 Arbeitstagen zu beantworten, sonst Einstellung und Rückforderung.",
+   "wortlaut_original": "осмотр объекта инвестора (услугополучателя), приобретенного оборудования на соответствие условиям ... оформляется актом осмотра объекта инвестора ... в течение 15 (пятнадцати) рабочих дней ... прекращения инвестиционного субсидирования и истребовании возврата выплаченных инвестиционных субсидий",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Pkt. 4 (Besichtigung vor Auszahlung); Pkt. 38 (Fassung 02.04.2026/30.06.2026); Pkt. 39 (Fassung 30.06.2026)",
+   "aussage": "Investitionssubventionen (V1800017320): Die zuständige Stelle (рабочий орган / услугодатель) überwacht drei Jahre lang im ГЦСС: vierteljährlich Nichtveräußerung und Zweckbindung; jährlich u. a. Übereinstimmung der Tätigkeit mit OKED; Betrieb/Stillstand und Auslastung von mindestens 50 % nur für bestimmte Projektpässe (Nr. 7, 8, 10, 18, 19, 24-29, 32 – nicht Nr. 14 und 23). Anfragen sind binnen 15 Arbeitstagen über ГЦСС zu beantworten, sonst Einstellung und Rückforderung. Besichtigungsakt mit Foto- und Videonachweis gehört zur Prüfung vor der Auszahlung (Pkt. 4), nicht zum Monitoring.",
+   "wortlaut_original": "38. Мониторинг инвестиционного субсидирования осуществляется в течение 3 (трех) лет с момента субсидирования рабочим органом (услугодателем) в ГЦСС по следующим критериям: […] 1) ежеквартально на предмет не отчуждения (в том числе в части запрета на замену и передачу в аренду объектов инвестиционного субсидирования) и обеспечения целевого использования инвестором (услугополучателем) приобретенной техники, машин и оборудования; […] Инвестор (услугополучатель) в течение 15 (пятнадцати) рабочих дней представляет запрашиваемую информацию рабочему органу (услугодателю) путем ее размещения в ГЦСС.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: jährliche Auslastungsprüfung nur für aufgezählte Pässe (nicht 14, 23); Besichtigungsakt mit Foto/Video ist Pkt. 4 (vor Auszahlung), nicht Monitoring"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: jährliche Auslastungsprüfung nur für aufgezählte Pässe (nicht 14, 23); Besichtigungsakt mit Foto/Video ist Pkt. 4 (vor Auszahlung), nicht Monitoring"
+ },
+ {
+  "id": "B-C5-005",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Pkt. 20, 40 (laut Spiegel)",
+   "wortlaut_original": "Отчуждение и/или нецелевое использование инвестором приобретенной техники; Бездействие объекта производства в течение трех календарных лет ... рабочий орган (услугодатель) в течение 30 (тридцати) календарных дней, с момента принятия решения о возврате инвестиционных субсидий, инициирует судебное разбирательство",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Pkt. 40 (Fassung 30.06.2026, in Kraft 12.07.2026); Pkt. 20",
+   "wortlaut_original": "В случае отчуждения и/или нецелевого использования инвестором (услугополучателем) приобретенной техники, машин и/или оборудования, бездействия объекта производства в течение трех календарных лет с момента ввода в эксплуатацию или не выхода объекта на проектную мощность в размере не менее 50 (пятидесяти) % […] рабочий орган (услугодатель) в течение 30 (тридцати) календарных дней, с момента принятия решения о возврате инвестиционных субсидий, инициирует судебное разбирательство по возврату денежных средств. […] Для субъектов АПК, получающих инвестиционные субсидии, встречным обязательством будет предоставление статистической отчетности, начиная с 2020 года по инвестициям в основной капитал сельского хозяйства и производства продуктов питания.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; weitere Gründe laut Text: Aussetzung der Tätigkeit, Kündigung des Kredit-/Leasingvertrags mit Rücknahme"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; weitere Gründe laut Text: Aussetzung der Tätigkeit, Kündigung des Kredit-/Leasingvertrags mit Rücknahme"
+ },
+ {
+  "id": "B-C5-006",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Pkt. 23; Anh. Projektpässe 14, 23",
+   "aussage": "Förderpässe für Beerenbetriebe in V1800017320: Pass 14 „Anlage von Obst-, Beerenkulturen und Wein ab 5 ha“, Pass 23 „Bau und Erweiterung von Obstlagern ab 1 000 t“. Nachweise: Abnahme- und Inbetriebnahmeakte, Kaufverträge und Rechnungen, Projektdokumentation mit Gutachten, Übergabeakte, Kredit-/Leasingverträge, bei Brunnen Wassernutzungsgenehmigung.",
+   "wortlaut_original": "Закладка плодово-ягодных культур и винограда от 5 гектаров; Строительство и расширение фруктохранилищ от 1 000 тонн",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Pkt. 23; Anh. Projektpässe Nr. 14 und Nr. 23",
+   "aussage": "Förderpässe für Beerenbetriebe in V1800017320: Pass 14 „Anlage von Obst-, Beerenkulturen und Wein ab 5 ha“, Pass 23 „Bau und Erweiterung von Obstlagern ab 1 000 t“. Nachweise nach Pkt. 23: Abnahme- bzw. Inbetriebnahmeakte, Kaufverträge und Rechnungen, Projekt- und Kostendokumentation mit positivem Gutachten, Übergabeakte, Kredit-/Leasingverträge, ggf. НДС-Registrierung. Für Brunnen (Pass Nr. 4) zusätzlich Registrierung der Rechte am Wasserbauwerk, technischer Pass der Bohrung und Unterlagen zum Bohrunternehmer; eine Wassernutzungsgenehmigung wird im Text nicht verlangt.",
+   "wortlaut_original": "Паспорт проекта № 14 \"Закладка плодово-ягодных культур и винограда от 5 гектаров\" […] Паспорт проекта № 23 \"Строительство и расширение фруктохранилищ от 1000 тонн *\" […] 2) копии акта ввода оборудования в эксплуатацию между покупателем и поставщиком (при приобретении оборудования); […] 5) копии актов приема-передачи техники, машин, оборудования;",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: „Wassernutzungsgenehmigung“ steht nicht im Text; Brunnen-Nachweise nach Pkt. 23 Nr. 10 (Pass Nr. 4) ersetzt"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: „Wassernutzungsgenehmigung“ steht nicht im Text; Brunnen-Nachweise nach Pkt. 23 Nr. 10 (Pass Nr. 4) ersetzt"
+ },
+ {
+  "id": "B-C6-027",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "wortlaut_original": "обеспечивать производственный контроль за безопасностью каждой партии пищевой продукции в процессах (на стадиях) ее производства | представлять документы, удостоверяющие безопасность пищевой продукции, покупателям (потребителям) | обеспечивать идентификацию и прослеживаемость пищевой продукции во всех процессах (на стадиях) ее разработки (создания), производства (изготовления), оборота, утилизации и уничтожения",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "wortlaut_original": "4) обеспечивать производственный контроль за безопасностью каждой партии пищевой продукции в процессах (на стадиях) ее производства (изготовления), оборота и утилизации; […] 8) представлять документы, удостоверяющие безопасность пищевой продукции, покупателям (потребителям) пищевой продукции, уполномоченным органам по их требованию; […] 10) обеспечивать идентификацию и прослеживаемость пищевой продукции во всех процессах (на стадиях) ее разработки (создания), производства (изготовления), оборота, утилизации и уничтожения.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+ },
+ {
+  "id": "B-C6-028",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "aussage": "Учетный номер: Code aus Tätigkeitsart und Objektnummer; die Sanepid-Behörde vergibt Kontonummern an Objekte zur Herstellung sanepid-überwachter Lebensmittel und führt das Register.",
+   "wortlaut_original": "11) учетный номер — код, включающий вид деятельности и номер объекта производства | 12) присвоение учетных номеров объектам производства пищевой продукции, подлежащей санитарно-эпидемиологическому надзору, и ведение их реестра",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "aussage": "Учетный номер (Registriernummer): Code aus Tätigkeitsart und Nummer des Produktionsobjekts; die Sanepid-Behörde vergibt Registriernummern an Objekte zur Herstellung sanepid-überwachter Lebensmittel und führt deren Register.",
+   "wortlaut_original": "11) учетный номер - код, включающий вид деятельности и номер объекта производства; […] 12) присвоение учетных номеров объектам производства пищевой продукции, подлежащей санитарно-эпидемиологическому надзору, и ведение их реестра;",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: Übersetzung „Kontonummern“ durch „Registriernummern“ ersetzt"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: Übersetzung „Kontonummern“ durch „Registriernummern“ ersetzt"
+ },
+ {
+  "id": "B-C7-008",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "wortlaut_original": "Движение первичных учетных документов ... (создание или получение от других субъектов, принятие к учету, обработка, передача в архив — документооборот) регламентируется графиком, утвержденным руководством субъекта. | Первичные документы составляются на казахском и (или) русском языках и скрепляются печатью субъекта при ее наличии.",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "wortlaut_original": "22. Движение первичных учетных документов (далее - первичные документы) в бухгалтерском учете (создание или получение от других субъектов, принятие к учету, обработка, передача в архив - документооборот) регламентируется графиком, утвержденным руководством субъекта. […] 24. Первичные документы составляются на казахском и (или) русском языках и скрепляются печатью субъекта при ее наличии.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+ },
+ {
+  "id": "B-C7-009",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "wortlaut_original": "Сохранность первичных документов, регистров бухгалтерского учета, отчетов и балансов, оформление и передачу их в архив обеспечивает главный бухгалтер. | Постоянное, временное хранение документов субъекта обеспечивается самостоятельно при наличии собственного специально оборудованного помещения или путем передачи документов на хранение в соответствующие архивные учреждения за счет средств субъекта.",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "wortlaut_original": "75. Сохранность первичных документов, регистров бухгалтерского учета, отчетов и балансов, оформление и передачу их в архив обеспечивает главный бухгалтер. […] 77. Постоянное, временное хранение документов субъекта обеспечивается самостоятельно при наличии собственного специально оборудованного помещения или путем передачи документов на хранение в соответствующие архивные учреждения за счет средств субъекта.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; Ersatzkopie nach Nr. 81 nur bei belegten Straftaten, Ordnungswidrigkeiten oder Katastrophen"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; Ersatzkopie nach Nr. 81 nur bei belegten Straftaten, Ordnungswidrigkeiten oder Katastrophen"
+ },
+ {
+  "id": "B-C7-010",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "wortlaut_original": "1. Цифровая запись, подтверждение достоверности, принадлежности и неизменности которой обеспечено с помощью электронной цифровой подписи, признается электронным документом. 2. Электронный документ, соответствующий требованиям настоящего Кодекса и удостоверенный посредством электронной цифровой подписи лица, имеющего полномочия на его подписание, равнозначен подписанному документу на бумажном носителе. 3. Электронные документы формируются, хранятся и представляются посредством государственных и (или) негосударственных цифровых систем, а также вне их в порядке, установленном законодательством Республики Казахстан.",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "wortlaut_original": "1. Цифровая запись, подтверждение достоверности, принадлежности и неизменности которой обеспечено с помощью электронной цифровой подписи, признается электронным документом. […] 2. Электронный документ, соответствующий требованиям настоящего Кодекса и удостоверенный посредством электронной цифровой подписи лица, имеющего полномочия на его подписание, равнозначен подписанному документу на бумажном носителе. […] 3. Электронные документы формируются, хранятся и представляются посредством государственных и (или) негосударственных цифровых систем, а также вне их",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; ergänzt: auch außerhalb der Systeme"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen; ergänzt: auch außerhalb der Systeme"
+ },
+ {
+  "id": "B-C7-014",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "wortlaut_original": "Настоящие Правила ... устанавливают порядок документирования, управления документацией и использования систем электронного документооборота в государственных и негосударственных организациях (далее – организации). | Участники СЭД обеспечивают подлинность и целостность электронных документов путем: 1) интегрирования (сопряжения) в СЭД СКЗИ, реализующих процесс формирования и проверки электронной цифровой подписи ..., а также прошедших процедуру подтверждения соответствия ...; 2) соблюдения разграничения прав доступа к электронным документам.",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "wortlaut_original": "устанавливают порядок документирования, управления документацией и использования систем электронного документооборота в государственных и негосударственных организациях (далее – организации). […] 95. Участники СЭД обеспечивают подлинность и целостность электронных документов путем: […] 2) соблюдения разграничения прав доступа к электронным документам.",
+   "pruefvermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+  },
+  "vermerk": "Phase 5: Aussage am adilet-Text bestätigt, Zitat aus amtlichem Text übernommen"
+ },
+ {
+  "id": "B-C7-015",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "aussage": "Steuerkodex 2026: Buchungsunterlagen auf Papier und/oder elektronisch in Kasachisch und/oder Russisch; bei elektronischer Form auf Verlangen Papierkopien in der Steuerprüfung (außer Rechnungen); Aufbewahrung bis Ablauf der Verjährung.",
+   "wortlaut_original": "Учетная документация составляется налогоплательщиком (налоговым агентом) на бумажном и (или) электронном носителях на казахском и (или) русском языках. | При составлении учетной документации в электронной форме налогоплательщик (налоговый агент) обязан в ходе налоговой проверки по требованию должностных лиц налоговых органов представить копии такой документации на бумажных носителях, за исключением счетов-фактур... | Учетная документация, относящаяся к объектам налогообложения или объектам, связанным с налогообложением, хранится налогоплательщиком (налоговым агентом) до истечения срока исковой давности...",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "aussage": "Steuerkodex 2026: Buchungsunterlagen auf Papier und/oder elektronisch in Kasachisch und/oder Russisch; bei elektronischer Form auf Verlangen Papierkopien in der Steuerprüfung (außer Rechnungen, Buchhaltungs- und Primärbelegen, die im ЭСФ-System registriert sind); Aufbewahrung bis Ablauf der Verjährung nach Art. 65, mindestens fünf Jahre.",
+   "wortlaut_original": "1. Учетная документация составляется налогоплательщиком (налоговым агентом) на бумажном и (или) электронном носителях на казахском и (или) русском языках. […] 3. Учетная документация, относящаяся к объектам налогообложения или объектам, связанным с налогообложением, хранится налогоплательщиком (налоговым агентом) до истечения срока исковой давности, установленного статьей 65 настоящего Кодекса для каждого вида налога или платежа в бюджет, но не менее пяти лет.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: Mindestfrist fünf Jahre ergänzt; Ausnahme von der Papierkopie präzisiert"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: Mindestfrist fünf Jahre ergänzt; Ausnahme von der Papierkopie präzisiert"
+ },
+ {
+  "id": "B-C7-017",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "nur_sekundaer",
+   "rang": 2,
+   "fundstelle": "Anlage 2 Kap. 2 Nr. 4; Anlage 1 Nr. 2 und 3",
+   "aussage": "Standard-Prüfdatei (Erlass 567 vom 03.10.2025, ab 01.01.2026): freiwillig; bei Zustimmung Vorlage binnen 10 Kalendertagen nach Zustellung der Prüfungsanordnung; Formate xml und xlsx; keine Anforderungen an die Buchhaltungssoftware.",
+   "wortlaut_original": "Стандартный файл проверки предоставляется налогоплательщиком (налоговым агентом) в органы государственных доходов на добровольной основе | в течение 10 (десяти) календарных дней со дня вручения предписания",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "rang": 1,
+   "fundstelle": "Anlage 2 (Правила) Kap. 2 Pkt. 3 und 4",
+   "aussage": "Standard-Prüfdatei (Erlass 567 vom 03.10.2025, ab 01.01.2026): freiwillig; bei Zustimmung Vorlage binnen 10 Kalendertagen nach Zustellung der Prüfungsanordnung; Formate xml und xlsx, erstellt aus den beim Steuerpflichtigen vorhandenen Buchhaltungs- und Steuerdaten, auf Papier und/oder elektronisch. Anforderungen an eine bestimmte Buchhaltungssoftware nennt der Erlass nicht; das ist eine Schlussfolgerung aus dem Schweigen des Texts.",
+   "wortlaut_original": "Стандартный файл проверки предоставляется налогоплательщиком (налоговым агентом) в органы государственных доходов на добровольной основе. […] в течение 10 (десяти) календарных дней со дня вручения предписания о проведении налоговой проверки […] в форматах \"xml\", \"xlsx\" имеющихся у налогоплательщика (налогового агента) при введениях бухгалтерского и налогового учета.",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: Fundstelle ist Anlage 2 Pkt. 3/4, nicht Anlage 1; „keine Softwareanforderungen“ als Ableitung gekennzeichnet"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: Fundstelle ist Anlage 2 Pkt. 3/4, nicht Anlage 1; „keine Softwareanforderungen“ als Ableitung gekennzeichnet"
+ },
+ {
+  "id": "B-C7-019",
+  "aufgabe": "A",
+  "vorher": {
+   "verifiziert": "offen",
+   "fundstelle": "Präambel und Nr. 1 (nur Suchtreffer-Auszug)",
+   "aussage": "Die Musterordnung V1500012544 über Dienste der internen Revision gilt laut Suchtreffer für zentrale Staatsorgane und lokale Exekutivorgane, nicht für private Unternehmen (TOO, KH, IP); letzte Änderung der Präambel durch Erlass Nr. 672 vom 07.10.2024.",
+   "wortlaut_original": "(Wortlaut nicht gelesen, nur Suchtreffer-Auszug)",
+   "pruefvermerk": "Zitat nicht wörtlich im adilet-Text gefunden; von Hand prüfen"
+  },
+  "nachher": {
+   "verifiziert": "primaer",
+   "fundstelle": "Typisches Положение, Präambel und Nr. 1-2",
+   "aussage": "Die Musterordnung V1500012544 über Dienste der internen Revision gilt für zentrale Staatsorgane, deren Behörden und die lokalen Exekutivorgane der Gebiete, der Städte republikanischer Bedeutung und der Hauptstadt, nicht für private Unternehmen (TOO, KH, IP). Die Präambel der Ordnung wurde durch Erlass Nr. 672 vom 07.10.2024 neu gefasst; eine Neufassung der gesamten Ordnung durch Erlass Nr. 404 vom 16.06.2026 (in Kraft ab 01.07.2026) ist angekündigt und im adilet-Text noch nicht eingearbeitet.",
+   "wortlaut_original": "определяет статус, полномочия и организацию работы служб внутреннего аудита центральных государственных органов, ведомств центральных государственных органов, местных исполнительных органов областей, городов республиканского значения, столицы […] Сноска. Преамбула - в редакции приказа Министра финансов РК от 07.10.2024 № 672 […] Положение предусматривается в редакции приказа Министра финансов РК от 16.06.2026 №404 (вводится в действие c 01.07.2026).",
+   "pruefvermerk": "Phase 5: Aussage korrigiert: Geltungsbereich am Volltext bestätigt; angekündigte Neufassung vom 16.06.2026 (ab 01.07.2026) ergänzt"
+  },
+  "vermerk": "Phase 5: Aussage korrigiert: Geltungsbereich am Volltext bestätigt; angekündigte Neufassung vom 16.06.2026 (ab 01.07.2026) ergänzt"
+ }
+]

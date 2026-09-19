@@ -1,0 +1,313 @@
+{
+  "domain_kuerzel": "D6",
+  "domain_name": "Digitalisierung, Ausbildung und Frameworks",
+  "suchrunden": [
+    {"anfrage": "COSO Internal Control Integrated Framework components principles 2024", "sprache": "en", "filter": "offen", "neue_treffer": 6},
+    {"anfrage": "IPPF International Professional Practices Framework IIA structure 2025", "sprache": "en", "filter": "offen", "neue_treffer": 5},
+    {"anfrage": "CIA exam syllabus domains Part 1 2 3 2024 2025 IIA", "sprache": "en", "filter": "offen", "neue_treffer": 5},
+    {"anfrage": "CISA exam domains job practice areas 2024 2025 ISACA", "sprache": "en", "filter": "offen", "neue_treffer": 5},
+    {"anfrage": "isaca.org/credentialing/cisa/cisa-exam-content-outline", "sprache": "en", "filter": "allowed_domains:isaca.org", "neue_treffer": 1},
+    {"anfrage": "Wirtschaftsprüferexamen Prüfungsgebiete WPO IDW Fächer 2024", "sprache": "de", "filter": "allowed_domains:idw.de,wpk.de", "neue_treffer": 4},
+    {"anfrage": "Wirtschaftsprüfer Ausbildung Österreich Berufsexamen Kammer Steuerberater Wirtschaftsprüfer", "sprache": "de", "filter": "allowed_domains:ksw.or.at,iwp.or.at", "neue_treffer": 2},
+    {"anfrage": "Wirtschaftsprüfer Diplom Schweiz EXPERTsuisse Prüfungsordnung Module", "sprache": "de", "filter": "allowed_domains:expertsuisse.ch", "neue_treffer": 3},
+    {"anfrage": "IAASB International Standards on Auditing structure ISA 200 300 500 700 series clarified", "sprache": "en", "filter": "offen", "neue_treffer": 3},
+    {"anfrage": "INTOSAI ISSAI framework structure levels 2024 public sector auditing", "sprache": "en", "filter": "offen", "neue_treffer": 3},
+    {"anfrage": "PCAOB auditing standards reorganization AS 1000 series topical categories", "sprache": "en", "filter": "allowed_domains:pcaobus.org", "neue_treffer": 3},
+    {"anfrage": "COSO ERM Enterprise Risk Management Framework 2017 five components 20 principles", "sprache": "en", "filter": "offen", "neue_treffer": 2},
+    {"anfrage": "COSO guidance emerging technology artificial intelligence internal control 2024", "sprache": "en", "filter": "offen", "neue_treffer": 5},
+    {"anfrage": "Audit Data Analytics research paper 2023 2024 journal", "sprache": "en", "filter": "offen", "neue_treffer": 6},
+    {"anfrage": "Continuous Auditing Continuous Monitoring research 2022 2023 accounting", "sprache": "en", "filter": "offen", "neue_treffer": 3},
+    {"anfrage": "Process Mining audit financial statement research 2023 2024", "sprache": "en", "filter": "offen", "neue_treffer": 3},
+    {"anfrage": "Generative AI large language models audit profession research 2024 2025", "sprache": "en", "filter": "offen", "neue_treffer": 4},
+    {"anfrage": "Remote Auditing Virtual Audit Standard post-Covid research 2022 2023 IAASB guidance", "sprache": "en", "filter": "offen", "neue_treffer": 3},
+    {"anfrage": "GRIN.com Digitalisierung der Wirtschaftsprüfung Masterarbeit Data Analytics", "sprache": "de", "filter": "allowed_domains:grin.com", "neue_treffer": 7},
+    {"anfrage": "grin.com Masterarbeit Process Mining Wirtschaftsprüfung OR Interne Revision", "sprache": "de", "filter": "allowed_domains:grin.com", "neue_treffer": 3},
+    {"anfrage": "grin.com Bachelorarbeit Data Analytics Abschlussprüfung 2023 2024", "sprache": "de", "filter": "allowed_domains:grin.com", "neue_treffer": 1},
+    {"anfrage": "grin.com Masterarbeit Continuous Auditing 2022 2023 2024", "sprache": "de", "filter": "allowed_domains:grin.com", "neue_treffer": 2},
+    {"anfrage": "GRIN-Katalog BWL Revision Prüfungswesen (Direktabruf Kategorieseite, neueste zuerst)", "sprache": "de", "filter": "allowed_domains:grin.com", "neue_treffer": 5},
+    {"anfrage": "\"Empirical research frameworks in a changing world\" audit data analytics Autor/Jahr", "sprache": "en", "filter": "offen", "neue_treffer": 1},
+    {"anfrage": "\"Exploring Large Language Models in external audits\" Autoren IJAIS", "sprache": "en", "filter": "offen", "neue_treffer": 1},
+    {"anfrage": "idw.de Wirtschaftsprüfungsexamen wird flexibler / Neufassung Prüfungsgebiete (Direktabruf)", "sprache": "de", "filter": "allowed_domains:idw.de", "neue_treffer": 2},
+    {"anfrage": "shop.idw-verlag.de Fachgebiete Wirtschaftsprüfung (Direktabruf Katalog)", "sprache": "de", "filter": "allowed_domains:idw-verlag.de", "neue_treffer": 2},
+    {"anfrage": "DART-Europe / OATD / DNB-Portal / NDLTD Dissertationssuche audit data analytics, continuous auditing", "sprache": "en", "filter": "allowed_domains:dart-europe.org,oatd.org,portal.dnb.de,search.ndltd.org", "neue_treffer": 0},
+    {"anfrage": "arfjournals.com IJAAS Special Issue \"Auditing in the Digital Age\" Volltexte (Direktabruf PDF)", "sprache": "en", "filter": "allowed_domains:arfjournals.com", "neue_treffer": 2},
+    {"anfrage": "mpra.ub.uni-muenchen.de Advancing Audit Practices Continuous Auditing (Direktabruf)", "sprache": "en", "filter": "allowed_domains:mpra.ub.uni-muenchen.de", "neue_treffer": 1},
+    {"anfrage": "aicpa-cima.com Audit Analytics and Continuous Audit Looking Toward the Future (Direktabruf)", "sprache": "en", "filter": "allowed_domains:aicpa-cima.com", "neue_treffer": 1},
+    {"anfrage": "Bing/DuckDuckGo-Ersatzsuchen zu Big-Four Audit Innovation, VHB-Jahrestagung, ISACA-Konferenz, Celonis-Fallstudien (nach Erschöpfung des WebSearch-Kontingents)", "sprache": "de", "filter": "offen", "neue_treffer": 0}
+  ],
+  "eintraege": [
+    {
+      "id": "D6-001", "typ": "block_framework",
+      "titel": "Achieving Effective Internal Control Over Generative AI (GenAI)",
+      "autoren": ["COSO (Committee of Sponsoring Organizations of the Treadway Commission)"], "jahr": 2026, "sprache": "en",
+      "herausgeber_verlag_institution": "COSO", "url": "https://internalauditor.theiia.org/en/articles/2026/march/coso-issues-genai-guidance/",
+      "beleg_snippet": "Achieving Effective Internal Control Over Generative AI provides a practical roadmap for applying COSO's Internal Control–Integrated Framework to AI systems.",
+      "zusammenfassung": "COSO überträgt erstmals die fünf Komponenten und 17 Prinzipien des Internal Control – Integrated Framework auf den Einsatz generativer KI; Kernprinzip ist, KI-Ausgaben als zu validierende Behauptungen statt als Fakten zu behandeln (probabilistisch statt deterministisch).",
+      "schwerpunkt": "COSO-Komponenten / KI-Governance", "quelle_art": "verbandspublikation", "open_access": true
+    },
+    {
+      "id": "D6-002", "typ": "block_framework",
+      "titel": "Global Internal Audit Standards / International Professional Practices Framework (IPPF)",
+      "autoren": ["The Institute of Internal Auditors (IIA)"], "jahr": 2024, "sprache": "en",
+      "herausgeber_verlag_institution": "The IIA", "url": "https://www.theiia.org/en/standards/international-professional-practices-framework/",
+      "beleg_snippet": "The Global Internal Audit Standards are organized into five domains, 15 principles, and 52 standards... released in January 2024 and fully effective on January 9, 2025.",
+      "zusammenfassung": "Komplett neu strukturiertes IPPF ersetzt das IPPF 2017 und gliedert die Interne Revision in fünf Domänen (u. a. Ethik/Professionalität, Governance der Revisionsfunktion) mit 15 Prinzipien und 52 verbindlichen Standards.",
+      "schwerpunkt": "IPPF-Struktur / Global Internal Audit Standards", "quelle_art": "verbandsseite", "open_access": true
+    },
+    {
+      "id": "D6-003", "typ": "block_framework",
+      "titel": "CIA Exam Syllabus Part 1 – Foundations of Internal Auditing (2025 Syllabus)",
+      "autoren": ["The Institute of Internal Auditors (IIA)"], "jahr": 2025, "sprache": "en",
+      "herausgeber_verlag_institution": "The IIA", "url": "https://www.theiia.org/globalassets/site/certifications/internal-audit-practitioner/2025-cia-part-1--syllabus.pdf",
+      "beleg_snippet": "Domain 1: Foundations of Internal Auditing (35%) ... Domain 2: Ethics and Professionalism (20%) ... Domain 3: Governance, Risk Management, and Control (30%) ... Domain 4: Fraud Risks (15%).",
+      "zusammenfassung": "Der 2025er CIA-Part-1-Syllabus wurde an die neuen Global Internal Audit Standards angepasst und prüft vier Domänen inklusive IPPF/GIAS, COSO-Framework, Three-Lines-Modell und erstmals auch KI-gestütztem Betrug.",
+      "schwerpunkt": "CIA-Prüfungsdomänen Teil 1", "quelle_art": "verbandsseite", "open_access": true
+    },
+    {
+      "id": "D6-004", "typ": "block_framework",
+      "titel": "CIA Exam Syllabus Part 2 – Practice of Internal Auditing (2025 Syllabus)",
+      "autoren": ["The Institute of Internal Auditors (IIA)"], "jahr": 2025, "sprache": "en",
+      "herausgeber_verlag_institution": "The IIA", "url": "https://www.theiia.org/en/certifications/cia/exam-prep-resources/exam-syllabus/",
+      "beleg_snippet": "Part 2 includes four domains focused on managing the internal audit activity, planning the engagement, performing the engagement, and communicating engagement results and monitoring progress.",
+      "zusammenfassung": "Zweiter CIA-Prüfungsteil deckt die operative Durchführung der Revisionstätigkeit von der Steuerung der Revisionsfunktion bis zur Kommunikation von Prüfungsergebnissen ab.",
+      "schwerpunkt": "CIA-Prüfungsdomänen Teil 2", "quelle_art": "verbandsseite", "open_access": true
+    },
+    {
+      "id": "D6-005", "typ": "block_framework",
+      "titel": "CIA Exam Syllabus Part 3 – Business Knowledge for Internal Auditing (2025 update)",
+      "autoren": ["The Institute of Internal Auditors (IIA)"], "jahr": 2025, "sprache": "en",
+      "herausgeber_verlag_institution": "The IIA", "url": "https://www.theiia.org/en/certifications/cia/exam-prep-resources/exam-syllabus/",
+      "beleg_snippet": "Part 3 has four domains: Strategic Management (20%), Financial Management & Accounting (20%), Technology & Data Analytics (30%), Leadership & Communication (30%)... updated in 2025 to align with the Global Internal Audit Standards (GIAS).",
+      "zusammenfassung": "Im dritten CIA-Prüfungsteil wurde die Domäne \"Technology & Data Analytics\" 2025 auf das höchste Gewicht aller vier Domänen (30%) angehoben – direkter Beleg für die wachsende Bedeutung von Digitalkompetenz im Berufszugang zum Internal Auditor.",
+      "schwerpunkt": "CIA-Prüfungsdomänen Teil 3 / Technology & Data Analytics", "quelle_art": "verbandsseite", "open_access": true
+    },
+    {
+      "id": "D6-006", "typ": "block_framework",
+      "titel": "CISA Exam Content Outline (Job Practice Update, effective 1 August 2024)",
+      "autoren": ["ISACA"], "jahr": 2024, "sprache": "en",
+      "herausgeber_verlag_institution": "ISACA", "url": "https://www.isaca.org/credentialing/cisa/cisa-exam-content-outline",
+      "beleg_snippet": "Domain 1: Information System Auditing Process – 18%; Domain 2: Governance & Management of IT – 18%; Domain 3: Information Systems Acquisition, Development & Implementation – 12%; Domain 4: Information Systems Operations and Business Resilience – 26%; Domain 5: Protection of Information Assets – 26%.",
+      "zusammenfassung": "Ab 1. August 2024 verschob ISACA die Gewichte der fünf CISA-Domänen deutlich zugunsten von IT-Betriebsresilienz und Schutz von Informationswerten (je 26%), begründet mit disruptiven Technologien und neuen IT-Prüfungspraktiken.",
+      "schwerpunkt": "CISA-Prüfungsdomänen", "quelle_art": "verbandsseite", "open_access": true
+    },
+    {
+      "id": "D6-007", "typ": "block_framework",
+      "titel": "Die Prüfungsgebiete im Wirtschaftsprüfungsexamen – Konkretisierung des § 4 WiPrPrüfV (Neufassung)",
+      "autoren": ["IDW/WPK-Arbeitskreis Reform des Wirtschaftsprüfungsexamens"], "jahr": 2021, "sprache": "de",
+      "herausgeber_verlag_institution": "IDW und WPK", "url": "https://idw.de/idw/idw-aktuell/idw-und-wpk-veroeffentlichen-neufassung-der-konkretisierung-der-pruefungsgebiete-im-wp-examen.html",
+      "beleg_snippet": "IDW und WPK veröffentlichen Neufassung der Konkretisierung der Prüfungsgebiete im WP-Examen (10.06.2021). Die Konkretisierung gliedert die examensrelevanten Themenkomplexe auf und schafft damit Transparenz.",
+      "zusammenfassung": "Gemeinsame Neufassung von IDW und WPK gliedert die vier gesetzlichen Prüfungsgebiete des WP-Examens (A. Wirtschaftliches Prüfungswesen/Unternehmensbewertung/Berufsrecht, B. Angewandte BWL/VWL, C. Wirtschaftsrecht, D. Steuerrecht) inhaltlich neu und schafft Transparenz für Kandidaten und Ausbilder.",
+      "schwerpunkt": "WP-Examen-Prüfungsgebiete", "quelle_art": "standardsetzer", "open_access": true
+    },
+    {
+      "id": "D6-008", "typ": "block_framework",
+      "titel": "Wirtschaftsprüfungsexamen wird flexibler",
+      "autoren": ["Institut der Wirtschaftsprüfer in Deutschland e.V. (IDW)"], "jahr": 2021, "sprache": "de",
+      "herausgeber_verlag_institution": "IDW", "url": "https://www.idw.de/idw/idw-aktuell/wirtschaftspruefungsexamen-wird-flexibler.html",
+      "beleg_snippet": "Die Module des Wirtschaftsprüfungsexamens 'Angewandte Betriebswirtschaftslehre / Volkswirtschaftslehre', 'Wirtschaftsrecht' und 'Steuerrecht' [können] bereits nach einer sechsmonatigen praktischen Tätigkeit abgelegt werden.",
+      "zusammenfassung": "Zum 1.8.2021 in Kraft getretene Gesetzesänderung erlaubt es Berufsanwärtern, drei der vier WP-Examensmodule bereits nach sechs statt nach drei Jahren praktischer Tätigkeit abzulegen – eine strukturelle Reform der Ausbildungswege lange vor der akuten Fachkräftemangel-Debatte.",
+      "schwerpunkt": "WP-Examen-Module / Ausbildungsreform", "quelle_art": "standardsetzer", "open_access": true
+    },
+    {
+      "id": "D6-009", "typ": "block_framework",
+      "titel": "AS 1000 – General Responsibilities of the Auditor in Conducting an Audit (Reorganisation der PCAOB-Standards)",
+      "autoren": ["Public Company Accounting Oversight Board (PCAOB)"], "jahr": 2024, "sprache": "en",
+      "herausgeber_verlag_institution": "PCAOB", "url": "https://pcaobus.org/news-events/news-releases/news-release-detail/pcaob-solidifies-foundation-of-every-audit-with-adoption-of-new-standard-on-general-responsibilities-of-the-auditor",
+      "beleg_snippet": "AS 1000 enhances and consolidates a group of standards that were adopted on an interim basis by the PCAOB in April 2003 and that address the general principles and responsibilities of the auditor, such as due professional care, professional skepticism, competence, and professional judgment.",
+      "zusammenfassung": "Am 13. Mai 2024 verabschiedete das PCAOB mit AS 1000 einen neuen, konsolidierten Standard, der die seit 2003 unveränderten interimistischen Grundlagenstandards in die topisch gegliederte 1000er-Blockstruktur (General Principles, Concepts, Activities, Communications) überführt.",
+      "schwerpunkt": "PCAOB-Standardblöcke AS 1000er-Serie", "quelle_art": "standardsetzer", "open_access": true
+    },
+    {
+      "id": "D6-010", "typ": "block_framework",
+      "titel": "IDW Prüfungshinweis: Einsatz generativer Künstlicher Intelligenz in der Abschlussprüfung (IDW PH 9.315DE.2)",
+      "autoren": ["Institut der Wirtschaftsprüfer (IDW)"], "jahr": 2024, "sprache": "de",
+      "herausgeber_verlag_institution": "IDW Verlag", "url": "https://shop.idw-verlag.de/Fachgebiete/Wirtschaftspruefung/",
+      "beleg_snippet": "IDW Prüfungshinweis: Einsatz generativer Künstlicher Intelligenz in der Abschlussprüfung (IDW PH 9.315DE.2) — Status 2024, 29,00 €.",
+      "zusammenfassung": "Neuer IDW-Prüfungshinweis von 2024 konkretisiert, wie Wirtschaftsprüfer generative KI-Werkzeuge im Ablauf der Abschlussprüfung einsetzen dürfen – einer von zwei neuen \"Blöcken\", die das deutsche Prüfungsstandard-Set 2024 um KI-Vorgaben erweitern.",
+      "schwerpunkt": "IDW-Prüfungshinweise KI-Einsatz", "quelle_art": "standardsetzer", "open_access": false
+    },
+    {
+      "id": "D6-011", "typ": "block_framework",
+      "titel": "IDW Prüfungshinweis: Auswirkungen des Einsatzes von Künstlicher Intelligenz auf die risikoorientierte Abschlussprüfung (IDW PH 9.315DE.3)",
+      "autoren": ["Institut der Wirtschaftsprüfer (IDW)"], "jahr": 2024, "sprache": "de",
+      "herausgeber_verlag_institution": "IDW Verlag", "url": "https://shop.idw-verlag.de/Fachgebiete/Wirtschaftspruefung/",
+      "beleg_snippet": "IDW Prüfungshinweis: Auswirkungen des Einsatzes von Künstlicher Intelligenz auf die risikoorientierte Abschlussprüfung (IDW PH 9.315DE.3) — Status 2024, 29,00 €.",
+      "zusammenfassung": "Ergänzender Prüfungshinweis von 2024, der klärt, wie sich der klientenseitige KI-Einsatz auf den risikoorientierten Prüfungsansatz des Abschlussprüfers auswirkt.",
+      "schwerpunkt": "IDW-Prüfungshinweise KI und Risikoansatz", "quelle_art": "standardsetzer", "open_access": false
+    },
+    {
+      "id": "D6-012", "typ": "block_framework",
+      "titel": "Prüfungsordnung 2026 – neues Ausbildungsmodell Diplomierte(r) Wirtschaftsprüfer(in)",
+      "autoren": ["EXPERTsuisse"], "jahr": 2026, "sprache": "de",
+      "herausgeber_verlag_institution": "EXPERTsuisse (unter Aufsicht des SBFI)", "url": "https://www.expertsuisse.ch/pruefungsordnung-2026-neues-ausbildungsmodell",
+      "beleg_snippet": "Ausbildung – ein Wert, der bleibt: Teilnehmende vertiefen berufsbegleitend ihr Fachwissen und erwerben praxisnahe Fähigkeiten. [Struktur laut begleitenden EXPERTsuisse-Seiten: Zertifikatsstufe \"Grundlagen Wirtschaftsprüfung\" mit 12 Modulen, danach Diplomstufe mit Modulprüfungen Accounting & Finance, Audit sowie Tax & Legal.]",
+      "zusammenfassung": "Neues, zweistufiges Schweizer Ausbildungsmodell zum diplomierten Wirtschaftsprüfer (Zertifikatsstufe mit 12 Grundlagenmodulen, dann Diplomstufe mit drei Modulprüfungsblöcken) tritt mit der Prüfungsordnung 2026 in Kraft.",
+      "schwerpunkt": "Schweizer WP-Diplom-Module", "quelle_art": "standardsetzer", "open_access": true
+    },
+    {
+      "id": "D6-013", "typ": "block_framework",
+      "titel": "IAASB Handbook of International Quality Management, Auditing, Review, Other Assurance, and Related Services Pronouncements, 2023–2024 Edition, Volume 1",
+      "autoren": ["International Auditing and Assurance Standards Board (IAASB)"], "jahr": 2024, "sprache": "en",
+      "herausgeber_verlag_institution": "IAASB / IFAC", "url": "https://ifacweb.blob.core.windows.net/publicfiles/2024-08/IAASB-2023-2024-Handbook-Volume-1.pdf",
+      "beleg_snippet": "The ISAs are numbered from ISA 200 to ISA 810 and organised into six groups covering engagement acceptance through reporting... 200 series covers general principles... 300 series addresses planning, materiality, risk assessment... 500 series: Audit Evidence... 700 series deals with audit reporting matters.",
+      "zusammenfassung": "Aktuelle IAASB-Handbuchausgabe (Stand August 2024) bündelt die klargestellten ISA in sechs Nummernblöcken von 200 (allgemeine Grundsätze) über 300 (Planung/Risiko) und 500 (Prüfungsnachweise) bis 700 (Berichterstattung).",
+      "schwerpunkt": "ISA-Nummernblöcke 200er/300er/500er/700er", "quelle_art": "standardsetzer", "open_access": true
+    },
+    {
+      "id": "D6-014", "typ": "block_framework",
+      "titel": "ISSAI 100 – Fundamental Principles of Public-Sector Auditing (Exposure Draft, im Rahmen des INTOSAI Framework of Professional Pronouncements/IFPP)",
+      "autoren": ["INTOSAI Professional Standards Committee (PSC)"], "jahr": 2022, "sprache": "en",
+      "herausgeber_verlag_institution": "INTOSAI", "url": "https://www.psc-intosai.org/wp-content/uploads/2022/05/224_-exposure-draft-issai-100-fundamental-principles-of-public-sector-auditing.pdf",
+      "beleg_snippet": "The IFPP comprises three main categories: INTOSAI Principles (INTOSAI-P)... International Standards of Supreme Audit Institutions (ISSAIs)... INTOSAI Guidance (GUIDs).",
+      "zusammenfassung": "Öffentlicher Entwurf von Mai 2022 zur Überarbeitung von ISSAI 100 zeigt die seit 2016 gültige dreistufige IFPP-Blockstruktur (Grundsätze/INTOSAI-P, ISSAI-Standards, GUID-Leitlinien) für die öffentliche Finanzkontrolle weltweit.",
+      "schwerpunkt": "ISSAI/IFPP-Blockstruktur öffentlicher Sektor", "quelle_art": "standardsetzer", "open_access": true
+    },
+    {
+      "id": "D6-015", "typ": "block_framework",
+      "titel": "Berufsexamen für Wirtschaftsprüfer:innen in Österreich (Struktur der Kammerprüfung)",
+      "autoren": ["Kammer der Steuerberater:innen und Wirtschaftsprüfer:innen (KSW)"], "jahr": 2026, "sprache": "de",
+      "herausgeber_verlag_institution": "KSW Österreich", "url": "https://ksw.or.at/berufszugang-berufsanwaerterinnen/berufsanwaerterinnen/",
+      "beleg_snippet": "Professional qualification is obtained by passing five subject-specific exams at the Chamber of Tax Advisors and Auditors... three written exams covering business administration, law, and accounting, plus two additional exams on audit, and after positive evaluation of all exams, an oral exam.",
+      "zusammenfassung": "Österreichische Struktur gliedert das Berufsexamen zum Wirtschaftsprüfer in fünf Teilprüfungen (drei BWL/Recht/Rechnungswesen, zwei prüfungsspezifische) plus eine abschließende mündliche Prüfung, zugänglich nach 18 Monaten Berufsanwärterpraxis.",
+      "schwerpunkt": "Österreichisches WP-Berufsexamen", "quelle_art": "verbandsseite", "open_access": true
+    },
+    {
+      "id": "D6-016", "typ": "forschungsarbeit_studie",
+      "titel": "Empirical research frameworks in a changing world: The case of audit data analytics",
+      "autoren": ["Klaus Ruhnke"], "jahr": 2023, "sprache": "en",
+      "herausgeber_verlag_institution": "Journal of International Accounting, Auditing and Taxation, Vol. 51", "url": "https://www.sciencedirect.com/science/article/abs/pii/S1061951823000241",
+      "beleg_snippet": "The paper develops a multidimensional framework examining how audit data analytics (ADA) is spreading across the field... Through analysis of 40 empirical studies, findings indicate that understanding auditors' judgment processes is crucial.",
+      "zusammenfassung": "Entwickelt anhand von 40 empirischen Studien ein mehrdimensionales Rahmenwerk zur Diffusion von Audit Data Analytics entlang Technologie, Akteuren und regulatorischen Strukturen und fordert eine Klärung von Prüfungsrisikomodell und Wesentlichkeit vor breiterer ADA-Standardisierung.",
+      "schwerpunkt": "Audit Data Analytics Diffusion", "quelle_art": "fachzeitschrift", "open_access": false
+    },
+    {
+      "id": "D6-017", "typ": "forschungsarbeit_studie",
+      "titel": "Exploring Large Language Models in external audits: Implications and ethical considerations",
+      "autoren": ["Lazarus Elad Fotoh", "Tatenda Mugwira"], "jahr": 2025, "sprache": "en",
+      "herausgeber_verlag_institution": "International Journal of Accounting Information Systems, Vol. 56", "url": "https://www.sciencedirect.com/science/article/pii/S1467089525000247",
+      "beleg_snippet": "Non-Big Four auditors perceive LLMs as valuable for performing routine tasks; generating audit working papers and reports; enhancing audit planning... Concerns persist regarding potential legal liabilities, ethical implications.",
+      "zusammenfassung": "Befragt Prüfer außerhalb der Big Four zu LLM-Einsatz im Prüfungsprozess: wahrgenommener Nutzen bei Routineaufgaben und Arbeitspapieren steht Bedenken zu Haftung, Unabhängigkeit, Vertraulichkeit und Geistigem Eigentum gegenüber.",
+      "schwerpunkt": "LLMs im externen Prüfungsprozess", "quelle_art": "fachzeitschrift", "open_access": false
+    },
+    {
+      "id": "D6-018", "typ": "forschungsarbeit_studie",
+      "titel": "A Framework for the Structured Implementation of Process Mining for Audit Tasks",
+      "autoren": ["Tassilo Lars Föhr", "Valentin Reichelt", "Kai-Uwe Marten", "Marc Eulerich"], "jahr": 2025, "sprache": "en",
+      "herausgeber_verlag_institution": "International Journal of Accounting Information Systems (zuvor SSRN-Working-Paper)", "url": "https://www.sciencedirect.com/science/article/pii/S146708952500003X",
+      "beleg_snippet": "A Framework for the Structured Implementation of Process Mining for Audit Tasks — recent research contributions focus on highly specialized use cases for process mining, such as fraud detection, internal control testing, journal entry testing.",
+      "zusammenfassung": "Schlägt ein strukturiertes Implementierungsframework für Process Mining im Prüfungskontext vor, da bislang branchenweite Best Practices und Implementierungsleitlinien für Prüfer fehlen.",
+      "schwerpunkt": "Process-Mining-Implementierungsframework", "quelle_art": "fachzeitschrift", "open_access": false
+    },
+    {
+      "id": "D6-019", "typ": "forschungsarbeit_studie",
+      "titel": "Advancing Audit Practices through Technology: A Comprehensive Review of Continuous Auditing",
+      "autoren": ["Ashab Farras", "Amjad Ali", "Marc Audi"], "jahr": 2025, "sprache": "en",
+      "herausgeber_verlag_institution": "MPRA Paper Nr. 127319, Munich Personal RePEc Archive", "url": "https://mpra.ub.uni-muenchen.de/127319/",
+      "beleg_snippet": "Advancing Audit Practices through Technology: A Comprehensive Review of Continuous Auditing — \"Continuous auditing has emerged as a transformative practice within the accounting and auditing professions, driven by rapid technological advancements and the growing demand for real-time financial assurance.\"",
+      "zusammenfassung": "Umfassender Literaturüberblick zu Continuous Auditing, der den Wandel von periodischen zu fortlaufenden Prüfungsansätzen durch Technologie nachzeichnet und Implementierungshürden (Infrastruktur, Fachkräfte, Datensicherheit) benennt.",
+      "schwerpunkt": "Continuous-Auditing-Literaturüberblick", "quelle_art": "working_paper", "open_access": true
+    },
+    {
+      "id": "D6-020", "typ": "forschungsarbeit_studie",
+      "titel": "The Adoption of Big Data Analytics in the External Auditing: Bibliometric and Content Analyses",
+      "autoren": ["Ahmed S. Abdelwahed", "Ahmad A. Abu-Musa", "Hosam Moubarak", "Hebatallah A. Badawy"], "jahr": 2023, "sprache": "en",
+      "herausgeber_verlag_institution": "International Journal of Auditing and Accounting Studies, Vol. 5, Nr. 1, S. 49-85 (Special Issue \"Auditing in the Digital Age\")", "url": "https://www.arfjournals.com/image/catalog/Journals%20Papers/IJAAS/2023/No%201%20(2023)-special%20issue/3_Ahmed%20S.pdf",
+      "beleg_snippet": "Ninety-eight articles published between 2011 and 2021 extracted from 38 journals indexed in the Scopus database were included in our review... The research trend flourished in 2015 to reach its peak in 2021 with 27 pieces.",
+      "zusammenfassung": "Bibliometrische und inhaltsanalytische Auswertung von 98 Scopus-Artikeln 2011-2021 zu Big Data Analytics im externen Audit; identifiziert drei Forschungsthemen (Prüfungsprozess, Diffusion, Curricula) und sieben künftige Forschungslücken, u. a. Nicht-Big-4-Kanzleien und Prüfungscurricula.",
+      "schwerpunkt": "Bibliometrie Audit Data Analytics", "quelle_art": "fachzeitschrift", "open_access": true
+    },
+    {
+      "id": "D6-021", "typ": "forschungsarbeit_studie",
+      "titel": "Audit Data Analytics: A Game Changer for Audit Firms",
+      "autoren": ["Siriyama Kanthi Herath", "Prem Lal Joshi"], "jahr": 2023, "sprache": "en",
+      "herausgeber_verlag_institution": "International Journal of Auditing and Accounting Studies, Vol. 5, Nr. 1, S. 29-48 (Special Issue \"Auditing in the Digital Age\")", "url": "https://www.arfjournals.com/image/catalog/Journals%20Papers/IJAAS/2023/No%201%20(2023)-special%20issue/2_Siriyama%20Kanthi.pdf",
+      "beleg_snippet": "The objective of this article is to shed light on the emergence of recent auditing technology i.e. integrating data analytics into auditing procedures... AICPA has established five critical steps for employing audit data analytics: Plan, Data Transformation & Standardization, Determine source/condition/relevance, Execute, Evaluate.",
+      "zusammenfassung": "Stellt den fünfstufigen AICPA-Prozess für Audit Data Analytics vor (Planen, Datentransformation, Quellenprüfung, Durchführung, Auswertung) und diskutiert Big-Data-Eigenschaften (bis zu 9 V's) sowie Umsetzungshürden wie Schulungsbedarf und Datenverfügbarkeit.",
+      "schwerpunkt": "AICPA-Fünf-Schritte-Prozess Audit Data Analytics", "quelle_art": "fachzeitschrift", "open_access": true
+    },
+    {
+      "id": "D6-022", "typ": "forschungsarbeit_studie",
+      "titel": "Digitale Corporate Governance Transformation mit Process Mining als BPM-Ansatz",
+      "autoren": ["Joshua Nganyadi"], "jahr": 2021, "sprache": "de",
+      "herausgeber_verlag_institution": "Selbstpublikation (Hochschule Fresenius Frankfurt)", "url": "https://www.grin.com/document/1170430",
+      "beleg_snippet": "welche Rolle Process Mining (als BPM-Ansatz) innerhalb einer digitalen Business- beziehungsweise Corporate Governance-Transformation spielt.",
+      "zusammenfassung": "Literaturbasierte Analyse mit SWOT-Bewertung untersucht, welche Rolle Process Mining als Business-Process-Management-Ansatz für eine datengetriebene Corporate-Governance-Transformation einschließlich interner Revision spielen kann.",
+      "schwerpunkt": "Process Mining und Corporate Governance", "quelle_art": "grin", "open_access": false
+    },
+    {
+      "id": "D6-023", "typ": "bachelorarbeit",
+      "titel": "Künstliche Intelligenz in der Wirtschaftsprüfung. Experteninterviews auf explorativer Basis",
+      "autoren": ["Lukas Auburger"], "jahr": 2022, "sprache": "de",
+      "herausgeber_verlag_institution": "Universität Passau, Lehrstuhl für Betriebswirtschaftslehre mit Schwerpunkt Rechnungswesen und Wirtschaftsprüfung", "url": "https://www.grin.com/document/1478358",
+      "beleg_snippet": "Künstliche Intelligenz (KI) [spielt] eine Vorreiterrolle gegenüber tradierten Technologien bei der digitalen Transformation... bei komplexen Sachverhalten, notwendigen Abwägungen und der Interpretation von Kontext [bleibt menschliches Urteilsvermögen unersetzlich].",
+      "zusammenfassung": "149-seitige Bachelorarbeit untersucht per qualitativen Experteninterviews den KI-Einsatz entlang der Prüfungsphasen und kommt zum Schluss, dass menschliches Prüfungsurteil bei komplexen Sachverhalten trotz Effizienzgewinnen unersetzlich bleibt.",
+      "schwerpunkt": "KI in der Wirtschaftsprüfung – Experteninterviews", "quelle_art": "grin", "open_access": false
+    },
+    {
+      "id": "D6-024", "typ": "masterarbeit",
+      "titel": "Entwicklung eines Maßnahmenplans für den Einsatz generativer KI in der Abschlussprüfung zur Steigerung der Effektivität unter der Nebenbedingung der Effizienz",
+      "autoren": ["Maximilian Alexander Sommariva"], "jahr": 2024, "sprache": "de",
+      "herausgeber_verlag_institution": "Frankfurt School of Finance & Management", "url": "https://www.grin.com/document/1687210",
+      "beleg_snippet": "die Potenziale und Grenzen generativer KI entlang der zentralen Zielgrößen der Wirtschaftsprüfung: Prüfungssicherheit, Effizienz und Berufsrechtskonformität.",
+      "zusammenfassung": "Entwickelt einen praxisnahen Maßnahmenplan für den verantwortungsvollen GenAI-Einsatz in der Abschlussprüfung, der Governance-Anforderungen, Qualitätsmanagement und EU-KI-Verordnung berücksichtigt.",
+      "schwerpunkt": "Maßnahmenplan GenAI in der Abschlussprüfung", "quelle_art": "grin", "open_access": false
+    },
+    {
+      "id": "D6-025", "typ": "veroeffentlichung_publikation",
+      "titel": "Audit Analytics and Continuous Audit: Looking Toward the Future",
+      "autoren": ["AICPA & CIMA (Association of International Certified Professional Accountants)"], "jahr": 2023, "sprache": "en",
+      "herausgeber_verlag_institution": "AICPA & CIMA", "url": "https://www.aicpa-cima.com/resources/download/audit-analytics-and-continuous-audit-looking-toward-the-future",
+      "beleg_snippet": "Audit Analytics and Continuous Audit: Looking Toward the Future is a compendium of essays written by different subject matter experts that expands upon the CICA and AICPA 1999 research report.",
+      "zusammenfassung": "Essaysammlung von Fachexperten, die den gemeinsamen CICA/AICPA-Forschungsbericht von 1999 zu Continuous Audit um aktuelle Data-Analytics-Perspektiven erweitert.",
+      "schwerpunkt": "Audit Analytics und Continuous Audit", "quelle_art": "verbandspublikation", "open_access": false
+    },
+    {
+      "id": "D6-026", "typ": "veroeffentlichung_publikation",
+      "titel": "Key Considerations for Conducting Remote IT Audits",
+      "autoren": ["Sandra Kuyengwa"], "jahr": 2023, "sprache": "en",
+      "herausgeber_verlag_institution": "ISACA (Industry News)", "url": "https://www.isaca.org/resources/news-and-trends/industry-news/2023/key-considerations-for-conducting-remote-it-audits",
+      "beleg_snippet": "The constantly evolving nature of IT continues to provide both opportunities and challenges within the IT audit profession. [17 January 2023]",
+      "zusammenfassung": "ISACA-Fachbeitrag vom Januar 2023 zu Chancen (Kostenersparnis, globaler Teamzugriff) und Risiken (Sicherheitslücken, eingeschränkte Beweiserhebung) von Remote- und Hybrid-IT-Prüfungen nach der Covid-19-Pandemie.",
+      "schwerpunkt": "Remote-IT-Audit-Praxis", "quelle_art": "fachpresse", "open_access": true
+    },
+    {
+      "id": "D6-027", "typ": "veroeffentlichung_publikation",
+      "titel": "COSO creates audit-ready guidance for governing generative AI",
+      "autoren": ["Bryan Strickland"], "jahr": 2026, "sprache": "en",
+      "herausgeber_verlag_institution": "Journal of Accountancy (AICPA)", "url": "https://www.journalofaccountancy.com/news/2026/feb/coso-creates-audit-ready-guidance-for-governing-generative-ai/",
+      "beleg_snippet": "\"Generative AI is transforming how organizations work, make decisions, and manage information,\" according to Lucia Wind, executive director and chair of COSO, quoted in the accompanying news release. [26. Februar 2026]",
+      "zusammenfassung": "AICPA-Fachpresse berichtet über die neue COSO-Leitlinie zu internen Kontrollen bei generativer KI und ordnet sie als ersten formalen Brückenschlag zwischen dem etablierten Internal-Control-Framework und KI-Governance ein.",
+      "schwerpunkt": "Berichterstattung COSO-GenAI-Leitlinie", "quelle_art": "fachpresse", "open_access": true
+    },
+    {
+      "id": "D6-028", "typ": "veroeffentlichung_publikation",
+      "titel": "IAASB 2022-2023 Public Report: Balancing Effectiveness and Timeliness in Audit and Assurance Standard Setting",
+      "autoren": ["International Auditing and Assurance Standards Board (IAASB)"], "jahr": 2024, "sprache": "en",
+      "herausgeber_verlag_institution": "IFAC / IAASB", "url": "https://www.iaasb.org/publications/iaasb-2022-2023-public-report-balancing-effectiveness-and-timeliness-audit-and-assurance-standard",
+      "beleg_snippet": "This report offers a comprehensive overview of the IAASB's progress in addressing key public interest issues and reiterates its strategic direction to continue bolstering confidence in audits and assurance engagements. [Veröffentlicht 10. September 2024]",
+      "zusammenfassung": "Rechenschaftsbericht des IAASB über die eigene Standardsetzungsarbeit 2022-2023, veröffentlicht im September 2024, mit Fokus auf Ausgewogenheit zwischen Gründlichkeit und Geschwindigkeit der Standardentwicklung.",
+      "schwerpunkt": "IAASB-Standardsetzungsprozess", "quelle_art": "verbandspublikation", "open_access": true
+    }
+  ],
+  "beobachtungen": [
+    "GenAI/LLM-Einsatz ist 2024-2026 das mit Abstand dominanteste Treiberthema in allen Dokumentarten dieses Blocks – von der COSO-Rahmenwerk-Erweiterung (2026) über zwei neue IDW-Prüfungshinweise (2024) bis zur Masterarbeit von Sommariva (2024) und zu Zeitschriftenaufsätzen wie Fotoh/Mugwira (2025).",
+    "2024/2025 fiel ein auffälliger, fast zeitgleicher Reformschub fast aller großen Prüfungs-Frameworks zusammen: IPPF -> Global Internal Audit Standards (IIA, Januar 2024/2025), CIA-Syllabus-Neufassung (2025), CISA-Domänen-Update (August 2024) und PCAOB AS 1000 (Mai 2024) – ein Fünf-Jahres-Fenster mit weitgehend synchroner Standard-Erneuerung.",
+    "Die IJAAS-Sonderausgabe \"Auditing in the Digital Age\" (Vol. 5, Nr. 1, Februar 2023, Gastherausgeber Ismail/Abu-Musa) bündelt allein zwei frei zugängliche, einschlägige Übersichtsarbeiten zu Audit Data Analytics – ein Beleg dafür, dass sich 2023 ein eigenes akademisches Subfeld mit eigenem Publikationsort konsolidierte.",
+    "Deutschsprachige GRIN-Abschlussarbeiten zur \"Digitalisierung der Wirtschaftsprüfung\" häufen sich auffällig 2018-2020 (u. a. Matz, Middendorf, Kulmurzayev, Wirtz, Kahyaoglu, Jürß, Rozenblyum) und damit knapp VOR dem gültigen Suchzeitraum; nach 2021 werden entsprechende Arbeiten seltener, aber spezifischer (KI-Experteninterviews, GenAI-Maßnahmenpläne statt allgemeiner \"Digitalisierung\").",
+    "Die Reform der WP-Ausbildung wegen Fachkräftemangels ist in Deutschland bereits am 2.8.2021 gesetzlich verankert worden (frühere Modulprüfungen nach 6 statt 36 Monaten praktischer Tätigkeit) – mehrere Jahre bevor die öffentliche Fachkräftemangel-Debatte 2023/2024 an Fahrt gewann.",
+    "Reines \"Process Mining\" als eigenständiges Prüfungsthema bleibt in der forschungsnahen Literatur präsent (Föhr/Reichelt/Marten/Eulerich 2025), taucht in der studentischen GRIN-Literatur des gültigen Suchzeitraums dagegen kaum noch auf – die einschlägigen Treffer datieren fast alle vor 2021.",
+    "Remote-/Virtual-Audit hat einen ungewöhnlich kurzen akademischen Lebenszyklus: Forschungsinteresse entsteht 2021/2022 im Pandemiekontext, mündet aber schon 2023 direkt in praxisnahe Verbandspublikationen (ISACA/Kuyengwa) statt in eine längere akademische Debatte.",
+    "Bei den Prüfungsstandard-\"Blocks\" fällt auf, dass fast jede große Institution (IIA, ISACA, IDW/WPK, PCAOB, EXPERTsuisse, INTOSAI) im Fünfjahresfenster mindestens eine strukturelle Überarbeitung ihrer Domänen-/Modul-/Gebietseinteilung vorgenommen hat – die Blockstrukturen selbst sind also keineswegs statisch."
+  ],
+  "grenzen": [
+    "Das WebSearch-Kontingent der Sitzung war nach rund 24 Anfragen erschöpft (Systemmeldung: \"used its web search budget (200 of 200)\") – vermutlich ein sitzungsweites, zwischen den parallel arbeitenden Domain-Agenten (D1-D10) geteiltes Limit. Ab diesem Punkt liefen alle weiteren Recherchen ausschließlich über WebFetch auf konkrete URLs, Kataloge und Suchmaschinen-HTML-Seiten.",
+    "DuckDuckGo blockierte automatisierte Abrufe durchgehend mit CAPTCHA; Bing lieferte für die meisten mehrteiligen Fachanfragen generische oder thematisch falsch zugeordnete Treffer statt echter Fachergebnisse und war als Suchersatz nur bedingt brauchbar.",
+    "DART-Europe, laut Auftrag eine zentrale Quelle für Dissertationen, ist inzwischen geschlossen (Weiterleitung auf \"dart-europe-e-theses-portal-has-closed-down\" bei der UCL-Bibliothek, per Redirect bestätigt). OATD.org, das DNB-Portal (portal.dnb.de, Anubis-Bot-Schutz) und NDLTD/search.ndltd.org blockierten den automatisierten Zugriff (403/503). Die Kategorie \"Dissertationen\" bleibt deshalb leer – mangels zugänglicher Quelle, nicht mangels Thema.",
+    "ScienceDirect-Volltexte, SSRN-Einzelseiten, Springer-Buch-/Kapitelseiten, Wiley, WorldCat, De Gruyter und academia.edu blockierten WebFetch mit 403/Login-Wall; mehrere inhaltlich einschlägige Treffer (u. a. Kogan/Mayhew zu Audit Data Analytics Design Science, ein EDPACS-Aufsatz zu Machine Learning im Internal-Audit-Lifecycle, ein Digital-Society-Aufsatz zu Continuous AI Auditing, eine AAA-Studie zu GenAI und Risikoeinschätzung, eine Tandfonline-Studie zur Wahrnehmung von Remote-Audits) mussten mangels gesicherter Autorenangabe verworfen statt geraten werden.",
+    "Die Google Books API (googleapis.com/books) antwortete durchgehend mit HTTP 429 (Rate Limit, vermutlich ebenfalls sitzungsweit geteilt) – die Kategorie \"Bücher\" konnte dadurch trotz gezielter Suche nicht befüllt werden und bleibt in diesem Rohfund leer.",
+    "Konferenz- und Webinar-Archive (EAA Annual Congress, VHB-Jahrestagung, IIA-Webinare, ISACA-Events, YouTube-Konferenzmitschnitte) waren entweder tot verlinkt (404), erforderten Login oder lieferten nur JavaScript-Hüllen ohne Inhalt; die Kategorie \"Präsentationen\" bleibt trotz mehrerer gezielter Versuche leer.",
+    "Für \"Anwendungsfälle\" (Vendor-Fallstudien) waren keine öffentlich zugänglichen, audit-spezifischen Referenzkunden auffindbar (Celonis-Kundenseite zeigt nur Fujitsu, Uniper, Standard Bank, PepsiCo ohne Audit-Bezug; die UiPath-Audit-Themenseite lieferte 404) – Kategorie bleibt leer statt mit branchenfremden Beispielen erzwungen.",
+    "Diplomarbeiten sind für den Suchzeitraum 2021-2026 wie im Auftrag erwartet praktisch ausgestorben – kein einziger echter Treffer.",
+    "Mehrere inhaltlich gut passende, kurze GRIN-Arbeiten (Typ \"Projektarbeit\", \"Hausarbeit\", \"Seminararbeit\", \"Akademische Arbeit\") ließen sich keinem der zehn vorgegebenen Dokumenttypen sauber zuordnen; sie wurden entweder umklassifiziert (Nganyadi 2021 als Forschungsarbeit, da Autor bereits M.Sc./MBA statt Studierender) oder ausgelassen, u. a. mehrere sonst treffende Digitalisierungsarbeiten von 2018-2020 außerhalb des Suchzeitraums."
+  ]
+}
