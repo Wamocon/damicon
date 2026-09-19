@@ -1528,6 +1528,75 @@
     "simulateScan": "Simulate scan",
     "registered": "registered"
   },
+  "haustier": {
+    "label": {
+      "ruhe": "Himbi, your companion. Click to open the chat.",
+      "denkt": "Himbi is working. Click to open the chat.",
+      "freigabe": "Himbi needs your approval. Click to open the chat.",
+      "fertig": "Himbi is done. Click to see the answer.",
+      "fehler": "Something went wrong. Click to open the chat.",
+      "schlaeft": "Himbi is asleep. Click to open the chat.",
+      "spricht": "Himbi is speaking.",
+      "tour": "Himbi, your companion. Click to open the tour."
+    },
+    "arbeitet": "Working on it …",
+    "imHintergrund": "Running in the background, keep working.",
+    "freigabe": "I need your approval.",
+    "ansehen": "View",
+    "fertig": "Done! Your answer is ready.",
+    "fehler": "Something went wrong. Open the chat for details.",
+    "verstecken": "Hide Himbi",
+    "tipp": {
+      "frage": "You are in “{bereich}”. Shall I show you what you can do here?",
+      "ja": "Show me",
+      "spaeter": "Later",
+      "frageText": "Explain the area “{bereich}” to me: what can I do here?"
+    },
+    "einstellung": {
+      "titel": "Himbi, your companion",
+      "text": "Shows in the corner what the agent is doing, even when the chat is closed."
+    },
+    "tour": {
+      "gruss": "Hi, I am Himbi! Shall I show you Damicon in one minute?",
+      "start": "Start the tour",
+      "nein": "No thanks",
+      "weiter": "Next",
+      "zurueck": "Back",
+      "beenden": "End",
+      "fertigKnopf": "Done",
+      "ende": "That was the tour. Ready to try it yourself?",
+      "anmelden": "Sign in",
+      "nochmal": "Again",
+      "himbeere": {
+        "titel": "Why raspberries are different",
+        "text": "No protective skin, hardly any shelf life: quality is decided in the field."
+      },
+      "sechzig": {
+        "titel": "The hour after picking",
+        "text": "Within 60 minutes the berry must be cooled. Damicon makes that time measurable."
+      },
+      "beleg": {
+        "titel": "Every batch has its proof",
+        "text": "From the cooling curve to the picker: the origin can be traced without gaps."
+      },
+      "zonen": {
+        "titel": "Four areas, one system",
+        "text": "Field, yard, office and market. Every role sees exactly what it needs."
+      },
+      "kpis": {
+        "titel": "The key figures at a glance",
+        "text": "Loss rate, cooling time, picking output: how a farm can be measured."
+      },
+      "compliance": {
+        "titel": "Kazakhstan 2026 at a glance",
+        "text": "New tax code, goods accompanying note, AI law and more: deadlines and risks in one view."
+      },
+      "fragen": {
+        "titel": "Any questions?",
+        "text": "The most common answers are here. On the farm, the AI assistant helps as well."
+      }
+    }
+  },
   "kiAssistentAnsicht": {
     "chatTitel": "AI assistant",
     "chatLead": "Answers from released price and variety data, and - depending on role - from live tax, labor, and compliance data it looks up itself. Logs every answer, escalates to the office on repeated uncertainty.",

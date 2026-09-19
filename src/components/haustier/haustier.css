@@ -1,0 +1,677 @@
+/* Himbi, der Begleiter (components/haustier). Grundsatz: Bewegung NUR ueber transform und
+   opacity - das laeuft auf der Grafikkarte, ohne Layout und ohne Neuzeichnen, und bleibt
+   auch waehrend der Agent streamt fluessig. Alles Bewegte haengt an prefers-reduced-motion. */
+
+.haustier {
+  --hb-himbeere: var(--himbeere, #d81b60);
+  --hb-blatt: var(--blatt, #2fbf71);
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 60;
+  width: 88px;
+  height: 106px;
+  pointer-events: none;
+}
+
+.haustier[data-hoch="true"] {
+  bottom: 84px;
+}
+
+/* Verschiebung, wenn das Chat-Panel aufgeht: Himbi rutscht mit der Kante nach links
+   (gleiche Kurve wie das Panel). Auf schmalen Bildschirmen legt sich das Panel als
+   Schublade ueber die Seite - dort tritt Himbi zurueck. */
+.haustier__verschiebung {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(0, 0, 0);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .haustier__verschiebung {
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  }
+}
+@media (min-width: 1100px) {
+  .haustier[data-pane-offen="true"] .haustier__verschiebung {
+    transform: translate3d(calc(var(--ki-pane-breite, 27rem) * -1), 0, 0);
+  }
+}
+@media (max-width: 1099.98px) {
+  .haustier[data-pane-offen="true"] .haustier__verschiebung {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+html[data-ki-zieht] .haustier__verschiebung {
+  transition: none;
+}
+
+/* Versatz durch Ziehen: direkt per JS gesetzt, ohne React-Rendern */
+.haustier__versatz {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(calc(var(--hx, 0) * 1px), calc(var(--hy, 0) * 1px), 0);
+}
+
+.haustier__griff {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  outline: none;
+  border-radius: 40px;
+}
+.haustier[data-zieht="true"] .haustier__griff {
+  cursor: grabbing;
+}
+.haustier__griff:focus-visible {
+  outline: 3px solid var(--hb-himbeere);
+  outline-offset: 4px;
+}
+
+.hb {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 90%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hb {
+    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .haustier[data-bereit="true"] .hb {
+    animation: hb-erscheinen 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+}
+.haustier__griff:hover .hb {
+  transform: scale(1.06);
+}
+.haustier[data-zieht="true"] .hb {
+  transform: scale(1.12) rotate(var(--hb-neigung, 0deg));
+}
+.hb-svg {
+  display: block;
+  overflow: visible;
+  filter: drop-shadow(0 8px 10px rgb(90 13 39 / 0.28));
+}
+
+/* Schatten am Boden: atmet mit dem Schweben */
+.hb-schatten {
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 58px;
+  height: 9px;
+  margin-left: -29px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.28), rgb(0 0 0 / 0));
+  transform-origin: center;
+}
+
+/* ---- Figur ------------------------------------------------------------------------- */
+.hb-figur {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+.hb-blatt {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+.hb-pupille {
+  transform: translate(calc(var(--bx, 0) * 1px), calc(var(--by, 0) * 1px));
+}
+.hb-lid {
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+  transform: scaleY(0);
+}
+.hb-lidlinie {
+  opacity: 0;
+}
+.hb-braue {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+}
+.hb-funken {
+  opacity: 0;
+  transform-box: view-box;
+  transform-origin: 48px 72px;
+}
+.hb-fruechtchen circle {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Mund: standardmaessig Laecheln, alles andere ausgeblendet */
+.hb-mund > * {
+  opacity: 0;
+}
+.hb-mund > .hb-mund--lachen {
+  opacity: 1;
+}
+.hb-mund--offen {
+  transform-box: fill-box;
+  transform-origin: 50% 20%;
+}
+
+/* ---- Zustaende (Gesicht) ---------------------------------------------------------- */
+.hb-svg[data-zustand="freigabe"] .hb-mund > *,
+.hb-svg[data-zustand="fertig"] .hb-mund > *,
+.hb-svg[data-zustand="fehler"] .hb-mund > *,
+.hb-svg[data-zustand="schlaeft"] .hb-mund > *,
+.hb-svg[data-zustand="spricht"] .hb-mund > * {
+  opacity: 0;
+}
+.hb-svg[data-zustand="freigabe"] .hb-mund--offen,
+.hb-svg[data-zustand="spricht"] .hb-mund--offen,
+.hb-svg[data-zustand="fertig"] .hb-mund--jubel,
+.hb-svg[data-zustand="fehler"] .hb-mund--traurig,
+.hb-svg[data-zustand="schlaeft"] .hb-mund--schlaf {
+  opacity: 1;
+}
+.haustier[data-zieht="true"] .hb-svg .hb-mund > * {
+  opacity: 0;
+}
+.haustier[data-zieht="true"] .hb-svg .hb-mund--offen {
+  opacity: 1;
+}
+
+.hb-svg[data-zustand="freigabe"] .hb-braue--l,
+.hb-svg[data-zustand="fehler"] .hb-braue--l {
+  transform: rotate(-16deg) translateY(-2px);
+}
+.hb-svg[data-zustand="freigabe"] .hb-braue--r,
+.hb-svg[data-zustand="fehler"] .hb-braue--r {
+  transform: rotate(16deg) translateY(-2px);
+}
+.hb-svg[data-zustand="denkt"] .hb-braue--l {
+  transform: translateY(-3px) rotate(-6deg);
+}
+.hb-svg[data-zustand="fertig"] .hb-braue {
+  transform: translateY(-3px);
+}
+.hb-svg[data-zustand="schlaeft"] .hb-braue {
+  transform: translateY(2px);
+}
+.hb-svg[data-zustand="schlaeft"] .hb-lid {
+  transform: scaleY(1);
+}
+.hb-svg[data-zustand="schlaeft"] .hb-lidlinie {
+  opacity: 1;
+}
+.hb-svg[data-zustand="fehler"] .hb-pupille {
+  transform: translate(calc(var(--bx, 0) * 1px), calc(var(--by, 0) * 1px)) scale(0.78);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.hb-svg[data-zustand="denkt"] .hb-funken {
+  opacity: 1;
+}
+
+/* ---- Bewegung ---------------------------------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .hb-svg[data-zustand="ruhe"] .hb-figur {
+    animation: hb-schweben 3.8s ease-in-out infinite;
+  }
+  .hb-svg[data-zustand="spricht"] .hb-figur {
+    animation: hb-schweben 2.6s ease-in-out infinite;
+  }
+  .hb-svg[data-zustand="denkt"] .hb-figur {
+    animation: hb-arbeiten 1.1s ease-in-out infinite;
+  }
+  .hb-svg[data-zustand="freigabe"] .hb-figur {
+    animation: hb-huepfen 1.7s cubic-bezier(0.3, 0.7, 0.4, 1) infinite;
+  }
+  .hb-svg[data-zustand="fertig"] .hb-figur {
+    animation: hb-jubel 1s cubic-bezier(0.34, 1.4, 0.64, 1) both, hb-schweben 2.2s ease-in-out 1s infinite;
+  }
+  .hb-svg[data-zustand="fehler"] .hb-figur {
+    animation: hb-wackeln 0.55s ease-in-out 3, hb-schweben 4.6s ease-in-out 1.65s infinite;
+  }
+  .hb-svg[data-zustand="schlaeft"] .hb-figur {
+    animation: hb-atmen 4.4s ease-in-out infinite;
+  }
+  .haustier[data-zieht="true"] .hb-svg .hb-figur {
+    animation: none;
+  }
+
+  .hb-blatt {
+    animation: hb-wiegen 3.4s ease-in-out infinite;
+  }
+  .hb-svg:not([data-zustand="schlaeft"]) .hb-lid {
+    animation: hb-blinzeln 5.4s ease-in-out infinite;
+  }
+  .hb-svg[data-zustand="denkt"] .hb-fruechtchen circle {
+    animation: hb-puls 1.3s ease-in-out infinite;
+  }
+  .hb-svg[data-zustand="denkt"] .hb-funken {
+    animation: hb-umlauf 3.6s linear infinite;
+  }
+  .hb-svg[data-zustand="spricht"] .hb-mund--offen {
+    animation: hb-sprechen 0.34s ease-in-out infinite alternate;
+  }
+  .hb-svg[data-zustand="freigabe"] .hb-mund--offen {
+    animation: hb-sprechen 0.7s ease-in-out infinite alternate;
+  }
+  .haustier__schatten-anim {
+    animation: hb-schatten 3.8s ease-in-out infinite;
+  }
+  .haustier[data-zustand="denkt"] .haustier__schatten-anim {
+    animation: hb-schatten 1.1s ease-in-out infinite;
+  }
+}
+
+@keyframes hb-erscheinen {
+  0% {
+    opacity: 0;
+    transform: scale(0.2) translateY(30px) rotate(-14deg);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0) rotate(0);
+  }
+}
+@keyframes hb-schweben {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  50% {
+    transform: translateY(-5px) scale(0.985, 1.02);
+  }
+}
+@keyframes hb-arbeiten {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1.6deg);
+  }
+  50% {
+    transform: translateY(-4px) rotate(1.6deg);
+  }
+}
+@keyframes hb-huepfen {
+  0% {
+    transform: translateY(0) scale(1.07, 0.91);
+  }
+  16% {
+    transform: translateY(-15px) scale(0.94, 1.09);
+  }
+  34% {
+    transform: translateY(0) scale(1.08, 0.9);
+  }
+  46% {
+    transform: translateY(-4px) scale(0.98, 1.03);
+  }
+  58%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+@keyframes hb-jubel {
+  0% {
+    transform: translateY(0) scale(1.12, 0.84);
+  }
+  28% {
+    transform: translateY(-30px) rotate(-10deg) scale(0.94, 1.12);
+  }
+  55% {
+    transform: translateY(-8px) rotate(9deg) scale(1, 1);
+  }
+  76% {
+    transform: translateY(0) scale(1.1, 0.88);
+  }
+  100% {
+    transform: translateY(0) rotate(0) scale(1, 1);
+  }
+}
+@keyframes hb-wackeln {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-5deg);
+  }
+  75% {
+    transform: rotate(5deg);
+  }
+}
+@keyframes hb-atmen {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(1.025, 1.035);
+  }
+}
+@keyframes hb-wiegen {
+  0%,
+  100% {
+    transform: rotate(-3.5deg);
+  }
+  50% {
+    transform: rotate(3.5deg);
+  }
+}
+@keyframes hb-blinzeln {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(0);
+  }
+  95% {
+    transform: scaleY(1);
+  }
+  97.5% {
+    transform: scaleY(0);
+  }
+}
+@keyframes hb-puls {
+  0%,
+  100% {
+    transform: scale(1);
+    stroke-opacity: 0.22;
+  }
+  50% {
+    transform: scale(1.14);
+    stroke-opacity: 0.75;
+  }
+}
+@keyframes hb-umlauf {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes hb-sprechen {
+  from {
+    transform: scaleY(0.28);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes hb-schatten {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scaleX(0.82);
+    opacity: 0.7;
+  }
+}
+
+/* ---- Beiwerk: Abzeichen, Zzz, Konfetti ---------------------------------------------- */
+.hb-abzeichen {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  display: grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 5px;
+  border: 2px solid #fff;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  color: #fff;
+  background: #f59e0b;
+  box-shadow: 0 4px 10px rgb(0 0 0 / 0.25);
+  pointer-events: none;
+}
+.hb-abzeichen--fertig {
+  background: var(--hb-blatt);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hb-abzeichen {
+    animation: hb-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+}
+@keyframes hb-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.2);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.hb-zzz {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  pointer-events: none;
+}
+.hb-zzz span {
+  position: absolute;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--hb-himbeere);
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hb-zzz span {
+    animation: hb-zzz 3.2s ease-in-out infinite;
+  }
+  .hb-zzz span:nth-child(2) {
+    animation-delay: 1.05s;
+    font-size: 11px;
+  }
+  .hb-zzz span:nth-child(3) {
+    animation-delay: 2.1s;
+    font-size: 9px;
+  }
+}
+@keyframes hb-zzz {
+  0% {
+    opacity: 0;
+    transform: translate(0, 0) scale(0.6);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(16px, -34px) scale(1.2);
+  }
+}
+
+.hb-konfetti {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  pointer-events: none;
+}
+.hb-konfetti span {
+  position: absolute;
+  width: 7px;
+  height: 11px;
+  border-radius: 2px;
+  opacity: 0;
+  background: var(--farbe);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hb-konfetti span {
+    animation: hb-konfetti 1.25s cubic-bezier(0.15, 0.7, 0.3, 1) both;
+    animation-delay: var(--verz, 0.15s);
+  }
+}
+@keyframes hb-konfetti {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.6);
+  }
+}
+
+/* ---- Sprechblase ------------------------------------------------------------------- */
+.hb-blase {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  right: 2px;
+  width: max-content;
+  min-width: 170px;
+  max-width: min(300px, calc(100vw - 32px));
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 1rem 1rem 0.3rem 1rem;
+  font-size: 0.8rem;
+  line-height: 1.25rem;
+  color: var(--card-foreground, #1f2937);
+  background: var(--card, #fff);
+  box-shadow: 0 18px 40px -14px rgb(0 0 0 / 0.4);
+  pointer-events: auto;
+  transform-origin: 100% 100%;
+}
+.haustier[data-seite="links"] .hb-blase {
+  right: auto;
+  left: 2px;
+  border-radius: 1rem 1rem 1rem 0.3rem;
+  transform-origin: 0% 100%;
+}
+.hb-blase::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  right: 30px;
+  width: 12px;
+  height: 12px;
+  border-right: 1px solid var(--border, #e5e7eb);
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  background: var(--card, #fff);
+  transform: rotate(45deg);
+}
+.haustier[data-seite="links"] .hb-blase::after {
+  right: auto;
+  left: 30px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hb-blase {
+    animation: hb-blase-ein 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+}
+@keyframes hb-blase-ein {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.hb-blase__text {
+  margin: 0;
+  font-weight: 600;
+}
+.hb-blase__klein {
+  margin: 0.15rem 0 0;
+  font-size: 0.7rem;
+  color: var(--muted-foreground, #6b7280);
+}
+.hb-blase__knoepfe {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+}
+.hb-knopf {
+  padding: 0.35rem 0.75rem;
+  border: 1px solid var(--hb-himbeere);
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 750;
+  color: #fff;
+  background: var(--hb-himbeere);
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.18s ease;
+}
+.hb-knopf:hover {
+  transform: translateY(-1px) scale(1.04);
+  filter: brightness(1.08);
+}
+.hb-knopf--leise {
+  color: var(--card-foreground, #1f2937);
+  border-color: var(--border, #e5e7eb);
+  background: transparent;
+}
+.hb-verstecken {
+  position: absolute;
+  top: -6px;
+  left: -6px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+  color: var(--muted-foreground, #6b7280);
+  background: var(--card, #fff);
+  opacity: 0;
+  pointer-events: auto;
+  transition: opacity 0.2s ease;
+}
+.haustier:hover .hb-verstecken,
+.hb-verstecken:focus-visible {
+  opacity: 1;
+}
+
+/* Fortschrittspunkte der Tour */
+.hb-punkte {
+  display: flex;
+  gap: 4px;
+  margin-top: 0.55rem;
+}
+.hb-punkte span {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--border, #d1d5db);
+  transition: width 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.3s ease;
+}
+.hb-punkte span[data-aktiv="true"] {
+  width: 18px;
+  background: var(--hb-himbeere);
+}
+.hb-punkte span[data-getan="true"] {
+  background: color-mix(in oklab, var(--hb-himbeere) 45%, var(--border, #d1d5db));
+}
+
+/* Abschnitt, auf den Himbi gerade zeigt */
+.haustier-fokus {
+  outline: 3px solid var(--hb-himbeere, #d81b60);
+  outline-offset: -8px;
+  animation: hb-fokus 2.6s ease both;
+}
+@keyframes hb-fokus {
+  0% {
+    outline-color: transparent;
+  }
+  12%,
+  70% {
+    outline-color: var(--hb-himbeere, #d81b60);
+  }
+  100% {
+    outline-color: transparent;
+  }
+}
+
+@media print {
+  .haustier {
+    display: none;
+  }
+}

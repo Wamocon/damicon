@@ -1528,6 +1528,75 @@
     "simulateScan": "Scan simulieren",
     "registered": "erfasst"
   },
+  "haustier": {
+    "label": {
+      "ruhe": "Himbi, dein Begleiter. Klicken öffnet den Chat.",
+      "denkt": "Himbi arbeitet gerade. Klicken öffnet den Chat.",
+      "freigabe": "Himbi braucht deine Freigabe. Klicken öffnet den Chat.",
+      "fertig": "Himbi ist fertig. Klicken zeigt die Antwort.",
+      "fehler": "Etwas ist schiefgelaufen. Klicken öffnet den Chat.",
+      "schlaeft": "Himbi schläft. Klicken öffnet den Chat.",
+      "spricht": "Himbi spricht.",
+      "tour": "Himbi, dein Begleiter. Klicken öffnet die Tour."
+    },
+    "arbeitet": "Ich arbeite daran …",
+    "imHintergrund": "Läuft im Hintergrund, du kannst weiterarbeiten.",
+    "freigabe": "Ich brauche deine Freigabe.",
+    "ansehen": "Ansehen",
+    "fertig": "Fertig! Deine Antwort ist da.",
+    "fehler": "Da ist etwas schiefgelaufen. Öffne den Chat für Details.",
+    "verstecken": "Himbi ausblenden",
+    "tipp": {
+      "frage": "Du bist bei „{bereich}“. Soll ich dir zeigen, was du hier tun kannst?",
+      "ja": "Zeig mir das",
+      "spaeter": "Später",
+      "frageText": "Erkläre mir den Bereich „{bereich}“: Was kann ich hier tun?"
+    },
+    "einstellung": {
+      "titel": "Himbi, dein Begleiter",
+      "text": "Zeigt in der Ecke, was der Agent gerade tut, auch wenn der Chat geschlossen ist."
+    },
+    "tour": {
+      "gruss": "Hallo, ich bin Himbi! Soll ich dir Damicon in einer Minute zeigen?",
+      "start": "Tour starten",
+      "nein": "Nein danke",
+      "weiter": "Weiter",
+      "zurueck": "Zurück",
+      "beenden": "Beenden",
+      "fertigKnopf": "Fertig",
+      "ende": "Das war die Tour. Bereit, es selbst auszuprobieren?",
+      "anmelden": "Zur Anmeldung",
+      "nochmal": "Nochmal",
+      "himbeere": {
+        "titel": "Warum Himbeeren anders sind",
+        "text": "Keine schützende Haut, kaum Haltbarkeit: Die Qualität entscheidet sich schon im Feld."
+      },
+      "sechzig": {
+        "titel": "Die Stunde nach dem Pflücken",
+        "text": "Innerhalb von 60 Minuten muss die Beere in die Kühlung. Damicon macht diese Zeit messbar."
+      },
+      "beleg": {
+        "titel": "Jede Charge hat ihren Beleg",
+        "text": "Von der Kühlkurve bis zum Pflücker: Die Herkunft ist lückenlos nachweisbar."
+      },
+      "zonen": {
+        "titel": "Vier Bereiche, ein System",
+        "text": "Feld, Hof, Büro und Markt. Jede Rolle sieht genau das, was sie braucht."
+      },
+      "kpis": {
+        "titel": "Die Kennzahlen im Blick",
+        "text": "Verlustquote, Kühlzeit, Pflückleistung: Woran sich ein Betrieb messen lässt."
+      },
+      "compliance": {
+        "titel": "Kasachstan 2026 im Blick",
+        "text": "Neues Steuergesetzbuch, Warenbegleitschein, KI-Gesetz und mehr: Fristen und Risiken auf einen Blick."
+      },
+      "fragen": {
+        "titel": "Noch Fragen?",
+        "text": "Die häufigsten Antworten stehen hier. Im Betrieb hilft dir außerdem der KI-Assistent."
+      }
+    }
+  },
   "kiAssistentAnsicht": {
     "chatTitel": "KI-Assistent",
     "chatLead": "Antwortet aus freigegebenen Preis- und Sortendaten und - je nach Rolle - aus live abgerufenen Steuer-, Arbeits- und Prüfungsdaten. Protokolliert jede Antwort, eskaliert bei wiederholter Unsicherheit an das Büro.",

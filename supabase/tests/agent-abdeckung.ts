@@ -14,12 +14,13 @@
 //     die Rollenfreigabe des KI-Assistenten stimmt
 // Aufruf: npm run test:agent (laeuft ueber tsx, damit die @/-Pfade aufloesen).
 
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { AKTIONS_NAMEN } from "@/lib/ai/aktionen-meta";
 import { CLIENT_WERKZEUG_NAMEN } from "@/lib/ai/client-werkzeuge-meta";
 import { chatFehlerArt } from "@/lib/ai/chat-fehler";
 import { baueWerkzeuge } from "@/lib/ai/tools";
 import { zerlege, type Zerlegung } from "@/lib/markdown-bloecke";
+import { agentPhase, haustierZustand, modulAusPfad, TOUR_SCHRITTE } from "@/lib/haustier";
 import { modules } from "@/lib/modules";
 import { hasPermission, roles } from "@/lib/rbac";
 
@@ -180,6 +181,55 @@ pruefe(
   "Pfluecker und Erzeuger haben (noch) keinen KI-Assistenten",
   !hasPermission("picker", "ki_assistent", "create") && !hasPermission("erzeuger", "ki_assistent", "create"),
 );
+
+// --- 9. Himbi, der Begleiter --------------------------------------------------
+pruefe(
+  "Himbi: eine offene Freigabe schlaegt Arbeiten, Fehler und Ruhe",
+  agentPhase({ beschaeftigt: true, freigabeOffen: true, fehler: true }) === "freigabe" &&
+    agentPhase({ beschaeftigt: true, freigabeOffen: false, fehler: true }) === "arbeitet" &&
+    agentPhase({ beschaeftigt: false, freigabeOffen: false, fehler: true }) === "fehler" &&
+    agentPhase({ beschaeftigt: false, freigabeOffen: false, fehler: false }) === "ruhe",
+);
+pruefe(
+  "Himbi: Zustand nach Rangfolge (Freigabe, Fehler, Arbeiten, Sprechen, Fertig, Schlaf, Ruhe)",
+  haustierZustand({ phase: "freigabe", fertigUngelesen: true, schlaeft: true }) === "freigabe" &&
+    haustierZustand({ phase: "fehler", fertigUngelesen: true, schlaeft: true }) === "fehler" &&
+    haustierZustand({ phase: "arbeitet", fertigUngelesen: true, schlaeft: true }) === "denkt" &&
+    haustierZustand({ phase: "ruhe", fertigUngelesen: true, schlaeft: true, spricht: true }) === "spricht" &&
+    haustierZustand({ phase: "ruhe", fertigUngelesen: true, schlaeft: true }) === "fertig" &&
+    haustierZustand({ phase: "ruhe", fertigUngelesen: false, schlaeft: true }) === "schlaeft" &&
+    haustierZustand({ phase: "ruhe", fertigUngelesen: false, schlaeft: false }) === "ruhe",
+);
+const lohnModul = modules.find((m) => m.key === "lohn")!;
+pruefe(
+  "Himbi: das Modul zu einem Dashboard-Pfad wird erkannt, Fremdes nicht",
+  modulAusPfad(`/dashboard/${lohnModul.zone}/${lohnModul.slug}`, modules)?.key === "lohn" &&
+    modulAusPfad(`/dashboard/${lohnModul.zone}/${lohnModul.slug}?x=1`, modules)?.key === "lohn" &&
+    modulAusPfad("/dashboard", modules) === null &&
+    modulAusPfad("/login", modules) === null &&
+    modulAusPfad("/dashboard/buero/gibt-es-nicht", modules) === null,
+);
+
+// Die Tour: jede Station hat ihren Text in allen Sprachen und einen echten Abschnitt auf der Startseite.
+const tourOhneText: string[] = [];
+for (const s of TOUR_SCHRITTE) {
+  for (const sp of sprachen) {
+    for (const feld of ["titel", "text"]) {
+      if (typeof holen(texte[sp], `haustier.tour.${s.schluessel}.${feld}`) !== "string") tourOhneText.push(`${sp}:${s.schluessel}.${feld}`);
+    }
+  }
+}
+pruefe("Himbi-Tour: jede Station hat Titel und Text in allen Sprachen", tourOhneText.length === 0, tourOhneText.slice(0, 4).join(", ") || `${TOUR_SCHRITTE.length} Stationen`);
+const seitenQuelle = readdirSync("src/components/site")
+  .filter((f) => f.endsWith(".tsx"))
+  .map((f) => readFileSync(`src/components/site/${f}`, "utf8"))
+  .join("\n");
+const tourOhneAnker = TOUR_SCHRITTE.filter((s) => !seitenQuelle.includes(`id="${s.anker}"`)).map((s) => s.anker);
+pruefe("Himbi-Tour: jede Station zeigt auf einen Abschnitt, den es auf der Startseite gibt", tourOhneAnker.length === 0, tourOhneAnker.join(", "));
+const zustaendeOhneLabel = (["ruhe", "denkt", "freigabe", "fertig", "fehler", "schlaeft", "spricht", "tour"] as const).filter((z) =>
+  sprachen.some((sp) => typeof holen(texte[sp], `haustier.label.${z}`) !== "string"),
+);
+pruefe("Himbi: jeder Zustand hat eine Beschriftung fuer Screenreader in allen Sprachen", zustaendeOhneLabel.length === 0, zustaendeOhneLabel.join(", "));
 
 console.log(`\nPruefungen: ${gesamt}   bestanden: ${gesamt - fehler}   fehlgeschlagen: ${fehler}`);
 if (fehler > 0) process.exit(1);
