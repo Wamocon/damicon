@@ -324,39 +324,81 @@ das 0,5-%-Regime oder nicht), nicht die zivilrechtliche Einordnung des Lieferver
 
 ### 5.1 Der zusaetzliche USt-Vorsteuerabzug ("дополнительная сумма НДС, относимая в зачет")
 
-**Gefundener Satz: 70 %, NICHT 80 %.** Zitat (mybuh.kz, 11.11.2025 - **vor 214-VIII,
-Artikelnummer daher unsicher**):
+> **BERICHTIGT am 2026-09-19 gegen den Primaertext.** Dieser Abschnitt stand
+> urspruenglich auf "70 %, nur Verarbeiter, Status OFFEN". Der inzwischen geerntete
+> Kodextext widerlegt das. Die urspruengliche Fassung samt Herleitung des Irrtums steht
+> in `../pruefbericht-aktualitaet.md` Abschnitt 1.
 
-> Zusaetzlicher USt-Vorsteuerabzug in Hoehe von 70 % unter Verweis auf "статья 411 НК РК
-> (п.1 пп.2)"
+**Satz: 80 Prozent. Massgeblich ist Art. 490 НК РК (214-VIII).** Wortlaut der
+Berechnungsvorschrift, Art. 490 п.4:
 
-**Der Zusatzabzug richtet sich an VERARBEITER, nicht an Roherzeuger oder
-Wiederverkaeufer.** Die in der Quelle genannte, geschlossene Beguenstigtenliste umfasst
-u.a.: Fleisch-/Fleischproduktverarbeitung, Obst-/Gemuesekonservierung, Pflanzen-/
-Tieroel- und -fettproduktion, Milchverarbeitung/Kaeseproduktion, Muehlen-/
-Grützeindustrie, Tierfutterproduktion, Brotproduktion, Kindernahrung/Diaetkost,
-Staerke-/Sirupindustrie, Fell-/Wollverarbeitung, Fischverarbeitung, Hefeproduktion,
-Schokolade-/Suesswarenproduktion, Zuckerproduktion.
+> НДСдз = (НДСобл – НДСрз – НДСпр) х 80%
+
+**Krestjanische und Farmwirtschaften sind ausdruecklich beguenstigt**, nicht nur
+Verarbeiter. Art. 490 п.1 пп.1 im Wortlaut:
+
+> производители сельскохозяйственной продукции, продукции аквакультуры (рыбоводства),
+> **включая крестьянские или фермерские хозяйства**, – по оборотам по реализации
+> товаров, являющихся результатом осуществления деятельности по производству
+> сельскохозяйственной продукции [...] переработке указанной продукции собственного
+> производства
+
+Die Verarbeiterliste steht daneben als **zweiter, eigener Beguenstigtenkreis** in
+Art. 490 п.1 пп.2 und gilt fuer juristische Personen. Sie umfasst u.a. Fleisch-/
+Fleischproduktverarbeitung, Obst-/Gemuesekonservierung ("переработка и консервирование
+фруктов и овощей", einschlaegig bei eigener Beerenverarbeitung), Pflanzen-/Tieroel- und
+-fettproduktion, Milchverarbeitung/Kaeseproduktion, Muehlen-/Gruetzeindustrie,
+Staerke-/Sirupindustrie, Brotproduktion, Kindernahrung/Diaetkost.
+
+**Ausschluss:** Art. 490 п.3 nimmt auslaendische Staatsbuerger und Nichtresidenten mit
+Betriebsstaette von пп.1 und пп.3 aus.
+
+**Nicht verwechseln mit Art. 484 п.5:** dort steht ebenfalls 80 Prozent, aber mit
+umgekehrtem Vorzeichen, naemlich als **Kuerzung** des Vorsteuerabzugs fuer
+Agrarprodukte, die in nullbesteuertem Exportumsatz verwendet werden. Zum Streichungs-
+vorhaben dazu siehe `../pruefbericht-aktualitaet.md` Abschnitt 4.3.
+
+**Veraltete Artikelnummer, die in Umlauf ist:** Sekundaerquellen aus 2025 zitieren
+"статья 411 НК РК". Das ist die Nummer aus dem **aufgehobenen Kodex von 2017**. Im
+Kodex 214-VIII regelt Art. 411 die Ermittlung des steuerpflichtigen Einkommens
+natuerlicher Personen und hat mit Mehrwertsteuer nichts zu tun.
 
 Der Zugang ist zudem an ein **Vereinbarungsverfahren** gebunden, nicht automatisch:
 laut einer zweiten mybuh.kz-Quelle (07.10.2025) setzt die Teilnahme den "Abschluss
 einer Vereinbarung" ("соглашение") mit der oertlichen Exekutivbehoerde voraus, geregelt
 durch **Приказ Минсельхоза РК № 339** vom 30.09.2025.
 
-**Zur behaupteten Erhoehung von 70 % auf 80 %:** In dieser Recherche wurde **an keiner
-Stelle** eine Quelle gefunden, die eine Satzerhoehung auf 80 % belegt. Gefunden wurde
-lediglich eine ERWEITERUNG DER BEGUENSTIGTENLISTE (Konditorei-/Zuckerwarenerzeuger kamen
-im Herbst 2025 per Ministerialerlass hinzu) - das koennte in der Vorrecherche mit einer
-Satzaenderung verwechselt worden sein. **Status: OFFEN, mit begruendetem Verdacht auf
-Verwechslung.**
+**Zur Frage 70 oder 80 Prozent: GEKLAERT, es sind 80.** Die Vorrecherche hatte recht.
+Der Widerspruch entstand dadurch, dass die Sekundaerquellen aus Herbst 2025 den bis
+2025 geltenden Satz von 70 Prozent samt alter Artikelnummer weitertrugen. Der Kodex
+214-VIII, in Kraft seit 2026-01-01, nennt in Art. 490 п.4 ausdruecklich 80 Prozent.
+Belegt am Primaertext von old.adilet.zan.kz, `korpus/nk-214-viii/ru/art-0490.md`.
 
-**Einschaetzung fuer den Betrieb:** Da der Zusatzabzug an eine Liste von
-VERARBEITUNGSTaetigkeiten gebunden ist und der hier betrachtete Betrieb Beeren primaer
-zukauft und roh bzw. kaum verarbeitet weiterverkauft, ist dieser Mechanismus
-voraussichtlich **nicht** einschlaegig - ausser der Betrieb verarbeitet selbst (z.B.
-Einfrieren, Einkochen) in einer Weise, die unter eine der gelisteten Kategorien faellt.
-Das waere im Einzelfall zu pruefen, sobald die neue Artikelnummer im 214-VIII bestaetigt
-ist.
+Offen bleibt allein, ob das **Vereinbarungsverfahren** nach Приказ Минсельхоза № 339
+auch fuer den Erzeugerkreis nach пп.1 gilt oder nur fuer die Verarbeiter nach пп.2.
+Art. 490 selbst nennt kein Antragserfordernis.
+
+**Einschaetzung fuer den Betrieb, berichtigt:** Die fruehere Einschaetzung lautete,
+der Mechanismus sei "voraussichtlich nicht einschlaegig", weil er nur Verarbeiter
+betreffe. Das war falsch. Art. 490 п.1 пп.1 nennt Erzeuger einschliesslich КХ/ФХ
+ausdruecklich, und zwar fuer Umsaetze aus der **Erzeugung** selbst, nicht erst aus der
+Verarbeitung. Der Zusatzabzug ist damit fuer den Betrieb dem Grunde nach einschlaegig,
+soweit er eigene Beeren erzeugt und verkauft.
+
+Drei Einschraenkungen bleiben und sind vor jeder Bezifferung zu klaeren:
+
+1. **Nur eigene Erzeugung.** Art. 490 п.1 пп.1 knuepft an Umsaetze aus eigener
+   Erzeugung und an die Verarbeitung eigener Produktion an. Zugekaufte und roh
+   weiterverkaufte Ware, also das Zukaufmodul, faellt nicht darunter.
+2. **Nur als USt-Zahler.** Ein Vorsteuerabzug setzt USt-Pflicht voraus. Im
+   Sonderregime ist der Betrieb nach Art. 731 п.1 пп.6 gerade **kein** USt-Zahler,
+   der Mechanismus laeuft dort also leer. Er wird erst relevant, wenn der Betrieb
+   das Sonderregime verlaesst oder sich freiwillig registriert.
+3. **Vereinbarungsverfahren ungeklaert**, siehe oben.
+
+Das ergibt eine bemerkenswerte Wechselwirkung: der Zusatzabzug ist ein Argument
+**gegen** das Sonderregime, sobald die Vorsteuerbetraege gross genug werden. Diese
+Abwaegung ist bisher nirgends gerechnet und gehoert in die Regimewahl.
 
 ### 5.2 КПН-Praeferenz 3 % / 6 % - gilt NICHT direkt fuer ein КХ/ФХ
 
@@ -587,7 +629,7 @@ wollen.
 | КПН-Praeferenz Agrarerzeuger (jur. Personen) | 3 % | Art. 357 НК РК | Sekundaer (Kodex-Spiegel) + Regierungsvorlage bestaetigt |
 | КПН-Praeferenz Agrarkooperative | 6 % | Art. 357 НК РК | Sekundaer (Kodex-Spiegel) + Regierungsvorlage bestaetigt |
 | USt-Registrierungsschwelle 2026 | 10.000 МРП = 43.250.000 Tenge | ungenannt (Sekundaerquellen) | Dreifach unabhaengig bestaetigt |
-| Zusatz-Vorsteuerabzug Agrarverarbeiter | 70 % (NICHT bestaetigt: 80 %) | Art. 411 a.F. НК РК (vorgesetzlich, neue Nummer offen) | Einfach Sekundaer, vorgesetzlich, OFFEN fuer 2026 |
+| Zusatz-Vorsteuerabzug Agrarerzeuger UND -verarbeiter | **80 %** | Art. 490 п.4 НК РК (214-VIII); Beguenstigte Art. 490 п.1 пп.1 und пп.2 | Primaertext, am amtlichen Server gegengelesen 2026-09-19 |
 | Quellensteuer beim Ankauf von Privatpersonen | historisch 10 % (nicht fuer 2026 bestaetigt) | Art. 318-321 a.F. НК РК (vorgesetzlich, neue Nummer offen) | Einfach Sekundaer, vorgesetzlich, OFFEN |
 | ЛПХ-Bescheinigung als Befreiungsweg | administrativ abgeschafft (Stand 31.03.2026) | kein Gesetzesartikel, Verwaltungspraxis | Amtlich referiert (Regierungsvorlage), Ersatz OFFEN |
 

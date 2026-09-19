@@ -12,17 +12,40 @@ Ausfuehrliche Einordnung je Titel steht in `buecherliste.md`. Diese Liste ist di
 
 **Einen Kommentar zum neuen Kodex gibt es nicht.** Der wertvollste Buchtyp existiert noch nicht. Ersatz ist die kostenlose Kommentarseite des KGD.
 
-## Stufe 1: kaufen, zusammen 18.880 Tenge
+## Stufe 1: kaufen, zusammen 15.780 Tenge
 
-Diese fuenf decken Luecken, die keine freie Quelle fuellt.
+Diese vier decken Luecken, die keine freie Quelle fuellt.
+
+> **Geaendert am 2026-09-19 nach Abgleich mit dem geernteten Kodextext.** Frueher standen hier fuenf Titel fuer 18.880 Tenge. "Налоговый учет ИП и СНР" von Proskurina ist herausgenommen, Begruendung unten unter "Herausgenommen". Beim Lohntitel ist eine Einschraenkung dazugekommen.
 
 | Titel | Preis | Bestellen | Was es bringt, das nicht frei ist |
 |---|---|---|---|
 | Бухгалтерские проводки (2026) - Proskurina | 6.200 | [lem.kz](https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166) | Der einzige ausdruecklich auf 2026 aktualisierte Praxistitel. Buchungssaetze, also genau die Uebersetzung von Rechtsnorm in Buchhaltung, die im Gesetzestext nicht steht |
 | Бухгалтерский учет в сельском хозяйстве (+CD) - Nazhikbaeva | 2.180 | [lem.kz](http://lem.kz/publishing-house/buhgalterskij-uchet-v-selskom-hozyajstve-cd/1242) | **Der einzige Titel zur Agrarbuchhaltung im gesamten kasachischen Markt.** Von 2015, Steuerteil veraltet, Methodik nicht. Die CD kann maschinenlesbaren Text enthalten, das waere der einzige Titel ohne Scanbedarf |
-| Особенности начисления и удержания заработной платы - Zagretdinova | 2.900 | [lem.kz](https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166) | Lohnabrechnung im Detail. Groesste Luecke im System: `lohn_abrechnungen` zahlt brutto ohne jeden Abzug |
-| Налоговый учет ИП и СНР - Proskurina | 3.100 | [lem.kz](https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166) | Sonderregime, also das Thema des Betriebs. Praxis zu Wahl, Wechsel und getrennter Buchfuehrung, die der Kodex nur knapp regelt |
+| Особенности начисления и удержания заработной платы - Zagretdinova | 2.900 | [lem.kz](https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166) | Lohnabrechnung im Detail. Groesste Luecke im System: `lohn_abrechnungen` zahlt brutto ohne jeden Abzug. **Nur als Verfahrensbeschreibung kaufen, nie als Satzquelle**, siehe Warnung unten |
 | 1С:Бухгалтерия 8.3 для Казахстана - Skoblikova | 4.500 | [lem.kz](https://lem.kz/publishing-house/catalog/buhgalterskij-uchet-i-nalogooblozhenie/166) | Ersatz fuer den blockierten Anbietervergleich. Das Objektmodell von 1C liegt hinter einer Bezahlschranke; dieses Buch beschreibt es |
+
+### Herausgenommen: Налоговый учет ИП и СНР (Proskurina, 3.100 Tenge)
+
+Stand bis zum 2026-09-19 in Stufe 1 mit der Begruendung "Sonderregime, also das Thema des Betriebs". Der inzwischen geerntete Kodextext entwertet ihn.
+
+Das Sonderregime wurde nicht geaendert, sondern **ersetzt**. Der einheitliche Bodensteuer ist abgeschafft; an seine Stelle treten Art. 728 bis 733 mit neuem Anwendungsbereich (Art. 728, samt neuer Flaechenzonen 5.000 / 3.500 / 1.500 / 500 ha), neuem Steuergegenstand (Art. 729), neuem Satz (Art. 730, 0,5 Prozent) und neuer Befreiungsliste (Art. 731, darunter die vollstaendige USt-Befreiung). Ein Titel von vor 2026 beschreibt ein Regime, das es nicht mehr gibt, und die ausfuehrliche `buecherliste.md` warnte bereits mit "**VOR 2026-KODEX**, zwingend gegenpruefen".
+
+Wieder aufnehmen, sobald der Verlag eine Auflage von 2026 ausweist.
+
+### Warnung zum Lohntitel
+
+Zagretdinova bleibt in Stufe 1, weil es der einzige Titel zur Lohnabrechnung ist und die Lohnabrechnung die groesste Luecke im System. Das Zahlenwerk ist aber vollstaendig hinfaellig, falls die Auflage vor 2026 liegt:
+
+| Groesse | Vor 2026 | Ab 2026 | Fundstelle |
+|---|---|---|---|
+| Einkommensteuertarif | linear 10 Prozent | progressiv ab 8.500 МРП | Art. 363 пп.1 |
+| Grundfreibetrag | 14 МЗП | 30 МРП | Art. 403 |
+| ОПВР | 2,5 Prozent | 3,5 Prozent | ENPF, amtlich |
+| Sozialsteuer minus Sozialabgaben | zulaessig | abgeschafft | Art. 558 |
+| Sozialsteuer КХ/ФХ | 6 Prozent | 0,6 / 0,3 МРП je Monat | Art. 557 п.4 |
+
+Die Methode bleibt brauchbar, jede Zahl ist gegen den Korpus zu ersetzen.
 
 ## Stufe 2: lohnt sich, wenn Budget da ist
 

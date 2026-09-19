@@ -10,7 +10,7 @@ perspektiven: [P15]
 gueltig_ab: "2026-09-18"
 gueltig_bis: null
 ist_ueberholt: false
-ersetzt_durch: null
+ersetzt_durch: "nk-214-viii-ru#art-0503"
 abgerufen_am: "2026-09-19"
 url: "https://alaics.kz/tpost/4raxgd71t1-skolko-stoyat-uslugi-tamozhennogo-broker"
 konfidenz: "unbestaetigt"

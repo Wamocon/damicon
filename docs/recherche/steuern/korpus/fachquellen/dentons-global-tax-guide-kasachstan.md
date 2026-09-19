@@ -9,8 +9,8 @@ titel: "Dentons: Global Tax Guide - Kasachstan"
 perspektiven: [P7]
 gueltig_ab: "2025-12-12"
 gueltig_bis: null
-ist_ueberholt: false
-ersetzt_durch: null
+ist_ueberholt: true
+ersetzt_durch: "nk-214-viii-ru#art-0503"
 abgerufen_am: "2026-09-19"
 url: "https://www.dentons.com/en/services-and-solutions/global-tax-guide-to-doing-business-in/kazakhstan"
 konfidenz: "unbestaetigt"

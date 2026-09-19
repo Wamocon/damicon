@@ -20,6 +20,7 @@ Diese Sammlung traegt Quellen zusammen und haelt deren Kern fest. **Sie ist kein
 | `quellenregister-schema.yaml` | Verbindliches Satzformat fuer jeden Quelleneintrag |
 | `rag-ingest-spezifikation.md` | Vertrag fuer die Aufnahme in die Vektordatenbank |
 | `konfliktregister.md` | Widersprueche zwischen Quellen, mit Aufloesungsstand |
+| `pruefbericht-aktualitaet.md` | Pruefung des Korpus gegen sich selbst: welche Angabe wird durch eine andere Quelle ueberholt |
 | `quellen/` | Das Register selbst, eine Datei je Rechercheperspektive |
 | `kernwissen/` | Der inhaltliche Befund je Thema, mit woertlichen Zitaten |
 | `preise-rohbefund.md` | Was welche Quelle kostet |

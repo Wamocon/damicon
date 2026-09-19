@@ -23,7 +23,11 @@ Erhoben am 2026-09-18 aus `de.json`, `ru.json`, `kk.json`.
 
 ## Drei Beobachtungen, die zu pruefen sind
 
-**Der Satz zur Mehrwertsteuer steht bereits im Produkt und ist bisher unbelegt.** In allen drei Sprachfassungen erscheint "Mehrwertsteuer 16 Prozent, Registrierungsschwelle 43,25 Mio. Tenge". Die erste Recherche stuetzt beide Zahlen: 10.000 МРП bei einem МРП von 4.325 Tenge ergibt genau 43.250.000 Tenge. Der Textbaustein ist also vermutlich richtig, war aber nie belegt und wird nirgends gerechnet. Er braucht eine Fundstelle.
+**Der Satz zur Mehrwertsteuer steht bereits im Produkt, ist inzwischen belegt und trotzdem irrefuehrend.** In allen drei Sprachfassungen erscheint "Mehrwertsteuer 16 Prozent, Registrierungsschwelle 43,25 Mio. Tenge". Beide Zahlen stimmen: Art. 503 п.1 НК РК nennt 16 Prozent, und 10.000 МРП bei einem МРП von 4.325 Tenge ergeben genau 43.250.000 Tenge.
+
+**Fuer den Betrieb, fuer den dieses System gebaut wird, ist die Schwelle dennoch gegenstandslos.** Art. 731 п.1 пп.6 НК РК stellt ein КХ/ФХ im Sonderregime von der Mehrwertsteuer frei, ausgenommen Einfuhr-USt und USt fuer Nichtresidenten. Eine Umsatzschwelle, ab der man USt-pflichtig wird, greift dort nicht. Relevant wird sie erst fuer Geschaeftsteile **ausserhalb** des Sonderregimes, also fuer das Zukaufmodul.
+
+Der Textbaustein beschreibt damit die allgemeine Rechtslage richtig und die Lage des Nutzers falsch. Er braucht entweder eine Einschraenkung oder eine Bindung an das Regime des jeweiligen Mandanten. Herleitung: `pruefbericht-aktualitaet.md` Abschnitt 4.1, Volldarstellung in `kernwissen/khfh-regime-rohbefund.md` Abschnitt 3.
 
 **ЭСФ wird in der kasachischen Fassung nicht uebersetzt.** Die kasachische Datei uebernimmt die russische Abkuerzung. Ob im amtlichen kasachischen Sprachgebrauch eine eigene Abkuerzung gilt, ist offen und gehoert ins vollstaendige Glossar.
 

@@ -28,7 +28,7 @@ Fassung A ist der korrekte Nachfolgesatz: **Art. 730 НК РК, 0,5 % auf die Be
 
 Fassung B gehoert zu einer voelig anderen Kodexstelle: **Art. 363 пп.4) НК РК**, dem progressiven ИПН-Tarif fuer Einzelunternehmer im allgemeinen Regime (ОУР - общеустановленный порядок), unabhaengig von der Branche. Das ist nicht das ЕЗН-Nachfolgeregime, sondern der Normaltarif, der fuer ein КХ/ФХ nur insoweit greift, als ein Teil seiner Taetigkeit (z.B. Weiterverkauf zugekaufter statt selbst erzeugter Ware) ausserhalb des Sonderregimes liegt UND dafuer im ОУР statt in der vereinfachten Erklaerung veranlagt wird.
 
-**Aufloesung:** Art. 730 НК РК i.V.m. Art. 729 п.1 НК РК (Satz und Bemessungsgrundlage des ЕЗН-Nachfolgeregimes fuer КХ/ФХ, 0,5 %), bestaetigt durch KGD-Gebietsdepartement Ostkasachstan, "Особенности применения специального налогового режима для крестьянских и фермерских хозяйств", https://vko.kgd.gov.kz/ru/news/osobennosti-primeneniya-specialnogo-nalogovogo-rezhima-dlya-krestyanskih-i-fermerskih-hozyaystv, abgerufen 2026-09-18. Art. 363 пп.4) НК РК (230.000-МРП-Progression, ОУР fuer ИП allgemein) referenziert ueber pro1c.kz mit direktem adilet-Fragmentlink, https://pro1c.kz/articles/spetsialnye-nalogovye-rezhimy/nalogi-i-platezhi-ip-our-snr/. Keine der beiden Artikelnummern wurde wegen technischer Abrufprobleme bei adilet.zan.kz direkt gegengelesen (siehe `quellen/p5-agrar.yaml`); die Uebereinstimmung mehrerer unabhaengiger Quellen plus einer amtlichen KGD-Publikation wird als ausreichend fuer GEKLAERT angesehen. Vollstaendige Herleitung mit allen Zitaten: `kernwissen/khfh-regime-rohbefund.md`, Abschnitt 1.
+**Aufloesung:** Art. 730 НК РК i.V.m. Art. 729 п.1 НК РК (Satz und Bemessungsgrundlage des ЕЗН-Nachfolgeregimes fuer КХ/ФХ, 0,5 %), bestaetigt durch KGD-Gebietsdepartement Ostkasachstan, "Особенности применения специального налогового режима для крестьянских и фермерских хозяйств", https://vko.kgd.gov.kz/ru/news/osobennosti-primeneniya-specialnogo-nalogovogo-rezhima-dlya-krestyanskih-i-fermerskih-hozyaystv, abgerufen 2026-09-18. Art. 363 пп.4) НК РК (230.000-МРП-Progression, ОУР fuer ИП allgemein) referenziert ueber pro1c.kz mit direktem adilet-Fragmentlink, https://pro1c.kz/articles/spetsialnye-nalogovye-rezhimy/nalogi-i-platezhi-ip-our-snr/. **Nachtrag 2026-09-19:** der urspruengliche Vorbehalt, keine der beiden Artikelnummern sei "wegen technischer Abrufprobleme bei adilet.zan.kz direkt gegengelesen" worden, ist entfallen. Art. 728, 729, 730 und 731 liegen im Wortlaut vom amtlichen Server im Korpus (`korpus/nk-214-viii/ru/art-0728.md` bis `art-0731.md`) und bestaetigen Satz, Bemessungsgrundlage und Befreiungsliste. Ergaenzend belegt Art. 731 п.1 пп.6, dass ein КХ/ФХ im Sonderregime **auch kein USt-Zahler** ist, ausgenommen Einfuhr-USt und USt fuer Nichtresidenten. Vollstaendige Herleitung mit allen Zitaten: `kernwissen/khfh-regime-rohbefund.md`, Abschnitt 1.
 
 **Was noch offen bleibt:** die Wahlmechanik/Meldefrist fuer den Eintritt in das Sonderregime und die Rechtsfolge eines unterjaehrigen Bedingungsbruchs (z.B. Flaechenueberschreitung) sind eigene, weiterhin ungeklaerte Fragen - siehe `kernwissen/khfh-regime-rohbefund.md`, Abschnitt 2.5.
 
@@ -49,8 +49,36 @@ Die Frage ist nicht akademisch. Die erste Recherche hat gezeigt, dass russische 
 
 ## K-03 Einkommensteuerstufen, zwei verschiedene Schwellen
 
-**Status:** OFFEN
-**Blockiert:** die Lohnabrechnung, und zwar fuer jeden Beschaeftigten.
+**Status:** GEKLAERT (2026-09-19, durch Art. 363 НК РК im Wortlaut)
+**Blockiert (war):** die Lohnabrechnung, und zwar fuer jeden Beschaeftigten.
+
+**Aufloesung:** Art. 363 НК РК regelt vier Tarife nebeneinander. Alle drei gemeldeten
+Fassungen treffen zu und beschreiben verschiedene Sachverhalte.
+
+| пп. | Gegenstand | Schwelle | Satz |
+|---|---|---|---|
+| 1) | alle Einkuenfte ausser 2) bis 4), also auch Arbeitslohn | 8.500 МРП | 10 / 15 Prozent |
+| 2) | private Praxis | -- | 9 Prozent |
+| 3) | Dividenden | 230.000 МРП | 5 / 15 Prozent |
+| 4) | ИП sowie КХ/ФХ im allgemeinen Regime (ОУР) | 230.000 МРП | 10 / 15 Prozent |
+
+Dazu Art. 403 НК РК: Grundfreibetrag 30 МРП.
+
+Fassung A (8.500) ist пп.1, Fassung B (230.000) ist пп.4, Fassung C beschreibt den
+Normalfall unterhalb der Schwelle. Die im Eintrag formulierte Forderung nach "einer
+Quelle, die Fassung A ausdruecklich als Lohnsteuer benennt" erfuellt der Kodex als
+Auffangtatbestand: пп.1 gilt fuer alles, was nicht unter пп.2 bis 4 faellt, und
+Arbeitslohn faellt unter keine davon.
+
+**Nebenbefund:** Art. 363 letzter Absatz gewaehrt einem КХ/ФХ im allgemeinen Regime
+eine Minderung der Einkommensteuer um 70 Prozent auf Einkuenfte aus Erzeugung und
+Verarbeitung eigener Agrarprodukte. Effektiv bleiben damit 3 Prozent.
+
+Fundstellen im Korpus: `korpus/nk-214-viii/ru/art-0363.md`, `.../art-0403.md`,
+geerntet von old.adilet.zan.kz am 2026-09-19. Herleitung: `pruefbericht-aktualitaet.md`
+Abschnitt 3.1.
+
+**Urspruenglicher Eintrag, zur Nachvollziehbarkeit:**
 
 | Fassung | Angabe | Quelle |
 |---|---|---|
@@ -97,9 +125,31 @@ Steuerliche Spiegelung im Kodex 214-VIII: Art. 455 (поручение) und Art.
 
 ESF-Anforderung im Kommissionsfall (Art. 495 NK RK i.V.m. Anordnung des Finanzministers Nr. 629 vom 28.10.2025): Der Kommissionaer fakturiert an den Endkunden (nicht der Komitent), mit eigener Lieferantenkategorie "комиссионер"/"комитент" (Feld "категория поставщика", Kontinuitaet seit mindestens 2015 belegt) und gesondertem Ausweis der Verguetung als eigene Zeile.
 
-**Was noch fehlt fuer GEKLAERT:** (a) direkte Verifikation der Artikel 455/456/495 auf adilet.zan.kz selbst (bisher nur ueber Spiegelportal kodeksy-kz.com gelesen, adilet lieferte beim automatisierten Abruf nur die Seitenhuelle); (b) eine explizite Vorschrift im neuen Kodex, die die Verguetung des Kommissionaers als dessen Bemessungsgrundlage benennt (bisher nur Umkehrschluss + ueberholte Vorgaengerpraxis); (c) Pruefung der tatsaechlichen Liefervertraege gegen die vier Kriterien - das ist keine Rechtsfrage mehr, sondern eine Sachverhaltsfrage, die diese Recherche nicht beantworten kann.
+**Was noch fehlt fuer GEKLAERT:** ~~(a) direkte Verifikation der Artikel 455/456/495 auf adilet.zan.kz selbst~~ **(a) erledigt am 2026-09-19**, siehe Nachtrag; (b) eine explizite Vorschrift im neuen Kodex, die die Verguetung des Kommissionaers als dessen Bemessungsgrundlage benennt (bisher nur Umkehrschluss + ueberholte Vorgaengerpraxis); (c) Pruefung der tatsaechlichen Liefervertraege gegen die vier Kriterien - das ist keine Rechtsfrage mehr, sondern eine Sachverhaltsfrage, die diese Recherche nicht beantworten kann.
+
+**Nachtrag 2026-09-19 zu (a):** Art. 455, 456 und 495 НК РК sowie ГК РК Art. 865, 867 und 871 liegen jetzt im Wortlaut vom amtlichen Server im Korpus und halten der Gegenlesung stand. Art. 456 п.1 nimmt den Kommissionsverkauf aus dem Umsatz des Kommissionaers heraus; п.2 macht davon eine Ausnahme fuer Ware eines nichtresidenten, nicht USt-registrierten Komitenten. **Luecke (b) bleibt damit ausdruecklich offen:** der Kodex sagt, was NICHT Umsatz des Kommissionaers ist, und nennt an keiner Stelle die Verguetung als dessen Bemessungsgrundlage. Der Umkehrschluss bleibt ein Umkehrschluss.
 
 **Aufloesung:** noch nicht abschliessend. Artikelnummern 406, 455, 456, 495, 865, 867, 871 wie oben; vollstaendige Zitate und Fundstellen im Quellenregister `quellen/p12-p15-handel-aussenhandel.yaml`.
+
+---
+
+## K-06 Angekuendigte Streichung von Art. 484 п.5, im Gesetzestext noch vorhanden
+
+**Status:** GEKLAERT als Sachstand, die Norm gilt. Zu beobachten, ob die Streichung kommt.
+**Blockiert:** nichts unmittelbar. Der Eintrag verhindert, dass eine Pressemitteilung als geltendes Recht beantwortet wird.
+
+| Fassung | Angabe | Quelle | Stufe |
+|---|---|---|---|
+| A | Art. 484 kuerzt den Vorsteuerabzug fuer exportierte Agrarprodukte um 80 Prozent | Steuerkodex 214-VIII, Wortlaut vom amtlichen Server, geerntet 2026-09-18 | 1 |
+| B | Das Projektbuero hat beschlossen, diese Norm zu streichen und die volle Erstattung wiederherzustellen | iris.kz, 2026-06-19 | 4 |
+
+**Kein Widerspruch, sondern ein Zeitunterschied.** Fassung B berichtet einen Beschluss eines Projektbueros, nicht eine Gesetzesaenderung. Fassung A ist der Text, der drei Monate spaeter noch immer auf adilet steht. Ein Beschluss, ein Gesetz zu aendern, ist keine Gesetzesaenderung.
+
+**Aufloesung:** Art. 484 п.5 letzter Absatz НК РК gilt unveraendert, Stand 2026-09-18, `korpus/nk-214-viii/ru/art-0484.md`. Die Meldung liegt als `korpus/fachquellen/iris-kz-art484-status-rus.md`.
+
+**Zu beobachten:** ob ein Aenderungsgesetz ergeht. Das ist ein Fall fuer die laufende Beobachtung nach `erfassungsplan.md`, nicht fuer eine einmalige Klaerung.
+
+**Verwechslungsgefahr, ausdruecklich festgehalten:** es gibt zwei 80-Prozent-Regeln mit entgegengesetzter Richtung. **Art. 490** gewaehrt 80 Prozent zusaetzlichen Vorsteuerabzug im Inlandsgeschaeft und nennt КХ/ФХ ausdruecklich als Beguenstigte. **Art. 484 п.5** kuerzt den Vorsteuerabzug um 80 Prozent im nullbesteuerten Exportgeschaeft. Wer beide verwechselt, dreht das Vorzeichen um.
 
 ---
 

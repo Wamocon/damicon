@@ -9,8 +9,8 @@ titel: "Calculators.kz, Rechner-Sammlung"
 perspektiven: [P4]
 gueltig_ab: "2026-09-18"
 gueltig_bis: null
-ist_ueberholt: false
-ersetzt_durch: null
+ist_ueberholt: true
+ersetzt_durch: "nk-214-viii-ru#art-0503"
 abgerufen_am: "2026-09-19"
 url: "https://calculators.kz/"
 konfidenz: "unbestaetigt"
