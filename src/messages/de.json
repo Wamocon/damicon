@@ -1551,6 +1551,7 @@
     "agentDenkt": "Agent pflückt die Fakten …",
     "agentPrueft": "Agent prüft: {werkzeug} …",
     "schliessen": "Schließen",
+    "breiteAendern": "Breite ändern: ziehen oder Pfeiltasten, Doppelklick setzt zurück",
     "keinVerlauf": "Noch keine Nachricht. Stellen Sie unten Ihre erste Frage.",
     "inputPlaceholder": "Frage eingeben ...",
     "senden": "Senden",
