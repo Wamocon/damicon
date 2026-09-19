@@ -3658,6 +3658,7 @@ export type Database = {
         Args: {
           p_anbieter_name: string
           p_fallback: boolean
+          p_id?: string
           p_inhalt: string
           p_werkzeugaufrufe?: Json
         }

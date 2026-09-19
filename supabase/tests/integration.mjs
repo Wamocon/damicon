@@ -4382,6 +4382,34 @@ if (leitung && brigade) {
       .select("werkzeugaufrufe")
       .eq("id", werkzeugAntwortId ?? "00000000-0000-0000-0000-000000000000")
       .maybeSingle();
+    // p_id: der streamende Claude-Pfad legt die ID vorab fest (Sprachausgabe
+    // findet die Antwort darueber). Die ID wird genutzt - eine vorhandene
+    // Zeile laesst sich damit aber nicht ueberschreiben.
+    const vorgegebeneId = crypto.randomUUID();
+    const { data: idZurueck, error: idFehler } = await kundeChat.rpc("ki_chat_antwort_schreiben", {
+      p_inhalt: "Antwort mit vorab festgelegter ID.",
+      p_anbieter_name: "IT-Anbieter",
+      p_fallback: false,
+      p_id: vorgegebeneId,
+    });
+    check(
+      "KI-Chat: ki_chat_antwort_schreiben() uebernimmt eine vorgegebene ID (p_id)",
+      !idFehler && idZurueck === vorgegebeneId,
+      idFehler?.message ?? `zurueck: ${idZurueck}`,
+    );
+    const { error: doppeltFehler } = await kundeChat.rpc("ki_chat_antwort_schreiben", {
+      p_inhalt: "Versuch, dieselbe Zeile zu ersetzen.",
+      p_anbieter_name: "IT-Anbieter",
+      p_fallback: false,
+      p_id: vorgegebeneId,
+    });
+    const { data: nachDoppelt } = await admin.from("ki_chat_nachrichten").select("inhalt").eq("id", vorgegebeneId).maybeSingle();
+    check(
+      "KI-Chat: dieselbe p_id ein zweites Mal ueberschreibt nichts (Fehler, Inhalt unveraendert)",
+      !!doppeltFehler && nachDoppelt?.inhalt === "Antwort mit vorab festgelegter ID.",
+      doppeltFehler?.code ?? "kein Fehler",
+    );
+
     check(
       "KI-Chat: ki_chat_antwort_schreiben() speichert die Werkzeugaufrufe des Agenten",
       !werkzeugAntwortFehler && JSON.stringify(werkzeugAntwort?.werkzeugaufrufe) === JSON.stringify(["mwstStatusAbrufen"]),

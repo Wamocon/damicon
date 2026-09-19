@@ -75,13 +75,24 @@ comment on policy ki_chat_nachrichten_insert_own on public.ki_chat_nachrichten i
 -- alte Drei-Parameter-Fassung wird zuerst entfernt - sonst bliebe sie auf
 -- einer Datenbank, die diese Migration schon in der alten Form kennt, als
 -- zweite Ueberladung neben der neuen stehen.
+--
+-- p_id: optional die ID der neuen Zeile. Der streamende Claude-Pfad
+-- (api/ki-assistent/route.ts) legt die ID schon VOR dem Stream fest und gibt
+-- sie dem Client als Nachrichten-ID mit - nur so kann die Sprachausgabe
+-- (api/ki-sprachausgabe) eine frisch gestreamte Antwort ueber ihre ID
+-- finden. Ohne p_id vergibt die Tabelle die ID wie bisher. Eine selbst
+-- gewaehlte ID verschafft keinen Zugriff: die Zeile gehoert weiterhin der
+-- aufrufenden Person, und der Primaerschluessel verhindert, eine vorhandene
+-- Zeile zu ueberschreiben (Fehler statt stillem Ersatz).
 drop function if exists public.ki_chat_antwort_schreiben(text, text, boolean);
+drop function if exists public.ki_chat_antwort_schreiben(text, text, boolean, jsonb);
 
 create or replace function public.ki_chat_antwort_schreiben(
   p_inhalt text,
   p_anbieter_name text,
   p_fallback boolean,
-  p_werkzeugaufrufe jsonb default null
+  p_werkzeugaufrufe jsonb default null,
+  p_id uuid default null
 )
 returns uuid
 language plpgsql
@@ -105,8 +116,8 @@ begin
 
   -- Leerer Anbietername heisst "kein Anbieter" (Ausweichantwort ohne Modell) -
   -- die Spalte bleibt dann null statt einen leeren Text zu tragen.
-  insert into public.ki_chat_nachrichten (profil_id, rolle, inhalt, anbieter_name, fallback, werkzeugaufrufe)
-  values (v_profil, 'assistent', p_inhalt, nullif(btrim(coalesce(p_anbieter_name, '')), ''), coalesce(p_fallback, false), p_werkzeugaufrufe)
+  insert into public.ki_chat_nachrichten (id, profil_id, rolle, inhalt, anbieter_name, fallback, werkzeugaufrufe)
+  values (coalesce(p_id, gen_random_uuid()), v_profil, 'assistent', p_inhalt, nullif(btrim(coalesce(p_anbieter_name, '')), ''), coalesce(p_fallback, false), p_werkzeugaufrufe)
   returning id into v_id;
 
   return v_id;
@@ -146,7 +157,7 @@ $$;
 comment on function public.ki_chat_eskalation_schreiben is
   'Vermerkt eine Eskalation im Verlauf der aufrufenden Person - automatisch nach wiederholtem Fallback oder auf Knopfdruck. Einziger Weg zu eskaliert = true (20261030000000).';
 
-revoke all on function public.ki_chat_antwort_schreiben(text, text, boolean, jsonb) from public;
+revoke all on function public.ki_chat_antwort_schreiben(text, text, boolean, jsonb, uuid) from public;
 revoke all on function public.ki_chat_eskalation_schreiben(text) from public;
-grant execute on function public.ki_chat_antwort_schreiben(text, text, boolean, jsonb) to authenticated;
+grant execute on function public.ki_chat_antwort_schreiben(text, text, boolean, jsonb, uuid) to authenticated;
 grant execute on function public.ki_chat_eskalation_schreiben(text) to authenticated;
