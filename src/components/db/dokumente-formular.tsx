@@ -3,13 +3,14 @@
 import { useActionState } from "react";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { dokumentAnlegen } from "@/lib/actions/dokumente";
+import { dokumentAendern, dokumentAnlegen } from "@/lib/actions/dokumente";
 import { leer } from "@/lib/actions/status";
 import {
   AktionsMeldung,
   Auswahl,
   Feld,
   FormularKarte,
+  PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 
@@ -24,7 +25,12 @@ const kategorien = [
 
 const statusWerte = ["gueltig", "prueflauf", "abgelaufen"] as const;
 
-export function DokumentFormular() {
+export function DokumentFormular({
+  dossiers = [],
+}: {
+  /** Foerderdossiers zur Auswahl (Anforderung 4.12). Leer im Demo-Modus. */
+  dossiers?: { id: string; bezeichnung: string }[];
+}) {
   const [status, action] = useActionState(dokumentAnlegen, leer);
   const pfad = usePathname();
   const t = useTranslations("dokumenteVerwaltung");
@@ -53,6 +59,16 @@ export function DokumentFormular() {
           name="status"
           options={statusWerte.map((wert) => ({ wert, text: s(wert) }))}
         />
+        {dossiers.length > 0 ? (
+          <Auswahl
+            label={t("feld.foerderdossier")}
+            name="foerderdossier_id"
+            options={[
+              { wert: "", text: t("keinDossier") },
+              ...dossiers.map((d) => ({ wert: d.id, text: d.bezeichnung })),
+            ]}
+          />
+        ) : null}
         <label className="block space-y-1">
           <span className="text-[11px] font-semibold text-card-foreground">
             {t("feld.datei")}
@@ -73,5 +89,87 @@ export function DokumentFormular() {
         </div>
       </form>
     </FormularKarte>
+  );
+}
+
+// Zeilenformular: Bezeichnung, Bezug, Stand und Status eines vorhandenen
+// Dokuments nachfuehren. Aufbau wie ZukaufPreisNachtragenFormular, schmal
+// genug fuer eine Tabellenzelle, mit eigener Rueckmeldung je Zeile.
+//
+// Die Felder sind unkontrolliert (defaultValue). Damit sie nach einem
+// revalidatePath() nicht auf dem Stand von vor dem Neuladen stehen bleiben, und
+// ein spaeteres Speichern fremde Aenderungen nicht zurueckschreibt, tragen sie
+// den aktuellen Wert als key: aendert sich der Wert, wird das Feld neu
+// aufgebaut. Die Rueckmeldung der Zeile bleibt dabei erhalten.
+export function DokumentAendernFormular({
+  id,
+  name,
+  bezug,
+  bezugAnzeige,
+  stand,
+  status,
+}: {
+  id: string;
+  name: string;
+  /** Der gespeicherte Bezug, null wenn keiner gesetzt ist. */
+  bezug: string | null;
+  /** Anzeigewert (Block- oder Chargencode als Fallback), nur als Platzhalter. */
+  bezugAnzeige?: string;
+  stand: string | null;
+  status: string;
+}) {
+  const [zustand, action] = useActionState(dokumentAendern, leer);
+  const t = useTranslations("dokumenteVerwaltung");
+  const s = useTranslations("dokumenteDemo.status");
+
+  return (
+    <form action={action} className="flex flex-wrap items-end gap-1.5">
+      <PfadFeld />
+      <input type="hidden" name="id" value={id} />
+      <input
+        key={`name-${name}`}
+        name="name"
+        defaultValue={name}
+        required
+        aria-label={t("feld.name")}
+        className="h-7 w-36 rounded-md border border-border bg-background px-1.5 text-[11px] text-foreground outline-none transition focus:border-primary"
+      />
+      <input
+        key={`bezug-${bezug ?? ""}`}
+        name="bezug"
+        defaultValue={bezug ?? ""}
+        placeholder={bezug ? undefined : bezugAnzeige || undefined}
+        aria-label={t("feld.bezug")}
+        className="h-7 w-24 rounded-md border border-border bg-background px-1.5 text-[11px] text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary"
+      />
+      <input
+        key={`stand-${stand ?? ""}`}
+        name="stand"
+        type="date"
+        defaultValue={stand ?? ""}
+        aria-label={t("feld.stand")}
+        className="h-7 rounded-md border border-border bg-background px-1.5 text-[11px] text-foreground outline-none transition focus:border-primary"
+      />
+      <select
+        key={`status-${status}`}
+        name="status"
+        defaultValue={status}
+        aria-label={t("feld.status")}
+        className="h-7 rounded-md border border-border bg-background px-1.5 text-[11px] text-foreground outline-none transition focus:border-primary"
+      >
+        {statusWerte.map((wert) => (
+          <option key={wert} value={wert}>
+            {s(wert)}
+          </option>
+        ))}
+      </select>
+      <button
+        type="submit"
+        className="inline-flex h-7 items-center justify-center rounded-md border border-border bg-card px-2 text-[11px] font-bold text-foreground transition hover:border-primary"
+      >
+        {t("aendernKnopf")}
+      </button>
+      <AktionsMeldung status={zustand} />
+    </form>
   );
 }

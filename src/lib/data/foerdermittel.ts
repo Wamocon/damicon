@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import { heuteIso } from "@/lib/data/util";
+import { signiereDokumentPfade } from "@/lib/data/signierte-urls";
 import {
   demoDossiers,
   type FoerderdossierStatus,
@@ -37,6 +38,15 @@ export async function ladeFoerdermittel(): Promise<FoerdermittelUebersicht> {
 
   if (error || !data) return demoUebersicht("fehler");
 
+  // Angehaengte Nachweise als signierte Links ausgeben, der Bucket ist nicht
+  // oeffentlich lesbar (gemeinsamer Helfer mit der Dokumentenverwaltung).
+  const pfade = data
+    .flatMap((d) => (Array.isArray(d.dokumente) ? d.dokumente : []))
+    .map((doc) => doc.storage_path)
+    .filter((pfad): pfad is string => Boolean(pfad));
+
+  const signiert = await signiereDokumentPfade(supabase, pfade);
+
   return {
     quelle: "db",
     dossiers: data.map((d) => ({
@@ -52,9 +62,30 @@ export async function ladeFoerdermittel(): Promise<FoerdermittelUebersicht> {
         id: doc.id,
         name: doc.name,
         storagePath: doc.storage_path,
+        dateiUrl: doc.storage_path ? (signiert.get(doc.storage_path) ?? null) : null,
       })),
     })),
   };
+}
+
+/** Auswahlliste fuer das Dokumentenformular: an welches Dossier haengt der
+ *  Nachweis? Leer ohne Datenbank, dann bietet das Formular nur "kein Dossier"
+ *  an, so wie jede andere Auswahl im Demo-Modus. */
+export async function ladeDossierOptionen(): Promise<{ id: string; bezeichnung: string }[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("foerderdossiers")
+    .select("id, antragsnummer, titel, portal")
+    .order("frist_am", { ascending: true, nullsFirst: false });
+
+  if (error || !data) return [];
+
+  return data.map((d) => ({
+    id: d.id,
+    bezeichnung: [d.antragsnummer, d.titel || d.portal].filter(Boolean).join(" - "),
+  }));
 }
 
 /** Ueberfaellig: Frist verstrichen, ohne dass der Vorgang bereits abgeschlossen ist. */

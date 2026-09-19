@@ -1,0 +1,468 @@
+{
+  "agent": "W4",
+  "quellenfamilien_genutzt": {
+    "big4": 0,
+    "kanzlei": 0,
+    "behoerde_faq": 8,
+    "atameken": 1,
+    "fachpresse": 18,
+    "kk_en": 7
+  },
+  "suchrunden": 34,
+  "pruefungen": [
+    {
+      "aussage_id": "blick:Subventionskontrolle / B-C5-001, B-C5-002, B-C5-003",
+      "aussage": "Gegenleistungspflichten ab 100 Mio. KZT Subventionen im Jahr (V2000020209 Pkt. 10-1), Sperre 1–2 Jahre bei Nichterfüllung; für Förderanträge genutzte ЭСФ werden gesperrt.",
+      "urteil": "eingeschraenkt",
+      "begruendung": "Schwelle 100 Mio. KZT, Ausweitung auf alle Empfänger ab 01.01.2029 und die Sperre von einem bzw. zwei Jahren bestätigt die Fachpresse (zakon.kz, inform.kz) unabhängig. Einschränkung 1: Die Sperre greift nicht schon bei einmaliger Nichterfüllung, sondern erst, wenn die Pflicht in den zwei vorangegangenen Jahren in Folge nicht erfüllt wurde und keine höhere Gewalt belegt ist. Einschränkung 2: Die Neufassung (Erlass des amt. Landwirtschaftsministers vom 27.01.2026, in Kraft 03.02.2026) gilt parallel für drei Förderregeln (Verarbeiter-Ankauf, Zucht-Tierhaltung, Pflanzenbau), die Schwelle zählt Subventionen aller Arten mit gleichartiger Gegenleistung zusammen. Einschränkung 3: Die ЭСФ-Sperre ist allgemeiner als im Bericht: Laut KGD-Anleitung vom 30.12.2025 gehen bei jeder Nutzung für staatliche Fördermaßnahmen ЭСФ UND verbundene СНТ in den Status „Заблокирован ИС ЭСФ“; weder Widerruf noch zusätzliche oder korrigierte ЭСФ/СНТ sind dann möglich.",
+      "belege": [
+        {
+          "url": "https://www.zakon.kz/pravo/6506594-izmenilis-pravila-subsidirovaniya-zatrat-pererabatyvayushchikh-i-selkhozpredpriyatiy.html",
+          "familie": "fachpresse",
+          "titel": "Изменились правила субсидирования затрат перерабатывающих и сельхозпредприятий",
+          "zitat": "В случае неисполнения обязательств в течение двух предыдущих лет подряд в первый раз и отсутствия документов, подтверждающих наступление обстоятельств непреодолимой силы, будет прекращена возможность подачи заявки на получение субсидий в текущем календарном году на один год.",
+          "datum_quelle": "2026-02-03",
+          "adilet_id": "V2000020209"
+        },
+        {
+          "url": "https://www.zakon.kz/pravo/6506594-izmenilis-pravila-subsidirovaniya-zatrat-pererabatyvayushchikh-i-selkhozpredpriyatiy.html",
+          "familie": "fachpresse",
+          "titel": "dto., Schwelle",
+          "zitat": "Встречные обязательства принимаются субъектами агропромышленного комплекса при условии получения в текущем финансовом году субсидий в совокупности по всем видам субсидий, по которым предусмотрено установление аналогичных встречных обязательств, в размере 100 миллионов тенге и выше.",
+          "datum_quelle": "2026-02-03",
+          "adilet_id": "V2000020209"
+        },
+        {
+          "url": "https://www.inform.kz/ru/minselhoz-rk-izmenil-pravila-subsidirovaniya-v-agropromishlennom-komplekse-1b385f",
+          "familie": "behoerde_faq",
+          "titel": "Минсельхоз РК изменил правила субсидирования в агропромышленном комплексе (Kazinform)",
+          "zitat": "обеспечить рост или сохранить на уровне предыдущего года объем валовой продукции (sinngemäß laut Artikel; Kontrolle über информационное взаимодействие mit ЭСФ)",
+          "datum_quelle": "2026-02-03",
+          "adilet_id": "V2000020209"
+        },
+        {
+          "url": "https://prg.kz/document/?doc_id=39706681",
+          "familie": "behoerde_faq",
+          "titel": "Инструкция по отправке ЭСФ в государственный орган для получения мер государственной поддержки (КГД МФ РК)",
+          "zitat": "ЭСФ и связанные СНТ перейдут в статус «Заблокирован ИС ЭСФ» … их нельзя будет отозвать, осуществить выписку дополнительного/исправленного ЭСФ/СНТ",
+          "datum_quelle": "2025-12-30",
+          "adilet_id": ""
+        }
+      ],
+      "korrektur": "Gegenleistungspflichten gelten, wenn ein Betrieb im laufenden Finanzjahr zusammen 100 Mio. Tenge oder mehr aus Subventionsarten mit gleichartiger Gegenleistung erhält (ab 01.01.2029 für alle Empfänger). Wird die Pflicht zwei Jahre in Folge nicht erfüllt und keine höhere Gewalt belegt, ist die Antragstellung beim ersten Mal ein Jahr, danach zwei Jahre gesperrt (Neufassung vom 27.01.2026, in Kraft 03.02.2026). ЭСФ und verbundene СНТ, die für eine Fördermaßnahme genutzt werden, gehen in den Status „Заблокирован ИС ЭСФ“ und lassen sich weder widerrufen noch korrigieren oder ergänzen."
+    },
+    {
+      "aussage_id": "blick:Subventionskontrolle / B-C5-004, B-C5-005, B-C5-006",
+      "aussage": "Investitionssubventionen (V1800017320): drei Jahre Überwachung, Rückforderung bei Zweckentfremdung, Stillstand, Auslastung unter 50 %; Förderpässe Beerenanlage ab 5 ha, Obstlager ab 1 000 t.",
+      "urteil": "bestaetigt",
+      "begruendung": "Unabhängige Fachpresse bestätigt die Mindestfläche 5 ha für Obst-/Beerenanlagen und die Pass-Logik mit Lagerkapazität ab 1 000 t (Pass Nr. 22 für Kartoffel-/Gemüselager, erhöhte Erstattung 40–50 %). Die dreijährige Überwachung mit 50-%-Auslastungsziel stützt ein Leitfaden auf prg.kz, allerdings in älterer Fassung (2014). Kein Widerspruch gefunden. Hinweis: Den Pass Nr. 23 (Obstlager ab 1 000 t) konnte keine zweite Quelle wörtlich belegen; adilet.zan.kz lieferte keinen Text. Aktuelle Erstattungsquoten für Beerenanlagen (2020: 25 %) sind vor Antrag am Pass im ГИСС zu prüfen.",
+      "belege": [
+        {
+          "url": "https://agroinfo.kz/investsubsidii-na-sady-i-vyrashhivanie-yagod/",
+          "familie": "fachpresse",
+          "titel": "Инвестсубсидии на сады и выращивание ягод",
+          "zitat": "закладку плодово-ягодных культур и винограда размером от 5 гектаров … Доля возмещения затрат на закладку и покупку саженцев и техники составляет 25%",
+          "datum_quelle": "2020-05-21",
+          "adilet_id": "V1800017320"
+        },
+        {
+          "url": "https://east-fruit.com/novosti/v-kazahstane-za-tri-goda-postroili-95-ovoshhehranilishh-na-745-tys-tonn/",
+          "familie": "fachpresse",
+          "titel": "В Казахстане за три года построили 95 овощехранилищ на 745 тыс. тонн (EastFruit)",
+          "zitat": "В рамках проекта №22 субсидируется строительство и расширение картофельно-овощехранилищ вместимостью от 1000 тонн. Доля возмещения инвестиционных затрат была повышена с 25% до 40–50%.",
+          "datum_quelle": "2026 (ca. September)",
+          "adilet_id": "V1800017320"
+        },
+        {
+          "url": "https://prg.kz/Document/?doc_id=31561145",
+          "familie": "fachpresse",
+          "titel": "Как получить субсидию в АПК: пошаговая инструкция (Параграф)",
+          "zitat": "в течение 3 лет с момента субсидирования",
+          "datum_quelle": "2014-06-04 (veraltet)",
+          "adilet_id": ""
+        }
+      ],
+      "korrektur": ""
+    },
+    {
+      "aussage_id": "blick:Subventionskontrolle / B-C5-007, B-C5-008",
+      "aussage": "Kontrolle der Subventionsempfänger durch Oberste Rechnungskammer und Revisionskommissionen nach Gesetz 392-V.",
+      "urteil": "bestaetigt",
+      "begruendung": "392-V ist nicht durch ein neues Gesetz ersetzt; Fassung laut prg.kz vom 12.07.2026 (Änderungen u. a. durch 213-VIII und 256-VIII). Art. 12 regelt die Kompetenz der Высшая аудиторская палата, Art. 13 die der Revisionskommission; Empfänger von Haushaltsmitteln sind Prüfobjekte. Die Kammer prüft die Agrarförderung aktiv (142 Mrd. Tenge ineffiziente Planung). Terminologie: amtlich „Высшая аудиторская палата“ (Oberste Audit-Kammer), früher Счетный комитет.",
+      "belege": [
+        {
+          "url": "https://prg.kz/document/?doc_id=37724730",
+          "familie": "fachpresse",
+          "titel": "Закон РК № 392-V «О государственном аудите и финансовом контроле» (по состоянию на 12.07.2026)",
+          "zitat": "Статья 12. Компетенция Высшей аудиторской палаты … Статья 13. Компетенция ревизионной комиссии",
+          "datum_quelle": "2026-07-12",
+          "adilet_id": "Z1500000392"
+        },
+        {
+          "url": "https://prodengi.kz/post/effektivnost-ne-naidena-gosaudit-proveril-rezultaty-gospodderzki-apk",
+          "familie": "fachpresse",
+          "titel": "Эффективность не найдена: госаудит проверил результаты господдержки АПК",
+          "zitat": "неэффективное планирование бюджетных средств … на субсидирование АПК … 142 млрд тенге (laut Suchauszug)",
+          "datum_quelle": "unklar",
+          "adilet_id": ""
+        }
+      ],
+      "korrektur": ""
+    },
+    {
+      "aussage_id": "blick:GLOBALG.A.P. / B-C6-029, B-C6-030, B-C6-001",
+      "aussage": "GLOBALG.A.P. in Kasachstan: laut IAF 2024 nur zwei zertifizierte Betriebe, kein Beerenbetrieb; Aufzeichnungen 2 Jahre (IFA v6). Freiwillig, aber von Handelsketten verlangt.",
+      "urteil": "eingeschraenkt",
+      "begruendung": "IAF (09/2024) nennt zwei Obst-/Gemüsebetriebe (Gewächshaus Almaty, Apfelbetrieb Gebiet Almaty). Das ist aber nicht die Gesamtzahl: KazBeef erhielt bereits Anfang 2022 als erstes kasachisches Unternehmen ein GLOBALG.A.P.-Zertifikat (Futterbau/Feedlot). Neuere Zahlen 2025/2026 fanden sich weder in der Presse noch bei QazTrade, Atameken oder Минсельхоз; ein Beerenbetrieb mit Zertifikat ist nirgends belegt. Die Aufbewahrung von mindestens 2 Jahren gilt weiter (IFA v6; Obst/Gemüse inzwischen Leitfaden v6.0-1, GFS seit 01.01.2025 verbindlich). Staatliche Kostenerstattung speziell für GLOBALG.A.P. wurde nicht gefunden; QazTrade erstattet nur für „обработанные“ Waren, QazIndustry (15 000 MRP) zielt auf die verarbeitende Industrie.",
+      "belege": [
+        {
+          "url": "https://iaf.news/2024/09/19/the-first-shoots-of-globalg-a-p-in-kazakhstan/",
+          "familie": "kk_en",
+          "titel": "The First Shoots of GLOBALG.A.P. in Kazakhstan (IAF)",
+          "zitat": "two agricultural producers: a greenhouse complex in Almaty for growing vegetables and a horticultural farm in the Almaty region for growing apples have been certified according to GLOBALG.A.P. standards by a foreign certification body",
+          "datum_quelle": "2024-09-19",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://www.econotimes.com/Kusto-Groups-KazBeef-to-Receive-Prestigious-Quality-Certificate-1627025",
+          "familie": "kk_en",
+          "titel": "Kusto Group's KazBeef to Receive Prestigious Quality Certificate",
+          "zitat": "KazBeef, recently made history, as it became the first Kazakhstani business to receive a GLOBALG.A.P. certificate.",
+          "datum_quelle": "2022-02-14",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://www.kustogroup.com/ru/news/kazbeef-becomes-first-kazakh-business-to-receiveglobalgap-certification/",
+          "familie": "kk_en",
+          "titel": "KAZBEEF — первое предприятие Казахстана с сертификатом GLOBALG.A.P.",
+          "zitat": "Кормовое хозяйство компании KazBeef … стало первым в стране предприятием, получившим … сертификат GLOBALG.A.P.",
+          "datum_quelle": "2022",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://kapital.kz/economic/83027/kak-vnedreniye-standarta-global-g-a-p-pomozhet-agrariyam.html",
+          "familie": "fachpresse",
+          "titel": "Как внедрение стандарта GLOBAL G.A.P. поможет аграриям",
+          "zitat": "Европейская сеть Metro Cash & Carry, которая работает в Казахстане, Украине, России, также предъявляет требования к наличию этого сертификата (sinngemäß; Stand 2019)",
+          "datum_quelle": "2019-12-02",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://globalgap.org/what-we-offer/solutions/ifa-fruit-and-vegetables/",
+          "familie": "kk_en",
+          "titel": "Integrated Farm Assurance for fruit and vegetables (GLOBALG.A.P.)",
+          "zitat": "IFA v6 GFS replaced v5.4-1-GFS on 1 January 2025 (laut Suchauszug); Aufbewahrung: records for a minimum of 2 years",
+          "datum_quelle": "2025",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://qaztrade.org.kz/rus/vozmeshhenie-chasti-zatrat-na-prodvizhen/",
+          "familie": "behoerde_faq",
+          "titel": "Возмещение части затрат на продвижение обработанных отечественных товаров на внешние рынки (QazTrade)",
+          "zitat": "обработанные отечественные товары … компенсацию от 30 до 80 процентов понесенных расходов",
+          "datum_quelle": "unklar (Grundlage Erlass МТИ № 314-НҚ vom 01.08.2022)",
+          "adilet_id": ""
+        }
+      ],
+      "korrektur": "GLOBALG.A.P. ist freiwillig. Laut IAF (09/2024) waren in Kasachstan zwei Obst-/Gemüsebetriebe zertifiziert (Gemüse, Äpfel); dazu kommt seit 2022 KazBeef (Futterbau/Tierhaltung). Ein zertifizierter Beerenbetrieb ist nicht belegt, neuere Zahlen für 2025/2026 wurden nicht gefunden. Als Anforderung einer Handelskette ist nur Metro belegt (Stand 2019). Aufzeichnungen nach IFA v6 mindestens 2 Jahre."
+    },
+    {
+      "aussage_id": "blick:HACCP / B-C6-021, B-C6-026",
+      "aussage": "HACCP nach TR TS 021/2011 Art. 10 Pflicht für den Hersteller; ob reiner Anbau und Kühlung darunter fallen, ist offen; im Gesetz 301-III nur als Recht.",
+      "urteil": "eingeschraenkt",
+      "begruendung": "Die offene Frage lässt sich teilweise klären. (1) Der Anbau selbst fällt nicht unter TR TS 021/2011: Art. 1 schließt „выращивание сельскохозяйственных культур … в естественных условиях“ ausdrücklich aus. (2) Kühlen ist keine Verarbeitung: Die Legaldefinition „переработка (обработка)“ nimmt Einfrieren und Kühlen aus; gekühlte Beeren bleiben unverarbeitete Lebensmittel. (3) Nach der Ernte (Sortieren, Verpacken, Lagern, Inverkehrbringen) gilt Art. 10 Teil 1 für Hersteller und Verkäufer; die HACCP-Pflicht nach Art. 10 Teil 2 knüpft an die „процессы производства (изготовления)“ an, die Abgrenzung zum Packhaus bleibt Auslegungssache. (4) Im nationalen Recht ist 301-III nicht die einzige Quelle: Die Sanitärregeln ҚР ДСМ-36 vom 28.04.2021 (Fassung 02.01.2026), Kapitel 7, verlangen eine Produktionskontrolle nach einem Programm auf HACCP-Grundlage für Objekte der Lebensmittelherstellung. Das bestätigt eine regionale Sanepid-Abteilung. Der Satz „nur als Recht“ ist deshalb irreführend.",
+      "belege": [
+        {
+          "url": "https://urfu.ru/fileadmin/user_upload/common_files/docs_units/oseb/TR_TS_021-2011_Tekhnicheskii_reglament_Tamozhennogo_sojuza_O_bezopasnosti_pishchevoi_produkcii.pdf",
+          "familie": "kk_en",
+          "titel": "ТР ТС 021/2011 (Fassung 14.07.2021), Art. 1",
+          "zitat": "Настоящий технический регламент не распространяется на … выращивание сельскохозяйственных культур и продуктивных животных в естественных условиях.",
+          "datum_quelle": "2021-07-14",
+          "adilet_id": "H11T0000880"
+        },
+        {
+          "url": "https://urfu.ru/fileadmin/user_upload/common_files/docs_units/oseb/TR_TS_021-2011_Tekhnicheskii_reglament_Tamozhennogo_sojuza_O_bezopasnosti_pishchevoi_produkcii.pdf",
+          "familie": "kk_en",
+          "titel": "ТР ТС 021/2011, Art. 4 (Begriff переработка)",
+          "zitat": "переработка ( обработка ) - тепловая обработка ( кроме замораживания и охлаждения ), копчение , консервирование …",
+          "datum_quelle": "2021-07-14",
+          "adilet_id": "H11T0000880"
+        },
+        {
+          "url": "https://tekelinews.kz/news/cat-16/9663/",
+          "familie": "behoerde_faq",
+          "titel": "Внедрение системы ХАССП в пищевой промышленности (Р. Искандарова, и.о. руководителя Текелийского городского управления санитарно-эпидемиологического контроля)",
+          "zitat": "Изготовитель должен разработать, внедрить и поддерживать процедуры, основанные на принципах ХАССП (Grundlage: ТР ТС 021/2011 Art. 10 und Санитарные правила, приказ ҚР ДСМ-36 от 28.04.2021, глава 7)",
+          "datum_quelle": "2022-11-04",
+          "adilet_id": "V2100022673"
+        },
+        {
+          "url": "https://naceks.kz/sistema-xassp-kak-obespechit-bezopasnost-produktov-pitaniya/",
+          "familie": "fachpresse",
+          "titel": "Система ХАССП. Как обеспечить безопасность продуктов питания (АО НаЦЭкС)",
+          "zitat": "с 1 февраля 2015 года в обязательном порядке была введена система ХАССП",
+          "datum_quelle": "unklar",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://cdb.kz/sistema/pravovaya-baza/o-bezopasnosti-pishchevoy-produktsii/",
+          "familie": "fachpresse",
+          "titel": "Закон 301-III, Art. 10 Nr. 6",
+          "zitat": "разрабатывать, внедрять и поддерживать процедуры, основанные на принципах ХАССП",
+          "datum_quelle": "Spiegel-Fassung 30.12.2020",
+          "adilet_id": "Z070000301_"
+        }
+      ],
+      "korrektur": "Der Anbau im Freiland fällt ausdrücklich nicht unter TR TS 021/2011 (Art. 1). Kühlen gilt nicht als Verarbeitung. Für Sortieren, Verpacken, Lagern und Inverkehrbringen gelten die Sicherheitspflichten nach Art. 10 Teil 1; ob ein Packhaus mit Kühlung als „Herstellungsprozess“ die HACCP-Pflicht nach Art. 10 Teil 2 auslöst, ist nicht amtlich geklärt. National verlangen die Sanitärregeln ҚР ДСМ-36 (Kap. 7) für Objekte der Lebensmittelherstellung eine Produktionskontrolle auf HACCP-Grundlage; im Gesetz 301-III steht HACCP nur unter den Rechten."
+    },
+    {
+      "aussage_id": "blick:Lebensmittelrecht / B-C6-028, B-C6-025",
+      "aussage": "Registriernummer (учетный номер) für Objekte der Lebensmittelherstellung durch Sanepid; Anzeige des Tätigkeitsbeginns (TR TS 021 Art. 37).",
+      "urteil": "eingeschraenkt",
+      "begruendung": "Die Vergabe durch die Sanepid-Behörde stimmt; maßgeblich sind heute die Regeln in Anlage 2 zum Erlass ҚР ДСМ-336/2020 (in Kraft 22.01.2021, Fassung 12.07.2026), nicht mehr Erlass 407/2015. Einschränkung 1: Die Tätigkeitsarten der Anlage nennen Verarbeiter (u. a. „Плодоперерабатывающие объекты“, „Объекты по переработке сельскохозяйственной продукции растительного происхождения“, „Другие“); eine eigene Kategorie für Anbau, Kühlung oder Lagerung frischer Beeren gibt es nicht. Ob ein reiner Kühl- und Packbetrieb eine Nummer braucht, ist offen. Einschränkung 2: Kasachstan setzt Art. 37 TR TS 021 nicht nur als formlose Anzeige um. Objekte „оптового хранения и (или) реализации пищевой продукции“ und Obstverarbeiter stehen laut Liste ҚР ДСМ-220/2020 unter den Objekten HOHER epidemischer Bedeutung. Dafür ist ein санитарно-эпидемиологическое заключение nötig, egov führt es als gemeinsame Leistung mit der Vergabe der Registriernummer. Nur Objekte geringer Bedeutung zeigen den Beginn per Mitteilung über egov an.",
+      "belege": [
+        {
+          "url": "https://prg.kz/Document/?doc_id=38966737",
+          "familie": "fachpresse",
+          "titel": "Правила присвоения учетных номеров объектам производства пищевой продукции … (приложение 2 к приказу ҚР ДСМ-336/2020)",
+          "zitat": "присвоения учетных номеров объектам производства пищевой продукции, подлежащим государственному контролю и надзору в сфере санитарно-эпидемиологического благополучия населения",
+          "datum_quelle": "2026-07-12",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://cdb.kz/sistema/pravovaya-baza/o-nekotorykh-voprosakh-okazaniya-gosudarstvennykh-uslug-v-sfere-sanitarno-epidemiologicheskogo-blago/",
+          "familie": "fachpresse",
+          "titel": "О некоторых вопросах оказания государственных услуг в сфере санитарно-эпидемиологического благополучия населения (ҚР ДСМ-336/2020)",
+          "zitat": "Объекты по переработке сельскохозяйственной продукции растительного происхождения (Tätigkeitsart; keine Kategorie für Lagerung/Kühlung frischer Ware)",
+          "datum_quelle": "unklar",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://prg.kz/Document/?doc_id=35806972",
+          "familie": "fachpresse",
+          "titel": "Утвержден перечень продукции и эпидемически значимых объектов … (аннотация к ҚР ДСМ-220/2020)",
+          "zitat": "объекты оптового хранения и (или) реализации пищевой продукции … плодоперерабатывающие объекты, объекты по переработке сельскохозяйственной продукции растительного происхождения",
+          "datum_quelle": "2020-11-30",
+          "adilet_id": "V2000021710"
+        },
+        {
+          "url": "https://egov.kz/cms/ru/services/passEL4-R18_mz",
+          "familie": "behoerde_faq",
+          "titel": "Выдача санитарно-эпидемиологического заключения о соответствии объекта высокой эпидемической значимости … и присвоение учетного номера объекту производства пищевой продукции (egov)",
+          "zitat": "Выдача санитарно-эпидемиологического заключения о соответствии объекта высокой эпидемической значимости нормативным правовым актам … и присвоение учетного номера объекту производства пищевой продукции (Titel der Leistung)",
+          "datum_quelle": "unklar",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://prg.kz/document/?doc_id=36265545",
+          "familie": "atameken",
+          "titel": "Памятка для предпринимателя: как правильно организовать пищевой бизнес (НПП «Атамекен»)",
+          "zitat": "обязаны уведомить органы СЭС о начале деятельности … через портал электронного правительства (für Objekte geringer epidemischer Bedeutung)",
+          "datum_quelle": "2018-05-17 (älter)",
+          "adilet_id": ""
+        }
+      ],
+      "korrektur": "Die Registriernummer vergibt die Sanepid-Behörde nach Anlage 2 zu Erlass ҚР ДСМ-336/2020 (Nachfolger von 407/2015) für Objekte der Lebensmittelherstellung; eine Kategorie für Anbau oder Kühlung frischer Beeren fehlt, die Pflicht für einen reinen Kühl-/Packbetrieb ist offen. Betreibt Damicon ein Großhandelslager für Lebensmittel oder verarbeitet Obst, gilt das Objekt nach ҚР ДСМ-220/2020 als Objekt hoher epidemischer Bedeutung: Vor Betriebsbeginn ist ein санитарно-эпидемиологическое заключение einzuholen (egov-Leistung zusammen mit der Registriernummer). Die bloße Anzeige über egov gilt nur für Objekte geringer Bedeutung."
+    },
+    {
+      "aussage_id": "blick:Lebensmittelrecht / B-C6-024",
+      "aussage": "Konformitätserklärung (декларация о соответствии) auch für frische Beeren (TR TS 021 Art. 23).",
+      "urteil": "bestaetigt",
+      "begruendung": "Art. 23 Teil 1 nimmt nur unverarbeitete tierische Lebensmittel, spezialisierte Lebensmittel und Essig aus; frische pflanzliche Ware ist nicht ausgenommen. Zertifizierungsdienstleister aus der EAWU bestätigen die Pflicht für frisches Obst, Gemüse und Beeren (Partie- oder Seriendeklaration). Hinweis: Fundstelle ist der Wortlaut in der Fassung 14.07.2021; eine Änderung von Art. 23 bis 2026 wurde nicht gefunden.",
+      "belege": [
+        {
+          "url": "https://urfu.ru/fileadmin/user_upload/common_files/docs_units/oseb/TR_TS_021-2011_Tekhnicheskii_reglament_Tamozhennogo_sojuza_O_bezopasnosti_pishchevoi_produkcii.pdf",
+          "familie": "kk_en",
+          "titel": "ТР ТС 021/2011, Art. 23 Teil 1",
+          "zitat": "Декларированию соответствия подлежит выпускаемая в обращение на таможенной территории Таможенного союза пищевая продукция, за исключением: 1) непереработанной пищевой продукции животного происхождения; 2) специализированной пищевой продукции; 3) уксуса.",
+          "datum_quelle": "2021-07-14",
+          "adilet_id": "H11T0000880"
+        },
+        {
+          "url": "https://certifikat.by/articles/podtverzhdenie-sootvetstviya-fruktov-i-ovoshchey/",
+          "familie": "fachpresse",
+          "titel": "Декларация соответствия на овощи и фрукты – ТР ТС 021/2011",
+          "zitat": "Любая свежая плодоовощная продукция, которая планируется к реализации на территории Евразийского экономического союза, подлежит обязательному подтверждению соответствия.",
+          "datum_quelle": "2023-10-19",
+          "adilet_id": ""
+        }
+      ],
+      "korrektur": ""
+    },
+    {
+      "aussage_id": "blick:GLOBALG.A.P. (Handelsketten) / B-C6-031",
+      "aussage": "Anforderungen der Handelsketten (Magnum, Small, Metro, Galmart) an Beerenlieferanten: Magnum verlangt vollständiges Dokumentenpaket, 70 % Restlaufzeit, EDI; HACCP/GLOBALG.A.P. nicht ausdrücklich; Handelsketten verlangen GLOBALG.A.P.",
+      "urteil": "eingeschraenkt",
+      "begruendung": "Für Magnum bestätigt: nur juristische Personen, vollständiges Paket aus Dokumenten, Zertifikaten und Lizenzen, mindestens 70 % Restlaufzeit, stabile Lieferungen (Stand 2018). Veröffentlichte Lieferantenanforderungen von Small, Galmart oder Metro für Frischobst 2025/2026 fanden sich nicht; GLOBALG.A.P. als Kettenforderung ist nur für Metro belegt (2019). Die Aussage, Handelsketten allgemein verlangten GLOBALG.A.P., ist deshalb nicht gedeckt. Aus der Fachpresse ergibt sich dagegen, dass die Ketten viele kostenpflichtige Leistungen mit Lieferanten abrechnen (Magnum 34, Metro 16, Small 11, Galmart 3 Leistungsarten); das Handelsgesetz schreibt mindestens 30 % Regalfläche für inländische Waren vor und deckelt die Vergütung laut Forbes bei 5 %.",
+      "belege": [
+        {
+          "url": "https://tengrinews.kz/money/magnum-rasskazali-kakie-trebovaniia-vystavliaiut-353109/",
+          "familie": "fachpresse",
+          "titel": "В Magnum рассказали, какие требования выставляют поставщикам",
+          "zitat": "Magnum работает только с юридическими лицами, готовыми предоставить полный пакет документов, сертификаты и лицензии на товар … не менее 70 процентов (срок годности)",
+          "datum_quelle": "2018-09-07",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://kapital.kz/economic/127533/torgovyye-seti-vzimayut-troynoye-voznagrazhdeniye-s-postavshchikov-za-informuslugi.html",
+          "familie": "fachpresse",
+          "titel": "Торговые сети взимают тройное вознаграждение с поставщиков за информуслуги",
+          "zitat": "Magnum Cash&Carry (34 услуги), «Метро Кеш энд Керри» (16 услуг), «Скиф Трейд» (сеть супермаркетов SMALL - 11 услуг), «Жетi Аспан» (сеть супермаркетов Galmart - 3 услуги)",
+          "datum_quelle": "unklar",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://forbes.kz/news/newsid_240508",
+          "familie": "fachpresse",
+          "titel": "Какие требования предусмотрены к торговым сетям в Казахстане",
+          "zitat": "размер вознаграждения не должен превышать 5% … не менее 30% для размещения отечественного производства",
+          "datum_quelle": "2020-12-25",
+          "adilet_id": ""
+        },
+        {
+          "url": "https://kapital.kz/economic/83027/kak-vnedreniye-standarta-global-g-a-p-pomozhet-agrariyam.html",
+          "familie": "fachpresse",
+          "titel": "Как внедрение стандарта GLOBAL G.A.P. поможет аграриям",
+          "zitat": "Metro Cash & Carry … также предъявляет требования к наличию этого сертификата (sinngemäß)",
+          "datum_quelle": "2019-12-02",
+          "adilet_id": ""
+        }
+      ],
+      "korrektur": "Belegt sind für Magnum: juristische Person, vollständiges Dokumenten- und Zertifikatspaket (praktisch die Konformitätserklärung), mindestens 70 % Restlaufzeit, stabile Lieferung, EDI (Stand 2018). GLOBALG.A.P. als Kettenforderung ist nur für Metro belegt (2019). Von Small und Galmart gibt es keine veröffentlichten Frischware-Anforderungen; sie sind in Lieferantengesprächen zu erfragen. Gesetzlich: mindestens 30 % Regalfläche für inländische Waren, Vergütung der Kette laut Forbes höchstens 5 %."
+    }
+  ],
+  "neue_fakten": [
+    {
+      "id": "N-W4-001",
+      "thema": "Sperre von ЭСФ und СНТ bei Fördermaßnahmen",
+      "aussage": "Werden ЭСФ für eine staatliche Fördermaßnahme an eine Behörde übermittelt, gehen ЭСФ und die verbundenen СНТ in den Status „Заблокирован ИС ЭСФ“; Widerruf sowie zusätzliche oder korrigierte ЭСФ/СНТ sind danach nicht mehr möglich.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "Инструкция КГД МФ РК по отправке ЭСФ в государственный орган для получения мер государственной поддержки (30.12.2025); V2000020209 Pkt. 15",
+      "adilet_id": "V2000020209",
+      "zitat": "ЭСФ и связанные СНТ перейдут в статус «Заблокирован ИС ЭСФ» … их нельзя будет отозвать, осуществить выписку дополнительного/исправленного ЭСФ/СНТ",
+      "url": "https://prg.kz/document/?doc_id=39706681",
+      "familie": "behoerde_faq",
+      "damicon_folge": "Vor Übermittlung an ГИСС Belegprüfung (Betrag, Menge, СНТ) abschließen; nach der Sperre ist keine Korrektur mehr möglich. Status im Belegarchiv mitführen."
+    },
+    {
+      "id": "N-W4-002",
+      "thema": "Sperrlogik Gegenleistungspflicht",
+      "aussage": "Die Antragssperre von 1 bzw. 2 Jahren setzt Nichterfüllung in zwei vorangegangenen Jahren in Folge voraus; höhere Gewalt schließt sie aus. Kontrolle über ЭСФ-Daten zu Einkauf und Verkauf.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "V2000020209 Pkt. 10-1 i. d. F. Erlass vom 27.01.2026 (in Kraft 03.02.2026)",
+      "adilet_id": "V2000020209",
+      "zitat": "В случае неисполнения обязательств в течение двух предыдущих лет подряд в первый раз … на один год",
+      "url": "https://www.zakon.kz/pravo/6506594-izmenilis-pravila-subsidirovaniya-zatrat-pererabatyvayushchikh-i-selkhozpredpriyatiy.html",
+      "familie": "fachpresse",
+      "damicon_folge": "Kennzahl Bruttoproduktion (Tsd. Tenge) je Jahr gegen Vorjahr führen; Frühwarnung nach dem ersten verfehlten Jahr; Nachweise höherer Gewalt (Frost, Hagel) sofort sichern."
+    },
+    {
+      "id": "N-W4-003",
+      "thema": "Förderung Bio-Zertifizierung",
+      "aussage": "Erzeuger von Bioprodukten erhalten aus dem örtlichen Haushalt 50 % der Kosten des Konformitätszertifikats, höchstens 400 MRP je Finanzjahr; Antrag 01.02. bis 01.12., in Kraft seit 01.01.2025.",
+      "einstufung": "empfehlung",
+      "rechtsgrundlage": "Erlass MSH Nr. 372 vom 06.11.2024 „Об утверждении Правил субсидирования части расходов, понесенных при подтверждении соответствия производства органической продукции“",
+      "adilet_id": "V2400035345",
+      "zitat": "Размер субсидии, выплачиваемый из местного бюджета, составляет 50 (пятьдесят) процентов расходов производителя органической продукции от стоимости сертификата соответствия",
+      "url": "https://zakon.mybuh.kz/rus/docs/v2400035345/",
+      "familie": "fachpresse",
+      "damicon_folge": "Nur relevant bei Bio-Strategie; Zertifikatskosten und Antrag im Förderdossier führen."
+    },
+    {
+      "id": "N-W4-004",
+      "thema": "Bio-Gesetz 89-VIII",
+      "aussage": "Gesetz 89-VIII vom 10.06.2024 „О производстве и обороте органической продукции“ ersetzt 423-V, tritt sechs Monate nach Veröffentlichung in Kraft; es führt ein System der Erfassung und Rückverfolgbarkeit, das nationale Biozeichen, Gruppenzertifizierung/PGS für Kleinerzeuger und Aufsicht durch die Sanepid-Behörden ein; 50 % Zertifizierungsförderung, Förderung organischer Dünger ab 01.01.2028.",
+      "einstufung": "unklar",
+      "rechtsgrundlage": "Закон РК от 10.06.2024 № 89-VIII",
+      "adilet_id": "",
+      "zitat": "система учета и прослеживаемости органической продукции … нанесение национального знака соответствия органической продукции",
+      "url": "https://www.inform.kz/ru/mazhilis-prinyal-zakon-o-proizvodstve-i-oborote-organicheskoy-produktsii-2bc133",
+      "familie": "behoerde_faq",
+      "damicon_folge": "Pflicht nur, wenn Damicon Ware als „органическая“ vermarktet; dann Rückverfolgbarkeit im staatlichen System und Rückrufpflicht beim Biozeichen einplanen."
+    },
+    {
+      "id": "N-W4-005",
+      "thema": "Phytosanitärzertifikat Export",
+      "aussage": "Für den Export von Frischobst und Beeren stellt das Komitee für Staatsinspektion im АПК (МСХ) über egov/ЦОН kostenlos ein Phytosanitärzertifikat aus: Frist 3 Arbeitstage, oder 3 Arbeitsstunden, wenn ein Gutachten der Quarantäne-Expertise beiliegt, das nicht älter als 7 Kalendertage ist und die Anforderungen des Bestimmungslandes bestätigt.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "Standard der staatlichen Leistung „Выдача фитосанитарного сертификата на вывоз подкарантинной продукции за пределы Республики Казахстан“",
+      "adilet_id": "",
+      "zitat": "заключения карантинной фитосанитарной экспертизы подтверждающего соответствие заявленной партии подкарантинной продукции карантинным фитосанитарным требованиям страны назначения, выданным не ранее 7 (семи) календарных дней до даты подачи заявления … в течение 3 (трех) рабочих часов … Стоимость услуги бесплатно",
+      "url": "https://gov4c.kz/upload/iblock/ae3/ae3a3773a4fa04f9b1a3b2b92198bc3c.pdf",
+      "familie": "behoerde_faq",
+      "damicon_folge": "Exportablauf: Laborgutachten je Partie (max. 7 Tage alt) vor Verladung einplanen; Zertifikatsnummer an Partie und СНТ knüpfen. Stand des Leistungsstandards 2020, aktuelle Fassung prüfen."
+    },
+    {
+      "id": "N-W4-006",
+      "thema": "Export Russland – Rosselkhoznadzor",
+      "aussage": "Rosselkhoznadzor verhängt gegenüber Kasachstan wiederholt vorübergehende Einfuhrbeschränkungen für pflanzliche Ware (seit 17.10.2024 u. a. Tomaten, Paprika, frische Melonen, Weizen, Lein, Linsen) und betriebsbezogene Sperren (02.05.2026 Geflügelnebenprodukte). Beeren sind derzeit nicht betroffen; eine eigene Registrierung kasachischer Beerenexporteure bei Rosselkhoznadzor wurde nicht gefunden, Grundlage bleibt das kasachische Phytosanitärzertifikat plus EAWU-Konformitätserklärung.",
+      "einstufung": "unklar",
+      "rechtsgrundlage": "Mitteilungen Rosselkhoznadzor 17.10.2024; Schreiben ФС-АРт-7/7202-3 vom 29.04.2026",
+      "adilet_id": "",
+      "zitat": "томатов, перцев, сертифицированных Республикой, семян подсолнечника для посева происхождением третьих стран, свежих дынь происхождением Казахстан, пшеницы, семян льна и чечевицы",
+      "url": "https://fsvps.gov.ru/news/uchityvaja-neprinjatie-mer-kazahstanskoj-storonoj-rosselhoznadzor-vvodit-vremennye-ogranichenija-na-vvoz-rjada-vidov-podkarantinnoj-produkcii-iz-kazahstana/",
+      "familie": "behoerde_faq",
+      "damicon_folge": "Exportplanung Russland mit Beobachtung der Rosselkhoznadzor-Meldungen; Ausweichmärkte vorsehen."
+    },
+    {
+      "id": "N-W4-007",
+      "thema": "Export China",
+      "aussage": "Für Kasachstan ist kein Protokoll zum Export frischer Beeren nach China belegt; freigegeben sind u. a. Getreide-/Futterprodukte und seit 11/2023 Steinobst mit Registrierung der Gärten und Packhäuser bei МСХ und Zulassung durch die GACC. Kirgistan erhielt im August 2026 Zugang für Himbeeren, Brombeeren und schwarze Johannisbeeren; Erdbeeren lehnte China ab.",
+      "einstufung": "unklar",
+      "rechtsgrundlage": "Protokoll Kasachstan–China Steinobst (2023); kirgisische Regierungsverfügung vom 27.08.2026",
+      "adilet_id": "",
+      "zitat": "All fruit orchards and packing enterprises wishing to export stone fruits to China must be registered with the Ministry of Agriculture of the Republic of Kazakhstan and approved by both the Ministry of Agriculture … and the General Administration of Customs of the People's Republic of China.",
+      "url": "https://forbes.kz/news/newsid_313541",
+      "familie": "fachpresse",
+      "damicon_folge": "China ist für frische Beeren derzeit kein erreichbarer Markt; bei künftigem Protokoll ist die Registrierung von Feld und Packhaus (GACC) die Eintrittshürde – Feld- und Packhausdaten schon jetzt so führen, dass eine Registrierung möglich ist."
+    },
+    {
+      "id": "N-W4-008",
+      "thema": "Export EU",
+      "aussage": "Frische Beeren aus Drittländern brauchen für die EU ein Phytosanitärzertifikat; ausgenommen sind nur Banane, Ananas, Kokosnuss, Durian und Datteln (DVO (EU) 2019/2072 Anhang XI Teil C).",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "Durchführungsverordnung (EU) 2019/2072, Anhang XI",
+      "adilet_id": "",
+      "zitat": "No phytosanitary certificate is required for the import of five fruits: banana, pineapple, coconut, durian and dates (annex XI - part C of Regulation 2019/2072).",
+      "url": "https://www.fasfc.be/import-belgiumplants-and-plant-products/plant-health-check",
+      "familie": "kk_en",
+      "damicon_folge": "EU-Export nur mit Phytosanitärzertifikat und Einhaltung der EU-Rückstandshöchstgehalte; GLOBALG.A.P. ist dort faktisch Marktzugangsvoraussetzung."
+    },
+    {
+      "id": "N-W4-009",
+      "thema": "Sanepid-Gutachten für Großhandelslager",
+      "aussage": "Objekte des Großhandelslagers bzw. -verkaufs von Lebensmitteln sowie Obstverarbeiter zählen zu den Objekten hoher epidemischer Bedeutung; sie brauchen ein санитарно-эпидемиологическое заключение (egov-Leistung zusammen mit der Registriernummer).",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "Erlass ҚР ДСМ-220/2020 (Liste der epidemisch bedeutsamen Objekte); Erlass ҚР ДСМ-336/2020",
+      "adilet_id": "V2000021710",
+      "zitat": "объекты оптового хранения и (или) реализации пищевой продукции … плодоперерабатывающие объекты, объекты по переработке сельскохозяйственной продукции растительного происхождения",
+      "url": "https://prg.kz/Document/?doc_id=35806972",
+      "familie": "fachpresse",
+      "damicon_folge": "Vor Inbetriebnahme des Kühllagers klären, ob es als Großhandelslager gilt; dann Gutachten mit Laborprotokollen und Katasterpass beantragen. Frage an den Prüfer aufnehmen."
+    },
+    {
+      "id": "N-W4-010",
+      "thema": "Kostenerstattung internationale Zertifizierung",
+      "aussage": "Die Erstattung für internationale Produktzertifizierung wurde von 3 000 auf 15 000 MRP angehoben; Betreiber ist QazIndustry, Zielgruppe ist die verarbeitende Industrie. QazTrade erstattet 30–80 % der Exportförderkosten nur für „обработанные“ Waren. Für frische Beeren und GLOBALG.A.P. ist keine passende Erstattung belegt.",
+      "einstufung": "unklar",
+      "rechtsgrundlage": "Regeln des Ministeriums für Industrie und Bau zur Industrieförderung (2026); Erlass МТИ № 314-НҚ vom 01.08.2022",
+      "adilet_id": "",
+      "zitat": "в пять раз увеличен размер компенсации затрат на международную сертификацию продукции — с 3 000 до 15 000 МРП",
+      "url": "https://noks.kz/news/kazahstan_delaet_stavku_na_svoe_proizvod",
+      "familie": "fachpresse",
+      "damicon_folge": "Nur bei Verarbeitung (z. B. TK-Beeren, Püree) prüfen; für Frischware GLOBALG.A.P.-Kosten selbst tragen."
+    },
+    {
+      "id": "N-W4-011",
+      "thema": "Pestizidinformation als Rohstoffanforderung",
+      "aussage": "Pflanzliches Lebensmittel-Rohmaterial darf zur Herstellung nur verwendet werden, wenn Informationen über die beim Anbau eingesetzten Pestizide und die Begasung von Räumen und Behältern vorliegen.",
+      "einstufung": "pflicht",
+      "rechtsgrundlage": "ТР ТС 021/2011 Art. 13 Teil 2",
+      "adilet_id": "H11T0000880",
+      "zitat": "Продовольственное ( пищевое ) сырье растительного происхождения используется для производства ( изготовления ) пищевой продукции при наличии информации о применении пестицидов при выращивании соответствующих растений , фумигации производственных помещений и тары",
+      "url": "https://urfu.ru/fileadmin/user_upload/common_files/docs_units/oseb/TR_TS_021-2011_Tekhnicheskii_reglament_Tamozhennogo_sojuza_O_bezopasnosti_pishchevoi_produkcii.pdf",
+      "familie": "kk_en",
+      "damicon_folge": "Spritzbuch je Feld und Partie muss an Verarbeiter-Kunden übergeben werden können; auch ohne GLOBALG.A.P. gesetzlich gefordert, sobald Beeren weiterverarbeitet werden."
+    }
+  ]
+}

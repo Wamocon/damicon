@@ -1,3 +1,4 @@
+import { Download } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Card, DataTable, Section, StatusPill, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
@@ -95,14 +96,36 @@ export async function FoerdermittelAnsicht() {
                       <span className="text-muted-foreground">-</span>
                     ) : (
                       <div className="flex flex-wrap gap-1">
-                        {d.dokumente.map((doc) => (
-                          <span
-                            key={doc.id}
-                            className="rounded-full border border-border px-2 py-0.5 text-[11px] text-foreground"
-                          >
-                            {doc.name}
-                          </span>
-                        ))}
+                        {d.dokumente.map((doc) =>
+                          // Mit Link ein signierter Download, sonst nur der Name:
+                          // ein toter Link waere schlechter als gar keiner. Gibt
+                          // es die Datei, aber keinen Link (Speicherfehler),
+                          // steht das dabei statt eines stillen "keine Datei".
+                          doc.dateiUrl ? (
+                            <a
+                              key={doc.id}
+                              href={doc.dateiUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[11px] font-semibold text-primary hover:underline"
+                            >
+                              <Download className="h-3 w-3" />
+                              {doc.name}
+                            </a>
+                          ) : (
+                            <span
+                              key={doc.id}
+                              className="rounded-full border border-border px-2 py-0.5 text-[11px] text-foreground"
+                            >
+                              {doc.name}
+                              {doc.storagePath ? (
+                                <span className="ml-1 text-muted-foreground">
+                                  ({t("linkNichtVerfuegbar")})
+                                </span>
+                              ) : null}
+                            </span>
+                          ),
+                        )}
                       </div>
                     )}
                   </td>

@@ -1,0 +1,230 @@
+{
+ "K1400000235": {
+  "geladen": true,
+  "laenge": 1942837,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "K1500000375": {
+  "geladen": true,
+  "laenge": 811915,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "K1500000414": {
+  "geladen": true,
+  "laenge": 474291,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "K1700000123": {
+  "geladen": true,
+  "laenge": 2363991,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "K2500000178": {
+  "geladen": true,
+  "laenge": 278712,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "K2500000214": {
+  "geladen": true,
+  "laenge": 2490383,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "K2600000255": {
+  "geladen": true,
+  "laenge": 129787,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "V1200007982": {
+  "geladen": true,
+  "laenge": 13269,
+  "status": "aufgehoben",
+  "status_beleg": "Сноска. Утратило силу постановлением Правления Национального Банка РК от 27.03.2017 № 47 (вводится в действие по истечении десяти календарных дней после дня его первого официального опубликования)."
+ },
+ "V1300008502": {
+  "geladen": true,
+  "laenge": 12171,
+  "status": "aufgehoben",
+  "status_beleg": "Сноска. Утратил силу совместным приказом Министра сельского хозяйства РК от 26.06.2015 № 15-08/579 и Министра национальной экономики РК от 13.07.2015 № 525 (вводится в действие по истечении десяти календарных дней после "
+ },
+ "V1500010954": {
+  "geladen": true,
+  "laenge": 43221,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "V1500011744": {
+  "geladen": true,
+  "laenge": 23918,
+  "status": "aufgehoben",
+  "status_beleg": "Сноска. Утратил силу совместным приказом Министра здравоохранения и социального развития РК от 25.12.2015 № 1022 и Министра национальной экономики РК от 28.12.2015 № 801 (вводится в действие с 01.01.2016)."
+ },
+ "V1500011792": {
+  "geladen": true,
+  "laenge": 100287,
+  "status": "aufgehoben",
+  "status_beleg": "Сноска. Утратил силу совместным приказом и.о. Министра национальной экономики РК от 30.12.2015 № 835 и Министра энергетики РК от 15.12.2015 № 721 (вводится в действие с 01.01.2016)."
+ },
+ "V1500012544": {
+  "geladen": true,
+  "laenge": 26927,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "V1500012656": {
+  "geladen": true,
+  "laenge": 52437,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "V1500012744": {
+  "geladen": true,
+  "laenge": 109973,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "V1500012779": {
+  "geladen": true,
+  "laenge": 84240,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "V1700015997": {
+  "geladen": true,
+  "laenge": 271519,
+  "status": "aufgehoben",
+  "status_beleg": "Сноска. Утратил силу приказом и.о. Министра культуры и информации РК от 30.06.2025 № 298-НҚ (вводится в действие по истечении десяти календарных дней после дня его первого официального опубликования)."
+ },
+ "V1800016689": {
+  "geladen": true,
+  "laenge": 338842,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "V1800017320": {
+  "geladen": true,
+  "laenge": 246577,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "V1800017871": {
+  "geladen": true,
+  "laenge": 106994,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "V1800017991": {
+  "geladen": true,
+  "laenge": 181833,
+  "status": "aufgehoben",
+  "status_beleg": "Сноска. Утратил силу приказом Министра финансов РК от 03.10.2025 № 567 (вводится в действие с 01.01.2026)."
+ },
+ "V1800018000": {
+  "geladen": true,
+  "laenge": 57201,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "V2000020209": {
+  "geladen": true,
+  "laenge": 376970,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "V2200026686": {
+  "geladen": true,
+  "laenge": 9064,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "V2200030964": {
+  "geladen": true,
+  "laenge": 963362,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "V2300033054": {
+  "geladen": true,
+  "laenge": 39172,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "V2300033339": {
+  "geladen": true,
+  "laenge": 197259,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "V2500037055": {
+  "geladen": true,
+  "laenge": 21819,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "V2500037316": {
+  "geladen": true,
+  "laenge": 32319,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "V2500037317": {
+  "geladen": true,
+  "laenge": 137776,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "Z070000234_": {
+  "geladen": true,
+  "laenge": 60595,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "Z070000301_": {
+  "geladen": true,
+  "laenge": 64858,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "Z1300000094": {
+  "geladen": true,
+  "laenge": 84113,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "Z1400000240": {
+  "geladen": true,
+  "laenge": 1475084,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "Z1500000392": {
+  "geladen": true,
+  "laenge": 156732,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "Z2500000239": {
+  "geladen": true,
+  "laenge": 246347,
+  "status": "gilt",
+  "status_beleg": ""
+ },
+ "Z980000214_": {
+  "geladen": true,
+  "laenge": 38052,
+  "status": "aufgehoben",
+  "status_beleg": "Сноска. Утратил силу Кодексом РК от 29.10.2015 № 375-V (вводится в действие с 01.01.2016)."
+ },
+ "Z980000304_": {
+  "geladen": true,
+  "laenge": 84345,
+  "status": "gilt",
+  "status_beleg": ""
+ }
+}

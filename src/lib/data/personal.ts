@@ -57,6 +57,7 @@ export async function ladePersonalUebersicht(): Promise<PersonalUebersicht> {
     { data: einsatzRows, error: einsatzFehler },
     { data: bedarfRows, error: bedarfFehler },
     { data: offeneRows, error: offeneFehler },
+    { data: esutdRows },
   ] = await Promise.all([
     supabase.from("brigaden").select("id, name, vorarbeiter, staerke, plantagen ( name )").order("name"),
     supabase
@@ -77,6 +78,12 @@ export async function ladePersonalUebersicht(): Promise<PersonalUebersicht> {
       .eq("status", "geplant")
       .gte("geplant_fuer", heute)
       .order("geplant_fuer"),
+    // Migration 20261025000000: Meldefrist kommt fertig berechnet aus der
+    // View, kein Nachbau der Werktagsregel hier - siehe deren Kommentar.
+    supabase
+      .from("esutd_vertraege_mit_frist")
+      .select("pfluecker_id, meldefrist_am, created_at")
+      .order("created_at", { ascending: false }),
   ]);
 
   if (brigadenFehler || pflueckerFehler || einsatzFehler || bedarfFehler || offeneFehler) {
@@ -96,6 +103,19 @@ export async function ladePersonalUebersicht(): Promise<PersonalUebersicht> {
     }
   }
 
+  // Juengste ESUTD-Meldefrist je Pfluecker - esutdRows ist bereits nach
+  // created_at absteigend sortiert, derselbe "erster Treffer gewinnt"-Aufbau
+  // wie letzteAbrechnung oben.
+  const esutdFrist = new Map<string, string | null>();
+  for (const row of esutdRows ?? []) {
+    // pfluecker_id ist in der Basistabelle not null, aber Postgres/Supabase
+    // vergibt Sichten-Spalten grundsaetzlich als nullable im generierten Typ -
+    // die Pruefung ist eine Typformalitaet, kein erwarteter Datenzustand.
+    if (row.pfluecker_id && !esutdFrist.has(row.pfluecker_id)) {
+      esutdFrist.set(row.pfluecker_id, row.meldefrist_am);
+    }
+  }
+
   const pfluecker: PfleuckerZeile[] = (pflueckerRows ?? []).map((p) => {
     const brigade = einsAus(p.brigaden);
     const abrechnung = letzteAbrechnung.get(p.id);
@@ -106,6 +126,7 @@ export async function ladePersonalUebersicht(): Promise<PersonalUebersicht> {
       brigadeId: p.brigade_id,
       brigadeName: brigade?.name ?? null,
       esutd: p.esutd,
+      esutdFaelligkeit: esutdFrist.get(p.id) ?? null,
       letzteMengeKg: abrechnung?.mengeKg ?? null,
       letzterQualitaetsfaktor: abrechnung?.qualitaetsfaktor ?? null,
     };

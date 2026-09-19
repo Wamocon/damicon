@@ -1,6 +1,7 @@
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Card, DataTable, Section, StatusPill } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
+import { FaelligkeitAnzeige } from "@/components/db/faelligkeit-anzeige";
 import {
   PfleuckerBrigadeZuweisenFormular,
   TerminBrigadeZuweisenFormular,
@@ -127,9 +128,12 @@ export async function PersonalAnsicht() {
               <td className="px-3 py-2.5 text-muted-foreground">{p.brigadeName ?? "-"}</td>
               <td className="px-3 py-2.5 font-mono text-xs text-muted-foreground">{p.ausweis}</td>
               <td className="px-3 py-2.5">
-                <StatusPill tone={p.esutd === "erfasst" ? "success" : "warning"}>
-                  {t(`esutd.${p.esutd}`)}
-                </StatusPill>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <StatusPill tone={p.esutd === "erfasst" ? "success" : "warning"}>
+                    {t(`esutd.${p.esutd}`)}
+                  </StatusPill>
+                  {p.esutd === "offen" ? <FaelligkeitAnzeige faelligkeit={p.esutdFaelligkeit} /> : null}
+                </div>
               </td>
               <td className="px-3 py-2.5 text-muted-foreground">
                 {p.letzteMengeKg === null ? "-" : `${format.number(p.letzteMengeKg)} kg`}

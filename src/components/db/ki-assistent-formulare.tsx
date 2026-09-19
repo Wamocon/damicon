@@ -2,7 +2,8 @@
 
 import { useActionState } from "react";
 import { useFormatter, useTranslations } from "next-intl";
-import { MessageSquareWarning, Sparkles } from "lucide-react";
+import { Landmark, MessageSquareWarning, Radar, ShieldAlert, Snowflake, Sparkles, UserRound } from "lucide-react";
+import type { ComponentType } from "react";
 import { Card, StatusPill } from "@/components/ui/kit";
 import {
   AktionsMeldung,
@@ -29,11 +30,45 @@ import {
 
 // --- Chatfenster -------------------------------------------------------------
 
+// Werkzeugname (src/lib/ai/tools.ts) -> Symbol fuer die Aufrufkette unter
+// einer Antwort. Ein unbekannter Name (z. B. ein spaeter ergaenztes Werkzeug,
+// dessen Uebersetzung noch fehlt) faellt auf Radar zurueck statt nichts
+// anzuzeigen - siehe werkzeugLabel() unten fuer denselben Grundsatz beim Text.
+const werkzeugIcon: Record<string, ComponentType<{ className?: string }>> = {
+  mwstStatusAbrufen: Landmark,
+  esutdOffeneFristenAbrufen: UserRound,
+  complianceUebersichtAbrufen: ShieldAlert,
+  kuehlketteAbrufen: Snowflake,
+  risikoRadarAbrufen: Radar,
+};
+
+// Ausgelagert, damit sowohl KiChatFenster (openai_kompatibel-Pfad) als auch
+// KiAssistentAgentChat (anthropic-Pfad, ki-assistent-agent-chat.tsx) dieselbe
+// Eskalation nutzen - eine Server Action, unabhaengig vom Transportweg des
+// eigentlichen Chats.
+export function EskalationsFormular() {
+  const t = useTranslations("kiAssistentAnsicht");
+  const [eskalationStatus, eskalationAction] = useActionState(kiEskalationAnfordern, leer);
+
+  return (
+    <form action={eskalationAction} className="flex items-center gap-2">
+      <PfadFeld />
+      <button
+        type="submit"
+        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-[11px] font-semibold text-foreground transition hover:border-primary"
+      >
+        <MessageSquareWarning className="h-3.5 w-3.5" />
+        {t("eskalationKnopf")}
+      </button>
+      <AktionsMeldung status={eskalationStatus} />
+    </form>
+  );
+}
+
 export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const t = useTranslations("kiAssistentAnsicht");
   const format = useFormatter();
   const [sendenStatus, sendenAction] = useActionState(kiNachrichtSenden, leer);
-  const [eskalationStatus, eskalationAction] = useActionState(kiEskalationAnfordern, leer);
   const istErsteNachricht = verlauf.length === 0;
 
   return (
@@ -73,6 +108,23 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
                     }`}
                   >
                     <p>{n.inhalt}</p>
+                    {n.werkzeugaufrufe && n.werkzeugaufrufe.length > 0 ? (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {n.werkzeugaufrufe.filter((name) => name !== "oeffneBereich").map((name, index) => {
+                          const Icon = werkzeugIcon[name] ?? Radar;
+                          return (
+                            <span
+                              key={`${n.id}-${name}-${index}`}
+                              className="werkzeug-chip inline-flex items-center gap-1 rounded-full bg-background/60 px-2 py-0.5 text-[10px] font-semibold text-foreground/80"
+                              style={{ animationDelay: `${index * 90}ms` }}
+                            >
+                              <Icon className="h-2.5 w-2.5 shrink-0" />
+                              {t(`werkzeug.${name}`)}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    ) : null}
                     <p className="mt-1 text-[10px] opacity-70">
                       {n.rolle === "assistent" ? (n.fallback ? t("fallback.badge") : n.anbieterName) : null}{" "}
                       {format.dateTime(new Date(n.erstelltAm), { timeStyle: "short" })}
@@ -106,17 +158,7 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
         </form>
       </Card>
 
-      <form action={eskalationAction} className="flex items-center gap-2">
-        <PfadFeld />
-        <button
-          type="submit"
-          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-[11px] font-semibold text-foreground transition hover:border-primary"
-        >
-          <MessageSquareWarning className="h-3.5 w-3.5" />
-          {t("eskalationKnopf")}
-        </button>
-        <AktionsMeldung status={eskalationStatus} />
-      </form>
+      <EskalationsFormular />
     </div>
   );
 }

@@ -2,8 +2,9 @@ import { getTranslations } from "next-intl/server";
 import { Download } from "lucide-react";
 import { Card, DataTable, Section, StatusPill, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
-import { DokumentFormular } from "@/components/db/dokumente-formular";
+import { DokumentAendernFormular, DokumentFormular } from "@/components/db/dokumente-formular";
 import { ladeDokumente, type DokumentStatus } from "@/lib/data/dokumente";
+import { ladeDossierOptionen } from "@/lib/data/foerdermittel";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 
@@ -17,16 +18,19 @@ const statusTon: Record<DokumentStatus, Tone> = {
 // privaten Bucket "dokumente" und werden ueber kurzlebige signierte Links
 // ausgeliefert - kein oeffentlicher Direktzugriff.
 export async function DokumenteAnsicht() {
-  const [liste, profil, t] = await Promise.all([
+  const [liste, profil, t, dossiers] = await Promise.all([
     ladeDokumente(),
     getSessionProfile(),
     getTranslations("dokumenteDemo"),
+    // Anforderung 4.12: Auswahl, an welches Foerderdossier der Nachweis haengt.
+    ladeDossierOptionen(),
   ]);
   const k = await getTranslations("dokumentKategorie");
   const v = await getTranslations("dokumenteVerwaltung");
 
   const live = liste.quelle === "db";
   const darfAnlegen = live && hasPermission(profil?.role, "dokumente", "create");
+  const darfAendern = live && hasPermission(profil?.role, "dokumente", "update");
 
   return (
     <div className="space-y-6">
@@ -43,6 +47,7 @@ export async function DokumenteAnsicht() {
             t("col.stand"),
             t("col.status"),
             v("col.datei"),
+            ...(darfAendern ? [v("col.aendern")] : []),
           ]}
         >
           {liste.dokumente.map((doc) => (
@@ -70,15 +75,29 @@ export async function DokumenteAnsicht() {
                     {v("oeffnen")}
                   </a>
                 ) : (
-                  <span className="text-xs text-muted-foreground">{v("keineDatei")}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {doc.hatDatei ? v("linkNichtVerfuegbar") : v("keineDatei")}
+                  </span>
                 )}
               </td>
+              {darfAendern ? (
+                <td className="px-3 py-2.5">
+                  <DokumentAendernFormular
+                    id={doc.id}
+                    name={doc.name}
+                    bezug={doc.bezugRoh}
+                    bezugAnzeige={doc.bezug}
+                    stand={doc.stand}
+                    status={doc.status}
+                  />
+                </td>
+              ) : null}
             </tr>
           ))}
         </DataTable>
       </Section>
 
-      {darfAnlegen ? <DokumentFormular /> : null}
+      {darfAnlegen ? <DokumentFormular dossiers={dossiers} /> : null}
 
       <Card className="bg-muted/30 text-xs leading-5 text-muted-foreground">
         {t("note")}

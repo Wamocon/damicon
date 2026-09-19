@@ -6,6 +6,9 @@ import { Link } from "@/i18n/navigation";
 import { LocaleSwitcher } from "@/components/site/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PersonaSwitcher, usePersona } from "@/components/dashboard/persona";
+import { Himbeere } from "@/components/ki/himbeere";
+import { useKiPane } from "@/components/ki/ki-pane-kontext";
+import { cn } from "@/lib/utils";
 import { SyncStatus } from "@/components/dashboard/sync-status";
 import { abmelden } from "@/app/[locale]/login/actions";
 
@@ -64,6 +67,31 @@ function Benutzerbereich() {
   );
 }
 
+function KiFragenKnopf() {
+  const t = useTranslations("dashboard");
+  const { verfuegbar, offen, umschalten, modus } = useKiPane();
+  if (!verfuegbar) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={umschalten}
+      aria-pressed={offen}
+      title={t("askAiHinweis")}
+      className={cn(
+        "ki-fragen-knopf inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border px-3 text-sm font-semibold transition-colors",
+        offen
+          ? "border-primary/40 bg-primary/10 text-primary"
+          : "border-border bg-card text-foreground hover:bg-muted",
+        offen && modus === "agent" && "ki-fragen-knopf--agent",
+      )}
+    >
+      <Himbeere groesse={17} />
+      <span>{t("askAi")}</span>
+    </button>
+  );
+}
+
 export function DashboardTopbar() {
   const t = useTranslations("dashboard");
   // Anforderung 2.5: der Sync-Indikator ist nur fuer echte, angemeldete
@@ -80,6 +108,7 @@ export function DashboardTopbar() {
         <span className="truncate">{t("searchPlaceholder")}</span>
       </div>
       <div className="flex flex-1 items-center justify-end gap-2 sm:flex-none">
+        <KiFragenKnopf />
         <PersonaSwitcher className="hidden lg:inline-flex" />
         <LocaleSwitcher compact />
         <ThemeToggle />

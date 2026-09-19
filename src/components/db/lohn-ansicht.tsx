@@ -2,6 +2,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { Card, DataTable, Section, Stat, StatusPill, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
+  LohnMonatAbzuegeBerechnenFormular,
   LohnPeriodeBerechnenFormular,
   LohnSatzAnlegenFormular,
   LohnStatusFormular,
@@ -31,7 +32,10 @@ export async function LohnAnsicht() {
   const zahl1 = (n: number, stellen = 1) => format.number(n, { maximumFractionDigits: stellen });
   const datum = (iso: string) => format.dateTime(new Date(iso), { dateStyle: "medium" });
 
-  const { satz, abrechnungen, positionen } = uebersicht;
+  const { satz, abrechnungen, positionen, steuersatzKz, monatsabzuege } = uebersicht;
+  const kzt = await getTranslations("lohnAnsicht.kz");
+  const monatName = (monat: number) =>
+    format.dateTime(new Date(Date.UTC(2000, monat - 1, 1)), { month: "long" });
 
   // Derselbe Befund wie im Vorbild (D-H: Warnung, wenn die Mindestlohn-
   // Anhebung jede Zeile trifft und der Faktor damit folgenlos bleibt) - hier
@@ -180,6 +184,94 @@ export async function LohnAnsicht() {
             ))
           )}
         </DataTable>
+      </Section>
+
+      <Section
+        title={kzt("titel")}
+        description={kzt("lead")}
+        action={<DatenquelleBadge quelle={uebersicht.quelle} />}
+      >
+        {steuersatzKz ? (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Stat
+              label={kzt("stat.opv")}
+              value={`${zahl1(steuersatzKz.opvProzent)} %`}
+              helper={kzt("stat.opvHinweis")}
+            />
+            <Stat
+              label={kzt("stat.vosms")}
+              value={`${zahl1(steuersatzKz.vosmsProzent)} %`}
+              helper={kzt("stat.vosmsHinweis")}
+            />
+            <Stat
+              label={kzt("stat.ipn")}
+              value={`${zahl1(steuersatzKz.ipnProzent)} %`}
+              helper={`${kzt("stat.freibetrag")} ${geld(steuersatzKz.ipnFreibetragTenge)}`}
+            />
+            <Stat
+              label={kzt("stat.arbeitgeberlast")}
+              value={`${zahl1(
+                steuersatzKz.opvrProzent + steuersatzKz.soProzent + steuersatzKz.snProzent + steuersatzKz.osmsProzent,
+              )} %`}
+              helper={kzt("stat.arbeitgeberlastHinweis")}
+            />
+          </div>
+        ) : (
+          <Card className="text-center text-xs text-muted-foreground">{kzt("keinSatz")}</Card>
+        )}
+        {steuersatzKz ? (
+          <p className="text-[11px] leading-4 text-muted-foreground">
+            {kzt("quelle")} {steuersatzKz.quelle}
+          </p>
+        ) : null}
+
+        {darfBerechnen ? <LohnMonatAbzuegeBerechnenFormular /> : null}
+
+        <DataTable
+          head={[
+            kzt("col.pfluecker"),
+            kzt("col.monat"),
+            kzt("col.brutto"),
+            kzt("col.opv"),
+            kzt("col.vosms"),
+            kzt("col.ipn"),
+            kzt("col.netto"),
+            kzt("col.arbeitgeberkosten"),
+          ]}
+        >
+          {monatsabzuege.length === 0 ? (
+            <tr>
+              <td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground">
+                {kzt("keineAbzuege")}
+              </td>
+            </tr>
+          ) : (
+            monatsabzuege.map((m) => (
+              <tr key={m.id}>
+                <td className="px-3 py-2.5">
+                  <p className="font-semibold text-foreground">{m.pfluecker}</p>
+                  <p className="font-mono text-[11px] text-muted-foreground">{m.pfleuckerAusweis}</p>
+                </td>
+                <td className="px-3 py-2.5 text-muted-foreground">
+                  {monatName(m.monat)} {m.jahr}
+                </td>
+                <td className="px-3 py-2.5 text-muted-foreground">{geld(m.bruttoGesamtTenge)}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{geld(m.opvTenge)}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{geld(m.vosmsTenge)}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">
+                  {m.ipnTenge === 0 ? (
+                    <StatusPill tone="success">{kzt("steuerfrei")}</StatusPill>
+                  ) : (
+                    geld(m.ipnTenge)
+                  )}
+                </td>
+                <td className="px-3 py-2.5 font-bold text-foreground">{geld(m.nettoTenge)}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{geld(m.arbeitgeberkostenGesamtTenge)}</td>
+              </tr>
+            ))
+          )}
+        </DataTable>
+        <Card className="bg-muted/30 text-xs leading-5 text-muted-foreground">{kzt("note")}</Card>
       </Section>
 
       <Card className="bg-muted/30 text-xs leading-5 text-muted-foreground">{t("note")}</Card>

@@ -1,0 +1,537 @@
+{
+ "agent": "W5",
+ "stand": "2026-09-19",
+ "auftrag": "Blinde Flecken: Prüfungen außerhalb von Runde 1 (Brandschutz, Industriesicherheit, Metrologie, Migration, Personendaten, Pflichtversicherung, Statistik, Kasse/Bargeld, Wasser, Energieaudit)",
+ "hinweis_methode": "Bußgelder und Gesetzeswortlaute (КоАП, Wasserkodex 178-VIII, Steuerkodex 214-VIII, Gesetz 94-V) stammen aus dem amtlichen adilet-Text im lokalen Cache pruefung/adilet-cache (abgerufen 18.09.2026, enthält Änderungen bis 326-VIII). Behördenpraxis, Fristen und neue Erlasse stammen aus Big-Four-, Kanzlei-, Behörden- und Fachpresse-Quellen per WebSearch/WebFetch. adilet.zan.kz selbst war per WebFetch nicht lesbar (JavaScript); Erlasse, die nur als Kennung genannt sind (V1800017647, V2200027172, V2100024864, V2300033453, V2000021295), wurden nicht im Wortlaut geprüft. Umrechnung: 1 MRP 2026 = 4 325 KZT. Nachtrag: Ein versehentlicher Import von werkzeuge/widerlegung_pruefen.py hat dessen Hauptlauf gestartet; dabei wurden 17 weitere adilet-Texte in den Cache geladen (u. a. Z1400000188, Z1100000477, P1200000148). Die dabei erzeugte Ausgabe widerlegung/geprueft/ wurde wieder gelöscht, weil sie auf einem unvollständigen Stand beruhte. Die Zitate in N-W5-002, -004, -011 und -014 stammen aus diesen amtlichen Texten.",
+ "quellenfamilien_genutzt": {
+  "big4": 2,
+  "kanzlei": 2,
+  "behoerde_faq": 5,
+  "atameken": 1,
+  "fachpresse": 14,
+  "kk_en": 3
+ },
+ "suchrunden": 34,
+ "einstufung_je_bereich": [
+  {
+   "bereich": "1 Brandschutz (МЧС)",
+   "einstufung": "trifft sicher",
+   "kurz": "Jeder Betrieb mit Lager und Kühlhaus unterliegt der risikobasierten präventiven Kontrolle mit Besuch durch die staatliche Brandschutzaufsicht des МЧС. Eine Brandschutzerklärung oder Genehmigung gibt es nicht. Ein freiwilliger Brandschutz-Audit durch eine vom МЧС akkreditierte Stelle befreit für ein Jahr von der Kontrolle, nicht aber von außerplanmäßigen Prüfungen. Bußgeld nach КоАП Art. 410."
+  },
+  {
+   "bereich": "2 Industrielle Sicherheit (Kälteanlage, Druckbehälter)",
+   "einstufung": "trifft wahrscheinlich",
+   "kurz": "Druckbehälter über 0,07 MPa gelten als gefährliche technische Einrichtungen und sind beim Territorialdepartement zu registrieren. Das gilt praktisch für jede Kälteanlage mit Sammler. Deklarationspflicht, jährliche Prüfung und Haftpflichtversicherung nach Gesetz 580-II greifen nur bei Ammoniak über dem Schwellenwert der Regierungsverordnung 864. Bei Freon-Anlagen ohne Behälter über 0,07 MPa trifft der Bereich nicht."
+  },
+  {
+   "bereich": "3 Metrologie (Waagen)",
+   "einstufung": "trifft sicher (Verkaufswaagen) / trifft wahrscheinlich (Erntewaagen für Akkordlohn)",
+   "kurz": "Seit Erlass 347-НҚ vom 21.09.2023 gehört die Wägung von Waren bei Handelsgeschäften zu den staatlich geregelten Messungen. Waagen müssen im Register stehen und jährlich geeicht sein. Bußgeld nach КоАП Art. 419: 230 MRP für Kleinunternehmen, das ist der höchste Satz unter den Bereichen dieser Runde."
+  },
+  {
+   "bereich": "4 Migration und ausländische Arbeitskräfte",
+   "einstufung": "trifft sicher",
+   "kurz": "Kirgisische Staatsbürger (EAWU) arbeiten ohne Erlaubnis. Usbekische Staatsbürger brauchen als Saisonkräfte eine Erlaubnis des Akimats innerhalb der Quote von 0,3 %. Die Erntehelferberufe stehen erst seit 01.01.2026 auf der Liste (Erlass 209). Ein Arbeitsimmigrant mit Polizeierlaubnis darf nur in einem Privathaushalt arbeiten. Die Meldung bei der Migrationspolizei ist binnen 3 Arbeitstagen fällig. Bußgeld nach КоАП Art. 519: 100 MRP für Kleinunternehmen."
+  },
+  {
+   "bereich": "5 Schutz personenbezogener Daten",
+   "einstufung": "trifft sicher",
+   "kurz": "Die Lokalisierungspflicht nach Art. 12 wurde durch 326-VIII neu gefasst: Speicherung in einer Datenbank oder einem digitalen Objekt in Kasachstan. Neu ist die Einteilung der Verantwortlichen nach Größe (Art. 25-1). Die Meldung an das Register betrifft nur große Verantwortliche. Nach Fachpresse gelten ab 21.09.2026 neue Schutzregeln mit Protokollierungspflicht für alle Kategorien; der Erlass wurde nicht im Wortlaut geprüft. Kontrolle nur durch außerplanmäßige Prüfung (Art. 27-2). Bußgeld nach КоАП Art. 79 unverändert."
+  },
+  {
+   "bereich": "6 Pflichtversicherung Arbeitsunfall (ОСНС) und Sozialabgaben",
+   "einstufung": "trifft sicher",
+   "kurz": "Ein Vertrag nach Gesetz 30-III ist für alle Arbeitgeber Pflicht, auch für Saisonkräfte. Die Arbeitsinspektion prüft ihn nach Prüfliste. Fehlt er, drohen 160 MRP nach КоАП Art. 230 Teil 2. Sozialabgaben prüft die KGD (Art. 92, beim ersten Verstoß eine Verwarnung)."
+  },
+  {
+   "bereich": "7 Statistik und Meldungen an das Landwirtschaftsministerium",
+   "einstufung": "trifft sicher (Statistik) / unklar (Минсельхоз)",
+   "kurz": "Form 29-сх (Ernte) ist ab 2026 bis 20. November fällig, 1-Т (Arbeit) bis zum 12. nach dem Quartal. Neue Regeln seit 29.12.2025 verlangen, Fehler binnen 1 Arbeitstag zu berichtigen. Bußgeld nach КоАП Art. 497: 14 MRP für Kleinunternehmen. Eine eigenständige Meldepflicht an das Минсельхоз außerhalb der Förderung (gosagro) wurde nicht gefunden."
+  },
+  {
+   "bereich": "8 Kasse/Online-ККМ, Bargeld, Finanzmonitoring",
+   "einstufung": "trifft wahrscheinlich (ККМ nur beim Direktverkauf) / trifft wahrscheinlich (Bargeldlimits) / trifft nicht (AFM als Meldepflichtiger)",
+   "kurz": "Eine ККМ braucht man für Bar-, Karten- und Mobilzahlungen beim Verkauf (Steuerkodex Art. 110), nicht für Lohnzahlungen. Unbare Pflicht gilt über 1 000 MRP nur zwischen Unternehmen. Für die Barabhebung eines Kleinunternehmens liegt die Grenze bei 20 Mio. KZT im Monat; darüber verlangt die Bank den Zweck, und die KGD prüft. Der Betrieb selbst ist kein Subjekt des Finanzmonitorings."
+  },
+  {
+   "bereich": "9 Wasser",
+   "einstufung": "trifft sicher (bei eigenem Brunnen in tieferem Horizont oder Entnahme aus Fluss/Kanal)",
+   "kurz": "Der Wasserkodex 178-VIII vom 09.04.2025 zählt Grundwasserentnahme zur Sondernutzung und verlangt dafür eine Erlaubnis. Ausgenommen sind Brunnen im ersten Grundwasserhorizont, die nicht der zentralen Trinkwasserversorgung dienen. Pflicht sind geeichte Wasserzähler, Primärerfassung und Berichte. Die Kontrolle führt die Beckenwasserinspektion. Bußgeld nach КоАП Art. 141 Teil 2: 100 MRP für Kleinunternehmen."
+  },
+  {
+   "bereich": "10 Energieaudit",
+   "einstufung": "trifft nicht",
+   "kurz": "Energieaudit (alle 5 Jahre) und Energieregister gelten erst ab 1 500 t Steinkohleeinheiten Jahresverbrauch (rund 12 GWh bei Umrechnung nach Heizwert). Das liegt weit über dem Bedarf eines Beeren-Kühllagers."
+  }
+ ],
+ "pruefungen": [
+  {
+   "aussage_id": "B-C7-016",
+   "aussage": "Datenlokalisierung: Personenbezogene Daten sind in einer Datenbank auf dem Gebiet Kasachstans zu speichern; ob Abs. 2 durch 326-VIII neu gefasst ist, ist ungeklärt.",
+   "urteil": "eingeschraenkt",
+   "begruendung": "Die offene Frage ist entschieden. Im amtlichen adilet-Text (abgerufen 18.09.2026) ist Art. 12 Abs. 2 durch 326-VIII geändert und nennt jetzt „базе и (или) цифровом объекте“. Die Lokalisierungspflicht bleibt bestehen. Neu sind die Größenklassen (Art. 25-1) und die Meldepflicht nach Art. 10-1, die nur große Verantwortliche trifft. Big-Four- und Kanzleiquellen bestätigen das Inkrafttreten zum 25.08.2026.",
+   "belege": [
+    {
+     "url": "https://adilet.zan.kz/rus/docs/Z1300000094",
+     "familie": "behoerde_faq",
+     "titel": "Закон РК № 94-V О персональных данных и их защите (lokaler Cache, amtlicher Text)",
+     "zitat": "2. Хранение персональных данных осуществляется собственником и (или) оператором, а также третьим лицом в базе и (или) цифровом объекте, которые находятся на территории Республики Казахстан. … от 24.06.2026 № 326-VIII (вводится в действие по истечении шестидесяти календарных дней после дня его первого официального опубликования).",
+     "datum_quelle": "2026-09-18",
+     "adilet_id": "Z1300000094",
+     "adilet_status": "gilt",
+     "zitat_amtlich": true
+    },
+    {
+     "url": "https://www.ey.com/en_kz/technical/tax-alerts/2026/09/kazakhstan-personal-data-law-amendments-deletion-anonymisation-data-breach-register",
+     "familie": "big4",
+     "titel": "EY Kazakhstan: Amendments to the Personal Data Law",
+     "zitat": "Small: Up to 10,000 subjects (notification not required) … Medium: 10,000–500,000 subjects (notification not required) … Large: 500,000+ subjects (notification required)",
+     "datum_quelle": "2026-09",
+     "adilet_id": "Z1300000094",
+     "adilet_status": "gilt",
+     "zitat_amtlich": false
+    },
+    {
+     "url": "https://www.bakermckenzie.com/en/insight/publications/2026/07/kazakhstan-new-amendments-to-personal-data-legislation",
+     "familie": "kanzlei",
+     "titel": "Baker McKenzie: Kazakhstan – New Amendments to Personal Data Legislation",
+     "zitat": "Date of Law: June 24, 2026 … Most personal data protection provisions: August 25, 2026",
+     "datum_quelle": "2026-07",
+     "adilet_id": "Z1300000094",
+     "adilet_status": "gilt",
+     "zitat_amtlich": false
+    }
+   ],
+   "korrektur": "Art. 12 Abs. 2 (Fassung 326-VIII, in Kraft 25.08.2026): Personenbezogene Daten sind in einer Datenbank und/oder einem digitalen Objekt auf dem Gebiet Kasachstans zu speichern. Die Pflicht gilt für Eigentümer, Betreiber und Dritte, also auch für Damicon als Auftragsverarbeiter."
+  },
+  {
+   "aussage_id": "B-C4-012 / blick:Arbeitsinspektion",
+   "aussage": "Die Prüfliste der Arbeitsinspektion umfasst u. a. die Pflichtversicherung gegen Arbeitsunfälle.",
+   "urteil": "eingeschraenkt",
+   "begruendung": "Die Aussage stimmt. Runde 1 nennt aber nur Bußgelder nach Art. 93 (Arbeitsschutz). Fehlt der ОСНС-Vertrag, greift der gesonderte und deutlich höhere Satz nach КоАП Art. 230 Teil 2: 160 MRP für Kleinunternehmen, 400 für mittlere, 1 000 für große. Zwei Fachpresse-Quellen bestätigen die Pflicht für alle Arbeitgeber einschließlich Saisonkräften.",
+   "belege": [
+    {
+     "url": "https://adilet.zan.kz/rus/docs/K1400000235",
+     "familie": "behoerde_faq",
+     "titel": "КоАП РК Art. 230 (lokaler Cache, amtlicher Text)",
+     "zitat": "2. Незаключение договора обязательного страхования лицом, обязанным в соответствии с законом Республики Казахстан об обязательном страховании заключить договор обязательного страхования, – влечет штраф … субъектов малого предпринимательства или некоммерческие организации – в размере ста шестидесяти, на субъектов среднего предпринимательства – в размере четырехсот, на субъектов крупного предпринимательства – в размере одной тысячи месячных расчетных показателей.",
+     "datum_quelle": "2026-09-18",
+     "adilet_id": "K1400000235",
+     "adilet_status": "gilt",
+     "zitat_amtlich": true
+    },
+    {
+     "url": "https://mybuh.kz/useful/obyazatelnoe-strakhovanie-rabotnikov-v-kazakhstane.html",
+     "familie": "fachpresse",
+     "titel": "mybuh.kz: Обязательное страхование работников в Казахстане",
+     "zitat": "Данный вид страхования является обязательным для всех юридических лиц и индивидуальных предпринимателей",
+     "datum_quelle": "2026-01-30",
+     "adilet_id": "Z050000030_",
+     "adilet_status": "gilt",
+     "zitat_amtlich": false
+    }
+   ],
+   "korrektur": "Die Arbeitsinspektion prüft das Vorliegen des ОСНС-Vertrags (Gesetz 30-III). Fehlt er, gilt КоАП Art. 230 Teil 2 (160/400/1 000 MRP), nicht Art. 93."
+  }
+ ],
+ "neue_fakten": [
+  {
+   "id": "N-W5-001",
+   "thema": "Brandschutz – Behörde und Kontrollform",
+   "aussage": "Brandschutz wird 2026 von der staatlichen Brandschutzaufsicht des МЧС (Departements für Notsituationen der Gebiete) kontrolliert, als risikobasierte präventive Kontrolle mit Besuch nach Kriterien und Prüflisten des gemeinsamen Erlasses V1800017647; Anh. 1 neu gefasst durch Erlass МЧС № 250 / МНЭ № 95, in Kraft 01.01.2023. Nach Fachpresse gilt: hohes Risiko jährlich, mittleres alle zwei Jahre, niedriges nur auf Beschwerde. Eine Genehmigung oder Brandschutzerklärung für den Betrieb gibt es nicht.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Закон РК „О гражданской защите“ 188-V; gemeinsamer Erlass über Risikokriterien und Prüflisten Brandschutz; КоАП Art. 410",
+   "adilet_id": "Z1400000188; V1800017647",
+   "zitat": "При открытии бизнеса в Казахстане предприниматели не обязаны получать отдельное разрешение от пожарной инспекции",
+   "url": "https://alataucitybank.kz/business/osim/articles/pozharnaya-bezopasnost-na-predpriyatii",
+   "familie": "fachpresse",
+   "damicon_folge": "Modul „Brandschutz“ je Objekt (Lager, Kühlhaus, Unterkunft der Saisonkräfte): Brandschutzbeauftragter per Anordnung, Einweisungsjournal je Mitarbeiter (auch Saisonkräfte in Russisch/Usbekisch), Wartungsvertrag und Prüfnachweise für Brandmelde- und Löschtechnik, Feuerlöscher mit Prüffristen, Evakuierungsplan als Dokument. Fristenwarnung wie bei Hygieneschulungen."
+  },
+  {
+   "id": "N-W5-002",
+   "thema": "Brandschutz – freiwilliger Audit befreit ein Jahr",
+   "aussage": "Der Audit im Brandschutz ist freiwillig. Er wird von einer vom МЧС akkreditierten Expertenorganisation durchgeführt (Regeln V1700015099; die Akkreditierungsregeln wurden mit Erlass vom 28.08.2026 geändert, in Kraft 12.09.2026). Bei positivem Ergebnis ist das Objekt ein Jahr von der planmäßigen Kontrolle befreit. Außerplanmäßige Prüfungen auf Beschwerde bleiben möglich. Die Befreiung gilt nicht für Objekte staatlicher juristischer Personen und für Gebäude über 50 m. Die Kopie des Audit-Befunds ist binnen 5 Arbeitstagen beim Territorialorgan einzureichen (Art. 62-2 Abs. 5); der Audit dauert höchstens drei Monate.",
+   "einstufung": "empfehlung",
+   "rechtsgrundlage": "Закон „О гражданской защите“ 188-V Art. 62-2 (eingefügt durch 196-VIII vom 24.06.2025) und Verbotsnorm zu staatlichen Objekten/Höhe ≥ 50 m; Правила проведения аудита V1700015099; einjährige Befreiung nur sekundär belegt (7152.kz, 02.04.2026), Norm im Unternehmerkodex nicht geprüft",
+   "adilet_id": "Z1400000188",
+   "zitat": "5. По результатам аудита в области пожарной безопасности экспертной организацией составляется заключение аудита в области пожарной безопасности по форме, утвержденной уполномоченным органом. Копия заключения аудита в области пожарной безопасности в течение пяти рабочих дней со дня его выдачи представляется в территориальный орган уполномоченного органа.",
+   "url": "https://adilet.zan.kz/rus/docs/Z1400000188",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Audit-Befund und Gültigkeit (1 Jahr) als Dokument mit Ablaufdatum speichern. Der Audit-Bericht ist eine planbare Alternative zum Besuch der Aufsicht; Damicon kann die Audit-Unterlagen (Journale, Wartungsnachweise) als Paket exportieren.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": true
+  },
+  {
+   "id": "N-W5-003",
+   "thema": "Brandschutz – Bußgeld",
+   "aussage": "Verstöße gegen Brandschutzanforderungen: Verwarnung oder Geldbuße von 15 MRP für Kleinunternehmen (64 875 KZT), 50 für mittlere, 150 für große. Im Wiederholungsfall 20/100/250 MRP, bei einem Brand mit Gesundheitsschaden 20/200/300 MRP.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "КоАП Art. 410 Teile 1–3 (Fassung 155-VIII vom 10.01.2025)",
+   "adilet_id": "K1400000235",
+   "zitat": "влечет предупреждение или штраф на физических лиц в размере пяти, на должностных лиц, субъектов малого предпринимательства или некоммерческие организации штраф в размере пятнадцати, на субъектов среднего предпринимательства – в размере пятидесяти, на субъектов крупного предпринимательства – в размере ста пятидесяти месячных расчетных показателей.",
+   "url": "https://adilet.zan.kz/rus/docs/K1400000235",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Bußgeldrahmen in die Risikomatrix übernehmen; Wiederholungsstufe bedeutet: frühere Verstöße im System dokumentieren.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": true
+  },
+  {
+   "id": "N-W5-004",
+   "thema": "Industrielle Sicherheit – Druckbehälter der Kälteanlage",
+   "aussage": "Nach dem Gesetz „О гражданской защите“ sind Behälter mit mehr als 0,07 MPa Überdruck gefährliche technische Einrichtungen. Kältemittelsammler und Abscheider üblicher Kälteanlagen fallen darunter. Sie sind beim Territorialdepartement für Industriesicherheit zu registrieren (staatliche Leistung „Постановка на учет и снятие с учета опасных технических устройств“, Regeln V2100024574) und brauchen eine Zulassung bzw. ein Industriesicherheitsgutachten.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Закон 188-V (Begriff опасные технические устройства); Правила постановки на учет ОПО и опасных технических устройств",
+   "adilet_id": "Z1400000188",
+   "zitat": "32-1) опасные технические устройства: паровые и водогрейные котлы, работающие под давлением более 0,07 мегаПаскаля и (или) при температуре нагрева воды более 115 градусов Цельсия (за исключением тепловых сетей), сосуды, работающие под давлением более 0,07 мегаПаскаля",
+   "url": "https://adilet.zan.kz/rus/docs/Z1400000188",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Anlagenregister um die Felder Registriernummer, Druckklasse, Datum der technischen Prüfung (техническое освидетельствование) und Nutzungsdauer laut Hersteller erweitern. Warnen, wenn die Nutzungsdauer überschritten ist, denn dann folgt jährliche Prüfung (siehe N-W5-005). Wortlaut der Regeln V2100024574 noch am amtlichen Text prüfen.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": true
+  },
+  {
+   "id": "N-W5-005",
+   "thema": "Industrielle Sicherheit – Prüfungen 2026 und Produktionskontrolle",
+   "aussage": "Seit dem Gesetz vom 24.06.2025 zu Zivilschutz, Energie und Staatsvermögen prüft das МЧС jährlich zwei Gruppen: deklarationspflichtige gefährliche Produktionsobjekte und Objekte, deren gefährliche technische Einrichtungen die Nutzungsdauer des Herstellers überschritten haben. Die Vorankündigung wurde von 30 Kalendertagen auf 1 Arbeitstag verkürzt. Alle kontrollierten Subjekte müssen einen Dienst für Produktionskontrolle der Industriesicherheit einrichten, der direkt der Leitung unterstellt ist.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Gesetz vom 24.06.2025 zu Fragen des Zivilschutzes (Änderung 188-V); КоАП Art. 298",
+   "adilet_id": "Z1400000188",
+   "zitat": "Все субъекты контроля и надзора обязаны создавать службы производственного контроля в области промышленной безопасности, которые будут подчиняться непосредственно первому руководителю организации",
+   "url": "https://www.zakon.kz/obshestvo/6507637-proverki-opasnykh-proizvodstvennykh-obektov-budut-prokhodit-ezhegodno--mchs.html",
+   "familie": "fachpresse",
+   "damicon_folge": "Wegen der Vorankündigung von nur 1 Arbeitstag muss die Anlagenakte (Pässe, Prüfprotokolle, Anordnung zur Produktionskontrolle, Schulungsnachweise des Bedienpersonals) jederzeit abrufbar sein. Rolle „Verantwortlicher Produktionskontrolle“ vorsehen.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": false
+  },
+  {
+   "id": "N-W5-006",
+   "thema": "Industrielle Sicherheit – Ammoniak: Deklaration und Haftpflichtversicherung",
+   "aussage": "Ein gefährliches Produktionsobjekt ist deklarationspflichtig, wenn es die Kriterien der Regierungsverordnung Nr. 864 vom 31.07.2014 erfüllt, darunter Ammoniak über einem Schwellenwert. Dann kommen die jährliche Prüfung (N-W5-005) und die Pflicht-Haftpflichtversicherung nach Gesetz 580-II hinzu. Den Schwellenwert in Tonnen hat keine gefundene Quelle genannt. Bei kleinen Freon-Anlagen greift keine Deklaration.",
+   "einstufung": "unklar",
+   "rechtsgrundlage": "Закон 188-V Art. 76; Постановление Правительства № 864 от 31.07.2014; Закон 580-II",
+   "adilet_id": "P1400000864; Z040000580_",
+   "zitat": "Постановлении Правительства РК №864 … Гидрид азота или аммиак",
+   "url": "https://kazexprom.kz/blog/chto-takoe-deklaratsiya-promyshlennoy-bezopasnosti-opasnogo-proizvodstvennogo-obekta/",
+   "familie": "fachpresse",
+   "damicon_folge": "Stammdatenfeld „Kältemittel“ (NH3/Freon) und „Füllmenge in kg“ je Anlage. Bei NH3 den Schwellenwert aus Verordnung 864 hinterlegen und die Deklarations- und Versicherungspflicht als Aufgabe erzeugen. Schwellenwert als Frage an den Prüfer."
+  },
+  {
+   "id": "N-W5-007",
+   "thema": "Industrielle Sicherheit – Bußgeld",
+   "aussage": "Verstöße gegen Regeln für sicheres Arbeiten auf Objekten der Industriesicherheitsaufsicht: 30 MRP für Kleinunternehmen, 50 für mittlere, 100 für große. Wer einen Unfall oder Vorfall an einer gefährlichen technischen Einrichtung verheimlicht, zahlt 100/150/200 MRP (geändert durch 232-VIII, in Kraft 01.01.2026).",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "КоАП Art. 298 Teile 1 und 3",
+   "adilet_id": "K1400000235",
+   "zitat": "3. Сокрытие факта аварии, инцидента на опасном производственном объекте, опасном техническом устройстве – влечет штраф на должностных лиц, субъектов малого предпринимательства или некоммерческие организации в размере ста, на субъектов среднего предпринимательства – в размере ста пятидесяти, на субъектов крупного предпринимательства – в размере двухсот месячных расчетных показателей.",
+   "url": "https://adilet.zan.kz/rus/docs/K1400000235",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Störungsmeldung an der Kälteanlage (Leck, Druckabfall) als unveränderliches Ereignisprotokoll führen. Wer einen Vorfall löscht oder nicht meldet, riskiert Art. 298 Teil 3.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": true
+  },
+  {
+   "id": "N-W5-008",
+   "thema": "Metrologie – Waagen im Handel",
+   "aussage": "Mit Erlass Nr. 347-НҚ vom 21.09.2023 (Änderung von Erlass 566-НҚ vom 20.10.2021, V2100024864) nahm das Handelsministerium die Wägung der Warenmasse bei Handelsgeschäften in die Liste der staatlich geregelten Messungen auf. Waagen müssen im Register des staatlichen Messwesens stehen und geeicht sein; das Eichintervall beträgt in der Regel 12 Monate. Eine Werkseichung ersetzt die Eichung in Kasachstan nicht. Die Kontrolle führt das Komitee für technische Regulierung und Metrologie nach Kriterien und Prüflisten V2200027172.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Закон „Об обеспечении единства измерений“ Z000000053_; Перечень измерений, относящихся к государственному регулированию (Erlass 566-НҚ i. d. F. 347-НҚ)",
+   "adilet_id": "Z000000053_; V2100024864; V2300033453; V2200027172",
+   "zitat": "Перечень измерений, относящихся к государственному регулированию, дополнен измерениями массы товаров при торгово-коммерческих операциях. Каждый торговый объект должен будет проводить ежегодную обязательную поверку весов аттестованными поверителями в аккредитованных поверочных лабораториях",
+   "url": "https://forbes.kz/news/newsid_309652",
+   "familie": "fachpresse",
+   "damicon_folge": "Wiegedaten sind nur beweiskräftig, wenn die Waage geeicht war. Damicon braucht ein Waagenregister (Seriennummer, Registereintrag, Eichdatum, Eichschein, nächste Eichung) und muss jede Wägung (Ernte, Zukauf, Versand) mit der Waagen-ID verknüpfen. Wägungen auf einer Waage mit abgelaufener Eichung werden gesperrt oder markiert. Gilt sicher für Verkauf und Zukauf nach Gewicht."
+  },
+  {
+   "id": "N-W5-009",
+   "thema": "Metrologie – Erntewaagen für Akkordlohn",
+   "aussage": "Ob die Wägung der Pflückmenge für den Stücklohn als Messung bei Handelsgeschäften gilt und damit eichpflichtig ist, sagt keine gefundene Quelle ausdrücklich. Die Liste nennt Handelsgeschäfte; die Lohnabrechnung ist dort nicht erwähnt. Im Streit über den Lohn würde eine ungeeichte Waage die Beweiskraft der Abrechnung schwächen.",
+   "einstufung": "unklar",
+   "rechtsgrundlage": "Перечень измерений (V2100024864) – Wortlaut der Positionen nicht geprüft",
+   "adilet_id": "V2100024864",
+   "zitat": "Перечень измерений, относящихся к государственному регулированию, дополнен измерениями массы товаров",
+   "url": "https://forbes.kz/news/newsid_309653",
+   "familie": "kk_en",
+   "damicon_folge": "Empfehlung: auch Erntewaagen im Waagenregister führen und eichen lassen (etwa 5 000 KZT je Waage laut Forbes). Frage an den Prüfer, ob die Akkord-Wägung in den Anwendungsbereich fällt.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": false
+  },
+  {
+   "id": "N-W5-010",
+   "thema": "Metrologie – Bußgeld",
+   "aussage": "Wer nicht geeichte oder nicht registrierte Messmittel im geregelten Bereich verwendet, zahlt 230 MRP als Kleinunternehmen (994 750 KZT), 310 als mittleres und 600 als großes Unternehmen. Im Wiederholungsfall steigt der Satz auf 460/620/1 200 MRP. Das ist der höchste Erstverstoß-Satz unter den zehn Bereichen.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "КоАП Art. 419 Teile 1 und 2",
+   "adilet_id": "K1400000235",
+   "zitat": "2) выпуска в обращение, применения средств измерений, подлежащих государственному метрологическому контролю, не прошедших испытания для целей утверждения типа или метрологическую аттестацию, а также поверку и (или) не включенных в реестр государственной системы обеспечения единства измерений … влечет штраф … субъектов малого предпринимательства или некоммерческие организации – в размере двухсот тридцати",
+   "url": "https://adilet.zan.kz/rus/docs/K1400000235",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Eichfristen der Waagen als Aufgabe mit hoher Priorität; Warnung 30 Tage vor Ablauf.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": true
+  },
+  {
+   "id": "N-W5-011",
+   "thema": "Migration – Saisonkräfte aus Usbekistan",
+   "aussage": "Arbeitsimmigranten mit Polizeierlaubnis (разрешение трудовому иммигранту) dürfen nach dem Migrationsgesetz nur bei natürlichen Personen im Privathaushalt arbeiten. Für einen Beerenbetrieb (TOO oder KH) führt der legale Weg für usbekische Erntehelfer daher über „сезонные иностранные работники“. Dafür braucht es eine Erlaubnis des Akimats für den Arbeitgeber innerhalb der Quote, höchstens für 1 Jahr. Der Arbeitgeber muss eine Unterkunft stellen, die den sanitären Anforderungen entspricht.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Закон „О миграции населения“ 477-IV Art. 1 Nr. 4-1, Art. 34 Nr. 4, Art. 42 (Pflicht zur Unterkunft nach Fassung 2022, cisstat); Правила выдачи разрешений работодателям V2300032977",
+   "adilet_id": "Z1100000477",
+   "zitat": "4) трудовые иммигранты – иммигранты, прибывшие в Республику Казахстан в качестве домашних работников с целью выполнения работ (оказания услуг) у работодателей – физических лиц в домашнем хозяйстве на основании разрешения трудовому иммигранту. … сезонные иностранные работники – иммигранты, привлекаемые на работу работодателями на срок не более одного года для выполнения сезонных работ",
+   "url": "https://adilet.zan.kz/rus/docs/Z1100000477",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Personalakte je ausländischer Saisonkraft mit Staatsangehörigkeit, Rechtsgrund (EAWU / Saisonerlaubnis Akimat / sonstige), Nummer und Laufzeit der Erlaubnis und dem zugewiesenen Beruf. Eine Sperre verhindert Einsatz ohne gültigen Rechtsgrund. Die Unterkunft wird als Objekt geführt (Sanepid und Brandschutz). Definitionen am amtlichen Text (Stand 19.09.2026) bestätigt; die Unterkunftspflicht (Art. 42 Abs. 2) nur in der Fassung von 2022 gelesen.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": true
+  },
+  {
+   "id": "N-W5-012",
+   "thema": "Migration – Erntehelferberufe seit 01.01.2026 und Quote 0,3 %",
+   "aussage": "Erlass Nr. 209 des Arbeitsministeriums vom 09.07.2025 ergänzt die Berufsliste für Saisonkräfte (Erlass 235 vom 22.06.2023) ab 01.01.2026 um „садовники и садоводы“, „полеводы и овощеводы“ und „неквалифицированные рабочие в растениеводстве“. Seit 10.05.2026 beträgt die Quote für Arbeitgebererlaubnisse 0,3 % der Erwerbsbevölkerung (Erlass Nr. 153 vom 24.04.2026, vorher 0,25 %). Englische Leitfäden (Fragomen) nennen noch 0,25 %; das ist veraltet.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Приказ МТСЗН № 235 от 22.06.2023 i. d. F. № 209 от 09.07.2025; Приказ МТСЗН № 153 от 24.04.2026 (Quote)",
+   "adilet_id": "unklar (Erlass 235/209 nicht mit Kennung belegt; V2000021295 ist die Vorgängerliste)",
+   "zitat": "Приказом Министра труда и социальной защиты населения РК от 9 июля 2025 года №209 … садовники и садоводы … полеводы и овощеводы … неквалифицированные рабочие в растениеводстве … с 1 января 2026 года",
+   "url": "https://cdb.kz/sistema/novosti/rasshiren_perechen_professiy_dlya_trudovoy_deyatelnosti_sezonnykh_inostrannykh_rabotnikov/",
+   "familie": "fachpresse",
+   "damicon_folge": "Berufsbezeichnung aus der Erlaubnis im Arbeitsvertrag und im ESUTD übernehmen. Wird jemand in einem anderen Beruf eingesetzt als in der Erlaubnis angegeben, drohen dieselben Bußgelder wie beim Fehlen der Erlaubnis (КоАП 519 Teil 2). Tätigkeiten wie Sortieren und Verpacken im Kühlhaus darauf prüfen, ob sie unter „растениеводство“ fallen."
+  },
+  {
+   "id": "N-W5-013",
+   "thema": "Migration – Kirgisistan (EAWU)",
+   "aussage": "Staatsbürger der EAWU (Russland, Kirgisistan, Belarus, Armenien) arbeiten in Kasachstan ohne Erlaubnis auf Grundlage eines Arbeitsvertrags. Der Vertrag muss dennoch im ESUTD registriert sein, der Beschäftigte braucht eine IIN, und die Lohnabrechnung folgt dem kasachischen Arbeitskodex.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Vertrag über die EAWU (Art. 97); Закон „О миграции населения“",
+   "adilet_id": "Z1100000477",
+   "zitat": "Граждане ЕАЭС (Россия, Кыргызстан, Беларусь, Армения) осуществляют трудовую деятельность на территории Республики Казахстан без получения разрешения на основании трудового договора.",
+   "url": "https://egov.kz/cms/ru/articles/workpermit",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Staatsangehörigkeit steuert den Workflow: EAWU = keine Erlaubnisprüfung, aber Registrierung, ESUTD und IIN sind Pflicht.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": false
+  },
+  {
+   "id": "N-W5-014",
+   "thema": "Migration – Meldung als aufnehmende Partei",
+   "aussage": "Die aufnehmende Partei meldet den Aufenthalt eines Ausländers binnen 3 Arbeitstagen nach Ankunft über eGov, e-Qonaq oder das Visa- und Migrationsportal. Aufnehmende Partei ist der Arbeitgeber oder wer die Unterkunft stellt. Bei Umzug in eine andere Unterkunft muss die neue aufnehmende Partei erneut melden.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Правила въезда и пребывания иммигрантов (Постановление № 148 от 21.01.2012); КоАП Art. 518",
+   "adilet_id": "P1200000148",
+   "zitat": "Принимающие лица информируют органы внутренних дел о пребывающих у них иммигрантах в течение трех рабочих дней со дня их прибытия.",
+   "url": "https://adilet.zan.kz/rus/docs/P1200000148",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Ereignis „Ankunft Saisonkraft“ mit Frist von 3 Arbeitstagen für die Meldung, dazu Nachweis der Meldung (Scan oder Nummer). Liegt die Unterkunft auf dem Betrieb, ist der Betrieb die aufnehmende Partei.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": true
+  },
+  {
+   "id": "N-W5-015",
+   "thema": "Migration – Bußgelder für den Arbeitgeber",
+   "aussage": "Wer ausländische Arbeitskräfte ohne Erlaubnis des Akimats oder in einem nicht genehmigten Beruf einsetzt, zahlt 100 MRP als Kleinunternehmen (432 500 KZT), 200 als mittleres und 700 als großes Unternehmen. Im Wiederholungsfall sind es 200/300/1 000 MRP, für Amtsträger 50 MRP. Eine versäumte Meldung als aufnehmende Partei kostet 10/15/20 MRP. Wer einem illegal aufhältigen Ausländer Unterkunft gibt, zahlt 40/55/75 MRP. Dem Ausländer selbst drohen 25 MRP oder Ausweisung (Art. 517 Teil 5).",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "КоАП Art. 519 Teile 1–3; Art. 518 Teile 1–3; Art. 517 Teil 5",
+   "adilet_id": "K1400000235",
+   "zitat": "1. Привлечение работодателем иностранной рабочей силы без разрешения местного исполнительного органа … влекут штраф на физических лиц в размере тридцати, на должностных лиц – в размере пятидесяти, на субъектов малого предпринимательства или некоммерческие организации – в размере ста, на субъектов среднего предпринимательства – в размере двухсот, на субъектов крупного предпринимательства – в размере семисот месячных расчетных показателей.",
+   "url": "https://adilet.zan.kz/rus/docs/K1400000235",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Das Bußgeld fällt je Verstoß an; bei 50–200 Saisonkräften ist das Risiko erheblich. Einsatzsperre im Schichtplan für Personen ohne gültigen Rechtsgrund.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": true
+  },
+  {
+   "id": "N-W5-016",
+   "thema": "Personendaten – Größenklassen und Meldepflicht (326-VIII)",
+   "aussage": "Nach Art. 25-1 (neu durch 326-VIII, in Kraft 25.08.2026) gelten Verantwortliche und Dritte mit bis zu 10 000 eindeutigen Betroffenen als klein, bis 500 000 als mittel, darüber als groß. Wer Daten mit beschränktem Zugang verarbeitet, steigt eine Stufe auf. Die Meldung vor Beginn und nach Ende der Verarbeitung an das Register (Art. 10-1) müssen nur große Verantwortliche abgeben. Ein Beerenbetrieb ist klein oder, bei Daten mit beschränktem Zugang, mittel. Damicon als Dritter über viele Betriebe bleibt voraussichtlich unter 500 000.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Закон 94-V Art. 10-1, Art. 25-1 (i. d. F. 326-VIII)",
+   "adilet_id": "Z1300000094",
+   "zitat": "К малым относятся собственники и (или) операторы, а также третьи лица, осуществляющие сбор и обработку персональных данных не более десяти тысяч уникальных субъектов; к средним – от десяти тысяч до пятисот тысяч уникальных субъектов; к крупным – пятьсот тысяч и более уникальных субъектов персональных данных. В случаях сбора и обработки персональных данных ограниченного доступа категория собственника и (или) оператора повышается на один уровень.",
+   "url": "https://adilet.zan.kz/rus/docs/Z1300000094",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Damicon zählt die eindeutigen Betroffenen je Mandant und über alle Mandanten, weil die Kategorie die Schutzmaßnahmen bestimmt. Datenfelder mit beschränktem Zugang (IIN, Passdaten, Gesundheitsuntersuchung) kennzeichnen, weil sie die Kategorie um eine Stufe erhöhen.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": true
+  },
+  {
+   "id": "N-W5-017",
+   "thema": "Personendaten – Pflichten des Verantwortlichen und Meldung von Sicherheitsvorfällen",
+   "aussage": "Juristische Personen müssen einen Verantwortlichen für die Organisation der Datenverarbeitung benennen, eine Datenschutzrichtlinie und die Liste der verarbeiteten Daten genehmigen und Einwilligungen nachweisen. Einen Sicherheitsvorfall melden sie der Behörde sofort, wenn er entdeckt wird (Art. 25 Abs. 2 Nr. 8 nennt die Frist von einem Arbeitstag). Die Behörde (Ministerium für künstliche Intelligenz und digitale Entwicklung) führt ein neues Register der Sicherheitsvorfälle (Art. 23-2). Art. 23 verlangt Maskierung und Hashing.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Закон 94-V Art. 23, 23-2, 25 (i. d. F. 326-VIII)",
+   "adilet_id": "Z1300000094",
+   "zitat": "c момента обнаружения нарушения безопасности персональных данных уведомить уполномоченный орган о таком нарушении с указанием контактных данных лица, ответственного за организацию обработки персональных данных (при наличии); … 10) назначить лицо, ответственное за организацию обработки персональных данных в случае, если собственник и (или) оператор являются юридическими лицами.",
+   "url": "https://adilet.zan.kz/rus/docs/Z1300000094",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Workflow „Datenschutzvorfall“ mit Zeitstempel der Entdeckung und Frist, Rollen „Datenschutzverantwortlicher“ je Mandant. Einwilligungsnachweis je Saisonkraft in der Muttersprache. Maskierung von IIN und Passnummer in Listen und Exporten.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": true
+  },
+  {
+   "id": "N-W5-018",
+   "thema": "Personendaten – neue Schutzregeln ab 21.09.2026",
+   "aussage": "Laut zakon.kz vom 14.09.2026 hat das Ministerium für künstliche Intelligenz und digitale Entwicklung mit Erlass vom 03.09.2026 neue Regeln für Schutzmaßnahmen genehmigt, in Kraft ab 21.09.2026. Kleine Verantwortliche müssen danach unter anderem Zugriffsrechte nach Aufgaben trennen, Nutzer identifizieren und authentifizieren, alle Handlungen an Personendaten protokollieren, Datensicherungen anlegen und Daten über geschützte Kanäle übertragen. Mittlere zusätzlich: rollenbasierter Zugriff, Mehrfaktor-Anmeldung für Daten mit beschränktem Zugang, Speicherung von Sicherheitsereignissen, Verfahren für Vorfälle, Schulungen, Schwachstellenanalyse und interne Kontrolle. Davor gab es den Änderungserlass 338/НҚ zu Erlass 179/НҚ (22.06.2026, in Kraft 12.07.2026).",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Правила осуществления мер по защите персональных данных (V2300032810, Erlass 179/НҚ) i. d. F. 2026",
+   "adilet_id": "V2300032810",
+   "zitat": "регистрацию действий по сбору, обработке, изменению, дополнению, использованию, распространению, обезличиванию, уничтожению, удалению … применение многофакторной аутентификации для пользователей, имеющих доступ к персональным данным ограниченного доступа",
+   "url": "https://www.zakon.kz/pravo/6531379-pravila-zashchity-personalnykh-dannykh-obnovili-v-kazakhstane.html",
+   "familie": "fachpresse",
+   "damicon_folge": "Direkte Produktanforderung und die wichtigste Frist dieser Runde: 2 Tage ab heute. Damicon braucht ein unveränderliches Zugriffsprotokoll für Personendaten (Lesen, Ändern, Export, Löschen), Mehrfaktor-Anmeldung für Rollen mit Zugriff auf IIN/Pass/Gesundheit, Rollenmodell, Backups, TLS. Die Liste stammt aus einer Zusammenfassung der Fachpresse; Wortlaut und Erlassnummer vor der Umsetzung am amtlichen Text prüfen.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": false
+  },
+  {
+   "id": "N-W5-019",
+   "thema": "Personendaten – Kontrollform und Bußgeld",
+   "aussage": "Die staatliche Kontrolle der Datenschutzgesetze erfolgt nur als außerplanmäßige Prüfung nach dem Unternehmerkodex, also auf Beschwerde oder Anlass (Art. 27-2). Für private Betriebe gibt es keine planmäßige Prüfliste. Bußgelder nach КоАП Art. 79 für Kleinunternehmen: rechtswidrige Erhebung 60 MRP; fehlende Schutzmaßnahmen 300 MRP (1 297 500 KZT); mit Verlust oder rechtswidriger Verarbeitung als Folge 750 MRP. Für große Unternehmen bis 2 000 MRP. Im amtlichen Text ist Art. 79 zuletzt durch 155-VIII geändert, nicht durch 326-VIII. Die Aussage der Fachpresse, die Bußgelder seien „verfünffacht“, stützt der geltende КоАП-Text nicht.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Закон 94-V Art. 27-2; КоАП Art. 79 Teile 1–4",
+   "adilet_id": "Z1300000094; K1400000235",
+   "zitat": "Государственный контроль за соблюдением законодательства Республики Казахстан о персональных данных и их защите осуществляется в форме внеплановой проверки в соответствии с Предпринимательским кодексом Республики Казахстан … 3. Несоблюдение собственником, оператором или третьим лицом мер по защите персональных данных … на должностных лиц, субъектов малого предпринимательства или некоммерческие организации – в размере трехсот",
+   "url": "https://adilet.zan.kz/rus/docs/K1400000235",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Auslöser ist meist die Beschwerde einer Saisonkraft; Auskunft (Art. 24/25) und Löschung müssen deshalb schnell und belegbar gehen. Bei fehlenden Schutzmaßnahmen drohen 300 MRP, beim Datenverlust bis 750 MRP. Das ist neben der Metrologie der höchste Bußgeldrahmen für den Betrieb."
+  },
+  {
+   "id": "N-W5-020",
+   "thema": "Pflichtversicherung Arbeitsunfall (ОСНС)",
+   "aussage": "Jeder Arbeitgeber (TOO, IP, KH) muss einen Vertrag über die Pflichtversicherung der Beschäftigten gegen Arbeitsunfälle nach Gesetz 30-III vom 07.02.2005 abschließen, auch für Saisonkräfte. Die Laufzeit beträgt 12 Monate oder die kürzere Dauer der Tätigkeit. Die Prämie richtet sich nach Lohnsumme und Tarif des Risikoklasse-Codes. Fehlt der Vertrag, drohen 160 MRP (Kleinunternehmen). Die Arbeitsinspektion prüft den Vertrag.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Закон 30-III „Об обязательном страховании работника от несчастных случаев…“; КоАП Art. 230 Teil 2",
+   "adilet_id": "Z050000030_; K1400000235",
+   "zitat": "Организации, привлекающие наёмных специалистов, должны заключить договор со страховой компанией",
+   "url": "https://www.bcc.kz/bcc-journal/employees-social-insurance-accident-coverage/",
+   "familie": "fachpresse",
+   "damicon_folge": "Die Lohnsumme für die Prämie kommt aus Damicon. Neue Saisonkräfte sind im Vertrag nachzumelden. Vertragsnummer und Laufzeit als Pflichtfeld beim Anlegen des Arbeitsvertrags."
+  },
+  {
+   "id": "N-W5-021",
+   "thema": "Sozialabgaben – Bußgeld",
+   "aussage": "Werden Sozialabgaben nicht oder verspätet gezahlt, gibt es beim ersten Verstoß nur eine Verwarnung. Im Wiederholungsfall binnen eines Jahres zahlen Kleinunternehmen 20 %, mittlere 30 % und große 50 % der nicht gezahlten Summe. Bis 1 MRP gibt es keine Haftung. Die Kontrolle führt die KGD im Rahmen der Steuerprüfung.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "КоАП Art. 92 Teile 2 und 3",
+   "adilet_id": "K1400000235",
+   "zitat": "влекут штраф на частных нотариусов, частных судебных исполнителей, адвокатов, субъектов малого предпринимательства или некоммерческие организации в размере двадцати, на субъектов среднего предпринимательства – в размере тридцати, на субъектов крупного предпринимательства – в размере пятидесяти процентов от суммы неуплаченных … социальных отчислений.",
+   "url": "https://adilet.zan.kz/rus/docs/K1400000235",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Abgleich „berechnet gegen gezahlt“ je Monat und Saisonkraft; Nachzahlungen sofort sichtbar machen.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": true
+  },
+  {
+   "id": "N-W5-022",
+   "thema": "Statistik – Pflichtformen und Fristen",
+   "aussage": "Das Büro für nationale Statistik (Agentur für strategische Planung und Reformen) erhebt von Agrarbetrieben und Bauernwirtschaften unter anderem Form 29-сх „О сборе урожая сельскохозяйственных культур“ (jährlich, ab 2026 bis 20. November des Berichtsjahres) und 1-Т „Отчет по труду“ (vierteljährlich, bis zum 12. nach dem Quartal). Grundlage ist der Zeitplan für 2025–2027 (Erlass des Büros Nr. 209 vom 12.12.2024, geändert 29.08.2025). Seit 29.12.2025 gelten neue Regeln für die Übermittlung: Fehler sind binnen 1 Arbeitstag zu berichtigen, und die Statistik darf Buchhaltungsbelege zur Prüfung anfordern.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Закон „О государственной статистике“; Правила представления первичных статистических данных (i. d. F. ab 29.12.2025); График представления 2025–2027",
+   "adilet_id": "Z1000000257 (nicht geprüft)",
+   "zitat": "Статформа 29-сх \"О сборе урожая сельскохозяйственных культур\" с 2026 года будет предоставляться до 20 ноября (включительно) отчетного периода",
+   "url": "https://mybuh.kz/news/izmeneniya-v-pravilakh-sdachi-statotchetov-s-2026-goda/",
+   "familie": "fachpresse",
+   "damicon_folge": "Berichtsvorlagen 29-сх (Fläche, Ernte, Ertrag, mehrjährige Pflanzungen) und 1-Т (Personalstand, Lohnsumme) aus Damicon-Daten. Die Statistik darf Belege anfordern, deshalb müssen Ernte- und Lohndaten mit dem Statistikbericht übereinstimmen. Ob der einzelne Betrieb in der Stichprobe ist, zeigt das Respondentenkabinett. Die Liste der Formen ist nicht vollständig; 4-сх (Aussaat) und weitere Agrarformen noch prüfen."
+  },
+  {
+   "id": "N-W5-023",
+   "thema": "Statistik – Bußgeld",
+   "aussage": "Werden Primärdaten nicht fristgerecht an die Statistik übermittelt, zahlen Kleinunternehmen 14 MRP (60 550 KZT), mittlere 20 und große 120 MRP. Für unrichtige Daten gibt es beim ersten Mal eine Verwarnung. Im Wiederholungsfall zahlen Kleinunternehmen 20 MRP.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "КоАП Art. 497",
+   "adilet_id": "K1400000235",
+   "zitat": "2. Непредставление первичных статистических данных в соответствующие органы государственной статистики в установленный срок – влечет штраф на физических лиц в размере десяти, на должностных лиц, на некоммерческие организации, субъектов малого предпринимательства – в размере четырнадцати, на субъектов среднего предпринимательства – в размере двадцати, на субъектов крупного предпринимательства – в размере ста двадцати месячных расчетных показателей.",
+   "url": "https://adilet.zan.kz/rus/docs/K1400000235",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Kalender der Statistikfristen je Mandant.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": true
+  },
+  {
+   "id": "N-W5-024",
+   "thema": "Kasse – ККМ beim Direktverkauf",
+   "aussage": "Nach dem Steuerkodex 2026 sind Geldzahlungen mit einer ККМ mit Datenübertragung (Online-Kasse) zu erfassen. Als Geldzahlung gilt die Zahlung für Waren mit Bargeld, Zahlungskarte oder Mobilzahlung. Befreit sind unter anderem natürliche Personen, aber keine Agrarbetriebe. Für einen Beerenbetrieb heißt das: ККМ beim Verkauf ab Hof, am Stand oder an Privatkunden. Unbare Überweisungen von Handelsketten sind keine „Geldzahlungen“ im Sinne des Kodex. Lohnzahlungen an Pflücker sind kein Warenverkauf und fallen nicht unter die ККМ-Pflicht.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Налоговый кодекс 214-VIII Art. 19 Nr. 1, Art. 110, 111; КоАП Art. 284",
+   "adilet_id": "K2500000214; K1400000235",
+   "zitat": "1) денежные расчеты – расчеты, осуществляемые за приобретение товара, выполнение работ, оказание услуг посредством наличных денег и (или) расчетов с использованием платежных карточек и (или) мобильных платежей; … 1. На территории Республики Казахстан денежные расчеты производятся с обязательным применением контрольно-кассовой машины с функцией фиксации и (или) передачи данных",
+   "url": "https://adilet.zan.kz/rus/docs/K2500000214",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Wenn Damicon Direktverkäufe erfasst, muss jeder Verkauf mit der Fiskalquittung (Nummer, Fiskalzeichen) der Online-Kasse verknüpft sein. Im ersten Verstoß gibt es nur eine Verwarnung, im Wiederholungsfall 15 MRP für Kleinunternehmen (КоАП 284 Teil 2)."
+  },
+  {
+   "id": "N-W5-025",
+   "thema": "Bargeld – Auszahlung an Pflücker und Zukauf",
+   "aussage": "Seit 01.01.2026 gelten Monatsgrenzen für Barabhebungen von juristischen Personen: 20 Mio. KZT für Kleinunternehmen, 120 Mio. für mittlere, 150 Mio. für große. Darüber fragt die Bank den Zweck ab und holt die Einwilligung zur Datenweitergabe an die KGD ein; die KGD bewertet das Risiko binnen 1 Arbeitstag. Die Pflicht zur unbaren Zahlung über 1 000 MRP (Art. 25 Abs. 9 Gesetz über Zahlungen) gilt nur zwischen Unternehmen. Barlohn an Beschäftigte und Barkauf von Privatpersonen sind nicht verboten.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Regeln über Barabhebung durch juristische Personen (V2000020544, V2000020494, Fassung 2026); Закон „О платежах и платежных системах“ Art. 25 Abs. 9",
+   "adilet_id": "V2000020544; V2000020494",
+   "zitat": "Small businesses: 20,000,000 tenge … banks must request the \"цель снятия средств\" (purpose of withdrawal) and obtain written consent to share data with the State Revenue Committee (КГД)",
+   "url": "https://uchet.kz/news/limity-na-snyatie-nalichnykh-v-2026-godu/",
+   "familie": "fachpresse",
+   "damicon_folge": "Wer Pflücker in bar bezahlt, braucht für jede Auszahlung einen Nachweis mit Unterschrift (Auszahlungsliste, Beleg), der zur Wiegeliste und Lohnabrechnung passt. Große Barbeträge in der Saison können die Grenze von 20 Mio. KZT reißen und eine KGD-Anfrage auslösen. Empfehlung: Auszahlung auf Karte (Kaspi/Halyk) und Zahlungsnachweis in Damicon ablegen."
+  },
+  {
+   "id": "N-W5-026",
+   "thema": "Finanzmonitoring (AFM)",
+   "aussage": "Ein Beerenbetrieb ist kein Subjekt des Finanzmonitorings. Die Melde- und Prüfpflichten nach Gesetz 191-IV treffen Banken, Notare und ähnliche Stellen. Bargeschäfte des Betriebs werden über die Bank und die KGD-Schnittstelle (N-W5-025) sichtbar. Eine direkte AFM-Prüfung des Betriebs wurde nicht gefunden.",
+   "einstufung": "unklar",
+   "rechtsgrundlage": "Закон 191-IV „О противодействии легализации…“",
+   "adilet_id": "Z090000191_",
+   "zitat": "Агентство Республики Казахстан по финансовому мониторингу (АФМ) — государственный орган, осуществляющий финансовый мониторинг и принимающий иные меры по ПОД/ФТ",
+   "url": "https://buh.mcfr.kz/article/1326-kontrol-finansovogo-monitoringa-v-rk",
+   "familie": "fachpresse",
+   "damicon_folge": "Keine eigene Funktion nötig; Barflüsse lückenlos belegen.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": false
+  },
+  {
+   "id": "N-W5-027",
+   "thema": "Wasser – Sondernutzung und Erlaubnis (Wasserkodex 2025)",
+   "aussage": "Der Wasserkodex 178-VIII vom 09.04.2025 zählt Entnahmen direkt aus Oberflächengewässern und Grundwasserentnahmen zur Sondernutzung, die eine Erlaubnis braucht. Ausgenommen sind Schacht- und Rohrbrunnen im ersten Grundwasserhorizont, der nicht der zentralen Trinkwasserversorgung dient. Bezieht der Betrieb Wasser aus einem Kanal, braucht er einen Vertrag mit dem Wasserversorger und einen geeichten Zähler am Übergabepunkt (Art. 60). Für die Erlaubnis gelten unter anderem: geeichte Zähler, abgestimmte spezifische Verbrauchsnormen, Pegelmessgeräte im Brunnen und genehmigte Grundwasservorräte ab 50 m³/Tag. Ab 01.01.2027 kommt ein Plan zur Senkung der Wasserverluste über 5 Jahre hinzu.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Водный кодекс 178-VIII Art. 45, 60, 67",
+   "adilet_id": "K2500000178",
+   "zitat": "3. К специальному водопользованию не относятся: 1) забор водных ресурсов при использовании шахтных, трубчатых фильтровых колодцев, каптажных сооружений из первого от поверхности водоносного горизонта, не используемых для централизованного питьевого водоснабжения населенных пунктов; … при заборе иных видов подземных вод – при объеме изъятия свыше пятидесяти кубических метров в сутки",
+   "url": "https://adilet.zan.kz/rus/docs/K2500000178",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Stammdaten je Wasserquelle: Art (Brunnen und Horizont / Kanal / Oberflächengewässer), Erlaubnisnummer und Laufzeit, genehmigte Menge, Zähler mit Eichdatum. Die Primärerfassung der Entnahme (Art. 67) muss aus den Zählerständen folgen und ist zugleich Quelle der Wasserstatistik. Bewässerungsprotokolle aus GLOBALG.A.P. (B-C6-018) lassen sich hier wiederverwenden.",
+   "adilet_status": "gilt",
+   "zitat_amtlich": true
+  },
+  {
+   "id": "N-W5-028",
+   "thema": "Wasser – Kontrolle und Bußgeld",
+   "aussage": "Die Beckenwasserinspektionen (Behörde des Ministeriums für Wasserressourcen und Bewässerung) kontrollieren durch Prüfung und präventive Kontrolle mit Besuch. Geprüft werden unter anderem die Erlaubnis, die Primärerfassung und die Berichte dazu sowie Vorhandensein, Zustand und Eichfristen der Wasserzähler. Wer ohne Erlaubnis Wasser entnimmt oder die genehmigte Menge überschreitet, zahlt 100 MRP als Kleinunternehmen (432 500 KZT), 150 als mittleres und 850 als großes Unternehmen. Im Wiederholungsfall steigt der Satz auf 400/600/2 000 MRP. Wer Erfassungs- und Berichtsdaten verfälscht, haftet nach Art. 362.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "Водный кодекс 178-VIII (Kapitel staatliche Kontrolle); КоАП Art. 141 Teil 2 (Fassung vom 09.04.2025), Art. 362",
+   "adilet_id": "K2500000178; K1400000235",
+   "zitat": "2. Осуществление специального водопользования без разрешения, нецелевое использование водных ресурсов, превышение разрешенных объемов водопользования, несоблюдение утвержденного водного режима и других условий специального водопользования – влекут штраф … субъектов малого предпринимательства или некоммерческие организации – в размере ста, на субъектов среднего предпринимательства – в размере ста пятидесяти, на субъектов крупного предпринимательства – в размере восьмисот пятидесяти месячных расчетных показателей.",
+   "url": "https://adilet.zan.kz/rus/docs/K1400000235",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Warnung, wenn die kumulierte Entnahme die genehmigte Menge erreicht. Zählerstände unveränderlich speichern, um den Vorwurf der Datenverfälschung (Art. 362) abzuwehren."
+  },
+  {
+   "id": "N-W5-029",
+   "thema": "Energieaudit",
+   "aussage": "Zum Staatlichen Energieregister und damit zum Energieaudit mindestens alle fünf Jahre sind juristische Personen und IP verpflichtet, die 1 500 t Steinkohleeinheiten oder mehr im Jahr verbrauchen (staatliche und quasistaatliche Stellen ab 100 t). Umgerechnet nach Heizwert sind das rund 12 GWh Strom im Jahr, weit mehr als ein Beeren-Kühllager braucht. Für den Betrieb trifft das nicht zu. Bußgelder bestehen nur für Subjekte des Registers (КоАП Art. 292, 296: 10 MRP für Kleinunternehmen).",
+   "einstufung": "empfehlung",
+   "rechtsgrundlage": "Закон „Об энергосбережении и повышении энергоэффективности“ 541-IV; КоАП Art. 292–296",
+   "adilet_id": "Z1200000541; K1400000235",
+   "zitat": "Entities that consume energy resources 1,500 or more tons of standard fuel per year, as well as government agencies, entities of the quasi-public sector and natural monopolies consuming energy resources 100 or more tons of reference fuel per year are subjects of the State Energy Register.",
+   "url": "https://www.iea.org/policies/2340-kazakhstan-energy-conservation-and-energy-efficiency-law",
+   "familie": "kk_en",
+   "damicon_folge": "Keine Pflichtfunktion. Optional den Energieverbrauch je Kühlzelle erfassen (Kosten, GLOBALG.A.P.-Nachhaltigkeit) und warnen, wenn der Verbrauch sich der Schwelle nähert (unwahrscheinlich)."
+  },
+  {
+   "id": "N-W5-030",
+   "thema": "Querschnitt – Bußgeldhöhe je Bereich (Kleinunternehmen, Erstverstoß)",
+   "aussage": "Reihenfolge nach КоАП (amtlicher Text 18.09.2026), jeweils für Kleinunternehmen: Datenschutz, Folgen nach Datenverlust (Art. 79 Teil 4) 750 MRP; Datenschutz, fehlende Schutzmaßnahmen (Teil 3) 300; Metrologie (Art. 419) 230; Pflichtversicherung (Art. 230) 160; ausländische Arbeitskräfte (Art. 519) 100; Sondernutzung Wasser (Art. 141) 100; Datenschutz, rechtswidrige Erhebung (Art. 79 Teil 1) 60; Industriesicherheit (Art. 298) 30; Brandschutz (Art. 410) 15; Statistik (Art. 497) 14; Meldung als aufnehmende Partei (Art. 518) 10; Energieaudit (Art. 296) 10; ККМ (Art. 284) und Sozialabgaben (Art. 92) beim ersten Mal nur Verwarnung. Mittlere Unternehmen (über 100 Beschäftigte im Jahresmittel oder über 300 000 MRP Einkommen) zahlen deutlich mehr.",
+   "einstufung": "pflicht",
+   "rechtsgrundlage": "КоАП 235-V",
+   "adilet_id": "K1400000235",
+   "zitat": "siehe Einzelfakten N-W5-003, -007, -010, -015, -019, -020, -023, -024, -028",
+   "url": "https://adilet.zan.kz/rus/docs/K1400000235",
+   "familie": "behoerde_faq",
+   "damicon_folge": "Priorisierung der neuen Module für den Betrieb: 1. Datenschutz (Protokoll, MFA, Vorfälle; Frist 21.09.2026). 2. Waagenregister und Eichfristen. 3. Rechtsgrund der ausländischen Saisonkräfte und Migrationsmeldungen. 4. Wasserquellen, Erlaubnisse, Zähler. 5. Anlagenakte der Kälteanlage. 6. Brandschutzjournale. 7. Statistikvorlagen. Bei 50–200 Saisonkräften kann der Betrieb im Jahresmittel die Grenze zum mittleren Unternehmen überschreiten; Damicon sollte die Größenklasse laufend berechnen (vgl. B-C1-007).",
+   "adilet_status": "gilt",
+   "zitat_amtlich": false
+  }
+ ]
+}

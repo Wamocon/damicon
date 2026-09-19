@@ -1,0 +1,98 @@
+{
+ "stand": "18.09.2026",
+ "version": "1.0",
+ "blick_text": [
+  "Ein privater Beerenbetrieb in Kasachstan muss seinen Jahresabschluss in aller Regel **nicht** prüfen lassen und nicht beim Depositarium einreichen. Geprüft wird er trotzdem, und zwar von mehreren Behörden: von der Steuerbehörde, von Sanepid, vom Pflanzenschutz, von der Arbeitsinspektion und von der Landaufsicht. Wer Subventionen bekommt, wird zusätzlich über drei Jahre überwacht.",
+  "Für Damicon ist die wichtigste Stelle Art. 161 des neuen Steuerkodex: Der Betrieb muss dem Steuerprüfer **Einsicht in die Daten seiner Buchhaltungssoftware** geben. Dazu kommen lange Aufbewahrungsfristen (Lohnunterlagen 75 Jahre) und seit dem 30.03.2026 eine feste Regel, wie elektronische Belege zu korrigieren sind.",
+  "Die Rechtsform des Kundenbetriebs (TOO, KH oder IP) ist noch offen. Wo das Ergebnis davon abhängt, ist es in der Tabelle vermerkt."
+ ],
+ "blick": [
+  {"pruefung": "Abschlussprüfung", "trifft": "Nur eine TOO, die zugleich einen Gesellschafter mit weniger als 10 % Anteil hat **und** Großunternehmen ist (über 250 Beschäftigte und/oder über 3 Mio. MRP). Bei einer mittleren TOO kann ein solcher Gesellschafter die Prüfung verlangen. KH und IP: nein.", "einstufung": "nein", "tun": "Größenklasse jährlich berechnen, Gesellschafterstruktur im Stammsatz führen."},
+  {"pruefung": "Depositarium", "trifft": "Nein. Einreichen müssen nur Organisationen öffentlichen Interesses (Finanzsektor, AO, Staatsbetriebe u. a.).", "einstufung": "nein", "tun": "Kein Export nötig. Ausnahme prüfen, falls Staatsbeteiligung entsteht."},
+  {"pruefung": "Rechnungslegungsstandard", "trifft": "Klein: nationaler Standard; mittel: IFRS for SMEs; groß: volle IFRS. IP/KH im vereinfachten Regime bis 135 000 MRP dürfen auf Buchführung verzichten, Primärbelege bleiben Pflicht.", "einstufung": "Pflicht", "tun": "Standard als Einstellung je Geschäftsjahr."},
+  {"pruefung": "Aufbewahrung", "trifft": "Ja, alle Rechtsformen. Primärbelege und Register 5 Jahre, Jahresabschluss dauernd, Lohnlisten und Personalanordnungen 75 Jahre, Steuerunterlagen bis Verjährung, mindestens 5 Jahre. Auch die Buchhaltungsprogramme selbst sind aufzubewahren. Die Archivfristen (5 und 75 Jahre) sind nur aus Sekundärquellen belegt.", "einstufung": "Pflicht", "tun": "Löschsperren und Fristenkatalog; Archivexport je Jahr."},
+  {"pruefung": "Steuerprüfung", "trifft": "Ja. Komplexe, thematische und Gegenprüfung; höchstens 30 Arbeitstage; Dokumente binnen 10 Arbeitstagen; Einsicht in die Buchhaltungssoftware ist Pflicht. Moratorium 2026 nur für Zeiträume vor 2026 bei Mikro- und Kleinunternehmen.", "einstufung": "Pflicht", "tun": "Rolle „Steuerprüfer (nur Lesen)“, Belegpakete je Zeitraum, Fristzähler."},
+  {"pruefung": "Standard-Prüfdatei", "trifft": "Freiwillig (Erlass 567). Wer zustimmt, liefert binnen 10 Kalendertagen ab Zustellung der Anordnung, als xml oder xlsx.", "einstufung": "Empfehlung", "tun": "Export in der Struktur der sieben Anhänge vorbereiten."},
+  {"pruefung": "Sanepid", "trifft": "Ja, für Kühllager, Sortierung und Verpackung. Prüfliste Anh. 17 in der Fassung vom April 2026. Bußgeld für Kleinunternehmen 160 MRP.", "einstufung": "Pflicht", "tun": "Gesundheitsuntersuchungen, Hygieneschulung und Laborbefunde mit Fristen führen."},
+  {"pruefung": "Pflanzenschutz und Quarantäne", "trifft": "Ja. Meldungen FU-3 und FU-4, phytosanitäres Monitoring. Die geltende Quarantäne-Prüfliste ist noch nicht eindeutig identifiziert.", "einstufung": "Pflicht", "tun": "Spritzbuch als Datenbasis für FU-3/FU-4; Phytozertifikate beim Zukauf ablegen."},
+  {"pruefung": "Arbeitsinspektion", "trifft": "Ja, besonders wegen der Saisonkräfte: Arbeitsverträge, Unterweisung, Versicherung, Kinderarbeit, Mindestlohn. Eine Änderung der Prüfliste vom 29.05.2026 ist angekündigt.", "einstufung": "Pflicht", "tun": "Personalakte je Saisonkraft mit Nachweisen und ESUTD-Eintrag."},
+  {"pruefung": "Land und Umwelt", "trifft": "Ja. Bewässerte Flächen über 50 ha gelten als hohes Risiko. Umwelt-Prüflisten nach V1500012779.", "einstufung": "Pflicht", "tun": "Flächenregister mit Kataster, Nutzungsart und Größe."},
+  {"pruefung": "Subventionskontrolle", "trifft": "Nur bei Förderung. Gegenleistungspflichten ab 100 Mio. Tenge im Jahr; Investitionsförderung (z. B. Beerenanlage ab 5 ha, Obstlager ab 1 000 t) wird drei Jahre überwacht, Rückforderung möglich. Für Förderanträge genutzte ЭСФ werden gesperrt.", "einstufung": "Pflicht", "tun": "Förderdossier mit Fristen, Auslastung und Zweckbindung."},
+  {"pruefung": "GLOBALG.A.P.", "trifft": "Freiwillig, aber von Handelsketten verlangt. In Kasachstan sind laut IAF (2024) nur zwei Betriebe zertifiziert, kein Beerenbetrieb.", "einstufung": "Empfehlung", "tun": "Aufzeichnungen nach IFA v6 mindestens 2 Jahre: Rückverfolgung, Massenbilanz, Rückruftest, Spritz- und Düngebuch."},
+  {"pruefung": "HACCP", "trifft": "Nach EAWU-Recht (TR TS 021/2011 Art. 10) Pflicht für den Hersteller; ob reiner Anbau und Kühlung darunter fallen, ist offen. Im nationalen Gesetz 301-III steht HACCP nur als Recht.", "einstufung": "unklar", "tun": "Frage an den Prüfer vor Ort; HACCP-fähige Protokolle vorsehen."},
+  {"pruefung": "Elektronische Belege", "trifft": "Ja. Korrektur nur als neuer Beleg mit Vermerk „исправлено“, Verweis auf das Original und erneuter EDS; Kassen- und Bankbelege gar nicht.", "einstufung": "Pflicht", "tun": "Storno- und Korrekturlogik mit Belegkette; keine Änderung am Original."},
+  {"pruefung": "Zollprüfung", "trifft": "Bei Export in die EAWU keine Zollanmeldung; statt dessen СНТ vor Beginn der Beförderung und Nachweise für den Nullsatz. Bei Drittlandexport Zollprüfung bis 3 bzw. 5 Jahre.", "einstufung": "Pflicht", "tun": "СНТ als Pflichtfeld vor Verladung, Exportdossier je Sendung."},
+  {"pruefung": "Prüfpfad der Software", "trifft": "Keine Norm für Unternehmen außerhalb des Finanzsektors gefunden.", "einstufung": "unklar", "tun": "Frage an den Prüfer; bis dahin Prüfpfad nach eigenen Regeln (Unveränderlichkeit, Protokoll, Export)."}
+ ],
+ "damicon_text": "Die Liste fasst die Folgen zusammen, die aus bestätigten Pflichten entstehen. Die Einzelbelege mit Fundstelle stehen in Kapitel 3 und im Belegregister.",
+ "damicon": [
+  {"titel": "Prüfungen begleiten", "punkte": [
+   "Rolle **Steuerprüfer (nur Lesen)** mit Zugriff auf Primärbelege, Register und Objekte für die Dauer einer Prüfung, mit Zugriffsprotokoll (214-VIII Art. 161).",
+   "Prüfungsmodul mit Art der Prüfung (Steuer, Sanepid, Arbeit, Land, Umwelt, Zoll, Subvention), Zustellungsdatum als Fristanker, Fristen 30 Arbeitstage und 10 Arbeitstage bzw. 10 Kalendertage.",
+   "Export der **Standard-Prüfdatei** in der Struktur von Erlass 567 (sieben Anhänge, Universalregister Erlöse und Aufwand), xml und xlsx.",
+   "Belegpakete je Zeitraum, Steuerart und Gegenpartei, damit auch eine Gegenprüfung bei Lieferanten oder Kunden schnell beantwortet ist."]},
+  {"titel": "Belege und Aufbewahrung", "punkte": [
+   "Korrektur elektronischer Belege nur als neuer Beleg mit Korrekturnummer, Datum, Verweis auf das Original und Vermerk „исправлено“; das Original bleibt erhalten (V1500010954 Nr. 25, Fassung 30.03.2026).",
+   "Änderungen nach Periodenabschluss nur mit Freigabe des Hauptbuchhalters; nach dem Jahresabschluss Sicherung der Datenbank auf separatem Träger.",
+   "Fristenkatalog mit Löschsperren: Primärbelege 5 Jahre, Lohn- und Personalunterlagen 75 Jahre, Jahresabschluss dauernd; Programmversion je Geschäftsjahr archivieren.",
+   "Papier- bzw. PDF-Ausgabe jedes elektronischen Belegs auf Abruf."]},
+  {"titel": "Betrieb und Personal", "punkte": [
+   "Personalakte je Saisonkraft: Arbeitsvertrag mit ESUTD-Eintrag, Unterweisung, Versicherung, Gesundheitsuntersuchung und Hygieneschulung mit Fristwarnung.",
+   "Zeiterfassung mit Überstunden und Kennzeichen für schädliche Bedingungen (verlängert die Aufbewahrung auf 75 Jahre).",
+   "Spritz- und Düngebuch als Grundlage für die Meldungen FU-3/FU-4 und für GLOBALG.A.P.",
+   "Flächenregister mit Kataster, Nutzungsart (bewässert oder nicht) und Größe, weil beides die Risikostufe der Landaufsicht bestimmt."]},
+  {"titel": "Handel, Export und Förderung", "punkte": [
+   "Rückverfolgung Charge zu Feld, Pflücker und Kunde mit jährlichem Rückruftest und Massenbilanz inklusive Zukauf.",
+   "Export in die EAWU: СНТ als Pflichtfeld vor Verladung, Dossier für den НДС-Nullsatz mit Fristwarnung 180 Tage; Zukauf aus der EAWU mit Daten für die Erklärung 328.00.",
+   "Förderdossier: Gegenleistungspflichten, dreijährige Überwachung, Auslastung und Zweckbindung, Sperre der für den Antrag genutzten ЭСФ.",
+   "Größenklasse (Beschäftigte, Einkommen in MRP) und Rechnungslegungsstandard automatisch berechnen; MRP als Jahresparameter."]}
+ ],
+ "fragen": [
+  {"id": "F1", "titel": "Abschlussprüfung: Schwellen und Rechtsform", "antwort": "Pflichtprüfung nach 304-I Art. 5 Abs. 2 nur für eine TOO mit Gesellschafter unter 10 % **und** Großunternehmensgröße. Größenklassen nach Unternehmerkodex: klein bis 100 Beschäftigte und 300 000 MRP, groß über 250 Beschäftigte und/oder 3 Mio. MRP; MRP 2026 = 4 325 KZT. KH ist Einzelunternehmertum ohne juristische Person."},
+  {"id": "F2", "titel": "Depositarium und Rechnungslegungsstandard", "antwort": "Keine Einreichung beim Depositarium, weil ein privater Beerenbetrieb keine Organisation öffentlichen Interesses ist. Standard nach Größe: national (klein), IFRS for SMEs (mittel), volle IFRS (groß)."},
+  {"id": "F3", "titel": "Aufbewahrungsfristen", "antwort": "Steuerunterlagen bis Ende der Verjährung, mindestens 5 Jahre (Verjährung 3 Jahre, bei Großunternehmen 5). Die Fristen aus dem neuen Archiv-Verzeichnis 279-НҚ (5 Jahre Primärbelege, 75 Jahre Lohn und Personal, dauernd Jahresabschluss) sind nur aus Sekundärquellen belegt; die adilet-Kennung fehlt noch."},
+  {"id": "F4", "titel": "Steuerprüfung und Standard-Prüfdatei", "antwort": "Prüfungsformen, Dauer, Fristen, Auswahlkriterien (Erlass 659) und die Struktur der freiwilligen Standard-Prüfdatei (Erlass 567) sind am Primärtext belegt. Pflicht zur Einsicht in die Buchhaltungssoftware."},
+  {"id": "F5", "titel": "Kontrollbehörden und Prüflisten", "antwort": "Geltende Prüflisten liegen vor für Sanepid, Pflanzenschutz, Arbeitsinspektion, Umwelt, Land sowie Saat- und Pflanzgut. Drei ältere Prüflisten (Arbeitsrecht, Quarantäne, Umwelt) sind aufgehoben. Ein allgemeines Prüfungsmoratorium gibt es 2026 nicht mehr."},
+  {"id": "F6", "titel": "Kontrolle von Agrarsubventionen", "antwort": "Gegenleistungspflichten ab 100 Mio. Tenge, dreijährige Überwachung von Investitionssubventionen mit Rückforderung, Sperre der verwendeten ЭСФ; staatliches Audit nach 392-V durch die Oberste Rechnungskammer und die Revisionskommissionen."},
+  {"id": "F7", "titel": "GLOBALG.A.P., HACCP und Registrierung", "antwort": "Vollständige Liste der Aufzeichnungspflichten nach IFA v6 mit Kontrollpunkten. HACCP ist nach EAWU-Recht Pflicht des Herstellers, für den reinen Anbau aber offen. Registriernummer (учетный номер) für Objekte der Lebensmittelherstellung durch Sanepid."},
+  {"id": "F8", "titel": "Elektronische Belege: Korrektur, Signatur, Aufbewahrung", "antwort": "Korrektur als neuer Beleg mit Vermerk und erneuter Signatur, EDS ist der Unterschrift gleichwertig, Aufbewahrung nach den Regeln des Archivwesens. Das Gesetz 370-II ist durch den Digitalen Kodex abgelöst."},
+  {"id": "F9", "titel": "Prüfpfad der Software", "antwort": "Keine ausdrückliche Norm für Unternehmen außerhalb des Finanzsektors. Mittelbar belegt: Programme sind aufzubewahren, Änderungen nach Abschluss nur mit Freigabe, Datenbank nach Jahresabschluss separat sichern, personenbezogene Daten in Kasachstan speichern."},
+  {"id": "F10", "titel": "Änderungen 2026/2027", "antwort": "256-VIII (Prüfbericht elektronisch, Depositarium als digitale Datenbank), 352-VIII ändert 234-III ab 21.10.2026, Kontenplan-Entwurf wegen IFRS 18, angekündigte Neufassungen der Arbeitsinspektions-Prüfliste und der Musterordnung interne Revision."},
+  {"id": "F11", "titel": "Zollprüfung bei Export und Zukauf", "antwort": "Zollprüfung kameral (60 Tage) oder vor Ort (2 plus 1 Monat), bis zur Verjährung von 3 bzw. 5 Jahren. Innerhalb der EAWU keine Zollanmeldung, statt dessen СНТ und Nachweise für den Nullsatz; beim Zukauf aus der EAWU Erklärung 328.00."}
+ ],
+ "behoerden": [
+  {"stelle": "Steuerbehörde (KGD)", "grundlage": "Steuerkodex 214-VIII Art. 152–171; Auswahl nach Erlass 659 (V2500037316)", "punkte": "Alle Steuern und Sozialabgaben, ЭСФ, Warenbilanz, Einsicht in die Buchhaltungssoftware", "bussgeld": "Behinderung der Prüfung: 100 MRP (klein), 150 (mittel), 200 (groß)"},
+  {"stelle": "Sanepid (Gesundheitsministerium)", "grundlage": "V2200030964, Anh. 17 (Lebensmittelproduktion) und Anh. 18 (Handel), Fassung April 2026", "punkte": "Gesundheitsuntersuchungen, Hygieneschulung, Laborbefunde, Produktionskontrolle", "bussgeld": "KoAP Art. 425: 160 MRP (klein), 210 (mittel), 1 600 (groß)"},
+  {"stelle": "Pflanzenschutz (Landwirtschaftsministerium)", "grundlage": "V1500012744", "punkte": "Meldungen FU-3 und FU-4, phytosanitäres Monitoring, Pestizidlager", "bussgeld": "nicht ermittelt"},
+  {"stelle": "Pflanzenquarantäne", "grundlage": "Gemeinsamer Erlass 15-05/1138 vom 28.12.2015 (adilet-Kennung offen); Vorgänger V1300008502 aufgehoben", "punkte": "Zukauf von Pflanzgut, Lagerdesinfektion, Quarantäneobjekte", "bussgeld": "KoAP Art. 400: 20 bis 100 MRP"},
+  {"stelle": "Arbeitsinspektion", "grundlage": "V1500012656, Änderung vom 29.05.2026 angekündigt", "punkte": "Arbeitsverträge, Unterweisung, Versicherung, Kinderarbeit, Mindestlohn", "bussgeld": "KoAP Art. 93: 20 MRP (klein), 30 (mittel), 120 (groß)"},
+  {"stelle": "Landaufsicht", "grundlage": "V1800018000, Prüfliste Anh. 6, Risikokriterien Anh. 2", "punkte": "Nutzung nach Zweckbestimmung, Bodenschutz; bewässert über 50 ha = hohes Risiko", "bussgeld": "nicht ermittelt"},
+  {"stelle": "Umweltaufsicht", "grundlage": "V1500012779 (ersetzt V1500011792)", "punkte": "Objekte mit negativer Umweltwirkung, Abfälle", "bussgeld": "nicht ermittelt"},
+  {"stelle": "Saat- und Pflanzgut", "grundlage": "V1800017871", "punkte": "Herkunft und Qualität von Pflanzgut, Nachweise beim Kauf", "bussgeld": "nicht ermittelt"},
+  {"stelle": "Förderstelle, Oberste Rechnungskammer, Revisionskommissionen", "grundlage": "V2000020209, V1800017320, Gesetz 392-V", "punkte": "Gegenleistungspflichten, Zweckbindung, Auslastung, Rückforderung", "bussgeld": "Rückforderung und Antragssperre 1 bis 2 Jahre"},
+  {"stelle": "Zoll (KGD)", "grundlage": "Kodex 123-VI Art. 416–418, EAWU-Zollkodex", "punkte": "Nur bei Drittland-Export oder -Import; EAWU: СНТ und Nullsatz-Nachweise", "bussgeld": "СНТ-Verstöße laut Sekundärquelle 10 bis 30 MRP"}
+ ],
+ "luecken_text": ["Diese Punkte ließen sich im Netz nicht abschließend klären. Sie gehen als Fragen an den Prüfer oder Anwalt vor Ort (`audit-17`)."],
+ "luecken": [
+  "Gilt die HACCP-Pflicht aus TR TS 021/2011 für Anbau, Kühlung und Verpackung frischer Beeren ohne Verarbeitung?",
+  "Welche adilet-Kennung hat das Archiv-Verzeichnis 279-НҚ, und wann beginnen die Fristen? Was änderte 2026 daran?",
+  "Welche Prüfliste gilt für die Pflanzenquarantäne, und welche Bußgelder gelten für Pflanzenschutz, Land und Umwelt?",
+  "Gibt es Anforderungen an den Prüfpfad einer Betriebssoftware außerhalb des Finanzsektors?",
+  "Neufassung von 94-V Art. 12 durch 326-VIII: Muss die Primärdatenbank in Kasachstan liegen oder genügt eine Kopie?",
+  "Zollbelege 3 oder 5 Jahre aufbewahren (nationale Verjährung gegen EAWU-Zollkodex)?",
+  "Gilt die Registrierpflicht (учетный номер) für ein Kühllager mit Sortierung und Verpackung?"
+ ],
+ "methode": [
+  "Grundlage ist der Research-Plan v0.3 (`00-research-plan.md`), geprüft mit iq-eq-vq und qa-ultra. Vier Agenten suchten parallel in acht Clustern, auf Russisch, Kasachisch und Englisch, jeweils offen und mit Filter auf amtliche Domänen.",
+  "Jeder Wortlaut wurde danach im Browser am amtlichen Text auf adilet.zan.kz abgeglichen (38 Rechtsakte geladen). Ein zweiter, unabhängiger Agent prüfte die übrigen Belege und eine Stichprobe von 26 bestätigten Belegen; er korrigierte 28 Aussagen. Eine abschließende maschinelle Prüfung bestätigte 96 Zitate Zeichen für Zeichen im amtlichen Text; ein zu kurzes Zitat wurde zurückgestuft.",
+  "Zusätzlich wurde das amtliche Pflichtenverzeichnis auf rsp.gov.kz für OKED 01250 (Beeren) vollständig gesichert: 555 Einträge, 359 Rechtsakte. Der Filter ordnet ganze Regelwerke pauschal zu, und Landwirtschaft, Arbeit und Finanzen fehlen darin. Das Verzeichnis ist daher ein Katalog, keine fertige Pflichtenliste."
+ ],
+ "kennzahlen_ziel": [
+  ["Fragen mit Primärbeleg", "mindestens 9 von 11", "11 von 11"],
+  ["Anteil Primärbelege", "mindestens 70 %", "74 % (116 von 156)"],
+  ["Rang-1-Quellen je Cluster", "mindestens 3", "3 bis 9, alle Cluster erfüllt"],
+  ["Prüfliste je prüfender Behörde (C4)", "mindestens eine", "6 von 7 Bereichen; Quarantäne offen"],
+  ["Aufgehobene Normen erkannt", "–", "7, darunter 3 Prüflisten"],
+  ["Suchrunden", "Sättigung", "135 Runden, 91 Quellen"]
+ ]
+}
