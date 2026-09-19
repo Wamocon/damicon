@@ -5,12 +5,17 @@
 // moeglicherweise ein anderer Dienst, anderes Anfrage-/Antwortformat, eigenes
 // Zeitlimit.
 //
-// Gegen den echten Dienst geprueft (19.09.2026): nomic-embed-text liegt auf
-// Sokrates-2 (rund 274 MB, verdraengt die grossen Chat-Modelle nicht) und
-// liefert bestaetigt 768 Dimensionen - genau die Spaltenbreite der Migration
-// 20261031000000_ki_wissen_dokumente.sql. Wird das Modell dort entfernt oder
-// gegen eines mit anderer Dimension getauscht, faengt die Pruefung gegen
-// ERWARTETE_EINBETTUNGS_DIMENSION das ab, bevor etwas geschrieben wird.
+// Standardmodell bge-m3 (mehrsprachig, 1024 Dimensionen): Wissensdokumente
+// liegen in ihrer Originalsprache vor (Kasachisch, Russisch, Englisch,
+// Deutsch gemischt), eine Frage muss also auch ein Dokument in einer anderen
+// Sprache finden. Vorher nomic-embed-text (768, im Kern englisch).
+// BEKANNTE GRENZE: Kasachisch deckt bge-m3 deutlich schwaecher ab als
+// Russisch/Deutsch/Englisch - nicht gemessen, siehe Kopfkommentar der
+// Migration 20261031000000_ki_wissen_dokumente.sql.
+//
+// Wird das Modell auf Sokrates-2 entfernt oder gegen eines mit anderer
+// Dimension getauscht (auch per KI_EINBETTUNG_MODELL), faengt die Pruefung
+// gegen ERWARTETE_EINBETTUNGS_DIMENSION das ab, bevor etwas geschrieben wird.
 
 export type EinbettungAntwort = { ok: true; vektor: number[] } | { ok: false; grund: string };
 
@@ -26,16 +31,16 @@ export function einbettungBasisUrl(): string {
 }
 
 export function einbettungModell(): string {
-  return process.env.KI_EINBETTUNG_MODELL ?? "nomic-embed-text";
+  return process.env.KI_EINBETTUNG_MODELL ?? "bge-m3";
 }
 
 // Erwartete Vektor-Laenge fuer die aktuelle Spaltendefinition
 // (ki_wissen_chunks.embedding, Migration 20261031000000). Passt zu
-// nomic-embed-text; ein anderes Modell mit anderer Dimension braucht eine
+// bge-m3; ein anderes Modell mit anderer Dimension braucht eine
 // eigene Migration (Spalte neu anlegen, alle Chunks neu einbetten) - kein
 // stiller Mismatch, deshalb die Pruefung unten statt eines ungeprueften
 // Durchreichens an Postgres.
-export const ERWARTETE_EINBETTUNGS_DIMENSION = 768;
+export const ERWARTETE_EINBETTUNGS_DIMENSION = 1024;
 
 // pgvector nimmt ueber PostgREST kein JSON-Array entgegen, sondern seine
 // eigene Textform "[0.1,0.2,...]" - supabase-js typisiert die Spalte bzw. den

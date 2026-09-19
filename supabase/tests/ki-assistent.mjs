@@ -18,6 +18,7 @@
 // Modellzugang und ohne Datenbank ohnehin nichts Sinnvolles pruefen.
 // =============================================================================
 
+import { readFileSync } from "node:fs";
 import { entschluessleApiKey, verschluessleApiKey } from "../../src/lib/ai/schluessel.ts";
 import {
   baueAnthropicAnfrage,
@@ -475,8 +476,20 @@ for (const [name, kaputteAntwort] of [
 
   pruefe("Einbettung: Standard-Zeitlimit betraegt 30 Sekunden", einbettungZeitlimitMs() === 30_000);
   pruefe("Einbettung: Standard-Adresse zeigt auf Sokrates-2", einbettungBasisUrl() === "http://192.168.178.136:11434");
-  pruefe("Einbettung: Standardmodell ist nomic-embed-text", einbettungModell() === "nomic-embed-text");
-  pruefe("Einbettung: erwartete Dimension passt zur Migration (vector(768))", ERWARTETE_EINBETTUNGS_DIMENSION === 768);
+  pruefe("Einbettung: Standardmodell ist bge-m3 (mehrsprachig)", einbettungModell() === "bge-m3");
+  // Liest die Migration selbst, statt eine zweite Kopie der Zahl zu pflegen:
+  // Spalte und RPC-Parameter muessen beide genau die erwartete Dimension haben.
+  const wissenMigration = readFileSync(
+    new URL("../migrations/20261031000000_ki_wissen_dokumente.sql", import.meta.url),
+    "utf8",
+  );
+  const vektorDimensionen = [...wissenMigration.matchAll(/vector\((\d+)\)/g)].map((m) => Number(m[1]));
+  pruefe(
+    "Einbettung: erwartete Dimension (1024) passt zu jeder vector(n)-Stelle der Migration",
+    ERWARTETE_EINBETTUNGS_DIMENSION === 1024 &&
+      vektorDimensionen.length >= 2 &&
+      vektorDimensionen.every((d) => d === ERWARTETE_EINBETTUNGS_DIMENSION),
+  );
 
   process.env.KI_EINBETTUNG_ZEITLIMIT_MS = "45000";
   process.env.KI_EINBETTUNG_URL = "http://beispiel.intern:11434";

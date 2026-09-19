@@ -30,16 +30,35 @@
 -- selbst: Dokumente sollen nicht das Buero-Netz verlassen muessen, um
 -- durchsuchbar zu sein.
 --
--- Vektor-Dimension bewusst als feste Zahl (768) statt generisch: pgvector
+-- Modellwahl: bge-m3 (1024 Dimensionen), ein mehrsprachiges Modell. Die
+-- Dokumente werden in ihrer Originalsprache abgelegt - Kasachisch, Russisch,
+-- Englisch, Deutsch gemischt, nicht uebersetzt (Festlegung des Betriebs,
+-- 19.09.2026). Das zuerst gewaehlte nomic-embed-text (768 Dimensionen) ist
+-- im Kern auf Englisch trainiert und nicht fuer sprachuebergreifende Suche
+-- ausgelegt. bge-m3 ist genau dafuer gebaut: Frage und Dokument muessen
+-- nicht dieselbe Sprache haben (Russisch, Deutsch, Englisch gut abgedeckt).
+--
+-- BEKANNTE GRENZE - Kasachisch: bge-m3 kennt Kasachisch, aber als Sprache mit
+-- deutlich weniger Trainingsdaten als Russisch/Deutsch/Englisch. Die
+-- Trefferqualitaet fuer kasachische Dokumente und Fragen ist spuerbar
+-- schwaecher und hier NICHT gemessen - brauchbar, aber kein Ersatz fuer eine
+-- Pruefung mit echten kasachischen Dokumenten, bevor sich der Betrieb bei
+-- kasachischen Inhalten darauf verlaesst. Ein kasachisches Dokument, das
+-- nicht gefunden wird, faellt still aus dem Kontext (keine Fehlermeldung) -
+-- genau deshalb steht es hier und nicht nur im Ticket.
+--
+-- Vektor-Dimension bewusst als feste Zahl (1024) statt generisch: pgvector
 -- braucht die Dimension in der Spaltendefinition fest, ein Wechsel des
 -- Einbettungsmodells auf eine andere Dimension braucht ohnehin eine neue
 -- Migration (Spalte neu anlegen, alle Chunks neu einbetten) - siehe
--- ERWARTETE_EINBETTUNGS_DIMENSION in einbettung-client.ts.
+-- ERWARTETE_EINBETTUNGS_DIMENSION in einbettung-client.ts. Diese Migration
+-- wurde vor dem ersten Merge von 768 auf 1024 umgestellt, an Ort und Stelle
+-- statt mit einer Folgemigration - es gab noch keine eingebetteten Daten.
 --
 -- Gegen echtes Postgres geprueft (19.09.2026, lokale Supabase-Instanz):
 -- pgvector liegt im extensions-Schema, der HNSW-Index baut, und der Weg
 -- Dokument -> Abschnitte -> Vektoren -> Aehnlichkeitssuche laeuft durch.
--- Ein number[] reicht supabase-js allerdings NICHT in eine vector(768)-Spalte
+-- Ein number[] reicht supabase-js allerdings NICHT in eine vector(1024)-Spalte
 -- durch: pgvector erwartet ueber PostgREST seine Textform "[0.1,0.2,...]" -
 -- dafuer gibt es alsVektorLiteral() in einbettung-client.ts, benutzt beim
 -- Einfuegen der Chunks und als RPC-Parameter.
@@ -112,11 +131,11 @@ create table public.ki_wissen_chunks (
   -- fuer die Suche selbst (die geht rein ueber embedding <=>).
   position      integer not null,
   inhalt        text not null check (inhalt <> ''),
-  embedding     extensions.vector(768) not null,
+  embedding     extensions.vector(1024) not null,
   erstellt_am   timestamptz not null default now()
 );
 comment on table public.ki_wissen_chunks is
-  'Zerlegte und eingebettete Textabschnitte eines ki_wissen_dokumente-Eintrags. Dimension 768 passt zum Standardmodell in einbettung-client.ts (nomic-embed-text) - ein anderes Modell braucht eine eigene Migration.';
+  'Zerlegte und eingebettete Textabschnitte eines ki_wissen_dokumente-Eintrags. Dimension 1024 passt zum Standardmodell in einbettung-client.ts (bge-m3, mehrsprachig) - ein anderes Modell braucht eine eigene Migration.';
 
 create index ki_wissen_chunks_dokument_idx on public.ki_wissen_chunks (dokument_id);
 
@@ -148,7 +167,7 @@ alter table public.ki_wissen_chunks enable row level security;
 -- server-seitig gekapselt (data/ki-wissen.ts liest die Rolle aus dem eigenen
 -- SessionProfile, nicht aus Nutzereingabe).
 create or replace function public.ki_wissen_aehnliche_chunks(
-  p_embedding extensions.vector(768),
+  p_embedding extensions.vector(1024),
   p_rolle public.app_role,
   p_anzahl integer default 4
 )

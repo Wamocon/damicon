@@ -56,7 +56,7 @@ export async function ladeKiWissenDokumente(): Promise<KiWissenUebersicht> {
 // "kein 5xx bei Ausfall"-Regel wie bei sendeChatAnfrage().
 //
 // Zur p_embedding-Uebergabe: supabase-js reicht ein number[] NICHT in eine
-// vector(768)-RPC durch, pgvector erwartet ueber PostgREST seine Textform.
+// vector(1024)-RPC durch, pgvector erwartet ueber PostgREST seine Textform.
 // Deshalb alsVektorLiteral() - gegen eine lokale Supabase-Instanz und das
 // Modell auf Sokrates-2 geprueft (19.09.2026): als admin wird der Testsatz
 // gefunden, als kunde nicht.
