@@ -45,6 +45,8 @@ import {
   einbettungBasisUrl,
   einbettungModell,
   einbettungZeitlimitMs,
+  einbettungZugangsHeader,
+  erzeugeEinbettung,
   ERWARTETE_EINBETTUNGS_DIMENSION,
 } from "../../src/lib/ai/einbettung-client.ts";
 
@@ -513,6 +515,60 @@ for (const [name, kaputteAntwort] of [
   // Kommentar bei alsVektorLiteral().
   pruefe("alsVektorLiteral: erzeugt die pgvector-Textform", alsVektorLiteral([0.5, -1, 2]) === "[0.5,-1,2]");
   pruefe("alsVektorLiteral: leerer Vektor ergibt leere Klammern", alsVektorLiteral([]) === "[]");
+}
+
+// --- Cloudflare Access vor Sokrates-2 (Service Token) -----------------------
+// fetch wird fuer diese Pruefungen durch einen Mitschreiber ersetzt - kein
+// Netzwerk, aber die tatsaechlich gebaute Anfrage von erzeugeEinbettung().
+{
+  const echtesFetch = globalThis.fetch;
+  const aufrufe = [];
+  let naechsteAntwort;
+  globalThis.fetch = async (url, init) => {
+    aufrufe.push({ url, init });
+    return naechsteAntwort();
+  };
+  const vektorAntwort = () =>
+    new Response(JSON.stringify({ embedding: Array.from({ length: ERWARTETE_EINBETTUNGS_DIMENSION }, () => 0.1) }), { status: 200 });
+
+  try {
+    delete process.env.KI_EINBETTUNG_ACCESS_ID;
+    delete process.env.KI_EINBETTUNG_ACCESS_SECRET;
+    const ohne = einbettungZugangsHeader();
+    pruefe("Access: ohne beide Werte keine Header (lokal im Buero-LAN)", ohne.ok && Object.keys(ohne.headers).length === 0);
+
+    process.env.KI_EINBETTUNG_ACCESS_ID = "id.access";
+    const halb = einbettungZugangsHeader();
+    pruefe("Access: nur ein Wert gesetzt ist ein Fehler, nicht still ohne Header", !halb.ok && halb.grund.startsWith("zugang-unvollstaendig"));
+    aufrufe.length = 0;
+    naechsteAntwort = vektorAntwort;
+    const halbAufruf = await erzeugeEinbettung("Frage");
+    pruefe("Access: unvollstaendiger Zugang schickt gar keine Anfrage los", !halbAufruf.ok && aufrufe.length === 0);
+
+    process.env.KI_EINBETTUNG_ACCESS_SECRET = "geheim-access";
+    aufrufe.length = 0;
+    naechsteAntwort = vektorAntwort;
+    const mit = await erzeugeEinbettung("Frage");
+    const gesendet = aufrufe[0]?.init;
+    pruefe(
+      "Access: beide Werte gesetzt - CF-Access-Client-Id/-Secret gehen mit der Einbettungsanfrage",
+      mit.ok && gesendet?.headers["CF-Access-Client-Id"] === "id.access" && gesendet?.headers["CF-Access-Client-Secret"] === "geheim-access",
+    );
+    pruefe("Access: Geheimnis steht nur im Header, nicht im Body", !String(gesendet?.body).includes("geheim-access"));
+    pruefe("Access: Umleitungen werden nicht verfolgt (redirect: manual)", gesendet?.redirect === "manual");
+
+    // Abweisung durch Access (Umleitung auf die Anmeldeseite bzw. 403) muss
+    // als solche erkennbar sein, nicht als "unerwartete Antwortform".
+    for (const status of [302, 403]) {
+      naechsteAntwort = () => new Response("", { status, headers: status === 302 ? { location: "https://x.cloudflareaccess.com/login" } : {} });
+      const abgewiesen = await erzeugeEinbettung("Frage");
+      pruefe(`Access: Status ${status} wird als zugang-abgewiesen gemeldet`, !abgewiesen.ok && abgewiesen.grund.startsWith("zugang-abgewiesen"));
+    }
+  } finally {
+    globalThis.fetch = echtesFetch;
+    delete process.env.KI_EINBETTUNG_ACCESS_ID;
+    delete process.env.KI_EINBETTUNG_ACCESS_SECRET;
+  }
 }
 
 console.log("\n" + "-".repeat(58));

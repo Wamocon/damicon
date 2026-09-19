@@ -34,6 +34,32 @@ export function einbettungModell(): string {
   return process.env.KI_EINBETTUNG_MODELL ?? "bge-m3";
 }
 
+// Zugangsdaten fuer Cloudflare Access (Service Token). In Produktion erreicht
+// die Anwendung (Vercel) Sokrates-2 nicht direkt im Buero-LAN, sondern ueber
+// einen Cloudflare Tunnel; davor sitzt Cloudflare Access, das nur Anfragen mit
+// gueltigem Service Token durchlaesst - Ollama selbst kennt keine
+// Anmeldung. KI_EINBETTUNG_URL zeigt dann auf den oeffentlichen Hostnamen
+// des Tunnels.
+//
+// Beide Werte gesetzt: Header mitschicken. Keiner gesetzt: ohne Header (lokale
+// Entwicklung direkt im Buero-LAN). Nur einer gesetzt: Fehler statt still ohne
+// Header weiterzumachen - das waere sonst eine abgewiesene Anfrage mit
+// irrefuehrender Meldung.
+export function einbettungZugangsHeader():
+  | { ok: true; headers: Record<string, string> }
+  | { ok: false; grund: string } {
+  const id = process.env.KI_EINBETTUNG_ACCESS_ID?.trim();
+  const geheimnis = process.env.KI_EINBETTUNG_ACCESS_SECRET?.trim();
+  if (!id && !geheimnis) return { ok: true, headers: {} };
+  if (!id || !geheimnis) {
+    return {
+      ok: false,
+      grund: "zugang-unvollstaendig: KI_EINBETTUNG_ACCESS_ID und KI_EINBETTUNG_ACCESS_SECRET nur zusammen setzen",
+    };
+  }
+  return { ok: true, headers: { "CF-Access-Client-Id": id, "CF-Access-Client-Secret": geheimnis } };
+}
+
 // Erwartete Vektor-Laenge fuer die aktuelle Spaltendefinition
 // (ki_wissen_chunks.embedding, Migration 20261031000000). Passt zu
 // bge-m3; ein anderes Modell mit anderer Dimension braucht eine
@@ -55,18 +81,32 @@ export function alsVektorLiteral(vektor: number[]): string {
 }
 
 export async function erzeugeEinbettung(text: string): Promise<EinbettungAntwort> {
+  const zugang = einbettungZugangsHeader();
+  if (!zugang.ok) return zugang;
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), einbettungZeitlimitMs());
 
   try {
     const antwort = await fetch(`${einbettungBasisUrl()}/api/embeddings`, {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", ...zugang.headers },
       body: JSON.stringify({ model: einbettungModell(), prompt: text }),
       signal: controller.signal,
+      // Cloudflare Access beantwortet eine Anfrage ohne gueltigen Token mit
+      // einer Umleitung auf seine Anmeldeseite. Gefolgt, kaeme eine HTML-Seite
+      // mit Status 200 zurueck und der Fehler hiesse irrefuehrend
+      // "antwort-unerwartete-form" - so bleibt er als Abweisung erkennbar.
+      redirect: "manual",
     });
 
     if (!antwort.ok) {
+      if ([301, 302, 303, 307, 308, 401, 403].includes(antwort.status)) {
+        return {
+          ok: false,
+          grund: `zugang-abgewiesen (http-${antwort.status}) - Cloudflare Access? KI_EINBETTUNG_ACCESS_ID/-SECRET pruefen`,
+        };
+      }
       const auszug = await antwort.text().catch(() => "");
       return { ok: false, grund: `http-${antwort.status}: ${auszug.slice(0, 200)}` };
     }
