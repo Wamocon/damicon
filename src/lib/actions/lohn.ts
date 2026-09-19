@@ -172,3 +172,44 @@ export async function lohnStatusSetzen(
   aktualisiere(formData);
   return ok("ok.lohnStatus", ausweis);
 }
+
+// Gesetzliche Monatsabzuege berechnen (Migration 20261024000000): ruft
+// public.lohn_monat_abzuege_berechnen() auf, dieselbe Berechtigung wie
+// lohnPeriodeBerechnen ("lohn":"create") - die RPC prueft has_role() ein
+// zweites Mal, siehe deren Kommentar.
+export async function lohnMonatAbzuegeBerechnen(
+  _status: AktionsStatus,
+  formData: FormData,
+): Promise<AktionsStatus> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("lohn", "create");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+
+  const jahr = zahl(formData, "jahr");
+  const monat = zahl(formData, "monat");
+  if (jahr === null || monat === null || monat < 1 || monat > 12) {
+    return fehler("fehler.eingabe");
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("lohn_monat_abzuege_berechnen", {
+    p_jahr: jahr,
+    p_monat: monat,
+  });
+
+  if (error) return dbFehler(error);
+
+  const ergebnis = Array.isArray(data) ? data[0] : data;
+  const verarbeitet = ergebnis?.verarbeitet ?? 0;
+
+  await protokolliere(profil, "lohn.monatsabzuege_berechnet", null, {
+    jahr,
+    monat,
+    verarbeitet,
+  });
+  aktualisiere(formData);
+  return ok("ok.lohnMonatsabzuegeBerechnet", String(verarbeitet));
+}

@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import {
+  lohnMonatAbzuegeBerechnen,
   lohnPeriodeBerechnen,
   lohnSatzAnlegen,
   lohnStatusSetzen,
@@ -67,6 +68,44 @@ export function LohnPeriodeBerechnenFormular() {
         <PfadFeld />
         <Feld label={t("periodeStart")} name="periode_start" type="date" required />
         <Feld label={t("periodeEnde")} name="periode_ende" type="date" required />
+        <div className="flex items-end">
+          <SubmitKnopf label={t("knopf")} />
+        </div>
+        <div className="sm:col-span-2 lg:col-span-4">
+          <AktionsMeldung status={status} />
+        </div>
+      </form>
+    </FormularKarte>
+  );
+}
+
+// Gesetzliche Monatsabzuege berechnen (Migration 20261024000000): loest
+// public.lohn_monat_abzuege_berechnen() aus. Jahr/Monat statt eines
+// Datumsbereichs wie beim Lohnsatz oben - ОПВ/ВОСМС/ИПН sind gesetzlich
+// Monatsgroessen, siehe Migrationskopf.
+export function LohnMonatAbzuegeBerechnenFormular() {
+  const [status, action] = useActionState(lohnMonatAbzuegeBerechnen, leer);
+  const t = useTranslations("lohnAnsicht.formular.abzuegeBerechnen");
+  const heute = new Date();
+
+  return (
+    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+      <form action={action} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+        <PfadFeld />
+        <Feld
+          label={t("jahr")}
+          name="jahr"
+          inputMode="decimal"
+          defaultValue={String(heute.getFullYear())}
+          required
+        />
+        <Feld
+          label={t("monat")}
+          name="monat"
+          inputMode="decimal"
+          defaultValue={String(heute.getMonth() + 1)}
+          required
+        />
         <div className="flex items-end">
           <SubmitKnopf label={t("knopf")} />
         </div>

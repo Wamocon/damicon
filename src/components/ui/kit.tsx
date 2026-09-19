@@ -37,14 +37,18 @@ export function StatusPill({
 }
 
 export function Card({
+  id,
   children,
   className,
 }: {
+  /** Sprungziel (Anker) fuer Verweise, z. B. vom KI-Agenten. */
+  id?: string;
   children: ReactNode;
   className?: string;
 }) {
   return (
     <div
+      id={id}
       className={cn(
         "rounded-2xl border border-border bg-card p-5 shadow-sm shadow-black/[0.03]",
         className,
@@ -56,12 +60,18 @@ export function Card({
 }
 
 export function Section({
+  id,
   title,
   description,
   action,
   children,
   className,
 }: {
+  // Fuer Sprungziele wie das Risiko-Radar (risiko-radar.tsx): ein Link auf
+  // dieselbe Seite bewirkt ohne Ankerziel nichts sichtbares, siehe dortiger
+  // Kommentar. scroll-mt-20 haelt den Abschnitt unter der fixierten Kopfzeile
+  // frei - dasselbe Mass wie die Marketingseiten-Anker (z. B. #zonen).
+  id?: string;
   title: string;
   description?: string;
   action?: ReactNode;
@@ -69,7 +79,7 @@ export function Section({
   className?: string;
 }) {
   return (
-    <section className={cn("space-y-3", className)}>
+    <section id={id} className={cn("space-y-3", id ? "scroll-mt-20" : undefined, className)}>
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-sm font-bold text-card-foreground">{title}</h2>
@@ -126,7 +136,11 @@ export function Stat({
   tone = "neutral",
 }: {
   label: string;
-  value: string;
+  // ReactNode statt string: erlaubt z. B. eine animierte CountUp-Zahl
+  // (components/site/count-up.tsx) als Wert, ohne einen zweiten,
+  // fast identischen Kachel-Baustein zu erfinden. Ein einfacher String
+  // bleibt weiterhin gueltig.
+  value: ReactNode;
   helper?: string;
   tone?: Tone;
 }) {

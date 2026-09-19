@@ -16,7 +16,6 @@ import { FoerdermittelAnsicht } from "@/components/db/foerdermittel-ansicht";
 import { LogistikAnsicht } from "@/components/db/logistik-ansicht";
 import { B2bPortalAnsicht } from "@/components/db/b2b-portal-ansicht";
 import { PersonalAnsicht } from "@/components/db/personal-ansicht";
-import { KiAssistentAnsicht } from "@/components/db/ki-assistent-ansicht";
 import { EinladungenAnsicht } from "@/components/db/einladungen-ansicht";
 import { KuehletteAnsicht } from "@/components/db/kuehlkette-ansicht";
 import { WetterAnsicht } from "@/components/db/wetter-ansicht";
@@ -133,9 +132,6 @@ export function serverModulAnsicht(
           <PflichtschulungenAnsicht />
         </div>
       );
-    // Anforderung 5.4/5.5: echte Anbindung statt KiAssistentMock.
-    case "ki_assistent":
-      return <KiAssistentAnsicht />;
     // Anforderung 5.6: Kontaktkanaele/Zahlungswege verwalten.
     case "kanaele":
       return <KanaeleAnsicht />;

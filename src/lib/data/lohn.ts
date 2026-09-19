@@ -2,11 +2,15 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import {
   demoLohnAbrechnungen,
+  demoLohnMonatsabzuege,
   demoLohnPositionen,
   demoLohnSatz,
+  demoLohnSteuersatzKz,
   type LohnAbrechnung,
+  type LohnMonatsabzug,
   type LohnPosition,
   type LohnSatz,
+  type LohnSteuersatzKz,
 } from "@/lib/domain/lohn";
 import { einsAus } from "@/lib/data/util";
 
@@ -14,12 +18,19 @@ import { einsAus } from "@/lib/data/util";
 // die eigentliche Rechenarbeit steht in der Datenbank (public.lohn_periode_
 // berechnen()), diese Datei liest nur das Ergebnis. Wer schreiben darf,
 // entscheidet rbac.ts + RLS - diese Datei filtert nicht zusaetzlich.
+//
+// steuersatzKz/monatsabzuege (Migration 20261024000000): gesetzliche
+// Lohnabzuege Kasachstan, dieselbe Lese-schreib-Trennung wie oben - die
+// Rechenarbeit steht in public.lohn_kz_abzuege_berechnen()/lohn_monat_
+// abzuege_berechnen(), hier wird nur gelesen.
 
 export interface LohnUebersicht {
   quelle: Datenquelle;
   satz: LohnSatz | null;
   abrechnungen: LohnAbrechnung[];
   positionen: LohnPosition[];
+  steuersatzKz: LohnSteuersatzKz | null;
+  monatsabzuege: LohnMonatsabzug[];
 }
 
 function demoUebersicht(quelle: LohnUebersicht["quelle"] = "demo"): LohnUebersicht {
@@ -28,6 +39,8 @@ function demoUebersicht(quelle: LohnUebersicht["quelle"] = "demo"): LohnUebersic
     satz: demoLohnSatz,
     abrechnungen: demoLohnAbrechnungen,
     positionen: demoLohnPositionen,
+    steuersatzKz: demoLohnSteuersatzKz,
+    monatsabzuege: demoLohnMonatsabzuege,
   };
 }
 
@@ -40,6 +53,8 @@ export async function ladeLohnUebersicht(): Promise<LohnUebersicht> {
     { data: satzRows, error: satzFehler },
     { data: abrechnungRows, error: abrechnungFehler },
     { data: positionRows, error: positionFehler },
+    { data: steuersatzRows, error: steuersatzFehler },
+    { data: monatsabzugRows, error: monatsabzugFehler },
   ] = await Promise.all([
     supabase.from("lohn_saetze").select("*").order("gueltig_ab", { ascending: false }).limit(1),
     supabase
@@ -61,9 +76,23 @@ export async function ladeLohnUebersicht(): Promise<LohnUebersicht> {
       )
       .order("created_at", { ascending: false })
       .limit(50),
+    supabase.from("lohn_steuersaetze_kz").select("*").order("gueltig_ab", { ascending: false }).limit(1),
+    supabase
+      .from("lohn_monatsabzuege")
+      .select(
+        `id, jahr, monat, brutto_gesamt_tenge, opv_tenge, vosms_tenge,
+         ipn_bemessungsgrundlage_tenge, ipn_tenge, netto_tenge,
+         opvr_tenge, so_tenge, sn_tenge, osms_tenge, arbeitgeberkosten_gesamt_tenge,
+         pfluecker ( name, ausweis )`,
+      )
+      .order("jahr", { ascending: false })
+      .order("monat", { ascending: false })
+      .limit(100),
   ]);
 
-  if (satzFehler || abrechnungFehler || positionFehler) return demoUebersicht("fehler");
+  if (satzFehler || abrechnungFehler || positionFehler || steuersatzFehler || monatsabzugFehler) {
+    return demoUebersicht("fehler");
+  }
 
   const satz: LohnSatz | null = satzRows?.[0]
     ? {
@@ -115,5 +144,47 @@ export async function ladeLohnUebersicht(): Promise<LohnUebersicht> {
     };
   });
 
-  return { quelle: "db", satz, abrechnungen, positionen };
+  const steuersatzKz: LohnSteuersatzKz | null = steuersatzRows?.[0]
+    ? {
+        id: steuersatzRows[0].id,
+        gueltigAb: steuersatzRows[0].gueltig_ab,
+        gueltigBis: steuersatzRows[0].gueltig_bis,
+        opvProzent: Number(steuersatzRows[0].opv_prozent),
+        opvBemessungsgrenzeTenge: Number(steuersatzRows[0].opv_bemessungsgrenze_tenge),
+        vosmsProzent: Number(steuersatzRows[0].vosms_prozent),
+        vosmsBemessungsgrenzeTenge: Number(steuersatzRows[0].vosms_bemessungsgrenze_tenge),
+        ipnProzent: Number(steuersatzRows[0].ipn_prozent),
+        ipnFreibetragTenge: Number(steuersatzRows[0].ipn_freibetrag_tenge),
+        opvrProzent: Number(steuersatzRows[0].opvr_prozent),
+        soProzent: Number(steuersatzRows[0].so_prozent),
+        snProzent: Number(steuersatzRows[0].sn_prozent),
+        osmsProzent: Number(steuersatzRows[0].osms_prozent),
+        quelle: steuersatzRows[0].quelle,
+        notiz: steuersatzRows[0].notiz,
+      }
+    : null;
+
+  const monatsabzuege: LohnMonatsabzug[] = (monatsabzugRows ?? []).map((m) => {
+    const pfluecker = einsAus(m.pfluecker);
+    return {
+      id: m.id,
+      pfluecker: pfluecker?.name ?? "-",
+      pfleuckerAusweis: pfluecker?.ausweis ?? "-",
+      jahr: m.jahr,
+      monat: m.monat,
+      bruttoGesamtTenge: Number(m.brutto_gesamt_tenge),
+      opvTenge: Number(m.opv_tenge),
+      vosmsTenge: Number(m.vosms_tenge),
+      ipnBemessungsgrundlageTenge: Number(m.ipn_bemessungsgrundlage_tenge),
+      ipnTenge: Number(m.ipn_tenge),
+      nettoTenge: Number(m.netto_tenge),
+      opvrTenge: Number(m.opvr_tenge),
+      soTenge: Number(m.so_tenge),
+      snTenge: Number(m.sn_tenge),
+      osmsTenge: Number(m.osms_tenge),
+      arbeitgeberkostenGesamtTenge: Number(m.arbeitgeberkosten_gesamt_tenge),
+    };
+  });
+
+  return { quelle: "db", satz, abrechnungen, positionen, steuersatzKz, monatsabzuege };
 }

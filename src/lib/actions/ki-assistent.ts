@@ -1,7 +1,8 @@
 "use server";
 
 import { getTranslations } from "next-intl/server";
-import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
+import { ladeAktivenStandardAnbieter } from "@/lib/ai/lade-anbieter";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { ladeKiChatVerlauf, ladeWissensPreislisten } from "@/lib/data/ki-assistent";
@@ -15,6 +16,7 @@ import {
 } from "@/lib/domain/ki-assistent";
 import { hasPermission } from "@/lib/rbac";
 import { sendeChatAnfrage } from "@/lib/ai/anbieter-client";
+import { sendeAgentAnfrage } from "@/lib/ai/agent";
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
 import type { ChatNachricht } from "@/lib/ai/anfrage";
 import type { Json } from "@/lib/database.types";
@@ -54,22 +56,9 @@ function protokolliere(
   return protokolliereBasis(profil, aktion, "ki_chat_nachrichten", profil.id, metadata);
 }
 
-// Vibecode-Cleanup: aus kiNachrichtSenden() herausgezogen (die Funktion
-// vermischte RBAC-Gate, Eingabevalidierung, Anbieter laden, Kontext bauen und
-// Modellaufruf in einem Block). Liest die Zeile des aktiven Standard-
-// Anbieters ueber den service_role-Client - RLS auf ki_anbieter ist
-// admin-only, dieser Aufruf laeuft aber erst NACH requirePermission() im
-// Aufrufer, derselbe Aufbau wie vorher, nur benannt und isoliert testbar.
-async function ladeAktivenStandardAnbieter() {
-  const dienst = createServiceRoleClient();
-  const { data } = await dienst
-    .from("ki_anbieter")
-    .select("name, anzeige_name, typ, basis_url, modell, api_key_chiffrat")
-    .eq("aktiv", true)
-    .eq("ist_standard", true)
-    .maybeSingle();
-  return data;
-}
+// ladeAktivenStandardAnbieter() ist jetzt in lib/ai/lade-anbieter.ts - der
+// neue streamende Route Handler (anthropic-Pfad, app/api/ki-assistent/
+// route.ts) braucht dieselbe Funktion, keine zweite Kopie.
 
 // Baut den an das Modell uebergebenen Verlauf: Systemprompt zuerst, danach
 // die letzten echten Gespraechsbeitraege (keine system-Zeilen, siehe
@@ -136,6 +125,7 @@ export async function kiNachrichtSenden(
   let antwortText: string;
   let anbieterName: string | null = null;
   let fallback = false;
+  let werkzeugaufrufe: string[] = [];
 
   try {
     const anbieter = await ladeAktivenStandardAnbieter();
@@ -163,18 +153,42 @@ export async function kiNachrichtSenden(
       const verlaufFuerModell = baueVerlaufFuerModell(systemPrompt, bisherigerVerlauf.nachrichten, nachricht);
 
       const apiKey = entschluessleApiKey(anbieter.api_key_chiffrat);
-      const antwort = await sendeChatAnfrage(
-        { typ: anbieter.typ, basisUrl: anbieter.basis_url, modell: anbieter.modell, apiKey },
-        verlaufFuerModell,
-      );
 
-      if (antwort.ok) {
-        antwortText = antwort.text;
-        anbieterName = anbieter.anzeige_name;
+      // 'anthropic' laeuft ueber den werkzeugfaehigen Agenten (agent.ts,
+      // Vercel AI SDK) - das Modell darf live in Steuer-/Arbeits-/Pruef-
+      // Daten nachsehen statt sich nur auf den statischen Wissenskontext zu
+      // verlassen. 'openai_kompatibel' bleibt auf dem bisherigen, reinen
+      // Text-Anfrage-Pfad (siehe Kommentar in agent.ts, warum das noch nicht
+      // vereinheitlicht ist).
+      if (anbieter.typ === "anthropic") {
+        const antwort = await sendeAgentAnfrage(
+          { basisUrl: anbieter.basis_url, modell: anbieter.modell, apiKey },
+          profil.role,
+          verlaufFuerModell,
+        );
+        if (antwort.ok) {
+          antwortText = antwort.text;
+          anbieterName = anbieter.anzeige_name;
+          werkzeugaufrufe = antwort.werkzeugaufrufe;
+        } else {
+          console.error("[damicon] KI-Agent fehlgeschlagen:", antwort.grund);
+          fallback = true;
+          antwortText = t("antwort");
+        }
       } else {
-        console.error("[damicon] KI-Anbieter-Aufruf fehlgeschlagen:", antwort.grund);
-        fallback = true;
-        antwortText = t("antwort");
+        const antwort = await sendeChatAnfrage(
+          { typ: anbieter.typ, basisUrl: anbieter.basis_url, modell: anbieter.modell, apiKey },
+          verlaufFuerModell,
+        );
+
+        if (antwort.ok) {
+          antwortText = antwort.text;
+          anbieterName = anbieter.anzeige_name;
+        } else {
+          console.error("[damicon] KI-Anbieter-Aufruf fehlgeschlagen:", antwort.grund);
+          fallback = true;
+          antwortText = t("antwort");
+        }
       }
     }
   } catch (error) {
@@ -192,6 +206,7 @@ export async function kiNachrichtSenden(
     inhalt: antwortText,
     anbieter_name: anbieterName,
     fallback,
+    werkzeugaufrufe: werkzeugaufrufe.length > 0 ? werkzeugaufrufe : null,
   });
   if (assistentFehler) return dbFehler(assistentFehler);
 
