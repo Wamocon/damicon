@@ -1083,6 +1083,63 @@ await mussScheitern(
   await db.query("select set_config('request.jwt.claim.sub', '', false);");
 }
 
+// --- 15. Pflanzenschutz-Protokoll: Behandlungen bleiben nachweisbar --------
+// Die neue Protokollansicht (data/pflanzenschutz.ts) liest die Behandlungen
+// selbst statt der Reihenbloecke. Entscheidend fuer den Nachweis: eine
+// freigegebene Behandlung verschwindet nicht. In der Blocksicht ist sie
+// unsichtbar, weil dort nur die juengste OFFENE Sperre haengt.
+{
+  const { rows: block } = await db.query(
+    "select id, status from public.reihenbloecke where status <> 'wartezeitgesperrt' and id <> $1 limit 1;",
+    [blockId],
+  );
+  const { rows: mittel } = await db.query("select id from public.psm_mittel limit 1;");
+
+  // Eine laengst abgelaufene, freigegebene Behandlung. Der Sperr-Trigger setzt
+  // den Block dabei auf 'wartezeitgesperrt', unten wird er wieder zurueckgesetzt.
+  const { rows: neu } = await db.query(
+    `insert into public.pflanzenschutz_behandlungen
+       (reihenblock_id, psm_mittel_id, behandelt_am, wartezeit_tage, freigegeben)
+     values ($1, $2, current_date - 60, 7, true)
+     returning id;`,
+    [block[0].id, mittel[0].id],
+  );
+
+  const { rows: protokoll } = await db.query(
+    `select b.id, b.freigegeben, b.freigabe_am, r.code
+       from public.pflanzenschutz_behandlungen b
+       join public.reihenbloecke r on r.id = b.reihenblock_id
+      where b.reihenblock_id = $1
+      order by b.behandelt_am desc;`,
+    [block[0].id],
+  );
+  check(
+    "Pflanzenschutz: die freigegebene Behandlung bleibt im Protokoll lesbar",
+    protokoll.length >= 1 && protokoll.some((b) => b.freigegeben === true && !!b.freigabe_am),
+    `Behandlungen am Block: ${protokoll.length}`,
+  );
+
+  // Gegenprobe zur Blocksicht: die zaehlt nur offene Sperren, hier also keine.
+  const { rows: offeneSperren } = await db.query(
+    `select count(*)::int as n
+       from public.pflanzenschutz_behandlungen
+      where reihenblock_id = $1 and freigegeben = false;`,
+    [block[0].id],
+  );
+  check(
+    "Pflanzenschutz: dieselbe Behandlung taucht in der Blocksicht nicht mehr auf",
+    offeneSperren[0].n === 0,
+    `offene Sperren: ${offeneSperren[0].n}`,
+  );
+
+  // Aufraeumen: Behandlung loeschen, Block auf seinen Ausgangsstatus zurueck.
+  await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [neu[0].id]);
+  await db.query("update public.reihenbloecke set status = $2 where id = $1;", [
+    block[0].id,
+    block[0].status,
+  ]);
+}
+
 // --- Aufraeumen ---------------------------------------------------------------
 await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [behandlungId]);
 await db.query("update public.reihenbloecke set status = 'ruhend' where id = $1;", [blockId]);

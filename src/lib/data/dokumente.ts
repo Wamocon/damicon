@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import { dokumente as demoDokumente } from "@/lib/domain/betrieb-data";
 import { einsAus } from "@/lib/data/util";
+import { signiereDokumentPfade } from "@/lib/data/signierte-urls";
 
 // Dokumentenverwaltung (Meilenstein B): Spritzprotokolle, ESUTD-Nachweise,
 // Vertraege, Foerderdossiers und Zertifikate - jeweils mit Bezug auf
@@ -22,19 +23,23 @@ export interface DokumentZeile {
   id: string;
   name: string;
   kategorie: DokumentKategorie;
+  /** Anzeigewert: der gespeicherte Bezug, sonst der Code des Blocks oder der Charge. */
   bezug: string;
+  /** Der tatsaechlich gespeicherte Bezug. Nur dieser gehoert in ein Bearbeiten-Formular,
+   *  sonst wuerde der Anzeige-Fallback beim Speichern als Text in die Spalte geschrieben. */
+  bezugRoh: string | null;
   stand: string | null;
   status: DokumentStatus;
-  /** Signierte URL, falls eine Datei hinterlegt ist. */
+  /** Signierte URL, falls eine Datei hinterlegt ist und der Link erzeugt werden konnte. */
   dateiUrl: string | null;
+  /** Es gibt eine Datei im Speicher, unabhaengig davon, ob ein Link erzeugt werden konnte. */
+  hatDatei: boolean;
 }
 
 export interface DokumentListe {
   quelle: Datenquelle;
   dokumente: DokumentZeile[];
 }
-
-const SIGNATUR_SEKUNDEN = 60 * 60;
 
 // Die Beispieldaten fuehren die Kategorie als freien Text - fuer die
 // Demo-Ansicht auf den Enum-Wert abbilden.
@@ -54,9 +59,11 @@ function demoListe(quelle: DokumentListe["quelle"] = "demo"): DokumentListe {
       name: doc.name,
       kategorie: kategorieAusText[doc.kategorie] ?? "sonstiges",
       bezug: doc.bezug,
+      bezugRoh: doc.bezug,
       stand: doc.stand,
       status: doc.status,
       dateiUrl: null,
+      hatDatei: false,
     })),
   };
 }
@@ -81,15 +88,7 @@ export async function ladeDokumente(): Promise<DokumentListe> {
     .map((doc) => doc.storage_path)
     .filter((pfad): pfad is string => Boolean(pfad));
 
-  const signiert = new Map<string, string>();
-  if (pfade.length > 0) {
-    const { data: urls } = await supabase.storage
-      .from("dokumente")
-      .createSignedUrls(pfade, SIGNATUR_SEKUNDEN);
-    for (const eintrag of urls ?? []) {
-      if (eintrag.path && eintrag.signedUrl) signiert.set(eintrag.path, eintrag.signedUrl);
-    }
-  }
+  const signiert = await signiereDokumentPfade(supabase, pfade);
 
   return {
     quelle: "db",
@@ -101,9 +100,11 @@ export async function ladeDokumente(): Promise<DokumentListe> {
         name: doc.name,
         kategorie: doc.kategorie,
         bezug: doc.bezug ?? block?.code ?? charge?.code ?? "",
+        bezugRoh: doc.bezug,
         stand: doc.stand,
         status: doc.status,
         dateiUrl: doc.storage_path ? (signiert.get(doc.storage_path) ?? null) : null,
+        hatDatei: Boolean(doc.storage_path),
       };
     }),
   };

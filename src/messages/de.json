@@ -835,7 +835,9 @@
       "sorteAktualisiert": "Sorte aktualisiert.",
       "kontingentErstellt": "Kontingent angelegt.",
       "kontingentAktualisiert": "Menge aktualisiert.",
-      "stammdatenGespeichert": "Stammdaten gespeichert."
+      "stammdatenGespeichert": "Stammdaten gespeichert.",
+      "nachbarbetrieb": "Nachbarbetrieb „{wert}“ aufgenommen.",
+      "dokumentGeaendert": "Dokument „{wert}“ aktualisiert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
@@ -869,7 +871,8 @@
       "stammdatenOhneRechtsform": "Bitte zuerst die Rechtsform wählen - davon hängt ab, ob ein ИИН oder ein БИН gilt.",
       "stammdatenFormat": "Die Nummer besteht aus genau zwölf Ziffern.",
       "stammdatenPruefziffer": "Die Prüfziffer stimmt nicht. Meist steckt ein Zahlendreher in der Nummer.",
-      "selbstkontrolle": "Wer eine Steige erfasst hat, kontrolliert sie nicht selbst. Eine andere Person muss diese Steige prüfen."
+      "selbstkontrolle": "Wer eine Steige erfasst hat, kontrolliert sie nicht selbst. Eine andere Person muss diese Steige prüfen.",
+      "nachbarbetriebVorhanden": "Ein Nachbarbetrieb mit diesem Namen existiert bereits."
     },
     "einladungen": {
       "erfolg": {
@@ -960,7 +963,8 @@
     "oeffnen": "Öffnen",
     "keineDatei": "keine Datei",
     "col": {
-      "datei": "Datei"
+      "datei": "Datei",
+      "aendern": "Ändern"
     },
     "feld": {
       "name": "Bezeichnung",
@@ -968,11 +972,15 @@
       "bezug": "Bezug",
       "stand": "Stand",
       "status": "Status",
-      "datei": "Datei"
+      "datei": "Datei",
+      "foerderdossier": "Fördermitteldossier"
     },
     "beispiel": {
       "name": "Spritzprotokoll KW 37 - Parzelle Nord"
-    }
+    },
+    "keinDossier": "kein Dossier",
+    "aendernKnopf": "Speichern",
+    "linkNichtVerfuegbar": "Datei vorhanden, Link momentan nicht verfügbar"
   },
   "pflueckaufgabenVerwaltung": {
     "ohneBrigade": "Ohne Brigade",
@@ -2176,6 +2184,14 @@
       "preis": "Preis (₸/kg)",
       "rechnungsdatum": "Rechnungsdatum",
       "knopf": "Speichern"
+    },
+    "betriebAufnehmen": {
+      "titel": "Nachbarbetrieb aufnehmen",
+      "lead": "Neue Betriebe müssen hier stehen, bevor der CSV-Import ihre Zeilen annimmt.",
+      "knopf": "Betrieb aufnehmen",
+      "name": "Name",
+      "ort": "Ort",
+      "kontakt": "Kontakt"
     }
   },
   "abrechnungAnsicht": {
@@ -2320,7 +2336,8 @@
         "notizen": "Notizen (optional)",
         "knopf": "Aktualisieren"
       }
-    }
+    },
+    "linkNichtVerfuegbar": "Link nicht verfügbar"
   },
   "lieferungenAnsicht": {
     "titel": "Lieferungen",
@@ -2726,5 +2743,43 @@
     "bereitsKontrolliert": "Bereits kontrolliert",
     "keinKontrollrecht": "Kontrolle durch Betriebsleitung oder Vorarbeiter",
     "naechste": "Nächste"
+  },
+  "pflanzenschutzProtokoll": {
+    "titel": "Behandlungen und Wartezeiten",
+    "lead": "Jede erfasste Pflanzenschutzbehandlung mit Aufwandmenge, ausführender Person und Wartezeit. Erfasst und freigegeben wird am Reihenblock.",
+    "note": "Der Protokoll-Upload ist noch nicht gebaut: die Spalte für das Protokolldokument bleibt vorerst leer.",
+    "wartezeitTage": "{tage} Tage",
+    "stat": {
+      "gesamt": "Behandlungen",
+      "laeuft": "laufende Wartezeit",
+      "ohneProtokoll": "ohne Protokoll"
+    },
+    "col": {
+      "block": "Reihenblock",
+      "mittel": "Mittel",
+      "behandeltAm": "Behandelt am",
+      "aufwand": "Aufwandmenge",
+      "person": "Person",
+      "wartezeit": "Wartezeit / Freigabe",
+      "zustand": "Zustand"
+    },
+    "zustand": {
+      "laeuft": "Wartezeit läuft",
+      "freigegeben": "freigegeben",
+      "abgelaufen": "Wartezeit abgelaufen, Freigabe steht aus"
+    },
+    "einheit": {
+      "l_ha": "l/ha",
+      "kg_ha": "kg/ha"
+    },
+    "filter": {
+      "label": "Freigabestand",
+      "alle": "Alle",
+      "offen": "Nicht freigegeben",
+      "freigegeben": "Freigegeben"
+    },
+    "gekuerzt": "Angezeigt werden die neuesten {anzahl} Behandlungen, die Kennzahlen oben zählen alle.",
+    "personVerborgen": "nur Büro",
+    "personVerborgenHinweis": "Der Name der ausführenden Person ist nur für das Büro sichtbar."
   }
 }

@@ -835,7 +835,9 @@
       "sorteAktualisiert": "Variety updated.",
       "kontingentErstellt": "Quota created.",
       "kontingentAktualisiert": "Quantity updated.",
-      "stammdatenGespeichert": "Master data saved."
+      "stammdatenGespeichert": "Master data saved.",
+      "nachbarbetrieb": "Neighbouring farm “{wert}” added.",
+      "dokumentGeaendert": "Document “{wert}” updated."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
@@ -869,7 +871,8 @@
       "stammdatenOhneRechtsform": "Please choose the legal form first - it decides whether an IIN or a BIN applies.",
       "stammdatenFormat": "The number consists of exactly twelve digits.",
       "stammdatenPruefziffer": "The check digit does not match. Usually two digits have been transposed.",
-      "selbstkontrolle": "Whoever recorded a crate does not inspect it themselves. Someone else needs to check this crate."
+      "selbstkontrolle": "Whoever recorded a crate does not inspect it themselves. Someone else needs to check this crate.",
+      "nachbarbetriebVorhanden": "A neighbouring farm with this name already exists."
     },
     "einladungen": {
       "erfolg": {
@@ -960,7 +963,8 @@
     "oeffnen": "Open",
     "keineDatei": "no file",
     "col": {
-      "datei": "File"
+      "datei": "File",
+      "aendern": "Edit"
     },
     "feld": {
       "name": "Name",
@@ -968,11 +972,15 @@
       "bezug": "Reference",
       "stand": "As of",
       "status": "Status",
-      "datei": "File"
+      "datei": "File",
+      "foerderdossier": "Funding dossier"
     },
     "beispiel": {
       "name": "Spray record week 37 - North plot"
-    }
+    },
+    "keinDossier": "no dossier",
+    "aendernKnopf": "Save",
+    "linkNichtVerfuegbar": "file exists, link currently unavailable"
   },
   "pflueckaufgabenVerwaltung": {
     "ohneBrigade": "No brigade",
@@ -2176,6 +2184,14 @@
       "preis": "Price (₸/kg)",
       "rechnungsdatum": "Invoice date",
       "knopf": "Save"
+    },
+    "betriebAufnehmen": {
+      "titel": "Add neighbouring farm",
+      "lead": "A farm must be listed here before the CSV import accepts its rows.",
+      "knopf": "Add farm",
+      "name": "Name",
+      "ort": "Location",
+      "kontakt": "Contact"
     }
   },
   "abrechnungAnsicht": {
@@ -2320,7 +2336,8 @@
         "notizen": "Notes (optional)",
         "knopf": "Update"
       }
-    }
+    },
+    "linkNichtVerfuegbar": "link unavailable"
   },
   "lieferungenAnsicht": {
     "titel": "Deliveries",
@@ -2726,5 +2743,43 @@
     "bereitsKontrolliert": "Already inspected",
     "keinKontrollrecht": "Inspection by management or foreman",
     "naechste": "Next"
+  },
+  "pflanzenschutzProtokoll": {
+    "titel": "Treatments and waiting periods",
+    "lead": "Every recorded plant-protection treatment with dose, operator and waiting period. Entry and release happen at the row block.",
+    "note": "The protocol upload is not built yet: the protocol document column stays empty for now.",
+    "wartezeitTage": "{tage} days",
+    "stat": {
+      "gesamt": "Treatments",
+      "laeuft": "waiting period running",
+      "ohneProtokoll": "without protocol"
+    },
+    "col": {
+      "block": "Row block",
+      "mittel": "Agent",
+      "behandeltAm": "Treated on",
+      "aufwand": "Dose",
+      "person": "Operator",
+      "wartezeit": "Waiting period / release",
+      "zustand": "State"
+    },
+    "zustand": {
+      "laeuft": "waiting period running",
+      "freigegeben": "released",
+      "abgelaufen": "waiting period elapsed, release pending"
+    },
+    "einheit": {
+      "l_ha": "l/ha",
+      "kg_ha": "kg/ha"
+    },
+    "filter": {
+      "label": "Release status",
+      "alle": "All",
+      "offen": "Not released",
+      "freigegeben": "Released"
+    },
+    "gekuerzt": "Showing the latest {anzahl} treatments, the figures above count all of them.",
+    "personVerborgen": "office only",
+    "personVerborgenHinweis": "The operator's name is only visible to the office."
   }
 }
