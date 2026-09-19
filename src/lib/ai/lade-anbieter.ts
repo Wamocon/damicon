@@ -19,3 +19,10 @@ export async function ladeAktivenStandardAnbieter() {
     .maybeSingle();
   return data;
 }
+
+/** Basisadresse fuer das Anthropic-SDK: die Anwendung haengt /v1 selbst an. Ein im
+ *  Formular versehentlich mit /v1 oder Schluss-Schraegstrich eingetragener Wert
+ *  wuerde sonst zu .../v1/v1 fuehren und jede Anfrage scheitern lassen. */
+export function anthropicBasisUrl(basisUrl: string): string {
+  return `${basisUrl.replace(/\/+$/, "").replace(/\/v1$/, "")}/v1`;
+}

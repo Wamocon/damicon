@@ -31,6 +31,7 @@ import { createAnthropic } from "@ai-sdk/anthropic";
 import { generateText, Output, stepCountIs } from "ai";
 import { z } from "zod";
 import { baueWerkzeuge } from "@/lib/ai/tools";
+import { anthropicBasisUrl } from "@/lib/ai/lade-anbieter";
 import type { ChatNachricht } from "@/lib/ai/anfrage";
 import type { Role } from "@/lib/rbac";
 
@@ -72,7 +73,7 @@ export async function sendeAgentAnfrage(
   const dialog = verlauf.filter((n) => n.rolle !== "system");
 
   try {
-    const anthropic = createAnthropic({ apiKey: anbieter.apiKey, baseURL: `${anbieter.basisUrl}/v1` });
+    const anthropic = createAnthropic({ apiKey: anbieter.apiKey, baseURL: anthropicBasisUrl(anbieter.basisUrl) });
     const ergebnis = await generateText({
       model: anthropic(anbieter.modell),
       system: systemNachricht?.inhalt,

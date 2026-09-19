@@ -21,6 +21,7 @@
     "test:zukauf-parser": "node supabase/tests/zukauf-parser.mjs",
     "test:ausweis-scan": "node supabase/tests/ausweis-scan.mjs",
     "test:ki-assistent": "node supabase/tests/ki-assistent.mjs",
+    "ki:anbieter": "node scripts/ki-anbieter-upsert.mjs",
     "test:agent": "npx --yes tsx supabase/tests/agent-abdeckung.ts",
     "test:wetter": "node supabase/tests/wetter.mjs",
     "test:rechnungshistorie": "node supabase/tests/rechnungshistorie.mjs",

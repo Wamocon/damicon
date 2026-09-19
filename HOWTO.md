@@ -342,6 +342,35 @@ GitHub → Actions → "Deploy to Vercel" → Run workflow
 
 ---
 
+### 5b. KI-Assistent (Claude) einrichten
+
+**Was liegt wo**
+
+- **Anthropic-API-Schlüssel:** verschlüsselt (AES-256-GCM) in der Datenbank, Tabelle `ki_anbieter`, Spalte `api_key_chiffrat`. Je Supabase-Projekt (dev, prod) ein eigener Eintrag.
+- **`KI_ANBIETER_SCHLUESSEL`:** Umgebungsvariable in Vercel (Production, Preview, Development), ein beliebig langer Zufallswert: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Das Chiffrat ist an genau diesen Wert gebunden. Ein lokal erzeugtes Chiffrat funktioniert auf Vercel nicht, und nach einem Wechsel des Werts muss der API-Schlüssel neu eingetragen werden.
+- **`SUPABASE_SERVICE_ROLE_KEY`:** muss in Vercel gesetzt sein. Die Tabelle `ki_anbieter` ist nur für Admins lesbar, die Anwendung liest den aktiven Anbieter mit diesem Schlüssel.
+
+**Einrichten (einmal je Umgebung)**
+
+1. `KI_ANBIETER_SCHLUESSEL` in Vercel setzen und neu deployen.
+2. API-Schlüssel eintragen, entweder
+   - **im Panel:** als Admin anmelden, "KI fragen", Zahnrad, Anbieter anlegen: Typ `anthropic`, Basis-URL `https://api.anthropic.com` (ohne `/v1`), Modell `claude-haiku-4-5`, API-Schlüssel. Danach "Als Standard" wählen. Das Formular legt nur an (ein zweiter Versuch mit demselben Namen scheitert), einen Schlüsselwechsel kennt es nicht.
+   - **oder per Skript** (wiederholbar, auch für den Schlüsselwechsel):
+
+     ```bash
+     NEXT_PUBLIC_SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... \
+     KI_ANBIETER_SCHLUESSEL=... ANTHROPIC_API_KEY=... \
+     node scripts/ki-anbieter-upsert.mjs --ja
+     ```
+
+     Werte nur über Umgebungsvariablen, nie als Argument. Ohne `--ja` verweigert das Skript ein gehostetes Ziel. Lokal: `node --env-file=.env.local.docker scripts/ki-anbieter-upsert.mjs`.
+
+**Gut zu wissen**
+
+- Es wird nur das günstigste Modell eingesetzt (`claude-haiku-4-5`).
+- Der Chatverlauf ist je Nutzer getrennt (Tabelle `ki_chat_nachrichten`, RLS und Filter auf das eigene Profil). Auch Büro-Rollen sehen nur ihre eigenen Gespräche.
+- Rollen ohne das Recht `ki_assistent` (z. B. Buchhaltung, Pflücker, Erzeuger) sehen "KI fragen" nicht.
+
 ### 6. Domain-Verwaltung
 
 1. **Sichere eine Domain** für deine Anwendung über [Strato](https://www.strato.de).
@@ -735,6 +764,35 @@ GitHub → Actions → "Deploy to Vercel" → Run workflow
 ```
 
 ---
+
+### 5b. Setting up the AI assistant (Claude)
+
+**What lives where**
+
+- **Anthropic API key:** stored encrypted (AES-256-GCM) in the database, table `ki_anbieter`, column `api_key_chiffrat`. One row per Supabase project (dev, prod).
+- **`KI_ANBIETER_SCHLUESSEL`:** environment variable in Vercel (Production, Preview, Development), any long random value: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. The ciphertext is bound to exactly this value. A ciphertext created locally does not work on Vercel, and after changing the value the API key must be entered again.
+- **`SUPABASE_SERVICE_ROLE_KEY`:** must be set in Vercel. `ki_anbieter` is readable by admins only, so the app reads the active provider with this key.
+
+**Setup (once per environment)**
+
+1. Set `KI_ANBIETER_SCHLUESSEL` in Vercel and redeploy.
+2. Enter the API key, either
+   - **in the panel:** sign in as admin, "Ask AI", gear, create provider: type `anthropic`, base URL `https://api.anthropic.com` (without `/v1`), model `claude-haiku-4-5`, API key. Then choose "Set as default". The form only creates (a second attempt with the same name fails) and has no key rotation.
+   - **or with the script** (repeatable, also for key rotation):
+
+     ```bash
+     NEXT_PUBLIC_SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... \
+     KI_ANBIETER_SCHLUESSEL=... ANTHROPIC_API_KEY=... \
+     node scripts/ki-anbieter-upsert.mjs --ja
+     ```
+
+     Pass values via environment variables only, never as arguments. Without `--ja` the script refuses a hosted target. Locally: `node --env-file=.env.local.docker scripts/ki-anbieter-upsert.mjs`.
+
+**Good to know**
+
+- Only the cheapest model is used (`claude-haiku-4-5`).
+- Chat history is separate per user (table `ki_chat_nachrichten`, RLS plus a filter on the own profile). Even office roles only see their own conversations.
+- Roles without the `ki_assistent` permission (e.g. accounting, picker, producer) do not see "Ask AI".
 
 ### 6. Domain Management
 
