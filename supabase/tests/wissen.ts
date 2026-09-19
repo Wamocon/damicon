@@ -3,7 +3,7 @@
 // gegen Qdrant selbst prueft scripts/wissen-eval.ts.
 // Aufruf: npm run test:wissen (laeuft ueber tsx, damit die @/-Pfade aufloesen).
 
-import { chunkiere, einbettungsText, erkenneSprache, MAX_ZEICHEN, parseDokument, stabileId, trenneFrontmatter } from "@/lib/wissen/chunker";
+import { chunkiere, einbettungsText, erkenneSprache, MAX_ZEICHEN, parseDokument, sprachcode, stabileId, stufeAusQuellenart, trenneFrontmatter } from "@/lib/wissen/chunker";
 import { belegeAusErgebnis, naechsteBelegNummer, stufeSchluessel, verlinkeZitate, zitierteKennungen } from "@/lib/wissen/belege";
 import { sparseDokument, sparseFrage, tokens } from "@/lib/wissen/sparse";
 
@@ -75,6 +75,48 @@ pruefe("Sprache: kasachischer Text (Sonderbuchstaben)", erkenneSprache("ҚҚС �
 pruefe("Sprache: deutscher Text", erkenneSprache("Die Umsatzsteuer ist für jeden Betrieb mit einem Jahresumsatz über der Schwelle verpflichtend und muss gemeldet werden.") === "de");
 pruefe("Sprache: englischer Text", erkenneSprache("Value added tax registration is mandatory once the annual turnover exceeds the statutory threshold set by the code.") === "en");
 pruefe("Sprache: zu kurzer Text bleibt unbestimmt", erkenneSprache("Kurz") === null);
+
+// --- 3c. Unterschiedliche Kopfzeilen (Steuerkorpus, Legal-KB, Audit-KB) ---------
+const legalKb = parseDokument(
+  "Legal/x/agrarrecht.md",
+  `---\ntitle: "Agribusiness-Foerderung in Kasachstan"\nthema: "agrarrecht-allgemein"\nquelltyp: gesetzestext\nquelle_url: "https://invest.gov.kz/x"\nsprache_original: ru\nabgerufen_am: "2026-09-18"\nvertrauenswuerdigkeit: bestaetigt\n---\n# Titel\n\nText des Gesetzes.`,
+);
+pruefe(
+  "Legal-KB: title, quelle_url, sprache_original, vertrauenswuerdigkeit werden uebernommen",
+  legalKb.meta.titel === "Agribusiness-Foerderung in Kasachstan" && legalKb.meta.url === "https://invest.gov.kz/x" && legalKb.meta.sprache === "ru" && legalKb.meta.konfidenz === "bestaetigt" && legalKb.meta.abgerufen_am === "2026-09-18",
+);
+pruefe("Legal-KB: quelltyp gesetzestext = Stufe 1", legalKb.meta.autoritaetsstufe === 1);
+
+const auditKb = parseDokument(
+  "Audit/x/quelle.md",
+  `---\ntitle: "IFS Food Standard Version 8"\nsource_type: "Primaerquelle (Standardsetzer)"\nsource_url: "https://www.ifs-certification.com"\noriginal_language: "Englisch"\nretrieval_date: "2026-09-19"\ntrustworthiness: "hoch"\n---\nText.`,
+);
+pruefe(
+  "Audit-KB: title, source_url, original_language, retrieval_date werden uebernommen",
+  auditKb.meta.titel === "IFS Food Standard Version 8" && auditKb.meta.url === "https://www.ifs-certification.com" && auditKb.meta.sprache === "en" && auditKb.meta.abgerufen_am === "2026-09-19" && auditKb.meta.konfidenz === "hoch",
+);
+pruefe("Audit-KB: Standardsetzer ist Fachquelle (4), nicht Recht", auditKb.meta.autoritaetsstufe === 4);
+
+pruefe(
+  "Stufe aus der Quellenart: Gesetzestext 1, Sekundaerquelle 4, Forum 5, Fachpresse bleibt 4",
+  stufeAusQuellenart("Primaerquelle (Gesetzestext ueber Spiegelportal)") === 1 &&
+    stufeAusQuellenart("Sekundaerquelle (Fachpublikation)") === 4 &&
+    stufeAusQuellenart("forum") === 5 &&
+    stufeAusQuellenart("Kasachische Fachpresse (Sekundaerquelle)") === 4 &&
+    stufeAusQuellenart(undefined) === null,
+);
+pruefe(
+  "Sprachcode: erste genannte Sprache gilt, auch bei Zusaetzen",
+  sprachcode("Russisch") === "ru" &&
+    sprachcode("ru") === "ru" &&
+    sprachcode("ueberwiegend Russisch, teilweise Englisch") === "ru" &&
+    sprachcode("Russisch (Drittanbieter, nicht kasachisch)") === "ru" &&
+    sprachcode("Kasachisch") === "kk" &&
+    sprachcode("Deutsch") === "de" &&
+    sprachcode(undefined) === null,
+);
+const steuerKopf = parseDokument("amtlich/x.md", `---\nchunk_id: "a#1"\nsprache: "kk"\nautoritaetsstufe: 3\ntitel: "T"\nurl: "https://x.kz"\n---\nText`);
+pruefe("Steuerkorpus-Kopf bleibt unveraendert (Stufe 3, Sprache kk)", steuerKopf.meta.autoritaetsstufe === 3 && steuerKopf.meta.sprache === "kk" && steuerKopf.meta.url === "https://x.kz");
 
 // --- 4. Sparse Vektoren -----------------------------------------------------
 pruefe("Tokenizer: Zahlen bleiben ganz, lange Woerter werden auf den Stamm gekuerzt", tokens("статья 358 налогообложения").join(",") === "статья,358,налого");
