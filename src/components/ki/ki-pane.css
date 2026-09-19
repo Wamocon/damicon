@@ -625,6 +625,11 @@ html[data-ki-zieht] body {
   font-size: 0.75rem;
   color: var(--muted-foreground);
 }
+.ki-fehler__link {
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 .ki-fehler {
   padding: 0.55rem 0.8rem;
   border-radius: 0.7rem;

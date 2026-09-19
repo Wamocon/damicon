@@ -61,6 +61,7 @@ import { fuehreUiWerkzeugAus, type KlickAnfrage } from "@/components/ki/ui-steue
 import { MAX_NACHRICHT_LAENGE, type KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
 import { modules } from "@/lib/modules";
 import { hasPermission, type Role } from "@/lib/rbac";
+import { chatFehlerArt } from "@/lib/ai/chat-fehler";
 import { zerlege } from "@/lib/markdown-bloecke";
 import { cn } from "@/lib/utils";
 
@@ -860,7 +861,25 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
             </div>
           ) : null}
 
-          {error ? <p className="ki-fehler">{t("fallback.antwort")}</p> : null}
+          {error ? (
+            <p className="ki-fehler" role="alert">
+              {chatFehlerArt(error) === "sitzung" ? (
+                <>
+                  {t("fehler.sitzung")}{" "}
+                  <a
+                    className="ki-fehler__link"
+                    href={`/${sprache}/login?weiter=${encodeURIComponent(window.location.pathname)}`}
+                  >
+                    {t("fehler.anmelden")}
+                  </a>
+                </>
+              ) : chatFehlerArt(error) === "berechtigung" ? (
+                t("fehler.berechtigung")
+              ) : (
+                t("fallback.antwort")
+              )}
+            </p>
+          ) : null}
         </div>
 
         {nachUntenKnopf ? (

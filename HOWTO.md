@@ -369,7 +369,7 @@ GitHub → Actions → "Deploy to Vercel" → Run workflow
 
 - Es wird nur das günstigste Modell eingesetzt (`claude-haiku-4-5`).
 - Der Chatverlauf ist je Nutzer getrennt (Tabelle `ki_chat_nachrichten`, RLS und Filter auf das eigene Profil). Auch Büro-Rollen sehen nur ihre eigenen Gespräche.
-- Rollen ohne das Recht `ki_assistent` (z. B. Buchhaltung, Pflücker, Erzeuger) sehen "KI fragen" nicht.
+- Rollen ohne das Recht `ki_assistent` (Pflücker, Erzeuger) sehen "KI fragen" nicht.
 
 ### 6. Domain-Verwaltung
 
@@ -792,7 +792,7 @@ GitHub → Actions → "Deploy to Vercel" → Run workflow
 
 - Only the cheapest model is used (`claude-haiku-4-5`).
 - Chat history is separate per user (table `ki_chat_nachrichten`, RLS plus a filter on the own profile). Even office roles only see their own conversations.
-- Roles without the `ki_assistent` permission (e.g. accounting, picker, producer) do not see "Ask AI".
+- Roles without the `ki_assistent` permission (picker, producer) do not see "Ask AI".
 
 ### 6. Domain Management
 
