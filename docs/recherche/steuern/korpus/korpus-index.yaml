@@ -4,27 +4,27 @@
 # Neu erzeugen mit: node scripts/steuer-korpus-index.mjs
 
 erzeugt_am: "2026-09-19"
-dateien: 1790
-groesse_mb: 6.9
-als_ueberholt_markiert: 13
+dateien: 5338
+groesse_mb: 16.7
+als_ueberholt_markiert: 14
 
 # 1 Primaerrecht, 2 untergesetzlich, 3 amtliche Erlaeuterung,
 # 4 Fachquelle, 5 Presse. Siehe quellenregister-schema.yaml.
 nach_autoritaetsstufe:
-  1: 1698
-  2: 4
+  1: 5244
+  2: 6
   3: 24
   4: 56
   5: 8
 
 nach_sprache:
   en: 8
-  kk: 850
-  ru: 932
+  kk: 1927
+  ru: 3403
 
 nach_bereich:
   amtlich: 24
   fachquellen: 56
   nk-214-viii: 1696
   presse: 8
-  recht: 6
+  recht: 3554
