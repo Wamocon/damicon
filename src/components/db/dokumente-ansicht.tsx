@@ -75,7 +75,9 @@ export async function DokumenteAnsicht() {
                     {v("oeffnen")}
                   </a>
                 ) : (
-                  <span className="text-xs text-muted-foreground">{v("keineDatei")}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {doc.hatDatei ? v("linkNichtVerfuegbar") : v("keineDatei")}
+                  </span>
                 )}
               </td>
               {darfAendern ? (
@@ -83,7 +85,8 @@ export async function DokumenteAnsicht() {
                   <DokumentAendernFormular
                     id={doc.id}
                     name={doc.name}
-                    bezug={doc.bezug}
+                    bezug={doc.bezugRoh}
+                    bezugAnzeige={doc.bezug}
                     stand={doc.stand}
                     status={doc.status}
                   />

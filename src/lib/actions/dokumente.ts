@@ -68,7 +68,7 @@ export async function dokumentAnlegen(
 
   // Anforderung 4.12: ein Nachweis kann direkt an ein Foerderdossier haengen.
   // Die Spalte samt Fremdschluessel gibt es seit 20260925000000, gefuellt hat
-  // sie bisher nur der einmalige Backfill - ueber die Anwendung liess sich
+  // sie bisher nur der einmalige Backfill, ueber die Anwendung liess sich
   // kein Nachweis anhaengen.
   const dossierId = text(formData, "foerderdossier_id") || null;
 
@@ -106,7 +106,7 @@ export async function dokumentAnlegen(
 }
 
 // Metadaten und Status eines Dokuments nachfuehren. Die UPDATE-Policy
-// dokumente_update_buero (20260905120000) gab es von Anfang an - nur rief sie
+// dokumente_update_buero (20260905120000) gab es von Anfang an, nur rief sie
 // niemand auf: bis hierher liess sich ein einmal aufgenommenes Dokument weder
 // umbenennen noch von "prueflauf" auf "gueltig" setzen. Die Datei selbst
 // bleibt unangetastet (Ersetzen ist ein eigener Vorgang, siehe Modulnotiz).

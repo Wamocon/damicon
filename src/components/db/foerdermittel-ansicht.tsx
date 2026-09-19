@@ -97,9 +97,10 @@ export async function FoerdermittelAnsicht() {
                     ) : (
                       <div className="flex flex-wrap gap-1">
                         {d.dokumente.map((doc) =>
-                          // Mit hinterlegter Datei ein signierter Link, sonst
-                          // wie bisher nur der Name - ein toter Link waere
-                          // schlechter als gar keiner.
+                          // Mit Link ein signierter Download, sonst nur der Name:
+                          // ein toter Link waere schlechter als gar keiner. Gibt
+                          // es die Datei, aber keinen Link (Speicherfehler),
+                          // steht das dabei statt eines stillen "keine Datei".
                           doc.dateiUrl ? (
                             <a
                               key={doc.id}
@@ -117,6 +118,11 @@ export async function FoerdermittelAnsicht() {
                               className="rounded-full border border-border px-2 py-0.5 text-[11px] text-foreground"
                             >
                               {doc.name}
+                              {doc.storagePath ? (
+                                <span className="ml-1 text-muted-foreground">
+                                  ({t("linkNichtVerfuegbar")})
+                                </span>
+                              ) : null}
                             </span>
                           ),
                         )}

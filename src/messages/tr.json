@@ -1210,7 +1210,8 @@
       "stammdatenOhneRechtsform": "Önce hukuki biçimi seçin - IIN mi BIN mi geçerli olduğu buna bağlıdır.",
       "stammdatenFormat": "Numara tam olarak on iki haneden oluşur.",
       "stammdatenPruefziffer": "Kontrol hanesi tutmuyor. Çoğunlukla numarada iki rakam yer değiştirmiştir.",
-      "selbstkontrolle": "Kasayı kaydeden kişi kendisi kontrol edemez. Bu kasayı başka biri kontrol etmelidir."
+      "selbstkontrolle": "Kasayı kaydeden kişi kendisi kontrol edemez. Bu kasayı başka biri kontrol etmelidir.",
+      "nachbarbetriebVorhanden": "Bu adla bir komşu işletme zaten mevcut."
     },
     "einladungen": {
       "erfolg": {
@@ -1317,7 +1318,8 @@
       "name": "İlaçlama kaydı 37. hafta - Kuzey parseli"
     },
     "keinDossier": "dosya yok",
-    "aendernKnopf": "Kaydet"
+    "aendernKnopf": "Kaydet",
+    "linkNichtVerfuegbar": "dosya var, bağlantı şu anda kullanılamıyor"
   },
   "pflueckaufgabenVerwaltung": {
     "ohneBrigade": "Ekipsiz",
@@ -2078,7 +2080,8 @@
         "notizen": "Notlar (isteğe bağlı)",
         "knopf": "Güncelle"
       }
-    }
+    },
+    "linkNichtVerfuegbar": "bağlantı kullanılamıyor"
   },
   "lieferungenAnsicht": {
     "titel": "Teslimatlar",
@@ -2492,7 +2495,7 @@
     "wartezeitTage": "{tage} gün",
     "stat": {
       "gesamt": "Uygulama",
-      "gesperrt": "bekleme süresi devam ediyor",
+      "laeuft": "bekleme süresi devam ediyor",
       "ohneProtokoll": "protokolsüz"
     },
     "col": {
@@ -2505,15 +2508,22 @@
       "zustand": "Durum"
     },
     "zustand": {
-      "gesperrt": "bekleme sürüyor",
+      "laeuft": "bekleme sürüyor",
       "freigegeben": "serbest",
-      "abgelaufen": "bekleme doldu"
+      "abgelaufen": "bekleme doldu, serbest bırakma bekleniyor"
     },
     "einheit": {
       "l_ha": "l/ha",
-      "kg_ha": "kg/ha",
-      "ml_100l": "ml/100 l",
-      "g_100l": "g/100 l"
-    }
+      "kg_ha": "kg/ha"
+    },
+    "filter": {
+      "label": "Serbest bırakma durumu",
+      "alle": "Tümü",
+      "offen": "Serbest bırakılmadı",
+      "freigegeben": "Serbest bırakıldı"
+    },
+    "gekuerzt": "En son {anzahl} uygulama gösteriliyor, yukarıdaki değerler tümünü sayar.",
+    "personVerborgen": "yalnızca ofis",
+    "personVerborgenHinweis": "Uygulayan kişinin adı yalnızca ofis tarafından görülebilir."
   }
 }

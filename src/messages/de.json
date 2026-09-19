@@ -871,7 +871,8 @@
       "stammdatenOhneRechtsform": "Bitte zuerst die Rechtsform wählen - davon hängt ab, ob ein ИИН oder ein БИН gilt.",
       "stammdatenFormat": "Die Nummer besteht aus genau zwölf Ziffern.",
       "stammdatenPruefziffer": "Die Prüfziffer stimmt nicht. Meist steckt ein Zahlendreher in der Nummer.",
-      "selbstkontrolle": "Wer eine Steige erfasst hat, kontrolliert sie nicht selbst. Eine andere Person muss diese Steige prüfen."
+      "selbstkontrolle": "Wer eine Steige erfasst hat, kontrolliert sie nicht selbst. Eine andere Person muss diese Steige prüfen.",
+      "nachbarbetriebVorhanden": "Ein Nachbarbetrieb mit diesem Namen existiert bereits."
     },
     "einladungen": {
       "erfolg": {
@@ -978,7 +979,8 @@
       "name": "Spritzprotokoll KW 37 - Parzelle Nord"
     },
     "keinDossier": "kein Dossier",
-    "aendernKnopf": "Speichern"
+    "aendernKnopf": "Speichern",
+    "linkNichtVerfuegbar": "Datei vorhanden, Link momentan nicht verfügbar"
   },
   "pflueckaufgabenVerwaltung": {
     "ohneBrigade": "Ohne Brigade",
@@ -2078,7 +2080,8 @@
         "notizen": "Notizen (optional)",
         "knopf": "Aktualisieren"
       }
-    }
+    },
+    "linkNichtVerfuegbar": "Link nicht verfügbar"
   },
   "lieferungenAnsicht": {
     "titel": "Lieferungen",
@@ -2492,7 +2495,7 @@
     "wartezeitTage": "{tage} Tage",
     "stat": {
       "gesamt": "Behandlungen",
-      "gesperrt": "laufende Wartezeit",
+      "laeuft": "laufende Wartezeit",
       "ohneProtokoll": "ohne Protokoll"
     },
     "col": {
@@ -2505,15 +2508,22 @@
       "zustand": "Zustand"
     },
     "zustand": {
-      "gesperrt": "Wartezeit läuft",
+      "laeuft": "Wartezeit läuft",
       "freigegeben": "freigegeben",
-      "abgelaufen": "Wartezeit abgelaufen"
+      "abgelaufen": "Wartezeit abgelaufen, Freigabe steht aus"
     },
     "einheit": {
       "l_ha": "l/ha",
-      "kg_ha": "kg/ha",
-      "ml_100l": "ml/100 l",
-      "g_100l": "g/100 l"
-    }
+      "kg_ha": "kg/ha"
+    },
+    "filter": {
+      "label": "Freigabestand",
+      "alle": "Alle",
+      "offen": "Nicht freigegeben",
+      "freigegeben": "Freigegeben"
+    },
+    "gekuerzt": "Angezeigt werden die neuesten {anzahl} Behandlungen, die Kennzahlen oben zählen alle.",
+    "personVerborgen": "nur Büro",
+    "personVerborgenHinweis": "Der Name der ausführenden Person ist nur für das Büro sichtbar."
   }
 }

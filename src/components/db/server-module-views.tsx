@@ -53,13 +53,14 @@ export function serverModulAnsicht(
         <ReihenbloeckeAnsicht pfad={kontext.pfad} statusFilter={kontext.suche.status} />
       );
     // Anforderung 2.4: eigene Protokollansicht statt der Reihenbloecke-Sicht.
-    // Erfasst und freigegeben wird eine Behandlung weiterhin am Reihenblock -
+    // Erfasst und freigegeben wird eine Behandlung weiterhin am Reihenblock,
     // dort steht der Block mit seinem Sperrzustand vor einem. Diese Seite
     // zeigt die Behandlungen selbst, auch die laengst freigegebenen, die in
     // der Blocksicht niemand mehr sieht (sie zeigt nur die juengste offene
-    // Sperre). Das ist der Nachweis, nach dem Handel und Behoerde fragen.
+    // Sperre). Das ist der Nachweis, nach dem Handel und Behoerde fragen. Der
+    // Statusparameter der frueheren Blocksicht bleibt als Filter erhalten.
     case "pflanzenschutz":
-      return <PflanzenschutzAnsicht />;
+      return <PflanzenschutzAnsicht pfad={kontext.pfad} statusFilter={kontext.suche.status} />;
     case "pflueckaufgaben":
       return (
         <PflueckaufgabenAnsicht pfad={kontext.pfad} auswahl={kontext.suche.aufgabe} />

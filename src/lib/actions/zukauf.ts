@@ -133,11 +133,18 @@ export async function zukaufPreisNachtragen(
 }
 
 // Nachbarbetrieb aufnehmen. Bis hierher entstanden Nachbarbetriebe
-// ausschliesslich ueber Seed/Migration - die Schreibpolicies aus
+// ausschliesslich ueber Seed/Migration, die Schreibpolicies aus
 // 20260908140000_aggregator_zukauf.sql gab es zwar, nur rief sie niemand auf.
 // Folge: der Import wies jede Zeile eines noch unbekannten Betriebs ab
 // (referenzAufloesen() in lib/import/zukauf-parser.ts), ohne einen Weg
 // anzubieten, ihn anzulegen.
+//
+// Ein Name darf nur einmal vorkommen: referenzAufloesen() ordnet Importzeilen
+// dem ersten Betrieb mit passendem Namen zu, ein Zwilling spaltete die
+// Kaufhistorie eines Betriebs auf zwei Ids. nachbarbetriebe.name hat keine
+// Unique-Constraint, die Pruefung sitzt deshalb hier (ohne Schemaaenderung).
+// Der Knopf sperrt sich waehrend des Absendens, gegen gleichzeitige Eingaben
+// zweier Personen schuetzt erst eine Constraint.
 export async function nachbarbetriebAnlegen(
   _status: AktionsStatus,
   formData: FormData,
@@ -153,6 +160,16 @@ export async function nachbarbetriebAnlegen(
   if (!name) return fehler("fehler.eingabe");
 
   const supabase = await createClient();
+
+  const { data: vorhandene, error: leseFehler } = await supabase
+    .from("nachbarbetriebe")
+    .select("name");
+  if (leseFehler) return dbFehler(leseFehler);
+  const schluessel = (wert: string) => wert.trim().replace(/\s+/g, " ").toLowerCase();
+  if ((vorhandene ?? []).some((b) => schluessel(b.name) === schluessel(name))) {
+    return fehler("fehler.nachbarbetriebVorhanden");
+  }
+
   const { data, error } = await supabase
     .from("nachbarbetriebe")
     .insert({

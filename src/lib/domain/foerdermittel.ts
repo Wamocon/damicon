@@ -18,7 +18,7 @@ export interface FoerderdossierDokument {
   id: string;
   name: string;
   storagePath: string | null;
-  /** Signierte, zeitlich begrenzte URL zur Datei - null ohne hinterlegte
+  /** Signierte, zeitlich begrenzte URL zur Datei, null ohne hinterlegte
    *  Datei oder im Demo-Modus (dasselbe Muster wie dokumente.dateiUrl). */
   dateiUrl: string | null;
 }

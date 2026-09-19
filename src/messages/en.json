@@ -871,7 +871,8 @@
       "stammdatenOhneRechtsform": "Please choose the legal form first - it decides whether an IIN or a BIN applies.",
       "stammdatenFormat": "The number consists of exactly twelve digits.",
       "stammdatenPruefziffer": "The check digit does not match. Usually two digits have been transposed.",
-      "selbstkontrolle": "Whoever recorded a crate does not inspect it themselves. Someone else needs to check this crate."
+      "selbstkontrolle": "Whoever recorded a crate does not inspect it themselves. Someone else needs to check this crate.",
+      "nachbarbetriebVorhanden": "A neighbouring farm with this name already exists."
     },
     "einladungen": {
       "erfolg": {
@@ -978,7 +979,8 @@
       "name": "Spray record week 37 - North plot"
     },
     "keinDossier": "no dossier",
-    "aendernKnopf": "Save"
+    "aendernKnopf": "Save",
+    "linkNichtVerfuegbar": "file exists, link currently unavailable"
   },
   "pflueckaufgabenVerwaltung": {
     "ohneBrigade": "No brigade",
@@ -2078,7 +2080,8 @@
         "notizen": "Notes (optional)",
         "knopf": "Update"
       }
-    }
+    },
+    "linkNichtVerfuegbar": "link unavailable"
   },
   "lieferungenAnsicht": {
     "titel": "Deliveries",
@@ -2492,7 +2495,7 @@
     "wartezeitTage": "{tage} days",
     "stat": {
       "gesamt": "Treatments",
-      "gesperrt": "waiting period running",
+      "laeuft": "waiting period running",
       "ohneProtokoll": "without protocol"
     },
     "col": {
@@ -2505,15 +2508,22 @@
       "zustand": "State"
     },
     "zustand": {
-      "gesperrt": "waiting period running",
+      "laeuft": "waiting period running",
       "freigegeben": "released",
-      "abgelaufen": "waiting period elapsed"
+      "abgelaufen": "waiting period elapsed, release pending"
     },
     "einheit": {
       "l_ha": "l/ha",
-      "kg_ha": "kg/ha",
-      "ml_100l": "ml/100 l",
-      "g_100l": "g/100 l"
-    }
+      "kg_ha": "kg/ha"
+    },
+    "filter": {
+      "label": "Release status",
+      "alle": "All",
+      "offen": "Not released",
+      "freigegeben": "Released"
+    },
+    "gekuerzt": "Showing the latest {anzahl} treatments, the figures above count all of them.",
+    "personVerborgen": "office only",
+    "personVerborgenHinweis": "The operator's name is only visible to the office."
   }
 }

@@ -3184,7 +3184,7 @@ if (leitung && brigade) {
     );
 
     // Dossieransicht: ein angehaengter Nachweis muss herunterladbar sein.
-    // ladeFoerdermittel() liest dafuer denselben Weg - Pfad am Dokument, dann
+    // ladeFoerdermittel() liest dafuer denselben Weg: Pfad am Dokument, dann
     // eine signierte URL aus dem Bucket "dokumente" (data/foerdermittel.ts).
     // Vorher lud die Ansicht den Pfad zwar, zeigte aber nur den Namen.
     const dossierBelegPfad = `dossier/it-${Date.now()}.pdf`;
@@ -3268,6 +3268,11 @@ if (leitung && brigade) {
       brigadeNachweisFehler?.code ?? `geschriebene Zeilen: ${brigadeNachweisVersuch?.length}`,
     );
 
+    // Aufraeumen, auch wenn die Sperre versagt und die Zeile doch entstanden ist:
+    // sonst bliebe sie im gemeinsamen seedDossier-Fixture fuer spaetere Laeufe stehen.
+    for (const zeile of brigadeNachweisVersuch ?? []) {
+      await admin.from("dokumente").delete().eq("id", zeile.id);
+    }
     if (neuerNachweis?.id) await admin.from("dokumente").delete().eq("id", neuerNachweis.id);
 
     // RLS: nur Buero-Rollen lesen/schreiben foerderdossiers.

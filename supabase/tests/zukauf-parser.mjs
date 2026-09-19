@@ -151,7 +151,7 @@ console.log("\n== Fehlerfaelle je Zeile ==");
   pruefe("Zeile mit unbekanntem Nachbarbetrieb wird nicht uebernommen", rBetrieb.zeilen.length === 0);
 
   // Aufnahme des Betriebs loest genau diese Ablehnung auf: derselbe CSV-Inhalt,
-  // nur die Referenzliste kennt den Betrieb jetzt - das ist der Zweck des neuen
+  // nur die Referenzliste kennt den Betrieb jetzt, das ist der Zweck des neuen
   // Formulars (nachbarbetriebAnlegen, actions/zukauf.ts). Vorher gab es im
   // Bestand keinen Weg, einen Nachbarbetrieb ueber die Anwendung anzulegen.
   const nachAufnahme = parseZukauf(

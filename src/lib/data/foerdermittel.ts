@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import { heuteIso } from "@/lib/data/util";
+import { signiereDokumentPfade } from "@/lib/data/signierte-urls";
 import {
   demoDossiers,
   type FoerderdossierStatus,
@@ -18,9 +19,6 @@ export interface FoerdermittelUebersicht {
   quelle: Datenquelle;
   dossiers: FoerderdossierZeile[];
 }
-
-/** Gueltigkeit der signierten Datei-Links, wie in data/dokumente.ts. */
-const SIGNATUR_SEKUNDEN = 60 * 60;
 
 function demoUebersicht(quelle: FoerdermittelUebersicht["quelle"] = "demo"): FoerdermittelUebersicht {
   return { quelle, dossiers: demoDossiers };
@@ -40,23 +38,14 @@ export async function ladeFoerdermittel(): Promise<FoerdermittelUebersicht> {
 
   if (error || !data) return demoUebersicht("fehler");
 
-  // Angehaengte Nachweise als signierte Links ausgeben - dasselbe Muster wie
-  // in data/dokumente.ts: ein Pfad allein nuetzt der Oberflaeche nichts, der
-  // Bucket ist nicht oeffentlich lesbar.
+  // Angehaengte Nachweise als signierte Links ausgeben, der Bucket ist nicht
+  // oeffentlich lesbar (gemeinsamer Helfer mit der Dokumentenverwaltung).
   const pfade = data
     .flatMap((d) => (Array.isArray(d.dokumente) ? d.dokumente : []))
     .map((doc) => doc.storage_path)
     .filter((pfad): pfad is string => Boolean(pfad));
 
-  const signiert = new Map<string, string>();
-  if (pfade.length > 0) {
-    const { data: urls } = await supabase.storage
-      .from("dokumente")
-      .createSignedUrls(pfade, SIGNATUR_SEKUNDEN);
-    for (const eintrag of urls ?? []) {
-      if (eintrag.path && eintrag.signedUrl) signiert.set(eintrag.path, eintrag.signedUrl);
-    }
-  }
+  const signiert = await signiereDokumentPfade(supabase, pfade);
 
   return {
     quelle: "db",
@@ -80,7 +69,7 @@ export async function ladeFoerdermittel(): Promise<FoerdermittelUebersicht> {
 }
 
 /** Auswahlliste fuer das Dokumentenformular: an welches Dossier haengt der
- *  Nachweis? Leer ohne Datenbank - dann bietet das Formular nur "kein Dossier"
+ *  Nachweis? Leer ohne Datenbank, dann bietet das Formular nur "kein Dossier"
  *  an, so wie jede andere Auswahl im Demo-Modus. */
 export async function ladeDossierOptionen(): Promise<{ id: string; bezeichnung: string }[]> {
   if (!isSupabaseConfigured()) return [];
@@ -95,7 +84,7 @@ export async function ladeDossierOptionen(): Promise<{ id: string; bezeichnung: 
 
   return data.map((d) => ({
     id: d.id,
-    bezeichnung: [d.antragsnummer, d.titel ?? d.portal].filter(Boolean).join(" - "),
+    bezeichnung: [d.antragsnummer, d.titel || d.portal].filter(Boolean).join(" - "),
   }));
 }
 

@@ -93,18 +93,28 @@ export function DokumentFormular({
 }
 
 // Zeilenformular: Bezeichnung, Bezug, Stand und Status eines vorhandenen
-// Dokuments nachfuehren. Aufbau wie ZukaufPreisNachtragenFormular - schmal
+// Dokuments nachfuehren. Aufbau wie ZukaufPreisNachtragenFormular, schmal
 // genug fuer eine Tabellenzelle, mit eigener Rueckmeldung je Zeile.
+//
+// Die Felder sind unkontrolliert (defaultValue). Damit sie nach einem
+// revalidatePath() nicht auf dem Stand von vor dem Neuladen stehen bleiben, und
+// ein spaeteres Speichern fremde Aenderungen nicht zurueckschreibt, tragen sie
+// den aktuellen Wert als key: aendert sich der Wert, wird das Feld neu
+// aufgebaut. Die Rueckmeldung der Zeile bleibt dabei erhalten.
 export function DokumentAendernFormular({
   id,
   name,
   bezug,
+  bezugAnzeige,
   stand,
   status,
 }: {
   id: string;
   name: string;
+  /** Der gespeicherte Bezug, null wenn keiner gesetzt ist. */
   bezug: string | null;
+  /** Anzeigewert (Block- oder Chargencode als Fallback), nur als Platzhalter. */
+  bezugAnzeige?: string;
   stand: string | null;
   status: string;
 }) {
@@ -117,6 +127,7 @@ export function DokumentAendernFormular({
       <PfadFeld />
       <input type="hidden" name="id" value={id} />
       <input
+        key={`name-${name}`}
         name="name"
         defaultValue={name}
         required
@@ -124,12 +135,15 @@ export function DokumentAendernFormular({
         className="h-7 w-36 rounded-md border border-border bg-background px-1.5 text-[11px] text-foreground outline-none transition focus:border-primary"
       />
       <input
+        key={`bezug-${bezug ?? ""}`}
         name="bezug"
         defaultValue={bezug ?? ""}
+        placeholder={bezug ? undefined : bezugAnzeige || undefined}
         aria-label={t("feld.bezug")}
-        className="h-7 w-24 rounded-md border border-border bg-background px-1.5 text-[11px] text-foreground outline-none transition focus:border-primary"
+        className="h-7 w-24 rounded-md border border-border bg-background px-1.5 text-[11px] text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary"
       />
       <input
+        key={`stand-${stand ?? ""}`}
         name="stand"
         type="date"
         defaultValue={stand ?? ""}
@@ -137,6 +151,7 @@ export function DokumentAendernFormular({
         className="h-7 rounded-md border border-border bg-background px-1.5 text-[11px] text-foreground outline-none transition focus:border-primary"
       />
       <select
+        key={`status-${status}`}
         name="status"
         defaultValue={status}
         aria-label={t("feld.status")}

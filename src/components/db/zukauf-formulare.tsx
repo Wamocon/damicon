@@ -167,7 +167,7 @@ export function ZukaufPreisNachtragenFormular({ id }: { id: string }) {
 
 // Nachbarbetrieb aufnehmen (Aggregator). Bewusst neben dem Import-Formular:
 // wer beim Import auf "unbekannter Betrieb" stoesst, legt ihn genau hier an
-// und laedt die Datei erneut - ohne die Seite zu verlassen.
+// und laedt die Datei erneut, ohne die Seite zu verlassen.
 export function NachbarbetriebFormular() {
   const [status, action] = useActionState(nachbarbetriebAnlegen, leer);
   const t = useTranslations("zukaufAnsicht.betriebAufnehmen");
