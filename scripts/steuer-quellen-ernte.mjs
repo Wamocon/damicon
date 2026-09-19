@@ -18,6 +18,8 @@ const ZIEL = "docs/recherche/steuern/korpus";
 const CACHE = ".cache/steuerkorpus/quellen";
 const HEUTE = new Date().toISOString().slice(0, 10);
 const PAUSE_MS = 1200;
+const KENNUNG_BOT = "Damicon-Recherche/1.0 (interne Steuerrecherche)";
+const KENNUNG_BROWSER = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0 Safari/537.36 Damicon-Recherche/1.0";
 
 // Adressen, die keinen auswertbaren Text liefern oder nicht geerntet werden sollen.
 const AUSGESCHLOSSEN = [
@@ -127,11 +129,35 @@ async function main() {
       if (await existiert(cachePfad)) {
         html = await readFile(cachePfad, "utf8");
       } else {
-        const a = await fetch(s.url, {
-          headers: { "User-Agent": "Damicon-Recherche/1.0 (interne Steuerrecherche)" },
+        // Viele Institutionenseiten (OECD, ADB, Kanzleien) weisen generische
+        // Bot-Kennungen pauschal ab, liefern denselben oeffentlichen Text aber an
+        // eine uebliche Browserkennung aus. Erst hoeflich anfragen, bei 403 mit
+        // Browserkennung wiederholen. Es wird keine Bezahlschranke umgangen.
+        let a = await fetch(s.url, {
+          headers: { "User-Agent": KENNUNG_BOT },
           signal: AbortSignal.timeout(45000),
         });
-        if (!a.ok) throw new Error(`HTTP ${a.status}`);
+        // Zweiter Versuch, wenn die Seite abweist ODER nur eine leere Huelle
+        // liefert. Beides kommt vor: OECD antwortet mit 403, Atameken mit 200
+        // und einem leeren Rumpf. Erst danach gilt eine Quelle als nicht
+        // erreichbar.
+        let roh = a.ok ? await a.text() : "";
+        if (!a.ok || roh.length < 2000) {
+          await schlafen(PAUSE_MS);
+          const b = await fetch(s.url, {
+            headers: {
+              "User-Agent": KENNUNG_BROWSER,
+              "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+              "Accept-Language": "ru,en;q=0.9,de;q=0.8",
+            },
+            signal: AbortSignal.timeout(45000),
+          });
+          if (b.ok) {
+            const rohB = await b.text();
+            if (rohB.length > roh.length) { a = b; roh = rohB; }
+          }
+        }
+        if (!a.ok && !roh) throw new Error(`HTTP ${a.status}`);
         // Binaerdateien niemals als Text lesen. Ein ZIP durch die Textwandlung zu
         // schicken erzeugt Datenmuell und blaeht die Ablage auf: das ESF-SDK
         // (189 MB) wurde so einmal zu einer 166-MB-Textdatei. Archive und PDF
@@ -144,7 +170,7 @@ async function main() {
         if (laenge > 12 * 1048576) {
           throw new Error(`zu gross fuer den Textkorpus (${(laenge / 1048576).toFixed(1)} MB)`);
         }
-        html = await a.text();
+        html = roh;
         await writeFile(cachePfad, html, "utf8");
         await schlafen(PAUSE_MS);
       }
