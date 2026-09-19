@@ -1545,7 +1545,13 @@
     "ansehen": "Ansehen",
     "fertig": "Fertig! Deine Antwort ist da.",
     "fehler": "Da ist etwas schiefgelaufen. Öffne den Chat für Details.",
-    "verstecken": "Himbi ausblenden",
+    "weg": {
+      "halten": "Soll ich gehen? Halte weiter gedrückt …",
+      "tschuess": "Tschüss! Hol mich zurück, wenn du mich brauchst.",
+      "hinweis": "Halte mich gedrückt, um mich wegzuschicken."
+    },
+    "willkommen": "Da bin ich wieder!",
+    "zurueckholen": "Himbi zurückholen",
     "tipp": {
       "frage": "Du bist bei „{bereich}“. Soll ich dir zeigen, was du hier tun kannst?",
       "ja": "Zeig mir das",
@@ -1554,15 +1560,19 @@
     },
     "einstellung": {
       "titel": "Himbi, dein Begleiter",
-      "text": "Zeigt in der Ecke, was der Agent gerade tut, auch wenn der Chat geschlossen ist."
+      "text": "Zeigt in der Ecke, was der Agent gerade tut, auch wenn der Chat geschlossen ist. Zum Wegschicken auf Himbi gedrückt halten, die Spitze am unteren Rand holt sie zurück. Hier ausgeschaltet bleibt Himbi ganz weg."
     },
     "tour": {
       "gruss": "Hallo, ich bin Himbi! Soll ich dir Damicon in einer Minute zeigen?",
+      "autoStart": "Ich lege gleich von allein los. Klick oder scrolle, wenn du lieber selbst schaust.",
       "start": "Tour starten",
       "nein": "Nein danke",
       "weiter": "Weiter",
       "zurueck": "Zurück",
       "beenden": "Beenden",
+      "pausiert": "Alles klar, du übernimmst. Sag Bescheid, wenn ich weitermachen soll.",
+      "auto": "Automatisch weiter",
+      "pause": "Pause",
       "fertigKnopf": "Fertig",
       "ende": "Das war die Tour. Bereit, es selbst auszuprobieren?",
       "anmelden": "Zur Anmeldung",

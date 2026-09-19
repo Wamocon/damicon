@@ -20,7 +20,7 @@ import { CLIENT_WERKZEUG_NAMEN } from "@/lib/ai/client-werkzeuge-meta";
 import { chatFehlerArt } from "@/lib/ai/chat-fehler";
 import { baueWerkzeuge } from "@/lib/ai/tools";
 import { zerlege, type Zerlegung } from "@/lib/markdown-bloecke";
-import { agentPhase, haustierZustand, modulAusPfad, TOUR_SCHRITTE } from "@/lib/haustier";
+import { agentPhase, haustierZustand, leseSichtbarkeit, modulAusPfad, TOUR_SCHRITTE, tourDauer } from "@/lib/haustier";
 import { modules } from "@/lib/modules";
 import { hasPermission, roles } from "@/lib/rbac";
 
@@ -226,6 +226,39 @@ const seitenQuelle = readdirSync("src/components/site")
   .join("\n");
 const tourOhneAnker = TOUR_SCHRITTE.filter((s) => !seitenQuelle.includes(`id="${s.anker}"`)).map((s) => s.anker);
 pruefe("Himbi-Tour: jede Station zeigt auf einen Abschnitt, den es auf der Startseite gibt", tourOhneAnker.length === 0, tourOhneAnker.join(", "));
+// Wegschicken und Zurueckholen: gespeicherte Werte, Beschriftungen, kein altes Kreuz mehr.
+pruefe(
+  "Himbi: gespeicherte Sichtbarkeit wird gelesen, Unbekanntes heisst 'da'",
+  leseSichtbarkeit("weg") === "weg" && leseSichtbarkeit("aus") === "aus" && leseSichtbarkeit("an") === "an" && leseSichtbarkeit(null) === "an" && leseSichtbarkeit("kaputt") === "an" && leseSichtbarkeit("") === "an",
+);
+const wegOhneText: string[] = [];
+for (const sp of sprachen) {
+  for (const k of ["weg.halten", "weg.tschuess", "weg.hinweis", "willkommen", "zurueckholen", "einstellung.text"]) {
+    if (typeof holen(texte[sp], `haustier.${k}`) !== "string") wegOhneText.push(`${sp}:${k}`);
+  }
+}
+pruefe("Himbi: Wegschicken, Zurueckholen und Abschied sind in allen Sprachen beschriftet", wegOhneText.length === 0, wegOhneText.slice(0, 4).join(", "));
+const huelleQuelle = readFileSync("src/components/haustier/haustier-huelle.tsx", "utf8");
+pruefe("Himbi: kein Schliessen-Kreuz mehr, Wegschicken laeuft ueber Halten (und Entf-Taste)", !huelleQuelle.includes("onVerstecken") && huelleQuelle.includes("HALTEN_DAUER_MS") && huelleQuelle.includes('"Delete"'));
+// Der Autopilot der Tour: Verweildauer, Texte, Regeln fuer den Eingriff des Besuchers.
+pruefe(
+  "Himbi-Tour: Verweildauer waechst mit dem Text, bleibt aber zwischen 5,5 und 9,5 Sekunden",
+  tourDauer("") === 5500 && tourDauer("x".repeat(60)) > 5500 && tourDauer("x".repeat(60)) < 9500 && tourDauer("x".repeat(500)) === 9500 && tourDauer("x".repeat(80)) >= tourDauer("x".repeat(60)),
+  `${tourDauer("x".repeat(90))} ms bei 90 Zeichen`,
+);
+const autoOhneText: string[] = [];
+for (const sp of sprachen) {
+  for (const k of ["autoStart", "pausiert", "auto", "pause"]) {
+    if (typeof holen(texte[sp], `haustier.tour.${k}`) !== "string") autoOhneText.push(`${sp}:${k}`);
+  }
+}
+pruefe("Himbi-Tour: Autopilot-Texte in allen Sprachen", autoOhneText.length === 0, autoOhneText.slice(0, 4).join(", "));
+const tourQuelle = readFileSync("src/components/haustier/haustier-tour.tsx", "utf8");
+pruefe(
+  "Himbi-Tour: Besucher-Eingriffe (Klick, Mausrad, Wischen, Scroll-Tasten) geben die Fuehrung ab",
+  ["wheel", "touchstart", "pointerdown", "keydown", "SCROLL_TASTEN", 'closest(".haustier")'].every((m) => tourQuelle.includes(m)),
+);
+pruefe("Himbi-Tour: bei reduzierter Bewegung startet nichts von allein", tourQuelle.includes("setAutoStart(!bewegungReduziert())") && tourQuelle.includes("setAuto(!bewegungReduziert())"));
 const zustaendeOhneLabel = (["ruhe", "denkt", "freigabe", "fertig", "fehler", "schlaeft", "spricht", "tour"] as const).filter((z) =>
   sprachen.some((sp) => typeof holen(texte[sp], `haustier.label.${z}`) !== "string"),
 );

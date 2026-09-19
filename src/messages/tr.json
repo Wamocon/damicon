@@ -557,7 +557,13 @@
     "ansehen": "Görüntüle",
     "fertig": "Bitti! Yanıtın hazır.",
     "fehler": "Bir şeyler ters gitti. Ayrıntılar için sohbeti aç.",
-    "verstecken": "Himbi’yi gizle",
+    "weg": {
+      "halten": "Gideyim mi? Basılı tutmaya devam et …",
+      "tschuess": "Hoşça kal! İhtiyacın olunca beni geri çağır.",
+      "hinweis": "Beni göndermek için basılı tut."
+    },
+    "willkommen": "İşte geri döndüm!",
+    "zurueckholen": "Himbi’yi geri getir",
     "tipp": {
       "frage": "“{bereich}” bölümündesin. Burada neler yapabileceğini göstereyim mi?",
       "ja": "Göster",
@@ -566,15 +572,19 @@
     },
     "einstellung": {
       "titel": "Himbi, arkadaşın",
-      "text": "Sohbet kapalıyken bile ajanın ne yaptığını köşede gösterir."
+      "text": "Sohbet kapalıyken bile ajanın ne yaptığını köşede gösterir. Himbi’yi göndermek için basılı tut, alt kenardaki ucu onu geri getirir. Burada kapatırsan Himbi tamamen kaybolur."
     },
     "tour": {
       "gruss": "Merhaba, ben Himbi! Sana Damicon’ı bir dakikada göstereyim mi?",
+      "autoStart": "Birazdan kendiliğinden başlayacağım. Kendin bakmak istersen tıkla veya kaydır.",
       "start": "Turu başlat",
       "nein": "Hayır, teşekkürler",
       "weiter": "İleri",
       "zurueck": "Geri",
       "beenden": "Bitir",
+      "pausiert": "Tamam, kontrol sende. Devam etmemi istediğinde söyle.",
+      "auto": "Otomatik devam et",
+      "pause": "Duraklat",
       "fertigKnopf": "Bitti",
       "ende": "Tur bitti. Kendin denemeye hazır mısın?",
       "anmelden": "Giriş yap",

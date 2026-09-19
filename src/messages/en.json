@@ -1545,7 +1545,13 @@
     "ansehen": "View",
     "fertig": "Done! Your answer is ready.",
     "fehler": "Something went wrong. Open the chat for details.",
-    "verstecken": "Hide Himbi",
+    "weg": {
+      "halten": "Should I go? Keep holding …",
+      "tschuess": "Bye! Bring me back whenever you need me.",
+      "hinweis": "Hold me down to send me away."
+    },
+    "willkommen": "I’m back!",
+    "zurueckholen": "Bring Himbi back",
     "tipp": {
       "frage": "You are in “{bereich}”. Shall I show you what you can do here?",
       "ja": "Show me",
@@ -1554,15 +1560,19 @@
     },
     "einstellung": {
       "titel": "Himbi, your companion",
-      "text": "Shows in the corner what the agent is doing, even when the chat is closed."
+      "text": "Shows in the corner what the agent is doing, even when the chat is closed. Hold Himbi down to send it away, the tip at the bottom edge brings it back. Switched off here, Himbi stays away completely."
     },
     "tour": {
       "gruss": "Hi, I am Himbi! Shall I show you Damicon in one minute?",
+      "autoStart": "I will start on my own in a moment. Click or scroll if you would rather look around yourself.",
       "start": "Start the tour",
       "nein": "No thanks",
       "weiter": "Next",
       "zurueck": "Back",
       "beenden": "End",
+      "pausiert": "All right, you are in control. Tell me when I should carry on.",
+      "auto": "Continue automatically",
+      "pause": "Pause",
       "fertigKnopf": "Done",
       "ende": "That was the tour. Ready to try it yourself?",
       "anmelden": "Sign in",

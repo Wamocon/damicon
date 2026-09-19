@@ -675,3 +675,309 @@ html[data-ki-zieht] .haustier__verschiebung {
     display: none;
   }
 }
+
+/* ---- Wegschicken: Halten, Traurigkeit, Abschied, Zurueckholen --------------------------- */
+
+/* Traurig (Halten und Abschied): Mundwinkel unten, Brauen sorgenvoll, Blick nach unten, Traenen */
+.hb-svg[data-zustand="traurig"] .hb-mund > * {
+  opacity: 0;
+}
+.hb-svg[data-zustand="traurig"] .hb-mund--traurig {
+  opacity: 1;
+}
+.hb-svg[data-zustand="traurig"] .hb-braue--l {
+  transform: rotate(-18deg) translateY(-2px);
+}
+.hb-svg[data-zustand="traurig"] .hb-braue--r {
+  transform: rotate(18deg) translateY(-2px);
+}
+.hb-svg[data-zustand="traurig"] .hb-pupille {
+  transform: translate(calc(var(--bx, 0) * 1px), calc(var(--by, 0) * 1px)) scale(0.82);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.hb-traene {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 50% 0%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hb-svg[data-zustand="traurig"] .hb-figur {
+    animation: hb-schluchzen 0.8s ease-in-out infinite;
+  }
+  .hb-svg[data-zustand="traurig"] .hb-traene {
+    animation: hb-weinen 1.25s ease-in infinite;
+  }
+  .hb-svg[data-zustand="traurig"] .hb-traene--r {
+    animation-delay: 0.55s;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hb-svg[data-zustand="traurig"] .hb-traene {
+    opacity: 1;
+  }
+}
+@keyframes hb-schluchzen {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  30% {
+    transform: translateY(1.5px) scale(1.012, 0.985);
+  }
+  60% {
+    transform: translateY(-0.5px) scale(0.996, 1.006);
+  }
+}
+@keyframes hb-weinen {
+  0% {
+    opacity: 0;
+    transform: translateY(0) scale(0.5);
+  }
+  18% {
+    opacity: 1;
+    transform: translateY(1px) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.85);
+  }
+}
+
+/* Ring, der sich waehrend des Haltens fuellt */
+.hb-ring {
+  position: absolute;
+  left: -14px;
+  top: -8px;
+  width: 116px;
+  height: 116px;
+  overflow: visible;
+  pointer-events: none;
+  transform: rotate(-90deg);
+}
+.hb-ring circle {
+  fill: none;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.hb-ring__spur {
+  stroke: color-mix(in oklab, var(--hb-himbeere) 20%, transparent);
+}
+.hb-ring__lauf {
+  stroke: var(--hb-himbeere);
+  stroke-dasharray: 339.3;
+  stroke-dashoffset: 339.3;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hb-ring__lauf {
+    animation: hb-ring 0.9s linear forwards;
+  }
+  .hb-ring {
+    animation: hb-pop 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hb-ring__lauf {
+    stroke-dashoffset: 170;
+  }
+}
+@keyframes hb-ring {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Der Abschied: ein zoegerndes Huepfen, dann sinkt Himbi hinter den unteren Rand */
+.haustier[data-abschied="true"] .hb {
+  transform-origin: 50% 100%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .haustier[data-abschied="true"] .hb {
+    animation: hb-abschied 1.25s cubic-bezier(0.55, 0, 0.7, 0.2) forwards;
+  }
+  .haustier[data-abschied="true"] .hb-schatten {
+    opacity: 0;
+    transition: opacity 0.6s ease 0.4s;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .haustier[data-abschied="true"] .hb {
+    opacity: 0;
+    transition: opacity 0.6s ease 0.5s;
+  }
+}
+@keyframes hb-abschied {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0);
+  }
+  18% {
+    transform: translateY(-9px) scale(1.04) rotate(-4deg);
+  }
+  36% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(3deg);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(84px) scale(0.3) rotate(-12deg);
+  }
+}
+
+/* Hinweis beim laengeren Ueberfahren: "Halte mich gedrueckt ..." (nur CSS, kein Rendern) */
+.hb-hinweis {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  right: 50%;
+  transform: translateX(50%) translateY(4px);
+  width: max-content;
+  max-width: 220px;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 650;
+  line-height: 1rem;
+  color: var(--card-foreground, #1f2937);
+  background: var(--card, #fff);
+  border: 1px solid var(--border, #e5e7eb);
+  box-shadow: 0 10px 24px -12px rgb(0 0 0 / 0.4);
+  opacity: 0;
+  pointer-events: none;
+  text-align: center;
+}
+@media (hover: hover) {
+  .haustier__griff:hover .hb-hinweis {
+    opacity: 1;
+    transform: translateX(50%) translateY(0);
+    transition: opacity 0.3s ease 1.8s, transform 0.3s ease 1.8s;
+  }
+}
+.haustier[data-zieht="true"] .hb-hinweis,
+.haustier[data-halten="true"] .hb-hinweis {
+  display: none;
+}
+
+/* Weggeschickt: nur Krone und Augen schauen am unteren Rand heraus */
+.hb-versteck {
+  position: fixed;
+  right: 34px;
+  bottom: 0;
+  z-index: 60;
+  width: 64px;
+  height: 52px;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 24px 24px 0 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.hb-versteck[data-hoch="true"] {
+  right: 92px;
+}
+.hb-versteck:focus-visible {
+  outline: 3px solid var(--himbeere, #d81b60);
+  outline-offset: 2px;
+}
+.hb-versteck__innen {
+  display: block;
+  transform: translateY(16px);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hb-versteck {
+    animation: hb-versteck-ein 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 0.15s backwards;
+    transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  }
+  .hb-versteck__innen {
+    transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+    animation: hb-lugen 5.5s ease-in-out 1s infinite;
+  }
+  .hb-versteck:hover .hb-versteck__innen,
+  .hb-versteck:focus-visible .hb-versteck__innen {
+    animation: none;
+    transform: translateY(2px);
+  }
+}
+@keyframes hb-versteck-ein {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes hb-lugen {
+  0%,
+  70%,
+  100% {
+    transform: translateY(16px);
+  }
+  78%,
+  90% {
+    transform: translateY(6px);
+  }
+}
+@media (min-width: 1100px) {
+  .hb-versteck[data-pane-offen="true"] {
+    transform: translateX(calc(var(--ki-pane-breite, 27rem) * -1));
+  }
+}
+@media (max-width: 1099.98px) {
+  .hb-versteck[data-pane-offen="true"] {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+@media print {
+  .hb-versteck {
+    display: none;
+  }
+}
+
+/* ---- Tour im Autopilot -------------------------------------------------------------------- */
+.hb-fortschritt {
+  height: 3px;
+  margin-top: 0.6rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--hb-himbeere) 18%, transparent);
+}
+.hb-fortschritt::after {
+  content: "";
+  display: block;
+  height: 100%;
+  background: var(--hb-himbeere);
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  animation: hb-fortschritt var(--dauer, 6s) linear forwards;
+}
+@keyframes hb-fortschritt {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* Ein Huepfer beim Wechsel der Station */
+@media (prefers-reduced-motion: no-preference) {
+  .haustier[data-bereit="true"] .hb.hb-huepf {
+    animation: hb-hupf 0.8s cubic-bezier(0.3, 0.7, 0.4, 1) both;
+  }
+}
+@keyframes hb-hupf {
+  0% {
+    transform: translateY(0) scale(1.07, 0.9);
+  }
+  28% {
+    transform: translateY(-24px) scale(0.94, 1.09);
+  }
+  52% {
+    transform: translateY(0) scale(1.07, 0.91);
+  }
+  72% {
+    transform: translateY(-5px) scale(0.99, 1.02);
+  }
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+}

@@ -4,7 +4,16 @@
 
 export type AgentPhase = "ruhe" | "arbeitet" | "freigabe" | "fehler";
 
-export type HaustierZustand = "ruhe" | "denkt" | "freigabe" | "fertig" | "fehler" | "schlaeft" | "spricht";
+export type HaustierZustand = "ruhe" | "denkt" | "freigabe" | "fertig" | "fehler" | "schlaeft" | "spricht" | "traurig";
+
+/** an = Himbi ist da. weg = weggeschickt, nur die Blattspitze schaut am Rand heraus (ein Klick holt sie
+ *  zurueck). aus = in den Einstellungen ganz abgeschaltet, auch die Spitze bleibt weg. */
+export type Sichtbarkeit = "an" | "weg" | "aus";
+
+/** Liest den gespeicherten Wert. Alles Unbekannte (leer, kaputt, alter Wert) heisst: da. */
+export function leseSichtbarkeit(roh: string | null | undefined): Sichtbarkeit {
+  return roh === "weg" || roh === "aus" ? roh : "an";
+}
 
 /** Was der Chat gerade tut, in einer Zahl von Faellen. Eine offene Freigabe gewinnt vor allem
  *  anderen: der Agent wartet auf den Menschen, alles andere kann warten. */
@@ -51,3 +60,9 @@ export const TOUR_SCHRITTE = [
 ] as const;
 
 export type TourSchluessel = (typeof TOUR_SCHRITTE)[number]["schluessel"];
+
+/** Wie lange eine Tourstation im Autopilot stehen bleibt: grob die Lesezeit des Textes, mindestens
+ *  gut lesbar, hoechstens nicht zaeh. */
+export function tourDauer(text: string): number {
+  return Math.min(9500, Math.max(5500, 3800 + text.length * 48));
+}

@@ -21,6 +21,12 @@ const WECKEN_RADIUS = 220;
 const AUGEN_MAX = 3.4;
 const ZIEHSCHWELLE = 5;
 const RAND = 8;
+// Wegschicken durch Halten: nach HALTEN_START_MS wird Himbi traurig und ein Ring laeuft
+// HALTEN_DAUER_MS lang voll; wer vorher loslaesst, hat es sich anders ueberlegt.
+const HALTEN_START_MS = 380;
+const HALTEN_DAUER_MS = 900;
+const ABSCHIED_MS = 1250;
+const ERLEICHTERT_MS = 1100;
 
 const KONFETTI: Array<{ dx: number; dy: number; rot: number; farbe: string; verz: number }> = [
   { dx: -70, dy: -64, rot: -260, farbe: "#d81b60", verz: 0.1 },
@@ -45,18 +51,31 @@ export interface HaustierHuelleProps {
   /** Beschriftung fuer Screenreader (Zustand in Worten). */
   label: string;
   onKlick: () => void;
-  onVerstecken?: () => void;
-  versteckenLabel?: string;
   /** Element, auf das Himbi schaut (Tour): ueberstimmt Mauszeiger und Zustand. */
   blickZiel?: Element | null;
   /** Weiter oben ansetzen, damit Himbi nichts verdeckt, was unten rechts schon sitzt (Tonschalter der Startseite). */
   hoch?: boolean;
+  /** Zaehler: bei jeder Aenderung macht Himbi einen Huepfer (Tour: neue Station). */
+  huepf?: number;
+  /** Wegschicken durch Gedrueckt-Halten (oder Entf-Taste). Ohne diesen Eintrag laesst sich Himbi nicht wegschicken. */
+  weg?: WegTexte;
 }
 
-export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKlick, onVerstecken, versteckenLabel, blickZiel, hoch = false }: HaustierHuelleProps) {
+export interface WegTexte {
+  onWeg: () => void;
+  /** Blase waehrend des Haltens. */
+  halten: string;
+  /** Blase beim Abschied. */
+  tschuess: string;
+  /** Hinweis beim Ueberfahren. */
+  hinweis: string;
+}
+
+export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKlick, blickZiel, hoch = false, huepf = 0, weg }: HaustierHuelleProps) {
   const wurzel = useRef<HTMLDivElement>(null);
   const griff = useRef<HTMLDivElement>(null);
   const versatz = useRef<HTMLDivElement>(null);
+  const koerper = useRef<HTMLDivElement>(null);
 
   const [bereit, setBereit] = useState(false);
   const [schlaeft, setSchlaeft] = useState(false);
@@ -64,7 +83,12 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
   const [seite, setSeite] = useState<"rechts" | "links">("rechts");
   const [konfettiNr, setKonfettiNr] = useState(0);
 
-  const anzeige: HaustierZustand = zustand === "ruhe" && schlaeft ? "schlaeft" : zustand;
+  const [halten, setHalten] = useState(false);
+  const [abschied, setAbschied] = useState(false);
+  const [erleichtert, setErleichtert] = useState(false);
+
+  const basis: HaustierZustand = zustand === "ruhe" && schlaeft ? "schlaeft" : zustand;
+  const anzeige: HaustierZustand = abschied || halten ? "traurig" : erleichtert ? "fertig" : basis;
 
   // ---- Mounten, gespeicherte Position ------------------------------------------------
   const versatzWert = useRef({ x: 0, y: 0 });
@@ -180,6 +204,7 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
     if (blickZiel) return;
     if (anzeige === "denkt") richteAugen(-2.6, -2.8);
     else if (anzeige === "schlaeft") richteAugen(0, 1.5);
+    else if (anzeige === "traurig") richteAugen(0, 2.6);
     else if (anzeige === "fehler") richteAugen(0, 2);
     else richteAugen(0, 0);
   }, [anzeige, blickZiel, richteAugen]);
@@ -236,12 +261,54 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
     };
   }, [blickZu]);
 
+  // Huepfer bei jeder Aenderung des Zaehlers: Klasse entfernen, neu berechnen lassen, wieder setzen
+  useEffect(() => {
+    const el = koerper.current;
+    if (!huepf || !el) return;
+    el.classList.remove("hb-huepf");
+    void el.offsetWidth;
+    el.classList.add("hb-huepf");
+  }, [huepf]);
+
   // Konfetti bei jedem Eintritt in "fertig"
-  const vorher = useRef<HaustierZustand>(zustand);
+  const vorher = useRef<HaustierZustand>("ruhe");
   useEffect(() => {
     if (zustand === "fertig" && vorher.current !== "fertig") setKonfettiNr((n) => n + 1);
     vorher.current = zustand;
   }, [zustand]);
+
+  // ---- Wegschicken durch Halten --------------------------------------------------------------
+  const wegRef = useRef(weg);
+  wegRef.current = weg;
+  const haltenTimer = useRef<number | undefined>(undefined);
+  const abschiedTimer = useRef<number | undefined>(undefined);
+  const endeTimer = useRef<number | undefined>(undefined);
+  const erleichtertTimer = useRef<number | undefined>(undefined);
+
+  const stoppeHalten = useCallback(() => {
+    window.clearTimeout(haltenTimer.current);
+    window.clearTimeout(abschiedTimer.current);
+    setHalten(false);
+  }, []);
+
+  const starteAbschied = useCallback(() => {
+    window.clearTimeout(haltenTimer.current);
+    window.clearTimeout(abschiedTimer.current);
+    window.clearTimeout(endeTimer.current);
+    setHalten(true);
+    setAbschied(true);
+    endeTimer.current = window.setTimeout(() => wegRef.current?.onWeg(), ABSCHIED_MS);
+  }, []);
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(haltenTimer.current);
+      window.clearTimeout(abschiedTimer.current);
+      window.clearTimeout(endeTimer.current);
+      window.clearTimeout(erleichtertTimer.current);
+    },
+    [],
+  );
 
   // ---- Ziehen und Klicken ----------------------------------------------------------------
   const start = useRef<{ x: number; y: number; vx: number; vy: number; bewegt: boolean } | null>(null);
@@ -251,6 +318,12 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
     e.currentTarget.setPointerCapture(e.pointerId);
     start.current = { x: e.clientX, y: e.clientY, vx: versatzWert.current.x, vy: versatzWert.current.y, bewegt: false };
     if (schlaeft) setSchlaeft(false);
+    if (weg && !abschied) {
+      window.clearTimeout(haltenTimer.current);
+      window.clearTimeout(abschiedTimer.current);
+      haltenTimer.current = window.setTimeout(() => setHalten(true), HALTEN_START_MS);
+      abschiedTimer.current = window.setTimeout(starteAbschied, HALTEN_START_MS + HALTEN_DAUER_MS);
+    }
   };
   const beiBewegen = (e: PointerEvent<HTMLDivElement>) => {
     const s = start.current;
@@ -260,6 +333,7 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
     if (!s.bewegt && Math.hypot(dx, dy) < ZIEHSCHWELLE) return;
     if (!s.bewegt) {
       s.bewegt = true;
+      stoppeHalten(); // wer zieht, will nichts wegschicken
       setZieht(true);
     }
     setzeVersatz(s.vx + dx, s.vy + dy);
@@ -280,7 +354,16 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
       } catch {
         // gesperrter Speicher: Position gilt nur bis zum Neuladen
       }
+    } else if (abschied) {
+      // Der Abschied laeuft, Loslassen aendert nichts mehr.
+    } else if (halten) {
+      // Vor dem Ende losgelassen: Himbi ist erleichtert.
+      stoppeHalten();
+      setErleichtert(true);
+      window.clearTimeout(erleichtertTimer.current);
+      erleichtertTimer.current = window.setTimeout(() => setErleichtert(false), ERLEICHTERT_MS);
     } else {
+      stoppeHalten();
       onKlick();
     }
   };
@@ -288,6 +371,9 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
     if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
       onKlick();
+    } else if ((e.key === "Delete" || e.key === "Backspace") && weg && !abschied) {
+      e.preventDefault();
+      starteAbschied();
     }
   };
   const zuruecksetzen = () => {
@@ -304,6 +390,8 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
   // Browser, ein Vorab-Render auf dem Server wuerde die Hydration verfehlen.
   if (!bereit) return null;
 
+  const eigeneBlase = weg ? (abschied ? weg.tschuess : halten ? weg.halten : null) : null;
+
   return (
     <div
       ref={wurzel}
@@ -314,12 +402,14 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
       data-pane-offen={paneOffen}
       data-zieht={zieht}
       data-hoch={hoch}
+      data-halten={halten && !abschied}
+      data-abschied={abschied}
     >
       <div className="haustier__verschiebung">
         <div ref={versatz} className="haustier__versatz">
-          {blase && !zieht ? (
+          {(eigeneBlase || blase) && !zieht ? (
             <div className="hb-blase" role="status" aria-live="polite">
-              {blase}
+              {eigeneBlase ? <p className="hb-blase__text">{eigeneBlase}</p> : blase}
             </div>
           ) : null}
           <div
@@ -337,11 +427,22 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
             onDoubleClick={zuruecksetzen}
           >
             <span className="hb-schatten haustier__schatten-anim" aria-hidden />
-            <div className="hb">
+            {halten && !abschied ? (
+              <svg className="hb-ring" viewBox="0 0 120 120" aria-hidden>
+                <circle className="hb-ring__spur" cx="60" cy="60" r="54" />
+                <circle className="hb-ring__lauf" cx="60" cy="60" r="54" />
+              </svg>
+            ) : null}
+            {weg && !blase && !halten ? (
+              <span className="hb-hinweis" aria-hidden>
+                {weg.hinweis}
+              </span>
+            ) : null}
+            <div className="hb" ref={koerper}>
               <Himbi zustand={anzeige} />
             </div>
             {anzeige === "freigabe" ? <span className="hb-abzeichen">!</span> : null}
-            {anzeige === "fertig" ? <span className="hb-abzeichen hb-abzeichen--fertig">✓</span> : null}
+            {zustand === "fertig" ? <span className="hb-abzeichen hb-abzeichen--fertig">✓</span> : null}
             {anzeige === "schlaeft" ? (
               <span className="hb-zzz" aria-hidden>
                 <span>z</span>
@@ -360,11 +461,6 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
               </span>
             ) : null}
           </div>
-          {onVerstecken ? (
-            <button type="button" className="hb-verstecken" aria-label={versteckenLabel} title={versteckenLabel} onClick={onVerstecken}>
-              ×
-            </button>
-          ) : null}
         </div>
       </div>
     </div>

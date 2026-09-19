@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePersona } from "@/components/dashboard/persona";
 import { HaustierHuelle } from "@/components/haustier/haustier-huelle";
+import { HimbiVersteck } from "@/components/haustier/himbi-versteck";
 import { useHaustierAktionen, useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { usePathname } from "@/i18n/navigation";
@@ -19,15 +20,21 @@ import { hasPermission } from "@/lib/rbac";
 const TIPP_VERZOEGERUNG_MS = 7000;
 const TIPP_DAUER_MS = 15000;
 const FERTIG_BLASE_MS = 9000;
+const WILLKOMMEN_MS = 3200;
 
 export function HaustierDashboard() {
   const t = useTranslations("haustier");
   const moduleT = useTranslations("modules");
   const { verfuegbar, offen, umschalten, setOffen } = useKiPane();
-  const { phase, text, an } = useHaustierStatus();
-  const { setAn, stelleFrage } = useHaustierAktionen();
+  const { phase, text, an, weg } = useHaustierStatus();
+  const { stelleFrage, schickeWeg, holeZurueck } = useHaustierAktionen();
   const pfad = usePathname();
   const { role } = usePersona();
+
+  // Nach dem Zurueckholen: kurz jubeln und "Da bin ich wieder" sagen.
+  const [willkommen, setWillkommen] = useState(false);
+  const willkommenTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(willkommenTimer.current), []);
 
   // Antwort kam an, waehrend das Panel zu war: Himbi jubelt, bis man hinsieht.
   const [fertig, setFertig] = useState(false);
@@ -80,15 +87,32 @@ export function HaustierDashboard() {
     return () => window.clearTimeout(id);
   }, [tipp]);
 
-  if (!verfuegbar || !an) return null;
+  if (!verfuegbar) return null;
+  if (weg) {
+    return (
+      <HimbiVersteck
+        label={t("zurueckholen")}
+        paneOffen={offen}
+        onClick={() => {
+          holeZurueck();
+          setWillkommen(true);
+          window.clearTimeout(willkommenTimer.current);
+          willkommenTimer.current = window.setTimeout(() => setWillkommen(false), WILLKOMMEN_MS);
+        }}
+      />
+    );
+  }
+  if (!an) return null;
 
-  const zustand = haustierZustand({ phase, fertigUngelesen: fertig, schlaeft: false });
+  const zustand = willkommen ? "fertig" : haustierZustand({ phase, fertigUngelesen: fertig, schlaeft: false });
   const label = t(`label.${zustand}`);
   const tippSichtbar = !!tipp && phase === "ruhe" && !offen && !fertig;
 
   let blase = null;
   if (!offen) {
-    if (phase === "freigabe") {
+    if (willkommen) {
+      blase = <p className="hb-blase__text">{t("willkommen")}</p>;
+    } else if (phase === "freigabe") {
       blase = (
         <>
           <p className="hb-blase__text">{t("freigabe")}</p>
@@ -155,8 +179,7 @@ export function HaustierDashboard() {
         setTipp(null);
         umschalten();
       }}
-      onVerstecken={() => setAn(false)}
-      versteckenLabel={t("verstecken")}
+      weg={{ onWeg: schickeWeg, halten: t("weg.halten"), tschuess: t("weg.tschuess"), hinweis: t("weg.hinweis") }}
     />
   );
 }

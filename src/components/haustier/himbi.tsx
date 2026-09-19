@@ -130,6 +130,10 @@ export function Himbi({ zustand, groesse = 88 }: { zustand: HaustierZustand; gro
           </g>
         ))}
 
+        {/* Traenen: nur beim Abschied */}
+        <path className="hb-traene hb-traene--l" d="M29.5 76C27.2 80.2 27.6 83.4 29.5 84.6C31.4 83.4 31.8 80.2 29.5 76Z" fill="#9adcf7" stroke="#e8f8ff" strokeWidth="0.8" />
+        <path className="hb-traene hb-traene--r" d="M66.5 76C64.2 80.2 64.6 83.4 66.5 84.6C68.4 83.4 68.8 80.2 66.5 76Z" fill="#9adcf7" stroke="#e8f8ff" strokeWidth="0.8" />
+
         {/* Mund: je Zustand einer sichtbar */}
         <g className="hb-mund">
           <path className="hb-mund--lachen" d="M40 82Q48 90 56 82" fill="none" stroke="#5a0d27" strokeWidth="2.6" strokeLinecap="round" />
