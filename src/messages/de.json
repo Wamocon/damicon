@@ -1625,11 +1625,18 @@
         "bereit": "bereit",
         "fehler": "Fehler"
       },
+      "kategorie": {
+        "risiko": "Risiko",
+        "audit": "Audit",
+        "recht": "Recht",
+        "steuern": "Steuern"
+      },
       "formular": {
         "titel": "Dokument hochladen",
-        "lead": "Textdatei (.txt oder .md), bis 20 MB. Der Text wird in Abschnitte zerlegt und eingebettet – das dauert je nach Länge einen Moment.",
+        "lead": "Textdatei (.txt oder .md) oder PDF, bis 20 MB. Der Text wird in Abschnitte zerlegt und eingebettet – das dauert je nach Länge einen Moment.",
         "dokumentTitel": "Titel",
         "titelPlatzhalter": "Qualitätsrichtlinie Himbeeren 2026",
+        "kategorieLabel": "Sachgebiet",
         "datei": "Datei",
         "rollenLabel": "Sichtbar für",
         "knopf": "Hochladen",

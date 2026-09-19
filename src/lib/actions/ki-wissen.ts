@@ -4,7 +4,7 @@ import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
-import { alleRollen, zerlegeInAbschnitte } from "@/lib/domain/ki-assistent";
+import { alleRollen, kiWissenKategorien, zerlegeInAbschnitte } from "@/lib/domain/ki-assistent";
 import { alsVektorLiteral, erzeugeEinbettung } from "@/lib/ai/einbettung-client";
 import type { Json } from "@/lib/database.types";
 
@@ -73,6 +73,13 @@ export async function kiWissenDokumentHochladen(
   const titel = text(formData, "titel");
   if (!titel) return fehler("fehler.eingabe");
 
+  // Pflichtfeld ohne Standardwert: waehlt niemand etwas aus, ist das ein
+  // Eingabefehler und kein stillschweigendes Einsortieren in einen Topf.
+  const kategorie = text(formData, "kategorie");
+  if (!kategorie || !(kiWissenKategorien as readonly string[]).includes(kategorie)) {
+    return fehler("fehler.eingabe");
+  }
+
   const erlaubteRollen = formData
     .getAll("erlaubte_rollen")
     .map(String)
@@ -89,7 +96,9 @@ export async function kiWissenDokumentHochladen(
   }
 
   const supabase = await createClient();
-  const storagePfad = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${datei.name}`;
+  // Kategorie als Ablageordner, wie in actions/dokumente.ts - so liegt die
+  // Datei im Bucket dort, wo die Liste sie anzeigt.
+  const storagePfad = `${kategorie}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}-${datei.name}`;
 
   const { error: uploadFehler } = await supabase.storage
     .from("wissensdokumente")
@@ -107,6 +116,7 @@ export async function kiWissenDokumentHochladen(
     .insert({
       titel,
       dateiname: datei.name,
+      kategorie: kategorie as (typeof kiWissenKategorien)[number],
       storage_pfad: storagePfad,
       erlaubte_rollen: erlaubteRollen,
       hochgeladen_von: profil.id,

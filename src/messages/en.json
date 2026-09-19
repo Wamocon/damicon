@@ -1625,11 +1625,18 @@
         "bereit": "ready",
         "fehler": "error"
       },
+      "kategorie": {
+        "risiko": "Risk",
+        "audit": "Audit",
+        "recht": "Legal",
+        "steuern": "Tax"
+      },
       "formular": {
         "titel": "Upload document",
-        "lead": "Text file (.txt or .md), up to 20 MB. The text is split into sections and embedded – this takes a moment depending on length.",
+        "lead": "Text file (.txt or .md) or PDF, up to 20 MB. The text is split into sections and embedded – this takes a moment depending on length.",
         "dokumentTitel": "Title",
         "titelPlatzhalter": "Raspberry quality guideline 2026",
+        "kategorieLabel": "Category",
         "datei": "File",
         "rollenLabel": "Visible to",
         "knopf": "Upload",

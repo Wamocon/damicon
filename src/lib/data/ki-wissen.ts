@@ -23,7 +23,7 @@ export async function ladeKiWissenDokumente(): Promise<KiWissenUebersicht> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("ki_wissen_dokumente")
-    .select("id, titel, dateiname, erlaubte_rollen, status, fehlermeldung, hochgeladen_am")
+    .select("id, titel, dateiname, kategorie, erlaubte_rollen, status, fehlermeldung, hochgeladen_am")
     .order("hochgeladen_am", { ascending: false });
 
   if (error || !data) return { quelle: "fehler", dokumente: [] };
@@ -34,6 +34,7 @@ export async function ladeKiWissenDokumente(): Promise<KiWissenUebersicht> {
       id: d.id,
       titel: d.titel,
       dateiname: d.dateiname,
+      kategorie: d.kategorie,
       erlaubteRollen: d.erlaubte_rollen,
       status: d.status,
       fehlermeldung: d.fehlermeldung,
@@ -54,12 +55,11 @@ export async function ladeKiWissenDokumente(): Promise<KiWissenUebersicht> {
 // bedeutet schlicht keine Treffer, kein Ausfall des ganzen Chats - dieselbe
 // "kein 5xx bei Ausfall"-Regel wie bei sendeChatAnfrage().
 //
-// UNGETESTET gegen echtes Postgres+pgvector (siehe Kommentar in
-// einbettung-client.ts): ob supabase-js ein number[] als p_embedding-Parameter
-// klaglos an eine vector(768)-RPC durchreicht, ist von hier aus nicht
-// pruefbar gewesen (kein Netzwerkzugriff auf Sokrates-2/keine lokale
-// Supabase-Instanz von dieser Bruecke aus). Erster echter Aufruf sollte mit
-// einer einzelnen, bekannten Frage manuell gegengeprueft werden.
+// Zur p_embedding-Uebergabe: supabase-js reicht ein number[] NICHT in eine
+// vector(768)-RPC durch, pgvector erwartet ueber PostgREST seine Textform.
+// Deshalb alsVektorLiteral() - gegen eine lokale Supabase-Instanz und das
+// Modell auf Sokrates-2 geprueft (19.09.2026): als admin wird der Testsatz
+// gefunden, als kunde nicht.
 export async function sucheRelevanteWissenChunks(
   frage: string,
   rolle: AppRolle,

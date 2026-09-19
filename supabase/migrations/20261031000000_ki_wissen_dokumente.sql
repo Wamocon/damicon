@@ -36,13 +36,13 @@
 -- Migration (Spalte neu anlegen, alle Chunks neu einbetten) - siehe
 -- ERWARTETE_EINBETTUNGS_DIMENSION in einbettung-client.ts.
 --
--- UNGETESTET gegen echtes Postgres+pgvector (Stand 19.09.2026, siehe
--- Kommentar in einbettung-client.ts und data/ki-wissen.ts): diese Migration
--- lief bisher nicht gegen eine echte Supabase-Instanz. Vor dem ersten
--- Dokumenten-Upload unbedingt `supabase db reset` (oder das Aequivalent)
--- lokal pruefen - insbesondere ob pgvector als "vector" ueberhaupt in der
--- extensions-Schema verfuegbar ist und ob supabase-js ein number[] klaglos
--- in eine vector(768)-Spalte per RPC/insert schreibt.
+-- Gegen echtes Postgres geprueft (19.09.2026, lokale Supabase-Instanz):
+-- pgvector liegt im extensions-Schema, der HNSW-Index baut, und der Weg
+-- Dokument -> Abschnitte -> Vektoren -> Aehnlichkeitssuche laeuft durch.
+-- Ein number[] reicht supabase-js allerdings NICHT in eine vector(768)-Spalte
+-- durch: pgvector erwartet ueber PostgREST seine Textform "[0.1,0.2,...]" -
+-- dafuer gibt es alsVektorLiteral() in einbettung-client.ts, benutzt beim
+-- Einfuegen der Chunks und als RPC-Parameter.
 -- =============================================================================
 
 set search_path = public;
@@ -54,9 +54,22 @@ create extension if not exists vector with schema extensions;
 -- ---------------------------------------------------------------------------
 create type public.ki_wissen_status as enum ('wird_verarbeitet', 'bereit', 'fehler');
 
+-- Vier feste Sachgebiete, kein "sonstiges"-Auffangwert: anders als bei
+-- dokumente.kategorie (dort ist "sonstiges" gewollt, weil dort alles landet,
+-- was ein Betrieb ablegt) hat die Wissensbasis einen engen Zweck. Ein
+-- Auffangwert waere hier die Stelle, an der nach ein paar Monaten die Haelfte
+-- der Dokumente liegt und die Gruppierung nichts mehr aussagt. Wer ein
+-- fuenftes Gebiet braucht, ergaenzt den Enum-Wert bewusst per Migration.
+create type public.ki_wissen_kategorie as enum ('risiko', 'audit', 'recht', 'steuern');
+
 create table public.ki_wissen_dokumente (
   id                uuid primary key default gen_random_uuid(),
   titel             text not null,
+  -- Ohne Standardwert: das Sachgebiet waehlt die hochladende Person beim
+  -- Upload, genau wie dokumente.kategorie keinen stillen Rueckfall hat. Eine
+  -- falsch einsortierte Datei faellt in der gruppierten Uebersicht auf, eine
+  -- stillschweigend nach "risiko" gekippte nicht.
+  kategorie         public.ki_wissen_kategorie not null,
   dateiname         text not null,
   -- Pfad im Storage-Bucket "wissensdokumente" (siehe unten) - das Original
   -- bleibt erhalten, auch nachdem der Text extrahiert und eingebettet ist,
@@ -76,7 +89,7 @@ create table public.ki_wissen_dokumente (
   constraint ki_wissen_dokumente_titel_nicht_leer check (titel <> '')
 );
 comment on table public.ki_wissen_dokumente is
-  'Vom Buero hochgeladene Wissensdokumente fuer den KI-Assistenten (RAG-Ergaenzung zu Anforderung 5.4/5.5). erlaubte_rollen filtert, wessen Chat-Kontext ein Dokument ueberhaupt erreichen kann.';
+  'Vom Buero hochgeladene Wissensdokumente fuer den KI-Assistenten (RAG-Ergaenzung zu Anforderung 5.4/5.5). erlaubte_rollen filtert, wessen Chat-Kontext ein Dokument ueberhaupt erreichen kann; kategorie gliedert die Ablage in die vier Sachgebiete Risiko, Audit, Recht und Steuern (Anzeige gruppiert danach).';
 
 alter table public.ki_wissen_dokumente enable row level security;
 

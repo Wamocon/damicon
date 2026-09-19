@@ -7,13 +7,18 @@ import { kiWissenDokumentHochladen, kiWissenDokumentLoeschen } from "@/lib/actio
 import { leer } from "@/lib/actions/status";
 import {
   AktionsMeldung,
+  Auswahl,
   Feld,
   FormularKarte,
   PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 import { Card, StatusPill } from "@/components/ui/kit";
-import { alleRollen, type KiWissenDokumentZeile } from "@/lib/domain/ki-assistent";
+import {
+  alleRollen,
+  kiWissenKategorien,
+  type KiWissenDokumentZeile,
+} from "@/lib/domain/ki-assistent";
 
 // Verwaltung der Wissensdokumente (RAG-Ergaenzung zum KI-Assistenten,
 // Anforderung 5.4/5.5) - dasselbe Layout-Muster wie KiAnbieterVerwaltung in
@@ -24,18 +29,32 @@ import { alleRollen, type KiWissenDokumentZeile } from "@/lib/domain/ki-assisten
 
 export function KiWissenVerwaltung({ dokumente }: { dokumente: KiWissenDokumentZeile[] }) {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
+  const k = useTranslations("kiAssistentAnsicht.wissensVerwaltung.kategorie");
 
+  // Immer alle vier Sachgebiete zeigen, auch die leeren: die Gliederung ist
+  // fest, und eine leere Ueberschrift sagt "hier fehlt noch etwas" - waehrend
+  // ein ausgeblendetes Sachgebiet so aussieht, als gaebe es es nicht.
   return (
-    <div className="space-y-3">
-      {dokumente.length === 0 ? (
-        <Card className="text-center text-xs text-muted-foreground">{t("keineDokumente")}</Card>
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {dokumente.map((d) => (
-            <KiWissenDokumentKarte key={d.id} dokument={d} />
-          ))}
-        </div>
-      )}
+    <div className="space-y-4">
+      {kiWissenKategorien.map((kategorie) => {
+        const gruppe = dokumente.filter((d) => d.kategorie === kategorie);
+        return (
+          <section key={kategorie} className="space-y-2">
+            <h3 className="text-xs font-black uppercase tracking-wide text-muted-foreground">
+              {k(kategorie)} ({gruppe.length})
+            </h3>
+            {gruppe.length === 0 ? (
+              <Card className="text-center text-xs text-muted-foreground">{t("keineDokumente")}</Card>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {gruppe.map((d) => (
+                  <KiWissenDokumentKarte key={d.id} dokument={d} />
+                ))}
+              </div>
+            )}
+          </section>
+        );
+      })}
       <KiWissenHochladenFormular />
     </div>
   );
@@ -44,6 +63,7 @@ export function KiWissenVerwaltung({ dokumente }: { dokumente: KiWissenDokumentZ
 function KiWissenDokumentKarte({ dokument }: { dokument: KiWissenDokumentZeile }) {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung");
   const s = useTranslations("kiAssistentAnsicht.wissensVerwaltung.status");
+  const k = useTranslations("kiAssistentAnsicht.wissensVerwaltung.kategorie");
   const [status, action] = useActionState(kiWissenDokumentLoeschen, leer);
   const pfad = usePathname();
 
@@ -55,6 +75,9 @@ function KiWissenDokumentKarte({ dokument }: { dokument: KiWissenDokumentZeile }
         <div>
           <p className="text-sm font-black text-card-foreground">{dokument.titel}</p>
           <p className="font-mono text-[11px] text-muted-foreground">{dokument.dateiname}</p>
+          <p className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+            {k(dokument.kategorie)}
+          </p>
         </div>
         <StatusPill tone={tone}>{s(dokument.status)}</StatusPill>
       </div>
@@ -88,6 +111,7 @@ function KiWissenDokumentKarte({ dokument }: { dokument: KiWissenDokumentZeile }
 
 function KiWissenHochladenFormular() {
   const t = useTranslations("kiAssistentAnsicht.wissensVerwaltung.formular");
+  const k = useTranslations("kiAssistentAnsicht.wissensVerwaltung.kategorie");
   const pfad = usePathname();
   const [status, action] = useActionState(kiWissenDokumentHochladen, leer);
 
@@ -97,6 +121,11 @@ function KiWissenHochladenFormular() {
         <PfadFeld />
         <input type="hidden" name="pfad" value={pfad} />
         <Feld label={t("dokumentTitel")} name="titel" required placeholder={t("titelPlatzhalter")} />
+        <Auswahl
+          label={t("kategorieLabel")}
+          name="kategorie"
+          options={kiWissenKategorien.map((kategorie) => ({ wert: kategorie, text: k(kategorie) }))}
+        />
         <label className="block space-y-1">
           <span className="text-[11px] font-semibold text-card-foreground">{t("datei")}</span>
           <input

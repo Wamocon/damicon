@@ -5,18 +5,12 @@
 // moeglicherweise ein anderer Dienst, anderes Anfrage-/Antwortformat, eigenes
 // Zeitlimit.
 //
-// UNGETESTET gegen den echten Dienst (Stand 19.09.2026): auf Sokrates-2 lief
-// zum Zeitpunkt dieser Aenderung noch kein Einbettungsmodell (nur
-// wamocon-coder, qwen3-coder-next, tr-legal-tuned-raw, qwen3.6:35b - alles
-// Chat-/Code-Modelle, siehe ollama /api/tags). Vor dem ersten echten
-// Dokumenten-Upload:
-//   ollama pull nomic-embed-text
-// auf 192.168.178.136 ausfuehren (rund 274 MB - keine Verdraengungsgefahr
-// fuer die grossen, bereits geladenen Modelle). Erst danach ist
-// erzeugeEinbettung() gegen den echten Dienst pruefbar; ebenso ungetestet:
-// ob supabase-js das zurueckgegebene number[] klaglos in eine
-// vector(768)-Spalte per RPC/insert schreibt (siehe Migration
-// 20261031000000_ki_wissen_dokumente.sql).
+// Gegen den echten Dienst geprueft (19.09.2026): nomic-embed-text liegt auf
+// Sokrates-2 (rund 274 MB, verdraengt die grossen Chat-Modelle nicht) und
+// liefert bestaetigt 768 Dimensionen - genau die Spaltenbreite der Migration
+// 20261031000000_ki_wissen_dokumente.sql. Wird das Modell dort entfernt oder
+// gegen eines mit anderer Dimension getauscht, faengt die Pruefung gegen
+// ERWARTETE_EINBETTUNGS_DIMENSION das ab, bevor etwas geschrieben wird.
 
 export type EinbettungAntwort = { ok: true; vektor: number[] } | { ok: false; grund: string };
 

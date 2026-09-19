@@ -1122,6 +1122,7 @@ export type Database = {
           hochgeladen_am: string
           hochgeladen_von: string | null
           id: string
+          kategorie: Database["public"]["Enums"]["ki_wissen_kategorie"]
           status: Database["public"]["Enums"]["ki_wissen_status"]
           storage_pfad: string
           titel: string
@@ -1133,6 +1134,7 @@ export type Database = {
           hochgeladen_am?: string
           hochgeladen_von?: string | null
           id?: string
+          kategorie: Database["public"]["Enums"]["ki_wissen_kategorie"]
           status?: Database["public"]["Enums"]["ki_wissen_status"]
           storage_pfad: string
           titel: string
@@ -1144,6 +1146,7 @@ export type Database = {
           hochgeladen_am?: string
           hochgeladen_von?: string | null
           id?: string
+          kategorie?: Database["public"]["Enums"]["ki_wissen_kategorie"]
           status?: Database["public"]["Enums"]["ki_wissen_status"]
           storage_pfad?: string
           titel?: string
@@ -3865,6 +3868,7 @@ export type Database = {
       esutd_status: "erfasst" | "offen"
       integration_status: "verbunden" | "sandbox" | "geplant"
       ki_anbieter_typ: "openai_kompatibel" | "anthropic"
+      ki_wissen_kategorie: "risiko" | "audit" | "recht" | "steuern"
       ki_wissen_status: "wird_verarbeitet" | "bereit" | "fehler"
       kontaktkanal_typ:
         | "whatsapp"
@@ -4089,6 +4093,7 @@ export const Constants = {
       esutd_status: ["erfasst", "offen"],
       integration_status: ["verbunden", "sandbox", "geplant"],
       ki_anbieter_typ: ["openai_kompatibel", "anthropic"],
+      ki_wissen_kategorie: ["risiko", "audit", "recht", "steuern"],
       ki_wissen_status: ["wird_verarbeitet", "bereit", "fehler"],
       kontaktkanal_typ: [
         "whatsapp",

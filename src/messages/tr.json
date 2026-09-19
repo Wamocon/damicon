@@ -628,11 +628,18 @@
         "bereit": "hazır",
         "fehler": "hata"
       },
+      "kategorie": {
+        "risiko": "Risk",
+        "audit": "Denetim",
+        "recht": "Hukuk",
+        "steuern": "Vergi"
+      },
       "formular": {
         "titel": "Belge yükle",
-        "lead": "Metin dosyası (.txt veya .md), en çok 20 MB. Metin bölümlere ayrılıp gömülür – uzunluğa göre biraz sürer.",
+        "lead": "Metin dosyası (.txt veya .md) veya PDF, en çok 20 MB. Metin bölümlere ayrılıp gömülür – uzunluğa göre biraz sürer.",
         "dokumentTitel": "Başlık",
         "titelPlatzhalter": "Ahududu kalite yönergesi 2026",
+        "kategorieLabel": "Kategori",
         "datei": "Dosya",
         "rollenLabel": "Şunlara görünür",
         "knopf": "Yükle",

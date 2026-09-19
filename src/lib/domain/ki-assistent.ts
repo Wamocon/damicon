@@ -223,10 +223,18 @@ export const alleRollen = [
 export const kiWissenStatusWerte = ["wird_verarbeitet", "bereit", "fehler"] as const;
 export type KiWissenStatus = (typeof kiWissenStatusWerte)[number];
 
+// Vier feste Sachgebiete, keine freie Eingabe und kein "sonstiges" - die
+// Ablage soll sich nicht ueber die Zeit in eine Sammelkategorie entleeren.
+// Die Reihenfolge hier ist die Reihenfolge ueberall: Auswahlfeld, Gruppen in
+// der Liste, Aufzaehlung in der Migration.
+export const kiWissenKategorien = ["risiko", "audit", "recht", "steuern"] as const;
+export type KiWissenKategorie = (typeof kiWissenKategorien)[number];
+
 export interface KiWissenDokumentZeile {
   id: string;
   titel: string;
   dateiname: string;
+  kategorie: KiWissenKategorie;
   erlaubteRollen: string[];
   status: KiWissenStatus;
   fehlermeldung: string | null;
