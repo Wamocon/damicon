@@ -33,6 +33,7 @@ import { ladeMwstStatus } from "@/lib/data/mwst";
 import { ladeOffeneEsutdFristen } from "@/lib/data/esutd";
 import { ladeCompliance } from "@/lib/data/compliance";
 import { ladeKuehlkettenUebersicht } from "@/lib/data/kuehlkette";
+import { ladeSorten, ladeVerfuegbarkeit } from "@/lib/data/sortenkatalog";
 import { baueRisikoEintraege, risikoAufbereiten } from "@/lib/domain/risikoradar";
 import { moduleHref, modules } from "@/lib/modules";
 import { baueAktionen } from "@/lib/ai/aktionen";
@@ -44,6 +45,7 @@ import {
   ZIEL_KUEHLKETTE,
   ZIEL_MWST,
   ZIEL_RISIKO_RADAR,
+  ZIEL_SORTENKATALOG,
 } from "@/lib/ai/ziele";
 import de from "@/messages/de.json";
 
@@ -127,6 +129,34 @@ const kuehlketteAbrufen = tool({
         chargeCode: m.chargeCode,
         ergebnis: m.ergebnis,
         minutenSeitPfluecken: m.minutenSeitPfluecken,
+      })),
+    };
+  },
+});
+
+// --- Markt: Sortenkatalog und Verfuegbarkeit (Demo) --------------------------
+// Dieselben zwei RLS-gepruefte Ladefunktionen wie die Ansicht Sortenkatalog
+// (data/sortenkatalog.ts) - der Agent sieht genau das, was die Rolle dort auch
+// sieht. Keine Kundenzuordnung: kontingent_verfuegbarkeit_je_sorte() summiert
+// je Sorte/Saison (Migration 20261012000000).
+const sortenkatalogAbrufen = tool({
+  description:
+    "Ruft den Sortenkatalog ab: alle Himbeersorten mit Typ (remontierend/sommertragend), Erntefenster und Schalengewicht, dazu je Sorte und Saison die Kontingentmenge, die bereits reservierte Menge und die daraus noch freie Menge in kg. Nutze dieses Werkzeug fuer Fragen zu Sorten, Erntezeiten oder zur Verfuegbarkeit/freien Menge einer Sorte.",
+  inputSchema: leeresSchema,
+  execute: async () => {
+    const [sorten, verfuegbarkeit] = await Promise.all([ladeSorten(), ladeVerfuegbarkeit()]);
+    return {
+      ziel: ZIEL_SORTENKATALOG,
+      // "demo"/"fehler" statt "db" heisst: keine echten Daten - das Modell
+      // soll das sagen, statt Beispielwerte als Betriebsdaten auszugeben.
+      quelle: sorten.quelle === "db" && verfuegbarkeit.quelle === "db" ? "db" : `${sorten.quelle}/${verfuegbarkeit.quelle}`,
+      sorten: sorten.sorten.map((s) => ({ name: s.name, typ: s.typ, erntefenster: s.erntefenster, schaleG: s.schaleG })),
+      verfuegbarkeit: verfuegbarkeit.zeilen.map((z) => ({
+        sorte: z.sorte,
+        saison: z.saison,
+        kontingentKg: z.mengeKgGesamt,
+        reserviertKg: z.reserviertKgGesamt,
+        freiKg: z.mengeKgGesamt - z.reserviertKgGesamt,
       })),
     };
   },
@@ -269,6 +299,7 @@ export function baueWerkzeuge(
     ...(hasPermission(rolle, "personal", "view") ? { esutdOffeneFristenAbrufen } : {}),
     ...(hasPermission(rolle, "compliance", "view") ? { complianceUebersichtAbrufen } : {}),
     ...(hasPermission(rolle, "kuehlkette", "view") ? { kuehlketteAbrufen } : {}),
+    ...(hasPermission(rolle, "sortenkatalog", "view") ? { sortenkatalogAbrufen } : {}),
     // Das zusammenfassende Werkzeug braucht mindestens eine der drei
     // Rechtsgrundlagen - sonst haette es ohnehin nichts zu zeigen.
     ...(hasPermission(rolle, "stammdaten", "view") ||

@@ -13,6 +13,7 @@ export const ZIEL_ESUTD = "/dashboard/buero/personal";
 export const ZIEL_COMPLIANCE = "/dashboard/buero/compliance#datenschutzvorfaelle";
 export const ZIEL_KUEHLKETTE = "/dashboard/hof/kuehlkette";
 export const ZIEL_RISIKO_RADAR = "/dashboard/buero/compliance#risiko-radar";
+export const ZIEL_SORTENKATALOG = "/dashboard/markt/sortenkatalog";
 
 /** Adresse eines Moduls anhand seines Schluessels - nur wenn die Rolle es
  *  sehen darf, sonst null (ein Ziel, das die Seitenleiste dieser Rolle gar
