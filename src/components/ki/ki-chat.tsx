@@ -26,6 +26,11 @@ import {
   ArrowRight,
   ArrowUp,
   Calculator,
+  Crosshair,
+  Eye,
+  MousePointerClick,
+  PencilLine,
+  ChevronsDown,
   Check,
   ClipboardPlus,
   Compass,
@@ -50,6 +55,8 @@ import { usePersona } from "@/components/dashboard/persona";
 import { Himbeere } from "@/components/ki/himbeere";
 import { useKiPane, type KiModus } from "@/components/ki/ki-pane-kontext";
 import { AKTIONS_NAMEN, AKTIONS_RECHTE, istAktion, type AktionsName } from "@/lib/ai/aktionen-meta";
+import { istClientWerkzeug } from "@/lib/ai/client-werkzeuge-meta";
+import { fuehreUiWerkzeugAus, type KlickAnfrage } from "@/components/ki/ui-steuerung";
 import { MAX_NACHRICHT_LAENGE, type KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
 import { modules } from "@/lib/modules";
 import { hasPermission, type Role } from "@/lib/rbac";
@@ -77,6 +84,11 @@ const werkzeugIcon: Record<string, ComponentType<{ className?: string }>> = {
   oeffneBereich: Compass,
   datenmodellErkunden: Database,
   datenLesen: Table2,
+  seiteLesen: Eye,
+  klicke: MousePointerClick,
+  fuelleFeld: PencilLine,
+  scrolleZu: ChevronsDown,
+  zeigeAuf: Crosshair,
 };
 
 const aktionsIcon: Record<AktionsName, ComponentType<{ className?: string }>> = {
@@ -90,6 +102,29 @@ const aktionsIcon: Record<AktionsName, ComponentType<{ className?: string }>> = 
 };
 
 const bekannteBereiche = new Set(modules.map((m) => m.key));
+// Obergrenze fuer automatische Folgerunden je Nutzerfrage (Endlosschleifen-Schutz;
+// der Server begrenzt die Schritte je Anfrage zusaetzlich).
+const MAX_CLIENT_SCHRITTE = 40;
+
+/** Wahr, wenn der letzte Schritt der Assistentenantwort Client-Werkzeuge enthaelt
+ *  und ALLE Werkzeugaufrufe dieses Schritts ein Ergebnis haben - dann muss der
+ *  Browser die naechste Runde selbst anstossen. Bewusst enger als
+ *  lastAssistantMessageIsCompleteWithToolCalls: ein Schritt mit nur serverseitig
+ *  ausgefuehrten Werkzeugen (z. B. nach Erreichen der Schrittgrenze) darf keine
+ *  Endlosschleife ausloesen. */
+function clientErgebnisseBereit(nachrichten: UIMessage[]): boolean {
+  const letzte = nachrichten.at(-1);
+  if (!letzte || letzte.role !== "assistant") return false;
+  const ab = letzte.parts.map((teil, i) => (teil.type === "step-start" ? i : -1)).filter((i) => i >= 0).at(-1) ?? -1;
+  const teile = letzte.parts.slice(ab + 1).filter((teil) => isToolUIPart(teil) || isDynamicToolUIPart(teil));
+  if (teile.length === 0) return false;
+  if (!teile.some((teil) => (isToolUIPart(teil) || isDynamicToolUIPart(teil)) && istClientWerkzeug(getToolName(teil)))) return false;
+  return teile.every(
+    (teil) =>
+      (isToolUIPart(teil) || isDynamicToolUIPart(teil)) &&
+      (teil.state === "output-available" || teil.state === "output-error" || teil.state === "output-denied"),
+  );
+}
 const NAH_AM_ENDE_PX = 96;
 
 interface Schritt {
@@ -99,6 +134,7 @@ interface Schritt {
   ziel: string | null;
   bereich: string | null;
   tabelle: string | null;
+  absicht: string | null;
 }
 
 interface AktionsErgebnis {
@@ -141,6 +177,12 @@ function eigenschaftAusAusgabe(ausgabe: unknown, name: "ziel" | "bereich"): stri
     return typeof wert === "string" ? wert : null;
   }
   return null;
+}
+
+/** Ein Client-Werkzeug meldet Erwartbares (abgelehnt, gesperrt, veraltet) als
+ *  Ergebnis mit ok: false - im Chat soll das nicht wie ein Erfolg aussehen. */
+function ausgabeAbgelehnt(ausgabe: unknown): boolean {
+  return typeof ausgabe === "object" && ausgabe !== null && "ok" in ausgabe && (ausgabe as { ok: unknown }).ok === false;
 }
 
 function alsAktionsErgebnis(ausgabe: unknown): AktionsErgebnis | null {
@@ -199,14 +241,16 @@ function segmentiere(nachricht: UIMessage): Segment[] {
       segmente.push({ art: "aktion", karte: alsKarte(teil, name) });
       continue;
     }
-    const eingabe = teil.input as { bereich?: unknown; tabelle?: unknown } | undefined;
+    const eingabe = teil.input as { bereich?: unknown; tabelle?: unknown; absicht?: unknown } | undefined;
     const ausgabe = teil.state === "output-available" ? teil.output : undefined;
     const schritt: Schritt = {
       id: teil.toolCallId,
       name,
       zustand:
         teil.state === "output-available"
-          ? "fertig"
+          ? istClientWerkzeug(name) && ausgabeAbgelehnt(teil.output)
+            ? "fehler"
+            : "fertig"
           : teil.state === "output-error"
             ? "fehler"
             : "laeuft",
@@ -215,6 +259,7 @@ function segmentiere(nachricht: UIMessage): Segment[] {
         eigenschaftAusAusgabe(ausgabe, "bereich") ??
         (typeof eingabe?.bereich === "string" ? eingabe.bereich : null),
       tabelle: typeof eingabe?.tabelle === "string" ? eingabe.tabelle : null,
+      absicht: typeof eingabe?.absicht === "string" ? eingabe.absicht : null,
     };
     const letztes = segmente.at(-1);
     if (letztes?.art === "schritte") letztes.schritte.push(schritt);
@@ -289,11 +334,13 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const pfad = usePathname();
   const router = useRouter();
   const { role: rolle } = usePersona();
-  const { modus, offen, fuehrung, oeffneZiel, fuehreZu } = useKiPane();
+  const { modus, offen, fuehrung, oeffneZiel, fuehreZu, bewegeZeiger } = useKiPane();
 
   const [eingabe, setEingabe] = useState("");
   const [einwilligung, setEinwilligung] = useState(false);
   const [nachUntenKnopf, setNachUntenKnopf] = useState(false);
+  const [clientAktiv, setClientAktiv] = useState<string | null>(null);
+  const [klickAnfrage, setKlickAnfrage] = useState<(KlickAnfrage & { entscheide: (erlaubt: boolean) => void }) | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const eingabeRef = useRef<HTMLTextAreaElement>(null);
@@ -301,6 +348,9 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const zugModus = useRef<KiModus | null>(null);
   const gefolgt = useRef(new Set<string>());
   const aktualisiert = useRef(new Set<string>());
+  const abgebrochen = useRef(false);
+  const zugSchritte = useRef(0);
+  const chatRef = useRef<{ addToolOutput: (a: never) => unknown; status: string } | null>(null);
 
   // Was bei JEDER Anfrage mitgeht - auch bei der automatischen Folgeanfrage
   // nach einer Freigabe, die nicht ueber sendMessage() laeuft. Ueber Refs
@@ -316,14 +366,22 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     () => new DefaultChatTransport({ api: "/api/ki-assistent", body: () => anfrageDaten.current }),
     [],
   );
-  const { messages, sendMessage, addToolApprovalResponse, status, stop, error } = useChat({
+  const chat = useChat({
     id: "damicon-ki-assistent",
     messages: initialMessages,
     transport,
-    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
+    // Zwei Gruende, ohne Zutun des Nutzers weiterzumachen: er hat eine Aktion
+    // freigegeben/abgelehnt, oder der Browser hat ein Client-Werkzeug (Seite
+    // lesen, klicken ...) fertig ausgefuehrt und das Ergebnis geht zurueck.
+    sendAutomaticallyWhen: (optionen) =>
+      lastAssistantMessageIsCompleteWithApprovalResponses(optionen) ||
+      (zugSchritte.current <= MAX_CLIENT_SCHRITTE && clientErgebnisseBereit(optionen.messages)),
+    onToolCall: ({ toolCall }) => starteClientWerkzeug(toolCall),
   });
+  const { messages, sendMessage, addToolApprovalResponse, status, stop, error } = chat;
+  chatRef.current = chat as unknown as NonNullable<typeof chatRef.current>;
 
-  const beschaeftigt = status === "submitted" || status === "streaming";
+  const beschaeftigt = status === "submitted" || status === "streaming" || clientAktiv !== null;
   const istErsteNachricht = messages.length === 0;
 
   function bereichTitel(bereich: string | null): string {
@@ -335,11 +393,11 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   function beschriftung(
     gruppe: "werkzeug" | "laeuft" | "ziel",
     name: string,
-    teile: { bereich?: string | null; tabelle?: string | null } = {},
+    teile: { bereich?: string | null; tabelle?: string | null; absicht?: string | null } = {},
   ): string {
     const schluessel = `${gruppe}.${name}`;
     return t.has(schluessel)
-      ? t(schluessel, { bereich: bereichTitel(teile.bereich ?? null), tabelle: teile.tabelle ?? "" })
+      ? t(schluessel, { bereich: bereichTitel(teile.bereich ?? null), tabelle: teile.tabelle ?? "", absicht: teile.absicht ?? "" })
       : t(`${gruppe}.unbekannt`);
   }
 
@@ -352,7 +410,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     const el = scrollRef.current;
     if (!el || !klebtUnten.current) return;
     el.scrollTo({ top: el.scrollHeight, behavior: "auto" });
-  }, [messages, status, offen]);
+  }, [messages, status, offen, klickAnfrage]);
 
   function beiScroll() {
     const el = scrollRef.current;
@@ -409,11 +467,66 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [messages, fuehreZu]);
 
+  // Fragt den Nutzer, ob ein riskanter Klick ausgefuehrt werden darf. Die Zusage
+  // wird von den Knoepfen der Karte aufgeloest (oder mit "nein", wenn der Nutzer
+  // stoppt oder etwas Neues schreibt).
+  function frageNutzer(anfrage: KlickAnfrage): Promise<boolean> {
+    return new Promise<boolean>((fertig) => {
+      setKlickAnfrage({
+        ...anfrage,
+        entscheide: (erlaubt) => {
+          setKlickAnfrage(null);
+          fertig(erlaubt);
+        },
+      });
+    });
+  }
+
+  async function warteBisBereit(): Promise<void> {
+    for (let i = 0; i < 80 && chatRef.current && chatRef.current.status !== "ready" && chatRef.current.status !== "error"; i++) {
+      await new Promise((weiter) => window.setTimeout(weiter, 100));
+    }
+  }
+
+  // Client-Werkzeug (laeuft im Browser): NICHT im onToolCall selbst warten - das
+  // Warten dort blockiert die Stream-Verarbeitung des SDK. Stattdessen anstossen,
+  // den Stream zu Ende laufen lassen und das Ergebnis danach mit addToolOutput
+  // melden; das loest ueber sendAutomaticallyWhen die naechste Runde aus.
+  function starteClientWerkzeug(aufruf: { toolName: string; toolCallId: string; input: unknown; dynamic?: boolean }) {
+    if (aufruf.dynamic || !istClientWerkzeug(aufruf.toolName)) return;
+    void (async () => {
+      setClientAktiv(aufruf.toolName);
+      zugSchritte.current += 1;
+      const ergebnis = await fuehreUiWerkzeugAus(aufruf.toolName, aufruf.input, {
+        zeiger: { bewegen: bewegeZeiger },
+        bestaetigen: frageNutzer,
+        agentModus: anfrageDaten.current.modus === "agent",
+      });
+      await warteBisBereit();
+      setClientAktiv(null);
+      if (abgebrochen.current) return;
+      void (chatRef.current?.addToolOutput as (a: unknown) => unknown)({
+        tool: aufruf.toolName,
+        toolCallId: aufruf.toolCallId,
+        output: ergebnis,
+      });
+    })();
+  }
+
+  function stopp() {
+    abgebrochen.current = true;
+    klickAnfrage?.entscheide(false);
+    void stop();
+    setClientAktiv(null);
+  }
+
   function sende(text: string) {
     const bereinigt = text.trim();
     if (!bereinigt || beschaeftigt) return;
     if (istErsteNachricht && !einwilligung) return;
     zugModus.current = modus;
+    abgebrochen.current = false;
+    zugSchritte.current = 0;
     klebtUnten.current = true;
     setNachUntenKnopf(false);
     sendMessage({ text: bereinigt });
@@ -446,7 +559,13 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     if (!karte.approvalId) return;
     zugModus.current = modus;
     klebtUnten.current = true;
-    void addToolApprovalResponse({ id: karte.approvalId, approved: erlaubt });
+    void addToolApprovalResponse({
+      id: karte.approvalId,
+      approved: erlaubt,
+      // Ohne Grund erfindet das Modell gern einen ("das System hat abgelehnt") -
+      // dabei hat der Nutzer schlicht nein gesagt.
+      reason: erlaubt ? undefined : "Der Nutzer hat die Aktion selbst abgelehnt. Es gab keinen Systemfehler.",
+    });
   }
 
   // Waehrend eines laufenden Zugs: der zuletzt begonnene Werkzeugaufruf, fuer
@@ -589,7 +708,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
                   );
                 })}
               </div>
-              <p className="ki-leer__hinweis">{t("transparenzHinweis")}</p>
+              <p className="ki-leer__hinweis">{t("transparenzHinweisAgent")}</p>
             </div>
           ) : (
             messages.map((nachricht) =>
@@ -615,12 +734,11 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
                           {segment.schritte.map((schritt) => {
                             const Icon = werkzeugIcon[schritt.name] ?? Radar;
                             const klickbar = schritt.zustand === "fertig" && schritt.ziel !== null;
-                            const teile = { bereich: schritt.bereich, tabelle: schritt.tabelle };
-                            const label = beschriftung(
-                              schritt.zustand === "laeuft" ? "laeuft" : "werkzeug",
-                              schritt.name,
-                              teile,
-                            );
+                            const teile = { bereich: schritt.bereich, tabelle: schritt.tabelle, absicht: schritt.absicht };
+                            const label =
+                              schritt.zustand === "fehler" && istClientWerkzeug(schritt.name)
+                                ? t("klick.nicht", { absicht: schritt.absicht ?? "" })
+                                : beschriftung(schritt.zustand === "laeuft" ? "laeuft" : "werkzeug", schritt.name, teile);
                             return (
                               <li key={schritt.id}>
                                 <button
@@ -662,13 +780,47 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
             )
           )}
 
-          {beschaeftigt ? (
+          {klickAnfrage ? (
+            <div className="ki-aktion ki-aktion--freigabe">
+              <div className="ki-aktion__kopf">
+                <span className="ki-aktion__icon">
+                  <MousePointerClick className="h-4 w-4" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="ki-aktion__titel">{t("klick.titel")}</p>
+                  <p className="ki-aktion__status">{t(`klick.grund.${klickAnfrage.grund}`)}</p>
+                </div>
+              </div>
+              <dl className="ki-aktion__felder">
+                <div>
+                  <dt>{t("klick.absicht")}</dt>
+                  <dd>{klickAnfrage.absicht}</dd>
+                </div>
+                <div>
+                  <dt>{t("klick.element")}</dt>
+                  <dd>{klickAnfrage.label}</dd>
+                </div>
+              </dl>
+              <div className="ki-aktion__knoepfe">
+                <button type="button" onClick={() => klickAnfrage.entscheide(false)} className="ki-aktion__ablehnen">
+                  {t("aktion.ablehnen")}
+                </button>
+                <button type="button" onClick={() => klickAnfrage.entscheide(true)} className="ki-aktion__bestaetigen">
+                  <Check className="h-3.5 w-3.5" />
+                  {t("aktion.bestaetigen")}
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          {beschaeftigt && !klickAnfrage ? (
             <div className="ki-status" role="status">
               <Himbeere groesse={18} denkt />
               {laufenderSchritt
                 ? beschriftung("laeuft", laufenderSchritt.name, {
                     bereich: laufenderSchritt.bereich,
                     tabelle: laufenderSchritt.tabelle,
+                    absicht: laufenderSchritt.absicht,
                   })
                 : t(modus === "agent" ? "agentDenkt" : "assistentDenkt")}
             </div>
@@ -706,7 +858,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
             onKeyDown={beiTaste}
           />
           {beschaeftigt ? (
-            <button type="button" onClick={() => stop()} aria-label={t("stopp")} className="ki-composer__knopf">
+            <button type="button" onClick={stopp} aria-label={t("stopp")} className="ki-composer__knopf">
               <Square className="h-3.5 w-3.5 fill-current" />
             </button>
           ) : (

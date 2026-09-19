@@ -553,7 +553,12 @@
       "oeffneBereich": "{bereich} açıldı",
       "unbekannt": "Adım tamamlandı",
       "datenmodellErkunden": "Veri modeli keşfedildi",
-      "datenLesen": "{tabelle} okundu"
+      "datenLesen": "{tabelle} okundu",
+      "seiteLesen": "Sayfa okundu",
+      "klicke": "Tıklandı: {absicht}",
+      "fuelleFeld": "Dolduruldu: {absicht}",
+      "scrolleZu": "Kaydırıldı",
+      "zeigeAuf": "Gösterildi: {absicht}"
     },
     "agentDenkt": "Ajan verileri topluyor …",
     "agentPrueft": "Ajan kontrol ediyor: {werkzeug} …",
@@ -612,7 +617,12 @@
       "oeffneBereich": "{bereich} açılıyor …",
       "unbekannt": "Çalışıyor …",
       "datenmodellErkunden": "Veri modeli keşfediliyor …",
-      "datenLesen": "{tabelle} okunuyor …"
+      "datenLesen": "{tabelle} okunuyor …",
+      "seiteLesen": "Sayfa okunuyor …",
+      "klicke": "Tıklanıyor: {absicht} …",
+      "fuelleFeld": "Dolduruluyor: {absicht} …",
+      "scrolleZu": "Kaydırılıyor …",
+      "zeigeAuf": "Gösteriliyor: {absicht} …"
     },
     "ziel": {
       "mwstStatusAbrufen": "KDV kaydı",
@@ -640,15 +650,15 @@
       "assistent": {
         "name": "Asistan",
         "kurz": "Kaynak bağlantılarıyla yanıtlar - nereye gideceğinize siz karar verirsiniz.",
-        "beschreibung": "KDV, çalışma süreleri, uyum veya soğuk zincir hakkında sorun. Her yanıt dayandığı görünümleri gösterir - oraya gitmek için tıklayın."
+        "beschreibung": "Her şeyi sorun: işletme verileri, uygulamanın işleyişi veya genel bilgi. Her yanıt kaynaklarını adımlar olarak gösterir - gitmek için tıklayın."
       },
       "agent": {
         "name": "Ajan",
-        "kurz": "Yanıtlarken ekranı devralır ve sizi yönlendirir.",
-        "beschreibung": "Bir soru sorun ve izleyin: Ajan ilgili görünümleri bu panelin yanında açar, kanıta kadar kaydırır ve yol boyunca açıklar."
+        "kurz": "Ekranı devralır: yanıt verirken gezinir, tıklar ve doldurur.",
+        "beschreibung": "Bir soru sorun veya görev verin: Ajan doğru sayfaları açar, okur, tıklar, alanları doldurur ve yol boyunca açıklar. Göndermeyi veya silmeyi gerektiren her şeyi önceden siz onaylarsınız."
       },
       "schalterTitel": "Ajan modu",
-      "schalterText": "Yapay zekâ yanıt verirken sizi uygulamada gezdirir: sayfaları açar, kaydırır ve bölümleri vurgular.",
+      "schalterText": "Yapay zekâ sizi yalnızca yönlendirmez, uygulamayı sizin yerinize kullanır: sayfaları açar, tıklar, formları doldurur ve bölümleri vurgular. Göndermeyi ve silmeyi her zaman kendiniz onaylarsınız.",
       "infoTitel": "Fark nedir?",
       "aktionenHinweis": "Her iki modda da işlemler (örneğin görev oluşturma) her zaman onayınızı bekler."
     },
@@ -726,7 +736,19 @@
         "reklamationMelden": "Şikâyet etmek istiyorum: Meyveler ezilmiş geldi",
         "bereiche": "Burada neleri açabileceğimi göster"
       }
-    }
+    },
+    "klick": {
+      "titel": "Ajan tıklamak istiyor",
+      "absicht": "Amaç",
+      "element": "Öğe",
+      "grund": {
+        "senden": "Bu tıklama veri gönderir veya değiştirir.",
+        "loeschen": "Bu tıklama bir şeyi silebilir veya iptal edebilir.",
+        "extern": "Bu bağlantı uygulamanın dışına çıkarır."
+      },
+      "nicht": "Yapılmadı: {absicht}"
+    },
+    "transparenzHinweisAgent": "Bu yanıtları bir yapay zekâ verir, bir çalışan değil. İşletme verileri uygulamadan canlı gelir ve yanıtın altında adımlar olarak görünür, geri kalanı genel bilgidir ve öyle etiketlenir."
   },
   "legal": {
     "imprintTitle": "Künye",

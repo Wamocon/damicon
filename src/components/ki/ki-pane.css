@@ -1072,3 +1072,41 @@
   60% { transform: scale(1.015); }
   100% { transform: scale(1); }
 }
+
+/* ---- Mauszeiger des Agenten ------------------------------------------------- */
+.ki-zeiger {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 90;
+  pointer-events: none;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-zeiger {
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+.ki-zeiger__pfeil {
+  display: block;
+  filter: drop-shadow(0 3px 6px rgb(0 0 0 / 0.35));
+}
+.ki-zeiger__welle {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--himbeere);
+  border-radius: 999px;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-zeiger__welle {
+    animation: ki-welle 0.7s ease-out;
+  }
+}
+@keyframes ki-welle {
+  0% { opacity: 0.9; transform: scale(0.4); }
+  100% { opacity: 0; transform: scale(2.6); }
+}

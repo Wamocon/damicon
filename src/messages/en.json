@@ -1533,7 +1533,12 @@
       "oeffneBereich": "Opened {bereich}",
       "unbekannt": "Step completed",
       "datenmodellErkunden": "Explored data model",
-      "datenLesen": "Read {tabelle}"
+      "datenLesen": "Read {tabelle}",
+      "seiteLesen": "Read the page",
+      "klicke": "Clicked: {absicht}",
+      "fuelleFeld": "Filled in: {absicht}",
+      "scrolleZu": "Scrolled",
+      "zeigeAuf": "Pointed at: {absicht}"
     },
     "agentDenkt": "Agent is picking the facts …",
     "agentPrueft": "Agent is checking: {werkzeug} …",
@@ -1592,7 +1597,12 @@
       "oeffneBereich": "Opening {bereich} …",
       "unbekannt": "Working …",
       "datenmodellErkunden": "Exploring the data model …",
-      "datenLesen": "Reading {tabelle} …"
+      "datenLesen": "Reading {tabelle} …",
+      "seiteLesen": "Reading the page …",
+      "klicke": "Clicking: {absicht} …",
+      "fuelleFeld": "Filling in: {absicht} …",
+      "scrolleZu": "Scrolling …",
+      "zeigeAuf": "Pointing at: {absicht} …"
     },
     "ziel": {
       "mwstStatusAbrufen": "VAT registration",
@@ -1620,15 +1630,15 @@
       "assistent": {
         "name": "Assistant",
         "kurz": "Answers with source links – you decide where to go.",
-        "beschreibung": "Ask about VAT, labour deadlines, compliance or the cold chain. Every answer shows the views it is based on – click one to jump there."
+        "beschreibung": "Ask about anything: company data, how the app works, or general expertise. Every answer shows its sources as steps – click one to jump there."
       },
       "agent": {
         "name": "Agent",
-        "kurz": "Takes over the screen and guides you while it answers.",
-        "beschreibung": "Ask a question and watch: the agent opens the relevant views next to this panel, scrolls to the evidence and explains as it goes."
+        "kurz": "Takes over the screen: navigates, clicks and fills in while it answers.",
+        "beschreibung": "Ask a question or give a task: the agent opens the right pages, reads them, clicks, fills in fields and explains as it goes. Anything that submits or deletes needs your confirmation first."
       },
       "schalterTitel": "Agent mode",
-      "schalterText": "The AI guides you through the app while it answers: it opens pages, scrolls and highlights sections.",
+      "schalterText": "The AI does not just guide you, it operates the app for you: it opens pages, clicks, fills in forms and highlights sections. You always confirm submitting and deleting yourself.",
       "infoTitel": "What is the difference?",
       "aktionenHinweis": "In both modes, actions (such as creating a task) always wait for your confirmation."
     },
@@ -1706,7 +1716,19 @@
         "reklamationMelden": "I want to file a complaint: the berries arrived mushy",
         "bereiche": "Show me what I can open here"
       }
-    }
+    },
+    "klick": {
+      "titel": "The agent wants to click",
+      "absicht": "Purpose",
+      "element": "Element",
+      "grund": {
+        "senden": "This click sends or changes data.",
+        "loeschen": "This click can delete or cancel something.",
+        "extern": "This link leaves the application."
+      },
+      "nicht": "Not done: {absicht}"
+    },
+    "transparenzHinweisAgent": "These answers come from an AI, not a staff member. Company data comes live from the app and appears as steps under each answer; everything else is general knowledge and is labelled as such."
   },
   "legal": {
     "imprintTitle": "Imprint",

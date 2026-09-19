@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 // klickbare Flaeche: "Stopp" gibt dem Nutzer die Kontrolle sofort zurueck.
 export function KiFuehrungsAnzeige() {
   const t = useTranslations("kiAssistentAnsicht");
-  const { fuehrung, fuehrungBeenden } = useKiPane();
+  const { fuehrung, fuehrungBeenden, zeiger } = useKiPane();
 
   return (
     <div className={cn("ki-fuehrung print:hidden", fuehrung && "ki-fuehrung--aktiv")} aria-live="polite">
@@ -27,6 +27,14 @@ export function KiFuehrungsAnzeige() {
           <button type="button" onClick={fuehrungBeenden} aria-label={t("fuehrung.beenden")}>
             <X className="h-3 w-3" />
           </button>
+        </div>
+      ) : null}
+      {zeiger ? (
+        <div className="ki-zeiger" style={{ transform: `translate(${zeiger.x}px, ${zeiger.y}px)` }} aria-hidden>
+          <svg viewBox="0 0 24 24" width="26" height="26" className="ki-zeiger__pfeil">
+            <path d="M4 2.5 20 11l-7.2 2.1L9.6 20 4 2.5Z" fill="#e5195e" stroke="#fff" strokeWidth="1.6" strokeLinejoin="round" />
+          </svg>
+          {zeiger.klicks > 0 ? <span key={zeiger.klicks} className="ki-zeiger__welle" /> : null}
         </div>
       ) : null}
     </div>

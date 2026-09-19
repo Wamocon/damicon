@@ -1533,7 +1533,12 @@
       "oeffneBereich": "{bereich} geöffnet",
       "unbekannt": "Schritt abgeschlossen",
       "datenmodellErkunden": "Datenmodell erkundet",
-      "datenLesen": "{tabelle} gelesen"
+      "datenLesen": "{tabelle} gelesen",
+      "seiteLesen": "Seite gelesen",
+      "klicke": "Geklickt: {absicht}",
+      "fuelleFeld": "Ausgefüllt: {absicht}",
+      "scrolleZu": "Gescrollt",
+      "zeigeAuf": "Gezeigt: {absicht}"
     },
     "agentDenkt": "Agent pflückt die Fakten …",
     "agentPrueft": "Agent prüft: {werkzeug} …",
@@ -1592,7 +1597,12 @@
       "oeffneBereich": "Öffne {bereich} …",
       "unbekannt": "Arbeite …",
       "datenmodellErkunden": "Erkunde das Datenmodell …",
-      "datenLesen": "Lese {tabelle} …"
+      "datenLesen": "Lese {tabelle} …",
+      "seiteLesen": "Lese die Seite …",
+      "klicke": "Klicke: {absicht} …",
+      "fuelleFeld": "Fülle aus: {absicht} …",
+      "scrolleZu": "Scrolle …",
+      "zeigeAuf": "Zeige: {absicht} …"
     },
     "ziel": {
       "mwstStatusAbrufen": "MwSt-Registrierung",
@@ -1620,15 +1630,15 @@
       "assistent": {
         "name": "Assistent",
         "kurz": "Antwortet mit Quellenverweisen – Sie entscheiden, wohin es geht.",
-        "beschreibung": "Fragen Sie zu MwSt, Arbeitsfristen, Compliance oder Kühlkette. Jede Antwort zeigt die Ansichten, auf denen sie beruht – ein Klick springt dorthin."
+        "beschreibung": "Fragen Sie zu allem: Betriebsdaten, Funktionen der Anwendung oder allgemeinem Fachwissen. Jede Antwort zeigt ihre Quellen als Schritte – ein Klick springt dorthin."
       },
       "agent": {
         "name": "Agent",
-        "kurz": "Übernimmt den Bildschirm und führt Sie, während er antwortet.",
-        "beschreibung": "Stellen Sie eine Frage und sehen Sie zu: Der Agent öffnet die passenden Ansichten neben diesem Panel, scrollt zum Beleg und erklärt unterwegs."
+        "kurz": "Übernimmt den Bildschirm: navigiert, klickt und füllt aus, während er antwortet.",
+        "beschreibung": "Stellen Sie eine Frage oder geben Sie eine Aufgabe: Der Agent öffnet die passenden Seiten, liest sie, klickt, füllt Felder aus und erklärt unterwegs. Alles, was etwas absendet oder löscht, bestätigen Sie vorher."
       },
       "schalterTitel": "Agent-Modus",
-      "schalterText": "Die KI führt Sie durch die Anwendung, während sie antwortet: Sie öffnet Seiten, scrollt und hebt Abschnitte hervor.",
+      "schalterText": "Die KI führt Sie nicht nur, sondern bedient die Anwendung für Sie: Sie öffnet Seiten, klickt, füllt Formulare aus und hebt Abschnitte hervor. Absenden und Löschen bestätigen Sie immer selbst.",
       "infoTitel": "Was ist der Unterschied?",
       "aktionenHinweis": "In beiden Modi warten Aktionen (z. B. eine Aufgabe anlegen) immer auf Ihre Bestätigung."
     },
@@ -1706,7 +1716,19 @@
         "reklamationMelden": "Ich möchte reklamieren: Die Beeren kamen matschig an",
         "bereiche": "Zeig mir, was ich hier öffnen kann"
       }
-    }
+    },
+    "klick": {
+      "titel": "Der Agent möchte klicken",
+      "absicht": "Zweck",
+      "element": "Element",
+      "grund": {
+        "senden": "Dieser Klick sendet oder ändert Daten.",
+        "loeschen": "Dieser Klick kann etwas löschen oder stornieren.",
+        "extern": "Dieser Link führt aus der Anwendung heraus."
+      },
+      "nicht": "Nicht ausgeführt: {absicht}"
+    },
+    "transparenzHinweisAgent": "Diese Antworten stammen von einer KI, nicht von einem Mitarbeiter. Betriebsdaten kommen live aus der Anwendung und erscheinen als Schritte unter der Antwort, alles andere ist Allgemeinwissen und wird so gekennzeichnet."
   },
   "legal": {
     "imprintTitle": "Impressum",

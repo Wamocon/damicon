@@ -22,6 +22,13 @@ import { useRouter } from "@/i18n/navigation";
 
 export type KiModus = "assistent" | "agent";
 
+export interface KiZeiger {
+  x: number;
+  y: number;
+  /** Zaehler: jeder Klick erhoeht ihn und loest die Klick-Welle neu aus. */
+  klicks: number;
+}
+
 export interface KiFuehrung {
   label: string;
   ziel: string;
@@ -40,6 +47,9 @@ interface KiPaneWert {
   /** Reiht ein Ziel in die Tour ein (Agent-Modus): nacheinander, mit Verweilzeit. */
   fuehreZu: (ziel: string, label: string) => void;
   fuehrungBeenden: () => void;
+  /** Sichtbarer Mauszeiger des Agenten; die Zusage loest, sobald er angekommen ist. */
+  zeiger: KiZeiger | null;
+  bewegeZeiger: (x: number, y: number, klick?: boolean) => Promise<void>;
 }
 
 const MODUS_SCHLUESSEL = "damicon-ki-modus";
@@ -48,6 +58,8 @@ const MODUS_SCHLUESSEL = "damicon-ki-modus";
 const VERWEILZEIT_MS = 2600;
 const AUSKLINGZEIT_MS = 1800;
 const FOKUS_KLASSE = "ki-fokus";
+const ZEIGER_FLUGZEIT_MS = 720;
+const ZEIGER_NACHLAUF_MS = 2600;
 
 const Standard: KiPaneWert = {
   verfuegbar: false,
@@ -60,6 +72,8 @@ const Standard: KiPaneWert = {
   oeffneZiel: () => {},
   fuehreZu: () => {},
   fuehrungBeenden: () => {},
+  zeiger: null,
+  bewegeZeiger: async () => {},
 };
 
 const KiPaneKontext = createContext<KiPaneWert>(Standard);
@@ -123,6 +137,8 @@ export function KiPaneProvider({
   const [offen, setOffen] = useState(false);
   const [modus, setModusState] = useState<KiModus>("assistent");
   const [fuehrung, setFuehrung] = useState<KiFuehrung | null>(null);
+  const [zeiger, setZeiger] = useState<KiZeiger | null>(null);
+  const zeigerTimer = useRef<number | undefined>(undefined);
 
   const warteschlange = useRef<KiFuehrung[]>([]);
   const timer = useRef<number | undefined>(undefined);
@@ -191,7 +207,20 @@ export function KiPaneProvider({
     [naechsteStation],
   );
 
-  useEffect(() => () => window.clearTimeout(timer.current), []);
+  const bewegeZeiger = useCallback((x: number, y: number, klick = false) => {
+    window.clearTimeout(zeigerTimer.current);
+    setZeiger((alt) => ({ x, y, klicks: (alt?.klicks ?? 0) + (klick ? 1 : 0) }));
+    zeigerTimer.current = window.setTimeout(() => setZeiger(null), ZEIGER_NACHLAUF_MS);
+    return new Promise<void>((weiter) => window.setTimeout(weiter, ZEIGER_FLUGZEIT_MS));
+  }, []);
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(timer.current);
+      window.clearTimeout(zeigerTimer.current);
+    },
+    [],
+  );
 
   const wert = useMemo<KiPaneWert>(
     () => ({
@@ -205,8 +234,10 @@ export function KiPaneProvider({
       oeffneZiel,
       fuehreZu,
       fuehrungBeenden,
+      zeiger,
+      bewegeZeiger,
     }),
-    [verfuegbar, offen, modus, setModus, fuehrung, oeffneZiel, fuehreZu, fuehrungBeenden],
+    [verfuegbar, offen, modus, setModus, fuehrung, oeffneZiel, fuehreZu, fuehrungBeenden, zeiger, bewegeZeiger],
   );
 
   return <KiPaneKontext.Provider value={wert}>{children}</KiPaneKontext.Provider>;

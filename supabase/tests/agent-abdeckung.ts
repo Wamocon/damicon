@@ -12,6 +12,7 @@
 
 import { readFileSync } from "node:fs";
 import { AKTIONS_NAMEN } from "@/lib/ai/aktionen-meta";
+import { CLIENT_WERKZEUG_NAMEN } from "@/lib/ai/client-werkzeuge-meta";
 import { baueWerkzeuge } from "@/lib/ai/tools";
 import { modules } from "@/lib/modules";
 import { roles } from "@/lib/rbac";
@@ -67,6 +68,21 @@ pruefe("Jedes Werkzeug (aller Rollen) ist in allen Sprachen beschriftet", fehlen
 const feldNamen = ["reihenblockCode", "zielmengeKg", "pflueckerAnzahl", "faelligkeit", "aufgabeCode", "neuerStatus", "temperaturC", "grund", "betreff", "beschreibung", "betroffeneMengeKg", "chargeCode", "kundenName", "periodeStart", "periodeEnde"];
 const feldFehlt = sprachen.flatMap((s) => feldNamen.filter((f) => typeof holen(texte[s], `kiAssistentAnsicht.aktion.felder.${f}`) !== "string").map((f) => `${s}:${f}`));
 pruefe("Alle Aktionsfelder haben Beschriftungen", feldFehlt.length === 0, feldFehlt.slice(0, 4).join(", "));
+
+// --- 2b. Client-Werkzeuge (Seite lesen und bedienen) --------------------------
+const uiFehlt = sprachen.flatMap((s) =>
+  CLIENT_WERKZEUG_NAMEN.flatMap((n) =>
+    [`kiAssistentAnsicht.laeuft.${n}`, `kiAssistentAnsicht.werkzeug.${n}`]
+      .filter((pfad) => typeof holen(texte[s], pfad) !== "string")
+      .map((pfad) => `${s}:${pfad}`),
+  ),
+);
+pruefe("Jedes Client-Werkzeug ist in allen Sprachen beschriftet", uiFehlt.length === 0, uiFehlt.slice(0, 4).join(", ") || `${CLIENT_WERKZEUG_NAMEN.length} Werkzeuge`);
+const lesen = Object.keys(baueWerkzeuge("betriebsleitung", { oberflaeche: "lesen" })).filter((n) => (CLIENT_WERKZEUG_NAMEN as readonly string[]).includes(n));
+const steuern = Object.keys(baueWerkzeuge("betriebsleitung", { oberflaeche: "steuern" })).filter((n) => (CLIENT_WERKZEUG_NAMEN as readonly string[]).includes(n));
+pruefe("Assistent-Modus bekommt nur seiteLesen", lesen.length === 1 && lesen[0] === "seiteLesen", lesen.join(", "));
+pruefe("Agent-Modus bekommt alle Client-Werkzeuge", CLIENT_WERKZEUG_NAMEN.every((n) => steuern.includes(n)), steuern.join(", "));
+pruefe("Die nicht-streamende Anfrage (nurLesen) bekommt keine Client-Werkzeuge", !Object.keys(baueWerkzeuge("admin", { nurLesen: true })).some((n) => (CLIENT_WERKZEUG_NAMEN as readonly string[]).includes(n) || (AKTIONS_NAMEN as string[]).includes(n)));
 
 // --- 3. Rollenzuschnitt -----------------------------------------------------
 const namen = (rolle: (typeof roles)[number]) => Object.keys(baueWerkzeuge(rolle));

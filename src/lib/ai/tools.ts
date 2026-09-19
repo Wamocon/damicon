@@ -37,6 +37,7 @@ import { baueRisikoEintraege, risikoAufbereiten } from "@/lib/domain/risikoradar
 import { moduleHref, modules } from "@/lib/modules";
 import { baueAktionen } from "@/lib/ai/aktionen";
 import { baueDatenWerkzeuge } from "@/lib/ai/daten-werkzeuge";
+import { baueUiWerkzeuge } from "@/lib/ai/ui-werkzeuge";
 import {
   ZIEL_COMPLIANCE,
   ZIEL_ESUTD,
@@ -252,6 +253,8 @@ export function baueWerkzeuge(
     nurLesen?: boolean;
     /** Agent-Modus: ergaenzt ohneAnsicht, den bewussten Verzicht auf eine Ansicht. */
     agentModus?: boolean;
+    /** Client-Werkzeuge (laufen im Browser): "lesen" = nur seiteLesen, "steuern" = Seite bedienen. */
+    oberflaeche?: "lesen" | "steuern";
   } = {},
 ) {
   const oeffneBereich = baueNavigationsWerkzeug(rolle);
@@ -277,5 +280,6 @@ export function baueWerkzeuge(
     ...baueDatenWerkzeuge(rolle, optionen.vorschau ?? false),
     ...(optionen.nurLesen ? {} : baueAktionen(rolle)),
     ...(optionen.agentModus ? { ohneAnsicht } : {}),
+    ...(optionen.oberflaeche ? baueUiWerkzeuge(optionen.oberflaeche) : {}),
   };
 }
