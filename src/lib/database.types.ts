@@ -1079,6 +1079,92 @@ export type Database = {
           },
         ]
       }
+      ki_wissen_chunks: {
+        Row: {
+          dokument_id: string
+          embedding: string
+          erstellt_am: string
+          id: string
+          inhalt: string
+          position: number
+        }
+        Insert: {
+          dokument_id: string
+          embedding: string
+          erstellt_am?: string
+          id?: string
+          inhalt: string
+          position: number
+        }
+        Update: {
+          dokument_id?: string
+          embedding?: string
+          erstellt_am?: string
+          id?: string
+          inhalt?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ki_wissen_chunks_dokument_id_fkey"
+            columns: ["dokument_id"]
+            isOneToOne: false
+            referencedRelation: "ki_wissen_dokumente"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ki_wissen_dokumente: {
+        Row: {
+          dateiname: string
+          erlaubte_rollen: Database["public"]["Enums"]["app_role"][]
+          fehlermeldung: string | null
+          hochgeladen_am: string
+          hochgeladen_von: string | null
+          id: string
+          status: Database["public"]["Enums"]["ki_wissen_status"]
+          storage_pfad: string
+          titel: string
+        }
+        Insert: {
+          dateiname: string
+          erlaubte_rollen?: Database["public"]["Enums"]["app_role"][]
+          fehlermeldung?: string | null
+          hochgeladen_am?: string
+          hochgeladen_von?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["ki_wissen_status"]
+          storage_pfad: string
+          titel: string
+        }
+        Update: {
+          dateiname?: string
+          erlaubte_rollen?: Database["public"]["Enums"]["app_role"][]
+          fehlermeldung?: string | null
+          hochgeladen_am?: string
+          hochgeladen_von?: string | null
+          id?: string
+          status?: Database["public"]["Enums"]["ki_wissen_status"]
+          storage_pfad?: string
+          titel?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ki_wissen_dokumente_hochgeladen_von_fkey"
+            columns: ["hochgeladen_von"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ki_wissen_dokumente_hochgeladen_von_fkey"
+            columns: ["hochgeladen_von"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+        ]
+      }
       kontaktkanaele: {
         Row: {
           aktiv: boolean
@@ -3578,6 +3664,18 @@ export type Database = {
         Args: { p_inhalt: string }
         Returns: string
       }
+      ki_wissen_aehnliche_chunks: {
+        Args: {
+          p_anzahl?: number
+          p_embedding: string
+          p_rolle: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: {
+          aehnlichkeit: number
+          dokument_titel: string
+          inhalt: string
+        }[]
+      }
       kontingent_verfuegbarkeit_je_sorte: {
         Args: never
         Returns: {
@@ -3767,6 +3865,7 @@ export type Database = {
       esutd_status: "erfasst" | "offen"
       integration_status: "verbunden" | "sandbox" | "geplant"
       ki_anbieter_typ: "openai_kompatibel" | "anthropic"
+      ki_wissen_status: "wird_verarbeitet" | "bereit" | "fehler"
       kontaktkanal_typ:
         | "whatsapp"
         | "telegram"
@@ -3990,6 +4089,7 @@ export const Constants = {
       esutd_status: ["erfasst", "offen"],
       integration_status: ["verbunden", "sandbox", "geplant"],
       ki_anbieter_typ: ["openai_kompatibel", "anthropic"],
+      ki_wissen_status: ["wird_verarbeitet", "bereit", "fehler"],
       kontaktkanal_typ: [
         "whatsapp",
         "telegram",

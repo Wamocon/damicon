@@ -1,11 +1,12 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import "@/components/ki/ki-pane.css";
-import { setRequestLocale } from "next-intl/server";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PersonaProvider } from "@/components/dashboard/persona";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { KiAnbieterVerwaltung } from "@/components/db/ki-assistent-formulare";
+import { KiWissenVerwaltung } from "@/components/db/ki-wissen-formulare";
 import { KiFuehrungsAnzeige } from "@/components/ki/ki-fuehrung";
 import { KiPane } from "@/components/ki/ki-pane";
 import { KiPaneProvider } from "@/components/ki/ki-pane-kontext";
@@ -14,6 +15,7 @@ import { hasPermission } from "@/lib/rbac";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { ladeAktivenStandardAnbieter } from "@/lib/ai/lade-anbieter";
 import { ladeKiAnbieterListe, ladeKiChatVerlauf } from "@/lib/data/ki-assistent";
+import { ladeKiWissenDokumente } from "@/lib/data/ki-wissen";
 
 export default async function DashboardLayout({
   children,
@@ -38,15 +40,19 @@ export default async function DashboardLayout({
   // Streaming-Agent mit Werkzeugen und Modi, alles andere = der bisherige
   // Server-Action-Chat. Die Anbieterverwaltung (Admin) wandert als fertig
   // gerendertes Element ins Panel, statt eine eigene Seite zu brauchen.
+  // Dasselbe gilt fuer die Wissensdokumente (RAG): gleicher Platz, gleiche
+  // Admin-Pruefung - geladen wird die Liste nur fuer ki_assistent:manage.
   const darfKiNutzen = !demoModus && hasPermission(profil?.role, "ki_assistent", "create");
   const istKiAdmin = !demoModus && hasPermission(profil?.role, "ki_assistent", "manage");
-  const [aktiverAnbieter, kiVerlauf, anbieterListe] = darfKiNutzen
+  const [aktiverAnbieter, kiVerlauf, anbieterListe, wissenUebersicht] = darfKiNutzen
     ? await Promise.all([
         ladeAktivenStandardAnbieter(),
         ladeKiChatVerlauf(),
         istKiAdmin ? ladeKiAnbieterListe() : Promise.resolve(null),
+        istKiAdmin ? ladeKiWissenDokumente() : Promise.resolve(null),
       ])
-    : [null, null, null];
+    : [null, null, null, null];
+  const t = istKiAdmin ? await getTranslations("kiAssistentAnsicht") : null;
 
   return (
     <PersonaProvider
@@ -70,7 +76,20 @@ export default async function DashboardLayout({
               verlauf={kiVerlauf.nachrichten}
               agentFaehig={aktiverAnbieter?.typ === "anthropic"}
               einstellungen={
-                anbieterListe ? <KiAnbieterVerwaltung anbieter={anbieterListe.anbieter} /> : null
+                anbieterListe ? (
+                  <>
+                    <KiAnbieterVerwaltung anbieter={anbieterListe.anbieter} />
+                    {wissenUebersicht && t ? (
+                      <div className="mt-6 space-y-3">
+                        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                          {t("wissensVerwaltung.titel")}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{t("wissensVerwaltung.lead")}</p>
+                        <KiWissenVerwaltung dokumente={wissenUebersicht.dokumente} />
+                      </div>
+                    ) : null}
+                  </>
+                ) : null
               }
             />
           ) : null}

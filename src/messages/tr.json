@@ -616,6 +616,29 @@
       "fehlgeschlagen": "Konuşma tanıma kullanılamıyor.",
       "keinZugriff": "Mikrofon erişimi yok."
     },
+    "wissensVerwaltung": {
+      "titel": "Bilgi belgeleri",
+      "lead": "Yüklenen belgeler asistanın yanıt bağlamını genişletir. Bir belge yalnızca burada seçilen rollere görünür.",
+      "keineDokumente": "Henüz belge yüklenmedi.",
+      "rollen": "Roller",
+      "loeschen": "Sil",
+      "loeschenSicher": "“{titel}” belgesi gerçekten silinsin mi? Bölümleri yanıt bağlamından da kaybolur.",
+      "status": {
+        "wird_verarbeitet": "işleniyor",
+        "bereit": "hazır",
+        "fehler": "hata"
+      },
+      "formular": {
+        "titel": "Belge yükle",
+        "lead": "Metin dosyası (.txt veya .md), en çok 20 MB. Metin bölümlere ayrılıp gömülür – uzunluğa göre biraz sürer.",
+        "dokumentTitel": "Başlık",
+        "titelPlatzhalter": "Ahududu kalite yönergesi 2026",
+        "datei": "Dosya",
+        "rollenLabel": "Şunlara görünür",
+        "knopf": "Yükle",
+        "hinweis": "En az bir rol seçilmezse belge hiçbir yanıt bağlamına girmez."
+      }
+    },
     "laeuft": {
       "mwstStatusAbrufen": "KDV durumu kontrol ediliyor …",
       "esutdOffeneFristenAbrufen": "ESUTD süreleri kontrol ediliyor …",
@@ -1344,6 +1367,8 @@
       "wetterAktualisiert": "Hava durumu verileri güncellendi.",
       "stammdatenGespeichert": "Ana veriler kaydedildi.",
       "transkription": "Dikte alındı.",
+      "kiWissenHochgeladen": "“{wert}” belgesi yüklendi.",
+      "kiWissenGeloescht": "“{wert}” belgesi silindi.",
       "nachbarbetrieb": "Komşu işletme “{wert}” eklendi.",
       "dokumentGeaendert": "Belge “{wert}” güncellendi."
     },
@@ -1383,6 +1408,9 @@
       "transkription": "Konuşma tanıma kullanılamıyor.",
       "transkriptionDauer": "Konuşma tanıma çok uzun sürdü.",
       "dateiGross": "Kayıt çok büyük.",
+      "dateityp": "Yalnızca .txt ve .md dosyaları desteklenir.",
+      "leeresDokument": "Dosya okunabilir metin içermiyor.",
+      "einbettung": "Gömme başarısız – gömme modeli çalışıyor mu?",
       "nachbarbetriebVorhanden": "Bu adla bir komşu işletme zaten mevcut."
     },
     "einladungen": {

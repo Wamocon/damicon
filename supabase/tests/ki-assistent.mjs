@@ -36,7 +36,16 @@ import {
   istGueltigerAnbieterTyp,
   sollteAutomatischEskalieren,
   wissensQuellenFuerFaehigkeiten,
+  zerlegeInAbschnitte,
+  baueWissensdokumenteKontext,
 } from "../../src/lib/domain/ki-assistent.ts";
+import {
+  alsVektorLiteral,
+  einbettungBasisUrl,
+  einbettungModell,
+  einbettungZeitlimitMs,
+  ERWARTETE_EINBETTUNGS_DIMENSION,
+} from "../../src/lib/ai/einbettung-client.ts";
 
 let bestanden = 0;
 let fehlgeschlagen = 0;
@@ -404,6 +413,93 @@ for (const [name, kaputteAntwort] of [
     kontext.includes("Polka") && !kontext.includes("Pflanzenschutzbehandlung"),
     kontext,
   );
+}
+
+
+// --- 4. Wissensdokumente (RAG) ----------------------------------------------
+// Reine Funktionen, kein Netz, keine Datenbank - der echte Weg (Einbettung auf
+// Sokrates-2, pgvector-Suche) ist nur gegen die laufende Umgebung pruefbar und
+// steht deshalb in der PR-Beschreibung, nicht hier.
+
+{
+  pruefe("zerlegeInAbschnitte: leerer Text ergibt keine Abschnitte", zerlegeInAbschnitte("").length === 0);
+  pruefe(
+    "zerlegeInAbschnitte: nur Leerraum ergibt keine Abschnitte",
+    zerlegeInAbschnitte("   \n\t  ").length === 0,
+  );
+
+  const kurz = zerlegeInAbschnitte("Ein kurzer Absatz.");
+  pruefe(
+    "zerlegeInAbschnitte: kurzer Text bleibt ein einziger Abschnitt",
+    kurz.length === 1 && kurz[0] === "Ein kurzer Absatz.",
+  );
+
+  // Laenger als das Maximum: muss zerfallen, und zwar ohne leere Stuecke.
+  const lang = "Satz. ".repeat(500);
+  const viele = zerlegeInAbschnitte(lang, 200, 20);
+  pruefe("zerlegeInAbschnitte: langer Text zerfaellt in mehrere Abschnitte", viele.length > 1, `Abschnitte: ${viele.length}`);
+  pruefe("zerlegeInAbschnitte: kein Abschnitt ist leer", viele.every((a) => a.trim().length > 0));
+  pruefe(
+    "zerlegeInAbschnitte: kein Abschnitt ueberschreitet das Maximum",
+    viele.every((a) => a.length <= 200),
+    `laengster: ${Math.max(...viele.map((a) => a.length))}`,
+  );
+  pruefe(
+    "zerlegeInAbschnitte: die Abschnitte ueberlappen sich (Kontext geht an der Grenze nicht verloren)",
+    viele.length > 1 && lang.trim().length < viele.reduce((summe, a) => summe + a.length, 0),
+  );
+}
+
+{
+  pruefe(
+    "baueWissensdokumenteKontext: ohne Treffer ein leerer Text, kein Hinweissatz",
+    baueWissensdokumenteKontext([]) === "",
+  );
+
+  const kontext = baueWissensdokumenteKontext([
+    { dokumentTitel: "Qualitaetsrichtlinie", inhalt: "Klasse I ab 12 mm.", aehnlichkeit: 0.9 },
+    { dokumentTitel: "Lieferbedingungen", inhalt: "Abholung bis 10 Uhr.", aehnlichkeit: 0.7 },
+  ]);
+  pruefe(
+    "baueWissensdokumenteKontext: nennt den Dokumenttitel je Ausschnitt",
+    kontext.includes('Aus Dokument "Qualitaetsrichtlinie"') &&
+      kontext.includes('Aus Dokument "Lieferbedingungen"'),
+  );
+  pruefe("baueWissensdokumenteKontext: enthaelt die Inhalte selbst", kontext.includes("Klasse I ab 12 mm.") && kontext.includes("Abholung bis 10 Uhr."));
+}
+
+{
+  delete process.env.KI_EINBETTUNG_ZEITLIMIT_MS;
+  delete process.env.KI_EINBETTUNG_URL;
+  delete process.env.KI_EINBETTUNG_MODELL;
+
+  pruefe("Einbettung: Standard-Zeitlimit betraegt 30 Sekunden", einbettungZeitlimitMs() === 30_000);
+  pruefe("Einbettung: Standard-Adresse zeigt auf Sokrates-2", einbettungBasisUrl() === "http://192.168.178.136:11434");
+  pruefe("Einbettung: Standardmodell ist nomic-embed-text", einbettungModell() === "nomic-embed-text");
+  pruefe("Einbettung: erwartete Dimension passt zur Migration (vector(768))", ERWARTETE_EINBETTUNGS_DIMENSION === 768);
+
+  process.env.KI_EINBETTUNG_ZEITLIMIT_MS = "45000";
+  process.env.KI_EINBETTUNG_URL = "http://beispiel.intern:11434";
+  process.env.KI_EINBETTUNG_MODELL = "ein-anderes-modell";
+  pruefe("Einbettung: KI_EINBETTUNG_ZEITLIMIT_MS wirkt", einbettungZeitlimitMs() === 45_000);
+  pruefe("Einbettung: KI_EINBETTUNG_URL wirkt", einbettungBasisUrl() === "http://beispiel.intern:11434");
+  pruefe("Einbettung: KI_EINBETTUNG_MODELL wirkt", einbettungModell() === "ein-anderes-modell");
+
+  process.env.KI_EINBETTUNG_ZEITLIMIT_MS = "12";
+  pruefe("Einbettung: unplausibel kurzes Zeitlimit faellt auf den Standard zurueck", einbettungZeitlimitMs() === 30_000);
+  process.env.KI_EINBETTUNG_ZEITLIMIT_MS = "keine-zahl";
+  pruefe("Einbettung: unlesbares Zeitlimit faellt auf den Standard zurueck", einbettungZeitlimitMs() === 30_000);
+
+  delete process.env.KI_EINBETTUNG_ZEITLIMIT_MS;
+  delete process.env.KI_EINBETTUNG_URL;
+  delete process.env.KI_EINBETTUNG_MODELL;
+}
+
+{
+  // pgvector nimmt ueber PostgREST die Textform, nicht ein JSON-Array - siehe
+  // Kommentar bei alsVektorLiteral().
+  pruefe("alsVektorLiteral: erzeugt die pgvector-Textform", alsVektorLiteral([0.5, -1, 2]) === "[0.5,-1,2]");
+  pruefe("alsVektorLiteral: leerer Vektor ergibt leere Klammern", alsVektorLiteral([]) === "[]");
 }
 
 console.log("\n" + "-".repeat(58));

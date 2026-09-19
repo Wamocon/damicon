@@ -19,8 +19,9 @@
 // =============================================================================
 
 import { PGlite } from "@electric-sql/pglite";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
+import { wendeMigrationenAn } from "./pglite-migrationen.mjs";
 import { fileURLToPath } from "node:url";
 
 const WURZEL = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -72,11 +73,7 @@ console.log("Abnahmetest Anforderung 4.1 - Unveraenderliche Erntebuchungen\n");
 
 try {
   await db.exec(readFileSync(join(WURZEL, "supabase/fixtures/auth-stub.sql"), "utf8"));
-  for (const d of readdirSync(join(WURZEL, "supabase/migrations"))
-    .filter((f) => f.endsWith(".sql"))
-    .sort()) {
-    await db.exec(readFileSync(join(WURZEL, "supabase/migrations", d), "utf8"));
-  }
+  await wendeMigrationenAn(db, join(WURZEL, "supabase/migrations"));
   await db.exec(readFileSync(join(WURZEL, "supabase/seed.sql"), "utf8"));
   check("Grundlage: Migrationen und Seed angewendet", true);
 } catch (e) {

@@ -6,9 +6,11 @@ import { ladeAktivenStandardAnbieter } from "@/lib/ai/lade-anbieter";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { ladeKiChatVerlauf, ladeWissensPreislisten } from "@/lib/data/ki-assistent";
+import { sucheRelevanteWissenChunks } from "@/lib/data/ki-wissen";
 import {
   baueGesamtWissenskontext,
   baueSystemPrompt,
+  baueWissensdokumenteKontext,
   MAX_NACHRICHT_LAENGE,
   sollteAutomatischEskalieren,
   wissensQuellenFuerFaehigkeiten,
@@ -148,7 +150,22 @@ export async function kiNachrichtSenden(
           hasPermission(profil.role, "kuehlkette", "view"),
       });
       const preislisten = quellen.includes("preisliste") ? await ladeWissensPreislisten() : [];
-      const systemPrompt = baueSystemPrompt(baueGesamtWissenskontext(quellen, preislisten));
+      // RAG-Ergaenzung (Wissensdokumente): eigener try/catch, obwohl
+      // sucheRelevanteWissenChunks() laut eigenem Vertrag nie wirft - genau
+      // dieselbe Defense-in-Depth-Haltung wie beim Modellaufruf zwei Zeilen
+      // weiter unten. Kein Treffer heisst schlicht kein zusaetzlicher
+      // Kontext, nie ein Ausfall des ganzen Chats.
+      let wissenTreffer: Awaited<ReturnType<typeof sucheRelevanteWissenChunks>> = [];
+      try {
+        wissenTreffer = await sucheRelevanteWissenChunks(nachricht, profil.role);
+      } catch (error) {
+        console.error("[damicon] Wissensdokumente-Suche unerwartet fehlgeschlagen:", error);
+      }
+      const dokumenteKontext = baueWissensdokumenteKontext(wissenTreffer);
+      const basisKontext = baueGesamtWissenskontext(quellen, preislisten);
+      const systemPrompt = baueSystemPrompt(
+        dokumenteKontext ? `${basisKontext}\n\n${dokumenteKontext}` : basisKontext,
+      );
       const verlaufFuerModell = baueVerlaufFuerModell(systemPrompt, bisherigerVerlauf.nachrichten, nachricht);
 
       const apiKey = entschluessleApiKey(anbieter.api_key_chiffrat);

@@ -9,8 +9,9 @@
 // =============================================================================
 
 import { PGlite } from "@electric-sql/pglite";
-import { readFileSync, readdirSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join, dirname } from "node:path";
+import { wendeMigrationenAn, migrationenMeldung } from "./pglite-migrationen.mjs";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 
@@ -62,11 +63,8 @@ console.log("PGlite:", (await db.query("select version();")).rows[0].version.spl
 // --- 0. Grundlage ------------------------------------------------------------
 try {
   await db.exec(readFileSync(AUTH_STUB, "utf8"));
-  const dateien = readdirSync(MIGRATIONEN_DIR).filter((f) => f.endsWith(".sql")).sort();
-  for (const datei of dateien) {
-    await db.exec(readFileSync(join(MIGRATIONEN_DIR, datei), "utf8"));
-  }
-  check(`Migrationen angewendet (${dateien.length} Dateien)`, true);
+  const migrationsLage = await wendeMigrationenAn(db, MIGRATIONEN_DIR);
+  check(migrationenMeldung(migrationsLage), true);
   await db.exec(readFileSync(SEED, "utf8"));
   check("Seed-Daten angewendet", true);
 } catch (e) {
