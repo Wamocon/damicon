@@ -43,7 +43,7 @@ if (!wurzel) {
   console.error("--wurzel <ordner> fehlt");
   process.exit(1);
 }
-const bereichFilter = arg("bereiche")?.split(",");
+const bereichFilter = arg("bereiche")?.split(",").map((b) => b.toLowerCase());
 const bereichName = arg("bereich");
 const sprachFilter = arg("sprachen")?.split(",");
 const standardSprache = arg("sprache");
@@ -58,7 +58,8 @@ for (const datei of dateien(wurzel)) {
   if (dokumente >= limit) break;
   const pfad = relative(wurzel, datei).replace(/\\/g, "/");
   const dok = parseDokument(pfad, readFileSync(datei, "utf8"));
-  if (bereichName) dok.bereich = bereichName;
+  // Ordnernamen klein schreiben: "Audit" und "audit" sollen derselbe Bereich sein (Filter, Rollen).
+  dok.bereich = (bereichName ?? dok.bereich).toLowerCase();
   if (bereichFilter && !bereichFilter.includes(dok.bereich)) continue;
   // Dateien ohne Frontmatter: Angaben aus den Optionen und der ersten Ueberschrift.
     dok.meta.sprache ??= erkenneSprache(dok.text) ?? standardSprache ?? null;

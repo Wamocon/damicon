@@ -1,0 +1,58 @@
+[
+  {
+    "id": "mwst-schwelle",
+    "frage": "Ab welchem Umsatz muss sich ein Betrieb in Kasachstan fuer die Mehrwertsteuer registrieren?",
+    "russisch": "порог постановки на регистрационный учет по НДС оборот 10 000 МРП",
+    "erwartet": [
+      { "feld": "fundstelle", "muster": "НК РК ст\\. (99|101)" },
+      { "feld": "stufe", "muster": "^1$" }
+    ]
+  },
+  {
+    "id": "mwst-frist",
+    "frage": "Wie viele Tage hat ein Betrieb nach Ueberschreiten der Umsatzschwelle Zeit, sich fuer die Mehrwertsteuer anzumelden?",
+    "russisch": "срок подачи налогового заявления о постановке на учет по НДС после превышения предельного порога оборота",
+    "erwartet": [{ "feld": "text", "muster": "пяти рабочих дней|5 рабочих дней" }]
+  },
+  {
+    "id": "esf-pflicht",
+    "frage": "Wer muss elektronische Rechnungen (ESF) ausstellen?",
+    "russisch": "категории лиц обязанных выписывать электронный счет-фактуру",
+    "erwartet": [
+      { "feld": "text", "muster": "счет[а-я]*-фактур" },
+      { "feld": "stufe", "muster": "^1$" }
+    ]
+  },
+  {
+    "id": "esutd-strafen",
+    "frage": "Welche Strafen drohen bei Verstoessen gegen die elektronische Transportbegleitung ESUTD?",
+    "russisch": "штрафы за нарушения ЭСУТД электронные счета-фактуры товарно-транспортные накладные",
+    "erwartet": [{ "feld": "text", "muster": "ЭСУТД|ЕСУТД|ESUTD" }]
+  },
+  {
+    "id": "abschlusspruefung",
+    "frage": "Wann ist eine Abschlusspruefung (Audit) in Kasachstan verpflichtend?",
+    "russisch": "обязательный аудит финансовой отчетности организации публичного интереса",
+    "erwartet": [{ "feld": "text", "muster": "аудит|audit|Abschlusspr" }]
+  },
+  {
+    "id": "sperre-kunde",
+    "frage": "Ab welchem Umsatz muss sich ein Betrieb in Kasachstan fuer die Mehrwertsteuer registrieren?",
+    "russisch": "порог постановки на регистрационный учет по НДС",
+    "rolle": "kunde",
+    "sollLeerSein": true
+  },
+  {
+    "id": "sperre-brigade",
+    "frage": "Welche Strafen drohen bei ESUTD-Verstoessen?",
+    "russisch": "штрафы ЭСУТД",
+    "rolle": "brigade",
+    "sollLeerSein": true
+  },
+  {
+    "id": "sperre-pfluecker",
+    "frage": "Wann ist eine Abschlusspruefung Pflicht?",
+    "rolle": "picker",
+    "sollLeerSein": true
+  }
+]
