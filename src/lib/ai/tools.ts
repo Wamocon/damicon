@@ -38,6 +38,7 @@ import { moduleHref, modules } from "@/lib/modules";
 import { baueAktionen } from "@/lib/ai/aktionen";
 import { baueDatenWerkzeuge } from "@/lib/ai/daten-werkzeuge";
 import { baueUiWerkzeuge } from "@/lib/ai/ui-werkzeuge";
+import { baueWissenWerkzeug } from "@/lib/ai/wissen-werkzeug";
 import {
   ZIEL_COMPLIANCE,
   ZIEL_ESUTD,
@@ -255,10 +256,13 @@ export function baueWerkzeuge(
     agentModus?: boolean;
     /** Client-Werkzeuge (laufen im Browser): "lesen" = nur seiteLesen, "steuern" = Seite bedienen. */
     oberflaeche?: "lesen" | "steuern";
+    /** Erste freie Belegkennung der laufenden Antwort (siehe naechsteBelegNummer). */
+    belegStart?: number;
   } = {},
 ) {
   const oeffneBereich = baueNavigationsWerkzeug(rolle);
   const risikoRadarAbrufen = baueRadar(rolle);
+  const wissenSuchen = baueWissenWerkzeug(rolle, optionen.belegStart);
   // Bedingtes Spreaden statt eines vorab getypten Record<string, ...>: der
   // generische Rueckgabetyp von tool() laesst sich ohne eine Aufrufstelle
   // nicht sauber annotieren (TypeScript faellt sonst auf Tool<never, never>
@@ -277,6 +281,8 @@ export function baueWerkzeuge(
       ? { risikoRadarAbrufen }
       : {}),
     ...(oeffneBereich ? { oeffneBereich } : {}),
+    // Wissensbasis (Recht, Steuer, Compliance, Audit): nur mit Rollenrecht und vorhandenem Index.
+    ...(wissenSuchen ? { wissenSuchen } : {}),
     ...baueDatenWerkzeuge(rolle, optionen.vorschau ?? false),
     ...(optionen.nurLesen ? {} : baueAktionen(rolle)),
     ...(optionen.agentModus ? { ohneAnsicht } : {}),

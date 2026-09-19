@@ -551,6 +551,7 @@
       "kuehlketteAbrufen": "Проверена холодовая цепь",
       "risikoRadarAbrufen": "Проверен радар рисков",
       "oeffneBereich": "Открыто: {bereich}",
+      "wissenSuchen": "База знаний просмотрена",
       "unbekannt": "Шаг выполнен",
       "datenmodellErkunden": "Модель данных изучена",
       "datenLesen": "{tabelle} прочитана",
@@ -580,6 +581,26 @@
       "sitzung": "Сеанс истёк или был завершён. Пожалуйста, войдите снова.",
       "anmelden": "Войти снова",
       "berechtigung": "Вашей роли недоступен ИИ-ассистент."
+    },
+    "quellen": {
+      "titel": "Источники",
+      "stufe": {
+        "recht": "Первичное право",
+        "untergesetzlich": "Подзаконный акт",
+        "erlaeuterung": "Официальное разъяснение",
+        "fachquelle": "Профессиональный источник",
+        "presse": "Пресса",
+        "unbekannt": "Источник"
+      },
+      "gueltigAb": "действует с {datum}",
+      "stand": "по состоянию на {datum}",
+      "ueberholt": "Источник устарел.",
+      "auskunft": "Сведения третьих лиц, не правовой источник. Проверьте первоисточник.",
+      "mehr": "Показать больше",
+      "weniger": "Показать меньше",
+      "original": "Открыть оригинал",
+      "intern": "Внутреннее исследование",
+      "unbelegt": "Для этой ссылки нет источника."
     },
     "anbieterVerwaltung": {
       "titel": "Управление ИИ-провайдерами",
@@ -621,6 +642,7 @@
       "kuehlketteAbrufen": "Проверяю холодовую цепь …",
       "risikoRadarAbrufen": "Просматриваю радар рисков …",
       "oeffneBereich": "Открываю: {bereich} …",
+      "wissenSuchen": "Ищу в базе знаний …",
       "unbekannt": "Работаю …",
       "datenmodellErkunden": "Изучаю модель данных …",
       "datenLesen": "Читаю {tabelle} …",
@@ -637,6 +659,7 @@
       "kuehlketteAbrufen": "Холодовая цепь",
       "risikoRadarAbrufen": "Радар рисков",
       "oeffneBereich": "{bereich}",
+      "wissenSuchen": "База знаний",
       "unbekannt": "Источник",
       "datenmodellErkunden": "Модель данных",
       "datenLesen": "{tabelle}",
