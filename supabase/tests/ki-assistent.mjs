@@ -677,13 +677,18 @@ for (const [name, kaputteAntwort] of [
   );
 
   pruefe(
-    "Sprachausgabe: Stimmen fuer de/ru/kk/en passen zur Sprache",
-    STIMMEN.de?.modell.includes("de_DE") && STIMMEN.ru?.modell.includes("ru_RU") && STIMMEN.kk?.modell.includes("kk_KZ") && STIMMEN.en?.modell.includes("en_"),
+    "Sprachausgabe: genau die freigegebenen Stimmen - de mls, en cori (high), kk issai (high)",
+    STIMMEN.de?.modell === "speaches-ai/piper-de_DE-mls-medium" &&
+      STIMMEN.en?.modell === "speaches-ai/piper-en_GB-cori-high" &&
+      STIMMEN.kk?.modell === "speaches-ai/piper-kk_KZ-issai-high",
   );
-  pruefe("Sprachausgabe: Tuerkisch bewusst ohne Stimme (Lizenz der einzigen Piper-Stimme: nicht kommerziell)", STIMMEN.tr === null);
+  pruefe("Sprachausgabe: Russisch ohne Stimme (alle vier Piper-Stimmen lizenzrechtlich ausgeschlossen)", STIMMEN.ru === null);
+  pruefe("Sprachausgabe: Tuerkisch ohne Stimme (einzige Piper-Stimme nicht kommerziell)", STIMMEN.tr === null);
+  // Von lessac abgeleitet (Blizzard-Forschungslizenz) oder nicht-kommerziell /
+  // ungeklaert - keine davon darf je wieder in der Tabelle auftauchen.
   pruefe(
-    "Sprachausgabe: keine Stimme mit ungeklaerter/nicht-kommerzieller Lizenz (irina, lessac, dfki)",
-    !Object.values(STIMMEN).some((s) => s && /irina|lessac|dfki/.test(s.modell)),
+    "Sprachausgabe: keine lessac-abgeleitete oder nicht-kommerzielle Stimme (thorsten, alba, denis, dmitri, irina, ruslan, lessac, dfki ...)",
+    !Object.values(STIMMEN).some((s) => s && /thorsten|alba|denis|dmitri|irina|ruslan|lessac|dfki|ryan|jenny|northern_english|hfc_|libritts|joe/.test(s.modell)),
   );
 }
 
