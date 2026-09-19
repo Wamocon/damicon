@@ -370,6 +370,7 @@ GitHub → Actions → "Deploy to Vercel" → Run workflow
 - Es wird nur das günstigste Modell eingesetzt (`claude-haiku-4-5`).
 - Der Chatverlauf ist je Nutzer getrennt (Tabelle `ki_chat_nachrichten`, RLS und Filter auf das eigene Profil). Auch Büro-Rollen sehen nur ihre eigenen Gespräche.
 - Rollen ohne das Recht `ki_assistent` (z. B. Buchhaltung, Pflücker, Erzeuger) sehen "KI fragen" nicht.
+- Spracheingabe und Sprachausgabe laufen selbst gehostet auf Caesar (GPU-Rechner im Büro-LAN) - Betrieb, Stimmen und Lizenzen: [docs/infra/caesar-sprachdienste.md](docs/infra/caesar-sprachdienste.md).
 
 ### 6. Domain-Verwaltung
 
@@ -793,6 +794,7 @@ GitHub → Actions → "Deploy to Vercel" → Run workflow
 - Only the cheapest model is used (`claude-haiku-4-5`).
 - Chat history is separate per user (table `ki_chat_nachrichten`, RLS plus a filter on the own profile). Even office roles only see their own conversations.
 - Roles without the `ki_assistent` permission (e.g. accounting, picker, producer) do not see "Ask AI".
+- Speech input and speech output are self-hosted on Caesar (the GPU machine in the office LAN) - operations, voices and licences: [docs/infra/caesar-sprachdienste.md](docs/infra/caesar-sprachdienste.md) (German).
 
 ### 6. Domain Management
 
