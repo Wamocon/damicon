@@ -28,6 +28,7 @@ Diese Sammlung traegt Quellen zusammen und haelt deren Kern fest. **Sie ist kein
 | `buecher-kaufliste.md` | Bestellhilfe mit Direktlinks, nach Kaufempfehlung sortiert |
 | `erfassungsplan.md` | Wie aus dem Register ein Korpus wird, mit Arbeitsteilung |
 | `korpus/` | Der geerntete Text selbst, je Abschnitt eine Datei mit Frontmatter |
+| `korpus/rechnungswesen/` | Die Rechnungslegungsakte, die mehrere Buecher der Kaufliste ersetzen: Kontenplan, Belegformulare, NSFO, Buchfuehrungs- und Steuerbuchfuehrungsregeln |
 | `korpus/korpus-index.yaml` | Auszaehlung des Korpus nach Stufe, Sprache und Bereich |
 
 ## Zwei Regeln, die nicht verhandelbar sind
