@@ -1161,12 +1161,6 @@
       "summary": "Müşteri ve döneme göre fiyat kademeleri, sürümlü ve geçerlilik tarihli.",
       "todo": "Sürümlenmiş fiyat listeleri, kademeli fiyatlar, geçerlilik dönemleri, müşteri ataması."
     },
-    "ki_assistent": {
-      "title": "Yapay zekâ asistanı",
-      "description": "Standart soruları yanıtlayan ve stok durumunu sistemden çeken sohbet - yalnızca onaylı kaynaklardan, her yanıt kayda geçer, tereddütte insana devreder. Sağlayıcılar (ör. Sokrates, Claude veya kendi sunucusunda barındırılan bir model) birbirinin yerine geçebilir, bir yönetici bunları API anahtarıyla bağlar.",
-      "summary": "Yalnızca onaylı kaynaklardan yanıtlar, her yanıtı kaydeder, tereddütte insana devreder.",
-      "todo": "Bilgi tabanı şimdilik yalnızca fiyat listesi - çeşit kataloğu ve müşteri SSS'si ek kaynak olarak henüz eksik."
-    },
     "aggregator": {
       "title": "Toplulaştırma / komşu işletmeler",
       "description": "Komşu işletmelerin bağlanması: alınan miktar fatura kalemine dönüşür, her alım partisi ayrı yürütülür ve teslim eden işletmeye kadar izlenebilir kalır.",

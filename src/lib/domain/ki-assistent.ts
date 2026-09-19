@@ -50,6 +50,10 @@ export interface KiChatNachrichtZeile {
   fallback: boolean;
   eskaliert: boolean;
   erstelltAm: string;
+  // Migration 20261026000000: welche Werkzeuge (src/lib/ai/tools.ts) fuer
+  // diese Antwort aufgerufen wurden - null ohne Werkzeugaufruf, z. B. beim
+  // 'openai_kompatibel'-Pfad, der (noch) keine Werkzeuge kennt.
+  werkzeugaufrufe: string[] | null;
 }
 
 // Fuer die Wissensgrundlage des Chats (Masterplan: "auf freigegebenem

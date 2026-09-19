@@ -668,12 +668,6 @@
       "summary": "Preisstaffeln je Kunde und Zeitraum, versioniert und mit Gültigkeitsdatum.",
       "todo": "Versionierte Preislisten, Staffelpreise, Gültigkeitszeiträume, Kundenzuordnung."
     },
-    "ki_assistent": {
-      "title": "KI-Assistent",
-      "description": "Chat, der Standardanfragen beantwortet und Verfügbarkeiten aus dem System zieht - ausschließlich aus freigegebenen Quellen, jede Antwort protokolliert, bei Unsicherheit Übergabe an einen Menschen. Anbieter (z. B. Sokrates, Claude oder ein selbst gehostetes Modell) sind austauschbar, ein Admin bindet sie per API-Key an.",
-      "summary": "Antwortet nur aus freigegebenen Quellen, protokolliert jede Antwort, eskaliert bei Unsicherheit an einen Menschen.",
-      "todo": "Wissensbasis bislang nur Preisliste - Sortenkatalog und Kunden-FAQ als weitere Quellen fehlen noch."
-    },
     "aggregator": {
       "title": "Aggregator / Nachbarbetriebe",
       "description": "Anschluss von Nachbarbetrieben: Zukaufmenge wird zur Rechnungsposition, jede Zukaufcharge wird getrennt geführt und bleibt auf den liefernden Betrieb zurückverfolgbar.",

@@ -668,12 +668,6 @@
       "summary": "Price tiers per client and period, versioned and with a validity date.",
       "todo": "Versioned price lists, tiered prices, validity periods, client assignment."
     },
-    "ki_assistent": {
-      "title": "AI assistant",
-      "description": "A chat that answers standard enquiries and pulls availability from the system - exclusively from released sources, every answer logged, handed over to a human on uncertainty. Providers (e.g. Sokrates, Claude, or a self-hosted model) are interchangeable, an admin connects them by API key.",
-      "summary": "Answers only from released sources, logs every answer, escalates to a human on uncertainty.",
-      "todo": "Knowledge base currently price list only - variety catalogue and client FAQ as further sources still missing."
-    },
     "aggregator": {
       "title": "Aggregator / neighbouring farms",
       "description": "Connecting neighbouring farms: the purchased volume becomes an invoice line, every buy-in batch is tracked separately and remains traceable to the supplying farm.",
