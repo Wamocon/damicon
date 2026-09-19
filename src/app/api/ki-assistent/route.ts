@@ -343,6 +343,13 @@ export async function POST(req: Request) {
     oberflaeche: modus === "agent" ? "steuern" : "lesen",
   });
 
+  // Die Datenbank-ID der Antwort steht schon VOR dem Stream fest und geht als
+  // Nachrichten-ID an den Client (generateMessageId unten), gespeichert wird
+  // die Zeile in onFinish unter genau dieser ID. So kennt der Client fuer
+  // jede Antwort ihre Zeile - die Sprachausgabe (api/ki-sprachausgabe) nimmt
+  // bewusst nur IDs gespeicherter Antworten, nie freien Text.
+  const antwortId = crypto.randomUUID();
+
   const result = streamText({
     model: anthropic(anbieter.modell),
     system: systemPrompt,
@@ -395,6 +402,10 @@ export async function POST(req: Request) {
             p_anbieter_name: anbieter.anzeige_name,
             p_fallback: false,
             p_werkzeugaufrufe: werkzeugaufrufe.length > 0 ? werkzeugaufrufe : undefined,
+            // Die vorab festgelegte ID (siehe antwortId oben) - der Client kennt
+            // sie bereits als Nachrichten-ID; die Sprachausgabe findet die
+            // Antwort darueber.
+            p_id: antwortId,
           });
           if (antwortFehler) {
             console.error("[damicon] KI-Antwort nicht gespeichert:", antwortFehler.message);
@@ -416,5 +427,5 @@ export async function POST(req: Request) {
     },
   });
 
-  return result.toUIMessageStreamResponse();
+  return result.toUIMessageStreamResponse({ generateMessageId: () => antwortId });
 }

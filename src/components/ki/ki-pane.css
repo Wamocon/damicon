@@ -1110,3 +1110,57 @@
   0% { opacity: 0.9; transform: scale(0.4); }
   100% { opacity: 0; transform: scale(2.6); }
 }
+
+/* --- Sprachausgabe (Vorlesen) ------------------------------------------------ */
+.ki-vorlesen {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+}
+.ki-vorlesen__knopf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--background);
+  color: var(--muted-foreground);
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.ki-vorlesen__knopf:hover:not(:disabled) {
+  color: var(--primary);
+  border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+}
+.ki-vorlesen__knopf--aktiv {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
+}
+.ki-vorlesen__hinweis {
+  font-size: 0.68rem;
+  color: var(--muted-foreground);
+}
+.ki-composer__optionen {
+  display: flex;
+  justify-content: flex-end;
+}
+.ki-vorlesen-schalter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.ki-vorlesen-schalter--an {
+  color: var(--primary);
+  border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+  background: color-mix(in oklab, var(--primary) 8%, transparent);
+}
