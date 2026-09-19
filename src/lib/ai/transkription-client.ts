@@ -26,6 +26,32 @@ export function transkriptionBasisUrl(): string {
   return process.env.KI_TRANSKRIPTION_URL ?? "http://192.168.178.64:8787/v1/audio/transcriptions";
 }
 
+// Cloudflare Access (Service Token) - dieselbe Regel wie
+// einbettungZugangsHeader() in einbettung-client.ts, bewusst als eigene
+// Kopie mit eigenen Variablen: Caesar bekommt einen eigenen Token, damit sich
+// die beiden Dienste getrennt sperren oder rotieren lassen. (Eine gemeinsame
+// Hilfsdatei ginge nur mit .ts-Importen, die der Test mit Node direkt nicht
+// aufloesen kann.)
+//
+// In Produktion zeigt KI_TRANSKRIPTION_URL auf den oeffentlichen Hostnamen des
+// Tunnels vor Caesar, inklusive Pfad /v1/audio/transcriptions. Beide Werte
+// gesetzt: Header mitschicken. Keiner: ohne Header (lokal im Buero-LAN).
+// Nur einer: Fehler, es wird gar keine Anfrage gesendet.
+export function transkriptionZugangsHeader():
+  | { ok: true; headers: Record<string, string> }
+  | { ok: false; grund: string } {
+  const id = process.env.KI_TRANSKRIPTION_ACCESS_ID?.trim();
+  const geheimnis = process.env.KI_TRANSKRIPTION_ACCESS_SECRET?.trim();
+  if (!id && !geheimnis) return { ok: true, headers: {} };
+  if (!id || !geheimnis) {
+    return {
+      ok: false,
+      grund: "zugang-unvollstaendig: KI_TRANSKRIPTION_ACCESS_ID und KI_TRANSKRIPTION_ACCESS_SECRET nur zusammen setzen",
+    };
+  }
+  return { ok: true, headers: { "CF-Access-Client-Id": id, "CF-Access-Client-Secret": geheimnis } };
+}
+
 // "whisper-1" ist der Wert, den der Dienst erwartet - am 18.09.2026 gegen
 // Caesar geprueft: mit whisper-1 kommt HTTP 200, das Feld ist laut
 // /openapi.json optional (string | null), ein unbekannter Wert quittiert
@@ -42,6 +68,9 @@ function sprache(): string | null {
 }
 
 export async function transkribiereAudio(datei: Blob, dateiname: string): Promise<TranskriptionAntwort> {
+  const zugang = transkriptionZugangsHeader();
+  if (!zugang.ok) return zugang;
+
   const koerper = new FormData();
   koerper.append("file", datei, dateiname);
   koerper.append("model", MODELL);
@@ -54,11 +83,23 @@ export async function transkribiereAudio(datei: Blob, dateiname: string): Promis
   try {
     const antwort = await fetch(transkriptionBasisUrl(), {
       method: "POST",
+      // Kein content-type setzen: fetch bildet ihn fuer FormData selbst,
+      // samt multipart-Grenze.
+      headers: zugang.headers,
       body: koerper,
       signal: controller.signal,
+      // Wie bei der Einbettung: eine Abweisung durch Cloudflare Access
+      // (Umleitung auf die Anmeldeseite) soll als solche sichtbar bleiben.
+      redirect: "manual",
     });
 
     if (!antwort.ok) {
+      if ([301, 302, 303, 307, 308, 401, 403].includes(antwort.status)) {
+        return {
+          ok: false,
+          grund: `zugang-abgewiesen (http-${antwort.status}) - Cloudflare Access? KI_TRANSKRIPTION_ACCESS_ID/-SECRET pruefen`,
+        };
+      }
       // Caesar antwortet bei einem unbekannten Modell mit einem nackten
       // "Internal Server Error" ohne JSON - deshalb hier kein .json().
       const auszug = await antwort.text().catch(() => "");

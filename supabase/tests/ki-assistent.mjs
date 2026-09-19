@@ -49,6 +49,7 @@ import {
   erzeugeEinbettung,
   ERWARTETE_EINBETTUNGS_DIMENSION,
 } from "../../src/lib/ai/einbettung-client.ts";
+import { transkribiereAudio, transkriptionZugangsHeader } from "../../src/lib/ai/transkription-client.ts";
 
 let bestanden = 0;
 let fehlgeschlagen = 0;
@@ -568,6 +569,61 @@ for (const [name, kaputteAntwort] of [
     globalThis.fetch = echtesFetch;
     delete process.env.KI_EINBETTUNG_ACCESS_ID;
     delete process.env.KI_EINBETTUNG_ACCESS_SECRET;
+  }
+}
+
+// --- Cloudflare Access vor Caesar (Transkription, eigener Service Token) ----
+{
+  const echtesFetch = globalThis.fetch;
+  const aufrufe = [];
+  let naechsteAntwort;
+  globalThis.fetch = async (url, init) => {
+    aufrufe.push({ url, init });
+    return naechsteAntwort();
+  };
+  const textAntwort = () => new Response(JSON.stringify({ text: "Hallo Buero" }), { status: 200 });
+  const audio = () => new Blob([new Uint8Array(16)], { type: "audio/wav" });
+
+  try {
+    delete process.env.KI_TRANSKRIPTION_ACCESS_ID;
+    delete process.env.KI_TRANSKRIPTION_ACCESS_SECRET;
+    const ohne = transkriptionZugangsHeader();
+    pruefe("Transkription/Access: ohne beide Werte keine Header (lokal im Buero-LAN)", ohne.ok && Object.keys(ohne.headers).length === 0);
+
+    process.env.KI_TRANSKRIPTION_ACCESS_SECRET = "nur-das-geheimnis";
+    aufrufe.length = 0;
+    naechsteAntwort = textAntwort;
+    const halb = await transkribiereAudio(audio(), "a.wav");
+    pruefe(
+      "Transkription/Access: nur ein Wert gesetzt ist ein Fehler und schickt nichts los",
+      !halb.ok && halb.grund.startsWith("zugang-unvollstaendig") && aufrufe.length === 0,
+    );
+
+    process.env.KI_TRANSKRIPTION_ACCESS_ID = "caesar.access";
+    process.env.KI_TRANSKRIPTION_ACCESS_SECRET = "caesar-geheim";
+    // Getrennte Tokens: die Variablen der Einbettung duerfen hier nichts bewirken.
+    process.env.KI_EINBETTUNG_ACCESS_ID = "falscher.token";
+    process.env.KI_EINBETTUNG_ACCESS_SECRET = "falsches-geheimnis";
+    aufrufe.length = 0;
+    naechsteAntwort = textAntwort;
+    const mit = await transkribiereAudio(audio(), "a.wav");
+    const gesendet = aufrufe[0]?.init;
+    pruefe(
+      "Transkription/Access: CF-Access-Client-Id/-Secret aus den eigenen Variablen gehen mit",
+      mit.ok && gesendet?.headers["CF-Access-Client-Id"] === "caesar.access" && gesendet?.headers["CF-Access-Client-Secret"] === "caesar-geheim",
+    );
+    pruefe("Transkription/Access: Audio bleibt multipart (FormData), Geheimnis nicht im Body", gesendet?.body instanceof FormData && ![...gesendet.body.values()].some((v) => v === "caesar-geheim"));
+    pruefe("Transkription/Access: kein eigener content-type (fetch setzt die multipart-Grenze)", !Object.keys(gesendet?.headers ?? {}).some((k) => k.toLowerCase() === "content-type"));
+    pruefe("Transkription/Access: Umleitungen werden nicht verfolgt (redirect: manual)", gesendet?.redirect === "manual");
+
+    for (const status of [302, 403]) {
+      naechsteAntwort = () => new Response("", { status });
+      const abgewiesen = await transkribiereAudio(audio(), "a.wav");
+      pruefe(`Transkription/Access: Status ${status} wird als zugang-abgewiesen gemeldet`, !abgewiesen.ok && abgewiesen.grund.startsWith("zugang-abgewiesen"));
+    }
+  } finally {
+    globalThis.fetch = echtesFetch;
+    for (const v of ["KI_TRANSKRIPTION_ACCESS_ID", "KI_TRANSKRIPTION_ACCESS_SECRET", "KI_EINBETTUNG_ACCESS_ID", "KI_EINBETTUNG_ACCESS_SECRET"]) delete process.env[v];
   }
 }
 
