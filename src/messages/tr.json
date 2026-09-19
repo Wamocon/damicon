@@ -889,7 +889,11 @@
     "privacyScopeTitle": "Kapsam",
     "privacyScopeText": "Prototip kişisel veri işlemez. Analiz amaçlı çerez konmaz. Tema seçimi (açık/koyu) ve demo rolü yalnızca tarayıcıda yerel olarak saklanır.",
     "residencyTitle": "Veri yerleşimi (planlanan işletim)",
-    "residencyText": "Sonraki gerçek işletim için 255-VIII sayılı Kazakistan Dijital Kanunu bazı veri ürünlerinin Kazakistan dışında saklanmasını sınırlar. QR, çevrimdışı senkron ve yapay zekâ mimarisi için barındırma yeri üretime geçmeden önce hukuken kontrol edilir."
+    "residencyText": "Sonraki gerçek işletim için 255-VIII sayılı Kazakistan Dijital Kanunu bazı veri ürünlerinin Kazakistan dışında saklanmasını sınırlar. QR, çevrimdışı senkron ve yapay zekâ mimarisi için barındırma yeri üretime geçmeden önce hukuken kontrol edilir.",
+    "voiceCreditsTitle": "Sesli yanıt: kullanılan sesler",
+    "voiceCreditsIntro": "Yapay zekâ asistanı yanıtları sesli okuyabilir. Sesler, aşağıdaki veri kümeleri üzerinde eğitilmiş Piper konuşma modelleridir (rhasspy/piper-voices); veri kümeleri bunun için hazırlanmış ve değiştirilmiştir.",
+    "voiceKazakh": "Kazakça ses",
+    "voiceGerman": "Almanca ses"
   },
   "meta": {
     "title": "Damicon - ahududu plantasyonu için işletme yönetimi",
