@@ -10,15 +10,18 @@
 //   * alle Sprachdateien haben denselben Schluesselsatz
 //   * die Markdown-Zerlegung des Chats liefert beim Streamen dasselbe wie ein Gesamtdurchlauf
 //   * der Systemprompt verbietet dem Agenten die vorschnelle Ablehnung
+//   * abgelaufene Sitzung wird als solche gemeldet, Abmelden beendet nur die eigene Sitzung,
+//     die Rollenfreigabe des KI-Assistenten stimmt
 // Aufruf: npm run test:agent (laeuft ueber tsx, damit die @/-Pfade aufloesen).
 
 import { readFileSync } from "node:fs";
 import { AKTIONS_NAMEN } from "@/lib/ai/aktionen-meta";
 import { CLIENT_WERKZEUG_NAMEN } from "@/lib/ai/client-werkzeuge-meta";
+import { chatFehlerArt } from "@/lib/ai/chat-fehler";
 import { baueWerkzeuge } from "@/lib/ai/tools";
 import { zerlege, type Zerlegung } from "@/lib/markdown-bloecke";
 import { modules } from "@/lib/modules";
-import { roles } from "@/lib/rbac";
+import { hasPermission, roles } from "@/lib/rbac";
 
 const sprachen = ["de", "en", "ru", "kk", "tr"] as const;
 type Baum = { [k: string]: string | Baum };
@@ -147,6 +150,35 @@ pruefe(
 pruefe(
   "Rollen-Prompt: fehlende Berechtigung nur mit Beleg aus der Anwendung behaupten",
   routeQuelle.includes("keine fehlende Berechtigung ohne Beleg"),
+);
+
+// --- 8. Sitzung, Fehlermeldungen, Rollenfreigabe -----------------------------
+// Ein abgelaufene Sitzung darf im Chat nicht wie ein Ausfall der KI aussehen.
+pruefe("Chat-Fehler: 'nicht angemeldet' (401) wird als abgelaufene Sitzung erkannt", chatFehlerArt(new Error("nicht angemeldet")) === "sitzung");
+pruefe("Chat-Fehler: 'keine berechtigung' (403) wird als Rollenproblem erkannt", chatFehlerArt(new Error("keine berechtigung")) === "berechtigung");
+pruefe(
+  "Chat-Fehler: alles andere bleibt die allgemeine Meldung",
+  chatFehlerArt(new Error("kein-anbieter")) === "allgemein" && chatFehlerArt(new Error("Failed to fetch")) === "allgemein" && chatFehlerArt(null) === null,
+);
+
+// Abmelden beendet nur die eigene Sitzung: der Standard ("global") wirft bei
+// geteilten Konten alle anderen Nutzer hinaus.
+const abmeldenQuelle = readFileSync("src/app/[locale]/login/actions.ts", "utf8");
+pruefe("Abmelden beendet nur die eigene Sitzung (scope local)", abmeldenQuelle.includes('signOut({ scope: "local" })'));
+
+// Rollenfreigabe des KI-Assistenten
+const buchhaltungWerkzeuge = Object.keys(baueWerkzeuge("buchhaltung"));
+pruefe("Buchhaltung darf den KI-Assistenten nutzen", hasPermission("buchhaltung", "ki_assistent", "create"));
+pruefe(
+  "Buchhaltung bekommt Steuer- und Lohnwerkzeuge, aber keine Feldaktionen",
+  ["mwstStatusAbrufen", "risikoRadarAbrufen", "lohnPeriodeBerechnen"].every((n) => buchhaltungWerkzeuge.includes(n)) &&
+    !buchhaltungWerkzeuge.includes("kuehlmessungErfassen") &&
+    !buchhaltungWerkzeuge.includes("aufgabeAnlegen"),
+  buchhaltungWerkzeuge.join(", "),
+);
+pruefe(
+  "Pfluecker und Erzeuger haben (noch) keinen KI-Assistenten",
+  !hasPermission("picker", "ki_assistent", "create") && !hasPermission("erzeuger", "ki_assistent", "create"),
 );
 
 console.log(`\nPruefungen: ${gesamt}   bestanden: ${gesamt - fehler}   fehlgeschlagen: ${fehler}`);

@@ -249,6 +249,11 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...crud("reklamationen"),
     `reklamationen:approve`,
     ...view("aggregator"),
+    // KI-Assistent: MwSt, ESUTD, Compliance und Lohn sind das Fachgebiet der
+    // Buchhaltung. Die KI sieht dabei nie mehr als die Rolle selbst (Werkzeuge
+    // und RLS folgen den Rechten oben).
+    ...view("ki_assistent"),
+    "ki_assistent:create",
     // Anforderung 4.10: Buchhaltung sitzt im Buero wie betriebsleitung, faellt
     // unter dieselbe Pflichtschulungs-Zielgruppe (has_office_access()).
     ...view("schulungen"),

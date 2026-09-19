@@ -1564,6 +1564,11 @@
       "antwort": "The AI assistant is not reachable right now. Please try again later or contact our office.",
       "badge": "Fallback answer"
     },
+    "fehler": {
+      "sitzung": "Your session has expired or was ended. Please sign in again.",
+      "anmelden": "Sign in again",
+      "berechtigung": "Your role is not allowed to use the AI assistant."
+    },
     "anbieterVerwaltung": {
       "titel": "Manage AI providers",
       "lead": "Visible to administrators only. Several providers can be configured; the one marked as default is always the active one.",

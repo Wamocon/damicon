@@ -1564,6 +1564,11 @@
       "antwort": "Der KI-Assistent ist gerade nicht erreichbar. Bitte versuchen Sie es später erneut oder wenden Sie sich an unser Büro.",
       "badge": "Ausweichantwort"
     },
+    "fehler": {
+      "sitzung": "Ihre Sitzung ist abgelaufen oder wurde beendet. Bitte melden Sie sich erneut an.",
+      "anmelden": "Erneut anmelden",
+      "berechtigung": "Ihre Rolle darf den KI-Assistenten nicht nutzen."
+    },
     "anbieterVerwaltung": {
       "titel": "KI-Anbieter verwalten",
       "lead": "Nur für Administration sichtbar. Mehrere Anbieter lassen sich anlegen, aktiv ist immer genau der als Standard markierte.",
