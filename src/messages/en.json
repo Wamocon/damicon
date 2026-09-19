@@ -1618,6 +1618,7 @@
       "kuehlketteAbrufen": "Checked cold chain",
       "risikoRadarAbrufen": "Checked risk radar",
       "oeffneBereich": "Opened {bereich}",
+      "wissenSuchen": "Knowledge base searched",
       "unbekannt": "Step completed",
       "datenmodellErkunden": "Explored data model",
       "datenLesen": "Read {tabelle}",
@@ -1649,6 +1650,26 @@
       "berechtigung": "Your role is not allowed to use the AI assistant.",
       "zuLang": "This conversation has become too long.",
       "neuBeginnen": "Start over"
+    },
+    "quellen": {
+      "titel": "Sources",
+      "stufe": {
+        "recht": "Primary law",
+        "untergesetzlich": "Subordinate regulation",
+        "erlaeuterung": "Official explanation",
+        "fachquelle": "Secondary source",
+        "presse": "Press",
+        "unbekannt": "Source"
+      },
+      "gueltigAb": "valid from {datum}",
+      "stand": "as of {datum}",
+      "ueberholt": "This source is outdated.",
+      "auskunft": "Third-party information, not a legal source. Check the primary source.",
+      "mehr": "Show more",
+      "weniger": "Show less",
+      "original": "Open original",
+      "intern": "Internal research",
+      "unbelegt": "There is no source for this citation."
     },
     "anbieterVerwaltung": {
       "titel": "Manage AI providers",
@@ -1690,6 +1711,7 @@
       "kuehlketteAbrufen": "Checking cold chain …",
       "risikoRadarAbrufen": "Scanning risk radar …",
       "oeffneBereich": "Opening {bereich} …",
+      "wissenSuchen": "Searching knowledge base …",
       "unbekannt": "Working …",
       "datenmodellErkunden": "Exploring the data model …",
       "datenLesen": "Reading {tabelle} …",
@@ -1706,6 +1728,7 @@
       "kuehlketteAbrufen": "Cold chain",
       "risikoRadarAbrufen": "Risk radar",
       "oeffneBereich": "{bereich}",
+      "wissenSuchen": "Knowledge base",
       "unbekannt": "Source",
       "datenmodellErkunden": "Data model",
       "datenLesen": "{tabelle}",

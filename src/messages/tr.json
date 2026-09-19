@@ -630,6 +630,7 @@
       "kuehlketteAbrufen": "Soğuk zincir kontrol edildi",
       "risikoRadarAbrufen": "Risk radarı kontrol edildi",
       "oeffneBereich": "{bereich} açıldı",
+      "wissenSuchen": "Bilgi tabanı tarandı",
       "unbekannt": "Adım tamamlandı",
       "datenmodellErkunden": "Veri modeli keşfedildi",
       "datenLesen": "{tabelle} okundu",
@@ -661,6 +662,26 @@
       "berechtigung": "Rolünüz yapay zekâ asistanını kullanamaz.",
       "zuLang": "Bu konuşma çok uzadı.",
       "neuBeginnen": "Yeniden başla"
+    },
+    "quellen": {
+      "titel": "Kaynaklar",
+      "stufe": {
+        "recht": "Birincil hukuk",
+        "untergesetzlich": "İkincil düzenleme",
+        "erlaeuterung": "Resmi açıklama",
+        "fachquelle": "Uzman kaynağı",
+        "presse": "Basın",
+        "unbekannt": "Kaynak"
+      },
+      "gueltigAb": "{datum} tarihinden itibaren geçerli",
+      "stand": "{datum} itibarıyla",
+      "ueberholt": "Bu kaynak güncel değil.",
+      "auskunft": "Üçüncü tarafların bilgisi, hukuki kaynak değildir. Birincil kaynağı kontrol edin.",
+      "mehr": "Daha fazla göster",
+      "weniger": "Daha az göster",
+      "original": "Orijinali aç",
+      "intern": "İç araştırma",
+      "unbelegt": "Bu atıf için kaynak yok."
     },
     "anbieterVerwaltung": {
       "titel": "Yapay zekâ sağlayıcılarını yönet",
@@ -702,6 +723,7 @@
       "kuehlketteAbrufen": "Soğuk zincir kontrol ediliyor …",
       "risikoRadarAbrufen": "Risk radarı taranıyor …",
       "oeffneBereich": "{bereich} açılıyor …",
+      "wissenSuchen": "Bilgi tabanında arıyorum …",
       "unbekannt": "Çalışıyor …",
       "datenmodellErkunden": "Veri modeli keşfediliyor …",
       "datenLesen": "{tabelle} okunuyor …",
@@ -718,6 +740,7 @@
       "kuehlketteAbrufen": "Soğuk zincir",
       "risikoRadarAbrufen": "Risk radarı",
       "oeffneBereich": "{bereich}",
+      "wissenSuchen": "Bilgi tabanı",
       "unbekannt": "Kaynak",
       "datenmodellErkunden": "Veri modeli",
       "datenLesen": "{tabelle}",

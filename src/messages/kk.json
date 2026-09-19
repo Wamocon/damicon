@@ -630,6 +630,7 @@
       "kuehlketteAbrufen": "Салқын тізбек тексерілді",
       "risikoRadarAbrufen": "Тәуекел радары тексерілді",
       "oeffneBereich": "Ашылды: {bereich}",
+      "wissenSuchen": "Білім қоры қаралды",
       "unbekannt": "Қадам аяқталды",
       "datenmodellErkunden": "Деректер моделі зерттелді",
       "datenLesen": "{tabelle} оқылды",
@@ -661,6 +662,26 @@
       "berechtigung": "Сіздің рөліңізге ЖИ көмекшісін пайдалануға рұқсат жоқ.",
       "zuLang": "Бұл сұхбат тым ұзарып кетті.",
       "neuBeginnen": "Қайта бастау"
+    },
+    "quellen": {
+      "titel": "Дереккөздер",
+      "stufe": {
+        "recht": "Бастапқы құқық",
+        "untergesetzlich": "Заңға тәуелді акт",
+        "erlaeuterung": "Ресми түсіндірме",
+        "fachquelle": "Мамандық дереккөз",
+        "presse": "Баспасөз",
+        "unbekannt": "Дереккөз"
+      },
+      "gueltigAb": "{datum} бастап күшінде",
+      "stand": "{datum} жағдайы бойынша",
+      "ueberholt": "Бұл дереккөз ескірген.",
+      "auskunft": "Үшінші тұлғалардың мәліметі, құқықтық дереккөз емес. Бастапқы дереккөзді тексеріңіз.",
+      "mehr": "Көбірек көрсету",
+      "weniger": "Азырақ көрсету",
+      "original": "Түпнұсқаны ашу",
+      "intern": "Ішкі зерттеу",
+      "unbelegt": "Бұл сілтемеге дереккөз жоқ."
     },
     "anbieterVerwaltung": {
       "titel": "ЖИ-провайдерлерін басқару",
@@ -702,6 +723,7 @@
       "kuehlketteAbrufen": "Салқын тізбекті тексеріп жатырмын …",
       "risikoRadarAbrufen": "Тәуекел радарын қарап жатырмын …",
       "oeffneBereich": "Ашып жатырмын: {bereich} …",
+      "wissenSuchen": "Білім қорынан іздеудемін …",
       "unbekannt": "Жұмыс істеп жатырмын …",
       "datenmodellErkunden": "Деректер моделін зерттеп жатырмын …",
       "datenLesen": "{tabelle} оқып жатырмын …",
@@ -718,6 +740,7 @@
       "kuehlketteAbrufen": "Салқын тізбек",
       "risikoRadarAbrufen": "Тәуекел радары",
       "oeffneBereich": "{bereich}",
+      "wissenSuchen": "Білім қоры",
       "unbekannt": "Дереккөз",
       "datenmodellErkunden": "Деректер моделі",
       "datenLesen": "{tabelle}",
