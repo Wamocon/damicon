@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useState, useSyncExternalStore, type CSSProperties } from "react";
 import { useTranslations } from "next-intl";
 import { useHaustierAktionen, useHaustierStatus } from "@/components/haustier/haustier-kontext";
-import { Himbi } from "@/components/haustier/himbi";
+import { Himbi, TRACHTEN } from "@/components/haustier/himbi";
 import { leseBewegung, schreibeBewegung, VORSCHAU_ZUSTAENDE, type HaustierZustand, type Stimmung } from "@/lib/haustier";
 
 // Die Einstellungen zum Begleiter, im Zahnradbereich des Assistenten (ki-pane.tsx).
@@ -31,8 +31,8 @@ const serverWert = (): boolean => true;
 
 export function HaustierEinstellung() {
   const t = useTranslations("haustier");
-  const { an } = useHaustierStatus();
-  const { setAn } = useHaustierAktionen();
+  const { an, inventar } = useHaustierStatus();
+  const { setAn, setInventar } = useHaustierAktionen();
 
   const bewegung = useSyncExternalStore(abonniere, leseBewegung, serverWert);
   const [zustand, setZustand] = useState<HaustierZustand>("ruhe");
@@ -80,7 +80,7 @@ export function HaustierEinstellung() {
 
       <div className="hb-vorschau">
         <div className="hb-vorschau__buehne" data-bewegung={bewegung}>
-          <Himbi zustand={zustand} stimmung={stimmung} groesse={92} />
+          <Himbi zustand={zustand} stimmung={stimmung} tracht={inventar.tracht} brille={inventar.brille} groesse={92} />
         </div>
         <div className="hb-vorschau__wahl">
           <p className="hb-vorschau__titel">{t("einstellung.zustandTitel")}</p>
@@ -110,6 +110,35 @@ export function HaustierEinstellung() {
                 {t(`einstellung.stimmung.${s}`)}
               </button>
             ))}
+          </div>
+          <p className="hb-vorschau__titel">{t("einstellung.trachtTitel")}</p>
+          <div className="hb-vorschau__knoepfe">
+            {TRACHTEN.map((tr, i) => (
+              <button
+                key={tr.name}
+                type="button"
+                aria-pressed={inventar.tracht === i}
+                onClick={() => setInventar({ ...inventar, tracht: i as 0 | 1 | 2 })}
+                className="hb-chip hb-chip--tracht"
+                style={{ "--hb-chip-farbe": tr.chapanHell } as CSSProperties}
+              >
+                <span className="hb-chip__farbe" aria-hidden />
+                {t(`einstellung.tracht.${tr.name}`)}
+              </button>
+            ))}
+          </div>
+          <div className="ki-einstellung__kopf hb-einstellung__zeile">
+            <p className="hb-vorschau__titel hb-vorschau__titel--inline">{t("einstellung.brilleTitel")}</p>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={inventar.brille}
+              aria-label={t("einstellung.brilleTitel")}
+              onClick={() => setInventar({ ...inventar, brille: !inventar.brille })}
+              className="ki-schalter"
+            >
+              <span className="ki-schalter__knopf" />
+            </button>
           </div>
           <p className="hb-vorschau__hinweis">{t("einstellung.vorschauHinweis")}</p>
         </div>

@@ -1635,12 +1635,19 @@
       "bewegungText": "Aus heisst: DamiAI bleibt da, steht aber still. Wer das Betriebssystem schon auf weniger Bewegung gestellt hat, braucht diesen Schalter nicht.",
       "zustandTitel": "Zustand",
       "stimmungTitel": "Miene",
+      "trachtTitel": "Tracht",
+      "brilleTitel": "Spassbrille",
       "vorschauHinweis": "Nur eine Vorschau - der Begleiter in der Ecke bleibt davon unberührt.",
       "stimmung": {
         "neutral": "Auskunft",
         "gut": "Erfolg",
         "warnung": "Befund",
         "frage": "Rückfrage"
+      },
+      "tracht": {
+        "steppenblau": "Steppenblau",
+        "granat": "Granat",
+        "jade": "Jade"
       }
     },
     "tour": {

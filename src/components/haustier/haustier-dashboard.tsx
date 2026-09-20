@@ -42,7 +42,7 @@ export function HaustierDashboard() {
   const t = useTranslations("haustier");
   const moduleT = useTranslations("modules");
   const { verfuegbar, offen, umschalten, setOffen, darstellung, oeffneBuehne } = useKiPane();
-  const { phase, text, an, weg, stimmung } = useHaustierStatus();
+  const { phase, text, an, weg, stimmung, inventar } = useHaustierStatus();
   const { stelleFrage, schickeWeg, holeZurueck } = useHaustierAktionen();
   const pfad = usePathname();
   const { role } = usePersona();
@@ -351,6 +351,7 @@ export function HaustierDashboard() {
         paneOffen={offen}
         label={label}
         aufAbzeichen={() => setAbzeichenOffen(true)}
+        inventar={inventar}
         onKlick={() => {
           setFertig(false);
           setFertigBlase(false);

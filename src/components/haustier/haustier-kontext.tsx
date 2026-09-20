@@ -2,7 +2,16 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
-import { leseBewegung, leseSichtbarkeit, type AgentPhase, type Sichtbarkeit, type Stimmung } from "@/lib/haustier";
+import {
+  leseBewegung,
+  leseInventar,
+  leseSichtbarkeit,
+  schreibeInventar,
+  type AgentPhase,
+  type Inventar,
+  type Sichtbarkeit,
+  type Stimmung,
+} from "@/lib/haustier";
 
 // Gemeinsamer Stand zwischen Chat und Himbi. Bewusst in DREI Kontexten statt einem:
 // - Status (Phase, Text, an/aus): liest nur Himbi. Aendert sich mit jedem Werkzeugschritt.
@@ -45,6 +54,31 @@ function abonniere(b: () => void): () => void {
 }
 const serverWert = (): Sichtbarkeit => "an";
 
+// Die Tracht liegt ebenso im Browser-Speicher, nach demselben Muster: Serverwert beim
+// Hydrieren, echter Wert danach. Einstellung (haustier-einstellung.tsx) und Figur
+// (haustier-dashboard.tsx) teilen sich so denselben Stand, ohne dass eine der beiden
+// die andere kennen muss.
+let inventarSitzungsWert: Inventar | null = null;
+const inventarBeobachter = new Set<() => void>();
+function leseInventarSpeicher(): Inventar {
+  if (inventarSitzungsWert) return inventarSitzungsWert;
+  return leseInventar();
+}
+function schreibeInventarSpeicher(neu: Inventar): void {
+  inventarSitzungsWert = neu;
+  schreibeInventar(neu);
+  inventarBeobachter.forEach((b) => b());
+}
+function abonniereInventar(b: () => void): () => void {
+  inventarBeobachter.add(b);
+  window.addEventListener("storage", b);
+  return () => {
+    inventarBeobachter.delete(b);
+    window.removeEventListener("storage", b);
+  };
+}
+const serverInventarWert = (): Inventar => ({ tracht: 0, brille: true });
+
 interface Status {
   phase: AgentPhase;
   /** Kurzer Text zur Phase, z. B. "Pruefe MwSt-Status ..." */
@@ -55,6 +89,8 @@ interface Status {
   weg: boolean;
   /** Wie die letzte fertige Antwort geklungen hat. Faerbt nur das Gesicht. */
   stimmung: Stimmung;
+  /** Tracht und Brille - beides in den Einstellungen wechselbar. */
+  inventar: Inventar;
 }
 interface Aktionen {
   melde: (phase: AgentPhase, text: string, stimmung?: Stimmung) => void;
@@ -64,19 +100,28 @@ interface Aktionen {
   /** Wegschicken (Halten): Himbi geht, die Spitze bleibt zum Zurueckholen. */
   schickeWeg: () => void;
   holeZurueck: () => void;
+  setInventar: (inventar: Inventar) => void;
 }
 export interface Vorgabe {
   id: number;
   text: string;
 }
 
-const StatusKontext = createContext<Status>({ phase: "ruhe", text: "", an: true, weg: false, stimmung: "neutral" });
+const StatusKontext = createContext<Status>({
+  phase: "ruhe",
+  text: "",
+  an: true,
+  weg: false,
+  stimmung: "neutral",
+  inventar: { tracht: 0, brille: true },
+});
 const AktionenKontext = createContext<Aktionen>({
   melde: () => {},
   stelleFrage: () => {},
   setAn: () => {},
   schickeWeg: () => {},
   holeZurueck: () => {},
+  setInventar: () => {},
 });
 const VorgabeKontext = createContext<Vorgabe | null>(null);
 
@@ -96,6 +141,7 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
     document.documentElement.toggleAttribute("data-hb-still", !leseBewegung());
   }, []);
   const sichtbarkeit = useSyncExternalStore(abonniere, leseSpeicher, serverWert);
+  const inventar = useSyncExternalStore(abonniereInventar, leseInventarSpeicher, serverInventarWert);
   const [vorgabe, setVorgabe] = useState<Vorgabe | null>(null);
 
   const melde = useCallback((neuePhase: AgentPhase, neuerText: string, neueStimmung: Stimmung = "neutral") => {
@@ -107,6 +153,7 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
   const setAn = useCallback((an: boolean) => schreibeSpeicher(an ? "an" : "aus"), []);
   const schickeWeg = useCallback(() => schreibeSpeicher("weg"), []);
   const holeZurueck = useCallback(() => schreibeSpeicher("an"), []);
+  const setInventar = useCallback((neu: Inventar) => schreibeInventarSpeicher(neu), []);
 
   const stelleFrage = useCallback(
     (frage: string) => {
@@ -117,12 +164,12 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
   );
 
   const status = useMemo(
-    () => ({ phase, text, an: sichtbarkeit === "an", weg: sichtbarkeit === "weg", stimmung }),
-    [phase, text, sichtbarkeit, stimmung],
+    () => ({ phase, text, an: sichtbarkeit === "an", weg: sichtbarkeit === "weg", stimmung, inventar }),
+    [phase, text, sichtbarkeit, stimmung, inventar],
   );
   const aktionen = useMemo(
-    () => ({ melde, stelleFrage, setAn, schickeWeg, holeZurueck }),
-    [melde, stelleFrage, setAn, schickeWeg, holeZurueck],
+    () => ({ melde, stelleFrage, setAn, schickeWeg, holeZurueck, setInventar }),
+    [melde, stelleFrage, setAn, schickeWeg, holeZurueck, setInventar],
   );
 
   return (

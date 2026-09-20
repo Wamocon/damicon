@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { Himbi } from "@/components/haustier/himbi";
 import { Wellen } from "@/components/haustier/wellen";
-import type { HaustierZustand, Stimmung } from "@/lib/haustier";
+import type { HaustierZustand, Inventar, Stimmung } from "@/lib/haustier";
 import "@/components/haustier/haustier.css";
 
 // Die schwebende Huelle um Himbi: Position (unten rechts, frei verschiebbar), Augen, Schlaf,
@@ -68,6 +68,8 @@ export interface HaustierHuelleProps {
   weg?: WegTexte;
   /** Gesetzt: die drei Sterne auf dem Chapan werden klickbar - alle drei rufen sie auf (himbi.tsx). */
   aufAbzeichen?: () => void;
+  /** Welche Tracht (0 bis 2, himbi.tsx TRACHTEN) und ob die Spassbrille sitzt. */
+  inventar?: Inventar;
 }
 
 export interface WegTexte {
@@ -93,6 +95,7 @@ export function HaustierHuelle({
   huepf = 0,
   weg,
   aufAbzeichen,
+  inventar,
 }: HaustierHuelleProps) {
   const wurzel = useRef<HTMLDivElement>(null);
   const griff = useRef<HTMLDivElement>(null);
@@ -500,7 +503,13 @@ export function HaustierHuelle({
               </span>
             ) : null}
             <div className="hb" ref={koerper}>
-              <Himbi zustand={anzeige} stimmung={stimmung} aufAbzeichen={aufAbzeichen} />
+              <Himbi
+                zustand={anzeige}
+                stimmung={stimmung}
+                aufAbzeichen={aufAbzeichen}
+                tracht={inventar?.tracht}
+                brille={inventar?.brille}
+              />
             </div>
             {anzeige === "freigabe" ? <span className="hb-abzeichen">!</span> : null}
             {zustand === "fertig" ? <span className="hb-abzeichen hb-abzeichen--fertig">✓</span> : null}

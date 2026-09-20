@@ -73,6 +73,16 @@ function stern(cx: number, cy: number, r: number): string {
 /** x-Position der drei Sterne auf dem Chapan - alle drei tun dasselbe. */
 const STERN_X = [34, 48, 62];
 
+/** Drei Trachten: Chapan, Aermel, Kappe und Stiefel teilen sich eine Farbe (dieselbe
+ *  Gradient-ID), darum reicht ein Farbpaar je Tracht fuer den ganzen Auftritt. Die
+ *  goldene Borte (Koschkar-Muiis, Saum) bleibt in jeder Tracht gleich - das ist der Teil,
+ *  an dem man die Kleidung als kasachisch erkennt, nicht die Grundfarbe. */
+export const TRACHTEN = [
+  { name: "steppenblau", chapanHell: "#2a90b8", chapanDunkel: "#0f4d68", stiefelHell: "#23789a", stiefelDunkel: "#0d465e" },
+  { name: "granat", chapanHell: "#c9435a", chapanDunkel: "#6e1626", stiefelHell: "#a8324a", stiefelDunkel: "#5e1220" },
+  { name: "jade", chapanHell: "#22a06f", chapanDunkel: "#0c5c40", stiefelHell: "#1c8a63", stiefelDunkel: "#0a4f38" },
+] as const;
+
 /** Koschkar-Muiis, das kasachische Widderhorn: zwei gegenlaeufige Spiralen. Auf eine
  *  Strichzeichnung reduziert, damit das Muster auch bei 64 px noch als Muster liest
  *  und nicht als Fleck. */
@@ -122,17 +132,24 @@ export function Himbi({
   zustand,
   stimmung = "neutral",
   groesse = 88,
+  tracht = 0,
+  brille = true,
   aufAbzeichen,
 }: {
   zustand: HaustierZustand;
   /** Faerbt nur Brauen, Wangen und eine kurze Reaktion - der Zustand bleibt der Zustand. */
   stimmung?: Stimmung;
   groesse?: number;
+  /** Welche der drei Trachten (TRACHTEN) Chapan, Aermel, Kappe und Stiefel tragen. */
+  tracht?: 0 | 1 | 2;
+  /** Die gelbe Spassbrille - abschaltbar in den Einstellungen. */
+  brille?: boolean;
   /** Gesetzt: die drei Sterne auf dem Chapan werden klickbar - alle drei rufen sie auf.
    *  Ohne sie bleiben die Sterne unsichtbar - ein Knopf ohne Wirkung waere nur Attrappe. */
   aufAbzeichen?: () => void;
 }) {
   const id = useId().replace(/:/g, "");
+  const t = TRACHTEN[tracht];
   return (
     <svg
       className="hb-svg"
@@ -159,12 +176,12 @@ export function Himbi({
           <stop offset="1" stopColor="#fff" stopOpacity="0" />
         </radialGradient>
         <linearGradient id={`${id}-chapan`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#2a90b8" />
-          <stop offset="1" stopColor="#0f4d68" />
+          <stop offset="0" stopColor={t.chapanHell} />
+          <stop offset="1" stopColor={t.chapanDunkel} />
         </linearGradient>
         <linearGradient id={`${id}-stiefel`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#23789a" />
-          <stop offset="1" stopColor="#0d465e" />
+          <stop offset="0" stopColor={t.stiefelHell} />
+          <stop offset="1" stopColor={t.stiefelDunkel} />
         </linearGradient>
         <clipPath id={`${id}-chapan-clip`}>
           <path d={CHAPAN} />
@@ -287,16 +304,18 @@ export function Himbi({
           </g>
         ))}
 
-        {/* Gelbe Spassbrille: rein dekorativ, uebersteht alle Zustaende und Stimmungen unveraendert */}
-        <g className="hb-brille">
-          <path d="M40 66Q48 62 56 66" fill="none" stroke="#ffce00" strokeWidth="3.2" strokeLinecap="round" />
-          {[36, 60].map((cx) => (
-            <g key={cx}>
-              <circle cx={cx} cy="68" r="11" fill="#ffe680" fillOpacity="0.4" stroke="#ffce00" strokeWidth="3" />
-              <path d={`M${cx - 5} 62Q${cx} 59 ${cx + 5} 62`} fill="none" stroke="#fff" strokeOpacity="0.75" strokeWidth="1.6" strokeLinecap="round" />
-            </g>
-          ))}
-        </g>
+        {/* Gelbe Spassbrille: rein dekorativ, abschaltbar in den Einstellungen */}
+        {brille ? (
+          <g className="hb-brille">
+            <path d="M40 66Q48 62 56 66" fill="none" stroke="#ffce00" strokeWidth="3.2" strokeLinecap="round" />
+            {[36, 60].map((cx) => (
+              <g key={cx}>
+                <circle cx={cx} cy="68" r="11" fill="#ffe680" fillOpacity="0.4" stroke="#ffce00" strokeWidth="3" />
+                <path d={`M${cx - 5} 62Q${cx} 59 ${cx + 5} 62`} fill="none" stroke="#fff" strokeOpacity="0.75" strokeWidth="1.6" strokeLinecap="round" />
+              </g>
+            ))}
+          </g>
+        ) : null}
 
         {/* Traenen: nur beim Abschied */}
         <path className="hb-traene hb-traene--l" d="M29.5 76C27.2 80.2 27.6 83.4 29.5 84.6C31.4 83.4 31.8 80.2 29.5 76Z" fill="#9adcf7" stroke="#e8f8ff" strokeWidth="0.8" />

@@ -81,6 +81,39 @@ export function schreibeBewegung(an: boolean): void {
   document.documentElement.toggleAttribute("data-hb-still", !an);
 }
 
+export interface Inventar {
+  /** Welche der drei Trachten (himbi.tsx, TRACHTEN) Chapan, Aermel, Kappe und Stiefel tragen. */
+  tracht: 0 | 1 | 2;
+  /** Die gelbe Spassbrille. */
+  brille: boolean;
+}
+
+const INVENTAR_SCHLUESSEL = "damicon-haustier-inventar";
+const INVENTAR_STANDARD: Inventar = { tracht: 0, brille: true };
+
+/** Liest die gespeicherte Tracht. Alles Unbekannte (leer, kaputt, alter Wert) heisst: die
+ *  Standardtracht - dieselbe, mit der Himbi schon immer auftrat. */
+export function leseInventar(): Inventar {
+  try {
+    const roh = window.localStorage.getItem(INVENTAR_SCHLUESSEL);
+    if (!roh) return INVENTAR_STANDARD;
+    const wert = JSON.parse(roh) as Partial<Inventar>;
+    const tracht = wert.tracht === 1 || wert.tracht === 2 ? wert.tracht : 0;
+    const brille = typeof wert.brille === "boolean" ? wert.brille : true;
+    return { tracht, brille };
+  } catch {
+    return INVENTAR_STANDARD;
+  }
+}
+
+export function schreibeInventar(inventar: Inventar): void {
+  try {
+    window.localStorage.setItem(INVENTAR_SCHLUESSEL, JSON.stringify(inventar));
+  } catch {
+    // gesperrter Speicher: die Wahl gilt nur fuer diese Sitzung
+  }
+}
+
 /** an = Himbi ist da. weg = weggeschickt, nur die Blattspitze schaut am Rand heraus (ein Klick holt sie
  *  zurueck). aus = in den Einstellungen ganz abgeschaltet, auch die Spitze bleibt weg. */
 export type Sichtbarkeit = "an" | "weg" | "aus";

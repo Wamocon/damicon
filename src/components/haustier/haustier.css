@@ -1675,6 +1675,26 @@ html[data-hb-still] .hb-versteck__innen {
   outline: 2px solid var(--hb-himbeere, #d81b60);
   outline-offset: 2px;
 }
+/* Tracht-Wahl: der Farbklecks zeigt die Chapan-Farbe, bevor man draufklickt. */
+.hb-chip--tracht {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.hb-chip__farbe {
+  display: block;
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: var(--hb-chip-farbe, currentColor);
+}
+.hb-chip--tracht[aria-pressed="true"] {
+  border-color: var(--hb-chip-farbe, var(--hb-himbeere, #d81b60));
+  background: var(--hb-chip-farbe, var(--hb-himbeere, #d81b60));
+}
+.hb-vorschau__titel--inline {
+  margin: 0;
+}
 .hb-vorschau__hinweis {
   margin: 0;
   font-size: 0.72rem;

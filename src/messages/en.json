@@ -1635,12 +1635,19 @@
       "bewegungText": "Off means DamiAI stays, but holds still. If your system is already set to reduced motion, you do not need this switch.",
       "zustandTitel": "State",
       "stimmungTitel": "Expression",
+      "trachtTitel": "Outfit",
+      "brilleTitel": "Fun glasses",
       "vorschauHinweis": "A preview only - the companion in the corner is untouched.",
       "stimmung": {
         "neutral": "Information",
         "gut": "Success",
         "warnung": "Finding",
         "frage": "Follow-up"
+      },
+      "tracht": {
+        "steppenblau": "Steppe blue",
+        "granat": "Garnet",
+        "jade": "Jade"
       }
     },
     "tour": {
