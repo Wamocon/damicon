@@ -224,6 +224,9 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   const moduleT = useTranslations("modules");
   const reifegradT = useTranslations("reifegrad");
   const isActive = useIsActive();
+  // Fuer die Bereichsseite zaehlt der genaue Pfad, nicht der Praefix aus
+  // useIsActive - sonst gaelte sie auch auf jeder Modulseite als offen.
+  const pathname = usePathname();
   const { offene, umschalten } = useZonenGruppen();
   const gruppenId = useId();
 
@@ -275,6 +278,10 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
 
             const offen = offene.includes(zone.key);
             const panelId = `${gruppenId}-${zone.key}`;
+            const zonenHref = `/dashboard/${zone.key}`;
+            // Nur die Bereichsseite selbst, nicht alles darunter: die Module
+            // markieren sich als offene Seite schon selbst.
+            const aufBereichsseite = pathname === zonenHref;
             // Damit ein zugeklappter Bereich zeigt, dass die offene Seite in
             // ihm liegt - sonst wirkt die Navigation ohne aktiven Eintrag.
             const enthaeltAktives = items.some((module) =>
@@ -294,45 +301,88 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                 key={zone.key}
                 className="rounded-xl border border-sidebar-border px-1 py-0.5"
               >
-                <button
-                  type="button"
-                  onClick={() => umschalten(zone.key)}
-                  aria-expanded={offen}
-                  aria-controls={panelId}
-                  className={cn(
-                    "flex w-full items-center gap-2.5 rounded-lg px-2 py-2 text-left transition-colors hover:bg-sidebar-accent",
-                    !offen && enthaeltAktives && "bg-sidebar-accent/60",
-                  )}
-                >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center text-muted-foreground">
-                    <Icon name={zone.icon} className="h-4 w-4" />
-                  </span>
-                  <span className="min-w-0 flex-1 truncate text-[11px] font-black uppercase tracking-[0.12em] text-sidebar-foreground">
-                    {zoneT(`${zone.key}.name`)}
-                  </span>
-                  {offen ? null : enthaeltAktives ? (
-                    // Der Punkt sagt "die offene Seite liegt hier drin" und
-                    // traegt deshalb die Farbe der aktiven Seite.
+                {/* Kopf aus zwei Bedienelementen: der Name fuehrt auf die
+                    Bereichsseite, das Chevron klappt auf und zu. Vorher war
+                    die ganze Zeile ein Umschalter - dadurch waren die
+                    Bereichsseiten aus der Leiste gar nicht erreichbar,
+                    sondern nur ueber die Brotkrumen. */}
+                <div className="flex items-center gap-1">
+                  <Link
+                    href={zonenHref}
+                    onClick={onNavigate}
+                    aria-current={aufBereichsseite ? "page" : undefined}
+                    className={cn(
+                      "flex min-w-0 flex-1 items-center gap-2.5 rounded-lg px-2 py-2 transition-colors",
+                      aufBereichsseite
+                        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                        : "hover:bg-sidebar-accent",
+                    )}
+                  >
                     <span
-                      className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+                      className={cn(
+                        "flex h-6 w-6 shrink-0 items-center justify-center",
+                        aufBereichsseite
+                          ? "text-primary-foreground"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      <Icon name={zone.icon} className="h-4 w-4" />
+                    </span>
+                    <span
+                      className={cn(
+                        "min-w-0 flex-1 truncate text-[11px] font-black uppercase tracking-[0.12em]",
+                        aufBereichsseite
+                          ? "text-primary-foreground"
+                          : "text-sidebar-foreground",
+                      )}
+                    >
+                      {zoneT(`${zone.key}.name`)}
+                    </span>
+                    {offen ? null : enthaeltAktives ? (
+                      // Der Punkt sagt "die offene Seite liegt hier drin" und
+                      // traegt deshalb die Farbe der aktiven Seite.
+                      <span
+                        className={cn(
+                          "h-1.5 w-1.5 shrink-0 rounded-full",
+                          aufBereichsseite
+                            ? "bg-primary-foreground"
+                            : "bg-primary",
+                        )}
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <span
+                        className={cn(
+                          "shrink-0 text-[10px] font-bold tabular-nums",
+                          aufBereichsseite
+                            ? "text-primary-foreground/80"
+                            : "text-muted-foreground",
+                        )}
+                        aria-hidden="true"
+                      >
+                        {items.length}
+                      </span>
+                    )}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => umschalten(zone.key)}
+                    aria-expanded={offen}
+                    aria-controls={panelId}
+                    aria-label={nav("toggleZone", {
+                      zone: zoneT(`${zone.key}.name`),
+                    })}
+                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                  >
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 transition-transform duration-200 motion-reduce:transition-none",
+                        !offen && "-rotate-90",
+                      )}
                       aria-hidden="true"
                     />
-                  ) : (
-                    <span
-                      className="shrink-0 text-[10px] font-bold tabular-nums text-muted-foreground"
-                      aria-hidden="true"
-                    >
-                      {items.length}
-                    </span>
-                  )}
-                  <ChevronDown
-                    className={cn(
-                      "h-3.5 w-3.5 shrink-0 text-muted-foreground transition-transform duration-200 motion-reduce:transition-none",
-                      !offen && "-rotate-90",
-                    )}
-                    aria-hidden="true"
-                  />
-                </button>
+                  </button>
+                </div>
 
                 <div
                   id={panelId}

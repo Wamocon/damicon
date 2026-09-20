@@ -18,6 +18,7 @@
     "closeMenu": "Menüyü kapat",
     "collapseMenu": "Menüyü daralt",
     "expandMenu": "Menüyü genişlet",
+    "toggleZone": "{zone} bölümünü aç veya kapat",
     "portal": "Portala git",
     "zones": "Dört bölge",
     "proof": "Kanıtlanabilirlik",

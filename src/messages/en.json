@@ -23,6 +23,7 @@
     "closeMenu": "Close menu",
     "collapseMenu": "Collapse menu",
     "expandMenu": "Expand menu",
+    "toggleZone": "Expand or collapse {zone}",
     "portal": "Open portal",
     "zones": "Four zones",
     "proof": "Traceability",

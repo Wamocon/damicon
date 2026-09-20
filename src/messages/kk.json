@@ -18,6 +18,7 @@
     "closeMenu": "Мәзірді жабу",
     "collapseMenu": "Мәзірді жию",
     "expandMenu": "Мәзірді жаю",
+    "toggleZone": "{zone} бөлімін ашу немесе жию",
     "portal": "Порталға",
     "zones": "Төрт аймақ",
     "proof": "Дәлелденушілік",
