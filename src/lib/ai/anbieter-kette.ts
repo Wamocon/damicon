@@ -16,9 +16,12 @@ import { createServiceRoleClient } from "@/lib/supabase/server";
 // Sokrates einrichten, ohne Migration und ohne Code:
 //   * entweder im Panel (Zahnrad, Anbieter): Typ "openai_kompatibel", Basis-URL https://sokrates.test-qualitaetsmanagement.com/api/v1,
 //     Modell und Schluessel, NICHT als Standard
-//   * oder per Umgebung: KI_SOKRATES_API_SCHLUESSEL (gibt es schon fuer Sprache) plus KI_SOKRATES_MODELL
-// Stand 2026-09-20: der vorhandene Sokrates-Schluessel antwortet auf /chat/completions und /embeddings mit 403 (nur
-// Sprache freigegeben). Sobald der Betreiber Chat freigibt und den Modellnamen nennt, greift die Kette ohne weitere Aenderung.
+//   * oder per Umgebung: KI_SOKRATES_API_SCHLUESSEL (gibt es schon fuer Sprache und Einbettung); das Modell ist
+//     standardmaessig "qwen3.8-27b" (KI_SOKRATES_MODELL waehlt ein anderes)
+// Reihenfolge: Standardanbieter zuerst, Sokrates als Ersatz. Mit KI_ZUERST=sokrates ist es umgekehrt (Sokrates
+// zuerst, Claude als Ersatz): das schont das Anthropic-Guthaben, solange Sokrates die Antworten zuverlaessig liefert.
+// Stand 2026-09-20 mit dem vorhandenen Schluessel gemessen: qwen3.8-27b Werkzeugaufrufe (auto, required, erzwungen) und
+// Streaming funktionieren, erstes Wort nach rund 0,6 s; sokrates-pro ist mit 4 bis 20 s je Aufruf deutlich langsamer.
 
 export interface Anbieterzeile {
   name: string;
@@ -40,6 +43,9 @@ export interface AnbieterKette {
 // Ein Schalter je Serverinstanz: eine Sperre gilt fuer alle Anfragen dieser Instanz, nicht nur fuer eine.
 const schalter = new Schalter();
 
+/** Schnell (erstes Wort nach rund 0,6 s) und werkzeugfaehig; siehe Kopfkommentar. */
+export const STANDARD_SOKRATES_MODELL = "qwen3.8-27b";
+
 function glied(z: Anbieterzeile): KettenGlied | null {
   try {
     const apiKey = entschluessleApiKey(z.api_key_chiffrat);
@@ -55,11 +61,11 @@ function glied(z: Anbieterzeile): KettenGlied | null {
 /** Sokrates aus der Umgebung, falls dort ein Modell benannt ist und die Tabelle nicht ohnehin einen Sokrates-Eintrag hat. */
 export function sokratesAusUmgebung(vorhandeneUrls: string[] = []): KettenGlied | null {
   const schluessel = process.env.KI_SOKRATES_API_SCHLUESSEL;
-  const modell = process.env.KI_SOKRATES_MODELL;
-  if (!schluessel || !modell) return null;
+  const modell = process.env.KI_SOKRATES_MODELL ?? STANDARD_SOKRATES_MODELL;
+  if (!schluessel) return null;
   const basis = (process.env.KI_SOKRATES_URL ?? SOKRATES_BASIS).replace(/\/+$/, "");
   if (vorhandeneUrls.some((u) => u.replace(/\/+$/, "") === basis)) return null;
-  return { name: "sokrates-umgebung", modell: createOpenAICompatible({ name: "sokrates", apiKey: schluessel, baseURL: basis }).chatModel(modell) };
+  return { name: "sokrates", modell: createOpenAICompatible({ name: "sokrates", apiKey: schluessel, baseURL: basis }).chatModel(modell) };
 }
 
 export function meldeAnbieterwechsel(e: AusweichEreignis): void {
@@ -77,9 +83,14 @@ export async function ladeAnbieterKette(beiAusweichen?: (e: AusweichEreignis) =>
   const reihenfolge = [primaer, ...zeilen.filter((z) => !z.ist_standard).sort((a, b) => a.name.localeCompare(b.name))];
   const kette = reihenfolge.map(glied).filter((g): g is KettenGlied => g !== null);
   const umgebung = sokratesAusUmgebung(reihenfolge.map((z) => z.basis_url));
-  if (umgebung) kette.push(umgebung);
+  // Sokrates zuerst (KI_ZUERST=sokrates) oder als Ersatz am Ende.
+  if (umgebung) {
+    if (process.env.KI_ZUERST === "sokrates") kette.unshift(umgebung);
+    else kette.push(umgebung);
+  }
   if (kette.length === 0) return null;
-  // Der Standardanbieter muss selbst benutzbar sein; sonst wuerde ein Ersatz stillschweigend zum Hauptmodell.
-  if (kette[0]!.name !== primaer.name) return null;
+  // Der Standardanbieter muss benutzbar sein (oder Sokrates ausdruecklich vorn stehen); sonst wuerde ein Ersatz
+  // stillschweigend zum Hauptmodell, ohne dass es jemand entschieden hat.
+  if (kette[0]!.name !== primaer.name && kette[0]!.name !== "sokrates") return null;
   return { modell: ausfallModell(kette, { schalter, beiAusweichen }), primaer, namen: kette.map((k) => k.name) };
 }

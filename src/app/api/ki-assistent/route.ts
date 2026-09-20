@@ -10,7 +10,6 @@
 // vor der ersten Nachricht) - nur der Transport ist neu. Die Nutzer-Nachricht
 // wird beim Empfang gespeichert, die Assistenten-Nachricht in onFinish, nach
 // erfolgreichem Streamende.
-import { createAnthropic } from "@ai-sdk/anthropic";
 import {
   convertToModelMessages,
   smoothStream,
@@ -21,8 +20,8 @@ import {
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission, roles, type Role } from "@/lib/rbac";
 import { createClient } from "@/lib/supabase/server";
-import { ladeAktivenStandardAnbieter, anthropicBasisUrl } from "@/lib/ai/lade-anbieter";
-import { entschluessleApiKey } from "@/lib/ai/schluessel";
+import { ladeAnbieterKette, meldeAnbieterwechsel } from "@/lib/ai/anbieter-kette";
+import type { AusweichEreignis } from "@/lib/ai/ausfall-modell";
 import { baueWerkzeuge } from "@/lib/ai/tools";
 import { naechsteBelegNummer } from "@/lib/wissen/belege";
 import { waehleSchritt } from "@/lib/ai/schritt-steuerung";
@@ -336,9 +335,13 @@ export async function POST(req: Request) {
     siehtFeldbetrieb:
       hasPermission(rolle, "pflueckaufgaben", "view") || hasPermission(rolle, "kuehlkette", "view"),
   });
-  const [bisherigerVerlauf, anbieter, preislisten] = await Promise.all([
+  const anbieterwechsel: AusweichEreignis[] = [];
+  const [bisherigerVerlauf, kette, preislisten] = await Promise.all([
     ladeKiChatVerlauf(),
-    ladeAktivenStandardAnbieter(),
+    ladeAnbieterKette((e) => {
+      anbieterwechsel.push(e);
+      meldeAnbieterwechsel(e);
+    }),
     quellen.includes("preisliste") ? ladeWissensPreislisten() : Promise.resolve([]),
   ]);
   // Anforderung 5.5 (Einwilligung): wie kiNachrichtSenden() - vor der
@@ -348,9 +351,10 @@ export async function POST(req: Request) {
     return new Response("einwilligung fehlt", { status: 400 });
   }
 
-  if (!anbieter) {
+  if (!kette) {
     return new Response("kein-anbieter", { status: 409 });
   }
+  const anbieter = kette.primaer;
   // 'openai_kompatibel' hat noch kein Werkzeug-Wissen - der Client faellt in
   // diesem Fall auf die bisherige Server-Action-Ansicht zurueck (ki/ki-pane.tsx
   // entscheidet anhand von anbieter.typ, welche Komponente gemountet wird).
@@ -407,10 +411,9 @@ export async function POST(req: Request) {
     .filter(Boolean)
     .join("\n\n");
 
-  const apiKey = entschluessleApiKey(anbieter.api_key_chiffrat);
-  const anthropic = createAnthropic({ apiKey, baseURL: anthropicBasisUrl(anbieter.basis_url) });
   const result = streamText({
-    model: anthropic(anbieter.modell),
+    // Kette mit Ausweichanbieter (Guthaben, Ratenlimit, Ueberlastung): lib/ai/anbieter-kette.ts
+    model: kette.modell,
     system: systemPrompt,
     // Unvollstaendige Werkzeugaufrufe (Stopp mitten im Aufruf, Abbruch) wuerden
     // sonst jede weitere Anfrage des Verlaufs scheitern lassen.
@@ -468,7 +471,7 @@ export async function POST(req: Request) {
             profil_id: profil.id,
             rolle: "assistent",
             inhalt: gesamtText,
-            anbieter_name: anbieter.anzeige_name,
+            anbieter_name: anbieterwechsel.length > 0 ? `${anbieter.anzeige_name} (Ersatz: ${anbieterwechsel.at(-1)?.nach ?? "?"})` : anbieter.anzeige_name,
             fallback: false,
             werkzeugaufrufe: werkzeugaufrufe.length > 0 ? werkzeugaufrufe : null,
           });
@@ -476,6 +479,8 @@ export async function POST(req: Request) {
         await protokolliereBasis(profil, "ki_chat.nachricht", "ki_chat_nachrichten", profil.id, {
           fallback: false,
           anbieter: anbieter.anzeige_name,
+          // Anbieterwechsel in dieser Antwort (leer = keiner): von, nach, Grund
+          anbieterwechsel: anbieterwechsel.map((w) => `${w.von}->${w.nach ?? "-"}:${w.art}`),
           werkzeugaufrufe,
           modus,
           rolle,
