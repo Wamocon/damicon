@@ -89,13 +89,14 @@ function textAus(prompt: unknown): string {
     .join("\n");
 }
 
-type Verhalten = { gesehen?: Set<string>; auslassen?: Set<string>; erfundeneBelege?: Set<string>; werfeBei?: string; zaehler: { agent: number; synthese: number; nachfrage: number } };
+type Verhalten = { syntheseFehler?: number; langeZusammenfassung?: boolean; gesehen?: Set<string>; auslassen?: Set<string>; erfundeneBelege?: Set<string>; werfeBei?: string; zaehler: { agent: number; synthese: number; nachfrage: number } };
 function mockModell(v: Verhalten) {
   return new MockLanguageModelV3({
     doGenerate: async () => {
       v.zaehler.synthese++;
+      if (v.syntheseFehler && v.zaehler.synthese <= v.syntheseFehler) throw new Error("kurzer Ausfall");
       return {
-        content: [{ type: "tool-call" as const, toolCallId: "z1", toolName: "berichtAbschliessen", input: JSON.stringify({ zusammenfassung: "Der Betrieb hat Luecken bei den Fristen, ist aber im Datenschutz gut aufgestellt.", prioritaeten: ["Registrierung beantragen", "ESUTD-Fristen nachholen"] }) }],
+        content: [{ type: "tool-call" as const, toolCallId: "z1", toolName: "berichtAbschliessen", input: JSON.stringify({ zusammenfassung: v.langeZusammenfassung ? "Der Betrieb hat Luecken bei den Fristen. ".repeat(40) : "Der Betrieb hat Luecken bei den Fristen, ist aber im Datenschutz gut aufgestellt.", prioritaeten: ["Registrierung beantragen", "ESUTD-Fristen nachholen"] }) }],
         finishReason: { unified: "tool-calls" as const, raw: undefined },
         usage: nutzung,
         warnings: [],
@@ -222,6 +223,17 @@ async function ablauf() {
   const b6 = await fuehrePruefungAus({ rolle: "admin", ersteller: { name: "A" }, bereiche: ["steuer", "risiko"], abgelehnt: [], sprache: "de" }, abhaengigkeiten(v6), (e) => ev6.push(e));
   pruefe("Ausfall eines Agenten: Ereignis 'fehler', die anderen Bereiche liefern trotzdem", ev6.some((e) => e.t === "agent" && e.bereich === "risiko" && e.phase === "fehler") && b6.befunde.some((b) => b.bereich === "steuer"));
   pruefe("Ausfall eines Agenten: Bericht ist als unvollstaendig gekennzeichnet und nennt den Bereich", b6.vollstaendig === false && b6.hinweise.some((h) => h.includes("risiko")));
+
+  // 7. Zusammenfassung: ein Ausreisser darf den Bericht nicht auf den Kennzahlentext zurueckwerfen
+  const v7: Verhalten = { zaehler: { agent: 0, synthese: 0, nachfrage: 0 }, syntheseFehler: 1 };
+  const b7 = await fuehrePruefungAus({ rolle: "admin", ersteller: { name: "A" }, bereiche: ["audit"], abgelehnt: [], sprache: "de" }, abhaengigkeiten(v7), () => {});
+  pruefe("Zusammenfassung: ein kurzer Ausfall wird wiederholt, der Text kommt vom Modell", v7.zaehler.synthese === 2 && b7.zusammenfassung.includes("Luecken") && !b7.hinweise.some((h) => h.includes("ohne Modell")));
+  const v8: Verhalten = { zaehler: { agent: 0, synthese: 0, nachfrage: 0 }, syntheseFehler: 5 };
+  const b8 = await fuehrePruefungAus({ rolle: "admin", ersteller: { name: "A" }, bereiche: ["audit"], abgelehnt: [], sprache: "de" }, abhaengigkeiten(v8), () => {});
+  pruefe("Zusammenfassung: nach zwei Fehlschlaegen der Kennzahlentext, im Bericht vermerkt", v8.zaehler.synthese === 2 && b8.zusammenfassung.includes("Pruefungsreife") && b8.hinweise.some((h) => h.includes("ohne Modell")));
+  const v9: Verhalten = { zaehler: { agent: 0, synthese: 0, nachfrage: 0 }, langeZusammenfassung: true };
+  const b9 = await fuehrePruefungAus({ rolle: "admin", ersteller: { name: "A" }, bereiche: ["audit"], abgelehnt: [], sprache: "de" }, abhaengigkeiten(v9), () => {});
+  pruefe("Zusammenfassung: eine sehr lange Modellantwort wird gekuerzt statt verworfen", v9.zaehler.synthese === 1 && b9.zusammenfassung.length <= 910 && b9.zusammenfassung.startsWith("Der Betrieb"), String(b9.zusammenfassung.length));
 }
 
 // ---- Route -------------------------------------------------------------------------------------

@@ -255,36 +255,44 @@ export async function fuehrePruefungAus(
   const kz = kennzahlen(befunde);
   let zusammenfassung = "";
   let prioritaeten: string[] = [];
-  try {
-    const liste = befunde.map((b) => `- [${b.status}/${b.schwere}] ${b.titel}: ${kurz(b.befund, 220)}`).join("\n");
-    const sprache = SPRACHEN[anfrage.sprache] ?? SPRACHEN.de;
-    const ergebnis: { wert: { zusammenfassung: string; prioritaeten: string[] } | null } = { wert: null };
-    await generateText({
-      model: dep.modell,
-      system: `Du fasst eine Compliance-Pruefung fuer die Betriebsleitung zusammen. Nutze AUSSCHLIESSLICH die gelieferten Befunde, erfinde nichts. Pruefungsreife: ${kz.reife} von 100 (${kz.stufe}). Schreibe in ${sprache}.`,
-      prompt: liste || "Keine Befunde.",
-      tools: {
-        berichtAbschliessen: tool({
-          description: "Liefert die Zusammenfassung und die drei wichtigsten Prioritaeten.",
-          inputSchema: z.object({
-            zusammenfassung: z.string().min(10).max(700).describe("Drei bis vier Saetze: Gesamtlage, groesste Risiken, was gut ist."),
-            prioritaeten: z.array(z.string().min(3).max(200)).min(1).max(3).describe("Die drei wichtigsten naechsten Schritte, dringendster zuerst."),
+  // Zwei Versuche: ein einzelner Ausreisser des Modells (zu lange Zusammenfassung, kurzer Ausfall) darf den
+  // Bericht nicht auf den Kennzahlentext zurueckwerfen. Die Grenzen im Schema sind grosszuegig, die Kuerze
+  // kommt aus dem Prompt und aus dem Kuerzen danach; ein Fehler wird protokolliert, nicht verschluckt.
+  const liste = befunde.map((b) => `- [${b.status}/${b.schwere}] ${b.titel}: ${kurz(b.befund, 220)}`).join("\n");
+  const sprache = SPRACHEN[anfrage.sprache] ?? SPRACHEN.de;
+  for (let versuch = 1; versuch <= 2 && !zusammenfassung && !signal?.aborted; versuch++) {
+    try {
+      const ergebnis: { wert: { zusammenfassung: string; prioritaeten: string[] } | null } = { wert: null };
+      await generateText({
+        model: dep.modell,
+        system: `Du fasst eine Compliance-Pruefung fuer die Betriebsleitung zusammen. Nutze AUSSCHLIESSLICH die gelieferten Befunde, erfinde nichts. Pruefungsreife: ${kz.reife} von 100 (${kz.stufe}). Fasse dich kurz: die Zusammenfassung hoechstens 500 Zeichen, jede Prioritaet hoechstens 150 Zeichen. Schreibe in ${sprache}.`,
+        prompt: liste || "Keine Befunde.",
+        tools: {
+          berichtAbschliessen: tool({
+            description: "Liefert die Zusammenfassung und die drei wichtigsten Prioritaeten.",
+            inputSchema: z.object({
+              zusammenfassung: z.string().min(10).max(2000).describe("Drei bis vier Saetze: Gesamtlage, groesste Risiken, was gut ist."),
+              prioritaeten: z.array(z.string().min(3).max(600)).min(1).max(5).describe("Die drei wichtigsten naechsten Schritte, dringendster zuerst."),
+            }),
+            execute: async (e) => {
+              ergebnis.wert = e;
+              return { ok: true };
+            },
           }),
-          execute: async (e) => {
-            ergebnis.wert = e;
-            return { ok: true };
-          },
-        }),
-      },
-      toolChoice: { type: "tool", toolName: "berichtAbschliessen" },
-      stopWhen: stepCountIs(1),
-      temperature: 0,
-      maxOutputTokens: 900,
-      abortSignal: signal,
-    });
-    if (ergebnis.wert) ({ zusammenfassung, prioritaeten } = ergebnis.wert);
-  } catch {
-    /* Rueckfall unten */
+        },
+        toolChoice: { type: "tool", toolName: "berichtAbschliessen" },
+        stopWhen: stepCountIs(1),
+        temperature: 0,
+        maxOutputTokens: 1200,
+        abortSignal: signal,
+      });
+      if (ergebnis.wert) {
+        zusammenfassung = kurz(ergebnis.wert.zusammenfassung, 900);
+        prioritaeten = ergebnis.wert.prioritaeten.slice(0, 3).map((p) => kurz(p, 260));
+      }
+    } catch (e) {
+      console.warn(`[damicon] Pruefung: Zusammenfassung, Versuch ${versuch} fehlgeschlagen:`, e instanceof Error ? e.message : e);
+    }
   }
   if (!zusammenfassung) {
     zusammenfassung = `${kz.anzahl} Pruefungsfelder bewertet: ${kz.nachStatus.verstoss} Verstoesse, ${kz.nachStatus.luecke} Luecken, ${kz.nachStatus.hinweis} Hinweise, ${kz.nachStatus.konform} konform. Pruefungsreife ${kz.reife} von 100.`;
