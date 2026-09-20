@@ -1,6 +1,8 @@
 import type { Role } from "@/lib/rbac";
-import { ollamaEinbettung, type Einbettung } from "@/lib/wissen/embed";
-import { hybridSuche, qdrantAusUmgebung, type Treffer } from "@/lib/wissen/qdrant";
+import { wissenEinbettung, type Einbettung } from "@/lib/wissen/embed";
+import { hybridSuche, qdrantAusUmgebung, type SuchFilter, type Treffer } from "@/lib/wissen/qdrant";
+import { hybridSucheSupabase, type RpcKlient } from "@/lib/wissen/supabase-suche";
+import type { SparseVektor } from "@/lib/wissen/sparse";
 import { BUERO_ROLLEN } from "@/lib/wissen/rollen";
 import { sparseFrage } from "@/lib/wissen/sparse";
 
@@ -42,9 +44,41 @@ export interface SuchErgebnis {
   dauerMs: { einbettung: number; suche: number; gesamt: number };
 }
 
-/** Wissenssuche ist nur sinnvoll, wenn es einen Index gibt: lokal immer, in Produktion nur mit QDRANT_URL. */
+export type WissenBackend = "supabase" | "qdrant";
+
+/** Wo liegt der Index? WISSEN_BACKEND=supabase|qdrant ausdruecklich; sonst Qdrant, wenn QDRANT_URL gesetzt
+ *  ist oder lokal entwickelt wird. Ohne beides gibt es (noch) keinen Index. */
+export function wissenBackend(): WissenBackend | null {
+  const b = process.env.WISSEN_BACKEND;
+  if (b === "supabase" || b === "qdrant") return b;
+  if (process.env.QDRANT_URL || process.env.NODE_ENV !== "production") return "qdrant";
+  return null;
+}
+
+/** Wissenssuche ist nur sinnvoll, wenn es einen Index UND eine Einbettung fuer die Frage gibt.
+ *  Supabase: der Index liegt in der Datenbank, die Einbettung muss aber von Vercel aus erreichbar sein
+ *  (WISSEN_EMBED_ANBIETER=openai mit URL), sonst waere jede Suche ein Fehler. */
 export function wissenVerfuegbar(): boolean {
-  return Boolean(process.env.QDRANT_URL) || process.env.NODE_ENV !== "production";
+  const backend = wissenBackend();
+  if (backend === "qdrant") return true;
+  if (backend === "supabase") {
+    const entwicklung = process.env.NODE_ENV !== "production";
+    return entwicklung || (process.env.WISSEN_EMBED_ANBIETER === "openai" && Boolean(process.env.WISSEN_EMBED_URL));
+  }
+  return false;
+}
+
+type Frage = { dense: number[][]; sparse: SparseVektor[] };
+type Kandidatensuche = (filter: SuchFilter, opts: { limit: number }) => Promise<Treffer[]>;
+
+/** Baut die Kandidatensuche fuer das gewaehlte Backend. Bei Supabase gilt die Sitzung der aufrufenden Person (RLS). */
+async function kandidatensuche(frage: Frage, supabase?: RpcKlient): Promise<Kandidatensuche> {
+  if (wissenBackend() === "supabase") {
+    const db = supabase ?? ((await (await import("@/lib/supabase/server")).createClient()) as unknown as RpcKlient);
+    return (filter, opts) => hybridSucheSupabase(db, frage, filter, opts);
+  }
+  const verbindung = qdrantAusUmgebung();
+  return (filter, opts) => hybridSuche(verbindung, frage, filter, opts);
 }
 
 export function darfWissenNutzen(rolle: Role | null | undefined): boolean {
@@ -91,23 +125,23 @@ function alsBeleg(t: Treffer, nr: number): Beleg {
 export async function sucheWissen(
   fragen: { frage: string; frageRussisch?: string | null },
   rolle: Role,
-  opts: { limit?: number; nurAktuell?: boolean; einbettung?: Einbettung } = {},
+  opts: { limit?: number; nurAktuell?: boolean; einbettung?: Einbettung; supabase?: RpcKlient } = {},
 ): Promise<SuchErgebnis> {
   const t0 = performance.now();
   const formulierungen = [fragen.frage, fragen.frageRussisch ?? ""].map((t) => t.trim()).filter(Boolean);
-  const einbettung = opts.einbettung ?? ollamaEinbettung();
+  const einbettung = opts.einbettung ?? wissenEinbettung();
   const dense = await einbettenMitCache(einbettung, formulierungen);
   const t1 = performance.now();
-  const verbindung = qdrantAusUmgebung();
   const nurAktuell = opts.nurAktuell ?? true;
   const limit = opts.limit ?? 6;
   const frage = { dense, sparse: formulierungen.map(sparseFrage) };
+  const suchen = await kandidatensuche(frage, opts.supabase);
   // Zwei Listen parallel: alle Quellen und nur Recht/amtliche Texte (Stufe 1 bis 3). Fachseiten
   // und Blogs sind in Alltagssprache geschrieben und ranken bei Sachfragen sonst vor dem
   // Gesetz - fuer Rechtsfragen muss der Gesetzestext aber immer dabei sein.
   const [primaer, alle] = await Promise.all([
-    hybridSuche(verbindung, frage, { rolle, nurAktuell, maxStufe: PRIMAER_MAX_STUFE }, { limit: PRIMAER_PLAETZE + 2 }),
-    hybridSuche(verbindung, frage, { rolle, nurAktuell }, { limit }),
+    suchen({ rolle, nurAktuell, maxStufe: PRIMAER_MAX_STUFE }, { limit: PRIMAER_PLAETZE + 2 }),
+    suchen({ rolle, nurAktuell }, { limit }),
   ]);
   const gesehen = new Set<string>();
   const treffer: Treffer[] = [];
