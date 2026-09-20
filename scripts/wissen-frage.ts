@@ -3,6 +3,7 @@
 //
 //   npx tsx scripts/wissen-frage.ts "Frage" ["Frage auf Russisch"] [--rolle buchhaltung] [--limit 6]
 
+import { supabaseKlient } from "./wissen-supabase-klient";
 import { sucheWissen } from "../src/lib/wissen/suche";
 import type { Role } from "../src/lib/rbac";
 
@@ -15,7 +16,7 @@ const opt = (n: string) => {
 async function main() {
   const [frage, russisch] = args;
   if (!frage) throw new Error('Frage fehlt: npx tsx scripts/wissen-frage.ts "Frage" ["Russisch"]');
-  const r = await sucheWissen({ frage, frageRussisch: russisch }, (opt("rolle") ?? "admin") as Role, { limit: Number(opt("limit") ?? 6) });
+  const r = await sucheWissen({ frage, frageRussisch: russisch }, (opt("rolle") ?? "admin") as Role, { limit: Number(opt("limit") ?? 6), supabase: supabaseKlient() });
   console.log(`${r.belege.length} Treffer in ${r.dauerMs.gesamt} ms (Einbettung ${r.dauerMs.einbettung} ms, Suche ${r.dauerMs.suche} ms)\n`);
   for (const b of r.belege) {
     console.log(`[${b.id}] ${b.fundstelle}`);
