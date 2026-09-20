@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { leseBaender } from "@/lib/hoeren";
+import { lesePegel } from "@/lib/hoeren";
 
-// Der Streifen neben dem Diktatknopf: zeigt waehrend der Aufnahme, dass tatsaechlich
-// etwas ankommt. Das ist der eigentliche Zweck - ein Knopf, der nur die Farbe wechselt,
-// laesst einen im Ungewissen, ob das Mikrofon wirklich hoert. Hier sieht man es.
-//
-// Gezeichnet werden die Frequenzbaender aus lib/hoeren.ts, gespiegelt an der Mittellinie.
+// Wellen ringsum den Diktatknopf statt eines Balkens daneben: Ringe laufen vom Knopf
+// nach aussen, wie ein Sonar-Ping. Lauter gesprochen, schneller und kraeftiger laufen
+// sie - bei Stille bleibt ein ruhiger, blasser Puls, damit der Knopf sichtbar "hoert"
+// und nicht wie ausgeschaltet wirkt.
 
-const BAENDER = 18;
+const RINGE = 3;
+const ABSTAND = 1 / RINGE;
 
 export function MikrofonWelle() {
   const leinwand = useRef<HTMLCanvasElement>(null);
@@ -22,6 +22,8 @@ export function MikrofonWelle() {
     let frame = 0;
     let breite = 0;
     let hoehe = 0;
+    let phase = 0;
+    let stimme = 0;
 
     const messen = () => {
       breite = Math.max(1, el.offsetWidth);
@@ -33,21 +35,30 @@ export function MikrofonWelle() {
     };
 
     const schritt = () => {
-      const werte = leseBaender(BAENDER);
+      const pegel = lesePegel();
+      // Die Stimme folgt schneller als die Ringe selbst - sonst wirkt der Anstieg traege.
+      stimme += (pegel - stimme) * 0.25;
+      phase = (phase + 0.0055 + stimme * 0.018) % 1;
+
       ctx.clearRect(0, 0, breite, hoehe);
-      const lueck = 2;
-      const stab = Math.max(1.5, (breite - lueck * (BAENDER - 1)) / BAENDER);
-      const mitte = hoehe / 2;
-      ctx.fillStyle = "currentColor";
-      for (let i = 0; i < BAENDER; i++) {
-        // Eine Grundhoehe bleibt immer stehen: ein Streifen, der bei Stille voellig
-        // verschwindet, sieht aus wie ein Fehler statt wie Stille.
-        const h = Math.max(2, Math.min(hoehe, 2 + werte[i]! * hoehe * 1.15));
-        const x = i * (stab + lueck);
+      const mx = breite / 2;
+      const my = hoehe / 2;
+      const radiusAussen = Math.min(breite, hoehe) / 2;
+      // Die Ringe starten knapp hinter dem Knopfrand, nicht in seiner Mitte.
+      const radiusInnen = radiusAussen * 0.46;
+
+      for (let i = 0; i < RINGE; i++) {
+        const t = (phase + i * ABSTAND) % 1;
+        const radius = radiusInnen + (radiusAussen - radiusInnen) * t;
+        // Am Anfang und Ende blass, in der Mitte des Laufs am kraeftigsten.
+        const deckung = Math.sin(t * Math.PI) * (0.15 + stimme * 0.55);
         ctx.beginPath();
-        ctx.roundRect(x, mitte - h / 2, stab, h, stab / 2);
-        ctx.fill();
+        ctx.arc(mx, my, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgb(216 27 96 / ${deckung.toFixed(3)})`;
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
       }
+
       frame = window.requestAnimationFrame(schritt);
     };
 

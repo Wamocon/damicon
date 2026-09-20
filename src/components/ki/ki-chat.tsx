@@ -689,12 +689,21 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   // Wie die fertige Antwort geklungen hat, entscheidet Himbis Gesicht. Bewusst hier und
   // nicht im Modell: kein zweiter Aufruf, keine Wartezeit, und es funktioniert in jeder
   // der fuenf Sprachen der Oberflaeche.
+  //
+  // Waehrend getippt wird, geht die eigene Nachricht vor: DamiAI reagiert direkt auf das,
+  // was gerade im Feld steht, statt erst auf die Antwort zu warten - dieselbe Erkennung,
+  // nur auf den eigenen statt den fertigen Text angewendet.
+  const eingabeStimmung = useMemo(() => {
+    if (beschaeftigt || !eingabe.trim()) return null;
+    return stimmungAusAntwort(eingabe);
+  }, [eingabe, beschaeftigt]);
   const haustierStimmung = useMemo(() => {
+    if (eingabeStimmung) return eingabeStimmung;
     if (beschaeftigt) return "neutral" as const;
     const letzte = messages.at(-1);
     if (!letzte || letzte.role !== "assistant") return "neutral" as const;
     return stimmungAusAntwort(textVonNachricht(letzte));
-  }, [messages, beschaeftigt]);
+  }, [eingabeStimmung, messages, beschaeftigt]);
   useEffect(() => {
     melde(haustierPhase, haustierText, haustierStimmung);
   }, [melde, haustierPhase, haustierText, haustierStimmung]);

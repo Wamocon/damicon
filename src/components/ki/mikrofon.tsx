@@ -102,23 +102,25 @@ export function MikrofonKnopf({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={zustand === "aufnahme" ? stoppen : starten}
-        disabled={deaktiviert || zustand === "laeuft"}
-        title={beschriftung}
-        aria-label={beschriftung}
-        className={cn(className, zustand === "aufnahme" && "ki-mikrofon--aufnahme")}
-      >
-        {zustand === "laeuft" ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : zustand === "aufnahme" ? (
-          <Square className="h-3.5 w-3.5 fill-current" />
-        ) : (
-          <Mic className="h-4 w-4" />
-        )}
-      </button>
-      {zustand === "aufnahme" ? <MikrofonWelle /> : null}
+      <span className="ki-mikrofon__huelle">
+        {zustand === "aufnahme" ? <MikrofonWelle /> : null}
+        <button
+          type="button"
+          onClick={zustand === "aufnahme" ? stoppen : starten}
+          disabled={deaktiviert || zustand === "laeuft"}
+          title={beschriftung}
+          aria-label={beschriftung}
+          className={cn(className, zustand === "aufnahme" && "ki-mikrofon--aufnahme")}
+        >
+          {zustand === "laeuft" ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : zustand === "aufnahme" ? (
+            <Square className="h-3.5 w-3.5 fill-current" />
+          ) : (
+            <Mic className="h-4 w-4" />
+          )}
+        </button>
+      </span>
       {meldung ? <span className="ki-mikrofon__meldung">{meldung}</span> : null}
     </>
   );

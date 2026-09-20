@@ -1718,12 +1718,27 @@ html[data-ki-zieht] body {
   }
 }
 
-/* Streifen neben dem Diktatknopf (mikrofon-welle.tsx). Er erbt die Farbe vom Knopf,
-   damit er nicht als Fremdkoerper daneben steht. */
+/* Huelle um den Diktatknopf: haelt die Groesse des Knopfs (die Kugel liegt absolut
+   darin), damit beide Einsatzorte - Seitenpanel und das aeltere Formular - ohne
+   Anpassung funktionieren. */
+.ki-mikrofon__huelle {
+  position: relative;
+  display: inline-flex;
+}
+.ki-mikrofon__huelle > button {
+  position: relative;
+  z-index: 1;
+}
+/* Ringe rings um den Diktatknopf (mikrofon-welle.tsx), die vom Rand nach aussen
+   laufen. Die Leinwand ist groesser als der Knopf selbst, damit die Ringe Platz
+   zum Auslaufen haben, und liegt darunter, damit der Knopf klickbar bleibt. */
 .ki-mikrofon__welle {
-  display: block;
-  width: 5.5rem;
-  height: 1.4rem;
-  color: var(--himbeere);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% + 2.4rem);
+  height: calc(100% + 2.4rem);
   pointer-events: none;
+  z-index: 0;
 }
