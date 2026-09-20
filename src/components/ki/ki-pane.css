@@ -1764,3 +1764,14 @@ html[data-ki-zieht] body {
   pointer-events: none;
   z-index: 0;
 }
+
+/* Breite Welle unter dem Eingabefeld waehrend des Diktats (diktat-welle.tsx). Erbt die
+   Farbe vom Knopf, damit sie nicht wie ein Fremdkoerper unter der Nachricht steht. */
+.ki-diktat-welle {
+  display: block;
+  width: 100%;
+  height: 1.5rem;
+  margin-top: 0.15rem;
+  color: var(--himbeere);
+  pointer-events: none;
+}

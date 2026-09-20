@@ -61,6 +61,7 @@ import { istClientWerkzeug } from "@/lib/ai/client-werkzeuge-meta";
 import { fuehreUiWerkzeugAus, type KlickAnfrage } from "@/components/ki/ui-steuerung";
 import { istVorlesbar, stimmeVorhanden, useSprachausgabe, VorlesenKnopf, VorlesenSchalter } from "@/components/ki/sprachausgabe";
 import { MikrofonKnopf } from "@/components/ki/mikrofon";
+import { DiktatWelle } from "@/components/ki/diktat-welle";
 import { MAX_NACHRICHT_LAENGE, type KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
 import { modules } from "@/lib/modules";
 import { hasPermission, type Role } from "@/lib/rbac";
@@ -394,6 +395,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const { modus, offen, fuehrung, oeffneZiel, fuehreZu, bewegeZeiger } = useKiPane();
 
   const [eingabe, setEingabe] = useState("");
+  const [diktiert, setDiktiert] = useState(false);
   const [einwilligung, setEinwilligung] = useState(false);
   const [nachUntenKnopf, setNachUntenKnopf] = useState(false);
   const [clientAktiv, setClientAktiv] = useState<string | null>(null);
@@ -1042,6 +1044,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
           <MikrofonKnopf
             className="ki-composer__knopf ki-composer__knopf--still"
             deaktiviert={beschaeftigt || einwilligungFehlt}
+            beiAufnahme={setDiktiert}
             beiText={(text) => {
               beiEingabe(text);
               eingabeRef.current?.focus();
@@ -1062,6 +1065,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
             </button>
           )}
         </div>
+        {diktiert ? <DiktatWelle /> : null}
         <div className="ki-composer__optionen">
           <VorlesenSchalter zustand={sprachausgabe} />
         </div>

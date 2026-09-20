@@ -20,10 +20,13 @@ import { cn } from "@/lib/utils";
 // Gerade fuer Kasachisch wichtig, wo Whisper einzelne Woerter verhoert.
 export function MikrofonKnopf({
   beiText,
+  beiAufnahme,
   className,
   deaktiviert = false,
 }: {
   beiText: (text: string) => void;
+  /** Meldet, ob gerade aufgenommen wird - fuer eine Welle ausserhalb dieses Knopfs. */
+  beiAufnahme?: (an: boolean) => void;
   className?: string;
   deaktiviert?: boolean;
 }) {
@@ -31,6 +34,10 @@ export function MikrofonKnopf({
   const [zustand, setZustand] = useState<"bereit" | "aufnahme" | "laeuft">("bereit");
   const [meldung, setMeldung] = useState<string | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
+
+  useEffect(() => {
+    beiAufnahme?.(zustand === "aufnahme");
+  }, [zustand, beiAufnahme]);
 
   // Eine laufende Aufnahme darf das Mikrofon nicht behalten, wenn die
   // Komponente verschwindet (Panel zu, Seitenwechsel mitten im Diktat).
@@ -42,7 +49,10 @@ export function MikrofonKnopf({
         r.stop();
       }
       stoppeHoeren();
+      beiAufnahme?.(false);
     };
+    // beiAufnahme nur beim Aufraeumen lesen, nicht bei jeder Aenderung neu binden.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function starten() {
