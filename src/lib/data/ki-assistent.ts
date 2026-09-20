@@ -56,7 +56,7 @@ const demoVerlauf: KiChatNachrichtZeile[] = [
   {
     id: "demo-1",
     rolle: "nutzer",
-    inhalt: "Welche Sorten sind diese Woche verfuegbar?",
+    inhalt: "Welche Sorten sind diese Woche verfügbar?",
     anbieterName: null,
     fallback: false,
     eskaliert: false,
@@ -67,7 +67,7 @@ const demoVerlauf: KiChatNachrichtZeile[] = [
     id: "demo-2",
     rolle: "assistent",
     inhalt:
-      "Aktuell gefuehrt sind Polka und Tulameen, jeweils gemaess der freigegebenen Preisliste. Fuer eine verbindliche Menge zum Wunschtermin wenden Sie sich am besten zusaetzlich ans Buero.",
+      "Aktuell geführt sind Polka und Tulameen, jeweils gemäß der freigegebenen Preisliste. Für eine verbindliche Menge zum Wunschtermin wenden Sie sich am besten zusätzlich ans Büro.",
     anbieterName: "Demo",
     fallback: false,
     eskaliert: false,

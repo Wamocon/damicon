@@ -391,3 +391,220 @@
   color: var(--destructive);
   background: color-mix(in oklab, var(--destructive) 8%, transparent);
 }
+
+/* ---- Nächste Schritte: Gespräch zum Ergebnis und Checkliste (außerhalb des Berichts) ------------- */
+.pn {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border: 1px solid color-mix(in oklab, var(--primary) 30%, var(--border));
+  border-radius: 1.1rem;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--primary) 7%, var(--card)), var(--card));
+}
+.pn-kopf {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+.pn-kopf__zeichen {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.7rem;
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+.pn-kopf h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 850;
+}
+.pn-kopf p {
+  margin: 0.1rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.05rem;
+  color: var(--muted-foreground);
+}
+.pn-aktionen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+.pn-liste {
+  display: grid;
+  gap: 0.55rem;
+}
+.pn-liste__kopf {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.pn-liste__kopf h4 {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.pn-zahl {
+  font-size: 0.72rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  color: var(--primary);
+}
+.pn-balken {
+  height: 0.35rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--foreground) 8%, transparent);
+}
+.pn-balken span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+  transform-origin: left;
+  transition: transform 0.4s ease, background-color 0.3s ease;
+}
+.pn-balken span[data-fertig="ja"] {
+  background: var(--success);
+}
+.pn-gruppe {
+  display: grid;
+  gap: 0.35rem;
+}
+.pn-gruppe h5 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.2rem 0 0;
+}
+.pn-gruppe h5 small {
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+}
+.pn-gruppe ul {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pn-punkt {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: 0.7rem;
+  background: var(--card);
+  transition: opacity 0.25s ease, border-color 0.25s ease;
+}
+.pn-punkt[data-schwere="kritisch"],
+.pn-punkt[data-schwere="hoch"] {
+  border-left-color: var(--destructive);
+}
+.pn-punkt[data-schwere="mittel"] {
+  border-left-color: var(--warning);
+}
+.pn-punkt[data-erledigt="ja"] {
+  opacity: 0.62;
+  border-left-color: var(--success);
+}
+.pn-punkt label {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.55rem;
+  align-items: start;
+  cursor: pointer;
+}
+.pn-punkt input {
+  margin-top: 0.2rem;
+  accent-color: var(--primary);
+}
+.pn-punkt__text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+  font-size: 0.78rem;
+  line-height: 1.15rem;
+}
+.pn-punkt__text b {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--muted-foreground);
+}
+.pn-punkt[data-erledigt="ja"] .pn-punkt__text span {
+  text-decoration: line-through;
+}
+.pn-punkt__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  padding-left: 1.6rem;
+}
+.pn-grundlage {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.66rem;
+  color: var(--muted-foreground);
+}
+.pn-punkt__frage {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
+  transition: background-color 0.2s ease;
+}
+.pn-punkt__frage:hover {
+  background: color-mix(in oklab, var(--primary) 20%, transparent);
+}
+.pn-leer,
+.pn-fertig {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 650;
+  color: var(--success);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pn-balken span,
+  .pn-punkt {
+    transition: none;
+  }
+}
+
+.pr-tipp {
+  margin: 0.4rem 0 0;
+  font-size: 0.68rem;
+  line-height: 1rem;
+  color: var(--muted-foreground);
+}
+
+/* Lange Texte (Maßnahmen, Fundstellen) dürfen das schmale Panel nie sprengen: Gitterzellen schrumpfen, Wörter brechen um. */
+.pn,
+.pn * {
+  min-width: 0;
+}
+.pn-punkt__text,
+.pn-punkt__text span,
+.pn-punkt__text b,
+.pn-kopf p {
+  overflow-wrap: anywhere;
+}

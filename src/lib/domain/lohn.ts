@@ -251,7 +251,7 @@ export const demoLohnSteuersatzKz: LohnSteuersatzKz = {
   snProzent: 6,
   osmsProzent: 3,
   quelle: "Steuerkodex RK 2026; ИПН-Standardabzug 30 МРП, МРП 2026 = 4 325 Tenge.",
-  notiz: "Naeherung: Sonderfreibetraege und die СО-Kuerzung der СН sind hier nicht abgebildet, siehe Migrationskopf 20261024000000.",
+  notiz: "Näherung: Sonderfreibeträge und die СО-Kuerzung der СН sind hier nicht abgebildet, siehe Migrationskopf 20261024000000.",
 };
 
 // Mit derselben Formel gerechnet wie public.lohn_kz_abzuege_berechnen()

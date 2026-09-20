@@ -27,31 +27,31 @@ const absicht = z
 
 const seiteLesen = tool({
   description:
-    "Liest die Seite, die der Nutzer gerade sieht: Adresse, Ueberschriften, sichtbarer Text (inklusive Tabelleninhalt) und eine Liste bedienbarer Elemente (Schaltflaechen, Links, Eingabefelder, Auswahlen) mit je einer Referenz ('ref'). Nutze es, um Fragen zu beantworten, was auf dem Bildschirm steht ('was zeigt diese Tabelle', 'erklaere diese Seite'), und IMMER vor klicke, fuelleFeld oder zeigeAuf. Nach jeder Aktion, die die Seite veraendert (Klick, Navigation), sind die Referenzen veraltet - lies die Seite dann erneut. Hat die Seite sehr viele Elemente, grenze mit 'fokus' ein.",
+    "Liest die Seite, die der Nutzer gerade sieht: Adresse, Überschriften, sichtbarer Text (inklusive Tabelleninhalt) und eine Liste bedienbarer Elemente (Schaltflächen, Links, Eingabefelder, Auswahlen) mit je einer Referenz ('ref'). Nutze es, um Fragen zu beantworten, was auf dem Bildschirm steht ('was zeigt diese Tabelle', 'erkläre diese Seite'), und IMMER vor klicke, fuelleFeld oder zeigeAuf. Nach jeder Aktion, die die Seite verändert (Klick, Navigation), sind die Referenzen veraltet - lies die Seite dann erneut. Hat die Seite sehr viele Elemente, grenze mit 'fokus' ein.",
   inputSchema: z.object({
     fokus: z
       .string()
       .max(80)
       .optional()
-      .describe("Optional: Stichwort; die Elementliste enthaelt dann nur passende Elemente"),
+      .describe("Optional: Stichwort; die Elementliste enthält dann nur passende Elemente"),
   }),
 });
 
 const klicke = tool({
   description:
-    "Klickt ein Element der aktuellen Seite an (Schaltflaeche, Link, Reiter, Aufklappbereich, Kontrollkasten). Ein Mauszeiger faehrt sichtbar hin. Was etwas absendet, aendert oder loescht, legt die Anwendung dem Nutzer vor dem Klick zur Bestaetigung vor - du bekommst dann 'abgelehnt' zurueck, wenn er nein sagt. Abmelden ist gesperrt. Lies danach die Seite erneut.",
+    "Klickt ein Element der aktuellen Seite an (Schaltfläche, Link, Reiter, Aufklappbereich, Kontrollkasten). Ein Mauszeiger fährt sichtbar hin. Was etwas absendet, ändert oder loescht, legt die Anwendung dem Nutzer vor dem Klick zur Bestätigung vor - du bekommst dann 'abgelehnt' zurück, wenn er nein sagt. Abmelden ist gesperrt. Lies danach die Seite erneut.",
   inputSchema: z.object({ ref, absicht }),
 });
 
 const fuelleFeld = tool({
   description:
-    "Traegt einen Wert in ein Eingabefeld ein oder waehlt eine Option (Textfeld, Zahl, Datum, Auswahlliste; bei Kontrollkaesten 'true' oder 'false'). Bei Auswahllisten den sichtbaren Text oder den Wert der Option angeben. Schickt NICHTS ab - dafuer gibt es klicke auf die Schaltflaeche. Passwortfelder sind gesperrt.",
+    "Trägt einen Wert in ein Eingabefeld ein oder wählt eine Option (Textfeld, Zahl, Datum, Auswahlliste; bei Kontrollkästen 'true' oder 'false'). Bei Auswahllisten den sichtbaren Text oder den Wert der Option angeben. Schickt NICHTS ab - dafür gibt es klicke auf die Schaltfläche. Passwortfelder sind gesperrt.",
   inputSchema: z.object({ ref, wert: z.string().max(500), absicht }),
 });
 
 const scrolleZu = tool({
   description:
-    "Scrollt die Seite: entweder zu einem Element (ref) oder in eine Richtung ('oben', 'unten', 'weiter' = eine Bildschirmhoehe nach unten). Ohne Nebenwirkung.",
+    "Scrollt die Seite: entweder zu einem Element (ref) oder in eine Richtung ('oben', 'unten', 'weiter' = eine Bildschirmhöhe nach unten). Ohne Nebenwirkung.",
   inputSchema: z.object({
     ref: ref.optional(),
     richtung: z.enum(["oben", "unten", "weiter"]).optional(),
@@ -60,7 +60,7 @@ const scrolleZu = tool({
 
 const zeigeAuf = tool({
   description:
-    "Zeigt dem Nutzer ein Element: der Mauszeiger faehrt hin und das Element wird hervorgehoben. Ohne Klick, ohne Nebenwirkung. Nutze es, um bei einer Erklaerung auf eine Stelle der Seite zu deuten.",
+    "Zeigt dem Nutzer ein Element: der Mauszeiger fährt hin und das Element wird hervorgehoben. Ohne Klick, ohne Nebenwirkung. Nutze es, um bei einer Erklärung auf eine Stelle der Seite zu deuten.",
   inputSchema: z.object({ ref, absicht }),
 });
 

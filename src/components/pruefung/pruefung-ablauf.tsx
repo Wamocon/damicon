@@ -53,14 +53,14 @@ function Schritt({ symbol: Symbol, name, zustand, zahl }: { symbol: LucideIcon; 
   );
 }
 
-function FeldZeile({ f, befund, lebt }: { f: FeldStand; befund: Befund | undefined; lebt: boolean }) {
+function FeldZeile({ f, befund }: { f: FeldStand; befund: Befund | undefined }) {
   const t = useTranslations("pruefung");
   const ta = useTranslations("pruefungAblauf");
   const datenFertig = f.daten !== null;
   const rechtFertig = f.quellen !== null;
-  const zDaten: SchrittZustand = !lebt ? "offen" : datenFertig ? "fertig" : "aktiv";
-  const zRecht: SchrittZustand = !lebt ? "offen" : rechtFertig ? "fertig" : "aktiv";
-  const zBewertung: SchrittZustand = f.bewertet ? "fertig" : lebt && datenFertig && rechtFertig ? "aktiv" : "offen";
+  const zDaten: SchrittZustand = !f.gestartet ? "offen" : datenFertig ? "fertig" : "aktiv";
+  const zRecht: SchrittZustand = !f.gestartet ? "offen" : rechtFertig ? "fertig" : "aktiv";
+  const zBewertung: SchrittZustand = f.bewertet ? "fertig" : f.gestartet && datenFertig && rechtFertig ? "aktiv" : "offen";
   return (
     <li className="pa-feld" data-fertig={f.bewertet ? "ja" : "nein"} data-status={befund?.status}>
       <div className="pa-feld__kopf">
@@ -144,7 +144,7 @@ function Lane({ bereich, a, befunde, jetzt, laeuft }: { bereich: Pruefbereich; a
         <div className="pa-lane__innen">
           <ul className="pa-felder">
             {felder.map(({ id, f }) => (
-              <FeldZeile key={id} f={f} befund={befunde.find((b) => b.feld === id)} lebt={lebt} />
+              <FeldZeile key={id} f={f} befund={befunde.find((b) => b.feld === id)} />
             ))}
           </ul>
         </div>
@@ -153,11 +153,85 @@ function Lane({ bereich, a, befunde, jetzt, laeuft }: { bereich: Pruefbereich; a
   );
 }
 
+type Stufe = "wartet" | "sammelt" | "denkt" | "fertig";
+
+const STUFE_ZUSTAND: Record<Stufe, HaustierZustand> = { wartet: "schlaeft", sammelt: "denkt", denkt: "denkt", fertig: "fertig" };
+
+function stufeVon(f: FeldStand): Stufe {
+  if (f.bewertet) return "fertig";
+  if (f.denkt || (f.daten !== null && f.quellen !== null)) return "denkt";
+  return f.gestartet ? "sammelt" : "wartet";
+}
+
+/** Drei Stationen je Feld: Sammler (Betriebsdaten), Jurist (Recht), Pruefer (Bewertung). Sammler und Jurist arbeiten zugleich, dann uebergeben beide. */
+function Stationen({ f, stufe }: { f: FeldStand; stufe: Stufe }) {
+  const sammler: SchrittZustand = f.daten !== null ? "fertig" : f.gestartet ? "aktiv" : "offen";
+  const jurist: SchrittZustand = f.quellen !== null ? "fertig" : f.gestartet ? "aktiv" : "offen";
+  const pruefer: SchrittZustand = stufe === "fertig" ? "fertig" : stufe === "denkt" ? "aktiv" : "offen";
+  return (
+    <span className="pa-stationen" aria-hidden>
+      <i data-zustand={sammler}><Database className="h-2 w-2" /></i>
+      <i data-zustand={jurist}><BookOpen className="h-2 w-2" /></i>
+      <i key={pruefer} data-zustand={pruefer} data-uebergabe={pruefer === "aktiv" ? "ja" : "nein"}><Sparkles className="h-2 w-2" /></i>
+    </span>
+  );
+}
+
+/** Alle Mini-Himbis auf einen Blick: je Bereich eine Zeile, je Pruefungsfeld ein Team mit sichtbarer Uebergabe. */
+function Schwarm({ stand }: { stand: PruefungStand }) {
+  const t = useTranslations("pruefung");
+  const ta = useTranslations("pruefungAblauf");
+  const zeilen = stand.reihenfolge.flatMap((bereich) => {
+    const a = stand.agenten[bereich];
+    return a ? [{ bereich, a }] : [];
+  });
+  const teams = zeilen.flatMap(({ a }) => a.reihenfolge.map((id) => a.felder[id]!));
+  const fertig = teams.filter((f) => f.bewertet).length;
+  const aktiv = teams.filter((f) => f.gestartet && !f.bewertet).length;
+  if (teams.length === 0) return null;
+  return (
+    <section className="pa-schwarm" aria-label={ta("schwarm.titel")}>
+      <header>
+        <strong>{ta("schwarm.titel")}</strong>
+        <span aria-live="polite">{ta("schwarm.aktiv", { n: aktiv, fertig })}</span>
+      </header>
+      {zeilen.map(({ bereich, a }) => {
+        const Symbol = BEREICH_SYMBOL[bereich];
+        return (
+          <div key={bereich} className="pa-schwarm__zeile" data-bereich={bereich} data-phase={a.phase}>
+            <span className="pa-schwarm__bereich">
+              <Symbol className="h-3.5 w-3.5" aria-hidden /> {t(`agent.name.${bereich}`)}
+            </span>
+            <ul>
+              {a.reihenfolge.map((id) => {
+                const f = a.felder[id]!;
+                const stufe = stufeVon(f);
+                const befund = stand.befunde.find((b) => b.feld === id);
+                const rolle = stufe === "sammelt" ? ta("schwarm.sammler") : stufe === "denkt" ? ta("schwarm.pruefer") : stufe === "fertig" ? ta("schwarm.fertig") : ta("schwarm.wartet");
+                return (
+                  <li key={id} className="pa-agent" data-stufe={stufe} data-status={befund?.status} title={`${f.titel} - ${rolle}`}>
+                    <span className="pa-agent__figur" aria-hidden>
+                      <Himbi zustand={STUFE_ZUSTAND[stufe]} groesse={22} />
+                    </span>
+                    <Stationen f={f} stufe={stufe} />
+                    <span className="sr-only">{`${f.titel}: ${rolle}`}</span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        );
+      })}
+    </section>
+  );
+}
+
 function protokollText(z: LogZeile, stand: PruefungStand, t: ReturnType<typeof useTranslations>): string {
   const feld = z.bereich && z.feld ? (stand.agenten[z.bereich]?.felder[z.feld]?.titel ?? z.feld) : "";
   const agent = z.bereich ? t(`agent.name.${z.bereich}`) : "Himbi";
   if (z.art === "fakten") return t("log.fakten", { agent, feld, n: z.anzahl ?? 0 });
   if (z.art === "recht") return t("log.recht", { agent, feld, n: z.anzahl ?? 0, stelle: z.text ?? "-" });
+  if (z.art === "uebergabe") return t("log.uebergabe", { agent, feld });
   if (z.art === "befund") return t("log.befund", { agent, titel: z.text ?? "" });
   if (z.art === "synthese") return z.text === "start" ? t("log.synthese") : t("log.syntheseFertig");
   return z.text === "spawn" ? t("log.spawn", { agent }) : t("log.fertig", { agent });
@@ -172,6 +246,8 @@ export function PruefungAblauf({ stand }: { stand: PruefungStand }) {
   const aktiveSpuren = stand.reihenfolge.filter((b) => ["spawn", "sammelt", "denkt"].includes(stand.agenten[b]?.phase ?? "")).length;
   const quellen = stand.reihenfolge.reduce((s, b) => s + Object.values(stand.agenten[b]?.felder ?? {}).reduce((x, f) => x + (f.quellen ?? 0), 0), 0);
   const gesamt = stand.beginn ? (stand.ende ?? jetzt) - stand.beginn : 0;
+  // Agenten: Himbi selbst, je Bereich ein Bereichs-Himbi und je Pruefungsfeld ein Pruefer (eigener Modellaufruf); Sammler und Jurist sind ihre Helfer.
+  const agentenZahl = stand.reihenfolge.length === 0 ? 1 : 1 + stand.reihenfolge.length + stand.reihenfolge.reduce((n, b) => n + (stand.agenten[b]?.reihenfolge.length ?? 0), 0);
 
   let text = t("phase.plant");
   if (stand.phase === "fehler") text = t("phase.fehler");
@@ -195,6 +271,10 @@ export function PruefungAblauf({ stand }: { stand: PruefungStand }) {
         </div>
         <dl className="pa-mitte__zahlen">
           <div>
+            <dt>{ta("zahl.agenten")}</dt>
+            <dd>{agentenZahl}</dd>
+          </div>
+          <div>
             <dt>{ta("zahl.befunde")}</dt>
             <dd key={stand.befunde.length} className="pa-zahl">{stand.befunde.length}</dd>
           </div>
@@ -217,6 +297,8 @@ export function PruefungAblauf({ stand }: { stand: PruefungStand }) {
           </ul>
         ) : null}
       </div>
+
+      <Schwarm stand={stand} />
 
       <div className="pa-lanes" data-fluss={aktiveSpuren > 0 ? "ja" : "nein"}>
         <span className="pa-strang" aria-hidden />

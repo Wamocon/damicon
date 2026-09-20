@@ -250,6 +250,7 @@ export function PruefungBericht({ bericht }: { bericht: Bericht }) {
             <FileJson className="h-4 w-4" /> {tp("json")}
           </button>
         </div>
+        <p className="pr-tipp">{tp("tipp")}</p>
         {siegel !== "offen" ? (
           <p className={cn("pr-siegel__urteil")} data-ok={siegel} role="status">
             {siegel === "ja" ? t("siegel.gueltig") : t("siegel.ungueltig")}

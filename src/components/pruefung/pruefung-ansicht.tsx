@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { Check, RotateCcw, ShieldCheck, Square, X } from "lucide-react";
 import { PruefungAblauf } from "@/components/pruefung/pruefung-ablauf";
 import { PruefungBericht } from "@/components/pruefung/pruefung-bericht";
+import { PruefungNachbereitung } from "@/components/pruefung/pruefung-nachbereitung";
 import { BEREICH_SYMBOL } from "@/components/pruefung/symbole";
 import { usePruefung } from "@/components/pruefung/use-pruefung";
 import "@/components/pruefung/pruefung.css";
@@ -88,6 +89,7 @@ export function PruefungAnsicht({ erlaubt }: { erlaubt: readonly Pruefbereich[] 
 
       {stand.phase === "laeuft" || stand.phase === "fertig" ? <PruefungAblauf stand={stand} /> : null}
       {stand.phase === "fehler" ? <p className="pr-fehler">{t(`fehler.${stand.fehler ?? "allgemein"}`)}</p> : null}
+      {stand.bericht ? <PruefungNachbereitung key={stand.bericht.id} bericht={stand.bericht} /> : null}
       {stand.bericht ? <PruefungBericht bericht={stand.bericht} /> : null}
     </div>
   );

@@ -10,6 +10,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { tool } from "ai";
 import { z } from "zod";
+import { ohneUmlaute } from "@/lib/text/umlaute";
 import { createClient } from "@/lib/supabase/server";
 import { hasPermission, type Role } from "@/lib/rbac";
 import {
@@ -41,9 +42,9 @@ function tabelleErlaubt(name: string, rolle: Role | null | undefined, vorschau: 
 export function baueDatenWerkzeuge(rolle: Role | null | undefined, vorschau = false) {
   const datenmodellErkunden = tool({
     description:
-      "Erkundet das Datenmodell der Anwendung. Ohne Suchbegriff: alle abfragbaren Tabellen mit Kurzbeschreibung. Mit Suchbegriff: passende Tabellen mit allen Spalten (Name:Typ, Fremdschluessel als '-> tabelle.spalte'). Rufe das auf, BEVOR du datenLesen fuer eine Tabelle nutzt, deren Spalten du nicht sicher kennst. Enthaelt nur Tabellen, keine Zeilen - was eine Rolle davon sehen darf, entscheidet erst datenLesen.",
+      "Erkundet das Datenmodell der Anwendung. Ohne Suchbegriff: alle abfragbaren Tabellen mit Kurzbeschreibung. Mit Suchbegriff: passende Tabellen mit allen Spalten (Name:Typ, Fremdschlüssel als '-> tabelle.spalte'). Rufe das auf, BEVOR du datenLesen für eine Tabelle nutzt, deren Spalten du nicht sicher kennst. Enthält nur Tabellen, keine Zeilen - was eine Rolle davon sehen darf, entscheidet erst datenLesen.",
     inputSchema: z.object({
-      suchbegriff: z.string().max(60).optional().describe("Stichwort, z. B. 'kuehl', 'lohn', 'kunde'"),
+      suchbegriff: z.string().max(60).optional().describe("Stichwort, z. B. 'kühl', 'lohn', 'kunde'"),
     }),
     execute: async ({ suchbegriff }) => {
       const modell = await ladeDatenmodell();
@@ -51,12 +52,15 @@ export function baueDatenWerkzeuge(rolle: Role | null | undefined, vorschau = fa
       if (!suchbegriff?.trim()) {
         return { anzahl: alle.length, tabellen: alle.map((t) => ({ name: t.name, beschreibung: t.beschreibung })) };
       }
-      const s = suchbegriff.trim().toLowerCase();
+      // Tabellen und Spalten sind ASCII (pfluecker, kuehlketten_messungen): 'Pflücker' und 'kühl' muessen trotzdem treffen.
+      const original = suchbegriff.trim().toLowerCase();
+      const s = ohneUmlaute(original);
       const treffer = alle
         .filter(
           (t) =>
             t.name.includes(s) ||
-            t.beschreibung.toLowerCase().includes(s) ||
+            t.beschreibung.toLowerCase().includes(original) ||
+            ohneUmlaute(t.beschreibung.toLowerCase()).includes(s) ||
             t.spalten.some((c) => c.name.includes(s)),
         )
         .slice(0, 8);
@@ -68,7 +72,7 @@ export function baueDatenWerkzeuge(rolle: Role | null | undefined, vorschau = fa
   });
 
   const datenLesen = tool({
-    description: `Liest Zeilen aus einer Tabelle der Anwendung - mit den Rechten des angemeldeten Nutzers (Zeilen, die seine Rolle nicht sehen darf, kommen nie zurueck; eine leere Antwort kann also auch 'nicht freigegeben' bedeuten). Filter sind UND-verknuepft. Maximal ${MAX_ZEILEN} Zeilen; 'anzahlGesamt' nennt die Gesamtzahl. Fuer Summen oder Vergleiche lies die Zeilen und rechne selbst. Fremdschluessel loest du mit einer zweiten Abfrage auf.`,
+    description: `Liest Zeilen aus einer Tabelle der Anwendung - mit den Rechten des angemeldeten Nutzers (Zeilen, die seine Rolle nicht sehen darf, kommen nie zurück; eine leere Antwort kann also auch 'nicht freigegeben' bedeuten). Filter sind UND-verknuepft. Maximal ${MAX_ZEILEN} Zeilen; 'anzahlGesamt' nennt die Gesamtzahl. Für Summen oder Vergleiche lies die Zeilen und rechne selbst. Fremdschlüssel löst du mit einer zweiten Abfrage auf.`,
     inputSchema: z.object({
       tabelle: z.string().max(80),
       spalten: z.array(z.string().max(80)).max(20).optional().describe("Nur diese Spalten; ohne Angabe alle"),
@@ -85,11 +89,16 @@ export function baueDatenWerkzeuge(rolle: Role | null | undefined, vorschau = fa
       sortierung: z.object({ spalte: z.string().max(80), absteigend: z.boolean().optional() }).optional(),
       limit: z.number().int().min(1).max(MAX_ZEILEN).optional(),
     }),
-    execute: async ({ tabelle, spalten, filter, sortierung, limit }) => {
+    execute: async ({ tabelle: tabelleRoh, spalten: spaltenRoh, filter: filterRoh, sortierung: sortierungRoh, limit }) => {
+      // Namen sind ASCII; wer sie mit Umlaut schreibt, meint dieselbe Tabelle.
+      const tabelle = ohneUmlaute(tabelleRoh);
+      const spalten = spaltenRoh?.map(ohneUmlaute);
+      const filter = filterRoh?.map((f) => ({ ...f, spalte: ohneUmlaute(f.spalte) }));
+      const sortierung = sortierungRoh ? { ...sortierungRoh, spalte: ohneUmlaute(sortierungRoh.spalte) } : undefined;
       const modell = await ladeDatenmodell();
       const info = modell.get(tabelle);
       if (!info || !tabelleErlaubt(tabelle, rolle, vorschau)) {
-        return { fehler: `Tabelle '${tabelle}' ist nicht abfragbar. Nutze datenmodellErkunden, um gueltige Tabellen zu finden.` };
+        return { fehler: `Tabelle '${tabelle}' ist nicht abfragbar. Nutze datenmodellErkunden, um gültige Tabellen zu finden.` };
       }
       const erlaubt = new Set(info.spalten.map((s) => s.name));
       const unbekannt = [
@@ -98,7 +107,7 @@ export function baueDatenWerkzeuge(rolle: Role | null | undefined, vorschau = fa
         ...(sortierung ? [sortierung.spalte] : []),
       ].filter((s) => !erlaubt.has(s));
       if (unbekannt.length > 0) {
-        return { fehler: `Unbekannte Spalte(n): ${unbekannt.join(", ")}. Gueltig: ${[...erlaubt].join(", ")}` };
+        return { fehler: `Unbekannte Spalte(n): ${unbekannt.join(", ")}. Gültig: ${[...erlaubt].join(", ")}` };
       }
 
       const client = (await createClient()) as unknown as SupabaseClient;

@@ -188,11 +188,11 @@ export const demoChargeOptionen: ChargeOption[] = demoDeckungsbeitragJeCharge.ma
 
 export const demoLedgerEintraege: LedgerEintrag[] = [
   { id: "demo-le-1", kostentraegerBezeichnung: "T-N-A-01 / 2026-08-30", typ: "erloes", kategorie: "B2B-Verkauf", betragTenge: 108780, buchungsdatum: "2026-08-30", beschreibung: "Lieferung Handelskette A" },
-  { id: "demo-le-2", kostentraegerBezeichnung: "T-N-A-01 / 2026-08-30", typ: "kosten", kategorie: "Ernte + Kuehlung", betragTenge: 41200, buchungsdatum: "2026-08-30", beschreibung: "Brigade Nord, Vorkuehlung" },
+  { id: "demo-le-2", kostentraegerBezeichnung: "T-N-A-01 / 2026-08-30", typ: "kosten", kategorie: "Ernte + Kühlung", betragTenge: 41200, buchungsdatum: "2026-08-30", beschreibung: "Brigade Nord, Vorkühlung" },
   { id: "demo-le-3", kostentraegerBezeichnung: "T-N-A-03 / 2026-08-29", typ: "erloes", kategorie: "B2B-Verkauf", betragTenge: 92820, buchungsdatum: "2026-08-29", beschreibung: "Lieferung Handelskette A" },
-  { id: "demo-le-4", kostentraegerBezeichnung: "T-N-A-03 / 2026-08-29", typ: "kosten", kategorie: "Ernte + Kuehlung", betragTenge: 38900, buchungsdatum: "2026-08-29", beschreibung: "Brigade Nord" },
+  { id: "demo-le-4", kostentraegerBezeichnung: "T-N-A-03 / 2026-08-29", typ: "kosten", kategorie: "Ernte + Kühlung", betragTenge: 38900, buchungsdatum: "2026-08-29", beschreibung: "Brigade Nord" },
   { id: "demo-le-5", kostentraegerBezeichnung: "T-O-A-01 / 2026-08-31", typ: "erloes", kategorie: "B2B-Verkauf", betragTenge: 61500, buchungsdatum: "2026-08-31", beschreibung: "Lieferung Gastro-Distributor" },
-  { id: "demo-le-6", kostentraegerBezeichnung: "T-O-A-01 / 2026-08-31", typ: "kosten", kategorie: "Ernte + Kuehlung", betragTenge: 27300, buchungsdatum: "2026-08-31", beschreibung: "Brigade Ost" },
+  { id: "demo-le-6", kostentraegerBezeichnung: "T-O-A-01 / 2026-08-31", typ: "kosten", kategorie: "Ernte + Kühlung", betragTenge: 27300, buchungsdatum: "2026-08-31", beschreibung: "Brigade Ost" },
   { id: "demo-le-7", kostentraegerBezeichnung: "K-A-01 / 2026-08-30", typ: "erloes", kategorie: "B2B-Verkauf", betragTenge: 54600, buchungsdatum: "2026-08-30", beschreibung: "Zukauf-Charge" },
   { id: "demo-le-8", kostentraegerBezeichnung: "K-A-01 / 2026-08-30", typ: "kosten", kategorie: "Zukauf + Handling", betragTenge: 44100, buchungsdatum: "2026-08-30", beschreibung: "Nachbarbetrieb Kaskelen" },
 ];

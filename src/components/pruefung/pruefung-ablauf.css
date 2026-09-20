@@ -182,7 +182,7 @@
 .pa-mitte__zahlen {
   grid-area: zahlen;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 0.4rem;
   margin: 0;
 }
@@ -230,6 +230,142 @@
 }
 .pa-feed li[data-art="befund"] {
   color: var(--foreground);
+}
+
+/* ---- Schwarm: alle Mini-Himbis auf einen Blick ------------------------------------ */
+.pa-schwarm {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.7rem 0.8rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 1.1rem;
+  background: var(--card);
+}
+.pa-schwarm > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding-bottom: 0.35rem;
+}
+.pa-schwarm > header strong {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.pa-schwarm > header span {
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--primary);
+}
+.pa-schwarm__zeile {
+  display: grid;
+  grid-template-columns: 7.2rem 1fr;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  border-top: 1px solid color-mix(in oklab, var(--border) 60%, transparent);
+}
+@container pa (max-width: 430px) {
+  .pa-schwarm__zeile {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+}
+.pa-schwarm__bereich {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  font-size: 0.7rem;
+  font-weight: 750;
+  color: var(--foreground);
+}
+.pa-schwarm__zeile[data-phase="fehler"] .pa-schwarm__bereich {
+  color: var(--destructive);
+}
+.pa-schwarm ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pa-agent {
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  width: 2.55rem;
+  padding: 0.28rem 0.2rem 0.3rem;
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  background: color-mix(in oklab, var(--foreground) 3%, transparent);
+  transition: border-color 0.3s ease, background-color 0.3s ease, opacity 0.3s ease;
+}
+.pa-agent[data-stufe="wartet"] {
+  opacity: 0.55;
+}
+.pa-agent[data-stufe="sammelt"] {
+  border-color: color-mix(in oklab, var(--primary) 55%, transparent);
+  background: color-mix(in oklab, var(--primary) 8%, transparent);
+}
+.pa-agent[data-stufe="denkt"] {
+  border-color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 15%, transparent);
+}
+.pa-agent[data-stufe="fertig"] {
+  border-color: color-mix(in oklab, var(--success) 60%, transparent);
+  background: color-mix(in oklab, var(--success) 10%, transparent);
+  animation: pa-pop 0.4s ease both;
+}
+.pa-agent[data-status="verstoss"] {
+  border-color: var(--destructive);
+  background: color-mix(in oklab, var(--destructive) 10%, transparent);
+}
+.pa-agent[data-status="luecke"] {
+  border-color: var(--warning);
+  background: color-mix(in oklab, var(--warning) 12%, transparent);
+}
+.pa-agent[data-status="hinweis"] {
+  border-color: var(--border);
+  background: color-mix(in oklab, var(--foreground) 5%, transparent);
+}
+.pa-agent__figur {
+  display: grid;
+  place-items: center;
+  width: 1.45rem;
+  height: 1.45rem;
+}
+.pa-stationen {
+  display: flex;
+  gap: 2px;
+}
+.pa-stationen i {
+  display: grid;
+  place-items: center;
+  width: 0.78rem;
+  height: 0.78rem;
+  border-radius: 999px;
+  color: var(--muted-foreground);
+  background: color-mix(in oklab, var(--foreground) 8%, transparent);
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+.pa-stationen i[data-zustand="aktiv"] {
+  color: var(--primary-foreground);
+  background: var(--primary);
+  animation: pa-puls 0.9s ease-in-out infinite;
+}
+.pa-stationen i[data-zustand="fertig"] {
+  color: var(--primary-foreground);
+  background: var(--success);
+}
+/* Uebergabe: Sammler und Jurist sind fertig, der Pruefer springt an. */
+.pa-stationen i[data-uebergabe="ja"] {
+  animation: pa-uebergabe 0.55s ease both, pa-puls 0.9s ease-in-out 0.55s infinite;
 }
 
 /* ---- Ablauf: Strang und Spuren -------------------------------------------------- */
@@ -589,6 +725,15 @@
     transform: translate(-14px, -12px) scale(0.92);
   }
 }
+@keyframes pa-uebergabe {
+  from {
+    transform: translateX(-9px) scale(0.3);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.45);
+  }
+}
 @keyframes pa-pop {
   from {
     transform: scale(0.2);
@@ -614,8 +759,21 @@
   .pa-glut,
   .pa-fortschritt span,
   .pa-synthese__balken,
+  .pa-agent,
+  .pa-stationen i,
   .pa-dreher {
     animation: none;
     transition: none;
   }
+}
+
+/* Gitterzellen des Panels dürfen schrumpfen: nichts darin sprengt die Breite. */
+.pa > *,
+.pa-ablauf > * {
+  min-width: 0;
+}
+
+.pa-kopf .pr-knopf {
+  flex: none;
+  white-space: nowrap;
 }

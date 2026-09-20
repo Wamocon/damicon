@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 //
 // Strahlen: elf Striche um den Mittelpunkt der Scheibe (64|68), von Radius 21
 // nach 30, gleichmäßig über die obere Hälfte.
-const STRAHLEN = [
+export const STRAHLEN = [
   "M43 68 L34 68",
   "M44 61.5 L35.5 58.7",
   "M47 55.7 L39.7 50.4",
