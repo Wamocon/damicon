@@ -14,12 +14,13 @@
 //     die Rollenfreigabe des KI-Assistenten stimmt
 // Aufruf: npm run test:agent (laeuft ueber tsx, damit die @/-Pfade aufloesen).
 
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { AKTIONS_NAMEN } from "@/lib/ai/aktionen-meta";
 import { CLIENT_WERKZEUG_NAMEN } from "@/lib/ai/client-werkzeuge-meta";
 import { chatFehlerArt } from "@/lib/ai/chat-fehler";
 import { baueWerkzeuge } from "@/lib/ai/tools";
 import { zerlege, type Zerlegung } from "@/lib/markdown-bloecke";
+import { agentPhase, haustierZustand, leseSichtbarkeit, modulAusPfad, TOUR_SCHRITTE, tourDauer } from "@/lib/haustier";
 import { modules } from "@/lib/modules";
 import { hasPermission, roles } from "@/lib/rbac";
 
@@ -180,6 +181,88 @@ pruefe(
   "Pfluecker und Erzeuger haben (noch) keinen KI-Assistenten",
   !hasPermission("picker", "ki_assistent", "create") && !hasPermission("erzeuger", "ki_assistent", "create"),
 );
+
+// --- 9. Himbi, der Begleiter --------------------------------------------------
+pruefe(
+  "Himbi: eine offene Freigabe schlaegt Arbeiten, Fehler und Ruhe",
+  agentPhase({ beschaeftigt: true, freigabeOffen: true, fehler: true }) === "freigabe" &&
+    agentPhase({ beschaeftigt: true, freigabeOffen: false, fehler: true }) === "arbeitet" &&
+    agentPhase({ beschaeftigt: false, freigabeOffen: false, fehler: true }) === "fehler" &&
+    agentPhase({ beschaeftigt: false, freigabeOffen: false, fehler: false }) === "ruhe",
+);
+pruefe(
+  "Himbi: Zustand nach Rangfolge (Freigabe, Fehler, Arbeiten, Sprechen, Fertig, Schlaf, Ruhe)",
+  haustierZustand({ phase: "freigabe", fertigUngelesen: true, schlaeft: true }) === "freigabe" &&
+    haustierZustand({ phase: "fehler", fertigUngelesen: true, schlaeft: true }) === "fehler" &&
+    haustierZustand({ phase: "arbeitet", fertigUngelesen: true, schlaeft: true }) === "denkt" &&
+    haustierZustand({ phase: "ruhe", fertigUngelesen: true, schlaeft: true, spricht: true }) === "spricht" &&
+    haustierZustand({ phase: "ruhe", fertigUngelesen: true, schlaeft: true }) === "fertig" &&
+    haustierZustand({ phase: "ruhe", fertigUngelesen: false, schlaeft: true }) === "schlaeft" &&
+    haustierZustand({ phase: "ruhe", fertigUngelesen: false, schlaeft: false }) === "ruhe",
+);
+const lohnModul = modules.find((m) => m.key === "lohn")!;
+pruefe(
+  "Himbi: das Modul zu einem Dashboard-Pfad wird erkannt, Fremdes nicht",
+  modulAusPfad(`/dashboard/${lohnModul.zone}/${lohnModul.slug}`, modules)?.key === "lohn" &&
+    modulAusPfad(`/dashboard/${lohnModul.zone}/${lohnModul.slug}?x=1`, modules)?.key === "lohn" &&
+    modulAusPfad("/dashboard", modules) === null &&
+    modulAusPfad("/login", modules) === null &&
+    modulAusPfad("/dashboard/buero/gibt-es-nicht", modules) === null,
+);
+
+// Die Tour: jede Station hat ihren Text in allen Sprachen und einen echten Abschnitt auf der Startseite.
+const tourOhneText: string[] = [];
+for (const s of TOUR_SCHRITTE) {
+  for (const sp of sprachen) {
+    for (const feld of ["titel", "text"]) {
+      if (typeof holen(texte[sp], `haustier.tour.${s.schluessel}.${feld}`) !== "string") tourOhneText.push(`${sp}:${s.schluessel}.${feld}`);
+    }
+  }
+}
+pruefe("Himbi-Tour: jede Station hat Titel und Text in allen Sprachen", tourOhneText.length === 0, tourOhneText.slice(0, 4).join(", ") || `${TOUR_SCHRITTE.length} Stationen`);
+const seitenQuelle = readdirSync("src/components/site")
+  .filter((f) => f.endsWith(".tsx"))
+  .map((f) => readFileSync(`src/components/site/${f}`, "utf8"))
+  .join("\n");
+const tourOhneAnker = TOUR_SCHRITTE.filter((s) => !seitenQuelle.includes(`id="${s.anker}"`)).map((s) => s.anker);
+pruefe("Himbi-Tour: jede Station zeigt auf einen Abschnitt, den es auf der Startseite gibt", tourOhneAnker.length === 0, tourOhneAnker.join(", "));
+// Wegschicken und Zurueckholen: gespeicherte Werte, Beschriftungen, kein altes Kreuz mehr.
+pruefe(
+  "Himbi: gespeicherte Sichtbarkeit wird gelesen, Unbekanntes heisst 'da'",
+  leseSichtbarkeit("weg") === "weg" && leseSichtbarkeit("aus") === "aus" && leseSichtbarkeit("an") === "an" && leseSichtbarkeit(null) === "an" && leseSichtbarkeit("kaputt") === "an" && leseSichtbarkeit("") === "an",
+);
+const wegOhneText: string[] = [];
+for (const sp of sprachen) {
+  for (const k of ["weg.halten", "weg.tschuess", "weg.hinweis", "willkommen", "zurueckholen", "einstellung.text"]) {
+    if (typeof holen(texte[sp], `haustier.${k}`) !== "string") wegOhneText.push(`${sp}:${k}`);
+  }
+}
+pruefe("Himbi: Wegschicken, Zurueckholen und Abschied sind in allen Sprachen beschriftet", wegOhneText.length === 0, wegOhneText.slice(0, 4).join(", "));
+const huelleQuelle = readFileSync("src/components/haustier/haustier-huelle.tsx", "utf8");
+pruefe("Himbi: kein Schliessen-Kreuz mehr, Wegschicken laeuft ueber Halten (und Entf-Taste)", !huelleQuelle.includes("onVerstecken") && huelleQuelle.includes("HALTEN_DAUER_MS") && huelleQuelle.includes('"Delete"'));
+// Der Autopilot der Tour: Verweildauer, Texte, Regeln fuer den Eingriff des Besuchers.
+pruefe(
+  "Himbi-Tour: Verweildauer waechst mit dem Text, bleibt aber zwischen 5,5 und 9,5 Sekunden",
+  tourDauer("") === 5500 && tourDauer("x".repeat(60)) > 5500 && tourDauer("x".repeat(60)) < 9500 && tourDauer("x".repeat(500)) === 9500 && tourDauer("x".repeat(80)) >= tourDauer("x".repeat(60)),
+  `${tourDauer("x".repeat(90))} ms bei 90 Zeichen`,
+);
+const autoOhneText: string[] = [];
+for (const sp of sprachen) {
+  for (const k of ["autoStart", "pausiert", "auto", "pause"]) {
+    if (typeof holen(texte[sp], `haustier.tour.${k}`) !== "string") autoOhneText.push(`${sp}:${k}`);
+  }
+}
+pruefe("Himbi-Tour: Autopilot-Texte in allen Sprachen", autoOhneText.length === 0, autoOhneText.slice(0, 4).join(", "));
+const tourQuelle = readFileSync("src/components/haustier/haustier-tour.tsx", "utf8");
+pruefe(
+  "Himbi-Tour: Besucher-Eingriffe (Klick, Mausrad, Wischen, Scroll-Tasten) geben die Fuehrung ab",
+  ["wheel", "touchstart", "pointerdown", "keydown", "SCROLL_TASTEN", 'closest(".haustier")'].every((m) => tourQuelle.includes(m)),
+);
+pruefe("Himbi-Tour: bei reduzierter Bewegung startet nichts von allein", tourQuelle.includes("setAutoStart(!bewegungReduziert())") && tourQuelle.includes("setAuto(!bewegungReduziert())"));
+const zustaendeOhneLabel = (["ruhe", "denkt", "freigabe", "fertig", "fehler", "schlaeft", "spricht", "tour"] as const).filter((z) =>
+  sprachen.some((sp) => typeof holen(texte[sp], `haustier.label.${z}`) !== "string"),
+);
+pruefe("Himbi: jeder Zustand hat eine Beschriftung fuer Screenreader in allen Sprachen", zustaendeOhneLabel.length === 0, zustaendeOhneLabel.join(", "));
 
 console.log(`\nPruefungen: ${gesamt}   bestanden: ${gesamt - fehler}   fehlgeschlagen: ${fehler}`);
 if (fehler > 0) process.exit(1);

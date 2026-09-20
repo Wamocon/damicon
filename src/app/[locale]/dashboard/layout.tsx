@@ -8,6 +8,8 @@ import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { KiAnbieterVerwaltung } from "@/components/db/ki-assistent-formulare";
 import { KiFuehrungsAnzeige } from "@/components/ki/ki-fuehrung";
 import { KiPane } from "@/components/ki/ki-pane";
+import { HaustierDashboard } from "@/components/haustier/haustier-dashboard";
+import { HaustierProvider } from "@/components/haustier/haustier-kontext";
 import { KiPaneProvider } from "@/components/ki/ki-pane-kontext";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
@@ -56,6 +58,7 @@ export default async function DashboardLayout({
       demoModus={demoModus}
     >
       <KiPaneProvider verfuegbar={darfKiNutzen && kiVerlauf !== null}>
+        <HaustierProvider>
         <div className="dashboard-shell flex min-h-svh w-full">
           <DashboardSidebar />
           <div className="flex min-w-0 flex-1 flex-col">
@@ -75,6 +78,8 @@ export default async function DashboardLayout({
             />
           ) : null}
         </div>
+        <HaustierDashboard />
+        </HaustierProvider>
       </KiPaneProvider>
     </PersonaProvider>
   );

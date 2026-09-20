@@ -22,6 +22,7 @@ import {
   PriceSpread,
   ZonesOverview,
 } from "@/components/site/landing";
+import { HaustierTour } from "@/components/haustier/haustier-tour";
 import { feldTon } from "@/lib/site-medien";
 
 // Reihenfolge als Erzaehlung: warum die Himbeere anders ist, die erste
@@ -65,6 +66,7 @@ export default async function LandingPage({
       <WeichesScrollen />
       <CursorFolger />
       <TonSchalter quelle={feldTon} />
+      <HaustierTour />
     </>
   );
 }

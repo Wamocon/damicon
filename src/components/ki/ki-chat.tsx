@@ -53,6 +53,8 @@ import {
 } from "lucide-react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { usePersona } from "@/components/dashboard/persona";
+import { useHaustierAktionen, useHaustierVorgabe } from "@/components/haustier/haustier-kontext";
+import { agentPhase } from "@/lib/haustier";
 import { Himbeere } from "@/components/ki/himbeere";
 import { useKiPane, type KiModus } from "@/components/ki/ki-pane-kontext";
 import { AKTIONS_NAMEN, AKTIONS_RECHTE, istAktion, type AktionsName } from "@/lib/ai/aktionen-meta";
@@ -626,6 +628,43 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   );
   const einwilligungFehlt = istErsteNachricht && !einwilligung;
   const letzteId = messages.at(-1)?.id;
+
+  // Himbi (components/haustier) zeigt den Zustand des Agenten auch bei geschlossenem Panel:
+  // hier wird nur gemeldet, das Zeichnen uebernimmt Himbi.
+  const { melde } = useHaustierAktionen();
+  const freigabeOffen =
+    klickAnfrage !== null ||
+    !!messages.at(-1)?.parts.some((teil) => (isToolUIPart(teil) || isDynamicToolUIPart(teil)) && teil.state === "approval-requested");
+  const haustierPhase = agentPhase({ beschaeftigt, freigabeOffen, fehler: !!error });
+  const haustierText = !beschaeftigt
+    ? ""
+    : laufenderSchritt
+      ? beschriftung("laeuft", laufenderSchritt.name, {
+          bereich: laufenderSchritt.bereich,
+          tabelle: laufenderSchritt.tabelle,
+          absicht: laufenderSchritt.absicht,
+        })
+      : t(modus === "agent" ? "agentDenkt" : "assistentDenkt");
+  useEffect(() => {
+    melde(haustierPhase, haustierText);
+  }, [melde, haustierPhase, haustierText]);
+
+  // Eine Frage, die Himbi stellen moechte ("Zeig mir das" im Tipp): abschicken, sobald es geht;
+  // fehlt noch die Einwilligung oder laeuft gerade eine Antwort, landet sie im Eingabefeld.
+  const vorgabe = useHaustierVorgabe();
+  const letzteVorgabe = useRef(0);
+  useEffect(() => {
+    if (!vorgabe || vorgabe.id === letzteVorgabe.current) return;
+    letzteVorgabe.current = vorgabe.id;
+    if (beschaeftigt || (istErsteNachricht && !einwilligung)) {
+      setEingabe(vorgabe.text);
+      eingabeRef.current?.focus();
+    } else {
+      sende(vorgabe.text);
+    }
+    // sende() und die Zustandswerte sind pro Render neu; ausgeloest wird nur durch eine neue Vorgabe.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vorgabe]);
 
   function aktionsWert(wert: unknown): string {
     const text = String(wert);

@@ -540,6 +540,85 @@
     "registered": "kaydedildi",
     "scanLead": "Her kasada QR etiketi, teslimde okutma. Miktar, sıra bloğu, saat ve kişi tek işlemde - burada gerçek sunucu doğrulaması olmadan."
   },
+  "haustier": {
+    "label": {
+      "ruhe": "Himbi, arkadaşın. Sohbeti açmak için tıkla.",
+      "denkt": "Himbi çalışıyor. Sohbeti açmak için tıkla.",
+      "freigabe": "Himbi onayına ihtiyaç duyuyor. Sohbeti açmak için tıkla.",
+      "fertig": "Himbi bitirdi. Yanıtı görmek için tıkla.",
+      "fehler": "Bir şeyler ters gitti. Sohbeti açmak için tıkla.",
+      "schlaeft": "Himbi uyuyor. Sohbeti açmak için tıkla.",
+      "spricht": "Himbi konuşuyor.",
+      "tour": "Himbi, arkadaşın. Turu başlatmak için tıkla."
+    },
+    "arbeitet": "Üzerinde çalışıyorum …",
+    "imHintergrund": "Arka planda çalışıyor, sen işine devam edebilirsin.",
+    "freigabe": "Onayına ihtiyacım var.",
+    "ansehen": "Görüntüle",
+    "fertig": "Bitti! Yanıtın hazır.",
+    "fehler": "Bir şeyler ters gitti. Ayrıntılar için sohbeti aç.",
+    "weg": {
+      "halten": "Gideyim mi? Basılı tutmaya devam et …",
+      "tschuess": "Hoşça kal! İhtiyacın olunca beni geri çağır.",
+      "hinweis": "Beni göndermek için basılı tut."
+    },
+    "willkommen": "İşte geri döndüm!",
+    "zurueckholen": "Himbi’yi geri getir",
+    "tipp": {
+      "frage": "“{bereich}” bölümündesin. Burada neler yapabileceğini göstereyim mi?",
+      "ja": "Göster",
+      "spaeter": "Sonra",
+      "frageText": "“{bereich}” bölümünü bana açıkla: burada ne yapabilirim?"
+    },
+    "einstellung": {
+      "titel": "Himbi, arkadaşın",
+      "text": "Sohbet kapalıyken bile ajanın ne yaptığını köşede gösterir. Himbi’yi göndermek için basılı tut, alt kenardaki ucu onu geri getirir. Burada kapatırsan Himbi tamamen kaybolur."
+    },
+    "tour": {
+      "gruss": "Merhaba, ben Himbi! Sana Damicon’ı bir dakikada göstereyim mi?",
+      "autoStart": "Birazdan kendiliğinden başlayacağım. Kendin bakmak istersen tıkla veya kaydır.",
+      "start": "Turu başlat",
+      "nein": "Hayır, teşekkürler",
+      "weiter": "İleri",
+      "zurueck": "Geri",
+      "beenden": "Bitir",
+      "pausiert": "Tamam, kontrol sende. Devam etmemi istediğinde söyle.",
+      "auto": "Otomatik devam et",
+      "pause": "Duraklat",
+      "fertigKnopf": "Bitti",
+      "ende": "Tur bitti. Kendin denemeye hazır mısın?",
+      "anmelden": "Giriş yap",
+      "nochmal": "Tekrar",
+      "himbeere": {
+        "titel": "Ahududu neden farklı",
+        "text": "Koruyucu kabuğu yok, raf ömrü çok kısa: kalite daha tarlada belirlenir."
+      },
+      "sechzig": {
+        "titel": "Toplamadan sonraki saat",
+        "text": "Meyve 60 dakika içinde soğutulmalı. Damicon bu süreyi ölçülebilir kılar."
+      },
+      "beleg": {
+        "titel": "Her partinin belgesi var",
+        "text": "Soğutma eğrisinden toplayıcıya kadar: menşei kesintisiz kanıtlanır."
+      },
+      "zonen": {
+        "titel": "Dört alan, tek sistem",
+        "text": "Tarla, avlu, ofis ve pazar. Her rol tam olarak ihtiyacı olanı görür."
+      },
+      "kpis": {
+        "titel": "Temel göstergeler",
+        "text": "Kayıp oranı, soğutma süresi, toplama verimi: bir işletme nelerle ölçülür."
+      },
+      "compliance": {
+        "titel": "Kazakistan 2026 göz önünde",
+        "text": "Yeni vergi kanunu, sevk irsaliyesi, yapay zekâ kanunu ve fazlası: süreler ve riskler tek bakışta."
+      },
+      "fragen": {
+        "titel": "Sorun mu var?",
+        "text": "En sık sorulanların yanıtları burada. İşletmede yapay zekâ asistanı da yardımcı olur."
+      }
+    }
+  },
   "kiAssistentAnsicht": {
     "chatTitel": "Yapay zekâ asistanı",
     "chatLead": "Onaylı fiyat ve çeşit verilerinden, ayrıca role bağlı olarak kendisinin sorguladığı canlı vergi, iş hukuku ve uyum verilerinden yanıt verir. Her yanıtı kaydeder, tekrarlayan belirsizlikte ofise yükseltir.",
