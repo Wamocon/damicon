@@ -1,17 +1,14 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import {
   Landmark,
-  Loader2,
   MessageSquareWarning,
-  Mic,
   Radar,
   ShieldAlert,
   Snowflake,
   Sparkles,
-  Square,
   UserRound,
 } from "lucide-react";
 import type { ComponentType } from "react";
@@ -27,7 +24,6 @@ import {
 import {
   kiEskalationAnfordern,
   kiNachrichtSenden,
-  transkribiereSprachnachricht,
   waermeSpracherkennungVor,
 } from "@/lib/actions/ki-assistent";
 import {
@@ -37,6 +33,7 @@ import {
   kiAnbieterStandardSetzen,
 } from "@/lib/actions/ki-anbieter";
 import { leer } from "@/lib/actions/status";
+import { MikrofonKnopf as MikrofonAufnahmeKnopf } from "@/components/ki/mikrofon";
 import {
   kiAnbieterTypen,
   MAX_NACHRICHT_LAENGE,
@@ -197,107 +194,17 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
 // ungeprueft an die Kundschaft ginge, waere schlimmer als ein Tippfehler.
 // Abgeschickt wird weiterhin von Hand.
 function MikrofonKnopf({ eingabeRef }: { eingabeRef: React.RefObject<HTMLInputElement | null> }) {
-  const t = useTranslations("kiAssistentAnsicht.diktat");
-  const [zustand, setZustand] = useState<"bereit" | "aufnahme" | "laeuft">("bereit");
-  const [meldung, setMeldung] = useState<string | null>(null);
-  const recorderRef = useRef<MediaRecorder | null>(null);
-
-  // Eine laufende Aufnahme darf das Mikrofon nicht behalten, wenn die
-  // Komponente verschwindet (Seitenwechsel mitten im Diktat).
-  useEffect(() => {
-    return () => {
-      const r = recorderRef.current;
-      if (r && r.state !== "inactive") {
-        r.stream.getTracks().forEach((spur) => spur.stop());
-        r.stop();
-      }
-    };
-  }, []);
-
-  async function starten() {
-    setMeldung(null);
-    try {
-      const strom = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(strom);
-      const teile: Blob[] = [];
-
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) teile.push(e.data);
-      };
-
-      recorder.onstop = async () => {
-        strom.getTracks().forEach((spur) => spur.stop());
-        const aufnahme = new Blob(teile, { type: recorder.mimeType || "audio/webm" });
-        if (aufnahme.size === 0) {
-          setZustand("bereit");
-          setMeldung(t("leer"));
-          return;
-        }
-
-        setZustand("laeuft");
-        const daten = new FormData();
-        daten.append("audio", aufnahme, "aufnahme.webm");
-        const status = await transkribiereSprachnachricht(leer, daten);
-        setZustand("bereit");
-
-        // Erfolg traegt den erkannten Text im wert-Feld (siehe ok() in
-        // actions/status.ts). Er wird eingesetzt, nicht angehaengt - wer
-        // diktiert, will das Gesagte sehen, nicht einen Anbau an alten Text.
-        if (status.stand === "ok" && status.wert) {
-          const feld = eingabeRef.current;
-          if (feld) {
-            feld.value = status.wert;
-            feld.focus();
-          }
-        } else {
-          setMeldung(t("fehlgeschlagen"));
-        }
-      };
-
-      recorder.start();
-      recorderRef.current = recorder;
-      setZustand("aufnahme");
-    } catch {
-      // Kein Mikrofon, keine Erlaubnis, kein HTTPS - fuer die Nutzerin
-      // dasselbe Ergebnis: es geht gerade nicht.
-      setMeldung(t("keinZugriff"));
-    }
-  }
-
-  function stoppen() {
-    const r = recorderRef.current;
-    if (r && r.state !== "inactive") r.stop();
-  }
-
-  const beschriftung =
-    zustand === "aufnahme" ? t("stoppen") : zustand === "laeuft" ? t("laeuft") : t("starten");
-
   return (
-    <>
-      <button
-        type="button"
-        onClick={zustand === "aufnahme" ? stoppen : starten}
-        disabled={zustand === "laeuft"}
-        title={beschriftung}
-        aria-label={beschriftung}
-        className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border text-foreground transition disabled:opacity-60 ${
-          zustand === "aufnahme"
-            ? "border-destructive bg-destructive/10 text-destructive"
-            : "border-border bg-card hover:border-primary"
-        }`}
-      >
-        {zustand === "laeuft" ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : zustand === "aufnahme" ? (
-          <Square className="h-4 w-4" />
-        ) : (
-          <Mic className="h-4 w-4" />
-        )}
-      </button>
-      {meldung ? (
-        <p className="self-center text-[11px] text-muted-foreground">{meldung}</p>
-      ) : null}
-    </>
+    <MikrofonAufnahmeKnopf
+      className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground transition hover:border-primary disabled:opacity-60"
+      beiText={(text) => {
+        const feld = eingabeRef.current;
+        if (feld) {
+          feld.value = text;
+          feld.focus();
+        }
+      }}
+    />
   );
 }
 
