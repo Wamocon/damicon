@@ -94,7 +94,7 @@ export function StammdatenBearbeiten({
           name="sorte_id"
           defaultValue={sorteId ?? ""}
           aria-label={t("feld.sorte")}
-          className="h-9 rounded-lg border border-border bg-background px-2 text-[11px] font-semibold text-foreground outline-none transition focus:border-primary"
+          className="h-11 rounded-lg border border-border bg-background px-3 text-base font-semibold text-foreground outline-none transition focus:border-primary md:h-9 md:px-2 md:text-[11px]"
         >
           <option value="">{t("feld.ohneSorte")}</option>
           {sorten.map((sorte) => (

@@ -360,6 +360,41 @@
     content: none;
   }
 
+  /* Eine Zelle, in der etwas eingegeben wird, steht einspaltig: Beschriftung
+     oben, Bedienelemente darunter ueber die volle Breite.
+
+     Nebeneinander blieben von 358 px Kartenbreite noch 215 px fuer den
+     Wert - darin standen in den Reihenbloecken ein Auswahlfeld, ein Knopf,
+     ein Codefeld und ein zweites Auswahlfeld nebeneinander und liefen aus
+     der Karte heraus. Zwei Spalten sind fuer einen Wert richtig, den man
+     liest, und falsch fuer ein Formular, das man bedient.
+
+     :has() statt einer Klasse an der Zelle, weil die Zellen aus 29
+     Aufrufstellen kommen und keine davon etwas von der Kartendarstellung
+     weiss - derselbe Grund, aus dem der Baustein die Beschriftung selbst
+     anhaengt. */
+  .datentabelle:not([data-matrix]) td:has(form),
+  .datentabelle:not([data-matrix]) td:has(select),
+  .datentabelle:not([data-matrix]) td:has(input:not([type="hidden"])) {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
+  /* Und die Felder darin stehen untereinander statt nebeneinander. Die
+     Formulare setzen ihre Felder in eine Flex-Reihe; auf 358 px passt
+     davon eines, nicht vier. */
+  .datentabelle:not([data-matrix]) td form > div {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .datentabelle:not([data-matrix]) td form select,
+  .datentabelle:not([data-matrix]) td form input:not([type="hidden"]),
+  .datentabelle:not([data-matrix]) td form button {
+    width: 100%;
+  }
+
   /* Eine Matrix bleibt eine Matrix: sie scrollt waagerecht, und die erste
      Spalte laeuft nicht mit. Ohne das ist man nach zwei Spalten verloren -
      man sieht Haekchen, weiss aber nicht mehr, zu welcher Ressource sie
