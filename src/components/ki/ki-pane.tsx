@@ -193,12 +193,24 @@ export function KiPane({
 
   if (!verfuegbar) return null;
 
-  // Der Agent steuert das Hauptfenster und lebt davon, dass man dabei zusehen
-  // kann. Als Blatt von unten deckt das Panel die Seite fast vollstaendig ab -
-  // die Fuehrung liefe hinter dem Blatt ab, wo niemand sie sieht. Auf dem Handy
-  // antwortet der Assistent deshalb, fuehrt aber nicht; die Einstellung selbst
-  // bleibt unberuehrt und gilt am Schreibtisch weiter.
-  const agentAktiv = agentFaehig && modus === "agent" && !handy;
+  // Gilt auf jedem Geraet gleich. Hier stand eine Weile `&& !handy`, mit der
+  // Begruendung, der Agent lebe davon, dass man ihm zusieht, und auf dem Handy
+  // decke das Blatt die Seite ab. Beides hielt nicht stand:
+  //
+  // Zusehen geht sehr wohl - das Panel bleibt beim Schliessen gemountet (siehe
+  // oben), eine laufende Tour laeuft also weiter, waehrend man das Blatt nach
+  // unten wischt und der Seite zuschaut.
+  //
+  // Schlimmer war, dass die Abschaltung gar nicht griff. Diese Variable steuert
+  // nur drei optische Dinge: die Klasse ki-pane--agent, das Schweben der
+  // Himbeere und das Abzeichen im Kopf. Was wirklich ueber die Werkzeuge
+  // entscheidet, setzt ki-chat.tsx als `agentModus: modus === "agent"`, und
+  // jene Datei kennt die Handy-Erkennung nicht. Ein iPhone im Querformat ist
+  // 844 px breit, liegt also ueber der Grenze: dort liess sich der Modus
+  // einschalten, und beim Drehen ins Hochformat verschwanden Abzeichen,
+  // Schweben und Schalter - waehrend der Agent weiter klickte und tippte.
+  // Die Oberflaeche sagte damit das Gegenteil dessen, was geschah.
+  const agentAktiv = agentFaehig && modus === "agent";
   const hatEinstellungen = agentFaehig || einstellungen !== null;
   // Die Mehr-Ansicht gibt es nur auf dem Handy. Wer das Fenster breiter zieht,
   // waehrend sie offen ist, landet wieder im Gespraech, statt auf einer Seite
@@ -363,10 +375,10 @@ export function KiPane({
             ) : null}
             {sichtbar === "einstellungen" && hatEinstellungen ? (
               <div className="ki-pane__ansicht space-y-5 overflow-y-auto p-4">
-                {/* Der Agent-Schalter fehlt auf dem Handy: dort ruht der
-                    Modus ohnehin, ein Schalter ohne Wirkung waere
-                    irrefuehrend. */}
-                {agentFaehig && !handy ? <ModusEinstellung /> : null}
+                {/* Auf jedem Geraet, siehe agentAktiv oben. Ohne den Schalter
+                    kam man auf dem Handy aus einem einmal eingeschalteten
+                    Agent-Modus nicht mehr heraus. */}
+                {agentFaehig ? <ModusEinstellung /> : null}
                 <HaustierEinstellung />
                 {einstellungen ? (
                   <div>
