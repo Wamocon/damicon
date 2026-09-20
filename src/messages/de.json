@@ -1686,6 +1686,11 @@
         "titel": "Noch Fragen?",
         "text": "Die häufigsten Antworten stehen hier. Im Betrieb hilft dir außerdem der KI-Assistent."
       }
+    },
+    "abzeichen": {
+      "titel": "Auszeichnung",
+      "alt": "KI Innovator - Auszeichnung von diind, Deutsches Innovationsinstitut",
+      "schliessen": "Schließen"
     }
   },
   "kiAssistentAnsicht": {

@@ -81,27 +81,6 @@ export function schreibeBewegung(an: boolean): void {
   document.documentElement.toggleAttribute("data-hb-still", !an);
 }
 
-const BEWERTUNG_SCHLUESSEL = "damicon-haustier-bewertung";
-
-/** Die drei Sterne auf dem Chapan: 0, solange niemand geklickt hat. Rein lokal - kein
- *  Server sieht diesen Wert, nur der Speicher dieses Geraets. */
-export function leseBewertung(): 0 | 1 | 2 | 3 {
-  try {
-    const wert = Number(window.localStorage.getItem(BEWERTUNG_SCHLUESSEL));
-    return wert === 1 || wert === 2 || wert === 3 ? wert : 0;
-  } catch {
-    return 0;
-  }
-}
-
-export function schreibeBewertung(stern: 1 | 2 | 3): void {
-  try {
-    window.localStorage.setItem(BEWERTUNG_SCHLUESSEL, String(stern));
-  } catch {
-    // gesperrter Speicher: die Bewertung gilt nur fuer diese Sitzung
-  }
-}
-
 /** an = Himbi ist da. weg = weggeschickt, nur die Blattspitze schaut am Rand heraus (ein Klick holt sie
  *  zurueck). aus = in den Einstellungen ganz abgeschaltet, auch die Spitze bleibt weg. */
 export type Sichtbarkeit = "an" | "weg" | "aus";

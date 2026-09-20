@@ -1687,21 +1687,17 @@ html[data-hb-still] .hb-versteck__innen {
   }
 }
 
-/* Bewertung: drei Sterne auf dem Chapan (himbi.tsx, .hb-sterne). Nur sichtbar, wenn
-   aufBewertung uebergeben wurde - eine Bewertung ohne Empfaenger waere nur Attrappe. */
+/* Drei Sterne auf dem Chapan (himbi.tsx, .hb-sterne): ein Knopf zum Abzeichen, nur
+   sichtbar, wenn aufAbzeichen uebergeben wurde - ohne Empfaenger waere er nur Attrappe. */
 .hb-stern {
   cursor: pointer;
   touch-action: manipulation;
 }
 .hb-stern path {
-  fill: rgb(255 255 255 / 0.4);
-  stroke: #f2c14e;
-  stroke-width: 1.4;
-  stroke-linejoin: round;
-}
-.hb-stern[data-gesetzt="true"] path {
   fill: #ffd166;
   stroke: #b3821a;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
 }
 .hb-stern:focus-visible path {
   stroke: #fff;
@@ -1715,5 +1711,64 @@ html[data-hb-still] .hb-versteck__innen {
   }
   .hb-stern:hover path {
     transform: scale(1.15);
+  }
+}
+
+/* Abzeichen-Anzeige: das KI-Innovator-Bild, das ein Klick auf einen Bewertungsstern
+   oeffnet (abzeichen-modal.tsx). Eigenes, kleines Overlay - unabhaengig von der
+   Buehne und vom Seitenpanel, die beide etwas ganz anderes zeigen. */
+.hb-abzeichen-blende {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgb(6 4 9 / 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.hb-abzeichen-fenster {
+  position: relative;
+  width: min(92vw, 24rem);
+  outline: none;
+}
+.hb-abzeichen-bild {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3508 / 5079;
+  filter: drop-shadow(0 20px 45px rgb(0 0 0 / 0.45));
+}
+.hb-abzeichen-schliessen {
+  position: absolute;
+  top: -0.75rem;
+  right: -0.75rem;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 1px solid rgb(255 255 255 / 0.25);
+  background: rgb(20 16 24 / 0.92);
+  color: #f2ecf5;
+  cursor: pointer;
+}
+.hb-abzeichen-schliessen:hover {
+  border-color: rgb(255 255 255 / 0.5);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hb-abzeichen-fenster {
+    animation: hb-abzeichen-erscheinen 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+@keyframes hb-abzeichen-erscheinen {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }

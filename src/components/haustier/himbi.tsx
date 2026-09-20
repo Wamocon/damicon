@@ -56,7 +56,7 @@ function funke(x: number, y: number, s: number): string {
   return `M${x} ${y - s}Q${x} ${y} ${x + s} ${y}Q${x} ${y} ${x} ${y + s}Q${x} ${y} ${x - s} ${y}Q${x} ${y} ${x} ${y - s}Z`;
 }
 
-/** Fuenfzackiger Stern fuer die Bewertung auf dem Chapan. */
+/** Fuenfzackiger Stern auf dem Chapan - ein Knopf zum Abzeichen, keine Bewertung. */
 function stern(cx: number, cy: number, r: number): string {
   const innen = r * 0.42;
   let d = "";
@@ -70,12 +70,8 @@ function stern(cx: number, cy: number, r: number): string {
   return `${d}Z`;
 }
 
-/** x-Position und Nummer der drei Bewertungssterne auf dem Chapan. */
-const STERNE = [
-  { x: 34, n: 1 as const },
-  { x: 48, n: 2 as const },
-  { x: 62, n: 3 as const },
-];
+/** x-Position der drei Sterne auf dem Chapan - alle drei tun dasselbe. */
+const STERN_X = [34, 48, 62];
 
 /** Koschkar-Muiis, das kasachische Widderhorn: zwei gegenlaeufige Spiralen. Auf eine
  *  Strichzeichnung reduziert, damit das Muster auch bei 64 px noch als Muster liest
@@ -126,18 +122,15 @@ export function Himbi({
   zustand,
   stimmung = "neutral",
   groesse = 88,
-  bewertung = 0,
-  aufBewertung,
+  aufAbzeichen,
 }: {
   zustand: HaustierZustand;
   /** Faerbt nur Brauen, Wangen und eine kurze Reaktion - der Zustand bleibt der Zustand. */
   stimmung?: Stimmung;
   groesse?: number;
-  /** 0 bis 3: wie viele der drei Sterne auf dem Chapan schon gesetzt sind. */
-  bewertung?: 0 | 1 | 2 | 3;
-  /** Gesetzt: die drei Sterne werden klickbar. Ohne sie bleiben sie unsichtbar -
-   *  eine Bewertung ohne jemanden, der sie entgegennimmt, waere nur Attrappe. */
-  aufBewertung?: (stern: 1 | 2 | 3) => void;
+  /** Gesetzt: die drei Sterne auf dem Chapan werden klickbar - alle drei rufen sie auf.
+   *  Ohne sie bleiben die Sterne unsichtbar - ein Knopf ohne Wirkung waere nur Attrappe. */
+  aufAbzeichen?: () => void;
 }) {
   const id = useId().replace(/:/g, "");
   return (
@@ -331,30 +324,30 @@ export function Himbi({
           <path d={funke(78, 30, 4)} fill="#ffd166" />
         </g>
 
-        {/* Bewertung: drei Sterne auf dem Chapan, nur klickbar mit aufBewertung. Ganz zuletzt
-         *  gezeichnet, damit sie ueber allem liegen und der Klick nie an Koerper oder Aermel
-         *  haengen bleibt. onPointerDown stoppt die Weitergabe, bevor der Ziehen-Griff der
-         *  Huelle (haustier-huelle.tsx) daraus einen Zug oder einen Buehnen-Klick macht. */}
-        {aufBewertung ? (
+        {/* Drei Sterne auf dem Chapan, nur klickbar mit aufAbzeichen - alle drei oeffnen
+         *  dasselbe Abzeichen (abzeichen-modal.tsx). Ganz zuletzt gezeichnet, damit sie ueber
+         *  allem liegen und der Klick nie an Koerper oder Aermel haengen bleibt.
+         *  onPointerDown stoppt die Weitergabe, bevor der Ziehen-Griff der Huelle
+         *  (haustier-huelle.tsx) daraus einen Zug oder einen Buehnen-Klick macht. */}
+        {aufAbzeichen ? (
           <g className="hb-sterne">
-            {STERNE.map(({ x, n }) => (
+            {STERN_X.map((x) => (
               <g
-                key={n}
+                key={x}
                 className="hb-stern"
-                data-gesetzt={n <= bewertung}
                 role="button"
                 tabIndex={0}
-                aria-label={`${n}`}
+                aria-label="DamiAI Abzeichen"
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
                   e.stopPropagation();
-                  aufBewertung(n);
+                  aufAbzeichen();
                 }}
                 onKeyDown={(e) => {
                   if (e.key !== "Enter" && e.key !== " ") return;
                   e.preventDefault();
                   e.stopPropagation();
-                  aufBewertung(n);
+                  aufAbzeichen();
                 }}
               >
                 <circle cx={x} cy="109" r="8.6" fill="transparent" />

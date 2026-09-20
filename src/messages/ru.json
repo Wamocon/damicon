@@ -668,6 +668,11 @@
         "titel": "Остались вопросы?",
         "text": "Самые частые ответы здесь. В хозяйстве вам также поможет ИИ-ассистент."
       }
+    },
+    "abzeichen": {
+      "titel": "Награда",
+      "alt": "Награда KI Innovator от diind, Deutsches Innovationsinstitut",
+      "schliessen": "Закрыть"
     }
   },
   "kiAssistentAnsicht": {

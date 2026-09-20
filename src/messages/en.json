@@ -1686,6 +1686,11 @@
         "titel": "Any questions?",
         "text": "The most common answers are here. On the farm, the AI assistant helps as well."
       }
+    },
+    "abzeichen": {
+      "titel": "Award",
+      "alt": "KI Innovator award from diind, Deutsches Innovationsinstitut",
+      "schliessen": "Close"
     }
   },
   "kiAssistentAnsicht": {

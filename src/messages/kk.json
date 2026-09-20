@@ -668,6 +668,11 @@
         "titel": "Сұрақтарыңыз бар ма?",
         "text": "Ең жиі қойылатын сұрақтардың жауаптары осында. Шаруашылықта ЖИ көмекшісі де көмектеседі."
       }
+    },
+    "abzeichen": {
+      "titel": "Марапат",
+      "alt": "diind, Deutsches Innovationsinstitut берген KI Innovator марапаты",
+      "schliessen": "Жабу"
     }
   },
   "kiAssistentAnsicht": {

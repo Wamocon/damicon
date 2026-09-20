@@ -66,10 +66,8 @@ export interface HaustierHuelleProps {
   huepf?: number;
   /** Wegschicken durch Gedrueckt-Halten (oder Entf-Taste). Ohne diesen Eintrag laesst sich Himbi nicht wegschicken. */
   weg?: WegTexte;
-  /** 0 bis 3: wie viele der drei Sterne auf dem Chapan schon gesetzt sind. */
-  bewertung?: 0 | 1 | 2 | 3;
-  /** Gesetzt: die drei Sterne werden klickbar (himbi.tsx). */
-  aufBewertung?: (stern: 1 | 2 | 3) => void;
+  /** Gesetzt: die drei Sterne auf dem Chapan werden klickbar - alle drei rufen sie auf (himbi.tsx). */
+  aufAbzeichen?: () => void;
 }
 
 export interface WegTexte {
@@ -94,8 +92,7 @@ export function HaustierHuelle({
   buehne = false,
   huepf = 0,
   weg,
-  bewertung = 0,
-  aufBewertung,
+  aufAbzeichen,
 }: HaustierHuelleProps) {
   const wurzel = useRef<HTMLDivElement>(null);
   const griff = useRef<HTMLDivElement>(null);
@@ -503,7 +500,7 @@ export function HaustierHuelle({
               </span>
             ) : null}
             <div className="hb" ref={koerper}>
-              <Himbi zustand={anzeige} stimmung={stimmung} bewertung={bewertung} aufBewertung={aufBewertung} />
+              <Himbi zustand={anzeige} stimmung={stimmung} aufAbzeichen={aufAbzeichen} />
             </div>
             {anzeige === "freigabe" ? <span className="hb-abzeichen">!</span> : null}
             {zustand === "fertig" ? <span className="hb-abzeichen hb-abzeichen--fertig">✓</span> : null}
