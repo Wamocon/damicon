@@ -356,6 +356,12 @@
     z-index: 1;
     background: var(--card);
   }
+  /* Der Kopf einer Matrix waechst nicht mit: er ist ein Etikett ueber einer
+     Spalte aus Haekchen, und groesser gesetzt macht er jede Spalte breiter -
+     also mehr Querscrollen fuer weniger Uebersicht. */
+  .datentabelle[data-matrix] thead {
+    font-size: 0.6875rem;
+  }
   .datentabelle[data-matrix] thead th:first-child {
     /* Der Kopf der ersten Spalte liegt in beiden Richtungen fest und
        braucht den Grund der Kopfzeile, nicht den der Karte. */

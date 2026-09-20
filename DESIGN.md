@@ -95,14 +95,14 @@ Größen im Dashboard (aus `kit.tsx`):
 | Beschreibung | `text-sm leading-6 text-muted-foreground` (Seite), `text-xs` (Abschnitt) |
 | Kennzahl | `text-2xl font-black` |
 | Kennzahl-Label, Tabellenkopf, Feldname | `schrift-label font-semibold uppercase tracking-wide text-muted-foreground` |
-| Statuspille | `schrift-label font-semibold` |
+| Statuspille | `text-[11px] font-semibold leading-4` - wächst auf dem Handy bewusst nicht mit, siehe unten |
 | Tabellentext | `text-sm` |
 
 `font-black` fällt bei Manrope auf 800 zurück; das ist gewollt und braucht keine Korrektur.
 
 **Zwei Größen sind Tokens, nicht Zahlen.** `schrift-label` (Beschriftungen) und `schrift-dense` (dichter Fließtext daneben) stehen in `globals.css` und sind auf dem Handy eine Stufe größer: 11 → 13 px und 12 → 14 px. Die Oberfläche ist auf 11 px gebaut, was am Schreibtisch eine dichte, lesbare Erfassungsmaske ergibt und in der Hand die Größe ist, bei der man das Telefon näher ans Gesicht hält. Bewusst nicht 16 px: das ist die Grenze für *Eingabefelder* wegen des iOS-Zooms, für Beschriftungen wäre es zu viel. Der Sprung hängt an derselben Media Query wie Leiste, Blätter und Tabellen, nicht an einem eigenen `clamp()`.
 
-Neue Beschriftungen tragen `schrift-label`, neue Hilfszeilen `schrift-dense` — nicht `text-[11px]`. Die Namen beginnen bewusst nicht mit `text-`: tailwind-merge hätte sie in `cn()` für Textfarben gehalten und neben `text-success` entfernt, samt Schriftgröße. Der Bestand in den Modulen ist noch nicht umgestellt (Stand: 212 Stellen), das ist ein eigener Durchgang.
+Neue Beschriftungen tragen `schrift-label`, neue Hilfszeilen `schrift-dense` — nicht `text-[11px]`. Ausgenommen sind Dinge, die man **erkennt** statt liest: die Statuspille und der Kopf einer Matrix bleiben auf beiden Geräten bei 11 px. Eine Pille mit 13 px nimmt in einer schmalen Karte spürbar Platz, ohne dass ein Zustandswort dadurch verständlicher wird, und ein größerer Matrixkopf macht jede Spalte breiter, also mehr Querscrollen für weniger Übersicht. Die Namen beginnen bewusst nicht mit `text-`: tailwind-merge hätte sie in `cn()` für Textfarben gehalten und neben `text-success` entfernt, samt Schriftgröße. Der Bestand in den Modulen ist noch nicht umgestellt (Stand: 212 Stellen), das ist ein eigener Durchgang.
 
 ## 4. Form, Abstand, Tiefe
 

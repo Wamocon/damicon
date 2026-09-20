@@ -31,8 +31,17 @@ export function StatusPill({
   return (
     <span
       title={title}
+      // 11 px auf beiden Geraeten, also bewusst ohne `schrift-label`: eine
+      // Pille ist keine Beschriftung, die man liest, sondern ein Marker, den
+      // man erkennt. Mitgewachsen auf 13 px nahm sie in einer schmalen Karte
+      // spuerbar Platz - auf der Rollenseite die halbe Kartenbreite -, ohne
+      // dass ein Zustandswort dadurch verstaendlicher wird.
+      //
+      // `text-[11px]` und nicht das Token: tailwind-merge erkennt es als
+      // Schriftgroesse und laesst es neben der Tonfarbe stehen. Genau daran
+      // war die Token-Fassung gescheitert.
       className={cn(
-        "inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-0.5 schrift-label font-semibold",
+        "inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold leading-4",
         toneClasses[tone],
         className,
       )}

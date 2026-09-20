@@ -161,10 +161,18 @@ const pilleErfolg = renderToStaticMarkup(
 
 pruefe(
   "Die Statuspille behaelt ihre Schriftgroesse neben der Tonfarbe",
-  pilleNeutral.includes("schrift-label") &&
-    pilleErfolg.includes("schrift-label") &&
+  pilleNeutral.includes("text-[11px]") &&
+    pilleErfolg.includes("text-[11px]") &&
     pilleErfolg.includes("text-success"),
   "cn() mit tailwind-merge",
+);
+
+// Und sie waechst auf dem Handy NICHT mit: eine Pille ist ein Marker, keine
+// Beschriftung. Mitgewachsen nahm sie in einer schmalen Karte zu viel Platz.
+pruefe(
+  "Die Statuspille traegt keine der beiden wachsenden Groessen",
+  !pilleNeutral.includes("schrift-label") &&
+    !pilleNeutral.includes("schrift-dense"),
 );
 
 const kachel = renderToStaticMarkup(
