@@ -1495,9 +1495,12 @@ html[data-ki-zieht] body {
   inset: 0;
   z-index: 66;
   border: 0;
-  background: rgb(14 7 10 / 0.38);
-  backdrop-filter: blur(14px) saturate(0.9);
-  -webkit-backdrop-filter: blur(14px) saturate(0.9);
+  /* Deutlich dunkler als eine uebliche Blende: die Frequenzkugel hinter Himbi
+     (haustier/wellen.tsx) zeichnet additiv, ihre Linien brauchen einen dunklen Grund.
+     Sonst traegt sie im hellen Thema nicht. */
+  background: rgb(10 6 14 / 0.58);
+  backdrop-filter: blur(16px) saturate(0.85);
+  -webkit-backdrop-filter: blur(16px) saturate(0.85);
   opacity: 0;
   pointer-events: none;
 }

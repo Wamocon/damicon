@@ -1534,14 +1534,14 @@
   },
   "haustier": {
     "label": {
-      "ruhe": "Himbi, your companion. Click to open the chat.",
-      "denkt": "Himbi is working. Click to open the chat.",
-      "freigabe": "Himbi needs your approval. Click to open the chat.",
-      "fertig": "Himbi is done. Click to see the answer.",
+      "ruhe": "DamiAI, your companion. Click to open the chat.",
+      "denkt": "DamiAI is working. Click to open the chat.",
+      "freigabe": "DamiAI needs your approval. Click to open the chat.",
+      "fertig": "DamiAI is done. Click to see the answer.",
       "fehler": "Something went wrong. Click to open the chat.",
-      "schlaeft": "Himbi is asleep. Click to open the chat.",
-      "spricht": "Himbi is speaking.",
-      "tour": "Himbi, your companion. Click to open the tour."
+      "schlaeft": "DamiAI is asleep. Click to open the chat.",
+      "spricht": "DamiAI is speaking.",
+      "tour": "DamiAI, your companion. Click to open the tour."
     },
     "arbeitet": "Working on it …",
     "imHintergrund": "Running in the background, keep working.",
@@ -1555,7 +1555,7 @@
       "hinweis": "Hold me down to send me away."
     },
     "willkommen": "I’m back!",
-    "zurueckholen": "Bring Himbi back",
+    "zurueckholen": "Bring DamiAI back",
     "befinden": {
       "frage": "How is your day going so far?",
       "gut": "Going well",
@@ -1590,11 +1590,11 @@
       "frageText": "Explain the area “{bereich}” to me: what can I do here?"
     },
     "einstellung": {
-      "titel": "Himbi, your companion",
-      "text": "Shows in the corner what the agent is doing, even when the chat is closed. Hold Himbi down to send it away, the tip at the bottom edge brings it back. Switched off here, Himbi stays away completely."
+      "titel": "DamiAI, your companion",
+      "text": "Shows in the corner what the agent is doing, even when the chat is closed. Hold DamiAI down to send it away, the tip at the bottom edge brings it back. Switched off here, DamiAI stays away completely."
     },
     "tour": {
-      "gruss": "Hi, I am Himbi! Shall I show you Damicon in one minute?",
+      "gruss": "Hi, I am DamiAI! Shall I show you Damicon in one minute?",
       "autoStart": "I will start on my own in a moment. Click or scroll if you would rather look around yourself.",
       "start": "Start the tour",
       "nein": "No thanks",

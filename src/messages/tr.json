@@ -542,14 +542,14 @@
   },
   "haustier": {
     "label": {
-      "ruhe": "Himbi, arkadaşın. Sohbeti açmak için tıkla.",
-      "denkt": "Himbi çalışıyor. Sohbeti açmak için tıkla.",
-      "freigabe": "Himbi onayına ihtiyaç duyuyor. Sohbeti açmak için tıkla.",
-      "fertig": "Himbi bitirdi. Yanıtı görmek için tıkla.",
+      "ruhe": "DamiAI, arkadaşın. Sohbeti açmak için tıkla.",
+      "denkt": "DamiAI çalışıyor. Sohbeti açmak için tıkla.",
+      "freigabe": "DamiAI onayına ihtiyaç duyuyor. Sohbeti açmak için tıkla.",
+      "fertig": "DamiAI bitirdi. Yanıtı görmek için tıkla.",
       "fehler": "Bir şeyler ters gitti. Sohbeti açmak için tıkla.",
-      "schlaeft": "Himbi uyuyor. Sohbeti açmak için tıkla.",
-      "spricht": "Himbi konuşuyor.",
-      "tour": "Himbi, arkadaşın. Turu başlatmak için tıkla."
+      "schlaeft": "DamiAI uyuyor. Sohbeti açmak için tıkla.",
+      "spricht": "DamiAI konuşuyor.",
+      "tour": "DamiAI, arkadaşın. Turu başlatmak için tıkla."
     },
     "arbeitet": "Üzerinde çalışıyorum …",
     "imHintergrund": "Arka planda çalışıyor, sen işine devam edebilirsin.",
@@ -563,7 +563,7 @@
       "hinweis": "Beni göndermek için basılı tut."
     },
     "willkommen": "İşte geri döndüm!",
-    "zurueckholen": "Himbi’yi geri getir",
+    "zurueckholen": "DamiAI’yi geri getir",
     "befinden": {
       "frage": "Günün nasıl gidiyor?",
       "gut": "İyi gidiyor",
@@ -598,11 +598,11 @@
       "frageText": "“{bereich}” bölümünü bana açıkla: burada ne yapabilirim?"
     },
     "einstellung": {
-      "titel": "Himbi, arkadaşın",
-      "text": "Sohbet kapalıyken bile ajanın ne yaptığını köşede gösterir. Himbi’yi göndermek için basılı tut, alt kenardaki ucu onu geri getirir. Burada kapatırsan Himbi tamamen kaybolur."
+      "titel": "DamiAI, arkadaşın",
+      "text": "Sohbet kapalıyken bile ajanın ne yaptığını köşede gösterir. DamiAI’yi göndermek için basılı tut, alt kenardaki ucu onu geri getirir. Burada kapatırsan DamiAI tamamen kaybolur."
     },
     "tour": {
-      "gruss": "Merhaba, ben Himbi! Sana Damicon’ı bir dakikada göstereyim mi?",
+      "gruss": "Merhaba, ben DamiAI! Sana Damicon’ı bir dakikada göstereyim mi?",
       "autoStart": "Birazdan kendiliğinden başlayacağım. Kendin bakmak istersen tıkla veya kaydır.",
       "start": "Turu başlat",
       "nein": "Hayır, teşekkürler",

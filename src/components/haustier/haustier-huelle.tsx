@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { Himbi } from "@/components/haustier/himbi";
+import { Wellen } from "@/components/haustier/wellen";
 import type { HaustierZustand, Stimmung } from "@/lib/haustier";
 import "@/components/haustier/haustier.css";
 
@@ -466,6 +467,7 @@ export function HaustierHuelle({ zustand, stimmung = "neutral", blase, paneOffen
                 <span className="hb-aura__blob hb-aura__blob--1" />
                 <span className="hb-aura__blob hb-aura__blob--2" />
                 <span className="hb-aura__blob hb-aura__blob--3" />
+                <Wellen zustand={anzeige} />
                 <span className="hb-aura__ring" />
                 <span className="hb-aura__ring hb-aura__ring--spaet" />
               </span>

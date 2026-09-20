@@ -1534,14 +1534,14 @@
   },
   "haustier": {
     "label": {
-      "ruhe": "Himbi, dein Begleiter. Klicken öffnet den Chat.",
-      "denkt": "Himbi arbeitet gerade. Klicken öffnet den Chat.",
-      "freigabe": "Himbi braucht deine Freigabe. Klicken öffnet den Chat.",
-      "fertig": "Himbi ist fertig. Klicken zeigt die Antwort.",
+      "ruhe": "DamiAI, dein Begleiter. Klicken öffnet den Chat.",
+      "denkt": "DamiAI arbeitet gerade. Klicken öffnet den Chat.",
+      "freigabe": "DamiAI braucht deine Freigabe. Klicken öffnet den Chat.",
+      "fertig": "DamiAI ist fertig. Klicken zeigt die Antwort.",
       "fehler": "Etwas ist schiefgelaufen. Klicken öffnet den Chat.",
-      "schlaeft": "Himbi schläft. Klicken öffnet den Chat.",
-      "spricht": "Himbi spricht.",
-      "tour": "Himbi, dein Begleiter. Klicken öffnet die Tour."
+      "schlaeft": "DamiAI schläft. Klicken öffnet den Chat.",
+      "spricht": "DamiAI spricht.",
+      "tour": "DamiAI, dein Begleiter. Klicken öffnet die Tour."
     },
     "arbeitet": "Ich arbeite daran …",
     "imHintergrund": "Läuft im Hintergrund, du kannst weiterarbeiten.",
@@ -1555,7 +1555,7 @@
       "hinweis": "Halte mich gedrückt, um mich wegzuschicken."
     },
     "willkommen": "Da bin ich wieder!",
-    "zurueckholen": "Himbi zurückholen",
+    "zurueckholen": "DamiAI zurückholen",
     "befinden": {
       "frage": "Wie läuft dein Tag bisher?",
       "gut": "Läuft gut",
@@ -1590,11 +1590,11 @@
       "frageText": "Erkläre mir den Bereich „{bereich}“: Was kann ich hier tun?"
     },
     "einstellung": {
-      "titel": "Himbi, dein Begleiter",
-      "text": "Zeigt in der Ecke, was der Agent gerade tut, auch wenn der Chat geschlossen ist. Zum Wegschicken auf Himbi gedrückt halten, die Spitze am unteren Rand holt sie zurück. Hier ausgeschaltet bleibt Himbi ganz weg."
+      "titel": "DamiAI, dein Begleiter",
+      "text": "Zeigt in der Ecke, was der Agent gerade tut, auch wenn der Chat geschlossen ist. Zum Wegschicken auf DamiAI gedrückt halten, die Spitze am unteren Rand holt sie zurück. Hier ausgeschaltet bleibt DamiAI ganz weg."
     },
     "tour": {
-      "gruss": "Hallo, ich bin Himbi! Soll ich dir Damicon in einer Minute zeigen?",
+      "gruss": "Hallo, ich bin DamiAI! Soll ich dir Damicon in einer Minute zeigen?",
       "autoStart": "Ich lege gleich von allein los. Klick oder scrolle, wenn du lieber selbst schaust.",
       "start": "Tour starten",
       "nein": "Nein danke",

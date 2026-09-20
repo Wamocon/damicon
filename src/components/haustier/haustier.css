@@ -1426,20 +1426,23 @@ html[data-ki-zieht] .haustier__verschiebung {
   position: absolute;
   left: 50%;
   top: 45%;
-  width: 220%;
-  height: 148%;
+  width: 300%;
+  height: 205%;
   translate: -50% -50%;
   pointer-events: none;
   opacity: 0;
 }
 .haustier[data-buehne="true"] .hb-aura {
-  opacity: 0.6;
+  opacity: 0.85;
 }
+/* Die Flecken sind nur noch die Farbunterlage unter der Kugel - weiter weichgezeichnet
+   und deutlich blasser, sonst uebertoenen sie die Linien. */
 .hb-aura__blob {
   position: absolute;
-  inset: 0;
+  inset: 12%;
   border-radius: 50%;
-  filter: blur(20px);
+  filter: blur(34px);
+  opacity: 0.5;
 }
 .hb-aura__blob--1 {
   background: radial-gradient(circle at 38% 34%, rgb(216 27 96 / 0.85), rgb(216 27 96 / 0) 62%);
@@ -1452,7 +1455,7 @@ html[data-ki-zieht] .haustier__verschiebung {
 }
 .hb-aura__ring {
   position: absolute;
-  inset: 24%;
+  inset: 30%;
   border-radius: 50%;
   border: 1.5px solid rgb(255 255 255 / 0.5);
   opacity: 0;
@@ -1577,4 +1580,16 @@ html[data-ki-zieht] .haustier__verschiebung {
     opacity: 0;
     transform: scale(1.3);
   }
+}
+
+/* Die Frequenzkugel selbst (wellen.tsx). Sie liegt ueber der Farbunterlage und unter der
+   Figur - im Kasten der Aura, also in derselben Mitte und mit derselben Vergroesserung.
+   Ihre Aufloesung rechnet die Zeichnung selbst hoch; hier steht nur, wie gross sie im
+   Layout ist. */
+.hb-wellen {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
