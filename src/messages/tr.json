@@ -549,7 +549,16 @@
       "fehler": "Bir şeyler ters gitti. Sohbeti açmak için tıkla.",
       "schlaeft": "DamiAI uyuyor. Sohbeti açmak için tıkla.",
       "spricht": "DamiAI konuşuyor.",
-      "tour": "DamiAI, arkadaşın. Turu başlatmak için tıkla."
+      "tour": "DamiAI, arkadaşın. Turu başlatmak için tıkla.",
+      "kurz": {
+        "ruhe": "Beklemede",
+        "denkt": "Çalışıyor",
+        "spricht": "Konuşuyor",
+        "freigabe": "Onay",
+        "fertig": "Bitti",
+        "fehler": "Hata",
+        "schlaeft": "Uyuyor"
+      }
     },
     "arbeitet": "Üzerinde çalışıyorum …",
     "imHintergrund": "Arka planda çalışıyor, sen işine devam edebilirsin.",
@@ -599,7 +608,18 @@
     },
     "einstellung": {
       "titel": "DamiAI, arkadaşın",
-      "text": "Sohbet kapalıyken bile ajanın ne yaptığını köşede gösterir. DamiAI’yi göndermek için basılı tut, alt kenardaki ucu onu geri getirir. Burada kapatırsan DamiAI tamamen kaybolur."
+      "text": "Sohbet kapalıyken bile ajanın ne yaptığını köşede gösterir. DamiAI’yi göndermek için basılı tut, alt kenardaki ucu onu geri getirir. Burada kapatırsan DamiAI tamamen kaybolur.",
+      "bewegungTitel": "Hareket",
+      "bewegungText": "Kapalı, DamiAI burada kalır ama hareket etmez. Sisteminde azaltılmış hareket zaten açıksa bu düğmeye gerek yok.",
+      "zustandTitel": "Durum",
+      "stimmungTitel": "İfade",
+      "vorschauHinweis": "Yalnızca önizleme - köşedeki arkadaşın etkilenmez.",
+      "stimmung": {
+        "neutral": "Bilgi",
+        "gut": "Başarı",
+        "warnung": "Bulgu",
+        "frage": "Soru"
+      }
     },
     "tour": {
       "gruss": "Merhaba, ben DamiAI! Sana Damicon’ı bir dakikada göstereyim mi?",

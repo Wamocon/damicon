@@ -1,8 +1,8 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
-import { leseSichtbarkeit, type AgentPhase, type Sichtbarkeit, type Stimmung } from "@/lib/haustier";
+import { leseBewegung, leseSichtbarkeit, type AgentPhase, type Sichtbarkeit, type Stimmung } from "@/lib/haustier";
 
 // Gemeinsamer Stand zwischen Chat und Himbi. Bewusst in DREI Kontexten statt einem:
 // - Status (Phase, Text, an/aus): liest nur Himbi. Aendert sich mit jedem Werkzeugschritt.
@@ -89,6 +89,12 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<AgentPhase>("ruhe");
   const [text, setText] = useState("");
   const [stimmung, setStimmung] = useState<Stimmung>("neutral");
+
+  // Der gespeicherte Bewegungsschalter gilt fuer das ganze Dokument. Einmal beim Start
+  // setzen - danach schreibt ihn nur noch die Einstellung selbst.
+  useEffect(() => {
+    document.documentElement.toggleAttribute("data-hb-still", !leseBewegung());
+  }, []);
   const sichtbarkeit = useSyncExternalStore(abonniere, leseSpeicher, serverWert);
   const [vorgabe, setVorgabe] = useState<Vorgabe | null>(null);
 

@@ -1541,7 +1541,16 @@
       "fehler": "Etwas ist schiefgelaufen. Klicken öffnet den Chat.",
       "schlaeft": "DamiAI schläft. Klicken öffnet den Chat.",
       "spricht": "DamiAI spricht.",
-      "tour": "DamiAI, dein Begleiter. Klicken öffnet die Tour."
+      "tour": "DamiAI, dein Begleiter. Klicken öffnet die Tour.",
+      "kurz": {
+        "ruhe": "Ruhe",
+        "denkt": "Arbeitet",
+        "spricht": "Spricht",
+        "freigabe": "Freigabe",
+        "fertig": "Fertig",
+        "fehler": "Fehler",
+        "schlaeft": "Schläft"
+      }
     },
     "arbeitet": "Ich arbeite daran …",
     "imHintergrund": "Läuft im Hintergrund, du kannst weiterarbeiten.",
@@ -1591,7 +1600,18 @@
     },
     "einstellung": {
       "titel": "DamiAI, dein Begleiter",
-      "text": "Zeigt in der Ecke, was der Agent gerade tut, auch wenn der Chat geschlossen ist. Zum Wegschicken auf DamiAI gedrückt halten, die Spitze am unteren Rand holt sie zurück. Hier ausgeschaltet bleibt DamiAI ganz weg."
+      "text": "Zeigt in der Ecke, was der Agent gerade tut, auch wenn der Chat geschlossen ist. Zum Wegschicken auf DamiAI gedrückt halten, die Spitze am unteren Rand holt sie zurück. Hier ausgeschaltet bleibt DamiAI ganz weg.",
+      "bewegungTitel": "Bewegung",
+      "bewegungText": "Aus heisst: DamiAI bleibt da, steht aber still. Wer das Betriebssystem schon auf weniger Bewegung gestellt hat, braucht diesen Schalter nicht.",
+      "zustandTitel": "Zustand",
+      "stimmungTitel": "Miene",
+      "vorschauHinweis": "Nur eine Vorschau - der Begleiter in der Ecke bleibt davon unberührt.",
+      "stimmung": {
+        "neutral": "Auskunft",
+        "gut": "Erfolg",
+        "warnung": "Befund",
+        "frage": "Rückfrage"
+      }
     },
     "tour": {
       "gruss": "Hallo, ich bin DamiAI! Soll ich dir Damicon in einer Minute zeigen?",

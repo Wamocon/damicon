@@ -53,6 +53,34 @@ export function stimmungAusAntwort(antwort: string): Stimmung {
   return "neutral";
 }
 
+/** Die Zustaende in der Reihenfolge, in der sie in der Vorschau stehen: erst der
+ *  Alltag, dann die Ausnahmen. "traurig" fehlt - den sieht man nur beim Wegschicken,
+ *  und dort erklaert er sich von selbst. */
+export const VORSCHAU_ZUSTAENDE = ["ruhe", "denkt", "spricht", "freigabe", "fertig", "fehler", "schlaeft"] as const;
+
+const BEWEGUNG_SCHLUESSEL = "damicon-haustier-bewegung";
+
+/** Bewegung der Figur: an, solange nichts anderes gespeichert ist. Das Betriebssystem
+ *  kann sie ueber prefers-reduced-motion ohnehin abbestellen - dieser Schalter ist fuer
+ *  alle, die die Figur moegen, aber nicht das Zappeln, und die dafuer nicht die
+ *  Einstellung ihres ganzen Rechners aendern wollen. */
+export function leseBewegung(): boolean {
+  try {
+    return window.localStorage.getItem(BEWEGUNG_SCHLUESSEL) !== "aus";
+  } catch {
+    return true;
+  }
+}
+
+export function schreibeBewegung(an: boolean): void {
+  try {
+    window.localStorage.setItem(BEWEGUNG_SCHLUESSEL, an ? "an" : "aus");
+  } catch {
+    // Speicher gesperrt: gilt dann nur fuer diese Sitzung
+  }
+  document.documentElement.toggleAttribute("data-hb-still", !an);
+}
+
 /** an = Himbi ist da. weg = weggeschickt, nur die Blattspitze schaut am Rand heraus (ein Klick holt sie
  *  zurueck). aus = in den Einstellungen ganz abgeschaltet, auch die Spitze bleibt weg. */
 export type Sichtbarkeit = "an" | "weg" | "aus";

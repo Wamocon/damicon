@@ -1541,7 +1541,16 @@
       "fehler": "Something went wrong. Click to open the chat.",
       "schlaeft": "DamiAI is asleep. Click to open the chat.",
       "spricht": "DamiAI is speaking.",
-      "tour": "DamiAI, your companion. Click to open the tour."
+      "tour": "DamiAI, your companion. Click to open the tour.",
+      "kurz": {
+        "ruhe": "Idle",
+        "denkt": "Working",
+        "spricht": "Speaking",
+        "freigabe": "Approval",
+        "fertig": "Done",
+        "fehler": "Error",
+        "schlaeft": "Asleep"
+      }
     },
     "arbeitet": "Working on it …",
     "imHintergrund": "Running in the background, keep working.",
@@ -1591,7 +1600,18 @@
     },
     "einstellung": {
       "titel": "DamiAI, your companion",
-      "text": "Shows in the corner what the agent is doing, even when the chat is closed. Hold DamiAI down to send it away, the tip at the bottom edge brings it back. Switched off here, DamiAI stays away completely."
+      "text": "Shows in the corner what the agent is doing, even when the chat is closed. Hold DamiAI down to send it away, the tip at the bottom edge brings it back. Switched off here, DamiAI stays away completely.",
+      "bewegungTitel": "Motion",
+      "bewegungText": "Off means DamiAI stays, but holds still. If your system is already set to reduced motion, you do not need this switch.",
+      "zustandTitel": "State",
+      "stimmungTitel": "Expression",
+      "vorschauHinweis": "A preview only - the companion in the corner is untouched.",
+      "stimmung": {
+        "neutral": "Information",
+        "gut": "Success",
+        "warnung": "Finding",
+        "frage": "Follow-up"
+      }
     },
     "tour": {
       "gruss": "Hi, I am DamiAI! Shall I show you Damicon in one minute?",

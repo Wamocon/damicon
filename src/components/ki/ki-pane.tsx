@@ -4,7 +4,8 @@ import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Bot, Info, LifeBuoy, Maximize2, MessageSquareText, PanelRight, Settings2, X } from "lucide-react";
 import { Himbeere } from "@/components/ki/himbeere";
-import { useHaustierAktionen, useHaustierStatus } from "@/components/haustier/haustier-kontext";
+import { HaustierEinstellung } from "@/components/haustier/haustier-einstellung";
+import { useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { KiChat } from "@/components/ki/ki-chat";
 import { KiPaneGriff } from "@/components/ki/ki-pane-griff";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
@@ -73,33 +74,6 @@ function ModusEinstellung() {
         </button>
       </div>
       <p className="ki-einstellung__text">{t("modus.schalterText")}</p>
-    </section>
-  );
-}
-
-function HaustierEinstellung() {
-  const t = useTranslations("haustier");
-  const { an } = useHaustierStatus();
-  const { setAn } = useHaustierAktionen();
-  return (
-    <section className="ki-einstellung">
-      <div className="ki-einstellung__kopf">
-        <div className="ki-einstellung__titel">
-          <Himbeere groesse={16} />
-          {t("einstellung.titel")}
-        </div>
-        <button
-          type="button"
-          role="switch"
-          aria-checked={an}
-          aria-label={t("einstellung.titel")}
-          onClick={() => setAn(!an)}
-          className="ki-schalter"
-        >
-          <span className="ki-schalter__knopf" />
-        </button>
-      </div>
-      <p className="ki-einstellung__text">{t("einstellung.text")}</p>
     </section>
   );
 }
