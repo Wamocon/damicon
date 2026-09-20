@@ -368,6 +368,7 @@
   "roles": {
     "switcherHint": "Demo-Rolle wechseln - steuert die sichtbare Navigation",
     "viewAsHint": "Ansicht als Rolle - ändert nur die Darstellung, die Schreibrechte richten sich weiter nach Ihrem Profil",
+    "viewAsBadge": "Ansicht: {role}",
     "admin": "Administration",
     "betriebsleitung": "Betriebsleitung",
     "buchhaltung": "Buchhaltung",

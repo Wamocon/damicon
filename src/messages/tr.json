@@ -156,7 +156,8 @@
       "erzeuger": "Alımdaki komşu işletme. Kendi sıra bloklarını, partilerini, hesaplarını ve sözleşmelerini görür.",
       "kunde": "Kontenjanlar, ön sipariş, fiyat listeleri, yapay zekâ sohbeti, paylaşılan belgeler ve kendi şikâyetleri."
     },
-    "viewAsHint": "Rol olarak görüntüle - yalnızca görünümü değiştirir, yazma yetkileri profilinize göre belirlenmeye devam eder"
+    "viewAsHint": "Rol olarak görüntüle - yalnızca görünümü değiştirir, yazma yetkileri profilinize göre belirlenmeye devam eder",
+    "viewAsBadge": "Görünüm: {role}"
   },
   "klassifikation": {
     "uebernehmen": "Devral",

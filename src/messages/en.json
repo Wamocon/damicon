@@ -368,6 +368,7 @@
   "roles": {
     "switcherHint": "Switch demo role - controls the visible navigation",
     "viewAsHint": "View as role - changes the presentation only; write permissions still follow your profile",
+    "viewAsBadge": "Viewing as: {role}",
     "admin": "Administration",
     "betriebsleitung": "Farm management",
     "buchhaltung": "Accounting",

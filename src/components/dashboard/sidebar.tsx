@@ -12,14 +12,21 @@ import {
   ChevronDown,
   LayoutDashboard,
   Menu,
-  PanelLeftClose,
-  PanelLeftOpen,
   X,
 } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { Icon } from "@/components/icon";
 import { usePersona } from "@/components/dashboard/persona";
+import {
+  BenutzerFuss,
+  BenutzerFussSchmal,
+} from "@/components/dashboard/benutzer-fuss";
+import {
+  istSchmal,
+  schmalAbonnieren,
+  schmalServer,
+} from "@/components/dashboard/sidebar-zustand";
 import { hasPermission } from "@/lib/rbac";
 import { moduleHref, modulesForZone, zones, type ZoneKey } from "@/lib/modules";
 import { cn } from "@/lib/utils";
@@ -45,42 +52,6 @@ let zonenCache: readonly ZoneKey[] | null = null;
 // Oeffnen den Bereich erneut auf, den man an der festen Spalte eben
 // zugeklappt hat.
 let zuletztGeoeffnet: ZoneKey | null = null;
-
-// Schmale Symbolleiste statt voller Spalte. Eigener Speicher, gleiches Muster
-// wie oben. Wirkt nur auf die feste Spalte ab md - die Schublade auf dem Handy
-// ist ohnehin nur so lange da, wie man sie braucht.
-const SCHMAL_SPEICHER = "damicon-sidebar-schmal";
-const schmalListener = new Set<() => void>();
-let schmalCache: boolean | null = null;
-
-function schmalAbonnieren(callback: () => void) {
-  schmalListener.add(callback);
-  return () => {
-    schmalListener.delete(callback);
-  };
-}
-
-function istSchmal(): boolean {
-  if (schmalCache !== null) return schmalCache;
-  let gelesen = false;
-  try {
-    gelesen = localStorage.getItem(SCHMAL_SPEICHER) === "1";
-  } catch {
-    // ignore
-  }
-  schmalCache = gelesen;
-  return gelesen;
-}
-
-function schmalSetzen(wert: boolean) {
-  schmalCache = wert;
-  try {
-    localStorage.setItem(SCHMAL_SPEICHER, wert ? "1" : "0");
-  } catch {
-    // ignore
-  }
-  schmalListener.forEach((listener) => listener());
-}
 
 function zonenAbonnieren(callback: () => void) {
   zonenListener.add(callback);
@@ -174,7 +145,7 @@ function useZonenGruppen() {
 // Klick fuehrt auf die Bereichsseite, die die Module ohnehin als Kacheln
 // zeigt - deshalb braucht die Leiste kein Ausklapp-Fenster, um brauchbar zu
 // sein. Ohne sichtbare Beschriftung traegt jedes Ziel aria-label und title.
-function SidebarRail({ aufklappen }: { aufklappen: () => void }) {
+function SidebarRail() {
   const { role } = usePersona();
   const nav = useTranslations("nav");
   const zoneT = useTranslations("zones");
@@ -203,16 +174,6 @@ function SidebarRail({ aufklappen }: { aufklappen: () => void }) {
       <Link href="/" aria-label="Damicon" title="Damicon" className="mt-1">
         <DamiconLogo className="shadow-lg shadow-primary/20" />
       </Link>
-
-      <button
-        type="button"
-        onClick={aufklappen}
-        aria-label={nav("expandMenu")}
-        title={nav("expandMenu")}
-        className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
-      >
-        <PanelLeftOpen className="h-4 w-4" />
-      </button>
 
       <div className="h-px w-8 bg-sidebar-border" />
 
@@ -250,23 +211,17 @@ function SidebarRail({ aufklappen }: { aufklappen: () => void }) {
           );
         })}
       </nav>
+
+      <BenutzerFussSchmal />
     </div>
   );
 }
 
-function SidebarBody({
-  onNavigate,
-  einklappen,
-}: {
-  onNavigate?: () => void;
-  /** Fehlt in der Schublade - dort gibt es nichts einzuklappen. */
-  einklappen?: () => void;
-}) {
-  const { role, demoModus } = usePersona();
+function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
+  const { role } = usePersona();
   const nav = useTranslations("nav");
   const zoneT = useTranslations("zones");
   const moduleT = useTranslations("modules");
-  const roleT = useTranslations("roles");
   const reifegradT = useTranslations("reifegrad");
   const isActive = useIsActive();
   const { offene, umschalten } = useZonenGruppen();
@@ -274,54 +229,21 @@ function SidebarBody({
 
   return (
     <div className="flex h-full min-h-0 flex-col p-4">
-      {/* Der Einklapp-Knopf steht neben dem Logo und nicht darin: ein Knopf
-          darf nicht in einem Link liegen. */}
-      <div className="flex items-center gap-2">
-        <Link
-          href="/"
-          className="flex min-w-0 flex-1 items-center gap-2.5"
-          onClick={onNavigate}
-        >
-          <DamiconLogo className="shadow-lg shadow-primary/20" />
-          <span className="min-w-0">
-            <span className="block text-lg font-black leading-tight text-sidebar-foreground">
-              Damicon
-            </span>
-            {/* Bricht um statt abzuschneiden: neben dem Einklapp-Knopf
-                bleiben 181 px, der Text braucht 193 px. Er ist Beiwerk, kein
-                Navigationsziel - zwei Zeilen kosten hier weniger als ein
-                abgeschnittener Markenzusatz. */}
-            <span className="block text-[11px] font-semibold leading-tight text-muted-foreground">
-              {nav("platformSubtitle")}
-            </span>
+      {/* Der Umschalter sitzt in der Kopfzeile, nicht hier: dort steht er an
+          derselben Stelle, ob die Leiste nun schmal oder breit ist. */}
+      <Link href="/" className="flex items-center gap-2.5" onClick={onNavigate}>
+        <DamiconLogo className="shadow-lg shadow-primary/20" />
+        <span className="min-w-0">
+          <span className="block text-lg font-black leading-tight text-sidebar-foreground">
+            Damicon
           </span>
-        </Link>
-        {einklappen ? (
-          <button
-            type="button"
-            onClick={einklappen}
-            aria-label={nav("collapseMenu")}
-            title={nav("collapseMenu")}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
-          >
-            <PanelLeftClose className="h-4 w-4" />
-          </button>
-        ) : null}
-      </div>
+          <span className="block truncate text-[11px] font-semibold text-muted-foreground">
+            {nav("platformSubtitle")}
+          </span>
+        </span>
+      </Link>
 
-      <div className="mt-5 rounded-xl border border-sidebar-border bg-sidebar-accent/70 p-3">
-        <p className="text-[10px] font-semibold uppercase text-muted-foreground">
-          {nav(demoModus ? "activePersona" : "activeRole")}
-        </p>
-        <p className="mt-1 truncate text-sm font-black text-card-foreground">
-          {roleT(role)}
-        </p>
-        <p className="truncate text-xs text-muted-foreground">
-          {roleT(`descriptions.${role}`)}
-        </p>
-      </div>
-
-      <nav className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
+      <nav className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
         <ul className="space-y-1.5">
           {/* "Uebersicht" steht auf derselben Ebene wie die vier Bereiche und
               bekommt deshalb dieselbe Flaeche - ohne sie haengt die Zeile lose
@@ -482,6 +404,8 @@ function SidebarBody({
           })}
         </ul>
       </nav>
+
+      <BenutzerFuss onNavigate={onNavigate} />
     </div>
   );
 }
@@ -492,7 +416,7 @@ export function DashboardSidebar() {
   // Server rendert immer die volle Spalte. Wer sie eingeklappt hatte, sieht
   // sie nach der Hydration zusammenfahren - dieselbe Abwaegung wie bei den
   // Bereichsgruppen und bei persona.tsx.
-  const schmal = useSyncExternalStore(schmalAbonnieren, istSchmal, () => false);
+  const schmal = useSyncExternalStore(schmalAbonnieren, istSchmal, schmalServer);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -522,9 +446,9 @@ export function DashboardSidebar() {
         )}
       >
         {schmal ? (
-          <SidebarRail aufklappen={() => schmalSetzen(false)} />
+          <SidebarRail />
         ) : (
-          <SidebarBody einklappen={() => schmalSetzen(true)} />
+          <SidebarBody />
         )}
       </aside>
 
