@@ -302,15 +302,29 @@ export async function POST(req: Request) {
     return new Response("ungueltige eingabe", { status: 400 });
   }
 
+  // Verlauf, Anbieter und Preislisten haengen nicht voneinander ab: gleichzeitig laden statt nacheinander
+  // (gemessen: rund zwei Sekunden bis zum ersten Modellaufruf, davon der Grossteil Wartezeit auf die Datenbank).
+  // Rollenbasierte Wissensgrundlage - identisch zu kiNachrichtSenden(), siehe
+  // dortiger Kommentar: dieselbe rbac.ts-Instanz, kein Sonderweg fuer den
+  // Streaming-Pfad.
+  const quellen = wissensQuellenFuerFaehigkeiten({
+    siehtProdukteUndPreise:
+      hasPermission(rolle, "b2b_portal", "view") || hasPermission(rolle, "sortenkatalog", "view"),
+    siehtFeldbetrieb:
+      hasPermission(rolle, "pflueckaufgaben", "view") || hasPermission(rolle, "kuehlkette", "view"),
+  });
+  const [bisherigerVerlauf, anbieter, preislisten] = await Promise.all([
+    ladeKiChatVerlauf(),
+    ladeAktivenStandardAnbieter(),
+    quellen.includes("preisliste") ? ladeWissensPreislisten() : Promise.resolve([]),
+  ]);
   // Anforderung 5.5 (Einwilligung): wie kiNachrichtSenden() - vor der
   // allerersten Nachricht muss der Transparenzhinweis bestaetigt sein.
-  const bisherigerVerlauf = await ladeKiChatVerlauf();
   const istErsteNachricht = bisherigerVerlauf.nachrichten.length === 0;
   if (istErsteNachricht && !body.einwilligung) {
     return new Response("einwilligung fehlt", { status: 400 });
   }
 
-  const anbieter = await ladeAktivenStandardAnbieter();
   if (!anbieter) {
     return new Response("kein-anbieter", { status: 409 });
   }
@@ -331,16 +345,6 @@ export async function POST(req: Request) {
     }
   }
 
-  // Rollenbasierte Wissensgrundlage - identisch zu kiNachrichtSenden(), siehe
-  // dortiger Kommentar: dieselbe rbac.ts-Instanz, kein Sonderweg fuer den
-  // Streaming-Pfad.
-  const quellen = wissensQuellenFuerFaehigkeiten({
-    siehtProdukteUndPreise:
-      hasPermission(rolle, "b2b_portal", "view") || hasPermission(rolle, "sortenkatalog", "view"),
-    siehtFeldbetrieb:
-      hasPermission(rolle, "pflueckaufgaben", "view") || hasPermission(rolle, "kuehlkette", "view"),
-  });
-  const preislisten = quellen.includes("preisliste") ? await ladeWissensPreislisten() : [];
   const ortHinweis = pfad ? `Der Nutzer sieht gerade diese Ansicht: ${pfad}` : "";
   // Die Datenbank-ID der Antwort steht schon VOR dem Stream fest und geht als
   // Nachrichten-ID an den Client (generateMessageId unten), gespeichert wird
