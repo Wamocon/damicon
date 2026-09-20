@@ -94,6 +94,26 @@ function schnappschuesseKuerzen(nachrichten: UIMessage[]): UIMessage[] {
   return kopie;
 }
 
+// Alte Werkzeugausgaben (vor der letzten Nutzerfrage) auf einen Auszug kuerzen. Ein Agentenlauf sammelt
+// schnell Seitenschnappschuesse und Datenabfragen an (je 20 bis 30 KB): nach etwa acht Seiten lag der
+// Verlauf ueber der Grenze, und JEDE weitere Frage scheiterte mit 413 - im Chat als "KI nicht erreichbar",
+// bis man die Seite neu lud. Die Antworttexte bleiben vollstaendig, sie fassen die Ergebnisse zusammen.
+const ALTE_AUSGABE_MAX_ZEICHEN = 1500;
+function alteAusgabenKuerzen(nachrichten: UIMessage[]): UIMessage[] {
+  const letzterNutzer = nachrichten.map((n) => n.role).lastIndexOf("user");
+  return nachrichten.map((n, i) => {
+    if (i >= letzterNutzer || n.role !== "assistant") return n;
+    const teile = n.parts.map((teil) => {
+      const t = teil as unknown as { type: string; state?: string; output?: unknown };
+      if (!t.type.startsWith("tool-") || t.state !== "output-available") return teil;
+      const roh = JSON.stringify(t.output ?? null);
+      if (roh.length <= ALTE_AUSGABE_MAX_ZEICHEN) return teil;
+      return { ...t, output: { gekuerzt: true, auszug: roh.slice(0, ALTE_AUSGABE_MAX_ZEICHEN) } } as unknown as (typeof n.parts)[number];
+    });
+    return { ...n, parts: teile };
+  });
+}
+
 const FORMAT_ANWEISUNG = [
   "Formatiere jede Antwort wie ein kurzer Fachbericht, nicht wie eine Chat-Nachricht:",
   "- Beginne mit einem einzeiligen Fazit in Fettschrift.",
@@ -147,7 +167,7 @@ const OBERFLAECHE_ANWEISUNG: Record<KiModus, string> = {
     "- Vorgehen: (1) oeffneBereich zur Zielseite, (2) seiteLesen (liefert Text und eine Elementliste mit ref), (3) mit ref handeln, (4) nach jedem Klick, der die Seite veraendert, seiteLesen erneut - Referenzen veralten sofort. oeffneBereich liefert nur die BESCHREIBUNG eines Bereichs, nicht seine Formulare: ob es eine Funktion gibt, siehst du erst mit seiteLesen.",
     "- KEIN passendes Aktionswerkzeug? Dann erledigst du die Aufgabe ueber die Oberflaeche, so wie der Nutzer es selbst taete. Sage NIE 'dafuer habe ich kein Werkzeug' oder 'dafuer fehlt Ihnen die Berechtigung', bevor du den Bereich geoeffnet und mit seiteLesen nach dem Formular gesucht hast. Ordne Begriffe sinngemaess zu ('Lieferung' -> Logistik: dort steht 'Lieferung anlegen'); kommen mehrere Bereiche in Frage, sieh nacheinander in jedem nach. Ob die Rolle etwas darf, entscheidet die Anwendung selbst: fehlt das Formular oder der Knopf, oder kommt eine Fehlermeldung, ist das dein Beleg - nur darauf darfst du dich berufen. Nenne keine Zustaendigkeiten ('das macht das Buero'), die du nicht aus einem Werkzeugergebnis kennst.",
     "- Gib bei klicke, fuelleFeld und zeigeAuf immer 'absicht' an (kurz, in der Sprache des Nutzers).",
-    "- Passt eines der Aktionswerkzeuge (z. B. aufgabeAnlegen, reklamationAnlegen), nimm das statt eines Formulars: es ist zuverlaessiger. Bedienst du ein Formular, fuelle zuerst alle Felder mit fuelleFeld, dann klicke auf die Schaltflaeche. Was etwas absendet oder loescht, legt die Anwendung dem Nutzer vor dem Klick zur Bestaetigung vor. Sagt er nein, hoere auf und bestaetige, dass nichts geaendert wurde.",
+    "- Passt eines der Aktionswerkzeuge (z. B. aufgabeAnlegen, reklamationAnlegen), nimm das statt eines Formulars: es ist zuverlaessiger. Bedienst du ein Formular, fuelle zuerst alle Felder mit fuelleFeld, dann klicke auf die Schaltflaeche. Was etwas absendet oder loescht, legt die Anwendung dem Nutzer vor dem Klick zur Bestaetigung vor. Sagt er nein, hoere auf und bestaetige, dass nichts geaendert wurde. Frage deshalb NICHT zusaetzlich im Chat um Erlaubnis, sondern klicke: die Freigabekarte holt sie ein. Rueckfragen sind nur erlaubt, wenn unklar ist, WAS gemeint ist (zum Beispiel welche von mehreren Lieferungen).",
     "- Schicke oder loesche nie etwas, das der Nutzer nicht verlangt hat. Ergebnis 'gesperrt' heisst: das kann und darf der Agent nicht - erklaere es, umgehe es nicht.",
     "- Bei 'Referenz veraltet': seiteLesen erneut aufrufen. Findest du ein Element nicht: steht die gesuchte Ueberschrift oder der Begriff in der Liste 'ueberschriften' bzw. im Text, rufe seiteLesen mit 'fokus' (Stichwort) auf - das ist schneller als zu scrollen. Meldet 'hinweis', dass die Liste gekuerzt ist, ebenfalls 'fokus' nutzen.",
     "- Fuelle vor dem Absenden ALLE Felder aus, die in der Elementliste als pflicht markiert sind (Datums- und Zeitfelder im dort genannten Format). Meldet klicke 'unvollstaendig' oder 'abgeschickt: false', ist NICHTS gespeichert: korrigiere und versuche es erneut.",
@@ -155,6 +175,12 @@ const OBERFLAECHE_ANWEISUNG: Record<KiModus, string> = {
     "- Beende jede Aufgabe mit einem Satz, was du getan hast und was der Nutzer jetzt sieht.",
   ].join("\n"),
 };
+
+// Gemessen im Faehigkeitstest: das Modell schrieb "Ich lege jetzt eine Pflueckaufgabe an ..." und
+// beendete den Zug, ohne das Werkzeug aufzurufen - die Aufgabe blieb liegen. Und ein Formular wurde
+// zweimal abgeschickt, weil keine Rueckmeldung sichtbar war.
+const ZUGENDE_ANWEISUNG =
+  "ZUGENDE: Beende einen Zug NIE mit einer Ankuendigung ('Ich lege jetzt ... an', 'Ich oeffne ...'). Kuendigst du einen Schritt an, rufst du im SELBEN Schritt das Werkzeug auf. Ein Zug, der mit einer Ankuendigung statt mit einem Ergebnis oder einer kurzen Rueckfrage endet, gilt als gescheitert. Fehlt nur ein unwichtiger Wert (Menge, Faelligkeit), waehle einen sinnvollen Standard und sage es. Hast du ein Formular abgeschickt (abgeschickt: true), schicke es NICHT noch einmal ab, auch wenn keine Rueckmeldung sichtbar war: lies die Seite oder Liste und belege so das Ergebnis. Ein doppelter Eintrag ist schlimmer als eine Rueckfrage.";
 
 const AKTUALITAET_ANWEISUNG =
   "AKTUALITAET: Zahlen, Fristen und Status aus frueheren Antworten dieses Gespraechs koennen veraltet sein. Beantworte jede Frage zu Daten oder Status neu ueber die Werkzeuge - wiederhole nie einfach eine fruehere Antwort.";
@@ -219,9 +245,13 @@ export async function POST(req: Request) {
   // Nur Nutzer- und Assistentennachrichten aus dem Client uebernehmen: eine
   // eingeschmuggelte 'system'-Nachricht wuerde sonst wie eine Anweisung des
   // Betreibers behandelt.
-  const nachrichten = (body.messages as UIMessage[])
-    .filter((n) => n && (n.role === "user" || n.role === "assistant") && Array.isArray(n.parts))
-    .slice(-MAX_NACHRICHTEN);
+  const nachrichten = alteAusgabenKuerzen(
+    schnappschuesseKuerzen(
+      (body.messages as UIMessage[])
+        .filter((n) => n && (n.role === "user" || n.role === "assistant") && Array.isArray(n.parts))
+        .slice(-MAX_NACHRICHTEN),
+    ),
+  );
   if (JSON.stringify(nachrichten).length > MAX_VERLAUF_ZEICHEN) {
     return new Response("verlauf zu gross", { status: 413 });
   }
@@ -303,6 +333,7 @@ export async function POST(req: Request) {
     DATEN_ANWEISUNG,
     AKTUALITAET_ANWEISUNG,
     AKTIONS_ANWEISUNG,
+    ZUGENDE_ANWEISUNG,
     heute,
     ortHinweis,
     spracheAnweisung(body.sprache),

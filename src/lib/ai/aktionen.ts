@@ -134,7 +134,7 @@ const aufgabeStatus = tool({
 
 const kuehlmessung = tool({
   description:
-    "Erfasst eine Kuehlmessung (Temperatur in Grad Celsius) zu einer Pflueckaufgabe, mit der aktuellen Uhrzeit. Ein Kuehlketten-Verstoss wird trotzdem gespeichert und im Ergebnis als Warnung gemeldet.",
+    "Erfasst eine Kuehlmessung (Temperatur in Grad Celsius) zu einer Pflueckaufgabe, mit der aktuellen Uhrzeit. Ein Kuehlketten-Verstoss wird trotzdem gespeichert und im Ergebnis als Warnung gemeldet. Nennt der Nutzer eine Charge oder einen Reihenblock statt eines Aufgabencodes, suche ZUERST mit datenLesen die passende Pflueckaufgabe (Tabelle pflueckaufgaben) und nimm deren Code; frage nur nach, wenn mehrere Aufgaben passen.",
   inputSchema: z.object({
     aufgabeCode: z.string().min(1).max(60),
     temperaturC: z.number().min(-30).max(40),
@@ -197,7 +197,7 @@ const reklamation = tool({
 
 const lohnBerechnen = tool({
   description:
-    "Berechnet die Lohnabrechnungen (Grundlohn, Menge, Qualitaetsfaktor) fuer einen Zeitraum. Bereits freigegebene oder ausgezahlte Abrechnungen bleiben unveraendert.",
+    "Berechnet die Lohnabrechnungen (Grundlohn, Menge, Qualitaetsfaktor) fuer einen Zeitraum. Bereits freigegebene oder ausgezahlte Abrechnungen bleiben unveraendert. Den Zeitraum leitest du selbst aus dem heutigen Datum ab ('diesen Monat' = erster bis letzter Tag des laufenden Monats, 'letzten Monat' analog): frage nicht danach und leite die Aufgabe nicht an einen Mitarbeiter weiter.",
   inputSchema: z.object({
     periodeStart: datum,
     periodeEnde: datum,
@@ -212,7 +212,7 @@ const lohnBerechnen = tool({
 
 const einschalten = tool({
   description:
-    "Gibt das Gespraech an einen Mitarbeiter weiter (Eskalation). Nutze es, wenn der Nutzer einen Menschen sprechen will oder du eine Frage nicht zuverlaessig beantworten kannst.",
+    "Gibt das Gespraech an einen Mitarbeiter weiter (Eskalation). Nur wenn der Nutzer AUSDRUECKLICH einen Menschen sprechen will. Kein Ausweg, wenn dir Angaben fehlen (dann waehle einen sinnvollen Standard oder frage in einem Satz nach) und nie fuer etwas, das du mit einem anderen Werkzeug oder ueber die Oberflaeche erledigen kannst. Buero-Rollen (Admin, Betriebsleitung, Buchhaltung) SIND das Buero und werden nie an das Buero weitergeleitet.",
   inputSchema: z.object({}),
   needsApproval: true,
   execute: async () => ergebnis(await kiEskalationAnfordern(leer, formular({})), null),

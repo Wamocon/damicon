@@ -37,7 +37,7 @@ export interface Schnappschuss {
 export interface KlickAnfrage {
   absicht: string;
   label: string;
-  grund: "senden" | "loeschen" | "extern";
+  grund: "senden" | "loeschen" | "extern" | "doppelt";
 }
 
 export interface ZeigerSteuerung {
@@ -274,6 +274,14 @@ function ungueltigeFelder(form: HTMLFormElement): { feld: string; problem: strin
     .map((e) => ({ feld: labelVon(e), problem: bereinigt(e.validationMessage, 80) }));
 }
 
+// Zuletzt abgeschickte Formulare. Schickt der Agent dasselbe Formular kurz danach noch einmal ab (weil
+// keine Rueckmeldung zu sehen war), ist das fast immer ein Doppeleintrag: die Freigabekarte sagt es
+// dem Nutzer ausdruecklich. Gemessen im Faehigkeitstest: ein Datenschutzvorfall wurde so zweimal angelegt.
+const zuletztGesendet = new Map<string, number>();
+const DOPPELT_FENSTER_MS = 120_000;
+const sendeSchluessel = (el: HTMLElement, label: string): string =>
+  `${window.location.pathname}|${el.closest("form")?.getAttribute("action") ?? ""}|${label}`;
+
 async function klicken(ref: string, absicht: string, umgebung: Umgebung) {
   const el = elementFuerRef(ref);
   const stufe = klickStufe(el);
@@ -296,9 +304,13 @@ async function klicken(ref: string, absicht: string, umgebung: Umgebung) {
     };
   }
 
+  const sendetFormular = stufe.stufe === "bestaetigen" && stufe.grund === "senden";
+  const schluessel = sendetFormular ? sendeSchluessel(el, label) : "";
+  const kuerzlichGesendet = sendetFormular && Date.now() - (zuletztGesendet.get(schluessel) ?? 0) < DOPPELT_FENSTER_MS;
+
   await hinFahren(el, umgebung.zeiger, false);
   if (stufe.stufe === "bestaetigen") {
-    const erlaubt = await umgebung.bestaetigen({ absicht, label, grund: stufe.grund });
+    const erlaubt = await umgebung.bestaetigen({ absicht, label, grund: kuerzlichGesendet ? "doppelt" : stufe.grund });
     if (!erlaubt) return { ok: false, abgelehnt: true, hinweis: "Der Nutzer hat diesen Klick abgelehnt. Nichts wurde ausgefuehrt." };
   }
   const vorher = `${window.location.pathname}${window.location.hash}`;
@@ -312,10 +324,10 @@ async function klicken(ref: string, absicht: string, umgebung: Umgebung) {
   await warteBisRuhig();
   formular?.removeEventListener("submit", merke, true);
   const nachher = `${window.location.pathname}${window.location.hash}`;
-  const sendetFormular = stufe.stufe === "bestaetigen" && stufe.grund === "senden";
   if (sendetFormular && !abgeschickt) {
     return { ok: false, abgeschickt: false, hinweis: "Der Klick hat das Formular NICHT abgeschickt. Lies die Seite erneut und pruefe die Felder." };
   }
+  if (sendetFormular) zuletztGesendet.set(schluessel, Date.now());
   const meldung = rueckmeldung();
   return {
     ok: true,
@@ -325,7 +337,7 @@ async function klicken(ref: string, absicht: string, umgebung: Umgebung) {
     seiteGewechselt: nachher !== vorher,
     rueckmeldung: meldung,
     hinweis: sendetFormular && !meldung
-      ? "Abgeschickt, aber keine Rueckmeldung sichtbar. Lies die Seite erneut und belege das Ergebnis, bevor du Erfolg meldest."
+      ? "Abgeschickt, aber keine Rueckmeldung sichtbar. Schicke das Formular NICHT noch einmal ab. Lies die Seite oder Liste erneut und belege das Ergebnis, bevor du Erfolg meldest."
       : "Die Referenzen sind jetzt veraltet - rufe seiteLesen erneut auf, bevor du weitermachst.",
   };
 }

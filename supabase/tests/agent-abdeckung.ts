@@ -264,6 +264,25 @@ const zustaendeOhneLabel = (["ruhe", "denkt", "freigabe", "fertig", "fehler", "s
 );
 pruefe("Himbi: jeder Zustand hat eine Beschriftung fuer Screenreader in allen Sprachen", zustaendeOhneLabel.length === 0, zustaendeOhneLabel.join(", "));
 
+// --- Zuverlaessigkeit: im Faehigkeitstest gemessene Fehler, dauerhaft abgesichert ---------------
+const aktionenQuelle = readFileSync("src/lib/ai/aktionen.ts", "utf8");
+const routeQuelle2 = readFileSync("src/app/api/ki-assistent/route.ts", "utf8");
+const uiQuelle = readFileSync("src/components/ki/ui-steuerung.ts", "utf8");
+pruefe("Agent-Prompt: kein Zug endet mit einer Ankuendigung, kein zweites Absenden", routeQuelle2.includes("ZUGENDE_ANWEISUNG") && routeQuelle2.includes("NIE mit einer Ankuendigung") && routeQuelle2.includes("NICHT noch einmal ab"));
+pruefe("Eskalation ist kein Ausweg: nur auf ausdruecklichen Wunsch, Buero-Rollen nie an das Buero", aktionenQuelle.includes("Nur wenn der Nutzer AUSDRUECKLICH einen Menschen sprechen will") && aktionenQuelle.includes("SIND das Buero"));
+pruefe("Lohn: Zeitraum wird aus dem Datum abgeleitet, nicht erfragt", aktionenQuelle.includes("'diesen Monat' = erster bis letzter Tag"));
+pruefe("Kuehlmessung: Charge wird zur Pflueckaufgabe aufgeloest", aktionenQuelle.includes("suche ZUERST mit datenLesen die passende Pflueckaufgabe"));
+pruefe("Doppelabsendung: Freigabekarte warnt, wenn dasselbe Formular kurz zuvor abgeschickt wurde", uiQuelle.includes('"doppelt"') && uiQuelle.includes("DOPPELT_FENSTER_MS") && sprachen.every((sp) => typeof holen(texte[sp], "kiAssistentAnsicht.klick.grund.doppelt") === "string"));
+
+// Lange Agentenlaeufe: die Route kuerzt alte Werkzeugausgaben, BEVOR sie die Grenze prueft (gemessen: nach
+// etwa acht Seitenschnappschuessen antwortete sie mit 413 und der Chat zeigte "KI nicht erreichbar").
+const kuerzenPos = routeQuelle2.indexOf("const nachrichten = alteAusgabenKuerzen(");
+const grenzePos = routeQuelle2.indexOf("JSON.stringify(nachrichten).length > MAX_VERLAUF_ZEICHEN");
+pruefe("Route: Verlauf wird gekuerzt, DANN gegen die Grenze geprueft", kuerzenPos > 0 && grenzePos > kuerzenPos);
+pruefe("Chat: 'verlauf zu gross' (413) hat eine eigene Meldung, kein Fake-Ausfall", chatFehlerArt(new Error("verlauf zu gross")) === "zulang");
+pruefe("Chat: 'Neu beginnen' und Meldung in allen Sprachen", sprachen.every((sp) => typeof holen(texte[sp], "kiAssistentAnsicht.fehler.zuLang") === "string" && typeof holen(texte[sp], "kiAssistentAnsicht.fehler.neuBeginnen") === "string"));
+pruefe("Agent-Prompt: Klicks nicht zusaetzlich im Chat bestaetigen lassen", routeQuelle2.includes("Frage deshalb NICHT zusaetzlich im Chat um Erlaubnis"));
+
 console.log(`\nPruefungen: ${gesamt}   bestanden: ${gesamt - fehler}   fehlgeschlagen: ${fehler}`);
 if (fehler > 0) process.exit(1);
 console.log("Alle Pruefungen bestanden.");

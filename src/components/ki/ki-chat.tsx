@@ -415,7 +415,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
       (zugSchritte.current <= MAX_CLIENT_SCHRITTE && clientErgebnisseBereit(optionen.messages)),
     onToolCall: ({ toolCall }) => starteClientWerkzeug(toolCall),
   });
-  const { messages, sendMessage, addToolApprovalResponse, status, stop, error } = chat;
+  const { messages, sendMessage, addToolApprovalResponse, status, stop, error, setMessages, clearError } = chat;
   chatRef.current = chat as unknown as NonNullable<typeof chatRef.current>;
 
   const beschaeftigt = status === "submitted" || status === "streaming" || clientAktiv !== null;
@@ -914,6 +914,21 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
                 </>
               ) : chatFehlerArt(error) === "berechtigung" ? (
                 t("fehler.berechtigung")
+              ) : chatFehlerArt(error) === "zulang" ? (
+                <>
+                  {t("fehler.zuLang")}{" "}
+                  <button
+                    type="button"
+                    className="ki-fehler__link"
+                    onClick={() => {
+                      // Nur die Ansicht und der Kontext dieser Sitzung beginnen neu; der gespeicherte Verlauf bleibt.
+                      clearError();
+                      setMessages([]);
+                    }}
+                  >
+                    {t("fehler.neuBeginnen")}
+                  </button>
+                </>
               ) : (
                 t("fallback.antwort")
               )}

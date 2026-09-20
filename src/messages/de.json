@@ -1646,7 +1646,9 @@
     "fehler": {
       "sitzung": "Ihre Sitzung ist abgelaufen oder wurde beendet. Bitte melden Sie sich erneut an.",
       "anmelden": "Erneut anmelden",
-      "berechtigung": "Ihre Rolle darf den KI-Assistenten nicht nutzen."
+      "berechtigung": "Ihre Rolle darf den KI-Assistenten nicht nutzen.",
+      "zuLang": "Diese Unterhaltung ist zu lang geworden.",
+      "neuBeginnen": "Neu beginnen"
     },
     "anbieterVerwaltung": {
       "titel": "KI-Anbieter verwalten",
@@ -1817,7 +1819,8 @@
       "grund": {
         "senden": "Dieser Klick sendet oder ändert Daten.",
         "loeschen": "Dieser Klick kann etwas löschen oder stornieren.",
-        "extern": "Dieser Link führt aus der Anwendung heraus."
+        "extern": "Dieser Link führt aus der Anwendung heraus.",
+        "doppelt": "Dieses Formular wurde gerade eben schon abgeschickt. Noch einmal absenden erzeugt vermutlich einen doppelten Eintrag."
       },
       "nicht": "Nicht ausgeführt: {absicht}"
     },

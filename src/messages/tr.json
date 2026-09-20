@@ -658,7 +658,9 @@
     "fehler": {
       "sitzung": "Oturumunuz sona erdi veya sonlandırıldı. Lütfen yeniden giriş yapın.",
       "anmelden": "Yeniden giriş yap",
-      "berechtigung": "Rolünüz yapay zekâ asistanını kullanamaz."
+      "berechtigung": "Rolünüz yapay zekâ asistanını kullanamaz.",
+      "zuLang": "Bu konuşma çok uzadı.",
+      "neuBeginnen": "Yeniden başla"
     },
     "anbieterVerwaltung": {
       "titel": "Yapay zekâ sağlayıcılarını yönet",
@@ -829,7 +831,8 @@
       "grund": {
         "senden": "Bu tıklama veri gönderir veya değiştirir.",
         "loeschen": "Bu tıklama bir şeyi silebilir veya iptal edebilir.",
-        "extern": "Bu bağlantı uygulamanın dışına çıkarır."
+        "extern": "Bu bağlantı uygulamanın dışına çıkarır.",
+        "doppelt": "Bu form az önce zaten gönderildi. Tekrar göndermek büyük olasılıkla yinelenen bir kayıt oluşturur."
       },
       "nicht": "Yapılmadı: {absicht}"
     },
