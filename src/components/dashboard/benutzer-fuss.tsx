@@ -41,6 +41,30 @@ function useBenutzer() {
   };
 }
 
+// Abmelden ist eine Server Action und braucht deshalb ein Formular mit der
+// Sprache im verborgenen Feld. Beide Zustaende der Leiste, die breite Zeile und
+// die Symbolleiste, brauchen denselben Knopf und unterscheiden sich nur in der
+// Flaeche - der Unterschied ist genau ein className und gehoert nicht in zwei
+// Kopien desselben Formulars.
+function AbmeldeKnopf({ className }: { className: string }) {
+  const t = useTranslations("auth");
+  const locale = useLocale();
+
+  return (
+    <form action={abmelden}>
+      <input type="hidden" name="locale" value={locale} />
+      <button
+        type="submit"
+        aria-label={t("signOut")}
+        title={t("signOut")}
+        className={className}
+      >
+        <LogOut className="h-4 w-4" />
+      </button>
+    </form>
+  );
+}
+
 const knopfKlassen =
   "inline-flex h-8 w-8 items-center justify-center rounded-lg border border-sidebar-border text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground";
 
@@ -50,7 +74,6 @@ export function BenutzerFuss({ onNavigate }: { onNavigate?: () => void }) {
   const nav = useTranslations("nav");
   const t = useTranslations("auth");
   const roleT = useTranslations("roles");
-  const locale = useLocale();
 
   return (
     <div className="mt-2 shrink-0 rounded-xl border border-sidebar-border p-2">
@@ -99,17 +122,7 @@ export function BenutzerFuss({ onNavigate }: { onNavigate?: () => void }) {
               >
                 <ShieldCheck className="h-4 w-4" />
               </Link>
-              <form action={abmelden}>
-                <input type="hidden" name="locale" value={locale} />
-                <button
-                  type="submit"
-                  aria-label={t("signOut")}
-                  title={t("signOut")}
-                  className={knopfKlassen}
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </form>
+              <AbmeldeKnopf className={knopfKlassen} />
             </span>
           ) : null}
         </div>
@@ -124,7 +137,6 @@ export function BenutzerFuss({ onNavigate }: { onNavigate?: () => void }) {
 export function BenutzerFussSchmal() {
   const { demoModus, name, rolle, kuerzel } = useBenutzer();
   const t = useTranslations("auth");
-  const locale = useLocale();
   const wer = name ? `${name} - ${rolle}` : rolle;
 
   return (
@@ -148,17 +160,7 @@ export function BenutzerFussSchmal() {
           >
             {kuerzel ?? <UserRound className="h-4 w-4" />}
           </Link>
-          <form action={abmelden}>
-            <input type="hidden" name="locale" value={locale} />
-            <button
-              type="submit"
-              aria-label={t("signOut")}
-              title={t("signOut")}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          </form>
+          <AbmeldeKnopf className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground" />
         </>
       )}
     </div>
