@@ -56,6 +56,27 @@ function funke(x: number, y: number, s: number): string {
   return `M${x} ${y - s}Q${x} ${y} ${x + s} ${y}Q${x} ${y} ${x} ${y + s}Q${x} ${y} ${x - s} ${y}Q${x} ${y} ${x} ${y - s}Z`;
 }
 
+/** Fuenfzackiger Stern fuer die Bewertung auf dem Chapan. */
+function stern(cx: number, cy: number, r: number): string {
+  const innen = r * 0.42;
+  let d = "";
+  for (let i = 0; i < 10; i++) {
+    const winkel = (Math.PI / 5) * i - Math.PI / 2;
+    const radius = i % 2 === 0 ? r : innen;
+    const x = cx + Math.cos(winkel) * radius;
+    const y = cy + Math.sin(winkel) * radius;
+    d += `${i === 0 ? "M" : "L"}${x.toFixed(2)} ${y.toFixed(2)}`;
+  }
+  return `${d}Z`;
+}
+
+/** x-Position und Nummer der drei Bewertungssterne auf dem Chapan. */
+const STERNE = [
+  { x: 34, n: 1 as const },
+  { x: 48, n: 2 as const },
+  { x: 62, n: 3 as const },
+];
+
 /** Koschkar-Muiis, das kasachische Widderhorn: zwei gegenlaeufige Spiralen. Auf eine
  *  Strichzeichnung reduziert, damit das Muster auch bei 64 px noch als Muster liest
  *  und nicht als Fleck. */
@@ -105,11 +126,18 @@ export function Himbi({
   zustand,
   stimmung = "neutral",
   groesse = 88,
+  bewertung = 0,
+  aufBewertung,
 }: {
   zustand: HaustierZustand;
   /** Faerbt nur Brauen, Wangen und eine kurze Reaktion - der Zustand bleibt der Zustand. */
   stimmung?: Stimmung;
   groesse?: number;
+  /** 0 bis 3: wie viele der drei Sterne auf dem Chapan schon gesetzt sind. */
+  bewertung?: 0 | 1 | 2 | 3;
+  /** Gesetzt: die drei Sterne werden klickbar. Ohne sie bleiben sie unsichtbar -
+   *  eine Bewertung ohne jemanden, der sie entgegennimmt, waere nur Attrappe. */
+  aufBewertung?: (stern: 1 | 2 | 3) => void;
 }) {
   const id = useId().replace(/:/g, "");
   return (
@@ -266,6 +294,17 @@ export function Himbi({
           </g>
         ))}
 
+        {/* Gelbe Spassbrille: rein dekorativ, uebersteht alle Zustaende und Stimmungen unveraendert */}
+        <g className="hb-brille">
+          <path d="M40 66Q48 62 56 66" fill="none" stroke="#ffce00" strokeWidth="3.2" strokeLinecap="round" />
+          {[36, 60].map((cx) => (
+            <g key={cx}>
+              <circle cx={cx} cy="68" r="11" fill="#ffe680" fillOpacity="0.4" stroke="#ffce00" strokeWidth="3" />
+              <path d={`M${cx - 5} 62Q${cx} 59 ${cx + 5} 62`} fill="none" stroke="#fff" strokeOpacity="0.75" strokeWidth="1.6" strokeLinecap="round" />
+            </g>
+          ))}
+        </g>
+
         {/* Traenen: nur beim Abschied */}
         <path className="hb-traene hb-traene--l" d="M29.5 76C27.2 80.2 27.6 83.4 29.5 84.6C31.4 83.4 31.8 80.2 29.5 76Z" fill="#9adcf7" stroke="#e8f8ff" strokeWidth="0.8" />
         <path className="hb-traene hb-traene--r" d="M66.5 76C64.2 80.2 64.6 83.4 66.5 84.6C68.4 83.4 68.8 80.2 66.5 76Z" fill="#9adcf7" stroke="#e8f8ff" strokeWidth="0.8" />
@@ -291,6 +330,39 @@ export function Himbi({
           <path d={funke(88, 62, 4.6)} fill="#fff" />
           <path d={funke(78, 30, 4)} fill="#ffd166" />
         </g>
+
+        {/* Bewertung: drei Sterne auf dem Chapan, nur klickbar mit aufBewertung. Ganz zuletzt
+         *  gezeichnet, damit sie ueber allem liegen und der Klick nie an Koerper oder Aermel
+         *  haengen bleibt. onPointerDown stoppt die Weitergabe, bevor der Ziehen-Griff der
+         *  Huelle (haustier-huelle.tsx) daraus einen Zug oder einen Buehnen-Klick macht. */}
+        {aufBewertung ? (
+          <g className="hb-sterne">
+            {STERNE.map(({ x, n }) => (
+              <g
+                key={n}
+                className="hb-stern"
+                data-gesetzt={n <= bewertung}
+                role="button"
+                tabIndex={0}
+                aria-label={`${n}`}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  aufBewertung(n);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key !== "Enter" && e.key !== " ") return;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  aufBewertung(n);
+                }}
+              >
+                <circle cx={x} cy="109" r="8.6" fill="transparent" />
+                <path d={stern(x, 109, 5.8)} />
+              </g>
+            ))}
+          </g>
+        ) : null}
       </g>
     </svg>
   );

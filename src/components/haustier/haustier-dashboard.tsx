@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import { usePersona } from "@/components/dashboard/persona";
 import { HaustierHuelle } from "@/components/haustier/haustier-huelle";
@@ -8,7 +8,7 @@ import { HimbiVersteck } from "@/components/haustier/himbi-versteck";
 import { useHaustierAktionen, useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { usePathname } from "@/i18n/navigation";
-import { haustierZustand, modulAusPfad, type Stimmung } from "@/lib/haustier";
+import { haustierZustand, leseBewertung, modulAusPfad, schreibeBewertung, type Stimmung } from "@/lib/haustier";
 import { modules } from "@/lib/modules";
 import { hasPermission } from "@/lib/rbac";
 
@@ -25,6 +25,23 @@ const BEFINDEN_ANTWORT_MS = 8000;
 // Wie lange die Miene aus der Antwort des Menschen die aus dem Antworttext ueberstimmt.
 const BEFINDEN_MIENE_MS = 45000;
 const BEFINDEN_SCHLUESSEL = "damicon-haustier-befinden";
+// Bewertung: die drei Sterne auf dem Chapan. Rein lokal (kein Server, kein Bericht) -
+// wer wissen will, wie oft welcher Stern faellt, liest das derzeit aus dem Speicher
+// der Nutzerin selbst, nicht aus einer Datenbank.
+// Kurze Bestaetigung nach einem Klick auf einen Stern - knapper als die Antwort auf
+// "wie laeuft dein Tag", weil sie nur eine Zahl bestaetigt, keine Frage beantwortet.
+const BEWERTUNG_BLASE_MS = 3000;
+// Die Bewertung liegt im Browser-Speicher, angebunden wie die Bewegungseinstellung
+// (haustier-einstellung.tsx): React nimmt beim Hydrieren erst den Serverwert (0
+// Sterne) und danach den echten, statt nach dem Mounten nachzubessern.
+const bewertungBeobachter = new Set<() => void>();
+function abonniereBewertung(melde: () => void): () => void {
+  bewertungBeobachter.add(melde);
+  return () => {
+    bewertungBeobachter.delete(melde);
+  };
+}
+const serverBewertung = (): 0 | 1 | 2 | 3 => 0;
 // Anstupser: kleine Fragen, wenn der Chat laenger ungenutzt bleibt. Jede hoechstens
 // einmal je Sitzung, und nach zwei Absagen hintereinander ist Schluss - wer zweimal
 // "spaeter" sagt, meint nicht "frag gleich nochmal".
@@ -82,6 +99,22 @@ export function HaustierDashboard() {
   const [befinden, setBefinden] = useState<"gut" | "mittel" | "viel" | null>(null);
   const [befindenBlase, setBefindenBlase] = useState(false);
   const [eigeneMiene, setEigeneMiene] = useState<Stimmung | null>(null);
+  const [bewertungBlase, setBewertungBlase] = useState<1 | 2 | 3 | null>(null);
+  const bewertung = useSyncExternalStore(abonniereBewertung, leseBewertung, serverBewertung);
+  function setzeBewertung(stern: 1 | 2 | 3) {
+    schreibeBewertung(stern);
+    bewertungBeobachter.forEach((melde) => melde());
+    // "Info" heisst hier: sichtbar in der Konsole, fuer wer gerade mitschaut, und kurz
+    // in der Blase. Ein richtiger Bericht (Datenbank, Auswertung) waere ein eigenes Vorhaben.
+    console.info(`star${stern}`);
+    setBewertungBlase(stern);
+    setEigeneMiene(stern === 3 ? "gut" : stern === 1 ? "warnung" : "neutral");
+  }
+  useEffect(() => {
+    if (!bewertungBlase) return;
+    const id = window.setTimeout(() => setBewertungBlase(null), BEWERTUNG_BLASE_MS);
+    return () => window.clearTimeout(id);
+  }, [bewertungBlase]);
   useEffect(() => {
     try {
       if (window.sessionStorage.getItem(BEFINDEN_SCHLUESSEL)) return;
@@ -200,7 +233,7 @@ export function HaustierDashboard() {
   const label = t(`label.${zustand}`);
   const befindenSichtbar = befindenFrage && ruhigGenug && !tipp;
   const tippSichtbar = !!tipp && ruhigGenug && !befindenSichtbar;
-  const anstupserSichtbar = !!anstupser && ruhigGenug && !befindenSichtbar && !tippSichtbar && !befindenBlase;
+  const anstupserSichtbar = !!anstupser && ruhigGenug && !befindenSichtbar && !tippSichtbar && !befindenBlase && !bewertungBlase;
 
   // Die Antwort des Menschen gewinnt fuer eine Weile vor der Miene aus dem Antworttext:
   // wer gerade gesagt hat, dass viel los ist, soll kein zufriedenes Gesicht sehen.
@@ -248,6 +281,8 @@ export function HaustierDashboard() {
           </div>
         </>
       );
+    } else if (bewertungBlase) {
+      blase = <p className="hb-blase__text">{`star${bewertungBlase}`}</p>;
     } else if (befindenSichtbar) {
       blase = (
         <>
@@ -345,6 +380,8 @@ export function HaustierDashboard() {
       blase={blase}
       paneOffen={offen}
       label={label}
+      bewertung={bewertung}
+      aufBewertung={setzeBewertung}
       onKlick={() => {
         setFertig(false);
         setFertigBlase(false);
