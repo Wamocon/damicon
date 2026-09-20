@@ -635,8 +635,8 @@ html[data-ki-zieht] body {
   border-radius: 0.7rem;
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--danger, #d64545);
-  background: color-mix(in oklab, var(--danger, #d64545) 10%, transparent);
+  color: var(--danger, var(--destructive));
+  background: color-mix(in oklab, var(--danger, var(--destructive)) 10%, transparent);
 }
 
 /* ---- Markdown in Assistentenantworten -------------------------------------
@@ -1204,11 +1204,11 @@ html[data-ki-zieht] body {
   background: var(--himbeere);
 }
 /* Farbe nach Autoritaet: gruen = Gesetzestext, blau = amtlich, gelb = Fachquelle, grau = Presse */
-.ki-zitat--recht, .ki-quelle--recht, .ki-quellen__punkt--recht { --akzent: #178a5f; }
-.ki-zitat--untergesetzlich, .ki-quelle--untergesetzlich, .ki-quellen__punkt--untergesetzlich { --akzent: #1d7fa8; }
-.ki-zitat--erlaeuterung, .ki-quelle--erlaeuterung, .ki-quellen__punkt--erlaeuterung { --akzent: #3b6fd1; }
-.ki-zitat--fachquelle, .ki-quelle--fachquelle, .ki-quellen__punkt--fachquelle { --akzent: #b7791f; }
-.ki-zitat--presse, .ki-quelle--presse, .ki-quellen__punkt--presse { --akzent: #7a828d; }
+.ki-zitat--recht, .ki-quelle--recht, .ki-quellen__punkt--recht { --akzent: var(--success); }
+.ki-zitat--untergesetzlich, .ki-quelle--untergesetzlich, .ki-quellen__punkt--untergesetzlich { --akzent: var(--primary); }
+.ki-zitat--erlaeuterung, .ki-quelle--erlaeuterung, .ki-quellen__punkt--erlaeuterung { --akzent: var(--primary); }
+.ki-zitat--fachquelle, .ki-quelle--fachquelle, .ki-quellen__punkt--fachquelle { --akzent: var(--warning); }
+.ki-zitat--presse, .ki-quelle--presse, .ki-quellen__punkt--presse { --akzent: var(--muted-foreground); }
 .ki-zitat--unbekannt, .ki-quelle--unbekannt, .ki-quellen__punkt--unbekannt { --akzent: var(--himbeere); }
 .ki-zitat[class*="ki-zitat--"]:not(.ki-zitat--unbelegt) {
   border-color: color-mix(in oklab, var(--akzent) 55%, var(--border));
@@ -1267,8 +1267,8 @@ html[data-ki-zieht] body {
 }
 .ki-zitat--unbelegt {
   border-style: dashed;
-  color: var(--danger, #d64545);
-  border-color: var(--danger, #d64545);
+  color: var(--danger, var(--destructive));
+  border-color: var(--danger, var(--destructive));
   background: transparent;
   cursor: help;
 }
@@ -1326,10 +1326,10 @@ html[data-ki-zieht] body {
   background: color-mix(in oklab, var(--lage) 8%, transparent);
 }
 .ki-quellen__lage--gestuetzt {
-  --lage: #178a5f;
+  --lage: var(--success);
 }
 .ki-quellen__lage--fach {
-  --lage: #b7791f;
+  --lage: var(--warning);
 }
 .ki-quellen__urteil {
   font-size: 0.74rem;
@@ -1416,7 +1416,7 @@ html[data-ki-zieht] body {
   font-weight: 650;
 }
 .ki-quelle__warnung {
-  color: var(--danger, #d64545);
+  color: var(--danger, var(--destructive));
 }
 .ki-quelle__hinweis {
   color: var(--muted-foreground);

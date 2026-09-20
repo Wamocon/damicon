@@ -27,6 +27,16 @@ Ohne diese Angaben ist die Wissensbasis in Produktion **aus**: `wissenSuchen` wi
 
 Vercel erreicht keinen lokalen Rechner. Deshalb braucht der Betrieb einen Einbettungsanbieter, der **bge-m3** anbietet. Der Index wurde mit bge-m3 gebaut (lokal über Ollama); dasselbe Modell beim Anbieter liefert denselben Vektorraum, es muss nichts neu eingebettet werden.
 
+## Wer bettet die Frage ein? (Vorgabe und Gesundheitspruefung)
+
+Reihenfolge, in der die Anwendung den Anbieter fuer die **Frage** bestimmt:
+
+1. `WISSEN_EMBED_URL` gesetzt: dieser Anbieter (mit `WISSEN_EMBED_MODELL`, `WISSEN_EMBED_KEY`), zum Beispiel DeepInfra.
+2. Sonst in Produktion mit vorhandenem `KI_SOKRATES_API_SCHLUESSEL`: die Sokrates-API (`https://sokrates.test-qualitaetsmanagement.com/api/v1`), Modell `bge-m3`. **Ohne weitere Umgebungsvariable**, sobald der Sokrates-Betreiber fuer den Schluessel Einbettungen freigibt und dort bge-m3 laeuft (Stand 2026-09-20: `/embeddings` antwortet 403, der Schluessel gilt bisher nur fuer Sprache).
+3. Sonst nichts (lokal: Ollama).
+
+**Gesundheitspruefung:** In Produktion wird das Werkzeug `wissenSuchen` erst angeboten, wenn eine Probe-Einbettung gelang (gemerkt: gut 5 min, schlecht 1 min). Ein konfigurierter, aber nicht erreichbarer Anbieter (zum Beispiel 403) laesst die Wissensbasis also aus, statt jede Rechtsfrage scheitern zu lassen; der Grund steht im Serverprotokoll (`[damicon] Wissensbasis nicht verfuegbar: ...`), die Compliance-Pruefung meldet "Wissensbasis nicht verfuegbar".
+
 ## Einlesen (ETL)
 
 ```bash

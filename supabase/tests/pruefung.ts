@@ -240,7 +240,7 @@ async function ablauf() {
 const route = readFileSync("src/app/api/ki-pruefung/route.ts", "utf8");
 pruefe("Route: Anmeldung, Recht ki_assistent und Pruefrecht der Rolle werden erzwungen", route.includes("nicht angemeldet") && route.includes('hasPermission(profil.role, "ki_assistent", "create")') && route.includes("darfPruefen(profil.role)"));
 pruefe("Route: angefragte Bereiche werden auf die Rolle zugeschnitten", route.includes("waehleBereiche(profil.role, body.bereiche)") && route.includes("wahl.erlaubt.length === 0"));
-pruefe("Route: ohne Wissensbasis wird abgelehnt (kein Audit ohne Belege)", route.includes("wissenVerfuegbar()") && route.includes("wissensbasis nicht verfuegbar"));
+pruefe("Route: ohne erreichbare Wissensbasis wird abgelehnt (kein Audit ohne Belege)", route.includes("pruefeWissenGesundheit()") && route.includes("wissensbasis nicht verfuegbar"));
 pruefe("Route: ein Lauf je Person, Start und Ende im Audit-Protokoll", route.includes("laufend.has(profil.id)") && route.includes("compliance_pruefung_gestartet") && route.includes("compliance_pruefung_abgeschlossen"));
 pruefe("Route: Abbruch des Clients bricht den Lauf ab", route.includes("req.signal"));
 

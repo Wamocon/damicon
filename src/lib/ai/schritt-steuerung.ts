@@ -43,7 +43,7 @@ export function istRechtsfrage(text: string): boolean {
   return STAEMME.some((s) => t.includes(s));
 }
 
-export type ToolChoice = "auto" | "required" | { type: "tool"; toolName: "wissenSuchen" };
+export type ToolChoice = "auto" | "required" | "none" | { type: "tool"; toolName: "wissenSuchen" };
 
 export interface SchrittEingabe {
   stepNumber: number;
@@ -53,10 +53,14 @@ export interface SchrittEingabe {
   frage: string;
   /** Wird wissenSuchen fuer diese Rolle angeboten (Rollenrecht UND Index vorhanden)? */
   wissenAngeboten: boolean;
+  /** Die Anfrage liegt offensichtlich ausserhalb des Auftrags (lib/ai/bereich-schutz.ts): keine Werkzeuge. */
+  ausserhalb?: boolean;
 }
 
 /** Ergebnis fuer prepareStep, oder undefined = nichts erzwingen. */
 export function waehleSchritt(e: SchrittEingabe): { toolChoice: ToolChoice } | undefined {
+  // Zweckentfremdung: in JEDEM Schritt ohne Werkzeuge, es wird nur abgelehnt.
+  if (e.ausserhalb && e.neueNutzerFrage) return { toolChoice: "none" };
   if (e.stepNumber !== 0 || !e.neueNutzerFrage) return undefined;
   if (e.wissenAngeboten && istRechtsfrage(e.frage)) {
     return { toolChoice: { type: "tool", toolName: "wissenSuchen" } };
