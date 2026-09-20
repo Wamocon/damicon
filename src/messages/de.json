@@ -1618,6 +1618,7 @@
       "kuehlketteAbrufen": "Kühlkette geprüft",
       "risikoRadarAbrufen": "Risiko-Radar geprüft",
       "oeffneBereich": "{bereich} geöffnet",
+      "wissenSuchen": "Wissensbasis durchsucht",
       "unbekannt": "Schritt abgeschlossen",
       "datenmodellErkunden": "Datenmodell erkundet",
       "datenLesen": "{tabelle} gelesen",
@@ -1649,6 +1650,26 @@
       "berechtigung": "Ihre Rolle darf den KI-Assistenten nicht nutzen.",
       "zuLang": "Diese Unterhaltung ist zu lang geworden.",
       "neuBeginnen": "Neu beginnen"
+    },
+    "quellen": {
+      "titel": "Quellen",
+      "stufe": {
+        "recht": "Primärrecht",
+        "untergesetzlich": "Untergesetzliche Norm",
+        "erlaeuterung": "Amtliche Erläuterung",
+        "fachquelle": "Fachquelle",
+        "presse": "Presse",
+        "unbekannt": "Quelle"
+      },
+      "gueltigAb": "gültig ab {datum}",
+      "stand": "Stand {datum}",
+      "ueberholt": "Diese Quelle ist überholt.",
+      "auskunft": "Auskunft Dritter, keine Rechtsquelle. Die Primärquelle prüfen.",
+      "mehr": "Mehr anzeigen",
+      "weniger": "Weniger anzeigen",
+      "original": "Original öffnen",
+      "intern": "Interne Recherche",
+      "unbelegt": "Zu dieser Marke gibt es keinen Beleg."
     },
     "anbieterVerwaltung": {
       "titel": "KI-Anbieter verwalten",
@@ -1690,6 +1711,7 @@
       "kuehlketteAbrufen": "Prüfe Kühlkette …",
       "risikoRadarAbrufen": "Durchsuche Risiko-Radar …",
       "oeffneBereich": "Öffne {bereich} …",
+      "wissenSuchen": "Durchsuche Wissensbasis …",
       "unbekannt": "Arbeite …",
       "datenmodellErkunden": "Erkunde das Datenmodell …",
       "datenLesen": "Lese {tabelle} …",
@@ -1706,6 +1728,7 @@
       "kuehlketteAbrufen": "Kühlkette",
       "risikoRadarAbrufen": "Risiko-Radar",
       "oeffneBereich": "{bereich}",
+      "wissenSuchen": "Wissensbasis",
       "unbekannt": "Quelle",
       "datenmodellErkunden": "Datenmodell",
       "datenLesen": "{tabelle}",

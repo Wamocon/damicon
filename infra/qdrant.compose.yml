@@ -1,0 +1,15 @@
+# Lokale Vektordatenbank fuer die Wissenssuche (nur Entwicklung).
+# Start: docker compose -f infra/qdrant.compose.yml up -d
+# Dashboard: http://127.0.0.1:6333/dashboard
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.15.5
+    container_name: damicon_qdrant
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6333:6333"   # REST
+      - "127.0.0.1:6334:6334"   # gRPC
+    volumes:
+      - damicon_qdrant:/qdrant/storage
+volumes:
+  damicon_qdrant:

@@ -20,7 +20,7 @@ import {
   type UIMessage,
 } from "ai";
 import { useLocale, useTranslations } from "next-intl";
-import ReactMarkdown, { type Components } from "react-markdown";
+import ReactMarkdown, { defaultUrlTransform, type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
   ArrowDown,
@@ -49,8 +49,7 @@ import {
   Thermometer,
   TriangleAlert,
   UserRound,
-  X,
-} from "lucide-react";
+  X, BookOpenCheck } from "lucide-react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { usePersona } from "@/components/dashboard/persona";
 import { useHaustierAktionen, useHaustierVorgabe } from "@/components/haustier/haustier-kontext";
@@ -63,8 +62,10 @@ import { fuehreUiWerkzeugAus, type KlickAnfrage } from "@/components/ki/ui-steue
 import { MAX_NACHRICHT_LAENGE, type KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
 import { modules } from "@/lib/modules";
 import { hasPermission, type Role } from "@/lib/rbac";
+import { BelegAnbieter, QuellenListe, ZitatMarke } from "@/components/ki/ki-quellen";
 import { chatFehlerArt } from "@/lib/ai/chat-fehler";
 import { zerlege } from "@/lib/markdown-bloecke";
+import { belegeAusErgebnis, verlinkeZitate, zitierteKennungen } from "@/lib/wissen/belege";
 import { cn } from "@/lib/utils";
 
 // Werkzeugfaehiger Agentenchat im Seitenpanel (ki-pane.tsx) - Vercel AI SDK
@@ -87,6 +88,7 @@ const werkzeugIcon: Record<string, ComponentType<{ className?: string }>> = {
   kuehlketteAbrufen: Snowflake,
   risikoRadarAbrufen: Radar,
   oeffneBereich: Compass,
+  wissenSuchen: BookOpenCheck,
   datenmodellErkunden: Database,
   datenLesen: Table2,
   seiteLesen: Eye,
@@ -231,6 +233,19 @@ function alsKarte(teil: Parameters<typeof getToolName>[0], name: AktionsName): A
  *  bilden EINE Liste, aufeinanderfolgender Text EINEN Markdown-Block, damit die
  *  Darstellung unabhaengig davon gleich aussieht, wie das Modell seine Schritte
  *  stueckelt. */
+/** Alle Belege, die Wissenssuchen dieser Nachricht geliefert haben (Kennungen sind pro Antwort eindeutig). */
+function belegeVonNachricht(nachricht: UIMessage) {
+  return nachricht.parts.flatMap((teil) =>
+    (isToolUIPart(teil) || isDynamicToolUIPart(teil)) && getToolName(teil) === "wissenSuchen" && teil.state === "output-available"
+      ? belegeAusErgebnis(teil.output)
+      : [],
+  );
+}
+
+function textVonNachricht(nachricht: UIMessage): string {
+  return nachricht.parts.map((teil) => (teil.type === "text" ? teil.text : "")).join("\n");
+}
+
 function segmentiere(nachricht: UIMessage): Segment[] {
   const segmente: Segment[] = [];
   for (const teil of nachricht.parts) {
@@ -317,12 +332,19 @@ const MARKDOWN_KOMPONENTEN: Components = {
       <table>{children}</table>
     </div>
   ),
-  a: ({ children, href }) => (
-    <a href={href} target="_blank" rel="noreferrer noopener">
-      {children}
-    </a>
-  ),
+  a: ({ children, href }) =>
+    href?.startsWith("quelle:") ? (
+      <ZitatMarke kennung={href.slice("quelle:".length)} />
+    ) : (
+      <a href={href} target="_blank" rel="noreferrer noopener">
+        {children}
+      </a>
+    ),
 };
+
+// Das Schema "quelle:" (Zitat-Marke, siehe lib/wissen/belege.ts) darf react-markdown
+// nicht als unsicheren Link verwerfen; alles andere behaelt die uebliche Pruefung.
+const linkPruefung = (url: string) => (url.startsWith("quelle:S") ? url : defaultUrlTransform(url));
 
 // Zwei Ebenen von memo, weil beim Streamen fast alles gleich bleibt:
 // - Markdown: fertige Antworten behalten ihren Text und werden gar nicht neu
@@ -333,8 +355,8 @@ const MARKDOWN_KOMPONENTEN: Components = {
 //   noch offene Block; alles darueber wird nicht erneut geparst oder abgeglichen.
 const MarkdownBlock = memo(function MarkdownBlock({ text }: { text: string }) {
   return (
-    <ReactMarkdown remarkPlugins={MARKDOWN_PLUGINS} components={MARKDOWN_KOMPONENTEN}>
-      {text}
+    <ReactMarkdown remarkPlugins={MARKDOWN_PLUGINS} components={MARKDOWN_KOMPONENTEN} urlTransform={linkPruefung}>
+      {verlinkeZitate(text)}
     </ReactMarkdown>
   );
 });
@@ -800,6 +822,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
                     <Himbeere groesse={22} denkt={beschaeftigt && nachricht.id === letzteId} />
                   </span>
                   <div className="ki-nachricht__inhalt">
+                    <BelegAnbieter nachrichtId={nachricht.id} belege={belegeVonNachricht(nachricht)}>
                     {segmentiere(nachricht).map((segment, index) => {
                       if (segment.art === "text") return <Markdown key={index} text={segment.text} />;
                       if (segment.art === "aktion") return renderAktionskarte(segment.karte);
@@ -848,6 +871,12 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
                         </ol>
                       );
                     })}
+                    <QuellenListe
+                      nachrichtId={nachricht.id}
+                      belege={belegeVonNachricht(nachricht)}
+                      zitiert={zitierteKennungen(textVonNachricht(nachricht))}
+                    />
+                    </BelegAnbieter>
                   </div>
                 </div>
               ),
