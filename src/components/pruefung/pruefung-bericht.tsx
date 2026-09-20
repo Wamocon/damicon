@@ -2,8 +2,8 @@
 
 import { Fragment, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { CheckCircle2, Database, Download, FileWarning, Printer, ShieldCheck, TriangleAlert } from "lucide-react";
-import { BEREICH_SYMBOL } from "@/components/pruefung/pruefung-buehne";
+import { CheckCircle2, Database, Download, FileWarning, ShieldCheck, TriangleAlert } from "lucide-react";
+import { BEREICH_SYMBOL } from "@/components/pruefung/symbole";
 import { BelegAnbieter, QuellenListe, ZitatMarke } from "@/components/ki/ki-quellen";
 import { siegelGueltig } from "@/lib/pruefung/befund";
 import { PRUEFBEREICHE, type Pruefbereich } from "@/lib/pruefung/rollen";
@@ -242,9 +242,6 @@ export function PruefungBericht({ bericht }: { bericht: Bericht }) {
           </button>
           <button type="button" className="pr-knopf" onClick={exportieren}>
             <Download className="h-4 w-4" /> {t("bericht.export")}
-          </button>
-          <button type="button" className="pr-knopf" onClick={() => window.print()}>
-            <Printer className="h-4 w-4" /> {t("bericht.drucken")}
           </button>
         </div>
         {siegel !== "offen" ? (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { Bot, Info, LifeBuoy, MessageSquareText, Settings2, ShieldCheck, X } from "lucide-react";
@@ -30,7 +30,7 @@ import { cn } from "@/lib/utils";
 // Hauptfenster selbst steuert) schaltet man hier ausdruecklich ein - mit einer
 // Erklaerung beim Ueberfahren, worin der Unterschied besteht.
 
-type Ansicht = "chat" | "einstellungen" | "hilfe";
+type Ansicht = "chat" | "einstellungen" | "hilfe" | "pruefung";
 
 function ModusEinstellung() {
   const t = useTranslations("kiAssistentAnsicht");
@@ -106,8 +106,8 @@ function HaustierEinstellung() {
   );
 }
 
-// Die Compliance-Pruefung ist gross (Buehne, Bericht) und wird erst geladen, wenn sie geoeffnet wird.
-const PruefungDialog = dynamic(() => import("@/components/pruefung/pruefung-dialog").then((m) => m.PruefungDialog), { ssr: false });
+// Die Compliance-Pruefung ist gross (Ablauf, Bericht) und wird erst geladen, wenn sie zum ersten Mal geoeffnet wird.
+const PruefungAnsicht = dynamic(() => import("@/components/pruefung/pruefung-ansicht").then((m) => m.PruefungAnsicht), { ssr: false });
 
 export function KiPane({
   verlauf,
@@ -128,7 +128,29 @@ export function KiPane({
   const { verfuegbar, offen, setOffen, modus } = useKiPane();
   const tp = useTranslations("pruefung");
   const [ansicht, setAnsicht] = useState<Ansicht>("chat");
-  const [pruefungOffen, setPruefungOffen] = useState(false);
+  // Einmal geoeffnet, bleibt die Pruefung eingebunden (nur ausgeblendet): ein laufender Lauf ueberlebt den Wechsel zum Chat.
+  const [pruefungGeladen, setPruefungGeladen] = useState(false);
+
+  // Die Pruefung braucht Platz (Spuren mit Schritten, Bericht): das Panel wird fuer diese Ansicht vorruebergehend
+  // breiter, ohne die gespeicherte Breite des Nutzers zu ueberschreiben, und geht danach auf den alten Wert zurueck.
+  // Das Hauptfenster behaelt mindestens 680 px (siehe ki-pane-griff.tsx).
+  useEffect(() => {
+    if (ansicht !== "pruefung" || !offen) return;
+    const wurzel = document.documentElement.style;
+    const links = document.getElementById("main")?.getBoundingClientRect().left ?? 0;
+    const ziel = Math.max(352, Math.min(600, Math.floor(window.innerWidth - links - 680)));
+    const aktuell = document.querySelector(".ki-pane-huelle")?.getBoundingClientRect().width ?? 0;
+    if (aktuell >= ziel - 16) return;
+    const vorher = wurzel.getPropertyValue("--ki-pane-breite");
+    const gesetzt = `${ziel}px`;
+    wurzel.setProperty("--ki-pane-breite", gesetzt);
+    return () => {
+      // Hat der Nutzer inzwischen selbst gezogen, bleibt seine Breite.
+      if (wurzel.getPropertyValue("--ki-pane-breite") !== gesetzt) return;
+      if (vorher) wurzel.setProperty("--ki-pane-breite", vorher);
+      else wurzel.removeProperty("--ki-pane-breite");
+    };
+  }, [ansicht, offen]);
 
   if (!verfuegbar) return null;
 
@@ -167,7 +189,17 @@ export function KiPane({
             </div>
             <div className="ki-pane__werkzeuge">
               {pruefungBereiche.length > 0 ? (
-                <button type="button" onClick={() => setPruefungOffen(true)} aria-label={tp("knopf")} title={tp("knopf")} className="ki-pane__knopf">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPruefungGeladen(true);
+                    umschalten("pruefung");
+                  }}
+                  aria-pressed={ansicht === "pruefung"}
+                  aria-label={tp("knopf")}
+                  title={tp("knopf")}
+                  className="ki-pane__knopf"
+                >
                   <ShieldCheck className="h-4 w-4" />
                 </button>
               ) : null}
@@ -218,6 +250,14 @@ export function KiPane({
                 </div>
               )}
             </div>
+            {pruefungGeladen && pruefungBereiche.length > 0 ? (
+              <div
+                className={cn("ki-pane__ansicht overflow-y-auto", ansicht !== "pruefung" && "pointer-events-none invisible")}
+                inert={ansicht !== "pruefung" ? true : undefined}
+              >
+                <PruefungAnsicht erlaubt={pruefungBereiche} />
+              </div>
+            ) : null}
             {ansicht === "einstellungen" && hatEinstellungen ? (
               <div className="ki-pane__ansicht space-y-5 overflow-y-auto p-4">
                 {agentFaehig ? <ModusEinstellung /> : null}
@@ -241,7 +281,6 @@ export function KiPane({
           </div>
         </div>
       </aside>
-      {pruefungOffen ? <PruefungDialog erlaubt={pruefungBereiche} onClose={() => setPruefungOffen(false)} /> : null}
     </>
   );
 }

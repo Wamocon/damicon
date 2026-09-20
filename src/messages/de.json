@@ -3048,5 +3048,20 @@
       "rechte": "Für Ihre Rolle ist diese Prüfung nicht freigegeben.",
       "anmeldung": "Bitte melden Sie sich neu an."
     }
+  },
+  "pruefungAblauf": {
+    "schritt": {
+      "daten": "Betriebsdaten",
+      "recht": "Recht",
+      "bewertung": "Bewertung"
+    },
+    "lane": {
+      "fertig": "{n} Befunde, {q} Quellen"
+    },
+    "zahl": {
+      "befunde": "Befunde",
+      "quellen": "Quellen",
+      "zeit": "Zeit"
+    }
   }
 }

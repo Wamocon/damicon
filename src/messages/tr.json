@@ -3048,5 +3048,20 @@
       "rechte": "Bu denetim rolünüz için açık değil.",
       "anmeldung": "Lütfen yeniden giriş yapın."
     }
+  },
+  "pruefungAblauf": {
+    "schritt": {
+      "daten": "İşletme verisi",
+      "recht": "Hukuk",
+      "bewertung": "Değerlendirme"
+    },
+    "lane": {
+      "fertig": "{n} bulgu, {q} kaynak"
+    },
+    "zahl": {
+      "befunde": "Bulgu",
+      "quellen": "Kaynak",
+      "zeit": "Süre"
+    }
   }
 }
