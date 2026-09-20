@@ -35,6 +35,7 @@ import {
   wissensQuellenFuerFaehigkeiten,
 } from "../../src/lib/domain/ki-assistent.ts";
 import {
+  antwortSprache,
   erkenneSprache,
   MAX_SPRACHAUSGABE_ZEICHEN,
   sprachausgabePfad,
@@ -49,6 +50,12 @@ import {
   transkriptionZeitlimitMs,
   transkriptionZugangsHeader,
 } from "../../src/lib/ai/transkription-client.ts";
+import {
+  DIKTAT_STANDARD,
+  diktatEinstellungen,
+  erzeugeStilleWaechter,
+  pegelAusZeitbereich,
+} from "../../src/lib/domain/diktat.ts";
 import { readFileSync } from "node:fs";
 
 let bestanden = 0;
@@ -321,12 +328,19 @@ for (const [name, kaputteAntwort] of [
     ["de", "**Fazit:** Interne Audits finden alle **47 Tage** statt. Empfehlung: den nächsten Termin eintragen."],
     ["ru", "**Вывод:** внутренние аудиты проводятся каждые **47 дней**."],
     ["kk", "**Қорытынды:** ішкі аудиттер әр **47 күн** сайын өткізіледі."],
-    ["tr", "**Sonuç:** İç denetimler her **47 günde** bir yapılır."],
     ["en", "**Summary:** Internal audits take place every **47 days** according to the policy."],
   ];
   for (const [erwartet, text] of beispiele) {
     const erkannt = erkenneSprache(textFuerSprachausgabe(text), "de");
     pruefe(`Sprachausgabe: Antwort auf ${erwartet} wird als ${erwartet} erkannt`, erkannt === erwartet, `erkannt: ${erkannt}`);
+  }
+  // Tuerkisch ist am 20.09.2026 aus der Anwendung entfernt worden. Ein
+  // tuerkischer Satz darf deshalb nie mehr "tr" ergeben - er faellt auf eine
+  // der vier verbliebenen Sprachen, fuer die es auch eine Stimme gibt.
+  {
+    const tuerkisch = erkenneSprache("**Sonuç:** İç denetimler her **47 günde** bir yapılır.", "de");
+    pruefe("Sprachausgabe: Tuerkisch gibt es nicht mehr - kein 'tr' aus der Erkennung", tuerkisch !== "tr", `erkannt: ${tuerkisch}`);
+    pruefe("Sprachausgabe: das Ergebnis ist eine der vier Sprachen mit Stimme", STIMMEN[tuerkisch] != null, tuerkisch);
   }
   // Kasachisch und Russisch teilen das kyrillische Alphabet - entscheidend sind
   // die kasachischen Sonderbuchstaben, nicht die Oberflaechensprache.
@@ -381,13 +395,15 @@ for (const [name, kaputteAntwort] of [
     pfadDe,
   );
 
-  // Mit den Piper-Stimmen auf Caesar blieben Russisch und Tuerkisch stumm -
-  // fuer beide gab es nur Modelle mit unklarer oder nicht kommerzieller
-  // Lizenz. Ueber den Dienst sprechen jetzt alle fuenf.
+  // Mit den Piper-Stimmen auf Caesar blieb Russisch stumm - es gab nur
+  // Modelle mit unklarer oder nicht kommerzieller Lizenz. Ueber den Dienst
+  // sprechen jetzt alle vier.
   pruefe(
-    "Sprachausgabe: alle fuenf Sprachen haben eine Stimme, auch Russisch und Tuerkisch",
-    Object.values(STIMMEN).every((s) => s !== null),
+    "Sprachausgabe: alle vier Sprachen haben eine Stimme, auch Russisch",
+    Object.keys(STIMMEN).length === 4 && Object.values(STIMMEN).every((s) => s !== null),
+    Object.keys(STIMMEN).join(", "),
   );
+  pruefe("Sprachausgabe: keine tuerkische Stimme mehr", !("tr" in STIMMEN));
   // Der Stimmwechsel aendert auch den Ablagepfad: alte Piper-Aufnahmen
   // werden nicht mehr gefunden, statt mit der neuen Stimme verwechselt zu
   // werden.
@@ -547,9 +563,8 @@ for (const [name, kaputteAntwort] of [
 
     // Die Oberflaechensprache geht als Hinweis mit - sie trennt vor allem
     // Kasachisch von Russisch, die sich die kyrillische Schrift teilen.
-    // Tuerkisch bietet der Dienst fuer die Erkennung NICHT an (am 20.09.2026
-    // geprueft: die Antwort kam verhoert zurueck), deshalb faellt es weg und
-    // der Dienst erkennt die Sprache selbst.
+    // Tuerkisch ist aus der Anwendung entfernt (die Erkennung lieferte dafuer
+    // ohnehin Unsinn): "tr" darf nie mehr mitgeschickt werden.
     const sprachFelder = async (vorgabe) => {
       aufrufe.length = 0;
       naechsteAntwort = () => new Response(JSON.stringify({ text: "x" }), { status: 200, headers: { "content-type": "application/json" } });
@@ -557,7 +572,7 @@ for (const [name, kaputteAntwort] of [
       return aufrufe[0]?.init.body?.get?.("language") ?? null;
     };
     pruefe("Spracheingabe-Client: Kasachisch wird als Sprache mitgeschickt", (await sprachFelder("kk")) === "kk");
-    pruefe("Spracheingabe-Client: Tuerkisch wird nicht mitgeschickt (keine Erkennung dafuer)", (await sprachFelder("tr")) === null);
+    pruefe("Spracheingabe-Client: das entfernte Tuerkisch wird nicht mitgeschickt", (await sprachFelder("tr")) === null);
     pruefe("Spracheingabe-Client: erfundene Sprache wird still verworfen", (await sprachFelder("klingonisch")) === null);
     pruefe("Spracheingabe-Client: ohne Vorgabe erkennt der Dienst die Sprache selbst", (await sprachFelder(undefined)) === null);
 
@@ -592,13 +607,180 @@ for (const [name, kaputteAntwort] of [
   pruefe("Meldung: leeres Erkennungsergebnis bleibt fehler.transkription", transkriptionsMeldung("antwort-unerwartete-form") === "fehler.transkription");
 
   // Die Oberflaeche zeigt den Schluessel der Server Action an - fehlt er in
-  // einer der fuenf Sprachen, wirft next-intl zur Laufzeit.
-  const sprachen = ["de", "en", "kk", "ru", "tr"];
+  // einer der vier Sprachen, wirft next-intl zur Laufzeit.
+  const sprachen = ["de", "en", "kk", "ru"];
   const schluessel = ["transkription", "transkriptionDienst", "transkriptionDauer"];
   for (const sprache of sprachen) {
     const texte = JSON.parse(readFileSync(new URL(`../../src/messages/${sprache}.json`, import.meta.url), "utf8"));
     const fehlend = schluessel.filter((k) => typeof texte.aktionen?.fehler?.[k] !== "string");
     pruefe(`Meldung: ${sprache}.json kennt alle drei Diktat-Meldungen`, fehlend.length === 0, fehlend.join(", "));
+  }
+}
+
+// --- 8. Antwortsprache (domain/sprachausgabe.ts) ----------------------------
+// Der gemeldete Fehler: auf einer deutschen Oberflaeche bekam eine russisch
+// gestellte Frage eine deutsche Antwort - der Systemprompt bekam schlicht die
+// OBERFLAECHENSPRACHE uebergeben und wies das Modell ausdruecklich an, in
+// dieser zu antworten. Massgeblich ist jetzt die Sprache der letzten Frage.
+{
+  const fall = (inhalte, oberflaeche) =>
+    antwortSprache(inhalte.map((inhalt, i) => ({ rolle: i % 2 === 0 ? "nutzer" : "assistent", inhalt })), oberflaeche);
+
+  for (const [sprache, satz] of [
+    ["de", "Wie viele Steigen sind heute in der Kuehlung?"],
+    ["ru", "Сколько ящиков сегодня в холодильнике?"],
+    ["kk", "Бүгін тоңазытқышта қанша жәшік бар?"],
+    ["en", "How many crates are in the cold store today?"],
+  ]) {
+    for (const oberflaeche of ["de", "ru", "kk", "en"]) {
+      const erkannt = fall([satz], oberflaeche);
+      pruefe(
+        `Antwortsprache: ${sprache} gefragt auf ${oberflaeche}-Oberflaeche -> Antwort auf ${sprache}`,
+        erkannt === sprache,
+        `erkannt: ${erkannt}`,
+      );
+    }
+  }
+
+  // Wer mitten im Gespraech die Sprache wechselt, wechselt sie fuer alles,
+  // was danach kommt - massgeblich ist die LETZTE Frage, nicht die erste.
+  pruefe(
+    "Antwortsprache: ein Sprachwechsel mitten im Gespraech zaehlt sofort",
+    fall(["Wie viele Steigen sind heute in der Kuehlung?", "Heute sind es 47.", "А сколько было вчера?"], "de") === "ru",
+  );
+  // Antworten des Assistenten faerben nicht ab: sonst bliebe eine einmal
+  // deutsch beantwortete Frage fuer immer deutsch.
+  pruefe(
+    "Antwortsprache: nur die Fragen zaehlen, nicht die Antworten des Assistenten",
+    fall(["Сколько ящиков сегодня?", "Heute sind es 47 Steigen."], "de") === "ru",
+  );
+  // Ohne Anhaltspunkt bleibt es bei der Oberflaeche - die beste Vermutung,
+  // die es dann gibt.
+  pruefe("Antwortsprache: eine Frage ohne Hinweis faellt auf die Oberflaeche zurueck", fall(["47?"], "ru") === "ru");
+  pruefe("Antwortsprache: ein leeres Gespraech faellt auf die Oberflaeche zurueck", antwortSprache([], "kk") === "kk");
+  pruefe("Antwortsprache: eine unbekannte Oberflaechensprache endet bei Deutsch", antwortSprache([], "xx") === "de");
+}
+
+// --- 7. Diktat: Stilleerkennung (domain/diktat.ts) --------------------------
+// Die Aufnahme endet von selbst, wenn jemand aufhoert zu sprechen. Die beiden
+// Risiken stehen gegeneinander: zu frueh abschalten schneidet mitten im Satz
+// ab, zu spaet schickt Umgebungsgeraeusch zur Erkennung. Die Faelle unten
+// spielen beides durch - mit erfundenen Pegelverlaeufen, ohne Browser.
+{
+  // Einen Pegelverlauf abspielen: je Eintrag [Pegel, Dauer in ms], in
+  // Schritten von 50 ms (etwa drei Bildschirmbilder).
+  function spiele(abschnitte, einstellungen = DIKTAT_STANDARD) {
+    const waechter = erzeugeStilleWaechter(einstellungen);
+    let jetzt = 0;
+    for (const [pegel, dauer] of abschnitte) {
+      for (let verbraucht = 0; verbraucht < dauer; verbraucht += 50) {
+        const ergebnis = waechter.melde(pegel, jetzt);
+        if (ergebnis !== "weiter") return { ergebnis, beiMs: jetzt, waechter };
+        jetzt += 50;
+      }
+    }
+    return { ergebnis: "weiter", beiMs: jetzt, waechter };
+  }
+
+  const STILL = 0.004;
+  const SPRACHE = 0.18;
+
+  {
+    const { ergebnis, beiMs } = spiele([[STILL, 200], [SPRACHE, 2000], [STILL, 3000]]);
+    pruefe("Diktat: nach dem Sprechen endet die Aufnahme von selbst", ergebnis === "stopp-stille", `${ergebnis} bei ${beiMs} ms`);
+    // Das letzte laute Bild liegt bei 2150 ms (Raster von 50 ms); von da an
+    // muss die eingestellte Stille vergehen - auf ein Bild genau.
+    const letzterLaut = 2150;
+    pruefe(
+      "Diktat: sie endet erst nach der eingestellten Stille, nicht frueher",
+      beiMs >= letzterLaut + DIKTAT_STANDARD.stilleMs && beiMs <= letzterLaut + DIKTAT_STANDARD.stilleMs + 50,
+      `${beiMs} ms, letzter Laut bei ${letzterLaut} ms`,
+    );
+  }
+
+  {
+    // Der wichtigste Fall: Denkpause mitten im Satz. Wer "Die Kuehlkette ist
+    // ... einwandfrei" sagt, darf nicht nach dem "ist" abgeschnitten werden.
+    const pause = DIKTAT_STANDARD.stilleMs - 400;
+    const { ergebnis } = spiele([[SPRACHE, 1500], [STILL, pause], [SPRACHE, 1500], [STILL, 400]]);
+    pruefe(`Diktat: eine Pause von ${pause} ms mitten im Satz beendet die Aufnahme NICHT`, ergebnis === "weiter", ergebnis);
+  }
+
+  {
+    const { ergebnis, beiMs, waechter } = spiele([[STILL, 10_000]]);
+    pruefe("Diktat: wird gar nicht gesprochen, endet die Aufnahme als leer", ergebnis === "stopp-leer", `${ergebnis} bei ${beiMs} ms`);
+    pruefe("Diktat: und sie gilt als 'nichts gesprochen'", !waechter.hatGesprochen());
+    pruefe("Diktat: das dauert hoechstens die Anlaufzeit", beiMs <= DIKTAT_STANDARD.anlaufMs + 100, `${beiMs} ms`);
+  }
+
+  {
+    // Hofumgebung: ein Kuehlaggregat laeuft durchgehend mit, lauter als die
+    // Grundschwelle. Ohne Anpassung an das Grundrauschen wuerde das als
+    // Sprache gelten und die Aufnahme liefe bis zur Hoechstdauer.
+    const LAERM = 0.05;
+    pruefe(
+      "Diktat: Dauerlaerm liegt ueber der Grundschwelle (sonst pruefte der Fall nichts)",
+      LAERM > DIKTAT_STANDARD.stillePegel,
+    );
+    const { ergebnis, waechter } = spiele([[LAERM, 500], [SPRACHE, 1500], [LAERM, 2500]]);
+    pruefe("Diktat: bei Dauerlaerm wird die Schwelle angehoben und die Aufnahme endet trotzdem", ergebnis === "stopp-stille", ergebnis);
+    pruefe(
+      "Diktat: die Schwelle richtet sich nach dem Grundrauschen, nicht nach dem Standardwert",
+      waechter.schwelle() > DIKTAT_STANDARD.stillePegel && waechter.schwelle() <= LAERM * DIKTAT_STANDARD.rauschFaktor + 1e-9,
+      `Schwelle ${waechter.schwelle().toFixed(3)}`,
+    );
+    const nurLaerm = spiele([[LAERM, 6000]]);
+    pruefe("Diktat: Dauerlaerm allein zaehlt nicht als Sprache", nurLaerm.ergebnis === "stopp-leer", nurLaerm.ergebnis);
+  }
+
+  {
+    // Wer sofort nach dem Klick losspricht, liefert als ersten Messwert einen
+    // lauten. Ohne rauschDeckel wuerde die eigene Stimme zum Grundrauschen
+    // erklaert - die Aufnahme endete als "leer", obwohl gesprochen wurde.
+    const { ergebnis, waechter } = spiele([[SPRACHE, 2500], [STILL, 2000]]);
+    pruefe("Diktat: sofortiges Lossprechen wird als Sprache erkannt, nicht als Grundrauschen", waechter.hatGesprochen(), `Schwelle ${waechter.schwelle().toFixed(3)}`);
+    pruefe("Diktat: und die Aufnahme endet danach ordentlich", ergebnis === "stopp-stille", ergebnis);
+  }
+
+  {
+    const kurz = { ...DIKTAT_STANDARD, hoechstdauerMs: 3000 };
+    const { ergebnis, beiMs } = spiele([[SPRACHE, 10_000]], kurz);
+    pruefe("Diktat: ununterbrochenes Reden endet an der Hoechstdauer", ergebnis === "stopp-hoechstdauer", `${ergebnis} bei ${beiMs} ms`);
+  }
+
+  {
+    // Ein kurzes Huesteln direkt nach dem Start darf die Aufnahme nicht
+    // sofort wieder beenden.
+    const { ergebnis } = spiele([[SPRACHE, 100], [STILL, 500]], { ...DIKTAT_STANDARD, stilleMs: 300 });
+    pruefe("Diktat: die Mindestdauer schuetzt vor einem Abschalten im ersten Atemzug", ergebnis === "weiter", ergebnis);
+  }
+
+  // Pegelberechnung: 8-Bit-Zeitbereich mit Ruhelage 128.
+  pruefe("Pegel: absolute Stille ergibt 0", pegelAusZeitbereich(new Uint8Array(64).fill(128)) === 0);
+  pruefe("Pegel: Vollausschlag ergibt 1", Math.abs(pegelAusZeitbereich(new Uint8Array(64).fill(0)) - 1) < 1e-9);
+  {
+    const wechsel = Uint8Array.from({ length: 64 }, (_, i) => (i % 2 ? 128 + 64 : 128 - 64));
+    pruefe("Pegel: halber Ausschlag ergibt 0,5", Math.abs(pegelAusZeitbereich(wechsel) - 0.5) < 1e-9);
+  }
+  pruefe("Pegel: leeres Fenster ergibt 0 statt NaN", pegelAusZeitbereich(new Uint8Array(0)) === 0);
+
+  // Nachstellen ohne Codeaenderung - und ein Tippfehler in der Umgebung darf
+  // das Diktat nicht unbrauchbar machen.
+  {
+    const gesetzt = diktatEinstellungen({ NEXT_PUBLIC_DIKTAT_STILLE_PEGEL: "0.05", NEXT_PUBLIC_DIKTAT_STILLE_MS: "900" });
+    pruefe("Diktat: Schwelle und Wartezeit lassen sich ueber die Umgebung nachstellen", gesetzt.stillePegel === 0.05 && gesetzt.stilleMs === 900);
+    for (const [name, umgebung] of [
+      ["leer", {}],
+      ["keine Zahl", { NEXT_PUBLIC_DIKTAT_STILLE_PEGEL: "laut", NEXT_PUBLIC_DIKTAT_STILLE_MS: "lang" }],
+      ["ausserhalb des Bereichs", { NEXT_PUBLIC_DIKTAT_STILLE_PEGEL: "9", NEXT_PUBLIC_DIKTAT_STILLE_MS: "0" }],
+      ["negativ", { NEXT_PUBLIC_DIKTAT_STILLE_PEGEL: "-1", NEXT_PUBLIC_DIKTAT_STILLE_MS: "-500" }],
+    ]) {
+      const e = diktatEinstellungen(umgebung);
+      pruefe(
+        `Diktat: unsinnige Einstellung (${name}) faellt auf den Standard zurueck`,
+        e.stillePegel === DIKTAT_STANDARD.stillePegel && e.stilleMs === DIKTAT_STANDARD.stilleMs,
+      );
+    }
   }
 }
 

@@ -12,7 +12,6 @@ import { cn } from "@/lib/utils";
 const labels: Record<Locale, string> = {
   de: "DE - Deutsch",
   en: "EN - English",
-  tr: "TR - Türkçe",
   kk: "KK - Қазақша",
   ru: "RU - Русский",
 };

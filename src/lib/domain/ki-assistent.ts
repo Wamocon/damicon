@@ -106,12 +106,28 @@ export function baueWissensKontext(preislisten: WissensPreisliste[]): string {
 // formuliert (nicht mehr "Sorten, Preisen und Bestellungen"): welche Themen
 // tatsaechlich beantwortbar sind, ergibt sich allein daraus, was im
 // uebergebenen Kontext steht - siehe wissensQuellenFuerRolle() unten.
-export function baueSystemPrompt(wissenKontext: string): string {
+/** Sprachnamen fuer die Antwortanweisung - englisch benannt, damit die
+ *  Anweisung nicht selbst deutsch klingt. Dieselbe Tabelle wie im
+ *  Streaming-Pfad (api/ki-assistent/route.ts). */
+const SPRACHNAMEN: Record<string, string> = {
+  de: "German",
+  en: "English",
+  ru: "Russian",
+  kk: "Kazakh",
+};
+
+export function baueSystemPrompt(wissenKontext: string, antwortSprache = "de"): string {
+  const name = SPRACHNAMEN[antwortSprache] ?? SPRACHNAMEN.de;
   return [
     "Du bist der Assistent von Damicon, einem Himbeerenbetrieb in Kasachstan.",
     "Beantworte ausschliesslich Fragen, die sich aus den folgenden freigegebenen Daten und Regeln beantworten lassen. Erfinde keine Preise, Mengen, Termine oder Regeln, die dort nicht stehen.",
     "Wenn eine Frage sich nicht daraus beantworten laesst - auch wenn du die Antwort aus anderem Wissen zu kennen glaubst - sage das offen und verweise auf das Buero.",
-    "Antworte kurz, sachlich und in der Sprache der Frage.",
+    "Antworte kurz und sachlich.",
+    // Zuletzt und auf Englisch, aus demselben Grund wie im Streaming-Pfad:
+    // der uebrige Prompt und alle Daten sind deutsch, ein einzelner deutscher
+    // Nebensatz "in der Sprache der Frage" geht dagegen unter - genau daran
+    // lag es, dass russische Fragen deutsche Antworten bekamen.
+    `LANGUAGE (highest priority): The user wrote in ${name}. Write the ENTIRE reply in ${name}, even though these instructions and all data below are in German. Match the language the user wrote in, not the language of the data.`,
     "",
     "Freigegebene Daten und Regeln:",
     wissenKontext,

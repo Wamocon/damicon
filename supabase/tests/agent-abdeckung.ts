@@ -4,10 +4,12 @@
 //   * jedes Modul aus modules.ts ist fuer den Agenten beschrieben (Titel +
 //     Kurzbeschreibung in allen Sprachen) - ein neues Modul ohne Text faellt hier auf
 //   * jedes Werkzeug, das IRGENDEINE Rolle bekommen kann, hat Beschriftungen in
-//     allen fuenf Sprachen (sonst zeigt der Chat einen Platzhalter)
+//     allen vier Sprachen (sonst zeigt der Chat einen Platzhalter)
 //   * die Rollenzuschnitte stimmen: ein Kunde bekommt keine Lohn- oder
 //     Steuerwerkzeuge, ein Admin bekommt alles
 //   * alle Sprachdateien haben denselben Schluesselsatz
+//   * jedes Modul hat einen Kurznamen fuers Menue (navTitle) in allen Sprachen
+//   * Navigation und Rollen tragen keinen Schluessel, den der Code nicht mehr aufruft
 //   * die Markdown-Zerlegung des Chats liefert beim Streamen dasselbe wie ein Gesamtdurchlauf
 //   * der Systemprompt verbietet dem Agenten die vorschnelle Ablehnung
 //   * abgelaufene Sitzung wird als solche gemeldet, Abmelden beendet nur die eigene Sitzung,
@@ -29,7 +31,7 @@ import { agentPhase, haustierZustand, leseSichtbarkeit, modulAusPfad, TOUR_SCHRI
 import { modules } from "@/lib/modules";
 import { hasPermission, roles } from "@/lib/rbac";
 
-const sprachen = ["de", "en", "ru", "kk", "tr"] as const;
+const sprachen = ["de", "en", "ru", "kk"] as const;
 type Baum = { [k: string]: string | Baum };
 const texte = Object.fromEntries(
   sprachen.map((s) => [s, JSON.parse(readFileSync(`src/messages/${s}.json`, "utf8")) as Baum]),
@@ -61,6 +63,35 @@ for (const m of modules) {
 }
 pruefe("Jedes Modul hat in allen Sprachen einen Titel", ohneTitel.length === 0, ohneTitel.join(", ") || `${modules.length} Module`);
 pruefe("Jedes Modul hat eine Kurzbeschreibung fuer den Agenten (de)", ohneKurz.length === 0, ohneKurz.join(", "));
+
+// --- 1b. Kurznamen fuer das Menue ------------------------------------------
+// Die Seitenleiste zeigt modules.<key>.navTitle und nicht den vollen Titel:
+// ausgeschrieben passt der in keiner der fuenf Sprachen in die Spalte
+// (Kasachisch braucht 326 px, verfuegbar sind 201 px). Fehlt der Kurzname,
+// rendert next-intl den Schluesselpfad - und zwar nur in DER Sprache, in der
+// er fehlt. Genau das faellt beim Arbeiten an einer einzelnen Sprache niemandem auf.
+const NAVTITEL_MAX = 26;
+const ohneKurzname: string[] = [];
+const zuLangeKurznamen: string[] = [];
+for (const m of modules) {
+  for (const s of sprachen) {
+    const kurz = holen(texte[s], `modules.${m.key}.navTitle`);
+    if (typeof kurz !== "string") {
+      ohneKurzname.push(`${s}:${m.key}`);
+      continue;
+    }
+    // Ein Kurzname, der laenger ist als der Titel, ist keiner. Die
+    // Obergrenze ist ein Naeherungswert fuer die Spaltenbreite: der
+    // laengste heutige Kurzname hat 22 Zeichen, ab etwa 26 kommt das
+    // Abschneiden zurueck, das den Kurznamen ueberhaupt noetig gemacht hat.
+    const voll = holen(texte[s], `modules.${m.key}.title`);
+    if (kurz.length > NAVTITEL_MAX || (typeof voll === "string" && kurz.length > voll.length)) {
+      zuLangeKurznamen.push(`${s}:${m.key} (${kurz.length})`);
+    }
+  }
+}
+pruefe("Jedes Modul hat in allen Sprachen einen Kurznamen fuers Menue", ohneKurzname.length === 0, ohneKurzname.slice(0, 6).join(", ") || `${modules.length} Module x ${sprachen.length} Sprachen`);
+pruefe(`Kein Kurzname ist laenger als sein Titel oder als ${NAVTITEL_MAX} Zeichen`, zuLangeKurznamen.length === 0, zuLangeKurznamen.slice(0, 6).join(", "));
 
 // --- 2. Werkzeuge: Beschriftungen fuer alle Rollen --------------------------
 const alleNamen = new Set<string>();
@@ -124,6 +155,34 @@ for (const s of sprachen.filter((x) => x !== "de")) {
   pruefe(`Sprachdatei ${s} hat denselben Schluesselsatz wie de`, fehlt.length === 0 && zuviel.length === 0, `fehlt ${fehlt.length}, zuviel ${zuviel.length}`);
 }
 
+// --- 5b. Keine Schluessel ohne Fundstelle im Code ---------------------------
+// Entfernte Oberflaeche laesst ihre Texte zurueck: nav.activeRole hat das
+// Streichen der Kachel "Angemeldet als" in allen fuenf Sprachen ueberlebt und
+// war danach uebersetzter Ballast. Geprueft werden die Bereiche, deren
+// Schluessel im Code wortwoertlich oder ueber eine bekannte Aufzaehlung
+// (Modul-, Bereichs-, Rollennamen) stehen - dort ist "kommt nicht vor" ein
+// verlaesslicher Befund. Der uebrige Teil der Datei setzt Schluessel auch zur
+// Laufzeit zusammen (`${textKey}Title` auf der Startseite), dort waere
+// dieselbe Suche nur Rauschen.
+function quellDateien(ordner: string, treffer: string[] = []): string[] {
+  for (const eintrag of readdirSync(ordner, { withFileTypes: true })) {
+    const pfad = `${ordner}/${eintrag.name}`;
+    if (eintrag.isDirectory()) {
+      if (eintrag.name !== "messages") quellDateien(pfad, treffer);
+    } else if (/.(ts|tsx)$/.test(eintrag.name)) {
+      treffer.push(pfad);
+    }
+  }
+  return treffer;
+}
+const quelltext = quellDateien("src")
+  .map((p) => readFileSync(p, "utf8"))
+  .join("\n");
+const gepruefteBereiche = ["nav", "auth", "roles", "zones", "modules", "reifegrad"];
+const verwaist = schluessel(texte.de)
+  .filter((k) => gepruefteBereiche.includes(k.split(".")[0]!))
+  .filter((k) => !k.split(".").slice(1).every((teil) => quelltext.includes(teil)));
+pruefe("Navigation und Rollen tragen keinen Schluessel ohne Fundstelle im Code", verwaist.length === 0, verwaist.slice(0, 6).join(", "));
 // --- 6. Markdown-Zerlegung: inkrementell == vollstaendig --------------------
 // Beim Streamen wird nur ab dem letzten Block neu geparst. Das darf zu keinem
 // Zeitpunkt etwas anderes ergeben als ein Gesamtdurchlauf desselben Textes.
@@ -300,7 +359,6 @@ const rechtsfragen = [
   "What is the VAT registration threshold in Kazakhstan?",
   "Какой порог постановки на учет по НДС?",
   "ЭСФ кімге міндетті?",
-  "Kazakistan'da KDV kaydı için eşik nedir?",
 ];
 const keineRechtsfragen = [
   "Zeig mir die Rechte der Rolle Admin",
@@ -311,7 +369,7 @@ const keineRechtsfragen = [
   "Wie viele Schalen wurden gestern geerntet?",
   "Hallo Himbi",
 ];
-pruefe("Rechtsfragen in fuenf Sprachen werden erkannt", rechtsfragen.every((f) => istRechtsfrage(f)), rechtsfragen.filter((f) => !istRechtsfrage(f)).join(" | "));
+pruefe("Rechtsfragen in allen vier Sprachen werden erkannt", rechtsfragen.every((f) => istRechtsfrage(f)), rechtsfragen.filter((f) => !istRechtsfrage(f)).join(" | "));
 pruefe("Bedienung und Betriebsfragen loesen KEINE erzwungene Suche aus", keineRechtsfragen.every((f) => !istRechtsfrage(f)), keineRechtsfragen.filter((f) => istRechtsfrage(f)).join(" | "));
 const eingabe = (o: Partial<Parameters<typeof waehleSchritt>[0]> = {}) => ({ stepNumber: 0, modus: "assistent" as const, neueNutzerFrage: true, frage: rechtsfragen[0]!, wissenAngeboten: true, ...o });
 const erzwungen = '{"toolChoice":{"type":"tool","toolName":"wissenSuchen"}}';

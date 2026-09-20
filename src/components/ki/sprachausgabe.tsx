@@ -22,7 +22,7 @@ export function istVorlesbar(id: string): boolean {
 
 /** Gibt es fuer die Sprache DIESER Antwort ueberhaupt eine Stimme? Dieselbe
  *  Erkennung und dieselbe Tabelle wie auf dem Server (api/ki-sprachausgabe),
- *  nur vorab: Russisch und Tuerkisch haben keine lizenzfreie Stimme, dort
+ *  nur vorab: gibt es fuer eine Sprache keine Stimme, so
  *  erscheint erst gar kein Knopf statt eines Fehlers nach dem Klick. */
 export function stimmeVorhanden(text: string, oberflaeche: string): boolean {
   return STIMMEN[erkenneSprache(text, oberflaeche)] !== null;

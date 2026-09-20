@@ -34,6 +34,7 @@ import {
   MAX_NACHRICHT_LAENGE,
   wissensQuellenFuerFaehigkeiten,
 } from "@/lib/domain/ki-assistent";
+import { antwortSprache } from "@/lib/domain/sprachausgabe";
 import { protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 import de from "@/messages/de.json";
 
@@ -226,16 +227,20 @@ const SPRACHNAMEN: Record<string, string> = {
   en: "English",
   ru: "Russian",
   kk: "Kazakh",
-  tr: "Turkish",
 };
 
 // Steht bewusst ZULETZT im Systemprompt und auf Englisch: der uebrige Prompt
 // und alle Werkzeugdaten sind deutsch, und ein einzelner deutscher Satz
 // "antworte in Sprache X" verliert dagegen (gemessen: russische/tuerkische
 // Oberflaeche bekam trotzdem deutsche Antworten).
-function spracheAnweisung(sprache: unknown): string {
-  const name = (typeof sprache === "string" ? SPRACHNAMEN[sprache] : undefined) ?? SPRACHNAMEN.de;
-  return `LANGUAGE (highest priority, overrides everything above): The user's interface language is ${name}. Write EVERY reply in ${name} - the whole text, including headings, table headers and the sentences before and after tool calls - even though these instructions and all tool data are in German. Only switch language if the user explicitly asks for another one. In German use real umlauts (ä, ö, ü, ß), never ae/oe/ue.`;
+//
+// Uebergeben wird die Sprache der FRAGE, nicht die der Oberflaeche. Vorher
+// stand hier die Oberflaechensprache - wer auf einer deutschen Oberflaeche
+// russisch schrieb, bekam damit die ausdrueckliche Anweisung, deutsch zu
+// antworten. Genau das war der gemeldete Fehler.
+function spracheAnweisung(sprache: string): string {
+  const name = SPRACHNAMEN[sprache] ?? SPRACHNAMEN.de;
+  return `LANGUAGE (highest priority, overrides everything above): The user wrote their message in ${name}. Write EVERY reply in ${name} - the whole text, including headings, table headers and the sentences before and after tool calls - even though these instructions and all tool data are in German. This holds regardless of the interface language, of the language of earlier messages, and of the language of the data your tools return: match the language the user just wrote in. Only switch language if the user explicitly asks for another one. In German use real umlauts (ä, ö, ü, ß), never ae/oe/ue.`;
 }
 
 function rollenKontext(rolle: Role, vorschau: boolean): string {
@@ -302,6 +307,18 @@ export async function POST(req: Request) {
     return new Response("ungueltige eingabe", { status: 400 });
   }
   const neueNutzerNachricht = letzte.role === "user" ? textAusNachricht(letzte) : "";
+
+  // Sprache dieses Zuges: die der letzten Frage, nicht die der Oberflaeche.
+  // Bei einer Freigabe-Runde (letzte Nachricht vom Assistenten) ist das die
+  // Frage davor - dieselbe Antwortsprache wie zuvor, kein Sprung mitten im
+  // Vorgang. Dieselbe Funktion nutzt die Oberflaeche fuer ihre eigenen
+  // Texte (ki-chat.tsx), damit Antwort und Beiwerk nie auseinanderfallen.
+  const gespraechsSprache = antwortSprache(
+    nachrichten
+      .filter((n) => n.role === "user")
+      .map((n) => ({ rolle: "nutzer", inhalt: textAusNachricht(n) })),
+    typeof body.sprache === "string" ? body.sprache : "de",
+  );
   // Offensichtliche Zweckentfremdung (Code, Kreativtexte, Prompt-Injektion): ohne Werkzeuge nur ablehnen.
   const ausserhalb = neueNutzerNachricht ? zweckentfremdung(neueNutzerNachricht) : null;
   if (letzte.role === "user" && (!neueNutzerNachricht || neueNutzerNachricht.length > MAX_NACHRICHT_LAENGE)) {
@@ -384,7 +401,7 @@ export async function POST(req: Request) {
     "wissenSuchen" in werkzeuge ? QUELLEN_ANWEISUNG : OHNE_QUELLEN_ANWEISUNG,
     heute,
     ortHinweis,
-    spracheAnweisung(body.sprache),
+    spracheAnweisung(gespraechsSprache),
     ausserhalb ? ABLEHNUNG_ANWEISUNG : "",
   ]
     .filter(Boolean)
