@@ -1576,3 +1576,107 @@ html[data-ki-zieht] body {
   max-width: 34rem;
   margin-inline: auto;
 }
+
+/* ---- Aura ueber dem ganzen Bild -----------------------------------------------------
+   Die zweite, grosse Haelfte der Schicht um Himbi (haustier.css, .hb-aura). Ihre eigene
+   Aura ist der Heiligenschein dicht um die Figur, diese hier ist das Licht im Raum: drei
+   sehr weiche Flecken, die langsam durch das Bild ziehen.
+
+   Liegt fest im Fenster und damit hinter der Karte, ohne z-index - sie steht vor dem
+   Karten-Element in der Huelle. Weil sie aus dem Fluss faellt, aendert sie die Aufteilung
+   der Huelle nicht, in der Himbis Platzhalter und die Karte uebereinander stehen. */
+.ki-buehne-aura {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+.ki-pane-huelle--buehne.ki-pane-huelle--offen .ki-buehne-aura {
+  opacity: 0.6;
+}
+.ki-buehne-aura__blob {
+  position: absolute;
+  width: 62vmax;
+  height: 62vmax;
+  border-radius: 50%;
+  filter: blur(90px);
+}
+.ki-buehne-aura__blob--1 {
+  left: -16vmax;
+  top: -18vmax;
+  background: radial-gradient(circle, rgb(216 27 96 / 0.9), rgb(216 27 96 / 0) 68%);
+}
+.ki-buehne-aura__blob--2 {
+  right: -20vmax;
+  top: 6vmax;
+  background: radial-gradient(circle, rgb(19 112 143 / 0.85), rgb(19 112 143 / 0) 66%);
+}
+.ki-buehne-aura__blob--3 {
+  left: 20vmax;
+  bottom: -26vmax;
+  background: radial-gradient(circle, rgb(242 193 78 / 0.6), rgb(242 193 78 / 0) 64%);
+}
+
+/* Auch hier sagt die Phase, wie hell es ist - dieselbe Abstufung wie am Bildrand. */
+.ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen .ki-buehne-aura {
+  opacity: 1;
+}
+.ki-pane-huelle--buehne[data-phase="freigabe"].ki-pane-huelle--offen .ki-buehne-aura {
+  opacity: 0.9;
+}
+.ki-pane-huelle--buehne[data-phase="fehler"].ki-pane-huelle--offen .ki-buehne-aura {
+  opacity: 0.35;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ki-buehne-aura {
+    transition: opacity 0.6s ease;
+  }
+  .ki-pane-huelle--buehne.ki-pane-huelle--offen .ki-buehne-aura__blob--1 {
+    animation: ki-aura-1 26s ease-in-out infinite;
+  }
+  .ki-pane-huelle--buehne.ki-pane-huelle--offen .ki-buehne-aura__blob--2 {
+    animation: ki-aura-2 34s ease-in-out infinite;
+  }
+  .ki-pane-huelle--buehne.ki-pane-huelle--offen .ki-buehne-aura__blob--3 {
+    animation: ki-aura-3 21s ease-in-out infinite;
+  }
+  .ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen .ki-buehne-aura__blob--1 {
+    animation-duration: 9s;
+  }
+  .ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen .ki-buehne-aura__blob--2 {
+    animation-duration: 12s;
+  }
+  .ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen .ki-buehne-aura__blob--3 {
+    animation-duration: 7s;
+  }
+}
+
+@keyframes ki-aura-1 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(12vmax, 8vmax, 0) scale(1.18);
+  }
+}
+@keyframes ki-aura-2 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.1);
+  }
+  50% {
+    transform: translate3d(-14vmax, 12vmax, 0) scale(0.92);
+  }
+}
+@keyframes ki-aura-3 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.95);
+  }
+  50% {
+    transform: translate3d(-10vmax, -14vmax, 0) scale(1.22);
+  }
+}

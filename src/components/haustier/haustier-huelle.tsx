@@ -162,6 +162,33 @@ export function HaustierHuelle({ zustand, stimmung = "neutral", blase, paneOffen
     return () => window.clearTimeout(id);
   }, [paneOffen, klemme, bestimmeSeite]);
 
+  // ---- Wohin geschaut wird ------------------------------------------------------------
+  // Fuehrt niemand ihren Blick, schaut Himbi auf das Feld, in das gerade geschrieben
+  // wird: sie merkt, dass man ihr etwas tippt. Ermittelt ueber den Fokus im Dokument und
+  // nicht ueber einen Draht vom Chat hierher - der Blick ist keine Absprache wert, und
+  // so gilt es auch fuer das angedockte Panel und jedes Feld, das spaeter dazukommt.
+  const [tippZiel, setTippZiel] = useState<Element | null>(null);
+  useEffect(() => {
+    const passend = (el: EventTarget | null): Element | null => {
+      if (!(el instanceof Element)) return null;
+      if (!el.matches("textarea, input[type='text'], input:not([type])")) return null;
+      return el.closest(".ki-pane") ? el : null;
+    };
+    const rein = (e: FocusEvent) => setTippZiel(passend(e.target));
+    const raus = () => setTippZiel(null);
+    document.addEventListener("focusin", rein);
+    document.addEventListener("focusout", raus);
+    // Beim Mounten kann der Fokus schon im Feld stehen.
+    setTippZiel(passend(document.activeElement));
+    return () => {
+      document.removeEventListener("focusin", rein);
+      document.removeEventListener("focusout", raus);
+    };
+  }, []);
+
+  // Eine Fuehrung (Tour) gewinnt: die zeigt etwas, das Tippen laeuft nebenher weiter.
+  const schauZiel = blickZiel ?? tippZiel;
+
   // ---- Augen: gedaempft zum Ziel ------------------------------------------------------
   const ziel = useRef({ x: 0, y: 0 });
   const augen = useRef({ x: 0, y: 0 });
@@ -169,7 +196,7 @@ export function HaustierHuelle({ zustand, stimmung = "neutral", blase, paneOffen
   const anzeigeRef = useRef(anzeige);
   anzeigeRef.current = anzeige;
   const blickZielRef = useRef<Element | null>(null);
-  blickZielRef.current = blickZiel ?? null;
+  blickZielRef.current = schauZiel;
 
   const laufe = useCallback(function schritt() {
     const el = griff.current;
@@ -207,21 +234,22 @@ export function HaustierHuelle({ zustand, stimmung = "neutral", blase, paneOffen
 
   // Zustandsabhaengiger Blick: denkt = nach oben links, Schlaf/Fehler = nach unten
   useEffect(() => {
-    if (blickZiel) return;
+    if (schauZiel) return;
     if (anzeige === "denkt") richteAugen(-2.6, -2.8);
     else if (anzeige === "schlaeft") richteAugen(0, 1.5);
     else if (anzeige === "traurig") richteAugen(0, 2.6);
     else if (anzeige === "fehler") richteAugen(0, 2);
     else richteAugen(0, 0);
-  }, [anzeige, blickZiel, richteAugen]);
+  }, [anzeige, schauZiel, richteAugen]);
 
-  // Tour: auf das Ziel schauen, auch waehrend die Seite dorthin scrollt
+  // Auf das Ziel schauen, auch waehrend die Seite dorthin scrollt (Tour) oder das
+  // Panel noch aufgeht (Eingabefeld).
   useEffect(() => {
-    if (!blickZiel) return;
+    if (!schauZiel) return;
     let frame = 0;
     const schaue = () => {
       frame = 0;
-      const r = blickZiel.getBoundingClientRect();
+      const r = schauZiel.getBoundingClientRect();
       blickZu(r.left + r.width / 2, r.top + Math.min(r.height / 2, 260));
     };
     const planen = () => {
@@ -235,7 +263,7 @@ export function HaustierHuelle({ zustand, stimmung = "neutral", blase, paneOffen
       window.removeEventListener("resize", planen);
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, [blickZiel, blickZu]);
+  }, [schauZiel, blickZu]);
 
   // ---- Mauszeiger: Augen folgen, Naehe weckt, Leerlauf schlaefert ein -------------------
   const letzteAktivitaet = useRef(0);

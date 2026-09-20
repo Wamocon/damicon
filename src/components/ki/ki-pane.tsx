@@ -154,6 +154,13 @@ export function KiPane({
           aufBuehne && "ki-pane-huelle--buehne",
         )}
       >
+        {aufBuehne ? (
+          <span className="ki-buehne-aura" aria-hidden>
+            <span className="ki-buehne-aura__blob ki-buehne-aura__blob--1" />
+            <span className="ki-buehne-aura__blob ki-buehne-aura__blob--2" />
+            <span className="ki-buehne-aura__blob ki-buehne-aura__blob--3" />
+          </span>
+        ) : null}
         <div className={cn("ki-pane", agentAktiv && "ki-pane--agent")}>
           {aufBuehne ? null : <KiPaneGriff />}
           <header className="ki-pane__kopf">
