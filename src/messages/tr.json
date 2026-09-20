@@ -1148,156 +1148,182 @@
   "modules": {
     "standort": {
       "title": "Konum hiyerarşisi",
+      "navTitle": "Konumlar",
       "description": "İşletme, plantasyon, tarla parseli, sıra grubu, sıra bloğu - teller boyunca sıra ve blokların tekil kimliğini taşıyan dijital tarla haritası.",
       "summary": "Telli terbiye üzerindeki sıra bloklarıyla tarla haritası: her blok için çeşit, dikim yılı, sürgün tipi ve tel yönü.",
       "todo": "Parsel ve sıra gruplarını oluşturup taşımak için yönetim ekranı, tarla geometrisi düzenleyicisi."
     },
     "reihenbloecke": {
       "title": "Sıra blokları ve durumlar",
+      "navTitle": "Sıra blokları",
       "description": "Her sıra bloğunun tek bir durumu vardır: dikili, hasada hazır, dinlenmede, budama veya bekleme süresi kilitli. Kilitli bir blok toplama planında hiç görünmemelidir.",
       "summary": "Her sıra bloğu için durum makinesi. Koşul yerine gelene kadar hasadı kilitler - burada bekleme süresi dolana kadar.",
       "todo": "Gerekçe zorunlu durum değişikliği, kaynak bazında ayrıntılı erişim kuralları, her sıra bloğu için geçmiş."
     },
     "pflueckaufgaben": {
       "title": "Fotoğraf kanıtlı toplama görevleri",
+      "navTitle": "Toplama görevleri",
       "description": "Ekip ve sıra bloğu bazında toplama görevi: hedef ve gerçekleşen miktar, kalite katsayısı ve satış kabının fotoğraf kanıtı doğrudan görevde.",
       "summary": "Ekip ve sıra bloğu bazında görev, kabın fotoğraf kanıtı, miktar ve kalite katsayısı görevin üzerinde.",
       "todo": "Tarlada çevrimdışı kayıt, onay ve düzeltmeli kanıt incelemesi, kalite katsayılı ücrete bağlama."
     },
     "pflanzenschutz": {
       "title": "Bitki koruma ve bekleme süresi",
+      "navTitle": "Bitki koruma",
       "description": "Her işlem ilaç, miktar, blok, tarih ve uygulayan kişiyle kaydedilir ve sıra bloğunu yasal bekleme süresi dolana kadar otomatik kilitler.",
       "summary": "Blok bazında işlem kaydı ve otomatik hasat kilidi. İhlal, hukuki ve gıda güvenliği riskidir.",
       "todo": "Bekleme süreli ilaç veri tabanı, süre dolduğunda otomatik açma, tutanak yükleme zorunluluğu, parti başına kalıntı kanıtı."
     },
     "rotationsplan": {
       "title": "Rotasyon / toplama planı",
+      "navTitle": "Rotasyon planı",
       "description": "Tüm sonbahar hasadı boyunca her sıra bloğu için iki üç günlük aralıklı, dönen toplama planı. Atlanan tek bir tur bloğu o döngü için yok eder.",
       "summary": "İlk inşa edilecek işlev. Planlama sorunu tahmin değil, altı hafta boyunca rotasyondur.",
       "todo": "Sıra bloğu bazında aralık motoru, ekip ataması, bekleme kilitleriyle çakışma denetimi, takvim dışa aktarımı (.ics)."
     },
     "wetter": {
       "title": "Hava durumu ve sıcaklık toplamı",
+      "navTitle": "Hava durumu",
       "description": "Miktar tahmini için sıcaklık toplamı hesaplayan hava durumu API bağlantısı. Birinci aşamada bilinçli olarak makine öğrenmesi yok - açıklanabilir bir sezgisel yöntem yeterli.",
       "summary": "Parsel bazında sıcaklık toplamı olan basit bir hava durumu arayüzü. Açıklanabilir, denetlenebilir ve bir sezon içinde doğrulanabilir.",
       "todo": "Meteoroloji istasyonu veya API bağlantısı, parsel bazında sıcaklık toplamı, kayan olgunlaşma pencerelerine dair uyarı."
     },
     "kuehlkette": {
       "title": "Soğuk zincir sayacı",
+      "navTitle": "Soğuk zincir",
       "description": "Toplamadan ön soğutmaya kadar sert 60 dakika eşikli süre ölçümü, sıcaklık kaydediciler, hedef sıcaklık 0-1 derece. İşletmedeki en yüksek öncelik.",
       "summary": "Bütün fiyat farkının bağlı olduğu yapı taşı. 60 dakikanın üzerinde ürün ertesi gün yalnızca sanayilik olur.",
       "todo": "Sıcaklık kaydedici entegrasyonu, toplama anından itibaren parti sayacı, eşik aşımında alarm, gösterge hesabı."
     },
     "logistik": {
       "title": "Toplama turları ve güzergâh planlama",
+      "navTitle": "Toplama turları",
       "description": "Dolu kasalar güneşte kalmasın diye tarlada sabit toplama turları, ayrıca müşterilerin teslimat pencerelerine göre güzergâh planlama.",
       "summary": "Miktar ve sıcaklık karşılaştırmalı (ön soğutma ve taşıma) teslim tutanağı, müşteriye kadar kesintisiz soğuk zincir kanıtı.",
       "todo": "Araç bazında güzergâh listesi ve teslimat zaman pencereleri (Gereksinim 3.5 Bölüm 1) hâlâ eksik."
     },
     "qr_steigen": {
       "title": "QR kasa kimliği",
+      "navTitle": "QR kasalar",
       "description": "Kasalar için QR etiketleri (kamuya açık köken sayfasına bağlantı), kendi kimlik koduna sahip biyometrisiz toplayıcı kimlik kartları ve giriş gerektirmeyen bir duvar afişi - hepsi sunucu tarafında SVG olarak üretilir ve tarayıcının yazdırma işleviyle baskıya hazırdır.",
       "summary": "QR kodu kimliği tarladan tezgaha taşır - kimlik kartı, toplama noktasında kamerayla taranarak kasa veya çalışma süresi o kişiye atanabilir, açılır listeden seçmek yerine.",
       "todo": "Sadece toplayıcı kimliği değil, kasa etiketlerinin de kamerayla taranması bu aşamanın kapsamında değildir."
     },
     "esf": {
       "title": "Elektronik irsaliye (ЭСФ)",
+      "navTitle": "İrsaliye (ЭСФ)",
       "description": "Sevk irsaliyesi zorunluluğuna uygun elektronik irsaliye. Devletin ЭСФ sistemine bağlı, kendi muhasebesi yok.",
       "summary": "Partiden irsaliyeye belge zinciri, devlet sisteminden durum bildirimi. Zorunlu entegrasyon.",
       "todo": "ЭСФ bilgi sistemine bağlantı, parti - irsaliye belge zinciri, durum bildirimi ve yeniden gönderim."
     },
     "rollen": {
       "title": "Roller ve yetkiler",
+      "navTitle": "Roller ve yetkiler",
       "description": "Yönetimden işletme yönetimine, muhasebeden tarladaki ekibe ve toplayıcıya, üreticiye ve B2B müşterisine kadar yedi temel rol - kaynaklar ve eylemler üzerinden bir yetki matrisiyle.",
       "summary": "Roller, kaynak çarpı eylem şeklinde açık bir veri yapısı olarak. Yeni roller mantığa dokunmadan eklenir.",
       "todo": "Kullanıcı yönetimi, rol atama, kaynak bazında ayrıntılı erişim kuralları."
     },
     "finanzen": {
       "title": "Katkı payı ve finans",
+      "navTitle": "Katkı payı",
       "description": "Sıra bloğu bazında maliyet yerleri, çeşit ve müşteri bazında maliyet nesneleri. Kilogram, sıra bloğu, çeşit ve hasat günü başına katkı payı - kayıtlar değiştirilemez.",
       "summary": "Sıra bloğu, çeşit ve hasat günü başına katkı payı. Kayıtlar değiştirilemez (yalnızca ekleme).",
       "todo": "Hasat günü bazında maliyet türleri, B2B ödeme mutabakatı, çeşit bazında katkı payı projeksiyonu."
     },
     "personal": {
       "title": "Toplayıcı kadrosu ve ekipler",
+      "navTitle": "Toplayıcı kadrosu",
       "description": "Toplayıcı kartı, ekip ataması ve sezon boyunca kişi başına verim ve kalite katsayısı içeren personel kaydı - prim, ek eğitim ve gelecek yılın seçimi için temel.",
       "summary": "Personel kaydı, ekip ve toplayıcı kartı, sezon boyunca kişi başına verim ve kalite profili.",
       "todo": "Her sözleşme için ЕСУТД kaydı, ekip planlaması, ücret hesabının temeli olarak verim geçmişi."
     },
     "lohn": {
       "title": "Kalite katsayılı ücret",
+      "navTitle": "Kalite katsayılı ücret",
       "description": "Temel ücret, miktar bileşeni ve kalite katsayısından oluşan karma model. Salt parça başı ücret miktara baskı yapar, meyveyi ezer ve ahudududa değer yok eder.",
       "summary": "Temel ücret artı miktar artı kalite katsayısı. Kalite katsayısı bir seçenek değil, ön koşuldur.",
       "todo": "Asgari ücret bağlantısı, koridor önizlemeli ücret editörü, toplayıcı bazlı PDF bordroları, avans hesabı."
     },
     "dokumente": {
       "title": "Belge yönetimi",
+      "navTitle": "Belgeler",
       "description": "İlaçlama tutanakları, ЕСУТД kanıtları, teslimat ve çerçeve sözleşmeleri, destek dosyaları ve sertifikalar için korumalı arşiv - sıra bloğu ve partiyle ilişkilendirilmiş.",
       "summary": "Sıra bloğu ve partiyle ilişkili, kategorili ve korumalı belge arşivi.",
       "todo": "Sürümleme, geçerlilik ve hatırlatma mantığı, sıra bloğu ve partiyle ilişkilendirme."
     },
     "compliance": {
       "title": "Uyum kokpiti",
+      "navTitle": "Uyum",
       "description": "Beş ayrıntılı tablodan işleme amaçları, rızalar, veri ihlalleri ve üçüncü taraf aktarımları - okuma ve yazma yalnızca ofis rollerine ait.",
       "summary": "Ayrıntılı veri koruma şeması: işleme amaçları, rızalar, ihlaller ve aktarımlar tek yerde.",
       "todo": "Vergi Kanunu, Yapay Zekâ Kanunu, Dijital Kanun atıfları, veri türü bazında saklama kuralları, barındırma yeri incelemesi."
     },
     "integrationen": {
       "title": "Devlet entegrasyonları",
+      "navTitle": "Entegrasyonlar",
       "description": "ЭСФ, sanal stok, ЕСУТД ve gosagro.kz ile qoldau.kz destek portallarına bağlayıcılar. Muhasebe, ülkede yerleşik bir çözümde kalır.",
       "summary": "Her hedef sistem için durum bildirimli ve yeniden denemeli bir bağlayıcı. Muhasebeyi kendimiz yazmıyoruz.",
       "todo": "Sistem bazında bağlayıcılar, test ortamı erişimleri, hata ve yeniden deneme mantığı, kuyruk izleme."
     },
     "foerdermittel": {
       "title": "Destek dosyası",
+      "navTitle": "Destekler",
       "description": "Kazakistan destek portalları için başvuru şablonları, kanıt listeleri ve süre takibi - başvuru yeterliliği, günlük muhasebenin yan ürünü olarak.",
       "summary": "Süre takibi ve dosya başına kanıt belgeleri bağlandı (gereksinim 4.12). Program bazında başvuru şablonları ve kanıt kontrol listeleri açık kalıyor.",
       "todo": "Program bazında başvuru şablonları ve kanıt kontrol listeleri - gosagro.kz/qoldau.kz'nin program başına gerçekte hangi alanları ve kanıtları istediğine dair uzmanlık kararı."
     },
     "sortenkatalog": {
       "title": "Çeşit ve kota kataloğu",
+      "navTitle": "Çeşit kataloğu",
       "description": "Çeşit, hasat penceresi (yazlık veya yıl içinde iki kez ürün veren), kap ağırlığı, kota ve fiyat listesinden oluşan katalog - ön sipariş ve B2B portalının temeli.",
       "summary": "Çeşit, hasat penceresi, kap ağırlığı, kota ve fiyat tek yerde.",
       "todo": "Rezervasyon mantıklı kota kaydı, fiyat listesi sürümleri, müşteri ataması."
     },
     "b2b_portal": {
       "title": "B2B portalı",
+      "navTitle": "B2B portalı",
       "description": "Sürekli müşteriler için portal: kotalar, önceden ön sipariş, müşteri grubuna göre fiyat listesi, teslimat durumu, fatura geçmişi ve şikâyet bildirimi.",
       "summary": "Teslim tutanaklı teslimat durumu, fiyat listesi ve ofisin manuel onayladığı ön siparişler bağlandı.",
       "todo": "Otomatik kota tüketimi, müşteri grubuna göre fiyat kademeleri ve fatura geçmişi hâlâ eksik (açık iş kararları)."
     },
     "preislisten": {
       "title": "Fiyat listeleri",
+      "navTitle": "Fiyat listeleri",
       "description": "Müşteri grubuna göre kademeli fiyatlar ve geçerlilik dönemi olan sürümlenmiş fiyat listeleri.",
       "summary": "Müşteri ve döneme göre fiyat kademeleri, sürümlü ve geçerlilik tarihli.",
       "todo": "Sürümlenmiş fiyat listeleri, kademeli fiyatlar, geçerlilik dönemleri, müşteri ataması."
     },
     "aggregator": {
       "title": "Toplulaştırma / komşu işletmeler",
+      "navTitle": "Toplulaştırma",
       "description": "Komşu işletmelerin bağlanması: alınan miktar fatura kalemine dönüşür, her alım partisi ayrı yürütülür ve teslim eden işletmeye kadar izlenebilir kalır.",
       "summary": "Komşu işletme kaydı, ayrı partiyle alım kaydı, ayrı köken takibi, mutabakat.",
       "todo": "Komşu işletme kaydı, ayrı partiyle alım kaydı, mutabakat ve ödeme."
     },
     "schulungen": {
       "title": "Eğitim videoları",
+      "navTitle": "Eğitimler",
       "description": "Mevsimlik işçiler için telefonda çok dilli, görsele dayalı kısa oryantasyon - her temel süreç için bir video, metin yerine görsellerle.",
       "summary": "Her temel süreç için kısa, görsele dayalı videolar, çok dilli, kişi bazında ilerleme takibiyle.",
       "todo": "Temel süreç bazında video içerikleri, Kazakça ve Rusça dil sürümleri, kişi bazında ilerleme takibi."
     },
     "kanaele": {
       "title": "İletişim kanalları",
+      "navTitle": "İletişim kanalları",
       "description": "Yerel olarak yerleşik iletişim kanalları ve ödeme yöntemleri, web sitesinin alt bilgisinde herkese açık gösterilir. Yalnızca görüntüleme, gerçek bir mesajlaşma veya ödeme hizmetine bağlantı yoktur.",
       "summary": "WhatsApp, Kaspi QR ve diğer kanallar iletişim bilgisi olarak - ofis tarafından yönetilir, o zamana kadar taslak olarak gizli kalır.",
       "todo": "Her kanal için gerçek hesap bilgilerini girin."
     },
     "reklamationen": {
       "title": "Şikâyet yönetimi",
+      "navTitle": "Şikâyetler",
       "description": "Bir B2B müşterisinin parti başına şikâyeti - neden, süre ve geçmiş, alacak dekontuna kadar durum akışıyla. Müşteri yalnızca kendi şikâyetini bildirir ve görür, ofis bunu işler ve kapatır.",
       "summary": "Partiye bağlı her şikâyet için liste, ayrıntı ve geçmiş - oradan sıra bloğuna, toplayıcıya ve soğutma eğrisine kadar izlenebilir.",
       "todo": "Müşteri girişini bir B2B müşteri kaydına bağlayan yönetici ekranı, KPI kokpitinde otomatik şikâyet oranı, süre yaklaştığında bildirim."
     },
     "stammdaten": {
       "title": "Ana veriler ve vergi numaraları",
+      "navTitle": "Ana veriler",
       "description": "Kendi işletmesi, tedarikçi işletmeler ve müşteriler için hukuki biçim ve IIN ya da BIN - her belgede bulunması gereken bilgiler.",
       "summary": "Çiftçi işletmesi IIN, tüzel kişi BIN taşır. Kontrol hanesi, rakam yer değiştirmesini faturaya geçmeden önce geri çevirir.",
       "todo": "Tedarikçi işletmelerin ve müşterilerin numaralarını topla."

@@ -544,156 +544,182 @@
   "modules": {
     "standort": {
       "title": "Standort-Hierarchie",
+      "navTitle": "Standorte",
       "description": "Betrieb, Plantage, Feldparzelle, Reihengruppe, Reihenblock - eine digitale Feldkarte mit eindeutiger Reihen- und Blockkennung entlang der Spaliere.",
       "summary": "Feldkarte mit Reihenblöcken am Spalier, Sorte, Pflanzjahr, Rutentyp und Spalierrichtung je Block.",
       "todo": "Verwaltungsoberfläche zum Anlegen und Verschieben von Parzellen und Reihengruppen, Feldgeometrie-Editor."
     },
     "reihenbloecke": {
       "title": "Reihenblöcke und Status",
+      "navTitle": "Reihenblöcke",
       "description": "Jeder Reihenblock hat einen Status: bepflanzt, erntereif, ruhend, Rückschnitt oder wartezeitgesperrt. Ein gesperrter Block darf im Pflückplan schlicht nicht erscheinen.",
       "summary": "Zustandsautomat je Reihenblock. Bedingung sperrt die Ernte, bis sie erfüllt ist - hier: bis die Wartezeit abgelaufen ist.",
       "todo": "Statuswechsel mit Begründungspflicht, feingranulare Zugriffsregeln je Ressource, Verlauf je Reihenblock."
     },
     "pflueckaufgaben": {
       "title": "Pflückaufgaben mit Fotobeleg",
+      "navTitle": "Pflückaufgaben",
       "description": "Pflückaufgabe je Brigade und Reihenblock mit Ziel- und Istmenge, Q-Faktor und Fotobeleg der Verkaufsschale direkt an der Aufgabe.",
       "summary": "Aufgabe je Brigade und Reihenblock, Fotobeleg der Verkaufsschale, Menge und Qualitätsfaktor an der Aufgabe.",
       "todo": "Offline-Erfassung im Feld, Belegprüfung mit Freigabe und Nacharbeit, Verknüpfung mit dem Qualitätsfaktor-Lohn."
     },
     "pflanzenschutz": {
       "title": "Pflanzenschutz und Wartezeit",
+      "navTitle": "Pflanzenschutz",
       "description": "Jede Behandlung wird mit Mittel, Menge, Block, Datum und ausführender Person erfasst und sperrt den Reihenblock automatisch bis zum Ablauf der gesetzlichen Wartezeit.",
       "summary": "Blockgenaue Behandlungsdokumentation mit automatischer Erntesperre. Ein Verstoß ist ein Rechts- und Lebensmittelsicherheitsrisiko.",
       "todo": "Spritzmitteldatenbank mit Wartezeiten, automatische Freigabe bei Fristablauf, Protokoll-Upload-Pflicht, Rückstandsnachweis je Charge."
     },
     "rotationsplan": {
       "title": "Rotationsplan / Pflückplan",
+      "navTitle": "Rotationsplan",
       "description": "Rollierender Pflückplan mit Intervall von zwei bis drei Tagen je Reihenblock über die gesamte Herbsternte. Ein ausgelassener Durchgang vernichtet den Block für diesen Zyklus.",
       "summary": "Die erste Funktion, die gebaut wird. Das Planungsproblem ist nicht die Prognose, sondern die Rotation über sechs Wochen.",
       "todo": "Intervall-Engine je Reihenblock, Brigadenzuteilung, Konfliktprüfung mit Wartezeitsperren, Kalender-Export (.ics)."
     },
     "wetter": {
       "title": "Wetter und Temperatursumme",
+      "navTitle": "Wetter",
       "description": "Wetter-API-Anbindung mit Temperatursummenrechnung für die Mengenprognose. Bewusst kein maschinelles Lernen in Phase 1 - eine erklärbare Heuristik reicht.",
       "summary": "Einfache Wetterschnittstelle mit Temperatursumme je Parzelle. Erklärbar, prüfbar und innerhalb einer Saison validierbar.",
       "todo": "Wetterstation- oder API-Anbindung, Temperatursumme je Parzelle, Hinweis auf verschobene Reifefenster."
     },
     "kuehlkette": {
       "title": "Kühlketten-Uhr",
+      "navTitle": "Kühlkette",
       "description": "Zeitmessung von Pflücken bis Vorkühlung mit hartem 60-Minuten-Grenzwert, Temperaturlogger, Zieltemperatur 0 bis 1 Grad. Höchste Priorität im gesamten Betrieb.",
       "summary": "Der Baustein, an dem der gesamte Preisspread hängt. Über 60 Minuten ist die Ware am nächsten Tag nur noch Industrieware.",
       "todo": "Temperaturlogger-Integration, Charge-Uhr ab Pflückzeitpunkt, Alarm bei Grenzwertüberschreitung, KPI-Berechnung."
     },
     "logistik": {
       "title": "Abholrunden und Tourenplanung",
+      "navTitle": "Abholrunden",
       "description": "Feste Abholrunden im Feld, damit gefüllte Steigen nicht in der Sonne stehen, plus Tourenplanung nach den Lieferfenstern der Kunden.",
       "summary": "Übergabequittung mit Mengen- und Temperaturabgleich (Vorkühlung und Transport), lückenloser Kühlkettennachweis bis zum Kunden.",
       "todo": "Tourenliste je Fahrzeug und Zeitfenster (Anforderung 3.5 Teil 1) fehlen noch."
     },
     "qr_steigen": {
       "title": "QR-Steigenkennung",
+      "navTitle": "QR-Steigen",
       "description": "QR-Etiketten für Steigen (Link zur öffentlichen Herkunftsauskunft), Pflückerausweise mit dem eigenen Ausweis-Code ohne Biometrie und ein anmeldungsfreies Aushang-Poster - alle serverseitig als SVG erzeugt und über die Browser-Druckfunktion druckfertig.",
       "summary": "Der QR-Code trägt die Identität vom Feld bis zur Ladentheke - der Ausweis lässt sich am Sammelpunkt per Kamera scannen, um Steige und Arbeitszeit der Person zuzuordnen, statt sie aus einem Dropdown zu wählen.",
       "todo": "Ein Kamera-Scan der Steigen-Etiketten selbst (statt nur des Pflückerausweises) ist nicht Teil dieses Ausbauschritts."
     },
     "esf": {
       "title": "Elektronischer Lieferschein (ЭСФ)",
+      "navTitle": "Lieferschein (ЭСФ)",
       "description": "Elektronischer Lieferschein im Einklang mit der Pflicht zum Warenbegleitschein. Angebunden an das staatliche ЭСФ-System, keine eigene Buchhaltung.",
       "summary": "Belegkette von der Charge zum Lieferschein, Statusrückmeldung aus dem staatlichen System. Pflichtintegration.",
       "todo": "Anbindung an das ИС ЭСФ, Belegkette Charge zu Lieferschein, Statusrückmeldung und Wiederholung."
     },
     "rollen": {
       "title": "Rollen und Rechte",
+      "navTitle": "Rollen und Rechte",
       "description": "Sieben Kernrollen von der Administration über Betriebsleitung und Buchhaltung bis zur Brigade und dem einzelnen Pflücker im Feld, dem Erzeuger und dem B2B-Kunden - mit einer Rechtematrix über Ressourcen und Aktionen.",
       "summary": "Rollen als klare Datenstruktur über Ressourcen mal Aktionen. Neue Rollen ohne Eingriff in die Logik.",
       "todo": "Nutzerverwaltung, Rollenzuweisung, feingranulare Zugriffsregeln je Ressource."
     },
     "finanzen": {
       "title": "Deckungsbeitrag und Finanzen",
+      "navTitle": "Deckungsbeitrag",
       "description": "Kostenstellen je Reihenblock, Kostenträger je Sorte und je Kunde. Deckungsbeitrag je Kilogramm, je Reihenblock, je Sorte und je Erntetag - unveränderliche Buchungen.",
       "summary": "Deckungsbeitrag je Reihenblock, Sorte und Erntetag. Buchungen sind unveränderlich (nur Anfügen).",
       "todo": "Kostenarten je Erntetag, B2B-Zahlungsabgleich, Deckungsbeitragsprojektion je Sorte."
     },
     "personal": {
       "title": "Pflückerstamm und Brigaden",
+      "navTitle": "Pflückerstamm",
       "description": "Personenstamm mit Pflückerausweis, Brigadenzuordnung, Leistungs- und Qualitätsfaktor je Person über die Saison - Grundlage für Prämien, Nachschulung und Auswahl im Folgejahr.",
       "summary": "Personenstamm, Brigade und Pflückerausweis, Leistungs- und Qualitätsprofil je Person über die Saison.",
       "todo": "ЕСУТД-Erfassung je Vertrag, Brigadenplanung, Leistungshistorie als Grundlage der Lohnberechnung."
     },
     "lohn": {
       "title": "Qualitätsfaktor-Lohn",
+      "navTitle": "Qualitätsfaktor-Lohn",
       "description": "Kombimodell aus Grundvergütung, Mengenkomponente und Qualitätsfaktor. Reiner Stücklohn drückt auf Menge, quetscht Beeren und ist bei der Himbeere wertvernichtend.",
       "summary": "Grundlohn plus Menge plus Qualitätsfaktor. Der Qualitätsfaktor ist keine Option, sondern Voraussetzung.",
       "todo": "Mindestlohn-Verankerung, Lohnsatz-Editor mit UI-gestützter Korridor-Vorschau, PDF-Lohnzettel je Pflücker, Vorschusskonto."
     },
     "dokumente": {
       "title": "Dokumentenverwaltung",
+      "navTitle": "Dokumente",
       "description": "Geschützte Ablage für Spritzmittelprotokolle, ЕСУТД-Nachweise, Liefer- und Rahmenverträge, Förderdossiers und Zertifikate - verknüpft mit Reihenblock und Charge.",
       "summary": "Kategorisierte, geschützte Dokumentenablage mit Verknüpfung zu Reihenblock und Charge.",
       "todo": "Versionierung, Ablauf- und Erinnerungslogik, Verknüpfung mit Reihenblock und Charge."
     },
     "compliance": {
       "title": "Compliance-Cockpit",
+      "navTitle": "Compliance",
       "description": "Verarbeitungszwecke, Einwilligungen, Datenschutzvorfälle und Drittweitergaben aus fünf granularen Tabellen - Lesen und Schreiben ausschließlich für die Büro-Rollen.",
       "summary": "Granulares Datenschutz-Schema: Verarbeitungszwecke, Einwilligungen, Vorfälle und Drittweitergaben an einem Ort.",
       "todo": "Rechtszitate Steuergesetzbuch, KI-Gesetz, Digitalkodex, Retention-Regeln je Datenprodukt, Hosting-Standort-Prüfung."
     },
     "integrationen": {
       "title": "Staatliche Integrationen",
+      "navTitle": "Integrationen",
       "description": "Konnektoren zu ЭСФ, virtuellem Lagerbestand, ЕСУТД und den Förderportalen gosagro.kz und qoldau.kz. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.",
       "summary": "Ein Konnektor je Zielsystem mit Statusrückmeldung und Wiederholung. Kein Eigenbau der Buchhaltung.",
       "todo": "Konnektoren je System, Sandbox-Zugänge, Fehler- und Wiederholungslogik, Monitoring der Warteschlange."
     },
     "foerdermittel": {
       "title": "Fördermitteldossier",
+      "navTitle": "Fördermittel",
       "description": "Antragsvorlagen, Nachweislisten und Fristenmonitor für die kasachstanischen Förderportale - Antragsfähigkeit als Nebenprodukt der laufenden Buchführung.",
       "summary": "Fristenmonitor und Nachweisdokumente je Dossier sind angebunden (Anforderung 4.12). Antragsvorlagen und Nachweis-Checklisten je Förderprogramm bleiben offen.",
       "todo": "Antragsvorlagen und Nachweis-Checklisten je Förderprogramm - fachliche Festlegung, welche Felder und Nachweise gosagro.kz/qoldau.kz je Programm tatsächlich verlangen."
     },
     "sortenkatalog": {
       "title": "Sorten- und Kontingentkatalog",
+      "navTitle": "Sortenkatalog",
       "description": "Katalog aus Sorte, Erntefenster (sommertragend oder remontierend), Schalengewicht, Kontingent und Preisliste - die Basis für Vorbestellung und B2B-Portal.",
       "summary": "Sorte, Erntefenster, Schalengewicht, Kontingent und Preis an einem Ort.",
       "todo": "Kontingentbuchung mit Reservierungslogik, Preislistenversionen, Kundenzuordnung."
     },
     "b2b_portal": {
       "title": "B2B-Portal",
+      "navTitle": "B2B-Portal",
       "description": "Stammkundenportal mit Kontingenten, Vorbestellung mit Vorlauf, Preisliste nach Kundengruppe, Lieferstatus, Rechnungshistorie und Reklamationsmeldung.",
       "summary": "Lieferstatus mit Übergabequittung, Preisliste und Vorbestellung mit manueller Bestätigung durchs Büro sind angebunden.",
       "todo": "Automatischer Kontingent-Verbrauch, Preisstaffelung je Kundengruppe und Rechnungshistorie fehlen noch (offene fachliche Festlegungen)."
     },
     "preislisten": {
       "title": "Preislisten",
+      "navTitle": "Preislisten",
       "description": "Versionierte Preislisten mit Staffelpreisen je Kundengruppe und Gültigkeitszeitraum.",
       "summary": "Preisstaffeln je Kunde und Zeitraum, versioniert und mit Gültigkeitsdatum.",
       "todo": "Versionierte Preislisten, Staffelpreise, Gültigkeitszeiträume, Kundenzuordnung."
     },
     "aggregator": {
       "title": "Aggregator / Nachbarbetriebe",
+      "navTitle": "Aggregator",
       "description": "Anschluss von Nachbarbetrieben: Zukaufmenge wird zur Rechnungsposition, jede Zukaufcharge wird getrennt geführt und bleibt auf den liefernden Betrieb zurückverfolgbar.",
       "summary": "Nachbarbetrieb-Onboarding, Zukauf-Erfassung mit eigener Charge, getrennte Herkunftsführung, Abrechnung.",
       "todo": "Nachbarbetrieb-Onboarding, Zukauf-Erfassung mit eigener Charge, Abrechnung und Auszahlung."
     },
     "schulungen": {
       "title": "Schulungsvideos",
+      "navTitle": "Schulungen",
       "description": "Mehrsprachige, bildbasierte Kurzeinarbeitung der Saisonkräfte auf dem Telefon - Videos je Kernprozess, mit Bildern statt Text.",
       "summary": "Kurze, bildbasierte Videos je Kernprozess, mehrsprachig, mit Fortschrittsverfolgung je Person.",
       "todo": "Videoinhalte je Kernprozess, Sprachfassungen Kasachisch und Russisch, Fortschrittsverfolgung je Person."
     },
     "kanaele": {
       "title": "Kontaktkanäle",
+      "navTitle": "Kontaktkanäle",
       "description": "Lokal etablierte Kontaktkanäle und Zahlungswege, im Seitenfuß der Website öffentlich sichtbar. Reine Anzeige, keine Anbindung an einen echten Messenger- oder Zahlungsdienst.",
       "summary": "WhatsApp, Kaspi QR und weitere Kanäle als Kontaktangabe - vom Büro gepflegt, bis dahin als Entwurf verborgen.",
       "todo": "Echte Kontodaten je Kanal eintragen."
     },
     "reklamationen": {
       "title": "Reklamationsmanagement",
+      "navTitle": "Reklamationen",
       "description": "Reklamation eines B2B-Kunden je Charge - Grund, Frist und Verlauf, mit Statuswechsel bis zur Gutschrift. Ein Kunde meldet und sieht nur die eigene Reklamation, das Büro bearbeitet und schließt ab.",
       "summary": "Liste, Detail und Verlauf je Reklamation, angebunden an die Charge - von dort zu Reihenblock, Pflücker und Kühlkurve zurückverfolgbar.",
       "todo": "Admin-Oberfläche für die Zuordnung Kunde-Login zu B2B-Kunde, automatische Reklamationsquote im Kennzahlen-Cockpit, Benachrichtigung bei nahender Frist."
     },
     "stammdaten": {
       "title": "Stammdaten und Steuernummern",
+      "navTitle": "Stammdaten",
       "description": "Rechtsform und ИИН oder БИН für den eigenen Betrieb, die Zulieferbetriebe und die Kunden - die Angaben, die auf jedem Beleg stehen müssen.",
       "summary": "Ein bäuerlicher Betrieb trägt einen ИИН, eine juristische Person einen БИН. Die Prüfziffer weist einen Zahlendreher ab, bevor er auf eine Rechnung gerät.",
       "todo": "Nummern für Zulieferbetriebe und Kunden erheben."
