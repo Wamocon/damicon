@@ -12,6 +12,7 @@
 
 import { readFileSync } from "node:fs";
 import type { Role } from "../src/lib/rbac";
+import { supabaseKlient } from "./wissen-supabase-klient";
 import { sucheWissen, type Beleg } from "../src/lib/wissen/suche";
 
 interface Bedingung {
@@ -46,7 +47,7 @@ async function main() {
   let sperrVerletzt = 0;
 
   for (const f of faelle) {
-    const r = await sucheWissen({ frage: f.frage, frageRussisch: f.russisch }, f.rolle ?? "admin", { limit });
+    const r = await sucheWissen({ frage: f.frage, frageRussisch: f.russisch }, f.rolle ?? "admin", { limit, supabase: supabaseKlient() });
     zeiten.push(r.dauerMs.gesamt);
     if (f.sollLeerSein) {
       const ok = r.belege.length === 0;

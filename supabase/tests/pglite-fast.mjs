@@ -69,7 +69,7 @@ try {
   check("Grundlagen: auth-/storage-Stub angelegt", true);
 
   const dateien = readdirSync(MIGRATIONEN_DIR)
-    .filter((f) => f.endsWith(".sql"))
+    .filter((f) => f.endsWith(".sql") && !f.endsWith("_pgvector.sql"))
     .sort();
   for (const datei of dateien) {
     await db.exec(readFileSync(join(MIGRATIONEN_DIR, datei), "utf8"));

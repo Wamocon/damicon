@@ -62,7 +62,7 @@ console.log("PGlite:", (await db.query("select version();")).rows[0].version.spl
 // --- 0. Grundlage ------------------------------------------------------------
 try {
   await db.exec(readFileSync(AUTH_STUB, "utf8"));
-  const dateien = readdirSync(MIGRATIONEN_DIR).filter((f) => f.endsWith(".sql")).sort();
+  const dateien = readdirSync(MIGRATIONEN_DIR).filter((f) => f.endsWith(".sql") && !f.endsWith("_pgvector.sql")).sort();
   for (const datei of dateien) {
     await db.exec(readFileSync(join(MIGRATIONEN_DIR, datei), "utf8"));
   }

@@ -90,6 +90,11 @@ jobs:
       - name: Integrationstests (RLS, Rollen, Sperrlogik, Kennzahlen)
         run: npm run db:test
 
+      # pgvector laeuft nicht in PGlite, deshalb gegen die echte lokale Datenbank: Rollenisolation per RLS,
+      # Hybridsuche, IDF, Filter ohne Trefferverlust und Schreibschutz der Wissensbasis.
+      - name: Wissensbasis in Postgres (pgvector: Rollen, Suche, Schreibschutz)
+        run: npm run test:wissen-db
+
       # Braucht kein laufendes Supabase: PGlite bringt Postgres als WASM mit
       # und wendet alle Migrationen selbst an. Deckt die Einladungen, den
       # Zukauf-Parser, den Ausweis-Scan und den KI-Assistenten ab - bis zu
