@@ -2,6 +2,7 @@ import { setRequestLocale } from "next-intl/server";
 import { SiteNavbar } from "@/components/site/navbar";
 import { SiteFooter } from "@/components/site/footer";
 import { Hero } from "@/components/site/hero";
+import { FilmHero, FilmSkript } from "@/components/site/film-hero";
 import { BeereBento } from "@/components/site/beere-bento";
 import { SechzigMinuten } from "@/components/site/sechzig-minuten";
 import { FarmReality } from "@/components/site/farm-reality";
@@ -43,8 +44,15 @@ export default async function LandingPage({
 
   return (
     <>
+      {/* Setzt vor dem ersten Zeichnen, ob der Film laeuft - sonst blitzte
+          die Navigation kurz auf und verschwaende wieder. */}
+      <FilmSkript />
       <Fortschrittsbalken />
       <SiteNavbar />
+      {/* Der Film steht vor <main>: er ist der Auftakt, nicht der erste
+          Abschnitt des Inhalts. Der Sprunglink im Layout fuehrt an ihm
+          vorbei direkt zu #main. */}
+      <FilmHero />
       <main id="main" className="pt-16">
         <Hero />
         <BeereBento />

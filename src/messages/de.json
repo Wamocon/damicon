@@ -29,6 +29,18 @@
     "kpis": "Kennzahlen",
     "compliance": "Compliance"
   },
+  "filmHero": {
+    "bereich": "Film über Damicon",
+    "standbildAlt": "Himbeerplantage im Morgenlicht",
+    "videoAlt": "Kurzfilm über den Betrieb",
+    "abspielen": "Film abspielen",
+    "filmAnsehen": "Film ansehen",
+    "pause": "Film anhalten",
+    "tonAn": "Ton einschalten",
+    "tonAus": "Ton ausschalten",
+    "ueberspringen": "Überspringen",
+    "claim": "Vom Feld bis zur Rechnung – lückenlos belegt."
+  },
   "hero": {
     "badge": "Betriebssteuerung für die Himbeerplantage · Umland Almaty",
     "headline": "Marktführerschaft entsteht nicht über Tonnen, sondern über Belegbarkeit.",

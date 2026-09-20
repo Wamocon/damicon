@@ -29,6 +29,18 @@
     "kpis": "KPIs",
     "compliance": "Compliance"
   },
+  "filmHero": {
+    "bereich": "Film about Damicon",
+    "standbildAlt": "Raspberry plantation in morning light",
+    "videoAlt": "Short film about the farm",
+    "abspielen": "Play film",
+    "filmAnsehen": "Watch the film",
+    "pause": "Pause film",
+    "tonAn": "Turn sound on",
+    "tonAus": "Turn sound off",
+    "ueberspringen": "Skip",
+    "claim": "From field to invoice – documented end to end."
+  },
   "hero": {
     "badge": "Farm management for the raspberry plantation · near Almaty",
     "headline": "Market leadership is won not through tonnage, but through verifiable traceability.",

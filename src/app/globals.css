@@ -907,3 +907,132 @@ html.lenis.lenis-smooth {
     margin: 12mm;
   }
 }
+
+/* ---- Film-Auftakt (components/site/film-hero.tsx) -------------------------
+   Waehrend der Film laeuft, tritt die Navigation optisch zurueck. Sie bleibt
+   dabei im Dokument, behaelt ihre Groesse und faengt Fokus NICHT ab: wer mit
+   der Tastatur hineingeht, holt sie mit :focus-within sofort zurueck. Kein
+   display:none, kein visibility:hidden, kein pointer-events:none auf dem
+   ganzen Kopf - sonst waere sie fuer Tastatur und Vorlesegeraet weg, und
+   genau das darf nicht passieren. */
+html[data-film="laeuft"] > body header {
+  opacity: 0;
+  transform: translateY(-100%);
+}
+html[data-film="laeuft"] > body header:focus-within {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html[data-film="laeuft"] > body header {
+    transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+/* Der Film beginnt oben am Rand: solange er laeuft, braucht der Inhalt
+   darunter keinen Platz fuer die Leiste. */
+html[data-film="laeuft"] #main {
+  padding-top: 0;
+}
+
+.film-hero__verlauf {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 28%;
+  background: linear-gradient(to bottom, transparent, var(--background) 92%);
+  pointer-events: none;
+}
+
+.film-hero__bedienung {
+  position: absolute;
+  right: 1.25rem;
+  bottom: 2.5rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.film-hero__knopf {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.25rem;
+  padding: 0 0.7rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 22%, transparent);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--background) 55%, transparent);
+  backdrop-filter: blur(10px);
+  color: var(--foreground);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.film-hero__knopf:hover {
+  background: color-mix(in oklab, var(--background) 80%, transparent);
+}
+.film-hero__knopf:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.film-hero__knopf--text {
+  padding-inline: 0.85rem;
+}
+
+.film-hero__start {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--foreground);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-shadow: 0 2px 12px color-mix(in oklab, var(--background) 70%, transparent);
+}
+.film-hero__start svg {
+  padding: 0.9rem;
+  width: 3.75rem;
+  height: 3.75rem;
+  border: 1px solid color-mix(in oklab, var(--foreground) 25%, transparent);
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--background) 60%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+/* Logo und Claim ueber dem stehenden letzten Bild. */
+.film-hero__marke {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  opacity: 0;
+  pointer-events: none;
+}
+.film-hero__marke--da {
+  opacity: 1;
+}
+.film-hero__claim {
+  margin: 0;
+  max-width: 24ch;
+  text-align: center;
+  font-size: clamp(1.1rem, 2.4vw, 1.9rem);
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--foreground);
+  text-shadow: 0 2px 18px color-mix(in oklab, var(--background) 75%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .film-hero__marke {
+    transform: translateY(0.75rem) scale(0.98);
+    transition: opacity 0.7s ease 0.15s, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s;
+  }
+  .film-hero__marke--da {
+    transform: none;
+  }
+}
