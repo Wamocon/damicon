@@ -32,7 +32,7 @@ export function StatusPill({
     <span
       title={title}
       className={cn(
-        "inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-0.5 text-label font-semibold",
+        "inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-0.5 schrift-label font-semibold",
         toneClasses[tone],
         className,
       )}
@@ -90,7 +90,7 @@ export function Section({
         <div>
           <h2 className="text-sm font-bold text-card-foreground">{title}</h2>
           {description ? (
-            <p className="mt-0.5 text-dense text-muted-foreground">{description}</p>
+            <p className="mt-0.5 schrift-dense text-muted-foreground">{description}</p>
           ) : null}
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}
@@ -162,12 +162,12 @@ export function Stat({
   };
   return (
     <Card className="p-4">
-      <p className="text-label font-semibold uppercase tracking-wide text-muted-foreground">
+      <p className="schrift-label font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
       <p className={cn("mt-1 text-2xl font-black", accent[tone])}>{value}</p>
       {helper ? (
-        <p className="mt-1 text-dense text-muted-foreground">{helper}</p>
+        <p className="mt-1 schrift-dense text-muted-foreground">{helper}</p>
       ) : null}
     </Card>
   );
@@ -248,7 +248,7 @@ export function DataTable({
         )}
       >
         <thead>
-          <tr className="border-b border-border bg-muted/40 text-label uppercase tracking-wide text-muted-foreground">
+          <tr className="border-b border-border bg-muted/40 schrift-label uppercase tracking-wide text-muted-foreground">
             {head.map((cell) => (
               <th key={cell} className="px-3 py-2.5 font-semibold">
                 {cell}

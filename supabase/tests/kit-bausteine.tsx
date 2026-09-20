@@ -1,6 +1,8 @@
 import { renderToStaticMarkup } from "react-dom/server";
-import { DataTable } from "../../src/components/ui/kit";
+import { DataTable, Stat, StatusPill } from "../../src/components/ui/kit";
 
+// Gerenderte Klassen der Bausteine aus ui/kit.tsx.
+//
 // DataTable haengt jeder Zelle ihren Spaltenkopf als data-kopf an, damit die
 // Kartendarstellung auf dem Handy (globals.css, .datentabelle) Beschriftung
 // und Wert nebeneinander zeigen kann. Die Zuordnung laeuft ueber die
@@ -140,6 +142,45 @@ pruefe(
 pruefe(
   "Der Traeger traegt die Klasse datentabelle",
   einfach.includes("datentabelle"),
+);
+
+// 7. Die Schriftgroessen der Fach-Oberflaeche ueberleben cn().
+//
+//    Sie hiessen zuerst text-label und text-dense, weil Tailwind aus einem
+//    --text-*-Token von selbst eine Utility macht. Der Name sieht aber aus
+//    wie eine Textfarbe - text-label steht neben text-primary -, und genau
+//    dafuer haelt ihn tailwind-merge, das in cn() jede Klassenliste
+//    bereinigt. In der Statuspille traf text-label auf text-success aus
+//    toneClasses: tailwind-merge entfernte die vermeintlich ueberschriebene
+//    Farbe und damit die Schriftgroesse gleich mit, die Pillen erbten 16 px
+//    statt 11. Am Schreibtisch sichtbar, im Quelltext unsichtbar.
+const pilleNeutral = renderToStaticMarkup(<StatusPill>Live-Daten</StatusPill>);
+const pilleErfolg = renderToStaticMarkup(
+  <StatusPill tone="success">Live-Daten</StatusPill>,
+);
+
+pruefe(
+  "Die Statuspille behaelt ihre Schriftgroesse neben der Tonfarbe",
+  pilleNeutral.includes("schrift-label") &&
+    pilleErfolg.includes("schrift-label") &&
+    pilleErfolg.includes("text-success"),
+  "cn() mit tailwind-merge",
+);
+
+const kachel = renderToStaticMarkup(
+  <Stat label="Verlustquote" value="7,7 %" helper="aus 10 Datensaetzen" />,
+);
+
+pruefe(
+  "Die Kennzahlkachel traegt beide Schriftgroessen",
+  kachel.includes("schrift-label") && kachel.includes("schrift-dense"),
+);
+
+pruefe(
+  "Keine Klasse heisst mehr text-label oder text-dense",
+  !pilleNeutral.includes("text-label") &&
+    !kachel.includes("text-label") &&
+    !kachel.includes("text-dense"),
 );
 
 console.log(

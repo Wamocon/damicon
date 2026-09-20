@@ -48,7 +48,7 @@ export function RollenDemo() {
                   Jetzt sagt die Beschriftung, was der Name ist, und sie ist
                   uebersetzt. Der Wert selbst bleibt der Bezeichner aus dem
                   Altsystem - das ist er, und etwas anderes waere erfunden. */}
-              <p className="mt-2 text-label uppercase tracking-wide text-muted-foreground">
+              <p className="mt-2 schrift-label uppercase tracking-wide text-muted-foreground">
                 {t("scope")}: {t(`scopeWert.${role.scope}`)} · {t("level")}{" "}
                 {role.level}
               </p>
@@ -56,7 +56,7 @@ export function RollenDemo() {
                   Stufe ergab das auf dem Handy eine Zeile, die zweimal
                   umbrach, und in Grossbuchstaben liest sich ein Bezeichner
                   wie "admin" ohnehin schlechter. */}
-              <p className="mt-1 text-label text-muted-foreground/80">
+              <p className="mt-1 schrift-label text-muted-foreground/80">
                 {t("catiRole.label")}: {role.catiRole ?? t("catiRole.keine")}
               </p>
             </Card>

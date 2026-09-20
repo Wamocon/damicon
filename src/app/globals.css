@@ -38,32 +38,6 @@
 */
 
 @theme inline {
-  /*
-    Zwei Schriftgroessen der Fach-Oberflaeche als Tokens: `text-label` fuer
-    Beschriftungen (Kennzahl-Label, Tabellenkopf, Statuspille, Feldname) und
-    `text-dense` fuer dichten Fliesstext daneben (Hilfszeilen,
-    Abschnittsbeschreibung).
-
-    Beide sind auf dem Handy eine Stufe groesser: 11 -> 13 px und 12 -> 14 px.
-    Die Oberflaeche ist auf 11 px gebaut, und das ist am Schreibtisch eine
-    dichte, gut lesbare Erfassungsmaske - in der Hand, bei Sonne auf dem Feld,
-    ist es die Groesse, bei der man das Telefon naeher ans Gesicht haelt.
-
-    Bewusst NICHT 16 px: das ist die Grenze fuer Eingabefelder, weil Safari
-    darunter beim Fokus hineinzoomt. Eine Beschriftung ist kein Eingabefeld;
-    16 px wuerden die Module auseinanderziehen, ohne dass jemand etwas davon
-    hat.
-
-    Der Sprung haengt an einer Media Query und nicht an clamp(): clamp haette
-    die Groesse stufenlos an die Fensterbreite gekoppelt, waere damit aber der
-    einzige Ort im Projekt, der eine eigene Grenze mitbringt. So gilt ueberall
-    derselbe Haltepunkt wie fuer Leiste, Blaetter und Tabellen, und die Werte
-    stehen als Zahlen da, statt aus einer Formel zu folgen.
-  */
-  --text-label: var(--schrift-label);
-  --text-label--line-height: 1.45;
-  --text-dense: var(--schrift-dense);
-  --text-dense--line-height: 1.5;
   --font-heading: var(--font-display);
   --font-sans: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -248,10 +222,42 @@
 
 @media (max-width: 767.98px) {
   :root {
-    --untere-leiste-raum: calc(3.5rem + 1.5rem + env(safe-area-inset-bottom));
+    --untere-leiste-raum: calc(3.5rem + 2.5rem + env(safe-area-inset-bottom));
     --schrift-label: 0.8125rem;
     --schrift-dense: 0.875rem;
   }
+}
+
+/*
+  Zwei Schriftgroessen der Fach-Oberflaeche als eigene Klassen: `schrift-label`
+  fuer Beschriftungen (Kennzahl-Label, Tabellenkopf, Statuspille, Feldname) und
+  `schrift-dense` fuer dichten Fliesstext daneben (Hilfszeilen,
+  Abschnittsbeschreibung). Beide sind auf dem Handy eine Stufe groesser, siehe
+  die Variablen oben.
+
+  Bewusst NICHT ueber `@theme` als `text-label`/`text-dense` gefuehrt, obwohl
+  Tailwind daraus von selbst Utilities macht. Der Name haette wie eine
+  Textfarbe ausgesehen - `text-label` steht neben `text-primary` und
+  `text-muted-foreground` -, und genau dafuer haelt ihn tailwind-merge, das in
+  cn() jede Klassenliste bereinigt. In der Statuspille stand
+  `cn("... text-label ...", toneClasses[tone])`, und toneClasses traegt
+  `text-success`: tailwind-merge hat die vermeintlich ueberschriebene Farbe
+  entfernt und damit die Schriftgroesse gleich mit. Die Pillen erbten 16 px
+  statt 11 - am Schreibtisch deutlich sichtbar, und zwar genau dort, wo sich
+  gar nichts haette aendern sollen.
+
+  Mit einem Namen, der nicht nach Farbe aussieht, laesst tailwind-merge die
+  Klasse stehen. Eine unbekannte Klasse ist ihm gleichgueltig, eine
+  vermeintlich bekannte nicht.
+*/
+@utility schrift-label {
+  font-size: var(--schrift-label);
+  line-height: 1.45;
+}
+
+@utility schrift-dense {
+  font-size: var(--schrift-dense);
+  line-height: 1.5;
 }
 
 /* Die Flaeche der unteren Leiste faehrt von unten auf (ui/sheet.tsx). Nur
