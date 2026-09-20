@@ -78,11 +78,16 @@ export function LkwLader({ groesse = 280 }: { groesse?: number }) {
         ))}
       </g>
 
-      {/* Laternen. Sie stehen hinter dem LKW, damit die Zeichnung auf dem Koffer
-          frei bleibt; im Original laufen sie davor. Sichtbar ist vor allem der
-          Mast oberhalb des Kuehlkoffers - genau das macht die Fahrt lesbar. Sie
-          gehoeren zur Welt und nicht zum Fahrzeug, nehmen also currentColor und
-          kippen mit dem Farbschema. */}
+      {/* Laternen. Sie ziehen vor dem LKW her, nicht dahinter - im Original ist
+          das genauso, dort steht .lampPost als letztes Element im Wrapper. Der
+          Mast wandert dabei ueber den Kuehlkoffer hinweg; das ist der
+          Vordergrund-Effekt, der die Fahrt lesbar macht. Wer sie hinter den LKW
+          legen will, kommt mit der Reihenfolge im Markup nicht weiter (probiert,
+          es bleibt vorn) - dafuer braucht es eine clipPath mit evenodd, die
+          Koffer und Kabine aus der Gruppe ausstanzt.
+
+          Sie gehoeren zur Welt und nicht zum Fahrzeug, nehmen also currentColor
+          und kippen mit dem Farbschema. */}
       <g className="motion-safe:animate-[lkw-laterne_4.05s_linear_infinite]">
         {LATERNEN.map((x) => (
           <g key={x} transform={`translate(${x} 0)`} fill="currentColor" fillOpacity="0.3">
@@ -95,8 +100,11 @@ export function LkwLader({ groesse = 280 }: { groesse?: number }) {
               strokeWidth="3.5"
               strokeLinecap="round"
             />
-            <path d="M12 -25 L26 -25 L23.5 -16 L14.5 -16 Z" />
-            <path d="M13.6 -20 L24.4 -20 L23.5 -16 L14.5 -16 Z" fill={SCHEINWERFER} fillOpacity="0.55" />
+            {/* Schirm: oben schmal, unten breit, sonst liest er sich als Becher
+                statt als Leuchte. Das untere Band ist das Glas und nimmt das
+                Altyn-Gold wie der Scheinwerfer. */}
+            <path d="M13 -26 L25 -26 L28.5 -18 L9.5 -18 Z" />
+            <path d="M10.6 -20.5 L27.4 -20.5 L28.5 -18 L9.5 -18 Z" fill={SCHEINWERFER} fillOpacity="0.7" />
           </g>
         ))}
       </g>

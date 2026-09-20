@@ -229,7 +229,7 @@ Noch offen: Zurück schließt das Blatt nicht, weil es keinen Verlaufseintrag an
 | Dauern | 0,25–0,6 s für Übergänge, bis 1,1 s für wachsende Balken |
 | Weiches Scrollen | Lenis (`weiches-scrollen.tsx`) |
 | Kamerafahrt | scrollgetriebene CSS-Animation, Firefox zeigt das Bild ruhig |
-| Ladebild | `lkw-lader.tsx`: LKW steht, Fahrbahn wandert um eine Strichperiode, Raddrehung auf die Fahrbahngeschwindigkeit gerechnet |
+| Ladebild | `lkw-lader.tsx`: LKW steht, Fahrbahn und Laternen wandern um genau eine Periode, Raddrehung auf die Fahrbahngeschwindigkeit gerechnet; Himbi faehrt auf dem Kuehlkoffer mit |
 
 Unter `prefers-reduced-motion: reduce` sind alle Animationen und Übergänge auf 0,01 ms gesetzt, `[data-reveal]` steht sofort sichtbar, View Transitions entfallen, die Leseanzeige wird ausgeblendet.
 
