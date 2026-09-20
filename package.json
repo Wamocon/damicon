@@ -28,7 +28,7 @@
     "wissen:frage": "npx --yes tsx scripts/wissen-frage.ts",
     "test:wetter": "node supabase/tests/wetter.mjs",
     "test:rechnungshistorie": "node supabase/tests/rechnungshistorie.mjs",
-    "test": "npm run db:test:fast && npm run test:einladungen && npm run test:abnahme-2-7 && npm run test:abnahme-2-8 && npm run test:abnahme-2-10 && npm run test:abnahme-4-1 && npm run test:abnahme-4-7 && npm run test:zukauf-parser && npm run test:ausweis-scan && npm run test:ki-assistent && npm run test:agent && npm run test:wissen && npm run test:migrationen && npm run test:wetter && npm run test:rechnungshistorie && npm run test:abnahme-e-11",
+    "test": "npm run db:test:fast && npm run test:einladungen && npm run test:abnahme-2-7 && npm run test:abnahme-2-8 && npm run test:abnahme-2-10 && npm run test:abnahme-4-1 && npm run test:abnahme-4-7 && npm run test:zukauf-parser && npm run test:ausweis-scan && npm run test:ki-assistent && npm run test:agent && npm run test:wissen && npm run test:pruefung && npm run test:migrationen && npm run test:wetter && npm run test:rechnungshistorie && npm run test:abnahme-e-11",
     "test:abnahme-4-1": "node supabase/tests/abnahme-4-1.mjs",
     "test:abnahme-4-7": "node supabase/tests/abnahme-4-7.mjs",
     "test:abnahme-2-10": "node supabase/tests/abnahme-2-10.mjs",
@@ -36,7 +36,8 @@
     "test:abnahme-2-8": "node supabase/tests/abnahme-2-8.mjs",
     "test:abnahme-e-11": "node supabase/tests/abnahme-e-11.mjs",
     "db:migrationen-pruefen": "node scripts/pruefe-migrationen.mjs --basis origin/main",
-    "test:migrationen": "node supabase/tests/migrationen-pruefung.mjs"
+    "test:migrationen": "node supabase/tests/migrationen-pruefung.mjs",
+    "test:pruefung": "npx --yes tsx supabase/tests/pruefung.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^4.0.57",

@@ -22,7 +22,7 @@ const ORTE: Record<number, Array<[number, number]>> = {
   1: [[0.2, 0.5]],
   2: [[0.17, 0.5], [0.83, 0.5]],
   3: [[0.17, 0.27], [0.83, 0.27], [0.5, 0.83]],
-  4: [[0.16, 0.25], [0.84, 0.25], [0.16, 0.77], [0.84, 0.77]],
+  4: [[0.16, 0.24], [0.84, 0.24], [0.16, 0.74], [0.84, 0.74]],
 };
 
 const ZUSTAND: Record<AgentStand["phase"], HaustierZustand> = { wartet: "schlaeft", spawn: "denkt", sammelt: "denkt", denkt: "denkt", fertig: "fertig", fehler: "traurig" };
@@ -41,7 +41,7 @@ function Funken() {
 export function PruefungBuehne({ stand, klein = false }: { stand: PruefungStand; klein?: boolean }) {
   const t = useTranslations("pruefung");
   const box = useRef<HTMLDivElement>(null);
-  const [masse, setMasse] = useState({ w: 900, h: 430 });
+  const [masse, setMasse] = useState({ w: 900, h: 480 });
   const [weg, setWeg] = useState<ReadonlySet<Pruefbereich>>(new Set());
   const [fluege, setFluege] = useState<Array<{ bereich: Pruefbereich; n: number }>>([]);
   const timer = useRef(new Map<string, ReturnType<typeof setTimeout>>());
@@ -126,8 +126,8 @@ export function PruefungBuehne({ stand, klein = false }: { stand: PruefungStand;
           const letzteStelle = [...felder].reverse().find((f) => f.stelle)?.stelle;
           const offen = felder.find((f) => !f.bewertet);
           let status = t(`agent.${a.phase}`);
-          if (a.phase === "sammelt" && letzteStelle) status = t("agent.fand", { stelle: letzteStelle });
-          if (a.phase === "denkt" && offen) status = t("agent.bewertet", { feld: offen.titel });
+          if (a.phase === "sammelt" && letzteStelle) status = t("agent.fand", { stelle: letzteStelle.length > 46 ? `${letzteStelle.slice(0, 46)}...` : letzteStelle });
+          if (a.phase === "denkt" && offen) status = t("agent.bewertet", { feld: offen.titel.length > 40 ? `${offen.titel.slice(0, 40)}...` : offen.titel });
           return (
             <div key={bereich} data-bereich={bereich}>
               <div

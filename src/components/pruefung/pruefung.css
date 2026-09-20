@@ -168,7 +168,7 @@
 .pr-buehne {
   position: relative;
   container-type: inline-size;
-  height: 430px;
+  height: 480px;
   overflow: hidden;
   border: 1px solid color-mix(in oklab, var(--himbeere) 25%, var(--border));
   border-radius: 1.2rem;
@@ -395,8 +395,12 @@
   font-weight: 850;
 }
 .pr-agent__status {
+  display: -webkit-box;
+  overflow: hidden;
   min-height: 1.5rem;
   max-width: 100%;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
   font-size: 0.66rem;
   line-height: 0.85rem;
   text-align: center;

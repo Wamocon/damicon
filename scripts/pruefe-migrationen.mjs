@@ -35,7 +35,7 @@ export function zerstoerendeAnweisungen(sql) {
   const s = ohneKommentare(sql);
   const treffer = [];
   for (const m of s.matchAll(/\bdrop\s+(table|column|schema)\b/gi)) treffer.push(m[0].replace(/\s+/g, " ").toUpperCase());
-  for (const m of s.matchAll(/\btruncate\b/gi)) treffer.push("TRUNCATE");
+  treffer.push(...[...s.matchAll(/\btruncate\b/gi)].map(() => "TRUNCATE"));
   for (const stmt of s.split(";")) {
     if (/\bdelete\s+from\b/i.test(stmt) && !/\bwhere\b/i.test(stmt)) treffer.push("DELETE ohne WHERE");
   }

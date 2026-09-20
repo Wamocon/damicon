@@ -47,6 +47,11 @@ function BefundKarte({ b, belege, index }: { b: Befund; belege: Bericht["belege"
       <BelegAnbieter nachrichtId={b.id} belege={eigene}>
         <p className="pr-befund__text">
           <MitZitaten text={b.befund} />
+          {b.belege
+            .filter((id) => !b.befund.includes(`[${id}]`))
+            .map((id) => (
+              <ZitatMarke key={id} kennung={id} />
+            ))}
         </p>
         {b.ohneRechtsbeleg ? (
           <p className="pr-warnzeile">
