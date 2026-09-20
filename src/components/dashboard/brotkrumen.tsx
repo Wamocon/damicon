@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import type { ZoneKey } from "@/lib/modules";
@@ -40,31 +40,15 @@ export function Brotkrumen({
     stationen.push({ text: moduleT(`${modulKey}.navTitle`) });
   }
 
-  // Auf dem Handy nur eine Station: die Seite eine Ebene darueber. Der volle
-  // Pfad brauchte dort zwei Zeilen ("Uebersicht > Buero > Rollen und Rechte"),
-  // und die letzte Station wiederholt ohnehin die Ueberschrift direkt
-  // darunter. Was bleibt, ist das, wofuer man den Pfad auf dem Handy benutzt:
-  // einen Schritt zurueck.
-  //
-  // Beide Fassungen stehen im Markup und werden per CSS umgeschaltet, statt
-  // die Fensterbreite in JavaScript zu messen - der Pfad steht auf jeder
-  // Seite, und ein zweiter Renderdurchgang samt Flackern bei jedem
-  // Seitenwechsel waere ein hoher Preis fuer eine Zeile.
-  const eltern = [...stationen].reverse().find((station) => station.href);
-
+  // Nur ab `md`. Auf dem Handy brauchte der volle Pfad zwei Zeilen
+  // ("Uebersicht > Buero > Rollen und Rechte"), und die letzte Station
+  // wiederholt ohnehin die Ueberschrift direkt darunter. Den Weg zurueck
+  // traegt dort die Kopfzeile (topbar.tsx): als eine Station, immer sichtbar,
+  // auch mitten auf einer langen Seite - waehrend diese Zeile hier mit dem
+  // Inhalt wegscrollt.
   return (
-    <nav aria-label={nav("breadcrumb")}>
-      {eltern ? (
-        <Link
-          href={eltern.href!}
-          className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-[0.14em] text-primary underline-offset-4 hover:underline md:hidden"
-        >
-          <ChevronLeft className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          {eltern.text}
-        </Link>
-      ) : null}
-
-      <ol className="hidden flex-wrap items-center gap-x-1.5 gap-y-1 text-xs font-black uppercase tracking-[0.14em] md:flex">
+    <nav aria-label={nav("breadcrumb")} className="hidden md:block">
+      <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs font-black uppercase tracking-[0.14em]">
         {stationen.map((station, i) => (
           <li key={station.text} className="flex items-center gap-x-1.5">
             {i > 0 ? (

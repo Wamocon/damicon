@@ -4,11 +4,13 @@ import { useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import {
   Bell,
+  ChevronLeft,
   PanelLeftClose,
   PanelLeftOpen,
   Search,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
+import { useElternSeite } from "@/components/dashboard/nav-ziele";
 import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { LocaleSwitcher } from "@/components/site/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -83,7 +85,9 @@ function MenueUmschalter() {
 
 export function DashboardTopbar() {
   const t = useTranslations("dashboard");
-  const nav = useTranslations("nav");
+  // Null auf der Uebersicht - dort gibt es kein Zurueck, und links steht die
+  // Marke statt eines Rueckwegs.
+  const eltern = useElternSeite();
   // Anforderung 2.5: der Sync-Indikator ist nur fuer echte, angemeldete
   // Brigade-Sitzungen relevant - im Demo-Modus gibt es keine echte
   // Supabase-Session, die eine Warteschlange fuellen koennte, und andere
@@ -92,23 +96,39 @@ export function DashboardTopbar() {
   const zeigeSync = !demoModus && echteRolle === "brigade";
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl md:px-6 print:hidden">
-      {/* Unter md traegt die Kopfzeile Bildmarke und Namen: die Seitenleiste,
-          die beides sonst zeigt, gibt es dort nicht, und der fruehere
-          Menueknopf an dieser Stelle ist in die untere Leiste gewandert. Ab md
-          steht der Name wieder links in der Seitenleiste, hier waere er
-          doppelt. */}
-      <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5 md:hidden">
-        <DamiconLogo className="shadow-lg shadow-primary/20" />
-        <span className="min-w-0">
-          <span className="block text-base font-black leading-tight text-foreground">
+    <header className="sticky top-0 z-40 flex h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl md:h-16 md:px-6 print:hidden">
+      {/* Unter md steht links entweder der Weg zurueck oder die Marke, nie
+          beides.
+
+          Auf einer Unterseite ist der Rueckweg das Nuetzlichere: er bleibt
+          sichtbar, auch wenn man mitten auf einer langen Modulseite steht,
+          waehrend die Brotkrumen im Inhalt wegscrollen. Auf der Uebersicht
+          gibt es kein Zurueck - dort steht die Marke, also genau einmal und
+          da, wo man ankommt.
+
+          Nebeneinander waere beides zu eng: von 358 px gehen 80 px fuer
+          Synchronisierung und Meldungen ab, Bildmarke mit Namen kostet rund
+          166 px, fuer den Rueckweg blieben 112 px. Das reicht fuer "Buero",
+          aber es waere ein Gedraenge ohne Gewinn.
+
+          Der Untertitel entfaellt auf dem Handy: er erklaert die Marke, und
+          wer im Dashboard steht, weiss bereits, worin er steht. */}
+      {eltern ? (
+        <Link
+          href={eltern.href}
+          className="flex min-w-0 items-center gap-1 text-sm font-black uppercase tracking-[0.1em] text-primary md:hidden"
+        >
+          <ChevronLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span className="min-w-0 truncate">{eltern.text}</span>
+        </Link>
+      ) : (
+        <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5 md:hidden">
+          <DamiconLogo className="shadow-lg shadow-primary/20" />
+          <span className="min-w-0 truncate text-base font-black leading-tight text-foreground">
             Damicon
           </span>
-          <span className="block truncate text-[11px] font-semibold text-muted-foreground">
-            {nav("platformSubtitle")}
-          </span>
-        </span>
-      </Link>
+        </Link>
+      )}
 
       <MenueUmschalter />
       <div className="hidden min-w-0 flex-1 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground sm:flex">

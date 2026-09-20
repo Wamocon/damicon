@@ -80,3 +80,40 @@ export function useNavZiele(): NavZiel[] {
 
   return ziele;
 }
+
+/**
+ * Die Seite eine Ebene ueber der geoeffneten, oder null auf der Uebersicht
+ * selbst. Auf dem Handy traegt die Kopfzeile sie als Weg zurueck
+ * (topbar.tsx), statt Bildmarke und Namen zu wiederholen.
+ *
+ * Abgeleitet aus dem Pfad und nicht aus Props: die Kopfzeile steht im Layout
+ * und weiss nichts von der Seite darunter. Die Brotkrumen bekommen Zone und
+ * Modul dagegen von der jeweiligen Seite gereicht - deshalb hier eine eigene
+ * Ableitung und kein gemeinsamer Aufruf. Beide muessen dasselbe Ergebnis
+ * liefern; das ist der Preis dafuer, dass die Kopfzeile ausserhalb der Seite
+ * liegt.
+ */
+export function useElternSeite(): { href: string; text: string } | null {
+  const pathname = usePathname();
+  const nav = useTranslations("nav");
+  const zoneT = useTranslations("zones");
+
+  // Ohne Sprachpraefix, das nimmt usePathname aus @/i18n/navigation schon weg:
+  // ["dashboard"], ["dashboard", <zone>] oder ["dashboard", <zone>, <modul>].
+  const segmente = pathname.split("/").filter(Boolean);
+  if (segmente.length <= 1) return null;
+
+  const zone = zones.find((z) => z.key === segmente[1]);
+
+  // Auf einer Modulseite fuehrt der Weg auf die Bereichsseite.
+  if (segmente.length >= 3 && zone) {
+    return {
+      href: `/dashboard/${zone.key}`,
+      text: zoneT(`${zone.key}.name`),
+    };
+  }
+
+  // Auf einer Bereichsseite - und auf Seiten neben den Bereichen, etwa
+  // /dashboard/sicherheit - fuehrt er auf die Uebersicht.
+  return { href: "/dashboard", text: nav("overview") };
+}
