@@ -3,7 +3,17 @@
 import { useEffect, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { Bot, Info, LifeBuoy, MessageSquareText, Settings2, ShieldCheck, X } from "lucide-react";
+import {
+  Bot,
+  ChevronLeft,
+  Info,
+  LifeBuoy,
+  MessageSquareText,
+  MoreHorizontal,
+  Settings2,
+  ShieldCheck,
+  X,
+} from "lucide-react";
 import { Himbeere } from "@/components/ki/himbeere";
 import { useHaustierAktionen, useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { KiChat } from "@/components/ki/ki-chat";
@@ -12,6 +22,8 @@ import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { EskalationsFormular, KiChatFenster } from "@/components/db/ki-assistent-formulare";
 import type { KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
 import type { Pruefbereich } from "@/lib/pruefung/rollen";
+import { BlattZeile } from "@/components/ui/blatt-zeile";
+import { useIstHandy } from "@/components/ui/handy";
 import { cn } from "@/lib/utils";
 
 // Andockbares Seitenpanel (Layout dashboard/layout.tsx): sitzt NEBEN dem
@@ -30,7 +42,7 @@ import { cn } from "@/lib/utils";
 // Hauptfenster selbst steuert) schaltet man hier ausdruecklich ein - mit einer
 // Erklaerung beim Ueberfahren, worin der Unterschied besteht.
 
-type Ansicht = "chat" | "einstellungen" | "hilfe" | "pruefung";
+type Ansicht = "chat" | "einstellungen" | "hilfe" | "pruefung" | "mehr";
 
 function ModusEinstellung() {
   const t = useTranslations("kiAssistentAnsicht");
@@ -152,10 +164,46 @@ export function KiPane({
     };
   }, [ansicht, offen]);
 
+  const handy = useIstHandy();
+
+  // Esc schliesst, und solange das Blatt offen ist, scrollt die Seite darunter
+  // nicht mit. Beides kannte bisher nur ui/sheet.tsx, obwohl Menue-, Konto- und
+  // KI-Blatt auf dem Handy dieselbe Flaeche sind und gleich aussehen.
+  //
+  // Die Bauweisen bleiben getrennt: ui/sheet.tsx haengt beim Schliessen aus,
+  // dieses Panel muss gemountet bleiben, sonst reisst eine laufende Antwort
+  // ab - und seit der Pruefung auch ein laufender Pruefvorgang. Angeglichen
+  // wird das Verhalten, nicht der Bau.
+  //
+  // Nur unter md: ab dort ist das Panel eine angedockte Spalte neben der Seite,
+  // und die soll weiter scrollen, waehrend man daneben liest.
+  useEffect(() => {
+    if (!offen || !handy) return;
+    const beiTaste = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOffen(false);
+    };
+    document.addEventListener("keydown", beiTaste);
+    const vorher = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", beiTaste);
+      document.body.style.overflow = vorher;
+    };
+  }, [offen, handy, setOffen]);
+
   if (!verfuegbar) return null;
 
-  const agentAktiv = agentFaehig && modus === "agent";
+  // Der Agent steuert das Hauptfenster und lebt davon, dass man dabei zusehen
+  // kann. Als Blatt von unten deckt das Panel die Seite fast vollstaendig ab -
+  // die Fuehrung liefe hinter dem Blatt ab, wo niemand sie sieht. Auf dem Handy
+  // antwortet der Assistent deshalb, fuehrt aber nicht; die Einstellung selbst
+  // bleibt unberuehrt und gilt am Schreibtisch weiter.
+  const agentAktiv = agentFaehig && modus === "agent" && !handy;
   const hatEinstellungen = agentFaehig || einstellungen !== null;
+  // Die Mehr-Ansicht gibt es nur auf dem Handy. Wer das Fenster breiter zieht,
+  // waehrend sie offen ist, landet wieder im Gespraech, statt auf einer Seite
+  // zu stehen, deren Knopf gerade verschwunden ist.
+  const sichtbar: Ansicht = !handy && ansicht === "mehr" ? "chat" : ansicht;
   const umschalten = (ziel: Ansicht) => setAnsicht((aktuell) => (aktuell === ziel ? "chat" : ziel));
 
   return (
@@ -188,43 +236,66 @@ export function KiPane({
               ) : null}
             </div>
             <div className="ki-pane__werkzeuge">
-              {pruefungBereiche.length > 0 ? (
+              {/* Auf dem Handy fuehrt ein Knopf in die Mehr-Ansicht, statt
+                  vier Ziele mit 0,15 rem Abstand nebeneinanderzustellen - die
+                  lagen enger beieinander als eine Fingerkuppe breit ist. Steht
+                  man schon darin, fuehrt derselbe Knopf zurueck. */}
+              {handy ? (
                 <button
                   type="button"
-                  onClick={() => {
-                    setPruefungGeladen(true);
-                    umschalten("pruefung");
-                  }}
-                  aria-pressed={ansicht === "pruefung"}
-                  aria-label={tp("knopf")}
-                  title={tp("knopf")}
+                  onClick={() => umschalten("mehr")}
+                  aria-pressed={sichtbar === "mehr"}
+                  aria-label={t("mehr")}
+                  title={t("mehr")}
                   className="ki-pane__knopf"
                 >
-                  <ShieldCheck className="h-4 w-4" />
+                  {sichtbar === "chat" ? (
+                    <MoreHorizontal className="h-5 w-5" />
+                  ) : (
+                    <ChevronLeft className="h-5 w-5" />
+                  )}
                 </button>
-              ) : null}
-              {hatEinstellungen ? (
-                <button
-                  type="button"
-                  onClick={() => umschalten("einstellungen")}
-                  aria-pressed={ansicht === "einstellungen"}
-                  aria-label={t("einstellungen")}
-                  title={t("einstellungen")}
-                  className="ki-pane__knopf"
-                >
-                  <Settings2 className="h-4 w-4" />
-                </button>
-              ) : null}
-              <button
-                type="button"
-                onClick={() => umschalten("hilfe")}
-                aria-pressed={ansicht === "hilfe"}
-                aria-label={t("eskalationKnopf")}
-                title={t("eskalationKnopf")}
-                className="ki-pane__knopf"
-              >
-                <LifeBuoy className="h-4 w-4" />
-              </button>
+              ) : (
+                <>
+                  {pruefungBereiche.length > 0 ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPruefungGeladen(true);
+                        umschalten("pruefung");
+                      }}
+                      aria-pressed={sichtbar === "pruefung"}
+                      aria-label={tp("knopf")}
+                      title={tp("knopf")}
+                      className="ki-pane__knopf"
+                    >
+                      <ShieldCheck className="h-4 w-4" />
+                    </button>
+                  ) : null}
+                  {hatEinstellungen ? (
+                    <button
+                      type="button"
+                      onClick={() => umschalten("einstellungen")}
+                      aria-pressed={sichtbar === "einstellungen"}
+                      aria-label={t("einstellungen")}
+                      title={t("einstellungen")}
+                      className="ki-pane__knopf"
+                    >
+                      <Settings2 className="h-4 w-4" />
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => umschalten("hilfe")}
+                    aria-pressed={sichtbar === "hilfe"}
+                    aria-label={t("eskalationKnopf")}
+                    title={t("eskalationKnopf")}
+                    className="ki-pane__knopf"
+                  >
+                    <LifeBuoy className="h-4 w-4" />
+                  </button>
+                </>
+              )}
               <button
                 type="button"
                 onClick={() => setOffen(false)}
@@ -232,15 +303,21 @@ export function KiPane({
                 title={t("schliessen")}
                 className="ki-pane__knopf"
               >
-                <X className="h-4 w-4" />
+                {/* Ueber CSS und nicht ueber `handy`: eine Groesse ist keine
+                    Frage, fuer die der zweite Renderdurchgang noetig waere,
+                    und der Server rendert die Schreibtisch-Fassung - das
+                    Kreuz waere auf dem Handy erst klein und spraenge nach der
+                    Hydration. Siehe ui/handy.ts: was mit einer Media Query
+                    geht, gehoert auch dorthin. */}
+                <X className="h-5 w-5 md:h-4 md:w-4" />
               </button>
             </div>
           </header>
 
           <div className="ki-pane__koerper">
             <div
-              className={cn("ki-pane__ansicht", ansicht !== "chat" && "pointer-events-none invisible")}
-              inert={ansicht !== "chat" ? true : undefined}
+              className={cn("ki-pane__ansicht", sichtbar !== "chat" && "pointer-events-none invisible")}
+              inert={sichtbar !== "chat" ? true : undefined}
             >
               {agentFaehig ? (
                 <KiChat verlauf={verlauf} />
@@ -252,15 +329,44 @@ export function KiPane({
             </div>
             {pruefungGeladen && pruefungBereiche.length > 0 ? (
               <div
-                className={cn("ki-pane__ansicht overflow-y-auto", ansicht !== "pruefung" && "pointer-events-none invisible")}
-                inert={ansicht !== "pruefung" ? true : undefined}
+                className={cn("ki-pane__ansicht overflow-y-auto", sichtbar !== "pruefung" && "pointer-events-none invisible")}
+                inert={sichtbar !== "pruefung" ? true : undefined}
               >
                 <PruefungAnsicht erlaubt={pruefungBereiche} />
               </div>
             ) : null}
-            {ansicht === "einstellungen" && hatEinstellungen ? (
+            {sichtbar === "mehr" ? (
+              <div className="ki-pane__ansicht space-y-2 overflow-y-auto p-4">
+                {pruefungBereiche.length > 0 ? (
+                  <BlattZeile
+                    symbol={<ShieldCheck className="h-5 w-5" />}
+                    text={tp("knopf")}
+                    onClick={() => {
+                      setPruefungGeladen(true);
+                      setAnsicht("pruefung");
+                    }}
+                  />
+                ) : null}
+                {hatEinstellungen ? (
+                  <BlattZeile
+                    symbol={<Settings2 className="h-5 w-5" />}
+                    text={t("einstellungen")}
+                    onClick={() => setAnsicht("einstellungen")}
+                  />
+                ) : null}
+                <BlattZeile
+                  symbol={<LifeBuoy className="h-5 w-5" />}
+                  text={t("eskalationKnopf")}
+                  onClick={() => setAnsicht("hilfe")}
+                />
+              </div>
+            ) : null}
+            {sichtbar === "einstellungen" && hatEinstellungen ? (
               <div className="ki-pane__ansicht space-y-5 overflow-y-auto p-4">
-                {agentFaehig ? <ModusEinstellung /> : null}
+                {/* Der Agent-Schalter fehlt auf dem Handy: dort ruht der
+                    Modus ohnehin, ein Schalter ohne Wirkung waere
+                    irrefuehrend. */}
+                {agentFaehig && !handy ? <ModusEinstellung /> : null}
                 <HaustierEinstellung />
                 {einstellungen ? (
                   <div>
@@ -272,7 +378,7 @@ export function KiPane({
                 ) : null}
               </div>
             ) : null}
-            {ansicht === "hilfe" ? (
+            {sichtbar === "hilfe" ? (
               <div className="ki-pane__ansicht space-y-3 overflow-y-auto p-4">
                 <p className="text-sm leading-6 text-muted-foreground">{t("eskalationText")}</p>
                 <EskalationsFormular />

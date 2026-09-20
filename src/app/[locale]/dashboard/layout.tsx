@@ -5,6 +5,7 @@ import { setRequestLocale } from "next-intl/server";
 import { PersonaProvider } from "@/components/dashboard/persona";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
+import { UntereLeiste } from "@/components/dashboard/untere-leiste";
 import { KiAnbieterVerwaltung } from "@/components/db/ki-assistent-formulare";
 import { KiFuehrungsAnzeige } from "@/components/ki/ki-fuehrung";
 import { KiPane } from "@/components/ki/ki-pane";
@@ -65,9 +66,17 @@ export default async function DashboardLayout({
           <div className="flex min-w-0 flex-1 flex-col">
             <KiFuehrungsAnzeige />
             <DashboardTopbar />
-            <main id="main" className="min-w-0 flex-1 p-4 md:p-6 lg:p-8 print:p-0">
+            {/* Der untere Innenabstand haelt den Platz der unteren
+                Navigationsleiste frei (--untere-leiste-raum, globals.css) -
+                ohne ihn verdeckt sie den letzten Knopf jeder Seite. Ab md ist
+                die Variable 0 und es gelten wieder die regulaeren Masse. */}
+            <main
+              id="main"
+              className="min-w-0 flex-1 p-4 pb-[calc(1rem+var(--untere-leiste-raum))] md:p-6 md:pb-6 lg:p-8 lg:pb-8 print:p-0"
+            >
               {children}
             </main>
+            <UntereLeiste />
           </div>
           {kiVerlauf ? (
             <KiPane

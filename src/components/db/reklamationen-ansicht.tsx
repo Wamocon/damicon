@@ -158,7 +158,7 @@ export async function ReklamationenAnsicht({
                   </p>
                 ) : null}
 
-                <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+                <dl className="mt-3 grid grid-cols-1 gap-x-3 gap-y-2 text-xs sm:grid-cols-2">
                   <div>
                     <dt className="text-muted-foreground">{t("kunde")}</dt>
                     <dd className="font-semibold text-foreground">{detail.kunde}</dd>

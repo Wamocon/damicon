@@ -1,4 +1,10 @@
-import type { ReactNode } from "react";
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import { cn } from "@/lib/utils";
 
 export type Tone = "success" | "info" | "neutral" | "warning" | "danger";
@@ -25,6 +31,15 @@ export function StatusPill({
   return (
     <span
       title={title}
+      // 11 px auf beiden Geraeten, also bewusst ohne `schrift-label`: eine
+      // Pille ist keine Beschriftung, die man liest, sondern ein Marker, den
+      // man erkennt. Mitgewachsen auf 13 px nahm sie in einer schmalen Karte
+      // spuerbar Platz - auf der Rollenseite die halbe Kartenbreite -, ohne
+      // dass ein Zustandswort dadurch verstaendlicher wird.
+      //
+      // `text-[11px]` und nicht das Token: tailwind-merge erkennt es als
+      // Schriftgroesse und laesst es neben der Tonfarbe stehen. Genau daran
+      // war die Token-Fassung gescheitert.
       className={cn(
         "inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold leading-4",
         toneClasses[tone],
@@ -84,7 +99,7 @@ export function Section({
         <div>
           <h2 className="text-sm font-bold text-card-foreground">{title}</h2>
           {description ? (
-            <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+            <p className="mt-0.5 schrift-dense text-muted-foreground">{description}</p>
           ) : null}
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}
@@ -156,29 +171,105 @@ export function Stat({
   };
   return (
     <Card className="p-4">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+      <p className="schrift-label font-semibold uppercase tracking-wide text-muted-foreground">
         {label}
       </p>
       <p className={cn("mt-1 text-2xl font-black", accent[tone])}>{value}</p>
       {helper ? (
-        <p className="mt-1 text-xs text-muted-foreground">{helper}</p>
+        <p className="mt-1 schrift-dense text-muted-foreground">{helper}</p>
       ) : null}
     </Card>
   );
 }
 
+// Beschriftet jede Zelle mit ihrem Spaltenkopf (data-kopf). Sichtbar wird das
+// erst unter `md`, wo die Tabelle zu Karten wird und die Kopfzeile wegfaellt -
+// ohne Beschriftung stuenden dort nackte Werte untereinander.
+//
+// Der Baustein macht das selbst, statt es von 29 Aufrufstellen zu verlangen.
+// Die Zuordnung geht ueber die Reihenfolge: die n-te Zelle einer Zeile gehoert
+// zum n-ten Kopf.
+//
+// Daran haengt eine Bedingung, und zwar eine, die der Aufrufer einhalten muss:
+// Eine Zelle, die nur manchmal gerendert wird, braucht einen Kopf, der unter
+// genau derselben Bedingung steht. Drei Tabellen tun das heute - die
+// Personenspalte in pflichtschulungen-ansicht.tsx steht hinter `istBuero`, die
+// Aktionsspalten in dokumente-ansicht.tsx und reihenbloecke-ansicht.tsx hinter
+// einem Recht -, und alle drei fuehren dieselbe Bedingung im head-Array mit
+// (`...(istBuero ? [t("col.person")] : [])`).
+//
+// Faellt eine Zelle weg, deren Kopf stehen bleibt, verschieben sich alle
+// Beschriftungen ab dieser Spalte um eins. Sichtbar wird das nur unter `md`
+// und nur an einem falschen Namen neben einem richtigen Wert - am Schreibtisch
+// faellt es niemandem auf. Deshalb steht der Fall in kit-bausteine.tsx auf dem
+// Pruefstand, in beiden Richtungen.
+//
+// Zellen mit colSpan sind keine Werte, sondern Meldungen ueber die ganze
+// Breite ("keine Daten"). Sie bekommen keine Beschriftung und zaehlen ihre
+// Spalten weiter, damit eine Zeile danach wieder richtig liegt.
+function mitSpaltenkopf(children: ReactNode, head: string[]): ReactNode {
+  return Children.map(children, (zeile) => {
+    if (!isValidElement(zeile) || zeile.type !== "tr") return zeile;
+    const zeilenProps = zeile.props as { children?: ReactNode };
+
+    let spalte = 0;
+    const zellen = Children.map(zeilenProps.children, (zelle) => {
+      if (!isValidElement(zelle) || zelle.type !== "td") return zelle;
+      const zellProps = zelle.props as { colSpan?: number };
+      const kopf = head[spalte];
+      spalte += zellProps.colSpan ?? 1;
+      if (zellProps.colSpan || kopf === undefined) return zelle;
+      return cloneElement(zelle as ReactElement<Record<string, unknown>>, {
+        "data-kopf": kopf,
+      });
+    });
+
+    return cloneElement(
+      zeile as ReactElement<{ children?: ReactNode }>,
+      undefined,
+      zellen,
+    );
+  });
+}
+
 export function DataTable({
   head,
   children,
+  matrix = false,
 }: {
   head: string[];
   children: ReactNode;
+  /**
+   * Ein Raster aus Ja/Nein statt einer Liste von Werten - etwa die
+   * Rechtematrix, Rollen mal Ressourcen. Solche Tabellen bleiben auch auf dem
+   * Handy Tabellen: als Karten waeren aus 15 Ressourcen mal 8 Rollen 120
+   * Zeilen geworden, und der Vergleich zwischen zwei Spalten, um den es bei
+   * einer Matrix allein geht, waere verloren. Stattdessen scrollt sie
+   * waagerecht, mit festgehaltener erster Spalte - sonst weiss man nach zwei
+   * Spalten nicht mehr, welche Zeile man liest.
+   */
+  matrix?: boolean;
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-card">
-      <table className="w-full min-w-[640px] text-left text-sm">
+    // `datentabelle` traegt die Kartendarstellung unter `md` (globals.css).
+    // Die Mindestbreite und das Querscrollen gelten erst ab `md`: darunter
+    // gibt es keine Tabelle mehr, die breiter sein koennte als der Schirm -
+    // ausser bei einer Matrix, die genau dafuer ihr eigenes data-Attribut hat.
+    <div
+      data-matrix={matrix ? "" : undefined}
+      className={cn(
+        "datentabelle rounded-xl border border-border bg-card md:overflow-x-auto",
+        matrix && "overflow-x-auto",
+      )}
+    >
+      <table
+        className={cn(
+          "w-full text-left text-sm md:min-w-[640px]",
+          matrix && "min-w-[640px]",
+        )}
+      >
         <thead>
-          <tr className="border-b border-border bg-muted/40 text-[11px] uppercase tracking-wide text-muted-foreground">
+          <tr className="border-b border-border bg-muted/40 schrift-label uppercase tracking-wide text-muted-foreground">
             {head.map((cell) => (
               <th key={cell} className="px-3 py-2.5 font-semibold">
                 {cell}
@@ -186,7 +277,9 @@ export function DataTable({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-border">{children}</tbody>
+        <tbody className="divide-y divide-border">
+          {mitSpaltenkopf(children, head)}
+        </tbody>
       </table>
     </div>
   );

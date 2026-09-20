@@ -38,6 +38,18 @@ const manrope = Manrope({
 // die Seite darunter die Landesfarben traegt. Zwei Werte, damit sie dem
 // Farbschema folgt: Koek im hellen, das Nachtblau des Dark Mode im dunklen.
 export const viewport: Viewport = {
+  // Die Seite reicht bis unter die abgerundeten Ecken und den Home-Indicator;
+  // erst damit liefert env(safe-area-inset-*) ueberhaupt einen Wert. Ohne das
+  // bliebe die untere Navigationsleiste (untere-leiste.tsx) entweder unter der
+  // Systemleiste liegen oder muesste mit einem geratenen Festabstand darueber
+  // schweben.
+  viewportFit: "cover",
+  // Die eingeblendete Tastatur verkleinert die Seite, statt sie nur zu
+  // verschieben. Ohne das bleibt auf Android ein Eingabefeld am unteren Rand
+  // hinter der Tastatur liegen - im KI-Blatt (ki-pane.css) ist das der
+  // Composer, also das einzige Feld, das dort ueberhaupt getippt wird. Erst
+  // damit wirkt auch die Hoehe in dvh.
+  interactiveWidget: "resizes-content",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#00768f" },
     { media: "(prefers-color-scheme: dark)", color: "#04161c" },
@@ -111,7 +123,7 @@ export default async function LocaleLayout({
       className={`${inter.variable} ${manrope.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
+      <body className="min-h-svh bg-background font-sans text-foreground antialiased">
         <ThemeScript />
         <ServiceWorkerRegistrierung version={appVersion()} />
         <NextIntlClientProvider>

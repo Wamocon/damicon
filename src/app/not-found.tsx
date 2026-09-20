@@ -6,7 +6,7 @@ import "./globals.css";
 export default function GlobalNotFound() {
   return (
     <html lang="de">
-      <body className="flex min-h-screen items-center justify-center bg-background p-6 text-foreground">
+      <body className="flex min-h-svh items-center justify-center bg-background p-6 text-foreground">
         <div className="text-center">
           <p className="text-5xl font-black text-primary">404</p>
           <p className="mt-3 text-sm text-muted-foreground">

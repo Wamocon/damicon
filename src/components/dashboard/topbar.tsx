@@ -4,10 +4,14 @@ import { useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import {
   Bell,
+  ChevronLeft,
   PanelLeftClose,
   PanelLeftOpen,
   Search,
 } from "lucide-react";
+import { Link } from "@/i18n/navigation";
+import { useElternSeite } from "@/components/dashboard/nav-ziele";
+import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { LocaleSwitcher } from "@/components/site/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PersonaSwitcher, usePersona } from "@/components/dashboard/persona";
@@ -81,6 +85,9 @@ function MenueUmschalter() {
 
 export function DashboardTopbar() {
   const t = useTranslations("dashboard");
+  // Null auf der Uebersicht - dort gibt es kein Zurueck, und links steht die
+  // Marke statt eines Rueckwegs.
+  const eltern = useElternSeite();
   // Anforderung 2.5: der Sync-Indikator ist nur fuer echte, angemeldete
   // Brigade-Sitzungen relevant - im Demo-Modus gibt es keine echte
   // Supabase-Session, die eine Warteschlange fuellen koennte, und andere
@@ -89,17 +96,91 @@ export function DashboardTopbar() {
   const zeigeSync = !demoModus && echteRolle === "brigade";
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 pl-16 backdrop-blur-xl md:px-6 md:pl-6 print:hidden">
+    <header
+      className={cn(
+        "sticky top-0 z-40 h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl md:flex md:h-16 md:px-6 print:hidden",
+        // Sobald links ein Rueckweg steht, ruecken Bildmarke und Name in die
+        // Mitte. Dafuer drei Rasterspalten, deren aeussere gleich breit sind -
+        // in einer Reihe saesse die Marke nur "irgendwo zwischen den
+        // Nachbarn", je nachdem wie lang der Rueckweg gerade ist ("Feld"
+        // gegen "Genel bakış").
+        //
+        // Ausgeblendete Kinder belegen keine Rasterzelle: Menue-Umschalter und
+        // Suche, die es erst ab md beziehungsweise sm gibt, verschieben die
+        // Aufteilung darunter nicht.
+        eltern
+          ? "grid grid-cols-[1fr_auto_1fr]"
+          : // Auf der Uebersicht gibt es keinen Rueckweg - dort steht die
+            // Marke links, wo sonst nichts waere.
+            "flex",
+      )}
+    >
+      {/* Der Weg zurueck, nur unter md und nur auf einer Unterseite.
+
+          Er steht hier und nicht bei den Brotkrumen im Inhalt, weil er dort
+          wegscrollt - und gebraucht wird er genau dann, wenn man mitten auf
+          einer langen Modulseite steht. Welche Seite die Ebene darueber ist,
+          leitet useElternSeite() aus dem Pfad ab.
+
+          Bei 390 px Fensterbreite bleiben nach dem Innenabstand 358 px: rund
+          65 px fuer den Rueckweg, 119 px fuer die Marke, 80 px fuer
+          Synchronisierung und Meldungen. Der Rest ist Luft, auch im
+          tuerkischen "Genel bakış". */}
+      {eltern ? (
+        <Link
+          href={eltern.href}
+          className="flex min-w-0 items-center gap-1 text-sm font-black uppercase tracking-[0.1em] text-primary md:hidden"
+        >
+          <ChevronLeft className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span className="min-w-0 truncate">{eltern.text}</span>
+        </Link>
+      ) : null}
+
+      {/* Die Marke steht auf jeder Seite, nur an wechselnder Stelle: links,
+          solange links nichts anderes ist, sonst in der Mitte. Ab md traegt
+          sie die Seitenleiste, hier waere sie doppelt.
+
+          Der Untertitel entfaellt auf dem Handy - er erklaert die Marke, und
+          wer im Dashboard steht, weiss bereits, worin er steht. */}
+      <Link
+        href="/dashboard"
+        aria-label="Damicon"
+        className="flex min-w-0 items-center gap-2.5 md:hidden"
+      >
+        <DamiconLogo className="shadow-lg shadow-primary/20" />
+        {/* In der Mitte steht die Bildmarke allein. Der Name daneben schoebe
+            sie aus der Mitte, sobald der Rueckweg links laenger wird, und er
+            sagt dort auch nichts Neues - wer im Dashboard steht, weiss, in
+            welchem. Links auf der Uebersicht bleibt er, dort ist er die
+            Ueberschrift der Seite, auf der man ankommt. */}
+        {eltern ? null : (
+          <span className="min-w-0 truncate text-base font-black leading-tight text-foreground">
+            Damicon
+          </span>
+        )}
+      </Link>
+
       <MenueUmschalter />
-      <div className="hidden min-w-0 flex-1 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground sm:flex">
+      {/* Erst ab md: zwischen sm und md haette sie im Raster der mobilen
+          Kopfzeile eine vierte Spalte aufgemacht und die Marke aus der Mitte
+          geschoben. Verloren geht dabei nichts - die Suche ist bis heute eine
+          Attrappe (Punkt 1 des UX-Audits). */}
+      <div className="hidden min-w-0 flex-1 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground md:flex">
         <Search className="h-4 w-4 shrink-0" />
         <span className="truncate">{t("searchPlaceholder")}</span>
       </div>
-      <div className="flex flex-1 items-center justify-end gap-2 sm:flex-none">
-        <KiFragenKnopf />
-        <PersonaSwitcher className="hidden lg:inline-flex" />
-        <LocaleSwitcher compact />
-        <ThemeToggle />
+      {/* Was unter md in das Konto-Blatt der unteren Leiste gewandert ist -
+          "KI fragen", Rollenumschalter, Sprache, Farbschema -, steht hier erst
+          ab md wieder. Sichtbar bleibt auf dem Handy nur, was beim Arbeiten
+          sichtbar bleiben muss: der Stand der Synchronisierung und die
+          Meldungen. */}
+      <div className="flex flex-1 items-center justify-end gap-2 md:flex-none">
+        <span className="hidden md:contents">
+          <KiFragenKnopf />
+          <PersonaSwitcher className="hidden lg:inline-flex" />
+          <LocaleSwitcher compact />
+          <ThemeToggle />
+        </span>
         {zeigeSync ? <SyncStatus /> : null}
         <button
           type="button"

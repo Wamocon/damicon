@@ -7,6 +7,7 @@ import { HaustierHuelle } from "@/components/haustier/haustier-huelle";
 import { HimbiVersteck } from "@/components/haustier/himbi-versteck";
 import { useHaustierAktionen, useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
+import { useIstHandy } from "@/components/ui/handy";
 import { usePathname } from "@/i18n/navigation";
 import { haustierZustand, modulAusPfad } from "@/lib/haustier";
 import { modules } from "@/lib/modules";
@@ -30,6 +31,11 @@ export function HaustierDashboard() {
   const { stelleFrage, schickeWeg, holeZurueck } = useHaustierAktionen();
   const pfad = usePathname();
   const { role } = usePersona();
+  // Auf dem Handy steht Himbi in der unteren Leiste (untere-leiste.tsx) und
+  // nicht frei im Bild. Frei schwebend deckte er dort Karteninhalt zu, und
+  // daneben trug die Leiste noch einmal dieselbe Himbeere als KI-Knopf -
+  // zwei Zeichen fuer dieselbe Sache, eines davon im Weg.
+  const handy = useIstHandy();
 
   // Nach dem Zurueckholen: kurz jubeln und "Da bin ich wieder" sagen.
   const [willkommen, setWillkommen] = useState(false);
@@ -87,7 +93,7 @@ export function HaustierDashboard() {
     return () => window.clearTimeout(id);
   }, [tipp]);
 
-  if (!verfuegbar) return null;
+  if (!verfuegbar || handy) return null;
   if (weg) {
     return (
       <HimbiVersteck

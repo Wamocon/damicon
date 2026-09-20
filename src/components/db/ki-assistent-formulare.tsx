@@ -68,7 +68,7 @@ export function EskalationsFormular() {
       <PfadFeld />
       <button
         type="submit"
-        className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-[11px] font-semibold text-foreground transition hover:border-primary"
+        className="inline-flex h-11 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground transition hover:border-primary lg:h-8 md:text-[11px]"
       >
         <MessageSquareWarning className="h-3.5 w-3.5" />
         {t("eskalationKnopf")}
