@@ -92,7 +92,7 @@ jobs:
 
       # pgvector laeuft nicht in PGlite, deshalb gegen die echte lokale Datenbank: Rollenisolation per RLS,
       # Hybridsuche, IDF, Filter ohne Trefferverlust und Schreibschutz der Wissensbasis.
-      - name: Wissensbasis in Postgres (pgvector: Rollen, Suche, Schreibschutz)
+      - name: Wissensbasis in Postgres (pgvector, Rollen, Suche, Schreibschutz)
         run: npm run test:wissen-db
 
       # Braucht kein laufendes Supabase: PGlite bringt Postgres als WASM mit
