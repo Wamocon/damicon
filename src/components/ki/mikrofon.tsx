@@ -7,26 +7,44 @@ import { MikrofonWelle } from "@/components/ki/mikrofon-welle";
 import { transkribiereSprachnachricht } from "@/lib/actions/ki-assistent";
 import { starteHoeren, stoppeHoeren } from "@/lib/hoeren";
 import { leer } from "@/lib/actions/status";
+import {
+  diktatEinstellungen,
+  erzeugeStilleWaechter,
+  pegelAusZeitbereich,
+  type StilleErgebnis,
+} from "@/lib/domain/diktat";
 import { cn } from "@/lib/utils";
 
 // Diktatknopf fuer beide Chatfenster: das Seitenpanel (ki/ki-chat.tsx, Claude)
 // und das aeltere Fenster fuer selbst gehostete Modelle
 // (db/ki-assistent-formulare.tsx). Aufnahme im Browser, Erkennung ueber die
-// Server Action transkribiereSprachnachricht (Whisper) - der Browser spricht
-// nie selbst mit dem Dienst.
+// Server Action transkribiereSprachnachricht - der Browser spricht nie selbst
+// mit dem Dienst.
 //
-// Der erkannte Text wird NICHT abgeschickt, sondern nur ins Eingabefeld
-// gesetzt (beiText): erst lesen, gegebenenfalls ausbessern, dann senden.
-// Gerade fuer Kasachisch wichtig, wo Whisper einzelne Woerter verhoert.
+// Die Aufnahme endet von selbst, wenn jemand aufhoert zu sprechen
+// (domain/diktat.ts). Der Stopp-Knopf bleibt trotzdem stehen: die
+// Stilleerkennung ist eine Schaetzung, kein Versprechen - in lauter Umgebung
+// kann sie danebenliegen, und dann muss man sie uebergehen koennen.
+//
+// beiSenden entscheidet, was danach geschieht: ohne diese Rueckgabe landet
+// der erkannte Text nur im Eingabefeld (beiText) und wird von Hand
+// abgeschickt; mit ihr geht er sofort raus. Das erspart einen Klick, nimmt
+// aber die Gelegenheit, ein verhoertes Wort vorher zu berichtigen - bei
+// Kasachisch, wo die Erkennung den ersten Laut verschluckt, ist das ein
+// echter Unterschied.
 export function MikrofonKnopf({
   beiText,
   beiAufnahme,
+  beiSenden,
   className,
   deaktiviert = false,
 }: {
   beiText: (text: string) => void;
   /** Meldet, ob gerade aufgenommen wird - fuer eine Welle ausserhalb dieses Knopfs. */
   beiAufnahme?: (an: boolean) => void;
+  /** Gesetzt: der erkannte Text wird sofort abgeschickt, ohne zweiten Klick.
+   *  Nicht gesetzt: er bleibt zum Nachlesen im Eingabefeld stehen. */
+  beiSenden?: (text: string) => void;
   className?: string;
   deaktiviert?: boolean;
 }) {
@@ -41,6 +59,23 @@ export function MikrofonKnopf({
   const [zustand, setZustand] = useState<"bereit" | "aufnahme" | "laeuft">("bereit");
   const [meldung, setMeldung] = useState<string | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const tonRef = useRef<{ kontext: AudioContext; bild: number } | null>(null);
+  const balkenRef = useRef<(HTMLSpanElement | null)[]>([]);
+  // Warum die Aufnahme endete - gesetzt von der Stilleerkennung, gelesen in
+  // recorder.onstop. Ueber ein Ref, weil onstop sonst den Stand von damals
+  // saehe.
+  const grundRef = useRef<StilleErgebnis>("weiter");
+
+  /** Mikrofon, Tonanalyse und Bildschleife freigeben. Mehrfach aufrufbar. */
+  function raeumeAuf() {
+    const ton = tonRef.current;
+    if (ton) {
+      cancelAnimationFrame(ton.bild);
+      void ton.kontext.close().catch(() => {});
+      tonRef.current = null;
+    }
+    recorderRef.current?.stream.getTracks().forEach((spur) => spur.stop());
+  }
 
   useEffect(() => {
     beiAufnahme?.(zustand === "aufnahme");
@@ -51,19 +86,72 @@ export function MikrofonKnopf({
   useEffect(() => {
     return () => {
       const r = recorderRef.current;
-      if (r && r.state !== "inactive") {
-        r.stream.getTracks().forEach((spur) => spur.stop());
-        r.stop();
-      }
+      if (r && r.state !== "inactive") r.stop();
       stoppeHoeren();
+      raeumeAuf();
       beiAufnahme?.(false);
     };
     // beiAufnahme nur beim Aufraeumen lesen, nicht bei jeder Aenderung neu binden.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /** Pegel messen, Balken bewegen, Stille erkennen - eine Schleife im
+   *  Bildtakt des Browsers, bewusst ohne React dazwischen: ein setState je
+   *  Bild waere sechzig Durchlaeufe des ganzen Chatfensters je Sekunde. */
+  function beobachte(strom: MediaStream, recorder: MediaRecorder) {
+    const kontext = new AudioContext();
+    const quelle = kontext.createMediaStreamSource(strom);
+    const analyse = kontext.createAnalyser();
+    analyse.fftSize = 1024;
+    analyse.smoothingTimeConstant = 0.6;
+    // Bewusst NICHT mit kontext.destination verbunden: sonst hoert sich die
+    // sprechende Person selbst, mit Verzoegerung.
+    quelle.connect(analyse);
+
+    const zeitbereich = new Uint8Array(analyse.fftSize);
+    const frequenzen = new Uint8Array(analyse.frequencyBinCount);
+    const waechter = erzeugeStilleWaechter(diktatEinstellungen(umgebung()));
+    // Wer Bewegung im Bild abgestellt hat, bekommt keine zappelnden Balken.
+    // Die Stilleerkennung laeuft davon unberuehrt weiter.
+    const ruhig =
+      typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+
+    const schritt = () => {
+      analyse.getByteTimeDomainData(zeitbereich);
+      const pegel = pegelAusZeitbereich(zeitbereich);
+
+      if (!ruhig) {
+        analyse.getByteFrequencyData(frequenzen);
+        // Die unteren zwei Drittel des Spektrums decken Sprache ab; der Rest
+        // ist Zischen und liesse die Balken nur flimmern.
+        const breite = Math.max(1, Math.floor((frequenzen.length * 0.66) / BALKEN));
+        for (let i = 0; i < BALKEN; i++) {
+          let summe = 0;
+          for (let j = i * breite; j < (i + 1) * breite; j++) summe += frequenzen[j];
+          const mittel = summe / breite / 255;
+          const balken = balkenRef.current[i];
+          // Untergrenze, damit die Anzeige bei Stille nicht zu einem
+          // unsichtbaren Strich zusammenfaellt.
+          if (balken) balken.style.transform = `scaleY(${Math.max(0.12, Math.min(1, mittel * 2.2))})`;
+        }
+      }
+
+      const ergebnis = waechter.melde(pegel, performance.now());
+      if (ergebnis !== "weiter") {
+        grundRef.current = ergebnis;
+        if (recorder.state !== "inactive") recorder.stop();
+        return;
+      }
+      const ton = tonRef.current;
+      if (ton) ton.bild = requestAnimationFrame(schritt);
+    };
+
+    tonRef.current = { kontext, bild: requestAnimationFrame(schritt) };
+  }
+
   async function starten() {
     setMeldung(null);
+    grundRef.current = "weiter";
     try {
       const strom = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(strom);
@@ -75,9 +163,12 @@ export function MikrofonKnopf({
 
       recorder.onstop = async () => {
         stoppeHoeren();
-        strom.getTracks().forEach((spur) => spur.stop());
+        raeumeAuf();
         const aufnahme = new Blob(teile, { type: recorder.mimeType || "audio/webm" });
-        if (aufnahme.size === 0) {
+        // "stopp-leer": die Stilleerkennung hat nie Sprache gehoert. Diese
+        // Aufnahme gar nicht erst zur Erkennung schicken - sie ergaebe
+        // bestenfalls erfundene Woerter aus Umgebungsgeraeusch.
+        if (aufnahme.size === 0 || grundRef.current === "stopp-leer") {
           setZustand("bereit");
           setMeldung(t("leer"));
           return;
@@ -95,8 +186,12 @@ export function MikrofonKnopf({
 
         // Erfolg traegt den erkannten Text im wert-Feld (siehe ok() in
         // actions/status.ts).
-        if (status.stand === "ok" && status.wert) beiText(status.wert);
-        else setMeldung(status.meldung ? tAktion(status.meldung) : t("fehlgeschlagen"));
+        if (status.stand === "ok" && status.wert) {
+          beiText(status.wert);
+          beiSenden?.(status.wert);
+        } else {
+          setMeldung(status.meldung ? tAktion(status.meldung) : t("fehlgeschlagen"));
+        }
       };
 
       recorder.start();
@@ -106,14 +201,19 @@ export function MikrofonKnopf({
       // aendert sich nur, dass beide weiter nach Uhr schwingen statt nach Stimme.
       starteHoeren(strom);
       setZustand("aufnahme");
+      beobachte(strom, recorder);
     } catch {
       // Kein Mikrofon, keine Erlaubnis, kein HTTPS - fuer die Nutzerin
       // dasselbe Ergebnis: es geht gerade nicht.
+      raeumeAuf();
       setMeldung(t("keinZugriff"));
     }
   }
 
   function stoppen() {
+    // Von Hand beendet: die Aufnahme zaehlt, auch wenn die Stilleerkennung
+    // noch nichts gehoert zu haben glaubt.
+    grundRef.current = "weiter";
     const r = recorderRef.current;
     if (r && r.state !== "inactive") r.stop();
   }
@@ -142,7 +242,37 @@ export function MikrofonKnopf({
           )}
         </button>
       </span>
+      {zustand === "aufnahme" ? (
+        // Rein dekorativ: was hier zu sehen ist, steht als Text schon im
+        // Knopf ("Aufnahme beenden"). Vorlesegeraete sollen nicht fuenf
+        // namenlose Balken ansagen.
+        <span className="ki-mikrofon__pegel" aria-hidden="true">
+          {Array.from({ length: BALKEN }, (_, i) => (
+            <span
+              key={i}
+              ref={(el) => {
+                balkenRef.current[i] = el;
+              }}
+              className="ki-mikrofon__balken"
+            />
+          ))}
+        </span>
+      ) : null}
       {meldung ? <span className="ki-mikrofon__meldung">{meldung}</span> : null}
     </>
   );
+}
+
+/** Anzahl der Balken in der Pegelanzeige. Fuenf genuegen, um Sprechen von
+ *  Stille zu unterscheiden, und passen in die Eingabezeile. */
+const BALKEN = 5;
+
+/** Die im Browser verfuegbaren NEXT_PUBLIC_-Werte. Next ersetzt sie beim
+ *  Uebersetzen durch feste Zeichenketten - deshalb hier einzeln benannt und
+ *  nicht ueber process.env durchgereicht. */
+function umgebung(): Record<string, string | undefined> {
+  return {
+    NEXT_PUBLIC_DIKTAT_STILLE_PEGEL: process.env.NEXT_PUBLIC_DIKTAT_STILLE_PEGEL,
+    NEXT_PUBLIC_DIKTAT_STILLE_MS: process.env.NEXT_PUBLIC_DIKTAT_STILLE_MS,
+  };
 }
