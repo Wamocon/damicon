@@ -25,6 +25,7 @@ import { ladeAktivenStandardAnbieter, anthropicBasisUrl } from "@/lib/ai/lade-an
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
 import { baueWerkzeuge } from "@/lib/ai/tools";
 import { naechsteBelegNummer } from "@/lib/wissen/belege";
+import { waehleSchritt } from "@/lib/ai/schritt-steuerung";
 import { ladeKiChatVerlauf, ladeWissensPreislisten } from "@/lib/data/ki-assistent";
 import {
   baueGesamtWissenskontext,
@@ -191,6 +192,13 @@ const AKTIONS_ANWEISUNG =
 
 // Belegpflicht fuer Recht, Steuer, Compliance und Audit. Steht nur im Prompt, wenn
 // wissenSuchen angeboten wird (Rolle mit Zugriff und vorhandener Index).
+// Gegenstueck zu QUELLEN_ANWEISUNG: Ist keine Wissensbasis angebunden (Rolle ohne Zugriff, oder kein
+// Index in dieser Umgebung), darf der Agent Rechts- und Steuerfragen NICHT aus Trainingswissen beantworten.
+// Gemessen: ohne diese Regel nannte das Modell fuer die USt-Registrierung in Kasachstan eine Schwelle
+// und eine Frist, die beide nicht dem Steuerkodex 2026 entsprechen, und zwar ohne jeden Vorbehalt.
+const OHNE_QUELLEN_ANWEISUNG =
+  "RECHT UND STEUERN OHNE BELEGE: Dir steht in dieser Sitzung keine Wissensbasis fuer Recht, Steuern, Compliance und Audit zur Verfuegung. Beantworte Fragen zu Gesetzen, Steuersaetzen, Schwellenwerten, Fristen, Pflichten, Sanktionen oder Pruefungen deshalb NICHT aus deinem Trainingswissen: in Kasachstan gilt seit 2026 ein neuer Steuerkodex, und dein Wissen dazu ist veraltet oder falsch. Sage stattdessen in einem kurzen Satz, dass dazu gerade keine belegte Auskunft moeglich ist, und verweise auf Steuerberater, Anwalt oder die zustaendige Behoerde. Zahlen und Fristen aus den Betriebsdaten (zum Beispiel der MwSt-Status) darfst du weiterhin nennen, aber nicht als Rechtsauskunft ausgeben.";
+
 const QUELLEN_ANWEISUNG = [
   "QUELLEN UND BELEGE: Bei jeder Frage zu Recht, Steuern, Arbeitsrecht, Compliance oder Audit rufst du ZUERST wissenSuchen auf (mit frageRussisch) und antwortest auf Grundlage der gefundenen Belege. Regeln:",
   "1. Jede rechtliche Aussage, Zahl, Frist oder Sanktion bekommt direkt dahinter die Kennung ihres Belegs in eckigen Klammern, zum Beispiel [S1]; mehrere Belege: [S1][S3].",
@@ -361,7 +369,7 @@ export async function POST(req: Request) {
     AKTIONS_ANWEISUNG,
     ZUGENDE_ANWEISUNG,
     // Nur wenn die Wissenssuche fuer diese Rolle angeboten wird: sonst gaebe es nichts zu belegen.
-    "wissenSuchen" in werkzeuge ? QUELLEN_ANWEISUNG : "",
+    "wissenSuchen" in werkzeuge ? QUELLEN_ANWEISUNG : OHNE_QUELLEN_ANWEISUNG,
     heute,
     ortHinweis,
     spracheAnweisung(body.sprache),
@@ -388,8 +396,16 @@ export async function POST(req: Request) {
     // stehen. ohneAnsicht bleibt der Fluchtweg fuer reine Hoeflichkeiten.
     // Nicht in einer Freigabe-Runde (dort ist die letzte Nachricht die des
     // Assistenten und der naechste Schritt nur die Bestaetigung).
+    // Recht, Steuer, Compliance, Audit: der erste Schritt ist die Wissenssuche, vom Server erzwungen
+    // (toolChoice: { type: "tool" }), nicht vom Modell erhofft. Regeln in lib/ai/schritt-steuerung.ts.
     prepareStep: ({ stepNumber }) =>
-      modus === "agent" && stepNumber === 0 && letzte.role === "user" ? { toolChoice: "required" } : undefined,
+      waehleSchritt({
+        stepNumber,
+        modus,
+        neueNutzerFrage: letzte.role === "user",
+        frage: neueNutzerNachricht,
+        wissenAngeboten: "wissenSuchen" in werkzeuge,
+      }),
     // Agent-Modus: eine gefuehrte Tour ist nur lesbar, wenn die Ansichten
     // nacheinander wechseln - parallele Werkzeugaufrufe wuerden sie in einem
     // Schritt abfeuern und das Hauptfenster springen lassen.

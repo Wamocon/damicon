@@ -383,6 +383,7 @@ Meldet `db push`, dass lokale Migrationen älter sind als die letzte Remote-Migr
 - Es wird nur das günstigste Modell eingesetzt (`claude-haiku-4-5`).
 - Der Chatverlauf ist je Nutzer getrennt (Tabelle `ki_chat_nachrichten`, RLS und Filter auf das eigene Profil). Auch Büro-Rollen sehen nur ihre eigenen Gespräche.
 - Rollen ohne das Recht `ki_assistent` (Pflücker, Erzeuger) sehen "KI fragen" nicht.
+- **Wissensbasis (Recht, Steuer, Compliance, Audit):** Das Werkzeug `wissenSuchen` wird nur angeboten, wenn ein Index vorhanden ist: bei `npm run dev` immer, in einem Produktions-Build (`next start`, Vercel) nur mit gesetzter `QDRANT_URL`. Wer lokal mit `next start` testet, setzt deshalb `QDRANT_URL=http://127.0.0.1:6333` (Qdrant: `infra/qdrant.compose.yml`, Einbettung: Ollama mit `bge-m3`). Fehlt die Wissensbasis, antwortet der Agent auf Rechts- und Steuerfragen bewusst NICHT aus Trainingswissen, sondern sagt, dass keine belegte Auskunft möglich ist. Ist sie da, wird bei solchen Fragen die Suche als erster Schritt erzwungen (`lib/ai/schritt-steuerung.ts`).
 
 ### 6. Domain-Verwaltung
 
@@ -819,6 +820,7 @@ If `db push` reports that local migrations are older than the latest remote migr
 - Only the cheapest model is used (`claude-haiku-4-5`).
 - Chat history is separate per user (table `ki_chat_nachrichten`, RLS plus a filter on the own profile). Even office roles only see their own conversations.
 - Roles without the `ki_assistent` permission (picker, producer) do not see "Ask AI".
+- **Knowledge base (law, tax, compliance, audit):** the `wissenSuchen` tool is only offered when an index exists: always with `npm run dev`, in a production build (`next start`, Vercel) only when `QDRANT_URL` is set. Set `QDRANT_URL=http://127.0.0.1:6333` when testing locally with `next start` (Qdrant: `infra/qdrant.compose.yml`, embeddings: Ollama with `bge-m3`). Without the knowledge base the agent deliberately does NOT answer legal or tax questions from training data and says no sourced answer is possible. With it, the search is forced as the first step for such questions (`lib/ai/schritt-steuerung.ts`).
 
 ### 6. Domain Management
 
