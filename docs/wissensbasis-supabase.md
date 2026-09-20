@@ -32,7 +32,7 @@ Vercel erreicht keinen lokalen Rechner. Deshalb braucht der Betrieb einen Einbet
 Reihenfolge, in der die Anwendung den Anbieter fuer die **Frage** bestimmt:
 
 1. `WISSEN_EMBED_URL` gesetzt: dieser Anbieter (mit `WISSEN_EMBED_MODELL`, `WISSEN_EMBED_KEY`), zum Beispiel DeepInfra.
-2. Sonst in Produktion mit vorhandenem `KI_SOKRATES_API_SCHLUESSEL`: die Sokrates-API (`https://sokrates.test-qualitaetsmanagement.com/api/v1`), Modell `bge-m3`. **Ohne weitere Umgebungsvariable**, sobald der Sokrates-Betreiber fuer den Schluessel Einbettungen freigibt und dort bge-m3 laeuft (Stand 2026-09-20: `/embeddings` antwortet 403, der Schluessel gilt bisher nur fuer Sprache).
+2. Sonst in Produktion mit vorhandenem `KI_SOKRATES_API_SCHLUESSEL`: die Sokrates-API (`https://sokrates.test-qualitaetsmanagement.com/api/v1`), Modell `bge-m3:latest`. **Ohne weitere Umgebungsvariable.** Stand 2026-09-20 freigegeben und gemessen: 1024 Dimensionen, Kosinusaehnlichkeit 0,99998 bis 1,0 zum lokalen bge-m3, mit dem der Index gebaut wurde (also derselbe Vektorraum), rund 300 ms je Frage; `input` muss eine Liste sein.
 3. Sonst nichts (lokal: Ollama).
 
 **Gesundheitspruefung:** In Produktion wird das Werkzeug `wissenSuchen` erst angeboten, wenn eine Probe-Einbettung gelang (gemerkt: gut 5 min, schlecht 1 min). Ein konfigurierter, aber nicht erreichbarer Anbieter (zum Beispiel 403) laesst die Wissensbasis also aus, statt jede Rechtsfrage scheitern zu lassen; der Grund steht im Serverprotokoll (`[damicon] Wissensbasis nicht verfuegbar: ...`), die Compliance-Pruefung meldet "Wissensbasis nicht verfuegbar".

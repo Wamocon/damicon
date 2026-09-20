@@ -87,7 +87,9 @@ export function einbettungsKonfig(): EinbettungsKonfig | null {
     return { url, modell: process.env.WISSEN_EMBED_MODELL ?? "bge-m3", schluessel: process.env.WISSEN_EMBED_KEY, quelle: "umgebung" };
   }
   if (process.env.NODE_ENV === "production" && process.env.KI_SOKRATES_API_SCHLUESSEL) {
-    return { url: SOKRATES_BASIS, modell: process.env.WISSEN_EMBED_MODELL ?? "bge-m3", schluessel: process.env.WISSEN_EMBED_KEY ?? process.env.KI_SOKRATES_API_SCHLUESSEL, quelle: "sokrates" };
+    // Sokrates fuehrt das Modell mit dem Zusatz ":latest" (Stand 2026-09-20: dieselben Vektoren wie das lokale bge-m3,
+    // Kosinusaehnlichkeit 0,99998 bis 1,0; die Anfrage braucht "input" als Liste).
+    return { url: SOKRATES_BASIS, modell: process.env.WISSEN_EMBED_MODELL ?? "bge-m3:latest", schluessel: process.env.WISSEN_EMBED_KEY ?? process.env.KI_SOKRATES_API_SCHLUESSEL, quelle: "sokrates" };
   }
   return null;
 }
