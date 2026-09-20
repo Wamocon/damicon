@@ -7,9 +7,12 @@ import { Link } from "@/i18n/navigation";
 import { Icon } from "@/components/icon";
 import { useNavZiele } from "@/components/dashboard/nav-ziele";
 import { KontoBlatt } from "@/components/dashboard/konto-blatt";
+import { useHaustierStatus } from "@/components/haustier/haustier-kontext";
+import { Himbi } from "@/components/haustier/himbi";
 import { Himbeere } from "@/components/ki/himbeere";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { Sheet } from "@/components/ui/sheet";
+import { haustierZustand } from "@/lib/haustier";
 import { cn } from "@/lib/utils";
 
 // Untere Leiste, nur unter `md`. Drei Knoepfe: Menue, KI-Assistent, Konto.
@@ -58,6 +61,45 @@ function LeistenKnopf({
     >
       {children}
     </button>
+  );
+}
+
+// Himbi als KI-Knopf. Auf dem Handy steht er hier statt frei im Bild: dort
+// deckte er Karteninhalt zu, und direkt daneben trug die Leiste noch einmal
+// dieselbe Himbeere - zwei Zeichen fuer dieselbe Sache, eines davon im Weg.
+// Ein Tipp darauf oeffnet den Assistenten, also genau das, was ein Tipp auf
+// die schwebende Figur auch tat.
+//
+// Was er zeigt, ist die Phase des Agenten: denkt, wartet auf eine Freigabe,
+// etwas ging schief. Der Punkt daneben macht es auch dann sichtbar, wenn die
+// Figur bei 30 px klein ist.
+//
+// Ist Himbi abgeschaltet oder weggeschickt (Einstellung im Panel), bleibt es
+// bei der schlichten Himbeere - die Entscheidung gilt auf beiden Geraeten.
+function HimbiKnopf() {
+  const { phase, an, weg } = useHaustierStatus();
+
+  if (!an || weg) return <Himbeere groesse={20} />;
+
+  const zustand = haustierZustand({ phase, fertigUngelesen: false, schlaeft: false });
+  const meldet = phase !== "ruhe";
+
+  // 28 px breit ergeben 42 px Hoehe (die Figur ist 96 x 144) und bleiben damit
+  // im 44-px-Knopf. Der Schlagschatten der Figur (.hb-svg) sitzt ausserhalb
+  // des Umrisses, deshalb overflow-visible.
+  return (
+    <span className="relative inline-flex items-center justify-center overflow-visible">
+      <Himbi zustand={zustand} groesse={28} />
+      {meldet ? (
+        <span
+          className={cn(
+            "absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full",
+            phase === "fehler" ? "bg-destructive" : "bg-primary",
+          )}
+          aria-hidden="true"
+        />
+      ) : null}
+    </span>
   );
 }
 
@@ -156,7 +198,7 @@ export function UntereLeiste() {
                   ki.umschalten();
                 }}
               >
-                <Himbeere groesse={20} />
+                <HimbiKnopf />
               </LeistenKnopf>
             </li>
           ) : null}

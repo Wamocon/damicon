@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import {
@@ -22,6 +22,7 @@ import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { EskalationsFormular, KiChatFenster } from "@/components/db/ki-assistent-formulare";
 import type { KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
 import type { Pruefbereich } from "@/lib/pruefung/rollen";
+import { useIstHandy } from "@/components/ui/handy";
 import { cn } from "@/lib/utils";
 
 // Andockbares Seitenpanel (Layout dashboard/layout.tsx): sitzt NEBEN dem
@@ -41,30 +42,6 @@ import { cn } from "@/lib/utils";
 // Erklaerung beim Ueberfahren, worin der Unterschied besteht.
 
 type Ansicht = "chat" | "einstellungen" | "hilfe" | "mehr";
-
-// Handy-Breite, dieselbe Grenze wie die Blatt-Regeln in ki-pane.css und wie
-// Tailwinds md. Zwei Dinge haengen daran, die sich mit CSS allein nicht
-// loesen lassen: der Kopf traegt hier zwei Knoepfe statt vier (die uebrigen
-// liegen in der Mehr-Ansicht), und der Agent-Modus ruht.
-//
-// Der Server rendert die Schreibtisch-Fassung; auf dem Handy zieht sich der
-// Kopf nach der Hydration zusammen. Dieselbe Abwaegung wie bei der Breite der
-// Seitenleiste (sidebar-zustand.ts) und bei persona.tsx.
-const HANDY_ABFRAGE = "(max-width: 767.98px)";
-
-function handyAbonnieren(callback: () => void) {
-  const liste = window.matchMedia(HANDY_ABFRAGE);
-  liste.addEventListener("change", callback);
-  return () => liste.removeEventListener("change", callback);
-}
-
-function istHandy() {
-  return window.matchMedia(HANDY_ABFRAGE).matches;
-}
-
-function handyServer() {
-  return false;
-}
 
 function ModusEinstellung() {
   const t = useTranslations("kiAssistentAnsicht");
@@ -188,7 +165,7 @@ export function KiPane({
   const tp = useTranslations("pruefung");
   const [ansicht, setAnsichtRoh] = useState<Ansicht>("chat");
   const [pruefungOffen, setPruefungOffen] = useState(false);
-  const handy = useSyncExternalStore(handyAbonnieren, istHandy, handyServer);
+  const handy = useIstHandy();
 
   if (!verfuegbar) return null;
 
