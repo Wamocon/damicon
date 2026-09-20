@@ -6,6 +6,53 @@ export type AgentPhase = "ruhe" | "arbeitet" | "freigabe" | "fehler";
 
 export type HaustierZustand = "ruhe" | "denkt" | "freigabe" | "fertig" | "fehler" | "schlaeft" | "spricht" | "traurig";
 
+/** Wie die letzte Antwort geklungen hat. Steuert nur das Gesicht, nie die Phase: was der
+ *  Agent TUT, steht in HaustierZustand, wie es AUSGING, hier. */
+export type Stimmung = "neutral" | "gut" | "warnung" | "frage";
+
+// Wortstaemme in den fuenf Sprachen der Oberflaeche (de, en, ru, kk, tr). Bewusst nur
+// eindeutig gefaerbte Woerter: "nicht" und "kein" stehen in fast jeder deutschen Antwort
+// und wuerden alles als Warnung faerben. Verglichen wird am Wortanfang, damit Beugungen
+// mitlaufen (gefunden/gefundene, сохранено/сохранён, hata/hatası).
+const WARNUNG_STAEMME = [
+  "fehler", "fehlgeschlag", "problem", "leider", "achtung", "warnung", "abgelehnt",
+  "error", "failed", "failure", "sorry", "unable", "warning", "denied",
+  "ошибк", "проблем", "внимание", "отказ", "сбой",
+  "қате", "мәселе", "назар", "сәтсіз",
+  "hata", "sorun", "dikkat", "reddedildi", "başarısız",
+];
+const GUT_STAEMME = [
+  "fertig", "erledigt", "gespeichert", "erfolgreich", "angelegt", "aktualisiert", "gefunden",
+  "done", "saved", "success", "created", "updated", "found",
+  "готов", "сохран", "успешн", "создан", "обновл", "найден",
+  "дайын", "сақталды", "сәтті", "жаңарт", "табылды",
+  "hazır", "kaydedildi", "başarıyla", "oluşturuldu", "güncellendi", "bulundu",
+];
+const WARNUNG_ZEICHEN = ["⚠", "❌"];
+const GUT_ZEICHEN = ["✅", "✔"];
+
+/** Die Stimmung einer Antwort, ohne zweiten Modellaufruf und ohne zu wissen, in welcher
+ *  Sprache sie verfasst ist. Rangfolge: eine Warnung gewinnt vor einer Rueckfrage, eine
+ *  Rueckfrage vor Erfolg. Wer meldet, dass etwas schiefging, und dann noch nachfragt,
+ *  soll nicht zufrieden dreinschauen. */
+export function stimmungAusAntwort(antwort: string): Stimmung {
+  const text = antwort.trim();
+  if (!text) return "neutral";
+  if (WARNUNG_ZEICHEN.some((z) => text.includes(z))) return "warnung";
+
+  const woerter = text.toLowerCase().split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+  const hat = (staemme: string[]) => woerter.some((w) => staemme.some((s) => w.startsWith(s)));
+  if (hat(WARNUNG_STAEMME)) return "warnung";
+
+  // Ein Fragezeichen am Ende der letzten Zeile heisst in allen fuenf Sprachen dasselbe.
+  // Die letzte Zeile statt des ganzen Textes, weil Antworten oft mit einer Liste enden.
+  const letzteZeile = text.split("\n").map((z) => z.trim()).filter(Boolean).at(-1) ?? "";
+  if (/[?？]$/.test(letzteZeile)) return "frage";
+
+  if (GUT_ZEICHEN.some((z) => text.includes(z)) || hat(GUT_STAEMME)) return "gut";
+  return "neutral";
+}
+
 /** an = Himbi ist da. weg = weggeschickt, nur die Blattspitze schaut am Rand heraus (ein Klick holt sie
  *  zurueck). aus = in den Einstellungen ganz abgeschaltet, auch die Spitze bleibt weg. */
 export type Sichtbarkeit = "an" | "weg" | "aus";

@@ -26,7 +26,7 @@ export function HaustierDashboard() {
   const t = useTranslations("haustier");
   const moduleT = useTranslations("modules");
   const { verfuegbar, offen, umschalten, setOffen } = useKiPane();
-  const { phase, text, an, weg } = useHaustierStatus();
+  const { phase, text, an, weg, stimmung } = useHaustierStatus();
   const { stelleFrage, schickeWeg, holeZurueck } = useHaustierAktionen();
   const pfad = usePathname();
   const { role } = usePersona();
@@ -170,6 +170,7 @@ export function HaustierDashboard() {
   return (
     <HaustierHuelle
       zustand={zustand}
+      stimmung={stimmung}
       blase={blase}
       paneOffen={offen}
       label={label}

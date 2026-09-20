@@ -9,8 +9,13 @@
   right: 20px;
   bottom: 20px;
   z-index: 60;
-  width: 88px;
-  height: 132px;
+  /* Die Groesse folgt dem Fenster: auf dem Telefon klein genug, um nichts zu verdecken,
+     auf grossen Schirmen gross genug, dass man die Borte noch als Muster erkennt. Alles
+     Weitere (Schatten, Halte-Ring) rechnet gegen diese eine Zahl. 1,5 ist das Verhaeltnis
+     des viewBox, 144/96. */
+  --hb-breite: clamp(60px, 7.2vw, 104px);
+  width: var(--hb-breite);
+  height: calc(var(--hb-breite) * 1.5);
   pointer-events: none;
 }
 
@@ -90,6 +95,13 @@ html[data-ki-zieht] .haustier__verschiebung {
 .haustier[data-zieht="true"] .hb {
   transform: scale(1.12) rotate(var(--hb-neigung, 0deg));
 }
+/* In der Huelle fuellt die Figur den Kasten, statt die Breite aus dem Attribut zu nehmen -
+   nur so traegt die Groesse oben bis nach unten durch. */
+.haustier .hb-svg,
+.hb-versteck .hb-svg {
+  width: 100%;
+  height: auto;
+}
 .hb-svg {
   display: block;
   overflow: visible;
@@ -101,9 +113,9 @@ html[data-ki-zieht] .haustier__verschiebung {
   position: absolute;
   left: 50%;
   bottom: -3px;
-  width: 58px;
-  height: 9px;
-  margin-left: -29px;
+  width: calc(var(--hb-breite) * 0.66);
+  height: calc(var(--hb-breite) * 0.1);
+  margin-left: calc(var(--hb-breite) * -0.33);
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(0 0 0 / 0.28), rgb(0 0 0 / 0));
   transform-origin: center;
@@ -750,10 +762,10 @@ html[data-ki-zieht] .haustier__verschiebung {
 /* Ring, der sich waehrend des Haltens fuellt */
 .hb-ring {
   position: absolute;
-  left: -14px;
-  top: 8px;
-  width: 116px;
-  height: 116px;
+  left: calc(var(--hb-breite) * -0.16);
+  top: calc(var(--hb-breite) * 0.09);
+  width: calc(var(--hb-breite) * 1.32);
+  height: calc(var(--hb-breite) * 1.32);
   overflow: visible;
   pointer-events: none;
   transform: rotate(-90deg);
@@ -866,8 +878,9 @@ html[data-ki-zieht] .haustier__verschiebung {
   right: 34px;
   bottom: 0;
   z-index: 60;
-  width: 64px;
-  height: 52px;
+  --hb-versteck-breite: clamp(48px, 5.4vw, 76px);
+  width: var(--hb-versteck-breite);
+  height: calc(var(--hb-versteck-breite) * 0.8125);
   overflow: hidden;
   padding: 0;
   border: 0;
@@ -885,7 +898,7 @@ html[data-ki-zieht] .haustier__verschiebung {
 }
 .hb-versteck__innen {
   display: block;
-  transform: translateY(16px);
+  transform: translateY(16.67%);
 }
 @media (prefers-reduced-motion: no-preference) {
   .hb-versteck {
@@ -899,7 +912,7 @@ html[data-ki-zieht] .haustier__verschiebung {
   .hb-versteck:hover .hb-versteck__innen,
   .hb-versteck:focus-visible .hb-versteck__innen {
     animation: none;
-    transform: translateY(2px);
+    transform: translateY(2.08%);
   }
 }
 @keyframes hb-versteck-ein {
@@ -914,11 +927,11 @@ html[data-ki-zieht] .haustier__verschiebung {
   0%,
   70%,
   100% {
-    transform: translateY(16px);
+    transform: translateY(16.67%);
   }
   78%,
   90% {
-    transform: translateY(6px);
+    transform: translateY(6.25%);
   }
 }
 @media (min-width: 1100px) {
@@ -1260,5 +1273,99 @@ html[data-ki-zieht] .haustier__verschiebung {
   }
   50% {
     transform: rotate(1.8deg);
+  }
+}
+
+/* ---- Stimmung -----------------------------------------------------------------------
+   Liegt quer zum Zustand: der Zustand sagt, was der Agent TUT, die Stimmung, wie die
+   letzte Antwort AUSGING (lib/haustier.ts, stimmungAusAntwort). Darum ruehrt sie nur an
+   Brauen, Wangen und Kappe - Mund und Koerperbewegung gehoeren dem Zustand, sonst sieht
+   "denkt" nicht mehr aus wie "denkt".
+
+   Und nur in den Zustaenden, in denen gerade keine Antwort laeuft: waehrend "fehler" oder
+   "freigabe" hat das Gesicht schon eine Aufgabe. Das ":is(...)" haelt die Spezifitaet
+   hoch genug, um die Zustandsregeln weiter oben zu schlagen. */
+.hb-kappe {
+  transform-box: view-box;
+  transform-origin: 48px 44px;
+}
+.hb-wange,
+.hb-kappe {
+  transition: opacity 0.3s ease, transform 0.4s ease;
+}
+
+.hb-svg:is([data-zustand="ruhe"], [data-zustand="spricht"], [data-zustand="fertig"])[data-stimmung="gut"] .hb-braue {
+  transform: translateY(-2.6px);
+}
+.hb-svg:is([data-zustand="ruhe"], [data-zustand="spricht"], [data-zustand="fertig"])[data-stimmung="gut"] .hb-wange {
+  opacity: 0.85;
+}
+
+/* Warnung: eine Braue hoch, eine runter. Schief wirkt besorgt, zwei gesenkte wirken boese -
+   Himbi meldet einen Befund, sie schimpft nicht. */
+.hb-svg:is([data-zustand="ruhe"], [data-zustand="spricht"])[data-stimmung="warnung"] .hb-braue--l {
+  transform: rotate(-13deg) translateY(-1.6px);
+}
+.hb-svg:is([data-zustand="ruhe"], [data-zustand="spricht"])[data-stimmung="warnung"] .hb-braue--r {
+  transform: rotate(7deg) translateY(1.4px);
+}
+
+/* Rueckfrage: eine Braue hoch, Kopf schief. */
+.hb-svg:is([data-zustand="ruhe"], [data-zustand="spricht"])[data-stimmung="frage"] .hb-braue--r {
+  transform: translateY(-3.4px) rotate(9deg);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Die Reaktion laeuft auf der Kappe und der Blattkrone, nicht auf der ganzen Figur:
+     dort liegt schon die Bewegung des Zustands, und zwei Animationen auf einem Element
+     schliessen einander aus. */
+  .hb-svg[data-stimmung="gut"] .hb-kappe {
+    animation: hb-kappe-nicken 0.85s cubic-bezier(0.34, 1.5, 0.64, 1) 2;
+  }
+  .hb-svg[data-stimmung="warnung"] .hb-kappe {
+    animation: hb-kappe-wackeln 0.5s ease-in-out 3;
+  }
+  .hb-svg[data-stimmung="frage"] .hb-kappe {
+    animation: hb-kappe-neigen 2.4s ease-in-out infinite;
+  }
+  .hb-svg[data-stimmung="gut"] .hb-blatt {
+    animation: hb-wiegen 1.5s ease-in-out infinite;
+  }
+  .hb-svg[data-stimmung="frage"] .hb-blatt {
+    animation: hb-wiegen 5.2s ease-in-out infinite;
+  }
+}
+
+@keyframes hb-kappe-nicken {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  35% {
+    transform: translateY(2px) rotate(-5deg);
+  }
+  70% {
+    transform: translateY(-1.2px) rotate(3deg);
+  }
+}
+@keyframes hb-kappe-wackeln {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-7deg);
+  }
+  75% {
+    transform: rotate(7deg);
+  }
+}
+@keyframes hb-kappe-neigen {
+  0%,
+  100% {
+    transform: rotate(-9deg) translateX(-1px);
+  }
+  50% {
+    transform: rotate(-3.5deg) translateX(0);
   }
 }

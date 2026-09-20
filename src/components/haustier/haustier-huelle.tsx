@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { Himbi } from "@/components/haustier/himbi";
-import type { HaustierZustand } from "@/lib/haustier";
+import type { HaustierZustand, Stimmung } from "@/lib/haustier";
 import "@/components/haustier/haustier.css";
 
 // Die schwebende Huelle um Himbi: Position (unten rechts, frei verschiebbar), Augen, Schlaf,
@@ -46,6 +46,9 @@ const KONFETTI: Array<{ dx: number; dy: number; rot: number; farbe: string; verz
 export interface HaustierHuelleProps {
   /** Zustand aus Sicht des Aussenstehenden. "schlaeft" entscheidet die Huelle selbst (nach Leerlauf). */
   zustand: HaustierZustand;
+  /** Wie die letzte Antwort klang. Liegt quer zum Zustand: faerbt nur Brauen, Wangen und
+   *  eine kurze Reaktion, damit "denkt" trotzdem wie "denkt" aussieht. */
+  stimmung?: Stimmung;
   blase?: ReactNode;
   paneOffen?: boolean;
   /** Beschriftung fuer Screenreader (Zustand in Worten). */
@@ -71,7 +74,7 @@ export interface WegTexte {
   hinweis: string;
 }
 
-export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKlick, blickZiel, hoch = false, huepf = 0, weg }: HaustierHuelleProps) {
+export function HaustierHuelle({ zustand, stimmung = "neutral", blase, paneOffen = false, label, onKlick, blickZiel, hoch = false, huepf = 0, weg }: HaustierHuelleProps) {
   const wurzel = useRef<HTMLDivElement>(null);
   const griff = useRef<HTMLDivElement>(null);
   const versatz = useRef<HTMLDivElement>(null);
@@ -439,7 +442,7 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
               </span>
             ) : null}
             <div className="hb" ref={koerper}>
-              <Himbi zustand={anzeige} />
+              <Himbi zustand={anzeige} stimmung={stimmung} />
             </div>
             {anzeige === "freigabe" ? <span className="hb-abzeichen">!</span> : null}
             {zustand === "fertig" ? <span className="hb-abzeichen hb-abzeichen--fertig">✓</span> : null}

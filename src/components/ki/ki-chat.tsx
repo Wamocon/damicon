@@ -53,7 +53,7 @@ import {
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { usePersona } from "@/components/dashboard/persona";
 import { useHaustierAktionen, useHaustierVorgabe } from "@/components/haustier/haustier-kontext";
-import { agentPhase } from "@/lib/haustier";
+import { agentPhase, stimmungAusAntwort } from "@/lib/haustier";
 import { Himbeere } from "@/components/ki/himbeere";
 import { useKiPane, type KiModus } from "@/components/ki/ki-pane-kontext";
 import { AKTIONS_NAMEN, AKTIONS_RECHTE, istAktion, type AktionsName } from "@/lib/ai/aktionen-meta";
@@ -686,9 +686,18 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
           absicht: laufenderSchritt.absicht,
         })
       : t(modus === "agent" ? "agentDenkt" : "assistentDenkt");
+  // Wie die fertige Antwort geklungen hat, entscheidet Himbis Gesicht. Bewusst hier und
+  // nicht im Modell: kein zweiter Aufruf, keine Wartezeit, und es funktioniert in jeder
+  // der fuenf Sprachen der Oberflaeche.
+  const haustierStimmung = useMemo(() => {
+    if (beschaeftigt) return "neutral" as const;
+    const letzte = messages.at(-1);
+    if (!letzte || letzte.role !== "assistant") return "neutral" as const;
+    return stimmungAusAntwort(textVonNachricht(letzte));
+  }, [messages, beschaeftigt]);
   useEffect(() => {
-    melde(haustierPhase, haustierText);
-  }, [melde, haustierPhase, haustierText]);
+    melde(haustierPhase, haustierText, haustierStimmung);
+  }, [melde, haustierPhase, haustierText, haustierStimmung]);
 
   // Eine Frage, die Himbi stellen moechte ("Zeig mir das" im Tipp): abschicken, sobald es geht;
   // fehlt noch die Einwilligung oder laeuft gerade eine Antwort, landet sie im Eingabefeld.
