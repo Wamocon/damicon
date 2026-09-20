@@ -3,9 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Loader2, Mic, Square } from "lucide-react";
-import { MikrofonWelle } from "@/components/ki/mikrofon-welle";
 import { transkribiereSprachnachricht } from "@/lib/actions/ki-assistent";
-import { starteHoeren, stoppeHoeren } from "@/lib/hoeren";
 import { leer } from "@/lib/actions/status";
 import {
   diktatEinstellungen,
@@ -34,14 +32,11 @@ import { cn } from "@/lib/utils";
 // echter Unterschied.
 export function MikrofonKnopf({
   beiText,
-  beiAufnahme,
   beiSenden,
   className,
   deaktiviert = false,
 }: {
   beiText: (text: string) => void;
-  /** Meldet, ob gerade aufgenommen wird - fuer eine Welle ausserhalb dieses Knopfs. */
-  beiAufnahme?: (an: boolean) => void;
   /** Gesetzt: der erkannte Text wird sofort abgeschickt, ohne zweiten Klick.
    *  Nicht gesetzt: er bleibt zum Nachlesen im Eingabefeld stehen. */
   beiSenden?: (text: string) => void;
@@ -77,22 +72,14 @@ export function MikrofonKnopf({
     recorderRef.current?.stream.getTracks().forEach((spur) => spur.stop());
   }
 
-  useEffect(() => {
-    beiAufnahme?.(zustand === "aufnahme");
-  }, [zustand, beiAufnahme]);
-
   // Eine laufende Aufnahme darf das Mikrofon nicht behalten, wenn die
   // Komponente verschwindet (Panel zu, Seitenwechsel mitten im Diktat).
   useEffect(() => {
     return () => {
       const r = recorderRef.current;
       if (r && r.state !== "inactive") r.stop();
-      stoppeHoeren();
       raeumeAuf();
-      beiAufnahme?.(false);
     };
-    // beiAufnahme nur beim Aufraeumen lesen, nicht bei jeder Aenderung neu binden.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /** Pegel messen, Balken bewegen, Stille erkennen - eine Schleife im
@@ -162,7 +149,6 @@ export function MikrofonKnopf({
       };
 
       recorder.onstop = async () => {
-        stoppeHoeren();
         raeumeAuf();
         const aufnahme = new Blob(teile, { type: recorder.mimeType || "audio/webm" });
         // "stopp-leer": die Stilleerkennung hat nie Sprache gehoert. Diese
@@ -196,10 +182,6 @@ export function MikrofonKnopf({
 
       recorder.start();
       recorderRef.current = recorder;
-      // Denselben Strom auch mithoeren: daraus speist sich der Streifen neben dem Knopf
-      // und die Frequenzkugel hinter der Figur (lib/hoeren.ts). Schlaegt das fehl,
-      // aendert sich nur, dass beide weiter nach Uhr schwingen statt nach Stimme.
-      starteHoeren(strom);
       setZustand("aufnahme");
       beobachte(strom, recorder);
     } catch {
@@ -223,25 +205,22 @@ export function MikrofonKnopf({
 
   return (
     <>
-      <span className="ki-mikrofon__huelle">
-        {zustand === "aufnahme" ? <MikrofonWelle /> : null}
-        <button
-          type="button"
-          onClick={zustand === "aufnahme" ? stoppen : starten}
-          disabled={deaktiviert || zustand === "laeuft"}
-          title={beschriftung}
-          aria-label={beschriftung}
-          className={cn(className, zustand === "aufnahme" && "ki-mikrofon--aufnahme")}
-        >
-          {zustand === "laeuft" ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : zustand === "aufnahme" ? (
-            <Square className="h-3.5 w-3.5 fill-current" />
-          ) : (
-            <Mic className="h-4 w-4" />
-          )}
-        </button>
-      </span>
+      <button
+        type="button"
+        onClick={zustand === "aufnahme" ? stoppen : starten}
+        disabled={deaktiviert || zustand === "laeuft"}
+        title={beschriftung}
+        aria-label={beschriftung}
+        className={cn(className, zustand === "aufnahme" && "ki-mikrofon--aufnahme")}
+      >
+        {zustand === "laeuft" ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : zustand === "aufnahme" ? (
+          <Square className="h-3.5 w-3.5 fill-current" />
+        ) : (
+          <Mic className="h-4 w-4" />
+        )}
+      </button>
       {zustand === "aufnahme" ? (
         // Rein dekorativ: was hier zu sehen ist, steht als Text schon im
         // Knopf ("Aufnahme beenden"). Vorlesegeraete sollen nicht fuenf
