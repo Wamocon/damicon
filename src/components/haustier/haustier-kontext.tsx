@@ -1,8 +1,8 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
-import { leseSichtbarkeit, type AgentPhase, type Sichtbarkeit } from "@/lib/haustier";
+import { leseBewegung, leseSichtbarkeit, type AgentPhase, type Sichtbarkeit, type Stimmung } from "@/lib/haustier";
 
 // Gemeinsamer Stand zwischen Chat und Himbi. Bewusst in DREI Kontexten statt einem:
 // - Status (Phase, Text, an/aus): liest nur Himbi. Aendert sich mit jedem Werkzeugschritt.
@@ -53,9 +53,11 @@ interface Status {
   an: boolean;
   /** Weggeschickt: nur die Blattspitze schaut am Rand heraus. */
   weg: boolean;
+  /** Wie die letzte fertige Antwort geklungen hat. Faerbt nur das Gesicht. */
+  stimmung: Stimmung;
 }
 interface Aktionen {
-  melde: (phase: AgentPhase, text: string) => void;
+  melde: (phase: AgentPhase, text: string, stimmung?: Stimmung) => void;
   stelleFrage: (text: string) => void;
   /** Einstellung: ein (Himbi da) oder ganz aus (auch keine Spitze am Rand). */
   setAn: (an: boolean) => void;
@@ -68,7 +70,7 @@ export interface Vorgabe {
   text: string;
 }
 
-const StatusKontext = createContext<Status>({ phase: "ruhe", text: "", an: true, weg: false });
+const StatusKontext = createContext<Status>({ phase: "ruhe", text: "", an: true, weg: false, stimmung: "neutral" });
 const AktionenKontext = createContext<Aktionen>({
   melde: () => {},
   stelleFrage: () => {},
@@ -86,12 +88,20 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
   const { setOffen } = useKiPane();
   const [phase, setPhase] = useState<AgentPhase>("ruhe");
   const [text, setText] = useState("");
+  const [stimmung, setStimmung] = useState<Stimmung>("neutral");
+
+  // Der gespeicherte Bewegungsschalter gilt fuer das ganze Dokument. Einmal beim Start
+  // setzen - danach schreibt ihn nur noch die Einstellung selbst.
+  useEffect(() => {
+    document.documentElement.toggleAttribute("data-hb-still", !leseBewegung());
+  }, []);
   const sichtbarkeit = useSyncExternalStore(abonniere, leseSpeicher, serverWert);
   const [vorgabe, setVorgabe] = useState<Vorgabe | null>(null);
 
-  const melde = useCallback((neuePhase: AgentPhase, neuerText: string) => {
+  const melde = useCallback((neuePhase: AgentPhase, neuerText: string, neueStimmung: Stimmung = "neutral") => {
     setPhase(neuePhase);
     setText(neuerText);
+    setStimmung(neueStimmung);
   }, []);
 
   const setAn = useCallback((an: boolean) => schreibeSpeicher(an ? "an" : "aus"), []);
@@ -106,7 +116,10 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
     [setOffen],
   );
 
-  const status = useMemo(() => ({ phase, text, an: sichtbarkeit === "an", weg: sichtbarkeit === "weg" }), [phase, text, sichtbarkeit]);
+  const status = useMemo(
+    () => ({ phase, text, an: sichtbarkeit === "an", weg: sichtbarkeit === "weg", stimmung }),
+    [phase, text, sichtbarkeit, stimmung],
+  );
   const aktionen = useMemo(
     () => ({ melde, stelleFrage, setAn, schickeWeg, holeZurueck }),
     [melde, stelleFrage, setAn, schickeWeg, holeZurueck],

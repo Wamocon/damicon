@@ -1564,14 +1564,23 @@
   },
   "haustier": {
     "label": {
-      "ruhe": "Himbi, your companion. Click to open the chat.",
-      "denkt": "Himbi is working. Click to open the chat.",
-      "freigabe": "Himbi needs your approval. Click to open the chat.",
-      "fertig": "Himbi is done. Click to see the answer.",
+      "ruhe": "DamiAI, your companion. Click to open the chat.",
+      "denkt": "DamiAI is working. Click to open the chat.",
+      "freigabe": "DamiAI needs your approval. Click to open the chat.",
+      "fertig": "DamiAI is done. Click to see the answer.",
       "fehler": "Something went wrong. Click to open the chat.",
-      "schlaeft": "Himbi is asleep. Click to open the chat.",
-      "spricht": "Himbi is speaking.",
-      "tour": "Himbi, your companion. Click to open the tour."
+      "schlaeft": "DamiAI is asleep. Click to open the chat.",
+      "spricht": "DamiAI is speaking.",
+      "tour": "DamiAI, your companion. Click to open the tour.",
+      "kurz": {
+        "ruhe": "Idle",
+        "denkt": "Working",
+        "spricht": "Speaking",
+        "freigabe": "Approval",
+        "fertig": "Done",
+        "fehler": "Error",
+        "schlaeft": "Asleep"
+      }
     },
     "arbeitet": "Working on it …",
     "imHintergrund": "Running in the background, keep working.",
@@ -1585,7 +1594,34 @@
       "hinweis": "Hold me down to send me away."
     },
     "willkommen": "I’m back!",
-    "zurueckholen": "Bring Himbi back",
+    "zurueckholen": "Bring DamiAI back",
+    "befinden": {
+      "frage": "How is your day going so far?",
+      "gut": "Going well",
+      "mittel": "So-so",
+      "viel": "Swamped",
+      "antwort": {
+        "gut": "Good. Let's get something done.",
+        "mittel": "Fair enough. Tell me if I can take something off your plate.",
+        "viel": "Then let me take the tedious part. Just ask."
+      },
+      "hilfe": "Where do I start?",
+      "hilfeText": "What is on today? Name the three things I should deal with first."
+    },
+    "anstupser": {
+      "neuHeute": {
+        "frage": "Want me to show you what changed today?",
+        "frageText": "What changed today? Summarise the main points briefly."
+      },
+      "kuehlzeit": {
+        "frage": "Want me to check how the cooling times are running?",
+        "frageText": "How are the cooling times running? Name the batches that cut it closest."
+      },
+      "fristen": {
+        "frage": "Want me to go through the open deadlines?",
+        "frageText": "Which deadlines are coming up? Sort them by urgency."
+      }
+    },
     "tipp": {
       "frage": "You are in “{bereich}”. Shall I show you what you can do here?",
       "ja": "Show me",
@@ -1593,11 +1629,22 @@
       "frageText": "Explain the area “{bereich}” to me: what can I do here?"
     },
     "einstellung": {
-      "titel": "Himbi, your companion",
-      "text": "Shows in the corner what the agent is doing, even when the chat is closed. Hold Himbi down to send it away, the tip at the bottom edge brings it back. Switched off here, Himbi stays away completely."
+      "titel": "DamiAI, your companion",
+      "text": "Shows in the corner what the agent is doing, even when the chat is closed. Hold DamiAI down to send it away, the tip at the bottom edge brings it back. Switched off here, DamiAI stays away completely.",
+      "bewegungTitel": "Motion",
+      "bewegungText": "Off means DamiAI stays, but holds still. If your system is already set to reduced motion, you do not need this switch.",
+      "zustandTitel": "State",
+      "stimmungTitel": "Expression",
+      "vorschauHinweis": "A preview only - the companion in the corner is untouched.",
+      "stimmung": {
+        "neutral": "Information",
+        "gut": "Success",
+        "warnung": "Finding",
+        "frage": "Follow-up"
+      }
     },
     "tour": {
-      "gruss": "Hi, I am Himbi! Shall I show you Damicon in one minute?",
+      "gruss": "Hi, I am DamiAI! Shall I show you Damicon in one minute?",
       "autoStart": "I will start on my own in a moment. Click or scroll if you would rather look around yourself.",
       "start": "Start the tour",
       "nein": "No thanks",
@@ -1665,6 +1712,8 @@
     "agentDenkt": "Agent is picking the facts …",
     "agentPrueft": "Agent is checking: {werkzeug} …",
     "schliessen": "Close",
+    "buehne": "Move to the centre",
+    "andocken": "Dock to the side",
     "breiteAendern": "Resize: drag or use arrow keys, double-click to reset",
     "keinVerlauf": "No message yet. Ask your first question below.",
     "inputPlaceholder": "Enter a question ...",
