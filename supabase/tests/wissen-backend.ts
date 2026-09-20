@@ -233,7 +233,7 @@ async function gesundheit() {
   }
   await mitUmgebung({ ...ENV_LEER, NODE_ENV: "production", KI_SOKRATES_API_SCHLUESSEL: "geheim" }, () => {
     const k = einbettungsKonfig();
-    pruefe("Sokrates-Vorgabe: in Produktion mit vorhandenem Zugang ohne weitere Einstellung", k?.quelle === "sokrates" && k.url.includes("sokrates") && k.schluessel === "geheim" && k.modell === "bge-m3" && wissenBackend() === "supabase");
+    pruefe("Sokrates-Vorgabe: in Produktion mit vorhandenem Zugang ohne weitere Einstellung", k?.quelle === "sokrates" && k.url.includes("sokrates") && k.schluessel === "geheim" && k.modell === "bge-m3:latest" && wissenBackend() === "supabase");
   });
   await mitUmgebung({ ...ENV_LEER, NODE_ENV: "development", KI_SOKRATES_API_SCHLUESSEL: "geheim" }, () => {
     pruefe("Sokrates-Vorgabe: lokal nicht (dort gilt Ollama)", einbettungsKonfig() === null);
