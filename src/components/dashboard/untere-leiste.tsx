@@ -2,8 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronRight, LayoutGrid, UserRound } from "lucide-react";
-import { Link } from "@/i18n/navigation";
+import { LayoutGrid, UserRound } from "lucide-react";
 import { Icon } from "@/components/icon";
 import { useNavZiele } from "@/components/dashboard/nav-ziele";
 import { KontoBlatt } from "@/components/dashboard/konto-blatt";
@@ -11,6 +10,7 @@ import { useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { Himbi } from "@/components/haustier/himbi";
 import { Himbeere } from "@/components/ki/himbeere";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
+import { BlattZeile } from "@/components/ui/blatt-zeile";
 import { Sheet } from "@/components/ui/sheet";
 import { haustierZustand } from "@/lib/haustier";
 import { cn } from "@/lib/utils";
@@ -121,35 +121,14 @@ function BereichsListe({ onNavigate }: { onNavigate: () => void }) {
     <ul className="space-y-1.5 p-4">
       {ziele.map((ziel) => (
         <li key={ziel.key}>
-          <Link
+          <BlattZeile
             href={ziel.href}
             onClick={onNavigate}
-            aria-current={
-              ziel.aktuelleSeite ? "page" : ziel.imZiel ? "true" : undefined
-            }
-            className={cn(
-              "flex h-14 items-center gap-3 rounded-xl border px-3 transition-colors",
-              ziel.imZiel
-                ? "border-primary/30 bg-primary/10 text-primary"
-                : "border-border text-foreground hover:bg-muted",
-            )}
-          >
-            <span
-              className={cn(
-                "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-                ziel.imZiel ? "bg-primary/15" : "bg-muted",
-              )}
-            >
-              <Icon name={ziel.icon} className="h-5 w-5" />
-            </span>
-            <span className="min-w-0 flex-1 truncate text-base font-bold">
-              {ziel.name}
-            </span>
-            <ChevronRight
-              className="h-4 w-4 shrink-0 text-muted-foreground"
-              aria-hidden="true"
-            />
-          </Link>
+            aktiv={ziel.imZiel}
+            aktuelleSeite={ziel.aktuelleSeite}
+            symbol={<Icon name={ziel.icon} className="h-5 w-5" />}
+            text={ziel.name}
+          />
         </li>
       ))}
     </ul>

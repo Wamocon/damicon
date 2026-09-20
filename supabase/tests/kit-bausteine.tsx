@@ -191,6 +191,69 @@ pruefe(
     !kachel.includes("text-dense"),
 );
 
+// 8. Eine Zelle hinter einer Bedingung. Drei Tabellen im Projekt haben das:
+//    die Personenspalte in pflichtschulungen-ansicht.tsx steht hinter
+//    `istBuero`, die Aktionsspalten in dokumente-ansicht.tsx und
+//    reihenbloecke-ansicht.tsx hinter einem Recht. Alle drei fuehren dieselbe
+//    Bedingung im head-Array mit - und genau darauf ruht die Zuordnung.
+//
+//    Der Fall ist der gefaehrlichste von allen: faellt eine Zelle weg, deren
+//    Kopf stehen bleibt, ist nichts kaputt, nichts wirft, nichts sieht am
+//    Schreibtisch anders aus. Nur auf dem Handy steht dann an jedem Wert der
+//    Name seines linken Nachbarn.
+const ohneBedingteSpalte = (istBuero: boolean) =>
+  renderToStaticMarkup(
+    <DataTable
+      head={[
+        ...(istBuero ? ["Person"] : []),
+        "Schulung",
+        "Faellig",
+      ]}
+    >
+      <tr>
+        {istBuero ? <td>Aliya</td> : null}
+        <td>Hygiene</td>
+        <td>01.12.</td>
+      </tr>
+    </DataTable>,
+  );
+
+const mitPerson = ohneBedingteSpalte(true);
+const ohnePerson = ohneBedingteSpalte(false);
+
+pruefe(
+  "Faellt die erste Zelle samt ihrem Kopf weg, bleibt der Rest richtig zugeordnet",
+  ohnePerson.includes('data-kopf="Schulung">Hygiene') &&
+    ohnePerson.includes('data-kopf="Faellig">01.12.') &&
+    !ohnePerson.includes('data-kopf="Person"'),
+  "Muster pflichtschulungen-ansicht.tsx",
+);
+
+pruefe(
+  "Mit der Bedingung steht die Person wieder in ihrer eigenen Spalte",
+  mitPerson.includes('data-kopf="Person">Aliya') &&
+    mitPerson.includes('data-kopf="Schulung">Hygiene'),
+);
+
+// Und die Gegenprobe: dass die Zusage oben wirklich an der Bedingung haengt
+// und nicht ohnehin gilt. Hier faellt die Zelle weg, der Kopf bleibt - so
+// sieht der Schaden aus, den das Muster oben verhindert.
+const kopfOhneZelle = renderToStaticMarkup(
+  <DataTable head={["Person", "Schulung", "Faellig"]}>
+    <tr>
+      {false ? <td>Aliya</td> : null}
+      <td>Hygiene</td>
+      <td>01.12.</td>
+    </tr>
+  </DataTable>,
+);
+
+pruefe(
+  "Bleibt der Kopf ohne seine Zelle stehen, verschiebt sich alles - die Bedingung ist scharf",
+  kopfOhneZelle.includes('data-kopf="Person">Hygiene'),
+  "deshalb gehoeren Kopf und Zelle unter dieselbe Bedingung",
+);
+
 console.log(
   `\nPruefungen: ${bestanden + fehlgeschlagen}   bestanden: ${bestanden}   fehlgeschlagen: ${fehlgeschlagen}`,
 );

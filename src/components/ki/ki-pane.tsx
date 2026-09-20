@@ -22,6 +22,7 @@ import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { EskalationsFormular, KiChatFenster } from "@/components/db/ki-assistent-formulare";
 import type { KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
 import type { Pruefbereich } from "@/lib/pruefung/rollen";
+import { BlattZeile } from "@/components/ui/blatt-zeile";
 import { useIstHandy } from "@/components/ui/handy";
 import { cn } from "@/lib/utils";
 
@@ -42,31 +43,6 @@ import { cn } from "@/lib/utils";
 // Erklaerung beim Ueberfahren, worin der Unterschied besteht.
 
 type Ansicht = "chat" | "einstellungen" | "hilfe" | "pruefung" | "mehr";
-
-// Eine Zeile der Mehr-Ansicht. 56 px hoch, volle Breite - dasselbe Mass wie
-// die Bereiche im Menue-Blatt der unteren Leiste.
-function MehrZeile({
-  symbol,
-  text,
-  onClick,
-}: {
-  symbol: ReactNode;
-  text: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex h-14 w-full items-center gap-3 rounded-xl border border-border px-3 text-left text-base font-bold text-foreground transition-colors hover:bg-muted"
-    >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-        {symbol}
-      </span>
-      <span className="min-w-0 flex-1 truncate">{text}</span>
-    </button>
-  );
-}
 
 function ModusEinstellung() {
   const t = useTranslations("kiAssistentAnsicht");
@@ -288,7 +264,7 @@ export function KiPane({
                         setPruefungGeladen(true);
                         umschalten("pruefung");
                       }}
-                      aria-pressed={ansicht === "pruefung"}
+                      aria-pressed={sichtbar === "pruefung"}
                       aria-label={tp("knopf")}
                       title={tp("knopf")}
                       className="ki-pane__knopf"
@@ -300,7 +276,7 @@ export function KiPane({
                     <button
                       type="button"
                       onClick={() => umschalten("einstellungen")}
-                      aria-pressed={ansicht === "einstellungen"}
+                      aria-pressed={sichtbar === "einstellungen"}
                       aria-label={t("einstellungen")}
                       title={t("einstellungen")}
                       className="ki-pane__knopf"
@@ -311,7 +287,7 @@ export function KiPane({
                   <button
                     type="button"
                     onClick={() => umschalten("hilfe")}
-                    aria-pressed={ansicht === "hilfe"}
+                    aria-pressed={sichtbar === "hilfe"}
                     aria-label={t("eskalationKnopf")}
                     title={t("eskalationKnopf")}
                     className="ki-pane__knopf"
@@ -327,7 +303,13 @@ export function KiPane({
                 title={t("schliessen")}
                 className="ki-pane__knopf"
               >
-                <X className={handy ? "h-5 w-5" : "h-4 w-4"} />
+                {/* Ueber CSS und nicht ueber `handy`: eine Groesse ist keine
+                    Frage, fuer die der zweite Renderdurchgang noetig waere,
+                    und der Server rendert die Schreibtisch-Fassung - das
+                    Kreuz waere auf dem Handy erst klein und spraenge nach der
+                    Hydration. Siehe ui/handy.ts: was mit einer Media Query
+                    geht, gehoert auch dorthin. */}
+                <X className="h-5 w-5 md:h-4 md:w-4" />
               </button>
             </div>
           </header>
@@ -356,7 +338,7 @@ export function KiPane({
             {sichtbar === "mehr" ? (
               <div className="ki-pane__ansicht space-y-2 overflow-y-auto p-4">
                 {pruefungBereiche.length > 0 ? (
-                  <MehrZeile
+                  <BlattZeile
                     symbol={<ShieldCheck className="h-5 w-5" />}
                     text={tp("knopf")}
                     onClick={() => {
@@ -366,13 +348,13 @@ export function KiPane({
                   />
                 ) : null}
                 {hatEinstellungen ? (
-                  <MehrZeile
+                  <BlattZeile
                     symbol={<Settings2 className="h-5 w-5" />}
                     text={t("einstellungen")}
                     onClick={() => setAnsicht("einstellungen")}
                   />
                 ) : null}
-                <MehrZeile
+                <BlattZeile
                   symbol={<LifeBuoy className="h-5 w-5" />}
                   text={t("eskalationKnopf")}
                   onClick={() => setAnsicht("hilfe")}

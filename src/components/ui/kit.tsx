@@ -188,9 +188,21 @@ export function Stat({
 //
 // Der Baustein macht das selbst, statt es von 29 Aufrufstellen zu verlangen.
 // Die Zuordnung geht ueber die Reihenfolge: die n-te Zelle einer Zeile gehoert
-// zum n-ten Kopf. Das gilt, weil alle Aufrufer ihre Zellen unbedingt rendern -
-// keine einzige Zeile im Projekt hat eine Zelle hinter einer Bedingung, was
-// den Index verschieben wuerde.
+// zum n-ten Kopf.
+//
+// Daran haengt eine Bedingung, und zwar eine, die der Aufrufer einhalten muss:
+// Eine Zelle, die nur manchmal gerendert wird, braucht einen Kopf, der unter
+// genau derselben Bedingung steht. Drei Tabellen tun das heute - die
+// Personenspalte in pflichtschulungen-ansicht.tsx steht hinter `istBuero`, die
+// Aktionsspalten in dokumente-ansicht.tsx und reihenbloecke-ansicht.tsx hinter
+// einem Recht -, und alle drei fuehren dieselbe Bedingung im head-Array mit
+// (`...(istBuero ? [t("col.person")] : [])`).
+//
+// Faellt eine Zelle weg, deren Kopf stehen bleibt, verschieben sich alle
+// Beschriftungen ab dieser Spalte um eins. Sichtbar wird das nur unter `md`
+// und nur an einem falschen Namen neben einem richtigen Wert - am Schreibtisch
+// faellt es niemandem auf. Deshalb steht der Fall in kit-bausteine.tsx auf dem
+// Pruefstand, in beiden Richtungen.
 //
 // Zellen mit colSpan sind keine Werte, sondern Meldungen ueber die ganze
 // Breite ("keine Daten"). Sie bekommen keine Beschriftung und zaehlen ihre

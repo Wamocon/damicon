@@ -427,7 +427,12 @@
     position: sticky;
     left: 0;
     z-index: 1;
-    background: var(--card);
+    /* --card-deckend, nicht --card: im Dark Mode ist --card zu 26 Prozent
+       durchsichtig. Durch eine festgehaltene Spalte liefen damit beim
+       Querscrollen die Zellen sichtbar hindurch - genau der Fehler, den das
+       deckende Token oben fuer die untere Leiste behebt und in seinem
+       eigenen Kommentar auch fuer diese Spalte beansprucht. */
+    background: var(--card-deckend);
   }
   /* Der Kopf einer Matrix waechst nicht mit: er ist ein Etikett ueber einer
      Spalte aus Haekchen, und groesser gesetzt macht er jede Spalte breiter -
@@ -437,8 +442,17 @@
   }
   .datentabelle[data-matrix] thead th:first-child {
     /* Der Kopf der ersten Spalte liegt in beiden Richtungen fest und
-       braucht den Grund der Kopfzeile, nicht den der Karte. */
-    background: color-mix(in oklab, var(--muted) 40%, var(--card));
+       braucht den Grund der Kopfzeile, nicht den der Karte.
+
+       Zwei Ebenen statt einer Mischung: --muted ist im Dark Mode selbst zu
+       42 Prozent durchsichtig, eine Mischung aus zwei durchsichtigen Toenen
+       bleibt durchsichtig. Unten die deckende Flaeche, darueber genau der
+       Ton, den `bg-muted/40` an der uebrigen Kopfzeile erzeugt. */
+    background-color: var(--card-deckend);
+    background-image: linear-gradient(
+      color-mix(in oklab, var(--muted) 40%, transparent),
+      color-mix(in oklab, var(--muted) 40%, transparent)
+    );
   }
 }
 

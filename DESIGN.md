@@ -118,7 +118,9 @@ Karten `rounded-2xl`, Tabellen und Panels `rounded-xl`, Buttons `rounded-lg` bis
 
 **Dashboard-Grund:** `.dashboard-shell` legt über `--background` ein Raster aus 96-px-Linien und einen leichten Verlauf nach Kök. Beim Drucken entfällt er.
 
-## 5. Bausteine (`src/components/ui/kit.tsx`)
+## 5. Bausteine (`src/components/ui/`)
+
+Die folgenden liegen in `kit.tsx`; `Sheet` und `BlattZeile` stehen in eigenen Dateien daneben.
 
 | Baustein | Zweck | Kern |
 |---|---|---|
@@ -127,9 +129,11 @@ Karten `rounded-2xl`, Tabellen und Panels `rounded-xl`, Buttons `rounded-lg` bis
 | `PageHeader` | Eyebrow, Titel, Beschreibung, Aktionen rechts | untereinander mobil, nebeneinander ab `md` |
 | `Stat` | Kennzahlkachel | Label, Wert (auch `CountUp`), Hilfstext, Ton |
 | `StatusPill` | Zustand als Kurzlabel | Töne `success`, `info`, `neutral`, `warning`, `danger` |
-| `DataTable` | Tabelle | ab `md` `overflow-x-auto` und `min-w-[640px]`, Kopf auf `muted/40`, Trennlinien `divide-border`. Darunter wird jede Zeile zu einer Karte: Beschriftung links, Wert rechts (`.datentabelle` in `globals.css`). Die Beschriftung kommt aus `data-kopf`, das der Baustein selbst an jede Zelle hängt — keine der 29 Aufrufstellen weiß davon. Eine Zelle, in der etwas eingegeben wird, steht einspaltig und ihre Felder untereinander über die volle Breite: zwei Spalten sind für einen Wert richtig, den man liest, und falsch für ein Formular, das man bedient. Geprüft durch `npm run test:tabelle`. |
+| `DataTable` | Tabelle | ab `md` `overflow-x-auto` und `min-w-[640px]`, Kopf auf `muted/40`, Trennlinien `divide-border`. Darunter wird jede Zeile zu einer Karte: Beschriftung links, Wert rechts (`.datentabelle` in `globals.css`). Die Beschriftung kommt aus `data-kopf`, das der Baustein selbst an jede Zelle hängt — keine der 29 Aufrufstellen weiß davon. Eine Zelle, in der etwas eingegeben wird, steht einspaltig und ihre Felder untereinander über die volle Breite: zwei Spalten sind für einen Wert richtig, den man liest, und falsch für ein Formular, das man bedient. Geprüft durch `npm run test:kit`. |
 | `Skeleton` | Platzhalter beim Laden | `animate-pulse rounded bg-muted`, zurückgenommen bei `motion-reduce`; Höhe und Breite gibt die aufrufende Seite |
 | `SkeletonCard` | Platzhalter in Kartenform | wie `Skeleton`, dazu `rounded-xl border bg-card`, damit beim Einsetzen des Inhalts nichts springt |
+| `Sheet` (`ui/sheet.tsx`) | Fläche, die von unten aufgeht | Nur unter `md` verwendet, für die untere Leiste. Trägt Esc, Klick daneben, Scroll-Sperre und eine Fokusfalle; `bg-card-deckend`, `max-h-[85svh]`. Hängt beim Schließen aus — was gemountet bleiben muss, wie das KI-Panel mit einer laufenden Antwort, baut seine Fläche selbst (`ki-pane.css`). |
+| `BlattZeile` (`ui/blatt-zeile.tsx`) | Eine Zeile in so einer Fläche | Symbol links, Text, Pfeil rechts, `h-14` (44 px Berührungsfläche plus Innenabstand). Mit `href` ein Link mit `aria-current`, ohne einen Knopf. Verwendet im Menü-Blatt und in der Mehr-Ansicht des KI-Panels: beide Blätter gehen vom selben Knopfband auf und müssen deshalb gleich aussehen. |
 
 Ton-Zuordnung der Statuspille: Hintergrund 10–12 %, Text und Rand in der Statusfarbe (Rand 25 %). `info` nutzt `primary`.
 
@@ -250,13 +254,15 @@ Etiketten, Pflücker-Ausweise und der Aushang sind für Papier gedacht. Unter `@
 ## 12. Regeln für neue Oberflächen
 
 1. Farben nur über Tokens (`bg-primary`, `text-muted-foreground`, `var(--chart-3)`), keine Hex-Werte im Bauteil. Ausnahme: Illustrationen und Bildmarke.
-2. Für Karten, Abschnitte, Kennzahlen, Pillen und Tabellen die Bausteine aus `kit.tsx` verwenden statt neue zu bauen.
+2. Für Karten, Abschnitte, Kennzahlen, Pillen, Tabellen, Blätter und deren Zeilen die Bausteine aus `src/components/ui/` verwenden statt neue zu bauen. Zwei Kopien derselben Zeile laufen auseinander, ohne dass eine von beiden falsch aussieht.
 3. Beide Farbschemata prüfen, dazu die Druckansicht, wenn die Seite gedruckt wird.
 4. Jede neue Farbkombination für Text nachrechnen (4,5:1) und im Kommentar bei `globals.css` festhalten, wie beim Bestand.
 5. Alle vier Sprachen durchsehen, vor allem Kasachisch und Russisch bei Tabellenköpfen und Buttons.
 6. Bewegung nur mit Rückfall für `prefers-reduced-motion` und ohne JavaScript sichtbar.
 7. Keine Farbe als einziger Bedeutungsträger.
 8. Kein Schwarz als Grund im Dark Mode: `--background` ist `#04161c`.
+9. Eine Tabellenspalte, die nur manchmal erscheint, braucht ihren Spaltenkopf unter genau derselben Bedingung (`...(darfAendern ? [t("col.aendern")] : [])`). `DataTable` ordnet Beschriftung und Wert über die Reihenfolge zu. Fällt eine Zelle weg, deren Kopf stehen bleibt, verschiebt sich alles dahinter um eine Spalte — sichtbar nur unter `md`, und dort nur als falscher Name neben einem richtigen Wert.
+10. Was verdecken soll, nimmt `--card-deckend`, nicht `--card`: das Kartentoken ist im Dark Mode zu 26 % durchsichtig. Das gilt für alles Feste und Festgehaltene — untere Leiste, Blätter, die erste Spalte einer Matrix.
 
 ## 13. Bekannte Unstimmigkeiten
 
