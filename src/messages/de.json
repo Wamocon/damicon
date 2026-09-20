@@ -866,6 +866,7 @@
       "kontingentErstellt": "Kontingent angelegt.",
       "kontingentAktualisiert": "Menge aktualisiert.",
       "stammdatenGespeichert": "Stammdaten gespeichert.",
+      "transkription": "Diktat übernommen.",
       "nachbarbetrieb": "Nachbarbetrieb „{wert}“ aufgenommen.",
       "dokumentGeaendert": "Dokument „{wert}“ aktualisiert."
     },
@@ -902,6 +903,10 @@
       "stammdatenFormat": "Die Nummer besteht aus genau zwölf Ziffern.",
       "stammdatenPruefziffer": "Die Prüfziffer stimmt nicht. Meist steckt ein Zahlendreher in der Nummer.",
       "selbstkontrolle": "Wer eine Steige erfasst hat, kontrolliert sie nicht selbst. Eine andere Person muss diese Steige prüfen.",
+      "transkription": "Spracherkennung nicht möglich.",
+      "transkriptionDienst": "Der Spracherkennungsdienst ist nicht erreichbar. Die Aufnahme hat geklappt – bitte später noch einmal versuchen.",
+      "transkriptionDauer": "Die Spracherkennung hat zu lange gebraucht. Der Dienst startet vermutlich gerade – bitte in einer Minute noch einmal versuchen.",
+      "dateiGross": "Die Aufnahme ist zu groß.",
       "nachbarbetriebVorhanden": "Ein Nachbarbetrieb mit diesem Namen existiert bereits."
     },
     "einladungen": {
@@ -1648,6 +1653,7 @@
       "kuehlketteAbrufen": "Kühlkette geprüft",
       "risikoRadarAbrufen": "Risiko-Radar geprüft",
       "oeffneBereich": "{bereich} geöffnet",
+      "wissenSuchen": "Wissensbasis durchsucht",
       "unbekannt": "Schritt abgeschlossen",
       "datenmodellErkunden": "Datenmodell erkundet",
       "datenLesen": "{tabelle} gelesen",
@@ -1664,6 +1670,11 @@
     "keinVerlauf": "Noch keine Nachricht. Stellen Sie unten Ihre erste Frage.",
     "inputPlaceholder": "Frage eingeben ...",
     "senden": "Senden",
+    "vorlesen": "Vorlesen",
+    "vorlesenStopp": "Vorlesen stoppen",
+    "vorlesenAuto": "Antworten vorlesen",
+    "vorlesenKeineStimme": "Für diese Sprache gibt es noch keine Stimme.",
+    "vorlesenFehler": "Vorlesen ist gerade nicht möglich.",
     "einwilligungText": "Ich habe den Hinweis gelesen und bin einverstanden, dass meine Frage an den konfigurierten KI-Anbieter übermittelt wird.",
     "eskalationKnopf": "Mit einem Mitarbeiter sprechen",
     "eskalationAngefordert": "Anfrage an einen Mitarbeiter des Büros weitergegeben - er meldet sich zeitnah.",
@@ -1676,7 +1687,31 @@
     "fehler": {
       "sitzung": "Ihre Sitzung ist abgelaufen oder wurde beendet. Bitte melden Sie sich erneut an.",
       "anmelden": "Erneut anmelden",
-      "berechtigung": "Ihre Rolle darf den KI-Assistenten nicht nutzen."
+      "berechtigung": "Ihre Rolle darf den KI-Assistenten nicht nutzen.",
+      "zuLang": "Diese Unterhaltung ist zu lang geworden.",
+      "neuBeginnen": "Neu beginnen"
+    },
+    "quellen": {
+      "titel": "Quellen",
+      "stufe": {
+        "recht": "Primärrecht",
+        "untergesetzlich": "Untergesetzliche Norm",
+        "erlaeuterung": "Amtliche Erläuterung",
+        "fachquelle": "Fachquelle",
+        "presse": "Presse",
+        "unbekannt": "Quelle"
+      },
+      "gueltigAb": "gültig ab {datum}",
+      "stand": "Stand {datum}",
+      "ueberholt": "Diese Quelle ist überholt.",
+      "auskunft": "Auskunft Dritter, keine Rechtsquelle. Die Primärquelle prüfen.",
+      "mehr": "Mehr anzeigen",
+      "weniger": "Weniger anzeigen",
+      "original": "Original öffnen",
+      "intern": "Interne Recherche",
+      "unbelegt": "Zu dieser Marke gibt es keinen Beleg.",
+      "gestuetzt": "Auf Gesetzestext gestützt",
+      "nurFach": "Nur Fachquellen: Primärquelle prüfen"
     },
     "anbieterVerwaltung": {
       "titel": "KI-Anbieter verwalten",
@@ -1711,6 +1746,14 @@
         "knopf": "Anbieter anlegen"
       }
     },
+    "diktat": {
+      "starten": "Diktieren",
+      "stoppen": "Aufnahme beenden",
+      "laeuft": "Wird erkannt … (einige Sekunden)",
+      "leer": "Nichts aufgenommen.",
+      "fehlgeschlagen": "Spracherkennung nicht möglich.",
+      "keinZugriff": "Kein Mikrofonzugriff."
+    },
     "laeuft": {
       "mwstStatusAbrufen": "Prüfe MwSt-Status …",
       "esutdOffeneFristenAbrufen": "Prüfe ESUTD-Fristen …",
@@ -1718,6 +1761,7 @@
       "kuehlketteAbrufen": "Prüfe Kühlkette …",
       "risikoRadarAbrufen": "Durchsuche Risiko-Radar …",
       "oeffneBereich": "Öffne {bereich} …",
+      "wissenSuchen": "Durchsuche Wissensbasis …",
       "unbekannt": "Arbeite …",
       "datenmodellErkunden": "Erkunde das Datenmodell …",
       "datenLesen": "Lese {tabelle} …",
@@ -1734,6 +1778,7 @@
       "kuehlketteAbrufen": "Kühlkette",
       "risikoRadarAbrufen": "Risiko-Radar",
       "oeffneBereich": "{bereich}",
+      "wissenSuchen": "Wissensbasis",
       "unbekannt": "Quelle",
       "datenmodellErkunden": "Datenmodell",
       "datenLesen": "{tabelle}",
@@ -1847,7 +1892,8 @@
       "grund": {
         "senden": "Dieser Klick sendet oder ändert Daten.",
         "loeschen": "Dieser Klick kann etwas löschen oder stornieren.",
-        "extern": "Dieser Link führt aus der Anwendung heraus."
+        "extern": "Dieser Link führt aus der Anwendung heraus.",
+        "doppelt": "Dieses Formular wurde gerade eben schon abgeschickt. Noch einmal absenden erzeugt vermutlich einen doppelten Eintrag."
       },
       "nicht": "Nicht ausgeführt: {absicht}"
     },

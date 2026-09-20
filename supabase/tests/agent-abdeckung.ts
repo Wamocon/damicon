@@ -17,6 +17,10 @@
 // Aufruf: npm run test:agent (laeuft ueber tsx, damit die @/-Pfade aufloesen).
 
 import { readdirSync, readFileSync } from "node:fs";
+import { generateText, stepCountIs, tool } from "ai";
+import { MockLanguageModelV3 } from "ai/test";
+import { z } from "zod";
+import { istRechtsfrage, waehleSchritt } from "@/lib/ai/schritt-steuerung";
 import { AKTIONS_NAMEN } from "@/lib/ai/aktionen-meta";
 import { CLIENT_WERKZEUG_NAMEN } from "@/lib/ai/client-werkzeuge-meta";
 import { chatFehlerArt } from "@/lib/ai/chat-fehler";
@@ -323,6 +327,99 @@ const zustaendeOhneLabel = (["ruhe", "denkt", "freigabe", "fertig", "fehler", "s
 );
 pruefe("Himbi: jeder Zustand hat eine Beschriftung fuer Screenreader in allen Sprachen", zustaendeOhneLabel.length === 0, zustaendeOhneLabel.join(", "));
 
-console.log(`\nPruefungen: ${gesamt}   bestanden: ${gesamt - fehler}   fehlgeschlagen: ${fehler}`);
-if (fehler > 0) process.exit(1);
-console.log("Alle Pruefungen bestanden.");
+// --- Zuverlaessigkeit: im Faehigkeitstest gemessene Fehler, dauerhaft abgesichert ---------------
+const aktionenQuelle = readFileSync("src/lib/ai/aktionen.ts", "utf8");
+const routeQuelle2 = readFileSync("src/app/api/ki-assistent/route.ts", "utf8");
+const uiQuelle = readFileSync("src/components/ki/ui-steuerung.ts", "utf8");
+pruefe("Agent-Prompt: kein Zug endet mit einer Ankuendigung, kein zweites Absenden", routeQuelle2.includes("ZUGENDE_ANWEISUNG") && routeQuelle2.includes("NIE mit einer Ankuendigung") && routeQuelle2.includes("NICHT noch einmal ab"));
+pruefe("Eskalation ist kein Ausweg: nur auf ausdruecklichen Wunsch, Buero-Rollen nie an das Buero", aktionenQuelle.includes("Nur wenn der Nutzer AUSDRUECKLICH einen Menschen sprechen will") && aktionenQuelle.includes("SIND das Buero"));
+pruefe("Lohn: Zeitraum wird aus dem Datum abgeleitet, nicht erfragt", aktionenQuelle.includes("'diesen Monat' = erster bis letzter Tag"));
+pruefe("Kuehlmessung: Charge wird zur Pflueckaufgabe aufgeloest", aktionenQuelle.includes("suche ZUERST mit datenLesen die passende Pflueckaufgabe"));
+pruefe("Doppelabsendung: Freigabekarte warnt, wenn dasselbe Formular kurz zuvor abgeschickt wurde", uiQuelle.includes('"doppelt"') && uiQuelle.includes("DOPPELT_FENSTER_MS") && sprachen.every((sp) => typeof holen(texte[sp], "kiAssistentAnsicht.klick.grund.doppelt") === "string"));
+
+// Lange Agentenlaeufe: die Route kuerzt alte Werkzeugausgaben, BEVOR sie die Grenze prueft (gemessen: nach
+// etwa acht Seitenschnappschuessen antwortete sie mit 413 und der Chat zeigte "KI nicht erreichbar").
+const kuerzenPos = routeQuelle2.indexOf("const nachrichten = alteAusgabenKuerzen(");
+const grenzePos = routeQuelle2.indexOf("JSON.stringify(nachrichten).length > MAX_VERLAUF_ZEICHEN");
+pruefe("Route: Verlauf wird gekuerzt, DANN gegen die Grenze geprueft", kuerzenPos > 0 && grenzePos > kuerzenPos);
+pruefe("Chat: 'verlauf zu gross' (413) hat eine eigene Meldung, kein Fake-Ausfall", chatFehlerArt(new Error("verlauf zu gross")) === "zulang");
+pruefe("Chat: 'Neu beginnen' und Meldung in allen Sprachen", sprachen.every((sp) => typeof holen(texte[sp], "kiAssistentAnsicht.fehler.zuLang") === "string" && typeof holen(texte[sp], "kiAssistentAnsicht.fehler.neuBeginnen") === "string"));
+pruefe("Agent-Prompt: Klicks nicht zusaetzlich im Chat bestaetigen lassen", routeQuelle2.includes("Frage deshalb NICHT zusaetzlich im Chat um Erlaubnis"));
+
+
+// --- Wissenssuche wird erzwungen, nicht erhofft (lib/ai/schritt-steuerung.ts) ---------------------------
+const rechtsfragen = [
+  "Ab welchem Umsatz muss sich ein Betrieb in Kasachstan fuer die Mehrwertsteuer registrieren? Nenne die Fundstelle.",
+  "Wie viele Tage hat ein Betrieb nach Ueberschreiten der Umsatzschwelle Zeit, sich anzumelden?",
+  "Welche Strafen drohen bei Verstoessen gegen die ESUTD-Pflicht?",
+  "Wann ist eine Abschlusspruefung Pflicht?",
+  "Sind wir beim Datenschutz compliant?",
+  "Welche Lohnsteuer faellt fuer Saisonkraefte an?",
+  "What is the VAT registration threshold in Kazakhstan?",
+  "Какой порог постановки на учет по НДС?",
+  "ЭСФ кімге міндетті?",
+  "Kazakistan'da KDV kaydı için eşik nedir?",
+];
+const keineRechtsfragen = [
+  "Zeig mir die Rechte der Rolle Admin",
+  "Gib mir alle Use Cases der Rolle Admin",
+  "Steuere die Seite und oeffne die Pflueckaufgaben",
+  "Wie ist die Steuerung der Kuehlung eingestellt?",
+  "Lege eine Pflueckaufgabe fuer Block 3 an",
+  "Wie viele Schalen wurden gestern geerntet?",
+  "Hallo Himbi",
+];
+pruefe("Rechtsfragen in fuenf Sprachen werden erkannt", rechtsfragen.every((f) => istRechtsfrage(f)), rechtsfragen.filter((f) => !istRechtsfrage(f)).join(" | "));
+pruefe("Bedienung und Betriebsfragen loesen KEINE erzwungene Suche aus", keineRechtsfragen.every((f) => !istRechtsfrage(f)), keineRechtsfragen.filter((f) => istRechtsfrage(f)).join(" | "));
+const eingabe = (o: Partial<Parameters<typeof waehleSchritt>[0]> = {}) => ({ stepNumber: 0, modus: "assistent" as const, neueNutzerFrage: true, frage: rechtsfragen[0]!, wissenAngeboten: true, ...o });
+const erzwungen = '{"toolChoice":{"type":"tool","toolName":"wissenSuchen"}}';
+pruefe("Schritt 0, Rechtsfrage, Werkzeug angeboten: wissenSuchen erzwungen (Assistent und Agent)",
+  JSON.stringify(waehleSchritt(eingabe())) === erzwungen && JSON.stringify(waehleSchritt(eingabe({ modus: "agent" }))) === erzwungen);
+pruefe("Ab Schritt 1 entscheidet das Modell wieder frei", waehleSchritt(eingabe({ stepNumber: 1 })) === undefined);
+pruefe("Freigabe-Runde (keine neue Nutzerfrage): nichts erzwingen", waehleSchritt(eingabe({ neueNutzerFrage: false })) === undefined);
+pruefe("Ohne angebotenes Werkzeug wird nichts Unmoegliches erzwungen", waehleSchritt(eingabe({ wissenAngeboten: false })) === undefined);
+pruefe("Agent-Modus, keine Rechtsfrage: weiterhin 'required'", JSON.stringify(waehleSchritt(eingabe({ modus: "agent", frage: "Oeffne die Pflueckaufgaben" }))) === '{"toolChoice":"required"}');
+pruefe("Assistent, keine Rechtsfrage: nichts erzwingen", waehleSchritt(eingabe({ frage: "Hallo" })) === undefined);
+const routeQuelle3 = readFileSync("src/app/api/ki-assistent/route.ts", "utf8");
+pruefe("Route nutzt waehleSchritt in prepareStep", routeQuelle3.includes("waehleSchritt({") && routeQuelle3.includes('wissenAngeboten: "wissenSuchen" in werkzeuge'));
+pruefe("Route: ohne Wissensbasis gilt OHNE_QUELLEN_ANWEISUNG (kein Rechtsrat aus Trainingswissen)", routeQuelle3.includes('"wissenSuchen" in werkzeuge ? QUELLEN_ANWEISUNG : OHNE_QUELLEN_ANWEISUNG') && routeQuelle3.includes("NICHT aus deinem Trainingswissen"));
+
+// Gegen das echte SDK: der erste Aufruf traegt toolChoice { type: "tool", toolName: "wissenSuchen" },
+// der zweite ist wieder frei. Mock-Modell, kein Netzwerk.
+async function sdkPruefung() {
+  const leer = { inputTokens: { total: 1, noCache: 1, cacheRead: 0, cacheWrite: 0 }, outputTokens: { total: 1, text: 1, reasoning: 0 } };
+  let aufruf = 0;
+  const modell = new MockLanguageModelV3({
+    doGenerate: async () => {
+      aufruf++;
+      return aufruf === 1
+        ? { content: [{ type: "tool-call" as const, toolCallId: "t1", toolName: "wissenSuchen", input: JSON.stringify({ frage: "USt-Schwelle" }) }], finishReason: { unified: "tool-calls" as const, raw: undefined }, usage: leer, warnings: [] }
+        : { content: [{ type: "text" as const, text: "Antwort [S1]" }], finishReason: { unified: "stop" as const, raw: undefined }, usage: leer, warnings: [] };
+    },
+  });
+  let gesucht = 0;
+  const werkzeuge = {
+    wissenSuchen: tool({ description: "Wissensbasis", inputSchema: z.object({ frage: z.string() }), execute: async () => { gesucht++; return { anzahl: 1, belege: [] }; } }),
+    oeffneBereich: tool({ description: "Navigation", inputSchema: z.object({}), execute: async () => ({}) }),
+  };
+  const r = await generateText({
+    model: modell,
+    prompt: rechtsfragen[0]!,
+    tools: werkzeuge,
+    stopWhen: stepCountIs(4),
+    prepareStep: ({ stepNumber }) => waehleSchritt({ stepNumber, modus: "assistent", neueNutzerFrage: true, frage: rechtsfragen[0]!, wissenAngeboten: true }),
+  });
+  const erster = modell.doGenerateCalls[0]?.toolChoice;
+  const zweiter = modell.doGenerateCalls[1]?.toolChoice;
+  pruefe("SDK: erster Modellaufruf traegt toolChoice { tool: wissenSuchen }", erster?.type === "tool" && (erster as { toolName?: string }).toolName === "wissenSuchen", JSON.stringify(erster));
+  pruefe("SDK: zweiter Modellaufruf ist wieder frei (auto)", zweiter === undefined || zweiter.type === "auto", JSON.stringify(zweiter));
+  pruefe("SDK: das Werkzeug wurde ausgefuehrt und die Antwort kam danach", gesucht === 1 && r.text === "Antwort [S1]" && r.steps.length === 2);
+}
+
+sdkPruefung()
+  .catch((e) => pruefe("SDK-Pruefung laeuft durch", false, String(e)))
+  .then(() => {
+    console.log(`\nPruefungen: ${gesamt}   bestanden: ${gesamt - fehler}   fehlgeschlagen: ${fehler}`);
+    if (fehler > 0) process.exit(1);
+    console.log("Alle Pruefungen bestanden.");
+  });

@@ -866,6 +866,7 @@
       "kontingentErstellt": "Quota created.",
       "kontingentAktualisiert": "Quantity updated.",
       "stammdatenGespeichert": "Master data saved.",
+      "transkription": "Dictation accepted.",
       "nachbarbetrieb": "Neighbouring farm “{wert}” added.",
       "dokumentGeaendert": "Document “{wert}” updated."
     },
@@ -902,6 +903,10 @@
       "stammdatenFormat": "The number consists of exactly twelve digits.",
       "stammdatenPruefziffer": "The check digit does not match. Usually two digits have been transposed.",
       "selbstkontrolle": "Whoever recorded a crate does not inspect it themselves. Someone else needs to check this crate.",
+      "transkription": "Speech recognition unavailable.",
+      "transkriptionDienst": "The speech recognition service cannot be reached. Your recording is fine – please try again later.",
+      "transkriptionDauer": "Speech recognition took too long. The service is probably still starting up – please try again in a minute.",
+      "dateiGross": "The recording is too large.",
       "nachbarbetriebVorhanden": "A neighbouring farm with this name already exists."
     },
     "einladungen": {
@@ -1648,6 +1653,7 @@
       "kuehlketteAbrufen": "Checked cold chain",
       "risikoRadarAbrufen": "Checked risk radar",
       "oeffneBereich": "Opened {bereich}",
+      "wissenSuchen": "Knowledge base searched",
       "unbekannt": "Step completed",
       "datenmodellErkunden": "Explored data model",
       "datenLesen": "Read {tabelle}",
@@ -1664,6 +1670,11 @@
     "keinVerlauf": "No message yet. Ask your first question below.",
     "inputPlaceholder": "Enter a question ...",
     "senden": "Send",
+    "vorlesen": "Read aloud",
+    "vorlesenStopp": "Stop reading",
+    "vorlesenAuto": "Read answers aloud",
+    "vorlesenKeineStimme": "There is no voice for this language yet.",
+    "vorlesenFehler": "Reading aloud is not possible right now.",
     "einwilligungText": "I have read the notice and agree that my question is sent to the configured AI provider.",
     "eskalationKnopf": "Talk to a staff member",
     "eskalationAngefordert": "Handed over to a staff member of the office - they will get in touch shortly.",
@@ -1676,7 +1687,31 @@
     "fehler": {
       "sitzung": "Your session has expired or was ended. Please sign in again.",
       "anmelden": "Sign in again",
-      "berechtigung": "Your role is not allowed to use the AI assistant."
+      "berechtigung": "Your role is not allowed to use the AI assistant.",
+      "zuLang": "This conversation has become too long.",
+      "neuBeginnen": "Start over"
+    },
+    "quellen": {
+      "titel": "Sources",
+      "stufe": {
+        "recht": "Primary law",
+        "untergesetzlich": "Subordinate regulation",
+        "erlaeuterung": "Official explanation",
+        "fachquelle": "Secondary source",
+        "presse": "Press",
+        "unbekannt": "Source"
+      },
+      "gueltigAb": "valid from {datum}",
+      "stand": "as of {datum}",
+      "ueberholt": "This source is outdated.",
+      "auskunft": "Third-party information, not a legal source. Check the primary source.",
+      "mehr": "Show more",
+      "weniger": "Show less",
+      "original": "Open original",
+      "intern": "Internal research",
+      "unbelegt": "There is no source for this citation.",
+      "gestuetzt": "Backed by statute text",
+      "nurFach": "Expert sources only: check the primary source"
     },
     "anbieterVerwaltung": {
       "titel": "Manage AI providers",
@@ -1711,6 +1746,14 @@
         "knopf": "Add provider"
       }
     },
+    "diktat": {
+      "starten": "Dictate",
+      "stoppen": "Stop recording",
+      "laeuft": "Transcribing … (takes a few seconds)",
+      "leer": "Nothing recorded.",
+      "fehlgeschlagen": "Speech recognition unavailable.",
+      "keinZugriff": "No microphone access."
+    },
     "laeuft": {
       "mwstStatusAbrufen": "Checking VAT status …",
       "esutdOffeneFristenAbrufen": "Checking ESUTD deadlines …",
@@ -1718,6 +1761,7 @@
       "kuehlketteAbrufen": "Checking cold chain …",
       "risikoRadarAbrufen": "Scanning risk radar …",
       "oeffneBereich": "Opening {bereich} …",
+      "wissenSuchen": "Searching knowledge base …",
       "unbekannt": "Working …",
       "datenmodellErkunden": "Exploring the data model …",
       "datenLesen": "Reading {tabelle} …",
@@ -1734,6 +1778,7 @@
       "kuehlketteAbrufen": "Cold chain",
       "risikoRadarAbrufen": "Risk radar",
       "oeffneBereich": "{bereich}",
+      "wissenSuchen": "Knowledge base",
       "unbekannt": "Source",
       "datenmodellErkunden": "Data model",
       "datenLesen": "{tabelle}",
@@ -1847,7 +1892,8 @@
       "grund": {
         "senden": "This click sends or changes data.",
         "loeschen": "This click can delete or cancel something.",
-        "extern": "This link leaves the application."
+        "extern": "This link leaves the application.",
+        "doppelt": "This form was just submitted a moment ago. Submitting it again will probably create a duplicate entry."
       },
       "nicht": "Not done: {absicht}"
     },

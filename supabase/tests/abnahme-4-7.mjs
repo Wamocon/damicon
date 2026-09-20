@@ -64,7 +64,7 @@ console.log("Abnahmetest Anforderung 4.7 - Protokollierung jeder relevanten Akti
 try {
   await db.exec(readFileSync(join(WURZEL, "supabase/fixtures/auth-stub.sql"), "utf8"));
   for (const d of readdirSync(join(WURZEL, "supabase/migrations"))
-    .filter((f) => f.endsWith(".sql"))
+    .filter((f) => f.endsWith(".sql") && !f.endsWith("_pgvector.sql"))
     .sort()) {
     await db.exec(readFileSync(join(WURZEL, "supabase/migrations", d), "utf8"));
   }

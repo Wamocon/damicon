@@ -20,7 +20,7 @@ import {
   type UIMessage,
 } from "ai";
 import { useLocale, useTranslations } from "next-intl";
-import ReactMarkdown, { type Components } from "react-markdown";
+import ReactMarkdown, { defaultUrlTransform, type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
   ArrowDown,
@@ -49,8 +49,7 @@ import {
   Thermometer,
   TriangleAlert,
   UserRound,
-  X,
-} from "lucide-react";
+  X, BookOpenCheck } from "lucide-react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { usePersona } from "@/components/dashboard/persona";
 import { useHaustierAktionen, useHaustierVorgabe } from "@/components/haustier/haustier-kontext";
@@ -60,11 +59,15 @@ import { useKiPane, type KiModus } from "@/components/ki/ki-pane-kontext";
 import { AKTIONS_NAMEN, AKTIONS_RECHTE, istAktion, type AktionsName } from "@/lib/ai/aktionen-meta";
 import { istClientWerkzeug } from "@/lib/ai/client-werkzeuge-meta";
 import { fuehreUiWerkzeugAus, type KlickAnfrage } from "@/components/ki/ui-steuerung";
+import { istVorlesbar, stimmeVorhanden, useSprachausgabe, VorlesenKnopf, VorlesenSchalter } from "@/components/ki/sprachausgabe";
+import { MikrofonKnopf } from "@/components/ki/mikrofon";
 import { MAX_NACHRICHT_LAENGE, type KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
 import { modules } from "@/lib/modules";
 import { hasPermission, type Role } from "@/lib/rbac";
+import { BelegAnbieter, QuellenListe, ZitatMarke } from "@/components/ki/ki-quellen";
 import { chatFehlerArt } from "@/lib/ai/chat-fehler";
 import { zerlege } from "@/lib/markdown-bloecke";
+import { belegeAusErgebnis, verlinkeZitate, zitierteKennungen } from "@/lib/wissen/belege";
 import { cn } from "@/lib/utils";
 
 // Werkzeugfaehiger Agentenchat im Seitenpanel (ki-pane.tsx) - Vercel AI SDK
@@ -87,6 +90,7 @@ const werkzeugIcon: Record<string, ComponentType<{ className?: string }>> = {
   kuehlketteAbrufen: Snowflake,
   risikoRadarAbrufen: Radar,
   oeffneBereich: Compass,
+  wissenSuchen: BookOpenCheck,
   datenmodellErkunden: Database,
   datenLesen: Table2,
   seiteLesen: Eye,
@@ -231,6 +235,19 @@ function alsKarte(teil: Parameters<typeof getToolName>[0], name: AktionsName): A
  *  bilden EINE Liste, aufeinanderfolgender Text EINEN Markdown-Block, damit die
  *  Darstellung unabhaengig davon gleich aussieht, wie das Modell seine Schritte
  *  stueckelt. */
+/** Alle Belege, die Wissenssuchen dieser Nachricht geliefert haben (Kennungen sind pro Antwort eindeutig). */
+function belegeVonNachricht(nachricht: UIMessage) {
+  return nachricht.parts.flatMap((teil) =>
+    (isToolUIPart(teil) || isDynamicToolUIPart(teil)) && getToolName(teil) === "wissenSuchen" && teil.state === "output-available"
+      ? belegeAusErgebnis(teil.output)
+      : [],
+  );
+}
+
+function textVonNachricht(nachricht: UIMessage): string {
+  return nachricht.parts.map((teil) => (teil.type === "text" ? teil.text : "")).join("\n");
+}
+
 function segmentiere(nachricht: UIMessage): Segment[] {
   const segmente: Segment[] = [];
   for (const teil of nachricht.parts) {
@@ -317,12 +334,19 @@ const MARKDOWN_KOMPONENTEN: Components = {
       <table>{children}</table>
     </div>
   ),
-  a: ({ children, href }) => (
-    <a href={href} target="_blank" rel="noreferrer noopener">
-      {children}
-    </a>
-  ),
+  a: ({ children, href }) =>
+    href?.startsWith("quelle:") ? (
+      <ZitatMarke kennung={href.slice("quelle:".length)} />
+    ) : (
+      <a href={href} target="_blank" rel="noreferrer noopener">
+        {children}
+      </a>
+    ),
 };
+
+// Das Schema "quelle:" (Zitat-Marke, siehe lib/wissen/belege.ts) darf react-markdown
+// nicht als unsicheren Link verwerfen; alles andere behaelt die uebliche Pruefung.
+const linkPruefung = (url: string) => (url.startsWith("quelle:S") ? url : defaultUrlTransform(url));
 
 // Zwei Ebenen von memo, weil beim Streamen fast alles gleich bleibt:
 // - Markdown: fertige Antworten behalten ihren Text und werden gar nicht neu
@@ -333,8 +357,8 @@ const MARKDOWN_KOMPONENTEN: Components = {
 //   noch offene Block; alles darueber wird nicht erneut geparst oder abgeglichen.
 const MarkdownBlock = memo(function MarkdownBlock({ text }: { text: string }) {
   return (
-    <ReactMarkdown remarkPlugins={MARKDOWN_PLUGINS} components={MARKDOWN_KOMPONENTEN}>
-      {text}
+    <ReactMarkdown remarkPlugins={MARKDOWN_PLUGINS} components={MARKDOWN_KOMPONENTEN} urlTransform={linkPruefung}>
+      {verlinkeZitate(text)}
     </ReactMarkdown>
   );
 });
@@ -415,10 +439,27 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
       (zugSchritte.current <= MAX_CLIENT_SCHRITTE && clientErgebnisseBereit(optionen.messages)),
     onToolCall: ({ toolCall }) => starteClientWerkzeug(toolCall),
   });
-  const { messages, sendMessage, addToolApprovalResponse, status, stop, error } = chat;
+  const { messages, sendMessage, addToolApprovalResponse, status, stop, error, setMessages, clearError } = chat;
   chatRef.current = chat as unknown as NonNullable<typeof chatRef.current>;
 
+  const sprachausgabe = useSprachausgabe(sprache);
+
   const beschaeftigt = status === "submitted" || status === "streaming" || clientAktiv !== null;
+
+  // "Antworten vorlesen" an: die neue Antwort nach Streamende einmal vorlesen -
+  // nur beim Wechsel von "laeuft" zu "fertig", nie fuer den geladenen Verlauf
+  // und nie zweimal dieselbe Antwort.
+  const warBeschaeftigt = useRef(false);
+  const vorgelesen = useRef(new Set<string>());
+  useEffect(() => {
+    const jetztFertig = warBeschaeftigt.current && !beschaeftigt;
+    warBeschaeftigt.current = beschaeftigt;
+    if (!jetztFertig || !sprachausgabe.vorlesen) return;
+    const letzte = messages.at(-1);
+    if (!letzte || letzte.role !== "assistant" || !istVorlesbar(letzte.id) || vorgelesen.current.has(letzte.id)) return;
+    vorgelesen.current.add(letzte.id);
+    void sprachausgabe.spiele(letzte.id);
+  }, [beschaeftigt, messages, sprachausgabe]);
   const istErsteNachricht = messages.length === 0;
 
   function bereichTitel(bereich: string | null): string {
@@ -800,6 +841,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
                     <Himbeere groesse={22} denkt={beschaeftigt && nachricht.id === letzteId} />
                   </span>
                   <div className="ki-nachricht__inhalt">
+                    <BelegAnbieter nachrichtId={nachricht.id} belege={belegeVonNachricht(nachricht)}>
                     {segmentiere(nachricht).map((segment, index) => {
                       if (segment.art === "text") return <Markdown key={index} text={segment.text} />;
                       if (segment.art === "aktion") return renderAktionskarte(segment.karte);
@@ -848,6 +890,20 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
                         </ol>
                       );
                     })}
+                    <QuellenListe
+                      nachrichtId={nachricht.id}
+                      belege={belegeVonNachricht(nachricht)}
+                      zitiert={zitierteKennungen(textVonNachricht(nachricht))}
+                    />
+                    </BelegAnbieter>
+                    {/* Vorlesen nur, wenn die Antwort schon gespeichert ist UND es fuer
+                        ihre Sprache eine Stimme gibt - fuer Russisch und Tuerkisch
+                        erscheint deshalb gar kein Knopf statt eines Fehlers nach dem Klick. */}
+                    {istVorlesbar(nachricht.id) &&
+                    !(beschaeftigt && nachricht.id === letzteId) &&
+                    stimmeVorhanden(textVonNachricht(nachricht), sprache) ? (
+                      <VorlesenKnopf id={nachricht.id} zustand={sprachausgabe} />
+                    ) : null}
                   </div>
                 </div>
               ),
@@ -914,6 +970,21 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
                 </>
               ) : chatFehlerArt(error) === "berechtigung" ? (
                 t("fehler.berechtigung")
+              ) : chatFehlerArt(error) === "zulang" ? (
+                <>
+                  {t("fehler.zuLang")}{" "}
+                  <button
+                    type="button"
+                    className="ki-fehler__link"
+                    onClick={() => {
+                      // Nur die Ansicht und der Kontext dieser Sitzung beginnen neu; der gespeicherte Verlauf bleibt.
+                      clearError();
+                      setMessages([]);
+                    }}
+                  >
+                    {t("fehler.neuBeginnen")}
+                  </button>
+                </>
               ) : (
                 t("fallback.antwort")
               )}
@@ -949,6 +1020,15 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
             onChange={(e) => beiEingabe(e.target.value)}
             onKeyDown={beiTaste}
           />
+          {/* Diktat: der erkannte Text landet im Feld, abgeschickt wird von Hand. */}
+          <MikrofonKnopf
+            className="ki-composer__knopf ki-composer__knopf--still"
+            deaktiviert={beschaeftigt || einwilligungFehlt}
+            beiText={(text) => {
+              beiEingabe(text);
+              eingabeRef.current?.focus();
+            }}
+          />
           {beschaeftigt ? (
             <button type="button" onClick={stopp} aria-label={t("stopp")} className="ki-composer__knopf">
               <Square className="h-3.5 w-3.5 fill-current" />
@@ -963,6 +1043,9 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
               <ArrowUp className="h-4 w-4" />
             </button>
           )}
+        </div>
+        <div className="ki-composer__optionen">
+          <VorlesenSchalter zustand={sprachausgabe} />
         </div>
       </form>
     </div>

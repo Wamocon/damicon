@@ -5,12 +5,14 @@
 // "KI-Assistent nicht erreichbar" - eine abgelaufene Sitzung sah dadurch wie
 // ein Ausfall der KI aus.
 
-export type ChatFehlerArt = "sitzung" | "berechtigung" | "allgemein";
+export type ChatFehlerArt = "sitzung" | "berechtigung" | "zulang" | "allgemein";
 
 export function chatFehlerArt(fehler: { message?: string } | null | undefined): ChatFehlerArt | null {
   if (!fehler) return null;
   const text = (fehler.message ?? "").toLowerCase();
   if (text.includes("nicht angemeldet")) return "sitzung";
   if (text.includes("keine berechtigung")) return "berechtigung";
+  // 413 der Route: die Unterhaltung ist trotz Kuerzung zu gross geworden.
+  if (text.includes("verlauf zu gross")) return "zulang";
   return "allgemein";
 }
