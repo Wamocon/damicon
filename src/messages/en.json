@@ -21,6 +21,8 @@
     "breadcrumb": "Breadcrumb",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
+    "collapseMenu": "Collapse menu",
+    "expandMenu": "Expand menu",
     "portal": "Open portal",
     "zones": "Four zones",
     "proof": "Traceability",

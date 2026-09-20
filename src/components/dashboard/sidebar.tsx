@@ -8,7 +8,14 @@ import {
   useSyncExternalStore,
 } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronDown, LayoutDashboard, Menu, X } from "lucide-react";
+import {
+  ChevronDown,
+  LayoutDashboard,
+  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
+  X,
+} from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { Icon } from "@/components/icon";
@@ -38,6 +45,42 @@ let zonenCache: readonly ZoneKey[] | null = null;
 // Oeffnen den Bereich erneut auf, den man an der festen Spalte eben
 // zugeklappt hat.
 let zuletztGeoeffnet: ZoneKey | null = null;
+
+// Schmale Symbolleiste statt voller Spalte. Eigener Speicher, gleiches Muster
+// wie oben. Wirkt nur auf die feste Spalte ab md - die Schublade auf dem Handy
+// ist ohnehin nur so lange da, wie man sie braucht.
+const SCHMAL_SPEICHER = "damicon-sidebar-schmal";
+const schmalListener = new Set<() => void>();
+let schmalCache: boolean | null = null;
+
+function schmalAbonnieren(callback: () => void) {
+  schmalListener.add(callback);
+  return () => {
+    schmalListener.delete(callback);
+  };
+}
+
+function istSchmal(): boolean {
+  if (schmalCache !== null) return schmalCache;
+  let gelesen = false;
+  try {
+    gelesen = localStorage.getItem(SCHMAL_SPEICHER) === "1";
+  } catch {
+    // ignore
+  }
+  schmalCache = gelesen;
+  return gelesen;
+}
+
+function schmalSetzen(wert: boolean) {
+  schmalCache = wert;
+  try {
+    localStorage.setItem(SCHMAL_SPEICHER, wert ? "1" : "0");
+  } catch {
+    // ignore
+  }
+  schmalListener.forEach((listener) => listener());
+}
 
 function zonenAbonnieren(callback: () => void) {
   zonenListener.add(callback);
@@ -127,7 +170,98 @@ function useZonenGruppen() {
   return { offene, umschalten };
 }
 
-function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
+// Eingeklappter Zustand: Uebersicht und die vier Bereiche als Symbole. Ein
+// Klick fuehrt auf die Bereichsseite, die die Module ohnehin als Kacheln
+// zeigt - deshalb braucht die Leiste kein Ausklapp-Fenster, um brauchbar zu
+// sein. Ohne sichtbare Beschriftung traegt jedes Ziel aria-label und title.
+function SidebarRail({ aufklappen }: { aufklappen: () => void }) {
+  const { role } = usePersona();
+  const nav = useTranslations("nav");
+  const zoneT = useTranslations("zones");
+  const aktiveZone = useAktiveZone();
+  // Bewusst der genaue Pfad und nicht useIsActive: das vergleicht mit Praefix
+  // und wuerde auf einer Modulseite auch den Bereich als "page" auszeichnen,
+  // obwohl die Bereichsseite gar nicht offen ist.
+  const pathname = usePathname();
+
+  const sichtbareZonen = zones.filter((zone) =>
+    modulesForZone(zone.key).some((module) =>
+      hasPermission(role, module.resource, "view"),
+    ),
+  );
+
+  const feldKlassen = (aktiv: boolean) =>
+    cn(
+      "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
+      aktiv
+        ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+        : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
+    );
+
+  return (
+    <div className="flex h-full min-h-0 flex-col items-center gap-2 p-2">
+      <Link href="/" aria-label="Damicon" title="Damicon" className="mt-1">
+        <DamiconLogo className="shadow-lg shadow-primary/20" />
+      </Link>
+
+      <button
+        type="button"
+        onClick={aufklappen}
+        aria-label={nav("expandMenu")}
+        title={nav("expandMenu")}
+        className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+      >
+        <PanelLeftOpen className="h-4 w-4" />
+      </button>
+
+      <div className="h-px w-8 bg-sidebar-border" />
+
+      <nav className="flex min-h-0 flex-1 flex-col items-center gap-1.5 overflow-y-auto">
+        <Link
+          href="/dashboard"
+          aria-label={nav("overview")}
+          title={nav("overview")}
+          aria-current={pathname === "/dashboard" ? "page" : undefined}
+          className={feldKlassen(pathname === "/dashboard")}
+        >
+          <LayoutDashboard className="h-4 w-4" />
+        </Link>
+
+        {sichtbareZonen.map((zone) => {
+          const name = zoneT(`${zone.key}.name`);
+          const href = `/dashboard/${zone.key}`;
+          // Der Bereich gilt als aktiv, sobald die offene Seite in ihm liegt -
+          // nicht nur auf der Bereichsseite selbst. Sonst zeigt die Leiste im
+          // eingeklappten Zustand gar nichts an, wo man gerade steht.
+          const imBereich = aktiveZone === zone.key;
+          return (
+            <Link
+              key={zone.key}
+              href={href}
+              aria-label={name}
+              title={name}
+              aria-current={
+                pathname === href ? "page" : imBereich ? "true" : undefined
+              }
+              className={feldKlassen(imBereich)}
+            >
+              <Icon name={zone.icon} className="h-4 w-4" />
+            </Link>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}
+
+function SidebarBody({
+  onNavigate,
+  einklappen,
+}: {
+  onNavigate?: () => void;
+  /** Fehlt in der Schublade - dort gibt es nichts einzuklappen. */
+  einklappen?: () => void;
+}) {
   const { role, demoModus } = usePersona();
   const nav = useTranslations("nav");
   const zoneT = useTranslations("zones");
@@ -140,17 +274,40 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="flex h-full min-h-0 flex-col p-4">
-      <Link href="/" className="flex items-center gap-2.5" onClick={onNavigate}>
-        <DamiconLogo className="shadow-lg shadow-primary/20" />
-        <span className="min-w-0">
-          <span className="block text-lg font-black leading-tight text-sidebar-foreground">
-            Damicon
+      {/* Der Einklapp-Knopf steht neben dem Logo und nicht darin: ein Knopf
+          darf nicht in einem Link liegen. */}
+      <div className="flex items-center gap-2">
+        <Link
+          href="/"
+          className="flex min-w-0 flex-1 items-center gap-2.5"
+          onClick={onNavigate}
+        >
+          <DamiconLogo className="shadow-lg shadow-primary/20" />
+          <span className="min-w-0">
+            <span className="block text-lg font-black leading-tight text-sidebar-foreground">
+              Damicon
+            </span>
+            {/* Bricht um statt abzuschneiden: neben dem Einklapp-Knopf
+                bleiben 181 px, der Text braucht 193 px. Er ist Beiwerk, kein
+                Navigationsziel - zwei Zeilen kosten hier weniger als ein
+                abgeschnittener Markenzusatz. */}
+            <span className="block text-[11px] font-semibold leading-tight text-muted-foreground">
+              {nav("platformSubtitle")}
+            </span>
           </span>
-          <span className="block truncate text-[11px] font-semibold text-muted-foreground">
-            {nav("platformSubtitle")}
-          </span>
-        </span>
-      </Link>
+        </Link>
+        {einklappen ? (
+          <button
+            type="button"
+            onClick={einklappen}
+            aria-label={nav("collapseMenu")}
+            title={nav("collapseMenu")}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          >
+            <PanelLeftClose className="h-4 w-4" />
+          </button>
+        ) : null}
+      </div>
 
       <div className="mt-5 rounded-xl border border-sidebar-border bg-sidebar-accent/70 p-3">
         <p className="text-[10px] font-semibold uppercase text-muted-foreground">
@@ -168,9 +325,8 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
         <ul className="space-y-1.5">
           {/* "Uebersicht" steht auf derselben Ebene wie die vier Bereiche und
               bekommt deshalb dieselbe Flaeche - ohne sie haengt die Zeile lose
-              ueber vier Karten. Neutral statt in einer Bereichsfarbe: sie
-              gehoert zu keinem Bereich. */}
-          <li className="rounded-xl border border-sidebar-border bg-sidebar-accent/40 px-1 py-0.5">
+              ueber vier Karten. */}
+          <li className="rounded-xl border border-sidebar-border px-1 py-0.5">
             <Link
               href="/dashboard"
               onClick={onNavigate}
@@ -182,15 +338,8 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                   : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
               )}
             >
-              <span
-                className={cn(
-                  "flex h-6 w-6 shrink-0 items-center justify-center rounded-md",
-                  isActive("/dashboard")
-                    ? "bg-primary-foreground/20"
-                    : "bg-primary/15 text-primary",
-                )}
-              >
-                <LayoutDashboard className="h-3.5 w-3.5" />
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+                <LayoutDashboard className="h-4 w-4" />
               </span>
               {nav("overview")}
             </Link>
@@ -214,13 +363,14 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
               // Die Gruppe ist eine eigene Flaeche statt einer Einrueckung:
               // Einruecken haette die Beschriftungen noch schmaler gemacht,
               // und die sind schon ohne das zu knapp.
+              //
+              // Bewusst ohne Bereichsfarbe: der Rahmen trennt die Gruppen
+              // ausreichend, und die einzige Farbe im Menue bleibt damit die
+              // der aktiven Seite. Die Farben der Bereiche stehen weiterhin in
+              // modules.ts und tragen die Startseite.
               <li
                 key={zone.key}
-                className="rounded-xl border px-1 py-0.5"
-                style={{
-                  borderColor: `color-mix(in oklab, ${zone.accent} 22%, var(--sidebar-border))`,
-                  backgroundColor: `color-mix(in oklab, ${zone.accent} 5%, transparent)`,
-                }}
+                className="rounded-xl border border-sidebar-border px-1 py-0.5"
               >
                 <button
                   type="button"
@@ -232,22 +382,17 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                     !offen && enthaeltAktives && "bg-sidebar-accent/60",
                   )}
                 >
-                  <span
-                    className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md"
-                    style={{
-                      backgroundColor: `color-mix(in oklab, ${zone.accent} 16%, transparent)`,
-                      color: zone.accent,
-                    }}
-                  >
-                    <Icon name={zone.icon} className="h-3.5 w-3.5" />
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center text-muted-foreground">
+                    <Icon name={zone.icon} className="h-4 w-4" />
                   </span>
                   <span className="min-w-0 flex-1 truncate text-[11px] font-black uppercase tracking-[0.12em] text-sidebar-foreground">
                     {zoneT(`${zone.key}.name`)}
                   </span>
                   {offen ? null : enthaeltAktives ? (
+                    // Der Punkt sagt "die offene Seite liegt hier drin" und
+                    // traegt deshalb die Farbe der aktiven Seite.
                     <span
-                      className="h-1.5 w-1.5 shrink-0 rounded-full"
-                      style={{ backgroundColor: zone.accent }}
+                      className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
                       aria-hidden="true"
                     />
                   ) : (
@@ -344,6 +489,10 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
 export function DashboardSidebar() {
   const [open, setOpen] = useState(false);
   const nav = useTranslations("nav");
+  // Server rendert immer die volle Spalte. Wer sie eingeklappt hatte, sieht
+  // sie nach der Hydration zusammenfahren - dieselbe Abwaegung wie bei den
+  // Bereichsgruppen und bei persona.tsx.
+  const schmal = useSyncExternalStore(schmalAbonnieren, istSchmal, () => false);
 
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
@@ -363,10 +512,20 @@ export function DashboardSidebar() {
         <Menu className="h-5 w-5" />
       </button>
 
-      {/* 19rem statt der frueheren 18rem: die Gruppenlinie rueckt die
-          Eintraege ein, die Beschriftungen behalten so ihre Breite. */}
-      <aside className="sticky top-0 hidden h-svh w-76 shrink-0 self-start overflow-hidden border-r border-sidebar-border bg-sidebar/95 backdrop-blur-xl md:block print:hidden">
-        <SidebarBody />
+      {/* 19rem statt der frueheren 18rem: die Gruppenflaechen kosten etwas
+          Breite, die Beschriftungen behalten so ihre eigene. */}
+      <aside
+        className={cn(
+          "sticky top-0 hidden h-svh shrink-0 self-start overflow-hidden border-r border-sidebar-border bg-sidebar/95 backdrop-blur-xl md:block print:hidden",
+          "transition-[width] duration-200 ease-out motion-reduce:transition-none",
+          schmal ? "w-16" : "w-76",
+        )}
+      >
+        {schmal ? (
+          <SidebarRail aufklappen={() => schmalSetzen(false)} />
+        ) : (
+          <SidebarBody einklappen={() => schmalSetzen(true)} />
+        )}
       </aside>
 
       {open ? (

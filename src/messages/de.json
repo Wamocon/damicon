@@ -21,6 +21,8 @@
     "breadcrumb": "Navigationspfad",
     "openMenu": "Menü öffnen",
     "closeMenu": "Menü schließen",
+    "collapseMenu": "Menü einklappen",
+    "expandMenu": "Menü ausklappen",
     "portal": "Zum Portal",
     "zones": "Vier Zonen",
     "proof": "Belegbarkeit",
