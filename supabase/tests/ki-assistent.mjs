@@ -41,8 +41,9 @@ import {
   STIMMEN,
   textFuerSprachausgabe,
 } from "../../src/lib/domain/sprachausgabe.ts";
-import { erzeugeSprachausgabe } from "../../src/lib/ai/sprachausgabe-client.ts";
+import { erzeugeSprachausgabe, sprachausgabeUrl, sprachausgabeZugangsHeader } from "../../src/lib/ai/sprachausgabe-client.ts";
 import {
+  transkriptionBasisUrl,
   transkribiereAudio,
   transkriptionsMeldung,
   transkriptionZeitlimitMs,
@@ -356,11 +357,15 @@ for (const [name, kaputteAntwort] of [
     `${lang.length} Zeichen`,
   );
 
+  // Der Dienst waehlt die Stimme ueber <sprache>-male/-female. Ein
+  // Tippfehler faellt dort NICHT als Fehler auf: eine unbekannte Stimme
+  // beantwortet er mit 200 und irgendeiner Standardstimme (am 20.09.2026 mit
+  // "gibt-es-nicht" geprueft). Diese Pruefung ist deshalb die einzige
+  // Absicherung dagegen, dass eine Antwort in der falschen Sprache klingt.
   pruefe(
-    "Sprachausgabe: genau die freigegebenen Stimmen - de mls, en cori (high), kk issai (high)",
-    STIMMEN.de?.modell === "speaches-ai/piper-de_DE-mls-medium" &&
-      STIMMEN.en?.modell === "speaches-ai/piper-en_GB-cori-high" &&
-      STIMMEN.kk?.modell === "speaches-ai/piper-kk_KZ-issai-high",
+    "Sprachausgabe: jede Sprache hat genau ihre eigene Stimme (<sprache>-male/-female)",
+    Object.entries(STIMMEN).every(([sprache, s]) => s && new RegExp(`^${sprache}-(male|female)$`).test(s.stimme)),
+    JSON.stringify(Object.fromEntries(Object.entries(STIMMEN).map(([k, v]) => [k, v?.stimme ?? null]))),
   );
   // Ablagepfad im Zwischenspeicher (Bucket ki-sprachausgabe): je Antwort und
   // Stimme genau einer, ohne Schraegstriche oder Punkte aus dem Modellnamen.
@@ -376,13 +381,20 @@ for (const [name, kaputteAntwort] of [
     pfadDe,
   );
 
-  pruefe("Sprachausgabe: Russisch ohne Stimme (alle vier Piper-Stimmen lizenzrechtlich ausgeschlossen)", STIMMEN.ru === null);
-  pruefe("Sprachausgabe: Tuerkisch ohne Stimme (einzige Piper-Stimme nicht kommerziell)", STIMMEN.tr === null);
-  // Von lessac abgeleitet (Blizzard-Forschungslizenz) oder nicht-kommerziell /
-  // ungeklaert - keine davon darf je wieder in der Tabelle auftauchen.
+  // Mit den Piper-Stimmen auf Caesar blieben Russisch und Tuerkisch stumm -
+  // fuer beide gab es nur Modelle mit unklarer oder nicht kommerzieller
+  // Lizenz. Ueber den Dienst sprechen jetzt alle fuenf.
   pruefe(
-    "Sprachausgabe: keine lessac-abgeleitete oder nicht-kommerzielle Stimme (thorsten, alba, denis, dmitri, irina, ruslan, lessac, dfki ...)",
-    !Object.values(STIMMEN).some((s) => s && /thorsten|alba|denis|dmitri|irina|ruslan|lessac|dfki|ryan|jenny|northern_english|hfc_|libritts|joe/.test(s.modell)),
+    "Sprachausgabe: alle fuenf Sprachen haben eine Stimme, auch Russisch und Tuerkisch",
+    Object.values(STIMMEN).every((s) => s !== null),
+  );
+  // Der Stimmwechsel aendert auch den Ablagepfad: alte Piper-Aufnahmen
+  // werden nicht mehr gefunden, statt mit der neuen Stimme verwechselt zu
+  // werden.
+  pruefe(
+    "Zwischenspeicher: der Pfad traegt den neuen Stimmnamen, nicht den alten Piper-Namen",
+    pfadDe.endsWith("/de-female.mp3") && !pfadDe.includes("piper"),
+    pfadDe,
   );
 }
 
@@ -403,8 +415,9 @@ for (const [name, kaputteAntwort] of [
     const body = JSON.parse(aufrufe[0]?.init.body ?? "{}");
     pruefe("Sprachausgabe-Client: lokal ohne Access-Header, Audio kommt zurueck", lokal.ok && lokal.typ === "audio/mpeg" && !aufrufe[0].init.headers["CF-Access-Client-Id"]);
     pruefe(
-      "Sprachausgabe-Client: Anfrage traegt Modell, Stimme, Text und mp3",
-      body.model === stimme.modell && body.voice === stimme.stimme && body.input === "Hallo" && body.response_format === "mp3",
+      "Sprachausgabe-Client: Anfrage traegt genau Text und Stimme (der Dienst kennt kein Modellfeld)",
+      body.voice === stimme.stimme && body.input === "Hallo" && Object.keys(body).length === 2,
+      JSON.stringify(body),
     );
 
     process.env.KI_TRANSKRIPTION_ACCESS_ID = "caesar.access";
@@ -464,7 +477,35 @@ for (const [name, kaputteAntwort] of [
     `${transkriptionZeitlimitMs()} ms`,
   );
 
+  // Der eigentliche Produktionsfehler vom 20.09.2026: beide Dienste zeigten
+  // ohne gesetzte Variable auf eine LAN-Adresse, die von Vercel aus niemand
+  // erreicht. Voreinstellung ist jetzt der oeffentliche Dienst.
+  for (const [name, url] of [["Spracheingabe", transkriptionBasisUrl()], ["Sprachausgabe", sprachausgabeUrl()]]) {
+    pruefe(
+      `${name}: Voreinstellung zeigt auf den oeffentlichen Dienst, nicht ins Buero-LAN`,
+      url.startsWith("https://") && !/\b(10|127|192\.168|172\.(1[6-9]|2\d|3[01]))\./.test(url),
+      url,
+    );
+  }
+
   pruefe("Spracheingabe: ohne Access-Variablen keine Kopfzeilen", transkriptionZugangsHeader().ok && Object.keys(transkriptionZugangsHeader().headers).length === 0);
+
+  // Regelfall seit dem Wechsel auf Sokrates: ein Bearer-Token. Es hat Vorrang
+  // vor dem Access-Paar, damit nie beide Zugaenge zugleich mitgehen - und es
+  // gilt fuer BEIDE Richtungen, denn es ist ein Dienst.
+  process.env.KI_SOKRATES_API_SCHLUESSEL = "sk-testschluessel";
+  process.env.KI_TRANSKRIPTION_ACCESS_ID = "caesar.access";
+  process.env.KI_TRANSKRIPTION_ACCESS_SECRET = "caesar-geheim";
+  for (const [name, kopf] of [["Spracheingabe", transkriptionZugangsHeader()], ["Sprachausgabe", sprachausgabeZugangsHeader()]]) {
+    pruefe(
+      `${name}: Bearer-Token hat Vorrang und geht nie zusammen mit dem Access-Paar`,
+      kopf.ok && kopf.headers.Authorization === "Bearer sk-testschluessel" && !kopf.headers["CF-Access-Client-Id"],
+      JSON.stringify(kopf.ok ? Object.keys(kopf.headers) : kopf.grund),
+    );
+  }
+  delete process.env.KI_SOKRATES_API_SCHLUESSEL;
+  delete process.env.KI_TRANSKRIPTION_ACCESS_ID;
+  delete process.env.KI_TRANSKRIPTION_ACCESS_SECRET;
   process.env.KI_TRANSKRIPTION_ACCESS_ID = "caesar.access";
   pruefe("Spracheingabe: halber Zugang ist ein Fehler, keine halbe Anfrage", !transkriptionZugangsHeader().ok);
   process.env.KI_TRANSKRIPTION_ACCESS_SECRET = "caesar-geheim";
@@ -504,9 +545,25 @@ for (const [name, kaputteAntwort] of [
     pruefe("Spracheingabe-Client: kein eigener content-type (fetch setzt die multipart-Grenze)", !("content-type" in kopf) && !("Content-Type" in kopf));
     pruefe("Spracheingabe-Client: Umleitungen werden nicht verfolgt", aufrufe[0]?.init.redirect === "manual");
 
+    // Die Oberflaechensprache geht als Hinweis mit - sie trennt vor allem
+    // Kasachisch von Russisch, die sich die kyrillische Schrift teilen.
+    // Tuerkisch bietet der Dienst fuer die Erkennung NICHT an (am 20.09.2026
+    // geprueft: die Antwort kam verhoert zurueck), deshalb faellt es weg und
+    // der Dienst erkennt die Sprache selbst.
+    const sprachFelder = async (vorgabe) => {
+      aufrufe.length = 0;
+      naechsteAntwort = () => new Response(JSON.stringify({ text: "x" }), { status: 200, headers: { "content-type": "application/json" } });
+      await transkribiereAudio(audio, "aufnahme.webm", vorgabe);
+      return aufrufe[0]?.init.body?.get?.("language") ?? null;
+    };
+    pruefe("Spracheingabe-Client: Kasachisch wird als Sprache mitgeschickt", (await sprachFelder("kk")) === "kk");
+    pruefe("Spracheingabe-Client: Tuerkisch wird nicht mitgeschickt (keine Erkennung dafuer)", (await sprachFelder("tr")) === null);
+    pruefe("Spracheingabe-Client: erfundene Sprache wird still verworfen", (await sprachFelder("klingonisch")) === null);
+    pruefe("Spracheingabe-Client: ohne Vorgabe erkennt der Dienst die Sprache selbst", (await sprachFelder(undefined)) === null);
+
     naechsteAntwort = () => new Response("", { status: 302 });
     const abgewiesen = await transkribiereAudio(audio, "aufnahme.webm");
-    pruefe("Spracheingabe-Client: 302 (Access-Anmeldeseite) wird als zugang-abgewiesen gemeldet", !abgewiesen.ok && abgewiesen.grund.startsWith("zugang-abgewiesen"));
+    pruefe("Spracheingabe-Client: 302 (Anmeldeseite) wird als zugang-abgewiesen gemeldet", !abgewiesen.ok && abgewiesen.grund.startsWith("zugang-abgewiesen"));
 
     naechsteAntwort = () => {
       throw new TypeError("fetch failed");
