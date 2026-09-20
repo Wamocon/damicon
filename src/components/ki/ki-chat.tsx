@@ -1049,7 +1049,14 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
             onChange={(e) => beiEingabe(e.target.value)}
             onKeyDown={beiTaste}
           />
-          {/* Diktat: der erkannte Text landet im Feld, abgeschickt wird von Hand. */}
+          {/* Diktat: die Aufnahme endet von selbst, sobald jemand aufhoert zu
+              sprechen, und der erkannte Text geht sofort raus (beiSenden) -
+              sprechen und fertig, ohne zweiten Klick. Er steht dabei im
+              Eingabefeld, damit sichtbar bleibt, was verstanden wurde.
+              Geht die Erkennung daneben, hilft nur noch eine zweite
+              Nachricht - in der Assistenten-Ansicht
+              (db/ki-assistent-formulare.tsx) bleibt es deshalb beim
+              Nachlesen vor dem Abschicken. */}
           <MikrofonKnopf
             className="ki-composer__knopf ki-composer__knopf--still"
             deaktiviert={beschaeftigt || einwilligungFehlt}
@@ -1057,6 +1064,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
               beiEingabe(text);
               eingabeRef.current?.focus();
             }}
+            beiSenden={(text) => sende(text)}
           />
           {beschaeftigt ? (
             <button type="button" onClick={stopp} aria-label={t("stopp")} className="ki-composer__knopf">
