@@ -94,11 +94,15 @@ Größen im Dashboard (aus `kit.tsx`):
 | Abschnittstitel | `text-sm font-bold` |
 | Beschreibung | `text-sm leading-6 text-muted-foreground` (Seite), `text-xs` (Abschnitt) |
 | Kennzahl | `text-2xl font-black` |
-| Kennzahl-Label, Tabellenkopf | `text-[11px] font-semibold uppercase tracking-wide text-muted-foreground` |
-| Statuspille | `text-[11px] font-semibold leading-4` |
+| Kennzahl-Label, Tabellenkopf, Feldname | `text-label font-semibold uppercase tracking-wide text-muted-foreground` |
+| Statuspille | `text-label font-semibold` |
 | Tabellentext | `text-sm` |
 
 `font-black` fällt bei Manrope auf 800 zurück; das ist gewollt und braucht keine Korrektur.
+
+**Zwei Größen sind Tokens, nicht Zahlen.** `text-label` (Beschriftungen) und `text-dense` (dichter Fließtext daneben) stehen in `globals.css` und sind auf dem Handy eine Stufe größer: 11 → 13 px und 12 → 14 px. Die Oberfläche ist auf 11 px gebaut, was am Schreibtisch eine dichte, lesbare Erfassungsmaske ergibt und in der Hand die Größe ist, bei der man das Telefon näher ans Gesicht hält. Bewusst nicht 16 px: das ist die Grenze für *Eingabefelder* wegen des iOS-Zooms, für Beschriftungen wäre es zu viel. Der Sprung hängt an derselben Media Query wie Leiste, Blätter und Tabellen, nicht an einem eigenen `clamp()`.
+
+Neue Beschriftungen tragen `text-label`, neue Hilfszeilen `text-dense` — nicht `text-[11px]`. Der Bestand in den Modulen ist noch nicht umgestellt (Stand: 212 Stellen), das ist ein eigener Durchgang.
 
 ## 4. Form, Abstand, Tiefe
 

@@ -19,7 +19,7 @@ Das betrifft die Hülle. Die Module darin sind unverändert für den Schreibtisc
 | 1 | Tabellen zwingen weiter zum Querscrollen | sehr hoch | mittel | **erledigt** |
 | 2 | Eingabefelder in den Modulen lösen den iOS-Zoom aus | sehr hoch | niedrig | **erledigt** |
 | 3 | Kein Web-App-Manifest, obwohl der Service Worker steht | hoch | niedrig | **erledigt** |
-| 4 | Die Fach-Oberfläche ist auf 11 px gebaut | hoch | mittel | Vorschlag |
+| 4 | Die Fach-Oberfläche ist auf 11 px gebaut | hoch | mittel | **teilweise** |
 | 5 | 50 Bedienelemente unter 44 px | hoch | mittel | **erledigt** |
 | 6 | Scan-Ansicht im Querformat, Knöpfe 27 px | hoch | niedrig | **erledigt** |
 | 7 | Kein Fokus sichtbar, nirgends in der Fach-Oberfläche | hoch | niedrig | **erledigt** |
@@ -85,7 +85,7 @@ Unverändert seit dem ersten Durchgang: `public/sw.js` cacht die App-Shell, `pub
 
 *Nutzen: hoch · Aufwand: niedrig*
 
-### 4. Die Fach-Oberfläche ist auf 11 px gebaut
+### 4. Die Fach-Oberfläche ist auf 11 px gebaut — teilweise
 
 Gezählt: 191 Mal `text-[11px]`, 28 Mal `text-[10px]`, dazu `text-xs` als Grundmaß in den Modulen. Beschriftungen, Statustexte, Tabellenköpfe und Hilfszeilen liegen fast durchgehend bei 11 oder 12 px.
 
@@ -94,6 +94,16 @@ Auf 15 Zoll ist das eine dichte, gut lesbare Erfassungsmaske. In der Hand, bei S
 *Dafür:* Zwei, drei Textgrößen als Tokens mit `clamp()` lösen das an einer Stelle, wenn die Bausteine in `kit.tsx` und `formular-kit.tsx` sie verwenden. Die Module erben es.
 
 *Dagegen:* Die 219 gezählten Stellen tragen ihre Größe direkt, nicht über einen Baustein. Ein Token hilft erst, wenn sie ersetzt sind, und das ist Fleißarbeit mit Prüfaufwand in fünf Sprachen. Größer heißt außerdem: weniger Zeilen pro Bildschirm, auch am Schreibtisch, wenn man es nicht am Breakpoint trennt.
+
+**Gebaut am 20.09.2026, Schritt 1 und 2 von 3.**
+
+Schritt 1: zwei Tokens in `globals.css`, `text-label` für Beschriftungen und `text-dense` für dichten Fließtext daneben. Auf dem Handy eine Stufe größer, 11 → 13 px und 12 → 14 px. Nicht 16 px — das ist die Grenze für Eingabefelder wegen des Zooms, für eine Beschriftung wäre es zu viel und würde die Module auseinanderziehen. Der Sprung hängt an derselben Media Query wie alles andere in diesem Branch; ein `clamp()` hätte die Größe stufenlos an die Fensterbreite gekoppelt und wäre der einzige Ort im Projekt mit einer eigenen Grenze gewesen.
+
+Schritt 2: die Bausteine tragen die Tokens — Statuspille, Kennzahl-Label, Kennzahl-Hilfstext, Abschnittsbeschreibung und Tabellenkopf in `kit.tsx`, Feldbeschriftung, Rückmeldung und Formularkarte in `formular-kit.tsx`. Die Module erben es, ohne dass eine ihrer Dateien angefasst wurde. Die Beschriftung in den Tabellenkarten liest dieselbe Variable.
+
+Nachgeprüft im ausgelieferten Stylesheet: die Utilities `text-label` und `text-dense` entstehen und hängen an den Variablen, die Media Query setzt sie von `.6875rem` auf `.8125rem`.
+
+**Schritt 3 steht aus:** 212 Stellen tragen ihre Größe weiterhin direkt, davon 164 in den Modulen (`components/db/`), 19 im Dashboard-Rahmen und 10 auf der Marketingseite. Sie einzeln umzustellen ist Fleißarbeit mit Prüfblick auf Kasachisch und Russisch, wo dieselbe Beschriftung deutlich länger ausfällt. Das gehört modulweise gemacht und nicht in einem Zug — und es ist der Punkt, an dem sich zeigt, ob 13 px in einer Tabellenzeile noch trägt oder ob die Zeile dann umbricht. Die Marketingseite bleibt außen vor, sie ist nicht auf Dichte gebaut.
 
 *Nutzen: hoch · Aufwand: mittel*
 

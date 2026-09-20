@@ -60,7 +60,7 @@ export function Feld({
 }) {
   return (
     <label className="block space-y-1">
-      <span className="text-[11px] font-semibold text-card-foreground">
+      <span className="text-label font-semibold text-card-foreground">
         {label}
       </span>
       <input
@@ -92,7 +92,7 @@ export function Auswahl({
 }) {
   return (
     <label className="block space-y-1">
-      <span className="text-[11px] font-semibold text-card-foreground">
+      <span className="text-label font-semibold text-card-foreground">
         {label}
       </span>
       <select
@@ -157,7 +157,7 @@ export function AktionsMeldung({ status }: { status: AktionsStatus }) {
   return (
     <p
       role="status"
-      className={`flex items-start gap-1.5 rounded-lg border p-2 text-[11px] font-semibold leading-4 ${
+      className={`flex items-start gap-1.5 rounded-lg border p-2 text-label font-semibold ${
         gut
           ? "border-success/25 bg-success/[0.08] text-success"
           : "border-destructive/25 bg-destructive/[0.06] text-destructive"
@@ -180,9 +180,9 @@ export function FormularKarte({
 }) {
   return (
     <div className="rounded-xl border border-border bg-card p-4">
-      <p className="text-xs font-black text-card-foreground">{titel}</p>
+      <p className="text-dense font-black text-card-foreground">{titel}</p>
       {beschreibung ? (
-        <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
+        <p className="mt-0.5 text-label text-muted-foreground">
           {beschreibung}
         </p>
       ) : null}
