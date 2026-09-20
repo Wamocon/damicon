@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { Skeleton, SkeletonCard } from "@/components/ui/kit";
 
 // Ladezustand der Modulseite.
 //
@@ -18,25 +19,25 @@ export default async function ModulLaedt() {
       <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <div className="h-3 w-16 animate-pulse rounded bg-muted motion-reduce:animate-none" />
-            <div className="h-3 w-3 animate-pulse rounded bg-muted/60 motion-reduce:animate-none" />
-            <div className="h-3 w-12 animate-pulse rounded bg-muted motion-reduce:animate-none" />
-            <div className="h-3 w-3 animate-pulse rounded bg-muted/60 motion-reduce:animate-none" />
-            <div className="h-3 w-20 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-3 w-3 bg-muted/60" />
+            <Skeleton className="h-3 w-12" />
+            <Skeleton className="h-3 w-3 bg-muted/60" />
+            <Skeleton className="h-3 w-20" />
           </div>
-          <div className="mt-2 h-8 w-2/3 max-w-md animate-pulse rounded bg-muted motion-reduce:animate-none" />
-          <div className="mt-3 h-4 w-full max-w-2xl animate-pulse rounded bg-muted/70 motion-reduce:animate-none" />
-          <div className="mt-1.5 h-4 w-1/2 max-w-md animate-pulse rounded bg-muted/70 motion-reduce:animate-none" />
+          <Skeleton className="mt-2 h-8 w-2/3 max-w-md" />
+          <Skeleton className="mt-3 h-4 w-full max-w-2xl bg-muted/70" />
+          <Skeleton className="mt-1.5 h-4 w-1/2 max-w-md bg-muted/70" />
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <div className="h-6 w-36 animate-pulse rounded-full bg-muted motion-reduce:animate-none" />
-          <div className="h-6 w-24 animate-pulse rounded-full bg-muted motion-reduce:animate-none" />
+          <Skeleton className="h-6 w-36 rounded-full" />
+          <Skeleton className="h-6 w-24 rounded-full" />
         </div>
       </header>
 
       <div className="space-y-4">
-        <div className="h-44 animate-pulse rounded-xl border border-border bg-card motion-reduce:animate-none" />
-        <div className="h-72 animate-pulse rounded-xl border border-border bg-card motion-reduce:animate-none" />
+        <SkeletonCard className="h-44" />
+        <SkeletonCard className="h-72" />
       </div>
 
       <span className="sr-only">{t("loading")}</span>

@@ -3,17 +3,23 @@
 import { useTranslations } from "next-intl";
 import { usePathname } from "@/i18n/navigation";
 import { usePersona } from "@/components/dashboard/persona";
+import { useAktiveZone } from "@/components/dashboard/sidebar-zustand";
 import { hasPermission } from "@/lib/rbac";
 import { modulesForZone, zones, type ZoneKey } from "@/lib/modules";
 
-// Die oberste Navigationsebene: Uebersicht und die vier Bereiche, samt der
-// Frage, welches Ziel gerade offen ist.
+// Die oberste Navigationsebene als Liste: Uebersicht und die vier Bereiche,
+// gefiltert nach dem, was die Rolle sehen darf, samt der Frage, welches Ziel
+// gerade offen ist.
 //
 // Herausgeloest aus SidebarRail, als die untere Leiste auf dem Handy dieselben
 // fuenf Ziele tragen sollte. Diese Fassung der Leiste ist inzwischen ersetzt
-// (sie traegt jetzt Menue, KI und Konto), die Trennung bleibt trotzdem: die
-// Zone der geoeffneten Seite braucht auch sidebar.tsx selbst, einmal fuer die
-// Symbolleiste und einmal, um die richtige Bereichsgruppe aufzuklappen.
+// (sie traegt jetzt Menue, KI und Konto), die Liste bleibt trotzdem eigen:
+// SidebarRail mischte vorher drei Dinge in einer Funktion - die Auswahl der
+// Ziele, die Frage nach dem aktiven Ziel und die Darstellung als Spalte.
+//
+// Nicht zu verwechseln mit useAktiveZone aus sidebar-zustand.ts: das ist die
+// nackte Zone der offenen Seite, die auch die Bereichsgruppen brauchen. Hier
+// wird sie zu fertigen Zielen samt Namen, Symbol und Rechtepruefung verarbeitet.
 
 export interface NavZiel {
   /** "overview" oder der Bereichsschluessel. */
@@ -30,13 +36,6 @@ export interface NavZiel {
    * gar nicht an, wo man steht.
    */
   imZiel: boolean;
-}
-
-/** Bereich der geoeffneten Seite, gelesen aus /dashboard/<zone>/<modul>. */
-export function useAktiveZone(): ZoneKey | null {
-  const pathname = usePathname();
-  const segment = pathname.split("/")[2];
-  return zones.find((zone) => zone.key === segment)?.key ?? null;
 }
 
 export function useNavZiele(): NavZiel[] {

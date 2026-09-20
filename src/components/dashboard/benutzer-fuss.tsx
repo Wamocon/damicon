@@ -27,11 +27,14 @@ function initialen(name: string): string {
 }
 
 function useBenutzer() {
-  const { name, role, echteRolle, demoModus } = usePersona();
+  const { name, email, role, echteRolle, demoModus } = usePersona();
   const roleT = useTranslations("roles");
   return {
     demoModus,
-    name,
+    // Ein frisch angelegtes Konto hat noch keinen Namen im Profil. Dann traegt
+    // die Mailadresse die Zeile - sie benennt die Person genauso eindeutig und
+    // steht im DB-Modus immer zur Verfuegung.
+    name: name ?? email,
     // Ohne Anmeldung gibt es keine Profilrolle - dann zaehlt die
     // umgeschaltete Demo-Rolle.
     rolle: roleT(demoModus ? role : echteRolle),
@@ -39,6 +42,30 @@ function useBenutzer() {
     ansichtsrolle: !demoModus && role !== echteRolle ? roleT(role) : null,
     kuerzel: name ? initialen(name) : null,
   };
+}
+
+// Abmelden ist eine Server Action und braucht deshalb ein Formular mit der
+// Sprache im verborgenen Feld. Beide Zustaende der Leiste, die breite Zeile und
+// die Symbolleiste, brauchen denselben Knopf und unterscheiden sich nur in der
+// Flaeche - der Unterschied ist genau ein className und gehoert nicht in zwei
+// Kopien desselben Formulars.
+function AbmeldeKnopf({ className }: { className: string }) {
+  const t = useTranslations("auth");
+  const locale = useLocale();
+
+  return (
+    <form action={abmelden}>
+      <input type="hidden" name="locale" value={locale} />
+      <button
+        type="submit"
+        aria-label={t("signOut")}
+        title={t("signOut")}
+        className={className}
+      >
+        <LogOut className="h-4 w-4" />
+      </button>
+    </form>
+  );
 }
 
 const knopfKlassen =
@@ -50,7 +77,6 @@ export function BenutzerFuss({ onNavigate }: { onNavigate?: () => void }) {
   const nav = useTranslations("nav");
   const t = useTranslations("auth");
   const roleT = useTranslations("roles");
-  const locale = useLocale();
 
   return (
     <div className="mt-2 shrink-0 rounded-xl border border-sidebar-border p-2">
@@ -64,12 +90,16 @@ export function BenutzerFuss({ onNavigate }: { onNavigate?: () => void }) {
           </span>
           {/* Die Rollenbeschreibung stand frueher ausgeschrieben in der Kachel
               oben. Sie ist Beiwerk und wandert in den Hover-Text, statt hier
-              eine dritte Zeile zu kosten. */}
+              eine dritte Zeile zu kosten.
+
+              Der Demo-Hinweis haengt am Demo-Modus, nicht am fehlenden Namen:
+              sonst saehe ein echtes Konto ohne Profilnamen "Aktive Rolle
+              (Demo)", obwohl gar kein Demo-Modus laeuft. */}
           <span
             className="block truncate text-[11px] text-muted-foreground"
             title={beschreibung}
           >
-            {name ? rolle : nav("activePersona")}
+            {demoModus ? nav("activePersona") : rolle}
           </span>
         </span>
       </div>
@@ -99,17 +129,7 @@ export function BenutzerFuss({ onNavigate }: { onNavigate?: () => void }) {
               >
                 <ShieldCheck className="h-4 w-4" />
               </Link>
-              <form action={abmelden}>
-                <input type="hidden" name="locale" value={locale} />
-                <button
-                  type="submit"
-                  aria-label={t("signOut")}
-                  title={t("signOut")}
-                  className={knopfKlassen}
-                >
-                  <LogOut className="h-4 w-4" />
-                </button>
-              </form>
+              <AbmeldeKnopf className={knopfKlassen} />
             </span>
           ) : null}
         </div>
@@ -124,7 +144,6 @@ export function BenutzerFuss({ onNavigate }: { onNavigate?: () => void }) {
 export function BenutzerFussSchmal() {
   const { demoModus, name, rolle, kuerzel } = useBenutzer();
   const t = useTranslations("auth");
-  const locale = useLocale();
   const wer = name ? `${name} - ${rolle}` : rolle;
 
   return (
@@ -148,17 +167,7 @@ export function BenutzerFussSchmal() {
           >
             {kuerzel ?? <UserRound className="h-4 w-4" />}
           </Link>
-          <form action={abmelden}>
-            <input type="hidden" name="locale" value={locale} />
-            <button
-              type="submit"
-              aria-label={t("signOut")}
-              title={t("signOut")}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
-          </form>
+          <AbmeldeKnopf className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground" />
         </>
       )}
     </div>

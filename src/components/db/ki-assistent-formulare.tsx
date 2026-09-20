@@ -1,8 +1,16 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { useFormatter, useTranslations } from "next-intl";
-import { Landmark, MessageSquareWarning, Radar, ShieldAlert, Snowflake, Sparkles, UserRound } from "lucide-react";
+import {
+  Landmark,
+  MessageSquareWarning,
+  Radar,
+  ShieldAlert,
+  Snowflake,
+  Sparkles,
+  UserRound,
+} from "lucide-react";
 import type { ComponentType } from "react";
 import { Card, StatusPill } from "@/components/ui/kit";
 import {
@@ -13,7 +21,11 @@ import {
   PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
-import { kiEskalationAnfordern, kiNachrichtSenden } from "@/lib/actions/ki-assistent";
+import {
+  kiEskalationAnfordern,
+  kiNachrichtSenden,
+  waermeSpracherkennungVor,
+} from "@/lib/actions/ki-assistent";
 import {
   kiAnbieterAktivSetzen,
   kiAnbieterAnlegen,
@@ -21,6 +33,7 @@ import {
   kiAnbieterStandardSetzen,
 } from "@/lib/actions/ki-anbieter";
 import { leer } from "@/lib/actions/status";
+import { MikrofonKnopf as MikrofonAufnahmeKnopf } from "@/components/ki/mikrofon";
 import {
   kiAnbieterTypen,
   MAX_NACHRICHT_LAENGE,
@@ -69,6 +82,14 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
   const t = useTranslations("kiAssistentAnsicht");
   const format = useFormatter();
   const [sendenStatus, sendenAction] = useActionState(kiNachrichtSenden, leer);
+  const eingabeRef = useRef<HTMLInputElement>(null);
+
+  // Caesar laedt sein Modell beim ersten Aufruf (gemessen 221 s kalt gegen
+  // 7,2 s warm). Ein Anstoss beim Oeffnen des Moduls sorgt dafuer, dass die
+  // erste echte Aufnahme nicht in diese Ladezeit laeuft. Fehler bleiben still.
+  useEffect(() => {
+    void waermeSpracherkennungVor().catch(() => undefined);
+  }, []);
   const istErsteNachricht = verlauf.length === 0;
 
   return (
@@ -140,12 +161,14 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
           <PfadFeld />
           <div className="flex gap-2">
             <input
+              ref={eingabeRef}
               name="nachricht"
               required
               maxLength={MAX_NACHRICHT_LAENGE}
               placeholder={t("inputPlaceholder")}
               className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary"
             />
+            <MikrofonKnopf eingabeRef={eingabeRef} />
             <SubmitKnopf label={t("senden")} />
           </div>
           {istErsteNachricht ? (
@@ -160,6 +183,28 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
 
       <EskalationsFormular />
     </div>
+  );
+}
+
+
+// --- Mikrofonknopf -----------------------------------------------------------
+// Aufnehmen im Browser (MediaRecorder), Transkribieren auf dem Server
+// (transkribiereSprachnachricht -> Caesar im Buero-LAN). Der erkannte Text
+// landet im Eingabefeld, NICHT direkt im Chat: ein verhoertes Diktat, das
+// ungeprueft an die Kundschaft ginge, waere schlimmer als ein Tippfehler.
+// Abgeschickt wird weiterhin von Hand.
+function MikrofonKnopf({ eingabeRef }: { eingabeRef: React.RefObject<HTMLInputElement | null> }) {
+  return (
+    <MikrofonAufnahmeKnopf
+      className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground transition hover:border-primary disabled:opacity-60"
+      beiText={(text) => {
+        const feld = eingabeRef.current;
+        if (feld) {
+          feld.value = text;
+          feld.focus();
+        }
+      }}
+    />
   );
 }
 

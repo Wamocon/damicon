@@ -1,0 +1,116 @@
+// Sprachausgabe der KI-Antworten (Text-to-Speech) - reine Logik ohne
+// Netzwerk, damit supabase/tests/ki-assistent.mjs sie direkt pruefen kann.
+// Der Aufruf selbst: lib/ai/sprachausgabe-client.ts, die Route:
+// app/api/ki-sprachausgabe/route.ts.
+
+export const sprachausgabeSprachen = ["de", "ru", "kk", "tr", "en"] as const;
+export type SprachausgabeSprache = (typeof sprachausgabeSprachen)[number];
+
+export interface Stimme {
+  /** Name der Stimme im Dienst. Sokrates waehlt allein darueber aus, ein
+   *  eigenes Modellfeld gibt es dort nicht. */
+  stimme: string;
+}
+
+// Eine Stimme je Sprache, benannt nach der Auswahlregel des Dienstes:
+// <sprache>-male bzw. <sprache>-female.
+//
+// Am 20.09.2026 gegen den Dienst geprueft, nicht angenommen: alle zehn
+// Kombinationen aus de/en/ru/kk/tr und male/female liefern HTTP 200 mit
+// echtem MP3 (Frame-Kopf und LAME-Kennung, 11-34 kB je Satz, 0,2-0,7 s).
+// Damit haben Russisch und Tuerkisch erstmals eine Stimme - mit den
+// Piper-Stimmen auf Caesar ging das nicht, weil dort fuer beide Sprachen nur
+// Modelle mit unklarer oder nicht kommerzieller Lizenz bereitstanden.
+//
+// Wichtig fuer die Auswahl: ein unbekannter Stimmname wird vom Dienst NICHT
+// abgelehnt, er antwortet mit 200 und irgendeiner Standardstimme (geprueft
+// mit "gibt-es-nicht"). Diese Tabelle ist deshalb die einzige Kontrolle
+// darueber, was tatsaechlich gesprochen wird - ein Tippfehler hier faellt
+// nicht als Fehler auf, sondern als falsch klingende Antwort.
+//
+// Weiblich ueberall, damit die Anwendung einheitlich klingt; die Umstellung
+// je Sprache ist ein Wort in dieser Tabelle.
+export const STIMMEN: Record<SprachausgabeSprache, Stimme | null> = {
+  de: { stimme: "de-female" },
+  en: { stimme: "en-female" },
+  kk: { stimme: "kk-female" },
+  ru: { stimme: "ru-female" },
+  tr: { stimme: "tr-female" },
+};
+
+/** Ablageort des erzeugten Audios im Bucket "ki-sprachausgabe" (Migration
+ *  20261101000000). Die Stimme steckt im Dateinamen: nach einem Stimmwechsel
+ *  entsteht ein neuer Pfad, alte Aufnahmen werden nicht mehr gefunden. Der
+ *  Text kann sich nicht aendern - eine Antwort ist unveraenderlich. */
+export function sprachausgabePfad(nachrichtId: string, stimme: Stimme): string {
+  const kennung = stimme.stimme.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
+  return `${nachrichtId}/${kennung}.mp3`;
+}
+
+export function istSprachausgabeSprache(wert: string | null | undefined): wert is SprachausgabeSprache {
+  return (sprachausgabeSprachen as readonly string[]).includes(wert ?? "");
+}
+
+// Sprache der ANTWORT, nicht der Oberflaeche: Claude antwortet in der Sprache
+// der Frage (route.ts), und eine russische Antwort mit deutscher Stimme waere
+// unverstaendlich. Reihenfolge der Pruefung von eindeutig nach unscharf:
+//   1. kasachische Sonderbuchstaben (in Russisch nicht vorhanden) -> kk
+//   2. sonst kyrillisch -> ru
+//   3. tuerkische Sonderbuchstaben (ğ ş ı İ) -> tr
+//   4. deutsche Umlaute/ß oder typische deutsche Woerter -> de
+//   5. typische englische Woerter -> en
+//   6. sonst die Oberflaechensprache (fallback)
+const KASACHISCH = /[әғқңөұүһі]/i;
+const KYRILLISCH = /[Ѐ-ӿ]/;
+const TUERKISCH = /[ğşıİ]/;
+const DEUTSCH = /[äöüß]|\b(und|der|die|das|ist|nicht|sie|mit|fuer|für|auf|ein|eine)\b/i;
+const ENGLISCH = /\b(the|and|is|are|you|your|with|for|this|that|of)\b/i;
+
+export function erkenneSprache(text: string, fallback: string): SprachausgabeSprache {
+  const probe = text.slice(0, 2000);
+  if (KASACHISCH.test(probe)) return "kk";
+  if (KYRILLISCH.test(probe)) return "ru";
+  if (TUERKISCH.test(probe)) return "tr";
+  const de = (probe.match(new RegExp(DEUTSCH.source, "gi")) ?? []).length;
+  const en = (probe.match(new RegExp(ENGLISCH.source, "gi")) ?? []).length;
+  if (de > 0 || en > 0) return de >= en ? "de" : "en";
+  return istSprachausgabeSprache(fallback) ? fallback : "de";
+}
+
+// Obergrenze fuer eine vorgelesene Antwort. Piper braucht fuer ~200 Zeichen
+// unter einer Sekunde (gemessen auf Caesar); die Grenze haelt die Dauer auch
+// fuer lange Berichte unter Cloudflares 100-s-Grenze und begrenzt, was eine
+// einzelne Anfrage an Rechenzeit ausloesen kann.
+export const MAX_SPRACHAUSGABE_ZEICHEN = 3000;
+
+/** Macht aus der Markdown-Antwort vorlesbaren Text: keine Sternchen,
+ *  Rauten, Tabellenstriche oder Link-Adressen, die sonst mitgesprochen
+ *  wuerden. Kuerzt an einer Satzgrenze auf MAX_SPRACHAUSGABE_ZEICHEN. */
+export function textFuerSprachausgabe(markdown: string): string {
+  let text = markdown
+    .replace(/```[\s\S]*?```/g, " ") // Codebloecke nicht vorlesen
+    .replace(/`([^`]*)`/g, "$1")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ") // Bilder
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1") // Links: nur der Text
+    .replace(/^\s{0,3}#{1,6}\s+/gm, "") // Ueberschriften
+    .replace(/^\s*>\s?/gm, "") // Zitate
+    .replace(/^\s*[-*+]\s+/gm, "") // Aufzaehlungszeichen
+    // Tabellen: nur Leerzeichen/Tabs ([ \t]), nie \s - das griffe ueber den
+    // Zeilenumbruch und zoege zwei Zeilen zu einer zusammen.
+    .replace(/^[ \t]*\|?[ \t]*:?-{3,}:?[ \t]*(\|[ \t]*:?-{3,}:?[ \t]*)*\|?[ \t]*$/gm, "") // Trennzeilen
+    .replace(/^[ \t]*\|(.*)\|[ \t]*$/gm, "$1") // aeussere Tabellenstriche
+    .replace(/[ \t]*\|[ \t]*/g, ", ") // Zellen einer Zeile: "Polana, 1150"
+    .replace(/(\*\*|__)(.*?)\1/g, "$2")
+    .replace(/(\*|_)(.*?)\1/g, "$2")
+    .replace(/~~(.*?)~~/g, "$1")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{2,}/g, "\n")
+    .trim();
+
+  if (text.length > MAX_SPRACHAUSGABE_ZEICHEN) {
+    const abgeschnitten = text.slice(0, MAX_SPRACHAUSGABE_ZEICHEN);
+    const satzende = Math.max(abgeschnitten.lastIndexOf(". "), abgeschnitten.lastIndexOf("! "), abgeschnitten.lastIndexOf("? "), abgeschnitten.lastIndexOf("\n"));
+    text = satzende > MAX_SPRACHAUSGABE_ZEICHEN / 2 ? abgeschnitten.slice(0, satzende + 1) : abgeschnitten;
+  }
+  return text;
+}

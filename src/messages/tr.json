@@ -26,7 +26,6 @@
     "proof": "Kanıtlanabilirlik",
     "kpis": "Göstergeler",
     "compliance": "Uyum",
-    "activeRole": "Oturum açan",
     "account": "Hesap",
     "menu": "Menü"
   },
@@ -641,6 +640,7 @@
       "kuehlketteAbrufen": "Soğuk zincir kontrol edildi",
       "risikoRadarAbrufen": "Risk radarı kontrol edildi",
       "oeffneBereich": "{bereich} açıldı",
+      "wissenSuchen": "Bilgi tabanı tarandı",
       "unbekannt": "Adım tamamlandı",
       "datenmodellErkunden": "Veri modeli keşfedildi",
       "datenLesen": "{tabelle} okundu",
@@ -657,6 +657,11 @@
     "keinVerlauf": "Henüz mesaj yok. İlk sorunuzu aşağıya yazın.",
     "inputPlaceholder": "Soru girin ...",
     "senden": "Gönder",
+    "vorlesen": "Sesli oku",
+    "vorlesenStopp": "Okumayı durdur",
+    "vorlesenAuto": "Yanıtları sesli oku",
+    "vorlesenKeineStimme": "Bu dil için henüz bir ses yok.",
+    "vorlesenFehler": "Sesli okuma şu anda mümkün değil.",
     "einwilligungText": "Bildirimi okudum ve sorumun yapılandırılmış yapay zekâ sağlayıcısına iletilmesini kabul ediyorum.",
     "eskalationKnopf": "Bir çalışanla görüş",
     "eskalationAngefordert": "Talebiniz ofisten bir çalışana iletildi - kısa süre içinde sizinle iletişime geçecek.",
@@ -669,7 +674,31 @@
     "fehler": {
       "sitzung": "Oturumunuz sona erdi veya sonlandırıldı. Lütfen yeniden giriş yapın.",
       "anmelden": "Yeniden giriş yap",
-      "berechtigung": "Rolünüz yapay zekâ asistanını kullanamaz."
+      "berechtigung": "Rolünüz yapay zekâ asistanını kullanamaz.",
+      "zuLang": "Bu konuşma çok uzadı.",
+      "neuBeginnen": "Yeniden başla"
+    },
+    "quellen": {
+      "titel": "Kaynaklar",
+      "stufe": {
+        "recht": "Birincil hukuk",
+        "untergesetzlich": "İkincil düzenleme",
+        "erlaeuterung": "Resmi açıklama",
+        "fachquelle": "Uzman kaynağı",
+        "presse": "Basın",
+        "unbekannt": "Kaynak"
+      },
+      "gueltigAb": "{datum} tarihinden itibaren geçerli",
+      "stand": "{datum} itibarıyla",
+      "ueberholt": "Bu kaynak güncel değil.",
+      "auskunft": "Üçüncü tarafların bilgisi, hukuki kaynak değildir. Birincil kaynağı kontrol edin.",
+      "mehr": "Daha fazla göster",
+      "weniger": "Daha az göster",
+      "original": "Orijinali aç",
+      "intern": "İç araştırma",
+      "unbelegt": "Bu atıf için kaynak yok.",
+      "gestuetzt": "Kanun metniyle desteklenir",
+      "nurFach": "Yalnızca uzman kaynaklar: birincil kaynağı kontrol edin"
     },
     "anbieterVerwaltung": {
       "titel": "Yapay zekâ sağlayıcılarını yönet",
@@ -704,6 +733,14 @@
         "knopf": "Sağlayıcı ekle"
       }
     },
+    "diktat": {
+      "starten": "Dikte et",
+      "stoppen": "Kaydı durdur",
+      "laeuft": "Çözümleniyor … (birkaç saniye sürer)",
+      "leer": "Kayıt yok.",
+      "fehlgeschlagen": "Konuşma tanıma kullanılamıyor.",
+      "keinZugriff": "Mikrofon erişimi yok."
+    },
     "laeuft": {
       "mwstStatusAbrufen": "KDV durumu kontrol ediliyor …",
       "esutdOffeneFristenAbrufen": "ESUTD süreleri kontrol ediliyor …",
@@ -711,6 +748,7 @@
       "kuehlketteAbrufen": "Soğuk zincir kontrol ediliyor …",
       "risikoRadarAbrufen": "Risk radarı taranıyor …",
       "oeffneBereich": "{bereich} açılıyor …",
+      "wissenSuchen": "Bilgi tabanında arıyorum …",
       "unbekannt": "Çalışıyor …",
       "datenmodellErkunden": "Veri modeli keşfediliyor …",
       "datenLesen": "{tabelle} okunuyor …",
@@ -727,6 +765,7 @@
       "kuehlketteAbrufen": "Soğuk zincir",
       "risikoRadarAbrufen": "Risk radarı",
       "oeffneBereich": "{bereich}",
+      "wissenSuchen": "Bilgi tabanı",
       "unbekannt": "Kaynak",
       "datenmodellErkunden": "Veri modeli",
       "datenLesen": "{tabelle}",
@@ -840,7 +879,8 @@
       "grund": {
         "senden": "Bu tıklama veri gönderir veya değiştirir.",
         "loeschen": "Bu tıklama bir şeyi silebilir veya iptal edebilir.",
-        "extern": "Bu bağlantı uygulamanın dışına çıkarır."
+        "extern": "Bu bağlantı uygulamanın dışına çıkarır.",
+        "doppelt": "Bu form az önce zaten gönderildi. Tekrar göndermek büyük olasılıkla yinelenen bir kayıt oluşturur."
       },
       "nicht": "Yapılmadı: {absicht}"
     },
@@ -1457,6 +1497,7 @@
       "kontingentAktualisiert": "Miktar güncellendi.",
       "wetterAktualisiert": "Hava durumu verileri güncellendi.",
       "stammdatenGespeichert": "Ana veriler kaydedildi.",
+      "transkription": "Dikte alındı.",
       "nachbarbetrieb": "Komşu işletme “{wert}” eklendi.",
       "dokumentGeaendert": "Belge “{wert}” güncellendi."
     },
@@ -1493,6 +1534,10 @@
       "stammdatenFormat": "Numara tam olarak on iki haneden oluşur.",
       "stammdatenPruefziffer": "Kontrol hanesi tutmuyor. Çoğunlukla numarada iki rakam yer değiştirmiştir.",
       "selbstkontrolle": "Kasayı kaydeden kişi kendisi kontrol edemez. Bu kasayı başka biri kontrol etmelidir.",
+      "transkription": "Konuşma tanıma kullanılamıyor.",
+      "transkriptionDienst": "Konuşma tanıma hizmetine ulaşılamıyor. Kaydınızda sorun yok – lütfen daha sonra tekrar deneyin.",
+      "transkriptionDauer": "Konuşma tanıma çok uzun sürdü. Hizmet muhtemelen henüz başlatılıyor – lütfen bir dakika sonra tekrar deneyin.",
+      "dateiGross": "Kayıt çok büyük.",
       "nachbarbetriebVorhanden": "Bu adla bir komşu işletme zaten mevcut."
     },
     "einladungen": {
@@ -2903,5 +2948,141 @@
     "gekuerzt": "En son {anzahl} uygulama gösteriliyor, yukarıdaki değerler tümünü sayar.",
     "personVerborgen": "yalnızca ofis",
     "personVerborgenHinweis": "Uygulayan kişinin adı yalnızca ofis tarafından görülebilir."
+  },
+  "pruefung": {
+    "knopf": "Uyumluluk denetimi",
+    "titel": "Uyumluluk denetimi",
+    "untertitel": "Himbi işletmenizi Kazakistan hukukuna göre denetler. Her ifade kaynakla desteklenir.",
+    "start": "Denetimi başlat",
+    "abbrechen": "İptal",
+    "schliessen": "Kapat",
+    "neu": "Yeni denetim",
+    "auswahl": {
+      "titel": "Ne denetlensin?",
+      "gesperrt": "Rolünüz için açık değil",
+      "hinweis": "Her alan için Himbi ayrı bir mini-Himbi gönderir. İşletme verilerinizi okur, hukuki metinleri arar ve bulgularını bildirir. Hukuki kaynak olmadan hiçbir şey ileri sürülmez."
+    },
+    "bereich": {
+      "audit": {
+        "name": "Denetim",
+        "text": "Denetime hazırlık: zorunlu denetim, belgeler, saklama, izlenebilirlik."
+      },
+      "steuer": {
+        "name": "Vergi",
+        "text": "KDV, elektronik faturalar (ESF), taşıma belgeleri (ESUTD), maaş kesintileri."
+      },
+      "recht": {
+        "name": "Hukuk",
+        "text": "Veri koruma, onaylar, üçüncü kişilere aktarım, iş hukuku ve iş güvenliği."
+      },
+      "risiko": {
+        "name": "Risk",
+        "text": "Geciken süreler, yaptırımlar, gıda güvenliği ve soğuk zincir."
+      }
+    },
+    "agent": {
+      "name": {
+        "audit": "Denetim-Himbi",
+        "steuer": "Vergi-Himbi",
+        "recht": "Hukuk-Himbi",
+        "risiko": "Risk-Himbi"
+      },
+      "wartet": "bekliyor",
+      "spawn": "gönderiliyor",
+      "sammelt": "veri okuyor, hukukta arıyor",
+      "denkt": "kaynakları değerlendiriyor",
+      "fertig": "hazır",
+      "fehler": "hata",
+      "fand": "buldu: {stelle}",
+      "bewertet": "değerlendiriyor: {feld}"
+    },
+    "zaehler": {
+      "daten": "Veri",
+      "quellen": "Kaynak",
+      "befunde": "Bulgu"
+    },
+    "phase": {
+      "plant": "Himbi denetimi planlıyor",
+      "arbeit": "{gesamt} mini-Himbi'den {fertig} hazır",
+      "synthese": "Himbi bulguları birleştiriyor",
+      "fertig": "Denetim tamamlandı",
+      "fehler": "Denetim durduruldu"
+    },
+    "log": {
+      "fakten": "{agent}: {n} veri kaynağı okundu ({feld})",
+      "recht": "{agent}: \"{feld}\" için {n} hukuki kaynak, ilki {stelle}",
+      "befund": "{agent}: bulgu \"{titel}\"",
+      "spawn": "{agent} başlıyor",
+      "fertig": "{agent} bitti",
+      "synthese": "Himbi bulguları birleştiriyor",
+      "syntheseFertig": "Rapor mühürlendi"
+    },
+    "stufe": {
+      "bereit": "Denetime hazır",
+      "luecken": "Eksikler var",
+      "nicht-bereit": "Denetime hazır değil"
+    },
+    "status": {
+      "verstoss": "İhlal",
+      "luecke": "Eksik",
+      "hinweis": "Not",
+      "konform": "Uyumlu"
+    },
+    "schwere": {
+      "kritisch": "kritik",
+      "hoch": "yüksek",
+      "mittel": "orta",
+      "niedrig": "düşük",
+      "keine": "yok"
+    },
+    "rolle": {
+      "admin": "Yönetim",
+      "betriebsleitung": "İşletme yönetimi",
+      "buchhaltung": "Muhasebe",
+      "brigade": "Ekip",
+      "picker": "Toplayıcı",
+      "erzeuger": "Üretici",
+      "kunde": "Müşteri"
+    },
+    "frist": {
+      "sofort": "hemen",
+      "tage7": "7 gün",
+      "tage30": "30 gün",
+      "tage90": "90 gün"
+    },
+    "bericht": {
+      "titel": "Denetim raporu",
+      "reife": "Hazırlık",
+      "prioritaeten": "En önemli adımlar",
+      "befunde": "Bulgular",
+      "massnahmen": "Eylem planı",
+      "alle": "Tümü",
+      "nurMeine": "Yalnızca rolüm",
+      "ohneRechtsbeleg": "Hukuki kaynak yok: yalnızca not, iddia değil",
+      "ohneDaten": "Rolünüz için işletme verisi yok: yalnızca not",
+      "nachweise": "İşletme verilerinizden kanıtlar",
+      "betriebsdaten": "İşletme verisi",
+      "hinweise": "Sınırlamalar",
+      "unvollstaendig": "Tüm denetim alanları değerlendirilemedi.",
+      "export": "JSON olarak kaydet",
+      "drucken": "Yazdır"
+    },
+    "siegel": {
+      "titel": "Mühür ve kanıt",
+      "id": "Rapor kimliği",
+      "erstellt": "Oluşturuldu",
+      "modell": "Model",
+      "pruefsumme": "Sağlama toplamı",
+      "pruefen": "Mührü doğrula",
+      "gueltig": "Mühür geçerli: rapor değiştirilmemiş.",
+      "ungueltig": "Mühür geçersiz: rapor değiştirilmiş."
+    },
+    "fehler": {
+      "allgemein": "Denetim tamamlanamadı.",
+      "wissensbasis": "Bu ortamda bilgi tabanı kullanılamıyor. Hukuki kaynak olmadan denetim çalışmaz.",
+      "laeuft": "Zaten bir denetim çalışıyor.",
+      "rechte": "Bu denetim rolünüz için açık değil.",
+      "anmeldung": "Lütfen yeniden giriş yapın."
+    }
   }
 }
