@@ -102,7 +102,7 @@ export function PruefungDialog({ erlaubt, onClose }: { erlaubt: readonly Pruefbe
         <header className="pr-kopf">
           <div>
             <div className="pr-kopf__titel">
-              <ShieldCheck className="h-5 w-5 text-[var(--himbeere)]" /> {t("titel")}
+              <ShieldCheck className="h-5 w-5 text-primary" /> {t("titel")}
             </div>
             <div className="pr-kopf__unter">{t("untertitel")}</div>
           </div>
