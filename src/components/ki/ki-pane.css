@@ -1459,18 +1459,19 @@ html[data-ki-zieht] body {
   height: var(--ki-buehne-kopf);
 }
 /* Figur und Karte sollen ein Stueck sein, nicht zwei Dinge uebereinander. Darum:
-   dieselbe dunkle Flaeche wie die Blende, keine harte Kante oben, ein Schein, der nach
-   oben in die Kugel hinein ausblutet - und die Figur steht ein Stueck tief darin. */
+   keine harte Kante oben, ein Schein, der nach oben in die Kugel hinein ausblutet -
+   und die Figur steht ein Stueck tief darin. Farbe und Schrift kommen aus den beiden
+   Bloecken weiter unten, denn die Blende bleibt zwar immer dunkel (die Frequenzkugel
+   braucht das), die Karte selbst aber soll dem Thema der Seite folgen. */
 .ki-pane-huelle--buehne .ki-pane {
   position: relative;
   width: var(--ki-buehne-breite);
   height: var(--ki-buehne-hoehe);
   max-height: 100%;
-  border: 1px solid rgb(255 255 255 / 0.1);
-  border-top-color: rgb(255 255 255 / 0.16);
+  border: 1px solid var(--ki-buehne-rand, rgb(255 255 255 / 0.1));
+  border-top-color: var(--ki-buehne-rand-oben, rgb(255 255 255 / 0.16));
   border-radius: 2.25rem;
-  background: rgb(14 10 18 / 0.72);
-  color-scheme: dark;
+  background: var(--ki-buehne-flaeche, rgb(14 10 18 / 0.72));
   box-shadow: 0 40px 100px -30px rgb(0 0 0 / 0.75), inset 0 1px 0 rgb(255 255 255 / 0.07);
   overflow: hidden;
   pointer-events: auto;
@@ -1486,16 +1487,37 @@ html[data-ki-zieht] body {
   pointer-events: none;
   background: radial-gradient(120% 100% at 50% 0%, rgb(150 70 220 / 0.34), rgb(19 112 143 / 0.12) 45%, transparent 72%);
 }
-/* Das Dunkel der Karte traegt die Schrift des hellen Themas nicht - hier gilt fuer alles
-   darin dieselbe Tafel wie fuer die Blende. */
-.ki-pane-huelle--buehne .ki-pane,
-.ki-pane-huelle--buehne .ki-pane * {
+/* Dunkles Thema: die Karte bleibt die Glas-Tafel, die zur dunklen Blende passt. */
+.dark .ki-pane-huelle--buehne .ki-pane {
+  --ki-buehne-flaeche: rgb(14 10 18 / 0.72);
+  --ki-buehne-rand: rgb(255 255 255 / 0.1);
+  --ki-buehne-rand-oben: rgb(255 255 255 / 0.16);
+}
+.dark .ki-pane-huelle--buehne .ki-pane,
+.dark .ki-pane-huelle--buehne .ki-pane * {
   --card: rgb(28 22 34 / 0.74);
   --card-foreground: #f2ecf5;
   --muted: rgb(255 255 255 / 0.06);
   --muted-foreground: #b6a9c2;
   --border: rgb(255 255 255 / 0.12);
   --foreground: #f2ecf5;
+  --background: transparent;
+}
+/* Helles Thema: dieselbe Karte, aber mit den hellen Farben der Seite - ohne das wuerde
+   heller Text auf hellem Grund verschwinden. Die Blende dahinter bleibt trotzdem dunkel. */
+:root:not(.dark) .ki-pane-huelle--buehne .ki-pane {
+  --ki-buehne-flaeche: rgb(255 255 255 / 0.88);
+  --ki-buehne-rand: rgb(11 30 38 / 0.12);
+  --ki-buehne-rand-oben: rgb(11 30 38 / 0.18);
+}
+:root:not(.dark) .ki-pane-huelle--buehne .ki-pane,
+:root:not(.dark) .ki-pane-huelle--buehne .ki-pane * {
+  --card: rgb(255 255 255 / 0.9);
+  --card-foreground: #0b1e26;
+  --muted: rgb(11 30 38 / 0.06);
+  --muted-foreground: #4b6874;
+  --border: rgb(11 30 38 / 0.12);
+  --foreground: #0b1e26;
   --background: transparent;
 }
 .ki-pane-huelle--buehne.ki-pane-huelle--offen .ki-pane {
@@ -1507,7 +1529,7 @@ html[data-ki-zieht] body {
 .ki-pane-huelle--buehne .ki-pane__kopf {
   position: relative;
   padding-top: 2.4rem;
-  border-bottom-color: rgb(255 255 255 / 0.08);
+  border-bottom-color: var(--ki-buehne-rand, rgb(255 255 255 / 0.08));
   background: transparent;
 }
 @media (prefers-reduced-motion: no-preference) {
