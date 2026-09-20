@@ -107,6 +107,9 @@ const STAEMME: ReadonlyArray<readonly [string, string]> = [
   ["vertraeg", "verträg"],
   ["unterstuetz", "unterstütz"],
   ["ueberpr", "überpr"],
+  ["praefer", "präfer"],
+  ["praezed", "präzed"],
+  ["ausschliess", "ausschließ"],
 ];
 
 // Nur am Wortanfang oder als ganzes Wort.

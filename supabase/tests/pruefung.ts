@@ -289,6 +289,16 @@ async function ablauf() {
   pruefe("Sprache: ein russischer Bericht hat russische feste Saetze", /Готовность к проверке/.test(bRu.zusammenfassung) && bRu.hinweise.some((h) => /Резюме/.test(h)));
   const system = systemPrompt("steuer", "admin", "de");
   pruefe("Prompt: verlangt Umlaute und eine Sprache ohne Mischung", /umlauts/.test(system) && /without mixing languages/.test(system) && !/umlauts/.test(systemPrompt("steuer", "admin", "en")));
+  // Titel und Fundstelle der Quellen (Beschriftung) in der Schreibweise des Berichts, der Wortlaut bleibt
+  const vQ: Verhalten = { zaehler: { agent: 0, synthese: 0, nachfrage: 0 } };
+  const dQ = abhaengigkeiten(vQ);
+  const alteSuche = dQ.suche;
+  dQ.suche = async (...a) => {
+    const r = await alteSuche(...a);
+    return { ...r, belege: r.belege.map((b) => ({ ...b, fundstelle: "Gesetz Nr. 304-I: Pflichtpruefung mit Praeferenzen", titel: "Pflichtpruefung", text: "Pflichtpruefung im Wortlaut" })) };
+  };
+  const bQ = await fuehrePruefungAus({ rolle: "admin", ersteller: { name: "A" }, bereiche: ["audit"], abgelehnt: [], sprache: "de" }, dQ, () => {});
+  pruefe("Quellen: Titel und Fundstelle mit Umlauten, der Wortlaut des Rechtstextes bleibt unveraendert", bQ.belege.length > 0 && bQ.belege.every((q) => q.fundstelle === "Gesetz Nr. 304-I: Pflichtprüfung mit Präferenzen" && q.titel === "Pflichtprüfung" && q.text === "Pflichtpruefung im Wortlaut"));
 
   // 11. PDF: Deckblatt mit Marke, laufende Kopf- und Fusszeile, nummerierte Abschnitte, alle Texte in allen Sprachen vorhanden
   const uebersetzer = (sprache: string, namensraum: string) => (schluessel: string, werte: Record<string, string | number> = {}): string => {

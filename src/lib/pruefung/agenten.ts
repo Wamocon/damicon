@@ -159,7 +159,7 @@ interface SammelMeldung {
 }
 
 /** Sammler und Jurist arbeiten gleichzeitig und melden jeder für sich, sobald sie fertig sind. */
-async function sammle(punkt: Pruefpunkt, dep: LaufAbhaengigkeiten, rolle: Role, belegNr: { n: number }, meldung: SammelMeldung): Promise<Feldstand> {
+async function sammle(punkt: Pruefpunkt, dep: LaufAbhaengigkeiten, rolle: Role, belegNr: { n: number }, meldung: SammelMeldung, schreibweise: (text: string) => string): Promise<Feldstand> {
   const sammler = Promise.all(
     punkt.fakten.map(async (quelle) => {
       try {
@@ -186,7 +186,9 @@ async function sammle(punkt: Pruefpunkt, dep: LaufAbhaengigkeiten, rolle: Role, 
     .catch((e: unknown) => ({ belege: [] as Beleg[], fehler: String(e instanceof Error ? e.message : e).slice(0, 120) }))
     .then((r) => {
       // Kennungen über den ganzen Lauf eindeutig, damit ein Zitat im Bericht nie zwei Quellen meinen kann.
-      const belege = r.belege.map((b) => ({ ...b, id: `S${++belegNr.n}` }));
+      // Titel und Fundstelle sind Beschriftungen und werden in der Schreibweise des Berichts gezeigt (die Wissensbasis enthaelt auch
+      // Quellen mit Ersatzschreibung im Titel); der Wortlaut der Rechtstexte bleibt unveraendert.
+      const belege = r.belege.map((b) => ({ ...b, id: `S${++belegNr.n}`, fundstelle: schreibweise(b.fundstelle), titel: b.titel ? schreibweise(b.titel) : b.titel }));
       meldung.recht(belege);
       return { belege, fehler: r.fehler };
     });
@@ -254,7 +256,7 @@ export async function fuehrePruefungAus(
       stand = await sammle(punkt, dep, anfrage.rolle, belegNr, {
         fakten: (nachweise) => emit({ t: "feld", bereich, feld: punkt.id, phase: "fakten", anzahl: nachweise.length, text: nachweise.map((n) => n.quelle).join(", ") }),
         recht: (belege) => emit({ t: "feld", bereich, feld: punkt.id, phase: "recht", anzahl: belege.length, text: belege[0]?.fundstelle }),
-      });
+      }, schreibweise);
       alleFelder.set(punkt.id, stand);
       if (stand.rechtFehler) hinweise.push(T.sucheFehler(titelVon(punkt), stand.rechtFehler));
       // Übergabe: beide Zuarbeiten liegen vor, der Prüfer übernimmt.
