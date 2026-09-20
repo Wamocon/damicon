@@ -61,8 +61,11 @@ const serverWert = (): Sichtbarkeit => "an";
 let inventarSitzungsWert: Inventar | null = null;
 const inventarBeobachter = new Set<() => void>();
 function leseInventarSpeicher(): Inventar {
-  if (inventarSitzungsWert) return inventarSitzungsWert;
-  return leseInventar();
+  // Erst beim ersten Aufruf lesen und dann als dieselbe Referenz behalten - sonst liefert
+  // useSyncExternalStore bei jedem Aufruf ein neues Objekt und haelt das fuer eine
+  // Endlosschleife.
+  if (!inventarSitzungsWert) inventarSitzungsWert = leseInventar();
+  return inventarSitzungsWert;
 }
 function schreibeInventarSpeicher(neu: Inventar): void {
   inventarSitzungsWert = neu;
@@ -77,7 +80,9 @@ function abonniereInventar(b: () => void): () => void {
     window.removeEventListener("storage", b);
   };
 }
-const serverInventarWert = (): Inventar => ({ tracht: 0, brille: true });
+// Eine feste Referenz, aus demselben Grund wie leseInventarSpeicher oben.
+const INVENTAR_SERVERWERT: Inventar = { tracht: 0, brille: true };
+const serverInventarWert = (): Inventar => INVENTAR_SERVERWERT;
 
 interface Status {
   phase: AgentPhase;
