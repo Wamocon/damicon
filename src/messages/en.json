@@ -3077,5 +3077,20 @@
       "rechte": "This audit is not released for your role.",
       "anmeldung": "Please sign in again."
     }
+  },
+  "pruefungAblauf": {
+    "schritt": {
+      "daten": "Business data",
+      "recht": "Law",
+      "bewertung": "Assessment"
+    },
+    "lane": {
+      "fertig": "{n} findings, {q} sources"
+    },
+    "zahl": {
+      "befunde": "Findings",
+      "quellen": "Sources",
+      "zeit": "Time"
+    }
   }
 }

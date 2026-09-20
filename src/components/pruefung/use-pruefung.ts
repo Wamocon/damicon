@@ -5,8 +5,9 @@ import type { Pruefbereich } from "@/lib/pruefung/rollen";
 import type { AgentPhase, Befund, Bericht, Ereignis } from "@/lib/pruefung/typen";
 
 // Zustand der laufenden Pruefung im Browser: liest den Ereignisstrom von /api/ki-pruefung (eine
-// JSON-Zeile je Ereignis) und macht daraus den Stand, den die Buehne zeichnet. Reine Reduktion,
-// keine Effekte: jedes Ereignis aendert genau einen Teil des Stands.
+// JSON-Zeile je Ereignis) und macht daraus den Stand, den die Ablaufansicht zeichnet. Reine Reduktion,
+// keine Effekte: jedes Ereignis aendert genau einen Teil des Stands. Zeitstempel kommen mit der Aktion
+// (nicht aus dem Reducer), damit dieser rein bleibt.
 
 export interface FeldStand {
   titel: string;
@@ -21,6 +22,9 @@ export interface AgentStand {
   felder: Record<string, FeldStand>;
   reihenfolge: string[];
   befunde: number;
+  /** Zeitpunkt des Starts und des Endes (ms), fuer die Laufzeit je Mini-Himbi. */
+  seit: number | null;
+  ende: number | null;
 }
 
 export interface LogZeile {
@@ -45,11 +49,13 @@ export interface PruefungStand {
   bericht: Bericht | null;
   protokolliert: boolean;
   fehler: FehlerArt | null;
+  beginn: number | null;
+  ende: number | null;
 }
 
-const START: PruefungStand = { phase: "bereit", agenten: {}, reihenfolge: [], abgelehnt: [], befunde: [], synthese: "aus", log: [], bericht: null, protokolliert: false, fehler: null };
+const START: PruefungStand = { phase: "bereit", agenten: {}, reihenfolge: [], abgelehnt: [], befunde: [], synthese: "aus", log: [], bericht: null, protokolliert: false, fehler: null, beginn: null, ende: null };
 
-type Aktion = { t: "ereignis"; e: Ereignis } | { t: "beginn" } | { t: "fehler"; art: FehlerArt } | { t: "zurueck" };
+type Aktion = { t: "ereignis"; e: Ereignis; zeit: number } | { t: "beginn"; zeit: number } | { t: "fehler"; art: FehlerArt; zeit: number } | { t: "zurueck" };
 
 const MAX_LOG = 80;
 let zeilenNr = 0;
@@ -63,8 +69,8 @@ function agentAendern(s: PruefungStand, bereich: Pruefbereich, f: (a: AgentStand
 
 function reduziere(s: PruefungStand, a: Aktion): PruefungStand {
   if (a.t === "zurueck") return START;
-  if (a.t === "beginn") return { ...START, phase: "laeuft" };
-  if (a.t === "fehler") return { ...s, phase: "fehler", fehler: a.art };
+  if (a.t === "beginn") return { ...START, phase: "laeuft", beginn: a.zeit };
+  if (a.t === "fehler") return { ...s, phase: "fehler", fehler: a.art, ende: a.zeit };
   const e = a.e;
   switch (e.t) {
     case "start": {
@@ -73,6 +79,8 @@ function reduziere(s: PruefungStand, a: Aktion): PruefungStand {
         agenten[ag.bereich] = {
           phase: "wartet",
           befunde: 0,
+          seit: null,
+          ende: null,
           reihenfolge: ag.felder.map((f) => f.id),
           felder: Object.fromEntries(ag.felder.map((f) => [f.id, { titel: f.titel, daten: null, quellen: null, bewertet: false }])),
         };
@@ -80,7 +88,12 @@ function reduziere(s: PruefungStand, a: Aktion): PruefungStand {
       return { ...s, phase: "laeuft", agenten, reihenfolge: e.agenten.map((x) => x.bereich), abgelehnt: e.abgelehnt };
     }
     case "agent": {
-      const n = agentAendern(s, e.bereich, (x) => ({ ...x, phase: e.phase }));
+      const n = agentAendern(s, e.bereich, (x) => ({
+        ...x,
+        phase: e.phase,
+        seit: e.phase === "spawn" ? a.zeit : x.seit,
+        ende: e.phase === "fertig" || e.phase === "fehler" ? a.zeit : x.ende,
+      }));
       return mitLog(n, { art: "agent", bereich: e.bereich, text: e.phase });
     }
     case "feld": {
@@ -106,9 +119,9 @@ function reduziere(s: PruefungStand, a: Aktion): PruefungStand {
     case "synthese":
       return mitLog({ ...s, synthese: e.phase === "start" ? "laeuft" : "fertig" }, { art: "synthese", text: e.phase });
     case "bericht":
-      return { ...s, phase: "fertig", bericht: e.bericht, protokolliert: e.protokolliert };
+      return { ...s, phase: "fertig", bericht: e.bericht, protokolliert: e.protokolliert, ende: a.zeit };
     case "fehler":
-      return { ...s, phase: "fehler", fehler: "allgemein" };
+      return { ...s, phase: "fehler", fehler: "allgemein", ende: a.zeit };
   }
 }
 
@@ -120,7 +133,7 @@ export function usePruefung() {
     abbruch.current?.abort();
     const ac = new AbortController();
     abbruch.current = ac;
-    dispatch({ t: "beginn" });
+    dispatch({ t: "beginn", zeit: Date.now() });
     try {
       const antwort = await fetch("/api/ki-pruefung", {
         method: "POST",
@@ -130,7 +143,7 @@ export function usePruefung() {
       });
       if (!antwort.ok || !antwort.body) {
         const art: FehlerArt = antwort.status === 409 ? "wissensbasis" : antwort.status === 429 ? "laeuft" : antwort.status === 403 ? "rechte" : antwort.status === 401 ? "anmeldung" : "allgemein";
-        dispatch({ t: "fehler", art });
+        dispatch({ t: "fehler", art, zeit: Date.now() });
         return;
       }
       const leser = antwort.body.getReader();
@@ -148,15 +161,15 @@ export function usePruefung() {
           try {
             const e = JSON.parse(zeile) as Ereignis;
             if (e.t === "bericht") bericht = true;
-            dispatch({ t: "ereignis", e });
+            dispatch({ t: "ereignis", e, zeit: Date.now() });
           } catch {
             /* unvollstaendige oder fremde Zeile: ignorieren */
           }
         }
       }
-      if (!bericht && !ac.signal.aborted) dispatch({ t: "fehler", art: "allgemein" });
+      if (!bericht && !ac.signal.aborted) dispatch({ t: "fehler", art: "allgemein", zeit: Date.now() });
     } catch {
-      if (!ac.signal.aborted) dispatch({ t: "fehler", art: "allgemein" });
+      if (!ac.signal.aborted) dispatch({ t: "fehler", art: "allgemein", zeit: Date.now() });
     }
   }, []);
 
