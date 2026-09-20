@@ -109,7 +109,7 @@ function ModulEintrag({
   const href = moduleHref(module);
   const aktiv = isActive(href);
   // Im Menue der Kurzname, im Hover-Text der volle Seitentitel: ausgeschrieben
-  // passt er in keiner der fuenf Sprachen in die Spalte (Kasachisch braucht
+  // passt er in keiner der vier Sprachen in die Spalte (Kasachisch braucht
   // 326 px, verfuegbar sind 201 px).
   const titel = moduleT(`${module.key}.navTitle`);
   const vollerTitel = moduleT(`${module.key}.title`);

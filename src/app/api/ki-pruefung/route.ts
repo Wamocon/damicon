@@ -11,12 +11,11 @@
 //   * je Person nur ein Lauf gleichzeitig
 // Jeder Lauf steht im Audit-Protokoll (Start und Ende, mit Rolle, Bereichen, Siegel).
 
-import { createAnthropic } from "@ai-sdk/anthropic";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { protokolliere } from "@/lib/actions/formular-helfer";
-import { ladeAktivenStandardAnbieter, anthropicBasisUrl } from "@/lib/ai/lade-anbieter";
-import { entschluessleApiKey } from "@/lib/ai/schluessel";
+import { ladeAnbieterKette, meldeAnbieterwechsel } from "@/lib/ai/anbieter-kette";
+import type { AusweichEreignis } from "@/lib/ai/ausfall-modell";
 import { baueWerkzeuge } from "@/lib/ai/tools";
 import { fuehrePruefungAus } from "@/lib/pruefung/agenten";
 import { darfPruefen, waehleBereiche } from "@/lib/pruefung/rollen";
@@ -44,12 +43,16 @@ export async function POST(req: Request) {
   if (wahl.erlaubt.length === 0) return new Response("keine berechtigung fuer die angefragten bereiche", { status: 403 });
 
   if (!(await pruefeWissenGesundheit())) return new Response("wissensbasis nicht verfuegbar", { status: 409 });
-  const anbieter = await ladeAktivenStandardAnbieter();
-  if (!anbieter || anbieter.typ !== "anthropic") return new Response("kein-anbieter", { status: 409 });
+  const anbieterwechsel: AusweichEreignis[] = [];
+  const kette = await ladeAnbieterKette((e) => {
+    anbieterwechsel.push(e);
+    meldeAnbieterwechsel(e);
+  });
+  if (!kette) return new Response("kein-anbieter", { status: 409 });
+  const anbieter = kette.primaer;
   if (laufend.has(profil.id)) return new Response("pruefung laeuft bereits", { status: 429 });
 
   const sprache = typeof body.sprache === "string" ? body.sprache : "de";
-  const anthropic = createAnthropic({ apiKey: entschluessleApiKey(anbieter.api_key_chiffrat), baseURL: anthropicBasisUrl(anbieter.basis_url) });
   const werkzeuge = baueWerkzeuge(profil.role, { nurLesen: true }) as Record<string, unknown>;
 
   laufend.add(profil.id);
@@ -72,8 +75,8 @@ export async function POST(req: Request) {
         const bericht = await fuehrePruefungAus(
           { rolle: profil.role, ersteller: { name: profil.fullName }, bereiche: wahl.erlaubt, abgelehnt: wahl.abgelehnt, sprache },
           {
-            modell: anthropic(anbieter.modell),
-            modellName: anbieter.modell,
+            modell: kette.modell,
+            modellName: kette.namen.length > 1 ? `${anbieter.modell} (mit Ausweichanbieter ${kette.namen.slice(1).join(", ")})` : anbieter.modell,
             werkzeuge,
             suche: (fragen, rolle, opts) => sucheWissen(fragen, rolle, opts),
           },
@@ -87,6 +90,7 @@ export async function POST(req: Request) {
           reife: bericht.kennzahlen.reife,
           befunde: bericht.kennzahlen.anzahl,
           vollstaendig: bericht.vollstaendig,
+          anbieterwechsel: anbieterwechsel.map((w) => `${w.von}->${w.nach ?? "-"}:${w.art}`),
         }).catch(() => {
           protokolliert = false;
         });

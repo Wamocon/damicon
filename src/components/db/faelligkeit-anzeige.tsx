@@ -14,7 +14,7 @@ import { StatusPill, type Tone } from "@/components/ui/kit";
 // Sprachdaten sind fuer Kasachisch in gaengigen Browsern unvollstaendig und
 // fallen auf ein rohes "-16 min" zurueck statt auf einen Satz. Stattdessen
 // wird die Zahl-plus-Einheit ueber ICU-Pluralregeln uebersetzt
-// (Intl.PluralRules, fuer alle fuenf Sprachen zuverlaessig verfuegbar) und in
+// (Intl.PluralRules, fuer alle vier Sprachen zuverlaessig verfuegbar) und in
 // eine je Sprache passende Richtungsformulierung eingesetzt.
 
 const AKTUALISIERUNG_MS = 15_000;

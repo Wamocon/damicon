@@ -30,7 +30,7 @@ export interface ZukaufBefund {
   code: string;
   /** Deutscher Klartext fuer Server-Log und Tests. Die Oberflaeche uebersetzt
    *  ueber `code` (siehe zukaufAnsicht.import.befund.<code> in den messages),
-   *  damit dieselbe Pruefung in allen fuenf Sprachen anzeigbar bleibt. */
+   *  damit dieselbe Pruefung in allen vier Sprachen anzeigbar bleibt. */
   meldung: string;
   wert: string | null;
 }
@@ -62,7 +62,9 @@ export interface ZukaufParseErgebnis {
 }
 
 // Kopfzeilen-Alias je Sprache. Muss nicht linguistisch perfekt sein - reicht,
-// dass eine in de/en/ru/kk/tr abgetippte Kopfzeile eine Spalte trifft, ohne
+// dass eine in de/en/ru/kk (und weiterhin tuerkisch - Lieferantendateien
+// richten sich nicht nach den Sprachen unserer Oberflaeche) abgetippte
+// Kopfzeile eine Spalte trifft, ohne
 // dass der Nachbarbetrieb seine Datei umbauen muss (gleicher Anspruch wie im
 // Vorbild).
 const SPALTEN: Record<ZukaufSpalte, string[]> = {

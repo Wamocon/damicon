@@ -1652,3 +1652,34 @@ html[data-ki-zieht] body {
     gap: 0.25rem;
   }
 }
+
+/* Pegelanzeige waehrend der Aufnahme: fuenf Balken, im Bildtakt aus dem
+   Frequenzband gesetzt (mikrofon.tsx). Die Hoehe steuert allein
+   transform: scaleY - das laeuft auf der Grafikkarte, waehrend eine
+   Aenderung von height sechzigmal je Sekunde das Layout neu berechnen
+   liesse. */
+.ki-mikrofon__pegel {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 1.25rem;
+  padding: 0 0.25rem;
+}
+.ki-mikrofon__balken {
+  display: block;
+  width: 2px;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--destructive);
+  transform: scaleY(0.12);
+  transform-origin: center;
+  transition: transform 80ms linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Ohne Bewegung: ein ruhiger, gleichmaessiger Balkensatz statt Zappeln -
+     mikrofon.tsx setzt dann gar keine Werte mehr. */
+  .ki-mikrofon__balken {
+    transform: scaleY(0.5);
+    transition: none;
+  }
+}

@@ -1353,8 +1353,7 @@
       "de": "Deutsch",
       "en": "Englisch",
       "ru": "Russisch",
-      "kk": "Kasachisch",
-      "tr": "Türkisch"
+      "kk": "Kasachisch"
     },
     "vorfallArt": {
       "unbefugter_zugriff": "Unbefugter Zugriff",
@@ -3087,5 +3086,34 @@
       "rechte": "Für Ihre Rolle ist diese Prüfung nicht freigegeben.",
       "anmeldung": "Bitte melden Sie sich neu an."
     }
+  },
+  "pruefungAblauf": {
+    "schritt": {
+      "daten": "Betriebsdaten",
+      "recht": "Recht",
+      "bewertung": "Bewertung"
+    },
+    "lane": {
+      "fertig": "{n} Befunde, {q} Quellen"
+    },
+    "zahl": {
+      "befunde": "Befunde",
+      "quellen": "Quellen",
+      "zeit": "Zeit"
+    }
+  },
+  "pruefungPdf": {
+    "speichern": "Als PDF speichern",
+    "json": "Prüfbare Datei (JSON)",
+    "titel": "Compliance-Prüfbericht",
+    "quelle": "Rechtsquellen",
+    "stufe": "Stufe",
+    "stand": "Stand",
+    "abgerufen": "abgerufen",
+    "massnahme": "Maßnahme",
+    "verantwortlich": "Verantwortlich",
+    "frist": "Frist",
+    "anhang": "Anhang: Rechtsquellen im Wortlaut",
+    "haftung": "Dieser Bericht wurde von einem KI-System auf Grundlage der Betriebsdaten und der Wissensbasis erstellt. Er ersetzt keine Rechts- oder Steuerberatung. Das Siegel (SHA-256 über den kanonischen Berichtsinhalt) erlaubt es zu prüfen, dass der Bericht seit der Erstellung nicht verändert wurde."
   }
 }

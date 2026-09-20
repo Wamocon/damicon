@@ -2,7 +2,7 @@ import type { PostgrestError } from "@supabase/supabase-js";
 
 // Einheitlicher Rueckgabewert aller Server Actions. `meldung` ist ein
 // Uebersetzungsschluessel unterhalb des Namespaces "aktionen", damit die
-// Oberflaeche in allen fuenf Sprachen antwortet.
+// Oberflaeche in allen vier Sprachen antwortet.
 export interface AktionsStatus {
   stand: "leer" | "ok" | "fehler";
   meldung?: string;

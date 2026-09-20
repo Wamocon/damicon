@@ -2,8 +2,9 @@
 
 import { Fragment, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { CheckCircle2, Database, Download, FileWarning, Printer, ShieldCheck, TriangleAlert } from "lucide-react";
-import { BEREICH_SYMBOL } from "@/components/pruefung/pruefung-buehne";
+import { CheckCircle2, Database, FileDown, FileJson, FileWarning, ShieldCheck, TriangleAlert } from "lucide-react";
+import { berichtAlsPdfSpeichern } from "@/components/pruefung/bericht-pdf";
+import { BEREICH_SYMBOL } from "@/components/pruefung/symbole";
 import { BelegAnbieter, QuellenListe, ZitatMarke } from "@/components/ki/ki-quellen";
 import { siegelGueltig } from "@/lib/pruefung/befund";
 import { PRUEFBEREICHE, type Pruefbereich } from "@/lib/pruefung/rollen";
@@ -101,6 +102,7 @@ function BefundKarte({ b, belege, index }: { b: Befund; belege: Bericht["belege"
 
 export function PruefungBericht({ bericht }: { bericht: Bericht }) {
   const t = useTranslations("pruefung");
+  const tp = useTranslations("pruefungPdf");
   const [filter, setFilter] = useState<Pruefbereich | "alle">("alle");
   const [nurMeine, setNurMeine] = useState(false);
   const [siegel, setSiegel] = useState<"offen" | "ja" | "nein">("offen");
@@ -111,6 +113,7 @@ export function PruefungBericht({ bericht }: { bericht: Bericht }) {
   const ziel = 301.6 * (1 - kz.reife / 100);
 
   const pruefen = async () => setSiegel((await siegelGueltig(bericht)) ? "ja" : "nein");
+  const alsPdf = () => berichtAlsPdfSpeichern(bericht, { t: (k, w) => t(k, w), p: (k, w) => tp(k, w) });
   const exportieren = () => {
     const url = URL.createObjectURL(new Blob([JSON.stringify(bericht, null, 2)], { type: "application/json" }));
     const a = document.createElement("a");
@@ -240,11 +243,11 @@ export function PruefungBericht({ bericht }: { bericht: Bericht }) {
           <button type="button" className="pr-knopf" onClick={pruefen}>
             <ShieldCheck className="h-4 w-4" /> {t("siegel.pruefen")}
           </button>
-          <button type="button" className="pr-knopf" onClick={exportieren}>
-            <Download className="h-4 w-4" /> {t("bericht.export")}
+          <button type="button" className="pr-knopf pr-knopf--haupt" onClick={alsPdf}>
+            <FileDown className="h-4 w-4" /> {tp("speichern")}
           </button>
-          <button type="button" className="pr-knopf" onClick={() => window.print()}>
-            <Printer className="h-4 w-4" /> {t("bericht.drucken")}
+          <button type="button" className="pr-knopf" onClick={exportieren}>
+            <FileJson className="h-4 w-4" /> {tp("json")}
           </button>
         </div>
         {siegel !== "offen" ? (

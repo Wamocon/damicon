@@ -253,7 +253,7 @@ Etiketten, Pflücker-Ausweise und der Aushang sind für Papier gedacht. Unter `@
 2. Für Karten, Abschnitte, Kennzahlen, Pillen und Tabellen die Bausteine aus `kit.tsx` verwenden statt neue zu bauen.
 3. Beide Farbschemata prüfen, dazu die Druckansicht, wenn die Seite gedruckt wird.
 4. Jede neue Farbkombination für Text nachrechnen (4,5:1) und im Kommentar bei `globals.css` festhalten, wie beim Bestand.
-5. Alle fünf Sprachen durchsehen, vor allem Kasachisch und Russisch bei Tabellenköpfen und Buttons.
+5. Alle vier Sprachen durchsehen, vor allem Kasachisch und Russisch bei Tabellenköpfen und Buttons.
 6. Bewegung nur mit Rückfall für `prefers-reduced-motion` und ohne JavaScript sichtbar.
 7. Keine Farbe als einziger Bedeutungsträger.
 8. Kein Schwarz als Grund im Dark Mode: `--background` ist `#04161c`.

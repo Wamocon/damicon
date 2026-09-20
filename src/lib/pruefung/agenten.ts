@@ -39,7 +39,7 @@ export interface LaufAbhaengigkeiten {
   neueId?: () => string;
 }
 
-const SPRACHEN: Record<string, string> = { de: "German", en: "English", ru: "Russian", kk: "Kazakh", tr: "Turkish" };
+const SPRACHEN: Record<string, string> = { de: "German", en: "English", ru: "Russian", kk: "Kazakh" };
 const BEREICHSNAME: Record<Pruefbereich, string> = { audit: "Audit und Pruefungsbereitschaft", steuer: "Steuern", recht: "Recht (Arbeits- und Datenschutzrecht)", risiko: "Risiko und Sanktionen" };
 const MAX_BELEGE_JE_FELD = 4;
 const MAX_AUSZUG = 900;

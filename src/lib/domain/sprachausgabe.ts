@@ -3,7 +3,7 @@
 // Der Aufruf selbst: lib/ai/sprachausgabe-client.ts, die Route:
 // app/api/ki-sprachausgabe/route.ts.
 
-export const sprachausgabeSprachen = ["de", "ru", "kk", "tr", "en"] as const;
+export const sprachausgabeSprachen = ["de", "ru", "kk", "en"] as const;
 export type SprachausgabeSprache = (typeof sprachausgabeSprachen)[number];
 
 export interface Stimme {
@@ -15,12 +15,12 @@ export interface Stimme {
 // Eine Stimme je Sprache, benannt nach der Auswahlregel des Dienstes:
 // <sprache>-male bzw. <sprache>-female.
 //
-// Am 20.09.2026 gegen den Dienst geprueft, nicht angenommen: alle zehn
-// Kombinationen aus de/en/ru/kk/tr und male/female liefern HTTP 200 mit
-// echtem MP3 (Frame-Kopf und LAME-Kennung, 11-34 kB je Satz, 0,2-0,7 s).
-// Damit haben Russisch und Tuerkisch erstmals eine Stimme - mit den
-// Piper-Stimmen auf Caesar ging das nicht, weil dort fuer beide Sprachen nur
-// Modelle mit unklarer oder nicht kommerzieller Lizenz bereitstanden.
+// Am 20.09.2026 gegen den Dienst geprueft, nicht angenommen: jede
+// Kombination aus de/en/ru/kk und male/female liefert HTTP 200 mit echtem
+// MP3 (Frame-Kopf und LAME-Kennung, 11-34 kB je Satz, 0,2-0,7 s). Damit hat
+// Russisch erstmals eine Stimme - mit den Piper-Stimmen auf Caesar ging das
+// nicht, weil dort nur Modelle mit unklarer oder nicht kommerzieller Lizenz
+// bereitstanden.
 //
 // Wichtig fuer die Auswahl: ein unbekannter Stimmname wird vom Dienst NICHT
 // abgelehnt, er antwortet mit 200 und irgendeiner Standardstimme (geprueft
@@ -35,7 +35,6 @@ export const STIMMEN: Record<SprachausgabeSprache, Stimme | null> = {
   en: { stimme: "en-female" },
   kk: { stimme: "kk-female" },
   ru: { stimme: "ru-female" },
-  tr: { stimme: "tr-female" },
 };
 
 /** Ablageort des erzeugten Audios im Bucket "ki-sprachausgabe" (Migration
@@ -56,13 +55,14 @@ export function istSprachausgabeSprache(wert: string | null | undefined): wert i
 // unverstaendlich. Reihenfolge der Pruefung von eindeutig nach unscharf:
 //   1. kasachische Sonderbuchstaben (in Russisch nicht vorhanden) -> kk
 //   2. sonst kyrillisch -> ru
-//   3. tuerkische Sonderbuchstaben (ğ ş ı İ) -> tr
-//   4. deutsche Umlaute/ß oder typische deutsche Woerter -> de
-//   5. typische englische Woerter -> en
-//   6. sonst die Oberflaechensprache (fallback)
+//   3. deutsche Umlaute/ß oder typische deutsche Woerter -> de
+//   4. typische englische Woerter -> en
+//   5. sonst die Oberflaechensprache (fallback)
+// Tuerkisch stand hier bis zum 20.09.2026 an dritter Stelle; die Sprache ist
+// aus der Anwendung entfernt (die Erkennung lieferte dafuer ohnehin Unsinn),
+// deshalb faellt tuerkischer Text jetzt auf de/en oder die Oberflaeche.
 const KASACHISCH = /[әғқңөұүһі]/i;
 const KYRILLISCH = /[Ѐ-ӿ]/;
-const TUERKISCH = /[ğşıİ]/;
 const DEUTSCH = /[äöüß]|\b(und|der|die|das|ist|nicht|sie|mit|fuer|für|auf|ein|eine)\b/i;
 const ENGLISCH = /\b(the|and|is|are|you|your|with|for|this|that|of)\b/i;
 
@@ -70,11 +70,33 @@ export function erkenneSprache(text: string, fallback: string): SprachausgabeSpr
   const probe = text.slice(0, 2000);
   if (KASACHISCH.test(probe)) return "kk";
   if (KYRILLISCH.test(probe)) return "ru";
-  if (TUERKISCH.test(probe)) return "tr";
   const de = (probe.match(new RegExp(DEUTSCH.source, "gi")) ?? []).length;
   const en = (probe.match(new RegExp(ENGLISCH.source, "gi")) ?? []).length;
   if (de > 0 || en > 0) return de >= en ? "de" : "en";
   return istSprachausgabeSprache(fallback) ? fallback : "de";
+}
+
+/** In welcher Sprache der Assistent antworten soll - und in welcher die
+ *  Oberflaeche waehrend dieses Zuges spricht.
+ *
+ *  Entscheidend ist die Sprache der FRAGE, nicht die der Oberflaeche. Wer
+ *  auf einer deutschen Oberflaeche russisch schreibt, bekommt Russisch
+ *  zurueck; das war vorher nicht so (der Systemprompt bekam schlicht die
+ *  Oberflaechensprache uebergeben und wies das Modell an, in DIESER zu
+ *  antworten - eine russisch gestellte Frage wurde ausdruecklich deutsch
+ *  beantwortet).
+ *
+ *  Massgeblich ist die LETZTE Nachricht der Person: wer mitten im Gespraech
+ *  die Sprache wechselt, wechselt sie fuer alles, was danach kommt.
+ *  Enthaelt sie keinen Hinweis (eine Zahl, "ok", ein Dateiname), bleibt es
+ *  bei der Oberflaechensprache - das ist die beste Vermutung, die es dann
+ *  gibt, und aendert im Regelfall nichts. */
+export function antwortSprache(
+  nachrichten: readonly { rolle: string; inhalt: string }[],
+  oberflaeche: string,
+): SprachausgabeSprache {
+  const letzteFrage = [...nachrichten].reverse().find((n) => n.rolle === "nutzer" && n.inhalt.trim());
+  return erkenneSprache(letzteFrage?.inhalt ?? "", oberflaeche);
 }
 
 // Obergrenze fuer eine vorgelesene Antwort. Piper braucht fuer ~200 Zeichen

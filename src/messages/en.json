@@ -1353,8 +1353,7 @@
       "de": "German",
       "en": "English",
       "ru": "Russian",
-      "kk": "Kazakh",
-      "tr": "Turkish"
+      "kk": "Kazakh"
     },
     "vorfallArt": {
       "unbefugter_zugriff": "Unauthorised access",
@@ -3087,5 +3086,34 @@
       "rechte": "This audit is not released for your role.",
       "anmeldung": "Please sign in again."
     }
+  },
+  "pruefungAblauf": {
+    "schritt": {
+      "daten": "Business data",
+      "recht": "Law",
+      "bewertung": "Assessment"
+    },
+    "lane": {
+      "fertig": "{n} findings, {q} sources"
+    },
+    "zahl": {
+      "befunde": "Findings",
+      "quellen": "Sources",
+      "zeit": "Time"
+    }
+  },
+  "pruefungPdf": {
+    "speichern": "Save as PDF",
+    "json": "Verifiable file (JSON)",
+    "titel": "Compliance audit report",
+    "quelle": "Legal sources",
+    "stufe": "Level",
+    "stand": "in force",
+    "abgerufen": "retrieved",
+    "massnahme": "Action",
+    "verantwortlich": "Responsible",
+    "frist": "Deadline",
+    "anhang": "Appendix: legal sources, verbatim",
+    "haftung": "This report was created by an AI system from the business data and the knowledge base. It does not replace legal or tax advice. The seal (SHA-256 over the canonical report content) allows verifying that the report has not been altered since it was created."
   }
 }

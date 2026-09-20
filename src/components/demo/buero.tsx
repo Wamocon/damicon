@@ -39,7 +39,7 @@ export function RollenDemo() {
 
                   Der 1Cati-Name stand vorher als Pille neben dem Rollennamen,
                   mit dem Wortlaut "1Çatı: admin" - fest im JSX und damit in
-                  allen fuenf Sprachen gleich, daneben der rohe Schluessel. Wer
+                  allen vier Sprachen gleich, daneben der rohe Schluessel. Wer
                   das Vorgaengersystem nicht kennt, las dort einen Namen, der
                   weder zur Rolle darueber noch zu irgendetwas anderem auf der
                   Seite gehoerte. Auf dem Handy nahm die Pille zudem die halbe

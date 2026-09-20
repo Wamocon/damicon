@@ -41,7 +41,32 @@ import { cn } from "@/lib/utils";
 // Hauptfenster selbst steuert) schaltet man hier ausdruecklich ein - mit einer
 // Erklaerung beim Ueberfahren, worin der Unterschied besteht.
 
-type Ansicht = "chat" | "einstellungen" | "hilfe" | "mehr";
+type Ansicht = "chat" | "einstellungen" | "hilfe" | "pruefung" | "mehr";
+
+// Eine Zeile der Mehr-Ansicht. 56 px hoch, volle Breite - dasselbe Mass wie
+// die Bereiche im Menue-Blatt der unteren Leiste.
+function MehrZeile({
+  symbol,
+  text,
+  onClick,
+}: {
+  symbol: ReactNode;
+  text: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex h-14 w-full items-center gap-3 rounded-xl border border-border px-3 text-left text-base font-bold text-foreground transition-colors hover:bg-muted"
+    >
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+        {symbol}
+      </span>
+      <span className="min-w-0 flex-1 truncate">{text}</span>
+    </button>
+  );
+}
 
 function ModusEinstellung() {
   const t = useTranslations("kiAssistentAnsicht");
@@ -117,33 +142,8 @@ function HaustierEinstellung() {
   );
 }
 
-// Die Compliance-Pruefung ist gross (Buehne, Bericht) und wird erst geladen, wenn sie geoeffnet wird.
-const PruefungDialog = dynamic(() => import("@/components/pruefung/pruefung-dialog").then((m) => m.PruefungDialog), { ssr: false });
-
-// Eine Zeile der Mehr-Ansicht. 56 px hoch, volle Breite - dasselbe Mass wie
-// die Bereiche im Menue-Blatt der unteren Leiste.
-function MehrZeile({
-  symbol,
-  text,
-  onClick,
-}: {
-  symbol: ReactNode;
-  text: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex h-14 w-full items-center gap-3 rounded-xl border border-border px-3 text-left text-base font-bold text-foreground transition-colors hover:bg-muted"
-    >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-        {symbol}
-      </span>
-      <span className="min-w-0 flex-1 truncate">{text}</span>
-    </button>
-  );
-}
+// Die Compliance-Pruefung ist gross (Ablauf, Bericht) und wird erst geladen, wenn sie zum ersten Mal geoeffnet wird.
+const PruefungAnsicht = dynamic(() => import("@/components/pruefung/pruefung-ansicht").then((m) => m.PruefungAnsicht), { ssr: false });
 
 export function KiPane({
   verlauf,
@@ -163,19 +163,41 @@ export function KiPane({
   const t = useTranslations("kiAssistentAnsicht");
   const { verfuegbar, offen, setOffen, modus } = useKiPane();
   const tp = useTranslations("pruefung");
-  const [ansicht, setAnsichtRoh] = useState<Ansicht>("chat");
-  const [pruefungOffen, setPruefungOffen] = useState(false);
+  const [ansicht, setAnsicht] = useState<Ansicht>("chat");
+  // Einmal geoeffnet, bleibt die Pruefung eingebunden (nur ausgeblendet): ein laufender Lauf ueberlebt den Wechsel zum Chat.
+  const [pruefungGeladen, setPruefungGeladen] = useState(false);
+
+  // Die Pruefung braucht Platz (Spuren mit Schritten, Bericht): das Panel wird fuer diese Ansicht vorruebergehend
+  // breiter, ohne die gespeicherte Breite des Nutzers zu ueberschreiben, und geht danach auf den alten Wert zurueck.
+  // Das Hauptfenster behaelt mindestens 680 px (siehe ki-pane-griff.tsx).
+  useEffect(() => {
+    if (ansicht !== "pruefung" || !offen) return;
+    const wurzel = document.documentElement.style;
+    const links = document.getElementById("main")?.getBoundingClientRect().left ?? 0;
+    const ziel = Math.max(352, Math.min(600, Math.floor(window.innerWidth - links - 680)));
+    const aktuell = document.querySelector(".ki-pane-huelle")?.getBoundingClientRect().width ?? 0;
+    if (aktuell >= ziel - 16) return;
+    const vorher = wurzel.getPropertyValue("--ki-pane-breite");
+    const gesetzt = `${ziel}px`;
+    wurzel.setProperty("--ki-pane-breite", gesetzt);
+    return () => {
+      // Hat der Nutzer inzwischen selbst gezogen, bleibt seine Breite.
+      if (wurzel.getPropertyValue("--ki-pane-breite") !== gesetzt) return;
+      if (vorher) wurzel.setProperty("--ki-pane-breite", vorher);
+      else wurzel.removeProperty("--ki-pane-breite");
+    };
+  }, [ansicht, offen]);
+
   const handy = useIstHandy();
 
   // Esc schliesst, und solange das Blatt offen ist, scrollt die Seite darunter
   // nicht mit. Beides kannte bisher nur ui/sheet.tsx, obwohl Menue-, Konto- und
-  // KI-Blatt auf dem Handy dieselbe Flaeche sind und gleich aussehen. Ein Blatt,
-  // das sich anders verhaelt als die beiden daneben, ist die Art Unterschied,
-  // die niemand erklaeren kann.
+  // KI-Blatt auf dem Handy dieselbe Flaeche sind und gleich aussehen.
   //
   // Die Bauweisen bleiben getrennt: ui/sheet.tsx haengt beim Schliessen aus,
-  // dieses Panel muss gemountet bleiben, sonst reisst eine laufende Antwort ab.
-  // Angeglichen wird das Verhalten, nicht der Bau.
+  // dieses Panel muss gemountet bleiben, sonst reisst eine laufende Antwort
+  // ab - und seit der Pruefung auch ein laufender Pruefvorgang. Angeglichen
+  // wird das Verhalten, nicht der Bau.
   //
   // Nur unter md: ab dort ist das Panel eine angedockte Spalte neben der Seite,
   // und die soll weiter scrollen, waehrend man daneben liest.
@@ -195,19 +217,18 @@ export function KiPane({
 
   if (!verfuegbar) return null;
 
-  // Der Agent steuert das Hauptfenster und lebt davon, dass man dabei
-  // zusehen kann. Als Blatt von unten deckt das Panel die Seite fast
-  // vollstaendig ab - die Fuehrung liefe hinter dem Blatt ab, wo niemand sie
-  // sieht. Auf dem Handy antwortet der Assistent deshalb, fuehrt aber nicht;
-  // die Einstellung selbst bleibt unberuehrt und gilt am Schreibtisch weiter.
+  // Der Agent steuert das Hauptfenster und lebt davon, dass man dabei zusehen
+  // kann. Als Blatt von unten deckt das Panel die Seite fast vollstaendig ab -
+  // die Fuehrung liefe hinter dem Blatt ab, wo niemand sie sieht. Auf dem Handy
+  // antwortet der Assistent deshalb, fuehrt aber nicht; die Einstellung selbst
+  // bleibt unberuehrt und gilt am Schreibtisch weiter.
   const agentAktiv = agentFaehig && modus === "agent" && !handy;
   const hatEinstellungen = agentFaehig || einstellungen !== null;
   // Die Mehr-Ansicht gibt es nur auf dem Handy. Wer das Fenster breiter zieht,
   // waehrend sie offen ist, landet wieder im Gespraech, statt auf einer Seite
   // zu stehen, deren Knopf gerade verschwunden ist.
   const sichtbar: Ansicht = !handy && ansicht === "mehr" ? "chat" : ansicht;
-  const umschalten = (ziel: Ansicht) =>
-    setAnsichtRoh((aktuell) => (aktuell === ziel ? "chat" : ziel));
+  const umschalten = (ziel: Ansicht) => setAnsicht((aktuell) => (aktuell === ziel ? "chat" : ziel));
 
   return (
     <>
@@ -240,9 +261,9 @@ export function KiPane({
             </div>
             <div className="ki-pane__werkzeuge">
               {/* Auf dem Handy fuehrt ein Knopf in die Mehr-Ansicht, statt
-                  vier Ziele mit 0,15 rem Abstand nebeneinanderzustellen -
-                  die lagen enger beieinander als eine Fingerkuppe breit ist.
-                  Steht man schon darin, fuehrt derselbe Knopf zurueck. */}
+                  vier Ziele mit 0,15 rem Abstand nebeneinanderzustellen - die
+                  lagen enger beieinander als eine Fingerkuppe breit ist. Steht
+                  man schon darin, fuehrt derselbe Knopf zurueck. */}
               {handy ? (
                 <button
                   type="button"
@@ -261,7 +282,17 @@ export function KiPane({
               ) : (
                 <>
                   {pruefungBereiche.length > 0 ? (
-                    <button type="button" onClick={() => setPruefungOffen(true)} aria-label={tp("knopf")} title={tp("knopf")} className="ki-pane__knopf">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPruefungGeladen(true);
+                        umschalten("pruefung");
+                      }}
+                      aria-pressed={ansicht === "pruefung"}
+                      aria-label={tp("knopf")}
+                      title={tp("knopf")}
+                      className="ki-pane__knopf"
+                    >
                       <ShieldCheck className="h-4 w-4" />
                     </button>
                   ) : null}
@@ -269,7 +300,7 @@ export function KiPane({
                     <button
                       type="button"
                       onClick={() => umschalten("einstellungen")}
-                      aria-pressed={sichtbar === "einstellungen"}
+                      aria-pressed={ansicht === "einstellungen"}
                       aria-label={t("einstellungen")}
                       title={t("einstellungen")}
                       className="ki-pane__knopf"
@@ -280,7 +311,7 @@ export function KiPane({
                   <button
                     type="button"
                     onClick={() => umschalten("hilfe")}
-                    aria-pressed={sichtbar === "hilfe"}
+                    aria-pressed={ansicht === "hilfe"}
                     aria-label={t("eskalationKnopf")}
                     title={t("eskalationKnopf")}
                     className="ki-pane__knopf"
@@ -314,6 +345,14 @@ export function KiPane({
                 </div>
               )}
             </div>
+            {pruefungGeladen && pruefungBereiche.length > 0 ? (
+              <div
+                className={cn("ki-pane__ansicht overflow-y-auto", sichtbar !== "pruefung" && "pointer-events-none invisible")}
+                inert={sichtbar !== "pruefung" ? true : undefined}
+              >
+                <PruefungAnsicht erlaubt={pruefungBereiche} />
+              </div>
+            ) : null}
             {sichtbar === "mehr" ? (
               <div className="ki-pane__ansicht space-y-2 overflow-y-auto p-4">
                 {pruefungBereiche.length > 0 ? (
@@ -321,8 +360,8 @@ export function KiPane({
                     symbol={<ShieldCheck className="h-5 w-5" />}
                     text={tp("knopf")}
                     onClick={() => {
-                      setAnsichtRoh("chat");
-                      setPruefungOffen(true);
+                      setPruefungGeladen(true);
+                      setAnsicht("pruefung");
                     }}
                   />
                 ) : null}
@@ -330,20 +369,21 @@ export function KiPane({
                   <MehrZeile
                     symbol={<Settings2 className="h-5 w-5" />}
                     text={t("einstellungen")}
-                    onClick={() => setAnsichtRoh("einstellungen")}
+                    onClick={() => setAnsicht("einstellungen")}
                   />
                 ) : null}
                 <MehrZeile
                   symbol={<LifeBuoy className="h-5 w-5" />}
                   text={t("eskalationKnopf")}
-                  onClick={() => setAnsichtRoh("hilfe")}
+                  onClick={() => setAnsicht("hilfe")}
                 />
               </div>
             ) : null}
             {sichtbar === "einstellungen" && hatEinstellungen ? (
               <div className="ki-pane__ansicht space-y-5 overflow-y-auto p-4">
                 {/* Der Agent-Schalter fehlt auf dem Handy: dort ruht der
-                    Modus ohnehin, ein Schalter ohne Wirkung waere irrefuehrend. */}
+                    Modus ohnehin, ein Schalter ohne Wirkung waere
+                    irrefuehrend. */}
                 {agentFaehig && !handy ? <ModusEinstellung /> : null}
                 <HaustierEinstellung />
                 {einstellungen ? (
@@ -365,7 +405,6 @@ export function KiPane({
           </div>
         </div>
       </aside>
-      {pruefungOffen ? <PruefungDialog erlaubt={pruefungBereiche} onClose={() => setPruefungOffen(false)} /> : null}
     </>
   );
 }

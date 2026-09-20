@@ -59,11 +59,11 @@ export function wissenBackend(): WissenBackend | null {
 
 // Gesundheit der Einbettung (nur Supabase in Produktion): "konfiguriert" heisst nicht "erreichbar". Ein Anbieter, der
 // 403 liefert oder nicht antwortet, wuerde JEDE Rechtsfrage scheitern lassen, weil die Suche erzwungen wird. Deshalb wird
-// das Werkzeug erst angeboten, wenn eine Probe gelang. Ergebnis kurz gemerkt (gut: 5 min, schlecht: 1 min), damit sich
+// das Werkzeug erst angeboten, wenn eine Probe gelang. Ergebnis kurz gemerkt (gut: 5 min, schlecht: 20 s), damit sich
 // der Anbieter erholen kann und eine Frage nie auf die Probe warten muss.
-const PROBE_ZEITLIMIT_MS = 5_000;
+const PROBE_ZEITLIMIT_MS = 12_000;
 const GUT_MS = 5 * 60_000;
-const SCHLECHT_MS = 60_000;
+const SCHLECHT_MS = 20_000;
 let gesundheit: { ok: boolean; bis: number; grund: string | null } | null = null;
 
 /** Nur fuer Tests. */
