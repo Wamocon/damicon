@@ -1,25 +1,15 @@
 import { getTranslations } from "next-intl/server";
-import { Skeleton, SkeletonCard } from "@/components/ui/kit";
+import { FeldLader } from "@/components/haustier/feld-lader";
 
-// Ladezustand des Dashboards. Ohne ihn bleibt beim Wechsel zwischen Modulen
-// die alte Seite stehen, bis die Datenbank geantwortet hat - in einer
-// Vorfuehrung sieht das aus, als reagiere die Anwendung nicht.
+// Ladezustand beim Einstieg ins Dashboard (einmal je Sitzung, nach der Anmeldung) - anders
+// als beim Wechsel zwischen Modulen (dashboard/[zone]/loading.tsx u.a.), wo ein Raster aus
+// Skelett-Karten die kommende Seite andeutet. Hier gibt es noch keine Seite anzudeuten,
+// darum DamiAI auf dem Feldweg statt Platzhalter-Kacheln.
 export default async function DashboardLaedt() {
   const t = await getTranslations("dashboard");
   return (
-    <div className="space-y-6" aria-busy="true">
-      <div className="space-y-3">
-        <Skeleton className="h-3 w-24" />
-        <Skeleton className="h-8 w-2/3 max-w-md" />
-        <Skeleton className="h-4 w-full max-w-2xl bg-muted/70" />
-      </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        {Array.from({ length: 5 }, (_, i) => (
-          <SkeletonCard key={i} className="h-24" />
-        ))}
-      </div>
-      <SkeletonCard className="h-64" />
-      <span className="sr-only">{t("loading")}</span>
+    <div className="flex min-h-[60vh] items-center justify-center py-10" aria-busy="true">
+      <FeldLader text={t("loading")} />
     </div>
   );
 }
