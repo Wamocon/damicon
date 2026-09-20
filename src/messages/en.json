@@ -18,6 +18,7 @@
     "activePersona": "Active role (demo)",
     "activeRole": "Signed in as",
     "overview": "Overview",
+    "breadcrumb": "Breadcrumb",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "portal": "Open portal",

@@ -100,7 +100,10 @@ export function PageHeader({
   description,
   children,
 }: {
-  eyebrow?: string;
+  /** Text oder Brotkrumen-Pfad. Als ReactNode, damit <Brotkrumen /> hier
+   *  stehen kann - ein <nav> darf nicht in einem <p> liegen, deshalb ist der
+   *  Traeger unten ein <div>. */
+  eyebrow?: ReactNode;
   title: string;
   description?: string;
   children?: ReactNode;
@@ -109,9 +112,9 @@ export function PageHeader({
     <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
       <div className="min-w-0">
         {eyebrow ? (
-          <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
+          <div className="text-xs font-black uppercase tracking-[0.14em] text-primary">
             {eyebrow}
-          </p>
+          </div>
         ) : null}
         <h1 className="mt-1 text-2xl font-black text-foreground md:text-3xl">
           {title}
