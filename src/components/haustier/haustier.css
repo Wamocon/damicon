@@ -9,13 +9,8 @@
   right: 20px;
   bottom: 20px;
   z-index: 60;
-  /* Die Groesse folgt dem Fenster: auf dem Telefon klein genug, um nichts zu verdecken,
-     auf grossen Schirmen gross genug, dass man die Borte noch als Muster erkennt. Alles
-     Weitere (Schatten, Halte-Ring) rechnet gegen diese eine Zahl. 1,5 ist das Verhaeltnis
-     des viewBox, 144/96. */
-  --hb-breite: clamp(60px, 7.2vw, 104px);
-  width: var(--hb-breite);
-  height: calc(var(--hb-breite) * 1.5);
+  width: 88px;
+  height: 132px;
   pointer-events: none;
 }
 
@@ -95,13 +90,6 @@ html[data-ki-zieht] .haustier__verschiebung {
 .haustier[data-zieht="true"] .hb {
   transform: scale(1.12) rotate(var(--hb-neigung, 0deg));
 }
-/* In der Huelle fuellt die Figur den Kasten, statt die Breite aus dem Attribut zu nehmen -
-   nur so traegt die Groesse oben bis nach unten durch. */
-.haustier .hb-svg,
-.hb-versteck .hb-svg {
-  width: 100%;
-  height: auto;
-}
 .hb-svg {
   display: block;
   overflow: visible;
@@ -113,9 +101,9 @@ html[data-ki-zieht] .haustier__verschiebung {
   position: absolute;
   left: 50%;
   bottom: -3px;
-  width: calc(var(--hb-breite) * 0.66);
-  height: calc(var(--hb-breite) * 0.1);
-  margin-left: calc(var(--hb-breite) * -0.33);
+  width: 58px;
+  height: 9px;
+  margin-left: -29px;
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(0 0 0 / 0.28), rgb(0 0 0 / 0));
   transform-origin: center;
@@ -227,7 +215,7 @@ html[data-ki-zieht] .haustier__verschiebung {
     animation: hb-schweben 3.8s ease-in-out infinite;
   }
   .hb-svg[data-zustand="spricht"] .hb-figur {
-    animation: hb-tanzen 1.6s ease-in-out infinite;
+    animation: hb-schweben 2.6s ease-in-out infinite;
   }
   .hb-svg[data-zustand="denkt"] .hb-figur {
     animation: hb-arbeiten 1.1s ease-in-out infinite;
@@ -268,9 +256,6 @@ html[data-ki-zieht] .haustier__verschiebung {
   }
   .haustier__schatten-anim {
     animation: hb-schatten 3.8s ease-in-out infinite;
-  }
-  .haustier[data-zustand="spricht"] .haustier__schatten-anim {
-    animation: hb-schatten 0.8s ease-in-out infinite;
   }
   .haustier[data-zustand="denkt"] .haustier__schatten-anim {
     animation: hb-schatten 1.1s ease-in-out infinite;
@@ -762,10 +747,10 @@ html[data-ki-zieht] .haustier__verschiebung {
 /* Ring, der sich waehrend des Haltens fuellt */
 .hb-ring {
   position: absolute;
-  left: calc(var(--hb-breite) * -0.16);
-  top: calc(var(--hb-breite) * 0.09);
-  width: calc(var(--hb-breite) * 1.32);
-  height: calc(var(--hb-breite) * 1.32);
+  left: -14px;
+  top: 8px;
+  width: 116px;
+  height: 116px;
   overflow: visible;
   pointer-events: none;
   transform: rotate(-90deg);
@@ -878,9 +863,8 @@ html[data-ki-zieht] .haustier__verschiebung {
   right: 34px;
   bottom: 0;
   z-index: 60;
-  --hb-versteck-breite: clamp(48px, 5.4vw, 76px);
-  width: var(--hb-versteck-breite);
-  height: calc(var(--hb-versteck-breite) * 0.8125);
+  width: 64px;
+  height: 52px;
   overflow: hidden;
   padding: 0;
   border: 0;
@@ -898,7 +882,7 @@ html[data-ki-zieht] .haustier__verschiebung {
 }
 .hb-versteck__innen {
   display: block;
-  transform: translateY(16.67%);
+  transform: translateY(16px);
 }
 @media (prefers-reduced-motion: no-preference) {
   .hb-versteck {
@@ -912,7 +896,7 @@ html[data-ki-zieht] .haustier__verschiebung {
   .hb-versteck:hover .hb-versteck__innen,
   .hb-versteck:focus-visible .hb-versteck__innen {
     animation: none;
-    transform: translateY(2.08%);
+    transform: translateY(2px);
   }
 }
 @keyframes hb-versteck-ein {
@@ -927,11 +911,11 @@ html[data-ki-zieht] .haustier__verschiebung {
   0%,
   70%,
   100% {
-    transform: translateY(16.67%);
+    transform: translateY(16px);
   }
   78%,
   90% {
-    transform: translateY(6.25%);
+    transform: translateY(6px);
   }
 }
 @media (min-width: 1100px) {
@@ -1049,21 +1033,13 @@ html[data-ki-zieht] .haustier__verschiebung {
   }
 
   /* Ruhiges Pendeln. "denkt" geht schneller, "schlaeft" kaum merklich. */
-  .hb-svg[data-zustand="ruhe"] .hb-arm--l {
+  .hb-svg[data-zustand="ruhe"] .hb-arm--l,
+  .hb-svg[data-zustand="spricht"] .hb-arm--l {
     animation: hb-arm-l 3.8s ease-in-out infinite;
   }
-  .hb-svg[data-zustand="ruhe"] .hb-arm--r {
-    animation: hb-arm-r 3.8s ease-in-out infinite;
-  }
-
-  /* Sprechen: Himbi redet mit den Haenden. Die beiden Arme laufen absichtlich in
-     unterschiedlichem Takt (1,3 s gegen 1,05 s) und haben je vier statt zwei
-     Wegpunkte - gleichlaufende Arme sehen aus wie ein Scheibenwischer. */
-  .hb-svg[data-zustand="spricht"] .hb-arm--l {
-    animation: hb-gestik-l 1.3s ease-in-out infinite;
-  }
+  .hb-svg[data-zustand="ruhe"] .hb-arm--r,
   .hb-svg[data-zustand="spricht"] .hb-arm--r {
-    animation: hb-gestik-r 1.05s ease-in-out infinite;
+    animation: hb-arm-r 3.8s ease-in-out infinite;
   }
   .hb-svg[data-zustand="denkt"] .hb-arm--l {
     animation: hb-arm-l 1.6s ease-in-out infinite;
@@ -1087,10 +1063,12 @@ html[data-ki-zieht] .haustier__verschiebung {
   }
 
   .hb-svg[data-zustand="ruhe"] .hb-bein--l,
+  .hb-svg[data-zustand="spricht"] .hb-bein--l,
   .hb-svg[data-zustand="schlaeft"] .hb-bein--l {
     animation: hb-bein-l 3.8s ease-in-out infinite;
   }
   .hb-svg[data-zustand="ruhe"] .hb-bein--r,
+  .hb-svg[data-zustand="spricht"] .hb-bein--r,
   .hb-svg[data-zustand="schlaeft"] .hb-bein--r {
     animation: hb-bein-r 3.8s ease-in-out infinite;
   }
@@ -1100,106 +1078,12 @@ html[data-ki-zieht] .haustier__verschiebung {
   .hb-svg[data-zustand="denkt"] .hb-bein--r {
     animation: hb-bein-r 1.1s ease-in-out infinite;
   }
-  /* Beim Sprechen tritt Himbi im Takt von einem Fuss auf den anderen. */
-  .hb-svg[data-zustand="spricht"] .hb-bein--l {
-    animation: hb-tanz-bein-l 0.8s ease-in-out infinite;
-  }
-  .hb-svg[data-zustand="spricht"] .hb-bein--r {
-    animation: hb-tanz-bein-r 0.8s ease-in-out infinite;
-  }
   .hb-chapan {
     animation: hb-rock 3.8s ease-in-out infinite;
   }
   .hb-svg[data-zustand="denkt"] .hb-chapan,
   .hb-svg[data-zustand="freigabe"] .hb-chapan {
     animation: hb-rock 1.4s ease-in-out infinite;
-  }
-  /* Der Rock schwingt im selben Takt wie die Fuesse, nur weiter. */
-  .hb-svg[data-zustand="spricht"] .hb-chapan {
-    animation: hb-rock-tanz 0.8s ease-in-out infinite;
-  }
-}
-
-@keyframes hb-gestik-l {
-  0% {
-    transform: rotate(-10deg);
-  }
-  30% {
-    transform: rotate(13deg);
-  }
-  55% {
-    transform: rotate(1deg);
-  }
-  80% {
-    transform: rotate(15deg);
-  }
-  100% {
-    transform: rotate(-10deg);
-  }
-}
-@keyframes hb-gestik-r {
-  0% {
-    transform: rotate(8deg);
-  }
-  35% {
-    transform: rotate(-15deg);
-  }
-  60% {
-    transform: rotate(-3deg);
-  }
-  85% {
-    transform: rotate(-12deg);
-  }
-  100% {
-    transform: rotate(8deg);
-  }
-}
-@keyframes hb-tanz-bein-l {
-  0%,
-  100% {
-    transform: rotate(-5deg);
-  }
-  50% {
-    transform: rotate(6deg);
-  }
-}
-@keyframes hb-tanz-bein-r {
-  0%,
-  100% {
-    transform: rotate(6deg);
-  }
-  50% {
-    transform: rotate(-5deg);
-  }
-}
-@keyframes hb-rock-tanz {
-  0%,
-  100% {
-    transform: rotate(-4deg);
-  }
-  50% {
-    transform: rotate(4deg);
-  }
-}
-
-/* Tanz beim Sprechen: Gewichtsverlagerung von einem Fuss auf den anderen, mit einem
-   kleinen Huepfer dazwischen. Der Drehpunkt der Figur liegt an den Fuessen, darum
-   schwingt der Kopf und nicht der Boden. */
-@keyframes hb-tanzen {
-  0% {
-    transform: translateY(0) rotate(-2.6deg) scale(1.02, 0.98);
-  }
-  25% {
-    transform: translateY(-6px) rotate(1deg) scale(0.98, 1.03);
-  }
-  50% {
-    transform: translateY(0) rotate(2.6deg) scale(1.02, 0.98);
-  }
-  75% {
-    transform: translateY(-6px) rotate(-1deg) scale(0.98, 1.03);
-  }
-  100% {
-    transform: translateY(0) rotate(-2.6deg) scale(1.02, 0.98);
   }
 }
 
@@ -1273,416 +1157,5 @@ html[data-ki-zieht] .haustier__verschiebung {
   }
   50% {
     transform: rotate(1.8deg);
-  }
-}
-
-/* ---- Stimmung -----------------------------------------------------------------------
-   Liegt quer zum Zustand: der Zustand sagt, was der Agent TUT, die Stimmung, wie die
-   letzte Antwort AUSGING (lib/haustier.ts, stimmungAusAntwort). Darum ruehrt sie nur an
-   Brauen, Wangen und Kappe - Mund und Koerperbewegung gehoeren dem Zustand, sonst sieht
-   "denkt" nicht mehr aus wie "denkt".
-
-   Und nur in den Zustaenden, in denen gerade keine Antwort laeuft: waehrend "fehler" oder
-   "freigabe" hat das Gesicht schon eine Aufgabe. Das ":is(...)" haelt die Spezifitaet
-   hoch genug, um die Zustandsregeln weiter oben zu schlagen. */
-.hb-kappe {
-  transform-box: view-box;
-  transform-origin: 48px 44px;
-}
-.hb-wange,
-.hb-kappe {
-  transition: opacity 0.3s ease, transform 0.4s ease;
-}
-
-.hb-svg:is([data-zustand="ruhe"], [data-zustand="spricht"], [data-zustand="fertig"])[data-stimmung="gut"] .hb-braue {
-  transform: translateY(-2.6px);
-}
-.hb-svg:is([data-zustand="ruhe"], [data-zustand="spricht"], [data-zustand="fertig"])[data-stimmung="gut"] .hb-wange {
-  opacity: 0.85;
-}
-
-/* Warnung: eine Braue hoch, eine runter. Schief wirkt besorgt, zwei gesenkte wirken boese -
-   Himbi meldet einen Befund, sie schimpft nicht. */
-.hb-svg:is([data-zustand="ruhe"], [data-zustand="spricht"])[data-stimmung="warnung"] .hb-braue--l {
-  transform: rotate(-13deg) translateY(-1.6px);
-}
-.hb-svg:is([data-zustand="ruhe"], [data-zustand="spricht"])[data-stimmung="warnung"] .hb-braue--r {
-  transform: rotate(7deg) translateY(1.4px);
-}
-
-/* Rueckfrage: eine Braue hoch, Kopf schief. */
-.hb-svg:is([data-zustand="ruhe"], [data-zustand="spricht"])[data-stimmung="frage"] .hb-braue--r {
-  transform: translateY(-3.4px) rotate(9deg);
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  /* Die Reaktion laeuft auf der Kappe und der Blattkrone, nicht auf der ganzen Figur:
-     dort liegt schon die Bewegung des Zustands, und zwei Animationen auf einem Element
-     schliessen einander aus. */
-  .hb-svg[data-stimmung="gut"] .hb-kappe {
-    animation: hb-kappe-nicken 0.85s cubic-bezier(0.34, 1.5, 0.64, 1) 2;
-  }
-  .hb-svg[data-stimmung="warnung"] .hb-kappe {
-    animation: hb-kappe-wackeln 0.5s ease-in-out 3;
-  }
-  .hb-svg[data-stimmung="frage"] .hb-kappe {
-    animation: hb-kappe-neigen 2.4s ease-in-out infinite;
-  }
-  .hb-svg[data-stimmung="gut"] .hb-blatt {
-    animation: hb-wiegen 1.5s ease-in-out infinite;
-  }
-  .hb-svg[data-stimmung="frage"] .hb-blatt {
-    animation: hb-wiegen 5.2s ease-in-out infinite;
-  }
-}
-
-@keyframes hb-kappe-nicken {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0);
-  }
-  35% {
-    transform: translateY(2px) rotate(-5deg);
-  }
-  70% {
-    transform: translateY(-1.2px) rotate(3deg);
-  }
-}
-@keyframes hb-kappe-wackeln {
-  0%,
-  100% {
-    transform: rotate(0);
-  }
-  25% {
-    transform: rotate(-7deg);
-  }
-  75% {
-    transform: rotate(7deg);
-  }
-}
-@keyframes hb-kappe-neigen {
-  0%,
-  100% {
-    transform: rotate(-9deg) translateX(-1px);
-  }
-  50% {
-    transform: rotate(-3.5deg) translateX(0);
-  }
-}
-
-/* ---- Buehne: Himbi in der Mitte -----------------------------------------------------
-   Klick auf Himbi holt den Assistenten in die Mitte (ki-pane.tsx). Sie fliegt aus der
-   Ecke ueber dessen Karte und waechst dabei. Gerechnet wird gegen die Masse der Karte
-   aus ki-pane.css, damit beide Seiten dieselbe Mitte meinen; die Ersatzwerte greifen
-   nur dort, wo haustier.css ohne das Panel geladen wird (Startseite).
-
-   Oben: die Karte beginnt bei 50svh - hoehe/2 + kopf/2, Himbi soll mit den Fuessen
-   knapp darauf stehen. Ihre Fuesse stehen sonst bei 100svh - 20px, die Differenz ist
-   der Weg. Weil der Drehpunkt an den Fuessen liegt, bleibt die Rechnung auch nach dem
-   Vergroessern richtig.
-   Links: 100vw zaehlt die Scrollleiste mit, ihre Fuesse landen also bis zu deren halber
-   Breite links der Mitte - bei dieser Groesse nicht zu sehen. */
-.haustier[data-buehne="true"] {
-  z-index: 75;
-}
-/* Ein vorher weggezogenes Himbi soll die Mitte trotzdem treffen. */
-.haustier[data-buehne="true"] .haustier__versatz {
-  transform: none;
-}
-/* In der Mitte wird nicht gezogen, sondern geklickt. */
-.haustier[data-buehne="true"] .haustier__griff {
-  cursor: pointer;
-}
-.haustier[data-buehne="true"] .hb-verstecken {
-  display: none;
-}
-.haustier[data-buehne="true"] .haustier__verschiebung,
-.haustier[data-pane-offen="true"][data-buehne="true"] .haustier__verschiebung {
-  opacity: 1;
-  pointer-events: auto;
-  transform-origin: 50% 100%;
-  transform: translate3d(
-      calc(-50vw + 20px + var(--hb-breite) / 2),
-      calc(
-        20px + 2.4rem - 50svh - var(--ki-buehne-hoehe, 40rem) / 2 + var(--ki-buehne-kopf, 7.5rem) / 2
-      ),
-      0
-    )
-    scale(1.5);
-}
-
-/* ---- Aura: die Schicht um Himbi auf der Buehne ---------------------------------------
-   Drei weiche Farbflecken hinter der Figur, jeder mit eigener Dauer und Richtung. Genau
-   dadurch wirkt es lebendig und nicht wie ein rotierendes Bild: die Ueberlagerung der
-   drei Umlaeufe wiederholt sich erst nach Minuten. Dazu zwei Ringe, die nach aussen
-   laufen, wenn Himbi etwas von einem will.
-
-   Sie liegt als erstes Kind im Griff und damit hinter der Figur, ohne z-index. Sie
-   waechst mit, weil die Vergroesserung der Buehne eine Ebene darueber sitzt.
-
-   Die Farben sind dieselben wie an der Figur: Himbeere, Steppenblau, Gold. Kein
-   mix-blend-mode - der sieht auf Dunkel gut aus und verschwindet auf Hell. */
-.hb-aura {
-  position: absolute;
-  left: 50%;
-  top: 45%;
-  width: 300%;
-  height: 205%;
-  translate: -50% -50%;
-  pointer-events: none;
-  opacity: 0;
-}
-.haustier[data-buehne="true"] .hb-aura {
-  opacity: 0.85;
-}
-/* Die Flecken sind nur noch die Farbunterlage unter der Kugel - weiter weichgezeichnet
-   und deutlich blasser, sonst uebertoenen sie die Linien. */
-.hb-aura__blob {
-  position: absolute;
-  inset: 12%;
-  border-radius: 50%;
-  filter: blur(34px);
-  opacity: 0.5;
-}
-.hb-aura__blob--1 {
-  background: radial-gradient(circle at 38% 34%, rgb(216 27 96 / 0.85), rgb(216 27 96 / 0) 62%);
-}
-.hb-aura__blob--2 {
-  background: radial-gradient(circle at 66% 58%, rgb(19 112 143 / 0.8), rgb(19 112 143 / 0) 60%);
-}
-.hb-aura__blob--3 {
-  background: radial-gradient(circle at 50% 72%, rgb(242 193 78 / 0.62), rgb(242 193 78 / 0) 58%);
-}
-.hb-aura__ring {
-  position: absolute;
-  inset: 30%;
-  border-radius: 50%;
-  border: 1.5px solid rgb(255 255 255 / 0.5);
-  opacity: 0;
-}
-
-/* Wie stark die Aura leuchtet, sagt der Zustand - das ist der eigentliche Sinn der
-   Schicht: man sieht der Figur an, dass sie gerade etwas tut, bevor man den Text liest. */
-.haustier[data-buehne="true"][data-zustand="denkt"] .hb-aura {
-  opacity: 0.95;
-}
-.haustier[data-buehne="true"][data-zustand="spricht"] .hb-aura {
-  opacity: 0.85;
-}
-.haustier[data-buehne="true"][data-zustand="freigabe"] .hb-aura {
-  opacity: 0.9;
-}
-.haustier[data-buehne="true"][data-zustand="fehler"] .hb-aura,
-.haustier[data-buehne="true"][data-zustand="traurig"] .hb-aura {
-  opacity: 0.35;
-}
-.haustier[data-buehne="true"][data-zustand="schlaeft"] .hb-aura {
-  opacity: 0.22;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .hb-aura {
-    transition: opacity 0.6s ease;
-  }
-  .haustier[data-buehne="true"] .hb-aura__blob--1 {
-    animation: hb-aura-1 14s linear infinite;
-  }
-  .haustier[data-buehne="true"] .hb-aura__blob--2 {
-    animation: hb-aura-2 19s linear infinite;
-  }
-  .haustier[data-buehne="true"] .hb-aura__blob--3 {
-    animation: hb-aura-3 11s linear infinite;
-  }
-  /* Arbeitet der Agent, zieht die Aura schneller - beim Sprechen pulst sie im Takt. */
-  .haustier[data-buehne="true"][data-zustand="denkt"] .hb-aura__blob--1 {
-    animation-duration: 5s;
-  }
-  .haustier[data-buehne="true"][data-zustand="denkt"] .hb-aura__blob--2 {
-    animation-duration: 7s;
-  }
-  .haustier[data-buehne="true"][data-zustand="denkt"] .hb-aura__blob--3 {
-    animation-duration: 4s;
-  }
-  .haustier[data-buehne="true"][data-zustand="spricht"] .hb-aura__blob--1 {
-    animation-duration: 6s;
-  }
-  .haustier[data-buehne="true"][data-zustand="spricht"] .hb-aura__blob--3 {
-    animation-duration: 5s;
-  }
-  .haustier[data-buehne="true"][data-zustand="schlaeft"] .hb-aura__blob--1,
-  .haustier[data-buehne="true"][data-zustand="schlaeft"] .hb-aura__blob--2,
-  .haustier[data-buehne="true"][data-zustand="schlaeft"] .hb-aura__blob--3 {
-    animation-duration: 40s;
-  }
-
-  /* Ringe laufen nur, wenn Himbi Aufmerksamkeit braucht oder gerade spricht. */
-  .haustier[data-buehne="true"][data-zustand="freigabe"] .hb-aura__ring,
-  .haustier[data-buehne="true"][data-zustand="spricht"] .hb-aura__ring,
-  .haustier[data-buehne="true"][data-zustand="fertig"] .hb-aura__ring {
-    animation: hb-aura-ring 2.2s cubic-bezier(0.22, 0.61, 0.36, 1) infinite;
-  }
-  /* Der zweite Ring laeuft eine halbe Runde spaeter los. Die Regel braucht dieselbe
-     Spezifitaet wie die Kurzschreibweise darueber - sonst setzt die den Verzug
-     wieder auf null. */
-  .haustier[data-buehne="true"][data-zustand="freigabe"] .hb-aura__ring--spaet,
-  .haustier[data-buehne="true"][data-zustand="spricht"] .hb-aura__ring--spaet,
-  .haustier[data-buehne="true"][data-zustand="fertig"] .hb-aura__ring--spaet {
-    animation-delay: 1.1s;
-  }
-  .haustier[data-buehne="true"][data-zustand="freigabe"] .hb-aura__ring {
-    animation-duration: 1.5s;
-  }
-}
-
-@keyframes hb-aura-1 {
-  0% {
-    transform: rotate(0) scale(1);
-  }
-  50% {
-    transform: rotate(180deg) scale(1.14);
-  }
-  100% {
-    transform: rotate(360deg) scale(1);
-  }
-}
-@keyframes hb-aura-2 {
-  0% {
-    transform: rotate(0) scale(1.1);
-  }
-  50% {
-    transform: rotate(-180deg) scale(0.94);
-  }
-  100% {
-    transform: rotate(-360deg) scale(1.1);
-  }
-}
-@keyframes hb-aura-3 {
-  0% {
-    transform: rotate(40deg) scale(0.96);
-  }
-  50% {
-    transform: rotate(220deg) scale(1.18);
-  }
-  100% {
-    transform: rotate(400deg) scale(0.96);
-  }
-}
-@keyframes hb-aura-ring {
-  0% {
-    opacity: 0.55;
-    transform: scale(0.72);
-  }
-  70% {
-    opacity: 0;
-    transform: scale(1.3);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.3);
-  }
-}
-
-/* Die Frequenzkugel selbst (wellen.tsx). Sie liegt ueber der Farbunterlage und unter der
-   Figur - im Kasten der Aura, also in derselben Mitte und mit derselben Vergroesserung.
-   Ihre Aufloesung rechnet die Zeichnung selbst hoch; hier steht nur, wie gross sie im
-   Layout ist. */
-.hb-wellen {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-/* Bewegung ganz aus (Einstellung im Assistenten). Steht als Attribut am Dokument, damit
-   ein einziger Schalter alles erreicht: Figur, Aura, Kugel, Schatten. Dieselbe Wirkung
-   wie prefers-reduced-motion, nur vom Menschen selbst gewaehlt. */
-html[data-hb-still] .hb-svg *,
-html[data-hb-still] .hb-svg,
-html[data-hb-still] .hb-aura *,
-html[data-hb-still] .haustier__schatten-anim,
-html[data-hb-still] .hb-versteck__innen {
-  animation: none;
-}
-
-/* ---- Vorschau in den Einstellungen --------------------------------------------------
-   Die Figur hat acht Zustaende und vier Mienen. Im Betrieb bekommt man sie einzeln und
-   zufaellig zu sehen - hier stehen sie nebeneinander und zum Anfassen. Die Vorschau
-   aendert nichts am echten Begleiter in der Ecke. */
-.hb-einstellung__zeile {
-  margin-top: 1rem;
-}
-.hb-vorschau {
-  display: grid;
-  grid-template-columns: 7rem minmax(0, 1fr);
-  gap: 0.9rem;
-  align-items: center;
-  margin-top: 1rem;
-  padding: 0.9rem;
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: 0.9rem;
-  background: var(--muted, #f6f4f5);
-}
-@media (max-width: 24rem) {
-  .hb-vorschau {
-    grid-template-columns: 1fr;
-    justify-items: center;
-  }
-}
-.hb-vorschau__buehne {
-  display: grid;
-  place-items: end center;
-  min-height: 8.6rem;
-}
-.hb-vorschau__buehne[data-bewegung="false"] .hb-svg,
-.hb-vorschau__buehne[data-bewegung="false"] .hb-svg * {
-  animation: none;
-}
-.hb-vorschau__titel {
-  margin: 0 0 0.35rem;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted-foreground, #6b7280);
-}
-.hb-vorschau__knoepfe {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
-  margin-bottom: 0.7rem;
-}
-.hb-chip {
-  padding: 0.22rem 0.55rem;
-  border: 1px solid var(--border, #e5e7eb);
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 600;
-  color: var(--card-foreground, #1f2937);
-  background: var(--card, #fff);
-  cursor: pointer;
-}
-.hb-chip[aria-pressed="true"] {
-  border-color: var(--hb-himbeere, #d81b60);
-  background: var(--hb-himbeere, #d81b60);
-  color: #fff;
-}
-.hb-chip--stimmung[aria-pressed="true"] {
-  border-color: #13708f;
-  background: #13708f;
-}
-.hb-chip:focus-visible {
-  outline: 2px solid var(--hb-himbeere, #d81b60);
-  outline-offset: 2px;
-}
-.hb-vorschau__hinweis {
-  margin: 0;
-  font-size: 0.72rem;
-  line-height: 1.35;
-  color: var(--muted-foreground, #6b7280);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .hb-chip {
-    transition: background-color 0.15s ease, border-color 0.15s ease;
   }
 }

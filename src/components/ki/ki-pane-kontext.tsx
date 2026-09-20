@@ -22,12 +22,6 @@ import { useRouter } from "@/i18n/navigation";
 
 export type KiModus = "assistent" | "agent";
 
-/** Wo der Assistent steht. "seite" ist das angedockte Panel von Anfang an, "buehne"
- *  holt ihn in die Mitte: die Seite dahinter tritt unscharf zurueck, Himbi stellt sich
- *  ueber die Karte und der Chat liegt darunter. Beides ist DASSELBE Panel in einer
- *  anderen Darstellung - es bleibt gemountet, eine laufende Antwort laeuft weiter. */
-export type KiDarstellung = "seite" | "buehne";
-
 export interface KiZeiger {
   x: number;
   y: number;
@@ -47,10 +41,6 @@ interface KiPaneWert {
   umschalten: () => void;
   modus: KiModus;
   setModus: (modus: KiModus) => void;
-  darstellung: KiDarstellung;
-  setDarstellung: (darstellung: KiDarstellung) => void;
-  /** Oeffnet den Assistenten in der Mitte (Klick auf Himbi). */
-  oeffneBuehne: () => void;
   fuehrung: KiFuehrung | null;
   /** Sofort hin (Klick auf einen Quellenverweis): verwirft eine laufende Tour. */
   oeffneZiel: (ziel: string, label: string) => void;
@@ -63,7 +53,6 @@ interface KiPaneWert {
 }
 
 const MODUS_SCHLUESSEL = "damicon-ki-modus";
-const DARSTELLUNG_SCHLUESSEL = "damicon-ki-darstellung";
 // So lange bleibt jede Station der Tour im Bild, bevor die naechste kommt -
 // kurz genug, dass es fluessig wirkt, lang genug, dass man sieht, wo man ist.
 const VERWEILZEIT_MS = 2600;
@@ -79,9 +68,6 @@ const Standard: KiPaneWert = {
   umschalten: () => {},
   modus: "assistent",
   setModus: () => {},
-  darstellung: "seite",
-  setDarstellung: () => {},
-  oeffneBuehne: () => {},
   fuehrung: null,
   oeffneZiel: () => {},
   fuehreZu: () => {},
@@ -150,7 +136,6 @@ export function KiPaneProvider({
   const router = useRouter();
   const [offen, setOffen] = useState(false);
   const [modus, setModusState] = useState<KiModus>("assistent");
-  const [darstellung, setDarstellungState] = useState<KiDarstellung>("seite");
   const [fuehrung, setFuehrung] = useState<KiFuehrung | null>(null);
   const [zeiger, setZeiger] = useState<KiZeiger | null>(null);
   const zeigerTimer = useRef<number | undefined>(undefined);
@@ -165,68 +150,10 @@ export function KiPaneProvider({
     try {
       const gespeichert = window.localStorage.getItem(MODUS_SCHLUESSEL);
       if (gespeichert === "agent" || gespeichert === "assistent") setModusState(gespeichert);
-      const art = window.localStorage.getItem(DARSTELLUNG_SCHLUESSEL);
-      if (art === "seite" || art === "buehne") setDarstellungState(art);
     } catch {
       // Speicher gesperrt (privates Fenster): Modus gilt dann nur fuer diese Sitzung.
     }
   }, []);
-
-  const setDarstellung = useCallback((neu: KiDarstellung) => {
-    setDarstellungState(neu);
-    try {
-      window.localStorage.setItem(DARSTELLUNG_SCHLUESSEL, neu);
-    } catch {
-      // siehe oben
-    }
-  }, []);
-
-  const oeffneBuehne = useCallback(() => {
-    setDarstellung("buehne");
-    setOffen(true);
-  }, [setDarstellung]);
-
-  // Im Agent-Modus steuert der Assistent die Ansicht nebenan. Auf der Buehne liegt die
-  // Seite unscharf dahinter - von der Fahrt saehe man nichts. Solange eine Fuehrung
-  // laeuft, dockt er darum an den Rand und geht danach zurueck in die Mitte.
-  //
-  // Absichtlich ueber setDarstellungState statt setDarstellung: die gespeicherte Wahl
-  // bleibt "buehne". Das Andocken ist eine Leihgabe fuer die Dauer der Fuehrung, keine
-  // Umstellung, die der Mensch beim naechsten Mal wiederfinden soll.
-  const buehneGeliehen = useRef(false);
-  useEffect(() => {
-    if (fuehrung && darstellung === "buehne") {
-      buehneGeliehen.current = true;
-      setDarstellungState("seite");
-      return;
-    }
-    if (!fuehrung && buehneGeliehen.current) {
-      buehneGeliehen.current = false;
-      setDarstellungState("buehne");
-    }
-  }, [fuehrung, darstellung]);
-
-  // Die Buehne legt sich ueber die Seite und ist damit ein Dialog: Escape schliesst sie.
-  // Das angedockte Panel bleibt offen - es verdeckt nichts, und wer darin tippt, will
-  // mit Escape keine laufende Antwort aus dem Blick verlieren.
-  useEffect(() => {
-    if (!offen || darstellung !== "buehne") return;
-    const beiTaste = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOffen(false);
-    };
-    window.addEventListener("keydown", beiTaste);
-    return () => window.removeEventListener("keydown", beiTaste);
-  }, [offen, darstellung]);
-
-  // Solange die Buehne steht, scrollt die Seite dahinter nicht mit.
-  useEffect(() => {
-    if (!offen || darstellung !== "buehne") return;
-    const vorher = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = vorher;
-    };
-  }, [offen, darstellung]);
 
   const setModus = useCallback((neu: KiModus) => {
     setModusState(neu);
@@ -303,9 +230,6 @@ export function KiPaneProvider({
       umschalten: () => setOffen((v) => !v),
       modus,
       setModus,
-      darstellung,
-      setDarstellung,
-      oeffneBuehne,
       fuehrung,
       oeffneZiel,
       fuehreZu,
@@ -313,21 +237,7 @@ export function KiPaneProvider({
       zeiger,
       bewegeZeiger,
     }),
-    [
-      verfuegbar,
-      offen,
-      modus,
-      setModus,
-      darstellung,
-      setDarstellung,
-      oeffneBuehne,
-      fuehrung,
-      oeffneZiel,
-      fuehreZu,
-      fuehrungBeenden,
-      zeiger,
-      bewegeZeiger,
-    ],
+    [verfuegbar, offen, modus, setModus, fuehrung, oeffneZiel, fuehreZu, fuehrungBeenden, zeiger, bewegeZeiger],
   );
 
   return <KiPaneKontext.Provider value={wert}>{children}</KiPaneKontext.Provider>;

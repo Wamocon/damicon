@@ -3,10 +3,9 @@
 import { useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { Bot, Info, LifeBuoy, Maximize2, MessageSquareText, PanelRight, Settings2, ShieldCheck, X } from "lucide-react";
+import { Bot, Info, LifeBuoy, MessageSquareText, Settings2, ShieldCheck, X } from "lucide-react";
 import { Himbeere } from "@/components/ki/himbeere";
-import { HaustierEinstellung } from "@/components/haustier/haustier-einstellung";
-import { useHaustierStatus } from "@/components/haustier/haustier-kontext";
+import { useHaustierAktionen, useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { KiChat } from "@/components/ki/ki-chat";
 import { KiPaneGriff } from "@/components/ki/ki-pane-griff";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
@@ -80,9 +79,35 @@ function ModusEinstellung() {
   );
 }
 
+function HaustierEinstellung() {
+  const t = useTranslations("haustier");
+  const { an } = useHaustierStatus();
+  const { setAn } = useHaustierAktionen();
+  return (
+    <section className="ki-einstellung">
+      <div className="ki-einstellung__kopf">
+        <div className="ki-einstellung__titel">
+          <Himbeere groesse={16} />
+          {t("einstellung.titel")}
+        </div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={an}
+          aria-label={t("einstellung.titel")}
+          onClick={() => setAn(!an)}
+          className="ki-schalter"
+        >
+          <span className="ki-schalter__knopf" />
+        </button>
+      </div>
+      <p className="ki-einstellung__text">{t("einstellung.text")}</p>
+    </section>
+  );
+}
+
 // Die Compliance-Pruefung ist gross (Buehne, Bericht) und wird erst geladen, wenn sie geoeffnet wird.
 const PruefungDialog = dynamic(() => import("@/components/pruefung/pruefung-dialog").then((m) => m.PruefungDialog), { ssr: false });
-
 
 export function KiPane({
   verlauf,
@@ -100,8 +125,7 @@ export function KiPane({
   pruefungBereiche?: readonly Pruefbereich[];
 }) {
   const t = useTranslations("kiAssistentAnsicht");
-  const { verfuegbar, offen, setOffen, modus, darstellung, setDarstellung } = useKiPane();
-  const { phase } = useHaustierStatus();
+  const { verfuegbar, offen, setOffen, modus } = useKiPane();
   const tp = useTranslations("pruefung");
   const [ansicht, setAnsicht] = useState<Ansicht>("chat");
   const [pruefungOffen, setPruefungOffen] = useState(false);
@@ -109,7 +133,6 @@ export function KiPane({
   if (!verfuegbar) return null;
 
   const agentAktiv = agentFaehig && modus === "agent";
-  const aufBuehne = darstellung === "buehne";
   const hatEinstellungen = agentFaehig || einstellungen !== null;
   const umschalten = (ziel: Ansicht) => setAnsicht((aktuell) => (aktuell === ziel ? "chat" : ziel));
 
@@ -120,34 +143,16 @@ export function KiPane({
         tabIndex={-1}
         aria-label={t("schliessen")}
         onClick={() => setOffen(false)}
-        className={cn(
-          "ki-pane-hintergrund print:hidden",
-          offen && "ki-pane-hintergrund--offen",
-          aufBuehne && "ki-pane-hintergrund--buehne",
-        )}
+        className={cn("ki-pane-hintergrund print:hidden", offen && "ki-pane-hintergrund--offen")}
       />
       <aside
         aria-label={t("chatTitel")}
         aria-hidden={!offen}
-        aria-modal={aufBuehne && offen ? true : undefined}
-        role={aufBuehne ? "dialog" : undefined}
-        data-phase={phase}
         inert={!offen ? true : undefined}
-        className={cn(
-          "ki-pane-huelle print:hidden",
-          offen && "ki-pane-huelle--offen",
-          aufBuehne && "ki-pane-huelle--buehne",
-        )}
+        className={cn("ki-pane-huelle print:hidden", offen && "ki-pane-huelle--offen")}
       >
-        {aufBuehne ? (
-          <span className="ki-buehne-aura" aria-hidden>
-            <span className="ki-buehne-aura__blob ki-buehne-aura__blob--1" />
-            <span className="ki-buehne-aura__blob ki-buehne-aura__blob--2" />
-            <span className="ki-buehne-aura__blob ki-buehne-aura__blob--3" />
-          </span>
-        ) : null}
         <div className={cn("ki-pane", agentAktiv && "ki-pane--agent")}>
-          {aufBuehne ? null : <KiPaneGriff />}
+          <KiPaneGriff />
           <header className="ki-pane__kopf">
             <div className="ki-pane__titel">
               <span className="ki-pane__zeichen" aria-hidden>
@@ -161,15 +166,6 @@ export function KiPane({
               ) : null}
             </div>
             <div className="ki-pane__werkzeuge">
-              <button
-                type="button"
-                onClick={() => setDarstellung(aufBuehne ? "seite" : "buehne")}
-                aria-label={t(aufBuehne ? "andocken" : "buehne")}
-                title={t(aufBuehne ? "andocken" : "buehne")}
-                className="ki-pane__knopf"
-              >
-                {aufBuehne ? <PanelRight className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
-              </button>
               {pruefungBereiche.length > 0 ? (
                 <button type="button" onClick={() => setPruefungOffen(true)} aria-label={tp("knopf")} title={tp("knopf")} className="ki-pane__knopf">
                   <ShieldCheck className="h-4 w-4" />
