@@ -44,6 +44,12 @@ export const viewport: Viewport = {
   // Systemleiste liegen oder muesste mit einem geratenen Festabstand darueber
   // schweben.
   viewportFit: "cover",
+  // Die eingeblendete Tastatur verkleinert die Seite, statt sie nur zu
+  // verschieben. Ohne das bleibt auf Android ein Eingabefeld am unteren Rand
+  // hinter der Tastatur liegen - im KI-Blatt (ki-pane.css) ist das der
+  // Composer, also das einzige Feld, das dort ueberhaupt getippt wird. Erst
+  // damit wirkt auch die Hoehe in dvh.
+  interactiveWidget: "resizes-content",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#00768f" },
     { media: "(prefers-color-scheme: dark)", color: "#04161c" },

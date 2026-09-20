@@ -37,7 +37,7 @@ Das ist keine Randfrage der Oberfläche, sondern entscheidet, welche Module zuer
 | 13 | `body` mit `min-h-screen` statt `min-h-svh` | mittel | sehr niedrig | offen |
 | 14 | Kein Breakpoint unter 640 px | mittel | niedrig | offen |
 | 15 | Formularraster springt von 1 auf 2 Spalten bei 640 px | niedrig | niedrig | offen |
-| 16 | KI-Panel ist am Schreibtisch entworfen | hoch | mittel | **zur Entscheidung** |
+| 16 | KI-Assistent ist am Schreibtisch entworfen | hoch | mittel | **Variante A gebaut** |
 
 ---
 
@@ -229,53 +229,71 @@ Sieben Stellen brechen aus dem Muster aus und setzen `grid-cols-2` oder `grid-co
 
 ---
 
-### 16. Das KI-Panel ist am Schreibtisch entworfen — drei Vorschläge
+### 16. Der KI-Assistent auf dem Handy — Variante A gebaut
 
-Das Panel ist als **andockbare Spalte neben** dem Hauptfenster gebaut. Der Kommentar in `ki-pane.tsx:16-19` sagt auch warum: der Nutzer soll im Agent-Modus sehen, „wie die Ansicht nebenan mitwandert". Unter 1100 px legt es sich stattdessen als Schublade über die Seite (`ki-pane.css:122-145`). Damit fällt auf dem Handy genau das weg, wofür die Anordnung gedacht war — es gibt kein „nebenan" mehr, die geführte Ansicht liegt vollständig hinter dem Panel.
+*Neu gefasst nach dem Merge von `main`. Die erste Fassung dieses Punktes fragte nur, wo das Panel liegen soll. Inzwischen kann der Assistent mehr, und damit ändert sich die Frage.*
 
-Dazu kommen fünf Maße, die am Schreibtisch stimmen und in der Hand nicht:
+Dazugekommen sind: Diktat über Whisper (`mikrofon.tsx`, der erkannte Text landet im Feld und wird nicht selbst abgeschickt), Sprachausgabe je Antwort samt Schalter „Antworten vorlesen" (`sprachausgabe.tsx`, Standard aus), eingeklappte Quellen unter der Antwort (`ki-quellen.tsx`) und die Compliance-Prüfung als eigener Dialog (`pruefung/pruefung-dialog.tsx`).
 
-- **Die Breite ist ein Rechenergebnis, kein Entwurf.** `width: min(var(--ki-pane-breite), 100vw)` ergibt bei 390 px Fensterbreite 368 px. Übrig bleibt ein 22 px breiter Streifen der Seite dahinter — zu schmal, um etwas zu zeigen, breit genug, um unruhig zu wirken.
-- **Das Eingabefeld löst den iOS-Zoom aus.** `font-size: 0.85rem` (`ki-pane.css:784`), also 13,6 px. Es ist das Bedienelement, das im Chat am häufigsten angetippt wird, siehe Punkt 3.
-- **Die Tastatur verdeckt das Eingabefeld.** Das Panel hängt an `inset: 0`, also am Layout-Viewport. Auf iOS schiebt die eingeblendete Tastatur nichts mit, das Feld liegt darunter. Weder `dvh` noch `interactive-widget=resizes-content` sind gesetzt.
-- **Der Composer steht im Home-Indicator.** `padding: 0.65rem max(1rem, …) 1rem` (`ki-pane.css:748`), ohne `env(safe-area-inset-bottom)`.
-- **Die Kopfknöpfe sind 32 px** (`ki-pane.css:199-200`), drei davon nebeneinander mit 0,15 rem Abstand. Einstellungen, Hilfe und Schließen liegen damit enger beieinander als eine Fingerkuppe breit ist.
+#### Was nicht passt
+
+**Die Anordnung.** Das Panel ist eine andockbare Spalte **neben** dem Hauptfenster; der Kommentar in `ki-pane.tsx` nennt den Grund: im Agent-Modus soll man sehen, „wie die Ansicht nebenan mitwandert". Unter 1100 px legt es sich als Schublade darüber (`ki-pane.css:122-145`). Auf dem Handy gibt es damit kein „nebenan" mehr — die geführte Ansicht liegt vollständig hinter dem Panel.
+
+**Die Breite ist ein Rechenergebnis.** `width: min(var(--ki-pane-breite), 100vw)` ergibt bei 390 px Fensterbreite 368 px. Es bleibt ein 22 px breiter Streifen der Seite dahinter: zu schmal, um etwas zu zeigen, breit genug, um unruhig zu wirken.
+
+**Das Eingabefeld löst den iOS-Zoom aus.** `font-size: 0.85rem` (`ki-pane.css:784`), also 13,6 px — siehe Punkt 3.
+
+**Die Tastatur verdeckt den Composer.** Das Panel hängt an `inset: 0`, also am Layout-Viewport. Auf iOS schiebt die eingeblendete Tastatur nichts mit. Weder `dvh` noch `interactive-widget=resizes-content` sind gesetzt.
+
+**Der Composer steht im Home-Indicator.** `padding: 0.65rem max(1rem, …) 1rem` (`ki-pane.css:743-749`), ohne `env(safe-area-inset-bottom)`.
+
+**Alle Knöpfe sind 32 px.** Im Kopf inzwischen bis zu vier nebeneinander mit 0,15 rem Abstand (Prüfung, Einstellungen, Hilfe, Schließen), im Composer drei (Mikrofon, Senden, Stopp). Das Mikrofon ist dabei das Bedienelement, das im Feld am ehesten gebraucht wird — und eines der kleinsten.
 
 Dazu fehlt die Schließgeste, die auf Android erwartet wird: Zurück schließt das Panel nicht, weil es keinen Verlaufseintrag anlegt.
 
-Die fünf Maße sind in jeder der drei Varianten dieselbe Arbeit. Unterschiedlich ist nur, **was das Panel auf dem Handy sein soll**.
+Diese sechs Punkte sind in jeder der drei Varianten dieselbe Arbeit. Unterschiedlich ist, **was der Assistent auf dem Handy sein soll**.
 
-#### Variante A: viertes Blatt von unten
+#### Variante A: dasselbe Panel, nur mobil richtig
 
-Das Panel wird unter `md` ein Blatt wie Menü und Konto: kommt von unten, volle Breite, Höhe `92svh`, Griff oben, Schließen per Klick daneben und per Esc. `ui/sheet.tsx` steht dafür schon.
+Das Panel wird unter `md` ein Blatt wie Menü und Konto: von unten, volle Breite, `ui/sheet.tsx` steht dafür. Der Kopf behält Titel und Schließen, die drei übrigen Knöpfe wandern hinter ein Mehr-Menü. Der Agent-Modus wird unter `md` stillgelegt — der Assistent antwortet, führt aber nicht.
 
-Der Agent-Modus wird unter `md` stillgelegt — der Schalter verschwindet, der Assistent antwortet, führt aber nicht. Wer führen lassen will, nimmt das Tablet.
+*Dafür:* der kleinste Eingriff. Alle vier Knöpfe der unteren Leiste verhalten sich gleich, ein Muster statt zweier. Funktional ändert sich nichts, was am Schreibtisch funktioniert.
 
-*Dafür:* der kleinste Eingriff, und die drei Knöpfe der unteren Leiste verhalten sich alle gleich. Ein Muster statt zweier.
+*Dagegen:* der Assistent bleibt ein Tippdialog. Wer im Feld Handschuhe trägt, nasse Hände hat oder eine Steige hält, tippt nicht — auch nicht in ein 16-px-Feld.
 
-*Dagegen:* eine Funktion weniger auf dem Gerät, auf dem die Brigade arbeitet. Wenn der Agent gerade dort führen soll, wo niemand einen zweiten Bildschirm hat, ist das die falsche Richtung.
+#### Variante B: Sprache zuerst
 
-#### Variante B: halbes Blatt mit zwei Rastpunkten
+Der KI-Knopf öffnet unter `md` keine Tastaturfläche, sondern eine Diktatfläche: ein Aufnahmeknopf über die halbe Blattbreite, darunter die letzte Antwort als Text. Gesprochen wird die Frage, vorgelesen wird die Antwort (`vorlesen` ist unter `md` an statt aus). Wer tippen will, schaltet auf das Textfeld um.
 
-Das Blatt öffnet auf halber Höhe (etwa 55 %) und lässt die Seite darüber sichtbar. Ein Zug am Griff schaltet auf Vollbild und zurück; beim Fokus ins Eingabefeld geht es selbst auf Vollbild, weil die Tastatur den Platz ohnehin nimmt.
+Die Bausteine sind fertig: Whisper-Diktat und Sprachausgabe stehen seit dem Merge im Panel. Heute sind sie zwei 32-px-Knöpfe am Rand des Composers — also gebaut, aber für den Fall entworfen, dass man ohnehin am Schreibtisch sitzt.
 
-Damit bleibt der Agent-Modus mobil sinnvoll: die Führungsanzeige aus `ki-fuehrung.tsx` und die wandernde Ansicht liegen in der oberen Hälfte.
+*Dafür:* trifft die tatsächliche Lage im Feld. Kein Zoom-Problem, kein Tastaturproblem, keine 44-px-Diskussion, weil die Fläche groß ist. Die Antwort hört man, während man arbeitet.
 
-*Dafür:* erhält die Kernidee des Panels. Auf dem Telefon der Brigade ist „zeig mir, wo das steht" plausibler als am Schreibtisch, wo man den Weg ohnehin kennt.
+*Dagegen:* Diktat braucht Netz (die Erkennung läuft serverseitig), und die Brigade arbeitet offline — dann fällt die Fläche auf das Textfeld zurück, und man hat zwei Bedienbilder statt einem. Für Kasachisch verhört sich Whisper laut Kommentar in `mikrofon.tsx` bei einzelnen Wörtern; der erkannte Text muss also lesbar bleiben und darf nicht automatisch abgeschickt werden.
 
-*Dagegen:* die aufwendigste Variante. Ziehgeste, zwei Rastpunkte, Zusammenspiel mit der Tastatur und mit der unteren Leiste, die bei halber Höhe sichtbar bleibt und nicht verdeckt werden darf.
+#### Variante C: Auskunft zur Sache statt Gespräch
 
-#### Variante C: eigene Seite statt Overlay
+Der Assistent erscheint nicht als eigener Raum, sondern als Blatt zum Modul, in dem man gerade steht: drei bis vier vorformulierte Fragen zur offenen Ansicht („Was ist hier zu tun?", „Warum ist dieser Block gesperrt?", „Welcher Beleg fehlt?") und darunter das freie Feld. Antworten sind kurz, mit Sprungmarke in die Ansicht statt langer Erklärung.
 
-Unter `md` öffnet der KI-Knopf keine Fläche, sondern führt auf `/dashboard/ki`. Eine gewöhnliche Seite: Zurück schließt sie, die Adresse ist teilbar, die Tastatur verhält sich wie in jedem anderen Formular, und es gibt keine Fokusfalle zu bauen.
+*Dafür:* im Feld will man selten ein Gespräch, sondern eine Auskunft zu dem, was vor einem liegt. Vorformulierte Fragen sparen die Eingabe ganz und sind in allen fünf Sprachen geprüft, während frei Gesprochenes das nicht ist.
 
-*Dafür:* technisch die ruhigste Lösung, die wenigsten Sonderfälle. Ein Gespräch mit dem Assistenten ist auf dem Handy ohnehin eine eigene Tätigkeit und kein Nebenfenster.
+*Dagegen:* die Fragen müssen je Modul gepflegt werden, sonst veralten sie — 26 Module mal fünf Sprachen. Und der Assistent kann mehr, als vier Knöpfe zeigen; wer das nicht weiß, nutzt es nicht.
 
-*Dagegen:* der Chat existiert dann in zwei Darstellungen (Panel am Schreibtisch, Seite auf dem Handy), die auseinanderlaufen können. Der Agent-Modus müsste die Seite verlassen, um zu führen — technisch machbar über die bestehende Führungsanzeige, aber erklärungsbedürftig.
+**Empfehlung:** A als Grundlage, weil die sechs Maße ohnehin fallen und das Blatt die Form ist, die zur unteren Leiste passt. B als nächster Schritt, sobald die Frage „arbeitet die Brigade online genug für Diktat?" beantwortet ist — das ist eine Feldfrage, keine Entwurfsfrage. C ist die kleinste Investition mit dem sichersten Nutzen, hängt aber an gepflegten Texten.
 
-**Empfehlung:** A, wenn der Agent-Modus auf dem Handy verzichtbar ist; B, wenn er dort gebraucht wird. C ist die sauberste Lösung, kostet aber eine zweite Darstellung desselben Chats — das lohnt sich erst, wenn der Chat auf dem Handy mehr wird als eine Nebenfunktion.
+#### Gebaut am 20.09.2026: Variante A
 
-*Nutzen: hoch · Aufwand: A niedrig, B hoch, C mittel*
+Entscheidung des Auftraggebers. Umgesetzt:
+
+- **Blatt von unten unter 768 px** (`ki-pane.css`), `92dvh` hoch, oben abgerundet. Zwischen 768 und 1100 px bleibt die Schublade von rechts: auf dem Tablet ist neben dem Panel noch etwas zu sehen, auf dem Handy nicht. Das Panel bleibt dabei gemountet wie bisher — eine laufende Antwort reißt beim Schließen nicht ab. Deshalb ist es kein `ui/sheet.tsx`, das beim Schließen aushängt, sondern dieselbe Hülle mit anderen Regeln.
+- **Der Agent ruht unter 768 px.** Er lebt davon, dass man ihm zusehen kann; hinter einem Blatt, das die Seite fast vollständig deckt, liefe die Führung unsichtbar ab. Der Schalter in den Einstellungen fehlt dort, die gespeicherte Einstellung bleibt unberührt und gilt am Schreibtisch weiter.
+- **Zwei Knöpfe im Kopf statt vier.** „Mehr“ führt in eine Ansicht mit Prüfung, Einstellungen und Hilfe als 56-px-Zeilen, derselbe Knopf führt zurück.
+- **Die fünf Maße:** 16 px im Eingabefeld gegen den iOS-Zoom, `dvh` plus `interactiveWidget: "resizes-content"` gegen die Tastatur, `env(safe-area-inset-bottom)` am Composer, 44 px für alle Knöpfe in Kopf und Composer (auch für das Mikrofon), volle Breite statt 368 px mit Reststreifen.
+
+**Bewusst nicht gebaut: die Zurück-Geste.** Sie bräuchte einen eigenen Verlaufseintrag beim Öffnen und ein `popstate` beim Schließen. Beides greift in die Verlaufsverwaltung des App-Routers ein, und ohne Durchlauf auf einem Gerät lässt sich nicht prüfen, ob die Navigation dabei Schaden nimmt. Der Befund bleibt offen, statt ungeprüften Verlaufscode zu hinterlassen.
+
+
+*Nutzen: hoch · Aufwand: A niedrig, B mittel, C mittel*
 
 ---
 
@@ -289,7 +307,7 @@ Unter `md` öffnet der KI-Knopf keine Fläche, sondern führt auf `/dashboard/ki
 
 **Vierte Etappe, Feldarbeit (Punkte 1, 9, 11, 12).** Der Tabellen-Umbau ist der größte Brocken und gehört mit Punkt 2 des UX-Audits in dasselbe Vorhaben: eine Tabellen- und Suchschicht, die Sortieren, Blättern und die Kartendarstellung unter `md` gemeinsam trägt. Scan-Ansicht, Sync-Sheet und Karte sind unabhängig davon und können jederzeit vorgezogen werden.
 
-**Fünfte Etappe, KI auf dem Handy (Punkt 16).** Wartet auf die Entscheidung zwischen den drei Varianten. Die fünf Maße daraus — Breite, Schriftgröße im Eingabefeld, Tastatur, Safe-Area, Knopfgrößen — sind in jeder Variante dieselbe Arbeit und können vorgezogen werden.
+**Fünfte Etappe, KI auf dem Handy (Punkt 16).** Wartet auf die Entscheidung zwischen den drei Varianten. Die sechs Befunde daraus — Panelbreite, Schriftgröße im Eingabefeld, Tastatur, Safe-Area, Knopfgrößen, fehlende Zurück-Geste — sind in jeder Variante dieselbe Arbeit und können vorgezogen werden.
 
 Punkt 14 fällt an, sobald eine Etappe einen Haltepunkt unter 640 px braucht, und nicht vorher.
 

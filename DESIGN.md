@@ -193,6 +193,19 @@ Dateien in `src/components/ki/`. Andockbar rechts, `sticky`, Breite wird animier
 
 Zwei Modi: Assistent (antwortet) und Agent (bedient die Oberfläche; `ki-fuehrung.tsx` zeigt im Hauptfenster, was er tut). Werkzeugaufrufe erscheinen als gestaffelt einblendende Chips (`.werkzeug-chip`), der laufende Zustand als schmaler wandernder Balken (`.ki-agent-status__balken`) statt springender Punkte. Maskottchen: die Himbeere (`himbeere.tsx`).
 
+**Drei Erscheinungsformen nach Breite.** Ab 1100 px die angedockte Spalte. Zwischen 768 und 1100 px (Tablet im Hochformat) eine Schublade von rechts – dort ist neben dem Panel noch etwas zu sehen. Unter 768 px ein Blatt von unten, `92dvh` hoch, oben abgerundet, wie Menü und Konto an der unteren Leiste: der auslösende Knopf steht unten, also kommt der Inhalt von dort. Die frühere Schublade war auf dem Handy keine Entscheidung, sondern ein Rechenergebnis – `min(23rem, 100vw)` ergibt bei 390 px Fensterbreite 368 px und ließ 22 px der Seite dahinter stehen.
+
+**Auf dem Handy gilt zusätzlich:**
+
+- **Der Agent ruht.** Er lebt davon, dass man ihm zusehen kann; hinter einem Blatt, das die Seite fast vollständig deckt, liefe die Führung unsichtbar ab. Der Assistent antwortet weiter, der Schalter in den Einstellungen fehlt, und die Einstellung selbst bleibt unberührt – am Schreibtisch gilt sie weiter.
+- **Zwei Knöpfe im Kopf statt vier.** „Mehr" führt in eine eigene Ansicht mit Prüfung, Einstellungen und Hilfe als 56-px-Zeilen; derselbe Knopf führt zurück. Vier Ziele mit 0,15 rem Abstand lagen enger beieinander als eine Fingerkuppe breit ist.
+- **44 px für alle Knöpfe**, im Kopf wie im Composer. Das betrifft vor allem das Mikrofon: von allen Bedienelementen wird es auf dem Handy am ehesten gebraucht und war das kleinste.
+- **16 px im Eingabefeld**, sonst zoomt Safari beim Fokus hinein und bleibt vergrößert.
+- **`dvh` statt `vh` und `interactiveWidget: "resizes-content"`** im Viewport-Export, damit die Tastatur die Seite verkleinert, statt den Composer zu verdecken.
+- **Safe-Area unten**, sonst sitzt der Sendeknopf dort, wo das Betriebssystem seine eigene Wischgeste erwartet.
+
+Noch offen: Zurück schließt das Blatt nicht, weil es keinen Verlaufseintrag anlegt. Auf Android ist das die erwartete Schließgeste.
+
 ## 9. Bewegung
 
 | Muster | Umsetzung |

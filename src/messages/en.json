@@ -1903,7 +1903,8 @@
       },
       "nicht": "Not done: {absicht}"
     },
-    "transparenzHinweisAgent": "These answers come from an AI, not a staff member. Company data comes live from the app and appears as steps under each answer; everything else is general knowledge and is labelled as such."
+    "transparenzHinweisAgent": "These answers come from an AI, not a staff member. Company data comes live from the app and appears as steps under each answer; everything else is general knowledge and is labelled as such.",
+    "mehr": "More"
   },
   "legal": {
     "imprintTitle": "Imprint",

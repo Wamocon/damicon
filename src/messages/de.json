@@ -1903,7 +1903,8 @@
       },
       "nicht": "Nicht ausgeführt: {absicht}"
     },
-    "transparenzHinweisAgent": "Diese Antworten stammen von einer KI, nicht von einem Mitarbeiter. Betriebsdaten kommen live aus der Anwendung und erscheinen als Schritte unter der Antwort, alles andere ist Allgemeinwissen und wird so gekennzeichnet."
+    "transparenzHinweisAgent": "Diese Antworten stammen von einer KI, nicht von einem Mitarbeiter. Betriebsdaten kommen live aus der Anwendung und erscheinen als Schritte unter der Antwort, alles andere ist Allgemeinwissen und wird so gekennzeichnet.",
+    "mehr": "Mehr"
   },
   "legal": {
     "imprintTitle": "Impressum",

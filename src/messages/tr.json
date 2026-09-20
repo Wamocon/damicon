@@ -884,7 +884,8 @@
       },
       "nicht": "Yapılmadı: {absicht}"
     },
-    "transparenzHinweisAgent": "Bu yanıtları bir yapay zekâ verir, bir çalışan değil. İşletme verileri uygulamadan canlı gelir ve yanıtın altında adımlar olarak görünür, geri kalanı genel bilgidir ve öyle etiketlenir."
+    "transparenzHinweisAgent": "Bu yanıtları bir yapay zekâ verir, bir çalışan değil. İşletme verileri uygulamadan canlı gelir ve yanıtın altında adımlar olarak görünür, geri kalanı genel bilgidir ve öyle etiketlenir.",
+    "mehr": "Daha fazla"
   },
   "legal": {
     "imprintTitle": "Künye",
