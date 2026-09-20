@@ -145,11 +145,13 @@ set search_path = public, extensions
 set hnsw.iterative_scan = 'relaxed_order'
 set hnsw.ef_search = '100'
 as $$
-  with f as (
+  -- MATERIALIZED ist wichtig: ohne dieses Wort setzt Postgres die CTE in die lateralen Unterabfragen ein und
+  -- wertet den Frage-Vektor (1024 Zahlen aus JSON) fuer JEDE Zeile der Tabelle neu aus. Gemessen: 4,3 s statt 60 ms.
+  with f as materialized (
     select (t.ord)::int as ord, t.elem
     from jsonb_array_elements(p_fragen) with ordinality as t(elem, ord)
   ),
-  dq as (
+  dq as materialized (
     select f.ord, (f.elem -> 'dense')::text::extensions.vector as q
     from f
     where jsonb_typeof(f.elem -> 'dense') = 'array'
@@ -167,7 +169,7 @@ as $$
       limit p_kandidaten
     ) k
   ),
-  sq as (
+  sq as materialized (
     -- Fragevektor: jedes bekannte Wort mit seinem IDF-Gewicht. Unbekannte Woerter tragen nichts bei.
     select f.ord,
       (select ('{' || string_agg(b.hash::text || ':' || b.idf::text, ',' order by b.hash) || '}/1000000000')::extensions.sparsevec

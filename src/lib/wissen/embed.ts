@@ -24,7 +24,8 @@ export function ollamaEinbettung(opts?: { url?: string; modell?: string; zeitlim
       const antwort = await fetch(`${url}/api/embed`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ model: modell, input: texte, truncate: true }),
+        // keep_alive: Ollama entlaedt das Modell nach fuenf Minuten Ruhe; der naechste Aufruf braucht dann bis zu zehn Sekunden zum Neuladen.
+        body: JSON.stringify({ model: modell, input: texte, truncate: true, keep_alive: process.env.WISSEN_EMBED_KEEP_ALIVE ?? "30m" }),
         signal: AbortSignal.timeout(zeitlimit),
       });
       if (!antwort.ok) throw new Error(`Einbettung fehlgeschlagen (${antwort.status}): ${(await antwort.text()).slice(0, 200)}`);
