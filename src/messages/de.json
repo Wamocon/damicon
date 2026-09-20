@@ -1556,6 +1556,19 @@
     },
     "willkommen": "Da bin ich wieder!",
     "zurueckholen": "Himbi zurückholen",
+    "befinden": {
+      "frage": "Wie läuft dein Tag bisher?",
+      "gut": "Läuft gut",
+      "mittel": "Geht so",
+      "viel": "Viel zu tun",
+      "antwort": {
+        "gut": "Schön. Dann packen wir was weg.",
+        "mittel": "Alles klar. Sag Bescheid, wenn ich dir etwas abnehmen soll.",
+        "viel": "Dann nehme ich dir das Lästige ab. Frag mich einfach."
+      },
+      "hilfe": "Womit anfangen?",
+      "hilfeText": "Was steht heute an? Nenn mir die drei Dinge, um die ich mich zuerst kümmern sollte."
+    },
     "tipp": {
       "frage": "Du bist bei „{bereich}“. Soll ich dir zeigen, was du hier tun kannst?",
       "ja": "Zeig mir das",

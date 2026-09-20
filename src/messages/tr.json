@@ -564,6 +564,19 @@
     },
     "willkommen": "İşte geri döndüm!",
     "zurueckholen": "Himbi’yi geri getir",
+    "befinden": {
+      "frage": "Günün nasıl gidiyor?",
+      "gut": "İyi gidiyor",
+      "mittel": "İdare eder",
+      "viel": "Çok yoğunum",
+      "antwort": {
+        "gut": "Güzel. O zaman işe koyulalım.",
+        "mittel": "Anlaşıldı. Üstlenmemi istediğin bir şey olursa söyle.",
+        "viel": "O zaman angaryayı ben alayım. Sorman yeterli."
+      },
+      "hilfe": "Nereden başlayayım?",
+      "hilfeText": "Bugün ne var? Önce ilgilenmem gereken üç şeyi söyle."
+    },
     "tipp": {
       "frage": "“{bereich}” bölümündesin. Burada neler yapabileceğini göstereyim mi?",
       "ja": "Göster",

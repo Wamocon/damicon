@@ -8,7 +8,7 @@ import { HimbiVersteck } from "@/components/haustier/himbi-versteck";
 import { useHaustierAktionen, useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { usePathname } from "@/i18n/navigation";
-import { haustierZustand, modulAusPfad } from "@/lib/haustier";
+import { haustierZustand, modulAusPfad, type Stimmung } from "@/lib/haustier";
 import { modules } from "@/lib/modules";
 import { hasPermission } from "@/lib/rbac";
 
@@ -18,6 +18,13 @@ import { hasPermission } from "@/lib/rbac";
 // Tipps zum Modul, in dem man gerade ist.
 
 const TIPP_VERZOEGERUNG_MS = 7000;
+// Himbi fragt einmal je Sitzung, wie der Tag laeuft. Spaeter als der Modultipp, damit sie
+// nicht gleich zur Begruessung zwei Dinge auf einmal will.
+const BEFINDEN_VERZOEGERUNG_MS = 25000;
+const BEFINDEN_ANTWORT_MS = 8000;
+// Wie lange die Miene aus der Antwort des Menschen die aus dem Antworttext ueberstimmt.
+const BEFINDEN_MIENE_MS = 45000;
+const BEFINDEN_SCHLUESSEL = "damicon-haustier-befinden";
 const TIPP_DAUER_MS = 15000;
 const FERTIG_BLASE_MS = 9000;
 const WILLKOMMEN_MS = 3200;
@@ -57,6 +64,39 @@ export function HaustierDashboard() {
     const id = window.setTimeout(() => setFertigBlase(false), FERTIG_BLASE_MS);
     return () => window.clearTimeout(id);
   }, [fertigBlase]);
+
+  // Wie laeuft dein Tag? Einmal je Sitzung, und nur wenn gerade wirklich nichts los ist.
+  // Die Antwort faerbt Himbis Miene - sie hoert zu, statt die Frage nur zu stellen.
+  const [befindenFrage, setBefindenFrage] = useState(false);
+  const [befinden, setBefinden] = useState<"gut" | "mittel" | "viel" | null>(null);
+  const [befindenBlase, setBefindenBlase] = useState(false);
+  const [eigeneMiene, setEigeneMiene] = useState<Stimmung | null>(null);
+  useEffect(() => {
+    try {
+      if (window.sessionStorage.getItem(BEFINDEN_SCHLUESSEL)) return;
+    } catch {
+      // ohne Speicher: die Frage kommt einmal je Seitenaufruf, das ist verkraftbar
+    }
+    const zeigen = window.setTimeout(() => {
+      try {
+        window.sessionStorage.setItem(BEFINDEN_SCHLUESSEL, "1");
+      } catch {
+        // egal
+      }
+      setBefindenFrage(true);
+    }, BEFINDEN_VERZOEGERUNG_MS);
+    return () => window.clearTimeout(zeigen);
+  }, []);
+  useEffect(() => {
+    if (!befindenBlase) return;
+    const id = window.setTimeout(() => setBefindenBlase(false), BEFINDEN_ANTWORT_MS);
+    return () => window.clearTimeout(id);
+  }, [befindenBlase]);
+  useEffect(() => {
+    if (!eigeneMiene) return;
+    const id = window.setTimeout(() => setEigeneMiene(null), BEFINDEN_MIENE_MS);
+    return () => window.clearTimeout(id);
+  }, [eigeneMiene]);
 
   // Tipp zum Modul: einmal pro Modul und Sitzung, erst nach einer Weile Ruhe.
   const [gemerkterTipp, setTipp] = useState<{ key: string; titel: string; pfad: string } | null>(null);
@@ -106,7 +146,20 @@ export function HaustierDashboard() {
 
   const zustand = willkommen ? "fertig" : haustierZustand({ phase, fertigUngelesen: fertig, schlaeft: false });
   const label = t(`label.${zustand}`);
-  const tippSichtbar = !!tipp && phase === "ruhe" && !offen && !fertig;
+  const ruhig = phase === "ruhe" && !offen && !fertig;
+  const befindenSichtbar = befindenFrage && ruhig && !tipp;
+  const tippSichtbar = !!tipp && ruhig && !befindenSichtbar;
+
+  // Die Antwort des Menschen gewinnt fuer eine Weile vor der Miene aus dem Antworttext:
+  // wer gerade gesagt hat, dass viel los ist, soll kein zufriedenes Gesicht sehen.
+  const miene: Stimmung = eigeneMiene ?? stimmung;
+
+  function antworteAufBefinden(wahl: "gut" | "mittel" | "viel") {
+    setBefinden(wahl);
+    setBefindenFrage(false);
+    setBefindenBlase(true);
+    setEigeneMiene(wahl === "gut" ? "gut" : wahl === "viel" ? "warnung" : "neutral");
+  }
 
   let blase = null;
   if (!offen) {
@@ -143,6 +196,43 @@ export function HaustierDashboard() {
           </div>
         </>
       );
+    } else if (befindenSichtbar) {
+      blase = (
+        <>
+          <p className="hb-blase__text">{t("befinden.frage")}</p>
+          <div className="hb-blase__knoepfe">
+            <button type="button" className="hb-knopf" onClick={() => antworteAufBefinden("gut")}>
+              {t("befinden.gut")}
+            </button>
+            <button type="button" className="hb-knopf hb-knopf--leise" onClick={() => antworteAufBefinden("mittel")}>
+              {t("befinden.mittel")}
+            </button>
+            <button type="button" className="hb-knopf hb-knopf--leise" onClick={() => antworteAufBefinden("viel")}>
+              {t("befinden.viel")}
+            </button>
+          </div>
+        </>
+      );
+    } else if (befindenBlase && befinden) {
+      blase = (
+        <>
+          <p className="hb-blase__text">{t(`befinden.antwort.${befinden}`)}</p>
+          {befinden === "viel" ? (
+            <div className="hb-blase__knoepfe">
+              <button
+                type="button"
+                className="hb-knopf"
+                onClick={() => {
+                  stelleFrage(t("befinden.hilfeText"));
+                  setBefindenBlase(false);
+                }}
+              >
+                {t("befinden.hilfe")}
+              </button>
+            </div>
+          ) : null}
+        </>
+      );
     } else if (tippSichtbar && tipp) {
       blase = (
         <>
@@ -170,7 +260,7 @@ export function HaustierDashboard() {
   return (
     <HaustierHuelle
       zustand={zustand}
-      stimmung={stimmung}
+      stimmung={miene}
       blase={blase}
       paneOffen={offen}
       label={label}
@@ -178,6 +268,8 @@ export function HaustierDashboard() {
         setFertig(false);
         setFertigBlase(false);
         setTipp(null);
+        setBefindenFrage(false);
+        setBefindenBlase(false);
         umschalten();
       }}
       weg={{ onWeg: schickeWeg, halten: t("weg.halten"), tschuess: t("weg.tschuess"), hinweis: t("weg.hinweis") }}

@@ -1556,6 +1556,19 @@
     },
     "willkommen": "I’m back!",
     "zurueckholen": "Bring Himbi back",
+    "befinden": {
+      "frage": "How is your day going so far?",
+      "gut": "Going well",
+      "mittel": "So-so",
+      "viel": "Swamped",
+      "antwort": {
+        "gut": "Good. Let's get something done.",
+        "mittel": "Fair enough. Tell me if I can take something off your plate.",
+        "viel": "Then let me take the tedious part. Just ask."
+      },
+      "hilfe": "Where do I start?",
+      "hilfeText": "What is on today? Name the three things I should deal with first."
+    },
     "tipp": {
       "frage": "You are in “{bereich}”. Shall I show you what you can do here?",
       "ja": "Show me",
