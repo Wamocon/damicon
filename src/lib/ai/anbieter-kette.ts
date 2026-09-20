@@ -65,7 +65,18 @@ export function sokratesAusUmgebung(vorhandeneUrls: string[] = []): KettenGlied 
   if (!schluessel) return null;
   const basis = (process.env.KI_SOKRATES_URL ?? SOKRATES_BASIS).replace(/\/+$/, "");
   if (vorhandeneUrls.some((u) => u.replace(/\/+$/, "") === basis)) return null;
-  return { name: "sokrates", modell: createOpenAICompatible({ name: "sokrates", apiKey: schluessel, baseURL: basis }).chatModel(modell) };
+  // Qwen "denkt" standardmaessig lange, bevor das erste Wort kommt (gemessen: 4,3 s statt 0,6 s, im Werkzeugkreislauf
+  // mit dem grossen Systemprompt bis zu 90 s je Antwort). Fuer den Assistenten reicht die Antwort ohne Denkphase.
+  const denkphase = process.env.KI_SOKRATES_DENKEN === "an";
+  return {
+    name: "sokrates",
+    modell: createOpenAICompatible({
+      name: "sokrates",
+      apiKey: schluessel,
+      baseURL: basis,
+      transformRequestBody: (koerper) => (denkphase ? koerper : { ...koerper, reasoning_effort: "none" }),
+    }).chatModel(modell),
+  };
 }
 
 export function meldeAnbieterwechsel(e: AusweichEreignis): void {
