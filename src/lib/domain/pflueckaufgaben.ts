@@ -66,7 +66,7 @@ export const pflueckaufgaben: Pflueckaufgabe[] = [
     qualitaetsfaktor: 1.08,
     belege: [
       { id: "MB-01", art: "schale", aufgenommen: "2026-09-02T10:41:00+06:00", hinweis: "Verkaufsschale 125 g, geschlossene Fruchtdecke", bildUrl: schale },
-      { id: "MB-02", art: "reihenblock", aufgenommen: "2026-09-02T09:12:00+06:00", hinweis: "Reihenblock vor Pfluecken, Tau abgetrocknet", bildUrl: feld },
+      { id: "MB-02", art: "reihenblock", aufgenommen: "2026-09-02T09:12:00+06:00", hinweis: "Reihenblock vor Pflücken, Tau abgetrocknet", bildUrl: feld },
     ],
   },
   {
@@ -109,7 +109,7 @@ export const pflueckaufgaben: Pflueckaufgabe[] = [
     istMengeKg: 44.2,
     qualitaetsfaktor: 0.97,
     belege: [
-      { id: "MB-04", art: "schale", aufgenommen: "2026-09-01T10:30:00+06:00", hinweis: "Schale mit leichtem Ueberreifeanteil", bildUrl: schale },
+      { id: "MB-04", art: "schale", aufgenommen: "2026-09-01T10:30:00+06:00", hinweis: "Schale mit leichtem Überreifeanteil", bildUrl: schale },
       { id: "MB-05", art: "steige", aufgenommen: "2026-09-01T10:48:00+06:00", hinweis: "Steige 2 kg, QR-Etikett lesbar", bildUrl: ernte },
     ],
   },

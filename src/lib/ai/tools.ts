@@ -53,7 +53,7 @@ const leeresSchema = z.object({});
 // --- Steuer-Fachberater: MwSt-Registrierung ---------------------------------
 const mwstStatusAbrufen = tool({
   description:
-    "Ruft den aktuellen Stand der MwSt-Registrierung ab: Registrierungsstatus, gesetzlicher Satz, rollierender 12-Monats-Umsatz gegen die gesetzliche Schwelle, und die 5-Werktage-Meldefrist, falls die Schwelle bereits ueberschritten wurde. Nutze dieses Werkzeug fuer jede Frage zu Mehrwertsteuer, Umsatzschwelle oder Steuerregistrierung.",
+    "Ruft den aktuellen Stand der MwSt-Registrierung ab: Registrierungsstatus, gesetzlicher Satz, rollierender 12-Monats-Umsatz gegen die gesetzliche Schwelle, und die 5-Werktage-Meldefrist, falls die Schwelle bereits überschritten wurde. Nutze dieses Werkzeug für jede Frage zu Mehrwertsteuer, Umsatzschwelle oder Steuerregistrierung.",
   inputSchema: leeresSchema,
   execute: async () => {
     const { status } = await ladeMwstStatus();
@@ -76,7 +76,7 @@ const mwstStatusAbrufen = tool({
 // --- Arbeitsrecht-Fachberater: ESUTD -----------------------------------------
 const esutdOffeneFristenAbrufen = tool({
   description:
-    "Ruft alle offenen ESUTD-Meldefristen ab (Arbeitsvertraege, die innerhalb von 5 Werktagen nach Vertragsbeginn im ESUTD-System erfasst werden muessen). Nutze dieses Werkzeug fuer Fragen zu Arbeitsvertraegen, ESUTD oder Meldefristen fuer Pfluecker.",
+    "Ruft alle offenen ESUTD-Meldefristen ab (Arbeitsverträge, die innerhalb von 5 Werktagen nach Vertragsbeginn im ESUTD-System erfasst werden müssen). Nutze dieses Werkzeug für Fragen zu Arbeitsverträgen, ESUTD oder Meldefristen für Pflücker.",
   inputSchema: leeresSchema,
   execute: async () => {
     const fristen = await ladeOffeneEsutdFristen();
@@ -96,7 +96,7 @@ const esutdOffeneFristenAbrufen = tool({
 // --- Pruefungs-Fachberater: Compliance/Datenschutz ---------------------------
 const complianceUebersichtAbrufen = tool({
   description:
-    "Ruft eine Zusammenfassung des Datenschutz- und Compliance-Stands ab: aktive/widerrufene Einwilligungen, ueberfaellige Meldefristen fuer Datenschutzvorfaelle, ueberfaellige Benachrichtigungen zu Drittweitergaben. Nutze dieses Werkzeug fuer Fragen zu Datenschutz, Einwilligungen, Vorfaellen oder Drittweitergaben.",
+    "Ruft eine Zusammenfassung des Datenschutz- und Compliance-Stands ab: aktive/widerrufene Einwilligungen, überfällige Meldefristen für Datenschutzvorfälle, überfällige Benachrichtigungen zu Drittweitergaben. Nutze dieses Werkzeug für Fragen zu Datenschutz, Einwilligungen, Vorfällen oder Drittweitergaben.",
   inputSchema: leeresSchema,
   execute: async () => {
     const cockpit = await ladeCompliance();
@@ -117,7 +117,7 @@ const complianceUebersichtAbrufen = tool({
 // aber dieselbe "live pruefen statt vermuten"-Haltung) ----------------------
 const kuehlketteAbrufen = tool({
   description:
-    "Ruft den aktuellen Kuehlketten-Status ab: Chargen, die gerade auf die Vorkuehlung warten, und die juengsten Messungen mit Ergebnis (ok/warnung/verstoss). Nutze dieses Werkzeug fuer Fragen zur Kuehlkette oder zur 60-Minuten-Regel.",
+    "Ruft den aktuellen Kühlketten-Status ab: Chargen, die gerade auf die Vorkühlung warten, und die jüngsten Messungen mit Ergebnis (ok/warnung/verstoss). Nutze dieses Werkzeug für Fragen zur Kühlkette oder zur 60-Minuten-Regel.",
   inputSchema: leeresSchema,
   execute: async () => {
     const uebersicht = await ladeKuehlkettenUebersicht();
@@ -144,7 +144,7 @@ function baueRadar(rolle: Role | null | undefined) {
   const darfCompliance = hasPermission(rolle, "compliance", "view");
   return tool({
     description:
-      "Ruft ALLE offenen gesetzlichen Fristen zusammen ab (Steuer, Arbeitsrecht, Datenschutz), nach Dringlichkeit sortiert - ueberfaellige zuerst. Nutze dieses Werkzeug, wenn nach dem GESAMTEN Risikostand gefragt wird, nicht nur nach einem einzelnen Bereich.",
+      "Ruft ALLE offenen gesetzlichen Fristen zusammen ab (Steuer, Arbeitsrecht, Datenschutz), nach Dringlichkeit sortiert - überfällige zuerst. Nutze dieses Werkzeug, wenn nach dem GESAMTEN Risikostand gefragt wird, nicht nur nach einem einzelnen Bereich.",
     inputSchema: leeresSchema,
     execute: async () => {
       const [mwstErgebnis, esutdFristen, cockpit] = await Promise.all([
@@ -238,7 +238,7 @@ ${liste}`,
 // zeigt den Schritt nicht an und das Hauptfenster bleibt, wie es ist.
 const ohneAnsicht = tool({
   description:
-    "Nur fuer Nachrichten, die weder Daten noch Status noch einen Bereich der Anwendung betreffen (Dank, Gruss, Nachfrage zur Formulierung deiner letzten Antwort). Bei JEDER Frage zu Zahlen, Fristen, Status, Personen, Bereichen oder Funktionen der Anwendung stattdessen das passende Werkzeug aufrufen - auch wenn du die Antwort weiter oben im Gespraech schon einmal gegeben hast.",
+    "Nur für Nachrichten, die weder Daten noch Status noch einen Bereich der Anwendung betreffen (Dank, Gruß, Nachfrage zur Formulierung deiner letzten Antwort). Bei JEDER Frage zu Zahlen, Fristen, Status, Personen, Bereichen oder Funktionen der Anwendung stattdessen das passende Werkzeug aufrufen - auch wenn du die Antwort weiter oben im Gespräch schon einmal gegeben hast.",
   inputSchema: z.object({}),
   execute: async () => ({ ok: true }),
 });

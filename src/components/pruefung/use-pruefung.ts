@@ -15,6 +15,10 @@ export interface FeldStand {
   quellen: number | null;
   stelle?: string;
   bewertet: boolean;
+  /** Das Team dieses Felds arbeitet (Sammler und Jurist gleichzeitig). */
+  gestartet: boolean;
+  /** Sammler und Jurist haben uebergeben, der Pruefer schreibt den Befund. */
+  denkt: boolean;
 }
 
 export interface AgentStand {
@@ -29,7 +33,7 @@ export interface AgentStand {
 
 export interface LogZeile {
   id: number;
-  art: "fakten" | "recht" | "befund" | "agent" | "synthese";
+  art: "fakten" | "recht" | "uebergabe" | "befund" | "agent" | "synthese";
   bereich?: Pruefbereich;
   feld?: string;
   anzahl?: number;
@@ -82,7 +86,7 @@ function reduziere(s: PruefungStand, a: Aktion): PruefungStand {
           seit: null,
           ende: null,
           reihenfolge: ag.felder.map((f) => f.id),
-          felder: Object.fromEntries(ag.felder.map((f) => [f.id, { titel: f.titel, daten: null, quellen: null, bewertet: false }])),
+          felder: Object.fromEntries(ag.felder.map((f) => [f.id, { titel: f.titel, daten: null, quellen: null, bewertet: false, gestartet: false, denkt: false }])),
         };
       }
       return { ...s, phase: "laeuft", agenten, reihenfolge: e.agenten.map((x) => x.bereich), abgelehnt: e.abgelehnt };
@@ -101,15 +105,21 @@ function reduziere(s: PruefungStand, a: Aktion): PruefungStand {
         const f = x.felder[e.feld];
         if (!f) return x;
         const neu: FeldStand = { ...f };
+        if (e.phase !== "bewertet") neu.gestartet = true;
         if (e.phase === "fakten") neu.daten = e.anzahl ?? 0;
         if (e.phase === "recht") {
           neu.quellen = e.anzahl ?? 0;
           neu.stelle = e.text;
         }
-        if (e.phase === "bewertet") neu.bewertet = true;
+        if (e.phase === "denkt") neu.denkt = true;
+        if (e.phase === "bewertet") {
+          neu.bewertet = true;
+          neu.gestartet = true;
+        }
         return { ...x, felder: { ...x.felder, [e.feld]: neu } };
       });
-      if (e.phase === "bewertet") return n;
+      if (e.phase === "bewertet" || e.phase === "start") return n;
+      if (e.phase === "denkt") return mitLog(n, { art: "uebergabe", bereich: e.bereich, feld: e.feld });
       return mitLog(n, { art: e.phase === "fakten" ? "fakten" : "recht", bereich: e.bereich, feld: e.feld, anzahl: e.anzahl, text: e.text });
     }
     case "befund": {

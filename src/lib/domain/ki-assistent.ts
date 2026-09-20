@@ -120,8 +120,8 @@ export function baueSystemPrompt(wissenKontext: string, antwortSprache = "de"): 
   const name = SPRACHNAMEN[antwortSprache] ?? SPRACHNAMEN.de;
   return [
     "Du bist der Assistent von Damicon, einem Himbeerenbetrieb in Kasachstan.",
-    "Beantworte ausschliesslich Fragen, die sich aus den folgenden freigegebenen Daten und Regeln beantworten lassen. Erfinde keine Preise, Mengen, Termine oder Regeln, die dort nicht stehen.",
-    "Wenn eine Frage sich nicht daraus beantworten laesst - auch wenn du die Antwort aus anderem Wissen zu kennen glaubst - sage das offen und verweise auf das Buero.",
+    "Beantworte ausschließlich Fragen, die sich aus den folgenden freigegebenen Daten und Regeln beantworten lassen. Erfinde keine Preise, Mengen, Termine oder Regeln, die dort nicht stehen.",
+    "Wenn eine Frage sich nicht daraus beantworten laesst - auch wenn du die Antwort aus anderem Wissen zu kennen glaubst - sage das offen und verweise auf das Büro.",
     "Antworte kurz und sachlich.",
     // Zuletzt und auf Englisch, aus demselben Grund wie im Streaming-Pfad:
     // der uebrige Prompt und alle Daten sind deutsch, ein einzelner deutscher
@@ -177,10 +177,10 @@ export function wissensQuellenFuerFaehigkeiten(faehigkeiten: {
 export function baueFeldregelnKontext(): string {
   return [
     "Allgemeine Verfahrensregeln im Feld (keine Kunden-, Preis- oder Personendaten):",
-    "- Zwischen dem Pfluecken einer Steige und der Vorkuehlung duerfen hoechstens 60 Minuten liegen.",
-    "- Nach einer Pflanzenschutzbehandlung ist der betroffene Reihenblock bis zum Ablauf der angegebenen Wartezeit gesperrt, keine Pflueckaufgabe moeglich.",
-    "- Fotobeleg der Verkaufsschale ist bei jeder Pflueckaufgabe Pflicht.",
-    "- Bei Fragen zu Lohn, Personal oder Finanzen: nicht beantworten, an das Buero verweisen.",
+    "- Zwischen dem Pflücken einer Steige und der Vorkühlung dürfen höchstens 60 Minuten liegen.",
+    "- Nach einer Pflanzenschutzbehandlung ist der betroffene Reihenblock bis zum Ablauf der angegebenen Wartezeit gesperrt, keine Pflückaufgabe möglich.",
+    "- Fotobeleg der Verkaufsschale ist bei jeder Pflückaufgabe Pflicht.",
+    "- Bei Fragen zu Lohn, Personal oder Finanzen: nicht beantworten, an das Büro verweisen.",
   ].join("\n");
 }
 
@@ -196,7 +196,7 @@ export function baueGesamtWissenskontext(
     quelle === "preisliste" ? baueWissensKontext(preislisten) : baueFeldregelnKontext(),
   );
   if (teile.length === 0) {
-    return "Fuer diese Rolle liegt keine Wissensgrundlage vor. Beantworte keine fachliche Frage, verweise auf das Buero.";
+    return "Für diese Rolle liegt keine Wissensgrundlage vor. Beantworte keine fachliche Frage, verweise auf das Büro.";
   }
   return teile.join("\n\n");
 }

@@ -107,7 +107,7 @@ async function protokolliere(
     }
   } catch (error) {
     console.error(
-      "[damicon] Einladung: Protokolleintrag nicht moeglich:",
+      "[damicon] Einladung: Protokolleintrag nicht möglich:",
       error instanceof Error ? error.message : String(error),
     );
   }

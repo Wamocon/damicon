@@ -125,11 +125,19 @@ export function KiPane({
   pruefungBereiche?: readonly Pruefbereich[];
 }) {
   const t = useTranslations("kiAssistentAnsicht");
-  const { verfuegbar, offen, setOffen, modus } = useKiPane();
+  const { verfuegbar, offen, setOffen, modus, anstoss } = useKiPane();
   const tp = useTranslations("pruefung");
   const [ansicht, setAnsicht] = useState<Ansicht>("chat");
   // Einmal geoeffnet, bleibt die Pruefung eingebunden (nur ausgeblendet): ein laufender Lauf ueberlebt den Wechsel zum Chat.
   const [pruefungGeladen, setPruefungGeladen] = useState(false);
+
+  // Eine Frage zum Prüfergebnis (Knopf im Bericht) gehört in den Chat: dorthin wechseln, die Prüfung bleibt eingebunden.
+  // Zustand beim Rendern angleichen (statt in einem Effekt): sobald ein neuer Anstoss da ist, zeigt das Panel den Chat.
+  const [gesehenerAnstoss, setGesehenerAnstoss] = useState(anstoss?.nr ?? 0);
+  if (anstoss && anstoss.nr !== gesehenerAnstoss) {
+    setGesehenerAnstoss(anstoss.nr);
+    setAnsicht("chat");
+  }
 
   // Die Pruefung braucht Platz (Spuren mit Schritten, Bericht): das Panel wird fuer diese Ansicht vorruebergehend
   // breiter, ohne die gespeicherte Breite des Nutzers zu ueberschreiben, und geht danach auf den alten Wert zurueck.

@@ -59,7 +59,7 @@ export function sprachausgabeZugangsHeader():
   if (!id || !geheimnis) {
     return {
       ok: false,
-      grund: "zugang-unvollstaendig: KI_TRANSKRIPTION_ACCESS_ID und KI_TRANSKRIPTION_ACCESS_SECRET nur zusammen setzen",
+      grund: "zugang-unvollständig: KI_TRANSKRIPTION_ACCESS_ID und KI_TRANSKRIPTION_ACCESS_SECRET nur zusammen setzen",
     };
   }
   return { ok: true, headers: { "CF-Access-Client-Id": id, "CF-Access-Client-Secret": geheimnis } };
@@ -87,7 +87,7 @@ export async function erzeugeSprachausgabe(text: string, stimme: Stimme): Promis
     });
     if (!antwort.ok) {
       if ([301, 302, 303, 307, 308, 401, 403].includes(antwort.status)) {
-        return { ok: false, grund: `zugang-abgewiesen (http-${antwort.status}) - KI_SOKRATES_API_SCHLUESSEL bzw. KI_TRANSKRIPTION_ACCESS_ID/-SECRET pruefen` };
+        return { ok: false, grund: `zugang-abgewiesen (http-${antwort.status}) - KI_SOKRATES_API_SCHLUESSEL bzw. KI_TRANSKRIPTION_ACCESS_ID/-SECRET prüfen` };
       }
       const auszug = await antwort.text().catch(() => "");
       return { ok: false, grund: `http-${antwort.status}: ${auszug.slice(0, 200)}` };

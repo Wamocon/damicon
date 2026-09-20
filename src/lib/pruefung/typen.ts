@@ -94,10 +94,14 @@ export interface FeldInfo {
 
 export type AgentPhase = "spawn" | "sammelt" | "denkt" | "fertig" | "fehler";
 
+/** Der Weg eines Pruefungsfelds durch seine Mini-Himbis: start (Feld-Agent), fakten (Sammler fertig), recht (Jurist fertig),
+ *  denkt (Uebergabe an den Pruefer), bewertet (Befund liegt vor). */
+export type FeldPhase = "start" | "fakten" | "recht" | "denkt" | "bewertet";
+
 export type Ereignis =
   | { t: "start"; id: string; rolle: Role; agenten: Array<{ bereich: Pruefbereich; felder: FeldInfo[] }>; abgelehnt: Pruefbereich[] }
   | { t: "agent"; bereich: Pruefbereich; phase: AgentPhase; text?: string }
-  | { t: "feld"; bereich: Pruefbereich; feld: string; phase: "fakten" | "recht" | "bewertet"; anzahl?: number; text?: string }
+  | { t: "feld"; bereich: Pruefbereich; feld: string; phase: FeldPhase; anzahl?: number; text?: string }
   | { t: "befund"; befund: Befund }
   | { t: "synthese"; phase: "start" | "fertig" }
   | { t: "bericht"; bericht: Bericht; protokolliert: boolean }

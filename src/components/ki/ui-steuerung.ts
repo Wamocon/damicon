@@ -229,7 +229,7 @@ const LOESCHEN = /(löschen|loeschen|delete|entfernen|remove|stornier|storno|can
  *  zustimmen muss oder er gar nicht erst ausgefuehrt wird. */
 export function klickStufe(el: HTMLElement): Klickstufe {
   const label = labelVon(el);
-  if (ABMELDEN.test(label)) return { stufe: "gesperrt", grund: "Abmelden kann der Agent nicht ausloesen." };
+  if (ABMELDEN.test(label)) return { stufe: "gesperrt", grund: "Abmelden kann der Agent nicht auslösen." };
   if (el instanceof HTMLInputElement && el.type === "password") return { stufe: "gesperrt", grund: "Passwortfelder sind gesperrt." };
   if (el instanceof HTMLAnchorElement) {
     if (/\/login|\/auth/i.test(el.pathname)) return { stufe: "gesperrt", grund: "Anmeldeseiten sind gesperrt." };
@@ -300,7 +300,7 @@ async function klicken(ref: string, absicht: string, umgebung: Umgebung) {
       abgeschickt: false,
       unvollstaendig: true,
       fehlendeFelder: ungueltigeFelder(formular),
-      hinweis: "Das Formular ist nicht vollstaendig oder ein Wert hat das falsche Format. Fuelle die genannten Felder mit fuelleFeld aus und klicke dann erneut.",
+      hinweis: "Das Formular ist nicht vollständig oder ein Wert hat das falsche Format. Fülle die genannten Felder mit fuelleFeld aus und klicke dann erneut.",
     };
   }
 
@@ -311,7 +311,7 @@ async function klicken(ref: string, absicht: string, umgebung: Umgebung) {
   await hinFahren(el, umgebung.zeiger, false);
   if (stufe.stufe === "bestaetigen") {
     const erlaubt = await umgebung.bestaetigen({ absicht, label, grund: kuerzlichGesendet ? "doppelt" : stufe.grund });
-    if (!erlaubt) return { ok: false, abgelehnt: true, hinweis: "Der Nutzer hat diesen Klick abgelehnt. Nichts wurde ausgefuehrt." };
+    if (!erlaubt) return { ok: false, abgelehnt: true, hinweis: "Der Nutzer hat diesen Klick abgelehnt. Nichts wurde ausgeführt." };
   }
   const vorher = `${window.location.pathname}${window.location.hash}`;
   let abgeschickt = false;
@@ -325,7 +325,7 @@ async function klicken(ref: string, absicht: string, umgebung: Umgebung) {
   formular?.removeEventListener("submit", merke, true);
   const nachher = `${window.location.pathname}${window.location.hash}`;
   if (sendetFormular && !abgeschickt) {
-    return { ok: false, abgeschickt: false, hinweis: "Der Klick hat das Formular NICHT abgeschickt. Lies die Seite erneut und pruefe die Felder." };
+    return { ok: false, abgeschickt: false, hinweis: "Der Klick hat das Formular NICHT abgeschickt. Lies die Seite erneut und prüfe die Felder." };
   }
   if (sendetFormular) zuletztGesendet.set(schluessel, Date.now());
   const meldung = rueckmeldung();
@@ -337,7 +337,7 @@ async function klicken(ref: string, absicht: string, umgebung: Umgebung) {
     seiteGewechselt: nachher !== vorher,
     rueckmeldung: meldung,
     hinweis: sendetFormular && !meldung
-      ? "Abgeschickt, aber keine Rueckmeldung sichtbar. Schicke das Formular NICHT noch einmal ab. Lies die Seite oder Liste erneut und belege das Ergebnis, bevor du Erfolg meldest."
+      ? "Abgeschickt, aber keine Rückmeldung sichtbar. Schicke das Formular NICHT noch einmal ab. Lies die Seite oder Liste erneut und belege das Ergebnis, bevor du Erfolg meldest."
       : "Die Referenzen sind jetzt veraltet - rufe seiteLesen erneut auf, bevor du weitermachst.",
   };
 }
@@ -353,7 +353,7 @@ async function ausfuellen(ref: string, wert: string, umgebung: Umgebung) {
   const el = elementFuerRef(ref);
   const label = labelVon(el);
   if (el instanceof HTMLInputElement && (el.type === "password" || el.type === "file" || el.type === "hidden")) {
-    return { ok: false, gesperrt: true, hinweis: "Dieses Feld kann der Agent nicht ausfuellen." };
+    return { ok: false, gesperrt: true, hinweis: "Dieses Feld kann der Agent nicht ausfüllen." };
   }
   if ((el as HTMLInputElement).disabled) return { ok: false, hinweis: `'${label}' ist deaktiviert.` };
 
@@ -417,7 +417,7 @@ export async function fuehreUiWerkzeugAus(name: string, eingabe: unknown, umgebu
   try {
     if (name === "seiteLesen") return await schnappschuss(text("fokus") || undefined);
     if (!umgebung.agentModus) {
-      return { ok: false, hinweis: "Die Seite bedienen kann ich nur im Agent-Modus (Zahnrad im Panel). Lesen ist in beiden Modi moeglich." };
+      return { ok: false, hinweis: "Die Seite bedienen kann ich nur im Agent-Modus (Zahnrad im Panel). Lesen ist in beiden Modi möglich." };
     }
     if (name === "klicke") return await klicken(text("ref"), text("absicht"), umgebung);
     if (name === "fuelleFeld") return await ausfuellen(text("ref"), text("wert"), umgebung);

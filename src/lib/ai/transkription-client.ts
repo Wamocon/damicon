@@ -72,7 +72,7 @@ export function transkriptionZugangsHeader():
   if (!id || !geheimnis) {
     return {
       ok: false,
-      grund: "zugang-unvollstaendig: KI_TRANSKRIPTION_ACCESS_ID und KI_TRANSKRIPTION_ACCESS_SECRET nur zusammen setzen",
+      grund: "zugang-unvollständig: KI_TRANSKRIPTION_ACCESS_ID und KI_TRANSKRIPTION_ACCESS_SECRET nur zusammen setzen",
     };
   }
   return { ok: true, headers: { "CF-Access-Client-Id": id, "CF-Access-Client-Secret": geheimnis } };
@@ -159,7 +159,7 @@ export async function transkribiereAudio(
       if ([301, 302, 303, 307, 308, 401, 403].includes(antwort.status)) {
         return {
           ok: false,
-          grund: `zugang-abgewiesen (http-${antwort.status}) - KI_SOKRATES_API_SCHLUESSEL bzw. KI_TRANSKRIPTION_ACCESS_ID/-SECRET pruefen`,
+          grund: `zugang-abgewiesen (http-${antwort.status}) - KI_SOKRATES_API_SCHLUESSEL bzw. KI_TRANSKRIPTION_ACCESS_ID/-SECRET prüfen`,
         };
       }
       // Caesar antwortet bei einem unbekannten Modell mit einem nackten

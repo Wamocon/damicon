@@ -291,7 +291,7 @@ for (const [name, kaputteAntwort] of [
   const kontext = baueGesamtWissenskontext([], []);
   pruefe(
     "baueGesamtWissenskontext: ohne jede Quelle (z. B. picker) ein expliziter Hinweis statt leerem Text",
-    kontext.length > 0 && kontext.includes("Buero"),
+    kontext.length > 0 && kontext.includes("Büro"),
     kontext,
   );
 }

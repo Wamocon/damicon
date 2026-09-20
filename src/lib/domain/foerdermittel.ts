@@ -40,7 +40,7 @@ export const demoDossiers: FoerderdossierZeile[] = [
     id: "demo-dossier-1",
     portal: "gosagro.kz",
     antragsnummer: "2026-114",
-    titel: "Foerderung Vorkuehlanlage",
+    titel: "Foerderung Vorkühlanlage",
     status: "eingereicht",
     eingereichtAm: "2026-08-30",
     fristAm: "2026-10-15",
@@ -48,7 +48,7 @@ export const demoDossiers: FoerderdossierZeile[] = [
     dokumente: [
       {
         id: "demo-doc-1",
-        name: "Foerderdossier gosagro.kz - Kuehlhaus",
+        name: "Foerderdossier gosagro.kz - Kühlhaus",
         storagePath: null,
         dateiUrl: null,
       },
