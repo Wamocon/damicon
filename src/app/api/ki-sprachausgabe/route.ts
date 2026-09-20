@@ -9,9 +9,16 @@
 // Nutzer im Chat ohnehin sieht, keine fremden.
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { erzeugeSprachausgabe } from "@/lib/ai/sprachausgabe-client";
-import { STIMMEN, erkenneSprache, textFuerSprachausgabe } from "@/lib/domain/sprachausgabe";
+import { STIMMEN, erkenneSprache, sprachausgabePfad, textFuerSprachausgabe } from "@/lib/domain/sprachausgabe";
+
+// Zwischenspeicher: Bucket "ki-sprachausgabe" (Migration 20261101000000),
+// privat und nur ueber service_role erreichbar. Die Berechtigung haengt an der
+// ANTWORT - deshalb wird der Bucket erst angefasst, NACHDEM die Zeile mit der
+// Sitzung des Nutzers gelesen wurde (RLS). Wer die Antwort nicht sehen darf,
+// kommt hier nie an, auch mit geratener ID nicht.
+const BUCKET = "ki-sprachausgabe";
 
 export const maxDuration = 60;
 
@@ -56,16 +63,38 @@ export async function POST(req: Request) {
   const stimme = STIMMEN[sprache];
   if (!stimme) return fehler(422, "keine-stimme", { sprache });
 
+  const dienst = createServiceRoleClient();
+  const pfad = sprachausgabePfad(nachrichtId, stimme);
+
+  // 1. Schon einmal vorgelesen? Dann ohne Caesar ausliefern.
+  const { data: gespeichert } = await dienst.storage.from(BUCKET).download(pfad);
+  if (gespeichert) {
+    return audioAntwort(await gespeichert.arrayBuffer(), gespeichert.type || "audio/mpeg", sprache, "treffer");
+  }
+
+  // 2. Sonst erzeugen lassen ...
   const ergebnis = await erzeugeSprachausgabe(text, stimme);
   if (!ergebnis.ok) {
     console.error("[damicon] Sprachausgabe fehlgeschlagen:", ergebnis.grund);
     return fehler(502, "dienst-nicht-erreichbar");
   }
 
-  return new Response(ergebnis.audio, {
+  // 3. ... und ablegen. Ein Fehler beim Ablegen darf die fertige Antwort nicht
+  // kaputtmachen - dann bleibt es beim naechsten Mal eben wieder langsam.
+  const { error: ablageFehler } = await dienst.storage
+    .from(BUCKET)
+    .upload(pfad, ergebnis.audio, { contentType: ergebnis.typ, upsert: false });
+  if (ablageFehler) console.error("[damicon] Sprachausgabe nicht zwischengespeichert:", ablageFehler.message);
+
+  return audioAntwort(ergebnis.audio, ergebnis.typ, sprache, "neu");
+}
+
+function audioAntwort(audio: ArrayBuffer, typ: string, sprache: string, herkunft: "treffer" | "neu") {
+  return new Response(audio, {
     status: 200,
     headers: {
-      "content-type": ergebnis.typ,
+      "content-type": typ,
+      "x-damicon-zwischenspeicher": herkunft,
       // Dieselbe Antwort klingt immer gleich - der Browser darf sie behalten,
       // aber nur fuer diesen Nutzer (private), nie in einem geteilten Cache.
       "cache-control": "private, max-age=3600",

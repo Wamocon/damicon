@@ -37,6 +37,15 @@ export const STIMMEN: Record<SprachausgabeSprache, Stimme | null> = {
   tr: null,
 };
 
+/** Ablageort des erzeugten Audios im Bucket "ki-sprachausgabe" (Migration
+ *  20261101000000). Die Stimme steckt im Dateinamen: nach einem Stimmwechsel
+ *  entsteht ein neuer Pfad, alte Aufnahmen werden nicht mehr gefunden. Der
+ *  Text kann sich nicht aendern - eine Antwort ist unveraenderlich. */
+export function sprachausgabePfad(nachrichtId: string, stimme: Stimme): string {
+  const kennung = `${stimme.modell}-${stimme.stimme}`.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
+  return `${nachrichtId}/${kennung}.mp3`;
+}
+
 export function istSprachausgabeSprache(wert: string | null | undefined): wert is SprachausgabeSprache {
   return (sprachausgabeSprachen as readonly string[]).includes(wert ?? "");
 }

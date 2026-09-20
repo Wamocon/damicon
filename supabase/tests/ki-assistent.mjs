@@ -37,6 +37,7 @@ import {
 import {
   erkenneSprache,
   MAX_SPRACHAUSGABE_ZEICHEN,
+  sprachausgabePfad,
   STIMMEN,
   textFuerSprachausgabe,
 } from "../../src/lib/domain/sprachausgabe.ts";
@@ -354,6 +355,20 @@ for (const [name, kaputteAntwort] of [
       STIMMEN.en?.modell === "speaches-ai/piper-en_GB-cori-high" &&
       STIMMEN.kk?.modell === "speaches-ai/piper-kk_KZ-issai-high",
   );
+  // Ablagepfad im Zwischenspeicher (Bucket ki-sprachausgabe): je Antwort und
+  // Stimme genau einer, ohne Schraegstriche oder Punkte aus dem Modellnamen.
+  const id = "11111111-2222-4333-8444-555555555555";
+  const pfadDe = sprachausgabePfad(id, STIMMEN.de);
+  pruefe("Zwischenspeicher: Pfad beginnt mit der Nachrichten-ID und endet auf .mp3", pfadDe.startsWith(`${id}/`) && pfadDe.endsWith(".mp3"), pfadDe);
+  pruefe("Zwischenspeicher: derselbe Aufruf ergibt denselben Pfad", pfadDe === sprachausgabePfad(id, STIMMEN.de));
+  pruefe("Zwischenspeicher: andere Stimme -> anderer Pfad (kein altes Audio nach Stimmwechsel)", pfadDe !== sprachausgabePfad(id, STIMMEN.kk));
+  pruefe("Zwischenspeicher: andere Antwort -> anderer Pfad", pfadDe !== sprachausgabePfad("99999999-2222-4333-8444-555555555555", STIMMEN.de));
+  pruefe(
+    "Zwischenspeicher: Dateiname enthaelt nur unverfaengliche Zeichen (kein / oder .. aus dem Modellnamen)",
+    /^[0-9a-f-]{36}\/[a-z0-9-]+\.mp3$/.test(pfadDe),
+    pfadDe,
+  );
+
   pruefe("Sprachausgabe: Russisch ohne Stimme (alle vier Piper-Stimmen lizenzrechtlich ausgeschlossen)", STIMMEN.ru === null);
   pruefe("Sprachausgabe: Tuerkisch ohne Stimme (einzige Piper-Stimme nicht kommerziell)", STIMMEN.tr === null);
   // Von lessac abgeleitet (Blizzard-Forschungslizenz) oder nicht-kommerziell /
