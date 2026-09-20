@@ -24,8 +24,9 @@ Diese Sammlung traegt Quellen zusammen und haelt deren Kern fest. **Sie ist kein
 | `quellen/` | Das Register selbst, eine Datei je Rechercheperspektive |
 | `kernwissen/` | Der inhaltliche Befund je Thema, mit woertlichen Zitaten |
 | `preise-rohbefund.md` | Was welche Quelle kostet |
+| `kaufentscheidung-buecher.md` | **Die verbindliche Kaufliste: drei Titel, 11.280 Tenge.** Wer bestellt, liest nur diese Seite |
 | `buecherliste.md` | Ausfuehrliche Einordnung je Titel |
-| `buecher-kaufliste.md` | Bestellhilfe mit Direktlinks, nach Kaufempfehlung sortiert |
+| `buecher-kaufliste.md` | Arbeitsunterlage: Produktadressen, Preise, digitale Verfuegbarkeit, Begruendungen |
 | `erfassungsplan.md` | Wie aus dem Register ein Korpus wird, mit Arbeitsteilung |
 | `korpus/` | Der geerntete Text selbst, je Abschnitt eine Datei mit Frontmatter |
 | `korpus/rechnungswesen/` | Die Rechnungslegungsakte, die mehrere Buecher der Kaufliste ersetzen: Kontenplan, Belegformulare, NSFO, Buchfuehrungs- und Steuerbuchfuehrungsregeln |

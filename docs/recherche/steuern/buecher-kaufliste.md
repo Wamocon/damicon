@@ -1,8 +1,11 @@
 # Buecher: Kaufliste mit Direktlinks
 
+> **Die verbindliche Kurzfassung steht in `kaufentscheidung-buecher.md`: drei Titel, 11.280 Tenge.**
+> Diese Seite bleibt als Arbeitsunterlage bestehen. Sie enthaelt die Produktadressen, die Preisrecherche, die Pruefung der digitalen Verfuegbarkeit und die Begruendungen im Einzelnen. Die Stufentabellen unten geben den Stand **vor** der Endauswahl wieder und sind deshalb laenger als die Kaufliste, die am Ende herauskam.
+
 Zum Anklicken und Bestellen. Preise in Tenge, gegen die verlinkte Seite geprueft, Stand 2026-09-18.
 
-Ausfuehrliche Einordnung je Titel steht in `buecherliste.md`. Diese Liste ist die Entscheidungs- und Bestellhilfe.
+Ausfuehrliche Einordnung je Titel steht in `buecherliste.md`.
 
 ## Vorab: drei Dinge, die Geld sparen
 
