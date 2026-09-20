@@ -1,5 +1,5 @@
 import { useId } from "react";
-import type { HaustierZustand } from "@/lib/haustier";
+import type { HaustierZustand, Stimmung } from "@/lib/haustier";
 
 // Himbi: die Himbeere als Begleiter. Reines SVG mit Gesicht - Augen mit Pupillen, die
 // ueber die CSS-Variablen --bx/--by ueberall hinsehen koennen, Lidern zum Blinzeln,
@@ -66,10 +66,33 @@ function horn(x: number, y: number, s: number): string {
   return `${seite(-1)}${seite(1)}`;
 }
 
-/** Arme: Pfad des Unterarms, Mitte der Hand, Mitte des Daumens, Bund am Handgelenk. */
+/** Takyia, die bestickte Kappe. Sie sitzt auf dem Scheitel und die Blattkrone waechst
+ *  hindurch: die Blaetter sind das, woran man die Himbeere erkennt, die duerfen nicht weg.
+ *  Darum eine flache Kappe und kein Kalpak. */
+const TAKYIA = "M32.4 41.8C32.4 30 38.6 24.6 48 24.6C57.4 24.6 63.6 30 63.6 41.8Z";
+const TAKYIA_BAND = "M30.6 39.6L65.4 39.6L65.4 43.8C65.4 44.9 64.5 45.6 63.2 45.6L32.8 45.6C31.5 45.6 30.6 44.9 30.6 43.8Z";
+
+/** Arme: Unterarm, Aermel des Chapans (die obere Haelfte derselben Kurve), Saum am
+ *  Aermelende, Mitte der Hand, Mitte des Daumens, Bund am Handgelenk. */
 const ARME = [
-  { seite: "l", arm: "M26 68C13 73 6 84 7.2 95", hx: 7.2, dx: 12.2, bund: "M2.6 89.2Q6.8 91.4 11 88.8" },
-  { seite: "r", arm: "M70 68C83 73 90 84 88.8 95", hx: 88.8, dx: 83.8, bund: "M93.4 89.2Q89.2 91.4 85 88.8" },
+  {
+    seite: "l",
+    arm: "M26 68C13 73 6 84 7.2 95",
+    aermel: "M26 68C19.5 70.5 14.5 74.5 11.3 79.3",
+    saum: "M7.5 76.7L15.1 81.9",
+    hx: 7.2,
+    dx: 12.2,
+    bund: "M2.6 89.2Q6.8 91.4 11 88.8",
+  },
+  {
+    seite: "r",
+    arm: "M70 68C83 73 90 84 88.8 95",
+    aermel: "M70 68C76.5 70.5 81.5 74.5 84.7 79.3",
+    saum: "M88.5 76.7L80.9 81.9",
+    hx: 88.8,
+    dx: 83.8,
+    bund: "M93.4 89.2Q89.2 91.4 85 88.8",
+  },
 ] as const;
 
 /** Beine: Mitte des Schafts. richtung = Blickrichtung der Stiefelspitze. */
@@ -78,12 +101,22 @@ const BEINE = [
   { seite: "r", x: 58, richtung: 1 },
 ] as const;
 
-export function Himbi({ zustand, groesse = 88 }: { zustand: HaustierZustand; groesse?: number }) {
+export function Himbi({
+  zustand,
+  stimmung = "neutral",
+  groesse = 88,
+}: {
+  zustand: HaustierZustand;
+  /** Faerbt nur Brauen, Wangen und eine kurze Reaktion - der Zustand bleibt der Zustand. */
+  stimmung?: Stimmung;
+  groesse?: number;
+}) {
   const id = useId().replace(/:/g, "");
   return (
     <svg
       className="hb-svg"
       data-zustand={zustand}
+      data-stimmung={stimmung}
       width={groesse}
       height={(groesse * 144) / 96}
       viewBox="0 0 96 144"
@@ -157,9 +190,11 @@ export function Himbi({ zustand, groesse = 88 }: { zustand: HaustierZustand; gro
         </g>
 
         {/* Arme mit Haenden - ebenfalls hinter dem Koerper angesetzt */}
-        {ARME.map(({ seite, arm, hx, dx, bund }) => (
+        {ARME.map(({ seite, arm, aermel, saum, hx, dx, bund }) => (
           <g key={seite} className={`hb-arm hb-arm--${seite}`}>
             <path d={arm} fill="none" stroke="#b8154b" strokeWidth="7.4" strokeLinecap="round" />
+            <path d={aermel} fill="none" stroke={`url(#${id}-chapan)`} strokeWidth="8.6" strokeLinecap="round" />
+            <path d={saum} stroke="#f2c14e" strokeWidth="2.2" strokeLinecap="round" />
             <circle cx={dx} cy="92.6" r="2.9" fill={`url(#${id}-koerper)`} />
             <circle cx={hx} cy="97.5" r="6.4" fill={`url(#${id}-koerper)`} stroke="#7d0c33" strokeOpacity="0.3" strokeWidth="0.8" />
             <circle cx={hx - 1.6} cy="95.4" r="1.7" fill="#fff" fillOpacity="0.45" />
@@ -196,9 +231,17 @@ export function Himbi({ zustand, groesse = 88 }: { zustand: HaustierZustand; gro
         </g>
         <ellipse cx="34" cy="50" rx="13" ry="9" fill={`url(#${id}-glanz)`} transform="rotate(-24 34 50)" />
 
-        {/* Wangen */}
-        <circle cx="27" cy="80" r="4.8" fill="#ff9cbd" opacity="0.55" />
-        <circle cx="69" cy="80" r="4.8" fill="#ff9cbd" opacity="0.55" />
+        {/* Takyia: Kappe mit Band, die Blattkrone waechst hindurch */}
+        <g className="hb-kappe">
+          <path d={TAKYIA} fill={`url(#${id}-chapan)`} />
+          <path d={horn(48, 33, 2.6)} fill="none" stroke="#f6cf72" strokeWidth="1.1" strokeLinecap="round" />
+          <path d={TAKYIA_BAND} fill="#0f4d68" />
+          <path d="M30.6 42.6L65.4 42.6" stroke="#f2c14e" strokeWidth="2.4" />
+        </g>
+
+        {/* Wangen - werden bei guter Stimmung kraeftiger */}
+        <circle className="hb-wange" cx="27" cy="80" r="4.8" fill="#ff9cbd" opacity="0.55" />
+        <circle className="hb-wange" cx="69" cy="80" r="4.8" fill="#ff9cbd" opacity="0.55" />
 
         {/* Augenbrauen: Neigung je Zustand ueber CSS */}
         <path className="hb-braue hb-braue--l" d="M29 55Q36 51 43 55" fill="none" stroke="#5a0d27" strokeWidth="2.2" strokeLinecap="round" />

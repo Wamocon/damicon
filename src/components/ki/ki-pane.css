@@ -10,6 +10,12 @@
   --himbeere-hell: #ff5c8a;
   --himbeere-dunkel: #8f0f3a;
   --blatt: #2fbf71;
+  /* Masse der Buehne (Darstellung "buehne"). Stehen hier und nicht nur in der Regel,
+     weil haustier.css dieselbe Mitte treffen muss. */
+  --ki-buehne-breite: min(44rem, 100vw - 2rem);
+  --ki-buehne-hoehe: min(40rem, 100svh - 13rem);
+  /* Der Streifen ueber der Karte, in dem Himbi steht. */
+  --ki-buehne-kopf: 7.5rem;
 }
 /* Mittlere Breiten (Seitenleiste + Panel): schmaleres Panel, damit die
    Hauptflaeche daneben nutzbar bleibt. */
@@ -1547,6 +1553,363 @@ html[data-ki-zieht] body {
   font-size: 0.68rem;
   color: var(--muted-foreground);
 }
+
+/* ---- Buehne: der Assistent in der Mitte (ki-pane.tsx, darstellung "buehne") ----------
+   Dieselbe .ki-pane wie am Rand, nur anders gestellt. Die Huelle verlaesst den
+   Dokumentfluss, die Hauptspalte bekommt ihre Breite zurueck, und die Karte steht
+   mittig - darueber Himbi, die Seite dahinter unscharf. Weil das Panel dabei gemountet
+   bleibt, laeuft eine begonnene Antwort durch den Wechsel hindurch weiter.
+
+   Zu (nicht --offen) heisst hier nicht "Breite 0" wie am Rand, sondern unsichtbar:
+   die Huelle liegt ja ueber der ganzen Seite. visibility statt display, damit das
+   Verschwinden die Blende noch mitnimmt. */
+.ki-pane-huelle--buehne {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: 100svh;
+  padding: env(safe-area-inset-top, 0px) 1rem env(safe-area-inset-bottom, 0px);
+  overflow: visible;
+  transform: none;
+  box-shadow: none;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+}
+.ki-pane-huelle--buehne.ki-pane-huelle--offen {
+  width: auto;
+  visibility: visible;
+  opacity: 1;
+}
+/* Platzhalter fuer Himbi: sie ist fix positioniert und kann selbst keinen Platz belegen. */
+.ki-pane-huelle--buehne::before {
+  content: "";
+  flex: 0 0 auto;
+  height: var(--ki-buehne-kopf);
+}
+/* Figur und Karte sollen ein Stueck sein, nicht zwei Dinge uebereinander. Darum:
+   keine harte Kante oben, ein Schein, der nach oben in die Kugel hinein ausblutet -
+   und die Figur steht ein Stueck tief darin. Farbe und Schrift kommen aus den beiden
+   Bloecken weiter unten, denn die Blende bleibt zwar immer dunkel (die Frequenzkugel
+   braucht das), die Karte selbst aber soll dem Thema der Seite folgen. */
+.ki-pane-huelle--buehne .ki-pane {
+  position: relative;
+  width: var(--ki-buehne-breite);
+  height: var(--ki-buehne-hoehe);
+  max-height: 100%;
+  border: 1px solid var(--ki-buehne-rand, rgb(255 255 255 / 0.1));
+  border-top-color: var(--ki-buehne-rand-oben, rgb(255 255 255 / 0.16));
+  border-radius: 2.25rem;
+  background: var(--ki-buehne-flaeche, rgb(14 10 18 / 0.72));
+  box-shadow: 0 40px 100px -30px rgb(0 0 0 / 0.75), inset 0 1px 0 rgb(255 255 255 / 0.07);
+  overflow: hidden;
+  pointer-events: auto;
+  transform: scale(0.96) translateY(1.25rem);
+}
+/* Der Uebergang nach oben: ein Schein an der Oberkante, der in derselben Farbe glimmt
+   wie die Kugel. Damit endet die Karte nicht, sie geht in die Figur ueber. */
+.ki-pane-huelle--buehne .ki-pane::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 11rem;
+  pointer-events: none;
+  background: radial-gradient(120% 100% at 50% 0%, rgb(150 70 220 / 0.34), rgb(19 112 143 / 0.12) 45%, transparent 72%);
+}
+/* Dunkles Thema: die Karte bleibt die Glas-Tafel, die zur dunklen Blende passt. */
+.dark .ki-pane-huelle--buehne .ki-pane {
+  --ki-buehne-flaeche: rgb(14 10 18 / 0.72);
+  --ki-buehne-rand: rgb(255 255 255 / 0.1);
+  --ki-buehne-rand-oben: rgb(255 255 255 / 0.16);
+}
+.dark .ki-pane-huelle--buehne .ki-pane,
+.dark .ki-pane-huelle--buehne .ki-pane * {
+  --card: rgb(28 22 34 / 0.74);
+  --card-foreground: #f2ecf5;
+  --muted: rgb(255 255 255 / 0.06);
+  --muted-foreground: #b6a9c2;
+  --border: rgb(255 255 255 / 0.12);
+  --foreground: #f2ecf5;
+  --background: transparent;
+}
+/* Helles Thema: dieselbe Karte, aber mit den hellen Farben der Seite - ohne das wuerde
+   heller Text auf hellem Grund verschwinden. Die Blende dahinter bleibt trotzdem dunkel. */
+:root:not(.dark) .ki-pane-huelle--buehne .ki-pane {
+  --ki-buehne-flaeche: rgb(255 255 255 / 0.88);
+  --ki-buehne-rand: rgb(11 30 38 / 0.12);
+  --ki-buehne-rand-oben: rgb(11 30 38 / 0.18);
+}
+:root:not(.dark) .ki-pane-huelle--buehne .ki-pane,
+:root:not(.dark) .ki-pane-huelle--buehne .ki-pane * {
+  --card: rgb(255 255 255 / 0.9);
+  --card-foreground: #0b1e26;
+  --muted: rgb(11 30 38 / 0.06);
+  --muted-foreground: #4b6874;
+  --border: rgb(11 30 38 / 0.12);
+  --foreground: #0b1e26;
+  --background: transparent;
+}
+.ki-pane-huelle--buehne.ki-pane-huelle--offen .ki-pane {
+  transform: none;
+}
+/* Himbi steht mit den Fuessen knapp auf der oberen Kante - der Titel rueckt darunter. */
+/* Die Figur steht ein gutes Stueck in der Karte. Der Kopfbereich rueckt so weit nach
+   unten, dass ihre Stiefel ueber der Schrift bleiben und nicht darauf. */
+.ki-pane-huelle--buehne .ki-pane__kopf {
+  position: relative;
+  padding-top: 2.4rem;
+  border-bottom-color: var(--ki-buehne-rand, rgb(255 255 255 / 0.08));
+  background: transparent;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-pane-huelle--buehne {
+    transition: opacity 0.32s ease, visibility 0s linear 0.32s;
+  }
+  .ki-pane-huelle--buehne.ki-pane-huelle--offen {
+    transition: opacity 0.32s ease, visibility 0s;
+  }
+  .ki-pane-huelle--buehne .ki-pane {
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+/* Die Seite dahinter tritt unscharf zurueck. */
+.ki-pane-hintergrund--buehne {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 66;
+  border: 0;
+  /* Deutlich dunkler als eine uebliche Blende: die Frequenzkugel hinter Himbi
+     (haustier/wellen.tsx) zeichnet additiv, ihre Linien brauchen einen dunklen Grund.
+     Sonst traegt sie im hellen Thema nicht. */
+  background: rgb(6 4 9 / 0.82);
+  backdrop-filter: blur(20px) saturate(0.8);
+  -webkit-backdrop-filter: blur(20px) saturate(0.8);
+  opacity: 0;
+  pointer-events: none;
+}
+.ki-pane-hintergrund--buehne.ki-pane-hintergrund--offen {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-pane-hintergrund--buehne {
+    transition: opacity 0.32s ease;
+  }
+}
+
+/* ---- Schein am Bildrand -------------------------------------------------------------
+   Zweite Haelfte derselben Idee wie Himbis Aura (haustier.css): waehrend der Agent
+   arbeitet oder auf eine Freigabe wartet, glimmt der Rand des Bildes. Man sieht am
+   Augenwinkel, dass etwas laeuft, ohne den Text zu lesen.
+
+   Liegt auf der Huelle, die ohnehin ueber der ganzen Seite liegt und keine Klicks
+   annimmt - so kostet der Schein kein zusaetzliches Element. */
+.ki-pane-huelle--buehne::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 110px -26px var(--ki-rand, rgb(216 27 96 / 0.75));
+  opacity: 0;
+}
+.ki-pane-huelle--buehne.ki-pane-huelle--offen::after {
+  opacity: 0.55;
+}
+.ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen::after {
+  --ki-rand: rgb(216 27 96 / 0.95);
+  opacity: 1;
+}
+.ki-pane-huelle--buehne[data-phase="freigabe"].ki-pane-huelle--offen::after {
+  --ki-rand: rgb(242 193 78 / 0.95);
+  opacity: 1;
+}
+.ki-pane-huelle--buehne[data-phase="fehler"].ki-pane-huelle--offen::after {
+  --ki-rand: rgb(190 40 40 / 0.8);
+  opacity: 0.9;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-pane-huelle--buehne::after {
+    transition: opacity 0.5s ease;
+  }
+  .ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen::after,
+  .ki-pane-huelle--buehne[data-phase="freigabe"].ki-pane-huelle--offen::after {
+    animation: ki-rand-atmen 2.6s ease-in-out infinite;
+  }
+  .ki-pane-huelle--buehne[data-phase="freigabe"].ki-pane-huelle--offen::after {
+    animation-duration: 1.6s;
+  }
+}
+@keyframes ki-rand-atmen {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Leerzustand auf der Buehne: die grosse Himbeere im Panel entfaellt - die echte Himbi
+   steht schon eine Handbreit darueber. Damit ruecken Titel und Vorschlaege direkt unter
+   sie, und die Frage sieht aus, als stelle man sie ihr. */
+.ki-pane-huelle--buehne .ki-leer__zeichen {
+  display: none;
+}
+.ki-pane-huelle--buehne .ki-leer {
+  padding-top: 0.5rem;
+}
+.ki-pane-huelle--buehne .ki-leer__vorschlaege {
+  max-width: 34rem;
+  margin-inline: auto;
+}
+
+/* ---- Aura ueber dem ganzen Bild -----------------------------------------------------
+   Die zweite, grosse Haelfte der Schicht um Himbi (haustier.css, .hb-aura). Ihre eigene
+   Aura ist der Heiligenschein dicht um die Figur, diese hier ist das Licht im Raum: drei
+   sehr weiche Flecken, die langsam durch das Bild ziehen.
+
+   Liegt fest im Fenster und damit hinter der Karte, ohne z-index - sie steht vor dem
+   Karten-Element in der Huelle. Weil sie aus dem Fluss faellt, aendert sie die Aufteilung
+   der Huelle nicht, in der Himbis Platzhalter und die Karte uebereinander stehen. */
+.ki-buehne-aura {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+.ki-pane-huelle--buehne.ki-pane-huelle--offen .ki-buehne-aura {
+  opacity: 0.6;
+}
+.ki-buehne-aura__blob {
+  position: absolute;
+  width: 62vmax;
+  height: 62vmax;
+  border-radius: 50%;
+  filter: blur(90px);
+}
+.ki-buehne-aura__blob--1 {
+  left: -16vmax;
+  top: -18vmax;
+  background: radial-gradient(circle, rgb(216 27 96 / 0.9), rgb(216 27 96 / 0) 68%);
+}
+.ki-buehne-aura__blob--2 {
+  right: -20vmax;
+  top: 6vmax;
+  background: radial-gradient(circle, rgb(19 112 143 / 0.85), rgb(19 112 143 / 0) 66%);
+}
+.ki-buehne-aura__blob--3 {
+  left: 20vmax;
+  bottom: -26vmax;
+  background: radial-gradient(circle, rgb(242 193 78 / 0.6), rgb(242 193 78 / 0) 64%);
+}
+
+/* Auch hier sagt die Phase, wie hell es ist - dieselbe Abstufung wie am Bildrand. */
+.ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen .ki-buehne-aura {
+  opacity: 1;
+}
+.ki-pane-huelle--buehne[data-phase="freigabe"].ki-pane-huelle--offen .ki-buehne-aura {
+  opacity: 0.9;
+}
+.ki-pane-huelle--buehne[data-phase="fehler"].ki-pane-huelle--offen .ki-buehne-aura {
+  opacity: 0.35;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ki-buehne-aura {
+    transition: opacity 0.6s ease;
+  }
+  .ki-pane-huelle--buehne.ki-pane-huelle--offen .ki-buehne-aura__blob--1 {
+    animation: ki-aura-1 26s ease-in-out infinite;
+  }
+  .ki-pane-huelle--buehne.ki-pane-huelle--offen .ki-buehne-aura__blob--2 {
+    animation: ki-aura-2 34s ease-in-out infinite;
+  }
+  .ki-pane-huelle--buehne.ki-pane-huelle--offen .ki-buehne-aura__blob--3 {
+    animation: ki-aura-3 21s ease-in-out infinite;
+  }
+  .ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen .ki-buehne-aura__blob--1 {
+    animation-duration: 9s;
+  }
+  .ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen .ki-buehne-aura__blob--2 {
+    animation-duration: 12s;
+  }
+  .ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen .ki-buehne-aura__blob--3 {
+    animation-duration: 7s;
+  }
+}
+
+@keyframes ki-aura-1 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(12vmax, 8vmax, 0) scale(1.18);
+  }
+}
+@keyframes ki-aura-2 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.1);
+  }
+  50% {
+    transform: translate3d(-14vmax, 12vmax, 0) scale(0.92);
+  }
+}
+@keyframes ki-aura-3 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.95);
+  }
+  50% {
+    transform: translate3d(-10vmax, -14vmax, 0) scale(1.22);
+  }
+}
+
+/* Huelle um den Diktatknopf: haelt die Groesse des Knopfs (die Kugel liegt absolut
+   darin), damit beide Einsatzorte - Seitenpanel und das aeltere Formular - ohne
+   Anpassung funktionieren. */
+.ki-mikrofon__huelle {
+  position: relative;
+  display: inline-flex;
+}
+.ki-mikrofon__huelle > button {
+  position: relative;
+  z-index: 1;
+}
+/* Ringe rings um den Diktatknopf (mikrofon-welle.tsx), die vom Rand nach aussen
+   laufen. Die Leinwand ist groesser als der Knopf selbst, damit die Ringe Platz
+   zum Auslaufen haben, und liegt darunter, damit der Knopf klickbar bleibt. */
+.ki-mikrofon__welle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% + 2.4rem);
+  height: calc(100% + 2.4rem);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Breite Welle unter dem Eingabefeld waehrend des Diktats (diktat-welle.tsx). Erbt die
+   Farbe vom Knopf, damit sie nicht wie ein Fremdkoerper unter der Nachricht steht. */
+.ki-diktat-welle {
+  display: block;
+  width: 100%;
+  height: 1.5rem;
+  margin-top: 0.15rem;
+  color: var(--himbeere);
+  pointer-events: none;
+}
+
 /* Pegelanzeige waehrend der Aufnahme: fuenf Balken, im Bildtakt aus dem
    Frequenzband gesetzt (mikrofon.tsx). Die Hoehe steuert allein
    transform: scaleY - das laeuft auf der Grafikkarte, waehrend eine
