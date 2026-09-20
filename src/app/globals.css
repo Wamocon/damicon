@@ -909,28 +909,49 @@ html.lenis.lenis-smooth {
 }
 
 /* ---- Film-Auftakt (components/site/film-hero.tsx) -------------------------
-   Waehrend der Film laeuft, tritt die Navigation optisch zurueck. Sie bleibt
-   dabei im Dokument, behaelt ihre Groesse und faengt Fokus NICHT ab: wer mit
-   der Tastatur hineingeht, holt sie mit :focus-within sofort zurueck. Kein
-   display:none, kein visibility:hidden, kein pointer-events:none auf dem
-   ganzen Kopf - sonst waere sie fuer Tastatur und Vorlesegeraet weg, und
-   genau das darf nicht passieren. */
-html[data-film="laeuft"] > body header {
-  opacity: 0;
-  transform: translateY(-100%);
+   Die Navigation bleibt immer stehen - sie verschwindet nie, weder optisch
+   noch fuer die Tastatur. Ueber dem Film legt sie nur ihr Glas ab: keine
+   Flaeche, keine Umrandung, weisse Schrift auf einem weichen dunklen
+   Schleier, damit sie ueber jedem Bild lesbar bleibt und zum Film gehoert
+   statt darauf zu liegen. Sobald der Film aus dem Bild scrollt, kommt das
+   gewohnte Glas zurueck. */
+html[data-film="oben"] > body header {
+  border-color: transparent;
+  background: transparent;
+  backdrop-filter: none;
+  box-shadow: none;
 }
-html[data-film="laeuft"] > body header:focus-within {
-  opacity: 1;
-  transform: none;
+/* Damit die Schrift ueber JEDEM Bild lesbar bleibt - ein Film wird hell und
+   dunkel, eine feste Farbe kann das nicht abdecken. Der Schleier liegt
+   HINTER der Leiste und faengt keine Klicks ab. */
+html[data-film="oben"] > body header::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(to bottom, color-mix(in oklab, #000 55%, transparent), transparent);
+  pointer-events: none;
+}
+html[data-film="oben"] > body header * {
+  color: #fff;
+  text-shadow: 0 1px 8px rgb(0 0 0 / 0.45);
+}
+/* Die Umrandungen der Knoepfe in der Leiste treten ueber dem Film zurueck. */
+html[data-film="oben"] > body header nav,
+html[data-film="oben"] > body header button,
+html[data-film="oben"] > body header a[href="/dashboard"] {
+  border-color: color-mix(in oklab, #fff 35%, transparent);
+  background-color: color-mix(in oklab, #000 25%, transparent);
 }
 @media (prefers-reduced-motion: no-preference) {
-  html[data-film="laeuft"] > body header {
-    transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  html > body header,
+  html > body header * {
+    transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease;
   }
 }
-/* Der Film beginnt oben am Rand: solange er laeuft, braucht der Inhalt
-   darunter keinen Platz fuer die Leiste. */
-html[data-film="laeuft"] #main {
+/* Der Film beginnt ganz oben; die Leiste schwebt darueber, statt Platz zu
+   beanspruchen. */
+html[data-film="oben"] #main {
   padding-top: 0;
 }
 

@@ -12,22 +12,32 @@ import { bewegungReduziert, verbindungErlaubtVideo } from "@/lib/bewegung";
 // Navigation und Logo ueber dem STEHENDEN letzten Bild ein - kein Schnitt auf
 // Schwarz.
 //
-// Die Regel, die alles andere ueberwiegt: die Navigation darf nie wirklich
-// unerreichbar sein.
-//   - Ein sichtbarer "Ueberspringen"-Knopf steht von der ersten Sekunde an da.
-//   - Die Navigation ist waehrend des Films nur optisch zurueckgenommen. Wer
-//     mit der Tastatur hineingeht, holt sie sofort zurueck (:focus-within in
-//     globals.css) - sie liegt nie auf display:none und faengt Fokus nicht ab.
-//   - Ohne JavaScript setzt niemand das Attribut, das sie zurueckzieht: dann
-//     steht die Navigation einfach da.
+// Die Navigation bleibt dabei stehen - immer, von der ersten Sekunde an.
+// Ueber dem Film legt sie nur ihr Glas ab (weisse Schrift auf weichem
+// dunklem Schleier, globals.css), damit sie zum Bild gehoert statt darauf zu
+// liegen; sobald der Film aus dem Bild scrollt, kommt das gewohnte Glas
+// zurueck. Sie verschwindet nie - weder optisch noch fuer Tastatur oder
+// Vorlesegeraet. Dazu steht von der ersten Sekunde an ein sichtbarer
+// "Ueberspringen"-Knopf da.
 //
 // Abgespielt wird nur, wo es angebracht ist (filmDarfLaufen): reduzierte
 // Bewegung, Datensparmodus, langsames Netz und schmale Bildschirme bekommen
 // das Standbild mit Abspielknopf und eine sichtbare Navigation. Ein Hero-Video
 // ist auf Mobilfunkdaten teuer, und niemand hat darum gebeten.
 
-const FILM_URL = process.env.NEXT_PUBLIC_FILM_URL ?? "/hero-himbeere.mp4";
-const STANDBILD = "/hero-standbild.webp";
+// Der Damicon-Kurzfilm. Er kam als 5,2-MB-Datei aus SharePoint, mit dem
+// Inhaltsverzeichnis (moov) HINTER den Bilddaten - so kann kein Browser
+// anfangen zu spielen, bevor die ganze Datei da ist. Neu kodiert mit
+// -movflags +faststart und CRF 24: 2,35 MB, dieselbe Laenge, dieselbe
+// Aufloesung (1280x720), Ton erhalten.
+//
+// Die Datei liegt im Repo, weil sie klein genug dafuer ist. Soll sie spaeter
+// aus einem oeffentlichen Speicher kommen (Supabase-Bucket, Vercel Blob),
+// genuegt NEXT_PUBLIC_FILM_URL - ohne Codeaenderung.
+const FILM_URL = process.env.NEXT_PUBLIC_FILM_URL ?? "/damicon-kurzfilm.mp4";
+// Standbild aus dem Film selbst (Sekunde 1,2), nicht aus fremdem Material:
+// so gibt es beim Start keinen Sprung vom Platzhalter ins Bild.
+const STANDBILD = "/damicon-standbild.webp";
 
 /** Ab dieser Breite laeuft der Film von selbst. Darunter: Standbild mit
  *  Abspielknopf - wer ihn sehen will, tippt drauf. */
@@ -39,18 +49,12 @@ export function filmDarfLaufen(): boolean {
   return window.innerWidth >= AB_BREITE_PX;
 }
 
-// Setzt das Attribut vor dem ersten Zeichnen, damit die Navigation nicht
-// kurz aufblitzt und dann verschwindet. Dieselbe Bedingung wie
-// filmDarfLaufen() - bewusst doppelt, weil dieses Skript laeuft, bevor
-// irgendein Modul geladen ist. Faellt es aus, bleibt die Navigation sichtbar:
-// die harmlosere Richtung.
+// Setzt vor dem ersten Zeichnen, dass die Leiste ueber dem Film steht -
+// sonst blitzte das Glas kurz auf und verschwaende wieder. Die Seite oeffnet
+// immer mit dem Film im Bild, deshalb ohne Bedingung. Faellt das Skript aus,
+// sieht die Leiste aus wie ueberall sonst: harmlos.
 const filmInitSkript = `
-try {
-  var reduziert = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var c = navigator.connection;
-  var sparsam = c && (c.saveData || c.effectiveType === 'slow-2g' || c.effectiveType === '2g' || c.effectiveType === '3g');
-  if (!reduziert && !sparsam && innerWidth >= ${AB_BREITE_PX}) document.documentElement.dataset.film = 'laeuft';
-} catch (e) {}
+try { document.documentElement.dataset.film = 'oben'; } catch (e) {}
 `;
 
 const nieAbonnieren = () => () => {};
@@ -81,16 +85,30 @@ export function FilmHero() {
   const laeuft = zustand === "laeuft";
   const vorbei = zustand === "fertig" || zustand === "fehler";
 
-  // Navigation und Logo einblenden, sobald der Film vorbei ist - oder wenn er
-  // gar nicht erst laeuft.
+  // Solange der Film im Bild steht, legt die Navigation ihr Glas ab und
+  // gehoert optisch zum Film (globals.css). Sie verschwindet dabei NIE - sie
+  // wechselt nur ihr Aussehen. Scrollt der Film aus dem Bild, kommt das
+  // gewohnte Glas zurueck.
+  const buehneRef = useRef<HTMLElement>(null);
   useEffect(() => {
     const wurzel = document.documentElement;
-    if (zustand === "laeuft" || zustand === "pause") wurzel.dataset.film = "laeuft";
-    else delete wurzel.dataset.film;
+    const buehne = buehneRef.current;
+    if (!buehne) return;
+    const beobachter = new IntersectionObserver(
+      ([eintrag]) => {
+        // Erst wenn der Film groesstenteils aus dem Bild ist, wechselt die
+        // Leiste zurueck - sonst flackerte sie beim kleinsten Scrollen.
+        if (eintrag.intersectionRatio > 0.55) wurzel.dataset.film = "oben";
+        else delete wurzel.dataset.film;
+      },
+      { threshold: [0, 0.55, 1] },
+    );
+    beobachter.observe(buehne);
     return () => {
+      beobachter.disconnect();
       delete wurzel.dataset.film;
     };
-  }, [zustand]);
+  }, []);
 
   // Startentscheidung, einmal nach der Hydrierung.
   useEffect(() => {
@@ -101,7 +119,7 @@ export function FilmHero() {
     if (!video) return;
     // Erst jetzt den ganzen Film anfordern. Im Markup steht bewusst
     // preload="metadata": wer ihn nie sieht (schmales Geraet, Sparnetz,
-    // reduzierte Bewegung), laedt auch keine 2,4 MB.
+    // reduzierte Bewegung), laedt auch keine 2,35 MB.
     video.preload = "auto";
     void video
       .play()
@@ -141,6 +159,7 @@ export function FilmHero() {
 
   return (
     <section
+      ref={buehneRef}
       className="film-hero relative isolate w-full overflow-hidden bg-background"
       aria-label={t("bereich")}
     >
