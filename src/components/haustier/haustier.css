@@ -215,7 +215,7 @@ html[data-ki-zieht] .haustier__verschiebung {
     animation: hb-schweben 3.8s ease-in-out infinite;
   }
   .hb-svg[data-zustand="spricht"] .hb-figur {
-    animation: hb-schweben 2.6s ease-in-out infinite;
+    animation: hb-tanzen 1.6s ease-in-out infinite;
   }
   .hb-svg[data-zustand="denkt"] .hb-figur {
     animation: hb-arbeiten 1.1s ease-in-out infinite;
@@ -256,6 +256,9 @@ html[data-ki-zieht] .haustier__verschiebung {
   }
   .haustier__schatten-anim {
     animation: hb-schatten 3.8s ease-in-out infinite;
+  }
+  .haustier[data-zustand="spricht"] .haustier__schatten-anim {
+    animation: hb-schatten 0.8s ease-in-out infinite;
   }
   .haustier[data-zustand="denkt"] .haustier__schatten-anim {
     animation: hb-schatten 1.1s ease-in-out infinite;
@@ -1033,13 +1036,21 @@ html[data-ki-zieht] .haustier__verschiebung {
   }
 
   /* Ruhiges Pendeln. "denkt" geht schneller, "schlaeft" kaum merklich. */
-  .hb-svg[data-zustand="ruhe"] .hb-arm--l,
-  .hb-svg[data-zustand="spricht"] .hb-arm--l {
+  .hb-svg[data-zustand="ruhe"] .hb-arm--l {
     animation: hb-arm-l 3.8s ease-in-out infinite;
   }
-  .hb-svg[data-zustand="ruhe"] .hb-arm--r,
-  .hb-svg[data-zustand="spricht"] .hb-arm--r {
+  .hb-svg[data-zustand="ruhe"] .hb-arm--r {
     animation: hb-arm-r 3.8s ease-in-out infinite;
+  }
+
+  /* Sprechen: Himbi redet mit den Haenden. Die beiden Arme laufen absichtlich in
+     unterschiedlichem Takt (1,3 s gegen 1,05 s) und haben je vier statt zwei
+     Wegpunkte - gleichlaufende Arme sehen aus wie ein Scheibenwischer. */
+  .hb-svg[data-zustand="spricht"] .hb-arm--l {
+    animation: hb-gestik-l 1.3s ease-in-out infinite;
+  }
+  .hb-svg[data-zustand="spricht"] .hb-arm--r {
+    animation: hb-gestik-r 1.05s ease-in-out infinite;
   }
   .hb-svg[data-zustand="denkt"] .hb-arm--l {
     animation: hb-arm-l 1.6s ease-in-out infinite;
@@ -1063,12 +1074,10 @@ html[data-ki-zieht] .haustier__verschiebung {
   }
 
   .hb-svg[data-zustand="ruhe"] .hb-bein--l,
-  .hb-svg[data-zustand="spricht"] .hb-bein--l,
   .hb-svg[data-zustand="schlaeft"] .hb-bein--l {
     animation: hb-bein-l 3.8s ease-in-out infinite;
   }
   .hb-svg[data-zustand="ruhe"] .hb-bein--r,
-  .hb-svg[data-zustand="spricht"] .hb-bein--r,
   .hb-svg[data-zustand="schlaeft"] .hb-bein--r {
     animation: hb-bein-r 3.8s ease-in-out infinite;
   }
@@ -1078,12 +1087,106 @@ html[data-ki-zieht] .haustier__verschiebung {
   .hb-svg[data-zustand="denkt"] .hb-bein--r {
     animation: hb-bein-r 1.1s ease-in-out infinite;
   }
+  /* Beim Sprechen tritt Himbi im Takt von einem Fuss auf den anderen. */
+  .hb-svg[data-zustand="spricht"] .hb-bein--l {
+    animation: hb-tanz-bein-l 0.8s ease-in-out infinite;
+  }
+  .hb-svg[data-zustand="spricht"] .hb-bein--r {
+    animation: hb-tanz-bein-r 0.8s ease-in-out infinite;
+  }
   .hb-chapan {
     animation: hb-rock 3.8s ease-in-out infinite;
   }
   .hb-svg[data-zustand="denkt"] .hb-chapan,
   .hb-svg[data-zustand="freigabe"] .hb-chapan {
     animation: hb-rock 1.4s ease-in-out infinite;
+  }
+  /* Der Rock schwingt im selben Takt wie die Fuesse, nur weiter. */
+  .hb-svg[data-zustand="spricht"] .hb-chapan {
+    animation: hb-rock-tanz 0.8s ease-in-out infinite;
+  }
+}
+
+@keyframes hb-gestik-l {
+  0% {
+    transform: rotate(-10deg);
+  }
+  30% {
+    transform: rotate(13deg);
+  }
+  55% {
+    transform: rotate(1deg);
+  }
+  80% {
+    transform: rotate(15deg);
+  }
+  100% {
+    transform: rotate(-10deg);
+  }
+}
+@keyframes hb-gestik-r {
+  0% {
+    transform: rotate(8deg);
+  }
+  35% {
+    transform: rotate(-15deg);
+  }
+  60% {
+    transform: rotate(-3deg);
+  }
+  85% {
+    transform: rotate(-12deg);
+  }
+  100% {
+    transform: rotate(8deg);
+  }
+}
+@keyframes hb-tanz-bein-l {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+  50% {
+    transform: rotate(6deg);
+  }
+}
+@keyframes hb-tanz-bein-r {
+  0%,
+  100% {
+    transform: rotate(6deg);
+  }
+  50% {
+    transform: rotate(-5deg);
+  }
+}
+@keyframes hb-rock-tanz {
+  0%,
+  100% {
+    transform: rotate(-4deg);
+  }
+  50% {
+    transform: rotate(4deg);
+  }
+}
+
+/* Tanz beim Sprechen: Gewichtsverlagerung von einem Fuss auf den anderen, mit einem
+   kleinen Huepfer dazwischen. Der Drehpunkt der Figur liegt an den Fuessen, darum
+   schwingt der Kopf und nicht der Boden. */
+@keyframes hb-tanzen {
+  0% {
+    transform: translateY(0) rotate(-2.6deg) scale(1.02, 0.98);
+  }
+  25% {
+    transform: translateY(-6px) rotate(1deg) scale(0.98, 1.03);
+  }
+  50% {
+    transform: translateY(0) rotate(2.6deg) scale(1.02, 0.98);
+  }
+  75% {
+    transform: translateY(-6px) rotate(-1deg) scale(0.98, 1.03);
+  }
+  100% {
+    transform: translateY(0) rotate(-2.6deg) scale(1.02, 0.98);
   }
 }
 
