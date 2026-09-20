@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { ExternalLink, FileText, TriangleAlert } from "lucide-react";
+import { ChevronRight, ExternalLink, FileText, TriangleAlert } from "lucide-react";
 import { stufeSchluessel } from "@/lib/wissen/belege";
 import type { Beleg } from "@/lib/wissen/suche";
 import { cn } from "@/lib/utils";
@@ -71,6 +71,8 @@ export function ZitatMarke({ kennung }: { kennung: string }) {
       onClick={() => {
         const karte = document.getElementById(kartenId(nachrichtId, kennung));
         if (!karte) return;
+        const liste = karte.closest("details");
+        if (liste && !liste.open) liste.open = true;
         karte.scrollIntoView({ block: "nearest", behavior: "smooth" });
         karte.classList.remove("ki-quelle--blinkt");
         void karte.offsetWidth;
@@ -150,23 +152,30 @@ export function QuellenListe({ nachrichtId, belege, zitiert }: { nachrichtId: st
   // Auf Gesetzestext gestuetzt = mindestens eine zitierte Quelle der Stufen 1 bis 3.
   const gestuetzt = anzuzeigen.some((b) => b.stufe !== null && b.stufe <= 3);
   return (
-    <section className="ki-quellen" aria-label={t("quellen.titel")}>
-      <h4 className="ki-quellen__titel">{t("quellen.titel")}</h4>
-      <div className={cn("ki-quellen__lage", gestuetzt ? "ki-quellen__lage--gestuetzt" : "ki-quellen__lage--fach")}>
-        <span className="ki-quellen__urteil">{gestuetzt ? t("quellen.gestuetzt") : t("quellen.nurFach")}</span>
-        <span className="ki-quellen__zaehlung">
-          {[...zaehlung].map(([k, n]) => (
-            <span key={k} className={cn("ki-quellen__punkt", `ki-quellen__punkt--${k}`)}>
-              {n} {t(`quellen.stufe.${k}`)}
-            </span>
-          ))}
+    // Eingeklappt: die Karten sind gross (Originaltext), die Beleglage in einer Zeile genuegt auf den ersten Blick.
+    // Wer nachpruefen will, klappt auf, oder klickt eine Zitatmarke im Text (sie oeffnet und springt zur Karte).
+    <details className="ki-quellen">
+      <summary className="ki-quellen__kopf">
+        <ChevronRight className="ki-quellen__pfeil h-3.5 w-3.5" aria-hidden />
+        <span className="ki-quellen__titel">
+          {t("quellen.titel")} ({anzuzeigen.length})
         </span>
-      </div>
+        <span className={cn("ki-quellen__lage", gestuetzt ? "ki-quellen__lage--gestuetzt" : "ki-quellen__lage--fach")}>
+          <span className="ki-quellen__urteil">{gestuetzt ? t("quellen.gestuetzt") : t("quellen.nurFach")}</span>
+          <span className="ki-quellen__zaehlung">
+            {[...zaehlung].map(([k, n]) => (
+              <span key={k} className={cn("ki-quellen__punkt", `ki-quellen__punkt--${k}`)}>
+                {n} {t(`quellen.stufe.${k}`)}
+              </span>
+            ))}
+          </span>
+        </span>
+      </summary>
       <ol className="ki-quellen__liste">
         {anzuzeigen.map((b) => (
           <Quellenkarte key={b.id} nachrichtId={nachrichtId} beleg={b} />
         ))}
       </ol>
-    </section>
+    </details>
   );
 }
