@@ -1,6 +1,6 @@
 "use server";
 
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/lib/supabase/server";
 import { ladeAktivenStandardAnbieter } from "@/lib/ai/lade-anbieter";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
@@ -18,6 +18,7 @@ import { hasPermission } from "@/lib/rbac";
 import { sendeChatAnfrage } from "@/lib/ai/anbieter-client";
 import { sendeAgentAnfrage } from "@/lib/ai/agent";
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
+import { antwortSprache } from "@/lib/domain/sprachausgabe";
 import { transkribiereAudio, transkriptionsMeldung, waermeTranskriptionVor } from "@/lib/ai/transkription-client";
 import type { ChatNachricht } from "@/lib/ai/anfrage";
 import type { Json } from "@/lib/database.types";
@@ -112,7 +113,12 @@ export async function kiNachrichtSenden(
     return fehler("fehler.einwilligung");
   }
 
-  const t = await getTranslations("kiAssistentAnsicht.fallback");
+  // Sprache dieses Zuges: die der Frage, nicht die der Oberflaeche. Sie
+  // bestimmt beides - die Antwort des Modells UND die Ausweichtexte, die
+  // diese Aktion selbst schreibt. Sonst beantwortet ein deutscher Satz
+  // ("Der Assistent ist gerade nicht erreichbar") eine russische Frage.
+  const antwortIn = antwortSprache([{ rolle: "nutzer", inhalt: nachricht }], await getLocale());
+  const t = await getTranslations({ locale: antwortIn, namespace: "kiAssistentAnsicht.fallback" });
   const supabase = await createClient();
 
   const { error: nutzerFehler } = await supabase
@@ -150,7 +156,7 @@ export async function kiNachrichtSenden(
           hasPermission(profil.role, "kuehlkette", "view"),
       });
       const preislisten = quellen.includes("preisliste") ? await ladeWissensPreislisten() : [];
-      const systemPrompt = baueSystemPrompt(baueGesamtWissenskontext(quellen, preislisten));
+      const systemPrompt = baueSystemPrompt(baueGesamtWissenskontext(quellen, preislisten), antwortIn);
       const verlaufFuerModell = baueVerlaufFuerModell(systemPrompt, bisherigerVerlauf.nachrichten, nachricht);
 
       const apiKey = entschluessleApiKey(anbieter.api_key_chiffrat);

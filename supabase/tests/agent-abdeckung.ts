@@ -4,7 +4,7 @@
 //   * jedes Modul aus modules.ts ist fuer den Agenten beschrieben (Titel +
 //     Kurzbeschreibung in allen Sprachen) - ein neues Modul ohne Text faellt hier auf
 //   * jedes Werkzeug, das IRGENDEINE Rolle bekommen kann, hat Beschriftungen in
-//     allen fuenf Sprachen (sonst zeigt der Chat einen Platzhalter)
+//     allen vier Sprachen (sonst zeigt der Chat einen Platzhalter)
 //   * die Rollenzuschnitte stimmen: ein Kunde bekommt keine Lohn- oder
 //     Steuerwerkzeuge, ein Admin bekommt alles
 //   * alle Sprachdateien haben denselben Schluesselsatz
@@ -31,7 +31,7 @@ import { agentPhase, haustierZustand, leseSichtbarkeit, modulAusPfad, TOUR_SCHRI
 import { modules } from "@/lib/modules";
 import { hasPermission, roles } from "@/lib/rbac";
 
-const sprachen = ["de", "en", "ru", "kk", "tr"] as const;
+const sprachen = ["de", "en", "ru", "kk"] as const;
 type Baum = { [k: string]: string | Baum };
 const texte = Object.fromEntries(
   sprachen.map((s) => [s, JSON.parse(readFileSync(`src/messages/${s}.json`, "utf8")) as Baum]),
@@ -359,7 +359,6 @@ const rechtsfragen = [
   "What is the VAT registration threshold in Kazakhstan?",
   "Какой порог постановки на учет по НДС?",
   "ЭСФ кімге міндетті?",
-  "Kazakistan'da KDV kaydı için eşik nedir?",
 ];
 const keineRechtsfragen = [
   "Zeig mir die Rechte der Rolle Admin",
@@ -370,7 +369,7 @@ const keineRechtsfragen = [
   "Wie viele Schalen wurden gestern geerntet?",
   "Hallo Himbi",
 ];
-pruefe("Rechtsfragen in fuenf Sprachen werden erkannt", rechtsfragen.every((f) => istRechtsfrage(f)), rechtsfragen.filter((f) => !istRechtsfrage(f)).join(" | "));
+pruefe("Rechtsfragen in allen vier Sprachen werden erkannt", rechtsfragen.every((f) => istRechtsfrage(f)), rechtsfragen.filter((f) => !istRechtsfrage(f)).join(" | "));
 pruefe("Bedienung und Betriebsfragen loesen KEINE erzwungene Suche aus", keineRechtsfragen.every((f) => !istRechtsfrage(f)), keineRechtsfragen.filter((f) => istRechtsfrage(f)).join(" | "));
 const eingabe = (o: Partial<Parameters<typeof waehleSchritt>[0]> = {}) => ({ stepNumber: 0, modus: "assistent" as const, neueNutzerFrage: true, frage: rechtsfragen[0]!, wissenAngeboten: true, ...o });
 const erzwungen = '{"toolChoice":{"type":"tool","toolName":"wissenSuchen"}}';

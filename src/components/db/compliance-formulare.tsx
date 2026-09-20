@@ -28,7 +28,7 @@ import type { AuswahlOption } from "@/components/db/standort-formulare";
 // Drittweitergabe als benachrichtigt markieren.
 
 const kanaele = ["papier", "app", "web", "sms"] as const;
-const sprachen = ["de", "en", "ru", "kk", "tr"] as const;
+const sprachen = ["de", "en", "ru", "kk"] as const;
 const vorfallArten = ["unbefugter_zugriff", "verlust", "offenlegung", "sonstiges"] as const;
 
 export function EinwilligungErfassenFormular({
