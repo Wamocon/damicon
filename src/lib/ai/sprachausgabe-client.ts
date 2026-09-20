@@ -1,11 +1,21 @@
-// Sprachausgabe (Text-to-Speech) ueber Caesar: speaches mit Piper-Stimmen,
-// OpenAI-kompatibler /v1/audio/speech-Endpunkt (Container damicon-tts,
-// Host-Port 8789). Gegenstueck zu transkription-client.ts (Spracheingabe) auf
-// derselben Maschine - bewusst ebenfalls selbst gehostet statt Cloud.
+// Sprachausgabe (Text-to-Speech) ueber die Sokrates-API, OpenAI-kompatibler
+// /audio/speech-Endpunkt. Gegenstueck zu transkription-client.ts
+// (Spracheingabe) auf demselben Dienst und mit demselben Token.
+//
+// Vorher lief das ueber Caesar im Buero-LAN (speaches mit Piper-Stimmen).
+// Daran scheiterte es in Produktion: eine Vercel-Funktion erreicht keine
+// LAN-Adresse, und ein Cloudflare-Tunnel davor kam nicht zustande (kein
+// Dashboard-Zugang). Sokrates ist bereits abgesichert und oeffentlich
+// erreichbar - die URL laesst sich weiterhin ueber KI_SPRACHAUSGABE_URL auf
+// Caesar zurueckbiegen, wer im LAN sitzt.
 //
 // Wie transkribiereAudio() wirft diese Funktion NIE: jeder Fehlerpfad endet
 // in { ok: false }.
 import type { Stimme } from "@/lib/domain/sprachausgabe";
+
+/** Basis der Sokrates-API. Nur der Pfad dahinter unterscheidet die beiden
+ *  Richtungen: /audio/speech und /audio/transcriptions. */
+export const SOKRATES_BASIS = "https://sokrates.test-qualitaetsmanagement.com/api/v1";
 
 export type SprachausgabeAntwort = { ok: true; audio: ArrayBuffer; typ: string } | { ok: false; grund: string };
 
@@ -20,17 +30,29 @@ export function sprachausgabeZeitlimitMs(): number {
 }
 
 export function sprachausgabeUrl(): string {
-  return process.env.KI_SPRACHAUSGABE_URL ?? "http://192.168.178.64:8789/v1/audio/speech";
+  return process.env.KI_SPRACHAUSGABE_URL ?? `${SOKRATES_BASIS}/audio/speech`;
 }
 
-// Cloudflare Access: Ein- und Ausgabe sind EIN Sprachdienst auf Caesar, hinter
-// demselben Tunnel und demselben Service Token - deshalb dieselben Variablen
-// wie die Transkription (KI_TRANSKRIPTION_ACCESS_*), kein zweites Paar.
-// Regel wie dort: beide gesetzt -> Header; keiner -> ohne (lokal im
-// Buero-LAN); nur einer -> Fehler, keine Anfrage.
+// Zugang zum Sprachdienst, zwei Wege - Reihenfolge ist Absicht:
+//
+//   1. Sokrates (Regelfall seit 20.09.2026): ein Bearer-Token in
+//      KI_SOKRATES_API_SCHLUESSEL. Der Dienst ist oeffentlich erreichbar und
+//      selbst abgesichert; mehr als dieser Kopf ist nicht noetig.
+//   2. Cloudflare Access (Caesar im Buero-LAN): das Service-Token-Paar
+//      KI_TRANSKRIPTION_ACCESS_*. Bleibt im Code, weil Caesar als eigene,
+//      selbst gehostete Maschine weiter bereitsteht - wird ein Tunnel davor
+//      doch noch fertig, genuegen die beiden Variablen. Ein gesetzter
+//      Bearer-Schluessel hat Vorrang, damit nie beides zugleich mitgeht.
+//   3. Keins von beidem: ohne Kopfzeilen (Caesar direkt im LAN).
+//
+// Beim Access-Paar gilt weiter: nur einer von beiden Werten -> Fehler, es
+// wird gar keine Anfrage gesendet.
 export function sprachausgabeZugangsHeader():
   | { ok: true; headers: Record<string, string> }
   | { ok: false; grund: string } {
+  const schluessel = process.env.KI_SOKRATES_API_SCHLUESSEL?.trim();
+  if (schluessel) return { ok: true, headers: { Authorization: `Bearer ${schluessel}` } };
+
   const id = process.env.KI_TRANSKRIPTION_ACCESS_ID?.trim();
   const geheimnis = process.env.KI_TRANSKRIPTION_ACCESS_SECRET?.trim();
   if (!id && !geheimnis) return { ok: true, headers: {} };
@@ -43,8 +65,10 @@ export function sprachausgabeZugangsHeader():
   return { ok: true, headers: { "CF-Access-Client-Id": id, "CF-Access-Client-Secret": geheimnis } };
 }
 
+/** Der Dienst kennt nur diese zwei Felder; ein Modellfeld gibt es nicht, die
+ *  Stimme allein bestimmt Sprache und Klang. Die Antwort ist immer MP3. */
 export function baueSprachausgabeAnfrage(text: string, stimme: Stimme) {
-  return JSON.stringify({ model: stimme.modell, voice: stimme.stimme, input: text, response_format: "mp3" });
+  return JSON.stringify({ input: text, voice: stimme.stimme });
 }
 
 export async function erzeugeSprachausgabe(text: string, stimme: Stimme): Promise<SprachausgabeAntwort> {
@@ -63,7 +87,7 @@ export async function erzeugeSprachausgabe(text: string, stimme: Stimme): Promis
     });
     if (!antwort.ok) {
       if ([301, 302, 303, 307, 308, 401, 403].includes(antwort.status)) {
-        return { ok: false, grund: `zugang-abgewiesen (http-${antwort.status}) - Cloudflare Access? KI_TRANSKRIPTION_ACCESS_ID/-SECRET pruefen` };
+        return { ok: false, grund: `zugang-abgewiesen (http-${antwort.status}) - KI_SOKRATES_API_SCHLUESSEL bzw. KI_TRANSKRIPTION_ACCESS_ID/-SECRET pruefen` };
       }
       const auszug = await antwort.text().catch(() => "");
       return { ok: false, grund: `http-${antwort.status}: ${auszug.slice(0, 200)}` };

@@ -1717,7 +1717,7 @@
     "diktat": {
       "starten": "Dictate",
       "stoppen": "Stop recording",
-      "laeuft": "Transcribing …",
+      "laeuft": "Transcribing … (takes a few seconds)",
       "leer": "Nothing recorded.",
       "fehlgeschlagen": "Speech recognition unavailable.",
       "keinZugriff": "No microphone access."
@@ -1882,11 +1882,7 @@
     "privacyScopeTitle": "Scope",
     "privacyScopeText": "The prototype processes no personal data. No analytics cookies are set. The theme choice (light/dark) and the demo role are stored only locally in the browser.",
     "residencyTitle": "Data residency (planned operation)",
-    "residencyText": "For later live operation, Kazakh Digital Code No. 255-VIII restricts storage of certain data products outside Kazakhstan. The hosting location for the QR, offline-sync and AI architecture will be reviewed legally before going live.",
-    "voiceCreditsTitle": "Speech output: voices used",
-    "voiceCreditsIntro": "The AI assistant can read answers aloud. The voices are Piper speech models (rhasspy/piper-voices) trained on the following datasets; the datasets were prepared and modified for this.",
-    "voiceKazakh": "Kazakh voice",
-    "voiceGerman": "German voice"
+    "residencyText": "For later live operation, Kazakh Digital Code No. 255-VIII restricts storage of certain data products outside Kazakhstan. The hosting location for the QR, offline-sync and AI architecture will be reviewed legally before going live."
   },
   "kpiHerkunft": {
     "berechenbar": "measurable today",

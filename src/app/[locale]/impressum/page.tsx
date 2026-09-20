@@ -32,27 +32,15 @@ export default async function ImpressumPage({
         <br />
         {t("vatId")}: DE344930486
       </p>
-      {/* Namensnennung der Sprachausgabe-Stimmen (CC BY 4.0). Die Zitate bleiben
-          bewusst unuebersetzt - Titel, Autoren und Quellen wie von den
-          Datensaetzen angegeben. Nur Stimmen, die tatsaechlich im Einsatz sind
-          (src/lib/domain/sprachausgabe.ts, STIMMEN); die englische Stimme (cori)
-          ist gemeinfrei und braucht keine Namensnennung. */}
-      <h2>{t("voiceCreditsTitle")}</h2>
-      <p>{t("voiceCreditsIntro")}</p>
-      <p>
-        <strong>{t("voiceKazakh")}:</strong> Saida Mussakhojayeva, Aigerim Janaliyeva, Almas Mirzakhmetov, Yerbolat
-        Khassanov, Huseyin Atakan Varol: &ldquo;KazakhTTS: An Open-Source Kazakh Text-to-Speech Synthesis
-        Dataset&rdquo;, Proc. Interspeech 2021, pp. 2786&ndash;2790, doi:10.21437/Interspeech.2021-2124. Institute of
-        Smart Systems and Artificial Intelligence (ISSAI), Nazarbayev University.{" "}
-        <a href="https://github.com/IS2AI/Kazakh_TTS">github.com/IS2AI/Kazakh_TTS</a>,{" "}
-        <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
-      </p>
-      <p>
-        <strong>{t("voiceGerman")}:</strong> Vineel Pratap, Qiantong Xu, Anuroop Sriram, Gabriel Synnaeve, Ronan
-        Collobert: &ldquo;MLS: A Large-Scale Multilingual Dataset for Speech Research&rdquo;, arXiv:2012.03411 (2020).{" "}
-        <a href="https://www.openslr.org/94/">openslr.org/94</a>,{" "}
-        <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
-      </p>
+      {/* Hier stand die Namensnennung der Piper-Stimmen (KazakhTTS/ISSAI und
+          MLS, beide CC BY 4.0). Sie ist entfallen, weil diese Stimmen nicht
+          mehr im Einsatz sind: die Sprachausgabe laeuft seit dem 20.09.2026
+          ueber die Sokrates-API, deren Stimmen ueber <sprache>-male/-female
+          ausgewaehlt werden (src/lib/domain/sprachausgabe.ts, STIMMEN). Eine
+          Namensnennung fuer etwas, das gar nicht mehr gesprochen wird, waere
+          falsch. Welche Modelle Sokrates verwendet und ob sie eine eigene
+          Namensnennung verlangen, ist beim Betreiber der API zu klaeren -
+          kommt eine dazu, gehoert sie wieder an diese Stelle. */}
     </LegalShell>
   );
 }

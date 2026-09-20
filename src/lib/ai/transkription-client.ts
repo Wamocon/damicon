@@ -1,7 +1,13 @@
-// Spracherkennung ueber Caesar, den Transkriptionsdienst im Buero-LAN
-// (OpenAI-kompatibler /v1/audio/transcriptions-Endpunkt, FastAPI). Getrennt
+// Spracherkennung ueber die Sokrates-API (OpenAI-kompatibler
+// /audio/transcriptions-Endpunkt, multipart). Getrennt
 // von anbieter-client.ts, weil es ein anderer Dienst mit anderem
 // Anfrageformat ist: multipart statt JSON, Datei statt Nachrichtenverlauf.
+//
+// Vorher lief das ueber Caesar im Buero-LAN. Daran scheiterte es in
+// Produktion: eine Vercel-Funktion erreicht keine LAN-Adresse, und ein
+// Cloudflare-Tunnel davor kam nicht zustande (kein Dashboard-Zugang).
+// KI_TRANSKRIPTION_URL biegt den Aufruf weiterhin auf Caesar zurueck, wer im
+// LAN sitzt.
 // Gemeinsam ist beiden die Regel - der Browser spricht nie selbst mit dem
 // Dienst, der Aufruf laeuft ueber eine Server Action.
 //
@@ -9,6 +15,12 @@
 // { ok: false }, der Aufrufer zeigt eine Meldung statt eines Fehlerbildschirms.
 
 export type TranskriptionAntwort = { ok: true; text: string } | { ok: false; grund: string };
+
+/** Basis der Sokrates-API - dieselbe wie in sprachausgabe-client.ts, dort
+ *  bewusst noch einmal geschrieben statt importiert: diese beiden Dateien
+ *  pruefen die Tests mit blossem Node, und der @/-Alias loest sich dabei nur
+ *  fuer Typ-Importe auf, die der Compiler ohnehin entfernt. */
+const SOKRATES_BASIS = "https://sokrates.test-qualitaetsmanagement.com/api/v1";
 
 // Caesar laedt sein Modell beim ersten Aufruf: am 18.09.2026 gemessen 221 s
 // kalt, danach 7,2 s fuer dieselbe Datei.
@@ -33,22 +45,27 @@ export function transkriptionZeitlimitMs(): number {
 }
 
 export function transkriptionBasisUrl(): string {
-  return process.env.KI_TRANSKRIPTION_URL ?? "http://192.168.178.64:8787/v1/audio/transcriptions";
+  return process.env.KI_TRANSKRIPTION_URL ?? `${SOKRATES_BASIS}/audio/transcriptions`;
 }
 
-// Cloudflare Access (Service Token) - dieselbe Regel und dieselben Variablen
-// wie sprachausgabeZugangsHeader() in sprachausgabe-client.ts: Ein- und
-// Ausgabe sind EIN Sprachdienst auf Caesar, hinter demselben Tunnel und
-// demselben Token.
+// Zugang zum Sprachdienst - dieselbe Regel und dieselben Variablen wie
+// sprachausgabeZugangsHeader() in sprachausgabe-client.ts, denn Ein- und
+// Ausgabe sind EIN Dienst hinter EINEM Zugang:
 //
-// In Produktion zeigt KI_TRANSKRIPTION_URL auf den oeffentlichen Hostnamen des
-// Tunnels vor Caesar, inklusive Pfad /v1/audio/transcriptions. Beide Werte
-// gesetzt: Header mitschicken. Keiner: ohne Header (lokal im Buero-LAN).
-// Nur einer: Fehler, es wird gar keine Anfrage gesendet - lieber eine klare
-// Meldung als ein Aufruf, der ohne Token an der Anmeldeseite landet.
+//   1. Sokrates (Regelfall): Bearer-Token aus KI_SOKRATES_API_SCHLUESSEL.
+//   2. Cloudflare Access (Caesar im LAN, falls der Tunnel doch noch kommt):
+//      das Paar KI_TRANSKRIPTION_ACCESS_*. Der Bearer-Schluessel hat Vorrang.
+//   3. Keins von beidem: ohne Kopfzeilen (Caesar direkt im LAN).
+//
+// Beim Access-Paar weiterhin: nur einer der beiden Werte -> Fehler, es wird
+// gar keine Anfrage gesendet - lieber eine klare Meldung als ein Aufruf, der
+// ohne Token an der Anmeldeseite landet.
 export function transkriptionZugangsHeader():
   | { ok: true; headers: Record<string, string> }
   | { ok: false; grund: string } {
+  const schluessel = process.env.KI_SOKRATES_API_SCHLUESSEL?.trim();
+  if (schluessel) return { ok: true, headers: { Authorization: `Bearer ${schluessel}` } };
+
   const id = process.env.KI_TRANSKRIPTION_ACCESS_ID?.trim();
   const geheimnis = process.env.KI_TRANSKRIPTION_ACCESS_SECRET?.trim();
   if (!id && !geheimnis) return { ok: true, headers: {} };
@@ -82,29 +99,45 @@ export function transkriptionsMeldung(grund: string): string {
   return "fehler.transkription";
 }
 
-// "whisper-1" ist der Wert, den der Dienst erwartet - am 18.09.2026 gegen
-// Caesar geprueft: mit whisper-1 kommt HTTP 200, das Feld ist laut
-// /openapi.json optional (string | null), ein unbekannter Wert quittiert
-// allerdings mit HTTP 500 statt einer Feldpruefung. Deshalb steht er hier
-// fest und ist nicht frei konfigurierbar.
+// "whisper-1" ist der Wert, den Caesar erwartet (18.09.2026 geprueft: ein
+// unbekannter Wert quittiert dort mit HTTP 500). Sokrates braucht das Feld
+// nicht, nimmt es aber widerspruchslos entgegen - am 20.09.2026 mit und ohne
+// Feld geprueft, beide Male dasselbe Ergebnis. Es bleibt deshalb stehen: so
+// funktioniert derselbe Code gegen beide Dienste.
 const MODELL = "whisper-1";
 
-/** Sprache bewusst nicht gesetzt: die Kundschaft schreibt deutsch und
- *  russisch, Whisper erkennt das selbst zuverlaessiger als eine feste
- *  Vorgabe. Ueber KI_TRANSKRIPTION_SPRACHE laesst sich das erzwingen. */
-function sprache(): string | null {
-  const wert = process.env.KI_TRANSKRIPTION_SPRACHE?.trim();
-  return wert ? wert : null;
+/** Sprachen, fuer die der Dienst Spracherkennung anbietet. Tuerkisch ist
+ *  NICHT dabei: im Versuch am 20.09.2026 kam zwar eine Antwort, aber eine
+ *  verhoerte ("Soguk zincir eksiksiz belgelenmistir" -> "Sagg#k zinsir
+ *  eksiksiz belgeli mistir"). Ohne Angabe erkennt der Dienst die Sprache
+ *  selbst - fuer Tuerkisch bleibt es dabei. */
+export const transkriptionSprachen = ["de", "en", "ru", "kk"] as const;
+
+/** Sprache der Aufnahme, in dieser Reihenfolge:
+ *   1. was die Oberflaeche mitgibt (die Sprache, in der die Person gerade
+ *      arbeitet) - hilft vor allem bei Kasachisch, das sich die Schrift mit
+ *      Russisch teilt und sonst leicht als Russisch durchgeht,
+ *   2. KI_TRANSKRIPTION_SPRACHE, falls jemand es erzwingen will,
+ *   3. gar nichts: der Dienst erkennt die Sprache selbst.
+ *  Unbekannte Werte werden still verworfen statt mitgeschickt. */
+function sprache(vorgabe?: string): string | null {
+  const erlaubt = (wert: string | undefined) =>
+    wert && (transkriptionSprachen as readonly string[]).includes(wert) ? wert : null;
+  return erlaubt(vorgabe?.trim()) ?? erlaubt(process.env.KI_TRANSKRIPTION_SPRACHE?.trim());
 }
 
-export async function transkribiereAudio(datei: Blob, dateiname: string): Promise<TranskriptionAntwort> {
+export async function transkribiereAudio(
+  datei: Blob,
+  dateiname: string,
+  sprachVorgabe?: string,
+): Promise<TranskriptionAntwort> {
   const zugang = transkriptionZugangsHeader();
   if (!zugang.ok) return zugang;
 
   const koerper = new FormData();
   koerper.append("file", datei, dateiname);
   koerper.append("model", MODELL);
-  const gewaehlteSprache = sprache();
+  const gewaehlteSprache = sprache(sprachVorgabe);
   if (gewaehlteSprache) koerper.append("language", gewaehlteSprache);
 
   const controller = new AbortController();
@@ -128,7 +161,7 @@ export async function transkribiereAudio(datei: Blob, dateiname: string): Promis
       if ([301, 302, 303, 307, 308, 401, 403].includes(antwort.status)) {
         return {
           ok: false,
-          grund: `zugang-abgewiesen (http-${antwort.status}) - Cloudflare Access? KI_TRANSKRIPTION_ACCESS_ID/-SECRET pruefen`,
+          grund: `zugang-abgewiesen (http-${antwort.status}) - KI_SOKRATES_API_SCHLUESSEL bzw. KI_TRANSKRIPTION_ACCESS_ID/-SECRET pruefen`,
         };
       }
       // Caesar antwortet bei einem unbekannten Modell mit einem nackten

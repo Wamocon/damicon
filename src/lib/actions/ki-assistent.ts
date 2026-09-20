@@ -289,7 +289,10 @@ export async function transkribiereSprachnachricht(
   if (audio.size > MAX_AUDIO_BYTES) return fehler("fehler.dateiGross");
 
   const name = audio instanceof File && audio.name ? audio.name : "aufnahme.webm";
-  const antwort = await transkribiereAudio(audio, name);
+  // Die Oberflaechensprache als Hinweis, welche Sprache zu erwarten ist -
+  // ungeprueft weitergereicht, weil transkribiereAudio() nur die vier
+  // unterstuetzten Werte durchlaesst und alles andere still verwirft.
+  const antwort = await transkribiereAudio(audio, name, text(formData, "sprache"));
 
   if (!antwort.ok) {
     console.error("[damicon] Transkription fehlgeschlagen:", antwort.grund);
