@@ -1501,7 +1501,8 @@
       "stammdatenPruefziffer": "Kontrol hanesi tutmuyor. Çoğunlukla numarada iki rakam yer değiştirmiştir.",
       "selbstkontrolle": "Kasayı kaydeden kişi kendisi kontrol edemez. Bu kasayı başka biri kontrol etmelidir.",
       "transkription": "Konuşma tanıma kullanılamıyor.",
-      "transkriptionDauer": "Konuşma tanıma çok uzun sürdü.",
+      "transkriptionDienst": "Konuşma tanıma hizmetine ulaşılamıyor. Kaydınızda sorun yok – lütfen daha sonra tekrar deneyin.",
+      "transkriptionDauer": "Konuşma tanıma çok uzun sürdü. Hizmet muhtemelen henüz başlatılıyor – lütfen bir dakika sonra tekrar deneyin.",
       "dateiGross": "Kayıt çok büyük.",
       "nachbarbetriebVorhanden": "Bu adla bir komşu işletme zaten mevcut."
     },

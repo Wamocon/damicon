@@ -18,7 +18,7 @@ import { hasPermission } from "@/lib/rbac";
 import { sendeChatAnfrage } from "@/lib/ai/anbieter-client";
 import { sendeAgentAnfrage } from "@/lib/ai/agent";
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
-import { transkribiereAudio, waermeTranskriptionVor } from "@/lib/ai/transkription-client";
+import { transkribiereAudio, transkriptionsMeldung, waermeTranskriptionVor } from "@/lib/ai/transkription-client";
 import type { ChatNachricht } from "@/lib/ai/anfrage";
 import type { Json } from "@/lib/database.types";
 import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
@@ -293,9 +293,7 @@ export async function transkribiereSprachnachricht(
 
   if (!antwort.ok) {
     console.error("[damicon] Transkription fehlgeschlagen:", antwort.grund);
-    return fehler(
-      antwort.grund === "zeitueberschreitung" ? "fehler.transkriptionDauer" : "fehler.transkription",
-    );
+    return fehler(transkriptionsMeldung(antwort.grund));
   }
 
   // Der Text selbst wird nicht protokolliert - er steht gleich als Frage im

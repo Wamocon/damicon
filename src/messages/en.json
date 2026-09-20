@@ -874,7 +874,8 @@
       "stammdatenPruefziffer": "The check digit does not match. Usually two digits have been transposed.",
       "selbstkontrolle": "Whoever recorded a crate does not inspect it themselves. Someone else needs to check this crate.",
       "transkription": "Speech recognition unavailable.",
-      "transkriptionDauer": "Speech recognition took too long.",
+      "transkriptionDienst": "The speech recognition service cannot be reached. Your recording is fine – please try again later.",
+      "transkriptionDauer": "Speech recognition took too long. The service is probably still starting up – please try again in a minute.",
       "dateiGross": "The recording is too large.",
       "nachbarbetriebVorhanden": "A neighbouring farm with this name already exists."
     },

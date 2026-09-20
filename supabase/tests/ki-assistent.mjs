@@ -42,6 +42,13 @@ import {
   textFuerSprachausgabe,
 } from "../../src/lib/domain/sprachausgabe.ts";
 import { erzeugeSprachausgabe } from "../../src/lib/ai/sprachausgabe-client.ts";
+import {
+  transkribiereAudio,
+  transkriptionsMeldung,
+  transkriptionZeitlimitMs,
+  transkriptionZugangsHeader,
+} from "../../src/lib/ai/transkription-client.ts";
+import { readFileSync } from "node:fs";
 
 let bestanden = 0;
 let fehlgeschlagen = 0;
@@ -430,6 +437,113 @@ for (const [name, kaputteAntwort] of [
   }
 }
 
+
+// --- 6. Spracheingabe (ai/transkription-client.ts) --------------------------
+// Hintergrund: am 20.09.2026 meldete die Oberflaeche in Produktion
+// "Spracherkennung nicht moeglich", obwohl Mikrofon und Aufnahme einwandfrei
+// waren - der Dienst war schlicht nicht erreichbar (LAN-Adresse als
+// Rueckfallwert, kein Tunnel, keine Access-Kopfzeilen). Die Pruefungen hier
+// halten beide Lehren fest: Zugang mitschicken, und Fehlerursachen
+// auseinanderhalten.
+{
+  const urspruenglich = {
+    id: process.env.KI_TRANSKRIPTION_ACCESS_ID,
+    geheim: process.env.KI_TRANSKRIPTION_ACCESS_SECRET,
+    limit: process.env.KI_TRANSKRIPTION_ZEITLIMIT_MS,
+  };
+  delete process.env.KI_TRANSKRIPTION_ACCESS_ID;
+  delete process.env.KI_TRANSKRIPTION_ACCESS_SECRET;
+  delete process.env.KI_TRANSKRIPTION_ZEITLIMIT_MS;
+
+  // Das Zeitlimit stand auf 300 s - auf Vercel unerreichbar, die Funktion
+  // endet nach 60 s (maxDuration in den Routen). Der Abbruch kam also von der
+  // Plattform statt von uns, ohne verwertbare Meldung.
+  pruefe(
+    "Spracheingabe: Zeitlimit passt unter die 60-s-Grenze der Plattform",
+    transkriptionZeitlimitMs() <= 60_000,
+    `${transkriptionZeitlimitMs()} ms`,
+  );
+
+  pruefe("Spracheingabe: ohne Access-Variablen keine Kopfzeilen", transkriptionZugangsHeader().ok && Object.keys(transkriptionZugangsHeader().headers).length === 0);
+  process.env.KI_TRANSKRIPTION_ACCESS_ID = "caesar.access";
+  pruefe("Spracheingabe: halber Zugang ist ein Fehler, keine halbe Anfrage", !transkriptionZugangsHeader().ok);
+  process.env.KI_TRANSKRIPTION_ACCESS_SECRET = "caesar-geheim";
+  const zugang = transkriptionZugangsHeader();
+  pruefe(
+    "Spracheingabe: beide Werte gesetzt ergeben den Cloudflare-Access-Kopf",
+    zugang.ok && zugang.headers["CF-Access-Client-Id"] === "caesar.access" && zugang.headers["CF-Access-Client-Secret"] === "caesar-geheim",
+  );
+
+  process.env.KI_TRANSKRIPTION_ACCESS_ID = urspruenglich.id ?? "";
+  process.env.KI_TRANSKRIPTION_ACCESS_SECRET = urspruenglich.geheim ?? "";
+  if (!urspruenglich.id) delete process.env.KI_TRANSKRIPTION_ACCESS_ID;
+  if (!urspruenglich.geheim) delete process.env.KI_TRANSKRIPTION_ACCESS_SECRET;
+  if (urspruenglich.limit) process.env.KI_TRANSKRIPTION_ZEITLIMIT_MS = urspruenglich.limit;
+}
+
+{
+  const echtesFetch = globalThis.fetch;
+  const aufrufe = [];
+  let naechsteAntwort;
+  globalThis.fetch = async (url, init) => {
+    aufrufe.push({ url, init });
+    return naechsteAntwort();
+  };
+  const audio = new Blob([new Uint8Array([1, 2, 3])], { type: "audio/webm" });
+  try {
+    process.env.KI_TRANSKRIPTION_ACCESS_ID = "caesar.access";
+    process.env.KI_TRANSKRIPTION_ACCESS_SECRET = "caesar-geheim";
+    naechsteAntwort = () => new Response(JSON.stringify({ text: "Polka ist verfuegbar." }), { status: 200, headers: { "content-type": "application/json" } });
+    const gut = await transkribiereAudio(audio, "aufnahme.webm");
+    const kopf = aufrufe[0]?.init.headers ?? {};
+    pruefe("Spracheingabe-Client: erkannter Text kommt zurueck", gut.ok && gut.text === "Polka ist verfuegbar.");
+    pruefe(
+      "Spracheingabe-Client: derselbe Caesar-Token wie die Sprachausgabe (KI_TRANSKRIPTION_ACCESS_*)",
+      kopf["CF-Access-Client-Id"] === "caesar.access" && kopf["CF-Access-Client-Secret"] === "caesar-geheim",
+    );
+    pruefe("Spracheingabe-Client: kein eigener content-type (fetch setzt die multipart-Grenze)", !("content-type" in kopf) && !("Content-Type" in kopf));
+    pruefe("Spracheingabe-Client: Umleitungen werden nicht verfolgt", aufrufe[0]?.init.redirect === "manual");
+
+    naechsteAntwort = () => new Response("", { status: 302 });
+    const abgewiesen = await transkribiereAudio(audio, "aufnahme.webm");
+    pruefe("Spracheingabe-Client: 302 (Access-Anmeldeseite) wird als zugang-abgewiesen gemeldet", !abgewiesen.ok && abgewiesen.grund.startsWith("zugang-abgewiesen"));
+
+    naechsteAntwort = () => {
+      throw new TypeError("fetch failed");
+    };
+    const weg = await transkribiereAudio(audio, "aufnahme.webm");
+    pruefe(
+      "Spracheingabe-Client: unerreichbarer Dienst ist als solcher erkennbar",
+      !weg.ok && weg.grund.startsWith("dienst-nicht-erreichbar"),
+      weg.ok ? "" : weg.grund,
+    );
+  } finally {
+    globalThis.fetch = echtesFetch;
+    delete process.env.KI_TRANSKRIPTION_ACCESS_ID;
+    delete process.env.KI_TRANSKRIPTION_ACCESS_SECRET;
+  }
+}
+
+{
+  // Die Meldung muss sagen, WORAN es lag - sonst sucht die Kundschaft den
+  // Fehler bei sich und spricht lauter, waehrend in Wahrheit ein Dienst fehlt.
+  pruefe("Meldung: unerreichbarer Dienst -> fehler.transkriptionDienst", transkriptionsMeldung("dienst-nicht-erreichbar: fetch failed") === "fehler.transkriptionDienst");
+  pruefe("Meldung: Access-Abweisung -> fehler.transkriptionDienst", transkriptionsMeldung("zugang-abgewiesen (http-302) - Cloudflare Access?") === "fehler.transkriptionDienst");
+  pruefe("Meldung: halber Zugang -> fehler.transkriptionDienst", transkriptionsMeldung("zugang-unvollstaendig: ...") === "fehler.transkriptionDienst");
+  pruefe("Meldung: Serverfehler bei Caesar -> fehler.transkriptionDienst", transkriptionsMeldung("http-500: Internal Server Error") === "fehler.transkriptionDienst");
+  pruefe("Meldung: Zeitueberschreitung -> fehler.transkriptionDauer", transkriptionsMeldung("zeitueberschreitung") === "fehler.transkriptionDauer");
+  pruefe("Meldung: leeres Erkennungsergebnis bleibt fehler.transkription", transkriptionsMeldung("antwort-unerwartete-form") === "fehler.transkription");
+
+  // Die Oberflaeche zeigt den Schluessel der Server Action an - fehlt er in
+  // einer der fuenf Sprachen, wirft next-intl zur Laufzeit.
+  const sprachen = ["de", "en", "kk", "ru", "tr"];
+  const schluessel = ["transkription", "transkriptionDienst", "transkriptionDauer"];
+  for (const sprache of sprachen) {
+    const texte = JSON.parse(readFileSync(new URL(`../../src/messages/${sprache}.json`, import.meta.url), "utf8"));
+    const fehlend = schluessel.filter((k) => typeof texte.aktionen?.fehler?.[k] !== "string");
+    pruefe(`Meldung: ${sprache}.json kennt alle drei Diktat-Meldungen`, fehlend.length === 0, fehlend.join(", "));
+  }
+}
 
 console.log("\n" + "-".repeat(58));
 console.log(`Pruefungen: ${bestanden + fehlgeschlagen}   bestanden: ${bestanden}   fehlgeschlagen: ${fehlgeschlagen}`);

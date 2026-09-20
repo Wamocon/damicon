@@ -26,6 +26,12 @@ export function MikrofonKnopf({
   deaktiviert?: boolean;
 }) {
   const t = useTranslations("kiAssistentAnsicht.diktat");
+  // Die Server Action sagt genau, WORAN es lag (Dienst nicht erreichbar,
+  // Zeitueberschreitung, Erkennung ohne Ergebnis). Diese Meldung wird hier
+  // gezeigt, statt jeden Fehlschlag zu "Spracherkennung nicht moeglich" zu
+  // verkuerzen - das las sich wie ein Fehler der Aufnahme, obwohl in
+  // Produktion schlicht der Dienst fehlte.
+  const tAktion = useTranslations("aktionen");
   const [zustand, setZustand] = useState<"bereit" | "aufnahme" | "laeuft">("bereit");
   const [meldung, setMeldung] = useState<string | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -71,7 +77,7 @@ export function MikrofonKnopf({
         // Erfolg traegt den erkannten Text im wert-Feld (siehe ok() in
         // actions/status.ts).
         if (status.stand === "ok" && status.wert) beiText(status.wert);
-        else setMeldung(t("fehlgeschlagen"));
+        else setMeldung(status.meldung ? tAktion(status.meldung) : t("fehlgeschlagen"));
       };
 
       recorder.start();
