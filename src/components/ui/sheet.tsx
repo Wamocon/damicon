@@ -22,14 +22,11 @@ export function Sheet({
   offen,
   onSchliessen,
   titel,
-  /** Volle Hoehe statt hoechstens 85 % - fuer Inhalte, die ohnehin scrollen. */
-  hoch = false,
   children,
 }: {
   offen: boolean;
   onSchliessen: () => void;
   titel: string;
-  hoch?: boolean;
   children: ReactNode;
 }) {
   const nav = useTranslations("nav");
@@ -79,7 +76,7 @@ export function Sheet({
           "relative flex min-h-0 w-full flex-col rounded-t-2xl border-t border-border bg-card shadow-2xl outline-none",
           // Bis unter den Home-Indicator, damit die Flaeche am Rand nicht
           // abrupt endet; den Abstand traegt der Inhalt weiter unten.
-          hoch ? "h-[92svh]" : "max-h-[85svh]",
+          "max-h-[85svh]",
           "motion-safe:animate-[sheet-auf_200ms_ease-out]",
         )}
       >

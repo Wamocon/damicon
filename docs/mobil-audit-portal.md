@@ -65,7 +65,7 @@ Zwei Dinge kommen zusammen. Erstens liegt das einzige Navigationsziel in der Eck
 
 **Verworfen und ersetzt, noch am selben Tag.** Die fünf Sprungziele waren bedienbar, aber nicht vollständig: die Module erreichte man nur über den Umweg Bereichsseite, und alles, was nicht Navigation ist — KI, angemeldete Person, Sprache, Farbschema, Abmelden — hing weiter am oberen Rand oder an der Schublade. Die Leiste trägt jetzt drei Knöpfe, die je eine Fläche von unten heraufführen (`src/components/ui/sheet.tsx`):
 
-- **Menü** zeigt `MenueBaum` aus `sidebar.tsx`, also denselben Baum wie die Seitenleiste samt Rechten und aufgeklappten Gruppen. Der Baum ist dafür aus `SidebarBody` herausgelöst, damit im Blatt weder Bildmarke noch Benutzerfuß doppelt stehen.
+- **Menü** zeigt die oberste Ebene: „Übersicht“ und die vier Bereiche als Liste, je 56 px hoch. Die Module stehen nicht darin, sondern als Kacheln auf der Bereichsseite — zwei kurze Schritte statt eines langen. Die erste Fassung zeigte den vollen Baum der Seitenleiste; 26 Einträge in einer Fläche, die man mit dem Daumen aufzieht, waren die falsche Form. Entscheidung des Auftraggebers vom 20.09.2026.
 - **KI-Assistent** schaltet dasselbe Panel wie der Knopf in der Kopfzeile am Schreibtisch. Fehlt das Recht oder die Datenbank, trägt die Leiste zwei Knöpfe statt drei.
 - **Konto** (`konto-blatt.tsx`) zeigt Person, „Ansicht als“, Sprache, Farbschema, Sicherheit und Abmelden.
 

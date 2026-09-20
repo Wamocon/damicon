@@ -52,7 +52,7 @@ function useIsActive() {
 // zeigt - deshalb braucht die Leiste kein Ausklapp-Fenster, um brauchbar zu
 // sein. Ohne sichtbare Beschriftung traegt jedes Ziel aria-label und title.
 function SidebarRail() {
-  // Die fuenf Ziele samt Rechteprüfung stehen in nav-ziele.ts. Der genaue
+  // Die fuenf Ziele samt Rechtepruefung stehen in nav-ziele.ts. Der genaue
   // Pfad und der Bereich der geoeffneten Seite werden dort getrennt gefuehrt:
   // auf einer Modulseite gilt der Bereich als aktiv, aber nicht als
   // geoeffnete Seite - sonst zeichnete die Leiste eine Seite als "page" aus,
@@ -375,7 +375,10 @@ function ZonenGruppe({
 }
 
 function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
+  const { role } = usePersona();
   const nav = useTranslations("nav");
+  const isActive = useIsActive();
+  const { offene, umschalten } = useZonenGruppen();
 
   return (
     <div className="flex h-full min-h-0 flex-col p-4">
@@ -393,32 +396,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
         </span>
       </Link>
 
-      <MenueBaum onNavigate={onNavigate} className="mt-4" />
-
-      <BenutzerFuss onNavigate={onNavigate} />
-    </div>
-  );
-}
-
-// Der Baum aus "Uebersicht" und den vier Bereichsgruppen, ohne Bildmarke und
-// ohne Benutzerfuss. Exportiert, weil unter `md` dasselbe Menue im Blatt der
-// unteren Leiste steht (untere-leiste.tsx) - dort traegt die Kopfzeile des
-// Blatts schon den Titel und das Konto-Blatt die angemeldete Person, beides
-// staende sonst doppelt da.
-export function MenueBaum({
-  onNavigate,
-  className,
-}: {
-  onNavigate?: () => void;
-  className?: string;
-}) {
-  const { role } = usePersona();
-  const nav = useTranslations("nav");
-  const isActive = useIsActive();
-  const { offene, umschalten } = useZonenGruppen();
-
-  return (
-    <nav className={cn("min-h-0 flex-1 overflow-y-auto pr-1", className)}>
+      <nav className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
         <ul className="space-y-1.5">
           {/* "Uebersicht" steht auf derselben Ebene wie die vier Bereiche und
               bekommt deshalb dieselbe Flaeche - ohne sie haengt die Zeile lose
@@ -461,16 +439,20 @@ export function MenueBaum({
             );
           })}
         </ul>
-    </nav>
+      </nav>
+
+      <BenutzerFuss onNavigate={onNavigate} />
+    </div>
   );
 }
 
 // Nur noch die feste Spalte ab `md`. Der mobile Teil - Menueknopf oben links
 // und die Schublade von der Seite - ist entfallen: unter `md` traegt die
-// untere Leiste (untere-leiste.tsx) die Navigation und zeigt denselben
-// MenueBaum in einem Blatt, das von unten aufgeht. Zwei Einstiege ins gleiche
-// Menue, einer davon in der am schlechtesten erreichbaren Ecke, waeren nur
-// doppelt gewesen.
+// untere Leiste (untere-leiste.tsx) die Navigation. Sie zeigt dort nur die
+// oberste Ebene, also Uebersicht und die vier Bereiche; die Module stehen als
+// Kacheln auf der Bereichsseite. Ein aufklappbarer Baum mit 26 Eintraegen ist
+// die Form fuer eine stehende Spalte, nicht fuer eine Flaeche, die man mit dem
+// Daumen aufzieht.
 export function DashboardSidebar() {
   // Server rendert immer die volle Spalte. Wer sie eingeklappt hatte, sieht
   // sie nach der Hydration zusammenfahren - dieselbe Abwaegung wie bei den
