@@ -74,6 +74,7 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-card-deckend: var(--card-deckend);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
   --radius-sm: calc(var(--radius) * 0.6);
@@ -102,6 +103,19 @@
   --background: #f6fafb;
   --foreground: #0b1e26;
   --card: #ffffff;
+  /* Deckendes Gegenstueck zu --card, fuer Flaechen, hinter denen Inhalt
+     liegt: die untere Leiste, die Blaetter, die festgehaltene erste Spalte
+     einer Matrix.
+
+     --card ist im Dark Mode zu 26 % durchsichtig (rgba(9,33,41,.74)) - das
+     ist fuer eine Karte richtig, die auf dem Rasterhintergrund des Dashboards
+     liegt, und falsch fuer alles, was etwas verdecken soll. Auf der unteren
+     Leiste schimmerte der Seiteninhalt durch, und durch die fixierte Spalte
+     einer Matrix liefen beim Querscrollen die Zellen sichtbar hindurch.
+
+     Der dunkle Wert ist genau der Ton, den rgba(9,33,41,.74) ueber dem
+     Seitengrund ergibt - optisch identisch, nur eben deckend. */
+  --card-deckend: #ffffff;
   --card-foreground: #0b1e26;
   --popover: #ffffff;
   --popover-foreground: #0b1e26;
@@ -159,6 +173,7 @@
   --background: #04161c;
   --foreground: #e6f4f8;
   --card: rgba(9, 33, 41, 0.74);
+  --card-deckend: #081e26;
   --card-foreground: #e6f4f8;
   --popover: #06212a;
   --popover-foreground: #e6f4f8;
@@ -190,6 +205,255 @@
   --sidebar-border: rgba(255, 255, 255, 0.09);
   --sidebar-ring: #5fdcef;
   --backdrop-line: rgba(255, 255, 255, 0.05);
+}
+
+/*
+  Platz fuer die untere Navigationsleiste (untere-leiste.tsx). Sie schwebt
+  unter `md` ueber dem Inhalt und belegt damit die Daumenzone, in der bisher
+  nichts Festes lag ausser dem Maskottchen.
+
+  Die Hoehe steht hier und nicht in der Komponente, weil drei Stellen mit
+  derselben Zahl rechnen muessen: die Hauptspalte (unterer Innenabstand, damit
+  die Leiste den letzten Knopf einer Seite nicht verdeckt), Himbi
+  (haustier.css, sitzt sonst darunter) und die Leiste selbst. Ohne eine
+  gemeinsame Quelle schiebt der naechste Umbau eines der drei Elemente weg,
+  ohne dass es auffaellt.
+
+  env(safe-area-inset-bottom) ist der Home-Indicator des iPhone und die
+  Gestenleiste von Android: ohne diesen Zuschlag liegt die Leiste unter der
+  Systemleiste und wird zum Wischziel des Betriebssystems statt zum
+  Bedienelement. Der Wert ist auf Geraeten ohne solche Leiste 0.
+
+  3,5rem Leistenhoehe (Beruehrungsflaeche 44 px plus Innenabstand), 1,5rem
+  Abstand nach unten und oben.
+*/
+:root {
+  --untere-leiste-raum: 0px;
+  /* Siehe den Kommentar im @theme-Block oben: 11 px und 12 px am
+     Schreibtisch, eine Stufe groesser auf dem Handy. */
+  --schrift-label: 0.6875rem;
+  --schrift-dense: 0.75rem;
+}
+
+/* Der Platz fuer die untere Leiste haengt am LAYOUT: die Leiste gibt es
+   nur unter md, ab dort traegt die Seitenleiste die Navigation. */
+@media (max-width: 767.98px) {
+  :root {
+    --untere-leiste-raum: calc(3.5rem + 2.5rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* Die Schriftgroessen haengen dagegen daran, WIE bedient wird, und das
+   reicht weiter: ein Tablet ist 810 bis 1024 px breit und wird mit dem
+   Finger bedient, im Kuehlhaus mit Handschuhen. Es lag bisher in der
+   Schreibtisch-Fassung. */
+@media (max-width: 1023.98px) {
+  :root {
+    --schrift-label: 0.8125rem;
+    --schrift-dense: 0.875rem;
+  }
+}
+
+/*
+  Zwei Schriftgroessen der Fach-Oberflaeche als eigene Klassen: `schrift-label`
+  fuer Beschriftungen (Kennzahl-Label, Tabellenkopf, Statuspille, Feldname) und
+  `schrift-dense` fuer dichten Fliesstext daneben (Hilfszeilen,
+  Abschnittsbeschreibung). Beide sind auf dem Handy eine Stufe groesser, siehe
+  die Variablen oben.
+
+  Bewusst NICHT ueber `@theme` als `text-label`/`text-dense` gefuehrt, obwohl
+  Tailwind daraus von selbst Utilities macht. Der Name haette wie eine
+  Textfarbe ausgesehen - `text-label` steht neben `text-primary` und
+  `text-muted-foreground` -, und genau dafuer haelt ihn tailwind-merge, das in
+  cn() jede Klassenliste bereinigt. In der Statuspille stand
+  `cn("... text-label ...", toneClasses[tone])`, und toneClasses traegt
+  `text-success`: tailwind-merge hat die vermeintlich ueberschriebene Farbe
+  entfernt und damit die Schriftgroesse gleich mit. Die Pillen erbten 16 px
+  statt 11 - am Schreibtisch deutlich sichtbar, und zwar genau dort, wo sich
+  gar nichts haette aendern sollen.
+
+  Mit einem Namen, der nicht nach Farbe aussieht, laesst tailwind-merge die
+  Klasse stehen. Eine unbekannte Klasse ist ihm gleichgueltig, eine
+  vermeintlich bekannte nicht.
+*/
+@utility schrift-label {
+  font-size: var(--schrift-label);
+  line-height: 1.45;
+}
+
+@utility schrift-dense {
+  font-size: var(--schrift-dense);
+  line-height: 1.5;
+}
+
+/* Die Flaeche der unteren Leiste faehrt von unten auf (ui/sheet.tsx). Nur
+   unter prefers-reduced-motion: no-preference, dafuer sorgt motion-safe an
+   der Komponente. */
+@keyframes sheet-auf {
+  from {
+    transform: translateY(1.5rem);
+    opacity: 0;
+  }
+}
+
+/*
+  Tabellen auf dem Handy: aus jeder Zeile wird eine Karte.
+
+  DataTable (ui/kit.tsx) setzt eine Mindestbreite von 640 px, damit die Spalten
+  am Schreibtisch nicht zusammenlaufen. Bei 390 px Fensterbreite sind davon 358
+  px zu sehen - 282 px liegen dauerhaft ausserhalb des Bildschirms, an 29
+  Stellen im Projekt. Beim Querscrollen wandert ausserdem die erste Spalte aus
+  dem Bild, und danach weiss man nicht mehr, welche Zeile man liest.
+
+  Statt zu scrollen klappt die Zeile hier um: Beschriftung links, Wert rechts,
+  Zeile fuer Zeile, jede Datenzeile als eigene Karte. Die Beschriftung kommt
+  aus data-kopf, das der Baustein selbst an jede Zelle haengt - deshalb muss
+  keine der 29 Aufrufstellen etwas davon wissen.
+
+  Der Preis: eine Liste mit 40 Zeilen wird sehr lang. Solange es kein Blaettern
+  gibt (Punkt 2 des UX-Audits), ist das der Tausch - lesbar und lang gegen
+  kompakt und unlesbar.
+*/
+@media (max-width: 767.98px) {
+  .datentabelle:not([data-matrix]) table,
+  .datentabelle:not([data-matrix]) tbody,
+  .datentabelle:not([data-matrix]) tr,
+  .datentabelle:not([data-matrix]) td {
+    display: block;
+  }
+
+  /* Die Kopfzeile steht jetzt in jeder einzelnen Zelle. */
+  .datentabelle:not([data-matrix]) thead {
+    display: none;
+  }
+
+  .datentabelle:not([data-matrix]) {
+    border: 0;
+    background: none;
+  }
+
+  .datentabelle:not([data-matrix]) tr {
+    margin-bottom: 0.625rem;
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    background: var(--card);
+    /* Kein eigener Innenabstand: den tragen die Zellen. Zwei Quellen
+       ergaben unter der letzten Zeile einen leeren Streifen, der die Karte
+       unruhig aussehen liess. */
+    padding: 0.35rem 0;
+  }
+  .datentabelle:not([data-matrix]) tr:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Zwei Spalten je Wert: Beschriftung und Inhalt. 40 % fuer die Beschriftung
+     reichen auch fuer die kyrillischen Tabellenkoepfe, die laenger sind als
+     die deutschen. */
+  /* tr td statt td: die Aufrufstellen setzen an ihren Zellen py-2.5 und
+     aehnliches, und eine einfache Klasse plus Elementname hat dieselbe
+     Spezifitaet wie eine Tailwind-Utility - dann entscheidet die
+     Reihenfolge im Stylesheet, und die ist nicht in unserer Hand. */
+  .datentabelle:not([data-matrix]) tr td {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 40%) 1fr;
+    gap: 0.75rem;
+    align-items: baseline;
+    /* Inhalte so breit wie noetig, nicht so breit wie die Spalte: sonst
+       zieht ein Grid-Item wie die Statuspille sich ueber die ganze Breite
+       und sieht aus wie ein Eingabefeld. Felder in Formularen setzen ihre
+       Breite weiter unten selbst auf 100 %. */
+    justify-items: start;
+    padding: 0.35rem 0.75rem;
+  }
+  .datentabelle:not([data-matrix]) tr td::before {
+    content: attr(data-kopf);
+    font-size: var(--schrift-label);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--muted-foreground);
+  }
+
+  /* Meldungen ueber die ganze Breite ("keine Daten") sind keine Werte und
+     tragen deshalb keine Beschriftung und keine zweite Spalte. */
+  .datentabelle:not([data-matrix]) tr td[colspan] {
+    display: block;
+  }
+  .datentabelle:not([data-matrix]) tr td[colspan]::before {
+    content: none;
+  }
+
+  /* Eine Zelle, in der etwas eingegeben wird, steht einspaltig: Beschriftung
+     oben, Bedienelemente darunter ueber die volle Breite.
+
+     Nebeneinander blieben von 358 px Kartenbreite noch 215 px fuer den
+     Wert - darin standen in den Reihenbloecken ein Auswahlfeld, ein Knopf,
+     ein Codefeld und ein zweites Auswahlfeld nebeneinander und liefen aus
+     der Karte heraus. Zwei Spalten sind fuer einen Wert richtig, den man
+     liest, und falsch fuer ein Formular, das man bedient.
+
+     :has() statt einer Klasse an der Zelle, weil die Zellen aus 29
+     Aufrufstellen kommen und keine davon etwas von der Kartendarstellung
+     weiss - derselbe Grund, aus dem der Baustein die Beschriftung selbst
+     anhaengt. */
+  .datentabelle:not([data-matrix]) td:has(form),
+  .datentabelle:not([data-matrix]) td:has(select),
+  .datentabelle:not([data-matrix]) td:has(input:not([type="hidden"])) {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+
+  /* Und die Felder darin stehen untereinander statt nebeneinander. Die
+     Formulare setzen ihre Felder in eine Flex-Reihe; auf 358 px passt
+     davon eines, nicht vier. */
+  .datentabelle:not([data-matrix]) td form > div {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .datentabelle:not([data-matrix]) td form select,
+  .datentabelle:not([data-matrix]) td form input:not([type="hidden"]),
+  .datentabelle:not([data-matrix]) td form button {
+    width: 100%;
+  }
+
+  /* Eine Matrix bleibt eine Matrix: sie scrollt waagerecht, und die erste
+     Spalte laeuft nicht mit. Ohne das ist man nach zwei Spalten verloren -
+     man sieht Haekchen, weiss aber nicht mehr, zu welcher Ressource sie
+     gehoeren (Punkt 10 des UX-Audits). */
+  .datentabelle[data-matrix] th:first-child,
+  .datentabelle[data-matrix] td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    /* --card-deckend, nicht --card: im Dark Mode ist --card zu 26 Prozent
+       durchsichtig. Durch eine festgehaltene Spalte liefen damit beim
+       Querscrollen die Zellen sichtbar hindurch - genau der Fehler, den das
+       deckende Token oben fuer die untere Leiste behebt und in seinem
+       eigenen Kommentar auch fuer diese Spalte beansprucht. */
+    background: var(--card-deckend);
+  }
+  /* Der Kopf einer Matrix waechst nicht mit: er ist ein Etikett ueber einer
+     Spalte aus Haekchen, und groesser gesetzt macht er jede Spalte breiter -
+     also mehr Querscrollen fuer weniger Uebersicht. */
+  .datentabelle[data-matrix] thead {
+    font-size: 0.6875rem;
+  }
+  .datentabelle[data-matrix] thead th:first-child {
+    /* Der Kopf der ersten Spalte liegt in beiden Richtungen fest und
+       braucht den Grund der Kopfzeile, nicht den der Karte.
+
+       Zwei Ebenen statt einer Mischung: --muted ist im Dark Mode selbst zu
+       42 Prozent durchsichtig, eine Mischung aus zwei durchsichtigen Toenen
+       bleibt durchsichtig. Unten die deckende Flaeche, darueber genau der
+       Ton, den `bg-muted/40` an der uebrigen Kopfzeile erzeugt. */
+    background-color: var(--card-deckend);
+    background-image: linear-gradient(
+      color-mix(in oklab, var(--muted) 40%, transparent),
+      color-mix(in oklab, var(--muted) 40%, transparent)
+    );
+  }
 }
 
 @layer base {
@@ -228,6 +492,32 @@
   }
   ::selection {
     background-color: color-mix(in srgb, var(--primary) 28%, transparent);
+  }
+
+  /* Sichtbarer Fokus, einmal fuer alles.
+
+     Die Fach-Oberflaeche trug bis hierher keinen einzigen focus-visible-Stil:
+     238 Bedienelemente, bei denen nicht zu sehen war, wo man mit der
+     Tabulatortaste steht. Wer im Buero den Tag ueber Daten erfasst, arbeitet
+     mit Tab und Enter.
+
+     Die Regel steht hier und nicht an den Bausteinen, weil sie sonst an jedem
+     neuen Element einzeln nachgezogen werden muesste - und genau das ist
+     bisher nicht passiert. --ring traegt nach WCAG 1.4.11 gegen jede Flaeche
+     3:1, der Wert ist in der Palette oben eigens dafuer abgedunkelt.
+
+     :focus-visible statt :focus - die Maus loest ihn nicht aus. Die
+     Ausnahme darunter nimmt Elemente aus, die ihren Fokus selbst zeichnen
+     (Himbi, das KI-Panel); dort stuenden sonst zwei Ringe uebereinander. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  .hb-svg:focus-visible,
+  .haustier :focus-visible,
+  .ki-pane :focus-visible,
+  .ki-griff:focus-visible {
+    outline: none;
   }
 }
 
@@ -821,6 +1111,45 @@ html.lenis.lenis-smooth {
   }
 }
 
+
+/* Ladebild "Kuehl-LKW mit Himbeere" (components/site/lkw-lader.tsx). Wie im
+   Bento gilt: Die Animationen laufen auf SVG-Elementen, 1px entspricht dort
+   einer Einheit der viewBox.
+
+   Die drei Laufzeiten sind nicht frei gewaehlt. 0,9 s je 40 Einheiten Strasse
+   ergeben 44,4 Einheiten je Sekunde; ein Rad mit r = 12 hat 75,4 Einheiten
+   Umfang und braucht dafuer 1,7 s je Umdrehung. Die Federung laeuft mit
+   1,05 s bewusst quer dazu - waere sie ein Teiler der beiden anderen, kaeme
+   die ganze Zeichnung regelmaessig in dieselbe Stellung zurueck und die Fahrt
+   saehe aus wie eine kurze Schleife.
+
+   Gesetzt werden alle drei ueber motion-safe an der Komponente. Der globale
+   Notausschalter weiter unten wuerde sie zwar auch abwuergen, aber auf ihrem
+   Endzustand: Die Strasse stuende dann um eine Periode versetzt. */
+@keyframes lkw-strasse {
+  to {
+    transform: translateX(-40px);
+  }
+}
+@keyframes lkw-federung {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(2.5px);
+  }
+}
+@keyframes lkw-laterne {
+  to {
+    transform: translateX(-180px);
+  }
+}
+@keyframes lkw-rad {
+  to {
+    transform: rotate(360deg);
+  }
+}
 @layer components {
   .container {
     margin-inline: auto;

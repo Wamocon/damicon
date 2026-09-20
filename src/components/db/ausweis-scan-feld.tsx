@@ -153,7 +153,7 @@ export function AusweisScanFeld({
           <button
             type="button"
             onClick={() => setModus("scan")}
-            className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground transition hover:border-primary"
+            className="inline-flex h-11 items-center gap-1.5 rounded-full border border-border bg-card px-4 text-sm font-semibold text-foreground transition hover:border-primary lg:h-auto lg:px-3 lg:py-1.5 lg:text-xs"
           >
             <Camera className="h-3.5 w-3.5" />
             {t("ausweisScannen")}
@@ -169,7 +169,16 @@ export function AusweisScanFeld({
       ) : modus === "scan" ? (
         <div className="space-y-1.5">
           <div className="overflow-hidden rounded-lg border border-border bg-black">
-            <video ref={videoRef} className="aspect-video w-full object-cover" muted playsInline />
+            <video
+              ref={videoRef}
+              /* Hochkant auf dem Handy: das Geraet wird so gehalten, und der
+                 QR-Code steht senkrecht vor einem. 16:9 ergab bei 358 px
+                 Breite ein 201 px hohes Querbild. Ab md bleibt es beim
+                 Querformat, dort steht die Kamera meist am Bildschirm. */
+              className="aspect-[3/4] w-full object-cover lg:aspect-video"
+              muted
+              playsInline
+            />
           </div>
           {fehler ? (
             <p className="flex items-center gap-1.5 text-[11px] font-semibold text-warning">
@@ -193,7 +202,7 @@ export function AusweisScanFeld({
       ) : (
         <div className="space-y-1.5">
           <select
-            className="h-9 w-full rounded-lg border border-border bg-background px-2.5 text-xs text-foreground outline-none transition focus:border-primary"
+            className="h-11 w-full rounded-lg border border-border bg-background px-3 text-base text-foreground outline-none transition focus:border-primary lg:h-9 lg:px-2.5 lg:text-xs"
             defaultValue=""
             onChange={(event) => {
               const treffer = pfluecker.find((p) => p.id === event.target.value) ?? null;

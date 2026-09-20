@@ -40,8 +40,14 @@ export function Brotkrumen({
     stationen.push({ text: moduleT(`${modulKey}.navTitle`) });
   }
 
+  // Nur ab `md`. Auf dem Handy brauchte der volle Pfad zwei Zeilen
+  // ("Uebersicht > Buero > Rollen und Rechte"), und die letzte Station
+  // wiederholt ohnehin die Ueberschrift direkt darunter. Den Weg zurueck
+  // traegt dort die Kopfzeile (topbar.tsx): als eine Station, immer sichtbar,
+  // auch mitten auf einer langen Seite - waehrend diese Zeile hier mit dem
+  // Inhalt wegscrollt.
   return (
-    <nav aria-label={nav("breadcrumb")}>
+    <nav aria-label={nav("breadcrumb")} className="hidden md:block">
       <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs font-black uppercase tracking-[0.14em]">
         {stationen.map((station, i) => (
           <li key={station.text} className="flex items-center gap-x-1.5">

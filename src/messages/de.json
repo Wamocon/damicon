@@ -7,7 +7,9 @@
     "skipToContent": "Zum Inhalt springen",
     "themeLight": "Helles Design",
     "themeDark": "Dunkles Design",
-    "localeSwitcherLabel": "Sprachauswahl"
+    "localeSwitcherLabel": "Sprachauswahl",
+    "themeLabel": "Farbschema",
+    "laedt": "Die Seite wird geladen"
   },
   "notFound": {
     "message": "Diese Seite gibt es nicht.",
@@ -18,6 +20,7 @@
     "activePersona": "Aktive Rolle (Demo)",
     "overview": "Übersicht",
     "breadcrumb": "Navigationspfad",
+    "mainNav": "Hauptnavigation",
     "openMenu": "Menü öffnen",
     "closeMenu": "Menü schließen",
     "collapseMenu": "Menü einklappen",
@@ -27,7 +30,9 @@
     "zones": "Vier Zonen",
     "proof": "Belegbarkeit",
     "kpis": "Kennzahlen",
-    "compliance": "Compliance"
+    "compliance": "Compliance",
+    "account": "Konto",
+    "menu": "Menü"
   },
   "hero": {
     "badge": "Betriebssteuerung für die Himbeerplantage · Umland Almaty",
@@ -384,7 +389,9 @@
       "picker": "Sieht ausschließlich die eigene Pflückleistung und Lohnabrechnung. Keine Schreibrechte auf gebuchte Mengen oder auf Daten anderer.",
       "erzeuger": "Nachbarbetrieb im Zukauf. Sieht eigene Reihenblöcke, Chargen, Abrechnung und Verträge.",
       "kunde": "Kontingente, Vorbestellung, Preislisten, KI-Chat, freigegebene Dokumente und eigene Reklamationen."
-    }
+    },
+    "switcherLabel": "Demo-Rolle",
+    "viewAsLabel": "Ansicht als"
   },
   "klassifikation": {
     "uebernehmen": "Übernehmen",
@@ -1117,7 +1124,8 @@
     "note": "Identitäten und Rollen liegen quer über allen vier Bereichen - zusammen mit Protokollierung, Verschlüsselung und Mehrfaktor-Authentifizierung.",
     "level": "Stufe",
     "catiRole": {
-      "keine": "keine Entsprechung - neu ab Anforderung 7.1"
+      "keine": "keine Entsprechung - neu ab Anforderung 7.1",
+      "label": "Vorsystem 1Çatı"
     },
     "scopeWert": {
       "betrieb": "Betrieb",
@@ -1898,7 +1906,8 @@
     },
     "transparenzHinweisAgent": "Diese Antworten stammen von einer KI, nicht von einem Mitarbeiter. Betriebsdaten kommen live aus der Anwendung und erscheinen als Schritte unter der Antwort, alles andere ist Allgemeinwissen und wird so gekennzeichnet.",
     "pruefBezug": "Bezug: Prüfbericht {id}",
-    "pruefBezugEntfernen": "Bezug zum Prüfbericht entfernen"
+    "pruefBezugEntfernen": "Bezug zum Prüfbericht entfernen",
+    "mehr": "Mehr"
   },
   "legal": {
     "imprintTitle": "Impressum",
