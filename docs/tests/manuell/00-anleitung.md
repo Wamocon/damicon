@@ -1,16 +1,28 @@
 # Manueller Test Damicon: Gesamtanleitung
 
-Stand 20.09.2026. Checklistenbasierter explorativer Test aus Anwendersicht, eine Datei je Rolle.
+Stand 20.09.2026. Checklistenbasierter explorativer Test aus Anwendersicht.
 
-| Datei | Rolle | Testfaelle |
-|---|---|---|
-| `01-admin.md` | Admin | 7 |
-| `02-betriebsleitung.md` | Betriebsleitung | 6 |
-| `03-buchhaltung.md` | Buchhaltung | 7 |
-| `04-brigade.md` | Brigade | 6 |
-| `05-picker.md` | Pflücker | 5 |
-| `06-erzeuger.md` | Erzeuger (Nachbarbetrieb) | 5 |
-| `07-kunde.md` | B2B-Kunde | 7 (davon 1 ohne Anmeldung) |
+## Womit getestet wird
+
+**Zum Ausfuellen die Excel-Dateien benutzen.** Sie haben Auswahllisten, gelb hinterlegte Eingabefelder und rechnen den Stand selbst zusammen.
+
+| Datei | Inhalt |
+|---|---|
+| **`damicon-testfaelle.xlsx`** | Alles in einer Mappe: Anleitung, Auswertung, sieben Rollenblaetter, Fundliste. **Fuer eine Person, die alles durchgeht.** |
+| `testfaelle-<rolle>.xlsx` | Je Rolle einzeln, mit Anleitung und Fundliste. **Wenn mehrere parallel testen.** |
+| `0x-<rolle>.md` | Nur lesbare Vorschau, keine Ergebnisspalten. Damit Aenderungen an den Testfaellen in der Codeverwaltung sichtbar bleiben. |
+
+Beide Fassungen entstehen aus `scripts/testfaelle-xlsx-erzeugen.mjs`. Wer Testfaelle aendert, aendert sie dort und erzeugt neu.
+
+| Rolle | Testfaelle |
+|---|---|
+| Admin | 7 |
+| Betriebsleitung | 6 |
+| Buchhaltung | 7 |
+| Brigade | 6 |
+| Pflücker | 5 |
+| Erzeuger (Nachbarbetrieb) | 5 |
+| B2B-Kunde | 7 (davon 1 ohne Anmeldung) |
 
 Zusammen 43 Testfaelle. Reine Durchsicht ohne Fehler dauert erfahrungsgemaess 3 bis 4 Stunden.
 
@@ -64,11 +76,13 @@ Die uebrigen Testfaelle sind unabhaengig und in beliebiger Reihenfolge moeglich.
 
 ## 3. So wird ausgefuellt
 
-Jede Zeile ist ein Testfall. Die drei letzten Spalten sind leer und werden beim Testen gefuellt:
+Jede Zeile ist ein Testfall. Die drei **gelben** Spalten rechts werden beim Testen gefuellt, alles andere bleibt stehen:
 
-- **Ergebnis:** `OK`, `NOK` oder `blockiert` (nicht pruefbar, weil eine Voraussetzung fehlt)
+- **Ergebnis:** Auswahlliste mit `OK`, `NOK`, `blockiert` (Voraussetzung fehlt) und `offen`. Die Zelle faerbt sich von selbst, und das Blatt "Auswertung" zaehlt mit.
 - **Beobachtung:** nur bei NOK oder blockiert. Was war anders als erwartet? Genau das, was am Bildschirm stand, nicht die Deutung.
 - **Datum / Tester:** Kuerzel genuegt.
+
+Unter jeder Rollentabelle stehen ausserdem zwei gelbe Kaesten fuer **freie Funde** und den **Gesamteindruck**. Jedes NOK gehoert zusaetzlich ins Blatt **"Funde"**, dort steht eine Beispielzeile als Muster, die vor der Abgabe geloescht wird.
 
 Bei NOK zusaetzlich:
 
@@ -126,4 +140,4 @@ Nach dem Durchlauf je Rolle unten in der Datei ausfuellen:
 - Freie Funde
 - Gesamteindruck in zwei Saetzen aus Sicht dieser Rolle: Koennte diese Person damit arbeiten?
 
-Die ausgefuellten Dateien und die Bildschirmfotos zurueck an das Projektteam.
+Die ausgefuellten Excel-Dateien und die Bildschirmfotos zurueck an das Projektteam.
