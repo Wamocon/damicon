@@ -50,6 +50,12 @@ import {
   transkriptionZeitlimitMs,
   transkriptionZugangsHeader,
 } from "../../src/lib/ai/transkription-client.ts";
+import {
+  DIKTAT_STANDARD,
+  diktatEinstellungen,
+  erzeugeStilleWaechter,
+  pegelAusZeitbereich,
+} from "../../src/lib/domain/diktat.ts";
 import { readFileSync } from "node:fs";
 
 let bestanden = 0;
@@ -653,6 +659,129 @@ for (const [name, kaputteAntwort] of [
   pruefe("Antwortsprache: eine Frage ohne Hinweis faellt auf die Oberflaeche zurueck", fall(["47?"], "ru") === "ru");
   pruefe("Antwortsprache: ein leeres Gespraech faellt auf die Oberflaeche zurueck", antwortSprache([], "kk") === "kk");
   pruefe("Antwortsprache: eine unbekannte Oberflaechensprache endet bei Deutsch", antwortSprache([], "xx") === "de");
+}
+
+// --- 7. Diktat: Stilleerkennung (domain/diktat.ts) --------------------------
+// Die Aufnahme endet von selbst, wenn jemand aufhoert zu sprechen. Die beiden
+// Risiken stehen gegeneinander: zu frueh abschalten schneidet mitten im Satz
+// ab, zu spaet schickt Umgebungsgeraeusch zur Erkennung. Die Faelle unten
+// spielen beides durch - mit erfundenen Pegelverlaeufen, ohne Browser.
+{
+  // Einen Pegelverlauf abspielen: je Eintrag [Pegel, Dauer in ms], in
+  // Schritten von 50 ms (etwa drei Bildschirmbilder).
+  function spiele(abschnitte, einstellungen = DIKTAT_STANDARD) {
+    const waechter = erzeugeStilleWaechter(einstellungen);
+    let jetzt = 0;
+    for (const [pegel, dauer] of abschnitte) {
+      for (let verbraucht = 0; verbraucht < dauer; verbraucht += 50) {
+        const ergebnis = waechter.melde(pegel, jetzt);
+        if (ergebnis !== "weiter") return { ergebnis, beiMs: jetzt, waechter };
+        jetzt += 50;
+      }
+    }
+    return { ergebnis: "weiter", beiMs: jetzt, waechter };
+  }
+
+  const STILL = 0.004;
+  const SPRACHE = 0.18;
+
+  {
+    const { ergebnis, beiMs } = spiele([[STILL, 200], [SPRACHE, 2000], [STILL, 3000]]);
+    pruefe("Diktat: nach dem Sprechen endet die Aufnahme von selbst", ergebnis === "stopp-stille", `${ergebnis} bei ${beiMs} ms`);
+    // Das letzte laute Bild liegt bei 2150 ms (Raster von 50 ms); von da an
+    // muss die eingestellte Stille vergehen - auf ein Bild genau.
+    const letzterLaut = 2150;
+    pruefe(
+      "Diktat: sie endet erst nach der eingestellten Stille, nicht frueher",
+      beiMs >= letzterLaut + DIKTAT_STANDARD.stilleMs && beiMs <= letzterLaut + DIKTAT_STANDARD.stilleMs + 50,
+      `${beiMs} ms, letzter Laut bei ${letzterLaut} ms`,
+    );
+  }
+
+  {
+    // Der wichtigste Fall: Denkpause mitten im Satz. Wer "Die Kuehlkette ist
+    // ... einwandfrei" sagt, darf nicht nach dem "ist" abgeschnitten werden.
+    const pause = DIKTAT_STANDARD.stilleMs - 400;
+    const { ergebnis } = spiele([[SPRACHE, 1500], [STILL, pause], [SPRACHE, 1500], [STILL, 400]]);
+    pruefe(`Diktat: eine Pause von ${pause} ms mitten im Satz beendet die Aufnahme NICHT`, ergebnis === "weiter", ergebnis);
+  }
+
+  {
+    const { ergebnis, beiMs, waechter } = spiele([[STILL, 10_000]]);
+    pruefe("Diktat: wird gar nicht gesprochen, endet die Aufnahme als leer", ergebnis === "stopp-leer", `${ergebnis} bei ${beiMs} ms`);
+    pruefe("Diktat: und sie gilt als 'nichts gesprochen'", !waechter.hatGesprochen());
+    pruefe("Diktat: das dauert hoechstens die Anlaufzeit", beiMs <= DIKTAT_STANDARD.anlaufMs + 100, `${beiMs} ms`);
+  }
+
+  {
+    // Hofumgebung: ein Kuehlaggregat laeuft durchgehend mit, lauter als die
+    // Grundschwelle. Ohne Anpassung an das Grundrauschen wuerde das als
+    // Sprache gelten und die Aufnahme liefe bis zur Hoechstdauer.
+    const LAERM = 0.05;
+    pruefe(
+      "Diktat: Dauerlaerm liegt ueber der Grundschwelle (sonst pruefte der Fall nichts)",
+      LAERM > DIKTAT_STANDARD.stillePegel,
+    );
+    const { ergebnis, waechter } = spiele([[LAERM, 500], [SPRACHE, 1500], [LAERM, 2500]]);
+    pruefe("Diktat: bei Dauerlaerm wird die Schwelle angehoben und die Aufnahme endet trotzdem", ergebnis === "stopp-stille", ergebnis);
+    pruefe(
+      "Diktat: die Schwelle richtet sich nach dem Grundrauschen, nicht nach dem Standardwert",
+      waechter.schwelle() > DIKTAT_STANDARD.stillePegel && waechter.schwelle() <= LAERM * DIKTAT_STANDARD.rauschFaktor + 1e-9,
+      `Schwelle ${waechter.schwelle().toFixed(3)}`,
+    );
+    const nurLaerm = spiele([[LAERM, 6000]]);
+    pruefe("Diktat: Dauerlaerm allein zaehlt nicht als Sprache", nurLaerm.ergebnis === "stopp-leer", nurLaerm.ergebnis);
+  }
+
+  {
+    // Wer sofort nach dem Klick losspricht, liefert als ersten Messwert einen
+    // lauten. Ohne rauschDeckel wuerde die eigene Stimme zum Grundrauschen
+    // erklaert - die Aufnahme endete als "leer", obwohl gesprochen wurde.
+    const { ergebnis, waechter } = spiele([[SPRACHE, 2500], [STILL, 2000]]);
+    pruefe("Diktat: sofortiges Lossprechen wird als Sprache erkannt, nicht als Grundrauschen", waechter.hatGesprochen(), `Schwelle ${waechter.schwelle().toFixed(3)}`);
+    pruefe("Diktat: und die Aufnahme endet danach ordentlich", ergebnis === "stopp-stille", ergebnis);
+  }
+
+  {
+    const kurz = { ...DIKTAT_STANDARD, hoechstdauerMs: 3000 };
+    const { ergebnis, beiMs } = spiele([[SPRACHE, 10_000]], kurz);
+    pruefe("Diktat: ununterbrochenes Reden endet an der Hoechstdauer", ergebnis === "stopp-hoechstdauer", `${ergebnis} bei ${beiMs} ms`);
+  }
+
+  {
+    // Ein kurzes Huesteln direkt nach dem Start darf die Aufnahme nicht
+    // sofort wieder beenden.
+    const { ergebnis } = spiele([[SPRACHE, 100], [STILL, 500]], { ...DIKTAT_STANDARD, stilleMs: 300 });
+    pruefe("Diktat: die Mindestdauer schuetzt vor einem Abschalten im ersten Atemzug", ergebnis === "weiter", ergebnis);
+  }
+
+  // Pegelberechnung: 8-Bit-Zeitbereich mit Ruhelage 128.
+  pruefe("Pegel: absolute Stille ergibt 0", pegelAusZeitbereich(new Uint8Array(64).fill(128)) === 0);
+  pruefe("Pegel: Vollausschlag ergibt 1", Math.abs(pegelAusZeitbereich(new Uint8Array(64).fill(0)) - 1) < 1e-9);
+  {
+    const wechsel = Uint8Array.from({ length: 64 }, (_, i) => (i % 2 ? 128 + 64 : 128 - 64));
+    pruefe("Pegel: halber Ausschlag ergibt 0,5", Math.abs(pegelAusZeitbereich(wechsel) - 0.5) < 1e-9);
+  }
+  pruefe("Pegel: leeres Fenster ergibt 0 statt NaN", pegelAusZeitbereich(new Uint8Array(0)) === 0);
+
+  // Nachstellen ohne Codeaenderung - und ein Tippfehler in der Umgebung darf
+  // das Diktat nicht unbrauchbar machen.
+  {
+    const gesetzt = diktatEinstellungen({ NEXT_PUBLIC_DIKTAT_STILLE_PEGEL: "0.05", NEXT_PUBLIC_DIKTAT_STILLE_MS: "900" });
+    pruefe("Diktat: Schwelle und Wartezeit lassen sich ueber die Umgebung nachstellen", gesetzt.stillePegel === 0.05 && gesetzt.stilleMs === 900);
+    for (const [name, umgebung] of [
+      ["leer", {}],
+      ["keine Zahl", { NEXT_PUBLIC_DIKTAT_STILLE_PEGEL: "laut", NEXT_PUBLIC_DIKTAT_STILLE_MS: "lang" }],
+      ["ausserhalb des Bereichs", { NEXT_PUBLIC_DIKTAT_STILLE_PEGEL: "9", NEXT_PUBLIC_DIKTAT_STILLE_MS: "0" }],
+      ["negativ", { NEXT_PUBLIC_DIKTAT_STILLE_PEGEL: "-1", NEXT_PUBLIC_DIKTAT_STILLE_MS: "-500" }],
+    ]) {
+      const e = diktatEinstellungen(umgebung);
+      pruefe(
+        `Diktat: unsinnige Einstellung (${name}) faellt auf den Standard zurueck`,
+        e.stillePegel === DIKTAT_STANDARD.stillePegel && e.stilleMs === DIKTAT_STANDARD.stilleMs,
+      );
+    }
+  }
 }
 
 console.log("\n" + "-".repeat(58));
