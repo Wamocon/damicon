@@ -343,6 +343,17 @@ export function Himbi({
           <path d={funke(78, 30, 4)} fill="#ffd166" />
         </g>
 
+        {/* Damicon-Siegel als kleine Anstecknadel am Kragen, oben auf dem Chapan. Dieselbe
+         *  Bildmarke wie im Kopf der Seite (components/brand/damicon-logo.tsx), nur ohne die
+         *  Sonnenstrahlen und die Steppenlinie - die verschwinden schon im Siegel selbst
+         *  unter 24 Pixeln (siehe Kommentar dort) und hier ist die Nadel kaum 8 Pixel breit.
+         *  Nach dem Koerper gezeichnet, sonst deckt die Beere sie zu. */}
+        <g transform="translate(48 101)">
+          <rect x="-4.4" y="-4.4" width="8.8" height="8.8" rx="1.9" fill="#00768f" />
+          <circle r="3.1" fill="none" stroke="#f4f1ea" strokeWidth="0.9" />
+          <circle r="1.6" fill="#ff5c7a" />
+        </g>
+
         {/* Drei Sterne auf dem Chapan, nur klickbar mit aufAbzeichen - alle drei oeffnen
          *  dasselbe Abzeichen (abzeichen-modal.tsx). Ganz zuletzt gezeichnet, damit sie ueber
          *  allem liegen und der Klick nie an Koerper oder Aermel haengen bleibt.
