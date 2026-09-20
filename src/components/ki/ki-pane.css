@@ -1182,8 +1182,9 @@ html[data-ki-zieht] body {
 
 /* ---- Belege: Zitat-Marken und Quellenkarten (ki-quellen.tsx) -------------- */
 .ki-zitat {
-  display: inline-grid;
-  place-items: center;
+  /* inline-block statt grid: so steht die Vorschau (position: absolute) auf der Zeile der Marke. */
+  display: inline-block;
+  text-align: center;
   min-width: 1.15rem;
   height: 1.15rem;
   padding: 0 0.25rem;
@@ -1193,7 +1194,7 @@ html[data-ki-zieht] body {
   border-radius: 999px;
   font-size: 0.66rem;
   font-weight: 750;
-  line-height: 1;
+  line-height: calc(1.15rem - 2px);
   color: var(--himbeere);
   background: color-mix(in oklab, var(--himbeere) 9%, transparent);
   cursor: pointer;
@@ -1201,6 +1202,68 @@ html[data-ki-zieht] body {
 .ki-zitat:hover {
   color: #fff;
   background: var(--himbeere);
+}
+/* Farbe nach Autoritaet: gruen = Gesetzestext, blau = amtlich, gelb = Fachquelle, grau = Presse */
+.ki-zitat--recht, .ki-quelle--recht, .ki-quellen__punkt--recht { --akzent: #178a5f; }
+.ki-zitat--untergesetzlich, .ki-quelle--untergesetzlich, .ki-quellen__punkt--untergesetzlich { --akzent: #1d7fa8; }
+.ki-zitat--erlaeuterung, .ki-quelle--erlaeuterung, .ki-quellen__punkt--erlaeuterung { --akzent: #3b6fd1; }
+.ki-zitat--fachquelle, .ki-quelle--fachquelle, .ki-quellen__punkt--fachquelle { --akzent: #b7791f; }
+.ki-zitat--presse, .ki-quelle--presse, .ki-quellen__punkt--presse { --akzent: #7a828d; }
+.ki-zitat--unbekannt, .ki-quelle--unbekannt, .ki-quellen__punkt--unbekannt { --akzent: var(--himbeere); }
+.ki-zitat[class*="ki-zitat--"]:not(.ki-zitat--unbelegt) {
+  border-color: color-mix(in oklab, var(--akzent) 55%, var(--border));
+  color: var(--akzent);
+  background: color-mix(in oklab, var(--akzent) 11%, transparent);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.ki-zitat[class*="ki-zitat--"]:not(.ki-zitat--unbelegt):hover,
+.ki-zitat[class*="ki-zitat--"]:not(.ki-zitat--unbelegt):focus-visible {
+  color: #fff;
+  background: var(--akzent);
+}
+/* Vorschau beim Darueberfahren: volle Breite des Antworttexts, damit sie am Rand nie abgeschnitten wird. */
+.ki-nachricht--assistent .ki-md {
+  position: relative;
+}
+.ki-zitat__vorschau {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  margin-top: 1.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--akzent, var(--himbeere));
+  border-radius: 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 450;
+  line-height: 1.15rem;
+  text-align: left;
+  color: var(--card-foreground);
+  background: var(--card);
+  box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.35);
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+.ki-zitat:hover .ki-zitat__vorschau,
+.ki-zitat:focus-visible .ki-zitat__vorschau {
+  opacity: 1;
+  transform: translateY(0);
+}
+.ki-zitat__vorschau-stufe {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--akzent, var(--himbeere));
+}
+.ki-zitat__vorschau > span:last-child {
+  color: var(--muted-foreground);
 }
 .ki-zitat--unbelegt {
   border-style: dashed;
@@ -1215,12 +1278,79 @@ html[data-ki-zieht] body {
   border-top: 1px solid var(--border);
 }
 .ki-quellen__titel {
-  margin: 0 0 0.5rem;
   font-size: 0.68rem;
   font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted-foreground);
+}
+.ki-quellen__kopf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.6rem;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+.ki-quellen__kopf::-webkit-details-marker {
+  display: none;
+}
+.ki-quellen__kopf:focus-visible {
+  outline: 2px solid var(--himbeere);
+  outline-offset: 3px;
+  border-radius: 0.5rem;
+}
+.ki-quellen__pfeil {
+  flex: none;
+  color: var(--muted-foreground);
+  transition: transform 0.18s ease;
+}
+.ki-quellen[open] .ki-quellen__pfeil {
+  transform: rotate(90deg);
+}
+.ki-quellen[open] > .ki-quellen__liste {
+  margin-top: 0.6rem;
+}
+.ki-quellen__lage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1 1 14rem;
+  gap: 0.3rem 0.7rem;
+  margin: 0;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid color-mix(in oklab, var(--lage) 35%, var(--border));
+  border-radius: 0.7rem;
+  background: color-mix(in oklab, var(--lage) 8%, transparent);
+}
+.ki-quellen__lage--gestuetzt {
+  --lage: #178a5f;
+}
+.ki-quellen__lage--fach {
+  --lage: #b7791f;
+}
+.ki-quellen__urteil {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--lage);
+}
+.ki-quellen__zaehlung {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.6rem;
+  font-size: 0.68rem;
+  color: var(--muted-foreground);
+}
+.ki-quellen__punkt::before {
+  content: "";
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: 0.3rem;
+  border-radius: 999px;
+  background: var(--akzent, var(--himbeere));
 }
 .ki-quellen__liste {
   display: flex;
@@ -1233,12 +1363,9 @@ html[data-ki-zieht] body {
 .ki-quelle {
   padding: 0.6rem 0.7rem;
   border: 1px solid var(--border);
-  border-left: 3px solid var(--himbeere);
+  border-left: 3px solid var(--akzent, var(--himbeere));
   border-radius: 0.7rem;
-  background: color-mix(in oklab, var(--card) 92%, var(--himbeere) 3%);
-}
-.ki-quelle--auskunft {
-  border-left-color: var(--muted-foreground);
+  background: color-mix(in oklab, var(--card) 94%, var(--akzent, var(--himbeere)) 4%);
 }
 .ki-quelle__kopf {
   display: flex;
@@ -1255,7 +1382,14 @@ html[data-ki-zieht] body {
   font-size: 0.7rem;
   font-weight: 800;
   color: #fff;
-  background: var(--himbeere);
+  background: var(--akzent, var(--himbeere));
+}
+.ki-quelle__stufe {
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  font-weight: 750;
+  color: var(--akzent, var(--himbeere));
+  background: color-mix(in oklab, var(--akzent, var(--himbeere)) 12%, transparent);
 }
 .ki-quelle__stelle {
   margin: 0;
