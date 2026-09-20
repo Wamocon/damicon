@@ -154,7 +154,7 @@ export function UntereLeiste() {
         aria-label={nav("mainNav")}
         className="fixed inset-x-0 bottom-0 z-50 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden print:hidden"
       >
-        <ul className="flex items-center justify-around gap-1 rounded-full border border-border bg-card-deckend p-1.5 shadow-lg shadow-black/10">
+        <ul className="flex items-center justify-around gap-1 rounded-full border border-border bg-schwebend p-1.5 shadow-lg shadow-black/10">
           <li className="flex-1">
             <LeistenKnopf
               label={nav("openMenu")}

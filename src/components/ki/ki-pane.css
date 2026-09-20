@@ -200,6 +200,16 @@ html[data-ki-zieht] body {
   .ki-pane {
     border-left: 0;
     border-radius: inherit;
+    /* Deckend, und zwar mit demselben Ton wie die untere Leiste und die
+       Blaetter, die von ihr aufgehen (--schwebend in globals.css).
+
+       Am Schreibtisch ist .ki-pane eine angedockte Spalte NEBEN dem Inhalt,
+       und dort ist var(--card) richtig: im Dark Mode zu 26 Prozent
+       durchsichtig, wodurch der Rasterhintergrund des Dashboards
+       durchscheint. Hier liegt dieselbe Flaeche als Blatt UEBER der Seite -
+       und durch ein Blatt, das 92 Prozent der Hoehe einnimmt, sah man den
+       Inhalt darunter hindurchscheinen. */
+    background: var(--schwebend);
   }
   /* Der Kopf ist zugleich die Griffkante des Blatts. */
   .ki-pane__kopf {

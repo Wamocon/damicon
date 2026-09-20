@@ -75,6 +75,7 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --color-card-deckend: var(--card-deckend);
+  --color-schwebend: var(--schwebend);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
   --radius-sm: calc(var(--radius) * 0.6);
@@ -114,8 +115,27 @@
      einer Matrix liefen beim Querscrollen die Zellen sichtbar hindurch.
 
      Der dunkle Wert ist genau der Ton, den rgba(9,33,41,.74) ueber dem
-     Seitengrund ergibt - optisch identisch, nur eben deckend. */
+     Seitengrund ergibt - optisch identisch, nur eben deckend.
+
+     Genau deshalb gehoert die untere Leiste NICHT hierher, siehe --schwebend
+     unten: was ueber dem Inhalt schwebt, soll sich vom Grund abheben und
+     nicht mit ihm verschmelzen. Hier geht es nur darum, eine Flaeche
+     undurchsichtig zu machen, die aussieht wie eine Karte - die
+     festgehaltene erste Spalte einer Matrix. */
   --card-deckend: #ffffff;
+  /* Flaechen, die ueber dem Inhalt schweben: die untere Navigationsleiste und
+     die Blaetter, die von ihr aufgehen.
+
+     Im Hellen ist das Weiss, wie bei einer Karte - der Rand (--border,
+     #dbe8ec) traegt dort die Abgrenzung zum Seitengrund.
+
+     Im Dunkeln reicht das nicht: --border ist dort rgba(255,255,255,.09),
+     also praktisch unsichtbar, und ein deckendes Kartentoken liegt mit
+     1,08:1 so dicht am Seitengrund, dass die Leiste aussieht, als waere sie
+     durchsichtig. Sie war es nicht, sie war nur nicht zu erkennen. Der Wert
+     unten steht bei 1,54:1 gegen den Grund und traegt den Vordergrundton
+     weiterhin mit 10,7:1, also weit ueber den 4,5:1 nach WCAG 1.4.3. */
+  --schwebend: #ffffff;
   --card-foreground: #0b1e26;
   --popover: #ffffff;
   --popover-foreground: #0b1e26;
@@ -174,6 +194,11 @@
   --foreground: #e6f4f8;
   --card: rgba(9, 33, 41, 0.74);
   --card-deckend: #081e26;
+  /* Siehe den Kommentar im hellen Block: deutlich heller als der Seitengrund
+     (#04161c), damit die schwebende Leiste als eigene Flaeche zu erkennen
+     ist. Der Sprung von #081e26 auf diesen Wert ist der Unterschied zwischen
+     1,08:1 und 1,54:1. */
+  --schwebend: #103b4a;
   --card-foreground: #e6f4f8;
   --popover: #06212a;
   --popover-foreground: #e6f4f8;
