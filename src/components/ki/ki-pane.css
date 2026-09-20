@@ -1458,23 +1458,57 @@ html[data-ki-zieht] body {
   flex: 0 0 auto;
   height: var(--ki-buehne-kopf);
 }
+/* Figur und Karte sollen ein Stueck sein, nicht zwei Dinge uebereinander. Darum:
+   dieselbe dunkle Flaeche wie die Blende, keine harte Kante oben, ein Schein, der nach
+   oben in die Kugel hinein ausblutet - und die Figur steht ein Stueck tief darin. */
 .ki-pane-huelle--buehne .ki-pane {
+  position: relative;
   width: var(--ki-buehne-breite);
   height: var(--ki-buehne-hoehe);
   max-height: 100%;
-  border: 1px solid var(--border);
-  border-radius: 1.75rem;
-  box-shadow: 0 40px 90px -30px rgb(0 0 0 / 0.55), 0 2px 12px -6px rgb(0 0 0 / 0.35);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-top-color: rgb(255 255 255 / 0.16);
+  border-radius: 2.25rem;
+  background: rgb(14 10 18 / 0.72);
+  color-scheme: dark;
+  box-shadow: 0 40px 100px -30px rgb(0 0 0 / 0.75), inset 0 1px 0 rgb(255 255 255 / 0.07);
   overflow: hidden;
   pointer-events: auto;
   transform: scale(0.96) translateY(1.25rem);
+}
+/* Der Uebergang nach oben: ein Schein an der Oberkante, der in derselben Farbe glimmt
+   wie die Kugel. Damit endet die Karte nicht, sie geht in die Figur ueber. */
+.ki-pane-huelle--buehne .ki-pane::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 11rem;
+  pointer-events: none;
+  background: radial-gradient(120% 100% at 50% 0%, rgb(150 70 220 / 0.34), rgb(19 112 143 / 0.12) 45%, transparent 72%);
+}
+/* Das Dunkel der Karte traegt die Schrift des hellen Themas nicht - hier gilt fuer alles
+   darin dieselbe Tafel wie fuer die Blende. */
+.ki-pane-huelle--buehne .ki-pane,
+.ki-pane-huelle--buehne .ki-pane * {
+  --card: rgb(28 22 34 / 0.74);
+  --card-foreground: #f2ecf5;
+  --muted: rgb(255 255 255 / 0.06);
+  --muted-foreground: #b6a9c2;
+  --border: rgb(255 255 255 / 0.12);
+  --foreground: #f2ecf5;
+  --background: transparent;
 }
 .ki-pane-huelle--buehne.ki-pane-huelle--offen .ki-pane {
   transform: none;
 }
 /* Himbi steht mit den Fuessen knapp auf der oberen Kante - der Titel rueckt darunter. */
+/* Die Figur steht ein gutes Stueck in der Karte. Der Kopfbereich rueckt so weit nach
+   unten, dass ihre Stiefel ueber der Schrift bleiben und nicht darauf. */
 .ki-pane-huelle--buehne .ki-pane__kopf {
-  padding-top: 1.1rem;
+  position: relative;
+  padding-top: 2.4rem;
+  border-bottom-color: rgb(255 255 255 / 0.08);
+  background: transparent;
 }
 @media (prefers-reduced-motion: no-preference) {
   .ki-pane-huelle--buehne {
@@ -1498,9 +1532,9 @@ html[data-ki-zieht] body {
   /* Deutlich dunkler als eine uebliche Blende: die Frequenzkugel hinter Himbi
      (haustier/wellen.tsx) zeichnet additiv, ihre Linien brauchen einen dunklen Grund.
      Sonst traegt sie im hellen Thema nicht. */
-  background: rgb(10 6 14 / 0.58);
-  backdrop-filter: blur(16px) saturate(0.85);
-  -webkit-backdrop-filter: blur(16px) saturate(0.85);
+  background: rgb(6 4 9 / 0.82);
+  backdrop-filter: blur(20px) saturate(0.8);
+  -webkit-backdrop-filter: blur(20px) saturate(0.8);
   opacity: 0;
   pointer-events: none;
 }
@@ -1682,4 +1716,14 @@ html[data-ki-zieht] body {
   50% {
     transform: translate3d(-10vmax, -14vmax, 0) scale(1.22);
   }
+}
+
+/* Streifen neben dem Diktatknopf (mikrofon-welle.tsx). Er erbt die Farbe vom Knopf,
+   damit er nicht als Fremdkoerper daneben steht. */
+.ki-mikrofon__welle {
+  display: block;
+  width: 5.5rem;
+  height: 1.4rem;
+  color: var(--himbeere);
+  pointer-events: none;
 }

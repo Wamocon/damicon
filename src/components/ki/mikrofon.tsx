@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Mic, Square } from "lucide-react";
+import { MikrofonWelle } from "@/components/ki/mikrofon-welle";
 import { transkribiereSprachnachricht } from "@/lib/actions/ki-assistent";
+import { starteHoeren, stoppeHoeren } from "@/lib/hoeren";
 import { leer } from "@/lib/actions/status";
 import { cn } from "@/lib/utils";
 
@@ -39,6 +41,7 @@ export function MikrofonKnopf({
         r.stream.getTracks().forEach((spur) => spur.stop());
         r.stop();
       }
+      stoppeHoeren();
     };
   }, []);
 
@@ -54,6 +57,7 @@ export function MikrofonKnopf({
       };
 
       recorder.onstop = async () => {
+        stoppeHoeren();
         strom.getTracks().forEach((spur) => spur.stop());
         const aufnahme = new Blob(teile, { type: recorder.mimeType || "audio/webm" });
         if (aufnahme.size === 0) {
@@ -76,6 +80,10 @@ export function MikrofonKnopf({
 
       recorder.start();
       recorderRef.current = recorder;
+      // Denselben Strom auch mithoeren: daraus speist sich der Streifen neben dem Knopf
+      // und die Frequenzkugel hinter der Figur (lib/hoeren.ts). Schlaegt das fehl,
+      // aendert sich nur, dass beide weiter nach Uhr schwingen statt nach Stimme.
+      starteHoeren(strom);
       setZustand("aufnahme");
     } catch {
       // Kein Mikrofon, keine Erlaubnis, kein HTTPS - fuer die Nutzerin
@@ -110,6 +118,7 @@ export function MikrofonKnopf({
           <Mic className="h-4 w-4" />
         )}
       </button>
+      {zustand === "aufnahme" ? <MikrofonWelle /> : null}
       {meldung ? <span className="ki-mikrofon__meldung">{meldung}</span> : null}
     </>
   );

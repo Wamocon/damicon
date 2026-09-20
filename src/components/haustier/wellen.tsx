@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import type { HaustierZustand } from "@/lib/haustier";
+import { lesePegel } from "@/lib/hoeren";
 
 // Die Frequenzkugel hinter Himbi auf der Buehne: ineinanderliegende Ringe, deren Radius
 // von einer Summe aus drei Sinuswellen verformt wird. Weil die drei Wellen verschiedene
@@ -72,6 +73,7 @@ export function Wellen({ zustand }: { zustand: HaustierZustand }) {
     const ruhig = window.matchMedia("(prefers-reduced-motion: reduce)");
     let frame = 0;
     let zeit = 0;
+    let stimme = 0;
     let breite = 0;
     let hoehe = 0;
     const ist = { staerke: 0.075, tempo: 0.38, leuchten: 0.62 };
@@ -94,6 +96,15 @@ export function Wellen({ zustand }: { zustand: HaustierZustand }) {
       ist.tempo += (z.tempo - ist.tempo) * 0.05;
       ist.leuchten += (z.leuchten - ist.leuchten) * 0.05;
 
+      // Laeuft gerade eine Aufnahme, schwingt die Kugel nach der Stimme statt nach der
+      // Uhr (lib/hoeren.ts). Ohne Mikrofon steht der Pegel auf 0 und es bleibt wie zuvor.
+      // Die Stimme folgt schneller als der Zustand - sonst kaeme sie dem Sprechen
+      // hinterher und wirkte wie eine Aufzeichnung.
+      const pegel = lesePegel();
+      stimme += (pegel - stimme) * 0.28;
+      const staerke = ist.staerke * (1 + stimme * 3.4);
+      const leuchten = Math.min(1.3, ist.leuchten * (1 + stimme * 1.1));
+
       ctx.clearRect(0, 0, breite, hoehe);
       ctx.globalCompositeOperation = "lighter";
       ctx.lineWidth = 1.15;
@@ -114,7 +125,7 @@ export function Wellen({ zustand }: { zustand: HaustierZustand }) {
             0.44 * Math.sin(3 * w + phase) +
             0.28 * Math.sin(5 * w - phase * 1.31 + ring * 0.7) +
             0.18 * Math.sin(8 * w + phase * 0.67 - ring * 0.4);
-          const r = radius * (1 + ist.staerke * schwingung);
+          const r = radius * (1 + staerke * schwingung);
           const x = mx + Math.cos(w) * r;
           // Leicht gestaucht: eine perfekte Kreisscheibe wirkt wie ein Logo, eine
           // gestauchte wie etwas, das im Raum steht.
@@ -126,7 +137,7 @@ export function Wellen({ zustand }: { zustand: HaustierZustand }) {
 
         // Die Farbe wandert langsam durch die Rampe, damit die Kugel nicht starr wirkt.
         const [r, g, b] = farbe((anteil + zeit * 0.02) % 1);
-        const deckung = (0.1 + 0.32 * (1 - anteil)) * ist.leuchten;
+        const deckung = (0.1 + 0.32 * (1 - anteil)) * leuchten;
         ctx.strokeStyle = `rgb(${r.toFixed(0)} ${g.toFixed(0)} ${b.toFixed(0)} / ${deckung.toFixed(3)})`;
         ctx.stroke();
       }
@@ -134,7 +145,8 @@ export function Wellen({ zustand }: { zustand: HaustierZustand }) {
     };
 
     const schritt = () => {
-      zeit += 0.016;
+      // Beim Sprechen laeuft auch die Zeit schneller - das Muster wandert mit der Stimme.
+      zeit += 0.016 * (1 + stimme * 1.6);
       zeichne();
       frame = window.requestAnimationFrame(schritt);
     };

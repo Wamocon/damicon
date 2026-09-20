@@ -1404,7 +1404,7 @@ html[data-ki-zieht] .haustier__verschiebung {
   transform: translate3d(
       calc(-50vw + 20px + var(--hb-breite) / 2),
       calc(
-        20px + 0.4rem - 50svh - var(--ki-buehne-hoehe, 40rem) / 2 + var(--ki-buehne-kopf, 7.5rem) / 2
+        20px + 2.4rem - 50svh - var(--ki-buehne-hoehe, 40rem) / 2 + var(--ki-buehne-kopf, 7.5rem) / 2
       ),
       0
     )
