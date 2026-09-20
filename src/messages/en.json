@@ -16,10 +16,13 @@
   "nav": {
     "platformSubtitle": "Raspberry plantation management",
     "activePersona": "Active role (demo)",
-    "activeRole": "Signed in as",
     "overview": "Overview",
+    "breadcrumb": "Breadcrumb",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
+    "collapseMenu": "Collapse menu",
+    "expandMenu": "Expand menu",
+    "toggleZone": "Expand or collapse {zone}",
     "portal": "Open portal",
     "zones": "Four zones",
     "proof": "Traceability",
@@ -365,6 +368,7 @@
   "roles": {
     "switcherHint": "Switch demo role - controls the visible navigation",
     "viewAsHint": "View as role - changes the presentation only; write permissions still follow your profile",
+    "viewAsBadge": "Viewing as: {role}",
     "admin": "Administration",
     "betriebsleitung": "Farm management",
     "buchhaltung": "Accounting",
@@ -544,156 +548,182 @@
   "modules": {
     "standort": {
       "title": "Location hierarchy",
+      "navTitle": "Locations",
       "description": "Farm, plantation, field plot, row group, row block - a digital field map with a unique row and block identifier along the trellises.",
       "summary": "Field map with row blocks on the trellis, variety, planting year, cane type and trellis orientation per block.",
       "todo": "Admin interface to create and move plots and row groups, field-geometry editor."
     },
     "reihenbloecke": {
       "title": "Row blocks and status",
+      "navTitle": "Row blocks",
       "description": "Every row block has one status: planted, ready to harvest, dormant, pruning or harvest-locked. A locked block simply must not appear in the picking schedule.",
       "summary": "State machine per row block. A condition locks the harvest until it is met - here: until the pre-harvest interval expires.",
       "todo": "Status changes with a mandatory reason, fine-grained access rules per resource, history per row block."
     },
     "pflueckaufgaben": {
       "title": "Picking tasks with photo evidence",
+      "navTitle": "Picking tasks",
       "description": "A picking task per brigade and row block with target and actual volume, quality factor and photo evidence of the retail punnet right on the task.",
       "summary": "Task per brigade and row block, photo evidence of the retail punnet, volume and quality factor on the task.",
       "todo": "Offline capture in the field, evidence review with release and rework, link to quality-factor pay."
     },
     "pflanzenschutz": {
       "title": "Plant protection and pre-harvest interval",
+      "navTitle": "Plant protection",
       "description": "Every treatment is recorded with product, quantity, block, date and the person applying it, and locks the row block automatically until the statutory pre-harvest interval expires.",
       "summary": "Block-level treatment records with an automatic harvest lock. A breach is a legal and food-safety risk.",
       "todo": "Pesticide database with pre-harvest intervals, automatic release on deadline, mandatory record upload, residue proof per batch."
     },
     "rotationsplan": {
       "title": "Rotation plan / picking schedule",
+      "navTitle": "Rotation plan",
       "description": "A rolling picking schedule with an interval of two to three days per row block across the whole autumn harvest. One missed round destroys the block for that cycle.",
       "summary": "The first function to be built. The planning problem is not the forecast but the rotation over six weeks.",
       "todo": "Interval engine per row block, brigade assignment, conflict check against pre-harvest-interval locks, calendar export (.ics)."
     },
     "wetter": {
       "title": "Weather and growing degree days",
+      "navTitle": "Weather",
       "description": "A weather API link with growing-degree-days calculation for the volume forecast. Deliberately no machine learning in phase 1 - an explainable heuristic is enough.",
       "summary": "A simple weather interface with growing degree days per plot. Explainable, verifiable and validatable within a season.",
       "todo": "Weather-station or API link, growing degree days per plot, alert on shifted ripening windows."
     },
     "kuehlkette": {
       "title": "Cold-chain clock",
+      "navTitle": "Cold chain",
       "description": "Timing from picking to pre-cooling with a hard 60-minute threshold, temperature logger, target temperature 0 to 1 degree. Highest priority in the whole farm.",
       "summary": "The building block the entire price spread hangs on. Over 60 minutes the ware is only industrial ware the next day.",
       "todo": "Temperature-logger integration, batch clock from the picking time, alarm on threshold breach, KPI calculation."
     },
     "logistik": {
       "title": "Collection rounds and route planning",
+      "navTitle": "Collection rounds",
       "description": "Fixed collection rounds in the field so filled crates do not sit in the sun, plus route planning by the clients' delivery windows.",
       "summary": "Handover receipt with volume and temperature reconciliation (pre-cooling and transport), unbroken cold-chain evidence all the way to the customer.",
       "todo": "Route list per vehicle and delivery time windows (requirement 3.5 part 1) are still missing."
     },
     "qr_steigen": {
       "title": "QR crate identification",
+      "navTitle": "QR crates",
       "description": "QR labels for crates (linking to the public origin lookup), picker ID badges carrying the person's own badge code without biometrics, and a sign-in-free wall poster - all generated server-side as SVG and print-ready via the browser print function.",
       "summary": "The QR code carries identity from the field to the shop counter - the badge can be scanned by camera at the collection point to attribute a crate or work time to that person, instead of choosing them from a dropdown.",
       "todo": "A camera scan of the crate labels themselves (not just the picker badge) is not part of this build-out."
     },
     "esf": {
       "title": "Electronic delivery note (ЭСФ)",
+      "navTitle": "Delivery note (ЭСФ)",
       "description": "An electronic delivery note in line with the goods-accompanying-document obligation. Connected to the state ЭСФ system, no accounting of its own.",
       "summary": "Evidence chain from the batch to the delivery note, status feedback from the state system. Mandatory integration.",
       "todo": "Connection to ИС ЭСФ, evidence chain batch to delivery note, status feedback and retry."
     },
     "rollen": {
       "title": "Roles and permissions",
+      "navTitle": "Roles and permissions",
       "description": "Seven core roles, from administration through farm management and accounting to the brigade and the individual picker in the field, the grower and the B2B client - with a permission matrix over resources and actions.",
       "summary": "Roles as a clear data structure over resources by actions. New roles without touching the logic.",
       "todo": "User management, role assignment, fine-grained access rules per resource."
     },
     "finanzen": {
       "title": "Contribution margin and finance",
+      "navTitle": "Contribution margin",
       "description": "Cost centres per row block, cost objects per variety and per client. Contribution margin per kilogram, per row block, per variety and per harvest day - immutable postings.",
       "summary": "Contribution margin per row block, variety and harvest day. Postings are immutable (append only).",
       "todo": "Cost types per harvest day, B2B payment reconciliation, contribution-margin projection per variety."
     },
     "personal": {
       "title": "Picker register and brigades",
+      "navTitle": "Picker register",
       "description": "A person register with a picker ID badge, brigade assignment, output and quality factor per person across the season - the basis for bonuses, retraining and selection the following year.",
       "summary": "Person register, brigade and picker ID badge, output and quality profile per person across the season.",
       "todo": "ЕСУТД registration per contract, brigade planning, output history as the basis for pay calculation."
     },
     "lohn": {
       "title": "Quality-factor pay",
+      "navTitle": "Quality-factor pay",
       "description": "A combined model of base pay, a volume component and a quality factor. A pure piece rate pushes for volume, squeezes berries and is value-destroying for the raspberry.",
       "summary": "Base pay plus volume plus a quality factor. The quality factor is not optional but a precondition.",
       "todo": "Minimum-wage anchoring, a rate editor with a UI-guided corridor preview, per-picker PDF pay slips, an advance account."
     },
     "dokumente": {
       "title": "Document management",
+      "navTitle": "Documents",
       "description": "A secure store for spray records, ЕСУТД evidence, supply and framework contracts, grant dossiers and certificates - linked to the row block and the batch.",
       "summary": "A categorised, secure document store linked to the row block and the batch.",
       "todo": "Versioning, expiry and reminder logic, link to row block and batch."
     },
     "compliance": {
       "title": "Compliance cockpit",
+      "navTitle": "Compliance",
       "description": "Processing purposes, consents, data incidents and third-party disclosures from five granular tables - reading and writing reserved to office roles only.",
       "summary": "Granular data-protection schema: processing purposes, consents, incidents and disclosures in one place.",
       "todo": "Legal references for Tax Code, AI Act, Digital Code, retention rules per data product, hosting-location review."
     },
     "integrationen": {
       "title": "State integrations",
+      "navTitle": "Integrations",
       "description": "Connectors to ЭСФ, virtual stock, ЕСУТД and the subsidy portals gosagro.kz and qoldau.kz. Accounting stays with a solution established in the country.",
       "summary": "One connector per target system with status feedback and retry. No in-house accounting build.",
       "todo": "Connectors per system, sandbox access, error and retry logic, queue monitoring."
     },
     "foerdermittel": {
       "title": "Grant application dossier",
+      "navTitle": "Grants",
       "description": "Application templates, evidence lists and a deadline monitor for the Kazakh subsidy portals - eligibility as a by-product of ongoing bookkeeping.",
       "summary": "Deadline monitor and per-dossier evidence documents are connected (requirement 4.12). Application templates and evidence checklists per grant programme remain open.",
       "todo": "Application templates and evidence checklists per grant programme - a domain decision on what fields and evidence gosagro.kz/qoldau.kz actually require per programme."
     },
     "sortenkatalog": {
       "title": "Variety and quota catalogue",
+      "navTitle": "Variety catalogue",
       "description": "A catalogue of variety, harvest window (summer-bearing or everbearing), punnet weight, quota and price list - the basis for pre-order and the B2B portal.",
       "summary": "Variety, harvest window, punnet weight, quota and price in one place.",
       "todo": "Quota booking with reservation logic, price-list versions, client assignment."
     },
     "b2b_portal": {
       "title": "B2B portal",
+      "navTitle": "B2B portal",
       "description": "A regular-client portal with quotas, pre-order with lead time, a price list by client group, delivery status, invoice history and complaint reporting.",
       "summary": "Delivery status with handover receipt, price list, and pre-orders with manual office confirmation are connected.",
       "todo": "Automatic quota consumption, price tiers by client group, and invoice history are still missing (open business decisions)."
     },
     "preislisten": {
       "title": "Price lists",
+      "navTitle": "Price lists",
       "description": "Versioned price lists with tiered prices by client group and validity period.",
       "summary": "Price tiers per client and period, versioned and with a validity date.",
       "todo": "Versioned price lists, tiered prices, validity periods, client assignment."
     },
     "aggregator": {
       "title": "Aggregator / neighbouring farms",
+      "navTitle": "Aggregator",
       "description": "Connecting neighbouring farms: the purchased volume becomes an invoice line, every buy-in batch is tracked separately and remains traceable to the supplying farm.",
       "summary": "Neighbouring-farm onboarding, buy-in capture with its own batch, separate origin tracking, settlement.",
       "todo": "Neighbouring-farm onboarding, buy-in capture with its own batch, settlement and payout."
     },
     "schulungen": {
       "title": "Training videos",
+      "navTitle": "Training",
       "description": "Multilingual, image-based short onboarding of seasonal workers on the phone - videos per core process, with pictures instead of text.",
       "summary": "Short image-based videos per core process, multilingual, with progress tracking per person.",
       "todo": "Video content per core process, Kazakh and Russian language versions, progress tracking per person."
     },
     "kanaele": {
       "title": "Contact channels",
+      "navTitle": "Contact channels",
       "description": "Locally established contact channels and payment methods, shown publicly in the website footer. Display only, no connection to a real messenger or payment service.",
       "summary": "WhatsApp, Kaspi QR and other channels as contact details - maintained by the office, hidden as a draft until then.",
       "todo": "Enter the real account details for each channel."
     },
     "reklamationen": {
       "title": "Complaint management",
+      "navTitle": "Complaints",
       "description": "A B2B client's complaint per batch - reason, deadline and history, with a status flow through to a credit note. A client reports and sees only their own complaint; the office handles and closes it.",
       "summary": "List, detail and history per complaint, linked to the batch - traceable from there to the row block, picker and cooling curve.",
       "todo": "Admin screen to link a client login to a B2B client record, automatic complaint rate in the KPI cockpit, notification as a deadline approaches."
     },
     "stammdaten": {
       "title": "Master data and tax numbers",
+      "navTitle": "Master data",
       "description": "Legal form and IIN or BIN for the farm itself, its supplying farms and its customers - the details that must appear on every document.",
       "summary": "A peasant farm carries an IIN, a legal entity a BIN. The check digit rejects a transposed number before it reaches an invoice.",
       "todo": "Collect numbers for supplying farms and customers."
@@ -1315,8 +1345,7 @@
       "de": "German",
       "en": "English",
       "ru": "Russian",
-      "kk": "Kazakh",
-      "tr": "Turkish"
+      "kk": "Kazakh"
     },
     "vorfallArt": {
       "unbefugter_zugriff": "Unauthorised access",

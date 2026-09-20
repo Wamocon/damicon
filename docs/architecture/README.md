@@ -25,7 +25,7 @@ flowchart LR
     acc["Producer<br/>(no AI by role)"]
   end
 
-  subgraph Damicon["Damicon (Next.js 16, React 19, Vercel, de en ru kk tr)"]
+  subgraph Damicon["Damicon (Next.js 16, React 19, Vercel, de en ru kk)"]
     web["Web app: 26 modules<br/>Field, Yard, Office, Market"]
     ai["Ask AI (docked pane)<br/>Assistant and Agent mode"]
     sa["Server Actions<br/>requirePermission, validate, RLS write, audit"]
