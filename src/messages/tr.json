@@ -681,7 +681,9 @@
       "weniger": "Daha az göster",
       "original": "Orijinali aç",
       "intern": "İç araştırma",
-      "unbelegt": "Bu atıf için kaynak yok."
+      "unbelegt": "Bu atıf için kaynak yok.",
+      "gestuetzt": "Kanun metniyle desteklenir",
+      "nurFach": "Yalnızca uzman kaynaklar: birincil kaynağı kontrol edin"
     },
     "anbieterVerwaltung": {
       "titel": "Yapay zekâ sağlayıcılarını yönet",

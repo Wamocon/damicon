@@ -1669,7 +1669,9 @@
       "weniger": "Show less",
       "original": "Open original",
       "intern": "Internal research",
-      "unbelegt": "There is no source for this citation."
+      "unbelegt": "There is no source for this citation.",
+      "gestuetzt": "Backed by statute text",
+      "nurFach": "Expert sources only: check the primary source"
     },
     "anbieterVerwaltung": {
       "titel": "Manage AI providers",

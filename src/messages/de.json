@@ -1669,7 +1669,9 @@
       "weniger": "Weniger anzeigen",
       "original": "Original öffnen",
       "intern": "Interne Recherche",
-      "unbelegt": "Zu dieser Marke gibt es keinen Beleg."
+      "unbelegt": "Zu dieser Marke gibt es keinen Beleg.",
+      "gestuetzt": "Auf Gesetzestext gestützt",
+      "nurFach": "Nur Fachquellen: Primärquelle prüfen"
     },
     "anbieterVerwaltung": {
       "titel": "KI-Anbieter verwalten",

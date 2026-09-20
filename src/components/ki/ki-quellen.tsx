@@ -36,6 +36,20 @@ export function BelegAnbieter({
 
 const kartenId = (nachrichtId: string, kennung: string) => `quelle-${nachrichtId}-${kennung}`;
 
+/** Der Quelltext stammt aus Markdown ("# Статья 101 ..."): fuer die Anzeige als Zitat ohne Auszeichnung. */
+function zitatText(text: string): string {
+  return text
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+const kurz = (text: string, max: number) => {
+  const t = zitatText(text).replace(/\s+/g, " ");
+  return t.length > max ? `${t.slice(0, max).trimEnd()}...` : t;
+};
+
 /** Die Marke im Fliesstext. */
 export function ZitatMarke({ kennung }: { kennung: string }) {
   const t = useTranslations("kiAssistentAnsicht");
@@ -48,11 +62,12 @@ export function ZitatMarke({ kennung }: { kennung: string }) {
       </span>
     );
   }
+  const stufe = stufeSchluessel(beleg.stufe);
   return (
     <button
       type="button"
-      className="ki-zitat"
-      title={beleg.fundstelle}
+      className={cn("ki-zitat", `ki-zitat--${stufe}`)}
+      aria-label={beleg.fundstelle}
       onClick={() => {
         const karte = document.getElementById(kartenId(nachrichtId, kennung));
         if (!karte) return;
@@ -63,6 +78,11 @@ export function ZitatMarke({ kennung }: { kennung: string }) {
       }}
     >
       {kennung.slice(1)}
+      <span className="ki-zitat__vorschau" role="tooltip">
+        <span className="ki-zitat__vorschau-stufe">{t(`quellen.stufe.${stufe}`)}</span>
+        <strong>{beleg.fundstelle}</strong>
+        <span>{kurz(beleg.text, 190)}</span>
+      </span>
     </button>
   );
 }
@@ -72,15 +92,15 @@ function Quellenkarte({ nachrichtId, beleg }: { nachrichtId: string; beleg: Bele
   const [offen, setOffen] = useState(false);
   const stufe = stufeSchluessel(beleg.stufe);
   const nurAuskunft = beleg.stufe !== null && beleg.stufe >= 4;
-  const lang = beleg.text.length > 360;
+  const lang = zitatText(beleg.text).length > 360;
   return (
-    <li id={kartenId(nachrichtId, beleg.id)} className={cn("ki-quelle", nurAuskunft && "ki-quelle--auskunft")}>
+    <li id={kartenId(nachrichtId, beleg.id)} className={cn("ki-quelle", `ki-quelle--${stufe}`, nurAuskunft && "ki-quelle--auskunft")}>
       <div className="ki-quelle__kopf">
         <span className="ki-quelle__nr">{beleg.id.slice(1)}</span>
         <div className="min-w-0 flex-1">
           <p className="ki-quelle__stelle">{beleg.fundstelle}</p>
           <p className="ki-quelle__meta">
-            <span>{t(`quellen.stufe.${stufe}`)}</span>
+            <span className="ki-quelle__stufe">{t(`quellen.stufe.${stufe}`)}</span>
             {beleg.sprache ? <span>{beleg.sprache.toUpperCase()}</span> : null}
             {beleg.gueltigAb ? <span>{t("quellen.gueltigAb", { datum: beleg.gueltigAb })}</span> : null}
             {beleg.abgerufenAm ? <span>{t("quellen.stand", { datum: beleg.abgerufenAm })}</span> : null}
@@ -93,7 +113,7 @@ function Quellenkarte({ nachrichtId, beleg }: { nachrichtId: string; beleg: Bele
         </p>
       ) : null}
       {nurAuskunft ? <p className="ki-quelle__hinweis">{t("quellen.auskunft")}</p> : null}
-      <blockquote className={cn("ki-quelle__text", !offen && lang && "ki-quelle__text--gekuerzt")}>{beleg.text}</blockquote>
+      <blockquote className={cn("ki-quelle__text", !offen && lang && "ki-quelle__text--gekuerzt")}>{zitatText(beleg.text)}</blockquote>
       <div className="ki-quelle__fuss">
         {lang ? (
           <button type="button" onClick={() => setOffen((v) => !v)} className="ki-quelle__mehr">
@@ -122,9 +142,26 @@ export function QuellenListe({ nachrichtId, belege, zitiert }: { nachrichtId: st
   const t = useTranslations("kiAssistentAnsicht");
   const anzuzeigen = zitiert.map((k) => belege.find((b) => b.id === k)).filter((b): b is Beleg => !!b);
   if (anzuzeigen.length === 0) return null;
+  const zaehlung = new Map<string, number>();
+  for (const b of anzuzeigen) {
+    const k = stufeSchluessel(b.stufe);
+    zaehlung.set(k, (zaehlung.get(k) ?? 0) + 1);
+  }
+  // Auf Gesetzestext gestuetzt = mindestens eine zitierte Quelle der Stufen 1 bis 3.
+  const gestuetzt = anzuzeigen.some((b) => b.stufe !== null && b.stufe <= 3);
   return (
     <section className="ki-quellen" aria-label={t("quellen.titel")}>
       <h4 className="ki-quellen__titel">{t("quellen.titel")}</h4>
+      <div className={cn("ki-quellen__lage", gestuetzt ? "ki-quellen__lage--gestuetzt" : "ki-quellen__lage--fach")}>
+        <span className="ki-quellen__urteil">{gestuetzt ? t("quellen.gestuetzt") : t("quellen.nurFach")}</span>
+        <span className="ki-quellen__zaehlung">
+          {[...zaehlung].map(([k, n]) => (
+            <span key={k} className={cn("ki-quellen__punkt", `ki-quellen__punkt--${k}`)}>
+              {n} {t(`quellen.stufe.${k}`)}
+            </span>
+          ))}
+        </span>
+      </div>
       <ol className="ki-quellen__liste">
         {anzuzeigen.map((b) => (
           <Quellenkarte key={b.id} nachrichtId={nachrichtId} beleg={b} />
