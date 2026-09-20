@@ -123,6 +123,8 @@ Karten `rounded-2xl`, Tabellen und Panels `rounded-xl`, Buttons `rounded-lg` bis
 | `Stat` | Kennzahlkachel | Label, Wert (auch `CountUp`), Hilfstext, Ton |
 | `StatusPill` | Zustand als Kurzlabel | Töne `success`, `info`, `neutral`, `warning`, `danger` |
 | `DataTable` | Tabelle | `overflow-x-auto`, `min-w-[640px]`, Kopf auf `muted/40`, Trennlinien `divide-border` |
+| `Skeleton` | Platzhalter beim Laden | `animate-pulse rounded bg-muted`, zurückgenommen bei `motion-reduce`; Höhe und Breite gibt die aufrufende Seite |
+| `SkeletonCard` | Platzhalter in Kartenform | wie `Skeleton`, dazu `rounded-xl border bg-card`, damit beim Einsetzen des Inhalts nichts springt |
 
 Ton-Zuordnung der Statuspille: Hintergrund 10–12 %, Text und Rand in der Statusfarbe (Rand 25 %). `info` nutzt `primary`.
 

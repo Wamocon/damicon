@@ -185,13 +185,14 @@ function GruppenAnzeige({
   punkt: boolean;
   aufBereichsseite: boolean;
 }) {
+  // Der Punkt erscheint nur, wenn die offene Seite IM Bereich liegt, die
+  // Bereichsseite selbst aber nicht offen ist - dann traegt der Kopf den
+  // ruhenden Grund und der Punkt immer die Primaerfarbe. Auf der
+  // Bereichsseite zeigt der Kopf seine Farbe schon selbst.
   if (punkt) {
     return (
       <span
-        className={cn(
-          "h-1.5 w-1.5 shrink-0 rounded-full",
-          aufBereichsseite ? "bg-primary-foreground" : "bg-primary",
-        )}
+        className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
         aria-hidden="true"
       />
     );
@@ -309,11 +310,11 @@ function ZonenGruppe({
   onNavigate?: () => void;
 }) {
   const zoneT = useTranslations("zones");
-  const isActive = useIsActive();
   // Fuer die Bereichsseite zaehlt der genaue Pfad, nicht der Praefix aus
   // useIsActive - sonst gaelte sie auch auf jeder Modulseite als offen. Die
   // Module markieren sich als offene Seite ohnehin selbst.
   const pathname = usePathname();
+  const aktiveZone = useAktiveZone();
   const panelId = useId();
 
   const name = zoneT(`${zone.key}.name`);
@@ -321,7 +322,14 @@ function ZonenGruppe({
   const aufBereichsseite = pathname === zonenHref;
   // Damit ein zugeklappter Bereich zeigt, dass die offene Seite in ihm liegt -
   // sonst wirkt die Navigation ohne aktiven Eintrag.
-  const enthaeltAktives = items.some((module) => isActive(moduleHref(module)));
+  //
+  // Dieselbe Quelle wie in SidebarRail: welcher Bereich aktiv ist, sagt allein
+  // useAktiveZone(). Vorher lief das hier ueber die Modulliste der Gruppe -
+  // zwei Berechnungen fuer dieselbe Frage, die auseinanderlaufen, sobald ein
+  // Modul fuer die Rolle unsichtbar ist oder sich die Praefix-Regel aendert.
+  // Auf der Bereichsseite traegt der Kopf schon die Farbe der aktiven Seite,
+  // dort steht stattdessen weiterhin die Zahl der Module.
+  const enthaeltAktives = aktiveZone === zone.key && !aufBereichsseite;
   // Auf der Bereichsseite traegt der Kopf die Farbe der aktiven Seite. Symbol
   // und Name setzen ihre Farbe selbst, deshalb hier nicht RUHENDE_SEITE.
   const symbolFarbe = aufBereichsseite

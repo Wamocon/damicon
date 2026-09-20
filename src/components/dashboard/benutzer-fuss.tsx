@@ -27,11 +27,14 @@ function initialen(name: string): string {
 }
 
 function useBenutzer() {
-  const { name, role, echteRolle, demoModus } = usePersona();
+  const { name, email, role, echteRolle, demoModus } = usePersona();
   const roleT = useTranslations("roles");
   return {
     demoModus,
-    name,
+    // Ein frisch angelegtes Konto hat noch keinen Namen im Profil. Dann traegt
+    // die Mailadresse die Zeile - sie benennt die Person genauso eindeutig und
+    // steht im DB-Modus immer zur Verfuegung.
+    name: name ?? email,
     // Ohne Anmeldung gibt es keine Profilrolle - dann zaehlt die
     // umgeschaltete Demo-Rolle.
     rolle: roleT(demoModus ? role : echteRolle),
@@ -87,12 +90,16 @@ export function BenutzerFuss({ onNavigate }: { onNavigate?: () => void }) {
           </span>
           {/* Die Rollenbeschreibung stand frueher ausgeschrieben in der Kachel
               oben. Sie ist Beiwerk und wandert in den Hover-Text, statt hier
-              eine dritte Zeile zu kosten. */}
+              eine dritte Zeile zu kosten.
+
+              Der Demo-Hinweis haengt am Demo-Modus, nicht am fehlenden Namen:
+              sonst saehe ein echtes Konto ohne Profilnamen "Aktive Rolle
+              (Demo)", obwohl gar kein Demo-Modus laeuft. */}
           <span
             className="block truncate text-[11px] text-muted-foreground"
             title={beschreibung}
           >
-            {name ? rolle : nav("activePersona")}
+            {demoModus ? nav("activePersona") : rolle}
           </span>
         </span>
       </div>

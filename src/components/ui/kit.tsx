@@ -191,3 +191,33 @@ export function DataTable({
     </div>
   );
 }
+
+// Platzhalter fuer Inhalte, die noch laden. Die drei loading.tsx des Dashboards
+// bauten dasselbe Muster jeweils von Hand nach - eine Aenderung an Farbe,
+// Pulsieren oder der Ruecknahme bei "reduzierte Bewegung" waere an drei Stellen
+// nachzuziehen gewesen.
+//
+// Hoehe und Breite bleiben beim Aufrufer: die haengen an dem Element, das der
+// Platzhalter vertritt, und sind deshalb nirgends zweimal dieselben.
+export function Skeleton({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "animate-pulse rounded bg-muted motion-reduce:animate-none",
+        className,
+      )}
+      aria-hidden="true"
+    />
+  );
+}
+
+// Platzhalter in Kartenform: gleicher Rahmen und Grund wie <Card>, damit beim
+// Einsetzen des Inhalts nichts springt. Den Radius gibt der Aufrufer mit, wo er
+// vom Standard abweicht - die Bereichsseite setzt ihre Kacheln runder.
+export function SkeletonCard({ className }: { className?: string }) {
+  return (
+    <Skeleton
+      className={cn("rounded-xl border border-border bg-card", className)}
+    />
+  );
+}
