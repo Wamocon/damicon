@@ -433,6 +433,15 @@ export function HaustierHuelle({ zustand, stimmung = "neutral", blase, paneOffen
             onKeyDown={beiTaste}
             onDoubleClick={zuruecksetzen}
           >
+            {buehne ? (
+              <span className="hb-aura" aria-hidden>
+                <span className="hb-aura__blob hb-aura__blob--1" />
+                <span className="hb-aura__blob hb-aura__blob--2" />
+                <span className="hb-aura__blob hb-aura__blob--3" />
+                <span className="hb-aura__ring" />
+                <span className="hb-aura__ring hb-aura__ring--spaet" />
+              </span>
+            ) : null}
             <span className="hb-schatten haustier__schatten-anim" aria-hidden />
             {halten && !abschied ? (
               <svg className="hb-ring" viewBox="0 0 120 120" aria-hidden>

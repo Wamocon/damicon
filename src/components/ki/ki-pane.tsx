@@ -118,6 +118,7 @@ export function KiPane({
 }) {
   const t = useTranslations("kiAssistentAnsicht");
   const { verfuegbar, offen, setOffen, modus, darstellung, setDarstellung } = useKiPane();
+  const { phase } = useHaustierStatus();
   const [ansicht, setAnsicht] = useState<Ansicht>("chat");
 
   if (!verfuegbar) return null;
@@ -145,6 +146,7 @@ export function KiPane({
         aria-hidden={!offen}
         aria-modal={aufBuehne && offen ? true : undefined}
         role={aufBuehne ? "dialog" : undefined}
+        data-phase={phase}
         inert={!offen ? true : undefined}
         className={cn(
           "ki-pane-huelle print:hidden",

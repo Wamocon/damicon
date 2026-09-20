@@ -1510,3 +1510,55 @@ html[data-ki-zieht] body {
     transition: opacity 0.32s ease;
   }
 }
+
+/* ---- Schein am Bildrand -------------------------------------------------------------
+   Zweite Haelfte derselben Idee wie Himbis Aura (haustier.css): waehrend der Agent
+   arbeitet oder auf eine Freigabe wartet, glimmt der Rand des Bildes. Man sieht am
+   Augenwinkel, dass etwas laeuft, ohne den Text zu lesen.
+
+   Liegt auf der Huelle, die ohnehin ueber der ganzen Seite liegt und keine Klicks
+   annimmt - so kostet der Schein kein zusaetzliches Element. */
+.ki-pane-huelle--buehne::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 110px -26px var(--ki-rand, rgb(216 27 96 / 0.75));
+  opacity: 0;
+}
+.ki-pane-huelle--buehne.ki-pane-huelle--offen::after {
+  opacity: 0.55;
+}
+.ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen::after {
+  --ki-rand: rgb(216 27 96 / 0.95);
+  opacity: 1;
+}
+.ki-pane-huelle--buehne[data-phase="freigabe"].ki-pane-huelle--offen::after {
+  --ki-rand: rgb(242 193 78 / 0.95);
+  opacity: 1;
+}
+.ki-pane-huelle--buehne[data-phase="fehler"].ki-pane-huelle--offen::after {
+  --ki-rand: rgb(190 40 40 / 0.8);
+  opacity: 0.9;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-pane-huelle--buehne::after {
+    transition: opacity 0.5s ease;
+  }
+  .ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen::after,
+  .ki-pane-huelle--buehne[data-phase="freigabe"].ki-pane-huelle--offen::after {
+    animation: ki-rand-atmen 2.6s ease-in-out infinite;
+  }
+  .ki-pane-huelle--buehne[data-phase="freigabe"].ki-pane-huelle--offen::after {
+    animation-duration: 1.6s;
+  }
+}
+@keyframes ki-rand-atmen {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
