@@ -1646,7 +1646,9 @@
     "fehler": {
       "sitzung": "Your session has expired or was ended. Please sign in again.",
       "anmelden": "Sign in again",
-      "berechtigung": "Your role is not allowed to use the AI assistant."
+      "berechtigung": "Your role is not allowed to use the AI assistant.",
+      "zuLang": "This conversation has become too long.",
+      "neuBeginnen": "Start over"
     },
     "anbieterVerwaltung": {
       "titel": "Manage AI providers",
@@ -1817,7 +1819,8 @@
       "grund": {
         "senden": "This click sends or changes data.",
         "loeschen": "This click can delete or cancel something.",
-        "extern": "This link leaves the application."
+        "extern": "This link leaves the application.",
+        "doppelt": "This form was just submitted a moment ago. Submitting it again will probably create a duplicate entry."
       },
       "nicht": "Not done: {absicht}"
     },
