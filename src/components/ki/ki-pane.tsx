@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
-import { Bot, Info, LifeBuoy, MessageSquareText, Settings2, X } from "lucide-react";
+import { Bot, Info, LifeBuoy, MessageSquareText, Settings2, ShieldCheck, X } from "lucide-react";
 import { Himbeere } from "@/components/ki/himbeere";
 import { useHaustierAktionen, useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { KiChat } from "@/components/ki/ki-chat";
@@ -10,6 +11,7 @@ import { KiPaneGriff } from "@/components/ki/ki-pane-griff";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { EskalationsFormular, KiChatFenster } from "@/components/db/ki-assistent-formulare";
 import type { KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
+import type { Pruefbereich } from "@/lib/pruefung/rollen";
 import { cn } from "@/lib/utils";
 
 // Andockbares Seitenpanel (Layout dashboard/layout.tsx): sitzt NEBEN dem
@@ -104,10 +106,14 @@ function HaustierEinstellung() {
   );
 }
 
+// Die Compliance-Pruefung ist gross (Buehne, Bericht) und wird erst geladen, wenn sie geoeffnet wird.
+const PruefungDialog = dynamic(() => import("@/components/pruefung/pruefung-dialog").then((m) => m.PruefungDialog), { ssr: false });
+
 export function KiPane({
   verlauf,
   agentFaehig,
   einstellungen,
+  pruefungBereiche = [],
 }: {
   verlauf: KiChatNachrichtZeile[];
   /** true nur bei einem Anbieter vom Typ 'anthropic' (Werkzeuge + Streaming);
@@ -115,10 +121,14 @@ export function KiPane({
   agentFaehig: boolean;
   /** Anbieterverwaltung - nur fuer Admins, vom Layout als fertiges Element uebergeben. */
   einstellungen: ReactNode | null;
+  /** Bereiche der Compliance-Pruefung, die die Rolle ausloesen darf (leer = kein Knopf). Erzwungen wird es in /api/ki-pruefung. */
+  pruefungBereiche?: readonly Pruefbereich[];
 }) {
   const t = useTranslations("kiAssistentAnsicht");
   const { verfuegbar, offen, setOffen, modus } = useKiPane();
+  const tp = useTranslations("pruefung");
   const [ansicht, setAnsicht] = useState<Ansicht>("chat");
+  const [pruefungOffen, setPruefungOffen] = useState(false);
 
   if (!verfuegbar) return null;
 
@@ -156,6 +166,11 @@ export function KiPane({
               ) : null}
             </div>
             <div className="ki-pane__werkzeuge">
+              {pruefungBereiche.length > 0 ? (
+                <button type="button" onClick={() => setPruefungOffen(true)} aria-label={tp("knopf")} title={tp("knopf")} className="ki-pane__knopf">
+                  <ShieldCheck className="h-4 w-4" />
+                </button>
+              ) : null}
               {hatEinstellungen ? (
                 <button
                   type="button"
@@ -226,6 +241,7 @@ export function KiPane({
           </div>
         </div>
       </aside>
+      {pruefungOffen ? <PruefungDialog erlaubt={pruefungBereiche} onClose={() => setPruefungOffen(false)} /> : null}
     </>
   );
 }

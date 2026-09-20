@@ -2912,5 +2912,141 @@
     "gekuerzt": "Angezeigt werden die neuesten {anzahl} Behandlungen, die Kennzahlen oben zählen alle.",
     "personVerborgen": "nur Büro",
     "personVerborgenHinweis": "Der Name der ausführenden Person ist nur für das Büro sichtbar."
+  },
+  "pruefung": {
+    "knopf": "Compliance-Prüfung",
+    "titel": "Compliance-Prüfung",
+    "untertitel": "Himbi prüft Ihren Betrieb gegen kasachisches Recht. Jede Aussage ist belegt.",
+    "start": "Prüfung starten",
+    "abbrechen": "Abbrechen",
+    "schliessen": "Schließen",
+    "neu": "Neue Prüfung",
+    "auswahl": {
+      "titel": "Was soll geprüft werden?",
+      "gesperrt": "Für Ihre Rolle nicht freigegeben",
+      "hinweis": "Für jeden Bereich schickt Himbi einen eigenen Mini-Himbi los. Er liest Ihre Betriebsdaten, sucht die Rechtstexte und meldet seine Befunde. Ohne Rechtsquelle wird nichts behauptet."
+    },
+    "bereich": {
+      "audit": {
+        "name": "Audit",
+        "text": "Prüfungsbereitschaft: Abschlussprüfung, Nachweise, Aufbewahrung, Rückverfolgbarkeit."
+      },
+      "steuer": {
+        "name": "Steuern",
+        "text": "Mehrwertsteuer, elektronische Rechnungen (ESF), Transportbegleitung (ESUTD), Lohnabgaben."
+      },
+      "recht": {
+        "name": "Recht",
+        "text": "Datenschutz, Einwilligungen, Weitergabe an Dritte, Arbeitsrecht und Arbeitsschutz."
+      },
+      "risiko": {
+        "name": "Risiko",
+        "text": "Überfällige Fristen, Sanktionen, Lebensmittelsicherheit und Kühlkette."
+      }
+    },
+    "agent": {
+      "name": {
+        "audit": "Audit-Himbi",
+        "steuer": "Steuer-Himbi",
+        "recht": "Rechts-Himbi",
+        "risiko": "Risiko-Himbi"
+      },
+      "wartet": "wartet",
+      "spawn": "wird losgeschickt",
+      "sammelt": "liest Betriebsdaten, sucht im Recht",
+      "denkt": "bewertet die Belege",
+      "fertig": "fertig",
+      "fehler": "ausgefallen",
+      "fand": "fand {stelle}",
+      "bewertet": "bewertet: {feld}"
+    },
+    "zaehler": {
+      "daten": "Daten",
+      "quellen": "Quellen",
+      "befunde": "Befunde"
+    },
+    "phase": {
+      "plant": "Himbi plant die Prüfung",
+      "arbeit": "{fertig} von {gesamt} Mini-Himbis fertig",
+      "synthese": "Himbi führt die Befunde zusammen",
+      "fertig": "Prüfung abgeschlossen",
+      "fehler": "Prüfung abgebrochen"
+    },
+    "log": {
+      "fakten": "{agent}: {n} Betriebsdatenquellen gelesen ({feld})",
+      "recht": "{agent}: {n} Rechtsquellen zu \"{feld}\", zuerst {stelle}",
+      "befund": "{agent}: Befund \"{titel}\"",
+      "spawn": "{agent} startet",
+      "fertig": "{agent} ist fertig",
+      "synthese": "Himbi führt die Befunde zusammen",
+      "syntheseFertig": "Bericht versiegelt"
+    },
+    "stufe": {
+      "bereit": "Prüfungsbereit",
+      "luecken": "Mit Lücken",
+      "nicht-bereit": "Nicht prüfungsreif"
+    },
+    "status": {
+      "verstoss": "Verstoß",
+      "luecke": "Lücke",
+      "hinweis": "Hinweis",
+      "konform": "Konform"
+    },
+    "schwere": {
+      "kritisch": "kritisch",
+      "hoch": "hoch",
+      "mittel": "mittel",
+      "niedrig": "niedrig",
+      "keine": "keine"
+    },
+    "rolle": {
+      "admin": "Administration",
+      "betriebsleitung": "Betriebsleitung",
+      "buchhaltung": "Buchhaltung",
+      "brigade": "Brigade",
+      "picker": "Pflücker",
+      "erzeuger": "Erzeuger",
+      "kunde": "Kunde"
+    },
+    "frist": {
+      "sofort": "sofort",
+      "tage7": "7 Tage",
+      "tage30": "30 Tage",
+      "tage90": "90 Tage"
+    },
+    "bericht": {
+      "titel": "Prüfbericht",
+      "reife": "Reife",
+      "prioritaeten": "Die wichtigsten Schritte",
+      "befunde": "Befunde",
+      "massnahmen": "Maßnahmenplan",
+      "alle": "Alle",
+      "nurMeine": "Nur meine Rolle",
+      "ohneRechtsbeleg": "Ohne Rechtsbeleg: nur ein Hinweis, keine Behauptung",
+      "ohneDaten": "Keine Betriebsdaten für Ihre Rolle: nur ein Hinweis",
+      "nachweise": "Nachweise aus Ihren Betriebsdaten",
+      "betriebsdaten": "Betriebsdaten",
+      "hinweise": "Einschränkungen",
+      "unvollstaendig": "Nicht alle Prüfungsfelder konnten bewertet werden.",
+      "export": "Als JSON speichern",
+      "drucken": "Drucken"
+    },
+    "siegel": {
+      "titel": "Siegel und Nachweis",
+      "id": "Berichts-ID",
+      "erstellt": "Erstellt",
+      "modell": "Modell",
+      "pruefsumme": "Prüfsumme",
+      "pruefen": "Siegel prüfen",
+      "gueltig": "Siegel gültig: der Bericht ist unverändert.",
+      "ungueltig": "Siegel ungültig: der Bericht wurde verändert."
+    },
+    "fehler": {
+      "allgemein": "Die Prüfung konnte nicht abgeschlossen werden.",
+      "wissensbasis": "Die Wissensbasis ist in dieser Umgebung nicht verfügbar. Ohne Rechtsquellen wird keine Prüfung ausgeführt.",
+      "laeuft": "Es läuft bereits eine Prüfung.",
+      "rechte": "Für Ihre Rolle ist diese Prüfung nicht freigegeben.",
+      "anmeldung": "Bitte melden Sie sich neu an."
+    }
   }
 }

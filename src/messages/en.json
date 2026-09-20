@@ -2912,5 +2912,141 @@
     "gekuerzt": "Showing the latest {anzahl} treatments, the figures above count all of them.",
     "personVerborgen": "office only",
     "personVerborgenHinweis": "The operator's name is only visible to the office."
+  },
+  "pruefung": {
+    "knopf": "Compliance audit",
+    "titel": "Compliance audit",
+    "untertitel": "Himbi checks your business against Kazakh law. Every statement is sourced.",
+    "start": "Start audit",
+    "abbrechen": "Cancel",
+    "schliessen": "Close",
+    "neu": "New audit",
+    "auswahl": {
+      "titel": "What should be checked?",
+      "gesperrt": "Not released for your role",
+      "hinweis": "For each area Himbi sends out its own mini-Himbi. It reads your business data, searches the legal texts and reports its findings. Nothing is asserted without a legal source."
+    },
+    "bereich": {
+      "audit": {
+        "name": "Audit",
+        "text": "Audit readiness: statutory audit, evidence, retention, traceability."
+      },
+      "steuer": {
+        "name": "Tax",
+        "text": "VAT, electronic invoices (ESF), transport documents (ESUTD), payroll contributions."
+      },
+      "recht": {
+        "name": "Legal",
+        "text": "Data protection, consent, disclosure to third parties, labour law and safety."
+      },
+      "risiko": {
+        "name": "Risk",
+        "text": "Overdue deadlines, sanctions, food safety and cold chain."
+      }
+    },
+    "agent": {
+      "name": {
+        "audit": "Audit Himbi",
+        "steuer": "Tax Himbi",
+        "recht": "Legal Himbi",
+        "risiko": "Risk Himbi"
+      },
+      "wartet": "waiting",
+      "spawn": "being sent out",
+      "sammelt": "reading data, searching the law",
+      "denkt": "assessing the evidence",
+      "fertig": "done",
+      "fehler": "failed",
+      "fand": "found {stelle}",
+      "bewertet": "assessing: {feld}"
+    },
+    "zaehler": {
+      "daten": "Data",
+      "quellen": "Sources",
+      "befunde": "Findings"
+    },
+    "phase": {
+      "plant": "Himbi is planning the audit",
+      "arbeit": "{fertig} of {gesamt} mini-Himbis done",
+      "synthese": "Himbi is combining the findings",
+      "fertig": "Audit complete",
+      "fehler": "Audit aborted"
+    },
+    "log": {
+      "fakten": "{agent}: read {n} business data sources ({feld})",
+      "recht": "{agent}: {n} legal sources for \"{feld}\", first {stelle}",
+      "befund": "{agent}: finding \"{titel}\"",
+      "spawn": "{agent} starts",
+      "fertig": "{agent} is done",
+      "synthese": "Himbi is combining the findings",
+      "syntheseFertig": "Report sealed"
+    },
+    "stufe": {
+      "bereit": "Audit ready",
+      "luecken": "With gaps",
+      "nicht-bereit": "Not audit ready"
+    },
+    "status": {
+      "verstoss": "Violation",
+      "luecke": "Gap",
+      "hinweis": "Note",
+      "konform": "Compliant"
+    },
+    "schwere": {
+      "kritisch": "critical",
+      "hoch": "high",
+      "mittel": "medium",
+      "niedrig": "low",
+      "keine": "none"
+    },
+    "rolle": {
+      "admin": "Administration",
+      "betriebsleitung": "Farm management",
+      "buchhaltung": "Accounting",
+      "brigade": "Field crew",
+      "picker": "Picker",
+      "erzeuger": "Producer",
+      "kunde": "Customer"
+    },
+    "frist": {
+      "sofort": "immediately",
+      "tage7": "7 days",
+      "tage30": "30 days",
+      "tage90": "90 days"
+    },
+    "bericht": {
+      "titel": "Audit report",
+      "reife": "Readiness",
+      "prioritaeten": "The most important steps",
+      "befunde": "Findings",
+      "massnahmen": "Action plan",
+      "alle": "All",
+      "nurMeine": "Only my role",
+      "ohneRechtsbeleg": "No legal source: a note only, no assertion",
+      "ohneDaten": "No business data for your role: a note only",
+      "nachweise": "Evidence from your business data",
+      "betriebsdaten": "Business data",
+      "hinweise": "Limitations",
+      "unvollstaendig": "Not all audit fields could be assessed.",
+      "export": "Save as JSON",
+      "drucken": "Print"
+    },
+    "siegel": {
+      "titel": "Seal and evidence",
+      "id": "Report ID",
+      "erstellt": "Created",
+      "modell": "Model",
+      "pruefsumme": "Checksum",
+      "pruefen": "Verify seal",
+      "gueltig": "Seal valid: the report is unchanged.",
+      "ungueltig": "Seal invalid: the report has been altered."
+    },
+    "fehler": {
+      "allgemein": "The audit could not be completed.",
+      "wissensbasis": "The knowledge base is not available in this environment. No audit runs without legal sources.",
+      "laeuft": "An audit is already running.",
+      "rechte": "This audit is not released for your role.",
+      "anmeldung": "Please sign in again."
+    }
   }
 }
