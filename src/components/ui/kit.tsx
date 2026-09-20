@@ -1,4 +1,10 @@
-import type { ReactNode } from "react";
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  type ReactElement,
+  type ReactNode,
+} from "react";
 import { cn } from "@/lib/utils";
 
 export type Tone = "success" | "info" | "neutral" | "warning" | "danger";
@@ -167,6 +173,44 @@ export function Stat({
   );
 }
 
+// Beschriftet jede Zelle mit ihrem Spaltenkopf (data-kopf). Sichtbar wird das
+// erst unter `md`, wo die Tabelle zu Karten wird und die Kopfzeile wegfaellt -
+// ohne Beschriftung stuenden dort nackte Werte untereinander.
+//
+// Der Baustein macht das selbst, statt es von 29 Aufrufstellen zu verlangen.
+// Die Zuordnung geht ueber die Reihenfolge: die n-te Zelle einer Zeile gehoert
+// zum n-ten Kopf. Das gilt, weil alle Aufrufer ihre Zellen unbedingt rendern -
+// keine einzige Zeile im Projekt hat eine Zelle hinter einer Bedingung, was
+// den Index verschieben wuerde.
+//
+// Zellen mit colSpan sind keine Werte, sondern Meldungen ueber die ganze
+// Breite ("keine Daten"). Sie bekommen keine Beschriftung und zaehlen ihre
+// Spalten weiter, damit eine Zeile danach wieder richtig liegt.
+function mitSpaltenkopf(children: ReactNode, head: string[]): ReactNode {
+  return Children.map(children, (zeile) => {
+    if (!isValidElement(zeile) || zeile.type !== "tr") return zeile;
+    const zeilenProps = zeile.props as { children?: ReactNode };
+
+    let spalte = 0;
+    const zellen = Children.map(zeilenProps.children, (zelle) => {
+      if (!isValidElement(zelle) || zelle.type !== "td") return zelle;
+      const zellProps = zelle.props as { colSpan?: number };
+      const kopf = head[spalte];
+      spalte += zellProps.colSpan ?? 1;
+      if (zellProps.colSpan || kopf === undefined) return zelle;
+      return cloneElement(zelle as ReactElement<Record<string, unknown>>, {
+        "data-kopf": kopf,
+      });
+    });
+
+    return cloneElement(
+      zeile as ReactElement<{ children?: ReactNode }>,
+      undefined,
+      zellen,
+    );
+  });
+}
+
 export function DataTable({
   head,
   children,
@@ -175,8 +219,11 @@ export function DataTable({
   children: ReactNode;
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-card">
-      <table className="w-full min-w-[640px] text-left text-sm">
+    // `datentabelle` traegt die Kartendarstellung unter `md` (globals.css).
+    // Die Mindestbreite und das Querscrollen gelten erst ab `md`: darunter
+    // gibt es keine Tabelle mehr, die breiter sein koennte als der Schirm.
+    <div className="datentabelle rounded-xl border border-border bg-card md:overflow-x-auto">
+      <table className="w-full text-left text-sm md:min-w-[640px]">
         <thead>
           <tr className="border-b border-border bg-muted/40 text-[11px] uppercase tracking-wide text-muted-foreground">
             {head.map((cell) => (
@@ -186,7 +233,9 @@ export function DataTable({
             ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-border">{children}</tbody>
+        <tbody className="divide-y divide-border">
+          {mitSpaltenkopf(children, head)}
+        </tbody>
       </table>
     </div>
   );

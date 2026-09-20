@@ -56,6 +56,47 @@ export function Sheet({
     if (offen) flaecheRef.current?.focus();
   }, [offen]);
 
+  // Der Fokus bleibt in der Flaeche, solange sie offen ist. Ohne das laeuft
+  // die Tabulatortaste aus dem Blatt heraus in die Seite darunter, und dort
+  // ist nichts zu sehen - waehrend aria-modal="true" zusagt, dass es hinter
+  // dem Blatt gar nichts gibt. Eine Zusage, die nicht stimmt, ist fuer einen
+  // Screenreader schlimmer als gar keine.
+  //
+  // Bewusst kein `inert` am Geschwisterelement: die Flaeche liegt als
+  // fixiertes Element ueber der ganzen Seite, ein gemeinsamer Vorfahr, den man
+  // inert setzen koennte, ist das <body> selbst - und der traegt auch das
+  // Blatt. Die Fokusfalle hier leistet dasselbe mit weniger Eingriff.
+  useEffect(() => {
+    if (!offen) return;
+    const beiTab = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+      const flaeche = flaecheRef.current;
+      if (!flaeche) return;
+      const ziele = flaeche.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (ziele.length === 0) {
+        event.preventDefault();
+        flaeche.focus();
+        return;
+      }
+      const erstes = ziele[0];
+      const letztes = ziele[ziele.length - 1];
+      const aktiv = document.activeElement;
+      // Rueckwaerts vom ersten Ziel (oder von der Flaeche selbst) ans Ende,
+      // vorwaerts vom letzten zurueck an den Anfang.
+      if (event.shiftKey && (aktiv === erstes || aktiv === flaeche)) {
+        event.preventDefault();
+        letztes.focus();
+      } else if (!event.shiftKey && aktiv === letztes) {
+        event.preventDefault();
+        erstes.focus();
+      }
+    };
+    document.addEventListener("keydown", beiTab);
+    return () => document.removeEventListener("keydown", beiTab);
+  }, [offen]);
+
   if (!offen) return null;
 
   return (

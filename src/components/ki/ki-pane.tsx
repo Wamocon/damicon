@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import {
@@ -166,6 +166,32 @@ export function KiPane({
   const [ansicht, setAnsichtRoh] = useState<Ansicht>("chat");
   const [pruefungOffen, setPruefungOffen] = useState(false);
   const handy = useIstHandy();
+
+  // Esc schliesst, und solange das Blatt offen ist, scrollt die Seite darunter
+  // nicht mit. Beides kannte bisher nur ui/sheet.tsx, obwohl Menue-, Konto- und
+  // KI-Blatt auf dem Handy dieselbe Flaeche sind und gleich aussehen. Ein Blatt,
+  // das sich anders verhaelt als die beiden daneben, ist die Art Unterschied,
+  // die niemand erklaeren kann.
+  //
+  // Die Bauweisen bleiben getrennt: ui/sheet.tsx haengt beim Schliessen aus,
+  // dieses Panel muss gemountet bleiben, sonst reisst eine laufende Antwort ab.
+  // Angeglichen wird das Verhalten, nicht der Bau.
+  //
+  // Nur unter md: ab dort ist das Panel eine angedockte Spalte neben der Seite,
+  // und die soll weiter scrollen, waehrend man daneben liest.
+  useEffect(() => {
+    if (!offen || !handy) return;
+    const beiTaste = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOffen(false);
+    };
+    document.addEventListener("keydown", beiTaste);
+    const vorher = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", beiTaste);
+      document.body.style.overflow = vorher;
+    };
+  }, [offen, handy, setOffen]);
 
   if (!verfuegbar) return null;
 

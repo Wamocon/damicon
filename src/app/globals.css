@@ -232,6 +232,82 @@
   }
 }
 
+/*
+  Tabellen auf dem Handy: aus jeder Zeile wird eine Karte.
+
+  DataTable (ui/kit.tsx) setzt eine Mindestbreite von 640 px, damit die Spalten
+  am Schreibtisch nicht zusammenlaufen. Bei 390 px Fensterbreite sind davon 358
+  px zu sehen - 282 px liegen dauerhaft ausserhalb des Bildschirms, an 29
+  Stellen im Projekt. Beim Querscrollen wandert ausserdem die erste Spalte aus
+  dem Bild, und danach weiss man nicht mehr, welche Zeile man liest.
+
+  Statt zu scrollen klappt die Zeile hier um: Beschriftung links, Wert rechts,
+  Zeile fuer Zeile, jede Datenzeile als eigene Karte. Die Beschriftung kommt
+  aus data-kopf, das der Baustein selbst an jede Zelle haengt - deshalb muss
+  keine der 29 Aufrufstellen etwas davon wissen.
+
+  Der Preis: eine Liste mit 40 Zeilen wird sehr lang. Solange es kein Blaettern
+  gibt (Punkt 2 des UX-Audits), ist das der Tausch - lesbar und lang gegen
+  kompakt und unlesbar.
+*/
+@media (max-width: 767.98px) {
+  .datentabelle table,
+  .datentabelle tbody,
+  .datentabelle tr,
+  .datentabelle td {
+    display: block;
+  }
+
+  /* Die Kopfzeile steht jetzt in jeder einzelnen Zelle. */
+  .datentabelle thead {
+    display: none;
+  }
+
+  .datentabelle {
+    border: 0;
+    background: none;
+  }
+
+  .datentabelle tr {
+    margin-bottom: 0.625rem;
+    border: 1px solid var(--border);
+    border-radius: 0.75rem;
+    background: var(--card);
+    padding: 0.25rem 0;
+  }
+  .datentabelle tr:last-child {
+    margin-bottom: 0;
+  }
+
+  /* Zwei Spalten je Wert: Beschriftung und Inhalt. 40 % fuer die Beschriftung
+     reichen auch fuer die kyrillischen Tabellenkoepfe, die laenger sind als
+     die deutschen. */
+  .datentabelle td {
+    display: grid;
+    grid-template-columns: minmax(5.5rem, 40%) 1fr;
+    gap: 0.75rem;
+    align-items: baseline;
+    padding: 0.4rem 0.75rem;
+  }
+  .datentabelle td::before {
+    content: attr(data-kopf);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--muted-foreground);
+  }
+
+  /* Meldungen ueber die ganze Breite ("keine Daten") sind keine Werte und
+     tragen deshalb keine Beschriftung und keine zweite Spalte. */
+  .datentabelle td[colspan] {
+    display: block;
+  }
+  .datentabelle td[colspan]::before {
+    content: none;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -268,6 +344,32 @@
   }
   ::selection {
     background-color: color-mix(in srgb, var(--primary) 28%, transparent);
+  }
+
+  /* Sichtbarer Fokus, einmal fuer alles.
+
+     Die Fach-Oberflaeche trug bis hierher keinen einzigen focus-visible-Stil:
+     238 Bedienelemente, bei denen nicht zu sehen war, wo man mit der
+     Tabulatortaste steht. Wer im Buero den Tag ueber Daten erfasst, arbeitet
+     mit Tab und Enter.
+
+     Die Regel steht hier und nicht an den Bausteinen, weil sie sonst an jedem
+     neuen Element einzeln nachgezogen werden muesste - und genau das ist
+     bisher nicht passiert. --ring traegt nach WCAG 1.4.11 gegen jede Flaeche
+     3:1, der Wert ist in der Palette oben eigens dafuer abgedunkelt.
+
+     :focus-visible statt :focus - die Maus loest ihn nicht aus. Die
+     Ausnahme darunter nimmt Elemente aus, die ihren Fokus selbst zeichnen
+     (Himbi, das KI-Panel); dort stuenden sonst zwei Ringe uebereinander. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  .hb-svg:focus-visible,
+  .haustier :focus-visible,
+  .ki-pane :focus-visible,
+  .ki-griff:focus-visible {
+    outline: none;
   }
 }
 

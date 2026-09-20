@@ -123,7 +123,7 @@ export default async function LocaleLayout({
       className={`${inter.variable} ${manrope.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-screen bg-background font-sans text-foreground antialiased">
+      <body className="min-h-svh bg-background font-sans text-foreground antialiased">
         <ThemeScript />
         <ServiceWorkerRegistrierung version={appVersion()} />
         <NextIntlClientProvider>

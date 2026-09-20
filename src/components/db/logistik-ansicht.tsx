@@ -92,7 +92,7 @@ export async function LogistikAnsicht() {
                   </StatusPill>
                 </div>
 
-                <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
+                <dl className="mt-2 grid grid-cols-1 gap-x-3 gap-y-1.5 text-xs sm:grid-cols-2">
                   <div>
                     <dt className="text-muted-foreground">{t("menge")}</dt>
                     <dd className="font-semibold text-foreground">

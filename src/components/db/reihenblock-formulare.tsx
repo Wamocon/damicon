@@ -46,7 +46,7 @@ export function StatusWechsel({
           name="status"
           defaultValue={status}
           aria-label={a("statusLabel")}
-          className="h-9 rounded-lg border border-border bg-background px-2 text-[11px] font-semibold text-foreground outline-none transition focus:border-primary"
+          className="h-11 rounded-lg border border-border bg-background px-3 text-base font-semibold text-foreground outline-none transition focus:border-primary md:h-9 md:px-2 md:text-[11px]"
         >
           {reihenblockStatus.map((wert) => (
             <option key={wert} value={wert}>
@@ -88,7 +88,7 @@ export function StammdatenBearbeiten({
           name="code"
           defaultValue={code}
           aria-label={t("feld.code")}
-          className="h-9 w-24 rounded-lg border border-border bg-background px-2 font-mono text-[11px] font-semibold uppercase text-foreground outline-none transition focus:border-primary"
+          className="h-11 w-28 rounded-lg border border-border bg-background px-3 font-mono text-base font-semibold uppercase text-foreground outline-none transition focus:border-primary md:h-9 md:w-24 md:px-2 md:text-[11px]"
         />
         <select
           name="sorte_id"
@@ -122,7 +122,7 @@ export function FreigabeKnopf({ id }: { id: string }) {
       <input type="hidden" name="id" value={id} />
       <button
         type="submit"
-        className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-success px-2.5 text-[11px] font-bold text-white transition hover:brightness-110"
+        className="inline-flex h-11 items-center gap-1.5 rounded-lg bg-success px-3 text-sm font-bold text-white transition hover:brightness-110 md:h-9 md:px-2.5 md:text-[11px]"
       >
         <ShieldCheck className="h-3.5 w-3.5" />
         {a("freigeben")}

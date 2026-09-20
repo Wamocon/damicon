@@ -122,7 +122,7 @@ Karten `rounded-2xl`, Tabellen und Panels `rounded-xl`, Buttons `rounded-lg` bis
 | `PageHeader` | Eyebrow, Titel, Beschreibung, Aktionen rechts | untereinander mobil, nebeneinander ab `md` |
 | `Stat` | Kennzahlkachel | Label, Wert (auch `CountUp`), Hilfstext, Ton |
 | `StatusPill` | Zustand als Kurzlabel | Töne `success`, `info`, `neutral`, `warning`, `danger` |
-| `DataTable` | Tabelle | `overflow-x-auto`, `min-w-[640px]`, Kopf auf `muted/40`, Trennlinien `divide-border` |
+| `DataTable` | Tabelle | ab `md` `overflow-x-auto` und `min-w-[640px]`, Kopf auf `muted/40`, Trennlinien `divide-border`. Darunter wird jede Zeile zu einer Karte: Beschriftung links, Wert rechts (`.datentabelle` in `globals.css`). Die Beschriftung kommt aus `data-kopf`, das der Baustein selbst an jede Zelle hängt — keine der 29 Aufrufstellen weiß davon. Geprüft durch `npm run test:tabelle`. |
 | `Skeleton` | Platzhalter beim Laden | `animate-pulse rounded bg-muted`, zurückgenommen bei `motion-reduce`; Höhe und Breite gibt die aufrufende Seite |
 | `SkeletonCard` | Platzhalter in Kartenform | wie `Skeleton`, dazu `rounded-xl border bg-card`, damit beim Einsetzen des Inhalts nichts springt |
 
@@ -224,9 +224,9 @@ Unter `prefers-reduced-motion: reduce` sind alle Animationen und Übergänge auf
 ## 10. Barrierefreiheit
 
 - Skip-Link (`.skip-link`) springt zum Inhalt.
-- Fokus über `--ring`, sichtbar auf allen Flächen (3:1).
+- Fokus über `--ring`, sichtbar auf allen Flächen (3:1). Die Regel steht global in `globals.css` (`:focus-visible`), nicht an den Bausteinen — sonst muss sie an jedem neuen Element nachgezogen werden, und genau das ist lange nicht passiert. Ausgenommen sind Himbi und das KI-Panel, die ihren Fokus selbst zeichnen.
 - Text mindestens 4,5:1, Grafik und Bedienelemente mindestens 3:1.
-- Touch-Ziele: Buttons ab `h-9`, Primäraktionen `h-10`.
+- Touch-Ziele: ab `md` Buttons ab `h-9` (36 px), darunter mindestens `h-11` (44 px). Die dichte Maske gilt für den Schreibtisch, nicht für die Hand: mit Handschuhen im Kühlhaus ist 44 px der Unterschied zwischen Treffen und Danebentippen (WCAG 2.5.5). Eingabefelder tragen unter `md` zusätzlich `text-base` — Safari auf iOS zoomt bei allem unter 16 px beim Fokus hinein und bleibt vergrößert. Muster: `h-11 text-base md:h-9 md:text-xs`.
 - `aria-label` und `title` auf reinen Symbolknöpfen.
 - `<details>` für häufige Fragen: Die Bedienung kommt vom Browser, nur Zeichen und Einblenden sind gestaltet.
 - Texte stehen nicht in Bildern, damit sie übersetzt und vorgelesen werden können.
