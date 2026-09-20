@@ -836,6 +836,7 @@
       "kontingentErstellt": "Kontingent angelegt.",
       "kontingentAktualisiert": "Menge aktualisiert.",
       "stammdatenGespeichert": "Stammdaten gespeichert.",
+      "transkription": "Diktat übernommen.",
       "nachbarbetrieb": "Nachbarbetrieb „{wert}“ aufgenommen.",
       "dokumentGeaendert": "Dokument „{wert}“ aktualisiert."
     },
@@ -872,6 +873,9 @@
       "stammdatenFormat": "Die Nummer besteht aus genau zwölf Ziffern.",
       "stammdatenPruefziffer": "Die Prüfziffer stimmt nicht. Meist steckt ein Zahlendreher in der Nummer.",
       "selbstkontrolle": "Wer eine Steige erfasst hat, kontrolliert sie nicht selbst. Eine andere Person muss diese Steige prüfen.",
+      "transkription": "Spracherkennung nicht möglich.",
+      "transkriptionDauer": "Die Spracherkennung hat zu lange gebraucht.",
+      "dateiGross": "Die Aufnahme ist zu groß.",
       "nachbarbetriebVorhanden": "Ein Nachbarbetrieb mit diesem Namen existiert bereits."
     },
     "einladungen": {
@@ -1635,6 +1639,11 @@
     "keinVerlauf": "Noch keine Nachricht. Stellen Sie unten Ihre erste Frage.",
     "inputPlaceholder": "Frage eingeben ...",
     "senden": "Senden",
+    "vorlesen": "Vorlesen",
+    "vorlesenStopp": "Vorlesen stoppen",
+    "vorlesenAuto": "Antworten vorlesen",
+    "vorlesenKeineStimme": "Für diese Sprache gibt es noch keine Stimme.",
+    "vorlesenFehler": "Vorlesen ist gerade nicht möglich.",
     "einwilligungText": "Ich habe den Hinweis gelesen und bin einverstanden, dass meine Frage an den konfigurierten KI-Anbieter übermittelt wird.",
     "eskalationKnopf": "Mit einem Mitarbeiter sprechen",
     "eskalationAngefordert": "Anfrage an einen Mitarbeiter des Büros weitergegeben - er meldet sich zeitnah.",
@@ -1703,6 +1712,14 @@
         "apiKey": "API-Key",
         "knopf": "Anbieter anlegen"
       }
+    },
+    "diktat": {
+      "starten": "Diktieren",
+      "stoppen": "Aufnahme beenden",
+      "laeuft": "Wird erkannt …",
+      "leer": "Nichts aufgenommen.",
+      "fehlgeschlagen": "Spracherkennung nicht möglich.",
+      "keinZugriff": "Kein Mikrofonzugriff."
     },
     "laeuft": {
       "mwstStatusAbrufen": "Prüfe MwSt-Status …",
@@ -1864,7 +1881,11 @@
     "privacyScopeTitle": "Umfang",
     "privacyScopeText": "Der Prototyp verarbeitet keine personenbezogenen Daten. Es werden keine Cookies zu Analysezwecken gesetzt. Die Design-Auswahl (hell/dunkel) und die Demo-Rolle werden nur lokal im Browser gespeichert.",
     "residencyTitle": "Datenresidenz (geplanter Betrieb)",
-    "residencyText": "Für den späteren Realbetrieb schränkt der kasachstanische Digitalkodex Nr. 255-VIII die Speicherung bestimmter Datenprodukte außerhalb Kasachstans ein. Der Hosting-Standort für QR-, Offline-Sync- und KI-Architektur wird vor Produktivsetzung rechtlich geprüft."
+    "residencyText": "Für den späteren Realbetrieb schränkt der kasachstanische Digitalkodex Nr. 255-VIII die Speicherung bestimmter Datenprodukte außerhalb Kasachstans ein. Der Hosting-Standort für QR-, Offline-Sync- und KI-Architektur wird vor Produktivsetzung rechtlich geprüft.",
+    "voiceCreditsTitle": "Sprachausgabe: verwendete Stimmen",
+    "voiceCreditsIntro": "Der KI-Assistent kann Antworten vorlesen. Die Stimmen sind Piper-Sprachmodelle (rhasspy/piper-voices), die auf den folgenden Datensätzen trainiert wurden; die Datensätze wurden dafür aufbereitet und verändert.",
+    "voiceKazakh": "Kasachische Stimme",
+    "voiceGerman": "Deutsche Stimme"
   },
   "kpiHerkunft": {
     "berechenbar": "heute messbar",

@@ -836,6 +836,7 @@
       "kontingentErstellt": "Quota created.",
       "kontingentAktualisiert": "Quantity updated.",
       "stammdatenGespeichert": "Master data saved.",
+      "transkription": "Dictation accepted.",
       "nachbarbetrieb": "Neighbouring farm “{wert}” added.",
       "dokumentGeaendert": "Document “{wert}” updated."
     },
@@ -872,6 +873,9 @@
       "stammdatenFormat": "The number consists of exactly twelve digits.",
       "stammdatenPruefziffer": "The check digit does not match. Usually two digits have been transposed.",
       "selbstkontrolle": "Whoever recorded a crate does not inspect it themselves. Someone else needs to check this crate.",
+      "transkription": "Speech recognition unavailable.",
+      "transkriptionDauer": "Speech recognition took too long.",
+      "dateiGross": "The recording is too large.",
       "nachbarbetriebVorhanden": "A neighbouring farm with this name already exists."
     },
     "einladungen": {
@@ -1635,6 +1639,11 @@
     "keinVerlauf": "No message yet. Ask your first question below.",
     "inputPlaceholder": "Enter a question ...",
     "senden": "Send",
+    "vorlesen": "Read aloud",
+    "vorlesenStopp": "Stop reading",
+    "vorlesenAuto": "Read answers aloud",
+    "vorlesenKeineStimme": "There is no voice for this language yet.",
+    "vorlesenFehler": "Reading aloud is not possible right now.",
     "einwilligungText": "I have read the notice and agree that my question is sent to the configured AI provider.",
     "eskalationKnopf": "Talk to a staff member",
     "eskalationAngefordert": "Handed over to a staff member of the office - they will get in touch shortly.",
@@ -1703,6 +1712,14 @@
         "apiKey": "API key",
         "knopf": "Add provider"
       }
+    },
+    "diktat": {
+      "starten": "Dictate",
+      "stoppen": "Stop recording",
+      "laeuft": "Transcribing …",
+      "leer": "Nothing recorded.",
+      "fehlgeschlagen": "Speech recognition unavailable.",
+      "keinZugriff": "No microphone access."
     },
     "laeuft": {
       "mwstStatusAbrufen": "Checking VAT status …",
@@ -1864,7 +1881,11 @@
     "privacyScopeTitle": "Scope",
     "privacyScopeText": "The prototype processes no personal data. No analytics cookies are set. The theme choice (light/dark) and the demo role are stored only locally in the browser.",
     "residencyTitle": "Data residency (planned operation)",
-    "residencyText": "For later live operation, Kazakh Digital Code No. 255-VIII restricts storage of certain data products outside Kazakhstan. The hosting location for the QR, offline-sync and AI architecture will be reviewed legally before going live."
+    "residencyText": "For later live operation, Kazakh Digital Code No. 255-VIII restricts storage of certain data products outside Kazakhstan. The hosting location for the QR, offline-sync and AI architecture will be reviewed legally before going live.",
+    "voiceCreditsTitle": "Speech output: voices used",
+    "voiceCreditsIntro": "The AI assistant can read answers aloud. The voices are Piper speech models (rhasspy/piper-voices) trained on the following datasets; the datasets were prepared and modified for this.",
+    "voiceKazakh": "Kazakh voice",
+    "voiceGerman": "German voice"
   },
   "kpiHerkunft": {
     "berechenbar": "measurable today",

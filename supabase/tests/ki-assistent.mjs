@@ -34,6 +34,14 @@ import {
   sollteAutomatischEskalieren,
   wissensQuellenFuerFaehigkeiten,
 } from "../../src/lib/domain/ki-assistent.ts";
+import {
+  erkenneSprache,
+  MAX_SPRACHAUSGABE_ZEICHEN,
+  sprachausgabePfad,
+  STIMMEN,
+  textFuerSprachausgabe,
+} from "../../src/lib/domain/sprachausgabe.ts";
+import { erzeugeSprachausgabe } from "../../src/lib/ai/sprachausgabe-client.ts";
 
 let bestanden = 0;
 let fehlgeschlagen = 0;
@@ -298,6 +306,130 @@ for (const [name, kaputteAntwort] of [
     kontext,
   );
 }
+
+// --- 5. Sprachausgabe (domain/sprachausgabe.ts, ai/sprachausgabe-client.ts) --
+{
+  const beispiele = [
+    ["de", "**Fazit:** Interne Audits finden alle **47 Tage** statt. Empfehlung: den nächsten Termin eintragen."],
+    ["ru", "**Вывод:** внутренние аудиты проводятся каждые **47 дней**."],
+    ["kk", "**Қорытынды:** ішкі аудиттер әр **47 күн** сайын өткізіледі."],
+    ["tr", "**Sonuç:** İç denetimler her **47 günde** bir yapılır."],
+    ["en", "**Summary:** Internal audits take place every **47 days** according to the policy."],
+  ];
+  for (const [erwartet, text] of beispiele) {
+    const erkannt = erkenneSprache(textFuerSprachausgabe(text), "de");
+    pruefe(`Sprachausgabe: Antwort auf ${erwartet} wird als ${erwartet} erkannt`, erkannt === erwartet, `erkannt: ${erkannt}`);
+  }
+  // Kasachisch und Russisch teilen das kyrillische Alphabet - entscheidend sind
+  // die kasachischen Sonderbuchstaben, nicht die Oberflaechensprache.
+  pruefe("Sprachausgabe: russischer Text bleibt ru, auch bei kasachischer Oberflaeche", erkenneSprache("Проверка сорта Полка завершена.", "kk") === "ru");
+  pruefe("Sprachausgabe: ohne Hinweis im Text zaehlt die Oberflaechensprache", erkenneSprache("47 / 12", "ru") === "ru");
+  pruefe("Sprachausgabe: unbekannte Oberflaechensprache faellt auf de zurueck", erkenneSprache("47 / 12", "fr") === "de");
+
+  const markdown = "## Stand\n\n- **Polka:** 1100 kg frei\n- `Kweli`: 500 kg\n\n| Sorte | kg |\n|---|---|\n| Polana | 1150 |\n\n[Zum Katalog](/dashboard/markt/sortenkatalog)";
+  const vorlesbar = textFuerSprachausgabe(markdown);
+  pruefe(
+    "Sprachausgabe: Markdown-Zeichen werden nicht mitgesprochen",
+    !/[*#`|]|\]\(|\/dashboard/.test(vorlesbar),
+    JSON.stringify(vorlesbar),
+  );
+  pruefe(
+    "Sprachausgabe: der Inhalt bleibt erhalten (Sorten, Mengen, Linktext)",
+    ["Polka", "1100", "Kweli", "500", "Polana", "1150", "Zum Katalog"].every((w) => vorlesbar.includes(w)),
+  );
+  pruefe(
+    "Sprachausgabe: Tabellenzeilen werden als 'Zelle, Zelle' gelesen, ohne Kommas am Rand",
+    vorlesbar.includes("Polana, 1150") && vorlesbar.includes("Sorte, kg") && !/^\s*,|,\s*$/m.test(vorlesbar) && !vorlesbar.includes("kg Polana"),
+    JSON.stringify(vorlesbar),
+  );
+  const lang = textFuerSprachausgabe("Satz eins ist hier. ".repeat(400));
+  pruefe(
+    "Sprachausgabe: lange Antwort wird auf MAX_SPRACHAUSGABE_ZEICHEN gekuerzt, an einer Satzgrenze",
+    lang.length <= MAX_SPRACHAUSGABE_ZEICHEN && lang.endsWith("."),
+    `${lang.length} Zeichen`,
+  );
+
+  pruefe(
+    "Sprachausgabe: genau die freigegebenen Stimmen - de mls, en cori (high), kk issai (high)",
+    STIMMEN.de?.modell === "speaches-ai/piper-de_DE-mls-medium" &&
+      STIMMEN.en?.modell === "speaches-ai/piper-en_GB-cori-high" &&
+      STIMMEN.kk?.modell === "speaches-ai/piper-kk_KZ-issai-high",
+  );
+  // Ablagepfad im Zwischenspeicher (Bucket ki-sprachausgabe): je Antwort und
+  // Stimme genau einer, ohne Schraegstriche oder Punkte aus dem Modellnamen.
+  const id = "11111111-2222-4333-8444-555555555555";
+  const pfadDe = sprachausgabePfad(id, STIMMEN.de);
+  pruefe("Zwischenspeicher: Pfad beginnt mit der Nachrichten-ID und endet auf .mp3", pfadDe.startsWith(`${id}/`) && pfadDe.endsWith(".mp3"), pfadDe);
+  pruefe("Zwischenspeicher: derselbe Aufruf ergibt denselben Pfad", pfadDe === sprachausgabePfad(id, STIMMEN.de));
+  pruefe("Zwischenspeicher: andere Stimme -> anderer Pfad (kein altes Audio nach Stimmwechsel)", pfadDe !== sprachausgabePfad(id, STIMMEN.kk));
+  pruefe("Zwischenspeicher: andere Antwort -> anderer Pfad", pfadDe !== sprachausgabePfad("99999999-2222-4333-8444-555555555555", STIMMEN.de));
+  pruefe(
+    "Zwischenspeicher: Dateiname enthaelt nur unverfaengliche Zeichen (kein / oder .. aus dem Modellnamen)",
+    /^[0-9a-f-]{36}\/[a-z0-9-]+\.mp3$/.test(pfadDe),
+    pfadDe,
+  );
+
+  pruefe("Sprachausgabe: Russisch ohne Stimme (alle vier Piper-Stimmen lizenzrechtlich ausgeschlossen)", STIMMEN.ru === null);
+  pruefe("Sprachausgabe: Tuerkisch ohne Stimme (einzige Piper-Stimme nicht kommerziell)", STIMMEN.tr === null);
+  // Von lessac abgeleitet (Blizzard-Forschungslizenz) oder nicht-kommerziell /
+  // ungeklaert - keine davon darf je wieder in der Tabelle auftauchen.
+  pruefe(
+    "Sprachausgabe: keine lessac-abgeleitete oder nicht-kommerzielle Stimme (thorsten, alba, denis, dmitri, irina, ruslan, lessac, dfki ...)",
+    !Object.values(STIMMEN).some((s) => s && /thorsten|alba|denis|dmitri|irina|ruslan|lessac|dfki|ryan|jenny|northern_english|hfc_|libritts|joe/.test(s.modell)),
+  );
+}
+
+{
+  const echtesFetch = globalThis.fetch;
+  const aufrufe = [];
+  let naechsteAntwort;
+  globalThis.fetch = async (url, init) => {
+    aufrufe.push({ url, init });
+    return naechsteAntwort();
+  };
+  const stimme = STIMMEN.de;
+  try {
+    delete process.env.KI_TRANSKRIPTION_ACCESS_ID;
+    delete process.env.KI_TRANSKRIPTION_ACCESS_SECRET;
+    naechsteAntwort = () => new Response(new Uint8Array([1, 2, 3]), { status: 200, headers: { "content-type": "audio/mpeg" } });
+    const lokal = await erzeugeSprachausgabe("Hallo", stimme);
+    const body = JSON.parse(aufrufe[0]?.init.body ?? "{}");
+    pruefe("Sprachausgabe-Client: lokal ohne Access-Header, Audio kommt zurueck", lokal.ok && lokal.typ === "audio/mpeg" && !aufrufe[0].init.headers["CF-Access-Client-Id"]);
+    pruefe(
+      "Sprachausgabe-Client: Anfrage traegt Modell, Stimme, Text und mp3",
+      body.model === stimme.modell && body.voice === stimme.stimme && body.input === "Hallo" && body.response_format === "mp3",
+    );
+
+    process.env.KI_TRANSKRIPTION_ACCESS_ID = "caesar.access";
+    process.env.KI_TRANSKRIPTION_ACCESS_SECRET = "caesar-geheim";
+    aufrufe.length = 0;
+    await erzeugeSprachausgabe("Hallo", stimme);
+    const h = aufrufe[0]?.init.headers ?? {};
+    pruefe(
+      "Sprachausgabe-Client: derselbe Caesar-Token wie die Transkription (KI_TRANSKRIPTION_ACCESS_*)",
+      h["CF-Access-Client-Id"] === "caesar.access" && h["CF-Access-Client-Secret"] === "caesar-geheim" && !String(aufrufe[0].init.body).includes("caesar-geheim"),
+    );
+    pruefe("Sprachausgabe-Client: Umleitungen werden nicht verfolgt", aufrufe[0]?.init.redirect === "manual");
+
+    naechsteAntwort = () => new Response("", { status: 302 });
+    const abgewiesen = await erzeugeSprachausgabe("Hallo", stimme);
+    pruefe("Sprachausgabe-Client: 302 (Access) wird als zugang-abgewiesen gemeldet", !abgewiesen.ok && abgewiesen.grund.startsWith("zugang-abgewiesen"));
+
+    naechsteAntwort = () => new Response("<html>Login</html>", { status: 200, headers: { "content-type": "text/html" } });
+    const html = await erzeugeSprachausgabe("Hallo", stimme);
+    pruefe("Sprachausgabe-Client: HTML statt Audio wird abgewiesen", !html.ok && html.grund.startsWith("antwort-unerwartete-form"));
+
+    delete process.env.KI_TRANSKRIPTION_ACCESS_SECRET;
+    aufrufe.length = 0;
+    const halb = await erzeugeSprachausgabe("Hallo", stimme);
+    pruefe("Sprachausgabe-Client: halber Zugang schickt nichts los", !halb.ok && aufrufe.length === 0);
+  } finally {
+    globalThis.fetch = echtesFetch;
+    delete process.env.KI_TRANSKRIPTION_ACCESS_ID;
+    delete process.env.KI_TRANSKRIPTION_ACCESS_SECRET;
+  }
+}
+
 
 console.log("\n" + "-".repeat(58));
 console.log(`Pruefungen: ${bestanden + fehlgeschlagen}   bestanden: ${bestanden}   fehlgeschlagen: ${fehlgeschlagen}`);

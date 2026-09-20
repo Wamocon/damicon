@@ -647,6 +647,11 @@
     "keinVerlauf": "Henüz mesaj yok. İlk sorunuzu aşağıya yazın.",
     "inputPlaceholder": "Soru girin ...",
     "senden": "Gönder",
+    "vorlesen": "Sesli oku",
+    "vorlesenStopp": "Okumayı durdur",
+    "vorlesenAuto": "Yanıtları sesli oku",
+    "vorlesenKeineStimme": "Bu dil için henüz bir ses yok.",
+    "vorlesenFehler": "Sesli okuma şu anda mümkün değil.",
     "einwilligungText": "Bildirimi okudum ve sorumun yapılandırılmış yapay zekâ sağlayıcısına iletilmesini kabul ediyorum.",
     "eskalationKnopf": "Bir çalışanla görüş",
     "eskalationAngefordert": "Talebiniz ofisten bir çalışana iletildi - kısa süre içinde sizinle iletişime geçecek.",
@@ -715,6 +720,14 @@
         "apiKey": "API anahtarı",
         "knopf": "Sağlayıcı ekle"
       }
+    },
+    "diktat": {
+      "starten": "Dikte et",
+      "stoppen": "Kaydı durdur",
+      "laeuft": "Çözümleniyor …",
+      "leer": "Kayıt yok.",
+      "fehlgeschlagen": "Konuşma tanıma kullanılamıyor.",
+      "keinZugriff": "Mikrofon erişimi yok."
     },
     "laeuft": {
       "mwstStatusAbrufen": "KDV durumu kontrol ediliyor …",
@@ -876,7 +889,11 @@
     "privacyScopeTitle": "Kapsam",
     "privacyScopeText": "Prototip kişisel veri işlemez. Analiz amaçlı çerez konmaz. Tema seçimi (açık/koyu) ve demo rolü yalnızca tarayıcıda yerel olarak saklanır.",
     "residencyTitle": "Veri yerleşimi (planlanan işletim)",
-    "residencyText": "Sonraki gerçek işletim için 255-VIII sayılı Kazakistan Dijital Kanunu bazı veri ürünlerinin Kazakistan dışında saklanmasını sınırlar. QR, çevrimdışı senkron ve yapay zekâ mimarisi için barındırma yeri üretime geçmeden önce hukuken kontrol edilir."
+    "residencyText": "Sonraki gerçek işletim için 255-VIII sayılı Kazakistan Dijital Kanunu bazı veri ürünlerinin Kazakistan dışında saklanmasını sınırlar. QR, çevrimdışı senkron ve yapay zekâ mimarisi için barındırma yeri üretime geçmeden önce hukuken kontrol edilir.",
+    "voiceCreditsTitle": "Sesli yanıt: kullanılan sesler",
+    "voiceCreditsIntro": "Yapay zekâ asistanı yanıtları sesli okuyabilir. Sesler, aşağıdaki veri kümeleri üzerinde eğitilmiş Piper konuşma modelleridir (rhasspy/piper-voices); veri kümeleri bunun için hazırlanmış ve değiştirilmiştir.",
+    "voiceKazakh": "Kazakça ses",
+    "voiceGerman": "Almanca ses"
   },
   "meta": {
     "title": "Damicon - ahududu plantasyonu için işletme yönetimi",
@@ -1446,6 +1463,7 @@
       "kontingentAktualisiert": "Miktar güncellendi.",
       "wetterAktualisiert": "Hava durumu verileri güncellendi.",
       "stammdatenGespeichert": "Ana veriler kaydedildi.",
+      "transkription": "Dikte alındı.",
       "nachbarbetrieb": "Komşu işletme “{wert}” eklendi.",
       "dokumentGeaendert": "Belge “{wert}” güncellendi."
     },
@@ -1482,6 +1500,9 @@
       "stammdatenFormat": "Numara tam olarak on iki haneden oluşur.",
       "stammdatenPruefziffer": "Kontrol hanesi tutmuyor. Çoğunlukla numarada iki rakam yer değiştirmiştir.",
       "selbstkontrolle": "Kasayı kaydeden kişi kendisi kontrol edemez. Bu kasayı başka biri kontrol etmelidir.",
+      "transkription": "Konuşma tanıma kullanılamıyor.",
+      "transkriptionDauer": "Konuşma tanıma çok uzun sürdü.",
+      "dateiGross": "Kayıt çok büyük.",
       "nachbarbetriebVorhanden": "Bu adla bir komşu işletme zaten mevcut."
     },
     "einladungen": {

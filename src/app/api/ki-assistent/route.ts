@@ -334,6 +334,13 @@ export async function POST(req: Request) {
   });
   const preislisten = quellen.includes("preisliste") ? await ladeWissensPreislisten() : [];
   const ortHinweis = pfad ? `Der Nutzer sieht gerade diese Ansicht: ${pfad}` : "";
+  // Die Datenbank-ID der Antwort steht schon VOR dem Stream fest und geht als
+  // Nachrichten-ID an den Client (generateMessageId unten), gespeichert wird
+  // die Zeile in onFinish unter genau dieser ID. So kennt der Client fuer jede
+  // Antwort ihre Zeile - die Sprachausgabe (api/ki-sprachausgabe) nimmt
+  // bewusst nur IDs gespeicherter Antworten, nie freien Text.
+  const antwortId = crypto.randomUUID();
+
   const werkzeuge = baueWerkzeuge(rolle, {
     vorschau,
     agentModus: modus === "agent",
@@ -408,6 +415,7 @@ export async function POST(req: Request) {
         if (gesamtText) {
           const supabaseFinish = await createClient();
           await supabaseFinish.from("ki_chat_nachrichten").insert({
+            id: antwortId,
             profil_id: profil.id,
             rolle: "assistent",
             inhalt: gesamtText,
@@ -432,5 +440,5 @@ export async function POST(req: Request) {
     },
   });
 
-  return result.toUIMessageStreamResponse();
+  return result.toUIMessageStreamResponse({ generateMessageId: () => antwortId });
 }

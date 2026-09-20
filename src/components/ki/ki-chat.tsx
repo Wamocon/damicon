@@ -59,6 +59,8 @@ import { useKiPane, type KiModus } from "@/components/ki/ki-pane-kontext";
 import { AKTIONS_NAMEN, AKTIONS_RECHTE, istAktion, type AktionsName } from "@/lib/ai/aktionen-meta";
 import { istClientWerkzeug } from "@/lib/ai/client-werkzeuge-meta";
 import { fuehreUiWerkzeugAus, type KlickAnfrage } from "@/components/ki/ui-steuerung";
+import { istVorlesbar, stimmeVorhanden, useSprachausgabe, VorlesenKnopf, VorlesenSchalter } from "@/components/ki/sprachausgabe";
+import { MikrofonKnopf } from "@/components/ki/mikrofon";
 import { MAX_NACHRICHT_LAENGE, type KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
 import { modules } from "@/lib/modules";
 import { hasPermission, type Role } from "@/lib/rbac";
@@ -440,7 +442,24 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const { messages, sendMessage, addToolApprovalResponse, status, stop, error, setMessages, clearError } = chat;
   chatRef.current = chat as unknown as NonNullable<typeof chatRef.current>;
 
+  const sprachausgabe = useSprachausgabe(sprache);
+
   const beschaeftigt = status === "submitted" || status === "streaming" || clientAktiv !== null;
+
+  // "Antworten vorlesen" an: die neue Antwort nach Streamende einmal vorlesen -
+  // nur beim Wechsel von "laeuft" zu "fertig", nie fuer den geladenen Verlauf
+  // und nie zweimal dieselbe Antwort.
+  const warBeschaeftigt = useRef(false);
+  const vorgelesen = useRef(new Set<string>());
+  useEffect(() => {
+    const jetztFertig = warBeschaeftigt.current && !beschaeftigt;
+    warBeschaeftigt.current = beschaeftigt;
+    if (!jetztFertig || !sprachausgabe.vorlesen) return;
+    const letzte = messages.at(-1);
+    if (!letzte || letzte.role !== "assistant" || !istVorlesbar(letzte.id) || vorgelesen.current.has(letzte.id)) return;
+    vorgelesen.current.add(letzte.id);
+    void sprachausgabe.spiele(letzte.id);
+  }, [beschaeftigt, messages, sprachausgabe]);
   const istErsteNachricht = messages.length === 0;
 
   function bereichTitel(bereich: string | null): string {
@@ -877,6 +896,14 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
                       zitiert={zitierteKennungen(textVonNachricht(nachricht))}
                     />
                     </BelegAnbieter>
+                    {/* Vorlesen nur, wenn die Antwort schon gespeichert ist UND es fuer
+                        ihre Sprache eine Stimme gibt - fuer Russisch und Tuerkisch
+                        erscheint deshalb gar kein Knopf statt eines Fehlers nach dem Klick. */}
+                    {istVorlesbar(nachricht.id) &&
+                    !(beschaeftigt && nachricht.id === letzteId) &&
+                    stimmeVorhanden(textVonNachricht(nachricht), sprache) ? (
+                      <VorlesenKnopf id={nachricht.id} zustand={sprachausgabe} />
+                    ) : null}
                   </div>
                 </div>
               ),
@@ -993,6 +1020,15 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
             onChange={(e) => beiEingabe(e.target.value)}
             onKeyDown={beiTaste}
           />
+          {/* Diktat: der erkannte Text landet im Feld, abgeschickt wird von Hand. */}
+          <MikrofonKnopf
+            className="ki-composer__knopf ki-composer__knopf--still"
+            deaktiviert={beschaeftigt || einwilligungFehlt}
+            beiText={(text) => {
+              beiEingabe(text);
+              eingabeRef.current?.focus();
+            }}
+          />
           {beschaeftigt ? (
             <button type="button" onClick={stopp} aria-label={t("stopp")} className="ki-composer__knopf">
               <Square className="h-3.5 w-3.5 fill-current" />
@@ -1007,6 +1043,9 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
               <ArrowUp className="h-4 w-4" />
             </button>
           )}
+        </div>
+        <div className="ki-composer__optionen">
+          <VorlesenSchalter zustand={sprachausgabe} />
         </div>
       </form>
     </div>

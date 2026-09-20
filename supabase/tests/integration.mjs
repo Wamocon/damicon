@@ -4362,6 +4362,45 @@ if (leitung && brigade) {
   }
 }
 
+// --- Sicherheit: Zwischenspeicher der Sprachausgabe ------------------------
+// Bucket ki-sprachausgabe (Migration 20261101000000) haelt vorgelesene
+// Antworten als mp3. Er ist privat und nur ueber service_role erreichbar: die
+// Berechtigung haengt an der ANTWORT (RLS auf ki_chat_nachrichten, geprueft in
+// api/ki-sprachausgabe), nicht an der Audiodatei. Gaebe es hier eine
+// Lese-Policy fuer authenticated, koennte jemand mit geratener Nachrichten-ID
+// das Audio direkt aus dem Storage ziehen und die Pruefung der Route umgehen.
+{
+  const { data: eimer } = await admin.storage.getBucket("ki-sprachausgabe");
+  check(
+    "Sprachausgabe-Zwischenspeicher: Bucket existiert und ist privat",
+    !!eimer && eimer.public === false,
+    eimer ? `public=${eimer.public}` : "kein Bucket",
+  );
+
+  const pfad = "00000000-0000-4000-8000-0000000000it/probe.mp3";
+  const { error: ablageFehler } = await admin.storage
+    .from("ki-sprachausgabe")
+    .upload(pfad, new Blob([new Uint8Array([1, 2, 3])], { type: "audio/mpeg" }), { contentType: "audio/mpeg", upsert: true });
+  check("Sprachausgabe-Zwischenspeicher: service_role darf ablegen (Weg der Route)", !ablageFehler, ablageFehler?.message ?? "");
+
+  const { client: adminSitzung } = await anmelden("admin@damicon.demo");
+  for (const [bezeichnung, client] of [["admin (angemeldet)", adminSitzung], ["anon", anon]]) {
+    const { data: geladen, error: ladeFehler } = await client.storage.from("ki-sprachausgabe").download(pfad);
+    check(
+      `Sprachausgabe-Zwischenspeicher: ${bezeichnung} kommt nicht an die Audiodatei`,
+      !!ladeFehler || !geladen,
+      ladeFehler?.message ?? "Datei wurde geladen!",
+    );
+    const { data: liste } = await client.storage.from("ki-sprachausgabe").list();
+    check(
+      `Sprachausgabe-Zwischenspeicher: ${bezeichnung} sieht den Inhalt nicht`,
+      (liste?.length ?? 0) === 0,
+      `sichtbare Eintraege: ${liste?.length ?? 0}`,
+    );
+  }
+  await admin.storage.from("ki-sprachausgabe").remove([pfad]);
+}
+
 // --- Anforderung 5.6: Kontaktkanaele/Zahlungswege -------------------------
 {
   const { data: neuerKanal, error: neuerKanalFehler } = await leitung
