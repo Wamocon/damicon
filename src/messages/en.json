@@ -874,7 +874,8 @@
       "stammdatenPruefziffer": "The check digit does not match. Usually two digits have been transposed.",
       "selbstkontrolle": "Whoever recorded a crate does not inspect it themselves. Someone else needs to check this crate.",
       "transkription": "Speech recognition unavailable.",
-      "transkriptionDauer": "Speech recognition took too long.",
+      "transkriptionDienst": "The speech recognition service cannot be reached. Your recording is fine – please try again later.",
+      "transkriptionDauer": "Speech recognition took too long. The service is probably still starting up – please try again in a minute.",
       "dateiGross": "The recording is too large.",
       "nachbarbetriebVorhanden": "A neighbouring farm with this name already exists."
     },
@@ -1678,7 +1679,9 @@
       "weniger": "Show less",
       "original": "Open original",
       "intern": "Internal research",
-      "unbelegt": "There is no source for this citation."
+      "unbelegt": "There is no source for this citation.",
+      "gestuetzt": "Backed by statute text",
+      "nurFach": "Expert sources only: check the primary source"
     },
     "anbieterVerwaltung": {
       "titel": "Manage AI providers",
@@ -1716,7 +1719,7 @@
     "diktat": {
       "starten": "Dictate",
       "stoppen": "Stop recording",
-      "laeuft": "Transcribing …",
+      "laeuft": "Transcribing … (takes a few seconds)",
       "leer": "Nothing recorded.",
       "fehlgeschlagen": "Speech recognition unavailable.",
       "keinZugriff": "No microphone access."
@@ -1881,11 +1884,7 @@
     "privacyScopeTitle": "Scope",
     "privacyScopeText": "The prototype processes no personal data. No analytics cookies are set. The theme choice (light/dark) and the demo role are stored only locally in the browser.",
     "residencyTitle": "Data residency (planned operation)",
-    "residencyText": "For later live operation, Kazakh Digital Code No. 255-VIII restricts storage of certain data products outside Kazakhstan. The hosting location for the QR, offline-sync and AI architecture will be reviewed legally before going live.",
-    "voiceCreditsTitle": "Speech output: voices used",
-    "voiceCreditsIntro": "The AI assistant can read answers aloud. The voices are Piper speech models (rhasspy/piper-voices) trained on the following datasets; the datasets were prepared and modified for this.",
-    "voiceKazakh": "Kazakh voice",
-    "voiceGerman": "German voice"
+    "residencyText": "For later live operation, Kazakh Digital Code No. 255-VIII restricts storage of certain data products outside Kazakhstan. The hosting location for the QR, offline-sync and AI architecture will be reviewed legally before going live."
   },
   "kpiHerkunft": {
     "berechenbar": "measurable today",

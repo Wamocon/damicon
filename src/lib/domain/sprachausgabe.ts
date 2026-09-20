@@ -7,34 +7,35 @@ export const sprachausgabeSprachen = ["de", "ru", "kk", "tr", "en"] as const;
 export type SprachausgabeSprache = (typeof sprachausgabeSprachen)[number];
 
 export interface Stimme {
-  /** Modell-ID im TTS-Dienst (speaches auf Caesar, Piper-Stimmen). */
-  modell: string;
+  /** Name der Stimme im Dienst. Sokrates waehlt allein darueber aus, ein
+   *  eigenes Modellfeld gibt es dort nicht. */
   stimme: string;
 }
 
-// Eine Stimme je Sprache - ausgewaehlt nach Lizenz, und zwar nicht nur der
-// Trainingsdaten, sondern auch der ABSTAMMUNG (MODEL_CARD in
-// rhasspy/piper-voices, geprueft am 19.09.2026): die Anwendung ist kommerziell,
-// und sehr viele Piper-Stimmen sind vom US-englischen lessac-Modell aus
-// feinjustiert, dessen Daten unter der Blizzard-2013-Lizenz stehen (nur
-// Forschung, ausdruecklich keine kommerziellen Sprachsyntheseprodukte).
-// Deshalb nur Stimmen, die von Grund auf trainiert sind:
-//   de mls    - CC BY 4.0, von Grund auf (Multilingual LibriSpeech; Namensnennung im Impressum)
-//   en cori   - gemeinfrei, von Grund auf (Bryce Beattie, LibriVox-Aufnahmen)
-//   kk issai  - CC BY 4.0, von Grund auf (KazakhTTS, ISSAI; Namensnennung im Impressum)
-//   ru        - KEINE: alle vier Piper-Stimmen scheiden aus (denis, dmitri,
-//               irina: von lessac abgeleitet, irina zudem Lizenz "Unknown";
-//               ruslan: RUSLAN-Korpus, CC BY-NC-SA)
-//   tr        - KEINE: einzige offizielle Stimme (dfki) ist CC BY-NC-SA
-// Ohne Stimme antwortet api/ki-sprachausgabe mit 422 "keine-stimme" - fuer
-// jede Sprache gleich, kein Sonderfall je Sprache.
-// Einzelheiten und Backlog (eigene russische Stimme): docs/infra/caesar-sprachdienste.md
+// Eine Stimme je Sprache, benannt nach der Auswahlregel des Dienstes:
+// <sprache>-male bzw. <sprache>-female.
+//
+// Am 20.09.2026 gegen den Dienst geprueft, nicht angenommen: alle zehn
+// Kombinationen aus de/en/ru/kk/tr und male/female liefern HTTP 200 mit
+// echtem MP3 (Frame-Kopf und LAME-Kennung, 11-34 kB je Satz, 0,2-0,7 s).
+// Damit haben Russisch und Tuerkisch erstmals eine Stimme - mit den
+// Piper-Stimmen auf Caesar ging das nicht, weil dort fuer beide Sprachen nur
+// Modelle mit unklarer oder nicht kommerzieller Lizenz bereitstanden.
+//
+// Wichtig fuer die Auswahl: ein unbekannter Stimmname wird vom Dienst NICHT
+// abgelehnt, er antwortet mit 200 und irgendeiner Standardstimme (geprueft
+// mit "gibt-es-nicht"). Diese Tabelle ist deshalb die einzige Kontrolle
+// darueber, was tatsaechlich gesprochen wird - ein Tippfehler hier faellt
+// nicht als Fehler auf, sondern als falsch klingende Antwort.
+//
+// Weiblich ueberall, damit die Anwendung einheitlich klingt; die Umstellung
+// je Sprache ist ein Wort in dieser Tabelle.
 export const STIMMEN: Record<SprachausgabeSprache, Stimme | null> = {
-  de: { modell: "speaches-ai/piper-de_DE-mls-medium", stimme: "mls" },
-  en: { modell: "speaches-ai/piper-en_GB-cori-high", stimme: "cori" },
-  kk: { modell: "speaches-ai/piper-kk_KZ-issai-high", stimme: "issai" },
-  ru: null,
-  tr: null,
+  de: { stimme: "de-female" },
+  en: { stimme: "en-female" },
+  kk: { stimme: "kk-female" },
+  ru: { stimme: "ru-female" },
+  tr: { stimme: "tr-female" },
 };
 
 /** Ablageort des erzeugten Audios im Bucket "ki-sprachausgabe" (Migration
@@ -42,7 +43,7 @@ export const STIMMEN: Record<SprachausgabeSprache, Stimme | null> = {
  *  entsteht ein neuer Pfad, alte Aufnahmen werden nicht mehr gefunden. Der
  *  Text kann sich nicht aendern - eine Antwort ist unveraenderlich. */
 export function sprachausgabePfad(nachrichtId: string, stimme: Stimme): string {
-  const kennung = `${stimme.modell}-${stimme.stimme}`.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
+  const kennung = stimme.stimme.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
   return `${nachrichtId}/${kennung}.mp3`;
 }
 

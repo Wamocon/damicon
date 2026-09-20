@@ -686,7 +686,9 @@
       "weniger": "Daha az göster",
       "original": "Orijinali aç",
       "intern": "İç araştırma",
-      "unbelegt": "Bu atıf için kaynak yok."
+      "unbelegt": "Bu atıf için kaynak yok.",
+      "gestuetzt": "Kanun metniyle desteklenir",
+      "nurFach": "Yalnızca uzman kaynaklar: birincil kaynağı kontrol edin"
     },
     "anbieterVerwaltung": {
       "titel": "Yapay zekâ sağlayıcılarını yönet",
@@ -724,7 +726,7 @@
     "diktat": {
       "starten": "Dikte et",
       "stoppen": "Kaydı durdur",
-      "laeuft": "Çözümleniyor …",
+      "laeuft": "Çözümleniyor … (birkaç saniye sürer)",
       "leer": "Kayıt yok.",
       "fehlgeschlagen": "Konuşma tanıma kullanılamıyor.",
       "keinZugriff": "Mikrofon erişimi yok."
@@ -889,11 +891,7 @@
     "privacyScopeTitle": "Kapsam",
     "privacyScopeText": "Prototip kişisel veri işlemez. Analiz amaçlı çerez konmaz. Tema seçimi (açık/koyu) ve demo rolü yalnızca tarayıcıda yerel olarak saklanır.",
     "residencyTitle": "Veri yerleşimi (planlanan işletim)",
-    "residencyText": "Sonraki gerçek işletim için 255-VIII sayılı Kazakistan Dijital Kanunu bazı veri ürünlerinin Kazakistan dışında saklanmasını sınırlar. QR, çevrimdışı senkron ve yapay zekâ mimarisi için barındırma yeri üretime geçmeden önce hukuken kontrol edilir.",
-    "voiceCreditsTitle": "Sesli yanıt: kullanılan sesler",
-    "voiceCreditsIntro": "Yapay zekâ asistanı yanıtları sesli okuyabilir. Sesler, aşağıdaki veri kümeleri üzerinde eğitilmiş Piper konuşma modelleridir (rhasspy/piper-voices); veri kümeleri bunun için hazırlanmış ve değiştirilmiştir.",
-    "voiceKazakh": "Kazakça ses",
-    "voiceGerman": "Almanca ses"
+    "residencyText": "Sonraki gerçek işletim için 255-VIII sayılı Kazakistan Dijital Kanunu bazı veri ürünlerinin Kazakistan dışında saklanmasını sınırlar. QR, çevrimdışı senkron ve yapay zekâ mimarisi için barındırma yeri üretime geçmeden önce hukuken kontrol edilir."
   },
   "meta": {
     "title": "Damicon - ahududu plantasyonu için işletme yönetimi",
@@ -1501,7 +1499,8 @@
       "stammdatenPruefziffer": "Kontrol hanesi tutmuyor. Çoğunlukla numarada iki rakam yer değiştirmiştir.",
       "selbstkontrolle": "Kasayı kaydeden kişi kendisi kontrol edemez. Bu kasayı başka biri kontrol etmelidir.",
       "transkription": "Konuşma tanıma kullanılamıyor.",
-      "transkriptionDauer": "Konuşma tanıma çok uzun sürdü.",
+      "transkriptionDienst": "Konuşma tanıma hizmetine ulaşılamıyor. Kaydınızda sorun yok – lütfen daha sonra tekrar deneyin.",
+      "transkriptionDauer": "Konuşma tanıma çok uzun sürdü. Hizmet muhtemelen henüz başlatılıyor – lütfen bir dakika sonra tekrar deneyin.",
       "dateiGross": "Kayıt çok büyük.",
       "nachbarbetriebVorhanden": "Bu adla bir komşu işletme zaten mevcut."
     },
