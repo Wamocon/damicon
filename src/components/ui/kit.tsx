@@ -214,16 +214,39 @@ function mitSpaltenkopf(children: ReactNode, head: string[]): ReactNode {
 export function DataTable({
   head,
   children,
+  matrix = false,
 }: {
   head: string[];
   children: ReactNode;
+  /**
+   * Ein Raster aus Ja/Nein statt einer Liste von Werten - etwa die
+   * Rechtematrix, Rollen mal Ressourcen. Solche Tabellen bleiben auch auf dem
+   * Handy Tabellen: als Karten waeren aus 15 Ressourcen mal 8 Rollen 120
+   * Zeilen geworden, und der Vergleich zwischen zwei Spalten, um den es bei
+   * einer Matrix allein geht, waere verloren. Stattdessen scrollt sie
+   * waagerecht, mit festgehaltener erster Spalte - sonst weiss man nach zwei
+   * Spalten nicht mehr, welche Zeile man liest.
+   */
+  matrix?: boolean;
 }) {
   return (
     // `datentabelle` traegt die Kartendarstellung unter `md` (globals.css).
     // Die Mindestbreite und das Querscrollen gelten erst ab `md`: darunter
-    // gibt es keine Tabelle mehr, die breiter sein koennte als der Schirm.
-    <div className="datentabelle rounded-xl border border-border bg-card md:overflow-x-auto">
-      <table className="w-full text-left text-sm md:min-w-[640px]">
+    // gibt es keine Tabelle mehr, die breiter sein koennte als der Schirm -
+    // ausser bei einer Matrix, die genau dafuer ihr eigenes data-Attribut hat.
+    <div
+      data-matrix={matrix ? "" : undefined}
+      className={cn(
+        "datentabelle rounded-xl border border-border bg-card md:overflow-x-auto",
+        matrix && "overflow-x-auto",
+      )}
+    >
+      <table
+        className={cn(
+          "w-full text-left text-sm md:min-w-[640px]",
+          matrix && "min-w-[640px]",
+        )}
+      >
         <thead>
           <tr className="border-b border-border bg-muted/40 text-label uppercase tracking-wide text-muted-foreground">
             {head.map((cell) => (

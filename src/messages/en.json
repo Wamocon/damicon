@@ -1123,7 +1123,8 @@
     "note": "Identities and roles run across all four areas - together with logging, encryption and multi-factor authentication.",
     "level": "Level",
     "catiRole": {
-      "keine": "no equivalent - new from requirement 7.1"
+      "keine": "no equivalent - new from requirement 7.1",
+      "label": "Legacy system 1Çatı"
     },
     "scopeWert": {
       "betrieb": "Farm",

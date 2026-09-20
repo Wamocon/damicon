@@ -283,45 +283,45 @@
   kompakt und unlesbar.
 */
 @media (max-width: 767.98px) {
-  .datentabelle table,
-  .datentabelle tbody,
-  .datentabelle tr,
-  .datentabelle td {
+  .datentabelle:not([data-matrix]) table,
+  .datentabelle:not([data-matrix]) tbody,
+  .datentabelle:not([data-matrix]) tr,
+  .datentabelle:not([data-matrix]) td {
     display: block;
   }
 
   /* Die Kopfzeile steht jetzt in jeder einzelnen Zelle. */
-  .datentabelle thead {
+  .datentabelle:not([data-matrix]) thead {
     display: none;
   }
 
-  .datentabelle {
+  .datentabelle:not([data-matrix]) {
     border: 0;
     background: none;
   }
 
-  .datentabelle tr {
+  .datentabelle:not([data-matrix]) tr {
     margin-bottom: 0.625rem;
     border: 1px solid var(--border);
     border-radius: 0.75rem;
     background: var(--card);
     padding: 0.25rem 0;
   }
-  .datentabelle tr:last-child {
+  .datentabelle:not([data-matrix]) tr:last-child {
     margin-bottom: 0;
   }
 
   /* Zwei Spalten je Wert: Beschriftung und Inhalt. 40 % fuer die Beschriftung
      reichen auch fuer die kyrillischen Tabellenkoepfe, die laenger sind als
      die deutschen. */
-  .datentabelle td {
+  .datentabelle:not([data-matrix]) td {
     display: grid;
     grid-template-columns: minmax(5.5rem, 40%) 1fr;
     gap: 0.75rem;
     align-items: baseline;
     padding: 0.4rem 0.75rem;
   }
-  .datentabelle td::before {
+  .datentabelle:not([data-matrix]) td::before {
     content: attr(data-kopf);
     font-size: var(--schrift-label);
     font-weight: 600;
@@ -332,11 +332,28 @@
 
   /* Meldungen ueber die ganze Breite ("keine Daten") sind keine Werte und
      tragen deshalb keine Beschriftung und keine zweite Spalte. */
-  .datentabelle td[colspan] {
+  .datentabelle:not([data-matrix]) td[colspan] {
     display: block;
   }
-  .datentabelle td[colspan]::before {
+  .datentabelle:not([data-matrix]) td[colspan]::before {
     content: none;
+  }
+
+  /* Eine Matrix bleibt eine Matrix: sie scrollt waagerecht, und die erste
+     Spalte laeuft nicht mit. Ohne das ist man nach zwei Spalten verloren -
+     man sieht Haekchen, weiss aber nicht mehr, zu welcher Ressource sie
+     gehoeren (Punkt 10 des UX-Audits). */
+  .datentabelle[data-matrix] th:first-child,
+  .datentabelle[data-matrix] td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background: var(--card);
+  }
+  .datentabelle[data-matrix] thead th:first-child {
+    /* Der Kopf der ersten Spalte liegt in beiden Richtungen fest und
+       braucht den Grund der Kopfzeile, nicht den der Karte. */
+    background: color-mix(in oklab, var(--muted) 40%, var(--card));
   }
 }
 

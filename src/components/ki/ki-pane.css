@@ -763,7 +763,13 @@ html[data-ki-zieht] body {
   border: 1px solid var(--border);
   border-radius: 0.75rem;
 }
+/* Eine Tabelle aus einer Antwort kann beliebig breit sein - im Blatt auf
+   390 px sprengt sie sonst den Rand, statt in ihrem eigenen Behaelter zu
+   scrollen. display: block macht aus der Tabelle den Behaelter selbst. */
 .ki-md table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
   width: 100%;
   border-collapse: collapse;
   font-size: 0.75rem;

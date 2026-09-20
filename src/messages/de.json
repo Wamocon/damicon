@@ -1123,7 +1123,8 @@
     "note": "Identitäten und Rollen liegen quer über allen vier Bereichen - zusammen mit Protokollierung, Verschlüsselung und Mehrfaktor-Authentifizierung.",
     "level": "Stufe",
     "catiRole": {
-      "keine": "keine Entsprechung - neu ab Anforderung 7.1"
+      "keine": "keine Entsprechung - neu ab Anforderung 7.1",
+      "label": "Vorsystem 1Çatı"
     },
     "scopeWert": {
       "betrieb": "Betrieb",

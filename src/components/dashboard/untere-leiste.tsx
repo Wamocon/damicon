@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { ChevronRight, LayoutGrid, UserRound } from "lucide-react";
 import { Link } from "@/i18n/navigation";
@@ -166,6 +166,44 @@ export function UntereLeiste() {
   // die Leiste zwei Knoepfe statt drei.
   const ki = useKiPane();
 
+  // Beim Lesen nach unten faehrt die Leiste weg, bei der ersten Bewegung nach
+  // oben ist sie wieder da.
+  //
+  // Eine schwebende Leiste verdeckt zwangslaeufig, was unter ihr liegt. Der
+  // Freiraum am Seitenende (--untere-leiste-raum) loest nur das Ende; beim
+  // Lesen mittendrin liegen immer 68 px Inhalt darunter, und auf einer
+  // Modulseite mit langem Text ist das eine Zeile, die man nicht sieht und
+  // nicht vermisst - bis sie wichtig ist.
+  //
+  // Die Schwelle von 8 px verhindert, dass die Leiste bei jedem Wackeln
+  // springt; unterhalb von 96 px Scrollposition bleibt sie immer stehen, weil
+  // man dort noch am Anfang der Seite ist und sie gerade sucht.
+  const [versteckt, setVersteckt] = useState(false);
+  useEffect(() => {
+    let letzte = window.scrollY;
+    let laeuft = false;
+    const beiScroll = () => {
+      if (laeuft) return;
+      laeuft = true;
+      window.requestAnimationFrame(() => {
+        const jetzt = window.scrollY;
+        const weg = jetzt - letzte;
+        if (Math.abs(weg) > 8) {
+          setVersteckt(weg > 0 && jetzt > 96);
+          letzte = jetzt;
+        }
+        laeuft = false;
+      });
+    };
+    window.addEventListener("scroll", beiScroll, { passive: true });
+    return () => window.removeEventListener("scroll", beiScroll);
+  }, []);
+
+  // Solange ein Blatt offen ist, bleibt die Leiste stehen: die Seite dahinter
+  // scrollt dann ohnehin nicht, und der Knopf, mit dem man das Blatt wieder
+  // zumacht, darf nicht verschwinden.
+  const zeigen = !versteckt || blatt !== null;
+
   const umschalten = (ziel: Exclude<Blatt, null>) =>
     setBlatt((aktuell) => (aktuell === ziel ? null : ziel));
 
@@ -173,7 +211,15 @@ export function UntereLeiste() {
     <>
       <nav
         aria-label={nav("mainNav")}
-        className="fixed inset-x-0 bottom-0 z-50 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden print:hidden"
+        // Wer mit der Tastatur hierher springt, soll die Leiste sehen - sonst
+        // stuende der Fokus auf einem Knopf ausserhalb des Bildes.
+        onFocusCapture={() => setVersteckt(false)}
+        className={cn(
+          "fixed inset-x-0 bottom-0 z-50 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden print:hidden",
+          "transition-transform duration-200 ease-out motion-reduce:transition-none",
+          // Ganz heraus, samt Schatten und dem Abstand darunter.
+          !zeigen && "translate-y-[calc(100%+1.5rem)]",
+        )}
       >
         <ul className="flex items-center justify-around gap-1 rounded-full border border-border bg-card/95 p-1.5 shadow-lg shadow-black/10 backdrop-blur-xl">
           <li className="flex-1">

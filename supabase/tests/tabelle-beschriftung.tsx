@@ -87,7 +87,56 @@ pruefe(
     !zuViele.includes('data-kopf="undefined"'),
 );
 
-// 4. Der Traeger traegt die Klasse, an der die Kartendarstellung haengt.
+// 4. Gemischte Kinder: eine Zelle direkt, die uebrigen aus einem map(). So
+//    baut die Rechtematrix ihre Zeilen (demo/buero.tsx) - und genau daran kann
+//    die Zuordnung ueber die Reihenfolge scheitern, wenn das Array nicht
+//    flachgezogen wird.
+const gemischt = renderToStaticMarkup(
+  <DataTable head={["Ressource", "Admin", "Brigade"]}>
+    <tr>
+      <td>Pflueckaufgaben</td>
+      {["ja", "nein"].map((wert) => (
+        <td key={wert}>{wert}</td>
+      ))}
+    </tr>
+  </DataTable>,
+);
+
+pruefe(
+  "Zellen aus einem map() neben einer direkten Zelle sind richtig zugeordnet",
+  gemischt.includes('data-kopf="Ressource">Pflueckaufgaben') &&
+    gemischt.includes('data-kopf="Admin">ja') &&
+    gemischt.includes('data-kopf="Brigade">nein'),
+  "Muster der Rechtematrix",
+);
+
+// 5. Eine Matrix bleibt eine Tabelle: sie traegt das Attribut, an dem die
+//    Kartendarstellung sie auslaesst, und ihre Mindestbreite samt
+//    Scrollbehaelter gilt auch unter md. Ohne beides laufen acht Spalten
+//    Haekchen ueber den Rand hinaus und werden abgeschnitten.
+const alsMatrix = renderToStaticMarkup(
+  <DataTable matrix head={KOEPFE}>
+    <tr>
+      <td>Pflueckaufgaben</td>
+      <td>ja</td>
+      <td>nein</td>
+    </tr>
+  </DataTable>,
+);
+
+pruefe(
+  "Eine Matrix traegt data-matrix, Scrollbehaelter und Mindestbreite",
+  alsMatrix.includes("data-matrix") &&
+    alsMatrix.includes("overflow-x-auto") &&
+    alsMatrix.includes("min-w-[640px]"),
+);
+
+pruefe(
+  "Eine gewoehnliche Tabelle traegt data-matrix nicht",
+  !einfach.includes("data-matrix"),
+);
+
+// 6. Der Traeger traegt die Klasse, an der die Kartendarstellung haengt.
 pruefe(
   "Der Traeger traegt die Klasse datentabelle",
   einfach.includes("datentabelle"),

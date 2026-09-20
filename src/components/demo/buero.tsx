@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Check, Minus } from "lucide-react";
-import { Card, DataTable, Section, StatusPill } from "@/components/ui/kit";
+import { Card, DataTable, Section } from "@/components/ui/kit";
 import { hasPermission, roleDefinitions, type Resource } from "@/lib/rbac";
 
 export function RollenDemo() {
@@ -28,19 +28,36 @@ export function RollenDemo() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {roleDefinitions.map((role) => (
             <Card key={role.key}>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-black text-card-foreground">
-                  {roleT(role.key)}
-                </p>
-                <StatusPill tone="neutral">
-                  1Çatı: {role.catiRole ?? t("catiRole.keine")}
-                </StatusPill>
-              </div>
+              <p className="text-sm font-black text-card-foreground">
+                {roleT(role.key)}
+              </p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
                 {roleT(`descriptions.${role.key}`)}
               </p>
-              <p className="mt-2 text-[11px] uppercase tracking-wide text-muted-foreground">
-                {t("scope")}: {t(`scopeWert.${role.scope}`)} · {t("level")} {role.level}
+              {/* Bereich, Stufe und die Entsprechung im Vorgaengersystem stehen
+                  zusammen in der Fusszeile der Karte.
+
+                  Der 1Cati-Name stand vorher als Pille neben dem Rollennamen,
+                  mit dem Wortlaut "1Çatı: admin" - fest im JSX und damit in
+                  allen fuenf Sprachen gleich, daneben der rohe Schluessel. Wer
+                  das Vorgaengersystem nicht kennt, las dort einen Namen, der
+                  weder zur Rolle darueber noch zu irgendetwas anderem auf der
+                  Seite gehoerte. Auf dem Handy nahm die Pille zudem die halbe
+                  Kartenbreite ein, weil sie neben dem Rollennamen stand.
+
+                  Jetzt sagt die Beschriftung, was der Name ist, und sie ist
+                  uebersetzt. Der Wert selbst bleibt der Bezeichner aus dem
+                  Altsystem - das ist er, und etwas anderes waere erfunden. */}
+              <p className="mt-2 text-label uppercase tracking-wide text-muted-foreground">
+                {t("scope")}: {t(`scopeWert.${role.scope}`)} · {t("level")}{" "}
+                {role.level}
+              </p>
+              {/* Eigene Zeile und ohne Versalien: zusammen mit Bereich und
+                  Stufe ergab das auf dem Handy eine Zeile, die zweimal
+                  umbrach, und in Grossbuchstaben liest sich ein Bezeichner
+                  wie "admin" ohnehin schlechter. */}
+              <p className="mt-1 text-label text-muted-foreground/80">
+                {t("catiRole.label")}: {role.catiRole ?? t("catiRole.keine")}
               </p>
             </Card>
           ))}
@@ -48,7 +65,7 @@ export function RollenDemo() {
       </Section>
 
       <Section title={t("matrixTitle")} description={t("matrixLead")}>
-        <DataTable head={[t("resource"), ...roleDefinitions.map((r) => roleT(r.key))]}>
+        <DataTable matrix head={[t("resource"), ...roleDefinitions.map((r) => roleT(r.key))]}>
           {shown.map((resource) => (
             <tr key={resource}>
               <td className="px-3 py-2.5 font-semibold text-foreground">
