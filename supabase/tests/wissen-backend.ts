@@ -8,10 +8,10 @@
 
 import { createServer } from "node:http";
 import type { AddressInfo } from "node:net";
-import { openaiEinbettung } from "@/lib/wissen/embed";
+import { einbettungsKonfig, openaiEinbettung } from "@/lib/wissen/embed";
 import { alsSparsevec, sparseFrage, sparseIndex, SPARSE_DIMENSION } from "@/lib/wissen/sparse";
 import { hybridSucheSupabase, type RpcKlient } from "@/lib/wissen/supabase-suche";
-import { sucheWissen, wissenBackend, wissenVerfuegbar } from "@/lib/wissen/suche";
+import { pruefeWissenGesundheit, setzeGesundheitZurueck, sucheWissen, wissenBackend, wissenVerfuegbar } from "@/lib/wissen/suche";
 
 let gesamt = 0;
 let fehler = 0;
@@ -39,7 +39,7 @@ async function mitUmgebung<T>(werte: Record<string, string | undefined>, f: () =
   }
 }
 
-const ENV_LEER = { WISSEN_BACKEND: undefined, QDRANT_URL: undefined, WISSEN_EMBED_ANBIETER: undefined, WISSEN_EMBED_URL: undefined };
+const ENV_LEER = { WISSEN_BACKEND: undefined, QDRANT_URL: undefined, WISSEN_EMBED_ANBIETER: undefined, WISSEN_EMBED_URL: undefined, WISSEN_EMBED_MODELL: undefined, WISSEN_EMBED_KEY: undefined, KI_SOKRATES_API_SCHLUESSEL: undefined };
 
 // ---- Sparse-Abbildung ------------------------------------------------------------------------
 pruefe("sparseIndex liegt immer in 1..1e9", [0, 1, 999_999_999, 1_000_000_000, 4_294_967_295].every((h) => sparseIndex(h) >= 1 && sparseIndex(h) <= SPARSE_DIMENSION));
@@ -168,7 +168,7 @@ async function backendwahl() {
     pruefe("Produktion, Supabase OHNE erreichbare Einbettung: aus (sonst waere jede Suche ein Fehler)", wissenBackend() === "supabase" && !wissenVerfuegbar());
   });
   await mitUmgebung({ ...ENV_LEER, NODE_ENV: "production", WISSEN_BACKEND: "supabase", WISSEN_EMBED_ANBIETER: "openai", WISSEN_EMBED_URL: "https://api.example.com/v1" }, () => {
-    pruefe("Produktion, Supabase mit Einbettungsanbieter: verfuegbar", wissenVerfuegbar());
+    pruefe("Produktion, Supabase mit Anbieter, aber noch nicht geprueft: erst nach gelungener Probe verfuegbar", !wissenVerfuegbar());
   });
   await mitUmgebung({ ...ENV_LEER, NODE_ENV: "production", WISSEN_BACKEND: "supabase", WISSEN_EMBED_ANBIETER: "openai" }, () => {
     pruefe("Produktion, Supabase, Anbieter ohne URL: aus", !wissenVerfuegbar());
@@ -181,6 +181,69 @@ async function backendwahl() {
   });
   await mitUmgebung({ ...ENV_LEER, NODE_ENV: "production", WISSEN_BACKEND: "quatsch" }, () => {
     pruefe("Unbekannter Backendname wird ignoriert", wissenBackend() === null);
+  });
+}
+
+// ---- Gesundheit der Einbettung und Sokrates-Vorgabe ---------------------------------------------
+async function gesundheit() {
+  let modus: "ok" | "403" | "kurz" | "haengt" = "ok";
+  let anfragen = 0;
+  const server = createServer((req, res) => {
+    req.on("data", () => {});
+    req.on("end", () => {
+      anfragen++;
+      if (modus === "haengt") return; // antwortet nie
+      if (modus === "403") return void res.writeHead(403, { "content-type": "application/json" }).end('{"detail":"You do not have permission to access this resource."}');
+      const dim = modus === "kurz" ? 8 : 1024;
+      res.writeHead(200, { "content-type": "application/json" }).end(JSON.stringify({ data: [{ index: 0, embedding: new Array(dim).fill(0.1) }] }));
+    });
+  });
+  await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
+  const url = `http://127.0.0.1:${(server.address() as AddressInfo).port}/v1`;
+  const prod = { ...ENV_LEER, NODE_ENV: "production", WISSEN_EMBED_URL: url };
+  try {
+    setzeGesundheitZurueck();
+    await mitUmgebung(prod, async () => {
+      pruefe("Gesundheit: vor der Probe ist die Wissensbasis in Produktion aus", !wissenVerfuegbar());
+      pruefe("Gesundheit: gelungene Probe macht sie verfuegbar", (await pruefeWissenGesundheit()) === true && wissenVerfuegbar());
+      const n = anfragen;
+      await pruefeWissenGesundheit();
+      await pruefeWissenGesundheit();
+      pruefe("Gesundheit: das Ergebnis wird gemerkt (keine weitere Anfrage an den Anbieter)", anfragen === n);
+    });
+    setzeGesundheitZurueck();
+    modus = "403";
+    await mitUmgebung(prod, async () => {
+      pruefe("Gesundheit: 403 (Schluessel ohne Recht fuer Einbettungen) macht sie NICHT verfuegbar", (await pruefeWissenGesundheit()) === false && !wissenVerfuegbar());
+      const n = anfragen;
+      await pruefeWissenGesundheit();
+      pruefe("Gesundheit: auch der Fehlschlag wird kurz gemerkt (kein Dauerfeuer auf einen kaputten Anbieter)", anfragen === n);
+      modus = "ok";
+      setzeGesundheitZurueck();
+      pruefe("Gesundheit: nach Behebung und Zuruecksetzen ist sie wieder verfuegbar", (await pruefeWissenGesundheit()) === true && wissenVerfuegbar());
+    });
+    setzeGesundheitZurueck();
+    modus = "kurz";
+    await mitUmgebung(prod, async () => {
+      pruefe("Gesundheit: falsche Dimension (anderes Modell) macht sie NICHT verfuegbar", (await pruefeWissenGesundheit()) === false && !wissenVerfuegbar());
+    });
+  } finally {
+    setzeGesundheitZurueck();
+    server.close();
+  }
+  await mitUmgebung({ ...ENV_LEER, NODE_ENV: "production", KI_SOKRATES_API_SCHLUESSEL: "geheim" }, () => {
+    const k = einbettungsKonfig();
+    pruefe("Sokrates-Vorgabe: in Produktion mit vorhandenem Zugang ohne weitere Einstellung", k?.quelle === "sokrates" && k.url.includes("sokrates") && k.schluessel === "geheim" && k.modell === "bge-m3" && wissenBackend() === "supabase");
+  });
+  await mitUmgebung({ ...ENV_LEER, NODE_ENV: "development", KI_SOKRATES_API_SCHLUESSEL: "geheim" }, () => {
+    pruefe("Sokrates-Vorgabe: lokal nicht (dort gilt Ollama)", einbettungsKonfig() === null);
+  });
+  await mitUmgebung({ ...ENV_LEER, NODE_ENV: "production", KI_SOKRATES_API_SCHLUESSEL: "geheim", WISSEN_EMBED_URL: "https://api.deepinfra.com/v1/openai", WISSEN_EMBED_MODELL: "BAAI/bge-m3", WISSEN_EMBED_KEY: "anderer" }, () => {
+    const k = einbettungsKonfig();
+    pruefe("Sokrates-Vorgabe: ausdrueckliche Angaben haben Vorrang", k?.quelle === "umgebung" && k.url.includes("deepinfra") && k.modell === "BAAI/bge-m3" && k.schluessel === "anderer");
+  });
+  await mitUmgebung({ ...ENV_LEER, NODE_ENV: "production" }, () => {
+    pruefe("Ohne jede Angabe in Produktion: keine Einbettung, kein Backend", einbettungsKonfig() === null && wissenBackend() === null);
   });
 }
 
@@ -219,6 +282,7 @@ async function main() {
   await adapter();
   await einbettung();
   await backendwahl();
+  await gesundheit();
   await ende();
   console.log(`\nPruefungen: ${gesamt}   bestanden: ${gesamt - fehler}   fehlgeschlagen: ${fehler}`);
   if (fehler > 0) process.exit(1);

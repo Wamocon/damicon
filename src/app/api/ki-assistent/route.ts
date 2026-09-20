@@ -27,6 +27,7 @@ import { baueWerkzeuge } from "@/lib/ai/tools";
 import { naechsteBelegNummer } from "@/lib/wissen/belege";
 import { waehleSchritt } from "@/lib/ai/schritt-steuerung";
 import { ABLEHNUNG_ANWEISUNG, zweckentfremdung } from "@/lib/ai/bereich-schutz";
+import { pruefeWissenGesundheit } from "@/lib/wissen/suche";
 import { ladeKiChatVerlauf, ladeWissensPreislisten } from "@/lib/data/ki-assistent";
 import {
   baueGesamtWissenskontext,
@@ -358,6 +359,8 @@ export async function POST(req: Request) {
   // bewusst nur IDs gespeicherter Antworten, nie freien Text.
   const antwortId = crypto.randomUUID();
 
+  // Ist die Einbettung fuer die Wissenssuche erreichbar? (gemerkt, kostet nur beim ersten Mal und nach Ausfaellen)
+  await pruefeWissenGesundheit();
   const werkzeuge = baueWerkzeuge(rolle, {
     vorschau,
     agentModus: modus === "agent",

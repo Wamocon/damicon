@@ -1,5 +1,5 @@
 import type { Role } from "@/lib/rbac";
-import { wissenEinbettung, type Einbettung } from "@/lib/wissen/embed";
+import { einbettungsKonfig, wissenEinbettung, type Einbettung } from "@/lib/wissen/embed";
 import { hybridSuche, qdrantAusUmgebung, type SuchFilter, type Treffer } from "@/lib/wissen/qdrant";
 import { hybridSucheSupabase, type RpcKlient } from "@/lib/wissen/supabase-suche";
 import type { SparseVektor } from "@/lib/wissen/sparse";
@@ -47,23 +47,64 @@ export interface SuchErgebnis {
 export type WissenBackend = "supabase" | "qdrant";
 
 /** Wo liegt der Index? WISSEN_BACKEND=supabase|qdrant ausdruecklich; sonst Qdrant, wenn QDRANT_URL gesetzt
- *  ist oder lokal entwickelt wird. Ohne beides gibt es (noch) keinen Index. */
+ *  ist oder lokal entwickelt wird; in Produktion Supabase, sobald eine Einbettung fuer die Frage konfiguriert
+ *  ist (WISSEN_EMBED_URL oder der vorhandene Sokrates-Zugang). Sonst gibt es (noch) keinen Index. */
 export function wissenBackend(): WissenBackend | null {
   const b = process.env.WISSEN_BACKEND;
   if (b === "supabase" || b === "qdrant") return b;
   if (process.env.QDRANT_URL || process.env.NODE_ENV !== "production") return "qdrant";
+  if (einbettungsKonfig()) return "supabase";
   return null;
 }
 
-/** Wissenssuche ist nur sinnvoll, wenn es einen Index UND eine Einbettung fuer die Frage gibt.
- *  Supabase: der Index liegt in der Datenbank, die Einbettung muss aber von Vercel aus erreichbar sein
- *  (WISSEN_EMBED_ANBIETER=openai mit URL), sonst waere jede Suche ein Fehler. */
+// Gesundheit der Einbettung (nur Supabase in Produktion): "konfiguriert" heisst nicht "erreichbar". Ein Anbieter, der
+// 403 liefert oder nicht antwortet, wuerde JEDE Rechtsfrage scheitern lassen, weil die Suche erzwungen wird. Deshalb wird
+// das Werkzeug erst angeboten, wenn eine Probe gelang. Ergebnis kurz gemerkt (gut: 5 min, schlecht: 1 min), damit sich
+// der Anbieter erholen kann und eine Frage nie auf die Probe warten muss.
+const PROBE_ZEITLIMIT_MS = 5_000;
+const GUT_MS = 5 * 60_000;
+const SCHLECHT_MS = 60_000;
+let gesundheit: { ok: boolean; bis: number; grund: string | null } | null = null;
+
+/** Nur fuer Tests. */
+export function setzeGesundheitZurueck(): void {
+  gesundheit = null;
+}
+
+export function wissenGesundheit(): { ok: boolean; grund: string | null } | null {
+  return gesundheit && gesundheit.bis > Date.now() ? { ok: gesundheit.ok, grund: gesundheit.grund } : null;
+}
+
+/** Probe der Einbettung, die die Routen VOR dem Bauen der Werkzeuge abwarten. Ausserhalb von Supabase/Produktion trivial. */
+export async function pruefeWissenGesundheit(): Promise<boolean> {
+  if (wissenBackend() !== "supabase" || process.env.NODE_ENV !== "production") return wissenVerfuegbar();
+  const bekannt = wissenGesundheit();
+  if (bekannt) return bekannt.ok;
+  let ok = false;
+  let grund: string | null = null;
+  try {
+    const e = wissenEinbettung();
+    const v = await Promise.race([
+      e.einbetten(["Gesundheitspruefung"]),
+      new Promise<never>((_, nein) => setTimeout(() => nein(new Error("Zeitueberschreitung")), PROBE_ZEITLIMIT_MS)),
+    ]);
+    ok = v.length === 1 && v[0]!.length === e.dimension;
+    if (!ok) grund = "unerwartete Antwort";
+  } catch (err) {
+    grund = String(err instanceof Error ? err.message : err).slice(0, 160);
+  }
+  gesundheit = { ok, bis: Date.now() + (ok ? GUT_MS : SCHLECHT_MS), grund };
+  if (!ok) console.warn(`[damicon] Wissensbasis nicht verfuegbar: Einbettung nicht erreichbar (${grund})`);
+  return ok;
+}
+
+/** Wissenssuche ist nur sinnvoll, wenn es einen Index UND eine erreichbare Einbettung fuer die Frage gibt. */
 export function wissenVerfuegbar(): boolean {
   const backend = wissenBackend();
   if (backend === "qdrant") return true;
   if (backend === "supabase") {
-    const entwicklung = process.env.NODE_ENV !== "production";
-    return entwicklung || (process.env.WISSEN_EMBED_ANBIETER === "openai" && Boolean(process.env.WISSEN_EMBED_URL));
+    if (process.env.NODE_ENV !== "production") return true;
+    return einbettungsKonfig() !== null && wissenGesundheit()?.ok === true;
   }
   return false;
 }

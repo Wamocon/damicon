@@ -66,14 +66,35 @@ export function openaiEinbettung(opts: { url: string; modell: string; schluessel
   };
 }
 
-/** Einbettung fuer die Fragen der Suche, aus der Umgebung:
- *    WISSEN_EMBED_ANBIETER=openai  ->  WISSEN_EMBED_URL, WISSEN_EMBED_MODELL, WISSEN_EMBED_KEY
- *    sonst Ollama (lokal). */
-export function wissenEinbettung(): Einbettung {
-  if (process.env.WISSEN_EMBED_ANBIETER === "openai") {
-    const url = process.env.WISSEN_EMBED_URL;
-    if (!url) throw new Error("WISSEN_EMBED_URL fehlt (WISSEN_EMBED_ANBIETER=openai).");
-    return openaiEinbettung({ url, modell: process.env.WISSEN_EMBED_MODELL ?? "BAAI/bge-m3", schluessel: process.env.WISSEN_EMBED_KEY });
+/** Basis der Sokrates-API (OpenAI-kompatibel), dieselbe wie fuer Sprachein- und -ausgabe. */
+export const SOKRATES_BASIS = "https://sokrates.test-qualitaetsmanagement.com/api/v1";
+
+export interface EinbettungsKonfig {
+  url: string;
+  modell: string;
+  schluessel?: string;
+  /** Woher die Angaben stammen: ausdruecklich gesetzt oder aus dem vorhandenen Sokrates-Zugang abgeleitet. */
+  quelle: "umgebung" | "sokrates";
+}
+
+/** Welcher Anbieter bettet die FRAGE ein? (Der Index selbst liegt fest: bge-m3.)
+ *    1. WISSEN_EMBED_URL (+ WISSEN_EMBED_MODELL, WISSEN_EMBED_KEY): ausdruecklich, zum Beispiel DeepInfra
+ *    2. Produktion mit KI_SOKRATES_API_SCHLUESSEL: die Sokrates-API, ohne weitere Einstellung
+ *    3. sonst nichts (lokal: Ollama). */
+export function einbettungsKonfig(): EinbettungsKonfig | null {
+  const url = process.env.WISSEN_EMBED_URL;
+  if (url) {
+    return { url, modell: process.env.WISSEN_EMBED_MODELL ?? "bge-m3", schluessel: process.env.WISSEN_EMBED_KEY, quelle: "umgebung" };
   }
+  if (process.env.NODE_ENV === "production" && process.env.KI_SOKRATES_API_SCHLUESSEL) {
+    return { url: SOKRATES_BASIS, modell: process.env.WISSEN_EMBED_MODELL ?? "bge-m3", schluessel: process.env.WISSEN_EMBED_KEY ?? process.env.KI_SOKRATES_API_SCHLUESSEL, quelle: "sokrates" };
+  }
+  return null;
+}
+
+/** Einbettung fuer die Fragen der Suche (siehe einbettungsKonfig), sonst Ollama (lokal). */
+export function wissenEinbettung(): Einbettung {
+  const k = einbettungsKonfig();
+  if (k) return openaiEinbettung({ url: k.url, modell: k.modell, schluessel: k.schluessel });
   return ollamaEinbettung();
 }

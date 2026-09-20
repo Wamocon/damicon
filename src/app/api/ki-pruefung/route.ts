@@ -21,7 +21,7 @@ import { baueWerkzeuge } from "@/lib/ai/tools";
 import { fuehrePruefungAus } from "@/lib/pruefung/agenten";
 import { darfPruefen, waehleBereiche } from "@/lib/pruefung/rollen";
 import type { Ereignis } from "@/lib/pruefung/typen";
-import { sucheWissen, wissenVerfuegbar } from "@/lib/wissen/suche";
+import { pruefeWissenGesundheit, sucheWissen } from "@/lib/wissen/suche";
 
 export const maxDuration = 300;
 
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
   const wahl = waehleBereiche(profil.role, body.bereiche);
   if (wahl.erlaubt.length === 0) return new Response("keine berechtigung fuer die angefragten bereiche", { status: 403 });
 
-  if (!wissenVerfuegbar()) return new Response("wissensbasis nicht verfuegbar", { status: 409 });
+  if (!(await pruefeWissenGesundheit())) return new Response("wissensbasis nicht verfuegbar", { status: 409 });
   const anbieter = await ladeAktivenStandardAnbieter();
   if (!anbieter || anbieter.typ !== "anthropic") return new Response("kein-anbieter", { status: 409 });
   if (laufend.has(profil.id)) return new Response("pruefung laeuft bereits", { status: 429 });
