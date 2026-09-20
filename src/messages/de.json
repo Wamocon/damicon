@@ -874,7 +874,8 @@
       "stammdatenPruefziffer": "Die Prüfziffer stimmt nicht. Meist steckt ein Zahlendreher in der Nummer.",
       "selbstkontrolle": "Wer eine Steige erfasst hat, kontrolliert sie nicht selbst. Eine andere Person muss diese Steige prüfen.",
       "transkription": "Spracherkennung nicht möglich.",
-      "transkriptionDauer": "Die Spracherkennung hat zu lange gebraucht.",
+      "transkriptionDienst": "Der Spracherkennungsdienst ist nicht erreichbar. Die Aufnahme hat geklappt – bitte später noch einmal versuchen.",
+      "transkriptionDauer": "Die Spracherkennung hat zu lange gebraucht. Der Dienst startet vermutlich gerade – bitte in einer Minute noch einmal versuchen.",
       "dateiGross": "Die Aufnahme ist zu groß.",
       "nachbarbetriebVorhanden": "Ein Nachbarbetrieb mit diesem Namen existiert bereits."
     },
@@ -1678,7 +1679,9 @@
       "weniger": "Weniger anzeigen",
       "original": "Original öffnen",
       "intern": "Interne Recherche",
-      "unbelegt": "Zu dieser Marke gibt es keinen Beleg."
+      "unbelegt": "Zu dieser Marke gibt es keinen Beleg.",
+      "gestuetzt": "Auf Gesetzestext gestützt",
+      "nurFach": "Nur Fachquellen: Primärquelle prüfen"
     },
     "anbieterVerwaltung": {
       "titel": "KI-Anbieter verwalten",
@@ -1716,7 +1719,7 @@
     "diktat": {
       "starten": "Diktieren",
       "stoppen": "Aufnahme beenden",
-      "laeuft": "Wird erkannt …",
+      "laeuft": "Wird erkannt … (einige Sekunden)",
       "leer": "Nichts aufgenommen.",
       "fehlgeschlagen": "Spracherkennung nicht möglich.",
       "keinZugriff": "Kein Mikrofonzugriff."
@@ -1881,11 +1884,7 @@
     "privacyScopeTitle": "Umfang",
     "privacyScopeText": "Der Prototyp verarbeitet keine personenbezogenen Daten. Es werden keine Cookies zu Analysezwecken gesetzt. Die Design-Auswahl (hell/dunkel) und die Demo-Rolle werden nur lokal im Browser gespeichert.",
     "residencyTitle": "Datenresidenz (geplanter Betrieb)",
-    "residencyText": "Für den späteren Realbetrieb schränkt der kasachstanische Digitalkodex Nr. 255-VIII die Speicherung bestimmter Datenprodukte außerhalb Kasachstans ein. Der Hosting-Standort für QR-, Offline-Sync- und KI-Architektur wird vor Produktivsetzung rechtlich geprüft.",
-    "voiceCreditsTitle": "Sprachausgabe: verwendete Stimmen",
-    "voiceCreditsIntro": "Der KI-Assistent kann Antworten vorlesen. Die Stimmen sind Piper-Sprachmodelle (rhasspy/piper-voices), die auf den folgenden Datensätzen trainiert wurden; die Datensätze wurden dafür aufbereitet und verändert.",
-    "voiceKazakh": "Kasachische Stimme",
-    "voiceGerman": "Deutsche Stimme"
+    "residencyText": "Für den späteren Realbetrieb schränkt der kasachstanische Digitalkodex Nr. 255-VIII die Speicherung bestimmter Datenprodukte außerhalb Kasachstans ein. Der Hosting-Standort für QR-, Offline-Sync- und KI-Architektur wird vor Produktivsetzung rechtlich geprüft."
   },
   "kpiHerkunft": {
     "berechenbar": "heute messbar",

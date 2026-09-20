@@ -6,6 +6,13 @@ import type { HaustierZustand } from "@/lib/haustier";
 // Wangen, Augenbrauen und einem Mund je Zustand. Alles, was sich bewegt, ist eine
 // Transformation oder eine Deckkraft (haustier.css): laeuft auf der Grafikkarte,
 // ohne Layout und ohne Neuzeichnen von React.
+//
+// Tracht: Damicon baut in Kasachstan an, darum traegt Himbi einen kurzen Chapan mit
+// Koschkar-Muiis-Borte (dem Widderhorn-Ornament) und Etik-Stiefel mit hochgebogener
+// Spitze. Die Beere ist Kopf UND Rumpf zugleich - das Gesicht liegt zwischen y 51 und
+// y 98 und laesst darueber keinen Platz, deshalb sitzt die Kleidung unterhalb der
+// Beere statt als Weste davor. Arme und Beine setzen hinter dem Koerper an, damit der
+// Ansatz verdeckt bleibt, wenn sie sich bewegen.
 
 // Steinfruechtchen als Textur: zeilenweise, nach unten spitz zulaufend.
 const FRUECHTCHEN: Array<[number, number]> = [
@@ -26,6 +33,19 @@ const BLAETTER: Array<[number, number]> = [
   [72, 21],
 ];
 
+/** Umriss der Beere. Dient zugleich als Bezugsform fuer alles, was daran haengt. */
+const KOERPER = "M48 38C76 38 88 58 82 77C76 96 62 108 48 108C34 108 20 96 14 77C8 58 20 38 48 38Z";
+
+/** Der Chapan (Rock): oben schmal unter der Beere, nach unten ausgestellt. Die obere
+ *  Kante bei y 99 liegt hinter dem Koerper und ist nie zu sehen. */
+const CHAPAN =
+  "M38 99C35.5 107 31.5 114 27 119.6C26.2 120.9 27.1 122.2 28.8 122.2L67.2 122.2C68.9 122.2 69.8 120.9 69 119.6C64.5 114 60.5 107 58 99Z";
+
+/** Etik-Stiefel, gezeichnet mit der Spitze nach rechts; der linke Fuss ist dieselbe
+ *  Form, gespiegelt. Ursprung: Mitte des Schafts, oben. */
+const STIEFEL =
+  "M-5.2 0L5.2 0L5.2 7.2C9.2 7.8 12.2 7.2 14.2 5.8C17.4 7 18 10.2 16.2 12C14.6 13.6 12 14.2 9 14.2L-1.8 14.2C-4.2 14.2 -5.2 13 -5.2 11.2Z";
+
 function blatt(winkel: number, laenge: number): string {
   // Ein Blatt als Spitzoval, nach oben gerichtet, um den Ansatzpunkt gedreht (per transform).
   const b = laenge * 0.34;
@@ -36,6 +56,28 @@ function funke(x: number, y: number, s: number): string {
   return `M${x} ${y - s}Q${x} ${y} ${x + s} ${y}Q${x} ${y} ${x} ${y + s}Q${x} ${y} ${x - s} ${y}Q${x} ${y} ${x} ${y - s}Z`;
 }
 
+/** Koschkar-Muiis, das kasachische Widderhorn: zwei gegenlaeufige Spiralen. Auf eine
+ *  Strichzeichnung reduziert, damit das Muster auch bei 64 px noch als Muster liest
+ *  und nicht als Fleck. */
+function horn(x: number, y: number, s: number): string {
+  const seite = (r: 1 | -1) =>
+    `M${x} ${y + s * 0.55}C${x} ${y - s * 0.6} ${x + r * s * 1.5} ${y - s * 0.7} ${x + r * s * 1.5} ${y + s * 0.15}` +
+    `C${x + r * s * 1.5} ${y + s * 0.85} ${x + r * s * 0.68} ${y + s * 0.85} ${x + r * s * 0.7} ${y + s * 0.1}`;
+  return `${seite(-1)}${seite(1)}`;
+}
+
+/** Arme: Pfad des Unterarms, Mitte der Hand, Mitte des Daumens, Bund am Handgelenk. */
+const ARME = [
+  { seite: "l", arm: "M26 68C13 73 6 84 7.2 95", hx: 7.2, dx: 12.2, bund: "M2.6 89.2Q6.8 91.4 11 88.8" },
+  { seite: "r", arm: "M70 68C83 73 90 84 88.8 95", hx: 88.8, dx: 83.8, bund: "M93.4 89.2Q89.2 91.4 85 88.8" },
+] as const;
+
+/** Beine: Mitte des Schafts. richtung = Blickrichtung der Stiefelspitze. */
+const BEINE = [
+  { seite: "l", x: 38, richtung: -1 },
+  { seite: "r", x: 58, richtung: 1 },
+] as const;
+
 export function Himbi({ zustand, groesse = 88 }: { zustand: HaustierZustand; groesse?: number }) {
   const id = useId().replace(/:/g, "");
   return (
@@ -43,8 +85,8 @@ export function Himbi({ zustand, groesse = 88 }: { zustand: HaustierZustand; gro
       className="hb-svg"
       data-zustand={zustand}
       width={groesse}
-      height={(groesse * 116) / 96}
-      viewBox="0 0 96 116"
+      height={(groesse * 144) / 96}
+      viewBox="0 0 96 144"
       role="img"
       aria-hidden
     >
@@ -62,6 +104,20 @@ export function Himbi({ zustand, groesse = 88 }: { zustand: HaustierZustand; gro
           <stop offset="0" stopColor="#fff" stopOpacity="0.55" />
           <stop offset="1" stopColor="#fff" stopOpacity="0" />
         </radialGradient>
+        <linearGradient id={`${id}-chapan`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#2a90b8" />
+          <stop offset="1" stopColor="#0f4d68" />
+        </linearGradient>
+        <linearGradient id={`${id}-stiefel`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#23789a" />
+          <stop offset="1" stopColor="#0d465e" />
+        </linearGradient>
+        <clipPath id={`${id}-chapan-clip`}>
+          <path d={CHAPAN} />
+        </clipPath>
+        <clipPath id={`${id}-stiefel-clip`}>
+          <path d={STIEFEL} />
+        </clipPath>
         <clipPath id={`${id}-auge-l`}>
           <ellipse cx="36" cy="68" rx="8.4" ry="9.6" />
         </clipPath>
@@ -71,6 +127,46 @@ export function Himbi({ zustand, groesse = 88 }: { zustand: HaustierZustand; gro
       </defs>
 
       <g className="hb-figur">
+        {/* Beine mit Stiefeln - zuerst, damit Chapan und Koerper den Ansatz decken */}
+        {BEINE.map(({ seite, x, richtung }) => (
+          <g key={seite} className={`hb-bein hb-bein--${seite}`}>
+            <path d={`M${x} 114L${x} 130`} stroke="#8f0f3a" strokeWidth="7.4" strokeLinecap="round" />
+            <g transform={`translate(${x} 128)${richtung < 0 ? " scale(-1 1)" : ""}`}>
+              <path d={STIEFEL} fill={`url(#${id}-stiefel)`} />
+              <g clipPath={`url(#${id}-stiefel-clip)`}>
+                <path d="M-7 2.8L7 2.8" stroke="#f2c14e" strokeWidth="2.6" />
+                <path d="M-7 12.4L19 12.4" stroke="#082f40" strokeWidth="3" />
+                <path d={horn(0.6, 8.2, 2.1)} fill="none" stroke="#f6cf72" strokeWidth="0.9" strokeLinecap="round" />
+              </g>
+            </g>
+          </g>
+        ))}
+
+        {/* Chapan mit Koschkar-Muiis-Borte */}
+        <g className="hb-chapan">
+          <path d={CHAPAN} fill={`url(#${id}-chapan)`} />
+          <g clipPath={`url(#${id}-chapan-clip)`}>
+            <path d="M42 99L42 123" stroke="#f6cf72" strokeWidth="1.3" opacity="0.65" />
+            <path d="M54 99L54 123" stroke="#f6cf72" strokeWidth="1.3" opacity="0.65" />
+            {[36.5, 48, 59.5].map((x) => (
+              <path key={x} d={horn(x, 110, 3)} fill="none" stroke="#f6cf72" strokeWidth="1.3" strokeLinecap="round" />
+            ))}
+            <path d="M18 116.2L78 116.2" stroke="#0a3d54" strokeWidth="1.6" />
+            <path d="M18 119.8L78 119.8" stroke="#f2c14e" strokeWidth="5" />
+          </g>
+        </g>
+
+        {/* Arme mit Haenden - ebenfalls hinter dem Koerper angesetzt */}
+        {ARME.map(({ seite, arm, hx, dx, bund }) => (
+          <g key={seite} className={`hb-arm hb-arm--${seite}`}>
+            <path d={arm} fill="none" stroke="#b8154b" strokeWidth="7.4" strokeLinecap="round" />
+            <circle cx={dx} cy="92.6" r="2.9" fill={`url(#${id}-koerper)`} />
+            <circle cx={hx} cy="97.5" r="6.4" fill={`url(#${id}-koerper)`} stroke="#7d0c33" strokeOpacity="0.3" strokeWidth="0.8" />
+            <circle cx={hx - 1.6} cy="95.4" r="1.7" fill="#fff" fillOpacity="0.45" />
+            <path d={bund} fill="none" stroke="#f2c14e" strokeWidth="2.6" strokeLinecap="round" />
+          </g>
+        ))}
+
         {/* Blattkrone, jedes Blatt wiegt sich einzeln */}
         <g className="hb-krone" transform="translate(48 40)">
           {BLAETTER.map(([w, l], i) => (
@@ -82,10 +178,7 @@ export function Himbi({ zustand, groesse = 88 }: { zustand: HaustierZustand; gro
         </g>
 
         {/* Koerper */}
-        <path
-          d="M48 38C76 38 88 58 82 77C76 96 62 108 48 108C34 108 20 96 14 77C8 58 20 38 48 38Z"
-          fill={`url(#${id}-koerper)`}
-        />
+        <path d={KOERPER} fill={`url(#${id}-koerper)`} />
         <g className="hb-fruechtchen">
           {FRUECHTCHEN.map(([x, y], i) => (
             <circle

@@ -66,6 +66,13 @@ jobs:
       - name: Abhängigkeiten installieren
         run: npm ci
 
+      # Faengt Migrationen ab, die ein `supabase db push` auf der gehosteten Datenbank stillschweigend
+      # ueberspringen wuerde (aelter als die letzte, oder eine schon angewendete Datei geaendert).
+      - name: Migrationsdateien pruefen (Reihenfolge, keine Aenderung angewendeter Dateien)
+        run: |
+          git fetch --no-tags --depth=1 origin main
+          node scripts/pruefe-migrationen.mjs --basis FETCH_HEAD
+
       - uses: supabase/setup-cli@v1
         with:
           version: latest
