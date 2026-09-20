@@ -27,6 +27,7 @@ Tokens als CSS-Variablen in `:root` (hell) und `.dark`; Tailwind-Namen über `@t
 | `--background` | `#f6fafb` | `#04161c` | Seitengrund (Dunkel: Nachthimmel, kein Schwarz) |
 | `--foreground` | `#0b1e26` | `#e6f4f8` | Fließtext, Überschriften |
 | `--card` | `#ffffff` | `rgba(9,33,41,.74)` | Karten, Panels |
+| `--card-deckend` | `#ffffff` | `#081e26` | Flächen, hinter denen Inhalt liegt: untere Leiste, Blätter, festgehaltene Spalte einer Matrix. Im Dunkeln ist `--card` zu 26 % durchsichtig - für eine Karte auf dem Rasterhintergrund richtig, für alles, was verdecken soll, falsch. Der Wert ist genau der Ton, den `--card` über dem Seitengrund ergibt. |
 | `--primary` | `#00768f` | `#3fd0e6` | Kök: Buttons, Links, aktive Navigation |
 | `--primary-foreground` | `#ffffff` | `#01222b` | Text auf Primary |
 | `--secondary` | `#e3f2f6` | `rgba(13,47,58,.72)` | ruhige Flächen |

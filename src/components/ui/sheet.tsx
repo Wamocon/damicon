@@ -114,7 +114,7 @@ export function Sheet({
         aria-labelledby={titelId}
         tabIndex={-1}
         className={cn(
-          "relative flex min-h-0 w-full flex-col rounded-t-2xl border-t border-border bg-card shadow-2xl outline-none",
+          "relative flex min-h-0 w-full flex-col rounded-t-2xl border-t border-border bg-card-deckend shadow-2xl outline-none",
           // Bis unter den Home-Indicator, damit die Flaeche am Rand nicht
           // abrupt endet; den Abstand traegt der Inhalt weiter unten.
           "max-h-[85svh]",

@@ -74,6 +74,7 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-card-deckend: var(--card-deckend);
   --color-foreground: var(--foreground);
   --color-background: var(--background);
   --radius-sm: calc(var(--radius) * 0.6);
@@ -102,6 +103,19 @@
   --background: #f6fafb;
   --foreground: #0b1e26;
   --card: #ffffff;
+  /* Deckendes Gegenstueck zu --card, fuer Flaechen, hinter denen Inhalt
+     liegt: die untere Leiste, die Blaetter, die festgehaltene erste Spalte
+     einer Matrix.
+
+     --card ist im Dark Mode zu 26 % durchsichtig (rgba(9,33,41,.74)) - das
+     ist fuer eine Karte richtig, die auf dem Rasterhintergrund des Dashboards
+     liegt, und falsch fuer alles, was etwas verdecken soll. Auf der unteren
+     Leiste schimmerte der Seiteninhalt durch, und durch die fixierte Spalte
+     einer Matrix liefen beim Querscrollen die Zellen sichtbar hindurch.
+
+     Der dunkle Wert ist genau der Ton, den rgba(9,33,41,.74) ueber dem
+     Seitengrund ergibt - optisch identisch, nur eben deckend. */
+  --card-deckend: #ffffff;
   --card-foreground: #0b1e26;
   --popover: #ffffff;
   --popover-foreground: #0b1e26;
@@ -159,6 +173,7 @@
   --background: #04161c;
   --foreground: #e6f4f8;
   --card: rgba(9, 33, 41, 0.74);
+  --card-deckend: #081e26;
   --card-foreground: #e6f4f8;
   --popover: #06212a;
   --popover-foreground: #e6f4f8;
