@@ -235,9 +235,20 @@
   --schrift-dense: 0.75rem;
 }
 
+/* Der Platz fuer die untere Leiste haengt am LAYOUT: die Leiste gibt es
+   nur unter md, ab dort traegt die Seitenleiste die Navigation. */
 @media (max-width: 767.98px) {
   :root {
     --untere-leiste-raum: calc(3.5rem + 2.5rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* Die Schriftgroessen haengen dagegen daran, WIE bedient wird, und das
+   reicht weiter: ein Tablet ist 810 bis 1024 px breit und wird mit dem
+   Finger bedient, im Kuehlhaus mit Handschuhen. Es lag bisher in der
+   Schreibtisch-Fassung. */
+@media (max-width: 1023.98px) {
+  :root {
     --schrift-label: 0.8125rem;
     --schrift-dense: 0.875rem;
   }
@@ -1086,6 +1097,45 @@ html.lenis.lenis-smooth {
   }
 }
 
+
+/* Ladebild "Kuehl-LKW mit Himbeere" (components/site/lkw-lader.tsx). Wie im
+   Bento gilt: Die Animationen laufen auf SVG-Elementen, 1px entspricht dort
+   einer Einheit der viewBox.
+
+   Die drei Laufzeiten sind nicht frei gewaehlt. 0,9 s je 40 Einheiten Strasse
+   ergeben 44,4 Einheiten je Sekunde; ein Rad mit r = 12 hat 75,4 Einheiten
+   Umfang und braucht dafuer 1,7 s je Umdrehung. Die Federung laeuft mit
+   1,05 s bewusst quer dazu - waere sie ein Teiler der beiden anderen, kaeme
+   die ganze Zeichnung regelmaessig in dieselbe Stellung zurueck und die Fahrt
+   saehe aus wie eine kurze Schleife.
+
+   Gesetzt werden alle drei ueber motion-safe an der Komponente. Der globale
+   Notausschalter weiter unten wuerde sie zwar auch abwuergen, aber auf ihrem
+   Endzustand: Die Strasse stuende dann um eine Periode versetzt. */
+@keyframes lkw-strasse {
+  to {
+    transform: translateX(-40px);
+  }
+}
+@keyframes lkw-federung {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(2.5px);
+  }
+}
+@keyframes lkw-laterne {
+  to {
+    transform: translateX(-180px);
+  }
+}
+@keyframes lkw-rad {
+  to {
+    transform: rotate(360deg);
+  }
+}
 @layer components {
   .container {
     margin-inline: auto;

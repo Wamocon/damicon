@@ -8,7 +8,8 @@
     "themeLight": "Light theme",
     "themeDark": "Dark theme",
     "localeSwitcherLabel": "Language selection",
-    "themeLabel": "Colour scheme"
+    "themeLabel": "Colour scheme",
+    "laedt": "The page is loading"
   },
   "notFound": {
     "message": "This page does not exist.",

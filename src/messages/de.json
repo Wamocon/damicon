@@ -8,7 +8,8 @@
     "themeLight": "Helles Design",
     "themeDark": "Dunkles Design",
     "localeSwitcherLabel": "Sprachauswahl",
-    "themeLabel": "Farbschema"
+    "themeLabel": "Farbschema",
+    "laedt": "Die Seite wird geladen"
   },
   "notFound": {
     "message": "Diese Seite gibt es nicht.",

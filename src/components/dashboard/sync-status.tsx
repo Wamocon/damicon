@@ -194,7 +194,7 @@ export function SyncStatus() {
                           type="button"
                           aria-label={t("verwerfen")}
                           onClick={() => void eintragEntfernen(eintrag.aktionId)}
-                          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive md:h-5 md:w-5"
+                          className="inline-flex h-11 w-11 items-center justify-center rounded-md text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive lg:h-5 lg:w-5"
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>

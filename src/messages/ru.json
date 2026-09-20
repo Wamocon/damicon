@@ -4,7 +4,8 @@
     "themeLight": "Светлая тема",
     "themeDark": "Тёмная тема",
     "localeSwitcherLabel": "Выбор языка",
-    "themeLabel": "Цветовая схема"
+    "themeLabel": "Цветовая схема",
+    "laedt": "Страница загружается"
   },
   "notFound": {
     "message": "Такой страницы нет.",

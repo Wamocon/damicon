@@ -85,7 +85,7 @@ export function ReklamationInPruefungFormular({ id }: { id: string }) {
       <input type="hidden" name="status" value="in_pruefung" />
       <button
         type="submit"
-        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-semibold text-foreground transition hover:bg-muted md:h-9"
+        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-semibold text-foreground transition hover:bg-muted lg:h-9"
       >
         {t("inPruefungKnopf")}
       </button>
@@ -122,7 +122,7 @@ export function ReklamationEntscheidungFormular({
       ) : null}
       <button
         type="submit"
-        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-primary-foreground transition hover:brightness-110 md:h-9"
+        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-primary-foreground transition hover:brightness-110 lg:h-9"
       >
         {label}
       </button>
@@ -165,7 +165,7 @@ export function ReklamationNachrichtFormular({
       ) : null}
       <button
         type="submit"
-        className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary md:h-9 md:px-3 md:text-xs"
+        className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary lg:h-9 lg:px-3 lg:text-xs"
       >
         <MessageSquarePlus className="h-3.5 w-3.5" />
         {t("knopf")}

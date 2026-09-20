@@ -101,7 +101,7 @@ Größen im Dashboard (aus `kit.tsx`):
 
 `font-black` fällt bei Manrope auf 800 zurück; das ist gewollt und braucht keine Korrektur.
 
-**Zwei Größen sind Tokens, nicht Zahlen.** `schrift-label` (Beschriftungen) und `schrift-dense` (dichter Fließtext daneben) stehen in `globals.css` und sind auf dem Handy eine Stufe größer: 11 → 13 px und 12 → 14 px. Die Oberfläche ist auf 11 px gebaut, was am Schreibtisch eine dichte, lesbare Erfassungsmaske ergibt und in der Hand die Größe ist, bei der man das Telefon näher ans Gesicht hält. Bewusst nicht 16 px: das ist die Grenze für *Eingabefelder* wegen des iOS-Zooms, für Beschriftungen wäre es zu viel. Der Sprung hängt an derselben Media Query wie Leiste, Blätter und Tabellen, nicht an einem eigenen `clamp()`.
+**Zwei Größen sind Tokens, nicht Zahlen.** `schrift-label` (Beschriftungen) und `schrift-dense` (dichter Fließtext daneben) stehen in `globals.css` und sind bis `lg` eine Stufe größer: 11 → 13 px und 12 → 14 px. Die Oberfläche ist auf 11 px gebaut, was am Schreibtisch eine dichte, lesbare Erfassungsmaske ergibt und in der Hand die Größe ist, bei der man das Telefon näher ans Gesicht hält. Bewusst nicht 16 px: das ist die Grenze für *Eingabefelder* wegen des iOS-Zooms, für Beschriftungen wäre es zu viel. Der Sprung hängt an derselben Media Query wie Leiste, Blätter und Tabellen, nicht an einem eigenen `clamp()`.
 
 Neue Beschriftungen tragen `schrift-label`, neue Hilfszeilen `schrift-dense` — nicht `text-[11px]`. Ausgenommen sind Dinge, die man **erkennt** statt liest: die Statuspille und der Kopf einer Matrix bleiben auf beiden Geräten bei 11 px. Eine Pille mit 13 px nimmt in einer schmalen Karte spürbar Platz, ohne dass ein Zustandswort dadurch verständlicher wird, und ein größerer Matrixkopf macht jede Spalte breiter, also mehr Querscrollen für weniger Übersicht. Die Namen beginnen bewusst nicht mit `text-`: tailwind-merge hätte sie in `cn()` für Textfarben gehalten und neben `text-success` entfernt, samt Schriftgröße. Der Bestand in den Modulen ist noch nicht umgestellt (Stand: 212 Stellen), das ist ein eigener Durchgang.
 
@@ -229,6 +229,7 @@ Noch offen: Zurück schließt das Blatt nicht, weil es keinen Verlaufseintrag an
 | Dauern | 0,25–0,6 s für Übergänge, bis 1,1 s für wachsende Balken |
 | Weiches Scrollen | Lenis (`weiches-scrollen.tsx`) |
 | Kamerafahrt | scrollgetriebene CSS-Animation, Firefox zeigt das Bild ruhig |
+| Ladebild | `lkw-lader.tsx`: LKW steht, Fahrbahn wandert um eine Strichperiode, Raddrehung auf die Fahrbahngeschwindigkeit gerechnet |
 
 Unter `prefers-reduced-motion: reduce` sind alle Animationen und Übergänge auf 0,01 ms gesetzt, `[data-reveal]` steht sofort sichtbar, View Transitions entfallen, die Leseanzeige wird ausgeblendet.
 
@@ -237,7 +238,7 @@ Unter `prefers-reduced-motion: reduce` sind alle Animationen und Übergänge auf
 - Skip-Link (`.skip-link`) springt zum Inhalt.
 - Fokus über `--ring`, sichtbar auf allen Flächen (3:1). Die Regel steht global in `globals.css` (`:focus-visible`), nicht an den Bausteinen — sonst muss sie an jedem neuen Element nachgezogen werden, und genau das ist lange nicht passiert. Ausgenommen sind Himbi und das KI-Panel, die ihren Fokus selbst zeichnen.
 - Text mindestens 4,5:1, Grafik und Bedienelemente mindestens 3:1.
-- Touch-Ziele: ab `md` Buttons ab `h-9` (36 px), darunter mindestens `h-11` (44 px). Die dichte Maske gilt für den Schreibtisch, nicht für die Hand: mit Handschuhen im Kühlhaus ist 44 px der Unterschied zwischen Treffen und Danebentippen (WCAG 2.5.5). Eingabefelder tragen unter `md` zusätzlich `text-base` — Safari auf iOS zoomt bei allem unter 16 px beim Fokus hinein und bleibt vergrößert. Muster: `h-11 text-base md:h-9 md:text-xs`.
+- Touch-Ziele: ab `lg` Buttons ab `h-9` (36 px), darunter mindestens `h-11` (44 px). **Zwei Grenzen, nicht eine:** `md` (768) trennt das Layout - ab dort Seitenleiste, Tabellen statt Karten, volle Kopfzeile. `lg` (1024) trennt die Maße, denn bis dahin wird mit dem Finger bedient: ein Tablet ist 810 bis 1024 px breit, und DESIGN.md nennt das Tablet im Kühlhaus als Nutzungsfall. Vorher lag genau diese Zone in der Schreibtisch-Fassung. Die dichte Maske gilt für den Schreibtisch, nicht für die Hand: mit Handschuhen im Kühlhaus ist 44 px der Unterschied zwischen Treffen und Danebentippen (WCAG 2.5.5). Eingabefelder tragen unter `lg` zusätzlich `text-base` — Safari auf iOS zoomt bei allem unter 16 px beim Fokus hinein und bleibt vergrößert. Muster: `h-11 text-base lg:h-9 lg:text-xs`.
 - `aria-label` und `title` auf reinen Symbolknöpfen.
 - `<details>` für häufige Fragen: Die Bedienung kommt vom Browser, nur Zeichen und Einblenden sind gestaltet.
 - Texte stehen nicht in Bildern, damit sie übersetzt und vorgelesen werden können.

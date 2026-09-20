@@ -4,7 +4,8 @@
     "themeLight": "Açık tema",
     "themeDark": "Koyu tema",
     "localeSwitcherLabel": "Dil seçimi",
-    "themeLabel": "Renk şeması"
+    "themeLabel": "Renk şeması",
+    "laedt": "Sayfa yükleniyor"
   },
   "notFound": {
     "message": "Böyle bir sayfa yok.",

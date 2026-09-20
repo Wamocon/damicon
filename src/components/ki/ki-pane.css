@@ -1606,8 +1606,12 @@ html[data-ki-zieht] body {
 /* ---- Handy: Masse ---------------------------------------------------------
    Vier Aenderungen, die alle denselben Grund haben: das Panel ist am
    Schreibtisch entworfen, wo die Maus pixelgenau trifft und keine Tastatur
-   einfaehrt. */
-@media (max-width: 767.98px) {
+   einfaehrt.
+
+   Bis 1024 px und nicht nur bis 768: das Blatt-Layout darueber haengt am
+   Platz, diese Masse haengen daran, dass mit dem Finger bedient wird - und
+   das gilt auf dem Tablet genauso. */
+@media (max-width: 1023.98px) {
   /* 16 px ist keine Geschmacksfrage: Safari auf iOS zoomt beim Fokus in jedes
      Eingabefeld, das kleiner ist, und bleibt danach vergroessert. Der Nutzer
      scrollt sich dann aus dem Gespraech heraus. */

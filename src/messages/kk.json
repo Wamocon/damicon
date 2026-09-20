@@ -4,7 +4,8 @@
     "themeLight": "Ашық тақырып",
     "themeDark": "Күңгірт тақырып",
     "localeSwitcherLabel": "Тіл таңдау",
-    "themeLabel": "Түс схемасы"
+    "themeLabel": "Түс схемасы",
+    "laedt": "Бет жүктелуде"
   },
   "notFound": {
     "message": "Мұндай бет жоқ.",

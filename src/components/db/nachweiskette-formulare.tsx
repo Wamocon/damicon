@@ -16,7 +16,7 @@ import { AusweisScanFeld } from "@/components/db/ausweis-scan-feld";
 import type { PflueckerOption } from "@/lib/domain/ausweis-scan";
 
 const knopf =
-  "inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-bold text-foreground transition hover:bg-muted md:h-9 md:text-xs";
+  "inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-bold text-foreground transition hover:bg-muted lg:h-9 lg:text-xs";
 
 // Steige mit Person: der Vorgang, an dem die Kette bis zum Pflücker reicht.
 export function SteigeFormular({

@@ -17,7 +17,7 @@ export function PrintButton({ label, className }: { label: string; className?: s
       type="button"
       onClick={() => window.print()}
       className={cn(
-        "print:hidden inline-flex h-11 items-center gap-1.5 rounded-full border border-border bg-card px-4 text-sm font-semibold text-foreground transition hover:bg-muted md:h-9 md:text-xs",
+        "print:hidden inline-flex h-11 items-center gap-1.5 rounded-full border border-border bg-card px-4 text-sm font-semibold text-foreground transition hover:bg-muted lg:h-9 lg:text-xs",
         className,
       )}
     >

@@ -12,7 +12,7 @@ import type { AktionsStatus } from "@/lib/actions/status";
 // Dashboard, keine eigene Formularbibliothek.
 
 const feldKlassen =
-  "h-11 w-full rounded-lg border border-border bg-background px-3 text-base text-foreground outline-none transition focus:border-primary md:h-9 md:px-2.5 md:text-xs";
+  "h-11 w-full rounded-lg border border-border bg-background px-3 text-base text-foreground outline-none transition focus:border-primary lg:h-9 lg:px-2.5 lg:text-xs";
 
 // WMC-Vibecode-Cleanup-Fund: bis hierher praktisch wortgleich in rund 15
 // *-formulare.tsx-Dateien einzeln neu geschrieben (immer derselbe versteckte
@@ -138,8 +138,8 @@ export function SubmitKnopf({
       disabled={pending}
       className={
         variante === "primaer"
-          ? "inline-flex h-11 items-center justify-center rounded-lg bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-60 md:h-9 md:px-3 md:text-xs"
-          : "inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary disabled:opacity-60 md:h-9 md:px-3 md:text-xs"
+          ? "inline-flex h-11 items-center justify-center rounded-lg bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-60 lg:h-9 lg:px-3 lg:text-xs"
+          : "inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary disabled:opacity-60 lg:h-9 lg:px-3 lg:text-xs"
       }
     >
       {pending ? t("laeuft") : text}

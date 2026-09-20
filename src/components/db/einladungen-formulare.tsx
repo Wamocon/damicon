@@ -98,7 +98,7 @@ function ZurueckziehenKnopf() {
     <button
       type="submit"
       disabled={pending}
-      className="inline-flex h-11 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground transition hover:border-destructive hover:text-destructive disabled:cursor-not-allowed disabled:opacity-60 md:h-8 md:px-2.5 md:text-[11px]"
+      className="inline-flex h-11 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground transition hover:border-destructive hover:text-destructive disabled:cursor-not-allowed disabled:opacity-60 lg:h-8 lg:px-2.5 md:text-[11px]"
     >
       <Undo2 className="h-3 w-3" />
       {pending ? a("laeuft") : t("zurueckziehen")}

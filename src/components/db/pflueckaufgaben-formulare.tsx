@@ -215,7 +215,7 @@ export function BelegUploadFormular({ aufgabeId }: { aufgabeId: string }) {
       <Feld label={t("feld.hinweis")} name="hinweis" placeholder={t("feld.hinweisBeispiel")} />
       <button
         type="submit"
-        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-semibold text-foreground transition hover:bg-muted md:h-9"
+        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-semibold text-foreground transition hover:bg-muted lg:h-9"
       >
         <Camera className="h-4 w-4" />
         {t("beleg.knopf")}
@@ -274,7 +274,7 @@ export function AufgabeStatusFormular({
       ) : null}
       <button
         type="submit"
-        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-primary-foreground transition hover:brightness-110 md:h-9"
+        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-primary-foreground transition hover:brightness-110 lg:h-9"
       >
         <Check className="h-4 w-4" />
         {label}
