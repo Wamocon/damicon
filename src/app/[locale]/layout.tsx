@@ -38,6 +38,12 @@ const manrope = Manrope({
 // die Seite darunter die Landesfarben traegt. Zwei Werte, damit sie dem
 // Farbschema folgt: Koek im hellen, das Nachtblau des Dark Mode im dunklen.
 export const viewport: Viewport = {
+  // Die Seite reicht bis unter die abgerundeten Ecken und den Home-Indicator;
+  // erst damit liefert env(safe-area-inset-*) ueberhaupt einen Wert. Ohne das
+  // bliebe die untere Navigationsleiste (untere-leiste.tsx) entweder unter der
+  // Systemleiste liegen oder muesste mit einem geratenen Festabstand darueber
+  // schweben.
+  viewportFit: "cover",
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#00768f" },
     { media: "(prefers-color-scheme: dark)", color: "#04161c" },

@@ -4,16 +4,10 @@ import {
   useCallback,
   useEffect,
   useId,
-  useState,
   useSyncExternalStore,
 } from "react";
 import { useTranslations } from "next-intl";
-import {
-  ChevronDown,
-  LayoutDashboard,
-  Menu,
-  X,
-} from "lucide-react";
+import { ChevronDown, LayoutDashboard } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { Icon } from "@/components/icon";
@@ -27,6 +21,10 @@ import {
   schmalAbonnieren,
   schmalServer,
 } from "@/components/dashboard/sidebar-zustand";
+import {
+  useAktiveZone,
+  useNavZiele,
+} from "@/components/dashboard/nav-ziele";
 import { hasPermission } from "@/lib/rbac";
 import { moduleHref, modulesForZone, zones, type ZoneKey } from "@/lib/modules";
 import { cn } from "@/lib/utils";
@@ -99,13 +97,6 @@ function useIsActive() {
       : pathname === href || pathname.startsWith(`${href}/`);
 }
 
-// Bereich der gerade geoeffneten Seite, aus /dashboard/<zone>/<modul>.
-function useAktiveZone(): ZoneKey | null {
-  const pathname = usePathname();
-  const segment = pathname.split("/")[2];
-  return zones.find((zone) => zone.key === segment)?.key ?? null;
-}
-
 function useZonenGruppen() {
   const aktiveZone = useAktiveZone();
   const offene = useSyncExternalStore(
@@ -146,20 +137,11 @@ function useZonenGruppen() {
 // zeigt - deshalb braucht die Leiste kein Ausklapp-Fenster, um brauchbar zu
 // sein. Ohne sichtbare Beschriftung traegt jedes Ziel aria-label und title.
 function SidebarRail() {
-  const { role } = usePersona();
-  const nav = useTranslations("nav");
-  const zoneT = useTranslations("zones");
-  const aktiveZone = useAktiveZone();
-  // Bewusst der genaue Pfad und nicht useIsActive: das vergleicht mit Praefix
-  // und wuerde auf einer Modulseite auch den Bereich als "page" auszeichnen,
-  // obwohl die Bereichsseite gar nicht offen ist.
-  const pathname = usePathname();
-
-  const sichtbareZonen = zones.filter((zone) =>
-    modulesForZone(zone.key).some((module) =>
-      hasPermission(role, module.resource, "view"),
-    ),
-  );
+  // Dieselben fuenf Ziele wie die untere Leiste auf dem Handy, aus einer
+  // Quelle (nav-ziele.ts). Der genaue Pfad und der Bereich der geoeffneten
+  // Seite werden dort getrennt gefuehrt: auf einer Modulseite gilt der Bereich
+  // als aktiv, aber nicht als geoeffnete Seite.
+  const ziele = useNavZiele();
 
   const feldKlassen = (aktiv: boolean) =>
     cn(
@@ -178,38 +160,20 @@ function SidebarRail() {
       <div className="h-px w-8 bg-sidebar-border" />
 
       <nav className="flex min-h-0 flex-1 flex-col items-center gap-1.5 overflow-y-auto">
-        <Link
-          href="/dashboard"
-          aria-label={nav("overview")}
-          title={nav("overview")}
-          aria-current={pathname === "/dashboard" ? "page" : undefined}
-          className={feldKlassen(pathname === "/dashboard")}
-        >
-          <LayoutDashboard className="h-4 w-4" />
-        </Link>
-
-        {sichtbareZonen.map((zone) => {
-          const name = zoneT(`${zone.key}.name`);
-          const href = `/dashboard/${zone.key}`;
-          // Der Bereich gilt als aktiv, sobald die offene Seite in ihm liegt -
-          // nicht nur auf der Bereichsseite selbst. Sonst zeigt die Leiste im
-          // eingeklappten Zustand gar nichts an, wo man gerade steht.
-          const imBereich = aktiveZone === zone.key;
-          return (
-            <Link
-              key={zone.key}
-              href={href}
-              aria-label={name}
-              title={name}
-              aria-current={
-                pathname === href ? "page" : imBereich ? "true" : undefined
-              }
-              className={feldKlassen(imBereich)}
-            >
-              <Icon name={zone.icon} className="h-4 w-4" />
-            </Link>
-          );
-        })}
+        {ziele.map((ziel) => (
+          <Link
+            key={ziel.key}
+            href={ziel.href}
+            aria-label={ziel.name}
+            title={ziel.name}
+            aria-current={
+              ziel.aktuelleSeite ? "page" : ziel.imZiel ? "true" : undefined
+            }
+            className={feldKlassen(ziel.imZiel)}
+          >
+            <Icon name={ziel.icon} className="h-4 w-4" />
+          </Link>
+        ))}
       </nav>
 
       <BenutzerFussSchmal />
@@ -218,17 +182,7 @@ function SidebarRail() {
 }
 
 function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
-  const { role } = usePersona();
   const nav = useTranslations("nav");
-  const zoneT = useTranslations("zones");
-  const moduleT = useTranslations("modules");
-  const reifegradT = useTranslations("reifegrad");
-  const isActive = useIsActive();
-  // Fuer die Bereichsseite zaehlt der genaue Pfad, nicht der Praefix aus
-  // useIsActive - sonst gaelte sie auch auf jeder Modulseite als offen.
-  const pathname = usePathname();
-  const { offene, umschalten } = useZonenGruppen();
-  const gruppenId = useId();
 
   return (
     <div className="flex h-full min-h-0 flex-col p-4">
@@ -246,7 +200,39 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
         </span>
       </Link>
 
-      <nav className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
+      <MenueBaum onNavigate={onNavigate} className="mt-4" />
+
+      <BenutzerFuss onNavigate={onNavigate} />
+    </div>
+  );
+}
+
+// Der Baum aus "Uebersicht" und den vier Bereichsgruppen, ohne Bildmarke und
+// ohne Benutzerfuss. Exportiert, weil unter `md` dasselbe Menue im Sheet der
+// unteren Leiste steht (untere-leiste.tsx) - dort traegt die Kopfzeile des
+// Sheets schon den Titel und das Konto-Sheet die angemeldete Person, beides
+// staende sonst doppelt da.
+export function MenueBaum({
+  onNavigate,
+  className,
+}: {
+  onNavigate?: () => void;
+  className?: string;
+}) {
+  const { role } = usePersona();
+  const nav = useTranslations("nav");
+  const zoneT = useTranslations("zones");
+  const moduleT = useTranslations("modules");
+  const reifegradT = useTranslations("reifegrad");
+  const isActive = useIsActive();
+  // Fuer die Bereichsseite zaehlt der genaue Pfad, nicht der Praefix aus
+  // useIsActive - sonst gaelte sie auch auf jeder Modulseite als offen.
+  const pathname = usePathname();
+  const { offene, umschalten } = useZonenGruppen();
+  const gruppenId = useId();
+
+  return (
+    <nav className={cn("min-h-0 flex-1 overflow-y-auto pr-1", className)}>
         <ul className="space-y-1.5">
           {/* "Uebersicht" steht auf derselben Ebene wie die vier Bereiche und
               bekommt deshalb dieselbe Flaeche - ohne sie haengt die Zeile lose
@@ -453,76 +439,31 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
             );
           })}
         </ul>
-      </nav>
-
-      <BenutzerFuss onNavigate={onNavigate} />
-    </div>
+    </nav>
   );
 }
 
+// Nur noch die feste Spalte ab `md`. Der mobile Teil - Menueknopf oben links
+// und die Schublade von der Seite - ist entfallen: unter `md` traegt die
+// untere Leiste (untere-leiste.tsx) die Navigation und zeigt dasselbe Menue
+// in einem Sheet, das von unten aufgeht. Zwei Einstiege ins gleiche Menue,
+// einer davon in der am schlechtesten erreichbaren Ecke, waeren nur doppelt
+// gewesen.
 export function DashboardSidebar() {
-  const [open, setOpen] = useState(false);
-  const nav = useTranslations("nav");
   // Server rendert immer die volle Spalte. Wer sie eingeklappt hatte, sieht
   // sie nach der Hydration zusammenfahren - dieselbe Abwaegung wie bei den
   // Bereichsgruppen und bei persona.tsx.
   const schmal = useSyncExternalStore(schmalAbonnieren, istSchmal, schmalServer);
 
-  useEffect(() => {
-    document.body.style.overflow = open ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
-
   return (
-    <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label={nav("openMenu")}
-        className="fixed left-4 top-4 z-50 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-foreground shadow-sm md:hidden print:hidden"
-      >
-        <Menu className="h-5 w-5" />
-      </button>
-
-      {/* 19rem statt der frueheren 18rem: die Gruppenflaechen kosten etwas
-          Breite, die Beschriftungen behalten so ihre eigene. */}
-      <aside
-        className={cn(
-          "sticky top-0 hidden h-svh shrink-0 self-start overflow-hidden border-r border-sidebar-border bg-sidebar/95 backdrop-blur-xl md:block print:hidden",
-          "transition-[width] duration-200 ease-out motion-reduce:transition-none",
-          schmal ? "w-16" : "w-76",
-        )}
-      >
-        {schmal ? (
-          <SidebarRail />
-        ) : (
-          <SidebarBody />
-        )}
-      </aside>
-
-      {open ? (
-        <div className="fixed inset-0 z-[100] md:hidden print:hidden">
-          <button
-            type="button"
-            aria-label={nav("closeMenu")}
-            onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-black/40 backdrop-blur-[1px]"
-          />
-          <div className="absolute inset-y-0 left-0 w-76 max-w-[calc(100vw-2rem)] border-r border-sidebar-border bg-sidebar text-sidebar-foreground shadow-2xl">
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              aria-label={nav("closeMenu")}
-              className="absolute right-3 top-3 z-10 rounded-lg p-2 text-muted-foreground hover:bg-sidebar-accent"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            <SidebarBody onNavigate={() => setOpen(false)} />
-          </div>
-        </div>
-      ) : null}
-    </>
+    <aside
+      className={cn(
+        "sticky top-0 hidden h-svh shrink-0 self-start overflow-hidden border-r border-sidebar-border bg-sidebar/95 backdrop-blur-xl md:block print:hidden",
+        "transition-[width] duration-200 ease-out motion-reduce:transition-none",
+        schmal ? "w-16" : "w-76",
+      )}
+    >
+      {schmal ? <SidebarRail /> : <SidebarBody />}
+    </aside>
   );
 }

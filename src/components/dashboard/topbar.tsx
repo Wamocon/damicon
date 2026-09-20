@@ -8,6 +8,8 @@ import {
   PanelLeftOpen,
   Search,
 } from "lucide-react";
+import { Link } from "@/i18n/navigation";
+import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { LocaleSwitcher } from "@/components/site/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PersonaSwitcher, usePersona } from "@/components/dashboard/persona";
@@ -81,6 +83,7 @@ function MenueUmschalter() {
 
 export function DashboardTopbar() {
   const t = useTranslations("dashboard");
+  const nav = useTranslations("nav");
   // Anforderung 2.5: der Sync-Indikator ist nur fuer echte, angemeldete
   // Brigade-Sitzungen relevant - im Demo-Modus gibt es keine echte
   // Supabase-Session, die eine Warteschlange fuellen koennte, und andere
@@ -89,17 +92,41 @@ export function DashboardTopbar() {
   const zeigeSync = !demoModus && echteRolle === "brigade";
 
   return (
-    <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 pl-16 backdrop-blur-xl md:px-6 md:pl-6 print:hidden">
+    <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl md:px-6 print:hidden">
+      {/* Unter md traegt die Kopfzeile Bildmarke und Namen: die Seitenleiste,
+          die beides sonst zeigt, gibt es dort nicht, und der fruehere
+          Menueknopf an dieser Stelle ist in die untere Leiste gewandert. Ab md
+          steht der Name wieder links in der Seitenleiste, hier waere er
+          doppelt. */}
+      <Link href="/dashboard" className="flex min-w-0 items-center gap-2.5 md:hidden">
+        <DamiconLogo className="shadow-lg shadow-primary/20" />
+        <span className="min-w-0">
+          <span className="block text-base font-black leading-tight text-foreground">
+            Damicon
+          </span>
+          <span className="block truncate text-[11px] font-semibold text-muted-foreground">
+            {nav("platformSubtitle")}
+          </span>
+        </span>
+      </Link>
+
       <MenueUmschalter />
       <div className="hidden min-w-0 flex-1 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground sm:flex">
         <Search className="h-4 w-4 shrink-0" />
         <span className="truncate">{t("searchPlaceholder")}</span>
       </div>
+      {/* Was unter md in das Konto-Blatt der unteren Leiste gewandert ist -
+          "KI fragen", Rollenumschalter, Sprache, Farbschema -, steht hier erst
+          ab md wieder. Sichtbar bleibt auf dem Handy nur, was beim Arbeiten
+          sichtbar bleiben muss: der Stand der Synchronisierung und die
+          Meldungen. */}
       <div className="flex flex-1 items-center justify-end gap-2 sm:flex-none">
-        <KiFragenKnopf />
-        <PersonaSwitcher className="hidden lg:inline-flex" />
-        <LocaleSwitcher compact />
-        <ThemeToggle />
+        <span className="hidden md:contents">
+          <KiFragenKnopf />
+          <PersonaSwitcher className="hidden lg:inline-flex" />
+          <LocaleSwitcher compact />
+          <ThemeToggle />
+        </span>
         {zeigeSync ? <SyncStatus /> : null}
         <button
           type="button"

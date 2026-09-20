@@ -20,23 +20,24 @@ Das ist keine Randfrage der Oberfläche, sondern entscheidet, welche Module zuer
 
 ## Überblick
 
-| # | Punkt | Nutzen | Aufwand |
-|---|---|---|---|
-| 1 | Tabellen zwingen zum Querscrollen | sehr hoch | mittel |
-| 2 | Kein Weg zwischen den Modulen ohne Schublade | sehr hoch | mittel |
-| 3 | Eingabefelder lösen auf iOS Zoom aus | sehr hoch | niedrig |
-| 4 | Kein Web-App-Manifest, obwohl der Service Worker steht | hoch | niedrig |
-| 5 | Keine Safe-Area, keine Regel für die Daumenzone | hoch | niedrig |
-| 6 | Die Kopfzeile ist bei 390 px voll | hoch | niedrig |
-| 7 | Die Fach-Oberfläche ist auf 11 px gebaut | hoch | mittel |
-| 8 | Berührungsflächen unter 44 px, im Design-System festgeschrieben | hoch | mittel |
-| 9 | Scan-Ansicht im falschen Seitenverhältnis | hoch | niedrig |
-| 10 | Kamera-Aufnahme nur bei einem von drei Uploads | mittel | sehr niedrig |
-| 11 | Sync-Panel als Desktop-Popover | mittel | niedrig |
-| 12 | Karte fängt das Seitenscrollen ab | mittel | niedrig |
-| 13 | `body` mit `min-h-screen` statt `min-h-svh` | mittel | sehr niedrig |
-| 14 | Kein Breakpoint unter 640 px | mittel | niedrig |
-| 15 | Formularraster springt von 1 auf 2 Spalten bei 640 px | niedrig | niedrig |
+| # | Punkt | Nutzen | Aufwand | Stand |
+|---|---|---|---|---|
+| 1 | Tabellen zwingen zum Querscrollen | sehr hoch | mittel | offen |
+| 2 | Kein Weg zwischen den Modulen ohne Schublade | sehr hoch | mittel | **erledigt** |
+| 3 | Eingabefelder lösen auf iOS Zoom aus | sehr hoch | niedrig | offen |
+| 4 | Kein Web-App-Manifest, obwohl der Service Worker steht | hoch | niedrig | offen |
+| 5 | Keine Safe-Area, keine Regel für die Daumenzone | hoch | niedrig | teilweise |
+| 6 | Die Kopfzeile ist bei 390 px voll | hoch | niedrig | **erledigt** |
+| 7 | Die Fach-Oberfläche ist auf 11 px gebaut | hoch | mittel | offen |
+| 8 | Berührungsflächen unter 44 px, im Design-System festgeschrieben | hoch | mittel | offen |
+| 9 | Scan-Ansicht im falschen Seitenverhältnis | hoch | niedrig | offen |
+| 10 | Kamera-Aufnahme nur bei einem von drei Uploads | mittel | sehr niedrig | offen |
+| 11 | Sync-Panel als Desktop-Popover | mittel | niedrig | offen |
+| 12 | Karte fängt das Seitenscrollen ab | mittel | niedrig | offen |
+| 13 | `body` mit `min-h-screen` statt `min-h-svh` | mittel | sehr niedrig | offen |
+| 14 | Kein Breakpoint unter 640 px | mittel | niedrig | offen |
+| 15 | Formularraster springt von 1 auf 2 Spalten bei 640 px | niedrig | niedrig | offen |
+| 16 | KI-Panel ist am Schreibtisch entworfen | hoch | mittel | **zur Entscheidung** |
 
 ---
 
@@ -52,13 +53,25 @@ Bei 390 px Fensterbreite bleiben nach dem Innenabstand der Hauptspalte (`p-4` in
 
 *Nutzen: sehr hoch · Aufwand: mittel*
 
-### 2. Kein Weg zwischen den Modulen ohne Schublade
+### 2. Kein Weg zwischen den Modulen ohne Schublade — erledigt
 
 Unter `md` gibt es nur den Hamburger-Knopf oben links (`sidebar.tsx:484`, `fixed left-4 top-4`, 40 × 40 px). Jeder Modulwechsel heißt: oben links treffen, Schublade lesen, Bereich aufklappen, Modul wählen. Bei 26 Modulen in vier Bereichen ist das der häufigste Vorgang überhaupt.
 
 Zwei Dinge kommen zusammen. Erstens liegt das einzige Navigationsziel in der Ecke, die man einhändig am schlechtesten erreicht. Zweitens zeigt die Schublade dieselbe `SidebarBody`, die für die 304 px breite Spalte gebaut ist: Modulnamen sind auf den Kurznamen gekürzt und zusätzlich `truncate` (`sidebar.tsx:406`, `432`), der vollständige Titel steht in `title` — ein Hover-Text, den ein Touchgerät nicht anzeigt. Die Schublade ist `w-76`, also 304 px, obwohl `max-w-[calc(100vw-2rem)]` 358 px erlauben würde.
 
 *Vorschlag:* Eine feste untere Leiste mit fünf Zielen (Übersicht und die vier Bereiche), nur unter `md`, gespiegelt aus `SidebarRail`, das diese fünf Ziele bereits definiert (`sidebar.tsx:148-215`). Die Bereichsseite listet die Module ohnehin als Kacheln, der Weg funktioniert also ohne Ausklapp-Fenster. Die Schublade bleibt für den direkten Sprung ins Modul, bekommt aber die volle Breite und zeigt die vollen Titel statt der Kurznamen: der Platz dafür ist da. Der Hamburger wandert in die Kopfzeile, womit `pl-16` entfällt (siehe Punkt 6).
+
+**Gebaut am 20.09.2026, erste Fassung:** eine schwebende Leiste mit den fünf Zielen der eingeklappten Seitenleiste, nur Symbole, ohne Beschriftung. Die Zielliste dafür ist aus `SidebarRail` herausgelöst und steht in `src/components/dashboard/nav-ziele.ts`.
+
+**Verworfen und ersetzt, noch am selben Tag.** Die fünf Sprungziele waren bedienbar, aber nicht vollständig: die Module erreichte man nur über den Umweg Bereichsseite, und alles, was nicht Navigation ist — KI, angemeldete Person, Sprache, Farbschema, Abmelden — hing weiter am oberen Rand oder an der Schublade. Die Leiste trägt jetzt drei Knöpfe, die je eine Fläche von unten heraufführen (`src/components/ui/sheet.tsx`):
+
+- **Menü** zeigt `MenueBaum` aus `sidebar.tsx`, also denselben Baum wie die Seitenleiste samt Rechten und aufgeklappten Gruppen. Der Baum ist dafür aus `SidebarBody` herausgelöst, damit im Blatt weder Bildmarke noch Benutzerfuß doppelt stehen.
+- **KI-Assistent** schaltet dasselbe Panel wie der Knopf in der Kopfzeile am Schreibtisch. Fehlt das Recht oder die Datenbank, trägt die Leiste zwei Knöpfe statt drei.
+- **Konto** (`konto-blatt.tsx`) zeigt Person, „Ansicht als“, Sprache, Farbschema, Sicherheit und Abmelden.
+
+Damit sind Menüknopf und seitliche Schublade aus `sidebar.tsx` entfallen; `DashboardSidebar` ist jetzt nur noch die feste Spalte ab `md`.
+
+Nebenbei erledigt: Punkt 16 des UX-Audits. Der Rollenumschalter trug `hidden lg:inline-flex` und fehlte unter 1024 px vollständig — im Konto-Blatt ist er erreichbar.
 
 *Nutzen: sehr hoch · Aufwand: mittel*
 
@@ -86,7 +99,7 @@ Ohne Manifest lässt sich das Portal nicht auf den Startbildschirm legen, läuft
 
 *Nutzen: hoch · Aufwand: niedrig*
 
-### 5. Keine Safe-Area, keine Regel für die Daumenzone
+### 5. Keine Safe-Area, keine Regel für die Daumenzone — teilweise
 
 `env(safe-area-inset-*)` und `viewport-fit=cover` kommen im ganzen Projekt nicht vor. Gleichzeitig sitzen zwei Elemente unten fest: Himbi mit `position: fixed; bottom: 20px` (`haustier.css:8-11`, im hohen Zustand 84 px) und das KI-Panel, das unter 1100 px zum Vollbild-Overlay wird (`ki-pane.css:122-145`).
 
@@ -94,9 +107,15 @@ Auf einem iPhone mit Home-Indicator und auf Android mit Gestennavigation liegt a
 
 *Vorschlag:* Erstens `viewport-fit: cover` setzen und die unteren Fixpunkte auf `calc(X + env(safe-area-inset-bottom))` umstellen. Zweitens eine Stapelregel festlegen und in `DESIGN.md` schreiben: untere Navigation ganz unten, Himbi darüber versetzt, KI-Panel als Vollbild darüber. Ohne diese Regel schiebt jeder neue Overlay den nächsten weg.
 
+**Gebaut am 20.09.2026:** `viewportFit: "cover"` steht im Viewport-Export (`[locale]/layout.tsx`), erst damit liefert `env(safe-area-inset-bottom)` überhaupt einen Wert. Den Platz unten hält jetzt eine gemeinsame Variable `--untere-leiste-raum` (`globals.css`), die den Systemabstand einrechnet. Drei Stellen lesen sie: die untere Leiste, der untere Innenabstand der Hauptspalte und Himbi samt Versteck (`haustier.css`) — das Maskottchen sitzt unter `md` jetzt über der Leiste statt darauf.
+
+Die Stapelregel steht jetzt in `DESIGN.md`, Abschnitt 6: von unten nach oben Leiste, Himbi, KI-Panel, Schublade, dazu die Vorgabe, dass jedes neue feste Element unten mit `--untere-leiste-raum` rechnet.
+
+**Noch offen an diesem Punkt:** das KI-Panel rechnet nicht mit der Variable. Es liegt als Vollbild-Overlay darüber (`z-index: 70` gegen `z-50` der Leiste), deshalb kollidiert derzeit nichts; sein eigener unterer Rand steht aber weiterhin ohne Systemabstand.
+
 *Nutzen: hoch · Aufwand: niedrig*
 
-### 6. Die Kopfzeile ist bei 390 px voll
+### 6. Die Kopfzeile ist bei 390 px voll — erledigt
 
 `topbar.tsx:92` setzt `px-4 pl-16` — die 64 px links sind der Freiraum für den fixierten Hamburger. Bei 390 px Fensterbreite bleiben damit 310 px für den Inhalt.
 
@@ -105,6 +124,10 @@ Was dort steht, wenn eine Brigade angemeldet ist: Sprachumschalter (`w-[64px]`),
 Die Suche ist unter 640 px ausgeblendet (`topbar.tsx:94`), was die Lage entspannt, aber nach Punkt 1 des UX-Audits ohnehin eine Attrappe ist.
 
 *Vorschlag:* Mit Punkt 2 zusammen lösen. Der Hamburger wandert als normales Element in die Kopfzeile, `pl-16` entfällt und bringt 48 px zurück. Der KI-Knopf zeigt unter `sm` nur das Himbeersymbol mit `aria-label`. Glocke und Sprachumschalter wandern in die Schublade oder hinter ein Mehr-Menü. Sichtbar bleibt, was im Feld zählt: Sync-Stand und KI.
+
+**Gebaut am 20.09.2026, anders als vorgeschlagen.** Der Hamburger ist nicht in die Kopfzeile gewandert, sondern ganz entfallen: das Menü hängt jetzt an der unteren Leiste. Damit ist `pl-16` weg, und an seine Stelle treten unter `md` Bildmarke und Name des Systems — die Seitenleiste, die beides sonst zeigt, gibt es dort nicht.
+
+Rechts bleibt unter `md` nur, was beim Arbeiten sichtbar bleiben muss: Synchronisierung und Meldungen. „KI fragen“, Rollenumschalter, Sprache und Farbschema stehen erst ab `md` wieder in der Kopfzeile; darunter sind sie über die untere Leiste und das Konto-Blatt erreichbar. Die enge Rechnung oben gilt damit nicht mehr: die Kopfzeile trägt auf dem Handy höchstens zwei Knöpfe.
 
 *Nutzen: hoch · Aufwand: niedrig*
 
@@ -206,17 +229,69 @@ Sieben Stellen brechen aus dem Muster aus und setzen `grid-cols-2` oder `grid-co
 
 ---
 
+### 16. Das KI-Panel ist am Schreibtisch entworfen — drei Vorschläge
+
+Das Panel ist als **andockbare Spalte neben** dem Hauptfenster gebaut. Der Kommentar in `ki-pane.tsx:16-19` sagt auch warum: der Nutzer soll im Agent-Modus sehen, „wie die Ansicht nebenan mitwandert". Unter 1100 px legt es sich stattdessen als Schublade über die Seite (`ki-pane.css:122-145`). Damit fällt auf dem Handy genau das weg, wofür die Anordnung gedacht war — es gibt kein „nebenan" mehr, die geführte Ansicht liegt vollständig hinter dem Panel.
+
+Dazu kommen fünf Maße, die am Schreibtisch stimmen und in der Hand nicht:
+
+- **Die Breite ist ein Rechenergebnis, kein Entwurf.** `width: min(var(--ki-pane-breite), 100vw)` ergibt bei 390 px Fensterbreite 368 px. Übrig bleibt ein 22 px breiter Streifen der Seite dahinter — zu schmal, um etwas zu zeigen, breit genug, um unruhig zu wirken.
+- **Das Eingabefeld löst den iOS-Zoom aus.** `font-size: 0.85rem` (`ki-pane.css:784`), also 13,6 px. Es ist das Bedienelement, das im Chat am häufigsten angetippt wird, siehe Punkt 3.
+- **Die Tastatur verdeckt das Eingabefeld.** Das Panel hängt an `inset: 0`, also am Layout-Viewport. Auf iOS schiebt die eingeblendete Tastatur nichts mit, das Feld liegt darunter. Weder `dvh` noch `interactive-widget=resizes-content` sind gesetzt.
+- **Der Composer steht im Home-Indicator.** `padding: 0.65rem max(1rem, …) 1rem` (`ki-pane.css:748`), ohne `env(safe-area-inset-bottom)`.
+- **Die Kopfknöpfe sind 32 px** (`ki-pane.css:199-200`), drei davon nebeneinander mit 0,15 rem Abstand. Einstellungen, Hilfe und Schließen liegen damit enger beieinander als eine Fingerkuppe breit ist.
+
+Dazu fehlt die Schließgeste, die auf Android erwartet wird: Zurück schließt das Panel nicht, weil es keinen Verlaufseintrag anlegt.
+
+Die fünf Maße sind in jeder der drei Varianten dieselbe Arbeit. Unterschiedlich ist nur, **was das Panel auf dem Handy sein soll**.
+
+#### Variante A: viertes Blatt von unten
+
+Das Panel wird unter `md` ein Blatt wie Menü und Konto: kommt von unten, volle Breite, Höhe `92svh`, Griff oben, Schließen per Klick daneben und per Esc. `ui/sheet.tsx` steht dafür schon.
+
+Der Agent-Modus wird unter `md` stillgelegt — der Schalter verschwindet, der Assistent antwortet, führt aber nicht. Wer führen lassen will, nimmt das Tablet.
+
+*Dafür:* der kleinste Eingriff, und die drei Knöpfe der unteren Leiste verhalten sich alle gleich. Ein Muster statt zweier.
+
+*Dagegen:* eine Funktion weniger auf dem Gerät, auf dem die Brigade arbeitet. Wenn der Agent gerade dort führen soll, wo niemand einen zweiten Bildschirm hat, ist das die falsche Richtung.
+
+#### Variante B: halbes Blatt mit zwei Rastpunkten
+
+Das Blatt öffnet auf halber Höhe (etwa 55 %) und lässt die Seite darüber sichtbar. Ein Zug am Griff schaltet auf Vollbild und zurück; beim Fokus ins Eingabefeld geht es selbst auf Vollbild, weil die Tastatur den Platz ohnehin nimmt.
+
+Damit bleibt der Agent-Modus mobil sinnvoll: die Führungsanzeige aus `ki-fuehrung.tsx` und die wandernde Ansicht liegen in der oberen Hälfte.
+
+*Dafür:* erhält die Kernidee des Panels. Auf dem Telefon der Brigade ist „zeig mir, wo das steht" plausibler als am Schreibtisch, wo man den Weg ohnehin kennt.
+
+*Dagegen:* die aufwendigste Variante. Ziehgeste, zwei Rastpunkte, Zusammenspiel mit der Tastatur und mit der unteren Leiste, die bei halber Höhe sichtbar bleibt und nicht verdeckt werden darf.
+
+#### Variante C: eigene Seite statt Overlay
+
+Unter `md` öffnet der KI-Knopf keine Fläche, sondern führt auf `/dashboard/ki`. Eine gewöhnliche Seite: Zurück schließt sie, die Adresse ist teilbar, die Tastatur verhält sich wie in jedem anderen Formular, und es gibt keine Fokusfalle zu bauen.
+
+*Dafür:* technisch die ruhigste Lösung, die wenigsten Sonderfälle. Ein Gespräch mit dem Assistenten ist auf dem Handy ohnehin eine eigene Tätigkeit und kein Nebenfenster.
+
+*Dagegen:* der Chat existiert dann in zwei Darstellungen (Panel am Schreibtisch, Seite auf dem Handy), die auseinanderlaufen können. Der Agent-Modus müsste die Seite verlassen, um zu führen — technisch machbar über die bestehende Führungsanzeige, aber erklärungsbedürftig.
+
+**Empfehlung:** A, wenn der Agent-Modus auf dem Handy verzichtbar ist; B, wenn er dort gebraucht wird. C ist die sauberste Lösung, kostet aber eine zweite Darstellung desselben Chats — das lohnt sich erst, wenn der Chat auf dem Handy mehr wird als eine Nebenfunktion.
+
+*Nutzen: hoch · Aufwand: A niedrig, B hoch, C mittel*
+
+---
+
 ## Reihenfolge der Umsetzung
 
 **Erste Etappe, Fundament (Punkte 3, 4, 5, 13, 10).** Manifest, Safe-Area, `svh`, Feldgröße gegen den iOS-Zoom, das fehlende `capture`. Zusammen ein knapper Tag, kein Umbau an bestehenden Ansichten, und danach ist das Portal auf dem Startbildschirm installierbar und im Feld ohne Zoom-Sprünge bedienbar.
 
-**Zweite Etappe, Navigation und Kopfzeile (Punkte 2, 6).** Untere Leiste, Hamburger in die Kopfzeile, Schublade auf volle Breite mit vollen Titeln. Die beiden Punkte hängen aneinander und sollten in einem Zug laufen, weil der Umbau der Kopfzeile den Platz erst durch den Wegfall von `pl-16` bekommt.
+**Zweite Etappe, Navigation und Kopfzeile (Punkte 2, 6) — erledigt am 20.09.2026.** Untere Leiste mit Menü, KI und Konto; Menüknopf und seitliche Schublade entfallen, die Kopfzeile trägt unter `md` Bildmarke und Namen. Offen geblieben ist daraus Punkt 16: das KI-Panel hängt jetzt am neuen Knopf, ist aber noch die alte Schublade von rechts.
 
 **Dritte Etappe, Maße (Punkte 7, 8, 15).** Textgrößen als Tokens, Berührungsflächen, die sieben festen Raster. Zuerst `DESIGN.md:201` ändern, dann die Bausteine, dann die Einzelfunde — in dieser Reihenfolge, sonst weicht die Umsetzung wieder von der dokumentierten Regel ab.
 
 **Vierte Etappe, Feldarbeit (Punkte 1, 9, 11, 12).** Der Tabellen-Umbau ist der größte Brocken und gehört mit Punkt 2 des UX-Audits in dasselbe Vorhaben: eine Tabellen- und Suchschicht, die Sortieren, Blättern und die Kartendarstellung unter `md` gemeinsam trägt. Scan-Ansicht, Sync-Sheet und Karte sind unabhängig davon und können jederzeit vorgezogen werden.
 
-Punkt 14 fällt an, sobald die zweite oder dritte Etappe einen Haltepunkt unter 640 px braucht, und nicht vorher.
+**Fünfte Etappe, KI auf dem Handy (Punkt 16).** Wartet auf die Entscheidung zwischen den drei Varianten. Die fünf Maße daraus — Breite, Schriftgröße im Eingabefeld, Tastatur, Safe-Area, Knopfgrößen — sind in jeder Variante dieselbe Arbeit und können vorgezogen werden.
+
+Punkt 14 fällt an, sobald eine Etappe einen Haltepunkt unter 640 px braucht, und nicht vorher.
 
 ## Was dieser Branch nicht anfasst
 

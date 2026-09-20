@@ -192,6 +192,46 @@
   --backdrop-line: rgba(255, 255, 255, 0.05);
 }
 
+/*
+  Platz fuer die untere Navigationsleiste (untere-leiste.tsx). Sie schwebt
+  unter `md` ueber dem Inhalt und belegt damit die Daumenzone, in der bisher
+  nichts Festes lag ausser dem Maskottchen.
+
+  Die Hoehe steht hier und nicht in der Komponente, weil drei Stellen mit
+  derselben Zahl rechnen muessen: die Hauptspalte (unterer Innenabstand, damit
+  die Leiste den letzten Knopf einer Seite nicht verdeckt), Himbi
+  (haustier.css, sitzt sonst darunter) und die Leiste selbst. Ohne eine
+  gemeinsame Quelle schiebt der naechste Umbau eines der drei Elemente weg,
+  ohne dass es auffaellt.
+
+  env(safe-area-inset-bottom) ist der Home-Indicator des iPhone und die
+  Gestenleiste von Android: ohne diesen Zuschlag liegt die Leiste unter der
+  Systemleiste und wird zum Wischziel des Betriebssystems statt zum
+  Bedienelement. Der Wert ist auf Geraeten ohne solche Leiste 0.
+
+  3,5rem Leistenhoehe (Beruehrungsflaeche 44 px plus Innenabstand), 1,5rem
+  Abstand nach unten und oben.
+*/
+:root {
+  --untere-leiste-raum: 0px;
+}
+
+@media (max-width: 767.98px) {
+  :root {
+    --untere-leiste-raum: calc(3.5rem + 1.5rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* Die Flaeche der unteren Leiste faehrt von unten auf (ui/sheet.tsx). Nur
+   unter prefers-reduced-motion: no-preference, dafuer sorgt motion-safe an
+   der Komponente. */
+@keyframes sheet-auf {
+  from {
+    transform: translateY(1.5rem);
+    opacity: 0;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;

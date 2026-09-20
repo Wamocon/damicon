@@ -7,7 +7,8 @@
     "skipToContent": "Skip to content",
     "themeLight": "Light theme",
     "themeDark": "Dark theme",
-    "localeSwitcherLabel": "Language selection"
+    "localeSwitcherLabel": "Language selection",
+    "themeLabel": "Colour scheme"
   },
   "notFound": {
     "message": "This page does not exist.",
@@ -19,6 +20,7 @@
     "activeRole": "Signed in as",
     "overview": "Overview",
     "breadcrumb": "Breadcrumb",
+    "mainNav": "Main navigation",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "collapseMenu": "Collapse menu",
@@ -28,7 +30,9 @@
     "zones": "Four zones",
     "proof": "Traceability",
     "kpis": "KPIs",
-    "compliance": "Compliance"
+    "compliance": "Compliance",
+    "account": "Account",
+    "menu": "Menu"
   },
   "hero": {
     "badge": "Farm management for the raspberry plantation · near Almaty",
@@ -385,7 +389,9 @@
       "picker": "Sees only their own picking performance and payslip. No write access to posted quantities or anyone else's data.",
       "erzeuger": "Neighbouring farm supplying produce. Sees its own row blocks, batches, settlement and contracts.",
       "kunde": "Quotas, pre-orders, price lists, AI chat, released documents and own complaints."
-    }
+    },
+    "switcherLabel": "Demo role",
+    "viewAsLabel": "View as"
   },
   "klassifikation": {
     "uebernehmen": "Adopt",
