@@ -106,11 +106,9 @@ export function transkriptionsMeldung(grund: string): string {
 // funktioniert derselbe Code gegen beide Dienste.
 const MODELL = "whisper-1";
 
-/** Sprachen, fuer die der Dienst Spracherkennung anbietet. Tuerkisch ist
- *  NICHT dabei: im Versuch am 20.09.2026 kam zwar eine Antwort, aber eine
- *  verhoerte ("Soguk zincir eksiksiz belgelenmistir" -> "Sagg#k zinsir
- *  eksiksiz belgeli mistir"). Ohne Angabe erkennt der Dienst die Sprache
- *  selbst - fuer Tuerkisch bleibt es dabei. */
+/** Sprachen, fuer die der Dienst Spracherkennung anbietet - dieselben vier,
+ *  die die Anwendung ueberhaupt kennt. Ohne Angabe erkennt der Dienst die
+ *  Sprache selbst; ein unbekannter Wert wird still verworfen. */
 export const transkriptionSprachen = ["de", "en", "ru", "kk"] as const;
 
 /** Sprache der Aufnahme, in dieser Reihenfolge:

@@ -35,6 +35,7 @@ import {
   wissensQuellenFuerFaehigkeiten,
 } from "../../src/lib/domain/ki-assistent.ts";
 import {
+  antwortSprache,
   erkenneSprache,
   MAX_SPRACHAUSGABE_ZEICHEN,
   sprachausgabePfad,
@@ -321,12 +322,19 @@ for (const [name, kaputteAntwort] of [
     ["de", "**Fazit:** Interne Audits finden alle **47 Tage** statt. Empfehlung: den nächsten Termin eintragen."],
     ["ru", "**Вывод:** внутренние аудиты проводятся каждые **47 дней**."],
     ["kk", "**Қорытынды:** ішкі аудиттер әр **47 күн** сайын өткізіледі."],
-    ["tr", "**Sonuç:** İç denetimler her **47 günde** bir yapılır."],
     ["en", "**Summary:** Internal audits take place every **47 days** according to the policy."],
   ];
   for (const [erwartet, text] of beispiele) {
     const erkannt = erkenneSprache(textFuerSprachausgabe(text), "de");
     pruefe(`Sprachausgabe: Antwort auf ${erwartet} wird als ${erwartet} erkannt`, erkannt === erwartet, `erkannt: ${erkannt}`);
+  }
+  // Tuerkisch ist am 20.09.2026 aus der Anwendung entfernt worden. Ein
+  // tuerkischer Satz darf deshalb nie mehr "tr" ergeben - er faellt auf eine
+  // der vier verbliebenen Sprachen, fuer die es auch eine Stimme gibt.
+  {
+    const tuerkisch = erkenneSprache("**Sonuç:** İç denetimler her **47 günde** bir yapılır.", "de");
+    pruefe("Sprachausgabe: Tuerkisch gibt es nicht mehr - kein 'tr' aus der Erkennung", tuerkisch !== "tr", `erkannt: ${tuerkisch}`);
+    pruefe("Sprachausgabe: das Ergebnis ist eine der vier Sprachen mit Stimme", STIMMEN[tuerkisch] != null, tuerkisch);
   }
   // Kasachisch und Russisch teilen das kyrillische Alphabet - entscheidend sind
   // die kasachischen Sonderbuchstaben, nicht die Oberflaechensprache.
@@ -381,13 +389,15 @@ for (const [name, kaputteAntwort] of [
     pfadDe,
   );
 
-  // Mit den Piper-Stimmen auf Caesar blieben Russisch und Tuerkisch stumm -
-  // fuer beide gab es nur Modelle mit unklarer oder nicht kommerzieller
-  // Lizenz. Ueber den Dienst sprechen jetzt alle fuenf.
+  // Mit den Piper-Stimmen auf Caesar blieb Russisch stumm - es gab nur
+  // Modelle mit unklarer oder nicht kommerzieller Lizenz. Ueber den Dienst
+  // sprechen jetzt alle vier.
   pruefe(
-    "Sprachausgabe: alle fuenf Sprachen haben eine Stimme, auch Russisch und Tuerkisch",
-    Object.values(STIMMEN).every((s) => s !== null),
+    "Sprachausgabe: alle vier Sprachen haben eine Stimme, auch Russisch",
+    Object.keys(STIMMEN).length === 4 && Object.values(STIMMEN).every((s) => s !== null),
+    Object.keys(STIMMEN).join(", "),
   );
+  pruefe("Sprachausgabe: keine tuerkische Stimme mehr", !("tr" in STIMMEN));
   // Der Stimmwechsel aendert auch den Ablagepfad: alte Piper-Aufnahmen
   // werden nicht mehr gefunden, statt mit der neuen Stimme verwechselt zu
   // werden.
@@ -547,9 +557,8 @@ for (const [name, kaputteAntwort] of [
 
     // Die Oberflaechensprache geht als Hinweis mit - sie trennt vor allem
     // Kasachisch von Russisch, die sich die kyrillische Schrift teilen.
-    // Tuerkisch bietet der Dienst fuer die Erkennung NICHT an (am 20.09.2026
-    // geprueft: die Antwort kam verhoert zurueck), deshalb faellt es weg und
-    // der Dienst erkennt die Sprache selbst.
+    // Tuerkisch ist aus der Anwendung entfernt (die Erkennung lieferte dafuer
+    // ohnehin Unsinn): "tr" darf nie mehr mitgeschickt werden.
     const sprachFelder = async (vorgabe) => {
       aufrufe.length = 0;
       naechsteAntwort = () => new Response(JSON.stringify({ text: "x" }), { status: 200, headers: { "content-type": "application/json" } });
@@ -557,7 +566,7 @@ for (const [name, kaputteAntwort] of [
       return aufrufe[0]?.init.body?.get?.("language") ?? null;
     };
     pruefe("Spracheingabe-Client: Kasachisch wird als Sprache mitgeschickt", (await sprachFelder("kk")) === "kk");
-    pruefe("Spracheingabe-Client: Tuerkisch wird nicht mitgeschickt (keine Erkennung dafuer)", (await sprachFelder("tr")) === null);
+    pruefe("Spracheingabe-Client: das entfernte Tuerkisch wird nicht mitgeschickt", (await sprachFelder("tr")) === null);
     pruefe("Spracheingabe-Client: erfundene Sprache wird still verworfen", (await sprachFelder("klingonisch")) === null);
     pruefe("Spracheingabe-Client: ohne Vorgabe erkennt der Dienst die Sprache selbst", (await sprachFelder(undefined)) === null);
 
@@ -592,14 +601,58 @@ for (const [name, kaputteAntwort] of [
   pruefe("Meldung: leeres Erkennungsergebnis bleibt fehler.transkription", transkriptionsMeldung("antwort-unerwartete-form") === "fehler.transkription");
 
   // Die Oberflaeche zeigt den Schluessel der Server Action an - fehlt er in
-  // einer der fuenf Sprachen, wirft next-intl zur Laufzeit.
-  const sprachen = ["de", "en", "kk", "ru", "tr"];
+  // einer der vier Sprachen, wirft next-intl zur Laufzeit.
+  const sprachen = ["de", "en", "kk", "ru"];
   const schluessel = ["transkription", "transkriptionDienst", "transkriptionDauer"];
   for (const sprache of sprachen) {
     const texte = JSON.parse(readFileSync(new URL(`../../src/messages/${sprache}.json`, import.meta.url), "utf8"));
     const fehlend = schluessel.filter((k) => typeof texte.aktionen?.fehler?.[k] !== "string");
     pruefe(`Meldung: ${sprache}.json kennt alle drei Diktat-Meldungen`, fehlend.length === 0, fehlend.join(", "));
   }
+}
+
+// --- 8. Antwortsprache (domain/sprachausgabe.ts) ----------------------------
+// Der gemeldete Fehler: auf einer deutschen Oberflaeche bekam eine russisch
+// gestellte Frage eine deutsche Antwort - der Systemprompt bekam schlicht die
+// OBERFLAECHENSPRACHE uebergeben und wies das Modell ausdruecklich an, in
+// dieser zu antworten. Massgeblich ist jetzt die Sprache der letzten Frage.
+{
+  const fall = (inhalte, oberflaeche) =>
+    antwortSprache(inhalte.map((inhalt, i) => ({ rolle: i % 2 === 0 ? "nutzer" : "assistent", inhalt })), oberflaeche);
+
+  for (const [sprache, satz] of [
+    ["de", "Wie viele Steigen sind heute in der Kuehlung?"],
+    ["ru", "Сколько ящиков сегодня в холодильнике?"],
+    ["kk", "Бүгін тоңазытқышта қанша жәшік бар?"],
+    ["en", "How many crates are in the cold store today?"],
+  ]) {
+    for (const oberflaeche of ["de", "ru", "kk", "en"]) {
+      const erkannt = fall([satz], oberflaeche);
+      pruefe(
+        `Antwortsprache: ${sprache} gefragt auf ${oberflaeche}-Oberflaeche -> Antwort auf ${sprache}`,
+        erkannt === sprache,
+        `erkannt: ${erkannt}`,
+      );
+    }
+  }
+
+  // Wer mitten im Gespraech die Sprache wechselt, wechselt sie fuer alles,
+  // was danach kommt - massgeblich ist die LETZTE Frage, nicht die erste.
+  pruefe(
+    "Antwortsprache: ein Sprachwechsel mitten im Gespraech zaehlt sofort",
+    fall(["Wie viele Steigen sind heute in der Kuehlung?", "Heute sind es 47.", "А сколько было вчера?"], "de") === "ru",
+  );
+  // Antworten des Assistenten faerben nicht ab: sonst bliebe eine einmal
+  // deutsch beantwortete Frage fuer immer deutsch.
+  pruefe(
+    "Antwortsprache: nur die Fragen zaehlen, nicht die Antworten des Assistenten",
+    fall(["Сколько ящиков сегодня?", "Heute sind es 47 Steigen."], "de") === "ru",
+  );
+  // Ohne Anhaltspunkt bleibt es bei der Oberflaeche - die beste Vermutung,
+  // die es dann gibt.
+  pruefe("Antwortsprache: eine Frage ohne Hinweis faellt auf die Oberflaeche zurueck", fall(["47?"], "ru") === "ru");
+  pruefe("Antwortsprache: ein leeres Gespraech faellt auf die Oberflaeche zurueck", antwortSprache([], "kk") === "kk");
+  pruefe("Antwortsprache: eine unbekannte Oberflaechensprache endet bei Deutsch", antwortSprache([], "xx") === "de");
 }
 
 console.log("\n" + "-".repeat(58));

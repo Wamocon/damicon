@@ -78,9 +78,9 @@ export interface Schulungsvideo {
 }
 
 export const schulungsvideos: Schulungsvideo[] = [
-  { id: "v-01", titel: "Richtig pfluecken - reife Frucht erkennen", dauer: "4:12", sprachen: ["kk", "ru", "tr"], thema: "ernte" },
+  { id: "v-01", titel: "Richtig pfluecken - reife Frucht erkennen", dauer: "4:12", sprachen: ["kk", "ru"], thema: "ernte" },
   { id: "v-02", titel: "Steige befuellen und QR-Etikett scannen", dauer: "3:05", sprachen: ["kk", "ru"], thema: "feld" },
-  { id: "v-03", titel: "Die Stunde nach dem Pfluecken - Kuehlkette", dauer: "5:40", sprachen: ["kk", "ru", "tr", "de", "en"], thema: "hof" },
+  { id: "v-03", titel: "Die Stunde nach dem Pfluecken - Kuehlkette", dauer: "5:40", sprachen: ["kk", "ru", "de", "en"], thema: "hof" },
   { id: "v-04", titel: "Hygiene und Handschuhe", dauer: "2:48", sprachen: ["kk", "ru"], thema: "qualitaet" },
 ];
 

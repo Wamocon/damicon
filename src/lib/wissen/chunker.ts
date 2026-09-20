@@ -104,7 +104,6 @@ export function sprachcode(roh: unknown): string | null {
     ["en", /\b(en|engl\w*)/],
     ["de", /\b(de|deutsch\w*)/],
     ["kk", /\b(kk|kasach\w*)/],
-    ["tr", /\b(tr|tuerk\w*|türk\w*)/],
   ];
   let bester: { code: string; pos: number } | null = null;
   for (const [code, muster] of kandidaten) {

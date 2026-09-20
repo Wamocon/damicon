@@ -12,7 +12,7 @@
 // unbelegte Rechtsauskunft kostet Vertrauen. Sie ist reine Zeichenkettenpruefung, ohne Modell,
 // und damit deterministisch und testbar.
 
-// Wortstaemme in Kleinbuchstaben, sprachuebergreifend (de, en, ru, kk, tr). Absichtlich keine
+// Wortstaemme in Kleinbuchstaben, sprachuebergreifend (de, en, ru, kk). Absichtlich keine
 // Alltagswoerter der Bedienung: "Steuerung", "steuere die Seite" und "Rechte der Rolle" sind
 // keine Rechtsfragen.
 const STAEMME = [
@@ -31,8 +31,6 @@ const STAEMME = [
   "трудово", "персональн", "ответственност", "статья", "ст. ",
   // Kasachisch
   "салық", "қдс", "заң", "кодекс", "айыппұл", "аудит", "тексеру", "міндетті",
-  // Tuerkisch
-  "eşik", "vergi", "kdv", "kanun", "mevzuat", "hukuk", "yasal", "denetim", "uyumluluk", "yaptırım", "ceza ",
 ];
 
 /** Steht die Nutzerfrage im Bereich Recht, Steuer, Compliance oder Audit? */
