@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { Bot, Info, LifeBuoy, MessageSquareText, Settings2, X } from "lucide-react";
+import { Bot, Info, LifeBuoy, Maximize2, MessageSquareText, PanelRight, Settings2, X } from "lucide-react";
 import { Himbeere } from "@/components/ki/himbeere";
 import { useHaustierAktionen, useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { KiChat } from "@/components/ki/ki-chat";
@@ -117,12 +117,13 @@ export function KiPane({
   einstellungen: ReactNode | null;
 }) {
   const t = useTranslations("kiAssistentAnsicht");
-  const { verfuegbar, offen, setOffen, modus } = useKiPane();
+  const { verfuegbar, offen, setOffen, modus, darstellung, setDarstellung } = useKiPane();
   const [ansicht, setAnsicht] = useState<Ansicht>("chat");
 
   if (!verfuegbar) return null;
 
   const agentAktiv = agentFaehig && modus === "agent";
+  const aufBuehne = darstellung === "buehne";
   const hatEinstellungen = agentFaehig || einstellungen !== null;
   const umschalten = (ziel: Ansicht) => setAnsicht((aktuell) => (aktuell === ziel ? "chat" : ziel));
 
@@ -133,16 +134,26 @@ export function KiPane({
         tabIndex={-1}
         aria-label={t("schliessen")}
         onClick={() => setOffen(false)}
-        className={cn("ki-pane-hintergrund print:hidden", offen && "ki-pane-hintergrund--offen")}
+        className={cn(
+          "ki-pane-hintergrund print:hidden",
+          offen && "ki-pane-hintergrund--offen",
+          aufBuehne && "ki-pane-hintergrund--buehne",
+        )}
       />
       <aside
         aria-label={t("chatTitel")}
         aria-hidden={!offen}
+        aria-modal={aufBuehne && offen ? true : undefined}
+        role={aufBuehne ? "dialog" : undefined}
         inert={!offen ? true : undefined}
-        className={cn("ki-pane-huelle print:hidden", offen && "ki-pane-huelle--offen")}
+        className={cn(
+          "ki-pane-huelle print:hidden",
+          offen && "ki-pane-huelle--offen",
+          aufBuehne && "ki-pane-huelle--buehne",
+        )}
       >
         <div className={cn("ki-pane", agentAktiv && "ki-pane--agent")}>
-          <KiPaneGriff />
+          {aufBuehne ? null : <KiPaneGriff />}
           <header className="ki-pane__kopf">
             <div className="ki-pane__titel">
               <span className="ki-pane__zeichen" aria-hidden>
@@ -156,6 +167,15 @@ export function KiPane({
               ) : null}
             </div>
             <div className="ki-pane__werkzeuge">
+              <button
+                type="button"
+                onClick={() => setDarstellung(aufBuehne ? "seite" : "buehne")}
+                aria-label={t(aufBuehne ? "andocken" : "buehne")}
+                title={t(aufBuehne ? "andocken" : "buehne")}
+                className="ki-pane__knopf"
+              >
+                {aufBuehne ? <PanelRight className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+              </button>
               {hatEinstellungen ? (
                 <button
                   type="button"

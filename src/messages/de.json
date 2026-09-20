@@ -1648,6 +1648,8 @@
     "agentDenkt": "Agent pflückt die Fakten …",
     "agentPrueft": "Agent prüft: {werkzeug} …",
     "schliessen": "Schließen",
+    "buehne": "In die Mitte holen",
+    "andocken": "Seitlich andocken",
     "breiteAendern": "Breite ändern: ziehen oder Pfeiltasten, Doppelklick setzt zurück",
     "keinVerlauf": "Noch keine Nachricht. Stellen Sie unten Ihre erste Frage.",
     "inputPlaceholder": "Frage eingeben ...",

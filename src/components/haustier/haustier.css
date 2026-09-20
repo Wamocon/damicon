@@ -1369,3 +1369,44 @@ html[data-ki-zieht] .haustier__verschiebung {
     transform: rotate(-3.5deg) translateX(0);
   }
 }
+
+/* ---- Buehne: Himbi in der Mitte -----------------------------------------------------
+   Klick auf Himbi holt den Assistenten in die Mitte (ki-pane.tsx). Sie fliegt aus der
+   Ecke ueber dessen Karte und waechst dabei. Gerechnet wird gegen die Masse der Karte
+   aus ki-pane.css, damit beide Seiten dieselbe Mitte meinen; die Ersatzwerte greifen
+   nur dort, wo haustier.css ohne das Panel geladen wird (Startseite).
+
+   Oben: die Karte beginnt bei 50svh - hoehe/2 + kopf/2, Himbi soll mit den Fuessen
+   knapp darauf stehen. Ihre Fuesse stehen sonst bei 100svh - 20px, die Differenz ist
+   der Weg. Weil der Drehpunkt an den Fuessen liegt, bleibt die Rechnung auch nach dem
+   Vergroessern richtig.
+   Links: 100vw zaehlt die Scrollleiste mit, ihre Fuesse landen also bis zu deren halber
+   Breite links der Mitte - bei dieser Groesse nicht zu sehen. */
+.haustier[data-buehne="true"] {
+  z-index: 75;
+}
+/* Ein vorher weggezogenes Himbi soll die Mitte trotzdem treffen. */
+.haustier[data-buehne="true"] .haustier__versatz {
+  transform: none;
+}
+/* In der Mitte wird nicht gezogen, sondern geklickt. */
+.haustier[data-buehne="true"] .haustier__griff {
+  cursor: pointer;
+}
+.haustier[data-buehne="true"] .hb-verstecken {
+  display: none;
+}
+.haustier[data-buehne="true"] .haustier__verschiebung,
+.haustier[data-pane-offen="true"][data-buehne="true"] .haustier__verschiebung {
+  opacity: 1;
+  pointer-events: auto;
+  transform-origin: 50% 100%;
+  transform: translate3d(
+      calc(-50vw + 20px + var(--hb-breite) / 2),
+      calc(
+        20px + 0.4rem - 50svh - var(--ki-buehne-hoehe, 40rem) / 2 + var(--ki-buehne-kopf, 7.5rem) / 2
+      ),
+      0
+    )
+    scale(1.5);
+}

@@ -32,7 +32,7 @@ const WILLKOMMEN_MS = 3200;
 export function HaustierDashboard() {
   const t = useTranslations("haustier");
   const moduleT = useTranslations("modules");
-  const { verfuegbar, offen, umschalten, setOffen } = useKiPane();
+  const { verfuegbar, offen, umschalten, setOffen, darstellung, oeffneBuehne } = useKiPane();
   const { phase, text, an, weg, stimmung } = useHaustierStatus();
   const { stelleFrage, schickeWeg, holeZurueck } = useHaustierAktionen();
   const pfad = usePathname();
@@ -143,6 +143,11 @@ export function HaustierDashboard() {
     );
   }
   if (!an) return null;
+
+  // Ein Klick auf Himbi holt den Assistenten in die Mitte statt an den Rand: sie ist
+  // mitten im Bild angesprochen worden, also antwortet sie auch dort. Der Knopf in der
+  // Kopfzeile oeffnet weiterhin das angedockte Panel.
+  const aufBuehne = offen && darstellung === "buehne";
 
   const zustand = willkommen ? "fertig" : haustierZustand({ phase, fertigUngelesen: fertig, schlaeft: false });
   const label = t(`label.${zustand}`);
@@ -261,6 +266,7 @@ export function HaustierDashboard() {
     <HaustierHuelle
       zustand={zustand}
       stimmung={miene}
+      buehne={aufBuehne}
       blase={blase}
       paneOffen={offen}
       label={label}
@@ -270,7 +276,8 @@ export function HaustierDashboard() {
         setTipp(null);
         setBefindenFrage(false);
         setBefindenBlase(false);
-        umschalten();
+        if (offen) umschalten();
+        else oeffneBuehne();
       }}
       weg={{ onWeg: schickeWeg, halten: t("weg.halten"), tschuess: t("weg.tschuess"), hinweis: t("weg.hinweis") }}
     />

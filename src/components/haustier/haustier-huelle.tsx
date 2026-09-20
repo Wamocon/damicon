@@ -58,6 +58,9 @@ export interface HaustierHuelleProps {
   blickZiel?: Element | null;
   /** Weiter oben ansetzen, damit Himbi nichts verdeckt, was unten rechts schon sitzt (Tonschalter der Startseite). */
   hoch?: boolean;
+  /** Der Assistent steht in der Mitte: Himbi fliegt aus der Ecke ueber die Karte und
+   *  waechst dabei. Blasen entfallen - der Chat steht direkt darunter. */
+  buehne?: boolean;
   /** Zaehler: bei jeder Aenderung macht Himbi einen Huepfer (Tour: neue Station). */
   huepf?: number;
   /** Wegschicken durch Gedrueckt-Halten (oder Entf-Taste). Ohne diesen Eintrag laesst sich Himbi nicht wegschicken. */
@@ -74,7 +77,7 @@ export interface WegTexte {
   hinweis: string;
 }
 
-export function HaustierHuelle({ zustand, stimmung = "neutral", blase, paneOffen = false, label, onKlick, blickZiel, hoch = false, huepf = 0, weg }: HaustierHuelleProps) {
+export function HaustierHuelle({ zustand, stimmung = "neutral", blase, paneOffen = false, label, onKlick, blickZiel, hoch = false, buehne = false, huepf = 0, weg }: HaustierHuelleProps) {
   const wurzel = useRef<HTMLDivElement>(null);
   const griff = useRef<HTMLDivElement>(null);
   const versatz = useRef<HTMLDivElement>(null);
@@ -403,6 +406,7 @@ export function HaustierHuelle({ zustand, stimmung = "neutral", blase, paneOffen
       data-zustand={anzeige}
       data-seite={seite}
       data-pane-offen={paneOffen}
+      data-buehne={buehne}
       data-zieht={zieht}
       data-hoch={hoch}
       data-halten={halten && !abschied}
@@ -410,7 +414,7 @@ export function HaustierHuelle({ zustand, stimmung = "neutral", blase, paneOffen
     >
       <div className="haustier__verschiebung">
         <div ref={versatz} className="haustier__versatz">
-          {(eigeneBlase || blase) && !zieht ? (
+          {(eigeneBlase || blase) && !zieht && !buehne ? (
             <div className="hb-blase" role="status" aria-live="polite">
               {eigeneBlase ? <p className="hb-blase__text">{eigeneBlase}</p> : blase}
             </div>

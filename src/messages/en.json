@@ -1648,6 +1648,8 @@
     "agentDenkt": "Agent is picking the facts …",
     "agentPrueft": "Agent is checking: {werkzeug} …",
     "schliessen": "Close",
+    "buehne": "Move to the centre",
+    "andocken": "Dock to the side",
     "breiteAendern": "Resize: drag or use arrow keys, double-click to reset",
     "keinVerlauf": "No message yet. Ask your first question below.",
     "inputPlaceholder": "Enter a question ...",
