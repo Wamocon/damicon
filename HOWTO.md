@@ -350,6 +350,19 @@ GitHub → Actions → "Deploy to Vercel" → Run workflow
 - **`KI_ANBIETER_SCHLUESSEL`:** Umgebungsvariable in Vercel (Production, Preview, Development), ein beliebig langer Zufallswert: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Das Chiffrat ist an genau diesen Wert gebunden. Ein lokal erzeugtes Chiffrat funktioniert auf Vercel nicht, und nach einem Wechsel des Werts muss der API-Schlüssel neu eingetragen werden.
 - **`SUPABASE_SERVICE_ROLE_KEY`:** muss in Vercel gesetzt sein. Die Tabelle `ki_anbieter` ist nur für Admins lesbar, die Anwendung liest den aktiven Anbieter mit diesem Schlüssel.
 
+**Voraussetzung: Migrationen auf die gehostete Datenbank anwenden**
+
+Das macht **kein** Workflow: die PR-Pipeline testet nur gegen eine lokale Datenbank, `deploy.yml` deployt nur nach Vercel. Wer Zugriff auf das Supabase-Projekt hat, führt einmal je Umgebung aus:
+
+```bash
+supabase link --project-ref <projekt-ref>
+supabase migration list        # lokal und remote vergleichen, was fehlt?
+supabase db push --dry-run     # zeigt, was angewendet würde
+supabase db push               # wendet aus (npm run db:push)
+```
+
+Meldet `db push`, dass lokale Migrationen älter sind als die letzte Remote-Migration, zuerst klären, woher die Remote-Migration kommt (z. B. ein anderer Branch), bevor `--include-all` verwendet wird. Ohne die Migrationen zeigen Seiten "Datenbank nicht erreichbar" bzw. Beispieldaten, und der Chat meldet "Could not find the 'werkzeugaufrufe' column". Falls die Meldung nach dem Anwenden bleibt, im SQL-Editor `NOTIFY pgrst, 'reload schema';` ausführen.
+
 **Einrichten (einmal je Umgebung)**
 
 1. `KI_ANBIETER_SCHLUESSEL` in Vercel setzen und neu deployen.
@@ -772,6 +785,19 @@ GitHub → Actions → "Deploy to Vercel" → Run workflow
 - **Anthropic API key:** stored encrypted (AES-256-GCM) in the database, table `ki_anbieter`, column `api_key_chiffrat`. One row per Supabase project (dev, prod).
 - **`KI_ANBIETER_SCHLUESSEL`:** environment variable in Vercel (Production, Preview, Development), any long random value: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. The ciphertext is bound to exactly this value. A ciphertext created locally does not work on Vercel, and after changing the value the API key must be entered again.
 - **`SUPABASE_SERVICE_ROLE_KEY`:** must be set in Vercel. `ki_anbieter` is readable by admins only, so the app reads the active provider with this key.
+
+**Prerequisite: apply the migrations to the hosted database**
+
+**No** workflow does this: the PR pipeline only tests against a local database, and `deploy.yml` only deploys to Vercel. Someone with access to the Supabase project runs, once per environment:
+
+```bash
+supabase link --project-ref <project-ref>
+supabase migration list        # compare local and remote, what is missing?
+supabase db push --dry-run     # shows what would be applied
+supabase db push               # applies it (npm run db:push)
+```
+
+If `db push` reports that local migrations are older than the latest remote migration, first find out where the remote migration came from (for example another branch) before using `--include-all`. Without the migrations, pages show "database unreachable" or sample data, and the chat reports "Could not find the 'werkzeugaufrufe' column". If the message stays after applying, run `NOTIFY pgrst, 'reload schema';` in the SQL editor.
 
 **Setup (once per environment)**
 
