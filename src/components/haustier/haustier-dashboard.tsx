@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import { usePersona } from "@/components/dashboard/persona";
 import { AbzeichenModal } from "@/components/haustier/abzeichen-modal";
+import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { HaustierHuelle } from "@/components/haustier/haustier-huelle";
 import { HimbiVersteck } from "@/components/haustier/himbi-versteck";
 import { useHaustierAktionen, useHaustierStatus } from "@/components/haustier/haustier-kontext";
@@ -86,6 +88,7 @@ export function HaustierDashboard() {
   // Die drei Sterne auf dem Chapan sind keine Bewertung mehr - jeder oeffnet dasselbe
   // Abzeichen (abzeichen-modal.tsx).
   const [abzeichenOffen, setAbzeichenOffen] = useState(false);
+  const [logoOffen, setLogoOffen] = useState(false);
   useEffect(() => {
     try {
       if (window.sessionStorage.getItem(BEFINDEN_SCHLUESSEL)) return;
@@ -351,6 +354,7 @@ export function HaustierDashboard() {
         paneOffen={offen}
         label={label}
         aufAbzeichen={() => setAbzeichenOffen(true)}
+        aufLogo={() => setLogoOffen(true)}
         inventar={inventar}
         onKlick={() => {
           setFertig(false);
@@ -364,7 +368,21 @@ export function HaustierDashboard() {
         }}
         weg={{ onWeg: schickeWeg, halten: t("weg.halten"), tschuess: t("weg.tschuess"), hinweis: t("weg.hinweis") }}
       />
-      {abzeichenOffen ? <AbzeichenModal onClose={() => setAbzeichenOffen(false)} /> : null}
+      {abzeichenOffen ? (
+        <AbzeichenModal titel={t("abzeichen.titel")} schliessenText={t("abzeichen.schliessen")} onClose={() => setAbzeichenOffen(false)}>
+          <Image src="/abzeichen/ki-innovator.png" alt={t("abzeichen.alt")} fill sizes="(min-width: 640px) 24rem, 88vw" priority className="object-contain" />
+        </AbzeichenModal>
+      ) : null}
+      {logoOffen ? (
+        <AbzeichenModal
+          titel={t("logo.titel")}
+          schliessenText={t("abzeichen.schliessen")}
+          bildKlasse="hb-abzeichen-bild--logo"
+          onClose={() => setLogoOffen(false)}
+        >
+          <DamiconLogo title={t("logo.alt")} className="h-full w-full" />
+        </AbzeichenModal>
+      ) : null}
     </>
   );
 }

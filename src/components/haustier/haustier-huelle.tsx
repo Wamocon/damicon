@@ -68,6 +68,8 @@ export interface HaustierHuelleProps {
   weg?: WegTexte;
   /** Gesetzt: die drei Sterne auf dem Chapan werden klickbar - alle drei rufen sie auf (himbi.tsx). */
   aufAbzeichen?: () => void;
+  /** Gesetzt: die Anstecknadel auf der Kappe wird klickbar (himbi.tsx). */
+  aufLogo?: () => void;
   /** Welche Tracht (0 bis 2, himbi.tsx TRACHTEN) und ob die Spassbrille sitzt. */
   inventar?: Inventar;
 }
@@ -95,6 +97,7 @@ export function HaustierHuelle({
   huepf = 0,
   weg,
   aufAbzeichen,
+  aufLogo,
   inventar,
 }: HaustierHuelleProps) {
   const wurzel = useRef<HTMLDivElement>(null);
@@ -507,6 +510,7 @@ export function HaustierHuelle({
                 zustand={anzeige}
                 stimmung={stimmung}
                 aufAbzeichen={aufAbzeichen}
+                aufLogo={aufLogo}
                 tracht={inventar?.tracht}
                 brille={inventar?.brille}
               />

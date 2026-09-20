@@ -135,6 +135,7 @@ export function Himbi({
   tracht = 0,
   brille = true,
   aufAbzeichen,
+  aufLogo,
 }: {
   zustand: HaustierZustand;
   /** Faerbt nur Brauen, Wangen und eine kurze Reaktion - der Zustand bleibt der Zustand. */
@@ -147,6 +148,8 @@ export function Himbi({
   /** Gesetzt: die drei Sterne auf dem Chapan werden klickbar - alle drei rufen sie auf.
    *  Ohne sie bleiben die Sterne unsichtbar - ein Knopf ohne Wirkung waere nur Attrappe. */
   aufAbzeichen?: () => void;
+  /** Gesetzt: die Anstecknadel auf der Kappe wird klickbar und zeigt das volle Damicon-Siegel. */
+  aufLogo?: () => void;
 }) {
   const id = useId().replace(/:/g, "");
   const t = TRACHTEN[tracht];
@@ -272,7 +275,6 @@ export function Himbi({
         {/* Takyia: Kappe mit Band, die Blattkrone waechst hindurch */}
         <g className="hb-kappe">
           <path d={TAKYIA} fill={`url(#${id}-chapan)`} />
-          <path d={horn(48, 33, 2.6)} fill="none" stroke="#f6cf72" strokeWidth="1.1" strokeLinecap="round" />
           <path d={TAKYIA_BAND} fill="#0f4d68" />
           <path d="M30.6 42.6L65.4 42.6" stroke="#f2c14e" strokeWidth="2.4" />
         </g>
@@ -343,12 +345,40 @@ export function Himbi({
           <path d={funke(78, 30, 4)} fill="#ffd166" />
         </g>
 
-        {/* Damicon-Siegel als kleine Anstecknadel am Kragen, oben auf dem Chapan. Dieselbe
-         *  Bildmarke wie im Kopf der Seite (components/brand/damicon-logo.tsx), nur ohne die
-         *  Sonnenstrahlen und die Steppenlinie - die verschwinden schon im Siegel selbst
-         *  unter 24 Pixeln (siehe Kommentar dort) und hier ist die Nadel kaum 8 Pixel breit.
-         *  Nach dem Koerper gezeichnet, sonst deckt die Beere sie zu. */}
-        <g transform="translate(48 101)">
+        {/* Damicon-Siegel als kleine Anstecknadel auf der Kappe, wo vorher die kleine
+         *  Widderhorn-Strichzeichnung sass. Dieselbe Bildmarke wie im Kopf der Seite
+         *  (components/brand/damicon-logo.tsx), nur ohne die Sonnenstrahlen und die
+         *  Steppenlinie - die verschwinden schon im Siegel selbst unter 24 Pixeln (siehe
+         *  Kommentar dort) und hier ist die Nadel kaum 8 Pixel breit. Erst ganz zuletzt
+         *  gezeichnet (wie die Sterne), sonst koennte spaeter Gezeichnetes sie zudecken;
+         *  die Position auf der Kappe kommt allein von der Verschiebung hier. */}
+        <g
+          transform="translate(48 33)"
+          className={aufLogo ? "hb-logo hb-logo--klickbar" : "hb-logo"}
+          role={aufLogo ? "button" : undefined}
+          tabIndex={aufLogo ? 0 : undefined}
+          aria-label={aufLogo ? "Damicon" : undefined}
+          onPointerDown={aufLogo ? (e) => e.stopPropagation() : undefined}
+          onClick={
+            aufLogo
+              ? (e) => {
+                  e.stopPropagation();
+                  aufLogo();
+                }
+              : undefined
+          }
+          onKeyDown={
+            aufLogo
+              ? (e) => {
+                  if (e.key !== "Enter" && e.key !== " ") return;
+                  e.preventDefault();
+                  e.stopPropagation();
+                  aufLogo();
+                }
+              : undefined
+          }
+        >
+          {aufLogo ? <circle r="6.2" fill="transparent" /> : null}
           <rect x="-4.4" y="-4.4" width="8.8" height="8.8" rx="1.9" fill="#00768f" />
           <circle r="3.1" fill="none" stroke="#f4f1ea" strokeWidth="0.9" />
           <circle r="1.6" fill="#ff5c7a" />

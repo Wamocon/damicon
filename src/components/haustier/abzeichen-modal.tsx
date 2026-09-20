@@ -1,20 +1,32 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import Image from "next/image";
 import { X } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
 
-// Zeigt das KI-Innovator-Abzeichen (public/abzeichen/ki-innovator.png), wenn jemand
-// einen der drei Sterne auf DamiAI anklickt (himbi.tsx, haustier-dashboard.tsx). Rein
-// zum Anschauen - Escape, Klick daneben oder der Knopf schliessen es wieder.
+// Kleines Anzeige-Portal fuer DamiAI: zeigt, worauf man gerade getippt hat - das
+// KI-Innovator-Abzeichen (Sterne auf dem Chapan) oder das Damicon-Siegel (Anstecknadel
+// auf der Kappe), beide in haustier-dashboard.tsx. Rein zum Anschauen - Escape, Klick
+// daneben oder der Knopf schliessen es wieder.
 //
 // Eigenes, kleines Portal statt der groesseren Pruefung-Dialog-Vorlage
-// (pruefung/pruefung-dialog.tsx): hier gibt es nur ein Bild zu zeigen, kein Ablauf.
-
-export function AbzeichenModal({ onClose }: { onClose: () => void }) {
-  const t = useTranslations("haustier.abzeichen");
+// (pruefung/pruefung-dialog.tsx): hier gibt es nur etwas zu zeigen, kein Ablauf. Der
+// Inhalt (Bild oder Logo) kommt von aussen, damit dieses Geruest fuer beides reicht.
+export function AbzeichenModal({
+  titel,
+  schliessenText,
+  bildKlasse,
+  children,
+  onClose,
+}: {
+  titel: string;
+  schliessenText: string;
+  /** Zusatzklasse fuer .hb-abzeichen-bild, z. B. ein anderes Seitenverhaeltnis. */
+  bildKlasse?: string;
+  children: ReactNode;
+  onClose: () => void;
+}) {
   const wurzel = useRef<HTMLDivElement>(null);
 
   const schliessen = useCallback(() => onClose(), [onClose]);
@@ -33,20 +45,11 @@ export function AbzeichenModal({ onClose }: { onClose: () => void }) {
 
   return createPortal(
     <div className="hb-abzeichen-blende" onMouseDown={(e) => e.target === e.currentTarget && schliessen()}>
-      <div ref={wurzel} className="hb-abzeichen-fenster" role="dialog" aria-modal="true" aria-label={t("titel")} tabIndex={-1}>
-        <button type="button" className="hb-abzeichen-schliessen" onClick={schliessen} aria-label={t("schliessen")}>
+      <div ref={wurzel} className="hb-abzeichen-fenster" role="dialog" aria-modal="true" aria-label={titel} tabIndex={-1}>
+        <button type="button" className="hb-abzeichen-schliessen" onClick={schliessen} aria-label={schliessenText}>
           <X className="h-4 w-4" />
         </button>
-        <div className="hb-abzeichen-bild">
-          <Image
-            src="/abzeichen/ki-innovator.png"
-            alt={t("alt")}
-            fill
-            sizes="(min-width: 640px) 24rem, 88vw"
-            priority
-            className="object-contain"
-          />
-        </div>
+        <div className={cn("hb-abzeichen-bild", bildKlasse)}>{children}</div>
       </div>
     </div>,
     document.body,
