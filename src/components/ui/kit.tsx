@@ -100,7 +100,10 @@ export function PageHeader({
   description,
   children,
 }: {
-  eyebrow?: string;
+  /** Text oder Brotkrumen-Pfad. Als ReactNode, damit <Brotkrumen /> hier
+   *  stehen kann - ein <nav> darf nicht in einem <p> liegen, deshalb ist der
+   *  Traeger unten ein <div>. */
+  eyebrow?: ReactNode;
   title: string;
   description?: string;
   children?: ReactNode;
@@ -109,9 +112,9 @@ export function PageHeader({
     <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
       <div className="min-w-0">
         {eyebrow ? (
-          <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">
+          <div className="text-xs font-black uppercase tracking-[0.14em] text-primary">
             {eyebrow}
-          </p>
+          </div>
         ) : null}
         <h1 className="mt-1 text-2xl font-black text-foreground md:text-3xl">
           {title}
@@ -186,5 +189,35 @@ export function DataTable({
         <tbody className="divide-y divide-border">{children}</tbody>
       </table>
     </div>
+  );
+}
+
+// Platzhalter fuer Inhalte, die noch laden. Die drei loading.tsx des Dashboards
+// bauten dasselbe Muster jeweils von Hand nach - eine Aenderung an Farbe,
+// Pulsieren oder der Ruecknahme bei "reduzierte Bewegung" waere an drei Stellen
+// nachzuziehen gewesen.
+//
+// Hoehe und Breite bleiben beim Aufrufer: die haengen an dem Element, das der
+// Platzhalter vertritt, und sind deshalb nirgends zweimal dieselben.
+export function Skeleton({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        "animate-pulse rounded bg-muted motion-reduce:animate-none",
+        className,
+      )}
+      aria-hidden="true"
+    />
+  );
+}
+
+// Platzhalter in Kartenform: gleicher Rahmen und Grund wie <Card>, damit beim
+// Einsetzen des Inhalts nichts springt. Den Radius gibt der Aufrufer mit, wo er
+// vom Standard abweicht - die Bereichsseite setzt ihre Kacheln runder.
+export function SkeletonCard({ className }: { className?: string }) {
+  return (
+    <Skeleton
+      className={cn("rounded-xl border border-border bg-card", className)}
+    />
   );
 }
