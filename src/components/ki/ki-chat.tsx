@@ -19,7 +19,7 @@ import {
   lastAssistantMessageIsCompleteWithApprovalResponses,
   type UIMessage,
 } from "ai";
-import { useLocale, useTranslations } from "next-intl";
+import { createTranslator, NextIntlClientProvider, useLocale, useMessages, useTranslations } from "next-intl";
 import ReactMarkdown, { defaultUrlTransform, type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
@@ -62,6 +62,7 @@ import { fuehreUiWerkzeugAus, type KlickAnfrage } from "@/components/ki/ui-steue
 import { istVorlesbar, stimmeVorhanden, useSprachausgabe, VorlesenKnopf, VorlesenSchalter } from "@/components/ki/sprachausgabe";
 import { MikrofonKnopf } from "@/components/ki/mikrofon";
 import { DiktatWelle } from "@/components/ki/diktat-welle";
+import { useChatSprache } from "@/components/ki/chat-sprache";
 import { MAX_NACHRICHT_LAENGE, type KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
 import { modules } from "@/lib/modules";
 import { hasPermission, type Role } from "@/lib/rbac";
@@ -383,12 +384,15 @@ const Markdown = memo(function Markdown({ text }: { text: string }) {
 });
 
 export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
-  const t = useTranslations("kiAssistentAnsicht");
+  // Die Texte der OBERFLAECHE. Weiter unten treten an ihre Stelle die Texte
+  // der Gespraechssprache, sobald jemand in einer anderen Sprache schreibt.
+  const tOberflaeche = useTranslations("kiAssistentAnsicht");
+  const aktionenTOberflaeche = useTranslations("aktionen");
+  const moduleTOberflaeche = useTranslations("modules");
+  const navTOberflaeche = useTranslations("nav");
+  const authTOberflaeche = useTranslations("auth");
+  const oberflaechenTexte = useMessages();
   const sprache = useLocale();
-  const aktionenT = useTranslations("aktionen");
-  const moduleT = useTranslations("modules");
-  const navT = useTranslations("nav");
-  const authT = useTranslations("auth");
   const pfad = usePathname();
   const router = useRouter();
   const { role: rolle } = usePersona();
@@ -443,6 +447,27 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   });
   const { messages, sendMessage, addToolApprovalResponse, status, stop, error, setMessages, clearError } = chat;
   chatRef.current = chat as unknown as NonNullable<typeof chatRef.current>;
+
+  // Sprache dieses Gespraechs: die der letzten Frage, genau wie sie der
+  // Server fuer die Antwort ermittelt (api/ki-assistent/route.ts). Solange
+  // die Texte noch geladen werden - oder wenn ohnehin in der Sprache der
+  // Oberflaeche geschrieben wird - bleibt es bei den Texten der Oberflaeche.
+  const chatSprache = useChatSprache(
+    useMemo(() => messages.filter((n) => n.role === "user").map(textVonNachricht), [messages]),
+    sprache,
+    oberflaechenTexte,
+  );
+  const uebersetzer = useMemo(() => {
+    const texte = chatSprache.texte;
+    if (!texte) return null;
+    return (namensraum: string) =>
+      createTranslator({ locale: chatSprache.sprache, messages: texte, namespace: namensraum });
+  }, [chatSprache.texte, chatSprache.sprache]);
+  const t = uebersetzer ? uebersetzer("kiAssistentAnsicht") : tOberflaeche;
+  const aktionenT = uebersetzer ? uebersetzer("aktionen") : aktionenTOberflaeche;
+  const moduleT = uebersetzer ? uebersetzer("modules") : moduleTOberflaeche;
+  const navT = uebersetzer ? uebersetzer("nav") : navTOberflaeche;
+  const authT = uebersetzer ? uebersetzer("auth") : authTOberflaeche;
 
   const sprachausgabe = useSprachausgabe(sprache);
 
@@ -814,7 +839,11 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     );
   }
 
-  return (
+  // Das ganze Chatfenster spricht die Sprache dieses Gespraechs: der Anbieter
+  // legt die Texte der erkannten Sprache ueber die der Oberflaeche, damit auch
+  // die Kindkomponenten (Mikrofon, Vorlesen, Quellen) mitziehen und nicht
+  // deutsche Knopftexte um eine russische Antwort stehen.
+  const inhalt = (
     <div className="ki-chat">
       <div className="ki-chat__flaeche">
         <div ref={scrollRef} onScroll={beiScroll} className="ki-chat__verlauf">
@@ -917,7 +946,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
                     />
                     </BelegAnbieter>
                     {/* Vorlesen nur, wenn die Antwort schon gespeichert ist UND es fuer
-                        ihre Sprache eine Stimme gibt - fuer Russisch und Tuerkisch
+                        ihre Sprache eine Stimme gibt - fehlt eine, so
                         erscheint deshalb gar kein Knopf statt eines Fehlers nach dem Klick. */}
                     {istVorlesbar(nachricht.id) &&
                     !(beschaeftigt && nachricht.id === letzteId) &&
@@ -1071,5 +1100,12 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
         </div>
       </form>
     </div>
+  );
+
+  if (!chatSprache.texte) return inhalt;
+  return (
+    <NextIntlClientProvider locale={chatSprache.sprache} messages={chatSprache.texte}>
+      {inhalt}
+    </NextIntlClientProvider>
   );
 }

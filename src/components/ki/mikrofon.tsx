@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Loader2, Mic, Square } from "lucide-react";
 import { MikrofonWelle } from "@/components/ki/mikrofon-welle";
 import { transkribiereSprachnachricht } from "@/lib/actions/ki-assistent";
@@ -31,6 +31,13 @@ export function MikrofonKnopf({
   deaktiviert?: boolean;
 }) {
   const t = useTranslations("kiAssistentAnsicht.diktat");
+  // Die Server Action sagt genau, WORAN es lag (Dienst nicht erreichbar,
+  // Zeitueberschreitung, Erkennung ohne Ergebnis). Diese Meldung wird hier
+  // gezeigt, statt jeden Fehlschlag zu "Spracherkennung nicht moeglich" zu
+  // verkuerzen - das las sich wie ein Fehler der Aufnahme, obwohl in
+  // Produktion schlicht der Dienst fehlte.
+  const tAktion = useTranslations("aktionen");
+  const sprache = useLocale();
   const [zustand, setZustand] = useState<"bereit" | "aufnahme" | "laeuft">("bereit");
   const [meldung, setMeldung] = useState<string | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -79,13 +86,17 @@ export function MikrofonKnopf({
         setZustand("laeuft");
         const daten = new FormData();
         daten.append("audio", aufnahme, "aufnahme.webm");
+        // Die Sprache der Oberflaeche als Hinweis fuer die Erkennung: sie
+        // trennt vor allem Kasachisch von Russisch, die sich die Schrift
+        // teilen. Nicht unterstuetzte Werte verwirft der Client selbst.
+        daten.append("sprache", sprache);
         const status = await transkribiereSprachnachricht(leer, daten);
         setZustand("bereit");
 
         // Erfolg traegt den erkannten Text im wert-Feld (siehe ok() in
         // actions/status.ts).
         if (status.stand === "ok" && status.wert) beiText(status.wert);
-        else setMeldung(t("fehlgeschlagen"));
+        else setMeldung(status.meldung ? tAktion(status.meldung) : t("fehlgeschlagen"));
       };
 
       recorder.start();

@@ -57,3 +57,24 @@ export function sparseFrage(text: string): SparseVektor {
   const indices = [...new Set(tokens(text).map(hash32))];
   return { indices, values: indices.map(() => 1) };
 }
+
+// ---- Abbildung auf pgvector (sparsevec) --------------------------------------------------
+// Qdrant nimmt u32-Indizes, pgvector hoechstens 1 Milliarde Dimensionen mit Index ab 1. Der Hash
+// wird deshalb auf 1..1_000_000_000 abgebildet. Bei rund 100.000 verschiedenen Woertern sind
+// Kollisionen zweier Woerter praktisch bedeutungslos (erwartet: einige Dutzend Paare).
+export const SPARSE_DIMENSION = 1_000_000_000;
+
+export function sparseIndex(hash: number): number {
+  return (hash % SPARSE_DIMENSION) + 1;
+}
+
+/** Textform eines sparsevec fuer PostgREST: {index:wert,...}/dimension. Kollidierende Indizes werden addiert. */
+export function alsSparsevec(v: SparseVektor): string {
+  const summe = new Map<number, number>();
+  v.indices.forEach((h, i) => {
+    const idx = sparseIndex(h);
+    summe.set(idx, (summe.get(idx) ?? 0) + (v.values[i] ?? 0));
+  });
+  const teile = [...summe].sort((a, b) => a[0] - b[0]).map(([idx, w]) => `${idx}:${Number(w.toFixed(4))}`);
+  return `{${teile.join(",")}}/${SPARSE_DIMENSION}`;
+}

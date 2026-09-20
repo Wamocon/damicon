@@ -8,6 +8,7 @@ import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { KiAnbieterVerwaltung } from "@/components/db/ki-assistent-formulare";
 import { KiFuehrungsAnzeige } from "@/components/ki/ki-fuehrung";
 import { KiPane } from "@/components/ki/ki-pane";
+import { erlaubteBereiche } from "@/lib/pruefung/rollen";
 import { HaustierDashboard } from "@/components/haustier/haustier-dashboard";
 import { HaustierProvider } from "@/components/haustier/haustier-kontext";
 import { KiPaneProvider } from "@/components/ki/ki-pane-kontext";
@@ -72,6 +73,7 @@ export default async function DashboardLayout({
             <KiPane
               verlauf={kiVerlauf.nachrichten}
               agentFaehig={aktiverAnbieter?.typ === "anthropic"}
+              pruefungBereiche={aktiverAnbieter?.typ === "anthropic" ? erlaubteBereiche(profil?.role) : []}
               einstellungen={
                 anbieterListe ? <KiAnbieterVerwaltung anbieter={anbieterListe.anbieter} /> : null
               }

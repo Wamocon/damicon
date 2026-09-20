@@ -17,7 +17,7 @@ import type { Json } from "@/lib/database.types";
 // den Rechten aus src/lib/rbac.ts (admin/betriebsleitung/buchhaltung).
 
 const kanaele = ["papier", "app", "web", "sms"] as const;
-const sprachen = ["de", "en", "ru", "kk", "tr"] as const;
+const sprachen = ["de", "en", "ru", "kk"] as const;
 const vorfallArten = ["unbefugter_zugriff", "verlust", "offenlegung", "sonstiges"] as const;
 
 function protokolliere(
