@@ -144,12 +144,20 @@ export function DashboardTopbar() {
           wer im Dashboard steht, weiss bereits, worin er steht. */}
       <Link
         href="/dashboard"
+        aria-label="Damicon"
         className="flex min-w-0 items-center gap-2.5 md:hidden"
       >
         <DamiconLogo className="shadow-lg shadow-primary/20" />
-        <span className="min-w-0 truncate text-base font-black leading-tight text-foreground">
-          Damicon
-        </span>
+        {/* In der Mitte steht die Bildmarke allein. Der Name daneben schoebe
+            sie aus der Mitte, sobald der Rueckweg links laenger wird, und er
+            sagt dort auch nichts Neues - wer im Dashboard steht, weiss, in
+            welchem. Links auf der Uebersicht bleibt er, dort ist er die
+            Ueberschrift der Seite, auf der man ankommt. */}
+        {eltern ? null : (
+          <span className="min-w-0 truncate text-base font-black leading-tight text-foreground">
+            Damicon
+          </span>
+        )}
       </Link>
 
       <MenueUmschalter />

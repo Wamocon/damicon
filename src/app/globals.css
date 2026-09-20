@@ -326,7 +326,10 @@
     border: 1px solid var(--border);
     border-radius: 0.75rem;
     background: var(--card);
-    padding: 0.25rem 0;
+    /* Kein eigener Innenabstand: den tragen die Zellen. Zwei Quellen
+       ergaben unter der letzten Zeile einen leeren Streifen, der die Karte
+       unruhig aussehen liess. */
+    padding: 0.35rem 0;
   }
   .datentabelle:not([data-matrix]) tr:last-child {
     margin-bottom: 0;
@@ -335,14 +338,23 @@
   /* Zwei Spalten je Wert: Beschriftung und Inhalt. 40 % fuer die Beschriftung
      reichen auch fuer die kyrillischen Tabellenkoepfe, die laenger sind als
      die deutschen. */
-  .datentabelle:not([data-matrix]) td {
+  /* tr td statt td: die Aufrufstellen setzen an ihren Zellen py-2.5 und
+     aehnliches, und eine einfache Klasse plus Elementname hat dieselbe
+     Spezifitaet wie eine Tailwind-Utility - dann entscheidet die
+     Reihenfolge im Stylesheet, und die ist nicht in unserer Hand. */
+  .datentabelle:not([data-matrix]) tr td {
     display: grid;
     grid-template-columns: minmax(5.5rem, 40%) 1fr;
     gap: 0.75rem;
     align-items: baseline;
-    padding: 0.4rem 0.75rem;
+    /* Inhalte so breit wie noetig, nicht so breit wie die Spalte: sonst
+       zieht ein Grid-Item wie die Statuspille sich ueber die ganze Breite
+       und sieht aus wie ein Eingabefeld. Felder in Formularen setzen ihre
+       Breite weiter unten selbst auf 100 %. */
+    justify-items: start;
+    padding: 0.35rem 0.75rem;
   }
-  .datentabelle:not([data-matrix]) td::before {
+  .datentabelle:not([data-matrix]) tr td::before {
     content: attr(data-kopf);
     font-size: var(--schrift-label);
     font-weight: 600;
@@ -353,10 +365,10 @@
 
   /* Meldungen ueber die ganze Breite ("keine Daten") sind keine Werte und
      tragen deshalb keine Beschriftung und keine zweite Spalte. */
-  .datentabelle:not([data-matrix]) td[colspan] {
+  .datentabelle:not([data-matrix]) tr td[colspan] {
     display: block;
   }
-  .datentabelle:not([data-matrix]) td[colspan]::before {
+  .datentabelle:not([data-matrix]) tr td[colspan]::before {
     content: none;
   }
 
