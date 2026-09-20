@@ -1569,6 +1569,20 @@
       "hilfe": "Where do I start?",
       "hilfeText": "What is on today? Name the three things I should deal with first."
     },
+    "anstupser": {
+      "neuHeute": {
+        "frage": "Want me to show you what changed today?",
+        "frageText": "What changed today? Summarise the main points briefly."
+      },
+      "kuehlzeit": {
+        "frage": "Want me to check how the cooling times are running?",
+        "frageText": "How are the cooling times running? Name the batches that cut it closest."
+      },
+      "fristen": {
+        "frage": "Want me to go through the open deadlines?",
+        "frageText": "Which deadlines are coming up? Sort them by urgency."
+      }
+    },
     "tipp": {
       "frage": "You are in “{bereich}”. Shall I show you what you can do here?",
       "ja": "Show me",

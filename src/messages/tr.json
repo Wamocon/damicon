@@ -577,6 +577,20 @@
       "hilfe": "Nereden başlayayım?",
       "hilfeText": "Bugün ne var? Önce ilgilenmem gereken üç şeyi söyle."
     },
+    "anstupser": {
+      "neuHeute": {
+        "frage": "Bugün ne değiştiğini göstereyim mi?",
+        "frageText": "Bugün ne değişti? En önemli noktaları kısaca özetle."
+      },
+      "kuehlzeit": {
+        "frage": "Soğutma sürelerinin nasıl gittiğine bakayım mı?",
+        "frageText": "Soğutma süreleri nasıl gidiyor? Sınıra en çok yaklaşan partileri söyle."
+      },
+      "fristen": {
+        "frage": "Açık süreleri gözden geçireyim mi?",
+        "frageText": "Hangi süreler yaklaşıyor? Aciliyete göre sırala."
+      }
+    },
     "tipp": {
       "frage": "“{bereich}” bölümündesin. Burada neler yapabileceğini göstereyim mi?",
       "ja": "Göster",

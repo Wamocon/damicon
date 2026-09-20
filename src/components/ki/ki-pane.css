@@ -1562,3 +1562,17 @@ html[data-ki-zieht] body {
     opacity: 1;
   }
 }
+
+/* Leerzustand auf der Buehne: die grosse Himbeere im Panel entfaellt - die echte Himbi
+   steht schon eine Handbreit darueber. Damit ruecken Titel und Vorschlaege direkt unter
+   sie, und die Frage sieht aus, als stelle man sie ihr. */
+.ki-pane-huelle--buehne .ki-leer__zeichen {
+  display: none;
+}
+.ki-pane-huelle--buehne .ki-leer {
+  padding-top: 0.5rem;
+}
+.ki-pane-huelle--buehne .ki-leer__vorschlaege {
+  max-width: 34rem;
+  margin-inline: auto;
+}

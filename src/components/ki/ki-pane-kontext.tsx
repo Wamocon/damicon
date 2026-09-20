@@ -186,6 +186,26 @@ export function KiPaneProvider({
     setOffen(true);
   }, [setDarstellung]);
 
+  // Im Agent-Modus steuert der Assistent die Ansicht nebenan. Auf der Buehne liegt die
+  // Seite unscharf dahinter - von der Fahrt saehe man nichts. Solange eine Fuehrung
+  // laeuft, dockt er darum an den Rand und geht danach zurueck in die Mitte.
+  //
+  // Absichtlich ueber setDarstellungState statt setDarstellung: die gespeicherte Wahl
+  // bleibt "buehne". Das Andocken ist eine Leihgabe fuer die Dauer der Fuehrung, keine
+  // Umstellung, die der Mensch beim naechsten Mal wiederfinden soll.
+  const buehneGeliehen = useRef(false);
+  useEffect(() => {
+    if (fuehrung && darstellung === "buehne") {
+      buehneGeliehen.current = true;
+      setDarstellungState("seite");
+      return;
+    }
+    if (!fuehrung && buehneGeliehen.current) {
+      buehneGeliehen.current = false;
+      setDarstellungState("buehne");
+    }
+  }, [fuehrung, darstellung]);
+
   // Die Buehne legt sich ueber die Seite und ist damit ein Dialog: Escape schliesst sie.
   // Das angedockte Panel bleibt offen - es verdeckt nichts, und wer darin tippt, will
   // mit Escape keine laufende Antwort aus dem Blick verlieren.

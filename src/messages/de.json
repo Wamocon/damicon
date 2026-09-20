@@ -1569,6 +1569,20 @@
       "hilfe": "Womit anfangen?",
       "hilfeText": "Was steht heute an? Nenn mir die drei Dinge, um die ich mich zuerst kümmern sollte."
     },
+    "anstupser": {
+      "neuHeute": {
+        "frage": "Soll ich dir zeigen, was sich heute geändert hat?",
+        "frageText": "Was hat sich heute geändert? Fass die wichtigsten Punkte kurz zusammen."
+      },
+      "kuehlzeit": {
+        "frage": "Soll ich nachsehen, wie die Kühlzeiten gerade laufen?",
+        "frageText": "Wie laufen die Kühlzeiten gerade? Nenn mir die Chargen, die am knappsten waren."
+      },
+      "fristen": {
+        "frage": "Soll ich die offenen Fristen durchgehen?",
+        "frageText": "Welche Fristen stehen demnächst an? Sortiere nach Dringlichkeit."
+      }
+    },
     "tipp": {
       "frage": "Du bist bei „{bereich}“. Soll ich dir zeigen, was du hier tun kannst?",
       "ja": "Zeig mir das",
