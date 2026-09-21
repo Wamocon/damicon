@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { Lock } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { PageHeader } from "@/components/ui/kit";
-import { Brotkrumen } from "@/components/dashboard/brotkrumen";
 import {
   KlassifikationBadge,
   ReifegradBadge,
@@ -36,7 +35,6 @@ export function ModulePageBody({
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow={<Brotkrumen zone={module.zone} modulKey={module.key} />}
         title={t(`${module.key}.title`)}
         description={t(`${module.key}.description`)}
       >

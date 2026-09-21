@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { medienErlaubt, useBrowserBedingung } from "@/lib/bewegung";
+import { cn } from "@/lib/utils";
 
 // Echtes Rundgangsmaterial aus der Plantage statt eines Stockfotos oder einer
 // gezeichneten Animation - übernommen aus dem parallelen Projekt
@@ -22,7 +23,7 @@ export function HeroVideo({ className }: { className?: string }) {
   // widerspraeche dem und lieferte je nach Tailwind-Regelreihenfolge eine
   // Hoehe von 0 - das Bild und Video haetten dann nichts zum Ausfuellen.
   return (
-    <div className={`overflow-hidden ${className ?? ""}`}>
+    <div className={cn("overflow-hidden", className)}>
       <Image
         src="/hero-standbild.webp"
         alt=""

@@ -51,6 +51,20 @@ export function StatusPill({
   );
 }
 
+/**
+ * Die Klassen einer Karte, die als Ganzes ein Verweis ist. Sie stand dreimal
+ * fast gleich im Code: Zonenkarte der Uebersicht, Modulkarte der
+ * Bereichsseite und Zonenkarte der Landingpage. Unterschiedlich war daran nur
+ * der Innenabstand - die Landingkarte hat keinen, weil ihr Bild bis an den
+ * Rand laeuft.
+ *
+ * Bewusst eine Klassenkette und keine Komponente: die drei Stellen setzen
+ * unterschiedliche Elemente (Link mit und ohne Bild) und brauchen den
+ * Gruppennamen `group` fuer ihre eigenen Hover-Regeln im Inneren.
+ */
+export const kachelVerweis =
+  "group flex flex-col rounded-2xl border border-border bg-card shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40";
+
 export function Card({
   id,
   children,

@@ -5,6 +5,7 @@ import { Beere, type BeerenVariante } from "@/components/site/beere-schale";
 import { LoopClip } from "@/components/site/loop-clip";
 import { Reveal } from "@/components/site/reveal";
 import { beerenNahaufnahme } from "@/lib/site-medien";
+import { cn } from "@/lib/utils";
 
 // "Warum die Himbeere anders ist" als Bento in zwei Gruppen. Oben die Frucht
 // selbst, auf nachtblauem Grund: keine schützende Haut, 60 Minuten bis zur
@@ -58,7 +59,7 @@ function HelleKachel({
   className: string;
 }) {
   return (
-    <article className={`flex flex-col rounded-3xl border border-border bg-card p-5 ${className}`}>
+    <article className={cn("flex flex-col rounded-3xl border border-border bg-card p-5", className)}>
       <div
         aria-hidden
         className={`flex h-40 items-center justify-center rounded-2xl bg-secondary/60 p-4 ${buehneFarbe}`}

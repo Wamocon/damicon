@@ -5,7 +5,7 @@ import { usePathname } from "@/i18n/navigation";
 import { usePersona } from "@/components/dashboard/persona";
 import { useAktiveZone } from "@/components/dashboard/sidebar-zustand";
 import { hasPermission } from "@/lib/rbac";
-import { modulesForZone, zones, type ZoneKey } from "@/lib/modules";
+import { moduleByPath, modulesForZone, zones, type ZoneKey } from "@/lib/modules";
 
 // Die oberste Navigationsebene als Liste: Uebersicht und die vier Bereiche,
 // gefiltert nach dem, was die Rolle sehen darf, samt der Frage, welches Ziel
@@ -52,7 +52,7 @@ export function useNavZiele(): NavZiel[] {
     {
       key: "overview",
       href: "/dashboard",
-      icon: "layout-dashboard",
+      icon: "house",
       name: nav("overview"),
       aktuelleSeite: pathname === "/dashboard",
       imZiel: pathname === "/dashboard",
@@ -81,39 +81,74 @@ export function useNavZiele(): NavZiel[] {
   return ziele;
 }
 
+export interface PfadStation {
+  /** Fehlt genau bei der geoeffneten Seite - das entscheidet ueber Link oder
+   *  aria-current, wie im WAI-ARIA-Muster "breadcrumb". */
+  href?: string;
+  text: string;
+  /** Die Uebersicht steht als Haus statt als Wort. */
+  alsHaus?: boolean;
+}
+
+/**
+ * Der Weg zur geoeffneten Seite, abgeleitet aus dem Adresspfad.
+ *
+ * Eine einzige Ableitung fuer zwei Anzeigen: die Brotkrumen in der Kopfzeile
+ * ab md (topbar-pfad.tsx) und den einstufigen Rueckweg darunter (topbar.tsx).
+ * Frueher rechnete jede Seite ihre Brotkrumen selbst und die Kopfzeile ihren
+ * Rueckweg noch einmal daneben - zwei Ableitungen derselben Frage, die
+ * auseinanderlaufen konnten, ohne dass es auffaellt.
+ *
+ * Auf Seiten neben den Bereichen, etwa /dashboard/sicherheit, endet die Liste
+ * mit einem Link statt mit der geoeffneten Seite: der Rueckweg dorthin ist
+ * bekannt, ein Name fuer die Seite selbst nicht.
+ */
+export function useSeitenPfad(): PfadStation[] {
+  const pathname = usePathname();
+  const nav = useTranslations("nav");
+  const zoneT = useTranslations("zones");
+  const moduleT = useTranslations("modules");
+
+  // Ohne Sprachpraefix, das nimmt usePathname aus @/i18n/navigation schon weg:
+  // ["dashboard"], ["dashboard", <zone>] oder ["dashboard", <zone>, <modul>].
+  const segmente = pathname.split("/").filter(Boolean);
+  if (segmente[0] !== "dashboard") return [];
+
+  const haus: PfadStation = {
+    href: segmente.length > 1 ? "/dashboard" : undefined,
+    text: nav("overview"),
+    alsHaus: true,
+  };
+  if (segmente.length === 1) return [haus];
+
+  const zone = zones.find((z) => z.key === segmente[1]);
+  if (!zone) return [haus];
+
+  const modul = segmente[2] ? moduleByPath(zone.key, segmente[2]) : null;
+  const stationen: PfadStation[] = [
+    haus,
+    {
+      href: modul ? `/dashboard/${zone.key}` : undefined,
+      text: zoneT(`${zone.key}.name`),
+    },
+  ];
+  if (modul) stationen.push({ text: moduleT(`${modul.key}.navTitle`) });
+  return stationen;
+}
+
 /**
  * Die Seite eine Ebene ueber der geoeffneten, oder null auf der Uebersicht
  * selbst. Auf dem Handy traegt die Kopfzeile sie als Weg zurueck
  * (topbar.tsx), statt Bildmarke und Namen zu wiederholen.
  *
- * Abgeleitet aus dem Pfad und nicht aus Props: die Kopfzeile steht im Layout
- * und weiss nichts von der Seite darunter. Die Brotkrumen bekommen Zone und
- * Modul dagegen von der jeweiligen Seite gereicht - deshalb hier eine eigene
- * Ableitung und kein gemeinsamer Aufruf. Beide muessen dasselbe Ergebnis
- * liefern; das ist der Preis dafuer, dass die Kopfzeile ausserhalb der Seite
- * liegt.
+ * Das ist die letzte Station des Pfades, die noch ein Ziel hat - auf einer
+ * Modulseite der Bereich, sonst die Uebersicht.
  */
 export function useElternSeite(): { href: string; text: string } | null {
-  const pathname = usePathname();
-  const nav = useTranslations("nav");
-  const zoneT = useTranslations("zones");
-
-  // Ohne Sprachpraefix, das nimmt usePathname aus @/i18n/navigation schon weg:
-  // ["dashboard"], ["dashboard", <zone>] oder ["dashboard", <zone>, <modul>].
-  const segmente = pathname.split("/").filter(Boolean);
-  if (segmente.length <= 1) return null;
-
-  const zone = zones.find((z) => z.key === segmente[1]);
-
-  // Auf einer Modulseite fuehrt der Weg auf die Bereichsseite.
-  if (segmente.length >= 3 && zone) {
-    return {
-      href: `/dashboard/${zone.key}`,
-      text: zoneT(`${zone.key}.name`),
-    };
+  const stationen = useSeitenPfad();
+  for (let i = stationen.length - 1; i >= 0; i -= 1) {
+    const station = stationen[i]!;
+    if (station.href) return { href: station.href, text: station.text };
   }
-
-  // Auf einer Bereichsseite - und auf Seiten neben den Bereichen, etwa
-  // /dashboard/sicherheit - fuehrt er auf die Uebersicht.
-  return { href: "/dashboard", text: nav("overview") };
+  return null;
 }

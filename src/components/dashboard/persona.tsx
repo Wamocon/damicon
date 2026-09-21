@@ -12,6 +12,7 @@ import { useTranslations } from "next-intl";
 import { ChevronDown, UserCog } from "lucide-react";
 import { StatusPill } from "@/components/ui/kit";
 import { roles, type Role } from "@/lib/rbac";
+import { cn } from "@/lib/utils";
 
 // Zwei Betriebsarten (siehe src/lib/supabase/config.ts):
 //
@@ -123,7 +124,14 @@ export function PersonaSwitcher({ className }: { className?: string }) {
 
   return (
     <label
-      className={`relative inline-flex items-center ${className ?? ""}`}
+      // cn() und nicht die Zeichenkette: die Kopfzeile reicht hier
+      // "hidden lg:inline-flex" herein, und in einer Zeichenkette standen
+      // danach zwei Anzeigeklassen nebeneinander. Welche gewann, entschied
+      // die Reihenfolge im erzeugten Stylesheet und nicht die Absicht des
+      // Aufrufers - der Umschalter blieb bei jeder Fensterbreite stehen und
+      // schob mit seinen 190 px Sprachwahl, Farbschema und Meldungen aus der
+      // Zeile. tailwind-merge behaelt die zuletzt uebergebene Klasse.
+      className={cn("relative inline-flex items-center", className)}
       title={hinweis}
     >
       <UserCog className="pointer-events-none absolute left-2 h-3.5 w-3.5 text-muted-foreground" />

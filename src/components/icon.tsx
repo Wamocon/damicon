@@ -20,6 +20,7 @@ import {
   GraduationCap,
   Grid3x3,
   Handshake,
+  House,
   Info,
   Landmark,
   LayoutDashboard,
@@ -47,6 +48,7 @@ import {
   TriangleAlert,
   Truck,
   Users,
+  Warehouse,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -73,6 +75,7 @@ const registry: Record<string, LucideIcon> = {
   "graduation-cap": GraduationCap,
   "grid-3x3": Grid3x3,
   handshake: Handshake,
+  house: House,
   info: Info,
   landmark: Landmark,
   "layout-dashboard": LayoutDashboard,
@@ -100,6 +103,7 @@ const registry: Record<string, LucideIcon> = {
   "triangle-alert": TriangleAlert,
   truck: Truck,
   users: Users,
+  warehouse: Warehouse,
 };
 
 export function Icon({

@@ -32,7 +32,7 @@ export interface ZoneDef {
 
 export const zones: ZoneDef[] = [
   { key: "feld", slug: "feld", icon: "sprout", accent: "var(--accent)" },
-  { key: "hof", slug: "hof", icon: "snowflake", accent: "var(--chart-5)" },
+  { key: "hof", slug: "hof", icon: "warehouse", accent: "var(--chart-5)" },
   { key: "buero", slug: "buero", icon: "briefcase", accent: "var(--primary)" },
   { key: "markt", slug: "markt", icon: "store", accent: "var(--warning)" },
 ];
