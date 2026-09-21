@@ -2,7 +2,7 @@
 
 import { useId, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronDown, LayoutDashboard } from "lucide-react";
+import { ChevronDown, House } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { Icon } from "@/components/icon";
@@ -412,7 +412,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
               )}
             >
               <span className="flex h-6 w-6 shrink-0 items-center justify-center">
-                <LayoutDashboard className="h-4 w-4" />
+                <House className="h-4 w-4" />
               </span>
               {nav("overview")}
             </Link>

@@ -52,7 +52,7 @@ export function useNavZiele(): NavZiel[] {
     {
       key: "overview",
       href: "/dashboard",
-      icon: "layout-dashboard",
+      icon: "house",
       name: nav("overview"),
       aktuelleSeite: pathname === "/dashboard",
       imZiel: pathname === "/dashboard",
