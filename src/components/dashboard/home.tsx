@@ -5,7 +5,14 @@ import { ArrowDownRight, ArrowRight, ArrowUpRight, Minus } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Icon } from "@/components/icon";
 import { usePersona } from "@/components/dashboard/persona";
-import { Card, PageHeader, Section, StatusPill } from "@/components/ui/kit";
+import {
+  Card,
+  kachelVerweis,
+  PageHeader,
+  Section,
+  StatusPill,
+} from "@/components/ui/kit";
+import { cn } from "@/lib/utils";
 import { hasPermission } from "@/lib/rbac";
 import { modulesForZone, zones } from "@/lib/modules";
 import {
@@ -220,7 +227,7 @@ export function DashboardHome({
               <Link
                 key={zone.key}
                 href={`/dashboard/${zone.key}`}
-                className="group @container flex flex-col rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40"
+                className={cn(kachelVerweis, "@container p-5")}
               >
                 {/* Symbol, Name und Pfeil teilen sich eine Zeile. Frueher
                     stand das Symbol allein darueber und kostete 52 px Hoehe,

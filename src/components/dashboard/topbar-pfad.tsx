@@ -2,67 +2,15 @@
 
 import { useTranslations } from "next-intl";
 import { ChevronRight, House, Search } from "lucide-react";
-import { Link, usePathname } from "@/i18n/navigation";
-import { moduleByPath, zones } from "@/lib/modules";
+import { Link } from "@/i18n/navigation";
+import { useSeitenPfad, type PfadStation } from "@/components/dashboard/nav-ziele";
 import { cn } from "@/lib/utils";
-
-interface Station {
-  /** Fehlt genau bei der offenen Seite - das entscheidet ueber Link oder
-   *  aria-current, wie im WAI-ARIA-Muster "breadcrumb". */
-  href?: string;
-  text: string;
-  /** Die Uebersicht steht als Haus statt als Wort und spart damit rund
-   *  110 px - genau dort, wo die Kopfzeile eng wird. */
-  alsHaus?: boolean;
-}
-
-/**
- * Der Pfad wird aus dem Adresspfad abgeleitet und nicht von der Seite
- * gereicht: die Kopfzeile liegt ausserhalb der Seite und kann nichts
- * entgegennehmen. Genauso arbeitet useElternSeite() in nav-ziele.ts, das den
- * einstufigen Rueckweg auf dem Handy traegt. Beide muessen dasselbe Ergebnis
- * liefern.
- */
-function useBrotkrumenPfad(): Station[] {
-  const pathname = usePathname();
-  const nav = useTranslations("nav");
-  const zoneT = useTranslations("zones");
-  const moduleT = useTranslations("modules");
-
-  // Ohne Sprachpraefix, das nimmt usePathname aus @/i18n/navigation schon weg.
-  const segmente = pathname.split("/").filter(Boolean);
-  if (segmente[0] !== "dashboard") return [];
-
-  const haus: Station = {
-    href: segmente.length > 1 ? "/dashboard" : undefined,
-    text: nav("overview"),
-    alsHaus: true,
-  };
-  if (segmente.length === 1) return [haus];
-
-  // Seiten neben den Bereichen, etwa /dashboard/sicherheit: dort gibt es
-  // keinen benannten Weg, und ein Haus allein saehe aus wie die Uebersicht.
-  // Diese Seiten trugen auch vorher keine Brotkrumen.
-  const zone = zones.find((z) => z.key === segmente[1]);
-  if (!zone) return [];
-
-  const modul = segmente[2] ? moduleByPath(zone.key, segmente[2]) : null;
-  const stationen: Station[] = [
-    haus,
-    {
-      href: modul ? `/dashboard/${zone.key}` : undefined,
-      text: zoneT(`${zone.key}.name`),
-    },
-  ];
-  if (modul) stationen.push({ text: moduleT(`${modul.key}.navTitle`) });
-  return stationen;
-}
 
 function PfadListe({
   stationen,
   className,
 }: {
-  stationen: Station[];
+  stationen: PfadStation[];
   className?: string;
 }) {
   const nav = useTranslations("nav");
@@ -169,8 +117,15 @@ function PfadListe({
  * (topbar.tsx), der auf 390 px in eine Zeile passt.
  */
 export function TopbarPfad() {
-  const stationen = useBrotkrumenPfad();
-  if (stationen.length === 0) return null;
+  const stationen = useSeitenPfad();
+  // Endet der Pfad mit einem Link statt mit der geoeffneten Seite, kennt die
+  // Ableitung den Namen dieser Seite nicht - etwa auf /dashboard/sicherheit.
+  // Ein Haus allein saehe dort aus wie die Uebersicht. Diese Seiten trugen
+  // auch vorher keine Brotkrumen; den Weg zurueck haben sie ueber die
+  // Seitenleiste.
+  if (stationen.length === 0 || stationen[stationen.length - 1]!.href) {
+    return null;
+  }
 
   if (stationen.length === 3) {
     return (

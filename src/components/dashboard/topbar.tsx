@@ -40,6 +40,7 @@ function KiFragenKnopf() {
       type="button"
       onClick={umschalten}
       aria-pressed={offen}
+      aria-label={t("askAi")}
       title={t("askAiHinweis")}
       className={cn(
         "ki-fragen-knopf inline-flex h-9 shrink-0 items-center gap-2 rounded-lg border px-3 text-sm font-semibold transition-colors",
@@ -50,7 +51,10 @@ function KiFragenKnopf() {
       )}
     >
       <Himbeere groesse={17} />
-      <span>{t("askAi")}</span>
+      {/* Die Beschriftung erst ab lg. Bei 768 px war die Zeile sonst um
+          53 px ueberbucht und schnitt rechts die Meldungen ab; das Wort
+          kostet davon 68. Der Knopf bleibt ueber aria-label benannt. */}
+      <span className="hidden lg:inline">{t("askAi")}</span>
     </button>
   );
 }

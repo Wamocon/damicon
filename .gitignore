@@ -59,3 +59,8 @@ next-env.d.ts
 # verkleinertes WebP unter public/ und ist versioniert.
 /Bilder/
 /damicon-homepage-stand.html
+
+# Python-Umgebung und Ergebnisse der Robot-Framework-Tests
+# (siehe tests/robot/README.md)
+/.venv-robot
+/tests/robot/ergebnisse

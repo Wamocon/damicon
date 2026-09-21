@@ -8,6 +8,8 @@ import { CountUp } from "@/components/site/count-up";
 import { Reveal } from "@/components/site/reveal";
 import { BereichsOrbit } from "@/components/site/bereichs-orbit";
 import { ModulReiter } from "@/components/site/modul-reiter";
+import { kachelVerweis } from "@/components/ui/kit";
+import { cn } from "@/lib/utils";
 import { zones } from "@/lib/modules";
 import { kpis, zielerreichung } from "@/lib/domain/kpis";
 import { abschlussBild, bereichsBilder } from "@/lib/site-medien";
@@ -124,7 +126,7 @@ export function ZonesOverview() {
           <Link
             key={zone.key}
             href={`/dashboard/${zone.key}`}
-            className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40"
+            className={cn(kachelVerweis, "overflow-hidden")}
           >
             {/* Symbolbild des Bereichs. Die Überschrift benennt den Bereich
                 schon, deshalb ist das Bild für Screenreader ausgeblendet. */}

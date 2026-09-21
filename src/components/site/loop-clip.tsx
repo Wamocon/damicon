@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 import { medienErlaubt, useBrowserBedingung } from "@/lib/bewegung";
 import type { LoopClipQuelle } from "@/lib/site-medien";
+import { cn } from "@/lib/utils";
 
 // Kurzer, stummer Loop als Bildflaeche. Er laeuft nur, solange er zu sehen
 // ist; ausserhalb des Sichtbereichs haelt er an, damit mehrere Clips auf einer
@@ -57,7 +58,7 @@ export function LoopClip({
   const clipVorhanden = clip.quelle !== null;
 
   return (
-    <div aria-hidden className={`overflow-hidden ${className ?? ""}`}>
+    <div aria-hidden className={cn("overflow-hidden", className)}>
       <div className={clipVorhanden ? "absolute inset-0" : "kapitel-fahrt absolute inset-0"}>
         <Image
           src={clip.poster}

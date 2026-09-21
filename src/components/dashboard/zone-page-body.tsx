@@ -4,7 +4,8 @@ import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Icon } from "@/components/icon";
-import { PageHeader, StatusPill } from "@/components/ui/kit";
+import { kachelVerweis, PageHeader, StatusPill } from "@/components/ui/kit";
+import { cn } from "@/lib/utils";
 import {
   KlassifikationBadge,
   ReifegradBadge,
@@ -40,7 +41,7 @@ export function ZonePageBody({ zone }: { zone: ZoneKey }) {
             <Link
               key={module.key}
               href={moduleHref(module)}
-              className="group flex flex-col rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40"
+              className={cn(kachelVerweis, "p-5")}
             >
               {/* Dieselbe Kartensprache wie die Zonenkarten der Uebersicht:
                   Symbol und Titel in einer Zeile statt untereinander. Die
