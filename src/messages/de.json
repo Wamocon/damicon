@@ -544,14 +544,14 @@
       "navTitle": "Standorte",
       "description": "Betrieb, Plantage, Feldparzelle, Reihengruppe, Reihenblock - eine digitale Feldkarte mit eindeutiger Reihen- und Blockkennung entlang der Spaliere.",
       "summary": "Feldkarte mit Reihenblöcken am Spalier, Sorte, Pflanzjahr, Rutentyp und Spalierrichtung je Block.",
-      "todo": "Verwaltungsoberfläche zum Anlegen und Verschieben von Parzellen und Reihengruppen, Feldgeometrie-Editor."
+      "todo": "Oberfläche zum Anlegen und Verschieben von Parzellen und Reihengruppen, Zeichnen der Feldgeometrie."
     },
     "reihenbloecke": {
       "title": "Reihenblöcke und Status",
       "navTitle": "Reihenblöcke",
       "description": "Jeder Reihenblock hat einen Status: bepflanzt, erntereif, ruhend, Rückschnitt oder wartezeitgesperrt. Ein gesperrter Block darf im Pflückplan schlicht nicht erscheinen.",
       "summary": "Jeder Reihenblock führt seinen eigenen Status. Läuft eine Wartezeit, bleibt er für die Ernte gesperrt, bis sie abgelaufen ist.",
-      "todo": "Statuswechsel mit Begründungspflicht, feingranulare Zugriffsregeln je Ressource, Verlauf je Reihenblock."
+      "todo": "Statuswechsel mit Begründungspflicht und ein Verlauf je Reihenblock."
     },
     "pflueckaufgaben": {
       "title": "Pflückaufgaben mit Fotobeleg",
@@ -572,21 +572,21 @@
       "navTitle": "Rotationsplan",
       "description": "Rollierender Pflückplan mit Intervall von zwei bis drei Tagen je Reihenblock über die gesamte Herbsternte. Ein ausgelassener Durchgang vernichtet den Block für diesen Zyklus.",
       "summary": "Zeigt, welcher Reihenblock wann an der Reihe ist, und verteilt die Durchgänge über die sechs Wochen der Ernte.",
-      "todo": "Intervall-Engine je Reihenblock, Brigadenzuteilung, Konfliktprüfung mit Wartezeitsperren, Kalender-Export (.ics)."
+      "todo": "Automatische Intervallrechnung je Reihenblock, Brigadenzuteilung, Prüfung auf Konflikte mit Wartezeitsperren, Kalender-Export (.ics)."
     },
     "wetter": {
       "title": "Wetter und Temperatursumme",
       "navTitle": "Wetter",
       "description": "Wetterdaten je Standort mit Temperatursummenrechnung als Grundlage für die Mengenprognose.",
       "summary": "Einfache Wetterschnittstelle mit Temperatursumme je Parzelle. Erklärbar, prüfbar und innerhalb einer Saison validierbar.",
-      "todo": "Wetterstation- oder API-Anbindung, Temperatursumme je Parzelle, Hinweis auf verschobene Reifefenster."
+      "todo": "Eine eigene Wetterstation am Betrieb statt der Werte aus dem Netz, Hinweis auf verschobene Reifefenster."
     },
     "kuehlkette": {
       "title": "Kühlketten-Uhr",
       "navTitle": "Kühlkette",
       "description": "Zeitmessung von Pflücken bis Vorkühlung mit hartem 60-Minuten-Grenzwert, Temperaturlogger, Zieltemperatur 0 bis 1 Grad. Höchste Priorität im gesamten Betrieb.",
       "summary": "Überwacht die Zeit von der Pflückung bis zur Vorkühlung. Über 60 Minuten ist die Ware am nächsten Tag nur noch Industrieware.",
-      "todo": "Temperaturlogger-Integration, Charge-Uhr ab Pflückzeitpunkt, Alarm bei Grenzwertüberschreitung, KPI-Berechnung."
+      "todo": "Anschluss von Temperaturloggern, damit die Messwerte nicht von Hand erfasst werden müssen."
     },
     "logistik": {
       "title": "Abholrunden und Tourenplanung",
@@ -600,7 +600,7 @@
       "navTitle": "QR-Steigen",
       "description": "QR-Etiketten für Steigen (Link zur öffentlichen Herkunftsauskunft), Pflückerausweise mit dem eigenen Ausweis-Code ohne Biometrie und ein anmeldungsfreies Aushang-Poster - alle drei lassen sich direkt aus dem Browser drucken.",
       "summary": "Der QR-Code trägt die Identität vom Feld bis zur Ladentheke - der Ausweis lässt sich am Sammelpunkt per Kamera scannen, um Steige und Arbeitszeit der Person zuzuordnen, statt sie aus einem Dropdown zu wählen.",
-      "todo": "Ein Kamera-Scan der Steigen-Etiketten selbst (statt nur des Pflückerausweises) ist nicht Teil dieses Ausbauschritts."
+      "todo": "Die Steigen-Etiketten lassen sich noch nicht mit der Kamera scannen, nur der Pflückerausweis."
     },
     "esf": {
       "title": "Elektronischer Lieferschein (ЭСФ)",
@@ -635,35 +635,35 @@
       "navTitle": "Qualitätsfaktor-Lohn",
       "description": "Kombimodell aus Grundvergütung, Mengenkomponente und Qualitätsfaktor. Reiner Stücklohn drückt auf Menge, quetscht Beeren und ist bei der Himbeere wertvernichtend.",
       "summary": "Grundlohn plus Menge plus Qualitätsfaktor. Der Qualitätsfaktor ist keine Option, sondern Voraussetzung.",
-      "todo": "Mindestlohn-Verankerung, Lohnsatz-Editor mit UI-gestützter Korridor-Vorschau, PDF-Lohnzettel je Pflücker, Vorschusskonto."
+      "todo": "Mindestlohn als feste Untergrenze, Pflege der Lohnsätze mit Vorschau auf den Korridor, Lohnzettel als PDF je Pflücker, Vorschusskonto."
     },
     "dokumente": {
       "title": "Dokumentenverwaltung",
       "navTitle": "Dokumente",
       "description": "Geschützte Ablage für Spritzmittelprotokolle, ЕСУТД-Nachweise, Liefer- und Rahmenverträge, Förderdossiers und Zertifikate - verknüpft mit Reihenblock und Charge.",
       "summary": "Kategorisierte, geschützte Dokumentenablage mit Verknüpfung zu Reihenblock und Charge.",
-      "todo": "Versionierung, Ablauf- und Erinnerungslogik, Verknüpfung mit Reihenblock und Charge."
+      "todo": "Versionen je Dokument, Ablauffristen mit Erinnerung."
     },
     "compliance": {
       "title": "Compliance-Cockpit",
       "navTitle": "Compliance",
       "description": "Verarbeitungszwecke, Einwilligungen, Datenschutzvorfälle und Drittweitergaben aus fünf granularen Tabellen - Lesen und Schreiben ausschließlich für die Büro-Rollen.",
       "summary": "Granulares Datenschutz-Schema: Verarbeitungszwecke, Einwilligungen, Vorfälle und Drittweitergaben an einem Ort.",
-      "todo": "Rechtszitate Steuergesetzbuch, KI-Gesetz, Digitalkodex, Retention-Regeln je Datenprodukt, Hosting-Standort-Prüfung."
+      "todo": "Rechtszitate aus Steuergesetzbuch, KI-Gesetz und Digitalkodex, Aufbewahrungsfristen je Datenart, Prüfung des Speicherorts."
     },
     "integrationen": {
       "title": "Staatliche Integrationen",
       "navTitle": "Integrationen",
       "description": "Vorgesehen sind Konnektoren zu ЭСФ, virtuellem Lagerbestand, ЕСУТД und den Förderportalen gosagro.kz und qoldau.kz. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.",
       "summary": "Bekommt je Zielsystem einen Konnektor mit Statusrückmeldung und Wiederholung. Die Buchhaltung bleibt außen vor.",
-      "todo": "Konnektoren je System, Sandbox-Zugänge, Fehler- und Wiederholungslogik, Monitoring der Warteschlange."
+      "todo": "Konnektoren je System, Testzugänge, Umgang mit Fehlern und Wiederholungen, Überblick über die wartenden Vorgänge."
     },
     "foerdermittel": {
       "title": "Fördermitteldossier",
       "navTitle": "Fördermittel",
       "description": "Antragsvorlagen, Nachweislisten und Fristenmonitor für die kasachstanischen Förderportale - Antragsfähigkeit als Nebenprodukt der laufenden Buchführung.",
       "summary": "Fristenmonitor und Nachweisdokumente je Dossier sind angebunden. Antragsvorlagen und Nachweis-Checklisten je Förderprogramm bleiben offen.",
-      "todo": "Antragsvorlagen und Nachweis-Checklisten je Förderprogramm - fachliche Festlegung, welche Felder und Nachweise gosagro.kz/qoldau.kz je Programm tatsächlich verlangen."
+      "todo": "Antragsvorlagen und Nachweis-Checklisten je Förderprogramm. Offen ist zuerst, welche Felder und Nachweise gosagro.kz und qoldau.kz je Programm verlangen."
     },
     "sortenkatalog": {
       "title": "Sorten- und Kontingentkatalog",
@@ -677,28 +677,28 @@
       "navTitle": "B2B-Portal",
       "description": "Stammkundenportal mit Kontingenten, Vorbestellung mit Vorlauf, Preisliste nach Kundengruppe, Lieferstatus, Rechnungshistorie und Reklamationsmeldung.",
       "summary": "Lieferstatus mit Übergabequittung, Preisliste und Vorbestellung mit manueller Bestätigung durchs Büro sind angebunden.",
-      "todo": "Automatischer Kontingent-Verbrauch, Preisstaffelung je Kundengruppe und Rechnungshistorie fehlen noch (offene fachliche Festlegungen)."
+      "todo": "Automatischer Kontingent-Verbrauch, Preisstaffelung je Kundengruppe und Rechnungshistorie. Wie das im Einzelnen gelten soll, ist noch nicht entschieden."
     },
     "preislisten": {
       "title": "Preislisten",
       "navTitle": "Preislisten",
       "description": "Versionierte Preislisten mit Staffelpreisen je Kundengruppe und Gültigkeitszeitraum.",
       "summary": "Preisstaffeln je Kunde und Zeitraum, versioniert und mit Gültigkeitsdatum.",
-      "todo": "Versionierte Preislisten, Staffelpreise, Gültigkeitszeiträume, Kundenzuordnung."
+      "todo": "Nichts mehr offen: Versionen über das Gültigkeitsdatum, Staffeln über die Mindestmenge und die Zuordnung je Kundengruppe sind angebunden."
     },
     "aggregator": {
       "title": "Aggregator / Nachbarbetriebe",
       "navTitle": "Aggregator",
       "description": "Anschluss von Nachbarbetrieben: Zukaufmenge wird zur Rechnungsposition, jede Zukaufcharge wird getrennt geführt und bleibt auf den liefernden Betrieb zurückverfolgbar.",
       "summary": "Nachbarbetrieb-Onboarding, Zukauf-Erfassung mit eigener Charge, getrennte Herkunftsführung, Abrechnung.",
-      "todo": "Nachbarbetrieb-Onboarding, Zukauf-Erfassung mit eigener Charge, Abrechnung und Auszahlung."
+      "todo": "Eine Spanne je Nachbarbetrieb statt einer einheitlichen für alle, und die Auszahlung selbst."
     },
     "schulungen": {
       "title": "Schulungsvideos",
       "navTitle": "Schulungen",
       "description": "Mehrsprachige, bildbasierte Kurzeinarbeitung der Saisonkräfte auf dem Telefon - Videos je Kernprozess, mit Bildern statt Text.",
-      "summary": "Kurze, bildbasierte Videos je Kernprozess, mehrsprachig, mit Fortschrittsverfolgung je Person.",
-      "todo": "Videoinhalte je Kernprozess, Sprachfassungen Kasachisch und Russisch, Fortschrittsverfolgung je Person."
+      "summary": "Bebilderte Kurzeinarbeitung in sechs Schritten, mehrsprachig, mit eigenem Fortschritt je Person, dazu die Pflichtschulungen.",
+      "todo": "Videos je Kernprozess, gedreht und auf Kasachisch und Russisch vertont."
     },
     "kanaele": {
       "title": "Kontaktkanäle",

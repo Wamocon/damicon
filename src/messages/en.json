@@ -544,14 +544,14 @@
       "navTitle": "Locations",
       "description": "Farm, plantation, field plot, row group, row block - a digital field map with a unique row and block identifier along the trellises.",
       "summary": "Field map with row blocks on the trellis, variety, planting year, cane type and trellis orientation per block.",
-      "todo": "Admin interface to create and move plots and row groups, field-geometry editor."
+      "todo": "A screen for creating and moving parcels and row groups, and for drawing the field geometry."
     },
     "reihenbloecke": {
       "title": "Row blocks and status",
       "navTitle": "Row blocks",
       "description": "Every row block has one status: planted, ready to harvest, dormant, pruning or harvest-locked. A locked block simply must not appear in the picking schedule.",
       "summary": "Every row block carries its own status. While a pre-harvest interval is running, it stays locked for harvesting until that interval expires.",
-      "todo": "Status changes with a mandatory reason, fine-grained access rules per resource, history per row block."
+      "todo": "Status changes with a mandatory reason, and a history per row block."
     },
     "pflueckaufgaben": {
       "title": "Picking tasks with photo evidence",
@@ -572,21 +572,21 @@
       "navTitle": "Rotation plan",
       "description": "A rolling picking schedule with an interval of two to three days per row block across the whole autumn harvest. One missed round destroys the block for that cycle.",
       "summary": "Shows which row block is due when, spreading the passes across the six weeks of the harvest.",
-      "todo": "Interval engine per row block, brigade assignment, conflict check against pre-harvest-interval locks, calendar export (.ics)."
+      "todo": "Automatic interval calculation per row block, brigade assignment, a check for conflicts with pre-harvest locks, calendar export (.ics)."
     },
     "wetter": {
       "title": "Weather and growing degree days",
       "navTitle": "Weather",
       "description": "Weather data per location with a growing-degree-day calculation as the basis for the volume forecast.",
       "summary": "A simple weather interface with growing degree days per plot. Explainable, verifiable and validatable within a season.",
-      "todo": "Weather-station or API link, growing degree days per plot, alert on shifted ripening windows."
+      "todo": "A weather station on the farm instead of the values from the network, and a note on shifted ripening windows."
     },
     "kuehlkette": {
       "title": "Cold-chain clock",
       "navTitle": "Cold chain",
       "description": "Timing from picking to pre-cooling with a hard 60-minute threshold, temperature logger, target temperature 0 to 1 degree. Highest priority in the whole farm.",
       "summary": "Tracks the time from picking to pre-cooling. Over 60 minutes the ware is only industrial ware the next day.",
-      "todo": "Temperature-logger integration, batch clock from the picking time, alarm on threshold breach, KPI calculation."
+      "todo": "Connecting temperature loggers so the readings do not have to be entered by hand."
     },
     "logistik": {
       "title": "Collection rounds and route planning",
@@ -600,7 +600,7 @@
       "navTitle": "QR crates",
       "description": "QR labels for crates (linking to the public origin lookup), picker ID badges carrying their own badge code without biometrics, and a sign-in-free wall poster - all three can be printed straight from the browser.",
       "summary": "The QR code carries identity from the field to the shop counter - the badge can be scanned by camera at the collection point to attribute a crate or work time to that person, instead of choosing them from a dropdown.",
-      "todo": "A camera scan of the crate labels themselves (not just the picker badge) is not part of this build-out."
+      "todo": "The crate labels cannot be scanned with the camera yet, only the picker badge."
     },
     "esf": {
       "title": "Electronic delivery note (ЭСФ)",
@@ -635,35 +635,35 @@
       "navTitle": "Quality-factor pay",
       "description": "A combined model of base pay, a volume component and a quality factor. A pure piece rate pushes for volume, squeezes berries and is value-destroying for the raspberry.",
       "summary": "Base pay plus volume plus a quality factor. The quality factor is not optional but a precondition.",
-      "todo": "Minimum-wage anchoring, a rate editor with a UI-guided corridor preview, per-picker PDF pay slips, an advance account."
+      "todo": "The minimum wage as a hard floor, editing the pay rates with a preview of the corridor, a payslip as PDF per picker, an advance account."
     },
     "dokumente": {
       "title": "Document management",
       "navTitle": "Documents",
       "description": "A secure store for spray records, ЕСУТД evidence, supply and framework contracts, grant dossiers and certificates - linked to the row block and the batch.",
       "summary": "A categorised, secure document store linked to the row block and the batch.",
-      "todo": "Versioning, expiry and reminder logic, link to row block and batch."
+      "todo": "Versions per document, expiry dates with a reminder."
     },
     "compliance": {
       "title": "Compliance cockpit",
       "navTitle": "Compliance",
       "description": "Processing purposes, consents, data incidents and third-party disclosures from five granular tables - reading and writing reserved to office roles only.",
       "summary": "Granular data-protection schema: processing purposes, consents, incidents and disclosures in one place.",
-      "todo": "Legal references for Tax Code, AI Act, Digital Code, retention rules per data product, hosting-location review."
+      "todo": "Legal citations from the tax code, the AI act and the digital code, retention periods per kind of data, a check of the storage location."
     },
     "integrationen": {
       "title": "State integrations",
       "navTitle": "Integrations",
       "description": "Connectors to ЭСФ, virtual stock, ЕСУТД and the subsidy portals gosagro.kz and qoldau.kz are planned. Accounting stays with a solution established in the country.",
       "summary": "Will get one connector per target system, with status feedback and retry. Accounting stays out of scope.",
-      "todo": "Connectors per system, sandbox access, error and retry logic, queue monitoring."
+      "todo": "Connectors per system, test access, handling of errors and retries, an overview of the pending items."
     },
     "foerdermittel": {
       "title": "Grant application dossier",
       "navTitle": "Grants",
       "description": "Application templates, evidence lists and a deadline monitor for the Kazakh subsidy portals - eligibility as a by-product of ongoing bookkeeping.",
       "summary": "Deadline monitor and per-dossier evidence documents are connected. Application templates and evidence checklists per grant programme remain open.",
-      "todo": "Application templates and evidence checklists per grant programme - a domain decision on what fields and evidence gosagro.kz/qoldau.kz actually require per programme."
+      "todo": "Application templates and evidence checklists per grant programme. The first open question is which fields and documents gosagro.kz and qoldau.kz ask for per programme."
     },
     "sortenkatalog": {
       "title": "Variety and quota catalogue",
@@ -677,28 +677,28 @@
       "navTitle": "B2B portal",
       "description": "A regular-client portal with quotas, pre-order with lead time, a price list by client group, delivery status, invoice history and complaint reporting.",
       "summary": "Delivery status with handover receipt, price list, and pre-orders with manual office confirmation are connected.",
-      "todo": "Automatic quota consumption, price tiers by client group, and invoice history are still missing (open business decisions)."
+      "todo": "Automatic quota consumption, tiered pricing per customer group and an invoice history. How exactly these should work has not been decided yet."
     },
     "preislisten": {
       "title": "Price lists",
       "navTitle": "Price lists",
       "description": "Versioned price lists with tiered prices by client group and validity period.",
       "summary": "Price tiers per client and period, versioned and with a validity date.",
-      "todo": "Versioned price lists, tiered prices, validity periods, client assignment."
+      "todo": "Nothing left open: versions through the validity date, tiers through the minimum quantity and the assignment per customer group are all connected."
     },
     "aggregator": {
       "title": "Aggregator / neighbouring farms",
       "navTitle": "Aggregator",
       "description": "Connecting neighbouring farms: the purchased volume becomes an invoice line, every buy-in batch is tracked separately and remains traceable to the supplying farm.",
       "summary": "Neighbouring-farm onboarding, buy-in capture with its own batch, separate origin tracking, settlement.",
-      "todo": "Neighbouring-farm onboarding, buy-in capture with its own batch, settlement and payout."
+      "todo": "A margin per neighbouring farm instead of a single one for all, and the payout itself."
     },
     "schulungen": {
       "title": "Training videos",
       "navTitle": "Training",
       "description": "Multilingual, image-based short onboarding of seasonal workers on the phone - videos per core process, with pictures instead of text.",
-      "summary": "Short image-based videos per core process, multilingual, with progress tracking per person.",
-      "todo": "Video content per core process, Kazakh and Russian language versions, progress tracking per person."
+      "summary": "An illustrated six-step induction, multilingual, with its own progress per person, plus the mandatory training.",
+      "todo": "Videos per core process, filmed and dubbed into Kazakh and Russian."
     },
     "kanaele": {
       "title": "Contact channels",
