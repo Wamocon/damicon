@@ -12,8 +12,8 @@ import {
   MessageSquareText,
   MoreHorizontal,
   PanelRight,
+  Scale,
   Settings2,
-  ShieldCheck,
   X,
 } from "lucide-react";
 import { Himbeere } from "@/components/ki/himbeere";
@@ -301,7 +301,7 @@ export function KiPane({
                       title={tp("knopf")}
                       className="ki-pane__knopf"
                     >
-                      <ShieldCheck className="h-4 w-4" />
+                      <Scale className="h-4 w-4" />
                     </button>
                   ) : null}
                   {hatEinstellungen ? (
@@ -371,7 +371,7 @@ export function KiPane({
               <div className="ki-pane__ansicht space-y-2 overflow-y-auto p-4">
                 {pruefungBereiche.length > 0 ? (
                   <BlattZeile
-                    symbol={<ShieldCheck className="h-5 w-5" />}
+                    symbol={<Scale className="h-5 w-5" />}
                     text={tp("knopf")}
                     onClick={() => {
                       setPruefungGeladen(true);

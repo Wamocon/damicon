@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Check, RotateCcw, ShieldCheck, Square, X } from "lucide-react";
+import { Check, RotateCcw, Scale, Square, X } from "lucide-react";
 import { PruefungAblauf } from "@/components/pruefung/pruefung-ablauf";
 import { PruefungBericht } from "@/components/pruefung/pruefung-bericht";
 import { PruefungNachbereitung } from "@/components/pruefung/pruefung-nachbereitung";
@@ -36,7 +36,7 @@ export function PruefungAnsicht({ erlaubt }: { erlaubt: readonly Pruefbereich[] 
     <div className="pa">
       <header className="pa-kopf">
         <div className="pa-kopf__titel">
-          <ShieldCheck className="h-4 w-4" aria-hidden />
+          <Scale className="h-4 w-4" aria-hidden />
           <div>
             <strong>{t("titel")}</strong>
             <small>{t("untertitel")}</small>
@@ -82,7 +82,7 @@ export function PruefungAnsicht({ erlaubt }: { erlaubt: readonly Pruefbereich[] 
             disabled={gewaehlt.size === 0}
             onClick={() => void starten(PRUEFBEREICHE.filter((b) => gewaehlt.has(b)), sprache)}
           >
-            <ShieldCheck className="h-4 w-4" /> {t("start")}
+            <Scale className="h-4 w-4" /> {t("start")}
           </button>
         </section>
       ) : null}

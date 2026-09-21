@@ -49,7 +49,7 @@ import {
   Thermometer,
   TriangleAlert,
   UserRound,
-  X, BookOpenCheck, ShieldCheck } from "lucide-react";
+  X, BookOpenCheck, Scale } from "lucide-react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { usePersona } from "@/components/dashboard/persona";
 import { useHaustierAktionen, useHaustierVorgabe } from "@/components/haustier/haustier-kontext";
@@ -1119,7 +1119,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
       <form onSubmit={absenden} className="ki-composer">
         {pruefBezug ? (
           <div className="ki-bezug" role="status">
-            <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
+            <Scale className="h-3.5 w-3.5" aria-hidden />
             <span>{t("pruefBezug", { id: pruefBezug.id.slice(0, 8) })}</span>
             <button type="button" onClick={entferneBezug} aria-label={t("pruefBezugEntfernen")} title={t("pruefBezugEntfernen")}>
               <X className="h-3.5 w-3.5" />
