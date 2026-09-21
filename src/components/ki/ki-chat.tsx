@@ -466,7 +466,11 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   // wurde: wer spricht, will hoeren - auch ohne den Schalter je gefunden zu
   // haben. Der Server entscheidet ueber KI_SPRACHAUSGABE_LIVE, ob ueberhaupt
   // Abschnitte kommen; hier steht nur, ob sie gesprochen werden sollen.
+  // Gilt fuer GENAU EINEN Zug: wer einmal diktiert hat, bekommt nicht fuer
+  // den Rest der Sitzung alles vorgelesen. Beim naechsten Absenden wird neu
+  // entschieden.
   const [zugDiktiert, setZugDiktiert] = useState(false);
+  const zuletztDiktiert = useRef(false);
   const live = useLiveSprachausgabe(sprachausgabe.vorlesen || zugDiktiert);
   const gesehenerAbschnitt = useRef(new Set<string>());
 
@@ -669,6 +673,13 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     // Die gehoerten Sprachen gelten genau fuer diese eine Frage.
     anfrageDaten.current = { ...anfrageDaten.current, diktatSprachen: diktatSprachen.current };
     diktatSprachen.current = undefined;
+    // Und ebenso, ob dieser Zug diktiert wurde: eine getippte Frage danach
+    // wird nicht mehr von selbst vorgelesen.
+    setZugDiktiert(zuletztDiktiert.current);
+    zuletztDiktiert.current = false;
+    // Die gesehenen Abschnitte gehoeren zum vorigen Zug - sonst waechst die
+    // Liste ueber eine lange Sitzung immer weiter.
+    gesehenerAbschnitt.current.clear();
     sendMessage({ text: bereinigt });
     setEingabe("");
     if (eingabeRef.current) eingabeRef.current.style.height = "";
@@ -1151,7 +1162,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
               // Mikrofon aus ist eine Geste - der richtige Moment, den
               // AudioContext zu entsperren (iPhone), und dieser Zug wird
               // vorgelesen, auch wenn der Schalter aus ist.
-              else { live.entsperre(); setZugDiktiert(true); }
+              else { live.entsperre(); zuletztDiktiert.current = true; }
             }}
             beiText={(text, sprachen) => {
               // Merken, solange der Text im Feld steht: abgeschickt wird von

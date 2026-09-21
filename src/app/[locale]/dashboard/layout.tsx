@@ -74,7 +74,11 @@ export default async function DashboardLayout({
       email={profil?.email ?? null}
       demoModus={demoModus}
     >
-      <KiPaneProvider verfuegbar={darfKiNutzen && kiVerlauf !== null} seitenansichtAn={agentSeitenansichtAn()}>
+      <KiPaneProvider
+        verfuegbar={darfKiNutzen && kiVerlauf !== null}
+        seitenansichtAn={agentSeitenansichtAn()}
+        nutzerId={profil?.id ?? null}
+      >
         <HaustierProvider>
         <div className="dashboard-shell flex min-h-svh w-full">
           <DashboardSidebar />

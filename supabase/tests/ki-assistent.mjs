@@ -65,7 +65,7 @@ import { erkenneMitRueckfall, GESAMTDECKEL_MS, HEDGE_AB_MS } from "../../src/lib
 import { bestimmeAntwortsprache, mehrheitsSprache, stimmenSprache } from "../../src/lib/domain/antwortsprache.ts";
 import { erkenneSprache } from "../../src/lib/wissen/chunker.ts";
 import { erzeugeWarteschlange, HOECHSTENS_GLEICHZEITIG } from "../../src/lib/domain/sprachausgabe-warteschlange.ts";
-import { ANFANG, DARSTELLUNG_SCHLUESSEL, istDarstellung, naechsterZustand, OFFEN_SCHLUESSEL } from "../../src/lib/domain/ki-ansicht.ts";
+import { ANFANG, DARSTELLUNG_SCHLUESSEL, istDarstellung, naechsterZustand, NUTZER_SCHLUESSEL, OFFEN_SCHLUESSEL } from "../../src/lib/domain/ki-ansicht.ts";
 import { agentSeitenansichtAn, schalterAn, sprachausgabeLiveAn } from "../../src/lib/domain/schalter.ts";
 import { ABSCHNITT_GUELTIG_MS, pruefeAbschnitt, signiereAbschnitt, sprachausgabeGeheimnis } from "../../src/lib/domain/sprachausgabe-signatur.ts";
 import {
@@ -1563,6 +1563,20 @@ for (const [name, kaputteAntwort] of [
     pruefe("Seitenansicht: angedockt zwischen 380 und 420 px", px >= 380 && px <= 420, `${px} px`);
     pruefe("Seitenansicht: prefers-reduced-motion wird beachtet", css.includes("prefers-reduced-motion"));
   }
+
+  // (j) Die gemerkte Ansicht gehoert einer Person. Ohne das erbt die naechste,
+  //     die sich an diesem Rechner anmeldet, das offene Panel ihrer
+  //     Vorgaengerin - und die Regel "nach neuer Anmeldung" waere nur eine
+  //     Funktion, die niemand aufruft. (Beim Durchsehen des Diffs aufgefallen.)
+  {
+    const kontext = readFileSync(new URL("../../src/components/ki/ki-pane-kontext.tsx", import.meta.url), "utf8");
+    const layout = readFileSync(new URL("../../src/app/[locale]/dashboard/layout.tsx", import.meta.url), "utf8");
+    pruefe("Seitenansicht: das Gemerkte traegt den Nutzer", kontext.includes("NUTZER_SCHLUESSEL"));
+    pruefe("Seitenansicht: bei einem anderen Nutzer wird es vergessen", kontext.includes("removeItem(DARSTELLUNG_SCHLUESSEL)") && kontext.includes("removeItem(OFFEN_SCHLUESSEL)"));
+    pruefe("Seitenansicht: das Layout reicht den Nutzer durch", layout.includes("nutzerId={profil?.id ?? null}"));
+    pruefe("Seitenansicht: und es gibt einen eigenen Schluessel dafuer", NUTZER_SCHLUESSEL === "damicon-ki-nutzer");
+  }
+
 }
 
 

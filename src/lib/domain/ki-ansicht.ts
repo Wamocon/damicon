@@ -47,6 +47,10 @@ export const ANFANG: Zustand = { darstellung: "seite", offen: false };
 
 export const DARSTELLUNG_SCHLUESSEL = "damicon-ki-darstellung";
 export const OFFEN_SCHLUESSEL = "damicon-ki-offen";
+/** Zu wem die gemerkte Ansicht gehoert. Ohne das erbt die naechste Person,
+ *  die sich an diesem Rechner anmeldet, die Ansicht ihrer Vorgaengerin -
+ *  samt geoeffnetem Panel. */
+export const NUTZER_SCHLUESSEL = "damicon-ki-nutzer";
 
 export function istDarstellung(wert: unknown): wert is Darstellung {
   return wert === "seite" || wert === "buehne";

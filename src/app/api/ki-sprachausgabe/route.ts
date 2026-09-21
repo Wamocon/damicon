@@ -93,6 +93,15 @@ export async function POST(req: Request) {
     // Abschnitte werden NICHT zwischengespeichert: sie entstehen einmal,
     // werden einmal gesprochen, und der fertige Text ist danach ueber die
     // Nachrichten-ID erreichbar. Ein Zwischenspeicher waere Ablage ohne Leser.
+    //
+    // Bewusst offen (eigener Review, nicht in diesem Schritt behoben): eine
+    // gueltige Signatur laesst sich innerhalb ihrer zehn Minuten wiederholt
+    // einloesen, und weil nichts zwischengespeichert wird, kostet jede
+    // Wiederholung eine Erzeugung. Die Signatur verhindert FREMDEN und
+    // VERAENDERTEN Text, nicht die Wiederholung des eigenen. Wer angemeldet
+    // ist, kann denselben Aufwand ohnehin ueber den Chat ausloesen - dort
+    // fehlt eine Ratenbegrenzung genauso (siehe actions/ki-assistent.ts).
+    // Ein Zwischenspeicher je Signatur waere der naechste Schritt.
     return new Response(new Uint8Array(erzeugt.audio), {
       status: 200,
       headers: {

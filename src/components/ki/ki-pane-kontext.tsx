@@ -12,9 +12,11 @@ import {
 } from "react";
 import { useRouter } from "@/i18n/navigation";
 import {
+  ANFANG,
   DARSTELLUNG_SCHLUESSEL,
   istDarstellung,
   naechsterZustand,
+  NUTZER_SCHLUESSEL,
   OFFEN_SCHLUESSEL,
 } from "@/lib/domain/ki-ansicht";
 
@@ -166,11 +168,15 @@ function fokussiere(ziel: string): void {
 export function KiPaneProvider({
   verfuegbar,
   seitenansichtAn = false,
+  nutzerId,
   children,
 }: {
   verfuegbar: boolean;
   /** KI_AGENT_SEITENANSICHT. Aus heisst: alles bleibt wie vorher. */
   seitenansichtAn?: boolean;
+  /** Wem die gemerkte Ansicht gehoert. Meldet sich jemand anderes an diesem
+   *  Rechner an, wird sie vergessen. */
+  nutzerId?: string | null;
   children: ReactNode;
 }) {
   const router = useRouter();
@@ -213,6 +219,18 @@ export function KiPaneProvider({
 
   useEffect(() => {
     try {
+      // Gehoert das Gemerkte ueberhaupt dieser Person? Nach einer neuen
+      // Anmeldung faengt die Ansicht wieder bei der Voreinstellung an - sonst
+      // sitzt die naechste Person vor dem Panel ihrer Vorgaengerin.
+      const gemerkterNutzer = window.localStorage.getItem(NUTZER_SCHLUESSEL);
+      if (nutzerId && gemerkterNutzer !== nutzerId) {
+        window.localStorage.setItem(NUTZER_SCHLUESSEL, nutzerId);
+        window.localStorage.removeItem(DARSTELLUNG_SCHLUESSEL);
+        window.localStorage.removeItem(OFFEN_SCHLUESSEL);
+        setDarstellungState(ANFANG.darstellung);
+        setOffenIntern(ANFANG.offen);
+        return;
+      }
       const art = window.localStorage.getItem(DARSTELLUNG_SCHLUESSEL);
       if (istDarstellung(art)) setDarstellungState(art);
       // Und ob es offen war. Beides erst nach dem Mounten, wie beim Modus:
@@ -221,7 +239,7 @@ export function KiPaneProvider({
     } catch {
       // siehe oben
     }
-  }, []);
+  }, [nutzerId]);
 
   // Der Bezug ueberlebt ein Neuladen der Seite (nur in dieser Sitzung): wer nach der Pruefung weiterfragt, soll nicht ins Leere fragen.
   useEffect(() => {

@@ -21,7 +21,7 @@
 //      alles endet auf der Stelle - auch die Anfragen, die noch unterwegs
 //      sind. Sonst spraeche die Antwort auf eine Frage weiter, die niemand
 //      mehr gestellt hat.
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { erzeugeWarteschlange, type Warteschlange } from "@/lib/domain/sprachausgabe-warteschlange";
 
 export type LiveAbschnitt = { zug: string; nr: number; text: string; sig: string; ablauf: number };
@@ -233,5 +233,12 @@ export function useLiveSprachausgabe(aktiv: boolean) {
     [aktiv, entsperre, holeNach, stoppeAlles],
   );
 
-  return { spricht, laedtErsten, nimmAbschnitt, stoppeAlles, entsperre };
+  // Stabil halten: sonst ist der Rueckgabewert bei jedem Render ein neues
+  // Objekt, und jeder Effekt, der ihn in den Abhaengigkeiten hat, laeuft
+  // wieder an - bei einem Stream mit vielen Renderpassagen dutzendfach pro
+  // Sekunde.
+  return useMemo(
+    () => ({ spricht, laedtErsten, nimmAbschnitt, stoppeAlles, entsperre }),
+    [spricht, laedtErsten, nimmAbschnitt, stoppeAlles, entsperre],
+  );
 }
