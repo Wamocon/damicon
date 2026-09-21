@@ -5,10 +5,7 @@ import { useTranslations } from "next-intl";
 import { Lock } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Card, PageHeader } from "@/components/ui/kit";
-import {
-  KlassifikationBadge,
-  ReifegradBadge,
-} from "@/components/dashboard/module-meta";
+import { ModulStatusPille } from "@/components/dashboard/module-meta";
 import { ModuleView } from "@/components/demo/registry";
 import { usePersona } from "@/components/dashboard/persona";
 import { hasPermission } from "@/lib/rbac";
@@ -44,8 +41,7 @@ export function ModulePageBody({
           title={t(`${module.key}.title`)}
           description={t(`${module.key}.description`)}
         >
-          <ReifegradBadge value={module.reifegrad} />
-          <KlassifikationBadge value={module.klassifikation} />
+          {module.reifegrad === "in-entwicklung" ? <ModulStatusPille /> : null}
         </PageHeader>
       </Card>
 

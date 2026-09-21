@@ -215,7 +215,7 @@
       },
       "stand": {
         "q": "Was ist heute schon gebaut?",
-        "a": "{gesamt} Module in vier Bereichen: {angebunden} an der Datenbank mit echten Schreibvorgängen, {demo} als bedienbare Demo, {entwicklung} als sichtbare Menüpunkte in Entwicklung. Die Kennzahlen der Startseite sind Platzhalterwerte bis zur ersten vollständig gemessenen Saison."
+        "a": "{gesamt} Module in vier Bereichen: {angebunden} an der Datenbank mit echten Schreibvorgängen, {entwicklung} als sichtbare Menüpunkte in Entwicklung. Die Kennzahlen der Startseite sind Platzhalterwerte bis zur ersten vollständig gemessenen Saison."
       },
       "daten": {
         "q": "Wo liegen die Daten?",
@@ -332,8 +332,6 @@
       "target": "Ziel",
       "zonesTitle": "Die vier Zonen",
       "zonesDescription": "Jede Zone mit ihren Kennzahlen und ihren Modulen.",
-      "dbCount": "{count} angebunden",
-      "demoCount": "{count} Demo",
       "wipCount": "{count} in Entwicklung",
       "openZone": "Zone öffnen",
       "kpiSummary": "{berechenbar} heute messbar · {erfassung} Erfassung fehlt · {tabelle} Funktion fehlt · {ungeklaert} rechtlich ungeklärt",
@@ -404,22 +402,12 @@
     "switcherLabel": "Demo-Rolle",
     "viewAsLabel": "Ansicht als"
   },
-  "klassifikation": {
-    "uebernehmen": "Übernehmen",
-    "anpassen": "Anpassen",
-    "neu-bauen": "Neu bauen"
-  },
   "reifegrad": {
     "angebunden": "Datenbank angebunden",
-    "demo": "Demo bedienbar",
     "in-entwicklung": "In Entwicklung"
   },
   "moduleMeta": {
-    "inDevelopmentTitle": "Unterfunktion - in Entwicklung",
-    "plannedScope": "Geplanter Umfang",
-    "classification": "Einstufung",
-    "milestone": "Meilenstein",
-    "milestoneB": "Meilenstein B und folgende Ausbaustufen"
+    "inDevelopmentTitle": "Noch nicht verfügbar"
   },
   "accessDenied": {
     "title": "Die Rolle {role} hat auf dieses Modul keinen Zugriff.",

@@ -215,7 +215,7 @@
       },
       "stand": {
         "q": "What is already built today?",
-        "a": "{gesamt} modules across four areas: {angebunden} on the database with real writes, {demo} as a usable demo, {entwicklung} as visible menu entries under development. The figures on the start page are placeholders until the first fully measured season."
+        "a": "{gesamt} modules across four areas: {angebunden} on the database with real writes, {entwicklung} as visible menu entries under development. The figures on the start page are placeholders until the first fully measured season."
       },
       "daten": {
         "q": "Where is the data held?",
@@ -332,8 +332,6 @@
       "target": "Target",
       "zonesTitle": "The four zones",
       "zonesDescription": "Each zone with its indicators and its modules.",
-      "dbCount": "{count} connected",
-      "demoCount": "{count} demo",
       "wipCount": "{count} in development",
       "openZone": "Open zone",
       "kpiSummary": "{berechenbar} measurable today · {erfassung} capture missing · {tabelle} function missing · {ungeklaert} legally unconfirmed",
@@ -404,22 +402,12 @@
     "switcherLabel": "Demo role",
     "viewAsLabel": "View as"
   },
-  "klassifikation": {
-    "uebernehmen": "Adopt",
-    "anpassen": "Adapt",
-    "neu-bauen": "Build new"
-  },
   "reifegrad": {
     "angebunden": "Database connected",
-    "demo": "Demo operable",
     "in-entwicklung": "In development"
   },
   "moduleMeta": {
-    "inDevelopmentTitle": "Sub-function - in development",
-    "plannedScope": "Planned scope",
-    "classification": "Rating",
-    "milestone": "Milestone",
-    "milestoneB": "Milestone B and later releases"
+    "inDevelopmentTitle": "Not available yet"
   },
   "accessDenied": {
     "title": "The role {role} has no access to this module.",
