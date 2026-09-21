@@ -65,21 +65,48 @@ export function StatusPill({
 export const kachelVerweis =
   "group flex flex-col rounded-2xl border border-border bg-card shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40";
 
+/**
+ * Die drei Ebenen des Boxensystems, so wie die Uebersichtsseite sie gesetzt
+ * hat:
+ *
+ *   "box"   - die Abschnittsbox. Kartengrund, Schatten. Traegt einen ganzen
+ *             Abschnitt der Seite.
+ *   "innen" - alles, was innerhalb einer Abschnittsbox eine eigene Einheit
+ *             ist: eine Zonenkarte, ein Meilenstein, eine Modulkachel.
+ *             Gedaempfter Grund, kein Schatten.
+ *   "daten" - die kleinste Einheit, etwa eine Kennzahlbox: voller
+ *             Kartengrund, damit die Zahl sich vom gedaempften Traeger
+ *             abhebt, aber ebenfalls ohne Schatten.
+ *
+ * Die Regel dahinter: Grund und Schatten nehmen nach innen ab, der Rahmen
+ * bleibt. Zwei Flaechen mit Schatten uebereinander sehen aus wie ein Fehler.
+ */
+export type Kartenton = "box" | "innen" | "daten";
+
+const kartenTon: Record<Kartenton, string> = {
+  box: "bg-card shadow-sm shadow-black/[0.03]",
+  innen: "bg-muted/20",
+  daten: "bg-card",
+};
+
 export function Card({
   id,
   children,
   className,
+  ton = "innen",
 }: {
   /** Sprungziel (Anker) fuer Verweise, z. B. vom KI-Agenten. */
   id?: string;
   children: ReactNode;
   className?: string;
+  ton?: Kartenton;
 }) {
   return (
     <div
       id={id}
       className={cn(
-        "rounded-2xl border border-border bg-card p-5 shadow-sm shadow-black/[0.03]",
+        "rounded-2xl border border-border p-5",
+        kartenTon[ton],
         className,
       )}
     >
@@ -107,8 +134,23 @@ export function Section({
   children: ReactNode;
   className?: string;
 }) {
+  // Der Abschnitt ist die Box. Vorher stand er rahmenlos auf dem
+  // Seitengrund, und jede Ansicht setzte ihre eigenen Karten frei darauf -
+  // die Uebersichtsseite hat das als Erste anders gemacht und ihre Boxen von
+  // Hand gebaut. Seitdem gab es zwei Muster fuer dasselbe. Jetzt gibt es
+  // eins, und die 60 Abschnitte der Modulansichten ziehen mit.
+  //
+  // Der Anker bleibt an der aeusseren Box: ein Verweis darauf soll vor dem
+  // Rahmen halten, nicht darin.
   return (
-    <section id={id} className={cn("space-y-3", id ? "scroll-mt-20" : undefined, className)}>
+    <section
+      id={id}
+      className={cn(
+        "rounded-2xl border border-border bg-card p-5 shadow-sm shadow-black/[0.03] sm:p-6",
+        id ? "scroll-mt-20" : undefined,
+        className,
+      )}
+    >
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-sm font-bold text-card-foreground">{title}</h2>
@@ -118,7 +160,7 @@ export function Section({
         </div>
         {action ? <div className="shrink-0">{action}</div> : null}
       </div>
-      {children}
+      <div className="mt-4">{children}</div>
     </section>
   );
 }
@@ -272,7 +314,10 @@ export function DataTable({
     <div
       data-matrix={matrix ? "" : undefined}
       className={cn(
-        "datentabelle rounded-xl border border-border bg-card md:overflow-x-auto",
+        // Die Tabelle steht in einer Abschnittsbox und darf deren Flaeche
+        // nicht wiederholen - sonst liegt Karte auf Karte. Der Rahmen bleibt,
+        // er grenzt die Tabelle nach aussen ab.
+        "datentabelle rounded-xl border border-border bg-muted/20 md:overflow-x-auto",
         matrix && "overflow-x-auto",
       )}
     >

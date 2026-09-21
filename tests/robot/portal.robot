@@ -45,10 +45,10 @@ Zonenkarten Nennen Die Module Der Zone
     [Tags]    schreibtisch
     Portal Oeffnen    ${SCHREIBTISCH}
     Seite Ansteuern    /dashboard
-    ${karten} =    Get Element Count    a[href$="/dashboard/buero"] li
+    ${karten} =    Get Element Count    [data-zone="buero"] a[href*="/dashboard/buero/"]
     Should Be True    ${karten} > 0    msg=Die Buero-Karte nennt kein einziges Modul.
     Kein Text Ist Abgeschnitten    ${SCHREIBTISCH}    zonenkarten
-    ...    a[href*="/dashboard/"] li span:last-child
+    ...    [data-zone] a, [data-zone] h3, [data-zone] .truncate
     Befund Festhalten    ${SCHREIBTISCH}    zonenkarten
 
 Handy Quer Schneidet Keine Bedienelemente Ab
@@ -117,7 +117,7 @@ Handy Hoch Zeigt Die Zonenkarten Ohne Abgeschnittene Namen
     Portal Oeffnen    ${MOBIL_HOCH}
     Seite Ansteuern    /dashboard
     Kein Text Ist Abgeschnitten    ${MOBIL_HOCH}    zonenkarten
-    ...    a[href*="/dashboard/"] li span:last-child
+    ...    [data-zone] a, [data-zone] h3, [data-zone] .truncate
     Kein Waagerechtes Scrollen    ${MOBIL_HOCH}    uebersicht
     Befund Festhalten    ${MOBIL_HOCH}    zonenkarten
 

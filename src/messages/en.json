@@ -331,7 +331,7 @@
       "placeholderBadge": "Placeholder values",
       "target": "Target",
       "zonesTitle": "The four zones",
-      "zonesDescription": "The dashboard's navigation structure, organised like the target architecture.",
+      "zonesDescription": "Each zone with its indicators and its modules.",
       "dbCount": "{count} connected",
       "demoCount": "{count} demo",
       "wipCount": "{count} in development",
@@ -364,11 +364,44 @@
       "kpiSummaryLive": "{gerechnet} computed from real data · {offen} waiting for the function behind them",
       "kpiExtendedTitle": "Further KPIs",
       "kpiExtendedDescription": "Part of the signed baseline, but outside the twelve core KPIs in the cockpit.",
-      "kpiNoneForRole": "No company-wide KPIs are configured for your role here. Your own performance is in the payroll module."
+      "kpiNoneForRole": "No company-wide KPIs are configured for your role here. Your own performance is in the payroll module.",
+      "zoneOhneKennzahl": "No indicator is released for this zone.",
+      "moduleTitel": "Modules"
     },
     "loading": "Loading data",
     "askAi": "Ask AI",
-    "askAiHinweis": "Open or close the AI side panel"
+    "askAiHinweis": "Open or close the AI side panel",
+    "begruessung": {
+      "morgen": "Good morning, {name}",
+      "tag": "Good afternoon, {name}",
+      "abend": "Good evening, {name}",
+      "morgenOhneNamen": "Good morning",
+      "tagOhneNamen": "Good afternoon",
+      "abendOhneNamen": "Good evening",
+      "beschreibung": "What the farm currently reports: figures per zone, open items and the way into the modules.",
+      "spruch": {
+        "0": "What is recorded properly today, nobody has to reconstruct tomorrow.",
+        "1": "The cold chain is decided in the first hour after picking.",
+        "2": "A look at the open items saves the follow-up question later.",
+        "3": "Short ways from the field to the yard keep the quality up.",
+        "4": "Every batch with a document is one batch less in dispute.",
+        "5": "Figures nobody looks at do not improve by themselves.",
+        "6": "Well planned rows save the brigade the second walk.",
+        "7": "Keeping the pre-harvest interval saves the block from being locked."
+      }
+    },
+    "kennzahl": {
+      "ohneZiel": "no target value",
+      "platzhalter": "Placeholder",
+      "bandTitel": "Actual {ist}, target {ziel}",
+      "zielstand": {
+        "erfuellt": "on target",
+        "knapp": "just off",
+        "verfehlt": "target missed",
+        "offen": "no target value"
+      }
+    },
+    "zoneModuleLead": "Everything released in this zone for the active role."
   },
   "roles": {
     "switcherHint": "Switch demo role - controls the visible navigation",
@@ -490,66 +523,80 @@
     "verlustquote": {
       "label": "Loss rate from picking to the client",
       "braucht": "nothing - scrap per batch is recorded",
-      "basis": "scrap against total quantity across all batches"
+      "basis": "scrap against total quantity across all batches",
+      "kurz": "Loss rate"
     },
     "vermarktungsfaehig": {
       "label": "Share of marketable punnets",
-      "braucht": "quality sorting per punnet"
+      "braucht": "quality sorting per punnet",
+      "kurz": "Marketable share"
     },
     "zeitBisVorkuehlung": {
       "label": "Time from picking to pre-cooling",
       "braucht": "nothing - picking and cooling time per batch",
-      "basis": "average across all measured batches, including limit breaches"
+      "basis": "average across all measured batches, including limit breaches",
+      "kurz": "To pre-cooling"
     },
     "zeitBisKunde": {
       "label": "Time from picking to the client",
-      "braucht": "deliveries with departure and arrival"
+      "braucht": "deliveries with departure and arrival",
+      "kurz": "To the client"
     },
     "pflueckleistung": {
       "label": "Picking output per person and hour",
       "braucht": "nothing - crate with person against working time",
-      "basis": "harvest quantity per crate against recorded working time"
+      "basis": "harvest quantity per crate against recorded working time",
+      "kurz": "Picking output"
     },
     "pflueckStreuung": {
       "label": "Spread of picking output (best to weakest)",
       "braucht": "nothing - output per person across the season",
-      "basis": "strongest against weakest worker, at least two people required"
+      "basis": "strongest against weakest worker, at least two people required",
+      "kurz": "Output spread"
     },
     "pflueckintervall": {
       "label": "Picking interval kept per row block",
       "braucht": "nothing - harvest sequence per row block from the batches",
-      "basis": "share of actual harvest sequences within at most three days"
+      "basis": "share of actual harvest sequences within at most three days",
+      "kurz": "Picking interval"
     },
     "behandlungenWartezeit": {
       "label": "Treatments with the pre-harvest interval kept",
       "braucht": "nothing - derivable from treatment and lock logic",
-      "basis": "treatments without harvesting during the lock period"
+      "basis": "treatments without harvesting during the lock period",
+      "kurz": "Interval kept"
     },
     "reklamationsquote": {
       "label": "Complaint rate",
-      "braucht": "complaints linked to the batch"
+      "braucht": "complaints linked to the batch",
+      "kurz": "Complaint rate"
     },
     "liefertreue": {
       "label": "Delivery reliability (on time and complete)",
-      "braucht": "promised against actual delivery"
+      "braucht": "promised against actual delivery",
+      "kurz": "Delivery reliability"
     },
     "belegteVerkaeufe": {
       "label": "Share of documented sales (ЭСФ and accompanying document)",
-      "braucht": "connection to ЭСФ and the goods accompanying note"
+      "braucht": "connection to ЭСФ and the goods accompanying note",
+      "kurz": "Documented sales"
     },
     "deckungsbeitrag": {
       "label": "Contribution margin per kg",
       "braucht": "nothing - entries per batch against harvest quantity",
-      "basis": "all revenue and cost entries against the total harvest quantity - still without a time window or batch reference per entry"
+      "basis": "all revenue and cost entries against the total harvest quantity - still without a time window or batch reference per entry",
+      "kurz": "Contribution margin"
     },
     "esutdAbdeckung": {
       "label": "Seasonal-worker coverage in ЕСУТД",
       "braucht": "legal confirmation of the ЕСУТД obligation via enbek.kz (see WMCNL-1447) - connection point named, the legal review of the obligation itself is still outstanding",
-      "basis": "pickers with a recorded employment contract"
+      "basis": "pickers with a recorded employment contract",
+      "kurz": "ЕСУТД coverage"
     },
     "websiteAnfragen": {
       "label": "Enquiries via the website per month",
-      "braucht": "contact form on the website"
+      "braucht": "contact form on the website",
+      "kurz": "Website enquiries"
     }
   },
   "modules": {

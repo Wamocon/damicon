@@ -21,7 +21,7 @@ export default async function SicherheitPage({
     return (
       <div className="space-y-6">
         <PageHeader title={t("title")} description={t("description")} />
-        <Card className="text-center text-xs text-muted-foreground">
+        <Card ton="box" className="text-center text-xs text-muted-foreground">
           {t("keineUmgebung")}
         </Card>
       </div>

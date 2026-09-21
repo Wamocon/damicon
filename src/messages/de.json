@@ -331,7 +331,7 @@
       "placeholderBadge": "Platzhalterwerte",
       "target": "Ziel",
       "zonesTitle": "Die vier Zonen",
-      "zonesDescription": "Navigationsstruktur des Dashboards, gegliedert wie die Zielarchitektur.",
+      "zonesDescription": "Jede Zone mit ihren Kennzahlen und ihren Modulen.",
       "dbCount": "{count} angebunden",
       "demoCount": "{count} Demo",
       "wipCount": "{count} in Entwicklung",
@@ -364,11 +364,44 @@
       "kpiSummaryLive": "{gerechnet} aus echten Daten gerechnet · {offen} warten auf die Funktion dahinter",
       "kpiExtendedTitle": "Weitere Kennzahlen",
       "kpiExtendedDescription": "Teil der unterschriebenen Baseline, aber außerhalb der zwölf Kern-Kennzahlen im Cockpit.",
-      "kpiNoneForRole": "Für Ihre Rolle sind hier keine betriebsweiten Kennzahlen hinterlegt. Die eigene Leistung finden Sie im Lohn-Modul."
+      "kpiNoneForRole": "Für Ihre Rolle sind hier keine betriebsweiten Kennzahlen hinterlegt. Die eigene Leistung finden Sie im Lohn-Modul.",
+      "zoneOhneKennzahl": "Für diese Zone ist keine Kennzahl freigegeben.",
+      "moduleTitel": "Module"
     },
     "loading": "Daten werden geladen",
     "askAi": "KI fragen",
-    "askAiHinweis": "KI-Seitenpanel öffnen oder schließen"
+    "askAiHinweis": "KI-Seitenpanel öffnen oder schließen",
+    "begruessung": {
+      "morgen": "Guten Morgen, {name}",
+      "tag": "Guten Tag, {name}",
+      "abend": "Guten Abend, {name}",
+      "morgenOhneNamen": "Guten Morgen",
+      "tagOhneNamen": "Guten Tag",
+      "abendOhneNamen": "Guten Abend",
+      "beschreibung": "Was der Betrieb gerade meldet: Kennzahlen je Zone, offene Vorgänge und der Weg in die Module.",
+      "spruch": {
+        "0": "Was heute sauber erfasst ist, muss morgen niemand rekonstruieren.",
+        "1": "Die Kühlkette entscheidet sich in der ersten Stunde nach dem Pflücken.",
+        "2": "Ein Blick auf die offenen Vorgänge spart später die Rückfrage.",
+        "3": "Kurze Wege vom Feld in den Hof halten die Qualität oben.",
+        "4": "Jede Charge mit Beleg ist eine Charge weniger im Streitfall.",
+        "5": "Zahlen, die niemand ansieht, verbessern sich nicht von allein.",
+        "6": "Gut geplante Reihen sparen der Brigade den zweiten Gang.",
+        "7": "Wer die Wartezeit einhält, spart sich die Sperre danach."
+      }
+    },
+    "kennzahl": {
+      "ohneZiel": "kein Zielwert",
+      "platzhalter": "Platzhalter",
+      "bandTitel": "Ist {ist}, Ziel {ziel}",
+      "zielstand": {
+        "erfuellt": "im Ziel",
+        "knapp": "knapp daneben",
+        "verfehlt": "Ziel verfehlt",
+        "offen": "kein Zielwert"
+      }
+    },
+    "zoneModuleLead": "Alles, was in dieser Zone für die aktive Rolle freigegeben ist."
   },
   "roles": {
     "switcherHint": "Demo-Rolle wechseln - steuert die sichtbare Navigation",
@@ -490,66 +523,80 @@
     "verlustquote": {
       "label": "Verlustquote vom Pflücken bis zum Kunden",
       "braucht": "nichts - Ausschuss je Charge wird erfasst",
-      "basis": "Ausschuss gegen Gesamtmenge über alle Chargen"
+      "basis": "Ausschuss gegen Gesamtmenge über alle Chargen",
+      "kurz": "Verlustquote"
     },
     "vermarktungsfaehig": {
       "label": "Anteil vermarktungsfähiger Schalen",
-      "braucht": "Qualitaetssortierung je Schale"
+      "braucht": "Qualitaetssortierung je Schale",
+      "kurz": "Vermarktungsfähig"
     },
     "zeitBisVorkuehlung": {
       "label": "Zeit vom Pflücken bis zur Vorkühlung",
       "braucht": "nichts - Pflück- und Kühlzeitpunkt je Charge",
-      "basis": "Mittel über alle gemessenen Chargen, inklusive Grenzverletzungen"
+      "basis": "Mittel über alle gemessenen Chargen, inklusive Grenzverletzungen",
+      "kurz": "Bis Vorkühlung"
     },
     "zeitBisKunde": {
       "label": "Zeit vom Pflücken bis zum Kunden",
-      "braucht": "Lieferungen mit Abfahrt und Ankunft"
+      "braucht": "Lieferungen mit Abfahrt und Ankunft",
+      "kurz": "Bis zum Kunden"
     },
     "pflueckleistung": {
       "label": "Pflückleistung je Person und Stunde",
       "braucht": "nichts - Steige mit Person gegen Arbeitszeit",
-      "basis": "Erntemenge je Steige gegen erfasste Arbeitszeit"
+      "basis": "Erntemenge je Steige gegen erfasste Arbeitszeit",
+      "kurz": "Pflückleistung"
     },
     "pflueckStreuung": {
       "label": "Streuung der Pflückleistung (beste zu schwächste Kraft)",
       "braucht": "nichts - Leistung je Person über die Saison",
-      "basis": "Beste gegen schwächste Kraft, mindestens zwei Personen nötig"
+      "basis": "Beste gegen schwächste Kraft, mindestens zwei Personen nötig",
+      "kurz": "Streuung Pflückleistung"
     },
     "pflueckintervall": {
       "label": "Eingehaltenes Pflückintervall je Reihenblock",
       "braucht": "nichts - Erntefolge je Reihenblock aus den Chargen",
-      "basis": "Anteil der tatsächlichen Erntefolgen im Abstand von höchstens drei Tagen"
+      "basis": "Anteil der tatsächlichen Erntefolgen im Abstand von höchstens drei Tagen",
+      "kurz": "Pflückintervall"
     },
     "behandlungenWartezeit": {
       "label": "Behandlungen mit eingehaltener Wartezeit",
       "braucht": "nichts - aus Behandlung und Sperrlogik ableitbar",
-      "basis": "Behandlungen ohne Ernte im Sperrzeitraum"
+      "basis": "Behandlungen ohne Ernte im Sperrzeitraum",
+      "kurz": "Wartezeit eingehalten"
     },
     "reklamationsquote": {
       "label": "Reklamationsquote",
-      "braucht": "Reklamationen mit Bezug zur Charge"
+      "braucht": "Reklamationen mit Bezug zur Charge",
+      "kurz": "Reklamationsquote"
     },
     "liefertreue": {
       "label": "Liefertreue (pünktlich und vollständig)",
-      "braucht": "Zugesagte gegen tatsaechliche Lieferung"
+      "braucht": "Zugesagte gegen tatsaechliche Lieferung",
+      "kurz": "Liefertreue"
     },
     "belegteVerkaeufe": {
       "label": "Anteil belegter Verkäufe (ЭСФ und Warenbegleitschein)",
-      "braucht": "Anbindung an ЭСФ und Warenbegleitschein"
+      "braucht": "Anbindung an ЭСФ und Warenbegleitschein",
+      "kurz": "Belegte Verkäufe"
     },
     "deckungsbeitrag": {
       "label": "Deckungsbeitrag je kg",
       "braucht": "nichts - Buchungen je Charge gegen Erntemenge",
-      "basis": "Alle Erlös- und Kostenbuchungen gegen die gesamte Erntemenge - noch ohne Zeitfenster oder Chargenbezug je Buchung"
+      "basis": "Alle Erlös- und Kostenbuchungen gegen die gesamte Erntemenge - noch ohne Zeitfenster oder Chargenbezug je Buchung",
+      "kurz": "Deckungsbeitrag"
     },
     "esutdAbdeckung": {
       "label": "Abdeckung der Saisonkräfte in ЕСУТД",
       "braucht": "rechtliche Bestätigung der ЕСУТД-Pflicht über enbek.kz (siehe WMCNL-1447) - Anbindungspunkt benannt, Rechtsprüfung der Pflicht selbst steht noch aus",
-      "basis": "Pflücker mit erfasstem Arbeitsvertrag"
+      "basis": "Pflücker mit erfasstem Arbeitsvertrag",
+      "kurz": "ЕСУТД-Abdeckung"
     },
     "websiteAnfragen": {
       "label": "Anfragen über die Website je Monat",
-      "braucht": "Kontaktformular auf der Website"
+      "braucht": "Kontaktformular auf der Website",
+      "kurz": "Website-Anfragen"
     }
   },
   "modules": {
