@@ -34,30 +34,17 @@ export function RollenDemo() {
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
                 {roleT(`descriptions.${role.key}`)}
               </p>
-              {/* Bereich, Stufe und die Entsprechung im Vorgaengersystem stehen
-                  zusammen in der Fusszeile der Karte.
+              {/* Bereich und Stufe in der Fusszeile der Karte.
 
-                  Der 1Cati-Name stand vorher als Pille neben dem Rollennamen,
-                  mit dem Wortlaut "1Çatı: admin" - fest im JSX und damit in
-                  allen vier Sprachen gleich, daneben der rohe Schluessel. Wer
-                  das Vorgaengersystem nicht kennt, las dort einen Namen, der
-                  weder zur Rolle darueber noch zu irgendetwas anderem auf der
-                  Seite gehoerte. Auf dem Handy nahm die Pille zudem die halbe
-                  Kartenbreite ein, weil sie neben dem Rollennamen stand.
-
-                  Jetzt sagt die Beschriftung, was der Name ist, und sie ist
-                  uebersetzt. Der Wert selbst bleibt der Bezeichner aus dem
-                  Altsystem - das ist er, und etwas anderes waere erfunden. */}
+                  Darunter stand bis zur Textpruefung die Entsprechung im
+                  Vorgaengersystem ("Vorsystem 1Çatı: admin"). Die Zuordnung
+                  stammt aus der Migrationsanalyse und beantwortet, woher eine
+                  Rolle kommt - nicht, was sie darf. Wer im Betrieb arbeitet,
+                  kennt das Altsystem nicht und las dort einen Bezeichner ohne
+                  Bezug zu irgendetwas auf der Seite. */}
               <p className="mt-2 schrift-label uppercase tracking-wide text-muted-foreground">
                 {t("scope")}: {t(`scopeWert.${role.scope}`)} · {t("level")}{" "}
                 {role.level}
-              </p>
-              {/* Eigene Zeile und ohne Versalien: zusammen mit Bereich und
-                  Stufe ergab das auf dem Handy eine Zeile, die zweimal
-                  umbrach, und in Grossbuchstaben liest sich ein Bezeichner
-                  wie "admin" ohnehin schlechter. */}
-              <p className="mt-1 schrift-label text-muted-foreground/80">
-                {t("catiRole.label")}: {role.catiRole ?? t("catiRole.keine")}
               </p>
             </Card>
           ))}

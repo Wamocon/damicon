@@ -1091,10 +1091,6 @@
     "matrixNote": "Full matrix across all resources and actions. The database-level access rules are written per resource individually.",
     "note": "Identities and roles run across all four areas - together with logging, encryption and multi-factor authentication.",
     "level": "Level",
-    "catiRole": {
-      "keine": "no equivalent",
-      "label": "Legacy system 1Çatı"
-    },
     "scopeWert": {
       "betrieb": "Farm",
       "plantage": "Plantation",

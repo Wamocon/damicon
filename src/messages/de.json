@@ -1091,10 +1091,6 @@
     "matrixNote": "Vollständige Matrix über alle Ressourcen und Aktionen. Die Zugriffsregeln auf Datenbankebene werden je Ressource einzeln geschrieben.",
     "note": "Identitäten und Rollen liegen quer über allen vier Bereichen - zusammen mit Protokollierung, Verschlüsselung und Mehrfaktor-Authentifizierung.",
     "level": "Stufe",
-    "catiRole": {
-      "keine": "keine Entsprechung",
-      "label": "Vorsystem 1Çatı"
-    },
     "scopeWert": {
       "betrieb": "Betrieb",
       "plantage": "Plantage",
