@@ -57,6 +57,12 @@ import {
   erzeugeStilleWaechter,
   pegelAusZeitbereich,
 } from "../../src/lib/domain/diktat.ts";
+import {
+  sonioxBasisUrl,
+  sonioxZeitlimitMs,
+  spracherkennungAnbieter,
+  transkribiereMitSoniox,
+} from "../../src/lib/ai/soniox-client.ts";
 import { readFileSync } from "node:fs";
 
 let bestanden = 0;
@@ -747,6 +753,146 @@ for (const [name, kaputteAntwort] of [
         `Diktat: unsinnige Einstellung (${name}) faellt auf den Standard zurueck`,
         e.stillePegel === DIKTAT_STANDARD.stillePegel && e.stilleMs === DIKTAT_STANDARD.stilleMs,
       );
+    }
+  }
+}
+
+// --- 9. Spracherkennung ueber Soniox (ai/soniox-client.ts) ------------------
+// Der Dienst laeuft hinter einem Schalter und faellt bei jeder Stoerung auf
+// Whisper zurueck. Geprueft wird mit einem Aufzeichner statt eines echten
+// Netzaufrufs: welche Adressen gerufen werden, was im Koerper steht, und
+// dass hochgeladene Aufnahmen hinterher wieder geloescht werden.
+{
+  const urspruenglich = {
+    anbieter: process.env.KI_SPRACHERKENNUNG_ANBIETER,
+    schluessel: process.env.SONIOX_API_KEY,
+    url: process.env.SONIOX_API_URL,
+    zeit: process.env.SONIOX_ZEITLIMIT_MS,
+  };
+
+  // --- Schalter ---
+  delete process.env.KI_SPRACHERKENNUNG_ANBIETER;
+  pruefe("Soniox-Schalter: ohne Einstellung bleibt es bei Whisper", spracherkennungAnbieter() === "whisper");
+  process.env.KI_SPRACHERKENNUNG_ANBIETER = "soniox";
+  pruefe("Soniox-Schalter: 'soniox' schaltet um", spracherkennungAnbieter() === "soniox");
+  process.env.KI_SPRACHERKENNUNG_ANBIETER = "SONIOX";
+  pruefe("Soniox-Schalter: Grossschreibung zaehlt nicht", spracherkennungAnbieter() === "soniox");
+  process.env.KI_SPRACHERKENNUNG_ANBIETER = "irgendwas";
+  pruefe("Soniox-Schalter: ein unbekannter Wert bleibt bei Whisper", spracherkennungAnbieter() === "whisper");
+
+  // --- Region ---
+  delete process.env.SONIOX_API_URL;
+  pruefe("Soniox-Region: ohne Einstellung steht keine Adresse im Code", sonioxBasisUrl() === null);
+  process.env.SONIOX_API_URL = "https://api.eu.soniox.com/";
+  pruefe("Soniox-Region: EU laesst sich ohne Codeaenderung setzen (ohne Schraegstrich am Ende)", sonioxBasisUrl() === "https://api.eu.soniox.com");
+  delete process.env.SONIOX_API_URL;
+
+  // --- Zeitlimit ---
+  delete process.env.SONIOX_ZEITLIMIT_MS;
+  pruefe("Soniox-Zeitlimit: Voreinstellung liegt deutlich unter Vercels 60 s", sonioxZeitlimitMs() <= 55_000, `${sonioxZeitlimitMs()} ms`);
+  process.env.SONIOX_ZEITLIMIT_MS = "999999";
+  pruefe("Soniox-Zeitlimit: ein unsinniger Wert faellt auf die Voreinstellung zurueck", sonioxZeitlimitMs() <= 55_000);
+  delete process.env.SONIOX_ZEITLIMIT_MS;
+
+  // --- Fehlender Schluessel ---
+  delete process.env.SONIOX_API_KEY;
+  {
+    const e = await transkribiereMitSoniox(new Blob([new Uint8Array([1, 2, 3])]), "a.webm");
+    pruefe("Soniox: ohne Schluessel wird gar nicht erst gerufen", !e.ok && e.grund === "kein-schluessel");
+  }
+
+  // --- Aufzeichner ---
+  const echtesFetch = globalThis.fetch;
+  const aufrufe = [];
+  let plan = [];
+  globalThis.fetch = async (url, init = {}) => {
+    // Wie ein echtes fetch: ein ausgeloestes Abbruchsignal wirft.
+    if (init.signal?.aborted) throw new DOMException("aborted", "AbortError");
+    aufrufe.push({ url: String(url), methode: init.method ?? "GET", koerper: init.body });
+    const naechste = plan.shift();
+    if (typeof naechste === "function") return naechste();
+    return naechste ?? new Response("{}", { status: 200, headers: { "content-type": "application/json" } });
+  };
+  const json = (o, status = 200) => new Response(JSON.stringify(o), { status, headers: { "content-type": "application/json" } });
+  const glatterLauf = () => [
+    json({ id: "datei-1" }),                       // upload
+    json({ id: "auftrag-1" }),                     // auftrag
+    json({ status: "completed" }),                 // status
+    json({ text: "Салқын тізбек толық құжатталған." }), // transcript
+    json({}),                                      // delete auftrag
+    json({}),                                      // delete datei
+  ];
+
+  try {
+    process.env.SONIOX_API_KEY = "testschluessel";
+    delete process.env.SONIOX_API_URL;
+    {
+      const e = await transkribiereMitSoniox(new Blob([new Uint8Array([1])]), "a.webm");
+      pruefe("Soniox: ohne SONIOX_API_URL laeuft nichts an (keine Region im Code)", !e.ok && e.grund === "keine-basis-url");
+    }
+    process.env.SONIOX_API_URL = "https://api.soniox.com";
+
+    // --- Glatter Durchlauf ---
+    aufrufe.length = 0;
+    plan = glatterLauf();
+    const gut = await transkribiereMitSoniox(new Blob([new Uint8Array([1, 2, 3])]), "aufnahme.webm");
+    pruefe("Soniox: erkannter Text kommt zurueck", gut.ok && gut.text === "Салқын тізбек толық құжатталған.");
+    pruefe("Soniox: Modell stt-async-v5 im Auftrag", String(aufrufe[1]?.koerper).includes("stt-async-v5"));
+    pruefe(
+      "Soniox: KEIN Sprachhinweis - mit und ohne war das Ergebnis am 21.09.2026 identisch",
+      !String(aufrufe[1]?.koerper).includes("language_hints"),
+      String(aufrufe[1]?.koerper),
+    );
+    // Der entscheidende Punkt: Aufnahmen duerfen nicht 30 Tage beim Dienst liegen.
+    const geloescht = aufrufe.filter((a) => a.methode === "DELETE").map((a) => a.url);
+    pruefe(
+      "Soniox: Auftrag UND Datei werden hinterher geloescht",
+      geloescht.some((u) => u.endsWith("/v1/transcriptions/auftrag-1")) && geloescht.some((u) => u.endsWith("/v1/files/datei-1")),
+      geloescht.join(" "),
+    );
+    pruefe("Soniox: der Schluessel steht nur im Kopf, nie im Koerper", !aufrufe.some((a) => String(a.koerper).includes("testschluessel")));
+
+    // --- Stoerung mitten im Ablauf: trotzdem aufraeumen ---
+    aufrufe.length = 0;
+    plan = [json({ id: "datei-2" }), json({ id: "auftrag-2" }), json({ status: "error", error_message: "kaputt" }), json({}), json({})];
+    const gestoert = await transkribiereMitSoniox(new Blob([new Uint8Array([1])]), "a.webm");
+    pruefe("Soniox: ein fehlgeschlagener Auftrag endet in ok:false statt in einem Wurf", !gestoert.ok && gestoert.grund.startsWith("auftrag-fehler"));
+    pruefe(
+      "Soniox: auch nach einer Stoerung wird die Aufnahme geloescht",
+      aufrufe.filter((a) => a.methode === "DELETE").some((a) => a.url.endsWith("/v1/files/datei-2")),
+    );
+
+    // --- Abgewiesener Zugang ---
+    plan = [json({ detail: "nope" }, 401), json({}), json({})];
+    const abgewiesen = await transkribiereMitSoniox(new Blob([new Uint8Array([1])]), "a.webm");
+    pruefe("Soniox: 401 wird als zugang-abgewiesen gemeldet", !abgewiesen.ok && abgewiesen.grund.startsWith("zugang-abgewiesen"));
+
+    // --- Dienst nicht erreichbar ---
+    plan = [() => { throw new TypeError("fetch failed"); }, json({}), json({})];
+    const weg = await transkribiereMitSoniox(new Blob([new Uint8Array([1])]), "a.webm");
+    pruefe("Soniox: unerreichbarer Dienst ist als solcher erkennbar", !weg.ok && weg.grund.startsWith("dienst-nicht-erreichbar"));
+
+    // --- Zeitueberschreitung ---
+    process.env.SONIOX_ZEITLIMIT_MS = "2000";
+    plan = [
+      json({ id: "datei-3" }),
+      json({ id: "auftrag-3" }),
+      // Der Auftrag wird nie fertig: die Schleife laeuft, bis das Zeitlimit greift.
+      ...Array.from({ length: 40 }, () => () => json({ status: "processing" })),
+    ];
+    const zuLang = await transkribiereMitSoniox(new Blob([new Uint8Array([1])]), "a.webm");
+    pruefe("Soniox: ein haengender Auftrag endet im Zeitlimit, nicht in Vercels Abbruch", !zuLang.ok, zuLang.ok ? "" : zuLang.grund);
+    delete process.env.SONIOX_ZEITLIMIT_MS;
+  } finally {
+    globalThis.fetch = echtesFetch;
+    for (const [name, wert] of [
+      ["KI_SPRACHERKENNUNG_ANBIETER", urspruenglich.anbieter],
+      ["SONIOX_API_KEY", urspruenglich.schluessel],
+      ["SONIOX_API_URL", urspruenglich.url],
+      ["SONIOX_ZEITLIMIT_MS", urspruenglich.zeit],
+    ]) {
+      if (wert === undefined) delete process.env[name];
+      else process.env[name] = wert;
     }
   }
 }
