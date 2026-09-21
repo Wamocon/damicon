@@ -53,7 +53,7 @@ import {
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { usePersona } from "@/components/dashboard/persona";
 import { useHaustierAktionen, useHaustierVorgabe } from "@/components/haustier/haustier-kontext";
-import { agentPhase } from "@/lib/haustier";
+import { agentPhase, stimmungAusAntwort } from "@/lib/haustier";
 import { Himbeere } from "@/components/ki/himbeere";
 import { useKiPane, type KiModus } from "@/components/ki/ki-pane-kontext";
 import { AKTIONS_NAMEN, AKTIONS_RECHTE, istAktion, type AktionsName } from "@/lib/ai/aktionen-meta";
@@ -61,6 +61,7 @@ import { istClientWerkzeug } from "@/lib/ai/client-werkzeuge-meta";
 import { fuehreUiWerkzeugAus, type KlickAnfrage } from "@/components/ki/ui-steuerung";
 import { istVorlesbar, stimmeVorhanden, useSprachausgabe, VorlesenKnopf, VorlesenSchalter } from "@/components/ki/sprachausgabe";
 import { MikrofonKnopf } from "@/components/ki/mikrofon";
+import { DiktatWelle } from "@/components/ki/diktat-welle";
 import { mitUmlauten } from "@/lib/text/umlaute";
 import { MAX_NACHRICHT_LAENGE, type KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
 import { modules } from "@/lib/modules";
@@ -401,6 +402,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const { modus, offen, fuehrung, oeffneZiel, fuehreZu, bewegeZeiger, pruefBezug, entferneBezug, anstoss } = useKiPane();
 
   const [eingabe, setEingabe] = useState("");
+  const [diktiert, setDiktiert] = useState(false);
   const [einwilligung, setEinwilligung] = useState(false);
   const [nachUntenKnopf, setNachUntenKnopf] = useState(false);
   const [clientAktiv, setClientAktiv] = useState<string | null>(null);
@@ -696,9 +698,27 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
           absicht: laufenderSchritt.absicht,
         })
       : t(modus === "agent" ? "agentDenkt" : "assistentDenkt");
+  // Wie die fertige Antwort geklungen hat, entscheidet Himbis Gesicht. Bewusst hier und
+  // nicht im Modell: kein zweiter Aufruf, keine Wartezeit, und es funktioniert in jeder
+  // der fuenf Sprachen der Oberflaeche.
+  //
+  // Waehrend getippt wird, geht die eigene Nachricht vor: DamiAI reagiert direkt auf das,
+  // was gerade im Feld steht, statt erst auf die Antwort zu warten - dieselbe Erkennung,
+  // nur auf den eigenen statt den fertigen Text angewendet.
+  const eingabeStimmung = useMemo(() => {
+    if (beschaeftigt || !eingabe.trim()) return null;
+    return stimmungAusAntwort(eingabe);
+  }, [eingabe, beschaeftigt]);
+  const haustierStimmung = useMemo(() => {
+    if (eingabeStimmung) return eingabeStimmung;
+    if (beschaeftigt) return "neutral" as const;
+    const letzte = messages.at(-1);
+    if (!letzte || letzte.role !== "assistant") return "neutral" as const;
+    return stimmungAusAntwort(textVonNachricht(letzte));
+  }, [eingabeStimmung, messages, beschaeftigt]);
   useEffect(() => {
-    melde(haustierPhase, haustierText);
-  }, [melde, haustierPhase, haustierText]);
+    melde(haustierPhase, haustierText, haustierStimmung);
+  }, [melde, haustierPhase, haustierText, haustierStimmung]);
 
   // Eine Frage, die Himbi stellen moechte ("Zeig mir das" im Tipp): abschicken, sobald es geht;
   // fehlt noch die Einwilligung oder laeuft gerade eine Antwort, landet sie im Eingabefeld.
@@ -1072,6 +1092,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
           <MikrofonKnopf
             className="ki-composer__knopf ki-composer__knopf--still"
             deaktiviert={beschaeftigt || einwilligungFehlt}
+            beiAufnahme={setDiktiert}
             beiText={(text) => {
               beiEingabe(text);
               eingabeRef.current?.focus();
@@ -1093,6 +1114,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
             </button>
           )}
         </div>
+        {diktiert ? <DiktatWelle /> : null}
         <div className="ki-composer__optionen">
           <VorlesenSchalter zustand={sprachausgabe} />
         </div>

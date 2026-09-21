@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import { Himbi } from "@/components/haustier/himbi";
-import type { HaustierZustand } from "@/lib/haustier";
+import { Wellen } from "@/components/haustier/wellen";
+import type { HaustierZustand, Inventar, Stimmung } from "@/lib/haustier";
 import "@/components/haustier/haustier.css";
 
 // Die schwebende Huelle um Himbi: Position (unten rechts, frei verschiebbar), Augen, Schlaf,
@@ -46,6 +47,9 @@ const KONFETTI: Array<{ dx: number; dy: number; rot: number; farbe: string; verz
 export interface HaustierHuelleProps {
   /** Zustand aus Sicht des Aussenstehenden. "schlaeft" entscheidet die Huelle selbst (nach Leerlauf). */
   zustand: HaustierZustand;
+  /** Wie die letzte Antwort klang. Liegt quer zum Zustand: faerbt nur Brauen, Wangen und
+   *  eine kurze Reaktion, damit "denkt" trotzdem wie "denkt" aussieht. */
+  stimmung?: Stimmung;
   blase?: ReactNode;
   paneOffen?: boolean;
   /** Beschriftung fuer Screenreader (Zustand in Worten). */
@@ -55,10 +59,19 @@ export interface HaustierHuelleProps {
   blickZiel?: Element | null;
   /** Weiter oben ansetzen, damit Himbi nichts verdeckt, was unten rechts schon sitzt (Tonschalter der Startseite). */
   hoch?: boolean;
+  /** Der Assistent steht in der Mitte: Himbi fliegt aus der Ecke ueber die Karte und
+   *  waechst dabei. Blasen entfallen - der Chat steht direkt darunter. */
+  buehne?: boolean;
   /** Zaehler: bei jeder Aenderung macht Himbi einen Huepfer (Tour: neue Station). */
   huepf?: number;
   /** Wegschicken durch Gedrueckt-Halten (oder Entf-Taste). Ohne diesen Eintrag laesst sich Himbi nicht wegschicken. */
   weg?: WegTexte;
+  /** Gesetzt: die drei Sterne auf dem Chapan werden klickbar - alle drei rufen sie auf (himbi.tsx). */
+  aufAbzeichen?: () => void;
+  /** Gesetzt: die Anstecknadel auf der Kappe wird klickbar (himbi.tsx). */
+  aufLogo?: () => void;
+  /** Welche Tracht (0 bis 2, himbi.tsx TRACHTEN) und ob die Spassbrille sitzt. */
+  inventar?: Inventar;
 }
 
 export interface WegTexte {
@@ -71,7 +84,22 @@ export interface WegTexte {
   hinweis: string;
 }
 
-export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKlick, blickZiel, hoch = false, huepf = 0, weg }: HaustierHuelleProps) {
+export function HaustierHuelle({
+  zustand,
+  stimmung = "neutral",
+  blase,
+  paneOffen = false,
+  label,
+  onKlick,
+  blickZiel,
+  hoch = false,
+  buehne = false,
+  huepf = 0,
+  weg,
+  aufAbzeichen,
+  aufLogo,
+  inventar,
+}: HaustierHuelleProps) {
   const wurzel = useRef<HTMLDivElement>(null);
   const griff = useRef<HTMLDivElement>(null);
   const versatz = useRef<HTMLDivElement>(null);
@@ -156,6 +184,33 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
     return () => window.clearTimeout(id);
   }, [paneOffen, klemme, bestimmeSeite]);
 
+  // ---- Wohin geschaut wird ------------------------------------------------------------
+  // Fuehrt niemand ihren Blick, schaut Himbi auf das Feld, in das gerade geschrieben
+  // wird: sie merkt, dass man ihr etwas tippt. Ermittelt ueber den Fokus im Dokument und
+  // nicht ueber einen Draht vom Chat hierher - der Blick ist keine Absprache wert, und
+  // so gilt es auch fuer das angedockte Panel und jedes Feld, das spaeter dazukommt.
+  const [tippZiel, setTippZiel] = useState<Element | null>(null);
+  useEffect(() => {
+    const passend = (el: EventTarget | null): Element | null => {
+      if (!(el instanceof Element)) return null;
+      if (!el.matches("textarea, input[type='text'], input:not([type])")) return null;
+      return el.closest(".ki-pane") ? el : null;
+    };
+    const rein = (e: FocusEvent) => setTippZiel(passend(e.target));
+    const raus = () => setTippZiel(null);
+    document.addEventListener("focusin", rein);
+    document.addEventListener("focusout", raus);
+    // Beim Mounten kann der Fokus schon im Feld stehen.
+    setTippZiel(passend(document.activeElement));
+    return () => {
+      document.removeEventListener("focusin", rein);
+      document.removeEventListener("focusout", raus);
+    };
+  }, []);
+
+  // Eine Fuehrung (Tour) gewinnt: die zeigt etwas, das Tippen laeuft nebenher weiter.
+  const schauZiel = blickZiel ?? tippZiel;
+
   // ---- Augen: gedaempft zum Ziel ------------------------------------------------------
   const ziel = useRef({ x: 0, y: 0 });
   const augen = useRef({ x: 0, y: 0 });
@@ -163,7 +218,7 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
   const anzeigeRef = useRef(anzeige);
   anzeigeRef.current = anzeige;
   const blickZielRef = useRef<Element | null>(null);
-  blickZielRef.current = blickZiel ?? null;
+  blickZielRef.current = schauZiel;
 
   const laufe = useCallback(function schritt() {
     const el = griff.current;
@@ -201,21 +256,22 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
 
   // Zustandsabhaengiger Blick: denkt = nach oben links, Schlaf/Fehler = nach unten
   useEffect(() => {
-    if (blickZiel) return;
+    if (schauZiel) return;
     if (anzeige === "denkt") richteAugen(-2.6, -2.8);
     else if (anzeige === "schlaeft") richteAugen(0, 1.5);
     else if (anzeige === "traurig") richteAugen(0, 2.6);
     else if (anzeige === "fehler") richteAugen(0, 2);
     else richteAugen(0, 0);
-  }, [anzeige, blickZiel, richteAugen]);
+  }, [anzeige, schauZiel, richteAugen]);
 
-  // Tour: auf das Ziel schauen, auch waehrend die Seite dorthin scrollt
+  // Auf das Ziel schauen, auch waehrend die Seite dorthin scrollt (Tour) oder das
+  // Panel noch aufgeht (Eingabefeld).
   useEffect(() => {
-    if (!blickZiel) return;
+    if (!schauZiel) return;
     let frame = 0;
     const schaue = () => {
       frame = 0;
-      const r = blickZiel.getBoundingClientRect();
+      const r = schauZiel.getBoundingClientRect();
       blickZu(r.left + r.width / 2, r.top + Math.min(r.height / 2, 260));
     };
     const planen = () => {
@@ -229,7 +285,7 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
       window.removeEventListener("resize", planen);
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, [blickZiel, blickZu]);
+  }, [schauZiel, blickZu]);
 
   // ---- Mauszeiger: Augen folgen, Naehe weckt, Leerlauf schlaefert ein -------------------
   const letzteAktivitaet = useRef(0);
@@ -400,6 +456,7 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
       data-zustand={anzeige}
       data-seite={seite}
       data-pane-offen={paneOffen}
+      data-buehne={buehne}
       data-zieht={zieht}
       data-hoch={hoch}
       data-halten={halten && !abschied}
@@ -407,7 +464,7 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
     >
       <div className="haustier__verschiebung">
         <div ref={versatz} className="haustier__versatz">
-          {(eigeneBlase || blase) && !zieht ? (
+          {(eigeneBlase || blase) && !zieht && !buehne ? (
             <div className="hb-blase" role="status" aria-live="polite">
               {eigeneBlase ? <p className="hb-blase__text">{eigeneBlase}</p> : blase}
             </div>
@@ -426,6 +483,16 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
             onKeyDown={beiTaste}
             onDoubleClick={zuruecksetzen}
           >
+            {buehne ? (
+              <span className="hb-aura" aria-hidden>
+                <span className="hb-aura__blob hb-aura__blob--1" />
+                <span className="hb-aura__blob hb-aura__blob--2" />
+                <span className="hb-aura__blob hb-aura__blob--3" />
+                <Wellen zustand={anzeige} />
+                <span className="hb-aura__ring" />
+                <span className="hb-aura__ring hb-aura__ring--spaet" />
+              </span>
+            ) : null}
             <span className="hb-schatten haustier__schatten-anim" aria-hidden />
             {halten && !abschied ? (
               <svg className="hb-ring" viewBox="0 0 120 120" aria-hidden>
@@ -439,7 +506,14 @@ export function HaustierHuelle({ zustand, blase, paneOffen = false, label, onKli
               </span>
             ) : null}
             <div className="hb" ref={koerper}>
-              <Himbi zustand={anzeige} />
+              <Himbi
+                zustand={anzeige}
+                stimmung={stimmung}
+                aufAbzeichen={aufAbzeichen}
+                aufLogo={aufLogo}
+                tracht={inventar?.tracht}
+                brille={inventar?.brille}
+              />
             </div>
             {anzeige === "freigabe" ? <span className="hb-abzeichen">!</span> : null}
             {zustand === "fertig" ? <span className="hb-abzeichen hb-abzeichen--fertig">✓</span> : null}
