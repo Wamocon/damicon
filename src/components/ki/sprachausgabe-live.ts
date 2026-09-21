@@ -34,6 +34,11 @@ export function useLiveSprachausgabe(aktiv: boolean) {
   const warteschlange = useRef<Warteschlange | null>(null);
   const abbrueche = useRef(new Map<number, AbortController>());
   const puffer = useRef(new Map<number, AudioBuffer>());
+  // Rueckfall ohne Web Audio: fertige Toene als Adresse, gespielt von einem
+  // <audio>-Element. Die Luecken sind groesser, aber es klingt.
+  const ersatzToene = useRef(new Map<number, string>());
+  const ersatzSpieler = useRef<HTMLAudioElement | null>(null);
+  const hatWebAudio = useRef(true);
   // Signatur und Ablauf je Abschnitt. Getrennt von der Warteschlange: die
   // kuemmert sich um die Reihenfolge, nicht um Berechtigungen.
   const scheine = useRef(new Map<number, LiveAbschnitt>());
@@ -48,11 +53,31 @@ export function useLiveSprachausgabe(aktiv: boolean) {
    *  bevor der erste Abschnitt da ist. */
   const entsperre = useCallback(() => {
     try {
-      kontext.current ??= new AudioContext();
-      if (kontext.current.state === "suspended") void kontext.current.resume();
+      const Klasse = typeof AudioContext !== "undefined" ? AudioContext : undefined;
+      if (Klasse) {
+        kontext.current ??= new Klasse();
+        if (kontext.current.state === "suspended") void kontext.current.resume();
+        hatWebAudio.current = true;
+        return;
+      }
     } catch {
-      // Kein Web Audio (sehr alter Browser): dann bleibt es beim Knopf je Antwort.
+      // faellt unten auf <audio> zurueck
     }
+    // Ohne Web Audio wird trotzdem vorgelesen, nur eben mit einem
+    // <audio>-Element je Abschnitt. Das hat zwischen zwei Abschnitten eine
+    // hoerbare Luecke - besser als Stille, und besser als eine Funktion, die
+    // stillschweigend gar nichts tut.
+    hatWebAudio.current = false;
+    if (!ersatzSpieler.current) {
+      try {
+        ersatzSpieler.current = new Audio();
+      } catch {
+        // Auch das nicht: dann bleibt es beim Knopf je Antwort.
+      }
+    }
+    // Ein leerer Ton aus der Geste heraus nimmt dem Browser die Sperre.
+    void ersatzSpieler.current?.play().catch(() => {});
+    ersatzSpieler.current?.pause();
   }, []);
 
   /** Alles anhalten. Muss unter 200 ms durch sein, deshalb zuerst der Ton und
@@ -64,10 +89,17 @@ export function useLiveSprachausgabe(aktiv: boolean) {
       // schon gestoppt
     }
     quelle.current = null;
+    try {
+      ersatzSpieler.current?.pause();
+    } catch {
+      // schon gestoppt
+    }
     for (const a of abbrueche.current.values()) a.abort();
     abbrueche.current.clear();
     warteschlange.current?.leere();
     puffer.current.clear();
+    for (const url of ersatzToene.current.values()) URL.revokeObjectURL(url);
+    ersatzToene.current.clear();
     scheine.current.clear();
     zugRef.current = null;
     setSpricht(false);
@@ -82,8 +114,37 @@ export function useLiveSprachausgabe(aktiv: boolean) {
   /** Der naechste fertige Abschnitt, genau dann, wenn der vorige endet. */
   const spieleWeiter = useCallback(() => {
     const w = warteschlange.current;
+    if (!w) return;
+
+    // Rueckfall: ein <audio>-Element, ein Abschnitt nach dem anderen.
+    if (!hatWebAudio.current) {
+      const spieler = ersatzSpieler.current;
+      if (!spieler) return;
+      const naechsterErsatz = w.naechsterZumSpielen();
+      if (!naechsterErsatz) return;
+      const url = ersatzToene.current.get(naechsterErsatz.nr);
+      if (!url) return;
+      spieler.src = url;
+      spieler.onended = () => {
+        URL.revokeObjectURL(url);
+        ersatzToene.current.delete(naechsterErsatz.nr);
+        w.fertigGespielt(naechsterErsatz.nr);
+        setSpricht(w.stand().some((e) => e.stand !== "fertig" && e.stand !== "uebersprungen"));
+        spieleWeiter();
+      };
+      setSpricht(true);
+      setLaedtErsten(false);
+      void spieler.play().catch(() => {
+        // Der Browser verweigert den Ton ohne Geste - dann bleibt es beim
+        // Knopf je Antwort, und die Warteschlange wird nicht weiter bedient.
+        w.fertigGespielt(naechsterErsatz.nr);
+        setSpricht(false);
+      });
+      return;
+    }
+
     const ctx = kontext.current;
-    if (!w || !ctx) return;
+    if (!ctx) return;
     const naechster = w.naechsterZumSpielen();
     if (!naechster) return;
     const daten = puffer.current.get(naechster.nr);
@@ -109,8 +170,8 @@ export function useLiveSprachausgabe(aktiv: boolean) {
   /** Holt, was die Warteschlange freigibt - hoechstens zwei gleichzeitig. */
   const holeNach = useCallback(() => {
     const w = warteschlange.current;
-    const ctx = kontext.current;
-    if (!w || !ctx || !zugRef.current) return;
+    if (!w || !zugRef.current) return;
+    if (hatWebAudio.current && !kontext.current) return;
 
     for (const eintrag of w.naechsteZumHolen()) {
       const schein = scheine.current.get(eintrag.nr);
@@ -129,10 +190,14 @@ export function useLiveSprachausgabe(aktiv: boolean) {
             signal: abbruch.signal,
           });
           if (!antwort.ok) { w.melde(eintrag.nr, "fehler"); holeNach(); return; }
-          const roh = await antwort.arrayBuffer();
-          // decodeAudioData zerstoert den uebergebenen Puffer - deshalb eine
-          // Kopie, falls der Abschnitt noch einmal gebraucht wird.
-          puffer.current.set(eintrag.nr, await ctx.decodeAudioData(roh.slice(0)));
+          if (!hatWebAudio.current) {
+            ersatzToene.current.set(eintrag.nr, URL.createObjectURL(await antwort.blob()));
+          } else {
+            const roh = await antwort.arrayBuffer();
+            // decodeAudioData zerstoert den uebergebenen Puffer - deshalb eine
+            // Kopie, falls der Abschnitt noch einmal gebraucht wird.
+            puffer.current.set(eintrag.nr, await kontext.current!.decodeAudioData(roh.slice(0)));
+          }
           w.melde(eintrag.nr, "bereit");
           spieleWeiter();
           holeNach();
