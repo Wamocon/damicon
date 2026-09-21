@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Icon } from "@/components/icon";
-import { modules, zones, type ZoneKey } from "@/lib/modules";
+import { modules, zones, type Reifegrad, type ZoneKey } from "@/lib/modules";
 
 // Was in den vier Bereichen steckt: alle Module, nach Bereich sortiert. Eine
 // durchlaufende Liste von 25 Namen liest niemand, deshalb ein Reiter je
@@ -14,13 +14,16 @@ import { modules, zones, type ZoneKey } from "@/lib/modules";
 // Ende springen an die Enden, nur der aktive Reiter liegt im Tabulator-Lauf.
 // Die Zahl am Reiter kommt aus lib/modules.ts, nicht aus dem Text - so kann
 // sie nicht veralten.
-const REIFE_TON: Record<string, string> = {
+// Record<Reifegrad, ...> statt Record<string, ...>: sonst faellt ein Ton
+// fuer einen Reifegrad, den es nicht mehr gibt, weder tsc noch einem Test
+// auf - genau so ueberlebte "demo" hier das Verschwinden des Werts aus
+// lib/modules.ts und stand weiter in der Legende.
+const REIFE_TON: Record<Reifegrad, string> = {
   angebunden: "bg-success",
-  demo: "bg-primary",
   "in-entwicklung": "bg-muted-foreground/45",
 };
 
-const STUFEN = ["angebunden", "demo", "in-entwicklung"] as const;
+const STUFEN = ["angebunden", "in-entwicklung"] as const satisfies readonly Reifegrad[];
 
 export function ModulReiter() {
   const t = useTranslations("zones");

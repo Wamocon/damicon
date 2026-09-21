@@ -215,7 +215,7 @@
       },
       "stand": {
         "q": "What is already built today?",
-        "a": "{gesamt} modules across four areas: {angebunden} on the database with real writes, {demo} as a usable demo, {entwicklung} as visible menu entries under development. The figures on the start page are placeholders until the first fully measured season."
+        "a": "{gesamt} modules across four areas: {angebunden} on the database with real writes, {entwicklung} as visible menu entries under development. The figures on the start page are placeholders until the first fully measured season."
       },
       "daten": {
         "q": "Where is the data held?",
@@ -272,7 +272,7 @@
     "demoPassword": "Password for all accounts:",
     "backToSite": "Back to the start page",
     "demoModeTitle": "Demo mode without database",
-    "demoModeLead": "No Supabase environment is configured. The dashboard runs on sample data and the role can be switched freely.",
+    "demoModeLead": "No database is configured. The dashboard runs on sample data and the role can be switched freely.",
     "toDashboard": "Go to dashboard",
     "signOut": "Sign out",
     "security": "Security",
@@ -290,8 +290,8 @@
   },
   "mfa": {
     "title": "Security",
-    "description": "Multi-factor authentication (requirement 4.9). A second factor via an authenticator app protects the account even if the password becomes known.",
-    "keineUmgebung": "Without a Supabase environment there is no real account - multi-factor authentication only applies after signing in.",
+    "description": "Multi-factor authentication. A second factor via an authenticator app protects the account even if the password becomes known.",
+    "keineUmgebung": "Without a connected database there is no real account - multi-factor authentication only applies after signing in.",
     "faktorenTitel": "Configured factors",
     "faktorenLead": "One TOTP factor is enough. Several are possible, for instance for a backup device.",
     "keinFaktor": "No second factor set up yet.",
@@ -305,7 +305,7 @@
     "codeLabel": "Code from the app",
     "bestaetigenKnopf": "Confirm",
     "erfolg": "Second factor set up and active.",
-    "note": "At the next sign-in the code will be requested in addition to the password. Without a configured factor, sign-in stays as before - multi-factor authentication is required by requirement 4.9, enforcing it per role is a later expansion step."
+    "note": "At the next sign-in the code will be requested in addition to the password. Without a configured factor, sign-in stays as before - multi-factor authentication is mandatory, enforcing it per role is a later expansion step."
   },
   "dashboard": {
     "searchPlaceholder": "Search row block, batch, picker, document ...",
@@ -315,7 +315,7 @@
     "dataSource": {
       "db": "Live data",
       "demo": "Sample data",
-      "dbHint": "Connected to the Supabase database, read under the RLS permissions of your role.",
+      "dbHint": "The figures come from live operations. You see the part of them your role is allowed to see.",
       "demoHint": "No database connection - the view shows the built-in sample data.",
       "fehler": "Database unreachable",
       "fehlerHint": "The query failed. Sample data is shown instead - it does not come from the farm."
@@ -323,48 +323,11 @@
     "rbacHintLabel": "Roles",
     "rbacHint": "Which modules are visible depends on the role of the signed-in account. Seven core roles, from administration to the individual picker in the field - the same role also governs read and write permissions in the database.",
     "home": {
-      "eyebrow": "Farm management",
-      "title": "Damicon operations overview",
-      "description": "Aggregator, Almaty region. The main functions run against the database - with sign-in, role permissions and real write operations. Sub-functions remain visible menu entries with a status.",
-      "kpiTitle": "14 baseline KPIs",
-      "kpiDescription": "To be signed off with the client as the baseline on 01 Oct 2026.",
-      "placeholderBadge": "Placeholder values",
       "target": "Target",
       "zonesTitle": "The four zones",
       "zonesDescription": "Each zone with its indicators and its modules.",
-      "dbCount": "{count} connected",
-      "demoCount": "{count} demo",
-      "wipCount": "{count} in development",
+      "wipCount": "{count} not available yet",
       "openZone": "Open zone",
-      "milestoneTitle": "Milestones of the internal preparation",
-      "milestoneDescription": "Both before the on-site analysis week from 24 Sep to 01 Oct 2026.",
-      "milestoneAName": "Milestone A - prototype with look and feature scope",
-      "milestoneADue": "by 06 Sep 2026",
-      "milestoneAItems": {
-        "tokens": "Design-token switch to the “Kök & Altyn” palette (Kazakhstan’s national colours)",
-        "landing": "Landing page with placeholder texts and images, language switcher for five languages",
-        "zones": "Dashboard skeleton with the four zones as navigation structure",
-        "workflows": "Core workflows by example: row-block overview and picking task with photo evidence"
-      },
-      "milestoneBName": "Milestone B - foundation build with real main functions",
-      "milestoneBDue": "by 19 Sep 2026 at the latest",
-      "milestoneBItems": {
-        "rbac": "Roles and permissions with seven core roles and a permission matrix",
-        "hierarchy": "Location hierarchy - farm, plantation, field plot, row group, row block - including administration",
-        "status": "Row-block status management including the lock state after a plant-protection treatment",
-        "tasks": "Picking tasks with photo evidence of the retail punnet, per brigade and row block",
-        "docs": "Document management for spray records, contracts and ЕСУТД evidence",
-        "i18n": "Multilingual interface in five languages",
-        "kpi": "Dashboard skeleton with the 14 baseline KPIs as tiles"
-      },
-      "milestoneBNote": "All main functions are connected to the database: sign-in, role permissions through row level security, location management, row-block lock, picking task with photo evidence and document storage. The sub-functions remain visible menu entries with a status, as planned.",
-      "kpiSummary": "{berechenbar} measurable today · {erfassung} capture missing · {tabelle} function missing · {ungeklaert} legally unconfirmed",
-      "kpiGerechnet": "computed from {anzahl} records",
-      "kpiGerechnetUngeklaert": "computed from {anzahl} records - legal basis unconfirmed",
-      "kpiSummaryLive": "{gerechnet} computed from real data · {offen} waiting for the function behind them",
-      "kpiExtendedTitle": "Further KPIs",
-      "kpiExtendedDescription": "Part of the signed baseline, but outside the twelve core KPIs in the cockpit.",
-      "kpiNoneForRole": "No company-wide KPIs are configured for your role here. Your own performance is in the payroll module.",
       "zoneOhneKennzahl": "No indicator is released for this zone.",
       "moduleTitel": "Modules"
     },
@@ -426,22 +389,12 @@
     "switcherLabel": "Demo role",
     "viewAsLabel": "View as"
   },
-  "klassifikation": {
-    "uebernehmen": "Adopt",
-    "anpassen": "Adapt",
-    "neu-bauen": "Build new"
-  },
   "reifegrad": {
     "angebunden": "Database connected",
-    "demo": "Demo operable",
     "in-entwicklung": "In development"
   },
   "moduleMeta": {
-    "inDevelopmentTitle": "Sub-function - in development",
-    "plannedScope": "Planned scope",
-    "classification": "Rating",
-    "milestone": "Milestone",
-    "milestoneB": "Milestone B and later releases"
+    "nichtVerfuegbar": "Not available yet"
   },
   "accessDenied": {
     "title": "The role {role} has no access to this module.",
@@ -509,7 +462,7 @@
     "ueberfaelligLabel": "overdue",
     "ueberspringenKnopf": "Skip",
     "reaktivierenKnopf": "Reactivate",
-    "note": "Weather scenarios (e.g. moving dates forward in heat) are not yet included - the weather integration (growing-degree-day calculation) itself is not built yet. The lock logic is complete: a new treatment automatically locks the affected dates, the release unlocks them again, and the first matching picking task marks a date as done.",
+    "note": "Weather scenarios (e.g. moving dates forward in heat) are not yet included here - the growing-degree-day total is in the weather module. The lock logic is complete: a new treatment automatically locks the affected dates, the release unlocks them again, and the first matching picking task marks a date as done.",
     "formular": {
       "generieren": {
         "titel": "Generate / extend plan",
@@ -522,80 +475,66 @@
   "kpis": {
     "verlustquote": {
       "label": "Loss rate from picking to the client",
-      "braucht": "nothing - scrap per batch is recorded",
       "basis": "scrap against total quantity across all batches",
       "kurz": "Loss rate"
     },
     "vermarktungsfaehig": {
       "label": "Share of marketable punnets",
-      "braucht": "quality sorting per punnet",
       "kurz": "Marketable share"
     },
     "zeitBisVorkuehlung": {
       "label": "Time from picking to pre-cooling",
-      "braucht": "nothing - picking and cooling time per batch",
       "basis": "average across all measured batches, including limit breaches",
       "kurz": "To pre-cooling"
     },
     "zeitBisKunde": {
       "label": "Time from picking to the client",
-      "braucht": "deliveries with departure and arrival",
       "kurz": "To the client"
     },
     "pflueckleistung": {
       "label": "Picking output per person and hour",
-      "braucht": "nothing - crate with person against working time",
       "basis": "harvest quantity per crate against recorded working time",
       "kurz": "Picking output"
     },
     "pflueckStreuung": {
       "label": "Spread of picking output (best to weakest)",
-      "braucht": "nothing - output per person across the season",
       "basis": "strongest against weakest worker, at least two people required",
       "kurz": "Output spread"
     },
     "pflueckintervall": {
       "label": "Picking interval kept per row block",
-      "braucht": "nothing - harvest sequence per row block from the batches",
       "basis": "share of actual harvest sequences within at most three days",
       "kurz": "Picking interval"
     },
     "behandlungenWartezeit": {
       "label": "Treatments with the pre-harvest interval kept",
-      "braucht": "nothing - derivable from treatment and lock logic",
       "basis": "treatments without harvesting during the lock period",
       "kurz": "Interval kept"
     },
     "reklamationsquote": {
       "label": "Complaint rate",
-      "braucht": "complaints linked to the batch",
       "kurz": "Complaint rate"
     },
     "liefertreue": {
       "label": "Delivery reliability (on time and complete)",
-      "braucht": "promised against actual delivery",
       "kurz": "Delivery reliability"
     },
     "belegteVerkaeufe": {
       "label": "Share of documented sales (ЭСФ and accompanying document)",
-      "braucht": "connection to ЭСФ and the goods accompanying note",
       "kurz": "Documented sales"
     },
     "deckungsbeitrag": {
       "label": "Contribution margin per kg",
-      "braucht": "nothing - entries per batch against harvest quantity",
       "basis": "all revenue and cost entries against the total harvest quantity - still without a time window or batch reference per entry",
       "kurz": "Contribution margin"
     },
     "esutdAbdeckung": {
       "label": "Seasonal-worker coverage in ЕСУТД",
-      "braucht": "legal confirmation of the ЕСУТД obligation via enbek.kz (see WMCNL-1447) - connection point named, the legal review of the obligation itself is still outstanding",
       "basis": "pickers with a recorded employment contract",
       "kurz": "ЕСУТД coverage"
     },
     "websiteAnfragen": {
       "label": "Enquiries via the website per month",
-      "braucht": "contact form on the website",
       "kurz": "Website enquiries"
     }
   },
@@ -605,14 +544,14 @@
       "navTitle": "Locations",
       "description": "Farm, plantation, field plot, row group, row block - a digital field map with a unique row and block identifier along the trellises.",
       "summary": "Field map with row blocks on the trellis, variety, planting year, cane type and trellis orientation per block.",
-      "todo": "Admin interface to create and move plots and row groups, field-geometry editor."
+      "todo": "A screen for creating and moving parcels and row groups, and for drawing the field geometry."
     },
     "reihenbloecke": {
       "title": "Row blocks and status",
       "navTitle": "Row blocks",
       "description": "Every row block has one status: planted, ready to harvest, dormant, pruning or harvest-locked. A locked block simply must not appear in the picking schedule.",
-      "summary": "State machine per row block. A condition locks the harvest until it is met - here: until the pre-harvest interval expires.",
-      "todo": "Status changes with a mandatory reason, fine-grained access rules per resource, history per row block."
+      "summary": "Every row block carries its own status. While a pre-harvest interval is running, it stays locked for harvesting until that interval expires.",
+      "todo": "Status changes with a mandatory reason, and a history per row block."
     },
     "pflueckaufgaben": {
       "title": "Picking tasks with photo evidence",
@@ -632,49 +571,49 @@
       "title": "Rotation plan / picking schedule",
       "navTitle": "Rotation plan",
       "description": "A rolling picking schedule with an interval of two to three days per row block across the whole autumn harvest. One missed round destroys the block for that cycle.",
-      "summary": "The first function to be built. The planning problem is not the forecast but the rotation over six weeks.",
-      "todo": "Interval engine per row block, brigade assignment, conflict check against pre-harvest-interval locks, calendar export (.ics)."
+      "summary": "Shows which row block is due when, spreading the passes across the six weeks of the harvest.",
+      "todo": "Automatic interval calculation per row block, brigade assignment, a check for conflicts with pre-harvest locks, calendar export (.ics)."
     },
     "wetter": {
       "title": "Weather and growing degree days",
       "navTitle": "Weather",
-      "description": "A weather API link with growing-degree-days calculation for the volume forecast. Deliberately no machine learning in phase 1 - an explainable heuristic is enough.",
+      "description": "Weather data per location with a growing-degree-day calculation as the basis for the volume forecast.",
       "summary": "A simple weather interface with growing degree days per plot. Explainable, verifiable and validatable within a season.",
-      "todo": "Weather-station or API link, growing degree days per plot, alert on shifted ripening windows."
+      "todo": "A weather station on the farm instead of the values from the network, and a note on shifted ripening windows."
     },
     "kuehlkette": {
       "title": "Cold-chain clock",
       "navTitle": "Cold chain",
       "description": "Timing from picking to pre-cooling with a hard 60-minute threshold, temperature logger, target temperature 0 to 1 degree. Highest priority in the whole farm.",
-      "summary": "The building block the entire price spread hangs on. Over 60 minutes the ware is only industrial ware the next day.",
-      "todo": "Temperature-logger integration, batch clock from the picking time, alarm on threshold breach, KPI calculation."
+      "summary": "Tracks the time from picking to pre-cooling. Over 60 minutes the ware is only industrial ware the next day.",
+      "todo": "Connecting temperature loggers so the readings do not have to be entered by hand."
     },
     "logistik": {
       "title": "Collection rounds and route planning",
       "navTitle": "Collection rounds",
       "description": "Fixed collection rounds in the field so filled crates do not sit in the sun, plus route planning by the clients' delivery windows.",
       "summary": "Handover receipt with volume and temperature reconciliation (pre-cooling and transport), unbroken cold-chain evidence all the way to the customer.",
-      "todo": "Route list per vehicle and delivery time windows (requirement 3.5 part 1) are still missing."
+      "todo": "Route list per vehicle and delivery time windows are still missing."
     },
     "qr_steigen": {
       "title": "QR crate identification",
       "navTitle": "QR crates",
-      "description": "QR labels for crates (linking to the public origin lookup), picker ID badges carrying the person's own badge code without biometrics, and a sign-in-free wall poster - all generated server-side as SVG and print-ready via the browser print function.",
+      "description": "QR labels for crates (linking to the public origin lookup), picker ID badges carrying their own badge code without biometrics, and a sign-in-free wall poster - all three can be printed straight from the browser.",
       "summary": "The QR code carries identity from the field to the shop counter - the badge can be scanned by camera at the collection point to attribute a crate or work time to that person, instead of choosing them from a dropdown.",
-      "todo": "A camera scan of the crate labels themselves (not just the picker badge) is not part of this build-out."
+      "todo": "The crate labels cannot be scanned with the camera yet, only the picker badge."
     },
     "esf": {
       "title": "Electronic delivery note (ЭСФ)",
       "navTitle": "Delivery note (ЭСФ)",
-      "description": "An electronic delivery note in line with the goods-accompanying-document obligation. Connected to the state ЭСФ system, no accounting of its own.",
-      "summary": "Evidence chain from the batch to the delivery note, status feedback from the state system. Mandatory integration.",
+      "description": "An electronic delivery note in line with the goods-accompanying-document obligation. A link to the state ЭСФ system is planned, accounting of its own is not.",
+      "summary": "Will carry the evidence chain from the batch to the delivery note and take in the status feedback from the state system. Mandatory integration.",
       "todo": "Connection to ИС ЭСФ, evidence chain batch to delivery note, status feedback and retry."
     },
     "rollen": {
       "title": "Roles and permissions",
       "navTitle": "Roles and permissions",
       "description": "Seven core roles, from administration through farm management and accounting to the brigade and the individual picker in the field, the grower and the B2B client - with a permission matrix over resources and actions.",
-      "summary": "Roles as a clear data structure over resources by actions. New roles without touching the logic.",
+      "summary": "Sets out who may see and change what. A new role can be added without changing anything in the modules.",
       "todo": "User management, role assignment, fine-grained access rules per resource."
     },
     "finanzen": {
@@ -696,35 +635,35 @@
       "navTitle": "Quality-factor pay",
       "description": "A combined model of base pay, a volume component and a quality factor. A pure piece rate pushes for volume, squeezes berries and is value-destroying for the raspberry.",
       "summary": "Base pay plus volume plus a quality factor. The quality factor is not optional but a precondition.",
-      "todo": "Minimum-wage anchoring, a rate editor with a UI-guided corridor preview, per-picker PDF pay slips, an advance account."
+      "todo": "The minimum wage as a hard floor, editing the pay rates with a preview of the corridor, a payslip as PDF per picker, an advance account."
     },
     "dokumente": {
       "title": "Document management",
       "navTitle": "Documents",
       "description": "A secure store for spray records, ЕСУТД evidence, supply and framework contracts, grant dossiers and certificates - linked to the row block and the batch.",
       "summary": "A categorised, secure document store linked to the row block and the batch.",
-      "todo": "Versioning, expiry and reminder logic, link to row block and batch."
+      "todo": "Versions per document, expiry dates with a reminder."
     },
     "compliance": {
       "title": "Compliance cockpit",
       "navTitle": "Compliance",
       "description": "Processing purposes, consents, data incidents and third-party disclosures from five granular tables - reading and writing reserved to office roles only.",
       "summary": "Granular data-protection schema: processing purposes, consents, incidents and disclosures in one place.",
-      "todo": "Legal references for Tax Code, AI Act, Digital Code, retention rules per data product, hosting-location review."
+      "todo": "Legal citations from the tax code, the AI act and the digital code, retention periods per kind of data, a check of the storage location."
     },
     "integrationen": {
       "title": "State integrations",
       "navTitle": "Integrations",
-      "description": "Connectors to ЭСФ, virtual stock, ЕСУТД and the subsidy portals gosagro.kz and qoldau.kz. Accounting stays with a solution established in the country.",
-      "summary": "One connector per target system with status feedback and retry. No in-house accounting build.",
-      "todo": "Connectors per system, sandbox access, error and retry logic, queue monitoring."
+      "description": "Connectors to ЭСФ, virtual stock, ЕСУТД and the subsidy portals gosagro.kz and qoldau.kz are planned. Accounting stays with a solution established in the country.",
+      "summary": "Will get one connector per target system, with status feedback and retry. Accounting stays out of scope.",
+      "todo": "Connectors per system, test access, handling of errors and retries, an overview of the pending items."
     },
     "foerdermittel": {
       "title": "Grant application dossier",
       "navTitle": "Grants",
       "description": "Application templates, evidence lists and a deadline monitor for the Kazakh subsidy portals - eligibility as a by-product of ongoing bookkeeping.",
-      "summary": "Deadline monitor and per-dossier evidence documents are connected (requirement 4.12). Application templates and evidence checklists per grant programme remain open.",
-      "todo": "Application templates and evidence checklists per grant programme - a domain decision on what fields and evidence gosagro.kz/qoldau.kz actually require per programme."
+      "summary": "Deadline monitor and per-dossier evidence documents are connected. Application templates and evidence checklists per grant programme remain open.",
+      "todo": "Application templates and evidence checklists per grant programme. The first open question is which fields and documents gosagro.kz and qoldau.kz ask for per programme."
     },
     "sortenkatalog": {
       "title": "Variety and quota catalogue",
@@ -738,28 +677,28 @@
       "navTitle": "B2B portal",
       "description": "A regular-client portal with quotas, pre-order with lead time, a price list by client group, delivery status, invoice history and complaint reporting.",
       "summary": "Delivery status with handover receipt, price list, and pre-orders with manual office confirmation are connected.",
-      "todo": "Automatic quota consumption, price tiers by client group, and invoice history are still missing (open business decisions)."
+      "todo": "Automatic quota consumption, tiered pricing per customer group and an invoice history. How exactly these should work has not been decided yet."
     },
     "preislisten": {
       "title": "Price lists",
       "navTitle": "Price lists",
       "description": "Versioned price lists with tiered prices by client group and validity period.",
       "summary": "Price tiers per client and period, versioned and with a validity date.",
-      "todo": "Versioned price lists, tiered prices, validity periods, client assignment."
+      "todo": "Nothing left open: versions through the validity date, tiers through the minimum quantity and the assignment per customer group are all connected."
     },
     "aggregator": {
       "title": "Aggregator / neighbouring farms",
       "navTitle": "Aggregator",
       "description": "Connecting neighbouring farms: the purchased volume becomes an invoice line, every buy-in batch is tracked separately and remains traceable to the supplying farm.",
       "summary": "Neighbouring-farm onboarding, buy-in capture with its own batch, separate origin tracking, settlement.",
-      "todo": "Neighbouring-farm onboarding, buy-in capture with its own batch, settlement and payout."
+      "todo": "A margin per neighbouring farm instead of a single one for all, and the payout itself."
     },
     "schulungen": {
       "title": "Training videos",
       "navTitle": "Training",
       "description": "Multilingual, image-based short onboarding of seasonal workers on the phone - videos per core process, with pictures instead of text.",
-      "summary": "Short image-based videos per core process, multilingual, with progress tracking per person.",
-      "todo": "Video content per core process, Kazakh and Russian language versions, progress tracking per person."
+      "summary": "An illustrated six-step induction, multilingual, with its own progress per person, plus the mandatory training.",
+      "todo": "Videos per core process, filmed and dubbed into Kazakh and Russian."
     },
     "kanaele": {
       "title": "Contact channels",
@@ -808,7 +747,7 @@
     },
     "freeAt": "Free from",
     "days": "days",
-    "note": "The harvest-locked block is the most easily verifiable benefit of the system: the picking schedule simply must not show it."
+    "note": "A block with a running pre-harvest interval does not appear in the picking schedule at all. That way nobody can create a task on it by mistake."
   },
   "pflueckaufgabenDemo": {
     "listTitle": "Picking tasks today",
@@ -818,7 +757,6 @@
     "proofTitle": "Photo evidence",
     "proofLead": "Sample photos of the retail punnet, the row block and the crate, right on the task.",
     "noProof": "No evidence for this task yet.",
-    "addProof": "Capture evidence (mock)",
     "reviewTitle": "Evidence review pending",
     "reviewLead": "The task is waiting for release. Check the volume and the punnet evidence, then release or request rework.",
     "approve": "Release",
@@ -934,10 +872,10 @@
       "berechtigung": "Your role is not allowed to perform this action.",
       "angemeldet": "Session expired. Please sign in again.",
       "doppelt": "An entry with this identifier already exists.",
-      "bezug": "The selected reference record does not exist.",
+      "bezug": "The selected reference is no longer there. Please reload the list and choose again.",
       "nichtGefunden": "The record was not found or can no longer be edited.",
       "regel": "Not possible: the pre-harvest interval has not elapsed yet.",
-      "unbekannt": "Action failed. Details are in the server log.",
+      "unbekannt": "The action failed. Please try again. If it keeps failing, report it to your administrator with the time it happened.",
       "keineCharge": "This task has no batch.",
       "kuehlkette": "Limit broken: {wert} minutes until measurement. The goods have to be downgraded.",
       "transportKuehlkette": "Limit exceeded: the transport temperature was above 8 degrees. The goods have to be downgraded.",
@@ -1115,7 +1053,7 @@
     "titel": "Record treatment",
     "lead": "The pre-harvest interval comes from the product catalogue - the row block is locked automatically.",
     "erfassen": "Record treatment",
-    "hinweis": "The lock is set by a database trigger and cannot be bypassed by changing the status. The release button appears only once the pre-harvest interval has elapsed.",
+    "hinweis": "The lock is set by the treatment itself and cannot be lifted from the interface. The release button appears only once the pre-harvest interval has elapsed.",
     "feld": {
       "block": "Row block",
       "mittel": "Plant protection product",
@@ -1142,24 +1080,7 @@
       "nachbarbetrieb": "Neighbouring farm"
     },
     "blocksShort": "blocks",
-    "note": "The field map with a unique row and block identifier along the trellises is the basis for the rotation plan, the harvest capture and the contribution margin."
-  },
-  "pflanzenschutzDemo": {
-    "ruleTitle": "Hard legal rule",
-    "ruleLead": "After a plant-protection treatment, harvest is locked per row block until the product-specific pre-harvest interval expires. A breach is a legal risk, not a convenience matter.",
-    "activeTitle": "Active pre-harvest-interval locks",
-    "activeLead": "Row blocks with a running pre-harvest interval. Release is automatic when the deadline passes.",
-    "col": {
-      "block": "Row block",
-      "mittel": "Product",
-      "behandelt": "Treated on",
-      "wartezeit": "Interval",
-      "freigabe": "Free from",
-      "status": "Status"
-    },
-    "days": "days",
-    "locked": "locked",
-    "note": "Because every block is picked every two to three days while the crop still has to be treated, a block can be harvested inside the pre-harvest interval by mistake. That is exactly what the automatic lock prevents."
+    "note": "Every row and every block along the trellises carries a unique identifier. The picking schedule, the harvest figures and the billing all refer to it."
   },
   "rollenDemo": {
     "rolesTitle": "Seven core roles",
@@ -1170,10 +1091,6 @@
     "matrixNote": "Full matrix across all resources and actions. The database-level access rules are written per resource individually.",
     "note": "Identities and roles run across all four areas - together with logging, encryption and multi-factor authentication.",
     "level": "Level",
-    "catiRole": {
-      "keine": "no equivalent - new from requirement 7.1",
-      "label": "Legacy system 1Çatı"
-    },
     "scopeWert": {
       "betrieb": "Farm",
       "plantage": "Plantation",
@@ -1187,7 +1104,7 @@
   },
   "finanzenAnsicht": {
     "uebersichtTitel": "Contribution margin at a glance",
-    "uebersichtLead": "Total across all cost objects and postings. Revenue and cost come from the immutable finance ledger (requirement 4.1).",
+    "uebersichtLead": "Total across all cost objects and postings. Revenue and cost come from the immutable finance ledger.",
     "stat": {
       "erloes": "Total revenue",
       "kosten": "Total cost",
@@ -1219,9 +1136,9 @@
       "betrag": "Amount"
     },
     "ledgerTitel": "Postings",
-    "ledgerLead": "Append only: a wrong posting is corrected with a reversing entry, not by changing the original.",
+    "ledgerLead": "A wrong posting is corrected with a reversing entry, not by changing the original.",
     "keineBuchungen": "No posting recorded yet.",
-    "note": "The contribution margin per kilogram is the central management metric (KPI \"deckungsbeitrag\"). It is formed per row block, variety, harvest day and client - not only at year end. Postings are immutable; the database rejects UPDATE and DELETE on the finance ledger regardless of the interface.",
+    "note": "The contribution margin per kilogram is the central management metric. It is formed per row block, variety, harvest day and client - not only at year end.",
     "formular": {
       "kostentraeger": {
         "titel": "Create new cost object",
@@ -1252,28 +1169,6 @@
         "knopf": "Record posting"
       }
     }
-  },
-  "personalDemo": {
-    "brigadenTitle": "Brigades",
-    "brigadenLead": "Brigade planning with shifts and a reserve list across the whole harvest run.",
-    "foreman": "Foreman",
-    "people": "People",
-    "pflueckerTitle": "Picker register",
-    "pflueckerLead": "Person register with a picker ID badge, ЕСУТД registration per contract, output and quality factor per person.",
-    "col": {
-      "name": "Name",
-      "brigade": "Brigade",
-      "ausweis": "ID badge",
-      "esutd": "ЕСУТД",
-      "leistung": "Output",
-      "qfaktor": "Q factor"
-    },
-    "esutd": {
-      "erfasst": "registered",
-      "offen": "pending"
-    },
-    "days": "days",
-    "note": "Keeping the core crew is more important than recruiting: every new onboarding in the middle of the season costs volume and quality."
   },
   "dokumenteDemo": {
     "listTitle": "Documents",
@@ -1529,29 +1424,6 @@
       "s-kweli": "Aug - Sep"
     }
   },
-  "schulungenDemo": {
-    "libraryTitle": "Video library",
-    "libraryLead": "Multilingual, image-based short onboarding of seasonal workers on the phone.",
-    "col": {
-      "titel": "Title",
-      "thema": "Topic",
-      "dauer": "Length",
-      "sprachen": "Languages"
-    },
-    "note": "Short onboarding as a guided checklist on the phone, multilingual, with pictures instead of text - one short video per core process.",
-    "video": {
-      "v-01": "Picking correctly - recognising ripe fruit",
-      "v-02": "Filling the crate and scanning the QR label",
-      "v-03": "The hour after picking - the cold chain",
-      "v-04": "Hygiene and gloves"
-    },
-    "thema": {
-      "ernte": "Harvest",
-      "feld": "Field",
-      "hof": "Yard",
-      "qualitaet": "Quality"
-    }
-  },
   "kuehlketteAnsicht": {
     "offeneTitel": "Open batches on the clock",
     "offeneLead": "Time since picking against the 60-minute threshold, ticking live per batch.",
@@ -1610,12 +1482,6 @@
     "anlegenLead": "Type and label are required, the value can be added later.",
     "anlegenKnopf": "Add",
     "note": "Display only, no connection to a real messenger or payment service. A channel appears on the website only once a real value is entered and set to \"active\"."
-  },
-  "qrSteigenMock": {
-    "scanTitle": "Scan at the dispatch point (mock)",
-    "scanLead": "A QR label per crate, scanned on handover. Volume, row block, time and person in one step - here without a real server reconciliation.",
-    "simulateScan": "Simulate scan",
-    "registered": "registered"
   },
   "haustier": {
     "label": {
@@ -2040,12 +1906,6 @@
     "privacyScopeText": "The prototype processes no personal data. No analytics cookies are set. The theme choice (light/dark) and the demo role are stored only locally in the browser.",
     "residencyTitle": "Data residency (planned operation)",
     "residencyText": "For later live operation, Kazakh Digital Code No. 255-VIII restricts storage of certain data products outside Kazakhstan. The hosting location for the QR, offline-sync and AI architecture will be reviewed legally before going live."
-  },
-  "kpiHerkunft": {
-    "berechenbar": "measurable today",
-    "erfassung-fehlt": "capture missing",
-    "tabelle-fehlt": "function missing",
-    "rechtlich-ungeklaert": "legally unconfirmed"
   },
   "nachweiskette": {
     "titel": "Chain of evidence",
@@ -2860,7 +2720,7 @@
       "erfasst": "recorded",
       "offen": "open"
     },
-    "note": "Demand calculation and shift plan come directly from the rotation plan (which row block must be harvested on which day). Weather scenarios are deliberately not part of this view - the weather connection (requirement 2.13) has been deferred."
+    "note": "Demand calculation and shift plan come directly from the rotation plan (which row block must be harvested on which day). Weather scenarios are not part of this view - the growing-degree-day total is in the weather module."
   },
   "erlebnis": {
     "bento": {
@@ -3033,7 +2893,7 @@
   "pflanzenschutzProtokoll": {
     "titel": "Treatments and waiting periods",
     "lead": "Every recorded plant-protection treatment with dose, operator and waiting period. Entry and release happen at the row block.",
-    "note": "The protocol upload is not built yet: the protocol document column stays empty for now.",
+    "note": "The protocol document is not carried along yet: the column stays empty for now.",
     "wartezeitTage": "{tage} days",
     "stat": {
       "gesamt": "Treatments",

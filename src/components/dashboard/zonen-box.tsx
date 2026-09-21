@@ -52,28 +52,17 @@ function ModulKnoepfe({
   );
 }
 
-function ReifegradPillen({ module }: { module: ModuleDef[] }) {
+// Nur noch, was nicht selbstverstaendlich ist. "6 angebunden" stand ueber
+// einer Liste, die dieselben Module gerade einzeln aufgezaehlt hat, und galt
+// fuer 24 von 26 Modulen - eine Zahl, die nichts unterscheidet. Die Zaehlung
+// der Demo-Module war ohnehin immer null.
+function OffenePillen({ module }: { module: ModuleDef[] }) {
   const t = useTranslations("dashboard");
-  const angebunden = module.filter((m) => m.reifegrad === "angebunden").length;
-  const demo = module.filter((m) => m.reifegrad === "demo").length;
   const wip = module.filter((m) => m.reifegrad === "in-entwicklung").length;
+  if (wip === 0) return null;
   return (
     <div className="mt-auto flex flex-wrap gap-1.5 pt-3">
-      {angebunden > 0 ? (
-        <StatusPill tone="success">
-          {t("home.dbCount", { count: angebunden })}
-        </StatusPill>
-      ) : null}
-      {demo > 0 ? (
-        <StatusPill tone="info">
-          {t("home.demoCount", { count: demo })}
-        </StatusPill>
-      ) : null}
-      {wip > 0 ? (
-        <StatusPill tone="warning">
-          {t("home.wipCount", { count: wip })}
-        </StatusPill>
-      ) : null}
+      <StatusPill tone="warning">{t("home.wipCount", { count: wip })}</StatusPill>
     </div>
   );
 }
@@ -143,7 +132,7 @@ function ZonenInhalt({
         <ModulKnoepfe zone={zone} module={sichtbareModule} />
       ) : null}
 
-      <ReifegradPillen module={sichtbareModule} />
+      <OffenePillen module={sichtbareModule} />
     </>
   );
 }

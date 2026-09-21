@@ -8,6 +8,7 @@
 //   * die Rollenzuschnitte stimmen: ein Kunde bekommt keine Lohn- oder
 //     Steuerwerkzeuge, ein Admin bekommt alles
 //   * alle Sprachdateien haben denselben Schluesselsatz
+//   * jeder Text nennt in allen Sprachen dieselben ICU-Platzhalter
 //   * jedes Modul hat einen Kurznamen fuers Menue (navTitle) in allen Sprachen
 //   * Navigation und Rollen tragen keinen Schluessel, den der Code nicht mehr aufruft
 //   * die Markdown-Zerlegung des Chats liefert beim Streamen dasselbe wie ein Gesamtdurchlauf
@@ -158,6 +159,30 @@ for (const s of sprachen.filter((x) => x !== "de")) {
   const zuviel = [...menge].filter((k) => !basis.has(k));
   pruefe(`Sprachdatei ${s} hat denselben Schluesselsatz wie de`, fehlt.length === 0 && zuviel.length === 0, `fehlt ${fehlt.length}, zuviel ${zuviel.length}`);
 }
+
+// --- 5a. Gleiche ICU-Platzhalter in allen Sprachen --------------------------
+// Ein Schluessel kann in jeder Sprache stehen und trotzdem brechen: next-intl
+// wirft, wenn ein Text einen Platzhalter nennt, den der Aufrufer nicht liefert.
+// Sichtbar wird das nur in DER Sprache, in der es passiert - beim Uebersetzen
+// einer Zaehlzeile also erst beim Besucher. Ausgeloest hat die Pruefung das
+// Streichen von {demo} aus landing.faqItems.stand.a: bliebe es in einer der
+// drei anderen Dateien stehen, faende es sonst niemand.
+const platzhalter = (text: string) =>
+  [...text.matchAll(/\{\s*([a-zA-Z0-9_]+)\s*[,}]/g)].map((m) => m[1]).sort().join(",");
+const mitPlatzhaltern = schluessel(texte.de).filter((k) => platzhalter(holen(texte.de, k) as string));
+const abweichend: string[] = [];
+for (const k of mitPlatzhaltern) {
+  const erwartet = platzhalter(holen(texte.de, k) as string);
+  for (const s of sprachen.filter((x) => x !== "de")) {
+    const wert = holen(texte[s], k);
+    if (typeof wert === "string" && platzhalter(wert) !== erwartet) abweichend.push(`${s}:${k}`);
+  }
+}
+pruefe(
+  "Jeder Text nennt in allen Sprachen dieselben Platzhalter",
+  abweichend.length === 0,
+  abweichend.slice(0, 6).join(", ") || `${mitPlatzhaltern.length} Schluessel mit Platzhaltern`,
+);
 
 // --- 5b. Keine Schluessel ohne Fundstelle im Code ---------------------------
 // Entfernte Oberflaeche laesst ihre Texte zurueck: nav.activeRole hat das

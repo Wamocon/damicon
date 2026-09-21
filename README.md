@@ -86,7 +86,7 @@ auch jeder direkte Aufruf von `/dashboard/*` zusätzlich zum Passwort den
 | `src/app/[locale]/page.tsx` | Öffentliche Landingpage |
 | `src/app/[locale]/login/` | Anmeldung und Server Actions für An-/Abmeldung |
 | `src/app/[locale]/dashboard/` | Dashboard-Shell + Zonen `feld`, `hof`, `buero`, `markt` |
-| `src/lib/modules.ts` | Zonen- und Modul-Registry (Reifegrad, Klassifikation) |
+| `src/lib/modules.ts` | Zonen- und Modul-Registry (Zone, Slug, Ressource, Reifegrad) |
 | `src/lib/rbac.ts` | Sieben Kernrollen und Rechtematrix |
 | `src/lib/auth.ts` | Session, Profil und Berechtigungsprüfung für Server Actions |
 | `src/lib/data/` | Datenbankabfragen mit Rückfall auf die Beispieldaten |

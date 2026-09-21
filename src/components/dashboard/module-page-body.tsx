@@ -5,10 +5,6 @@ import { useTranslations } from "next-intl";
 import { Lock } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Card, PageHeader } from "@/components/ui/kit";
-import {
-  KlassifikationBadge,
-  ReifegradBadge,
-} from "@/components/dashboard/module-meta";
 import { ModuleView } from "@/components/demo/registry";
 import { usePersona } from "@/components/dashboard/persona";
 import { hasPermission } from "@/lib/rbac";
@@ -40,13 +36,15 @@ export function ModulePageBody({
   return (
     <div className="space-y-6">
       <Card ton="box" className="p-5 sm:p-6">
+        {/* Ohne Statuspille: ist ein Modul noch nicht verfuegbar, sagt das
+            die Platzhalterkarte darunter (ModulePlaceholder ueber die
+            Registry). Eine Pille daneben waere die zweite Aussage zur
+            selben Sache auf einem Bildschirm. Auf der Bereichsseite traegt
+            die Karte sie weiter - dort steht die Aussage vor dem Klick. */}
         <PageHeader
           title={t(`${module.key}.title`)}
           description={t(`${module.key}.description`)}
-        >
-          <ReifegradBadge value={module.reifegrad} />
-          <KlassifikationBadge value={module.klassifikation} />
-        </PageHeader>
+        />
       </Card>
 
       {allowed ? (

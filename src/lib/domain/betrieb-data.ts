@@ -66,24 +66,6 @@ export const dokumente: Dokument[] = [
   { id: "d-06", name: "Spritzprotokoll KW 30 - Parzelle Sued", kategorie: "Spritzmittelprotokoll", bezug: "I-S-B-01", stand: "2026-07-20", status: "abgelaufen" },
 ];
 
-export interface Schulungsvideo {
-  id: string;
-  /** Deutsche Notiz fuer die Codeseite - angezeigt wird
-   *  schulungenDemo.video.<id>. */
-  titel: string;
-  dauer: string;
-  sprachen: string[];
-  /** Schluessel, kein Anzeigetext - uebersetzt ueber schulungenDemo.thema.<wert>. */
-  thema: string;
-}
-
-export const schulungsvideos: Schulungsvideo[] = [
-  { id: "v-01", titel: "Richtig pflücken - reife Frucht erkennen", dauer: "4:12", sprachen: ["kk", "ru"], thema: "ernte" },
-  { id: "v-02", titel: "Steige befüllen und QR-Etikett scannen", dauer: "3:05", sprachen: ["kk", "ru"], thema: "feld" },
-  { id: "v-03", titel: "Die Stunde nach dem Pflücken - Kühlkette", dauer: "5:40", sprachen: ["kk", "ru", "de", "en"], thema: "hof" },
-  { id: "v-04", titel: "Hygiene und Handschuhe", dauer: "2:48", sprachen: ["kk", "ru"], thema: "qualitaet" },
-];
-
 export interface Integration {
   id: string;
   name: string;

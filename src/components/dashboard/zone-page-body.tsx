@@ -12,10 +12,7 @@ import {
   StatusPill,
 } from "@/components/ui/kit";
 import { cn } from "@/lib/utils";
-import {
-  KlassifikationBadge,
-  ReifegradBadge,
-} from "@/components/dashboard/module-meta";
+import { ModulStatusPille } from "@/components/dashboard/module-meta";
 import { usePersona } from "@/components/dashboard/persona";
 import { hasPermission } from "@/lib/rbac";
 import { moduleHref, modulesForZone, type ZoneKey } from "@/lib/modules";
@@ -74,15 +71,19 @@ export function ZonePageBody({ zone }: { zone: ZoneKey }) {
                   <h3 className="min-w-32 flex-1 text-base font-black text-card-foreground">
                     {moduleT(`${module.key}.title`)}
                   </h3>
-                  <span className="ml-auto shrink-0">
-                    <ReifegradBadge value={module.reifegrad} />
-                  </span>
+                  {module.reifegrad === "in-entwicklung" ? (
+                    <span className="ml-auto shrink-0">
+                      <ModulStatusPille />
+                    </span>
+                  ) : null}
                 </div>
                 <p className="mt-2.5 flex-1 text-sm leading-6 text-muted-foreground">
                   {moduleT(`${module.key}.summary`)}
                 </p>
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-border pt-3">
-                  <KlassifikationBadge value={module.klassifikation} />
+                {/* Links stand bis zur Textpruefung die Einstufung aus der
+                    Migrationsanalyse. Ohne sie traegt die Zeile nur noch den
+                    Weg ins Modul, also rueckt er nach rechts. */}
+                <div className="mt-3 flex flex-wrap items-center justify-end gap-x-3 gap-y-2 border-t border-border pt-3">
                   <span className="inline-flex items-center gap-1 text-xs font-bold text-primary">
                     {t("open")}
                     <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />

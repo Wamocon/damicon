@@ -493,8 +493,8 @@ insert into public.finance_ledger_entries (charge_id, typ, kategorie, betrag_ten
 select c.id, v.typ::public.ledger_typ, v.kategorie, v.betrag::numeric, '2026-08-28'::date, v.beschreibung
 from public.chargen c
 join (values
-  ('erloes','B2B-Verkauf','20000','Beispiel Anforderung 3.3 - direkt an der Charge gebucht'),
-  ('kosten','Ernte + Kuehlung','8000','Beispiel Anforderung 3.3 - direkt an der Charge gebucht')
+  ('erloes','B2B-Verkauf','20000','Beispielbuchung direkt an der Charge'),
+  ('kosten','Ernte + Kuehlung','8000','Beispielbuchung direkt an der Charge')
 ) as v(typ, kategorie, betrag, beschreibung) on true
 where c.code = 'CH-BEISPIEL-JE-CHARGE'
 and not exists (

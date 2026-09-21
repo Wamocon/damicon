@@ -35,8 +35,13 @@ export type KpiStufe = "kern" | "erweitert";
 //                          unsicherer Rechtsgrundlage gehoert nicht
 //                          kommentarlos unter eine Baseline-Unterschrift.
 //
-// Diese Einordnung gehoert an die Kachel, nicht in eine Anlage: wer eine
-// Baseline unterschreibt, muss sehen, welche Zusage heute schon messbar ist.
+// Die Einordnung stand bis September 2026 als Fusszeile an der Kachel
+// ("Funktion fehlt", "Erfassung fehlt"). Die Textpruefung hat sie dort
+// entfernt: sie beschrieb den Bauzustand, waehrend an dieser Stelle die
+// Frage steht, ob eine Zahl von heute ist. Sie bleibt als fachliche Notiz
+// fuer die Codeseite - wer eine Baseline unterschreibt, muss wissen, welche
+// Zusage heute schon messbar ist, aber das gehoert in die Baseline-Anlage
+// und nicht in die Oberflaeche.
 export type Datenherkunft =
   | "berechenbar"
   | "erfassung-fehlt"
@@ -52,15 +57,18 @@ export interface Kpi {
   // positive Richtung: ist ein steigender Wert gut ("up") oder schlecht ("down")?
   gutRichtung: "up" | "down";
   platzhalter: true;
+  /** Kann das System die Kennzahl heute fortschreiben? Wie braucht eine
+   *  reine Notiz fuer die Codeseite, seit die Kachel keine Herkunft mehr
+   *  anzeigt - nicht uebersetzt, kein Aufrufer. */
   datenherkunft: Datenherkunft;
   /** kern = Teil der zwoelf Cockpit-Kacheln, erweitert = Baseline, aber ausserhalb des Cockpits (Anforderung 4.11). */
   stufe: KpiStufe;
   /** Welche Rollen diese betriebsweite Kennzahl sehen - keine Kennzahl hier ist eine persoenliche Leistungszahl. */
   sichtbarFuer: Role[];
-  /** Was fehlt, damit die Kennzahl gemessen werden kann. Fachliche Notiz
-   *  fuer die Codeseite - angezeigt wird die Uebersetzung unter
-   *  kpis.<key>.braucht, sonst stuende der Tooltip in jeder Sprache
-   *  auf Deutsch. Beide muessen zusammen gepflegt werden. */
+  /** Was fehlt, damit die Kennzahl gemessen werden kann. Reine Notiz fuer
+   *  die Codeseite, nicht uebersetzt und nicht angezeigt: die Kachel zeigt
+   *  im Tooltip den Rechenweg (kpis.<key>.basis), nicht den Rueckstand. Der
+   *  frueher dazugehoerige Katalogtext ist mit der Textpruefung entfallen. */
   braucht: string;
   /** Aus echten Daten gerechneter Istwert, falls vorhanden. */
   gerechnet?: {
@@ -264,18 +272,6 @@ export const kpis: Kpi[] = [
     braucht: "Kontaktformular auf der Website",
   },
 ];
-
-// Verteilung der Messbarkeit - Grundlage fuer den Hinweis am Kennzahlenblock.
-export function herkunftZaehlen(liste: Kpi[] = kpis): Record<Datenherkunft, number> {
-  const zaehler: Record<Datenherkunft, number> = {
-    berechenbar: 0,
-    "erfassung-fehlt": 0,
-    "tabelle-fehlt": 0,
-    "rechtlich-ungeklaert": 0,
-  };
-  for (const kpi of liste) zaehler[kpi.datenherkunft] += 1;
-  return zaehler;
-}
 
 // Anteil der Zielerreichung zwischen 0 und 1 - Grundlage fuer den Balken an
 // der Kachel. wert und ziel sind formatierte Zeichenketten ("8,4 %", "< 6 %"),

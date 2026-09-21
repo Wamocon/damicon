@@ -215,7 +215,7 @@
       },
       "stand": {
         "q": "Was ist heute schon gebaut?",
-        "a": "{gesamt} Module in vier Bereichen: {angebunden} an der Datenbank mit echten Schreibvorgängen, {demo} als bedienbare Demo, {entwicklung} als sichtbare Menüpunkte in Entwicklung. Die Kennzahlen der Startseite sind Platzhalterwerte bis zur ersten vollständig gemessenen Saison."
+        "a": "{gesamt} Module in vier Bereichen: {angebunden} an der Datenbank mit echten Schreibvorgängen, {entwicklung} als sichtbare Menüpunkte in Entwicklung. Die Kennzahlen der Startseite sind Platzhalterwerte bis zur ersten vollständig gemessenen Saison."
       },
       "daten": {
         "q": "Wo liegen die Daten?",
@@ -272,7 +272,7 @@
     "demoPassword": "Passwort für alle Konten:",
     "backToSite": "Zurück zur Startseite",
     "demoModeTitle": "Demo-Modus ohne Datenbank",
-    "demoModeLead": "Es ist keine Supabase-Umgebung hinterlegt. Das Dashboard läuft mit Beispieldaten, die Rolle lässt sich frei umschalten.",
+    "demoModeLead": "Es ist keine Datenbank hinterlegt. Das Dashboard läuft mit Beispieldaten, die Rolle lässt sich frei umschalten.",
     "toDashboard": "Zum Dashboard",
     "signOut": "Abmelden",
     "security": "Sicherheit",
@@ -290,8 +290,8 @@
   },
   "mfa": {
     "title": "Sicherheit",
-    "description": "Mehrfaktor-Authentifizierung (Anforderung 4.9). Ein zweiter Faktor über eine Authenticator-App schützt das Konto, falls das Passwort bekannt wird.",
-    "keineUmgebung": "Ohne Supabase-Umgebung gibt es kein echtes Konto - die Mehrfaktor-Authentifizierung greift erst mit Anmeldung.",
+    "description": "Mehrfaktor-Authentifizierung. Ein zweiter Faktor über eine Authenticator-App schützt das Konto, falls das Passwort bekannt wird.",
+    "keineUmgebung": "Ohne angebundene Datenbank gibt es kein echtes Konto - die Mehrfaktor-Authentifizierung greift erst mit der Anmeldung.",
     "faktorenTitel": "Eingerichtete Faktoren",
     "faktorenLead": "Ein TOTP-Faktor genügt. Mehrere sind möglich, etwa für ein Ersatzgerät.",
     "keinFaktor": "Noch kein zweiter Faktor eingerichtet.",
@@ -305,7 +305,7 @@
     "codeLabel": "Code aus der App",
     "bestaetigenKnopf": "Bestätigen",
     "erfolg": "Zweiter Faktor eingerichtet und aktiv.",
-    "note": "Bei der nächsten Anmeldung wird der Code zusätzlich zum Passwort abgefragt. Ohne eingerichteten Faktor bleibt die Anmeldung wie bisher - Mehrfaktor-Authentifizierung ist Pflicht für Anforderung 4.9, ihre Durchsetzung je Rolle ist ein späterer Ausbauschritt."
+    "note": "Bei der nächsten Anmeldung wird der Code zusätzlich zum Passwort abgefragt. Ohne eingerichteten Faktor bleibt die Anmeldung wie bisher - Mehrfaktor-Authentifizierung ist Pflicht, ihre Durchsetzung je Rolle ist ein späterer Ausbauschritt."
   },
   "dashboard": {
     "searchPlaceholder": "Reihenblock, Charge, Pflücker, Dokument suchen ...",
@@ -315,7 +315,7 @@
     "dataSource": {
       "db": "Live-Daten",
       "demo": "Beispieldaten",
-      "dbHint": "Angebunden an die Supabase-Datenbank, gelesen unter den RLS-Rechten Ihrer Rolle.",
+      "dbHint": "Die Zahlen kommen aus dem laufenden Betrieb. Sie sehen davon, was Ihre Rolle sehen darf.",
       "demoHint": "Ohne Datenbankverbindung - die Ansicht zeigt die hinterlegten Beispieldaten.",
       "fehler": "Datenbank nicht erreichbar",
       "fehlerHint": "Die Abfrage ist fehlgeschlagen. Angezeigt werden ersatzweise Beispieldaten - sie stammen nicht aus dem Betrieb."
@@ -323,48 +323,11 @@
     "rbacHintLabel": "Rollen",
     "rbacHint": "Welche Module sichtbar sind, hängt von der Rolle des angemeldeten Kontos ab. Sieben Kernrollen von der Administration bis zum einzelnen Pflücker im Feld - dieselbe Rolle entscheidet auch in der Datenbank über Lese- und Schreibrechte.",
     "home": {
-      "eyebrow": "Betriebssteuerung",
-      "title": "Betriebsübersicht Damicon",
-      "description": "Aggregator Umland Almaty. Die Hauptfunktionen laufen gegen die Datenbank - mit Anmeldung, Rollenrechten und echten Schreibvorgängen. Unterfunktionen bleiben sichtbare Menüpunkte mit Status.",
-      "kpiTitle": "14 Baseline-Kennzahlen",
-      "kpiDescription": "Werden am 01.10.2026 mit dem Kunden als Baseline unterschrieben.",
-      "placeholderBadge": "Platzhalterwerte",
       "target": "Ziel",
       "zonesTitle": "Die vier Zonen",
       "zonesDescription": "Jede Zone mit ihren Kennzahlen und ihren Modulen.",
-      "dbCount": "{count} angebunden",
-      "demoCount": "{count} Demo",
-      "wipCount": "{count} in Entwicklung",
+      "wipCount": "{count} noch nicht verfügbar",
       "openZone": "Zone öffnen",
-      "milestoneTitle": "Meilensteine der internen Vorbereitung",
-      "milestoneDescription": "Beide vor der Vor-Ort-Analysewoche vom 24.09. bis 01.10.2026.",
-      "milestoneAName": "Meilenstein A - Prototyp mit Optik und Funktionsumfang",
-      "milestoneADue": "bis 06.09.2026",
-      "milestoneAItems": {
-        "tokens": "Design-Token-Umstellung auf die Palette „Kök & Altyn“ (Landesfarben Kasachstans)",
-        "landing": "Landingpage mit Platzhaltertexten und -bildern, Sprachumschalter für fünf Sprachen",
-        "zones": "Dashboard-Gerüst mit den vier Zonen als Navigationsstruktur",
-        "workflows": "Kern-Workflows beispielhaft: Reihenblock-Übersicht und Pflückaufgabe mit Fotobeleg"
-      },
-      "milestoneBName": "Meilenstein B - Grundgerüst mit echten Hauptfunktionen",
-      "milestoneBDue": "spätestens 19.09.2026",
-      "milestoneBItems": {
-        "rbac": "Rollen und Rechte mit sieben Kernrollen und Rechtematrix",
-        "hierarchy": "Standort-Hierarchie Betrieb, Plantage, Feldparzelle, Reihengruppe, Reihenblock inklusive Verwaltung",
-        "status": "Reihenblock-Statusverwaltung inklusive Sperrzustand nach Pflanzenschutzbehandlung",
-        "tasks": "Pflückaufgaben mit Fotobeleg der Verkaufsschale, je Brigade und Reihenblock",
-        "docs": "Dokumentenverwaltung für Spritzprotokolle, Verträge und ЕСУТД-Nachweise",
-        "i18n": "Mehrsprachige Oberfläche in fünf Sprachen",
-        "kpi": "Dashboard-Grundgerüst mit den 14 Baseline-Kennzahlen als Kacheln"
-      },
-      "milestoneBNote": "Alle Hauptfunktionen sind an die Datenbank angebunden: Anmeldung, Rollenrechte über Row Level Security, Standortverwaltung, Reihenblock-Sperre, Pflückaufgabe mit Fotobeleg und Dokumentenablage. Die Unterfunktionen bleiben planmäßig sichtbare Menüpunkte mit Status.",
-      "kpiSummary": "{berechenbar} heute messbar · {erfassung} Erfassung fehlt · {tabelle} Funktion fehlt · {ungeklaert} rechtlich ungeklärt",
-      "kpiGerechnet": "gerechnet aus {anzahl} Datensätzen",
-      "kpiGerechnetUngeklaert": "aus {anzahl} Datensätzen gerechnet - rechtliche Grundlage ungeklärt",
-      "kpiSummaryLive": "{gerechnet} aus echten Daten gerechnet · {offen} warten auf die Funktion dahinter",
-      "kpiExtendedTitle": "Weitere Kennzahlen",
-      "kpiExtendedDescription": "Teil der unterschriebenen Baseline, aber außerhalb der zwölf Kern-Kennzahlen im Cockpit.",
-      "kpiNoneForRole": "Für Ihre Rolle sind hier keine betriebsweiten Kennzahlen hinterlegt. Die eigene Leistung finden Sie im Lohn-Modul.",
       "zoneOhneKennzahl": "Für diese Zone ist keine Kennzahl freigegeben.",
       "moduleTitel": "Module"
     },
@@ -426,22 +389,12 @@
     "switcherLabel": "Demo-Rolle",
     "viewAsLabel": "Ansicht als"
   },
-  "klassifikation": {
-    "uebernehmen": "Übernehmen",
-    "anpassen": "Anpassen",
-    "neu-bauen": "Neu bauen"
-  },
   "reifegrad": {
     "angebunden": "Datenbank angebunden",
-    "demo": "Demo bedienbar",
     "in-entwicklung": "In Entwicklung"
   },
   "moduleMeta": {
-    "inDevelopmentTitle": "Unterfunktion - in Entwicklung",
-    "plannedScope": "Geplanter Umfang",
-    "classification": "Einstufung",
-    "milestone": "Meilenstein",
-    "milestoneB": "Meilenstein B und folgende Ausbaustufen"
+    "nichtVerfuegbar": "Noch nicht verfügbar"
   },
   "accessDenied": {
     "title": "Die Rolle {role} hat auf dieses Modul keinen Zugriff.",
@@ -509,7 +462,7 @@
     "ueberfaelligLabel": "überfällig",
     "ueberspringenKnopf": "Überspringen",
     "reaktivierenKnopf": "Reaktivieren",
-    "note": "Wetterszenarien (z. B. Vorziehen bei Hitze) sind hier noch nicht berücksichtigt - die Wetteranbindung (Temperatursummenrechnung) ist selbst noch nicht gebaut. Die Sperrlogik ist vollständig: eine neue Behandlung sperrt betroffene Termine automatisch, die Freigabe gibt sie wieder frei, und die erste passende Pflückaufgabe markiert einen Termin als erledigt.",
+    "note": "Wetterszenarien (z. B. Vorziehen bei Hitze) sind hier noch nicht berücksichtigt - die Temperatursumme steht im Wetter-Modul. Die Sperrlogik ist vollständig: eine neue Behandlung sperrt betroffene Termine automatisch, die Freigabe gibt sie wieder frei, und die erste passende Pflückaufgabe markiert einen Termin als erledigt.",
     "formular": {
       "generieren": {
         "titel": "Plan erzeugen / erweitern",
@@ -522,80 +475,66 @@
   "kpis": {
     "verlustquote": {
       "label": "Verlustquote vom Pflücken bis zum Kunden",
-      "braucht": "nichts - Ausschuss je Charge wird erfasst",
       "basis": "Ausschuss gegen Gesamtmenge über alle Chargen",
       "kurz": "Verlustquote"
     },
     "vermarktungsfaehig": {
       "label": "Anteil vermarktungsfähiger Schalen",
-      "braucht": "Qualitaetssortierung je Schale",
       "kurz": "Vermarktungsfähig"
     },
     "zeitBisVorkuehlung": {
       "label": "Zeit vom Pflücken bis zur Vorkühlung",
-      "braucht": "nichts - Pflück- und Kühlzeitpunkt je Charge",
       "basis": "Mittel über alle gemessenen Chargen, inklusive Grenzverletzungen",
       "kurz": "Bis Vorkühlung"
     },
     "zeitBisKunde": {
       "label": "Zeit vom Pflücken bis zum Kunden",
-      "braucht": "Lieferungen mit Abfahrt und Ankunft",
       "kurz": "Bis zum Kunden"
     },
     "pflueckleistung": {
       "label": "Pflückleistung je Person und Stunde",
-      "braucht": "nichts - Steige mit Person gegen Arbeitszeit",
       "basis": "Erntemenge je Steige gegen erfasste Arbeitszeit",
       "kurz": "Pflückleistung"
     },
     "pflueckStreuung": {
       "label": "Streuung der Pflückleistung (beste zu schwächste Kraft)",
-      "braucht": "nichts - Leistung je Person über die Saison",
       "basis": "Beste gegen schwächste Kraft, mindestens zwei Personen nötig",
       "kurz": "Streuung Pflückleistung"
     },
     "pflueckintervall": {
       "label": "Eingehaltenes Pflückintervall je Reihenblock",
-      "braucht": "nichts - Erntefolge je Reihenblock aus den Chargen",
       "basis": "Anteil der tatsächlichen Erntefolgen im Abstand von höchstens drei Tagen",
       "kurz": "Pflückintervall"
     },
     "behandlungenWartezeit": {
       "label": "Behandlungen mit eingehaltener Wartezeit",
-      "braucht": "nichts - aus Behandlung und Sperrlogik ableitbar",
       "basis": "Behandlungen ohne Ernte im Sperrzeitraum",
       "kurz": "Wartezeit eingehalten"
     },
     "reklamationsquote": {
       "label": "Reklamationsquote",
-      "braucht": "Reklamationen mit Bezug zur Charge",
       "kurz": "Reklamationsquote"
     },
     "liefertreue": {
       "label": "Liefertreue (pünktlich und vollständig)",
-      "braucht": "Zugesagte gegen tatsaechliche Lieferung",
       "kurz": "Liefertreue"
     },
     "belegteVerkaeufe": {
       "label": "Anteil belegter Verkäufe (ЭСФ und Warenbegleitschein)",
-      "braucht": "Anbindung an ЭСФ und Warenbegleitschein",
       "kurz": "Belegte Verkäufe"
     },
     "deckungsbeitrag": {
       "label": "Deckungsbeitrag je kg",
-      "braucht": "nichts - Buchungen je Charge gegen Erntemenge",
       "basis": "Alle Erlös- und Kostenbuchungen gegen die gesamte Erntemenge - noch ohne Zeitfenster oder Chargenbezug je Buchung",
       "kurz": "Deckungsbeitrag"
     },
     "esutdAbdeckung": {
       "label": "Abdeckung der Saisonkräfte in ЕСУТД",
-      "braucht": "rechtliche Bestätigung der ЕСУТД-Pflicht über enbek.kz (siehe WMCNL-1447) - Anbindungspunkt benannt, Rechtsprüfung der Pflicht selbst steht noch aus",
       "basis": "Pflücker mit erfasstem Arbeitsvertrag",
       "kurz": "ЕСУТД-Abdeckung"
     },
     "websiteAnfragen": {
       "label": "Anfragen über die Website je Monat",
-      "braucht": "Kontaktformular auf der Website",
       "kurz": "Website-Anfragen"
     }
   },
@@ -605,14 +544,14 @@
       "navTitle": "Standorte",
       "description": "Betrieb, Plantage, Feldparzelle, Reihengruppe, Reihenblock - eine digitale Feldkarte mit eindeutiger Reihen- und Blockkennung entlang der Spaliere.",
       "summary": "Feldkarte mit Reihenblöcken am Spalier, Sorte, Pflanzjahr, Rutentyp und Spalierrichtung je Block.",
-      "todo": "Verwaltungsoberfläche zum Anlegen und Verschieben von Parzellen und Reihengruppen, Feldgeometrie-Editor."
+      "todo": "Oberfläche zum Anlegen und Verschieben von Parzellen und Reihengruppen, Zeichnen der Feldgeometrie."
     },
     "reihenbloecke": {
       "title": "Reihenblöcke und Status",
       "navTitle": "Reihenblöcke",
       "description": "Jeder Reihenblock hat einen Status: bepflanzt, erntereif, ruhend, Rückschnitt oder wartezeitgesperrt. Ein gesperrter Block darf im Pflückplan schlicht nicht erscheinen.",
-      "summary": "Zustandsautomat je Reihenblock. Bedingung sperrt die Ernte, bis sie erfüllt ist - hier: bis die Wartezeit abgelaufen ist.",
-      "todo": "Statuswechsel mit Begründungspflicht, feingranulare Zugriffsregeln je Ressource, Verlauf je Reihenblock."
+      "summary": "Jeder Reihenblock führt seinen eigenen Status. Läuft eine Wartezeit, bleibt er für die Ernte gesperrt, bis sie abgelaufen ist.",
+      "todo": "Statuswechsel mit Begründungspflicht und ein Verlauf je Reihenblock."
     },
     "pflueckaufgaben": {
       "title": "Pflückaufgaben mit Fotobeleg",
@@ -632,49 +571,49 @@
       "title": "Rotationsplan / Pflückplan",
       "navTitle": "Rotationsplan",
       "description": "Rollierender Pflückplan mit Intervall von zwei bis drei Tagen je Reihenblock über die gesamte Herbsternte. Ein ausgelassener Durchgang vernichtet den Block für diesen Zyklus.",
-      "summary": "Die erste Funktion, die gebaut wird. Das Planungsproblem ist nicht die Prognose, sondern die Rotation über sechs Wochen.",
-      "todo": "Intervall-Engine je Reihenblock, Brigadenzuteilung, Konfliktprüfung mit Wartezeitsperren, Kalender-Export (.ics)."
+      "summary": "Zeigt, welcher Reihenblock wann an der Reihe ist, und verteilt die Durchgänge über die sechs Wochen der Ernte.",
+      "todo": "Automatische Intervallrechnung je Reihenblock, Brigadenzuteilung, Prüfung auf Konflikte mit Wartezeitsperren, Kalender-Export (.ics)."
     },
     "wetter": {
       "title": "Wetter und Temperatursumme",
       "navTitle": "Wetter",
-      "description": "Wetter-API-Anbindung mit Temperatursummenrechnung für die Mengenprognose. Bewusst kein maschinelles Lernen in Phase 1 - eine erklärbare Heuristik reicht.",
+      "description": "Wetterdaten je Standort mit Temperatursummenrechnung als Grundlage für die Mengenprognose.",
       "summary": "Einfache Wetterschnittstelle mit Temperatursumme je Parzelle. Erklärbar, prüfbar und innerhalb einer Saison validierbar.",
-      "todo": "Wetterstation- oder API-Anbindung, Temperatursumme je Parzelle, Hinweis auf verschobene Reifefenster."
+      "todo": "Eine eigene Wetterstation am Betrieb statt der Werte aus dem Netz, Hinweis auf verschobene Reifefenster."
     },
     "kuehlkette": {
       "title": "Kühlketten-Uhr",
       "navTitle": "Kühlkette",
       "description": "Zeitmessung von Pflücken bis Vorkühlung mit hartem 60-Minuten-Grenzwert, Temperaturlogger, Zieltemperatur 0 bis 1 Grad. Höchste Priorität im gesamten Betrieb.",
-      "summary": "Der Baustein, an dem der gesamte Preisspread hängt. Über 60 Minuten ist die Ware am nächsten Tag nur noch Industrieware.",
-      "todo": "Temperaturlogger-Integration, Charge-Uhr ab Pflückzeitpunkt, Alarm bei Grenzwertüberschreitung, KPI-Berechnung."
+      "summary": "Überwacht die Zeit von der Pflückung bis zur Vorkühlung. Über 60 Minuten ist die Ware am nächsten Tag nur noch Industrieware.",
+      "todo": "Anschluss von Temperaturloggern, damit die Messwerte nicht von Hand erfasst werden müssen."
     },
     "logistik": {
       "title": "Abholrunden und Tourenplanung",
       "navTitle": "Abholrunden",
       "description": "Feste Abholrunden im Feld, damit gefüllte Steigen nicht in der Sonne stehen, plus Tourenplanung nach den Lieferfenstern der Kunden.",
       "summary": "Übergabequittung mit Mengen- und Temperaturabgleich (Vorkühlung und Transport), lückenloser Kühlkettennachweis bis zum Kunden.",
-      "todo": "Tourenliste je Fahrzeug und Zeitfenster (Anforderung 3.5 Teil 1) fehlen noch."
+      "todo": "Tourenliste je Fahrzeug und Lieferzeitfenster fehlen noch."
     },
     "qr_steigen": {
       "title": "QR-Steigenkennung",
       "navTitle": "QR-Steigen",
-      "description": "QR-Etiketten für Steigen (Link zur öffentlichen Herkunftsauskunft), Pflückerausweise mit dem eigenen Ausweis-Code ohne Biometrie und ein anmeldungsfreies Aushang-Poster - alle serverseitig als SVG erzeugt und über die Browser-Druckfunktion druckfertig.",
+      "description": "QR-Etiketten für Steigen (Link zur öffentlichen Herkunftsauskunft), Pflückerausweise mit dem eigenen Ausweis-Code ohne Biometrie und ein anmeldungsfreies Aushang-Poster - alle drei lassen sich direkt aus dem Browser drucken.",
       "summary": "Der QR-Code trägt die Identität vom Feld bis zur Ladentheke - der Ausweis lässt sich am Sammelpunkt per Kamera scannen, um Steige und Arbeitszeit der Person zuzuordnen, statt sie aus einem Dropdown zu wählen.",
-      "todo": "Ein Kamera-Scan der Steigen-Etiketten selbst (statt nur des Pflückerausweises) ist nicht Teil dieses Ausbauschritts."
+      "todo": "Die Steigen-Etiketten lassen sich noch nicht mit der Kamera scannen, nur der Pflückerausweis."
     },
     "esf": {
       "title": "Elektronischer Lieferschein (ЭСФ)",
       "navTitle": "Lieferschein (ЭСФ)",
-      "description": "Elektronischer Lieferschein im Einklang mit der Pflicht zum Warenbegleitschein. Angebunden an das staatliche ЭСФ-System, keine eigene Buchhaltung.",
-      "summary": "Belegkette von der Charge zum Lieferschein, Statusrückmeldung aus dem staatlichen System. Pflichtintegration.",
+      "description": "Elektronischer Lieferschein im Einklang mit der Pflicht zum Warenbegleitschein. Die Anbindung an das staatliche ЭСФ-System ist vorgesehen, eine eigene Buchhaltung nicht.",
+      "summary": "Führt künftig die Belegkette von der Charge zum Lieferschein und nimmt die Statusrückmeldung aus dem staatlichen System auf. Pflichtintegration.",
       "todo": "Anbindung an das ИС ЭСФ, Belegkette Charge zu Lieferschein, Statusrückmeldung und Wiederholung."
     },
     "rollen": {
       "title": "Rollen und Rechte",
       "navTitle": "Rollen und Rechte",
       "description": "Sieben Kernrollen von der Administration über Betriebsleitung und Buchhaltung bis zur Brigade und dem einzelnen Pflücker im Feld, dem Erzeuger und dem B2B-Kunden - mit einer Rechtematrix über Ressourcen und Aktionen.",
-      "summary": "Rollen als klare Datenstruktur über Ressourcen mal Aktionen. Neue Rollen ohne Eingriff in die Logik.",
+      "summary": "Legt fest, wer was sehen und ändern darf. Eine neue Rolle lässt sich anlegen, ohne dass an den Modulen etwas geändert werden muss.",
       "todo": "Nutzerverwaltung, Rollenzuweisung, feingranulare Zugriffsregeln je Ressource."
     },
     "finanzen": {
@@ -696,35 +635,35 @@
       "navTitle": "Qualitätsfaktor-Lohn",
       "description": "Kombimodell aus Grundvergütung, Mengenkomponente und Qualitätsfaktor. Reiner Stücklohn drückt auf Menge, quetscht Beeren und ist bei der Himbeere wertvernichtend.",
       "summary": "Grundlohn plus Menge plus Qualitätsfaktor. Der Qualitätsfaktor ist keine Option, sondern Voraussetzung.",
-      "todo": "Mindestlohn-Verankerung, Lohnsatz-Editor mit UI-gestützter Korridor-Vorschau, PDF-Lohnzettel je Pflücker, Vorschusskonto."
+      "todo": "Mindestlohn als feste Untergrenze, Pflege der Lohnsätze mit Vorschau auf den Korridor, Lohnzettel als PDF je Pflücker, Vorschusskonto."
     },
     "dokumente": {
       "title": "Dokumentenverwaltung",
       "navTitle": "Dokumente",
       "description": "Geschützte Ablage für Spritzmittelprotokolle, ЕСУТД-Nachweise, Liefer- und Rahmenverträge, Förderdossiers und Zertifikate - verknüpft mit Reihenblock und Charge.",
       "summary": "Kategorisierte, geschützte Dokumentenablage mit Verknüpfung zu Reihenblock und Charge.",
-      "todo": "Versionierung, Ablauf- und Erinnerungslogik, Verknüpfung mit Reihenblock und Charge."
+      "todo": "Versionen je Dokument, Ablauffristen mit Erinnerung."
     },
     "compliance": {
       "title": "Compliance-Cockpit",
       "navTitle": "Compliance",
       "description": "Verarbeitungszwecke, Einwilligungen, Datenschutzvorfälle und Drittweitergaben aus fünf granularen Tabellen - Lesen und Schreiben ausschließlich für die Büro-Rollen.",
       "summary": "Granulares Datenschutz-Schema: Verarbeitungszwecke, Einwilligungen, Vorfälle und Drittweitergaben an einem Ort.",
-      "todo": "Rechtszitate Steuergesetzbuch, KI-Gesetz, Digitalkodex, Retention-Regeln je Datenprodukt, Hosting-Standort-Prüfung."
+      "todo": "Rechtszitate aus Steuergesetzbuch, KI-Gesetz und Digitalkodex, Aufbewahrungsfristen je Datenart, Prüfung des Speicherorts."
     },
     "integrationen": {
       "title": "Staatliche Integrationen",
       "navTitle": "Integrationen",
-      "description": "Konnektoren zu ЭСФ, virtuellem Lagerbestand, ЕСУТД und den Förderportalen gosagro.kz und qoldau.kz. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.",
-      "summary": "Ein Konnektor je Zielsystem mit Statusrückmeldung und Wiederholung. Kein Eigenbau der Buchhaltung.",
-      "todo": "Konnektoren je System, Sandbox-Zugänge, Fehler- und Wiederholungslogik, Monitoring der Warteschlange."
+      "description": "Vorgesehen sind Konnektoren zu ЭСФ, virtuellem Lagerbestand, ЕСУТД und den Förderportalen gosagro.kz und qoldau.kz. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.",
+      "summary": "Bekommt je Zielsystem einen Konnektor mit Statusrückmeldung und Wiederholung. Die Buchhaltung bleibt außen vor.",
+      "todo": "Konnektoren je System, Testzugänge, Umgang mit Fehlern und Wiederholungen, Überblick über die wartenden Vorgänge."
     },
     "foerdermittel": {
       "title": "Fördermitteldossier",
       "navTitle": "Fördermittel",
       "description": "Antragsvorlagen, Nachweislisten und Fristenmonitor für die kasachstanischen Förderportale - Antragsfähigkeit als Nebenprodukt der laufenden Buchführung.",
-      "summary": "Fristenmonitor und Nachweisdokumente je Dossier sind angebunden (Anforderung 4.12). Antragsvorlagen und Nachweis-Checklisten je Förderprogramm bleiben offen.",
-      "todo": "Antragsvorlagen und Nachweis-Checklisten je Förderprogramm - fachliche Festlegung, welche Felder und Nachweise gosagro.kz/qoldau.kz je Programm tatsächlich verlangen."
+      "summary": "Fristenmonitor und Nachweisdokumente je Dossier sind angebunden. Antragsvorlagen und Nachweis-Checklisten je Förderprogramm bleiben offen.",
+      "todo": "Antragsvorlagen und Nachweis-Checklisten je Förderprogramm. Offen ist zuerst, welche Felder und Nachweise gosagro.kz und qoldau.kz je Programm verlangen."
     },
     "sortenkatalog": {
       "title": "Sorten- und Kontingentkatalog",
@@ -738,28 +677,28 @@
       "navTitle": "B2B-Portal",
       "description": "Stammkundenportal mit Kontingenten, Vorbestellung mit Vorlauf, Preisliste nach Kundengruppe, Lieferstatus, Rechnungshistorie und Reklamationsmeldung.",
       "summary": "Lieferstatus mit Übergabequittung, Preisliste und Vorbestellung mit manueller Bestätigung durchs Büro sind angebunden.",
-      "todo": "Automatischer Kontingent-Verbrauch, Preisstaffelung je Kundengruppe und Rechnungshistorie fehlen noch (offene fachliche Festlegungen)."
+      "todo": "Automatischer Kontingent-Verbrauch, Preisstaffelung je Kundengruppe und Rechnungshistorie. Wie das im Einzelnen gelten soll, ist noch nicht entschieden."
     },
     "preislisten": {
       "title": "Preislisten",
       "navTitle": "Preislisten",
       "description": "Versionierte Preislisten mit Staffelpreisen je Kundengruppe und Gültigkeitszeitraum.",
       "summary": "Preisstaffeln je Kunde und Zeitraum, versioniert und mit Gültigkeitsdatum.",
-      "todo": "Versionierte Preislisten, Staffelpreise, Gültigkeitszeiträume, Kundenzuordnung."
+      "todo": "Nichts mehr offen: Versionen über das Gültigkeitsdatum, Staffeln über die Mindestmenge und die Zuordnung je Kundengruppe sind angebunden."
     },
     "aggregator": {
       "title": "Aggregator / Nachbarbetriebe",
       "navTitle": "Aggregator",
       "description": "Anschluss von Nachbarbetrieben: Zukaufmenge wird zur Rechnungsposition, jede Zukaufcharge wird getrennt geführt und bleibt auf den liefernden Betrieb zurückverfolgbar.",
       "summary": "Nachbarbetrieb-Onboarding, Zukauf-Erfassung mit eigener Charge, getrennte Herkunftsführung, Abrechnung.",
-      "todo": "Nachbarbetrieb-Onboarding, Zukauf-Erfassung mit eigener Charge, Abrechnung und Auszahlung."
+      "todo": "Eine Spanne je Nachbarbetrieb statt einer einheitlichen für alle, und die Auszahlung selbst."
     },
     "schulungen": {
       "title": "Schulungsvideos",
       "navTitle": "Schulungen",
       "description": "Mehrsprachige, bildbasierte Kurzeinarbeitung der Saisonkräfte auf dem Telefon - Videos je Kernprozess, mit Bildern statt Text.",
-      "summary": "Kurze, bildbasierte Videos je Kernprozess, mehrsprachig, mit Fortschrittsverfolgung je Person.",
-      "todo": "Videoinhalte je Kernprozess, Sprachfassungen Kasachisch und Russisch, Fortschrittsverfolgung je Person."
+      "summary": "Bebilderte Kurzeinarbeitung in sechs Schritten, mehrsprachig, mit eigenem Fortschritt je Person, dazu die Pflichtschulungen.",
+      "todo": "Videos je Kernprozess, gedreht und auf Kasachisch und Russisch vertont."
     },
     "kanaele": {
       "title": "Kontaktkanäle",
@@ -808,7 +747,7 @@
     },
     "freeAt": "Frei ab",
     "days": "Tage",
-    "note": "Der wartezeitgesperrte Block ist der am einfachsten prüfbare Nutzen des Systems: Der Pflückplan darf ihn schlicht nicht anzeigen."
+    "note": "Ein Block mit laufender Wartezeit erscheint gar nicht erst im Pflückplan. So kann niemand versehentlich eine Aufgabe darauf anlegen."
   },
   "pflueckaufgabenDemo": {
     "listTitle": "Pflückaufgaben heute",
@@ -818,7 +757,6 @@
     "proofTitle": "Fotobeleg",
     "proofLead": "Beispielfotos der Verkaufsschale, des Reihenblocks und der Steige, direkt an der Aufgabe.",
     "noProof": "Noch kein Beleg zu dieser Aufgabe.",
-    "addProof": "Beleg aufnehmen (Mock)",
     "reviewTitle": "Belegprüfung offen",
     "reviewLead": "Die Aufgabe wartet auf Freigabe. Menge und Schalenbeleg prüfen, dann freigeben oder Nacharbeit anfordern.",
     "approve": "Freigeben",
@@ -934,10 +872,10 @@
       "berechtigung": "Ihre Rolle darf diesen Vorgang nicht ausführen.",
       "angemeldet": "Sitzung abgelaufen. Bitte erneut anmelden.",
       "doppelt": "Ein Eintrag mit dieser Kennung existiert bereits.",
-      "bezug": "Der gewählte Bezugsdatensatz existiert nicht.",
+      "bezug": "Der gewählte Bezug ist nicht mehr vorhanden. Bitte die Liste neu laden und erneut auswählen.",
       "nichtGefunden": "Der Datensatz wurde nicht gefunden oder ist nicht mehr bearbeitbar.",
       "regel": "Nicht möglich: Die Wartezeit ist noch nicht abgelaufen.",
-      "unbekannt": "Vorgang fehlgeschlagen. Details stehen im Server-Log.",
+      "unbekannt": "Der Vorgang ist fehlgeschlagen. Bitte noch einmal versuchen. Bleibt es dabei, melden Sie ihn mit der Uhrzeit bei der Administration.",
       "keineCharge": "Zu dieser Aufgabe gehört keine Charge.",
       "kuehlkette": "Grenzwert gerissen: {wert} Minuten bis zur Messung. Die Ware ist abzuwerten.",
       "transportKuehlkette": "Grenzwert überschritten: Die Transporttemperatur lag über 8 Grad. Die Ware ist abzuwerten.",
@@ -1115,7 +1053,7 @@
     "titel": "Behandlung erfassen",
     "lead": "Die Wartezeit kommt aus dem Mittelkatalog - der Reihenblock wird automatisch gesperrt.",
     "erfassen": "Behandlung erfassen",
-    "hinweis": "Die Sperre wird von einem Datenbank-Trigger gesetzt und lässt sich nicht per Statuswechsel umgehen. Erst nach Ablauf der Wartezeit erscheint die Schaltfläche zur Freigabe.",
+    "hinweis": "Die Sperre setzt sich mit der Behandlung selbst und lässt sich über die Oberfläche nicht aufheben. Erst nach Ablauf der Wartezeit erscheint die Schaltfläche zur Freigabe.",
     "feld": {
       "block": "Reihenblock",
       "mittel": "Pflanzenschutzmittel",
@@ -1142,24 +1080,7 @@
       "nachbarbetrieb": "Nachbarbetrieb"
     },
     "blocksShort": "Blöcke",
-    "note": "Die Feldkarte mit eindeutiger Reihen- und Blockkennung entlang der Spaliere ist die Basis für Rotationsplan, Ernteerfassung und Deckungsbeitrag."
-  },
-  "pflanzenschutzDemo": {
-    "ruleTitle": "Harte Rechtsregel",
-    "ruleLead": "Nach einer Pflanzenschutzbehandlung ist die Ernte je Reihenblock bis Ablauf der mittelspezifischen Wartezeit gesperrt. Ein Verstoß ist ein Rechtsrisiko, kein Komfortthema.",
-    "activeTitle": "Aktive Wartezeitsperren",
-    "activeLead": "Reihenblöcke mit laufender Wartezeit. Freigabe automatisch bei Fristablauf.",
-    "col": {
-      "block": "Reihenblock",
-      "mittel": "Mittel",
-      "behandelt": "Behandelt am",
-      "wartezeit": "Wartezeit",
-      "freigabe": "Frei ab",
-      "status": "Status"
-    },
-    "days": "Tage",
-    "locked": "gesperrt",
-    "note": "Weil jeder Block alle zwei bis drei Tage abgepflückt wird, während der Bestand weiter behandelt werden muss, kann ein Block versehentlich innerhalb der Wartezeit geerntet werden. Genau das verhindert die automatische Sperre."
+    "note": "Jede Reihe und jeder Block entlang der Spaliere trägt eine eindeutige Kennung. Auf sie beziehen sich Pflückplan, Erntemengen und Abrechnung."
   },
   "rollenDemo": {
     "rolesTitle": "Sieben Kernrollen",
@@ -1170,10 +1091,6 @@
     "matrixNote": "Vollständige Matrix über alle Ressourcen und Aktionen. Die Zugriffsregeln auf Datenbankebene werden je Ressource einzeln geschrieben.",
     "note": "Identitäten und Rollen liegen quer über allen vier Bereichen - zusammen mit Protokollierung, Verschlüsselung und Mehrfaktor-Authentifizierung.",
     "level": "Stufe",
-    "catiRole": {
-      "keine": "keine Entsprechung - neu ab Anforderung 7.1",
-      "label": "Vorsystem 1Çatı"
-    },
     "scopeWert": {
       "betrieb": "Betrieb",
       "plantage": "Plantage",
@@ -1187,7 +1104,7 @@
   },
   "finanzenAnsicht": {
     "uebersichtTitel": "Deckungsbeitrag auf einen Blick",
-    "uebersichtLead": "Summe über alle Kostenträger und Buchungen. Erlöse und Kosten kommen aus dem unveränderlichen Finanzjournal (Anforderung 4.1).",
+    "uebersichtLead": "Summe über alle Kostenträger und Buchungen. Erlöse und Kosten kommen aus dem unveränderlichen Finanzjournal.",
     "stat": {
       "erloes": "Erlöse gesamt",
       "kosten": "Kosten gesamt",
@@ -1219,9 +1136,9 @@
       "betrag": "Betrag"
     },
     "ledgerTitel": "Buchungen",
-    "ledgerLead": "Append-only: eine falsche Buchung wird durch eine Gegenbuchung korrigiert, nicht durch Ändern der ersten.",
+    "ledgerLead": "Eine falsche Buchung wird durch eine Gegenbuchung korrigiert, nicht durch Ändern der ersten.",
     "keineBuchungen": "Noch keine Buchung erfasst.",
-    "note": "Der Deckungsbeitrag je Kilogramm ist die zentrale Steuerungsgröße (Kennzahl \"deckungsbeitrag\"). Er entsteht je Reihenblock, Sorte, Erntetag und Kunde - nicht erst am Jahresende. Buchungen sind unveränderlich; die Datenbank verweigert UPDATE und DELETE auf dem Finanzjournal unabhängig von der Oberfläche.",
+    "note": "Der Deckungsbeitrag je Kilogramm ist die zentrale Steuerungsgröße. Er entsteht je Reihenblock, Sorte, Erntetag und Kunde - nicht erst am Jahresende.",
     "formular": {
       "kostentraeger": {
         "titel": "Neuen Kostenträger anlegen",
@@ -1252,28 +1169,6 @@
         "knopf": "Buchung erfassen"
       }
     }
-  },
-  "personalDemo": {
-    "brigadenTitle": "Brigaden",
-    "brigadenLead": "Brigadenplanung mit Schichten und Reserveliste über die gesamte Erntestrecke.",
-    "foreman": "Vorarbeiter",
-    "people": "Personen",
-    "pflueckerTitle": "Pflückerstamm",
-    "pflueckerLead": "Personenstamm mit Pflückerausweis, ЕСУТД-Erfassung je Vertrag, Leistungs- und Qualitätsfaktor je Person.",
-    "col": {
-      "name": "Name",
-      "brigade": "Brigade",
-      "ausweis": "Ausweis",
-      "esutd": "ЕСУТД",
-      "leistung": "Leistung",
-      "qfaktor": "Q-Faktor"
-    },
-    "esutd": {
-      "erfasst": "erfasst",
-      "offen": "offen"
-    },
-    "days": "Tage",
-    "note": "Die Bindung des Kernstamms ist wichtiger als die Rekrutierung: Jede Neueinarbeitung mitten in der Saison kostet Menge und Qualität."
   },
   "dokumenteDemo": {
     "listTitle": "Dokumente",
@@ -1529,29 +1424,6 @@
       "s-kweli": "Aug - Sep"
     }
   },
-  "schulungenDemo": {
-    "libraryTitle": "Videobibliothek",
-    "libraryLead": "Mehrsprachige, bildbasierte Kurzeinarbeitung der Saisonkräfte auf dem Telefon.",
-    "col": {
-      "titel": "Titel",
-      "thema": "Thema",
-      "dauer": "Dauer",
-      "sprachen": "Sprachen"
-    },
-    "note": "Kurzeinarbeitung als geführte Checkliste auf dem Telefon, mehrsprachig, mit Bildern statt Text - je Kernprozess ein kurzes Video.",
-    "video": {
-      "v-01": "Richtig pflücken - reife Frucht erkennen",
-      "v-02": "Steige befuellen und QR-Etikett scannen",
-      "v-03": "Die Stunde nach dem Pflücken - Kühlkette",
-      "v-04": "Hygiene und Handschuhe"
-    },
-    "thema": {
-      "ernte": "Ernte",
-      "feld": "Feld",
-      "hof": "Hof",
-      "qualitaet": "Qualität"
-    }
-  },
   "kuehlketteAnsicht": {
     "offeneTitel": "Offene Chargen auf der Uhr",
     "offeneLead": "Zeit seit dem Pflücken gegen die 60-Minuten-Grenze, live mitzählend je Charge.",
@@ -1610,12 +1482,6 @@
     "anlegenLead": "Typ und Bezeichnung sind Pflicht, der Wert kann später nachgetragen werden.",
     "anlegenKnopf": "Anlegen",
     "note": "Reine Anzeige, keine Anbindung an einen echten Messenger- oder Zahlungsdienst. Ein Kanal erscheint auf der Website erst, wenn ein echter Wert eingetragen und \"aktiv\" gesetzt ist."
-  },
-  "qrSteigenMock": {
-    "scanTitle": "Scan am Ausgabepunkt (Mock)",
-    "scanLead": "QR-Etikett je Steige, Scan beim Abgeben. Menge, Reihenblock, Uhrzeit und Person in einem Vorgang - hier ohne echten Server-Abgleich.",
-    "simulateScan": "Scan simulieren",
-    "registered": "erfasst"
   },
   "haustier": {
     "label": {
@@ -1687,7 +1553,7 @@
       "titel": "DamiAI, dein Begleiter",
       "text": "Zeigt in der Ecke, was der Agent gerade tut, auch wenn der Chat geschlossen ist. Zum Wegschicken auf DamiAI gedrückt halten, die Spitze am unteren Rand holt sie zurück. Hier ausgeschaltet bleibt DamiAI ganz weg.",
       "bewegungTitel": "Bewegung",
-      "bewegungText": "Aus heisst: DamiAI bleibt da, steht aber still. Wer das Betriebssystem schon auf weniger Bewegung gestellt hat, braucht diesen Schalter nicht.",
+      "bewegungText": "Aus heißt: DamiAI bleibt da, steht aber still. Wer das Betriebssystem schon auf weniger Bewegung gestellt hat, braucht diesen Schalter nicht.",
       "zustandTitel": "Zustand",
       "stimmungTitel": "Miene",
       "trachtTitel": "Tracht",
@@ -2040,12 +1906,6 @@
     "privacyScopeText": "Der Prototyp verarbeitet keine personenbezogenen Daten. Es werden keine Cookies zu Analysezwecken gesetzt. Die Design-Auswahl (hell/dunkel) und die Demo-Rolle werden nur lokal im Browser gespeichert.",
     "residencyTitle": "Datenresidenz (geplanter Betrieb)",
     "residencyText": "Für den späteren Realbetrieb schränkt der kasachstanische Digitalkodex Nr. 255-VIII die Speicherung bestimmter Datenprodukte außerhalb Kasachstans ein. Der Hosting-Standort für QR-, Offline-Sync- und KI-Architektur wird vor Produktivsetzung rechtlich geprüft."
-  },
-  "kpiHerkunft": {
-    "berechenbar": "heute messbar",
-    "erfassung-fehlt": "Erfassung fehlt",
-    "tabelle-fehlt": "Funktion fehlt",
-    "rechtlich-ungeklaert": "rechtlich ungeklärt"
   },
   "nachweiskette": {
     "titel": "Nachweiskette",
@@ -2860,7 +2720,7 @@
       "erfasst": "erfasst",
       "offen": "offen"
     },
-    "note": "Bedarfsrechnung und Schichtplan stammen direkt aus dem Rotationsplan (welcher Reihenblock an welchem Tag geerntet werden muss). Wetterszenarien sind bewusst nicht Teil dieser Ansicht - die Wetteranbindung (Anforderung 2.13) ist zurückgestellt."
+    "note": "Bedarfsrechnung und Schichtplan stammen direkt aus dem Rotationsplan (welcher Reihenblock an welchem Tag geerntet werden muss). Wetterszenarien sind nicht Teil dieser Ansicht - die Temperatursumme steht im Wetter-Modul."
   },
   "erlebnis": {
     "bento": {
@@ -3033,7 +2893,7 @@
   "pflanzenschutzProtokoll": {
     "titel": "Behandlungen und Wartezeiten",
     "lead": "Jede erfasste Pflanzenschutzbehandlung mit Aufwandmenge, ausführender Person und Wartezeit. Erfasst und freigegeben wird am Reihenblock.",
-    "note": "Der Protokoll-Upload ist noch nicht gebaut: die Spalte für das Protokolldokument bleibt vorerst leer.",
+    "note": "Das Protokolldokument wird noch nicht mitgeführt: die Spalte bleibt vorerst leer.",
     "wartezeitTage": "{tage} Tage",
     "stat": {
       "gesamt": "Behandlungen",

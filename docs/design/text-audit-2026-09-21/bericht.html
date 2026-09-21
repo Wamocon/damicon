@@ -1,0 +1,669 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Textprüfung Damicon-Portal</title><style>
+:root{--anthrazit:#101010;--rot:#F40E0E;--rottext:#D40000;--linie:#545454;--zeile:#F4F4F4;--text:#3C3C3C;--kopf:#6B6B6B;--hell:#C8C8C8;--rothell:#FBEAEA;--gitter:#D6D6D6;--mittel:#8D8D8D;--weiss:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--weiss);color:var(--text);font:15px/1.55 "Segoe UI",system-ui,-apple-system,sans-serif}
+a{color:var(--rottext)} code,.mono{font-family:Consolas,ui-monospace,monospace;font-size:.92em}
+.deckblatt{background:var(--anthrazit);color:var(--weiss);padding:56px 16px 40px}
+.deckblatt .innen,.inhalt{max-width:1080px;margin:0 auto}
+.deckblatt .marke-wmc{font-weight:700;letter-spacing:.14em;font-size:13px}
+.deckblatt .marke-wmc span{color:var(--rot)}
+.deckblatt h1{font-size:clamp(28px,5vw,44px);line-height:1.15;margin:28px 0 10px;font-weight:700}
+.deckblatt .unter{font-size:18px;color:var(--hell);max-width:60ch}
+.deckblatt .balken{height:6px;width:96px;background:var(--rot);margin:26px 0}
+.deckblatt dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 18px;font-size:14px;color:var(--hell);margin:0}
+.deckblatt dt{color:var(--weiss);font-weight:600}
+nav.toc{border-bottom:1px solid var(--linie);padding:14px 16px;position:sticky;top:0;background:var(--weiss);z-index:2}
+nav.toc .inhalt{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13.5px;padding:0}
+section,article{scroll-margin-top:72px}
+nav.toc a{color:var(--anthrazit);text-decoration:none;font-weight:600}
+nav.toc a:hover{color:var(--rottext)}
+.inhalt{padding:0 16px 64px}
+h2{color:var(--anthrazit);font-size:26px;margin:48px 0 14px;padding-top:10px;border-top:3px solid var(--anthrazit)}
+h2::before{content:"";display:inline-block;width:10px;height:10px;background:var(--rot);margin-right:10px;vertical-align:middle}
+h3{color:var(--anthrazit);font-size:18px;margin:28px 0 8px}
+h4{color:var(--anthrazit);font-size:15.5px;margin:22px 0 6px}
+h5{color:var(--anthrazit);font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin:14px 0 4px;font-weight:700}
+.fid{display:inline-block;background:var(--rottext);color:#fff;font-size:13px;padding:1px 8px;margin-right:6px;border-radius:2px}
+.fid.erledigt{background:#1E6B3A}
+.antwort{background:var(--zeile);border-left:4px solid var(--anthrazit);padding:10px 14px;margin:10px 0}
+.antwort b{color:var(--anthrazit)}
+.antwort ul{margin:6px 0 0;padding-left:20px}
+table{width:100%;border-collapse:collapse;border-top:1.5px solid var(--linie);border-bottom:1.5px solid var(--linie);margin:10px 0 18px;font-size:14px}
+th{background:var(--anthrazit);color:#fff;text-align:left;font-weight:600;padding:8px 10px}
+td{padding:8px 10px;border-top:1px solid var(--gitter);vertical-align:top}
+tbody tr:nth-child(even){background:var(--zeile)}
+.klein{font-size:12.5px;color:var(--kopf)}
+.marke{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:2px;white-space:nowrap}
+.marke.ok{background:#E8F3EC;color:#1E6B3A}
+.marke.rot{background:var(--rothell);color:var(--rottext)}
+.marke.mittel{background:#F1F1F1;color:#4A4A4A;border:1px solid var(--mittel)}
+.marke.grau{background:#fff;color:var(--kopf);border:1px solid var(--hell)}
+ul,ol{margin:6px 0 10px;padding-left:20px}
+li{margin:3px 0}
+li code{background:var(--zeile);padding:0 3px}
+blockquote{margin:6px 0;padding:6px 10px;border-left:3px solid var(--hell);font-size:13px;color:#2a2a2a;background:#fff}
+.scroll{overflow-x:auto}
+figure{margin:16px 0 22px}
+figure img{width:100%;height:auto;border:1px solid var(--gitter);display:block}
+figcaption{font-size:12.5px;color:var(--kopf);margin-top:6px}
+.kacheln{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0 22px}
+.kachel{border-top:4px solid var(--anthrazit);background:var(--zeile);padding:12px 14px}
+.kachel .zahl{font-size:26px;font-weight:700;color:var(--anthrazit);line-height:1.1}
+.kachel .was{font-size:12.5px;color:var(--kopf);margin-top:4px}
+.kachel.rot{border-top-color:var(--rot)}
+footer{border-top:1px solid var(--linie);padding:16px;font-size:12.5px;color:var(--kopf)}
+footer .inhalt{padding:0}
+@media (max-width:700px){table,thead,tbody,tr,td,th{font-size:13px}}
+@media print{nav.toc{position:static}.deckblatt{-webkit-print-color-adjust:exact;print-color-adjust:exact}h2{break-before:page}}
+</style></head><body>
+
+<header class="deckblatt"><div class="innen"><div class="marke-wmc">WAMOCON<span>.</span></div>
+<h1>Textprüfung Damicon-Portal</h1>
+<div class="balken"></div>
+<p class="unter">Sagen die Texte im Portal etwas über den Betrieb, oder sagen sie etwas über das Projekt, das das Portal baut?</p>
+<dl>
+<dt>Stand</dt><dd>21.09.2026</dd>
+<dt>Branch</dt><dd>ui/karten-und-feinschliff, Basis main bda9cb7</dd>
+<dt>Verfahren</dt><dd>Sprachkatalog vollständig gelesen, Fundstellen im Quelltext nachverfolgt, laufendes Portal in zwei Rollen bedient</dd>
+<dt>Umfang</dt><dd>16 Befunde: 2 sehr hoch, 4 hoch, 5 mittel, 5 niedrig — davon 2 sachliche Fehler</dd>
+</dl>
+</div></header>
+
+<nav class="toc"><div class="inhalt">
+<a href="#verfahren">Verfahren</a>
+<a href="#ueberblick">Überblick</a>
+<a href="#projektstatus">1 Projektstatus</a>
+<a href="#widersprueche">2 Widersprüche</a>
+<a href="#referenzen">3 Interne Referenzen</a>
+<a href="#sprache">4 Sprache</a>
+<a href="#toter-text">5 Toter Text</a>
+<a href="#traegt">6 Was trägt</a>
+<a href="#reihenfolge">7 Reihenfolge</a>
+</div></nav>
+
+<main class="inhalt">
+
+<section id="verfahren">
+<h2>Verfahren und Geltungsbereich</h2>
+
+<p>Anlass war die Frage, ob im Portal Texte stehen, die den Projekt- oder Entwicklungsfortschritt beschreiben statt den Betrieb. Geprüft wurde der Sprachkatalog vollständig und die laufende Anwendung im Browser, nicht der Quelltext allein.</p>
+
+<h3>Was gemacht wurde</h3>
+<ul>
+<li><code>src/messages/de.json</code> vollständig gelesen: 2385 Textbausteine, einzeln eingeordnet</li>
+<li>Jede Fundstelle im Quelltext nachverfolgt, um gerenderten Text von totem Text zu trennen</li>
+<li>Laufendes Portal unter <code>localhost:3000</code> gegen die gehostete Supabase-Instanz bedient, angemeldet als Betriebsleitung und als Pflücker</li>
+<li>Gegenprobe in <code>en.json</code>, <code>ru.json</code> und <code>kk.json</code>: jeder hier genannte Text steht in allen vier Sprachen</li>
+<li>Belege als Bildschirmfotos aus dem laufenden Programm, nicht aus Entwürfen</li>
+</ul>
+
+<h3>Woran die Texte gemessen wurden</h3>
+<p>Ein Text im Portal ist dann am richtigen Platz, wenn er die Frage beantwortet, die an dieser Stelle ansteht. Auf einer Modulseite lautet sie: Was kann ich hier tun? An einer Kennzahl: Woher kommt diese Zahl und wie aktuell ist sie? An einem Formular: Was passiert, wenn ich speichere? Texte, die stattdessen den Bauzustand, die Begründung des Projekts oder die technische Umsetzung erklären, sind hier als Befund erfasst.</p>
+
+<h3>Nicht geprüft</h3>
+<ul>
+<li>Die öffentliche Website im Detail — dort sind Prototyp-Hinweise gewollt, siehe TX-16</li>
+<li>Die Texte des KI-Assistenten im Gesprächsverlauf</li>
+<li>Die PDF-Ausgabe der Prüfung</li>
+<li>Rechtschreibung und Grammatik über den einen unter TX-15 genannten Fall hinaus</li>
+<li>Die Sprachfassungen inhaltlich — nur geprüft, ob die beanstandeten Texte dort ebenfalls stehen</li>
+</ul>
+</section>
+
+<section id="ueberblick">
+<h2>Überblick</h2>
+
+<p>Im Portal liegen zwei Textschichten übereinander. Die operative Schicht ist sachlich und am Betrieb ausgerichtet; sie bleibt und ist unter Abschnitt 6 beschrieben. Darüber liegt eine zweite Schicht, die den Bauzustand des Projekts beschreibt. Sie steht nicht am Rand, sondern auf der Startseite, auf jeder Bereichsseite und im Kopf jeder Modulseite, und sie ist für alle Rollen sichtbar.</p>
+
+<div class="kacheln">
+<div class="kachel"><div class="zahl">2385</div><div class="was">geprüfte Textbausteine im deutschen Katalog</div></div>
+<div class="kachel rot"><div class="zahl">236</div><div class="was">übersetzte Zeichenketten der Projektschicht, 59 je Sprache</div></div>
+<div class="kachel rot"><div class="zahl">2</div><div class="was">sachliche Fehler: Texte, die dem Funktionsstand widersprechen</div></div>
+<div class="kachel"><div class="zahl">24 / 26</div><div class="was">Module tragen dieselbe Statuspille „Datenbank angebunden“</div></div>
+<div class="kachel"><div class="zahl">136</div><div class="was">übersetzte Zeichenketten ohne Fundstelle im Quelltext</div></div>
+<div class="kachel"><div class="zahl">4</div><div class="was">Sprachen, in die jeder beanstandete Text übersetzt ist</div></div>
+</div>
+
+<p>Die Spalte Gewicht bewertet, was der Befund für den Benutzer bedeutet. <b>Sehr hoch</b> heißt, der Text steht prominent und ist für keine Rolle verwertbar. <b>Hoch</b> heißt, der Text führt in die Irre oder ist nachweislich falsch. Mittel und niedrig betreffen Ballast und Feinschliff.</p>
+
+<div class="scroll"><table>
+<thead><tr><th>ID</th><th>Befund</th><th>Ansicht</th><th>Wer sieht es</th><th>Gewicht</th></tr></thead>
+<tbody>
+<tr><td class="mono">TX-01</td><td>Der Portalstart endet in einem Projektplan</td><td>Startseite</td><td>alle Rollen</td><td><span class="marke rot">sehr hoch</span></td></tr>
+<tr><td class="mono">TX-02</td><td>Die Kennzahlen-Sektion erklärt den Bauzustand statt den Betrieb</td><td>Startseite</td><td>alle Rollen</td><td><span class="marke rot">sehr hoch</span></td></tr>
+<tr><td class="mono">TX-03</td><td>„Übernehmen / Anpassen / Neu bauen“ auf jeder Modulkarte</td><td>Bereichs- und Modulseiten</td><td>alle Rollen</td><td><span class="marke mittel">hoch</span></td></tr>
+<tr><td class="mono">TX-04</td><td>Widerspruch zwischen Modulbeschreibung und Statuspille</td><td>ЭСФ, Integrationen</td><td>alle Rollen</td><td><span class="marke mittel">hoch</span> <span class="marke rot">Fehler</span></td></tr>
+<tr><td class="mono">TX-05</td><td>Drei Modulseiten widersprechen sich über die Wetteranbindung</td><td>Feld, Büro</td><td>alle Rollen</td><td><span class="marke mittel">hoch</span> <span class="marke rot">Fehler</span></td></tr>
+<tr><td class="mono">TX-06</td><td>Anforderungsnummern und eine Jira-Kennung im sichtbaren Text</td><td>fünf Stellen</td><td>alle Rollen</td><td><span class="marke mittel">hoch</span></td></tr>
+<tr><td class="mono">TX-07</td><td>Die Seiten der zwei unfertigen Module sind Projektsteckbriefe</td><td>ЭСФ, Integrationen</td><td>alle Rollen</td><td><span class="marke grau">mittel</span></td></tr>
+<tr><td class="mono">TX-08</td><td>„Meilenstein B“ ist seit dem 19.09. überfällig</td><td>Startseite, Modulseiten</td><td>alle Rollen</td><td><span class="marke grau">mittel</span></td></tr>
+<tr><td class="mono">TX-09</td><td>„Datenbank angebunden“ steht auf 24 von 26 Karten</td><td>Bereichs- und Modulseiten</td><td>alle Rollen</td><td><span class="marke grau">mittel</span></td></tr>
+<tr><td class="mono">TX-10</td><td>Konzeptsätze als Modulbeschreibung</td><td>Bereichsseiten</td><td>alle Rollen</td><td><span class="marke grau">mittel</span></td></tr>
+<tr><td class="mono">TX-11</td><td>Technik statt Sache in Hinweisen und Fehlermeldungen</td><td>mehrere Module</td><td>alle Rollen</td><td><span class="marke grau">mittel</span></td></tr>
+<tr><td class="mono">TX-12</td><td>Beschreibung und „Geplanter Umfang“ sagen dasselbe</td><td>Büro, Markt</td><td>alle Rollen</td><td><span class="marke grau">niedrig</span></td></tr>
+<tr><td class="mono">TX-13</td><td>Der Begleiter bietet Hilfe auf leeren Seiten an</td><td>Platzhalterseiten</td><td>alle Rollen</td><td><span class="marke grau">niedrig</span></td></tr>
+<tr><td class="mono">TX-14</td><td>136 übersetzte Zeichenketten werden nie gerendert</td><td>Katalog</td><td>niemand</td><td><span class="marke grau">niedrig</span></td></tr>
+<tr><td class="mono">TX-15</td><td>„Qualitaetssortierung“ ohne Umlaut</td><td>Startseite</td><td>Büro</td><td><span class="marke grau">niedrig</span></td></tr>
+<tr><td class="mono">TX-16</td><td>Die öffentliche Seite meldet „0 als bedienbare Demo“</td><td>Landing, FAQ</td><td>Besucher</td><td><span class="marke grau">niedrig</span></td></tr>
+</tbody></table></div>
+</section>
+
+<section id="projektstatus">
+<h2>1 Projektstatus im Portal</h2>
+
+<p>Sechs Befunde, die denselben Ursprung haben: Angaben aus Projektplanung und Migrationsanalyse sind in die Oberfläche gewandert und dort geblieben. Sie beantworten keine Frage, die im Betrieb ansteht.</p>
+
+<figure>
+<img src="portalstart-pfluecker.png" alt="Portal-Startseite, angemeldet als Pflücker: Über der Meilensteinliste stehen eine leere Kennzahlen-Sektion und zwei leere Zonenkarten.">
+<figcaption>Startseite als Pflücker, 1280 px. Die Überschrift nennt 14 Kennzahlen, darunter steht keine einzige. Zwei der vier Zonenkarten sind leer. Darunter beginnt der Projektplan.</figcaption>
+</figure>
+
+<article>
+<h4><span class="fid">TX-01</span>Der Portalstart endet in einem Projektplan</h4>
+
+<h5>Was dort steht</h5>
+<ul>
+<li>Unter den Kennzahlen und den vier Zonen folgt auf <code>/dashboard</code> ein Abschnitt „Meilensteine der internen Vorbereitung“ mit zwei Karten.</li>
+<li>Meilenstein A, grüne Pille „bis 06.09.2026“, listet unter anderem „Design-Token-Umstellung auf die Palette ‚Kök &amp; Altyn‘“ und „Landingpage mit Platzhaltertexten und -bildern“.</li>
+<li>Meilenstein B, Pille „spätestens 19.09.2026“, listet sieben Arbeitspakete.</li>
+<li>Schlusssatz: „Alle Hauptfunktionen sind an die Datenbank angebunden: Anmeldung, Rollenrechte über Row Level Security, …“</li>
+</ul>
+
+<h5>Wer es sieht</h5>
+<ul>
+<li>Alle Rollen. Der Abschnitt ist an keine Berechtigung gebunden.</li>
+<li>Ein Pflücker bekommt ihn auf dem Telefon genauso wie die Administration.</li>
+</ul>
+
+<h5>Warum es stört</h5>
+<ul>
+<li>„Row Level Security“ und „Design-Token“ sind keine Begriffe aus dem Himbeeranbau.</li>
+<li>Der Fortschritt eines Softwareprojekts ist keine Information, mit der sich eine Schicht planen lässt.</li>
+<li>„Landingpage mit Platzhaltertexten und -bildern“ sagt dem Kunden im eigenen Produkt, dass die Website mit Platzhaltern gefüllt ist.</li>
+<li>„Meilensteine der internen Vorbereitung“ macht den Leser zum Außenstehenden eines Projekts, das er bezahlt.</li>
+</ul>
+
+<p class="klein">Fundstelle: <code>src/components/dashboard/home.tsx:311-354</code>, Texte in <code>src/messages/de.json:339-360</code>.</p>
+
+<div class="antwort"><b>Lösungsansatz:</b>
+<ul>
+<li>Abschnitt aus dem Portal entfernen.</li>
+<li>Entweder in einen Bereich verschieben, den nur <code>admin</code> sieht, oder auf die öffentliche Seite, wo die Prototyp-Sprache ohnehin steht.</li>
+<li>Ersparnis: 18 Textbausteine je Sprache, 72 insgesamt.</li>
+</ul></div>
+</article>
+
+<article>
+<h4><span class="fid">TX-02</span>Die Kennzahlen-Sektion erklärt den Bauzustand statt den Betrieb</h4>
+
+<h5>Was dort steht</h5>
+<ul>
+<li>Überschrift „14 Baseline-Kennzahlen“, darunter „Werden am 01.10.2026 mit dem Kunden als Baseline unterschrieben.“</li>
+<li>Zählzeile für die Betriebsleitung: „8 aus echten Daten gerechnet · 6 warten auf die Funktion dahinter“.</li>
+<li>Zählzeile für den Pflücker: „0 heute messbar · 0 Erfassung fehlt · 0 Funktion fehlt · 0 rechtlich ungeklärt“, gefolgt von der Überschrift „14 Baseline-Kennzahlen“ ohne eine einzige Kachel darunter.</li>
+<li>Rechts zwei Pillen nebeneinander: „Live-Daten“ und „Platzhalterwerte“.</li>
+<li>Am Fuß jeder Kachel ein Bauzustand statt eines Datenstands: „Funktion fehlt“, „Erfassung fehlt“, „heute messbar“.</li>
+<li>Im Kurzhinweis jeder Kachel steht, was dafür noch gebaut werden muss (<code>kpis.*.braucht</code>).</li>
+</ul>
+
+<h5>Warum es stört</h5>
+<ul>
+<li>Der Leser ist der Kunde. Das Portal spricht über ihn in der dritten Person.</li>
+<li>„Platzhalterwerte“ ist fest verdrahtet und erscheint auch dann, wenn acht Kennzahlen aus echten Datensätzen gerechnet sind. Die beiden Pillen widersprechen sich.</li>
+<li>Beim Pflücker verspricht die Überschrift 14 Kennzahlen und liefert keine.</li>
+<li>Der Kurzhinweis ist Aufgabenliste an der Stelle, an der ein Nutzer fragt: Ist diese Zahl von heute?</li>
+</ul>
+
+<p class="klein">Fundstelle: <code>src/components/dashboard/home.tsx:166-199</code>, feste Pille in <code>home.tsx:186</code>, Texte in <code>src/messages/de.json:329-331, 361-364, 1995-1998</code>.</p>
+
+<div class="antwort"><b>Lösungsansatz:</b>
+<ul>
+<li>Fußzeile der Kacheln umstellen: nicht „Funktion fehlt“, sondern „noch keine Daten“ oder ein Datenstand wie „Stand: heute, 14:20“.</li>
+<li>Die Pille „Platzhalterwerte“ an den Einzelwert koppeln statt an die Sektion.</li>
+<li>Die Zählzeile über den Bauzustand streichen.</li>
+</ul></div>
+</article>
+
+<figure>
+<img src="bereichsseite-hof.png" alt="Bereichsseite Hof: Vier Modulkarten, jede mit der Pille „Datenbank angebunden“ oben rechts und einer Pille „Neu bauen“ oder „Anpassen“ unten links, gegenüber dem Verweis „Öffnen“.">
+<figcaption>Bereichsseite Hof, 1280 px. Oben rechts der Reifegrad, unten links die Einstufung aus der Migrationsanalyse, gegenüber der einzige echte Verweis der Karte.</figcaption>
+</figure>
+
+<article>
+<h4><span class="fid">TX-03</span>„Übernehmen / Anpassen / Neu bauen“ auf jeder Modulkarte</h4>
+
+<h5>Was dort steht</h5>
+<ul>
+<li>Jede Modulkarte auf einer Bereichsseite und jeder Modulseitenkopf trägt eine Pille mit einem dieser drei Wörter.</li>
+<li>Verteilung über die 26 Module: 13-mal „Anpassen“, 9-mal „Neu bauen“, 4-mal „Übernehmen“.</li>
+</ul>
+
+<h5>Warum es stört</h5>
+<ul>
+<li>Die Wörter stammen aus der Migrationsanalyse und beantworten, ob eine Funktion vom Altsystem übernommen, angepasst oder neu gebaut werden sollte. Für den Betrieb ist das folgenlos.</li>
+<li>Auf der Bereichsseite steht die Pille unten links, direkt gegenüber dem Verweis „Öffnen →“. Zwei Verben nebeneinander, eines davon ausführbar.</li>
+<li>„Neu bauen“ und „Anpassen“ lesen sich dort als Schaltflächen. Wer darauf klickt, landet im Modul, weil die ganze Karte ein Verweis ist, und wird den Zusammenhang nicht verstehen.</li>
+</ul>
+
+<p class="klein">Fundstelle: <code>src/components/dashboard/module-meta.tsx:15-18</code>, Texte in <code>src/messages/de.json:397-399</code>.</p>
+
+<div class="antwort"><b>Lösungsansatz:</b> Pille ersatzlos entfernen. Die Einstufung gehört in die Projektunterlagen, nicht auf die Karte.</div>
+</article>
+
+<figure>
+<img src="modulseite-lieferschein-esf.png" alt="Modulseite Elektronischer Lieferschein: Die Beschreibung nennt das System als angebunden, daneben steht die Pille „In Entwicklung“. Die Karte darunter zeigt Geplanter Umfang, Einstufung und Meilenstein.">
+<figcaption>Modulseite ЭСФ, 1280 px. Drei Aussagen auf einem Bildschirm: angebunden, in Entwicklung, Anbindung geplant. Unten rechts fragt der Begleiter, was man hier tun kann.</figcaption>
+</figure>
+
+<article>
+<h4><span class="fid">TX-07</span>Die Seiten der zwei unfertigen Module sind Projektsteckbriefe</h4>
+
+<h5>Was dort steht</h5>
+<ul>
+<li>Wer <code>/dashboard/hof/lieferschein-esf</code> oder <code>/dashboard/buero/integrationen</code> öffnet, bekommt eine Karte mit der Überschrift „Unterfunktion – in Entwicklung“.</li>
+<li>Darunter drei Felder: „Geplanter Umfang“, „Einstufung“, „Meilenstein“.</li>
+</ul>
+
+<h5>Warum es stört</h5>
+<ul>
+<li>„Unterfunktion“ ist ein Begriff aus der Projektgliederung. Für den Nutzer ist es ein Menüpunkt wie jeder andere, und er wurde nicht als untergeordnet angekündigt.</li>
+<li>„Einstufung“ wiederholt nur die Pille aus TX-03.</li>
+<li>„Meilenstein“ trägt auf beiden Seiten denselben fest verdrahteten Text und hängt an keinem Modul.</li>
+</ul>
+
+<p class="klein">Fundstelle: <code>src/components/dashboard/module-meta.tsx:43-93</code>, Texte in <code>src/messages/de.json:407-411</code>.</p>
+
+<div class="antwort"><b>Lösungsansatz:</b> Karte auf einen Satz reduzieren — was das Modul können wird und dass es noch nicht verfügbar ist. Die drei Felder entfallen.</div>
+</article>
+
+<article>
+<h4><span class="fid">TX-08</span>„Meilenstein B“ ist seit dem 19.09. überfällig</h4>
+
+<h5>Was dort steht</h5>
+<ul>
+<li>Auf beiden Platzhalterseiten unter „Meilenstein“: „Meilenstein B und folgende Ausbaustufen“.</li>
+<li>Auf der Startseite das Fälligkeitsdatum dieses Meilensteins: „spätestens 19.09.2026“, in grüner Pille, als sei er erreicht.</li>
+</ul>
+
+<h5>Warum es stört</h5>
+<ul>
+<li>Stand dieses Berichts ist der 21.09.2026. Das Portal verspricht zwei Funktionen für einen Termin, der zwei Tage zurückliegt.</li>
+<li>Jedes datumsgebundene Versprechen in der Oberfläche altert so, und niemand wird es pflegen.</li>
+</ul>
+
+<p class="klein">Fundstelle: <code>src/messages/de.json:411</code> und <code>:350</code>.</p>
+
+<div class="antwort"><b>Lösungsansatz:</b> Datumsangaben aus der Oberfläche nehmen, nicht aktualisieren. Ein Datum in einem Katalog, den vier Sprachen tragen, wird nie nachgezogen.</div>
+</article>
+
+<article>
+<h4><span class="fid">TX-09</span>„Datenbank angebunden“ steht auf 24 von 26 Karten</h4>
+
+<h5>Verteilung der drei Werte</h5>
+<ul>
+<li>„angebunden“: 24 Module</li>
+<li>„in-entwicklung“: 2 Module</li>
+<li>„demo“: kommt in <code>src/lib/modules.ts</code> überhaupt nicht mehr vor</li>
+</ul>
+
+<h5>Warum es stört</h5>
+<ul>
+<li>Eine Pille, die auf 92 Prozent der Karten dasselbe sagt, ist Dekoration. Sie kostet auf jeder Karte Platz und lenkt den Blick vom Modulnamen weg.</li>
+<li>Dasselbe gilt für die Zählpillen auf den Zonenkarten der Startseite („6 angebunden“, „3 angebunden“). Sie zählen fast immer die Module der Zone, die darüber schon einzeln aufgelistet sind.</li>
+<li>Der Wert „Demo bedienbar“ ist in vier Sprachen übersetzt und wird nie angezeigt. Ebenso der Text „{count} Demo“ auf der Startseite.</li>
+</ul>
+
+<p class="klein">Fundstelle: <code>src/components/dashboard/module-meta.tsx:20-39</code>, Texte in <code>src/messages/de.json:402-404</code>, toter Text in <code>:403</code> und <code>:336</code>.</p>
+
+<div class="antwort"><b>Lösungsansatz:</b>
+<ul>
+<li>Pille nur an den zwei nicht verfügbaren Modulen zeigen, sonst weglassen.</li>
+<li>Den Wert <code>demo</code> aus Typ und Katalog entfernen. Er hängt mit TX-16 zusammen.</li>
+</ul></div>
+</article>
+</section>
+
+<section id="widersprueche">
+<h2>2 Widersprüche zum tatsächlichen Stand</h2>
+
+<p>Diese beiden Befunde sind keine Geschmacksfrage. Vier Texte behaupten etwas, das nachweislich nicht zutrifft. Sie sollten unabhängig von allen anderen Punkten korrigiert werden.</p>
+
+<article>
+<h4><span class="fid">TX-04</span>Widerspruch zwischen Modulbeschreibung und Statuspille</h4>
+
+<h5>Was dort steht</h5>
+<ul>
+<li>Modulseite „Elektronischer Lieferschein (ЭСФ)“: Beschreibung „Angebunden an das staatliche ЭСФ-System, keine eigene Buchhaltung“, daneben die Pille „In Entwicklung“, darunter als geplanter Umfang „Anbindung an das ИС ЭСФ“.</li>
+<li>Modulseite „Staatliche Integrationen“: „Konnektoren zu ЭСФ, virtuellem Lagerbestand, ЕСУТД und den Förderportalen gosagro.kz und qoldau.kz“ im Präsens, daneben „In Entwicklung“.</li>
+</ul>
+
+<h5>Warum es stört</h5>
+<ul>
+<li>Drei Aussagen auf einem Bildschirm: angebunden, in Entwicklung, Anbindung geplant.</li>
+<li>Das sind die beiden einzigen Module mit der Pille „In Entwicklung“. Beide widersprechen ihrer eigenen Beschreibung.</li>
+<li>Bei einer Pflichtintegration gegenüber einer Behörde ist die Aussage „angebunden“ nicht folgenlos.</li>
+</ul>
+
+<p class="klein">Fundstelle: <code>src/messages/de.json:622</code> und <code>:671</code>, Pillen aus <code>src/lib/modules.ts:162-176</code>.</p>
+
+<div class="antwort"><b>Lösungsansatz:</b> Beide Beschreibungen in eine Absichtsform setzen, solange die Anbindung nicht steht. Zwei Sätze, keine strukturelle Änderung.</div>
+</article>
+
+<article>
+<h4><span class="fid">TX-05</span>Drei Modulseiten widersprechen sich über die Wetteranbindung</h4>
+
+<h5>Der tatsächliche Stand</h5>
+<ul>
+<li>Das Wetter-Modul ist angebunden (<code>src/lib/modules.ts:107</code>).</li>
+<li>Es zeigt eine Temperatursumme über 5 °C Basistemperatur und holt die Daten von Open-Meteo.</li>
+<li>Im laufenden Programm unter <code>/de/dashboard/feld/wetter</code> nachgeprüft.</li>
+</ul>
+
+<h5>Was das Portal trotzdem behauptet</h5>
+<ul>
+<li>Am Fuß des Rotationsplans: „die Wetteranbindung (Temperatursummenrechnung) ist selbst noch nicht gebaut“. Falsch, wird live gerendert.</li>
+<li>Am Fuß des Pflückerstamms: „die Wetteranbindung (Anforderung 2.13) ist zurückgestellt“. Falsch, wird live gerendert.</li>
+<li>Im Kopf der Wetterseite: „Bewusst kein maschinelles Lernen in Phase 1 – eine erklärbare Heuristik reicht.“ Eine Entwurfsentscheidung, an einen Gutachter gerichtet.</li>
+<li>Im Pflanzenschutzprotokoll, gleiche Kategorie: „Der Protokoll-Upload ist noch nicht gebaut: die Spalte für das Protokolldokument bleibt vorerst leer.“</li>
+</ul>
+
+<p class="klein">Fundstelle: <code>src/messages/de.json:479</code> (Rotationsplan), <code>:2813</code> (Pflückerstamm), <code>:594</code> (Wetter), <code>:2986</code> (Pflanzenschutzprotokoll).</p>
+
+<div class="antwort"><b>Lösungsansatz:</b>
+<ul>
+<li>Die zwei falschen Wetter-Hinweise streichen oder auf das beziehen, was tatsächlich fehlt: die Auswertung der Temperatursumme im Rotationsplan.</li>
+<li>„Phase 1“ und „bewusst kein maschinelles Lernen“ aus dem Seitenkopf nehmen.</li>
+<li>Der Fall zeigt das Grundproblem: Statusaussagen im Sprachkatalog veralten, weil sie nicht an der Stelle stehen, an der die Funktion gebaut wird.</li>
+</ul></div>
+</article>
+</section>
+
+<section id="referenzen">
+<h2>3 Interne Referenzen in der Oberfläche</h2>
+
+<article>
+<h4><span class="fid">TX-06</span>Anforderungsnummern und eine Jira-Kennung im sichtbaren Text</h4>
+
+<h5>Die Jira-Kennung</h5>
+<ul>
+<li>Kurzhinweis der Kennzahl „Abdeckung der Saisonkräfte in ЕСУТД“: „rechtliche Bestätigung der ЕСУТД-Pflicht über enbek.kz (siehe WMCNL-1447) – Anbindungspunkt benannt, Rechtsprüfung der Pflicht selbst steht noch aus“.</li>
+<li>Die Kennung steht so auch in <code>en.json</code>, <code>ru.json</code> und <code>kk.json</code>.</li>
+<li>Ein Nutzer in Almaty kann dieses Ticket nicht öffnen.</li>
+</ul>
+
+<h5>Anforderungsnummern, sichtbar</h5>
+<ul>
+<li>Sicherheitsseite: „Mehrfaktor-Authentifizierung (Anforderung 4.9)“</li>
+<li>Sicherheitsseite: „ist Pflicht für Anforderung 4.9, ihre Durchsetzung je Rolle ist ein späterer Ausbauschritt“</li>
+<li>Fördermittel: „Fristenmonitor und Nachweisdokumente je Dossier sind angebunden (Anforderung 4.12)“</li>
+<li>Pflückerstamm: „die Wetteranbindung (Anforderung 2.13) ist zurückgestellt“</li>
+</ul>
+
+<h5>Anforderungsnummer, derzeit nicht sichtbar</h5>
+<ul>
+<li>Abholrunden: „Tourenliste je Fahrzeug und Zeitfenster (Anforderung 3.5 Teil 1) fehlen noch“ — steht in <code>modules.logistik.todo</code> und wird nicht gerendert, siehe TX-14.</li>
+</ul>
+
+<h5>Warum es stört</h5>
+<ul>
+<li>Die Nummern sind ohne das Analysedokument bedeutungslos.</li>
+<li>Wer das Dokument hat, braucht sie nicht in der Oberfläche.</li>
+<li>Eine Ticket-Kennung im Produkt verrät zudem die interne Arbeitsteilung an jeden, der das Portal sieht.</li>
+</ul>
+
+<p class="klein">Fundstelle: <code>src/messages/de.json:547, 293, 308, 610, 679, 2813</code>.</p>
+
+<div class="antwort"><b>Lösungsansatz:</b> Ersatzlos streichen. Die Aussage dahinter bleibt jeweils verständlich, wenn man die Klammer entfernt.</div>
+</article>
+</section>
+
+<section id="sprache">
+<h2>4 Sprache der Oberfläche</h2>
+
+<p>Zwei Befunde, bei denen die Texte inhaltlich stimmen, aber aus der falschen Richtung geschrieben sind: aus der Sicht dessen, der das System gebaut hat, statt aus der Sicht dessen, der damit arbeitet.</p>
+
+<article>
+<h4><span class="fid">TX-10</span>Konzeptsätze als Modulbeschreibung</h4>
+
+<h5>Wo der Text erscheint</h5>
+<ul>
+<li>Der <code>summary</code>-Text eines Moduls steht auf der Bereichsseite als Kartentext, also dort, wo ein Nutzer liest, was ihn hinter dem Verweis erwartet.</li>
+</ul>
+
+<h5>Was dort stattdessen steht</h5>
+<ul>
+<li>Kühlkette: „Der Baustein, an dem der gesamte Preisspread hängt.“</li>
+<li>Rotationsplan: „Die erste Funktion, die gebaut wird. Das Planungsproblem ist nicht die Prognose, sondern die Rotation über sechs Wochen.“</li>
+<li>Reihenblöcke: „Zustandsautomat je Reihenblock.“</li>
+<li>Rollen und Rechte: „Rollen als klare Datenstruktur über Ressourcen mal Aktionen. Neue Rollen ohne Eingriff in die Logik.“</li>
+</ul>
+
+<h5>Dieselbe Herkunft, am Fuß der Modulseiten</h5>
+<ul>
+<li>„Der wartezeitgesperrte Block ist der am einfachsten prüfbare Nutzen des Systems“ (<code>:764</code>, gerendert in <code>reihenbloecke-ansicht.tsx:223</code>)</li>
+<li>„Die Feldkarte … ist die Basis für Rotationsplan, Ernteerfassung und Deckungsbeitrag“ (<code>:1098</code>, gerendert in <code>standort-ansicht.tsx:158</code>)</li>
+</ul>
+
+<h5>Warum es stört</h5>
+<ul>
+<li>„Baustein“, „die erste Funktion, die gebaut wird“ und „Datenstruktur“ beschreiben die Software, nicht die Arbeit.</li>
+<li>„Zustandsautomat“ ist ein Begriff aus der Informatik.</li>
+<li>Die Sätze stammen erkennbar aus dem Pitch und dem Analysedokument, wo sie am richtigen Platz waren. Sie erklären den Wert des Systems, nicht die Ansicht vor dem Leser.</li>
+</ul>
+
+<p class="klein">Fundstelle: <code>src/messages/de.json:567, 588, 602, 630</code>, dazu <code>:764</code> und <code>:1098</code>.</p>
+
+<div class="antwort"><b>Lösungsansatz:</b> Etwa zwölf Stellen einzeln durchgehen, jeweils mit der Frage: Beantwortet der Satz, was ich auf dieser Seite tun kann? Wenn nicht, gehört er ins Handbuch.</div>
+</article>
+
+<article>
+<h4><span class="fid">TX-11</span>Technik statt Sache in Hinweisen und Fehlermeldungen</h4>
+
+<h5>Die Fehlermeldung mit dem größten Schaden</h5>
+<ul>
+<li>„Vorgang fehlgeschlagen. Details stehen im Server-Log.“ (<code>:893</code>)</li>
+<li>Der Nutzer hat keinen Zugang zum Server-Log. Der Satz sagt ihm nur, dass die Auskunft woanders liegt.</li>
+</ul>
+
+<h5>Weitere Stellen, an denen die Umsetzung statt der Sache erklärt wird</h5>
+<ul>
+<li>„Angebunden an die Supabase-Datenbank, gelesen unter den RLS-Rechten Ihrer Rolle.“ (<code>:318</code>)</li>
+<li>„Die Sperre wird von einem Datenbank-Trigger gesetzt und lässt sich nicht per Statuswechsel umgehen.“ (<code>:1071</code>)</li>
+<li>„Buchungen sind unveränderlich; die Datenbank verweigert UPDATE und DELETE auf dem Finanzjournal unabhängig von der Oberfläche.“ (<code>:1177</code>)</li>
+<li>„Der gewählte Bezugsdatensatz existiert nicht.“ (<code>:890</code>)</li>
+<li>„alle serverseitig als SVG erzeugt und über die Browser-Druckfunktion druckfertig“ (<code>:615</code>)</li>
+</ul>
+
+<h5>Einordnung</h5>
+<ul>
+<li>Die Absicht ist gut. Diese Sätze sollen zeigen, dass eine Regel hart ist und nicht nur in der Maske sitzt.</li>
+<li>Das lässt sich ohne Produktnamen und SQL-Schlüsselwörter sagen.</li>
+<li>Das Vorbild steht zwei Zeilen weiter oben im selben Modul: „Eine gebuchte Zeile lässt sich nicht mehr ändern, nur durch eine Gegenbuchung korrigieren.“</li>
+</ul>
+
+<p class="klein">Fundstelle: <code>src/messages/de.json:893, 318, 1071, 1177, 890, 615</code>.</p>
+
+<div class="antwort"><b>Lösungsansatz:</b> Die sechs Sätze umschreiben, die Aussage behalten. Bei <code>:893</code> zusätzlich eine Handlungsanweisung ergänzen, etwa den Hinweis auf einen erneuten Versuch.</div>
+</article>
+</section>
+
+<section id="toter-text">
+<h2>5 Toter und doppelter Text</h2>
+
+<article>
+<h4><span class="fid">TX-14</span>136 übersetzte Zeichenketten werden nie gerendert</h4>
+
+<h5>Namensräume ohne Fundstelle im Quelltext</h5>
+<ul>
+<li><code>personalDemo</code>: 16 Bausteine</li>
+<li><code>pflanzenschutzDemo</code>: 13 Bausteine</li>
+<li><code>qrSteigenMock</code>: 4 Bausteine</li>
+<li><code>pflueckaufgabenDemo.addProof</code> mit dem Text „Beleg aufnehmen (Mock)“ (<code>:774</code>): 1 Baustein</li>
+</ul>
+
+<h5>Rechnung</h5>
+<ul>
+<li>34 Bausteine je Sprache, also 136 übersetzte Zeichenketten, die niemand sieht.</li>
+</ul>
+
+<h5>Dazu kommt</h5>
+<ul>
+<li>24 der 26 <code>modules.*.todo</code>-Texte. Gerendert werden nur die der beiden Platzhaltermodule.</li>
+<li>Wer künftig ein Modul auf „in Entwicklung“ setzt, bekommt einen Text angezeigt, den seit Monaten niemand gegengelesen hat.</li>
+</ul>
+
+<div class="antwort"><b>Lösungsansatz:</b>
+<ul>
+<li>Die drei toten Namensräume aus allen vier Katalogen löschen.</li>
+<li>Für <code>todo</code> entscheiden, ob das Feld bleibt; wenn ja, die 24 ungenutzten Texte einmal gegenlesen.</li>
+</ul></div>
+</article>
+
+<article>
+<h4><span class="fid">TX-12</span>Beschreibung und „Geplanter Umfang“ sagen dasselbe</h4>
+
+<h5>Die Dubletten</h5>
+<ul>
+<li>Dokumente: beschrieben als „verknüpft mit Reihenblock und Charge“, offen laut <code>todo</code>: „Verknüpfung mit Reihenblock und Charge“</li>
+<li>Preislisten: beschrieben als „Versionierte Preislisten mit Staffelpreisen je Kundengruppe und Gültigkeitszeitraum“, offen: „Versionierte Preislisten, Staffelpreise, Gültigkeitszeiträume, Kundenzuordnung“</li>
+<li>Aggregator: <code>summary</code> und <code>todo</code> unterscheiden sich in zwei Wörtern</li>
+</ul>
+
+<h5>Einordnung</h5>
+<ul>
+<li>Sichtbar wird das derzeit nicht, weil <code>todo</code> nur auf den zwei Platzhalterseiten gerendert wird.</li>
+<li>Es zeigt aber, dass die drei Textfelder je Modul (<code>description</code>, <code>summary</code>, <code>todo</code>) nicht mehr auseinandergehalten werden.</li>
+</ul>
+
+<p class="klein">Fundstelle: <code>src/messages/de.json:657/659</code> (Dokumente), <code>:699/701</code> (Preislisten), <code>:707/708</code> (Aggregator).</p>
+
+<div class="antwort"><b>Lösungsansatz:</b> Zusammen mit TX-14 lösen — <code>todo</code> entweder streichen oder auf die zwei Module begrenzen, die es brauchen.</div>
+</article>
+
+<article>
+<h4><span class="fid">TX-13</span>Der Begleiter bietet Hilfe auf leeren Seiten an</h4>
+
+<h5>Was passiert</h5>
+<ul>
+<li>DamiAI fragt beim Öffnen eines Moduls: „Du bist bei ‚{bereich}‘. Soll ich dir zeigen, was du hier tun kannst?“</li>
+<li>Auf <code>/dashboard/hof/lieferschein-esf</code> erscheint diese Frage über einer Seite, auf der man nichts tun kann.</li>
+<li>Im Bildschirmfoto zu TX-07 stehen beide gleichzeitig im Bild.</li>
+</ul>
+
+<p class="klein">Fundstelle: <code>src/messages/de.json:1634</code>.</p>
+
+<div class="antwort"><b>Lösungsansatz:</b> Die Frage an den Modulstatus koppeln und auf Platzhalterseiten unterdrücken.</div>
+</article>
+
+<article>
+<h4><span class="fid">TX-15</span>„Qualitaetssortierung“ ohne Umlaut</h4>
+
+<h5>Was dort steht</h5>
+<ul>
+<li>Kurzhinweis der Kennzahl „Anteil vermarktungsfähiger Schalen“: „Qualitaetssortierung je Schale“.</li>
+</ul>
+
+<h5>Einordnung</h5>
+<ul>
+<li>Einziger Fall dieser Art im deutschen Katalog.</li>
+<li><code>npm run test:umlaute</code> greift ihn nicht ab.</li>
+</ul>
+
+<p class="klein">Fundstelle: <code>src/messages/de.json:497</code>.</p>
+
+<div class="antwort"><b>Lösungsansatz:</b> Wort korrigieren, Prüfung im Umlaut-Test ergänzen.</div>
+</article>
+
+<article>
+<h4><span class="fid">TX-16</span>Die öffentliche Seite meldet „0 als bedienbare Demo“</h4>
+
+<h5>Was dort steht</h5>
+<ul>
+<li>Die FAQ-Antwort auf „Was ist heute schon gebaut?“ wird aus der Modulliste gerechnet.</li>
+<li>Sie lautet derzeit: „26 Module in vier Bereichen: 24 an der Datenbank mit echten Schreibvorgängen, 0 als bedienbare Demo, 2 als sichtbare Menüpunkte in Entwicklung.“</li>
+</ul>
+
+<h5>Warum es stört</h5>
+<ul>
+<li>Die Null im Fließtext ist die Folge davon, dass der Reifegrad „demo“ nicht mehr vergeben wird, siehe TX-09.</li>
+<li>Der Kommentar über der Funktion zeigt, dass diese Zahlen schon einmal auseinandergelaufen sind und deshalb berechnet statt geschrieben werden. Die Rechnung deckt aber den Fall nicht ab, dass ein Wert gar nicht mehr vorkommt.</li>
+</ul>
+
+<h5>Was auf der öffentlichen Seite richtig ist und bleiben soll</h5>
+<ul>
+<li>„Interner Proof-of-Concept. Kein vertraglich zugesicherter Leistungsumfang“ im Seitenfuß</li>
+<li>Der Hinweis auf Platzhalterbilder</li>
+<li>Der Haftungsvorbehalt in <code>legal.prototypeDisclaimer</code></li>
+<li>Begründung: Das ist ein Vorbehalt gegenüber einem Besucher und gehört dorthin. Im Portal, hinter der Anmeldung, arbeitet dagegen jemand.</li>
+</ul>
+
+<p class="klein">Fundstelle: <code>src/components/site/fragen.tsx:19-26</code>, Text in <code>src/messages/de.json:218</code>.</p>
+
+<div class="antwort"><b>Lösungsansatz:</b> Zählwerte mit 0 in der Antwort auslassen.</div>
+</article>
+</section>
+
+<section id="traegt">
+<h2>6 Was trägt</h2>
+
+<p>Der größere Teil des Katalogs ist sachlich und am Betrieb ausgerichtet. Diese Texte sind ausdrücklich nicht Gegenstand der Befunde oben und sollten unverändert bleiben.</p>
+
+<h3>Fehlermeldungen</h3>
+<p>Die Einträge unter <code>aktionen.fehler.*</code> nennen Ursache und nächsten Schritt in der Sprache des Betriebs.</p>
+<ul>
+<li>„Reihenblock {wert} ist wartezeitgesperrt – keine Pflückaufgabe möglich“</li>
+<li>„Die Prüfziffer stimmt nicht. Meist steckt ein Zahlendreher in der Nummer“</li>
+<li>„Wer eine Steige erfasst hat, kontrolliert sie nicht selbst. Eine andere Person muss diese Steige prüfen“</li>
+<li>„Die Geräteuhr weicht zu stark von der Serverzeit ab (Zukunft oder mehr als 24 Stunden Differenz)“</li>
+<li>Bis auf die zwei unter TX-11 genannten Ausnahmen durchgehend gut</li>
+</ul>
+
+<h3>Rechtliche Hinweise</h3>
+<p>Sie grenzen sorgfältig ab, statt Sicherheit zu behaupten. In einem System, das Nachweise führt, ist das der richtige Ton.</p>
+<ul>
+<li>Näherungsvorbehalt bei ОПВ, ВОСМС und ИПН im Lohn-Modul, einschließlich des Hinweises, dass der Standardabzug einen schriftlichen Antrag voraussetzt</li>
+<li>Abgrenzung der beiden Qualitätsfaktoren: der gerechnete aus der Ausschussquote und der von der Betriebsleitung gepflegte</li>
+<li>Hinweis, dass die Anmeldung zum horizontalen Monitoring ein eigener Antrag bei der Steuerbehörde ist und keine Folge der Datenlage</li>
+<li>Vorbehalt zu Koordinaten und Basistemperatur im Wetter-Modul, mit der Bitte um Bestätigung durch eine Agronomin oder einen Agronomen</li>
+</ul>
+
+<h3>Weitere Stärken</h3>
+<ul>
+<li>Formularhilfen, Spaltenköpfe und Statuswerte sind knapp und eindeutig</li>
+<li>Die Rollentrennung im Text ist sauber gelöst: im Demo-Betrieb „Demo-Rolle wechseln“, im angemeldeten Betrieb „Ansicht als Rolle – ändert nur die Darstellung, die Schreibrechte richten sich weiter nach Ihrem Profil“</li>
+<li>Die Demo-Zugänge auf der Anmeldeseite sind über <code>NODE_ENV</code> und ein ausdrückliches Flag abgesichert (<code>src/app/[locale]/login/page.tsx:23-28</code>)</li>
+</ul>
+</section>
+
+<section id="reihenfolge">
+<h2>7 Vorgeschlagene Reihenfolge</h2>
+
+<h3>Das Grundproblem</h3>
+<p>Die Trennlinie liegt nicht zwischen guten und schlechten Texten, sondern zwischen zwei Lesern. Der eine entscheidet über das Projekt und will wissen, was gebaut ist. Der andere arbeitet mit dem Ergebnis und will wissen, was heute zu tun ist. Zurzeit bekommen beide denselben Text.</p>
+
+<table>
+<thead><tr><th>Schritt</th><th>Befunde</th><th>Warum in dieser Reihenfolge</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>TX-04, TX-05</td><td>Sachliche Fehler. Vier Texte widersprechen dem Funktionsstand, zwei davon bei einer Pflichtintegration gegenüber einer Behörde. Unabhängig von jeder Textdiskussion zu korrigieren.</td></tr>
+<tr><td>2</td><td>TX-01, TX-06, TX-08</td><td>Ersatzloses Streichen: Meilenstein-Abschnitt, Anforderungsnummern, Jira-Kennung, Datumsangaben. Kein Ersatztext nötig, kein Abstimmungsbedarf, sofort wirksam.</td></tr>
+<tr><td>3</td><td>TX-03, TX-07, TX-09</td><td>Meta-Angaben je Modul von drei Pillen auf eine reduzieren. Räumt Bereichsseiten und Modulköpfe zugleich auf und hängt an derselben Komponente.</td></tr>
+<tr><td>4</td><td>TX-02, TX-10, TX-11</td><td>Umschreiben. Jede Stelle braucht eine eigene Entscheidung, deshalb nach den Streichungen: was dann noch stört, ist überschaubar.</td></tr>
+<tr><td>5</td><td>TX-12, TX-13, TX-14, TX-15, TX-16</td><td>Aufräumen. Toter Text, Umlaut, Null im FAQ, Begleiter auf Platzhalterseiten. Kein Nutzer wartet darauf, aber es hält den Katalog sauber.</td></tr>
+</tbody></table>
+
+<h3>Was die Änderungen nicht berühren dürfen</h3>
+<p>Alle Ansätze oben ändern Text und lassen Verhalten unverändert. Unberührt bleiben: Routen und Verweisziele, die Rechteprüfung über <code>hasPermission</code>, die Zählung der Module je Zone, die Datenabfragen und die Schreibvorgänge. Wo ein Ansatz das nicht einhält, steht es beim Befund: TX-09 entfernt einen Wert aus dem Typ <code>Reifegrad</code> und berührt damit <code>src/lib/modules.ts</code> und <code>src/components/site/fragen.tsx</code>.</p>
+
+<h3>Nebeneffekt</h3>
+<ul>
+<li>Bei jeder Streichung fällt dreifach Übersetzungsarbeit weg.</li>
+<li>Die 236 Zeichenketten der Projektschicht sind vollständig ins Englische, Russische und Kasachische übersetzt, einschließlich der Jira-Kennung und der Palette „Kök &amp; Altyn“.</li>
+</ul>
+</section>
+
+</main>
+
+<footer><div class="inhalt">WAMOCON &middot; Damicon &middot; Textprüfung Portal &middot; 21.09.2026 &middot; Belege: <code>docs/design/text-audit-2026-09-21/</code> &middot; Fassung in Markdown: <code>docs/text-audit-portal.md</code> &middot; Vorgängerberichte: <code>docs/ux-audit-portal.md</code>, <code>docs/mobil-audit-portal.md</code></div></footer>
+
+</body></html>
