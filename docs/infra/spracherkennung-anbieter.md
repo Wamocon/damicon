@@ -61,13 +61,43 @@ wieder wichtig: Whisper läuft dort heute auf der CPU und braucht deshalb rund
 7 Sekunden statt Bruchteilen einer Sekunde (siehe
 `caesar-spracherkennung.md`).
 
-## Warum kein Sprachhinweis an Soniox
+## Sprachhinweis an Soniox
 
-Am 21.09.2026 gegen unsere Aufnahmen geprüft, jede Datei einmal mit und einmal
-ohne `language_hints`: das Ergebnis war Zeichen für Zeichen identisch, auf
-Kasachisch, Russisch und Deutsch. Ohne Hinweis kann ein falscher Hinweis auch
-keinen Schaden anrichten — bei Whisper war genau das die Ursache dafür, dass
-kasachisch Gesprochenes als deutscher Unsinn ankam.
+Die Oberflaechensprache geht als `language_hints` mit. Bei Soniox ist das
+ungefaehrlich: der Hinweis **beschraenkt nicht, er gewichtet nur** ([Language
+hints](https://soniox.com/docs/stt/concepts/language-hints)) — wer auf einer
+kasachischen Seite deutsch spricht, bekommt trotzdem Deutsch zurueck. Bei
+Whisper war ein falscher Hinweis dagegen die Ursache dafuer, dass kasachisch
+Gesprochenes als deutscher Unsinn ankam.
+
+Am 21.09.2026 an sauberen TTS-Aufnahmen gemessen machte er keinen Unterschied —
+solches Material ist aber der guenstigste Fall. Gegen echte Sprecheraufnahmen
+wird er im Durchgang S1 (ohne) gegen S2 (mit) gemessen.
+
+## Zwei Dienste im Wettlauf
+
+Bis zum 22.09.2026 liefen die beiden nacheinander: erst Soniox mit 8 Sekunden,
+bei Misserfolg Whisper mit 12. An echten Aufnahmen von rund zehn Sekunden lief
+das reihenweise in beide Grenzen — **20,3 Sekunden Wartezeit und am Ende kein
+Text**. Nacheinander addieren sich die schlechten Fälle, und wer diktiert hat,
+bezahlt die Summe.
+
+Jetzt überlappen sie sich (`src/lib/domain/spracherkennung.ts`):
+
+| Zeit | Was passiert |
+|---|---|
+| 0 s | Soniox startet, Zeitlimit 20 s |
+| 6 s | läuft Soniox noch, startet Whisper **parallel** mit, Zeitlimit 20 s |
+| — | der erste brauchbare Text gewinnt, der Verlierer wird abgebrochen |
+| 40 s | Gesamtdeckel, danach eine übersetzte Meldung |
+
+Sagt Soniox schnell ab (kein Schlüssel, 401, Dienst weg), wird **nicht** bis
+6 Sekunden gewartet — auf einen Dienst zu warten, der schon abgesagt hat, ist
+reine Wartezeit. Der schlimmste Fall ist damit 6 + 20 = 26 Sekunden statt einer
+Summe, und der Deckel von 40 Sekunden lässt 20 bis zu Vercels `maxDuration`.
+
+Der abgebrochene Soniox-Lauf räumt seinen Auftrag trotzdem auf — sonst läge die
+Aufnahme 30 Tage beim Dienstleister.
 
 ## Aufräumen beim Dienstleister
 
@@ -82,4 +112,4 @@ hochgeladene Dateien 30 Tage.
 | `KI_SPRACHERKENNUNG_ANBIETER` | nein | `whisper` (Voreinstellung) oder `soniox` |
 | `SONIOX_API_URL` | ja, wenn `soniox` | Regionale Adresse, z. B. `https://api.soniox.com` |
 | `SONIOX_API_KEY` | ja, wenn `soniox` | Nur aus der Umgebung. Nie in Code, Protokollen oder einem PR |
-| `SONIOX_ZEITLIMIT_MS` | nein | Voreinstellung 20000, deutlich unter Vercels 60 s |
+| `SONIOX_ZEITLIMIT_MS` | nein | Voreinstellung 20000, Obergrenze 20000. Siehe *Zwei Dienste im Wettlauf* |

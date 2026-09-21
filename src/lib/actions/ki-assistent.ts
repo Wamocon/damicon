@@ -20,6 +20,7 @@ import { sendeAgentAnfrage } from "@/lib/ai/agent";
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
 import { transkribiereAudio, transkriptionsMeldung, waermeTranskriptionVor } from "@/lib/ai/transkription-client";
 import { spracherkennungAnbieter, transkribiereMitSoniox } from "@/lib/ai/soniox-client";
+import { erkenneMitRueckfall } from "@/lib/domain/spracherkennung";
 import type { ChatNachricht } from "@/lib/ai/anfrage";
 import type { Json } from "@/lib/database.types";
 import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
@@ -283,14 +284,6 @@ export async function kiEskalationAnfordern(
 // Person einen rohen Fehler. 30 s Aufnahme sind je nach Format 90-240 kB.
 const MAX_AUDIO_BYTES = 8 * 1024 * 1024;
 
-/** Gesamtdeckel fuer die Spracherkennung: Soniox (8 s) plus Rueckfall auf
- *  Whisper (12 s) bleiben zusammen darunter. Reicht die Restzeit nicht mehr
- *  fuer einen sinnvollen zweiten Versuch, endet der Vorgang mit einer
- *  uebersetzten Meldung - nie mit Vercels Abbruch bei 60 s. */
-const GESAMTDECKEL_MS = 25_000;
-/** Unter dieser Restzeit lohnt der Rueckfall nicht mehr. */
-const MINDEST_REST_MS = 3_000;
-
 export async function transkribiereSprachnachricht(
   _status: AktionsStatus,
   formData: FormData,
@@ -308,29 +301,17 @@ export async function transkribiereSprachnachricht(
 
   const name = audio instanceof File && audio.name ? audio.name : "aufnahme.webm";
 
-  // Welcher Dienst erkennt? Standard ist Whisper auf der eigenen Maschine;
-  // KI_SPRACHERKENNUNG_ANBIETER=soniox schaltet um. Schlaegt Soniox fehl -
-  // Stoerung, Zeitueberschreitung, fehlender Schluessel -, uebernimmt Whisper
-  // still. Wer diktiert, soll von einem Ausfall beim Dienstleister nichts
-  // merken.
-  const begonnen = Date.now();
-  let antwort = null;
-  if (spracherkennungAnbieter() === "soniox") {
-    const ueberSoniox = await transkribiereMitSoniox(audio, name, text(formData, "sprache"));
-    if (ueberSoniox.ok) antwort = ueberSoniox;
-    else console.error("[damicon] Soniox fehlgeschlagen, weiter mit Whisper:", ueberSoniox.grund);
-  }
-  // Reicht die Restzeit nicht mehr, gar nicht erst anfangen: lieber eine
-  // klare Meldung als ein Abbruch der Plattform mitten im zweiten Versuch.
-  if (!antwort && Date.now() - begonnen > GESAMTDECKEL_MS - MINDEST_REST_MS) {
-    console.error("[damicon] Zeitbudget der Spracherkennung erschoepft, kein Rueckfall mehr");
-    return fehler("fehler.transkriptionDauer");
-  }
-  // Die Oberflaechensprache als Hinweis, welche Sprache zu erwarten ist -
-  // ungeprueft weitergereicht, weil transkribiereAudio() nur die
-  // unterstuetzten Werte durchlaesst und alles andere still verwirft.
-  // (Soniox bekommt bewusst keinen Hinweis, siehe soniox-client.ts.)
-  antwort ??= await transkribiereAudio(audio, name, text(formData, "sprache"));
+  // Wer erkennt und was passiert, wenn ein Dienst hakt, steht in
+  // ai/spracherkennung.ts: Soniox zuerst, ab 6 s laeuft Whisper parallel mit,
+  // der erste brauchbare Text gewinnt. Die Oberflaechensprache geht als
+  // Hinweis mit - ungeprueft, beide Clients lassen nur zu, was sie kennen.
+  const sprachHinweis = text(formData, "sprache");
+  const antwort = await erkenneMitRueckfall(
+    spracherkennungAnbieter() === "soniox"
+      ? (abbruch) => transkribiereMitSoniox(audio, name, sprachHinweis, abbruch)
+      : null,
+    (abbruch) => transkribiereAudio(audio, name, sprachHinweis, abbruch),
+  );
 
   if (!antwort.ok) {
     console.error("[damicon] Transkription fehlgeschlagen:", antwort.grund);
@@ -339,7 +320,7 @@ export async function transkribiereSprachnachricht(
 
   // Der Text selbst wird nicht protokolliert - er steht gleich als Frage im
   // Verlauf, sobald die Nutzerin ihn abschickt. Hier nur, dass diktiert wurde.
-  await protokolliere(profil, "ki_chat.diktat", { zeichen: antwort.text.length });
+  await protokolliere(profil, "ki_chat.diktat", { zeichen: antwort.text.length, dienst: antwort.dienst });
 
   return ok("ok.transkription", antwort.text);
 }

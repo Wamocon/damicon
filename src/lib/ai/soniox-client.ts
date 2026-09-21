@@ -20,13 +20,12 @@ const MODELL = "stt-async-v5";
 /** Abstand zwischen zwei Nachfragen, ob der Auftrag fertig ist. */
 const ABFRAGE_ABSTAND_MS = 250;
 
-// Zeitbudget, damit der schlimmste Fall planbar bleibt: Soniox 8 s, danach
-// Whisper 12 s, Gesamtdeckel 25 s in der Server Action. Alles deutlich unter
-// maxDuration = 60 - die Person bekommt so immer eine uebersetzte Meldung und
-// nie den nackten Abbruch der Plattform.
-// Gemessen braucht Soniox 1,4-3,4 s; 8 s lassen Luft, ohne das Budget zu
-// sprengen.
-export const SONIOX_ZEITLIMIT_STANDARD_MS = 8_000;
+// Zeitbudget (22.09.2026, zweite Fassung): Soniox darf bis 20 s brauchen.
+// Das ist kein Warten auf gut Glueck - ab 6 s laeuft Whisper parallel mit
+// (spracherkennung.ts), der erste brauchbare Text gewinnt. Vorher standen
+// hier 8 s; an echten 10-Sekunden-Aufnahmen lief das reihenweise in die
+// Grenze, danach Whisper ebenfalls, und nach 20,3 s stand kein Text da.
+export const SONIOX_ZEITLIMIT_STANDARD_MS = 20_000;
 
 /** Welcher Dienst die Spracherkennung macht. Standard ist "whisper" - solange
  *  niemand KI_SPRACHERKENNUNG_ANBIETER=soniox setzt, aendert sich nichts. */
@@ -99,6 +98,9 @@ export async function transkribiereMitSoniox(
   datei: Blob,
   dateiname: string,
   sprache?: string,
+  /** Von aussen abbrechen - siehe transkribiereAudio(). Aufgeraeumt wird
+   *  trotzdem: die Aufnahme darf nicht beim Dienstleister liegen bleiben. */
+  abbruch?: AbortSignal,
 ): Promise<SonioxAntwort> {
   const key = schluessel();
   if (!key) return { ok: false, grund: "kein-schluessel" };
@@ -109,13 +111,14 @@ export async function transkribiereMitSoniox(
   const kopf = { Authorization: `Bearer ${key}` };
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), sonioxZeitlimitMs());
+  const signal = abbruch ? AbortSignal.any([controller.signal, abbruch]) : controller.signal;
   let dateiId: string | null = null;
   let auftragId: string | null = null;
 
   try {
     const form = new FormData();
     form.append("file", datei, dateiname);
-    const hochgeladen = await fetch(`${basis}/v1/files`, { method: "POST", headers: kopf, body: form, signal: controller.signal });
+    const hochgeladen = await fetch(`${basis}/v1/files`, { method: "POST", headers: kopf, body: form, signal });
     if (!hochgeladen.ok) return { ok: false, grund: await grundAusAntwort("upload", hochgeladen) };
     dateiId = ((await hochgeladen.json()) as { id?: string }).id ?? null;
     if (!dateiId) return { ok: false, grund: "upload-ohne-id" };
@@ -124,7 +127,7 @@ export async function transkribiereMitSoniox(
       method: "POST",
       headers: { ...kopf, "content-type": "application/json" },
       body: JSON.stringify({ model: MODELL, file_id: dateiId, ...sprachHinweis(sprache) }),
-      signal: controller.signal,
+      signal,
     });
     if (!gestartet.ok) return { ok: false, grund: await grundAusAntwort("auftrag", gestartet) };
     auftragId = ((await gestartet.json()) as { id?: string }).id ?? null;
@@ -137,7 +140,7 @@ export async function transkribiereMitSoniox(
     const hoechsteRunden = Math.ceil(sonioxZeitlimitMs() / ABFRAGE_ABSTAND_MS) + 5;
     for (let runde = 0; ; runde++) {
       if (runde > hoechsteRunden) return { ok: false, grund: "zeitueberschreitung" };
-      const stand = await fetch(`${basis}/v1/transcriptions/${auftragId}`, { headers: kopf, signal: controller.signal });
+      const stand = await fetch(`${basis}/v1/transcriptions/${auftragId}`, { headers: kopf, signal });
       if (!stand.ok) return { ok: false, grund: await grundAusAntwort("status", stand) };
       const j = (await stand.json()) as { status?: string; error_message?: string };
       if (j.status === "completed") break;
@@ -145,7 +148,7 @@ export async function transkribiereMitSoniox(
       await new Promise((r) => setTimeout(r, ABFRAGE_ABSTAND_MS));
     }
 
-    const ergebnis = await fetch(`${basis}/v1/transcriptions/${auftragId}/transcript`, { headers: kopf, signal: controller.signal });
+    const ergebnis = await fetch(`${basis}/v1/transcriptions/${auftragId}/transcript`, { headers: kopf, signal });
     if (!ergebnis.ok) return { ok: false, grund: await grundAusAntwort("transcript", ergebnis) };
     const j = (await ergebnis.json()) as { text?: unknown };
     const text = typeof j.text === "string" ? j.text.trim() : "";
@@ -153,6 +156,7 @@ export async function transkribiereMitSoniox(
     return { ok: true, text };
   } catch (fehler) {
     const grund = fehler instanceof Error ? fehler.message : String(fehler);
+    if (abbruch?.aborted) return { ok: false, grund: "abgebrochen" };
     return { ok: false, grund: controller.signal.aborted ? "zeitueberschreitung" : `dienst-nicht-erreichbar: ${grund}` };
   } finally {
     clearTimeout(timeout);

@@ -58,6 +58,7 @@ import {
   erzeugeStilleWaechter,
   pegelAusZeitbereich,
 } from "../../src/lib/domain/diktat.ts";
+import { erkenneMitRueckfall, GESAMTDECKEL_MS, HEDGE_AB_MS } from "../../src/lib/domain/spracherkennung.ts";
 import {
   sonioxBasisUrl,
   sonioxZeitlimitMs,
@@ -790,9 +791,9 @@ for (const [name, kaputteAntwort] of [
 
   // --- Zeitlimit ---
   delete process.env.SONIOX_ZEITLIMIT_MS;
-  pruefe("Soniox-Zeitlimit: Voreinstellung liegt deutlich unter Vercels 60 s", sonioxZeitlimitMs() <= 55_000, `${sonioxZeitlimitMs()} ms`);
+  pruefe("Soniox-Zeitlimit: Voreinstellung laesst Platz fuer den Rueckfall auf Whisper", sonioxZeitlimitMs() <= 20_000, `${sonioxZeitlimitMs()} ms`);
   process.env.SONIOX_ZEITLIMIT_MS = "999999";
-  pruefe("Soniox-Zeitlimit: ein unsinniger Wert faellt auf die Voreinstellung zurueck", sonioxZeitlimitMs() <= 55_000);
+  pruefe("Soniox-Zeitlimit: ein unsinniger Wert faellt auf die Voreinstellung zurueck", sonioxZeitlimitMs() <= 20_000);
   delete process.env.SONIOX_ZEITLIMIT_MS;
 
   // --- Fehlender Schluessel ---
@@ -840,7 +841,7 @@ for (const [name, kaputteAntwort] of [
     pruefe("Soniox: erkannter Text kommt zurueck", gut.ok && gut.text === "Салқын тізбек толық құжатталған.");
     pruefe("Soniox: Modell stt-async-v5 im Auftrag", String(aufrufe[1]?.koerper).includes("stt-async-v5"));
     pruefe(
-      "Soniox: KEIN Sprachhinweis - mit und ohne war das Ergebnis am 21.09.2026 identisch",
+      "Soniox: ohne Sprachangabe geht kein Hinweis mit - Soniox erkennt dann selbst",
       !String(aufrufe[1]?.koerper).includes("language_hints"),
       String(aufrufe[1]?.koerper),
     );
@@ -918,23 +919,95 @@ for (const [name, kaputteAntwort] of [
     pruefe(`Diktat-Dateiname: "${typ || "(leer)"}" -> ${erwartet}`, aufnahmeDateiname(typ) === erwartet, aufnahmeDateiname(typ));
   }
 
-  // (c) Zeitbudget. Soniox 8 s + Whisper 12 s muessen samt Rest deutlich
-  // unter Vercels 60 s bleiben; vorher waren es 20 + 55 = 75 s, also mehr,
-  // als die Plattform zulaesst - die Person sah den nackten Abbruch.
+  // (c) Zeitbudget, zweite Fassung. Frueher liefen die Dienste nacheinander
+  // (Soniox 8 s, dann Whisper 12 s): an echten 10-Sekunden-Aufnahmen lief das
+  // zweimal in die Grenze - 20,3 s und KEIN Text. Jetzt ueberlappen sie sich.
   {
     const urspruenglich = { s: process.env.SONIOX_ZEITLIMIT_MS, w: process.env.KI_TRANSKRIPTION_ZEITLIMIT_MS };
     delete process.env.SONIOX_ZEITLIMIT_MS;
     delete process.env.KI_TRANSKRIPTION_ZEITLIMIT_MS;
-    const zusammen = sonioxZeitlimitMs() + transkriptionZeitlimitMs();
-    pruefe("Zeitbudget: Soniox steht auf 8 s", sonioxZeitlimitMs() === 8_000, `${sonioxZeitlimitMs()} ms`);
-    pruefe("Zeitbudget: Whisper steht auf 12 s", transkriptionZeitlimitMs() === 12_000, `${transkriptionZeitlimitMs()} ms`);
-    pruefe("Zeitbudget: schlimmster Fall bleibt unter 25 s", zusammen <= 25_000, `${zusammen} ms`);
-    pruefe("Zeitbudget: und damit weit unter Vercels 60 s", zusammen < 60_000 * 0.5, `${zusammen} ms`);
-    // Ein zu grosser Wert aus der Umgebung darf das Budget nicht sprengen.
+    pruefe("Zeitbudget: Soniox darf bis 20 s brauchen", sonioxZeitlimitMs() === 20_000, `${sonioxZeitlimitMs()} ms`);
+    pruefe("Zeitbudget: Whisper darf bis 20 s brauchen", transkriptionZeitlimitMs() === 20_000, `${transkriptionZeitlimitMs()} ms`);
+    pruefe("Zeitbudget: Whisper laeuft ab 6 s parallel mit, statt hinterher", HEDGE_AB_MS === 6_000, `${HEDGE_AB_MS} ms`);
+    // Der schlimmste Fall ist jetzt nicht mehr die Summe: Whisper startet bei
+    // 6 s und hat 20 s, also 26 s - nicht 40.
+    pruefe("Zeitbudget: schlimmster Fall 6 + 20 = 26 s, unter dem Deckel", HEDGE_AB_MS + transkriptionZeitlimitMs() < GESAMTDECKEL_MS, `${(HEDGE_AB_MS + transkriptionZeitlimitMs()) / 1000} s`);
+    pruefe("Zeitbudget: Deckel 40 s laesst 20 s Luft bis Vercels 60 s", GESAMTDECKEL_MS === 40_000 && GESAMTDECKEL_MS <= 60_000 - 20_000, `${GESAMTDECKEL_MS} ms`);
     process.env.SONIOX_ZEITLIMIT_MS = "50000";
     pruefe("Zeitbudget: ein zu grosser Umgebungswert wird verworfen", sonioxZeitlimitMs() <= 20_000, `${sonioxZeitlimitMs()} ms`);
     if (urspruenglich.s === undefined) delete process.env.SONIOX_ZEITLIMIT_MS; else process.env.SONIOX_ZEITLIMIT_MS = urspruenglich.s;
     if (urspruenglich.w === undefined) delete process.env.KI_TRANSKRIPTION_ZEITLIMIT_MS; else process.env.KI_TRANSKRIPTION_ZEITLIMIT_MS = urspruenglich.w;
+  }
+
+  // (c2) Der Wettlauf selbst, mit erfundenen Diensten - so laesst sich
+  // pruefen, WER wann gerufen wird und wer gewinnt, ohne Netz.
+  {
+    const still = () => {};
+    const audio = () => new Blob([new Uint8Array([1, 2, 3])]);
+    const sofort = (text) => async () => ({ ok: true, text });
+    const scheitert = (grund) => async () => ({ ok: false, grund });
+    /** Ein Dienst, der erst nach ms antwortet - und auf Abbruch sofort aufgibt. */
+    const langsam = (ms, text) => (abbruch) =>
+      new Promise((fertig) => {
+        const t = setTimeout(() => fertig({ ok: true, text }), ms);
+        abbruch.addEventListener("abort", () => { clearTimeout(t); fertig({ ok: false, grund: "abgebrochen" }); }, { once: true });
+      });
+
+    // 1. Soniox ist schnell: Whisper wird gar nicht erst gestartet.
+    {
+      let whisperGestartet = 0;
+      const e = await erkenneMitRueckfall(sofort("von soniox"), async () => { whisperGestartet++; return { ok: true, text: "von whisper" }; }, still);
+      pruefe("Wettlauf: ist Soniox schnell, gewinnt Soniox", e.ok && e.text === "von soniox" && e.dienst === "soniox", JSON.stringify(e));
+      pruefe("Wettlauf: dann wird Whisper gar nicht erst gestartet", whisperGestartet === 0, `${whisperGestartet} Starts`);
+    }
+
+    // 2. Soniox sagt sofort ab (401, kein Schluessel): Whisper startet OHNE
+    //    die Hedge-Zeit abzuwarten - auf einen Dienst zu warten, der schon
+    //    abgesagt hat, waere reine Wartezeit fuer die Person.
+    {
+      const begonnen = Date.now();
+      const e = await erkenneMitRueckfall(scheitert("zugang-abgewiesen (http-401)"), sofort("von whisper"), still);
+      const gedauert = Date.now() - begonnen;
+      pruefe("Wettlauf: nach einer Absage von Soniox uebernimmt Whisper", e.ok && e.dienst === "whisper", JSON.stringify(e));
+      pruefe("Wettlauf: und zwar sofort, nicht erst nach der Hedge-Zeit", gedauert < HEDGE_AB_MS, `${gedauert} ms`);
+    }
+
+    // 3. Soniox haengt: nach der Hedge-Zeit laeuft Whisper mit und gewinnt.
+    //    Genau der Fall vom 22.09.2026, der vorher 20,3 s ohne Text kostete.
+    {
+      const begonnen = Date.now();
+      const e = await erkenneMitRueckfall(langsam(30_000, "von soniox"), langsam(300, "von whisper"), still);
+      const gedauert = Date.now() - begonnen;
+      pruefe("Wettlauf: haengt Soniox, gewinnt der parallel gestartete Whisper", e.ok && e.dienst === "whisper", JSON.stringify(e));
+      pruefe("Wettlauf: das dauert etwa die Hedge-Zeit, nicht die Summe beider Limits", gedauert < HEDGE_AB_MS + 3_000, `${gedauert} ms`);
+    }
+
+    // 4. Beide scheitern: ein Grund kommt zurueck, kein Wurf.
+    {
+      const e = await erkenneMitRueckfall(scheitert("zeitueberschreitung"), scheitert("dienst-nicht-erreichbar: fetch failed"), still);
+      pruefe("Wettlauf: scheitern beide, endet es in ok:false statt in einem Wurf", !e.ok && typeof e.grund === "string" && e.grund.length > 0, JSON.stringify(e));
+    }
+
+    // 5. Ohne den Schalter (Soniox aus) laeuft nur Whisper.
+    {
+      const e = await erkenneMitRueckfall(null, sofort("von whisper"), still);
+      pruefe("Wettlauf: ohne den Schalter laeuft nur Whisper", e.ok && e.dienst === "whisper", JSON.stringify(e));
+    }
+
+    // 6. Der Verlierer wird abgebrochen - sonst bliebe bei Soniox ein
+    //    Auftrag offen und die Aufnahme laege 30 Tage beim Dienstleister.
+    {
+      let sonioxAbgebrochen = false;
+      const haengenderSoniox = (abbruch) =>
+        new Promise((fertig) => {
+          const t = setTimeout(() => fertig({ ok: true, text: "zu spaet" }), 30_000);
+          abbruch.addEventListener("abort", () => { clearTimeout(t); sonioxAbgebrochen = true; fertig({ ok: false, grund: "abgebrochen" }); }, { once: true });
+        });
+      const e = await erkenneMitRueckfall(haengenderSoniox, langsam(200, "von whisper"), still);
+      pruefe("Wettlauf: gewinnt Whisper, wird Soniox abgebrochen", e.ok && sonioxAbgebrochen, `abgebrochen=${sonioxAbgebrochen}`);
+    }
+
+    void audio;
   }
 
   // (b) Sprachhinweis an Soniox. Er BESCHRAENKT dort nicht, er gewichtet nur
