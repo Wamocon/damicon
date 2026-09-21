@@ -1,0 +1,185 @@
+"use client";
+
+// Die Kennzahl in der Zonenkarte.
+//
+// Drei Dinge, die der erste Entwurf falsch hatte:
+//
+//   1. Die Boxen waren unterschiedlich hoch, weil das Label mal eine und mal
+//      zwei Zeilen brauchte. Jetzt ist der Platz fuer den Namen fest
+//      (min-h-8, zwei Zeilen), und die Box fuellt ihre Rasterzelle (h-full).
+//      Das Raster setzt dazu auto-rows-fr, damit auch Zeilen untereinander
+//      dieselbe Hoehe haben.
+//   2. Damit standen Wert und Ziel auf verschiedenen Linien. Jetzt liegt der
+//      Wert immer unter demselben Kopf, und die Fusszeile haengt an mt-auto,
+//      also am unteren Rand - in jeder Box auf derselben Linie.
+//   3. Am Wert stand nicht, was er darstellt. "71 %" heisst in einer Box
+//      Pflueckintervall und in der naechsten belegte Verkaeufe. Jetzt steht
+//      der Name ueber dem Wert und nicht klein darunter, in einer Kurzform,
+//      die in zwei Zeilen passt (kpis.<key>.kurz). Das volle Label und der
+//      Rechenweg bleiben als Tooltip.
+import { useFormatter, useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
+import type { Kpi } from "@/lib/domain/kpis";
+import { TrendPfeil } from "./gemeinsam";
+import { zielAuswerten, type Zielstand } from "./zielstand";
+
+const punkt: Record<Zielstand, string> = {
+  verfehlt: "bg-destructive",
+  knapp: "bg-warning",
+  erfuellt: "bg-success",
+  offen: "bg-muted-foreground/50",
+};
+
+const balken: Record<Zielstand, string> = {
+  verfehlt: "bg-destructive",
+  knapp: "bg-warning",
+  erfuellt: "bg-success",
+  offen: "bg-muted-foreground/40",
+};
+
+const schrift: Record<Zielstand, string> = {
+  verfehlt: "text-destructive",
+  knapp: "text-warning",
+  erfuellt: "text-muted-foreground",
+  offen: "text-muted-foreground",
+};
+
+/**
+ * Zahl und Einheit getrennt. Gerechnete Kennzahlen fuehren beides ohnehin
+ * getrennt; der unterschriebene Platzhalter ist eine fertige Zeichenkette
+ * ("8,4 %", "446 ₸/kg", "47 min") und wird hier aufgeteilt, damit die Einheit
+ * nicht in derselben Groesse steht wie der Wert.
+ */
+function wertTeile(
+  kpi: Kpi,
+  zahlFormat: (wert: number) => string,
+): { zahl: string; einheit: string } {
+  if (kpi.gerechnet) {
+    return {
+      zahl: zahlFormat(kpi.gerechnet.zahl),
+      einheit: kpi.gerechnet.einheit,
+    };
+  }
+  const treffer = kpi.wert.trim().match(/^(-?[\d.,]+)\s*(.*)$/);
+  if (!treffer) return { zahl: kpi.wert, einheit: "" };
+  return { zahl: treffer[1], einheit: treffer[2] };
+}
+
+/**
+ * Das Band zeigt den Istwert gegen den Zielwert. Die Skala endet etwas hinter
+ * dem groesseren der beiden Werte, damit ein knapp verfehltes Ziel nicht am
+ * Rand klebt. Die Marke steht auf dem Zielwert.
+ */
+function Zielband({
+  ist,
+  soll,
+  stand,
+  titel,
+}: {
+  ist: number;
+  soll: number;
+  stand: Zielstand;
+  titel: string;
+}) {
+  const skala = Math.max(ist, soll) * 1.15;
+  if (skala <= 0) return null;
+  const istAnteil = Math.min(100, (ist / skala) * 100);
+  const zielAnteil = Math.min(100, (soll / skala) * 100);
+
+  return (
+    <div
+      title={titel}
+      className="relative mt-2 h-1.5 w-full rounded-full bg-border"
+    >
+      <div
+        className={cn("h-full rounded-full", balken[stand])}
+        style={{ width: `${istAnteil}%` }}
+      />
+      <span
+        aria-hidden
+        className="absolute -top-0.5 h-2.5 w-0.5 rounded-full bg-foreground"
+        style={{ left: `${zielAnteil}%` }}
+      />
+    </div>
+  );
+}
+
+export function KennzahlBox({
+  kpi,
+  zielband = false,
+}: {
+  kpi: Kpi;
+  /** Variante 1 der zweiten Runde. */
+  zielband?: boolean;
+}) {
+  const kpiT = useTranslations("kpis");
+  const t = useTranslations("dashboard.entwurf");
+  const format = useFormatter();
+  const auswertung = zielAuswerten(kpi);
+  const { ist, soll, platzhalter } = auswertung;
+  const { zahl, einheit } = wertTeile(kpi, (wert) =>
+    format.number(wert, { maximumFractionDigits: 1 }),
+  );
+
+  // Ein Platzhalter ist ein unterschriebener Ausgangswert, keine Messung.
+  // Sein Abstand zum Ziel sagt nichts, also bekommt er auch keine Ampelfarbe -
+  // sonst leuchtete die Seite rot wegen Zahlen, die niemand erhoben hat.
+  const stand = platzhalter ? "offen" : auswertung.stand;
+
+  const voll = kpiT(`${kpi.key}.label`);
+  const kurz = kpiT.has(`${kpi.key}.kurz`) ? kpiT(`${kpi.key}.kurz`) : voll;
+  // Gerechnet steht der Rechenweg im Tooltip, sonst das volle Label. Beim
+  // Platzhalter ist der Rechenweg keiner.
+  const hinweis =
+    kpi.gerechnet && kpiT.has(`${kpi.key}.basis`)
+      ? `${voll} - ${kpiT(`${kpi.key}.basis`)}`
+      : voll;
+
+  return (
+    <div
+      title={hinweis}
+      className="flex h-full min-w-0 flex-col rounded-xl border border-border bg-card p-3"
+    >
+      {/* Kopf: fester Platz fuer zwei Zeilen, in jeder Box gleich hoch. */}
+      <p className="line-clamp-2 min-h-8 text-[11px] font-semibold leading-4 text-card-foreground">
+        {kurz}
+      </p>
+
+      {/* Wert: beginnt damit in jeder Box auf derselben Linie. */}
+      <p className="mt-2 flex items-baseline gap-1">
+        <span className="truncate text-xl font-black tabular-nums text-foreground">
+          {zahl}
+        </span>
+        {einheit ? (
+          <span className="shrink-0 text-[11px] font-medium text-muted-foreground">
+            {einheit}
+          </span>
+        ) : null}
+        <TrendPfeil kpi={kpi} className="ml-auto h-3.5 w-3.5 self-center" />
+      </p>
+
+      {zielband && !platzhalter && ist !== null && soll !== null ? (
+        <Zielband
+          ist={ist}
+          soll={soll}
+          stand={stand}
+          titel={t("box.bandTitel", { ist: `${zahl} ${einheit}`.trim(), ziel: kpi.ziel })}
+        />
+      ) : null}
+
+      {/* Fuss: haengt am unteren Rand, steht dadurch in jeder Box gleich. */}
+      <p className="mt-auto flex items-center gap-1.5 pt-2 text-[10px] leading-4">
+        <span
+          aria-hidden
+          className={cn("h-1.5 w-1.5 shrink-0 rounded-full", punkt[stand])}
+        />
+        <span className="truncate text-muted-foreground">
+          {soll !== null ? `${t("box.ziel")} ${kpi.ziel}` : t("box.ohneZiel")}
+        </span>
+        <span className={cn("ml-auto shrink-0 font-semibold", schrift[stand])}>
+          {platzhalter ? t("box.platzhalter") : t(`zielstand.${stand}`)}
+        </span>
+      </p>
+    </div>
+  );
+}

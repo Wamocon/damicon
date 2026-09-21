@@ -1,9 +1,7 @@
 "use client";
 
-// Das Geruest der Vergleichsansicht: oben eine Leiste mit den sechs
-// Zustaenden, darunter die Uebersichtsseite so, wie die gewaehlte Variante
-// sie baut. Alles ausser dem geaenderten Abschnitt kommt aus gemeinsam.tsx
-// und ist damit Zeile fuer Zeile die heutige Seite.
+// Das Geruest der Vergleichsansicht: oben eine Leiste mit den Zustaenden,
+// darunter die Uebersichtsseite so, wie der gewaehlte sie baut.
 //
 // Entwurfsmaterial, keine Produktivroute. Faellt mit der Entscheidung weg.
 import { useTranslations } from "next-intl";
@@ -18,15 +16,22 @@ import {
   MeilensteinAbschnitt,
   ZonenAbschnitt,
 } from "./gemeinsam";
-import { AmpelAbschnitt } from "./variante-1-ampel";
-import { TageslageAbschnitt, type Tageslage } from "./variante-2-tageslage";
-import { ZonenMitKennzahlen } from "./variante-3-zonenkennzahlen";
-import {
-  DatenstandAbschnitt,
-  KennzahlenOhneBauzustand,
-} from "./variante-4-datenstand";
-import { KennzahlenAlsZeilen } from "./variante-5-zeilen";
+import { BegruessungsKopf } from "./begruessung";
+import { ZonenAbschnittNeu, type KartenOptionen } from "./zonen-karte";
+import type { Tageslage } from "./tageslage";
+import type { Tageszeit } from "./tageszeit";
 import { varianten, type VariantenSchluessel } from "./varianten";
+
+// Je Variante genau ein Schalter. Die Basis hat keinen.
+const optionenJeVariante: Record<VariantenSchluessel, KartenOptionen> = {
+  ist: {},
+  basis: {},
+  w1: { zielband: true },
+  w2: { zonenlage: true },
+  w3: { vorgaenge: true },
+  w4: { moduleAlsWege: true },
+  w5: { rollengerecht: true },
+};
 
 function Waehler({ aktiv }: { aktiv: VariantenSchluessel }) {
   const t = useTranslations("dashboard.entwurf");
@@ -65,21 +70,22 @@ export function EntwurfSeite({
   kpis,
   quelle,
   lage,
-  stand,
-  istAdmin,
+  tageszeit,
+  datum,
 }: {
   variante: VariantenSchluessel;
   kpis: Kpi[];
   quelle: Datenquelle;
-  /** Nur fuer Variante 2 geladen, sonst null. */
+  /** Nur fuer w3 geladen, sonst null. */
   lage: Tageslage | null;
-  stand: string;
-  istAdmin: boolean;
+  tageszeit: Tageszeit;
+  datum: string;
 }) {
   const { role } = usePersona();
   const t = useTranslations("dashboard.entwurf");
   const { kern, erweitert } = kpisFuerRolle(role, kpis);
   const sichtbar = [...kern, ...erweitert];
+  const istHeutigeSeite = variante === "ist";
 
   return (
     <div className="space-y-8">
@@ -95,62 +101,34 @@ export function EntwurfSeite({
         </p>
 
         <div className="space-y-8">
-          <KopfBereich role={role} />
-
-          {variante === "v2" && lage ? (
-            <TageslageAbschnitt role={role} lage={lage} stand={stand} />
-          ) : null}
-
-          {variante === "v1" ? (
-            <AmpelAbschnitt
-              kern={kern}
-              erweitert={erweitert}
-              alle={sichtbar}
-              quelle={quelle}
-            />
-          ) : null}
-
-          {variante === "v4" ? (
-            <KennzahlenOhneBauzustand
-              kern={kern}
-              erweitert={erweitert}
-              quelle={quelle}
-            />
-          ) : null}
-
-          {variante === "v5" ? (
-            <KennzahlenAlsZeilen
-              kern={kern}
-              erweitert={erweitert}
-              quelle={quelle}
-            />
-          ) : null}
-
-          {variante === "ist" || variante === "v2" ? (
-            <KpiAbschnitt
-              kern={kern}
-              erweitert={erweitert}
-              alle={sichtbar}
-              quelle={quelle}
-            />
-          ) : null}
-
-          {variante === "v3" ? (
-            <ZonenMitKennzahlen role={role} kpis={sichtbar} quelle={quelle} />
+          {istHeutigeSeite ? (
+            <>
+              <KopfBereich role={role} />
+              <KpiAbschnitt
+                kern={kern}
+                erweitert={erweitert}
+                alle={sichtbar}
+                quelle={quelle}
+              />
+              <ZonenAbschnitt role={role} />
+            </>
           ) : (
-            <ZonenAbschnitt role={role} />
+            <>
+              <BegruessungsKopf tageszeit={tageszeit} datum={datum} />
+              <ZonenAbschnittNeu
+                role={role}
+                kpis={sichtbar}
+                quelle={quelle}
+                optionen={optionenJeVariante[variante]}
+                lage={lage}
+              />
+            </>
           )}
 
-          {variante === "v4" ? (
-            <DatenstandAbschnitt
-              alle={sichtbar}
-              quelle={quelle}
-              stand={stand}
-              istAdmin={istAdmin}
-            />
-          ) : (
-            <MeilensteinAbschnitt />
-          )}
+          {/* Der Meilensteinblock steht in allen Zustaenden, damit der
+              Vergleich fair bleibt. Ob er ueberhaupt auf der Startseite
+              bleibt, ist eine eigene Entscheidung (Runde 1, Variante 4). */}
+          <MeilensteinAbschnitt />
         </div>
       </div>
     </div>

@@ -374,19 +374,21 @@
       "navHinweis": "Six states of the same page, side by side. For viewing only, none of it is decided.",
       "name": {
         "ist": "Current state",
-        "v1": "1 Target status",
-        "v2": "2 Today at the farm",
-        "v3": "3 Figures at the zone",
-        "v4": "4 Data status instead of project plan",
-        "v5": "5 List instead of tiles"
+        "basis": "Baseline",
+        "w1": "1 Target band",
+        "w2": "2 Zone status",
+        "w3": "3 Open items",
+        "w4": "4 Modules as routes",
+        "w5": "5 Role-fitted"
       },
       "erklaerung": {
         "ist": "The page as it looks today.",
-        "v1": "Each tile colours its edge by the distance from the target, and the tiles are sorted by urgency.",
-        "v2": "Four figures from the current day sit above the indicators, each a way into the module behind it.",
-        "v3": "The upper block of indicators is dropped, each zone carries its own figures.",
-        "v4": "The milestone cards give way to the data status, and the placeholder caveat moves to the individual figure.",
-        "v5": "Fourteen tiles become fourteen rows with their own columns for actual, target and distance."
+        "basis": "Variant 3 with equally sized boxes, fixed positions, short names and a greeting. The basis for everything that follows.",
+        "w1": "Each box gets a band showing the actual value against the target.",
+        "w2": "The head of each zone card sums up how many of the zone's figures are off target.",
+        "w3": "Next to the figures stand the zone's open items, each a way into its module.",
+        "w4": "The module names turn from dead text into buttons that lead straight into the module.",
+        "w5": "Zones where the role cannot open a single module collapse into one line instead of standing there as an empty card."
       },
       "zielstand": {
         "erfuellt": "on target",
@@ -394,44 +396,51 @@
         "verfehlt": "target missed",
         "offen": "no target value"
       },
-      "abstand": "{prozent} % off",
-      "platzhalterWert": "Placeholder, not yet measured",
-      "ampelBeschreibung": "Sorted by distance from the target. What is furthest off comes first.",
-      "zaehlungVerfehlt": "{anzahl} missed",
-      "zaehlungKnapp": "{anzahl} close",
-      "zaehlungErfuellt": "{anzahl} on target",
       "lage": {
-        "titel": "Today at the farm",
-        "beschreibung": "What is open right now. Each figure leads into the module where it is handled.",
-        "stand": "As of {stand}",
         "aufgabenOffen": "Picking tasks not completed",
         "bloeckeGesperrt": "Row blocks in waiting period",
         "bloeckeFaellig": "{anzahl} of them due for release",
         "reklamationenOffen": "Complaints open or under review",
-        "dokumenteAbgelaufen": "Documents expired"
+        "dokumenteAbgelaufen": "Documents expired",
+        "chargenOhneKuehlung": "Batches awaiting pre-cooling"
       },
       "zonenTitel": "The four zones",
       "zonenBeschreibung": "Each zone with its indicators and its modules.",
       "zoneOhneKennzahl": "No indicator is released for this zone.",
-      "standGerechnet": "from {anzahl} records",
-      "datenstand": {
-        "titel": "Data status",
-        "beschreibung": "Where the figures above come from and how current they are.",
-        "quelle": "Source",
-        "gerechnet": "Calculated",
-        "gerechnetWert": "{gerechnet} of {gesamt} indicators, from {datensaetze} records",
-        "abruf": "Retrieved",
-        "projektHinweis": "The status of the internal preparation is no longer on the farm overview. It belongs in an area only the administration sees."
+      "box": {
+        "ziel": "Target",
+        "ohneZiel": "no target value",
+        "bandTitel": "Actual {ist}, target {ziel}",
+        "platzhalter": "Placeholder"
       },
-      "zeile": {
-        "beschreibung": "One row per indicator, sorted by distance from the target.",
-        "spalteKennzahl": "Indicator",
-        "spalteZone": "Zone",
-        "spalteIst": "Actual",
-        "spalteZiel": "Target",
-        "spalteStand": "Target status",
-        "erweitert": "extended"
+      "zonenlage": {
+        "ausserhalb": "{anzahl} of {gesamt} off target",
+        "alleImZiel": "all {gesamt} on target",
+        "ohneKennzahl": "no figure",
+        "ohneMessung": "not yet measured"
+      },
+      "vorgaenge": {
+        "titel": "Open",
+        "keine": "nothing open"
+      },
+      "module": {
+        "titel": "Modules",
+        "zoneOeffnen": "Open the whole zone"
+      },
+      "rolle": {
+        "leereZonen": "{anzahl} zones without released modules",
+        "leereZonenEine": "One zone without released modules",
+        "leereZonenNamen": "{namen}"
       }
+    },
+    "begruessung": {
+      "morgen": "Good morning, {name}",
+      "tag": "Good afternoon, {name}",
+      "abend": "Good evening, {name}",
+      "morgenOhneNamen": "Good morning",
+      "tagOhneNamen": "Good afternoon",
+      "abendOhneNamen": "Good evening",
+      "beschreibung": "What the farm currently reports: figures per zone, open items and the way into the modules."
     }
   },
   "roles": {
@@ -554,66 +563,80 @@
     "verlustquote": {
       "label": "Loss rate from picking to the client",
       "braucht": "nothing - scrap per batch is recorded",
-      "basis": "scrap against total quantity across all batches"
+      "basis": "scrap against total quantity across all batches",
+      "kurz": "Loss rate"
     },
     "vermarktungsfaehig": {
       "label": "Share of marketable punnets",
-      "braucht": "quality sorting per punnet"
+      "braucht": "quality sorting per punnet",
+      "kurz": "Marketable share"
     },
     "zeitBisVorkuehlung": {
       "label": "Time from picking to pre-cooling",
       "braucht": "nothing - picking and cooling time per batch",
-      "basis": "average across all measured batches, including limit breaches"
+      "basis": "average across all measured batches, including limit breaches",
+      "kurz": "To pre-cooling"
     },
     "zeitBisKunde": {
       "label": "Time from picking to the client",
-      "braucht": "deliveries with departure and arrival"
+      "braucht": "deliveries with departure and arrival",
+      "kurz": "To the client"
     },
     "pflueckleistung": {
       "label": "Picking output per person and hour",
       "braucht": "nothing - crate with person against working time",
-      "basis": "harvest quantity per crate against recorded working time"
+      "basis": "harvest quantity per crate against recorded working time",
+      "kurz": "Picking output"
     },
     "pflueckStreuung": {
       "label": "Spread of picking output (best to weakest)",
       "braucht": "nothing - output per person across the season",
-      "basis": "strongest against weakest worker, at least two people required"
+      "basis": "strongest against weakest worker, at least two people required",
+      "kurz": "Output spread"
     },
     "pflueckintervall": {
       "label": "Picking interval kept per row block",
       "braucht": "nothing - harvest sequence per row block from the batches",
-      "basis": "share of actual harvest sequences within at most three days"
+      "basis": "share of actual harvest sequences within at most three days",
+      "kurz": "Picking interval"
     },
     "behandlungenWartezeit": {
       "label": "Treatments with the pre-harvest interval kept",
       "braucht": "nothing - derivable from treatment and lock logic",
-      "basis": "treatments without harvesting during the lock period"
+      "basis": "treatments without harvesting during the lock period",
+      "kurz": "Interval kept"
     },
     "reklamationsquote": {
       "label": "Complaint rate",
-      "braucht": "complaints linked to the batch"
+      "braucht": "complaints linked to the batch",
+      "kurz": "Complaint rate"
     },
     "liefertreue": {
       "label": "Delivery reliability (on time and complete)",
-      "braucht": "promised against actual delivery"
+      "braucht": "promised against actual delivery",
+      "kurz": "Delivery reliability"
     },
     "belegteVerkaeufe": {
       "label": "Share of documented sales (ЭСФ and accompanying document)",
-      "braucht": "connection to ЭСФ and the goods accompanying note"
+      "braucht": "connection to ЭСФ and the goods accompanying note",
+      "kurz": "Documented sales"
     },
     "deckungsbeitrag": {
       "label": "Contribution margin per kg",
       "braucht": "nothing - entries per batch against harvest quantity",
-      "basis": "all revenue and cost entries against the total harvest quantity - still without a time window or batch reference per entry"
+      "basis": "all revenue and cost entries against the total harvest quantity - still without a time window or batch reference per entry",
+      "kurz": "Contribution margin"
     },
     "esutdAbdeckung": {
       "label": "Seasonal-worker coverage in ЕСУТД",
       "braucht": "legal confirmation of the ЕСУТД obligation via enbek.kz (see WMCNL-1447) - connection point named, the legal review of the obligation itself is still outstanding",
-      "basis": "pickers with a recorded employment contract"
+      "basis": "pickers with a recorded employment contract",
+      "kurz": "ЕСУТД coverage"
     },
     "websiteAnfragen": {
       "label": "Enquiries via the website per month",
-      "braucht": "contact form on the website"
+      "braucht": "contact form on the website",
+      "kurz": "Website enquiries"
     }
   },
   "modules": {

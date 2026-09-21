@@ -75,12 +75,19 @@ const rang: Record<Zielstand, number> = {
   offen: 3,
 };
 
+// Ein Platzhalter reiht sich hinter allem Gemessenen ein, auch wenn sein
+// Abstand zum Ziel rechnerisch gross ist: der Wert ist ein unterschriebener
+// Ausgangswert und keine Messung, er gehoert nicht an die erste Stelle.
+function rangVon(auswertung: Zielauswertung): number {
+  return auswertung.platzhalter ? rang.offen : rang[auswertung.stand];
+}
+
 export function nachDringlichkeit(kpis: Kpi[]): Kpi[] {
   return [...kpis].sort((a, b) => {
     const links = zielAuswerten(a);
     const rechts = zielAuswerten(b);
-    if (rang[links.stand] !== rang[rechts.stand]) {
-      return rang[links.stand] - rang[rechts.stand];
+    if (rangVon(links) !== rangVon(rechts)) {
+      return rangVon(links) - rangVon(rechts);
     }
     return (links.abstand ?? 0) - (rechts.abstand ?? 0);
   });

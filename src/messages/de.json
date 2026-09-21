@@ -374,19 +374,21 @@
       "navHinweis": "Sechs Zustände derselben Seite zum Vergleich. Nur zum Ansehen, entschieden ist nichts davon.",
       "name": {
         "ist": "Ist-Zustand",
-        "v1": "1 Zielampel",
-        "v2": "2 Tageslage",
-        "v3": "3 Zahlen bei der Zone",
-        "v4": "4 Datenstand statt Projektplan",
-        "v5": "5 Liste statt Kacheln"
+        "basis": "Basis",
+        "w1": "1 Zielband",
+        "w2": "2 Lage je Zone",
+        "w3": "3 Offene Vorgänge",
+        "w4": "4 Module als Wege",
+        "w5": "5 Rollengerecht"
       },
       "erklaerung": {
         "ist": "Die Seite, wie sie heute aussieht.",
-        "v1": "Jede Kachel färbt ihre Kante nach dem Abstand zum Ziel, und die Kacheln stehen nach Dringlichkeit sortiert.",
-        "v2": "Über den Kennzahlen stehen vier Zahlen des laufenden Tages, jede ein Weg in das Modul dahinter.",
-        "v3": "Der obere Kennzahlenblock entfällt, jede Zone trägt ihre eigenen Zahlen.",
-        "v4": "Die Meilensteinkarten weichen dem Stand der Daten, der Platzhalter-Vorbehalt rutscht an die einzelne Zahl.",
-        "v5": "Aus vierzehn Kacheln werden vierzehn Zeilen mit eigenen Spalten für Ist, Ziel und Abstand."
+        "basis": "Variante 3 mit gleich großen Boxen, festen Positionen, Kurznamen und Begrüßung. Grundlage für alles Weitere.",
+        "w1": "Jede Box bekommt ein Band, das den Istwert gegen den Zielwert zeigt.",
+        "w2": "Der Kopf jeder Zonenkarte fasst zusammen, wie viele Kennzahlen der Zone außerhalb des Ziels liegen.",
+        "w3": "Neben den Kennzahlen stehen die offenen Vorgänge der Zone, jeder ein Weg in sein Modul.",
+        "w4": "Die Modulnamen werden aus totem Text zu Knöpfen, die direkt in das Modul führen.",
+        "w5": "Zonen, in denen die Rolle kein einziges Modul öffnen darf, fallen in eine Zeile zusammen statt als leere Karte zu stehen."
       },
       "zielstand": {
         "erfuellt": "im Ziel",
@@ -394,44 +396,51 @@
         "verfehlt": "Ziel verfehlt",
         "offen": "kein Zielwert"
       },
-      "abstand": "{prozent} % daneben",
-      "platzhalterWert": "Platzhalter, noch nicht gemessen",
-      "ampelBeschreibung": "Sortiert nach Abstand zum Zielwert. Oben steht, was am weitesten daneben liegt.",
-      "zaehlungVerfehlt": "{anzahl} verfehlt",
-      "zaehlungKnapp": "{anzahl} knapp",
-      "zaehlungErfuellt": "{anzahl} im Ziel",
       "lage": {
-        "titel": "Heute im Betrieb",
-        "beschreibung": "Was gerade offen ist. Jede Zahl führt in das Modul, in dem sie bearbeitet wird.",
-        "stand": "Stand {stand}",
         "aufgabenOffen": "Pflückaufgaben nicht abgeschlossen",
         "bloeckeGesperrt": "Reihenblöcke in Wartezeit",
         "bloeckeFaellig": "{anzahl} davon zur Freigabe fällig",
         "reklamationenOffen": "Reklamationen offen oder in Prüfung",
-        "dokumenteAbgelaufen": "Dokumente abgelaufen"
+        "dokumenteAbgelaufen": "Dokumente abgelaufen",
+        "chargenOhneKuehlung": "Chargen ohne Vorkühlung"
       },
       "zonenTitel": "Die vier Zonen",
       "zonenBeschreibung": "Jede Zone mit ihren Kennzahlen und ihren Modulen.",
       "zoneOhneKennzahl": "Für diese Zone ist keine Kennzahl freigegeben.",
-      "standGerechnet": "aus {anzahl} Datensätzen",
-      "datenstand": {
-        "titel": "Stand der Daten",
-        "beschreibung": "Woher die Zahlen oben kommen und wie aktuell sie sind.",
-        "quelle": "Quelle",
-        "gerechnet": "Gerechnet",
-        "gerechnetWert": "{gerechnet} von {gesamt} Kennzahlen, aus {datensaetze} Datensätzen",
-        "abruf": "Abgerufen",
-        "projektHinweis": "Der Stand der internen Vorbereitung steht nicht mehr auf der Betriebsübersicht. Er gehört in einen Bereich, den nur die Administration sieht."
+      "box": {
+        "ziel": "Ziel",
+        "ohneZiel": "kein Zielwert",
+        "bandTitel": "Ist {ist}, Ziel {ziel}",
+        "platzhalter": "Platzhalter"
       },
-      "zeile": {
-        "beschreibung": "Eine Zeile je Kennzahl, sortiert nach Abstand zum Ziel.",
-        "spalteKennzahl": "Kennzahl",
-        "spalteZone": "Zone",
-        "spalteIst": "Ist",
-        "spalteZiel": "Ziel",
-        "spalteStand": "Zielstand",
-        "erweitert": "erweitert"
+      "zonenlage": {
+        "ausserhalb": "{anzahl} von {gesamt} außerhalb",
+        "alleImZiel": "alle {gesamt} im Ziel",
+        "ohneKennzahl": "keine Kennzahl",
+        "ohneMessung": "noch keine Messung"
+      },
+      "vorgaenge": {
+        "titel": "Offen",
+        "keine": "nichts offen"
+      },
+      "module": {
+        "titel": "Module",
+        "zoneOeffnen": "Ganze Zone öffnen"
+      },
+      "rolle": {
+        "leereZonen": "{anzahl} Zonen ohne freigegebene Module",
+        "leereZonenEine": "Eine Zone ohne freigegebene Module",
+        "leereZonenNamen": "{namen}"
       }
+    },
+    "begruessung": {
+      "morgen": "Guten Morgen, {name}",
+      "tag": "Guten Tag, {name}",
+      "abend": "Guten Abend, {name}",
+      "morgenOhneNamen": "Guten Morgen",
+      "tagOhneNamen": "Guten Tag",
+      "abendOhneNamen": "Guten Abend",
+      "beschreibung": "Was der Betrieb gerade meldet: Kennzahlen je Zone, offene Vorgänge und der Weg in die Module."
     }
   },
   "roles": {
@@ -554,66 +563,80 @@
     "verlustquote": {
       "label": "Verlustquote vom Pflücken bis zum Kunden",
       "braucht": "nichts - Ausschuss je Charge wird erfasst",
-      "basis": "Ausschuss gegen Gesamtmenge über alle Chargen"
+      "basis": "Ausschuss gegen Gesamtmenge über alle Chargen",
+      "kurz": "Verlustquote"
     },
     "vermarktungsfaehig": {
       "label": "Anteil vermarktungsfähiger Schalen",
-      "braucht": "Qualitaetssortierung je Schale"
+      "braucht": "Qualitaetssortierung je Schale",
+      "kurz": "Vermarktungsfähig"
     },
     "zeitBisVorkuehlung": {
       "label": "Zeit vom Pflücken bis zur Vorkühlung",
       "braucht": "nichts - Pflück- und Kühlzeitpunkt je Charge",
-      "basis": "Mittel über alle gemessenen Chargen, inklusive Grenzverletzungen"
+      "basis": "Mittel über alle gemessenen Chargen, inklusive Grenzverletzungen",
+      "kurz": "Bis Vorkühlung"
     },
     "zeitBisKunde": {
       "label": "Zeit vom Pflücken bis zum Kunden",
-      "braucht": "Lieferungen mit Abfahrt und Ankunft"
+      "braucht": "Lieferungen mit Abfahrt und Ankunft",
+      "kurz": "Bis zum Kunden"
     },
     "pflueckleistung": {
       "label": "Pflückleistung je Person und Stunde",
       "braucht": "nichts - Steige mit Person gegen Arbeitszeit",
-      "basis": "Erntemenge je Steige gegen erfasste Arbeitszeit"
+      "basis": "Erntemenge je Steige gegen erfasste Arbeitszeit",
+      "kurz": "Pflückleistung"
     },
     "pflueckStreuung": {
       "label": "Streuung der Pflückleistung (beste zu schwächste Kraft)",
       "braucht": "nichts - Leistung je Person über die Saison",
-      "basis": "Beste gegen schwächste Kraft, mindestens zwei Personen nötig"
+      "basis": "Beste gegen schwächste Kraft, mindestens zwei Personen nötig",
+      "kurz": "Streuung Pflückleistung"
     },
     "pflueckintervall": {
       "label": "Eingehaltenes Pflückintervall je Reihenblock",
       "braucht": "nichts - Erntefolge je Reihenblock aus den Chargen",
-      "basis": "Anteil der tatsächlichen Erntefolgen im Abstand von höchstens drei Tagen"
+      "basis": "Anteil der tatsächlichen Erntefolgen im Abstand von höchstens drei Tagen",
+      "kurz": "Pflückintervall"
     },
     "behandlungenWartezeit": {
       "label": "Behandlungen mit eingehaltener Wartezeit",
       "braucht": "nichts - aus Behandlung und Sperrlogik ableitbar",
-      "basis": "Behandlungen ohne Ernte im Sperrzeitraum"
+      "basis": "Behandlungen ohne Ernte im Sperrzeitraum",
+      "kurz": "Wartezeit eingehalten"
     },
     "reklamationsquote": {
       "label": "Reklamationsquote",
-      "braucht": "Reklamationen mit Bezug zur Charge"
+      "braucht": "Reklamationen mit Bezug zur Charge",
+      "kurz": "Reklamationsquote"
     },
     "liefertreue": {
       "label": "Liefertreue (pünktlich und vollständig)",
-      "braucht": "Zugesagte gegen tatsaechliche Lieferung"
+      "braucht": "Zugesagte gegen tatsaechliche Lieferung",
+      "kurz": "Liefertreue"
     },
     "belegteVerkaeufe": {
       "label": "Anteil belegter Verkäufe (ЭСФ und Warenbegleitschein)",
-      "braucht": "Anbindung an ЭСФ und Warenbegleitschein"
+      "braucht": "Anbindung an ЭСФ und Warenbegleitschein",
+      "kurz": "Belegte Verkäufe"
     },
     "deckungsbeitrag": {
       "label": "Deckungsbeitrag je kg",
       "braucht": "nichts - Buchungen je Charge gegen Erntemenge",
-      "basis": "Alle Erlös- und Kostenbuchungen gegen die gesamte Erntemenge - noch ohne Zeitfenster oder Chargenbezug je Buchung"
+      "basis": "Alle Erlös- und Kostenbuchungen gegen die gesamte Erntemenge - noch ohne Zeitfenster oder Chargenbezug je Buchung",
+      "kurz": "Deckungsbeitrag"
     },
     "esutdAbdeckung": {
       "label": "Abdeckung der Saisonkräfte in ЕСУТД",
       "braucht": "rechtliche Bestätigung der ЕСУТД-Pflicht über enbek.kz (siehe WMCNL-1447) - Anbindungspunkt benannt, Rechtsprüfung der Pflicht selbst steht noch aus",
-      "basis": "Pflücker mit erfasstem Arbeitsvertrag"
+      "basis": "Pflücker mit erfasstem Arbeitsvertrag",
+      "kurz": "ЕСУТД-Abdeckung"
     },
     "websiteAnfragen": {
       "label": "Anfragen über die Website je Monat",
-      "braucht": "Kontaktformular auf der Website"
+      "braucht": "Kontaktformular auf der Website",
+      "kurz": "Website-Anfragen"
     }
   },
   "modules": {

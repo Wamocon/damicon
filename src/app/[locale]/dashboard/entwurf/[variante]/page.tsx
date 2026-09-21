@@ -1,34 +1,43 @@
 import { notFound } from "next/navigation";
 import { getFormatter, setRequestLocale } from "next-intl/server";
 import { EntwurfSeite } from "@/components/dashboard/entwuerfe/entwurf-seite";
-import { istVariante } from "@/components/dashboard/entwuerfe/varianten";
-import type { Tageslage } from "@/components/dashboard/entwuerfe/variante-2-tageslage";
+import type { Tageslage } from "@/components/dashboard/entwuerfe/tageslage";
+import {
+  betriebsZeitzone,
+  tageszeitBestimmen,
+} from "@/components/dashboard/entwuerfe/tageszeit";
+import {
+  brauchtTageslage,
+  istVariante,
+} from "@/components/dashboard/entwuerfe/varianten";
 import { ladeKpis } from "@/lib/data/kpis";
 import { ladePflueckaufgaben } from "@/lib/data/pflueckaufgaben";
 import { ladeReihenbloecke } from "@/lib/data/reihenbloecke";
+import { ladeKuehlkettenUebersicht } from "@/lib/data/kuehlkette";
 import { ladeReklamationen } from "@/lib/data/reklamationen";
 import { ladeDokumente } from "@/lib/data/dokumente";
 import { getSessionProfile } from "@/lib/auth";
 import { kpisFuerRolle } from "@/lib/domain/kpis";
 
-// Vergleichsansicht der Entwuerfe fuer die Uebersichtsseite. Sechs Zustaende
-// derselben Seite unter /dashboard/entwurf/<ist|v1..v5>.
+// Vergleichsansicht der Entwuerfe fuer die Uebersichtsseite, unter
+// /dashboard/entwurf/<ist|basis|w1..w5>.
 //
-// Diese Route ist Entwurfsmaterial und faellt weg, sobald entschieden ist,
-// welche Varianten in die Uebersicht wandern. Sie steht bewusst unter
-// /dashboard: so traegt sie Kopfzeile, Seitenleiste und Rollenwahl der
-// echten Seite, und ein Vergleichsbild zeigt die Seite im Rahmen, in dem sie
-// spaeter steht. Das statische Segment "entwurf" geht der dynamischen Zone
-// [zone] vor, die vier Zonenschluessel bleiben also unberuehrt.
+// Entwurfsmaterial: faellt weg, sobald entschieden ist, was in die Uebersicht
+// wandert. Sie steht bewusst unter /dashboard, damit sie Kopfzeile,
+// Seitenleiste und Rollenwahl der echten Seite traegt. Das statische Segment
+// "entwurf" geht der dynamischen Zone [zone] vor, die vier Zonenschluessel
+// bleiben also unberuehrt.
 
-/** Zaehlt zusammen, was Variante 2 als Tageslage zeigt. */
+/** Zaehlt die offenen Vorgaenge je Zone fuer Variante w3. */
 async function ladeTageslage(): Promise<Tageslage> {
-  const [aufgaben, bloecke, reklamationen, dokumente] = await Promise.all([
-    ladePflueckaufgaben(),
-    ladeReihenbloecke(),
-    ladeReklamationen(),
-    ladeDokumente(),
-  ]);
+  const [aufgaben, bloecke, kuehlkette, reklamationen, dokumente] =
+    await Promise.all([
+      ladePflueckaufgaben(),
+      ladeReihenbloecke(),
+      ladeKuehlkettenUebersicht(),
+      ladeReklamationen(),
+      ladeDokumente(),
+    ]);
 
   const gesperrt = bloecke.bloecke.filter((block) => block.sperre !== null);
 
@@ -38,11 +47,12 @@ async function ladeTageslage(): Promise<Tageslage> {
     ).length,
     bloeckeGesperrt: gesperrt.length,
     bloeckeFaellig: gesperrt.filter((block) => block.sperre?.faellig).length,
-    reklamationenOffen: reklamationen.reklamationen.filter(
-      (fall) => fall.status === "offen" || fall.status === "in_pruefung",
-    ).length,
+    chargenOhneKuehlung: kuehlkette.offeneChargen.length,
     dokumenteAbgelaufen: dokumente.dokumente.filter(
       (dokument) => dokument.status === "abgelaufen",
+    ).length,
+    reklamationenOffen: reklamationen.reklamationen.filter(
+      (fall) => fall.status === "offen" || fall.status === "in_pruefung",
     ).length,
   };
 }
@@ -71,8 +81,8 @@ export default async function EntwurfPage({
     sichtbareKpis = [...kern, ...erweitert];
   }
 
-  // Die Tageslage kostet vier Abfragen - nur laden, wo sie gezeigt wird.
-  const lage = variante === "v2" ? await ladeTageslage() : null;
+  const lage = brauchtTageslage(variante) ? await ladeTageslage() : null;
+  const jetzt = new Date();
 
   return (
     <EntwurfSeite
@@ -80,11 +90,11 @@ export default async function EntwurfPage({
       kpis={sichtbareKpis}
       quelle={quelle}
       lage={lage}
-      stand={format.dateTime(new Date(), {
-        dateStyle: "short",
-        timeStyle: "short",
+      tageszeit={tageszeitBestimmen(jetzt)}
+      datum={format.dateTime(jetzt, {
+        dateStyle: "full",
+        timeZone: betriebsZeitzone,
       })}
-      istAdmin={profil?.role === "admin"}
     />
   );
 }
