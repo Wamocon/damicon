@@ -272,7 +272,7 @@
     "demoPassword": "Password for all accounts:",
     "backToSite": "Back to the start page",
     "demoModeTitle": "Demo mode without database",
-    "demoModeLead": "No Supabase environment is configured. The dashboard runs on sample data and the role can be switched freely.",
+    "demoModeLead": "No database is configured. The dashboard runs on sample data and the role can be switched freely.",
     "toDashboard": "Go to dashboard",
     "signOut": "Sign out",
     "security": "Security",
@@ -291,7 +291,7 @@
   "mfa": {
     "title": "Security",
     "description": "Multi-factor authentication. A second factor via an authenticator app protects the account even if the password becomes known.",
-    "keineUmgebung": "Without a Supabase environment there is no real account - multi-factor authentication only applies after signing in.",
+    "keineUmgebung": "Without a connected database there is no real account - multi-factor authentication only applies after signing in.",
     "faktorenTitel": "Configured factors",
     "faktorenLead": "One TOTP factor is enough. Several are possible, for instance for a backup device.",
     "keinFaktor": "No second factor set up yet.",
@@ -315,7 +315,7 @@
     "dataSource": {
       "db": "Live data",
       "demo": "Sample data",
-      "dbHint": "Connected to the Supabase database, read under the RLS permissions of your role.",
+      "dbHint": "The figures come from live operations. You see the part of them your role is allowed to see.",
       "demoHint": "No database connection - the view shows the built-in sample data.",
       "fehler": "Database unreachable",
       "fehlerHint": "The query failed. Sample data is shown instead - it does not come from the farm."
@@ -577,7 +577,7 @@
       "title": "Row blocks and status",
       "navTitle": "Row blocks",
       "description": "Every row block has one status: planted, ready to harvest, dormant, pruning or harvest-locked. A locked block simply must not appear in the picking schedule.",
-      "summary": "State machine per row block. A condition locks the harvest until it is met - here: until the pre-harvest interval expires.",
+      "summary": "Every row block carries its own status. While a pre-harvest interval is running, it stays locked for harvesting until that interval expires.",
       "todo": "Status changes with a mandatory reason, fine-grained access rules per resource, history per row block."
     },
     "pflueckaufgaben": {
@@ -598,7 +598,7 @@
       "title": "Rotation plan / picking schedule",
       "navTitle": "Rotation plan",
       "description": "A rolling picking schedule with an interval of two to three days per row block across the whole autumn harvest. One missed round destroys the block for that cycle.",
-      "summary": "The first function to be built. The planning problem is not the forecast but the rotation over six weeks.",
+      "summary": "Shows which row block is due when, spreading the passes across the six weeks of the harvest.",
       "todo": "Interval engine per row block, brigade assignment, conflict check against pre-harvest-interval locks, calendar export (.ics)."
     },
     "wetter": {
@@ -612,7 +612,7 @@
       "title": "Cold-chain clock",
       "navTitle": "Cold chain",
       "description": "Timing from picking to pre-cooling with a hard 60-minute threshold, temperature logger, target temperature 0 to 1 degree. Highest priority in the whole farm.",
-      "summary": "The building block the entire price spread hangs on. Over 60 minutes the ware is only industrial ware the next day.",
+      "summary": "Tracks the time from picking to pre-cooling. Over 60 minutes the ware is only industrial ware the next day.",
       "todo": "Temperature-logger integration, batch clock from the picking time, alarm on threshold breach, KPI calculation."
     },
     "logistik": {
@@ -625,7 +625,7 @@
     "qr_steigen": {
       "title": "QR crate identification",
       "navTitle": "QR crates",
-      "description": "QR labels for crates (linking to the public origin lookup), picker ID badges carrying the person's own badge code without biometrics, and a sign-in-free wall poster - all generated server-side as SVG and print-ready via the browser print function.",
+      "description": "QR labels for crates (linking to the public origin lookup), picker ID badges carrying their own badge code without biometrics, and a sign-in-free wall poster - all three can be printed straight from the browser.",
       "summary": "The QR code carries identity from the field to the shop counter - the badge can be scanned by camera at the collection point to attribute a crate or work time to that person, instead of choosing them from a dropdown.",
       "todo": "A camera scan of the crate labels themselves (not just the picker badge) is not part of this build-out."
     },
@@ -640,7 +640,7 @@
       "title": "Roles and permissions",
       "navTitle": "Roles and permissions",
       "description": "Seven core roles, from administration through farm management and accounting to the brigade and the individual picker in the field, the grower and the B2B client - with a permission matrix over resources and actions.",
-      "summary": "Roles as a clear data structure over resources by actions. New roles without touching the logic.",
+      "summary": "Sets out who may see and change what. A new role can be added without changing anything in the modules.",
       "todo": "User management, role assignment, fine-grained access rules per resource."
     },
     "finanzen": {
@@ -774,7 +774,7 @@
     },
     "freeAt": "Free from",
     "days": "days",
-    "note": "The harvest-locked block is the most easily verifiable benefit of the system: the picking schedule simply must not show it."
+    "note": "A block with a running pre-harvest interval does not appear in the picking schedule at all. That way nobody can create a task on it by mistake."
   },
   "pflueckaufgabenDemo": {
     "listTitle": "Picking tasks today",
@@ -900,10 +900,10 @@
       "berechtigung": "Your role is not allowed to perform this action.",
       "angemeldet": "Session expired. Please sign in again.",
       "doppelt": "An entry with this identifier already exists.",
-      "bezug": "The selected reference record does not exist.",
+      "bezug": "The selected reference is no longer there. Please reload the list and choose again.",
       "nichtGefunden": "The record was not found or can no longer be edited.",
       "regel": "Not possible: the pre-harvest interval has not elapsed yet.",
-      "unbekannt": "Action failed. Details are in the server log.",
+      "unbekannt": "The action failed. Please try again. If it keeps failing, report it to your administrator with the time it happened.",
       "keineCharge": "This task has no batch.",
       "kuehlkette": "Limit broken: {wert} minutes until measurement. The goods have to be downgraded.",
       "transportKuehlkette": "Limit exceeded: the transport temperature was above 8 degrees. The goods have to be downgraded.",
@@ -1081,7 +1081,7 @@
     "titel": "Record treatment",
     "lead": "The pre-harvest interval comes from the product catalogue - the row block is locked automatically.",
     "erfassen": "Record treatment",
-    "hinweis": "The lock is set by a database trigger and cannot be bypassed by changing the status. The release button appears only once the pre-harvest interval has elapsed.",
+    "hinweis": "The lock is set by the treatment itself and cannot be lifted from the interface. The release button appears only once the pre-harvest interval has elapsed.",
     "feld": {
       "block": "Row block",
       "mittel": "Plant protection product",
@@ -1108,7 +1108,7 @@
       "nachbarbetrieb": "Neighbouring farm"
     },
     "blocksShort": "blocks",
-    "note": "The field map with a unique row and block identifier along the trellises is the basis for the rotation plan, the harvest capture and the contribution margin."
+    "note": "Every row and every block along the trellises carries a unique identifier. The picking schedule, the harvest figures and the billing all refer to it."
   },
   "pflanzenschutzDemo": {
     "ruleTitle": "Hard legal rule",
@@ -1185,9 +1185,9 @@
       "betrag": "Amount"
     },
     "ledgerTitel": "Postings",
-    "ledgerLead": "Append only: a wrong posting is corrected with a reversing entry, not by changing the original.",
+    "ledgerLead": "A wrong posting is corrected with a reversing entry, not by changing the original.",
     "keineBuchungen": "No posting recorded yet.",
-    "note": "The contribution margin per kilogram is the central management metric (KPI \"deckungsbeitrag\"). It is formed per row block, variety, harvest day and client - not only at year end. Postings are immutable; the database rejects UPDATE and DELETE on the finance ledger regardless of the interface.",
+    "note": "The contribution margin per kilogram is the central management metric. It is formed per row block, variety, harvest day and client - not only at year end.",
     "formular": {
       "kostentraeger": {
         "titel": "Create new cost object",

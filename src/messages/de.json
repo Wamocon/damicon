@@ -272,7 +272,7 @@
     "demoPassword": "Passwort für alle Konten:",
     "backToSite": "Zurück zur Startseite",
     "demoModeTitle": "Demo-Modus ohne Datenbank",
-    "demoModeLead": "Es ist keine Supabase-Umgebung hinterlegt. Das Dashboard läuft mit Beispieldaten, die Rolle lässt sich frei umschalten.",
+    "demoModeLead": "Es ist keine Datenbank hinterlegt. Das Dashboard läuft mit Beispieldaten, die Rolle lässt sich frei umschalten.",
     "toDashboard": "Zum Dashboard",
     "signOut": "Abmelden",
     "security": "Sicherheit",
@@ -291,7 +291,7 @@
   "mfa": {
     "title": "Sicherheit",
     "description": "Mehrfaktor-Authentifizierung. Ein zweiter Faktor über eine Authenticator-App schützt das Konto, falls das Passwort bekannt wird.",
-    "keineUmgebung": "Ohne Supabase-Umgebung gibt es kein echtes Konto - die Mehrfaktor-Authentifizierung greift erst mit Anmeldung.",
+    "keineUmgebung": "Ohne angebundene Datenbank gibt es kein echtes Konto - die Mehrfaktor-Authentifizierung greift erst mit der Anmeldung.",
     "faktorenTitel": "Eingerichtete Faktoren",
     "faktorenLead": "Ein TOTP-Faktor genügt. Mehrere sind möglich, etwa für ein Ersatzgerät.",
     "keinFaktor": "Noch kein zweiter Faktor eingerichtet.",
@@ -315,7 +315,7 @@
     "dataSource": {
       "db": "Live-Daten",
       "demo": "Beispieldaten",
-      "dbHint": "Angebunden an die Supabase-Datenbank, gelesen unter den RLS-Rechten Ihrer Rolle.",
+      "dbHint": "Die Zahlen kommen aus dem laufenden Betrieb. Sie sehen davon, was Ihre Rolle sehen darf.",
       "demoHint": "Ohne Datenbankverbindung - die Ansicht zeigt die hinterlegten Beispieldaten.",
       "fehler": "Datenbank nicht erreichbar",
       "fehlerHint": "Die Abfrage ist fehlgeschlagen. Angezeigt werden ersatzweise Beispieldaten - sie stammen nicht aus dem Betrieb."
@@ -577,7 +577,7 @@
       "title": "Reihenblöcke und Status",
       "navTitle": "Reihenblöcke",
       "description": "Jeder Reihenblock hat einen Status: bepflanzt, erntereif, ruhend, Rückschnitt oder wartezeitgesperrt. Ein gesperrter Block darf im Pflückplan schlicht nicht erscheinen.",
-      "summary": "Zustandsautomat je Reihenblock. Bedingung sperrt die Ernte, bis sie erfüllt ist - hier: bis die Wartezeit abgelaufen ist.",
+      "summary": "Jeder Reihenblock führt seinen eigenen Status. Läuft eine Wartezeit, bleibt er für die Ernte gesperrt, bis sie abgelaufen ist.",
       "todo": "Statuswechsel mit Begründungspflicht, feingranulare Zugriffsregeln je Ressource, Verlauf je Reihenblock."
     },
     "pflueckaufgaben": {
@@ -598,7 +598,7 @@
       "title": "Rotationsplan / Pflückplan",
       "navTitle": "Rotationsplan",
       "description": "Rollierender Pflückplan mit Intervall von zwei bis drei Tagen je Reihenblock über die gesamte Herbsternte. Ein ausgelassener Durchgang vernichtet den Block für diesen Zyklus.",
-      "summary": "Die erste Funktion, die gebaut wird. Das Planungsproblem ist nicht die Prognose, sondern die Rotation über sechs Wochen.",
+      "summary": "Zeigt, welcher Reihenblock wann an der Reihe ist, und verteilt die Durchgänge über die sechs Wochen der Ernte.",
       "todo": "Intervall-Engine je Reihenblock, Brigadenzuteilung, Konfliktprüfung mit Wartezeitsperren, Kalender-Export (.ics)."
     },
     "wetter": {
@@ -612,7 +612,7 @@
       "title": "Kühlketten-Uhr",
       "navTitle": "Kühlkette",
       "description": "Zeitmessung von Pflücken bis Vorkühlung mit hartem 60-Minuten-Grenzwert, Temperaturlogger, Zieltemperatur 0 bis 1 Grad. Höchste Priorität im gesamten Betrieb.",
-      "summary": "Der Baustein, an dem der gesamte Preisspread hängt. Über 60 Minuten ist die Ware am nächsten Tag nur noch Industrieware.",
+      "summary": "Überwacht die Zeit von der Pflückung bis zur Vorkühlung. Über 60 Minuten ist die Ware am nächsten Tag nur noch Industrieware.",
       "todo": "Temperaturlogger-Integration, Charge-Uhr ab Pflückzeitpunkt, Alarm bei Grenzwertüberschreitung, KPI-Berechnung."
     },
     "logistik": {
@@ -625,7 +625,7 @@
     "qr_steigen": {
       "title": "QR-Steigenkennung",
       "navTitle": "QR-Steigen",
-      "description": "QR-Etiketten für Steigen (Link zur öffentlichen Herkunftsauskunft), Pflückerausweise mit dem eigenen Ausweis-Code ohne Biometrie und ein anmeldungsfreies Aushang-Poster - alle serverseitig als SVG erzeugt und über die Browser-Druckfunktion druckfertig.",
+      "description": "QR-Etiketten für Steigen (Link zur öffentlichen Herkunftsauskunft), Pflückerausweise mit dem eigenen Ausweis-Code ohne Biometrie und ein anmeldungsfreies Aushang-Poster - alle drei lassen sich direkt aus dem Browser drucken.",
       "summary": "Der QR-Code trägt die Identität vom Feld bis zur Ladentheke - der Ausweis lässt sich am Sammelpunkt per Kamera scannen, um Steige und Arbeitszeit der Person zuzuordnen, statt sie aus einem Dropdown zu wählen.",
       "todo": "Ein Kamera-Scan der Steigen-Etiketten selbst (statt nur des Pflückerausweises) ist nicht Teil dieses Ausbauschritts."
     },
@@ -640,7 +640,7 @@
       "title": "Rollen und Rechte",
       "navTitle": "Rollen und Rechte",
       "description": "Sieben Kernrollen von der Administration über Betriebsleitung und Buchhaltung bis zur Brigade und dem einzelnen Pflücker im Feld, dem Erzeuger und dem B2B-Kunden - mit einer Rechtematrix über Ressourcen und Aktionen.",
-      "summary": "Rollen als klare Datenstruktur über Ressourcen mal Aktionen. Neue Rollen ohne Eingriff in die Logik.",
+      "summary": "Legt fest, wer was sehen und ändern darf. Eine neue Rolle lässt sich anlegen, ohne dass an den Modulen etwas geändert werden muss.",
       "todo": "Nutzerverwaltung, Rollenzuweisung, feingranulare Zugriffsregeln je Ressource."
     },
     "finanzen": {
@@ -774,7 +774,7 @@
     },
     "freeAt": "Frei ab",
     "days": "Tage",
-    "note": "Der wartezeitgesperrte Block ist der am einfachsten prüfbare Nutzen des Systems: Der Pflückplan darf ihn schlicht nicht anzeigen."
+    "note": "Ein Block mit laufender Wartezeit erscheint gar nicht erst im Pflückplan. So kann niemand versehentlich eine Aufgabe darauf anlegen."
   },
   "pflueckaufgabenDemo": {
     "listTitle": "Pflückaufgaben heute",
@@ -900,10 +900,10 @@
       "berechtigung": "Ihre Rolle darf diesen Vorgang nicht ausführen.",
       "angemeldet": "Sitzung abgelaufen. Bitte erneut anmelden.",
       "doppelt": "Ein Eintrag mit dieser Kennung existiert bereits.",
-      "bezug": "Der gewählte Bezugsdatensatz existiert nicht.",
+      "bezug": "Der gewählte Bezug ist nicht mehr vorhanden. Bitte die Liste neu laden und erneut auswählen.",
       "nichtGefunden": "Der Datensatz wurde nicht gefunden oder ist nicht mehr bearbeitbar.",
       "regel": "Nicht möglich: Die Wartezeit ist noch nicht abgelaufen.",
-      "unbekannt": "Vorgang fehlgeschlagen. Details stehen im Server-Log.",
+      "unbekannt": "Der Vorgang ist fehlgeschlagen. Bitte noch einmal versuchen. Bleibt es dabei, melden Sie ihn mit der Uhrzeit bei der Administration.",
       "keineCharge": "Zu dieser Aufgabe gehört keine Charge.",
       "kuehlkette": "Grenzwert gerissen: {wert} Minuten bis zur Messung. Die Ware ist abzuwerten.",
       "transportKuehlkette": "Grenzwert überschritten: Die Transporttemperatur lag über 8 Grad. Die Ware ist abzuwerten.",
@@ -1081,7 +1081,7 @@
     "titel": "Behandlung erfassen",
     "lead": "Die Wartezeit kommt aus dem Mittelkatalog - der Reihenblock wird automatisch gesperrt.",
     "erfassen": "Behandlung erfassen",
-    "hinweis": "Die Sperre wird von einem Datenbank-Trigger gesetzt und lässt sich nicht per Statuswechsel umgehen. Erst nach Ablauf der Wartezeit erscheint die Schaltfläche zur Freigabe.",
+    "hinweis": "Die Sperre setzt sich mit der Behandlung selbst und lässt sich über die Oberfläche nicht aufheben. Erst nach Ablauf der Wartezeit erscheint die Schaltfläche zur Freigabe.",
     "feld": {
       "block": "Reihenblock",
       "mittel": "Pflanzenschutzmittel",
@@ -1108,7 +1108,7 @@
       "nachbarbetrieb": "Nachbarbetrieb"
     },
     "blocksShort": "Blöcke",
-    "note": "Die Feldkarte mit eindeutiger Reihen- und Blockkennung entlang der Spaliere ist die Basis für Rotationsplan, Ernteerfassung und Deckungsbeitrag."
+    "note": "Jede Reihe und jeder Block entlang der Spaliere trägt eine eindeutige Kennung. Auf sie beziehen sich Pflückplan, Erntemengen und Abrechnung."
   },
   "pflanzenschutzDemo": {
     "ruleTitle": "Harte Rechtsregel",
@@ -1185,9 +1185,9 @@
       "betrag": "Betrag"
     },
     "ledgerTitel": "Buchungen",
-    "ledgerLead": "Append-only: eine falsche Buchung wird durch eine Gegenbuchung korrigiert, nicht durch Ändern der ersten.",
+    "ledgerLead": "Eine falsche Buchung wird durch eine Gegenbuchung korrigiert, nicht durch Ändern der ersten.",
     "keineBuchungen": "Noch keine Buchung erfasst.",
-    "note": "Der Deckungsbeitrag je Kilogramm ist die zentrale Steuerungsgröße (Kennzahl \"deckungsbeitrag\"). Er entsteht je Reihenblock, Sorte, Erntetag und Kunde - nicht erst am Jahresende. Buchungen sind unveränderlich; die Datenbank verweigert UPDATE und DELETE auf dem Finanzjournal unabhängig von der Oberfläche.",
+    "note": "Der Deckungsbeitrag je Kilogramm ist die zentrale Steuerungsgröße. Er entsteht je Reihenblock, Sorte, Erntetag und Kunde - nicht erst am Jahresende.",
     "formular": {
       "kostentraeger": {
         "titel": "Neuen Kostenträger anlegen",
