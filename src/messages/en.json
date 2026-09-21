@@ -368,7 +368,71 @@
     },
     "loading": "Loading data",
     "askAi": "Ask AI",
-    "askAiHinweis": "Open or close the AI side panel"
+    "askAiHinweis": "Open or close the AI side panel",
+    "entwurf": {
+      "navTitel": "Drafts for the overview page",
+      "navHinweis": "Six states of the same page, side by side. For viewing only, none of it is decided.",
+      "name": {
+        "ist": "Current state",
+        "v1": "1 Target status",
+        "v2": "2 Today at the farm",
+        "v3": "3 Figures at the zone",
+        "v4": "4 Data status instead of project plan",
+        "v5": "5 List instead of tiles"
+      },
+      "erklaerung": {
+        "ist": "The page as it looks today.",
+        "v1": "Each tile colours its edge by the distance from the target, and the tiles are sorted by urgency.",
+        "v2": "Four figures from the current day sit above the indicators, each a way into the module behind it.",
+        "v3": "The upper block of indicators is dropped, each zone carries its own figures.",
+        "v4": "The milestone cards give way to the data status, and the placeholder caveat moves to the individual figure.",
+        "v5": "Fourteen tiles become fourteen rows with their own columns for actual, target and distance."
+      },
+      "zielstand": {
+        "erfuellt": "on target",
+        "knapp": "just off",
+        "verfehlt": "target missed",
+        "offen": "no target value"
+      },
+      "abstand": "{prozent} % off",
+      "platzhalterWert": "Placeholder, not yet measured",
+      "ampelBeschreibung": "Sorted by distance from the target. What is furthest off comes first.",
+      "zaehlungVerfehlt": "{anzahl} missed",
+      "zaehlungKnapp": "{anzahl} close",
+      "zaehlungErfuellt": "{anzahl} on target",
+      "lage": {
+        "titel": "Today at the farm",
+        "beschreibung": "What is open right now. Each figure leads into the module where it is handled.",
+        "stand": "As of {stand}",
+        "aufgabenOffen": "Picking tasks not completed",
+        "bloeckeGesperrt": "Row blocks in waiting period",
+        "bloeckeFaellig": "{anzahl} of them due for release",
+        "reklamationenOffen": "Complaints open or under review",
+        "dokumenteAbgelaufen": "Documents expired"
+      },
+      "zonenTitel": "The four zones",
+      "zonenBeschreibung": "Each zone with its indicators and its modules.",
+      "zoneOhneKennzahl": "No indicator is released for this zone.",
+      "standGerechnet": "from {anzahl} records",
+      "datenstand": {
+        "titel": "Data status",
+        "beschreibung": "Where the figures above come from and how current they are.",
+        "quelle": "Source",
+        "gerechnet": "Calculated",
+        "gerechnetWert": "{gerechnet} of {gesamt} indicators, from {datensaetze} records",
+        "abruf": "Retrieved",
+        "projektHinweis": "The status of the internal preparation is no longer on the farm overview. It belongs in an area only the administration sees."
+      },
+      "zeile": {
+        "beschreibung": "One row per indicator, sorted by distance from the target.",
+        "spalteKennzahl": "Indicator",
+        "spalteZone": "Zone",
+        "spalteIst": "Actual",
+        "spalteZiel": "Target",
+        "spalteStand": "Target status",
+        "erweitert": "extended"
+      }
+    }
   },
   "roles": {
     "switcherHint": "Switch demo role - controls the visible navigation",

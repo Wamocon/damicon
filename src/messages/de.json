@@ -368,7 +368,71 @@
     },
     "loading": "Daten werden geladen",
     "askAi": "KI fragen",
-    "askAiHinweis": "KI-Seitenpanel öffnen oder schließen"
+    "askAiHinweis": "KI-Seitenpanel öffnen oder schließen",
+    "entwurf": {
+      "navTitel": "Entwürfe für die Übersichtsseite",
+      "navHinweis": "Sechs Zustände derselben Seite zum Vergleich. Nur zum Ansehen, entschieden ist nichts davon.",
+      "name": {
+        "ist": "Ist-Zustand",
+        "v1": "1 Zielampel",
+        "v2": "2 Tageslage",
+        "v3": "3 Zahlen bei der Zone",
+        "v4": "4 Datenstand statt Projektplan",
+        "v5": "5 Liste statt Kacheln"
+      },
+      "erklaerung": {
+        "ist": "Die Seite, wie sie heute aussieht.",
+        "v1": "Jede Kachel färbt ihre Kante nach dem Abstand zum Ziel, und die Kacheln stehen nach Dringlichkeit sortiert.",
+        "v2": "Über den Kennzahlen stehen vier Zahlen des laufenden Tages, jede ein Weg in das Modul dahinter.",
+        "v3": "Der obere Kennzahlenblock entfällt, jede Zone trägt ihre eigenen Zahlen.",
+        "v4": "Die Meilensteinkarten weichen dem Stand der Daten, der Platzhalter-Vorbehalt rutscht an die einzelne Zahl.",
+        "v5": "Aus vierzehn Kacheln werden vierzehn Zeilen mit eigenen Spalten für Ist, Ziel und Abstand."
+      },
+      "zielstand": {
+        "erfuellt": "im Ziel",
+        "knapp": "knapp daneben",
+        "verfehlt": "Ziel verfehlt",
+        "offen": "kein Zielwert"
+      },
+      "abstand": "{prozent} % daneben",
+      "platzhalterWert": "Platzhalter, noch nicht gemessen",
+      "ampelBeschreibung": "Sortiert nach Abstand zum Zielwert. Oben steht, was am weitesten daneben liegt.",
+      "zaehlungVerfehlt": "{anzahl} verfehlt",
+      "zaehlungKnapp": "{anzahl} knapp",
+      "zaehlungErfuellt": "{anzahl} im Ziel",
+      "lage": {
+        "titel": "Heute im Betrieb",
+        "beschreibung": "Was gerade offen ist. Jede Zahl führt in das Modul, in dem sie bearbeitet wird.",
+        "stand": "Stand {stand}",
+        "aufgabenOffen": "Pflückaufgaben nicht abgeschlossen",
+        "bloeckeGesperrt": "Reihenblöcke in Wartezeit",
+        "bloeckeFaellig": "{anzahl} davon zur Freigabe fällig",
+        "reklamationenOffen": "Reklamationen offen oder in Prüfung",
+        "dokumenteAbgelaufen": "Dokumente abgelaufen"
+      },
+      "zonenTitel": "Die vier Zonen",
+      "zonenBeschreibung": "Jede Zone mit ihren Kennzahlen und ihren Modulen.",
+      "zoneOhneKennzahl": "Für diese Zone ist keine Kennzahl freigegeben.",
+      "standGerechnet": "aus {anzahl} Datensätzen",
+      "datenstand": {
+        "titel": "Stand der Daten",
+        "beschreibung": "Woher die Zahlen oben kommen und wie aktuell sie sind.",
+        "quelle": "Quelle",
+        "gerechnet": "Gerechnet",
+        "gerechnetWert": "{gerechnet} von {gesamt} Kennzahlen, aus {datensaetze} Datensätzen",
+        "abruf": "Abgerufen",
+        "projektHinweis": "Der Stand der internen Vorbereitung steht nicht mehr auf der Betriebsübersicht. Er gehört in einen Bereich, den nur die Administration sieht."
+      },
+      "zeile": {
+        "beschreibung": "Eine Zeile je Kennzahl, sortiert nach Abstand zum Ziel.",
+        "spalteKennzahl": "Kennzahl",
+        "spalteZone": "Zone",
+        "spalteIst": "Ist",
+        "spalteZiel": "Ziel",
+        "spalteStand": "Zielstand",
+        "erweitert": "erweitert"
+      }
+    }
   },
   "roles": {
     "switcherHint": "Demo-Rolle wechseln - steuert die sichtbare Navigation",
