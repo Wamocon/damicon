@@ -19,6 +19,20 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { ladeAktivenStandardAnbieter } from "@/lib/ai/lade-anbieter";
 import { ladeKiAnbieterListe, ladeKiChatVerlauf } from "@/lib/data/ki-assistent";
 
+// Das Diktat laeuft als Server Action auf DIESER Seiten-Route, nicht ueber
+// eine API-Route - und ohne diese Zeile bekaeme es nicht 60 Sekunden, sondern
+// was immer die Plattform vorgibt ("Set by deployment platform", Next.js
+// Route Segment Config). Die drei api/*/route.ts setzen ihr maxDuration
+// selbst; dieser Pfad hatte keines, obwohl das Zeitbudget der Spracherkennung
+// (Deckel 40 s, siehe lib/domain/spracherkennung.ts) sich darauf stuetzt.
+//
+// Am Layout und nicht an einer einzelnen Seite: das KI-Panel haengt im
+// Layout und ist damit auf jeder Dashboard-Seite erreichbar - /dashboard,
+// /dashboard/[zone] und /dashboard/sicherheit. Laut Next.js gilt die
+// Einstellung "at the page level" fuer alle Server Actions der Seite; das
+// Layout deckt alle drei ab.
+export const maxDuration = 60;
+
 export default async function DashboardLayout({
   children,
   params,

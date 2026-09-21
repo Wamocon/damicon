@@ -14,6 +14,8 @@ import { erzeugeSprachausgabe } from "@/lib/ai/sprachausgabe-client";
 import { istSprachausgabeSprache, sprachausgabePfad, stimmeFuerOberflaeche, textFuerSprachausgabe } from "@/lib/domain/sprachausgabe";
 import { istSprache, stimmenSprache } from "@/lib/domain/antwortsprache";
 import { erkenneSprache } from "@/lib/wissen/chunker";
+import { pruefeAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
+import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
 
 // Zwischenspeicher: Bucket "ki-sprachausgabe" (Migration 20261101000000),
 // privat und nur ueber service_role erreichbar. Die Berechtigung haengt an der
@@ -37,12 +39,72 @@ export async function POST(req: Request) {
   // auch keine Antworten zum Vorlesen.
   if (!hasPermission(profil.role, "ki_assistent", "create")) return fehler(403, "keine-berechtigung");
 
-  let body: { nachrichtId?: unknown; sprache?: unknown };
+  let body: { nachrichtId?: unknown; sprache?: unknown; abschnitt?: unknown };
   try {
     body = await req.json();
   } catch {
     return fehler(400, "ungueltige-eingabe");
   }
+  // --- Weg 2: ein einzelner Abschnitt einer noch laufenden Antwort ---------
+  //
+  // Der Weg ueber die Nachrichten-ID greift erst, wenn die Antwort fertig und
+  // gespeichert ist. Beim Vorlesen waehrend des Schreibens gibt es diese Zeile
+  // noch nicht - der Text kommt deshalb mit.
+  //
+  // Damit das kein offener Sprachgenerator wird, traegt jeder Abschnitt eine
+  // Signatur, die der Chat-Stream beim Erzeugen gesetzt hat. Sie bindet
+  // Nutzer, Zug, Nummer, Textabdruck und Ablauf zusammen: ein fremder,
+  // veraenderter, verschobener oder alter Abschnitt kommt nicht durch.
+  // Freier Text bleibt damit unmoeglich - genau wie auf dem alten Weg.
+  if (body.abschnitt !== undefined && body.abschnitt !== null) {
+    if (!sprachausgabeLiveAn()) return fehler(404, "nicht-aktiv");
+    const geheimnis = sprachausgabeGeheimnis();
+    if (!geheimnis) return fehler(404, "nicht-aktiv");
+
+    const a = body.abschnitt as Record<string, unknown>;
+    const abschnittText = typeof a.text === "string" ? a.text.trim() : "";
+    const zug = typeof a.zug === "string" ? a.zug : "";
+    const nr = typeof a.nr === "number" ? a.nr : Number.NaN;
+    const ablauf = typeof a.ablauf === "number" ? a.ablauf : Number.NaN;
+    const sig = typeof a.sig === "string" ? a.sig : "";
+    if (!abschnittText || !zug || !Number.isInteger(nr)) return fehler(400, "ungueltige-eingabe");
+    if (abschnittText.length > 600) return fehler(400, "abschnitt-zu-lang");
+
+    const gepruefter = pruefeAbschnitt(
+      { nutzerId: profil.id, zug, nr, text: abschnittText, ablauf, sig },
+      geheimnis,
+    );
+    // Ein Fehlschlag ist immer 403, nie 400: sonst verraet der Status, WELCHER
+    // Teil nicht gestimmt hat, und man koennte sich an einer Signatur
+    // entlangtasten. Der Grund steht im Protokoll, nicht in der Antwort.
+    if (!gepruefter.ok) {
+      console.warn("[damicon] Sprachausgabe-Abschnitt abgewiesen:", gepruefter.grund);
+      return fehler(403, "nicht-erlaubt");
+    }
+
+    // Die Sprache kommt vom Zug, nicht aus der Oberflaeche und nicht je
+    // Abschnitt neu geraten: alle Abschnitte eines Zuges klingen gleich.
+    const zugSprache = istSprache(body.sprache) ? body.sprache : "de";
+    const stimmeDesZuges = istSprachausgabeSprache(zugSprache) ? stimmeFuerOberflaeche(zugSprache) : null;
+    if (!stimmeDesZuges) return fehler(422, "keine-stimme", { sprache: zugSprache });
+
+    const erzeugt = await erzeugeSprachausgabe(abschnittText, stimmeDesZuges);
+    if (!erzeugt.ok) return fehler(502, "dienst-fehler", { grund: erzeugt.grund });
+    // Abschnitte werden NICHT zwischengespeichert: sie entstehen einmal,
+    // werden einmal gesprochen, und der fertige Text ist danach ueber die
+    // Nachrichten-ID erreichbar. Ein Zwischenspeicher waere Ablage ohne Leser.
+    return new Response(new Uint8Array(erzeugt.audio), {
+      status: 200,
+      headers: {
+        "content-type": erzeugt.typ || "audio/mpeg",
+        "cache-control": "no-store",
+        "x-sprache": zugSprache,
+        "x-abschnitt": String(nr),
+      },
+    });
+  }
+
+  // --- Weg 1: eine fertige, gespeicherte Antwort ---------------------------
   const nachrichtId = typeof body.nachrichtId === "string" ? body.nachrichtId : "";
   if (!UUID.test(nachrichtId)) return fehler(400, "ungueltige-eingabe");
   // "sprache" ist jetzt die Sprache DIESER ANTWORT (L), die der Chat-Stream

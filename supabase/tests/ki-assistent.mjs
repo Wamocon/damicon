@@ -64,6 +64,7 @@ import {
 import { erkenneMitRueckfall, GESAMTDECKEL_MS, HEDGE_AB_MS } from "../../src/lib/domain/spracherkennung.ts";
 import { bestimmeAntwortsprache, mehrheitsSprache, stimmenSprache } from "../../src/lib/domain/antwortsprache.ts";
 import { erkenneSprache } from "../../src/lib/wissen/chunker.ts";
+import { erzeugeWarteschlange, HOECHSTENS_GLEICHZEITIG } from "../../src/lib/domain/sprachausgabe-warteschlange.ts";
 import { agentSeitenansichtAn, schalterAn, sprachausgabeLiveAn } from "../../src/lib/domain/schalter.ts";
 import { ABSCHNITT_GUELTIG_MS, pruefeAbschnitt, signiereAbschnitt, sprachausgabeGeheimnis } from "../../src/lib/domain/sprachausgabe-signatur.ts";
 import {
@@ -1379,6 +1380,93 @@ for (const [name, kaputteAntwort] of [
       if (wert === undefined) delete process.env[name];
       else process.env[name] = wert;
     }
+  }
+}
+
+
+// --- 14. Warteschlange der Abschnitte --------------------------------------
+// Reihenfolge, Vorsprung, sofortiges Aufhoeren. Geprueft ohne Browser: hier
+// steht nur die Buchfuehrung, kein fetch und kein Audio.
+{
+  // (a) Der Reihe nach - auch wenn Abschnitt 2 frueher fertig ist. Kurze
+  //     Saetze sind schneller erzeugt als lange; ohne diese Regel klaenge
+  //     die Antwort durcheinander.
+  {
+    const w = erzeugeWarteschlange();
+    w.stelleEin(1, "Erster Satz.");
+    w.stelleEin(2, "Zweiter Satz.");
+    w.naechsteZumHolen();
+    w.melde(2, "bereit");
+    pruefe("Warteschlange: der zweite wartet auf den ersten", w.naechsterZumSpielen() === null);
+    w.melde(1, "bereit");
+    pruefe("Warteschlange: dann kommt der erste", w.naechsterZumSpielen()?.nr === 1);
+    pruefe("Warteschlange: und waehrend er spielt, kein zweiter", w.naechsterZumSpielen() === null);
+    w.fertigGespielt(1);
+    pruefe("Warteschlange: danach der zweite", w.naechsterZumSpielen()?.nr === 2);
+  }
+
+  // (b) Hoechstens zwei Anfragen gleichzeitig. Mehr erzeugt Audio, das
+  //     niemand hoert, sobald jemand abbricht - bezahlt wird es trotzdem.
+  {
+    const w = erzeugeWarteschlange();
+    for (let i = 1; i <= 5; i++) w.stelleEin(i, `Satz ${i}.`);
+    const erste = w.naechsteZumHolen();
+    pruefe("Warteschlange: zuerst nur zwei Anfragen", erste.length === HOECHSTENS_GLEICHZEITIG, `${erste.length}`);
+    pruefe("Warteschlange: und zwar die vordersten", erste.map((e) => e.nr).join(",") === "1,2");
+    pruefe("Warteschlange: solange sie offen sind, kommt nichts nach", w.naechsteZumHolen().length === 0);
+    w.melde(1, "bereit");
+    pruefe("Warteschlange: wird einer fertig, rueckt einer nach", w.naechsteZumHolen().map((e) => e.nr).join(",") === "3");
+  }
+
+  // (c) Ein Abschnitt darf einmal scheitern. Beim zweiten Mal wird er
+  //     uebersprungen - lieber eine Luecke als Stille bis zum Ende.
+  {
+    const w = erzeugeWarteschlange();
+    w.stelleEin(1, "Eins.");
+    w.stelleEin(2, "Zwei.");
+    w.naechsteZumHolen();
+    w.melde(1, "fehler");
+    pruefe("Warteschlange: nach einem Fehler wird es noch einmal versucht", w.naechsteZumHolen().some((e) => e.nr === 1));
+    w.melde(1, "fehler");
+    pruefe("Warteschlange: beim zweiten Mal wird er uebersprungen", w.stand().find((e) => e.nr === 1)?.stand === "uebersprungen");
+    w.melde(2, "bereit");
+    pruefe("Warteschlange: und der naechste rueckt auf, statt zu warten", w.naechsterZumSpielen()?.nr === 2);
+  }
+
+  // (d) Sofort still: leere() gibt zurueck, was noch unterwegs ist, damit der
+  //     Aufrufer genau diese Anfragen abbrechen kann.
+  {
+    const w = erzeugeWarteschlange();
+    for (let i = 1; i <= 4; i++) w.stelleEin(i, `Satz ${i}.`);
+    w.naechsteZumHolen();
+    w.melde(1, "bereit");
+    w.naechsterZumSpielen();
+    const unterwegs = w.leere();
+    pruefe("Warteschlange: beim Abbruch werden laufende Anfragen gemeldet", unterwegs.includes(2), JSON.stringify(unterwegs));
+    pruefe("Warteschlange: und der gerade gespielte Abschnitt auch", unterwegs.includes(1), JSON.stringify(unterwegs));
+    pruefe("Warteschlange: danach ist sie leer", w.stand().length === 0);
+    pruefe("Warteschlange: und es wird nichts mehr gespielt", w.naechsterZumSpielen() === null);
+  }
+
+  // (e) Nach dem Abbruch faengt der naechste Zug wieder bei 1 an - sonst
+  //     wartete er ewig auf einen Abschnitt, den es nicht mehr gibt.
+  {
+    const w = erzeugeWarteschlange();
+    w.stelleEin(1, "Alt.");
+    w.naechsteZumHolen();
+    w.leere();
+    w.stelleEin(1, "Neu.");
+    w.naechsteZumHolen();
+    w.melde(1, "bereit");
+    pruefe("Warteschlange: der naechste Zug beginnt wieder bei 1", w.naechsterZumSpielen()?.text === "Neu.");
+  }
+
+  // (f) Derselbe Abschnitt zweimal (doppeltes Stream-Ereignis) zaehlt einmal.
+  {
+    const w = erzeugeWarteschlange();
+    w.stelleEin(1, "Eins.");
+    w.stelleEin(1, "Eins nochmal.");
+    pruefe("Warteschlange: ein Abschnitt kommt nur einmal hinein", w.stand().length === 1 && w.stand()[0].text === "Eins.");
   }
 }
 
