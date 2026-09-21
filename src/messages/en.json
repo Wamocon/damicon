@@ -290,7 +290,7 @@
   },
   "mfa": {
     "title": "Security",
-    "description": "Multi-factor authentication (requirement 4.9). A second factor via an authenticator app protects the account even if the password becomes known.",
+    "description": "Multi-factor authentication. A second factor via an authenticator app protects the account even if the password becomes known.",
     "keineUmgebung": "Without a Supabase environment there is no real account - multi-factor authentication only applies after signing in.",
     "faktorenTitel": "Configured factors",
     "faktorenLead": "One TOTP factor is enough. Several are possible, for instance for a backup device.",
@@ -305,7 +305,7 @@
     "codeLabel": "Code from the app",
     "bestaetigenKnopf": "Confirm",
     "erfolg": "Second factor set up and active.",
-    "note": "At the next sign-in the code will be requested in addition to the password. Without a configured factor, sign-in stays as before - multi-factor authentication is required by requirement 4.9, enforcing it per role is a later expansion step."
+    "note": "At the next sign-in the code will be requested in addition to the password. Without a configured factor, sign-in stays as before - multi-factor authentication is mandatory, enforcing it per role is a later expansion step."
   },
   "dashboard": {
     "searchPlaceholder": "Search row block, batch, picker, document ...",
@@ -632,7 +632,7 @@
       "navTitle": "Collection rounds",
       "description": "Fixed collection rounds in the field so filled crates do not sit in the sun, plus route planning by the clients' delivery windows.",
       "summary": "Handover receipt with volume and temperature reconciliation (pre-cooling and transport), unbroken cold-chain evidence all the way to the customer.",
-      "todo": "Route list per vehicle and delivery time windows (requirement 3.5 part 1) are still missing."
+      "todo": "Route list per vehicle and delivery time windows are still missing."
     },
     "qr_steigen": {
       "title": "QR crate identification",
@@ -701,7 +701,7 @@
       "title": "Grant application dossier",
       "navTitle": "Grants",
       "description": "Application templates, evidence lists and a deadline monitor for the Kazakh subsidy portals - eligibility as a by-product of ongoing bookkeeping.",
-      "summary": "Deadline monitor and per-dossier evidence documents are connected (requirement 4.12). Application templates and evidence checklists per grant programme remain open.",
+      "summary": "Deadline monitor and per-dossier evidence documents are connected. Application templates and evidence checklists per grant programme remain open.",
       "todo": "Application templates and evidence checklists per grant programme - a domain decision on what fields and evidence gosagro.kz/qoldau.kz actually require per programme."
     },
     "sortenkatalog": {
@@ -1149,7 +1149,7 @@
     "note": "Identities and roles run across all four areas - together with logging, encryption and multi-factor authentication.",
     "level": "Level",
     "catiRole": {
-      "keine": "no equivalent - new from requirement 7.1",
+      "keine": "no equivalent",
       "label": "Legacy system 1Çatı"
     },
     "scopeWert": {
@@ -1165,7 +1165,7 @@
   },
   "finanzenAnsicht": {
     "uebersichtTitel": "Contribution margin at a glance",
-    "uebersichtLead": "Total across all cost objects and postings. Revenue and cost come from the immutable finance ledger (requirement 4.1).",
+    "uebersichtLead": "Total across all cost objects and postings. Revenue and cost come from the immutable finance ledger.",
     "stat": {
       "erloes": "Total revenue",
       "kosten": "Total cost",

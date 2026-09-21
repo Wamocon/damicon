@@ -290,7 +290,7 @@
   },
   "mfa": {
     "title": "Sicherheit",
-    "description": "Mehrfaktor-Authentifizierung (Anforderung 4.9). Ein zweiter Faktor über eine Authenticator-App schützt das Konto, falls das Passwort bekannt wird.",
+    "description": "Mehrfaktor-Authentifizierung. Ein zweiter Faktor über eine Authenticator-App schützt das Konto, falls das Passwort bekannt wird.",
     "keineUmgebung": "Ohne Supabase-Umgebung gibt es kein echtes Konto - die Mehrfaktor-Authentifizierung greift erst mit Anmeldung.",
     "faktorenTitel": "Eingerichtete Faktoren",
     "faktorenLead": "Ein TOTP-Faktor genügt. Mehrere sind möglich, etwa für ein Ersatzgerät.",
@@ -305,7 +305,7 @@
     "codeLabel": "Code aus der App",
     "bestaetigenKnopf": "Bestätigen",
     "erfolg": "Zweiter Faktor eingerichtet und aktiv.",
-    "note": "Bei der nächsten Anmeldung wird der Code zusätzlich zum Passwort abgefragt. Ohne eingerichteten Faktor bleibt die Anmeldung wie bisher - Mehrfaktor-Authentifizierung ist Pflicht für Anforderung 4.9, ihre Durchsetzung je Rolle ist ein späterer Ausbauschritt."
+    "note": "Bei der nächsten Anmeldung wird der Code zusätzlich zum Passwort abgefragt. Ohne eingerichteten Faktor bleibt die Anmeldung wie bisher - Mehrfaktor-Authentifizierung ist Pflicht, ihre Durchsetzung je Rolle ist ein späterer Ausbauschritt."
   },
   "dashboard": {
     "searchPlaceholder": "Reihenblock, Charge, Pflücker, Dokument suchen ...",
@@ -632,7 +632,7 @@
       "navTitle": "Abholrunden",
       "description": "Feste Abholrunden im Feld, damit gefüllte Steigen nicht in der Sonne stehen, plus Tourenplanung nach den Lieferfenstern der Kunden.",
       "summary": "Übergabequittung mit Mengen- und Temperaturabgleich (Vorkühlung und Transport), lückenloser Kühlkettennachweis bis zum Kunden.",
-      "todo": "Tourenliste je Fahrzeug und Zeitfenster (Anforderung 3.5 Teil 1) fehlen noch."
+      "todo": "Tourenliste je Fahrzeug und Lieferzeitfenster fehlen noch."
     },
     "qr_steigen": {
       "title": "QR-Steigenkennung",
@@ -701,7 +701,7 @@
       "title": "Fördermitteldossier",
       "navTitle": "Fördermittel",
       "description": "Antragsvorlagen, Nachweislisten und Fristenmonitor für die kasachstanischen Förderportale - Antragsfähigkeit als Nebenprodukt der laufenden Buchführung.",
-      "summary": "Fristenmonitor und Nachweisdokumente je Dossier sind angebunden (Anforderung 4.12). Antragsvorlagen und Nachweis-Checklisten je Förderprogramm bleiben offen.",
+      "summary": "Fristenmonitor und Nachweisdokumente je Dossier sind angebunden. Antragsvorlagen und Nachweis-Checklisten je Förderprogramm bleiben offen.",
       "todo": "Antragsvorlagen und Nachweis-Checklisten je Förderprogramm - fachliche Festlegung, welche Felder und Nachweise gosagro.kz/qoldau.kz je Programm tatsächlich verlangen."
     },
     "sortenkatalog": {
@@ -1149,7 +1149,7 @@
     "note": "Identitäten und Rollen liegen quer über allen vier Bereichen - zusammen mit Protokollierung, Verschlüsselung und Mehrfaktor-Authentifizierung.",
     "level": "Stufe",
     "catiRole": {
-      "keine": "keine Entsprechung - neu ab Anforderung 7.1",
+      "keine": "keine Entsprechung",
       "label": "Vorsystem 1Çatı"
     },
     "scopeWert": {
@@ -1165,7 +1165,7 @@
   },
   "finanzenAnsicht": {
     "uebersichtTitel": "Deckungsbeitrag auf einen Blick",
-    "uebersichtLead": "Summe über alle Kostenträger und Buchungen. Erlöse und Kosten kommen aus dem unveränderlichen Finanzjournal (Anforderung 4.1).",
+    "uebersichtLead": "Summe über alle Kostenträger und Buchungen. Erlöse und Kosten kommen aus dem unveränderlichen Finanzjournal.",
     "stat": {
       "erloes": "Erlöse gesamt",
       "kosten": "Kosten gesamt",
