@@ -89,7 +89,7 @@
       "target": "Цель",
       "zonesTitle": "Четыре зоны",
       "zonesDescription": "Каждая зона со своими показателями и модулями.",
-      "wipCount": "{count} в разработке",
+      "wipCount": "{count} пока недоступно",
       "openZone": "Открыть зону",
       "zoneOhneKennzahl": "Для этой зоны показатели не открыты.",
       "moduleTitel": "Модули"
@@ -167,7 +167,7 @@
     "angebunden": "Подключено к базе"
   },
   "moduleMeta": {
-    "inDevelopmentTitle": "Пока недоступно"
+    "nichtVerfuegbar": "Пока недоступно"
   },
   "accessDenied": {
     "title": "Роль {role} не имеет доступа к этому модулю.",

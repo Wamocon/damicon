@@ -89,7 +89,7 @@
       "target": "Мақсат",
       "zonesTitle": "Төрт аймақ",
       "zonesDescription": "Әр аймақ өз көрсеткіштерімен және модульдерімен.",
-      "wipCount": "{count} әзірленуде",
+      "wipCount": "{count} әзірге қолжетімді емес",
       "openZone": "Аймақты ашу",
       "zoneOhneKennzahl": "Бұл аймақ үшін көрсеткіш ашылмаған.",
       "moduleTitel": "Модульдер"
@@ -167,7 +167,7 @@
     "angebunden": "Дерекқорға қосылған"
   },
   "moduleMeta": {
-    "inDevelopmentTitle": "Әзірге қолжетімді емес"
+    "nichtVerfuegbar": "Әзірге қолжетімді емес"
   },
   "accessDenied": {
     "title": "{role} рөлінің бұл модульге қатынасы жоқ.",

@@ -17,16 +17,18 @@ import { cn } from "@/lib/utils";
  * Bereichsseite direkt gegenueber dem Verweis "Oeffnen" - zwei Verben
  * nebeneinander, eines davon ausfuehrbar, und die ganze Karte ein Link.
  *
- * Der Text kommt weiter aus dem Namensraum "reifegrad": denselben Begriff
- * zeigt die oeffentliche Seite in ihrer Legende (site/modul-reiter.tsx),
- * und zwei Woerter fuer denselben Zustand waeren eines zu viel.
+ * Der Text ist derselbe wie auf der Platzhalterkarte und in der Zaehlung
+ * der Zonenkarte - ein Wort fuer einen Zustand. Nicht "In Entwicklung":
+ * das beschreibt den Bauzustand, und wer im Betrieb arbeitet, will wissen,
+ * ob der Menuepunkt etwas tut. Der Begriff bleibt der oeffentlichen Seite
+ * vorbehalten (site/modul-reiter.tsx), dort liest ein Besucher.
  */
 export function ModulStatusPille() {
-  const t = useTranslations("reifegrad");
+  const t = useTranslations("moduleMeta");
   return (
     <StatusPill tone="warning" className="gap-1">
       <Clock className="h-3 w-3" />
-      {t("in-entwicklung")}
+      {t("nichtVerfuegbar")}
     </StatusPill>
   );
 }
@@ -58,7 +60,7 @@ export function ModulePlaceholder({
       <div className="flex items-center gap-2">
         <Clock className="h-4 w-4 text-warning" />
         <p className="text-xs font-black uppercase tracking-wide text-warning">
-          {meta("inDevelopmentTitle")}
+          {meta("nichtVerfuegbar")}
         </p>
       </div>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-foreground">

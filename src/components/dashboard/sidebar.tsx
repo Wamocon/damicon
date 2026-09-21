@@ -112,7 +112,7 @@ function ModulEintrag({
   onNavigate?: () => void;
 }) {
   const moduleT = useTranslations("modules");
-  const reifegradT = useTranslations("reifegrad");
+  const metaT = useTranslations("moduleMeta");
   const isActive = useIsActive();
   const href = moduleHref(module);
   const aktiv = isActive(href);
@@ -145,9 +145,9 @@ function ModulEintrag({
         {module.reifegrad === "in-entwicklung" ? (
           <span
             className="h-1.5 w-1.5 shrink-0 rounded-full bg-warning"
-            title={reifegradT("in-entwicklung")}
+            title={metaT("nichtVerfuegbar")}
           >
-            <span className="sr-only">{reifegradT("in-entwicklung")}</span>
+            <span className="sr-only">{metaT("nichtVerfuegbar")}</span>
           </span>
         ) : null}
       </Link>

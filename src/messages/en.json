@@ -326,7 +326,7 @@
       "target": "Target",
       "zonesTitle": "The four zones",
       "zonesDescription": "Each zone with its indicators and its modules.",
-      "wipCount": "{count} in development",
+      "wipCount": "{count} not available yet",
       "openZone": "Open zone",
       "zoneOhneKennzahl": "No indicator is released for this zone.",
       "moduleTitel": "Modules"
@@ -394,7 +394,7 @@
     "in-entwicklung": "In development"
   },
   "moduleMeta": {
-    "inDevelopmentTitle": "Not available yet"
+    "nichtVerfuegbar": "Not available yet"
   },
   "accessDenied": {
     "title": "The role {role} has no access to this module.",

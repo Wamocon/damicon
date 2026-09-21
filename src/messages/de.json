@@ -326,7 +326,7 @@
       "target": "Ziel",
       "zonesTitle": "Die vier Zonen",
       "zonesDescription": "Jede Zone mit ihren Kennzahlen und ihren Modulen.",
-      "wipCount": "{count} in Entwicklung",
+      "wipCount": "{count} noch nicht verfügbar",
       "openZone": "Zone öffnen",
       "zoneOhneKennzahl": "Für diese Zone ist keine Kennzahl freigegeben.",
       "moduleTitel": "Module"
@@ -394,7 +394,7 @@
     "in-entwicklung": "In Entwicklung"
   },
   "moduleMeta": {
-    "inDevelopmentTitle": "Noch nicht verfügbar"
+    "nichtVerfuegbar": "Noch nicht verfügbar"
   },
   "accessDenied": {
     "title": "Die Rolle {role} hat auf dieses Modul keinen Zugriff.",
