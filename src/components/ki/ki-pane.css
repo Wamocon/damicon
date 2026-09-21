@@ -3,7 +3,9 @@
    gebunden; ohne Bewegungspraeferenz springt alles direkt in den Endzustand. */
 
 :root {
-  --ki-pane-breite: 27rem;
+  /* 25rem = 400px: angedockt soll das Panel zwischen 380 und 420 px breit
+     sein. Ziehbar bleibt es (ki-pane-griff.tsx, 352 bis 960 px). */
+  --ki-pane-breite: 25rem;
   /* Himbeer-Palette des Assistenten (himbeere.tsx). Feste Markenfarben: sie
      bleiben in hell und dunkel dieselben, wie ein Logo. */
   --himbeere: #d81b60;

@@ -65,6 +65,7 @@ import { erkenneMitRueckfall, GESAMTDECKEL_MS, HEDGE_AB_MS } from "../../src/lib
 import { bestimmeAntwortsprache, mehrheitsSprache, stimmenSprache } from "../../src/lib/domain/antwortsprache.ts";
 import { erkenneSprache } from "../../src/lib/wissen/chunker.ts";
 import { erzeugeWarteschlange, HOECHSTENS_GLEICHZEITIG } from "../../src/lib/domain/sprachausgabe-warteschlange.ts";
+import { ANFANG, DARSTELLUNG_SCHLUESSEL, istDarstellung, naechsterZustand, OFFEN_SCHLUESSEL } from "../../src/lib/domain/ki-ansicht.ts";
 import { agentSeitenansichtAn, schalterAn, sprachausgabeLiveAn } from "../../src/lib/domain/schalter.ts";
 import { ABSCHNITT_GUELTIG_MS, pruefeAbschnitt, signiereAbschnitt, sprachausgabeGeheimnis } from "../../src/lib/domain/sprachausgabe-signatur.ts";
 import {
@@ -1467,6 +1468,94 @@ for (const [name, kaputteAntwort] of [
     w.stelleEin(1, "Eins.");
     w.stelleEin(1, "Eins nochmal.");
     pruefe("Warteschlange: ein Abschnitt kommt nur einmal hinein", w.stand().length === 1 && w.stand()[0].text === "Eins.");
+  }
+}
+
+
+// --- 15. Agent-Seitenansicht: einmal an die Seite, und dort bleibt es ------
+// Bis zum 22.09.2026 war das Andocken eine Leihgabe: nach der Fuehrung sprang
+// das Panel zurueck in die Mitte und verdeckte genau die Seite, die der Agent
+// gerade geoeffnet hatte.
+{
+  const start = { ...ANFANG };
+
+  // (a) Die erste Navigation des Agenten stellt um - und oeffnet das Panel.
+  {
+    const nachher = naechsterZustand(start, "agent-navigation", true);
+    pruefe("Seitenansicht: die erste Agenten-Navigation dockt an", nachher.darstellung === "seite", nachher.darstellung);
+    pruefe("Seitenansicht: und oeffnet das Panel - eine Fuehrung, die niemand sieht, ist keine", nachher.offen === true);
+  }
+
+  // (b) Und es BLEIBT so: weitere Stationen aendern nichts mehr.
+  {
+    let z = naechsterZustand(start, "agent-navigation", true);
+    for (let i = 0; i < 5; i++) z = naechsterZustand(z, "agent-navigation", true);
+    pruefe("Seitenansicht: weitere Stationen lassen es an der Seite", z.darstellung === "seite" && z.offen);
+  }
+
+  // (c) Zurueck in die Mitte nur ueber den Knopf.
+  {
+    const ander = naechsterZustand(naechsterZustand(start, "agent-navigation", true), "knopf-mitte", true);
+    pruefe("Seitenansicht: der Knopf holt es in die Mitte", ander.darstellung === "buehne");
+    pruefe("Seitenansicht: und laesst es offen", ander.offen === true);
+    const zurueck = naechsterZustand(ander, "knopf-seite", true);
+    pruefe("Seitenansicht: und wieder an die Seite", zurueck.darstellung === "seite");
+  }
+
+  // (d) Eine neue Anmeldung raeumt die gemerkte Wahl weg - sonst faende die
+  //     naechste Person die Ansicht ihrer Vorgaengerin vor.
+  {
+    const nachAnmeldung = naechsterZustand({ darstellung: "seite", offen: true }, "neue-anmeldung", true);
+    pruefe("Seitenansicht: nach neuer Anmeldung wieder die Mitte", nachAnmeldung.darstellung === "buehne" && !nachAnmeldung.offen);
+  }
+
+  // (e) Ohne den Schalter bleibt alles beim Alten. Das ist der Notausgang.
+  {
+    const ohne = naechsterZustand(start, "agent-navigation", false);
+    pruefe("Seitenansicht: ohne KI_AGENT_SEITENANSICHT aendert die Navigation nichts", ohne.darstellung === start.darstellung && ohne.offen === start.offen);
+  }
+
+  // (f) Die gemerkten Werte.
+  {
+    pruefe("Seitenansicht: die Darstellung wird unter ihrem Schluessel gemerkt", DARSTELLUNG_SCHLUESSEL === "damicon-ki-darstellung");
+    pruefe("Seitenansicht: und ob das Panel offen war", OFFEN_SCHLUESSEL === "damicon-ki-offen");
+    pruefe("Seitenansicht: nur die beiden Darstellungen zaehlen", istDarstellung("seite") && istDarstellung("buehne") && !istDarstellung("mitte") && !istDarstellung(null));
+  }
+
+  // (g) Im Code: die Leihgabe ist wirklich weg, und das Panel merkt sich, ob
+  //     es offen war - sonst haelt die Ansicht keinen Sprung nach /herkunft
+  //     aus, weil der Provider im Dashboard-Layout haengt.
+  {
+    const kontext = readFileSync(new URL("../../src/components/ki/ki-pane-kontext.tsx", import.meta.url), "utf8");
+    pruefe("Seitenansicht: die Leihgabe (buehneGeliehen) ist entfernt", !kontext.includes("buehneGeliehen"));
+    pruefe("Seitenansicht: die Umstellung wird gemerkt, nicht nur gesetzt", kontext.includes("naechsterZustand("));
+    pruefe("Seitenansicht: 'offen' wird gespeichert", kontext.includes("OFFEN_SCHLUESSEL"));
+    // Der Abschnitt von fuehreZu bis zu seiner Abhaengigkeitsliste muss das
+    // Oeffnen enthalten - nicht irgendeine andere Stelle der Datei.
+    const fuehreZuAnfang = kontext.indexOf("const fuehreZu = useCallback");
+    const fuehreZuBlock = fuehreZuAnfang < 0 ? "" : kontext.slice(fuehreZuAnfang, kontext.indexOf("const fuehrungBeenden", fuehreZuAnfang));
+    pruefe("Seitenansicht: fuehreZu oeffnet das Panel", fuehreZuBlock.includes("setOffen(true)"), fuehreZuBlock ? `${fuehreZuBlock.length} Zeichen geprueft` : "Block NICHT gefunden");
+  }
+
+  // (h) Der Knopf im Panelkopf gibt es in allen vier Sprachen - sonst faende
+  //     ihn nur, wer Deutsch kann.
+  {
+    for (const sprache of ["de", "en", "ru", "kk"]) {
+      const texte = JSON.parse(readFileSync(new URL(`../../src/messages/${sprache}.json`, import.meta.url), "utf8"));
+      const a = texte.kiAssistentAnsicht?.andocken;
+      const b = texte.kiAssistentAnsicht?.buehne;
+      pruefe(`Seitenansicht: Knopftexte auf ${sprache}`, typeof a === "string" && a.length > 0 && typeof b === "string" && b.length > 0, `${a} / ${b}`);
+    }
+  }
+
+  // (i) Angedockt soll das Panel 380 bis 420 px breit sein, und die
+  //     Hauptspalte schrumpft, statt verdeckt zu werden.
+  {
+    const css = readFileSync(new URL("../../src/components/ki/ki-pane.css", import.meta.url), "utf8");
+    const treffer = /--ki-pane-breite:\s*([\d.]+)rem/.exec(css);
+    const px = treffer ? Number(treffer[1]) * 16 : 0;
+    pruefe("Seitenansicht: angedockt zwischen 380 und 420 px", px >= 380 && px <= 420, `${px} px`);
+    pruefe("Seitenansicht: prefers-reduced-motion wird beachtet", css.includes("prefers-reduced-motion"));
   }
 }
 

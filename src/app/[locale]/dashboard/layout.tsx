@@ -18,6 +18,7 @@ import { hasPermission } from "@/lib/rbac";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { ladeAktivenStandardAnbieter } from "@/lib/ai/lade-anbieter";
 import { ladeKiAnbieterListe, ladeKiChatVerlauf } from "@/lib/data/ki-assistent";
+import { agentSeitenansichtAn } from "@/lib/domain/schalter";
 
 // Das Diktat laeuft als Server Action auf DIESER Seiten-Route, nicht ueber
 // eine API-Route - und ohne diese Zeile bekaeme es nicht 60 Sekunden, sondern
@@ -73,7 +74,7 @@ export default async function DashboardLayout({
       email={profil?.email ?? null}
       demoModus={demoModus}
     >
-      <KiPaneProvider verfuegbar={darfKiNutzen && kiVerlauf !== null}>
+      <KiPaneProvider verfuegbar={darfKiNutzen && kiVerlauf !== null} seitenansichtAn={agentSeitenansichtAn()}>
         <HaustierProvider>
         <div className="dashboard-shell flex min-h-svh w-full">
           <DashboardSidebar />
