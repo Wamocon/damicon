@@ -47,6 +47,7 @@ import {
   TriangleAlert,
   Truck,
   Users,
+  Warehouse,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -100,6 +101,7 @@ const registry: Record<string, LucideIcon> = {
   "triangle-alert": TriangleAlert,
   truck: Truck,
   users: Users,
+  warehouse: Warehouse,
 };
 
 export function Icon({

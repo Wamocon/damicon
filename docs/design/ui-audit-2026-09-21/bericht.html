@@ -1,0 +1,421 @@
+<!doctype html><html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UI- und UX-Bericht Damicon</title><style>
+:root{--anthrazit:#101010;--rot:#F40E0E;--rottext:#D40000;--linie:#545454;--zeile:#F4F4F4;--text:#3C3C3C;--kopf:#6B6B6B;--hell:#C8C8C8;--rothell:#FBEAEA;--gitter:#D6D6D6;--mittel:#8D8D8D;--weiss:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--weiss);color:var(--text);font:15px/1.55 "Segoe UI",system-ui,-apple-system,sans-serif}
+a{color:var(--rottext)} code,.mono{font-family:Consolas,ui-monospace,monospace;font-size:.92em}
+.deckblatt{background:var(--anthrazit);color:var(--weiss);padding:56px 16px 40px}
+.deckblatt .innen,.inhalt{max-width:1080px;margin:0 auto}
+.deckblatt .marke-wmc{font-weight:700;letter-spacing:.14em;font-size:13px}
+.deckblatt .marke-wmc span{color:var(--rot)}
+.deckblatt h1{font-size:clamp(28px,5vw,44px);line-height:1.15;margin:28px 0 10px;font-weight:700}
+.deckblatt .unter{font-size:18px;color:var(--hell);max-width:60ch}
+.deckblatt .balken{height:6px;width:96px;background:var(--rot);margin:26px 0}
+.deckblatt dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 18px;font-size:14px;color:var(--hell);margin:0}
+.deckblatt dt{color:var(--weiss);font-weight:600}
+nav.toc{border-bottom:1px solid var(--linie);padding:14px 16px;position:sticky;top:0;background:var(--weiss);z-index:2}
+nav.toc .inhalt{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13.5px;padding:0}
+section,article{scroll-margin-top:72px}
+nav.toc a{color:var(--anthrazit);text-decoration:none;font-weight:600}
+nav.toc a:hover{color:var(--rottext)}
+.inhalt{padding:0 16px 64px}
+h2{color:var(--anthrazit);font-size:26px;margin:48px 0 14px;padding-top:10px;border-top:3px solid var(--anthrazit)}
+h2::before{content:"";display:inline-block;width:10px;height:10px;background:var(--rot);margin-right:10px;vertical-align:middle}
+h3{color:var(--anthrazit);font-size:18px;margin:28px 0 8px}
+h4{color:var(--anthrazit);font-size:15.5px;margin:22px 0 6px}
+.fid{display:inline-block;background:var(--rottext);color:#fff;font-size:13px;padding:1px 8px;margin-right:6px;border-radius:2px}
+.fid.erledigt{background:#1E6B3A}
+.antwort{background:var(--zeile);border-left:4px solid var(--anthrazit);padding:10px 14px;margin:8px 0}
+.antwort b{color:var(--anthrazit)}
+table{width:100%;border-collapse:collapse;border-top:1.5px solid var(--linie);border-bottom:1.5px solid var(--linie);margin:10px 0 18px;font-size:14px}
+th{background:var(--anthrazit);color:#fff;text-align:left;font-weight:600;padding:8px 10px}
+td{padding:8px 10px;border-top:1px solid var(--gitter);vertical-align:top}
+tbody tr:nth-child(even){background:var(--zeile)}
+.klein{font-size:12.5px;color:var(--kopf)}
+.marke{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:2px;white-space:nowrap}
+.marke.ok{background:#E8F3EC;color:#1E6B3A}
+.marke.rot{background:var(--rothell);color:var(--rottext)}
+.marke.mittel{background:#F1F1F1;color:#4A4A4A;border:1px solid var(--mittel)}
+.marke.grau{background:#fff;color:var(--kopf);border:1px solid var(--hell)}
+blockquote{margin:6px 0;padding:6px 10px;border-left:3px solid var(--hell);font-size:13px;color:#2a2a2a;background:#fff}
+.scroll{overflow-x:auto}
+figure{margin:16px 0 22px}
+figure img{width:100%;height:auto;border:1px solid var(--gitter);display:block}
+figcaption{font-size:12.5px;color:var(--kopf);margin-top:6px}
+.paar{display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:820px){.paar{grid-template-columns:1fr 1fr}}
+footer{border-top:1px solid var(--linie);padding:16px;font-size:12.5px;color:var(--kopf)}
+footer .inhalt{padding:0}
+@media (max-width:700px){table,thead,tbody,tr,td,th{font-size:13px}}
+@media print{nav.toc{position:static}.deckblatt{-webkit-print-color-adjust:exact;print-color-adjust:exact}h2{break-before:page}}
+</style></head><body>
+
+<header class="deckblatt"><div class="innen"><div class="marke-wmc">WAMOCON<span>.</span></div>
+<h1>UI- und UX-Bericht Damicon</h1>
+<div class="balken"></div>
+<p class="unter">Landingpage und Portal, gepr&uuml;ft am laufenden Programm in drei Fenstergr&ouml;&szlig;en: Schreibtisch, Handy quer, Handy hoch.</p>
+<dl>
+<dt>Stand</dt><dd>21.09.2026</dd>
+<dt>Branch</dt><dd>ui/karten-und-feinschliff, Basis main bab981c</dd>
+<dt>Verfahren</dt><dd>Chromium &uuml;ber next-browser gegen den Entwicklungsserver, Messwerte aus dem Dokument gelesen</dd>
+<dt>Umfang</dt><dd>22 Befunde: 2 kritisch, 5 hoch, 11 mittel, 4 niedrig</dd>
+</dl>
+</div></header>
+
+<nav class="toc"><div class="inhalt">
+<a href="#verfahren">Verfahren</a>
+<a href="#ueberblick">&Uuml;berblick</a>
+<a href="#landing">1 Landingpage</a>
+<a href="#portal">2 Portal</a>
+<a href="#traegt">3 Was tr&auml;gt</a>
+<a href="#umgesetzt">4 Umgesetzt</a>
+<a href="#reihenfolge">5 Reihenfolge</a>
+</div></nav>
+
+<main class="inhalt">
+
+<section id="verfahren">
+<h2>Verfahren und Geltungsbereich</h2>
+
+<p>Gepr&uuml;ft wurde die laufende Anwendung im Browser, nicht der Quelltext allein. Jede Zahl unten ist im Dokument gemessen: Elementgr&ouml;&szlig;en &uuml;ber <code>getBoundingClientRect()</code>, &Uuml;berl&auml;ufe &uuml;ber <code>scrollWidth</code> gegen <code>clientWidth</code>, Kontraste nach WCAG 2.1 aus den Farbwerten in <code>globals.css</code> gerechnet.</p>
+
+<p>Das ist der Unterschied zu den beiden Vorg&auml;ngerberichten. <code>docs/ux-audit-portal.md</code> und <code>docs/mobil-audit-portal.md</code> vermerken beide ausdr&uuml;cklich, dass der Messbrowser auf dem Pr&uuml;frechner nicht startete und die Ma&szlig;e aus den Tailwind-Klassen gerechnet wurden. Beide nennen das Querformat als ungepr&uuml;ft. Genau dort liegen die beiden schwersten Befunde dieses Durchgangs.</p>
+
+<table>
+<thead><tr><th>Bereich</th><th>Fenster</th><th>Ger&auml;tebezug</th></tr></thead>
+<tbody>
+<tr><td>Schreibtisch</td><td>1440 &times; 900, 1600 &times; 1000, 1920 &times; 1080</td><td>Laptop und Arbeitsplatzbildschirm</td></tr>
+<tr><td>Handy quer</td><td>844 &times; 390</td><td>iPhone 14/15 gedreht, zugleich Tablet hoch und halbes Laptopfenster</td></tr>
+<tr><td>Handy hoch</td><td>390 &times; 844</td><td>iPhone 14/15, Android-Mittelklasse</td></tr>
+<tr><td>Zwischenbreiten</td><td>360, 414, 768, 820, 880, 900, 1000, 1024, 1100, 1280</td><td>Reihenmessung f&uuml;r &Uuml;berl&auml;ufe</td></tr>
+</tbody></table>
+
+<p>Angemeldet als Rolle Administration gegen die gehostete Supabase-Instanz, in Hell und Dunkel.</p>
+
+<h3>Nicht gepr&uuml;ft</h3>
+<p>Ein Durchlauf auf einem echten Ger&auml;t, ein Durchlauf mit einem Bildschirmleser, die 26 Module einzeln, Systemschriftgr&ouml;&szlig;e &uuml;ber 100 Prozent, Verhalten bei Netzabbruch. Die Kontrastwerte stammen aus den Tokenfarben; wo eine Fl&auml;che durchscheinend &uuml;ber Bildmaterial liegt, wurde nicht nachgemessen.</p>
+</section>
+
+<section id="ueberblick">
+<h2>&Uuml;berblick</h2>
+
+<p>Die Spalte Schwere bewertet, was der Befund f&uuml;r den Benutzer bedeutet. <b>Kritisch</b> hei&szlig;t, eine Funktion ist nicht erreichbar. <b>Hoch</b> hei&szlig;t, die Aufgabe gelingt, kostet aber unn&ouml;tig Zeit oder Vertrauen. Mittel und niedrig betreffen Form und Feinschliff.</p>
+
+<div class="scroll"><table>
+<thead><tr><th>ID</th><th>Befund</th><th>Ansicht</th><th>Schwere</th><th>Aufwand</th><th>Stand</th></tr></thead>
+<tbody>
+<tr><td class="mono">PT-Q-01</td><td>Bedienelemente der Portal-Kopfzeile werden zwischen 768 und 899 px abgeschnitten</td><td>Portal, quer</td><td><span class="marke rot">kritisch</span></td><td>niedrig</td><td>offen</td></tr>
+<tr><td class="mono">PT-Q-02</td><td>Rollenumschalter ignoriert seine eigene Ausblendregel</td><td>Portal, quer</td><td><span class="marke rot">kritisch</span></td><td>sehr niedrig</td><td>offen</td></tr>
+<tr><td class="mono">PT-D-01</td><td>Zonenkarten f&uuml;llen 44 bis 61 Prozent ihrer Breite</td><td>Portal, Schreibtisch</td><td><span class="marke mittel">hoch</span></td><td>niedrig</td><td>Entwurf liegt vor</td></tr>
+<tr><td class="mono">PT-Q-04</td><td>Seitenleiste belegt im Querformat 36 Prozent der Breite, Markt liegt au&szlig;erhalb des Fensters</td><td>Portal, quer</td><td><span class="marke mittel">hoch</span></td><td>mittel</td><td>offen</td></tr>
+<tr><td class="mono">PT-D-07</td><td>Globale Suche ohne Funktion (best&auml;tigt)</td><td>Portal, alle</td><td><span class="marke mittel">hoch</span></td><td>mittel</td><td>bekannt, offen</td></tr>
+<tr><td class="mono">LP-Q-01</td><td>Hero ist im Querformat 2,2 mal so hoch wie das Fenster, die Schaltfl&auml;che liegt 248 px darunter</td><td>Landing, quer</td><td><span class="marke mittel">hoch</span></td><td>niedrig</td><td>offen</td></tr>
+<tr><td class="mono">LP-Q-02</td><td>&bdquo;Zum Portal&ldquo; erst ab 1024 px sichtbar</td><td>Landing, quer</td><td><span class="marke mittel">hoch</span></td><td>sehr niedrig</td><td>offen</td></tr>
+<tr><td class="mono">PT-Q-03</td><td>Suchfeld schrumpft auf 26 px zu einer leeren Pille</td><td>Portal, quer</td><td><span class="marke grau">mittel</span></td><td>niedrig</td><td>offen</td></tr>
+<tr><td class="mono">PT-D-03</td><td>Meilensteinkarte A tr&auml;gt 166 px toten Fu&szlig;</td><td>Portal, Schreibtisch</td><td><span class="marke grau">mittel</span></td><td>sehr niedrig</td><td>offen</td></tr>
+<tr><td class="mono">PT-D-04</td><td>Himbi verdeckt Inhalt in der unteren rechten Ecke</td><td>beide, alle</td><td><span class="marke grau">mittel</span></td><td>niedrig</td><td>offen</td></tr>
+<tr><td class="mono">PT-D-05</td><td>Trendrichtung der Kennzahl steht allein in der Farbe</td><td>Portal, alle</td><td><span class="marke grau">mittel</span></td><td>niedrig</td><td>offen</td></tr>
+<tr><td class="mono">PT-D-06</td><td>Herkunft der Kennzahl nur als Maus-Kurzhinweis</td><td>Portal, alle</td><td><span class="marke grau">mittel</span></td><td>niedrig</td><td>offen</td></tr>
+<tr><td class="mono">PT-D-08</td><td>Glocke ohne Ziel (best&auml;tigt)</td><td>Portal, alle</td><td><span class="marke grau">mittel</span></td><td>niedrig</td><td>bekannt, offen</td></tr>
+<tr><td class="mono">PT-H-01</td><td>Vier Zonenkarten kosten 860 px Scrollweg f&uuml;r vorhandene Navigation</td><td>Portal, hoch</td><td><span class="marke grau">mittel</span></td><td>niedrig</td><td>offen</td></tr>
+<tr><td class="mono">LP-D-01</td><td>228 px Leerfl&auml;che neben der &Uuml;berschrift der Zonen-Sektion</td><td>Landing, Schreibtisch</td><td><span class="marke grau">mittel</span></td><td>niedrig</td><td>offen</td></tr>
+<tr><td class="mono">LP-H-01</td><td>Wortmarke &bdquo;Damicon&ldquo; fehlt auf Ger&auml;ten unter 420 px</td><td>Landing, hoch</td><td><span class="marke grau">mittel</span></td><td>sehr niedrig</td><td>offen</td></tr>
+<tr><td class="mono">LP-H-02</td><td>Orbit belegt eine volle Bildschirmh&ouml;he vor dem Inhalt</td><td>Landing, hoch</td><td><span class="marke grau">mittel</span></td><td>niedrig</td><td>offen</td></tr>
+<tr><td class="mono">PT-D-02</td><td>Zone Hof trug die Schneeflocke der K&uuml;hlkette</td><td>beide, alle</td><td><span class="marke grau">mittel</span></td><td>sehr niedrig</td><td><span class="marke ok">behoben</span></td></tr>
+<tr><td class="mono">LP-D-02</td><td>Orbit wiederholt die vier Zonennamen der Karten darunter</td><td>Landing, Schreibtisch</td><td><span class="marke grau">niedrig</span></td><td>niedrig</td><td>offen</td></tr>
+<tr><td class="mono">LP-D-03</td><td>Ton-Schalter und Himbi teilen sich dieselbe Ecke</td><td>Landing, alle</td><td><span class="marke grau">niedrig</span></td><td>sehr niedrig</td><td>offen</td></tr>
+<tr><td class="mono">LP-H-03</td><td>Ton-Schalter &uuml;berlagert die erste Kennzahlkarte des Heros</td><td>Landing, hoch</td><td><span class="marke grau">niedrig</span></td><td>sehr niedrig</td><td>offen</td></tr>
+<tr><td class="mono">PT-H-02</td><td>F&uuml;nf von siebzehn Bedienelementen unter 44 px</td><td>Portal, hoch</td><td><span class="marke grau">niedrig</span></td><td>niedrig</td><td>Restposten</td></tr>
+</tbody></table></div>
+</section>
+
+<section id="landing">
+<h2>1 Landingpage</h2>
+
+<h3>1.1 Schreibtisch</h3>
+
+<article>
+<h4><span class="fid">LP-D-01</span>228 px Leerfl&auml;che neben der &Uuml;berschrift der Zonen-Sektion</h4>
+<p>Die Sektion <code>#zonen</code> legt Text und Orbit in eine Rasterzeile mit <code>items-center</code>. Der Orbit ist 352 px hoch und bestimmt damit die Zeilenh&ouml;he. Der Textblock daneben misst 124 px und steht mittig darin. &Uuml;ber und unter ihm bleiben zusammen 228 px leer, ohne dass dort etwas steht.</p>
+<p class="klein">Fundstelle: <code>src/components/site/landing.tsx:102</code>. Gemessen bei 1440 &times; 900: Rasterzeile 352 px, Textblock 124 px.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Den Orbit auf die H&ouml;he des Textblocks begrenzen oder die Zeile auf <code>items-start</code> stellen und den Orbit optisch an die &Uuml;berschrift binden. Wer die Fl&auml;che behalten will, f&uuml;llt sie: der Orbit tr&auml;gt heute vier Beschriftungen und eine Mitte, es w&auml;re Platz f&uuml;r die Zahl der Module je Zone.</div>
+</article>
+
+<article>
+<h4><span class="fid">LP-D-02</span>Der Orbit wiederholt die Karten darunter</h4>
+<p>Der Orbit beschriftet Feld, Hof, B&uuml;ro und Markt. Vierzig Pixel darunter stehen dieselben vier Namen als Karten, diesmal mit Bild, Unterzeile und Verweis. Der Leser bekommt dieselbe Information zweimal hintereinander, die zweite Fassung ist die vollst&auml;ndigere.</p>
+<p class="klein">Fundstelle: <code>src/components/site/bereichs-orbit.tsx</code> und <code>landing.tsx:120</code>.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Entweder der Orbit &uuml;bernimmt eine eigene Aussage, etwa dass alle vier Bereiche an derselben Charge h&auml;ngen, und verzichtet daf&uuml;r auf die Zonennamen. Oder er entf&auml;llt und die Karten r&uuml;cken nach oben. Die zweite Variante l&ouml;st LP-D-01 gleich mit.</div>
+</article>
+
+<article>
+<h4><span class="fid">LP-D-03</span>Ton-Schalter und Himbi teilen sich dieselbe Ecke</h4>
+<p>Beide Elemente stehen fest unten rechts. Himbi liegt auf <code>z-index: 60</code>, 20 px vom Rand; der Ton-Schalter sitzt darunter. Kommt die Tourblase dazu, ist ein Feld von rund 260 &times; 300 px dauerhaft durch schwebende Bedienung belegt.</p>
+<p class="klein">Fundstelle: <code>src/components/haustier/haustier.css:8-14</code>, <code>src/components/site/ton-schalter.tsx</code>.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Eine gemeinsame Stapelregel f&uuml;r die untere rechte Ecke, wie sie f&uuml;r die untere Leiste im Portal mit <code>--untere-leiste-raum</code> schon besteht. Der Ton-Schalter geh&ouml;rt n&auml;her an das Video, zu dem er geh&ouml;rt, nicht in dieselbe Ecke wie die Figur.</div>
+</article>
+
+<h3>1.2 Handy quer</h3>
+
+<figure>
+<img src="landing-hero-844.png" alt="Landingpage bei 844 mal 390 Pixel: Die &Uuml;berschrift f&uuml;llt das ganze Fenster und ist unten abgeschnitten.">
+<figcaption>844 &times; 390: Zwischen Kopfzeile und unterer Fensterkante steht allein die &Uuml;berschrift, und die ist nicht zu Ende.</figcaption>
+</figure>
+
+<article>
+<h4><span class="fid">LP-Q-01</span>Der Hero ist im Querformat 2,2 mal so hoch wie das Fenster</h4>
+<p>Bei 844 &times; 390 misst der Hero 861 px. Die &Uuml;berschrift wird mit 60 px gesetzt, weil <code>md:text-6xl</code> nur die Fensterbreite pr&uuml;ft und 844 px &uuml;ber der Grenze liegt. Die H&ouml;he von 390 px spielt dabei keine Rolle. Dazu kommen <code>py-16</code>, also 128 px Innenabstand.</p>
+<p>Die Folge: &bdquo;Prototyp &ouml;ffnen&ldquo; liegt 248 px unter der Fensterkante. Wer das Telefon dreht, sieht eine &Uuml;berschrift und sonst nichts.</p>
+<p class="klein">Fundstelle: <code>src/components/site/hero.tsx:43-53</code>. Gemessen: Hero 861 px, h1 252 px bei 60 px Schriftgr&ouml;&szlig;e, Schaltfl&auml;che bei y = 638.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Die Schriftgr&ouml;&szlig;e und den Innenabstand zus&auml;tzlich an die Fensterh&ouml;he binden. Tailwind kennt seit v4 die Abfrage &uuml;ber <code>@media (max-height: &hellip;)</code>; eine Stufe bei 500 px H&ouml;he reicht, um &Uuml;berschrift und erste Schaltfl&auml;che gemeinsam ins Bild zu bekommen. Die bestehende Breitenstaffelung bleibt unver&auml;ndert.</div>
+</article>
+
+<article>
+<h4><span class="fid">LP-Q-02</span>&bdquo;Zum Portal&ldquo; ist erst ab 1024 px sichtbar</h4>
+<p>Die Sprungnavigation und die Schaltfl&auml;che ins Portal stehen in einem Block mit <code>lg:flex</code>. Unterhalb von 1024 px &uuml;bernimmt der Burger. Bei 844 px Breite ist daf&uuml;r genug Platz: die Kopfzeile tr&auml;gt dort nur Bildmarke, Sprachwahl, Farbschema und den Burger.</p>
+<p>Damit steckt die Handlung, auf die die ganze Seite hinarbeitet, auf Tablets und im Querformat hinter einem zus&auml;tzlichen Antippen.</p>
+<p class="klein">Fundstelle: <code>src/components/site/navbar.tsx:63</code>.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Die Schaltfl&auml;che aus dem <code>lg</code>-Block herausnehmen und ab <code>sm</code> dauerhaft zeigen, notfalls verk&uuml;rzt auf &bdquo;Portal&ldquo;. Die Sprungnavigation kann im Burger bleiben, sie ist eine Bequemlichkeit und keine Handlung.</div>
+</article>
+
+<h3>1.3 Handy hoch</h3>
+
+<figure>
+<img src="landing-orbit-390.png" alt="Landingpage bei 390 mal 844 Pixel: Der Orbit f&uuml;llt den unteren Teil des Bildschirms, die Zonenkarten sind noch nicht zu sehen.">
+<figcaption>390 &times; 844: Nach &Uuml;berschrift und Vorspann folgt der Orbit. Die Karten, um die es geht, beginnen erst darunter.</figcaption>
+</figure>
+
+<article>
+<h4><span class="fid">LP-H-01</span>Die Wortmarke fehlt auf Ger&auml;ten unter 420 px</h4>
+<p>Der Schriftzug &bdquo;Damicon&ldquo; samt Unterzeile h&auml;ngt an <code>min-[420px]:flex</code>. Bei 360, 390 und 414 px zeigt die Kopfzeile nur das Bildzeichen. Das betrifft iPhone 12 bis 15 in der Grundgr&ouml;&szlig;e und einen gro&szlig;en Teil der Android-Mittelklasse, also die Ger&auml;te, auf denen die Seite am h&auml;ufigsten zuerst ge&ouml;ffnet wird.</p>
+<p class="klein">Fundstelle: <code>src/components/site/navbar.tsx:41</code>. Gemessen bei 360, 390 und 414 px: <code>display: none</code>.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Den Namen ab 360 px zeigen und stattdessen die Unterzeile &bdquo;Betriebssteuerung Himbeerplantage&ldquo; erst ab 420 px einblenden. Der Name allein ist schmal genug, dass die Kopfzeile ihn auch bei 360 px neben Bildzeichen, Sprachwahl, Farbschema und Burger tr&auml;gt.</div>
+</article>
+
+<article>
+<h4><span class="fid">LP-H-02</span>Der Orbit belegt eine volle Bildschirmh&ouml;he vor dem Inhalt</h4>
+<p>Im Hochformat stapelt sich das Raster. Der Orbit steht dann zwischen Vorspann und Karten und nimmt rund 390 px ein, also die gesamte sichtbare H&ouml;he eines Telefons. Er tr&auml;gt dort dieselbe Doppelung wie am Schreibtisch, kostet aber einen vollen Wisch.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Auf schmalen Fenstern ausblenden, oder ihn unter die Karten setzen, wo er als Zusammenfassung funktioniert statt als Vorschaltbild.</div>
+</article>
+
+<article>
+<h4><span class="fid">LP-H-03</span>Der Ton-Schalter &uuml;berlagert die erste Kennzahlkarte</h4>
+<p>Bei 390 px liegt der Schalter &uuml;ber der Karte &bdquo;60 Minuten&ldquo;, also &uuml;ber der ersten Zahl, die die Seite nennt.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Siehe LP-D-03. Eine gemeinsame Regel f&uuml;r die untere rechte Ecke l&ouml;st beide F&auml;lle.</div>
+</article>
+</section>
+
+<section id="portal">
+<h2>2 Portal</h2>
+
+<h3>2.1 Schreibtisch</h3>
+
+<article>
+<h4><span class="fid">PT-D-01</span>Die Zonenkarten f&uuml;llen 44 bis 61 Prozent ihrer Breite</h4>
+<p>Bei 1920 px ist jede Karte 376 &times; 210 px gro&szlig;. Gemessen an der breitesten Zeile Text f&uuml;llt Feld 50 Prozent der nutzbaren Breite, Hof und B&uuml;ro je 61, Markt 44. Die H&ouml;he entsteht aus f&uuml;nf gestapelten Zeilen: Symbol allein, Titel, Unterzeile, Statuspillen, Verweis. Das Symbol steht auf einer eigenen Zeile und kostet dort 52 px, ohne rechts von ihm etwas zu tragen.</p>
+<p class="klein">Fundstelle: <code>src/components/dashboard/home.tsx:203-255</code>.</p>
+
+<figure>
+<img src="zonenkarten-IST.png" alt="Portal-Dashboard, Zonenkarten im Ist-Zustand: Symbol, Titel, Unterzeile, Pille und Verweis stehen untereinander links in der Karte.">
+<figcaption>Ist-Zustand bei 1600 px. Rechts neben dem Inhalt bleibt in jeder Karte etwa ein Drittel leer.</figcaption>
+</figure>
+
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Drei Entw&uuml;rfe wurden im laufenden Programm gebaut und gemessen. Alle drei behalten Verweisziel, Statuspillen und &Uuml;bersetzungsschl&uuml;ssel unver&auml;ndert.</div>
+
+<table>
+<thead><tr><th>Entwurf</th><th>Aufbau</th><th>H&ouml;he</th><th>F&uuml;llung</th><th>Raster</th></tr></thead>
+<tbody>
+<tr><td><b>A</b> kompakt</td><td>Symbol wandert in die Titelzeile, der Verweis wird zum Pfeil am rechten Rand</td><td>210 &rarr; 134 px</td><td>rund 85 %</td><td>unver&auml;ndert</td></tr>
+<tr><td><b>B</b> waagerecht</td><td>Symbol links in eigener Spalte, Text daneben</td><td>210 &rarr; 116 px</td><td>rund 90 %</td><td>zwei statt vier Spalten</td></tr>
+<tr><td><b>C</b> mit Modulen</td><td>Aufbau wie A, dazu die Modulnamen der Zone in zwei Spalten</td><td>rund 200 px</td><td>rund 95 %</td><td>unver&auml;ndert</td></tr>
+</tbody></table>
+
+<div class="paar">
+<figure><img src="zonenkarten-A.png" alt="Entwurf A: flache Karten, Symbol neben dem Titel, Pfeil rechts."><figcaption>Entwurf A</figcaption></figure>
+<figure><img src="zonenkarten-B.png" alt="Entwurf B: zwei breite Karten pro Zeile, Symbol links neben dem Text."><figcaption>Entwurf B</figcaption></figure>
+</div>
+<figure><img src="zonenkarten-C.png" alt="Entwurf C: Karten in voller H&ouml;he, darin die Modulnamen der jeweiligen Zone in zwei Spalten."><figcaption>Entwurf C</figcaption></figure>
+
+<p>Entwurf B l&ouml;st den Leerraum nach unten auf und schafft ihn nach rechts neu: bei zwei Spalten ist jede Karte rund 490 px breit und tr&auml;gt weiterhin nur eine kurze Unterzeile. F&uuml;r diesen Inhalt ist das die schw&auml;chste der drei Formen.</p>
+
+<p>Entwurf C ist der einzige, der die Fl&auml;che mit Inhalt beantwortet statt mit weniger Fl&auml;che, und er beantwortet die Frage, die ein Benutzer vor der Karte tats&auml;chlich hat: was steckt in dieser Zone. Einschr&auml;nkung: Die Modulnamen stehen innerhalb des Kartenverweises und sind deshalb keine eigenen Ziele. Wer sie einzeln anklickbar will, muss die Karte von einem Verweis in einen Beh&auml;lter mit mehreren Verweisen umbauen; das ber&uuml;hrt die Tastaturbedienung und geh&ouml;rt in einen eigenen Schritt.</p>
+</article>
+
+<article>
+<h4><span class="fid erledigt">PT-D-02</span>Die Zone Hof trug die Schneeflocke der K&uuml;hlkette</h4>
+<p>Die Zone Hof enth&auml;lt vier Module: K&uuml;hlkette, Abholrunden, QR-Steigen und Lieferschein. Das Zonensymbol war eine Schneeflocke und stand damit f&uuml;r eines der vier. Zus&auml;tzlich tr&auml;gt das Modul K&uuml;hlkette in derselben Oberfl&auml;che <code>thermometer-snowflake</code>, so dass Zone und Modul dasselbe Motiv zeigten.</p>
+<p class="klein">Fundstelle: <code>src/lib/modules.ts:35</code>.</p>
+<div class="antwort"><b>Umgesetzt:</b> Die Zone tr&auml;gt jetzt <code>warehouse</code>, ein Geb&auml;ude mit Tor. Es steht f&uuml;r den Ort, an dem die vier Module zusammenlaufen, und kollidiert mit keinem Modulsymbol. Der Registereintrag <code>snowflake</code> bleibt, weil ihn der Einarbeitungsschritt zur K&uuml;hlkette weiter nutzt.</div>
+</article>
+
+<article>
+<h4><span class="fid">PT-D-03</span>Die Meilensteinkarte A tr&auml;gt 166 px toten Fu&szlig;</h4>
+<p>Beide Meilensteinkarten stehen in einem Raster und werden auf dieselbe H&ouml;he gestreckt, 349 px. Karte A hat vier Listenpunkte, Karte B hat sieben und dazu einen Fu&szlig;text. Unter dem letzten Punkt von Karte A bleiben 166 px leer.</p>
+<p class="klein">Fundstelle: <code>src/components/dashboard/home.tsx:258-305</code>. Gemessen bei 1920 px.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Die beiden Karten aus dem streckenden Raster nehmen und in eine Aufteilung setzen, die die nat&uuml;rliche H&ouml;he beh&auml;lt. Alternativ bekommt Karte A denselben abschlie&szlig;enden Fu&szlig;text wie Karte B, der dort heute fehlt; inhaltlich w&auml;re er vorhanden, denn Meilenstein A hat eine eigene Abgrenzung.</div>
+</article>
+
+<article>
+<h4><span class="fid">PT-D-04</span>Himbi verdeckt Inhalt in der unteren rechten Ecke</h4>
+<p>Die Figur steht fest, 20 px vom Rand, auf <code>z-index: 60</code>, und ist rund 110 px gro&szlig;. Auf der &Uuml;bersicht deckt sie den Fu&szlig;text der Meilensteinkarte B ab, auf der Landingpage die vierte Zonenkarte. Mit Tourblase w&auml;chst die belegte Fl&auml;che auf etwa 260 &times; 300 px.</p>
+<p class="klein">Fundstelle: <code>src/components/haustier/haustier.css:8-14</code>.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Auf dem Handy steht die Figur bereits im Knopf der unteren Leiste statt &uuml;ber dem Inhalt, das ist die bessere L&ouml;sung. Am Schreibtisch fehlt die Entsprechung. Entweder ein Rand rechts unten im Inhaltsbereich, mit dem die Figur rechnet, oder die Figur wandert auch dort in ein festes Feld der Kopfzeile.</div>
+</article>
+
+<article>
+<h4><span class="fid">PT-D-05</span>Die Trendrichtung steht allein in der Farbe</h4>
+<p>Jede Kennzahlkachel tr&auml;gt oben rechts einen Pfeil. Ob die gezeigte Richtung gut ist, h&auml;ngt von <code>gutRichtung</code> ab und wird ausschlie&szlig;lich &uuml;ber die Farbe ausgedr&uuml;ckt: gr&uuml;n f&uuml;r g&uuml;nstig, rot f&uuml;r ung&uuml;nstig, grau f&uuml;r unver&auml;ndert. Bei der Verlustquote ist ein Pfeil nach unten gut, bei der Pfl&uuml;ckleistung schlecht. Ohne Farbunterscheidung ist der Pfeil nicht deutbar.</p>
+<p>Das verst&ouml;&szlig;t gegen WCAG 2.1 Erfolgskriterium 1.4.1, das verlangt, dass Farbe nicht das einzige Mittel zur &Uuml;bermittlung einer Information ist.</p>
+<p class="klein">Fundstelle: <code>src/components/dashboard/home.tsx:88-98</code>.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Die Bewertung zus&auml;tzlich in Text fassen, etwa als <code>title</code> plus <code>sr-only</code>-Text &bdquo;&uuml;ber Ziel&ldquo; oder &bdquo;unter Ziel&ldquo;. Wer ohne zus&auml;tzlichen Text auskommen will, setzt f&uuml;r den ung&uuml;nstigen Fall ein anderes Symbol statt einer anderen Farbe.</div>
+</article>
+
+<article>
+<h4><span class="fid">PT-D-06</span>Die Herkunft der Kennzahl steckt in einem Maus-Kurzhinweis</h4>
+<p>Unter jeder Kachel steht eine kurze Zeile wie &bdquo;gerechnet aus 10 Datens&auml;tzen&ldquo; oder &bdquo;Funktion fehlt&ldquo;. Die eigentliche Erkl&auml;rung, was der Zahl fehlt oder wie sie zustande kommt, liegt im <code>title</code>-Attribut. Dieses Attribut erscheint nur beim Verweilen mit der Maus. Auf dem Telefon und bei Bedienung &uuml;ber die Tastatur ist der Text nicht erreichbar.</p>
+<p>F&uuml;r die Baseline-Unterschrift am 01.10.2026 ist genau dieser Text der wichtige Teil: er sagt, was heute nicht erhoben wird.</p>
+<p class="klein">Fundstelle: <code>src/components/dashboard/home.tsx:100-118</code>.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Die Erkl&auml;rung in ein aufklappbares Feld je Kachel legen, oder eine eigene Ansicht &bdquo;Woher kommen die Zahlen&ldquo; mit allen 14 Kennzahlen als Liste. Die zweite Variante ist f&uuml;r das Gespr&auml;ch mit dem Kunden ohnehin n&uuml;tzlicher als 14 einzelne Kurzhinweise.</div>
+</article>
+
+<article>
+<h4><span class="fid">PT-D-07</span>Die globale Suche hat weiterhin keine Funktion</h4>
+<p>Im Kopf steht ein Feld mit Lupe, Rahmen und dem Platzhalter &bdquo;Reihenblock, Charge, Pfl&uuml;cker, Dokument suchen &hellip;&ldquo;. Dahinter liegt ein <code>div</code> mit einem <code>span</code>, kein Eingabefeld. Der Befund steht als Punkt 1 in <code>docs/ux-audit-portal.md</code> und ist unver&auml;ndert.</p>
+<p class="klein">Fundstelle: <code>src/components/dashboard/topbar.tsx:169-172</code>.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Unver&auml;ndert wie im Vorg&auml;ngerbericht. Solange die Suche nicht gebaut ist, ist ein Feld, das wie ein Suchfeld aussieht, schlechter als kein Feld. Der Platz wird f&uuml;r PT-Q-01 ohnehin gebraucht.</div>
+</article>
+
+<article>
+<h4><span class="fid">PT-D-08</span>Die Glocke hat kein Ziel</h4>
+<p>Die Schaltfl&auml;che tr&auml;gt einen roten Punkt, der auf ungelesene Meldungen hinweist, und hat keinen <code>onClick</code>. Auf dem Handy ist sie das einzige sichtbare Bedienelement der Kopfzeile neben der Bildmarke. Best&auml;tigt als Punkt 8 aus <code>docs/ux-audit-portal.md</code>.</p>
+<p class="klein">Fundstelle: <code>src/components/dashboard/topbar.tsx:186-195</code>.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Entweder ein Meldungsblatt anbinden oder die Glocke entfernen, bis es eines gibt. Der rote Punkt ohne dahinterliegende Meldung ist der st&ouml;rendere Teil: er verspricht etwas Ungelesenes.</div>
+</article>
+
+<h3>2.2 Handy quer und Tablet hoch</h3>
+
+<p>Dieser Bereich, 768 bis 899 px Fensterbreite, war in beiden Vorg&auml;ngerberichten nicht gepr&uuml;ft. Er enth&auml;lt die beiden kritischen Befunde dieses Durchgangs.</p>
+
+<figure>
+<img src="portal-kopfzeile-844.png" alt="Portal bei 844 mal 390 Pixel: Die Kopfzeile endet rechts hinter dem Farbschema-Schalter, die Glocke fehlt.">
+<figcaption>844 &times; 390: Rechts endet die Kopfzeile mit dem Farbschema-Schalter. Die Glocke steht bei x = 885 und damit au&szlig;erhalb des Fensters.</figcaption>
+</figure>
+
+<article>
+<h4><span class="fid">PT-Q-01</span>Bedienelemente der Kopfzeile werden abgeschnitten und sind nicht erreichbar</h4>
+<p>Die Kopfzeile ist eine Reihe ohne Umbruch und ohne &Uuml;berlauf. Passt der Inhalt nicht, wird er am rechten Rand abgeschnitten. Die Elemente sind dann nicht nur unsichtbar, sondern auch nicht erreichbar: der Kopf hat keinen eigenen Scrollbereich (<code>scrollLeft</code> bleibt 0), und die Seite scrollt nicht waagerecht.</p>
+
+<table>
+<thead><tr><th>Fensterbreite</th><th>abgeschnitten</th></tr></thead>
+<tbody>
+<tr><td class="mono">768 px</td><td>Sprachwahl, Farbschema, Glocke</td></tr>
+<tr><td class="mono">820 px</td><td>Farbschema, Glocke</td></tr>
+<tr><td class="mono">844 px</td><td>Glocke</td></tr>
+<tr><td class="mono">880 px</td><td>Glocke</td></tr>
+<tr><td class="mono">900 px</td><td>nichts</td></tr>
+</tbody></table>
+
+<p>Betroffen sind iPad hoch mit 810 px, Telefon quer und jedes Laptopfenster, das auf einer Bildschirmh&auml;lfte liegt. Die Sprachwahl ist f&uuml;r eine Oberfl&auml;che in f&uuml;nf Sprachen keine Nebensache, und der Farbschema-Schalter ist die einzige Stelle, an der sich der Dunkelmodus umstellen l&auml;sst.</p>
+<p class="klein">Fundstelle: <code>src/components/dashboard/topbar.tsx:99-196</code>. Gemessen: Kopfzeile <code>scrollWidth</code> 581 gegen <code>clientWidth</code> 540 bei 844 px; rechte Kante der Glocke bei x = 885.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Zuerst PT-Q-02 beheben, das allein gibt rund 198 px frei und r&auml;umt den Bereich ab 768 px auf. Zus&auml;tzlich sollte die Kopfzeile den Fall selbst abfangen: die Gruppe rechts bekommt <code>min-w-0</code>, und die Elemente, die verschwinden d&uuml;rfen, bekommen eine klare Reihenfolge. Eine Kopfzeile, die Bedienelemente stillschweigend abschneidet, bleibt sonst eine Falle f&uuml;r die n&auml;chste Erg&auml;nzung.</div>
+</article>
+
+<article>
+<h4><span class="fid">PT-Q-02</span>Der Rollenumschalter ignoriert seine eigene Ausblendregel</h4>
+<p>Die Kopfzeile ruft den Umschalter mit <code>className="hidden lg:inline-flex"</code> auf, er soll also erst ab 1024 px erscheinen. Die Komponente setzt ihre Klassen jedoch &uuml;ber eine Zeichenkette zusammen:</p>
+<blockquote class="mono">className={`relative inline-flex items-center ${className ?? ""}`}</blockquote>
+<p>Daraus entsteht die Liste <code>relative inline-flex items-center hidden lg:inline-flex</code>. Welche der beiden Anzeigeregeln gewinnt, entscheidet nicht die Reihenfolge im Attribut, sondern die Reihenfolge im erzeugten Stylesheet. Gemessen bei 844 px: der Umschalter ist sichtbar und 190 px breit. Die Absicht der Kopfzeile greift also an keiner Breite.</p>
+<p>Das Projekt hat f&uuml;r genau diesen Fall <code>cn()</code> aus <code>src/lib/utils.ts</code>, das &uuml;ber tailwind-merge widerspr&uuml;chliche Klassen aufl&ouml;st. Die Kommentare in <code>globals.css:282-300</code> beschreiben einen fr&uuml;heren Fall derselben Art. An drei weiteren Stellen wird ebenfalls &uuml;ber Zeichenketten zusammengesetzt (<code>beere-bento.tsx:61</code>, <code>hero-video.tsx:25</code>, <code>loop-clip.tsx:60</code>); dort kollidiert heute nichts, die Stellen bleiben aber anf&auml;llig.</p>
+<p class="klein">Fundstelle: <code>src/components/dashboard/persona.tsx:126</code>, aufgerufen in <code>topbar.tsx:180</code>.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> In <code>persona.tsx</code> auf <code>cn()</code> umstellen. Tailwind-merge beh&auml;lt bei zwei Anzeigeklassen die zuletzt &uuml;bergebene, also <code>hidden</code>, und l&auml;sst <code>lg:inline-flex</code> als eigene Variante stehen. Eine Zeile, und der Umschalter verh&auml;lt sich wie vorgesehen. Die drei &uuml;brigen Stellen bei Gelegenheit nachziehen.</div>
+</article>
+
+<article>
+<h4><span class="fid">PT-Q-03</span>Das Suchfeld schrumpft zu einer leeren Pille</h4>
+<p>Das Suchfeld ist <code>flex-1</code> mit <code>min-w-0</code> und gibt seinen Platz zuerst ab. Gemessen ist es zwischen 768 und 999 px 26 px breit: ein gerahmtes Rechteck ohne Lupe und ohne Text. Bei 1000 px sind es 117 px, der Platzhalter wird noch abgeschnitten; erst bei 1280 px steht er mit 397 px vollst&auml;ndig.</p>
+<p class="klein">Fundstelle: <code>src/components/dashboard/topbar.tsx:169</code>.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Eine Mindestbreite setzen, unterhalb derer das Feld ganz verschwindet statt zu schrumpfen. Da die Suche ohnehin keine Funktion hat (PT-D-07), ist die k&uuml;rzere Antwort, das Feld erst ab <code>xl</code> zu zeigen oder bis zur echten Suche zu entfernen.</div>
+</article>
+
+<article>
+<h4><span class="fid">PT-Q-04</span>Die Seitenleiste belegt im Querformat 36 Prozent der Breite</h4>
+<p>Die Seitenleiste ist 304 px breit und ab 768 px dauerhaft ausgeklappt. Bei 844 px bleiben f&uuml;r den Inhalt 540 px. Die innere Navigation hat dann 203 px H&ouml;he f&uuml;r 482 px Inhalt; sie ist scrollbar, zeigt das aber nicht an. Der Eintrag &bdquo;Markt&ldquo; liegt bei y = 510 und damit 120 px unterhalb der Fensterkante.</p>
+<p class="klein">Fundstelle: <code>src/components/dashboard/sidebar.tsx</code>. Gemessen bei 844 &times; 390.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Die Seitenleiste hat bereits einen Umschalter in der Kopfzeile. Sie sollte bei niedrigen Fenstern eingeklappt starten, nicht ausgeklappt. Zus&auml;tzlich braucht der scrollbare Bereich einen sichtbaren Hinweis, etwa einen weichen Verlauf an der Unterkante, solange darunter noch etwas steht.</div>
+</article>
+
+<h3>2.3 Handy hoch</h3>
+
+<article>
+<h4><span class="fid">PT-H-01</span>Vier Zonenkarten kosten 860 px Scrollweg</h4>
+<p>Im Hochformat stapeln sich die Zonenkarten zu je rund 215 px. Vier davon ergeben etwa 860 px, also etwas mehr als eine volle Bildschirmh&ouml;he, f&uuml;r eine Navigation, die die untere Leiste &uuml;ber das Men&uuml;blatt bereits bietet.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Entwurf C aus PT-D-01 macht aus dem Scrollweg Inhalt: Die Karten tragen dann die Modulnamen und beantworten damit eine Frage, statt nur zu verweisen. Wer den Weg k&uuml;rzen will, zeigt die Karten auf dem Handy zweispaltig; bei 390 px Breite bleiben dann rund 170 px je Karte.</div>
+</article>
+
+<article>
+<h4><span class="fid">PT-H-02</span>F&uuml;nf von siebzehn Bedienelementen unter 44 px</h4>
+<p>Auf der &Uuml;bersicht bei 390 px Breite liegen f&uuml;nf der siebzehn bedienbaren Elemente unter 44 &times; 44 px: die Glocke mit 36 &times; 36, der Diktatknopf mit 40 &times; 40, der Sprunglink mit 40 px H&ouml;he, die Bildmarke mit 36 px H&ouml;he und ein Eingabefeld mit 40 px H&ouml;he.</p>
+<p>WCAG 2.2 verlangt auf Stufe AA 24 &times; 24 px; das ist &uuml;berall erf&uuml;llt. Die verbreitete Empfehlung von 44 &times; 44 px ist es an diesen f&uuml;nf Stellen nicht. Der Punkt ist ein Restposten zu Punkt 5 aus <code>docs/mobil-audit-portal-2.md</code>, der dort als erledigt gef&uuml;hrt wird.</p>
+<div class="antwort"><b>L&ouml;sungsansatz:</b> Die Glocke auf <code>h-11 w-11</code> setzen. Wird sie nach PT-D-08 entfernt, erledigt sich der Punkt. Beim Diktatknopf reicht eine unsichtbare Vergr&ouml;&szlig;erung der Trefferfl&auml;che &uuml;ber <code>::after</code>, damit die Optik erhalten bleibt.</div>
+</article>
+</section>
+
+<section id="traegt">
+<h2>3 Was tr&auml;gt</h2>
+
+<p>Eine reine M&auml;ngelliste stellt den Stand falsch dar. Gepr&uuml;ft und in Ordnung:</p>
+
+<table>
+<thead><tr><th>Gepr&uuml;ft</th><th>Ergebnis</th></tr></thead>
+<tbody>
+<tr><td>Textkontrast hell</td><td>Hilfstext 5,22:1 auf Karte und 4,97:1 auf Hintergrund; Markenfarbe 5,27:1; Flie&szlig;text 17,1:1</td></tr>
+<tr><td>Textkontrast dunkel</td><td>Hilfstext 8,17:1; Markenfarbe 9,29:1; Flie&szlig;text 15,25:1</td></tr>
+<tr><td>Waagerechtes Scrollen</td><td>Auf beiden Seiten und in allen zehn gemessenen Breiten keines. Die Kamerafahrt im Kapitelbild ragt rechnerisch &uuml;ber den Rand, wird aber vom Rahmen geschnitten.</td></tr>
+<tr><td>Dunkelmodus</td><td>Auf Landing und Portal durchgehend umgesetzt, auch in Statuspillen und Kennzahlkacheln</td></tr>
+<tr><td>Modulseiten auf dem Handy</td><td>Der Inhalt endet &uuml;ber der unteren Leiste, der letzte Absatz ist erreichbar</td></tr>
+<tr><td>Einblendungen beim Scrollen</td><td>L&ouml;sen aus und hinterlassen keinen unsichtbaren Text</td></tr>
+<tr><td>Anmeldung und Rollenwechsel</td><td>Funktionieren gegen die gehostete Instanz, die Rolle steht in Kopfzeile und Konto-Blatt</td></tr>
+</tbody></table>
+
+<p>Die Kontrastwerte liegen alle &uuml;ber der Anforderung von 4,5:1 f&uuml;r Flie&szlig;text. Der niedrigste gemessene Wert, 4,97:1, betrifft den Hilfstext auf der Hintergrundfl&auml;che.</p>
+</section>
+
+<section id="umgesetzt">
+<h2>4 Umgesetzt in diesem Branch</h2>
+
+<table>
+<thead><tr><th>ID</th><th>&Auml;nderung</th><th>Dateien</th><th>Risiko</th></tr></thead>
+<tbody>
+<tr><td class="mono">PT-D-02</td><td>Zone Hof tr&auml;gt <code>warehouse</code> statt <code>snowflake</code></td><td><code>src/lib/modules.ts</code>, <code>src/components/icon.tsx</code></td><td>keines: reiner Registereintrag, <code>snowflake</code> bleibt f&uuml;r die Einarbeitung erhalten</td></tr>
+</tbody></table>
+
+<p>Das neue Symbol erscheint an allen Stellen, die <code>zone.icon</code> lesen: Zonenkarte im Portal, Zonenkarte auf der Landingpage, Seitenleiste, untere Leiste, Orbit und Modulreiter. Gepr&uuml;ft wurden Portal und Landingpage in Hell und Dunkel.</p>
+
+<p>Der Entwurf zu PT-D-01 liegt als Vergleich vor und wartet auf die Entscheidung zwischen A, B und C.</p>
+</section>
+
+<section id="reihenfolge">
+<h2>5 Vorgeschlagene Reihenfolge</h2>
+
+<table>
+<thead><tr><th>Schritt</th><th>Befunde</th><th>Warum zuerst</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>PT-Q-02, dann PT-Q-01</td><td>Eine Zeile behebt den ersten kritischen Befund und gibt rund 198 px in der Kopfzeile frei. Ohne diesen Schritt fehlen auf Tablets Sprachwahl und Dunkelmodus.</td></tr>
+<tr><td>2</td><td>PT-D-01</td><td>Der Ausl&ouml;ser dieses Durchgangs. Entwurf liegt vor, betrifft eine Datei.</td></tr>
+<tr><td>3</td><td>LP-Q-02, LP-H-01</td><td>Zwei Breakpoints. Beide betreffen den ersten Eindruck: Markenname und der Weg ins Portal.</td></tr>
+<tr><td>4</td><td>LP-Q-01</td><td>Braucht eine H&ouml;henstaffelung, die es im Projekt noch nicht gibt. Einmal eingef&uuml;hrt, ist sie f&uuml;r alle Sektionen nutzbar.</td></tr>
+<tr><td>5</td><td>PT-Q-04, PT-Q-03</td><td>R&auml;umt den Bereich zwischen 768 und 1024 px vollst&auml;ndig auf.</td></tr>
+<tr><td>6</td><td>PT-D-03, PT-D-04, LP-D-01, LP-D-03, LP-H-03</td><td>Fl&auml;chen und &Uuml;berlagerungen. Sichtbar, aber nichts davon blockiert eine Aufgabe.</td></tr>
+<tr><td>7</td><td>PT-D-05, PT-D-06, PT-H-02</td><td>Zug&auml;nglichkeit. PT-D-06 lohnt vor dem 01.10.2026, weil dort die Herkunft der Kennzahlen zur Sprache kommt.</td></tr>
+<tr><td>8</td><td>PT-D-07, PT-D-08</td><td>Zwei Attrappen. Die Entscheidung ist nicht gestalterisch, sondern inhaltlich: bauen oder entfernen.</td></tr>
+</tbody></table>
+
+<h3>Was die &Auml;nderungen nicht ber&uuml;hren d&uuml;rfen</h3>
+<p>Alle L&ouml;sungsans&auml;tze oben sind so geschnitten, dass sie Darstellung &auml;ndern und Verhalten unver&auml;ndert lassen. Unber&uuml;hrt bleiben: Verweisziele und Routen, die Rechtepr&uuml;fung &uuml;ber <code>hasPermission</code>, die Z&auml;hlung der Module je Zone und Reifegrad, die &Uuml;bersetzungsschl&uuml;ssel, die Datenabfragen und die Schreibvorg&auml;nge. Wo ein Ansatz das nicht einhalten kann, steht es beim Befund: Entwurf C macht aus den Modulnamen keine eigenen Verweise, und PT-D-07 sowie PT-D-08 verlangen eine inhaltliche Entscheidung, bevor an der Oberfl&auml;che etwas passiert.</p>
+</section>
+
+</main>
+
+<footer><div class="inhalt">WAMOCON &middot; Damicon &middot; UI- und UX-Bericht &middot; 21.09.2026 &middot; Messwerte und Bilder: <code>docs/design/ui-audit-2026-09-21/</code> &middot; Vorg&auml;ngerberichte: <code>docs/ux-audit-portal.md</code>, <code>docs/mobil-audit-portal.md</code>, <code>docs/mobil-audit-portal-2.md</code></div></footer>
+
+</body></html>
