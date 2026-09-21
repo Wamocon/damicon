@@ -456,6 +456,28 @@ Der größere Teil des Katalogs ist sachlich und am Betrieb ausgerichtet.
 - Die Rollentrennung im Text ist sauber gelöst: im Demo-Betrieb „Demo-Rolle wechseln“, im angemeldeten Betrieb „Ansicht als Rolle – ändert nur die Darstellung, die Schreibrechte richten sich weiter nach Ihrem Profil“.
 - Die Demo-Zugänge auf der Anmeldeseite sind über `NODE_ENV` und ein Flag abgesichert (`src/app/[locale]/login/page.tsx:23-28`).
 
+## Stand der Umsetzung
+
+Stand 21.09.2026, Branch `ui/portal-texte-bereinigen`, Ticket WMCNL-2398.
+
+**Die Zeilenangaben oben stimmen nicht mehr.** Der Bericht entstand auf `ui/karten-und-feinschliff` über main `bda9cb7`. Seither hat der Umbau der Übersicht die Startseite in `begruessung.tsx`, `zonen-box.tsx` und `kennzahl-box.tsx` zerlegt, und in `de.json` verschieben sich die Zeilen ab etwa 390 um +33 bis +50. Wer einen Befund nachschlägt, sucht über den Textinhalt, nicht über die Zeile.
+
+**Punkt 2 war beim Nacharbeiten schon zur Hälfte erledigt.** Die Kennzahlkachel zeigt Zielwert und Zielstand statt „Funktion fehlt“, die Überschrift „14 Baseline-Kennzahlen“ und die Zählzeile werden nicht mehr gerendert, und die Badge „Platzhalterwerte“ hängt am Einzelwert statt an der Sektion. Übrig war nur, die toten Schlüssel zu entfernen.
+
+**Zwei Aussagen des Berichts waren falsch:**
+
+- `modules.*.todo` ist nicht tot. `src/lib/ai/tools.ts` reicht den Text als `nochOffen` an DamiAI durch, alle 26 erreichen also Nutzer. Damit war auch „Anforderung 3.5 Teil 1“ sichtbar, nicht nur latent.
+- Der Reifegrad „demo“ wurde angezeigt: `src/components/site/modul-reiter.tsx` führte ihn in der Legende der öffentlichen Seite, weil `REIFE_TON` als `Record<string, string>` getippt war und der fehlende Wert deshalb weder dem Compiler noch einem Test auffiel.
+
+**Was der Bericht nicht hat und mitgegangen ist:**
+
+- Zwei weitere Anforderungsnummern im sichtbaren Text: `rollenDemo.catiRole.keine` (7.1) und `finanzenAnsicht.uebersichtLead` (4.1).
+- Zwei weitere Umlautfälle, gefunden mit dem neuen Katalogscan in `supabase/tests/umlaute.ts`: „befuellen“ und „heisst“.
+- Ein sechster toter Namensraum, `schulungenDemo`, dazu `kpiHerkunft` und die 14 `kpis.*.braucht`.
+- Fünf `todo`-Texte widersprachen dem Funktionsstand, und `modules.schulungen.summary` versprach Videos, wo eine bebilderte Kurzeinarbeitung steht.
+
+**Offen geblieben:** `landing.kpiEyebrow` nennt weiter „Baseline 01.10.2026“. Das steht vor der Anmeldung und richtet sich an einen Besucher, fällt also unter Punkt 16 und bleibt bis auf Widerruf.
+
 ## Vorschlag
 
 **Das Grundproblem:**
