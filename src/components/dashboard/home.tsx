@@ -1,7 +1,7 @@
 "use client";
 
-// Die Startseite des Portals: Begruessung, die vier Zonen mit ihren
-// Kennzahlen, die Meilensteine. Drei Boxen untereinander.
+// Die Startseite des Portals: Begruessung und die vier Zonen mit ihren
+// Kennzahlen. Zwei Boxen untereinander.
 //
 // Vorher standen hier zwoelf Kennzahlkacheln in einem eigenen Block, zwei
 // weitere in einem zweiten, darunter die vier Zonen ohne Zahlen. Wer wissen
@@ -15,7 +15,6 @@
 import { usePersona } from "@/components/dashboard/persona";
 import { BegruessungsBox } from "@/components/dashboard/begruessung";
 import { ZonenBox } from "@/components/dashboard/zonen-box";
-import { MeilensteinBox } from "@/components/dashboard/meilenstein-box";
 import { kpisFuerRolle, type Kpi } from "@/lib/domain/kpis";
 import type { Tageszeit } from "@/lib/domain/tageszeit";
 import type { Datenquelle } from "@/lib/supabase/config";
@@ -49,7 +48,6 @@ export function DashboardHome({
     <div className="space-y-6">
       <BegruessungsBox tageszeit={tageszeit} datum={datum} spruch={spruch} />
       <ZonenBox role={role} kpis={sichtbar} quelle={quelle} />
-      <MeilensteinBox />
     </div>
   );
 }

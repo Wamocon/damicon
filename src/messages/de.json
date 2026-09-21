@@ -336,28 +336,6 @@
       "demoCount": "{count} Demo",
       "wipCount": "{count} in Entwicklung",
       "openZone": "Zone öffnen",
-      "milestoneTitle": "Meilensteine der internen Vorbereitung",
-      "milestoneDescription": "Beide vor der Vor-Ort-Analysewoche vom 24.09. bis 01.10.2026.",
-      "milestoneAName": "Meilenstein A - Prototyp mit Optik und Funktionsumfang",
-      "milestoneADue": "bis 06.09.2026",
-      "milestoneAItems": {
-        "tokens": "Design-Token-Umstellung auf die Palette „Kök & Altyn“ (Landesfarben Kasachstans)",
-        "landing": "Landingpage mit Platzhaltertexten und -bildern, Sprachumschalter für fünf Sprachen",
-        "zones": "Dashboard-Gerüst mit den vier Zonen als Navigationsstruktur",
-        "workflows": "Kern-Workflows beispielhaft: Reihenblock-Übersicht und Pflückaufgabe mit Fotobeleg"
-      },
-      "milestoneBName": "Meilenstein B - Grundgerüst mit echten Hauptfunktionen",
-      "milestoneBDue": "spätestens 19.09.2026",
-      "milestoneBItems": {
-        "rbac": "Rollen und Rechte mit sieben Kernrollen und Rechtematrix",
-        "hierarchy": "Standort-Hierarchie Betrieb, Plantage, Feldparzelle, Reihengruppe, Reihenblock inklusive Verwaltung",
-        "status": "Reihenblock-Statusverwaltung inklusive Sperrzustand nach Pflanzenschutzbehandlung",
-        "tasks": "Pflückaufgaben mit Fotobeleg der Verkaufsschale, je Brigade und Reihenblock",
-        "docs": "Dokumentenverwaltung für Spritzprotokolle, Verträge und ЕСУТД-Nachweise",
-        "i18n": "Mehrsprachige Oberfläche in fünf Sprachen",
-        "kpi": "Dashboard-Grundgerüst mit den 14 Baseline-Kennzahlen als Kacheln"
-      },
-      "milestoneBNote": "Alle Hauptfunktionen sind an die Datenbank angebunden: Anmeldung, Rollenrechte über Row Level Security, Standortverwaltung, Reihenblock-Sperre, Pflückaufgabe mit Fotobeleg und Dokumentenablage. Die Unterfunktionen bleiben planmäßig sichtbare Menüpunkte mit Status.",
       "kpiSummary": "{berechenbar} heute messbar · {erfassung} Erfassung fehlt · {tabelle} Funktion fehlt · {ungeklaert} rechtlich ungeklärt",
       "kpiGerechnet": "gerechnet aus {anzahl} Datensätzen",
       "kpiGerechnetUngeklaert": "aus {anzahl} Datensätzen gerechnet - rechtliche Grundlage ungeklärt",

@@ -336,28 +336,6 @@
       "demoCount": "{count} demo",
       "wipCount": "{count} in development",
       "openZone": "Open zone",
-      "milestoneTitle": "Milestones of the internal preparation",
-      "milestoneDescription": "Both before the on-site analysis week from 24 Sep to 01 Oct 2026.",
-      "milestoneAName": "Milestone A - prototype with look and feature scope",
-      "milestoneADue": "by 06 Sep 2026",
-      "milestoneAItems": {
-        "tokens": "Design-token switch to the “Kök & Altyn” palette (Kazakhstan’s national colours)",
-        "landing": "Landing page with placeholder texts and images, language switcher for five languages",
-        "zones": "Dashboard skeleton with the four zones as navigation structure",
-        "workflows": "Core workflows by example: row-block overview and picking task with photo evidence"
-      },
-      "milestoneBName": "Milestone B - foundation build with real main functions",
-      "milestoneBDue": "by 19 Sep 2026 at the latest",
-      "milestoneBItems": {
-        "rbac": "Roles and permissions with seven core roles and a permission matrix",
-        "hierarchy": "Location hierarchy - farm, plantation, field plot, row group, row block - including administration",
-        "status": "Row-block status management including the lock state after a plant-protection treatment",
-        "tasks": "Picking tasks with photo evidence of the retail punnet, per brigade and row block",
-        "docs": "Document management for spray records, contracts and ЕСУТД evidence",
-        "i18n": "Multilingual interface in five languages",
-        "kpi": "Dashboard skeleton with the 14 baseline KPIs as tiles"
-      },
-      "milestoneBNote": "All main functions are connected to the database: sign-in, role permissions through row level security, location management, row-block lock, picking task with photo evidence and document storage. The sub-functions remain visible menu entries with a status, as planned.",
       "kpiSummary": "{berechenbar} measurable today · {erfassung} capture missing · {tabelle} function missing · {ungeklaert} legally unconfirmed",
       "kpiGerechnet": "computed from {anzahl} records",
       "kpiGerechnetUngeklaert": "computed from {anzahl} records - legal basis unconfirmed",
