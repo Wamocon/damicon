@@ -509,7 +509,7 @@
     "ueberfaelligLabel": "overdue",
     "ueberspringenKnopf": "Skip",
     "reaktivierenKnopf": "Reactivate",
-    "note": "Weather scenarios (e.g. moving dates forward in heat) are not yet included - the weather integration (growing-degree-day calculation) itself is not built yet. The lock logic is complete: a new treatment automatically locks the affected dates, the release unlocks them again, and the first matching picking task marks a date as done.",
+    "note": "Weather scenarios (e.g. moving dates forward in heat) are not yet included here - the growing-degree-day total is in the weather module. The lock logic is complete: a new treatment automatically locks the affected dates, the release unlocks them again, and the first matching picking task marks a date as done.",
     "formular": {
       "generieren": {
         "titel": "Generate / extend plan",
@@ -638,7 +638,7 @@
     "wetter": {
       "title": "Weather and growing degree days",
       "navTitle": "Weather",
-      "description": "A weather API link with growing-degree-days calculation for the volume forecast. Deliberately no machine learning in phase 1 - an explainable heuristic is enough.",
+      "description": "Weather data per location with a growing-degree-day calculation as the basis for the volume forecast.",
       "summary": "A simple weather interface with growing degree days per plot. Explainable, verifiable and validatable within a season.",
       "todo": "Weather-station or API link, growing degree days per plot, alert on shifted ripening windows."
     },
@@ -666,7 +666,7 @@
     "esf": {
       "title": "Electronic delivery note (ЭСФ)",
       "navTitle": "Delivery note (ЭСФ)",
-      "description": "An electronic delivery note in line with the goods-accompanying-document obligation. Connected to the state ЭСФ system, no accounting of its own.",
+      "description": "An electronic delivery note in line with the goods-accompanying-document obligation. A link to the state ЭСФ system is planned, accounting of its own is not.",
       "summary": "Evidence chain from the batch to the delivery note, status feedback from the state system. Mandatory integration.",
       "todo": "Connection to ИС ЭСФ, evidence chain batch to delivery note, status feedback and retry."
     },
@@ -715,7 +715,7 @@
     "integrationen": {
       "title": "State integrations",
       "navTitle": "Integrations",
-      "description": "Connectors to ЭСФ, virtual stock, ЕСУТД and the subsidy portals gosagro.kz and qoldau.kz. Accounting stays with a solution established in the country.",
+      "description": "Connectors to ЭСФ, virtual stock, ЕСУТД and the subsidy portals gosagro.kz and qoldau.kz are planned. Accounting stays with a solution established in the country.",
       "summary": "One connector per target system with status feedback and retry. No in-house accounting build.",
       "todo": "Connectors per system, sandbox access, error and retry logic, queue monitoring."
     },
@@ -2860,7 +2860,7 @@
       "erfasst": "recorded",
       "offen": "open"
     },
-    "note": "Demand calculation and shift plan come directly from the rotation plan (which row block must be harvested on which day). Weather scenarios are deliberately not part of this view - the weather connection (requirement 2.13) has been deferred."
+    "note": "Demand calculation and shift plan come directly from the rotation plan (which row block must be harvested on which day). Weather scenarios are not part of this view - the growing-degree-day total is in the weather module."
   },
   "erlebnis": {
     "bento": {
@@ -3033,7 +3033,7 @@
   "pflanzenschutzProtokoll": {
     "titel": "Treatments and waiting periods",
     "lead": "Every recorded plant-protection treatment with dose, operator and waiting period. Entry and release happen at the row block.",
-    "note": "The protocol upload is not built yet: the protocol document column stays empty for now.",
+    "note": "The protocol document is not carried along yet: the column stays empty for now.",
     "wartezeitTage": "{tage} days",
     "stat": {
       "gesamt": "Treatments",

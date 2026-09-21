@@ -509,7 +509,7 @@
     "ueberfaelligLabel": "überfällig",
     "ueberspringenKnopf": "Überspringen",
     "reaktivierenKnopf": "Reaktivieren",
-    "note": "Wetterszenarien (z. B. Vorziehen bei Hitze) sind hier noch nicht berücksichtigt - die Wetteranbindung (Temperatursummenrechnung) ist selbst noch nicht gebaut. Die Sperrlogik ist vollständig: eine neue Behandlung sperrt betroffene Termine automatisch, die Freigabe gibt sie wieder frei, und die erste passende Pflückaufgabe markiert einen Termin als erledigt.",
+    "note": "Wetterszenarien (z. B. Vorziehen bei Hitze) sind hier noch nicht berücksichtigt - die Temperatursumme steht im Wetter-Modul. Die Sperrlogik ist vollständig: eine neue Behandlung sperrt betroffene Termine automatisch, die Freigabe gibt sie wieder frei, und die erste passende Pflückaufgabe markiert einen Termin als erledigt.",
     "formular": {
       "generieren": {
         "titel": "Plan erzeugen / erweitern",
@@ -638,7 +638,7 @@
     "wetter": {
       "title": "Wetter und Temperatursumme",
       "navTitle": "Wetter",
-      "description": "Wetter-API-Anbindung mit Temperatursummenrechnung für die Mengenprognose. Bewusst kein maschinelles Lernen in Phase 1 - eine erklärbare Heuristik reicht.",
+      "description": "Wetterdaten je Standort mit Temperatursummenrechnung als Grundlage für die Mengenprognose.",
       "summary": "Einfache Wetterschnittstelle mit Temperatursumme je Parzelle. Erklärbar, prüfbar und innerhalb einer Saison validierbar.",
       "todo": "Wetterstation- oder API-Anbindung, Temperatursumme je Parzelle, Hinweis auf verschobene Reifefenster."
     },
@@ -666,7 +666,7 @@
     "esf": {
       "title": "Elektronischer Lieferschein (ЭСФ)",
       "navTitle": "Lieferschein (ЭСФ)",
-      "description": "Elektronischer Lieferschein im Einklang mit der Pflicht zum Warenbegleitschein. Angebunden an das staatliche ЭСФ-System, keine eigene Buchhaltung.",
+      "description": "Elektronischer Lieferschein im Einklang mit der Pflicht zum Warenbegleitschein. Die Anbindung an das staatliche ЭСФ-System ist vorgesehen, eine eigene Buchhaltung nicht.",
       "summary": "Belegkette von der Charge zum Lieferschein, Statusrückmeldung aus dem staatlichen System. Pflichtintegration.",
       "todo": "Anbindung an das ИС ЭСФ, Belegkette Charge zu Lieferschein, Statusrückmeldung und Wiederholung."
     },
@@ -715,7 +715,7 @@
     "integrationen": {
       "title": "Staatliche Integrationen",
       "navTitle": "Integrationen",
-      "description": "Konnektoren zu ЭСФ, virtuellem Lagerbestand, ЕСУТД und den Förderportalen gosagro.kz und qoldau.kz. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.",
+      "description": "Vorgesehen sind Konnektoren zu ЭСФ, virtuellem Lagerbestand, ЕСУТД und den Förderportalen gosagro.kz und qoldau.kz. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.",
       "summary": "Ein Konnektor je Zielsystem mit Statusrückmeldung und Wiederholung. Kein Eigenbau der Buchhaltung.",
       "todo": "Konnektoren je System, Sandbox-Zugänge, Fehler- und Wiederholungslogik, Monitoring der Warteschlange."
     },
@@ -2860,7 +2860,7 @@
       "erfasst": "erfasst",
       "offen": "offen"
     },
-    "note": "Bedarfsrechnung und Schichtplan stammen direkt aus dem Rotationsplan (welcher Reihenblock an welchem Tag geerntet werden muss). Wetterszenarien sind bewusst nicht Teil dieser Ansicht - die Wetteranbindung (Anforderung 2.13) ist zurückgestellt."
+    "note": "Bedarfsrechnung und Schichtplan stammen direkt aus dem Rotationsplan (welcher Reihenblock an welchem Tag geerntet werden muss). Wetterszenarien sind nicht Teil dieser Ansicht - die Temperatursumme steht im Wetter-Modul."
   },
   "erlebnis": {
     "bento": {
@@ -3033,7 +3033,7 @@
   "pflanzenschutzProtokoll": {
     "titel": "Behandlungen und Wartezeiten",
     "lead": "Jede erfasste Pflanzenschutzbehandlung mit Aufwandmenge, ausführender Person und Wartezeit. Erfasst und freigegeben wird am Reihenblock.",
-    "note": "Der Protokoll-Upload ist noch nicht gebaut: die Spalte für das Protokolldokument bleibt vorerst leer.",
+    "note": "Das Protokolldokument wird noch nicht mitgeführt: die Spalte bleibt vorerst leer.",
     "wartezeitTage": "{tage} Tage",
     "stat": {
       "gesamt": "Behandlungen",
