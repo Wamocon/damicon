@@ -323,24 +323,11 @@
     "rbacHintLabel": "Roles",
     "rbacHint": "Which modules are visible depends on the role of the signed-in account. Seven core roles, from administration to the individual picker in the field - the same role also governs read and write permissions in the database.",
     "home": {
-      "eyebrow": "Farm management",
-      "title": "Damicon operations overview",
-      "description": "Aggregator, Almaty region. The main functions run against the database - with sign-in, role permissions and real write operations. Sub-functions remain visible menu entries with a status.",
-      "kpiTitle": "14 baseline KPIs",
-      "kpiDescription": "To be signed off with the client as the baseline on 01 Oct 2026.",
-      "placeholderBadge": "Placeholder values",
       "target": "Target",
       "zonesTitle": "The four zones",
       "zonesDescription": "Each zone with its indicators and its modules.",
       "wipCount": "{count} in development",
       "openZone": "Open zone",
-      "kpiSummary": "{berechenbar} measurable today · {erfassung} capture missing · {tabelle} function missing · {ungeklaert} legally unconfirmed",
-      "kpiGerechnet": "computed from {anzahl} records",
-      "kpiGerechnetUngeklaert": "computed from {anzahl} records - legal basis unconfirmed",
-      "kpiSummaryLive": "{gerechnet} computed from real data · {offen} waiting for the function behind them",
-      "kpiExtendedTitle": "Further KPIs",
-      "kpiExtendedDescription": "Part of the signed baseline, but outside the twelve core KPIs in the cockpit.",
-      "kpiNoneForRole": "No company-wide KPIs are configured for your role here. Your own performance is in the payroll module.",
       "zoneOhneKennzahl": "No indicator is released for this zone.",
       "moduleTitel": "Modules"
     },
@@ -488,80 +475,66 @@
   "kpis": {
     "verlustquote": {
       "label": "Loss rate from picking to the client",
-      "braucht": "nothing - scrap per batch is recorded",
       "basis": "scrap against total quantity across all batches",
       "kurz": "Loss rate"
     },
     "vermarktungsfaehig": {
       "label": "Share of marketable punnets",
-      "braucht": "quality sorting per punnet",
       "kurz": "Marketable share"
     },
     "zeitBisVorkuehlung": {
       "label": "Time from picking to pre-cooling",
-      "braucht": "nothing - picking and cooling time per batch",
       "basis": "average across all measured batches, including limit breaches",
       "kurz": "To pre-cooling"
     },
     "zeitBisKunde": {
       "label": "Time from picking to the client",
-      "braucht": "deliveries with departure and arrival",
       "kurz": "To the client"
     },
     "pflueckleistung": {
       "label": "Picking output per person and hour",
-      "braucht": "nothing - crate with person against working time",
       "basis": "harvest quantity per crate against recorded working time",
       "kurz": "Picking output"
     },
     "pflueckStreuung": {
       "label": "Spread of picking output (best to weakest)",
-      "braucht": "nothing - output per person across the season",
       "basis": "strongest against weakest worker, at least two people required",
       "kurz": "Output spread"
     },
     "pflueckintervall": {
       "label": "Picking interval kept per row block",
-      "braucht": "nothing - harvest sequence per row block from the batches",
       "basis": "share of actual harvest sequences within at most three days",
       "kurz": "Picking interval"
     },
     "behandlungenWartezeit": {
       "label": "Treatments with the pre-harvest interval kept",
-      "braucht": "nothing - derivable from treatment and lock logic",
       "basis": "treatments without harvesting during the lock period",
       "kurz": "Interval kept"
     },
     "reklamationsquote": {
       "label": "Complaint rate",
-      "braucht": "complaints linked to the batch",
       "kurz": "Complaint rate"
     },
     "liefertreue": {
       "label": "Delivery reliability (on time and complete)",
-      "braucht": "promised against actual delivery",
       "kurz": "Delivery reliability"
     },
     "belegteVerkaeufe": {
       "label": "Share of documented sales (ЭСФ and accompanying document)",
-      "braucht": "connection to ЭСФ and the goods accompanying note",
       "kurz": "Documented sales"
     },
     "deckungsbeitrag": {
       "label": "Contribution margin per kg",
-      "braucht": "nothing - entries per batch against harvest quantity",
       "basis": "all revenue and cost entries against the total harvest quantity - still without a time window or batch reference per entry",
       "kurz": "Contribution margin"
     },
     "esutdAbdeckung": {
       "label": "Seasonal-worker coverage in ЕСУТД",
-      "braucht": "legal confirmation of the ЕСУТД obligation via enbek.kz (see WMCNL-1447) - connection point named, the legal review of the obligation itself is still outstanding",
       "basis": "pickers with a recorded employment contract",
       "kurz": "ЕСУТД coverage"
     },
     "websiteAnfragen": {
       "label": "Enquiries via the website per month",
-      "braucht": "contact form on the website",
       "kurz": "Website enquiries"
     }
   },
@@ -784,7 +757,6 @@
     "proofTitle": "Photo evidence",
     "proofLead": "Sample photos of the retail punnet, the row block and the crate, right on the task.",
     "noProof": "No evidence for this task yet.",
-    "addProof": "Capture evidence (mock)",
     "reviewTitle": "Evidence review pending",
     "reviewLead": "The task is waiting for release. Check the volume and the punnet evidence, then release or request rework.",
     "approve": "Release",
@@ -1110,23 +1082,6 @@
     "blocksShort": "blocks",
     "note": "Every row and every block along the trellises carries a unique identifier. The picking schedule, the harvest figures and the billing all refer to it."
   },
-  "pflanzenschutzDemo": {
-    "ruleTitle": "Hard legal rule",
-    "ruleLead": "After a plant-protection treatment, harvest is locked per row block until the product-specific pre-harvest interval expires. A breach is a legal risk, not a convenience matter.",
-    "activeTitle": "Active pre-harvest-interval locks",
-    "activeLead": "Row blocks with a running pre-harvest interval. Release is automatic when the deadline passes.",
-    "col": {
-      "block": "Row block",
-      "mittel": "Product",
-      "behandelt": "Treated on",
-      "wartezeit": "Interval",
-      "freigabe": "Free from",
-      "status": "Status"
-    },
-    "days": "days",
-    "locked": "locked",
-    "note": "Because every block is picked every two to three days while the crop still has to be treated, a block can be harvested inside the pre-harvest interval by mistake. That is exactly what the automatic lock prevents."
-  },
   "rollenDemo": {
     "rolesTitle": "Seven core roles",
     "rolesLead": "Administration, farm management, accounting, brigade in the field, picker, grower and B2B client. Each role sees exactly the modules it needs.",
@@ -1218,28 +1173,6 @@
         "knopf": "Record posting"
       }
     }
-  },
-  "personalDemo": {
-    "brigadenTitle": "Brigades",
-    "brigadenLead": "Brigade planning with shifts and a reserve list across the whole harvest run.",
-    "foreman": "Foreman",
-    "people": "People",
-    "pflueckerTitle": "Picker register",
-    "pflueckerLead": "Person register with a picker ID badge, ЕСУТД registration per contract, output and quality factor per person.",
-    "col": {
-      "name": "Name",
-      "brigade": "Brigade",
-      "ausweis": "ID badge",
-      "esutd": "ЕСУТД",
-      "leistung": "Output",
-      "qfaktor": "Q factor"
-    },
-    "esutd": {
-      "erfasst": "registered",
-      "offen": "pending"
-    },
-    "days": "days",
-    "note": "Keeping the core crew is more important than recruiting: every new onboarding in the middle of the season costs volume and quality."
   },
   "dokumenteDemo": {
     "listTitle": "Documents",
@@ -1495,29 +1428,6 @@
       "s-kweli": "Aug - Sep"
     }
   },
-  "schulungenDemo": {
-    "libraryTitle": "Video library",
-    "libraryLead": "Multilingual, image-based short onboarding of seasonal workers on the phone.",
-    "col": {
-      "titel": "Title",
-      "thema": "Topic",
-      "dauer": "Length",
-      "sprachen": "Languages"
-    },
-    "note": "Short onboarding as a guided checklist on the phone, multilingual, with pictures instead of text - one short video per core process.",
-    "video": {
-      "v-01": "Picking correctly - recognising ripe fruit",
-      "v-02": "Filling the crate and scanning the QR label",
-      "v-03": "The hour after picking - the cold chain",
-      "v-04": "Hygiene and gloves"
-    },
-    "thema": {
-      "ernte": "Harvest",
-      "feld": "Field",
-      "hof": "Yard",
-      "qualitaet": "Quality"
-    }
-  },
   "kuehlketteAnsicht": {
     "offeneTitel": "Open batches on the clock",
     "offeneLead": "Time since picking against the 60-minute threshold, ticking live per batch.",
@@ -1576,12 +1486,6 @@
     "anlegenLead": "Type and label are required, the value can be added later.",
     "anlegenKnopf": "Add",
     "note": "Display only, no connection to a real messenger or payment service. A channel appears on the website only once a real value is entered and set to \"active\"."
-  },
-  "qrSteigenMock": {
-    "scanTitle": "Scan at the dispatch point (mock)",
-    "scanLead": "A QR label per crate, scanned on handover. Volume, row block, time and person in one step - here without a real server reconciliation.",
-    "simulateScan": "Simulate scan",
-    "registered": "registered"
   },
   "haustier": {
     "label": {
@@ -2006,12 +1910,6 @@
     "privacyScopeText": "The prototype processes no personal data. No analytics cookies are set. The theme choice (light/dark) and the demo role are stored only locally in the browser.",
     "residencyTitle": "Data residency (planned operation)",
     "residencyText": "For later live operation, Kazakh Digital Code No. 255-VIII restricts storage of certain data products outside Kazakhstan. The hosting location for the QR, offline-sync and AI architecture will be reviewed legally before going live."
-  },
-  "kpiHerkunft": {
-    "berechenbar": "measurable today",
-    "erfassung-fehlt": "capture missing",
-    "tabelle-fehlt": "function missing",
-    "rechtlich-ungeklaert": "legally unconfirmed"
   },
   "nachweiskette": {
     "titel": "Chain of evidence",

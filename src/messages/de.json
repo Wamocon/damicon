@@ -323,24 +323,11 @@
     "rbacHintLabel": "Rollen",
     "rbacHint": "Welche Module sichtbar sind, hängt von der Rolle des angemeldeten Kontos ab. Sieben Kernrollen von der Administration bis zum einzelnen Pflücker im Feld - dieselbe Rolle entscheidet auch in der Datenbank über Lese- und Schreibrechte.",
     "home": {
-      "eyebrow": "Betriebssteuerung",
-      "title": "Betriebsübersicht Damicon",
-      "description": "Aggregator Umland Almaty. Die Hauptfunktionen laufen gegen die Datenbank - mit Anmeldung, Rollenrechten und echten Schreibvorgängen. Unterfunktionen bleiben sichtbare Menüpunkte mit Status.",
-      "kpiTitle": "14 Baseline-Kennzahlen",
-      "kpiDescription": "Werden am 01.10.2026 mit dem Kunden als Baseline unterschrieben.",
-      "placeholderBadge": "Platzhalterwerte",
       "target": "Ziel",
       "zonesTitle": "Die vier Zonen",
       "zonesDescription": "Jede Zone mit ihren Kennzahlen und ihren Modulen.",
       "wipCount": "{count} in Entwicklung",
       "openZone": "Zone öffnen",
-      "kpiSummary": "{berechenbar} heute messbar · {erfassung} Erfassung fehlt · {tabelle} Funktion fehlt · {ungeklaert} rechtlich ungeklärt",
-      "kpiGerechnet": "gerechnet aus {anzahl} Datensätzen",
-      "kpiGerechnetUngeklaert": "aus {anzahl} Datensätzen gerechnet - rechtliche Grundlage ungeklärt",
-      "kpiSummaryLive": "{gerechnet} aus echten Daten gerechnet · {offen} warten auf die Funktion dahinter",
-      "kpiExtendedTitle": "Weitere Kennzahlen",
-      "kpiExtendedDescription": "Teil der unterschriebenen Baseline, aber außerhalb der zwölf Kern-Kennzahlen im Cockpit.",
-      "kpiNoneForRole": "Für Ihre Rolle sind hier keine betriebsweiten Kennzahlen hinterlegt. Die eigene Leistung finden Sie im Lohn-Modul.",
       "zoneOhneKennzahl": "Für diese Zone ist keine Kennzahl freigegeben.",
       "moduleTitel": "Module"
     },
@@ -488,80 +475,66 @@
   "kpis": {
     "verlustquote": {
       "label": "Verlustquote vom Pflücken bis zum Kunden",
-      "braucht": "nichts - Ausschuss je Charge wird erfasst",
       "basis": "Ausschuss gegen Gesamtmenge über alle Chargen",
       "kurz": "Verlustquote"
     },
     "vermarktungsfaehig": {
       "label": "Anteil vermarktungsfähiger Schalen",
-      "braucht": "Qualitaetssortierung je Schale",
       "kurz": "Vermarktungsfähig"
     },
     "zeitBisVorkuehlung": {
       "label": "Zeit vom Pflücken bis zur Vorkühlung",
-      "braucht": "nichts - Pflück- und Kühlzeitpunkt je Charge",
       "basis": "Mittel über alle gemessenen Chargen, inklusive Grenzverletzungen",
       "kurz": "Bis Vorkühlung"
     },
     "zeitBisKunde": {
       "label": "Zeit vom Pflücken bis zum Kunden",
-      "braucht": "Lieferungen mit Abfahrt und Ankunft",
       "kurz": "Bis zum Kunden"
     },
     "pflueckleistung": {
       "label": "Pflückleistung je Person und Stunde",
-      "braucht": "nichts - Steige mit Person gegen Arbeitszeit",
       "basis": "Erntemenge je Steige gegen erfasste Arbeitszeit",
       "kurz": "Pflückleistung"
     },
     "pflueckStreuung": {
       "label": "Streuung der Pflückleistung (beste zu schwächste Kraft)",
-      "braucht": "nichts - Leistung je Person über die Saison",
       "basis": "Beste gegen schwächste Kraft, mindestens zwei Personen nötig",
       "kurz": "Streuung Pflückleistung"
     },
     "pflueckintervall": {
       "label": "Eingehaltenes Pflückintervall je Reihenblock",
-      "braucht": "nichts - Erntefolge je Reihenblock aus den Chargen",
       "basis": "Anteil der tatsächlichen Erntefolgen im Abstand von höchstens drei Tagen",
       "kurz": "Pflückintervall"
     },
     "behandlungenWartezeit": {
       "label": "Behandlungen mit eingehaltener Wartezeit",
-      "braucht": "nichts - aus Behandlung und Sperrlogik ableitbar",
       "basis": "Behandlungen ohne Ernte im Sperrzeitraum",
       "kurz": "Wartezeit eingehalten"
     },
     "reklamationsquote": {
       "label": "Reklamationsquote",
-      "braucht": "Reklamationen mit Bezug zur Charge",
       "kurz": "Reklamationsquote"
     },
     "liefertreue": {
       "label": "Liefertreue (pünktlich und vollständig)",
-      "braucht": "Zugesagte gegen tatsaechliche Lieferung",
       "kurz": "Liefertreue"
     },
     "belegteVerkaeufe": {
       "label": "Anteil belegter Verkäufe (ЭСФ und Warenbegleitschein)",
-      "braucht": "Anbindung an ЭСФ und Warenbegleitschein",
       "kurz": "Belegte Verkäufe"
     },
     "deckungsbeitrag": {
       "label": "Deckungsbeitrag je kg",
-      "braucht": "nichts - Buchungen je Charge gegen Erntemenge",
       "basis": "Alle Erlös- und Kostenbuchungen gegen die gesamte Erntemenge - noch ohne Zeitfenster oder Chargenbezug je Buchung",
       "kurz": "Deckungsbeitrag"
     },
     "esutdAbdeckung": {
       "label": "Abdeckung der Saisonkräfte in ЕСУТД",
-      "braucht": "rechtliche Bestätigung der ЕСУТД-Pflicht über enbek.kz (siehe WMCNL-1447) - Anbindungspunkt benannt, Rechtsprüfung der Pflicht selbst steht noch aus",
       "basis": "Pflücker mit erfasstem Arbeitsvertrag",
       "kurz": "ЕСУТД-Abdeckung"
     },
     "websiteAnfragen": {
       "label": "Anfragen über die Website je Monat",
-      "braucht": "Kontaktformular auf der Website",
       "kurz": "Website-Anfragen"
     }
   },
@@ -784,7 +757,6 @@
     "proofTitle": "Fotobeleg",
     "proofLead": "Beispielfotos der Verkaufsschale, des Reihenblocks und der Steige, direkt an der Aufgabe.",
     "noProof": "Noch kein Beleg zu dieser Aufgabe.",
-    "addProof": "Beleg aufnehmen (Mock)",
     "reviewTitle": "Belegprüfung offen",
     "reviewLead": "Die Aufgabe wartet auf Freigabe. Menge und Schalenbeleg prüfen, dann freigeben oder Nacharbeit anfordern.",
     "approve": "Freigeben",
@@ -1110,23 +1082,6 @@
     "blocksShort": "Blöcke",
     "note": "Jede Reihe und jeder Block entlang der Spaliere trägt eine eindeutige Kennung. Auf sie beziehen sich Pflückplan, Erntemengen und Abrechnung."
   },
-  "pflanzenschutzDemo": {
-    "ruleTitle": "Harte Rechtsregel",
-    "ruleLead": "Nach einer Pflanzenschutzbehandlung ist die Ernte je Reihenblock bis Ablauf der mittelspezifischen Wartezeit gesperrt. Ein Verstoß ist ein Rechtsrisiko, kein Komfortthema.",
-    "activeTitle": "Aktive Wartezeitsperren",
-    "activeLead": "Reihenblöcke mit laufender Wartezeit. Freigabe automatisch bei Fristablauf.",
-    "col": {
-      "block": "Reihenblock",
-      "mittel": "Mittel",
-      "behandelt": "Behandelt am",
-      "wartezeit": "Wartezeit",
-      "freigabe": "Frei ab",
-      "status": "Status"
-    },
-    "days": "Tage",
-    "locked": "gesperrt",
-    "note": "Weil jeder Block alle zwei bis drei Tage abgepflückt wird, während der Bestand weiter behandelt werden muss, kann ein Block versehentlich innerhalb der Wartezeit geerntet werden. Genau das verhindert die automatische Sperre."
-  },
   "rollenDemo": {
     "rolesTitle": "Sieben Kernrollen",
     "rolesLead": "Administration, Betriebsleitung, Buchhaltung, Brigade im Feld, Pflücker, Erzeuger und B2B-Kunde. Jede Rolle sieht genau die Module, die sie braucht.",
@@ -1218,28 +1173,6 @@
         "knopf": "Buchung erfassen"
       }
     }
-  },
-  "personalDemo": {
-    "brigadenTitle": "Brigaden",
-    "brigadenLead": "Brigadenplanung mit Schichten und Reserveliste über die gesamte Erntestrecke.",
-    "foreman": "Vorarbeiter",
-    "people": "Personen",
-    "pflueckerTitle": "Pflückerstamm",
-    "pflueckerLead": "Personenstamm mit Pflückerausweis, ЕСУТД-Erfassung je Vertrag, Leistungs- und Qualitätsfaktor je Person.",
-    "col": {
-      "name": "Name",
-      "brigade": "Brigade",
-      "ausweis": "Ausweis",
-      "esutd": "ЕСУТД",
-      "leistung": "Leistung",
-      "qfaktor": "Q-Faktor"
-    },
-    "esutd": {
-      "erfasst": "erfasst",
-      "offen": "offen"
-    },
-    "days": "Tage",
-    "note": "Die Bindung des Kernstamms ist wichtiger als die Rekrutierung: Jede Neueinarbeitung mitten in der Saison kostet Menge und Qualität."
   },
   "dokumenteDemo": {
     "listTitle": "Dokumente",
@@ -1495,29 +1428,6 @@
       "s-kweli": "Aug - Sep"
     }
   },
-  "schulungenDemo": {
-    "libraryTitle": "Videobibliothek",
-    "libraryLead": "Mehrsprachige, bildbasierte Kurzeinarbeitung der Saisonkräfte auf dem Telefon.",
-    "col": {
-      "titel": "Titel",
-      "thema": "Thema",
-      "dauer": "Dauer",
-      "sprachen": "Sprachen"
-    },
-    "note": "Kurzeinarbeitung als geführte Checkliste auf dem Telefon, mehrsprachig, mit Bildern statt Text - je Kernprozess ein kurzes Video.",
-    "video": {
-      "v-01": "Richtig pflücken - reife Frucht erkennen",
-      "v-02": "Steige befuellen und QR-Etikett scannen",
-      "v-03": "Die Stunde nach dem Pflücken - Kühlkette",
-      "v-04": "Hygiene und Handschuhe"
-    },
-    "thema": {
-      "ernte": "Ernte",
-      "feld": "Feld",
-      "hof": "Hof",
-      "qualitaet": "Qualität"
-    }
-  },
   "kuehlketteAnsicht": {
     "offeneTitel": "Offene Chargen auf der Uhr",
     "offeneLead": "Zeit seit dem Pflücken gegen die 60-Minuten-Grenze, live mitzählend je Charge.",
@@ -1576,12 +1486,6 @@
     "anlegenLead": "Typ und Bezeichnung sind Pflicht, der Wert kann später nachgetragen werden.",
     "anlegenKnopf": "Anlegen",
     "note": "Reine Anzeige, keine Anbindung an einen echten Messenger- oder Zahlungsdienst. Ein Kanal erscheint auf der Website erst, wenn ein echter Wert eingetragen und \"aktiv\" gesetzt ist."
-  },
-  "qrSteigenMock": {
-    "scanTitle": "Scan am Ausgabepunkt (Mock)",
-    "scanLead": "QR-Etikett je Steige, Scan beim Abgeben. Menge, Reihenblock, Uhrzeit und Person in einem Vorgang - hier ohne echten Server-Abgleich.",
-    "simulateScan": "Scan simulieren",
-    "registered": "erfasst"
   },
   "haustier": {
     "label": {
@@ -1653,7 +1557,7 @@
       "titel": "DamiAI, dein Begleiter",
       "text": "Zeigt in der Ecke, was der Agent gerade tut, auch wenn der Chat geschlossen ist. Zum Wegschicken auf DamiAI gedrückt halten, die Spitze am unteren Rand holt sie zurück. Hier ausgeschaltet bleibt DamiAI ganz weg.",
       "bewegungTitel": "Bewegung",
-      "bewegungText": "Aus heisst: DamiAI bleibt da, steht aber still. Wer das Betriebssystem schon auf weniger Bewegung gestellt hat, braucht diesen Schalter nicht.",
+      "bewegungText": "Aus heißt: DamiAI bleibt da, steht aber still. Wer das Betriebssystem schon auf weniger Bewegung gestellt hat, braucht diesen Schalter nicht.",
       "zustandTitel": "Zustand",
       "stimmungTitel": "Miene",
       "trachtTitel": "Tracht",
@@ -2006,12 +1910,6 @@
     "privacyScopeText": "Der Prototyp verarbeitet keine personenbezogenen Daten. Es werden keine Cookies zu Analysezwecken gesetzt. Die Design-Auswahl (hell/dunkel) und die Demo-Rolle werden nur lokal im Browser gespeichert.",
     "residencyTitle": "Datenresidenz (geplanter Betrieb)",
     "residencyText": "Für den späteren Realbetrieb schränkt der kasachstanische Digitalkodex Nr. 255-VIII die Speicherung bestimmter Datenprodukte außerhalb Kasachstans ein. Der Hosting-Standort für QR-, Offline-Sync- und KI-Architektur wird vor Produktivsetzung rechtlich geprüft."
-  },
-  "kpiHerkunft": {
-    "berechenbar": "heute messbar",
-    "erfassung-fehlt": "Erfassung fehlt",
-    "tabelle-fehlt": "Funktion fehlt",
-    "rechtlich-ungeklaert": "rechtlich ungeklärt"
   },
   "nachweiskette": {
     "titel": "Nachweiskette",

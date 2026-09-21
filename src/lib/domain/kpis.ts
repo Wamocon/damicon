@@ -57,10 +57,10 @@ export interface Kpi {
   stufe: KpiStufe;
   /** Welche Rollen diese betriebsweite Kennzahl sehen - keine Kennzahl hier ist eine persoenliche Leistungszahl. */
   sichtbarFuer: Role[];
-  /** Was fehlt, damit die Kennzahl gemessen werden kann. Fachliche Notiz
-   *  fuer die Codeseite - angezeigt wird die Uebersetzung unter
-   *  kpis.<key>.braucht, sonst stuende der Tooltip in jeder Sprache
-   *  auf Deutsch. Beide muessen zusammen gepflegt werden. */
+  /** Was fehlt, damit die Kennzahl gemessen werden kann. Reine Notiz fuer
+   *  die Codeseite, nicht uebersetzt und nicht angezeigt: die Kachel zeigt
+   *  im Tooltip den Rechenweg (kpis.<key>.basis), nicht den Rueckstand. Der
+   *  frueher dazugehoerige Katalogtext ist mit der Textpruefung entfallen. */
   braucht: string;
   /** Aus echten Daten gerechneter Istwert, falls vorhanden. */
   gerechnet?: {
@@ -264,18 +264,6 @@ export const kpis: Kpi[] = [
     braucht: "Kontaktformular auf der Website",
   },
 ];
-
-// Verteilung der Messbarkeit - Grundlage fuer den Hinweis am Kennzahlenblock.
-export function herkunftZaehlen(liste: Kpi[] = kpis): Record<Datenherkunft, number> {
-  const zaehler: Record<Datenherkunft, number> = {
-    berechenbar: 0,
-    "erfassung-fehlt": 0,
-    "tabelle-fehlt": 0,
-    "rechtlich-ungeklaert": 0,
-  };
-  for (const kpi of liste) zaehler[kpi.datenherkunft] += 1;
-  return zaehler;
-}
 
 // Anteil der Zielerreichung zwischen 0 und 1 - Grundlage fuer den Balken an
 // der Kachel. wert und ziel sind formatierte Zeichenketten ("8,4 %", "< 6 %"),

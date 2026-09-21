@@ -165,6 +165,9 @@ export function HaustierDashboard() {
   useEffect(() => {
     const modul = modulAusPfad(pfad, modules);
     if (!modul || !hasPermission(role, modul.resource, "view")) return;
+    // Nicht auf den Platzhalterseiten. Dort stand "Soll ich dir zeigen, was
+    // du hier tun kannst?" ueber einer Seite, auf der man nichts tun kann.
+    if (modul.reifegrad === "in-entwicklung") return;
     const merker = `damicon-haustier-tipp:${modul.key}`;
     try {
       if (window.sessionStorage.getItem(merker)) return;
