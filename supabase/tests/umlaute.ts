@@ -1,6 +1,6 @@
 // Tests fuer die deutsche Schreibweise (lib/text/umlaute.ts): die Ersatzschreibung wird zu Umlauten, korrektes Deutsch,
 // fremde Sprachen und Kennungen bleiben unberuehrt. Am Ende zusaetzlich die Gegenrichtung: der deutsche Sprachkatalog
-// darf selbst keine Ersatzschreibung mehr enthalten.
+// darf selbst keine Ersatzschreibung mehr enthalten. Kein Netzwerk. Aufruf: npm run test:umlaute
 
 import { readFileSync } from "node:fs";
 import { fuerSprache, mitUmlauten } from "@/lib/text/umlaute";
@@ -68,7 +68,6 @@ const lang = "Die Pruefung der Massnahmen fuer den Betrieb. ".repeat(4000);
 const t0 = Date.now();
 mitUmlauten(lang);
 pruefe("schnell genug fuer lange Antworten (180 KB unter 500 ms)", Date.now() - t0 < 500, `${Date.now() - t0} ms`);
-
 
 // ---- Der deutsche Katalog selbst ----------------------------------------------------------------------------
 // Der Fehler, der diese Pruefung veranlasst hat, lag nicht in der Funktion,
