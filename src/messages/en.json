@@ -374,35 +374,21 @@
       "navHinweis": "Six states of the same page, side by side. For viewing only, none of it is decided.",
       "name": {
         "ist": "Current state",
-        "basis": "Baseline",
-        "w1": "1 Target band",
-        "w2": "2 Zone status",
-        "w3": "3 Open items",
-        "w4": "4 Modules as routes",
-        "w5": "5 Role-fitted"
+        "m1": "A Three boxes",
+        "m2": "B Flat inside",
+        "m3": "C Two boxes"
       },
       "erklaerung": {
         "ist": "The page as it looks today.",
-        "basis": "Variant 3 with equally sized boxes, fixed positions, short names and a greeting. The basis for everything that follows.",
-        "w1": "Each box gets a band showing the actual value against the target.",
-        "w2": "The head of each zone card sums up how many of the zone's figures are off target.",
-        "w3": "Next to the figures stand the zone's open items, each a way into its module.",
-        "w4": "The module names turn from dead text into buttons that lead straight into the module.",
-        "w5": "Zones where the role cannot open a single module collapse into one line instead of standing there as an empty card."
+        "m1": "Greeting, zones and milestones each sit in their own box, with the zone cards inside.",
+        "m2": "The same three boxes, but the zones inside without their own frame - separated by lines instead of cards.",
+        "m3": "Greeting and zones grow into one box, the farm status sits next to the salutation. Two boxes remain on the page."
       },
       "zielstand": {
         "erfuellt": "on target",
         "knapp": "just off",
         "verfehlt": "target missed",
         "offen": "no target value"
-      },
-      "lage": {
-        "aufgabenOffen": "Picking tasks not completed",
-        "bloeckeGesperrt": "Row blocks in waiting period",
-        "bloeckeFaellig": "{anzahl} of them due for release",
-        "reklamationenOffen": "Complaints open or under review",
-        "dokumenteAbgelaufen": "Documents expired",
-        "chargenOhneKuehlung": "Batches awaiting pre-cooling"
       },
       "zonenTitel": "The four zones",
       "zonenBeschreibung": "Each zone with its indicators and its modules.",
@@ -413,24 +399,15 @@
         "bandTitel": "Actual {ist}, target {ziel}",
         "platzhalter": "Placeholder"
       },
-      "zonenlage": {
-        "ausserhalb": "{anzahl} of {gesamt} off target",
-        "alleImZiel": "all {gesamt} on target",
-        "ohneKennzahl": "no figure",
-        "ohneMessung": "not yet measured"
-      },
-      "vorgaenge": {
-        "titel": "Open",
-        "keine": "nothing open"
-      },
       "module": {
         "titel": "Modules",
         "zoneOeffnen": "Open the whole zone"
       },
-      "rolle": {
-        "leereZonen": "{anzahl} zones without released modules",
-        "leereZonenEine": "One zone without released modules",
-        "leereZonenNamen": "{namen}"
+      "lageKopf": {
+        "titel": "Status",
+        "ausserhalb": "{anzahl} off target",
+        "alleImZiel": "all on target",
+        "ohneMessung": "not yet measured"
       }
     },
     "begruessung": {
@@ -440,7 +417,17 @@
       "morgenOhneNamen": "Good morning",
       "tagOhneNamen": "Good afternoon",
       "abendOhneNamen": "Good evening",
-      "beschreibung": "What the farm currently reports: figures per zone, open items and the way into the modules."
+      "beschreibung": "What the farm currently reports: figures per zone, open items and the way into the modules.",
+      "spruch": {
+        "0": "What is recorded properly today, nobody has to reconstruct tomorrow.",
+        "1": "The cold chain is decided in the first hour after picking.",
+        "2": "A look at the open items saves the follow-up question later.",
+        "3": "Short ways from the field to the yard keep the quality up.",
+        "4": "Every batch with a document is one batch less in dispute.",
+        "5": "Figures nobody looks at do not improve by themselves.",
+        "6": "Well planned rows save the brigade the second walk.",
+        "7": "Keeping the pre-harvest interval saves the block from being locked."
+      }
     }
   },
   "roles": {

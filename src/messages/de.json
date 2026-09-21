@@ -374,35 +374,21 @@
       "navHinweis": "Sechs Zustände derselben Seite zum Vergleich. Nur zum Ansehen, entschieden ist nichts davon.",
       "name": {
         "ist": "Ist-Zustand",
-        "basis": "Basis",
-        "w1": "1 Zielband",
-        "w2": "2 Lage je Zone",
-        "w3": "3 Offene Vorgänge",
-        "w4": "4 Module als Wege",
-        "w5": "5 Rollengerecht"
+        "m1": "A Drei Boxen",
+        "m2": "B Flach innen",
+        "m3": "C Zwei Boxen"
       },
       "erklaerung": {
         "ist": "Die Seite, wie sie heute aussieht.",
-        "basis": "Variante 3 mit gleich großen Boxen, festen Positionen, Kurznamen und Begrüßung. Grundlage für alles Weitere.",
-        "w1": "Jede Box bekommt ein Band, das den Istwert gegen den Zielwert zeigt.",
-        "w2": "Der Kopf jeder Zonenkarte fasst zusammen, wie viele Kennzahlen der Zone außerhalb des Ziels liegen.",
-        "w3": "Neben den Kennzahlen stehen die offenen Vorgänge der Zone, jeder ein Weg in sein Modul.",
-        "w4": "Die Modulnamen werden aus totem Text zu Knöpfen, die direkt in das Modul führen.",
-        "w5": "Zonen, in denen die Rolle kein einziges Modul öffnen darf, fallen in eine Zeile zusammen statt als leere Karte zu stehen."
+        "m1": "Begrüßung, Zonen und Meilensteine sitzen je in einer eigenen Box, die Zonenkarten liegen darin.",
+        "m2": "Dieselben drei Boxen, die Zonen darin aber ohne eigenen Rahmen - getrennt durch Linien statt durch Karten.",
+        "m3": "Begrüßung und Zonen wachsen zu einer Box zusammen, die Lage des Betriebs steht neben der Anrede. Auf der Seite bleiben zwei Boxen."
       },
       "zielstand": {
         "erfuellt": "im Ziel",
         "knapp": "knapp daneben",
         "verfehlt": "Ziel verfehlt",
         "offen": "kein Zielwert"
-      },
-      "lage": {
-        "aufgabenOffen": "Pflückaufgaben nicht abgeschlossen",
-        "bloeckeGesperrt": "Reihenblöcke in Wartezeit",
-        "bloeckeFaellig": "{anzahl} davon zur Freigabe fällig",
-        "reklamationenOffen": "Reklamationen offen oder in Prüfung",
-        "dokumenteAbgelaufen": "Dokumente abgelaufen",
-        "chargenOhneKuehlung": "Chargen ohne Vorkühlung"
       },
       "zonenTitel": "Die vier Zonen",
       "zonenBeschreibung": "Jede Zone mit ihren Kennzahlen und ihren Modulen.",
@@ -413,24 +399,15 @@
         "bandTitel": "Ist {ist}, Ziel {ziel}",
         "platzhalter": "Platzhalter"
       },
-      "zonenlage": {
-        "ausserhalb": "{anzahl} von {gesamt} außerhalb",
-        "alleImZiel": "alle {gesamt} im Ziel",
-        "ohneKennzahl": "keine Kennzahl",
-        "ohneMessung": "noch keine Messung"
-      },
-      "vorgaenge": {
-        "titel": "Offen",
-        "keine": "nichts offen"
-      },
       "module": {
         "titel": "Module",
         "zoneOeffnen": "Ganze Zone öffnen"
       },
-      "rolle": {
-        "leereZonen": "{anzahl} Zonen ohne freigegebene Module",
-        "leereZonenEine": "Eine Zone ohne freigegebene Module",
-        "leereZonenNamen": "{namen}"
+      "lageKopf": {
+        "titel": "Lage",
+        "ausserhalb": "{anzahl} außerhalb des Ziels",
+        "alleImZiel": "alle im Ziel",
+        "ohneMessung": "noch keine Messung"
       }
     },
     "begruessung": {
@@ -440,7 +417,17 @@
       "morgenOhneNamen": "Guten Morgen",
       "tagOhneNamen": "Guten Tag",
       "abendOhneNamen": "Guten Abend",
-      "beschreibung": "Was der Betrieb gerade meldet: Kennzahlen je Zone, offene Vorgänge und der Weg in die Module."
+      "beschreibung": "Was der Betrieb gerade meldet: Kennzahlen je Zone, offene Vorgänge und der Weg in die Module.",
+      "spruch": {
+        "0": "Was heute sauber erfasst ist, muss morgen niemand rekonstruieren.",
+        "1": "Die Kühlkette entscheidet sich in der ersten Stunde nach dem Pflücken.",
+        "2": "Ein Blick auf die offenen Vorgänge spart später die Rückfrage.",
+        "3": "Kurze Wege vom Feld in den Hof halten die Qualität oben.",
+        "4": "Jede Charge mit Beleg ist eine Charge weniger im Streitfall.",
+        "5": "Zahlen, die niemand ansieht, verbessern sich nicht von allein.",
+        "6": "Gut geplante Reihen sparen der Brigade den zweiten Gang.",
+        "7": "Wer die Wartezeit einhält, spart sich die Sperre danach."
+      }
     }
   },
   "roles": {

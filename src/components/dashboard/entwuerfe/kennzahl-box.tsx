@@ -145,6 +145,16 @@ export function KennzahlBox({
         {kurz}
       </p>
 
+      {/* Die volle Beschreibung, sobald die Karte breit genug ist. Gemessen
+          wird die Karte, nicht das Fenster: am Schreibtisch stehen zwei
+          Zonenkarten nebeneinander und haben je rund 600 px, auf dem Telefon
+          hat dieselbe Karte 350 px - dort bleibt es beim Kurznamen und dem
+          Tooltip. Der Platz ist auch hier fest, damit die Boxen gleich hoch
+          bleiben. */}
+      <p className="mt-1 hidden min-h-8 text-[10px] leading-4 text-muted-foreground @md:line-clamp-2">
+        {voll}
+      </p>
+
       {/* Wert: beginnt damit in jeder Box auf derselben Linie. */}
       <p className="mt-2 flex items-baseline gap-1">
         <span className="truncate text-xl font-black tabular-nums text-foreground">
@@ -167,13 +177,17 @@ export function KennzahlBox({
         />
       ) : null}
 
-      {/* Fuss: haengt am unteren Rand, steht dadurch in jeder Box gleich. */}
-      <p className="mt-auto flex items-center gap-1.5 pt-2 text-[10px] leading-4">
+      {/* Fuss: haengt am unteren Rand, steht dadurch in jeder Box gleich.
+          Umbrechen statt kuerzen: bei drei Spalten ist eine Box rund 145 px
+          breit, dort passt "Ziel > 700 ₸/kg" neben "Ziel verfehlt" nicht in
+          eine Zeile. Abgeschnitten stand dort "Ziel > 700 T..." - ein halber
+          Zielwert ist schlechter als eine Zeile mehr. */}
+      <p className="mt-auto flex flex-wrap items-center gap-x-1.5 pt-2 text-[10px] leading-4">
         <span
           aria-hidden
           className={cn("h-1.5 w-1.5 shrink-0 rounded-full", punkt[stand])}
         />
-        <span className="truncate text-muted-foreground">
+        <span className="text-muted-foreground">
           {soll !== null ? `${t("box.ziel")} ${kpi.ziel}` : t("box.ohneZiel")}
         </span>
         <span className={cn("ml-auto shrink-0 font-semibold", schrift[stand])}>

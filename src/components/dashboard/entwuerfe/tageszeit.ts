@@ -28,3 +28,39 @@ export function tageszeitBestimmen(
   if (stunde < 18) return "tag";
   return "abend";
 }
+
+/** Wie viele Saetze unter dashboard.begruessung.spruch stehen. */
+export const spruchAnzahl = 8;
+
+const abschnittNummer: Record<Tageszeit, number> = {
+  morgen: 0,
+  tag: 1,
+  abend: 2,
+};
+
+/**
+ * Welcher der Saetze heute dran ist.
+ *
+ * Bewusst berechnet und nicht gewuerfelt: der Satz wechselt dreimal am Tag,
+ * zu den Grenzen der Tageszeit, und bleibt dazwischen stehen. Bei jedem
+ * Seitenaufruf ein neuer Satz waere auf einer Seite, die jemand zwanzigmal
+ * am Tag oeffnet, blosse Unruhe - und der Server muesste ihn ohnehin
+ * bestimmen, weil ein im Browser gewuerfelter Satz nach der Hydration ein
+ * anderer waere als im ausgelieferten HTML.
+ */
+export function spruchIndex(
+  jetzt: Date = new Date(),
+  anzahl: number = spruchAnzahl,
+  zeitzone: string = betriebsZeitzone,
+): number {
+  // Datum in der Betriebszeitzone, als "2026-09-21".
+  const tag = new Intl.DateTimeFormat("en-CA", {
+    timeZone: zeitzone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(jetzt);
+  const tageSeitEpoche = Math.floor(Date.parse(tag) / 86_400_000);
+  const abschnitt = abschnittNummer[tageszeitBestimmen(jetzt, zeitzone)];
+  return (tageSeitEpoche * 3 + abschnitt) % anzahl;
+}

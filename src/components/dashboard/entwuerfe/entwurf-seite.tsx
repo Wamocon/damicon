@@ -16,22 +16,11 @@ import {
   MeilensteinAbschnitt,
   ZonenAbschnitt,
 } from "./gemeinsam";
-import { BegruessungsKopf } from "./begruessung";
-import { ZonenAbschnittNeu, type KartenOptionen } from "./zonen-karte";
-import type { Tageslage } from "./tageslage";
+import { BegruessungsBox, BegruessungsInhalt } from "./begruessung";
+import { MeilensteinBox } from "./meilenstein-box";
+import { ZonenBox } from "./zonen-karte";
 import type { Tageszeit } from "./tageszeit";
 import { varianten, type VariantenSchluessel } from "./varianten";
-
-// Je Variante genau ein Schalter. Die Basis hat keinen.
-const optionenJeVariante: Record<VariantenSchluessel, KartenOptionen> = {
-  ist: {},
-  basis: {},
-  w1: { zielband: true },
-  w2: { zonenlage: true },
-  w3: { vorgaenge: true },
-  w4: { moduleAlsWege: true },
-  w5: { rollengerecht: true },
-};
 
 function Waehler({ aktiv }: { aktiv: VariantenSchluessel }) {
   const t = useTranslations("dashboard.entwurf");
@@ -69,29 +58,28 @@ export function EntwurfSeite({
   variante,
   kpis,
   quelle,
-  lage,
   tageszeit,
   datum,
+  spruch,
 }: {
   variante: VariantenSchluessel;
   kpis: Kpi[];
   quelle: Datenquelle;
-  /** Nur fuer w3 geladen, sonst null. */
-  lage: Tageslage | null;
   tageszeit: Tageszeit;
   datum: string;
+  spruch: number;
 }) {
   const { role } = usePersona();
   const t = useTranslations("dashboard.entwurf");
   const { kern, erweitert } = kpisFuerRolle(role, kpis);
   const sichtbar = [...kern, ...erweitert];
-  const istHeutigeSeite = variante === "ist";
+  const begruessung = { tageszeit, datum, spruch, kpis: sichtbar };
 
   return (
     <div className="space-y-8">
       <Waehler aktiv={variante} />
 
-      <div className="rounded-2xl border border-border bg-card/40 p-4 sm:p-6">
+      <div className="rounded-2xl border border-border bg-muted/20 p-4 sm:p-6">
         <p className="mb-6 text-xs leading-5 text-muted-foreground">
           <span className="font-semibold text-card-foreground">
             {t(`name.${variante}`)}
@@ -100,8 +88,8 @@ export function EntwurfSeite({
           {t(`erklaerung.${variante}`)}
         </p>
 
-        <div className="space-y-8">
-          {istHeutigeSeite ? (
+        <div className="space-y-6">
+          {variante === "ist" ? (
             <>
               <KopfBereich role={role} />
               <KpiAbschnitt
@@ -111,24 +99,41 @@ export function EntwurfSeite({
                 quelle={quelle}
               />
               <ZonenAbschnitt role={role} />
+              <MeilensteinAbschnitt />
             </>
-          ) : (
+          ) : null}
+
+          {/* A: drei Boxen, die Zonen darin als eigene Karten. */}
+          {variante === "m1" ? (
             <>
-              <BegruessungsKopf tageszeit={tageszeit} datum={datum} />
-              <ZonenAbschnittNeu
+              <BegruessungsBox {...begruessung} />
+              <ZonenBox role={role} kpis={sichtbar} quelle={quelle} />
+              <MeilensteinBox />
+            </>
+          ) : null}
+
+          {/* B: dieselben drei Boxen, die Zonen darin flach. */}
+          {variante === "m2" ? (
+            <>
+              <BegruessungsBox {...begruessung} />
+              <ZonenBox role={role} kpis={sichtbar} quelle={quelle} flach />
+              <MeilensteinBox />
+            </>
+          ) : null}
+
+          {/* C: Begruessung und Zonen in einer Box, die Lage neben der
+              Anrede. Auf der Seite bleiben zwei Boxen. */}
+          {variante === "m3" ? (
+            <>
+              <ZonenBox
                 role={role}
                 kpis={sichtbar}
                 quelle={quelle}
-                optionen={optionenJeVariante[variante]}
-                lage={lage}
+                kopf={<BegruessungsInhalt {...begruessung} mitLage />}
               />
+              <MeilensteinBox />
             </>
-          )}
-
-          {/* Der Meilensteinblock steht in allen Zustaenden, damit der
-              Vergleich fair bleibt. Ob er ueberhaupt auf der Startseite
-              bleibt, ist eine eigene Entscheidung (Runde 1, Variante 4). */}
-          <MeilensteinAbschnitt />
+          ) : null}
         </div>
       </div>
     </div>
