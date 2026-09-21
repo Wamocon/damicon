@@ -59,6 +59,8 @@ import {
   pegelAusZeitbereich,
 } from "../../src/lib/domain/diktat.ts";
 import { erkenneMitRueckfall, GESAMTDECKEL_MS, HEDGE_AB_MS } from "../../src/lib/domain/spracherkennung.ts";
+import { bestimmeAntwortsprache, mehrheitsSprache, stimmenSprache } from "../../src/lib/domain/antwortsprache.ts";
+import { erkenneSprache } from "../../src/lib/wissen/chunker.ts";
 import {
   sonioxBasisUrl,
   sonioxZeitlimitMs,
@@ -1069,7 +1071,113 @@ for (const [name, kaputteAntwort] of [
   }
 }
 
+// --- 11. Eine Sprache je Antwort: Text und Stimme (domain/antwortsprache.ts) -
+// Waleri am 22.09.2026: Oberflaeche ru, Frage deutsch -> Antwort deutsch,
+// Stimme russisch. Oberflaeche en, Frage russisch -> Antwort russisch, Stimme
+// englisch. Beide Stellen lasen die Oberflaechensprache; die Stimme hielt
+// sich daran, das Modell nicht. Jetzt entscheidet EINE Stelle je Zug.
+{
+  const erkenner = (t) => erkenneSprache(t, 10);
+  const FRAGEN = {
+    de: "Wann ist die Lieferung aus Almaty angekommen?",
+    en: "When did the delivery from Almaty arrive?",
+    ru: "Когда прибыла поставка из Алматы?",
+    kk: "Алматыдан жеткізілім қашан келді?",
+  };
+  const ANTWORTEN = {
+    de: "Die Lieferung ist am Dienstag um 14 Uhr angekommen.",
+    en: "The delivery arrived on Tuesday at 2 pm.",
+    ru: "Поставка прибыла во вторник в 14 часов.",
+    kk: "Жеткізілім сейсенбіде сағат 14-те келді.",
+  };
+
+  // (a) Alle 16 Kombinationen Oberflaeche x Fragesprache: die Antwort folgt
+  //     der FRAGE, und die Stimme folgt der Antwort.
+  let stimmig = 0;
+  for (const oberflaeche of ["de", "en", "ru", "kk"]) {
+    for (const frageSprache of ["de", "en", "ru", "kk"]) {
+      const { sprache: L, herkunft } = bestimmeAntwortsprache(
+        { frage: FRAGEN[frageSprache], oberflaeche },
+        erkenner,
+      );
+      const stimme = stimmenSprache(L, ANTWORTEN[L], erkenner);
+      const richtig = L === frageSprache && stimme.sprache === L && !stimme.abweichung;
+      if (richtig) stimmig++;
+      else console.log(`      ${oberflaeche}/${frageSprache}: L=${L} (${herkunft}), Stimme=${stimme.sprache}`);
+    }
+  }
+  pruefe("Antwortsprache: alle 16 Kombinationen - Text und Stimme gleich", stimmig === 16, `${stimmig}/16`);
+
+  // (b) Waleris zwei Faelle, beim Namen genannt.
+  {
+    const a = bestimmeAntwortsprache({ frage: FRAGEN.de, oberflaeche: "ru" }, erkenner);
+    pruefe("Antwortsprache: Oberflaeche ru, Frage deutsch -> deutsch", a.sprache === "de", `${a.sprache} (${a.herkunft})`);
+    pruefe("Stimme: dazu die deutsche Stimme, nicht die russische", stimmenSprache(a.sprache, ANTWORTEN.de, erkenner).sprache === "de");
+    const b = bestimmeAntwortsprache({ frage: FRAGEN.ru, oberflaeche: "en" }, erkenner);
+    pruefe("Antwortsprache: Oberflaeche en, Frage russisch -> russisch", b.sprache === "ru", `${b.sprache} (${b.herkunft})`);
+    pruefe("Stimme: dazu die russische Stimme, nicht die englische", stimmenSprache(b.sprache, ANTWORTEN.ru, erkenner).sprache === "ru");
+  }
+
+  // (c) Diktiert schlaegt Text: Soniox hat zugehoert, der Erkenner sieht nur
+  //     das Ergebnis - und erbt dessen Fehler. Genau daran scheiterte der
+  //     kasachische Fall am 20.09.2026 ("Sahlkentiz wird tollen, kurzat.").
+  {
+    const verhoert = "Sahlkentiz wird tollen, kurzat.";
+    const ohne = bestimmeAntwortsprache({ frage: verhoert, oberflaeche: "de" }, erkenner);
+    const mit = bestimmeAntwortsprache(
+      { frage: verhoert, oberflaeche: "de", diktatSprachen: ["kk", "kk", "kk", "ru", "kk"] },
+      erkenner,
+    );
+    pruefe("Diktat: ohne Sprachinfo haette der Text entschieden", ohne.herkunft !== "diktat", ohne.herkunft);
+    pruefe("Diktat: Soniox' Sprache schlaegt den verhoerten Text", mit.sprache === "kk" && mit.herkunft === "diktat", `${mit.sprache} (${mit.herkunft})`);
+  }
+
+  // (d) Mehrheit der Token, nicht das erste Wort.
+  pruefe("Diktat: die Mehrheit entscheidet", mehrheitsSprache(["ru", "kk", "kk", "kk", "en"]) === "kk");
+  pruefe("Diktat: unbekannte Sprachen zaehlen nicht mit", mehrheitsSprache(["fr", "fr", "de"]) === "de");
+  pruefe("Diktat: ohne brauchbare Angabe kein Ergebnis", mehrheitsSprache(["fr", null, undefined, ""]) === null);
+  pruefe("Diktat: Gleichstand -> die Sprache, in der begonnen wurde", mehrheitsSprache(["ru", "de"]) === "ru");
+  pruefe("Diktat: Regionalcodes werden auf zwei Buchstaben gekuerzt", mehrheitsSprache(["de-DE", "de-AT"]) === "de");
+
+  // (e) Zu kurz zum Raten: dann gilt die Einstellung. Lieber die Sprache, die
+  //     die Person selbst gewaehlt hat, als ein Muenzwurf.
+  {
+    const kurz = bestimmeAntwortsprache({ frage: "?", oberflaeche: "kk" }, erkenner);
+    pruefe("Antwortsprache: zu kurze Frage -> Oberflaeche", kurz.sprache === "kk" && kurz.herkunft === "oberflaeche", `${kurz.sprache} (${kurz.herkunft})`);
+    const unbekannt = bestimmeAntwortsprache({ frage: "?", oberflaeche: "fr" }, erkenner);
+    pruefe("Antwortsprache: unbekannte Oberflaeche -> Deutsch", unbekannt.sprache === "de");
+  }
+
+  // (f) Die Gegenprobe am fertigen Text: haelt sich das Modell nicht an die
+  //     Anweisung, liest die Stimme, was WIRKLICH dasteht.
+  {
+    const abweichend = stimmenSprache("ru", ANTWORTEN.de, erkenner);
+    pruefe("Gegenprobe: antwortet das Modell doch deutsch, spricht die deutsche Stimme", abweichend.sprache === "de" && abweichend.abweichung);
+    const passend = stimmenSprache("ru", ANTWORTEN.ru, erkenner);
+    pruefe("Gegenprobe: passt es, bleibt es bei L", passend.sprache === "ru" && !passend.abweichung);
+    const unklar = stimmenSprache("kk", "42", erkenner);
+    pruefe("Gegenprobe: bei unklarem Text bleibt es bei L", unklar.sprache === "kk" && !unklar.abweichung);
+  }
+
+  // (g) Die alte Regel ist wirklich weg: die Stimme darf nicht mehr allein
+  //     aus der Oberflaeche kommen.
+  {
+    const tts = readFileSync(new URL("../../src/app/api/ki-sprachausgabe/route.ts", import.meta.url), "utf8");
+    pruefe("Stimme: die Route prueft den Antworttext gegen L", tts.includes("stimmenSprache("));
+    pruefe("Stimme: sie leitet die Sprache nicht mehr allein aus der Oberflaeche ab", !/const sprache = istSprachausgabeSprache\(oberflaechenSprache\)/.test(tts));
+  }
+
+  // (h) Die Anweisung ans Modell bekommt L, nicht die Oberflaeche.
+  {
+    const route = readFileSync(new URL("../../src/app/api/ki-assistent/route.ts", import.meta.url), "utf8");
+    pruefe("Antwortsprache: der Systemprompt bekommt L", route.includes("spracheAnweisung(antwortSprache)"));
+    pruefe("Antwortsprache: L wird im Stream mitgeschickt", route.includes("messageMetadata"));
+  }
+}
+
 console.log("\n" + "-".repeat(58));
 console.log(`Pruefungen: ${bestanden + fehlgeschlagen}   bestanden: ${bestanden}   fehlgeschlagen: ${fehlgeschlagen}`);
 if (fehlgeschlagen) process.exit(1);
+
+
 console.log("Alle Pruefungen bestanden.");

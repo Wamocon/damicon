@@ -12,6 +12,8 @@ import { hasPermission } from "@/lib/rbac";
 import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { erzeugeSprachausgabe } from "@/lib/ai/sprachausgabe-client";
 import { istSprachausgabeSprache, sprachausgabePfad, stimmeFuerOberflaeche, textFuerSprachausgabe } from "@/lib/domain/sprachausgabe";
+import { istSprache, stimmenSprache } from "@/lib/domain/antwortsprache";
+import { erkenneSprache } from "@/lib/wissen/chunker";
 
 // Zwischenspeicher: Bucket "ki-sprachausgabe" (Migration 20261101000000),
 // privat und nur ueber service_role erreichbar. Die Berechtigung haengt an der
@@ -43,7 +45,10 @@ export async function POST(req: Request) {
   }
   const nachrichtId = typeof body.nachrichtId === "string" ? body.nachrichtId : "";
   if (!UUID.test(nachrichtId)) return fehler(400, "ungueltige-eingabe");
-  const oberflaechenSprache = typeof body.sprache === "string" ? body.sprache : "de";
+  // "sprache" ist jetzt die Sprache DIESER ANTWORT (L), die der Chat-Stream
+  // mitgeschickt hat - nicht mehr die Oberflaechensprache. Fehlt sie (alter
+  // Browser-Tab, direkter Aufruf), faengt die Gegenprobe unten das auf.
+  const gemeldeteSprache = typeof body.sprache === "string" ? body.sprache : "de";
 
   const supabase = await createClient();
   const { data: nachricht, error } = await supabase
@@ -59,10 +64,25 @@ export async function POST(req: Request) {
   const text = textFuerSprachausgabe(nachricht.inhalt);
   if (!text) return fehler(422, "kein-text");
 
-  // Die Stimme folgt der Systemsprache. Frueher wurde die Sprache aus dem
-  // Antworttext erraten - bei einer Antwort, die selbst schon in der
-  // falschen Sprache stand, las die falsche Stimme dann den falschen Text.
-  const sprache = istSprachausgabeSprache(oberflaechenSprache) ? oberflaechenSprache : "de";
+  // Die Stimme folgt der Sprache DIESER ANTWORT, nicht der Einstellung.
+  //
+  // Vorher kam sie allein aus der Oberflaeche. Antwortete das Modell in der
+  // Sprache der Frage - und das tut es -, las eine fremde Stimme den Text
+  // vor: deutsche Antwort mit russischer Stimme (Waleri, 22.09.2026).
+  //
+  // Zwei Quellen, in dieser Reihenfolge:
+  //   1. L, vom Chat-Stream mitgeschickt.
+  //   2. der fertige Text selbst - er ist der Beleg. Weicht er eindeutig ab,
+  //      gewinnt er: lieber die richtige Stimme zum vorhandenen Text als
+  //      beides falsch.
+  const gewuenscht = istSprache(gemeldeteSprache) ? gemeldeteSprache : "de";
+  const gepruefte = stimmenSprache(gewuenscht, text, (t) => erkenneSprache(t, 10));
+  if (gepruefte.abweichung) {
+    // Nur zaehlen, nie den Text: haeuft sich das, stimmt etwas mit der
+    // Anweisung ans Modell nicht.
+    console.warn("[damicon] Sprachausgabe: Antworttext ist " + gepruefte.sprache + ", angekuendigt war " + gewuenscht);
+  }
+  const sprache = istSprachausgabeSprache(gepruefte.sprache) ? gepruefte.sprache : "de";
   const stimme = stimmeFuerOberflaeche(sprache);
   if (!stimme) return fehler(422, "keine-stimme", { sprache });
 

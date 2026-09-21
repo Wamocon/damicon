@@ -19,6 +19,8 @@ import {
 } from "ai";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission, roles, type Role } from "@/lib/rbac";
+import { bestimmeAntwortsprache } from "@/lib/domain/antwortsprache";
+import { erkenneSprache } from "@/lib/wissen/chunker";
 import { createClient } from "@/lib/supabase/server";
 import { ladeAnbieterKette, meldeAnbieterwechsel } from "@/lib/ai/anbieter-kette";
 import type { AusweichEreignis } from "@/lib/ai/ausfall-modell";
@@ -283,7 +285,7 @@ export async function POST(req: Request) {
     return new Response("keine berechtigung", { status: 403 });
   }
 
-  let body: { messages?: unknown; einwilligung?: boolean; modus?: unknown; pfad?: unknown; rolle?: unknown; sprache?: unknown; pruefkontext?: unknown };
+  let body: { messages?: unknown; einwilligung?: boolean; modus?: unknown; pfad?: unknown; rolle?: unknown; sprache?: unknown; diktatSprachen?: unknown; pruefkontext?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -328,14 +330,27 @@ export async function POST(req: Request) {
   }
   const neueNutzerNachricht = letzte.role === "user" ? textAusNachricht(letzte) : "";
 
-  // Die Systemsprache bestimmt die Antwort - nicht die geratene Sprache der
-  // Frage. Bis zum 21.09.2026 wurde sie aus dem Fragetext erkannt; das ging
-  // schief, sobald die Frage diktiert war: eine kasachisch gesprochene Frage
-  // kam auf deutscher Oberflaeche als deutsch aussehender Unsinn an
-  // ("Sahlkentiz wird tollen, kurzat."), die Erkennung sah Deutsch, und die
-  // Antwort kam deutsch. Eine Einstellung, die die Person selbst setzt, ist
-  // verlaesslicher als jede Erkennung.
   const gespraechsSprache = typeof body.sprache === "string" ? body.sprache : "de";
+
+  // Eine Sprache je Zug, an EINER Stelle bestimmt (domain/antwortsprache.ts):
+  // diktiert -> was Soniox gehoert hat, getippt -> die Sprache der Frage,
+  // sonst die Oberflaeche. Beide - die Anweisung ans Modell und spaeter die
+  // Stimme - richten sich danach.
+  //
+  // Bis zum 22.09.2026 stand hier die Oberflaechensprache. Der Prompt sagte
+  // dem Modell dann "der Nutzer hat auf Russisch geschrieben", obwohl er
+  // deutsch geschrieben hatte; das Modell antwortete (richtig) deutsch, und
+  // die Stimme las (nach derselben falschen Quelle) russisch vor.
+  //
+  // 10 statt der 40 Zeichen, die fuer Dokumente gelten: eine Chatfrage ist
+  // kurz, und ein begruendeter Tipp ist dort besser als gar keiner.
+  const diktatSprachen = Array.isArray(body.diktatSprachen)
+    ? (body.diktatSprachen as unknown[]).filter((x): x is string => typeof x === "string")
+    : null;
+  const { sprache: antwortSprache, herkunft: sprachHerkunft } = bestimmeAntwortsprache(
+    { diktatSprachen, frage: neueNutzerNachricht, oberflaeche: gespraechsSprache },
+    (t) => erkenneSprache(t, 10),
+  );
   // Offensichtliche Zweckentfremdung (Code, Kreativtexte, Prompt-Injektion): ohne Werkzeuge nur ablehnen.
   const ausserhalb = neueNutzerNachricht ? zweckentfremdung(neueNutzerNachricht) : null;
   if (letzte.role === "user" && (!neueNutzerNachricht || neueNutzerNachricht.length > MAX_NACHRICHT_LAENGE)) {
@@ -427,7 +442,7 @@ export async function POST(req: Request) {
     "wissenSuchen" in werkzeuge ? QUELLEN_ANWEISUNG : OHNE_QUELLEN_ANWEISUNG,
     heute,
     ortHinweis,
-    spracheAnweisung(gespraechsSprache),
+    spracheAnweisung(antwortSprache),
     ausserhalb ? ABLEHNUNG_ANWEISUNG : "",
   ]
     .filter(Boolean)
@@ -516,5 +531,11 @@ export async function POST(req: Request) {
     },
   });
 
-  return result.toUIMessageStreamResponse({ generateMessageId: () => antwortId });
+  // L geht mit der Antwort mit: der Browser schickt sie beim Vorlesen
+  // zurueck, damit die Stimme dieselbe Sprache spricht wie der Text. Der
+  // Server prueft sie dort noch einmal gegen den fertigen Text.
+  return result.toUIMessageStreamResponse({
+    generateMessageId: () => antwortId,
+    messageMetadata: () => ({ sprache: antwortSprache, sprachHerkunft }),
+  });
 }
