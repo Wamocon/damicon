@@ -4,7 +4,13 @@ import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Icon } from "@/components/icon";
-import { Card, kachelVerweis, PageHeader, StatusPill } from "@/components/ui/kit";
+import {
+  Card,
+  kachelVerweis,
+  PageHeader,
+  Section,
+  StatusPill,
+} from "@/components/ui/kit";
 import { cn } from "@/lib/utils";
 import {
   KlassifikationBadge,
@@ -30,29 +36,20 @@ export function ZonePageBody({ zone }: { zone: ZoneKey }) {
 
   return (
     <div className="space-y-6">
-      <Card className="p-5 sm:p-6">
+      <Card ton="box" className="p-5 sm:p-6">
         <PageHeader
           title={zoneT(`${zone}.name`)}
           description={zoneT(`${zone}.description`)}
         />
       </Card>
 
-      <Card className="p-5 sm:p-6">
-        <div>
-          <h2 className="text-sm font-bold text-card-foreground">
-            {t("home.moduleTitel")}
-          </h2>
-          <p className="mt-0.5 schrift-dense text-muted-foreground">
-            {t("zoneModuleLead")}
-          </p>
-        </div>
-
+      <Section title={t("home.moduleTitel")} description={t("zoneModuleLead")}>
         {items.length === 0 ? (
-          <p className="mt-4 rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+          <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
             {t("zoneEmpty")}
           </p>
         ) : (
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {items.map((module) => (
               <Link
                 key={module.key}
@@ -103,7 +100,7 @@ export function ZonePageBody({ zone }: { zone: ZoneKey }) {
           <StatusPill tone="neutral">{t("rbacHintLabel")}</StatusPill>{" "}
           {t("rbacHint")}
         </p>
-      </Card>
+      </Section>
     </div>
   );
 }

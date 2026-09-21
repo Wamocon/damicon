@@ -49,7 +49,7 @@ export function BegruessungsBox({
     : t(`${tageszeit}OhneNamen`);
 
   return (
-    <Card className={cn("p-5 sm:p-6", className)}>
+    <Card ton="box" className={cn("p-5 sm:p-6", className)}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">

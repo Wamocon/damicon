@@ -63,7 +63,7 @@ export default async function HerkunftCodePage({
         <main id="main" className="container pt-28 pb-20">
           <div className="mx-auto max-w-2xl">
             <PageHeader title={t("title")} description={t("lead")} />
-            <Card className="mt-6">
+            <Card ton="box" className="mt-6">
               <p className="text-sm font-black text-foreground">
                 {t("notFoundTitle")}
               </p>
@@ -112,7 +112,7 @@ export default async function HerkunftCodePage({
             {/* Anforderung 6.1: Herkunft zuerst offenlegen - wer fremde Ware
                 unter eigener Marke verkauft, haftet dafuer, das darf die
                 Auskunft nicht verschweigen. */}
-            <Card className="border-border bg-muted/30">
+            <Card ton="box" className="border-border bg-muted/30">
               <div className="flex items-center gap-2">
                 {auskunft.herkunftTyp === "zukauf" ? (
                   <Truck className="h-4 w-4 shrink-0 text-foreground" />
@@ -130,7 +130,7 @@ export default async function HerkunftCodePage({
             {/* Die Wartezeit zuerst: die einzige Angabe mit
                 lebensmittelrechtlicher Folge. Alles andere ist Qualitaet,
                 das hier ist Zulaessigkeit. */}
-            <Card
+            <Card ton="box"
               className={
                 auskunft.wartezeitEingehalten
                   ? "border-success/25 bg-success/[0.06]"
@@ -151,7 +151,7 @@ export default async function HerkunftCodePage({
               </div>
             </Card>
 
-            <Card className={kuehlKarte}>
+            <Card ton="box" className={kuehlKarte}>
               <div className="flex flex-wrap items-center gap-2">
                 <Snowflake className={`h-4 w-4 shrink-0 ${kuehlIcon}`} />
                 <p className="text-xs font-black text-foreground">
@@ -169,7 +169,7 @@ export default async function HerkunftCodePage({
               </div>
             </Card>
 
-            <Card>
+            <Card ton="box">
               <dl className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                 <div>
                   <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">

@@ -1,4 +1,4 @@
-# Boxensystem: was die Übersichtsseite vorgibt und wo es noch fehlt
+# Boxensystem: was die Übersichtsseite vorgibt und wo es gilt
 
 Stand 21.09.2026, nach der Umstellung der Übersichtsseite auf Variante A.
 
@@ -12,19 +12,19 @@ Drei Ebenen, die vorher nicht unterschieden wurden:
 
 Die Regel dahinter: **Grund und Schatten nehmen nach innen ab, der Rahmen bleibt.** Zwei Karten mit Schatten übereinander sehen aus wie ein Fehler.
 
-## Wo das noch nicht gilt
+## Die Seiten im Einzelnen
 
-### 1. Der zentrale Hebel: `Section` in `src/components/ui/kit.tsx`
+### 1. Der zentrale Hebel: `Section` in `src/components/ui/kit.tsx` — **erledigt am 21.09.2026**
 
-- `Section` rendert heute nur Überschrift, Beschreibung und Inhalt — **ohne Rahmen, ohne Grund**. Sie ist im Projekt 64-mal im Einsatz, davon 60-mal in den Modulansichten unter `src/components/db/`.
-- Die Startseite benutzt sie nach dem Umbau nicht mehr; sie baut ihre Abschnittsboxen von Hand. Das ist der eigentliche Bruch: es gibt jetzt zwei Muster für dasselbe.
-- Wird `Section` zur Abschnittsbox, zieht der größte Teil des Portals in einem Schritt nach. Das ist der Hebel — und zugleich der Punkt, an dem die Entscheidung fällt, weil alles darin dann eine Ebene tiefer rutscht.
+`Section` ist jetzt selbst die Abschnittsbox: Rahmen, Kartengrund, Schatten, `p-5 sm:p-6`. Damit ziehen 60 Abschnitte in 25 Modulansichten in einem Schritt nach, ohne dass eine davon angefasst werden musste.
 
-**Was dabei zu klären ist:**
+Die drei offenen Fragen sind so entschieden:
 
-- `DataTable` bringt schon `rounded-xl border border-border bg-card` mit. In einer Abschnittsbox stünde damit Karte auf Karte. Sie müsste auf den Stand einer Inhaltskarte (gedämpft, ohne eigenen Grund) oder ganz ohne Rahmen laufen.
-- `Card` und `Stat` werden in den Ansichten direkt in `Section` gesetzt. Beide tragen heute vollen Kartengrund und Schatten und müssten zur Inhaltskarte werden.
-- `Section` trägt an einigen Stellen ein `id` als Sprungziel samt `scroll-mt-20` (Risiko-Radar). Beim Umbau muss der Anker an der äußeren Box bleiben, sonst springt der Verweis in den Rahmen statt davor.
+- **`DataTable`** behält seinen Rahmen, verliert aber den Kartengrund (`bg-muted/20`). Der Rahmen grenzt die Tabelle nach außen ab, die Fläche wiederholt nicht mehr die ihres Trägers.
+- **`Card`** hat jetzt drei Töne (`box`, `innen`, `daten`) und steht voreingestellt auf `innen`. Das trifft die Mehrheit: fast jede Karte im Portal sitzt in einer Abschnittsbox. Die wenigen Karten, die selbst die äußerste Fläche sind — Seitenköpfe, die Sicherheitsseite, die Herkunftsseiten — tragen `ton="box"`. **`Stat`** erbt die Voreinstellung.
+- **Der Anker** sitzt an der äußeren Box, ein Verweis hält also vor dem Rahmen statt darin.
+
+Gegenprobe vorab: keine der 28 Dateien verschachtelt `Section` in `Section`. Der Umbau konnte also keine Box in eine Box setzen.
 
 ### 2. Bereichsseiten — 4 Seiten — **erledigt am 21.09.2026**
 
@@ -34,14 +34,14 @@ Die Regel dahinter: **Grund und Schatten nehmen nach innen ab, der Rahmen bleibt
 - Die Modulkacheln sind Inhaltskarten geworden: `cn(kachelVerweis, "bg-muted/20 p-5 shadow-none")`. tailwind-merge ersetzt `bg-card` und `shadow-sm` aus der Klassenkette, es braucht also keine zweite Variante von `kachelVerweis`.
 - Der Rollenhinweis stand frei unter der Seite und gehörte optisch zu nichts. Er erklärt, warum die Liste so aussieht, wie sie aussieht, und steht deshalb jetzt in derselben Box.
 
-### 3. Modulseiten — 26 Seiten — **Kopf erledigt am 21.09.2026**
+### 3. Modulseiten — 26 Seiten — **erledigt am 21.09.2026**
 
 `src/components/dashboard/module-page-body.tsx`
 
 - Der Kopf sitzt in einer Abschnittsbox, der Kasten für „kein Zugriff“ ist jetzt eine `Card` statt einer von Hand gebauten Fläche mit denselben Werten.
-- **Was darunter steht, folgt dem System noch nicht.** Der Inhalt kommt aus den Modulansichten, und die bauen auf `Section` — Punkt 1 dieser Liste. Bis der umgestellt ist, trägt die Modulseite einen gerahmten Kopf über rahmenlosen Abschnitten. Das ist sichtbar und wird erst mit `Section` rund.
+- Der Inhalt darunter kommt aus den Modulansichten und ist mit dem `Section`-Umbau nachgezogen. Eine Modulseite trägt jetzt durchgehend Boxen.
 
-### 4. Modulansichten — 25 Dateien, 60 Abschnitte
+### 4. Modulansichten — 25 Dateien, 60 Abschnitte — **mitgezogen am 21.09.2026**
 
 `src/components/db/*-ansicht.tsx`
 
@@ -58,20 +58,20 @@ Die eigentliche Masse. Verteilung der Abschnitte je Datei:
 | 1 | reklamationen, pflueckaufgaben, pflichtschulungen, pflanzenschutz, kanaele, foerdermittel, einladungen, einarbeitung, dokumente |
 | 0 | nachweiskette (baut ohne `Section`) |
 
-- Sie alle erben, was an `Section` entschieden wird. Einzeln anzufassen wären sie nur dort, wo `Card`, `Stat` oder `DataTable` direkt darin stehen und eine Ebene tiefer müssen.
-- `nachweiskette-ansicht.tsx` fällt aus dem Muster und braucht eine eigene Durchsicht.
+- Keine dieser Dateien musste angefasst werden: sie erben alles über `Section`, `Card`, `Stat` und `DataTable`.
+- `nachweiskette-ansicht.tsx` fällt aus dem Muster, weil sie ohne `Section` baut, und ist deshalb als Einzige nicht mitgezogen.
 
-### 5. Demo-Ansichten — 2 Dateien
+### 5. Demo-Ansichten — 2 Dateien — **mitgezogen am 21.09.2026**
 
 `src/components/demo/buero.tsx`, `src/components/demo/markt.tsx`
 
 - Zwei weitere `Section`-Nutzer. Sie zeigen Module, die noch nicht an der Datenbank hängen, stehen aber im selben Rahmen wie die echten.
 
-### 6. Sicherheitsseite — 1 Seite
+### 6. Sicherheitsseite — 1 Seite — offen
 
 `src/app/[locale]/dashboard/sicherheit/page.tsx` und `src/components/auth/mfa-verwaltung.tsx`
 
-- `PageHeader` frei, darunter `Card` direkt auf dem Hintergrund — also Datenbox ohne Abschnittsbox darum.
+- `PageHeader` steht weiter frei, die Karte darunter trägt `ton="box"` und steht damit wie vorher. Ein eigener Schritt.
 
 ### 7. Öffentliche Seiten — außerhalb des Portals
 
@@ -83,9 +83,10 @@ Die eigentliche Masse. Verteilung der Abschnitte je Datei:
 ## Reihenfolge, wenn es weitergehen soll
 
 1. ~~Bereichs- und Modulseiten~~ — am 21.09.2026 umgestellt, 30 Seiten über zwei Dateien.
-2. `Section` zur Abschnittsbox machen und dabei `DataTable`, `Card` und `Stat` auf die innere Ebene setzen. Damit sind 60 von 64 Abschnitten erledigt — und die Modulseiten sind fertig, die heute noch einen gerahmten Kopf über rahmenlosem Inhalt tragen.
-3. Sicherheitsseite und `nachweiskette-ansicht.tsx` einzeln nachziehen.
-4. Öffentliche Seiten getrennt entscheiden.
+2. ~~`Section` zur Abschnittsbox~~ — am 21.09.2026 umgestellt, siehe Punkt 1.
+3. Offen: `nachweiskette-ansicht.tsx` baut ohne `Section` und ist deshalb nicht mitgezogen.
+4. Offen: die öffentlichen Seiten. Ihre Karten tragen jetzt `ton="box"`, stehen also wie vorher — ob dort überhaupt ein Boxensystem gelten soll, ist nicht entschieden.
+5. Offen: der Dunkelmodus, in keiner Runde geprüft.
 
 ## Nicht geprüft
 

@@ -6,14 +6,18 @@
 // Kennzahlbox (dort Variante 1) und die Module als Knoepfe statt als Text
 // (dort Variante 4). Offen ist nur noch, wie die Zonen im Abschnitt sitzen -
 // als eigene Karten oder flach, durch Linien getrennt.
-import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { ArrowRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Icon } from "@/components/icon";
-import { Card, StatusPill } from "@/components/ui/kit";
+import { Section, StatusPill } from "@/components/ui/kit";
 import { hasPermission, type Role } from "@/lib/rbac";
-import { modulesForZone, zones, type ModuleDef, type ZoneDef } from "@/lib/modules";
+import {
+  modulesForZone,
+  zones,
+  type ModuleDef,
+  type ZoneDef,
+} from "@/lib/modules";
 import type { Kpi } from "@/lib/domain/kpis";
 import type { Datenquelle } from "@/lib/supabase/config";
 import { KennzahlBox } from "@/components/dashboard/kennzahl-box";
@@ -61,10 +65,14 @@ function ReifegradPillen({ module }: { module: ModuleDef[] }) {
         </StatusPill>
       ) : null}
       {demo > 0 ? (
-        <StatusPill tone="info">{t("home.demoCount", { count: demo })}</StatusPill>
+        <StatusPill tone="info">
+          {t("home.demoCount", { count: demo })}
+        </StatusPill>
       ) : null}
       {wip > 0 ? (
-        <StatusPill tone="warning">{t("home.wipCount", { count: wip })}</StatusPill>
+        <StatusPill tone="warning">
+          {t("home.wipCount", { count: wip })}
+        </StatusPill>
       ) : null}
     </div>
   );
@@ -85,7 +93,9 @@ function ZonenInhalt({
   const sichtbareModule = modulesForZone(zone.key).filter((m) =>
     hasPermission(role, m.resource, "view"),
   );
-  const zonenKpis = nachDringlichkeit(kpis.filter((kpi) => kpi.zone === zone.key));
+  const zonenKpis = nachDringlichkeit(
+    kpis.filter((kpi) => kpi.zone === zone.key),
+  );
 
   return (
     <>
@@ -143,7 +153,6 @@ export function ZonenBox({
   kpis,
   quelle,
   flach = false,
-  kopf,
 }: {
   role: Role;
   /** Alle fuer die Rolle sichtbaren Kennzahlen, Kern und erweitert. */
@@ -155,33 +164,22 @@ export function ZonenBox({
    * Zone wird dadurch flacher, weil ihre Kennzahlen in eine Reihe passen.
    */
   flach?: boolean;
-  /** Variante C: die Begruessung sitzt im Kopf derselben Box. */
-  kopf?: ReactNode;
 }) {
   const t = useTranslations("dashboard.home");
   const quelleT = useTranslations("dashboard.dataSource");
 
   return (
-    <Card className="p-5 sm:p-6">
-      {kopf ? (
-        <div className="mb-6 border-b border-border pb-6">{kopf}</div>
-      ) : null}
-      <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 className="text-sm font-bold text-card-foreground">
-            {t("zonesTitle")}
-          </h2>
-          <p className="mt-0.5 schrift-dense text-muted-foreground">
-            {t("zonesDescription")}
-          </p>
-        </div>
+    <Section
+      title={t("zonesTitle")}
+      description={t("zonesDescription")}
+      action={
         <StatusPill tone={quelle === "db" ? "success" : "warning"}>
           {quelleT(quelle === "db" ? "db" : "demo")}
         </StatusPill>
-      </div>
-
+      }
+    >
       {flach ? (
-        <div className="mt-4 divide-y divide-border">
+        <div className="divide-y divide-border">
           {zones.map((zone) => (
             <div
               key={zone.key}
@@ -193,7 +191,7 @@ export function ZonenBox({
           ))}
         </div>
       ) : (
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2">
           {zones.map((zone) => (
             <div
               key={zone.key}
@@ -205,6 +203,6 @@ export function ZonenBox({
           ))}
         </div>
       )}
-    </Card>
+    </Section>
   );
 }

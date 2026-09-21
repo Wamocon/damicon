@@ -41,7 +41,7 @@ export default async function HerkunftSuchePage({
         <div className="mx-auto max-w-md">
           <PageHeader title={t("suche.title")} description={t("suche.lead")} />
 
-          <Card className="mt-6">
+          <Card ton="box" className="mt-6">
             <form action={herkunftSuchen} className="space-y-4">
               <input type="hidden" name="locale" value={locale} />
               <div className="space-y-1.5">

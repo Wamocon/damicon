@@ -4,7 +4,7 @@
 // Inhaltlich unveraendert gegenueber der heutigen Seite - ob er ueberhaupt
 // auf der Startseite bleibt, ist eine eigene, offene Entscheidung.
 import { useTranslations } from "next-intl";
-import { Card, StatusPill } from "@/components/ui/kit";
+import { Card, Section, StatusPill } from "@/components/ui/kit";
 
 function Meilenstein({
   name,
@@ -18,7 +18,7 @@ function Meilenstein({
   fussnote?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-muted/20 p-4">
+    <Card ton="innen" className="p-4">
       <div className="flex items-center justify-between gap-2">
         <p className="text-sm font-black text-card-foreground">{name}</p>
         <StatusPill tone="success">{faellig}</StatusPill>
@@ -36,23 +36,18 @@ function Meilenstein({
           {fussnote}
         </p>
       ) : null}
-    </div>
+    </Card>
   );
 }
 
 export function MeilensteinBox() {
   const t = useTranslations("dashboard");
   return (
-    <Card className="p-5 sm:p-6">
-      <div>
-        <h2 className="text-sm font-bold text-card-foreground">
-          {t("home.milestoneTitle")}
-        </h2>
-        <p className="mt-0.5 schrift-dense text-muted-foreground">
-          {t("home.milestoneDescription")}
-        </p>
-      </div>
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+    <Section
+      title={t("home.milestoneTitle")}
+      description={t("home.milestoneDescription")}
+    >
+      <div className="grid gap-4 lg:grid-cols-2">
         <Meilenstein
           name={t("home.milestoneAName")}
           faellig={t("home.milestoneADue")}
@@ -75,6 +70,6 @@ export function MeilensteinBox() {
           fussnote={t("home.milestoneBNote")}
         />
       </div>
-    </Card>
+    </Section>
   );
 }

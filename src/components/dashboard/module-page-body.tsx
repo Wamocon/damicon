@@ -39,7 +39,7 @@ export function ModulePageBody({
 
   return (
     <div className="space-y-6">
-      <Card className="p-5 sm:p-6">
+      <Card ton="box" className="p-5 sm:p-6">
         <PageHeader
           title={t(`${module.key}.title`)}
           description={t(`${module.key}.description`)}
@@ -55,7 +55,7 @@ export function ModulePageBody({
         // Vorher eine von Hand gebaute Flaeche mit denselben Werten wie
         // <Card>. Jetzt der Baustein selbst - eine Aenderung an der Karte
         // muss nicht an zwei Stellen nachgezogen werden.
-        <Card className="p-8 text-center">
+        <Card ton="box" className="p-8 text-center">
           <Lock className="mx-auto h-6 w-6 text-muted-foreground" />
           <p className="mt-3 text-sm font-semibold text-foreground">
             {denied("title", { role: roleT(role) })}
