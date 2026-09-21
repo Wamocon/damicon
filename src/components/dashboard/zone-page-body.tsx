@@ -44,19 +44,27 @@ export function ZonePageBody({ zone }: { zone: ZoneKey }) {
               href={moduleHref(module)}
               className="group flex flex-col rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40"
             >
-              <div className="flex items-start justify-between gap-3">
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              {/* Dieselbe Kartensprache wie die Zonenkarten der Uebersicht:
+                  Symbol und Titel in einer Zeile statt untereinander. Die
+                  Reifegrad-Pille bleibt rechts oben, wo sie sich ueber die
+                  Spalte hinweg vergleichen laesst. min-w-32 am Titel sorgt
+                  dafuer, dass sie auf schmalen Karten umbricht, statt den
+                  Titel auf zwei Woerter zu stauchen. */}
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                   <Icon name={module.icon} className="h-5 w-5" />
                 </span>
-                <ReifegradBadge value={module.reifegrad} />
+                <h3 className="min-w-32 flex-1 text-base font-black text-card-foreground">
+                  {moduleT(`${module.key}.title`)}
+                </h3>
+                <span className="ml-auto shrink-0">
+                  <ReifegradBadge value={module.reifegrad} />
+                </span>
               </div>
-              <h3 className="mt-3 text-base font-black text-card-foreground">
-                {moduleT(`${module.key}.title`)}
-              </h3>
-              <p className="mt-1 flex-1 text-sm leading-6 text-muted-foreground">
+              <p className="mt-2.5 flex-1 text-sm leading-6 text-muted-foreground">
                 {moduleT(`${module.key}.summary`)}
               </p>
-              <div className="mt-3 flex items-center justify-between">
+              <div className="mt-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-border pt-3">
                 <KlassifikationBadge value={module.klassifikation} />
                 <span className="inline-flex items-center gap-1 text-xs font-bold text-primary">
                   {t("open")}

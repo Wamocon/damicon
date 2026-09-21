@@ -49,6 +49,7 @@ export function DashboardHome({
   const { role } = usePersona();
   const t = useTranslations("dashboard");
   const zoneT = useTranslations("zones");
+  const moduleT = useTranslations("modules");
   const kpiT = useTranslations("kpis");
   const roleT = useTranslations("roles");
   const quelleT = useTranslations("dashboard.dataSource");
@@ -219,18 +220,65 @@ export function DashboardHome({
               <Link
                 key={zone.key}
                 href={`/dashboard/${zone.key}`}
-                className="group rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40"
+                className="group @container flex flex-col rounded-2xl border border-border bg-card p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40"
               >
-                <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Icon name={zone.icon} className="h-5 w-5" />
-                </span>
-                <h3 className="mt-3 text-base font-black text-card-foreground">
-                  {zoneT(`${zone.key}.name`)}
-                </h3>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                {/* Symbol, Name und Pfeil teilen sich eine Zeile. Frueher
+                    stand das Symbol allein darueber und kostete 52 px Hoehe,
+                    ohne rechts von sich etwas zu tragen. */}
+                <div className="flex items-center gap-3">
+                  <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Icon name={zone.icon} className="h-5 w-5" />
+                  </span>
+                  <h3 className="min-w-0 flex-1 truncate text-base font-black text-card-foreground">
+                    {zoneT(`${zone.key}.name`)}
+                  </h3>
+                  {/* Der Pfeil ersetzt die Zeile "Zone oeffnen". Fuer den
+                      Bildschirmleser bleibt sie als Text erhalten, damit die
+                      Karte weiter ansagt, wohin sie fuehrt. */}
+                  <span className="sr-only">{t("home.openZone")}</span>
+                  <ArrowRight
+                    aria-hidden
+                    className="h-4 w-4 shrink-0 text-primary transition group-hover:translate-x-0.5"
+                  />
+                </div>
+                <p className="mt-2.5 text-xs leading-5 text-muted-foreground">
                   {zoneT(`${zone.key}.tagline`)}
                 </p>
-                <div className="mt-3 flex flex-wrap gap-1.5">
+                {/* Die Module der Zone, so wie sie in der Seitenleiste
+                    heissen. Sie beantworten die Frage, die vor der Karte
+                    steht: was steckt in diesem Bereich. Gefiltert ist nach
+                    denselben Rechten wie die Zaehlung darunter, eine Rolle
+                    sieht hier also nur, was sie auch oeffnen darf. */}
+                {/* Zwei Spalten erst ab 18rem Innenbreite der Karte, gemessen
+                    an der Karte und nicht am Fenster. Bei vier Rasterspalten
+                    neben der Seitenleiste ist die Karte auf 1440 px nur
+                    216 px breit; dort blieben je Spalte 92 px, und
+                    "Qualitaetsfaktor-Lohn" (106 px) stand abgeschnitten da.
+                    Ein abgeschnittener Modulname ist schlechter als eine
+                    Zeile mehr. Ab 288 px bleiben 128 px je Spalte, genug auch
+                    fuer das laengste englische "Roles and permissions". */}
+                {visible.length > 0 ? (
+                  <ul className="mt-3 grid grid-cols-1 gap-x-3 gap-y-1 border-t border-border pt-3 text-[11px] leading-4 text-muted-foreground @2xs:grid-cols-2">
+                    {visible.map((module) => (
+                      <li
+                        key={module.key}
+                        className="flex min-w-0 items-center gap-1.5"
+                      >
+                        <span
+                          aria-hidden
+                          className="h-1 w-1 shrink-0 rounded-full bg-primary/50"
+                        />
+                        <span className="truncate">
+                          {moduleT(`${module.key}.navTitle`)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                {/* mt-auto: das Raster streckt alle Karten auf die Hoehe der
+                    laengsten (Buero, neun Module). Die Pillen stehen dann in
+                    jeder Karte auf derselben Linie. */}
+                <div className="mt-auto flex flex-wrap gap-1.5 pt-3">
                   {angebunden > 0 ? (
                     <StatusPill tone="success">
                       {t("home.dbCount", { count: angebunden })}
@@ -247,10 +295,6 @@ export function DashboardHome({
                     </StatusPill>
                   ) : null}
                 </div>
-                <span className="mt-4 inline-flex items-center gap-1 text-xs font-bold text-primary">
-                  {t("home.openZone")}
-                  <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
-                </span>
               </Link>
             );
           })}
