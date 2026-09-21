@@ -18,10 +18,41 @@
 //      die in zwei Zeilen passt (kpis.<key>.kurz). Das volle Label und der
 //      Rechenweg bleiben als Tooltip.
 import { useFormatter, useTranslations } from "next-intl";
+import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Kpi } from "@/lib/domain/kpis";
-import { TrendPfeil } from "./gemeinsam";
-import { zielAuswerten, type Zielstand } from "./zielstand";
+import type { Kpi, KpiTrend } from "@/lib/domain/kpis";
+import { zielAuswerten, type Zielstand } from "@/lib/domain/zielstand";
+
+const trendIcon: Record<KpiTrend, typeof ArrowUpRight> = {
+  up: ArrowUpRight,
+  down: ArrowDownRight,
+  flat: Minus,
+};
+
+/**
+ * Der Trendpfeil, gefaerbt nach gutRichtung: ein steigender Wert ist nicht
+ * ueberall gut. Bei der Verlustquote ist er schlecht, bei der Liefertreue
+ * gut - deshalb entscheidet nicht die Richtung allein ueber die Farbe.
+ */
+export function TrendPfeil({ kpi, className }: { kpi: Kpi; className?: string }) {
+  const Cmp = trendIcon[kpi.trend];
+  const positive =
+    (kpi.trend === "up" && kpi.gutRichtung === "up") ||
+    (kpi.trend === "down" && kpi.gutRichtung === "down");
+  return (
+    <Cmp
+      className={cn(
+        "h-4 w-4 shrink-0",
+        kpi.trend === "flat"
+          ? "text-muted-foreground"
+          : positive
+            ? "text-success"
+            : "text-destructive",
+        className,
+      )}
+    />
+  );
+}
 
 const punkt: Record<Zielstand, string> = {
   verfehlt: "bg-destructive",
@@ -109,11 +140,12 @@ export function KennzahlBox({
   zielband = false,
 }: {
   kpi: Kpi;
-  /** Variante 1 der zweiten Runde. */
+  /** Band vom Istwert zur Zielmarke. */
   zielband?: boolean;
 }) {
   const kpiT = useTranslations("kpis");
-  const t = useTranslations("dashboard.entwurf");
+  const t = useTranslations("dashboard.kennzahl");
+  const homeT = useTranslations("dashboard.home");
   const format = useFormatter();
   const auswertung = zielAuswerten(kpi);
   const { ist, soll, platzhalter } = auswertung;
@@ -173,7 +205,7 @@ export function KennzahlBox({
           ist={ist}
           soll={soll}
           stand={stand}
-          titel={t("box.bandTitel", { ist: `${zahl} ${einheit}`.trim(), ziel: kpi.ziel })}
+          titel={t("bandTitel", { ist: `${zahl} ${einheit}`.trim(), ziel: kpi.ziel })}
         />
       ) : null}
 
@@ -188,10 +220,10 @@ export function KennzahlBox({
           className={cn("h-1.5 w-1.5 shrink-0 rounded-full", punkt[stand])}
         />
         <span className="text-muted-foreground">
-          {soll !== null ? `${t("box.ziel")} ${kpi.ziel}` : t("box.ohneZiel")}
+          {soll !== null ? `${homeT("target")} ${kpi.ziel}` : t("ohneZiel")}
         </span>
         <span className={cn("ml-auto shrink-0 font-semibold", schrift[stand])}>
-          {platzhalter ? t("box.platzhalter") : t(`zielstand.${stand}`)}
+          {platzhalter ? t("platzhalter") : t(`zielstand.${stand}`)}
         </span>
       </p>
     </div>

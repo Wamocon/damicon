@@ -331,7 +331,7 @@
       "placeholderBadge": "Platzhalterwerte",
       "target": "Ziel",
       "zonesTitle": "Die vier Zonen",
-      "zonesDescription": "Navigationsstruktur des Dashboards, gegliedert wie die Zielarchitektur.",
+      "zonesDescription": "Jede Zone mit ihren Kennzahlen und ihren Modulen.",
       "dbCount": "{count} angebunden",
       "demoCount": "{count} Demo",
       "wipCount": "{count} in Entwicklung",
@@ -364,52 +364,13 @@
       "kpiSummaryLive": "{gerechnet} aus echten Daten gerechnet · {offen} warten auf die Funktion dahinter",
       "kpiExtendedTitle": "Weitere Kennzahlen",
       "kpiExtendedDescription": "Teil der unterschriebenen Baseline, aber außerhalb der zwölf Kern-Kennzahlen im Cockpit.",
-      "kpiNoneForRole": "Für Ihre Rolle sind hier keine betriebsweiten Kennzahlen hinterlegt. Die eigene Leistung finden Sie im Lohn-Modul."
+      "kpiNoneForRole": "Für Ihre Rolle sind hier keine betriebsweiten Kennzahlen hinterlegt. Die eigene Leistung finden Sie im Lohn-Modul.",
+      "zoneOhneKennzahl": "Für diese Zone ist keine Kennzahl freigegeben.",
+      "moduleTitel": "Module"
     },
     "loading": "Daten werden geladen",
     "askAi": "KI fragen",
     "askAiHinweis": "KI-Seitenpanel öffnen oder schließen",
-    "entwurf": {
-      "navTitel": "Entwürfe für die Übersichtsseite",
-      "navHinweis": "Sechs Zustände derselben Seite zum Vergleich. Nur zum Ansehen, entschieden ist nichts davon.",
-      "name": {
-        "ist": "Ist-Zustand",
-        "m1": "A Drei Boxen",
-        "m2": "B Flach innen",
-        "m3": "C Zwei Boxen"
-      },
-      "erklaerung": {
-        "ist": "Die Seite, wie sie heute aussieht.",
-        "m1": "Begrüßung, Zonen und Meilensteine sitzen je in einer eigenen Box, die Zonenkarten liegen darin.",
-        "m2": "Dieselben drei Boxen, die Zonen darin aber ohne eigenen Rahmen - getrennt durch Linien statt durch Karten.",
-        "m3": "Begrüßung und Zonen wachsen zu einer Box zusammen, die Lage des Betriebs steht neben der Anrede. Auf der Seite bleiben zwei Boxen."
-      },
-      "zielstand": {
-        "erfuellt": "im Ziel",
-        "knapp": "knapp daneben",
-        "verfehlt": "Ziel verfehlt",
-        "offen": "kein Zielwert"
-      },
-      "zonenTitel": "Die vier Zonen",
-      "zonenBeschreibung": "Jede Zone mit ihren Kennzahlen und ihren Modulen.",
-      "zoneOhneKennzahl": "Für diese Zone ist keine Kennzahl freigegeben.",
-      "box": {
-        "ziel": "Ziel",
-        "ohneZiel": "kein Zielwert",
-        "bandTitel": "Ist {ist}, Ziel {ziel}",
-        "platzhalter": "Platzhalter"
-      },
-      "module": {
-        "titel": "Module",
-        "zoneOeffnen": "Ganze Zone öffnen"
-      },
-      "lageKopf": {
-        "titel": "Lage",
-        "ausserhalb": "{anzahl} außerhalb des Ziels",
-        "alleImZiel": "alle im Ziel",
-        "ohneMessung": "noch keine Messung"
-      }
-    },
     "begruessung": {
       "morgen": "Guten Morgen, {name}",
       "tag": "Guten Tag, {name}",
@@ -427,6 +388,17 @@
         "5": "Zahlen, die niemand ansieht, verbessern sich nicht von allein.",
         "6": "Gut geplante Reihen sparen der Brigade den zweiten Gang.",
         "7": "Wer die Wartezeit einhält, spart sich die Sperre danach."
+      }
+    },
+    "kennzahl": {
+      "ohneZiel": "kein Zielwert",
+      "platzhalter": "Platzhalter",
+      "bandTitel": "Ist {ist}, Ziel {ziel}",
+      "zielstand": {
+        "erfuellt": "im Ziel",
+        "knapp": "knapp daneben",
+        "verfehlt": "Ziel verfehlt",
+        "offen": "kein Zielwert"
       }
     }
   },

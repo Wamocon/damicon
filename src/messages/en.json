@@ -331,7 +331,7 @@
       "placeholderBadge": "Placeholder values",
       "target": "Target",
       "zonesTitle": "The four zones",
-      "zonesDescription": "The dashboard's navigation structure, organised like the target architecture.",
+      "zonesDescription": "Each zone with its indicators and its modules.",
       "dbCount": "{count} connected",
       "demoCount": "{count} demo",
       "wipCount": "{count} in development",
@@ -364,52 +364,13 @@
       "kpiSummaryLive": "{gerechnet} computed from real data · {offen} waiting for the function behind them",
       "kpiExtendedTitle": "Further KPIs",
       "kpiExtendedDescription": "Part of the signed baseline, but outside the twelve core KPIs in the cockpit.",
-      "kpiNoneForRole": "No company-wide KPIs are configured for your role here. Your own performance is in the payroll module."
+      "kpiNoneForRole": "No company-wide KPIs are configured for your role here. Your own performance is in the payroll module.",
+      "zoneOhneKennzahl": "No indicator is released for this zone.",
+      "moduleTitel": "Modules"
     },
     "loading": "Loading data",
     "askAi": "Ask AI",
     "askAiHinweis": "Open or close the AI side panel",
-    "entwurf": {
-      "navTitel": "Drafts for the overview page",
-      "navHinweis": "Six states of the same page, side by side. For viewing only, none of it is decided.",
-      "name": {
-        "ist": "Current state",
-        "m1": "A Three boxes",
-        "m2": "B Flat inside",
-        "m3": "C Two boxes"
-      },
-      "erklaerung": {
-        "ist": "The page as it looks today.",
-        "m1": "Greeting, zones and milestones each sit in their own box, with the zone cards inside.",
-        "m2": "The same three boxes, but the zones inside without their own frame - separated by lines instead of cards.",
-        "m3": "Greeting and zones grow into one box, the farm status sits next to the salutation. Two boxes remain on the page."
-      },
-      "zielstand": {
-        "erfuellt": "on target",
-        "knapp": "just off",
-        "verfehlt": "target missed",
-        "offen": "no target value"
-      },
-      "zonenTitel": "The four zones",
-      "zonenBeschreibung": "Each zone with its indicators and its modules.",
-      "zoneOhneKennzahl": "No indicator is released for this zone.",
-      "box": {
-        "ziel": "Target",
-        "ohneZiel": "no target value",
-        "bandTitel": "Actual {ist}, target {ziel}",
-        "platzhalter": "Placeholder"
-      },
-      "module": {
-        "titel": "Modules",
-        "zoneOeffnen": "Open the whole zone"
-      },
-      "lageKopf": {
-        "titel": "Status",
-        "ausserhalb": "{anzahl} off target",
-        "alleImZiel": "all on target",
-        "ohneMessung": "not yet measured"
-      }
-    },
     "begruessung": {
       "morgen": "Good morning, {name}",
       "tag": "Good afternoon, {name}",
@@ -427,6 +388,17 @@
         "5": "Figures nobody looks at do not improve by themselves.",
         "6": "Well planned rows save the brigade the second walk.",
         "7": "Keeping the pre-harvest interval saves the block from being locked."
+      }
+    },
+    "kennzahl": {
+      "ohneZiel": "no target value",
+      "platzhalter": "Placeholder",
+      "bandTitel": "Actual {ist}, target {ziel}",
+      "zielstand": {
+        "erfuellt": "on target",
+        "knapp": "just off",
+        "verfehlt": "target missed",
+        "offen": "no target value"
       }
     }
   },

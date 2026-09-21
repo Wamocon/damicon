@@ -66,31 +66,39 @@ function SidebarRail() {
     );
 
   return (
-    <div className="flex h-full min-h-0 flex-col items-center gap-2 p-2">
-      <Link href="/" aria-label="Damicon" title="Damicon" className="mt-1">
-        <DamiconLogo className="shadow-lg shadow-primary/20" />
-      </Link>
+    <div className="flex h-full min-h-0 flex-col items-center">
+      {/* Der Kopf traegt dieselbe Hoehe und dieselbe untere Kante wie die
+          Kopfzeile (topbar.tsx: md:h-16). Vorher setzte ihn allein das
+          Padding des Containers - p-2 plus mt-1 ergab 12 px, das Logo stand
+          damit 2 px hoeher als die Knoepfe der Kopfzeile daneben, und der
+          kurze Trennstrich lag 8 px ueber deren Linie. Beides lief an der
+          Ecke sichtbar auseinander. */}
+      <div className="flex h-16 w-full shrink-0 items-center justify-center border-b border-sidebar-border">
+        <Link href="/" aria-label="Damicon" title="Damicon">
+          <DamiconLogo className="shadow-lg shadow-primary/20" />
+        </Link>
+      </div>
 
-      <div className="h-px w-8 bg-sidebar-border" />
+      <div className="flex min-h-0 w-full flex-1 flex-col items-center gap-2 p-2">
+        <nav className="flex min-h-0 flex-1 flex-col items-center gap-1.5 overflow-y-auto">
+          {ziele.map((ziel) => (
+            <Link
+              key={ziel.key}
+              href={ziel.href}
+              aria-label={ziel.name}
+              title={ziel.name}
+              aria-current={
+                ziel.aktuelleSeite ? "page" : ziel.imZiel ? "true" : undefined
+              }
+              className={feldKlassen(ziel.imZiel)}
+            >
+              <Icon name={ziel.icon} className="h-4 w-4" />
+            </Link>
+          ))}
+        </nav>
 
-      <nav className="flex min-h-0 flex-1 flex-col items-center gap-1.5 overflow-y-auto">
-        {ziele.map((ziel) => (
-          <Link
-            key={ziel.key}
-            href={ziel.href}
-            aria-label={ziel.name}
-            title={ziel.name}
-            aria-current={
-              ziel.aktuelleSeite ? "page" : ziel.imZiel ? "true" : undefined
-            }
-            className={feldKlassen(ziel.imZiel)}
-          >
-            <Icon name={ziel.icon} className="h-4 w-4" />
-          </Link>
-        ))}
-      </nav>
-
-      <BenutzerFussSchmal />
+        <BenutzerFussSchmal />
+      </div>
     </div>
   );
 }
@@ -381,67 +389,80 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
   const { offene, umschalten } = useZonenGruppen();
 
   return (
-    <div className="flex h-full min-h-0 flex-col p-4">
-      {/* Der Umschalter sitzt in der Kopfzeile, nicht hier: dort steht er an
+    <div className="flex h-full min-h-0 flex-col">
+      {/* Dieselbe Hoehe und dieselbe untere Kante wie die Kopfzeile, siehe
+          den Kommentar in SidebarRail. Im breiten Zustand kam der Versatz
+          zusaetzlich daher, dass der zweizeilige Textblock neben dem Logo
+          39 px hoch ist: das 36 px hohe Zeichen wurde darin zentriert und
+          rutschte die letzten 1,5 px nach unten.
+          Der Umschalter sitzt in der Kopfzeile, nicht hier: dort steht er an
           derselben Stelle, ob die Leiste nun schmal oder breit ist. */}
-      <Link href="/" className="flex items-center gap-2.5" onClick={onNavigate}>
-        <DamiconLogo className="shadow-lg shadow-primary/20" />
-        <span className="min-w-0">
-          <span className="block text-lg font-black leading-tight text-sidebar-foreground">
-            Damicon
+      <div className="flex h-16 shrink-0 items-center border-b border-sidebar-border px-4">
+        <Link
+          href="/"
+          className="flex min-w-0 items-center gap-2.5"
+          onClick={onNavigate}
+        >
+          <DamiconLogo className="shadow-lg shadow-primary/20" />
+          <span className="min-w-0">
+            <span className="block text-lg font-black leading-tight text-sidebar-foreground">
+              Damicon
+            </span>
+            <span className="block truncate text-[11px] font-semibold text-muted-foreground">
+              {nav("platformSubtitle")}
+            </span>
           </span>
-          <span className="block truncate text-[11px] font-semibold text-muted-foreground">
-            {nav("platformSubtitle")}
-          </span>
-        </span>
-      </Link>
+        </Link>
+      </div>
 
-      <nav className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
-        <ul className="space-y-1.5">
-          {/* "Uebersicht" steht auf derselben Ebene wie die vier Bereiche und
+      <div className="flex min-h-0 flex-1 flex-col p-4">
+        <nav className="min-h-0 flex-1 overflow-y-auto pr-1">
+          <ul className="space-y-1.5">
+            {/* "Uebersicht" steht auf derselben Ebene wie die vier Bereiche und
               bekommt deshalb dieselbe Flaeche - ohne sie haengt die Zeile lose
               ueber vier Karten. */}
-          <li className="rounded-xl border border-sidebar-border px-1 py-0.5">
-            <Link
-              href="/dashboard"
-              onClick={onNavigate}
-              aria-current={isActive("/dashboard") ? "page" : undefined}
-              className={cn(
-                "flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-semibold transition-colors",
-                isActive("/dashboard") ? AKTIVE_SEITE : RUHENDE_SEITE,
-              )}
-            >
-              <span className="flex h-6 w-6 shrink-0 items-center justify-center">
-                <House className="h-4 w-4" />
-              </span>
-              {nav("overview")}
-            </Link>
-          </li>
+            <li className="rounded-xl border border-sidebar-border px-1 py-0.5">
+              <Link
+                href="/dashboard"
+                onClick={onNavigate}
+                aria-current={isActive("/dashboard") ? "page" : undefined}
+                className={cn(
+                  "flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-semibold transition-colors",
+                  isActive("/dashboard") ? AKTIVE_SEITE : RUHENDE_SEITE,
+                )}
+              >
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+                  <House className="h-4 w-4" />
+                </span>
+                {nav("overview")}
+              </Link>
+            </li>
 
-          {zones.map((zone) => {
-            const items = modulesForZone(zone.key).filter((module) =>
-              hasPermission(role, module.resource, "view"),
-            );
-            // Ein Bereich ohne sichtbares Modul erscheint gar nicht - damit
-            // taucht auch der Link auf seine Bereichsseite nie fuer eine
-            // Rolle auf, die dort nichts zu sehen hat.
-            if (items.length === 0) return null;
+            {zones.map((zone) => {
+              const items = modulesForZone(zone.key).filter((module) =>
+                hasPermission(role, module.resource, "view"),
+              );
+              // Ein Bereich ohne sichtbares Modul erscheint gar nicht - damit
+              // taucht auch der Link auf seine Bereichsseite nie fuer eine
+              // Rolle auf, die dort nichts zu sehen hat.
+              if (items.length === 0) return null;
 
-            return (
-              <ZonenGruppe
-                key={zone.key}
-                zone={zone}
-                items={items}
-                offen={offene.includes(zone.key)}
-                umschalten={umschalten}
-                onNavigate={onNavigate}
-              />
-            );
-          })}
-        </ul>
-      </nav>
+              return (
+                <ZonenGruppe
+                  key={zone.key}
+                  zone={zone}
+                  items={items}
+                  offen={offene.includes(zone.key)}
+                  umschalten={umschalten}
+                  onNavigate={onNavigate}
+                />
+              );
+            })}
+          </ul>
+        </nav>
 
-      <BenutzerFuss onNavigate={onNavigate} />
+        <BenutzerFuss onNavigate={onNavigate} />
+      </div>
     </div>
   );
 }
@@ -457,7 +478,11 @@ export function DashboardSidebar() {
   // Server rendert immer die volle Spalte. Wer sie eingeklappt hatte, sieht
   // sie nach der Hydration zusammenfahren - dieselbe Abwaegung wie bei den
   // Bereichsgruppen und bei persona.tsx.
-  const schmal = useSyncExternalStore(schmalAbonnieren, istSchmal, schmalServer);
+  const schmal = useSyncExternalStore(
+    schmalAbonnieren,
+    istSchmal,
+    schmalServer,
+  );
 
   // 19rem statt der frueheren 18rem: die Gruppenflaechen kosten etwas Breite,
   // die Beschriftungen behalten so ihre eigene.

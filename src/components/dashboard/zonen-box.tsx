@@ -16,8 +16,8 @@ import { hasPermission, type Role } from "@/lib/rbac";
 import { modulesForZone, zones, type ModuleDef, type ZoneDef } from "@/lib/modules";
 import type { Kpi } from "@/lib/domain/kpis";
 import type { Datenquelle } from "@/lib/supabase/config";
-import { KennzahlBox } from "./kennzahl-box";
-import { nachDringlichkeit } from "./zielstand";
+import { KennzahlBox } from "@/components/dashboard/kennzahl-box";
+import { nachDringlichkeit } from "@/lib/domain/zielstand";
 
 function ModulKnoepfe({
   zone,
@@ -27,11 +27,11 @@ function ModulKnoepfe({
   module: ModuleDef[];
 }) {
   const moduleT = useTranslations("modules");
-  const t = useTranslations("dashboard.entwurf");
+  const t = useTranslations("dashboard.home");
   return (
     <div className="mt-3 border-t border-border pt-3">
       <p className="schrift-label font-semibold uppercase tracking-wide text-muted-foreground">
-        {t("module.titel")}
+        {t("moduleTitel")}
       </p>
       <div className="mt-2 flex flex-wrap gap-1.5">
         {module.map((eintrag) => (
@@ -80,7 +80,6 @@ function ZonenInhalt({
   kpis: Kpi[];
 }) {
   const t = useTranslations("dashboard");
-  const entwurfT = useTranslations("dashboard.entwurf");
   const zoneT = useTranslations("zones");
 
   const sichtbareModule = modulesForZone(zone.key).filter((m) =>
@@ -95,7 +94,7 @@ function ZonenInhalt({
           Weg in die Zone traegt der Kopf. */}
       <Link
         href={`/dashboard/${zone.key}`}
-        title={entwurfT("module.zoneOeffnen")}
+        title={t("home.openZone")}
         className="group rounded-lg outline-offset-4"
       >
         <div className="flex items-center gap-3">
@@ -126,7 +125,7 @@ function ZonenInhalt({
         </div>
       ) : (
         <p className="mt-3 rounded-xl border border-dashed border-border p-3 text-[11px] leading-4 text-muted-foreground">
-          {entwurfT("zoneOhneKennzahl")}
+          {t("home.zoneOhneKennzahl")}
         </p>
       )}
 
@@ -159,7 +158,7 @@ export function ZonenBox({
   /** Variante C: die Begruessung sitzt im Kopf derselben Box. */
   kopf?: ReactNode;
 }) {
-  const t = useTranslations("dashboard.entwurf");
+  const t = useTranslations("dashboard.home");
   const quelleT = useTranslations("dashboard.dataSource");
 
   return (
@@ -170,10 +169,10 @@ export function ZonenBox({
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-sm font-bold text-card-foreground">
-            {t("zonenTitel")}
+            {t("zonesTitle")}
           </h2>
           <p className="mt-0.5 schrift-dense text-muted-foreground">
-            {t("zonenBeschreibung")}
+            {t("zonesDescription")}
           </p>
         </div>
         <StatusPill tone={quelle === "db" ? "success" : "warning"}>
@@ -184,7 +183,11 @@ export function ZonenBox({
       {flach ? (
         <div className="mt-4 divide-y divide-border">
           {zones.map((zone) => (
-            <div key={zone.key} className="@container flex flex-col py-5 first:pt-0 last:pb-0">
+            <div
+              key={zone.key}
+              data-zone={zone.key}
+              className="@container flex flex-col py-5 first:pt-0 last:pb-0"
+            >
               <ZonenInhalt zone={zone} role={role} kpis={kpis} />
             </div>
           ))}
@@ -194,6 +197,7 @@ export function ZonenBox({
           {zones.map((zone) => (
             <div
               key={zone.key}
+              data-zone={zone.key}
               className="@container flex flex-col rounded-2xl border border-border bg-muted/20 p-4"
             >
               <ZonenInhalt zone={zone} role={role} kpis={kpis} />

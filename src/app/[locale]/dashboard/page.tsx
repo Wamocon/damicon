@@ -1,8 +1,13 @@
-import { setRequestLocale } from "next-intl/server";
+import { getFormatter, setRequestLocale } from "next-intl/server";
 import { DashboardHome } from "@/components/dashboard/home";
 import { ladeKpis } from "@/lib/data/kpis";
 import { getSessionProfile } from "@/lib/auth";
 import { kpisFuerRolle } from "@/lib/domain/kpis";
+import {
+  betriebsZeitzone,
+  spruchIndex,
+  tageszeitBestimmen,
+} from "@/lib/domain/tageszeit";
 
 export default async function DashboardPage({
   params,
@@ -13,7 +18,11 @@ export default async function DashboardPage({
   setRequestLocale(locale);
 
   // Die Baseline-Kennzahlen kommen aus public.kpi_baseline (Meilenstein B).
-  const [{ kpis, quelle }, profil] = await Promise.all([ladeKpis(), getSessionProfile()]);
+  const [{ kpis, quelle }, profil, format] = await Promise.all([
+    ladeKpis(),
+    getSessionProfile(),
+    getFormatter(),
+  ]);
 
   // WMC-Vibecode-Cleanup: kpisFuerRolle() lief bisher ausschliesslich
   // clientseitig in DashboardHome (dort noetig fuer die "Ansicht als"-Vorschau
@@ -33,5 +42,21 @@ export default async function DashboardPage({
     sichtbareKpis = [...kern, ...erweitert];
   }
 
-  return <DashboardHome kpis={sichtbareKpis} quelle={quelle} />;
+  // Tageszeit und Satz der Begruessung bestimmt der Server. Rechnete der
+  // Browser sie selbst, stuende im ausgelieferten HTML eine andere
+  // Begruessung als nach der Hydration.
+  const jetzt = new Date();
+
+  return (
+    <DashboardHome
+      kpis={sichtbareKpis}
+      quelle={quelle}
+      tageszeit={tageszeitBestimmen(jetzt)}
+      datum={format.dateTime(jetzt, {
+        dateStyle: "full",
+        timeZone: betriebsZeitzone,
+      })}
+      spruch={spruchIndex(jetzt)}
+    />
+  );
 }
