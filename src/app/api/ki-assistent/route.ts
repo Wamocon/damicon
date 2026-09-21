@@ -11,6 +11,8 @@
 // wird beim Empfang gespeichert, die Assistenten-Nachricht in onFinish, nach
 // erfolgreichem Streamende.
 import {
+  createUIMessageStream,
+  createUIMessageStreamResponse,
   convertToModelMessages,
   smoothStream,
   stepCountIs,
@@ -20,6 +22,9 @@ import {
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission, roles, type Role } from "@/lib/rbac";
 import { bestimmeAntwortsprache } from "@/lib/domain/antwortsprache";
+import { erzeugeSatzZerleger } from "@/lib/domain/sprachausgabe";
+import { ABSCHNITT_GUELTIG_MS, signiereAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
+import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
 import { erkenneSprache } from "@/lib/wissen/chunker";
 import { createClient } from "@/lib/supabase/server";
 import { ladeAnbieterKette, meldeAnbieterwechsel } from "@/lib/ai/anbieter-kette";
@@ -534,8 +539,52 @@ export async function POST(req: Request) {
   // L geht mit der Antwort mit: der Browser schickt sie beim Vorlesen
   // zurueck, damit die Stimme dieselbe Sprache spricht wie der Text. Der
   // Server prueft sie dort noch einmal gegen den fertigen Text.
-  return result.toUIMessageStreamResponse({
-    generateMessageId: () => antwortId,
-    messageMetadata: () => ({ sprache: antwortSprache, sprachHerkunft }),
+  const nachrichtenBeigabe = () => ({ sprache: antwortSprache, sprachHerkunft });
+
+  const geheimnis = sprachausgabeGeheimnis();
+  if (!sprachausgabeLiveAn() || !geheimnis) {
+    return result.toUIMessageStreamResponse({ generateMessageId: () => antwortId, messageMetadata: nachrichtenBeigabe });
+  }
+
+  // Live-Sprachausgabe: waehrend der Text entsteht, gehen sprechbare
+  // Abschnitte als eigene Ereignisse mit. Der Browser holt dafuer Audio,
+  // noch bevor die Antwort fertig ist - sonst beginnt die Stimme erst, wenn
+  // schon alles dasteht, und das sind bei einer langen Antwort viele
+  // Sekunden Stille.
+  //
+  // Der Strom wird hier SELBST weitergereicht statt mit writer.merge():
+  // so wird er genau einmal gelesen, und dabei faellt der Text fuer den
+  // Zerleger ohnehin an. Ein zweiter Leser waere ein zweiter Verbraucher
+  // desselben Stroms.
+  const stream = createUIMessageStream({
+    execute: async ({ writer }) => {
+      const zerleger = erzeugeSatzZerleger();
+      const ablauf = Date.now() + ABSCHNITT_GUELTIG_MS;
+      const schickeAbschnitt = (nr: number, text: string) => {
+        writer.write({
+          type: "data-satz",
+          data: {
+            zug: antwortId,
+            nr,
+            text,
+            sprache: antwortSprache,
+            ablauf,
+            // Ohne Signatur waere die Abschnitts-Route ein offener
+            // Sprachgenerator - siehe domain/sprachausgabe-signatur.ts.
+            sig: signiereAbschnitt({ nutzerId: profil.id, zug: antwortId, nr, text, ablauf }, geheimnis),
+          },
+        });
+      };
+
+      for await (const teil of result.toUIMessageStream({ generateMessageId: () => antwortId, messageMetadata: nachrichtenBeigabe })) {
+        writer.write(teil);
+        if (teil.type === "text-delta" && typeof teil.delta === "string") {
+          for (const a of zerleger.fuettere(teil.delta)) schickeAbschnitt(a.nr, a.text);
+        }
+      }
+      for (const a of zerleger.abschliessen()) schickeAbschnitt(a.nr, a.text);
+    },
   });
+
+  return createUIMessageStreamResponse({ stream });
 }

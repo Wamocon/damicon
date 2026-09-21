@@ -60,6 +60,7 @@ import { AKTIONS_NAMEN, AKTIONS_RECHTE, istAktion, type AktionsName } from "@/li
 import { istClientWerkzeug } from "@/lib/ai/client-werkzeuge-meta";
 import { fuehreUiWerkzeugAus, type KlickAnfrage } from "@/components/ki/ui-steuerung";
 import { istVorlesbar, stimmeVorhanden, useSprachausgabe, VorlesenKnopf, VorlesenSchalter } from "@/components/ki/sprachausgabe";
+import { useLiveSprachausgabe, type LiveAbschnitt } from "@/components/ki/sprachausgabe-live";
 import { MikrofonKnopf } from "@/components/ki/mikrofon";
 import { DiktatWelle } from "@/components/ki/diktat-welle";
 import { mitUmlauten } from "@/lib/text/umlaute";
@@ -456,6 +457,14 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
 
   const sprachausgabe = useSprachausgabe(sprache);
 
+  // Vorgelesen wird live, wenn der Schalter an ist ODER die Frage diktiert
+  // wurde: wer spricht, will hoeren - auch ohne den Schalter je gefunden zu
+  // haben. Der Server entscheidet ueber KI_SPRACHAUSGABE_LIVE, ob ueberhaupt
+  // Abschnitte kommen; hier steht nur, ob sie gesprochen werden sollen.
+  const [zugDiktiert, setZugDiktiert] = useState(false);
+  const live = useLiveSprachausgabe(sprachausgabe.vorlesen || zugDiktiert);
+  const gesehenerAbschnitt = useRef(new Set<string>());
+
   const beschaeftigt = status === "submitted" || status === "streaming" || clientAktiv !== null;
 
   // "Antworten vorlesen" an: die neue Antwort nach Streamende einmal vorlesen -
@@ -531,6 +540,30 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     }
   }, [messages, router]);
 
+  // Panel zu heisst still. Es bleibt gemountet, damit eine laufende
+  // Antwort nicht abreisst - gesprochen wird trotzdem nicht weiter.
+  useEffect(() => {
+    if (!offen) live.stoppeAlles();
+  }, [offen, live]);
+
+  // Abschnitte aus dem Stream ans Vorlesen weiterreichen. Jeder nur einmal:
+  // useChat liefert die Nachricht bei jedem Render erneut, samt aller schon
+  // gesehenen Teile.
+  useEffect(() => {
+    const letzte = messages.at(-1);
+    if (!letzte || letzte.role !== "assistant") return;
+    for (const teil of letzte.parts as Array<{ type: string; data?: unknown }>) {
+      if (teil.type !== "data-satz" || !teil.data) continue;
+      const a = teil.data as LiveAbschnitt & { sprache?: string };
+      const schluessel = `${a.zug}#${a.nr}`;
+      if (gesehenerAbschnitt.current.has(schluessel)) continue;
+      gesehenerAbschnitt.current.add(schluessel);
+      // Die Sprache kommt vom Zug, nicht aus der Oberflaeche: der Text
+      // antwortet in der Sprache der Frage, und die Stimme folgt ihm.
+      live.nimmAbschnitt(a, a.sprache ?? sprache);
+    }
+  }, [messages, live, sprache]);
+
   // Agent-Modus: jedes Werkzeugergebnis des LAUFENDEN Zuges oeffnet seine
   // Ansicht im Hauptfenster. zugModus wird beim Absenden festgehalten - wer
   // mitten in einer Antwort auf Agent umschaltet, bekommt keine Nachtour fuer
@@ -604,6 +637,9 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   }
 
   function stopp() {
+    // Zuerst die Stimme: wer auf Stopp drueckt, will sofort Ruhe, nicht erst
+    // nach dem laufenden Abschnitt.
+    live.stoppeAlles();
     abgebrochen.current = true;
     klickAnfrage?.entscheide(false);
     void stop();
@@ -614,6 +650,12 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     const bereinigt = text.trim();
     if (!bereinigt || beschaeftigt) return;
     if (istErsteNachricht && !einwilligung) return;
+    // Die vorige Antwort verstummt, bevor die neue beginnt.
+    live.stoppeAlles();
+    // Auf dem iPhone darf Ton nur aus einer Geste heraus starten - dieser
+    // Klick ist die Geste. Spaeter, beim ersten Abschnitt, waere es zu
+    // spaet: der Browser bliebe stumm, ohne einen Fehler zu melden.
+    live.entsperre();
     zugModus.current = modus;
     abgebrochen.current = false;
     zugSchritte.current = 0;
@@ -637,6 +679,10 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   }
 
   function beiEingabe(wert: string) {
+    // Wer zu tippen beginnt, hoert nicht mehr zu. Erst ab dem zweiten
+    // Zeichen: ein einzelner Tastendruck ist oft ein Versehen, und der
+    // erkannte Diktattext landet ebenfalls ueber diesen Weg im Feld.
+    if (wert.length > 1 && live.spricht) live.stoppeAlles();
     setEingabe(wert);
     const el = eingabeRef.current;
     if (el) {
@@ -1089,7 +1135,16 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
           <MikrofonKnopf
             className="ki-composer__knopf ki-composer__knopf--still"
             deaktiviert={beschaeftigt || einwilligungFehlt}
-            beiAufnahme={setDiktiert}
+            beiAufnahme={(an) => {
+              setDiktiert(an);
+              // Mikrofon an: sofort still, sonst nimmt das Mikrofon die
+              // eigene Stimme des Assistenten mit auf.
+              if (an) live.stoppeAlles();
+              // Mikrofon aus ist eine Geste - der richtige Moment, den
+              // AudioContext zu entsperren (iPhone), und dieser Zug wird
+              // vorgelesen, auch wenn der Schalter aus ist.
+              else { live.entsperre(); setZugDiktiert(true); }
+            }}
             beiText={(text) => {
               beiEingabe(text);
               const feld = eingabeRef.current;
@@ -1115,7 +1170,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
         </div>
         {diktiert ? <DiktatWelle /> : null}
         <div className="ki-composer__optionen">
-          <VorlesenSchalter zustand={sprachausgabe} />
+          <VorlesenSchalter zustand={sprachausgabe} laedt={live.laedtErsten} spricht={live.spricht} />
         </div>
       </form>
     </div>

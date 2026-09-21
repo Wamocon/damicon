@@ -2088,3 +2088,38 @@ html[data-ki-zieht] body {
 .ki-bezug button:hover {
   background: color-mix(in oklab, var(--primary) 16%, transparent);
 }
+
+/* ---- Ladehinweis der Live-Sprachausgabe (sprachausgabe.tsx) --------------
+   Zwischen dem Absenden und dem ersten Ton vergehen ein bis zwei Sekunden.
+   Ohne ein Lebenszeichen haelt man das fuer kaputt und drueckt noch einmal.
+   Drei Balken genuegen; sie stehen im Schalter, der ohnehin sagt, worum es
+   geht. */
+.ki-vorlesen-welle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-inline-start: 4px;
+}
+
+.ki-vorlesen-welle > span {
+  width: 2px;
+  height: 6px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.7;
+  animation: ki-vorlesen-huepf 900ms ease-in-out infinite;
+}
+
+.ki-vorlesen-welle > span:nth-child(2) { animation-delay: 150ms; }
+.ki-vorlesen-welle > span:nth-child(3) { animation-delay: 300ms; }
+
+@keyframes ki-vorlesen-huepf {
+  0%, 100% { transform: scaleY(0.6); }
+  50% { transform: scaleY(1.6); }
+}
+
+/* Wer Bewegung abgestellt hat, bekommt sie auch hier nicht: dann steht die
+   Welle still und zeigt allein durch ihre Anwesenheit, dass etwas laeuft. */
+@media (prefers-reduced-motion: reduce) {
+  .ki-vorlesen-welle > span { animation: none; }
+}

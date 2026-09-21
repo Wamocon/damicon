@@ -161,7 +161,16 @@ export function VorlesenKnopf({
   );
 }
 
-export function VorlesenSchalter({ zustand }: { zustand: ReturnType<typeof useSprachausgabe> }) {
+export function VorlesenSchalter({
+  zustand,
+  laedt = false,
+  spricht = false,
+}: {
+  zustand: ReturnType<typeof useSprachausgabe>;
+  /** Der erste Abschnitt wird gerade geholt - bis dahin ist es still. */
+  laedt?: boolean;
+  spricht?: boolean;
+}) {
   const t = useTranslations("kiAssistentAnsicht");
   const { vorlesen, setVorlesen } = zustand;
   return (
@@ -170,10 +179,21 @@ export function VorlesenSchalter({ zustand }: { zustand: ReturnType<typeof useSp
       role="switch"
       aria-checked={vorlesen}
       onClick={() => setVorlesen(!vorlesen)}
-      className={cn("ki-vorlesen-schalter", vorlesen && "ki-vorlesen-schalter--an")}
+      className={cn("ki-vorlesen-schalter", vorlesen && "ki-vorlesen-schalter--an", spricht && "ki-vorlesen-schalter--spricht")}
     >
       {vorlesen ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
       <span>{t("vorlesenAuto")}</span>
+      {/* Zwischen Absenden und dem ersten Ton vergehen ein bis zwei Sekunden.
+          Ohne ein Lebenszeichen haelt man das fuer kaputt und drueckt noch
+          einmal - deshalb drei Balken, die sich bewegen. Rein dekorativ: was
+          hier passiert, steht als Text schon im Schalter. */}
+      {laedt ? (
+        <span className="ki-vorlesen-welle" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </span>
+      ) : null}
     </button>
   );
 }
