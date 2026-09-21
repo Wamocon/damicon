@@ -86,9 +86,9 @@ Die eigentliche Masse. Verteilung der Abschnitte je Datei:
 2. ~~`Section` zur Abschnittsbox~~ — am 21.09.2026 umgestellt, siehe Punkt 1.
 3. Offen: `nachweiskette-ansicht.tsx` baut ohne `Section` und ist deshalb nicht mitgezogen.
 4. Offen: die öffentlichen Seiten. Ihre Karten tragen jetzt `ton="box"`, stehen also wie vorher — ob dort überhaupt ein Boxensystem gelten soll, ist nicht entschieden.
-5. Offen: der Dunkelmodus, in keiner Runde geprüft.
+5. ~~Dunkelmodus~~ — am 21.09.2026 geprüft, siehe docs/design/dunkelmodus-2026-09-21/bericht.md. Ein Befund: die drei Ebenen sind dort flächengleich, weil `--muted` im Dunkelmodus selbst halbtransparent ist. Behebung beschrieben, nicht umgesetzt.
 
 ## Nicht geprüft
 
-- Der Dunkelmodus. Alle Bilder dieser und der vorangegangenen Runden sind im hellen Modus entstanden.
-- Ob die gedämpften Inhaltskarten (`bg-muted/20`) auf allen vier Zonenfarben genug Kontrast haben.
+- Die öffentlichen Seiten im Dunkelmodus.
+- Ob die gedämpften Inhaltskarten auf allen vier Zonenfarben genug Kontrast haben.
