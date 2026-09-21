@@ -11,7 +11,7 @@ import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { erzeugeSprachausgabe } from "@/lib/ai/sprachausgabe-client";
-import { STIMMEN, erkenneSprache, sprachausgabePfad, textFuerSprachausgabe } from "@/lib/domain/sprachausgabe";
+import { istSprachausgabeSprache, sprachausgabePfad, stimmeFuerOberflaeche, textFuerSprachausgabe } from "@/lib/domain/sprachausgabe";
 
 // Zwischenspeicher: Bucket "ki-sprachausgabe" (Migration 20261101000000),
 // privat und nur ueber service_role erreichbar. Die Berechtigung haengt an der
@@ -59,8 +59,11 @@ export async function POST(req: Request) {
   const text = textFuerSprachausgabe(nachricht.inhalt);
   if (!text) return fehler(422, "kein-text");
 
-  const sprache = erkenneSprache(text, oberflaechenSprache);
-  const stimme = STIMMEN[sprache];
+  // Die Stimme folgt der Systemsprache. Frueher wurde die Sprache aus dem
+  // Antworttext erraten - bei einer Antwort, die selbst schon in der
+  // falschen Sprache stand, las die falsche Stimme dann den falschen Text.
+  const sprache = istSprachausgabeSprache(oberflaechenSprache) ? oberflaechenSprache : "de";
+  const stimme = stimmeFuerOberflaeche(sprache);
   if (!stimme) return fehler(422, "keine-stimme", { sprache });
 
   const dienst = createServiceRoleClient();

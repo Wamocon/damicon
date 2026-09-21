@@ -35,7 +35,6 @@ import {
   MAX_NACHRICHT_LAENGE,
   wissensQuellenFuerFaehigkeiten,
 } from "@/lib/domain/ki-assistent";
-import { antwortSprache } from "@/lib/domain/sprachausgabe";
 import { protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
 import de from "@/messages/de.json";
 
@@ -329,17 +328,14 @@ export async function POST(req: Request) {
   }
   const neueNutzerNachricht = letzte.role === "user" ? textAusNachricht(letzte) : "";
 
-  // Sprache dieses Zuges: die der letzten Frage, nicht die der Oberflaeche.
-  // Bei einer Freigabe-Runde (letzte Nachricht vom Assistenten) ist das die
-  // Frage davor - dieselbe Antwortsprache wie zuvor, kein Sprung mitten im
-  // Vorgang. Dieselbe Funktion nutzt die Oberflaeche fuer ihre eigenen
-  // Texte (ki-chat.tsx), damit Antwort und Beiwerk nie auseinanderfallen.
-  const gespraechsSprache = antwortSprache(
-    nachrichten
-      .filter((n) => n.role === "user")
-      .map((n) => ({ rolle: "nutzer", inhalt: textAusNachricht(n) })),
-    typeof body.sprache === "string" ? body.sprache : "de",
-  );
+  // Die Systemsprache bestimmt die Antwort - nicht die geratene Sprache der
+  // Frage. Bis zum 21.09.2026 wurde sie aus dem Fragetext erkannt; das ging
+  // schief, sobald die Frage diktiert war: eine kasachisch gesprochene Frage
+  // kam auf deutscher Oberflaeche als deutsch aussehender Unsinn an
+  // ("Sahlkentiz wird tollen, kurzat."), die Erkennung sah Deutsch, und die
+  // Antwort kam deutsch. Eine Einstellung, die die Person selbst setzt, ist
+  // verlaesslicher als jede Erkennung.
+  const gespraechsSprache = typeof body.sprache === "string" ? body.sprache : "de";
   // Offensichtliche Zweckentfremdung (Code, Kreativtexte, Prompt-Injektion): ohne Werkzeuge nur ablehnen.
   const ausserhalb = neueNutzerNachricht ? zweckentfremdung(neueNutzerNachricht) : null;
   if (letzte.role === "user" && (!neueNutzerNachricht || neueNutzerNachricht.length > MAX_NACHRICHT_LAENGE)) {
