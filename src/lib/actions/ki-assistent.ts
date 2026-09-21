@@ -20,6 +20,7 @@ import { sendeAgentAnfrage } from "@/lib/ai/agent";
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
 import { transkribiereAudio, transkriptionsMeldung, waermeTranskriptionVor } from "@/lib/ai/transkription-client";
 import { spracherkennungAnbieter, transkribiereMitSoniox } from "@/lib/ai/soniox-client";
+import { erkenneMitRueckfall } from "@/lib/domain/spracherkennung";
 import type { ChatNachricht } from "@/lib/ai/anfrage";
 import type { Json } from "@/lib/database.types";
 import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
@@ -277,7 +278,11 @@ export async function kiEskalationAnfordern(
 // Frage - deshalb braucht dieser Schritt keine eigene Eskalations- oder
 // Sicherheitslogik.
 
-const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
+// An next.config.ts angeglichen (serverActions.bodySizeLimit: "8mb"): alles
+// darueber weist Next ab, BEVOR diese Aktion laeuft - die alte Grenze von
+// 25 MB konnte nie greifen, und statt einer uebersetzten Meldung sah die
+// Person einen rohen Fehler. 30 s Aufnahme sind je nach Format 90-240 kB.
+const MAX_AUDIO_BYTES = 8 * 1024 * 1024;
 
 export async function transkribiereSprachnachricht(
   _status: AktionsStatus,
@@ -296,22 +301,17 @@ export async function transkribiereSprachnachricht(
 
   const name = audio instanceof File && audio.name ? audio.name : "aufnahme.webm";
 
-  // Welcher Dienst erkennt? Standard ist Whisper auf der eigenen Maschine;
-  // KI_SPRACHERKENNUNG_ANBIETER=soniox schaltet um. Schlaegt Soniox fehl -
-  // Stoerung, Zeitueberschreitung, fehlender Schluessel -, uebernimmt Whisper
-  // still. Wer diktiert, soll von einem Ausfall beim Dienstleister nichts
-  // merken.
-  let antwort = null;
-  if (spracherkennungAnbieter() === "soniox") {
-    const ueberSoniox = await transkribiereMitSoniox(audio, name);
-    if (ueberSoniox.ok) antwort = ueberSoniox;
-    else console.error("[damicon] Soniox fehlgeschlagen, weiter mit Whisper:", ueberSoniox.grund);
-  }
-  // Die Oberflaechensprache als Hinweis, welche Sprache zu erwarten ist -
-  // ungeprueft weitergereicht, weil transkribiereAudio() nur die
-  // unterstuetzten Werte durchlaesst und alles andere still verwirft.
-  // (Soniox bekommt bewusst keinen Hinweis, siehe soniox-client.ts.)
-  antwort ??= await transkribiereAudio(audio, name, text(formData, "sprache"));
+  // Wer erkennt und was passiert, wenn ein Dienst hakt, steht in
+  // ai/spracherkennung.ts: Soniox zuerst, ab 6 s laeuft Whisper parallel mit,
+  // der erste brauchbare Text gewinnt. Die Oberflaechensprache geht als
+  // Hinweis mit - ungeprueft, beide Clients lassen nur zu, was sie kennen.
+  const sprachHinweis = text(formData, "sprache");
+  const antwort = await erkenneMitRueckfall(
+    spracherkennungAnbieter() === "soniox"
+      ? (abbruch) => transkribiereMitSoniox(audio, name, sprachHinweis, abbruch)
+      : null,
+    (abbruch) => transkribiereAudio(audio, name, sprachHinweis, abbruch),
+  );
 
   if (!antwort.ok) {
     console.error("[damicon] Transkription fehlgeschlagen:", antwort.grund);
@@ -320,9 +320,16 @@ export async function transkribiereSprachnachricht(
 
   // Der Text selbst wird nicht protokolliert - er steht gleich als Frage im
   // Verlauf, sobald die Nutzerin ihn abschickt. Hier nur, dass diktiert wurde.
-  await protokolliere(profil, "ki_chat.diktat", { zeichen: antwort.text.length });
+  const gehoerteSprachen = [...new Set(antwort.sprachen)];
+  // Nur die Sprachen, nie der Text: so laesst sich spaeter nachvollziehen,
+  // warum eine Antwort in einer bestimmten Sprache kam.
+  await protokolliere(profil, "ki_chat.diktat", {
+    zeichen: antwort.text.length,
+    dienst: antwort.dienst,
+    sprachen: gehoerteSprachen,
+  });
 
-  return ok("ok.transkription", antwort.text);
+  return ok("ok.transkription", antwort.text, gehoerteSprachen);
 }
 
 /** Stoesst das Laden des Spracherkennungsmodells an, damit die erste echte

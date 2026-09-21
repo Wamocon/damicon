@@ -41,6 +41,9 @@ import {
   sprachausgabePfad,
   STIMMEN,
   textFuerSprachausgabe,
+  ABSCHNITT_ZEICHEN,
+  ERSTER_ABSCHNITT_ZEICHEN,
+  erzeugeSatzZerleger,
 } from "../../src/lib/domain/sprachausgabe.ts";
 import { erzeugeSprachausgabe, sprachausgabeUrl, sprachausgabeZugangsHeader } from "../../src/lib/ai/sprachausgabe-client.ts";
 import {
@@ -52,11 +55,19 @@ import {
   transkriptionZugangsHeader,
 } from "../../src/lib/ai/transkription-client.ts";
 import {
+  aufnahmeDateiname,
   DIKTAT_STANDARD,
   diktatEinstellungen,
   erzeugeStilleWaechter,
   pegelAusZeitbereich,
 } from "../../src/lib/domain/diktat.ts";
+import { erkenneMitRueckfall, GESAMTDECKEL_MS, HEDGE_AB_MS } from "../../src/lib/domain/spracherkennung.ts";
+import { bestimmeAntwortsprache, mehrheitsSprache, stimmenSprache } from "../../src/lib/domain/antwortsprache.ts";
+import { erkenneSprache } from "../../src/lib/wissen/chunker.ts";
+import { erzeugeWarteschlange, HOECHSTENS_GLEICHZEITIG } from "../../src/lib/domain/sprachausgabe-warteschlange.ts";
+import { ANFANG, DARSTELLUNG_SCHLUESSEL, istDarstellung, naechsterZustand, NUTZER_SCHLUESSEL, OFFEN_SCHLUESSEL } from "../../src/lib/domain/ki-ansicht.ts";
+import { agentSeitenansichtAn, schalterAn, sprachausgabeLiveAn } from "../../src/lib/domain/schalter.ts";
+import { ABSCHNITT_GUELTIG_MS, pruefeAbschnitt, signiereAbschnitt, sprachausgabeGeheimnis } from "../../src/lib/domain/sprachausgabe-signatur.ts";
 import {
   sonioxBasisUrl,
   sonioxZeitlimitMs,
@@ -789,9 +800,9 @@ for (const [name, kaputteAntwort] of [
 
   // --- Zeitlimit ---
   delete process.env.SONIOX_ZEITLIMIT_MS;
-  pruefe("Soniox-Zeitlimit: Voreinstellung liegt deutlich unter Vercels 60 s", sonioxZeitlimitMs() <= 55_000, `${sonioxZeitlimitMs()} ms`);
+  pruefe("Soniox-Zeitlimit: Voreinstellung laesst Platz fuer den Rueckfall auf Whisper", sonioxZeitlimitMs() <= 20_000, `${sonioxZeitlimitMs()} ms`);
   process.env.SONIOX_ZEITLIMIT_MS = "999999";
-  pruefe("Soniox-Zeitlimit: ein unsinniger Wert faellt auf die Voreinstellung zurueck", sonioxZeitlimitMs() <= 55_000);
+  pruefe("Soniox-Zeitlimit: ein unsinniger Wert faellt auf die Voreinstellung zurueck", sonioxZeitlimitMs() <= 20_000);
   delete process.env.SONIOX_ZEITLIMIT_MS;
 
   // --- Fehlender Schluessel ---
@@ -839,7 +850,7 @@ for (const [name, kaputteAntwort] of [
     pruefe("Soniox: erkannter Text kommt zurueck", gut.ok && gut.text === "Салқын тізбек толық құжатталған.");
     pruefe("Soniox: Modell stt-async-v5 im Auftrag", String(aufrufe[1]?.koerper).includes("stt-async-v5"));
     pruefe(
-      "Soniox: KEIN Sprachhinweis - mit und ohne war das Ergebnis am 21.09.2026 identisch",
+      "Soniox: ohne Sprachangabe geht kein Hinweis mit - Soniox erkennt dann selbst",
       !String(aufrufe[1]?.koerper).includes("language_hints"),
       String(aufrufe[1]?.koerper),
     );
@@ -897,7 +908,772 @@ for (const [name, kaputteAntwort] of [
   }
 }
 
+// --- 10. Spracherkennung: Befunde der Ende-zu-Ende-Pruefung (22.09.2026) ----
+// Drei Dinge, die vorher falsch waren und hier festgehalten werden, damit sie
+// nicht zurueckkommen.
+{
+  // (a) Der Dateiname muss zum aufgenommenen Format passen. Safari auf iOS
+  // nimmt audio/mp4 auf; bis heute hiess die Datei trotzdem immer
+  // "aufnahme.webm", der Dienst bekam also MP4 unter WebM-Namen.
+  for (const [typ, erwartet] of [
+    ["audio/webm", "aufnahme.webm"],
+    ["audio/webm;codecs=opus", "aufnahme.webm"],
+    ["audio/mp4", "aufnahme.mp4"],
+    ["audio/mp4;codecs=mp4a.40.2", "aufnahme.mp4"],
+    ["audio/x-m4a", "aufnahme.mp4"],
+    ["audio/ogg;codecs=opus", "aufnahme.ogg"],
+    ["audio/wav", "aufnahme.wav"],
+    ["", "aufnahme.webm"],
+  ]) {
+    pruefe(`Diktat-Dateiname: "${typ || "(leer)"}" -> ${erwartet}`, aufnahmeDateiname(typ) === erwartet, aufnahmeDateiname(typ));
+  }
+
+  // (c) Zeitbudget, zweite Fassung. Frueher liefen die Dienste nacheinander
+  // (Soniox 8 s, dann Whisper 12 s): an echten 10-Sekunden-Aufnahmen lief das
+  // zweimal in die Grenze - 20,3 s und KEIN Text. Jetzt ueberlappen sie sich.
+  {
+    const urspruenglich = { s: process.env.SONIOX_ZEITLIMIT_MS, w: process.env.KI_TRANSKRIPTION_ZEITLIMIT_MS };
+    delete process.env.SONIOX_ZEITLIMIT_MS;
+    delete process.env.KI_TRANSKRIPTION_ZEITLIMIT_MS;
+    pruefe("Zeitbudget: Soniox darf bis 20 s brauchen", sonioxZeitlimitMs() === 20_000, `${sonioxZeitlimitMs()} ms`);
+    pruefe("Zeitbudget: Whisper darf bis 20 s brauchen", transkriptionZeitlimitMs() === 20_000, `${transkriptionZeitlimitMs()} ms`);
+    pruefe("Zeitbudget: Whisper laeuft ab 6 s parallel mit, statt hinterher", HEDGE_AB_MS === 6_000, `${HEDGE_AB_MS} ms`);
+    // Der schlimmste Fall ist jetzt nicht mehr die Summe: Whisper startet bei
+    // 6 s und hat 20 s, also 26 s - nicht 40.
+    pruefe("Zeitbudget: schlimmster Fall 6 + 20 = 26 s, unter dem Deckel", HEDGE_AB_MS + transkriptionZeitlimitMs() < GESAMTDECKEL_MS, `${(HEDGE_AB_MS + transkriptionZeitlimitMs()) / 1000} s`);
+    pruefe("Zeitbudget: Deckel 40 s laesst 20 s Luft bis Vercels 60 s", GESAMTDECKEL_MS === 40_000 && GESAMTDECKEL_MS <= 60_000 - 20_000, `${GESAMTDECKEL_MS} ms`);
+    process.env.SONIOX_ZEITLIMIT_MS = "50000";
+    pruefe("Zeitbudget: ein zu grosser Umgebungswert wird verworfen", sonioxZeitlimitMs() <= 20_000, `${sonioxZeitlimitMs()} ms`);
+    if (urspruenglich.s === undefined) delete process.env.SONIOX_ZEITLIMIT_MS; else process.env.SONIOX_ZEITLIMIT_MS = urspruenglich.s;
+    if (urspruenglich.w === undefined) delete process.env.KI_TRANSKRIPTION_ZEITLIMIT_MS; else process.env.KI_TRANSKRIPTION_ZEITLIMIT_MS = urspruenglich.w;
+  }
+
+  // (c2) Der Wettlauf selbst, mit erfundenen Diensten - so laesst sich
+  // pruefen, WER wann gerufen wird und wer gewinnt, ohne Netz.
+  {
+    const still = () => {};
+    const audio = () => new Blob([new Uint8Array([1, 2, 3])]);
+    const sofort = (text) => async () => ({ ok: true, text });
+    const scheitert = (grund) => async () => ({ ok: false, grund });
+    /** Ein Dienst, der erst nach ms antwortet - und auf Abbruch sofort aufgibt. */
+    const langsam = (ms, text) => (abbruch) =>
+      new Promise((fertig) => {
+        const t = setTimeout(() => fertig({ ok: true, text }), ms);
+        abbruch.addEventListener("abort", () => { clearTimeout(t); fertig({ ok: false, grund: "abgebrochen" }); }, { once: true });
+      });
+
+    // 1. Soniox ist schnell: Whisper wird gar nicht erst gestartet.
+    {
+      let whisperGestartet = 0;
+      const e = await erkenneMitRueckfall(sofort("von soniox"), async () => { whisperGestartet++; return { ok: true, text: "von whisper" }; }, still);
+      pruefe("Wettlauf: ist Soniox schnell, gewinnt Soniox", e.ok && e.text === "von soniox" && e.dienst === "soniox", JSON.stringify(e));
+      pruefe("Wettlauf: dann wird Whisper gar nicht erst gestartet", whisperGestartet === 0, `${whisperGestartet} Starts`);
+    }
+
+    // 2. Soniox sagt sofort ab (401, kein Schluessel): Whisper startet OHNE
+    //    die Hedge-Zeit abzuwarten - auf einen Dienst zu warten, der schon
+    //    abgesagt hat, waere reine Wartezeit fuer die Person.
+    {
+      const begonnen = Date.now();
+      const e = await erkenneMitRueckfall(scheitert("zugang-abgewiesen (http-401)"), sofort("von whisper"), still);
+      const gedauert = Date.now() - begonnen;
+      pruefe("Wettlauf: nach einer Absage von Soniox uebernimmt Whisper", e.ok && e.dienst === "whisper", JSON.stringify(e));
+      pruefe("Wettlauf: und zwar sofort, nicht erst nach der Hedge-Zeit", gedauert < HEDGE_AB_MS, `${gedauert} ms`);
+    }
+
+    // 3. Soniox haengt: nach der Hedge-Zeit laeuft Whisper mit und gewinnt.
+    //    Genau der Fall vom 22.09.2026, der vorher 20,3 s ohne Text kostete.
+    {
+      const begonnen = Date.now();
+      const e = await erkenneMitRueckfall(langsam(30_000, "von soniox"), langsam(300, "von whisper"), still);
+      const gedauert = Date.now() - begonnen;
+      pruefe("Wettlauf: haengt Soniox, gewinnt der parallel gestartete Whisper", e.ok && e.dienst === "whisper", JSON.stringify(e));
+      pruefe("Wettlauf: das dauert etwa die Hedge-Zeit, nicht die Summe beider Limits", gedauert < HEDGE_AB_MS + 3_000, `${gedauert} ms`);
+    }
+
+    // 4. Beide scheitern: ein Grund kommt zurueck, kein Wurf.
+    {
+      const e = await erkenneMitRueckfall(scheitert("zeitueberschreitung"), scheitert("dienst-nicht-erreichbar: fetch failed"), still);
+      pruefe("Wettlauf: scheitern beide, endet es in ok:false statt in einem Wurf", !e.ok && typeof e.grund === "string" && e.grund.length > 0, JSON.stringify(e));
+    }
+
+    // 5. Ohne den Schalter (Soniox aus) laeuft nur Whisper.
+    {
+      const e = await erkenneMitRueckfall(null, sofort("von whisper"), still);
+      pruefe("Wettlauf: ohne den Schalter laeuft nur Whisper", e.ok && e.dienst === "whisper", JSON.stringify(e));
+    }
+
+    // 6. Der Verlierer wird abgebrochen - sonst bliebe bei Soniox ein
+    //    Auftrag offen und die Aufnahme laege 30 Tage beim Dienstleister.
+    {
+      let sonioxAbgebrochen = false;
+      const haengenderSoniox = (abbruch) =>
+        new Promise((fertig) => {
+          const t = setTimeout(() => fertig({ ok: true, text: "zu spaet" }), 30_000);
+          abbruch.addEventListener("abort", () => { clearTimeout(t); sonioxAbgebrochen = true; fertig({ ok: false, grund: "abgebrochen" }); }, { once: true });
+        });
+      const e = await erkenneMitRueckfall(haengenderSoniox, langsam(200, "von whisper"), still);
+      pruefe("Wettlauf: gewinnt Whisper, wird Soniox abgebrochen", e.ok && sonioxAbgebrochen, `abgebrochen=${sonioxAbgebrochen}`);
+    }
+
+    void audio;
+  }
+
+  // (b) Sprachhinweis an Soniox. Er BESCHRAENKT dort nicht, er gewichtet nur
+  // (soniox.com/docs/stt/concepts/language-hints) - anders als bei Whisper,
+  // wo ein falscher Hinweis erfundene Woerter der falschen Sprache erzeugte.
+  {
+    const echtesFetch = globalThis.fetch;
+    const aufrufe = [];
+    const json = (o) => new Response(JSON.stringify(o), { status: 200, headers: { "content-type": "application/json" } });
+    let plan = [];
+    globalThis.fetch = async (url, init = {}) => {
+      if (init.signal?.aborted) throw new DOMException("aborted", "AbortError");
+      aufrufe.push({ url: String(url), methode: init.method ?? "GET", koerper: init.body });
+      return plan.shift() ?? json({});
+    };
+    const umgebung = { k: process.env.SONIOX_API_KEY, u: process.env.SONIOX_API_URL };
+    try {
+      process.env.SONIOX_API_KEY = "testschluessel";
+      process.env.SONIOX_API_URL = "https://api.soniox.com";
+      const lauf = async (sprache) => {
+        aufrufe.length = 0;
+        plan = [json({ id: "d" }), json({ id: "a" }), json({ status: "completed" }), json({ text: "x" }), json({}), json({})];
+        await transkribiereMitSoniox(new Blob([new Uint8Array([1])]), "aufnahme.webm", sprache);
+        return JSON.parse(String(aufrufe[1]?.koerper ?? "{}"));
+      };
+      for (const sprache of ["de", "en", "ru", "kk"]) {
+        const koerper = await lauf(sprache);
+        pruefe(`Sprachhinweis: ${sprache} geht als language_hints mit`, JSON.stringify(koerper.language_hints) === JSON.stringify([sprache]), JSON.stringify(koerper.language_hints));
+      }
+      pruefe("Sprachhinweis: eine unbekannte Sprache wird still verworfen", (await lauf("klingonisch")).language_hints === undefined);
+      pruefe("Sprachhinweis: ohne Angabe erkennt Soniox selbst", (await lauf(undefined)).language_hints === undefined);
+    } finally {
+      globalThis.fetch = echtesFetch;
+      if (umgebung.k === undefined) delete process.env.SONIOX_API_KEY; else process.env.SONIOX_API_KEY = umgebung.k;
+      if (umgebung.u === undefined) delete process.env.SONIOX_API_URL; else process.env.SONIOX_API_URL = umgebung.u;
+    }
+  }
+
+  // (d) Kein Auto-Senden mehr: der Knopf kennt keine Rueckgabe, die den Text
+  // sofort abschickt, und das Chatfenster uebergibt keine.
+  {
+    const knopf = readFileSync(new URL("../../src/components/ki/mikrofon.tsx", import.meta.url), "utf8");
+    const chat = readFileSync(new URL("../../src/components/ki/ki-chat.tsx", import.meta.url), "utf8");
+    // Auf den Aufruf pruefen, nicht auf das Wort: der Kommentar im Kopf der
+    // Datei erklaert weiterhin, warum es die Rueckgabe nicht mehr gibt.
+    pruefe("Kein Auto-Senden: der Knopf ruft nichts mehr auf", !knopf.includes("beiSenden?.("));
+    pruefe("Kein Auto-Senden: der Knopf nimmt die Rueckgabe nicht mehr entgegen", !knopf.includes("beiSenden?:"));
+    pruefe("Kein Auto-Senden: das Chatfenster uebergibt keine", !chat.includes("beiSenden={"));
+    // Der Text geht ins Feld - inzwischen samt der gehoerten Sprache, die
+    // ueber die Antwortsprache entscheidet (Block 16).
+    pruefe("Kein Auto-Senden: der erkannte Text geht weiterhin ins Feld", knopf.includes("beiText(status.wert, status.sprachen)"));
+    pruefe("Diktat: der Cursor steht danach am Ende des Textes", chat.includes("setSelectionRange(text.length, text.length)"));
+  }
+
+  // (f) Groessengrenze passt zu next.config.ts, sonst greift sie nie.
+  {
+    const aktion = readFileSync(new URL("../../src/lib/actions/ki-assistent.ts", import.meta.url), "utf8");
+    const konfig = readFileSync(new URL("../../next.config.ts", import.meta.url), "utf8");
+    pruefe("Groessengrenze: Aktion prueft 8 MB", aktion.includes("const MAX_AUDIO_BYTES = 8 * 1024 * 1024;"));
+    pruefe("Groessengrenze: dieselbe Zahl wie bodySizeLimit in next.config.ts", konfig.includes('bodySizeLimit: "8mb"'));
+  }
+}
+
+// --- 11. Eine Sprache je Antwort: Text und Stimme (domain/antwortsprache.ts) -
+// Waleri am 22.09.2026: Oberflaeche ru, Frage deutsch -> Antwort deutsch,
+// Stimme russisch. Oberflaeche en, Frage russisch -> Antwort russisch, Stimme
+// englisch. Beide Stellen lasen die Oberflaechensprache; die Stimme hielt
+// sich daran, das Modell nicht. Jetzt entscheidet EINE Stelle je Zug.
+{
+  const erkenner = (t) => erkenneSprache(t, 10);
+  const FRAGEN = {
+    de: "Wann ist die Lieferung aus Almaty angekommen?",
+    en: "When did the delivery from Almaty arrive?",
+    ru: "Когда прибыла поставка из Алматы?",
+    kk: "Алматыдан жеткізілім қашан келді?",
+  };
+  const ANTWORTEN = {
+    de: "Die Lieferung ist am Dienstag um 14 Uhr angekommen.",
+    en: "The delivery arrived on Tuesday at 2 pm.",
+    ru: "Поставка прибыла во вторник в 14 часов.",
+    kk: "Жеткізілім сейсенбіде сағат 14-те келді.",
+  };
+
+  // (a) Alle 16 Kombinationen Oberflaeche x Fragesprache: die Antwort folgt
+  //     der FRAGE, und die Stimme folgt der Antwort.
+  let stimmig = 0;
+  for (const oberflaeche of ["de", "en", "ru", "kk"]) {
+    for (const frageSprache of ["de", "en", "ru", "kk"]) {
+      const { sprache: L, herkunft } = bestimmeAntwortsprache(
+        { frage: FRAGEN[frageSprache], oberflaeche },
+        erkenner,
+      );
+      const stimme = stimmenSprache(L, ANTWORTEN[L], erkenner);
+      const richtig = L === frageSprache && stimme.sprache === L && !stimme.abweichung;
+      if (richtig) stimmig++;
+      else console.log(`      ${oberflaeche}/${frageSprache}: L=${L} (${herkunft}), Stimme=${stimme.sprache}`);
+    }
+  }
+  pruefe("Antwortsprache: alle 16 Kombinationen - Text und Stimme gleich", stimmig === 16, `${stimmig}/16`);
+
+  // (b) Waleris zwei Faelle, beim Namen genannt.
+  {
+    const a = bestimmeAntwortsprache({ frage: FRAGEN.de, oberflaeche: "ru" }, erkenner);
+    pruefe("Antwortsprache: Oberflaeche ru, Frage deutsch -> deutsch", a.sprache === "de", `${a.sprache} (${a.herkunft})`);
+    pruefe("Stimme: dazu die deutsche Stimme, nicht die russische", stimmenSprache(a.sprache, ANTWORTEN.de, erkenner).sprache === "de");
+    const b = bestimmeAntwortsprache({ frage: FRAGEN.ru, oberflaeche: "en" }, erkenner);
+    pruefe("Antwortsprache: Oberflaeche en, Frage russisch -> russisch", b.sprache === "ru", `${b.sprache} (${b.herkunft})`);
+    pruefe("Stimme: dazu die russische Stimme, nicht die englische", stimmenSprache(b.sprache, ANTWORTEN.ru, erkenner).sprache === "ru");
+  }
+
+  // (c) Diktiert schlaegt Text: Soniox hat zugehoert, der Erkenner sieht nur
+  //     das Ergebnis - und erbt dessen Fehler. Genau daran scheiterte der
+  //     kasachische Fall am 20.09.2026 ("Sahlkentiz wird tollen, kurzat.").
+  {
+    const verhoert = "Sahlkentiz wird tollen, kurzat.";
+    const ohne = bestimmeAntwortsprache({ frage: verhoert, oberflaeche: "de" }, erkenner);
+    const mit = bestimmeAntwortsprache(
+      { frage: verhoert, oberflaeche: "de", diktatSprachen: ["kk", "kk", "kk", "ru", "kk"] },
+      erkenner,
+    );
+    pruefe("Diktat: ohne Sprachinfo haette der Text entschieden", ohne.herkunft !== "diktat", ohne.herkunft);
+    pruefe("Diktat: Soniox' Sprache schlaegt den verhoerten Text", mit.sprache === "kk" && mit.herkunft === "diktat", `${mit.sprache} (${mit.herkunft})`);
+  }
+
+  // (d) Mehrheit der Token, nicht das erste Wort.
+  pruefe("Diktat: die Mehrheit entscheidet", mehrheitsSprache(["ru", "kk", "kk", "kk", "en"]) === "kk");
+  pruefe("Diktat: unbekannte Sprachen zaehlen nicht mit", mehrheitsSprache(["fr", "fr", "de"]) === "de");
+  pruefe("Diktat: ohne brauchbare Angabe kein Ergebnis", mehrheitsSprache(["fr", null, undefined, ""]) === null);
+  pruefe("Diktat: Gleichstand -> die Sprache, in der begonnen wurde", mehrheitsSprache(["ru", "de"]) === "ru");
+  pruefe("Diktat: Regionalcodes werden auf zwei Buchstaben gekuerzt", mehrheitsSprache(["de-DE", "de-AT"]) === "de");
+
+  // (e) Zu kurz zum Raten: dann gilt die Einstellung. Lieber die Sprache, die
+  //     die Person selbst gewaehlt hat, als ein Muenzwurf.
+  {
+    const kurz = bestimmeAntwortsprache({ frage: "?", oberflaeche: "kk" }, erkenner);
+    pruefe("Antwortsprache: zu kurze Frage -> Oberflaeche", kurz.sprache === "kk" && kurz.herkunft === "oberflaeche", `${kurz.sprache} (${kurz.herkunft})`);
+    const unbekannt = bestimmeAntwortsprache({ frage: "?", oberflaeche: "fr" }, erkenner);
+    pruefe("Antwortsprache: unbekannte Oberflaeche -> Deutsch", unbekannt.sprache === "de");
+  }
+
+  // (f) Die Gegenprobe am fertigen Text: haelt sich das Modell nicht an die
+  //     Anweisung, liest die Stimme, was WIRKLICH dasteht.
+  {
+    const abweichend = stimmenSprache("ru", ANTWORTEN.de, erkenner);
+    pruefe("Gegenprobe: antwortet das Modell doch deutsch, spricht die deutsche Stimme", abweichend.sprache === "de" && abweichend.abweichung);
+    const passend = stimmenSprache("ru", ANTWORTEN.ru, erkenner);
+    pruefe("Gegenprobe: passt es, bleibt es bei L", passend.sprache === "ru" && !passend.abweichung);
+    const unklar = stimmenSprache("kk", "42", erkenner);
+    pruefe("Gegenprobe: bei unklarem Text bleibt es bei L", unklar.sprache === "kk" && !unklar.abweichung);
+  }
+
+  // (g) Die alte Regel ist wirklich weg: die Stimme darf nicht mehr allein
+  //     aus der Oberflaeche kommen.
+  {
+    const tts = readFileSync(new URL("../../src/app/api/ki-sprachausgabe/route.ts", import.meta.url), "utf8");
+    pruefe("Stimme: die Route prueft den Antworttext gegen L", tts.includes("stimmenSprache("));
+    pruefe("Stimme: sie leitet die Sprache nicht mehr allein aus der Oberflaeche ab", !/const sprache = istSprachausgabeSprache\(oberflaechenSprache\)/.test(tts));
+  }
+
+  // (h) Die Anweisung ans Modell bekommt L, nicht die Oberflaeche.
+  {
+    const route = readFileSync(new URL("../../src/app/api/ki-assistent/route.ts", import.meta.url), "utf8");
+    pruefe("Antwortsprache: der Systemprompt bekommt L", route.includes("spracheAnweisung(antwortSprache)"));
+    pruefe("Antwortsprache: L wird im Stream mitgeschickt", route.includes("messageMetadata"));
+  }
+}
+
+// --- 12. Live-Sprachausgabe: Zerleger und Signatur -------------------------
+// Vorgelesen wird kuenftig schon waehrend die Antwort entsteht. Zwei Dinge
+// muessen dafuer stimmen: die Abschnitte muessen sprechbar sein, und niemand
+// darf sich beliebigen Text auf unsere Rechnung vorlesen lassen.
+{
+  // (a) Der erste Abschnitt faellt frueh - er entscheidet, wie lange es still
+  //     bleibt, bevor ueberhaupt etwas klingt.
+  {
+    const z = erzeugeSatzZerleger();
+    const erste = z.fuettere("Die Lieferung aus Almaty ist am Dienstag angekommen, pünktlich um 14 Uhr.");
+    pruefe("Zerleger: der erste Abschnitt kommt sofort", erste.length >= 1, JSON.stringify(erste[0]?.text ?? ""));
+    pruefe("Zerleger: und er endet am ersten Komma, nicht erst am Satzende", erste[0]?.text.endsWith(","), erste[0]?.text);
+    pruefe("Zerleger: er ist kurz genug, um schnell zu klingen", (erste[0]?.text.length ?? 999) <= ERSTER_ABSCHNITT_ZEICHEN + 20, `${erste[0]?.text.length} Zeichen`);
+  }
+
+  // (b) Danach laengere Abschnitte: die Stimme braucht ganze Saetze fuer die
+  //     Satzmelodie.
+  {
+    const z = erzeugeSatzZerleger();
+    z.fuettere("Kurz, ");
+    const weitere = [
+      ...z.fuettere("die Kühlkette war lückenlos. Alle Messwerte lagen im Rahmen. "),
+      ...z.fuettere("Die Steigen wurden um 15 Uhr vorgekühlt. Der Fotobeleg liegt vor. "),
+      ...z.abschliessen(),
+    ];
+    pruefe("Zerleger: spaetere Abschnitte enthalten ganze Saetze", weitere.some((a) => a.text.trim().endsWith(".")), JSON.stringify(weitere.map((a) => a.text)));
+    pruefe("Zerleger: und bleiben unter der Laengengrenze", weitere.every((a) => a.text.length <= ABSCHNITT_ZEICHEN + 60), `max ${Math.max(...weitere.map((a) => a.text.length))}`);
+    // Die Nummern zaehlen die AUSGEGEBENEN Abschnitte, nicht die Stream-
+    // Stuecke: "Kurz, " allein ist zu kurz und wird noch zurueckgehalten.
+    pruefe("Zerleger: die Nummern laufen luecken- und sprungfrei", weitere.every((a, i) => a.nr === weitere[0].nr + i), JSON.stringify(weitere.map((a) => a.nr)));
+  }
+
+  // (c) Was kein Satzende ist, darf keines werden. "3,5" und "z. B." haben
+  //     frueher mitten im Satz abgeschnitten.
+  {
+    const ganz = (text) => {
+      const z = erzeugeSatzZerleger();
+      return [...z.fuettere(text), ...z.abschliessen()].map((a) => a.text).join(" ");
+    };
+    for (const [text, darfNicht] of [
+      ["Ein Wert lag bei 3,5 Grad und blieb damit im Rahmen der Vorgabe.", "3,5"],
+      ["Das gilt z. B. für Polana und für Polka, also für beide Sorten.", "z. B."],
+      ["Siehe Nr. 12 in der Liste der freigegebenen Reihenblöcke dort.", "Nr."],
+      ["Die Messung ergab 12.5 Grad und lag knapp über dem Grenzwert hier.", "12.5"],
+    ]) {
+      const zusammen = ganz(text);
+      pruefe(`Zerleger: "${darfNicht}" ist kein Satzende`, zusammen.includes(darfNicht), zusammen.slice(0, 80));
+    }
+  }
+
+  // (d) Codebloecke werden nicht vorgelesen - auch dann nicht, wenn sie ueber
+  //     mehrere Stream-Stuecke verteilt ankommen.
+  {
+    const z = erzeugeSatzZerleger();
+    const raus = [
+      ...z.fuettere("Hier die Abfrage, bitte einmal ausführen. "),
+      ...z.fuettere("```sql\nselect * "),
+      ...z.fuettere("from lieferungen;\n```"),
+      ...z.fuettere(" Danach steht das Ergebnis in der Liste."),
+      ...z.abschliessen(),
+    ];
+    const alles = raus.map((a) => a.text).join(" ");
+    pruefe("Zerleger: Code wird nicht vorgelesen", !alles.includes("select") && !alles.includes("lieferungen;"), alles.slice(0, 100));
+    pruefe("Zerleger: der Text darum herum schon", alles.includes("Abfrage") && alles.includes("Ergebnis"), alles.slice(0, 100));
+  }
+
+  // (e) Links und Tabellen: gesprochen wird der Text, nicht die Adresse.
+  {
+    const z = erzeugeSatzZerleger();
+    const raus = [...z.fuettere("Die Liste steht im [Sortenkatalog](https://damicon.test/katalog) bereit."), ...z.abschliessen()];
+    const alles = raus.map((a) => a.text).join(" ");
+    pruefe("Zerleger: aus einem Link wird nur der Text", alles.includes("Sortenkatalog") && !alles.includes("https"), alles);
+  }
+
+  // (f) Eine sehr lange Antwort wird gedeckelt - sonst laeuft die Stimme
+  //     minutenlang und kostet entsprechend.
+  {
+    const z = erzeugeSatzZerleger();
+    const satz = "Die Kühlkette blieb über den gesamten Zeitraum hinweg vollständig lückenlos. ";
+    let gesamt = 0;
+    for (let i = 0; i < 200; i++) for (const a of z.fuettere(satz)) gesamt += a.text.length;
+    pruefe("Zerleger: hoechstens 3000 Zeichen je Antwort", gesamt <= MAX_SPRACHAUSGABE_ZEICHEN, `${gesamt} Zeichen`);
+    pruefe("Zerleger: die Grenze wurde im Test wirklich erreicht", gesamt > MAX_SPRACHAUSGABE_ZEICHEN - 200, `${gesamt} Zeichen`);
+    pruefe("Zerleger: und danach kommt nichts mehr", z.fuettere("Noch ein Satz.").length === 0 && z.abschliessen().length === 0);
+  }
+
+  // (g) Signatur. Ohne sie waere die Route ein offenes Vorlese-Werkzeug.
+  {
+    const geheimnis = "nur-fuer-den-test-mindestens-16";
+    const basis = { nutzerId: "nutzer-1", zug: "zug-1", nr: 1, text: "Die Lieferung ist angekommen.", ablauf: Date.now() + ABSCHNITT_GUELTIG_MS };
+    const sig = signiereAbschnitt(basis, geheimnis);
+
+    pruefe("Signatur: ein sauberer Abschnitt wird angenommen", pruefeAbschnitt({ ...basis, sig }, geheimnis).ok);
+
+    for (const [was, verdreht] of [
+      ["geaenderter Text", { ...basis, text: "Die Lieferung ist NICHT angekommen." }],
+      ["andere Nummer", { ...basis, nr: 2 }],
+      ["anderer Zug", { ...basis, zug: "zug-2" }],
+      ["anderer Nutzer", { ...basis, nutzerId: "nutzer-2" }],
+    ]) {
+      const e = pruefeAbschnitt({ ...verdreht, sig }, geheimnis);
+      pruefe(`Signatur: ${was} wird abgewiesen`, !e.ok && e.grund === "signatur-falsch", e.ok ? "angenommen" : e.grund);
+    }
+
+    {
+      const e = pruefeAbschnitt({ ...basis, sig }, "ein-anderes-geheimnis-16");
+      pruefe("Signatur: ein fremdes Geheimnis wird abgewiesen", !e.ok && e.grund === "signatur-falsch", e.ok ? "angenommen" : e.grund);
+    }
+    {
+      const alt = { ...basis, ablauf: Date.now() - 1000 };
+      const e = pruefeAbschnitt({ ...alt, sig: signiereAbschnitt(alt, geheimnis) }, geheimnis);
+      pruefe("Signatur: nach zehn Minuten ist sie wertlos", !e.ok && e.grund === "abgelaufen", e.ok ? "angenommen" : e.grund);
+    }
+    {
+      const weit = { ...basis, ablauf: Date.now() + 40 * 60 * 1000 };
+      const e = pruefeAbschnitt({ ...weit, sig: signiereAbschnitt(weit, geheimnis) }, geheimnis);
+      pruefe("Signatur: ein selbst gesetzter Ablauf weit in der Zukunft zaehlt nicht", !e.ok && e.grund === "ablauf-zu-weit", e.ok ? "angenommen" : e.grund);
+    }
+    {
+      const e = pruefeAbschnitt({ ...basis, sig: "" }, geheimnis);
+      pruefe("Signatur: ohne Signatur gar nicht erst", !e.ok && e.grund === "ohne-signatur");
+    }
+    pruefe("Signatur: sie verraet den Text nicht", !sig.includes("Lieferung") && /^[0-9a-f]{64}$/.test(sig), sig.slice(0, 16) + "...");
+  }
+
+  // (h) Ohne Geheimnis gibt es keine Live-Sprachausgabe - nicht etwa eine
+  //     ungeschuetzte.
+  {
+    const vorher = process.env.KI_SPRACHAUSGABE_SIGNATUR;
+    delete process.env.KI_SPRACHAUSGABE_SIGNATUR;
+    pruefe("Signatur: ohne KI_SPRACHAUSGABE_SIGNATUR kein Betrieb", sprachausgabeGeheimnis() === null);
+    process.env.KI_SPRACHAUSGABE_SIGNATUR = "zu-kurz";
+    pruefe("Signatur: ein zu kurzes Geheimnis zaehlt nicht", sprachausgabeGeheimnis() === null);
+    process.env.KI_SPRACHAUSGABE_SIGNATUR = "langgenug-fuer-den-test-1234";
+    pruefe("Signatur: ein brauchbares Geheimnis wird genommen", sprachausgabeGeheimnis() !== null);
+    if (vorher === undefined) delete process.env.KI_SPRACHAUSGABE_SIGNATUR;
+    else process.env.KI_SPRACHAUSGABE_SIGNATUR = vorher;
+  }
+}
+
+
+// --- 13. Schalter: jede neue Funktion laesst sich ohne Code abstellen -------
+// Der Sinn ist der Notausgang in Produktion. Deshalb ist die Voreinstellung
+// immer AUS: wer einen Schalter vergisst, bekommt den Stand von vorher.
+{
+  const umgebung = {
+    live: process.env.KI_SPRACHAUSGABE_LIVE,
+    sig: process.env.KI_SPRACHAUSGABE_SIGNATUR,
+    seite: process.env.KI_AGENT_SEITENANSICHT,
+  };
+  try {
+    for (const [wert, erwartet] of [
+      ["an", true], ["on", true], ["true", true], ["1", true], ["AN", true], [" an ", true],
+      ["aus", false], ["off", false], ["false", false], ["0", false], ["", false],
+      [undefined, false], ["vielleicht", false],
+    ]) {
+      pruefe(`Schalter: ${JSON.stringify(wert)} -> ${erwartet ? "an" : "aus"}`, schalterAn(wert) === erwartet);
+    }
+
+    // Live-Sprachausgabe nur mit Geheimnis - sonst waere die Route ein
+    // offenes Vorlese-Werkzeug.
+    delete process.env.KI_SPRACHAUSGABE_LIVE;
+    delete process.env.KI_SPRACHAUSGABE_SIGNATUR;
+    pruefe("Schalter: Live-Sprachausgabe ist ohne alles aus", sprachausgabeLiveAn() === false);
+    process.env.KI_SPRACHAUSGABE_LIVE = "an";
+    const fehler = [];
+    const echteFehlerausgabe = console.error;
+    console.error = (...a) => fehler.push(a.join(" "));
+    const ohneGeheimnis = sprachausgabeLiveAn();
+    console.error = echteFehlerausgabe;
+    pruefe("Schalter: an ohne Geheimnis bleibt trotzdem aus", ohneGeheimnis === false);
+    pruefe("Schalter: und sagt im Protokoll, warum", fehler.some((z) => z.includes("KI_SPRACHAUSGABE_SIGNATUR")), fehler.join(" | ").slice(0, 80));
+    process.env.KI_SPRACHAUSGABE_SIGNATUR = "zu-kurz";
+    pruefe("Schalter: ein zu kurzes Geheimnis zaehlt nicht", sprachausgabeLiveAn() === false);
+    process.env.KI_SPRACHAUSGABE_SIGNATUR = "lang-genug-fuer-den-test-1234";
+    pruefe("Schalter: mit Schalter UND Geheimnis ist sie an", sprachausgabeLiveAn() === true);
+    process.env.KI_SPRACHAUSGABE_LIVE = "aus";
+    pruefe("Schalter: das Geheimnis allein schaltet nichts ein", sprachausgabeLiveAn() === false);
+
+    delete process.env.KI_AGENT_SEITENANSICHT;
+    pruefe("Schalter: Seitenansicht ist voreingestellt aus", agentSeitenansichtAn() === false);
+    process.env.KI_AGENT_SEITENANSICHT = "an";
+    pruefe("Schalter: und laesst sich einschalten", agentSeitenansichtAn() === true);
+
+    // Alle Schalter muessen in .env.example stehen - sonst weiss der Betrieb
+    // nicht, woran er sie abstellen kann.
+    const beispiel = readFileSync(new URL("../../.env.example", import.meta.url), "utf8");
+    for (const name of ["KI_SPRACHERKENNUNG_ANBIETER", "SONIOX_API_URL", "SONIOX_API_KEY", "SONIOX_ZEITLIMIT_MS", "KI_SPRACHAUSGABE_LIVE", "KI_SPRACHAUSGABE_SIGNATUR", "KI_AGENT_SEITENANSICHT"]) {
+      pruefe(`Schalter: ${name} steht in .env.example`, beispiel.includes(name));
+    }
+  } finally {
+    for (const [name, wert] of [
+      ["KI_SPRACHAUSGABE_LIVE", umgebung.live],
+      ["KI_SPRACHAUSGABE_SIGNATUR", umgebung.sig],
+      ["KI_AGENT_SEITENANSICHT", umgebung.seite],
+    ]) {
+      if (wert === undefined) delete process.env[name];
+      else process.env[name] = wert;
+    }
+  }
+}
+
+
+// --- 14. Warteschlange der Abschnitte --------------------------------------
+// Reihenfolge, Vorsprung, sofortiges Aufhoeren. Geprueft ohne Browser: hier
+// steht nur die Buchfuehrung, kein fetch und kein Audio.
+{
+  // (a) Der Reihe nach - auch wenn Abschnitt 2 frueher fertig ist. Kurze
+  //     Saetze sind schneller erzeugt als lange; ohne diese Regel klaenge
+  //     die Antwort durcheinander.
+  {
+    const w = erzeugeWarteschlange();
+    w.stelleEin(1, "Erster Satz.");
+    w.stelleEin(2, "Zweiter Satz.");
+    w.naechsteZumHolen();
+    w.melde(2, "bereit");
+    pruefe("Warteschlange: der zweite wartet auf den ersten", w.naechsterZumSpielen() === null);
+    w.melde(1, "bereit");
+    pruefe("Warteschlange: dann kommt der erste", w.naechsterZumSpielen()?.nr === 1);
+    pruefe("Warteschlange: und waehrend er spielt, kein zweiter", w.naechsterZumSpielen() === null);
+    w.fertigGespielt(1);
+    pruefe("Warteschlange: danach der zweite", w.naechsterZumSpielen()?.nr === 2);
+  }
+
+  // (b) Hoechstens zwei Anfragen gleichzeitig. Mehr erzeugt Audio, das
+  //     niemand hoert, sobald jemand abbricht - bezahlt wird es trotzdem.
+  {
+    const w = erzeugeWarteschlange();
+    for (let i = 1; i <= 5; i++) w.stelleEin(i, `Satz ${i}.`);
+    const erste = w.naechsteZumHolen();
+    pruefe("Warteschlange: zuerst nur zwei Anfragen", erste.length === HOECHSTENS_GLEICHZEITIG, `${erste.length}`);
+    pruefe("Warteschlange: und zwar die vordersten", erste.map((e) => e.nr).join(",") === "1,2");
+    pruefe("Warteschlange: solange sie offen sind, kommt nichts nach", w.naechsteZumHolen().length === 0);
+    w.melde(1, "bereit");
+    pruefe("Warteschlange: wird einer fertig, rueckt einer nach", w.naechsteZumHolen().map((e) => e.nr).join(",") === "3");
+  }
+
+  // (c) Ein Abschnitt darf einmal scheitern. Beim zweiten Mal wird er
+  //     uebersprungen - lieber eine Luecke als Stille bis zum Ende.
+  {
+    const w = erzeugeWarteschlange();
+    w.stelleEin(1, "Eins.");
+    w.stelleEin(2, "Zwei.");
+    w.naechsteZumHolen();
+    w.melde(1, "fehler");
+    pruefe("Warteschlange: nach einem Fehler wird es noch einmal versucht", w.naechsteZumHolen().some((e) => e.nr === 1));
+    w.melde(1, "fehler");
+    pruefe("Warteschlange: beim zweiten Mal wird er uebersprungen", w.stand().find((e) => e.nr === 1)?.stand === "uebersprungen");
+    w.melde(2, "bereit");
+    pruefe("Warteschlange: und der naechste rueckt auf, statt zu warten", w.naechsterZumSpielen()?.nr === 2);
+  }
+
+  // (d) Sofort still: leere() gibt zurueck, was noch unterwegs ist, damit der
+  //     Aufrufer genau diese Anfragen abbrechen kann.
+  {
+    const w = erzeugeWarteschlange();
+    for (let i = 1; i <= 4; i++) w.stelleEin(i, `Satz ${i}.`);
+    w.naechsteZumHolen();
+    w.melde(1, "bereit");
+    w.naechsterZumSpielen();
+    const unterwegs = w.leere();
+    pruefe("Warteschlange: beim Abbruch werden laufende Anfragen gemeldet", unterwegs.includes(2), JSON.stringify(unterwegs));
+    pruefe("Warteschlange: und der gerade gespielte Abschnitt auch", unterwegs.includes(1), JSON.stringify(unterwegs));
+    pruefe("Warteschlange: danach ist sie leer", w.stand().length === 0);
+    pruefe("Warteschlange: und es wird nichts mehr gespielt", w.naechsterZumSpielen() === null);
+  }
+
+  // (e) Nach dem Abbruch faengt der naechste Zug wieder bei 1 an - sonst
+  //     wartete er ewig auf einen Abschnitt, den es nicht mehr gibt.
+  {
+    const w = erzeugeWarteschlange();
+    w.stelleEin(1, "Alt.");
+    w.naechsteZumHolen();
+    w.leere();
+    w.stelleEin(1, "Neu.");
+    w.naechsteZumHolen();
+    w.melde(1, "bereit");
+    pruefe("Warteschlange: der naechste Zug beginnt wieder bei 1", w.naechsterZumSpielen()?.text === "Neu.");
+  }
+
+  // (f) Derselbe Abschnitt zweimal (doppeltes Stream-Ereignis) zaehlt einmal.
+  {
+    const w = erzeugeWarteschlange();
+    w.stelleEin(1, "Eins.");
+    w.stelleEin(1, "Eins nochmal.");
+    pruefe("Warteschlange: ein Abschnitt kommt nur einmal hinein", w.stand().length === 1 && w.stand()[0].text === "Eins.");
+  }
+}
+
+
+// --- 15. Agent-Seitenansicht: einmal an die Seite, und dort bleibt es ------
+// Bis zum 22.09.2026 war das Andocken eine Leihgabe: nach der Fuehrung sprang
+// das Panel zurueck in die Mitte und verdeckte genau die Seite, die der Agent
+// gerade geoeffnet hatte.
+{
+  const start = { ...ANFANG };
+
+  // (a) Die erste Navigation des Agenten stellt um - und oeffnet das Panel.
+  {
+    const nachher = naechsterZustand(start, "agent-navigation", true);
+    pruefe("Seitenansicht: die erste Agenten-Navigation dockt an", nachher.darstellung === "seite", nachher.darstellung);
+    pruefe("Seitenansicht: und oeffnet das Panel - eine Fuehrung, die niemand sieht, ist keine", nachher.offen === true);
+  }
+
+  // (b) Und es BLEIBT so: weitere Stationen aendern nichts mehr.
+  {
+    let z = naechsterZustand(start, "agent-navigation", true);
+    for (let i = 0; i < 5; i++) z = naechsterZustand(z, "agent-navigation", true);
+    pruefe("Seitenansicht: weitere Stationen lassen es an der Seite", z.darstellung === "seite" && z.offen);
+  }
+
+  // (c) Zurueck in die Mitte nur ueber den Knopf.
+  {
+    const ander = naechsterZustand(naechsterZustand(start, "agent-navigation", true), "knopf-mitte", true);
+    pruefe("Seitenansicht: der Knopf holt es in die Mitte", ander.darstellung === "buehne");
+    pruefe("Seitenansicht: und laesst es offen", ander.offen === true);
+    const zurueck = naechsterZustand(ander, "knopf-seite", true);
+    pruefe("Seitenansicht: und wieder an die Seite", zurueck.darstellung === "seite");
+  }
+
+  // (d) Eine neue Anmeldung raeumt die gemerkte Wahl weg - sonst faende die
+  //     naechste Person die Ansicht ihrer Vorgaengerin vor.
+  {
+    // Der Auftrag sagt "zurueck zur Mitte nach neuer Anmeldung". Die Mitte war
+    // aber nie die Voreinstellung - ki-pane-kontext.tsx beginnt seit jeher mit
+    // "seite". Eine neue Anmeldung vergisst deshalb die gemerkte Wahl; danach
+    // gilt wieder, womit die Anwendung beginnt.
+    const nachAnmeldung = naechsterZustand({ darstellung: "buehne", offen: true }, "neue-anmeldung", true);
+    pruefe("Seitenansicht: eine neue Anmeldung vergisst die gemerkte Wahl", nachAnmeldung.darstellung === ANFANG.darstellung && !nachAnmeldung.offen, JSON.stringify(nachAnmeldung));
+  }
+
+  // (e) Ohne den Schalter bleibt alles beim Alten. Das ist der Notausgang.
+  {
+    const ohne = naechsterZustand(start, "agent-navigation", false);
+    pruefe("Seitenansicht: ohne KI_AGENT_SEITENANSICHT aendert die Navigation nichts", ohne.darstellung === start.darstellung && ohne.offen === start.offen);
+  }
+
+  // (f) Die gemerkten Werte.
+  {
+    pruefe("Seitenansicht: die Darstellung wird unter ihrem Schluessel gemerkt", DARSTELLUNG_SCHLUESSEL === "damicon-ki-darstellung");
+    pruefe("Seitenansicht: und ob das Panel offen war", OFFEN_SCHLUESSEL === "damicon-ki-offen");
+    pruefe("Seitenansicht: nur die beiden Darstellungen zaehlen", istDarstellung("seite") && istDarstellung("buehne") && !istDarstellung("mitte") && !istDarstellung(null));
+  }
+
+  // (g) Im Code: die Leihgabe ist wirklich weg, und das Panel merkt sich, ob
+  //     es offen war - sonst haelt die Ansicht keinen Sprung nach /herkunft
+  //     aus, weil der Provider im Dashboard-Layout haengt.
+  {
+    const kontext = readFileSync(new URL("../../src/components/ki/ki-pane-kontext.tsx", import.meta.url), "utf8");
+    pruefe("Seitenansicht: die Leihgabe (buehneGeliehen) ist entfernt", !kontext.includes("buehneGeliehen"));
+    pruefe("Seitenansicht: die Umstellung wird gemerkt, nicht nur gesetzt", kontext.includes("naechsterZustand("));
+    pruefe("Seitenansicht: 'offen' wird gespeichert", kontext.includes("OFFEN_SCHLUESSEL"));
+    // Der Abschnitt von fuehreZu bis zu seiner Abhaengigkeitsliste muss das
+    // Oeffnen enthalten - nicht irgendeine andere Stelle der Datei.
+    const fuehreZuAnfang = kontext.indexOf("const fuehreZu = useCallback");
+    const fuehreZuBlock = fuehreZuAnfang < 0 ? "" : kontext.slice(fuehreZuAnfang, kontext.indexOf("const fuehrungBeenden", fuehreZuAnfang));
+    pruefe("Seitenansicht: fuehreZu oeffnet das Panel", fuehreZuBlock.includes("setOffen(true)"), fuehreZuBlock ? `${fuehreZuBlock.length} Zeichen geprueft` : "Block NICHT gefunden");
+  }
+
+  // (h) Der Knopf im Panelkopf gibt es in allen vier Sprachen - sonst faende
+  //     ihn nur, wer Deutsch kann.
+  {
+    for (const sprache of ["de", "en", "ru", "kk"]) {
+      const texte = JSON.parse(readFileSync(new URL(`../../src/messages/${sprache}.json`, import.meta.url), "utf8"));
+      const a = texte.kiAssistentAnsicht?.andocken;
+      const b = texte.kiAssistentAnsicht?.buehne;
+      pruefe(`Seitenansicht: Knopftexte auf ${sprache}`, typeof a === "string" && a.length > 0 && typeof b === "string" && b.length > 0, `${a} / ${b}`);
+    }
+  }
+
+  // (i) Angedockt soll das Panel 380 bis 420 px breit sein, und die
+  //     Hauptspalte schrumpft, statt verdeckt zu werden.
+  {
+    const css = readFileSync(new URL("../../src/components/ki/ki-pane.css", import.meta.url), "utf8");
+    const treffer = /--ki-pane-breite:\s*([\d.]+)rem/.exec(css);
+    const px = treffer ? Number(treffer[1]) * 16 : 0;
+    pruefe("Seitenansicht: angedockt zwischen 380 und 420 px", px >= 380 && px <= 420, `${px} px`);
+    pruefe("Seitenansicht: prefers-reduced-motion wird beachtet", css.includes("prefers-reduced-motion"));
+  }
+
+  // (j) Die gemerkte Ansicht gehoert einer Person. Ohne das erbt die naechste,
+  //     die sich an diesem Rechner anmeldet, das offene Panel ihrer
+  //     Vorgaengerin - und die Regel "nach neuer Anmeldung" waere nur eine
+  //     Funktion, die niemand aufruft. (Beim Durchsehen des Diffs aufgefallen.)
+  {
+    const kontext = readFileSync(new URL("../../src/components/ki/ki-pane-kontext.tsx", import.meta.url), "utf8");
+    const layout = readFileSync(new URL("../../src/app/[locale]/dashboard/layout.tsx", import.meta.url), "utf8");
+    pruefe("Seitenansicht: das Gemerkte traegt den Nutzer", kontext.includes("NUTZER_SCHLUESSEL"));
+    pruefe("Seitenansicht: bei einem anderen Nutzer wird es vergessen", kontext.includes("removeItem(DARSTELLUNG_SCHLUESSEL)") && kontext.includes("removeItem(OFFEN_SCHLUESSEL)"));
+    pruefe("Seitenansicht: das Layout reicht den Nutzer durch", layout.includes("nutzerId={profil?.id ?? null}"));
+    pruefe("Seitenansicht: und es gibt einen eigenen Schluessel dafuer", NUTZER_SCHLUESSEL === "damicon-ki-nutzer");
+  }
+
+}
+
+
+// --- 16. Die gehoerte Sprache muss auch ankommen ---------------------------
+// Regel (a) aus Teil D stand schon im Server - und lief nie: die Route las
+// body.diktatSprachen, aber niemand schickte es. Beim Durchsehen des Diffs
+// aufgefallen. Diese Pruefungen halten die Kette zusammen, Glied fuer Glied,
+// damit sie nicht wieder still zerfaellt.
+{
+  // (a) Soniox wird ueberhaupt nach der Sprache gefragt, und die Antwort
+  //     wird ausgewertet.
+  {
+    const echtesFetch = globalThis.fetch;
+    const umgebung = { k: process.env.SONIOX_API_KEY, u: process.env.SONIOX_API_URL };
+    const json = (o) => new Response(JSON.stringify(o), { status: 200, headers: { "content-type": "application/json" } });
+    const aufrufe = [];
+    try {
+      process.env.SONIOX_API_KEY = "testschluessel";
+      process.env.SONIOX_API_URL = "https://api.soniox.test";
+      globalThis.fetch = async (url, init = {}) => {
+        aufrufe.push({ url: String(url), koerper: init.body });
+        const adresse = String(url);
+        if (init.method === "DELETE") return json({});
+        if (adresse.endsWith("/v1/files")) return json({ id: "d1" });
+        if (adresse.endsWith("/v1/transcriptions")) return json({ id: "a1" });
+        if (adresse.endsWith("/transcript")) {
+          return json({
+            text: "Салқын тізбек",
+            tokens: [
+              { text: "Салқын", language: "kk" },
+              { text: " тізбек", language: "kk" },
+              // Ein einzelner Ausrutscher darf den Zug nicht umwerfen.
+              { text: " New York", language: "en" },
+              { text: "", language: null },
+            ],
+          });
+        }
+        return json({ status: "completed" });
+      };
+
+      const e = await transkribiereMitSoniox(new Blob([new Uint8Array([1])]), "aufnahme.webm", "kk");
+      const auftrag = JSON.parse(String(aufrufe.find((a) => a.url.endsWith("/v1/transcriptions"))?.koerper ?? "{}"));
+      pruefe("Diktatsprache: Soniox wird nach der Sprache gefragt", auftrag.enable_language_identification === true, JSON.stringify(auftrag));
+      pruefe("Diktatsprache: die Sprachen der Token kommen zurueck", e.ok && JSON.stringify(e.sprachen) === JSON.stringify(["kk", "kk", "en"]), JSON.stringify(e.ok ? e.sprachen : e.grund));
+      pruefe("Diktatsprache: daraus wird die Mehrheit - der Ausrutscher zaehlt nicht", mehrheitsSprache(e.ok ? e.sprachen : []) === "kk");
+    } finally {
+      globalThis.fetch = echtesFetch;
+      if (umgebung.k === undefined) delete process.env.SONIOX_API_KEY; else process.env.SONIOX_API_KEY = umgebung.k;
+      if (umgebung.u === undefined) delete process.env.SONIOX_API_URL; else process.env.SONIOX_API_URL = umgebung.u;
+    }
+  }
+
+  // (b) Der Wettlauf reicht sie durch, statt sie zu verschlucken.
+  {
+    const mitSprachen = await erkenneMitRueckfall(
+      async () => ({ ok: true, text: "Салқын тізбек", sprachen: ["kk", "kk"] }),
+      async () => ({ ok: true, text: "von whisper" }),
+      () => {},
+    );
+    pruefe("Diktatsprache: der Wettlauf reicht sie weiter", mitSprachen.ok && JSON.stringify(mitSprachen.sprachen) === JSON.stringify(["kk", "kk"]), JSON.stringify(mitSprachen));
+    // Whisper kennt keine Sprachen - dann eben eine leere Liste, kein undefined.
+    const ohne = await erkenneMitRueckfall(null, async () => ({ ok: true, text: "von whisper" }), () => {});
+    pruefe("Diktatsprache: ohne Angabe eine leere Liste, kein undefined", ohne.ok && Array.isArray(ohne.sprachen) && ohne.sprachen.length === 0);
+  }
+
+  // (c) Die Kette im Code: Aktion -> Status -> Knopf -> Chat -> Route.
+  //     Jedes Glied einzeln, damit ein fehlendes sofort auffaellt.
+  {
+    const aktion = readFileSync(new URL("../../src/lib/actions/ki-assistent.ts", import.meta.url), "utf8");
+    const status = readFileSync(new URL("../../src/lib/actions/status.ts", import.meta.url), "utf8");
+    const knopf = readFileSync(new URL("../../src/components/ki/mikrofon.tsx", import.meta.url), "utf8");
+    const chat = readFileSync(new URL("../../src/components/ki/ki-chat.tsx", import.meta.url), "utf8");
+    const route = readFileSync(new URL("../../src/app/api/ki-assistent/route.ts", import.meta.url), "utf8");
+
+    pruefe("Kette 1/5: die Aktion gibt die Sprachen zurueck", aktion.includes("ok(\"ok.transkription\", antwort.text, gehoerteSprachen)"));
+    pruefe("Kette 2/5: der Status kann sie tragen", status.includes("sprachen?: string[]"));
+    pruefe("Kette 3/5: der Mikrofonknopf reicht sie weiter", knopf.includes("beiText(status.wert, status.sprachen)"));
+    pruefe("Kette 4/5: das Chatfenster schickt sie mit der Frage", chat.includes("diktatSprachen: diktatSprachen.current"));
+    pruefe("Kette 5/5: die Route wertet sie aus", route.includes("body.diktatSprachen") && route.includes("bestimmeAntwortsprache("));
+  }
+
+  // (d) Und der Sinn der ganzen Kette: ein verhoerter kasachischer Text
+  //     bekommt trotzdem eine kasachische Antwort.
+  {
+    const verhoert = "Sahlkentiz wird tollen, kurzat.";
+    const mit = bestimmeAntwortsprache(
+      { frage: verhoert, oberflaeche: "de", diktatSprachen: ["kk", "kk", "en"] },
+      (t) => erkenneSprache(t, 10),
+    );
+    pruefe("Diktatsprache: verhoert, aber kasachisch beantwortet", mit.sprache === "kk" && mit.herkunft === "diktat", `${mit.sprache} (${mit.herkunft})`);
+  }
+}
+
+
 console.log("\n" + "-".repeat(58));
 console.log(`Pruefungen: ${bestanden + fehlgeschlagen}   bestanden: ${bestanden}   fehlgeschlagen: ${fehlgeschlagen}`);
 if (fehlgeschlagen) process.exit(1);
+
+
 console.log("Alle Pruefungen bestanden.");

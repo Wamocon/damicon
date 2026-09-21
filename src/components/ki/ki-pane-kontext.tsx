@@ -11,6 +11,14 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "@/i18n/navigation";
+import {
+  ANFANG,
+  DARSTELLUNG_SCHLUESSEL,
+  istDarstellung,
+  naechsterZustand,
+  NUTZER_SCHLUESSEL,
+  OFFEN_SCHLUESSEL,
+} from "@/lib/domain/ki-ansicht";
 
 // Gemeinsamer Zustand zwischen dem "KI fragen"-Knopf in der Kopfzeile
 // (topbar.tsx), dem andockbaren Seitenpanel (ki-pane.tsx) und der
@@ -76,7 +84,6 @@ interface KiPaneWert {
 }
 
 const MODUS_SCHLUESSEL = "damicon-ki-modus";
-const DARSTELLUNG_SCHLUESSEL = "damicon-ki-darstellung";
 const BEZUG_SCHLUESSEL = "damicon-ki-pruefbezug";
 // So lange bleibt jede Station der Tour im Bild, bevor die naechste kommt -
 // kurz genug, dass es fluessig wirkt, lang genug, dass man sieht, wo man ist.
@@ -160,13 +167,32 @@ function fokussiere(ziel: string): void {
 
 export function KiPaneProvider({
   verfuegbar,
+  seitenansichtAn = false,
+  nutzerId,
   children,
 }: {
   verfuegbar: boolean;
+  /** KI_AGENT_SEITENANSICHT. Aus heisst: alles bleibt wie vorher. */
+  seitenansichtAn?: boolean;
+  /** Wem die gemerkte Ansicht gehoert. Meldet sich jemand anderes an diesem
+   *  Rechner an, wird sie vergessen. */
+  nutzerId?: string | null;
   children: ReactNode;
 }) {
   const router = useRouter();
-  const [offen, setOffen] = useState(false);
+  // "offen" wird jetzt gemerkt. Ohne das haelt die Seitenansicht nur
+  // innerhalb des Dashboards: der Provider haengt in dessen Layout, und ein
+  // Sprung nach /herkunft baut ihn ab. Beim Zurueckkommen waere das Panel
+  // wieder zu - mitten in einer Fuehrung.
+  const [offen, setOffenIntern] = useState(false);
+  const setOffen = useCallback((neu: boolean) => {
+    setOffenIntern(neu);
+    try {
+      window.localStorage.setItem(OFFEN_SCHLUESSEL, neu ? "an" : "aus");
+    } catch {
+      // Speicher gesperrt: gilt dann nur fuer diese Sitzung.
+    }
+  }, []);
   const [modus, setModusState] = useState<KiModus>("assistent");
   const [darstellung, setDarstellungState] = useState<KiDarstellung>("seite");
   const [fuehrung, setFuehrung] = useState<KiFuehrung | null>(null);
@@ -193,12 +219,27 @@ export function KiPaneProvider({
 
   useEffect(() => {
     try {
+      // Gehoert das Gemerkte ueberhaupt dieser Person? Nach einer neuen
+      // Anmeldung faengt die Ansicht wieder bei der Voreinstellung an - sonst
+      // sitzt die naechste Person vor dem Panel ihrer Vorgaengerin.
+      const gemerkterNutzer = window.localStorage.getItem(NUTZER_SCHLUESSEL);
+      if (nutzerId && gemerkterNutzer !== nutzerId) {
+        window.localStorage.setItem(NUTZER_SCHLUESSEL, nutzerId);
+        window.localStorage.removeItem(DARSTELLUNG_SCHLUESSEL);
+        window.localStorage.removeItem(OFFEN_SCHLUESSEL);
+        setDarstellungState(ANFANG.darstellung);
+        setOffenIntern(ANFANG.offen);
+        return;
+      }
       const art = window.localStorage.getItem(DARSTELLUNG_SCHLUESSEL);
-      if (art === "seite" || art === "buehne") setDarstellungState(art);
+      if (istDarstellung(art)) setDarstellungState(art);
+      // Und ob es offen war. Beides erst nach dem Mounten, wie beim Modus:
+      // der Server rendert immer den Anfangszustand.
+      if (window.localStorage.getItem(OFFEN_SCHLUESSEL) === "an") setOffenIntern(true);
     } catch {
       // siehe oben
     }
-  }, []);
+  }, [nutzerId]);
 
   // Der Bezug ueberlebt ein Neuladen der Seite (nur in dieser Sitzung): wer nach der Pruefung weiterfragt, soll nicht ins Leere fragen.
   useEffect(() => {
@@ -228,7 +269,7 @@ export function KiPaneProvider({
       setAnstoss({ nr: ++anstossNr.current, frage });
       setOffen(true);
     },
-    [speichereBezug],
+    [speichereBezug, setOffen],
   );
 
   const entferneBezug = useCallback(() => speichereBezug(null), [speichereBezug]);
@@ -254,27 +295,29 @@ export function KiPaneProvider({
   const oeffneBuehne = useCallback(() => {
     setDarstellung("buehne");
     setOffen(true);
-  }, [setDarstellung]);
+  }, [setDarstellung, setOffen]);
 
   // Im Agent-Modus steuert der Assistent die Ansicht nebenan. Auf der Buehne liegt die
-  // Seite unscharf dahinter - von der Fahrt saehe man nichts. Solange eine Fuehrung
-  // laeuft, dockt er darum an den Rand und geht danach zurueck in die Mitte.
+  // Seite unscharf dahinter - von der Fahrt saehe man nichts. Deshalb dockt das Panel
+  // an den Rand, sobald der Agent das erste Mal navigiert.
   //
-  // Absichtlich ueber setDarstellungState statt setDarstellung: die gespeicherte Wahl
-  // bleibt "buehne". Das Andocken ist eine Leihgabe fuer die Dauer der Fuehrung, keine
-  // Umstellung, die der Mensch beim naechsten Mal wiederfinden soll.
-  const buehneGeliehen = useRef(false);
+  // Bis zum 22.09.2026 war das eine LEIHGABE: nach der Fuehrung sprang es zurueck in
+  // die Mitte, und die gespeicherte Wahl blieb "buehne". Das ist verkehrt herum. Wer
+  // den Agenten etwas zeigen laesst, will die Seite sehen - und beim naechsten Mal
+  // wieder. Ein Panel, das nach jeder Tour zurueckspringt und die Seite verdeckt,
+  // nimmt dem Agenten den Sinn.
+  //
+  // Jetzt wird die Umstellung GEMERKT (setDarstellung statt setDarstellungState) und
+  // bleibt ueber weitere Fragen, Stationen und ein Neuladen hinweg. Zurueck in die
+  // Mitte fuehrt nur der Knopf im Panelkopf - oder eine neue Anmeldung.
+  //
+  // Hinter KI_AGENT_SEITENANSICHT: steht der Schalter aus, bleibt alles beim Alten.
   useEffect(() => {
-    if (fuehrung && darstellung === "buehne") {
-      buehneGeliehen.current = true;
-      setDarstellungState("seite");
-      return;
-    }
-    if (!fuehrung && buehneGeliehen.current) {
-      buehneGeliehen.current = false;
-      setDarstellungState("buehne");
-    }
-  }, [fuehrung, darstellung]);
+    if (!fuehrung || !seitenansichtAn) return;
+    const ziel = naechsterZustand({ darstellung, offen }, "agent-navigation", true);
+    if (ziel.darstellung !== darstellung) setDarstellung(ziel.darstellung);
+    if (ziel.offen && !offen) setOffen(true);
+  }, [fuehrung, darstellung, offen, seitenansichtAn, setDarstellung, setOffen]);
 
   // Die Buehne legt sich ueber die Seite und ist damit ein Dialog: Escape schliesst sie.
   // Das angedockte Panel bleibt offen - es verdeckt nichts, und wer darin tippt, will
@@ -286,7 +329,7 @@ export function KiPaneProvider({
     };
     window.addEventListener("keydown", beiTaste);
     return () => window.removeEventListener("keydown", beiTaste);
-  }, [offen, darstellung]);
+  }, [offen, darstellung, setOffen]);
 
   // Solange die Buehne steht, scrollt die Seite dahinter nicht mit.
   useEffect(() => {
@@ -321,9 +364,13 @@ export function KiPaneProvider({
       const letzte = warteschlange.current.at(-1);
       if (letzte?.ziel === ziel) return;
       warteschlange.current.push({ ziel, label });
+      // Eine Fuehrung, die niemand sieht, ist keine: war das Panel zu, geht es
+      // auf. Vorher lief die Tour im Hauptfenster ab, waehrend der Assistent
+      // eingeklappt war und niemand die Begleitung dazu lesen konnte.
+      if (seitenansichtAn) setOffen(true);
       if (!laeuft.current) naechsteStation();
     },
-    [naechsteStation],
+    [naechsteStation, seitenansichtAn, setOffen],
   );
 
   const fuehrungBeenden = useCallback(() => {
@@ -361,7 +408,7 @@ export function KiPaneProvider({
       verfuegbar,
       offen,
       setOffen,
-      umschalten: () => setOffen((v) => !v),
+      umschalten: () => setOffen(!offen),
       modus,
       setModus,
       darstellung,
@@ -381,6 +428,7 @@ export function KiPaneProvider({
     [
       verfuegbar,
       offen,
+      setOffen,
       modus,
       setModus,
       darstellung,

@@ -37,7 +37,12 @@ const SOKRATES_BASIS = "https://sokrates.test-qualitaetsmanagement.com/api/v1";
 // doch einmal in die Grenze, sagt die Meldung genau das und bittet um einen
 // zweiten Versuch. Wer selbst hostet und keine 60-s-Grenze hat, hebt das
 // Limit ueber KI_TRANSKRIPTION_ZEITLIMIT_MS an.
-const STANDARD_ZEITLIMIT_MS = 55_000;
+// Teil des Zeitbudgets (22.09.2026): Soniox 8 s, Whisper 12 s, Gesamtdeckel
+// 25 s in der Server Action - alles deutlich unter maxDuration = 60, damit die
+// Person immer eine uebersetzte Meldung sieht statt des Plattformabbruchs.
+// Frueher standen hier 55 s; zusammen mit Soniox waren das 75 s, also mehr als
+// Vercel zulaesst.
+const STANDARD_ZEITLIMIT_MS = 20_000;
 
 export function transkriptionZeitlimitMs(): number {
   const wert = Number(process.env.KI_TRANSKRIPTION_ZEITLIMIT_MS);
@@ -142,6 +147,9 @@ export async function transkribiereAudio(
   datei: Blob,
   dateiname: string,
   sprachVorgabe?: string,
+  /** Von aussen abbrechen - der Wettlauf in spracherkennung.ts stoppt den
+   *  Verlierer, sobald der andere Dienst geliefert hat. */
+  abbruch?: AbortSignal,
 ): Promise<TranskriptionAntwort> {
   const zugang = transkriptionZugangsHeader();
   if (!zugang.ok) return zugang;
@@ -154,6 +162,7 @@ export async function transkribiereAudio(
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), transkriptionZeitlimitMs());
+  const signal = abbruch ? AbortSignal.any([controller.signal, abbruch]) : controller.signal;
 
   try {
     const antwort = await fetch(transkriptionBasisUrl(), {
@@ -162,7 +171,7 @@ export async function transkribiereAudio(
       // samt multipart-Grenze.
       headers: zugang.headers,
       body: koerper,
-      signal: controller.signal,
+      signal,
       // Eine Abweisung durch Cloudflare Access (Umleitung auf die
       // Anmeldeseite) soll als solche sichtbar bleiben, statt als HTML-Seite
       // im JSON-Parser zu landen.
@@ -194,6 +203,7 @@ export async function transkribiereAudio(
     // Vorsatz macht ihn fuer die Server Action unterscheidbar - die
     // Nutzerin soll lesen, dass der DIENST klemmt, nicht ihre Aufnahme.
     const grund = error instanceof Error ? error.message : String(error);
+    if (abbruch?.aborted) return { ok: false, grund: "abgebrochen" };
     return { ok: false, grund: controller.signal.aborted ? "zeitueberschreitung" : `dienst-nicht-erreichbar: ${grund}` };
   } finally {
     clearTimeout(timeout);

@@ -13,17 +13,26 @@
 //
 // Gemessen am 21.09.2026 gegen unsere eigenen Aufnahmen: 1,4-3,4 s je Datei.
 
-export type SonioxAntwort = { ok: true; text: string } | { ok: false; grund: string };
+export type SonioxAntwort =
+  /** `sprachen` sind die Sprachen der einzelnen Token. Sie gehen weiter an
+   *  die Antwortsprache (domain/antwortsprache.ts): wer diktiert, soll eine
+   *  Antwort in der Sprache bekommen, in der er gesprochen hat - nach dem,
+   *  was der Dienst GEHOERT hat, nicht nach dem, was aus dem erkannten Text
+   *  zu erraten waere. Genau daran ist Kasachisch gescheitert. */
+  | { ok: true; text: string; sprachen: string[] }
+  | { ok: false; grund: string };
 
 const MODELL = "stt-async-v5";
 
 /** Abstand zwischen zwei Nachfragen, ob der Auftrag fertig ist. */
 const ABFRAGE_ABSTAND_MS = 250;
 
-// Vercel bricht die Funktion nach 60 s ab. Soniox braucht gemessen unter vier
-// Sekunden; 20 s sind grosszuegig und lassen danach noch genug Zeit, auf
-// Whisper zurueckzufallen (das seinerseits ~7 s braucht).
-const STANDARD_ZEITLIMIT_MS = 20_000;
+// Zeitbudget (22.09.2026, zweite Fassung): Soniox darf bis 20 s brauchen.
+// Das ist kein Warten auf gut Glueck - ab 6 s laeuft Whisper parallel mit
+// (spracherkennung.ts), der erste brauchbare Text gewinnt. Vorher standen
+// hier 8 s; an echten 10-Sekunden-Aufnahmen lief das reihenweise in die
+// Grenze, danach Whisper ebenfalls, und nach 20,3 s stand kein Text da.
+export const SONIOX_ZEITLIMIT_STANDARD_MS = 20_000;
 
 /** Welcher Dienst die Spracherkennung macht. Standard ist "whisper" - solange
  *  niemand KI_SPRACHERKENNUNG_ANBIETER=soniox setzt, aendert sich nichts. */
@@ -43,7 +52,7 @@ export function sonioxBasisUrl(): string | null {
 
 export function sonioxZeitlimitMs(): number {
   const wert = Number(process.env.SONIOX_ZEITLIMIT_MS);
-  return Number.isFinite(wert) && wert >= 2_000 && wert <= 55_000 ? wert : STANDARD_ZEITLIMIT_MS;
+  return Number.isFinite(wert) && wert >= 2_000 && wert <= 20_000 ? wert : SONIOX_ZEITLIMIT_STANDARD_MS;
 }
 
 function schluessel(): string | null {
@@ -68,15 +77,38 @@ async function aufraeumen(basis: string, kopf: HeadersInit, auftragId: string | 
   }
 }
 
-/**
- * Sprache bewusst NICHT mitgegeben. Am 21.09.2026 gegen unsere Aufnahmen
- * geprueft, jede Datei einmal mit und einmal ohne language_hints: das Ergebnis
- * war Zeichen fuer Zeichen identisch, auf Kasachisch, Russisch und Deutsch.
- * Ohne Hinweis kann ein falscher Hinweis auch keinen Schaden anrichten - bei
- * Whisper war genau das die Ursache dafuer, dass kasachische Sprache als
- * deutscher Unsinn ankam.
- */
-export async function transkribiereMitSoniox(datei: Blob, dateiname: string): Promise<SonioxAntwort> {
+/** Sprachen, fuer die ein Hinweis mitgeht - dieselben vier, die die
+ *  Oberflaeche kennt. Alles andere wird still verworfen. */
+const HINWEIS_SPRACHEN = ["de", "en", "ru", "kk"];
+
+/** language_hints als Liste von ISO-Codes.
+ *
+ *  Anders als bei Whisper ist der Hinweis hier ungefaehrlich: Soniox
+ *  BESCHRAENKT damit nicht, sondern gewichtet nur - "Language hints do not
+ *  restrict recognition to those languages - they only bias the model toward
+ *  them" (https://soniox.com/docs/stt/concepts/language-hints). Dieselbe Seite
+ *  empfiehlt ihn ausdruecklich, wenn die erwartete Sprache bekannt ist, und
+ *  die Oberflaechensprache ist genau das.
+ *
+ *  Am 21.09.2026 an sauberen TTS-Aufnahmen gemessen machte er keinen
+ *  Unterschied - solches Material ist aber der guenstigste Fall. Bei echten
+ *  Aufnahmen soll die Gewichtung helfen; ob sie es tut, zeigt der Vergleich
+ *  S1 gegen S2. */
+function sprachHinweis(sprache?: string): { language_hints?: string[] } {
+  const wert = sprache?.trim().toLowerCase();
+  return wert && HINWEIS_SPRACHEN.includes(wert) ? { language_hints: [wert] } : {};
+}
+
+/** Modell stt-async-v5: laut Modelltabelle der aktuelle Async-Stand
+ *  (https://soniox.com/docs/stt/models, "Active"; stt-async-v4 zeigt darauf). */
+export async function transkribiereMitSoniox(
+  datei: Blob,
+  dateiname: string,
+  sprache?: string,
+  /** Von aussen abbrechen - siehe transkribiereAudio(). Aufgeraeumt wird
+   *  trotzdem: die Aufnahme darf nicht beim Dienstleister liegen bleiben. */
+  abbruch?: AbortSignal,
+): Promise<SonioxAntwort> {
   const key = schluessel();
   if (!key) return { ok: false, grund: "kein-schluessel" };
 
@@ -86,13 +118,14 @@ export async function transkribiereMitSoniox(datei: Blob, dateiname: string): Pr
   const kopf = { Authorization: `Bearer ${key}` };
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), sonioxZeitlimitMs());
+  const signal = abbruch ? AbortSignal.any([controller.signal, abbruch]) : controller.signal;
   let dateiId: string | null = null;
   let auftragId: string | null = null;
 
   try {
     const form = new FormData();
     form.append("file", datei, dateiname);
-    const hochgeladen = await fetch(`${basis}/v1/files`, { method: "POST", headers: kopf, body: form, signal: controller.signal });
+    const hochgeladen = await fetch(`${basis}/v1/files`, { method: "POST", headers: kopf, body: form, signal });
     if (!hochgeladen.ok) return { ok: false, grund: await grundAusAntwort("upload", hochgeladen) };
     dateiId = ((await hochgeladen.json()) as { id?: string }).id ?? null;
     if (!dateiId) return { ok: false, grund: "upload-ohne-id" };
@@ -100,8 +133,15 @@ export async function transkribiereMitSoniox(datei: Blob, dateiname: string): Pr
     const gestartet = await fetch(`${basis}/v1/transcriptions`, {
       method: "POST",
       headers: { ...kopf, "content-type": "application/json" },
-      body: JSON.stringify({ model: MODELL, file_id: dateiId }),
-      signal: controller.signal,
+      body: JSON.stringify({
+        model: MODELL,
+        file_id: dateiId,
+        // Ohne dieses Feld traegt kein Token eine Sprache
+        // (https://soniox.com/docs/stt/concepts/language-identification).
+        enable_language_identification: true,
+        ...sprachHinweis(sprache),
+      }),
+      signal,
     });
     if (!gestartet.ok) return { ok: false, grund: await grundAusAntwort("auftrag", gestartet) };
     auftragId = ((await gestartet.json()) as { id?: string }).id ?? null;
@@ -114,7 +154,7 @@ export async function transkribiereMitSoniox(datei: Blob, dateiname: string): Pr
     const hoechsteRunden = Math.ceil(sonioxZeitlimitMs() / ABFRAGE_ABSTAND_MS) + 5;
     for (let runde = 0; ; runde++) {
       if (runde > hoechsteRunden) return { ok: false, grund: "zeitueberschreitung" };
-      const stand = await fetch(`${basis}/v1/transcriptions/${auftragId}`, { headers: kopf, signal: controller.signal });
+      const stand = await fetch(`${basis}/v1/transcriptions/${auftragId}`, { headers: kopf, signal });
       if (!stand.ok) return { ok: false, grund: await grundAusAntwort("status", stand) };
       const j = (await stand.json()) as { status?: string; error_message?: string };
       if (j.status === "completed") break;
@@ -122,14 +162,20 @@ export async function transkribiereMitSoniox(datei: Blob, dateiname: string): Pr
       await new Promise((r) => setTimeout(r, ABFRAGE_ABSTAND_MS));
     }
 
-    const ergebnis = await fetch(`${basis}/v1/transcriptions/${auftragId}/transcript`, { headers: kopf, signal: controller.signal });
+    const ergebnis = await fetch(`${basis}/v1/transcriptions/${auftragId}/transcript`, { headers: kopf, signal });
     if (!ergebnis.ok) return { ok: false, grund: await grundAusAntwort("transcript", ergebnis) };
-    const j = (await ergebnis.json()) as { text?: unknown };
+    const j = (await ergebnis.json()) as { text?: unknown; tokens?: unknown };
     const text = typeof j.text === "string" ? j.text.trim() : "";
     if (!text) return { ok: false, grund: "antwort-unerwartete-form" };
-    return { ok: true, text };
+    const sprachen = Array.isArray(j.tokens)
+      ? (j.tokens as Array<{ language?: unknown }>)
+          .map((t) => t?.language)
+          .filter((x): x is string => typeof x === "string")
+      : [];
+    return { ok: true, text, sprachen };
   } catch (fehler) {
     const grund = fehler instanceof Error ? fehler.message : String(fehler);
+    if (abbruch?.aborted) return { ok: false, grund: "abgebrochen" };
     return { ok: false, grund: controller.signal.aborted ? "zeitueberschreitung" : `dienst-nicht-erreichbar: ${grund}` };
   } finally {
     clearTimeout(timeout);

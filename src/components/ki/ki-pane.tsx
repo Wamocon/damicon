@@ -150,6 +150,10 @@ export function KiPane({
   }, [ansicht, offen]);
 
   const handy = useIstHandy();
+  // Auf dem Handy nimmt die Agenten-Seitenansicht nur die untere Haelfte:
+  // oben bleibt die Seite sichtbar, um die es gerade geht. Ein Griff macht
+  // das Panel gross, wer lesen statt zusehen will.
+  const [handyGross, setHandyGross] = useState(false);
 
   // Esc schliesst, und solange das Blatt offen ist, scrollt die Seite darunter
   // nicht mit. Beides kannte bisher nur ui/sheet.tsx, obwohl Menue-, Konto- und
@@ -216,6 +220,10 @@ export function KiPane({
           "ki-pane-huelle print:hidden",
           offen && "ki-pane-huelle--offen",
           aufBuehne && "ki-pane-huelle--buehne",
+          // Nur wenn der Agent an der Seite steht - sonst bleibt das Blatt,
+          // wie es war.
+          !aufBuehne && agentFaehig && "ki-pane-huelle--agentseite",
+          handyGross && "ki-pane-huelle--gross",
         )}
       >
         {aufBuehne ? (
@@ -227,6 +235,17 @@ export function KiPane({
         ) : null}
         <div className={cn("ki-pane", agentAktiv && "ki-pane--agent")}>
           {aufBuehne ? null : <KiPaneGriff />}
+          {handy && !aufBuehne ? (
+            <button
+              type="button"
+              onClick={() => setHandyGross((v) => !v)}
+              aria-label={t(handyGross ? "kleiner" : "groesser")}
+              title={t(handyGross ? "kleiner" : "groesser")}
+              className="ki-pane__handygriff"
+            >
+              <span aria-hidden />
+            </button>
+          ) : null}
           <header className="ki-pane__kopf">
             <div className="ki-pane__titel">
               <span className="ki-pane__zeichen" aria-hidden>

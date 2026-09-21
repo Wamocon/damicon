@@ -8,6 +8,7 @@ import { transkribiereSprachnachricht } from "@/lib/actions/ki-assistent";
 import { starteHoeren, stoppeHoeren } from "@/lib/hoeren";
 import { leer } from "@/lib/actions/status";
 import {
+  aufnahmeDateiname,
   diktatEinstellungen,
   erzeugeStilleWaechter,
   pegelAusZeitbereich,
@@ -26,25 +27,23 @@ import { cn } from "@/lib/utils";
 // Stilleerkennung ist eine Schaetzung, kein Versprechen - in lauter Umgebung
 // kann sie danebenliegen, und dann muss man sie uebergehen koennen.
 //
-// beiSenden entscheidet, was danach geschieht: ohne diese Rueckgabe landet
-// der erkannte Text nur im Eingabefeld (beiText) und wird von Hand
-// abgeschickt; mit ihr geht er sofort raus. Das erspart einen Klick, nimmt
-// aber die Gelegenheit, ein verhoertes Wort vorher zu berichtigen - bei
-// Kasachisch, wo die Erkennung den ersten Laut verschluckt, ist das ein
-// echter Unterschied.
+// Der erkannte Text landet IMMER nur im Eingabefeld, nie direkt im Chat.
+// Bis zum 22.09.2026 gab es dafuer eine Rueckgabe "beiSenden", die ihn sofort
+// abschickte - das erspart einen Klick, nimmt aber die Gelegenheit, ein
+// verhoertes Wort zu berichtigen. Bei Kasachisch, wo die Erkennung Laute
+// verschluckt, ist das ein echter Unterschied; deshalb ist sie entfallen.
 export function MikrofonKnopf({
   beiText,
   beiAufnahme,
-  beiSenden,
   className,
   deaktiviert = false,
 }: {
-  beiText: (text: string) => void;
+  /** Der erkannte Text. `sprachen` sind die Sprachen, die der Dienst
+   *  GEHOERT hat - sie entscheiden ueber die Sprache der Antwort, denn aus
+   *  einem verhoerten Text laesst sie sich nicht mehr erraten. */
+  beiText: (text: string, sprachen?: string[]) => void;
   /** Meldet, ob gerade aufgenommen wird - fuer eine Welle ausserhalb dieses Knopfs. */
   beiAufnahme?: (an: boolean) => void;
-  /** Gesetzt: der erkannte Text wird sofort abgeschickt, ohne zweiten Klick.
-   *  Nicht gesetzt: er bleibt zum Nachlesen im Eingabefeld stehen. */
-  beiSenden?: (text: string) => void;
   className?: string;
   deaktiviert?: boolean;
 }) {
@@ -56,7 +55,7 @@ export function MikrofonKnopf({
   // Produktion schlicht der Dienst fehlte.
   const tAktion = useTranslations("aktionen");
   const sprache = useLocale();
-  const [zustand, setZustand] = useState<"bereit" | "aufnahme" | "laeuft">("bereit");
+  const [zustand, setZustand] = useState<"bereit" | "oeffnet" | "aufnahme" | "laeuft">("bereit");
   const [meldung, setMeldung] = useState<string | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const tonRef = useRef<{ kontext: AudioContext; bild: number } | null>(null);
@@ -153,6 +152,10 @@ export function MikrofonKnopf({
     setMeldung(null);
     grundRef.current = "weiter";
     try {
+      // Das Oeffnen des Mikrofons dauert - bis dahin zeigt der Knopf, dass
+      // er daran ist, aber NICHT "hoert zu". Wer zu frueh spricht, verliert
+      // sonst die ersten Worte, bevor ueberhaupt aufgenommen wird.
+      setZustand("oeffnet");
       const strom = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(strom);
       const teile: Blob[] = [];
@@ -164,7 +167,8 @@ export function MikrofonKnopf({
       recorder.onstop = async () => {
         stoppeHoeren();
         raeumeAuf();
-        const aufnahme = new Blob(teile, { type: recorder.mimeType || "audio/webm" });
+        const typ = recorder.mimeType || "audio/webm";
+        const aufnahme = new Blob(teile, { type: typ });
         // "stopp-leer": die Stilleerkennung hat nie Sprache gehoert. Diese
         // Aufnahme gar nicht erst zur Erkennung schicken - sie ergaebe
         // bestenfalls erfundene Woerter aus Umgebungsgeraeusch.
@@ -176,7 +180,11 @@ export function MikrofonKnopf({
 
         setZustand("laeuft");
         const daten = new FormData();
-        daten.append("audio", aufnahme, "aufnahme.webm");
+        // Name MUSS zum Inhalt passen: Safari auf iOS nimmt audio/mp4 auf.
+        // Bis zum 22.09.2026 hiess die Datei immer "aufnahme.webm" - der
+        // Erkennungsdienst bekam also MP4 unter WebM-Namen. Wer die Endung
+        // auswertet statt den Inhalt, verarbeitet dann Unsinn oder lehnt ab.
+        daten.append("audio", aufnahme, aufnahmeDateiname(typ));
         // Die Sprache der Oberflaeche als Hinweis fuer die Erkennung: sie
         // trennt vor allem Kasachisch von Russisch, die sich die Schrift
         // teilen. Nicht unterstuetzte Werte verwirft der Client selbst.
@@ -186,9 +194,11 @@ export function MikrofonKnopf({
 
         // Erfolg traegt den erkannten Text im wert-Feld (siehe ok() in
         // actions/status.ts).
+        // Der erkannte Text landet NUR im Eingabefeld. Abgeschickt wird von
+        // Hand: ein verhoertes Diktat, das ungeprueft rausgeht, ist schlimmer
+        // als ein Tippfehler - besonders auf Kasachisch.
         if (status.stand === "ok" && status.wert) {
-          beiText(status.wert);
-          beiSenden?.(status.wert);
+          beiText(status.wert, status.sprachen);
         } else {
           setMeldung(status.meldung ? tAktion(status.meldung) : t("fehlgeschlagen"));
         }
@@ -206,6 +216,7 @@ export function MikrofonKnopf({
       // Kein Mikrofon, keine Erlaubnis, kein HTTPS - fuer die Nutzerin
       // dasselbe Ergebnis: es geht gerade nicht.
       raeumeAuf();
+      setZustand("bereit");
       setMeldung(t("keinZugriff"));
     }
   }
@@ -219,7 +230,10 @@ export function MikrofonKnopf({
   }
 
   const beschriftung =
-    zustand === "aufnahme" ? t("stoppen") : zustand === "laeuft" ? t("laeuft") : t("starten");
+    zustand === "aufnahme" ? t("stoppen")
+      : zustand === "laeuft" ? t("laeuft")
+      : zustand === "oeffnet" ? t("oeffnet")
+      : t("starten");
 
   return (
     <>
@@ -228,12 +242,12 @@ export function MikrofonKnopf({
         <button
           type="button"
           onClick={zustand === "aufnahme" ? stoppen : starten}
-          disabled={deaktiviert || zustand === "laeuft"}
+          disabled={deaktiviert || zustand === "laeuft" || zustand === "oeffnet"}
           title={beschriftung}
           aria-label={beschriftung}
           className={cn(className, zustand === "aufnahme" && "ki-mikrofon--aufnahme")}
         >
-          {zustand === "laeuft" ? (
+          {zustand === "laeuft" || zustand === "oeffnet" ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : zustand === "aufnahme" ? (
             <Square className="h-3.5 w-3.5 fill-current" />

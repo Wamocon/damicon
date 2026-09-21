@@ -3,7 +3,9 @@
    gebunden; ohne Bewegungspraeferenz springt alles direkt in den Endzustand. */
 
 :root {
-  --ki-pane-breite: 27rem;
+  /* 25rem = 400px: angedockt soll das Panel zwischen 380 und 420 px breit
+     sein. Ziehbar bleibt es (ki-pane-griff.tsx, 352 bis 960 px). */
+  --ki-pane-breite: 25rem;
   /* Himbeer-Palette des Assistenten (himbeere.tsx). Feste Markenfarben: sie
      bleiben in hell und dunkel dieselben, wie ein Logo. */
   --himbeere: #d81b60;
@@ -2087,4 +2089,83 @@ html[data-ki-zieht] body {
 }
 .ki-bezug button:hover {
   background: color-mix(in oklab, var(--primary) 16%, transparent);
+}
+
+/* ---- Ladehinweis der Live-Sprachausgabe (sprachausgabe.tsx) --------------
+   Zwischen dem Absenden und dem ersten Ton vergehen ein bis zwei Sekunden.
+   Ohne ein Lebenszeichen haelt man das fuer kaputt und drueckt noch einmal.
+   Drei Balken genuegen; sie stehen im Schalter, der ohnehin sagt, worum es
+   geht. */
+.ki-vorlesen-welle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-inline-start: 4px;
+}
+
+.ki-vorlesen-welle > span {
+  width: 2px;
+  height: 6px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.7;
+  animation: ki-vorlesen-huepf 900ms ease-in-out infinite;
+}
+
+.ki-vorlesen-welle > span:nth-child(2) { animation-delay: 150ms; }
+.ki-vorlesen-welle > span:nth-child(3) { animation-delay: 300ms; }
+
+@keyframes ki-vorlesen-huepf {
+  0%, 100% { transform: scaleY(0.6); }
+  50% { transform: scaleY(1.6); }
+}
+
+/* Wer Bewegung abgestellt hat, bekommt sie auch hier nicht: dann steht die
+   Welle still und zeigt allein durch ihre Anwesenheit, dass etwas laeuft. */
+@media (prefers-reduced-motion: reduce) {
+  .ki-vorlesen-welle > span { animation: none; }
+}
+
+/* ---- Agenten-Seitenansicht auf dem Handy (ki-pane.tsx) -------------------
+   Der Agent oeffnet Ansichten im Hauptfenster, und genau die soll man sehen.
+   Ein Blatt ueber fast die ganze Hoehe wuerde die Fuehrung verdecken - also
+   die untere Haelfte, und oben bleibt die Seite stehen. Wer lesen statt
+   zusehen will, macht es mit dem Griff gross. */
+@media (max-width: 767.98px) {
+  .ki-pane-huelle--agentseite.ki-pane-huelle--offen {
+    height: 45dvh;
+  }
+
+  .ki-pane-huelle--agentseite.ki-pane-huelle--gross.ki-pane-huelle--offen {
+    height: 92dvh;
+  }
+
+  .ki-pane__handygriff {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 0;
+    cursor: grab;
+    z-index: 2;
+  }
+
+  .ki-pane__handygriff > span {
+    display: block;
+    width: 2.5rem;
+    height: 0.25rem;
+    border-radius: 999px;
+    background: var(--border);
+  }
+}
+
+/* Am Schreibtisch gibt es den Griff nicht - dort zieht man die Breite. */
+@media (min-width: 768px) {
+  .ki-pane__handygriff {
+    display: none;
+  }
 }

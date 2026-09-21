@@ -12,6 +12,10 @@ import { hasPermission } from "@/lib/rbac";
 import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
 import { erzeugeSprachausgabe } from "@/lib/ai/sprachausgabe-client";
 import { istSprachausgabeSprache, sprachausgabePfad, stimmeFuerOberflaeche, textFuerSprachausgabe } from "@/lib/domain/sprachausgabe";
+import { istSprache, stimmenSprache } from "@/lib/domain/antwortsprache";
+import { erkenneSprache } from "@/lib/wissen/chunker";
+import { pruefeAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
+import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
 
 // Zwischenspeicher: Bucket "ki-sprachausgabe" (Migration 20261101000000),
 // privat und nur ueber service_role erreichbar. Die Berechtigung haengt an der
@@ -35,15 +39,87 @@ export async function POST(req: Request) {
   // auch keine Antworten zum Vorlesen.
   if (!hasPermission(profil.role, "ki_assistent", "create")) return fehler(403, "keine-berechtigung");
 
-  let body: { nachrichtId?: unknown; sprache?: unknown };
+  let body: { nachrichtId?: unknown; sprache?: unknown; abschnitt?: unknown };
   try {
     body = await req.json();
   } catch {
     return fehler(400, "ungueltige-eingabe");
   }
+  // --- Weg 2: ein einzelner Abschnitt einer noch laufenden Antwort ---------
+  //
+  // Der Weg ueber die Nachrichten-ID greift erst, wenn die Antwort fertig und
+  // gespeichert ist. Beim Vorlesen waehrend des Schreibens gibt es diese Zeile
+  // noch nicht - der Text kommt deshalb mit.
+  //
+  // Damit das kein offener Sprachgenerator wird, traegt jeder Abschnitt eine
+  // Signatur, die der Chat-Stream beim Erzeugen gesetzt hat. Sie bindet
+  // Nutzer, Zug, Nummer, Textabdruck und Ablauf zusammen: ein fremder,
+  // veraenderter, verschobener oder alter Abschnitt kommt nicht durch.
+  // Freier Text bleibt damit unmoeglich - genau wie auf dem alten Weg.
+  if (body.abschnitt !== undefined && body.abschnitt !== null) {
+    if (!sprachausgabeLiveAn()) return fehler(404, "nicht-aktiv");
+    const geheimnis = sprachausgabeGeheimnis();
+    if (!geheimnis) return fehler(404, "nicht-aktiv");
+
+    const a = body.abschnitt as Record<string, unknown>;
+    const abschnittText = typeof a.text === "string" ? a.text.trim() : "";
+    const zug = typeof a.zug === "string" ? a.zug : "";
+    const nr = typeof a.nr === "number" ? a.nr : Number.NaN;
+    const ablauf = typeof a.ablauf === "number" ? a.ablauf : Number.NaN;
+    const sig = typeof a.sig === "string" ? a.sig : "";
+    if (!abschnittText || !zug || !Number.isInteger(nr)) return fehler(400, "ungueltige-eingabe");
+    if (abschnittText.length > 600) return fehler(400, "abschnitt-zu-lang");
+
+    const gepruefter = pruefeAbschnitt(
+      { nutzerId: profil.id, zug, nr, text: abschnittText, ablauf, sig },
+      geheimnis,
+    );
+    // Ein Fehlschlag ist immer 403, nie 400: sonst verraet der Status, WELCHER
+    // Teil nicht gestimmt hat, und man koennte sich an einer Signatur
+    // entlangtasten. Der Grund steht im Protokoll, nicht in der Antwort.
+    if (!gepruefter.ok) {
+      console.warn("[damicon] Sprachausgabe-Abschnitt abgewiesen:", gepruefter.grund);
+      return fehler(403, "nicht-erlaubt");
+    }
+
+    // Die Sprache kommt vom Zug, nicht aus der Oberflaeche und nicht je
+    // Abschnitt neu geraten: alle Abschnitte eines Zuges klingen gleich.
+    const zugSprache = istSprache(body.sprache) ? body.sprache : "de";
+    const stimmeDesZuges = istSprachausgabeSprache(zugSprache) ? stimmeFuerOberflaeche(zugSprache) : null;
+    if (!stimmeDesZuges) return fehler(422, "keine-stimme", { sprache: zugSprache });
+
+    const erzeugt = await erzeugeSprachausgabe(abschnittText, stimmeDesZuges);
+    if (!erzeugt.ok) return fehler(502, "dienst-fehler", { grund: erzeugt.grund });
+    // Abschnitte werden NICHT zwischengespeichert: sie entstehen einmal,
+    // werden einmal gesprochen, und der fertige Text ist danach ueber die
+    // Nachrichten-ID erreichbar. Ein Zwischenspeicher waere Ablage ohne Leser.
+    //
+    // Bewusst offen (eigener Review, nicht in diesem Schritt behoben): eine
+    // gueltige Signatur laesst sich innerhalb ihrer zehn Minuten wiederholt
+    // einloesen, und weil nichts zwischengespeichert wird, kostet jede
+    // Wiederholung eine Erzeugung. Die Signatur verhindert FREMDEN und
+    // VERAENDERTEN Text, nicht die Wiederholung des eigenen. Wer angemeldet
+    // ist, kann denselben Aufwand ohnehin ueber den Chat ausloesen - dort
+    // fehlt eine Ratenbegrenzung genauso (siehe actions/ki-assistent.ts).
+    // Ein Zwischenspeicher je Signatur waere der naechste Schritt.
+    return new Response(new Uint8Array(erzeugt.audio), {
+      status: 200,
+      headers: {
+        "content-type": erzeugt.typ || "audio/mpeg",
+        "cache-control": "no-store",
+        "x-sprache": zugSprache,
+        "x-abschnitt": String(nr),
+      },
+    });
+  }
+
+  // --- Weg 1: eine fertige, gespeicherte Antwort ---------------------------
   const nachrichtId = typeof body.nachrichtId === "string" ? body.nachrichtId : "";
   if (!UUID.test(nachrichtId)) return fehler(400, "ungueltige-eingabe");
-  const oberflaechenSprache = typeof body.sprache === "string" ? body.sprache : "de";
+  // "sprache" ist jetzt die Sprache DIESER ANTWORT (L), die der Chat-Stream
+  // mitgeschickt hat - nicht mehr die Oberflaechensprache. Fehlt sie (alter
+  // Browser-Tab, direkter Aufruf), faengt die Gegenprobe unten das auf.
+  const gemeldeteSprache = typeof body.sprache === "string" ? body.sprache : "de";
 
   const supabase = await createClient();
   const { data: nachricht, error } = await supabase
@@ -59,10 +135,25 @@ export async function POST(req: Request) {
   const text = textFuerSprachausgabe(nachricht.inhalt);
   if (!text) return fehler(422, "kein-text");
 
-  // Die Stimme folgt der Systemsprache. Frueher wurde die Sprache aus dem
-  // Antworttext erraten - bei einer Antwort, die selbst schon in der
-  // falschen Sprache stand, las die falsche Stimme dann den falschen Text.
-  const sprache = istSprachausgabeSprache(oberflaechenSprache) ? oberflaechenSprache : "de";
+  // Die Stimme folgt der Sprache DIESER ANTWORT, nicht der Einstellung.
+  //
+  // Vorher kam sie allein aus der Oberflaeche. Antwortete das Modell in der
+  // Sprache der Frage - und das tut es -, las eine fremde Stimme den Text
+  // vor: deutsche Antwort mit russischer Stimme (Waleri, 22.09.2026).
+  //
+  // Zwei Quellen, in dieser Reihenfolge:
+  //   1. L, vom Chat-Stream mitgeschickt.
+  //   2. der fertige Text selbst - er ist der Beleg. Weicht er eindeutig ab,
+  //      gewinnt er: lieber die richtige Stimme zum vorhandenen Text als
+  //      beides falsch.
+  const gewuenscht = istSprache(gemeldeteSprache) ? gemeldeteSprache : "de";
+  const gepruefte = stimmenSprache(gewuenscht, text, (t) => erkenneSprache(t, 10));
+  if (gepruefte.abweichung) {
+    // Nur zaehlen, nie den Text: haeuft sich das, stimmt etwas mit der
+    // Anweisung ans Modell nicht.
+    console.warn("[damicon] Sprachausgabe: Antworttext ist " + gepruefte.sprache + ", angekuendigt war " + gewuenscht);
+  }
+  const sprache = istSprachausgabeSprache(gepruefte.sprache) ? gepruefte.sprache : "de";
   const stimme = stimmeFuerOberflaeche(sprache);
   if (!stimme) return fehler(422, "keine-stimme", { sprache });
 

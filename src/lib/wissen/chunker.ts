@@ -263,15 +263,46 @@ export function einbettungsText(chunk: Pick<WissensChunk, "kontext" | "text">): 
 }
 
 /** Grobe Spracherkennung fuer Dokumente ohne Frontmatter (Audit-Recherche, Notizen):
- *  kyrillisch oder lateinisch, bei Kyrillisch Kasachisch an den Sonderbuchstaben. */
-export function erkenneSprache(text: string): "ru" | "kk" | "de" | "en" | null {
+ *  kyrillisch oder lateinisch, bei Kyrillisch Kasachisch an den Sonderbuchstaben.
+ *
+ *  @param mindestBuchstaben Ab wie vielen Buchstaben ueberhaupt geraten wird.
+ *    Fuer Dokumente sind 40 richtig. Eine Chatfrage ist oft kuerzer ("Wie geht
+ *    es?" hat 11), und dort ist ein begruendeter Tipp besser als gar keiner:
+ *    der Aufrufer entscheidet. */
+export function erkenneSprache(text: string, mindestBuchstaben = 40): "ru" | "kk" | "de" | "en" | null {
   const probe = text.slice(0, 4000);
   const kyrillisch = (probe.match(/[Ѐ-ӿ]/g) ?? []).length;
   const lateinisch = (probe.match(/[A-Za-zÀ-ÿ]/g) ?? []).length;
-  if (kyrillisch + lateinisch < 40) return null;
+  if (kyrillisch + lateinisch < mindestBuchstaben) return null;
   if (kyrillisch > lateinisch) {
     const kasachisch = (probe.match(/[әіңғүұқөһӘІҢҒҮҰҚӨҺ]/g) ?? []).length;
     return kasachisch / kyrillisch > 0.01 ? "kk" : "ru";
   }
-  return /[äöüßÄÖÜ]|\b(und|der|die|das|nicht|ist|ein|eine|für|mit)\b/i.test(probe) ? "de" : "en";
+  // Ohne Anhaltspunkt bleibt es beim bisherigen Verhalten: lateinischer Text
+  // ohne Hinweise gilt als Englisch. Wer "eindeutig oder gar nicht" braucht,
+  // nimmt lateinischeSprache() direkt.
+  return lateinischeSprache(probe) ?? "en";
+}
+
+// Deutsch gegen Englisch. Frueher galt: Umlaute oder eines von zehn Woertern
+// -> Deutsch, sonst Englisch. "Wie geht es Ihnen heute?" hat weder Umlaut
+// noch eines dieser Woerter und kam deshalb als Englisch heraus - fuer ein
+// Dokument unschoen, fuer die Antwortsprache einer Chatfrage falsch.
+//
+// Jetzt zaehlen beide Seiten. Nur Woerter, die es auf der anderen Seite nicht
+// gibt: "in", "man", "war", "die" stehen in beiden Sprachen und entscheiden
+// nichts.
+const DEUTSCHE_WOERTER = /\b(und|oder|nicht|ist|sind|ein|eine|einen|einem|der|den|dem|des|das|mit|für|auf|aus|bei|nach|über|unter|noch|schon|auch|sehr|wie|was|wo|wann|warum|wer|welche|welcher|ich|du|wir|ihr|sie|ihnen|mich|mir|dich|dir|uns|euch|kann|könnte|soll|muss|darf|habe|haben|hat|hatte|wird|werden|wurde|geht|gehen|machen|bitte|danke|heute|morgen|gestern|immer|wieder|kein|keine|mein|meine|dein|deine|unser|diese|dieser|dieses)\b/gi;
+const ENGLISCHE_WOERTER = /\b(the|and|or|not|is|are|was|were|been|a|an|with|for|from|into|about|after|before|between|how|what|where|when|why|who|which|i|you|we|they|he|she|me|him|her|us|them|can|could|should|would|must|may|have|has|had|will|do|does|did|go|goes|make|please|thanks|today|tomorrow|yesterday|always|again|no|my|your|our|this|these|those)\b/gi;
+
+/** Deutsch oder Englisch - oder null, wenn nichts dafuer spricht. Der Aufrufer
+ *  entscheidet, was ein Unentschieden bedeutet: fuer Dokumente "irgendwas",
+ *  fuer die Antwortsprache "lieber die Einstellung nehmen". */
+export function lateinischeSprache(text: string): "de" | "en" | null {
+  if (/[äöüßÄÖÜ]/.test(text)) return "de";
+  const deutsch = (text.match(DEUTSCHE_WOERTER) ?? []).length;
+  const englisch = (text.match(ENGLISCHE_WOERTER) ?? []).length;
+  if (deutsch > englisch) return "de";
+  if (englisch > deutsch) return "en";
+  return null;
 }

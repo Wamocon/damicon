@@ -101,3 +101,189 @@ export function textFuerSprachausgabe(markdown: string): string {
   }
   return text;
 }
+
+// --- Live-Sprachausgabe: Abschnitte schon waehrend des Schreibens ----------
+//
+// Bisher wurde erst vorgelesen, wenn die ganze Antwort dastand. Bei einer
+// langen Antwort sind das viele Sekunden Stille, in denen nichts passiert.
+//
+// Der Zerleger bekommt den Stream stueckweise und gibt zurueck, was fertig
+// gesprochen werden kann. Drei Dinge entscheiden, wann ein Abschnitt faellt:
+//
+//   1. Der ERSTE Abschnitt faellt frueh - beim ersten Komma oder nach rund
+//      60 Zeichen. Er ist der teuerste: bis er klingt, ist es still.
+//   2. Danach 1-2 Saetze bis rund 250 Zeichen. Laengere Abschnitte klingen
+//      besser (die Stimme kennt die Satzmelodie), kuerzere kaemen frueher.
+//   3. Was man nicht vorliest - Codebloecke, Tabellen, Links - faellt vorher
+//      weg, auch wenn es ueber mehrere Stream-Stuecke verteilt ankommt.
+
+/** Erster Abschnitt: so frueh wie moeglich, damit die Stille kurz bleibt. */
+export const ERSTER_ABSCHNITT_ZEICHEN = 60;
+/** Danach: so lang, dass die Satzmelodie stimmt. */
+export const ABSCHNITT_ZEICHEN = 250;
+
+// Kein Satzende, obwohl da ein Punkt steht. Die Liste ist kurz gehalten und
+// enthaelt nur, was in diesen Antworten wirklich vorkommt.
+const ABKUERZUNGEN = [
+  "z. b.", "z.b.", "d. h.", "d.h.", "u. a.", "u.a.", "o. ä.", "o.ä.",
+  "bzw.", "ca.", "evtl.", "usw.", "inkl.", "exkl.", "max.", "min.",
+  "nr.", "abs.", "art.", "bspw.", "ggf.", "vgl.", "bzgl.",
+  "dr.", "prof.", "hr.", "fr.", "mr.", "mrs.", "ms.", "etc.", "approx.",
+];
+
+/** Steht an dieser Stelle wirklich ein Satzende? */
+function istSatzende(text: string, i: number): boolean {
+  const zeichen = text[i];
+  if (!".!?…".includes(zeichen)) return false;
+
+  // "3,5" und "3.5": eine Zahl, kein Satz.
+  if (zeichen === "." && /\d/.test(text[i - 1] ?? "") && /\d/.test(text[i + 1] ?? "")) return false;
+
+  // Danach muss Platz sein - mitten im Wort endet kein Satz.
+  const danach = text.slice(i + 1);
+  if (danach && !/^[\s"'»«)\]]/.test(danach)) return false;
+
+  // Abkuerzung davor? "z. B." endet nicht, obwohl zweimal ein Punkt steht.
+  //
+  // Die Abkuerzung muss ein eigenes Wort sein. Ohne diese Pruefung verschluckt
+  // ein kurzer Eintrag die halbe Sprache: "s." (fuer "siehe") passt sonst auf
+  // JEDES Wort, das auf s endet - "lückenlos." waere dann kein Satzende mehr.
+  const davor = text.slice(0, i + 1).toLowerCase();
+  const istAbkuerzung = ABKUERZUNGEN.some((a) => {
+    if (!davor.endsWith(a)) return false;
+    const vorZeichen = davor[davor.length - a.length - 1];
+    return vorZeichen === undefined || !/[a-zäöüß]/.test(vorZeichen);
+  });
+  if (istAbkuerzung) return false;
+
+  // Ein einzelner Buchstabe mit Punkt ist eine Initiale ("A. Serikbaj").
+  if (zeichen === "." && /(^|\s)[a-zäöüßA-ZÄÖÜ]$/.test(text.slice(0, i))) return false;
+
+  return true;
+}
+
+export interface Abschnitt {
+  /** Fortlaufend ab 1, je Zug. Die Reihenfolge haengt daran. */
+  nr: number;
+  text: string;
+}
+
+export interface SatzZerleger {
+  /** Naechstes Stueck aus dem Stream. Gibt zurueck, was jetzt sprechbar ist. */
+  fuettere(stueck: string): Abschnitt[];
+  /** Ende der Antwort: gibt den Rest heraus. */
+  abschliessen(): Abschnitt[];
+}
+
+/**
+ * Zerlegt eine Antwort waehrend des Schreibens in sprechbare Abschnitte.
+ *
+ * Der Zustand ist absichtlich in einer Closure und nicht in einem Modul:
+ * zwei Antworten duerfen sich nicht ins Gehege kommen.
+ */
+export function erzeugeSatzZerleger(): SatzZerleger {
+  let puffer = "";
+  let inCodeblock = false;
+  let nr = 0;
+  let gesamtZeichen = 0;
+  let ersterRaus = false;
+  let fertig = false;
+
+  /** Vom Puffer abschneiden und als Abschnitt herausgeben. */
+  function schneide(bis: number): Abschnitt | null {
+    const roh = puffer.slice(0, bis);
+    puffer = puffer.slice(bis);
+    const text = textFuerSprachausgabe(roh).trim();
+    if (!text) return null;
+    if (gesamtZeichen + text.length > MAX_SPRACHAUSGABE_ZEICHEN) {
+      fertig = true;
+      const rest = MAX_SPRACHAUSGABE_ZEICHEN - gesamtZeichen;
+      if (rest < 20) return null;
+      gesamtZeichen = MAX_SPRACHAUSGABE_ZEICHEN;
+      return { nr: ++nr, text: text.slice(0, rest).trim() };
+    }
+    gesamtZeichen += text.length;
+    ersterRaus = true;
+    return { nr: ++nr, text };
+  }
+
+  /** Wo endet der naechste Abschnitt im Puffer - oder -1, wenn noch keiner. */
+  function naechsteGrenze(): number {
+    // Der ERSTE Abschnitt hat eine andere Aufgabe als alle weiteren: er soll
+    // so frueh wie moeglich klingen. Deshalb gewinnt hier die FRUEHESTE
+    // brauchbare Grenze - das erste Komma oder das erste Satzende, je
+    // nachdem, was zuerst kommt.
+    if (!ersterRaus) {
+      const kandidaten: number[] = [];
+      // Das erste Komma, das eine Sprechpause ist - nicht das Komma in
+      // "3,5". Dort mittendrin zu trennen ergaebe "drei" ... "fünf Grad".
+      let komma = -1;
+      for (let i = 0; i < puffer.length; i++) {
+        if (puffer[i] !== ",") continue;
+        if (/[0-9]/.test(puffer[i - 1] ?? "") && /[0-9]/.test(puffer[i + 1] ?? "")) continue;
+        komma = i;
+        break;
+      }
+      if (komma >= 0 && komma + 1 >= 12) kandidaten.push(komma + 1);
+      for (let i = 0; i < puffer.length; i++) {
+        if (istSatzende(puffer, i)) { kandidaten.push(i + 1); break; }
+      }
+      if (kandidaten.length) return Math.min(...kandidaten);
+      // Weder Komma noch Punkt in Sicht: nach der Zielmarke am letzten
+      // Wortende trennen, statt weiter stumm zu warten.
+      if (puffer.length > ERSTER_ABSCHNITT_ZEICHEN * 1.5) {
+        const platz = puffer.lastIndexOf(" ", Math.floor(ERSTER_ABSCHNITT_ZEICHEN * 1.5));
+        if (platz >= 12) return platz + 1;
+      }
+      return -1;
+    }
+
+    // Danach zaehlt der Klang: ganze Saetze, bis die Zielmarke erreicht ist.
+    let letztesSatzende = -1;
+    for (let i = 0; i < puffer.length; i++) {
+      if (istSatzende(puffer, i)) {
+        letztesSatzende = i + 1;
+        if (letztesSatzende >= ABSCHNITT_ZEICHEN) return letztesSatzende;
+      }
+    }
+
+    // Kein Satzende, aber viel zu lang: am letzten Leerzeichen trennen,
+    // damit kein Wort zerrissen wird.
+    if (puffer.length > ABSCHNITT_ZEICHEN * 2) {
+      const platz = puffer.lastIndexOf(" ", ABSCHNITT_ZEICHEN * 2);
+      if (platz > ABSCHNITT_ZEICHEN) return platz + 1;
+    }
+    return letztesSatzende > 0 ? letztesSatzende : -1;
+  }
+
+  function ernte(): Abschnitt[] {
+    const raus: Abschnitt[] = [];
+    for (;;) {
+      if (fertig) return raus;
+      const grenze = naechsteGrenze();
+      if (grenze <= 0) return raus;
+      const a = schneide(grenze);
+      if (a) raus.push(a);
+    }
+  }
+
+  return {
+    fuettere(stueck: string): Abschnitt[] {
+      if (fertig || !stueck) return [];
+      // Codebloecke ueber Stueckgrenzen hinweg: die Zaehlung der ``` muss
+      // den ganzen Strom sehen, nicht nur das aktuelle Stueck.
+      for (const teil of stueck.split(/(```)/)) {
+        if (teil === "```") { inCodeblock = !inCodeblock; continue; }
+        if (!inCodeblock) puffer += teil;
+      }
+      return ernte();
+    },
+    abschliessen(): Abschnitt[] {
+      if (fertig) return [];
+      const raus = ernte();
+      const rest = schneide(puffer.length);
+      if (rest) raus.push(rest);
+      return raus;
+    },
+  };
+}
