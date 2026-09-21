@@ -26,20 +26,20 @@ Die Regel dahinter: **Grund und Schatten nehmen nach innen ab, der Rahmen bleibt
 - `Card` und `Stat` werden in den Ansichten direkt in `Section` gesetzt. Beide tragen heute vollen Kartengrund und Schatten und müssten zur Inhaltskarte werden.
 - `Section` trägt an einigen Stellen ein `id` als Sprungziel samt `scroll-mt-20` (Risiko-Radar). Beim Umbau muss der Anker an der äußeren Box bleiben, sonst springt der Verweis in den Rahmen statt davor.
 
-### 2. Bereichsseiten — 4 Seiten
+### 2. Bereichsseiten — 4 Seiten — **erledigt am 21.09.2026**
 
 `src/components/dashboard/zone-page-body.tsx`
 
-- `PageHeader` steht frei auf dem Hintergrund, darunter ein Raster aus `kachelVerweis`-Karten, ebenfalls frei.
-- Nach dem neuen System wäre der Kopf eine Begrüßungs-artige Box (oder bliebe frei, wenn der Kopf bewusst außerhalb steht) und das Kachelraster eine Abschnittsbox mit Inhaltskarten darin.
-- Hier fällt auch die Entscheidung, ob `PageHeader` künftig überhaupt noch frei stehen darf. Die Übersicht hat ihn durch eine Box ersetzt, vier Seiten weiter steht er noch nackt.
+- Der Kopf sitzt jetzt in einer Abschnittsbox, die Module in einer zweiten mit eigener Überschrift.
+- Die Modulkacheln sind Inhaltskarten geworden: `cn(kachelVerweis, "bg-muted/20 p-5 shadow-none")`. tailwind-merge ersetzt `bg-card` und `shadow-sm` aus der Klassenkette, es braucht also keine zweite Variante von `kachelVerweis`.
+- Der Rollenhinweis stand frei unter der Seite und gehörte optisch zu nichts. Er erklärt, warum die Liste so aussieht, wie sie aussieht, und steht deshalb jetzt in derselben Box.
 
-### 3. Modulseiten — 26 Seiten
+### 3. Modulseiten — 26 Seiten — **Kopf erledigt am 21.09.2026**
 
 `src/components/dashboard/module-page-body.tsx`
 
-- Derselbe freie `PageHeader`, darunter die Ansicht des Moduls.
-- Der Kasten für „kein Zugriff“ ist eine handgebaute Box (`rounded-2xl border bg-card p-8`) und keine `Card`. Sie sieht zufällig richtig aus, folgt aber keinem Baustein.
+- Der Kopf sitzt in einer Abschnittsbox, der Kasten für „kein Zugriff“ ist jetzt eine `Card` statt einer von Hand gebauten Fläche mit denselben Werten.
+- **Was darunter steht, folgt dem System noch nicht.** Der Inhalt kommt aus den Modulansichten, und die bauen auf `Section` — Punkt 1 dieser Liste. Bis der umgestellt ist, trägt die Modulseite einen gerahmten Kopf über rahmenlosen Abschnitten. Das ist sichtbar und wird erst mit `Section` rund.
 
 ### 4. Modulansichten — 25 Dateien, 60 Abschnitte
 
@@ -82,8 +82,8 @@ Die eigentliche Masse. Verteilung der Abschnitte je Datei:
 
 ## Reihenfolge, wenn es weitergehen soll
 
-1. `Section` zur Abschnittsbox machen und dabei `DataTable`, `Card` und `Stat` auf die innere Ebene setzen. Damit sind 60 von 64 Abschnitten erledigt.
-2. Bereichs- und Modulseiten: entscheiden, ob `PageHeader` frei stehen bleibt oder eine Box bekommt. Betrifft 30 Seiten, ist aber eine einzige Entscheidung an zwei Dateien.
+1. ~~Bereichs- und Modulseiten~~ — am 21.09.2026 umgestellt, 30 Seiten über zwei Dateien.
+2. `Section` zur Abschnittsbox machen und dabei `DataTable`, `Card` und `Stat` auf die innere Ebene setzen. Damit sind 60 von 64 Abschnitten erledigt — und die Modulseiten sind fertig, die heute noch einen gerahmten Kopf über rahmenlosem Inhalt tragen.
 3. Sicherheitsseite und `nachweiskette-ansicht.tsx` einzeln nachziehen.
 4. Öffentliche Seiten getrennt entscheiden.
 

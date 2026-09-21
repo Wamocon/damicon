@@ -400,7 +400,8 @@
         "verfehlt": "target missed",
         "offen": "no target value"
       }
-    }
+    },
+    "zoneModuleLead": "Everything released in this zone for the active role."
   },
   "roles": {
     "switcherHint": "Switch demo role - controls the visible navigation",

@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Lock } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { PageHeader } from "@/components/ui/kit";
+import { Card, PageHeader } from "@/components/ui/kit";
 import {
   KlassifikationBadge,
   ReifegradBadge,
@@ -14,6 +14,11 @@ import { usePersona } from "@/components/dashboard/persona";
 import { hasPermission } from "@/lib/rbac";
 import type { ModuleDef } from "@/lib/modules";
 
+// Der Kopf sitzt wie auf der Uebersicht und den Bereichsseiten in einer Box.
+// Was darunter steht, kommt aus der jeweiligen Modulansicht und folgt dem
+// Boxensystem noch nicht - die Abschnitte dort bauen auf <Section>, und die
+// traegt bis heute keinen Rahmen (siehe docs/design/boxensystem-audit-
+// 2026-09-21.md, Punkt 1).
 export function ModulePageBody({
   module,
   children,
@@ -33,19 +38,24 @@ export function ModulePageBody({
   const allowed = hasPermission(role, module.resource, "view");
 
   return (
-    <div className="space-y-8">
-      <PageHeader
-        title={t(`${module.key}.title`)}
-        description={t(`${module.key}.description`)}
-      >
-        <ReifegradBadge value={module.reifegrad} />
-        <KlassifikationBadge value={module.klassifikation} />
-      </PageHeader>
+    <div className="space-y-6">
+      <Card className="p-5 sm:p-6">
+        <PageHeader
+          title={t(`${module.key}.title`)}
+          description={t(`${module.key}.description`)}
+        >
+          <ReifegradBadge value={module.reifegrad} />
+          <KlassifikationBadge value={module.klassifikation} />
+        </PageHeader>
+      </Card>
 
       {allowed ? (
         (children ?? <ModuleView module={module} />)
       ) : (
-        <div className="rounded-2xl border border-border bg-card p-8 text-center">
+        // Vorher eine von Hand gebaute Flaeche mit denselben Werten wie
+        // <Card>. Jetzt der Baustein selbst - eine Aenderung an der Karte
+        // muss nicht an zwei Stellen nachgezogen werden.
+        <Card className="p-8 text-center">
           <Lock className="mx-auto h-6 w-6 text-muted-foreground" />
           <p className="mt-3 text-sm font-semibold text-foreground">
             {denied("title", { role: roleT(role) })}
@@ -57,7 +67,7 @@ export function ModulePageBody({
           >
             {denied("back")}
           </Link>
-        </div>
+        </Card>
       )}
     </div>
   );

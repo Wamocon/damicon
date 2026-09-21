@@ -400,7 +400,8 @@
         "verfehlt": "Ziel verfehlt",
         "offen": "kein Zielwert"
       }
-    }
+    },
+    "zoneModuleLead": "Alles, was in dieser Zone für die aktive Rolle freigegeben ist."
   },
   "roles": {
     "switcherHint": "Demo-Rolle wechseln - steuert die sichtbare Navigation",
