@@ -106,18 +106,32 @@ export function transkriptionsMeldung(grund: string): string {
 // funktioniert derselbe Code gegen beide Dienste.
 const MODELL = "whisper-1";
 
-/** Sprachen, fuer die der Dienst Spracherkennung anbietet - dieselben vier,
- *  die die Anwendung ueberhaupt kennt. Ohne Angabe erkennt der Dienst die
- *  Sprache selbst; ein unbekannter Wert wird still verworfen. */
-export const transkriptionSprachen = ["de", "en", "ru", "kk"] as const;
+/** Sprachen, fuer die ueberhaupt ein Hinweis mitgeht. Genau eine: Kasachisch.
+ *
+ *  Am 20.09.2026 an echten Aufnahmen gemessen, dieselbe Datei mit
+ *  verschiedenen Hinweisen. Ein FALSCHER Hinweis garbelt nicht bloss, er
+ *  zwingt das Modell, Woerter der angegebenen Sprache zu erfinden:
+ *
+ *    kasachisch gesprochen, Hinweis de -> "Sahlkentiz wird tollen, kurzat."
+ *    deutsch gesprochen,    Hinweis ru -> "Компания документов."
+ *    russisch gesprochen,   Hinweis en -> "The cell is completely documented."
+ *
+ *  Ohne Hinweis war das Ergebnis fuer Deutsch und Russisch genauso gut wie
+ *  mit dem richtigen. Nur fuer Kasachisch nicht: dort liefert der Hinweis den
+ *  vollstaendigen Satz, ohne ihn kommt "Салғын тіз бе толы ..." - und der
+ *  Hinweis schickt die Aufnahme zugleich an das kasachische Modell
+ *  (speech-router, STT_MODELS). Deshalb genau dieser eine Fall.
+ *
+ *  Es geht die OBERFLAECHENSPRACHE mit, nicht eine geratene Sprache der
+ *  Aufnahme - die Systemsprache ist die eine Quelle der Wahrheit. */
+export const transkriptionSprachen = ["kk"] as const;
 
-/** Sprache der Aufnahme, in dieser Reihenfolge:
- *   1. was die Oberflaeche mitgibt (die Sprache, in der die Person gerade
- *      arbeitet) - hilft vor allem bei Kasachisch, das sich die Schrift mit
- *      Russisch teilt und sonst leicht als Russisch durchgeht,
- *   2. KI_TRANSKRIPTION_SPRACHE, falls jemand es erzwingen will,
- *   3. gar nichts: der Dienst erkennt die Sprache selbst.
- *  Unbekannte Werte werden still verworfen statt mitgeschickt. */
+/** Sprachhinweis fuer die Aufnahme:
+ *   1. "kk", wenn die Oberflaeche auf Kasachisch steht,
+ *   2. sonst KI_TRANSKRIPTION_SPRACHE, falls jemand es erzwingen will,
+ *   3. sonst gar nichts - der Dienst erkennt die Sprache selbst, und das ist
+ *      fuer de/en/ru nachweislich so gut wie der richtige Hinweis.
+ *  Alles andere wird still verworfen statt mitgeschickt. */
 function sprache(vorgabe?: string): string | null {
   const erlaubt = (wert: string | undefined) =>
     wert && (transkriptionSprachen as readonly string[]).includes(wert) ? wert : null;

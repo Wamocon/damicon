@@ -35,9 +35,9 @@ import {
   wissensQuellenFuerFaehigkeiten,
 } from "../../src/lib/domain/ki-assistent.ts";
 import {
-  antwortSprache,
-  erkenneSprache,
   MAX_SPRACHAUSGABE_ZEICHEN,
+  sprachausgabeSprachen,
+  stimmeFuerOberflaeche,
   sprachausgabePfad,
   STIMMEN,
   textFuerSprachausgabe,
@@ -47,6 +47,7 @@ import {
   transkriptionBasisUrl,
   transkribiereAudio,
   transkriptionsMeldung,
+  transkriptionSprachen,
   transkriptionZeitlimitMs,
   transkriptionZugangsHeader,
 } from "../../src/lib/ai/transkription-client.ts";
@@ -324,29 +325,22 @@ for (const [name, kaputteAntwort] of [
 
 // --- 5. Sprachausgabe (domain/sprachausgabe.ts, ai/sprachausgabe-client.ts) --
 {
-  const beispiele = [
-    ["de", "**Fazit:** Interne Audits finden alle **47 Tage** statt. Empfehlung: den nächsten Termin eintragen."],
-    ["ru", "**Вывод:** внутренние аудиты проводятся каждые **47 дней**."],
-    ["kk", "**Қорытынды:** ішкі аудиттер әр **47 күн** сайын өткізіледі."],
-    ["en", "**Summary:** Internal audits take place every **47 days** according to the policy."],
-  ];
-  for (const [erwartet, text] of beispiele) {
-    const erkannt = erkenneSprache(textFuerSprachausgabe(text), "de");
-    pruefe(`Sprachausgabe: Antwort auf ${erwartet} wird als ${erwartet} erkannt`, erkannt === erwartet, `erkannt: ${erkannt}`);
+  // Seit dem 21.09.2026 raet nichts mehr die Sprache: die Systemsprache
+  // bestimmt Stimme, Antwort und Beiwerk. Der Grund steht in
+  // api/ki-assistent/route.ts - bei einer DIKTIERTEN Frage kam die Erkennung
+  // auf den Text der Spracherkennung, und der stand bei falschem Sprachhinweis
+  // selbst schon in der falschen Sprache ("Sahlkentiz wird tollen, kurzat."
+  // fuer einen kasachischen Satz auf deutscher Oberflaeche). Eine Einstellung,
+  // die die Person selbst setzt, ist verlaesslicher als jede Erkennung.
+  for (const sprache of sprachausgabeSprachen) {
+    pruefe(
+      `Systemsprache: ${sprache} hat eine Stimme, die Oberflaeche bestimmt sie`,
+      stimmeFuerOberflaeche(sprache) !== null,
+      sprache,
+    );
   }
-  // Tuerkisch ist am 20.09.2026 aus der Anwendung entfernt worden. Ein
-  // tuerkischer Satz darf deshalb nie mehr "tr" ergeben - er faellt auf eine
-  // der vier verbliebenen Sprachen, fuer die es auch eine Stimme gibt.
-  {
-    const tuerkisch = erkenneSprache("**Sonuç:** İç denetimler her **47 günde** bir yapılır.", "de");
-    pruefe("Sprachausgabe: Tuerkisch gibt es nicht mehr - kein 'tr' aus der Erkennung", tuerkisch !== "tr", `erkannt: ${tuerkisch}`);
-    pruefe("Sprachausgabe: das Ergebnis ist eine der vier Sprachen mit Stimme", STIMMEN[tuerkisch] != null, tuerkisch);
-  }
-  // Kasachisch und Russisch teilen das kyrillische Alphabet - entscheidend sind
-  // die kasachischen Sonderbuchstaben, nicht die Oberflaechensprache.
-  pruefe("Sprachausgabe: russischer Text bleibt ru, auch bei kasachischer Oberflaeche", erkenneSprache("Проверка сорта Полка завершена.", "kk") === "ru");
-  pruefe("Sprachausgabe: ohne Hinweis im Text zaehlt die Oberflaechensprache", erkenneSprache("47 / 12", "ru") === "ru");
-  pruefe("Sprachausgabe: unbekannte Oberflaechensprache faellt auf de zurueck", erkenneSprache("47 / 12", "fr") === "de");
+  pruefe("Systemsprache: eine unbekannte Oberflaechensprache hat keine Stimme", stimmeFuerOberflaeche("fr") === null);
+  pruefe("Systemsprache: Tuerkisch ist entfernt und hat keine Stimme mehr", stimmeFuerOberflaeche("tr") === null);
 
   const markdown = "## Stand\n\n- **Polka:** 1100 kg frei\n- `Kweli`: 500 kg\n\n| Sorte | kg |\n|---|---|\n| Polana | 1150 |\n\n[Zum Katalog](/dashboard/markt/sortenkatalog)";
   const vorlesbar = textFuerSprachausgabe(markdown);
@@ -617,49 +611,22 @@ for (const [name, kaputteAntwort] of [
   }
 }
 
-// --- 8. Antwortsprache (domain/sprachausgabe.ts) ----------------------------
-// Der gemeldete Fehler: auf einer deutschen Oberflaeche bekam eine russisch
-// gestellte Frage eine deutsche Antwort - der Systemprompt bekam schlicht die
-// OBERFLAECHENSPRACHE uebergeben und wies das Modell ausdruecklich an, in
-// dieser zu antworten. Massgeblich ist jetzt die Sprache der letzten Frage.
+// --- 8. Antwortsprache: die Systemsprache entscheidet ----------------------
+// Frueher wurde sie aus dem Fragetext erkannt. Das ging schief, sobald die
+// Frage diktiert war: der Sprachhinweis der Oberflaeche zwang die
+// Spracherkennung in die falsche Sprache, die Erkennung sah diesen Text und
+// die Antwort kam ebenfalls falsch. Jetzt gilt schlicht die Einstellung.
 {
-  const fall = (inhalte, oberflaeche) =>
-    antwortSprache(inhalte.map((inhalt, i) => ({ rolle: i % 2 === 0 ? "nutzer" : "assistent", inhalt })), oberflaeche);
-
-  for (const [sprache, satz] of [
-    ["de", "Wie viele Steigen sind heute in der Kuehlung?"],
-    ["ru", "Сколько ящиков сегодня в холодильнике?"],
-    ["kk", "Бүгін тоңазытқышта қанша жәшік бар?"],
-    ["en", "How many crates are in the cold store today?"],
-  ]) {
-    for (const oberflaeche of ["de", "ru", "kk", "en"]) {
-      const erkannt = fall([satz], oberflaeche);
-      pruefe(
-        `Antwortsprache: ${sprache} gefragt auf ${oberflaeche}-Oberflaeche -> Antwort auf ${sprache}`,
-        erkannt === sprache,
-        `erkannt: ${erkannt}`,
-      );
-    }
+  // Der Sprachhinweis geht NUR noch fuer Kasachisch mit: dort bringt er den
+  // vollstaendigen Satz und schickt die Aufnahme an das kasachische Modell.
+  // Fuer de/en/ru war "ohne Hinweis" gemessen genauso gut wie der richtige
+  // Hinweis - und ein falscher Hinweis richtet Schaden an.
+  pruefe("Sprachhinweis: nur Kasachisch wird mitgeschickt", JSON.stringify([...transkriptionSprachen]) === JSON.stringify(["kk"]));
+  for (const sprache of ["de", "en", "ru"]) {
+    pruefe(`Sprachhinweis: ${sprache} geht ohne Hinweis an den Dienst`, !transkriptionSprachen.includes(sprache));
   }
-
-  // Wer mitten im Gespraech die Sprache wechselt, wechselt sie fuer alles,
-  // was danach kommt - massgeblich ist die LETZTE Frage, nicht die erste.
-  pruefe(
-    "Antwortsprache: ein Sprachwechsel mitten im Gespraech zaehlt sofort",
-    fall(["Wie viele Steigen sind heute in der Kuehlung?", "Heute sind es 47.", "А сколько было вчера?"], "de") === "ru",
-  );
-  // Antworten des Assistenten faerben nicht ab: sonst bliebe eine einmal
-  // deutsch beantwortete Frage fuer immer deutsch.
-  pruefe(
-    "Antwortsprache: nur die Fragen zaehlen, nicht die Antworten des Assistenten",
-    fall(["Сколько ящиков сегодня?", "Heute sind es 47 Steigen."], "de") === "ru",
-  );
-  // Ohne Anhaltspunkt bleibt es bei der Oberflaeche - die beste Vermutung,
-  // die es dann gibt.
-  pruefe("Antwortsprache: eine Frage ohne Hinweis faellt auf die Oberflaeche zurueck", fall(["47?"], "ru") === "ru");
-  pruefe("Antwortsprache: ein leeres Gespraech faellt auf die Oberflaeche zurueck", antwortSprache([], "kk") === "kk");
-  pruefe("Antwortsprache: eine unbekannte Oberflaechensprache endet bei Deutsch", antwortSprache([], "xx") === "de");
 }
+
 
 // --- 7. Diktat: Stilleerkennung (domain/diktat.ts) --------------------------
 // Die Aufnahme endet von selbst, wenn jemand aufhoert zu sprechen. Die beiden

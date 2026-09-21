@@ -18,7 +18,6 @@ import { hasPermission } from "@/lib/rbac";
 import { sendeChatAnfrage } from "@/lib/ai/anbieter-client";
 import { sendeAgentAnfrage } from "@/lib/ai/agent";
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
-import { antwortSprache } from "@/lib/domain/sprachausgabe";
 import { transkribiereAudio, transkriptionsMeldung, waermeTranskriptionVor } from "@/lib/ai/transkription-client";
 import type { ChatNachricht } from "@/lib/ai/anfrage";
 import type { Json } from "@/lib/database.types";
@@ -113,11 +112,11 @@ export async function kiNachrichtSenden(
     return fehler("fehler.einwilligung");
   }
 
-  // Sprache dieses Zuges: die der Frage, nicht die der Oberflaeche. Sie
-  // bestimmt beides - die Antwort des Modells UND die Ausweichtexte, die
-  // diese Aktion selbst schreibt. Sonst beantwortet ein deutscher Satz
-  // ("Der Assistent ist gerade nicht erreichbar") eine russische Frage.
-  const antwortIn = antwortSprache([{ rolle: "nutzer", inhalt: nachricht }], await getLocale());
+  // Die Systemsprache bestimmt alles an diesem Zug: die Antwort des Modells
+  // und die Ausweichtexte, die diese Aktion selbst schreibt. Siehe
+  // api/ki-assistent/route.ts, warum nicht mehr aus dem Fragetext erkannt
+  // wird.
+  const antwortIn = await getLocale();
   const t = await getTranslations({ locale: antwortIn, namespace: "kiAssistentAnsicht.fallback" });
   const supabase = await createClient();
 

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Square, Volume2, VolumeX } from "lucide-react";
-import { erkenneSprache, STIMMEN } from "@/lib/domain/sprachausgabe";
+import { stimmeFuerOberflaeche } from "@/lib/domain/sprachausgabe";
 import { cn } from "@/lib/utils";
 
 // Sprachausgabe im KI-Seitenpanel: je Antwort ein Vorlese-Knopf, dazu ein
@@ -20,12 +20,11 @@ export function istVorlesbar(id: string): boolean {
   return UUID.test(id);
 }
 
-/** Gibt es fuer die Sprache DIESER Antwort ueberhaupt eine Stimme? Dieselbe
- *  Erkennung und dieselbe Tabelle wie auf dem Server (api/ki-sprachausgabe),
- *  nur vorab: gibt es fuer eine Sprache keine Stimme, so
+/** Gibt es fuer die Systemsprache ueberhaupt eine Stimme? Dieselbe Tabelle
+ *  wie auf dem Server (api/ki-sprachausgabe), nur vorab: fehlt eine Stimme,
  *  erscheint erst gar kein Knopf statt eines Fehlers nach dem Klick. */
-export function stimmeVorhanden(text: string, oberflaeche: string): boolean {
-  return STIMMEN[erkenneSprache(text, oberflaeche)] !== null;
+export function stimmeVorhanden(oberflaeche: string): boolean {
+  return stimmeFuerOberflaeche(oberflaeche) !== null;
 }
 
 type Hinweis = { id: string; art: "keineStimme" | "fehler" } | null;
