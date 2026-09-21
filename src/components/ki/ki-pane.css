@@ -169,6 +169,65 @@ html[data-ki-zieht] body {
   }
 }
 
+/* Handy (unter dem md-Breakpoint von Tailwind): das Panel kommt nicht mehr von
+   rechts, sondern als Blatt von unten - wie Menue und Konto an der unteren
+   Leiste, und aus demselben Grund: der Knopf steht unten, also kommt der
+   Inhalt von dort.
+
+   Die Schublade von rechts war hier ohnehin keine Entscheidung, sondern ein
+   Rechenergebnis: min(23rem, 100vw) sind bei 390 px Fensterbreite 368 px, und
+   die 22 px Rest zeigten einen Streifen der Seite dahinter - zu schmal, um
+   etwas zu erkennen, breit genug, um unruhig zu wirken.
+
+   dvh statt svh oder vh: als einzige der drei Einheiten folgt sie der
+   eingeblendeten Tastatur. Mit vh bliebe das Blatt so hoch wie der Bildschirm
+   ohne Tastatur, und der Composer laege darunter. Dazu gehoert
+   interactiveWidget: "resizes-content" im Viewport-Export
+   (app/[locale]/layout.tsx) - ohne das aendert sich auf Android gar nichts,
+   weil die Tastatur dort standardmaessig nur den sichtbaren Ausschnitt
+   verschiebt.
+
+   Der Block steht bewusst NACH dem 1099.98px-Block und nicht in ihm: zwischen
+   768 und 1100 px (Tablet im Hochformat, Kuehlhaus) bleibt die Schublade von
+   rechts richtig, dort ist neben dem Panel noch etwas zu sehen. */
+@media (max-width: 767.98px) {
+  .ki-pane-huelle {
+    inset: auto 0 0 0;
+    width: 100%;
+    height: 92dvh;
+    transform: translateY(100%);
+    border-radius: 1.25rem 1.25rem 0 0;
+  }
+  .ki-pane-huelle--offen {
+    width: 100%;
+    transform: none;
+    box-shadow: 0 -24px 60px -20px rgb(0 0 0 / 0.45);
+  }
+  .ki-pane {
+    border-left: 0;
+    border-radius: inherit;
+    /* Deckend, und zwar mit demselben Ton wie die untere Leiste und die
+       Blaetter, die von ihr aufgehen (--schwebend in globals.css).
+
+       Am Schreibtisch ist .ki-pane eine angedockte Spalte NEBEN dem Inhalt,
+       und dort ist var(--card) richtig: im Dark Mode zu 26 Prozent
+       durchsichtig, wodurch der Rasterhintergrund des Dashboards
+       durchscheint. Hier liegt dieselbe Flaeche als Blatt UEBER der Seite -
+       und durch ein Blatt, das 92 Prozent der Hoehe einnimmt, sah man den
+       Inhalt darunter hindurchscheinen. */
+    background: var(--schwebend);
+  }
+  /* Der Kopf ist zugleich die Griffkante des Blatts. */
+  .ki-pane__kopf {
+    border-radius: inherit;
+  }
+}
+@media (max-width: 767.98px) and (prefers-reduced-motion: no-preference) {
+  .ki-pane-huelle {
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
 /* ---- Kopf ---------------------------------------------------------------- */
 .ki-pane__kopf {
   position: relative;
@@ -720,7 +779,13 @@ html[data-ki-zieht] body {
   border: 1px solid var(--border);
   border-radius: 0.75rem;
 }
+/* Eine Tabelle aus einer Antwort kann beliebig breit sein - im Blatt auf
+   390 px sprengt sie sonst den Rand, statt in ihrem eigenen Behaelter zu
+   scrollen. display: block macht aus der Tabelle den Behaelter selbst. */
 .ki-md table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
   width: 100%;
   border-collapse: collapse;
   font-size: 0.75rem;
@@ -1554,6 +1619,56 @@ html[data-ki-zieht] body {
   color: var(--muted-foreground);
 }
 
+/* ---- Handy: Masse ---------------------------------------------------------
+   Vier Aenderungen, die alle denselben Grund haben: das Panel ist am
+   Schreibtisch entworfen, wo die Maus pixelgenau trifft und keine Tastatur
+   einfaehrt.
+
+   Bis 1024 px und nicht nur bis 768: das Blatt-Layout darueber haengt am
+   Platz, diese Masse haengen daran, dass mit dem Finger bedient wird - und
+   das gilt auf dem Tablet genauso. */
+@media (max-width: 1023.98px) {
+  /* 16 px ist keine Geschmacksfrage: Safari auf iOS zoomt beim Fokus in jedes
+     Eingabefeld, das kleiner ist, und bleibt danach vergroessert. Der Nutzer
+     scrollt sich dann aus dem Gespraech heraus. */
+  .ki-composer textarea {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    min-height: 2.25rem;
+  }
+
+  /* Der untere Rand des Blatts liegt ueber dem Home-Indicator des iPhone und
+     der Gestenleiste von Android. Ohne den Zuschlag sitzt der Sendeknopf
+     genau dort, wo das Betriebssystem seine eigene Wischgeste erwartet. */
+  .ki-composer {
+    padding: 0.65rem 0.85rem calc(0.85rem + env(safe-area-inset-bottom));
+  }
+
+  /* 44 px, weil im Feld Handschuhe getragen werden. Betrifft Senden, Stopp
+     und vor allem das Mikrofon: von allen Knoepfen im Composer ist es der,
+     der auf dem Handy am ehesten gebraucht wird, und er war der kleinste. */
+  .ki-composer__knopf,
+  .ki-composer__feld .ki-mikrofon {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .ki-composer__feld {
+    padding: 0.35rem 0.35rem 0.35rem 0.85rem;
+  }
+
+  /* Dieselben 44 px im Kopf. Dort stehen auf dem Handy nur noch zwei Knoepfe
+     (Mehr und Schliessen), die uebrigen liegen in der Mehr-Ansicht - vier
+     Ziele mit 0,15 rem Abstand waren enger beieinander als eine Fingerkuppe
+     breit ist. */
+  .ki-pane__knopf {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .ki-pane__werkzeuge {
+    gap: 0.25rem;
+  }
+}
+
 /* ---- Buehne: der Assistent in der Mitte (ki-pane.tsx, darstellung "buehne") ----------
    Dieselbe .ki-pane wie am Rand, nur anders gestellt. Die Huelle verlaesst den
    Dokumentfluss, die Hauptspalte bekommt ihre Breite zurueck, und die Karte steht
@@ -1939,4 +2054,37 @@ html[data-ki-zieht] body {
     transform: scaleY(0.5);
     transition: none;
   }
+}
+
+/* Bezug zu einem Prüfbericht: das Gespräch setzt auf dem Ergebnis der Prüfung auf. */
+.ki-bezug {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.4rem;
+  padding: 0.3rem 0.4rem 0.3rem 0.6rem;
+  border: 1px solid color-mix(in oklab, var(--primary) 35%, transparent);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 650;
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 8%, transparent);
+}
+.ki-bezug > span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ki-bezug button {
+  display: grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  color: inherit;
+}
+.ki-bezug button:hover {
+  background: color-mix(in oklab, var(--primary) 16%, transparent);
 }

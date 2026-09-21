@@ -14,19 +14,19 @@ Jeder Punkt nennt seine Fundstelle. Wo eine Zahl steht, ist sie gemessen und nic
 | 2 | Tabellen ohne Sortieren, Filtern, Blättern | sehr hoch | hoch | offen |
 | 3 | Abfragen ohne Zeilenbegrenzung | sehr hoch | hoch | offen |
 | 4 | Öffentliche Routen ohne Fehlergrenze | hoch | niedrig | offen |
-| 5 | Tastaturbedienung ist unsichtbar | hoch | niedrig | offen |
+| 5 | Tastaturbedienung ist unsichtbar | hoch | niedrig | **erledigt** |
 | 6 | Löschen ohne Rückfrage | hoch | niedrig | offen |
 | 7 | Kein Datenexport | hoch | mittel | offen |
 | 8 | Glocke ist eine Attrappe | mittel | niedrig–hoch | offen |
 | 9 | Kein Ladezustand beim Modulwechsel | mittel | niedrig | **erledigt** |
-| 10 | Breite Tabellen ohne fixierte Kopfzeile | mittel | niedrig | offen |
-| 11 | Zu kleine Berührungsflächen | mittel | niedrig | offen |
+| 10 | Breite Tabellen ohne fixierte Kopfzeile | mittel | niedrig | teilweise |
+| 11 | Zu kleine Berührungsflächen | mittel | niedrig | teilweise |
 | 12 | Keine Brotkrumen | mittel | niedrig | **erledigt** |
 | 13 | Sitzungsablauf ohne Vorwarnung | mittel | mittel | offen |
 | 14 | Keine Sammelaktionen | mittel | mittel | offen |
 | 15 | Keine Tastaturkürzel | mittel | mittel | offen |
-| 16 | „Ansicht als" auf dem Tablet unerreichbar | mittel | sehr niedrig | offen |
-| 17 | Unerklärtes Fachkürzel „1Çatı" | mittel | sehr niedrig | offen |
+| 16 | „Ansicht als" auf dem Tablet unerreichbar | mittel | sehr niedrig | teilweise |
+| 17 | Unerklärtes Fachkürzel „1Çatı" | mittel | sehr niedrig | **erledigt** |
 | 18 | Keine gespeicherten Ansichten | niedrig–mittel | mittel | offen |
 | 19 | Keine Dichte-Umschaltung | niedrig | niedrig | offen |
 | 20 | KI-Assistent endet in einer Sackgasse | niedrig | sehr niedrig | offen |
@@ -71,6 +71,8 @@ Ungeschützt sind damit Landingpage, Login, Einladung und vor allem `/herkunft/[
 
 ### 5. Tastaturbedienung ist unsichtbar
 
+**Erledigt am 20.09.2026** (Branch `redesign-mobile`). Eine Regel in `globals.css` setzt `:focus-visible` global auf `--ring`, ausgenommen sind Himbi und das KI-Panel, die ihren Fokus selbst zeichnen. Global und nicht an den Bausteinen, weil die Regel sonst an jedem neuen Element nachgezogen werden muss — und genau das ist lange nicht passiert.
+
 In der Fach-Oberfläche gibt es **null** `focus-visible:`-Stile bei 238 interaktiven Elementen. `focus-visible` kommt nur im Himbi-Maskottchen (`haustier.css`) und im KI-Panel (`ki-pane.css`) vor.
 
 `DESIGN.md` dokumentiert `--ring` mit ausführlicher Begründung, warum der Wert auf 3:1 nach WCAG 1.4.11 getrimmt ist. Benutzt wird das Token in der Fach-Oberfläche nirgends. Wer im Büro den Tag über Daten erfasst, arbeitet mit Tab und Enter und sieht dabei nicht, wo er steht.
@@ -109,11 +111,15 @@ Behoben durch je ein `loading.tsx` auf Bereichs- und auf Modulebene. Dieselbe Me
 
 ### 10. Breite Tabellen ohne fixierte Kopfzeile und erste Spalte
 
+**Teilweise am 20.09.2026.** Unter `md` wird jede Tabellenzeile zu einer Karte, dort stellt sich die Frage nicht mehr. Die Rechtematrix behält die Tabellenform, scrollt waagerecht und hält die erste Spalte fest. Offen bleibt die fixierte **Kopfzeile** bei langen Tabellen am Schreibtisch; sie gehört in denselben Umbau wie Punkt 2.
+
 Die Rechtematrix ist 845 px breit, gemessen bei 390 px Fensterbreite. Man scrollt waagerecht und verliert dabei die Spalte „Ressource" — danach weiß man nicht mehr, welche Zeile man liest.
 
 *Nutzen: mittel · Aufwand: niedrig*
 
 ### 11. Zu kleine Berührungsflächen
+
+**Teilweise am 20.09.2026.** Unter `md` sind 18 Bedienelemente auf 44 px gebracht, Eingabefelder zusätzlich auf 16 px gegen den iOS-Zoom. Am Schreibtisch bleibt es bei 36 px, und das ist eine Entscheidung: die dichte Erfassungsmaske ist dort richtig. `DESIGN.md` führt beide Maße getrennt.
 
 19 Bedienelemente liegen auf dem Handy unter 44 × 44 px. Bei Handschuhen im Kühlhaus und im Feld ist das der Unterschied zwischen Treffen und Danebentippen.
 
@@ -145,11 +151,15 @@ Kein Sprung zur Suche, kein Befehlsfeld, kein „neuer Datensatz". Tastaturereig
 
 ### 16. „Ansicht als" ist auf dem Tablet unerreichbar
 
+**Teilweise am 20.09.2026 — und der Titel stimmt jetzt wörtlich.** Auf dem Telefon steht der Rollenumschalter im Konto-Blatt der unteren Leiste. Zwischen 768 und 1024 px ist er weiterhin nirgends: die untere Leiste gibt es dort nicht mehr (`md:hidden`), und in der Kopfzeile trägt er unverändert `hidden lg:inline-flex`. Genau die Tablet-Lücke, die dieser Punkt meint, besteht also fort.
+
 Der `PersonaSwitcher` trägt `hidden lg:inline-flex`. Unter 1024 px fehlt er. Gerade die Administration prüft Rollen aber gern am Gerät des Nutzers.
 
 *Nutzen: mittel · Aufwand: sehr niedrig*
 
 ### 17. Unerklärtes Fachkürzel auf der Rollen-Seite
+
+**Erledigt am 20.09.2026.** Die Entsprechung steht jetzt am Fuß der Rollenkarte, mit übersetzter Beschriftung („Vorsystem 1Çatı") und ohne Versalien. Der Wert bleibt der Bezeichner aus dem Altsystem — etwas anderes wäre erfunden.
 
 In `src/components/demo/buero.tsx:36` steht `1Çatı:` fest im JSX, also in allen fünf Sprachen unübersetzt. Die Werte daneben sind rohe Schlüssel („admin", „manager"). Dass damit die entsprechende Rolle im Vorgängersystem gemeint ist, steht nur im Quelltextkommentar von `rbac.ts`.
 

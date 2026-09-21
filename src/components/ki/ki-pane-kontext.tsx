@@ -35,6 +35,12 @@ export interface KiZeiger {
   klicks: number;
 }
 
+/** Der Prüfbericht, auf dem das Gespräch aufsetzt (lib/pruefung/kontext.ts): Kennung zur Anzeige, Text fuer den Assistenten. */
+export interface PruefBezug {
+  id: string;
+  kontext: string;
+}
+
 export interface KiFuehrung {
   label: string;
   ziel: string;
@@ -60,10 +66,18 @@ interface KiPaneWert {
   /** Sichtbarer Mauszeiger des Agenten; die Zusage loest, sobald er angekommen ist. */
   zeiger: KiZeiger | null;
   bewegeZeiger: (x: number, y: number, klick?: boolean) => Promise<void>;
+  /** Bericht, auf dem das laufende Gespraech aufsetzt (geht bei jeder Anfrage mit), oder null. */
+  pruefBezug: PruefBezug | null;
+  /** Oeffnet den Chat mit dem Bericht als Grundlage und stellt die erste Frage. */
+  starteGespraechZurPruefung: (bezug: PruefBezug, frage: string) => void;
+  entferneBezug: () => void;
+  /** Frage, die der Chat als Naechstes stellen soll (nr zaehlt hoch, damit dieselbe Frage zweimal geht). */
+  anstoss: { nr: number; frage: string } | null;
 }
 
 const MODUS_SCHLUESSEL = "damicon-ki-modus";
 const DARSTELLUNG_SCHLUESSEL = "damicon-ki-darstellung";
+const BEZUG_SCHLUESSEL = "damicon-ki-pruefbezug";
 // So lange bleibt jede Station der Tour im Bild, bevor die naechste kommt -
 // kurz genug, dass es fluessig wirkt, lang genug, dass man sieht, wo man ist.
 const VERWEILZEIT_MS = 2600;
@@ -88,6 +102,10 @@ const Standard: KiPaneWert = {
   fuehrungBeenden: () => {},
   zeiger: null,
   bewegeZeiger: async () => {},
+  pruefBezug: null,
+  starteGespraechZurPruefung: () => {},
+  entferneBezug: () => {},
+  anstoss: null,
 };
 
 const KiPaneKontext = createContext<KiPaneWert>(Standard);
@@ -154,6 +172,9 @@ export function KiPaneProvider({
   const [fuehrung, setFuehrung] = useState<KiFuehrung | null>(null);
   const [zeiger, setZeiger] = useState<KiZeiger | null>(null);
   const zeigerTimer = useRef<number | undefined>(undefined);
+  const [pruefBezug, setPruefBezug] = useState<PruefBezug | null>(null);
+  const [anstoss, setAnstoss] = useState<{ nr: number; frage: string } | null>(null);
+  const anstossNr = useRef(0);
 
   const warteschlange = useRef<KiFuehrung[]>([]);
   const timer = useRef<number | undefined>(undefined);
@@ -165,10 +186,59 @@ export function KiPaneProvider({
     try {
       const gespeichert = window.localStorage.getItem(MODUS_SCHLUESSEL);
       if (gespeichert === "agent" || gespeichert === "assistent") setModusState(gespeichert);
+    } catch {
+      // Speicher gesperrt (privates Fenster): Modus gilt dann nur fuer diese Sitzung.
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
       const art = window.localStorage.getItem(DARSTELLUNG_SCHLUESSEL);
       if (art === "seite" || art === "buehne") setDarstellungState(art);
     } catch {
-      // Speicher gesperrt (privates Fenster): Modus gilt dann nur fuer diese Sitzung.
+      // siehe oben
+    }
+  }, []);
+
+  // Der Bezug ueberlebt ein Neuladen der Seite (nur in dieser Sitzung): wer nach der Pruefung weiterfragt, soll nicht ins Leere fragen.
+  useEffect(() => {
+    try {
+      const roh = window.sessionStorage.getItem(BEZUG_SCHLUESSEL);
+      if (!roh) return;
+      const b = JSON.parse(roh) as Partial<PruefBezug>;
+      if (typeof b.id === "string" && typeof b.kontext === "string") setPruefBezug({ id: b.id, kontext: b.kontext });
+    } catch {
+      // kein Speicher oder beschaedigt: dann eben ohne Bezug
+    }
+  }, []);
+
+  const speichereBezug = useCallback((bezug: PruefBezug | null) => {
+    setPruefBezug(bezug);
+    try {
+      if (bezug) window.sessionStorage.setItem(BEZUG_SCHLUESSEL, JSON.stringify(bezug));
+      else window.sessionStorage.removeItem(BEZUG_SCHLUESSEL);
+    } catch {
+      // siehe oben
+    }
+  }, []);
+
+  const starteGespraechZurPruefung = useCallback(
+    (bezug: PruefBezug, frage: string) => {
+      speichereBezug(bezug);
+      setAnstoss({ nr: ++anstossNr.current, frage });
+      setOffen(true);
+    },
+    [speichereBezug],
+  );
+
+  const entferneBezug = useCallback(() => speichereBezug(null), [speichereBezug]);
+
+  const setModus = useCallback((neu: KiModus) => {
+    setModusState(neu);
+    try {
+      window.localStorage.setItem(MODUS_SCHLUESSEL, neu);
+    } catch {
+      // siehe oben
     }
   }, []);
 
@@ -227,15 +297,6 @@ export function KiPaneProvider({
       document.body.style.overflow = vorher;
     };
   }, [offen, darstellung]);
-
-  const setModus = useCallback((neu: KiModus) => {
-    setModusState(neu);
-    try {
-      window.localStorage.setItem(MODUS_SCHLUESSEL, neu);
-    } catch {
-      // siehe oben
-    }
-  }, []);
 
   const naechsteStation = useCallback(
     function station() {
@@ -312,6 +373,10 @@ export function KiPaneProvider({
       fuehrungBeenden,
       zeiger,
       bewegeZeiger,
+      pruefBezug,
+      starteGespraechZurPruefung,
+      entferneBezug,
+      anstoss,
     }),
     [
       verfuegbar,
@@ -327,6 +392,10 @@ export function KiPaneProvider({
       fuehrungBeenden,
       zeiger,
       bewegeZeiger,
+      pruefBezug,
+      starteGespraechZurPruefung,
+      entferneBezug,
+      anstoss,
     ],
   );
 

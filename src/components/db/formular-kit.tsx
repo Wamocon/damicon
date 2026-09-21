@@ -12,7 +12,7 @@ import type { AktionsStatus } from "@/lib/actions/status";
 // Dashboard, keine eigene Formularbibliothek.
 
 const feldKlassen =
-  "h-9 w-full rounded-lg border border-border bg-background px-2.5 text-xs text-foreground outline-none transition focus:border-primary";
+  "h-11 w-full rounded-lg border border-border bg-background px-3 text-base text-foreground outline-none transition focus:border-primary lg:h-9 lg:px-2.5 lg:text-xs";
 
 // WMC-Vibecode-Cleanup-Fund: bis hierher praktisch wortgleich in rund 15
 // *-formulare.tsx-Dateien einzeln neu geschrieben (immer derselbe versteckte
@@ -60,7 +60,7 @@ export function Feld({
 }) {
   return (
     <label className="block space-y-1">
-      <span className="text-[11px] font-semibold text-card-foreground">
+      <span className="schrift-label font-semibold text-card-foreground">
         {label}
       </span>
       <input
@@ -92,7 +92,7 @@ export function Auswahl({
 }) {
   return (
     <label className="block space-y-1">
-      <span className="text-[11px] font-semibold text-card-foreground">
+      <span className="schrift-label font-semibold text-card-foreground">
         {label}
       </span>
       <select
@@ -138,8 +138,8 @@ export function SubmitKnopf({
       disabled={pending}
       className={
         variante === "primaer"
-          ? "inline-flex h-9 items-center justify-center rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-60"
-          : "inline-flex h-9 items-center justify-center rounded-lg border border-border bg-card px-3 text-xs font-bold text-foreground transition hover:border-primary disabled:opacity-60"
+          ? "inline-flex h-11 items-center justify-center rounded-lg bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-60 lg:h-9 lg:px-3 lg:text-xs"
+          : "inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary disabled:opacity-60 lg:h-9 lg:px-3 lg:text-xs"
       }
     >
       {pending ? t("laeuft") : text}
@@ -157,7 +157,7 @@ export function AktionsMeldung({ status }: { status: AktionsStatus }) {
   return (
     <p
       role="status"
-      className={`flex items-start gap-1.5 rounded-lg border p-2 text-[11px] font-semibold leading-4 ${
+      className={`flex items-start gap-1.5 rounded-lg border p-2 schrift-label font-semibold ${
         gut
           ? "border-success/25 bg-success/[0.08] text-success"
           : "border-destructive/25 bg-destructive/[0.06] text-destructive"
@@ -180,9 +180,9 @@ export function FormularKarte({
 }) {
   return (
     <div className="rounded-xl border border-border bg-card p-4">
-      <p className="text-xs font-black text-card-foreground">{titel}</p>
+      <p className="schrift-dense font-black text-card-foreground">{titel}</p>
       {beschreibung ? (
-        <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
+        <p className="mt-0.5 schrift-label text-muted-foreground">
           {beschreibung}
         </p>
       ) : null}

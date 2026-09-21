@@ -7,7 +7,9 @@
     "skipToContent": "Zum Inhalt springen",
     "themeLight": "Helles Design",
     "themeDark": "Dunkles Design",
-    "localeSwitcherLabel": "Sprachauswahl"
+    "localeSwitcherLabel": "Sprachauswahl",
+    "themeLabel": "Farbschema",
+    "laedt": "Die Seite wird geladen"
   },
   "notFound": {
     "message": "Diese Seite gibt es nicht.",
@@ -18,6 +20,7 @@
     "activePersona": "Aktive Rolle (Demo)",
     "overview": "Übersicht",
     "breadcrumb": "Navigationspfad",
+    "mainNav": "Hauptnavigation",
     "openMenu": "Menü öffnen",
     "closeMenu": "Menü schließen",
     "collapseMenu": "Menü einklappen",
@@ -27,7 +30,9 @@
     "zones": "Vier Zonen",
     "proof": "Belegbarkeit",
     "kpis": "Kennzahlen",
-    "compliance": "Compliance"
+    "compliance": "Compliance",
+    "account": "Konto",
+    "menu": "Menü"
   },
   "hero": {
     "badge": "Betriebssteuerung für die Himbeerplantage · Umland Almaty",
@@ -384,7 +389,9 @@
       "picker": "Sieht ausschließlich die eigene Pflückleistung und Lohnabrechnung. Keine Schreibrechte auf gebuchte Mengen oder auf Daten anderer.",
       "erzeuger": "Nachbarbetrieb im Zukauf. Sieht eigene Reihenblöcke, Chargen, Abrechnung und Verträge.",
       "kunde": "Kontingente, Vorbestellung, Preislisten, KI-Chat, freigegebene Dokumente und eigene Reklamationen."
-    }
+    },
+    "switcherLabel": "Demo-Rolle",
+    "viewAsLabel": "Ansicht als"
   },
   "klassifikation": {
     "uebernehmen": "Übernehmen",
@@ -491,7 +498,7 @@
     },
     "zeitBisVorkuehlung": {
       "label": "Zeit vom Pflücken bis zur Vorkühlung",
-      "braucht": "nichts - Pflueck- und Kuehlzeitpunkt je Charge",
+      "braucht": "nichts - Pflück- und Kühlzeitpunkt je Charge",
       "basis": "Mittel über alle gemessenen Chargen, inklusive Grenzverletzungen"
     },
     "zeitBisKunde": {
@@ -505,7 +512,7 @@
     },
     "pflueckStreuung": {
       "label": "Streuung der Pflückleistung (beste zu schwächste Kraft)",
-      "braucht": "nichts - Leistung je Person ueber die Saison",
+      "braucht": "nichts - Leistung je Person über die Saison",
       "basis": "Beste gegen schwächste Kraft, mindestens zwei Personen nötig"
     },
     "pflueckintervall": {
@@ -537,7 +544,7 @@
     },
     "esutdAbdeckung": {
       "label": "Abdeckung der Saisonkräfte in ЕСУТД",
-      "braucht": "rechtliche Bestaetigung der ЕСУТД-Pflicht ueber enbek.kz (siehe WMCNL-1447) - Anbindungspunkt benannt, Rechtsprüfung der Pflicht selbst steht noch aus",
+      "braucht": "rechtliche Bestätigung der ЕСУТД-Pflicht über enbek.kz (siehe WMCNL-1447) - Anbindungspunkt benannt, Rechtsprüfung der Pflicht selbst steht noch aus",
       "basis": "Pflücker mit erfasstem Arbeitsvertrag"
     },
     "websiteAnfragen": {
@@ -1117,7 +1124,8 @@
     "note": "Identitäten und Rollen liegen quer über allen vier Bereichen - zusammen mit Protokollierung, Verschlüsselung und Mehrfaktor-Authentifizierung.",
     "level": "Stufe",
     "catiRole": {
-      "keine": "keine Entsprechung - neu ab Anforderung 7.1"
+      "keine": "keine Entsprechung - neu ab Anforderung 7.1",
+      "label": "Vorsystem 1Çatı"
     },
     "scopeWert": {
       "betrieb": "Betrieb",
@@ -1485,9 +1493,9 @@
     },
     "note": "Kurzeinarbeitung als geführte Checkliste auf dem Telefon, mehrsprachig, mit Bildern statt Text - je Kernprozess ein kurzes Video.",
     "video": {
-      "v-01": "Richtig pfluecken - reife Frucht erkennen",
+      "v-01": "Richtig pflücken - reife Frucht erkennen",
       "v-02": "Steige befuellen und QR-Etikett scannen",
-      "v-03": "Die Stunde nach dem Pfluecken - Kuehlkette",
+      "v-03": "Die Stunde nach dem Pflücken - Kühlkette",
       "v-04": "Hygiene und Handschuhe"
     },
     "thema": {
@@ -1961,7 +1969,10 @@
       },
       "nicht": "Nicht ausgeführt: {absicht}"
     },
-    "transparenzHinweisAgent": "Diese Antworten stammen von einer KI, nicht von einem Mitarbeiter. Betriebsdaten kommen live aus der Anwendung und erscheinen als Schritte unter der Antwort, alles andere ist Allgemeinwissen und wird so gekennzeichnet."
+    "transparenzHinweisAgent": "Diese Antworten stammen von einer KI, nicht von einem Mitarbeiter. Betriebsdaten kommen live aus der Anwendung und erscheinen als Schritte unter der Antwort, alles andere ist Allgemeinwissen und wird so gekennzeichnet.",
+    "pruefBezug": "Bezug: Prüfbericht {id}",
+    "pruefBezugEntfernen": "Bezug zum Prüfbericht entfernen",
+    "mehr": "Mehr"
   },
   "legal": {
     "imprintTitle": "Impressum",
@@ -3073,7 +3084,8 @@
       "spawn": "{agent} startet",
       "fertig": "{agent} ist fertig",
       "synthese": "Himbi führt die Befunde zusammen",
-      "syntheseFertig": "Bericht versiegelt"
+      "syntheseFertig": "Bericht versiegelt",
+      "uebergabe": "{agent}: Sammler und Jurist übergeben \"{feld}\" an den Prüfer"
     },
     "stufe": {
       "bereit": "Prüfungsbereit",
@@ -3141,6 +3153,105 @@
       "laeuft": "Es läuft bereits eine Prüfung.",
       "rechte": "Für Ihre Rolle ist diese Prüfung nicht freigegeben.",
       "anmeldung": "Bitte melden Sie sich neu an."
+    },
+    "nachbereitung": {
+      "titel": "Nächste Schritte",
+      "lead": "Besprechen Sie das Ergebnis mit Himbi oder arbeiten Sie die Checkliste ab. Der versiegelte Bericht bleibt dabei unverändert.",
+      "besprechen": "Ergebnis mit Himbi besprechen",
+      "plan": "Lösungsplan vorschlagen lassen",
+      "checkliste": "Maßnahmen-Checkliste",
+      "fortschritt": "{erledigt} von {gesamt} erledigt",
+      "fertig": "Alles erledigt. Eine neue Prüfung bestätigt den Fortschritt.",
+      "leer": "Keine offenen Punkte: Die Prüfung hat weder Verstöße noch Lücken oder Hinweise ergeben.",
+      "pruefen": "Prüfen und Nachweise ergänzen, damit das Feld beurteilt werden kann",
+      "grundlage": "Grundlage",
+      "loesung": "Lösung ausarbeiten",
+      "frageStart": "Erkläre mir dieses Prüfergebnis: Was sind die wichtigsten Punkte, wo stehe ich, und was sollte ich als Erstes tun?",
+      "fragePlan": "Erstelle mir einen konkreten, priorisierten Lösungsplan für alle Verstöße und Lücken aus dem Prüfbericht: Schritte, Verantwortliche, Fristen und welche Nachweise ich ablegen sollte. Nutze die Wissensbasis und nenne die Fundstellen.",
+      "frageMassnahme": "Wie setze ich diese Maßnahme aus dem Prüfbericht konkret um? Feld: {titel}. Maßnahme: {schritt}. Nenne die einzelnen Schritte, die Nachweise, die ich brauche, und die Rechtsgrundlage.",
+      "frageHinweis": "Der Prüfbericht konnte dieses Feld nicht belastbar bewerten: {titel}. Was muss ich bereitstellen oder klären, damit es beurteilt werden kann?"
     }
+  },
+  "pruefungAblauf": {
+    "schritt": {
+      "daten": "Betriebsdaten",
+      "recht": "Recht",
+      "bewertung": "Bewertung"
+    },
+    "lane": {
+      "fertig": "{n} Befunde, {q} Quellen"
+    },
+    "zahl": {
+      "befunde": "Befunde",
+      "quellen": "Quellen",
+      "zeit": "Zeit",
+      "agenten": "Agenten"
+    },
+    "schwarm": {
+      "titel": "Mini-Himbis im Einsatz",
+      "aktiv": "{n} aktiv · {fertig} fertig",
+      "sammler": "Sammler: liest die Betriebsdaten",
+      "jurist": "Jurist: sucht die Rechtsquellen",
+      "pruefer": "Prüfer: schreibt den Befund",
+      "wartet": "wartet",
+      "fertig": "fertig"
+    }
+  },
+  "pruefungPdf": {
+    "speichern": "Als PDF speichern",
+    "json": "Prüfbare Datei (JSON)",
+    "titel": "Compliance-Prüfbericht",
+    "quelle": "Rechtsquellen",
+    "stufe": "Stufe",
+    "stand": "Stand",
+    "abgerufen": "abgerufen",
+    "massnahme": "Maßnahme",
+    "verantwortlich": "Verantwortlich",
+    "frist": "Frist",
+    "anhang": "Anhang: Rechtsquellen im Wortlaut",
+    "haftung": "Dieser Bericht wurde von einem KI-System auf Grundlage der Betriebsdaten und der Wissensbasis erstellt. Er ersetzt keine Rechts- oder Steuerberatung. Das Siegel (SHA-256 über den kanonischen Berichtsinhalt) erlaubt es zu prüfen, dass der Bericht seit der Erstellung nicht verändert wurde.",
+    "untertitel": "Himbeerbetrieb Kasachstan",
+    "vertraulich": "Vertraulich",
+    "dokumentart": "Compliance · Audit · Steuern · Recht · Risiko",
+    "fussVertraulich": "Vertraulich · nur für den vorgesehenen Empfängerkreis",
+    "seite": "Seite",
+    "von": "von",
+    "nummer": "Berichtsnummer",
+    "erstelltAm": "Erstellt am",
+    "ersteller": "Erstellt von",
+    "umfang": "Prüfumfang",
+    "umfangWert": "{felder} Prüfungsfelder · {quellen} zitierte Rechtsquellen · {daten} Betriebsdatenquellen",
+    "inhalt": "Inhalt",
+    "siegelKurz": "Siegel",
+    "abschnitt": {
+      "zusammenfassung": "Zusammenfassung",
+      "ergebnis": "Ergebnis nach Bereich",
+      "methodik": "Methodik und Prüfumfang",
+      "freigabe": "Freigabe"
+    },
+    "tabelle": {
+      "bereich": "Bereich",
+      "felder": "Felder"
+    },
+    "prioritaet": "Priorität",
+    "legende": {
+      "verstoss": "Verstoß: Die Betriebsdaten zeigen einen Verstoß gegen eine Pflicht oder eine überfällige Pflicht.",
+      "luecke": "Lücke: Eine Pflicht ist nicht nachgewiesen oder die Daten sind unvollständig.",
+      "hinweis": "Hinweis: Nicht beurteilbar (keine Betriebsdaten oder keine eindeutige Rechtsquelle).",
+      "konform": "Konform: Betriebsdaten und Recht zeigen, dass die Pflicht erfüllt ist.",
+      "stufen": "Prüfungsreife (0 bis 100): ab 85 prüfungsbereit, 60 bis 84 mit Lücken, unter 60 nicht prüfungsreif."
+    },
+    "methodik": {
+      "absatz1": "Die Prüfung wurde von einem KI-System mit mehreren spezialisierten Agenten durchgeführt. Für jedes Prüfungsfeld arbeitet ein eigenes Team: ein Sammler liest die Betriebsdaten aus der Datenbank, ein Jurist recherchiert die Rechtsquellen in der Wissensbasis, ein Prüfer bewertet beides und schreibt den Befund. Ein Koordinator führt die Ergebnisse zusammen.",
+      "absatz2": "Jede rechtliche Aussage nennt ihre Fundstelle. Ohne gültigen Rechtsbeleg oder ohne Betriebsdaten wird ein Befund zu einem Hinweis herabgestuft. Die Prüfungsreife wird aus den Schweregraden der belegten Verstöße und Lücken berechnet und nicht vom Modell geschätzt."
+    },
+    "freigabe": {
+      "text": "Zur Kenntnis genommen und zur weiteren Verwendung freigegeben.",
+      "unterschrift": "Unterschrift",
+      "ort": "Ort, Datum",
+      "pruefer": "Externe Prüfung"
+    },
+    "verifikation": "Der Inhalt dieses Berichts ist mit einer SHA-256-Prüfsumme versiegelt. Wer die begleitende JSON-Datei besitzt, kann das Siegel in Damicon über „Siegel prüfen“ nachrechnen; jede nachträgliche Änderung fällt auf.",
+    "tipp": "Tipp für den Druckdialog: „Kopf- und Fußzeilen“ ausschalten, Papierformat A4. Farben und Marke werden automatisch übernommen."
   }
 }

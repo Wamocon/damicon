@@ -7,7 +7,9 @@
     "skipToContent": "Skip to content",
     "themeLight": "Light theme",
     "themeDark": "Dark theme",
-    "localeSwitcherLabel": "Language selection"
+    "localeSwitcherLabel": "Language selection",
+    "themeLabel": "Colour scheme",
+    "laedt": "The page is loading"
   },
   "notFound": {
     "message": "This page does not exist.",
@@ -18,6 +20,7 @@
     "activePersona": "Active role (demo)",
     "overview": "Overview",
     "breadcrumb": "Breadcrumb",
+    "mainNav": "Main navigation",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
     "collapseMenu": "Collapse menu",
@@ -27,7 +30,9 @@
     "zones": "Four zones",
     "proof": "Traceability",
     "kpis": "KPIs",
-    "compliance": "Compliance"
+    "compliance": "Compliance",
+    "account": "Account",
+    "menu": "Menu"
   },
   "hero": {
     "badge": "Farm management for the raspberry plantation · near Almaty",
@@ -384,7 +389,9 @@
       "picker": "Sees only their own picking performance and payslip. No write access to posted quantities or anyone else's data.",
       "erzeuger": "Neighbouring farm supplying produce. Sees its own row blocks, batches, settlement and contracts.",
       "kunde": "Quotas, pre-orders, price lists, AI chat, released documents and own complaints."
-    }
+    },
+    "switcherLabel": "Demo role",
+    "viewAsLabel": "View as"
   },
   "klassifikation": {
     "uebernehmen": "Adopt",
@@ -1117,7 +1124,8 @@
     "note": "Identities and roles run across all four areas - together with logging, encryption and multi-factor authentication.",
     "level": "Level",
     "catiRole": {
-      "keine": "no equivalent - new from requirement 7.1"
+      "keine": "no equivalent - new from requirement 7.1",
+      "label": "Legacy system 1Çatı"
     },
     "scopeWert": {
       "betrieb": "Farm",
@@ -1961,7 +1969,10 @@
       },
       "nicht": "Not done: {absicht}"
     },
-    "transparenzHinweisAgent": "These answers come from an AI, not a staff member. Company data comes live from the app and appears as steps under each answer; everything else is general knowledge and is labelled as such."
+    "transparenzHinweisAgent": "These answers come from an AI, not a staff member. Company data comes live from the app and appears as steps under each answer; everything else is general knowledge and is labelled as such.",
+    "pruefBezug": "Based on audit report {id}",
+    "pruefBezugEntfernen": "Remove the link to the audit report",
+    "mehr": "More"
   },
   "legal": {
     "imprintTitle": "Imprint",
@@ -3073,7 +3084,8 @@
       "spawn": "{agent} starts",
       "fertig": "{agent} is done",
       "synthese": "Himbi is combining the findings",
-      "syntheseFertig": "Report sealed"
+      "syntheseFertig": "Report sealed",
+      "uebergabe": "{agent}: collector and lawyer hand \"{feld}\" over to the auditor"
     },
     "stufe": {
       "bereit": "Audit ready",
@@ -3141,6 +3153,105 @@
       "laeuft": "An audit is already running.",
       "rechte": "This audit is not released for your role.",
       "anmeldung": "Please sign in again."
+    },
+    "nachbereitung": {
+      "titel": "Next steps",
+      "lead": "Discuss the result with Himbi or work through the checklist. The sealed report stays unchanged.",
+      "besprechen": "Discuss the result with Himbi",
+      "plan": "Ask for a solution plan",
+      "checkliste": "Action checklist",
+      "fortschritt": "{erledigt} of {gesamt} done",
+      "fertig": "All done. A new audit will confirm the progress.",
+      "leer": "Nothing open: the audit found no violations, gaps or notes.",
+      "pruefen": "Review and add evidence so this item can be assessed",
+      "grundlage": "Basis",
+      "loesung": "Work out the solution",
+      "frageStart": "Explain this audit result to me: what are the key points, where do I stand, and what should I do first?",
+      "fragePlan": "Create a concrete, prioritised solution plan for all violations and gaps in the audit report: steps, who is responsible, deadlines and which evidence I should keep. Use the knowledge base and cite the sources.",
+      "frageMassnahme": "How do I implement this action from the audit report in practice? Item: {titel}. Action: {schritt}. List the individual steps, the evidence I need and the legal basis.",
+      "frageHinweis": "The audit could not assess this item reliably: {titel}. What do I need to provide or clarify so it can be assessed?"
     }
+  },
+  "pruefungAblauf": {
+    "schritt": {
+      "daten": "Business data",
+      "recht": "Law",
+      "bewertung": "Assessment"
+    },
+    "lane": {
+      "fertig": "{n} findings, {q} sources"
+    },
+    "zahl": {
+      "befunde": "Findings",
+      "quellen": "Sources",
+      "zeit": "Time",
+      "agenten": "Agents"
+    },
+    "schwarm": {
+      "titel": "Mini-Himbis at work",
+      "aktiv": "{n} active · {fertig} done",
+      "sammler": "Collector: reads the business data",
+      "jurist": "Lawyer: searches the legal sources",
+      "pruefer": "Auditor: writes the finding",
+      "wartet": "waiting",
+      "fertig": "done"
+    }
+  },
+  "pruefungPdf": {
+    "speichern": "Save as PDF",
+    "json": "Verifiable file (JSON)",
+    "titel": "Compliance audit report",
+    "quelle": "Legal sources",
+    "stufe": "Level",
+    "stand": "in force",
+    "abgerufen": "retrieved",
+    "massnahme": "Action",
+    "verantwortlich": "Responsible",
+    "frist": "Deadline",
+    "anhang": "Appendix: legal sources, verbatim",
+    "haftung": "This report was created by an AI system from the business data and the knowledge base. It does not replace legal or tax advice. The seal (SHA-256 over the canonical report content) allows verifying that the report has not been altered since it was created.",
+    "untertitel": "Raspberry farm Kazakhstan",
+    "vertraulich": "Confidential",
+    "dokumentart": "Compliance · Audit · Tax · Legal · Risk",
+    "fussVertraulich": "Confidential · for the intended recipients only",
+    "seite": "Page",
+    "von": "of",
+    "nummer": "Report number",
+    "erstelltAm": "Created on",
+    "ersteller": "Created by",
+    "umfang": "Scope",
+    "umfangWert": "{felder} audit items · {quellen} cited legal sources · {daten} business data sources",
+    "inhalt": "Contents",
+    "siegelKurz": "Seal",
+    "abschnitt": {
+      "zusammenfassung": "Summary",
+      "ergebnis": "Result by area",
+      "methodik": "Method and scope",
+      "freigabe": "Approval"
+    },
+    "tabelle": {
+      "bereich": "Area",
+      "felder": "Items"
+    },
+    "prioritaet": "Priority",
+    "legende": {
+      "verstoss": "Violation: the business data show a breach of an obligation or an overdue obligation.",
+      "luecke": "Gap: an obligation is not evidenced or the data are incomplete.",
+      "hinweis": "Note: cannot be assessed (no business data or no clear legal source).",
+      "konform": "Compliant: business data and law show that the obligation is met.",
+      "stufen": "Audit readiness (0 to 100): 85 and above ready, 60 to 84 with gaps, below 60 not ready."
+    },
+    "methodik": {
+      "absatz1": "The audit was carried out by an AI system with several specialised agents. Each audit item has its own team: a collector reads the business data from the database, a lawyer researches the legal sources in the knowledge base, and an auditor assesses both and writes the finding. A coordinator combines the results.",
+      "absatz2": "Every legal statement names its source. Without a valid legal source or without business data, a finding is downgraded to a note. Audit readiness is calculated from the severity of the evidenced violations and gaps and is not estimated by the model."
+    },
+    "freigabe": {
+      "text": "Noted and approved for further use.",
+      "unterschrift": "Signature",
+      "ort": "Place, date",
+      "pruefer": "External auditor"
+    },
+    "verifikation": "The content of this report is sealed with a SHA-256 checksum. Anyone with the accompanying JSON file can recompute the seal in Damicon with \"Verify seal\"; any later change is detected.",
+    "tipp": "Tip for the print dialog: turn \"Headers and footers\" off, paper size A4. Colours and branding are applied automatically."
   }
 }

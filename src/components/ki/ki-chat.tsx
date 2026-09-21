@@ -49,7 +49,7 @@ import {
   Thermometer,
   TriangleAlert,
   UserRound,
-  X, BookOpenCheck } from "lucide-react";
+  X, BookOpenCheck, ShieldCheck } from "lucide-react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { usePersona } from "@/components/dashboard/persona";
 import { useHaustierAktionen, useHaustierVorgabe } from "@/components/haustier/haustier-kontext";
@@ -63,6 +63,7 @@ import { istVorlesbar, stimmeVorhanden, useSprachausgabe, VorlesenKnopf, Vorlese
 import { MikrofonKnopf } from "@/components/ki/mikrofon";
 import { DiktatWelle } from "@/components/ki/diktat-welle";
 import { useChatSprache } from "@/components/ki/chat-sprache";
+import { mitUmlauten } from "@/lib/text/umlaute";
 import { MAX_NACHRICHT_LAENGE, type KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
 import { modules } from "@/lib/modules";
 import { hasPermission, type Role } from "@/lib/rbac";
@@ -357,10 +358,12 @@ const linkPruefung = (url: string) => (url.startsWith("quelle:S") ? url : defaul
 //   INP-Probleme von ueber 4 s auf Klicks im Chat).
 // - MarkdownBlock: innerhalb der laufenden Antwort aendert sich nur der letzte,
 //   noch offene Block; alles darueber wird nicht erneut geparst oder abgeglichen.
+// - Deutsche Schreibweise: liefert ein Modell (oder eine Datenquelle) Ersatzschreibung (ae, oe, ue), zeigt der Chat Umlaute
+//   (lib/text/umlaute.ts; Code, Adressen und Kennungen bleiben unberuehrt). Die Anweisung im Prompt bleibt der erste Weg.
 const MarkdownBlock = memo(function MarkdownBlock({ text }: { text: string }) {
   return (
     <ReactMarkdown remarkPlugins={MARKDOWN_PLUGINS} components={MARKDOWN_KOMPONENTEN} urlTransform={linkPruefung}>
-      {verlinkeZitate(text)}
+      {verlinkeZitate(mitUmlauten(text))}
     </ReactMarkdown>
   );
 });
@@ -396,7 +399,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const pfad = usePathname();
   const router = useRouter();
   const { role: rolle } = usePersona();
-  const { modus, offen, fuehrung, oeffneZiel, fuehreZu, bewegeZeiger } = useKiPane();
+  const { modus, offen, fuehrung, oeffneZiel, fuehreZu, bewegeZeiger, pruefBezug, entferneBezug, anstoss } = useKiPane();
 
   const [eingabe, setEingabe] = useState("");
   const [diktiert, setDiktiert] = useState(false);
@@ -419,10 +422,12 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   // nach einer Freigabe, die nicht ueber sendMessage() laeuft. Ueber Refs
   // gelesen, damit der einmal angelegte Transport stets den aktuellen Stand
   // sieht.
-  const anfrageDaten = useRef({ einwilligung, modus, pfad, rolle, sprache });
+  // pruefkontext: der Prüfbericht, auf dem das Gespräch aufsetzt (nach einer Compliance-Prüfung), sonst undefined.
+  const pruefkontext = pruefBezug?.kontext;
+  const anfrageDaten = useRef({ einwilligung, modus, pfad, rolle, sprache, pruefkontext });
   useEffect(() => {
-    anfrageDaten.current = { einwilligung, modus, pfad, rolle, sprache };
-  }, [einwilligung, modus, pfad, rolle, sprache]);
+    anfrageDaten.current = { einwilligung, modus, pfad, rolle, sprache, pruefkontext };
+  }, [einwilligung, modus, pfad, rolle, sprache, pruefkontext]);
 
   const initialMessages = useMemo(() => verlaufZuNachrichten(verlauf), [verlauf]);
   const transport = useMemo(
@@ -752,6 +757,24 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vorgabe]);
 
+  // Eine Frage zum Ergebnis einer Prüfung (Knopf im Prüfbericht): wie die Vorgabe von Himbi, aber mit dem Bericht als Grundlage.
+  // Der Bezug steht zu diesem Zeitpunkt schon im Kontext; die Anfrage liest ihn ueber anfrageDaten.
+  const letzterAnstoss = useRef(0);
+  useEffect(() => {
+    if (!anstoss || anstoss.nr === letzterAnstoss.current) return;
+    letzterAnstoss.current = anstoss.nr;
+    if (beschaeftigt || (istErsteNachricht && !einwilligung)) {
+      setEingabe(anstoss.frage);
+      eingabeRef.current?.focus();
+    } else {
+      // Der Effekt oben hat anfrageDaten noch nicht aktualisiert, wenn Bezug und Anstoss im selben Zug gesetzt werden.
+      anfrageDaten.current = { ...anfrageDaten.current, pruefkontext };
+      sende(anstoss.frage);
+    }
+    // sende() und die Zustandswerte sind pro Render neu; ausgeloest wird nur durch einen neuen Anstoss.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [anstoss]);
+
   function aktionsWert(wert: unknown): string {
     const text = String(wert);
     return typeof wert === "string" && t.has(`aktion.werte.${wert}`) ? t(`aktion.werte.${wert}`) : text;
@@ -1049,6 +1072,15 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
       </div>
 
       <form onSubmit={absenden} className="ki-composer">
+        {pruefBezug ? (
+          <div className="ki-bezug" role="status">
+            <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
+            <span>{t("pruefBezug", { id: pruefBezug.id.slice(0, 8) })}</span>
+            <button type="button" onClick={entferneBezug} aria-label={t("pruefBezugEntfernen")} title={t("pruefBezugEntfernen")}>
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        ) : null}
         {istErsteNachricht ? (
           <label className="ki-composer__einwilligung">
             <input

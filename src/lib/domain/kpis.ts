@@ -104,7 +104,7 @@ export const kpis: Kpi[] = [
     datenherkunft: "tabelle-fehlt",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung"],
-    braucht: "Qualitaetssortierung je Schale",
+    braucht: "Qualitätssortierung je Schale",
   },
   {
     key: "zeitBisVorkuehlung",
@@ -117,7 +117,7 @@ export const kpis: Kpi[] = [
     datenherkunft: "berechenbar",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung", "brigade"],
-    braucht: "nichts - Pflueck- und Kuehlzeitpunkt je Charge",
+    braucht: "nichts - Pflück- und Kühlzeitpunkt je Charge",
   },
   {
     key: "zeitBisKunde",
@@ -156,7 +156,7 @@ export const kpis: Kpi[] = [
     datenherkunft: "berechenbar",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung", "brigade"],
-    braucht: "nichts - Leistung je Person ueber die Saison",
+    braucht: "nichts - Leistung je Person über die Saison",
   },
   {
     key: "pflueckintervall",
@@ -248,7 +248,7 @@ export const kpis: Kpi[] = [
     stufe: "erweitert",
     sichtbarFuer: ["admin", "betriebsleitung", "buchhaltung"],
     braucht:
-      "rechtliche Bestaetigung der ЕСУТД-Pflicht ueber enbek.kz (siehe WMCNL-1447) - Anbindungspunkt benannt, Rechtsprüfung der Pflicht selbst steht noch aus",
+      "rechtliche Bestätigung der ЕСУТД-Pflicht über enbek.kz (siehe WMCNL-1447) - Anbindungspunkt benannt, Rechtsprüfung der Pflicht selbst steht noch aus",
   },
   {
     key: "websiteAnfragen",

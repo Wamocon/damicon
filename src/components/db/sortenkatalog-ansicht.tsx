@@ -66,7 +66,7 @@ export async function SortenkatalogAnsicht() {
                   <p className="text-sm font-black text-card-foreground">{s.name}</p>
                   <StatusPill tone={typTon[s.typ] ?? "neutral"}>{st(s.typ)}</StatusPill>
                 </div>
-                <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+                <dl className="mt-2 grid grid-cols-1 gap-x-3 gap-y-1 text-xs sm:grid-cols-2">
                   {s.erntefenster ? (
                     <div className="col-span-2">
                       <dt className="text-muted-foreground">{t("erntefenster")}</dt>

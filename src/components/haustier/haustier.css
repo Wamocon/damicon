@@ -7,7 +7,10 @@
   --hb-blatt: var(--blatt, #2fbf71);
   position: fixed;
   right: 20px;
-  bottom: 20px;
+  /* Der Zuschlag haelt Himbi ueber der unteren Navigationsleiste, die
+     unter md dort sitzt (siehe --untere-leiste-raum in globals.css). Ohne
+     ihn staende das Maskottchen mitten auf den Knoepfen der Leiste. */
+  bottom: calc(20px + var(--untere-leiste-raum, 0px));
   z-index: 60;
   /* Die Groesse folgt dem Fenster: auf dem Telefon klein genug, um nichts zu verdecken,
      auf grossen Schirmen gross genug, dass man die Borte noch als Muster erkennt. Alles
@@ -20,7 +23,7 @@
 }
 
 .haustier[data-hoch="true"] {
-  bottom: 84px;
+  bottom: calc(84px + var(--untere-leiste-raum, 0px));
 }
 
 /* Verschiebung, wenn das Chat-Panel aufgeht: Himbi rutscht mit der Kante nach links
@@ -876,7 +879,7 @@ html[data-ki-zieht] .haustier__verschiebung {
 .hb-versteck {
   position: fixed;
   right: 34px;
-  bottom: 0;
+  bottom: var(--untere-leiste-raum, 0px);
   z-index: 60;
   --hb-versteck-breite: clamp(48px, 5.4vw, 76px);
   width: var(--hb-versteck-breite);

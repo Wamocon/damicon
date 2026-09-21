@@ -80,7 +80,7 @@ async function idZuCode(tabelle: string, code: string): Promise<string | null> {
 function bauePool(rolle: Role | null | undefined) {
 const mwstPruefen = tool({
   description:
-    "Loest die MwSt-Schwellenpruefung aus: berechnet den rollierenden 12-Monats-Umsatz neu und haelt beim ersten Ueberschreiten der Schwelle das Datum fest. Nutze es nur, wenn der Nutzer die Pruefung ausdruecklich anstoessen will.",
+    "Löst die MwSt-Schwellenprüfung aus: berechnet den rollierenden 12-Monats-Umsatz neu und hält beim ersten Überschreiten der Schwelle das Datum fest. Nutze es nur, wenn der Nutzer die Prüfung ausdrücklich anstoessen will.",
   inputSchema: z.object({}),
   needsApproval: true,
   execute: async () => ergebnis(await mwstSchwellePruefen(leer, formular({})), ZIEL_MWST),
@@ -88,12 +88,12 @@ const mwstPruefen = tool({
 
 const aufgabeAnlegenWerkzeug = tool({
   description:
-    "Legt eine Pflueckaufgabe fuer einen Reihenblock an (Status 'offen'). Der Reihenblock wird ueber seinen Code angegeben (z. B. 'A-03'); schlage den Code per datenLesen nach, wenn der Nutzer ihn nicht nennt. Blocks in der Wartezeit werden abgelehnt.",
+    "Legt eine Pflückaufgabe für einen Reihenblock an (Status 'offen'). Der Reihenblock wird über seinen Code angegeben (z. B. 'A-03'); schlage den Code per datenLesen nach, wenn der Nutzer ihn nicht nennt. Blocks in der Wartezeit werden abgelehnt.",
   inputSchema: z.object({
     reihenblockCode: z.string().min(1).max(40),
     zielmengeKg: z.number().positive().max(100000),
     pflueckerAnzahl: z.number().int().min(0).max(500).optional(),
-    faelligkeit: datum.optional().describe("Faelligkeitsdatum JJJJ-MM-TT"),
+    faelligkeit: datum.optional().describe("Fälligkeitsdatum JJJJ-MM-TT"),
   }),
   needsApproval: true,
   execute: async ({ reihenblockCode, zielmengeKg, pflueckerAnzahl, faelligkeit }) => {
@@ -114,7 +114,7 @@ const aufgabeAnlegenWerkzeug = tool({
 
 const aufgabeStatus = tool({
   description:
-    "Setzt den Status einer Pflueckaufgabe: 'angenommen' (offen -> angenommen) oder 'in_arbeit' (angenommen -> in_arbeit, Arbeitsbeginn jetzt). Die Aufgabe wird ueber ihren Code angegeben (z. B. 'PA-20260919-XXXXXXXX').",
+    "Setzt den Status einer Pflückaufgabe: 'angenommen' (offen -> angenommen) oder 'in_arbeit' (angenommen -> in_arbeit, Arbeitsbeginn jetzt). Die Aufgabe wird über ihren Code angegeben (z. B. 'PA-20260919-XXXXXXXX').",
   inputSchema: z.object({
     aufgabeCode: z.string().min(1).max(60),
     neuerStatus: z.enum(["angenommen", "in_arbeit"]),
@@ -134,7 +134,7 @@ const aufgabeStatus = tool({
 
 const kuehlmessung = tool({
   description:
-    "Erfasst eine Kuehlmessung (Temperatur in Grad Celsius) zu einer Pflueckaufgabe, mit der aktuellen Uhrzeit. Ein Kuehlketten-Verstoss wird trotzdem gespeichert und im Ergebnis als Warnung gemeldet. Nennt der Nutzer eine Charge oder einen Reihenblock statt eines Aufgabencodes, suche ZUERST mit datenLesen die passende Pflueckaufgabe (Tabelle pflueckaufgaben) und nimm deren Code; frage nur nach, wenn mehrere Aufgaben passen.",
+    "Erfasst eine Kühlmessung (Temperatur in Grad Celsius) zu einer Pflückaufgabe, mit der aktuellen Uhrzeit. Ein Kühlketten-Verstoß wird trotzdem gespeichert und im Ergebnis als Warnung gemeldet. Nennt der Nutzer eine Charge oder einen Reihenblock statt eines Aufgabencodes, suche ZUERST mit datenLesen die passende Pflückaufgabe (Tabelle pflückaufgaben) und nimm deren Code; frage nur nach, wenn mehrere Aufgaben passen.",
   inputSchema: z.object({
     aufgabeCode: z.string().min(1).max(60),
     temperaturC: z.number().min(-30).max(40),
@@ -150,7 +150,7 @@ const kuehlmessung = tool({
 
 const reklamation = tool({
   description:
-    "Meldet eine Reklamation. Kunden melden immer fuer die eigene Firma; das Buero gibt zusaetzlich 'kundenName' an (Teil des Firmennamens genuegt). Optional mit Chargencode und betroffener Menge.",
+    "Meldet eine Reklamation. Kunden melden immer für die eigene Firma; das Büro gibt zusätzlich 'kundenName' an (Teil des Firmennamens genügt). Optional mit Chargencode und betroffener Menge.",
   inputSchema: z.object({
     grund: z.enum(reklamationGruende),
     betreff: z.string().min(3).max(160),
@@ -197,7 +197,7 @@ const reklamation = tool({
 
 const lohnBerechnen = tool({
   description:
-    "Berechnet die Lohnabrechnungen (Grundlohn, Menge, Qualitaetsfaktor) fuer einen Zeitraum. Bereits freigegebene oder ausgezahlte Abrechnungen bleiben unveraendert. Den Zeitraum leitest du selbst aus dem heutigen Datum ab ('diesen Monat' = erster bis letzter Tag des laufenden Monats, 'letzten Monat' analog): frage nicht danach und leite die Aufgabe nicht an einen Mitarbeiter weiter.",
+    "Berechnet die Lohnabrechnungen (Grundlohn, Menge, Qualitätsfaktor) für einen Zeitraum. Bereits freigegebene oder ausgezahlte Abrechnungen bleiben unverändert. Den Zeitraum leitest du selbst aus dem heutigen Datum ab ('diesen Monat' = erster bis letzter Tag des laufenden Monats, 'letzten Monat' analog): frage nicht danach und leite die Aufgabe nicht an einen Mitarbeiter weiter.",
   inputSchema: z.object({
     periodeStart: datum,
     periodeEnde: datum,
@@ -212,7 +212,7 @@ const lohnBerechnen = tool({
 
 const einschalten = tool({
   description:
-    "Gibt das Gespraech an einen Mitarbeiter weiter (Eskalation). Nur wenn der Nutzer AUSDRUECKLICH einen Menschen sprechen will. Kein Ausweg, wenn dir Angaben fehlen (dann waehle einen sinnvollen Standard oder frage in einem Satz nach) und nie fuer etwas, das du mit einem anderen Werkzeug oder ueber die Oberflaeche erledigen kannst. Buero-Rollen (Admin, Betriebsleitung, Buchhaltung) SIND das Buero und werden nie an das Buero weitergeleitet.",
+    "Gibt das Gespräch an einen Mitarbeiter weiter (Eskalation). Nur wenn der Nutzer AUSDRÜCKLICH einen Menschen sprechen will. Kein Ausweg, wenn dir Angaben fehlen (dann wähle einen sinnvollen Standard oder frage in einem Satz nach) und nie für etwas, das du mit einem anderen Werkzeug oder über die Oberfläche erledigen kannst. Büro-Rollen (Admin, Betriebsleitung, Buchhaltung) SIND das Büro und werden nie an das Büro weitergeleitet.",
   inputSchema: z.object({}),
   needsApproval: true,
   execute: async () => ergebnis(await kiEskalationAnfordern(leer, formular({})), null),

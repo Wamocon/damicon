@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import {
   leseBewegung,
@@ -139,12 +139,6 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
   const [phase, setPhase] = useState<AgentPhase>("ruhe");
   const [text, setText] = useState("");
   const [stimmung, setStimmung] = useState<Stimmung>("neutral");
-
-  // Der gespeicherte Bewegungsschalter gilt fuer das ganze Dokument. Einmal beim Start
-  // setzen - danach schreibt ihn nur noch die Einstellung selbst.
-  useEffect(() => {
-    document.documentElement.toggleAttribute("data-hb-still", !leseBewegung());
-  }, []);
   const sichtbarkeit = useSyncExternalStore(abonniere, leseSpeicher, serverWert);
   const inventar = useSyncExternalStore(abonniereInventar, leseInventarSpeicher, serverInventarWert);
   const [vorgabe, setVorgabe] = useState<Vorgabe | null>(null);
