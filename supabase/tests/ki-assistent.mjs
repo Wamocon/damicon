@@ -1065,7 +1065,9 @@ for (const [name, kaputteAntwort] of [
     pruefe("Kein Auto-Senden: der Knopf ruft nichts mehr auf", !knopf.includes("beiSenden?.("));
     pruefe("Kein Auto-Senden: der Knopf nimmt die Rueckgabe nicht mehr entgegen", !knopf.includes("beiSenden?:"));
     pruefe("Kein Auto-Senden: das Chatfenster uebergibt keine", !chat.includes("beiSenden={"));
-    pruefe("Kein Auto-Senden: der erkannte Text geht weiterhin ins Feld", knopf.includes("beiText(status.wert)"));
+    // Der Text geht ins Feld - inzwischen samt der gehoerten Sprache, die
+    // ueber die Antwortsprache entscheidet (Block 16).
+    pruefe("Kein Auto-Senden: der erkannte Text geht weiterhin ins Feld", knopf.includes("beiText(status.wert, status.sprachen)"));
     pruefe("Diktat: der Cursor steht danach am Ende des Textes", chat.includes("setSelectionRange(text.length, text.length)"));
   }
 
@@ -1560,6 +1562,97 @@ for (const [name, kaputteAntwort] of [
     const px = treffer ? Number(treffer[1]) * 16 : 0;
     pruefe("Seitenansicht: angedockt zwischen 380 und 420 px", px >= 380 && px <= 420, `${px} px`);
     pruefe("Seitenansicht: prefers-reduced-motion wird beachtet", css.includes("prefers-reduced-motion"));
+  }
+}
+
+
+// --- 16. Die gehoerte Sprache muss auch ankommen ---------------------------
+// Regel (a) aus Teil D stand schon im Server - und lief nie: die Route las
+// body.diktatSprachen, aber niemand schickte es. Beim Durchsehen des Diffs
+// aufgefallen. Diese Pruefungen halten die Kette zusammen, Glied fuer Glied,
+// damit sie nicht wieder still zerfaellt.
+{
+  // (a) Soniox wird ueberhaupt nach der Sprache gefragt, und die Antwort
+  //     wird ausgewertet.
+  {
+    const echtesFetch = globalThis.fetch;
+    const umgebung = { k: process.env.SONIOX_API_KEY, u: process.env.SONIOX_API_URL };
+    const json = (o) => new Response(JSON.stringify(o), { status: 200, headers: { "content-type": "application/json" } });
+    const aufrufe = [];
+    try {
+      process.env.SONIOX_API_KEY = "testschluessel";
+      process.env.SONIOX_API_URL = "https://api.soniox.test";
+      globalThis.fetch = async (url, init = {}) => {
+        aufrufe.push({ url: String(url), koerper: init.body });
+        const adresse = String(url);
+        if (init.method === "DELETE") return json({});
+        if (adresse.endsWith("/v1/files")) return json({ id: "d1" });
+        if (adresse.endsWith("/v1/transcriptions")) return json({ id: "a1" });
+        if (adresse.endsWith("/transcript")) {
+          return json({
+            text: "Салқын тізбек",
+            tokens: [
+              { text: "Салқын", language: "kk" },
+              { text: " тізбек", language: "kk" },
+              // Ein einzelner Ausrutscher darf den Zug nicht umwerfen.
+              { text: " New York", language: "en" },
+              { text: "", language: null },
+            ],
+          });
+        }
+        return json({ status: "completed" });
+      };
+
+      const e = await transkribiereMitSoniox(new Blob([new Uint8Array([1])]), "aufnahme.webm", "kk");
+      const auftrag = JSON.parse(String(aufrufe.find((a) => a.url.endsWith("/v1/transcriptions"))?.koerper ?? "{}"));
+      pruefe("Diktatsprache: Soniox wird nach der Sprache gefragt", auftrag.enable_language_identification === true, JSON.stringify(auftrag));
+      pruefe("Diktatsprache: die Sprachen der Token kommen zurueck", e.ok && JSON.stringify(e.sprachen) === JSON.stringify(["kk", "kk", "en"]), JSON.stringify(e.ok ? e.sprachen : e.grund));
+      pruefe("Diktatsprache: daraus wird die Mehrheit - der Ausrutscher zaehlt nicht", mehrheitsSprache(e.ok ? e.sprachen : []) === "kk");
+    } finally {
+      globalThis.fetch = echtesFetch;
+      if (umgebung.k === undefined) delete process.env.SONIOX_API_KEY; else process.env.SONIOX_API_KEY = umgebung.k;
+      if (umgebung.u === undefined) delete process.env.SONIOX_API_URL; else process.env.SONIOX_API_URL = umgebung.u;
+    }
+  }
+
+  // (b) Der Wettlauf reicht sie durch, statt sie zu verschlucken.
+  {
+    const mitSprachen = await erkenneMitRueckfall(
+      async () => ({ ok: true, text: "Салқын тізбек", sprachen: ["kk", "kk"] }),
+      async () => ({ ok: true, text: "von whisper" }),
+      () => {},
+    );
+    pruefe("Diktatsprache: der Wettlauf reicht sie weiter", mitSprachen.ok && JSON.stringify(mitSprachen.sprachen) === JSON.stringify(["kk", "kk"]), JSON.stringify(mitSprachen));
+    // Whisper kennt keine Sprachen - dann eben eine leere Liste, kein undefined.
+    const ohne = await erkenneMitRueckfall(null, async () => ({ ok: true, text: "von whisper" }), () => {});
+    pruefe("Diktatsprache: ohne Angabe eine leere Liste, kein undefined", ohne.ok && Array.isArray(ohne.sprachen) && ohne.sprachen.length === 0);
+  }
+
+  // (c) Die Kette im Code: Aktion -> Status -> Knopf -> Chat -> Route.
+  //     Jedes Glied einzeln, damit ein fehlendes sofort auffaellt.
+  {
+    const aktion = readFileSync(new URL("../../src/lib/actions/ki-assistent.ts", import.meta.url), "utf8");
+    const status = readFileSync(new URL("../../src/lib/actions/status.ts", import.meta.url), "utf8");
+    const knopf = readFileSync(new URL("../../src/components/ki/mikrofon.tsx", import.meta.url), "utf8");
+    const chat = readFileSync(new URL("../../src/components/ki/ki-chat.tsx", import.meta.url), "utf8");
+    const route = readFileSync(new URL("../../src/app/api/ki-assistent/route.ts", import.meta.url), "utf8");
+
+    pruefe("Kette 1/5: die Aktion gibt die Sprachen zurueck", aktion.includes("ok(\"ok.transkription\", antwort.text, gehoerteSprachen)"));
+    pruefe("Kette 2/5: der Status kann sie tragen", status.includes("sprachen?: string[]"));
+    pruefe("Kette 3/5: der Mikrofonknopf reicht sie weiter", knopf.includes("beiText(status.wert, status.sprachen)"));
+    pruefe("Kette 4/5: das Chatfenster schickt sie mit der Frage", chat.includes("diktatSprachen: diktatSprachen.current"));
+    pruefe("Kette 5/5: die Route wertet sie aus", route.includes("body.diktatSprachen") && route.includes("bestimmeAntwortsprache("));
+  }
+
+  // (d) Und der Sinn der ganzen Kette: ein verhoerter kasachischer Text
+  //     bekommt trotzdem eine kasachische Antwort.
+  {
+    const verhoert = "Sahlkentiz wird tollen, kurzat.";
+    const mit = bestimmeAntwortsprache(
+      { frage: verhoert, oberflaeche: "de", diktatSprachen: ["kk", "kk", "en"] },
+      (t) => erkenneSprache(t, 10),
+    );
+    pruefe("Diktatsprache: verhoert, aber kasachisch beantwortet", mit.sprache === "kk" && mit.herkunft === "diktat", `${mit.sprache} (${mit.herkunft})`);
   }
 }
 

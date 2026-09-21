@@ -13,7 +13,14 @@
 //
 // Gemessen am 21.09.2026 gegen unsere eigenen Aufnahmen: 1,4-3,4 s je Datei.
 
-export type SonioxAntwort = { ok: true; text: string } | { ok: false; grund: string };
+export type SonioxAntwort =
+  /** `sprachen` sind die Sprachen der einzelnen Token. Sie gehen weiter an
+   *  die Antwortsprache (domain/antwortsprache.ts): wer diktiert, soll eine
+   *  Antwort in der Sprache bekommen, in der er gesprochen hat - nach dem,
+   *  was der Dienst GEHOERT hat, nicht nach dem, was aus dem erkannten Text
+   *  zu erraten waere. Genau daran ist Kasachisch gescheitert. */
+  | { ok: true; text: string; sprachen: string[] }
+  | { ok: false; grund: string };
 
 const MODELL = "stt-async-v5";
 
@@ -126,7 +133,14 @@ export async function transkribiereMitSoniox(
     const gestartet = await fetch(`${basis}/v1/transcriptions`, {
       method: "POST",
       headers: { ...kopf, "content-type": "application/json" },
-      body: JSON.stringify({ model: MODELL, file_id: dateiId, ...sprachHinweis(sprache) }),
+      body: JSON.stringify({
+        model: MODELL,
+        file_id: dateiId,
+        // Ohne dieses Feld traegt kein Token eine Sprache
+        // (https://soniox.com/docs/stt/concepts/language-identification).
+        enable_language_identification: true,
+        ...sprachHinweis(sprache),
+      }),
       signal,
     });
     if (!gestartet.ok) return { ok: false, grund: await grundAusAntwort("auftrag", gestartet) };
@@ -150,10 +164,15 @@ export async function transkribiereMitSoniox(
 
     const ergebnis = await fetch(`${basis}/v1/transcriptions/${auftragId}/transcript`, { headers: kopf, signal });
     if (!ergebnis.ok) return { ok: false, grund: await grundAusAntwort("transcript", ergebnis) };
-    const j = (await ergebnis.json()) as { text?: unknown };
+    const j = (await ergebnis.json()) as { text?: unknown; tokens?: unknown };
     const text = typeof j.text === "string" ? j.text.trim() : "";
     if (!text) return { ok: false, grund: "antwort-unerwartete-form" };
-    return { ok: true, text };
+    const sprachen = Array.isArray(j.tokens)
+      ? (j.tokens as Array<{ language?: unknown }>)
+          .map((t) => t?.language)
+          .filter((x): x is string => typeof x === "string")
+      : [];
+    return { ok: true, text, sprachen };
   } catch (fehler) {
     const grund = fehler instanceof Error ? fehler.message : String(fehler);
     if (abbruch?.aborted) return { ok: false, grund: "abgebrochen" };

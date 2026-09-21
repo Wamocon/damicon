@@ -38,7 +38,10 @@ export function MikrofonKnopf({
   className,
   deaktiviert = false,
 }: {
-  beiText: (text: string) => void;
+  /** Der erkannte Text. `sprachen` sind die Sprachen, die der Dienst
+   *  GEHOERT hat - sie entscheiden ueber die Sprache der Antwort, denn aus
+   *  einem verhoerten Text laesst sie sich nicht mehr erraten. */
+  beiText: (text: string, sprachen?: string[]) => void;
   /** Meldet, ob gerade aufgenommen wird - fuer eine Welle ausserhalb dieses Knopfs. */
   beiAufnahme?: (an: boolean) => void;
   className?: string;
@@ -195,7 +198,7 @@ export function MikrofonKnopf({
         // Hand: ein verhoertes Diktat, das ungeprueft rausgeht, ist schlimmer
         // als ein Tippfehler - besonders auf Kasachisch.
         if (status.stand === "ok" && status.wert) {
-          beiText(status.wert);
+          beiText(status.wert, status.sprachen);
         } else {
           setMeldung(status.meldung ? tAktion(status.meldung) : t("fehlgeschlagen"));
         }

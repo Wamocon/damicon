@@ -320,9 +320,16 @@ export async function transkribiereSprachnachricht(
 
   // Der Text selbst wird nicht protokolliert - er steht gleich als Frage im
   // Verlauf, sobald die Nutzerin ihn abschickt. Hier nur, dass diktiert wurde.
-  await protokolliere(profil, "ki_chat.diktat", { zeichen: antwort.text.length, dienst: antwort.dienst });
+  const gehoerteSprachen = [...new Set(antwort.sprachen)];
+  // Nur die Sprachen, nie der Text: so laesst sich spaeter nachvollziehen,
+  // warum eine Antwort in einer bestimmten Sprache kam.
+  await protokolliere(profil, "ki_chat.diktat", {
+    zeichen: antwort.text.length,
+    dienst: antwort.dienst,
+    sprachen: gehoerteSprachen,
+  });
 
-  return ok("ok.transkription", antwort.text);
+  return ok("ok.transkription", antwort.text, gehoerteSprachen);
 }
 
 /** Stoesst das Laden des Spracherkennungsmodells an, damit die erste echte

@@ -8,12 +8,16 @@ export interface AktionsStatus {
   meldung?: string;
   /** Zusatzangabe fuer Meldungen mit Platzhalter, z. B. der Blockcode. */
   wert?: string;
+  /** Nur beim Diktat: die Sprachen, die der Dienst gehoert hat. Sie
+   *  entscheiden ueber die Antwortsprache (domain/antwortsprache.ts) und
+   *  muessen deshalb bis in den Browser und von dort zurueck. */
+  sprachen?: string[];
 }
 
 export const leer: AktionsStatus = { stand: "leer" };
 
-export function ok(meldung: string, wert?: string): AktionsStatus {
-  return { stand: "ok", meldung, wert };
+export function ok(meldung: string, wert?: string, sprachen?: string[]): AktionsStatus {
+  return { stand: "ok", meldung, wert, ...(sprachen?.length ? { sprachen } : {}) };
 }
 
 export function fehler(meldung: string, wert?: string): AktionsStatus {

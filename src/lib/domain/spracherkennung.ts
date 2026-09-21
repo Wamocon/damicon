@@ -30,8 +30,11 @@ export const HEDGE_AB_MS = 6_000;
 export const GESAMTDECKEL_MS = 40_000;
 
 export type Dienst = "soniox" | "whisper";
-export type Teilergebnis = { ok: true; text: string } | { ok: false; grund: string };
-export type Erkennung = { ok: true; text: string; dienst: Dienst } | { ok: false; grund: string };
+export type Teilergebnis = { ok: true; text: string; sprachen?: string[] } | { ok: false; grund: string };
+export type Erkennung =
+  /** `sprachen` nur, wenn der Dienst sie kennt - Whisper tut das nicht. */
+  | { ok: true; text: string; dienst: Dienst; sprachen: string[] }
+  | { ok: false; grund: string };
 
 /** Ein Dienst, der auf Zuruf startet und sich abbrechen laesst. */
 export type Starter = (abbruch: AbortSignal) => Promise<Teilergebnis>;
@@ -56,7 +59,7 @@ function ersterErfolg(laeufe: ReadonlyArray<{ dienst: Dienst; lauf: Promise<Teil
         if (--offen === 0) fertig({ ok: false, grund: letzterGrund });
       };
       lauf.then(
-        (a) => (a.ok ? fertig({ ok: true, text: a.text, dienst }) : gescheitert(a.grund)),
+        (a) => (a.ok ? fertig({ ok: true, text: a.text, dienst, sprachen: a.sprachen ?? [] }) : gescheitert(a.grund)),
         // Beide Clients versprechen, nie zu werfen. Faellt einer doch um,
         // darf er den anderen nicht mitreissen.
         (f: unknown) => gescheitert(f instanceof Error ? f.message : String(f)),
@@ -85,7 +88,7 @@ export async function erkenneMitRueckfall(
   try {
     if (!starteSoniox) {
       const nur = await starteWhisper(deckel.signal);
-      return nur.ok ? { ok: true, text: nur.text, dienst: "whisper" } : nur;
+      return nur.ok ? { ok: true, text: nur.text, dienst: "whisper", sprachen: nur.sprachen ?? [] } : nur;
     }
 
     const sonioxAbbruch = new AbortController();
@@ -99,7 +102,7 @@ export async function erkenneMitRueckfall(
     ]);
     if (zuerst === "gewonnen") {
       const a = await soniox;
-      if (a.ok) return { ok: true, text: a.text, dienst: "soniox" };
+      if (a.ok) return { ok: true, text: a.text, dienst: "soniox", sprachen: a.sprachen ?? [] };
     }
     if (zuerst === "gescheitert") {
       const a = await soniox;

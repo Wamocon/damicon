@@ -425,9 +425,14 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   // sieht.
   // pruefkontext: der Prüfbericht, auf dem das Gespräch aufsetzt (nach einer Compliance-Prüfung), sonst undefined.
   const pruefkontext = pruefBezug?.kontext;
-  const anfrageDaten = useRef({ einwilligung, modus, pfad, rolle, sprache, pruefkontext });
+  // Die Sprachen, die beim Diktat gehoert wurden. Sie gehen mit der naechsten
+  // Frage an den Server und entscheiden dort ueber die Antwortsprache. Nur
+  // fuer den NAECHSTEN Zug: danach wird wieder getippt, und dann zaehlt der
+  // Text.
+  const diktatSprachen = useRef<string[] | undefined>(undefined);
+  const anfrageDaten = useRef<Record<string, unknown>>({ einwilligung, modus, pfad, rolle, sprache, pruefkontext });
   useEffect(() => {
-    anfrageDaten.current = { einwilligung, modus, pfad, rolle, sprache, pruefkontext };
+    anfrageDaten.current = { ...anfrageDaten.current, einwilligung, modus, pfad, rolle, sprache, pruefkontext };
   }, [einwilligung, modus, pfad, rolle, sprache, pruefkontext]);
 
   const initialMessages = useMemo(() => verlaufZuNachrichten(verlauf), [verlauf]);
@@ -661,6 +666,9 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     zugSchritte.current = 0;
     klebtUnten.current = true;
     setNachUntenKnopf(false);
+    // Die gehoerten Sprachen gelten genau fuer diese eine Frage.
+    anfrageDaten.current = { ...anfrageDaten.current, diktatSprachen: diktatSprachen.current };
+    diktatSprachen.current = undefined;
     sendMessage({ text: bereinigt });
     setEingabe("");
     if (eingabeRef.current) eingabeRef.current.style.height = "";
@@ -1145,7 +1153,10 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
               // vorgelesen, auch wenn der Schalter aus ist.
               else { live.entsperre(); setZugDiktiert(true); }
             }}
-            beiText={(text) => {
+            beiText={(text, sprachen) => {
+              // Merken, solange der Text im Feld steht: abgeschickt wird von
+              // Hand, und erst dann zaehlt es.
+              diktatSprachen.current = sprachen;
               beiEingabe(text);
               const feld = eingabeRef.current;
               feld?.focus();
