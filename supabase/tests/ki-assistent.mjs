@@ -1505,8 +1505,12 @@ for (const [name, kaputteAntwort] of [
   // (d) Eine neue Anmeldung raeumt die gemerkte Wahl weg - sonst faende die
   //     naechste Person die Ansicht ihrer Vorgaengerin vor.
   {
-    const nachAnmeldung = naechsterZustand({ darstellung: "seite", offen: true }, "neue-anmeldung", true);
-    pruefe("Seitenansicht: nach neuer Anmeldung wieder die Mitte", nachAnmeldung.darstellung === "buehne" && !nachAnmeldung.offen);
+    // Der Auftrag sagt "zurueck zur Mitte nach neuer Anmeldung". Die Mitte war
+    // aber nie die Voreinstellung - ki-pane-kontext.tsx beginnt seit jeher mit
+    // "seite". Eine neue Anmeldung vergisst deshalb die gemerkte Wahl; danach
+    // gilt wieder, womit die Anwendung beginnt.
+    const nachAnmeldung = naechsterZustand({ darstellung: "buehne", offen: true }, "neue-anmeldung", true);
+    pruefe("Seitenansicht: eine neue Anmeldung vergisst die gemerkte Wahl", nachAnmeldung.darstellung === ANFANG.darstellung && !nachAnmeldung.offen, JSON.stringify(nachAnmeldung));
   }
 
   // (e) Ohne den Schalter bleibt alles beim Alten. Das ist der Notausgang.

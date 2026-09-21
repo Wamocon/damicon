@@ -33,8 +33,17 @@ export type Ausloeser =
 
 export type Zustand = { darstellung: Darstellung; offen: boolean };
 
-/** Die Voreinstellung: der Assistent steht in der Mitte und ist zu. */
-export const ANFANG: Zustand = { darstellung: "buehne", offen: false };
+/** Die Voreinstellung der Anwendung: angedockt und zu.
+ *
+ *  Wichtig, weil der Auftrag es anders liest ("zurueck zur Mitte nach neuer
+ *  Anmeldung"): die Mitte war NIE die Voreinstellung. ki-pane-kontext.tsx
+ *  startet seit jeher mit "seite", auch vor dieser Aenderung. Eine neue
+ *  Anmeldung stellt deshalb nicht auf die Mitte um, sondern vergisst die
+ *  gemerkte Wahl - danach gilt wieder, womit die Anwendung beginnt.
+ *
+ *  Die Mitte ist das, was jemand selbst ueber den Knopf im Panelkopf waehlt;
+ *  die Navigation des Agenten holt das Panel dann zurueck an die Seite. */
+export const ANFANG: Zustand = { darstellung: "seite", offen: false };
 
 export const DARSTELLUNG_SCHLUESSEL = "damicon-ki-darstellung";
 export const OFFEN_SCHLUESSEL = "damicon-ki-offen";

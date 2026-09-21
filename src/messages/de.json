@@ -1973,7 +1973,9 @@
     "transparenzHinweisAgent": "Diese Antworten stammen von einer KI, nicht von einem Mitarbeiter. Betriebsdaten kommen live aus der Anwendung und erscheinen als Schritte unter der Antwort, alles andere ist Allgemeinwissen und wird so gekennzeichnet.",
     "pruefBezug": "Bezug: Prüfbericht {id}",
     "pruefBezugEntfernen": "Bezug zum Prüfbericht entfernen",
-    "mehr": "Mehr"
+    "mehr": "Mehr",
+    "groesser": "Panel vergrößern",
+    "kleiner": "Panel verkleinern"
   },
   "legal": {
     "imprintTitle": "Impressum",

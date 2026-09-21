@@ -2125,3 +2125,47 @@ html[data-ki-zieht] body {
 @media (prefers-reduced-motion: reduce) {
   .ki-vorlesen-welle > span { animation: none; }
 }
+
+/* ---- Agenten-Seitenansicht auf dem Handy (ki-pane.tsx) -------------------
+   Der Agent oeffnet Ansichten im Hauptfenster, und genau die soll man sehen.
+   Ein Blatt ueber fast die ganze Hoehe wuerde die Fuehrung verdecken - also
+   die untere Haelfte, und oben bleibt die Seite stehen. Wer lesen statt
+   zusehen will, macht es mit dem Griff gross. */
+@media (max-width: 767.98px) {
+  .ki-pane-huelle--agentseite.ki-pane-huelle--offen {
+    height: 45dvh;
+  }
+
+  .ki-pane-huelle--agentseite.ki-pane-huelle--gross.ki-pane-huelle--offen {
+    height: 92dvh;
+  }
+
+  .ki-pane__handygriff {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 0;
+    cursor: grab;
+    z-index: 2;
+  }
+
+  .ki-pane__handygriff > span {
+    display: block;
+    width: 2.5rem;
+    height: 0.25rem;
+    border-radius: 999px;
+    background: var(--border);
+  }
+}
+
+/* Am Schreibtisch gibt es den Griff nicht - dort zieht man die Breite. */
+@media (min-width: 768px) {
+  .ki-pane__handygriff {
+    display: none;
+  }
+}

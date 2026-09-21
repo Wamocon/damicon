@@ -1973,7 +1973,9 @@
     "transparenzHinweisAgent": "These answers come from an AI, not a staff member. Company data comes live from the app and appears as steps under each answer; everything else is general knowledge and is labelled as such.",
     "pruefBezug": "Based on audit report {id}",
     "pruefBezugEntfernen": "Remove the link to the audit report",
-    "mehr": "More"
+    "mehr": "More",
+    "groesser": "Enlarge panel",
+    "kleiner": "Shrink panel"
   },
   "legal": {
     "imprintTitle": "Imprint",
