@@ -645,7 +645,7 @@
       "title": "Electronic delivery note (ЭСФ)",
       "navTitle": "Delivery note (ЭСФ)",
       "description": "An electronic delivery note in line with the goods-accompanying-document obligation. A link to the state ЭСФ system is planned, accounting of its own is not.",
-      "summary": "Evidence chain from the batch to the delivery note, status feedback from the state system. Mandatory integration.",
+      "summary": "Will carry the evidence chain from the batch to the delivery note and take in the status feedback from the state system. Mandatory integration.",
       "todo": "Connection to ИС ЭСФ, evidence chain batch to delivery note, status feedback and retry."
     },
     "rollen": {
@@ -694,7 +694,7 @@
       "title": "State integrations",
       "navTitle": "Integrations",
       "description": "Connectors to ЭСФ, virtual stock, ЕСУТД and the subsidy portals gosagro.kz and qoldau.kz are planned. Accounting stays with a solution established in the country.",
-      "summary": "One connector per target system with status feedback and retry. No in-house accounting build.",
+      "summary": "Will get one connector per target system, with status feedback and retry. Accounting stays out of scope.",
       "todo": "Connectors per system, sandbox access, error and retry logic, queue monitoring."
     },
     "foerdermittel": {

@@ -645,7 +645,7 @@
       "title": "Elektronischer Lieferschein (ЭСФ)",
       "navTitle": "Lieferschein (ЭСФ)",
       "description": "Elektronischer Lieferschein im Einklang mit der Pflicht zum Warenbegleitschein. Die Anbindung an das staatliche ЭСФ-System ist vorgesehen, eine eigene Buchhaltung nicht.",
-      "summary": "Belegkette von der Charge zum Lieferschein, Statusrückmeldung aus dem staatlichen System. Pflichtintegration.",
+      "summary": "Führt künftig die Belegkette von der Charge zum Lieferschein und nimmt die Statusrückmeldung aus dem staatlichen System auf. Pflichtintegration.",
       "todo": "Anbindung an das ИС ЭСФ, Belegkette Charge zu Lieferschein, Statusrückmeldung und Wiederholung."
     },
     "rollen": {
@@ -694,7 +694,7 @@
       "title": "Staatliche Integrationen",
       "navTitle": "Integrationen",
       "description": "Vorgesehen sind Konnektoren zu ЭСФ, virtuellem Lagerbestand, ЕСУТД und den Förderportalen gosagro.kz und qoldau.kz. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.",
-      "summary": "Ein Konnektor je Zielsystem mit Statusrückmeldung und Wiederholung. Kein Eigenbau der Buchhaltung.",
+      "summary": "Bekommt je Zielsystem einen Konnektor mit Statusrückmeldung und Wiederholung. Die Buchhaltung bleibt außen vor.",
       "todo": "Konnektoren je System, Sandbox-Zugänge, Fehler- und Wiederholungslogik, Monitoring der Warteschlange."
     },
     "foerdermittel": {
