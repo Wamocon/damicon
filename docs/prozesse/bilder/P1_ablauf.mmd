@@ -1,0 +1,28 @@
+flowchart TD
+    subgraph Brigade["Brigade"]
+        A1["Pflückaufgabe annehmen"]
+        A2["Menge & Ausschuss melden"]
+        A3["Fotobeleg hochladen"]
+        A4["Steige & Ausweis scannen"]
+        A5["Übergabe erfassen"]
+    end
+
+    subgraph Betriebsleitung["Betriebsleitung"]
+        B1["QR-Etikett drucken"]
+        B2["Kühlkette überwachen"]
+        B3["Lieferung anlegen"]
+        B4["Tour erstellen"]
+    end
+
+    subgraph Kunde_öffentlich["Kunde / Öffentlichkeit"]
+        C1["QR-Code scannen"]
+        C2["Herkunftsauskunft ansehen"]
+    end
+
+    A1 --> A2 --> A3 --> A4
+    A4 --> B1
+    B1 --> B2
+    A4 -- "Charge entsteht" --> B2
+    B2 --> B3 --> B4 --> A5
+    B1 --> C1 --> C2
+    A4 -. "Rückstandsnachweis" .-> C2

@@ -1,0 +1,22 @@
+flowchart TD
+    subgraph Kunde["Kunde"]
+        A1["Preisliste ansehen"]
+        A2["Vorbestellung aufgeben"]
+        A3["Lieferung erhalten"]
+        A4["Reklamation melden"]
+        A5["Gutschrift einsehen"]
+    end
+
+    subgraph Betriebsleitung["Betriebsleitung"]
+        B1["Vorbestellung prüfen"]
+        B2["Vorbestellung bestätigen"]
+        B3["Lieferung zustellen"]
+        B4["Reklamation bearbeiten"]
+        B5["Gutschrift erteilen"]
+    end
+
+    A1 --> A2 --> B1
+    B1 --> B2 -- "Kontingent reserviert" --> B3
+    B3 --> A3
+    A3 --> A4 --> B4
+    B4 --> B5 --> A5

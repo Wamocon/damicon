@@ -1,0 +1,23 @@
+flowchart TD
+    subgraph Brigade["Brigade"]
+        A1["Ausweis am Sammelpunkt scannen"]
+        A2["Arbeitszeit je Pflücker melden"]
+        A3["Steigen je Pflücker erfassen"]
+    end
+
+    subgraph Buchhaltung["Buchhaltung"]
+        B1["Lohnsatz pflegen"]
+        B2["Periode berechnen"]
+        B3["Abrechnung prüfen"]
+        B4["Lohnlauf freigeben"]
+    end
+
+    subgraph Pflücker["Pflücker"]
+        C1["Eigene Abrechnung einsehen"]
+    end
+
+    A1 --> A2 --> A3
+    B1 --> B2
+    A2 -- "Grundlage" --> B2
+    A3 -- "Mengenkomponente" --> B2
+    B2 --> B3 --> B4 --> C1
