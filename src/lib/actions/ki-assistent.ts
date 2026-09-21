@@ -19,6 +19,7 @@ import { sendeChatAnfrage } from "@/lib/ai/anbieter-client";
 import { sendeAgentAnfrage } from "@/lib/ai/agent";
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
 import { transkribiereAudio, transkriptionsMeldung, waermeTranskriptionVor } from "@/lib/ai/transkription-client";
+import { spracherkennungAnbieter, transkribiereMitSoniox } from "@/lib/ai/soniox-client";
 import type { ChatNachricht } from "@/lib/ai/anfrage";
 import type { Json } from "@/lib/database.types";
 import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
@@ -294,10 +295,23 @@ export async function transkribiereSprachnachricht(
   if (audio.size > MAX_AUDIO_BYTES) return fehler("fehler.dateiGross");
 
   const name = audio instanceof File && audio.name ? audio.name : "aufnahme.webm";
+
+  // Welcher Dienst erkennt? Standard ist Whisper auf der eigenen Maschine;
+  // KI_SPRACHERKENNUNG_ANBIETER=soniox schaltet um. Schlaegt Soniox fehl -
+  // Stoerung, Zeitueberschreitung, fehlender Schluessel -, uebernimmt Whisper
+  // still. Wer diktiert, soll von einem Ausfall beim Dienstleister nichts
+  // merken.
+  let antwort = null;
+  if (spracherkennungAnbieter() === "soniox") {
+    const ueberSoniox = await transkribiereMitSoniox(audio, name);
+    if (ueberSoniox.ok) antwort = ueberSoniox;
+    else console.error("[damicon] Soniox fehlgeschlagen, weiter mit Whisper:", ueberSoniox.grund);
+  }
   // Die Oberflaechensprache als Hinweis, welche Sprache zu erwarten ist -
-  // ungeprueft weitergereicht, weil transkribiereAudio() nur die vier
+  // ungeprueft weitergereicht, weil transkribiereAudio() nur die
   // unterstuetzten Werte durchlaesst und alles andere still verwirft.
-  const antwort = await transkribiereAudio(audio, name, text(formData, "sprache"));
+  // (Soniox bekommt bewusst keinen Hinweis, siehe soniox-client.ts.)
+  antwort ??= await transkribiereAudio(audio, name, text(formData, "sprache"));
 
   if (!antwort.ok) {
     console.error("[damicon] Transkription fehlgeschlagen:", antwort.grund);
