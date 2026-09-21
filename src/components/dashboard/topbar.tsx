@@ -7,7 +7,6 @@ import {
   ChevronLeft,
   PanelLeftClose,
   PanelLeftOpen,
-  Search,
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { useElternSeite } from "@/components/dashboard/nav-ziele";
@@ -19,6 +18,11 @@ import { Himbeere } from "@/components/ki/himbeere";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { cn } from "@/lib/utils";
 import { SyncStatus } from "@/components/dashboard/sync-status";
+import {
+  TopbarPfad,
+  TopbarSuche,
+  TopbarSuchknopf,
+} from "@/components/dashboard/topbar-pfad";
 import {
   istSchmal,
   schmalAbonnieren,
@@ -161,21 +165,23 @@ export function DashboardTopbar() {
       </Link>
 
       <MenueUmschalter />
-      {/* Erst ab md: zwischen sm und md haette sie im Raster der mobilen
-          Kopfzeile eine vierte Spalte aufgemacht und die Marke aus der Mitte
-          geschoben. Verloren geht dabei nichts - die Suche ist bis heute eine
-          Attrappe (Punkt 1 des UX-Audits). */}
-      <div className="hidden min-w-0 flex-1 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-sm text-muted-foreground md:flex">
-        <Search className="h-4 w-4 shrink-0" />
-        <span className="truncate">{t("searchPlaceholder")}</span>
-      </div>
+      {/* Der Pfad steht zwischen Umschalter und Suche. Anders als die frühere
+          Zeile über der Überschrift scrollt er nicht mit dem Inhalt weg. */}
+      <TopbarPfad />
+      {/* Das Suchfeld fuellt die Luecke zwischen Pfad und Werkzeugen, aber
+          erst ab xl. Darunter steht es als Knopf rechts in der Gruppe - fuer
+          Feld und Pfad nebeneinander reicht die Zeile dort nicht. */}
+      <TopbarSuche />
       {/* Was unter md in das Konto-Blatt der unteren Leiste gewandert ist -
           "KI fragen", Rollenumschalter, Sprache, Farbschema -, steht hier erst
           ab md wieder. Sichtbar bleibt auf dem Handy nur, was beim Arbeiten
           sichtbar bleiben muss: der Stand der Synchronisierung und die
           Meldungen. */}
-      <div className="flex flex-1 items-center justify-end gap-2 md:flex-none">
+      {/* md:ml-auto haelt die Gruppe rechts, auch wenn die Suche gerade ein
+          Knopf ist und damit kein wachsendes Element mehr in der Zeile steht. */}
+      <div className="flex flex-1 items-center justify-end gap-2 md:ml-auto md:flex-none">
         <span className="hidden md:contents">
+          <TopbarSuchknopf />
           <KiFragenKnopf />
           <PersonaSwitcher className="hidden lg:inline-flex" />
           <LocaleSwitcher compact />

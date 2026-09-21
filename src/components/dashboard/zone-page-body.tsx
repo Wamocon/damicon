@@ -5,7 +5,6 @@ import { ArrowRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Icon } from "@/components/icon";
 import { PageHeader, StatusPill } from "@/components/ui/kit";
-import { Brotkrumen } from "@/components/dashboard/brotkrumen";
 import {
   KlassifikationBadge,
   ReifegradBadge,
@@ -27,7 +26,6 @@ export function ZonePageBody({ zone }: { zone: ZoneKey }) {
   return (
     <div className="space-y-8">
       <PageHeader
-        eyebrow={<Brotkrumen zone={zone} />}
         title={zoneT(`${zone}.name`)}
         description={zoneT(`${zone}.description`)}
       />
