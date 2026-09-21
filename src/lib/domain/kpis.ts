@@ -35,8 +35,13 @@ export type KpiStufe = "kern" | "erweitert";
 //                          unsicherer Rechtsgrundlage gehoert nicht
 //                          kommentarlos unter eine Baseline-Unterschrift.
 //
-// Diese Einordnung gehoert an die Kachel, nicht in eine Anlage: wer eine
-// Baseline unterschreibt, muss sehen, welche Zusage heute schon messbar ist.
+// Die Einordnung stand bis September 2026 als Fusszeile an der Kachel
+// ("Funktion fehlt", "Erfassung fehlt"). Die Textpruefung hat sie dort
+// entfernt: sie beschrieb den Bauzustand, waehrend an dieser Stelle die
+// Frage steht, ob eine Zahl von heute ist. Sie bleibt als fachliche Notiz
+// fuer die Codeseite - wer eine Baseline unterschreibt, muss wissen, welche
+// Zusage heute schon messbar ist, aber das gehoert in die Baseline-Anlage
+// und nicht in die Oberflaeche.
 export type Datenherkunft =
   | "berechenbar"
   | "erfassung-fehlt"
@@ -52,6 +57,9 @@ export interface Kpi {
   // positive Richtung: ist ein steigender Wert gut ("up") oder schlecht ("down")?
   gutRichtung: "up" | "down";
   platzhalter: true;
+  /** Kann das System die Kennzahl heute fortschreiben? Wie braucht eine
+   *  reine Notiz fuer die Codeseite, seit die Kachel keine Herkunft mehr
+   *  anzeigt - nicht uebersetzt, kein Aufrufer. */
   datenherkunft: Datenherkunft;
   /** kern = Teil der zwoelf Cockpit-Kacheln, erweitert = Baseline, aber ausserhalb des Cockpits (Anforderung 4.11). */
   stufe: KpiStufe;
