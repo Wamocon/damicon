@@ -10,6 +10,7 @@ Stand 21.09.2026, Branch `ui/uebersicht-entwuerfe`.
 - Live-Daten aus Supabase, 8 der 14 Kennzahlen aus echten Datensätzen gerechnet
 - Zwei Profile: 1600 px breit und 390 px breit, jeweils die ganze Seite
 - Jede Variante ändert genau einen Abschnitt, alles andere bleibt Zeile für Zeile die heutige Seite
+- Gegenprobe mit `pfluecker@damicon.demo`, der Rolle mit den wenigsten Rechten: alle sechs Zustände laden fehlerfrei, ohne Konsolenfehler (Bild `v2-pfluecker.png`)
 
 **Zum Anschauen im Browser:** `/de/dashboard/entwurf/ist`, dann über die Leiste oben durchschalten. Die Route liegt unter `/dashboard`, trägt also Kopfzeile, Seitenleiste und Rollenwahl wie die echte Seite.
 
@@ -54,7 +55,13 @@ Bild: `v2.png`, `v2-handy.png`
 - Im Bild: 4 Aufgaben, 2 Blöcke gesperrt und beide freigabefällig, 2 Reklamationen, 1 abgelaufenes Dokument
 - Seitenhöhe 2248 px, 222 px mehr als heute
 
-Das ist die einzige Variante, die der Seite etwas hinzufügt, statt etwas umzustellen. Sie kostet vier zusätzliche Abfragen beim Aufbau der Seite. Für die Rollen ohne betriebsweite Kennzahlen (Pflücker, Erzeuger, Kunde) wäre sie der erste Inhalt überhaupt auf der Startseite — heute sehen die eine Überschrift, die 14 Kennzahlen verspricht, und kein einziges Feld darunter.
+Das ist die einzige Variante, die der Seite etwas hinzufügt, statt etwas umzustellen. Sie kostet vier zusätzliche Abfragen beim Aufbau der Seite.
+
+Der Rechtefilter hat eine Folge, die im Bild mit der Betriebsleitung nicht sichtbar wird. Geprüft mit `pfluecker@damicon.demo` (Bild `v2-pfluecker.png`): die Rolle `picker` hat laut `src/lib/rbac.ts:299` nur `dashboard`, `lohn` und `schulungen`. Keine der vier Tageslage-Ressourcen gehört dazu, der Abschnitt entfällt für sie ganz. Die Startseite bleibt für einen Pflücker also genau so leer wie heute — mit dem Satz „Für Ihre Rolle sind hier keine betriebsweiten Kennzahlen hinterlegt“, darunter vier Zonenkarten, von denen zwei keinen einzigen Eintrag tragen, und dem Projektplan.
+
+Für die anderen beiden Randrollen trägt die Variante: `erzeuger` sieht drei der vier Kacheln (Reihenblöcke, Pflückaufgaben, Dokumente), `kunde` eine (Reklamationen).
+
+Wenn die Tageslage für Pflücker etwas zeigen soll, braucht sie eigene Posten aus `lohn` und `schulungen` — etwa offene Pflichtschulungen und den eigenen Qualitätsfaktor der laufenden Woche. Das ist gegenüber dem Entwurf zusätzliche Arbeit, keine Einstellung.
 
 ## 3 Zahlen bei der Zone
 
@@ -118,6 +125,7 @@ Alle sechs Messungen enthalten die Wählerleiste der Vergleichsansicht, rund 190
 ## Was noch offen ist
 
 - Die Grenze zwischen „knapp“ und „verfehlt“ (Variante 1) ist gegriffen und gehört mit dem Kunden festgelegt.
+- Die Tageslage (Variante 2) trägt für die Rolle `picker` nichts, weil ihr die vier Ressourcen fehlen. Eigene Posten aus `lohn` und `schulungen` wären nachzubauen.
 - Der Zielort für den Projektstand (Variante 4) ist nicht gebaut.
 - Variante 5 braucht für schmale Geräte eine eigene Darstellung, sonst verschlechtert sie das Telefon deutlich.
 - Der Kopftext der Seite („Aggregator Umland Almaty. Die Hauptfunktionen laufen gegen die Datenbank …“) spricht in allen sechs Bildern weiter über das Projekt statt über den Betrieb. Keine der Varianten fasst ihn an, er steht im Textbericht.
