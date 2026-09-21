@@ -41,6 +41,9 @@ import {
   sprachausgabePfad,
   STIMMEN,
   textFuerSprachausgabe,
+  ABSCHNITT_ZEICHEN,
+  ERSTER_ABSCHNITT_ZEICHEN,
+  erzeugeSatzZerleger,
 } from "../../src/lib/domain/sprachausgabe.ts";
 import { erzeugeSprachausgabe, sprachausgabeUrl, sprachausgabeZugangsHeader } from "../../src/lib/ai/sprachausgabe-client.ts";
 import {
@@ -61,6 +64,7 @@ import {
 import { erkenneMitRueckfall, GESAMTDECKEL_MS, HEDGE_AB_MS } from "../../src/lib/domain/spracherkennung.ts";
 import { bestimmeAntwortsprache, mehrheitsSprache, stimmenSprache } from "../../src/lib/domain/antwortsprache.ts";
 import { erkenneSprache } from "../../src/lib/wissen/chunker.ts";
+import { ABSCHNITT_GUELTIG_MS, pruefeAbschnitt, signiereAbschnitt, sprachausgabeGeheimnis } from "../../src/lib/domain/sprachausgabe-signatur.ts";
 import {
   sonioxBasisUrl,
   sonioxZeitlimitMs,
@@ -1174,6 +1178,147 @@ for (const [name, kaputteAntwort] of [
     pruefe("Antwortsprache: L wird im Stream mitgeschickt", route.includes("messageMetadata"));
   }
 }
+
+// --- 12. Live-Sprachausgabe: Zerleger und Signatur -------------------------
+// Vorgelesen wird kuenftig schon waehrend die Antwort entsteht. Zwei Dinge
+// muessen dafuer stimmen: die Abschnitte muessen sprechbar sein, und niemand
+// darf sich beliebigen Text auf unsere Rechnung vorlesen lassen.
+{
+  // (a) Der erste Abschnitt faellt frueh - er entscheidet, wie lange es still
+  //     bleibt, bevor ueberhaupt etwas klingt.
+  {
+    const z = erzeugeSatzZerleger();
+    const erste = z.fuettere("Die Lieferung aus Almaty ist am Dienstag angekommen, pünktlich um 14 Uhr.");
+    pruefe("Zerleger: der erste Abschnitt kommt sofort", erste.length >= 1, JSON.stringify(erste[0]?.text ?? ""));
+    pruefe("Zerleger: und er endet am ersten Komma, nicht erst am Satzende", erste[0]?.text.endsWith(","), erste[0]?.text);
+    pruefe("Zerleger: er ist kurz genug, um schnell zu klingen", (erste[0]?.text.length ?? 999) <= ERSTER_ABSCHNITT_ZEICHEN + 20, `${erste[0]?.text.length} Zeichen`);
+  }
+
+  // (b) Danach laengere Abschnitte: die Stimme braucht ganze Saetze fuer die
+  //     Satzmelodie.
+  {
+    const z = erzeugeSatzZerleger();
+    z.fuettere("Kurz, ");
+    const weitere = [
+      ...z.fuettere("die Kühlkette war lückenlos. Alle Messwerte lagen im Rahmen. "),
+      ...z.fuettere("Die Steigen wurden um 15 Uhr vorgekühlt. Der Fotobeleg liegt vor. "),
+      ...z.abschliessen(),
+    ];
+    pruefe("Zerleger: spaetere Abschnitte enthalten ganze Saetze", weitere.some((a) => a.text.trim().endsWith(".")), JSON.stringify(weitere.map((a) => a.text)));
+    pruefe("Zerleger: und bleiben unter der Laengengrenze", weitere.every((a) => a.text.length <= ABSCHNITT_ZEICHEN + 60), `max ${Math.max(...weitere.map((a) => a.text.length))}`);
+    // Die Nummern zaehlen die AUSGEGEBENEN Abschnitte, nicht die Stream-
+    // Stuecke: "Kurz, " allein ist zu kurz und wird noch zurueckgehalten.
+    pruefe("Zerleger: die Nummern laufen luecken- und sprungfrei", weitere.every((a, i) => a.nr === weitere[0].nr + i), JSON.stringify(weitere.map((a) => a.nr)));
+  }
+
+  // (c) Was kein Satzende ist, darf keines werden. "3,5" und "z. B." haben
+  //     frueher mitten im Satz abgeschnitten.
+  {
+    const ganz = (text) => {
+      const z = erzeugeSatzZerleger();
+      return [...z.fuettere(text), ...z.abschliessen()].map((a) => a.text).join(" ");
+    };
+    for (const [text, darfNicht] of [
+      ["Ein Wert lag bei 3,5 Grad und blieb damit im Rahmen der Vorgabe.", "3,5"],
+      ["Das gilt z. B. für Polana und für Polka, also für beide Sorten.", "z. B."],
+      ["Siehe Nr. 12 in der Liste der freigegebenen Reihenblöcke dort.", "Nr."],
+      ["Die Messung ergab 12.5 Grad und lag knapp über dem Grenzwert hier.", "12.5"],
+    ]) {
+      const zusammen = ganz(text);
+      pruefe(`Zerleger: "${darfNicht}" ist kein Satzende`, zusammen.includes(darfNicht), zusammen.slice(0, 80));
+    }
+  }
+
+  // (d) Codebloecke werden nicht vorgelesen - auch dann nicht, wenn sie ueber
+  //     mehrere Stream-Stuecke verteilt ankommen.
+  {
+    const z = erzeugeSatzZerleger();
+    const raus = [
+      ...z.fuettere("Hier die Abfrage, bitte einmal ausführen. "),
+      ...z.fuettere("```sql\nselect * "),
+      ...z.fuettere("from lieferungen;\n```"),
+      ...z.fuettere(" Danach steht das Ergebnis in der Liste."),
+      ...z.abschliessen(),
+    ];
+    const alles = raus.map((a) => a.text).join(" ");
+    pruefe("Zerleger: Code wird nicht vorgelesen", !alles.includes("select") && !alles.includes("lieferungen;"), alles.slice(0, 100));
+    pruefe("Zerleger: der Text darum herum schon", alles.includes("Abfrage") && alles.includes("Ergebnis"), alles.slice(0, 100));
+  }
+
+  // (e) Links und Tabellen: gesprochen wird der Text, nicht die Adresse.
+  {
+    const z = erzeugeSatzZerleger();
+    const raus = [...z.fuettere("Die Liste steht im [Sortenkatalog](https://damicon.test/katalog) bereit."), ...z.abschliessen()];
+    const alles = raus.map((a) => a.text).join(" ");
+    pruefe("Zerleger: aus einem Link wird nur der Text", alles.includes("Sortenkatalog") && !alles.includes("https"), alles);
+  }
+
+  // (f) Eine sehr lange Antwort wird gedeckelt - sonst laeuft die Stimme
+  //     minutenlang und kostet entsprechend.
+  {
+    const z = erzeugeSatzZerleger();
+    const satz = "Die Kühlkette blieb über den gesamten Zeitraum hinweg vollständig lückenlos. ";
+    let gesamt = 0;
+    for (let i = 0; i < 200; i++) for (const a of z.fuettere(satz)) gesamt += a.text.length;
+    pruefe("Zerleger: hoechstens 3000 Zeichen je Antwort", gesamt <= MAX_SPRACHAUSGABE_ZEICHEN, `${gesamt} Zeichen`);
+    pruefe("Zerleger: die Grenze wurde im Test wirklich erreicht", gesamt > MAX_SPRACHAUSGABE_ZEICHEN - 200, `${gesamt} Zeichen`);
+    pruefe("Zerleger: und danach kommt nichts mehr", z.fuettere("Noch ein Satz.").length === 0 && z.abschliessen().length === 0);
+  }
+
+  // (g) Signatur. Ohne sie waere die Route ein offenes Vorlese-Werkzeug.
+  {
+    const geheimnis = "nur-fuer-den-test-mindestens-16";
+    const basis = { nutzerId: "nutzer-1", zug: "zug-1", nr: 1, text: "Die Lieferung ist angekommen.", ablauf: Date.now() + ABSCHNITT_GUELTIG_MS };
+    const sig = signiereAbschnitt(basis, geheimnis);
+
+    pruefe("Signatur: ein sauberer Abschnitt wird angenommen", pruefeAbschnitt({ ...basis, sig }, geheimnis).ok);
+
+    for (const [was, verdreht] of [
+      ["geaenderter Text", { ...basis, text: "Die Lieferung ist NICHT angekommen." }],
+      ["andere Nummer", { ...basis, nr: 2 }],
+      ["anderer Zug", { ...basis, zug: "zug-2" }],
+      ["anderer Nutzer", { ...basis, nutzerId: "nutzer-2" }],
+    ]) {
+      const e = pruefeAbschnitt({ ...verdreht, sig }, geheimnis);
+      pruefe(`Signatur: ${was} wird abgewiesen`, !e.ok && e.grund === "signatur-falsch", e.ok ? "angenommen" : e.grund);
+    }
+
+    {
+      const e = pruefeAbschnitt({ ...basis, sig }, "ein-anderes-geheimnis-16");
+      pruefe("Signatur: ein fremdes Geheimnis wird abgewiesen", !e.ok && e.grund === "signatur-falsch", e.ok ? "angenommen" : e.grund);
+    }
+    {
+      const alt = { ...basis, ablauf: Date.now() - 1000 };
+      const e = pruefeAbschnitt({ ...alt, sig: signiereAbschnitt(alt, geheimnis) }, geheimnis);
+      pruefe("Signatur: nach zehn Minuten ist sie wertlos", !e.ok && e.grund === "abgelaufen", e.ok ? "angenommen" : e.grund);
+    }
+    {
+      const weit = { ...basis, ablauf: Date.now() + 40 * 60 * 1000 };
+      const e = pruefeAbschnitt({ ...weit, sig: signiereAbschnitt(weit, geheimnis) }, geheimnis);
+      pruefe("Signatur: ein selbst gesetzter Ablauf weit in der Zukunft zaehlt nicht", !e.ok && e.grund === "ablauf-zu-weit", e.ok ? "angenommen" : e.grund);
+    }
+    {
+      const e = pruefeAbschnitt({ ...basis, sig: "" }, geheimnis);
+      pruefe("Signatur: ohne Signatur gar nicht erst", !e.ok && e.grund === "ohne-signatur");
+    }
+    pruefe("Signatur: sie verraet den Text nicht", !sig.includes("Lieferung") && /^[0-9a-f]{64}$/.test(sig), sig.slice(0, 16) + "...");
+  }
+
+  // (h) Ohne Geheimnis gibt es keine Live-Sprachausgabe - nicht etwa eine
+  //     ungeschuetzte.
+  {
+    const vorher = process.env.KI_SPRACHAUSGABE_SIGNATUR;
+    delete process.env.KI_SPRACHAUSGABE_SIGNATUR;
+    pruefe("Signatur: ohne KI_SPRACHAUSGABE_SIGNATUR kein Betrieb", sprachausgabeGeheimnis() === null);
+    process.env.KI_SPRACHAUSGABE_SIGNATUR = "zu-kurz";
+    pruefe("Signatur: ein zu kurzes Geheimnis zaehlt nicht", sprachausgabeGeheimnis() === null);
+    process.env.KI_SPRACHAUSGABE_SIGNATUR = "langgenug-fuer-den-test-1234";
+    pruefe("Signatur: ein brauchbares Geheimnis wird genommen", sprachausgabeGeheimnis() !== null);
+    if (vorher === undefined) delete process.env.KI_SPRACHAUSGABE_SIGNATUR;
+    else process.env.KI_SPRACHAUSGABE_SIGNATUR = vorher;
+  }
+}
+
 
 console.log("\n" + "-".repeat(58));
 console.log(`Pruefungen: ${bestanden + fehlgeschlagen}   bestanden: ${bestanden}   fehlgeschlagen: ${fehlgeschlagen}`);
