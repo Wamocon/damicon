@@ -50,53 +50,18 @@ export function istSprachausgabeSprache(wert: string | null | undefined): wert i
   return (sprachausgabeSprachen as readonly string[]).includes(wert ?? "");
 }
 
-// Sprache der ANTWORT, nicht der Oberflaeche: Claude antwortet in der Sprache
-// der Frage (route.ts), und eine russische Antwort mit deutscher Stimme waere
-// unverstaendlich. Reihenfolge der Pruefung von eindeutig nach unscharf:
-//   1. kasachische Sonderbuchstaben (in Russisch nicht vorhanden) -> kk
-//   2. sonst kyrillisch -> ru
-//   3. deutsche Umlaute/ß oder typische deutsche Woerter -> de
-//   4. typische englische Woerter -> en
-//   5. sonst die Oberflaechensprache (fallback)
-// Tuerkisch stand hier bis zum 20.09.2026 an dritter Stelle; die Sprache ist
-// aus der Anwendung entfernt (die Erkennung lieferte dafuer ohnehin Unsinn),
-// deshalb faellt tuerkischer Text jetzt auf de/en oder die Oberflaeche.
-const KASACHISCH = /[әғқңөұүһі]/i;
-const KYRILLISCH = /[Ѐ-ӿ]/;
-const DEUTSCH = /[äöüß]|\b(und|der|die|das|ist|nicht|sie|mit|fuer|für|auf|ein|eine)\b/i;
-const ENGLISCH = /\b(the|and|is|are|you|your|with|for|this|that|of)\b/i;
-
-export function erkenneSprache(text: string, fallback: string): SprachausgabeSprache {
-  const probe = text.slice(0, 2000);
-  if (KASACHISCH.test(probe)) return "kk";
-  if (KYRILLISCH.test(probe)) return "ru";
-  const de = (probe.match(new RegExp(DEUTSCH.source, "gi")) ?? []).length;
-  const en = (probe.match(new RegExp(ENGLISCH.source, "gi")) ?? []).length;
-  if (de > 0 || en > 0) return de >= en ? "de" : "en";
-  return istSprachausgabeSprache(fallback) ? fallback : "de";
-}
-
-/** In welcher Sprache der Assistent antworten soll - und in welcher die
- *  Oberflaeche waehrend dieses Zuges spricht.
+/** Die Stimme fuer eine Oberflaechensprache - oder null, wenn es fuer sie
+ *  keine gibt. Die EINE Stelle, an der das entschieden wird: die Route
+ *  (api/ki-sprachausgabe) und der Knopf im Chat fragen beide hier.
  *
- *  Entscheidend ist die Sprache der FRAGE, nicht die der Oberflaeche. Wer
- *  auf einer deutschen Oberflaeche russisch schreibt, bekommt Russisch
- *  zurueck; das war vorher nicht so (der Systemprompt bekam schlicht die
- *  Oberflaechensprache uebergeben und wies das Modell an, in DIESER zu
- *  antworten - eine russisch gestellte Frage wurde ausdruecklich deutsch
- *  beantwortet).
- *
- *  Massgeblich ist die LETZTE Nachricht der Person: wer mitten im Gespraech
- *  die Sprache wechselt, wechselt sie fuer alles, was danach kommt.
- *  Enthaelt sie keinen Hinweis (eine Zahl, "ok", ein Dateiname), bleibt es
- *  bei der Oberflaechensprache - das ist die beste Vermutung, die es dann
- *  gibt, und aendert im Regelfall nichts. */
-export function antwortSprache(
-  nachrichten: readonly { rolle: string; inhalt: string }[],
-  oberflaeche: string,
-): SprachausgabeSprache {
-  const letzteFrage = [...nachrichten].reverse().find((n) => n.rolle === "nutzer" && n.inhalt.trim());
-  return erkenneSprache(letzteFrage?.inhalt ?? "", oberflaeche);
+ *  Bis zum 21.09.2026 wurde die Sprache stattdessen aus dem Antworttext
+ *  erraten. Das fiel um, sobald die Frage diktiert war: ein falscher
+ *  Sprachhinweis an die Spracherkennung liess die Antwort selbst in der
+ *  falschen Sprache entstehen, und die Erkennung bestaetigte den Fehler
+ *  anschliessend. Die Systemsprache ist eine Einstellung, die die Person
+ *  selbst setzt - verlaesslicher als jede Erkennung. */
+export function stimmeFuerOberflaeche(oberflaeche: string): Stimme | null {
+  return istSprachausgabeSprache(oberflaeche) ? STIMMEN[oberflaeche] : null;
 }
 
 // Obergrenze fuer eine vorgelesene Antwort. Piper braucht fuer ~200 Zeichen
