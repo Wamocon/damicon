@@ -64,6 +64,7 @@ import {
 import { erkenneMitRueckfall, GESAMTDECKEL_MS, HEDGE_AB_MS } from "../../src/lib/domain/spracherkennung.ts";
 import { bestimmeAntwortsprache, mehrheitsSprache, stimmenSprache } from "../../src/lib/domain/antwortsprache.ts";
 import { erkenneSprache } from "../../src/lib/wissen/chunker.ts";
+import { agentSeitenansichtAn, schalterAn, sprachausgabeLiveAn } from "../../src/lib/domain/schalter.ts";
 import { ABSCHNITT_GUELTIG_MS, pruefeAbschnitt, signiereAbschnitt, sprachausgabeGeheimnis } from "../../src/lib/domain/sprachausgabe-signatur.ts";
 import {
   sonioxBasisUrl,
@@ -1316,6 +1317,68 @@ for (const [name, kaputteAntwort] of [
     pruefe("Signatur: ein brauchbares Geheimnis wird genommen", sprachausgabeGeheimnis() !== null);
     if (vorher === undefined) delete process.env.KI_SPRACHAUSGABE_SIGNATUR;
     else process.env.KI_SPRACHAUSGABE_SIGNATUR = vorher;
+  }
+}
+
+
+// --- 13. Schalter: jede neue Funktion laesst sich ohne Code abstellen -------
+// Der Sinn ist der Notausgang in Produktion. Deshalb ist die Voreinstellung
+// immer AUS: wer einen Schalter vergisst, bekommt den Stand von vorher.
+{
+  const umgebung = {
+    live: process.env.KI_SPRACHAUSGABE_LIVE,
+    sig: process.env.KI_SPRACHAUSGABE_SIGNATUR,
+    seite: process.env.KI_AGENT_SEITENANSICHT,
+  };
+  try {
+    for (const [wert, erwartet] of [
+      ["an", true], ["on", true], ["true", true], ["1", true], ["AN", true], [" an ", true],
+      ["aus", false], ["off", false], ["false", false], ["0", false], ["", false],
+      [undefined, false], ["vielleicht", false],
+    ]) {
+      pruefe(`Schalter: ${JSON.stringify(wert)} -> ${erwartet ? "an" : "aus"}`, schalterAn(wert) === erwartet);
+    }
+
+    // Live-Sprachausgabe nur mit Geheimnis - sonst waere die Route ein
+    // offenes Vorlese-Werkzeug.
+    delete process.env.KI_SPRACHAUSGABE_LIVE;
+    delete process.env.KI_SPRACHAUSGABE_SIGNATUR;
+    pruefe("Schalter: Live-Sprachausgabe ist ohne alles aus", sprachausgabeLiveAn() === false);
+    process.env.KI_SPRACHAUSGABE_LIVE = "an";
+    const fehler = [];
+    const echteFehlerausgabe = console.error;
+    console.error = (...a) => fehler.push(a.join(" "));
+    const ohneGeheimnis = sprachausgabeLiveAn();
+    console.error = echteFehlerausgabe;
+    pruefe("Schalter: an ohne Geheimnis bleibt trotzdem aus", ohneGeheimnis === false);
+    pruefe("Schalter: und sagt im Protokoll, warum", fehler.some((z) => z.includes("KI_SPRACHAUSGABE_SIGNATUR")), fehler.join(" | ").slice(0, 80));
+    process.env.KI_SPRACHAUSGABE_SIGNATUR = "zu-kurz";
+    pruefe("Schalter: ein zu kurzes Geheimnis zaehlt nicht", sprachausgabeLiveAn() === false);
+    process.env.KI_SPRACHAUSGABE_SIGNATUR = "lang-genug-fuer-den-test-1234";
+    pruefe("Schalter: mit Schalter UND Geheimnis ist sie an", sprachausgabeLiveAn() === true);
+    process.env.KI_SPRACHAUSGABE_LIVE = "aus";
+    pruefe("Schalter: das Geheimnis allein schaltet nichts ein", sprachausgabeLiveAn() === false);
+
+    delete process.env.KI_AGENT_SEITENANSICHT;
+    pruefe("Schalter: Seitenansicht ist voreingestellt aus", agentSeitenansichtAn() === false);
+    process.env.KI_AGENT_SEITENANSICHT = "an";
+    pruefe("Schalter: und laesst sich einschalten", agentSeitenansichtAn() === true);
+
+    // Alle Schalter muessen in .env.example stehen - sonst weiss der Betrieb
+    // nicht, woran er sie abstellen kann.
+    const beispiel = readFileSync(new URL("../../.env.example", import.meta.url), "utf8");
+    for (const name of ["KI_SPRACHERKENNUNG_ANBIETER", "SONIOX_API_URL", "SONIOX_API_KEY", "SONIOX_ZEITLIMIT_MS", "KI_SPRACHAUSGABE_LIVE", "KI_SPRACHAUSGABE_SIGNATUR", "KI_AGENT_SEITENANSICHT"]) {
+      pruefe(`Schalter: ${name} steht in .env.example`, beispiel.includes(name));
+    }
+  } finally {
+    for (const [name, wert] of [
+      ["KI_SPRACHAUSGABE_LIVE", umgebung.live],
+      ["KI_SPRACHAUSGABE_SIGNATUR", umgebung.sig],
+      ["KI_AGENT_SEITENANSICHT", umgebung.seite],
+    ]) {
+      if (wert === undefined) delete process.env[name];
+      else process.env[name] = wert;
+    }
   }
 }
 
