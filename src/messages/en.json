@@ -1822,6 +1822,7 @@
       "starten": "Dictate",
       "stoppen": "Stop recording",
       "laeuft": "Transcribing … (takes a few seconds)",
+      "oeffnet": "Opening microphone …",
       "leer": "Nothing recorded.",
       "fehlgeschlagen": "Speech recognition unavailable.",
       "keinZugriff": "No microphone access."

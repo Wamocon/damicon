@@ -1822,6 +1822,7 @@
       "starten": "Diktieren",
       "stoppen": "Aufnahme beenden",
       "laeuft": "Wird erkannt … (einige Sekunden)",
+      "oeffnet": "Mikrofon wird geöffnet …",
       "leer": "Nichts aufgenommen.",
       "fehlgeschlagen": "Spracherkennung nicht möglich.",
       "keinZugriff": "Kein Mikrofonzugriff."

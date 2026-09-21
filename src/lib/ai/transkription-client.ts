@@ -37,7 +37,12 @@ const SOKRATES_BASIS = "https://sokrates.test-qualitaetsmanagement.com/api/v1";
 // doch einmal in die Grenze, sagt die Meldung genau das und bittet um einen
 // zweiten Versuch. Wer selbst hostet und keine 60-s-Grenze hat, hebt das
 // Limit ueber KI_TRANSKRIPTION_ZEITLIMIT_MS an.
-const STANDARD_ZEITLIMIT_MS = 55_000;
+// Teil des Zeitbudgets (22.09.2026): Soniox 8 s, Whisper 12 s, Gesamtdeckel
+// 25 s in der Server Action - alles deutlich unter maxDuration = 60, damit die
+// Person immer eine uebersetzte Meldung sieht statt des Plattformabbruchs.
+// Frueher standen hier 55 s; zusammen mit Soniox waren das 75 s, also mehr als
+// Vercel zulaesst.
+const STANDARD_ZEITLIMIT_MS = 12_000;
 
 export function transkriptionZeitlimitMs(): number {
   const wert = Number(process.env.KI_TRANSKRIPTION_ZEITLIMIT_MS);

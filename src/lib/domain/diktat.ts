@@ -150,3 +150,17 @@ export function erzeugeStilleWaechter(einstellungen: DiktatEinstellungen = DIKTA
     },
   };
 }
+
+/** Dateiname passend zum tatsaechlichen Aufnahmeformat. MediaRecorder
+ *  liefert je nach Browser audio/webm (Chrome, Firefox) oder audio/mp4
+ *  (Safari, iOS); der Typ kommt mit Zusatz ("audio/webm;codecs=opus"). */
+export function aufnahmeDateiname(mimeTyp: string): string {
+  const basis = mimeTyp.split(";")[0].trim().toLowerCase();
+  const endung =
+    basis === "audio/mp4" || basis === "audio/x-m4a" || basis === "audio/aac" ? "mp4"
+      : basis === "audio/ogg" ? "ogg"
+      : basis === "audio/wav" || basis === "audio/x-wav" ? "wav"
+      : basis === "audio/mpeg" ? "mp3"
+      : "webm";
+  return `aufnahme.${endung}`;
+}

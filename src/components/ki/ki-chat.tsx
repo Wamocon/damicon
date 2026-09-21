@@ -1082,22 +1082,21 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
             onKeyDown={beiTaste}
           />
           {/* Diktat: die Aufnahme endet von selbst, sobald jemand aufhoert zu
-              sprechen, und der erkannte Text geht sofort raus (beiSenden) -
-              sprechen und fertig, ohne zweiten Klick. Er steht dabei im
-              Eingabefeld, damit sichtbar bleibt, was verstanden wurde.
-              Geht die Erkennung daneben, hilft nur noch eine zweite
-              Nachricht - in der Assistenten-Ansicht
-              (db/ki-assistent-formulare.tsx) bleibt es deshalb beim
-              Nachlesen vor dem Abschicken. */}
+              sprechen. Der erkannte Text landet NUR im Eingabefeld - seit dem
+              22.09.2026 wird er nicht mehr automatisch abgeschickt: was die
+              Erkennung verhoert hat, ginge sonst ungeprueft an die Kundschaft,
+              und gerade auf Kasachisch passiert das. Abgeschickt wird von Hand. */}
           <MikrofonKnopf
             className="ki-composer__knopf ki-composer__knopf--still"
             deaktiviert={beschaeftigt || einwilligungFehlt}
             beiAufnahme={setDiktiert}
             beiText={(text) => {
               beiEingabe(text);
-              eingabeRef.current?.focus();
+              const feld = eingabeRef.current;
+              feld?.focus();
+              // Cursor ans Ende: von dort wird korrigiert oder weitergeschrieben.
+              feld?.setSelectionRange(text.length, text.length);
             }}
-            beiSenden={(text) => sende(text)}
           />
           {beschaeftigt ? (
             <button type="button" onClick={stopp} aria-label={t("stopp")} className="ki-composer__knopf">

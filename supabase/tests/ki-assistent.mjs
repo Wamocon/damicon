@@ -52,6 +52,7 @@ import {
   transkriptionZugangsHeader,
 } from "../../src/lib/ai/transkription-client.ts";
 import {
+  aufnahmeDateiname,
   DIKTAT_STANDARD,
   diktatEinstellungen,
   erzeugeStilleWaechter,
@@ -894,6 +895,104 @@ for (const [name, kaputteAntwort] of [
       if (wert === undefined) delete process.env[name];
       else process.env[name] = wert;
     }
+  }
+}
+
+// --- 10. Spracherkennung: Befunde der Ende-zu-Ende-Pruefung (22.09.2026) ----
+// Drei Dinge, die vorher falsch waren und hier festgehalten werden, damit sie
+// nicht zurueckkommen.
+{
+  // (a) Der Dateiname muss zum aufgenommenen Format passen. Safari auf iOS
+  // nimmt audio/mp4 auf; bis heute hiess die Datei trotzdem immer
+  // "aufnahme.webm", der Dienst bekam also MP4 unter WebM-Namen.
+  for (const [typ, erwartet] of [
+    ["audio/webm", "aufnahme.webm"],
+    ["audio/webm;codecs=opus", "aufnahme.webm"],
+    ["audio/mp4", "aufnahme.mp4"],
+    ["audio/mp4;codecs=mp4a.40.2", "aufnahme.mp4"],
+    ["audio/x-m4a", "aufnahme.mp4"],
+    ["audio/ogg;codecs=opus", "aufnahme.ogg"],
+    ["audio/wav", "aufnahme.wav"],
+    ["", "aufnahme.webm"],
+  ]) {
+    pruefe(`Diktat-Dateiname: "${typ || "(leer)"}" -> ${erwartet}`, aufnahmeDateiname(typ) === erwartet, aufnahmeDateiname(typ));
+  }
+
+  // (c) Zeitbudget. Soniox 8 s + Whisper 12 s muessen samt Rest deutlich
+  // unter Vercels 60 s bleiben; vorher waren es 20 + 55 = 75 s, also mehr,
+  // als die Plattform zulaesst - die Person sah den nackten Abbruch.
+  {
+    const urspruenglich = { s: process.env.SONIOX_ZEITLIMIT_MS, w: process.env.KI_TRANSKRIPTION_ZEITLIMIT_MS };
+    delete process.env.SONIOX_ZEITLIMIT_MS;
+    delete process.env.KI_TRANSKRIPTION_ZEITLIMIT_MS;
+    const zusammen = sonioxZeitlimitMs() + transkriptionZeitlimitMs();
+    pruefe("Zeitbudget: Soniox steht auf 8 s", sonioxZeitlimitMs() === 8_000, `${sonioxZeitlimitMs()} ms`);
+    pruefe("Zeitbudget: Whisper steht auf 12 s", transkriptionZeitlimitMs() === 12_000, `${transkriptionZeitlimitMs()} ms`);
+    pruefe("Zeitbudget: schlimmster Fall bleibt unter 25 s", zusammen <= 25_000, `${zusammen} ms`);
+    pruefe("Zeitbudget: und damit weit unter Vercels 60 s", zusammen < 60_000 * 0.5, `${zusammen} ms`);
+    // Ein zu grosser Wert aus der Umgebung darf das Budget nicht sprengen.
+    process.env.SONIOX_ZEITLIMIT_MS = "50000";
+    pruefe("Zeitbudget: ein zu grosser Umgebungswert wird verworfen", sonioxZeitlimitMs() <= 20_000, `${sonioxZeitlimitMs()} ms`);
+    if (urspruenglich.s === undefined) delete process.env.SONIOX_ZEITLIMIT_MS; else process.env.SONIOX_ZEITLIMIT_MS = urspruenglich.s;
+    if (urspruenglich.w === undefined) delete process.env.KI_TRANSKRIPTION_ZEITLIMIT_MS; else process.env.KI_TRANSKRIPTION_ZEITLIMIT_MS = urspruenglich.w;
+  }
+
+  // (b) Sprachhinweis an Soniox. Er BESCHRAENKT dort nicht, er gewichtet nur
+  // (soniox.com/docs/stt/concepts/language-hints) - anders als bei Whisper,
+  // wo ein falscher Hinweis erfundene Woerter der falschen Sprache erzeugte.
+  {
+    const echtesFetch = globalThis.fetch;
+    const aufrufe = [];
+    const json = (o) => new Response(JSON.stringify(o), { status: 200, headers: { "content-type": "application/json" } });
+    let plan = [];
+    globalThis.fetch = async (url, init = {}) => {
+      if (init.signal?.aborted) throw new DOMException("aborted", "AbortError");
+      aufrufe.push({ url: String(url), methode: init.method ?? "GET", koerper: init.body });
+      return plan.shift() ?? json({});
+    };
+    const umgebung = { k: process.env.SONIOX_API_KEY, u: process.env.SONIOX_API_URL };
+    try {
+      process.env.SONIOX_API_KEY = "testschluessel";
+      process.env.SONIOX_API_URL = "https://api.soniox.com";
+      const lauf = async (sprache) => {
+        aufrufe.length = 0;
+        plan = [json({ id: "d" }), json({ id: "a" }), json({ status: "completed" }), json({ text: "x" }), json({}), json({})];
+        await transkribiereMitSoniox(new Blob([new Uint8Array([1])]), "aufnahme.webm", sprache);
+        return JSON.parse(String(aufrufe[1]?.koerper ?? "{}"));
+      };
+      for (const sprache of ["de", "en", "ru", "kk"]) {
+        const koerper = await lauf(sprache);
+        pruefe(`Sprachhinweis: ${sprache} geht als language_hints mit`, JSON.stringify(koerper.language_hints) === JSON.stringify([sprache]), JSON.stringify(koerper.language_hints));
+      }
+      pruefe("Sprachhinweis: eine unbekannte Sprache wird still verworfen", (await lauf("klingonisch")).language_hints === undefined);
+      pruefe("Sprachhinweis: ohne Angabe erkennt Soniox selbst", (await lauf(undefined)).language_hints === undefined);
+    } finally {
+      globalThis.fetch = echtesFetch;
+      if (umgebung.k === undefined) delete process.env.SONIOX_API_KEY; else process.env.SONIOX_API_KEY = umgebung.k;
+      if (umgebung.u === undefined) delete process.env.SONIOX_API_URL; else process.env.SONIOX_API_URL = umgebung.u;
+    }
+  }
+
+  // (d) Kein Auto-Senden mehr: der Knopf kennt keine Rueckgabe, die den Text
+  // sofort abschickt, und das Chatfenster uebergibt keine.
+  {
+    const knopf = readFileSync(new URL("../../src/components/ki/mikrofon.tsx", import.meta.url), "utf8");
+    const chat = readFileSync(new URL("../../src/components/ki/ki-chat.tsx", import.meta.url), "utf8");
+    // Auf den Aufruf pruefen, nicht auf das Wort: der Kommentar im Kopf der
+    // Datei erklaert weiterhin, warum es die Rueckgabe nicht mehr gibt.
+    pruefe("Kein Auto-Senden: der Knopf ruft nichts mehr auf", !knopf.includes("beiSenden?.("));
+    pruefe("Kein Auto-Senden: der Knopf nimmt die Rueckgabe nicht mehr entgegen", !knopf.includes("beiSenden?:"));
+    pruefe("Kein Auto-Senden: das Chatfenster uebergibt keine", !chat.includes("beiSenden={"));
+    pruefe("Kein Auto-Senden: der erkannte Text geht weiterhin ins Feld", knopf.includes("beiText(status.wert)"));
+    pruefe("Diktat: der Cursor steht danach am Ende des Textes", chat.includes("setSelectionRange(text.length, text.length)"));
+  }
+
+  // (f) Groessengrenze passt zu next.config.ts, sonst greift sie nie.
+  {
+    const aktion = readFileSync(new URL("../../src/lib/actions/ki-assistent.ts", import.meta.url), "utf8");
+    const konfig = readFileSync(new URL("../../next.config.ts", import.meta.url), "utf8");
+    pruefe("Groessengrenze: Aktion prueft 8 MB", aktion.includes("const MAX_AUDIO_BYTES = 8 * 1024 * 1024;"));
+    pruefe("Groessengrenze: dieselbe Zahl wie bodySizeLimit in next.config.ts", konfig.includes('bodySizeLimit: "8mb"'));
   }
 }
 

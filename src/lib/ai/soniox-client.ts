@@ -20,10 +20,13 @@ const MODELL = "stt-async-v5";
 /** Abstand zwischen zwei Nachfragen, ob der Auftrag fertig ist. */
 const ABFRAGE_ABSTAND_MS = 250;
 
-// Vercel bricht die Funktion nach 60 s ab. Soniox braucht gemessen unter vier
-// Sekunden; 20 s sind grosszuegig und lassen danach noch genug Zeit, auf
-// Whisper zurueckzufallen (das seinerseits ~7 s braucht).
-const STANDARD_ZEITLIMIT_MS = 20_000;
+// Zeitbudget, damit der schlimmste Fall planbar bleibt: Soniox 8 s, danach
+// Whisper 12 s, Gesamtdeckel 25 s in der Server Action. Alles deutlich unter
+// maxDuration = 60 - die Person bekommt so immer eine uebersetzte Meldung und
+// nie den nackten Abbruch der Plattform.
+// Gemessen braucht Soniox 1,4-3,4 s; 8 s lassen Luft, ohne das Budget zu
+// sprengen.
+export const SONIOX_ZEITLIMIT_STANDARD_MS = 8_000;
 
 /** Welcher Dienst die Spracherkennung macht. Standard ist "whisper" - solange
  *  niemand KI_SPRACHERKENNUNG_ANBIETER=soniox setzt, aendert sich nichts. */
@@ -43,7 +46,7 @@ export function sonioxBasisUrl(): string | null {
 
 export function sonioxZeitlimitMs(): number {
   const wert = Number(process.env.SONIOX_ZEITLIMIT_MS);
-  return Number.isFinite(wert) && wert >= 2_000 && wert <= 55_000 ? wert : STANDARD_ZEITLIMIT_MS;
+  return Number.isFinite(wert) && wert >= 2_000 && wert <= 20_000 ? wert : SONIOX_ZEITLIMIT_STANDARD_MS;
 }
 
 function schluessel(): string | null {
@@ -68,15 +71,35 @@ async function aufraeumen(basis: string, kopf: HeadersInit, auftragId: string | 
   }
 }
 
-/**
- * Sprache bewusst NICHT mitgegeben. Am 21.09.2026 gegen unsere Aufnahmen
- * geprueft, jede Datei einmal mit und einmal ohne language_hints: das Ergebnis
- * war Zeichen fuer Zeichen identisch, auf Kasachisch, Russisch und Deutsch.
- * Ohne Hinweis kann ein falscher Hinweis auch keinen Schaden anrichten - bei
- * Whisper war genau das die Ursache dafuer, dass kasachische Sprache als
- * deutscher Unsinn ankam.
- */
-export async function transkribiereMitSoniox(datei: Blob, dateiname: string): Promise<SonioxAntwort> {
+/** Sprachen, fuer die ein Hinweis mitgeht - dieselben vier, die die
+ *  Oberflaeche kennt. Alles andere wird still verworfen. */
+const HINWEIS_SPRACHEN = ["de", "en", "ru", "kk"];
+
+/** language_hints als Liste von ISO-Codes.
+ *
+ *  Anders als bei Whisper ist der Hinweis hier ungefaehrlich: Soniox
+ *  BESCHRAENKT damit nicht, sondern gewichtet nur - "Language hints do not
+ *  restrict recognition to those languages - they only bias the model toward
+ *  them" (https://soniox.com/docs/stt/concepts/language-hints). Dieselbe Seite
+ *  empfiehlt ihn ausdruecklich, wenn die erwartete Sprache bekannt ist, und
+ *  die Oberflaechensprache ist genau das.
+ *
+ *  Am 21.09.2026 an sauberen TTS-Aufnahmen gemessen machte er keinen
+ *  Unterschied - solches Material ist aber der guenstigste Fall. Bei echten
+ *  Aufnahmen soll die Gewichtung helfen; ob sie es tut, zeigt der Vergleich
+ *  S1 gegen S2. */
+function sprachHinweis(sprache?: string): { language_hints?: string[] } {
+  const wert = sprache?.trim().toLowerCase();
+  return wert && HINWEIS_SPRACHEN.includes(wert) ? { language_hints: [wert] } : {};
+}
+
+/** Modell stt-async-v5: laut Modelltabelle der aktuelle Async-Stand
+ *  (https://soniox.com/docs/stt/models, "Active"; stt-async-v4 zeigt darauf). */
+export async function transkribiereMitSoniox(
+  datei: Blob,
+  dateiname: string,
+  sprache?: string,
+): Promise<SonioxAntwort> {
   const key = schluessel();
   if (!key) return { ok: false, grund: "kein-schluessel" };
 
@@ -100,7 +123,7 @@ export async function transkribiereMitSoniox(datei: Blob, dateiname: string): Pr
     const gestartet = await fetch(`${basis}/v1/transcriptions`, {
       method: "POST",
       headers: { ...kopf, "content-type": "application/json" },
-      body: JSON.stringify({ model: MODELL, file_id: dateiId }),
+      body: JSON.stringify({ model: MODELL, file_id: dateiId, ...sprachHinweis(sprache) }),
       signal: controller.signal,
     });
     if (!gestartet.ok) return { ok: false, grund: await grundAusAntwort("auftrag", gestartet) };

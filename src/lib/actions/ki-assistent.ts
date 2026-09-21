@@ -277,7 +277,19 @@ export async function kiEskalationAnfordern(
 // Frage - deshalb braucht dieser Schritt keine eigene Eskalations- oder
 // Sicherheitslogik.
 
-const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
+// An next.config.ts angeglichen (serverActions.bodySizeLimit: "8mb"): alles
+// darueber weist Next ab, BEVOR diese Aktion laeuft - die alte Grenze von
+// 25 MB konnte nie greifen, und statt einer uebersetzten Meldung sah die
+// Person einen rohen Fehler. 30 s Aufnahme sind je nach Format 90-240 kB.
+const MAX_AUDIO_BYTES = 8 * 1024 * 1024;
+
+/** Gesamtdeckel fuer die Spracherkennung: Soniox (8 s) plus Rueckfall auf
+ *  Whisper (12 s) bleiben zusammen darunter. Reicht die Restzeit nicht mehr
+ *  fuer einen sinnvollen zweiten Versuch, endet der Vorgang mit einer
+ *  uebersetzten Meldung - nie mit Vercels Abbruch bei 60 s. */
+const GESAMTDECKEL_MS = 25_000;
+/** Unter dieser Restzeit lohnt der Rueckfall nicht mehr. */
+const MINDEST_REST_MS = 3_000;
 
 export async function transkribiereSprachnachricht(
   _status: AktionsStatus,
@@ -301,11 +313,18 @@ export async function transkribiereSprachnachricht(
   // Stoerung, Zeitueberschreitung, fehlender Schluessel -, uebernimmt Whisper
   // still. Wer diktiert, soll von einem Ausfall beim Dienstleister nichts
   // merken.
+  const begonnen = Date.now();
   let antwort = null;
   if (spracherkennungAnbieter() === "soniox") {
-    const ueberSoniox = await transkribiereMitSoniox(audio, name);
+    const ueberSoniox = await transkribiereMitSoniox(audio, name, text(formData, "sprache"));
     if (ueberSoniox.ok) antwort = ueberSoniox;
     else console.error("[damicon] Soniox fehlgeschlagen, weiter mit Whisper:", ueberSoniox.grund);
+  }
+  // Reicht die Restzeit nicht mehr, gar nicht erst anfangen: lieber eine
+  // klare Meldung als ein Abbruch der Plattform mitten im zweiten Versuch.
+  if (!antwort && Date.now() - begonnen > GESAMTDECKEL_MS - MINDEST_REST_MS) {
+    console.error("[damicon] Zeitbudget der Spracherkennung erschoepft, kein Rueckfall mehr");
+    return fehler("fehler.transkriptionDauer");
   }
   // Die Oberflaechensprache als Hinweis, welche Sprache zu erwarten ist -
   // ungeprueft weitergereicht, weil transkribiereAudio() nur die
