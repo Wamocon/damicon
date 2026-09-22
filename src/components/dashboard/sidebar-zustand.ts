@@ -14,6 +14,20 @@ import { zones, type ZoneKey } from "@/lib/modules";
 
 // --- Breite: volle Spalte oder schmale Symbolleiste -------------------------
 const SPEICHER = "damicon-sidebar-schmal";
+
+/**
+ * Die Klasse am <html>, an der die Breite der Leiste haengt (globals.css,
+ * @custom-variant schmal). Sie ist massgeblich - localStorage daneben haelt die
+ * Wahl nur fuer den naechsten Aufruf fest.
+ */
+const KLASSE = "sidebar-schmal";
+
+/**
+ * Setzt die Klasse vor dem ersten Paint, wie themeInitScript das Farbschema.
+ * Laeuft synchron aus dem SSR-HTML heraus, siehe SidebarBreiteScript in
+ * dashboard/sidebar.tsx.
+ */
+export const sidebarBreiteInitScript = `(function(){try{if(localStorage.getItem('${SPEICHER}')==='1'){document.documentElement.classList.add('${KLASSE}');}}catch(e){}})();`;
 const listener = new Set<() => void>();
 let cache: boolean | null = null;
 
@@ -48,6 +62,10 @@ export function schmalSetzen(wert: boolean) {
   } catch {
     // ignore
   }
+  // Die Klasse zuerst: an ihr haengt die Breite. Die Abonnenten darunter
+  // brauchen den Wert nur noch fuer ihre eigene Anzeige - der Umschalter in
+  // der Kopfzeile dreht daran sein Symbol um.
+  document.documentElement.classList.toggle(KLASSE, wert);
   listener.forEach((eintrag) => eintrag());
 }
 

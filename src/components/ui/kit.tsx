@@ -2,9 +2,13 @@ import {
   Children,
   cloneElement,
   isValidElement,
+  type ButtonHTMLAttributes,
+  type ComponentProps,
   type ReactElement,
   type ReactNode,
 } from "react";
+import { Loader2 } from "lucide-react";
+import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 export type Tone = "success" | "info" | "neutral" | "warning" | "danger";
@@ -371,5 +375,302 @@ export function SkeletonCard({ className }: { className?: string }) {
     <Skeleton
       className={cn("rounded-xl border border-border bg-card", className)}
     />
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Knopf
+//
+// WMC-Vibecode-Cleanup-Fund: Es gab keine Knopf-Komponente. Die Klassenkette
+// des Primaerknopfes stand in 13 Dateien einzeln geschrieben, in sieben
+// Varianten, die sich in Kleinigkeiten unterscheiden - mal rounded-xl, mal
+// rounded-lg, mal font-bold, mal font-semibold, mal hover:brightness-110, mal
+// hover:bg-primary/90. Zwei Dateien (die beiden 404-Seiten) hatten gar kein
+// transition, weil beim Kopieren ein Stueck fehlte.
+//
+// Drei Dinge, die dadurch nirgends standen:
+//
+//   1. Ein Druckzustand. `active:` kam im gesamten src/ kein einziges Mal vor.
+//      Auf dem Handy loest hover nicht aus - dort gab es also beim Tippen
+//      ueberhaupt keine Rueckmeldung, bis die naechste Seite kam.
+//   2. Eine Ladeanzeige ohne Sprung. Der Formularknopf tauschte seinen Text
+//      gegen aktionen.laeuft, und das ist in de.json "..." - aus "Anlegen"
+//      wurden drei Punkte, der Knopf sprang mitten im Klick auf ein Drittel
+//      seiner Breite.
+//   3. Eine Stelle, an der sich das aendern laesst.
+//
+// Die Ladeanzeige liegt deshalb UEBER dem Inhalt statt an seiner Stelle: der
+// Text bleibt stehen und wird nur durchsichtig, die Breite bleibt exakt, wie
+// sie war. opacity-0 und nicht invisible - visibility: hidden nimmt das
+// Element auch aus dem Baum fuer Screenreader, und dann haette der Knopf
+// waehrend des Ladens keinen Namen mehr.
+//
+// Groesse und Radius bleiben Eingaben statt Vorgaben: die Masse gehen im
+// Bestand wirklich auseinander (h-9 in der Kopfzeile, h-11 im Formular), und
+// diese Komponente soll das Verhalten vereinheitlichen, nicht das Layout
+// umbauen. Einzelfaelle - der Schatten am Portalknopf, px-5 auf den
+// Marketingseiten - kommen weiter ueber className; cn() setzt tailwind-merge
+// ein, die spaetere Angabe gewinnt also verlaesslich.
+// ---------------------------------------------------------------------------
+
+export type KnopfVariante = "primaer" | "leise";
+export type KnopfRundung = "kante" | "schmal" | "pille";
+export type KnopfGroesse = "schlank" | "mittel" | "gross" | "formular";
+
+// duration-knapp (120 ms, globals.css) statt der 200 ms, die sonst gelten:
+// Ein Druck soll sofort sichtbar sein. Der Standardwert ist auf Wege
+// ausgelegt, die man verfolgt - hier geht es um eine Bestaetigung.
+const knopfBasis =
+  "relative inline-flex items-center justify-center gap-2 text-sm font-bold transition duration-knapp active:scale-[0.97]";
+
+const knopfVariante: Record<KnopfVariante, string> = {
+  // active nach hover: Tailwind sortiert die Varianten in dieser Reihenfolge,
+  // die spaetere Regel gewinnt also beim gleichzeitigen Zeigen und Druecken.
+  primaer:
+    "bg-primary text-primary-foreground hover:brightness-110 active:brightness-95",
+  leise:
+    "border border-border bg-card text-foreground hover:border-primary active:bg-muted",
+};
+
+const knopfRundung: Record<KnopfRundung, string> = {
+  kante: "rounded-xl",
+  schmal: "rounded-lg",
+  pille: "rounded-full",
+};
+
+const knopfGroesse: Record<KnopfGroesse, string> = {
+  schlank: "h-9 px-4",
+  mittel: "h-10 px-4",
+  gross: "h-11 px-4",
+  // Die Formularknoepfe des Dashboards werden ab lg schmaler, damit in die
+  // zweispaltigen Masken mehr Zeilen passen.
+  formular: "h-11 px-4 lg:h-9 lg:px-3 lg:text-xs",
+};
+
+/**
+ * Die Klassenkette eines Knopfes, fuer alles, was kein <button> ist: <Link>,
+ * <a>. Der Druckzustand haengt an der Klasse, gilt dort also mit.
+ */
+export function knopfKlassen({
+  variante = "primaer",
+  rundung = "kante",
+  groesse = "gross",
+  breit,
+  className,
+}: {
+  variante?: KnopfVariante;
+  rundung?: KnopfRundung;
+  groesse?: KnopfGroesse;
+  breit?: boolean;
+  className?: string;
+} = {}) {
+  return cn(
+    knopfBasis,
+    knopfVariante[variante],
+    knopfRundung[rundung],
+    knopfGroesse[groesse],
+    breit && "w-full",
+    className,
+  );
+}
+
+export function Button({
+  variante = "primaer",
+  rundung = "kante",
+  groesse = "gross",
+  breit,
+  laedt,
+  disabled,
+  className,
+  children,
+  ...rest
+}: {
+  variante?: KnopfVariante;
+  rundung?: KnopfRundung;
+  groesse?: KnopfGroesse;
+  breit?: boolean;
+  /** Laeuft gerade: Anzeige ueber dem Inhalt, Knopf gesperrt, Breite bleibt. */
+  laedt?: boolean;
+} & ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      {...rest}
+      disabled={disabled || laedt}
+      aria-busy={laedt ? true : undefined}
+      className={knopfKlassen({
+        variante,
+        rundung,
+        groesse,
+        breit,
+        className: cn(
+          // Waehrend des Ladens nicht abblenden: der Knopf ist nicht
+          // ausgegraut, er arbeitet. Das unterscheidet ihn von einem Knopf,
+          // der gerade nicht darf.
+          laedt
+            ? "cursor-wait"
+            : "disabled:cursor-not-allowed disabled:opacity-60",
+          className,
+        ),
+      })}
+    >
+      <span className={cn("inline-flex items-center gap-2", laedt && "opacity-0")}>
+        {children}
+      </span>
+      {laedt ? (
+        <span
+          className="absolute inset-0 inline-flex items-center justify-center"
+          aria-hidden="true"
+        >
+          <Loader2 className="h-4 w-4 animate-spin" />
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Reiter, Filterpillen, Tabellenfuss
+//
+// Drei Bausteine fuer Seiten, die zu lang geworden sind: die Inhalte auf
+// Reiter verteilen, den Ausschnitt ueber Filter begrenzen, den Rest
+// nachladen. Alles laeuft ueber die Adresszeile und wird serverseitig
+// gerendert - dasselbe Vorgehen wie beim Statusfilter in
+// reihenbloecke-ansicht.tsx und pflanzenschutz-ansicht.tsx.
+//
+// Warum die Reiter KEIN role="tablist" tragen, obwohl sie so aussehen: Das
+// ARIA-Reitermuster verspricht Bedienung mit den Pfeiltasten und Reiter, die
+// nichts anfassen ausser dem Sichtbaren. Hier sind es Verweise, die die Seite
+// neu laden - die Adresse aendert sich, der Zurueck-Knopf wirkt, ein Link auf
+// einen Reiter ist teilbar. Waeren sie als Reiter ausgezeichnet, wuerde die
+// Rolle Pfeiltasten ankuendigen, die es ohne JavaScript nicht gibt, und die
+// Ankuendigung "Reiter 2 von 3" stuende vor einem Seitenwechsel. Ein <nav> mit
+// aria-current sagt beides richtig. DESIGN.md Regel 6 verlangt ausserdem, dass
+// die Oberflaeche ohne JavaScript benutzbar bleibt.
+// ---------------------------------------------------------------------------
+
+type Ziel = ComponentProps<typeof Link>["href"];
+
+export interface LeistenEintrag {
+  wert: string;
+  text: string;
+}
+
+// Masse nach DESIGN.md Abschnitt 10: 44 px Tippflaeche bis lg, darueber 36 px.
+const leistenMass = "min-h-11 lg:min-h-9";
+
+export function Reiter({
+  label,
+  eintraege,
+  aktiv,
+  ziel,
+}: {
+  /** Beschriftung der Navigation fuer Screenreader. */
+  label: string;
+  eintraege: LeistenEintrag[];
+  aktiv: string;
+  ziel: (wert: string) => Ziel;
+}) {
+  return (
+    <nav
+      aria-label={label}
+      className="flex flex-wrap gap-1 rounded-xl border border-border bg-muted/20 p-1"
+    >
+      {eintraege.map((eintrag) => {
+        const ist = eintrag.wert === aktiv;
+        return (
+          <Link
+            key={eintrag.wert}
+            href={ziel(eintrag.wert)}
+            scroll={false}
+            aria-current={ist ? "page" : undefined}
+            className={cn(
+              // basis-32 statt fester Breiten: auf schmalen Schirmen brechen
+              // lange Beschriftungen in eine zweite Reihe, statt abgeschnitten
+              // zu werden. Ein gekuerzter Reitername ist kein Reitername mehr.
+              "inline-flex flex-1 basis-32 items-center justify-center rounded-lg px-3 py-2 text-center text-sm font-semibold transition duration-knapp lg:text-xs",
+              leistenMass,
+              ist
+                ? "bg-primary text-primary-foreground"
+                : "text-muted-foreground hover:bg-card hover:text-foreground",
+            )}
+          >
+            {eintrag.text}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+export function FilterPillen({
+  label,
+  eintraege,
+  aktiv,
+  ziel,
+}: {
+  label: string;
+  eintraege: LeistenEintrag[];
+  aktiv: string;
+  ziel: (wert: string) => Ziel;
+}) {
+  return (
+    <nav aria-label={label} className="flex flex-wrap gap-2">
+      {eintraege.map((eintrag) => {
+        const ist = eintrag.wert === aktiv;
+        return (
+          <Link
+            key={eintrag.wert}
+            href={ziel(eintrag.wert)}
+            scroll={false}
+            aria-current={ist ? "true" : undefined}
+            className={cn(
+              "inline-flex items-center rounded-full border px-3 text-xs font-semibold transition duration-knapp",
+              leistenMass,
+              ist
+                ? "border-primary bg-primary/5 text-foreground"
+                : "border-border bg-card text-muted-foreground hover:border-primary/40",
+            )}
+          >
+            {eintrag.text}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}
+
+/**
+ * Nachladezeile unter einer Tabelle. Steht als letztes Kind in DataTable.
+ *
+ * colSpan ueber alle Spalten: mitSpaltenkopf() laesst solche Zellen bewusst
+ * ohne data-kopf, sie sind Meldungen und keine Werte. Unter md rendert
+ * globals.css sie einspaltig und ohne Beschriftung.
+ */
+export function TabellenFuss({
+  spalten,
+  text,
+  ziel,
+}: {
+  spalten: number;
+  text: string;
+  ziel: Ziel;
+}) {
+  return (
+    <tr>
+      <td colSpan={spalten} className="px-3 py-2">
+        <Link
+          href={ziel}
+          scroll={false}
+          className={knopfKlassen({
+            variante: "leise",
+            rundung: "schmal",
+            groesse: "formular",
+            breit: true,
+          })}
+        >
+          {text}
+        </Link>
+      </td>
+    </tr>
   );
 }

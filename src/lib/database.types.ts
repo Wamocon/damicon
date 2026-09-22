@@ -3785,6 +3785,14 @@ export type Database = {
         Args: { p_grund: string; p_id: string }
         Returns: undefined
       }
+      finanz_summe: {
+        Args: { bis?: string; von?: string }
+        Returns: {
+          buchungen: number
+          erloes_tenge: number
+          kosten_tenge: number
+        }[]
+      }
       geraet_zeitpunkt_pruefen: {
         Args: { p_geraet: string; p_server?: string }
         Returns: string

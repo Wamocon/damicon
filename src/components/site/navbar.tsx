@@ -8,6 +8,7 @@ import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { LocaleSwitcher } from "@/components/site/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { mitUeberblendung } from "@/lib/seitenwechsel";
+import { knopfKlassen } from "@/components/ui/kit";
 
 const links = [
   { key: "zones", href: "/#zonen" },
@@ -65,7 +66,11 @@ export function SiteNavbar() {
           <Link
             href="/dashboard"
             onClick={zumPortal}
-            className="inline-flex h-9 items-center rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20 transition hover:bg-primary/90"
+            className={knopfKlassen({
+              rundung: "pille",
+              groesse: "schlank",
+              className: "font-semibold shadow-lg shadow-primary/20",
+            })}
           >
             {t("portal")}
           </Link>
@@ -102,7 +107,7 @@ export function SiteNavbar() {
             <Link
               href="/dashboard"
               onClick={zumPortal}
-              className="mt-2 inline-flex h-11 items-center justify-center rounded-lg bg-primary px-4 text-sm font-bold text-primary-foreground"
+              className={knopfKlassen({ rundung: "schmal", className: "mt-2" })}
             >
               {t("portal")}
             </Link>

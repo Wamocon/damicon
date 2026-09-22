@@ -2,6 +2,16 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Schmale Seitenleiste. Gleicher Bau wie die Dark-Variante darueber: eine
+   Klasse am <html>, gesetzt vor dem ersten Paint (sidebarBreiteInitScript in
+   dashboard/sidebar-zustand.ts), in localStorage gespiegelt.
+
+   Warum ueber CSS und nicht ueber React-Zustand: Der Server kennt den Speicher
+   nicht und rendert immer die volle Spalte. Wer sie eingeklappt hatte, sah sie
+   deshalb bei jedem Seitenaufruf erst voll und dann zufahren. Eine Klasse, die
+   schon im HTML steht, kennt die Breite vor dem ersten Bild. */
+@custom-variant schmal (&:where(.sidebar-schmal, .sidebar-schmal *));
+
 /*
   Damicon Design-Tokens - Palette "Koek & Altyn" (Himmel & Gold).
 
@@ -84,6 +94,56 @@
   --radius-xl: calc(var(--radius) * 1.4);
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
+}
+
+/* Bewegung: Dauer und Kurve fuer alle transition-Utilities.
+
+   Bis hierher lief die Oberflaeche auf Tailwinds Voreinstellung, 150 ms mit
+   cubic-bezier(0.4, 0, 0.2, 1). Von 133 transition-Angaben in den Komponenten
+   stehen 74 als blosses `transition` ohne Dauer und ohne Kurve - die trugen
+   also alle diesen Standard. Er ist symmetrisch, bremst am Anfang so traege
+   wie am Ende, und genau das laesst eine Oberflaeche zaeh wirken: nach dem
+   Klick passiert erst einmal wenig.
+
+   Das handgeschriebene CSS weiter unten macht es seit jeher anders und setzt
+   an rund einem Dutzend Stellen cubic-bezier(0.22, 1, 0.36, 1) - eine Kurve,
+   die sofort losgeht und ausrollt. Die zwei Zeilen hier ziehen die
+   Utility-Klassen auf denselben Stand, ohne dass an 74 Stellen etwas
+   anzufassen waere.
+
+   200 statt 150 ms: bei dieser Abbremsung liegt der groesste Teil des Weges
+   in den ersten rund 80 ms. Die Bewegung setzt dadurch frueher ein als
+   vorher, obwohl sie laenger dauert, und hat trotzdem Platz zum Ausrollen.
+
+   Zwei Dinge bleiben unberuehrt: duration-* und ease-* an einzelnen
+   Elementen (sie stehen naeher am Element und gewinnen), und die Ruecknahme
+   bei prefers-reduced-motion am Ende dieser Datei. */
+@theme {
+  --default-transition-duration: 200ms;
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* Die beiden Kurven, die das CSS dieser Datei schon benutzt, jetzt unter
+     einem Namen - damit in den Komponenten `ease-weich` und `ease-schwung`
+     stehen kann und nicht erneut Zahlenreihen kopiert werden.
+
+     weich   - die Standardkurve oben, hier zum ausdruecklichen Setzen, wo
+               eine Klasse die Kurve sonst ueberschreiben wuerde.
+     schwung - staerkere Abbremsung, fuer laengere Wege. Steht unten schon am
+               Fortschrittsbalken des KI-Agenten. */
+  --ease-weich: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-schwung: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Drei benannte Dauern, damit die Abstufung nicht an jedem neuen Element
+     neu geraten wird. Ohne sie gab es nur den einen Wert oben und
+     Einzelfaelle von duration-150 bis duration-[1800ms].
+
+     knapp - Farbe, Deckkraft, Rahmen an kleinen Bedienelementen: eine
+             Menuezeile, eine Tabellenzeile, ein Eingabefeld.
+     ruhig - der Standard oben, ausdruecklich setzbar.
+     weit  - Flaechen mit echtem Weg: Blaetter, Panels, Balken. */
+  --transition-duration-knapp: 120ms;
+  --transition-duration-ruhig: 200ms;
+  --transition-duration-weit: 380ms;
 }
 
 :root {
@@ -406,6 +466,22 @@
   }
   .datentabelle:not([data-matrix]) tr td[colspan]::before {
     content: none;
+  }
+
+  /* Startzeilen: Auf dem Handy sind nur die ersten fuenf Zeilen sichtbar,
+     am Schreibtisch alle zehn. Der Server kennt die Schirmbreite nicht und
+     liefert immer zehn - die Auswahl faellt deshalb hier.
+
+     Die Markierung steht am Behaelter um die Tabelle (data-startzeilen) und
+     nur, solange niemand nachgeladen hat. Sobald ein zeilen-Parameter in der
+     Adresse steht, faellt sie weg und alle geholten Zeilen stehen da.
+
+     Ausgenommen sind Zellen ueber die volle Breite: Nachladeknopf und
+     Leermeldung sind keine Datenzeilen. Ohne diese Ausnahme waere der Knopf
+     als elfte Zeile selbst ausgeblendet - und damit auf dem Handy kein
+     Weg mehr zu den restlichen Zeilen. */
+  [data-startzeilen] .datentabelle tbody > tr:nth-child(n + 6):not(:has(> td[colspan])) {
+    display: none;
   }
 
   /* Eine Zelle, in der etwas eingegeben wird, steht einspaltig: Beschriftung

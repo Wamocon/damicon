@@ -37,6 +37,10 @@ export default async function ModulePage({
           status: typeof suche.status === "string" ? suche.status : undefined,
           aufgabe: typeof suche.aufgabe === "string" ? suche.aufgabe : undefined,
           reklamation: typeof suche.reklamation === "string" ? suche.reklamation : undefined,
+          bereich: typeof suche.bereich === "string" ? suche.bereich : undefined,
+          zeitraum: typeof suche.zeitraum === "string" ? suche.zeitraum : undefined,
+          typ: typeof suche.typ === "string" ? suche.typ : undefined,
+          zeilen: typeof suche.zeilen === "string" ? suche.zeilen : undefined,
         },
       })
     : null;

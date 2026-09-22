@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { LoginForm } from "@/components/auth/login-form";
 import { PlantationBackdrop } from "@/components/site/plantation-backdrop";
+import { knopfKlassen } from "@/components/ui/kit";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { roles, type Role } from "@/lib/rbac";
 
@@ -99,10 +100,7 @@ export default async function LoginPage({
                     </p>
                   </div>
                 </div>
-                <Link
-                  href="/dashboard"
-                  className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground transition hover:brightness-110"
-                >
+                <Link href="/dashboard" className={knopfKlassen({ breit: true })}>
                   {t("toDashboard")}
                 </Link>
               </div>

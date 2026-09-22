@@ -261,7 +261,6 @@
     "email": "E-Mail",
     "password": "Passwort",
     "submit": "Anmelden",
-    "submitting": "Anmeldung läuft ...",
     "error": {
       "ungueltig": "E-Mail oder Passwort stimmt nicht.",
       "unbekannt": "Anmeldung fehlgeschlagen. Bitte später erneut versuchen.",
@@ -281,7 +280,6 @@
       "lead": "Für dieses Konto ist ein zweiter Faktor eingerichtet. Bitte den aktuellen Code aus der Authenticator-App eingeben.",
       "codeLabel": "6-stelliger Code",
       "submit": "Bestätigen",
-      "submitting": "Wird geprüft ...",
       "error": {
         "code": "Der Code ist falsch oder abgelaufen.",
         "unbekannt": "Prüfung fehlgeschlagen. Bitte später erneut versuchen."
@@ -632,7 +630,7 @@
     },
     "finanzen": {
       "title": "Deckungsbeitrag und Finanzen",
-      "navTitle": "Deckungsbeitrag",
+      "navTitle": "Finanzen",
       "description": "Kostenstellen je Reihenblock, Kostenträger je Sorte und je Kunde. Deckungsbeitrag je Kilogramm, je Reihenblock, je Sorte und je Erntetag - unveränderliche Buchungen.",
       "summary": "Deckungsbeitrag je Reihenblock, Sorte und Erntetag. Buchungen sind unveränderlich (nur Anfügen).",
       "todo": "Kostenarten je Erntetag, B2B-Zahlungsabgleich, Deckungsbeitragsprojektion je Sorte."
@@ -1118,12 +1116,12 @@
   },
   "finanzenAnsicht": {
     "uebersichtTitel": "Deckungsbeitrag auf einen Blick",
-    "uebersichtLead": "Summe über alle Kostenträger und Buchungen. Erlöse und Kosten kommen aus dem unveränderlichen Finanzjournal.",
+    "uebersichtLead": "Erlöse und Kosten aus dem unveränderlichen Finanzjournal, gezählt nach Buchungsdatum im gewählten Zeitraum.",
     "stat": {
-      "erloes": "Erlöse gesamt",
-      "kosten": "Kosten gesamt",
-      "deckungsbeitrag": "Deckungsbeitrag gesamt",
-      "deckungsbeitragHinweis": "Erlöse minus Kosten, aus der Datenbank gerechnet"
+      "erloes": "Erlöse",
+      "kosten": "Kosten",
+      "deckungsbeitrag": "Deckungsbeitrag",
+      "gesamt": "insgesamt {wert}"
     },
     "erloes": "Erlös",
     "kosten": "Kosten",
@@ -1180,9 +1178,47 @@
         "betrag": "Betrag in ₸",
         "buchungsdatum": "Buchungsdatum",
         "beschreibung": "Beschreibung (optional)",
-        "knopf": "Buchung erfassen"
+        "knopf": "Buchung erfassen",
+        "ohneErntetag": "Ohne Erntetag"
       }
-    }
+    },
+    "zeitraum": {
+      "label": "Zeitraum",
+      "monat": "Dieser Monat",
+      "vormonat": "Letzter Monat",
+      "jahr": "Dieses Jahr",
+      "alles": "Alles",
+      "gefiltertErntetag": "Die Tabelle ist nach Erntetag gefiltert.",
+      "gefiltertBuchungsdatum": "Die Tabelle ist nach Buchungsdatum gefiltert."
+    },
+    "monatsListe": {
+      "label": "Monat",
+      "bitte": "Monat wählen",
+      "knopf": "Anzeigen"
+    },
+    "bereich": {
+      "label": "Bereiche der Finanzseite",
+      "kostentraeger": "Kostenträger",
+      "charge": "Je Charge",
+      "buchungen": "Buchungen"
+    },
+    "typFilter": {
+      "label": "Art der Buchung",
+      "alle": "Alle"
+    },
+    "mehrAnzeigen": "Mehr anzeigen",
+    "keineChargen": "Keine Charge mit eigener Buchung in diesem Zeitraum. Buchungen ohne Chargenbezug stehen hier nicht.",
+    "ohneErntetag": "ohne Erntetag"
+  },
+  "finanzVorschau": {
+    "titel": "Finanzen im laufenden Monat",
+    "lead": "Was im {monat} gebucht wurde.",
+    "leer": "Im {monat} wurde noch nichts gebucht.",
+    "erloes": "Erlöse",
+    "kosten": "Kosten",
+    "deckungsbeitrag": "Deckungsbeitrag",
+    "buchungen": "Buchungen: {anzahl}",
+    "link": "Zur Finanzseite"
   },
   "dokumenteDemo": {
     "listTitle": "Dokumente",

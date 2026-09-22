@@ -1,9 +1,12 @@
 import { getFormatter, setRequestLocale } from "next-intl/server";
 import { DashboardHome } from "@/components/dashboard/home";
 import { CeoComplianceUebersicht } from "@/components/dashboard/ceo-compliance-uebersicht";
+import { FinanzVorschau } from "@/components/dashboard/finanz-vorschau";
 import { ladeKpis } from "@/lib/data/kpis";
 import { getSessionProfile } from "@/lib/auth";
 import { kpisFuerRolle } from "@/lib/domain/kpis";
+import { hasPermission } from "@/lib/rbac";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 import {
   betriebsZeitzone,
   spruchIndex,
@@ -53,6 +56,13 @@ export default async function DashboardPage({
   // Tageszeit und Satz der Begruessung bestimmt der Server. Rechnete der
   // Browser sie selbst, stuende im ausgelieferten HTML eine andere
   // Begruessung als nach der Hydration.
+  // Wie in [module]/page.tsx: gefiltert wird nach der echten Profilrolle, und
+  // im Demo-Betrieb ohne Supabase ist alles offen - dort gibt es keine
+  // Anmeldung und ohnehin nur Beispielwerte.
+  const darfFinanzenSehen = isSupabaseConfigured()
+    ? hasPermission(profil?.role, "finanzen", "view")
+    : true;
+
   const jetzt = new Date();
 
   return (
@@ -66,6 +76,7 @@ export default async function DashboardPage({
       })}
       spruch={spruchIndex(jetzt)}
       ceoUebersicht={profil?.role === "ceo" ? <CeoComplianceUebersicht /> : null}
+      finanzVorschau={darfFinanzenSehen ? <FinanzVorschau /> : null}
     />
   );
 }

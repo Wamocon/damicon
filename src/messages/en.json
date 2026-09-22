@@ -261,7 +261,6 @@
     "email": "Email",
     "password": "Password",
     "submit": "Sign in",
-    "submitting": "Signing in ...",
     "error": {
       "ungueltig": "Email or password is not correct.",
       "unbekannt": "Sign-in failed. Please try again later.",
@@ -281,7 +280,6 @@
       "lead": "A second factor is set up for this account. Please enter the current code from your authenticator app.",
       "codeLabel": "6-digit code",
       "submit": "Confirm",
-      "submitting": "Checking ...",
       "error": {
         "code": "The code is wrong or expired.",
         "unbekannt": "Check failed. Please try again later."
@@ -632,7 +630,7 @@
     },
     "finanzen": {
       "title": "Contribution margin and finance",
-      "navTitle": "Contribution margin",
+      "navTitle": "Finance",
       "description": "Cost centres per row block, cost objects per variety and per client. Contribution margin per kilogram, per row block, per variety and per harvest day - immutable postings.",
       "summary": "Contribution margin per row block, variety and harvest day. Postings are immutable (append only).",
       "todo": "Cost types per harvest day, B2B payment reconciliation, contribution-margin projection per variety."
@@ -1118,12 +1116,12 @@
   },
   "finanzenAnsicht": {
     "uebersichtTitel": "Contribution margin at a glance",
-    "uebersichtLead": "Total across all cost objects and postings. Revenue and cost come from the immutable finance ledger.",
+    "uebersichtLead": "Revenue and cost from the immutable finance journal, counted by posting date within the selected period.",
     "stat": {
-      "erloes": "Total revenue",
-      "kosten": "Total cost",
-      "deckungsbeitrag": "Total contribution margin",
-      "deckungsbeitragHinweis": "Revenue minus cost, computed by the database"
+      "erloes": "Revenue",
+      "kosten": "Cost",
+      "deckungsbeitrag": "Contribution margin",
+      "gesamt": "{wert} in total"
     },
     "erloes": "Revenue",
     "kosten": "Cost",
@@ -1180,9 +1178,47 @@
         "betrag": "Amount in ₸",
         "buchungsdatum": "Posting date",
         "beschreibung": "Description (optional)",
-        "knopf": "Record posting"
+        "knopf": "Record posting",
+        "ohneErntetag": "No harvest day"
       }
-    }
+    },
+    "zeitraum": {
+      "label": "Period",
+      "monat": "This month",
+      "vormonat": "Last month",
+      "jahr": "This year",
+      "alles": "All",
+      "gefiltertErntetag": "The table is filtered by harvest day.",
+      "gefiltertBuchungsdatum": "The table is filtered by posting date."
+    },
+    "monatsListe": {
+      "label": "Month",
+      "bitte": "Choose month",
+      "knopf": "Show"
+    },
+    "bereich": {
+      "label": "Finance page sections",
+      "kostentraeger": "Cost objects",
+      "charge": "Per batch",
+      "buchungen": "Postings"
+    },
+    "typFilter": {
+      "label": "Posting type",
+      "alle": "All"
+    },
+    "mehrAnzeigen": "Show more",
+    "keineChargen": "No batch with its own posting in this period. Postings without a batch reference do not appear here.",
+    "ohneErntetag": "no harvest day"
+  },
+  "finanzVorschau": {
+    "titel": "Finances this month",
+    "lead": "What was posted in {monat}.",
+    "leer": "Nothing posted in {monat} yet.",
+    "erloes": "Revenue",
+    "kosten": "Cost",
+    "deckungsbeitrag": "Contribution margin",
+    "buchungen": "Postings: {anzahl}",
+    "link": "Go to finances"
   },
   "dokumenteDemo": {
     "listTitle": "Documents",

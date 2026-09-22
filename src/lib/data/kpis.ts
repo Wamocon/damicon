@@ -4,10 +4,11 @@ import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import { kpis as demoKpis, type Kpi, type KpiTrend } from "@/lib/domain/kpis";
 
 // Die 14 Baseline-Kennzahlen werden am 01.10.2026 mit dem Kunden
-// unterschrieben. Acht davon rechnet die Datenbank inzwischen aus echten
-// Daten (public.kpi_aktuell()), die uebrigen sechs bleiben Platzhalter aus
-// kpi_baseline - dort fehlt nicht die Abfrage, sondern die Funktion, die den
-// Wert ueberhaupt erzeugt.
+// unterschrieben. Zehn davon rechnet die Datenbank inzwischen aus echten
+// Daten (public.kpi_aktuell(), seit 20261109010000 auch Reklamationsquote
+// und Liefertreue), die uebrigen vier bleiben Platzhalter aus kpi_baseline -
+// dort fehlt nicht die Abfrage, sondern die Funktion, die den Wert
+// ueberhaupt erzeugt.
 
 export interface KpiListe {
   quelle: Datenquelle;

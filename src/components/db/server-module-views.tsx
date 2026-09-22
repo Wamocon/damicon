@@ -41,7 +41,15 @@ export function serverModulAnsicht(
   module: ModuleDef,
   kontext: {
     pfad: string;
-    suche: { status?: string; aufgabe?: string; reklamation?: string };
+    suche: {
+      status?: string;
+      aufgabe?: string;
+      reklamation?: string;
+      bereich?: string;
+      zeitraum?: string;
+      typ?: string;
+      zeilen?: string;
+    };
   },
 ): ReactNode | null {
   switch (module.key) {
@@ -75,7 +83,17 @@ export function serverModulAnsicht(
     case "lohn":
       return <LohnAnsicht />;
     case "finanzen":
-      return <FinanzenAnsicht />;
+      return (
+        <FinanzenAnsicht
+          pfad={kontext.pfad}
+          suche={{
+            bereich: kontext.suche.bereich,
+            zeitraum: kontext.suche.zeitraum,
+            typ: kontext.suche.typ,
+            zeilen: kontext.suche.zeilen,
+          }}
+        />
+      );
     case "rotationsplan":
       return <RotationsplanAnsicht />;
     // Anforderung 2.13: Temperatursummen-Heuristik statt reinem

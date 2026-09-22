@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import type { AktionsStatus } from "@/lib/actions/status";
+import { Button } from "@/components/ui/kit";
 
 // Kleine Bausteine fuer die Verwaltungsformulare der DB-gestuetzten Module.
 // Bewusst schlicht gehalten: gleiche Hoehe, gleiche Radien wie im uebrigen
@@ -81,12 +82,19 @@ export function Auswahl({
   label,
   name,
   options,
+  gruppen,
   required,
   defaultValue,
 }: {
   label: string;
   name: string;
   options: { wert: string; text: string }[];
+  /**
+   * Zusaetzliche Eintraege unter Ueberschriften, hinter den options. Fuer
+   * Listen, die zu lang zum Ueberfliegen sind - etwa Kostentraeger nach
+   * Erntetag. Ohne gruppen bleibt alles wie zuvor.
+   */
+  gruppen?: { titel: string; options: { wert: string; text: string }[] }[];
   required?: boolean;
   defaultValue?: string;
 }) {
@@ -105,6 +113,15 @@ export function Auswahl({
           <option key={option.wert} value={option.wert}>
             {option.text}
           </option>
+        ))}
+        {gruppen?.map((gruppe, i) => (
+          <optgroup key={`${gruppe.titel}-${i}`} label={gruppe.titel}>
+            {gruppe.options.map((option) => (
+              <option key={option.wert} value={option.wert}>
+                {option.text}
+              </option>
+            ))}
+          </optgroup>
         ))}
       </select>
     </label>
@@ -132,18 +149,16 @@ export function SubmitKnopf({
   const text = label ?? t("anlegen");
 
   return (
-    <button
+    <Button
       type="submit"
       form={form}
-      disabled={pending}
-      className={
-        variante === "primaer"
-          ? "inline-flex h-11 items-center justify-center rounded-lg bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-60 lg:h-9 lg:px-3 lg:text-xs"
-          : "inline-flex h-11 items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary disabled:opacity-60 lg:h-9 lg:px-3 lg:text-xs"
-      }
+      laedt={pending}
+      variante={variante}
+      rundung="schmal"
+      groesse="formular"
     >
-      {pending ? t("laeuft") : text}
-    </button>
+      {text}
+    </Button>
   );
 }
 

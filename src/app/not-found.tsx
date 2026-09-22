@@ -1,4 +1,5 @@
 import "./globals.css";
+import { knopfKlassen } from "@/components/ui/kit";
 
 // Root-404 fuer Anfragen ohne gueltiges Locale-Praefix. Braucht ein eigenes
 // <html>/<body>, weil das Locale-Layout hier nicht greift. Ausserhalb des
@@ -16,7 +17,11 @@ export default function GlobalNotFound() {
           {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- Root-Fallback ausserhalb des Locale-Layouts, bewusst harter Reload */}
           <a
             href="/de"
-            className="mt-6 inline-flex h-10 items-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground"
+            className={knopfKlassen({
+              rundung: "pille",
+              groesse: "mittel",
+              className: "mt-6 px-5 font-semibold",
+            })}
           >
             Zur Startseite / Home
           </a>

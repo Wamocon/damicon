@@ -1,5 +1,6 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { knopfKlassen } from "@/components/ui/kit";
 
 export default function NotFound() {
   const t = useTranslations("notFound");
@@ -10,7 +11,11 @@ export default function NotFound() {
         <p className="mt-3 text-sm text-muted-foreground">{t("message")}</p>
         <Link
           href="/"
-          className="mt-6 inline-flex h-10 items-center rounded-full bg-primary px-5 text-sm font-semibold text-primary-foreground"
+          className={knopfKlassen({
+            rundung: "pille",
+            groesse: "mittel",
+            className: "mt-6 px-5 font-semibold",
+          })}
         >
           {t("home")}
         </Link>
