@@ -13,7 +13,7 @@
 -- Rumpf einer in derselben Datei neu angelegten Funktion. Jede Migrationsdatei
 -- laeuft hier als ein exec()/eine Transaktion (siehe supabase/tests/
 -- pglite-fast.mjs); die Rechteerweiterung, die 'ceo' tatsaechlich verwendet,
--- steht deshalb in der naechsten Migration (20261103025000_ceo_rechte.sql).
+-- steht deshalb in der naechsten Migration (20261108010000_ceo_rechte.sql).
 -- =============================================================================
 
 set search_path = public;

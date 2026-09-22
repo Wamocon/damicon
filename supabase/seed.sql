@@ -804,3 +804,17 @@ insert into public.kpi_baseline (key, name, zone, ziel, baseline_wert, gut_richt
   ('esutdAbdeckung',        'Abdeckung der Saisonkraefte in ESUTD',                 'buero', '100 %',      '64 %',     'up',   null),
   ('websiteAnfragen',       'Anfragen ueber die Website je Monat',                  'markt', 'Ausgangswert','12',      'up',   null)
   on conflict (key) do nothing;
+
+-- --- Kennzahlen-Verlauf ------------------------------------------------------
+-- Rueckwirkend gerechnet, nicht gesetzt. Bis hierher standen an dieser Stelle
+-- zwei Messpunkte mit von Hand verschobenen Werten - die Kacheln zeigten
+-- damit Pfeile, die nichts gemessen hatten. Seit kpi_aktuell_stichtag()
+-- (Migration 20261107000000) laesst sich der Verlauf aus den Daten selbst
+-- bestimmen: 132 Chargen ueber 127 Erntetage tragen genug Historie.
+--
+-- Zwei Durchlaeufe mit verschiedener Dichte: ein Punkt je Woche ueber das
+-- letzte Jahr fuer die lange Linie, taeglich ueber die letzten dreissig Tage
+-- fuer den Trendpfeil. Der Pfeil vergleicht die letzten ZWEI Punkte, und ein
+-- Wochenabstand waere dafuer zu grob.
+select public.kpi_verlauf_nachrechnen(current_date - 364, current_date, 7);
+select public.kpi_verlauf_nachrechnen(current_date - 30, current_date, 1);
