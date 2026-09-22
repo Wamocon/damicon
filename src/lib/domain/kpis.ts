@@ -13,6 +13,7 @@
 // Rollen ohne betriebsweite Sicht (picker, erzeuger, kunde) sehen hier
 // bewusst keine.
 import type { Role } from "@/lib/rbac";
+import type { Kachelform } from "@/lib/domain/kachel-form";
 
 export type KpiTrend = "up" | "down" | "flat";
 export type KpiStufe = "kern" | "erweitert";
@@ -53,7 +54,13 @@ export interface Kpi {
   zone: "feld" | "hof" | "buero" | "markt";
   wert: string;
   ziel: string;
-  trend: KpiTrend;
+  /** Richtung aus den letzten zwei Messpunkten der Zeitreihe
+   *  (public.kpi_trend). Fehlt, solange es weniger als zwei gibt - dann
+   *  zeigt die Kachel keinen Pfeil statt eines waagerechten, der nichts
+   *  verglichen hat. Bis September 2026 stand hier eine von Hand gepflegte
+   *  Konstante; ein Pfeil ohne Messung behauptet eine Richtung, fuer die es
+   *  keine Grundlage gibt. */
+  trend?: KpiTrend | null;
   // positive Richtung: ist ein steigender Wert gut ("up") oder schlecht ("down")?
   gutRichtung: "up" | "down";
   platzhalter: true;
@@ -61,6 +68,11 @@ export interface Kpi {
    *  reine Notiz fuer die Codeseite, seit die Kachel keine Herkunft mehr
    *  anzeigt - nicht uebersetzt, kein Aufrufer. */
   datenherkunft: Datenherkunft;
+  /** Gewuenschte Darstellung. Ob die Kennzahl sie bekommt, entscheidet
+   *  kachelform() - ohne Grundgesamtheit kein Zaehler, ohne Einzelwerte kein
+   *  Streifen, auf schmalem Platz keine Heldenzahl. Ohne Angabe: Meter, wenn
+   *  es eine Zielzahl gibt, sonst nur der Wert. */
+  form?: Kachelform;
   /** kern = Teil der zwoelf Cockpit-Kacheln, erweitert = Baseline, aber ausserhalb des Cockpits (Anforderung 4.11). */
   stufe: KpiStufe;
   /** Welche Rollen diese betriebsweite Kennzahl sehen - keine Kennzahl hier ist eine persoenliche Leistungszahl. */
@@ -93,7 +105,6 @@ export const kpis: Kpi[] = [
     zone: "hof",
     wert: "8,4 %",
     ziel: "< 6 %",
-    trend: "down",
     gutRichtung: "down",
     platzhalter: true,
     datenherkunft: "berechenbar",
@@ -106,7 +117,6 @@ export const kpis: Kpi[] = [
     zone: "hof",
     wert: "82 %",
     ziel: "> 90 %",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",
@@ -119,10 +129,10 @@ export const kpis: Kpi[] = [
     zone: "hof",
     wert: "47 min",
     ziel: "< 60 min",
-    trend: "flat",
     gutRichtung: "down",
     platzhalter: true,
     datenherkunft: "berechenbar",
+    form: "streifen",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung", "brigade"],
     braucht: "nichts - Pflück- und Kühlzeitpunkt je Charge",
@@ -132,10 +142,10 @@ export const kpis: Kpi[] = [
     zone: "hof",
     wert: "19 h",
     ziel: "< 24 h",
-    trend: "down",
     gutRichtung: "down",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",
+    form: "streifen",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung"],
     braucht: "Lieferungen mit Abfahrt und Ankunft",
@@ -145,10 +155,13 @@ export const kpis: Kpi[] = [
     zone: "feld",
     wert: "6,1 kg/h",
     ziel: "> 7 kg/h",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "berechenbar",
+    // Rangliste statt Streifen: hier stehen fuenf PERSONEN, keine
+    // namenlosen Vorgaenge. Fuenf Punkte auf einer Achse sagen "es gibt
+    // Streuung", eine Rangliste sagt, wen man ansprechen muss.
+    form: "rangliste",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung", "brigade"],
     braucht: "nichts - Steige mit Person gegen Arbeitszeit",
@@ -158,7 +171,6 @@ export const kpis: Kpi[] = [
     zone: "feld",
     wert: "2,3×",
     ziel: "< 1,8×",
-    trend: "down",
     gutRichtung: "down",
     platzhalter: true,
     datenherkunft: "berechenbar",
@@ -171,7 +183,6 @@ export const kpis: Kpi[] = [
     zone: "feld",
     wert: "84 %",
     ziel: "> 95 %",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "berechenbar",
@@ -184,10 +195,10 @@ export const kpis: Kpi[] = [
     zone: "feld",
     wert: "96 %",
     ziel: "100 %",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "berechenbar",
+    form: "zaehler",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung", "brigade"],
     braucht: "nichts - aus Behandlung und Sperrlogik ableitbar",
@@ -197,36 +208,43 @@ export const kpis: Kpi[] = [
     zone: "markt",
     wert: "3,2 %",
     ziel: "< 2 %",
-    trend: "down",
     gutRichtung: "down",
     platzhalter: true,
-    datenherkunft: "tabelle-fehlt",
+    // Korrigiert am 22.09.2026: stand auf "tabelle-fehlt", seit
+    // Migration 20260908120000 traegt reklamationen aber charge_id und
+    // betroffene_menge_kg. Die Tabelle fehlt also nicht, die Aggregation in
+    // kpi_aktuell() fehlt. Die Notiz war unsichtbar, solange sie nur im Code
+    // stand - seit die Bereichsseite sie anzeigt, war sie eine falsche
+    // Aussage gegenueber dem Betrachter.
+    datenherkunft: "berechenbar",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung", "buchhaltung"],
-    braucht: "Reklamationen mit Bezug zur Charge",
+    braucht: "Aggregation in kpi_aktuell() - betroffene Menge gegen gelieferte Menge",
   },
   {
     key: "liefertreue",
     zone: "markt",
     wert: "91 %",
     ziel: "> 97 %",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
-    datenherkunft: "tabelle-fehlt",
+    // Korrigiert am 22.09.2026, gleicher Grund wie bei reklamationsquote:
+    // vorbestellungen.liefertermin und lieferungen.geliefert_am stehen beide,
+    // verglichen hat sie nur noch niemand.
+    datenherkunft: "berechenbar",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung", "buchhaltung"],
-    braucht: "Zugesagte gegen tatsaechliche Lieferung",
+    braucht: "Aggregation in kpi_aktuell() - liefertermin gegen geliefert_am",
   },
   {
     key: "belegteVerkaeufe",
     zone: "buero",
     wert: "71 %",
     ziel: "100 %",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",
+    form: "zaehler",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung", "buchhaltung"],
     braucht: "Anbindung an ЭСФ und Warenbegleitschein",
@@ -236,10 +254,10 @@ export const kpis: Kpi[] = [
     zone: "buero",
     wert: "640 ₸/kg",
     ziel: "> 700 ₸/kg",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "berechenbar",
+    form: "held",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung", "buchhaltung"],
     braucht: "nichts - Buchungen je Charge gegen Erntemenge",
@@ -249,10 +267,10 @@ export const kpis: Kpi[] = [
     zone: "buero",
     wert: "64 %",
     ziel: "100 %",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "rechtlich-ungeklaert",
+    form: "punkte",
     stufe: "erweitert",
     sichtbarFuer: ["admin", "betriebsleitung", "buchhaltung"],
     braucht:
@@ -263,7 +281,6 @@ export const kpis: Kpi[] = [
     zone: "markt",
     wert: "12 / Monat",
     ziel: "Ausgangswert",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",

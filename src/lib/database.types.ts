@@ -1256,6 +1256,39 @@ export type Database = {
         }
         Relationships: []
       }
+      kpi_verlauf: {
+        Row: {
+          basis: string | null
+          created_at: string
+          datensaetze: number
+          einheit: string | null
+          gemessen_am: string
+          id: string
+          schluessel: string
+          wert: number
+        }
+        Insert: {
+          basis?: string | null
+          created_at?: string
+          datensaetze?: number
+          einheit?: string | null
+          gemessen_am?: string
+          id?: string
+          schluessel: string
+          wert: number
+        }
+        Update: {
+          basis?: string | null
+          created_at?: string
+          datensaetze?: number
+          einheit?: string | null
+          gemessen_am?: string
+          id?: string
+          schluessel?: string
+          wert?: number
+        }
+        Relationships: []
+      }
       kuehlketten_messungen: {
         Row: {
           charge_id: string
@@ -3492,6 +3525,17 @@ export type Database = {
           },
         ]
       }
+      kpi_trend: {
+        Row: {
+          schluessel: string | null
+          stand: string | null
+          trend: string | null
+          verglichen_mit: string | null
+          wert_jetzt: number | null
+          wert_vorher: number | null
+        }
+        Relationships: []
+      }
       schulungsteilnahmen_status: {
         Row: {
           faellig_am: string | null
@@ -3584,6 +3628,19 @@ export type Database = {
           einheit: string
           schluessel: string
           wert: number
+        }[]
+      }
+      kpi_verlauf_schreiben: {
+        Args: {
+          p_stichtag?: string
+        }
+        Returns: number
+      }
+      pflueckleistung_je_person: {
+        Args: never
+        Returns: {
+          kg_h: number
+          name: string
         }[]
       }
       lohn_kz_abzuege_berechnen: {

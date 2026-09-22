@@ -1,5 +1,11 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { DataTable, Stat, StatusPill } from "../../src/components/ui/kit";
+import {
+  grundgesamtheit,
+  kachelform,
+  kachelgroesse,
+  meterSkala,
+} from "../../src/lib/domain/kachel-form";
 
 // Gerenderte Klassen der Bausteine aus ui/kit.tsx.
 //
@@ -252,6 +258,134 @@ pruefe(
   "Bleibt der Kopf ohne seine Zelle stehen, verschiebt sich alles - die Bedingung ist scharf",
   kopfOhneZelle.includes('data-kopf="Person">Hygiene'),
   "deshalb gehoeren Kopf und Zelle unter dieselbe Bedingung",
+);
+
+
+// --- Formwahl der Kennzahlkacheln -------------------------------------------
+//
+// kachelform() ist die einzige Stelle, an der entschieden wird, wie eine
+// Kennzahl dargestellt wird. Uebersicht und Bereichsseite fragen dieselbe
+// Funktion, damit dieselbe Kennzahl nicht je nach Seite etwas anderes zeigt.
+//
+// Geprueft wird hier die Abstufung, nicht das Aussehen: jede gewuenschte Form
+// muss auf eine Form zurueckfallen, die mit den vorhandenen Daten ehrlich ist.
+// Ohne Zielzahl kein Meter, ohne Grundgesamtheit kein Zaehler, ohne
+// Einzelwerte kein Streifen, auf schmalem Platz weder Streifen noch
+// Heldenzahl. Wird eine dieser Bremsen entfernt, zeigt die Kachel eine Form,
+// fuer die ihr die Daten fehlen - und das faellt in der Oberflaeche erst auf,
+// wenn jemand auf eine leere Grafik schaut.
+
+const basis = {
+  key: "probe",
+  zone: "feld" as const,
+  wert: "5 kg/h",
+  ziel: "> 7 kg/h",
+  gutRichtung: "up" as const,
+  platzhalter: true as const,
+  datenherkunft: "berechenbar" as const,
+  stufe: "kern" as const,
+  sichtbarFuer: ["admin" as const],
+  braucht: "nichts",
+};
+
+const gerechnet = (zahl: number, einheit: string, datensaetze: number) => ({
+  zahl,
+  einheit,
+  basis: "Probe",
+  datensaetze,
+});
+
+pruefe(
+  "Ohne Zielzahl gibt es kein Meter, sondern nur den Wert",
+  kachelform({ ...basis, ziel: "Ausgangswert" }, "breit") === "wert",
+);
+
+pruefe(
+  "Mit Zielzahl ist das Meter die Grundform",
+  kachelform(basis, "breit") === "meter",
+);
+
+pruefe(
+  "Ein Zaehler ohne Grundgesamtheit faellt auf das Meter zurueck",
+  kachelform({ ...basis, form: "zaehler" }, "breit") === "meter",
+  "gerechnet fehlt, also gibt es kein x von y",
+);
+
+pruefe(
+  "Mit Grundgesamtheit bleibt der Zaehler stehen",
+  kachelform(
+    { ...basis, form: "zaehler", gerechnet: gerechnet(100, "%", 4) },
+    "breit",
+  ) === "zaehler",
+);
+
+pruefe(
+  "Ein Streifen ohne Einzelwerte faellt auf das Meter zurueck",
+  kachelform({ ...basis, form: "streifen" }, "breit", false) === "meter",
+  "eine erfundene Verteilung waere schlimmer als keine",
+);
+
+pruefe(
+  "Mit Einzelwerten bleibt der Streifen stehen",
+  kachelform({ ...basis, form: "streifen" }, "breit", true) === "streifen",
+);
+
+pruefe(
+  "Auf schmalem Platz gibt es keinen Streifen",
+  kachelform({ ...basis, form: "streifen" }, "schmal", true) === "meter",
+  "auf 178 px laufen die Marken zu einem Fleck zusammen",
+);
+
+pruefe(
+  "Auf schmalem Platz gibt es keine Heldenzahl",
+  kachelform({ ...basis, form: "held" }, "schmal") === "meter",
+);
+
+pruefe(
+  "Auf breitem Platz bleibt die Heldenzahl stehen",
+  kachelform({ ...basis, form: "held" }, "breit") === "held",
+);
+
+pruefe(
+  "Die Rangliste braucht Einzelwerte wie der Streifen",
+  kachelform({ ...basis, form: "rangliste" }, "breit", false) === "meter",
+);
+
+// --- Groesse und Grundgesamtheit --------------------------------------------
+
+pruefe(
+  "Streifen, Rangliste und Heldenzahl sind breit, alles andere klein",
+  kachelgroesse("streifen") === "breit" &&
+    kachelgroesse("rangliste") === "breit" &&
+    kachelgroesse("held") === "breit" &&
+    kachelgroesse("meter") === "klein" &&
+    kachelgroesse("zaehler") === "klein",
+);
+
+pruefe(
+  "Die Grundgesamtheit rechnet den Anteil in die Anzahl zurueck",
+  JSON.stringify(
+    grundgesamtheit({ ...basis, gerechnet: gerechnet(60, "%", 5) }),
+  ) === JSON.stringify({ erfuellt: 3, gesamt: 5 }),
+  "60 % von fuenf Pflueckern sind drei",
+);
+
+pruefe(
+  "Ohne Prozent gibt es keine Grundgesamtheit",
+  grundgesamtheit({ ...basis, gerechnet: gerechnet(446, "₸/kg", 12) }) === null,
+  "446 Tenge je Kilogramm sind nicht 446 Prozent von zwoelf",
+);
+
+pruefe(
+  "Kleine Prozentwerte bekommen keine Skala bis 100",
+  meterSkala(7.7, 6, "%") === 10,
+  "sonst schrumpft der Balken auf ein Zwoelftel",
+);
+
+pruefe(
+  "Prozentwerte im oberen Bereich enden bei 100",
+  meterSkala(71, 95, "%") === 100,
+  "damit zwei Kacheln nebeneinander vergleichbar bleiben",
 );
 
 console.log(

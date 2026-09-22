@@ -32,7 +32,8 @@
     "kpis": "Kennzahlen",
     "compliance": "Compliance",
     "account": "Konto",
-    "menu": "Menü"
+    "menu": "Menü",
+    "kachelLabor": "Kachel-Labor"
   },
   "hero": {
     "badge": "Betriebssteuerung für die Himbeerplantage · Umland Almaty",
@@ -362,9 +363,22 @@
         "knapp": "knapp daneben",
         "verfehlt": "Ziel verfehlt",
         "offen": "kein Zielwert"
-      }
+      },
+      "luecke": {
+        "titel": "Noch keine Messung.",
+        "berechenbar": "Die Daten liegen vor, die Auswertung dafür fehlt noch.",
+        "erfassungFehlt": "Die Tabellen stehen bereit, die Werte werden noch nicht eingetragen.",
+        "tabelleFehlt": "Das Datenmodell hat dafür noch keinen Platz.",
+        "rechtlichUngeklaert": "Die rechtliche Grundlage ist noch nicht geklärt."
+      },
+      "verletzt": "{count} von {gesamt} verletzt",
+      "vonGesamt": "von {gesamt}"
     },
-    "zoneModuleLead": "Alles, was in dieser Zone für die aktive Rolle freigegeben ist."
+    "zoneModuleLead": "Alles, was in dieser Zone für die aktive Rolle freigegeben ist.",
+    "zoneKennzahlTitel": "Kennzahlen",
+    "zoneKennzahlLead": "Die Kennzahlen dieses Bereichs, die dringendste zuerst.",
+    "zoneKennzahlMehr": "{count, plural, one {# weitere Kennzahl anzeigen} other {# weitere Kennzahlen anzeigen}}",
+    "zoneKennzahlWeniger": "Weitere Kennzahlen ausblenden"
   },
   "roles": {
     "switcherHint": "Demo-Rolle wechseln - steuert die sichtbare Navigation",
@@ -3163,5 +3177,64 @@
     },
     "verifikation": "Der Inhalt dieses Berichts ist mit einer SHA-256-Prüfsumme versiegelt. Wer die begleitende JSON-Datei besitzt, kann das Siegel in Damicon über „Siegel prüfen“ nachrechnen; jede nachträgliche Änderung fällt auf.",
     "tipp": "Tipp für den Druckdialog: „Kopf- und Fußzeilen“ ausschalten, Papierformat A4. Farben und Marke werden automatisch übernommen."
+  },
+  "kachelLabor": {
+    "titel": "Kachel-Labor",
+    "einleitung": "Sieben Fälle, in denen die einheitliche Kennzahlkachel die Kennzahl schlechter zeigt als eine eigene Form es könnte. Je Fall die heutige Kachel und zwei Alternativen nebeneinander, mit echten Werten aus dem Betrieb.",
+    "hinweis": "Referenzseite für die Oberfläche, kein Fachmodul. Nichts davon ist umgesetzt — die Formen stehen hier zur Auswahl.",
+    "gruppe": {
+      "anteil": "Anteil gegen eine Zielmarke",
+      "streuung": "Streuung zwischen Personen",
+      "dauer": "Dauer gegen eine Obergrenze",
+      "nullfehler": "Null-Fehler-Quote",
+      "klein": "Kleine Grundgesamtheit",
+      "ohneZiel": "Kennzahl ohne Zielwert",
+      "leitzahl": "Die eine Zahl, die führt"
+    },
+    "lead": {
+      "anteil": "Das heutige Zielband füllt sich mit dem Istwert. Bei „je kleiner, desto besser“ wächst der Balken also, je schlechter es steht.",
+      "streuung": "Ein Verhältnis hat keinen Ort auf einer Skala, und die Zahl sagt nicht, wer abfällt. Das ist eine Verteilung, keine Einzelzahl.",
+      "dauer": "Die Kachel zeigt den Mittelwert. Bei der Kühlkette ist aber die einzelne Überschreitung der Schaden, und der Mittelwert verschluckt sie.",
+      "nullfehler": "Ist das Ziel 100 %, steht der Balken immer auf der Zielmarke und unterscheidet nichts. Gefragt ist die Ausnahme, nicht die Quote.",
+      "klein": "Bei fünf Personen ist ein Prozentwert Scheingenauigkeit: eine Person mehr sind zwanzig Punkte.",
+      "ohneZiel": "Ohne Zielwert bleiben Band, Ampelpunkt und Statuswort leer. Die Bewegung ist die einzige Aussage, die es gibt.",
+      "leitzahl": "Alle Kacheln sind gleich groß, als wären sie gleich wichtig. Eine Ansicht darf genau eine Zahl haben, die führt."
+    },
+    "form": {
+      "heute": "Heute",
+      "meter": "Meter mit Zielmarke",
+      "streifen": "Punktstreifen",
+      "rangliste": "Rangliste",
+      "zaehler": "Zähler",
+      "segmente": "Segmente",
+      "punkte": "Gefüllte Punkte",
+      "verlauf": "Verlaufslinie",
+      "held": "Heldenzahl"
+    },
+    "ziel": "Ziel",
+    "ueberZiel": "Abstand zum Ziel: {abstand}",
+    "jeCharge": "Je Charge, die fünf höchsten",
+    "jeStunde": "Kilogramm je Stunde, ganze Saison",
+    "jeVorgang": "Ein Segment je Behandlung",
+    "jeSaisonkraft": "Ein Punkt je Saisonkraft",
+    "chargen": "Chargen: {count}",
+    "personen": "Personen: {count}",
+    "behandlungen": "Behandlungen: {count}",
+    "messpunkte": "Messpunkte: {count}",
+    "offeneVertraege": "Offene Verträge: {count}",
+    "faelltAb": "Eine Person fällt deutlich ab",
+    "ueberGrenze": "{count} von {gesamt} über der Grenze",
+    "verstoesse": "{count} von {gesamt} verletzt",
+    "ueberschritten": "Kühlkette überschritten",
+    "verletzt": "Wartezeit verletzt",
+    "laengste": "längste {minuten} min",
+    "vonGesamt": "von {gesamt}",
+    "aeltester": "ältester",
+    "neuester": "neuester",
+    "erfasst": "erfasst",
+    "offen": "offen",
+    "verlaufLeer": "Noch kein Verlauf. Die Linie braucht mindestens zwei Messpunkte aus kpi_verlauf.",
+    "ohneZielwert": "Kein Zielwert hinterlegt",
+    "imMonat": "Anfragen im Monat"
   }
 }
