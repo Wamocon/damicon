@@ -110,9 +110,11 @@ export async function FinanzenAnsichtNeu({
 }) {
   const bereich = finanzBereichAusText(suche.bereich);
   const zeitraum = zeitraumAusText(suche.zeitraum);
-  // Den Typ gibt es nur bei den Buchungen. Steht er von Hand in der Adresse,
-  // waehrend ein anderer Reiter offen ist, wirkte er sonst unsichtbar weiter.
-  const typ = bereich === "buchungen" ? ledgerTypAusText(suche.typ) : undefined;
+  // Den Typ gibt es nur bei den Buchungen, gefiltert wird also nur dort. In
+  // der Adresse bleibt er trotzdem stehen, auch waehrend ein anderer Reiter
+  // offen ist - sonst waere er nach einem Hin und Her wieder verloren.
+  const typRoh = ledgerTypAusText(suche.typ);
+  const typ = bereich === "buchungen" ? typRoh : undefined;
   const zeilen = zeilenAusText(suche.zeilen);
   // Solange niemand nachgeladen hat, zeigt das Handy nur die ersten fuenf
   // Zeilen - das entscheidet globals.css, der Server kennt die Schirmbreite
@@ -163,18 +165,21 @@ export async function FinanzenAnsichtNeu({
     return { pathname: pfad, query };
   };
 
-  // Ein Reiterwechsel nimmt nichts mit: Zeitraum, Typ und Zeilenzahl fallen
-  // auf ihre Standardwerte zurueck. Der Zeitraum bedeutet im naechsten Reiter
-  // ohnehin etwas anderes, und eine muehsam nachgeladene Liste gilt fuer die
-  // Tabelle, die man gerade verlaesst.
-  const reiterZiel = (wert: string) => ziel({ bereich: wert });
-  const zeitraumZiel = (wert: string) => ziel({ bereich, zeitraum: wert, typ });
+  // Ein Reiterwechsel nimmt den Filter mit, aber nicht die Zeilenzahl.
+  //
+  // Der Unterschied: Zeitraum und Typ sagen, WAS man sehen will - das gilt
+  // weiter, auch wenn der Zeitraum im naechsten Reiter auf ein anderes Datum
+  // wirkt (die Beschriftung ueber den Pillen sagt, auf welches). Die
+  // Zeilenzahl sagt dagegen, wie weit man sich in EINER Tabelle vorgearbeitet
+  // hat, und das laesst sich auf die naechste nicht uebertragen.
+  const reiterZiel = (wert: string) => ziel({ bereich: wert, zeitraum, typ: typRoh });
+  const zeitraumZiel = (wert: string) => ziel({ bereich, zeitraum: wert, typ: typRoh });
   const typZiel = (wert: string) =>
     ziel({ bereich, zeitraum, typ: wert === ALLE ? undefined : wert });
   const mehrZiel = ziel({
     bereich,
     zeitraum,
-    typ,
+    typ: typRoh,
     zeilen: String(zeilen + ZEILEN_SCHRITT),
   });
 
@@ -219,7 +224,7 @@ export async function FinanzenAnsichtNeu({
                 className="flex items-end gap-2"
               >
                 <input type="hidden" name="bereich" value={bereich} />
-                {typ ? <input type="hidden" name="typ" value={typ} /> : null}
+                {typRoh ? <input type="hidden" name="typ" value={typRoh} /> : null}
                 <Auswahl
                   label={t("monatsListe.label")}
                   name="zeitraum"
