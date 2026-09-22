@@ -31,10 +31,11 @@ import { einsAus } from "@/lib/data/util";
 // Datei liest nur das Ergebnis. RLS entscheidet, was sichtbar ist - siehe
 // dieselbe Migration fuer die Schreibrechte.
 //
-// Der Filter ist optional, und zwar mit Absicht: Ohne ihn verhaelt sich die
-// Funktion Zeile fuer Zeile wie vor dem Umbau (kein Zeitraum, feste 100
-// Buchungen, drei Abfragen). So kann die neue Laboransicht entstehen, ohne
-// dass sich an der bestehenden Finanzseite etwas aendert.
+// Gefiltert wird immer. Vor dem Umbau der Finanzseite holte diese Funktion
+// alle Kostentraeger ohne Begrenzung und die letzten 100 Buchungen - bei
+// ueber 250 Kostentraegern eine Tabelle, durch die niemand mehr scrollte, und
+// bei den Buchungen ein Abschnitt ohne Weg zu den aelteren. Beides entscheidet
+// jetzt der Aufrufer ueber Zeitraum und Zeilenzahl.
 
 export interface FinanzenFilter {
   zeitraum: Zeitraum;
@@ -54,7 +55,6 @@ export interface FinanzenUebersicht {
   /**
    * Liegt hinter den gezeigten Zeilen noch etwas? Beantwortet wird das ohne
    * eigene count-Abfrage: geholt wird eine Zeile mehr als angezeigt wird.
-   * Ohne Filter immer false, dort gibt es keinen Nachladeknopf.
    */
   mehr: { deckungsbeitrag: boolean; charge: boolean; ledger: boolean };
   /**
@@ -69,7 +69,7 @@ export interface FinanzenUebersicht {
     zeitraum: { erloesTenge: number; kostenTenge: number };
     gesamt: { erloesTenge: number; kostenTenge: number };
   };
-  /** Monate mit Buchungen, absteigend, "JJJJ-MM". Ohne Filter leer. */
+  /** Monate mit Buchungen, absteigend, "JJJJ-MM". Traegt die Monatsliste. */
   monate: string[];
 }
 
@@ -99,22 +99,8 @@ function imZeitraum(datum: string | null, grenzen: ZeitraumGrenzen): boolean {
   return true;
 }
 
-function demoUebersicht(
-  quelle: Datenquelle = "demo",
-  filter?: FinanzenFilter,
-): FinanzenUebersicht {
+function demoUebersicht(quelle: Datenquelle, filter: FinanzenFilter): FinanzenUebersicht {
   const gesamt = summen(demoDeckungsbeitrag);
-  if (!filter) {
-    return {
-      quelle,
-      deckungsbeitrag: demoDeckungsbeitrag,
-      deckungsbeitragJeCharge: demoDeckungsbeitragJeCharge,
-      ledger: demoLedgerEintraege,
-      mehr: { deckungsbeitrag: false, charge: false, ledger: false },
-      summe: { zeitraum: gesamt, gesamt },
-      monate: [],
-    };
-  }
 
   // Im Demo-Betrieb wird derselbe Filter angewandt wie an der Datenbank, nur
   // im Speicher. Sonst verhielte sich die Oberflaeche ohne Supabase anders als
@@ -146,18 +132,16 @@ function demoUebersicht(
 }
 
 export async function ladeFinanzenUebersicht(
-  filter?: FinanzenFilter,
+  filter: FinanzenFilter,
 ): Promise<FinanzenUebersicht> {
   if (!isSupabaseConfigured()) return demoUebersicht("demo", filter);
 
   const supabase = await createClient();
-  const grenzen: ZeitraumGrenzen = filter
-    ? zeitraumGrenzen(filter.zeitraum)
-    : { von: null, bis: null };
+  const grenzen: ZeitraumGrenzen = zeitraumGrenzen(filter.zeitraum);
 
   // Eine Zeile mehr holen als angezeigt wird. Damit steht fest, ob es Nachschub
   // gibt, ohne eine zweite Abfrage mit count.
-  const holen = filter ? filter.zeilen + 1 : 100;
+  const holen = filter.zeilen + 1;
 
   let dbAbfrage = supabase
     .from("deckungsbeitrag_je_kostentraeger")
@@ -178,22 +162,21 @@ export async function ladeFinanzenUebersicht(
     .order("created_at", { ascending: false })
     .limit(holen);
 
-  if (filter) {
-    // Die Zeilen ohne Datum muessen mit durch, deshalb or() statt gte/lte -
-    // siehe imZeitraum() oben, die Begruendung gilt hier genauso.
-    if (grenzen.von !== null && grenzen.bis !== null) {
-      const von = grenzen.von;
-      const bis = grenzen.bis;
-      const spanne = (spalte: string) =>
-        [spalte, ".is.null,and(", spalte, ".gte.", von, ",", spalte, ".lte.", bis, ")"].join("");
-      dbAbfrage = dbAbfrage.or(spanne("erntetag"));
-      chargeAbfrage = chargeAbfrage.or(spanne("ernte_datum"));
-      ledgerAbfrage = ledgerAbfrage.gte("buchungsdatum", von).lte("buchungsdatum", bis);
-    }
-    if (filter.typ) ledgerAbfrage = ledgerAbfrage.eq("typ", filter.typ);
-    dbAbfrage = dbAbfrage.limit(holen);
-    chargeAbfrage = chargeAbfrage.limit(holen);
+  // Die Zeilen ohne Datum muessen mit durch, deshalb or() statt gte/lte -
+  // siehe imZeitraum() oben, die Begruendung gilt hier genauso. Bei "alles"
+  // stehen beide Grenzen auf null, dann wird gar nicht eingeschraenkt.
+  if (grenzen.von !== null && grenzen.bis !== null) {
+    const von = grenzen.von;
+    const bis = grenzen.bis;
+    const spanne = (spalte: string) =>
+      [spalte, ".is.null,and(", spalte, ".gte.", von, ",", spalte, ".lte.", bis, ")"].join("");
+    dbAbfrage = dbAbfrage.or(spanne("erntetag"));
+    chargeAbfrage = chargeAbfrage.or(spanne("ernte_datum"));
+    ledgerAbfrage = ledgerAbfrage.gte("buchungsdatum", von).lte("buchungsdatum", bis);
   }
+  if (filter.typ) ledgerAbfrage = ledgerAbfrage.eq("typ", filter.typ);
+  dbAbfrage = dbAbfrage.limit(holen);
+  chargeAbfrage = chargeAbfrage.limit(holen);
 
   const [
     { data: dbRows, error: dbFehler },
@@ -209,20 +192,16 @@ export async function ladeFinanzenUebersicht(
     // Erntetag kommt mit, damit sich der Zeitraumanteil im Speicher abziehen
     // laesst, statt dieselbe Tabelle ein zweites Mal gefiltert zu lesen.
     // Drei Spalten ueber alle Kostentraeger, nichts davon wird gerendert.
-    filter
-      ? supabase
-          .from("deckungsbeitrag_je_kostentraeger")
-          .select("erntetag, erloes_tenge, kosten_tenge")
-      : Promise.resolve(null),
+    supabase
+      .from("deckungsbeitrag_je_kostentraeger")
+      .select("erntetag, erloes_tenge, kosten_tenge"),
     // Aelteste Buchung fuer die Monatsliste im Filter. Eine Zeile, ueber
     // idx_ledger_datum.
-    filter
-      ? supabase
-          .from("finance_ledger_entries")
-          .select("buchungsdatum")
-          .order("buchungsdatum", { ascending: true })
-          .limit(1)
-      : Promise.resolve(null),
+    supabase
+      .from("finance_ledger_entries")
+      .select("buchungsdatum")
+      .order("buchungsdatum", { ascending: true })
+      .limit(1),
   ]);
 
   if (dbFehler || chargeFehler || ledgerFehler) return demoUebersicht("fehler", filter);
@@ -279,8 +258,8 @@ export async function ladeFinanzenUebersicht(
     beschreibung: l.beschreibung,
   }));
 
-  const sichtbar = filter?.zeilen ?? Number.POSITIVE_INFINITY;
-  const gesamtRows = gesamtErgebnis?.data ?? null;
+  const sichtbar = filter.zeilen;
+  const gesamtRows = gesamtErgebnis.data ?? null;
 
   return {
     quelle: "db",
@@ -301,7 +280,7 @@ export async function ladeFinanzenUebersicht(
           zeitraum: summen(deckungsbeitragAlle),
           gesamt: summen(deckungsbeitragAlle),
         },
-    monate: monatsListe(aelteste?.data?.[0]?.buchungsdatum ?? null),
+    monate: monatsListe(aelteste.data?.[0]?.buchungsdatum ?? null),
   };
 }
 

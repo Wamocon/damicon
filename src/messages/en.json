@@ -32,8 +32,7 @@
     "kpis": "KPIs",
     "compliance": "Compliance",
     "account": "Account",
-    "menu": "Menu",
-    "finanzLabor": "Finance lab"
+    "menu": "Menu"
   },
   "hero": {
     "badge": "Farm management for the raspberry plantation · near Almaty",
@@ -1119,13 +1118,9 @@
     "uebersichtTitel": "Contribution margin at a glance",
     "uebersichtLead": "Total across all cost objects and postings. Revenue and cost come from the immutable finance ledger.",
     "stat": {
-      "erloes": "Total revenue",
-      "kosten": "Total cost",
-      "deckungsbeitrag": "Total contribution margin",
-      "deckungsbeitragHinweis": "Revenue minus cost, computed by the database",
-      "zeitraumErloes": "Revenue",
-      "zeitraumKosten": "Cost",
-      "zeitraumDeckungsbeitrag": "Contribution margin",
+      "erloes": "Revenue",
+      "kosten": "Cost",
+      "deckungsbeitrag": "Contribution margin",
       "gesamt": "{wert} in total"
     },
     "erloes": "Revenue",

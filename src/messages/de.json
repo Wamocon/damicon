@@ -32,8 +32,7 @@
     "kpis": "Kennzahlen",
     "compliance": "Compliance",
     "account": "Konto",
-    "menu": "Menü",
-    "finanzLabor": "Finanz-Labor"
+    "menu": "Menü"
   },
   "hero": {
     "badge": "Betriebssteuerung für die Himbeerplantage · Umland Almaty",
@@ -1119,13 +1118,9 @@
     "uebersichtTitel": "Deckungsbeitrag auf einen Blick",
     "uebersichtLead": "Summe über alle Kostenträger und Buchungen. Erlöse und Kosten kommen aus dem unveränderlichen Finanzjournal.",
     "stat": {
-      "erloes": "Erlöse gesamt",
-      "kosten": "Kosten gesamt",
-      "deckungsbeitrag": "Deckungsbeitrag gesamt",
-      "deckungsbeitragHinweis": "Erlöse minus Kosten, aus der Datenbank gerechnet",
-      "zeitraumErloes": "Erlöse",
-      "zeitraumKosten": "Kosten",
-      "zeitraumDeckungsbeitrag": "Deckungsbeitrag",
+      "erloes": "Erlöse",
+      "kosten": "Kosten",
+      "deckungsbeitrag": "Deckungsbeitrag",
       "gesamt": "insgesamt {wert}"
     },
     "erloes": "Erlös",

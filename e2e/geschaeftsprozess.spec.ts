@@ -192,16 +192,34 @@ test.describe.serial("Hauptgeschaeftsprozess: Vorbestellung bis Deckungsbeitrag"
     await expect(page.getByText(/Abrechnung\(en\) berechnet/)).toBeVisible();
 
     await page.goto("/de/dashboard/buero/finanzen");
-    await expect(page.getByText("Deckungsbeitrag gesamt")).toBeVisible();
+    // Die Finanzseite steht in Reitern: Kostentraeger ist der Standardreiter,
+    // die Erfassungsformulare sind darin eingeklappt. Je Reiter gibt es genau
+    // ein <details>, deshalb reicht das erste.
+    await expect(
+      page.getByRole("heading", { name: "Kostenträger und Deckungsbeitrag" }),
+    ).toBeVisible();
 
-    const kostentraegerFormular = page.locator("form", { hasText: "Neuen Kostenträger anlegen" }).first();
+    const kostentraegerAufklapper = page.locator("details").first();
+    await kostentraegerAufklapper.locator("summary").click();
+    const kostentraegerFormular = kostentraegerAufklapper.locator("form");
     await kostentraegerFormular.getByLabel("Bezeichnung").fill(kostentraegerName);
     await kostentraegerFormular.getByLabel("Sorte").selectOption(sorte);
     await kostentraegerFormular.getByLabel("Kunde").selectOption("Almaty Fresh Market");
     await kostentraegerFormular.getByRole("button", { name: "Kostenträger anlegen" }).click();
     await expect(page.getByText(`Kostenträger "${kostentraegerName}" angelegt.`)).toBeVisible();
 
-    const buchungFormular = page.locator("form", { hasText: "Buchung erfassen" }).first();
+    // Die Buchungen liegen im eigenen Reiter. Der Zeitraum wandert beim
+    // Wechsel mit, die nachgeladene Zeilenzahl nicht.
+    await page
+      .getByRole("navigation", { name: "Bereiche der Finanzseite" })
+      .getByRole("link", { name: "Buchungen" })
+      .click();
+    // Erst warten, bis der Reiter wirklich gewechselt hat. Sonst greift das
+    // details unten noch das Kostentraeger-Formular der alten Seite ab.
+    await expect(page.getByRole("heading", { name: "Buchungen" })).toBeVisible();
+    const buchungAufklapper = page.locator("details").first();
+    await buchungAufklapper.locator("summary").click();
+    const buchungFormular = buchungAufklapper.locator("form");
     await buchungFormular.getByLabel("Kostenträger").selectOption({ label: kostentraegerName });
     await buchungFormular.getByLabel("Typ").selectOption("Erlös");
     await buchungFormular.getByLabel("Kategorie").fill(testMarker("Erlös Regressionstest"));
