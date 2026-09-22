@@ -284,6 +284,71 @@ export async function ladeFinanzenUebersicht(
   };
 }
 
+// ---------------------------------------------------------------------------
+// Vorschau fuer die Uebersichtsseite
+//
+// Bewusst NICHT aus deckungsbeitrag_je_kostentraeger: die View summiert alle
+// Buchungen eines Kostentraegers ueber dessen ganze Laufzeit und laesst sich
+// nur nach Erntetag eingrenzen. "Erloese im September" waeren dort also
+// "Erloese aller im September geernteten Kostentraeger, seit es sie gibt" -
+// auf einer Kachel ohne Platz fuer eine Erklaerung ist das irrefuehrend.
+//
+// Hier wird deshalb direkt das Journal nach Buchungsdatum gelesen. Die Zahl
+// heisst dann genau das, was sie sagt: in diesem Monat gebucht. Eine Abfrage
+// ueber zwei Spalten, ueber idx_ledger_datum.
+// ---------------------------------------------------------------------------
+
+export interface FinanzVorschau {
+  quelle: Datenquelle;
+  /** Erster Tag des laufenden Monats, "JJJJ-MM-TT". Traegt die Beschriftung. */
+  von: string;
+  erloesTenge: number;
+  kostenTenge: number;
+  buchungen: number;
+}
+
+function vorschauAus(
+  quelle: Datenquelle,
+  von: string,
+  zeilen: { typ: LedgerTyp; betrag_tenge: number | string }[],
+): FinanzVorschau {
+  let erloesTenge = 0;
+  let kostenTenge = 0;
+  for (const z of zeilen) {
+    if (z.typ === "erloes") erloesTenge += Number(z.betrag_tenge);
+    else kostenTenge += Number(z.betrag_tenge);
+  }
+  return { quelle, von, erloesTenge, kostenTenge, buchungen: zeilen.length };
+}
+
+export async function ladeFinanzVorschau(): Promise<FinanzVorschau> {
+  const grenzen = zeitraumGrenzen("monat");
+  // zeitraumGrenzen liefert fuer "monat" immer beide Grenzen, der Fallback ist
+  // reine Typsicherheit.
+  const von = grenzen.von ?? "";
+  const bis = grenzen.bis ?? "";
+
+  if (!isSupabaseConfigured()) {
+    return vorschauAus(
+      "demo",
+      von,
+      demoLedgerEintraege
+        .filter((l) => imZeitraum(l.buchungsdatum, grenzen))
+        .map((l) => ({ typ: l.typ, betrag_tenge: l.betragTenge })),
+    );
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("finance_ledger_entries")
+    .select("typ, betrag_tenge")
+    .gte("buchungsdatum", von)
+    .lte("buchungsdatum", bis);
+
+  if (error) return vorschauAus("fehler", von, []);
+  return vorschauAus("db", von, data ?? []);
+}
+
 // Referenzlisten fuer die Schreibformulare - wie ladeNachbarbetriebe() in
 // lib/data/zukauf.ts: im Demo-Modus die Beispielwerte, weil die Formulare dort
 // ohnehin nicht angezeigt werden (keine Anmeldung, kein Schreibpfad).

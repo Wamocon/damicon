@@ -1210,6 +1210,16 @@
     "keineChargen": "No batch with its own posting in this period. Postings without a batch reference do not appear here.",
     "ohneErntetag": "no harvest day"
   },
+  "finanzVorschau": {
+    "titel": "Finances this month",
+    "lead": "What was posted in {monat}.",
+    "leer": "Nothing posted in {monat} yet.",
+    "erloes": "Revenue",
+    "kosten": "Cost",
+    "deckungsbeitrag": "Contribution margin",
+    "buchungen": "Postings: {anzahl}",
+    "link": "Go to finances"
+  },
   "dokumenteDemo": {
     "listTitle": "Documents",
     "listLead": "Spray records, ЕСУТД evidence, contracts, grant dossiers and certificates.",

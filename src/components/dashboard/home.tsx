@@ -27,6 +27,7 @@ export function DashboardHome({
   datum,
   spruch,
   ceoUebersicht,
+  finanzVorschau,
 }: {
   kpis: Kpi[];
   quelle: Datenquelle;
@@ -43,6 +44,8 @@ export function DashboardHome({
    * nicht den echten automatischen Lauf einer fremden Person ausloesen.
    */
   ceoUebersicht?: ReactNode;
+  /** Ebenfalls serverseitig vorgerendert, aus demselben Grund wie oben. */
+  finanzVorschau?: ReactNode;
 }) {
   const { role } = usePersona();
 
@@ -59,6 +62,7 @@ export function DashboardHome({
     <div className="space-y-6">
       <BegruessungsBox tageszeit={tageszeit} datum={datum} spruch={spruch} />
       {ceoUebersicht}
+      {finanzVorschau}
       <ZonenBox role={role} kpis={sichtbar} quelle={quelle} />
     </div>
   );

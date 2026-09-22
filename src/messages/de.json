@@ -1210,6 +1210,16 @@
     "keineChargen": "Keine Charge mit eigener Buchung in diesem Zeitraum. Buchungen ohne Chargenbezug stehen hier nicht.",
     "ohneErntetag": "ohne Erntetag"
   },
+  "finanzVorschau": {
+    "titel": "Finanzen im laufenden Monat",
+    "lead": "Was im {monat} gebucht wurde.",
+    "leer": "Im {monat} wurde noch nichts gebucht.",
+    "erloes": "Erlöse",
+    "kosten": "Kosten",
+    "deckungsbeitrag": "Deckungsbeitrag",
+    "buchungen": "Buchungen: {anzahl}",
+    "link": "Zur Finanzseite"
+  },
   "dokumenteDemo": {
     "listTitle": "Dokumente",
     "listLead": "Spritzmittelprotokolle, ЕСУТД-Nachweise, Verträge, Förderdossiers und Zertifikate.",
