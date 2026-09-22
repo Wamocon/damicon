@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { BefundAenderung, Bericht } from "@/lib/pruefung/typen";
 
 // Liest den automatischen CEO-Compliance-Bericht (compliance_ceo_berichte,
-// Migration 20261103030000). RLS beschraenkt SELECT auf ceo/admin (has_role()),
+// Migration 20261108020000). RLS beschraenkt SELECT auf ceo/admin (has_role()),
 // diese Funktion filtert selbst nicht zusaetzlich nach Rolle.
 
 export interface CeoBerichtZeile {

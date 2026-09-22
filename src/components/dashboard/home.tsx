@@ -26,7 +26,7 @@ export function DashboardHome({
   tageszeit,
   datum,
   spruch,
-  ceoUebersicht,
+  tagesUebersicht,
   finanzVorschau,
 }: {
   kpis: Kpi[];
@@ -36,15 +36,20 @@ export function DashboardHome({
   datum: string;
   spruch: number;
   /**
-   * Serverseitig vorgerendert (async Server Component) und von der Seite
-   * durchgereicht, nicht hier importiert: DashboardHome ist "use client"
-   * (usePersona()), eine Server Component laesst sich dort nicht direkt
-   * einbinden. Server-seitig an der ECHTEN Profilrolle festgemacht, nicht an
-   * der hier umschaltbaren Vorschau-Rolle - eine Admin-Vorschau "als ceo" soll
-   * nicht den echten automatischen Lauf einer fremden Person ausloesen.
+   * "Das Wichtigste heute" fuer ceo und admin. Serverseitig vorgerendert
+   * (async Server Component) und von der Seite durchgereicht, nicht hier
+   * importiert: DashboardHome ist "use client" (usePersona()), eine Server
+   * Component laesst sich dort nicht direkt einbinden. Server-seitig an der
+   * ECHTEN Profilrolle festgemacht, nicht an der hier umschaltbaren
+   * Vorschau-Rolle - eine Admin-Vorschau "als ceo" soll nicht den echten
+   * automatischen Lauf einer fremden Person ausloesen.
    */
-  ceoUebersicht?: ReactNode;
-  /** Ebenfalls serverseitig vorgerendert, aus demselben Grund wie oben. */
+  tagesUebersicht?: ReactNode;
+  /**
+   * Nur fuer Rollen, die Finanzen sehen duerfen, aber keine Tages-Uebersicht
+   * bekommen (buchhaltung, betriebsleitung). Wer beides haette, saehe dieselbe
+   * Zahl zweimal - dort traegt die fuenfte Kachel sie.
+   */
   finanzVorschau?: ReactNode;
 }) {
   const { role } = usePersona();
@@ -61,7 +66,7 @@ export function DashboardHome({
   return (
     <div className="space-y-6">
       <BegruessungsBox tageszeit={tageszeit} datum={datum} spruch={spruch} />
-      {ceoUebersicht}
+      {tagesUebersicht}
       {finanzVorschau}
       <ZonenBox role={role} kpis={sichtbar} quelle={quelle} />
     </div>

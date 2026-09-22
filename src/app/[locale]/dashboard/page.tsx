@@ -1,10 +1,11 @@
 import { getFormatter, setRequestLocale } from "next-intl/server";
 import { DashboardHome } from "@/components/dashboard/home";
-import { CeoComplianceUebersicht } from "@/components/dashboard/ceo-compliance-uebersicht";
+import { TagesUebersicht } from "@/components/dashboard/tages-uebersicht";
 import { FinanzVorschau } from "@/components/dashboard/finanz-vorschau";
 import { ladeKpis } from "@/lib/data/kpis";
 import { getSessionProfile } from "@/lib/auth";
 import { kpisFuerRolle } from "@/lib/domain/kpis";
+import { darfCeoBerichtLesen } from "@/lib/pruefung/rollen";
 import { hasPermission } from "@/lib/rbac";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import {
@@ -63,6 +64,16 @@ export default async function DashboardPage({
     ? hasPermission(profil?.role, "finanzen", "view")
     : true;
 
+  // Die Tages-Uebersicht gilt seit dem 23.09.2026 fuer ceo UND admin. Entschieden wird an der
+  // ECHTEN Profilrolle, nicht an der clientseitig umschaltbaren Vorschau-Rolle - dieselbe
+  // Abgrenzung wie in ceo-pruefung-kontext.tsx. Im Demo-Betrieb ohne Supabase gibt es keinen
+  // gespeicherten Bericht, dort stuende sonst eine leere Karte.
+  const zeigtTagesUebersicht = isSupabaseConfigured() && darfCeoBerichtLesen(profil?.role);
+
+  // Die Finanzzahlen stehen an genau einer Stelle: entweder als fuenfte Kachel in der
+  // Tages-Uebersicht, oder - fuer Rollen ohne sie, etwa buchhaltung - weiterhin als eigene
+  // Vorschau darunter. Beides zugleich waere dieselbe Zahl zweimal auf einer Seite, keines
+  // von beidem waere fuer die Buchhaltung ein Rueckschritt gegenueber heute.
   const jetzt = new Date();
 
   return (
@@ -75,8 +86,8 @@ export default async function DashboardPage({
         timeZone: betriebsZeitzone,
       })}
       spruch={spruchIndex(jetzt)}
-      ceoUebersicht={profil?.role === "ceo" ? <CeoComplianceUebersicht /> : null}
-      finanzVorschau={darfFinanzenSehen ? <FinanzVorschau /> : null}
+      tagesUebersicht={zeigtTagesUebersicht ? <TagesUebersicht mitFinanzen={darfFinanzenSehen} /> : null}
+      finanzVorschau={!zeigtTagesUebersicht && darfFinanzenSehen ? <FinanzVorschau /> : null}
     />
   );
 }

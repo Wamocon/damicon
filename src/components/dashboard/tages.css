@@ -1,0 +1,98 @@
+/* Tages-Uebersicht auf der Startseite: "Das Wichtigste heute" und die fuenf Kacheln.
+   Erweitert die Bausteine aus components/pruefung/pruefung.css, statt sie zu kopieren -
+   deshalb tragen die Klassen hier denselben pr-Praefix. Die Datei liegt beim Dashboard und
+   nicht bei der Pruefung, weil sie ausschliesslich dort gilt: pruefung.css beschreibt den
+   Bericht, diese Datei seine Kurzfassung auf der Startseite.
+
+   Farbe traegt nirgends allein die Bedeutung (DESIGN.md Regel 7): jede Stufe steht zusaetzlich
+   als Wort in der Urteilszeile, jeder Zahlenchip traegt seinen Namen. */
+
+/* pruefung.css enthaelt @container pa (max-width: 620px) fuer die Kopfkarte. Der Container
+   wird sonst nur von .pa in pruefung-ablauf.css aufgemacht, also im KI-Panel. Ohne ihn
+   bliebe die Kopfkarte auf dem Handy zweispaltig - der Ring neben einem 120 px schmalen
+   Textblock. Dieselbe Zeile, damit die vorhandene Regel hier genauso greift. */
+.tages-flaeche {
+  container: pa / inline-size;
+  display: grid;
+  gap: 0.9rem;
+}
+
+/* Kompakte Kopfkarte: derselbe Aufbau wie im Bericht, nur kleinerer Ring. Auf der Startseite
+   steht sie zwischen Begruessung und Zonen und darf nicht die halbe Seite fuellen. */
+.pr-kopfkarte--kompakt .pr-messer {
+  width: 6rem;
+  height: 6rem;
+}
+.pr-kopfkarte--kompakt .pr-messer__zahl {
+  font-size: 1.7rem;
+}
+
+/* Die drei Punkte aus "Das Wichtigste heute". Bewusst eine ol: die Reihenfolge ist die
+   Aussage (Prioritaeten des Berichts zuerst, dann die schwersten Befunde). */
+.tages-punkte {
+  margin: 0;
+  padding-left: 1.15rem;
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  line-height: 1.3rem;
+}
+.tages-punkte li::marker {
+  font-weight: 800;
+  color: var(--muted-foreground);
+}
+.tages-punkte__bereich {
+  font-weight: 700;
+  color: var(--muted-foreground);
+}
+
+/* Fuenf Kacheln nebeneinander, sobald der Platz reicht. Das Grundraster .pr-kacheln ist
+   auto-fit/minmax(210px) und legte sonst ab rund 1100 px 4+1 um - eine einzelne Kachel in
+   der zweiten Reihe sieht aus wie ein Nachtrag, dabei sind alle fuenf gleichrangig. */
+@media (min-width: 1280px) {
+  .pr-kacheln--fuenf {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* Die Kacheln sind Links, keine Knoepfe - sie funktionieren damit ohne JavaScript
+   (DESIGN.md Regel 6). Mit JavaScript faengt onClick die vier Pruefkacheln ab und oeffnet
+   das Blatt; ohne fuehrt der Link auf /dashboard/compliance. */
+.pr-kachel--verweis {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Hover hebt die Kachel um 1 px (pruefung.css Z. 404). Der Rueckfall fehlte dort. */
+@media (prefers-reduced-motion: reduce) {
+  .pr-kachel {
+    transition: none;
+  }
+  .pr-kachel:hover {
+    transform: none;
+  }
+}
+
+/* Bereich, den der Bericht nicht fuehrt, und die Finanzkachel: beide tragen keine Reife und
+   duerfen deshalb weder gruen noch rot wirken. */
+[data-stufe="offen"] {
+  --stufe: var(--muted-foreground);
+}
+[data-stufe="neutral"] {
+  --stufe: var(--primary);
+}
+
+/* Neutraler Chip in der Zahlenleiste, fuer Erloese und Kosten. Anders als .pr-status traegt er
+   keine Statusfarbe: eine Zahl ist hier weder gut noch schlecht, der Name steht daneben. */
+.pr-wert {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+  background: color-mix(in oklab, var(--muted-foreground) 10%, transparent);
+}

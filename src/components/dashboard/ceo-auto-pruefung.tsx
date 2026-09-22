@@ -4,8 +4,12 @@ import { useTranslations } from "next-intl";
 import { PruefungAblauf } from "@/components/pruefung/pruefung-ablauf";
 import "@/components/pruefung/pruefung.css";
 import "@/components/pruefung/pruefung-ablauf.css";
-import { CeoBereichsKacheln } from "@/components/dashboard/ceo-bereichs-kacheln";
+import "@/components/dashboard/tages.css";
+import { TagesKacheln } from "@/components/dashboard/tages-kacheln";
+import { TagesZusammenfassung } from "@/components/dashboard/tages-zusammenfassung";
 import { useCeoPruefung } from "@/components/dashboard/ceo-pruefung-kontext";
+import { tagesbericht } from "@/lib/domain/tagesbericht";
+import type { FinanzVorschau } from "@/lib/data/finanzen";
 import type { BefundAenderung, Bericht } from "@/lib/pruefung/typen";
 
 // Zeigt den geteilten Stand aus ceo-pruefung-kontext.tsx (Provider haengt am
@@ -16,54 +20,23 @@ import type { BefundAenderung, Bericht } from "@/lib/pruefung/typen";
 // Dashboards unterbricht das nicht mehr: der Strom haengt nicht an dieser
 // Komponente. Stellt sich beim guenstigen Vorab-Check heraus, dass sich
 // nichts geaendert hat, kommt sofort derselbe Bericht wie zuvor zurueck.
-
-function AenderungsZeile({ a }: { a: BefundAenderung }) {
-  const t = useTranslations("ceoUebersicht");
-  const tp = useTranslations("pruefung");
-  return (
-    <li>
-      <span className="font-medium text-foreground">{a.titel}</span>:{" "}
-      {a.art === "neu"
-        ? t("aenderungArt.neu")
-        : a.art === "status_veraendert"
-          ? t("aenderungArt.statusVeraendert", { vorher: tp(`status.${a.vorherStatus}`), jetzt: tp(`status.${a.status}`) })
-          : t("aenderungArt.schwereVeraendert", { vorher: tp(`schwere.${a.vorherSchwere}`), jetzt: tp(`schwere.${a.schwere}`) })}
-    </li>
-  );
-}
-
-function BerichtMitAenderungen({ bericht, aenderungen }: { bericht: Bericht; aenderungen: BefundAenderung[] }) {
-  const t = useTranslations("ceoUebersicht");
-  return (
-    <div className="space-y-4">
-      {aenderungen.length === 0 ? (
-        <p className="text-xs text-muted-foreground">{t("keineAenderung")}</p>
-      ) : (
-        <div className="space-y-1.5 rounded-xl border border-border bg-muted/20 p-3">
-          <p className="text-xs font-semibold text-foreground">{t("aenderungenAnzahl", { anzahl: aenderungen.length })}</p>
-          <ul className="space-y-1 text-[11px] leading-5 text-muted-foreground">
-            {aenderungen.map((a) => (
-              <AenderungsZeile key={a.befundId} a={a} />
-            ))}
-          </ul>
-        </div>
-      )}
-      <CeoBereichsKacheln bericht={bericht} />
-    </div>
-  );
-}
+//
+// Seit dem 23.09.2026 steht darunter nicht mehr der volle Bericht, sondern seine
+// Kurzfassung: Zusammenfassung plus fuenf Kacheln. Massnahmenplan, Hinweise und
+// Siegel stehen auf /dashboard/compliance, wohin jede Kachel fuehrt.
 
 export function CeoAutoPruefung({
   initialBericht,
   initialAenderungen,
+  vorschau,
 }: {
   /** Serverseitig geladener letzter Stand (lib/data/compliance-ceo.ts) - zu sehen, solange
    *  der eigene Live-Strom entweder noch nicht gestartet oder ohne eigenen Bericht (Fehler) endet. */
   initialBericht: Bericht | null;
   initialAenderungen: BefundAenderung[];
+  /** Finanzen des laufenden Monats fuer die fuenfte Kachel. null, wenn die Rolle sie nicht sehen darf. */
+  vorschau: FinanzVorschau | null;
 }) {
-  const t = useTranslations("ceoUebersicht");
-  const tp = useTranslations("pruefung");
   const stand = useCeoPruefung();
 
   if (stand?.phase === "laeuft") {
@@ -81,12 +54,28 @@ export function CeoAutoPruefung({
   const aktuell = kandidaten.length === 0
     ? null
     : kandidaten.reduce((a, b) => (new Date(b.bericht.erstelltAm) > new Date(a.bericht.erstelltAm) ? b : a));
-  const bericht = aktuell?.bericht ?? null;
-  const aenderungen = aktuell?.aenderungen ?? [];
 
-  if (!bericht) {
-    const text = stand?.phase === "fehler" ? tp("fehler.allgemein") : t("nochKeinBericht");
-    return <p className="rounded-xl border border-dashed border-border p-4 text-xs leading-5 text-muted-foreground">{text}</p>;
-  }
-  return <BerichtMitAenderungen bericht={bericht} aenderungen={aenderungen} />;
+  const bericht = aktuell?.bericht ?? null;
+  const zusammenfassung = tagesbericht(bericht, aktuell?.aenderungen ?? []);
+
+  return (
+    <div className="tages-flaeche">
+      <Fehlerhinweis phase={stand?.phase} />
+      <TagesZusammenfassung stand={zusammenfassung} />
+      <TagesKacheln bericht={bericht} vorschau={vorschau} />
+    </div>
+  );
+}
+
+// Ein gescheiterter Lauf darf nicht als "noch kein Bericht" durchgehen, und ein vorhandener
+// aelterer Bericht darf dabei nicht verschwinden - deshalb eine eigene Zeile darueber statt
+// eines Austauschs des ganzen Blocks.
+function Fehlerhinweis({ phase }: { phase: string | undefined }) {
+  const tp = useTranslations("pruefung");
+  if (phase !== "fehler") return null;
+  return (
+    <p className="rounded-xl border border-dashed border-destructive/40 p-3 text-xs leading-5 text-muted-foreground">
+      {tp("fehler.allgemein")}
+    </p>
+  );
 }

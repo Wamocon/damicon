@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 import { usePersona } from "@/components/dashboard/persona";
 import { usePruefung, type PruefungStand } from "@/components/pruefung/use-pruefung";
+import { darfCeoBericht } from "@/lib/pruefung/rollen";
 
 // Haengt am Dashboard-Layout, nicht an der Startseite: der Live-Strom des
 // automatischen CEO-Compliance-Laufs (usePruefung gegen /api/ki-pruefung/auto)
@@ -23,8 +24,9 @@ export function CeoPruefungProvider({ children }: { children: ReactNode }) {
   // Echte Profilrolle, nicht die clientseitig umschaltbare Vorschau-Rolle:
   // eine Admin-Vorschau "als ceo" soll nicht den echten automatischen Lauf
   // einer fremden Person ausloesen (dieselbe Abgrenzung wie zuvor auf der
-  // Startseite).
-  const aktiv = !demoModus && echteRolle === "ceo";
+  // Startseite). Umgekehrt soll eine Vorschau "als kunde" den echten Lauf des
+  // Admins nicht abwuergen - auch dafuer ist echteRolle die richtige Frage.
+  const aktiv = !demoModus && darfCeoBericht(echteRolle);
   const sprache = useLocale();
   const router = useRouter();
   const { stand, starten } = usePruefung("/api/ki-pruefung/auto");
@@ -43,7 +45,7 @@ export function CeoPruefungProvider({ children }: { children: ReactNode }) {
   return <CeoPruefungContext.Provider value={aktiv ? stand : null}>{children}</CeoPruefungContext.Provider>;
 }
 
-/** null: keine ceo-Sitzung (oder Demo-Modus) - hier gibt es nichts zu zeigen. */
+/** null: weder ceo noch admin (oder Demo-Modus) - hier gibt es nichts zu zeigen. */
 export function useCeoPruefung(): PruefungStand | null {
   return useContext(CeoPruefungContext);
 }

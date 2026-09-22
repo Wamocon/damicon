@@ -1218,7 +1218,9 @@
     "kosten": "Cost",
     "deckungsbeitrag": "Contribution margin",
     "buchungen": "Postings: {anzahl}",
-    "link": "Go to finances"
+    "link": "Go to finances",
+    "kurz": "Finances",
+    "kachelHinweis": "{anzahl, plural, one {# posting} other {# postings}} · go to finances"
   },
   "dokumenteDemo": {
     "listTitle": "Documents",
@@ -3134,8 +3136,8 @@
     }
   },
   "ceoUebersicht": {
-    "titel": "Compliance overview",
-    "untertitel": "Checked automatically on every login, all four areas in one run.",
+    "titel": "What matters today",
+    "untertitel": "State of the four audit areas and of finances, checked automatically on every login.",
     "zuletztGeprueft": "Last checked on {datum}",
     "nochKeinBericht": "No automatic report yet. The first run starts in the background after this login, reload the page in a few minutes.",
     "aktualisieren": "Check now",
@@ -3149,7 +3151,20 @@
       "neu": "new",
       "statusVeraendert": "Status changed: {vorher} → {jetzt}",
       "schwereVeraendert": "Severity changed: {vorher} → {jetzt}"
-    }
+    },
+    "punkteTitel": "What needs attention today",
+    "keinePunkte": "No open points from the last report.",
+    "ohneZusammenfassung": "{punkte, plural, one {# open point} other {# open points}} in the last report.",
+    "zahlen": {
+      "sofort": "{anzahl, plural, one {# immediate} other {# immediate}}",
+      "ohneDaten": "{anzahl, plural, one {# point without data} other {# points without data}}"
+    },
+    "veraltet": "Older than 24 hours",
+    "weitereAenderungen": "and {anzahl} more",
+    "vollerBericht": "Open the full report",
+    "laeuftBereits": "A check is already running.",
+    "nichtGeprueft": "Not checked",
+    "ohneDaten": "No current data"
   },
   "pruefungAblauf": {
     "schritt": {
@@ -3232,5 +3247,12 @@
     },
     "verifikation": "The content of this report is sealed with a SHA-256 checksum. Anyone with the accompanying JSON file can recompute the seal in Damicon with \"Verify seal\"; any later change is detected.",
     "tipp": "Tip for the print dialog: turn \"Headers and footers\" off, paper size A4. Colours and branding are applied automatically."
+  },
+  "complianceBericht": {
+    "titel": "Compliance report",
+    "lead": "The most recently stored overall report on audit, tax, law and risk.",
+    "zurueck": "Back to overview",
+    "stand": "As of {datum}",
+    "keinBericht": "No stored report yet. The first run starts in the background after the next login."
   }
 }

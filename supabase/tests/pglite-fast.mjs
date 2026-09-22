@@ -1238,6 +1238,71 @@ await mussScheitern(
   await db.query("delete from public.kpi_verlauf where gemessen_am in (date '2026-09-20', date '2026-09-21');");
 }
 
+// --- CEO-Berichte: ceo und admin schreiben, sonst niemand --------------------
+// Seit 20261110000000_ceo_bericht_admin.sql darf auch admin einen Bericht
+// ausloesen (Auftrag vom 23.09.2026, Tages-Uebersicht fuer ceo UND admin).
+// Geprueft wird die Policy selbst, nicht der Rollenhelfer in der Anwendung -
+// die beiden koennen auseinanderlaufen, und nur diese Seite haelt wirklich.
+{
+  const berichtJson = JSON.stringify({ id: "t", befunde: [] });
+  const einfuegen = `insert into public.compliance_ceo_berichte (quelle, bereiche, bericht)
+     values ('manuell', array['audit']::text[], $1::jsonb) returning id;`;
+
+  const { rows: ceo } = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-ceo@damicon.demo', '{"role":"ceo"}'::jsonb) returning id;`,
+  );
+  const { rows: adm } = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-admin@damicon.demo', '{"role":"admin"}'::jsonb) returning id;`,
+  );
+  const { rows: buch } = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-buchhaltung@damicon.demo', '{"role":"buchhaltung"}'::jsonb) returning id;`,
+  );
+
+  await alsRolle(db, "authenticated", ceo[0].id);
+  const ceoSchreibt = await db.query(einfuegen, [berichtJson]);
+  await alsAdmin(db);
+  check("CEO-Bericht: ceo darf schreiben", ceoSchreibt.rows.length === 1);
+
+  await alsRolle(db, "authenticated", adm[0].id);
+  const adminSchreibt = await db.query(einfuegen, [berichtJson]);
+  await alsAdmin(db);
+  check("CEO-Bericht: admin darf jetzt auch schreiben", adminSchreibt.rows.length === 1);
+
+  await alsRolle(db, "authenticated", buch[0].id);
+  await mussScheitern(db, "CEO-Bericht: Buchhaltung darf nicht schreiben", einfuegen, [berichtJson], "42501");
+
+  await alsRolle(db, "authenticated", adm[0].id);
+  const { rows: adminLiest } = await db.query("select id from public.compliance_ceo_berichte;");
+  await alsAdmin(db);
+  check("CEO-Bericht: admin liest beide Zeilen", adminLiest.length === 2, `Zeilen: ${adminLiest.length}`);
+
+  await alsRolle(db, "authenticated", buch[0].id);
+  const { rows: buchLiest } = await db.query("select id from public.compliance_ceo_berichte;");
+  await alsAdmin(db);
+  check("CEO-Bericht: Buchhaltung sieht nichts", buchLiest.length === 0, `Zeilen: ${buchLiest.length}`);
+
+  // Der Ausloeser wird serverseitig aus der Sitzung gesetzt, nicht aus der Eingabe
+  // uebernommen (Trigger ceo_bericht_ausloeser_setzen). Bei einem Admin-Lauf muss
+  // deshalb sein Profil dranstehen, nicht das des CEO.
+  const { rows: ausloeser } = await db.query(
+    `select p.role from public.compliance_ceo_berichte b
+       join public.profiles p on p.id = b.ausgeloest_von
+      where b.id = $1;`,
+    [adminSchreibt.rows[0].id],
+  );
+  check("CEO-Bericht: der Ausloeser wird gesetzt, nicht behauptet", ausloeser[0]?.role === "admin", `Rolle: ${ausloeser[0]?.role}`);
+
+  // alsAdmin() setzt nur die Postgres-Rolle zurueck, nicht die JWT-Claims - auth.uid() bliebe
+  // sonst auf dem zuletzt simulierten Konto stehen, und nachfolgende Bloecke liefen unbemerkt
+  // als diese Person weiter. Hier faellt das auf, weil der Aufraeumschritt am Dateiende dann
+  // am Unveraenderlichkeits-Trigger scheitert.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+  await db.query("select set_config('request.jwt.claim.role', '', false);");
+}
+
 // --- Aufraeumen ---------------------------------------------------------------
 await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [behandlungId]);
 await db.query("update public.reihenbloecke set status = 'ruhend' where id = $1;", [blockId]);

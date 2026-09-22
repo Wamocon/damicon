@@ -8,17 +8,19 @@ import { letzterCeoBericht } from "@/lib/data/compliance-ceo";
 import { fuehreAus, fuehrePruefungAus } from "@/lib/pruefung/agenten";
 import { sha256Hex } from "@/lib/pruefung/befund";
 import { punkteFuer } from "@/lib/pruefung/felder";
-import { PRUEFBEREICHE, type Pruefbereich } from "@/lib/pruefung/rollen";
+import { darfCeoBericht, erlaubteBereiche, type Pruefbereich } from "@/lib/pruefung/rollen";
 import type { BefundAenderung, Bericht, Ereignis } from "@/lib/pruefung/typen";
 import { createClient } from "@/lib/supabase/server";
 import { pruefeWissenGesundheit, sucheWissen } from "@/lib/wissen/suche";
 
-// Automatischer Compliance-Lauf fuer die Rolle ceo: alle vier Pruefbereiche in
-// einem Lauf (fuehrePruefungAus() unterstuetzt das bereits), ausgeloest beim
-// Login (route.ts unter app/api/ki-pruefung/auto) oder manuell (actions/
-// compliance-ceo.ts). Persistiert wird nach lib/data/compliance-ceo.ts
-// (compliance_ceo_berichte), append-only, siehe die Migration
-// 20261103030000_compliance_ceo_berichte.sql.
+// Automatischer Compliance-Lauf fuer die Rollen ceo und admin: alle vier
+// Pruefbereiche in einem Lauf (fuehrePruefungAus() unterstuetzt das bereits),
+// ausgeloest beim Login (route.ts unter app/api/ki-pruefung/auto) oder manuell
+// (actions/compliance-ceo.ts). Wer ausloesen darf, steht an genau einer Stelle:
+// darfCeoBericht() in lib/pruefung/rollen.ts. Persistiert wird nach
+// lib/data/compliance-ceo.ts (compliance_ceo_berichte), append-only, siehe die
+// Migrationen 20261108020000_compliance_ceo_berichte.sql (Tabelle) und
+// 20261110000000_ceo_bericht_admin.sql (INSERT auch fuer admin).
 //
 // Aenderungserkennung: dieselben Lesewerkzeuge, die ein Lauf ohnehin fuer
 // jedes Pruefungsfeld aufruft, werden hier ausserhalb eines Modellaufrufs
@@ -95,25 +97,44 @@ export interface AktualisiereCeoBerichtOptionen {
 export type AktualisiereCeoBerichtErgebnis =
   /** bericht fehlt nur, wenn eine zweite parallele Anfrage abgewiesen wurde, bevor je ein Bericht existierte. */
   | { status: "uebersprungen"; bericht?: Bericht }
+  /** Jemand anderes prueft gerade. Eigener Status, damit der Knopf das sagen kann, statt so zu tun, als sei nichts passiert. */
+  | { status: "laeuft-bereits" }
   | { status: "erzeugt"; bericht: Bericht; aenderungen: BefundAenderung[] }
   | { status: "fehler"; grund: "keine-berechtigung" | "wissensbasis" | "kein-anbieter" | "speichern" | "unbekannt" };
 
-// Wie laufend in app/api/ki-pruefung/route.ts: verhindert einen doppelten Lauf innerhalb
-// derselben Serverinstanz (z. B. zwei parallele Tabs). Kein Schutz ueber mehrere Instanzen
-// hinweg - dieselbe, bereits akzeptierte Grenze wie beim manuellen Lauf.
-const laufend = new Set<string>();
+// Verhindert einen doppelten Lauf innerhalb derselben Serverinstanz (zwei parallele Tabs,
+// oder seit dem 23.09.2026 auch ceo und admin nebeneinander). Die Sperre haengt bewusst am
+// BERICHT und nicht mehr an profil.id: es gibt genau einen Bericht je Betrieb, kein Bericht
+// je Person - mit zwei ausloesenden Rollen liefen sonst zwei teure Laeufe nebeneinander,
+// nur weil die Ids verschieden sind. Kein Schutz ueber mehrere Instanzen hinweg - dieselbe,
+// bereits akzeptierte Grenze wie beim manuellen Lauf in app/api/ki-pruefung/route.ts.
+let laeuft = false;
+
+// Ein automatischer Lauf startet nicht, wenn der letzte Bericht juenger als dies ist. Der Fall,
+// den das abdeckt: der CEO meldet sich um 08:00 an und loest den Lauf aus, der admin um 08:05
+// sieht denselben frischen Bericht, ohne ihn ein zweites Mal zu bezahlen. Der manuelle Knopf
+// (erzwungen) laeuft trotzdem sofort.
+const ABKUEHLZEIT_MS = 15 * 60_000;
 
 export async function aktualisiereCeoBericht({ profil, erzwungen, sprache, emit }: AktualisiereCeoBerichtOptionen): Promise<AktualisiereCeoBerichtErgebnis> {
-  if (profil.role !== "ceo") return { status: "fehler", grund: "keine-berechtigung" };
-  if (laufend.has(profil.id)) return { status: "uebersprungen" };
-  laufend.add(profil.id);
+  if (!darfCeoBericht(profil.role)) return { status: "fehler", grund: "keine-berechtigung" };
+  if (laeuft) return { status: "laeuft-bereits" };
+  laeuft = true;
 
   try {
-    const bereiche = [...PRUEFBEREICHE];
+    // erlaubteBereiche() statt [...PRUEFBEREICHE]: fuer ceo und admin sind das dieselben vier,
+    // aber die Zeile hoert auf zu behaupten, der Umfang haenge nicht an der Rolle - und passt
+    // damit zu baueWerkzeuge(profil.role) in der naechsten Zeile.
+    const bereiche = erlaubteBereiche(profil.role);
+    if (bereiche.length === 0) return { status: "fehler", grund: "keine-berechtigung" };
     const werkzeuge = baueWerkzeuge(profil.role, { nurLesen: true }) as Record<string, unknown>;
     const letzter = await letzterCeoBericht();
 
     if (!erzwungen && letzter) {
+      // Vor der Hash-Pruefung, denn auch die kostet schon Lesevorgaenge.
+      if (Date.now() - new Date(letzter.erstelltAm).getTime() < ABKUEHLZEIT_MS) {
+        return { status: "uebersprungen", bericht: letzter.bericht };
+      }
       const aktuelleHashes = await aktuelleFaktenHashes(bereiche, werkzeuge);
       if (!berichtHatSichGeaendert(letzter.bericht, aktuelleHashes)) {
         return { status: "uebersprungen", bericht: letzter.bericht };
@@ -139,7 +160,7 @@ export async function aktualisiereCeoBericht({ profil, erzwungen, sprache, emit 
     }).catch(() => {});
 
     const bericht = await fuehrePruefungAus(
-      { rolle: "ceo", ersteller: { name: profil.fullName }, bereiche, abgelehnt: [], sprache },
+      { rolle: profil.role, ersteller: { name: profil.fullName }, bereiche, abgelehnt: [], sprache },
       {
         modell: kette.modell,
         modellName: kette.namen.length > 1 ? `${anbieter.modell} (mit Ausweichanbieter ${kette.namen.slice(1).join(", ")})` : anbieter.modell,
@@ -178,6 +199,6 @@ export async function aktualisiereCeoBericht({ profil, erzwungen, sprache, emit 
     console.error("[damicon] CEO-Auto-Pruefung fehlgeschlagen:", e);
     return { status: "fehler", grund: "unbekannt" };
   } finally {
-    laufend.delete(profil.id);
+    laeuft = false;
   }
 }

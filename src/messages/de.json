@@ -1218,7 +1218,9 @@
     "kosten": "Kosten",
     "deckungsbeitrag": "Deckungsbeitrag",
     "buchungen": "Buchungen: {anzahl}",
-    "link": "Zur Finanzseite"
+    "link": "Zur Finanzseite",
+    "kurz": "Finanzen",
+    "kachelHinweis": "{anzahl, plural, one {# Buchung} other {# Buchungen}} · zur Finanzseite"
   },
   "dokumenteDemo": {
     "listTitle": "Dokumente",
@@ -3134,8 +3136,8 @@
     }
   },
   "ceoUebersicht": {
-    "titel": "Compliance-Übersicht",
-    "untertitel": "Automatisch bei jedem Login geprüft, alle vier Bereiche in einem Lauf.",
+    "titel": "Das Wichtigste heute",
+    "untertitel": "Stand der vier Prüfbereiche und der Finanzen, automatisch bei jedem Login geprüft.",
     "zuletztGeprueft": "Zuletzt geprüft am {datum}",
     "nochKeinBericht": "Noch kein automatischer Bericht vorhanden. Der erste Lauf startet im Hintergrund nach diesem Login, laden Sie die Seite in ein paar Minuten neu.",
     "aktualisieren": "Jetzt neu prüfen",
@@ -3149,7 +3151,20 @@
       "neu": "neu",
       "statusVeraendert": "Status geändert: {vorher} → {jetzt}",
       "schwereVeraendert": "Schwere geändert: {vorher} → {jetzt}"
-    }
+    },
+    "punkteTitel": "Worauf es heute ankommt",
+    "keinePunkte": "Keine offenen Punkte aus dem letzten Bericht.",
+    "ohneZusammenfassung": "{punkte, plural, one {# offener Punkt} other {# offene Punkte}} im letzten Bericht.",
+    "zahlen": {
+      "sofort": "{anzahl, plural, one {# sofort} other {# sofort}}",
+      "ohneDaten": "{anzahl, plural, one {# Punkt ohne Daten} other {# Punkte ohne Daten}}"
+    },
+    "veraltet": "Älter als 24 Stunden",
+    "weitereAenderungen": "und {anzahl} weitere",
+    "vollerBericht": "Vollen Bericht öffnen",
+    "laeuftBereits": "Eine Prüfung läuft bereits.",
+    "nichtGeprueft": "Nicht geprüft",
+    "ohneDaten": "Keine aktuellen Daten"
   },
   "pruefungAblauf": {
     "schritt": {
@@ -3232,5 +3247,12 @@
     },
     "verifikation": "Der Inhalt dieses Berichts ist mit einer SHA-256-Prüfsumme versiegelt. Wer die begleitende JSON-Datei besitzt, kann das Siegel in Damicon über „Siegel prüfen“ nachrechnen; jede nachträgliche Änderung fällt auf.",
     "tipp": "Tipp für den Druckdialog: „Kopf- und Fußzeilen“ ausschalten, Papierformat A4. Farben und Marke werden automatisch übernommen."
+  },
+  "complianceBericht": {
+    "titel": "Compliance-Bericht",
+    "lead": "Der zuletzt gespeicherte Gesamtbericht über Audit, Steuern, Recht und Risiko.",
+    "zurueck": "Zurück zur Übersicht",
+    "stand": "Stand {datum}",
+    "keinBericht": "Es liegt noch kein gespeicherter Bericht vor. Der erste Lauf startet im Hintergrund nach dem nächsten Login."
   }
 }
