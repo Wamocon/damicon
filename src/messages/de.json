@@ -322,7 +322,7 @@
       "fehlerHint": "Die Abfrage ist fehlgeschlagen. Angezeigt werden ersatzweise Beispieldaten - sie stammen nicht aus dem Betrieb."
     },
     "rbacHintLabel": "Rollen",
-    "rbacHint": "Welche Module sichtbar sind, hängt von der Rolle des angemeldeten Kontos ab. Sieben Kernrollen von der Administration bis zum einzelnen Pflücker im Feld - dieselbe Rolle entscheidet auch in der Datenbank über Lese- und Schreibrechte.",
+    "rbacHint": "Welche Module sichtbar sind, hängt von der Rolle des angemeldeten Kontos ab. Acht Kernrollen von der Geschäftsführung bis zum einzelnen Pflücker im Feld, dieselbe Rolle entscheidet auch in der Datenbank über Lese- und Schreibrechte.",
     "home": {
       "target": "Ziel",
       "zonesTitle": "Die vier Zonen",
@@ -385,6 +385,7 @@
     "viewAsHint": "Ansicht als Rolle - ändert nur die Darstellung, die Schreibrechte richten sich weiter nach Ihrem Profil",
     "viewAsBadge": "Ansicht: {role}",
     "admin": "Administration",
+    "ceo": "Geschäftsführung",
     "betriebsleitung": "Betriebsleitung",
     "buchhaltung": "Buchhaltung",
     "brigade": "Brigade / Feld",
@@ -393,6 +394,7 @@
     "kunde": "B2B-Kunde",
     "descriptions": {
       "admin": "Volle Konfiguration, Nutzer- und Rollenverwaltung, sensible Finanz-, Zugriffs- und Integrationsaufsicht.",
+      "ceo": "Überblick über alle vier Zonen, alle Kennzahlen und alle vier Compliance-Bereiche, ohne Verwaltung der KI-Provider-Schlüssel. Erhält automatisch aktualisierte Compliance-Berichte beim Login.",
       "betriebsleitung": "Täglicher Plantagenbetrieb, Aufgaben, Rotation, Personal und Freigaben. Kann Finanzen einsehen, aber nicht buchen.",
       "buchhaltung": "Deckungsbeitrag, Lohn, Zahlungen, staatliche Meldungen. Keine Nutzerverwaltung, keine Feldabschlüsse.",
       "brigade": "Nimmt Pflückaufgaben an, erfasst Menge und Fotobeleg im Feld, sieht Rotation und Wartezeitsperren.",
@@ -626,7 +628,7 @@
     "rollen": {
       "title": "Rollen und Rechte",
       "navTitle": "Rollen und Rechte",
-      "description": "Sieben Kernrollen von der Administration über Betriebsleitung und Buchhaltung bis zur Brigade und dem einzelnen Pflücker im Feld, dem Erzeuger und dem B2B-Kunden - mit einer Rechtematrix über Ressourcen und Aktionen.",
+      "description": "Acht Kernrollen von der Geschäftsführung und Administration über Betriebsleitung und Buchhaltung bis zur Brigade und dem einzelnen Pflücker im Feld, dem Erzeuger und dem B2B-Kunden, mit einer Rechtematrix über Ressourcen und Aktionen.",
       "summary": "Legt fest, wer was sehen und ändern darf. Eine neue Rolle lässt sich anlegen, ohne dass an den Modulen etwas geändert werden muss.",
       "todo": "Nutzerverwaltung, Rollenzuweisung, feingranulare Zugriffsregeln je Ressource."
     },
@@ -3031,6 +3033,7 @@
     },
     "rolle": {
       "admin": "Administration",
+      "ceo": "Geschäftsführung",
       "betriebsleitung": "Betriebsleitung",
       "buchhaltung": "Buchhaltung",
       "brigade": "Brigade",
@@ -3094,6 +3097,24 @@
       "fragePlan": "Erstelle mir einen konkreten, priorisierten Lösungsplan für alle Verstöße und Lücken aus dem Prüfbericht: Schritte, Verantwortliche, Fristen und welche Nachweise ich ablegen sollte. Nutze die Wissensbasis und nenne die Fundstellen.",
       "frageMassnahme": "Wie setze ich diese Maßnahme aus dem Prüfbericht konkret um? Feld: {titel}. Maßnahme: {schritt}. Nenne die einzelnen Schritte, die Nachweise, die ich brauche, und die Rechtsgrundlage.",
       "frageHinweis": "Der Prüfbericht konnte dieses Feld nicht belastbar bewerten: {titel}. Was muss ich bereitstellen oder klären, damit es beurteilt werden kann?"
+    }
+  },
+  "ceoUebersicht": {
+    "titel": "Compliance-Übersicht",
+    "untertitel": "Automatisch bei jedem Login geprüft, alle vier Bereiche in einem Lauf.",
+    "zuletztGeprueft": "Zuletzt geprüft am {datum}",
+    "nochKeinBericht": "Noch kein automatischer Bericht vorhanden. Der erste Lauf startet im Hintergrund nach diesem Login, laden Sie die Seite in ein paar Minuten neu.",
+    "aktualisieren": "Jetzt neu prüfen",
+    "aktualisiertGerade": "Prüfung läuft …",
+    "laeuftImHintergrund": "Prüfung läuft",
+    "laeuftImHintergrundHinweis": "Die automatische Compliance-Prüfung läuft im Hintergrund weiter, auch auf dieser Seite. Klick führt zur Startseite mit dem vollen Fortschritt.",
+    "keineAenderung": "Keine Änderungen seit dem letzten Bericht.",
+    "aenderungenAnzahl": "{anzahl, plural, one {# Änderung} other {# Änderungen}} seit dem letzten Bericht",
+    "kachelOeffnen": "{anzahl, plural, one {# Befund} other {# Befunde}} · Details ansehen",
+    "aenderungArt": {
+      "neu": "neu",
+      "statusVeraendert": "Status geändert: {vorher} → {jetzt}",
+      "schwereVeraendert": "Schwere geändert: {vorher} → {jetzt}"
     }
   },
   "pruefungAblauf": {

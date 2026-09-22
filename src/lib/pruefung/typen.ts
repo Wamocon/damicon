@@ -61,6 +61,17 @@ export interface MassnahmeMitBezug extends Massnahme {
   schwere: Schwere;
 }
 
+/** Was sich bei einem Befund gegenueber dem vorigen automatischen CEO-Bericht veraendert hat (lib/pruefung/ceo-auto.ts). */
+export interface BefundAenderung {
+  befundId: string;
+  titel: string;
+  art: "neu" | "status_veraendert" | "schwere_veraendert";
+  status: BefundStatus;
+  schwere: Schwere;
+  vorherStatus?: BefundStatus;
+  vorherSchwere?: Schwere;
+}
+
 export interface Siegel {
   algorithmus: "SHA-256";
   wert: string;
@@ -104,5 +115,8 @@ export type Ereignis =
   | { t: "feld"; bereich: Pruefbereich; feld: string; phase: FeldPhase; anzahl?: number; text?: string }
   | { t: "befund"; befund: Befund }
   | { t: "synthese"; phase: "start" | "fertig" }
-  | { t: "bericht"; bericht: Bericht; protokolliert: boolean }
+  // aenderungen nur gesetzt vom automatischen CEO-Lauf (app/api/ki-pruefung/auto):
+  // was sich gegenueber dem vorigen automatischen Bericht veraendert hat, leer bei
+  // einem manuellen Lauf ueber app/api/ki-pruefung (dort undefined).
+  | { t: "bericht"; bericht: Bericht; protokolliert: boolean; aenderungen?: BefundAenderung[] }
   | { t: "fehler"; text: string };

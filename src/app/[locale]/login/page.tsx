@@ -6,7 +6,7 @@ import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { LoginForm } from "@/components/auth/login-form";
 import { PlantationBackdrop } from "@/components/site/plantation-backdrop";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { roles } from "@/lib/rbac";
+import { roles, type Role } from "@/lib/rbac";
 
 export async function generateMetadata({
   params,
@@ -27,8 +27,12 @@ function zeigeDemoZugaenge(): boolean {
   return process.env.NODE_ENV !== "production";
 }
 
-const demoKonten: Record<string, string> = {
+// Record<Role, string> statt Record<string, string>: eine vergessene Rolle (wie es der
+// Rolle ceo zunaechst hier passiert ist, siehe git-Historie) faellt jetzt beim Typecheck
+// auf, nicht erst als leere Zeile auf der Anmeldeseite.
+const demoKonten: Record<Role, string> = {
   admin: "admin@damicon.demo",
+  ceo: "ceo@damicon.demo",
   betriebsleitung: "leitung@damicon.demo",
   buchhaltung: "buchhaltung@damicon.demo",
   brigade: "brigade@damicon.demo",

@@ -66,6 +66,7 @@ angelegt - je Rolle eines, Passwort für alle `DamiconDemo2026!`:
 | Rolle | Konto |
 |---|---|
 | Administration | `admin@damicon.demo` |
+| CEO | `ceo@damicon.demo` |
 | Betriebsleitung | `leitung@damicon.demo` |
 | Buchhaltung | `buchhaltung@damicon.demo` |
 | Brigade / Feld | `brigade@damicon.demo` |

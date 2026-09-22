@@ -1,5 +1,6 @@
 import { getFormatter, setRequestLocale } from "next-intl/server";
 import { DashboardHome } from "@/components/dashboard/home";
+import { CeoComplianceUebersicht } from "@/components/dashboard/ceo-compliance-uebersicht";
 import { ladeKpis } from "@/lib/data/kpis";
 import { getSessionProfile } from "@/lib/auth";
 import { kpisFuerRolle } from "@/lib/domain/kpis";
@@ -8,6 +9,13 @@ import {
   spruchIndex,
   tageszeitBestimmen,
 } from "@/lib/domain/tageszeit";
+
+// Anforderung aus dem Auftrag vom 22.09.2026: der manuelle "Jetzt neu
+// pruefen"-Knopf der CEO-Uebersicht ist eine Server Action auf dieser Seite
+// und kann je nach Aenderungslage mehrere Modellaufrufe brauchen - derselbe
+// Wert wie app/api/ki-pruefung/route.ts fuer denselben zugrunde liegenden
+// Lauf (fuehrePruefungAus()).
+export const maxDuration = 300;
 
 export default async function DashboardPage({
   params,
@@ -57,6 +65,7 @@ export default async function DashboardPage({
         timeZone: betriebsZeitzone,
       })}
       spruch={spruchIndex(jetzt)}
+      ceoUebersicht={profil?.role === "ceo" ? <CeoComplianceUebersicht /> : null}
     />
   );
 }

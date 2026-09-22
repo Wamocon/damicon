@@ -382,6 +382,101 @@
 .pr-siegel__urteil[data-ok="nein"] {
   color: var(--destructive);
 }
+/* ---- Bereichs-Kacheln (CEO-Uebersicht): ein Bereich, ein Klick, Details im Sheet ---------------- */
+.pr-kacheln {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+.pr-kachel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--stufe);
+  border-radius: 1rem;
+  background: var(--card);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+.pr-kachel:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px -10px color-mix(in oklab, var(--stufe) 60%, transparent);
+}
+.pr-kachel:focus-visible {
+  outline: 2px solid var(--stufe);
+  outline-offset: 2px;
+}
+.pr-kachel__kopf {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.pr-kachel__symbol {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 0.6rem;
+  color: var(--farbe);
+  background: color-mix(in oklab, var(--farbe) 14%, transparent);
+}
+.pr-kachel__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+.pr-kachel__pfeil {
+  flex: none;
+  color: var(--muted-foreground);
+  transition: transform 0.15s ease;
+}
+.pr-kachel:hover .pr-kachel__pfeil {
+  transform: translateX(2px);
+}
+.pr-kachel__reife {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+.pr-kachel__zahl {
+  font-size: 1.6rem;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--stufe);
+}
+.pr-kachel__label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.pr-kachel__urteil {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--stufe);
+}
+.pr-kachel__fuss {
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--muted-foreground);
+}
+.pr-bereich-detail__kz {
+  margin: 0 0 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--muted-foreground);
+}
+
 .pr-fehler {
   padding: 0.9rem 1rem;
   border: 1px solid color-mix(in oklab, var(--destructive) 40%, var(--border));

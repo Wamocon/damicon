@@ -31,6 +31,9 @@ export const demoPasswort = "DamiconDemo2026!";
 
 const demoBenutzer = [
   { email: "admin@damicon.demo", role: "admin", full_name: "Aigerim Serikbaj" },
+  // Achte Rolle ceo (nachtraeglich, weicht von "Anforderung 7.1: genau sieben
+  // Rollen" ab, siehe supabase/migrations/20261103020000_ceo_rolle.sql).
+  { email: "ceo@damicon.demo", role: "ceo", full_name: "Nurlan Abenov" },
   { email: "leitung@damicon.demo", role: "betriebsleitung", full_name: "Daniyar Omarov" },
   { email: "buchhaltung@damicon.demo", role: "buchhaltung", full_name: "Saltanat Nurlan" },
   { email: "brigade@damicon.demo", role: "brigade", full_name: "Ruslan Beisenov" },

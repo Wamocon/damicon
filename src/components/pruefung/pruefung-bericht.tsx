@@ -30,7 +30,7 @@ function MitZitaten({ text }: { text: string }) {
   );
 }
 
-function BefundKarte({ b, belege, index }: { b: Befund; belege: Bericht["belege"]; index: number }) {
+export function BefundKarte({ b, belege, index }: { b: Befund; belege: Bericht["belege"]; index: number }) {
   const t = useTranslations("pruefung");
   const [erledigt, setErledigt] = useState<ReadonlySet<number>>(new Set());
   const eigene = belege.filter((x) => b.belege.includes(x.id));
@@ -100,17 +100,111 @@ function BefundKarte({ b, belege, index }: { b: Befund; belege: Bericht["belege"
   );
 }
 
-export function PruefungBericht({ bericht }: { bericht: Bericht }) {
+/** Reife-Kachel, Urteil, Zusammenfassung und Status-Zeile - fuer sich lesbar, deshalb eigens exportiert
+ *  (wiederverwendet von der CEO-Bereichsuebersicht, ceo-bereichs-kacheln.tsx). */
+export function Kopfkarte({ bericht }: { bericht: Bericht }) {
+  const t = useTranslations("pruefung");
+  const kz = bericht.kennzahlen;
+  const ziel = 301.6 * (1 - kz.reife / 100);
+  return (
+    <div className="pr-kopfkarte" data-stufe={kz.stufe}>
+      <div className="pr-messer" style={{ ["--ziel" as string]: ziel }}>
+        <svg viewBox="0 0 110 110" aria-hidden>
+          <circle className="pr-messer__spur" cx="55" cy="55" r="48" />
+          <circle className="pr-messer__wert" cx="55" cy="55" r="48" />
+        </svg>
+        <div className="pr-messer__mitte">
+          <span className="pr-messer__zahl">{kz.reife}</span>
+          <span className="pr-messer__label">{t("bericht.reife")}</span>
+        </div>
+      </div>
+      <div>
+        <p className="pr-urteil">{t(`stufe.${kz.stufe}`)}</p>
+        <p className="pr-zusammenfassung">{bericht.zusammenfassung}</p>
+        <div className="pr-zahlenleiste">
+          {(["verstoss", "luecke", "hinweis", "konform"] as const).map((s) => (
+            <span key={s} className="pr-status" data-status={s}>
+              {kz.nachStatus[s]} {t(`status.${s}`)}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function Prioritaeten({ bericht }: { bericht: Bericht }) {
+  const t = useTranslations("pruefung");
+  if (bericht.prioritaeten.length === 0) return null;
+  return (
+    <div>
+      <h3 className="pr-abschnitt__titel">{t("bericht.prioritaeten")}</h3>
+      <ol className="pr-prioritaeten">
+        {bericht.prioritaeten.map((p, i) => (
+          <li key={i}>{p}</li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+export function Massnahmenplan({ bericht }: { bericht: Bericht }) {
+  const t = useTranslations("pruefung");
+  const [nurMeine, setNurMeine] = useState(false);
+  const plan = useMemo(() => bericht.massnahmen.filter((m) => !nurMeine || m.verantwortlich === bericht.ersteller.rolle), [bericht.massnahmen, bericht.ersteller.rolle, nurMeine]);
+  return (
+    <div>
+      <h3 className="pr-abschnitt__titel">{t("bericht.massnahmen")}</h3>
+      <div className="pr-filter">
+        <button type="button" aria-pressed={!nurMeine} onClick={() => setNurMeine(false)}>{t("bericht.alle")}</button>
+        <button type="button" aria-pressed={nurMeine} onClick={() => setNurMeine(true)}>{t("bericht.nurMeine")}</button>
+      </div>
+      <div className="pr-plan">
+        {FRISTEN.map((f) => {
+          const liste = plan.filter((m) => m.frist === f);
+          return (
+            <div key={f} className="pr-plan__spalte">
+              <h4 className="pr-abschnitt__titel">
+                {t(`frist.${FRIST_SCHLUESSEL[f]}`)} ({liste.length})
+              </h4>
+              <ul className="pr-massnahmen">
+                {liste.map((m, i) => (
+                  <li key={i} className="pr-massnahme">
+                    <span>
+                      {m.schritt}
+                      <span className="pr-chip">{t(`rolle.${m.verantwortlich}`)}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+export function Hinweise({ bericht }: { bericht: Bericht }) {
+  const t = useTranslations("pruefung");
+  if (bericht.hinweise.length === 0 && bericht.vollstaendig) return null;
+  return (
+    <div>
+      <h3 className="pr-abschnitt__titel">{t("bericht.hinweise")}</h3>
+      <ul className="pr-nachweise">
+        {!bericht.vollstaendig ? <li>{t("bericht.unvollstaendig")}</li> : null}
+        {bericht.hinweise.map((h, i) => (
+          <li key={i}>{h}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+export function Siegel({ bericht }: { bericht: Bericht }) {
   const t = useTranslations("pruefung");
   const tp = useTranslations("pruefungPdf");
-  const [filter, setFilter] = useState<Pruefbereich | "alle">("alle");
-  const [nurMeine, setNurMeine] = useState(false);
   const [siegel, setSiegel] = useState<"offen" | "ja" | "nein">("offen");
-  const kz = bericht.kennzahlen;
-  const bereiche = PRUEFBEREICHE.filter((b) => bericht.bereiche.includes(b));
-  const befunde = useMemo(() => bericht.befunde.filter((b) => filter === "alle" || b.bereich === filter), [bericht.befunde, filter]);
-  const plan = useMemo(() => bericht.massnahmen.filter((m) => !nurMeine || m.verantwortlich === bericht.ersteller.rolle), [bericht.massnahmen, bericht.ersteller.rolle, nurMeine]);
-  const ziel = 301.6 * (1 - kz.reife / 100);
 
   const pruefen = async () => setSiegel((await siegelGueltig(bericht)) ? "ja" : "nein");
   const alsPdf = () => berichtAlsPdfSpeichern(bericht, { t: (k, w) => t(k, w), p: (k, w) => tp(k, w) });
@@ -124,41 +218,51 @@ export function PruefungBericht({ bericht }: { bericht: Bericht }) {
   };
 
   return (
-    <section className="pr-bericht" aria-label={t("bericht.titel")}>
-      <div className="pr-kopfkarte" data-stufe={kz.stufe}>
-        <div className="pr-messer" style={{ ["--ziel" as string]: ziel }}>
-          <svg viewBox="0 0 110 110" aria-hidden>
-            <circle className="pr-messer__spur" cx="55" cy="55" r="48" />
-            <circle className="pr-messer__wert" cx="55" cy="55" r="48" />
-          </svg>
-          <div className="pr-messer__mitte">
-            <span className="pr-messer__zahl">{kz.reife}</span>
-            <span className="pr-messer__label">{t("bericht.reife")}</span>
-          </div>
-        </div>
-        <div>
-          <p className="pr-urteil">{t(`stufe.${kz.stufe}`)}</p>
-          <p className="pr-zusammenfassung">{bericht.zusammenfassung}</p>
-          <div className="pr-zahlenleiste">
-            {(["verstoss", "luecke", "hinweis", "konform"] as const).map((s) => (
-              <span key={s} className="pr-status" data-status={s}>
-                {kz.nachStatus[s]} {t(`status.${s}`)}
-              </span>
-            ))}
-          </div>
-        </div>
+    <div className="pr-siegel">
+      <h3 className="pr-abschnitt__titel" style={{ margin: 0 }}>
+        <ShieldCheck className="mr-1 inline h-4 w-4" /> {t("siegel.titel")}
+      </h3>
+      <dl>
+        <dt>{t("siegel.id")}</dt>
+        <dd><code>{bericht.id}</code></dd>
+        <dt>{t("siegel.erstellt")}</dt>
+        <dd>{new Date(bericht.erstelltAm).toLocaleString()} · {bericht.ersteller.name} ({t(`rolle.${bericht.ersteller.rolle}`)})</dd>
+        <dt>{t("siegel.modell")}</dt>
+        <dd>{bericht.modell}</dd>
+        <dt>{t("siegel.pruefsumme")}</dt>
+        <dd><code>{bericht.siegel.algorithmus} {bericht.siegel.wert}</code></dd>
+      </dl>
+      <div className="pr-siegel__aktionen">
+        <button type="button" className="pr-knopf" onClick={pruefen}>
+          <ShieldCheck className="h-4 w-4" /> {t("siegel.pruefen")}
+        </button>
+        <button type="button" className="pr-knopf pr-knopf--haupt" onClick={alsPdf}>
+          <FileDown className="h-4 w-4" /> {tp("speichern")}
+        </button>
+        <button type="button" className="pr-knopf" onClick={exportieren}>
+          <FileJson className="h-4 w-4" /> {tp("json")}
+        </button>
       </div>
-
-      {bericht.prioritaeten.length > 0 ? (
-        <div>
-          <h3 className="pr-abschnitt__titel">{t("bericht.prioritaeten")}</h3>
-          <ol className="pr-prioritaeten">
-            {bericht.prioritaeten.map((p, i) => (
-              <li key={i}>{p}</li>
-            ))}
-          </ol>
-        </div>
+      <p className="pr-tipp">{tp("tipp")}</p>
+      {siegel !== "offen" ? (
+        <p className={cn("pr-siegel__urteil")} data-ok={siegel} role="status">
+          {siegel === "ja" ? t("siegel.gueltig") : t("siegel.ungueltig")}
+        </p>
       ) : null}
+    </div>
+  );
+}
+
+export function PruefungBericht({ bericht }: { bericht: Bericht }) {
+  const t = useTranslations("pruefung");
+  const [filter, setFilter] = useState<Pruefbereich | "alle">("alle");
+  const bereiche = PRUEFBEREICHE.filter((b) => bericht.bereiche.includes(b));
+  const befunde = useMemo(() => bericht.befunde.filter((b) => filter === "alle" || b.bereich === filter), [bericht.befunde, filter]);
+
+  return (
+    <section className="pr-bericht" aria-label={t("bericht.titel")}>
+      <Kopfkarte bericht={bericht} />
+      <Prioritaeten bericht={bericht} />
 
       <div>
         <h3 className="pr-abschnitt__titel">{t("bericht.befunde")}</h3>
@@ -183,80 +287,9 @@ export function PruefungBericht({ bericht }: { bericht: Bericht }) {
         </ul>
       </div>
 
-      <div>
-        <h3 className="pr-abschnitt__titel">{t("bericht.massnahmen")}</h3>
-        <div className="pr-filter">
-          <button type="button" aria-pressed={!nurMeine} onClick={() => setNurMeine(false)}>{t("bericht.alle")}</button>
-          <button type="button" aria-pressed={nurMeine} onClick={() => setNurMeine(true)}>{t("bericht.nurMeine")}</button>
-        </div>
-        <div className="pr-plan">
-          {FRISTEN.map((f) => {
-            const liste = plan.filter((m) => m.frist === f);
-            return (
-              <div key={f} className="pr-plan__spalte">
-                <h4 className="pr-abschnitt__titel">
-                  {t(`frist.${FRIST_SCHLUESSEL[f]}`)} ({liste.length})
-                </h4>
-                <ul className="pr-massnahmen">
-                  {liste.map((m, i) => (
-                    <li key={i} className="pr-massnahme">
-                      <span>
-                        {m.schritt}
-                        <span className="pr-chip">{t(`rolle.${m.verantwortlich}`)}</span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {bericht.hinweise.length > 0 || !bericht.vollstaendig ? (
-        <div>
-          <h3 className="pr-abschnitt__titel">{t("bericht.hinweise")}</h3>
-          <ul className="pr-nachweise">
-            {!bericht.vollstaendig ? <li>{t("bericht.unvollstaendig")}</li> : null}
-            {bericht.hinweise.map((h, i) => (
-              <li key={i}>{h}</li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-
-      <div className="pr-siegel">
-        <h3 className="pr-abschnitt__titel" style={{ margin: 0 }}>
-          <ShieldCheck className="mr-1 inline h-4 w-4" /> {t("siegel.titel")}
-        </h3>
-        <dl>
-          <dt>{t("siegel.id")}</dt>
-          <dd><code>{bericht.id}</code></dd>
-          <dt>{t("siegel.erstellt")}</dt>
-          <dd>{new Date(bericht.erstelltAm).toLocaleString()} · {bericht.ersteller.name} ({t(`rolle.${bericht.ersteller.rolle}`)})</dd>
-          <dt>{t("siegel.modell")}</dt>
-          <dd>{bericht.modell}</dd>
-          <dt>{t("siegel.pruefsumme")}</dt>
-          <dd><code>{bericht.siegel.algorithmus} {bericht.siegel.wert}</code></dd>
-        </dl>
-        <div className="pr-siegel__aktionen">
-          <button type="button" className="pr-knopf" onClick={pruefen}>
-            <ShieldCheck className="h-4 w-4" /> {t("siegel.pruefen")}
-          </button>
-          <button type="button" className="pr-knopf pr-knopf--haupt" onClick={alsPdf}>
-            <FileDown className="h-4 w-4" /> {tp("speichern")}
-          </button>
-          <button type="button" className="pr-knopf" onClick={exportieren}>
-            <FileJson className="h-4 w-4" /> {tp("json")}
-          </button>
-        </div>
-        <p className="pr-tipp">{tp("tipp")}</p>
-        {siegel !== "offen" ? (
-          <p className={cn("pr-siegel__urteil")} data-ok={siegel} role="status">
-            {siegel === "ja" ? t("siegel.gueltig") : t("siegel.ungueltig")}
-          </p>
-        ) : null}
-      </div>
+      <Massnahmenplan bericht={bericht} />
+      <Hinweise bericht={bericht} />
+      <Siegel bericht={bericht} />
     </section>
   );
 }

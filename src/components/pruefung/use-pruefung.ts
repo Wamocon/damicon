@@ -2,7 +2,7 @@
 
 import { useCallback, useReducer, useRef } from "react";
 import type { Pruefbereich } from "@/lib/pruefung/rollen";
-import type { AgentPhase, Befund, Bericht, Ereignis } from "@/lib/pruefung/typen";
+import type { AgentPhase, Befund, BefundAenderung, Bericht, Ereignis } from "@/lib/pruefung/typen";
 
 // Zustand der laufenden Pruefung im Browser: liest den Ereignisstrom von /api/ki-pruefung (eine
 // JSON-Zeile je Ereignis) und macht daraus den Stand, den die Ablaufansicht zeichnet. Reine Reduktion,
@@ -51,13 +51,15 @@ export interface PruefungStand {
   synthese: "aus" | "laeuft" | "fertig";
   log: LogZeile[];
   bericht: Bericht | null;
+  /** Nur beim automatischen CEO-Lauf gesetzt (app/api/ki-pruefung/auto): was sich seit dem vorigen Bericht veraendert hat. */
+  aenderungen: BefundAenderung[] | null;
   protokolliert: boolean;
   fehler: FehlerArt | null;
   beginn: number | null;
   ende: number | null;
 }
 
-const START: PruefungStand = { phase: "bereit", agenten: {}, reihenfolge: [], abgelehnt: [], befunde: [], synthese: "aus", log: [], bericht: null, protokolliert: false, fehler: null, beginn: null, ende: null };
+const START: PruefungStand = { phase: "bereit", agenten: {}, reihenfolge: [], abgelehnt: [], befunde: [], synthese: "aus", log: [], bericht: null, aenderungen: null, protokolliert: false, fehler: null, beginn: null, ende: null };
 
 type Aktion = { t: "ereignis"; e: Ereignis; zeit: number } | { t: "beginn"; zeit: number } | { t: "fehler"; art: FehlerArt; zeit: number } | { t: "zurueck" };
 
@@ -129,13 +131,15 @@ function reduziere(s: PruefungStand, a: Aktion): PruefungStand {
     case "synthese":
       return mitLog({ ...s, synthese: e.phase === "start" ? "laeuft" : "fertig" }, { art: "synthese", text: e.phase });
     case "bericht":
-      return { ...s, phase: "fertig", bericht: e.bericht, protokolliert: e.protokolliert, ende: a.zeit };
+      return { ...s, phase: "fertig", bericht: e.bericht, aenderungen: e.aenderungen ?? null, protokolliert: e.protokolliert, ende: a.zeit };
     case "fehler":
       return { ...s, phase: "fehler", fehler: "allgemein", ende: a.zeit };
   }
 }
 
-export function usePruefung() {
+/** endpunkt: derselbe Ereignis-Strom (siehe Ereignis in typen.ts) bedient sowohl die manuelle Pruefung
+ *  (/api/ki-pruefung) als auch den automatischen CEO-Lauf (/api/ki-pruefung/auto). */
+export function usePruefung(endpunkt = "/api/ki-pruefung") {
   const [stand, dispatch] = useReducer(reduziere, START);
   const abbruch = useRef<AbortController | null>(null);
 
@@ -145,7 +149,7 @@ export function usePruefung() {
     abbruch.current = ac;
     dispatch({ t: "beginn", zeit: Date.now() });
     try {
-      const antwort = await fetch("/api/ki-pruefung", {
+      const antwort = await fetch(endpunkt, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ bereiche, sprache }),
@@ -181,7 +185,7 @@ export function usePruefung() {
     } catch {
       if (!ac.signal.aborted) dispatch({ t: "fehler", art: "allgemein", zeit: Date.now() });
     }
-  }, []);
+  }, [endpunkt]);
 
   const abbrechen = useCallback(() => {
     abbruch.current?.abort();
