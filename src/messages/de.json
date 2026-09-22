@@ -1116,7 +1116,7 @@
   },
   "finanzenAnsicht": {
     "uebersichtTitel": "Deckungsbeitrag auf einen Blick",
-    "uebersichtLead": "Summe über alle Kostenträger und Buchungen. Erlöse und Kosten kommen aus dem unveränderlichen Finanzjournal.",
+    "uebersichtLead": "Erlöse und Kosten aus dem unveränderlichen Finanzjournal, gezählt nach Buchungsdatum im gewählten Zeitraum.",
     "stat": {
       "erloes": "Erlöse",
       "kosten": "Kosten",
@@ -1184,12 +1184,12 @@
     },
     "zeitraum": {
       "label": "Zeitraum",
-      "nachErntetag": "Zeitraum nach Erntetag",
-      "nachBuchungsdatum": "Zeitraum nach Buchungsdatum",
       "monat": "Dieser Monat",
       "vormonat": "Letzter Monat",
       "jahr": "Dieses Jahr",
-      "alles": "Alles"
+      "alles": "Alles",
+      "gefiltertErntetag": "Die Tabelle ist nach Erntetag gefiltert.",
+      "gefiltertBuchungsdatum": "Die Tabelle ist nach Buchungsdatum gefiltert."
     },
     "monatsListe": {
       "label": "Monat",

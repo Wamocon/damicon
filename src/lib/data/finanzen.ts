@@ -37,6 +37,13 @@ import { einsAus } from "@/lib/data/util";
 // bei den Buchungen ein Abschnitt ohne Weg zu den aelteren. Beides entscheidet
 // jetzt der Aufrufer ueber Zeitraum und Zeilenzahl.
 
+/** Eine Zeile aus public.finanz_summe() - die Funktion gibt genau eine. */
+type FinanzSummeZeile = {
+  erloes_tenge: number;
+  kosten_tenge: number;
+  buchungen: number;
+};
+
 export interface FinanzenFilter {
   zeitraum: Zeitraum;
   /** Nur fuer die Buchungsliste. Kostentraeger und Chargen kennen keinen Typ. */
@@ -73,20 +80,20 @@ export interface FinanzenUebersicht {
   monate: string[];
 }
 
-function summen(zeilen: DeckungsbeitragZeile[]) {
-  return {
-    erloesTenge: zeilen.reduce((s, z) => s + z.erloesTenge, 0),
-    kostenTenge: zeilen.reduce((s, z) => s + z.kostenTenge, 0),
-  };
-}
-
-// Dasselbe fuer die schmale Kennzahlenabfrage, die nur drei Spalten liest und
-// deshalb keine DeckungsbeitragZeile ist.
-function addiere(zeilen: { erloes_tenge: number | null; kosten_tenge: number | null }[]) {
-  return {
-    erloesTenge: zeilen.reduce((s, r) => s + Number(r.erloes_tenge), 0),
-    kostenTenge: zeilen.reduce((s, r) => s + Number(r.kosten_tenge), 0),
-  };
+// Erloese und Kosten aus Journalzeilen. Bewusst NICHT aus
+// deckungsbeitrag_je_kostentraeger: die View summiert alle Buchungen eines
+// Kostentraegers ueber dessen ganze Laufzeit und laesst sich nur nach
+// Erntetag eingrenzen - als Monatszahl waere das eine andere Groesse als auf
+// der Uebersichtsseite. Beide Seiten rechnen jetzt dasselbe. In der Datenbank
+// macht das public.finanz_summe(), hier steht nur der Demo-Weg.
+function ledgerSummen(zeilen: { typ: LedgerTyp; betragTenge: number }[]) {
+  let erloesTenge = 0;
+  let kostenTenge = 0;
+  for (const z of zeilen) {
+    if (z.typ === "erloes") erloesTenge += z.betragTenge;
+    else kostenTenge += z.betragTenge;
+  }
+  return { erloesTenge, kostenTenge };
 }
 
 // Ein Datum ohne Wert faellt nicht durch den Filter: Zukauf-Kostentraeger
@@ -100,8 +107,6 @@ function imZeitraum(datum: string | null, grenzen: ZeitraumGrenzen): boolean {
 }
 
 function demoUebersicht(quelle: Datenquelle, filter: FinanzenFilter): FinanzenUebersicht {
-  const gesamt = summen(demoDeckungsbeitrag);
-
   // Im Demo-Betrieb wird derselbe Filter angewandt wie an der Datenbank, nur
   // im Speicher. Sonst verhielte sich die Oberflaeche ohne Supabase anders als
   // mit, und genau das laesst sich beim Pruefen nicht auseinanderhalten.
@@ -126,7 +131,15 @@ function demoUebersicht(quelle: Datenquelle, filter: FinanzenFilter): FinanzenUe
       charge: charge.length > filter.zeilen,
       ledger: ledger.length > filter.zeilen,
     },
-    summe: { zeitraum: summen(db), gesamt },
+    // Die Kacheln haengen am Zeitraum, nicht am Typ: die Typ-Pille filtert die
+    // Tabelle darunter. Waere sie hier mit drin, stuende bei "nur Kosten" eine
+    // Null als Erloes des Monats.
+    summe: {
+      zeitraum: ledgerSummen(
+        demoLedgerEintraege.filter((l) => imZeitraum(l.buchungsdatum, grenzen)),
+      ),
+      gesamt: ledgerSummen(demoLedgerEintraege),
+    },
     monate: monatsListe(aeltesteBuchung),
   };
 }
@@ -182,19 +195,25 @@ export async function ladeFinanzenUebersicht(
     { data: dbRows, error: dbFehler },
     { data: chargeRows, error: chargeFehler },
     { data: ledgerRows, error: ledgerFehler },
-    gesamtErgebnis,
+    summeZeitraum,
+    summeGesamt,
     aelteste,
   ] = await Promise.all([
     dbAbfrage,
     chargeAbfrage,
     ledgerAbfrage,
-    // Die Zahlen der Kennzahlenkacheln. Eine Abfrage fuer beide Summen: der
-    // Erntetag kommt mit, damit sich der Zeitraumanteil im Speicher abziehen
-    // laesst, statt dieselbe Tabelle ein zweites Mal gefiltert zu lesen.
-    // Drei Spalten ueber alle Kostentraeger, nichts davon wird gerendert.
-    supabase
-      .from("deckungsbeitrag_je_kostentraeger")
-      .select("erntetag, erloes_tenge, kosten_tenge"),
+    // Die Zahlen der Kennzahlenkacheln, beide aus derselben Funktion. Sie
+    // summiert in der Datenbank und gibt eine Zeile zurueck - ein Client, der
+    // alle Buchungen holt und selbst addiert, bekaeme ab der tausendsten
+    // stillschweigend eine falsche Summe (max_rows in config.toml).
+    //
+    // Ohne Typ: die Typ-Pille filtert die Tabelle darunter. Waere sie hier mit
+    // drin, stuende bei "nur Kosten" eine Null als Erloes des Monats.
+    supabase.rpc("finanz_summe", {
+      von: grenzen.von ?? undefined,
+      bis: grenzen.bis ?? undefined,
+    }),
+    supabase.rpc("finanz_summe", {}),
     // Aelteste Buchung fuer die Monatsliste im Filter. Eine Zeile, ueber
     // idx_ledger_datum.
     supabase
@@ -259,7 +278,12 @@ export async function ladeFinanzenUebersicht(
   }));
 
   const sichtbar = filter.zeilen;
-  const gesamtRows = gesamtErgebnis.data ?? null;
+  // Die Funktion liefert immer genau eine Zeile. Der Rueckfall auf Null gilt
+  // dem Fehlerfall, in dem data null ist.
+  const summeAus = (ergebnis: { data: FinanzSummeZeile[] | null }) => ({
+    erloesTenge: Number(ergebnis.data?.[0]?.erloes_tenge ?? 0),
+    kostenTenge: Number(ergebnis.data?.[0]?.kosten_tenge ?? 0),
+  });
 
   return {
     quelle: "db",
@@ -271,15 +295,7 @@ export async function ladeFinanzenUebersicht(
       charge: chargeAlle.length > sichtbar,
       ledger: ledgerAlle.length > sichtbar,
     },
-    summe: gesamtRows
-      ? {
-          zeitraum: addiere(gesamtRows.filter((r) => imZeitraum(r.erntetag, grenzen))),
-          gesamt: addiere(gesamtRows),
-        }
-      : {
-          zeitraum: summen(deckungsbeitragAlle),
-          gesamt: summen(deckungsbeitragAlle),
-        },
+    summe: { zeitraum: summeAus(summeZeitraum), gesamt: summeAus(summeGesamt) },
     monate: monatsListe(aelteste.data?.[0]?.buchungsdatum ?? null),
   };
 }
@@ -287,15 +303,11 @@ export async function ladeFinanzenUebersicht(
 // ---------------------------------------------------------------------------
 // Vorschau fuer die Uebersichtsseite
 //
-// Bewusst NICHT aus deckungsbeitrag_je_kostentraeger: die View summiert alle
-// Buchungen eines Kostentraegers ueber dessen ganze Laufzeit und laesst sich
-// nur nach Erntetag eingrenzen. "Erloese im September" waeren dort also
-// "Erloese aller im September geernteten Kostentraeger, seit es sie gibt" -
-// auf einer Kachel ohne Platz fuer eine Erklaerung ist das irrefuehrend.
-//
-// Hier wird deshalb direkt das Journal nach Buchungsdatum gelesen. Die Zahl
-// heisst dann genau das, was sie sagt: in diesem Monat gebucht. Eine Abfrage
-// ueber zwei Spalten, ueber idx_ledger_datum.
+// Dieselbe Rechnung wie die Kennzahlen der Finanzseite: public.finanz_summe()
+// ueber das Journal, eingegrenzt auf den laufenden Monat nach Buchungsdatum.
+// Beide Seiten zeigen damit garantiert denselben Wert - vorher rechnete die
+// Kachel nach Buchungsdatum und die Seite nach Erntetag, und beide nannten es
+// "September".
 // ---------------------------------------------------------------------------
 
 export interface FinanzVorschau {
@@ -307,46 +319,32 @@ export interface FinanzVorschau {
   buchungen: number;
 }
 
-function vorschauAus(
-  quelle: Datenquelle,
-  von: string,
-  zeilen: { typ: LedgerTyp; betrag_tenge: number | string }[],
-): FinanzVorschau {
-  let erloesTenge = 0;
-  let kostenTenge = 0;
-  for (const z of zeilen) {
-    if (z.typ === "erloes") erloesTenge += Number(z.betrag_tenge);
-    else kostenTenge += Number(z.betrag_tenge);
-  }
-  return { quelle, von, erloesTenge, kostenTenge, buchungen: zeilen.length };
-}
-
 export async function ladeFinanzVorschau(): Promise<FinanzVorschau> {
   const grenzen = zeitraumGrenzen("monat");
-  // zeitraumGrenzen liefert fuer "monat" immer beide Grenzen, der Fallback ist
-  // reine Typsicherheit.
+  // zeitraumGrenzen liefert fuer "monat" immer beide Grenzen, der Rueckfall
+  // ist reine Typsicherheit.
   const von = grenzen.von ?? "";
   const bis = grenzen.bis ?? "";
 
   if (!isSupabaseConfigured()) {
-    return vorschauAus(
-      "demo",
-      von,
-      demoLedgerEintraege
-        .filter((l) => imZeitraum(l.buchungsdatum, grenzen))
-        .map((l) => ({ typ: l.typ, betrag_tenge: l.betragTenge })),
-    );
+    const zeilen = demoLedgerEintraege.filter((l) => imZeitraum(l.buchungsdatum, grenzen));
+    return { quelle: "demo", von, ...ledgerSummen(zeilen), buchungen: zeilen.length };
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("finance_ledger_entries")
-    .select("typ, betrag_tenge")
-    .gte("buchungsdatum", von)
-    .lte("buchungsdatum", bis);
+  const { data, error } = await supabase.rpc("finanz_summe", { von, bis });
+  const zeile = (data as FinanzSummeZeile[] | null)?.[0];
 
-  if (error) return vorschauAus("fehler", von, []);
-  return vorschauAus("db", von, data ?? []);
+  if (error || !zeile) {
+    return { quelle: "fehler", von, erloesTenge: 0, kostenTenge: 0, buchungen: 0 };
+  }
+  return {
+    quelle: "db",
+    von,
+    erloesTenge: Number(zeile.erloes_tenge),
+    kostenTenge: Number(zeile.kosten_tenge),
+    buchungen: Number(zeile.buchungen),
+  };
 }
 
 // Referenzlisten fuer die Schreibformulare - wie ladeNachbarbetriebe() in

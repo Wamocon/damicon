@@ -181,7 +181,6 @@ export async function FinanzenAnsicht({
     zeilen: String(zeilen + ZEILEN_SCHRITT),
   });
 
-  const nachErntetag = bereich !== "buchungen";
   const summeDbZeitraum = summe.zeitraum.erloesTenge - summe.zeitraum.kostenTenge;
   const summeDbGesamt = summe.gesamt.erloesTenge - summe.gesamt.kostenTenge;
 
@@ -199,9 +198,6 @@ export async function FinanzenAnsicht({
         action={<DatenquelleBadge quelle={uebersicht.quelle} />}
       >
         <div className="space-y-3">
-          <p className="schrift-label font-semibold text-muted-foreground">
-            {nachErntetag ? t("zeitraum.nachErntetag") : t("zeitraum.nachBuchungsdatum")}
-          </p>
           <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
             <FilterPillen
               label={t("zeitraum.label")}
@@ -278,7 +274,7 @@ export async function FinanzenAnsicht({
       />
 
       {bereich === "kostentraeger" ? (
-        <Section title={t("kostentraegerTitel")} description={t("kostentraegerLead")}>
+        <Section title={t("kostentraegerTitel")} description={`${t("kostentraegerLead")} ${t("zeitraum.gefiltertErntetag")}`}>
           <div className="space-y-3">
             {darfBuchen ? (
               <Aufklapper
@@ -358,7 +354,7 @@ export async function FinanzenAnsicht({
       ) : null}
 
       {bereich === "charge" ? (
-        <Section title={t("chargeTitel")} description={t("chargeLead")}>
+        <Section title={t("chargeTitel")} description={`${t("chargeLead")} ${t("zeitraum.gefiltertErntetag")}`}>
           {tabelle(
             <DataTable
               matrix
@@ -424,7 +420,7 @@ export async function FinanzenAnsicht({
       ) : null}
 
       {bereich === "buchungen" ? (
-        <Section title={t("ledgerTitel")} description={t("ledgerLead")}>
+        <Section title={t("ledgerTitel")} description={`${t("ledgerLead")} ${t("zeitraum.gefiltertBuchungsdatum")}`}>
           <div className="space-y-3">
             <FilterPillen
               label={t("typFilter.label")}

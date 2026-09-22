@@ -1116,7 +1116,7 @@
   },
   "finanzenAnsicht": {
     "uebersichtTitel": "Contribution margin at a glance",
-    "uebersichtLead": "Total across all cost objects and postings. Revenue and cost come from the immutable finance ledger.",
+    "uebersichtLead": "Revenue and cost from the immutable finance journal, counted by posting date within the selected period.",
     "stat": {
       "erloes": "Revenue",
       "kosten": "Cost",
@@ -1184,12 +1184,12 @@
     },
     "zeitraum": {
       "label": "Period",
-      "nachErntetag": "Period by harvest day",
-      "nachBuchungsdatum": "Period by posting date",
       "monat": "This month",
       "vormonat": "Last month",
       "jahr": "This year",
-      "alles": "All"
+      "alles": "All",
+      "gefiltertErntetag": "The table is filtered by harvest day.",
+      "gefiltertBuchungsdatum": "The table is filtered by posting date."
     },
     "monatsListe": {
       "label": "Month",
