@@ -365,7 +365,7 @@
       },
       "luecke": {
         "titel": "Noch keine Messung.",
-        "berechenbar": "Wird aus vorhandenen Daten gerechnet, sobald sie erfasst sind.",
+        "berechenbar": "Die Daten liegen vor, die Auswertung dafür fehlt noch.",
         "erfassungFehlt": "Die Tabellen stehen bereit, die Werte werden noch nicht eingetragen.",
         "tabelleFehlt": "Das Datenmodell hat dafür noch keinen Platz.",
         "rechtlichUngeklaert": "Die rechtliche Grundlage ist noch nicht geklärt."
@@ -374,7 +374,7 @@
     "zoneModuleLead": "Alles, was in dieser Zone für die aktive Rolle freigegeben ist.",
     "zoneKennzahlTitel": "Kennzahlen",
     "zoneKennzahlLead": "Die Kennzahlen dieses Bereichs, die dringendste zuerst.",
-    "zoneKennzahlMehr": "{count} weitere Kennzahlen anzeigen",
+    "zoneKennzahlMehr": "{count, plural, one {# weitere Kennzahl anzeigen} other {# weitere Kennzahlen anzeigen}}",
     "zoneKennzahlWeniger": "Weitere Kennzahlen ausblenden"
   },
   "roles": {

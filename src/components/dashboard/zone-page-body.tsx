@@ -38,6 +38,12 @@ function Kennzahlen({ kpis, quelle }: { kpis: Kpi[]; quelle: Datenquelle }) {
 
   const { role } = usePersona();
 
+  // Der Lueckenhinweis gilt nur bei echter Datenbank. Im Demo-Modus ist keine
+  // Kennzahl gerechnet, weil gar keine Datenbank da ist - dort waere "die
+  // Auswertung fehlt noch" schlicht falsch. Die Pille am Abschnitt sagt in
+  // dem Fall bereits "Beispieldaten", und das ist die richtige Auskunft.
+  const istDb = quelle === "db";
+
   // Zweiter Durchlauf nach dem serverseitigen Vorfilter, genau wie in
   // home.tsx: ein Admin in der "Ansicht als"-Vorschau bekommt alle
   // Kennzahlen vom Server und schneidet hier auf die Vorschaurolle zu.
@@ -71,7 +77,7 @@ function Kennzahlen({ kpis, quelle }: { kpis: Kpi[]; quelle: Datenquelle }) {
             Fensterbreite. */}
         <div className="grid auto-rows-fr grid-cols-2 gap-2 @md:grid-cols-3 @xl:grid-cols-4">
           {kernSortiert.map((kpi) => (
-            <KennzahlBox key={kpi.key} kpi={kpi} zielband lueckeZeigen />
+            <KennzahlBox key={kpi.key} kpi={kpi} zielband lueckeZeigen={istDb} />
           ))}
         </div>
 
@@ -99,7 +105,7 @@ function Kennzahlen({ kpis, quelle }: { kpis: Kpi[]; quelle: Datenquelle }) {
             {offen ? (
               <div className="mt-3 grid auto-rows-fr grid-cols-2 gap-2 @md:grid-cols-3 @xl:grid-cols-4">
                 {erweitertSortiert.map((kpi) => (
-                  <KennzahlBox key={kpi.key} kpi={kpi} zielband lueckeZeigen />
+                  <KennzahlBox key={kpi.key} kpi={kpi} zielband lueckeZeigen={istDb} />
                 ))}
               </div>
             ) : null}

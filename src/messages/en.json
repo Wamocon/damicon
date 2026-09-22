@@ -365,7 +365,7 @@
       },
       "luecke": {
         "titel": "Not measured yet.",
-        "berechenbar": "Calculated from existing data as soon as it is recorded.",
+        "berechenbar": "The data is there, only the aggregation is still missing.",
         "erfassungFehlt": "The tables are in place, but nobody enters the values yet.",
         "tabelleFehlt": "The data model has no place for this yet.",
         "rechtlichUngeklaert": "The legal basis has not been clarified yet."
@@ -374,7 +374,7 @@
     "zoneModuleLead": "Everything released in this zone for the active role.",
     "zoneKennzahlTitel": "Key figures",
     "zoneKennzahlLead": "This area's key figures, the most urgent one first.",
-    "zoneKennzahlMehr": "Show {count} more key figures",
+    "zoneKennzahlMehr": "{count, plural, one {Show # more key figure} other {Show # more key figures}}",
     "zoneKennzahlWeniger": "Hide additional key figures"
   },
   "roles": {

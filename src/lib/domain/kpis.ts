@@ -197,10 +197,16 @@ export const kpis: Kpi[] = [
     ziel: "< 2 %",
     gutRichtung: "down",
     platzhalter: true,
-    datenherkunft: "tabelle-fehlt",
+    // Korrigiert am 22.09.2026: stand auf "tabelle-fehlt", seit
+    // Migration 20260908120000 traegt reklamationen aber charge_id und
+    // betroffene_menge_kg. Die Tabelle fehlt also nicht, die Aggregation in
+    // kpi_aktuell() fehlt. Die Notiz war unsichtbar, solange sie nur im Code
+    // stand - seit die Bereichsseite sie anzeigt, war sie eine falsche
+    // Aussage gegenueber dem Betrachter.
+    datenherkunft: "berechenbar",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung", "buchhaltung"],
-    braucht: "Reklamationen mit Bezug zur Charge",
+    braucht: "Aggregation in kpi_aktuell() - betroffene Menge gegen gelieferte Menge",
   },
   {
     key: "liefertreue",
@@ -209,10 +215,13 @@ export const kpis: Kpi[] = [
     ziel: "> 97 %",
     gutRichtung: "up",
     platzhalter: true,
-    datenherkunft: "tabelle-fehlt",
+    // Korrigiert am 22.09.2026, gleicher Grund wie bei reklamationsquote:
+    // vorbestellungen.liefertermin und lieferungen.geliefert_am stehen beide,
+    // verglichen hat sie nur noch niemand.
+    datenherkunft: "berechenbar",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung", "buchhaltung"],
-    braucht: "Zugesagte gegen tatsaechliche Lieferung",
+    braucht: "Aggregation in kpi_aktuell() - liefertermin gegen geliefert_am",
   },
   {
     key: "belegteVerkaeufe",
