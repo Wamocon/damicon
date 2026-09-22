@@ -223,7 +223,15 @@ export async function ladeFinanzenUebersicht(
       .limit(1),
   ]);
 
-  if (dbFehler || chargeFehler || ledgerFehler) return demoUebersicht("fehler", filter);
+  // Die Summenabfrage zaehlt mit: Ohne sie stuenden auf den Kennzahlenkacheln
+  // Nullen, und zwar ohne jedes Anzeichen, dass etwas fehlt. Genau das ist am
+  // 22.09.2026 auf der produktiven Instanz passiert - die Seite war schon
+  // ausgerollt, die Migration mit finanz_summe() noch nicht, und die Kacheln
+  // meldeten "Live-Daten" ueber drei Nullen. Eine falsche Zahl ist schlimmer
+  // als eine sichtbar fehlende.
+  if (dbFehler || chargeFehler || ledgerFehler || summeZeitraum.error || summeGesamt.error) {
+    return demoUebersicht("fehler", filter);
+  }
 
   // Der View-Typgenerator kann kostentraeger_id/bezeichnung nicht als NOT NULL
   // erkennen, obwohl sie es in der Basistabelle sind - die GROUP-BY-
@@ -278,8 +286,7 @@ export async function ladeFinanzenUebersicht(
   }));
 
   const sichtbar = filter.zeilen;
-  // Die Funktion liefert immer genau eine Zeile. Der Rueckfall auf Null gilt
-  // dem Fehlerfall, in dem data null ist.
+  // Fehler sind oben schon abgefangen, die Funktion liefert genau eine Zeile.
   const summeAus = (ergebnis: { data: FinanzSummeZeile[] | null }) => ({
     erloesTenge: Number(ergebnis.data?.[0]?.erloes_tenge ?? 0),
     kostenTenge: Number(ergebnis.data?.[0]?.kosten_tenge ?? 0),
