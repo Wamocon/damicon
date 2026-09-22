@@ -17,6 +17,14 @@ import { springeZuAnker, tourDauer, type HaustierZustand } from "@/lib/haustier"
 const ANGEBOT_SCHLUESSEL = "damicon-compliance-tour";
 const ANGEBOT_VERZOEGERUNG_MS = 6500;
 
+/** Massnahmenplan und Einschraenkungen stehen zugeklappt (ceo-bereichs-kacheln.tsx,
+ *  .pr-aufklappbar) - zeigt die Tour dorthin, waere die Hervorhebung sonst leer. Ein Klick auf
+ *  den Aufklapp-Kopf ist derselbe Weg, den auch ein Mensch ginge, kein eigener Zustand noetig. */
+function oeffneFallsZugeklappt(ziel: Element): void {
+  const zugeklappt = ziel.closest('.pr-aufklappbar[data-offen="false"]');
+  zugeklappt?.querySelector<HTMLButtonElement>(".pr-aufklappbar__kopf")?.click();
+}
+
 type Phase = "aus" | "frage" | "laeuft" | "fertig";
 
 export interface ComplianceTourAnzeige {
@@ -73,7 +81,9 @@ export function useComplianceTour(): ComplianceTourAnzeige {
       const s = schritte?.[neu];
       if (!s) return;
       setSchritt(neu);
-      setZiel(document.getElementById(s.anker));
+      const ziel = document.getElementById(s.anker);
+      setZiel(ziel);
+      if (ziel) oeffneFallsZugeklappt(ziel);
       springeZuAnker(s.anker, { feinerZeiger: feinerZeiger(), bewegungReduziert: bewegungReduziert() });
       setHuepf((n) => n + 1);
     },

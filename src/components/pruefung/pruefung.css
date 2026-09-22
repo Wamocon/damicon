@@ -612,6 +612,9 @@
 .pr-bereich-detail .pr-bereichsmarke {
   display: none;
 }
+.pr-bereich-detail__aktionen {
+  margin-bottom: 1.1rem;
+}
 
 .pr-fehler {
   padding: 0.9rem 1rem;

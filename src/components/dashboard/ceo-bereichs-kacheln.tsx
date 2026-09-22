@@ -2,15 +2,16 @@
 
 import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronDown, ChevronRight, ShieldCheck } from "lucide-react";
+import { ChevronDown, ChevronRight, FileDown, FileJson, ShieldCheck } from "lucide-react";
 import { type ComplianceTourSchritt, useRegistriereComplianceTour } from "@/components/dashboard/compliance-tour-kontext";
+import { berichtAlsPdfSpeichern } from "@/components/pruefung/bericht-pdf";
 import { BefundKarte, Hinweise, Kopfkarte, Massnahmenplan, Prioritaeten, Siegel } from "@/components/pruefung/pruefung-bericht";
 import { BEREICH_SYMBOL } from "@/components/pruefung/symbole";
 import "@/components/pruefung/pruefung.css";
 import { Sheet } from "@/components/ui/sheet";
 import { kennzahlen } from "@/lib/pruefung/befund";
 import { PRUEFBEREICHE, type Pruefbereich } from "@/lib/pruefung/rollen";
-import type { Bericht } from "@/lib/pruefung/typen";
+import type { Befund, Bericht, Kennzahlen } from "@/lib/pruefung/typen";
 
 // CEO-Fassung des Berichts (siehe pruefung-bericht.tsx: dieselben Bausteine, Kopfkarte bis
 // Siegel, nur "Befunde" ersetzt): statt einer langen, filterbaren Liste ein Vierer-Raster,
@@ -23,10 +24,23 @@ import type { Bericht } from "@/lib/pruefung/typen";
 // zaehlen, und bei einem sauberen Bericht ohne Massnahmen fraessen drei leere Abschnitte
 // nur Platz auf der Startseite. Die eigene UEberschrift der jeweiligen Komponente wird dabei
 // per CSS ausgeblendet (.pr-aufklappbar__innen), der Aufklapp-Kopf hier traegt denselben Text.
-function Aufklappbar({ titel, anzahl, symbol, children }: { titel: string; anzahl?: number; symbol?: ReactNode; children: ReactNode }) {
+function Aufklappbar({
+  id,
+  titel,
+  anzahl,
+  symbol,
+  children,
+}: {
+  /** Anker fuer Himbis Tour (compliance-tour-kontext.tsx): springt hierher UND klappt auf, siehe use-compliance-tour.tsx. */
+  id?: string;
+  titel: string;
+  anzahl?: number;
+  symbol?: ReactNode;
+  children: ReactNode;
+}) {
   const [offen, setOffen] = useState(false);
   return (
-    <div className="pr-aufklappbar" data-offen={offen}>
+    <div id={id} className="pr-aufklappbar" data-offen={offen}>
       <button type="button" className="pr-aufklappbar__kopf" onClick={() => setOffen((v) => !v)} aria-expanded={offen}>
         {symbol}
         <span className="pr-aufklappbar__titel">{titel}</span>
@@ -42,8 +56,32 @@ function Aufklappbar({ titel, anzahl, symbol, children }: { titel: string; anzah
   );
 }
 
+/** Nur dieser Bereich als eigene JSON-Datei: dieselben Befunde/Massnahmen/Quellen wie im
+ *  Sheet, dazu die Kennung des Gesamtberichts, dessen Siegel gilt (siehe bericht-pdf.ts fuer
+ *  die PDF-Fassung desselben Gedankens: das Siegel deckt den GESAMTBERICHT, kein eigenes
+ *  Siegel fuer den Auszug vortaeuschen). */
+function bereichAlsJson(bericht: Bericht, aktiv: { bereich: Pruefbereich; befunde: Befund[]; kz: Kennzahlen }): void {
+  const massnahmen = bericht.massnahmen.filter((m) => aktiv.befunde.some((f) => f.id === m.befundId));
+  const belege = bericht.belege.filter((q) => aktiv.befunde.some((f) => f.belege.includes(q.id)));
+  const auszug = {
+    bereich: aktiv.bereich,
+    kennzahlen: aktiv.kz,
+    befunde: aktiv.befunde,
+    massnahmen,
+    belege,
+    teilVonBericht: { id: bericht.id, erstelltAm: bericht.erstelltAm, siegel: bericht.siegel },
+  };
+  const url = URL.createObjectURL(new Blob([JSON.stringify(auszug, null, 2)], { type: "application/json" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `compliance-pruefung-${bericht.id}-${aktiv.bereich}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function CeoBereichsKacheln({ bericht }: { bericht: Bericht }) {
   const t = useTranslations("pruefung");
+  const tp = useTranslations("pruefungPdf");
   const tc = useTranslations("ceoUebersicht");
   const [offenerBereich, setOffenerBereich] = useState<Pruefbereich | null>(null);
 
@@ -56,7 +94,10 @@ export function CeoBereichsKacheln({ bericht }: { bericht: Bericht }) {
   const hatHinweise = bericht.hinweise.length > 0 || !bericht.vollstaendig;
 
   // Himbis Fuehrung durch den Bericht (compliance-tour-kontext.tsx): eine Station fuer das
-  // Gesamtbild, dann eine je Bereich, aus denselben Kennzahlen wie die Kacheln selbst.
+  // Gesamtbild, dann eine je Bereich, dann Massnahmen und Einschraenkungen, in derselben
+  // Reihenfolge, in der sie auf der Seite stehen - use-compliance-tour.tsx klappt die beiden
+  // letzten beim Ankommen automatisch auf, sonst zeigte die Hervorhebung auf einen leeren,
+  // zugeklappten Kopf.
   const tourSchritte: ComplianceTourSchritt[] = [
     { anker: "compliance-kopf", titel: tc("tour.kopfTitel"), text: bericht.zusammenfassung },
     ...bereiche.map(({ bereich, befunde, kz }) => ({
@@ -64,6 +105,12 @@ export function CeoBereichsKacheln({ bericht }: { bericht: Bericht }) {
       titel: t(`bereich.${bereich}.name`),
       text: tc("tour.bereich", { reife: kz.reife, stufe: t(`stufe.${kz.stufe}`), anzahl: befunde.length }),
     })),
+    ...(bericht.massnahmen.length > 0
+      ? [{ anker: "compliance-massnahmen", titel: t("bericht.massnahmen"), text: tc("tour.massnahmen", { anzahl: bericht.massnahmen.length }) }]
+      : []),
+    ...(hatHinweise
+      ? [{ anker: "compliance-einschraenkungen", titel: t("bericht.hinweise"), text: tc("tour.einschraenkungen", { anzahl: bericht.hinweise.length }) }]
+      : []),
   ];
   useRegistriereComplianceTour(tourSchritte);
 
@@ -120,12 +167,12 @@ export function CeoBereichsKacheln({ bericht }: { bericht: Bericht }) {
       {bericht.massnahmen.length === 0 ? (
         <p className="pr-leer-hinweis">{tc("keineMassnahmen")}</p>
       ) : (
-        <Aufklappbar titel={t("bericht.massnahmen")} anzahl={bericht.massnahmen.length}>
+        <Aufklappbar id="compliance-massnahmen" titel={t("bericht.massnahmen")} anzahl={bericht.massnahmen.length}>
           <Massnahmenplan bericht={bericht} />
         </Aufklappbar>
       )}
       {hatHinweise ? (
-        <Aufklappbar titel={t("bericht.hinweise")} anzahl={bericht.hinweise.length || undefined}>
+        <Aufklappbar id="compliance-einschraenkungen" titel={t("bericht.hinweise")} anzahl={bericht.hinweise.length || undefined}>
           <Hinweise bericht={bericht} />
         </Aufklappbar>
       ) : null}
@@ -163,6 +210,18 @@ export function CeoBereichsKacheln({ bericht }: { bericht: Bericht }) {
                     </span>
                   ))}
               </span>
+            </div>
+            <div className="pr-siegel__aktionen pr-bereich-detail__aktionen">
+              <button
+                type="button"
+                className="pr-knopf"
+                onClick={() => berichtAlsPdfSpeichern(bericht, { t: (k, w) => t(k, w), p: (k, w) => tp(k, w) }, { bereich: aktiv.bereich })}
+              >
+                <FileDown className="h-4 w-4" /> {tc("bereichAlsPdf")}
+              </button>
+              <button type="button" className="pr-knopf" onClick={() => bereichAlsJson(bericht, aktiv)}>
+                <FileJson className="h-4 w-4" /> {tc("bereichAlsJson")}
+              </button>
             </div>
             <ul className="pr-befunde">
               {aktiv.befunde.map((b, i) => (
