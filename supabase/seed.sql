@@ -805,36 +805,16 @@ insert into public.kpi_baseline (key, name, zone, ziel, baseline_wert, gut_richt
   ('websiteAnfragen',       'Anfragen ueber die Website je Monat',                  'markt', 'Ausgangswert','12',      'up',   null)
   on conflict (key) do nothing;
 
--- --- Kennzahlen-Verlauf (Demo) ---------------------------------------------
--- Zwei Messpunkte je gerechneter Kennzahl, damit die Kacheln in der
--- Vorfuehrung ueberhaupt eine Richtung zeigen koennen. Ohne sie bliebe
--- public.kpi_trend leer und keine Kachel haette einen Pfeil - der echte
--- Verlauf beginnt erst mit dem ersten taeglichen Lauf des Zeitplans.
+-- --- Kennzahlen-Verlauf ------------------------------------------------------
+-- Rueckwirkend gerechnet, nicht gesetzt. Bis hierher standen an dieser Stelle
+-- zwei Messpunkte mit von Hand verschobenen Werten - die Kacheln zeigten
+-- damit Pfeile, die nichts gemessen hatten. Seit kpi_aktuell_stichtag()
+-- (Migration 20261107000000) laesst sich der Verlauf aus den Daten selbst
+-- bestimmen: 132 Chargen ueber 127 Erntetage tragen genug Historie.
 --
--- WICHTIG, das sind Demo-Werte und keine Messung. Sie gehoeren in diese Datei
--- und nirgendwo sonst: seed.sql laedt laut config.toml ausschliesslich bei
--- `supabase db reset` und im PGlite-Testlauf, NICHT bei `supabase db push`
--- auf die gehostete Instanz. Stuenden gesetzte Verlaufswerte in der echten
--- Datenbank, zeigte die Oberflaeche weiter die Pille "Live-Daten", waehrend
--- der Pfeil daneben eine Entwicklung behauptet, die niemand gemessen hat.
---
--- Der Punkt von gestern entsteht aus dem heutigen Stand und wird je Kennzahl
--- einzeln verschoben. Ein einheitlicher Faktor waere sofort als Konstruktion
--- zu erkennen, weil dann jede Kachel in dieselbe Richtung zeigte.
-select public.kpi_verlauf_schreiben(current_date - 1);
-
-update public.kpi_verlauf
-   set wert = round(wert * case schluessel
-         when 'verlustquote'          then 1.12  -- faellt seither, also besser
-         when 'zeitBisVorkuehlung'    then 1.06  -- faellt
-         when 'pflueckleistung'       then 0.94  -- steigt
-         when 'pflueckStreuung'       then 1.09  -- faellt
-         when 'pflueckintervall'      then 0.97  -- steigt
-         when 'behandlungenWartezeit' then 1.00  -- unveraendert, auch das ist eine Aussage
-         when 'esutdAbdeckung'        then 0.92  -- steigt
-         when 'deckungsbeitrag'       then 1.05  -- faellt, die eine Kachel mit rotem Pfeil
-         else 1.00
-       end, 2)
- where gemessen_am = current_date - 1;
-
-select public.kpi_verlauf_schreiben(current_date);
+-- Zwei Durchlaeufe mit verschiedener Dichte: ein Punkt je Woche ueber das
+-- letzte Jahr fuer die lange Linie, taeglich ueber die letzten dreissig Tage
+-- fuer den Trendpfeil. Der Pfeil vergleicht die letzten ZWEI Punkte, und ein
+-- Wochenabstand waere dafuer zu grob.
+select public.kpi_verlauf_nachrechnen(current_date - 364, current_date, 7);
+select public.kpi_verlauf_nachrechnen(current_date - 30, current_date, 1);
