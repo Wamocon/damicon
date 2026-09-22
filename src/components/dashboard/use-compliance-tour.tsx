@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Reac
 import { useTranslations } from "next-intl";
 import { useComplianceTourSchritte } from "@/components/dashboard/compliance-tour-kontext";
 import { bewegungReduziert, feinerZeiger } from "@/lib/bewegung";
-import { tourDauer, type HaustierZustand } from "@/lib/haustier";
+import { springeZuAnker, tourDauer, type HaustierZustand } from "@/lib/haustier";
 
 // Himbis Fuehrung durch die vier Complianceprüfungen auf der CEO-Startseite: dasselbe
 // Drehbuch-Prinzip wie die Tour auf der oeffentlichen Startseite (haustier-tour.tsx) - Station
@@ -16,26 +16,6 @@ import { tourDauer, type HaustierZustand } from "@/lib/haustier";
 
 const ANGEBOT_SCHLUESSEL = "damicon-compliance-tour";
 const ANGEBOT_VERZOEGERUNG_MS = 6500;
-const FOKUS_KLASSE = "haustier-fokus";
-
-function springeZuAnker(anker: string): void {
-  const ziel = document.getElementById(anker);
-  if (!ziel) return;
-  if (feinerZeiger() && !bewegungReduziert()) {
-    const a = document.createElement("a");
-    a.href = `#${anker}`;
-    a.style.display = "none";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-  } else {
-    window.scrollTo({ top: ziel.getBoundingClientRect().top + window.scrollY - 72, behavior: bewegungReduziert() ? "auto" : "smooth" });
-  }
-  ziel.classList.remove(FOKUS_KLASSE);
-  void ziel.offsetWidth;
-  window.setTimeout(() => ziel.classList.add(FOKUS_KLASSE), 500);
-  window.setTimeout(() => ziel.classList.remove(FOKUS_KLASSE), 3300);
-}
 
 type Phase = "aus" | "frage" | "laeuft" | "fertig";
 
@@ -94,7 +74,7 @@ export function useComplianceTour(): ComplianceTourAnzeige {
       if (!s) return;
       setSchritt(neu);
       setZiel(document.getElementById(s.anker));
-      springeZuAnker(s.anker);
+      springeZuAnker(s.anker, { feinerZeiger: feinerZeiger(), bewegungReduziert: bewegungReduziert() });
       setHuepf((n) => n + 1);
     },
     [schritte],

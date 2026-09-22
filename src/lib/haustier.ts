@@ -174,3 +174,28 @@ export type TourSchluessel = (typeof TOUR_SCHRITTE)[number]["schluessel"];
 export function tourDauer(text: string): number {
   return Math.min(9500, Math.max(5500, 3800 + text.length * 48));
 }
+
+const FOKUS_KLASSE = "haustier-fokus";
+
+/** Scrollt weich zu einem Abschnitt und hebt ihn kurz farbig hervor (Klasse haustier-fokus,
+ *  siehe haustier.css) - fuer jede Fuehrung, die auf einen Teil der Seite zeigt (Startseiten-Tour,
+ *  Compliance-Tour, Live-Lauf-Hinweis). Die Bedingungen kommen von aussen (lib/bewegung.ts), damit
+ *  diese Datei ohne React bleibt (siehe Kopfkommentar). */
+export function springeZuAnker(anker: string, bedingungen: { feinerZeiger: boolean; bewegungReduziert: boolean }): void {
+  const ziel = document.getElementById(anker);
+  if (!ziel) return;
+  if (bedingungen.feinerZeiger && !bedingungen.bewegungReduziert) {
+    const a = document.createElement("a");
+    a.href = `#${anker}`;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  } else {
+    window.scrollTo({ top: ziel.getBoundingClientRect().top + window.scrollY - 72, behavior: bedingungen.bewegungReduziert ? "auto" : "smooth" });
+  }
+  ziel.classList.remove(FOKUS_KLASSE);
+  void ziel.offsetWidth;
+  window.setTimeout(() => ziel.classList.add(FOKUS_KLASSE), 500);
+  window.setTimeout(() => ziel.classList.remove(FOKUS_KLASSE), 3300);
+}
