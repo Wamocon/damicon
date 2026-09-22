@@ -28,7 +28,8 @@
     "kpis": "Көрсеткіштер",
     "compliance": "Сәйкестік",
     "account": "Тіркелгі",
-    "menu": "Мәзір"
+    "menu": "Мәзір",
+    "finanzLabor": "Қаржы зертханасы"
   },
   "hero": {
     "badge": "Таңқурай плантациясын басқару · Алматы маңы",
@@ -324,7 +325,11 @@
       "erloes": "Барлық түсім",
       "kosten": "Барлық шығын",
       "deckungsbeitrag": "Барлық маржиналды табыс",
-      "deckungsbeitragHinweis": "Түсім минус шығын, дерекқорда есептелген"
+      "deckungsbeitragHinweis": "Түсім минус шығын, дерекқорда есептелген",
+      "zeitraumErloes": "Түсім",
+      "zeitraumKosten": "Шығын",
+      "zeitraumDeckungsbeitrag": "Маржиналды табыс",
+      "gesamt": "барлығы {wert}"
     },
     "erloes": "Түсім",
     "kosten": "Шығын",
@@ -381,9 +386,38 @@
         "betrag": "Сома, ₸",
         "buchungsdatum": "Жазба күні",
         "beschreibung": "Сипаттама (міндетті емес)",
-        "knopf": "Жазбаны тіркеу"
+        "knopf": "Жазбаны тіркеу",
+        "ohneErntetag": "Жинау күнісіз"
       }
-    }
+    },
+    "zeitraum": {
+      "label": "Кезең",
+      "nachErntetag": "Жинау күні бойынша кезең",
+      "nachBuchungsdatum": "Жазба күні бойынша кезең",
+      "monat": "Осы ай",
+      "vormonat": "Өткен ай",
+      "jahr": "Осы жыл",
+      "alles": "Барлығы"
+    },
+    "monatsListe": {
+      "label": "Ай",
+      "bitte": "Айды таңдаңыз",
+      "knopf": "Көрсету"
+    },
+    "bereich": {
+      "label": "Қаржы бетінің бөлімдері",
+      "kostentraeger": "Шығын нысандары",
+      "charge": "Топтама бойынша",
+      "buchungen": "Жазбалар"
+    },
+    "typFilter": {
+      "label": "Жазба түрі",
+      "alle": "Барлығы"
+    },
+    "mehrAnzeigen": "Көбірек көрсету",
+    "keineChargen": "Бұл кезеңде жеке жазбасы бар топтама жоқ. Топтамаға байланбаған жазбалар мұнда көрінбейді.",
+    "ohneErntetag": "жинау күнісіз",
+    "vorschauHinweis": "Алдын ала қарау. Бұл көріністе ештеңе сақталмайды."
   },
   "dokumenteDemo": {
     "listTitle": "Құжаттар",

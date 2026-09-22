@@ -32,7 +32,8 @@
     "kpis": "KPIs",
     "compliance": "Compliance",
     "account": "Account",
-    "menu": "Menu"
+    "menu": "Menu",
+    "finanzLabor": "Finance lab"
   },
   "hero": {
     "badge": "Farm management for the raspberry plantation · near Almaty",
@@ -1121,7 +1122,11 @@
       "erloes": "Total revenue",
       "kosten": "Total cost",
       "deckungsbeitrag": "Total contribution margin",
-      "deckungsbeitragHinweis": "Revenue minus cost, computed by the database"
+      "deckungsbeitragHinweis": "Revenue minus cost, computed by the database",
+      "zeitraumErloes": "Revenue",
+      "zeitraumKosten": "Cost",
+      "zeitraumDeckungsbeitrag": "Contribution margin",
+      "gesamt": "{wert} in total"
     },
     "erloes": "Revenue",
     "kosten": "Cost",
@@ -1178,9 +1183,38 @@
         "betrag": "Amount in ₸",
         "buchungsdatum": "Posting date",
         "beschreibung": "Description (optional)",
-        "knopf": "Record posting"
+        "knopf": "Record posting",
+        "ohneErntetag": "No harvest day"
       }
-    }
+    },
+    "zeitraum": {
+      "label": "Period",
+      "nachErntetag": "Period by harvest day",
+      "nachBuchungsdatum": "Period by posting date",
+      "monat": "This month",
+      "vormonat": "Last month",
+      "jahr": "This year",
+      "alles": "All"
+    },
+    "monatsListe": {
+      "label": "Month",
+      "bitte": "Choose month",
+      "knopf": "Show"
+    },
+    "bereich": {
+      "label": "Finance page sections",
+      "kostentraeger": "Cost objects",
+      "charge": "Per batch",
+      "buchungen": "Postings"
+    },
+    "typFilter": {
+      "label": "Posting type",
+      "alle": "All"
+    },
+    "mehrAnzeigen": "Show more",
+    "keineChargen": "No batch with its own posting in this period. Postings without a batch reference do not appear here.",
+    "ohneErntetag": "no harvest day",
+    "vorschauHinweis": "Preview. Nothing is saved in this view."
   },
   "dokumenteDemo": {
     "listTitle": "Documents",

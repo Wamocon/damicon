@@ -468,6 +468,22 @@
     content: none;
   }
 
+  /* Startzeilen: Auf dem Handy sind nur die ersten fuenf Zeilen sichtbar,
+     am Schreibtisch alle zehn. Der Server kennt die Schirmbreite nicht und
+     liefert immer zehn - die Auswahl faellt deshalb hier.
+
+     Die Markierung steht am Behaelter um die Tabelle (data-startzeilen) und
+     nur, solange niemand nachgeladen hat. Sobald ein zeilen-Parameter in der
+     Adresse steht, faellt sie weg und alle geholten Zeilen stehen da.
+
+     Ausgenommen sind Zellen ueber die volle Breite: Nachladeknopf und
+     Leermeldung sind keine Datenzeilen. Ohne diese Ausnahme waere der Knopf
+     als elfte Zeile selbst ausgeblendet - und damit auf dem Handy kein
+     Weg mehr zu den restlichen Zeilen. */
+  [data-startzeilen] .datentabelle tbody > tr:nth-child(n + 6):not(:has(> td[colspan])) {
+    display: none;
+  }
+
   /* Eine Zelle, in der etwas eingegeben wird, steht einspaltig: Beschriftung
      oben, Bedienelemente darunter ueber die volle Breite.
 

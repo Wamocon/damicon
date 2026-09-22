@@ -32,7 +32,8 @@
     "kpis": "Kennzahlen",
     "compliance": "Compliance",
     "account": "Konto",
-    "menu": "Menü"
+    "menu": "Menü",
+    "finanzLabor": "Finanz-Labor"
   },
   "hero": {
     "badge": "Betriebssteuerung für die Himbeerplantage · Umland Almaty",
@@ -1121,7 +1122,11 @@
       "erloes": "Erlöse gesamt",
       "kosten": "Kosten gesamt",
       "deckungsbeitrag": "Deckungsbeitrag gesamt",
-      "deckungsbeitragHinweis": "Erlöse minus Kosten, aus der Datenbank gerechnet"
+      "deckungsbeitragHinweis": "Erlöse minus Kosten, aus der Datenbank gerechnet",
+      "zeitraumErloes": "Erlöse",
+      "zeitraumKosten": "Kosten",
+      "zeitraumDeckungsbeitrag": "Deckungsbeitrag",
+      "gesamt": "insgesamt {wert}"
     },
     "erloes": "Erlös",
     "kosten": "Kosten",
@@ -1178,9 +1183,38 @@
         "betrag": "Betrag in ₸",
         "buchungsdatum": "Buchungsdatum",
         "beschreibung": "Beschreibung (optional)",
-        "knopf": "Buchung erfassen"
+        "knopf": "Buchung erfassen",
+        "ohneErntetag": "Ohne Erntetag"
       }
-    }
+    },
+    "zeitraum": {
+      "label": "Zeitraum",
+      "nachErntetag": "Zeitraum nach Erntetag",
+      "nachBuchungsdatum": "Zeitraum nach Buchungsdatum",
+      "monat": "Dieser Monat",
+      "vormonat": "Letzter Monat",
+      "jahr": "Dieses Jahr",
+      "alles": "Alles"
+    },
+    "monatsListe": {
+      "label": "Monat",
+      "bitte": "Monat wählen",
+      "knopf": "Anzeigen"
+    },
+    "bereich": {
+      "label": "Bereiche der Finanzseite",
+      "kostentraeger": "Kostenträger",
+      "charge": "Je Charge",
+      "buchungen": "Buchungen"
+    },
+    "typFilter": {
+      "label": "Art der Buchung",
+      "alle": "Alle"
+    },
+    "mehrAnzeigen": "Mehr anzeigen",
+    "keineChargen": "Keine Charge mit eigener Buchung in diesem Zeitraum. Buchungen ohne Chargenbezug stehen hier nicht.",
+    "ohneErntetag": "ohne Erntetag",
+    "vorschauHinweis": "Vorschau. In dieser Ansicht wird nichts gespeichert."
   },
   "dokumenteDemo": {
     "listTitle": "Dokumente",

@@ -82,12 +82,19 @@ export function Auswahl({
   label,
   name,
   options,
+  gruppen,
   required,
   defaultValue,
 }: {
   label: string;
   name: string;
   options: { wert: string; text: string }[];
+  /**
+   * Zusaetzliche Eintraege unter Ueberschriften, hinter den options. Fuer
+   * Listen, die zu lang zum Ueberfliegen sind - etwa Kostentraeger nach
+   * Erntetag. Ohne gruppen bleibt alles wie zuvor.
+   */
+  gruppen?: { titel: string; options: { wert: string; text: string }[] }[];
   required?: boolean;
   defaultValue?: string;
 }) {
@@ -106,6 +113,15 @@ export function Auswahl({
           <option key={option.wert} value={option.wert}>
             {option.text}
           </option>
+        ))}
+        {gruppen?.map((gruppe, i) => (
+          <optgroup key={`${gruppe.titel}-${i}`} label={gruppe.titel}>
+            {gruppe.options.map((option) => (
+              <option key={option.wert} value={option.wert}>
+                {option.text}
+              </option>
+            ))}
+          </optgroup>
         ))}
       </select>
     </label>
