@@ -370,7 +370,9 @@
         "erfassungFehlt": "Die Tabellen stehen bereit, die Werte werden noch nicht eingetragen.",
         "tabelleFehlt": "Das Datenmodell hat dafür noch keinen Platz.",
         "rechtlichUngeklaert": "Die rechtliche Grundlage ist noch nicht geklärt."
-      }
+      },
+      "verletzt": "{count} von {gesamt} verletzt",
+      "vonGesamt": "von {gesamt}"
     },
     "zoneModuleLead": "Alles, was in dieser Zone für die aktive Rolle freigegeben ist.",
     "zoneKennzahlTitel": "Kennzahlen",

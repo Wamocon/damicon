@@ -185,7 +185,7 @@ export function KachelLabor({
       {verlust && vVerlust ? (
         <Gruppe titel={t("gruppe.anteil")} lead={t("lead.anteil")}>
           <Probe name={t("form.heute")} heute>
-            <KennzahlBox kpi={verlust} zielband />
+            <KennzahlBox kpi={verlust} erzwungeneForm="zielband" />
           </Probe>
           <Probe name={t("form.meter")}>
             <Probekachel
@@ -230,7 +230,7 @@ export function KachelLabor({
       {streuung ? (
         <Gruppe titel={t("gruppe.streuung")} lead={t("lead.streuung")}>
           <Probe name={t("form.heute")} heute>
-            <KennzahlBox kpi={streuung} zielband />
+            <KennzahlBox kpi={streuung} erzwungeneForm="zielband" />
           </Probe>
           <Probe name={t("form.streifen")}>
             <Probekachel
@@ -267,7 +267,7 @@ export function KachelLabor({
       {vorkuehlung && vVorkuehlung ? (
         <Gruppe titel={t("gruppe.dauer")} lead={t("lead.dauer")}>
           <Probe name={t("form.heute")} heute>
-            <KennzahlBox kpi={vorkuehlung} zielband />
+            <KennzahlBox kpi={vorkuehlung} erzwungeneForm="zielband" />
           </Probe>
           <Probe name={t("form.streifen")}>
             <Probekachel
@@ -314,7 +314,7 @@ export function KachelLabor({
       {wartezeit ? (
         <Gruppe titel={t("gruppe.nullfehler")} lead={t("lead.nullfehler")}>
           <Probe name={t("form.heute")} heute>
-            <KennzahlBox kpi={wartezeit} zielband />
+            <KennzahlBox kpi={wartezeit} erzwungeneForm="zielband" />
           </Probe>
           <Probe name={t("form.zaehler")}>
             <Probekachel
@@ -356,7 +356,7 @@ export function KachelLabor({
       {esutd ? (
         <Gruppe titel={t("gruppe.klein")} lead={t("lead.klein")}>
           <Probe name={t("form.heute")} heute>
-            <KennzahlBox kpi={esutd} zielband />
+            <KennzahlBox kpi={esutd} erzwungeneForm="zielband" />
           </Probe>
           <Probe name={t("form.punkte")}>
             <Probekachel
@@ -395,7 +395,7 @@ export function KachelLabor({
       {anfragen ? (
         <Gruppe titel={t("gruppe.ohneZiel")} lead={t("lead.ohneZiel")}>
           <Probe name={t("form.heute")} heute>
-            <KennzahlBox kpi={anfragen} zielband />
+            <KennzahlBox kpi={anfragen} erzwungeneForm="zielband" />
           </Probe>
           <Probe name={t("form.verlauf")}>
             <Probekachel
@@ -431,7 +431,7 @@ export function KachelLabor({
       {deckung ? (
         <Gruppe titel={t("gruppe.leitzahl")} lead={t("lead.leitzahl")}>
           <Probe name={t("form.heute")} heute>
-            <KennzahlBox kpi={deckung} zielband />
+            <KennzahlBox kpi={deckung} erzwungeneForm="zielband" />
           </Probe>
           <div className="@2xl:col-span-2">
             <Probe name={t("form.held")}>

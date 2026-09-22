@@ -119,7 +119,10 @@ function ZonenInhalt({
         // auto-rows-fr: auch Boxen in verschiedenen Zeilen werden gleich hoch.
         <div className="mt-3 grid auto-rows-fr grid-cols-2 gap-2 @md:grid-cols-3 @xl:grid-cols-4">
           {zonenKpis.map((kpi) => (
-            <KennzahlBox key={kpi.key} kpi={kpi} zielband />
+            // Schmaler Platz: bei drei Spalten ist eine Box rund 145 px
+            // breit. kachelform() gibt hier deshalb keinen Punktstreifen und
+            // keine Heldenzahl aus, beides faellt auf das Meter zurueck.
+            <KennzahlBox key={kpi.key} kpi={kpi} platz="schmal" />
           ))}
         </div>
       ) : (

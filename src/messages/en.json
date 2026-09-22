@@ -370,7 +370,9 @@
         "erfassungFehlt": "The tables are in place, but nobody enters the values yet.",
         "tabelleFehlt": "The data model has no place for this yet.",
         "rechtlichUngeklaert": "The legal basis has not been clarified yet."
-      }
+      },
+      "verletzt": "{count} of {gesamt} breached",
+      "vonGesamt": "of {gesamt}"
     },
     "zoneModuleLead": "Everything released in this zone for the active role.",
     "zoneKennzahlTitel": "Key figures",

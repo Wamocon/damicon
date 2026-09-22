@@ -65,6 +65,7 @@ export function Meter({
   beschriftungVon,
   beschriftungZiel,
   beschriftungBis,
+  achse = true,
 }: {
   ist: number;
   ziel: number;
@@ -76,6 +77,13 @@ export function Meter({
   beschriftungVon: string;
   beschriftungZiel: string;
   beschriftungBis: string;
+  /**
+   * Die Skalenbeschriftung. Auf schmalem Platz aus: sie wiederholte dort den
+   * Zielwert, der ohnehin im Fuss der Kachel steht, und kostete auf 145 px
+   * Breite eine Zeile fuer nichts. Die Zielmarke bleibt, sie traegt die
+   * Aussage auch ohne Zahlen daneben.
+   */
+  achse?: boolean;
 }) {
   const istAnteil = anteil(ist, skalaVon, skalaBis);
   const zielAnteil = anteil(ziel, skalaVon, skalaBis);
@@ -103,11 +111,13 @@ export function Meter({
           style={{ left: `${zielAnteil}%` }}
         />
       </div>
-      <div className="mt-1 flex justify-between text-[10px] tabular-nums text-muted-foreground">
-        <span>{beschriftungVon}</span>
-        <span>{beschriftungZiel}</span>
-        <span>{beschriftungBis}</span>
-      </div>
+      {achse ? (
+        <div className="mt-1 flex justify-between text-[10px] tabular-nums text-muted-foreground">
+          <span>{beschriftungVon}</span>
+          <span>{beschriftungZiel}</span>
+          <span>{beschriftungBis}</span>
+        </div>
+      ) : null}
     </div>
   );
 }

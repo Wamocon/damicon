@@ -13,6 +13,7 @@
 // Rollen ohne betriebsweite Sicht (picker, erzeuger, kunde) sehen hier
 // bewusst keine.
 import type { Role } from "@/lib/rbac";
+import type { Kachelform } from "@/lib/domain/kachel-form";
 
 export type KpiTrend = "up" | "down" | "flat";
 export type KpiStufe = "kern" | "erweitert";
@@ -67,6 +68,11 @@ export interface Kpi {
    *  reine Notiz fuer die Codeseite, seit die Kachel keine Herkunft mehr
    *  anzeigt - nicht uebersetzt, kein Aufrufer. */
   datenherkunft: Datenherkunft;
+  /** Gewuenschte Darstellung. Ob die Kennzahl sie bekommt, entscheidet
+   *  kachelform() - ohne Grundgesamtheit kein Zaehler, ohne Einzelwerte kein
+   *  Streifen, auf schmalem Platz keine Heldenzahl. Ohne Angabe: Meter, wenn
+   *  es eine Zielzahl gibt, sonst nur der Wert. */
+  form?: Kachelform;
   /** kern = Teil der zwoelf Cockpit-Kacheln, erweitert = Baseline, aber ausserhalb des Cockpits (Anforderung 4.11). */
   stufe: KpiStufe;
   /** Welche Rollen diese betriebsweite Kennzahl sehen - keine Kennzahl hier ist eine persoenliche Leistungszahl. */
@@ -126,6 +132,7 @@ export const kpis: Kpi[] = [
     gutRichtung: "down",
     platzhalter: true,
     datenherkunft: "berechenbar",
+    form: "streifen",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung", "brigade"],
     braucht: "nichts - Pflück- und Kühlzeitpunkt je Charge",
@@ -138,6 +145,7 @@ export const kpis: Kpi[] = [
     gutRichtung: "down",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",
+    form: "streifen",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung"],
     braucht: "Lieferungen mit Abfahrt und Ankunft",
@@ -150,6 +158,7 @@ export const kpis: Kpi[] = [
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "berechenbar",
+    form: "streifen",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung", "brigade"],
     braucht: "nichts - Steige mit Person gegen Arbeitszeit",
@@ -186,6 +195,7 @@ export const kpis: Kpi[] = [
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "berechenbar",
+    form: "zaehler",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung", "brigade"],
     braucht: "nichts - aus Behandlung und Sperrlogik ableitbar",
@@ -231,6 +241,7 @@ export const kpis: Kpi[] = [
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",
+    form: "zaehler",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung", "buchhaltung"],
     braucht: "Anbindung an ЭСФ und Warenbegleitschein",
@@ -243,6 +254,7 @@ export const kpis: Kpi[] = [
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "berechenbar",
+    form: "held",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung", "buchhaltung"],
     braucht: "nichts - Buchungen je Charge gegen Erntemenge",
@@ -255,6 +267,7 @@ export const kpis: Kpi[] = [
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "rechtlich-ungeklaert",
+    form: "punkte",
     stufe: "erweitert",
     sichtbarFuer: ["admin", "betriebsleitung", "buchhaltung"],
     braucht:

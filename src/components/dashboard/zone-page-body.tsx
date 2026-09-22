@@ -20,6 +20,7 @@ import { hasPermission } from "@/lib/rbac";
 import { moduleHref, modulesForZone, type ZoneKey } from "@/lib/modules";
 import { kpisFuerRolle, type Kpi } from "@/lib/domain/kpis";
 import { nachDringlichkeit } from "@/lib/domain/zielstand";
+import { kachelform } from "@/lib/domain/kachel-form";
 import type { Datenquelle } from "@/lib/supabase/config";
 
 // Der Kennzahlenabschnitt der Zone. Dieselben Bausteine wie auf der
@@ -31,7 +32,17 @@ import type { Datenquelle } from "@/lib/supabase/config";
 // @container statt Fensterbreite: was in der Karte umbricht, richtet sich
 // nach der Karte. Sonst steht bei 1440 px ein abgeschnittener Kennzahlname
 // da, obwohl das Fenster breit ist.
-function Kennzahlen({ kpis, quelle }: { kpis: Kpi[]; quelle: Datenquelle }) {
+type Verteilungen = Record<string, { name: string; wert: number }[]>;
+
+function Kennzahlen({
+  kpis,
+  quelle,
+  verteilungen,
+}: {
+  kpis: Kpi[];
+  quelle: Datenquelle;
+  verteilungen: Verteilungen;
+}) {
   const t = useTranslations("dashboard");
   const quelleT = useTranslations("dashboard.dataSource");
   const [offen, setOffen] = useState(false);
@@ -48,8 +59,24 @@ function Kennzahlen({ kpis, quelle }: { kpis: Kpi[]; quelle: Datenquelle }) {
   // home.tsx: ein Admin in der "Ansicht als"-Vorschau bekommt alle
   // Kennzahlen vom Server und schneidet hier auf die Vorschaurolle zu.
   const { kern, erweitert } = kpisFuerRolle(role, kpis);
-  const kernSortiert = nachDringlichkeit(kern);
   const erweitertSortiert = nachDringlichkeit(erweitert);
+
+  const form = (kpi: Kpi) =>
+    kachelform(kpi, "breit", (verteilungen[kpi.key]?.length ?? 0) > 1);
+
+  // Die Heldenzahl steht ueber dem Raster, nicht darin: genau eine je
+  // Ansicht, sonst ist keine mehr hervorgehoben. Bekommt eine Zone keine,
+  // faengt sie schlicht mit dem Raster an.
+  const alleKern = nachDringlichkeit(kern);
+  const held = alleKern.find((kpi) => form(kpi) === "held");
+  const kernSortiert = alleKern.filter((kpi) => kpi !== held);
+
+  // Der Punktstreifen zeigt jeden Vorgang einzeln. In einer Spalte kleben
+  // die Punkte aufeinander, deshalb bekommt er zwei - auf jeder Breite. Am
+  // Telefon sind das beide Spalten und damit die volle Karte; zehn Chargen
+  // auf 150 px waeren ein Fleck und kein Streifen.
+  const spalten = (kpi: Kpi) =>
+    form(kpi) === "streifen" ? "col-span-2" : undefined;
 
   if (kernSortiert.length === 0 && erweitertSortiert.length === 0) {
     return (
@@ -75,9 +102,26 @@ function Kennzahlen({ kpis, quelle }: { kpis: Kpi[]; quelle: Datenquelle }) {
         {/* auto-rows-fr: auch Boxen in verschiedenen Zeilen werden gleich
             hoch. Die Spaltenzahl steigt mit der Kartenbreite, nicht mit der
             Fensterbreite. */}
+        {held ? (
+          <div className="mb-3">
+            <KennzahlBox
+              kpi={held}
+              platz="breit"
+              lueckeZeigen={istDb}
+            />
+          </div>
+        ) : null}
+
         <div className="grid auto-rows-fr grid-cols-2 gap-2 @md:grid-cols-3 @xl:grid-cols-4">
           {kernSortiert.map((kpi) => (
-            <KennzahlBox key={kpi.key} kpi={kpi} zielband lueckeZeigen={istDb} />
+            <div key={kpi.key} className={cn("min-w-0", spalten(kpi))}>
+              <KennzahlBox
+                kpi={kpi}
+                platz="breit"
+                verteilung={verteilungen[kpi.key]}
+                lueckeZeigen={istDb}
+              />
+            </div>
           ))}
         </div>
 
@@ -105,7 +149,14 @@ function Kennzahlen({ kpis, quelle }: { kpis: Kpi[]; quelle: Datenquelle }) {
             {offen ? (
               <div className="mt-3 grid auto-rows-fr grid-cols-2 gap-2 @md:grid-cols-3 @xl:grid-cols-4">
                 {erweitertSortiert.map((kpi) => (
-                  <KennzahlBox key={kpi.key} kpi={kpi} zielband lueckeZeigen={istDb} />
+                  <div key={kpi.key} className={cn("min-w-0", spalten(kpi))}>
+                    <KennzahlBox
+                      kpi={kpi}
+                      platz="breit"
+                      verteilung={verteilungen[kpi.key]}
+                      lueckeZeigen={istDb}
+                    />
+                  </div>
                 ))}
               </div>
             ) : null}
@@ -124,11 +175,14 @@ export function ZonePageBody({
   zone,
   kpis,
   quelle,
+  verteilungen = {},
 }: {
   zone: ZoneKey;
   /** Bereits serverseitig auf Rolle und Zone geschnitten. */
   kpis: Kpi[];
   quelle: Datenquelle;
+  /** Einzelwerte hinter einzelnen Kennzahlen, je Schluessel. */
+  verteilungen?: Verteilungen;
 }) {
   const { role } = usePersona();
   const zoneT = useTranslations("zones");
@@ -151,7 +205,7 @@ export function ZonePageBody({
       {/* Die Kennzahlen stehen ueber den Modulen. Wer die Bereichsseite
           oeffnet, will zuerst wissen, wie der Bereich dasteht, und erst
           danach, womit man daran arbeitet. */}
-      <Kennzahlen kpis={kpis} quelle={quelle} />
+      <Kennzahlen kpis={kpis} quelle={quelle} verteilungen={verteilungen} />
 
       <Section title={t("home.moduleTitel")} description={t("zoneModuleLead")}>
         {items.length === 0 ? (

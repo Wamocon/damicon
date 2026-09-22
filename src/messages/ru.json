@@ -143,7 +143,9 @@
         "erfassungFehlt": "Таблицы готовы, но значения пока никто не вносит.",
         "tabelleFehlt": "В модели данных для этого пока нет места.",
         "rechtlichUngeklaert": "Правовая основа ещё не определена."
-      }
+      },
+      "verletzt": "{count} из {gesamt} нарушено",
+      "vonGesamt": "из {gesamt}"
     },
     "zoneModuleLead": "Всё, что открыто в этой зоне для активной роли.",
     "zoneKennzahlTitel": "Показатели",
