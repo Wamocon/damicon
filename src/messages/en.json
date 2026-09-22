@@ -321,7 +321,7 @@
       "fehlerHint": "The query failed. Sample data is shown instead - it does not come from the farm."
     },
     "rbacHintLabel": "Roles",
-    "rbacHint": "Which modules are visible depends on the role of the signed-in account. Seven core roles, from administration to the individual picker in the field - the same role also governs read and write permissions in the database.",
+    "rbacHint": "Which modules are visible depends on the role of the signed-in account. Eight core roles, from the CEO and administration to the individual picker in the field, the same role also governs read and write permissions in the database.",
     "home": {
       "target": "Target",
       "zonesTitle": "The four zones",
@@ -614,7 +614,7 @@
     "rollen": {
       "title": "Roles and permissions",
       "navTitle": "Roles and permissions",
-      "description": "Seven core roles, from administration through farm management and accounting to the brigade and the individual picker in the field, the grower and the B2B client - with a permission matrix over resources and actions.",
+      "description": "Eight core roles, from the CEO and administration through farm management and accounting to the brigade and the individual picker in the field, the grower and the B2B client, with a permission matrix over resources and actions.",
       "summary": "Sets out who may see and change what. A new role can be added without changing anything in the modules.",
       "todo": "User management, role assignment, fine-grained access rules per resource."
     },
@@ -3092,6 +3092,8 @@
     "nochKeinBericht": "No automatic report yet. The first run starts in the background after this login, reload the page in a few minutes.",
     "aktualisieren": "Check now",
     "aktualisiertGerade": "Check running …",
+    "laeuftImHintergrund": "Check running",
+    "laeuftImHintergrundHinweis": "The automatic compliance check keeps running in the background, even on this page. Click to go to the overview for the full progress.",
     "keineAenderung": "No changes since the last report.",
     "aenderungenAnzahl": "{anzahl, plural, one {# change} other {# changes}} since the last report",
     "aenderungArt": {

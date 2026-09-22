@@ -1,22 +1,21 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { PruefungAblauf } from "@/components/pruefung/pruefung-ablauf";
 import { PruefungBericht } from "@/components/pruefung/pruefung-bericht";
 import "@/components/pruefung/pruefung.css";
 import "@/components/pruefung/pruefung-ablauf.css";
-import { usePruefung } from "@/components/pruefung/use-pruefung";
+import { useCeoPruefung } from "@/components/dashboard/ceo-pruefung-kontext";
 import type { BefundAenderung, Bericht } from "@/lib/pruefung/typen";
 
-// Live-Ansicht des automatischen CEO-Compliance-Laufs. Startet bei jedem Aufruf der
-// Startseite einen Strom gegen /api/ki-pruefung/auto (usePruefung(), derselbe Reducer
-// und dieselbe Ablauf-Ansicht wie die manuelle Pruefung im KI-Panel): laeuft er wirklich
-// (etwas hat sich geaendert oder es gibt noch keinen Bericht), sieht man hier live, was
-// Himbi gerade in welchem der vier Bereiche prueft, statt eines toten "in ein paar
-// Minuten neu laden". Stellt sich beim guenstigen Vorab-Check heraus, dass sich nichts
-// geaendert hat, kommt sofort derselbe Bericht wie zuvor zurueck.
+// Zeigt den geteilten Stand aus ceo-pruefung-kontext.tsx (Provider haengt am
+// Dashboard-Layout, siehe dortiger Kommentar) - laeuft ein Check wirklich
+// (etwas hat sich geaendert oder es gibt noch keinen Bericht), sieht man hier
+// live, was Himbi gerade in welchem der vier Bereiche prueft, statt eines
+// toten "in ein paar Minuten neu laden". Ein Seitenwechsel innerhalb des
+// Dashboards unterbricht das nicht mehr: der Strom haengt nicht an dieser
+// Komponente. Stellt sich beim guenstigen Vorab-Check heraus, dass sich
+// nichts geaendert hat, kommt sofort derselbe Bericht wie zuvor zurueck.
 
 function AenderungsZeile({ a }: { a: BefundAenderung }) {
   const t = useTranslations("ceoUebersicht");
@@ -65,33 +64,28 @@ export function CeoAutoPruefung({
 }) {
   const t = useTranslations("ceoUebersicht");
   const tp = useTranslations("pruefung");
-  const sprache = useLocale();
-  const router = useRouter();
-  const { stand, starten } = usePruefung("/api/ki-pruefung/auto");
-  const gestartet = useRef(false);
+  const stand = useCeoPruefung();
 
-  useEffect(() => {
-    if (gestartet.current) return;
-    gestartet.current = true;
-    void starten([], sprache);
-  }, [sprache, starten]);
-
-  // Server-Momentaufnahme (Zeitstempel-Pille im Kopf der Section, kommt von der
-  // Elternkomponente) nach einem frischen Bericht nachziehen - der Inhalt hier ist
-  // dank stand.bericht bereits sofort aktuell, unabhaengig davon.
-  useEffect(() => {
-    if (stand.phase === "fertig") router.refresh();
-  }, [stand.phase, router]);
-
-  if (stand.phase === "laeuft") {
+  if (stand?.phase === "laeuft") {
     return <PruefungAblauf stand={stand} />;
   }
 
-  const bericht = stand.bericht ?? initialBericht;
-  const aenderungen = stand.bericht ? (stand.aenderungen ?? []) : initialAenderungen;
+  // stand kommt aus dem geteilten Kontext (kann ein aelterer automatischer Lauf sein) und
+  // initialBericht aus der Server-Komponente (kann durch den manuellen Knopf frischer sein,
+  // ohne dass der geteilte Strom davon je erfahren haette) - hier gewinnt schlicht das juengere
+  // erstelltAm, unabhaengig davon, welcher der beiden Wege es zuletzt geliefert hat.
+  const kandidaten = [
+    stand?.bericht ? { bericht: stand.bericht, aenderungen: stand.aenderungen ?? [] } : null,
+    initialBericht ? { bericht: initialBericht, aenderungen: initialAenderungen } : null,
+  ].filter((k): k is { bericht: Bericht; aenderungen: BefundAenderung[] } => k !== null);
+  const aktuell = kandidaten.length === 0
+    ? null
+    : kandidaten.reduce((a, b) => (new Date(b.bericht.erstelltAm) > new Date(a.bericht.erstelltAm) ? b : a));
+  const bericht = aktuell?.bericht ?? null;
+  const aenderungen = aktuell?.aenderungen ?? [];
 
   if (!bericht) {
-    const text = stand.phase === "fehler" ? tp("fehler.allgemein") : t("nochKeinBericht");
+    const text = stand?.phase === "fehler" ? tp("fehler.allgemein") : t("nochKeinBericht");
     return <p className="rounded-xl border border-dashed border-border p-4 text-xs leading-5 text-muted-foreground">{text}</p>;
   }
   return <BerichtMitAenderungen bericht={bericht} aenderungen={aenderungen} />;

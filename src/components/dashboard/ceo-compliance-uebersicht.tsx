@@ -37,10 +37,7 @@ export async function CeoComplianceUebersicht() {
         </div>
       }
     >
-      {/* key auf die Berichts-Id: aendert sie sich (frischer Bericht, z. B. ueber den manuellen
-          Knopf gespeichert), startet eine neue Instanz sauber mit dem neuen Stand statt an einem
-          veralteten Live-Zustand aus einem vorigen Lauf festzuhalten. */}
-      <CeoAutoPruefung key={zeile?.id ?? "leer"} initialBericht={zeile?.bericht ?? null} initialAenderungen={zeile?.aenderungen ?? []} />
+      <CeoAutoPruefung initialBericht={zeile?.bericht ?? null} initialAenderungen={zeile?.aenderungen ?? []} />
     </Section>
   );
 }

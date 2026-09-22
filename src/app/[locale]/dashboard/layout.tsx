@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import "@/components/ki/ki-pane.css";
 import { setRequestLocale } from "next-intl/server";
 import { PersonaProvider } from "@/components/dashboard/persona";
+import { CeoPruefungProvider } from "@/components/dashboard/ceo-pruefung-kontext";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { UntereLeiste } from "@/components/dashboard/untere-leiste";
@@ -79,6 +80,7 @@ export default async function DashboardLayout({
         seitenansichtAn={agentSeitenansichtAn()}
         nutzerId={profil?.id ?? null}
       >
+        <CeoPruefungProvider>
         <HaustierProvider>
         <div className="dashboard-shell flex min-h-svh w-full">
           <DashboardSidebar />
@@ -110,6 +112,7 @@ export default async function DashboardLayout({
         </div>
         <HaustierDashboard />
         </HaustierProvider>
+        </CeoPruefungProvider>
       </KiPaneProvider>
     </PersonaProvider>
   );

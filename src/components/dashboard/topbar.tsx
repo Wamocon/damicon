@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import {
   Bell,
   ChevronLeft,
+  Loader2,
   PanelLeftClose,
   PanelLeftOpen,
 } from "lucide-react";
@@ -14,6 +15,7 @@ import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { LocaleSwitcher } from "@/components/site/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PersonaSwitcher, usePersona } from "@/components/dashboard/persona";
+import { useCeoPruefung } from "@/components/dashboard/ceo-pruefung-kontext";
 import { Himbeere } from "@/components/ki/himbeere";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { cn } from "@/lib/utils";
@@ -88,6 +90,28 @@ function MenueUmschalter() {
         <PanelLeftClose className="h-4 w-4" />
       )}
     </button>
+  );
+}
+
+// Sichtbar auf jeder Dashboard-Seite, nicht nur der Startseite (der Live-Strom haengt am
+// Layout, siehe ceo-pruefung-kontext.tsx): wer als ceo gerade eine andere Unterseite
+// ansieht, soll trotzdem sehen, dass im Hintergrund noch geprueft wird, statt sich zu
+// fragen, ob der Wechsel den Lauf abgebrochen hat. Ein Klick fuehrt zur Startseite, wo der
+// volle Fortschritt steht.
+function CeoPruefungHinweis() {
+  const t = useTranslations("ceoUebersicht");
+  const stand = useCeoPruefung();
+  if (stand?.phase !== "laeuft") return null;
+
+  return (
+    <Link
+      href="/dashboard"
+      className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-primary/30 bg-primary/10 px-2.5 text-xs font-semibold text-primary"
+      title={t("laeuftImHintergrundHinweis")}
+    >
+      <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+      <span className="hidden sm:inline">{t("laeuftImHintergrund")}</span>
+    </Link>
   );
 }
 
@@ -192,6 +216,7 @@ export function DashboardTopbar() {
           <ThemeToggle />
         </span>
         {zeigeSync ? <SyncStatus /> : null}
+        <CeoPruefungHinweis />
         <button
           type="button"
           aria-label={t("notifications")}
