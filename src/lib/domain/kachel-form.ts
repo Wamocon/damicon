@@ -123,3 +123,43 @@ export function meterSkala(ist: number, soll: number, einheit: string): number {
   const stufe = Math.pow(10, Math.floor(Math.log10(roh)));
   return Math.ceil(roh / (stufe / 2)) * (stufe / 2);
 }
+
+/**
+ * Die Kartengroesse zu einer Form. Es gibt zwei, und das ist die Obergrenze.
+ *
+ * Vorher entschied jede Stelle fuer sich: die Heldenzahl lag ueber dem
+ * Raster und nahm die volle Seitenbreite, der Punktstreifen mal zwei Spalten
+ * und mal eine, der Rest eine. Auf der Buero-Seite stand dadurch eine
+ * Heldenzahl mit einem 1900 px langen Meterbalken ueber einer einzelnen
+ * Halbkarte - drei Karten in drei Breiten, ohne dass die Breite etwas
+ * bedeutet haette. Ein Balken sagt bei 1900 px nicht mehr als bei 300.
+ *
+ *   klein  - eine Spalte. Der Normalfall: Meter, Zaehler, Punkte, Wert.
+ *   breit  - zwei Spalten. Formen, die waagerecht Platz brauchen: der
+ *            Punktstreifen, weil zehn Marken in einer Spalte zu einem Fleck
+ *            zusammenlaufen, und die Heldenzahl, weil Zahl und Meter
+ *            nebeneinander stehen.
+ *
+ * Eine dritte Groesse war da und ist wieder raus: die Heldenzahl ueber zwei
+ * REIHEN. Das Raster ordnet vier Spalten, die Buero-Seite hat aber nur zwei
+ * sichtbare Kennzahlen - die zweite Reihe blieb leer und aus der Heldenzahl
+ * wurde ein hoher weisser Kasten mit einer Zahl oben und der Fusszeile ganz
+ * unten. Eine Groesse, die nur bei vollem Raster funktioniert, ist keine.
+ * Die Heldenzahl faellt ueber den Schriftgrad auf, nicht ueber die Hoehe.
+ */
+export type Kachelgroesse = "klein" | "breit";
+
+export function kachelgroesse(form: Kachelform): Kachelgroesse {
+  return form === "held" || form === "streifen" ? "breit" : "klein";
+}
+
+/**
+ * Die Rasterklassen je Groesse.
+ *
+ * Am Telefon stehen zwei Spalten, dort ist "breit" die volle Karte - genau
+ * richtig fuer zehn Chargen auf einer Achse.
+ */
+export const kachelSpanne: Record<Kachelgroesse, string> = {
+  klein: "",
+  breit: "col-span-2",
+};

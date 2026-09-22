@@ -295,7 +295,11 @@ export function Zaehler({
       {/* Proportionale Ziffern, kein tabular-nums: gleich breite Ziffern sind
           fuer Spalten gedacht, auf einer freistehenden Zahl wirken sie
           auseinandergezogen. */}
-      <p className={cn("text-3xl font-black leading-none", schrift[stand])}>
+      {/* Dieselbe Groesse wie die Zahl der uebrigen Formen (text-xl in
+          kennzahl-box.tsx): der Zaehler ersetzt sie, also steht er auch auf
+          derselben Stufe. Frueher text-3xl - das liess die Kachel schwerer
+          wirken als ihre Nachbarn, ohne dass die Zahl wichtiger waere. */}
+      <p className={cn("text-xl font-black leading-none", schrift[stand])}>
         {zahl}
       </p>
       <p className="mt-1.5 text-[11px] leading-4 text-muted-foreground">
@@ -360,7 +364,7 @@ export function AnteilPunkte({
   return (
     <div className="mt-2">
       <p className="flex items-baseline gap-1.5">
-        <span className="text-2xl font-black leading-none">{erfuellt}</span>
+        <span className="text-xl font-black leading-none">{erfuellt}</span>
         <span className="text-[11px] font-medium text-muted-foreground">
           {zeile}
         </span>

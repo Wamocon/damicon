@@ -258,55 +258,12 @@ export function KennzahlBox({
   // Die Heldenzahl traegt eine eigene Flaeche: sie steht nicht IM Raster der
   // Kennzahlen, sondern darueber. Genau eine je Ansicht - sonst ist keine
   // mehr hervorgehoben.
-  if (form === "held") {
-    return (
-      <div
-        title={hinweis}
-        className="flex min-w-0 flex-col rounded-xl border border-border bg-card p-4"
-      >
-        <p className="text-[11px] font-semibold leading-4 text-card-foreground">
-          {voll}
-        </p>
-        <div className="mt-2 flex flex-wrap items-end gap-x-6 gap-y-3">
-          <p className="flex items-baseline gap-1.5">
-            {/* Proportionale Ziffern: gleich breite Ziffern sind fuer Spalten
-                gedacht, auf einer freistehenden Zahl wirken sie
-                auseinandergezogen. */}
-            <span
-              className={cn(
-                "text-4xl font-black leading-none tracking-tight sm:text-5xl",
-                platzhalter ? "text-foreground" : schrift[stand],
-              )}
-            >
-              {zahl}
-            </span>
-            <span className="text-xs font-medium text-muted-foreground">
-              {einheit}
-            </span>
-            <TrendPfeil kpi={kpi} className="ml-1 self-center" />
-          </p>
-          {ist !== null && soll !== null && !platzhalter ? (
-            <div className="min-w-44 flex-1 pb-1">
-              <Meter
-                ist={ist}
-                ziel={soll}
-                skalaBis={meterSkala(ist, soll, einheit)}
-                gutUnterhalb={kpi.gutRichtung === "down"}
-                stand={stand}
-                beschriftungVon="0"
-                beschriftungZiel={`${homeT("target")} ${format.number(soll, { maximumFractionDigits: 1 })}`}
-                beschriftungBis={`${format.number(meterSkala(ist, soll, einheit), { maximumFractionDigits: 0 })} ${einheit}`}
-              achse={platz === "breit"}
-              />
-            </div>
-          ) : null}
-        </div>
-        {luecke}
-        {fuss}
-      </div>
-    );
-  }
-
+  // Genau eine Huelle fuer alle drei Groessen: derselbe Rahmen, dasselbe
+  // Innenmass, derselbe Kopf, dieselbe Fusszeile. Die Heldenzahl war bis
+  // hierher ein eigener Block mit eigenem Innenmass und eigenem Kopf - und
+  // sah dadurch neben ihren Nachbarn aus wie ein Fremdkoerper. Sie
+  // unterscheidet sich jetzt nur noch im Schriftgrad der Zahl und in der
+  // Flaeche, die ihr das Raster gibt.
   return (
     <div
       title={hinweis}
@@ -331,6 +288,12 @@ export function KennzahlBox({
           Ziel 100 % ist die Ausnahme die Aussage, nicht der Anteil. "0" und
           darunter "von 3 verletzt" sagt, was "100 %" verschweigt - naemlich
           wie viele Faelle hinter der Quote stehen. */}
+      {/* Gemeinsames Hoehenband fuer alles unterhalb des Kopfes. Die acht
+          Formen bringen sehr unterschiedlich hohe Grafiken mit - der Meter
+          14 px, der Punktstreifen 48. Ohne festen Platz sitzt die Fusszeile
+          in jeder Kachel auf einer anderen Linie, und die Reihe wirkt
+          unruhig, obwohl auto-rows-fr alle Karten gleich hoch macht. */}
+      <div className="flex min-h-[76px] flex-col justify-start">
       {form === "zaehler" && anteil ? (
         <Zaehler
           zahl={anteil.gesamt - anteil.erfuellt}
@@ -350,7 +313,17 @@ export function KennzahlBox({
         <>
           {/* Wert: beginnt damit in jeder Box auf derselben Linie. */}
           <p className="mt-2 flex items-baseline gap-1">
-            <span className="truncate text-xl font-black text-foreground">
+            <span
+              className={cn(
+                "truncate font-black text-foreground",
+                // Proportionale Ziffern bleiben: gleich breite Ziffern sind
+                // fuer Spalten gedacht, auf einer freistehenden Zahl wirken
+                // sie auseinandergezogen.
+                form === "held"
+                  ? "text-4xl leading-none tracking-tight sm:text-5xl"
+                  : "text-xl",
+              )}
+            >
               {zahl}
             </span>
             {einheit ? (
@@ -361,7 +334,10 @@ export function KennzahlBox({
             <TrendPfeil kpi={kpi} className="ml-auto h-3.5 w-3.5 self-center" />
           </p>
 
-          {form === "meter" && ist !== null && soll !== null && !platzhalter ? (
+          {(form === "meter" || form === "held") &&
+          ist !== null &&
+          soll !== null &&
+          !platzhalter ? (
             <Meter
               ist={ist}
               ziel={soll}
@@ -408,6 +384,7 @@ export function KennzahlBox({
           ) : null}
         </>
       )}
+      </div>
 
       {luecke}
       {fuss}

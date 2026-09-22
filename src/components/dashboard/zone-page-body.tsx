@@ -20,7 +20,11 @@ import { hasPermission } from "@/lib/rbac";
 import { moduleHref, modulesForZone, type ZoneKey } from "@/lib/modules";
 import { kpisFuerRolle, type Kpi } from "@/lib/domain/kpis";
 import { nachDringlichkeit } from "@/lib/domain/zielstand";
-import { kachelform } from "@/lib/domain/kachel-form";
+import {
+  kachelform,
+  kachelgroesse,
+  kachelSpanne,
+} from "@/lib/domain/kachel-form";
 import type { Datenquelle } from "@/lib/supabase/config";
 
 // Der Kennzahlenabschnitt der Zone. Dieselben Bausteine wie auf der
@@ -69,14 +73,22 @@ function Kennzahlen({
   // faengt sie schlicht mit dem Raster an.
   const alleKern = nachDringlichkeit(kern);
   const held = alleKern.find((kpi) => form(kpi) === "held");
-  const kernSortiert = alleKern.filter((kpi) => kpi !== held);
 
-  // Der Punktstreifen zeigt jeden Vorgang einzeln. In einer Spalte kleben
-  // die Punkte aufeinander, deshalb bekommt er zwei - auf jeder Breite. Am
-  // Telefon sind das beide Spalten und damit die volle Karte; zehn Chargen
-  // auf 150 px waeren ein Fleck und kein Streifen.
-  const spalten = (kpi: Kpi) =>
-    form(kpi) === "streifen" ? "col-span-2" : undefined;
+  // Die Heldenzahl fuehrt die Ansicht an, auch wenn sie im Ziel liegt und
+  // nachDringlichkeit sie ans Ende schoebe. Sie ist nicht die dringendste
+  // Kennzahl, sondern die wichtigste - das ist nicht dasselbe.
+  const kernSortiert = held
+    ? [held, ...alleKern.filter((kpi) => kpi !== held)]
+    : alleKern;
+
+  // Drei Groessen, mehr nicht. Welche eine Form bekommt, steht in
+  // lib/domain/kachel-form.ts; hier wird sie nur ins Raster uebersetzt.
+  const spanne = (kpi: Kpi) => kachelSpanne[kachelgroesse(form(kpi))];
+
+  // Alle Kacheln bekommen dieselbe Spalte. Frueher nahm der Punktstreifen
+  // zwei - das machte ihn lesbarer, liess die Reihe aber in zwei Groessen
+  // zerfallen. Bei vier Spalten auf dem Schreibtisch bleibt eine Spalte breit
+  // genug fuer den Streifen, und die Karten tragen eine gemeinsame Silhouette.
 
   if (kernSortiert.length === 0 && erweitertSortiert.length === 0) {
     return (
@@ -102,19 +114,9 @@ function Kennzahlen({
         {/* auto-rows-fr: auch Boxen in verschiedenen Zeilen werden gleich
             hoch. Die Spaltenzahl steigt mit der Kartenbreite, nicht mit der
             Fensterbreite. */}
-        {held ? (
-          <div className="mb-3">
-            <KennzahlBox
-              kpi={held}
-              platz="breit"
-              lueckeZeigen={istDb}
-            />
-          </div>
-        ) : null}
-
         <div className="grid auto-rows-fr grid-cols-2 gap-2 @md:grid-cols-3 @xl:grid-cols-4">
           {kernSortiert.map((kpi) => (
-            <div key={kpi.key} className={cn("min-w-0", spalten(kpi))}>
+            <div key={kpi.key} className={cn("min-w-0", spanne(kpi))}>
               <KennzahlBox
                 kpi={kpi}
                 platz="breit"
@@ -149,7 +151,7 @@ function Kennzahlen({
             {offen ? (
               <div className="mt-3 grid auto-rows-fr grid-cols-2 gap-2 @md:grid-cols-3 @xl:grid-cols-4">
                 {erweitertSortiert.map((kpi) => (
-                  <div key={kpi.key} className={cn("min-w-0", spalten(kpi))}>
+                  <div key={kpi.key} className={cn("min-w-0", spanne(kpi))}>
                     <KennzahlBox
                       kpi={kpi}
                       platz="breit"
