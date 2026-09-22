@@ -20,7 +20,7 @@
 import { useFormatter, useTranslations } from "next-intl";
 import { ArrowDownRight, ArrowUpRight, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Kpi, KpiTrend } from "@/lib/domain/kpis";
+import type { Datenherkunft, Kpi, KpiTrend } from "@/lib/domain/kpis";
 import { zielAuswerten, type Zielstand } from "@/lib/domain/zielstand";
 
 const trendIcon: Record<KpiTrend, typeof ArrowUpRight> = {
@@ -53,6 +53,19 @@ export function TrendPfeil({ kpi, className }: { kpi: Kpi; className?: string })
     />
   );
 }
+
+// Warum die Luecke nur auf Anforderung erscheint: auf der Uebersicht stand
+// diese Einordnung bis September 2026 als Fusszeile an jeder Kachel und wurde
+// mit der Textpruefung entfernt - sie beschrieb den Bauzustand, waehrend dort
+// die Frage steht, ob eine Zahl von heute ist. Auf der Bereichsseite ist die
+// Kennzahl dagegen der Inhalt der Seite; ein grauer Kasten ohne Erklaerung
+// sagt dem Betrachter nichts. Deshalb ein Schalter statt einer festen Regel.
+const lueckeSchluessel: Record<Datenherkunft, string> = {
+  berechenbar: "berechenbar",
+  "erfassung-fehlt": "erfassungFehlt",
+  "tabelle-fehlt": "tabelleFehlt",
+  "rechtlich-ungeklaert": "rechtlichUngeklaert",
+};
 
 const punkt: Record<Zielstand, string> = {
   verfehlt: "bg-destructive",
@@ -138,10 +151,13 @@ function Zielband({
 export function KennzahlBox({
   kpi,
   zielband = false,
+  lueckeZeigen = false,
 }: {
   kpi: Kpi;
   /** Band vom Istwert zur Zielmarke. */
   zielband?: boolean;
+  /** Benennt bei einem ungerechneten Wert, welche Datengrundlage fehlt. */
+  lueckeZeigen?: boolean;
 }) {
   const kpiT = useTranslations("kpis");
   const t = useTranslations("dashboard.kennzahl");
@@ -207,6 +223,20 @@ export function KennzahlBox({
           stand={stand}
           titel={t("bandTitel", { ist: `${zahl} ${einheit}`.trim(), ziel: kpi.ziel })}
         />
+      ) : null}
+
+      {/* Ein Platzhalter ohne Erklaerung ist ein leerer Kasten. Mit der
+          Einordnung wird daraus eine Aussage: nicht "hier fehlt eine Zahl",
+          sondern "diese Zahl haengt an einer Erfassung, die noch niemand
+          macht". Der Text kommt aus datenherkunft und ist damit uebersetzbar -
+          das Feld braucht am Kpi ist eine deutsche Notiz fuer die Codeseite. */}
+      {lueckeZeigen && platzhalter && !kpi.gerechnet ? (
+        <p className="mt-2 rounded-lg border border-dashed border-border bg-muted/30 px-2 py-1.5 text-[10px] leading-4 text-muted-foreground">
+          <span className="font-semibold text-card-foreground">
+            {t("luecke.titel")}
+          </span>{" "}
+          {t(`luecke.${lueckeSchluessel[kpi.datenherkunft]}`)}
+        </p>
       ) : null}
 
       {/* Fuss: haengt am unteren Rand, steht dadurch in jeder Box gleich.

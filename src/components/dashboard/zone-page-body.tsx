@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Icon } from "@/components/icon";
 import {
@@ -12,16 +13,117 @@ import {
   StatusPill,
 } from "@/components/ui/kit";
 import { cn } from "@/lib/utils";
+import { KennzahlBox } from "@/components/dashboard/kennzahl-box";
 import { ModulStatusPille } from "@/components/dashboard/module-meta";
 import { usePersona } from "@/components/dashboard/persona";
 import { hasPermission } from "@/lib/rbac";
 import { moduleHref, modulesForZone, type ZoneKey } from "@/lib/modules";
+import { kpisFuerRolle, type Kpi } from "@/lib/domain/kpis";
+import { nachDringlichkeit } from "@/lib/domain/zielstand";
+import type { Datenquelle } from "@/lib/supabase/config";
+
+// Der Kennzahlenabschnitt der Zone. Dieselben Bausteine wie auf der
+// Uebersicht - Section, KennzahlBox, nachDringlichkeit -, nur ohne die
+// Zonenschleife: hier steht genau eine Zone, dafuer mit allen ihren
+// Kennzahlen statt nur den Kern-Kacheln. Auf der Uebersicht ist der Platz
+// knapp, hier nicht.
+//
+// @container statt Fensterbreite: was in der Karte umbricht, richtet sich
+// nach der Karte. Sonst steht bei 1440 px ein abgeschnittener Kennzahlname
+// da, obwohl das Fenster breit ist.
+function Kennzahlen({ kpis, quelle }: { kpis: Kpi[]; quelle: Datenquelle }) {
+  const t = useTranslations("dashboard");
+  const quelleT = useTranslations("dashboard.dataSource");
+  const [offen, setOffen] = useState(false);
+
+  const { role } = usePersona();
+
+  // Zweiter Durchlauf nach dem serverseitigen Vorfilter, genau wie in
+  // home.tsx: ein Admin in der "Ansicht als"-Vorschau bekommt alle
+  // Kennzahlen vom Server und schneidet hier auf die Vorschaurolle zu.
+  const { kern, erweitert } = kpisFuerRolle(role, kpis);
+  const kernSortiert = nachDringlichkeit(kern);
+  const erweitertSortiert = nachDringlichkeit(erweitert);
+
+  if (kernSortiert.length === 0 && erweitertSortiert.length === 0) {
+    return (
+      <Section title={t("zoneKennzahlTitel")} description={t("zoneKennzahlLead")}>
+        <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+          {t("home.zoneOhneKennzahl")}
+        </p>
+      </Section>
+    );
+  }
+
+  return (
+    <Section
+      title={t("zoneKennzahlTitel")}
+      description={t("zoneKennzahlLead")}
+      action={
+        <StatusPill tone={quelle === "db" ? "success" : "warning"}>
+          {quelleT(quelle === "db" ? "db" : "demo")}
+        </StatusPill>
+      }
+    >
+      <div className="@container">
+        {/* auto-rows-fr: auch Boxen in verschiedenen Zeilen werden gleich
+            hoch. Die Spaltenzahl steigt mit der Kartenbreite, nicht mit der
+            Fensterbreite. */}
+        <div className="grid auto-rows-fr grid-cols-2 gap-2 @md:grid-cols-3 @xl:grid-cols-4">
+          {kernSortiert.map((kpi) => (
+            <KennzahlBox key={kpi.key} kpi={kpi} zielband lueckeZeigen />
+          ))}
+        </div>
+
+        {/* Die Baseline umfasst 14 Kennzahlen, das Cockpit aus Anforderung
+            4.11 nur zwoelf. Die restlichen zwei gehoeren dazu, stehen aber
+            nicht im ersten Blick - sonst waere die Obergrenze umgangen,
+            indem man sie einfach danebenstellt. */}
+        {erweitertSortiert.length > 0 ? (
+          <div className="mt-3 border-t border-border pt-3">
+            <button
+              type="button"
+              onClick={() => setOffen((vorher) => !vorher)}
+              aria-expanded={offen}
+              className="inline-flex items-center gap-1.5 rounded-md text-xs font-semibold text-primary transition hover:text-primary/80"
+            >
+              <ChevronDown
+                aria-hidden
+                className={cn("h-3.5 w-3.5 transition", offen && "rotate-180")}
+              />
+              {offen
+                ? t("zoneKennzahlWeniger")
+                : t("zoneKennzahlMehr", { count: erweitertSortiert.length })}
+            </button>
+
+            {offen ? (
+              <div className="mt-3 grid auto-rows-fr grid-cols-2 gap-2 @md:grid-cols-3 @xl:grid-cols-4">
+                {erweitertSortiert.map((kpi) => (
+                  <KennzahlBox key={kpi.key} kpi={kpi} zielband lueckeZeigen />
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+    </Section>
+  );
+}
 
 // Dasselbe Boxensystem wie die Uebersichtsseite: jeder Abschnitt sitzt in
 // einer Card, was darin als eigene Einheit steht, traegt den gedaempften
 // Grund und keinen Schatten. Zwei Karten mit Schatten uebereinander sehen
 // aus wie ein Fehler.
-export function ZonePageBody({ zone }: { zone: ZoneKey }) {
+export function ZonePageBody({
+  zone,
+  kpis,
+  quelle,
+}: {
+  zone: ZoneKey;
+  /** Bereits serverseitig auf Rolle und Zone geschnitten. */
+  kpis: Kpi[];
+  quelle: Datenquelle;
+}) {
   const { role } = usePersona();
   const zoneT = useTranslations("zones");
   const moduleT = useTranslations("modules");
@@ -39,6 +141,11 @@ export function ZonePageBody({ zone }: { zone: ZoneKey }) {
           description={zoneT(`${zone}.description`)}
         />
       </Card>
+
+      {/* Die Kennzahlen stehen ueber den Modulen. Wer die Bereichsseite
+          oeffnet, will zuerst wissen, wie der Bereich dasteht, und erst
+          danach, womit man daran arbeitet. */}
+      <Kennzahlen kpis={kpis} quelle={quelle} />
 
       <Section title={t("home.moduleTitel")} description={t("zoneModuleLead")}>
         {items.length === 0 ? (

@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import { kpis as demoKpis, type Kpi } from "@/lib/domain/kpis";
@@ -15,7 +16,13 @@ export interface KpiListe {
   gerechnet: number;
 }
 
-export async function ladeKpis(): Promise<KpiListe> {
+// React.cache buendelt die Aufrufe innerhalb einer Anfrage. Seit die vier
+// Bereichsseiten dieselbe Liste laden, riefe sonst jede Seite kpi_aktuell()
+// erneut auf - und die Funktion rechnet ueber den gesamten Datenbestand,
+// nicht ueber den Ausschnitt einer Zone.
+export const ladeKpis = cache(ladeKpisRoh);
+
+async function ladeKpisRoh(): Promise<KpiListe> {
   if (!isSupabaseConfigured()) {
     return { quelle: "demo", kpis: demoKpis, gerechnet: 0 };
   }

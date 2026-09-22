@@ -362,9 +362,20 @@
         "knapp": "just off",
         "verfehlt": "target missed",
         "offen": "no target value"
+      },
+      "luecke": {
+        "titel": "Not measured yet.",
+        "berechenbar": "Calculated from existing data as soon as it is recorded.",
+        "erfassungFehlt": "The tables are in place, but nobody enters the values yet.",
+        "tabelleFehlt": "The data model has no place for this yet.",
+        "rechtlichUngeklaert": "The legal basis has not been clarified yet."
       }
     },
-    "zoneModuleLead": "Everything released in this zone for the active role."
+    "zoneModuleLead": "Everything released in this zone for the active role.",
+    "zoneKennzahlTitel": "Key figures",
+    "zoneKennzahlLead": "This area's key figures, the most urgent one first.",
+    "zoneKennzahlMehr": "Show {count} more key figures",
+    "zoneKennzahlWeniger": "Hide additional key figures"
   },
   "roles": {
     "switcherHint": "Switch demo role - controls the visible navigation",
