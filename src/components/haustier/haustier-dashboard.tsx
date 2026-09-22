@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { usePersona } from "@/components/dashboard/persona";
+import { useComplianceTour } from "@/components/dashboard/use-compliance-tour";
 import { AbzeichenModal } from "@/components/haustier/abzeichen-modal";
 import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { HaustierHuelle } from "@/components/haustier/haustier-huelle";
@@ -49,6 +50,7 @@ export function HaustierDashboard() {
   const { stelleFrage, schickeWeg, holeZurueck } = useHaustierAktionen();
   const pfad = usePathname();
   const { role } = usePersona();
+  const tour = useComplianceTour();
   // Auf dem Handy steht Himbi in der unteren Leiste (untere-leiste.tsx) und
   // nicht frei im Bild. Frei schwebend deckte er dort Karteninhalt zu, und
   // daneben trug die Leiste noch einmal dieselbe Himbeere als KI-Knopf -
@@ -212,11 +214,16 @@ export function HaustierDashboard() {
   // Kopfzeile oeffnet weiterhin das angedockte Panel.
   const aufBuehne = offen && darstellung === "buehne";
 
-  const zustand = willkommen ? "fertig" : haustierZustand({ phase, fertigUngelesen: fertig, schlaeft: false });
+  // Echte Arbeit (Freigabe/Arbeitet/Fehler) und eine frisch angekommene Antwort gewinnen immer
+  // vor der Compliance-Tour: die Fuehrung wartet lieber kurz, als eine Meldung zu verdecken, die
+  // Aufmerksamkeit braucht.
+  const tourAktivSichtbar = !offen && phase !== "freigabe" && phase !== "arbeitet" && phase !== "fehler" && !fertigBlase && tour.aktiv;
+  const zustand = willkommen ? "fertig" : tourAktivSichtbar ? tour.tourZustand : haustierZustand({ phase, fertigUngelesen: fertig, schlaeft: false });
   const label = t(`label.${zustand}`);
   const befindenSichtbar = befindenFrage && ruhigGenug && !tipp;
   const tippSichtbar = !!tipp && ruhigGenug && !befindenSichtbar;
   const anstupserSichtbar = !!anstupser && ruhigGenug && !befindenSichtbar && !tippSichtbar && !befindenBlase;
+  const tourFrageSichtbar = tour.frageBereit && ruhigGenug && !tipp;
 
   // Die Antwort des Menschen gewinnt fuer eine Weile vor der Miene aus dem Antworttext:
   // wer gerade gesagt hat, dass viel los ist, soll kein zufriedenes Gesicht sehen.
@@ -264,6 +271,10 @@ export function HaustierDashboard() {
           </div>
         </>
       );
+    } else if (tourAktivSichtbar) {
+      blase = tour.tourBlase;
+    } else if (tourFrageSichtbar) {
+      blase = tour.frageBlase;
     } else if (befindenSichtbar) {
       blase = (
         <>
@@ -362,6 +373,8 @@ export function HaustierDashboard() {
         blase={blase}
         paneOffen={offen}
         label={label}
+        blickZiel={tour.tourZiel}
+        huepf={tour.huepf}
         aufAbzeichen={() => setAbzeichenOffen(true)}
         aufLogo={() => setLogoOffen(true)}
         inventar={inventar}

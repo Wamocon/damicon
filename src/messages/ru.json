@@ -3097,10 +3097,17 @@
     "keineAenderung": "Изменений с последнего отчёта нет.",
     "aenderungenAnzahl": "{anzahl, plural, one {# изменение} few {# изменения} many {# изменений} other {# изменения}} с последнего отчёта",
     "kachelOeffnen": "{anzahl, plural, one {# вывод} few {# вывода} many {# выводов} other {# вывода}} · подробнее",
+    "keineMassnahmen": "Нет открытых мер.",
     "aenderungArt": {
       "neu": "новое",
       "statusVeraendert": "Статус изменён: {vorher} → {jetzt}",
       "schwereVeraendert": "Серьёзность изменена: {vorher} → {jetzt}"
+    },
+    "tour": {
+      "frage": "Показать тебе все четыре области проверки?",
+      "kopfTitel": "Общая картина",
+      "bereich": "{reife} из 100 баллов, {stufe}. {anzahl, plural, one {# вывод} few {# вывода} many {# выводов} other {# вывода}}. Для подробностей нажмите на плитку.",
+      "ende": "Это были все четыре области. Нажмите на плитку в любой момент, чтобы увидеть все подробности."
     }
   },
   "pruefungAblauf": {

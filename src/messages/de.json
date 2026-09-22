@@ -3097,10 +3097,17 @@
     "keineAenderung": "Keine Änderungen seit dem letzten Bericht.",
     "aenderungenAnzahl": "{anzahl, plural, one {# Änderung} other {# Änderungen}} seit dem letzten Bericht",
     "kachelOeffnen": "{anzahl, plural, one {# Befund} other {# Befunde}} · Details ansehen",
+    "keineMassnahmen": "Keine offenen Maßnahmen.",
     "aenderungArt": {
       "neu": "neu",
       "statusVeraendert": "Status geändert: {vorher} → {jetzt}",
       "schwereVeraendert": "Schwere geändert: {vorher} → {jetzt}"
+    },
+    "tour": {
+      "frage": "Soll ich dir die vier Prüfbereiche zeigen?",
+      "kopfTitel": "Das Gesamtbild",
+      "bereich": "{reife} von 100 Punkten, {stufe}. {anzahl, plural, one {# Befund} other {# Befunde}}. Für Details auf die Kachel klicken.",
+      "ende": "Das waren die vier Bereiche. Auf eine Kachel klicken zeigt dir jederzeit alle Details."
     }
   },
   "pruefungAblauf": {

@@ -3097,10 +3097,17 @@
     "keineAenderung": "No changes since the last report.",
     "aenderungenAnzahl": "{anzahl, plural, one {# change} other {# changes}} since the last report",
     "kachelOeffnen": "{anzahl, plural, one {# finding} other {# findings}} · view details",
+    "keineMassnahmen": "No open actions.",
     "aenderungArt": {
       "neu": "new",
       "statusVeraendert": "Status changed: {vorher} → {jetzt}",
       "schwereVeraendert": "Severity changed: {vorher} → {jetzt}"
+    },
+    "tour": {
+      "frage": "Shall I show you the four review areas?",
+      "kopfTitel": "The big picture",
+      "bereich": "{reife} out of 100 points, {stufe}. {anzahl, plural, one {# finding} other {# findings}}. Click the tile for details.",
+      "ende": "That was all four areas. Click a tile any time to see the full details."
     }
   },
   "pruefungAblauf": {

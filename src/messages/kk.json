@@ -3097,10 +3097,17 @@
     "keineAenderung": "Соңғы есептен бері өзгеріс жоқ.",
     "aenderungenAnzahl": "{anzahl, plural, other {# өзгеріс}} соңғы есептен бері",
     "kachelOeffnen": "{anzahl, plural, other {# қорытынды}} · толығырақ",
+    "keineMassnahmen": "Ашық іс-шаралар жоқ.",
     "aenderungArt": {
       "neu": "жаңа",
       "statusVeraendert": "Мәртебе өзгерді: {vorher} → {jetzt}",
       "schwereVeraendert": "Ауырлық дәрежесі өзгерді: {vorher} → {jetzt}"
+    },
+    "tour": {
+      "frage": "Саған төрт тексеру бағытын көрсетейін бе?",
+      "kopfTitel": "Жалпы көрініс",
+      "bereich": "100 ұпайдан {reife}, {stufe}. {anzahl, plural, other {# қорытынды}}. Толығырақ үшін карточканы басыңыз.",
+      "ende": "Бұл төрт бағыттың барлығы болды. Толық мәліметтерді кез келген уақытта карточканы басып көре аласыз."
     }
   },
   "pruefungAblauf": {

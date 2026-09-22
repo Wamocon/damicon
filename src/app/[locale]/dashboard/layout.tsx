@@ -4,6 +4,7 @@ import "@/components/ki/ki-pane.css";
 import { setRequestLocale } from "next-intl/server";
 import { PersonaProvider } from "@/components/dashboard/persona";
 import { CeoPruefungProvider } from "@/components/dashboard/ceo-pruefung-kontext";
+import { ComplianceTourProvider } from "@/components/dashboard/compliance-tour-kontext";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { UntereLeiste } from "@/components/dashboard/untere-leiste";
@@ -81,6 +82,7 @@ export default async function DashboardLayout({
         nutzerId={profil?.id ?? null}
       >
         <CeoPruefungProvider>
+        <ComplianceTourProvider>
         <HaustierProvider>
         <div className="dashboard-shell flex min-h-svh w-full">
           <DashboardSidebar />
@@ -112,6 +114,7 @@ export default async function DashboardLayout({
         </div>
         <HaustierDashboard />
         </HaustierProvider>
+        </ComplianceTourProvider>
         </CeoPruefungProvider>
       </KiPaneProvider>
     </PersonaProvider>
