@@ -382,6 +382,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "compliance_ceo_berichte_ausgeloest_von_fkey"
+            columns: ["ausgeloest_von"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+          {
             foreignKeyName: "compliance_ceo_berichte_voriger_bericht_id_fkey"
             columns: ["voriger_bericht_id"]
             isOneToOne: false
@@ -2997,7 +3004,9 @@ export type Database = {
           geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
-          kontroll_befund?: Database["public"]["Enums"]["kontroll_befund"] | null
+          kontroll_befund?:
+            | Database["public"]["Enums"]["kontroll_befund"]
+            | null
           kontroll_begruendung?: string | null
           kontrolliert_am?: string | null
           kontrolliert_von_profil_id?: string | null
@@ -3015,7 +3024,9 @@ export type Database = {
           geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
-          kontroll_befund?: Database["public"]["Enums"]["kontroll_befund"] | null
+          kontroll_befund?:
+            | Database["public"]["Enums"]["kontroll_befund"]
+            | null
           kontroll_begruendung?: string | null
           kontrolliert_am?: string | null
           kontrolliert_von_profil_id?: string | null
@@ -3342,6 +3353,150 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      wissen_begriffe: {
+        Row: {
+          df: number
+          hash: number
+          idf: number
+        }
+        Insert: {
+          df: number
+          hash: number
+          idf: number
+        }
+        Update: {
+          df?: number
+          hash?: number
+          idf?: number
+        }
+        Relationships: []
+      }
+      wissen_chunks: {
+        Row: {
+          abgerufen_am: string | null
+          autoritaetsstufe: number | null
+          bereich: string
+          chunk_id: string | null
+          dense: string
+          eingelesen_am: string | null
+          embed_modell: string | null
+          ersetzt_durch: string | null
+          erstellt_am: string
+          extra: Json
+          gueltig_ab: string | null
+          gueltig_bis: string | null
+          id: string
+          ist_ueberholt: boolean
+          konfidenz: string | null
+          kontext: string | null
+          norm_id: string | null
+          pfad: string | null
+          quelle_id: string | null
+          rechtsstelle: string | null
+          rollen: string[]
+          sparse: unknown
+          sprache: string
+          teil: number | null
+          teile: number | null
+          text: string
+          titel: string | null
+          url: string | null
+        }
+        Insert: {
+          abgerufen_am?: string | null
+          autoritaetsstufe?: number | null
+          bereich: string
+          chunk_id?: string | null
+          dense: string
+          eingelesen_am?: string | null
+          embed_modell?: string | null
+          ersetzt_durch?: string | null
+          erstellt_am?: string
+          extra?: Json
+          gueltig_ab?: string | null
+          gueltig_bis?: string | null
+          id: string
+          ist_ueberholt?: boolean
+          konfidenz?: string | null
+          kontext?: string | null
+          norm_id?: string | null
+          pfad?: string | null
+          quelle_id?: string | null
+          rechtsstelle?: string | null
+          rollen?: string[]
+          sparse: unknown
+          sprache?: string
+          teil?: number | null
+          teile?: number | null
+          text: string
+          titel?: string | null
+          url?: string | null
+        }
+        Update: {
+          abgerufen_am?: string | null
+          autoritaetsstufe?: number | null
+          bereich?: string
+          chunk_id?: string | null
+          dense?: string
+          eingelesen_am?: string | null
+          embed_modell?: string | null
+          ersetzt_durch?: string | null
+          erstellt_am?: string
+          extra?: Json
+          gueltig_ab?: string | null
+          gueltig_bis?: string | null
+          id?: string
+          ist_ueberholt?: boolean
+          konfidenz?: string | null
+          kontext?: string | null
+          norm_id?: string | null
+          pfad?: string | null
+          quelle_id?: string | null
+          rechtsstelle?: string | null
+          rollen?: string[]
+          sparse?: unknown
+          sprache?: string
+          teil?: number | null
+          teile?: number | null
+          text?: string
+          titel?: string | null
+          url?: string | null
+        }
+        Relationships: []
+      }
+      wissen_importe: {
+        Row: {
+          begriffe: number
+          bemerkung: string | null
+          chunks: number
+          dimension: number | null
+          embed_modell: string | null
+          gestartet_am: string
+          id: string
+          quelle: string
+        }
+        Insert: {
+          begriffe: number
+          bemerkung?: string | null
+          chunks: number
+          dimension?: number | null
+          embed_modell?: string | null
+          gestartet_am?: string
+          id?: string
+          quelle: string
+        }
+        Update: {
+          begriffe?: number
+          bemerkung?: string | null
+          chunks?: number
+          dimension?: number | null
+          embed_modell?: string | null
+          gestartet_am?: string
+          id?: string
+          quelle?: string
+        }
+        Relationships: []
       }
       zukauf_positionen: {
         Row: {
@@ -3690,10 +3845,7 @@ export type Database = {
         Args: { p_rechtsform: Database["public"]["Enums"]["rechtsform"] }
         Returns: string
       }
-      pruefziffer_stimmt: {
-        Args: { p_nummer: string }
-        Returns: boolean
-      }
+      pruefziffer_stimmt: { Args: { p_nummer: string }; Returns: boolean }
       reihenblock_freigeben: {
         Args: {
           p_block: string
@@ -3770,6 +3922,22 @@ export type Database = {
         Args: { p_anzahl: number; p_start: string }
         Returns: string
       }
+      wissen_suche: {
+        Args: {
+          p_fragen: Json
+          p_kandidaten?: number
+          p_limit?: number
+          p_max_stufe?: number
+          p_nur_aktuell?: boolean
+          p_rolle?: string
+          p_rrf_k?: number
+        }
+        Returns: {
+          id: string
+          payload: Json
+          punktzahl: number
+        }[]
+      }
       zukauf_positionen_importieren: {
         Args: { p_zeilen: Json }
         Returns: number
@@ -3827,13 +3995,7 @@ export type Database = {
         | "beleg_pruefung"
         | "abgeschlossen"
       plantage_typ: "eigen" | "nachbarbetrieb"
-      rechtsform:
-        | "kh_fh"
-        | "ip"
-        | "privatperson"
-        | "too"
-        | "ao"
-        | "pk"
+      rechtsform: "kh_fh" | "ip" | "privatperson" | "too" | "ao" | "pk"
       rechtsgrundlage_typ: "einwilligung" | "vertrag" | "gesetzliche_pflicht"
       reihenblock_status:
         | "bepflanzt"
@@ -4108,4 +4270,3 @@ export const Constants = {
     },
   },
 } as const
-
