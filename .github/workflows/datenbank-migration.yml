@@ -98,7 +98,7 @@ jobs:
         id: trocken
         run: |
           supabase db push --linked --dry-run | tee trocken.txt
-          if grep -q '"upToDate":true' trocken.txt; then echo "offen=nein" >> "$GITHUB_OUTPUT"; else echo "offen=ja" >> "$GITHUB_OUTPUT"; fi
+          if grep -q "up to date" trocken.txt; then echo "offen=nein" >> "$GITHUB_OUTPUT"; else echo "offen=ja" >> "$GITHUB_OUTPUT"; fi
 
       - name: Migrationen anwenden
         if: env.ANWENDEN == 'true' && steps.trocken.outputs.offen == 'ja'
@@ -108,7 +108,7 @@ jobs:
         if: env.ANWENDEN == 'true' && steps.trocken.outputs.offen == 'ja'
         run: |
           supabase db push --linked --dry-run | tee danach.txt
-          grep -q '"upToDate":true' danach.txt || { echo "::error::Nach dem Anwenden ist noch etwas offen."; exit 1; }
+          grep -q "up to date" danach.txt || { echo "::error::Nach dem Anwenden ist noch etwas offen."; exit 1; }
 
       - name: PostgREST-Schema neu laden
         if: env.ANWENDEN == 'true' && steps.trocken.outputs.offen == 'ja'
