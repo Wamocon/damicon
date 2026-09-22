@@ -18,6 +18,7 @@ export type Pruefbereich = (typeof PRUEFBEREICHE)[number];
 
 const ZUGANG: Partial<Record<Role, readonly Pruefbereich[]>> = {
   admin: PRUEFBEREICHE,
+  ceo: PRUEFBEREICHE,
   buchhaltung: ["audit", "steuer"],
   betriebsleitung: ["recht", "risiko"],
 };

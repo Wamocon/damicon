@@ -371,6 +371,7 @@
     "viewAsHint": "View as role - changes the presentation only; write permissions still follow your profile",
     "viewAsBadge": "Viewing as: {role}",
     "admin": "Administration",
+    "ceo": "CEO",
     "betriebsleitung": "Farm management",
     "buchhaltung": "Accounting",
     "brigade": "Brigade / field",
@@ -379,6 +380,7 @@
     "kunde": "B2B client",
     "descriptions": {
       "admin": "Full configuration, user and role management, oversight of sensitive finance, access and integration matters.",
+      "ceo": "Overview of all four zones, all key figures and all four compliance areas, without managing the AI provider keys. Receives automatically updated compliance reports on login.",
       "betriebsleitung": "Daily plantation operations, tasks, rotation, staff and approvals. Can view finance but not post entries.",
       "buchhaltung": "Contribution margin, pay, payments, state filings. No user management, no field sign-offs.",
       "brigade": "Accepts picking tasks, records volume and photo evidence in the field, sees rotation and pre-harvest-interval locks.",
@@ -3017,6 +3019,7 @@
     },
     "rolle": {
       "admin": "Administration",
+      "ceo": "CEO",
       "betriebsleitung": "Farm management",
       "buchhaltung": "Accounting",
       "brigade": "Field crew",
@@ -3080,6 +3083,21 @@
       "fragePlan": "Create a concrete, prioritised solution plan for all violations and gaps in the audit report: steps, who is responsible, deadlines and which evidence I should keep. Use the knowledge base and cite the sources.",
       "frageMassnahme": "How do I implement this action from the audit report in practice? Item: {titel}. Action: {schritt}. List the individual steps, the evidence I need and the legal basis.",
       "frageHinweis": "The audit could not assess this item reliably: {titel}. What do I need to provide or clarify so it can be assessed?"
+    }
+  },
+  "ceoUebersicht": {
+    "titel": "Compliance overview",
+    "untertitel": "Checked automatically on every login, all four areas in one run.",
+    "zuletztGeprueft": "Last checked on {datum}",
+    "nochKeinBericht": "No automatic report yet. The first run starts in the background after this login, reload the page in a few minutes.",
+    "aktualisieren": "Check now",
+    "aktualisiertGerade": "Check running …",
+    "keineAenderung": "No changes since the last report.",
+    "aenderungenAnzahl": "{anzahl, plural, one {# change} other {# changes}} since the last report",
+    "aenderungArt": {
+      "neu": "new",
+      "statusVeraendert": "Status changed: {vorher} → {jetzt}",
+      "schwereVeraendert": "Severity changed: {vorher} → {jetzt}"
     }
   },
   "pruefungAblauf": {

@@ -300,7 +300,11 @@ export function kpisFuerRolle(
   role: Role,
   liste: Kpi[] = kpis,
 ): { kern: Kpi[]; erweitert: Kpi[] } {
-  const sichtbar = liste.filter((kpi) => kpi.sichtbarFuer.includes(role));
+  // ceo sieht dieselben Kennzahlen wie admin (kuratierte Rechteentscheidung,
+  // siehe rolePermissions.ceo in rbac.ts). Alias hier statt "ceo" in allen 14
+  // sichtbarFuer-Listen einzeln nachzutragen: eine neue Kennzahl mit admin in
+  // sichtbarFuer ist damit automatisch auch fuer ceo sichtbar.
+  const sichtbar = liste.filter((kpi) => kpi.sichtbarFuer.includes(role) || (role === "ceo" && kpi.sichtbarFuer.includes("admin")));
   return {
     kern: sichtbar.filter((kpi) => kpi.stufe === "kern"),
     erweitert: sichtbar.filter((kpi) => kpi.stufe === "erweitert"),

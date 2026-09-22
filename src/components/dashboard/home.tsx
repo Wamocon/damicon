@@ -12,6 +12,7 @@
 //
 // Die Entwuerfe dazu und ihre Messwerte stehen unter
 // docs/design/uebersicht-entwuerfe-2026-09-21/, -runde2- und -runde3-.
+import type { ReactNode } from "react";
 import { usePersona } from "@/components/dashboard/persona";
 import { BegruessungsBox } from "@/components/dashboard/begruessung";
 import { ZonenBox } from "@/components/dashboard/zonen-box";
@@ -25,6 +26,7 @@ export function DashboardHome({
   tageszeit,
   datum,
   spruch,
+  ceoUebersicht,
 }: {
   kpis: Kpi[];
   quelle: Datenquelle;
@@ -32,6 +34,15 @@ export function DashboardHome({
   tageszeit: Tageszeit;
   datum: string;
   spruch: number;
+  /**
+   * Serverseitig vorgerendert (async Server Component) und von der Seite
+   * durchgereicht, nicht hier importiert: DashboardHome ist "use client"
+   * (usePersona()), eine Server Component laesst sich dort nicht direkt
+   * einbinden. Server-seitig an der ECHTEN Profilrolle festgemacht, nicht an
+   * der hier umschaltbaren Vorschau-Rolle - eine Admin-Vorschau "als ceo" soll
+   * nicht den echten automatischen Lauf einer fremden Person ausloesen.
+   */
+  ceoUebersicht?: ReactNode;
 }) {
   const { role } = usePersona();
 
@@ -47,6 +58,7 @@ export function DashboardHome({
   return (
     <div className="space-y-6">
       <BegruessungsBox tageszeit={tageszeit} datum={datum} spruch={spruch} />
+      {ceoUebersicht}
       <ZonenBox role={role} kpis={sichtbar} quelle={quelle} />
     </div>
   );

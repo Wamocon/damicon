@@ -147,7 +147,7 @@ export function agentPrompt(felder: Feldstand[]): string {
     .join("\n\n");
 }
 
-async function fuehreAus(werkzeug: unknown): Promise<unknown> {
+export async function fuehreAus(werkzeug: unknown): Promise<unknown> {
   const t = werkzeug as { execute?: (i: unknown, o: unknown) => unknown } | undefined;
   if (!t?.execute) return undefined;
   return await t.execute({}, { toolCallId: "pruefung", messages: [] });

@@ -445,6 +445,7 @@
           <thead><tr><th>Rolle</th><th>1&Ccedil;at&#305;-Vorbild</th><th>Beschreibung</th></tr></thead>
           <tbody>
             <tr><td><strong>Administration</strong></td><td>admin</td><td>Volle Konfiguration, Nutzer- und Rollenverwaltung, sensible Finanz- und Integrationsaufsicht.</td></tr>
+            <tr><td><strong>Gesch&auml;ftsf&uuml;hrung (CEO)</strong></td><td>kein Vorbild</td><td>Nachtr&auml;glich hinzugef&uuml;gt (weicht von der urspr&uuml;nglich abgenommenen Sieben-Rollen-Anforderung ab). Praktisch alle Rechte der Administration, ausser der Verwaltung der KI-Provider-Schl&uuml;ssel. Erh&auml;lt beim Login automatisch einen aktualisierten Compliance-Bericht (alle vier Pr&uuml;fbereiche), sobald sich die Betriebsdaten seit dem letzten Bericht ge&auml;ndert haben.</td></tr>
             <tr><td><strong>Betriebsleitung</strong></td><td>manager</td><td>T&auml;glicher Plantagenbetrieb, Aufgaben, Rotation, Personal, Freigaben. Kann Finanzen einsehen, nicht buchen.</td></tr>
             <tr><td><strong>Buchhaltung</strong></td><td>accountant</td><td>Deckungsbeitrag, Lohn, Zahlungen, staatliche Meldungen.</td></tr>
             <tr><td><strong>Brigade / Feld</strong></td><td>staff</td><td>Nimmt Pfl&uuml;ckaufgaben an, erfasst Menge und Fotobeleg im Feld.</td></tr>
@@ -542,8 +543,10 @@
         <div class="info-box-title">Demo-Zug&auml;nge</div>
         <p>
           Je Rolle ein Konto, Passwort f&uuml;r alle <code>DamiconDemo2026!</code>:
-          <code>admin@damicon.demo</code>, <code>leitung@damicon.demo</code>,
+          <code>admin@damicon.demo</code>, <code>ceo@damicon.demo</code>,
+          <code>leitung@damicon.demo</code>,
           <code>buchhaltung@damicon.demo</code>, <code>brigade@damicon.demo</code>,
+          <code>pfluecker@damicon.demo</code>,
           <code>erzeuger@damicon.demo</code>, <code>kunde@damicon.demo</code>.
           Ohne Supabase-Umgebung entf&auml;llt die Anmeldung und der Prototyp l&auml;uft
           mit Beispieldaten &ndash; jede Ansicht zeigt oben rechts, welche Quelle sie liest.

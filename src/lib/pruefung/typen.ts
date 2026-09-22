@@ -61,6 +61,17 @@ export interface MassnahmeMitBezug extends Massnahme {
   schwere: Schwere;
 }
 
+/** Was sich bei einem Befund gegenueber dem vorigen automatischen CEO-Bericht veraendert hat (lib/pruefung/ceo-auto.ts). */
+export interface BefundAenderung {
+  befundId: string;
+  titel: string;
+  art: "neu" | "status_veraendert" | "schwere_veraendert";
+  status: BefundStatus;
+  schwere: Schwere;
+  vorherStatus?: BefundStatus;
+  vorherSchwere?: Schwere;
+}
+
 export interface Siegel {
   algorithmus: "SHA-256";
   wert: string;

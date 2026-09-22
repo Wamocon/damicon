@@ -8,6 +8,9 @@
 
 export const roles = [
   "admin",
+  // Achte Rolle, nachtraeglich (weicht von "Anforderung 7.1: genau sieben
+  // Rollen" ab, siehe Kommentar unten bei roleDefinitions/rolePermissions.ceo).
+  "ceo",
   "betriebsleitung",
   "buchhaltung",
   "brigade",
@@ -102,6 +105,17 @@ export const roleDefinitions: RoleDefinition[] = [
     level: 90,
     scope: "betrieb",
   },
+  // Anforderung aus dem Auftrag vom 22.09.2026, weicht bewusst von
+  // "Anforderung 7.1: genau sieben Rollen abgenommen" ab (siehe
+  // supabase/migrations/20261103020000_ceo_rolle.sql). Rechte kuratiert, nicht
+  // 1:1 admin: siehe rolePermissions.ceo unten.
+  {
+    key: "ceo",
+    labelKey: "roles.ceo",
+    descriptionKey: "roles.descriptions.ceo",
+    level: 95,
+    scope: "betrieb",
+  },
   {
     key: "betriebsleitung",
     labelKey: "roles.betriebsleitung",
@@ -161,6 +175,14 @@ const crud = (resource: Resource): Permission[] => [
 
 export const rolePermissions: Record<Role, Permission[]> = {
   admin: resources.flatMap((resource) => all(resource)),
+  // Kuratierte Fuehrungsrolle: alle Rechte von admin, ausser
+  // ki_assistent:manage (Verwaltung der KI-Provider-Schluessel - ein
+  // IT-Betriebsthema, kein Fuehrungsthema, und ein vermeidbares Risiko an
+  // einem haeufig per Phishing angegriffenen Konto). Der admin-only
+  // Rollen-Vorschau-Debug-Schalter (components/dashboard/persona.tsx,
+  // app/api/ki-assistent/route.ts) ist keine rbac-Berechtigung und bleibt
+  // hier bewusst unangetastet, gilt also weiterhin nur fuer admin.
+  ceo: resources.flatMap((resource) => all(resource)).filter((p) => p !== "ki_assistent:manage"),
   betriebsleitung: [
     ...crud("stammdaten"),
     ...view("dashboard"),

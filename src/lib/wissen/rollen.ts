@@ -9,7 +9,7 @@
 
 import type { Role } from "@/lib/rbac";
 
-export const BUERO_ROLLEN: Role[] = ["admin", "betriebsleitung", "buchhaltung"];
+export const BUERO_ROLLEN: Role[] = ["admin", "ceo", "betriebsleitung", "buchhaltung"];
 
 export function rollenFuerBereich(bereich: string): Role[] {
   void bereich; // Platzhalter: hier koennen einzelne Bereiche spaeter weitere Rollen bekommen.

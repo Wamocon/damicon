@@ -342,6 +342,54 @@ export type Database = {
           },
         ]
       }
+      compliance_ceo_berichte: {
+        Row: {
+          aenderungen: Json
+          ausgeloest_von: string | null
+          bereiche: string[]
+          bericht: Json
+          erstellt_am: string
+          id: string
+          quelle: string
+          voriger_bericht_id: string | null
+        }
+        Insert: {
+          aenderungen?: Json
+          ausgeloest_von?: string | null
+          bereiche: string[]
+          bericht: Json
+          erstellt_am?: string
+          id?: string
+          quelle: string
+          voriger_bericht_id?: string | null
+        }
+        Update: {
+          aenderungen?: Json
+          ausgeloest_von?: string | null
+          bereiche?: string[]
+          bericht?: Json
+          erstellt_am?: string
+          id?: string
+          quelle?: string
+          voriger_bericht_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_ceo_berichte_ausgeloest_von_fkey"
+            columns: ["ausgeloest_von"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_ceo_berichte_voriger_bericht_id_fkey"
+            columns: ["voriger_bericht_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_ceo_berichte"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       datenschutzvorfaelle: {
         Row: {
           art: Database["public"]["Enums"]["vorfall_art"]
@@ -3730,6 +3778,7 @@ export type Database = {
     Enums: {
       app_role:
         | "admin"
+        | "ceo"
         | "betriebsleitung"
         | "buchhaltung"
         | "brigade"
@@ -3956,6 +4005,7 @@ export const Constants = {
     Enums: {
       app_role: [
         "admin",
+        "ceo",
         "betriebsleitung",
         "buchhaltung",
         "brigade",
