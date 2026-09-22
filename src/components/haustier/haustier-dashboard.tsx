@@ -44,7 +44,7 @@ const WILLKOMMEN_MS = 3200;
 export function HaustierDashboard() {
   const t = useTranslations("haustier");
   const moduleT = useTranslations("modules");
-  const { verfuegbar, offen, umschalten, setOffen, darstellung } = useKiPane();
+  const { verfuegbar, offen, umschalten, setOffen, darstellung, oeffneBuehne } = useKiPane();
   const { phase, text, an, weg, stimmung, inventar } = useHaustierStatus();
   const { stelleFrage, schickeWeg, holeZurueck } = useHaustierAktionen();
   const pfad = usePathname();
@@ -372,14 +372,8 @@ export function HaustierDashboard() {
           setBefindenFrage(false);
           setBefindenBlase(false);
           setAnstupser(null);
-          // Bis 22.09.2026 oeffnete ein Klick auf Himbi die Buehne (Mitte,
-          // Seite dahinter unscharf) statt des angedockten Panels: das deckte
-          // die Seitenleiste zu und liess sich nicht neben der Navigation
-          // lesen. Jetzt oeffnet der Klick immer in der zuletzt gewaehlten
-          // Darstellung (Standard: angedockt rechts, per Griff verbreiterbar)
-          // - die Buehne bleibt ueber den Knopf im Panelkopf erreichbar.
           if (offen) umschalten();
-          else setOffen(true);
+          else oeffneBuehne();
         }}
         weg={{ onWeg: schickeWeg, halten: t("weg.halten"), tschuess: t("weg.tschuess"), hinweis: t("weg.hinweis") }}
       />
