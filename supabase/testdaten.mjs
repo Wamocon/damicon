@@ -48,6 +48,7 @@ const nurSockel = hat("--sockel");
 const entfernen = hat("--entfernen");
 const nurScanner = hat("--scanner");
 const nurJahr = hat("--jahr");
+const nurFinanz = hat("--finanz");
 const laufNummer = wert("--lauf") ? Number(wert("--lauf")) : null;
 
 // --- Schutz: nicht versehentlich gegen die Produktion ----------------------
@@ -1530,8 +1531,171 @@ async function jahrEntfernen() {
 }
 
 // ===========================================================================
+// Finanzen im laufenden Monat
+// ===========================================================================
+// Das Jahrespaket endet fest am 14.08.2026 (JAHR_BIS). Je weiter die echte
+// Zeit darueber hinauslaeuft, desto laenger ist der laufende Monat leer - und
+// genau den zeigt die Finanzseite beim Oeffnen. Dieser Modus fuellt ihn, und
+// zwar relativ zu heute statt zu einem festen Datum. Er veraltet deshalb
+// nicht.
+//
+// Die Kostentraeger werden aus den CHARGEN des Monats abgeleitet, nicht aus
+// den Pflueckaufgaben. Grund: deckungsbeitrag_je_kostentraeger holt die Menge
+// ueber chargen.ernte_datum (Migration 20260920000000, lateral join). Passt
+// der Erntetag nicht auf eine Charge, bleibt die Spalte "je Kilogramm" leer.
+//
+// ABRAEUMEN GEHT NICHT, und das ist kein Versehen: finance_ledger_entries ist
+// append-only, und kostentraeger_id steht auf "on delete set null" - das SET
+// NULL waere ein UPDATE auf die gesperrte Tabelle. Ein Kostentraeger mit
+// Buchung ist damit unloeschbar. Deshalb gibt es hier kein --entfernen.
+
+// Zwei Kostentraeger ohne Erntetag. Fachlich echte Faelle: zugekaufte Ware
+// hat keine eigene Ernte. Fuer die Oberflaeche sind sie der Pruefstein dafuer,
+// dass ein Zeitraumfilter sie nicht verschluckt - ohne Datum gibt es nichts
+// zu vergleichen, sie muessen in jedem Zeitraum stehen bleiben.
+const ZUKAUF = [
+  { i: 1, bezeichnung: "Zukauf Nachbarbetrieb Talgar", erloes: 412000, kosten: 318000 },
+  { i: 2, bezeichnung: "Zukauf Sammelstelle Issyk", erloes: 268500, kosten: 221000 },
+];
+
+async function finanzAnlegen() {
+  const heute = new Date();
+  const von = iso(new Date(heute.getFullYear(), heute.getMonth(), 1));
+  const bis = iso(new Date(heute.getFullYear(), heute.getMonth() + 1, 0));
+  console.log(`\nFinanzen im laufenden Monat anlegen: ${url}`);
+  console.log(`Zeitraum ${von} bis ${bis}\n`);
+
+  // --- Chargen des Monats --------------------------------------------------
+  const chargen = await alleZeilen(() => db
+    .from("chargen").select("id, reihenblock_id, sorte_id, ernte_datum")
+    .gte("ernte_datum", von).lte("ernte_datum", bis).order("ernte_datum"));
+  if (chargen.length === 0) {
+    schlecht(`keine Charge zwischen ${von} und ${bis} - erst --jahr oder --lauf ausfuehren`);
+    return;
+  }
+
+  // Die geerntete Menge traegt die Betraege. Sie steht an der Pflueckaufgabe,
+  // nicht an der Charge.
+  const aufgaben = await alleZeilen(() => db
+    .from("pflueckaufgaben").select("charge_id, ist_menge_kg")
+    .in("charge_id", chargen.map((c) => c.id)));
+  const mengeJeCharge = new Map();
+  for (const a of aufgaben) {
+    if (!a.charge_id) continue;
+    mengeJeCharge.set(a.charge_id, (mengeJeCharge.get(a.charge_id) ?? 0) + Number(a.ist_menge_kg ?? 0));
+  }
+
+  // --- Kostentraeger -------------------------------------------------------
+  // unique (reihenblock_id, sorte_id, erntetag): Bestehendes erst einsammeln,
+  // nur die Luecken anlegen.
+  const vorhandene = await alleZeilen(() => db
+    .from("kostentraeger").select("id, reihenblock_id, sorte_id, erntetag")
+    .gte("erntetag", von).lte("erntetag", bis));
+  const schonDa = new Map(
+    vorhandene.map((t) => [`${t.reihenblock_id}|${t.sorte_id}|${t.erntetag}`, t.id]),
+  );
+
+  const neue = [];
+  const gesehen = new Set();
+  for (const c of chargen) {
+    const schluessel = `${c.reihenblock_id}|${c.sorte_id}|${c.ernte_datum}`;
+    if (gesehen.has(schluessel) || schonDa.has(schluessel)) continue;
+    gesehen.add(schluessel);
+    neue.push({
+      reihenblock_id: c.reihenblock_id, sorte_id: c.sorte_id,
+      erntetag: c.ernte_datum, bezeichnung: `Ernte ${c.ernte_datum}`,
+    });
+  }
+  for (let n = 0; n < neue.length; n += 200) {
+    const { data, error } = await db.from("kostentraeger").insert(neue.slice(n, n + 200))
+      .select("id, reihenblock_id, sorte_id, erntetag");
+    if (error) { schlecht(`Kostentraeger: ${error.message}`); return; }
+    for (const t of data ?? []) schonDa.set(`${t.reihenblock_id}|${t.sorte_id}|${t.erntetag}`, t.id);
+  }
+  ok(`${schonDa.size} Kostentraeger im Monat, davon ${neue.length} neu`);
+
+  // --- Zukauf ohne Erntetag ------------------------------------------------
+  // Feste Kennungen, damit ein zweiter Lauf sie wiedererkennt. NULL ist in
+  // einem unique-Index nicht mit sich selbst gleich, zwei Zeilen ganz ohne
+  // Bezug waeren also auch ohne feste IDs jedes Mal neu.
+  const zukaufIds = [];
+  for (const z of ZUKAUF) {
+    const id = K(z.i, "00000004");
+    zukaufIds.push({ ...z, id });
+    const { data: da } = await db.from("kostentraeger").select("id").eq("id", id).maybeSingle();
+    if (da) { unveraendert(`Kostentraeger ${z.bezeichnung}`); continue; }
+    pruefe(
+      await db.from("kostentraeger").insert({ id, bezeichnung: z.bezeichnung, erntetag: null }),
+      "Zukauf-Kostentraeger anlegen",
+    );
+    ok(`Kostentraeger ${z.bezeichnung}, ohne Erntetag`);
+  }
+
+  // --- Buchungen -----------------------------------------------------------
+  // Je Erntetag ein Erloes und zwei Kostenzeilen, wie im Jahrespaket.
+  const buchungen = [];
+  let n = 0;
+  for (const c of chargen) {
+    const tid = schonDa.get(`${c.reihenblock_id}|${c.sorte_id}|${c.ernte_datum}`);
+    if (!tid) continue;
+    const menge = mengeJeCharge.get(c.id) ?? 0;
+    if (menge <= 0) continue;
+    buchungen.push(
+      { kostentraeger_id: tid, typ: "erloes", kategorie: "Verkauf",
+        betrag_tenge: Math.round(menge * (1900 + streu(n, 300))), buchungsdatum: c.ernte_datum,
+        beschreibung: "Verkauf Handel" },
+      { kostentraeger_id: tid, typ: "kosten", kategorie: "Lohn",
+        betrag_tenge: Math.round(menge * 800), buchungsdatum: c.ernte_datum,
+        beschreibung: "Pflueckloehne" },
+      { kostentraeger_id: tid, typ: "kosten", kategorie: "Material",
+        betrag_tenge: Math.round(menge * (120 + streu(n + 3, 80))), buchungsdatum: c.ernte_datum,
+        beschreibung: "Schalen und Steigen" },
+    );
+    n += 1;
+  }
+
+  // Append-only: ohne diese Pruefung legt jeder Lauf denselben Satz noch
+  // einmal an, und wegholen laesst sich nichts davon.
+  const { count: schonGebucht } = await db
+    .from("finance_ledger_entries").select("*", { count: "exact", head: true })
+    .gte("buchungsdatum", von).lte("buchungsdatum", bis);
+  if ((schonGebucht ?? 0) >= buchungen.length && buchungen.length > 0) {
+    unveraendert(`${schonGebucht} Buchungen im Monat (append-only, bleiben bestehen)`);
+  } else {
+    for (let m = 0; m < buchungen.length; m += 500) {
+      pruefe(await db.from("finance_ledger_entries").insert(buchungen.slice(m, m + 500)), "Buchungen");
+    }
+    ok(`${buchungen.length} Buchungen, Erloes und Kosten je Erntetag`);
+  }
+
+  // Die beiden Zukaufzeilen haengen an ihren festen Kostentraegern, die
+  // Pruefung laeuft deshalb ueber die Zuordnung statt ueber das Datum.
+  for (const z of zukaufIds) {
+    const { count } = await db
+      .from("finance_ledger_entries").select("*", { count: "exact", head: true })
+      .eq("kostentraeger_id", z.id);
+    if ((count ?? 0) > 0) { unveraendert(`Buchungen fuer ${z.bezeichnung}`); continue; }
+    pruefe(
+      await db.from("finance_ledger_entries").insert([
+        { kostentraeger_id: z.id, typ: "erloes", kategorie: "B2B-Verkauf",
+          betrag_tenge: z.erloes, buchungsdatum: bis, beschreibung: "Weiterverkauf Zukaufware" },
+        { kostentraeger_id: z.id, typ: "kosten", kategorie: "Zukauf + Handling",
+          betrag_tenge: z.kosten, buchungsdatum: bis, beschreibung: "Einkauf und Umpacken" },
+      ]),
+      "Zukaufbuchungen",
+    );
+    ok(`2 Buchungen fuer ${z.bezeichnung}`);
+  }
+
+  hinweis("Buchungen sind append-only - dieser Satz bleibt dauerhaft bestehen.");
+  hinweis("Kostentraeger mit Buchung sind deshalb ebenfalls nicht mehr loeschbar.");
+  console.log("");
+}
+
+// ===========================================================================
 async function main() {
   if (nurBestand) { await bestand(); }
+  else if (nurFinanz) { await finanzAnlegen(); }
   else if (nurSockel) { await sockel(); }
   else if (nurJahr) {
     if (entfernen) await jahrEntfernen();
@@ -1555,6 +1719,10 @@ async function main() {
   --scanner --entfernen  raeumt sie wieder ab
   --jahr                 zwoelf Monate Betrieb in jedem Bereich
   --jahr --entfernen     raeumt sie wieder ab
+  --finanz               fuellt den LAUFENDEN Monat mit Kostentraegern und
+                         Buchungen, dazu zwei Zukauf-Kostentraeger ohne
+                         Erntetag. Kein --entfernen moeglich: das Ledger
+                         ist append-only.
 
 Auf einer nicht-lokalen Instanz zusaetzlich --ich-weiss-was-ich-tue.
 `);
