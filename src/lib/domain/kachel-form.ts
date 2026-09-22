@@ -163,12 +163,35 @@ export function kachelgroesse(form: Kachelform): Kachelgroesse {
 }
 
 /**
- * Die Rasterklassen je Groesse.
+ * Die Klassen je Groesse - Grundbreite und Wachstum, kein festes Raster.
  *
- * Am Telefon stehen zwei Spalten, dort ist "breit" die volle Karte - genau
- * richtig fuer zehn Chargen auf einer Achse.
+ * Gemessen auf der Bereichsseite bei 1182 px Rasterbreite: Hof liess 892 px
+ * leer, Markt 594, Buero 297. Der Grund ist keine Randbreite, sondern
+ * Arithmetik - KEINE Zone hat eine durch vier teilbare Zahl an Einheiten:
+ * Hof und Feld haben fuenf, Buero drei, Markt zwei. In einem festen
+ * Vierspaltenraster bleibt damit immer etwas uebrig, und das Loch sitzt
+ * sichtbar in einer umrandeten Box.
+ *
+ * Mit Grundbreite und Wachstum fuellt jede Zeile sich selbst: zwei Karten
+ * teilen sich die Breite, drei ebenso. Die Grundbreite haelt dabei die
+ * Spaltenzahl in der Naehe von drei, damit aus einer allein stehenden Karte
+ * kein Balken ueber die halbe Seite wird - genau der Fehler, der die
+ * Heldenzahl vorher unbrauchbar machte.
+ *
+ * breit waechst doppelt so schnell wie klein, sonst holt die schmale Karte
+ * die breite ein und der Unterschied verschwindet beim Auffuellen.
  */
 export const kachelSpanne: Record<Kachelgroesse, string> = {
-  klein: "",
-  breit: "col-span-2",
+  // 280 px Grundbreite, damit vier schmale Karten in eine Zeile von 1182 px
+  // passen (4 x 280 + 3 x 8 Abstand = 1144). Bei 300 passten nur drei, und
+  // die vierte stand allein in der zweiten Zeile - wo sie auf die volle
+  // Breite wuchs. Ein Meterbalken ueber 1182 px ist derselbe Fehler, der die
+  // Heldenzahl vorher unbrauchbar machte.
+  //
+  // max-w ist die Bremse fuer den Fall, dass doch einmal eine Karte allein
+  // in der letzten Zeile landet: dann bleibt sie bei 620 px stehen. Das
+  // laesst Platz frei, aber ein sichtbares Stueck Hintergrund ist besser
+  // lesbar als eine Kachel, die sich ueber die ganze Seite zieht.
+  klein: "min-w-60 max-w-[620px] grow basis-[280px]",
+  breit: "min-w-60 grow-[2] basis-[620px]",
 };

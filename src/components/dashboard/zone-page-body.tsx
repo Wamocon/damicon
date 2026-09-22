@@ -111,10 +111,11 @@ function Kennzahlen({
       }
     >
       <div className="@container">
-        {/* auto-rows-fr: auch Boxen in verschiedenen Zeilen werden gleich
-            hoch. Die Spaltenzahl steigt mit der Kartenbreite, nicht mit der
-            Fensterbreite. */}
-        <div className="grid auto-rows-fr grid-cols-2 gap-2 @md:grid-cols-3 @xl:grid-cols-4">
+        {/* Flex statt Raster: ein festes Vierspaltenraster liess bei jeder
+            Zone etwas uebrig, weil keine eine durch vier teilbare Zahl an
+            Einheiten hat. Hier fuellt jede Zeile sich selbst, und
+            items-stretch haelt die Karten einer Zeile auf gleicher Hoehe. */}
+        <div className="flex flex-wrap items-stretch gap-2">
           {kernSortiert.map((kpi) => (
             <div key={kpi.key} className={cn("min-w-0", spanne(kpi))}>
               <KennzahlBox
@@ -149,7 +150,7 @@ function Kennzahlen({
             </button>
 
             {offen ? (
-              <div className="mt-3 grid auto-rows-fr grid-cols-2 gap-2 @md:grid-cols-3 @xl:grid-cols-4">
+              <div className="mt-3 flex flex-wrap items-stretch gap-2">
                 {erweitertSortiert.map((kpi) => (
                   <div key={kpi.key} className={cn("min-w-0", spanne(kpi))}>
                     <KennzahlBox
