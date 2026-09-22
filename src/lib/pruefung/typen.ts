@@ -115,5 +115,8 @@ export type Ereignis =
   | { t: "feld"; bereich: Pruefbereich; feld: string; phase: FeldPhase; anzahl?: number; text?: string }
   | { t: "befund"; befund: Befund }
   | { t: "synthese"; phase: "start" | "fertig" }
-  | { t: "bericht"; bericht: Bericht; protokolliert: boolean }
+  // aenderungen nur gesetzt vom automatischen CEO-Lauf (app/api/ki-pruefung/auto):
+  // was sich gegenueber dem vorigen automatischen Bericht veraendert hat, leer bei
+  // einem manuellen Lauf ueber app/api/ki-pruefung (dort undefined).
+  | { t: "bericht"; bericht: Bericht; protokolliert: boolean; aenderungen?: BefundAenderung[] }
   | { t: "fehler"; text: string };

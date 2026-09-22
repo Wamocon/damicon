@@ -9,7 +9,7 @@ import { fuehreAus, fuehrePruefungAus } from "@/lib/pruefung/agenten";
 import { sha256Hex } from "@/lib/pruefung/befund";
 import { punkteFuer } from "@/lib/pruefung/felder";
 import { PRUEFBEREICHE, type Pruefbereich } from "@/lib/pruefung/rollen";
-import type { BefundAenderung, Bericht } from "@/lib/pruefung/typen";
+import type { BefundAenderung, Bericht, Ereignis } from "@/lib/pruefung/typen";
 import { createClient } from "@/lib/supabase/server";
 import { pruefeWissenGesundheit, sucheWissen } from "@/lib/wissen/suche";
 
@@ -87,10 +87,14 @@ export interface AktualisiereCeoBerichtOptionen {
   profil: SessionProfile;
   /** true: immer neu pruefen (manueller Knopf). false: nur bei Aenderung seit dem letzten Bericht, oder wenn noch keiner existiert. */
   erzwungen: boolean;
+  sprache: string;
+  /** Fuer den Live-Strom des automatischen Laufs (app/api/ki-pruefung/auto/route.ts). Ohne Angabe laeuft still, wie bisher. */
+  emit?: (e: Ereignis) => void;
 }
 
 export type AktualisiereCeoBerichtErgebnis =
-  | { status: "uebersprungen" }
+  /** bericht fehlt nur, wenn eine zweite parallele Anfrage abgewiesen wurde, bevor je ein Bericht existierte. */
+  | { status: "uebersprungen"; bericht?: Bericht }
   | { status: "erzeugt"; bericht: Bericht; aenderungen: BefundAenderung[] }
   | { status: "fehler"; grund: "keine-berechtigung" | "wissensbasis" | "kein-anbieter" | "speichern" | "unbekannt" };
 
@@ -99,7 +103,7 @@ export type AktualisiereCeoBerichtErgebnis =
 // hinweg - dieselbe, bereits akzeptierte Grenze wie beim manuellen Lauf.
 const laufend = new Set<string>();
 
-export async function aktualisiereCeoBericht({ profil, erzwungen }: AktualisiereCeoBerichtOptionen): Promise<AktualisiereCeoBerichtErgebnis> {
+export async function aktualisiereCeoBericht({ profil, erzwungen, sprache, emit }: AktualisiereCeoBerichtOptionen): Promise<AktualisiereCeoBerichtErgebnis> {
   if (profil.role !== "ceo") return { status: "fehler", grund: "keine-berechtigung" };
   if (laufend.has(profil.id)) return { status: "uebersprungen" };
   laufend.add(profil.id);
@@ -112,7 +116,7 @@ export async function aktualisiereCeoBericht({ profil, erzwungen }: Aktualisiere
     if (!erzwungen && letzter) {
       const aktuelleHashes = await aktuelleFaktenHashes(bereiche, werkzeuge);
       if (!berichtHatSichGeaendert(letzter.bericht, aktuelleHashes)) {
-        return { status: "uebersprungen" };
+        return { status: "uebersprungen", bericht: letzter.bericht };
       }
     }
 
@@ -135,16 +139,14 @@ export async function aktualisiereCeoBericht({ profil, erzwungen }: Aktualisiere
     }).catch(() => {});
 
     const bericht = await fuehrePruefungAus(
-      { rolle: "ceo", ersteller: { name: profil.fullName }, bereiche, abgelehnt: [], sprache: "de" },
+      { rolle: "ceo", ersteller: { name: profil.fullName }, bereiche, abgelehnt: [], sprache },
       {
         modell: kette.modell,
         modellName: kette.namen.length > 1 ? `${anbieter.modell} (mit Ausweichanbieter ${kette.namen.slice(1).join(", ")})` : anbieter.modell,
         werkzeuge,
         suche: (fragen, rolle, opts) => sucheWissen(fragen, rolle, opts),
       },
-      () => {
-        /* niemand sieht live zu - der Bericht wird erst am Ende gespeichert und angezeigt */
-      },
+      emit ?? (() => {}),
     );
 
     const aenderungen = aenderungenBerechnen(letzter?.bericht ?? null, bericht);
