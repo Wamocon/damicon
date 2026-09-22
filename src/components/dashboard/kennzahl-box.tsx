@@ -260,12 +260,21 @@ export function KennzahlBox({
          sondern "diese Zahl haengt an einer Erfassung, die noch niemand
          macht". Der Text kommt aus datenherkunft und ist damit uebersetzbar -
          das Feld braucht am Kpi ist eine deutsche Notiz fuer die Codeseite. */
-      <p className="mt-2 rounded-lg border border-dashed border-border bg-muted/30 px-2 py-1.5 text-[10px] leading-4 text-muted-foreground">
-        <span className="font-semibold text-card-foreground">
+      <div
+        title={t(`luecke.${lueckeSchluessel[kpi.datenherkunft]}`)}
+        className="mt-2 border-t border-dashed border-border pt-1.5 text-[10px] leading-4 text-muted-foreground"
+      >
+        <p className="font-semibold text-card-foreground">
           {t("luecke.titel")}
-        </span>{" "}
-        {t(`luecke.${lueckeSchluessel[kpi.datenherkunft]}`)}
-      </p>
+        </p>
+        {/* Auf zwei Zeilen begrenzt: der Kasten drumherum brauchte 62 px und
+            zog damit JEDE Karte der Seite auf seine Hoehe - auch die mit
+            echten Daten, die darunter ein Loch von rund 50 px bekamen. Die
+            vollstaendige Begruendung steht weiter im Tooltip der Kachel. */}
+        <p className="line-clamp-2">
+          {t(`luecke.${lueckeSchluessel[kpi.datenherkunft]}`)}
+        </p>
+      </div>
     ) : null;
 
   // Die Heldenzahl traegt eine eigene Flaeche: sie steht nicht IM Raster der
@@ -414,9 +423,13 @@ export function KennzahlBox({
           ) : null}
         </>
       )}
+      {/* Der Hinweis steht IM Koerper, nicht darunter: bei einer Kennzahl
+          ohne Messung nimmt er den Platz ein, den sonst das Meter oder das
+          Histogramm braucht. Darunter waere er ein zusaetzlicher Block, und
+          die Karte wuechse ueber ihre Nachbarn hinaus. */}
+      {luecke}
       </div>
 
-      {luecke}
       {fuss}
     </div>
   );
