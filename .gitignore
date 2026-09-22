@@ -42,6 +42,11 @@ next-env.d.ts
 
 # playwright mcp artifacts
 .playwright-mcp/
+/evidence/
+
+# playwright test runner artifacts (siehe e2e/, playwright.config.ts)
+/playwright-report/
+/test-results/
 
 # Snapshots und Zwischenergebnisse von Prüf-Agenten
 /*-leitung.md
