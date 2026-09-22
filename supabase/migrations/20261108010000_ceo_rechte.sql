@@ -35,7 +35,7 @@ $$;
 comment on function public.has_role is
   'Prueft die App-Rolle des angemeldeten Nutzers gegen eine Liste erlaubter Rollen. '
   'ceo gilt zusaetzlich ueberall dort als erlaubt, wo admin erlaubt ist (kuratierte '
-  'Rechteentscheidung, Anforderung 7.1-Abweichung, siehe 20261103020000_ceo_rolle.sql).';
+  'Rechteentscheidung, Anforderung 7.1-Abweichung, siehe 20261108000000_ceo_rolle.sql).';
 
 -- has_office_access() ist keine Verwendung von has_role() (eigener in-Vergleich),
 -- deshalb separat erweitert.
