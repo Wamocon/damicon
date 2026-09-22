@@ -261,7 +261,6 @@
     "email": "E-Mail",
     "password": "Passwort",
     "submit": "Anmelden",
-    "submitting": "Anmeldung läuft ...",
     "error": {
       "ungueltig": "E-Mail oder Passwort stimmt nicht.",
       "unbekannt": "Anmeldung fehlgeschlagen. Bitte später erneut versuchen.",
@@ -281,7 +280,6 @@
       "lead": "Für dieses Konto ist ein zweiter Faktor eingerichtet. Bitte den aktuellen Code aus der Authenticator-App eingeben.",
       "codeLabel": "6-stelliger Code",
       "submit": "Bestätigen",
-      "submitting": "Wird geprüft ...",
       "error": {
         "code": "Der Code ist falsch oder abgelaufen.",
         "unbekannt": "Prüfung fehlgeschlagen. Bitte später erneut versuchen."

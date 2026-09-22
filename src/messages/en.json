@@ -261,7 +261,6 @@
     "email": "Email",
     "password": "Password",
     "submit": "Sign in",
-    "submitting": "Signing in ...",
     "error": {
       "ungueltig": "Email or password is not correct.",
       "unbekannt": "Sign-in failed. Please try again later.",
@@ -281,7 +280,6 @@
       "lead": "A second factor is set up for this account. Please enter the current code from your authenticator app.",
       "codeLabel": "6-digit code",
       "submit": "Confirm",
-      "submitting": "Checking ...",
       "error": {
         "code": "The code is wrong or expired.",
         "unbekannt": "Check failed. Please try again later."
