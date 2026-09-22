@@ -32,8 +32,7 @@
     "kpis": "KPIs",
     "compliance": "Compliance",
     "account": "Account",
-    "menu": "Menu",
-    "kachelLabor": "Tile lab"
+    "menu": "Menu"
   },
   "hero": {
     "badge": "Farm management for the raspberry plantation · near Almaty",
@@ -357,7 +356,6 @@
     "kennzahl": {
       "ohneZiel": "no target value",
       "platzhalter": "Placeholder",
-      "bandTitel": "Actual {ist}, target {ziel}",
       "zielstand": {
         "erfuellt": "on target",
         "knapp": "just off",
@@ -3198,64 +3196,5 @@
     },
     "verifikation": "The content of this report is sealed with a SHA-256 checksum. Anyone with the accompanying JSON file can recompute the seal in Damicon with \"Verify seal\"; any later change is detected.",
     "tipp": "Tip for the print dialog: turn \"Headers and footers\" off, paper size A4. Colours and branding are applied automatically."
-  },
-  "kachelLabor": {
-    "titel": "Tile lab",
-    "einleitung": "Seven cases where the uniform key-figure tile shows the figure worse than a dedicated form could. For each case, today's tile and two alternatives side by side, with real values from the farm.",
-    "hinweis": "A reference page for the interface, not a business module. None of it is implemented — the forms are here to choose from.",
-    "gruppe": {
-      "anteil": "Share against a target",
-      "streuung": "Spread between people",
-      "dauer": "Duration against a ceiling",
-      "nullfehler": "Zero-defect rate",
-      "klein": "Small population",
-      "ohneZiel": "Figure without a target",
-      "leitzahl": "The one number that leads"
-    },
-    "lead": {
-      "anteil": "Today's target bar fills with the current value. Where lower is better, the bar therefore grows as things get worse.",
-      "streuung": "A ratio has no place on a scale, and the number does not say who is falling behind. This is a distribution, not a single value.",
-      "dauer": "The tile shows the average. With the cold chain it is the single breach that does the damage, and the average swallows it.",
-      "nullfehler": "When the target is 100 %, the bar always sits on the target mark and distinguishes nothing. The exception is the question, not the rate.",
-      "klein": "With five people a percentage is false precision: one person more is twenty points.",
-      "ohneZiel": "Without a target, the bar, the status dot and the status word stay empty. Movement is the only statement there is.",
-      "leitzahl": "Every tile is the same size, as if all were equally important. A view may have exactly one number that leads."
-    },
-    "form": {
-      "heute": "Today",
-      "meter": "Meter with target",
-      "streifen": "Dot strip",
-      "rangliste": "Ranking",
-      "zaehler": "Counter",
-      "segmente": "Segments",
-      "punkte": "Filled dots",
-      "verlauf": "Trend line",
-      "held": "Hero figure"
-    },
-    "ziel": "Target",
-    "ueberZiel": "Distance to target: {abstand}",
-    "jeCharge": "Per batch, the five highest",
-    "jeStunde": "Kilograms per hour, whole season",
-    "jeVorgang": "One segment per treatment",
-    "jeSaisonkraft": "One dot per seasonal worker",
-    "chargen": "Batches: {count}",
-    "personen": "People: {count}",
-    "behandlungen": "Treatments: {count}",
-    "messpunkte": "Measurements: {count}",
-    "offeneVertraege": "Open contracts: {count}",
-    "faelltAb": "One person falls clearly behind",
-    "ueberGrenze": "{count} of {gesamt} over the limit",
-    "verstoesse": "{count} of {gesamt} breached",
-    "ueberschritten": "Cold chain exceeded",
-    "verletzt": "Waiting period breached",
-    "laengste": "longest {minuten} min",
-    "vonGesamt": "of {gesamt}",
-    "aeltester": "oldest",
-    "neuester": "newest",
-    "erfasst": "recorded",
-    "offen": "open",
-    "verlaufLeer": "No history yet. The line needs at least two measurements from kpi_verlauf.",
-    "ohneZielwert": "No target value set",
-    "imMonat": "enquiries per month"
   }
 }

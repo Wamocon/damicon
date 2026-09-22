@@ -2,7 +2,7 @@
 
 import { useId, useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronDown, FlaskConical, House } from "lucide-react";
+import { ChevronDown, House } from "lucide-react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { Icon } from "@/components/icon";
@@ -458,33 +458,6 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
                 />
               );
             })}
-
-            {/* Referenzseite fuer die Oberflaeche, kein Fachmodul - steht
-                deshalb unter den Bereichen statt zwischen ihnen und nur fuer
-                admin. Fuer eine Brigade oder einen Kunden waere ein Labor fuer
-                Kachelentwuerfe nur Rauschen im Arbeitsweg. */}
-            {role === "admin" ? (
-              <li className="pt-1.5">
-                <Link
-                  href="/dashboard/kachel-labor"
-                  onClick={onNavigate}
-                  aria-current={
-                    isActive("/dashboard/kachel-labor") ? "page" : undefined
-                  }
-                  className={cn(
-                    "flex items-center gap-2.5 rounded-lg px-2 py-2 text-sm font-semibold transition-colors",
-                    isActive("/dashboard/kachel-labor")
-                      ? AKTIVE_SEITE
-                      : RUHENDE_SEITE,
-                  )}
-                >
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center">
-                    <FlaskConical className="h-4 w-4" />
-                  </span>
-                  {nav("kachelLabor")}
-                </Link>
-              </li>
-            ) : null}
           </ul>
         </nav>
 

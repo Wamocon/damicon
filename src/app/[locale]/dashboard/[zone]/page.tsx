@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { ZonePageBody } from "@/components/dashboard/zone-page-body";
 import { ladeKpis } from "@/lib/data/kpis";
-import { ladeLaborDaten } from "@/lib/data/kachel-labor";
+import { ladeVerteilungen } from "@/lib/data/kachel-verteilungen";
 import { getSessionProfile } from "@/lib/auth";
 import { kpisFuerRolle } from "@/lib/domain/kpis";
 import { zones, type ZoneKey } from "@/lib/modules";
@@ -48,14 +48,14 @@ export default async function ZonePage({
   // auf einer kg/h-Achse waere eine falsche Aussage.
   const verteilungen: Record<string, { name: string; wert: number }[]> = {};
   if (zone === "feld" || zone === "hof") {
-    const labor = await ladeLaborDaten();
+    const einzelwerte = await ladeVerteilungen();
     if (zone === "feld") {
-      verteilungen.pflueckleistung = labor.personen.map((person) => ({
+      verteilungen.pflueckleistung = einzelwerte.personen.map((person) => ({
         name: person.name,
         wert: person.kgProStunde,
       }));
     } else {
-      verteilungen.zeitBisVorkuehlung = labor.vorkuehlung.map((charge) => ({
+      verteilungen.zeitBisVorkuehlung = einzelwerte.vorkuehlung.map((charge) => ({
         name: charge.code,
         wert: charge.minuten,
       }));

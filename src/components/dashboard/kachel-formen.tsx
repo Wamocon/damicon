@@ -1,7 +1,8 @@
 "use client";
 
-// Alternative Darstellungsformen fuer Kennzahlen, zum Vergleich im
-// Kachel-Labor (/dashboard/kachel-labor).
+// Die Darstellungsformen der Kennzahlkacheln auf Uebersicht und
+// Bereichsseiten. Welche Form eine Kennzahl bekommt, entscheidet
+// lib/domain/kachel-form.ts - hier steht nur, wie sie gezeichnet wird.
 //
 // Warum ueberhaupt andere Formen: die KennzahlBox zeigt jede der vierzehn
 // Baseline-Kennzahlen gleich - Zahl, Trendpfeil, Zielband, Ampelpunkt. Fuer
@@ -31,7 +32,7 @@ import type { Zielstand } from "@/lib/domain/zielstand";
  * Die Huelle jeder Kennzahlkachel: Rahmen, Innenmass, Kopf, Fusszeile.
  *
  * Sie stand zweimal wortgleich im Code - einmal in kennzahl-box.tsx und
- * einmal als Probekachel im Kachel-Labor. Typischer Vibecode-Befund: aus
+ * einmal als Probekachel daneben. Typischer Vibecode-Befund: aus
  * einem Vorbild entsteht eine zweite Fassung, und danach laufen beide
  * auseinander. Genau das war passiert, in zwei Details:
  *
@@ -486,41 +487,6 @@ export function Zaehler({
 }
 
 /**
- * Ein Segment je Vorgang.
- *
- * Bis etwa dreissig Vorgaengen lesbar und sagt zusaetzlich, WANN es eng
- * wurde. 2px Abstand zwischen den Flaechen statt eines Rahmens darum.
- */
-export function Segmente({
-  zustaende,
-  beschriftungVon,
-  beschriftungBis,
-}: {
-  zustaende: Zielstand[];
-  beschriftungVon: string;
-  beschriftungBis: string;
-}) {
-  return (
-    <div className="mt-2">
-      <div className="flex gap-0.5">
-        {zustaende.map((stand, i) => (
-          <span
-            // Die Vorgaenge haben keine eigene Kennung in dieser Ansicht, die
-            // Reihenfolge ist ihre Identitaet.
-            key={i}
-            className={cn("h-4 flex-1 rounded-sm", flaeche[stand])}
-          />
-        ))}
-      </div>
-      <div className="mt-1 flex justify-between text-[10px] text-muted-foreground">
-        <span>{beschriftungVon}</span>
-        <span>{beschriftungBis}</span>
-      </div>
-    </div>
-  );
-}
-
-/**
  * Gefuellte Punkte fuer eine kleine Grundgesamtheit.
  *
  * "60 %" bei fuenf Saisonkraeften ist Scheingenauigkeit - eine Person mehr
@@ -560,127 +526,6 @@ export function AnteilPunkte({
           />
         ))}
       </div>
-    </div>
-  );
-}
-
-/**
- * Verlaufslinie ohne Achsen, Endpunkt betont.
- *
- * Fuer Kennzahlen ohne Zielwert ist die Bewegung die einzige Aussage, die es
- * ueberhaupt gibt. Braucht mindestens zwei Messpunkte aus kpi_verlauf - mit
- * einem einzigen gibt es keine Linie und die Form faellt aus.
- */
-export function Verlaufslinie({
-  punkte,
-  beschriftungVon,
-  beschriftungBis,
-  leer,
-}: {
-  punkte: { tag: string; wert: number }[];
-  beschriftungVon: string;
-  beschriftungBis: string;
-  /** Text, wenn es weniger als zwei Messpunkte gibt. */
-  leer: string;
-}) {
-  if (punkte.length < 2) {
-    return (
-      <p className="mt-2 flex flex-1 items-center rounded-lg border border-dashed border-border px-2 py-3 text-[10px] leading-4 text-muted-foreground">
-        {leer}
-      </p>
-    );
-  }
-
-  const werte = punkte.map((p) => p.wert);
-  const min = Math.min(...werte);
-  const max = Math.max(...werte);
-  const breite = 200;
-  const hoehe = 40;
-  const rand = 5;
-
-  const punkteText = punkte
-    .map((p, i) => {
-      const x = rand + (i / (punkte.length - 1)) * (breite - rand * 2);
-      const y =
-        max === min
-          ? hoehe / 2
-          : hoehe - rand - ((p.wert - min) / (max - min)) * (hoehe - rand * 2);
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(" ");
-  const letzter = punkteText.split(" ").at(-1)!.split(",");
-
-  return (
-    <div className="mt-2">
-      <svg
-        viewBox={`0 0 ${breite} ${hoehe}`}
-        className="block h-10 w-full"
-        role="img"
-        aria-label={`${punkte.length} Messpunkte, zuletzt ${punkte.at(-1)!.wert}`}
-      >
-        <polyline
-          points={punkteText}
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="text-muted-foreground/45"
-        />
-        <circle
-          cx={letzter[0]}
-          cy={letzter[1]}
-          r="4"
-          className="fill-primary stroke-card"
-          strokeWidth="2"
-        />
-      </svg>
-      <div className="flex justify-between text-[10px] text-muted-foreground">
-        <span>{beschriftungVon}</span>
-        <span>{beschriftungBis}</span>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Die eine Zahl, die eine Ansicht fuehrt.
- *
- * Genau eine je Ansicht - sonst ist keine mehr hervorgehoben. Die uebrigen
- * Kennzahlen der Zone bleiben daneben in gewohnter Groesse.
- */
-export function Heldenzahl({
-  zahl,
-  einheit,
-  unterzeile,
-  stand,
-  meter,
-}: {
-  zahl: string;
-  einheit: string;
-  unterzeile: string;
-  stand: Zielstand;
-  meter?: React.ReactNode;
-}) {
-  return (
-    <div className="mt-2 flex flex-wrap items-end gap-x-5 gap-y-3">
-      <div className="min-w-0">
-        <p className="flex items-baseline gap-1.5">
-          <span
-            className={cn(
-              "text-5xl font-black leading-none tracking-tight",
-              schrift[stand],
-            )}
-          >
-            {zahl}
-          </span>
-          <span className="text-xs font-medium text-muted-foreground">
-            {einheit}
-          </span>
-        </p>
-        <p className="mt-1.5 text-[11px] text-muted-foreground">{unterzeile}</p>
-      </div>
-      {meter ? <div className="min-w-40 flex-1 pb-1">{meter}</div> : null}
     </div>
   );
 }

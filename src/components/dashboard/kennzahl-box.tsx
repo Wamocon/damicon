@@ -26,7 +26,6 @@ import {
   grundgesamtheit,
   kachelform,
   meterSkala,
-  type Kachelform,
   type Kachelplatz,
 } from "@/lib/domain/kachel-form";
 import {
@@ -97,13 +96,6 @@ const punkt: Record<Zielstand, string> = {
   offen: "bg-muted-foreground/50",
 };
 
-const balken: Record<Zielstand, string> = {
-  verfehlt: "bg-destructive",
-  knapp: "bg-warning",
-  erfuellt: "bg-success",
-  offen: "bg-muted-foreground/40",
-};
-
 const schrift: Record<Zielstand, string> = {
   verfehlt: "text-destructive",
   knapp: "text-warning",
@@ -132,51 +124,11 @@ function wertTeile(
   return { zahl: treffer[1], einheit: treffer[2] };
 }
 
-/**
- * Das Band zeigt den Istwert gegen den Zielwert. Die Skala endet etwas hinter
- * dem groesseren der beiden Werte, damit ein knapp verfehltes Ziel nicht am
- * Rand klebt. Die Marke steht auf dem Zielwert.
- */
-function Zielband({
-  ist,
-  soll,
-  stand,
-  titel,
-}: {
-  ist: number;
-  soll: number;
-  stand: Zielstand;
-  titel: string;
-}) {
-  const skala = Math.max(ist, soll) * 1.15;
-  if (skala <= 0) return null;
-  const istAnteil = Math.min(100, (ist / skala) * 100);
-  const zielAnteil = Math.min(100, (soll / skala) * 100);
-
-  return (
-    <div
-      title={titel}
-      className="relative mt-2 h-1.5 w-full rounded-full bg-border"
-    >
-      <div
-        className={cn("h-full rounded-full", balken[stand])}
-        style={{ width: `${istAnteil}%` }}
-      />
-      <span
-        aria-hidden
-        className="absolute -top-0.5 h-2.5 w-0.5 rounded-full bg-foreground"
-        style={{ left: `${zielAnteil}%` }}
-      />
-    </div>
-  );
-}
-
 export function KennzahlBox({
   kpi,
   platz = "schmal",
   verteilung,
   lueckeZeigen = false,
-  erzwungeneForm,
 }: {
   kpi: Kpi;
   /** Wie viel Platz die Kachel hat - entscheidet ueber die Form. */
@@ -185,12 +137,6 @@ export function KennzahlBox({
   verteilung?: { name: string; wert: number }[];
   /** Benennt bei einem ungerechneten Wert, welche Datengrundlage fehlt. */
   lueckeZeigen?: boolean;
-  /**
-   * Umgeht die Formwahl. Gedacht fuer das Kachel-Labor, das die frueheren
-   * Kacheln neben den neuen zeigt - ohne diesen Schalter vergleicht es die
-   * neue Form mit sich selbst.
-   */
-  erzwungeneForm?: Kachelform | "zielband";
 }) {
   const kpiT = useTranslations("kpis");
   const t = useTranslations("dashboard.kennzahl");
@@ -207,8 +153,7 @@ export function KennzahlBox({
   // sonst leuchtete die Seite rot wegen Zahlen, die niemand erhoben hat.
   const stand = platzhalter ? "offen" : auswertung.stand;
 
-  const form =
-    erzwungeneForm ?? kachelform(kpi, platz, (verteilung?.length ?? 0) > 1);
+  const form = kachelform(kpi, platz, (verteilung?.length ?? 0) > 1);
 
   // Wie viele Vorgaenge auf der falschen Seite der Schwelle liegen. Bei 128
   // Chargen sieht man die roten Balken zwar, aber nicht ihre Zahl - und
@@ -391,21 +336,6 @@ export function KennzahlBox({
                   ? t("verletzt", { count: daneben, gesamt: verteilung.length })
                   : undefined
               }
-            />
-          ) : null}
-
-          {/* Die frühere Darstellung, nur noch fuer den Vergleich im
-              Kachel-Labor. Kein Aufrufer der Uebersicht oder Bereichsseite
-              bekommt sie noch. */}
-          {form === "zielband" && !platzhalter && ist !== null && soll !== null ? (
-            <Zielband
-              ist={ist}
-              soll={soll}
-              stand={stand}
-              titel={t("bandTitel", {
-                ist: `${zahl} ${einheit}`.trim(),
-                ziel: kpi.ziel,
-              })}
             />
           ) : null}
         </>
