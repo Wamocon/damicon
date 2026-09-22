@@ -42,11 +42,17 @@ const MAX_WERKZEUG_SCHRITTE = 5;
 const MAX_SCHRITTE_GESAMT = MAX_WERKZEUG_SCHRITTE + 1;
 
 const antwortSchema = z.object({
+  // Bewusst OHNE Sprachangabe hier: die Sprache legt allein die zuletzt im
+  // system-Text stehende LANGUAGE-Anweisung fest (baueSystemPrompt() in
+  // lib/domain/ki-assistent.ts). Eine zweite, widerspruechliche Vorgabe hier
+  // ("in der Sprache der Frage") war derselbe Fehler wie WMCNL-2415 im
+  // Streaming-Pfad, nur unauffaelliger: keine Sprachmischung sichtbar (die
+  // strukturierte Ausgabe entsteht als Ganzes), aber bei einer Frage in
+  // anderer Sprache als der Oberflaeche stand hier ein zweiter, konkurrierender
+  // Hinweis.
   antwort: z
     .string()
-    .describe(
-      "Die eigentliche Antwort auf die Nutzerfrage, in der Sprache der Frage, kurz und sachlich.",
-    ),
+    .describe("Die eigentliche Antwort auf die Nutzerfrage, kurz und sachlich."),
   gestuetztAufWerkzeuge: z
     .boolean()
     .describe(
