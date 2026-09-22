@@ -33,8 +33,16 @@ const trendIcon: Record<KpiTrend, typeof ArrowUpRight> = {
  * Der Trendpfeil, gefaerbt nach gutRichtung: ein steigender Wert ist nicht
  * ueberall gut. Bei der Verlustquote ist er schlecht, bei der Liefertreue
  * gut - deshalb entscheidet nicht die Richtung allein ueber die Farbe.
+ *
+ * Die Richtung selbst kommt aus public.kpi_trend, also aus zwei gemessenen
+ * Punkten. Bis September 2026 stand sie als Konstante in domain/kpis.ts.
  */
 export function TrendPfeil({ kpi, className }: { kpi: Kpi; className?: string }) {
+  // Ohne zwei Messpunkte gibt es keine Richtung, und dann steht hier nichts.
+  // Ein waagerechter Pfeil waere eine Aussage ueber einen Vergleich, den
+  // niemand angestellt hat - die Zeitreihe liefert "flat" ausschliesslich
+  // dann, wenn zwei Werte tatsaechlich verglichen wurden und gleich waren.
+  if (!kpi.trend) return null;
   const Cmp = trendIcon[kpi.trend];
   const positive =
     (kpi.trend === "up" && kpi.gutRichtung === "up") ||

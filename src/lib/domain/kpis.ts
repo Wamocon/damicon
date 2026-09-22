@@ -53,7 +53,13 @@ export interface Kpi {
   zone: "feld" | "hof" | "buero" | "markt";
   wert: string;
   ziel: string;
-  trend: KpiTrend;
+  /** Richtung aus den letzten zwei Messpunkten der Zeitreihe
+   *  (public.kpi_trend). Fehlt, solange es weniger als zwei gibt - dann
+   *  zeigt die Kachel keinen Pfeil statt eines waagerechten, der nichts
+   *  verglichen hat. Bis September 2026 stand hier eine von Hand gepflegte
+   *  Konstante; ein Pfeil ohne Messung behauptet eine Richtung, fuer die es
+   *  keine Grundlage gibt. */
+  trend?: KpiTrend | null;
   // positive Richtung: ist ein steigender Wert gut ("up") oder schlecht ("down")?
   gutRichtung: "up" | "down";
   platzhalter: true;
@@ -93,7 +99,6 @@ export const kpis: Kpi[] = [
     zone: "hof",
     wert: "8,4 %",
     ziel: "< 6 %",
-    trend: "down",
     gutRichtung: "down",
     platzhalter: true,
     datenherkunft: "berechenbar",
@@ -106,7 +111,6 @@ export const kpis: Kpi[] = [
     zone: "hof",
     wert: "82 %",
     ziel: "> 90 %",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",
@@ -119,7 +123,6 @@ export const kpis: Kpi[] = [
     zone: "hof",
     wert: "47 min",
     ziel: "< 60 min",
-    trend: "flat",
     gutRichtung: "down",
     platzhalter: true,
     datenherkunft: "berechenbar",
@@ -132,7 +135,6 @@ export const kpis: Kpi[] = [
     zone: "hof",
     wert: "19 h",
     ziel: "< 24 h",
-    trend: "down",
     gutRichtung: "down",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",
@@ -145,7 +147,6 @@ export const kpis: Kpi[] = [
     zone: "feld",
     wert: "6,1 kg/h",
     ziel: "> 7 kg/h",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "berechenbar",
@@ -158,7 +159,6 @@ export const kpis: Kpi[] = [
     zone: "feld",
     wert: "2,3×",
     ziel: "< 1,8×",
-    trend: "down",
     gutRichtung: "down",
     platzhalter: true,
     datenherkunft: "berechenbar",
@@ -171,7 +171,6 @@ export const kpis: Kpi[] = [
     zone: "feld",
     wert: "84 %",
     ziel: "> 95 %",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "berechenbar",
@@ -184,7 +183,6 @@ export const kpis: Kpi[] = [
     zone: "feld",
     wert: "96 %",
     ziel: "100 %",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "berechenbar",
@@ -197,7 +195,6 @@ export const kpis: Kpi[] = [
     zone: "markt",
     wert: "3,2 %",
     ziel: "< 2 %",
-    trend: "down",
     gutRichtung: "down",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",
@@ -210,7 +207,6 @@ export const kpis: Kpi[] = [
     zone: "markt",
     wert: "91 %",
     ziel: "> 97 %",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",
@@ -223,7 +219,6 @@ export const kpis: Kpi[] = [
     zone: "buero",
     wert: "71 %",
     ziel: "100 %",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",
@@ -236,7 +231,6 @@ export const kpis: Kpi[] = [
     zone: "buero",
     wert: "640 ₸/kg",
     ziel: "> 700 ₸/kg",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "berechenbar",
@@ -249,7 +243,6 @@ export const kpis: Kpi[] = [
     zone: "buero",
     wert: "64 %",
     ziel: "100 %",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "rechtlich-ungeklaert",
@@ -263,7 +256,6 @@ export const kpis: Kpi[] = [
     zone: "markt",
     wert: "12 / Monat",
     ziel: "Ausgangswert",
-    trend: "up",
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "tabelle-fehlt",
