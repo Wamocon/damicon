@@ -32,7 +32,8 @@ import {
 import {
   AnteilPunkte,
   Meter,
-  Punktstreifen,
+  Rangliste,
+  Verteilung,
   Zaehler,
 } from "@/components/dashboard/kachel-formen";
 
@@ -207,6 +208,18 @@ export function KennzahlBox({
 
   const form =
     erzwungeneForm ?? kachelform(kpi, platz, (verteilung?.length ?? 0) > 1);
+
+  // Wie viele Vorgaenge auf der falschen Seite der Schwelle liegen. Bei 128
+  // Chargen sieht man die roten Balken zwar, aber nicht ihre Zahl - und
+  // genau die ist die Aussage: "8 von 128" statt "einige".
+  const daneben =
+    verteilung && soll !== null
+      ? verteilung.filter((eintrag) =>
+          kpi.gutRichtung === "down"
+            ? eintrag.wert > soll
+            : eintrag.wert < soll,
+        ).length
+      : 0;
   const anteil = grundgesamtheit(kpi);
 
   const voll = kpiT(`${kpi.key}.label`);
@@ -351,8 +364,16 @@ export function KennzahlBox({
             />
           ) : null}
 
+          {form === "rangliste" && verteilung && soll !== null ? (
+            <Rangliste
+              zeilen={verteilung}
+              schwelle={soll}
+              gutUnterhalb={kpi.gutRichtung === "down"}
+            />
+          ) : null}
+
           {form === "streifen" && verteilung && soll !== null ? (
-            <Punktstreifen
+            <Verteilung
               werte={verteilung}
               schwelle={soll}
               skalaVon={streifenRand(verteilung, soll).von}
@@ -364,7 +385,16 @@ export function KennzahlBox({
               )}
               beschriftungBis={`${format.number(streifenRand(verteilung, soll).bis, { maximumFractionDigits: 0 })} ${einheit}`}
               beschriftungSchwelle={`${homeT("target")} ${format.number(soll, { maximumFractionDigits: 1 })}`}
-              ausreisserName={ausreisser(verteilung, kpi.gutRichtung)}
+              ausreisserName={
+                verteilung.length <= 12
+                  ? ausreisser(verteilung, kpi.gutRichtung)
+                  : undefined
+              }
+              hinweis={
+                daneben > 0
+                  ? t("verletzt", { count: daneben, gesamt: verteilung.length })
+                  : undefined
+              }
             />
           ) : null}
 

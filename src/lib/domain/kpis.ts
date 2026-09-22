@@ -158,7 +158,10 @@ export const kpis: Kpi[] = [
     gutRichtung: "up",
     platzhalter: true,
     datenherkunft: "berechenbar",
-    form: "streifen",
+    // Rangliste statt Streifen: hier stehen fuenf PERSONEN, keine
+    // namenlosen Vorgaenge. Fuenf Punkte auf einer Achse sagen "es gibt
+    // Streuung", eine Rangliste sagt, wen man ansprechen muss.
+    form: "rangliste",
     stufe: "kern",
     sichtbarFuer: ["admin", "betriebsleitung", "brigade"],
     braucht: "nichts - Steige mit Person gegen Arbeitszeit",

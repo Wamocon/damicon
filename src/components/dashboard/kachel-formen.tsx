@@ -130,15 +130,12 @@ export function Meter({
  * Charge lag aber bei 72 min. Bei der Kuehlkette ist genau die einzelne
  * Ueberschreitung der Schaden, und der Mittelwert verschluckt sie.
  */
-export function Punktstreifen({
+function Punktstreifen({
   werte,
   schwelle,
   skalaVon,
   skalaBis,
   gutUnterhalb,
-  beschriftungVon,
-  beschriftungBis,
-  beschriftungSchwelle,
   ausreisserName,
 }: {
   werte: { name: string; wert: number }[];
@@ -146,9 +143,6 @@ export function Punktstreifen({
   skalaVon: number;
   skalaBis: number;
   gutUnterhalb: boolean;
-  beschriftungVon: string;
-  beschriftungBis: string;
-  beschriftungSchwelle: string;
   /** Name des auffaelligsten Werts, wird unter seinem Punkt genannt. */
   ausreisserName?: string;
 }) {
@@ -158,65 +152,188 @@ export function Punktstreifen({
     : werte.reduce((a, b) => (b.wert < a.wert ? b : a), werte[0]!);
 
   return (
+    <div className="relative h-12">
+      <span aria-hidden className="absolute inset-x-0 top-7 h-px bg-border" />
+      <span
+        aria-hidden
+        className="absolute top-5 h-4 rounded bg-success/15"
+        style={
+          gutUnterhalb
+            ? { left: 0, width: `${schwellAnteil}%` }
+            : { left: `${schwellAnteil}%`, right: 0 }
+        }
+      />
+      <span
+        aria-hidden
+        className="absolute top-3 h-8 w-0.5 rounded bg-foreground"
+        style={{ left: `${schwellAnteil}%` }}
+      />
+
+      {werte.map((eintrag) => {
+        const drueber = gutUnterhalb
+          ? eintrag.wert > schwelle
+          : eintrag.wert < schwelle;
+        return (
+          <span
+            key={eintrag.name}
+            title={`${eintrag.name}: ${eintrag.wert}`}
+            // 2px Ring in der Kartenfarbe statt eines Rahmens: ueberlappende
+            // Punkte bleiben dadurch einzeln erkennbar.
+            className={cn(
+              "absolute top-[21px] h-3 w-3 -translate-x-1/2 rounded-full ring-2 ring-card",
+              drueber ? "bg-destructive" : "bg-primary",
+            )}
+            style={{ left: `${anteil(eintrag.wert, skalaVon, skalaBis)}%` }}
+          />
+        );
+      })}
+
+      {ausreisserName && ausreisser ? (
+        /* max-w und truncate, weil ein Chargencode
+           ("CH-T-N-B-09-2609230000-D000") 27 Zeichen hat und die Kachel
+           sonst waagerecht verlaesst. */
+        <span
+          className="absolute top-9 block max-w-[55%] -translate-x-1/2 truncate text-[10px] text-muted-foreground"
+          style={{ left: `${anteil(ausreisser.wert, skalaVon, skalaBis)}%` }}
+        >
+          {ausreisserName}
+        </span>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Histogramm: wie viele Vorgaenge in welchem Bereich liegen.
+ *
+ * Der Punktstreifen zeigt jeden Vorgang einzeln und ist genau so lange
+ * lesbar, wie die Punkte nebeneinander passen. Bei 128 Chargen brauchen
+ * zwoelf Pixel je Punkt rund 1500 px - der Streifen hat 580 und die Punkte
+ * laufen zu Klumpen zusammen. Dann sagt das Bild nur noch "viele", und das
+ * stand vorher schon in der Zahl.
+ *
+ * Das Histogramm traegt jede Menge: es zaehlt je Klasse statt je Vorgang.
+ * Die Balken haengen an der Grundlinie, der erlaubte Bereich liegt als
+ * Flaeche dahinter, die Schwelle als Strich darueber.
+ */
+function Histogramm({
+  werte,
+  schwelle,
+  skalaVon,
+  skalaBis,
+  gutUnterhalb,
+}: {
+  werte: { name: string; wert: number }[];
+  schwelle: number;
+  skalaVon: number;
+  skalaBis: number;
+  gutUnterhalb: boolean;
+}) {
+  const klassen = 18;
+  const breite = (skalaBis - skalaVon) / klassen;
+  const faecher = new Array<number>(klassen).fill(0);
+  for (const eintrag of werte) {
+    const i = Math.min(
+      klassen - 1,
+      Math.max(0, Math.floor((eintrag.wert - skalaVon) / breite)),
+    );
+    faecher[i] = (faecher[i] ?? 0) + 1;
+  }
+  const hoechste = Math.max(...faecher, 1);
+  const schwellAnteil = anteil(schwelle, skalaVon, skalaBis);
+
+  return (
+    <div className="relative h-12">
+      <span
+        aria-hidden
+        className="absolute top-4 h-8 rounded bg-success/15"
+        style={
+          gutUnterhalb
+            ? { left: 0, width: `${schwellAnteil}%` }
+            : { left: `${schwellAnteil}%`, right: 0 }
+        }
+      />
+      {/* Die Balken sitzen auf der Grundlinie, nicht in der Mitte: eine
+          Haeufigkeit hat einen Nullpunkt, und der gehoert nach unten. */}
+      <div className="absolute inset-x-0 bottom-2 top-4 flex items-end gap-px">
+        {faecher.map((zahl, i) => {
+          const mitte = skalaVon + (i + 0.5) * breite;
+          const daneben = gutUnterhalb ? mitte > schwelle : mitte < schwelle;
+          return (
+            <span
+              key={i}
+              className={cn(
+                "min-h-px flex-1 rounded-t-sm",
+                zahl === 0
+                  ? "bg-transparent"
+                  : daneben
+                    ? "bg-destructive"
+                    : "bg-primary",
+              )}
+              style={{ height: `${(zahl / hoechste) * 100}%` }}
+            />
+          );
+        })}
+      </div>
+      <span
+        aria-hidden
+        className="absolute inset-x-0 bottom-2 h-px bg-border"
+      />
+      <span
+        aria-hidden
+        className="absolute bottom-0 top-3 w-0.5 rounded bg-foreground"
+        style={{ left: `${schwellAnteil}%` }}
+      />
+    </div>
+  );
+}
+
+/**
+ * Die Verteilung hinter einer Kennzahl.
+ *
+ * Waehlt die Form nach der Anzahl: bis zwoelf Werte ein Punkt je Vorgang,
+ * darueber ein Histogramm. Die Grenze liegt dort, wo die Punkte anfangen,
+ * sich zu ueberdecken - ab da zaehlt man Klassen statt Punkte.
+ */
+export function Verteilung(eigenschaften: {
+  werte: { name: string; wert: number }[];
+  schwelle: number;
+  skalaVon: number;
+  skalaBis: number;
+  gutUnterhalb: boolean;
+  beschriftungVon: string;
+  beschriftungBis: string;
+  beschriftungSchwelle: string;
+  ausreisserName?: string;
+  /** Zaehlzeile unter der Zeichnung, etwa "8 von 128 verletzt". */
+  hinweis?: string;
+}) {
+  const {
+    beschriftungVon,
+    beschriftungBis,
+    beschriftungSchwelle,
+    hinweis,
+    ...rest
+  } = eigenschaften;
+  const vieleWerte = rest.werte.length > 12;
+  const schwellAnteil = anteil(rest.schwelle, rest.skalaVon, rest.skalaBis);
+
+  return (
     <div className="mt-2">
-      <div className="relative h-12">
+      <div className="relative">
         <span
-          aria-hidden
-          className="absolute inset-x-0 top-7 h-px bg-border"
-        />
-        <span
-          aria-hidden
-          className="absolute top-5 h-4 rounded bg-success/15"
-          style={
-            gutUnterhalb
-              ? { left: 0, width: `${schwellAnteil}%` }
-              : { left: `${schwellAnteil}%`, right: 0 }
-          }
-        />
-        <span
-          aria-hidden
-          className="absolute top-3 h-8 w-0.5 rounded bg-foreground"
-          style={{ left: `${schwellAnteil}%` }}
-        />
-        <span
-          className="absolute top-0 -translate-x-1/2 whitespace-nowrap text-[10px] text-muted-foreground"
+          className="absolute top-0 z-10 -translate-x-1/2 whitespace-nowrap text-[10px] text-muted-foreground"
           style={{ left: `${schwellAnteil}%` }}
         >
           {beschriftungSchwelle}
         </span>
-
-        {werte.map((eintrag) => {
-          const drueber = gutUnterhalb
-            ? eintrag.wert > schwelle
-            : eintrag.wert < schwelle;
-          return (
-            <span
-              key={eintrag.name}
-              title={`${eintrag.name}: ${eintrag.wert}`}
-              // 2px Ring in der Kartenfarbe statt eines Rahmens: ueberlappende
-              // Punkte bleiben dadurch einzeln erkennbar.
-              className={cn(
-                "absolute top-[21px] h-3 w-3 -translate-x-1/2 rounded-full ring-2 ring-card",
-                drueber ? "bg-destructive" : "bg-primary",
-              )}
-              style={{ left: `${anteil(eintrag.wert, skalaVon, skalaBis)}%` }}
-            />
-          );
-        })}
-
-        {ausreisserName && ausreisser ? (
-          <span
-            className="absolute top-9 -translate-x-1/2 whitespace-nowrap text-[10px] text-muted-foreground"
-            style={{
-              left: `${anteil(ausreisser.wert, skalaVon, skalaBis)}%`,
-            }}
-          >
-            {ausreisserName}
-          </span>
-        ) : null}
+        {vieleWerte ? <Histogramm {...rest} /> : <Punktstreifen {...rest} />}
       </div>
-      <div className="flex justify-between text-[10px] tabular-nums text-muted-foreground">
+      <div className="flex justify-between gap-2 text-[10px] tabular-nums text-muted-foreground">
         <span>{beschriftungVon}</span>
+        {hinweis ? (
+          <span className="truncate font-medium">{hinweis}</span>
+        ) : null}
         <span>{beschriftungBis}</span>
       </div>
     </div>

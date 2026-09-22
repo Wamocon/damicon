@@ -95,10 +95,14 @@ async function ladeLaborDatenRoh(): Promise<LaborDaten> {
 
   const supabase = await createClient();
 
-  const [steigen, zeiten, chargen, pfluecker, behandlungen, verlauf] =
+  const [leistung, chargen, pfluecker, behandlungen, verlauf] =
     await Promise.all([
-      supabase.from("steigen").select("pfluecker_id, gewicht_kg"),
-      supabase.from("arbeitszeiten").select("pfluecker_id, minuten"),
+      // Die Leistung je Person rechnet die Datenbank, mit demselben Weg wie
+      // kpi_aktuell() (Migration 20261106000000). Vorher summierte diese
+      // Datei steigen und arbeitszeiten selbst - und kam auf andere Werte als
+      // die Kennzahl darueber, weil sie Arbeitszeiten ohne zugehoerige
+      // Steigen mitzaehlte. Dazu brach die REST-Abfrage bei 1000 Zeilen ab.
+      supabase.rpc("pflueckleistung_je_person"),
       supabase
         .from("chargen")
         .select(
@@ -116,43 +120,19 @@ async function ladeLaborDatenRoh(): Promise<LaborDaten> {
         .limit(12),
     ]);
 
-  if (steigen.error || chargen.error || pfluecker.error) {
+  if (chargen.error || pfluecker.error) {
     return { ...demo, quelle: "fehler" };
   }
 
-  // Menge und Zeit werden GETRENNT verdichtet und erst dann zusammengefuehrt -
-  // dieselbe Falle wie in kpi_aktuell(): ein direkter Join vervielfachte die
-  // Arbeitszeit mit der Zahl der Steigen und wiese die Leistung um ein
-  // Vielfaches zu niedrig aus.
-  const kgJePerson = new Map<string, number>();
-  for (const zeile of steigen.data ?? []) {
-    if (!zeile.pfluecker_id) continue;
-    kgJePerson.set(
-      zeile.pfluecker_id,
-      (kgJePerson.get(zeile.pfluecker_id) ?? 0) + Number(zeile.gewicht_kg ?? 0),
-    );
-  }
-
-  const minutenJePerson = new Map<string, number>();
-  for (const zeile of zeiten.data ?? []) {
-    if (!zeile.pfluecker_id) continue;
-    minutenJePerson.set(
-      zeile.pfluecker_id,
-      (minutenJePerson.get(zeile.pfluecker_id) ?? 0) + Number(zeile.minuten ?? 0),
-    );
-  }
-
-  const personen: Person[] = [];
-  for (const person of pfluecker.data ?? []) {
-    const kg = kgJePerson.get(person.id);
-    const minuten = minutenJePerson.get(person.id);
-    if (!kg || !minuten) continue;
-    personen.push({
-      name: person.name,
-      kgProStunde: Number((kg / (minuten / 60)).toFixed(2)),
-    });
-  }
-  personen.sort((a, b) => b.kgProStunde - a.kgProStunde);
+  // Faellt die Funktion aus - etwa weil die Migration auf dieser Instanz noch
+  // nicht angewendet ist -, bleibt die Liste leer. Die Kachel zeigt dann das
+  // Meter statt einer Rangliste. Demo-Namen an dieser Stelle waeren schlimmer
+  // als keine Liste: sie stuenden unter einer echten Kopfzahl und saehen aus,
+  // als gehoerten sie dazu.
+  const personen: Person[] = (leistung.data ?? []).map((zeile) => ({
+    name: zeile.name,
+    kgProStunde: Number(zeile.kg_h),
+  }));
 
   const vorkuehlung: Messpunkt[] = [];
   for (const charge of chargen.data ?? []) {
@@ -187,7 +167,7 @@ async function ladeLaborDatenRoh(): Promise<LaborDaten> {
 
   return {
     quelle: "db",
-    personen: personen.length > 0 ? personen : demo.personen,
+    personen,
     vorkuehlung: vorkuehlung.length > 0 ? vorkuehlung : demo.vorkuehlung,
     verlust: verlust.length > 0 ? verlust : demo.verlust,
     esutd: {

@@ -19,7 +19,7 @@ import {
   AnteilPunkte,
   Heldenzahl,
   Meter,
-  Punktstreifen,
+  Verteilung,
   Rangliste,
   Segmente,
   Verlaufslinie,
@@ -238,7 +238,7 @@ export function KachelLabor({
               lang={t("personen", { count: personen.length })}
               fuss={t("faelltAb")}
             >
-              <Punktstreifen
+              <Verteilung
                 werte={personen}
                 schwelle={7}
                 skalaVon={3}
@@ -278,7 +278,7 @@ export function KachelLabor({
                 gesamt: chargen.length,
               })}
             >
-              <Punktstreifen
+              <Verteilung
                 werte={chargen}
                 schwelle={60}
                 skalaVon={35}

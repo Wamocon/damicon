@@ -22,8 +22,10 @@ export type Kachelform =
   | "zaehler"
   /** Kleine Grundgesamtheit: "3 von 5" statt "60 %". */
   | "punkte"
-  /** Verteilung: ein Punkt je Vorgang. Braucht Breite und die Einzelwerte. */
+  /** Verteilung namenloser Vorgaenge. Braucht Breite und die Einzelwerte. */
   | "streifen"
+  /** Benannte Traeger mit Namen und Balken - die Frage lautet "wer". */
+  | "rangliste"
   /** Die eine Zahl, die eine Ansicht fuehrt. Hoechstens eine je Ansicht. */
   | "held"
   /** Nur die Zahl - es gibt nichts, wogegen sie sich vergleichen liesse. */
@@ -71,9 +73,14 @@ export function kachelform(
 
   // Der Streifen zeigt die Werte HINTER der Kennzahl. Wer sie nicht mitgibt,
   // bekommt ihn nicht - eine erfundene Verteilung waere schlimmer als keine.
-  if (form === "streifen" && !hatVerteilung) form = grundform;
+  if ((form === "streifen" || form === "rangliste") && !hatVerteilung) {
+    form = grundform;
+  }
 
-  if (platz === "schmal" && (form === "streifen" || form === "held")) {
+  if (
+    platz === "schmal" &&
+    (form === "streifen" || form === "rangliste" || form === "held")
+  ) {
     form = grundform;
   }
 
@@ -150,7 +157,9 @@ export function meterSkala(ist: number, soll: number, einheit: string): number {
 export type Kachelgroesse = "klein" | "breit";
 
 export function kachelgroesse(form: Kachelform): Kachelgroesse {
-  return form === "held" || form === "streifen" ? "breit" : "klein";
+  return form === "held" || form === "streifen" || form === "rangliste"
+    ? "breit"
+    : "klein";
 }
 
 /**

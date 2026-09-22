@@ -3636,6 +3636,13 @@ export type Database = {
         }
         Returns: number
       }
+      pflueckleistung_je_person: {
+        Args: never
+        Returns: {
+          kg_h: number
+          name: string
+        }[]
+      }
       lohn_kz_abzuege_berechnen: {
         Args: {
           p_brutto_monat_tenge: number
