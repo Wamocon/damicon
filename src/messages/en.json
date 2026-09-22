@@ -1213,8 +1213,7 @@
     },
     "mehrAnzeigen": "Show more",
     "keineChargen": "No batch with its own posting in this period. Postings without a batch reference do not appear here.",
-    "ohneErntetag": "no harvest day",
-    "vorschauHinweis": "Preview. Nothing is saved in this view."
+    "ohneErntetag": "no harvest day"
   },
   "dokumenteDemo": {
     "listTitle": "Documents",

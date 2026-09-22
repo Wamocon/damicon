@@ -291,7 +291,6 @@ export async function FinanzenAnsichtNeu({
                   reihenbloecke={reihenbloecke}
                   sorten={sorten}
                   kunden={kunden}
-                  vorschau
                 />
               </Aufklapper>
             ) : null}
@@ -448,7 +447,6 @@ export async function FinanzenAnsichtNeu({
                 <BuchungErfassenFormularNeu
                   kostentraeger={kostentraegerListe}
                   chargen={chargen}
-                  vorschau
                 />
               </Aufklapper>
             ) : null}

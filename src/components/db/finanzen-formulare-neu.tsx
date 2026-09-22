@@ -11,7 +11,6 @@ import {
   PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
-import { Button } from "@/components/ui/kit";
 import type {
   B2bKundeOption,
   ChargeOption,
@@ -24,18 +23,18 @@ import type {
 // (/dashboard/finanz-labor). Die bestehende finanzen-formulare.tsx bleibt
 // unveraendert, bis der Entwurf sie ersetzt.
 //
-// Zwei Unterschiede zur bestehenden Fassung:
+// Ein Unterschied zur bestehenden Fassung: Die Kostentraeger stehen im
+// Auswahlfeld unter Erntetagen statt in einer einzigen Liste. Es sind
+// inzwischen ueber 250 Eintraege; ungegliedert findet man darin nichts.
+// Begrenzt wird die Liste nicht - ein aelterer Kostentraeger muss bebuchbar
+// bleiben, sonst ist das Aufraeumen der Oberflaeche ein Funktionsverlust.
 //
-//   1. vorschau. Das Labor laeuft gegen die gehostete, geteilte Datenbank
-//      (.github/instructions/supabase-workflow.instructions.md), und
-//      finance_ledger_entries ist nur anfuegbar - ein Trigger verhindert
-//      Aendern und Loeschen. Eine Probebuchung waere also fuer immer drin.
-//      Deshalb sind die Felder bedienbar, das Absenden aber nicht: nur so
-//      laesst sich beurteilen, wie das Formular im Reiter wirkt.
-//   2. Die Kostentraeger stehen im Auswahlfeld unter Erntetagen statt in
-//      einer einzigen Liste. Mit den Jahresdaten sind das rund 138 Eintraege;
-//      ungegliedert findet man darin nichts. Begrenzt wird nicht - ein
-//      aelterer Kostentraeger muss bebuchbar bleiben.
+// Die Formulare schreiben wirklich. Das war eine Weile anders: solange
+// angenommen war, das Labor laufe gegen die geteilte gehostete Datenbank, war
+// das Absenden gesperrt - finance_ledger_entries ist nur anfuegbar, eine
+// Probebuchung waere dort fuer immer drin. Tatsaechlich zeigt .env.local auf
+// eine lokale Instanz, wo ein db reset alles wieder wegraeumt. Wer das
+// umstellt, sollte die Sperre wieder einbauen.
 //
 // Es gibt keine FormularKarte mehr um das Formular: Im Labor steht es bereits
 // in einem aufklappbaren Abschnitt, eine zweite Karte darum waere Karte auf
@@ -74,51 +73,21 @@ function nachErntetag(
   return gruppen;
 }
 
-function Absenden({ label, vorschau }: { label: string; vorschau: boolean }) {
-  const t = useTranslations("finanzenAnsicht");
-  if (!vorschau) return <SubmitKnopf label={label} />;
-
-  return (
-    <Button
-      type="button"
-      disabled
-      rundung="schmal"
-      groesse="formular"
-      title={t("vorschauHinweis")}
-    >
-      {label}
-    </Button>
-  );
-}
-
-function VorschauHinweis({ vorschau }: { vorschau: boolean }) {
-  const t = useTranslations("finanzenAnsicht");
-  if (!vorschau) return null;
-  return (
-    <p className="schrift-label font-semibold text-muted-foreground">
-      {t("vorschauHinweis")}
-    </p>
-  );
-}
-
 export function KostentraegerAnlegenFormularNeu({
   reihenbloecke,
   sorten,
   kunden,
-  vorschau = false,
 }: {
   reihenbloecke: ReihenblockOption[];
   sorten: SorteOption[];
   kunden: B2bKundeOption[];
-  vorschau?: boolean;
 }) {
   const [status, action] = useActionState(kostentraegerAnlegen, leer);
   const t = useTranslations("finanzenAnsicht.formular.kostentraeger");
 
   return (
     <form
-      action={vorschau ? undefined : action}
-      onSubmit={vorschau ? (event) => event.preventDefault() : undefined}
+      action={action}
       className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5"
     >
       <PfadFeld />
@@ -149,10 +118,9 @@ export function KostentraegerAnlegenFormularNeu({
       />
       <Feld label={t("erntetag")} name="erntetag" type="date" />
       <div className="flex items-end">
-        <Absenden label={t("knopf")} vorschau={vorschau} />
+        <SubmitKnopf label={t("knopf")} />
       </div>
-      <div className="space-y-2 sm:col-span-2 lg:col-span-5">
-        <VorschauHinweis vorschau={vorschau} />
+      <div className="sm:col-span-2 lg:col-span-5">
         <AktionsMeldung status={status} />
       </div>
     </form>
@@ -162,12 +130,10 @@ export function KostentraegerAnlegenFormularNeu({
 export function BuchungErfassenFormularNeu({
   kostentraeger,
   chargen,
-  vorschau = false,
 }: {
   kostentraeger: KostentraegerOption[];
   /** Anforderung 3.3: optionaler direkter Chargenbezug. */
   chargen: ChargeOption[];
-  vorschau?: boolean;
 }) {
   const [status, action] = useActionState(ledgerBuchungErfassen, leer);
   const t = useTranslations("finanzenAnsicht.formular.buchung");
@@ -180,8 +146,7 @@ export function BuchungErfassenFormularNeu({
 
   return (
     <form
-      action={vorschau ? undefined : action}
-      onSubmit={vorschau ? (event) => event.preventDefault() : undefined}
+      action={action}
       className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-6"
     >
       <PfadFeld />
@@ -225,10 +190,9 @@ export function BuchungErfassenFormularNeu({
       />
       <Feld label={t("beschreibung")} name="beschreibung" />
       <div className="flex items-end">
-        <Absenden label={t("knopf")} vorschau={vorschau} />
+        <SubmitKnopf label={t("knopf")} />
       </div>
-      <div className="space-y-2 sm:col-span-2 lg:col-span-6">
-        <VorschauHinweis vorschau={vorschau} />
+      <div className="sm:col-span-2 lg:col-span-6">
         <AktionsMeldung status={status} />
       </div>
     </form>
