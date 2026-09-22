@@ -3096,6 +3096,7 @@
     "laeuftImHintergrundHinweis": "Die automatische Compliance-Prüfung läuft im Hintergrund weiter, auch auf dieser Seite. Klick führt zur Startseite mit dem vollen Fortschritt.",
     "keineAenderung": "Keine Änderungen seit dem letzten Bericht.",
     "aenderungenAnzahl": "{anzahl, plural, one {# Änderung} other {# Änderungen}} seit dem letzten Bericht",
+    "kachelOeffnen": "{anzahl, plural, one {# Befund} other {# Befunde}} · Details ansehen",
     "aenderungArt": {
       "neu": "neu",
       "statusVeraendert": "Status geändert: {vorher} → {jetzt}",

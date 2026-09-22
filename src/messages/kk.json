@@ -3096,6 +3096,7 @@
     "laeuftImHintergrundHinweis": "Автоматты комплаенс тексеруі фондық режимде жалғасуда, осы бетте де. Толық барысты көру үшін шолу бетіне өту үшін басыңыз.",
     "keineAenderung": "Соңғы есептен бері өзгеріс жоқ.",
     "aenderungenAnzahl": "{anzahl, plural, other {# өзгеріс}} соңғы есептен бері",
+    "kachelOeffnen": "{anzahl, plural, other {# қорытынды}} · толығырақ",
     "aenderungArt": {
       "neu": "жаңа",
       "statusVeraendert": "Мәртебе өзгерді: {vorher} → {jetzt}",

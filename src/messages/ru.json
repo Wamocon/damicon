@@ -3096,6 +3096,7 @@
     "laeuftImHintergrundHinweis": "Автоматическая проверка соответствия продолжается в фоновом режиме, в том числе на этой странице. Нажмите, чтобы перейти к обзору с полным ходом проверки.",
     "keineAenderung": "Изменений с последнего отчёта нет.",
     "aenderungenAnzahl": "{anzahl, plural, one {# изменение} few {# изменения} many {# изменений} other {# изменения}} с последнего отчёта",
+    "kachelOeffnen": "{anzahl, plural, one {# вывод} few {# вывода} many {# выводов} other {# вывода}} · подробнее",
     "aenderungArt": {
       "neu": "новое",
       "statusVeraendert": "Статус изменён: {vorher} → {jetzt}",

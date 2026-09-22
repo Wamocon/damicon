@@ -2,9 +2,9 @@
 
 import { useTranslations } from "next-intl";
 import { PruefungAblauf } from "@/components/pruefung/pruefung-ablauf";
-import { PruefungBericht } from "@/components/pruefung/pruefung-bericht";
 import "@/components/pruefung/pruefung.css";
 import "@/components/pruefung/pruefung-ablauf.css";
+import { CeoBereichsKacheln } from "@/components/dashboard/ceo-bereichs-kacheln";
 import { useCeoPruefung } from "@/components/dashboard/ceo-pruefung-kontext";
 import type { BefundAenderung, Bericht } from "@/lib/pruefung/typen";
 
@@ -48,7 +48,7 @@ function BerichtMitAenderungen({ bericht, aenderungen }: { bericht: Bericht; aen
           </ul>
         </div>
       )}
-      <PruefungBericht bericht={bericht} />
+      <CeoBereichsKacheln bericht={bericht} />
     </div>
   );
 }

@@ -3096,6 +3096,7 @@
     "laeuftImHintergrundHinweis": "The automatic compliance check keeps running in the background, even on this page. Click to go to the overview for the full progress.",
     "keineAenderung": "No changes since the last report.",
     "aenderungenAnzahl": "{anzahl, plural, one {# change} other {# changes}} since the last report",
+    "kachelOeffnen": "{anzahl, plural, one {# finding} other {# findings}} · view details",
     "aenderungArt": {
       "neu": "new",
       "statusVeraendert": "Status changed: {vorher} → {jetzt}",
