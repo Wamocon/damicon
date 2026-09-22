@@ -163,35 +163,24 @@ export function kachelgroesse(form: Kachelform): Kachelgroesse {
 }
 
 /**
- * Die Klassen je Groesse - Grundbreite und Wachstum, kein festes Raster.
+ * Die Rasterklassen je Groesse.
  *
- * Gemessen auf der Bereichsseite bei 1182 px Rasterbreite: Hof liess 892 px
- * leer, Markt 594, Buero 297. Der Grund ist keine Randbreite, sondern
- * Arithmetik - KEINE Zone hat eine durch vier teilbare Zahl an Einheiten:
- * Hof und Feld haben fuenf, Buero drei, Markt zwei. In einem festen
- * Vierspaltenraster bleibt damit immer etwas uebrig, und das Loch sitzt
- * sichtbar in einer umrandeten Box.
+ * Die Kachel der Uebersicht ist das Mass: dort sitzt sie in einem
+ * Dreierraster von 549 px, ist also 178 px breit bei 8 px Abstand. Genau
+ * dieses Format hat der Kunde abgenommen.
  *
- * Mit Grundbreite und Wachstum fuellt jede Zeile sich selbst: zwei Karten
- * teilen sich die Breite, drei ebenso. Die Grundbreite haelt dabei die
- * Spaltenzahl in der Naehe von drei, damit aus einer allein stehenden Karte
- * kein Balken ueber die halbe Seite wird - genau der Fehler, der die
- * Heldenzahl vorher unbrauchbar machte.
+ * Auf der Bereichsseite waren die Karten zwischenzeitlich 290 bis 803 px
+ * breit - das Dreifache. Der Versuch, die Zeile durch Wachstum zu fuellen,
+ * kurierte das falsche Symptom: auf der Uebersicht steht bei Feld ebenfalls
+ * eine Kachel allein in der zweiten Zeile, und das stoert dort niemanden.
+ * Nicht die Luecke war der Fehler, sondern die Groesse.
  *
- * breit waechst doppelt so schnell wie klein, sonst holt die schmale Karte
- * die breite ein und der Unterschied verschwindet beim Auffuellen.
+ * Deshalb auto-fill und nicht auto-fit: auto-fit zieht leere Spuren ein und
+ * laesst die verbliebenen Karten breiter werden - genau das, was hier weg
+ * soll. auto-fill haelt die Spuren, eine allein stehende Kachel bleibt so
+ * breit wie ihre Nachbarn.
  */
 export const kachelSpanne: Record<Kachelgroesse, string> = {
-  // 280 px Grundbreite, damit vier schmale Karten in eine Zeile von 1182 px
-  // passen (4 x 280 + 3 x 8 Abstand = 1144). Bei 300 passten nur drei, und
-  // die vierte stand allein in der zweiten Zeile - wo sie auf die volle
-  // Breite wuchs. Ein Meterbalken ueber 1182 px ist derselbe Fehler, der die
-  // Heldenzahl vorher unbrauchbar machte.
-  //
-  // max-w ist die Bremse fuer den Fall, dass doch einmal eine Karte allein
-  // in der letzten Zeile landet: dann bleibt sie bei 620 px stehen. Das
-  // laesst Platz frei, aber ein sichtbares Stueck Hintergrund ist besser
-  // lesbar als eine Kachel, die sich ueber die ganze Seite zieht.
-  klein: "min-w-60 max-w-[620px] grow basis-[280px]",
-  breit: "min-w-60 grow-[2] basis-[620px]",
+  klein: "",
+  breit: "col-span-2",
 };

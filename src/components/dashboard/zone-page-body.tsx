@@ -111,11 +111,12 @@ function Kennzahlen({
       }
     >
       <div className="@container">
-        {/* Flex statt Raster: ein festes Vierspaltenraster liess bei jeder
-            Zone etwas uebrig, weil keine eine durch vier teilbare Zahl an
-            Einheiten hat. Hier fuellt jede Zeile sich selbst, und
-            items-stretch haelt die Karten einer Zeile auf gleicher Hoehe. */}
-        <div className="flex flex-wrap items-stretch gap-2">
+        {/* Dieselbe Kachelgroesse wie auf der Uebersicht, rund 180 px. Das
+            Raster nimmt so viele Spuren, wie hineinpassen (auto-fill), statt
+            vier feste Spalten zu setzen - auf der breiten Bereichsseite sind
+            das sechs statt vier, und die Karte bleibt klein. auto-rows-fr
+            haelt alle Reihen auf gleicher Hoehe. */}
+        <div className="grid auto-rows-fr gap-2 grid-cols-2 @md:grid-cols-[repeat(auto-fill,minmax(170px,1fr))]">
           {kernSortiert.map((kpi) => (
             <div key={kpi.key} className={cn("min-w-0", spanne(kpi))}>
               <KennzahlBox
@@ -150,7 +151,7 @@ function Kennzahlen({
             </button>
 
             {offen ? (
-              <div className="mt-3 flex flex-wrap items-stretch gap-2">
+              <div className="mt-3 grid auto-rows-fr gap-2 grid-cols-2 @md:grid-cols-[repeat(auto-fill,minmax(170px,1fr))]">
                 {erweitertSortiert.map((kpi) => (
                   <div key={kpi.key} className={cn("min-w-0", spanne(kpi))}>
                     <KennzahlBox
