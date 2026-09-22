@@ -31,6 +31,7 @@ import {
 } from "@/lib/domain/kachel-form";
 import {
   AnteilPunkte,
+  Kachelhuelle,
   Meter,
   Rangliste,
   Verteilung,
@@ -212,6 +213,14 @@ export function KennzahlBox({
   // Wie viele Vorgaenge auf der falschen Seite der Schwelle liegen. Bei 128
   // Chargen sieht man die roten Balken zwar, aber nicht ihre Zahl - und
   // genau die ist die Aussage: "8 von 128" statt "einige".
+  // Einmal rechnen statt bei jedem Vorkommen im JSX. streifenRand stand
+  // viermal und meterSkala zweimal in derselben Ausgabe - dieselbe Rechnung
+  // mit denselben Eingaben, nur an vier Stellen geschrieben.
+  const rand =
+    verteilung && soll !== null ? streifenRand(verteilung, soll) : null;
+  const skala =
+    ist !== null && soll !== null ? meterSkala(ist, soll, einheit) : null;
+
   const daneben =
     verteilung && soll !== null
       ? verteilung.filter((eintrag) =>
@@ -235,13 +244,10 @@ export function KennzahlBox({
     soll !== null ? `${homeT("target")} ${kpi.ziel}` : t("ohneZiel");
   const standText = platzhalter ? t("platzhalter") : t(`zielstand.${stand}`);
 
+  // Nur der Inhalt der Fusszeile - den Absatz und seine Ausrichtung traegt
+  // die Huelle, damit jede Kachel dieselbe Fusslinie hat.
   const fuss = (
-    /* Fuss: haengt am unteren Rand, steht dadurch in jeder Box gleich.
-       Umbrechen statt kuerzen: bei drei Spalten ist eine Box rund 145 px
-       breit, dort passt "Ziel > 700 ₸/kg" neben "Ziel verfehlt" nicht in
-       eine Zeile. Abgeschnitten stand dort "Ziel > 700 T..." - ein halber
-       Zielwert ist schlechter als eine Zeile mehr. */
-    <p className="mt-auto flex flex-wrap items-center gap-x-1.5 pt-2 text-[10px] leading-4">
+    <>
       <span
         aria-hidden
         className={cn("h-1.5 w-1.5 shrink-0 rounded-full", punkt[stand])}
@@ -250,7 +256,7 @@ export function KennzahlBox({
       <span className={cn("ml-auto shrink-0 font-semibold", schrift[stand])}>
         {standText}
       </span>
-    </p>
+    </>
   );
 
   const luecke =
@@ -287,25 +293,7 @@ export function KennzahlBox({
   // unterscheidet sich jetzt nur noch im Schriftgrad der Zahl und in der
   // Flaeche, die ihr das Raster gibt.
   return (
-    <div
-      title={hinweis}
-      className="flex h-full min-w-0 flex-col rounded-xl border border-border bg-card p-3"
-    >
-      {/* Kopf: fester Platz fuer zwei Zeilen, in jeder Box gleich hoch. */}
-      <p className="line-clamp-2 min-h-8 text-[11px] font-semibold leading-4 text-card-foreground">
-        {kurz}
-      </p>
-
-      {/* Die volle Beschreibung, sobald die Karte breit genug ist. Gemessen
-          wird die Karte, nicht das Fenster: am Schreibtisch stehen zwei
-          Zonenkarten nebeneinander und haben je rund 600 px, auf dem Telefon
-          hat dieselbe Karte 350 px - dort bleibt es beim Kurznamen und dem
-          Tooltip. Der Platz ist auch hier fest, damit die Boxen gleich hoch
-          bleiben. */}
-      <p className="mt-1 hidden min-h-8 text-[10px] leading-4 text-muted-foreground @md:line-clamp-2">
-        {voll}
-      </p>
-
+    <Kachelhuelle kurz={kurz} lang={voll} titel={hinweis} fuss={fuss}>
       {/* Der Zaehler ersetzt die grosse Zahl, statt neben ihr zu stehen: bei
           Ziel 100 % ist die Ausnahme die Aussage, nicht der Anteil. "0" und
           darunter "von 3 verletzt" sagt, was "100 %" verschweigt - naemlich
@@ -363,12 +351,12 @@ export function KennzahlBox({
             <Meter
               ist={ist}
               ziel={soll}
-              skalaBis={meterSkala(ist, soll, einheit)}
+              skalaBis={skala ?? 0}
               gutUnterhalb={kpi.gutRichtung === "down"}
               stand={stand}
               beschriftungVon="0"
               beschriftungZiel={`${homeT("target")} ${format.number(soll, { maximumFractionDigits: 1 })}`}
-              beschriftungBis={`${format.number(meterSkala(ist, soll, einheit), { maximumFractionDigits: 0 })} ${einheit}`}
+              beschriftungBis={`${format.number(skala ?? 0, { maximumFractionDigits: 0 })} ${einheit}`}
               achse={platz === "breit"}
             />
           ) : null}
@@ -385,14 +373,13 @@ export function KennzahlBox({
             <Verteilung
               werte={verteilung}
               schwelle={soll}
-              skalaVon={streifenRand(verteilung, soll).von}
-              skalaBis={streifenRand(verteilung, soll).bis}
+              skalaVon={rand?.von ?? 0}
+              skalaBis={rand?.bis ?? 0}
               gutUnterhalb={kpi.gutRichtung === "down"}
-              beschriftungVon={format.number(
-                streifenRand(verteilung, soll).von,
-                { maximumFractionDigits: 0 },
-              )}
-              beschriftungBis={`${format.number(streifenRand(verteilung, soll).bis, { maximumFractionDigits: 0 })} ${einheit}`}
+              beschriftungVon={format.number(rand?.von ?? 0, {
+                maximumFractionDigits: 0,
+              })}
+              beschriftungBis={`${format.number(rand?.bis ?? 0, { maximumFractionDigits: 0 })} ${einheit}`}
               beschriftungSchwelle={`${homeT("target")} ${format.number(soll, { maximumFractionDigits: 1 })}`}
               ausreisserName={
                 verteilung.length <= 12
@@ -429,9 +416,7 @@ export function KennzahlBox({
           die Karte wuechse ueber ihre Nachbarn hinaus. */}
       {luecke}
       </div>
-
-      {fuss}
-    </div>
+    </Kachelhuelle>
   );
 }
 

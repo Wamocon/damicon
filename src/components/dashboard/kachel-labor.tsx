@@ -17,6 +17,7 @@ import { Card, PageHeader, Section, StatusPill } from "@/components/ui/kit";
 import { KennzahlBox } from "@/components/dashboard/kennzahl-box";
 import {
   AnteilPunkte,
+  Kachelhuelle,
   Heldenzahl,
   Meter,
   Verteilung,
@@ -51,7 +52,15 @@ function Probe({
   );
 }
 
-/** Die Huelle einer Alternative - dieselbe Flaeche wie eine KennzahlBox. */
+/**
+ * Die Huelle einer Alternative.
+ *
+ * Bis zum Cleanup stand hier eine eigene Fassung der Kachelhuelle, Klasse
+ * fuer Klasse dieselbe wie in kennzahl-box.tsx - und schon in zwei Details
+ * auseinandergelaufen. Jetzt beide ueber denselben Baustein, damit eine
+ * Probe im Labor wirklich aussieht wie die Kachel, mit der sie verglichen
+ * wird.
+ */
 function Probekachel({
   kurz,
   lang,
@@ -64,20 +73,13 @@ function Probekachel({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-full min-w-0 flex-col rounded-xl border border-border bg-card p-3">
-      <p className="line-clamp-2 min-h-8 text-[11px] font-semibold leading-4 text-card-foreground">
-        {kurz}
-      </p>
-      <p className="mt-1 min-h-8 text-[10px] leading-4 text-muted-foreground">
-        {lang}
-      </p>
+    <Kachelhuelle
+      kurz={kurz}
+      lang={lang}
+      fuss={fuss ? <span className="text-muted-foreground">{fuss}</span> : null}
+    >
       {children}
-      {fuss ? (
-        <p className="mt-auto flex flex-wrap items-center gap-x-1.5 pt-2 text-[10px] leading-4 text-muted-foreground">
-          {fuss}
-        </p>
-      ) : null}
-    </div>
+    </Kachelhuelle>
   );
 }
 

@@ -22,9 +22,68 @@
 // und ein paar Marken. Erst eine echte Zeitreihe mit Achsen, Zoom und
 // Mehrfachauswahl waere ein Grund, eine dazuzunehmen.
 
+import type { ReactNode } from "react";
 import { useFormatter } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { Zielstand } from "@/lib/domain/zielstand";
+
+/**
+ * Die Huelle jeder Kennzahlkachel: Rahmen, Innenmass, Kopf, Fusszeile.
+ *
+ * Sie stand zweimal wortgleich im Code - einmal in kennzahl-box.tsx und
+ * einmal als Probekachel im Kachel-Labor. Typischer Vibecode-Befund: aus
+ * einem Vorbild entsteht eine zweite Fassung, und danach laufen beide
+ * auseinander. Genau das war passiert, in zwei Details:
+ *
+ *   1. Die zweite Kopfzeile war in der Kachel erst ab @md sichtbar, in der
+ *      Probekachel immer. Uebernommen ist die Kachel - auf schmalem Platz
+ *      traegt der Kurzname, der lange Name steht im Tooltip.
+ *   2. Die Fusszeile der Probekachel faerbte pauschal muted, die Kachel
+ *      faerbt je Teil. Uebernommen ist die Kachel, der Aufrufer setzt die
+ *      Farbe selbst - sonst liesse sich der Zielstand nicht hervorheben.
+ */
+export function Kachelhuelle({
+  kurz,
+  lang,
+  titel,
+  fuss,
+  children,
+}: {
+  kurz: string;
+  lang: string;
+  /** Tooltip der ganzen Kachel. */
+  titel?: string;
+  /** Inhalt der Fusszeile. Die Farben setzt der Aufrufer je Teil. */
+  fuss?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      title={titel}
+      className="flex h-full min-w-0 flex-col rounded-xl border border-border bg-card p-3"
+    >
+      {/* Kopf: fester Platz fuer zwei Zeilen, in jeder Kachel gleich hoch. */}
+      <p className="line-clamp-2 min-h-8 text-[11px] font-semibold leading-4 text-card-foreground">
+        {kurz}
+      </p>
+      {/* Der lange Name, sobald die Karte breit genug ist. Gemessen wird die
+          Karte, nicht das Fenster. Der Platz ist auch hier fest, damit die
+          Kacheln gleich hoch bleiben. */}
+      <p className="mt-1 hidden min-h-8 text-[10px] leading-4 text-muted-foreground @md:line-clamp-2">
+        {lang}
+      </p>
+      {children}
+      {fuss ? (
+        /* Umbrechen statt kuerzen: auf einer schmalen Karte passt
+           "Ziel > 700 ₸/kg" neben "Ziel verfehlt" nicht in eine Zeile, und
+           ein halber Zielwert ist schlechter als eine Zeile mehr. */
+        <p className="mt-auto flex flex-wrap items-center gap-x-1.5 pt-2 text-[10px] leading-4">
+          {fuss}
+        </p>
+      ) : null}
+    </div>
+  );
+}
 
 const flaeche: Record<Zielstand, string> = {
   verfehlt: "bg-destructive",
