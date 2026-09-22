@@ -1140,6 +1140,104 @@ await mussScheitern(
   ]);
 }
 
+// --- Kennzahlen-Verlauf und Trend ---------------------------------------------
+// Der Trendpfeil kam bis zu dieser Aenderung aus einer Textkonstante in
+// src/lib/domain/kpis.ts. Jetzt haengt er an public.kpi_verlauf. Die Zusage,
+// die hier abgesichert wird: ein EINZELNER Messpunkt ergibt keine Richtung.
+// Sonst zeigt die Kachel wieder einen Pfeil, der nichts verglichen hat - genau
+// der Zustand, den diese Aenderung beseitigen sollte.
+{
+  await db.exec("reset role;");
+
+  // Der Seed legt fuer die Vorfuehrung bereits zwei Messpunkte je Kennzahl an
+  // (Abschnitt "Kennzahlen-Verlauf (Demo)"). Diese Pruefung baut den Verlauf
+  // selbst auf und raeumt ihn deshalb zuerst weg - sonst pruefte sie die
+  // Demo-Daten statt die Mechanik dahinter.
+  await db.query("delete from public.kpi_verlauf;");
+
+  const { rows: lauf } = await db.query(
+    "select public.kpi_verlauf_schreiben('2026-09-20'::date) as n;",
+  );
+  check(
+    "Verlauf: der Schreiblauf legt Messpunkte aus kpi_aktuell() an",
+    lauf[0].n > 0,
+    `Messpunkte: ${lauf[0].n}`,
+  );
+
+  const { rows: ohneVergleich } = await db.query(
+    "select count(*)::int as n from public.kpi_trend;",
+  );
+  check(
+    "Verlauf: ein einzelner Messpunkt ergibt keine Richtung",
+    ohneVergleich[0].n === 0,
+    `Zeilen in kpi_trend: ${ohneVergleich[0].n}`,
+  );
+
+  // Zweiter Tag, jeder Wert um 1 hoeher.
+  await db.exec(`
+    insert into public.kpi_verlauf (schluessel, gemessen_am, wert, einheit, basis, datensaetze)
+    select schluessel, date '2026-09-21', wert + 1, einheit, basis, datensaetze
+      from public.kpi_verlauf
+     where gemessen_am = date '2026-09-20';`);
+
+  const { rows: hoch } = await db.query("select schluessel, trend from public.kpi_trend;");
+  check(
+    "Verlauf: zwei Messpunkte ergeben eine Richtung",
+    hoch.length > 0 && hoch.every((z) => z.trend === "up"),
+    `${hoch.length} Kennzahlen, davon up: ${hoch.filter((z) => z.trend === "up").length}`,
+  );
+
+  // Gegenprobe nach unten: derselbe Aufbau, nur faellt der Wert.
+  await db.exec(`
+    update public.kpi_verlauf z
+       set wert = v.wert - 1
+      from public.kpi_verlauf v
+     where v.schluessel = z.schluessel
+       and v.gemessen_am = date '2026-09-20'
+       and z.gemessen_am = date '2026-09-21';`);
+
+  const { rows: runter } = await db.query("select trend from public.kpi_trend;");
+  check(
+    "Verlauf: ein fallender Wert wird als fallend gemeldet",
+    runter.length > 0 && runter.every((z) => z.trend === "down"),
+    `down: ${runter.filter((z) => z.trend === "down").length} von ${runter.length}`,
+  );
+
+  // Und die dritte Moeglichkeit: unveraendert ist weder up noch down.
+  await db.exec(`
+    update public.kpi_verlauf z
+       set wert = v.wert
+      from public.kpi_verlauf v
+     where v.schluessel = z.schluessel
+       and v.gemessen_am = date '2026-09-20'
+       and z.gemessen_am = date '2026-09-21';`);
+
+  const { rows: gleich } = await db.query("select trend from public.kpi_trend;");
+  check(
+    "Verlauf: ein unveraenderter Wert meldet keine Bewegung",
+    gleich.length > 0 && gleich.every((z) => z.trend === "flat"),
+    `flat: ${gleich.filter((z) => z.trend === "flat").length} von ${gleich.length}`,
+  );
+
+  // Ein zweiter Schreiblauf am selben Tag korrigiert den Punkt, statt einen
+  // zweiten danebenzustellen - sonst hinge die Richtung davon ab, wie oft der
+  // Zeitplan gelaufen ist.
+  const vorher = await db.query(
+    "select count(*)::int as n from public.kpi_verlauf where gemessen_am = date '2026-09-20';",
+  );
+  await db.query("select public.kpi_verlauf_schreiben('2026-09-20'::date);");
+  const nachher = await db.query(
+    "select count(*)::int as n from public.kpi_verlauf where gemessen_am = date '2026-09-20';",
+  );
+  check(
+    "Verlauf: ein zweiter Lauf am selben Tag legt keinen zweiten Punkt an",
+    vorher.rows[0].n === nachher.rows[0].n,
+    `vorher ${vorher.rows[0].n}, nachher ${nachher.rows[0].n}`,
+  );
+
+  await db.query("delete from public.kpi_verlauf where gemessen_am in (date '2026-09-20', date '2026-09-21');");
+}
+
 // --- Aufraeumen ---------------------------------------------------------------
 await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [behandlungId]);
 await db.query("update public.reihenbloecke set status = 'ruhend' where id = $1;", [blockId]);
