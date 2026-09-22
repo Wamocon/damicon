@@ -12,9 +12,7 @@ import {
   BenutzerFussSchmal,
 } from "@/components/dashboard/benutzer-fuss";
 import {
-  istSchmal,
-  schmalAbonnieren,
-  schmalServer,
+  sidebarBreiteInitScript,
   useAktiveZone,
   useZonenGruppen,
 } from "@/components/dashboard/sidebar-zustand";
@@ -474,27 +472,69 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
 // Kacheln auf der Bereichsseite. Ein aufklappbarer Baum mit 26 Eintraegen ist
 // die Form fuer eine stehende Spalte, nicht fuer eine Flaeche, die man mit dem
 // Daumen aufzieht.
-export function DashboardSidebar() {
-  // Server rendert immer die volle Spalte. Wer sie eingeklappt hatte, sieht
-  // sie nach der Hydration zusammenfahren - dieselbe Abwaegung wie bei den
-  // Bereichsgruppen und bei persona.tsx.
-  const schmal = useSyncExternalStore(
-    schmalAbonnieren,
-    istSchmal,
-    schmalServer,
-  );
+const nieAbonnieren = () => () => {};
 
-  // 19rem statt der frueheren 18rem: die Gruppenflaechen kosten etwas Breite,
-  // die Beschriftungen behalten so ihre eigene.
+/**
+ * Setzt die Breite der Leiste vor dem ersten Paint. Gleicher Bau wie
+ * ThemeScript in theme-toggle.tsx: der Store gibt auf dem Server true und auf
+ * dem Client false zurueck, das <script> steht also nur im initialen HTML und
+ * wird bei keinem Re-Render erneut eingehaengt.
+ *
+ * <script> traegt display: none aus dem Browser-Stylesheet und zaehlt damit
+ * nicht als Flex-Kind der Dashboard-Schale.
+ */
+function SidebarBreiteScript() {
+  const nurAufDemServer = useSyncExternalStore(
+    nieAbonnieren,
+    () => false,
+    () => true,
+  );
+  if (!nurAufDemServer) return null;
   return (
-    <aside
-      className={cn(
-        "sticky top-0 hidden h-svh shrink-0 self-start overflow-hidden border-r border-sidebar-border bg-sidebar/95 backdrop-blur-xl md:block print:hidden",
-        "transition-[width] duration-200 ease-out motion-reduce:transition-none",
-        schmal ? "w-16" : "w-76",
-      )}
-    >
-      {schmal ? <SidebarRail /> : <SidebarBody />}
-    </aside>
+    <script dangerouslySetInnerHTML={{ __html: sidebarBreiteInitScript }} />
+  );
+}
+
+export function DashboardSidebar() {
+  // Die Breite haengt an der Klasse am <html>, nicht an React-Zustand: nur so
+  // steht sie schon im ersten Bild. Siehe SidebarBreiteScript oben und
+  // @custom-variant schmal in globals.css.
+  //
+  // 19rem (w-76) statt der frueheren 18rem: die Gruppenflaechen kosten etwas
+  // Breite, die Beschriftungen behalten so ihre eigene.
+  return (
+    <>
+      <SidebarBreiteScript />
+      <aside
+        className={cn(
+          "sticky top-0 hidden h-svh shrink-0 self-start overflow-hidden border-r border-sidebar-border bg-sidebar/95 backdrop-blur-xl md:block print:hidden",
+          "transition-[width] duration-200 ease-out motion-reduce:transition-none",
+          "w-76 schmal:w-16",
+        )}
+      >
+        {/* Beide Formen stehen gleichzeitig im Baum, jede auf IHRER Breite
+            festgenagelt.
+
+            Vorher tauschte React sie hart aus, waehrend die Breite 200 ms
+            lang animierte. Beim Aufklappen lag die volle Spalte damit in
+            einem 4 rem schmalen, beschnittenen Kasten und wurde bei jedem
+            Frame neu umbrochen - Beschriftungen liefen durch truncate,
+            Zaehler und Chevrons sprangen. Beim Zuklappen standen die Symbole
+            der Schiene zuerst mitten in der noch 19 rem breiten Flaeche und
+            wanderten nach links.
+
+            Die Sichtbarkeit haengt an visibility statt an inert, weil sie
+            damit aus dem CSS kommt und auch VOR der Hydration stimmt - dort
+            kennt React den Wert aus localStorage noch gar nicht. visibility:
+            hidden nimmt die verdeckte Form aus Tabreihenfolge und
+            Vorlesereihenfolge, genau wie inert es taete. */}
+        <div className="invisible absolute inset-y-0 left-0 w-16 opacity-0 transition-opacity duration-knapp motion-reduce:transition-none schmal:visible schmal:opacity-100">
+          <SidebarRail />
+        </div>
+        <div className="visible absolute inset-y-0 left-0 w-76 opacity-100 transition-opacity duration-knapp motion-reduce:transition-none schmal:invisible schmal:opacity-0">
+          <SidebarBody />
+        </div>
+      </aside>
+    </>
   );
 }

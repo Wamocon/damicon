@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { SiteNavbar } from "@/components/site/navbar";
 import { SiteFooter } from "@/components/site/footer";
-import { Card, PageHeader } from "@/components/ui/kit";
+import { Button, Card, PageHeader } from "@/components/ui/kit";
 import { herkunftSuchen } from "./actions";
 
 // Eingangsseite zur oeffentlichen Herkunftsauskunft (WMCNL-1456). Ohne sie
@@ -65,12 +65,9 @@ export default async function HerkunftSuchePage({
                   className="h-11 w-full rounded-xl border border-border bg-background px-3 font-mono text-sm text-foreground outline-none transition focus:border-primary"
                 />
               </div>
-              <button
-                type="submit"
-                className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground transition hover:brightness-110"
-              >
+              <Button type="submit" breit>
                 {t("suche.submit")}
-              </button>
+              </Button>
             </form>
           </Card>
         </div>

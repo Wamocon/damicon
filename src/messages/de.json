@@ -632,7 +632,7 @@
     },
     "finanzen": {
       "title": "Deckungsbeitrag und Finanzen",
-      "navTitle": "Deckungsbeitrag",
+      "navTitle": "Finanzen",
       "description": "Kostenstellen je Reihenblock, Kostenträger je Sorte und je Kunde. Deckungsbeitrag je Kilogramm, je Reihenblock, je Sorte und je Erntetag - unveränderliche Buchungen.",
       "summary": "Deckungsbeitrag je Reihenblock, Sorte und Erntetag. Buchungen sind unveränderlich (nur Anfügen).",
       "todo": "Kostenarten je Erntetag, B2B-Zahlungsabgleich, Deckungsbeitragsprojektion je Sorte."

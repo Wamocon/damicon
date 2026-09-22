@@ -632,7 +632,7 @@
     },
     "finanzen": {
       "title": "Contribution margin and finance",
-      "navTitle": "Contribution margin",
+      "navTitle": "Finance",
       "description": "Cost centres per row block, cost objects per variety and per client. Contribution margin per kilogram, per row block, per variety and per harvest day - immutable postings.",
       "summary": "Contribution margin per row block, variety and harvest day. Postings are immutable (append only).",
       "todo": "Cost types per harvest day, B2B payment reconciliation, contribution-margin projection per variety."

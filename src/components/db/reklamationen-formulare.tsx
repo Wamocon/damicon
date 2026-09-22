@@ -9,6 +9,7 @@ import {
   reklamationStatusSetzen,
 } from "@/lib/actions/reklamationen";
 import { leer } from "@/lib/actions/status";
+import { Button } from "@/components/ui/kit";
 import {
   AktionsMeldung,
   Auswahl,
@@ -120,12 +121,9 @@ export function ReklamationEntscheidungFormular({
       {mitGutschrift ? (
         <Feld label={t("gutschrift")} name="gutschrift_tenge" inputMode="decimal" />
       ) : null}
-      <button
-        type="submit"
-        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-primary-foreground transition hover:brightness-110 lg:h-9"
-      >
+      <Button type="submit" rundung="schmal" breit className="lg:h-9">
         {label}
-      </button>
+      </Button>
       <AktionsMeldung status={status} />
     </form>
   );

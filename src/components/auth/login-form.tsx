@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { useLocale, useTranslations } from "next-intl";
 import { AlertCircle, LogIn } from "lucide-react";
 import { anmelden, type AnmeldeStatus } from "@/app/[locale]/login/actions";
+import { Button } from "@/components/ui/kit";
 
 const initialStatus: AnmeldeStatus = { fehler: null };
 
@@ -12,14 +13,10 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   const t = useTranslations("auth");
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-    >
+    <Button type="submit" laedt={pending} breit>
       <LogIn className="h-4 w-4" />
-      {pending ? t("submitting") : t("submit")}
-    </button>
+      {t("submit")}
+    </Button>
   );
 }
 
