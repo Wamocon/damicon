@@ -33,7 +33,7 @@
     "wissen:frage": "npx --yes tsx scripts/wissen-frage.ts",
     "test:wetter": "node supabase/tests/wetter.mjs",
     "test:rechnungshistorie": "node supabase/tests/rechnungshistorie.mjs",
-    "test": "npm run db:test:fast && npm run test:einladungen && npm run test:abnahme-2-7 && npm run test:abnahme-2-8 && npm run test:abnahme-2-10 && npm run test:abnahme-4-1 && npm run test:abnahme-4-7 && npm run test:zukauf-parser && npm run test:ausweis-scan && npm run test:ki-assistent && npm run test:agent && npm run test:kit && npm run test:wissen && npm run test:wissen-backend && npm run test:pruefung && npm run test:ausfall && npm run test:umlaute && npm run test:migrationen && npm run test:wetter && npm run test:rechnungshistorie && npm run test:abnahme-e-11 && npm run test:haustier",
+    "test": "npm run db:test:fast && npm run test:einladungen && npm run test:abnahme-2-7 && npm run test:abnahme-2-8 && npm run test:abnahme-2-10 && npm run test:abnahme-4-1 && npm run test:abnahme-4-7 && npm run test:zukauf-parser && npm run test:ausweis-scan && npm run test:ki-assistent && npm run test:agent && npm run test:kit && npm run test:finanz-zeitraum && npm run test:wissen && npm run test:wissen-backend && npm run test:pruefung && npm run test:ausfall && npm run test:umlaute && npm run test:migrationen && npm run test:wetter && npm run test:rechnungshistorie && npm run test:abnahme-e-11 && npm run test:haustier",
     "test:abnahme-4-1": "node supabase/tests/abnahme-4-1.mjs",
     "test:abnahme-4-7": "node supabase/tests/abnahme-4-7.mjs",
     "test:abnahme-2-10": "node supabase/tests/abnahme-2-10.mjs",
@@ -47,6 +47,7 @@
     "test:wissen-db": "node --env-file=.env.local supabase/tests/wissen-pgvector.mjs",
     "test:pruefung": "npx --yes tsx supabase/tests/pruefung.ts",
     "test:kit": "npx --yes tsx supabase/tests/kit-bausteine.tsx",
+    "test:finanz-zeitraum": "npx --yes tsx supabase/tests/finanz-zeitraum.ts",
     "test:ausfall": "npx --yes tsx supabase/tests/ausfall.ts",
     "test:umlaute": "npx --yes tsx supabase/tests/umlaute.ts"
   },
