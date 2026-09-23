@@ -194,6 +194,11 @@ export type Database = {
           created_at: string
           id: string
           identifikationsnummer: string | null
+          mwst_letzte_pruefung_am: string | null
+          mwst_letzter_umsatz_tenge: number | null
+          mwst_registriert: boolean
+          mwst_registriert_am: string | null
+          mwst_schwelle_ueberschritten_am: string | null
           name: string
           rechtsform: Database["public"]["Enums"]["rechtsform"] | null
           updated_at: string
@@ -202,6 +207,11 @@ export type Database = {
           created_at?: string
           id?: string
           identifikationsnummer?: string | null
+          mwst_letzte_pruefung_am?: string | null
+          mwst_letzter_umsatz_tenge?: number | null
+          mwst_registriert?: boolean
+          mwst_registriert_am?: string | null
+          mwst_schwelle_ueberschritten_am?: string | null
           name: string
           rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
           updated_at?: string
@@ -210,6 +220,11 @@ export type Database = {
           created_at?: string
           id?: string
           identifikationsnummer?: string | null
+          mwst_letzte_pruefung_am?: string | null
+          mwst_letzter_umsatz_tenge?: number | null
+          mwst_registriert?: boolean
+          mwst_registriert_am?: string | null
+          mwst_schwelle_ueberschritten_am?: string | null
           name?: string
           rechtsform?: Database["public"]["Enums"]["rechtsform"] | null
           updated_at?: string
@@ -323,6 +338,61 @@ export type Database = {
             columns: ["sorte_id"]
             isOneToOne: false
             referencedRelation: "sorten"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compliance_ceo_berichte: {
+        Row: {
+          aenderungen: Json
+          ausgeloest_von: string | null
+          bereiche: string[]
+          bericht: Json
+          erstellt_am: string
+          id: string
+          quelle: string
+          voriger_bericht_id: string | null
+        }
+        Insert: {
+          aenderungen?: Json
+          ausgeloest_von?: string | null
+          bereiche: string[]
+          bericht: Json
+          erstellt_am?: string
+          id?: string
+          quelle: string
+          voriger_bericht_id?: string | null
+        }
+        Update: {
+          aenderungen?: Json
+          ausgeloest_von?: string | null
+          bereiche?: string[]
+          bericht?: Json
+          erstellt_am?: string
+          id?: string
+          quelle?: string
+          voriger_bericht_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_ceo_berichte_ausgeloest_von_fkey"
+            columns: ["ausgeloest_von"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_ceo_berichte_ausgeloest_von_fkey"
+            columns: ["ausgeloest_von"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+          {
+            foreignKeyName: "compliance_ceo_berichte_voriger_bericht_id_fkey"
+            columns: ["voriger_bericht_id"]
+            isOneToOne: false
+            referencedRelation: "compliance_ceo_berichte"
             referencedColumns: ["id"]
           },
         ]
@@ -700,6 +770,7 @@ export type Database = {
           outbox_id: string | null
           pfluecker_id: string
           status: Database["public"]["Enums"]["esutd_status"]
+          vertrag_beginn_am: string | null
           vertragsnummer: string | null
         }
         Insert: {
@@ -709,6 +780,7 @@ export type Database = {
           outbox_id?: string | null
           pfluecker_id: string
           status?: Database["public"]["Enums"]["esutd_status"]
+          vertrag_beginn_am?: string | null
           vertragsnummer?: string | null
         }
         Update: {
@@ -718,6 +790,7 @@ export type Database = {
           outbox_id?: string | null
           pfluecker_id?: string
           status?: Database["public"]["Enums"]["esutd_status"]
+          vertrag_beginn_am?: string | null
           vertragsnummer?: string | null
         }
         Relationships: [
@@ -1025,6 +1098,7 @@ export type Database = {
           inhalt: string
           profil_id: string
           rolle: string
+          werkzeugaufrufe: Json | null
         }
         Insert: {
           anbieter_name?: string | null
@@ -1035,6 +1109,7 @@ export type Database = {
           inhalt: string
           profil_id: string
           rolle: string
+          werkzeugaufrufe?: Json | null
         }
         Update: {
           anbieter_name?: string | null
@@ -1045,6 +1120,7 @@ export type Database = {
           inhalt?: string
           profil_id?: string
           rolle?: string
+          werkzeugaufrufe?: Json | null
         }
         Relationships: [
           {
@@ -1057,6 +1133,45 @@ export type Database = {
           {
             foreignKeyName: "ki_chat_nachrichten_profil_id_fkey"
             columns: ["profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+        ]
+      }
+      ki_ratenlimit_einstellungen: {
+        Row: {
+          aktualisiert_am: string
+          aktualisiert_von: string | null
+          grenze_pro_minute: number | null
+          id: string
+          rolle: Database["public"]["Enums"]["app_role"] | null
+        }
+        Insert: {
+          aktualisiert_am?: string
+          aktualisiert_von?: string | null
+          grenze_pro_minute?: number | null
+          id?: string
+          rolle?: Database["public"]["Enums"]["app_role"] | null
+        }
+        Update: {
+          aktualisiert_am?: string
+          aktualisiert_von?: string | null
+          grenze_pro_minute?: number | null
+          id?: string
+          rolle?: Database["public"]["Enums"]["app_role"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ki_ratenlimit_einstellungen_aktualisiert_von_fkey"
+            columns: ["aktualisiert_von"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ki_ratenlimit_einstellungen_aktualisiert_von_fkey"
+            columns: ["aktualisiert_von"]
             isOneToOne: false
             referencedRelation: "schulungsteilnahmen_status"
             referencedColumns: ["profil_id"]
@@ -1232,6 +1347,39 @@ export type Database = {
           updated_at?: string
           ziel?: string | null
           zone?: string
+        }
+        Relationships: []
+      }
+      kpi_verlauf: {
+        Row: {
+          basis: string | null
+          created_at: string
+          datensaetze: number
+          einheit: string | null
+          gemessen_am: string
+          id: string
+          schluessel: string
+          wert: number
+        }
+        Insert: {
+          basis?: string | null
+          created_at?: string
+          datensaetze?: number
+          einheit?: string | null
+          gemessen_am?: string
+          id?: string
+          schluessel: string
+          wert: number
+        }
+        Update: {
+          basis?: string | null
+          created_at?: string
+          datensaetze?: number
+          einheit?: string | null
+          gemessen_am?: string
+          id?: string
+          schluessel?: string
+          wert?: number
         }
         Relationships: []
       }
@@ -1485,6 +1633,8 @@ export type Database = {
         Row: {
           ausschussquote: number | null
           created_at: string
+          freigegeben_am: string | null
+          freigegeben_von_profil_id: string | null
           gesamt_tenge: number
           grundlohn_tenge: number
           id: string
@@ -1501,6 +1651,8 @@ export type Database = {
         Insert: {
           ausschussquote?: number | null
           created_at?: string
+          freigegeben_am?: string | null
+          freigegeben_von_profil_id?: string | null
           gesamt_tenge?: number
           grundlohn_tenge?: number
           id?: string
@@ -1517,6 +1669,8 @@ export type Database = {
         Update: {
           ausschussquote?: number | null
           created_at?: string
+          freigegeben_am?: string | null
+          freigegeben_von_profil_id?: string | null
           gesamt_tenge?: number
           grundlohn_tenge?: number
           id?: string
@@ -1532,10 +1686,99 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "lohn_abrechnungen_freigegeben_von_profil_id_fkey"
+            columns: ["freigegeben_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lohn_abrechnungen_freigegeben_von_profil_id_fkey"
+            columns: ["freigegeben_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+          {
             foreignKeyName: "lohn_abrechnungen_pfluecker_id_fkey"
             columns: ["pfluecker_id"]
             isOneToOne: false
             referencedRelation: "pfluecker"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lohn_monatsabzuege: {
+        Row: {
+          arbeitgeberkosten_gesamt_tenge: number
+          berechnet_am: string
+          brutto_gesamt_tenge: number
+          id: string
+          ipn_bemessungsgrundlage_tenge: number
+          ipn_tenge: number
+          jahr: number
+          monat: number
+          netto_tenge: number
+          opv_tenge: number
+          opvr_tenge: number
+          osms_tenge: number
+          pfluecker_id: string
+          sn_tenge: number
+          so_tenge: number
+          steuersatz_id: string
+          vosms_tenge: number
+        }
+        Insert: {
+          arbeitgeberkosten_gesamt_tenge: number
+          berechnet_am?: string
+          brutto_gesamt_tenge: number
+          id?: string
+          ipn_bemessungsgrundlage_tenge: number
+          ipn_tenge: number
+          jahr: number
+          monat: number
+          netto_tenge: number
+          opv_tenge: number
+          opvr_tenge: number
+          osms_tenge: number
+          pfluecker_id: string
+          sn_tenge: number
+          so_tenge: number
+          steuersatz_id: string
+          vosms_tenge: number
+        }
+        Update: {
+          arbeitgeberkosten_gesamt_tenge?: number
+          berechnet_am?: string
+          brutto_gesamt_tenge?: number
+          id?: string
+          ipn_bemessungsgrundlage_tenge?: number
+          ipn_tenge?: number
+          jahr?: number
+          monat?: number
+          netto_tenge?: number
+          opv_tenge?: number
+          opvr_tenge?: number
+          osms_tenge?: number
+          pfluecker_id?: string
+          sn_tenge?: number
+          so_tenge?: number
+          steuersatz_id?: string
+          vosms_tenge?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lohn_monatsabzuege_pfluecker_id_fkey"
+            columns: ["pfluecker_id"]
+            isOneToOne: false
+            referencedRelation: "pfluecker"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lohn_monatsabzuege_steuersatz_id_fkey"
+            columns: ["steuersatz_id"]
+            isOneToOne: false
+            referencedRelation: "lohn_steuersaetze_kz"
             referencedColumns: ["id"]
           },
         ]
@@ -1630,6 +1873,66 @@ export type Database = {
         }
         Relationships: []
       }
+      lohn_steuersaetze_kz: {
+        Row: {
+          created_at: string
+          gueltig_ab: string
+          gueltig_bis: string | null
+          id: string
+          ipn_freibetrag_tenge: number
+          ipn_prozent: number
+          notiz: string | null
+          opv_bemessungsgrenze_tenge: number
+          opv_prozent: number
+          opvr_prozent: number
+          osms_prozent: number
+          quelle: string
+          sn_prozent: number
+          so_prozent: number
+          updated_at: string
+          vosms_bemessungsgrenze_tenge: number
+          vosms_prozent: number
+        }
+        Insert: {
+          created_at?: string
+          gueltig_ab?: string
+          gueltig_bis?: string | null
+          id?: string
+          ipn_freibetrag_tenge: number
+          ipn_prozent: number
+          notiz?: string | null
+          opv_bemessungsgrenze_tenge: number
+          opv_prozent: number
+          opvr_prozent: number
+          osms_prozent: number
+          quelle: string
+          sn_prozent: number
+          so_prozent: number
+          updated_at?: string
+          vosms_bemessungsgrenze_tenge: number
+          vosms_prozent: number
+        }
+        Update: {
+          created_at?: string
+          gueltig_ab?: string
+          gueltig_bis?: string | null
+          id?: string
+          ipn_freibetrag_tenge?: number
+          ipn_prozent?: number
+          notiz?: string | null
+          opv_bemessungsgrenze_tenge?: number
+          opv_prozent?: number
+          opvr_prozent?: number
+          osms_prozent?: number
+          quelle?: string
+          sn_prozent?: number
+          so_prozent?: number
+          updated_at?: string
+          vosms_bemessungsgrenze_tenge?: number
+          vosms_prozent?: number
+        }
+        Relationships: []
+      }
       media_belege: {
         Row: {
           art: Database["public"]["Enums"]["beleg_art"]
@@ -1676,6 +1979,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      mwst_saetze: {
+        Row: {
+          created_at: string
+          gueltig_ab: string
+          gueltig_bis: string | null
+          id: string
+          notiz: string | null
+          quelle: string
+          schwelle_tenge: number
+          standard_prozent: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          gueltig_ab?: string
+          gueltig_bis?: string | null
+          id?: string
+          notiz?: string | null
+          quelle: string
+          schwelle_tenge: number
+          standard_prozent: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          gueltig_ab?: string
+          gueltig_bis?: string | null
+          id?: string
+          notiz?: string | null
+          quelle?: string
+          schwelle_tenge?: number
+          standard_prozent?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       nachbarbetriebe: {
         Row: {
@@ -2081,6 +2420,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "betriebe"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "plantagen_betrieb_id_fkey"
+            columns: ["betrieb_id"]
+            isOneToOne: false
+            referencedRelation: "betriebe_mwst_status"
+            referencedColumns: ["betrieb_id"]
           },
           {
             foreignKeyName: "plantagen_nachbarbetrieb_id_fkey"
@@ -2730,7 +3076,9 @@ export type Database = {
           geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
-          kontroll_befund?: Database["public"]["Enums"]["kontroll_befund"] | null
+          kontroll_befund?:
+            | Database["public"]["Enums"]["kontroll_befund"]
+            | null
           kontroll_begruendung?: string | null
           kontrolliert_am?: string | null
           kontrolliert_von_profil_id?: string | null
@@ -2748,7 +3096,9 @@ export type Database = {
           geraet_zeitpunkt?: string | null
           gewicht_kg?: number | null
           id?: string
-          kontroll_befund?: Database["public"]["Enums"]["kontroll_befund"] | null
+          kontroll_befund?:
+            | Database["public"]["Enums"]["kontroll_befund"]
+            | null
           kontroll_begruendung?: string | null
           kontrolliert_am?: string | null
           kontrolliert_von_profil_id?: string | null
@@ -2772,6 +3122,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "deckungsbeitrag_je_charge"
             referencedColumns: ["charge_id"]
+          },
+          {
+            foreignKeyName: "steigen_erfasst_von_profil_id_fkey"
+            columns: ["erfasst_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "steigen_erfasst_von_profil_id_fkey"
+            columns: ["erfasst_von_profil_id"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
           },
           {
             foreignKeyName: "steigen_kontrolliert_von_profil_id_fkey"
@@ -3062,6 +3426,150 @@ export type Database = {
           },
         ]
       }
+      wissen_begriffe: {
+        Row: {
+          df: number
+          hash: number
+          idf: number
+        }
+        Insert: {
+          df: number
+          hash: number
+          idf: number
+        }
+        Update: {
+          df?: number
+          hash?: number
+          idf?: number
+        }
+        Relationships: []
+      }
+      wissen_chunks: {
+        Row: {
+          abgerufen_am: string | null
+          autoritaetsstufe: number | null
+          bereich: string
+          chunk_id: string | null
+          dense: string
+          eingelesen_am: string | null
+          embed_modell: string | null
+          ersetzt_durch: string | null
+          erstellt_am: string
+          extra: Json
+          gueltig_ab: string | null
+          gueltig_bis: string | null
+          id: string
+          ist_ueberholt: boolean
+          konfidenz: string | null
+          kontext: string | null
+          norm_id: string | null
+          pfad: string | null
+          quelle_id: string | null
+          rechtsstelle: string | null
+          rollen: string[]
+          sparse: unknown
+          sprache: string
+          teil: number | null
+          teile: number | null
+          text: string
+          titel: string | null
+          url: string | null
+        }
+        Insert: {
+          abgerufen_am?: string | null
+          autoritaetsstufe?: number | null
+          bereich: string
+          chunk_id?: string | null
+          dense: string
+          eingelesen_am?: string | null
+          embed_modell?: string | null
+          ersetzt_durch?: string | null
+          erstellt_am?: string
+          extra?: Json
+          gueltig_ab?: string | null
+          gueltig_bis?: string | null
+          id: string
+          ist_ueberholt?: boolean
+          konfidenz?: string | null
+          kontext?: string | null
+          norm_id?: string | null
+          pfad?: string | null
+          quelle_id?: string | null
+          rechtsstelle?: string | null
+          rollen?: string[]
+          sparse: unknown
+          sprache?: string
+          teil?: number | null
+          teile?: number | null
+          text: string
+          titel?: string | null
+          url?: string | null
+        }
+        Update: {
+          abgerufen_am?: string | null
+          autoritaetsstufe?: number | null
+          bereich?: string
+          chunk_id?: string | null
+          dense?: string
+          eingelesen_am?: string | null
+          embed_modell?: string | null
+          ersetzt_durch?: string | null
+          erstellt_am?: string
+          extra?: Json
+          gueltig_ab?: string | null
+          gueltig_bis?: string | null
+          id?: string
+          ist_ueberholt?: boolean
+          konfidenz?: string | null
+          kontext?: string | null
+          norm_id?: string | null
+          pfad?: string | null
+          quelle_id?: string | null
+          rechtsstelle?: string | null
+          rollen?: string[]
+          sparse?: unknown
+          sprache?: string
+          teil?: number | null
+          teile?: number | null
+          text?: string
+          titel?: string | null
+          url?: string | null
+        }
+        Relationships: []
+      }
+      wissen_importe: {
+        Row: {
+          begriffe: number
+          bemerkung: string | null
+          chunks: number
+          dimension: number | null
+          embed_modell: string | null
+          gestartet_am: string
+          id: string
+          quelle: string
+        }
+        Insert: {
+          begriffe: number
+          bemerkung?: string | null
+          chunks: number
+          dimension?: number | null
+          embed_modell?: string | null
+          gestartet_am?: string
+          id?: string
+          quelle: string
+        }
+        Update: {
+          begriffe?: number
+          bemerkung?: string | null
+          chunks?: number
+          dimension?: number | null
+          embed_modell?: string | null
+          gestartet_am?: string
+          id?: string
+          quelle?: string
+        }
+        Relationships: []
+      }
       zukauf_positionen: {
         Row: {
           charge_id: string | null
@@ -3126,6 +3634,36 @@ export type Database = {
       }
     }
     Views: {
+      betriebe_mwst_status: {
+        Row: {
+          betrieb_id: string | null
+          meldefrist_am: string | null
+          mwst_letzte_pruefung_am: string | null
+          mwst_letzter_umsatz_tenge: number | null
+          mwst_registriert: boolean | null
+          mwst_registriert_am: string | null
+          mwst_schwelle_ueberschritten_am: string | null
+        }
+        Insert: {
+          betrieb_id?: string | null
+          meldefrist_am?: never
+          mwst_letzte_pruefung_am?: string | null
+          mwst_letzter_umsatz_tenge?: number | null
+          mwst_registriert?: boolean | null
+          mwst_registriert_am?: string | null
+          mwst_schwelle_ueberschritten_am?: string | null
+        }
+        Update: {
+          betrieb_id?: string | null
+          meldefrist_am?: never
+          mwst_letzte_pruefung_am?: string | null
+          mwst_letzter_umsatz_tenge?: number | null
+          mwst_registriert?: boolean | null
+          mwst_registriert_am?: string | null
+          mwst_schwelle_ueberschritten_am?: string | null
+        }
+        Relationships: []
+      }
       brigade_einsatzplan: {
         Row: {
           bloecke_zugewiesen: number | null
@@ -3178,6 +3716,68 @@ export type Database = {
         }
         Relationships: []
       }
+      esutd_vertraege_mit_frist: {
+        Row: {
+          created_at: string | null
+          erfasst_am: string | null
+          id: string | null
+          meldefrist_am: string | null
+          outbox_id: string | null
+          pfluecker_id: string | null
+          status: Database["public"]["Enums"]["esutd_status"] | null
+          vertrag_beginn_am: string | null
+          vertragsnummer: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          erfasst_am?: string | null
+          id?: string | null
+          meldefrist_am?: never
+          outbox_id?: string | null
+          pfluecker_id?: string | null
+          status?: Database["public"]["Enums"]["esutd_status"] | null
+          vertrag_beginn_am?: string | null
+          vertragsnummer?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          erfasst_am?: string | null
+          id?: string | null
+          meldefrist_am?: never
+          outbox_id?: string | null
+          pfluecker_id?: string | null
+          status?: Database["public"]["Enums"]["esutd_status"] | null
+          vertrag_beginn_am?: string | null
+          vertragsnummer?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "esutd_vertraege_pfluecker_id_fkey"
+            columns: ["pfluecker_id"]
+            isOneToOne: false
+            referencedRelation: "pfluecker"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_esutd_outbox"
+            columns: ["outbox_id"]
+            isOneToOne: false
+            referencedRelation: "integration_outbox"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kpi_trend: {
+        Row: {
+          schluessel: string | null
+          stand: string | null
+          trend: string | null
+          verglichen_mit: string | null
+          wert_jetzt: number | null
+          wert_vorher: number | null
+        }
+        Relationships: []
+      }
       schulungsteilnahmen_status: {
         Row: {
           faellig_am: string | null
@@ -3214,6 +3814,8 @@ export type Database = {
         Returns: Database["public"]["Enums"]["app_role"]
       }
       current_b2b_kunde_id: { Args: never; Returns: string }
+      current_brigade_id: { Args: never; Returns: string }
+      current_profil_id: { Args: never; Returns: string }
       einladung_abschliessen: {
         Args: { p_auth_user_id: string; p_code_digest: string; p_email: string }
         Returns: string
@@ -3221,6 +3823,14 @@ export type Database = {
       einwilligung_widerrufen: {
         Args: { p_grund: string; p_id: string }
         Returns: undefined
+      }
+      finanz_summe: {
+        Args: { bis?: string; von?: string }
+        Returns: {
+          buchungen: number
+          erloes_tenge: number
+          kosten_tenge: number
+        }[]
       }
       geraet_zeitpunkt_pruefen: {
         Args: { p_geraet: string; p_server?: string }
@@ -3250,6 +3860,17 @@ export type Database = {
         Args: { p_id: string }
         Returns: undefined
       }
+      ki_ratenlimit_entfernen: {
+        Args: { p_rolle: Database["public"]["Enums"]["app_role"] | null }
+        Returns: undefined
+      }
+      ki_ratenlimit_setzen: {
+        Args: {
+          p_grenze: number | null
+          p_rolle: Database["public"]["Enums"]["app_role"] | null
+        }
+        Returns: undefined
+      }
       kontingent_verfuegbarkeit_je_sorte: {
         Args: never
         Returns: {
@@ -3270,6 +3891,43 @@ export type Database = {
           wert: number
         }[]
       }
+      kpi_verlauf_schreiben: {
+        Args: {
+          p_stichtag?: string
+        }
+        Returns: number
+      }
+      pflueckleistung_je_person: {
+        Args: never
+        Returns: {
+          kg_h: number
+          name: string
+        }[]
+      }
+      lohn_kz_abzuege_berechnen: {
+        Args: {
+          p_brutto_monat_tenge: number
+          p_satz: Database["public"]["Tables"]["lohn_steuersaetze_kz"]["Row"]
+        }
+        Returns: {
+          arbeitgeberkosten_gesamt_tenge: number
+          ipn_bemessungsgrundlage_tenge: number
+          ipn_tenge: number
+          netto_tenge: number
+          opv_tenge: number
+          opvr_tenge: number
+          osms_tenge: number
+          sn_tenge: number
+          so_tenge: number
+          vosms_tenge: number
+        }[]
+      }
+      lohn_monat_abzuege_berechnen: {
+        Args: { p_jahr: number; p_monat: number }
+        Returns: {
+          verarbeitet: number
+        }[]
+      }
       lohn_periode_berechnen: {
         Args: { p_periode_ende: string; p_periode_start: string }
         Returns: {
@@ -3286,14 +3944,23 @@ export type Database = {
         }
         Returns: number
       }
+      mwst_schwelle_pruefen: {
+        Args: never
+        Returns: {
+          betrieb_id: string
+          meldefrist_am: string
+          schwelle_tenge: number
+          schwelle_ueberschritten: boolean
+          schwelle_ueberschritten_am: string
+          umsatz_12_monate_tenge: number
+        }[]
+      }
+      mwst_umsatz_12_monate: { Args: { p_stichtag?: string }; Returns: number }
       nummernart_fuer_rechtsform: {
         Args: { p_rechtsform: Database["public"]["Enums"]["rechtsform"] }
         Returns: string
       }
-      pruefziffer_stimmt: {
-        Args: { p_nummer: string }
-        Returns: boolean
-      }
+      pruefziffer_stimmt: { Args: { p_nummer: string }; Returns: boolean }
       reihenblock_freigeben: {
         Args: {
           p_block: string
@@ -3362,6 +4029,30 @@ export type Database = {
           ergebnis: string
         }[]
       }
+      temperaturband_bewerten: {
+        Args: { grad: number }
+        Returns: Database["public"]["Enums"]["kuehlkette_ergebnis"]
+      }
+      werktage_addieren: {
+        Args: { p_anzahl: number; p_start: string }
+        Returns: string
+      }
+      wissen_suche: {
+        Args: {
+          p_fragen: Json
+          p_kandidaten?: number
+          p_limit?: number
+          p_max_stufe?: number
+          p_nur_aktuell?: boolean
+          p_rolle?: string
+          p_rrf_k?: number
+        }
+        Returns: {
+          id: string
+          payload: Json
+          punktzahl: number
+        }[]
+      }
       zukauf_positionen_importieren: {
         Args: { p_zeilen: Json }
         Returns: number
@@ -3370,6 +4061,7 @@ export type Database = {
     Enums: {
       app_role:
         | "admin"
+        | "ceo"
         | "betriebsleitung"
         | "buchhaltung"
         | "brigade"
@@ -3418,13 +4110,7 @@ export type Database = {
         | "beleg_pruefung"
         | "abgeschlossen"
       plantage_typ: "eigen" | "nachbarbetrieb"
-      rechtsform:
-        | "kh_fh"
-        | "ip"
-        | "privatperson"
-        | "too"
-        | "ao"
-        | "pk"
+      rechtsform: "kh_fh" | "ip" | "privatperson" | "too" | "ao" | "pk"
       rechtsgrundlage_typ: "einwilligung" | "vertrag" | "gesetzliche_pflicht"
       reihenblock_status:
         | "bepflanzt"
@@ -3596,6 +4282,7 @@ export const Constants = {
     Enums: {
       app_role: [
         "admin",
+        "ceo",
         "betriebsleitung",
         "buchhaltung",
         "brigade",
@@ -3634,6 +4321,7 @@ export const Constants = {
         "kaspi_qr",
         "sonstiges",
       ],
+      kontroll_befund: ["in_ordnung", "abweichung"],
       kuehlkette_ergebnis: ["ok", "warnung", "verstoss"],
       kundengruppe: ["handel", "gastronomie", "einzelhandel"],
       ledger_typ: ["erloes", "kosten"],
@@ -3648,6 +4336,7 @@ export const Constants = {
         "abgeschlossen",
       ],
       plantage_typ: ["eigen", "nachbarbetrieb"],
+      rechtsform: ["kh_fh", "ip", "privatperson", "too", "ao", "pk"],
       rechtsgrundlage_typ: ["einwilligung", "vertrag", "gesetzliche_pflicht"],
       reihenblock_status: [
         "bepflanzt",

@@ -1,7 +1,11 @@
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Card, DataTable, Section, Stat, StatusPill } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
-import { ZukaufImportFormular, ZukaufPreisNachtragenFormular } from "@/components/db/zukauf-formulare";
+import {
+  NachbarbetriebFormular,
+  ZukaufImportFormular,
+  ZukaufPreisNachtragenFormular,
+} from "@/components/db/zukauf-formulare";
 import { SpanneFormular } from "@/components/db/abrechnung-formulare";
 import { ladeNachbarbetriebe, ladeZukaufPositionen } from "@/lib/data/zukauf";
 import { ladeAbrechnung } from "@/lib/data/abrechnung";
@@ -30,7 +34,12 @@ export async function ZukaufAnsicht() {
   const darfImportieren = live && hasPermission(profil?.role, "aggregator", "create");
   const darfPreisPflegen = live && hasPermission(profil?.role, "aggregator", "update");
   const darfSpannePflegen = live && hasPermission(profil?.role, "aggregator", "update");
-  const siehtAbrechnung = live && hasPermission(profil?.role, "aggregator", "view");
+  // WMCNL-2309: abrechnung_je_nachbarbetrieb() bleibt Buero/Admin
+  // vorbehalten (siehe abrechnung.erlaubt) - fuer erzeuger (view-Recht auf
+  // das Modul, aber nicht auf diese Abrechnung) blendet der Abschnitt
+  // dadurch sauber aus, statt "Datenbank nicht erreichbar" samt
+  // Beispielzeile zu zeigen.
+  const siehtAbrechnung = live && hasPermission(profil?.role, "aggregator", "view") && abrechnung.erlaubt;
 
   const zahl1 = (n: number) => format.number(n, { maximumFractionDigits: 1 });
   const geld = (n: number) => `${format.number(Math.round(n))} ₸`;
@@ -134,10 +143,13 @@ export async function ZukaufAnsicht() {
       ) : null}
 
       {darfImportieren ? (
-        <ZukaufImportFormular
-          nachbarbetriebe={nachbarbetriebe.map((n) => n.name)}
-          sorten={sorten.map((s) => s.name)}
-        />
+        <>
+          <NachbarbetriebFormular />
+          <ZukaufImportFormular
+            nachbarbetriebe={nachbarbetriebe.map((n) => n.name)}
+            sorten={sorten.map((s) => s.name)}
+          />
+        </>
       ) : live ? (
         <Card className="bg-muted/30 text-xs leading-5 text-muted-foreground">
           {t("keinRecht")}

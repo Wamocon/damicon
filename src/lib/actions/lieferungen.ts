@@ -168,8 +168,16 @@ export async function transportMessungErfassen(
 
   await protokolliere(profil, "lieferung.transportmessung_erfasst", data.id);
   aktualisiere(formData);
+  // WMCNL-2370: der Insert ist an dieser Stelle bereits committet - der
+  // Trigger transport_kuehlkette_bewerten() lehnt keine Temperatur ab,
+  // "verstoss" ist nur ein Ergebniswert wie "ok"/"warnung" (lueckenloser
+  // Kuehlkettennachweis, siehe Migrationskopf 20260928000000). Eine
+  // "fehler"-Meldung an dieser Stelle behauptete bislang faelschlich, der
+  // Wert sei nicht gespeichert worden - er stand aber sofort und dauerhaft
+  // in der Liste. Beide Faelle sind deshalb ein Erfolg (die Messung wurde
+  // erfasst), nur der Text unterscheidet sich.
   return data.ergebnis === "verstoss"
-    ? fehler("fehler.transportKuehlkette")
+    ? ok("ok.transportMessungVerstoss")
     : ok("ok.transportMessung");
 }
 

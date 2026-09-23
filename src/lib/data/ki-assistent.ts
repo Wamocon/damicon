@@ -5,6 +5,7 @@ import { getSessionProfile } from "@/lib/auth";
 import type {
   KiAnbieterZeile,
   KiChatNachrichtZeile,
+  KiRatenlimitZeile,
   WissensPreisliste,
 } from "@/lib/domain/ki-assistent";
 
@@ -50,27 +51,63 @@ export async function ladeKiAnbieterListe(): Promise<KiAnbieterUebersicht> {
   };
 }
 
+// --- Ratenlimit-Einstellungen (nur Admin - RLS filtert alles andere ohnehin auf leer) --
+// Vibecode-Cleanup Phase 2, Fund 1: admin-konfigurierbares Ratenlimit statt
+// einer fest codierten Konstante. Dieselbe Lese-Seite (Sitzung des Admins,
+// RLS greift) wie ladeKiAnbieterListe() oben - der tatsaechliche
+// Durchsetzungs-Check fuer eine beliebige anfragende Rolle laeuft separat
+// ueber den service_role-Client (ladeRatenlimitGrenze(), lib/ai/
+// ratenbegrenzung.ts), nicht ueber diese Funktion.
+
+export interface KiRatenlimitUebersicht {
+  quelle: Datenquelle;
+  einstellungen: KiRatenlimitZeile[];
+}
+
+export async function ladeKiRatenlimitEinstellungen(): Promise<KiRatenlimitUebersicht> {
+  if (!isSupabaseConfigured()) return { quelle: "demo", einstellungen: [] };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ki_ratenlimit_einstellungen")
+    .select("rolle, grenze_pro_minute, aktualisiert_am")
+    .order("rolle", { ascending: true, nullsFirst: true });
+
+  if (error || !data) return { quelle: "fehler", einstellungen: [] };
+
+  return {
+    quelle: "db",
+    einstellungen: data.map((z) => ({
+      rolle: z.rolle,
+      grenzeProMinute: z.grenze_pro_minute,
+      aktualisiertAm: z.aktualisiert_am,
+    })),
+  };
+}
+
 // --- Chatverlauf -------------------------------------------------------------
 
 const demoVerlauf: KiChatNachrichtZeile[] = [
   {
     id: "demo-1",
     rolle: "nutzer",
-    inhalt: "Welche Sorten sind diese Woche verfuegbar?",
+    inhalt: "Welche Sorten sind diese Woche verfügbar?",
     anbieterName: null,
     fallback: false,
     eskaliert: false,
     erstelltAm: new Date(0).toISOString(),
+    werkzeugaufrufe: null,
   },
   {
     id: "demo-2",
     rolle: "assistent",
     inhalt:
-      "Aktuell gefuehrt sind Polka und Tulameen, jeweils gemaess der freigegebenen Preisliste. Fuer eine verbindliche Menge zum Wunschtermin wenden Sie sich am besten zusaetzlich ans Buero.",
+      "Aktuell geführt sind Polka und Tulameen, jeweils gemäß der freigegebenen Preisliste. Für eine verbindliche Menge zum Wunschtermin wenden Sie sich am besten zusätzlich ans Büro.",
     anbieterName: "Demo",
     fallback: false,
     eskaliert: false,
     erstelltAm: new Date(0).toISOString(),
+    werkzeugaufrufe: null,
   },
 ];
 
@@ -107,7 +144,7 @@ export async function ladeKiChatVerlauf(): Promise<KiChatVerlauf> {
   // Eskalationspruefung (sollteAutomatischEskalieren).
   const { data, error } = await supabase
     .from("ki_chat_nachrichten")
-    .select("id, rolle, inhalt, anbieter_name, fallback, eskaliert, erstellt_am")
+    .select("id, rolle, inhalt, anbieter_name, fallback, eskaliert, erstellt_am, werkzeugaufrufe")
     .eq("profil_id", profil.id)
     .order("erstellt_am", { ascending: false })
     .limit(MAX_VERLAUF);
@@ -125,6 +162,7 @@ export async function ladeKiChatVerlauf(): Promise<KiChatVerlauf> {
         fallback: n.fallback,
         eskaliert: n.eskaliert,
         erstelltAm: n.erstellt_am,
+        werkzeugaufrufe: (n.werkzeugaufrufe as string[] | null) ?? null,
       }))
       .reverse(),
   };

@@ -22,8 +22,13 @@ import {
   PriceSpread,
   ZonesOverview,
 } from "@/components/site/landing";
+import { HaustierTour } from "@/components/haustier/haustier-tour";
 import { feldTon } from "@/lib/site-medien";
 
+// Der Werbefilm ist das Bild des Heros, siehe components/site/hero-video.tsx.
+// Einen eigenen Abschnitt dafuer gibt es nicht: derselbe Film zweimal auf
+// derselben Seite waere eine Wiederholung, keine zweite Aussage.
+//
 // Reihenfolge als Erzaehlung: warum die Himbeere anders ist, die erste
 // Stunde nach dem Pfluecken, dann der echte Betrieb, Preis, Massstab,
 // Bestand und die Nachweiskette. Hell und dunkel wechseln sich ab (Hero,
@@ -65,6 +70,7 @@ export default async function LandingPage({
       <WeichesScrollen />
       <CursorFolger />
       <TonSchalter quelle={feldTon} />
+      <HaustierTour />
     </>
   );
 }

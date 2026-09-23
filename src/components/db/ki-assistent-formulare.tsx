@@ -1,8 +1,17 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { useFormatter, useTranslations } from "next-intl";
-import { MessageSquareWarning, Sparkles } from "lucide-react";
+import {
+  Landmark,
+  MessageSquareWarning,
+  Radar,
+  ShieldAlert,
+  Snowflake,
+  Sparkles,
+  UserRound,
+} from "lucide-react";
+import type { ComponentType } from "react";
 import { Card, StatusPill } from "@/components/ui/kit";
 import {
   AktionsMeldung,
@@ -12,28 +21,78 @@ import {
   PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
-import { kiEskalationAnfordern, kiNachrichtSenden } from "@/lib/actions/ki-assistent";
+import {
+  kiEskalationAnfordern,
+  kiNachrichtSenden,
+  waermeSpracherkennungVor,
+} from "@/lib/actions/ki-assistent";
 import {
   kiAnbieterAktivSetzen,
   kiAnbieterAnlegen,
   kiAnbieterLoeschen,
   kiAnbieterStandardSetzen,
 } from "@/lib/actions/ki-anbieter";
+import { kiRatenlimitEntfernen, kiRatenlimitSetzen } from "@/lib/actions/ki-ratenlimit";
 import { leer } from "@/lib/actions/status";
+import { MikrofonKnopf as MikrofonAufnahmeKnopf } from "@/components/ki/mikrofon";
 import {
   kiAnbieterTypen,
   MAX_NACHRICHT_LAENGE,
   type KiAnbieterZeile,
   type KiChatNachrichtZeile,
+  type KiRatenlimitZeile,
 } from "@/lib/domain/ki-assistent";
+import { roles } from "@/lib/rbac";
 
 // --- Chatfenster -------------------------------------------------------------
+
+// Werkzeugname (src/lib/ai/tools.ts) -> Symbol fuer die Aufrufkette unter
+// einer Antwort. Ein unbekannter Name (z. B. ein spaeter ergaenztes Werkzeug,
+// dessen Uebersetzung noch fehlt) faellt auf Radar zurueck statt nichts
+// anzuzeigen - siehe werkzeugLabel() unten fuer denselben Grundsatz beim Text.
+const werkzeugIcon: Record<string, ComponentType<{ className?: string }>> = {
+  mwstStatusAbrufen: Landmark,
+  esutdOffeneFristenAbrufen: UserRound,
+  complianceUebersichtAbrufen: ShieldAlert,
+  kuehlketteAbrufen: Snowflake,
+  risikoRadarAbrufen: Radar,
+};
+
+// Ausgelagert, damit sowohl KiChatFenster (openai_kompatibel-Pfad) als auch
+// KiAssistentAgentChat (anthropic-Pfad, ki-assistent-agent-chat.tsx) dieselbe
+// Eskalation nutzen - eine Server Action, unabhaengig vom Transportweg des
+// eigentlichen Chats.
+export function EskalationsFormular() {
+  const t = useTranslations("kiAssistentAnsicht");
+  const [eskalationStatus, eskalationAction] = useActionState(kiEskalationAnfordern, leer);
+
+  return (
+    <form action={eskalationAction} className="flex items-center gap-2">
+      <PfadFeld />
+      <button
+        type="submit"
+        className="inline-flex h-11 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground transition hover:border-primary lg:h-8 md:text-[11px]"
+      >
+        <MessageSquareWarning className="h-3.5 w-3.5" />
+        {t("eskalationKnopf")}
+      </button>
+      <AktionsMeldung status={eskalationStatus} />
+    </form>
+  );
+}
 
 export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const t = useTranslations("kiAssistentAnsicht");
   const format = useFormatter();
   const [sendenStatus, sendenAction] = useActionState(kiNachrichtSenden, leer);
-  const [eskalationStatus, eskalationAction] = useActionState(kiEskalationAnfordern, leer);
+  const eingabeRef = useRef<HTMLInputElement>(null);
+
+  // Caesar laedt sein Modell beim ersten Aufruf (gemessen 221 s kalt gegen
+  // 7,2 s warm). Ein Anstoss beim Oeffnen des Moduls sorgt dafuer, dass die
+  // erste echte Aufnahme nicht in diese Ladezeit laeuft. Fehler bleiben still.
+  useEffect(() => {
+    void waermeSpracherkennungVor().catch(() => undefined);
+  }, []);
   const istErsteNachricht = verlauf.length === 0;
 
   return (
@@ -73,6 +132,23 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
                     }`}
                   >
                     <p>{n.inhalt}</p>
+                    {n.werkzeugaufrufe && n.werkzeugaufrufe.length > 0 ? (
+                      <div className="mt-1.5 flex flex-wrap gap-1">
+                        {n.werkzeugaufrufe.filter((name) => name !== "oeffneBereich").map((name, index) => {
+                          const Icon = werkzeugIcon[name] ?? Radar;
+                          return (
+                            <span
+                              key={`${n.id}-${name}-${index}`}
+                              className="werkzeug-chip inline-flex items-center gap-1 rounded-full bg-background/60 px-2 py-0.5 text-[10px] font-semibold text-foreground/80"
+                              style={{ animationDelay: `${index * 90}ms` }}
+                            >
+                              <Icon className="h-2.5 w-2.5 shrink-0" />
+                              {t(`werkzeug.${name}`)}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    ) : null}
                     <p className="mt-1 text-[10px] opacity-70">
                       {n.rolle === "assistent" ? (n.fallback ? t("fallback.badge") : n.anbieterName) : null}{" "}
                       {format.dateTime(new Date(n.erstelltAm), { timeStyle: "short" })}
@@ -88,12 +164,14 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
           <PfadFeld />
           <div className="flex gap-2">
             <input
+              ref={eingabeRef}
               name="nachricht"
               required
               maxLength={MAX_NACHRICHT_LAENGE}
               placeholder={t("inputPlaceholder")}
               className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary"
             />
+            <MikrofonKnopf eingabeRef={eingabeRef} />
             <SubmitKnopf label={t("senden")} />
           </div>
           {istErsteNachricht ? (
@@ -106,18 +184,30 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
         </form>
       </Card>
 
-      <form action={eskalationAction} className="flex items-center gap-2">
-        <PfadFeld />
-        <button
-          type="submit"
-          className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border bg-card px-3 text-[11px] font-semibold text-foreground transition hover:border-primary"
-        >
-          <MessageSquareWarning className="h-3.5 w-3.5" />
-          {t("eskalationKnopf")}
-        </button>
-        <AktionsMeldung status={eskalationStatus} />
-      </form>
+      <EskalationsFormular />
     </div>
+  );
+}
+
+
+// --- Mikrofonknopf -----------------------------------------------------------
+// Aufnehmen im Browser (MediaRecorder), Transkribieren auf dem Server
+// (transkribiereSprachnachricht -> Caesar im Buero-LAN). Der erkannte Text
+// landet im Eingabefeld, NICHT direkt im Chat: ein verhoertes Diktat, das
+// ungeprueft an die Kundschaft ginge, waere schlimmer als ein Tippfehler.
+// Abgeschickt wird weiterhin von Hand.
+function MikrofonKnopf({ eingabeRef }: { eingabeRef: React.RefObject<HTMLInputElement | null> }) {
+  return (
+    <MikrofonAufnahmeKnopf
+      className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground transition hover:border-primary disabled:opacity-60"
+      beiText={(text) => {
+        const feld = eingabeRef.current;
+        if (feld) {
+          feld.value = text;
+          feld.focus();
+        }
+      }}
+    />
   );
 }
 
@@ -251,6 +341,113 @@ function KiAnbieterZeileKarte({ anbieter }: { anbieter: KiAnbieterZeile }) {
       <AktionsMeldung status={standardStatus} />
       <AktionsMeldung status={loeschenStatus} />
     </Card>
+  );
+}
+
+// --- Admin: Ratenlimit-Verwaltung (Vibecode-Cleanup Phase 2, Fund 1) --------
+// Admin-konfigurierbares Ratenlimit statt einer fest codierten Konstante,
+// dasselbe Formular-/Karten-Muster wie KiAnbieterVerwaltung oben. Ohne jede
+// Zeile hier gilt fuer den Assistenten ausdruecklich kein Limit (siehe
+// lib/ai/ratenbegrenzung.ts) - "kein Eintrag" ist deshalb ein gueltiger,
+// beabsichtigter Zustand, kein Ladefehler.
+
+export function KiRatenlimitVerwaltung({ einstellungen }: { einstellungen: KiRatenlimitZeile[] }) {
+  const t = useTranslations("kiAssistentAnsicht.ratenlimitVerwaltung");
+
+  return (
+    <div className="space-y-3">
+      <p className="text-[11px] leading-4 text-muted-foreground">{t("lead")}</p>
+      {einstellungen.length === 0 ? (
+        <Card className="text-center text-xs text-muted-foreground">{t("keineEinstellung")}</Card>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {einstellungen.map((z) => (
+            <KiRatenlimitZeileKarte key={z.rolle ?? "alle"} zeile={z} />
+          ))}
+        </div>
+      )}
+      <KiRatenlimitSetzenFormular />
+    </div>
+  );
+}
+
+function KiRatenlimitZeileKarte({ zeile }: { zeile: KiRatenlimitZeile }) {
+  const t = useTranslations("kiAssistentAnsicht.ratenlimitVerwaltung");
+  const tRolle = useTranslations("roles");
+  const [entfernenStatus, entfernenAction] = useActionState(kiRatenlimitEntfernen, leer);
+  const rolleWert = zeile.rolle ?? "alle";
+  const label = zeile.rolle ? tRolle(zeile.rolle) : t("alleRollen");
+
+  return (
+    <Card>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="text-sm font-black text-card-foreground">{label}</p>
+          <p className="text-[11px] text-muted-foreground">
+            {zeile.grenzeProMinute !== null
+              ? t("grenzeText", { grenze: String(zeile.grenzeProMinute) })
+              : t("keinLimitText")}
+          </p>
+        </div>
+        {!zeile.rolle ? <StatusPill tone="info">{t("standardBadge")}</StatusPill> : null}
+      </div>
+
+      <form
+        action={entfernenAction}
+        onSubmit={(event) => {
+          if (!window.confirm(t("entfernenSicher", { name: label }))) event.preventDefault();
+        }}
+        className="mt-3 border-t border-border pt-2.5"
+      >
+        <PfadFeld />
+        <input type="hidden" name="rolle" value={rolleWert} />
+        <button
+          type="submit"
+          className="inline-flex h-7 items-center rounded-lg border border-destructive/30 px-2.5 text-[11px] font-semibold text-destructive transition hover:border-destructive"
+        >
+          {t("entfernen")}
+        </button>
+      </form>
+      <AktionsMeldung status={entfernenStatus} />
+    </Card>
+  );
+}
+
+function KiRatenlimitSetzenFormular() {
+  const t = useTranslations("kiAssistentAnsicht.ratenlimitVerwaltung.formular");
+  const tVerwaltung = useTranslations("kiAssistentAnsicht.ratenlimitVerwaltung");
+  const tRolle = useTranslations("roles");
+  const [status, action] = useActionState(kiRatenlimitSetzen, leer);
+
+  return (
+    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+      <form action={action} className="grid gap-2.5 sm:grid-cols-2">
+        <PfadFeld />
+        <Auswahl
+          label={t("rolle")}
+          name="rolle"
+          required
+          options={[
+            { wert: "", text: t("bitteWaehlen") },
+            { wert: "alle", text: tVerwaltung("alleRollen") },
+            ...roles.map((r) => ({ wert: r, text: tRolle(r) })),
+          ]}
+        />
+        <Feld
+          label={t("grenze")}
+          name="grenze_pro_minute"
+          type="number"
+          inputMode="decimal"
+          placeholder={t("grenzePlatzhalter")}
+        />
+        <div className="flex items-end sm:col-span-2">
+          <SubmitKnopf label={t("knopf")} />
+        </div>
+        <div className="sm:col-span-2">
+          <AktionsMeldung status={status} />
+        </div>
+      </form>
+    </FormularKarte>
   );
 }
 

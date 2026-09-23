@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { AlertTriangle, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/kit";
 
 // Fehlergrenze fuer das gesamte Dashboard. Wichtiger als die Optik ist die
 // Aussage: hier ist etwas ausgefallen. Ohne diese Grenze zeigt Next.js im
@@ -31,14 +32,10 @@ export default function DashboardFehler({
           {t("kennung")}: {error.digest}
         </p>
       ) : null}
-      <button
-        type="button"
-        onClick={reset}
-        className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground transition hover:brightness-110"
-      >
+      <Button type="button" onClick={reset} groesse="mittel" className="mt-5">
         <RotateCcw className="h-4 w-4" />
         {t("erneut")}
-      </button>
+      </Button>
     </div>
   );
 }

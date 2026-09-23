@@ -1,45 +1,45 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Clock, Database } from "lucide-react";
-import type { Klassifikation, ModuleDef } from "@/lib/modules";
-import { StatusPill, type Tone } from "@/components/ui/kit";
+import { Clock } from "lucide-react";
+import type { ModuleDef } from "@/lib/modules";
+import { StatusPill } from "@/components/ui/kit";
 import { cn } from "@/lib/utils";
 
-const klassTone: Record<Klassifikation, Tone> = {
-  uebernehmen: "success",
-  anpassen: "info",
-  "neu-bauen": "warning",
-};
-
-export function KlassifikationBadge({ value }: { value: Klassifikation }) {
-  const t = useTranslations("klassifikation");
-  return <StatusPill tone={klassTone[value]}>{t(value)}</StatusPill>;
-}
-
-export function ReifegradBadge({ value }: { value: ModuleDef["reifegrad"] }) {
-  const t = useTranslations("reifegrad");
-  if (value === "angebunden") {
-    return (
-      <StatusPill tone="success" className="gap-1">
-        <Database className="h-3 w-3" />
-        {t("angebunden")}
-      </StatusPill>
-    );
-  }
-  if (value === "demo") {
-    return <StatusPill tone="info">{t("demo")}</StatusPill>;
-  }
+/**
+ * Die einzige Statusaussage, die ein Modul im Portal noch traegt: dass es
+ * noch nicht verfuegbar ist. Fuer den Betrieb zaehlt allein, ob ein
+ * Menuepunkt schon etwas tut.
+ *
+ * Vorher standen hier drei Pillen. "Datenbank angebunden" stand auf 24 von
+ * 26 Karten und war damit Dekoration, und die Einstufung aus der
+ * Migrationsanalyse ("Uebernehmen / Anpassen / Neu bauen") sass auf der
+ * Bereichsseite direkt gegenueber dem Verweis "Oeffnen" - zwei Verben
+ * nebeneinander, eines davon ausfuehrbar, und die ganze Karte ein Link.
+ *
+ * Der Text ist derselbe wie auf der Platzhalterkarte und in der Zaehlung
+ * der Zonenkarte - ein Wort fuer einen Zustand. Nicht "In Entwicklung":
+ * das beschreibt den Bauzustand, und wer im Betrieb arbeitet, will wissen,
+ * ob der Menuepunkt etwas tut. Der Begriff bleibt der oeffentlichen Seite
+ * vorbehalten (site/modul-reiter.tsx), dort liest ein Besucher.
+ */
+export function ModulStatusPille() {
+  const t = useTranslations("moduleMeta");
   return (
     <StatusPill tone="warning" className="gap-1">
       <Clock className="h-3 w-3" />
-      {t("in-entwicklung")}
+      {t("nichtVerfuegbar")}
     </StatusPill>
   );
 }
 
-// Platzhalterseite fuer Unterfunktionen: sichtbarer Menuepunkt mit Status
-// "in Entwicklung", jedoch ohne vollstaendige Logik dahinter (Analyse Kapitel 9).
+// Platzhalterseite fuer Module, die als Menuepunkt sichtbar sind, aber noch
+// keine eigene Ansicht haben (Analyse Kapitel 9).
+//
+// Vorher ein Projektsteckbrief mit "Geplanter Umfang", "Einstufung" und
+// "Meilenstein". Davon wiederholte eines nur die Pille, und "Meilenstein"
+// trug auf beiden Seiten denselben fest verdrahteten Text, der an keinem
+// Modul hing. Geblieben ist ein Satz: was das Modul koennen wird.
 export function ModulePlaceholder({
   module,
   className,
@@ -60,35 +60,12 @@ export function ModulePlaceholder({
       <div className="flex items-center gap-2">
         <Clock className="h-4 w-4 text-warning" />
         <p className="text-xs font-black uppercase tracking-wide text-warning">
-          {meta("inDevelopmentTitle")}
+          {meta("nichtVerfuegbar")}
         </p>
       </div>
       <p className="mt-3 max-w-2xl text-sm leading-6 text-foreground">
         {t(`${module.key}.summary`)}
       </p>
-
-      <dl className="mt-5 grid gap-4 sm:grid-cols-2">
-        <div>
-          <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            {meta("plannedScope")}
-          </dt>
-          <dd className="mt-1 text-sm text-foreground">{t(`${module.key}.todo`)}</dd>
-        </div>
-        <div>
-          <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            {meta("classification")}
-          </dt>
-          <dd className="mt-1">
-            <KlassifikationBadge value={module.klassifikation} />
-          </dd>
-        </div>
-        <div>
-          <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-            {meta("milestone")}
-          </dt>
-          <dd className="mt-1 text-sm text-foreground">{meta("milestoneB")}</dd>
-        </div>
-      </dl>
     </div>
   );
 }

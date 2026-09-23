@@ -4,16 +4,17 @@ import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { Lock } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { PageHeader } from "@/components/ui/kit";
-import {
-  KlassifikationBadge,
-  ReifegradBadge,
-} from "@/components/dashboard/module-meta";
+import { Card, PageHeader } from "@/components/ui/kit";
 import { ModuleView } from "@/components/demo/registry";
 import { usePersona } from "@/components/dashboard/persona";
 import { hasPermission } from "@/lib/rbac";
 import type { ModuleDef } from "@/lib/modules";
 
+// Der Kopf sitzt wie auf der Uebersicht und den Bereichsseiten in einer Box.
+// Was darunter steht, kommt aus der jeweiligen Modulansicht und baut auf
+// <Section>, die seit dem Umbau vom 21.09.2026 selbst die Abschnittsbox ist
+// (Rahmen, Kartengrund, Schatten - siehe docs/design/boxensystem-audit-
+// 2026-09-21.md, Punkt 1). Kopf und Inhalt tragen damit durchgehend Boxen.
 export function ModulePageBody({
   module,
   children,
@@ -27,27 +28,32 @@ export function ModulePageBody({
 }) {
   const { role } = usePersona();
   const t = useTranslations("modules");
-  const zoneT = useTranslations("zones");
   const roleT = useTranslations("roles");
   const denied = useTranslations("accessDenied");
 
   const allowed = hasPermission(role, module.resource, "view");
 
   return (
-    <div className="space-y-8">
-      <PageHeader
-        eyebrow={zoneT(`${module.zone}.name`)}
-        title={t(`${module.key}.title`)}
-        description={t(`${module.key}.description`)}
-      >
-        <ReifegradBadge value={module.reifegrad} />
-        <KlassifikationBadge value={module.klassifikation} />
-      </PageHeader>
+    <div className="space-y-6">
+      <Card ton="box" className="p-5 sm:p-6">
+        {/* Ohne Statuspille: ist ein Modul noch nicht verfuegbar, sagt das
+            die Platzhalterkarte darunter (ModulePlaceholder ueber die
+            Registry). Eine Pille daneben waere die zweite Aussage zur
+            selben Sache auf einem Bildschirm. Auf der Bereichsseite traegt
+            die Karte sie weiter - dort steht die Aussage vor dem Klick. */}
+        <PageHeader
+          title={t(`${module.key}.title`)}
+          description={t(`${module.key}.description`)}
+        />
+      </Card>
 
       {allowed ? (
         (children ?? <ModuleView module={module} />)
       ) : (
-        <div className="rounded-2xl border border-border bg-card p-8 text-center">
+        // Vorher eine von Hand gebaute Flaeche mit denselben Werten wie
+        // <Card>. Jetzt der Baustein selbst - eine Aenderung an der Karte
+        // muss nicht an zwei Stellen nachgezogen werden.
+        <Card ton="box" className="p-8 text-center">
           <Lock className="mx-auto h-6 w-6 text-muted-foreground" />
           <p className="mt-3 text-sm font-semibold text-foreground">
             {denied("title", { role: roleT(role) })}
@@ -59,7 +65,7 @@ export function ModulePageBody({
           >
             {denied("back")}
           </Link>
-        </div>
+        </Card>
       )}
     </div>
   );

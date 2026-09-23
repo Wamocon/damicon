@@ -18,6 +18,9 @@ export interface FoerderdossierDokument {
   id: string;
   name: string;
   storagePath: string | null;
+  /** Signierte, zeitlich begrenzte URL zur Datei, null ohne hinterlegte
+   *  Datei oder im Demo-Modus (dasselbe Muster wie dokumente.dateiUrl). */
+  dateiUrl: string | null;
 }
 
 export interface FoerderdossierZeile {
@@ -37,11 +40,18 @@ export const demoDossiers: FoerderdossierZeile[] = [
     id: "demo-dossier-1",
     portal: "gosagro.kz",
     antragsnummer: "2026-114",
-    titel: "Foerderung Vorkuehlanlage",
+    titel: "Foerderung Vorkühlanlage",
     status: "eingereicht",
     eingereichtAm: "2026-08-30",
     fristAm: "2026-10-15",
     notizen: "Nachweis der Rechnungen steht noch aus.",
-    dokumente: [{ id: "demo-doc-1", name: "Foerderdossier gosagro.kz - Kuehlhaus", storagePath: null }],
+    dokumente: [
+      {
+        id: "demo-doc-1",
+        name: "Foerderdossier gosagro.kz - Kühlhaus",
+        storagePath: null,
+        dateiUrl: null,
+      },
+    ],
   },
 ];

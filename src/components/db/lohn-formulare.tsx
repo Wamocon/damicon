@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useTranslations } from "next-intl";
 import {
+  lohnMonatAbzuegeBerechnen,
   lohnPeriodeBerechnen,
   lohnSatzAnlegen,
   lohnStatusSetzen,
@@ -78,23 +79,74 @@ export function LohnPeriodeBerechnenFormular() {
   );
 }
 
+// Gesetzliche Monatsabzuege berechnen (Migration 20261024000000): loest
+// public.lohn_monat_abzuege_berechnen() aus. Jahr/Monat statt eines
+// Datumsbereichs wie beim Lohnsatz oben - ОПВ/ВОСМС/ИПН sind gesetzlich
+// Monatsgroessen, siehe Migrationskopf.
+export function LohnMonatAbzuegeBerechnenFormular() {
+  const [status, action] = useActionState(lohnMonatAbzuegeBerechnen, leer);
+  const t = useTranslations("lohnAnsicht.formular.abzuegeBerechnen");
+  const heute = new Date();
+
+  return (
+    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+      <form action={action} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+        <PfadFeld />
+        <Feld
+          label={t("jahr")}
+          name="jahr"
+          inputMode="decimal"
+          defaultValue={String(heute.getFullYear())}
+          required
+        />
+        <Feld
+          label={t("monat")}
+          name="monat"
+          inputMode="decimal"
+          defaultValue={String(heute.getMonth() + 1)}
+          required
+        />
+        <div className="flex items-end">
+          <SubmitKnopf label={t("knopf")} />
+        </div>
+        <div className="sm:col-span-2 lg:col-span-4">
+          <AktionsMeldung status={status} />
+        </div>
+      </form>
+    </FormularKarte>
+  );
+}
+
 // Statuswechsel einer einzelnen Abrechnung (entwurf -> freigegeben ->
-// ausgezahlt). Bewusst ein eigenes kleines Formular je Zeile, analog
+// ausgezahlt, sowie die Ruecknahme freigegeben -> entwurf, siehe
+// lohn_abrechnung_freigabe_pruefen()/Migration 20261017000000 - eine
+// Buchhaltungsperson nimmt eine ANDERE Freigabe zurueck, nicht die eigene).
+// Bewusst ein eigenes kleines Formular je Zeile, analog
 // ReklamationInPruefungFormular - kein Mehrfachauswahl-Mechanismus, jede
-// Freigabe ist ein bewusster Einzelschritt.
+// Aktion ist ein bewusster Einzelschritt. Ein geldrelevanter Schritt (jedes
+// Ziel hier) verlangt zusaetzlich eine Bestaetigung - WMCNL-2301: bisher
+// buchte ein Fehlklick sofort und endgueltig.
 export function LohnStatusFormular({
   id,
   ziel,
   label,
+  bestaetigung,
 }: {
   id: string;
-  ziel: Extract<LohnStatus, "freigegeben" | "ausgezahlt">;
+  ziel: LohnStatus;
   label: string;
+  bestaetigung: string;
 }) {
   const [status, action] = useActionState(lohnStatusSetzen, leer);
 
   return (
-    <form action={action} className="space-y-1">
+    <form
+      action={action}
+      className="space-y-1"
+      onSubmit={(event) => {
+        if (!window.confirm(bestaetigung)) event.preventDefault();
+      }}
+    >
       <PfadFeld />
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="status" value={ziel} />

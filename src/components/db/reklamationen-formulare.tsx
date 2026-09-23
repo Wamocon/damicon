@@ -9,6 +9,7 @@ import {
   reklamationStatusSetzen,
 } from "@/lib/actions/reklamationen";
 import { leer } from "@/lib/actions/status";
+import { Button } from "@/components/ui/kit";
 import {
   AktionsMeldung,
   Auswahl,
@@ -85,7 +86,7 @@ export function ReklamationInPruefungFormular({ id }: { id: string }) {
       <input type="hidden" name="status" value="in_pruefung" />
       <button
         type="submit"
-        className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-semibold text-foreground transition hover:bg-muted"
+        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-semibold text-foreground transition hover:bg-muted lg:h-9"
       >
         {t("inPruefungKnopf")}
       </button>
@@ -120,12 +121,9 @@ export function ReklamationEntscheidungFormular({
       {mitGutschrift ? (
         <Feld label={t("gutschrift")} name="gutschrift_tenge" inputMode="decimal" />
       ) : null}
-      <button
-        type="submit"
-        className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-primary-foreground transition hover:brightness-110"
-      >
+      <Button type="submit" rundung="schmal" breit className="lg:h-9">
         {label}
-      </button>
+      </Button>
       <AktionsMeldung status={status} />
     </form>
   );
@@ -165,7 +163,7 @@ export function ReklamationNachrichtFormular({
       ) : null}
       <button
         type="submit"
-        className="inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-3 text-xs font-bold text-foreground transition hover:border-primary"
+        className="inline-flex h-11 items-center gap-2 rounded-lg border border-border bg-card px-4 text-sm font-bold text-foreground transition hover:border-primary lg:h-9 lg:px-3 lg:text-xs"
       >
         <MessageSquarePlus className="h-3.5 w-3.5" />
         {t("knopf")}

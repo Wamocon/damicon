@@ -10,6 +10,7 @@ import {
   mengeMelden,
 } from "@/lib/actions/pflueckaufgaben";
 import { fehler, leer, ok, type AktionsStatus } from "@/lib/actions/status";
+import { Button } from "@/components/ui/kit";
 import { QualitaetsReferenz } from "@/components/db/qualitaets-referenz";
 import {
   AktionsMeldung,
@@ -106,7 +107,7 @@ export function MengeFormular({
     <form action={action} className="space-y-2.5" onSubmit={onSubmit}>
       <PfadFeld />
       <input type="hidden" name="id" value={id} />
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
         <Feld
           label={t("feld.istMenge")}
           name="ist_menge_kg"
@@ -215,7 +216,7 @@ export function BelegUploadFormular({ aufgabeId }: { aufgabeId: string }) {
       <Feld label={t("feld.hinweis")} name="hinweis" placeholder={t("feld.hinweisBeispiel")} />
       <button
         type="submit"
-        className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-semibold text-foreground transition hover:bg-muted"
+        className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-semibold text-foreground transition hover:bg-muted lg:h-9"
       >
         <Camera className="h-4 w-4" />
         {t("beleg.knopf")}
@@ -270,15 +271,14 @@ export function AufgabeStatusFormular({
           name="qualitaetsfaktor"
           inputMode="decimal"
           placeholder="1,05"
+          defaultValue="1,00"
+          required
         />
       ) : null}
-      <button
-        type="submit"
-        className="inline-flex h-9 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-bold text-primary-foreground transition hover:brightness-110"
-      >
+      <Button type="submit" rundung="schmal" breit className="lg:h-9">
         <Check className="h-4 w-4" />
         {label}
-      </button>
+      </Button>
       <AktionsMeldung status={status} />
     </form>
   );

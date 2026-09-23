@@ -1,0 +1,162 @@
+"use client";
+
+import { useEffect, useId, useRef, type ReactNode } from "react";
+import { useTranslations } from "next-intl";
+import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
+
+// Flaeche, die von unten aufgeht. Gebaut fuer die untere Leiste auf dem Handy
+// (untere-leiste.tsx): der ausloesende Knopf steht unten, also kommt der
+// Inhalt von dort und nicht von der Seite - der Weg zwischen Knopf und Inhalt
+// bleibt kurz, und der Daumen deckt beim Tippen nicht das ab, was er gerade
+// geoeffnet hat.
+//
+// Bewusst kein <dialog>: das Element bringt zwar Fokusfalle und Esc mit, sein
+// ::backdrop laesst sich aber nur schwer mit der uebrigen Tiefenstaffelung in
+// Einklang bringen, und showModal() muss ueber einen Effekt nachgezogen
+// werden, was bei jedem Rendern erneut zu pruefen waere. Die drei Dinge, die
+// hier wirklich gebraucht werden - Esc, Klick daneben, Rollen im Baum - sind
+// unten ausgeschrieben.
+
+export function Sheet({
+  offen,
+  onSchliessen,
+  titel,
+  children,
+  position = "unten",
+}: {
+  offen: boolean;
+  onSchliessen: () => void;
+  titel: string;
+  children: ReactNode;
+  /** "unten": faehrt von der Kante hoch (Handy-Menues, Standard). "mitte": mittiges Fenster,
+   *  fuer Detailinhalte, die nicht von einer Seitenkante zu kommen scheinen sollen. */
+  position?: "unten" | "mitte";
+}) {
+  const nav = useTranslations("nav");
+  const titelId = useId();
+  const flaecheRef = useRef<HTMLDivElement>(null);
+
+  // Esc schliesst, und solange das Sheet offen ist, scrollt die Seite
+  // darunter nicht mit.
+  useEffect(() => {
+    if (!offen) return;
+    const beiTaste = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onSchliessen();
+    };
+    document.addEventListener("keydown", beiTaste);
+    const vorher = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", beiTaste);
+      document.body.style.overflow = vorher;
+    };
+  }, [offen, onSchliessen]);
+
+  // Der Fokus springt in die Flaeche, sobald sie aufgeht - sonst bliebe er
+  // auf dem Knopf in der Leiste, und die erste Tabulatortaste liefe durch die
+  // Seite dahinter statt durch das Menue davor.
+  useEffect(() => {
+    if (offen) flaecheRef.current?.focus();
+  }, [offen]);
+
+  // Der Fokus bleibt in der Flaeche, solange sie offen ist. Ohne das laeuft
+  // die Tabulatortaste aus dem Blatt heraus in die Seite darunter, und dort
+  // ist nichts zu sehen - waehrend aria-modal="true" zusagt, dass es hinter
+  // dem Blatt gar nichts gibt. Eine Zusage, die nicht stimmt, ist fuer einen
+  // Screenreader schlimmer als gar keine.
+  //
+  // Bewusst kein `inert` am Geschwisterelement: die Flaeche liegt als
+  // fixiertes Element ueber der ganzen Seite, ein gemeinsamer Vorfahr, den man
+  // inert setzen koennte, ist das <body> selbst - und der traegt auch das
+  // Blatt. Die Fokusfalle hier leistet dasselbe mit weniger Eingriff.
+  useEffect(() => {
+    if (!offen) return;
+    const beiTab = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
+      const flaeche = flaecheRef.current;
+      if (!flaeche) return;
+      const ziele = flaeche.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (ziele.length === 0) {
+        event.preventDefault();
+        flaeche.focus();
+        return;
+      }
+      const erstes = ziele[0];
+      const letztes = ziele[ziele.length - 1];
+      const aktiv = document.activeElement;
+      // Rueckwaerts vom ersten Ziel (oder von der Flaeche selbst) ans Ende,
+      // vorwaerts vom letzten zurueck an den Anfang.
+      if (event.shiftKey && (aktiv === erstes || aktiv === flaeche)) {
+        event.preventDefault();
+        letztes.focus();
+      } else if (!event.shiftKey && aktiv === letztes) {
+        event.preventDefault();
+        erstes.focus();
+      }
+    };
+    document.addEventListener("keydown", beiTab);
+    return () => document.removeEventListener("keydown", beiTab);
+  }, [offen]);
+
+  if (!offen) return null;
+
+  const mitte = position === "mitte";
+
+  return (
+    <div
+      className={cn(
+        "fixed inset-0 z-[100] flex print:hidden",
+        mitte ? "items-center justify-center p-4" : "flex-col justify-end",
+      )}
+    >
+      <button
+        type="button"
+        aria-label={nav("closeMenu")}
+        onClick={onSchliessen}
+        className="absolute inset-0 bg-black/40 backdrop-blur-[1px]"
+      />
+      <div
+        ref={flaecheRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titelId}
+        tabIndex={-1}
+        className={cn(
+          "relative flex min-h-0 flex-col border-border bg-schwebend shadow-2xl outline-none",
+          mitte
+            ? "w-full max-w-3xl rounded-2xl border motion-safe:animate-[sheet-auf-mitte_180ms_ease-out]"
+            : cn(
+                // Bis unter den Home-Indicator, damit die Flaeche am Rand nicht
+                // abrupt endet; den Abstand traegt der Inhalt weiter unten.
+                "w-full rounded-t-2xl border-t motion-safe:animate-[sheet-auf_200ms_ease-out]",
+              ),
+          "max-h-[85svh]",
+        )}
+      >
+        <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border px-4">
+          <h2
+            id={titelId}
+            className="min-w-0 truncate text-sm font-black text-card-foreground"
+          >
+            {titel}
+          </h2>
+          <button
+            type="button"
+            onClick={onSchliessen}
+            aria-label={nav("closeMenu")}
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}

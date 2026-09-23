@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { Reveal } from "@/components/site/reveal";
+import { knopfKlassen } from "@/components/ui/kit";
 
 // Die Nachweiskette als Kette, nicht als fuenf gleiche Karten: Vom Code auf
 // der Schale laeuft eine Linie durch alle Glieder, die nacheinander
@@ -111,7 +112,13 @@ export function Belegkette() {
           </p>
           <Link
             href="/herkunft"
-            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-primary px-5 text-sm font-bold text-primary-foreground transition hover:bg-primary/90"
+            className={knopfKlassen({
+              rundung: "pille",
+              // h-auto schlaegt die feste Hoehe aus knopfGroesse: dieser Knopf
+              // darf mitwachsen, min-h-11 haelt nur die Mindestflaeche fuer
+              // den Daumen.
+              className: "h-auto min-h-11 shrink-0 px-5",
+            })}
           >
             {e("pruefen")}
             <ArrowRight className="h-4 w-4" />

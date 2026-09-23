@@ -30,7 +30,7 @@ export interface ZukaufBefund {
   code: string;
   /** Deutscher Klartext fuer Server-Log und Tests. Die Oberflaeche uebersetzt
    *  ueber `code` (siehe zukaufAnsicht.import.befund.<code> in den messages),
-   *  damit dieselbe Pruefung in allen fuenf Sprachen anzeigbar bleibt. */
+   *  damit dieselbe Pruefung in allen vier Sprachen anzeigbar bleibt. */
   meldung: string;
   wert: string | null;
 }
@@ -62,7 +62,9 @@ export interface ZukaufParseErgebnis {
 }
 
 // Kopfzeilen-Alias je Sprache. Muss nicht linguistisch perfekt sein - reicht,
-// dass eine in de/en/ru/kk/tr abgetippte Kopfzeile eine Spalte trifft, ohne
+// dass eine in de/en/ru/kk (und weiterhin tuerkisch - Lieferantendateien
+// richten sich nicht nach den Sprachen unserer Oberflaeche) abgetippte
+// Kopfzeile eine Spalte trifft, ohne
 // dass der Nachbarbetrieb seine Datei umbauen muss (gleicher Anspruch wie im
 // Vorbild).
 const SPALTEN: Record<ZukaufSpalte, string[]> = {
@@ -228,11 +230,273 @@ function referenzAufloesen(
   return liste.find((eintrag) => normalisiere(eintrag.name) === gesucht) ?? null;
 }
 
+/** Signatur des Befund-Sammlers, den parseZukauf() an alle Teilschritte
+ *  durchreicht - `zeile`/`spalte` sind optional und werden sonst mit `null`
+ *  aufgefuellt (siehe parseZukauf). */
+type BefundHinzufuegen = (
+  b: Omit<ZukaufBefund, "zeile" | "spalte"> & Partial<Pick<ZukaufBefund, "zeile" | "spalte">>,
+) => void;
+
+/** Ergebnis der Spaltenerkennung: geratenes Trennzeichen und die
+ *  Spaltenindizes je Pflichtspalte. Bei einer fehlenden Pflichtspalte bleibt
+ *  ihr Eintrag in `index` undefined, der Fehlerbefund wird bereits waehrend
+ *  der Erkennung gemeldet (siehe spaltenErkennen). */
+interface ZukaufSpaltenErkennung {
+  trennzeichen: string;
+  index: Partial<Record<ZukaufSpalte, number>>;
+}
+
+/**
+ * Spaltenerkennung: raet das Trennzeichen aus der Kopfzeile und ordnet jeder
+ * Pflichtspalte (menge, sorte, datum, nachbarbetrieb) einen Spaltenindex zu.
+ * Eine nicht gefundene Pflichtspalte wird als Fehlerbefund gemeldet, das
+ * Parsen der Datenzeilen findet in dem Fall trotzdem nicht mehr statt (siehe
+ * Aufrufer parseZukauf).
+ */
+function spaltenErkennen(
+  kopfzeileRoh: string,
+  befundHinzufuegen: BefundHinzufuegen,
+): ZukaufSpaltenErkennung {
+  const trennzeichen = trennzeichenRaten(kopfzeileRoh);
+  const kopf = zeileSplitten(kopfzeileRoh, trennzeichen).map(normalisiere);
+
+  const index: Partial<Record<ZukaufSpalte, number>> = {};
+  for (const spalte of PFLICHTSPALTEN) {
+    const gefunden = kopf.findIndex((k) => SPALTEN[spalte].includes(k));
+    if (gefunden >= 0) index[spalte] = gefunden;
+  }
+
+  for (const spalte of PFLICHTSPALTEN) {
+    if (index[spalte] === undefined) {
+      befundHinzufuegen({
+        spalte,
+        stufe: "fehler",
+        code: "column_missing",
+        meldung: `Die Spalte für "${spalte}" wurde nicht erkannt.`,
+        wert: kopfzeileRoh.slice(0, 120),
+      });
+    }
+  }
+
+  return { trennzeichen, index };
+}
+
+/**
+ * Duplikatpruefung: gleicher Nachbarbetrieb, gleiche Sorte, gleiches Datum
+ * UND gleiche Menge. Anders als beim Vorbild (dort ein struktureller
+ * Schluessel, der per Definition nicht doppelt vorkommen kann) ist das hier
+ * nur ein Verdacht, kein Beweis - zwei echte Lieferungen koennten zufaellig
+ * uebereinstimmen. Deshalb Warnung, nicht Fehler: die Zeile bleibt drin
+ * (siehe Aufrufer zeileValidieren). `gesehen` wird ueber alle Zeilen hinweg
+ * geteilt und hier bei Bedarf ergaenzt.
+ */
+function duplikatPruefen(
+  zeile: ZukaufZeile,
+  gesehen: Map<string, number>,
+  befundHinzufuegen: BefundHinzufuegen,
+): void {
+  const schluessel = `${zeile.nachbarbetriebId}|${zeile.sorteId}|${zeile.datumIso}|${zeile.mengeKg}`;
+  if (gesehen.has(schluessel)) {
+    befundHinzufuegen({
+      zeile: zeile.zeile,
+      spalte: null,
+      stufe: "warnung",
+      code: "duplicate_verdacht",
+      meldung: `Gleicht Zeile ${gesehen.get(schluessel)} (gleicher Nachbarbetrieb, Sorte, Datum und Menge) - möglicherweise doppelt erfasst, wird trotzdem übernommen.`,
+      wert: String(gesehen.get(schluessel)),
+    });
+  } else {
+    gesehen.set(schluessel, zeile.zeile);
+  }
+}
+
+/**
+ * Zeilenvalidierung: zerlegt eine einzelne Datenzeile, prueft Pflichtfelder,
+ * Menge und Datum auf Format und Plausibilitaet und loest Sorte sowie
+ * Nachbarbetrieb gegen die Referenzlisten auf. Bricht bei der ersten
+ * verletzten Pruefung mit `null` ab (die Zeile wird dann von parseZukauf
+ * nicht uebernommen), sonst folgt zum Schluss die Duplikatpruefung gegen
+ * bereits gesehene Zeilen.
+ */
+function zeileValidieren(
+  zeileRoh: string,
+  zeile: number,
+  spalten: ZukaufSpaltenErkennung,
+  referenzen: ZukaufReferenzen,
+  heuteIso: string,
+  gesehen: Map<string, number>,
+  befundHinzufuegen: BefundHinzufuegen,
+): ZukaufZeile | null {
+  const teile = zeileSplitten(zeileRoh, spalten.trennzeichen);
+  const hol = (spalte: ZukaufSpalte) =>
+    spalten.index[spalte] === undefined ? "" : (teile[spalten.index[spalte]!] ?? "").trim();
+
+  const mengeRoh = hol("menge");
+  const sorteRoh = hol("sorte");
+  const datumRoh = hol("datum");
+  const nachbarbetriebRoh = hol("nachbarbetrieb");
+
+  const fehlend = (["menge", "sorte", "datum", "nachbarbetrieb"] as const).find(
+    (spalte) => !hol(spalte),
+  );
+  if (fehlend) {
+    befundHinzufuegen({
+      zeile,
+      spalte: fehlend,
+      stufe: "fehler",
+      code: "required_missing",
+      meldung: `Pflichtangabe "${fehlend}" fehlt.`,
+      wert: zeileRoh.slice(0, 100),
+    });
+    return null;
+  }
+
+  const mengeKg = mengeParsen(mengeRoh);
+  if (mengeKg === null) {
+    befundHinzufuegen({
+      zeile,
+      spalte: "menge",
+      stufe: "fehler",
+      code: "value_format",
+      meldung: `Menge "${mengeRoh}" ist keine Zahl.`,
+      wert: mengeRoh,
+    });
+    return null;
+  }
+  if (mengeKg <= 0) {
+    befundHinzufuegen({
+      zeile,
+      spalte: "menge",
+      stufe: "fehler",
+      code: "value_range",
+      meldung: "Die Menge muss größer als null sein.",
+      wert: mengeRoh,
+    });
+    return null;
+  }
+  if (mengeKg > MENGE_WARNSCHWELLE_KG) {
+    befundHinzufuegen({
+      zeile,
+      spalte: "menge",
+      stufe: "warnung",
+      code: "value_suspicious",
+      meldung: `Ungewöhnlich hohe Menge (${mengeKg} kg) - wird trotzdem übernommen.`,
+      wert: mengeRoh,
+    });
+  }
+
+  const datumIso = datumParsen(datumRoh);
+  if (datumIso === null) {
+    befundHinzufuegen({
+      zeile,
+      spalte: "datum",
+      stufe: "fehler",
+      code: "value_format",
+      meldung: `Datum "${datumRoh}" wird nicht erkannt. Erwartet: JJJJ-MM-TT oder TT.MM.JJJJ.`,
+      wert: datumRoh,
+    });
+    return null;
+  }
+  if (datumIso > heuteIso) {
+    befundHinzufuegen({
+      zeile,
+      spalte: "datum",
+      stufe: "fehler",
+      code: "value_range",
+      meldung: `Datum ${datumIso} liegt in der Zukunft.`,
+      wert: datumRoh,
+    });
+    return null;
+  }
+  const altGrenze = `${Number(heuteIso.slice(0, 4)) - ALTDATUM_WARN_JAHRE}${heuteIso.slice(4)}`;
+  if (datumIso < altGrenze) {
+    befundHinzufuegen({
+      zeile,
+      spalte: "datum",
+      stufe: "warnung",
+      code: "value_suspicious",
+      meldung: `Datum ${datumIso} liegt mehr als ${ALTDATUM_WARN_JAHRE} Jahre zurück - wird trotzdem übernommen.`,
+      wert: datumRoh,
+    });
+  }
+
+  const sorte = referenzAufloesen(referenzen.sorten, sorteRoh);
+  if (!sorte) {
+    befundHinzufuegen({
+      zeile,
+      spalte: "sorte",
+      stufe: "fehler",
+      code: "unknown_reference",
+      meldung: `Sorte "${sorteRoh}" ist nicht im Sortenkatalog. Neue Sorten legt die Betriebsleitung im Sortenkatalog an, nicht der Import.`,
+      wert: sorteRoh,
+    });
+    return null;
+  }
+
+  const nachbarbetrieb = referenzAufloesen(referenzen.nachbarbetriebe, nachbarbetriebRoh);
+  if (!nachbarbetrieb) {
+    befundHinzufuegen({
+      zeile,
+      spalte: "nachbarbetrieb",
+      stufe: "fehler",
+      code: "unknown_reference",
+      meldung: `Nachbarbetrieb "${nachbarbetriebRoh}" ist nicht angebunden. Neue Nachbarbetriebe legt die Betriebsleitung an, nicht der Import.`,
+      wert: nachbarbetriebRoh,
+    });
+    return null;
+  }
+
+  const zeileErgebnis: ZukaufZeile = {
+    zeile,
+    mengeKg,
+    sorteName: sorte.name,
+    sorteId: sorte.id,
+    datumIso,
+    nachbarbetriebName: nachbarbetrieb.name,
+    nachbarbetriebId: nachbarbetrieb.id,
+  };
+
+  duplikatPruefen(zeileErgebnis, gesehen, befundHinzufuegen);
+
+  return zeileErgebnis;
+}
+
+/**
+ * Zusammenfassung: haengt einen Hinweisbefund mit Anzahl Positionen,
+ * Gesamtmenge sowie Anzahl Sorten und Nachbarbetriebe an. Wird von
+ * parseZukauf nur aufgerufen, wenn mindestens eine gueltige Zeile vorliegt.
+ */
+function zusammenfassungHinzufuegen(
+  zeilen: ZukaufZeile[],
+  befundHinzufuegen: BefundHinzufuegen,
+): void {
+  const summeKg = zeilen.reduce((s, z) => s + z.mengeKg, 0);
+  const sortenAnzahl = new Set(zeilen.map((z) => z.sorteId)).size;
+  const betriebeAnzahl = new Set(zeilen.map((z) => z.nachbarbetriebId)).size;
+  // Bleibt Deutsch statt uebersetzt: eine Kontrollausgabe fuer die Vorschau
+  // vor dem Schreiben, keine dauerhafte UI-Beschriftung - anders als jeder
+  // andere Befundtext hier, der ueber `code` uebersetzt wird (die
+  // Oberflaeche zeigt "wert" fuer den Code "summary" per Passthrough an,
+  // siehe zukaufAnsicht.import.befund.summary in den messages).
+  const summaryText = `${zeilen.length} Position(en), ${summeKg.toFixed(1)} kg gesamt, ${sortenAnzahl} Sorte(n), ${betriebeAnzahl} Nachbarbetrieb(e).`;
+  befundHinzufuegen({
+    stufe: "hinweis",
+    code: "summary",
+    meldung: summaryText,
+    wert: summaryText,
+  });
+}
+
 /**
  * Prueft eine CSV-aehnliche Zukauf-Eingabe und loest Sorte/Nachbarbetrieb
  * gegen die mitgegebenen Referenzlisten auf. Schreibt nichts in die
  * Datenbank - das uebernimmt src/lib/actions/zukauf.ts erst, wenn kein
  * Fehlerbefund vorliegt.
+ *
+ * Ablauf in vier benannten Schritten: Spaltenerkennung (spaltenErkennen),
+ * Zeilenvalidierung je Datenzeile (zeileValidieren, ruft darin die
+ * Duplikatpruefung duplikatPruefen auf) und zum Schluss die Zusammenfassung
+ * (zusammenfassungHinzufuegen).
  *
  * @param text      Rohtext, z. B. aus einem Textfeld oder Datei-Upload.
  * @param referenzen Bekannte Sorten/Nachbarbetriebe, gegen die Namen aufgeloest
@@ -248,9 +512,8 @@ export function parseZukauf(
   heuteIso: string,
 ): ZukaufParseErgebnis {
   const befunde: ZukaufBefund[] = [];
-  const befundHinzufuegen = (
-    b: Omit<ZukaufBefund, "zeile" | "spalte"> & Partial<Pick<ZukaufBefund, "zeile" | "spalte">>,
-  ) => befunde.push({ zeile: null, spalte: null, ...b });
+  const befundHinzufuegen: BefundHinzufuegen = (b) =>
+    befunde.push({ zeile: null, spalte: null, ...b });
 
   const zeilenRoh = ohneBom(text)
     .split(/\r?\n/)
@@ -266,182 +529,25 @@ export function parseZukauf(
     return { zeilen: [], befunde, trennzeichen: ";" };
   }
 
-  const trennzeichen = trennzeichenRaten(zeilenRoh[0]);
-  const kopf = zeileSplitten(zeilenRoh[0], trennzeichen).map(normalisiere);
-
-  const index: Partial<Record<ZukaufSpalte, number>> = {};
-  for (const spalte of PFLICHTSPALTEN) {
-    const gefunden = kopf.findIndex((k) => SPALTEN[spalte].includes(k));
-    if (gefunden >= 0) index[spalte] = gefunden;
-  }
-
-  for (const spalte of PFLICHTSPALTEN) {
-    if (index[spalte] === undefined) {
-      befundHinzufuegen({
-        spalte,
-        stufe: "fehler",
-        code: "column_missing",
-        meldung: `Die Spalte für "${spalte}" wurde nicht erkannt.`,
-        wert: zeilenRoh[0].slice(0, 120),
-      });
-    }
-  }
+  const spalten = spaltenErkennen(zeilenRoh[0], befundHinzufuegen);
   if (befunde.some((b) => b.stufe === "fehler")) {
-    return { zeilen: [], befunde, trennzeichen };
+    return { zeilen: [], befunde, trennzeichen: spalten.trennzeichen };
   }
 
   const zeilen: ZukaufZeile[] = [];
-  // Duplikatpruefung: gleicher Nachbarbetrieb, gleiche Sorte, gleiches Datum
-  // UND gleiche Menge. Anders als beim Vorbild (dort ein struktureller
-  // Schluessel, der per Definition nicht doppelt vorkommen kann) ist das hier
-  // nur ein Verdacht, kein Beweis - zwei echte Lieferungen koennten zufaellig
-  // uebereinstimmen. Deshalb Warnung, nicht Fehler: die Zeile bleibt drin.
   const gesehen = new Map<string, number>();
 
   for (let i = 1; i < zeilenRoh.length; i++) {
-    const teile = zeileSplitten(zeilenRoh[i], trennzeichen);
-    const zeile = i + 1; // 1-basiert, Kopfzeile ist Zeile 1
-    const hol = (spalte: ZukaufSpalte) =>
-      index[spalte] === undefined ? "" : (teile[index[spalte]!] ?? "").trim();
-
-    const mengeRoh = hol("menge");
-    const sorteRoh = hol("sorte");
-    const datumRoh = hol("datum");
-    const nachbarbetriebRoh = hol("nachbarbetrieb");
-
-    const fehlend = (["menge", "sorte", "datum", "nachbarbetrieb"] as const).find(
-      (spalte) => !hol(spalte),
+    const zeile = zeileValidieren(
+      zeilenRoh[i],
+      i + 1, // 1-basiert, Kopfzeile ist Zeile 1
+      spalten,
+      referenzen,
+      heuteIso,
+      gesehen,
+      befundHinzufuegen,
     );
-    if (fehlend) {
-      befundHinzufuegen({
-        zeile,
-        spalte: fehlend,
-        stufe: "fehler",
-        code: "required_missing",
-        meldung: `Pflichtangabe "${fehlend}" fehlt.`,
-        wert: zeilenRoh[i].slice(0, 100),
-      });
-      continue;
-    }
-
-    const mengeKg = mengeParsen(mengeRoh);
-    if (mengeKg === null) {
-      befundHinzufuegen({
-        zeile,
-        spalte: "menge",
-        stufe: "fehler",
-        code: "value_format",
-        meldung: `Menge "${mengeRoh}" ist keine Zahl.`,
-        wert: mengeRoh,
-      });
-      continue;
-    }
-    if (mengeKg <= 0) {
-      befundHinzufuegen({
-        zeile,
-        spalte: "menge",
-        stufe: "fehler",
-        code: "value_range",
-        meldung: "Die Menge muss größer als null sein.",
-        wert: mengeRoh,
-      });
-      continue;
-    }
-    if (mengeKg > MENGE_WARNSCHWELLE_KG) {
-      befundHinzufuegen({
-        zeile,
-        spalte: "menge",
-        stufe: "warnung",
-        code: "value_suspicious",
-        meldung: `Ungewöhnlich hohe Menge (${mengeKg} kg) - wird trotzdem übernommen.`,
-        wert: mengeRoh,
-      });
-    }
-
-    const datumIso = datumParsen(datumRoh);
-    if (datumIso === null) {
-      befundHinzufuegen({
-        zeile,
-        spalte: "datum",
-        stufe: "fehler",
-        code: "value_format",
-        meldung: `Datum "${datumRoh}" wird nicht erkannt. Erwartet: JJJJ-MM-TT oder TT.MM.JJJJ.`,
-        wert: datumRoh,
-      });
-      continue;
-    }
-    if (datumIso > heuteIso) {
-      befundHinzufuegen({
-        zeile,
-        spalte: "datum",
-        stufe: "fehler",
-        code: "value_range",
-        meldung: `Datum ${datumIso} liegt in der Zukunft.`,
-        wert: datumRoh,
-      });
-      continue;
-    }
-    const altGrenze = `${Number(heuteIso.slice(0, 4)) - ALTDATUM_WARN_JAHRE}${heuteIso.slice(4)}`;
-    if (datumIso < altGrenze) {
-      befundHinzufuegen({
-        zeile,
-        spalte: "datum",
-        stufe: "warnung",
-        code: "value_suspicious",
-        meldung: `Datum ${datumIso} liegt mehr als ${ALTDATUM_WARN_JAHRE} Jahre zurück - wird trotzdem übernommen.`,
-        wert: datumRoh,
-      });
-    }
-
-    const sorte = referenzAufloesen(referenzen.sorten, sorteRoh);
-    if (!sorte) {
-      befundHinzufuegen({
-        zeile,
-        spalte: "sorte",
-        stufe: "fehler",
-        code: "unknown_reference",
-        meldung: `Sorte "${sorteRoh}" ist nicht im Sortenkatalog. Neue Sorten legt die Betriebsleitung im Sortenkatalog an, nicht der Import.`,
-        wert: sorteRoh,
-      });
-      continue;
-    }
-
-    const nachbarbetrieb = referenzAufloesen(referenzen.nachbarbetriebe, nachbarbetriebRoh);
-    if (!nachbarbetrieb) {
-      befundHinzufuegen({
-        zeile,
-        spalte: "nachbarbetrieb",
-        stufe: "fehler",
-        code: "unknown_reference",
-        meldung: `Nachbarbetrieb "${nachbarbetriebRoh}" ist nicht angebunden. Neue Nachbarbetriebe legt die Betriebsleitung an, nicht der Import.`,
-        wert: nachbarbetriebRoh,
-      });
-      continue;
-    }
-
-    const schluessel = `${nachbarbetrieb.id}|${sorte.id}|${datumIso}|${mengeKg}`;
-    if (gesehen.has(schluessel)) {
-      befundHinzufuegen({
-        zeile,
-        spalte: null,
-        stufe: "warnung",
-        code: "duplicate_verdacht",
-        meldung: `Gleicht Zeile ${gesehen.get(schluessel)} (gleicher Nachbarbetrieb, Sorte, Datum und Menge) - möglicherweise doppelt erfasst, wird trotzdem übernommen.`,
-        wert: String(gesehen.get(schluessel)),
-      });
-    } else {
-      gesehen.set(schluessel, zeile);
-    }
-
-    zeilen.push({
-      zeile,
-      mengeKg,
-      sorteName: sorte.name,
-      sorteId: sorte.id,
-      datumIso,
-      nachbarbetriebName: nachbarbetrieb.name,
-      nachbarbetriebId: nachbarbetrieb.id,
-    });
+    if (zeile) zeilen.push(zeile);
   }
 
   if (zeilen.length === 0 && !befunde.some((b) => b.stufe === "fehler")) {
@@ -454,22 +560,8 @@ export function parseZukauf(
   }
 
   if (zeilen.length > 0) {
-    const summeKg = zeilen.reduce((s, z) => s + z.mengeKg, 0);
-    const sortenAnzahl = new Set(zeilen.map((z) => z.sorteId)).size;
-    const betriebeAnzahl = new Set(zeilen.map((z) => z.nachbarbetriebId)).size;
-    // Bleibt Deutsch statt uebersetzt: eine Kontrollausgabe fuer die Vorschau
-    // vor dem Schreiben, keine dauerhafte UI-Beschriftung - anders als jeder
-    // andere Befundtext hier, der ueber `code` uebersetzt wird (die
-    // Oberflaeche zeigt "wert" fuer den Code "summary" per Passthrough an,
-    // siehe zukaufAnsicht.import.befund.summary in den messages).
-    const summaryText = `${zeilen.length} Position(en), ${summeKg.toFixed(1)} kg gesamt, ${sortenAnzahl} Sorte(n), ${betriebeAnzahl} Nachbarbetrieb(e).`;
-    befundHinzufuegen({
-      stufe: "hinweis",
-      code: "summary",
-      meldung: summaryText,
-      wert: summaryText,
-    });
+    zusammenfassungHinzufuegen(zeilen, befundHinzufuegen);
   }
 
-  return { zeilen, befunde, trennzeichen };
+  return { zeilen, befunde, trennzeichen: spalten.trennzeichen };
 }

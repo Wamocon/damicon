@@ -109,6 +109,14 @@ export async function QrSteigenAnsicht() {
                   <p className="mt-0.5 text-[10px] text-muted-foreground print:text-black/70">
                     {t("etiketten.scanHinweis")}
                   </p>
+                  {/* WMCNL-2368: der Ausweichweg auf /herkunft prueft genau
+                      dieses Format (oeffentlicher_code, siehe
+                      lib/data/herkunft.ts) - ohne diese Zeile stand der
+                      einzige gueltige Code nirgends lesbar auf dem Etikett,
+                      nur maschinenlesbar im QR selbst. */}
+                  <p className="mt-1 font-mono text-[10px] text-muted-foreground print:text-black/70">
+                    {t("etiketten.fallbackCode", { code: etikett.oeffentlicherCode })}
+                  </p>
                 </div>
               </div>
             ))}

@@ -66,6 +66,7 @@ angelegt - je Rolle eines, Passwort für alle `DamiconDemo2026!`:
 | Rolle | Konto |
 |---|---|
 | Administration | `admin@damicon.demo` |
+| CEO | `ceo@damicon.demo` |
 | Betriebsleitung | `leitung@damicon.demo` |
 | Buchhaltung | `buchhaltung@damicon.demo` |
 | Brigade / Feld | `brigade@damicon.demo` |
@@ -86,7 +87,7 @@ auch jeder direkte Aufruf von `/dashboard/*` zusätzlich zum Passwort den
 | `src/app/[locale]/page.tsx` | Öffentliche Landingpage |
 | `src/app/[locale]/login/` | Anmeldung und Server Actions für An-/Abmeldung |
 | `src/app/[locale]/dashboard/` | Dashboard-Shell + Zonen `feld`, `hof`, `buero`, `markt` |
-| `src/lib/modules.ts` | Zonen- und Modul-Registry (Reifegrad, Klassifikation) |
+| `src/lib/modules.ts` | Zonen- und Modul-Registry (Zone, Slug, Ressource, Reifegrad) |
 | `src/lib/rbac.ts` | Sieben Kernrollen und Rechtematrix |
 | `src/lib/auth.ts` | Session, Profil und Berechtigungsprüfung für Server Actions |
 | `src/lib/data/` | Datenbankabfragen mit Rückfall auf die Beispieldaten |
@@ -311,5 +312,5 @@ zweiten, weniger prominenten Abschnitt. Rollen ohne betriebsweite Sicht
 
 ## Dokumentation
 
-- **[docs/manual/index.html](docs/manual/index.html)** - Produkthandbuch
+- **[docs/manual/index.html](docs/manual/index.html)** - Produkthandbuch (DE; daneben `index-en`, `index-kk`, `index-ru`). Erzeugt mit `npm run handbuch`, im Portal unter `/{locale}/dashboard/handbuch`. Nicht von Hand bearbeiten - Quelle ist `scripts/handbuch/`.
 - Technische Analyse: `WMC_TechnischeAnalyse_1Cati_Himbeerplantage.md` (extern)

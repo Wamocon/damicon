@@ -1,7 +1,8 @@
 "use server";
 
-import { getTranslations } from "next-intl/server";
-import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
+import { getLocale, getTranslations } from "next-intl/server";
+import { createClient } from "@/lib/supabase/server";
+import { ladeAktivenStandardAnbieter } from "@/lib/ai/lade-anbieter";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { ladeKiChatVerlauf, ladeWissensPreislisten } from "@/lib/data/ki-assistent";
@@ -15,7 +16,12 @@ import {
 } from "@/lib/domain/ki-assistent";
 import { hasPermission } from "@/lib/rbac";
 import { sendeChatAnfrage } from "@/lib/ai/anbieter-client";
+import { sendeAgentAnfrage } from "@/lib/ai/agent";
+import { ladeRatenlimitGrenze, ratenlimitUeberschritten } from "@/lib/ai/ratenbegrenzung";
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
+import { transkribiereAudio, transkriptionsMeldung, waermeTranskriptionVor } from "@/lib/ai/transkription-client";
+import { spracherkennungAnbieter, transkribiereMitSoniox } from "@/lib/ai/soniox-client";
+import { erkenneMitRueckfall } from "@/lib/domain/spracherkennung";
 import type { ChatNachricht } from "@/lib/ai/anfrage";
 import type { Json } from "@/lib/database.types";
 import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
@@ -33,16 +39,19 @@ import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/a
 //      sendeChatAnfrage() (das laut eigenem Vertrag schon nie wirft) kann
 //      diese Aktion nicht zu einem ungefangenen Serverfehler machen.
 //
-// Bewusst offen (adversarischer Review, nicht in diesem Schritt behoben):
-// weder hier noch bei kiEskalationAnfordern gibt es eine Ratenbegrenzung -
-// jede Rolle mit "ki_assistent:create" kann beliebig oft einen echten,
-// kostenpflichtigen Modellaufruf bzw. eine Eskalationszeile ausloesen. Ein
-// Doppelklick/Retry auf "Senden" kann zudem zu doppelten Nachrichten und
-// doppeltem Modellaufruf fuehren (istErsteNachricht liest den Verlauf vor
-// dem Insert, keine Sperre gegen echte Gleichzeitigkeit) - abgemildert,
-// nicht ausgeschlossen, durch SubmitKnopf() (formular-kit.tsx), das den
-// Knopf waehrend eines laufenden Requests deaktiviert, dasselbe Mass an
-// Schutz wie bei jedem anderen Formular in diesem Projekt.
+// Ratenbegrenzung (Vibecode-Cleanup Phase 2, kritische Stabilisierung):
+// kiNachrichtSenden ist jetzt ueber ratenlimitUeberschritten() (lib/ai/
+// ratenbegrenzung.ts) begrenzt, siehe RBAC-Gate unten - vorher konnte jede
+// Rolle mit "ki_assistent:create" beliebig oft einen echten,
+// kostenpflichtigen Modellaufruf ausloesen. Bewusst weiterhin offen, nicht in
+// diesem Schritt behoben: kiEskalationAnfordern hat keine eigene Begrenzung
+// (loest keinen Modellaufruf aus, deutlich geringeres Kostenrisiko). Ein
+// Doppelklick/Retry auf "Senden" kann ausserdem weiterhin zu doppelten
+// Nachrichten und doppeltem Modellaufruf fuehren (istErsteNachricht liest den
+// Verlauf vor dem Insert, keine Sperre gegen echte Gleichzeitigkeit) -
+// abgemildert, nicht ausgeschlossen, durch SubmitKnopf() (formular-kit.tsx),
+// das den Knopf waehrend eines laufenden Requests deaktiviert, dasselbe Mass
+// an Schutz wie bei jedem anderen Formular in diesem Projekt.
 
 const MAX_VERLAUF_FUER_MODELL = 10;
 
@@ -54,22 +63,9 @@ function protokolliere(
   return protokolliereBasis(profil, aktion, "ki_chat_nachrichten", profil.id, metadata);
 }
 
-// Vibecode-Cleanup: aus kiNachrichtSenden() herausgezogen (die Funktion
-// vermischte RBAC-Gate, Eingabevalidierung, Anbieter laden, Kontext bauen und
-// Modellaufruf in einem Block). Liest die Zeile des aktiven Standard-
-// Anbieters ueber den service_role-Client - RLS auf ki_anbieter ist
-// admin-only, dieser Aufruf laeuft aber erst NACH requirePermission() im
-// Aufrufer, derselbe Aufbau wie vorher, nur benannt und isoliert testbar.
-async function ladeAktivenStandardAnbieter() {
-  const dienst = createServiceRoleClient();
-  const { data } = await dienst
-    .from("ki_anbieter")
-    .select("name, anzeige_name, typ, basis_url, modell, api_key_chiffrat")
-    .eq("aktiv", true)
-    .eq("ist_standard", true)
-    .maybeSingle();
-  return data;
-}
+// ladeAktivenStandardAnbieter() ist jetzt in lib/ai/lade-anbieter.ts - der
+// neue streamende Route Handler (anthropic-Pfad, app/api/ki-assistent/
+// route.ts) braucht dieselbe Funktion, keine zweite Kopie.
 
 // Baut den an das Modell uebergebenen Verlauf: Systemprompt zuerst, danach
 // die letzten echten Gespraechsbeitraege (keine system-Zeilen, siehe
@@ -105,6 +101,15 @@ export async function kiNachrichtSenden(
     return zugriffsFehler(error);
   }
 
+  // 1b. Ratenbegrenzung, siehe Kommentar oben und lib/ai/ratenbegrenzung.ts.
+  // Admin-konfigurierbar (KiRatenlimitVerwaltung in den KI-Einstellungen) -
+  // ohne Admin-Einstellung liefert ladeRatenlimitGrenze() null und
+  // ratenlimitUeberschritten() blockiert dann nie.
+  const ratenGrenze = await ladeRatenlimitGrenze(profil.role);
+  if (ratenlimitUeberschritten(profil.id, ratenGrenze)) {
+    return fehler("fehler.ratenlimit");
+  }
+
   const nachricht = text(formData, "nachricht");
   if (!nachricht || nachricht.length > MAX_NACHRICHT_LAENGE) {
     return fehler("fehler.eingabe");
@@ -122,7 +127,12 @@ export async function kiNachrichtSenden(
     return fehler("fehler.einwilligung");
   }
 
-  const t = await getTranslations("kiAssistentAnsicht.fallback");
+  // Die Systemsprache bestimmt alles an diesem Zug: die Antwort des Modells
+  // und die Ausweichtexte, die diese Aktion selbst schreibt. Siehe
+  // api/ki-assistent/route.ts, warum nicht mehr aus dem Fragetext erkannt
+  // wird.
+  const antwortIn = await getLocale();
+  const t = await getTranslations({ locale: antwortIn, namespace: "kiAssistentAnsicht.fallback" });
   const supabase = await createClient();
 
   const { error: nutzerFehler } = await supabase
@@ -136,6 +146,7 @@ export async function kiNachrichtSenden(
   let antwortText: string;
   let anbieterName: string | null = null;
   let fallback = false;
+  let werkzeugaufrufe: string[] = [];
 
   try {
     const anbieter = await ladeAktivenStandardAnbieter();
@@ -159,22 +170,46 @@ export async function kiNachrichtSenden(
           hasPermission(profil.role, "kuehlkette", "view"),
       });
       const preislisten = quellen.includes("preisliste") ? await ladeWissensPreislisten() : [];
-      const systemPrompt = baueSystemPrompt(baueGesamtWissenskontext(quellen, preislisten));
+      const systemPrompt = baueSystemPrompt(baueGesamtWissenskontext(quellen, preislisten), antwortIn);
       const verlaufFuerModell = baueVerlaufFuerModell(systemPrompt, bisherigerVerlauf.nachrichten, nachricht);
 
       const apiKey = entschluessleApiKey(anbieter.api_key_chiffrat);
-      const antwort = await sendeChatAnfrage(
-        { typ: anbieter.typ, basisUrl: anbieter.basis_url, modell: anbieter.modell, apiKey },
-        verlaufFuerModell,
-      );
 
-      if (antwort.ok) {
-        antwortText = antwort.text;
-        anbieterName = anbieter.anzeige_name;
+      // 'anthropic' laeuft ueber den werkzeugfaehigen Agenten (agent.ts,
+      // Vercel AI SDK) - das Modell darf live in Steuer-/Arbeits-/Pruef-
+      // Daten nachsehen statt sich nur auf den statischen Wissenskontext zu
+      // verlassen. 'openai_kompatibel' bleibt auf dem bisherigen, reinen
+      // Text-Anfrage-Pfad (siehe Kommentar in agent.ts, warum das noch nicht
+      // vereinheitlicht ist).
+      if (anbieter.typ === "anthropic") {
+        const antwort = await sendeAgentAnfrage(
+          { basisUrl: anbieter.basis_url, modell: anbieter.modell, apiKey },
+          profil.role,
+          verlaufFuerModell,
+        );
+        if (antwort.ok) {
+          antwortText = antwort.text;
+          anbieterName = anbieter.anzeige_name;
+          werkzeugaufrufe = antwort.werkzeugaufrufe;
+        } else {
+          console.error("[damicon] KI-Agent fehlgeschlagen:", antwort.grund);
+          fallback = true;
+          antwortText = t("antwort");
+        }
       } else {
-        console.error("[damicon] KI-Anbieter-Aufruf fehlgeschlagen:", antwort.grund);
-        fallback = true;
-        antwortText = t("antwort");
+        const antwort = await sendeChatAnfrage(
+          { typ: anbieter.typ, basisUrl: anbieter.basis_url, modell: anbieter.modell, apiKey },
+          verlaufFuerModell,
+        );
+
+        if (antwort.ok) {
+          antwortText = antwort.text;
+          anbieterName = anbieter.anzeige_name;
+        } else {
+          console.error("[damicon] KI-Anbieter-Aufruf fehlgeschlagen:", antwort.grund);
+          fallback = true;
+          antwortText = t("antwort");
+        }
       }
     }
   } catch (error) {
@@ -192,6 +227,7 @@ export async function kiNachrichtSenden(
     inhalt: antwortText,
     anbieter_name: anbieterName,
     fallback,
+    werkzeugaufrufe: werkzeugaufrufe.length > 0 ? werkzeugaufrufe : null,
   });
   if (assistentFehler) return dbFehler(assistentFehler);
 
@@ -240,4 +276,84 @@ export async function kiEskalationAnfordern(
   await protokolliere(profil, "ki_chat.eskalation_angefordert");
   aktualisiere(formData);
   return ok("ok.kiEskalationAngefordert");
+}
+
+// --- Sprachnachricht diktieren (Anforderung 5.4, Ergaenzung) -----------------
+// Der Browser nimmt auf, diese Aktion schickt die Datei an Caesar
+// (Transkriptionsdienst im Buero-LAN) und gibt den Text zurueck. Der Browser
+// spricht bewusst NICHT selbst mit Caesar - dieselbe Begruendung wie bei
+// anbieter-client.ts: die Adresse des Dienstes und jeder kuenftige Schluessel
+// bleiben auf dem Server, und das RBAC-Gate greift vor dem Aufruf.
+//
+// Der Text landet im Eingabefeld, nicht im Chat: ein verhoertes Diktat, das
+// ungeprueft an die Kundschaft ginge, waere schlimmer als ein Tippfehler.
+// Abgeschickt wird weiterhin von Hand, ueber denselben Weg wie eine getippte
+// Frage - deshalb braucht dieser Schritt keine eigene Eskalations- oder
+// Sicherheitslogik.
+
+// An next.config.ts angeglichen (serverActions.bodySizeLimit: "8mb"): alles
+// darueber weist Next ab, BEVOR diese Aktion laeuft - die alte Grenze von
+// 25 MB konnte nie greifen, und statt einer uebersetzten Meldung sah die
+// Person einen rohen Fehler. 30 s Aufnahme sind je nach Format 90-240 kB.
+const MAX_AUDIO_BYTES = 8 * 1024 * 1024;
+
+export async function transkribiereSprachnachricht(
+  _status: AktionsStatus,
+  formData: FormData,
+): Promise<AktionsStatus> {
+  let profil: SessionProfile;
+  try {
+    profil = await requirePermission("ki_assistent", "create");
+  } catch (error) {
+    return zugriffsFehler(error);
+  }
+
+  const audio = formData.get("audio");
+  if (!(audio instanceof Blob) || audio.size === 0) return fehler("fehler.eingabe");
+  if (audio.size > MAX_AUDIO_BYTES) return fehler("fehler.dateiGross");
+
+  const name = audio instanceof File && audio.name ? audio.name : "aufnahme.webm";
+
+  // Wer erkennt und was passiert, wenn ein Dienst hakt, steht in
+  // ai/spracherkennung.ts: Soniox zuerst, ab 6 s laeuft Whisper parallel mit,
+  // der erste brauchbare Text gewinnt. Die Oberflaechensprache geht als
+  // Hinweis mit - ungeprueft, beide Clients lassen nur zu, was sie kennen.
+  const sprachHinweis = text(formData, "sprache");
+  const antwort = await erkenneMitRueckfall(
+    spracherkennungAnbieter() === "soniox"
+      ? (abbruch) => transkribiereMitSoniox(audio, name, sprachHinweis, abbruch)
+      : null,
+    (abbruch) => transkribiereAudio(audio, name, sprachHinweis, abbruch),
+  );
+
+  if (!antwort.ok) {
+    console.error("[damicon] Transkription fehlgeschlagen:", antwort.grund);
+    return fehler(transkriptionsMeldung(antwort.grund));
+  }
+
+  // Der Text selbst wird nicht protokolliert - er steht gleich als Frage im
+  // Verlauf, sobald die Nutzerin ihn abschickt. Hier nur, dass diktiert wurde.
+  const gehoerteSprachen = [...new Set(antwort.sprachen)];
+  // Nur die Sprachen, nie der Text: so laesst sich spaeter nachvollziehen,
+  // warum eine Antwort in einer bestimmten Sprache kam.
+  await protokolliere(profil, "ki_chat.diktat", {
+    zeichen: antwort.text.length,
+    dienst: antwort.dienst,
+    sprachen: gehoerteSprachen,
+  });
+
+  return ok("ok.transkription", antwort.text, gehoerteSprachen);
+}
+
+/** Stoesst das Laden des Spracherkennungsmodells an, damit die erste echte
+ *  Aufnahme nicht in die kalte Ladezeit laeuft (gemessen 221 s kalt gegen
+ *  7,2 s warm). Ergebnis bewusst ohne Rueckmeldung an die Oberflaeche: ein
+ *  misslungener Aufwaermversuch darf das Modul nicht stoeren. */
+export async function waermeSpracherkennungVor(): Promise<void> {
+  try {
+    await requirePermission("ki_assistent", "create");
+  } catch {
+    return;
+  }
+  await waermeTranskriptionVor().catch(() => false);
 }

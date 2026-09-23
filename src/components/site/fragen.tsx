@@ -16,11 +16,16 @@ const FRAGEN = ["sechzig", "durchgang", "beleg", "rollen", "stand", "daten"] as 
 // Modulliste 18/1/6 hergab - eine oeffentliche Seite, die dem eigenen
 // Dashboard widerspricht. next-intl ignoriert Werte, die ein Text nicht
 // verwendet, deshalb koennen sie an jede Antwort gehen.
+//
+// Die Rechnung deckte den Fall nicht ab, dass ein Wert gar nicht mehr
+// vorkommt: seit kein Modul mehr den Reifegrad "demo" trug, stand in der
+// Antwort "0 als bedienbare Demo". Der Wert ist jetzt weg, der Satz auch.
+// Kommt der naechste Zaehlwert auf null - etwa sobald die beiden offenen
+// Module angebunden sind -, gehoert der Satz aus Teilsaetzen gebaut.
 function standZahlen() {
   return {
     gesamt: modules.length,
     angebunden: modules.filter((m) => m.reifegrad === "angebunden").length,
-    demo: modules.filter((m) => m.reifegrad === "demo").length,
     entwicklung: modules.filter((m) => m.reifegrad === "in-entwicklung").length,
   };
 }

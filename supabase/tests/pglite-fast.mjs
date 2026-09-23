@@ -69,7 +69,7 @@ try {
   check("Grundlagen: auth-/storage-Stub angelegt", true);
 
   const dateien = readdirSync(MIGRATIONEN_DIR)
-    .filter((f) => f.endsWith(".sql"))
+    .filter((f) => f.endsWith(".sql") && !f.endsWith("_pgvector.sql"))
     .sort();
   for (const datei of dateien) {
     await db.exec(readFileSync(join(MIGRATIONEN_DIR, datei), "utf8"));
@@ -860,6 +860,447 @@ await mussScheitern(
   await alsAdmin(db);
   // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
   await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
+// --- 13. Gesetzliche Lohnabzuege Kasachstan (ОПВ/ВОСМС/ИПН, Arbeitgeberlast) --
+// Migration 20261024000000. Reihenfolge: erst die reine Rechenfunktion isoliert
+// pruefen (kein Datenbestand noetig, siehe deren Kommentar), dann die RPC
+// end-to-end gegen echte Seed-Abrechnungen - beides einzeln, damit ein
+// Fehlschlag erkennen laesst, ob die Formel oder die Aggregation die Ursache
+// ist.
+{
+  const { rows: satzRows } = await db.query(
+    `select * from public.lohn_steuersaetze_kz order by gueltig_ab desc limit 1;`,
+  );
+  const satz = satzRows[0];
+  // Der aktuelle Satz als Subquery statt als JS-Parameter: der PGlite-Treiber
+  // (wie node-postgres) kann ein zusammengesetztes Zeilen-Objekt nicht selbst
+  // in ein Composite-Type-Literal serialisieren - die Datenbank liest die
+  // Zeile deshalb selbst.
+  const satzSubquery = `(select lst from public.lohn_steuersaetze_kz lst order by gueltig_ab desc limit 1)`;
+
+  // 13a. Normalfall, von Hand nachgerechnet: Brutto 300 000 Tenge liegt unter
+  // beiden Bemessungsgrenzen.
+  const { rows: normalRows } = await db.query(
+    `select * from public.lohn_kz_abzuege_berechnen(300000, ${satzSubquery});`,
+  );
+  const normal = normalRows[0];
+  check(
+    "Lohn-KZ: Normalfall trifft die von Hand gerechneten Betraege",
+    Number(normal.opv_tenge) === 30000 &&
+      Number(normal.vosms_tenge) === 6000 &&
+      Number(normal.ipn_bemessungsgrundlage_tenge) === 134250 &&
+      Number(normal.ipn_tenge) === 13425 &&
+      Number(normal.netto_tenge) === 250575 &&
+      Number(normal.arbeitgeberkosten_gesamt_tenge) === 352500,
+    `ОПВ ${normal.opv_tenge}, ИПН ${normal.ipn_tenge}, netto ${normal.netto_tenge}`,
+  );
+
+  // 13b. Bemessungsgrenzen: Brutto 5 000 000 liegt ueber beiden Grenzen -
+  // ОПВ/ВОСМС duerfen NICHT proportional weiter mitwachsen.
+  const { rows: grenzeRows } = await db.query(
+    `select * from public.lohn_kz_abzuege_berechnen(5000000, ${satzSubquery});`,
+  );
+  const grenze = grenzeRows[0];
+  check(
+    "Lohn-KZ: ОПВ/ВОСМС kappen an der Bemessungsgrenze",
+    Number(grenze.opv_tenge) === Number(satz.opv_bemessungsgrenze_tenge) * (satz.opv_prozent / 100) &&
+      Number(grenze.vosms_tenge) === Number(satz.vosms_bemessungsgrenze_tenge) * (satz.vosms_prozent / 100),
+    `ОПВ ${grenze.opv_tenge} (erwartet ${Number(satz.opv_bemessungsgrenze_tenge) * (satz.opv_prozent / 100)})`,
+  );
+
+  // 13c. Bemessungsgrundlage darf nicht negativ werden: ein sehr niedriger
+  // Bruttolohn (unter dem Freibetrag) ergibt ИПН = 0, nicht einen negativen
+  // Betrag.
+  const { rows: niedrigRows } = await db.query(
+    `select * from public.lohn_kz_abzuege_berechnen(50000, ${satzSubquery});`,
+  );
+  check(
+    "Lohn-KZ: ИПН wird bei niedrigem Bruttolohn nie negativ",
+    Number(niedrigRows[0].ipn_bemessungsgrundlage_tenge) === 0 && Number(niedrigRows[0].ipn_tenge) === 0,
+    `Grundlage ${niedrigRows[0].ipn_bemessungsgrundlage_tenge}, ИПН ${niedrigRows[0].ipn_tenge}`,
+  );
+
+  // 13d. Zugriffsschutz: eine Betriebsleitung darf lohn_monat_abzuege_
+  // berechnen() nicht aufrufen - rbac.ts/RPC-Check erlauben nur admin/
+  // buchhaltung, dieselbe Grenze wie lohn_periode_berechnen().
+  const leitung = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-leitung-lohn-kz@damicon.demo', '{"role":"betriebsleitung"}'::jsonb) returning id;`,
+  );
+  await alsRolle(db, "authenticated", leitung.rows[0].id);
+  let zugriffsFehler = null;
+  try {
+    await db.query("select * from public.lohn_monat_abzuege_berechnen(2026, 8);");
+  } catch (e) {
+    zugriffsFehler = e?.cause?.code ?? e?.code;
+  }
+  await alsAdmin(db);
+  check(
+    "Lohn-KZ: Betriebsleitung darf Monatsabzuege nicht berechnen",
+    zugriffsFehler === "42501",
+    zugriffsFehler ? `errcode: ${zugriffsFehler}` : "der Aufruf war erfolgreich",
+  );
+
+  // 13e. Ende-zu-Ende gegen echte Seed-Abrechnungen: zwei Pfluecker mit
+  // August-2026-Abrechnungen (siehe Abschnitt 10 oben, gleicher Seed-Bestand).
+  // Erwartungswert von Hand nachgerechnet fuer den ersten: Brutto 60 420 liegt
+  // unter dem Freibetrag von 129 750 - ИПН muss 0 sein, ein guter Beleg dafuer,
+  // dass die Kappung auf 0 (13c) auch im Aggregat wirkt, nicht nur isoliert.
+  const buchhaltung = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-buchhaltung-lohn-kz@damicon.demo', '{"role":"buchhaltung"}'::jsonb) returning id;`,
+  );
+  await alsRolle(db, "authenticated", buchhaltung.rows[0].id);
+  const { rows: lauf1 } = await db.query(
+    "select * from public.lohn_monat_abzuege_berechnen(2026, 8);",
+  );
+  const { rows: monatsabzuege } = await db.query(
+    `select pfluecker_id, brutto_gesamt_tenge, ipn_tenge, netto_tenge, arbeitgeberkosten_gesamt_tenge
+       from public.lohn_monatsabzuege where jahr = 2026 and monat = 8
+      order by brutto_gesamt_tenge;`,
+  );
+  const niedrigsterFall = monatsabzuege[0];
+  check(
+    "Lohn-KZ: Monatsaggregat uebernimmt die 0-ИПН-Kappung aus der reinen Funktion",
+    monatsabzuege.length === 2 &&
+      Number(niedrigsterFall.ipn_tenge) === 0 &&
+      // netto = brutto - ОПВ(10%) - ВОСМС(2%) - ИПН(0) = brutto * 0.88
+      Number(niedrigsterFall.netto_tenge) === Math.round(Number(niedrigsterFall.brutto_gesamt_tenge) * 0.88 * 100) / 100,
+    `Zeilen ${monatsabzuege.length}, ИПН ${niedrigsterFall?.ipn_tenge}, netto ${niedrigsterFall?.netto_tenge}`,
+  );
+
+  // 13f. Deterministisch wiederholbar: ein zweiter Lauf fuer denselben Monat
+  // ersetzt die Zeilen (Delete+Insert), legt keine Duplikate an - siehe
+  // Funktionskommentar "immer sicher erneut ausfuehrbar".
+  const { rows: lauf2 } = await db.query(
+    "select * from public.lohn_monat_abzuege_berechnen(2026, 8);",
+  );
+  const { rows: nachZweitemLauf } = await db.query(
+    `select count(*)::int as anzahl from public.lohn_monatsabzuege where jahr = 2026 and monat = 8;`,
+  );
+  await alsAdmin(db);
+  check(
+    "Lohn-KZ: ein zweiter Rechenlauf fuer denselben Monat legt keine Duplikate an",
+    lauf1[0].verarbeitet === lauf2[0].verarbeitet && nachZweitemLauf[0].anzahl === 2,
+    `verarbeitet ${lauf1[0].verarbeitet}/${lauf2[0].verarbeitet}, Zeilen danach ${nachZweitemLauf[0].anzahl}`,
+  );
+
+  // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
+// --- 14. Risiko-/Steueroekosystem: Werktage, ESUTD-Frist, MwSt-Schwelle -----
+// Migration 20261025000000.
+{
+  // 14a. Werktage: Freitag + 5 Werktage landet auf dem naechsten Freitag
+  // (zwei Wochenenden dazwischen), Montag + 5 auf dem naechsten Montag.
+  const { rows: werktage } = await db.query(
+    `select public.werktage_addieren('2026-09-18', 5) as freitag_plus5,
+            public.werktage_addieren('2026-09-14', 5) as montag_plus5,
+            public.werktage_addieren('2026-09-19', 1) as samstag_plus1;`,
+  );
+  const w = werktage[0];
+  check(
+    "Risiko: werktage_addieren ueberspringt Wochenenden korrekt",
+    w.freitag_plus5.toISOString().slice(0, 10) === "2026-09-25" &&
+      w.montag_plus5.toISOString().slice(0, 10) === "2026-09-21" &&
+      w.samstag_plus1.toISOString().slice(0, 10) === "2026-09-21",
+    `Fr+5 ${w.freitag_plus5.toISOString().slice(0, 10)}, Mo+5 ${w.montag_plus5.toISOString().slice(0, 10)}, Sa+1 ${w.samstag_plus1.toISOString().slice(0, 10)}`,
+  );
+
+  // 14b. MwSt-Schwelle: Zugriffsschutz - Betriebsleitung darf nicht pruefen,
+  // nur admin/buchhaltung (rbac.ts hat "stammdaten" fuer beide, aber diese
+  // RPC ist bewusst enger als crud("stammdaten") - MwSt-Registrierung ist
+  // buchhalterisch zu verantworten).
+  const leitungMwst = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-leitung-mwst@damicon.demo', '{"role":"betriebsleitung"}'::jsonb) returning id;`,
+  );
+  await alsRolle(db, "authenticated", leitungMwst.rows[0].id);
+  let mwstZugriffsFehler = null;
+  try {
+    await db.query("select * from public.mwst_schwelle_pruefen();");
+  } catch (e) {
+    mwstZugriffsFehler = e?.cause?.code ?? e?.code;
+  }
+  await alsAdmin(db);
+  check(
+    "Risiko: Betriebsleitung darf die MwSt-Schwelle nicht pruefen",
+    mwstZugriffsFehler === "42501",
+    mwstZugriffsFehler ? `errcode: ${mwstZugriffsFehler}` : "der Aufruf war erfolgreich",
+  );
+
+  // 14c. MwSt-Schwelle: Ueberschreiten erkennen, Frist berechnen, Vorgang
+  // bleibt einseitig (ein zweiter Aufruf aendert das einmal gesetzte Datum
+  // nicht mehr).
+  const buchhaltungMwst = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-buchhaltung-mwst@damicon.demo', '{"role":"buchhaltung"}'::jsonb) returning id;`,
+  );
+  await db.query(
+    `insert into public.finance_ledger_entries (typ, kategorie, betrag_tenge, buchungsdatum, beschreibung)
+     values ('erloes', 'test_schwellenpruefung', 50000000, current_date, 'Testzeile Schwellenpruefung');`,
+  );
+  await alsRolle(db, "authenticated", buchhaltungMwst.rows[0].id);
+  const { rows: schwelleLauf1 } = await db.query("select * from public.mwst_schwelle_pruefen();");
+  const { rows: schwelleLauf2 } = await db.query("select * from public.mwst_schwelle_pruefen();");
+  await alsAdmin(db);
+  const e1 = schwelleLauf1[0];
+  const e2 = schwelleLauf2[0];
+  check(
+    "Risiko: MwSt-Schwellenueberschreitung wird erkannt und die Frist stimmt",
+    e1.schwelle_ueberschritten === true &&
+      Number(e1.umsatz_12_monate_tenge) > Number(e1.schwelle_tenge) &&
+      e1.meldefrist_am !== null,
+    `Umsatz ${e1.umsatz_12_monate_tenge}, Schwelle ${e1.schwelle_tenge}, Frist ${e1.meldefrist_am}`,
+  );
+  check(
+    "Risiko: das Ueberschreitungsdatum bleibt bei einem zweiten Lauf unveraendert",
+    e1.schwelle_ueberschritten_am?.toISOString?.() === e2.schwelle_ueberschritten_am?.toISOString?.(),
+    `erster Lauf ${e1.schwelle_ueberschritten_am}, zweiter Lauf ${e2.schwelle_ueberschritten_am}`,
+  );
+
+  // 14d. Sicherheitsfund waehrend des Baus: mwst_umsatz_12_monate() darf NICHT
+  // direkt per RPC aufrufbar sein - sonst koennte jede angemeldete Rolle
+  // (auch picker/kunde) die Umsatzkennzahl abfragen, ohne die has_role()-
+  // Pruefung von mwst_schwelle_pruefen() zu durchlaufen.
+  await alsRolle(db, "authenticated", buchhaltungMwst.rows[0].id);
+  let direkterZugriffFehler = null;
+  try {
+    await db.query("select public.mwst_umsatz_12_monate();");
+  } catch (e) {
+    direkterZugriffFehler = e?.cause?.code ?? e?.code;
+  }
+  await alsAdmin(db);
+  check(
+    "Risiko: mwst_umsatz_12_monate ist nicht direkt per RPC aufrufbar",
+    direkterZugriffFehler === "42501",
+    direkterZugriffFehler ? `errcode: ${direkterZugriffFehler}` : "der Direktaufruf war erfolgreich",
+  );
+
+  // siehe Abschnitt 6: alsAdmin() setzt auth.uid() nicht zurueck.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
+// --- 15. Pflanzenschutz-Protokoll: Behandlungen bleiben nachweisbar --------
+// Die neue Protokollansicht (data/pflanzenschutz.ts) liest die Behandlungen
+// selbst statt der Reihenbloecke. Entscheidend fuer den Nachweis: eine
+// freigegebene Behandlung verschwindet nicht. In der Blocksicht ist sie
+// unsichtbar, weil dort nur die juengste OFFENE Sperre haengt.
+{
+  const { rows: block } = await db.query(
+    "select id, status from public.reihenbloecke where status <> 'wartezeitgesperrt' and id <> $1 limit 1;",
+    [blockId],
+  );
+  const { rows: mittel } = await db.query("select id from public.psm_mittel limit 1;");
+
+  // Eine laengst abgelaufene, freigegebene Behandlung. Der Sperr-Trigger setzt
+  // den Block dabei auf 'wartezeitgesperrt', unten wird er wieder zurueckgesetzt.
+  const { rows: neu } = await db.query(
+    `insert into public.pflanzenschutz_behandlungen
+       (reihenblock_id, psm_mittel_id, behandelt_am, wartezeit_tage, freigegeben)
+     values ($1, $2, current_date - 60, 7, true)
+     returning id;`,
+    [block[0].id, mittel[0].id],
+  );
+
+  const { rows: protokoll } = await db.query(
+    `select b.id, b.freigegeben, b.freigabe_am, r.code
+       from public.pflanzenschutz_behandlungen b
+       join public.reihenbloecke r on r.id = b.reihenblock_id
+      where b.reihenblock_id = $1
+      order by b.behandelt_am desc;`,
+    [block[0].id],
+  );
+  check(
+    "Pflanzenschutz: die freigegebene Behandlung bleibt im Protokoll lesbar",
+    protokoll.length >= 1 && protokoll.some((b) => b.freigegeben === true && !!b.freigabe_am),
+    `Behandlungen am Block: ${protokoll.length}`,
+  );
+
+  // Gegenprobe zur Blocksicht: die zaehlt nur offene Sperren, hier also keine.
+  const { rows: offeneSperren } = await db.query(
+    `select count(*)::int as n
+       from public.pflanzenschutz_behandlungen
+      where reihenblock_id = $1 and freigegeben = false;`,
+    [block[0].id],
+  );
+  check(
+    "Pflanzenschutz: dieselbe Behandlung taucht in der Blocksicht nicht mehr auf",
+    offeneSperren[0].n === 0,
+    `offene Sperren: ${offeneSperren[0].n}`,
+  );
+
+  // Aufraeumen: Behandlung loeschen, Block auf seinen Ausgangsstatus zurueck.
+  await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [neu[0].id]);
+  await db.query("update public.reihenbloecke set status = $2 where id = $1;", [
+    block[0].id,
+    block[0].status,
+  ]);
+}
+
+// --- Kennzahlen-Verlauf und Trend ---------------------------------------------
+// Der Trendpfeil kam bis zu dieser Aenderung aus einer Textkonstante in
+// src/lib/domain/kpis.ts. Jetzt haengt er an public.kpi_verlauf. Die Zusage,
+// die hier abgesichert wird: ein EINZELNER Messpunkt ergibt keine Richtung.
+// Sonst zeigt die Kachel wieder einen Pfeil, der nichts verglichen hat - genau
+// der Zustand, den diese Aenderung beseitigen sollte.
+{
+  await db.exec("reset role;");
+
+  // Der Seed legt fuer die Vorfuehrung bereits zwei Messpunkte je Kennzahl an
+  // (Abschnitt "Kennzahlen-Verlauf (Demo)"). Diese Pruefung baut den Verlauf
+  // selbst auf und raeumt ihn deshalb zuerst weg - sonst pruefte sie die
+  // Demo-Daten statt die Mechanik dahinter.
+  await db.query("delete from public.kpi_verlauf;");
+
+  const { rows: lauf } = await db.query(
+    "select public.kpi_verlauf_schreiben('2026-09-20'::date) as n;",
+  );
+  check(
+    "Verlauf: der Schreiblauf legt Messpunkte aus kpi_aktuell() an",
+    lauf[0].n > 0,
+    `Messpunkte: ${lauf[0].n}`,
+  );
+
+  const { rows: ohneVergleich } = await db.query(
+    "select count(*)::int as n from public.kpi_trend;",
+  );
+  check(
+    "Verlauf: ein einzelner Messpunkt ergibt keine Richtung",
+    ohneVergleich[0].n === 0,
+    `Zeilen in kpi_trend: ${ohneVergleich[0].n}`,
+  );
+
+  // Zweiter Tag, jeder Wert um 1 hoeher.
+  await db.exec(`
+    insert into public.kpi_verlauf (schluessel, gemessen_am, wert, einheit, basis, datensaetze)
+    select schluessel, date '2026-09-21', wert + 1, einheit, basis, datensaetze
+      from public.kpi_verlauf
+     where gemessen_am = date '2026-09-20';`);
+
+  const { rows: hoch } = await db.query("select schluessel, trend from public.kpi_trend;");
+  check(
+    "Verlauf: zwei Messpunkte ergeben eine Richtung",
+    hoch.length > 0 && hoch.every((z) => z.trend === "up"),
+    `${hoch.length} Kennzahlen, davon up: ${hoch.filter((z) => z.trend === "up").length}`,
+  );
+
+  // Gegenprobe nach unten: derselbe Aufbau, nur faellt der Wert.
+  await db.exec(`
+    update public.kpi_verlauf z
+       set wert = v.wert - 1
+      from public.kpi_verlauf v
+     where v.schluessel = z.schluessel
+       and v.gemessen_am = date '2026-09-20'
+       and z.gemessen_am = date '2026-09-21';`);
+
+  const { rows: runter } = await db.query("select trend from public.kpi_trend;");
+  check(
+    "Verlauf: ein fallender Wert wird als fallend gemeldet",
+    runter.length > 0 && runter.every((z) => z.trend === "down"),
+    `down: ${runter.filter((z) => z.trend === "down").length} von ${runter.length}`,
+  );
+
+  // Und die dritte Moeglichkeit: unveraendert ist weder up noch down.
+  await db.exec(`
+    update public.kpi_verlauf z
+       set wert = v.wert
+      from public.kpi_verlauf v
+     where v.schluessel = z.schluessel
+       and v.gemessen_am = date '2026-09-20'
+       and z.gemessen_am = date '2026-09-21';`);
+
+  const { rows: gleich } = await db.query("select trend from public.kpi_trend;");
+  check(
+    "Verlauf: ein unveraenderter Wert meldet keine Bewegung",
+    gleich.length > 0 && gleich.every((z) => z.trend === "flat"),
+    `flat: ${gleich.filter((z) => z.trend === "flat").length} von ${gleich.length}`,
+  );
+
+  // Ein zweiter Schreiblauf am selben Tag korrigiert den Punkt, statt einen
+  // zweiten danebenzustellen - sonst hinge die Richtung davon ab, wie oft der
+  // Zeitplan gelaufen ist.
+  const vorher = await db.query(
+    "select count(*)::int as n from public.kpi_verlauf where gemessen_am = date '2026-09-20';",
+  );
+  await db.query("select public.kpi_verlauf_schreiben('2026-09-20'::date);");
+  const nachher = await db.query(
+    "select count(*)::int as n from public.kpi_verlauf where gemessen_am = date '2026-09-20';",
+  );
+  check(
+    "Verlauf: ein zweiter Lauf am selben Tag legt keinen zweiten Punkt an",
+    vorher.rows[0].n === nachher.rows[0].n,
+    `vorher ${vorher.rows[0].n}, nachher ${nachher.rows[0].n}`,
+  );
+
+  await db.query("delete from public.kpi_verlauf where gemessen_am in (date '2026-09-20', date '2026-09-21');");
+}
+
+// --- CEO-Berichte: ceo und admin schreiben, sonst niemand --------------------
+// Seit 20261110000000_ceo_bericht_admin.sql darf auch admin einen Bericht
+// ausloesen (Auftrag vom 23.09.2026, Tages-Uebersicht fuer ceo UND admin).
+// Geprueft wird die Policy selbst, nicht der Rollenhelfer in der Anwendung -
+// die beiden koennen auseinanderlaufen, und nur diese Seite haelt wirklich.
+{
+  const berichtJson = JSON.stringify({ id: "t", befunde: [] });
+  const einfuegen = `insert into public.compliance_ceo_berichte (quelle, bereiche, bericht)
+     values ('manuell', array['audit']::text[], $1::jsonb) returning id;`;
+
+  const { rows: ceo } = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-ceo@damicon.demo', '{"role":"ceo"}'::jsonb) returning id;`,
+  );
+  const { rows: adm } = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-admin@damicon.demo', '{"role":"admin"}'::jsonb) returning id;`,
+  );
+  const { rows: buch } = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-buchhaltung@damicon.demo', '{"role":"buchhaltung"}'::jsonb) returning id;`,
+  );
+
+  await alsRolle(db, "authenticated", ceo[0].id);
+  const ceoSchreibt = await db.query(einfuegen, [berichtJson]);
+  await alsAdmin(db);
+  check("CEO-Bericht: ceo darf schreiben", ceoSchreibt.rows.length === 1);
+
+  await alsRolle(db, "authenticated", adm[0].id);
+  const adminSchreibt = await db.query(einfuegen, [berichtJson]);
+  await alsAdmin(db);
+  check("CEO-Bericht: admin darf jetzt auch schreiben", adminSchreibt.rows.length === 1);
+
+  await alsRolle(db, "authenticated", buch[0].id);
+  await mussScheitern(db, "CEO-Bericht: Buchhaltung darf nicht schreiben", einfuegen, [berichtJson], "42501");
+
+  await alsRolle(db, "authenticated", adm[0].id);
+  const { rows: adminLiest } = await db.query("select id from public.compliance_ceo_berichte;");
+  await alsAdmin(db);
+  check("CEO-Bericht: admin liest beide Zeilen", adminLiest.length === 2, `Zeilen: ${adminLiest.length}`);
+
+  await alsRolle(db, "authenticated", buch[0].id);
+  const { rows: buchLiest } = await db.query("select id from public.compliance_ceo_berichte;");
+  await alsAdmin(db);
+  check("CEO-Bericht: Buchhaltung sieht nichts", buchLiest.length === 0, `Zeilen: ${buchLiest.length}`);
+
+  // Der Ausloeser wird serverseitig aus der Sitzung gesetzt, nicht aus der Eingabe
+  // uebernommen (Trigger ceo_bericht_ausloeser_setzen). Bei einem Admin-Lauf muss
+  // deshalb sein Profil dranstehen, nicht das des CEO.
+  const { rows: ausloeser } = await db.query(
+    `select p.role from public.compliance_ceo_berichte b
+       join public.profiles p on p.id = b.ausgeloest_von
+      where b.id = $1;`,
+    [adminSchreibt.rows[0].id],
+  );
+  check("CEO-Bericht: der Ausloeser wird gesetzt, nicht behauptet", ausloeser[0]?.role === "admin", `Rolle: ${ausloeser[0]?.role}`);
+
+  // alsAdmin() setzt nur die Postgres-Rolle zurueck, nicht die JWT-Claims - auth.uid() bliebe
+  // sonst auf dem zuletzt simulierten Konto stehen, und nachfolgende Bloecke liefen unbemerkt
+  // als diese Person weiter. Hier faellt das auf, weil der Aufraeumschritt am Dateiende dann
+  // am Unveraenderlichkeits-Trigger scheitert.
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+  await db.query("select set_config('request.jwt.claim.role', '', false);");
 }
 
 // --- Aufraeumen ---------------------------------------------------------------

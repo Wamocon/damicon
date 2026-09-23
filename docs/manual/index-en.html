@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!--
+  ERZEUGT - nicht von Hand bearbeiten.
+  Quelle:  scripts/handbuch/texte-en.ts + src/lib/modules.ts + src/lib/rbac.ts
+  Neu bauen: npm run handbuch
+-->
+<title>Damicon – Product handbook | WAMOCON</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20128%20128%22%3E%3Crect%20width%3D%22128%22%20height%3D%22128%22%20rx%3D%2228%22%20fill%3D%22%2300768f%22%2F%3E%3Ccircle%20cx%3D%2264%22%20cy%3D%2264%22%20r%3D%2246%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-opacity%3D%22.85%22%20stroke-width%3D%224.5%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23f2c14b%22%20stroke-width%3D%224.5%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M43%2068%20L34%2068%22%2F%3E%3Cpath%20d%3D%22M44%2061.5%20L35.5%2058.7%22%2F%3E%3Cpath%20d%3D%22M47%2055.7%20L39.7%2050.4%22%2F%3E%3Cpath%20d%3D%22M51.7%2051%20L46.4%2043.7%22%2F%3E%3Cpath%20d%3D%22M57.5%2048%20L54.7%2039.5%22%2F%3E%3Cpath%20d%3D%22M64%2047%20L64%2038%22%2F%3E%3Cpath%20d%3D%22M70.5%2048%20L73.3%2039.5%22%2F%3E%3Cpath%20d%3D%22M76.3%2051%20L81.6%2043.7%22%2F%3E%3Cpath%20d%3D%22M81%2055.7%20L88.3%2050.4%22%2F%3E%3Cpath%20d%3D%22M84%2061.5%20L92.5%2058.7%22%2F%3E%3Cpath%20d%3D%22M85%2068%20L94%2068%22%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2264%22%20cy%3D%2268%22%20r%3D%2215%22%20fill%3D%22%23ff5c7a%22%2F%3E%3Cpath%20d%3D%22M32%2092H96%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-opacity%3D%22.85%22%20stroke-width%3D%225.5%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E" />
+<script>
+  // Farbschema vor dem ersten Bild setzen, sonst blitzt das helle Schema auf.
+  // Derselbe Schluessel wie im Portal (src/components/theme-toggle.tsx): das
+  // Handbuch laeuft unter derselben Adresse und uebernimmt damit die Wahl,
+  // die der Nutzer im Portal getroffen hat.
+  (function () {
+    try {
+      var gewaehlt = localStorage.getItem('damicon-theme');
+      var dunkelBevorzugt = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (gewaehlt === 'dark' || (!gewaehlt && dunkelBevorzugt)) {
+        document.documentElement.classList.add('dark');
+      }
+    } catch (e) {}
+  })();
+</script>
+<style>
+/* Farben, Radien und Schriften sind die des Portals (src/app/globals.css).
+   Sie stehen hier als eigene Werte, weil das Handbuch eine eigenstaendige
+   Datei ist und ohne die Anwendung geoeffnet werden koennen muss - aendert
+   sich die Palette dort, gehoert sie hier nachgezogen. */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  color-scheme: light;
+  --hintergrund: #f6fafb;
+  --vordergrund: #0b1e26;
+  --karte: #ffffff;
+  --primaer: #00768f;
+  --primaer-auf: #ffffff;
+  --zweit: #e3f2f6;
+  --gedaempft: #eaf2f4;
+  --gedaempft-text: #5a7078;
+  --akzent: #8c6209;
+  --gut: #297956;
+  --warnung: #945d0c;
+  --gefahr: #c23b4e;
+  --rand: #dbe8ec;
+  --ring: #0095ac;
+  --leiste: #ffffff;
+  --leiste-rand: #dceaee;
+  --leiste-akzent: #eaf4f7;
+  --radius: 0.625rem;
+  --schrift: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --schrift-titel: "Manrope", "Inter", "Segoe UI", system-ui, sans-serif;
+  --markierung: rgba(0, 149, 172, 0.28);
+}
+
+.dark {
+  color-scheme: dark;
+  --hintergrund: #04161c;
+  --vordergrund: #e6f4f8;
+  --karte: #081e26;
+  --primaer: #3fd0e6;
+  --primaer-auf: #01222b;
+  --zweit: #0d2f3a;
+  --gedaempft: #0c2933;
+  --gedaempft-text: #9ab8c1;
+  --akzent: #f2c14b;
+  --gut: #5ecfa0;
+  --warnung: #e8b34a;
+  --gefahr: #fb7185;
+  --rand: rgba(255, 255, 255, 0.09);
+  --ring: #5fdcef;
+  --leiste: #051b22;
+  --leiste-rand: rgba(255, 255, 255, 0.09);
+  --leiste-akzent: #0c2b35;
+  --markierung: rgba(63, 208, 230, 0.26);
+}
+
+html { scroll-behavior: smooth; }
+
+/* Das hidden-Attribut wirkt ueber display: none aus dem Browser-Stylesheet -
+   und verliert damit gegen jede eigene display-Regel. Der Weg zurueck ins
+   Portal traegt .knopf mit display: inline-flex und stand deshalb sichtbar da,
+   obwohl er ausserhalb des Portals ins Leere zeigt. */
+[hidden] { display: none !important; }
+
+body {
+  font-family: var(--schrift);
+  background: var(--hintergrund);
+  color: var(--vordergrund);
+  line-height: 1.7;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--primaer); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 4px; }
+
+/* ── Kopfzeile ─────────────────────────────────────────────────────────── */
+/* 64 px hoch wie die Kopfzeile des Portals (md:h-16). */
+.kopf {
+  position: sticky; top: 0; z-index: 50;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; padding: 0 1.25rem;
+  background: var(--leiste);
+  border-bottom: 1px solid var(--leiste-rand);
+}
+
+.marke { display: flex; align-items: center; gap: 0.7rem; color: inherit; }
+.marke:hover { text-decoration: none; }
+
+.marke-zeichen { width: 36px; height: 36px; flex-shrink: 0; display: block; }
+
+.marke-text { display: flex; flex-direction: column; line-height: 1.25; }
+.marke-name { font-family: var(--schrift-titel); font-weight: 800; font-size: 1.05rem; }
+.marke-unter { font-size: 0.7rem; font-weight: 600; color: var(--gedaempft-text); }
+
+.kopf-werkzeuge { display: flex; align-items: center; gap: 0.6rem; }
+
+.knopf {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+  height: 36px; padding: 0 0.85rem;
+  border-radius: calc(var(--radius) * 0.8);
+  font-family: inherit; font-size: 0.82rem; font-weight: 700;
+  cursor: pointer; border: 1px solid transparent; white-space: nowrap;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+.knopf-voll { background: var(--primaer); color: var(--primaer-auf); }
+.knopf-voll:hover { filter: brightness(1.08); text-decoration: none; }
+.knopf-rand { background: transparent; color: var(--gedaempft-text); border-color: var(--rand); }
+.knopf-rand:hover { color: var(--vordergrund); border-color: var(--primaer); text-decoration: none; }
+
+/* ── Suche ─────────────────────────────────────────────────────────────── */
+.suche {
+  display: flex; align-items: center; gap: 0.5rem;
+  height: 36px; padding: 0 0.7rem;
+  background: var(--gedaempft);
+  border: 1px solid var(--rand);
+  border-radius: calc(var(--radius) * 0.8);
+}
+.suche:focus-within { border-color: var(--primaer); }
+.suche-zeichen { color: var(--gedaempft-text); font-size: 1rem; line-height: 1; }
+
+.suche-feld {
+  background: none; border: none; outline: none;
+  color: var(--vordergrund); font-family: inherit; font-size: 0.85rem;
+  width: 200px; padding: 0;
+}
+.suche-feld::placeholder { color: var(--gedaempft-text); }
+.suche-feld::-webkit-search-cancel-button { display: none; }
+
+/* Haelt seine Breite auch leer, sonst wackelt die Kopfzeile bei jedem
+   Tastendruck. */
+.suche-zaehler {
+  font-size: 0.72rem; color: var(--gedaempft-text);
+  font-variant-numeric: tabular-nums; min-width: 4.5rem; text-align: right;
+}
+.suche-zaehler.leer { color: var(--warnung); font-weight: 700; }
+
+.suche-loeschen {
+  background: none; border: none; cursor: pointer; padding: 0 0 0 0.2rem;
+  color: var(--gedaempft-text); font-size: 1.15rem; line-height: 1;
+}
+.suche-loeschen:hover { color: var(--vordergrund); }
+
+/* ── Sprachumschalter ──────────────────────────────────────────────────── */
+.sprachen {
+  display: flex; align-items: center; gap: 2px;
+  padding: 3px; background: var(--gedaempft);
+  border: 1px solid var(--rand); border-radius: calc(var(--radius) * 0.8);
+}
+.sprache {
+  border: none; background: none; cursor: pointer;
+  font-family: inherit; font-size: 0.72rem; font-weight: 800;
+  color: var(--gedaempft-text);
+  padding: 0.25rem 0.45rem; border-radius: calc(var(--radius) * 0.5);
+  transition: background-color 0.15s, color 0.15s;
+}
+.sprache:hover { color: var(--vordergrund); }
+.sprache-aktiv { background: var(--primaer); color: var(--primaer-auf); }
+.sprache-aktiv:hover { color: var(--primaer-auf); }
+
+/* ── Raster ────────────────────────────────────────────────────────────── */
+.raster {
+  display: grid; grid-template-columns: 300px minmax(0, 1fr);
+  max-width: 1500px; margin: 0 auto;
+  min-height: calc(100vh - 64px);
+}
+
+#toc {
+  position: sticky; top: 64px; align-self: start;
+  height: calc(100vh - 64px); overflow-y: auto;
+  padding: 1.75rem 1.25rem 3rem;
+  border-right: 1px solid var(--rand);
+}
+
+.toc-titel {
+  font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.14em; color: var(--gedaempft-text); margin-bottom: 0.9rem;
+}
+
+.toc-link {
+  display: block; color: var(--gedaempft-text); font-size: 0.82rem;
+  padding: 0.3rem 0.5rem; border-radius: calc(var(--radius) * 0.6);
+  border-left: 2px solid transparent;
+}
+.toc-link:hover { background: var(--leiste-akzent); color: var(--vordergrund); text-decoration: none; }
+.toc-link.aktiv { color: var(--primaer); border-left-color: var(--primaer); font-weight: 700; }
+
+.toc-1 {
+  font-weight: 700; color: var(--vordergrund); font-size: 0.85rem;
+  margin-top: 0.9rem; padding-top: 0.6rem; border-top: 1px solid var(--rand);
+}
+.toc-1:first-of-type { margin-top: 0; border-top: none; }
+.toc-2 { padding-left: 1rem; }
+.toc-3 { padding-left: 1.9rem; font-size: 0.78rem; }
+
+main { padding: 2.5rem 3rem 6rem; max-width: 62rem; min-width: 0; }
+
+/* ── Deckblatt ─────────────────────────────────────────────────────────── */
+.deckblatt {
+  background: var(--karte);
+  border: 1px solid var(--rand);
+  border-radius: calc(var(--radius) * 2);
+  padding: 3rem; margin-bottom: 3.5rem;
+}
+.deckblatt-zeichen { width: 64px; height: 64px; display: block; margin-bottom: 1.5rem; }
+.deckblatt-art {
+  font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.16em; color: var(--primaer); margin-bottom: 0.9rem;
+}
+.deckblatt h1 {
+  font-family: var(--schrift-titel); font-size: 3rem; font-weight: 800;
+  line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 0.6rem;
+}
+.deckblatt-unter { color: var(--gedaempft-text); font-size: 1.05rem; max-width: 46rem; }
+.deckblatt-daten {
+  display: flex; flex-wrap: wrap; gap: 2.5rem;
+  margin-top: 2.25rem; padding-top: 1.75rem; border-top: 1px solid var(--rand);
+}
+.dt-name {
+  display: block; font-size: 0.66rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--gedaempft-text); margin-bottom: 0.3rem;
+}
+.dt-wert { font-weight: 700; font-size: 0.95rem; }
+
+/* ── Ueberschriften ────────────────────────────────────────────────────── */
+section { margin-bottom: 3.5rem; }
+
+h2 {
+  font-family: var(--schrift-titel); font-size: 1.85rem; font-weight: 800;
+  letter-spacing: -0.015em; margin-bottom: 1.25rem;
+  padding-bottom: 0.7rem; border-bottom: 2px solid var(--primaer);
+  display: flex; align-items: baseline; gap: 0.7rem;
+}
+h2 .nr { color: var(--primaer); font-size: 1.1rem; font-weight: 800; }
+
+h3 {
+  font-family: var(--schrift-titel); font-size: 1.3rem; font-weight: 700;
+  margin: 2.25rem 0 0.9rem;
+}
+
+h4 {
+  font-family: var(--schrift-titel); font-size: 1.02rem; font-weight: 700;
+  margin: 1.85rem 0 0.5rem;
+  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+}
+
+p { margin-bottom: 0.9rem; }
+p:last-child { margin-bottom: 0; }
+.abstand-oben { margin-top: 0.8rem; }
+
+ol, ul { margin: 0 0 1rem 1.3rem; }
+li { margin-bottom: 0.45rem; }
+
+code {
+  font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+  font-size: 0.86em; background: var(--gedaempft);
+  padding: 0.1rem 0.35rem; border-radius: 4px;
+  border: 1px solid var(--rand); white-space: nowrap;
+}
+
+/* ── Kaesten ───────────────────────────────────────────────────────────── */
+.kasten {
+  border: 1px solid var(--rand); border-left-width: 3px;
+  border-radius: var(--radius); padding: 1.1rem 1.35rem;
+  margin: 1.25rem 0; background: var(--karte);
+}
+.kasten-titel { font-weight: 800; margin-bottom: 0.5rem; font-size: 0.95rem; }
+.kasten-info { border-left-color: var(--primaer); }
+.kasten-info .kasten-titel { color: var(--primaer); }
+.kasten-wichtig { border-left-color: var(--gut); }
+.kasten-wichtig .kasten-titel { color: var(--gut); }
+.kasten-warnung { border-left-color: var(--warnung); }
+.kasten-warnung .kasten-titel { color: var(--warnung); }
+
+/* ── Karten ────────────────────────────────────────────────────────────── */
+.karten-raster {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem; margin: 1.25rem 0;
+}
+.karte-klein {
+  background: var(--karte); border: 1px solid var(--rand);
+  border-radius: var(--radius); padding: 1.1rem 1.25rem;
+}
+.karte-klein-titel { font-family: var(--schrift-titel); font-weight: 700; margin-bottom: 0.2rem; }
+.karte-klein-zeile {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--primaer); margin-bottom: 0.6rem;
+}
+.karte-klein p { font-size: 0.89rem; color: var(--gedaempft-text); }
+
+/* ── Merkmale eines Moduls ─────────────────────────────────────────────── */
+.merkmale {
+  border: 1px solid var(--rand); border-radius: var(--radius);
+  background: var(--karte); margin: 0.9rem 0 1.5rem; overflow: hidden;
+}
+.merkmal {
+  display: grid; grid-template-columns: 11rem minmax(0, 1fr);
+  gap: 1rem; padding: 0.6rem 1.1rem;
+  border-top: 1px solid var(--rand); font-size: 0.89rem;
+}
+.merkmal:first-child { border-top: none; }
+.merkmal-name { font-weight: 700; color: var(--gedaempft-text); }
+
+/* ── Tabellen ──────────────────────────────────────────────────────────── */
+.tabelle {
+  margin: 1.25rem 0; overflow-x: auto;
+  border: 1px solid var(--rand); border-radius: var(--radius);
+  background: var(--karte);
+}
+table { width: 100%; border-collapse: collapse; font-size: 0.89rem; }
+th {
+  text-align: left; font-weight: 800; font-size: 0.72rem;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--gedaempft-text); background: var(--gedaempft);
+  padding: 0.7rem 1rem; border-bottom: 1px solid var(--rand);
+  white-space: nowrap;
+}
+td { padding: 0.7rem 1rem; border-bottom: 1px solid var(--rand); vertical-align: top; }
+tbody tr:last-child td { border-bottom: none; }
+
+/* Die Rechtematrix ist breit: neun Spalten. Die erste bleibt stehen. */
+.tabelle-matrix table { font-size: 0.82rem; }
+.tabelle-matrix th:not(:first-child), .tabelle-matrix td:not(:first-child) {
+  text-align: center; white-space: normal;
+}
+.tabelle-matrix th:first-child, .tabelle-matrix td:first-child {
+  position: sticky; left: 0; background: var(--karte); z-index: 1;
+}
+.tabelle-matrix th:first-child { background: var(--gedaempft); }
+
+.recht { font-size: 1rem; line-height: 1; }
+.recht-schreiben { color: var(--primaer); }
+.recht-lesen { color: var(--gedaempft-text); }
+.recht-keins { color: var(--rand); }
+.legende { font-size: 0.82rem; color: var(--gedaempft-text); }
+
+/* ── Pillen ────────────────────────────────────────────────────────────── */
+.pille {
+  display: inline-block; padding: 0.15rem 0.6rem;
+  border-radius: 999px; font-size: 0.68rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;
+}
+.pille-gut { background: color-mix(in srgb, var(--gut) 14%, transparent); color: var(--gut); }
+.pille-offen { background: color-mix(in srgb, var(--warnung) 14%, transparent); color: var(--warnung); }
+.pille-jetzt { background: color-mix(in srgb, var(--primaer) 14%, transparent); color: var(--primaer); }
+
+/* ── Suche: Treffer und Filter ─────────────────────────────────────────── */
+mark.treffer { background: var(--markierung); color: inherit; border-radius: 3px; padding: 0 2px; }
+mark.treffer-aktiv {
+  background: var(--akzent); color: var(--hintergrund);
+  font-weight: 700; box-shadow: 0 0 0 3px color-mix(in srgb, var(--akzent) 30%, transparent);
+}
+
+.ausgeblendet { display: none; }
+
+.such-hinweis {
+  display: none; margin-bottom: 1.5rem;
+  background: var(--karte); border: 1px solid var(--rand);
+  border-left: 3px solid var(--warnung); border-radius: var(--radius);
+  padding: 1.1rem 1.35rem; color: var(--gedaempft-text); font-size: 0.92rem;
+}
+.such-hinweis.sichtbar { display: block; }
+.such-hinweis strong { color: var(--vordergrund); }
+
+/* ── Fuss ──────────────────────────────────────────────────────────────── */
+.fuss {
+  border-top: 1px solid var(--rand); padding: 1.75rem 3rem;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+  font-size: 0.8rem; color: var(--gedaempft-text);
+}
+
+/* ── Schmale Schirme ───────────────────────────────────────────────────── */
+@media (max-width: 1180px) {
+  .raster { grid-template-columns: 1fr; }
+  #toc { display: none; }
+  main { padding: 2rem 1.5rem 4rem; }
+  .fuss { padding: 1.5rem; }
+  .suche-feld { width: 130px; }
+  .marke-unter { display: none; }
+}
+
+@media (max-width: 820px) {
+  .kopf { height: auto; padding: 0.7rem 1rem; flex-wrap: wrap; position: static; }
+  .kopf-werkzeuge { width: 100%; flex-wrap: wrap; }
+  .suche { flex: 1 1 100%; }
+  .suche-feld { width: 100%; flex: 1; }
+  .deckblatt { padding: 1.75rem; }
+  .deckblatt h1 { font-size: 2.1rem; }
+  .deckblatt-daten { gap: 1.25rem; }
+  .merkmal { grid-template-columns: 1fr; gap: 0.15rem; }
+  h2 { font-size: 1.5rem; }
+}
+
+/* ── Druck ─────────────────────────────────────────────────────────────── */
+@media print {
+  .kein-druck, .kopf, #toc, .fuss { display: none !important; }
+  .raster { display: block; max-width: none; }
+  main { padding: 0; max-width: none; }
+
+  /* Der PDF-Export ist immer das vollstaendige Handbuch, nie der gerade
+     gefilterte Ausschnitt. Das Skript setzt die Suche vor dem Druck zurueck;
+     diese Regeln sind das zweite Netz, falls JavaScript abgeschaltet ist oder
+     der Druck ueber Strg+P am Skript vorbeilaeuft. Ohne sie druckte eine
+     Suche nach "Kuehlkette" ein Handbuch aus drei Absaetzen - und niemand
+     saehe dem PDF an, dass etwas fehlt. */
+  .ausgeblendet { display: revert !important; }
+  .such-hinweis { display: none !important; }
+  mark.treffer, mark.treffer-aktiv {
+    background: none !important; color: inherit !important;
+    box-shadow: none !important; font-weight: inherit !important; padding: 0 !important;
+  }
+
+  body { background: #fff; color: #000; font-size: 10.5pt; }
+  :root {
+    --hintergrund: #fff; --vordergrund: #000; --karte: #fff;
+    --gedaempft: #f4f4f4; --gedaempft-text: #444; --rand: #bbb;
+    --primaer: #005f74; --gut: #1f5e43; --warnung: #7a4c09;
+  }
+
+  section { break-before: page; }
+  section:first-of-type { break-before: auto; }
+  .deckblatt { break-after: page; border: none; padding: 0; }
+  h2, h3, h4 { break-after: avoid; }
+  table, .kasten, .karte-klein, .merkmale { break-inside: avoid; }
+  thead { display: table-header-group; }
+  .tabelle, .tabelle-matrix { overflow: visible; }
+  .tabelle-matrix th:first-child, .tabelle-matrix td:first-child { position: static; }
+  a { color: #000; text-decoration: none; }
+  @page { margin: 16mm 14mm; }
+}
+</style>
+</head>
+<body>
+
+<header class="kopf kein-druck">
+  <a class="marke" href="#ueberblick">
+    <svg class="marke-zeichen" viewBox="0 0 128 128" role="img" aria-label="Damicon">
+      <rect width="128" height="128" rx="28" fill="var(--primaer)" />
+      <circle cx="64" cy="64" r="46" fill="none" stroke="var(--primaer-auf)" stroke-opacity="0.85" stroke-width="4.5" />
+      <g fill="none" stroke="#f2c14b" stroke-width="4.5" stroke-linecap="round"><path d="M43 68 L34 68" /><path d="M44 61.5 L35.5 58.7" /><path d="M47 55.7 L39.7 50.4" /><path d="M51.7 51 L46.4 43.7" /><path d="M57.5 48 L54.7 39.5" /><path d="M64 47 L64 38" /><path d="M70.5 48 L73.3 39.5" /><path d="M76.3 51 L81.6 43.7" /><path d="M81 55.7 L88.3 50.4" /><path d="M84 61.5 L92.5 58.7" /><path d="M85 68 L94 68" /></g>
+      <circle cx="64" cy="68" r="15" fill="#ff5c7a" />
+      <path d="M32 92H96" fill="none" stroke="var(--primaer-auf)" stroke-opacity="0.85" stroke-width="5.5" stroke-linecap="round" />
+    </svg>
+    <span class="marke-text">
+      <span class="marke-name">Damicon</span>
+      <span class="marke-unter">Product handbook</span>
+    </span>
+  </a>
+
+  <div class="kopf-werkzeuge">
+    <div class="suche">
+      <span class="suche-zeichen" aria-hidden="true">⌕</span>
+      <input type="search" id="suchfeld" class="suche-feld"
+        placeholder="Search the handbook …"
+        aria-label="Search the handbook"
+        autocomplete="off" spellcheck="false" />
+      <span class="suche-zaehler" id="such-zaehler" role="status" aria-live="polite"></span>
+      <button type="button" class="suche-loeschen" id="such-loeschen"
+        title="Clear search (Esc)"
+        aria-label="Clear search (Esc)" hidden>×</button>
+    </div>
+
+    <div class="sprachen" role="group" aria-label="Language">
+      <button type="button" class="sprache" data-sprache="de" title="Deutsch">DE</button><button type="button" class="sprache sprache-aktiv" data-sprache="en" title="English">EN</button><button type="button" class="sprache" data-sprache="kk" title="Қазақша">KK</button><button type="button" class="sprache" data-sprache="ru" title="Русский">RU</button>
+    </div>
+
+    <button type="button" class="knopf knopf-rand" id="thema-knopf"
+      title="Switch colour scheme" aria-label="Switch colour scheme">
+      <span id="thema-zeichen" aria-hidden="true">◐</span>
+    </button>
+
+    <a class="knopf knopf-rand" id="portal-knopf" href="../"
+      title="Back to the portal overview" hidden>← Open portal</a>
+
+    <button type="button" class="knopf knopf-voll" onclick="handbuchAlsPdf()"
+      title="Save the complete handbook as PDF (Print → Save as PDF)">Save as PDF</button>
+  </div>
+</header>
+
+<div class="raster">
+  <nav id="toc" class="kein-druck" aria-label="Contents">
+    <div class="toc-titel">Contents</div>
+    <a class="toc-link toc-1" href="#ueberblick">01 Overview</a>
+    <a class="toc-link toc-2" href="#ueberblick-zonen">1.1 The four areas</a>
+    <a class="toc-link toc-2" href="#ueberblick-rollen">1.2 Roles</a>
+    <a class="toc-link toc-1" href="#bedienung">02 Using the portal</a>
+    <a class="toc-link toc-2" href="#bedienung-anmelden">2.1 Signing in</a>
+    <a class="toc-link toc-2" href="#bedienung-aufbau">2.2 How the interface is built</a>
+    <a class="toc-link toc-2" href="#bedienung-sprache">2.3 Switching language</a>
+    <a class="toc-link toc-2" href="#bedienung-thema">2.4 Colour scheme</a>
+    <a class="toc-link toc-2" href="#bedienung-rolle">2.5 Changing role</a>
+    <a class="toc-link toc-2" href="#bedienung-offline">2.6 Working without a connection</a>
+    <a class="toc-link toc-1" href="#bereiche">03 Areas and modules</a>
+    <a class="toc-link toc-2" href="#bereich-feld">3.1 Field</a>
+    <a class="toc-link toc-3" href="#modul-standort">3.1.1 Locations</a>
+    <a class="toc-link toc-3" href="#modul-reihenbloecke">3.1.2 Row blocks</a>
+    <a class="toc-link toc-3" href="#modul-pflueckaufgaben">3.1.3 Picking tasks</a>
+    <a class="toc-link toc-3" href="#modul-pflanzenschutz">3.1.4 Plant protection</a>
+    <a class="toc-link toc-3" href="#modul-rotationsplan">3.1.5 Rotation plan</a>
+    <a class="toc-link toc-3" href="#modul-wetter">3.1.6 Weather</a>
+    <a class="toc-link toc-2" href="#bereich-hof">3.2 Yard</a>
+    <a class="toc-link toc-3" href="#modul-kuehlkette">3.2.1 Cold chain</a>
+    <a class="toc-link toc-3" href="#modul-logistik">3.2.2 Collection rounds</a>
+    <a class="toc-link toc-3" href="#modul-qr_steigen">3.2.3 QR crates</a>
+    <a class="toc-link toc-3" href="#modul-esf">3.2.4 Delivery note (ЭСФ)</a>
+    <a class="toc-link toc-2" href="#bereich-buero">3.3 Office</a>
+    <a class="toc-link toc-3" href="#modul-rollen">3.3.1 Roles and permissions</a>
+    <a class="toc-link toc-3" href="#modul-finanzen">3.3.2 Finance</a>
+    <a class="toc-link toc-3" href="#modul-wirtschaftlichkeit">3.3.3 Business case</a>
+    <a class="toc-link toc-3" href="#modul-personal">3.3.4 Picker register</a>
+    <a class="toc-link toc-3" href="#modul-lohn">3.3.5 Quality-factor pay</a>
+    <a class="toc-link toc-3" href="#modul-dokumente">3.3.6 Documents</a>
+    <a class="toc-link toc-3" href="#modul-compliance">3.3.7 Compliance</a>
+    <a class="toc-link toc-3" href="#modul-integrationen">3.3.8 Integrations</a>
+    <a class="toc-link toc-3" href="#modul-foerdermittel">3.3.9 Grants</a>
+    <a class="toc-link toc-3" href="#modul-stammdaten">3.3.10 Master data</a>
+    <a class="toc-link toc-2" href="#bereich-markt">3.4 Market</a>
+    <a class="toc-link toc-3" href="#modul-sortenkatalog">3.4.1 Variety catalogue</a>
+    <a class="toc-link toc-3" href="#modul-b2b_portal">3.4.2 B2B portal</a>
+    <a class="toc-link toc-3" href="#modul-reklamationen">3.4.3 Complaints</a>
+    <a class="toc-link toc-3" href="#modul-preislisten">3.4.4 Price lists</a>
+    <a class="toc-link toc-3" href="#modul-aggregator">3.4.5 Aggregator</a>
+    <a class="toc-link toc-3" href="#modul-schulungen">3.4.6 Training</a>
+    <a class="toc-link toc-3" href="#modul-kanaele">3.4.7 Contact channels</a>
+    <a class="toc-link toc-1" href="#anleitungen">04 How-to guides</a>
+    <a class="toc-link toc-2" href="#anleitung-wartezeit">4.1 Applying and lifting a pre-harvest interval lock</a>
+    <a class="toc-link toc-2" href="#anleitung-pflueckaufgabe">4.2 A picking task with photo evidence</a>
+    <a class="toc-link toc-2" href="#anleitung-nachweiskette">4.3 Showing the chain of evidence for a delivery</a>
+    <a class="toc-link toc-2" href="#anleitung-dokument">4.4 Filing a document</a>
+    <a class="toc-link toc-2" href="#anleitung-zugang">4.5 Setting up access: invitation and second factor</a>
+    <a class="toc-link toc-1" href="#referenz">05 Reference</a>
+    <a class="toc-link toc-2" href="#referenz-seiten">5.1 Pages</a>
+    <a class="toc-link toc-2" href="#referenz-rechte">5.2 Permissions by role</a>
+    <a class="toc-link toc-2" href="#referenz-schnittstellen">5.3 Interfaces</a>
+    <a class="toc-link toc-1" href="#technik">06 Technology</a>
+    <a class="toc-link toc-2" href="#technik-stack">6.1 Technology used</a>
+    <a class="toc-link toc-2" href="#technik-meilensteine">6.2 Milestones</a>
+    <a class="toc-link toc-1" href="#recht">07 Law and data residency</a>
+    <a class="toc-link toc-1" href="#glossar">08 Glossary</a>
+  </nav>
+
+  <main>
+    <div class="such-hinweis" id="such-hinweis" role="status" aria-live="polite"></div>
+
+    <div class="deckblatt">
+      <svg class="deckblatt-zeichen" viewBox="0 0 128 128" role="img" aria-label="Damicon">
+      <rect width="128" height="128" rx="28" fill="var(--primaer)" />
+      <circle cx="64" cy="64" r="46" fill="none" stroke="var(--primaer-auf)" stroke-opacity="0.85" stroke-width="4.5" />
+      <g fill="none" stroke="#f2c14b" stroke-width="4.5" stroke-linecap="round"><path d="M43 68 L34 68" /><path d="M44 61.5 L35.5 58.7" /><path d="M47 55.7 L39.7 50.4" /><path d="M51.7 51 L46.4 43.7" /><path d="M57.5 48 L54.7 39.5" /><path d="M64 47 L64 38" /><path d="M70.5 48 L73.3 39.5" /><path d="M76.3 51 L81.6 43.7" /><path d="M81 55.7 L88.3 50.4" /><path d="M84 61.5 L92.5 58.7" /><path d="M85 68 L94 68" /></g>
+      <circle cx="64" cy="68" r="15" fill="#ff5c7a" />
+      <path d="M32 92H96" fill="none" stroke="var(--primaer-auf)" stroke-opacity="0.85" stroke-width="5.5" stroke-linecap="round" />
+    </svg>
+      <div class="deckblatt-art">Product handbook · WAMOCON GmbH</div>
+      <h1>Damicon</h1>
+      <p class="deckblatt-unter">Farm management for a raspberry operation near Almaty</p>
+      <div class="deckblatt-daten">
+        <div><span class="dt-name">Version</span><span class="dt-wert">0.1.0</span></div>
+        <div><span class="dt-name">Status</span><span class="dt-wert"><span class="pille pille-jetzt">Prototype</span></span></div>
+        <div><span class="dt-name">Languages</span><span class="dt-wert">DE · EN · KK · RU</span></div>
+        <div><span class="dt-name">As of</span><span class="dt-wert">23 September 2026</span></div>
+      </div>
+    </div>
+
+    <section id="ueberblick">
+      <h2><span class="nr">01</span> Overview</h2>
+      <p>Damicon runs a raspberry plantation from the row to the invoice: what is ripe where, who picked it, how fast it was cooled, what it cost and what it earned. The portal is divided into four areas that follow the path of the fruit — Field, Yard, Office, Market.</p>
+
+      <div class="kasten kasten-wichtig">
+        <div class="kasten-titel">What this is about</div>
+        <p>With raspberries, market leadership does not come from volume but from proof. Cooling curve, batch, block of origin, picker and treatment record have to be complete for every delivery. That is exactly what Damicon records.</p>
+      </div>
+
+      <div class="kasten kasten-warnung">
+        <div class="kasten-titel">State of this release</div>
+        <p>The portal is a prototype. Its main functions work against a real database: sign-in, role permissions, site management, row block locking, picking tasks with photo evidence, document storage. Two modules are still a menu entry without a view. The figures show baseline values until the first fully measured season is available. Without a database connection the portal runs in demo mode on sample data.</p>
+      </div>
+
+      <h3 id="ueberblick-zonen">1.1 The four areas</h3>
+      <p>Each area has its own landing page showing its modules as tiles. Which of them are visible depends on the role of the account signed in.</p>
+      <div class="karten-raster">
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Field</div>
+          <div class="karte-klein-zeile">Growing, harvest, plant protection</div>
+          <p>Location model, row-block status including the pre-harvest-interval lock, picking tasks with photo evidence, rotation plan and weather link.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Yard</div>
+          <div class="karte-klein-zeile">Cold chain, logistics</div>
+          <p>Pre-cooling with a 60-minute KPI, temperature logger, collection rounds, QR crate identification and electronic delivery note.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Office</div>
+          <div class="karte-klein-zeile">Finance, staff, compliance</div>
+          <p>Roles and permissions, contribution margin per row block and harvest day, quality-factor pay, document management, compliance cockpit and the state integrations.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Market</div>
+          <div class="karte-klein-zeile">Sales, AI, public</div>
+          <p>Variety and quota catalogue, B2B portal with pre-order, AI chat on a secured data basis, aggregator platform for neighbouring farms and multilingual training.</p>
+        </div>
+      </div>
+
+      <h3 id="ueberblick-rollen">1.2 Roles</h3>
+      <p>Eight roles. The role of the account signed in decides which modules appear in the navigation and what can be changed — and that is checked not only in the interface but again in the database.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Role</th><th>Responsibility and permissions</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Administration</strong></td><td>Full configuration, user and role management, oversight of sensitive finance, access and integration matters.</td></tr>
+            <tr><td><strong>CEO</strong></td><td>Overview of all four zones, all key figures and all four compliance areas, without managing the AI provider keys. Receives automatically updated compliance reports on login.</td></tr>
+            <tr><td><strong>Farm management</strong></td><td>Daily plantation operations, tasks, rotation, staff and approvals. Can view finance but not post entries.</td></tr>
+            <tr><td><strong>Accounting</strong></td><td>Contribution margin, pay, payments, state filings. No user management, no field sign-offs.</td></tr>
+            <tr><td><strong>Brigade / field</strong></td><td>Accepts picking tasks, records volume and photo evidence in the field, sees rotation and pre-harvest-interval locks.</td></tr>
+            <tr><td><strong>Picker</strong></td><td>Sees only their own picking performance and payslip. No write access to posted quantities or anyone else's data.</td></tr>
+            <tr><td><strong>Grower / neighbouring farm</strong></td><td>Neighbouring farm supplying produce. Sees its own row blocks, batches, settlement and contracts.</td></tr>
+            <tr><td><strong>B2B client</strong></td><td>Quotas, pre-orders, price lists, AI chat, released documents and own complaints.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="kasten kasten-info">
+        <div class="kasten-titel">Using this handbook</div>
+        <p>Search: the field at the top right, or jump there with / or Ctrl+K. The search hides chapters without a match and highlights the hits; Enter moves to the next one, Shift+Enter to the previous one, Esc clears it. Umlauts do not matter — “Kuhlkette” finds “Kühlkette”.</p>
+        <p class="abstand-oben">Save as PDF: the button at the top right, then choose “Save as PDF” in the print dialogue. The export always contains the complete handbook in the language currently selected — an active search filter is cleared beforehand, so you never get an excerpt that does not show what is missing. The same applies to Ctrl+P.</p>
+      </div>
+    </section>
+
+    <section id="bedienung">
+      <h2><span class="nr">02</span> Using the portal</h2>
+      <p>This chapter describes the interface: how to sign in, how the navigation is built and where the settings are. What the individual modules do is covered in the next chapter.</p>
+
+      <h3 id="bedienung-anmelden">2.1 Signing in</h3>
+      <ol>
+          <li>Open the portal. Without a language code in the address you are taken to the German version.</li>
+          <li>On the start page choose “Open portal”, or go to the sign-in page directly.</li>
+          <li>Enter your email address and password.</li>
+          <li>If a second factor is set up for the account, the six-digit code is requested next. Jumping straight to the overview does not help — the check sits in front of the page, not inside it.</li>
+          <li>After signing in you land on the overview with the four areas and the farm's key figures.</li>
+      </ol>
+      <div class="kasten kasten-info">
+        <div class="kasten-titel">Accounts for trying it out</div>
+        <p>For the prototype there is one account per role: admin@damicon.demo, ceo@damicon.demo, leitung@damicon.demo, buchhaltung@damicon.demo, brigade@damicon.demo, pfluecker@damicon.demo, erzeuger@damicon.demo, kunde@damicon.demo.</p>
+        <p class="abstand-oben">All eight accounts share the same password: DamiconDemo2026! — If the portal runs without a database, sign-in is skipped entirely and it works on sample data. Every view states at the top right which source it is reading from.</p>
+      </div>
+
+      <h3 id="bedienung-aufbau">2.2 How the interface is built</h3>
+      <p>On a desktop the sidebar carries the navigation, on a phone the bar along the bottom. Both lead to the same pages.</p>
+      <div class="karten-raster">
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Sidebar</div>
+          <p>On the left edge, from tablet width upwards. The overview at the top, below it the four areas as collapsible groups with their modules. An area in which the role may not see a single module does not appear at all. The sidebar can be collapsed to a narrow icon column; the toggle for that sits in the header. At the bottom are the handbook, the person signed in, the security page and sign-out.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Header</div>
+          <p>Carries the breadcrumb of the open page, the toggle for the sidebar width, the language selector, the colour scheme and — for administrators — the “View as” field.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Bottom bar (phone)</div>
+          <p>Below tablet width it replaces the sidebar. It shows only the top level, that is the overview and the four areas; the modules appear as tiles on the area page. A tree with 26 entries is the right shape for a standing column, not for a surface you open with your thumb. The account button opens a sheet with language, colour scheme, handbook, security and sign-out.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Overview</div>
+          <p>The landing page after signing in. A greeting, then the four areas with their key figures. Management and administrators additionally see “Today's essentials”: maturity, one sentence from the latest audit report, the changes since the previous one, and five tiles for audit, tax, legal, risk and finance.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Area page</div>
+          <p>Each area has its own page showing its modules as tiles with a short description. It is the route to the modules on a phone, where there is no sidebar.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Module page</div>
+          <p>Shows the module's view: tables, forms, figures. The top right states whether the data comes from the database or is sample data. Modules that have not been built yet state in one sentence what they will do.</p>
+        </div>
+      </div>
+
+      <h3 id="bedienung-sprache">2.3 Switching language</h3>
+      <p>The language selector sits in the header, and on a phone in the account sheet. Four languages are available: German, English, Kazakh and Russian. German and English are translated in full, Kazakh and Russian largely so for the prototype; where a translation is missing, the German text appears. The language is part of the address, so a given language version can be linked to. This handbook follows the language the portal is currently running in and has its own selector at the top right.</p>
+
+      <h3 id="bedienung-thema">2.4 Colour scheme</h3>
+      <p>Light and dark, switched in the header. The choice is stored in the browser and applies to this handbook as well. Without an explicit choice the portal follows the operating system setting.</p>
+
+      <h3 id="bedienung-rolle">2.5 Changing role</h3>
+      <p>The effective role is that of the account signed in; it is shown at the bottom of the sidebar. To see a different role, sign in with the matching account. Administrators additionally have the “View as” field: it changes only what appears on screen. Write permissions continue to follow the profile — and they do so in the database, where switching something in the interface has no effect.</p>
+
+      <h3 id="bedienung-offline">2.6 Working without a connection</h3>
+      <p>Out in the field the network is unreliable. Reports on picking tasks, crates, working hours and cooling measurements therefore go into a queue on the device and are sent later on their own. They pass through the same checks as an entry made at a desk — a report from the queue carries no more permissions than the person who created it.</p>
+    </section>
+
+    <section id="bereiche">
+      <h2><span class="nr">03</span> Areas and modules</h2>
+      <p>26 modules across four areas. This chapter describes each one: what it is for, who may see it and who may work in it, and what is still open. The permission details come from the same matrix the portal itself follows in operation.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Module</th><th>State</th><th>Visible to</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Locations</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Brigade / field</td></tr>
+            <tr><td><strong>Row blocks</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting, Brigade / field, Grower / neighbouring farm</td></tr>
+            <tr><td><strong>Picking tasks</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting, Brigade / field, Grower / neighbouring farm</td></tr>
+            <tr><td><strong>Plant protection</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Brigade / field</td></tr>
+            <tr><td><strong>Rotation plan</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Brigade / field</td></tr>
+            <tr><td><strong>Weather</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Brigade / field</td></tr>
+            <tr><td><strong>Cold chain</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Brigade / field</td></tr>
+            <tr><td><strong>Collection rounds</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Brigade / field</td></tr>
+            <tr><td><strong>QR crates</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Brigade / field</td></tr>
+            <tr><td><strong>Delivery note (ЭСФ)</strong></td><td><span class="pille pille-offen">in development</span></td><td>Administration, CEO, Farm management, Accounting</td></tr>
+            <tr><td><strong>Roles and permissions</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management</td></tr>
+            <tr><td><strong>Finance</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting, Grower / neighbouring farm</td></tr>
+            <tr><td><strong>Business case</strong></td><td><span class="pille pille-offen">in development</span></td><td>Administration, CEO, Farm management, Accounting</td></tr>
+            <tr><td><strong>Picker register</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management</td></tr>
+            <tr><td><strong>Quality-factor pay</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting, Picker</td></tr>
+            <tr><td><strong>Documents</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting, Grower / neighbouring farm, B2B client</td></tr>
+            <tr><td><strong>Compliance</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting</td></tr>
+            <tr><td><strong>Integrations</strong></td><td><span class="pille pille-offen">in development</span></td><td>Administration, CEO, Farm management, Accounting</td></tr>
+            <tr><td><strong>Grants</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting</td></tr>
+            <tr><td><strong>Master data</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting</td></tr>
+            <tr><td><strong>Variety catalogue</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, B2B client</td></tr>
+            <tr><td><strong>B2B portal</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting, Grower / neighbouring farm, B2B client</td></tr>
+            <tr><td><strong>Complaints</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting, B2B client</td></tr>
+            <tr><td><strong>Price lists</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management</td></tr>
+            <tr><td><strong>Aggregator</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting, Grower / neighbouring farm</td></tr>
+            <tr><td><strong>Training</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management, Accounting, Brigade / field, Picker, Grower / neighbouring farm</td></tr>
+            <tr><td><strong>Contact channels</strong></td><td><span class="pille pille-gut">ready for use</span></td><td>Administration, CEO, Farm management</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kasten kasten-info">
+        <p><strong>ready for use</strong> — Works against the database: reads and writes real data, every write is bound to the role and recorded in the audit log.</p>
+        <p class="abstand-oben"><strong>in development</strong> — A visible menu entry without its own view. The module page states in one sentence what the module will do.</p>
+      </div>
+
+      <h3 id="bereich-feld">3.1 Field</h3>
+      <p>Location model, row-block status including the pre-harvest-interval lock, picking tasks with photo evidence, rotation plan and weather link.</p>
+
+      <h4 id="modul-standort">3.1.1 Location hierarchy <span class="pille pille-gut">ready for use</span></h4>
+      <p>Farm, plantation, field plot, row group, row block - a digital field map with a unique row and block identifier along the trellises.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Field map with row blocks on the trellis, variety, planting year, cane type and trellis orientation per block.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/feld/standort</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Brigade / field</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>A screen for creating and moving parcels and row groups, and for drawing the field geometry.</span></div>
+      </div>
+
+      <h4 id="modul-reihenbloecke">3.1.2 Row blocks and status <span class="pille pille-gut">ready for use</span></h4>
+      <p>Every row block has one status: planted, ready to harvest, dormant, pruning or harvest-locked. A locked block simply must not appear in the picking schedule.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Every row block carries its own status. While a pre-harvest interval is running, it stays locked for harvesting until that interval expires.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/feld/reihenbloecke</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting, Brigade / field, Grower / neighbouring farm</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Status changes with a mandatory reason, and a history per row block.</span></div>
+      </div>
+
+      <h4 id="modul-pflueckaufgaben">3.1.3 Picking tasks with photo evidence <span class="pille pille-gut">ready for use</span></h4>
+      <p>A picking task per brigade and row block with target and actual volume, quality factor and photo evidence of the retail punnet right on the task.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Task per brigade and row block, photo evidence of the retail punnet, volume and quality factor on the task.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/feld/pflueckaufgaben</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting, Brigade / field, Grower / neighbouring farm</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management, Brigade / field</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Offline capture in the field, evidence review with release and rework, link to quality-factor pay.</span></div>
+      </div>
+
+      <h4 id="modul-pflanzenschutz">3.1.4 Plant protection and pre-harvest interval <span class="pille pille-gut">ready for use</span></h4>
+      <p>Every treatment is recorded with product, quantity, block, date and the person applying it, and locks the row block automatically until the statutory pre-harvest interval expires.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Block-level treatment records with an automatic harvest lock. A breach is a legal and food-safety risk.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/feld/pflanzenschutz</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Brigade / field</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Pesticide database with pre-harvest intervals, automatic release on deadline, mandatory record upload, residue proof per batch.</span></div>
+      </div>
+
+      <h4 id="modul-rotationsplan">3.1.5 Rotation plan / picking schedule <span class="pille pille-gut">ready for use</span></h4>
+      <p>A rolling picking schedule with an interval of two to three days per row block across the whole autumn harvest. One missed round destroys the block for that cycle.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Shows which row block is due when, spreading the passes across the six weeks of the harvest.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/feld/rotationsplan</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Brigade / field</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Automatic interval calculation per row block, brigade assignment, a check for conflicts with pre-harvest locks, calendar export (.ics).</span></div>
+      </div>
+
+      <h4 id="modul-wetter">3.1.6 Weather and growing degree days <span class="pille pille-gut">ready for use</span></h4>
+      <p>Weather data per location with a growing-degree-day calculation as the basis for the volume forecast.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>A simple weather interface with growing degree days per plot. Explainable, verifiable and validatable within a season.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/feld/wetter</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Brigade / field</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>A weather station on the farm instead of the values from the network, and a note on shifted ripening windows.</span></div>
+      </div>
+
+      <h3 id="bereich-hof">3.2 Yard</h3>
+      <p>Pre-cooling with a 60-minute KPI, temperature logger, collection rounds, QR crate identification and electronic delivery note.</p>
+
+      <h4 id="modul-kuehlkette">3.2.1 Cold-chain clock <span class="pille pille-gut">ready for use</span></h4>
+      <p>Timing from picking to pre-cooling with a hard 60-minute threshold, temperature logger, target temperature 0 to 1 degree. Highest priority in the whole farm.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Tracks the time from picking to pre-cooling. Over 60 minutes the ware is only industrial ware the next day.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/hof/kuehlkette</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Brigade / field</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Connecting temperature loggers so the readings do not have to be entered by hand.</span></div>
+      </div>
+
+      <h4 id="modul-logistik">3.2.2 Collection rounds and route planning <span class="pille pille-gut">ready for use</span></h4>
+      <p>Fixed collection rounds in the field so filled crates do not sit in the sun, plus route planning by the clients' delivery windows.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Handover receipt with volume and temperature reconciliation (pre-cooling and transport), unbroken cold-chain evidence all the way to the customer.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/hof/logistik</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Brigade / field</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management, Brigade / field</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Route list per vehicle and delivery time windows are still missing.</span></div>
+      </div>
+
+      <h4 id="modul-qr_steigen">3.2.3 QR crate identification <span class="pille pille-gut">ready for use</span></h4>
+      <p>QR labels for crates (linking to the public origin lookup), picker ID badges carrying their own badge code without biometrics, and a sign-in-free wall poster - all three can be printed straight from the browser.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>The QR code carries identity from the field to the shop counter - the badge can be scanned by camera at the collection point to attribute a crate or work time to that person, instead of choosing them from a dropdown.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/hof/qr-steigen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Brigade / field</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>The crate labels cannot be scanned with the camera yet, only the picker badge.</span></div>
+      </div>
+
+      <h4 id="modul-esf">3.2.4 Electronic delivery note (ЭСФ) <span class="pille pille-offen">in development</span></h4>
+      <p>An electronic delivery note in line with the goods-accompanying-document obligation. A link to the state ЭСФ system is planned, accounting of its own is not.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Will carry the evidence chain from the batch to the delivery note and take in the status feedback from the state system. Mandatory integration.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/hof/lieferschein-esf</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Accounting</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Connection to ИС ЭСФ, evidence chain batch to delivery note, status feedback and retry.</span></div>
+      </div>
+
+      <h3 id="bereich-buero">3.3 Office</h3>
+      <p>Roles and permissions, contribution margin per row block and harvest day, quality-factor pay, document management, compliance cockpit and the state integrations.</p>
+
+      <h4 id="modul-rollen">3.3.1 Roles and permissions <span class="pille pille-gut">ready for use</span></h4>
+      <p>Eight core roles, from the CEO and administration through farm management and accounting to the brigade and the individual picker in the field, the grower and the B2B client, with a permission matrix over resources and actions.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Sets out who may see and change what. A new role can be added without changing anything in the modules.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/buero/rollen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>User management, role assignment, fine-grained access rules per resource.</span></div>
+      </div>
+
+      <h4 id="modul-finanzen">3.3.2 Contribution margin and finance <span class="pille pille-gut">ready for use</span></h4>
+      <p>Cost centres per row block, cost objects per variety and per client. Contribution margin per kilogram, per row block, per variety and per harvest day - immutable postings.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Contribution margin per row block, variety and harvest day. Postings are immutable (append only).</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/buero/finanzen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting, Grower / neighbouring farm</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Accounting</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Cost types per harvest day, B2B payment reconciliation, contribution-margin projection per variety.</span></div>
+      </div>
+
+      <h4 id="modul-wirtschaftlichkeit">3.3.3 Business case for the rollout <span class="pille pille-offen">in development</span></h4>
+      <p>Investment appraisal for the rollout: payback period, return in year one and over three years, one-off and recurring cost, net present value. Model figures so far, not yet operational data.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Payback, return, one-off and recurring cost, net present value of the rollout. Model calculation, not yet from operations.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/buero/wirtschaftlichkeit</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Accounting</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Capture of investment, operating and benefit items, history per revision, plan versus actual.</span></div>
+      </div>
+
+      <h4 id="modul-personal">3.3.4 Picker register and brigades <span class="pille pille-gut">ready for use</span></h4>
+      <p>A person register with a picker ID badge, brigade assignment, output and quality factor per person across the season - the basis for bonuses, retraining and selection the following year.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Person register, brigade and picker ID badge, output and quality profile per person across the season.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/buero/personal</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>ЕСУТД registration per contract, brigade planning, output history as the basis for pay calculation.</span></div>
+      </div>
+
+      <h4 id="modul-lohn">3.3.5 Quality-factor pay <span class="pille pille-gut">ready for use</span></h4>
+      <p>A combined model of base pay, a volume component and a quality factor. A pure piece rate pushes for volume, squeezes berries and is value-destroying for the raspberry.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Base pay plus volume plus a quality factor. The quality factor is not optional but a precondition.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/buero/lohn</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting, Picker</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Accounting</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>The minimum wage as a hard floor, editing the pay rates with a preview of the corridor, a payslip as PDF per picker, an advance account.</span></div>
+      </div>
+
+      <h4 id="modul-dokumente">3.3.6 Document management <span class="pille pille-gut">ready for use</span></h4>
+      <p>A secure store for spray records, ЕСУТД evidence, supply and framework contracts, grant dossiers and certificates - linked to the row block and the batch.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>A categorised, secure document store linked to the row block and the batch.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/buero/dokumente</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting, Grower / neighbouring farm, B2B client</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management, Accounting</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Versions per document, expiry dates with a reminder.</span></div>
+      </div>
+
+      <h4 id="modul-compliance">3.3.7 Compliance cockpit <span class="pille pille-gut">ready for use</span></h4>
+      <p>Processing purposes, consents, data incidents and third-party disclosures from five granular tables - reading and writing reserved to office roles only.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Granular data-protection schema: processing purposes, consents, incidents and disclosures in one place.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/buero/compliance</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management, Accounting</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Legal citations from the tax code, the AI act and the digital code, retention periods per kind of data, a check of the storage location.</span></div>
+      </div>
+
+      <h4 id="modul-integrationen">3.3.8 State integrations <span class="pille pille-offen">in development</span></h4>
+      <p>Connectors to ЭСФ, virtual stock, ЕСУТД and the subsidy portals gosagro.kz and qoldau.kz are planned. Accounting stays with a solution established in the country.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Will get one connector per target system, with status feedback and retry. Accounting stays out of scope.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/buero/integrationen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Accounting</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Connectors per system, test access, handling of errors and retries, an overview of the pending items.</span></div>
+      </div>
+
+      <h4 id="modul-foerdermittel">3.3.9 Grant application dossier <span class="pille pille-gut">ready for use</span></h4>
+      <p>Application templates, evidence lists and a deadline monitor for the Kazakh subsidy portals - eligibility as a by-product of ongoing bookkeeping.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Deadline monitor and per-dossier evidence documents are connected. Application templates and evidence checklists per grant programme remain open.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/buero/foerdermittel</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management, Accounting</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Application templates and evidence checklists per grant programme. The first open question is which fields and documents gosagro.kz and qoldau.kz ask for per programme.</span></div>
+      </div>
+
+      <h4 id="modul-stammdaten">3.3.10 Master data and tax numbers <span class="pille pille-gut">ready for use</span></h4>
+      <p>Legal form and IIN or BIN for the farm itself, its supplying farms and its customers - the details that must appear on every document.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>A peasant farm carries an IIN, a legal entity a BIN. The check digit rejects a transposed number before it reaches an invoice.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/buero/stammdaten</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management, Accounting</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Collect numbers for supplying farms and customers.</span></div>
+      </div>
+
+      <h3 id="bereich-markt">3.4 Market</h3>
+      <p>Variety and quota catalogue, B2B portal with pre-order, AI chat on a secured data basis, aggregator platform for neighbouring farms and multilingual training.</p>
+
+      <h4 id="modul-sortenkatalog">3.4.1 Variety and quota catalogue <span class="pille pille-gut">ready for use</span></h4>
+      <p>A catalogue of variety, harvest window (summer-bearing or everbearing), punnet weight, quota and price list - the basis for pre-order and the B2B portal.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Variety, harvest window, punnet weight, quota and price in one place.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/markt/sortenkatalog</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, B2B client</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Quota booking with reservation logic, price-list versions, client assignment.</span></div>
+      </div>
+
+      <h4 id="modul-b2b_portal">3.4.2 B2B portal <span class="pille pille-gut">ready for use</span></h4>
+      <p>A regular-client portal with quotas, pre-order with lead time, a price list by client group, delivery status, invoice history and complaint reporting.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Delivery status with handover receipt, price list, and pre-orders with manual office confirmation are connected.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/markt/b2b-portal</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting, Grower / neighbouring farm, B2B client</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management, B2B client</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Automatic quota consumption, tiered pricing per customer group and an invoice history. How exactly these should work has not been decided yet.</span></div>
+      </div>
+
+      <h4 id="modul-reklamationen">3.4.3 Complaint management <span class="pille pille-gut">ready for use</span></h4>
+      <p>A B2B client's complaint per batch - reason, deadline and history, with a status flow through to a credit note. A client reports and sees only their own complaint; the office handles and closes it.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>List, detail and history per complaint, linked to the batch - traceable from there to the row block, picker and cooling curve.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/markt/reklamationen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting, B2B client</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management, Accounting, B2B client</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Admin screen to link a client login to a B2B client record, automatic complaint rate in the KPI cockpit, notification as a deadline approaches.</span></div>
+      </div>
+
+      <h4 id="modul-preislisten">3.4.4 Price lists <span class="pille pille-gut">ready for use</span></h4>
+      <p>Versioned price lists with tiered prices by client group and validity period.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Price tiers per client and period, versioned and with a validity date.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/markt/preislisten</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Nothing left open: versions through the validity date, tiers through the minimum quantity and the assignment per customer group are all connected.</span></div>
+      </div>
+
+      <h4 id="modul-aggregator">3.4.5 Aggregator / neighbouring farms <span class="pille pille-gut">ready for use</span></h4>
+      <p>Connecting neighbouring farms: the purchased volume becomes an invoice line, every buy-in batch is tracked separately and remains traceable to the supplying farm.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>Neighbouring-farm onboarding, buy-in capture with its own batch, separate origin tracking, settlement.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/markt/aggregator</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting, Grower / neighbouring farm</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>A margin per neighbouring farm instead of a single one for all, and the payout itself.</span></div>
+      </div>
+
+      <h4 id="modul-schulungen">3.4.6 Training videos <span class="pille pille-gut">ready for use</span></h4>
+      <p>Multilingual, image-based short onboarding of seasonal workers on the phone - videos per core process, with pictures instead of text.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>An illustrated six-step induction, multilingual, with its own progress per person, plus the mandatory training.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/markt/schulungen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management, Accounting, Brigade / field, Picker, Grower / neighbouring farm</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management, Accounting, Brigade / field, Picker</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Videos per core process, filmed and dubbed into Kazakh and Russian.</span></div>
+      </div>
+
+      <h4 id="modul-kanaele">3.4.7 Contact channels <span class="pille pille-gut">ready for use</span></h4>
+      <p>Locally established contact channels and payment methods, shown publicly in the website footer. Display only, no connection to a real messenger or payment service.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">In short</span><span>WhatsApp, Kaspi QR and other channels as contact details - maintained by the office, hidden as a draft until then.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Address</span><span><code>/en/dashboard/markt/kanaele</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Visible to</span><span>Administration, CEO, Farm management</span></div>
+        <div class="merkmal"><span class="merkmal-name">May change</span><span>Administration, CEO, Farm management</span></div>
+        <div class="merkmal"><span class="merkmal-name">Still open</span><span>Enter the real account details for each channel.</span></div>
+      </div>
+    </section>
+
+    <section id="anleitungen">
+      <h2><span class="nr">04</span> How-to guides</h2>
+      <p>Five procedures that cover the core of the operation. The paths refer to the sidebar.</p>
+
+      <h3 id="anleitung-wartezeit">4.1 Applying and lifting a pre-harvest interval lock</h3>
+      <p>After a crop protection treatment a row block must not be harvested until the pre-harvest interval has elapsed. The portal applies this lock itself.</p>
+      <ol>
+          <li>Sign in as farm management and open Field → Row blocks and status.</li>
+          <li>At the bottom, “Record treatment”: choose the row block and the product. The interval comes from the product catalogue, it is not typed in by hand.</li>
+          <li>The block is immediately set to locked. The “Lock” column shows product, treatment date, interval, release date and the days remaining.</li>
+          <li>A status change is now impossible. The rule lives in the database and applies even if someone works around the interface.</li>
+          <li>Once the interval has elapsed, a “Release” button appears. It lifts the lock and signs off the treatment at the same time.</li>
+          <li>Clicking the status tiles filters the table; the filtered state can be passed on as a link.</li>
+      </ol>
+
+      <h3 id="anleitung-pflueckaufgabe">4.2 A picking task with photo evidence</h3>
+      <ol>
+          <li>Open Field → Picking tasks with photo evidence.</li>
+          <li>Create a new picking task at the bottom. Locked blocks are not offered for selection and are rejected by the database as well.</li>
+          <li>On the left, pick a task per brigade and row block. Progress is actual against target quantity.</li>
+          <li>As the brigade, accept the task, start picking and upload photo evidence on the right. On a phone this opens the camera directly. The file goes into a private storage area and is only ever shown through short-lived signed links.</li>
+          <li>“Report quantity” moves the task to evidence review.</li>
+          <li>Farm management or administrators review the evidence, enter the quality factor and release the task.</li>
+      </ol>
+
+      <h3 id="anleitung-nachweiskette">4.3 Showing the chain of evidence for a delivery</h3>
+      <p>This is the procedure that matters to the customer: from the punnet back to the person who filled it.</p>
+      <ol>
+          <li>Open Field → Picking tasks with photo evidence and select a task on the left.</li>
+          <li>On the right, under “Chain of evidence”, the batch is shown: cooling curve with the 60-minute limit, quantity and rejects, the crates with the person who filled them, and the residue record.</li>
+          <li>“Record crate” assigns a crate to a person. Only then does the chain reach from the customer all the way to the picker.</li>
+          <li>“Report working time” supplies the denominator for picking performance in kilograms per hour.</li>
+          <li>“Record cooling measurement”: the database derives minutes and verdict from the time of picking. Above 60 minutes the interface reports a breach and the goods have to be downgraded.</li>
+          <li>On the overview the figures then show the changed actual value — calculated, not entered.</li>
+      </ol>
+
+      <h3 id="anleitung-dokument">4.4 Filing a document</h3>
+      <ol>
+          <li>As an office role, open Office → Document management.</li>
+          <li>Under “File document” enter title, category, reference and date. The file itself — PDF or image — is optional.</li>
+          <li>Stored files open from the “File” column through a signed link. There is no public direct access.</li>
+      </ol>
+
+      <h3 id="anleitung-zugang">4.5 Setting up access: invitation and second factor</h3>
+      <p>New customer accounts are created by invitation. Each person sets up their own second factor.</p>
+      <ol>
+          <li>As an administrator or farm management, open Office → Roles and permissions.</li>
+          <li>Under “Invitations” enter the email address and role. This sits here because it is the same matter as the permission matrix above it — only its writing side.</li>
+          <li>The invited person opens the invitation link and sets their own password. That page is reachable without signing in: whoever lands there does not have an account yet.</li>
+          <li>An open invitation can be withdrawn as long as it has not been redeemed.</li>
+          <li>For the second factor: open “Security” at the bottom of the sidebar, or the same entry in the account sheet on a phone.</li>
+          <li>“Start” shows a QR code and a key — both are handed out only once. Scan it in an authenticator app, enter the six-digit code and confirm. Only then does the factor take effect.</li>
+      </ol>
+    </section>
+
+    <section id="referenz">
+      <h2><span class="nr">05</span> Reference</h2>
+
+      <h3 id="referenz-seiten">5.1 Pages</h3>
+      <p>All addresses in the portal. {locale} stands for one of the four language codes de, en, kk or ru; without a code you are taken to the German version.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Address</th><th>Content</th><th>Access</th></tr></thead>
+          <tbody>
+            <tr><td><code>/</code></td><td>Redirects to the German version.</td><td>Everyone</td></tr>
+            <tr><td><code>/{locale}</code></td><td>Public start page: what this is about, why raspberries are demanding, the 60-minute scene, quality benchmark, chain of evidence with a link to the public origin lookup, the areas, key figures.</td><td>Everyone</td></tr>
+            <tr><td><code>/{locale}/login</code></td><td>Sign-in. Without a database connection this shows a note and the direct route into the portal instead.</td><td>Everyone</td></tr>
+            <tr><td><code>/{locale}/login/mfa</code></td><td>Second factor prompt. A session with password alone is not enough when a confirmed second factor is set up for the account.</td><td>Signed in</td></tr>
+            <tr><td><code>/{locale}/einladung</code></td><td>Redeem an invited account and set your own password. Reachable without signing in — whoever lands here does not have an account yet.</td><td>Everyone</td></tr>
+            <tr><td><code>/{locale}/dashboard</code></td><td>Overview with the four areas and their key figures. Management and administrators additionally get the daily block “Today's essentials”.</td><td>Signed in</td></tr>
+            <tr><td><code>/{locale}/dashboard/{area}</code></td><td>Landing page of an area (feld, hof, buero, markt) with its modules as tiles.</td><td>By role</td></tr>
+            <tr><td><code>/{locale}/dashboard/{area}/{module}</code></td><td>A single module. The addresses of all 26 modules are listed in the chapter “Areas and modules”.</td><td>By role</td></tr>
+            <tr><td><code>/{locale}/dashboard/compliance</code></td><td>The most recently stored compliance report in full: findings with an area filter, action plan, notes, seal check and PDF output.</td><td>Management, administrators</td></tr>
+            <tr><td><code>/{locale}/dashboard/sicherheit</code></td><td>Set up, confirm or remove your own second factor. Every role manages only itself here.</td><td>Signed in</td></tr>
+            <tr><td><code>/{locale}/dashboard/handbuch</code></td><td>This handbook, in the portal's language. With full-text search and a complete PDF export.</td><td>Signed in</td></tr>
+            <tr><td><code>/{locale}/herkunft</code></td><td>Entry point to the public origin lookup with a field for typing in the code — for anyone who cannot scan a QR code.</td><td>Everyone</td></tr>
+            <tr><td><code>/{locale}/herkunft/{code}</code></td><td>The lookup for one specific batch. It discloses neither the batch number nor picker, quantity or price details; that is what makes it defensible without signing in.</td><td>Everyone</td></tr>
+            <tr><td><code>/{locale}/herkunft/aushang</code></td><td>A notice for printing. Its QR code points to the code entry page, not to a single batch: a notice hangs by the cold store for weeks, a punnet stands for hours.</td><td>Everyone</td></tr>
+            <tr><td><code>/{locale}/impressum</code></td><td>Legal notice for WAMOCON GmbH.</td><td>Everyone</td></tr>
+            <tr><td><code>/{locale}/datenschutz</code></td><td>Privacy information including details on data residency.</td><td>Everyone</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>The pages under /dashboard require signing in. Without a database connection that check is skipped, because there is no session then — this keeps demo mode startable without any setup.</p>
+
+      <h3 id="referenz-rechte">5.2 Permissions by role</h3>
+      <p>Which role may see and change which module. This table is generated from the same permission matrix the portal follows in operation — so it cannot go stale without the portal changing with it.</p>
+      <p class="legende">
+        <span class="recht recht-schreiben">●</span> Permissions by role &nbsp;
+        <span class="recht recht-lesen">○</span> Visible to &nbsp;
+        <span class="recht recht-keins">·</span> —
+      </p>
+      <div class="tabelle tabelle-matrix">
+        <table>
+          <thead><tr><th>Module</th><th>Administration</th><th>CEO</th><th>Farm management</th><th>Accounting</th><th>Brigade / field</th><th>Picker</th><th>Grower / neighbouring farm</th><th>B2B client</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Locations</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Row blocks</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Picking tasks</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Plant protection</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Rotation plan</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Weather</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Cold chain</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Collection rounds</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>QR crates</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Delivery note (ЭСФ)</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Roles and permissions</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Finance</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Business case</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Picker register</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Quality-factor pay</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Documents</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-lesen">○</span></td></tr>
+            <tr><td><strong>Compliance</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Integrations</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Grants</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Variety catalogue</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td></tr>
+            <tr><td><strong>B2B portal</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td></tr>
+            <tr><td><strong>Complaints</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td></tr>
+            <tr><td><strong>Price lists</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Aggregator</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Training</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Master data</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Contact channels</strong></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-schreiben" title="Permissions by role">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kasten kasten-wichtig">
+        <div class="kasten-titel">Two checks, not one</div>
+        <p>The interface shows only what the role is allowed to do — that is convenience, not security. What binds is the check in the database: there the profile's role decides every read and write, including direct access. On top of that the application checks again before every write.</p>
+      </div>
+
+      <h3 id="referenz-schnittstellen">5.3 Interfaces</h3>
+      <p>Five endpoints for tasks that have no page of their own. Each checks session and permission itself.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Address</th><th>Purpose</th><th>Access</th></tr></thead>
+          <tbody>
+            <tr><td><code>/api/ki-assistent</code></td><td>The AI assistant during a conversation. The answer appears as it is being produced rather than in one piece at the end.</td><td>AI assistant permission, consent given</td></tr>
+            <tr><td><code>/api/ki-pruefung</code></td><td>The compliance run across the four areas audit, tax, legal and risk. Progress arrives continuously so the interface can show the run. Without stored legal sources the run declines — a review without evidence would be worthless. Only one run per person at a time.</td><td>Role with audit permission</td></tr>
+            <tr><td><code>/api/ki-pruefung/auto</code></td><td>The same run, triggered at sign-in. First the cheap check whether anything changed at all; the full run follows only if needed.</td><td>Management, administrators</td></tr>
+            <tr><td><code>/api/ki-sprachausgabe</code></td><td>Reads out an already stored answer. Only by the identifier of an existing message, never with freely supplied text — otherwise the endpoint would be a speech generator for arbitrary content.</td><td>AI assistant permission</td></tr>
+            <tr><td><code>/api/sync</code></td><td>Receives the reports from the queue that were created in the field without a connection. They pass through the same checks as the corresponding forms.</td><td>Signed in, second factor current</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="technik">
+      <h2><span class="nr">06</span> Technology</h2>
+
+      <h3 id="technik-stack">6.1 Technology used</h3>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Layer</th><th>Technology</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Application</strong></td><td><code>Next.js 16</code></td><td>Pages are built on the server; the language is part of the address.</td></tr>
+            <tr><td><strong>Language</strong></td><td><code>TypeScript</code></td><td>Type-safe model of the domain terms and the permission matrix.</td></tr>
+            <tr><td><strong>Styling</strong></td><td><code>Tailwind CSS v4</code></td><td>Colour and spacing defined in one place, light and dark scheme.</td></tr>
+            <tr><td><strong>Languages</strong></td><td><code>next-intl</code></td><td>Four languages; where a translation is missing, the German text appears.</td></tr>
+            <tr><td><strong>Database</strong></td><td><code>PostgreSQL on Supabase</code></td><td>Data including permission checks in the database itself, not only in the application.</td></tr>
+            <tr><td><strong>Files</strong></td><td><code>Private storage area</code></td><td>Photo evidence and documents, reachable only through short-lived signed links.</td></tr>
+            <tr><td><strong>Offline</strong></td><td><code>Queue on the device</code></td><td>Reports from the field are held locally and transmitted later.</td></tr>
+            <tr><td><strong>AI</strong></td><td><code>Interchangeable providers</code></td><td>Assistant, compliance review and speech output on a secured data basis.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="technik-meilensteine">6.2 Milestones</h3>
+      <p>Internal preparation. Both dates fall before the on-site analysis week from 24 September to 1 October 2026.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Milestone</th><th>Date</th><th>Content</th></tr></thead>
+          <tbody>
+            <tr><td><strong>A — Prototype</strong> <span class="pille pille-gut">done</span></td><td>by 6 September 2026</td><td>Colour and spacing foundation, public start page with language switcher, portal skeleton with four areas, first procedures: row block overview and picking task with photo evidence.</td></tr>
+            <tr><td><strong>B — Framework</strong> <span class="pille pille-jetzt">this release</span></td><td>by 19 September 2026</td><td>Main functions against a real database: sign-in and role permissions, site management, row block status with pre-harvest interval lock, picking tasks with photo evidence in private storage, document management, key figures from baseline values.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kasten kasten-warnung">
+        <div class="kasten-titel">Relation to the customer's schedule</div>
+        <p>This internal schedule is tighter than the date given to the customer for phase one (16 October to 20 December 2026). The prototype is an internal demonstration system and not the contractually agreed scope.</p>
+      </div>
+    </section>
+
+    <section id="recht">
+      <h2><span class="nr">07</span> Law and data residency</h2>
+      <p>In 2026 Kazakhstan introduced new obligations in quick succession. The portal's safeguards already meet their intent; notice and consent texts, however, need to be drafted anew under Kazakhstani law rather than merely translated.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Legal basis 2026</th><th>Effect on Damicon</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Tax Code 2026</strong></td><td>Affects contribution margin and cost allocation.</td></tr>
+            <tr><td><strong>Electronic waybill (ЭСФ)</strong></td><td>Runs through an outbound queue, not through something the accounting department builds itself.</td></tr>
+            <tr><td><strong>AI Act No. 230-VIII</strong></td><td>Requires a transparency notice and consent for the AI chat.</td></tr>
+            <tr><td><strong>Digital Code No. 255-VIII</strong></td><td>Data residency: storing certain data outside Kazakhstan is restricted. The location for QR, queue and AI data must be assessed legally before going into production.</td></tr>
+            <tr><td><strong>Tightened data protection law (since 24 August 2026)</strong></td><td>Mainly affects the creation of customer and neighbouring-farm accounts.</td></tr>
+            <tr><td><strong>ЕСУТД — employment contract registry</strong></td><td>Every seasonal contract is registered in the state system through the outbound queue.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kasten kasten-info">
+        <div class="kasten-titel">For the prototype</div>
+        <p>The prototype processes no personal data and sets no cookies for behavioural analysis. Colour scheme and demo role live in the browser only.</p>
+      </div>
+    </section>
+
+    <section id="glossar">
+      <h2><span class="nr">08</span> Glossary</h2>
+      <p>Terms used in the portal and in this handbook.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Term</th><th>Explanation</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Row block</strong></td><td>The smallest unit of the site structure: a delimited section of a trellis row. Everything — status, lock, harvest, contribution margin — hangs off it.</td></tr>
+            <tr><td><strong>Pre-harvest interval lock</strong></td><td>State of a row block after a crop protection treatment: harvesting is blocked until the product's interval has elapsed.</td></tr>
+            <tr><td><strong>Batch</strong></td><td>One row block's harvest on one day. Carries the cooling curve, the crates and the residue record.</td></tr>
+            <tr><td><strong>Crate</strong></td><td>Transport container for harvested raspberries, assigned to a batch and a person by QR code.</td></tr>
+            <tr><td><strong>Cold chain clock</strong></td><td>Time measured from picking to pre-cooling. Beyond 60 minutes the goods are only industrial grade the next day.</td></tr>
+            <tr><td><strong>Quality-factor pay</strong></td><td>Base pay plus a quantity component plus a quality factor. Pure piece rate destroys value with raspberries because it leads to fast and rough picking.</td></tr>
+            <tr><td><strong>Chain of evidence</strong></td><td>The unbroken chain from the delivered punnet back to row block, cooling curve, crate and picker.</td></tr>
+            <tr><td><strong>Role permissions</strong></td><td>Which role may see and change which module. It applies in the interface and, bindingly, in the database.</td></tr>
+            <tr><td><strong>Second factor</strong></td><td>An additional six-digit code at sign-in, produced by an authenticator app.</td></tr>
+            <tr><td><strong>Demo mode</strong></td><td>Operation without a database connection. The portal shows sample data, there is no sign-in and nothing is stored.</td></tr>
+            <tr><td><strong>ЭСФ / ЕСУТД</strong></td><td>Kazakhstani mandatory systems for electronic invoices and for registering employment contracts respectively.</td></tr>
+            <tr><td><strong>WAMOCON</strong></td><td>WAMOCON GmbH — client and developer of Damicon.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer class="fuss">
+  <div>© 2026 WAMOCON GmbH — All rights reserved</div>
+  <div>Damicon product handbook 0.1.0 · Confidential · September 2026</div>
+</footer>
+
+<script>
+(function () {
+  var TEXT = {"keine":"0 matches","abZwei":"2 characters min.","treffer":"matches","ohneFundstelle":"Nothing found for {begriff}. Regardless of this, the PDF export always contains the complete handbook."};
+  var SPRACHEN = ['de', 'en', 'kk', 'ru'];
+
+  var haupt = document.querySelector('main');
+  var deckblatt = document.querySelector('.deckblatt');
+  var suchfeld = document.getElementById('suchfeld');
+  var zaehlerEl = document.getElementById('such-zaehler');
+  var hinweisEl = document.getElementById('such-hinweis');
+  var loeschenEl = document.getElementById('such-loeschen');
+  var abschnitte = Array.prototype.slice.call(haupt.querySelectorAll('section[id]'));
+  var tocLinks = Array.prototype.slice.call(document.querySelectorAll('.toc-link'));
+
+  var treffer = [];
+  var aktiver = -1;
+
+  // ── Wo laeuft das Handbuch? ─────────────────────────────────────────
+  // Im Portal unter /<sprache>/dashboard/handbuch, sonst als Datei neben
+  // ihren Geschwistern. Der Sprachumschalter und der Weg zurueck ins Portal
+  // muessen in beiden Faellen stimmen.
+  var imPortal = /\/(de|en|kk|ru)\/dashboard\/handbuch\/?$/.test(location.pathname);
+
+  function zielFuerSprache(code) {
+    if (imPortal) return location.pathname.replace(/\/(de|en|kk|ru)\//, '/' + code + '/');
+    return code === 'de' ? 'index.html' : 'index-' + code + '.html';
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.sprache'), function (knopf) {
+    knopf.addEventListener('click', function () {
+      var code = knopf.getAttribute('data-sprache');
+      if (SPRACHEN.indexOf(code) !== -1) location.href = zielFuerSprache(code);
+    });
+  });
+
+  // Der Weg zurueck ins Portal ergibt nur im Portal einen Sinn - als lose
+  // Datei geoeffnet zeigt der Knopf ins Leere und bleibt deshalb verborgen.
+  var portalKnopf = document.getElementById('portal-knopf');
+  if (imPortal) {
+    portalKnopf.setAttribute('href', location.pathname.replace(/\/handbuch\/?$/, ''));
+    portalKnopf.hidden = false;
+  }
+
+  // ── Farbschema, geteilt mit dem Portal ──────────────────────────────
+  var themaKnopf = document.getElementById('thema-knopf');
+  var themaZeichen = document.getElementById('thema-zeichen');
+
+  function themaZeigen() {
+    themaZeichen.textContent = document.documentElement.classList.contains('dark') ? '☀' : '☾';
+  }
+  themaZeigen();
+
+  themaKnopf.addEventListener('click', function () {
+    var dunkelJetzt = !document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', dunkelJetzt);
+    try { localStorage.setItem('damicon-theme', dunkelJetzt ? 'dark' : 'light'); } catch (e) {}
+    themaZeigen();
+  });
+
+  // ── Normalisierung fuer die Suche ───────────────────────────────────
+  // Umlaute zaehlen wie ihr Grundbuchstabe, damit "Kuhlkette" die
+  // "Kuehlkette" findet. Entscheidend ist, dass die Abbildung die LAENGE
+  // erhaelt: die Fundstelle wird ueber ihren Index im normalisierten Text in
+  // den Originaltext zurueckgerechnet. Deshalb wird zeichenweise abgebildet
+  // und ein toLowerCase(), das aus einem Zeichen zwei macht, verworfen.
+  var ERSATZ = {
+    '\u00e4': 'a', '\u00c4': 'a', '\u00f6': 'o', '\u00d6': 'o',
+    '\u00fc': 'u', '\u00dc': 'u', '\u00df': 's',
+    '\u0131': 'i', '\u0130': 'i', '\u00e7': 'c', '\u00c7': 'c',
+    '\u0451': '\u0435', '\u0401': '\u0435'
+  };
+
+  function normal(text) {
+    var aus = '';
+    for (var i = 0; i < text.length; i++) {
+      var zeichen = text[i];
+      var ersatz = ERSATZ[zeichen];
+      if (ersatz !== undefined) { aus += ersatz; continue; }
+      var klein = zeichen.toLowerCase();
+      aus += klein.length === 1 ? klein : zeichen;
+    }
+    return aus;
+  }
+
+  // ── Markierungen ────────────────────────────────────────────────────
+  function markierungenSetzen(begriff) {
+    var gesucht = normal(begriff);
+    var laeufer = document.createTreeWalker(haupt, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (knoten) {
+        if (!knoten.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        var eltern = knoten.parentElement;
+        if (!eltern || eltern.closest('.such-hinweis')) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+
+    // Erst einsammeln, dann ersetzen - der Laeufer darf nicht ueber einen
+    // Baum laufen, den er gerade selbst umbaut.
+    var knoten = [];
+    while (laeufer.nextNode()) knoten.push(laeufer.currentNode);
+
+    for (var i = 0; i < knoten.length; i++) {
+      var textknoten = knoten[i];
+      var text = textknoten.nodeValue;
+      var flach = normal(text);
+      var pos = flach.indexOf(gesucht);
+      if (pos === -1) continue;
+
+      var teile = document.createDocumentFragment();
+      var gelesen = 0;
+      while (pos !== -1) {
+        if (pos > gelesen) teile.appendChild(document.createTextNode(text.slice(gelesen, pos)));
+        var marke = document.createElement('mark');
+        marke.className = 'treffer';
+        marke.textContent = text.slice(pos, pos + gesucht.length);
+        teile.appendChild(marke);
+        gelesen = pos + gesucht.length;
+        pos = flach.indexOf(gesucht, gelesen);
+      }
+      if (gelesen < text.length) teile.appendChild(document.createTextNode(text.slice(gelesen)));
+      textknoten.parentNode.replaceChild(teile, textknoten);
+    }
+  }
+
+  function markierungenEntfernen() {
+    var marken = Array.prototype.slice.call(haupt.querySelectorAll('mark.treffer'));
+    for (var i = 0; i < marken.length; i++) {
+      var eltern = marken[i].parentNode;
+      eltern.replaceChild(document.createTextNode(marken[i].textContent), marken[i]);
+      eltern.normalize();
+    }
+  }
+
+  // ── Filtern ─────────────────────────────────────────────────────────
+  // Ein Unterabschnitt reicht von seiner Ueberschrift bis zur naechsten
+  // gleicher oder hoeherer Ebene.
+  function bereichHatTreffer(ueberschrift) {
+    if (ueberschrift.querySelector('mark.treffer')) return true;
+    var grenze = ueberschrift.tagName === 'H3' ? ['H3'] : ['H3', 'H4'];
+    var element = ueberschrift.nextElementSibling;
+    while (element && grenze.indexOf(element.tagName) === -1) {
+      if (element.querySelector && element.querySelector('mark.treffer')) return true;
+      element = element.nextElementSibling;
+    }
+    return false;
+  }
+
+  function filtern(aktiv) {
+    for (var i = 0; i < abschnitte.length; i++) {
+      abschnitte[i].classList.toggle('ausgeblendet', aktiv && !abschnitte[i].querySelector('mark.treffer'));
+    }
+    // Das Deckblatt traegt keinen durchsuchbaren Inhalt und stuende bei einer
+    // Suche nur als ganzseitiger Block vor dem ersten Ergebnis.
+    if (deckblatt) deckblatt.classList.toggle('ausgeblendet', aktiv);
+
+    for (var j = 0; j < tocLinks.length; j++) {
+      var link = tocLinks[j];
+      if (!aktiv) { link.classList.remove('ausgeblendet'); continue; }
+      var ziel = document.getElementById(link.getAttribute('href').slice(1));
+      var hat = false;
+      if (ziel) {
+        hat = ziel.tagName === 'SECTION'
+          ? !!ziel.querySelector('mark.treffer')
+          : bereichHatTreffer(ziel);
+      }
+      link.classList.toggle('ausgeblendet', !hat);
+    }
+  }
+
+  // ── Von Treffer zu Treffer ──────────────────────────────────────────
+  function zaehlerSchreiben(begriff) {
+    if (!begriff) { zaehlerEl.textContent = ''; zaehlerEl.classList.remove('leer'); return; }
+    if (!treffer.length) {
+      zaehlerEl.textContent = TEXT.keine;
+      zaehlerEl.classList.add('leer');
+      return;
+    }
+    zaehlerEl.classList.remove('leer');
+    zaehlerEl.textContent = aktiver >= 0
+      ? (aktiver + 1) + ' / ' + treffer.length
+      : treffer.length + ' ' + TEXT.treffer;
+  }
+
+  function zuTreffer(index) {
+    if (!treffer.length) return;
+    if (aktiver >= 0 && treffer[aktiver]) treffer[aktiver].classList.remove('treffer-aktiv');
+    aktiver = (index + treffer.length) % treffer.length;
+    treffer[aktiver].classList.add('treffer-aktiv');
+    treffer[aktiver].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    zaehlerSchreiben(suchfeld.value.trim());
+  }
+
+  // ── Suchen ──────────────────────────────────────────────────────────
+  function suchen(roh) {
+    var begriff = roh.trim();
+    markierungenEntfernen();
+    treffer = [];
+    aktiver = -1;
+    loeschenEl.hidden = begriff === '';
+
+    // Ein einzelner Buchstabe traefe fast jedes Wort - das filtert nichts und
+    // markiert nur das halbe Handbuch bunt.
+    if (begriff.length < 2) {
+      filtern(false);
+      hinweisEl.classList.remove('sichtbar');
+      zaehlerEl.classList.remove('leer');
+      zaehlerEl.textContent = begriff ? TEXT.abZwei : '';
+      return;
+    }
+
+    markierungenSetzen(begriff);
+    treffer = Array.prototype.slice.call(haupt.querySelectorAll('mark.treffer'));
+    filtern(true);
+    zaehlerSchreiben(begriff);
+
+    if (!treffer.length) {
+      // Den Suchbegriff als Text einsetzen, nicht als HTML - er kommt aus der
+      // Eingabe des Nutzers.
+      var teile = TEXT.ohneFundstelle.split('{begriff}');
+      hinweisEl.textContent = '';
+      hinweisEl.appendChild(document.createTextNode(teile[0]));
+      var stark = document.createElement('strong');
+      stark.textContent = '\u201e' + begriff + '\u201c';
+      hinweisEl.appendChild(stark);
+      if (teile[1]) hinweisEl.appendChild(document.createTextNode(teile[1]));
+      hinweisEl.classList.add('sichtbar');
+    } else {
+      hinweisEl.classList.remove('sichtbar');
+    }
+  }
+
+  function zuruecksetzen() {
+    suchfeld.value = '';
+    suchen('');
+  }
+
+  // ── PDF ─────────────────────────────────────────────────────────────
+  // "Nur ein vollstaendiger": vor dem Druck faellt der Suchfilter, sonst
+  // landete der gerade gefilterte Ausschnitt im PDF und saehe darin aus wie
+  // das ganze Handbuch. Der beforeprint-Haken deckt Strg+P und das Druckmenue
+  // des Browsers mit ab; die Regeln in @media print sind das dritte Netz,
+  // falls JavaScript gar nicht laeuft.
+  function fuerDruckOeffnen() {
+    if (suchfeld.value) zuruecksetzen();
+  }
+  window.addEventListener('beforeprint', fuerDruckOeffnen);
+  window.handbuchAlsPdf = function () {
+    fuerDruckOeffnen();
+    window.print();
+  };
+
+  // ── Bedienung ───────────────────────────────────────────────────────
+  var warteschlange;
+  suchfeld.addEventListener('input', function () {
+    clearTimeout(warteschlange);
+    var wert = suchfeld.value;
+    // Den Baum nicht bei jedem Anschlag umbauen.
+    warteschlange = setTimeout(function () { suchen(wert); }, 140);
+  });
+
+  suchfeld.addEventListener('keydown', function (ereignis) {
+    if (ereignis.key === 'Enter') {
+      ereignis.preventDefault();
+      // Die laufende Eingabe sofort auswerten, sonst springt die Eingabetaste
+      // auf den Treffern des vorherigen Anschlags.
+      clearTimeout(warteschlange);
+      if (!treffer.length) suchen(suchfeld.value);
+      zuTreffer(ereignis.shiftKey ? aktiver - 1 : aktiver + 1);
+    }
+    if (ereignis.key === 'Escape') { zuruecksetzen(); suchfeld.blur(); }
+  });
+
+  loeschenEl.addEventListener('click', function () {
+    zuruecksetzen();
+    suchfeld.focus();
+  });
+
+  document.addEventListener('keydown', function (ereignis) {
+    var imFeld = document.activeElement === suchfeld;
+    var kuerzel =
+      (ereignis.key === '/' && !imFeld && !ereignis.ctrlKey && !ereignis.metaKey) ||
+      ((ereignis.ctrlKey || ereignis.metaKey) && ereignis.key.toLowerCase() === 'k');
+    if (kuerzel) {
+      ereignis.preventDefault();
+      suchfeld.focus();
+      suchfeld.select();
+      return;
+    }
+    if (ereignis.key === 'Escape' && !imFeld && suchfeld.value) zuruecksetzen();
+  });
+
+  // ── Inhaltsverzeichnis mitlaufen lassen ─────────────────────────────
+  var beobachtbar = haupt.querySelectorAll('section[id], h3[id], h4[id]');
+  var beobachter = new IntersectionObserver(function (eintraege) {
+    for (var i = 0; i < eintraege.length; i++) {
+      if (!eintraege[i].isIntersecting) continue;
+      for (var j = 0; j < tocLinks.length; j++) tocLinks[j].classList.remove('aktiv');
+      var aktivLink = document.querySelector('.toc-link[href="#' + eintraege[i].target.id + '"]');
+      if (aktivLink) aktivLink.classList.add('aktiv');
+    }
+  }, { rootMargin: '-15% 0px -75% 0px' });
+  Array.prototype.forEach.call(beobachtbar, function (element) { beobachter.observe(element); });
+})();
+</script>
+</body>
+</html>

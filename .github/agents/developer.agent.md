@@ -70,7 +70,7 @@ Follow this structured process for every task:
     - Install: `npm install -g @vercel/next-browser && playwright install chromium`
 
 ### Phase 4: Documentation
-12. **Update handbook** - After every feature implementation, run the `@handbook` agent (or apply the `.github/skills/handbook/SKILL.md` skill directly) to update `docs/manual/index.html`. This is non-negotiable - the handbook must always reflect the current state of the app. Update routes (Section 05), schema (Section 06.2), features (Sections 01-02), and version/date metadata.
+12. **Update handbook** - After every feature implementation, run `npm run handbuch` and commit the regenerated `docs/manual/index*.html`. Modules, zones, roles and permissions are read straight from the app, so they follow by themselves. Anything the app does not know about itself - new routes, new API endpoints, new procedures, new terms - has to be written into `scripts/handbuch/texte-*.ts`, in all four languages. Never edit `docs/manual/*.html` by hand; the next generator run overwrites it. This is non-negotiable - the handbook must always reflect the current state of the app.
 13. **Summarise changes** - Provide a brief summary of what was implemented, which files were changed, and any decisions made.
 
 ## Rules

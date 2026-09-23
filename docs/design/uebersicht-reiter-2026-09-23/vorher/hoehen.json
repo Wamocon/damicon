@@ -1,0 +1,50 @@
+[
+  {
+    "breite": "1600",
+    "schema": "hell",
+    "scrollHoehe": 2421,
+    "sichtHoehe": 900,
+    "kacheln": 5,
+    "spalten": "220.969px 220.969px 220.969px 220.984px 253.359px"
+  },
+  {
+    "breite": "1440",
+    "schema": "hell",
+    "scrollHoehe": 2478,
+    "sichtHoehe": 900,
+    "kacheln": 5,
+    "spalten": "180.969px 180.969px 180.969px 180.984px 253.359px"
+  },
+  {
+    "breite": "1440",
+    "schema": "dunkel",
+    "scrollHoehe": 2478,
+    "sichtHoehe": 900,
+    "kacheln": 5,
+    "spalten": "180.969px 180.969px 180.969px 180.984px 253.359px"
+  },
+  {
+    "breite": "1024",
+    "schema": "hell",
+    "scrollHoehe": 3246,
+    "sichtHoehe": 900,
+    "kacheln": 5,
+    "spalten": "297.406px 297.406px"
+  },
+  {
+    "breite": "390",
+    "schema": "hell",
+    "scrollHoehe": 5185,
+    "sichtHoehe": 844,
+    "kacheln": 5,
+    "spalten": "316px"
+  },
+  {
+    "breite": "390",
+    "schema": "dunkel",
+    "scrollHoehe": 5185,
+    "sichtHoehe": 844,
+    "kacheln": 5,
+    "spalten": "316px"
+  }
+]

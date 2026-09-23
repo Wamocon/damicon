@@ -7,6 +7,7 @@ import { useFormStatus } from "react-dom";
 import { Link } from "@/i18n/navigation";
 import { einladungEinloesen } from "@/lib/actions/einladungen";
 import { leer } from "@/lib/actions/status";
+import { Button, knopfKlassen } from "@/components/ui/kit";
 
 // Einloesen einer Kundeneinladung (Anforderung E.20). Oeffentlich erreichbar,
 // ohne Anmeldung - der Code ist der Nachweis.
@@ -18,14 +19,10 @@ function SubmitKnopf() {
   const { pending } = useFormStatus();
   const t = useTranslations("einladungSeite");
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-bold text-primary-foreground transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-    >
+    <Button type="submit" laedt={pending} breit>
       <UserPlus className="h-4 w-4" />
-      {pending ? t("laeuft") : t("knopf")}
-    </button>
+      {t("knopf")}
+    </Button>
   );
 }
 
@@ -45,10 +42,7 @@ export function EinladungForm() {
           <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0" />
           {a(status.meldung ?? "", { wert: "" })}
         </p>
-        <Link
-          href="/login"
-          className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-primary text-sm font-bold text-primary-foreground transition hover:brightness-110"
-        >
+        <Link href="/login" className={knopfKlassen({ breit: true })}>
           {t("zurAnmeldung")}
         </Link>
       </div>

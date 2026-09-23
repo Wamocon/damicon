@@ -70,6 +70,11 @@ export async function ReklamationenAnsicht({
 
   const heuteIso = new Date().toISOString().slice(0, 10);
   const istOffen = (statusWert: string) => statusWert === "offen" || statusWert === "in_pruefung";
+  // "angenommen" ist keine Endlage wie "abgelehnt"/"erledigt": eine
+  // angenommene Reklamation braucht noch den Abschluss durch "Als erledigt
+  // abschliessen" (WMCNL-2374) - fuer die Frist-/Ueberfaelligkeitslogik oben
+  // zaehlt sie trotzdem nicht mehr als "offen" (istOffen bleibt unveraendert).
+  const istAbschliessbar = (statusWert: string) => istOffen(statusWert) || statusWert === "angenommen";
   const istUeberfaellig = (r: { status: string; fristAm: string | null }) =>
     istOffen(r.status) && !!r.fristAm && r.fristAm < heuteIso;
 
@@ -158,7 +163,7 @@ export async function ReklamationenAnsicht({
                   </p>
                 ) : null}
 
-                <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-2 text-xs">
+                <dl className="mt-3 grid grid-cols-1 gap-x-3 gap-y-2 text-xs sm:grid-cols-2">
                   <div>
                     <dt className="text-muted-foreground">{t("kunde")}</dt>
                     <dd className="font-semibold text-foreground">{detail.kunde}</dd>
@@ -323,30 +328,34 @@ export async function ReklamationenAnsicht({
                 </Card>
               ) : null}
 
-              {darfEntscheiden && istOffen(detail.status) ? (
+              {darfEntscheiden && istAbschliessbar(detail.status) ? (
                 <Card className="space-y-3">
                   <div>
                     <p className="text-sm font-black text-card-foreground">{t("ablauf.titel")}</p>
                     <p className="mt-1 text-xs leading-5 text-muted-foreground">{t("ablauf.lead")}</p>
                   </div>
-                  <ReklamationEntscheidungFormular
-                    id={detail.id}
-                    ziel="angenommen"
-                    label={t("ablauf.annehmenKnopf")}
-                    mitGutschrift
-                  />
+                  {istOffen(detail.status) ? (
+                    <ReklamationEntscheidungFormular
+                      id={detail.id}
+                      ziel="angenommen"
+                      label={t("ablauf.annehmenKnopf")}
+                      mitGutschrift
+                    />
+                  ) : null}
                   <ReklamationEntscheidungFormular
                     id={detail.id}
                     ziel="erledigt"
                     label={t("ablauf.erledigtKnopf")}
                     mitGutschrift
                   />
-                  <ReklamationEntscheidungFormular
-                    id={detail.id}
-                    ziel="abgelehnt"
-                    label={t("ablauf.ablehnenKnopf")}
-                    mitGutschrift={false}
-                  />
+                  {istOffen(detail.status) ? (
+                    <ReklamationEntscheidungFormular
+                      id={detail.id}
+                      ziel="abgelehnt"
+                      label={t("ablauf.ablehnenKnopf")}
+                      mitGutschrift={false}
+                    />
+                  ) : null}
                 </Card>
               ) : null}
 

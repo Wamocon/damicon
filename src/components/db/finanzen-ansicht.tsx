@@ -1,5 +1,17 @@
-import { getFormatter, getTranslations } from "next-intl/server";
-import { Card, DataTable, Section, Stat, StatusPill } from "@/components/ui/kit";
+import { getFormatter, getLocale, getTranslations } from "next-intl/server";
+import {
+  Aufklapper,
+  Card,
+  DataTable,
+  FilterPillen,
+  Reiter,
+  Section,
+  Stat,
+  StatusPill,
+  TabellenFuss,
+  knopfKlassen,
+} from "@/components/ui/kit";
+import { Auswahl } from "@/components/db/formular-kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   BuchungErfassenFormular,
@@ -13,41 +25,131 @@ import {
   ladeReihenblockOptionen,
   ladeSorteOptionen,
 } from "@/lib/data/finanzen";
+import {
+  ZEILEN_SCHRITT,
+  finanzBereichAusText,
+  finanzBereiche,
+  istMonatsWert,
+  ledgerTypAusText,
+  zeilenAusText,
+  zeitraumAusText,
+  zeitraumStufen,
+} from "@/lib/domain/finanzen";
+import { getPathname } from "@/i18n/navigation";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import type { ReactNode } from "react";
 
-// Finanzen/Kostentraeger (Anforderung 4.2, P0). Cockpit-Aufbau wie
-// lohn-ansicht.tsx: Kennzahlen oben, DataTables je Fachobjekt, Schreibformulare
-// nur fuer berechtigte Rollen (admin/buchhaltung - betriebsleitung darf laut
-// rbac.ts nur lesen).
-export async function FinanzenAnsicht() {
+// Finanzen/Kostentraeger (Anforderung 4.2, P0).
+//
+// Bis September 2026 stapelte diese Seite vier Abschnitte, zwei Formulare und
+// drei Tabellen untereinander - die Kostentraegertabelle ohne jede Begrenzung,
+// mit den Jahresdaten also ueber 250 Zeilen zu acht Spalten am Stueck. Wer
+// etwas bearbeiten wollte, scrollte lange. Jetzt stehen die drei Tabellen in
+// Reitern, ein Zeitraum begrenzt sie, und der Rest wird nachgeladen. Alles
+// ueber die Adresszeile, damit die Seite Server Component bleibt.
+//
+// ZWEI DATEN, EIN FILTER. Die Buchungen haengen an buchungsdatum, die beiden
+// Deckungsbeitragssichten am Erntetag. Derselbe gewaehlte Monat trifft also in
+// den Reitern verschiedene Zeilen. Dazu kommt, dass die View
+// deckungsbeitrag_je_kostentraeger ALLE Buchungen eines Kostentraegers
+// summiert, unabhaengig vom Buchungsdatum: ein Filter nach Erntetag waehlt
+// Kostentraeger aus, rechnet ihre Summen aber ueber die ganze Laufzeit.
+// Umgerechnet wird deshalb nichts - stattdessen sagt die Beschriftung ueber
+// den Pillen, welches Datum gerade gilt.
+
+const ALLE = "alle";
+
+export async function FinanzenAnsicht({
+  pfad,
+  suche,
+}: {
+  pfad: string;
+  suche: { bereich?: string; zeitraum?: string; typ?: string; zeilen?: string };
+}) {
+  const bereich = finanzBereichAusText(suche.bereich);
+  const zeitraum = zeitraumAusText(suche.zeitraum);
+  // Den Typ gibt es nur bei den Buchungen, gefiltert wird also nur dort. In
+  // der Adresse bleibt er trotzdem stehen, auch waehrend ein anderer Reiter
+  // offen ist - sonst waere er nach einem Hin und Her wieder verloren.
+  const typRoh = ledgerTypAusText(suche.typ);
+  const typ = bereich === "buchungen" ? typRoh : undefined;
+  const zeilen = zeilenAusText(suche.zeilen);
+  // Solange niemand nachgeladen hat, zeigt das Handy nur die ersten fuenf
+  // Zeilen - das entscheidet globals.css, der Server kennt die Schirmbreite
+  // nicht.
+  const startzeilen = suche.zeilen === undefined;
+
   const [uebersicht, profil, t] = await Promise.all([
-    ladeFinanzenUebersicht(),
+    ladeFinanzenUebersicht({ zeitraum, typ, zeilen }),
     getSessionProfile(),
     getTranslations("finanzenAnsicht"),
   ]);
   const format = await getFormatter();
+  const locale = await getLocale();
 
   const live = uebersicht.quelle === "db";
   const darfBuchen = live && hasPermission(profil?.role, "finanzen", "create");
 
-  const [reihenbloecke, sorten, kunden, kostentraeger, chargen] = darfBuchen
-    ? await Promise.all([
-        ladeReihenblockOptionen(),
-        ladeSorteOptionen(),
-        ladeB2bKundeOptionen(),
-        ladeKostentraegerOptionen(),
-        ladeChargeOptionen(),
-      ])
-    : [[], [], [], [], []];
+  // Nur die Auswahllisten des offenen Reiters holen. Wer die Buchungen
+  // ansieht, braucht keine Sortenliste.
+  const [reihenbloecke, sorten, kunden] =
+    darfBuchen && bereich === "kostentraeger"
+      ? await Promise.all([ladeReihenblockOptionen(), ladeSorteOptionen(), ladeB2bKundeOptionen()])
+      : [[], [], []];
+  const [kostentraegerListe, chargen] =
+    darfBuchen && bereich === "buchungen"
+      ? await Promise.all([ladeKostentraegerOptionen(), ladeChargeOptionen()])
+      : [[], []];
 
   const geld = (n: number) => `${format.number(Math.round(n))} ₸`;
   const datum = (iso: string) => format.dateTime(new Date(iso), { dateStyle: "medium" });
+  const monatText = (wert: string) => {
+    const [jahr, monat] = wert.split("-").map(Number);
+    return format.dateTime(new Date(Date.UTC(jahr, monat - 1, 1)), {
+      year: "numeric",
+      month: "long",
+    });
+  };
 
-  const { deckungsbeitrag, deckungsbeitragJeCharge, ledger } = uebersicht;
-  const summeErloes = deckungsbeitrag.reduce((s, z) => s + z.erloesTenge, 0);
-  const summeKosten = deckungsbeitrag.reduce((s, z) => s + z.kostenTenge, 0);
-  const summeDb = summeErloes - summeKosten;
+  const { deckungsbeitrag, deckungsbeitragJeCharge, ledger, mehr, summe, monate } = uebersicht;
+
+  // Leere Werte fallen raus, damit ?bereich=buchungen nicht zu
+  // ?bereich=buchungen&typ= wird.
+  const ziel = (werte: Record<string, string | undefined>) => {
+    const query: Record<string, string> = {};
+    for (const [schluessel, wert] of Object.entries(werte)) {
+      if (wert !== undefined) query[schluessel] = wert;
+    }
+    return { pathname: pfad, query };
+  };
+
+  // Ein Reiterwechsel nimmt den Filter mit, aber nicht die Zeilenzahl.
+  //
+  // Der Unterschied: Zeitraum und Typ sagen, WAS man sehen will - das gilt
+  // weiter, auch wenn der Zeitraum im naechsten Reiter auf ein anderes Datum
+  // wirkt (die Beschriftung ueber den Pillen sagt, auf welches). Die
+  // Zeilenzahl sagt dagegen, wie weit man sich in EINER Tabelle vorgearbeitet
+  // hat, und das laesst sich auf die naechste nicht uebertragen.
+  const reiterZiel = (wert: string) => ziel({ bereich: wert, zeitraum, typ: typRoh });
+  const zeitraumZiel = (wert: string) => ziel({ bereich, zeitraum: wert, typ: typRoh });
+  const typZiel = (wert: string) =>
+    ziel({ bereich, zeitraum, typ: wert === ALLE ? undefined : wert });
+  const mehrZiel = ziel({
+    bereich,
+    zeitraum,
+    typ: typRoh,
+    zeilen: String(zeilen + ZEILEN_SCHRITT),
+  });
+
+  const summeDbZeitraum = summe.zeitraum.erloesTenge - summe.zeitraum.kostenTenge;
+  const summeDbGesamt = summe.gesamt.erloesTenge - summe.gesamt.kostenTenge;
+
+  // Die Tabelle steht in einem eigenen Behaelter: an ihm haengt die
+  // Handy-Regel fuer die Startzeilen (globals.css).
+  const tabelle = (inhalt: ReactNode) => (
+    <div data-startzeilen={startzeilen ? "" : undefined}>{inhalt}</div>
+  );
 
   return (
     <div className="space-y-6">
@@ -56,174 +158,302 @@ export async function FinanzenAnsicht() {
         description={t("uebersichtLead")}
         action={<DatenquelleBadge quelle={uebersicht.quelle} />}
       >
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Stat label={t("stat.erloes")} value={geld(summeErloes)} />
-          <Stat label={t("stat.kosten")} value={geld(summeKosten)} />
-          <Stat
-            label={t("stat.deckungsbeitrag")}
-            value={geld(summeDb)}
-            helper={t("stat.deckungsbeitragHinweis")}
-          />
+        <div className="space-y-3">
+          <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
+            <FilterPillen
+              label={t("zeitraum.label")}
+              aktiv={zeitraum}
+              eintraege={zeitraumStufen.map((stufe) => ({
+                wert: stufe,
+                text: t(`zeitraum.${stufe}`),
+              }))}
+              ziel={zeitraumZiel}
+            />
+            {monate.length > 0 ? (
+              // Ein GET-Formular verwirft alles, was nicht drinsteht. Bereich
+              // und Typ laufen deshalb als versteckte Felder mit, sonst
+              // sprang der Reiter beim Monatswechsel zurueck.
+              <form
+                method="get"
+                action={getPathname({ href: pfad, locale })}
+                className="flex items-end gap-2"
+              >
+                <input type="hidden" name="bereich" value={bereich} />
+                {typRoh ? <input type="hidden" name="typ" value={typRoh} /> : null}
+                <Auswahl
+                  label={t("monatsListe.label")}
+                  name="zeitraum"
+                  defaultValue={istMonatsWert(zeitraum) ? zeitraum : ""}
+                  options={[
+                    { wert: "", text: t("monatsListe.bitte") },
+                    ...monate.map((monat) => ({ wert: monat, text: monatText(monat) })),
+                  ]}
+                />
+                <button
+                  type="submit"
+                  className={knopfKlassen({
+                    variante: "leise",
+                    rundung: "schmal",
+                    groesse: "formular",
+                  })}
+                >
+                  {t("monatsListe.knopf")}
+                </button>
+              </form>
+            ) : null}
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-3">
+            {/* Nicht stat.erloes: Der bestehende Schluessel heisst "Erloese
+                gesamt" und stimmte, solange die Kachel ueber alles summierte.
+                Die grosse Zahl traegt jetzt den Zeitraum, das Gesamte steht
+                darunter - die alte Beschriftung waere ueber ihr falsch. */}
+            <Stat
+              label={t("stat.erloes")}
+              value={geld(summe.zeitraum.erloesTenge)}
+              helper={t("stat.gesamt", { wert: geld(summe.gesamt.erloesTenge) })}
+            />
+            <Stat
+              label={t("stat.kosten")}
+              value={geld(summe.zeitraum.kostenTenge)}
+              helper={t("stat.gesamt", { wert: geld(summe.gesamt.kostenTenge) })}
+            />
+            <Stat
+              label={t("stat.deckungsbeitrag")}
+              value={geld(summeDbZeitraum)}
+              helper={t("stat.gesamt", { wert: geld(summeDbGesamt) })}
+            />
+          </div>
         </div>
       </Section>
 
-      {darfBuchen ? (
-        <KostentraegerAnlegenFormular
-          reihenbloecke={reihenbloecke}
-          sorten={sorten}
-          kunden={kunden}
-        />
-      ) : null}
-      {darfBuchen ? (
-        <BuchungErfassenFormular kostentraeger={kostentraeger} chargen={chargen} />
-      ) : null}
+      <Reiter
+        label={t("bereich.label")}
+        aktiv={bereich}
+        eintraege={finanzBereiche.map((wert) => ({ wert, text: t(`bereich.${wert}`) }))}
+        ziel={reiterZiel}
+      />
 
-      <Section title={t("kostentraegerTitel")} description={t("kostentraegerLead")}>
-        <DataTable
-          head={[
-            t("col.bezeichnung"),
-            t("col.reihenblock"),
-            t("col.sorte"),
-            t("col.kunde"),
-            t("col.erloes"),
-            t("col.kosten"),
-            t("col.deckungsbeitrag"),
-            t("col.deckungsbeitragJeKg"),
-          ]}
-        >
-          {deckungsbeitrag.length === 0 ? (
-            <tr>
-              <td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground">
-                {t("keineKostentraeger")}
-              </td>
-            </tr>
-          ) : (
-            deckungsbeitrag.map((z) => (
-              <tr key={z.kostentraegerId}>
-                <td className="px-3 py-2.5">
-                  <p className="font-semibold text-foreground">{z.bezeichnung}</p>
-                  {z.erntetag ? (
-                    <p className="text-[11px] text-muted-foreground">{datum(z.erntetag)}</p>
-                  ) : null}
-                </td>
-                <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground">
-                  {z.reihenblockCode ?? "–"}
-                </td>
-                <td className="px-3 py-2.5 text-muted-foreground">{z.sorteName ?? "–"}</td>
-                <td className="px-3 py-2.5 text-muted-foreground">{z.b2bKundeName ?? "–"}</td>
-                <td className="px-3 py-2.5 text-muted-foreground">{geld(z.erloesTenge)}</td>
-                <td className="px-3 py-2.5 text-muted-foreground">{geld(z.kostenTenge)}</td>
-                <td className="px-3 py-2.5">
-                  <StatusPill tone={z.deckungsbeitragTenge >= 0 ? "success" : "warning"}>
-                    {geld(z.deckungsbeitragTenge)}
-                  </StatusPill>
-                </td>
-                {/* Anforderung 4.3: Deckungsbeitrag je Kilogramm, null bei
-                    Zukauf-Kostentraegern ohne eigene Pflueckaufgabe. */}
-                <td className="px-3 py-2.5 text-muted-foreground">
-                  {z.deckungsbeitragJeKgTenge === null
-                    ? "–"
-                    : `${format.number(z.deckungsbeitragJeKgTenge, { maximumFractionDigits: 0 })} ₸/kg`}
-                </td>
-              </tr>
-            ))
-          )}
-        </DataTable>
-      </Section>
+      {bereich === "kostentraeger" ? (
+        <Section title={t("kostentraegerTitel")} description={`${t("kostentraegerLead")} ${t("zeitraum.gefiltertErntetag")}`}>
+          <div className="space-y-3">
+            {darfBuchen ? (
+              <Aufklapper
+                titel={t("formular.kostentraeger.titel")}
+                beschreibung={t("formular.kostentraeger.lead")}
+              >
+                <KostentraegerAnlegenFormular
+                  reihenbloecke={reihenbloecke}
+                  sorten={sorten}
+                  kunden={kunden}
+                />
+              </Aufklapper>
+            ) : null}
 
-      {/* Anforderung 3.3: nur sichtbar, wenn mindestens eine Buchung direkt an
-          einer Charge statt nur am Kostentraeger haengt - sonst waere die
-          Tabelle fuer jeden Betrieb dauerhaft leer. */}
-      {deckungsbeitragJeCharge.length > 0 ? (
-        <Section
-          title={t("chargeTitel")}
-          description={t("chargeLead")}
-        >
-          <DataTable
-            head={[
-              t("col.charge"),
-              t("col.reihenblock"),
-              t("col.sorte"),
-              t("col.menge"),
-              t("col.erloes"),
-              t("col.kosten"),
-              t("col.deckungsbeitrag"),
-              t("col.deckungsbeitragJeKg"),
-            ]}
-          >
-            {deckungsbeitragJeCharge.map((z) => (
-              <tr key={z.chargeId}>
-                <td className="px-3 py-2.5">
-                  <p className="font-mono text-[11px] font-semibold text-foreground">
-                    {z.chargeCode}
-                  </p>
-                  {z.ernteDatum ? (
-                    <p className="text-[11px] text-muted-foreground">{datum(z.ernteDatum)}</p>
-                  ) : null}
-                </td>
-                <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground">
-                  {z.reihenblockCode ?? "–"}
-                </td>
-                <td className="px-3 py-2.5 text-muted-foreground">{z.sorteName ?? "–"}</td>
-                <td className="px-3 py-2.5 text-muted-foreground">
-                  {z.mengeKg === null ? "–" : `${format.number(z.mengeKg)} kg`}
-                </td>
-                <td className="px-3 py-2.5 text-muted-foreground">{geld(z.erloesTenge)}</td>
-                <td className="px-3 py-2.5 text-muted-foreground">{geld(z.kostenTenge)}</td>
-                <td className="px-3 py-2.5">
-                  <StatusPill tone={z.deckungsbeitragTenge >= 0 ? "success" : "warning"}>
-                    {geld(z.deckungsbeitragTenge)}
-                  </StatusPill>
-                </td>
-                <td className="px-3 py-2.5 text-muted-foreground">
-                  {z.deckungsbeitragJeKgTenge === null
-                    ? "–"
-                    : `${format.number(z.deckungsbeitragJeKgTenge, { maximumFractionDigits: 0 })} ₸/kg`}
-                </td>
-              </tr>
-            ))}
-          </DataTable>
+            {tabelle(
+              <DataTable
+                matrix
+                head={[
+                  t("col.bezeichnung"),
+                  t("col.reihenblock"),
+                  t("col.sorte"),
+                  t("col.kunde"),
+                  t("col.erloes"),
+                  t("col.kosten"),
+                  t("col.deckungsbeitrag"),
+                  t("col.deckungsbeitragJeKg"),
+                ]}
+              >
+                {deckungsbeitrag.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground">
+                      {t("keineKostentraeger")}
+                    </td>
+                  </tr>
+                ) : (
+                  deckungsbeitrag.map((z) => (
+                    <tr key={z.kostentraegerId}>
+                      <td className="px-3 py-2.5">
+                        <p className="font-semibold text-foreground">{z.bezeichnung}</p>
+                        {z.erntetag ? (
+                          <p className="text-[11px] text-muted-foreground">{datum(z.erntetag)}</p>
+                        ) : (
+                          <p className="text-[11px] text-muted-foreground">
+                            {t("ohneErntetag")}
+                          </p>
+                        )}
+                      </td>
+                      <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground">
+                        {z.reihenblockCode ?? "–"}
+                      </td>
+                      <td className="px-3 py-2.5 text-muted-foreground">{z.sorteName ?? "–"}</td>
+                      <td className="px-3 py-2.5 text-muted-foreground">{z.b2bKundeName ?? "–"}</td>
+                      <td className="px-3 py-2.5 text-muted-foreground">{geld(z.erloesTenge)}</td>
+                      <td className="px-3 py-2.5 text-muted-foreground">{geld(z.kostenTenge)}</td>
+                      <td className="px-3 py-2.5">
+                        <StatusPill tone={z.deckungsbeitragTenge >= 0 ? "success" : "warning"}>
+                          {geld(z.deckungsbeitragTenge)}
+                        </StatusPill>
+                      </td>
+                      {/* Anforderung 4.3: Deckungsbeitrag je Kilogramm, null bei
+                          Zukauf-Kostentraegern ohne eigene Pflueckaufgabe. */}
+                      <td className="px-3 py-2.5 text-muted-foreground">
+                        {z.deckungsbeitragJeKgTenge === null
+                          ? "–"
+                          : `${format.number(z.deckungsbeitragJeKgTenge, { maximumFractionDigits: 0 })} ₸/kg`}
+                      </td>
+                    </tr>
+                  ))
+                )}
+                {mehr.deckungsbeitrag ? (
+                  <TabellenFuss spalten={8} text={t("mehrAnzeigen")} ziel={mehrZiel} />
+                ) : null}
+              </DataTable>,
+            )}
+          </div>
         </Section>
       ) : null}
 
-      <Section title={t("ledgerTitel")} description={t("ledgerLead")}>
-        <DataTable
-          head={[
-            t("col.datum"),
-            t("col.kostentraegerSpalte"),
-            t("col.typ"),
-            t("col.kategorie"),
-            t("col.betrag"),
-          ]}
-        >
-          {ledger.length === 0 ? (
-            <tr>
-              <td colSpan={5} className="px-3 py-4 text-center text-xs text-muted-foreground">
-                {t("keineBuchungen")}
-              </td>
-            </tr>
-          ) : (
-            ledger.map((l) => (
-              <tr key={l.id}>
-                <td className="px-3 py-2.5 text-muted-foreground">{datum(l.buchungsdatum)}</td>
-                <td className="px-3 py-2.5 text-foreground">{l.kostentraegerBezeichnung}</td>
-                <td className="px-3 py-2.5">
-                  <StatusPill tone={l.typ === "erloes" ? "success" : "neutral"}>
-                    {t(l.typ)}
-                  </StatusPill>
-                </td>
-                <td className="px-3 py-2.5 text-muted-foreground">
-                  {l.kategorie}
-                  {l.beschreibung ? (
-                    <span className="block text-[11px] text-muted-foreground/80">{l.beschreibung}</span>
-                  ) : null}
-                </td>
-                <td className="px-3 py-2.5 font-semibold text-foreground">{geld(l.betragTenge)}</td>
-              </tr>
-            ))
+      {bereich === "charge" ? (
+        <Section title={t("chargeTitel")} description={`${t("chargeLead")} ${t("zeitraum.gefiltertErntetag")}`}>
+          {tabelle(
+            <DataTable
+              matrix
+              head={[
+                t("col.charge"),
+                t("col.reihenblock"),
+                t("col.sorte"),
+                t("col.menge"),
+                t("col.erloes"),
+                t("col.kosten"),
+                t("col.deckungsbeitrag"),
+                t("col.deckungsbeitragJeKg"),
+              ]}
+            >
+              {deckungsbeitragJeCharge.length === 0 ? (
+                // Anforderung 3.3: Der Reiter bleibt stehen, auch wenn er leer
+                // ist. Ein Reiter, der mal da ist und mal nicht, verwirrt mehr
+                // als eine Erklaerung, warum nichts drinsteht.
+                <tr>
+                  <td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground">
+                    {t("keineChargen")}
+                  </td>
+                </tr>
+              ) : (
+                deckungsbeitragJeCharge.map((z) => (
+                  <tr key={z.chargeId}>
+                    <td className="px-3 py-2.5">
+                      <p className="font-mono text-[11px] font-semibold text-foreground">
+                        {z.chargeCode}
+                      </p>
+                      {z.ernteDatum ? (
+                        <p className="text-[11px] text-muted-foreground">{datum(z.ernteDatum)}</p>
+                      ) : null}
+                    </td>
+                    <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground">
+                      {z.reihenblockCode ?? "–"}
+                    </td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{z.sorteName ?? "–"}</td>
+                    <td className="px-3 py-2.5 text-muted-foreground">
+                      {z.mengeKg === null ? "–" : `${format.number(z.mengeKg)} kg`}
+                    </td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{geld(z.erloesTenge)}</td>
+                    <td className="px-3 py-2.5 text-muted-foreground">{geld(z.kostenTenge)}</td>
+                    <td className="px-3 py-2.5">
+                      <StatusPill tone={z.deckungsbeitragTenge >= 0 ? "success" : "warning"}>
+                        {geld(z.deckungsbeitragTenge)}
+                      </StatusPill>
+                    </td>
+                    <td className="px-3 py-2.5 text-muted-foreground">
+                      {z.deckungsbeitragJeKgTenge === null
+                        ? "–"
+                        : `${format.number(z.deckungsbeitragJeKgTenge, { maximumFractionDigits: 0 })} ₸/kg`}
+                    </td>
+                  </tr>
+                ))
+              )}
+              {mehr.charge ? (
+                <TabellenFuss spalten={8} text={t("mehrAnzeigen")} ziel={mehrZiel} />
+              ) : null}
+            </DataTable>,
           )}
-        </DataTable>
-      </Section>
+        </Section>
+      ) : null}
+
+      {bereich === "buchungen" ? (
+        <Section title={t("ledgerTitel")} description={`${t("ledgerLead")} ${t("zeitraum.gefiltertBuchungsdatum")}`}>
+          <div className="space-y-3">
+            <FilterPillen
+              label={t("typFilter.label")}
+              aktiv={typ ?? ALLE}
+              eintraege={[
+                { wert: ALLE, text: t("typFilter.alle") },
+                { wert: "erloes", text: t("erloes") },
+                { wert: "kosten", text: t("kosten") },
+              ]}
+              ziel={typZiel}
+            />
+
+            {darfBuchen ? (
+              <Aufklapper
+                titel={t("formular.buchung.titel")}
+                beschreibung={t("formular.buchung.lead")}
+              >
+                <BuchungErfassenFormular
+                  kostentraeger={kostentraegerListe}
+                  chargen={chargen}
+                />
+              </Aufklapper>
+            ) : null}
+
+            {tabelle(
+              <DataTable
+                head={[
+                  t("col.datum"),
+                  t("col.kostentraegerSpalte"),
+                  t("col.typ"),
+                  t("col.kategorie"),
+                  t("col.betrag"),
+                ]}
+              >
+                {ledger.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} className="px-3 py-4 text-center text-xs text-muted-foreground">
+                      {t("keineBuchungen")}
+                    </td>
+                  </tr>
+                ) : (
+                  ledger.map((l) => (
+                    <tr key={l.id}>
+                      <td className="px-3 py-2.5 text-muted-foreground">{datum(l.buchungsdatum)}</td>
+                      <td className="px-3 py-2.5 text-foreground">{l.kostentraegerBezeichnung}</td>
+                      <td className="px-3 py-2.5">
+                        <StatusPill tone={l.typ === "erloes" ? "success" : "neutral"}>
+                          {t(l.typ)}
+                        </StatusPill>
+                      </td>
+                      <td className="px-3 py-2.5 text-muted-foreground">
+                        {l.kategorie}
+                        {l.beschreibung ? (
+                          <span className="block text-[11px] text-muted-foreground/80">
+                            {l.beschreibung}
+                          </span>
+                        ) : null}
+                      </td>
+                      <td className="px-3 py-2.5 font-semibold text-foreground">
+                        {geld(l.betragTenge)}
+                      </td>
+                    </tr>
+                  ))
+                )}
+                {mehr.ledger ? (
+                  <TabellenFuss spalten={5} text={t("mehrAnzeigen")} ziel={mehrZiel} />
+                ) : null}
+              </DataTable>,
+            )}
+          </div>
+        </Section>
+      ) : null}
 
       <Card className="bg-muted/30 text-xs leading-5 text-muted-foreground">{t("note")}</Card>
     </div>

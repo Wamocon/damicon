@@ -61,6 +61,21 @@ export interface DrittweitergabeZeile {
   ueberfaellig: boolean;
 }
 
+// Pruefprotokoll (WMCNL-2303): audit_events ist ein reines, ungefiltertes
+// Append-only-Log (initial_schema.sql) - kein eigenes Cockpit-Modul wie die
+// fuenf Datenschutz-Tabellen oben, sondern der zentrale Nachweis, den der
+// Fliesstext dieser Seite schon zusagt ("Jeder Schreibvorgang landet im
+// Pruefprotokoll"). actor steht bereits als fertiger Text in der Zeile
+// (protokolliere(), lib/actions/formular-helfer.ts: "Name (rolle)").
+export interface AuditEreignisZeile {
+  id: string;
+  actor: string | null;
+  aktion: string;
+  ressource: string;
+  ressourceId: string | null;
+  erstelltAm: string;
+}
+
 export interface ComplianceKennzahlen {
   einwilligungenAktiv: number;
   einwilligungenWiderrufen: number;
@@ -176,6 +191,33 @@ export const demoVorfaelle: VorfallZeile[] = [
     ueberfaellig: false,
     verantwortlichProfilId: "demo-leitung",
     verantwortlicher: "N. Amanschajewa (Betriebsleitung)",
+  },
+];
+
+export const demoAuditEreignisse: AuditEreignisZeile[] = [
+  {
+    id: "demo-a1",
+    actor: "N. Amanschajewa (betriebsleitung)",
+    aktion: "einladung.ausgestellt",
+    ressource: "einladungen",
+    ressourceId: null,
+    erstelltAm: "2026-08-29T10:15:00+06:00",
+  },
+  {
+    id: "demo-a2",
+    actor: "S. Nurlan (buchhaltung)",
+    aktion: "lohn.freigegeben",
+    ressource: "lohn",
+    ressourceId: null,
+    erstelltAm: "2026-08-28T09:40:00+06:00",
+  },
+  {
+    id: "demo-a3",
+    actor: "A. Iskakow (brigade)",
+    aktion: "aufgabe.status",
+    ressource: "pflueckaufgaben",
+    ressourceId: null,
+    erstelltAm: "2026-08-28T07:05:00+06:00",
   },
 ];
 

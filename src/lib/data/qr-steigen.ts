@@ -1,15 +1,19 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import { einsAus } from "@/lib/data/util";
-import { demoPfleuckerAusweise, demoSteigenEtiketten } from "@/lib/domain/qr-steigen";
 
 // Datenquelle fuer QR-Etiketten (Steigen) und Pfluecker-Ausweise (WMCNL-1439).
 // Reine Leseansicht: anders als lohn.ts/zukauf.ts gibt es hier keine
 // zugehoerige Server Action, die etwas schreibt - Steigen entstehen bereits
 // ueber die Nachweiskette (src/lib/actions/nachweiskette.ts), Pfluecker ueber
-// die Personalverwaltung. Muster (Datenquelle-Badge, Demo-Fallback bei
-// fehlendem Supabase, "fehler" statt "demo" bei einem echten Lesefehler)
-// trotzdem identisch zu ladeZukaufPositionen in src/lib/data/zukauf.ts.
+// die Personalverwaltung.
+//
+// Ohne Demo-Fallback, anders als das Muster in ladeZukaufPositionen
+// (src/lib/data/zukauf.ts): das System laeuft ausschliesslich gegen die
+// gemeinsame Cloud-Instanz. Fehlt die Konfiguration oder schlaegt die
+// Abfrage fehl, bleibt die Liste leer statt erfundene Chargen/Ausweise zu
+// zeigen - ein gedruckter QR-Code auf Basis erfundener Daten waere ohnehin
+// nie einloesbar gewesen.
 
 const ETIKETTEN_LIMIT = 40;
 const AUSWEISE_LIMIT = 60;
@@ -26,12 +30,8 @@ export interface SteigenEtikettenListe {
   etiketten: SteigenEtikett[];
 }
 
-function demoEtikettenListe(quelle: Datenquelle = "demo"): SteigenEtikettenListe {
-  return { quelle, etiketten: demoSteigenEtiketten.map((e) => ({ ...e })) };
-}
-
 export async function ladeSteigenEtiketten(): Promise<SteigenEtikettenListe> {
-  if (!isSupabaseConfigured()) return demoEtikettenListe();
+  if (!isSupabaseConfigured()) return { quelle: "fehler", etiketten: [] };
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -40,7 +40,7 @@ export async function ladeSteigenEtiketten(): Promise<SteigenEtikettenListe> {
     .order("created_at", { ascending: false })
     .limit(ETIKETTEN_LIMIT);
 
-  if (error || !data) return demoEtikettenListe("fehler");
+  if (error || !data) return { quelle: "fehler", etiketten: [] };
 
   const etiketten = data
     .map((s) => ({
@@ -67,12 +67,8 @@ export interface PfleuckerAusweisListe {
   ausweise: PfleuckerAusweis[];
 }
 
-function demoAusweisListe(quelle: Datenquelle = "demo"): PfleuckerAusweisListe {
-  return { quelle, ausweise: demoPfleuckerAusweise.map((p) => ({ ...p })) };
-}
-
 export async function ladePfleuckerAusweise(): Promise<PfleuckerAusweisListe> {
-  if (!isSupabaseConfigured()) return demoAusweisListe();
+  if (!isSupabaseConfigured()) return { quelle: "fehler", ausweise: [] };
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -81,7 +77,7 @@ export async function ladePfleuckerAusweise(): Promise<PfleuckerAusweisListe> {
     .order("name")
     .limit(AUSWEISE_LIMIT);
 
-  if (error || !data) return demoAusweisListe("fehler");
+  if (error || !data) return { quelle: "fehler", ausweise: [] };
 
   return { quelle: "db", ausweise: data };
 }

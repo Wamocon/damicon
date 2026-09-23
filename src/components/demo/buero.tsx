@@ -2,7 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { Check, Minus } from "lucide-react";
-import { Card, DataTable, Section, StatusPill } from "@/components/ui/kit";
+import { Card, DataTable, Section } from "@/components/ui/kit";
 import { hasPermission, roleDefinitions, type Resource } from "@/lib/rbac";
 
 export function RollenDemo() {
@@ -28,19 +28,23 @@ export function RollenDemo() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {roleDefinitions.map((role) => (
             <Card key={role.key}>
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-black text-card-foreground">
-                  {roleT(role.key)}
-                </p>
-                <StatusPill tone="neutral">
-                  1Çatı: {role.catiRole ?? t("catiRole.keine")}
-                </StatusPill>
-              </div>
+              <p className="text-sm font-black text-card-foreground">
+                {roleT(role.key)}
+              </p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">
                 {roleT(`descriptions.${role.key}`)}
               </p>
-              <p className="mt-2 text-[11px] uppercase tracking-wide text-muted-foreground">
-                {t("scope")}: {t(`scopeWert.${role.scope}`)} · {t("level")} {role.level}
+              {/* Bereich und Stufe in der Fusszeile der Karte.
+
+                  Darunter stand bis zur Textpruefung die Entsprechung im
+                  Vorgaengersystem ("Vorsystem 1Çatı: admin"). Die Zuordnung
+                  stammt aus der Migrationsanalyse und beantwortet, woher eine
+                  Rolle kommt - nicht, was sie darf. Wer im Betrieb arbeitet,
+                  kennt das Altsystem nicht und las dort einen Bezeichner ohne
+                  Bezug zu irgendetwas auf der Seite. */}
+              <p className="mt-2 schrift-label uppercase tracking-wide text-muted-foreground">
+                {t("scope")}: {t(`scopeWert.${role.scope}`)} · {t("level")}{" "}
+                {role.level}
               </p>
             </Card>
           ))}
@@ -48,7 +52,7 @@ export function RollenDemo() {
       </Section>
 
       <Section title={t("matrixTitle")} description={t("matrixLead")}>
-        <DataTable head={[t("resource"), ...roleDefinitions.map((r) => roleT(r.key))]}>
+        <DataTable matrix head={[t("resource"), ...roleDefinitions.map((r) => roleT(r.key))]}>
           {shown.map((resource) => (
             <tr key={resource}>
               <td className="px-3 py-2.5 font-semibold text-foreground">

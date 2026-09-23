@@ -6,13 +6,14 @@ import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import type { AktionsStatus } from "@/lib/actions/status";
+import { Button } from "@/components/ui/kit";
 
 // Kleine Bausteine fuer die Verwaltungsformulare der DB-gestuetzten Module.
 // Bewusst schlicht gehalten: gleiche Hoehe, gleiche Radien wie im uebrigen
 // Dashboard, keine eigene Formularbibliothek.
 
-const feldKlassen =
-  "h-9 w-full rounded-lg border border-border bg-background px-2.5 text-xs text-foreground outline-none transition focus:border-primary";
+export const feldKlassen =
+  "h-11 w-full rounded-lg border border-border bg-background px-3 text-base text-foreground outline-none transition focus:border-primary lg:h-9 lg:px-2.5 lg:text-xs";
 
 // WMC-Vibecode-Cleanup-Fund: bis hierher praktisch wortgleich in rund 15
 // *-formulare.tsx-Dateien einzeln neu geschrieben (immer derselbe versteckte
@@ -60,7 +61,7 @@ export function Feld({
 }) {
   return (
     <label className="block space-y-1">
-      <span className="text-[11px] font-semibold text-card-foreground">
+      <span className="schrift-label font-semibold text-card-foreground">
         {label}
       </span>
       <input
@@ -81,18 +82,25 @@ export function Auswahl({
   label,
   name,
   options,
+  gruppen,
   required,
   defaultValue,
 }: {
   label: string;
   name: string;
   options: { wert: string; text: string }[];
+  /**
+   * Zusaetzliche Eintraege unter Ueberschriften, hinter den options. Fuer
+   * Listen, die zu lang zum Ueberfliegen sind - etwa Kostentraeger nach
+   * Erntetag. Ohne gruppen bleibt alles wie zuvor.
+   */
+  gruppen?: { titel: string; options: { wert: string; text: string }[] }[];
   required?: boolean;
   defaultValue?: string;
 }) {
   return (
     <label className="block space-y-1">
-      <span className="text-[11px] font-semibold text-card-foreground">
+      <span className="schrift-label font-semibold text-card-foreground">
         {label}
       </span>
       <select
@@ -105,6 +113,15 @@ export function Auswahl({
           <option key={option.wert} value={option.wert}>
             {option.text}
           </option>
+        ))}
+        {gruppen?.map((gruppe, i) => (
+          <optgroup key={`${gruppe.titel}-${i}`} label={gruppe.titel}>
+            {gruppe.options.map((option) => (
+              <option key={option.wert} value={option.wert}>
+                {option.text}
+              </option>
+            ))}
+          </optgroup>
         ))}
       </select>
     </label>
@@ -132,18 +149,16 @@ export function SubmitKnopf({
   const text = label ?? t("anlegen");
 
   return (
-    <button
+    <Button
       type="submit"
       form={form}
-      disabled={pending}
-      className={
-        variante === "primaer"
-          ? "inline-flex h-9 items-center justify-center rounded-lg bg-primary px-3 text-xs font-bold text-primary-foreground transition hover:brightness-110 disabled:opacity-60"
-          : "inline-flex h-9 items-center justify-center rounded-lg border border-border bg-card px-3 text-xs font-bold text-foreground transition hover:border-primary disabled:opacity-60"
-      }
+      laedt={pending}
+      variante={variante}
+      rundung="schmal"
+      groesse="formular"
     >
-      {pending ? t("laeuft") : text}
-    </button>
+      {text}
+    </Button>
   );
 }
 
@@ -157,7 +172,7 @@ export function AktionsMeldung({ status }: { status: AktionsStatus }) {
   return (
     <p
       role="status"
-      className={`flex items-start gap-1.5 rounded-lg border p-2 text-[11px] font-semibold leading-4 ${
+      className={`flex items-start gap-1.5 rounded-lg border p-2 schrift-label font-semibold ${
         gut
           ? "border-success/25 bg-success/[0.08] text-success"
           : "border-destructive/25 bg-destructive/[0.06] text-destructive"
@@ -180,9 +195,9 @@ export function FormularKarte({
 }) {
   return (
     <div className="rounded-xl border border-border bg-card p-4">
-      <p className="text-xs font-black text-card-foreground">{titel}</p>
+      <p className="schrift-dense font-black text-card-foreground">{titel}</p>
       {beschreibung ? (
-        <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
+        <p className="mt-0.5 schrift-label text-muted-foreground">
           {beschreibung}
         </p>
       ) : null}

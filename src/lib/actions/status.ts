@@ -2,18 +2,22 @@ import type { PostgrestError } from "@supabase/supabase-js";
 
 // Einheitlicher Rueckgabewert aller Server Actions. `meldung` ist ein
 // Uebersetzungsschluessel unterhalb des Namespaces "aktionen", damit die
-// Oberflaeche in allen fuenf Sprachen antwortet.
+// Oberflaeche in allen vier Sprachen antwortet.
 export interface AktionsStatus {
   stand: "leer" | "ok" | "fehler";
   meldung?: string;
   /** Zusatzangabe fuer Meldungen mit Platzhalter, z. B. der Blockcode. */
   wert?: string;
+  /** Nur beim Diktat: die Sprachen, die der Dienst gehoert hat. Sie
+   *  entscheiden ueber die Antwortsprache (domain/antwortsprache.ts) und
+   *  muessen deshalb bis in den Browser und von dort zurueck. */
+  sprachen?: string[];
 }
 
 export const leer: AktionsStatus = { stand: "leer" };
 
-export function ok(meldung: string, wert?: string): AktionsStatus {
-  return { stand: "ok", meldung, wert };
+export function ok(meldung: string, wert?: string, sprachen?: string[]): AktionsStatus {
+  return { stand: "ok", meldung, wert, ...(sprachen?.length ? { sprachen } : {}) };
 }
 
 export function fehler(meldung: string, wert?: string): AktionsStatus {
@@ -47,6 +51,12 @@ export function dbFehler(error: PostgrestError | { code?: string; message: strin
       // ueberladenen 23514/P0001-Sammelklasse (adversarischer Review-Fund,
       // dieselbe Ueberlegung wie bei DA001).
       return fehler("fehler.lieferungStorniert");
+    case "DA004":
+      // transport_kuehlkette_bewerten() (WMCNL-2372): Transportmessung auf
+      // einer bereits zugestellten Lieferung - eigener Code statt DA002,
+      // sonst behauptete die Meldung faelschlich, die Lieferung sei
+      // storniert.
+      return fehler("fehler.lieferungZugestellt");
     case "DA003":
       // steige_kontrolle_pruefen() (Anforderung 2.10, QA-Ultra-Fund
       // 17.09.2026): Vier-Augen-Regel. Eigener Code statt 42501/

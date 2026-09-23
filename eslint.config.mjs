@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Python-Umgebung der Robot-Framework-Tests. Sie bringt eigene
+    // JavaScript-Dateien mit (Playwright, Robot-Berichte), die weder unser
+    // Code noch unser Stil sind.
+    ".venv-robot/**",
   ]),
 ]);
 

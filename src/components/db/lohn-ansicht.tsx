@@ -2,6 +2,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { Card, DataTable, Section, Stat, StatusPill, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
+  LohnMonatAbzuegeBerechnenFormular,
   LohnPeriodeBerechnenFormular,
   LohnSatzAnlegenFormular,
   LohnStatusFormular,
@@ -31,7 +32,11 @@ export async function LohnAnsicht() {
   const zahl1 = (n: number, stellen = 1) => format.number(n, { maximumFractionDigits: stellen });
   const datum = (iso: string) => format.dateTime(new Date(iso), { dateStyle: "medium" });
 
-  const { satz, abrechnungen, positionen } = uebersicht;
+  const { satz, historie, abrechnungen, positionen, steuersatzKz, monatsabzuege, abschlussLuecken } =
+    uebersicht;
+  const kzt = await getTranslations("lohnAnsicht.kz");
+  const monatName = (monat: number) =>
+    format.dateTime(new Date(Date.UTC(2000, monat - 1, 1)), { month: "long" });
 
   // Derselbe Befund wie im Vorbild (D-H: Warnung, wenn die Mindestlohn-
   // Anhebung jede Zeile trifft und der Faktor damit folgenlos bleibt) - hier
@@ -75,9 +80,58 @@ export async function LohnAnsicht() {
       {darfBerechnen ? <LohnSatzAnlegenFormular /> : null}
       {darfBerechnen ? <LohnPeriodeBerechnenFormular /> : null}
 
+      {/* WMCNL-2380: bislang war ausschliesslich der juengste Satz ueberhaupt
+          einsehbar (die Karte oben) - kein Weg, aeltere Saetze nachzuschlagen,
+          gegen die eine vergangene Periode tatsaechlich gerechnet hat. */}
+      <Section title={t("historieTitel")} description={t("historieLead")}>
+        <DataTable
+          head={[
+            t("col.gueltigAb"),
+            t("col.gueltigBis"),
+            t("stat.stundenlohn"),
+            t("stat.kgSatz"),
+            t("stat.ziel"),
+            t("stat.korridor"),
+          ]}
+        >
+          {historie.map((s) => (
+            <tr key={s.id} className={s.id === satz?.id ? "bg-primary/5" : undefined}>
+              <td className="px-3 py-2.5 font-semibold text-foreground">{datum(s.gueltigAb)}</td>
+              <td className="px-3 py-2.5 text-muted-foreground">
+                {s.gueltigBis ? datum(s.gueltigBis) : "-"}
+              </td>
+              <td className="px-3 py-2.5 text-muted-foreground">{geld(s.stundenlohnTenge)}</td>
+              <td className="px-3 py-2.5 text-muted-foreground">{geld(s.kgSatzTenge)}</td>
+              <td className="px-3 py-2.5 text-muted-foreground">
+                {zahl1(s.qualitaetsZielAusschussquote)} %
+              </td>
+              <td className="px-3 py-2.5 text-muted-foreground">
+                {zahl1(s.qualitaetsfaktorMin, 2)} – {zahl1(s.qualitaetsfaktorMax, 2)}
+              </td>
+            </tr>
+          ))}
+        </DataTable>
+      </Section>
+
       {faktorWirkungslos ? (
         <Card className="border-warning/30 bg-warning/[0.06] text-xs leading-5 text-warning">
           {t("wirkungslos")}
+        </Card>
+      ) : null}
+
+      {/* WMCNL-2375: lohn_periode_berechnen() liest die Mengenkomponente nur
+          aus Steigen - eine abgeschlossene Aufgabe mit gemeldeter Menge, aber
+          ohne jede Steige, fiel bislang kommentarlos aus der Abrechnung. */}
+      {abschlussLuecken.length > 0 ? (
+        <Card className="space-y-2 border-warning/30 bg-warning/[0.06] text-xs leading-5 text-warning">
+          <p className="font-semibold">{t("abschlussLuecke.titel")}</p>
+          <ul className="list-disc space-y-0.5 pl-4">
+            {abschlussLuecken.map((a) => (
+              <li key={a.id}>
+                {t("abschlussLuecke.eintrag", { code: a.code, menge: zahl1(a.istMengeKg) })}
+              </li>
+            ))}
+          </ul>
         </Card>
       ) : null}
 
@@ -131,9 +185,27 @@ export async function LohnAnsicht() {
                 </td>
                 <td className="px-3 py-2.5">
                   {darfFreigeben && a.status === "entwurf" ? (
-                    <LohnStatusFormular id={a.id} ziel="freigegeben" label={t("freigebenKnopf")} />
+                    <LohnStatusFormular
+                      id={a.id}
+                      ziel="freigegeben"
+                      label={t("freigebenKnopf")}
+                      bestaetigung={t("bestaetigung.freigeben", { name: a.pfluecker })}
+                    />
                   ) : darfFreigeben && a.status === "freigegeben" ? (
-                    <LohnStatusFormular id={a.id} ziel="ausgezahlt" label={t("auszahlenKnopf")} />
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <LohnStatusFormular
+                        id={a.id}
+                        ziel="ausgezahlt"
+                        label={t("auszahlenKnopf")}
+                        bestaetigung={t("bestaetigung.auszahlen", { name: a.pfluecker })}
+                      />
+                      <LohnStatusFormular
+                        id={a.id}
+                        ziel="entwurf"
+                        label={t("zurueckziehenKnopf")}
+                        bestaetigung={t("bestaetigung.zurueckziehen", { name: a.pfluecker })}
+                      />
+                    </div>
                   ) : (
                     <span className="text-[11px] text-muted-foreground">–</span>
                   )}
@@ -180,6 +252,94 @@ export async function LohnAnsicht() {
             ))
           )}
         </DataTable>
+      </Section>
+
+      <Section
+        title={kzt("titel")}
+        description={kzt("lead")}
+        action={<DatenquelleBadge quelle={uebersicht.quelle} />}
+      >
+        {steuersatzKz ? (
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <Stat
+              label={kzt("stat.opv")}
+              value={`${zahl1(steuersatzKz.opvProzent)} %`}
+              helper={kzt("stat.opvHinweis")}
+            />
+            <Stat
+              label={kzt("stat.vosms")}
+              value={`${zahl1(steuersatzKz.vosmsProzent)} %`}
+              helper={kzt("stat.vosmsHinweis")}
+            />
+            <Stat
+              label={kzt("stat.ipn")}
+              value={`${zahl1(steuersatzKz.ipnProzent)} %`}
+              helper={`${kzt("stat.freibetrag")} ${geld(steuersatzKz.ipnFreibetragTenge)}`}
+            />
+            <Stat
+              label={kzt("stat.arbeitgeberlast")}
+              value={`${zahl1(
+                steuersatzKz.opvrProzent + steuersatzKz.soProzent + steuersatzKz.snProzent + steuersatzKz.osmsProzent,
+              )} %`}
+              helper={kzt("stat.arbeitgeberlastHinweis")}
+            />
+          </div>
+        ) : (
+          <Card className="text-center text-xs text-muted-foreground">{kzt("keinSatz")}</Card>
+        )}
+        {steuersatzKz ? (
+          <p className="text-[11px] leading-4 text-muted-foreground">
+            {kzt("quelle")} {steuersatzKz.quelle}
+          </p>
+        ) : null}
+
+        {darfBerechnen ? <LohnMonatAbzuegeBerechnenFormular /> : null}
+
+        <DataTable
+          head={[
+            kzt("col.pfluecker"),
+            kzt("col.monat"),
+            kzt("col.brutto"),
+            kzt("col.opv"),
+            kzt("col.vosms"),
+            kzt("col.ipn"),
+            kzt("col.netto"),
+            kzt("col.arbeitgeberkosten"),
+          ]}
+        >
+          {monatsabzuege.length === 0 ? (
+            <tr>
+              <td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground">
+                {kzt("keineAbzuege")}
+              </td>
+            </tr>
+          ) : (
+            monatsabzuege.map((m) => (
+              <tr key={m.id}>
+                <td className="px-3 py-2.5">
+                  <p className="font-semibold text-foreground">{m.pfluecker}</p>
+                  <p className="font-mono text-[11px] text-muted-foreground">{m.pfleuckerAusweis}</p>
+                </td>
+                <td className="px-3 py-2.5 text-muted-foreground">
+                  {monatName(m.monat)} {m.jahr}
+                </td>
+                <td className="px-3 py-2.5 text-muted-foreground">{geld(m.bruttoGesamtTenge)}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{geld(m.opvTenge)}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{geld(m.vosmsTenge)}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">
+                  {m.ipnTenge === 0 ? (
+                    <StatusPill tone="success">{kzt("steuerfrei")}</StatusPill>
+                  ) : (
+                    geld(m.ipnTenge)
+                  )}
+                </td>
+                <td className="px-3 py-2.5 font-bold text-foreground">{geld(m.nettoTenge)}</td>
+                <td className="px-3 py-2.5 text-muted-foreground">{geld(m.arbeitgeberkostenGesamtTenge)}</td>
+              </tr>
+            ))
+          )}
+        </DataTable>
+        <Card className="bg-muted/30 text-xs leading-5 text-muted-foreground">{kzt("note")}</Card>
       </Section>
 
       <Card className="bg-muted/30 text-xs leading-5 text-muted-foreground">{t("note")}</Card>

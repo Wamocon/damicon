@@ -6,7 +6,7 @@ import { defineRouting } from "next-intl/routing";
 // UND Englisch empfiehlt. Kasachisch (kk) bleibt neu gegenueber 1Cati.
 // Startsprache: Deutsch (interner Demo- und Freigabe-Kontext).
 export const routing = defineRouting({
-  locales: ["de", "en", "tr", "kk", "ru"],
+  locales: ["de", "en", "kk", "ru"],
   defaultLocale: "de",
   localePrefix: "always",
 });

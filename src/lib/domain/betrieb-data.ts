@@ -59,29 +59,11 @@ export interface Dokument {
 
 export const dokumente: Dokument[] = [
   { id: "d-01", name: "Spritzprotokoll KW 36 - Parzelle Nord", kategorie: "Spritzmittelprotokoll", bezug: "T-N-A-04, T-N-B-01", stand: "2026-09-01", status: "gueltig" },
-  { id: "d-02", name: "ESUTD-Sammelnachweis Saisonkraefte", kategorie: "ESUTD-Nachweis", bezug: "42 Vertraege", stand: "2026-08-28", status: "prueflauf" },
+  { id: "d-02", name: "ESUTD-Sammelnachweis Saisonkraefte", kategorie: "ESUTD-Nachweis", bezug: "42 Verträge", stand: "2026-08-28", status: "prueflauf" },
   { id: "d-03", name: "Rahmenliefervertrag Handelskette A", kategorie: "Liefervertrag", bezug: "Kontingent Polka 3 100 kg", stand: "2026-08-15", status: "gueltig" },
-  { id: "d-04", name: "Foerderdossier gosagro.kz - Kuehlhaus", kategorie: "Foerderdossier", bezug: "Antrag 2026-114", stand: "2026-08-30", status: "prueflauf" },
+  { id: "d-04", name: "Foerderdossier gosagro.kz - Kühlhaus", kategorie: "Foerderdossier", bezug: "Antrag 2026-114", stand: "2026-08-30", status: "prueflauf" },
   { id: "d-05", name: "GlobalG.A.P.-Zertifikat", kategorie: "Zertifikat", bezug: "Betrieb", stand: "2025-11-02", status: "gueltig" },
   { id: "d-06", name: "Spritzprotokoll KW 30 - Parzelle Sued", kategorie: "Spritzmittelprotokoll", bezug: "I-S-B-01", stand: "2026-07-20", status: "abgelaufen" },
-];
-
-export interface Schulungsvideo {
-  id: string;
-  /** Deutsche Notiz fuer die Codeseite - angezeigt wird
-   *  schulungenDemo.video.<id>. */
-  titel: string;
-  dauer: string;
-  sprachen: string[];
-  /** Schluessel, kein Anzeigetext - uebersetzt ueber schulungenDemo.thema.<wert>. */
-  thema: string;
-}
-
-export const schulungsvideos: Schulungsvideo[] = [
-  { id: "v-01", titel: "Richtig pfluecken - reife Frucht erkennen", dauer: "4:12", sprachen: ["kk", "ru", "tr"], thema: "ernte" },
-  { id: "v-02", titel: "Steige befuellen und QR-Etikett scannen", dauer: "3:05", sprachen: ["kk", "ru"], thema: "feld" },
-  { id: "v-03", titel: "Die Stunde nach dem Pfluecken - Kuehlkette", dauer: "5:40", sprachen: ["kk", "ru", "tr", "de", "en"], thema: "hof" },
-  { id: "v-04", titel: "Hygiene und Handschuhe", dauer: "2:48", sprachen: ["kk", "ru"], thema: "qualitaet" },
 ];
 
 export interface Integration {

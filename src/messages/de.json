@@ -7,7 +7,9 @@
     "skipToContent": "Zum Inhalt springen",
     "themeLight": "Helles Design",
     "themeDark": "Dunkles Design",
-    "localeSwitcherLabel": "Sprachauswahl"
+    "localeSwitcherLabel": "Sprachauswahl",
+    "themeLabel": "Farbschema",
+    "laedt": "Die Seite wird geladen"
   },
   "notFound": {
     "message": "Diese Seite gibt es nicht.",
@@ -16,15 +18,23 @@
   "nav": {
     "platformSubtitle": "Betriebssteuerung Himbeerplantage",
     "activePersona": "Aktive Rolle (Demo)",
-    "activeRole": "Angemeldet als",
     "overview": "Übersicht",
+    "handbook": "Handbuch",
+    "handbookHint": "Produkthandbuch öffnen (neuer Tab)",
+    "breadcrumb": "Navigationspfad",
+    "mainNav": "Hauptnavigation",
     "openMenu": "Menü öffnen",
     "closeMenu": "Menü schließen",
+    "collapseMenu": "Menü einklappen",
+    "expandMenu": "Menü ausklappen",
+    "toggleZone": "{zone} auf- oder zuklappen",
     "portal": "Zum Portal",
     "zones": "Vier Zonen",
     "proof": "Belegbarkeit",
     "kpis": "Kennzahlen",
-    "compliance": "Compliance"
+    "compliance": "Compliance",
+    "account": "Konto",
+    "menu": "Menü"
   },
   "hero": {
     "badge": "Betriebssteuerung für die Himbeerplantage · Umland Almaty",
@@ -43,6 +53,17 @@
     "rotator1": "bis zum Reihenblock.",
     "rotator2": "bis zur Kühlminute.",
     "rotator3": "bis zur Person."
+  },
+  "werbefilm": {
+    "pausieren": "Film anhalten",
+    "fortsetzen": "Film abspielen",
+    "tonAn": "Ton des Films einschalten",
+    "tonAus": "Ton des Films ausschalten",
+    "fehler": "Der Film lässt sich gerade nicht abspielen.",
+    "portalTitel": "Damicon in 40 Sekunden",
+    "portalText": "Der Werbefilm: vom Feld bis zum Beleg. {sekunden} Sekunden, mit Ton.",
+    "ansehen": "Ansehen",
+    "ausblenden": "Hinweis ausblenden"
   },
   "landing": {
     "openZone": "Bereich öffnen",
@@ -207,7 +228,7 @@
       },
       "stand": {
         "q": "Was ist heute schon gebaut?",
-        "a": "{gesamt} Module in vier Bereichen: {angebunden} an der Datenbank mit echten Schreibvorgängen, {demo} als bedienbare Demo, {entwicklung} als sichtbare Menüpunkte in Entwicklung. Die Kennzahlen der Startseite sind Platzhalterwerte bis zur ersten vollständig gemessenen Saison."
+        "a": "{gesamt} Module in vier Bereichen: {angebunden} an der Datenbank mit echten Schreibvorgängen, {entwicklung} als sichtbare Menüpunkte in Entwicklung. Die Kennzahlen der Startseite sind Platzhalterwerte bis zur ersten vollständig gemessenen Saison."
       },
       "daten": {
         "q": "Wo liegen die Daten?",
@@ -253,7 +274,6 @@
     "email": "E-Mail",
     "password": "Passwort",
     "submit": "Anmelden",
-    "submitting": "Anmeldung läuft ...",
     "error": {
       "ungueltig": "E-Mail oder Passwort stimmt nicht.",
       "unbekannt": "Anmeldung fehlgeschlagen. Bitte später erneut versuchen.",
@@ -264,7 +284,7 @@
     "demoPassword": "Passwort für alle Konten:",
     "backToSite": "Zurück zur Startseite",
     "demoModeTitle": "Demo-Modus ohne Datenbank",
-    "demoModeLead": "Es ist keine Supabase-Umgebung hinterlegt. Das Dashboard läuft mit Beispieldaten, die Rolle lässt sich frei umschalten.",
+    "demoModeLead": "Es ist keine Datenbank hinterlegt. Das Dashboard läuft mit Beispieldaten, die Rolle lässt sich frei umschalten.",
     "toDashboard": "Zum Dashboard",
     "signOut": "Abmelden",
     "security": "Sicherheit",
@@ -273,7 +293,6 @@
       "lead": "Für dieses Konto ist ein zweiter Faktor eingerichtet. Bitte den aktuellen Code aus der Authenticator-App eingeben.",
       "codeLabel": "6-stelliger Code",
       "submit": "Bestätigen",
-      "submitting": "Wird geprüft ...",
       "error": {
         "code": "Der Code ist falsch oder abgelaufen.",
         "unbekannt": "Prüfung fehlgeschlagen. Bitte später erneut versuchen."
@@ -282,8 +301,8 @@
   },
   "mfa": {
     "title": "Sicherheit",
-    "description": "Mehrfaktor-Authentifizierung (Anforderung 4.9). Ein zweiter Faktor über eine Authenticator-App schützt das Konto, falls das Passwort bekannt wird.",
-    "keineUmgebung": "Ohne Supabase-Umgebung gibt es kein echtes Konto - die Mehrfaktor-Authentifizierung greift erst mit Anmeldung.",
+    "description": "Mehrfaktor-Authentifizierung. Ein zweiter Faktor über eine Authenticator-App schützt das Konto, falls das Passwort bekannt wird.",
+    "keineUmgebung": "Ohne angebundene Datenbank gibt es kein echtes Konto - die Mehrfaktor-Authentifizierung greift erst mit der Anmeldung.",
     "faktorenTitel": "Eingerichtete Faktoren",
     "faktorenLead": "Ein TOTP-Faktor genügt. Mehrere sind möglich, etwa für ein Ersatzgerät.",
     "keinFaktor": "Noch kein zweiter Faktor eingerichtet.",
@@ -297,7 +316,7 @@
     "codeLabel": "Code aus der App",
     "bestaetigenKnopf": "Bestätigen",
     "erfolg": "Zweiter Faktor eingerichtet und aktiv.",
-    "note": "Bei der nächsten Anmeldung wird der Code zusätzlich zum Passwort abgefragt. Ohne eingerichteten Faktor bleibt die Anmeldung wie bisher - Mehrfaktor-Authentifizierung ist Pflicht für Anforderung 4.9, ihre Durchsetzung je Rolle ist ein späterer Ausbauschritt."
+    "note": "Bei der nächsten Anmeldung wird der Code zusätzlich zum Passwort abgefragt. Ohne eingerichteten Faktor bleibt die Anmeldung wie bisher - Mehrfaktor-Authentifizierung ist Pflicht, ihre Durchsetzung je Rolle ist ein späterer Ausbauschritt."
   },
   "dashboard": {
     "searchPlaceholder": "Reihenblock, Charge, Pflücker, Dokument suchen ...",
@@ -307,63 +326,77 @@
     "dataSource": {
       "db": "Live-Daten",
       "demo": "Beispieldaten",
-      "dbHint": "Angebunden an die Supabase-Datenbank, gelesen unter den RLS-Rechten Ihrer Rolle.",
+      "dbHint": "Die Zahlen kommen aus dem laufenden Betrieb. Sie sehen davon, was Ihre Rolle sehen darf.",
       "demoHint": "Ohne Datenbankverbindung - die Ansicht zeigt die hinterlegten Beispieldaten.",
       "fehler": "Datenbank nicht erreichbar",
       "fehlerHint": "Die Abfrage ist fehlgeschlagen. Angezeigt werden ersatzweise Beispieldaten - sie stammen nicht aus dem Betrieb."
     },
     "rbacHintLabel": "Rollen",
-    "rbacHint": "Welche Module sichtbar sind, hängt von der Rolle des angemeldeten Kontos ab. Sieben Kernrollen von der Administration bis zum einzelnen Pflücker im Feld - dieselbe Rolle entscheidet auch in der Datenbank über Lese- und Schreibrechte.",
+    "rbacHint": "Welche Module sichtbar sind, hängt von der Rolle des angemeldeten Kontos ab. Acht Kernrollen von der Geschäftsführung bis zum einzelnen Pflücker im Feld, dieselbe Rolle entscheidet auch in der Datenbank über Lese- und Schreibrechte.",
     "home": {
-      "eyebrow": "Betriebssteuerung",
-      "title": "Betriebsübersicht Damicon",
-      "description": "Aggregator Umland Almaty. Die Hauptfunktionen laufen gegen die Datenbank - mit Anmeldung, Rollenrechten und echten Schreibvorgängen. Unterfunktionen bleiben sichtbare Menüpunkte mit Status.",
-      "kpiTitle": "14 Baseline-Kennzahlen",
-      "kpiDescription": "Werden am 01.10.2026 mit dem Kunden als Baseline unterschrieben.",
-      "placeholderBadge": "Platzhalterwerte",
       "target": "Ziel",
       "zonesTitle": "Die vier Zonen",
-      "zonesDescription": "Navigationsstruktur des Dashboards, gegliedert wie die Zielarchitektur.",
-      "dbCount": "{count} angebunden",
-      "demoCount": "{count} Demo",
-      "wipCount": "{count} in Entwicklung",
-      "openZone": "Zone öffnen",
-      "milestoneTitle": "Meilensteine der internen Vorbereitung",
-      "milestoneDescription": "Beide vor der Vor-Ort-Analysewoche vom 24.09. bis 01.10.2026.",
-      "milestoneAName": "Meilenstein A - Prototyp mit Optik und Funktionsumfang",
-      "milestoneADue": "bis 06.09.2026",
-      "milestoneAItems": {
-        "tokens": "Design-Token-Umstellung auf die Palette „Kök & Altyn“ (Landesfarben Kasachstans)",
-        "landing": "Landingpage mit Platzhaltertexten und -bildern, Sprachumschalter für fünf Sprachen",
-        "zones": "Dashboard-Gerüst mit den vier Zonen als Navigationsstruktur",
-        "workflows": "Kern-Workflows beispielhaft: Reihenblock-Übersicht und Pflückaufgabe mit Fotobeleg"
-      },
-      "milestoneBName": "Meilenstein B - Grundgerüst mit echten Hauptfunktionen",
-      "milestoneBDue": "spätestens 19.09.2026",
-      "milestoneBItems": {
-        "rbac": "Rollen und Rechte mit sieben Kernrollen und Rechtematrix",
-        "hierarchy": "Standort-Hierarchie Betrieb, Plantage, Feldparzelle, Reihengruppe, Reihenblock inklusive Verwaltung",
-        "status": "Reihenblock-Statusverwaltung inklusive Sperrzustand nach Pflanzenschutzbehandlung",
-        "tasks": "Pflückaufgaben mit Fotobeleg der Verkaufsschale, je Brigade und Reihenblock",
-        "docs": "Dokumentenverwaltung für Spritzprotokolle, Verträge und ЕСУТД-Nachweise",
-        "i18n": "Mehrsprachige Oberfläche in fünf Sprachen",
-        "kpi": "Dashboard-Grundgerüst mit den 14 Baseline-Kennzahlen als Kacheln"
-      },
-      "milestoneBNote": "Alle Hauptfunktionen sind an die Datenbank angebunden: Anmeldung, Rollenrechte über Row Level Security, Standortverwaltung, Reihenblock-Sperre, Pflückaufgabe mit Fotobeleg und Dokumentenablage. Die Unterfunktionen bleiben planmäßig sichtbare Menüpunkte mit Status.",
-      "kpiSummary": "{berechenbar} heute messbar · {erfassung} Erfassung fehlt · {tabelle} Funktion fehlt · {ungeklaert} rechtlich ungeklärt",
-      "kpiGerechnet": "gerechnet aus {anzahl} Datensätzen",
-      "kpiGerechnetUngeklaert": "aus {anzahl} Datensätzen gerechnet - rechtliche Grundlage ungeklärt",
-      "kpiSummaryLive": "{gerechnet} aus echten Daten gerechnet · {offen} warten auf die Funktion dahinter",
-      "kpiExtendedTitle": "Weitere Kennzahlen",
-      "kpiExtendedDescription": "Teil der unterschriebenen Baseline, aber außerhalb der zwölf Kern-Kennzahlen im Cockpit.",
-      "kpiNoneForRole": "Für Ihre Rolle sind hier keine betriebsweiten Kennzahlen hinterlegt. Die eigene Leistung finden Sie im Lohn-Modul."
+      "zonesDescription": "Jede Zone mit ihren Kennzahlen und ihren Modulen.",
+      "openZone": "Zone öffnen"
     },
-    "loading": "Daten werden geladen"
+    "loading": "Daten werden geladen",
+    "askAi": "KI fragen",
+    "askAiHinweis": "KI-Seitenpanel öffnen oder schließen",
+    "begruessung": {
+      "morgen": "Guten Morgen, {name}",
+      "tag": "Guten Tag, {name}",
+      "abend": "Guten Abend, {name}",
+      "morgenOhneNamen": "Guten Morgen",
+      "tagOhneNamen": "Guten Tag",
+      "abendOhneNamen": "Guten Abend",
+      "beschreibung": "Was der Betrieb gerade meldet: Kennzahlen je Zone, offene Vorgänge und der Weg in die Module.",
+      "spruch": {
+        "0": "Was heute sauber erfasst ist, muss morgen niemand rekonstruieren.",
+        "1": "Die Kühlkette entscheidet sich in der ersten Stunde nach dem Pflücken.",
+        "2": "Ein Blick auf die offenen Vorgänge spart später die Rückfrage.",
+        "3": "Kurze Wege vom Feld in den Hof halten die Qualität oben.",
+        "4": "Jede Charge mit Beleg ist eine Charge weniger im Streitfall.",
+        "5": "Zahlen, die niemand ansieht, verbessern sich nicht von allein.",
+        "6": "Gut geplante Reihen sparen der Brigade den zweiten Gang.",
+        "7": "Wer die Wartezeit einhält, spart sich die Sperre danach."
+      }
+    },
+    "kennzahl": {
+      "ohneZiel": "kein Zielwert",
+      "platzhalter": "Platzhalter",
+      "zielstand": {
+        "erfuellt": "im Ziel",
+        "knapp": "knapp daneben",
+        "verfehlt": "Ziel verfehlt",
+        "offen": "kein Zielwert"
+      },
+      "luecke": {
+        "titel": "Noch keine Messung.",
+        "berechenbar": "Die Daten liegen vor, die Auswertung dafür fehlt noch.",
+        "erfassungFehlt": "Die Tabellen stehen bereit, die Werte werden noch nicht eingetragen.",
+        "tabelleFehlt": "Das Datenmodell hat dafür noch keinen Platz.",
+        "rechtlichUngeklaert": "Die rechtliche Grundlage ist noch nicht geklärt."
+      },
+      "verletzt": "{count} von {gesamt} verletzt",
+      "vonGesamt": "von {gesamt}"
+    },
+    "zoneModuleLead": "Alles, was in dieser Zone für die aktive Rolle freigegeben ist.",
+    "zoneKennzahlTitel": "Kennzahlen",
+    "zoneKennzahlLead": "Die Kennzahlen dieses Bereichs, die dringendste zuerst.",
+    "zoneKennzahlMehr": "{count, plural, one {# weitere Kennzahl anzeigen} other {# weitere Kennzahlen anzeigen}}",
+    "zoneKennzahlWeniger": "Weitere Kennzahlen ausblenden",
+    "bereiche": {
+      "titel": "Die vier Bereiche",
+      "lead": "Jeder Bereich mit seinen Kennzahlen, Auffälliges zuerst.",
+      "ohneKennzahl": "Für diesen Bereich ist keine Kennzahl freigegeben."
+    }
   },
   "roles": {
     "switcherHint": "Demo-Rolle wechseln - steuert die sichtbare Navigation",
     "viewAsHint": "Ansicht als Rolle - ändert nur die Darstellung, die Schreibrechte richten sich weiter nach Ihrem Profil",
+    "viewAsBadge": "Ansicht: {role}",
     "admin": "Administration",
+    "ceo": "Geschäftsführung",
     "betriebsleitung": "Betriebsleitung",
     "buchhaltung": "Buchhaltung",
     "brigade": "Brigade / Feld",
@@ -372,30 +405,23 @@
     "kunde": "B2B-Kunde",
     "descriptions": {
       "admin": "Volle Konfiguration, Nutzer- und Rollenverwaltung, sensible Finanz-, Zugriffs- und Integrationsaufsicht.",
+      "ceo": "Überblick über alle vier Zonen, alle Kennzahlen und alle vier Compliance-Bereiche, ohne Verwaltung der KI-Provider-Schlüssel. Erhält automatisch aktualisierte Compliance-Berichte beim Login.",
       "betriebsleitung": "Täglicher Plantagenbetrieb, Aufgaben, Rotation, Personal und Freigaben. Kann Finanzen einsehen, aber nicht buchen.",
       "buchhaltung": "Deckungsbeitrag, Lohn, Zahlungen, staatliche Meldungen. Keine Nutzerverwaltung, keine Feldabschlüsse.",
       "brigade": "Nimmt Pflückaufgaben an, erfasst Menge und Fotobeleg im Feld, sieht Rotation und Wartezeitsperren.",
       "picker": "Sieht ausschließlich die eigene Pflückleistung und Lohnabrechnung. Keine Schreibrechte auf gebuchte Mengen oder auf Daten anderer.",
       "erzeuger": "Nachbarbetrieb im Zukauf. Sieht eigene Reihenblöcke, Chargen, Abrechnung und Verträge.",
       "kunde": "Kontingente, Vorbestellung, Preislisten, KI-Chat, freigegebene Dokumente und eigene Reklamationen."
-    }
-  },
-  "klassifikation": {
-    "uebernehmen": "Übernehmen",
-    "anpassen": "Anpassen",
-    "neu-bauen": "Neu bauen"
+    },
+    "switcherLabel": "Demo-Rolle",
+    "viewAsLabel": "Ansicht als"
   },
   "reifegrad": {
     "angebunden": "Datenbank angebunden",
-    "demo": "Demo bedienbar",
     "in-entwicklung": "In Entwicklung"
   },
   "moduleMeta": {
-    "inDevelopmentTitle": "Unterfunktion - in Entwicklung",
-    "plannedScope": "Geplanter Umfang",
-    "classification": "Einstufung",
-    "milestone": "Meilenstein",
-    "milestoneB": "Meilenstein B und folgende Ausbaustufen"
+    "nichtVerfuegbar": "Noch nicht verfügbar"
   },
   "accessDenied": {
     "title": "Die Rolle {role} hat auf dieses Modul keinen Zugriff.",
@@ -463,7 +489,7 @@
     "ueberfaelligLabel": "überfällig",
     "ueberspringenKnopf": "Überspringen",
     "reaktivierenKnopf": "Reaktivieren",
-    "note": "Wetterszenarien (z. B. Vorziehen bei Hitze) sind hier noch nicht berücksichtigt - die Wetteranbindung (Temperatursummenrechnung) ist selbst noch nicht gebaut. Die Sperrlogik ist vollständig: eine neue Behandlung sperrt betroffene Termine automatisch, die Freigabe gibt sie wieder frei, und die erste passende Pflückaufgabe markiert einen Termin als erledigt.",
+    "note": "Wetterszenarien (z. B. Vorziehen bei Hitze) sind hier noch nicht berücksichtigt - die Temperatursumme steht im Wetter-Modul. Die Sperrlogik ist vollständig: eine neue Behandlung sperrt betroffene Termine automatisch, die Freigabe gibt sie wieder frei, und die erste passende Pflückaufgabe markiert einen Termin als erledigt.",
     "formular": {
       "generieren": {
         "titel": "Plan erzeugen / erweitern",
@@ -476,228 +502,255 @@
   "kpis": {
     "verlustquote": {
       "label": "Verlustquote vom Pflücken bis zum Kunden",
-      "braucht": "nichts - Ausschuss je Charge wird erfasst",
-      "basis": "Ausschuss gegen Gesamtmenge über alle Chargen"
+      "basis": "Ausschuss gegen Gesamtmenge über alle Chargen",
+      "kurz": "Verlustquote"
     },
     "vermarktungsfaehig": {
       "label": "Anteil vermarktungsfähiger Schalen",
-      "braucht": "Qualitaetssortierung je Schale"
+      "kurz": "Vermarktungsfähig"
     },
     "zeitBisVorkuehlung": {
       "label": "Zeit vom Pflücken bis zur Vorkühlung",
-      "braucht": "nichts - Pflueck- und Kuehlzeitpunkt je Charge",
-      "basis": "Mittel über alle gemessenen Chargen, inklusive Grenzverletzungen"
+      "basis": "Mittel über alle gemessenen Chargen, inklusive Grenzverletzungen",
+      "kurz": "Bis Vorkühlung"
     },
     "zeitBisKunde": {
       "label": "Zeit vom Pflücken bis zum Kunden",
-      "braucht": "Lieferungen mit Abfahrt und Ankunft"
+      "kurz": "Bis zum Kunden"
     },
     "pflueckleistung": {
       "label": "Pflückleistung je Person und Stunde",
-      "braucht": "nichts - Steige mit Person gegen Arbeitszeit",
-      "basis": "Erntemenge je Steige gegen erfasste Arbeitszeit"
+      "basis": "Erntemenge je Steige gegen erfasste Arbeitszeit",
+      "kurz": "Pflückleistung"
     },
     "pflueckStreuung": {
       "label": "Streuung der Pflückleistung (beste zu schwächste Kraft)",
-      "braucht": "nichts - Leistung je Person ueber die Saison",
-      "basis": "Beste gegen schwächste Kraft, mindestens zwei Personen nötig"
+      "basis": "Beste gegen schwächste Kraft, mindestens zwei Personen nötig",
+      "kurz": "Streuung Pflückleistung"
     },
     "pflueckintervall": {
       "label": "Eingehaltenes Pflückintervall je Reihenblock",
-      "braucht": "nichts - Erntefolge je Reihenblock aus den Chargen",
-      "basis": "Anteil der tatsächlichen Erntefolgen im Abstand von höchstens drei Tagen"
+      "basis": "Anteil der tatsächlichen Erntefolgen im Abstand von höchstens drei Tagen",
+      "kurz": "Pflückintervall"
     },
     "behandlungenWartezeit": {
       "label": "Behandlungen mit eingehaltener Wartezeit",
-      "braucht": "nichts - aus Behandlung und Sperrlogik ableitbar",
-      "basis": "Behandlungen ohne Ernte im Sperrzeitraum"
+      "basis": "Behandlungen ohne Ernte im Sperrzeitraum",
+      "kurz": "Wartezeit eingehalten"
     },
     "reklamationsquote": {
       "label": "Reklamationsquote",
-      "braucht": "Reklamationen mit Bezug zur Charge"
+      "kurz": "Reklamationsquote"
     },
     "liefertreue": {
       "label": "Liefertreue (pünktlich und vollständig)",
-      "braucht": "Zugesagte gegen tatsaechliche Lieferung"
+      "kurz": "Liefertreue"
     },
     "belegteVerkaeufe": {
       "label": "Anteil belegter Verkäufe (ЭСФ und Warenbegleitschein)",
-      "braucht": "Anbindung an ЭСФ und Warenbegleitschein"
+      "kurz": "Belegte Verkäufe"
     },
     "deckungsbeitrag": {
       "label": "Deckungsbeitrag je kg",
-      "braucht": "nichts - Buchungen je Charge gegen Erntemenge",
-      "basis": "Alle Erlös- und Kostenbuchungen gegen die gesamte Erntemenge - noch ohne Zeitfenster oder Chargenbezug je Buchung"
+      "basis": "Alle Erlös- und Kostenbuchungen gegen die gesamte Erntemenge - noch ohne Zeitfenster oder Chargenbezug je Buchung",
+      "kurz": "Deckungsbeitrag"
     },
     "esutdAbdeckung": {
       "label": "Abdeckung der Saisonkräfte in ЕСУТД",
-      "braucht": "rechtliche Bestaetigung der ЕСУТД-Pflicht ueber enbek.kz (siehe WMCNL-1447) - Anbindungspunkt benannt, Rechtsprüfung der Pflicht selbst steht noch aus",
-      "basis": "Pflücker mit erfasstem Arbeitsvertrag"
+      "basis": "Pflücker mit erfasstem Arbeitsvertrag",
+      "kurz": "ЕСУТД-Abdeckung"
     },
     "websiteAnfragen": {
       "label": "Anfragen über die Website je Monat",
-      "braucht": "Kontaktformular auf der Website"
+      "kurz": "Website-Anfragen"
     }
   },
   "modules": {
     "standort": {
       "title": "Standort-Hierarchie",
+      "navTitle": "Standorte",
       "description": "Betrieb, Plantage, Feldparzelle, Reihengruppe, Reihenblock - eine digitale Feldkarte mit eindeutiger Reihen- und Blockkennung entlang der Spaliere.",
       "summary": "Feldkarte mit Reihenblöcken am Spalier, Sorte, Pflanzjahr, Rutentyp und Spalierrichtung je Block.",
-      "todo": "Verwaltungsoberfläche zum Anlegen und Verschieben von Parzellen und Reihengruppen, Feldgeometrie-Editor."
+      "todo": "Oberfläche zum Anlegen und Verschieben von Parzellen und Reihengruppen, Zeichnen der Feldgeometrie."
     },
     "reihenbloecke": {
       "title": "Reihenblöcke und Status",
+      "navTitle": "Reihenblöcke",
       "description": "Jeder Reihenblock hat einen Status: bepflanzt, erntereif, ruhend, Rückschnitt oder wartezeitgesperrt. Ein gesperrter Block darf im Pflückplan schlicht nicht erscheinen.",
-      "summary": "Zustandsautomat je Reihenblock. Bedingung sperrt die Ernte, bis sie erfüllt ist - hier: bis die Wartezeit abgelaufen ist.",
-      "todo": "Statuswechsel mit Begründungspflicht, feingranulare Zugriffsregeln je Ressource, Verlauf je Reihenblock."
+      "summary": "Jeder Reihenblock führt seinen eigenen Status. Läuft eine Wartezeit, bleibt er für die Ernte gesperrt, bis sie abgelaufen ist.",
+      "todo": "Statuswechsel mit Begründungspflicht und ein Verlauf je Reihenblock."
     },
     "pflueckaufgaben": {
       "title": "Pflückaufgaben mit Fotobeleg",
+      "navTitle": "Pflückaufgaben",
       "description": "Pflückaufgabe je Brigade und Reihenblock mit Ziel- und Istmenge, Q-Faktor und Fotobeleg der Verkaufsschale direkt an der Aufgabe.",
       "summary": "Aufgabe je Brigade und Reihenblock, Fotobeleg der Verkaufsschale, Menge und Qualitätsfaktor an der Aufgabe.",
       "todo": "Offline-Erfassung im Feld, Belegprüfung mit Freigabe und Nacharbeit, Verknüpfung mit dem Qualitätsfaktor-Lohn."
     },
     "pflanzenschutz": {
       "title": "Pflanzenschutz und Wartezeit",
+      "navTitle": "Pflanzenschutz",
       "description": "Jede Behandlung wird mit Mittel, Menge, Block, Datum und ausführender Person erfasst und sperrt den Reihenblock automatisch bis zum Ablauf der gesetzlichen Wartezeit.",
       "summary": "Blockgenaue Behandlungsdokumentation mit automatischer Erntesperre. Ein Verstoß ist ein Rechts- und Lebensmittelsicherheitsrisiko.",
       "todo": "Spritzmitteldatenbank mit Wartezeiten, automatische Freigabe bei Fristablauf, Protokoll-Upload-Pflicht, Rückstandsnachweis je Charge."
     },
     "rotationsplan": {
       "title": "Rotationsplan / Pflückplan",
+      "navTitle": "Rotationsplan",
       "description": "Rollierender Pflückplan mit Intervall von zwei bis drei Tagen je Reihenblock über die gesamte Herbsternte. Ein ausgelassener Durchgang vernichtet den Block für diesen Zyklus.",
-      "summary": "Die erste Funktion, die gebaut wird. Das Planungsproblem ist nicht die Prognose, sondern die Rotation über sechs Wochen.",
-      "todo": "Intervall-Engine je Reihenblock, Brigadenzuteilung, Konfliktprüfung mit Wartezeitsperren, Kalender-Export (.ics)."
+      "summary": "Zeigt, welcher Reihenblock wann an der Reihe ist, und verteilt die Durchgänge über die sechs Wochen der Ernte.",
+      "todo": "Automatische Intervallrechnung je Reihenblock, Brigadenzuteilung, Prüfung auf Konflikte mit Wartezeitsperren, Kalender-Export (.ics)."
     },
     "wetter": {
       "title": "Wetter und Temperatursumme",
-      "description": "Wetter-API-Anbindung mit Temperatursummenrechnung für die Mengenprognose. Bewusst kein maschinelles Lernen in Phase 1 - eine erklärbare Heuristik reicht.",
+      "navTitle": "Wetter",
+      "description": "Wetterdaten je Standort mit Temperatursummenrechnung als Grundlage für die Mengenprognose.",
       "summary": "Einfache Wetterschnittstelle mit Temperatursumme je Parzelle. Erklärbar, prüfbar und innerhalb einer Saison validierbar.",
-      "todo": "Wetterstation- oder API-Anbindung, Temperatursumme je Parzelle, Hinweis auf verschobene Reifefenster."
+      "todo": "Eine eigene Wetterstation am Betrieb statt der Werte aus dem Netz, Hinweis auf verschobene Reifefenster."
     },
     "kuehlkette": {
       "title": "Kühlketten-Uhr",
+      "navTitle": "Kühlkette",
       "description": "Zeitmessung von Pflücken bis Vorkühlung mit hartem 60-Minuten-Grenzwert, Temperaturlogger, Zieltemperatur 0 bis 1 Grad. Höchste Priorität im gesamten Betrieb.",
-      "summary": "Der Baustein, an dem der gesamte Preisspread hängt. Über 60 Minuten ist die Ware am nächsten Tag nur noch Industrieware.",
-      "todo": "Temperaturlogger-Integration, Charge-Uhr ab Pflückzeitpunkt, Alarm bei Grenzwertüberschreitung, KPI-Berechnung."
+      "summary": "Überwacht die Zeit von der Pflückung bis zur Vorkühlung. Über 60 Minuten ist die Ware am nächsten Tag nur noch Industrieware.",
+      "todo": "Anschluss von Temperaturloggern, damit die Messwerte nicht von Hand erfasst werden müssen."
     },
     "logistik": {
       "title": "Abholrunden und Tourenplanung",
+      "navTitle": "Abholrunden",
       "description": "Feste Abholrunden im Feld, damit gefüllte Steigen nicht in der Sonne stehen, plus Tourenplanung nach den Lieferfenstern der Kunden.",
       "summary": "Übergabequittung mit Mengen- und Temperaturabgleich (Vorkühlung und Transport), lückenloser Kühlkettennachweis bis zum Kunden.",
-      "todo": "Tourenliste je Fahrzeug und Zeitfenster (Anforderung 3.5 Teil 1) fehlen noch."
+      "todo": "Tourenliste je Fahrzeug und Lieferzeitfenster fehlen noch."
     },
     "qr_steigen": {
       "title": "QR-Steigenkennung",
-      "description": "QR-Etiketten für Steigen (Link zur öffentlichen Herkunftsauskunft), Pflückerausweise mit dem eigenen Ausweis-Code ohne Biometrie und ein anmeldungsfreies Aushang-Poster - alle serverseitig als SVG erzeugt und über die Browser-Druckfunktion druckfertig.",
+      "navTitle": "QR-Steigen",
+      "description": "QR-Etiketten für Steigen (Link zur öffentlichen Herkunftsauskunft), Pflückerausweise mit dem eigenen Ausweis-Code ohne Biometrie und ein anmeldungsfreies Aushang-Poster - alle drei lassen sich direkt aus dem Browser drucken.",
       "summary": "Der QR-Code trägt die Identität vom Feld bis zur Ladentheke - der Ausweis lässt sich am Sammelpunkt per Kamera scannen, um Steige und Arbeitszeit der Person zuzuordnen, statt sie aus einem Dropdown zu wählen.",
-      "todo": "Ein Kamera-Scan der Steigen-Etiketten selbst (statt nur des Pflückerausweises) ist nicht Teil dieses Ausbauschritts."
+      "todo": "Die Steigen-Etiketten lassen sich noch nicht mit der Kamera scannen, nur der Pflückerausweis."
     },
     "esf": {
       "title": "Elektronischer Lieferschein (ЭСФ)",
-      "description": "Elektronischer Lieferschein im Einklang mit der Pflicht zum Warenbegleitschein. Angebunden an das staatliche ЭСФ-System, keine eigene Buchhaltung.",
-      "summary": "Belegkette von der Charge zum Lieferschein, Statusrückmeldung aus dem staatlichen System. Pflichtintegration.",
+      "navTitle": "Lieferschein (ЭСФ)",
+      "description": "Elektronischer Lieferschein im Einklang mit der Pflicht zum Warenbegleitschein. Die Anbindung an das staatliche ЭСФ-System ist vorgesehen, eine eigene Buchhaltung nicht.",
+      "summary": "Führt künftig die Belegkette von der Charge zum Lieferschein und nimmt die Statusrückmeldung aus dem staatlichen System auf. Pflichtintegration.",
       "todo": "Anbindung an das ИС ЭСФ, Belegkette Charge zu Lieferschein, Statusrückmeldung und Wiederholung."
     },
     "rollen": {
       "title": "Rollen und Rechte",
-      "description": "Sieben Kernrollen von der Administration über Betriebsleitung und Buchhaltung bis zur Brigade und dem einzelnen Pflücker im Feld, dem Erzeuger und dem B2B-Kunden - mit einer Rechtematrix über Ressourcen und Aktionen.",
-      "summary": "Rollen als klare Datenstruktur über Ressourcen mal Aktionen. Neue Rollen ohne Eingriff in die Logik.",
+      "navTitle": "Rollen und Rechte",
+      "description": "Acht Kernrollen von der Geschäftsführung und Administration über Betriebsleitung und Buchhaltung bis zur Brigade und dem einzelnen Pflücker im Feld, dem Erzeuger und dem B2B-Kunden, mit einer Rechtematrix über Ressourcen und Aktionen.",
+      "summary": "Legt fest, wer was sehen und ändern darf. Eine neue Rolle lässt sich anlegen, ohne dass an den Modulen etwas geändert werden muss.",
       "todo": "Nutzerverwaltung, Rollenzuweisung, feingranulare Zugriffsregeln je Ressource."
     },
     "finanzen": {
       "title": "Deckungsbeitrag und Finanzen",
+      "navTitle": "Finanzen",
       "description": "Kostenstellen je Reihenblock, Kostenträger je Sorte und je Kunde. Deckungsbeitrag je Kilogramm, je Reihenblock, je Sorte und je Erntetag - unveränderliche Buchungen.",
       "summary": "Deckungsbeitrag je Reihenblock, Sorte und Erntetag. Buchungen sind unveränderlich (nur Anfügen).",
       "todo": "Kostenarten je Erntetag, B2B-Zahlungsabgleich, Deckungsbeitragsprojektion je Sorte."
     },
     "personal": {
       "title": "Pflückerstamm und Brigaden",
+      "navTitle": "Pflückerstamm",
       "description": "Personenstamm mit Pflückerausweis, Brigadenzuordnung, Leistungs- und Qualitätsfaktor je Person über die Saison - Grundlage für Prämien, Nachschulung und Auswahl im Folgejahr.",
       "summary": "Personenstamm, Brigade und Pflückerausweis, Leistungs- und Qualitätsprofil je Person über die Saison.",
       "todo": "ЕСУТД-Erfassung je Vertrag, Brigadenplanung, Leistungshistorie als Grundlage der Lohnberechnung."
     },
     "lohn": {
       "title": "Qualitätsfaktor-Lohn",
+      "navTitle": "Qualitätsfaktor-Lohn",
       "description": "Kombimodell aus Grundvergütung, Mengenkomponente und Qualitätsfaktor. Reiner Stücklohn drückt auf Menge, quetscht Beeren und ist bei der Himbeere wertvernichtend.",
       "summary": "Grundlohn plus Menge plus Qualitätsfaktor. Der Qualitätsfaktor ist keine Option, sondern Voraussetzung.",
-      "todo": "Mindestlohn-Verankerung, Lohnsatz-Editor mit UI-gestützter Korridor-Vorschau, PDF-Lohnzettel je Pflücker, Vorschusskonto."
+      "todo": "Mindestlohn als feste Untergrenze, Pflege der Lohnsätze mit Vorschau auf den Korridor, Lohnzettel als PDF je Pflücker, Vorschusskonto."
     },
     "dokumente": {
       "title": "Dokumentenverwaltung",
+      "navTitle": "Dokumente",
       "description": "Geschützte Ablage für Spritzmittelprotokolle, ЕСУТД-Nachweise, Liefer- und Rahmenverträge, Förderdossiers und Zertifikate - verknüpft mit Reihenblock und Charge.",
       "summary": "Kategorisierte, geschützte Dokumentenablage mit Verknüpfung zu Reihenblock und Charge.",
-      "todo": "Versionierung, Ablauf- und Erinnerungslogik, Verknüpfung mit Reihenblock und Charge."
+      "todo": "Versionen je Dokument, Ablauffristen mit Erinnerung."
     },
     "compliance": {
       "title": "Compliance-Cockpit",
+      "navTitle": "Compliance",
       "description": "Verarbeitungszwecke, Einwilligungen, Datenschutzvorfälle und Drittweitergaben aus fünf granularen Tabellen - Lesen und Schreiben ausschließlich für die Büro-Rollen.",
       "summary": "Granulares Datenschutz-Schema: Verarbeitungszwecke, Einwilligungen, Vorfälle und Drittweitergaben an einem Ort.",
-      "todo": "Rechtszitate Steuergesetzbuch, KI-Gesetz, Digitalkodex, Retention-Regeln je Datenprodukt, Hosting-Standort-Prüfung."
+      "todo": "Rechtszitate aus Steuergesetzbuch, KI-Gesetz und Digitalkodex, Aufbewahrungsfristen je Datenart, Prüfung des Speicherorts."
     },
     "integrationen": {
       "title": "Staatliche Integrationen",
-      "description": "Konnektoren zu ЭСФ, virtuellem Lagerbestand, ЕСУТД und den Förderportalen gosagro.kz und qoldau.kz. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.",
-      "summary": "Ein Konnektor je Zielsystem mit Statusrückmeldung und Wiederholung. Kein Eigenbau der Buchhaltung.",
-      "todo": "Konnektoren je System, Sandbox-Zugänge, Fehler- und Wiederholungslogik, Monitoring der Warteschlange."
+      "navTitle": "Integrationen",
+      "description": "Vorgesehen sind Konnektoren zu ЭСФ, virtuellem Lagerbestand, ЕСУТД und den Förderportalen gosagro.kz und qoldau.kz. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.",
+      "summary": "Bekommt je Zielsystem einen Konnektor mit Statusrückmeldung und Wiederholung. Die Buchhaltung bleibt außen vor.",
+      "todo": "Konnektoren je System, Testzugänge, Umgang mit Fehlern und Wiederholungen, Überblick über die wartenden Vorgänge."
     },
     "foerdermittel": {
       "title": "Fördermitteldossier",
+      "navTitle": "Fördermittel",
       "description": "Antragsvorlagen, Nachweislisten und Fristenmonitor für die kasachstanischen Förderportale - Antragsfähigkeit als Nebenprodukt der laufenden Buchführung.",
-      "summary": "Fristenmonitor und Nachweisdokumente je Dossier sind angebunden (Anforderung 4.12). Antragsvorlagen und Nachweis-Checklisten je Förderprogramm bleiben offen.",
-      "todo": "Antragsvorlagen und Nachweis-Checklisten je Förderprogramm - fachliche Festlegung, welche Felder und Nachweise gosagro.kz/qoldau.kz je Programm tatsächlich verlangen."
+      "summary": "Fristenmonitor und Nachweisdokumente je Dossier sind angebunden. Antragsvorlagen und Nachweis-Checklisten je Förderprogramm bleiben offen.",
+      "todo": "Antragsvorlagen und Nachweis-Checklisten je Förderprogramm. Offen ist zuerst, welche Felder und Nachweise gosagro.kz und qoldau.kz je Programm verlangen."
+    },
+    "wirtschaftlichkeit": {
+      "title": "Wirtschaftlichkeit der Einführung",
+      "navTitle": "Wirtschaftlichkeit",
+      "description": "Investitionsrechnung zur Einführung: Amortisationsdauer, Rendite im ersten Jahr und über drei Jahre, einmalige und laufende Kosten, Kapitalwert. Noch Modellwerte, keine Betriebszahlen.",
+      "summary": "Amortisation, Rendite, einmalige und laufende Kosten, Kapitalwert der Einführung. Modellrechnung, noch nicht aus dem Betrieb.",
+      "todo": "Erfassung der Investitions-, Betriebs- und Nutzenposten, Historie je Stand, Plan-Ist-Vergleich."
     },
     "sortenkatalog": {
       "title": "Sorten- und Kontingentkatalog",
+      "navTitle": "Sortenkatalog",
       "description": "Katalog aus Sorte, Erntefenster (sommertragend oder remontierend), Schalengewicht, Kontingent und Preisliste - die Basis für Vorbestellung und B2B-Portal.",
       "summary": "Sorte, Erntefenster, Schalengewicht, Kontingent und Preis an einem Ort.",
       "todo": "Kontingentbuchung mit Reservierungslogik, Preislistenversionen, Kundenzuordnung."
     },
     "b2b_portal": {
       "title": "B2B-Portal",
+      "navTitle": "B2B-Portal",
       "description": "Stammkundenportal mit Kontingenten, Vorbestellung mit Vorlauf, Preisliste nach Kundengruppe, Lieferstatus, Rechnungshistorie und Reklamationsmeldung.",
       "summary": "Lieferstatus mit Übergabequittung, Preisliste und Vorbestellung mit manueller Bestätigung durchs Büro sind angebunden.",
-      "todo": "Automatischer Kontingent-Verbrauch, Preisstaffelung je Kundengruppe und Rechnungshistorie fehlen noch (offene fachliche Festlegungen)."
+      "todo": "Automatischer Kontingent-Verbrauch, Preisstaffelung je Kundengruppe und Rechnungshistorie. Wie das im Einzelnen gelten soll, ist noch nicht entschieden."
     },
     "preislisten": {
       "title": "Preislisten",
+      "navTitle": "Preislisten",
       "description": "Versionierte Preislisten mit Staffelpreisen je Kundengruppe und Gültigkeitszeitraum.",
       "summary": "Preisstaffeln je Kunde und Zeitraum, versioniert und mit Gültigkeitsdatum.",
-      "todo": "Versionierte Preislisten, Staffelpreise, Gültigkeitszeiträume, Kundenzuordnung."
-    },
-    "ki_assistent": {
-      "title": "KI-Assistent",
-      "description": "Chat, der Standardanfragen beantwortet und Verfügbarkeiten aus dem System zieht - ausschließlich aus freigegebenen Quellen, jede Antwort protokolliert, bei Unsicherheit Übergabe an einen Menschen. Anbieter (z. B. Sokrates, Claude oder ein selbst gehostetes Modell) sind austauschbar, ein Admin bindet sie per API-Key an.",
-      "summary": "Antwortet nur aus freigegebenen Quellen, protokolliert jede Antwort, eskaliert bei Unsicherheit an einen Menschen.",
-      "todo": "Wissensbasis bislang nur Preisliste - Sortenkatalog und Kunden-FAQ als weitere Quellen fehlen noch."
+      "todo": "Nichts mehr offen: Versionen über das Gültigkeitsdatum, Staffeln über die Mindestmenge und die Zuordnung je Kundengruppe sind angebunden."
     },
     "aggregator": {
       "title": "Aggregator / Nachbarbetriebe",
+      "navTitle": "Aggregator",
       "description": "Anschluss von Nachbarbetrieben: Zukaufmenge wird zur Rechnungsposition, jede Zukaufcharge wird getrennt geführt und bleibt auf den liefernden Betrieb zurückverfolgbar.",
       "summary": "Nachbarbetrieb-Onboarding, Zukauf-Erfassung mit eigener Charge, getrennte Herkunftsführung, Abrechnung.",
-      "todo": "Nachbarbetrieb-Onboarding, Zukauf-Erfassung mit eigener Charge, Abrechnung und Auszahlung."
+      "todo": "Eine Spanne je Nachbarbetrieb statt einer einheitlichen für alle, und die Auszahlung selbst."
     },
     "schulungen": {
       "title": "Schulungsvideos",
+      "navTitle": "Schulungen",
       "description": "Mehrsprachige, bildbasierte Kurzeinarbeitung der Saisonkräfte auf dem Telefon - Videos je Kernprozess, mit Bildern statt Text.",
-      "summary": "Kurze, bildbasierte Videos je Kernprozess, mehrsprachig, mit Fortschrittsverfolgung je Person.",
-      "todo": "Videoinhalte je Kernprozess, Sprachfassungen Kasachisch und Russisch, Fortschrittsverfolgung je Person."
+      "summary": "Bebilderte Kurzeinarbeitung in sechs Schritten, mehrsprachig, mit eigenem Fortschritt je Person, dazu die Pflichtschulungen.",
+      "todo": "Videos je Kernprozess, gedreht und auf Kasachisch und Russisch vertont."
     },
     "kanaele": {
       "title": "Kontaktkanäle",
+      "navTitle": "Kontaktkanäle",
       "description": "Lokal etablierte Kontaktkanäle und Zahlungswege, im Seitenfuß der Website öffentlich sichtbar. Reine Anzeige, keine Anbindung an einen echten Messenger- oder Zahlungsdienst.",
       "summary": "WhatsApp, Kaspi QR und weitere Kanäle als Kontaktangabe - vom Büro gepflegt, bis dahin als Entwurf verborgen.",
       "todo": "Echte Kontodaten je Kanal eintragen."
     },
     "reklamationen": {
       "title": "Reklamationsmanagement",
+      "navTitle": "Reklamationen",
       "description": "Reklamation eines B2B-Kunden je Charge - Grund, Frist und Verlauf, mit Statuswechsel bis zur Gutschrift. Ein Kunde meldet und sieht nur die eigene Reklamation, das Büro bearbeitet und schließt ab.",
       "summary": "Liste, Detail und Verlauf je Reklamation, angebunden an die Charge - von dort zu Reihenblock, Pflücker und Kühlkurve zurückverfolgbar.",
       "todo": "Admin-Oberfläche für die Zuordnung Kunde-Login zu B2B-Kunde, automatische Reklamationsquote im Kennzahlen-Cockpit, Benachrichtigung bei nahender Frist."
     },
     "stammdaten": {
       "title": "Stammdaten und Steuernummern",
+      "navTitle": "Stammdaten",
       "description": "Rechtsform und ИИН oder БИН für den eigenen Betrieb, die Zulieferbetriebe und die Kunden - die Angaben, die auf jedem Beleg stehen müssen.",
       "summary": "Ein bäuerlicher Betrieb trägt einen ИИН, eine juristische Person einen БИН. Die Prüfziffer weist einen Zahlendreher ab, bevor er auf eine Rechnung gerät.",
       "todo": "Nummern für Zulieferbetriebe und Kunden erheben."
@@ -728,7 +781,8 @@
     },
     "freeAt": "Frei ab",
     "days": "Tage",
-    "note": "Der wartezeitgesperrte Block ist der am einfachsten prüfbare Nutzen des Systems: Der Pflückplan darf ihn schlicht nicht anzeigen."
+    "keineFreigabeBerechtigung": "Nur die Betriebsleitung gibt eine Wartezeitsperre frei.",
+    "note": "Ein Block mit laufender Wartezeit erscheint gar nicht erst im Pflückplan. So kann niemand versehentlich eine Aufgabe darauf anlegen."
   },
   "pflueckaufgabenDemo": {
     "listTitle": "Pflückaufgaben heute",
@@ -738,7 +792,6 @@
     "proofTitle": "Fotobeleg",
     "proofLead": "Beispielfotos der Verkaufsschale, des Reihenblocks und der Steige, direkt an der Aufgabe.",
     "noProof": "Noch kein Beleg zu dieser Aufgabe.",
-    "addProof": "Beleg aufnehmen (Mock)",
     "reviewTitle": "Belegprüfung offen",
     "reviewLead": "Die Aufgabe wartet auf Freigabe. Menge und Schalenbeleg prüfen, dann freigeben oder Nacharbeit anfordern.",
     "approve": "Freigeben",
@@ -792,6 +845,9 @@
       "lohnSatz": "Lohnsatz gültig ab {wert} angelegt.",
       "lohnBerechnet": "{wert} Abrechnung(en) berechnet - bereits freigegebene oder ausgezahlte Zeilen bleiben unverändert.",
       "lohnStatus": "Abrechnung von {wert} aktualisiert.",
+      "lohnMonatsabzuegeBerechnet": "{wert} Monatsabzug/-abzüge berechnet.",
+      "mwstSchwelleGeprueft": "Geprüft - Umsatz der letzten 12 Monate: {wert} ₸.",
+      "mwstRegistriert": "Als MwSt-registriert markiert, seit {wert}.",
       "zukaufImport": "{wert} Position(en) importiert.",
       "zukaufPreis": "Preis nachgetragen.",
       "kostentraeger": "Kostenträger \"{wert}\" angelegt.",
@@ -806,6 +862,7 @@
       "foerderdossierStatus": "Dossier \"{wert}\" aktualisiert.",
       "lieferung": "Lieferung angelegt.",
       "transportMessung": "Transportmessung erfasst.",
+      "transportMessungVerstoss": "Transportmessung erfasst - Grenzwert überschritten (über 8 Grad), die Ware ist abzuwerten.",
       "uebergabe": "Übergabe erfasst.",
       "lieferungStorniert": "Lieferung storniert.",
       "pfleuckerBrigadeZugewiesen": "{wert} einer Brigade zugewiesen.",
@@ -819,6 +876,8 @@
       "kiAnbieterDeaktiviert": "Anbieter \"{wert}\" deaktiviert.",
       "kiAnbieterStandardGesetzt": "Standard-Anbieter umgestellt.",
       "kiAnbieterGeloescht": "Anbieter \"{wert}\" gelöscht.",
+      "kiRatenlimitGesetzt": "Ratenlimit für \"{wert}\" gespeichert.",
+      "kiRatenlimitEntfernt": "Ratenlimit für \"{wert}\" entfernt.",
       "wetterAktualisiert": "Wetterdaten aktualisiert.",
       "kanalAngelegt": "Kanal angelegt.",
       "kanalAktualisiert": "Kanal aktualisiert.",
@@ -836,25 +895,30 @@
       "sorteAktualisiert": "Sorte aktualisiert.",
       "kontingentErstellt": "Kontingent angelegt.",
       "kontingentAktualisiert": "Menge aktualisiert.",
-      "stammdatenGespeichert": "Stammdaten gespeichert."
+      "stammdatenGespeichert": "Stammdaten gespeichert.",
+      "transkription": "Diktat übernommen.",
+      "nachbarbetrieb": "Nachbarbetrieb „{wert}“ aufgenommen.",
+      "dokumentGeaendert": "Dokument „{wert}“ aktualisiert."
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
+      "qualitaetsfaktorKorridor": "Der Qualitätsfaktor ist Pflicht und muss zwischen 0,90 und 1,10 liegen.",
       "gesperrt": "Reihenblock {wert} ist wartezeitgesperrt - keine Pflückaufgabe möglich.",
+      "mwstSchwelleUeberschritten": "Die MwSt-Registrierungsschwelle wurde überschritten - Meldefrist: {wert}.",
       "keineDatei": "Bitte eine Bilddatei auswählen.",
       "zuGross": "Die Datei ist größer als 8 MB.",
       "upload": "Das Foto konnte nicht gespeichert werden.",
       "berechtigung": "Ihre Rolle darf diesen Vorgang nicht ausführen.",
       "angemeldet": "Sitzung abgelaufen. Bitte erneut anmelden.",
       "doppelt": "Ein Eintrag mit dieser Kennung existiert bereits.",
-      "bezug": "Der gewählte Bezugsdatensatz existiert nicht.",
+      "bezug": "Der gewählte Bezug ist nicht mehr vorhanden. Bitte die Liste neu laden und erneut auswählen.",
       "nichtGefunden": "Der Datensatz wurde nicht gefunden oder ist nicht mehr bearbeitbar.",
       "regel": "Nicht möglich: Die Wartezeit ist noch nicht abgelaufen.",
-      "unbekannt": "Vorgang fehlgeschlagen. Details stehen im Server-Log.",
+      "unbekannt": "Der Vorgang ist fehlgeschlagen. Bitte noch einmal versuchen. Bleibt es dabei, melden Sie ihn mit der Uhrzeit bei der Administration.",
       "keineCharge": "Zu dieser Aufgabe gehört keine Charge.",
       "kuehlkette": "Grenzwert gerissen: {wert} Minuten bis zur Messung. Die Ware ist abzuwerten.",
-      "transportKuehlkette": "Grenzwert überschritten: Die Transporttemperatur lag über 8 Grad. Die Ware ist abzuwerten.",
       "lieferungStorniert": "Diese Lieferung wurde storniert - dafür lässt sich keine Transportmessung mehr erfassen.",
+      "lieferungZugestellt": "Diese Lieferung wurde bereits zugestellt - eine zugestellte Lieferung ist unveränderlich, dafür lässt sich keine Transportmessung mehr erfassen.",
       "geraetezeit": "Die Geräteuhr weicht zu stark von der Serverzeit ab (Zukunft oder mehr als 24 Stunden Differenz). Bitte die Uhrzeit des Geräts prüfen und erneut versuchen.",
       "keinKunde": "Ihrem Zugang ist kein B2B-Kunde zugeordnet. Bitte an die Administration wenden.",
       "zukaufBefunde": "{wert} Fehler in der Eingabe gefunden - nichts wurde übernommen. Siehe Prüfergebnis unten.",
@@ -869,7 +933,13 @@
       "stammdatenOhneRechtsform": "Bitte zuerst die Rechtsform wählen - davon hängt ab, ob ein ИИН oder ein БИН gilt.",
       "stammdatenFormat": "Die Nummer besteht aus genau zwölf Ziffern.",
       "stammdatenPruefziffer": "Die Prüfziffer stimmt nicht. Meist steckt ein Zahlendreher in der Nummer.",
-      "selbstkontrolle": "Wer eine Steige erfasst hat, kontrolliert sie nicht selbst. Eine andere Person muss diese Steige prüfen."
+      "selbstkontrolle": "Wer eine Steige erfasst hat, kontrolliert sie nicht selbst. Eine andere Person muss diese Steige prüfen.",
+      "transkription": "Spracherkennung nicht möglich.",
+      "transkriptionDienst": "Der Spracherkennungsdienst ist nicht erreichbar. Die Aufnahme hat geklappt – bitte später noch einmal versuchen.",
+      "transkriptionDauer": "Die Spracherkennung hat zu lange gebraucht. Der Dienst startet vermutlich gerade – bitte in einer Minute noch einmal versuchen.",
+      "dateiGross": "Die Aufnahme ist zu groß.",
+      "nachbarbetriebVorhanden": "Ein Nachbarbetrieb mit diesem Namen existiert bereits.",
+      "ratenlimit": "Zu viele Anfragen in kurzer Zeit. Bitte kurz warten und es erneut versuchen."
     },
     "einladungen": {
       "erfolg": {
@@ -960,7 +1030,8 @@
     "oeffnen": "Öffnen",
     "keineDatei": "keine Datei",
     "col": {
-      "datei": "Datei"
+      "datei": "Datei",
+      "aendern": "Ändern"
     },
     "feld": {
       "name": "Bezeichnung",
@@ -968,11 +1039,15 @@
       "bezug": "Bezug",
       "stand": "Stand",
       "status": "Status",
-      "datei": "Datei"
+      "datei": "Datei",
+      "foerderdossier": "Fördermitteldossier"
     },
     "beispiel": {
       "name": "Spritzprotokoll KW 37 - Parzelle Nord"
-    }
+    },
+    "keinDossier": "kein Dossier",
+    "aendernKnopf": "Speichern",
+    "linkNichtVerfuegbar": "Datei vorhanden, Link momentan nicht verfügbar"
   },
   "pflueckaufgabenVerwaltung": {
     "ohneBrigade": "Ohne Brigade",
@@ -1018,7 +1093,7 @@
     "titel": "Behandlung erfassen",
     "lead": "Die Wartezeit kommt aus dem Mittelkatalog - der Reihenblock wird automatisch gesperrt.",
     "erfassen": "Behandlung erfassen",
-    "hinweis": "Die Sperre wird von einem Datenbank-Trigger gesetzt und lässt sich nicht per Statuswechsel umgehen. Erst nach Ablauf der Wartezeit erscheint die Schaltfläche zur Freigabe.",
+    "hinweis": "Die Sperre setzt sich mit der Behandlung selbst und lässt sich über die Oberfläche nicht aufheben. Erst nach Ablauf der Wartezeit erscheint die Schaltfläche zur Freigabe.",
     "feld": {
       "block": "Reihenblock",
       "mittel": "Pflanzenschutzmittel",
@@ -1045,24 +1120,7 @@
       "nachbarbetrieb": "Nachbarbetrieb"
     },
     "blocksShort": "Blöcke",
-    "note": "Die Feldkarte mit eindeutiger Reihen- und Blockkennung entlang der Spaliere ist die Basis für Rotationsplan, Ernteerfassung und Deckungsbeitrag."
-  },
-  "pflanzenschutzDemo": {
-    "ruleTitle": "Harte Rechtsregel",
-    "ruleLead": "Nach einer Pflanzenschutzbehandlung ist die Ernte je Reihenblock bis Ablauf der mittelspezifischen Wartezeit gesperrt. Ein Verstoß ist ein Rechtsrisiko, kein Komfortthema.",
-    "activeTitle": "Aktive Wartezeitsperren",
-    "activeLead": "Reihenblöcke mit laufender Wartezeit. Freigabe automatisch bei Fristablauf.",
-    "col": {
-      "block": "Reihenblock",
-      "mittel": "Mittel",
-      "behandelt": "Behandelt am",
-      "wartezeit": "Wartezeit",
-      "freigabe": "Frei ab",
-      "status": "Status"
-    },
-    "days": "Tage",
-    "locked": "gesperrt",
-    "note": "Weil jeder Block alle zwei bis drei Tage abgepflückt wird, während der Bestand weiter behandelt werden muss, kann ein Block versehentlich innerhalb der Wartezeit geerntet werden. Genau das verhindert die automatische Sperre."
+    "note": "Jede Reihe und jeder Block entlang der Spaliere trägt eine eindeutige Kennung. Auf sie beziehen sich Pflückplan, Erntemengen und Abrechnung."
   },
   "rollenDemo": {
     "rolesTitle": "Sieben Kernrollen",
@@ -1073,9 +1131,6 @@
     "matrixNote": "Vollständige Matrix über alle Ressourcen und Aktionen. Die Zugriffsregeln auf Datenbankebene werden je Ressource einzeln geschrieben.",
     "note": "Identitäten und Rollen liegen quer über allen vier Bereichen - zusammen mit Protokollierung, Verschlüsselung und Mehrfaktor-Authentifizierung.",
     "level": "Stufe",
-    "catiRole": {
-      "keine": "keine Entsprechung - neu ab Anforderung 7.1"
-    },
     "scopeWert": {
       "betrieb": "Betrieb",
       "plantage": "Plantage",
@@ -1089,12 +1144,12 @@
   },
   "finanzenAnsicht": {
     "uebersichtTitel": "Deckungsbeitrag auf einen Blick",
-    "uebersichtLead": "Summe über alle Kostenträger und Buchungen. Erlöse und Kosten kommen aus dem unveränderlichen Finanzjournal (Anforderung 4.1).",
+    "uebersichtLead": "Erlöse und Kosten aus dem unveränderlichen Finanzjournal, gezählt nach Buchungsdatum im gewählten Zeitraum.",
     "stat": {
-      "erloes": "Erlöse gesamt",
-      "kosten": "Kosten gesamt",
-      "deckungsbeitrag": "Deckungsbeitrag gesamt",
-      "deckungsbeitragHinweis": "Erlöse minus Kosten, aus der Datenbank gerechnet"
+      "erloes": "Erlöse",
+      "kosten": "Kosten",
+      "deckungsbeitrag": "Deckungsbeitrag",
+      "gesamt": "insgesamt {wert}"
     },
     "erloes": "Erlös",
     "kosten": "Kosten",
@@ -1121,9 +1176,9 @@
       "betrag": "Betrag"
     },
     "ledgerTitel": "Buchungen",
-    "ledgerLead": "Append-only: eine falsche Buchung wird durch eine Gegenbuchung korrigiert, nicht durch Ändern der ersten.",
+    "ledgerLead": "Eine falsche Buchung wird durch eine Gegenbuchung korrigiert, nicht durch Ändern der ersten.",
     "keineBuchungen": "Noch keine Buchung erfasst.",
-    "note": "Der Deckungsbeitrag je Kilogramm ist die zentrale Steuerungsgröße (Kennzahl \"deckungsbeitrag\"). Er entsteht je Reihenblock, Sorte, Erntetag und Kunde - nicht erst am Jahresende. Buchungen sind unveränderlich; die Datenbank verweigert UPDATE und DELETE auf dem Finanzjournal unabhängig von der Oberfläche.",
+    "note": "Der Deckungsbeitrag je Kilogramm ist die zentrale Steuerungsgröße. Er entsteht je Reihenblock, Sorte, Erntetag und Kunde - nicht erst am Jahresende.",
     "formular": {
       "kostentraeger": {
         "titel": "Neuen Kostenträger anlegen",
@@ -1151,31 +1206,142 @@
         "betrag": "Betrag in ₸",
         "buchungsdatum": "Buchungsdatum",
         "beschreibung": "Beschreibung (optional)",
-        "knopf": "Buchung erfassen"
+        "knopf": "Buchung erfassen",
+        "ohneErntetag": "Ohne Erntetag"
       }
+    },
+    "zeitraum": {
+      "label": "Zeitraum",
+      "monat": "Dieser Monat",
+      "vormonat": "Letzter Monat",
+      "jahr": "Dieses Jahr",
+      "alles": "Alles",
+      "gefiltertErntetag": "Die Tabelle ist nach Erntetag gefiltert.",
+      "gefiltertBuchungsdatum": "Die Tabelle ist nach Buchungsdatum gefiltert."
+    },
+    "monatsListe": {
+      "label": "Monat",
+      "bitte": "Monat wählen",
+      "knopf": "Anzeigen"
+    },
+    "bereich": {
+      "label": "Bereiche der Finanzseite",
+      "kostentraeger": "Kostenträger",
+      "charge": "Je Charge",
+      "buchungen": "Buchungen"
+    },
+    "typFilter": {
+      "label": "Art der Buchung",
+      "alle": "Alle"
+    },
+    "mehrAnzeigen": "Mehr anzeigen",
+    "keineChargen": "Keine Charge mit eigener Buchung in diesem Zeitraum. Buchungen ohne Chargenbezug stehen hier nicht.",
+    "ohneErntetag": "ohne Erntetag"
+  },
+  "wirtschaftlichkeitAnsicht": {
+    "eyebrow": "Investitionsrechnung",
+    "titel": "Lohnt sich die Einführung?",
+    "lead": "Was der Sprung kostet, wann das Geld zurück ist und was das Besitzen kostet, gerechnet über drei Jahre.",
+    "modellPille": "Modellrechnung",
+    "modellHinweis": "Modellrechnung vom {stichtag}. Die Werte stammen aus der Kennzahlenliste der Geschäftsführung, nicht aus dem laufenden Betrieb. Was geschätzt ist, steht an der Kachel.",
+    "kursHinweis": "Umgerechnet zum Kurs der Nationalbank der Republik Kasachstan vom {stichtag}: 1 EUR = {euro} ₸, 1 RUB = {rubel} ₸.",
+    "jahresnutzenSatz": "Alle Kennzahlen beruhen auf einem angenommenen Jahresnutzen von {tenge} ({rubel}). Diese Zahl ist zurückgerechnet und noch nicht aus dem Betrieb belegt.",
+    "geschaetzt": "geschätzt",
+    "offen": "offen",
+    "abschnitt": {
+      "titel": "Die sechs Kennzahlen im Fokus",
+      "lead": "Ausgewählt von der Geschäftsführung. Die übrigen vier stehen unten im Aufklapper."
+    },
+    "weitere": {
+      "titel": "Vier weitere Kennzahlen",
+      "lead": "Amortisationsdauer, Gesamtkosten, vermiedene Kosten und Zeit bis zum Nutzenbeginn."
+    },
+    "fussnote": "Rendite, Amortisationsdauer und die Kosten je Kilogramm hängen vollständig am angenommenen Jahresnutzen. Wirkt die gezeigte Senkung je Kilogramm zu hoch, ist der Jahresnutzen zu hoch angesetzt. Sobald die Betriebszahlen erfasst sind, rechnet die Seite aus echten Posten statt aus Konstanten.",
+    "diagramm": {
+      "wert": "Wert",
+      "nulllinie": "Geld zurück"
+    },
+    "stapel": {
+      "capex": "Einmalig",
+      "opexJahr": "Jahr {jahr}"
+    },
+    "einheit": {
+      "monate": "{anzahl} Monate",
+      "wochenSpanne": "{von} bis {bis} Wochen",
+      "kilogramm": "kg"
+    },
+    "kennzahl": {
+      "amortisation": {
+        "label": "Amortisationsdauer",
+        "frage": "Wann habe ich mein Geld zurück?",
+        "rechenweg": "Einmalige plus laufende Kosten, geteilt durch den Jahresnutzen, mal zwölf."
+      },
+      "roiJahr1": {
+        "label": "Rendite Jahr 1",
+        "frage": "Lohnt es sich überhaupt?",
+        "rechenweg": "Jahresnutzen minus einmalige und laufende Kosten, geteilt durch beide zusammen."
+      },
+      "roiDreiJahre": {
+        "label": "Rendite über 3 Jahre",
+        "frage": "Lohnt es sich richtig?",
+        "rechenweg": "Dreifacher Jahresnutzen minus einmalige und dreifache laufende Kosten, geteilt durch den Einsatz."
+      },
+      "capex": {
+        "label": "Kosten bis Abnahme",
+        "frage": "Was kostet der Sprung?",
+        "rechenweg": "Festpreis bis zur Abnahme. Eine Zahl, keine Spanne."
+      },
+      "opex": {
+        "label": "Laufende Kosten je Jahr",
+        "frage": "Was kostet das Besitzen?",
+        "rechenweg": "Hosting, Wartung, Support und Weiterentwicklung."
+      },
+      "tco": {
+        "label": "Gesamtkosten über 3 Jahre",
+        "frage": "Was kostet der Vergleich wirklich?",
+        "rechenweg": "Einmalige Kosten plus drei Jahre laufende Kosten, gegen jede Alternative."
+      },
+      "vermiedeneKosten": {
+        "label": "Vermiedene Kosten je Jahr",
+        "frage": "Woher kommt der Nutzen?",
+        "rechenweg": "Schwund, Handarbeit und Auditvorbereitung. Zurückgerechnet aus den vorgegebenen Renditewerten."
+      },
+      "kapitalwert": {
+        "label": "Kapitalwert",
+        "frage": "Hält es dem Finanzchef stand?",
+        "rechenweg": "Barwert des Nutzens minus Investition über drei Jahre, monatlich mit {zins} abgezinst."
+      },
+      "kostenJeKilogramm": {
+        "label": "Kosten je Kilogramm",
+        "frage": "Wird der Betrieb günstiger?",
+        "rechenweg": "Vollkosten geteilt durch die vermarktete Menge, vorher gegen nachher. Braucht Betriebszahlen.",
+        "rechenwegMitWerten": "Vollkosten geteilt durch die vermarktete Menge. Vorher {vorher} ₸, abzüglich {ersparnis} ₸ Nutzen je Kilogramm bei {menge} kg Jahresmenge."
+      },
+      "nutzenbeginn": {
+        "label": "Zeit bis Nutzenbeginn",
+        "frage": "Ab wann zahlt es ein?",
+        "rechenweg": "Wochen bis zum Echtbetrieb, gerechnet gegen die Frostkante."
+      }
+    },
+    "jeKilogramm": {
+      "vorher": "Vorher",
+      "nachher": "Nachher"
     }
   },
-  "personalDemo": {
-    "brigadenTitle": "Brigaden",
-    "brigadenLead": "Brigadenplanung mit Schichten und Reserveliste über die gesamte Erntestrecke.",
-    "foreman": "Vorarbeiter",
-    "people": "Personen",
-    "pflueckerTitle": "Pflückerstamm",
-    "pflueckerLead": "Personenstamm mit Pflückerausweis, ЕСУТД-Erfassung je Vertrag, Leistungs- und Qualitätsfaktor je Person.",
-    "col": {
-      "name": "Name",
-      "brigade": "Brigade",
-      "ausweis": "Ausweis",
-      "esutd": "ЕСУТД",
-      "leistung": "Leistung",
-      "qfaktor": "Q-Faktor"
-    },
-    "esutd": {
-      "erfasst": "erfasst",
-      "offen": "offen"
-    },
-    "days": "Tage",
-    "note": "Die Bindung des Kernstamms ist wichtiger als die Rekrutierung: Jede Neueinarbeitung mitten in der Saison kostet Menge und Qualität."
+  "finanzVorschau": {
+    "titel": "Finanzen im laufenden Monat",
+    "lead": "Was im {monat} gebucht wurde.",
+    "leer": "Im {monat} wurde noch nichts gebucht.",
+    "erloes": "Erlöse",
+    "kosten": "Kosten",
+    "deckungsbeitrag": "Deckungsbeitrag",
+    "buchungen": "Buchungen: {anzahl}",
+    "link": "Zur Finanzseite",
+    "gegenVormonat": "{anteil} gegenüber dem Vormonat",
+    "ueberVormonat": "{anteil} über dem Vormonat ({betrag})",
+    "unterVormonat": "{anteil} unter dem Vormonat ({betrag})",
+    "ohneVormonat": "Im Vormonat wurde nichts gebucht, es gibt nichts zu vergleichen.",
+    "imJahr": "Im laufenden Jahr: {deckungsbeitrag} aus {anzahl, plural, one {# Buchung} other {# Buchungen}}."
   },
   "dokumenteDemo": {
     "listTitle": "Dokumente",
@@ -1197,6 +1363,66 @@
   "complianceAnsicht": {
     "cockpitTitle": "Compliance-Cockpit",
     "cockpitLead": "Verarbeitungszwecke, Einwilligungen, Datenschutzvorfälle und Drittweitergaben aus der Datenbank - nach dem kasachstanischen Rechtsrahmen von 2026.",
+    "mwst": {
+      "titel": "Mehrwertsteuer-Registrierung",
+      "lead": "Rollierender 12-Monats-Umsatz gegen die gesetzliche Registrierungsschwelle - Steuerkodex RK 2026.",
+      "ja": "Ja",
+      "nein": "Nein",
+      "nochNie": "Noch nicht geprüft",
+      "quelle": "Quelle:",
+      "keinSatz": "Noch kein gesetzlicher MwSt-Satz hinterlegt.",
+      "schwelleUeberschrittenHinweis": "Die Registrierungsschwelle wurde am {datum} überschritten. Die Meldung an die Steuerbehörde ist innerhalb von 5 Werktagen fällig.",
+      "stat": {
+        "registriert": "MwSt-registriert",
+        "seit": "seit",
+        "satz": "Gesetzlicher Satz",
+        "satzHinweis": "Nur der Standardsatz - kein Medizinprodukt im Sortiment",
+        "umsatz": "Umsatz (12 Monate)",
+        "schwelle": "Schwelle:",
+        "letztePruefung": "Letzte Prüfung"
+      },
+      "horizontalesMonitoring": {
+        "titel": "Bereit für horizontales Monitoring",
+        "lead": "Kasachstan hat das automatisierte Risiko-Scoring der Steuerbehörde abgeschafft - an seine Stelle tritt ein freiwilliges Modell mit echtem Vorteil.",
+        "readinessTitel": "Die Struktur passt bereits",
+        "readinessText": "Horizontales Monitoring verlangt einen laufenden, strukturierten Einblick in die eigene Buchhaltung. Damicon führt diesen Nachweis bereits von selbst:",
+        "punktProtokoll": "Jeder Schreibvorgang landet im Prüfprotokoll (audit_events) - inklusive Urheber und Zeitstempel.",
+        "punktUnveraenderlich": "Erntebuchungen und Chargen sind nach Abschluss unveränderlich, keine stille Nachbearbeitung möglich.",
+        "punktKuehlkette": "Die 60-Minuten-Kühlkettenregel wird live bewertet, nicht erst rückblickend geprüft.",
+        "vorteil": "Verzugsgebühr bei verspäteter Zahlung: {ermaessigt} statt {normal} des Nationalbank-Leitzinses pro Tag für Teilnehmer des horizontalen Monitorings.",
+        "hinweis": "Das ist eine Aussage über die Bereitschaft der Datenstruktur, keine Behauptung einer bereits erfolgten Anmeldung zum horizontalen Monitoring - dieser Schritt ist ein eigener, bewusster Antrag bei der Steuerbehörde."
+      },
+      "messer": {
+        "label": "Anteil an der Registrierungsschwelle"
+      },
+      "formular": {
+        "pruefen": {
+          "knopf": "Umsatz jetzt prüfen"
+        },
+        "registrieren": {
+          "titel": "Als registriert markieren",
+          "lead": "Nachtragen, sobald die Registrierung beim Finanzamt tatsächlich eingereicht wurde - kein automatischer Vorgang.",
+          "registriertAm": "Registriert am",
+          "knopf": "Als registriert markieren"
+        }
+      }
+    },
+    "risikoRadar": {
+      "titel": "Risiko-Radar",
+      "lead": "Alle offenen gesetzlichen Fristen aus Steuer-, Arbeits- und Datenschutzrecht an einer Stelle - nach Dringlichkeit sortiert.",
+      "anzahlOffen": "{anzahl} offene Frist(en)",
+      "alleErledigt": "Keine offene Frist - Steuer-, Arbeits- und Datenschutzrecht sind aktuell im Plan.",
+      "ansehen": "Ansehen →",
+      "kategorie": {
+        "steuer": "Steuerrecht",
+        "arbeit": "Arbeitsrecht",
+        "datenschutz": "Datenschutz"
+      },
+      "labelMwst": "MwSt-Registrierung nach Schwellenüberschreitung",
+      "labelEsutd": "ESUTD-Meldung für {name}",
+      "labelVorfall": "Meldung eines Datenschutzvorfalls an die Behörde",
+      "labelDrittweitergabe": "Benachrichtigung über Weitergabe an {empfaenger}"
+    },
     "stat": {
       "einwilligungenAktiv": "Aktive Einwilligungen",
       "einwilligungenWiderrufen": "Widerrufene Einwilligungen",
@@ -1222,7 +1448,11 @@
       "rechtsgrundlage": "Rechtsgrundlage",
       "aufbewahrung": "Aufbewahrung",
       "automatisiert": "Automatisierte Entscheidung",
-      "verantwortlich": "Verantwortlich"
+      "verantwortlich": "Verantwortlich",
+      "zeitpunkt": "Zeitpunkt",
+      "urheber": "Urheber",
+      "aktion": "Aktion",
+      "ressource": "Ressource"
     },
     "status": {
       "aktiv": "aktiv",
@@ -1242,8 +1472,7 @@
       "de": "Deutsch",
       "en": "Englisch",
       "ru": "Russisch",
-      "kk": "Kasachisch",
-      "tr": "Türkisch"
+      "kk": "Kasachisch"
     },
     "vorfallArt": {
       "unbefugter_zugriff": "Unbefugter Zugriff",
@@ -1271,6 +1500,11 @@
     "zwecke": {
       "titel": "Verarbeitungszwecke",
       "lead": "Zweckverzeichnis mit Rechtsgrundlage und Aufbewahrungsfrist."
+    },
+    "audit": {
+      "titel": "Prüfprotokoll",
+      "lead": "Die letzten 50 protokollierten Schreibvorgänge, jüngste zuerst - inklusive Urheber und Zeitstempel (audit_events).",
+      "leer": "Noch kein protokollierter Vorgang."
     },
     "monate": "{anzahl, plural, one {# Monat} other {# Monate}}",
     "ja": "ja",
@@ -1372,29 +1606,6 @@
       "s-kweli": "Aug - Sep"
     }
   },
-  "schulungenDemo": {
-    "libraryTitle": "Videobibliothek",
-    "libraryLead": "Mehrsprachige, bildbasierte Kurzeinarbeitung der Saisonkräfte auf dem Telefon.",
-    "col": {
-      "titel": "Titel",
-      "thema": "Thema",
-      "dauer": "Dauer",
-      "sprachen": "Sprachen"
-    },
-    "note": "Kurzeinarbeitung als geführte Checkliste auf dem Telefon, mehrsprachig, mit Bildern statt Text - je Kernprozess ein kurzes Video.",
-    "video": {
-      "v-01": "Richtig pfluecken - reife Frucht erkennen",
-      "v-02": "Steige befuellen und QR-Etikett scannen",
-      "v-03": "Die Stunde nach dem Pfluecken - Kuehlkette",
-      "v-04": "Hygiene und Handschuhe"
-    },
-    "thema": {
-      "ernte": "Ernte",
-      "feld": "Feld",
-      "hof": "Hof",
-      "qualitaet": "Qualität"
-    }
-  },
   "kuehlketteAnsicht": {
     "offeneTitel": "Offene Chargen auf der Uhr",
     "offeneLead": "Zeit seit dem Pflücken gegen die 60-Minuten-Grenze, live mitzählend je Charge.",
@@ -1454,19 +1665,186 @@
     "anlegenKnopf": "Anlegen",
     "note": "Reine Anzeige, keine Anbindung an einen echten Messenger- oder Zahlungsdienst. Ein Kanal erscheint auf der Website erst, wenn ein echter Wert eingetragen und \"aktiv\" gesetzt ist."
   },
-  "qrSteigenMock": {
-    "scanTitle": "Scan am Ausgabepunkt (Mock)",
-    "scanLead": "QR-Etikett je Steige, Scan beim Abgeben. Menge, Reihenblock, Uhrzeit und Person in einem Vorgang - hier ohne echten Server-Abgleich.",
-    "simulateScan": "Scan simulieren",
-    "registered": "erfasst"
+  "haustier": {
+    "label": {
+      "ruhe": "DamiAI, dein Begleiter. Klicken öffnet den Chat.",
+      "denkt": "DamiAI arbeitet gerade. Klicken öffnet den Chat.",
+      "freigabe": "DamiAI braucht deine Freigabe. Klicken öffnet den Chat.",
+      "fertig": "DamiAI ist fertig. Klicken zeigt die Antwort.",
+      "fehler": "Etwas ist schiefgelaufen. Klicken öffnet den Chat.",
+      "schlaeft": "DamiAI schläft. Klicken öffnet den Chat.",
+      "spricht": "DamiAI spricht.",
+      "tour": "DamiAI, dein Begleiter. Klicken öffnet die Tour.",
+      "kurz": {
+        "ruhe": "Ruhe",
+        "denkt": "Arbeitet",
+        "spricht": "Spricht",
+        "freigabe": "Freigabe",
+        "fertig": "Fertig",
+        "fehler": "Fehler",
+        "schlaeft": "Schläft"
+      }
+    },
+    "arbeitet": "Ich arbeite daran …",
+    "imHintergrund": "Läuft im Hintergrund, du kannst weiterarbeiten.",
+    "freigabe": "Ich brauche deine Freigabe.",
+    "ansehen": "Ansehen",
+    "fertig": "Fertig! Deine Antwort ist da.",
+    "fehler": "Da ist etwas schiefgelaufen. Öffne den Chat für Details.",
+    "weg": {
+      "halten": "Soll ich gehen? Halte weiter gedrückt …",
+      "tschuess": "Tschüss! Hol mich zurück, wenn du mich brauchst.",
+      "hinweis": "Halte mich gedrückt, um mich wegzuschicken."
+    },
+    "willkommen": "Da bin ich wieder!",
+    "zurueckholen": "DamiAI zurückholen",
+    "befinden": {
+      "frage": "Wie läuft dein Tag bisher?",
+      "gut": "Läuft gut",
+      "mittel": "Geht so",
+      "viel": "Viel zu tun",
+      "antwort": {
+        "gut": "Schön. Dann packen wir was weg.",
+        "mittel": "Alles klar. Sag Bescheid, wenn ich dir etwas abnehmen soll.",
+        "viel": "Dann nehme ich dir das Lästige ab. Frag mich einfach."
+      },
+      "hilfe": "Womit anfangen?",
+      "hilfeText": "Was steht heute an? Nenn mir die drei Dinge, um die ich mich zuerst kümmern sollte."
+    },
+    "anstupser": {
+      "neuHeute": {
+        "frage": "Soll ich dir zeigen, was sich heute geändert hat?",
+        "frageText": "Was hat sich heute geändert? Fass die wichtigsten Punkte kurz zusammen."
+      },
+      "kuehlzeit": {
+        "frage": "Soll ich nachsehen, wie die Kühlzeiten gerade laufen?",
+        "frageText": "Wie laufen die Kühlzeiten gerade? Nenn mir die Chargen, die am knappsten waren."
+      },
+      "fristen": {
+        "frage": "Soll ich die offenen Fristen durchgehen?",
+        "frageText": "Welche Fristen stehen demnächst an? Sortiere nach Dringlichkeit."
+      }
+    },
+    "tipp": {
+      "frage": "Du bist bei „{bereich}“. Soll ich dir zeigen, was du hier tun kannst?",
+      "ja": "Zeig mir das",
+      "spaeter": "Später",
+      "frageText": "Erkläre mir den Bereich „{bereich}“: Was kann ich hier tun?"
+    },
+    "einstellung": {
+      "titel": "DamiAI, dein Begleiter",
+      "text": "Zeigt in der Ecke, was der Agent gerade tut, auch wenn der Chat geschlossen ist. Zum Wegschicken auf DamiAI gedrückt halten, die Spitze am unteren Rand holt sie zurück. Hier ausgeschaltet bleibt DamiAI ganz weg.",
+      "tourTitel": "Geführte Tour",
+      "tourText": "Aus heißt: DamiAI springt nach einer Prüfung nicht mehr selbst zu den Kacheln und hebt sie nicht mehr hervor, systemweit. Die Zusammenfassung im Chat kommt trotzdem weiter automatisch, nur ohne das Herumspringen auf der Seite.",
+      "bewegungTitel": "Bewegung",
+      "bewegungText": "Aus heißt: DamiAI bleibt da, steht aber still. Wer das Betriebssystem schon auf weniger Bewegung gestellt hat, braucht diesen Schalter nicht.",
+      "zustandTitel": "Zustand",
+      "stimmungTitel": "Miene",
+      "trachtTitel": "Tracht",
+      "brilleTitel": "Spassbrille",
+      "vorschauHinweis": "Nur eine Vorschau - der Begleiter in der Ecke bleibt davon unberührt.",
+      "stimmung": {
+        "neutral": "Auskunft",
+        "gut": "Erfolg",
+        "warnung": "Befund",
+        "frage": "Rückfrage"
+      },
+      "tracht": {
+        "steppenblau": "Steppenblau",
+        "granat": "Granat",
+        "jade": "Jade"
+      }
+    },
+    "tour": {
+      "gruss": "Hallo, ich bin DamiAI! Soll ich dir Damicon in einer Minute zeigen?",
+      "autoStart": "Ich lege gleich von allein los. Klick oder scrolle, wenn du lieber selbst schaust.",
+      "start": "Tour starten",
+      "nein": "Nein danke",
+      "weiter": "Weiter",
+      "zurueck": "Zurück",
+      "beenden": "Beenden",
+      "pausiert": "Alles klar, du übernimmst. Sag Bescheid, wenn ich weitermachen soll.",
+      "auto": "Automatisch weiter",
+      "pause": "Pause",
+      "fertigKnopf": "Fertig",
+      "ende": "Das war die Tour. Bereit, es selbst auszuprobieren?",
+      "anmelden": "Zur Anmeldung",
+      "nochmal": "Nochmal",
+      "himbeere": {
+        "titel": "Warum Himbeeren anders sind",
+        "text": "Keine schützende Haut, kaum Haltbarkeit: Die Qualität entscheidet sich schon im Feld."
+      },
+      "sechzig": {
+        "titel": "Die Stunde nach dem Pflücken",
+        "text": "Innerhalb von 60 Minuten muss die Beere in die Kühlung. Damicon macht diese Zeit messbar."
+      },
+      "beleg": {
+        "titel": "Jede Charge hat ihren Beleg",
+        "text": "Von der Kühlkurve bis zum Pflücker: Die Herkunft ist lückenlos nachweisbar."
+      },
+      "zonen": {
+        "titel": "Vier Bereiche, ein System",
+        "text": "Feld, Hof, Büro und Markt. Jede Rolle sieht genau das, was sie braucht."
+      },
+      "kpis": {
+        "titel": "Die Kennzahlen im Blick",
+        "text": "Verlustquote, Kühlzeit, Pflückleistung: Woran sich ein Betrieb messen lässt."
+      },
+      "compliance": {
+        "titel": "Kasachstan 2026 im Blick",
+        "text": "Neues Steuergesetzbuch, Warenbegleitschein, KI-Gesetz und mehr: Fristen und Risiken auf einen Blick."
+      },
+      "fragen": {
+        "titel": "Noch Fragen?",
+        "text": "Die häufigsten Antworten stehen hier. Im Betrieb hilft dir außerdem der KI-Assistent."
+      }
+    },
+    "abzeichen": {
+      "titel": "Auszeichnung",
+      "alt": "KI Innovator - Auszeichnung von diind, Deutsches Innovationsinstitut",
+      "schliessen": "Schließen"
+    },
+    "logo": {
+      "titel": "Damicon",
+      "alt": "Damicon-Siegel"
+    }
   },
   "kiAssistentAnsicht": {
     "chatTitel": "KI-Assistent",
-    "chatLead": "Antwortet ausschließlich aus freigegebenen Preis- und Sortendaten, protokolliert jede Antwort, eskaliert bei wiederholter Unsicherheit an das Büro.",
-    "transparenzHinweis": "Diese Antworten stammen von einer KI, nicht von einem Mitarbeiter. Grundlage sind ausschließlich freigegebene Preis- und Sortendaten.",
+    "chatLead": "Antwortet aus freigegebenen Preis- und Sortendaten und - je nach Rolle - aus live abgerufenen Steuer-, Arbeits- und Prüfungsdaten. Protokolliert jede Antwort, eskaliert bei wiederholter Unsicherheit an das Büro.",
+    "transparenzHinweis": "Diese Antworten stammen von einer KI, nicht von einem Mitarbeiter. Grundlage sind ausschließlich freigegebene Daten - welche Werkzeuge dabei genutzt wurden, steht unter jeder Antwort.",
+    "werkzeug": {
+      "mwstStatusAbrufen": "MwSt-Status geprüft",
+      "esutdOffeneFristenAbrufen": "ESUTD-Fristen geprüft",
+      "complianceUebersichtAbrufen": "Compliance geprüft",
+      "kuehlketteAbrufen": "Kühlkette geprüft",
+      "risikoRadarAbrufen": "Risiko-Radar geprüft",
+      "oeffneBereich": "{bereich} geöffnet",
+      "oeffnePruefBereich": "{bereich} geöffnet",
+      "wissenSuchen": "Wissensbasis durchsucht",
+      "unbekannt": "Schritt abgeschlossen",
+      "datenmodellErkunden": "Datenmodell erkundet",
+      "datenLesen": "{tabelle} gelesen",
+      "seiteLesen": "Seite gelesen",
+      "klicke": "Geklickt: {absicht}",
+      "fuelleFeld": "Ausgefüllt: {absicht}",
+      "scrolleZu": "Gescrollt",
+      "zeigeAuf": "Gezeigt: {absicht}"
+    },
+    "agentDenkt": "Agent pflückt die Fakten …",
+    "agentPrueft": "Agent prüft: {werkzeug} …",
+    "schliessen": "Schließen",
+    "buehne": "In die Mitte holen",
+    "andocken": "Seitlich andocken",
+    "breiteAendern": "Breite ändern: ziehen oder Pfeiltasten, Doppelklick setzt zurück",
     "keinVerlauf": "Noch keine Nachricht. Stellen Sie unten Ihre erste Frage.",
     "inputPlaceholder": "Frage eingeben ...",
     "senden": "Senden",
+    "vorlesen": "Vorlesen",
+    "vorlesenStopp": "Vorlesen stoppen",
+    "vorlesenAuto": "Antworten vorlesen",
+    "vorlesenKeineStimme": "Für diese Sprache gibt es noch keine Stimme.",
+    "vorlesenFehler": "Vorlesen ist gerade nicht möglich.",
     "einwilligungText": "Ich habe den Hinweis gelesen und bin einverstanden, dass meine Frage an den konfigurierten KI-Anbieter übermittelt wird.",
     "eskalationKnopf": "Mit einem Mitarbeiter sprechen",
     "eskalationAngefordert": "Anfrage an einen Mitarbeiter des Büros weitergegeben - er meldet sich zeitnah.",
@@ -1475,6 +1853,35 @@
       "keinAnbieter": "Der KI-Assistent ist derzeit nicht eingerichtet. Bitte wenden Sie sich an unser Büro.",
       "antwort": "Der KI-Assistent ist gerade nicht erreichbar. Bitte versuchen Sie es später erneut oder wenden Sie sich an unser Büro.",
       "badge": "Ausweichantwort"
+    },
+    "fehler": {
+      "sitzung": "Ihre Sitzung ist abgelaufen oder wurde beendet. Bitte melden Sie sich erneut an.",
+      "anmelden": "Erneut anmelden",
+      "berechtigung": "Ihre Rolle darf den KI-Assistenten nicht nutzen.",
+      "zuLang": "Diese Unterhaltung ist zu lang geworden.",
+      "neuBeginnen": "Neu beginnen"
+    },
+    "quellen": {
+      "titel": "Quellen",
+      "stufe": {
+        "recht": "Primärrecht",
+        "untergesetzlich": "Untergesetzliche Norm",
+        "erlaeuterung": "Amtliche Erläuterung",
+        "fachquelle": "Fachquelle",
+        "presse": "Presse",
+        "unbekannt": "Quelle"
+      },
+      "gueltigAb": "gültig ab {datum}",
+      "stand": "Stand {datum}",
+      "ueberholt": "Diese Quelle ist überholt.",
+      "auskunft": "Auskunft Dritter, keine Rechtsquelle. Die Primärquelle prüfen.",
+      "mehr": "Mehr anzeigen",
+      "weniger": "Weniger anzeigen",
+      "original": "Original öffnen",
+      "intern": "Interne Recherche",
+      "unbelegt": "Zu dieser Marke gibt es keinen Beleg.",
+      "gestuetzt": "Auf Gesetzestext gestützt",
+      "nurFach": "Nur Fachquellen: Primärquelle prüfen"
     },
     "anbieterVerwaltung": {
       "titel": "KI-Anbieter verwalten",
@@ -1508,7 +1915,196 @@
         "apiKey": "API-Key",
         "knopf": "Anbieter anlegen"
       }
-    }
+    },
+    "ratenlimitVerwaltung": {
+      "titel": "Ratenlimit verwalten",
+      "lead": "Nur für Administration sichtbar. Begrenzt, wie oft eine Rolle pro Minute eine kostenpflichtige KI-Anfrage auslösen darf. Ohne Eintrag gilt kein Limit.",
+      "keineEinstellung": "Noch kein Ratenlimit eingestellt - der Assistent ist für alle Rollen unbegrenzt nutzbar.",
+      "alleRollen": "Alle Rollen (Standardwert)",
+      "standardBadge": "Standardwert",
+      "grenzeText": "{grenze} Anfragen je Minute",
+      "keinLimitText": "Kein Limit",
+      "entfernen": "Entfernen",
+      "entfernenSicher": "Ratenlimit für \"{name}\" wirklich entfernen? Danach gilt wieder der nächsthöhere Wert beziehungsweise kein Limit.",
+      "formular": {
+        "titel": "Ratenlimit setzen",
+        "lead": "Gilt für eine einzelne Rolle oder, mit \"Alle Rollen\", als Standardwert für jede Rolle ohne eigenen Eintrag.",
+        "rolle": "Rolle",
+        "bitteWaehlen": "Bitte wählen",
+        "grenze": "Anfragen je Minute",
+        "grenzePlatzhalter": "leer = kein Limit",
+        "knopf": "Ratenlimit speichern"
+      }
+    },
+    "diktat": {
+      "starten": "Diktieren",
+      "stoppen": "Aufnahme beenden",
+      "laeuft": "Wird erkannt … (einige Sekunden)",
+      "oeffnet": "Mikrofon wird geöffnet …",
+      "leer": "Nichts aufgenommen.",
+      "fehlgeschlagen": "Spracherkennung nicht möglich.",
+      "keinZugriff": "Kein Mikrofonzugriff."
+    },
+    "laeuft": {
+      "mwstStatusAbrufen": "Prüfe MwSt-Status …",
+      "esutdOffeneFristenAbrufen": "Prüfe ESUTD-Fristen …",
+      "complianceUebersichtAbrufen": "Prüfe Compliance …",
+      "kuehlketteAbrufen": "Prüfe Kühlkette …",
+      "risikoRadarAbrufen": "Durchsuche Risiko-Radar …",
+      "oeffneBereich": "Öffne {bereich} …",
+      "oeffnePruefBereich": "Öffne {bereich} …",
+      "wissenSuchen": "Durchsuche Wissensbasis …",
+      "unbekannt": "Arbeite …",
+      "datenmodellErkunden": "Erkunde das Datenmodell …",
+      "datenLesen": "Lese {tabelle} …",
+      "seiteLesen": "Lese die Seite …",
+      "klicke": "Klicke: {absicht} …",
+      "fuelleFeld": "Fülle aus: {absicht} …",
+      "scrolleZu": "Scrolle …",
+      "zeigeAuf": "Zeige: {absicht} …"
+    },
+    "ziel": {
+      "mwstStatusAbrufen": "MwSt-Registrierung",
+      "esutdOffeneFristenAbrufen": "ESUTD-Fristen",
+      "complianceUebersichtAbrufen": "Compliance",
+      "kuehlketteAbrufen": "Kühlkette",
+      "risikoRadarAbrufen": "Risiko-Radar",
+      "oeffneBereich": "{bereich}",
+      "oeffnePruefBereich": "{bereich}",
+      "wissenSuchen": "Wissensbasis",
+      "unbekannt": "Quelle",
+      "datenmodellErkunden": "Datenmodell",
+      "datenLesen": "{tabelle}",
+      "mwstSchwellePruefen": "MwSt-Registrierung",
+      "aufgabeAnlegen": "Pflückaufgaben",
+      "aufgabeStatusSetzen": "Pflückaufgaben",
+      "kuehlmessungErfassen": "Pflückaufgaben",
+      "reklamationAnlegen": "Reklamationen",
+      "lohnPeriodeBerechnen": "Lohnabrechnung",
+      "mitarbeiterEinschalten": "Chat"
+    },
+    "bereichAllgemein": "den Bereich",
+    "pruefBereich": {
+      "audit": "Audit",
+      "steuer": "Steuern",
+      "recht": "Recht",
+      "risiko": "Risiko",
+      "massnahmen": "Maßnahmenplan",
+      "einschraenkungen": "Einschränkungen"
+    },
+    "assistentDenkt": "Assistent sucht die reifsten Fakten …",
+    "leerTitel": "Wobei kann ich helfen?",
+    "modus": {
+      "label": "Modus",
+      "assistent": {
+        "name": "Assistent",
+        "kurz": "Antwortet mit Quellenverweisen – Sie entscheiden, wohin es geht.",
+        "beschreibung": "Fragen Sie zu allem: Betriebsdaten, Funktionen der Anwendung oder allgemeinem Fachwissen. Jede Antwort zeigt ihre Quellen als Schritte – ein Klick springt dorthin."
+      },
+      "agent": {
+        "name": "Agent",
+        "kurz": "Übernimmt den Bildschirm: navigiert, klickt und füllt aus, während er antwortet.",
+        "beschreibung": "Stellen Sie eine Frage oder geben Sie eine Aufgabe: Der Agent öffnet die passenden Seiten, liest sie, klickt, füllt Felder aus und erklärt unterwegs. Alles, was etwas absendet oder löscht, bestätigen Sie vorher."
+      },
+      "schalterTitel": "Agent-Modus",
+      "schalterText": "Die KI führt Sie nicht nur, sondern bedient die Anwendung für Sie: Sie öffnet Seiten, klickt, füllt Formulare aus und hebt Abschnitte hervor. Absenden und Löschen bestätigen Sie immer selbst.",
+      "infoTitel": "Was ist der Unterschied?",
+      "aktionenHinweis": "In beiden Modi warten Aktionen (z. B. eine Aufgabe anlegen) immer auf Ihre Bestätigung."
+    },
+    "nachUnten": "Zum Neuesten",
+    "stopp": "Stoppen",
+    "einstellungen": "Einstellungen",
+    "eskalationText": "Nicht die gewünschte Antwort erhalten? Übergeben Sie dieses Gespräch an eine Person im Team.",
+    "fuehrung": {
+      "zeigt": "Agent zeigt Ihnen: {ziel}",
+      "beenden": "Führung beenden"
+    },
+    "leerBereiche": "{bereiche} Bereiche und {aktionen} Aktionen Ihrer Rolle – live aus der Anwendung erkannt",
+    "aktion": {
+      "titel": {
+        "mwstSchwellePruefen": "MwSt-Schwelle prüfen",
+        "aufgabeAnlegen": "Pflückaufgabe anlegen",
+        "aufgabeStatusSetzen": "Aufgabenstatus setzen",
+        "kuehlmessungErfassen": "Kühlmessung erfassen",
+        "reklamationAnlegen": "Reklamation melden",
+        "lohnPeriodeBerechnen": "Lohn berechnen",
+        "mitarbeiterEinschalten": "An Mitarbeiter übergeben"
+      },
+      "felder": {
+        "reihenblockCode": "Reihenblock",
+        "zielmengeKg": "Zielmenge (kg)",
+        "pflueckerAnzahl": "Pflücker",
+        "faelligkeit": "Fällig am",
+        "aufgabeCode": "Aufgabe",
+        "neuerStatus": "Neuer Status",
+        "temperaturC": "Temperatur (°C)",
+        "grund": "Grund",
+        "betreff": "Betreff",
+        "beschreibung": "Beschreibung",
+        "betroffeneMengeKg": "Betroffene Menge (kg)",
+        "chargeCode": "Charge",
+        "kundenName": "Kunde",
+        "periodeStart": "Von",
+        "periodeEnde": "Bis"
+      },
+      "werte": {
+        "angenommen": "angenommen",
+        "in_arbeit": "in Arbeit",
+        "qualitaet": "Qualität",
+        "menge": "Menge",
+        "verspaetung": "Verspätung",
+        "verpackung": "Verpackung",
+        "temperatur": "Temperatur",
+        "sonstiges": "Sonstiges"
+      },
+      "bestaetigen": "Bestätigen",
+      "ablehnen": "Ablehnen",
+      "freigabeNoetig": "Ihre Freigabe ist erforderlich",
+      "laeuft": "Wird ausgeführt …",
+      "abgelehnt": "Abgelehnt – es wurde nichts geändert.",
+      "fehlgeschlagen": "Nicht ausgeführt",
+      "erledigt": "Erledigt",
+      "vorbereiten": "Aktion wird vorbereitet …",
+      "zeigen": "Anzeigen"
+    },
+    "vorschlaege": {
+      "assistent": {
+        "risiko": "Welche gesetzlichen Fristen sind überfällig?",
+        "mwst": "Wie ist unser MwSt-Registrierungsstatus?",
+        "kuehlkette": "Wie steht es um die Kühlkette?",
+        "aufgaben": "Welche Pflückaufgaben sind offen?",
+        "reklamationen": "Welche Reklamationen sind offen?",
+        "bereiche": "Was kann ich hier öffnen und tun?"
+      },
+      "agent": {
+        "risiko": "Mach einen vollständigen Risiko-Check und zeig mir alles",
+        "mwst": "Zeig mir, wo wir bei der MwSt stehen",
+        "kuehlkette": "Führ mich durch den Kühlketten-Status",
+        "aufgabeAnlegen": "Lege eine Pflückaufgabe für den ersten freien Reihenblock an: 100 kg, morgen fällig",
+        "lohnBerechnen": "Berechne die Löhne für den letzten Monat",
+        "reklamationMelden": "Ich möchte reklamieren: Die Beeren kamen matschig an",
+        "bereiche": "Zeig mir, was ich hier öffnen kann"
+      }
+    },
+    "klick": {
+      "titel": "Der Agent möchte klicken",
+      "absicht": "Zweck",
+      "element": "Element",
+      "grund": {
+        "senden": "Dieser Klick sendet oder ändert Daten.",
+        "loeschen": "Dieser Klick kann etwas löschen oder stornieren.",
+        "extern": "Dieser Link führt aus der Anwendung heraus.",
+        "doppelt": "Dieses Formular wurde gerade eben schon abgeschickt. Noch einmal absenden erzeugt vermutlich einen doppelten Eintrag."
+      },
+      "nicht": "Nicht ausgeführt: {absicht}"
+    },
+    "transparenzHinweisAgent": "Diese Antworten stammen von einer KI, nicht von einem Mitarbeiter. Betriebsdaten kommen live aus der Anwendung und erscheinen als Schritte unter der Antwort, alles andere ist Allgemeinwissen und wird so gekennzeichnet.",
+    "pruefBezug": "Bezug: Prüfbericht {id}",
+    "pruefBezugEntfernen": "Bezug zum Prüfbericht entfernen",
+    "pruefBezugKacheln": "Direkt zu einer Kachel springen",
+    "mehr": "Mehr",
+    "groesser": "Panel vergrößern",
+    "kleiner": "Panel verkleinern"
   },
   "legal": {
     "imprintTitle": "Impressum",
@@ -1526,12 +2122,6 @@
     "privacyScopeText": "Der Prototyp verarbeitet keine personenbezogenen Daten. Es werden keine Cookies zu Analysezwecken gesetzt. Die Design-Auswahl (hell/dunkel) und die Demo-Rolle werden nur lokal im Browser gespeichert.",
     "residencyTitle": "Datenresidenz (geplanter Betrieb)",
     "residencyText": "Für den späteren Realbetrieb schränkt der kasachstanische Digitalkodex Nr. 255-VIII die Speicherung bestimmter Datenprodukte außerhalb Kasachstans ein. Der Hosting-Standort für QR-, Offline-Sync- und KI-Architektur wird vor Produktivsetzung rechtlich geprüft."
-  },
-  "kpiHerkunft": {
-    "berechenbar": "heute messbar",
-    "erfassung-fehlt": "Erfassung fehlt",
-    "tabelle-fehlt": "Funktion fehlt",
-    "rechtlich-ungeklaert": "rechtlich ungeklärt"
   },
   "nachweiskette": {
     "titel": "Nachweiskette",
@@ -1806,6 +2396,12 @@
     "satzLead": "Grundlage der Berechnung: Stundenlohn, kg-Satz und der Korridor des Qualitätsfaktors. Wer danach bezahlt wird, darf die Grundlage sehen.",
     "keinSatz": "Noch kein Lohnsatz hinterlegt - ohne ihn lässt sich keine Periode berechnen.",
     "wirkungslos": "Der Qualitätsfaktor bewegt sich in den angezeigten Abrechnungen nicht von 1,00 weg - er hat hier aktuell keine erkennbare Lohnwirkung. Das kann an fehlenden Ausschusswerten liegen, nicht zwingend an der Formel.",
+    "abschlussLuecke": {
+      "titel": "Abgeschlossene Aufgaben ohne Steige - fehlen in der Abrechnung",
+      "eintrag": "{code}: {menge} kg gemeldet, aber keine Steige erfasst - die Mengenkomponente wird bei der Periodenberechnung nicht berücksichtigt."
+    },
+    "historieTitel": "Verlauf der Lohnsätze",
+    "historieLead": "Alle angelegten Sätze mit Gültigkeitszeitraum - der markierte ist der heute gültige, nicht zwingend der zuletzt angelegte.",
     "stat": {
       "stundenlohn": "Stundenlohn",
       "kgSatz": "kg-Satz",
@@ -1831,10 +2427,18 @@
       "aktion": "Aktion",
       "aufgabe": "Aufgabe",
       "ausschussAnteilig": "Ausschuss (anteilig)",
-      "betrag": "Betrag"
+      "betrag": "Betrag",
+      "gueltigAb": "Gültig ab",
+      "gueltigBis": "Gültig bis"
     },
     "freigebenKnopf": "Freigeben",
     "auszahlenKnopf": "Als ausgezahlt markieren",
+    "zurueckziehenKnopf": "Freigabe zurückziehen",
+    "bestaetigung": {
+      "freigeben": "Lohnabrechnung von {name} jetzt freigeben?",
+      "auszahlen": "Lohnabrechnung von {name} als ausgezahlt markieren? Das lässt sich nicht mehr zurücknehmen.",
+      "zurueckziehen": "Freigabe der Lohnabrechnung von {name} zurückziehen? Das geht nur durch eine andere Person als die, die freigegeben hat."
+    },
     "positionenTitel": "Positionen je Pflückaufgabe",
     "positionenLead": "Wie sich die Mengenkomponente je Aufgabe zusammensetzt - Grundlage der Umlage aus dem Ausschuss der Aufgabe.",
     "keinePositionen": "Noch keine Position berechnet.",
@@ -1858,6 +2462,42 @@
         "periodeStart": "Periode von",
         "periodeEnde": "Periode bis",
         "knopf": "Periode berechnen"
+      },
+      "abzuegeBerechnen": {
+        "titel": "Monatsabzüge berechnen",
+        "lead": "Aggregiert die Abrechnungen des gewählten Kalendermonats je Pflücker und schreibt ОПВ/ВОСМС/ИПН sowie die Arbeitgeberlast fest. Ein erneuter Lauf für denselben Monat ersetzt die Zeilen, legt keine Duplikate an.",
+        "jahr": "Jahr",
+        "monat": "Monat (1–12)",
+        "knopf": "Monatsabzüge berechnen"
+      }
+    },
+    "kz": {
+      "titel": "Gesetzliche Lohnabzüge (Kasachstan)",
+      "lead": "ОПВ, ВОСМС und ИПН je Kalendermonat, plus die zusätzliche Arbeitgeberlast (ОПВР/СО/СН/ОСМС). Berechnet nach dem Steuerkodex RK 2026 – eine Näherung für den Regelfall, siehe Hinweis unten.",
+      "keinSatz": "Noch kein gesetzlicher Abzugssatz hinterlegt.",
+      "quelle": "Quelle:",
+      "steuerfrei": "steuerfrei",
+      "keineAbzuege": "Noch keine Monatsabzüge berechnet.",
+      "note": "Näherung für den Regelfall: der Standardabzug 30 МРП wird grundsätzlich angewendet (setzt gesetzlich einen schriftlichen Antrag voraus), Sonderfreibeträge (Invalidität, Kriegsveteranen) sind nicht abgebildet, und СН ist hier ein einfacher Prozentsatz ohne die in früheren Rechtsfassungen übliche Kürzung um СО. Ersetzt keine Prüfung durch eine Fachkraft.",
+      "stat": {
+        "opv": "ОПВ (Rentenbeitrag)",
+        "opvHinweis": "Vom Arbeitnehmer, gekappt an der Bemessungsgrenze",
+        "vosms": "ВОСМС (Krankenversicherung)",
+        "vosmsHinweis": "Vom Arbeitnehmer, gekappt an der Bemessungsgrenze",
+        "ipn": "ИПН (Einkommensteuer)",
+        "freibetrag": "Freibetrag:",
+        "arbeitgeberlast": "Arbeitgeberlast gesamt",
+        "arbeitgeberlastHinweis": "ОПВР + СО + СН + ОСМС, zusätzlich zum Bruttolohn"
+      },
+      "col": {
+        "pfluecker": "Pflücker",
+        "monat": "Monat",
+        "brutto": "Brutto",
+        "opv": "ОПВ",
+        "vosms": "ВОСМС",
+        "ipn": "ИПН",
+        "netto": "Netto",
+        "arbeitgeberkosten": "Kosten Arbeitgeber"
       }
     }
   },
@@ -1920,6 +2560,14 @@
       "preis": "Preis (₸/kg)",
       "rechnungsdatum": "Rechnungsdatum",
       "knopf": "Speichern"
+    },
+    "betriebAufnehmen": {
+      "titel": "Nachbarbetrieb aufnehmen",
+      "lead": "Neue Betriebe müssen hier stehen, bevor der CSV-Import ihre Zeilen annimmt.",
+      "knopf": "Betrieb aufnehmen",
+      "name": "Name",
+      "ort": "Ort",
+      "kontakt": "Kontakt"
     }
   },
   "abrechnungAnsicht": {
@@ -1972,7 +2620,8 @@
       "title": "Etiketten für Steigen",
       "lead": "QR-Code und Klartext-Code je Steige, druckfertig. Der QR-Code verlinkt auf die öffentliche Herkunftsauskunft der zugehörigen Charge.",
       "empty": "Noch keine Steige mit verknüpfter Charge vorhanden.",
-      "scanHinweis": "Herkunft scannen"
+      "scanHinweis": "Herkunft scannen",
+      "fallbackCode": "Ohne Scan eintippen: {code}"
     },
     "ausweise": {
       "title": "Pflückerausweise",
@@ -2064,7 +2713,8 @@
         "notizen": "Notizen (optional)",
         "knopf": "Aktualisieren"
       }
-    }
+    },
+    "linkNichtVerfuegbar": "Link nicht verfügbar"
   },
   "lieferungenAnsicht": {
     "titel": "Lieferungen",
@@ -2301,7 +2951,7 @@
       "erfasst": "erfasst",
       "offen": "offen"
     },
-    "note": "Bedarfsrechnung und Schichtplan stammen direkt aus dem Rotationsplan (welcher Reihenblock an welchem Tag geerntet werden muss). Wetterszenarien sind bewusst nicht Teil dieser Ansicht - die Wetteranbindung (Anforderung 2.13) ist zurückgestellt."
+    "note": "Bedarfsrechnung und Schichtplan stammen direkt aus dem Rotationsplan (welcher Reihenblock an welchem Tag geerntet werden muss). Wetterszenarien sind nicht Teil dieser Ansicht - die Temperatursumme steht im Wetter-Modul."
   },
   "erlebnis": {
     "bento": {
@@ -2470,5 +3120,361 @@
     "bereitsKontrolliert": "Bereits kontrolliert",
     "keinKontrollrecht": "Kontrolle durch Betriebsleitung oder Vorarbeiter",
     "naechste": "Nächste"
+  },
+  "pflanzenschutzProtokoll": {
+    "titel": "Behandlungen und Wartezeiten",
+    "lead": "Jede erfasste Pflanzenschutzbehandlung mit Aufwandmenge, ausführender Person und Wartezeit. Erfasst und freigegeben wird am Reihenblock.",
+    "note": "Das Protokolldokument wird noch nicht mitgeführt: die Spalte bleibt vorerst leer.",
+    "wartezeitTage": "{tage} Tage",
+    "stat": {
+      "gesamt": "Behandlungen",
+      "laeuft": "laufende Wartezeit",
+      "ohneProtokoll": "ohne Protokoll"
+    },
+    "col": {
+      "block": "Reihenblock",
+      "mittel": "Mittel",
+      "behandeltAm": "Behandelt am",
+      "aufwand": "Aufwandmenge",
+      "person": "Person",
+      "wartezeit": "Wartezeit / Freigabe",
+      "zustand": "Zustand"
+    },
+    "zustand": {
+      "laeuft": "Wartezeit läuft",
+      "freigegeben": "freigegeben",
+      "abgelaufen": "Wartezeit abgelaufen, Freigabe steht aus"
+    },
+    "einheit": {
+      "l_ha": "l/ha",
+      "kg_ha": "kg/ha"
+    },
+    "filter": {
+      "label": "Freigabestand",
+      "alle": "Alle",
+      "offen": "Nicht freigegeben",
+      "freigegeben": "Freigegeben"
+    },
+    "gekuerzt": "Angezeigt werden die neuesten {anzahl} Behandlungen, die Kennzahlen oben zählen alle.",
+    "personVerborgen": "nur Büro",
+    "personVerborgenHinweis": "Der Name der ausführenden Person ist nur für das Büro sichtbar."
+  },
+  "pruefung": {
+    "knopf": "Compliance-Prüfung",
+    "titel": "Compliance-Prüfung",
+    "untertitel": "Himbi prüft Ihren Betrieb gegen kasachisches Recht. Jede Aussage ist belegt.",
+    "start": "Prüfung starten",
+    "abbrechen": "Abbrechen",
+    "schliessen": "Schließen",
+    "neu": "Neue Prüfung",
+    "auswahl": {
+      "titel": "Was soll geprüft werden?",
+      "gesperrt": "Für Ihre Rolle nicht freigegeben",
+      "hinweis": "Für jeden Bereich schickt Himbi einen eigenen Mini-Himbi los. Er liest Ihre Betriebsdaten, sucht die Rechtstexte und meldet seine Befunde. Ohne Rechtsquelle wird nichts behauptet."
+    },
+    "bereich": {
+      "audit": {
+        "name": "Audit",
+        "text": "Prüfungsbereitschaft: Abschlussprüfung, Nachweise, Aufbewahrung, Rückverfolgbarkeit."
+      },
+      "steuer": {
+        "name": "Steuern",
+        "text": "Mehrwertsteuer, elektronische Rechnungen (ESF), Transportbegleitung (ESUTD), Lohnabgaben."
+      },
+      "recht": {
+        "name": "Recht",
+        "text": "Datenschutz, Einwilligungen, Weitergabe an Dritte, Arbeitsrecht und Arbeitsschutz."
+      },
+      "risiko": {
+        "name": "Risiko",
+        "text": "Überfällige Fristen, Sanktionen, Lebensmittelsicherheit und Kühlkette."
+      }
+    },
+    "agent": {
+      "name": {
+        "audit": "Audit-Himbi",
+        "steuer": "Steuer-Himbi",
+        "recht": "Rechts-Himbi",
+        "risiko": "Risiko-Himbi"
+      },
+      "wartet": "wartet",
+      "spawn": "wird losgeschickt",
+      "sammelt": "liest Betriebsdaten, sucht im Recht",
+      "denkt": "bewertet die Belege",
+      "fertig": "fertig",
+      "fehler": "ausgefallen",
+      "fand": "fand {stelle}",
+      "bewertet": "bewertet: {feld}"
+    },
+    "zaehler": {
+      "daten": "Daten",
+      "quellen": "Quellen",
+      "befunde": "Befunde"
+    },
+    "phase": {
+      "plant": "Himbi plant die Prüfung",
+      "arbeit": "{fertig} von {gesamt} Mini-Himbis fertig",
+      "synthese": "Himbi führt die Befunde zusammen",
+      "fertig": "Prüfung abgeschlossen",
+      "fehler": "Prüfung abgebrochen"
+    },
+    "log": {
+      "fakten": "{agent}: {n} Betriebsdatenquellen gelesen ({feld})",
+      "recht": "{agent}: {n} Rechtsquellen zu \"{feld}\", zuerst {stelle}",
+      "befund": "{agent}: Befund \"{titel}\"",
+      "spawn": "{agent} startet",
+      "fertig": "{agent} ist fertig",
+      "synthese": "Himbi führt die Befunde zusammen",
+      "syntheseFertig": "Bericht versiegelt",
+      "uebergabe": "{agent}: Sammler und Jurist übergeben \"{feld}\" an den Prüfer"
+    },
+    "stufe": {
+      "bereit": "Prüfungsbereit",
+      "luecken": "Mit Lücken",
+      "nicht-bereit": "Nicht prüfungsreif"
+    },
+    "status": {
+      "verstoss": "Verstoß",
+      "luecke": "Lücke",
+      "hinweis": "Hinweis",
+      "konform": "Konform"
+    },
+    "schwere": {
+      "kritisch": "kritisch",
+      "hoch": "hoch",
+      "mittel": "mittel",
+      "niedrig": "niedrig",
+      "keine": "keine"
+    },
+    "rolle": {
+      "admin": "Administration",
+      "ceo": "Geschäftsführung",
+      "betriebsleitung": "Betriebsleitung",
+      "buchhaltung": "Buchhaltung",
+      "brigade": "Brigade",
+      "picker": "Pflücker",
+      "erzeuger": "Erzeuger",
+      "kunde": "Kunde"
+    },
+    "frist": {
+      "sofort": "sofort",
+      "tage7": "7 Tage",
+      "tage30": "30 Tage",
+      "tage90": "90 Tage"
+    },
+    "bericht": {
+      "titel": "Prüfbericht",
+      "reife": "Reife",
+      "prioritaeten": "Die wichtigsten Schritte",
+      "befunde": "Befunde",
+      "massnahmen": "Maßnahmenplan",
+      "alle": "Alle",
+      "nurMeine": "Nur meine Rolle",
+      "ohneRechtsbeleg": "Ohne Rechtsbeleg: nur ein Hinweis, keine Behauptung",
+      "ohneDaten": "Keine Betriebsdaten für Ihre Rolle: nur ein Hinweis",
+      "nachweise": "Nachweise aus Ihren Betriebsdaten",
+      "betriebsdaten": "Betriebsdaten",
+      "hinweise": "Einschränkungen",
+      "unvollstaendig": "Nicht alle Prüfungsfelder konnten bewertet werden.",
+      "export": "Als JSON speichern",
+      "drucken": "Drucken"
+    },
+    "siegel": {
+      "titel": "Siegel und Nachweis",
+      "id": "Berichts-ID",
+      "erstellt": "Erstellt",
+      "modell": "Modell",
+      "pruefsumme": "Prüfsumme",
+      "pruefen": "Siegel prüfen",
+      "gueltig": "Siegel gültig: der Bericht ist unverändert.",
+      "ungueltig": "Siegel ungültig: der Bericht wurde verändert."
+    },
+    "fehler": {
+      "allgemein": "Die Prüfung konnte nicht abgeschlossen werden.",
+      "wissensbasis": "Die Wissensbasis ist in dieser Umgebung nicht verfügbar. Ohne Rechtsquellen wird keine Prüfung ausgeführt.",
+      "laeuft": "Es läuft bereits eine Prüfung.",
+      "rechte": "Für Ihre Rolle ist diese Prüfung nicht freigegeben.",
+      "anmeldung": "Bitte melden Sie sich neu an."
+    },
+    "nachbereitung": {
+      "titel": "Nächste Schritte",
+      "lead": "Besprechen Sie das Ergebnis mit Himbi oder arbeiten Sie die Checkliste ab. Der versiegelte Bericht bleibt dabei unverändert.",
+      "besprechen": "Ergebnis mit Himbi besprechen",
+      "plan": "Lösungsplan vorschlagen lassen",
+      "checkliste": "Maßnahmen-Checkliste",
+      "fortschritt": "{erledigt} von {gesamt} erledigt",
+      "fertig": "Alles erledigt. Eine neue Prüfung bestätigt den Fortschritt.",
+      "leer": "Keine offenen Punkte: Die Prüfung hat weder Verstöße noch Lücken oder Hinweise ergeben.",
+      "pruefen": "Prüfen und Nachweise ergänzen, damit das Feld beurteilt werden kann",
+      "grundlage": "Grundlage",
+      "loesung": "Lösung ausarbeiten",
+      "frageStart": "Erkläre mir dieses Prüfergebnis: Was sind die wichtigsten Punkte, wo stehe ich, und was sollte ich als Erstes tun?",
+      "fragePlan": "Erstelle mir einen konkreten, priorisierten Lösungsplan für alle Verstöße und Lücken aus dem Prüfbericht: Schritte, Verantwortliche, Fristen und welche Nachweise ich ablegen sollte. Nutze die Wissensbasis und nenne die Fundstellen.",
+      "frageMassnahme": "Wie setze ich diese Maßnahme aus dem Prüfbericht konkret um? Feld: {titel}. Maßnahme: {schritt}. Nenne die einzelnen Schritte, die Nachweise, die ich brauche, und die Rechtsgrundlage.",
+      "frageHinweis": "Der Prüfbericht konnte dieses Feld nicht belastbar bewerten: {titel}. Was muss ich bereitstellen oder klären, damit es beurteilt werden kann?"
+    }
+  },
+  "ceoUebersicht": {
+    "titel": "Das Wichtigste heute",
+    "untertitel": "Stand der vier Prüfbereiche und der Finanzen, automatisch bei jedem Login geprüft.",
+    "zuletztGeprueft": "Zuletzt geprüft am {datum}",
+    "nochKeinBericht": "Noch kein automatischer Bericht vorhanden. Der erste Lauf startet im Hintergrund nach diesem Login, laden Sie die Seite in ein paar Minuten neu.",
+    "aktualisieren": "Jetzt neu prüfen",
+    "aktualisiertGerade": "Prüfung läuft …",
+    "laeuftImHintergrund": "Prüfung läuft",
+    "laeuftImHintergrundHinweis": "Die automatische Compliance-Prüfung läuft im Hintergrund weiter, auch auf dieser Seite. Klick führt zur Startseite mit dem vollen Fortschritt.",
+    "keineAenderung": "Keine Änderungen seit dem letzten Bericht.",
+    "aenderungenAnzahl": "{anzahl, plural, one {# Änderung} other {# Änderungen}} seit dem letzten Bericht",
+    "kachelOeffnen": "{anzahl, plural, one {# Befund} other {# Befunde}} · Details ansehen",
+    "bereichAlsPdf": "Diesen Bereich als PDF",
+    "bereichAlsJson": "Diesen Bereich als JSON",
+    "keineMassnahmen": "Keine offenen Maßnahmen.",
+    "aenderungArt": {
+      "neu": "neu",
+      "statusVeraendert": "Status geändert: {vorher} → {jetzt}",
+      "schwereVeraendert": "Schwere geändert: {vorher} → {jetzt}"
+    },
+    "punkteTitel": "Worauf es heute ankommt",
+    "keinePunkte": "Keine offenen Punkte aus dem letzten Bericht.",
+    "ohneZusammenfassung": "{punkte, plural, one {# offener Punkt} other {# offene Punkte}} im letzten Bericht.",
+    "zahlen": {
+      "sofort": "{anzahl, plural, one {# sofort} other {# sofort}}",
+      "ohneDaten": "{anzahl, plural, one {# Punkt ohne Daten} other {# Punkte ohne Daten}}"
+    },
+    "veraltet": "Älter als 24 Stunden",
+    "weitereAenderungen": "und {anzahl} weitere",
+    "vollerBericht": "Vollen Bericht öffnen",
+    "laeuftBereits": "Eine Prüfung läuft bereits.",
+    "nichtGeprueft": "Nicht geprüft",
+    "ohneDaten": "Keine aktuellen Daten",
+    "tour": {
+      "frage": "Soll ich dir die vier Prüfbereiche zeigen?",
+      "kopfTitel": "Das Gesamtbild",
+      "bereich": "{reife} von 100 Punkten, {stufe}. {anzahl, plural, one {# Befund} other {# Befunde}}. Für Details auf die Kachel klicken.",
+      "massnahmen": "{anzahl, plural, one {# offene Maßnahme} other {# offene Maßnahmen}} mit Frist und Verantwortlichkeit.",
+      "einschraenkungen": "{anzahl, plural, one {# Prüffeld konnte nicht vollständig bewertet werden.} other {# Prüffelder konnten nicht vollständig bewertet werden.}}",
+      "ende": "Das waren die vier Bereiche. Auf eine Kachel klicken zeigt dir jederzeit alle Details.",
+      "neustart": "Tour erneut starten",
+      "zusammenfassung": "Zusammenfassung im Chat",
+      "nachfrage": "Was kann ich dir noch zeigen?"
+    },
+    "liveHinweis": "Die Compliance-Prüfung läuft gerade live, hier siehst du jeden Schritt. Das dauert in der Regel unter einer Minute, du kannst in der Zwischenzeit weiterarbeiten.",
+    "liveHinweisKnopf": "Alles klar"
+  },
+  "pruefungAblauf": {
+    "schritt": {
+      "daten": "Betriebsdaten",
+      "recht": "Recht",
+      "bewertung": "Bewertung"
+    },
+    "lane": {
+      "fertig": "{n} Befunde, {q} Quellen"
+    },
+    "zahl": {
+      "befunde": "Befunde",
+      "quellen": "Quellen",
+      "zeit": "Zeit",
+      "agenten": "Agenten"
+    },
+    "schwarm": {
+      "titel": "Mini-Himbis im Einsatz",
+      "aktiv": "{n} aktiv · {fertig} fertig",
+      "sammler": "Sammler: liest die Betriebsdaten",
+      "jurist": "Jurist: sucht die Rechtsquellen",
+      "pruefer": "Prüfer: schreibt den Befund",
+      "wartet": "wartet",
+      "fertig": "fertig"
+    }
+  },
+  "pruefungPdf": {
+    "speichern": "Als PDF speichern",
+    "json": "Prüfbare Datei (JSON)",
+    "titel": "Compliance-Prüfbericht",
+    "quelle": "Rechtsquellen",
+    "stufe": "Stufe",
+    "stand": "Stand",
+    "abgerufen": "abgerufen",
+    "massnahme": "Maßnahme",
+    "verantwortlich": "Verantwortlich",
+    "frist": "Frist",
+    "anhang": "Anhang: Rechtsquellen im Wortlaut",
+    "haftung": "Dieser Bericht wurde von einem KI-System auf Grundlage der Betriebsdaten und der Wissensbasis erstellt. Er ersetzt keine Rechts- oder Steuerberatung. Das Siegel (SHA-256 über den kanonischen Berichtsinhalt) erlaubt es zu prüfen, dass der Bericht seit der Erstellung nicht verändert wurde.",
+    "untertitel": "Himbeerbetrieb Kasachstan",
+    "vertraulich": "Vertraulich",
+    "dokumentart": "Compliance · Audit · Steuern · Recht · Risiko",
+    "auszugArt": "Auszug aus dem Compliance-Prüfbericht",
+    "auszugSub": "Auszug aus Bericht {id} vom {datum}",
+    "auszugSiegelHinweis": "Auszug aus dem vollständig versiegelten Bericht, das Siegel gilt für den Gesamtbericht.",
+    "fussVertraulich": "Vertraulich · nur für den vorgesehenen Empfängerkreis",
+    "seite": "Seite",
+    "von": "von",
+    "nummer": "Berichtsnummer",
+    "erstelltAm": "Erstellt am",
+    "ersteller": "Erstellt von",
+    "umfang": "Prüfumfang",
+    "umfangWert": "{felder} Prüfungsfelder · {quellen} zitierte Rechtsquellen · {daten} Betriebsdatenquellen",
+    "inhalt": "Inhalt",
+    "siegelKurz": "Siegel",
+    "abschnitt": {
+      "zusammenfassung": "Zusammenfassung",
+      "ergebnis": "Ergebnis nach Bereich",
+      "methodik": "Methodik und Prüfumfang",
+      "freigabe": "Freigabe"
+    },
+    "tabelle": {
+      "bereich": "Bereich",
+      "felder": "Felder"
+    },
+    "prioritaet": "Priorität",
+    "legende": {
+      "verstoss": "Verstoß: Die Betriebsdaten zeigen einen Verstoß gegen eine Pflicht oder eine überfällige Pflicht.",
+      "luecke": "Lücke: Eine Pflicht ist nicht nachgewiesen oder die Daten sind unvollständig.",
+      "hinweis": "Hinweis: Nicht beurteilbar (keine Betriebsdaten oder keine eindeutige Rechtsquelle).",
+      "konform": "Konform: Betriebsdaten und Recht zeigen, dass die Pflicht erfüllt ist.",
+      "stufen": "Prüfungsreife (0 bis 100): ab 85 prüfungsbereit, 60 bis 84 mit Lücken, unter 60 nicht prüfungsreif."
+    },
+    "methodik": {
+      "absatz1": "Die Prüfung wurde von einem KI-System mit mehreren spezialisierten Agenten durchgeführt. Für jedes Prüfungsfeld arbeitet ein eigenes Team: ein Sammler liest die Betriebsdaten aus der Datenbank, ein Jurist recherchiert die Rechtsquellen in der Wissensbasis, ein Prüfer bewertet beides und schreibt den Befund. Ein Koordinator führt die Ergebnisse zusammen.",
+      "absatz2": "Jede rechtliche Aussage nennt ihre Fundstelle. Ohne gültigen Rechtsbeleg oder ohne Betriebsdaten wird ein Befund zu einem Hinweis herabgestuft. Die Prüfungsreife wird aus den Schweregraden der belegten Verstöße und Lücken berechnet und nicht vom Modell geschätzt."
+    },
+    "freigabe": {
+      "text": "Zur Kenntnis genommen und zur weiteren Verwendung freigegeben.",
+      "unterschrift": "Unterschrift",
+      "ort": "Ort, Datum",
+      "pruefer": "Externe Prüfung"
+    },
+    "verifikation": "Der Inhalt dieses Berichts ist mit einer SHA-256-Prüfsumme versiegelt. Wer die begleitende JSON-Datei besitzt, kann das Siegel in Damicon über „Siegel prüfen“ nachrechnen; jede nachträgliche Änderung fällt auf.",
+    "tipp": "Tipp für den Druckdialog: „Kopf- und Fußzeilen“ ausschalten, Papierformat A4. Farben und Marke werden automatisch übernommen."
+  },
+  "complianceBericht": {
+    "titel": "Compliance-Bericht",
+    "lead": "Der zuletzt gespeicherte Gesamtbericht über Audit, Steuern, Recht und Risiko.",
+    "zurueck": "Zurück zur Übersicht",
+    "stand": "Stand {datum}",
+    "keinBericht": "Es liegt noch kein gespeicherter Bericht vor. Der erste Lauf startet im Hintergrund nach dem nächsten Login."
+  },
+  "startkarte": {
+    "brigade": {
+      "label": "Offene Pflückaufgaben",
+      "kontext": "Noch nicht abgeschlossen.",
+      "keine": "Nichts offen.",
+      "weiter": "Zu den Pflückaufgaben"
+    },
+    "pfluecker": {
+      "label": "Letzter Lohnlauf",
+      "kontext": "Bis {bis} · {status}",
+      "weiter": "Zum Lohn",
+      "status": {
+        "entwurf": "Entwurf",
+        "freigegeben": "freigegeben",
+        "ausgezahlt": "ausgezahlt"
+      }
+    },
+    "kunde": {
+      "label": "Nächste Lieferung",
+      "kontext": "{termin}",
+      "kontextMehrere": "{termin} · {anzahl} Posten",
+      "weiter": "Zum B2B-Portal"
+    }
   }
 }

@@ -8,6 +8,9 @@
 
 export const roles = [
   "admin",
+  // Achte Rolle, nachtraeglich (weicht von "Anforderung 7.1: genau sieben
+  // Rollen" ab, siehe Kommentar unten bei roleDefinitions/rolePermissions.ceo).
+  "ceo",
   "betriebsleitung",
   "buchhaltung",
   "brigade",
@@ -63,6 +66,12 @@ export const resources = [
   // steht. Das ist eine andere Befugnis als Kunden oder Preise pflegen.
   "stammdaten",
   "preislisten",
+  // Investitionsrechnung zur Einfuehrung (CAPEX, OPEX, ROI, Kapitalwert).
+  // Bewusst eine eigene Ressource statt einer Mitnutzung von "finanzen":
+  // erzeuger hat dort view (fuer den eigenen Deckungsbeitrag) und wuerde
+  // sonst die Investitionsrechnung des Betriebs mitlesen. Das ist eine
+  // andere Befugnis als den laufenden Deckungsbeitrag zu sehen.
+  "wirtschaftlichkeit",
 ] as const;
 
 export type Resource = (typeof resources)[number];
@@ -90,9 +99,6 @@ export interface RoleDefinition {
   descriptionKey: string;
   level: number;
   scope: "betrieb" | "plantage" | "finanzen" | "feld" | "pfluecker" | "erzeugerbetrieb" | "kunde";
-  /** Entsprechende Rolle im Vorgaengersystem 1Cati, oder null, wenn es
-   *  keine gibt - die Oberflaeche zeigt dann rollenDemo.catiRole.keine. */
-  catiRole: string | null;
 }
 
 // Remapping der sechs 1Cati-Kernrollen (admin, manager, accountant, staff,
@@ -104,7 +110,17 @@ export const roleDefinitions: RoleDefinition[] = [
     descriptionKey: "roles.descriptions.admin",
     level: 90,
     scope: "betrieb",
-    catiRole: "admin",
+  },
+  // Anforderung aus dem Auftrag vom 22.09.2026, weicht bewusst von
+  // "Anforderung 7.1: genau sieben Rollen abgenommen" ab (siehe
+  // supabase/migrations/20261103020000_ceo_rolle.sql). Rechte kuratiert, nicht
+  // 1:1 admin: siehe rolePermissions.ceo unten.
+  {
+    key: "ceo",
+    labelKey: "roles.ceo",
+    descriptionKey: "roles.descriptions.ceo",
+    level: 95,
+    scope: "betrieb",
   },
   {
     key: "betriebsleitung",
@@ -112,7 +128,6 @@ export const roleDefinitions: RoleDefinition[] = [
     descriptionKey: "roles.descriptions.betriebsleitung",
     level: 70,
     scope: "plantage",
-    catiRole: "manager",
   },
   {
     key: "buchhaltung",
@@ -120,7 +135,6 @@ export const roleDefinitions: RoleDefinition[] = [
     descriptionKey: "roles.descriptions.buchhaltung",
     level: 60,
     scope: "finanzen",
-    catiRole: "accountant",
   },
   {
     key: "brigade",
@@ -128,7 +142,6 @@ export const roleDefinitions: RoleDefinition[] = [
     descriptionKey: "roles.descriptions.brigade",
     level: 40,
     scope: "feld",
-    catiRole: "staff",
   },
   {
     key: "picker",
@@ -136,7 +149,6 @@ export const roleDefinitions: RoleDefinition[] = [
     descriptionKey: "roles.descriptions.picker",
     level: 25,
     scope: "pfluecker",
-    catiRole: null,
   },
   {
     key: "erzeuger",
@@ -144,7 +156,6 @@ export const roleDefinitions: RoleDefinition[] = [
     descriptionKey: "roles.descriptions.erzeuger",
     level: 20,
     scope: "erzeugerbetrieb",
-    catiRole: "owner",
   },
   {
     key: "kunde",
@@ -152,7 +163,6 @@ export const roleDefinitions: RoleDefinition[] = [
     descriptionKey: "roles.descriptions.kunde",
     level: 10,
     scope: "kunde",
-    catiRole: "tenant",
   },
 ];
 
@@ -171,6 +181,14 @@ const crud = (resource: Resource): Permission[] => [
 
 export const rolePermissions: Record<Role, Permission[]> = {
   admin: resources.flatMap((resource) => all(resource)),
+  // Kuratierte Fuehrungsrolle: alle Rechte von admin, ausser
+  // ki_assistent:manage (Verwaltung der KI-Provider-Schluessel - ein
+  // IT-Betriebsthema, kein Fuehrungsthema, und ein vermeidbares Risiko an
+  // einem haeufig per Phishing angegriffenen Konto). Der admin-only
+  // Rollen-Vorschau-Debug-Schalter (components/dashboard/persona.tsx,
+  // app/api/ki-assistent/route.ts) ist keine rbac-Berechtigung und bleibt
+  // hier bewusst unangetastet, gilt also weiterhin nur fuer admin.
+  ceo: resources.flatMap((resource) => all(resource)).filter((p) => p !== "ki_assistent:manage"),
   betriebsleitung: [
     ...crud("stammdaten"),
     ...view("dashboard"),
@@ -189,6 +207,7 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...crud("personal"),
     ...view("lohn"),
     ...view("finanzen"),
+    ...view("wirtschaftlichkeit"),
     ...crud("dokumente"),
     ...crud("compliance"),
     ...view("integrationen"),
@@ -239,6 +258,7 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...crud("lohn"),
     `lohn:approve`,
     ...all("finanzen"),
+    ...all("wirtschaftlichkeit"),
     ...crud("dokumente"),
     ...crud("compliance"),
     ...crud("integrationen"),
@@ -249,6 +269,11 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...crud("reklamationen"),
     `reklamationen:approve`,
     ...view("aggregator"),
+    // KI-Assistent: MwSt, ESUTD, Compliance und Lohn sind das Fachgebiet der
+    // Buchhaltung. Die KI sieht dabei nie mehr als die Rolle selbst (Werkzeuge
+    // und RLS folgen den Rechten oben).
+    ...view("ki_assistent"),
+    "ki_assistent:create",
     // Anforderung 4.10: Buchhaltung sitzt im Buero wie betriebsleitung, faellt
     // unter dieselbe Pflichtschulungs-Zielgruppe (has_office_access()).
     ...view("schulungen"),
@@ -303,7 +328,18 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...view("pflueckaufgaben"),
     ...view("finanzen"),
     ...view("dokumente"),
-    ...crud("aggregator"),
+    // WMCNL-2299: bis vor Kurzem crud("aggregator"). Die Schreib-RLS auf
+    // nachbarbetriebe/zukauf_positionen bleibt laut Migrationskopf
+    // 20260908140000 (Punkt 3) ausdruecklich admin/betriebsleitung
+    // vorbehalten - ein echtes Self-Service-Szenario fuer erzeuger braucht
+    // eine profiles->nachbarbetrieb-Verknuepfung, die es (noch) nicht gibt.
+    // Mit crud() zeigte die Oberflaeche "Betrieb aufnehmen" und den
+    // CSV-Import trotzdem an; jeder Versuch scheiterte serverseitig an der
+    // RLS (fehler.berechtigung), ohne dass rbac.ts (die erste
+    // Verteidigungslinie) das schon verhinderte. view() spiegelt die
+    // tatsaechliche Rechtelage wider, bis die Self-Service-Anforderung
+    // feststeht.
+    ...view("aggregator"),
     ...view("b2b_portal"),
     ...view("schulungen"),
   ],

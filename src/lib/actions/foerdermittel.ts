@@ -72,9 +72,13 @@ export async function dossierAktualisieren(
     .from("foerderdossiers")
     .update({
       status: status as FoerderdossierStatus,
-      frist_am: fristAm,
-      eingereicht_am: eingereichtAm,
-      notizen,
+      // WMCNL-2454: das Formular zeigt keine Vorbelegung - ein leer
+      // gelassenes Feld heisst "nicht aendern", nicht "loeschen". Ohne diese
+      // Bedingung ueberschrieb ein reines Status-Update unbemerkt eine
+      // bereits gesetzte Frist mit NULL.
+      ...(fristAm !== null ? { frist_am: fristAm } : {}),
+      ...(eingereichtAm !== null ? { eingereicht_am: eingereichtAm } : {}),
+      ...(notizen !== null ? { notizen } : {}),
     })
     .eq("id", id)
     .select("id, titel")

@@ -7,6 +7,10 @@ export function einsAus<T>(wert: T | T[] | null | undefined): T | null {
 }
 
 // Datumsangaben aus der Datenbank kommen als ISO-String (YYYY-MM-DD).
+// Bewusst das UTC-Datum: die Datenbank rechnet mit current_date in UTC (Supabase-
+// Standard), zum Beispiel vergleicht reihenblock_freigeben() die Wartezeit gegen
+// dieses Datum. Die Anwendung zieht dieselbe Tagesgrenze, sonst zeigte sie eine
+// Wartezeit einige Stunden vor oder nach der Datenbank als abgelaufen.
 export function heuteIso(): string {
   return new Date().toISOString().slice(0, 10);
 }

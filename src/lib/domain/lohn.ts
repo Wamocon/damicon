@@ -54,6 +54,19 @@ export interface LohnAbrechnung {
   status: LohnStatus;
 }
 
+// WMCNL-2375: lohn_periode_berechnen() liest die Mengenkomponente
+// ausschliesslich aus steigen (bewusste Architekturentscheidung, siehe
+// Migrationskopf 20260908130000, Punkt 1 - Ausschuss liegt nur je Aufgabe
+// vor und wird ueber den kg-Anteil der Steigen umgelegt). Eine abgeschlossene
+// Aufgabe mit gemeldeter Menge, aber ohne jede Steige, geht dadurch still
+// aus der Lohnabrechnung - dieser Typ traegt genau diesen Luecke-Befund,
+// damit er sichtbar wird, statt das Kernmodell umzubauen.
+export interface LohnAbschlussLuecke {
+  id: string;
+  code: string;
+  istMengeKg: number;
+}
+
 export interface LohnPosition {
   id: string;
   pfluecker: string;
@@ -64,6 +77,49 @@ export interface LohnPosition {
   ausschussAnteiligKg: number;
   qualitaetsfaktor: number;
   betragTenge: number;
+}
+
+// Gesetzliche Lohnabzuege Kasachstan (Migration 20261024000000). Getrennt von
+// LohnSatz/LohnAbrechnung: ein betrieblicher Lohnsatz und ein gesetzlicher
+// Steuersatz aendern sich aus unabhaengigen Gruenden - siehe Migrationskopf.
+export interface LohnSteuersatzKz {
+  id: string;
+  gueltigAb: string;
+  gueltigBis: string | null;
+  opvProzent: number;
+  opvBemessungsgrenzeTenge: number;
+  vosmsProzent: number;
+  vosmsBemessungsgrenzeTenge: number;
+  ipnProzent: number;
+  ipnFreibetragTenge: number;
+  opvrProzent: number;
+  soProzent: number;
+  snProzent: number;
+  osmsProzent: number;
+  quelle: string;
+  notiz: string | null;
+}
+
+// Ein Monatsaggregat je Pfluecker - siehe Migrationskopf, warum ОПВ/ВОСМС/ИПН
+// auf den Kalendermonat bezogen gerechnet werden, nicht auf eine einzelne,
+// beliebig kurze lohn_abrechnungen-Periode.
+export interface LohnMonatsabzug {
+  id: string;
+  pfluecker: string;
+  pfleuckerAusweis: string;
+  jahr: number;
+  monat: number;
+  bruttoGesamtTenge: number;
+  opvTenge: number;
+  vosmsTenge: number;
+  ipnBemessungsgrundlageTenge: number;
+  ipnTenge: number;
+  nettoTenge: number;
+  opvrTenge: number;
+  soTenge: number;
+  snTenge: number;
+  osmsTenge: number;
+  arbeitgeberkostenGesamtTenge: number;
 }
 
 // Demo-Modus (ohne Supabase-Umgebung): dieselbe Geschichte wie der Seed -
@@ -94,11 +150,11 @@ export const demoLohnAbrechnungen: LohnAbrechnung[] = [
     periodeEnde: "2026-09-02",
     stunden: 7.2,
     mengeKg: 47.8,
-    ausschussquote: 9.56,
+    ausschussquote: 10.56,
     grundlohnTenge: 6480,
-    mengenKomponenteTenge: 37659.25,
-    qualitaetsfaktor: 0.91,
-    gesamtTenge: 44139.25,
+    mengenKomponenteTenge: 37440.8,
+    qualitaetsfaktor: 0.9,
+    gesamtTenge: 43920.8,
     status: "entwurf",
   },
   {
@@ -109,11 +165,11 @@ export const demoLohnAbrechnungen: LohnAbrechnung[] = [
     periodeEnde: "2026-09-02",
     stunden: 7.33,
     mengeKg: 47.8,
-    ausschussquote: 9.56,
+    ausschussquote: 10.56,
     grundlohnTenge: 6600,
-    mengenKomponenteTenge: 37659.25,
-    qualitaetsfaktor: 0.91,
-    gesamtTenge: 44259.25,
+    mengenKomponenteTenge: 37440.8,
+    qualitaetsfaktor: 0.9,
+    gesamtTenge: 44040.8,
     status: "freigegeben",
   },
   {
@@ -142,8 +198,8 @@ export const demoLohnPositionen: LohnPosition[] = [
     aufgabeCode: "PA-2026-0912-01",
     mengeKg: 25.7,
     ausschussAnteiligKg: 2.1,
-    qualitaetsfaktor: 0.95,
-    betragTenge: 20752.75,
+    qualitaetsfaktor: 0.94,
+    betragTenge: 20534.3,
   },
   {
     id: "demo-pos-2",
@@ -164,8 +220,8 @@ export const demoLohnPositionen: LohnPosition[] = [
     aufgabeCode: "PA-2026-0912-01",
     mengeKg: 25.7,
     ausschussAnteiligKg: 2.1,
-    qualitaetsfaktor: 0.95,
-    betragTenge: 20752.75,
+    qualitaetsfaktor: 0.94,
+    betragTenge: 20534.3,
   },
   {
     id: "demo-pos-4",
@@ -188,5 +244,67 @@ export const demoLohnPositionen: LohnPosition[] = [
     ausschussAnteiligKg: 0,
     qualitaetsfaktor: 1.1,
     betragTenge: 7480,
+  },
+];
+
+// Steuerkodex RK 2026 (in Kraft seit 01.01.2026) - dieselben Werte wie der
+// Startsatz in Migration 20261024000000, nicht separat erfunden.
+export const demoLohnSteuersatzKz: LohnSteuersatzKz = {
+  id: "demo-steuersatz-kz-1",
+  gueltigAb: "2026-01-01",
+  gueltigBis: null,
+  opvProzent: 10,
+  opvBemessungsgrenzeTenge: 4250000,
+  vosmsProzent: 2,
+  vosmsBemessungsgrenzeTenge: 1700000,
+  ipnProzent: 10,
+  ipnFreibetragTenge: 129750,
+  opvrProzent: 3.5,
+  soProzent: 5,
+  snProzent: 6,
+  osmsProzent: 3,
+  quelle: "Steuerkodex RK 2026; ИПН-Standardabzug 30 МРП, МРП 2026 = 4 325 Tenge.",
+  notiz: "Näherung: Sonderfreibeträge und die СО-Kuerzung der СН sind hier nicht abgebildet, siehe Migrationskopf 20261024000000.",
+};
+
+// Mit derselben Formel gerechnet wie public.lohn_kz_abzuege_berechnen()
+// (Brutto = Summe der Demo-Abrechnungen von D. Sarsenbaj/A. Tulegenowa oben
+// fuer denselben Monat), keine unabhaengig erfundene Zeile.
+export const demoLohnMonatsabzuege: LohnMonatsabzug[] = [
+  {
+    id: "demo-monatsabzug-1",
+    pfluecker: "D. Sarsenbaj",
+    pfleuckerAusweis: "MAL-0417",
+    jahr: 2026,
+    monat: 9,
+    bruttoGesamtTenge: 43920.8,
+    opvTenge: 4392.08,
+    vosmsTenge: 878.42,
+    ipnBemessungsgrundlageTenge: 0,
+    ipnTenge: 0,
+    nettoTenge: 38650.3,
+    opvrTenge: 1537.23,
+    soTenge: 2196.04,
+    snTenge: 2635.25,
+    osmsTenge: 1317.62,
+    arbeitgeberkostenGesamtTenge: 51606.94,
+  },
+  {
+    id: "demo-monatsabzug-2",
+    pfluecker: "A. Tulegenowa",
+    pfleuckerAusweis: "MAL-0418",
+    jahr: 2026,
+    monat: 9,
+    bruttoGesamtTenge: 44040.8,
+    opvTenge: 4404.08,
+    vosmsTenge: 880.82,
+    ipnBemessungsgrundlageTenge: 0,
+    ipnTenge: 0,
+    nettoTenge: 38755.9,
+    opvrTenge: 1541.43,
+    soTenge: 2202.04,
+    snTenge: 2642.45,
+    osmsTenge: 1321.22,
+    arbeitgeberkostenGesamtTenge: 51747.94,
   },
 ];

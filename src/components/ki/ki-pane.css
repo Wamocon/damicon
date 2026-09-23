@@ -1,0 +1,2196 @@
+/* KI-Seitenpanel (ki-pane.tsx), Chat (ki-chat.tsx) und Fuehrungsanzeige im
+   Hauptfenster (ki-fuehrung.tsx). Alle Bewegung ist an prefers-reduced-motion
+   gebunden; ohne Bewegungspraeferenz springt alles direkt in den Endzustand. */
+
+:root {
+  /* 25rem = 400px: angedockt soll das Panel zwischen 380 und 420 px breit
+     sein. Ziehbar bleibt es (ki-pane-griff.tsx, 352 bis 960 px). */
+  --ki-pane-breite: 25rem;
+  /* Himbeer-Palette des Assistenten (himbeere.tsx). Feste Markenfarben: sie
+     bleiben in hell und dunkel dieselben, wie ein Logo. */
+  --himbeere: #d81b60;
+  --himbeere-hell: #ff5c8a;
+  --himbeere-dunkel: #8f0f3a;
+  --blatt: #2fbf71;
+  /* Masse der Buehne (Darstellung "buehne"). Stehen hier und nicht nur in der Regel,
+     weil haustier.css dieselbe Mitte treffen muss. */
+  --ki-buehne-breite: min(44rem, 100vw - 2rem);
+  --ki-buehne-hoehe: min(40rem, 100svh - 13rem);
+  /* Der Streifen ueber der Karte, in dem Himbi steht. */
+  --ki-buehne-kopf: 7.5rem;
+}
+/* Mittlere Breiten (Seitenleiste + Panel): schmaleres Panel, damit die
+   Hauptflaeche daneben nutzbar bleibt. */
+@media (max-width: 1279.98px) {
+  :root {
+    --ki-pane-breite: 23rem;
+  }
+}
+
+/* ---- Andockbares Panel ---------------------------------------------------
+   Auf Desktop ein Geschwister der Hauptspalte im Dashboard-Layout: seine
+   BREITE wird animiert (0 -> --ki-pane-breite), die Hauptspalte schrumpft
+   daneben mit. Die Huelle ist wie die Seitenleiste sticky + overflow-hidden;
+   der Inhalt (.ki-pane) hat feste Breite und wird beim Aufgehen nur
+   aufgedeckt, nicht umbrochen. */
+.ki-pane-huelle {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  flex: 0 0 auto;
+  align-self: flex-start;
+  width: 0;
+  height: 100svh;
+  overflow: hidden;
+}
+.ki-pane-huelle--offen {
+  width: var(--ki-pane-breite);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-pane-huelle {
+    transition: width 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+.ki-pane {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: var(--ki-pane-breite);
+  height: 100%;
+  border-left: 1px solid var(--border);
+  background: var(--card);
+  backdrop-filter: blur(18px);
+}
+.ki-pane-hintergrund {
+  display: none;
+}
+
+/* ---- Breite ziehen (ki-pane-griff.tsx) ------------------------------------
+   Schmaler Streifen am linken Rand des Panels. Sichtbar wird er erst beim
+   Ueberfahren, Fokussieren und Ziehen; waehrend des Ziehens ruht die
+   Breiten-Animation, sonst haengt das Panel der Maus hinterher. */
+.ki-griff {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  z-index: 5;
+  width: 0.7rem;
+  cursor: col-resize;
+  touch-action: none;
+  outline: none;
+}
+.ki-griff::before {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 2px;
+  background: var(--himbeere);
+  opacity: 0;
+}
+.ki-griff::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 2px;
+  width: 4px;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: var(--muted-foreground);
+  opacity: 0.35;
+  transform: translateY(-50%);
+}
+.ki-griff:hover::before,
+.ki-griff:focus-visible::before,
+html[data-ki-zieht] .ki-griff::before {
+  opacity: 1;
+}
+.ki-griff:hover::after,
+.ki-griff:focus-visible::after,
+html[data-ki-zieht] .ki-griff::after {
+  background: var(--himbeere);
+  opacity: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-griff::before,
+  .ki-griff::after {
+    transition: opacity 0.15s ease, background-color 0.15s ease;
+  }
+}
+html[data-ki-zieht] .ki-pane-huelle {
+  transition: none;
+}
+html[data-ki-zieht] body {
+  cursor: col-resize;
+  user-select: none;
+}
+
+/* Schmale Bildschirme: keine Platz fuer zwei Spalten - das Panel legt sich
+   als Schublade ueber die Seite und faehrt per Transform ein. */
+@media (max-width: 1099.98px) {
+  .ki-pane-huelle {
+    position: fixed;
+    inset: 0 0 0 auto;
+    z-index: 70;
+    width: min(var(--ki-pane-breite), 100vw);
+    transform: translateX(100%);
+    transition: none;
+  }
+  .ki-pane-huelle--offen {
+    width: min(var(--ki-pane-breite), 100vw);
+    transform: none;
+    box-shadow: -24px 0 60px -20px rgb(0 0 0 / 0.45);
+  }
+  .ki-pane {
+    width: 100%;
+  }
+  .ki-griff {
+    display: none;
+  }
+  .ki-pane-hintergrund {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 65;
+    border: 0;
+    background: rgb(0 0 0 / 0.4);
+    opacity: 0;
+    pointer-events: none;
+  }
+  .ki-pane-hintergrund--offen {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+@media (max-width: 1099.98px) and (prefers-reduced-motion: no-preference) {
+  .ki-pane-huelle {
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .ki-pane-hintergrund {
+    transition: opacity 0.3s ease;
+  }
+}
+
+/* Handy (unter dem md-Breakpoint von Tailwind): das Panel kommt nicht mehr von
+   rechts, sondern als Blatt von unten - wie Menue und Konto an der unteren
+   Leiste, und aus demselben Grund: der Knopf steht unten, also kommt der
+   Inhalt von dort.
+
+   Die Schublade von rechts war hier ohnehin keine Entscheidung, sondern ein
+   Rechenergebnis: min(23rem, 100vw) sind bei 390 px Fensterbreite 368 px, und
+   die 22 px Rest zeigten einen Streifen der Seite dahinter - zu schmal, um
+   etwas zu erkennen, breit genug, um unruhig zu wirken.
+
+   dvh statt svh oder vh: als einzige der drei Einheiten folgt sie der
+   eingeblendeten Tastatur. Mit vh bliebe das Blatt so hoch wie der Bildschirm
+   ohne Tastatur, und der Composer laege darunter. Dazu gehoert
+   interactiveWidget: "resizes-content" im Viewport-Export
+   (app/[locale]/layout.tsx) - ohne das aendert sich auf Android gar nichts,
+   weil die Tastatur dort standardmaessig nur den sichtbaren Ausschnitt
+   verschiebt.
+
+   Der Block steht bewusst NACH dem 1099.98px-Block und nicht in ihm: zwischen
+   768 und 1100 px (Tablet im Hochformat, Kuehlhaus) bleibt die Schublade von
+   rechts richtig, dort ist neben dem Panel noch etwas zu sehen. */
+@media (max-width: 767.98px) {
+  .ki-pane-huelle {
+    inset: auto 0 0 0;
+    width: 100%;
+    height: 92dvh;
+    transform: translateY(100%);
+    border-radius: 1.25rem 1.25rem 0 0;
+  }
+  .ki-pane-huelle--offen {
+    width: 100%;
+    transform: none;
+    box-shadow: 0 -24px 60px -20px rgb(0 0 0 / 0.45);
+  }
+  .ki-pane {
+    border-left: 0;
+    border-radius: inherit;
+    /* Deckend, und zwar mit demselben Ton wie die untere Leiste und die
+       Blaetter, die von ihr aufgehen (--schwebend in globals.css).
+
+       Am Schreibtisch ist .ki-pane eine angedockte Spalte NEBEN dem Inhalt,
+       und dort ist var(--card) richtig: im Dark Mode zu 26 Prozent
+       durchsichtig, wodurch der Rasterhintergrund des Dashboards
+       durchscheint. Hier liegt dieselbe Flaeche als Blatt UEBER der Seite -
+       und durch ein Blatt, das 92 Prozent der Hoehe einnimmt, sah man den
+       Inhalt darunter hindurchscheinen. */
+    background: var(--schwebend);
+  }
+  /* Der Kopf ist zugleich die Griffkante des Blatts. */
+  .ki-pane__kopf {
+    border-radius: inherit;
+  }
+}
+@media (max-width: 767.98px) and (prefers-reduced-motion: no-preference) {
+  .ki-pane-huelle {
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+/* ---- Kopf ---------------------------------------------------------------- */
+.ki-pane__kopf {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  height: 4rem;
+  padding: 0 0.75rem 0 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.ki-pane__titel {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--card-foreground);
+}
+.ki-pane__zeichen {
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 2rem;
+}
+.ki-pane__werkzeuge {
+  display: flex;
+  gap: 0.15rem;
+}
+.ki-pane__knopf {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.55rem;
+  color: var(--muted-foreground);
+  transition: background-color 0.2s, color 0.2s;
+}
+.ki-pane__knopf:hover,
+.ki-pane__knopf[aria-pressed="true"] {
+  background: var(--muted);
+  color: var(--foreground);
+}
+
+/* Agent-Modus: ein laufender Lichtstreifen unter dem Kopf und ein atmendes
+   Zeichen - das Panel sieht sichtbar "wach" aus, solange es die Ansicht
+   steuern darf. */
+.ki-pane--agent .ki-pane__kopf::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary), var(--accent), var(--primary), transparent);
+  background-size: 200% 100%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-pane--agent .ki-pane__kopf::after {
+    animation: ki-lauf 3.2s linear infinite;
+  }
+  .ki-pane--agent .ki-pane__zeichen svg {
+    animation: ki-atmen 2.4s ease-in-out infinite;
+  }
+}
+@keyframes ki-lauf {
+  to { background-position: -200% 0; }
+}
+@keyframes ki-atmen {
+  0%, 100% { filter: drop-shadow(0 0 0 transparent); }
+  50% { filter: drop-shadow(0 0 7px color-mix(in oklab, var(--himbeere-hell) 80%, transparent)); }
+}
+
+/* Kleines Abzeichen neben dem Titel, solange der Agent-Modus an ist. */
+.ki-pane__abzeichen {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 14%, transparent);
+}
+
+/* ---- Einstellung: Agent-Modus ------------------------------------------------ */
+.ki-einstellung {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  background: color-mix(in oklab, var(--muted) 40%, transparent);
+}
+.ki-einstellung__kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.ki-einstellung__titel {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: var(--card-foreground);
+}
+.ki-einstellung__text {
+  margin: 0.55rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.15rem;
+  color: var(--muted-foreground);
+}
+.ki-schalter {
+  position: relative;
+  flex: none;
+  width: 2.7rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--muted-foreground) 35%, transparent);
+  transition: background-color 0.25s;
+}
+.ki-schalter[aria-checked="true"] {
+  background: var(--primary);
+}
+.ki-schalter__knopf {
+  position: absolute;
+  top: 0.19rem;
+  left: 0.19rem;
+  width: 1.12rem;
+  height: 1.12rem;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+}
+.ki-schalter[aria-checked="true"] .ki-schalter__knopf {
+  transform: translateX(1.2rem);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-schalter__knopf {
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+/* Erklaerung beim Ueberfahren (und bei Tastaturfokus) */
+.ki-info {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  color: var(--muted-foreground);
+  cursor: help;
+  outline: none;
+}
+.ki-info:hover,
+.ki-info:focus-visible {
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+}
+.ki-info__blase {
+  position: absolute;
+  top: calc(100% + 0.55rem);
+  left: -2.2rem;
+  z-index: 20;
+  display: flex;
+  width: min(19rem, 78vw);
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.8rem 0.9rem;
+  border: 1px solid color-mix(in oklab, var(--primary) 30%, var(--border));
+  border-radius: 0.85rem;
+  font-size: 0.74rem;
+  font-weight: 500;
+  line-height: 1.1rem;
+  text-align: left;
+  color: var(--foreground);
+  background: var(--card);
+  box-shadow: 0 18px 40px -14px rgb(0 0 0 / 0.45);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+}
+.ki-info:hover .ki-info__blase,
+.ki-info:focus-visible .ki-info__blase {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-info__blase {
+    transition: opacity 0.18s ease, transform 0.18s ease;
+  }
+}
+.ki-info__blase strong {
+  font-size: 0.78rem;
+  color: var(--card-foreground);
+}
+.ki-info__zeile {
+  display: flex;
+  gap: 0.5rem;
+}
+.ki-info__zeile svg {
+  flex: none;
+  margin-top: 0.12rem;
+  color: var(--primary);
+}
+.ki-info__zeile b {
+  color: var(--card-foreground);
+}
+.ki-info__fuss {
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  color: var(--muted-foreground);
+}
+
+/* ---- Koerper -------------------------------------------------------------- */
+.ki-pane__koerper {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.ki-pane__ansicht {
+  position: absolute;
+  inset: 0;
+}
+
+/* ---- Chat ----------------------------------------------------------------- */
+.ki-chat {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.ki-chat__flaeche {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+.ki-chat__verlauf {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  height: 100%;
+  padding: 1rem max(1rem, calc((100% - 46rem) / 2)) 0.75rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.ki-nach-unten {
+  position: absolute;
+  right: 1rem;
+  bottom: 0.75rem;
+  display: grid;
+  place-items: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--foreground);
+  background: var(--card);
+  box-shadow: 0 8px 20px -8px rgb(0 0 0 / 0.4);
+}
+.ki-nach-unten:hover {
+  color: var(--primary);
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--border));
+}
+
+/* Leerzustand */
+.ki-leer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  margin: auto 0;
+  padding: 0.5rem 0.25rem;
+  text-align: center;
+}
+.ki-leer__zeichen {
+  display: grid;
+  place-items: center;
+  filter: drop-shadow(0 14px 22px color-mix(in oklab, var(--himbeere) 35%, transparent));
+}
+.ki-leer__titel {
+  margin-top: 0.4rem;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--card-foreground);
+}
+.ki-leer__text {
+  max-width: 22rem;
+  font-size: 0.8rem;
+  line-height: 1.3rem;
+  color: var(--muted-foreground);
+}
+.ki-leer__vorschlaege {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  width: 100%;
+  margin-top: 0.8rem;
+}
+.ki-vorschlag {
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 0.85rem;
+  font-size: 0.8rem;
+  line-height: 1.15rem;
+  text-align: left;
+  color: var(--foreground);
+  background: color-mix(in oklab, var(--card) 70%, transparent);
+  transition: border-color 0.2s, background-color 0.2s, transform 0.2s;
+}
+.ki-vorschlag:hover:not(:disabled) {
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--border));
+  background: color-mix(in oklab, var(--primary) 8%, var(--card));
+  transform: translateX(3px);
+}
+.ki-vorschlag:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ki-leer__hinweis {
+  margin-top: 0.8rem;
+  font-size: 0.68rem;
+  line-height: 1rem;
+  color: var(--muted-foreground);
+}
+
+/* Nachrichten */
+.ki-nachricht--nutzer {
+  display: flex;
+  justify-content: flex-end;
+}
+.ki-nachricht__blase {
+  max-width: 88%;
+  padding: 0.55rem 0.85rem;
+  border-radius: 1.05rem 1.05rem 0.3rem 1.05rem;
+  font-size: 0.84rem;
+  line-height: 1.3rem;
+  color: var(--primary-foreground);
+  background: var(--primary);
+  overflow-wrap: anywhere;
+}
+.ki-nachricht__blase p {
+  margin: 0;
+  white-space: pre-wrap;
+}
+.ki-nachricht--assistent {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+.ki-nachricht__zeichen {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.5rem;
+  margin-top: 0.05rem;
+}
+.ki-nachricht__inhalt {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-nachricht {
+    animation: ki-hinein 0.35s ease-out both;
+  }
+}
+@keyframes ki-hinein {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Schritte (Werkzeugaufrufe), live */
+.ki-schritte {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ki-schritt {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.42rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 0.7rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--muted-foreground);
+  background: color-mix(in oklab, var(--muted) 55%, transparent);
+  transition: border-color 0.2s, background-color 0.2s, box-shadow 0.25s, color 0.2s;
+}
+.ki-schritt:disabled {
+  cursor: default;
+}
+.ki-schritt__text {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ki-schritt__ende {
+  display: grid;
+  flex: none;
+  place-items: center;
+  color: var(--blatt);
+}
+.ki-schritt--laeuft .ki-schritt__ende { color: var(--himbeere); }
+.ki-schritt--fehler .ki-schritt__ende { color: var(--warning, #b45309); }
+.ki-schritt__pfeil {
+  flex: none;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.2s, transform 0.2s;
+}
+.ki-schritt--klickbar {
+  cursor: pointer;
+  color: var(--foreground);
+}
+.ki-schritt--klickbar:hover {
+  border-color: color-mix(in oklab, var(--primary) 55%, var(--border));
+  background: color-mix(in oklab, var(--primary) 8%, transparent);
+}
+.ki-schritt--klickbar:hover .ki-schritt__pfeil,
+.ki-schritt--aktiv .ki-schritt__pfeil {
+  opacity: 1;
+  transform: none;
+}
+.ki-schritt--aktiv {
+  border-color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 14%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-schritt {
+    animation: ki-hinein 0.3s ease-out both;
+  }
+  .ki-schritt--laeuft {
+    animation: ki-hinein 0.3s ease-out both, ki-puls 1.4s ease-in-out 0.3s infinite;
+  }
+}
+@keyframes ki-puls {
+  0%, 100% { border-color: var(--border); }
+  50% { border-color: color-mix(in oklab, var(--primary) 65%, transparent); }
+}
+
+.ki-status {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-left: 2.1rem;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.ki-fehler__link {
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ki-fehler {
+  padding: 0.55rem 0.8rem;
+  border-radius: 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--danger, var(--destructive));
+  background: color-mix(in oklab, var(--danger, var(--destructive)) 10%, transparent);
+}
+
+/* ---- Markdown in Assistentenantworten -------------------------------------
+   Eine einzige Stilquelle fuer alles, was das Modell schreiben kann - damit
+   Ueberschriften, Listen und Tabellen unabhaengig vom Thema gleich aussehen. */
+.ki-md {
+  font-size: 0.84rem;
+  line-height: 1.5rem;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+.ki-md > :first-child { margin-top: 0; }
+.ki-md > :last-child { margin-bottom: 0; }
+.ki-md p { margin: 0.5rem 0; }
+.ki-md strong { font-weight: 750; color: var(--card-foreground); }
+.ki-md h1,
+.ki-md h2,
+.ki-md h3 {
+  margin: 1.1rem 0 0.35rem;
+  line-height: 1.3;
+  font-weight: 800;
+  color: var(--card-foreground);
+}
+.ki-md h1 { font-size: 1.02rem; }
+.ki-md h2 {
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.ki-md h3 { font-size: 0.88rem; }
+.ki-md ul,
+.ki-md ol {
+  margin: 0.5rem 0;
+  padding-left: 1.2rem;
+}
+.ki-md ul { list-style: disc; }
+.ki-md ol { list-style: decimal; }
+.ki-md li { margin: 0.22rem 0; padding-left: 0.1rem; }
+.ki-md li::marker { color: var(--primary); }
+.ki-md code {
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.35rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  background: var(--muted);
+}
+.ki-md pre {
+  margin: 0.6rem 0;
+  padding: 0.7rem 0.85rem;
+  overflow-x: auto;
+  border-radius: 0.7rem;
+  background: var(--muted);
+}
+.ki-md pre code { padding: 0; background: none; }
+.ki-md blockquote {
+  margin: 0.6rem 0;
+  padding: 0.15rem 0.85rem;
+  border-left: 3px solid var(--primary);
+  color: var(--muted-foreground);
+}
+.ki-md hr {
+  margin: 0.9rem 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+.ki-md a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.ki-md__tabelle {
+  margin: 0.7rem 0;
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+}
+/* Eine Tabelle aus einer Antwort kann beliebig breit sein - im Blatt auf
+   390 px sprengt sie sonst den Rand, statt in ihrem eigenen Behaelter zu
+   scrollen. display: block macht aus der Tabelle den Behaelter selbst. */
+.ki-md table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+  line-height: 1.1rem;
+}
+.ki-md th {
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
+  text-align: left;
+  white-space: nowrap;
+  color: var(--card-foreground);
+  background: var(--muted);
+}
+.ki-md td {
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.ki-md tr:last-child td { border-bottom: 0; }
+.ki-md tbody tr:nth-child(even) td {
+  background: color-mix(in oklab, var(--muted) 35%, transparent);
+}
+
+/* ---- Eingabe -------------------------------------------------------------- */
+.ki-composer {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.65rem max(1rem, calc((100% - 46rem) / 2)) 1rem;
+  border-top: 1px solid var(--border);
+}
+.ki-composer__einwilligung {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.68rem;
+  line-height: 1rem;
+  color: var(--muted-foreground);
+}
+.ki-composer__einwilligung input {
+  margin-top: 0.1rem;
+  accent-color: var(--primary);
+}
+.ki-composer__feld {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  padding: 0.4rem 0.4rem 0.4rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--background);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ki-composer__feld:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 15%, transparent);
+}
+.ki-composer textarea {
+  flex: 1;
+  min-height: 1.9rem;
+  max-height: 140px;
+  padding: 0.3rem 0;
+  border: 0;
+  outline: 0;
+  resize: none;
+  font-size: 0.85rem;
+  line-height: 1.3rem;
+  color: var(--foreground);
+  background: transparent;
+}
+.ki-composer__knopf {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.7rem;
+  color: var(--primary-foreground);
+  background: var(--primary);
+  transition: opacity 0.2s, transform 0.2s;
+}
+.ki-composer__knopf:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.ki-composer__knopf:hover:not(:disabled) {
+  transform: scale(1.07);
+}
+
+/* ---- Kopfzeilenknopf im Agent-Modus --------------------------------------- */
+.ki-fragen-knopf--agent {
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 16%, transparent);
+}
+
+/* ---- Fuehrungsanzeige im Hauptfenster -------------------------------------
+   sticky + negativer unterer Rand: die Ebene deckt die Sichthoehe der
+   Hauptspalte ab, ohne selbst Platz im Seitenfluss zu belegen. */
+.ki-fuehrung {
+  position: sticky;
+  top: 0;
+  z-index: 45;
+  height: 100svh;
+  margin-bottom: -100svh;
+  pointer-events: none;
+}
+.ki-fuehrung__rahmen {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  box-shadow:
+    inset 0 0 0 2px color-mix(in oklab, var(--primary) 75%, transparent),
+    inset 0 0 70px -10px color-mix(in oklab, var(--primary) 30%, transparent);
+  transition: opacity 0.5s ease;
+}
+.ki-fuehrung__rahmen::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--primary), var(--accent), transparent) no-repeat;
+  background-size: 45% 100%;
+  background-position: -50% 0;
+}
+.ki-fuehrung--aktiv .ki-fuehrung__rahmen {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-fuehrung--aktiv .ki-fuehrung__rahmen {
+    animation: ki-rahmen 2.4s ease-in-out infinite;
+  }
+  .ki-fuehrung--aktiv .ki-fuehrung__rahmen::before {
+    animation: ki-strahl 1.8s linear infinite;
+  }
+}
+@keyframes ki-rahmen {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.45); }
+}
+@keyframes ki-strahl {
+  from { background-position: -50% 0; }
+  to { background-position: 150% 0; }
+}
+.ki-fuehrung__pille {
+  position: absolute;
+  top: 4.75rem;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: calc(100% - 2rem);
+  padding: 0.45rem 0.5rem 0.45rem 0.9rem;
+  border: 1px solid color-mix(in oklab, var(--primary) 45%, transparent);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--card-foreground);
+  background: color-mix(in oklab, var(--card) 88%, transparent);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 12px 34px -10px color-mix(in oklab, var(--primary) 45%, transparent), 0 4px 12px rgb(0 0 0 / 0.15);
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+.ki-fuehrung__pille span:nth-child(2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ki-fuehrung__pille button {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  color: var(--muted-foreground);
+}
+.ki-fuehrung__pille button:hover {
+  color: var(--foreground);
+  background: var(--muted);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-fuehrung__pille {
+    animation: ki-pille 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+@keyframes ki-pille {
+  from { opacity: 0; transform: translate(-50%, -12px) scale(0.96); }
+  to { opacity: 1; transform: translate(-50%, 0) scale(1); }
+}
+
+/* ---- Hervorhebung des Ziels im Hauptfenster (ki-pane-kontext.tsx) ---------- */
+.ki-fokus {
+  border-radius: 1rem;
+  outline: 2px solid var(--primary);
+  outline-offset: 6px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-fokus {
+    animation: ki-fokus 2.8s ease-out both;
+  }
+}
+@keyframes ki-fokus {
+  0% { outline-color: transparent; box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary) 45%, transparent); }
+  12% { outline-color: var(--primary); }
+  35% { box-shadow: 0 0 0 16px transparent; }
+  85% { outline-color: var(--primary); }
+  100% { outline-color: transparent; }
+}
+
+/* ---- Himbeer-Maskottchen (himbeere.tsx) ------------------------------------ */
+.himbeere {
+  display: block;
+  flex: none;
+  overflow: visible;
+}
+.himbeere__funke,
+.himbeere__kern {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .himbeere__funke {
+    animation: himbeere-funkeln 2.8s ease-in-out infinite;
+  }
+  .himbeere__funke--klein {
+    animation-delay: 1.2s;
+  }
+  /* Arbeitet der Agent, laeuft ein Puls der Reihe nach ueber die
+     Steinfruechtchen - als wuerden sie nacheinander gepflueckt. */
+  .himbeere--denkt .himbeere__kern {
+    animation: himbeere-puls 1.1s ease-in-out infinite;
+    animation-delay: calc(var(--i) * 65ms);
+  }
+  .himbeere--denkt .himbeere__funke {
+    animation-duration: 0.9s;
+  }
+  .himbeere--schweben {
+    animation: himbeere-schweben 4.2s ease-in-out infinite;
+  }
+}
+@keyframes himbeere-funkeln {
+  0%, 100% { opacity: 0.35; transform: scale(0.7) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.15) rotate(12deg); }
+}
+@keyframes himbeere-puls {
+  0%, 100% { transform: scale(1); filter: none; }
+  50% { transform: scale(1.14); filter: brightness(1.25); }
+}
+@keyframes himbeere-schweben {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* Symbole der Werkzeugschritte und Aktionskarten */
+.ki-schritt__icon {
+  flex: none;
+  color: var(--primary);
+}
+.ki-schritt--laeuft .ki-schritt__icon { color: var(--muted-foreground); }
+.ki-schritt--fehler .ki-schritt__icon { color: var(--warning, #b45309); }
+.ki-aktion__icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 0.6rem;
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+}
+.ki-aktion--fehlgeschlagen .ki-aktion__icon {
+  color: var(--warning, #b45309);
+  background: color-mix(in oklab, var(--warning, #b45309) 14%, transparent);
+}
+
+/* Faehigkeiten-Zeile im Leerzustand */
+.ki-leer__faehigkeiten {
+  margin-top: 0.15rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--himbeere);
+  background: color-mix(in oklab, var(--himbeere) 9%, transparent);
+}
+.dark .ki-leer__faehigkeiten {
+  color: var(--himbeere-hell);
+}
+
+/* ---- Aktionskarten (Freigabe) ---------------------------------------------- */
+.ki-aktion {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid color-mix(in oklab, var(--himbeere) 38%, var(--border));
+  border-radius: 0.95rem;
+  background: linear-gradient(160deg, color-mix(in oklab, var(--himbeere) 8%, var(--card)), var(--card));
+}
+.ki-aktion--erledigt {
+  border-color: color-mix(in oklab, var(--blatt) 50%, var(--border));
+  background: linear-gradient(160deg, color-mix(in oklab, var(--blatt) 9%, var(--card)), var(--card));
+}
+.ki-aktion--abgelehnt {
+  border-style: dashed;
+  border-color: var(--border);
+  background: transparent;
+  opacity: 0.8;
+}
+.ki-aktion--fehlgeschlagen {
+  border-color: color-mix(in oklab, var(--warning, #b45309) 50%, var(--border));
+}
+.ki-aktion__kopf {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+.ki-aktion__titel {
+  font-size: 0.82rem;
+  font-weight: 800;
+  line-height: 1.1rem;
+  color: var(--card-foreground);
+}
+.ki-aktion__status {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.7rem;
+  line-height: 1rem;
+  color: var(--muted-foreground);
+}
+.ki-aktion__felder {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.25rem 0.9rem;
+  margin: 0;
+  padding: 0.55rem 0.65rem;
+  border-radius: 0.65rem;
+  font-size: 0.74rem;
+  line-height: 1.1rem;
+  background: color-mix(in oklab, var(--muted) 55%, transparent);
+}
+.ki-aktion__felder > div {
+  display: contents;
+}
+.ki-aktion__felder dt {
+  color: var(--muted-foreground);
+}
+.ki-aktion__felder dd {
+  margin: 0;
+  font-weight: 650;
+  color: var(--card-foreground);
+  overflow-wrap: anywhere;
+}
+.ki-aktion__knoepfe {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+.ki-aktion__ablehnen,
+.ki-aktion__bestaetigen {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  height: 2rem;
+  padding: 0 0.9rem;
+  border-radius: 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  transition: transform 0.2s, background-color 0.2s, color 0.2s;
+}
+.ki-aktion__ablehnen {
+  border: 1px solid var(--border);
+  color: var(--muted-foreground);
+}
+.ki-aktion__ablehnen:hover {
+  color: var(--foreground);
+  background: var(--muted);
+}
+.ki-aktion__bestaetigen {
+  color: #fff;
+  background: linear-gradient(135deg, var(--himbeere-hell), var(--himbeere));
+  box-shadow: 0 8px 18px -8px color-mix(in oklab, var(--himbeere) 75%, transparent);
+}
+.ki-aktion__bestaetigen:hover {
+  transform: translateY(-1px);
+}
+.ki-aktion__ergebnis {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.7rem;
+  font-size: 0.76rem;
+  line-height: 1.15rem;
+  color: var(--foreground);
+}
+.ki-aktion__zeigen {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-aktion {
+    animation: ki-hinein 0.35s ease-out both;
+  }
+  .ki-aktion--freigabe {
+    animation: ki-hinein 0.35s ease-out both, ki-freigabe 2.2s ease-in-out 0.4s infinite;
+  }
+  .ki-aktion--erledigt {
+    animation: ki-erledigt 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+@keyframes ki-freigabe {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50% { box-shadow: 0 0 0 4px color-mix(in oklab, var(--himbeere) 16%, transparent); }
+}
+@keyframes ki-erledigt {
+  0% { transform: scale(0.97); }
+  60% { transform: scale(1.015); }
+  100% { transform: scale(1); }
+}
+
+/* ---- Mauszeiger des Agenten ------------------------------------------------- */
+.ki-zeiger {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 90;
+  pointer-events: none;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-zeiger {
+    transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+.ki-zeiger__pfeil {
+  display: block;
+  filter: drop-shadow(0 3px 6px rgb(0 0 0 / 0.35));
+}
+.ki-zeiger__welle {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 26px;
+  height: 26px;
+  border: 2px solid var(--himbeere);
+  border-radius: 999px;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-zeiger__welle {
+    animation: ki-welle 0.7s ease-out;
+  }
+}
+@keyframes ki-welle {
+  0% { opacity: 0.9; transform: scale(0.4); }
+  100% { opacity: 0; transform: scale(2.6); }
+}
+
+/* ---- Belege: Zitat-Marken und Quellenkarten (ki-quellen.tsx) -------------- */
+.ki-zitat {
+  /* inline-block statt grid: so steht die Vorschau (position: absolute) auf der Zeile der Marke. */
+  display: inline-block;
+  text-align: center;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.25rem;
+  margin: 0 0.12rem;
+  vertical-align: 0.12em;
+  border: 1px solid color-mix(in oklab, var(--himbeere) 45%, var(--border));
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 750;
+  line-height: calc(1.15rem - 2px);
+  color: var(--himbeere);
+  background: color-mix(in oklab, var(--himbeere) 9%, transparent);
+  cursor: pointer;
+}
+.ki-zitat:hover {
+  color: #fff;
+  background: var(--himbeere);
+}
+/* Farbe nach Autoritaet: gruen = Gesetzestext, blau = amtlich, gelb = Fachquelle, grau = Presse */
+.ki-zitat--recht, .ki-quelle--recht, .ki-quellen__punkt--recht { --akzent: var(--success); }
+.ki-zitat--untergesetzlich, .ki-quelle--untergesetzlich, .ki-quellen__punkt--untergesetzlich { --akzent: var(--primary); }
+.ki-zitat--erlaeuterung, .ki-quelle--erlaeuterung, .ki-quellen__punkt--erlaeuterung { --akzent: var(--primary); }
+.ki-zitat--fachquelle, .ki-quelle--fachquelle, .ki-quellen__punkt--fachquelle { --akzent: var(--warning); }
+.ki-zitat--presse, .ki-quelle--presse, .ki-quellen__punkt--presse { --akzent: var(--muted-foreground); }
+.ki-zitat--unbekannt, .ki-quelle--unbekannt, .ki-quellen__punkt--unbekannt { --akzent: var(--himbeere); }
+.ki-zitat[class*="ki-zitat--"]:not(.ki-zitat--unbelegt) {
+  border-color: color-mix(in oklab, var(--akzent) 55%, var(--border));
+  color: var(--akzent);
+  background: color-mix(in oklab, var(--akzent) 11%, transparent);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+.ki-zitat[class*="ki-zitat--"]:not(.ki-zitat--unbelegt):hover,
+.ki-zitat[class*="ki-zitat--"]:not(.ki-zitat--unbelegt):focus-visible {
+  color: #fff;
+  background: var(--akzent);
+}
+/* Vorschau beim Darueberfahren: volle Breite des Antworttexts, damit sie am Rand nie abgeschnitten wird. */
+.ki-nachricht--assistent .ki-md {
+  position: relative;
+}
+.ki-zitat__vorschau {
+  position: absolute;
+  z-index: 5;
+  left: 0;
+  right: 0;
+  margin-top: 1.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--akzent, var(--himbeere));
+  border-radius: 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 450;
+  line-height: 1.15rem;
+  text-align: left;
+  color: var(--card-foreground);
+  background: var(--card);
+  box-shadow: 0 10px 30px -12px rgb(0 0 0 / 0.35);
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+.ki-zitat:hover .ki-zitat__vorschau,
+.ki-zitat:focus-visible .ki-zitat__vorschau {
+  opacity: 1;
+  transform: translateY(0);
+}
+.ki-zitat__vorschau-stufe {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--akzent, var(--himbeere));
+}
+.ki-zitat__vorschau > span:last-child {
+  color: var(--muted-foreground);
+}
+.ki-zitat--unbelegt {
+  border-style: dashed;
+  color: var(--danger, var(--destructive));
+  border-color: var(--danger, var(--destructive));
+  background: transparent;
+  cursor: help;
+}
+.ki-quellen {
+  margin-top: 0.85rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--border);
+}
+.ki-quellen__titel {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.ki-quellen__kopf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.6rem;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+.ki-quellen__kopf::-webkit-details-marker {
+  display: none;
+}
+.ki-quellen__kopf:focus-visible {
+  outline: 2px solid var(--himbeere);
+  outline-offset: 3px;
+  border-radius: 0.5rem;
+}
+.ki-quellen__pfeil {
+  flex: none;
+  color: var(--muted-foreground);
+  transition: transform 0.18s ease;
+}
+.ki-quellen[open] .ki-quellen__pfeil {
+  transform: rotate(90deg);
+}
+.ki-quellen[open] > .ki-quellen__liste {
+  margin-top: 0.6rem;
+}
+.ki-quellen__lage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1 1 14rem;
+  gap: 0.3rem 0.7rem;
+  margin: 0;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid color-mix(in oklab, var(--lage) 35%, var(--border));
+  border-radius: 0.7rem;
+  background: color-mix(in oklab, var(--lage) 8%, transparent);
+}
+.ki-quellen__lage--gestuetzt {
+  --lage: var(--success);
+}
+.ki-quellen__lage--fach {
+  --lage: var(--warning);
+}
+.ki-quellen__urteil {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--lage);
+}
+.ki-quellen__zaehlung {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.6rem;
+  font-size: 0.68rem;
+  color: var(--muted-foreground);
+}
+.ki-quellen__punkt::before {
+  content: "";
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: 0.3rem;
+  border-radius: 999px;
+  background: var(--akzent, var(--himbeere));
+}
+.ki-quellen__liste {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ki-quelle {
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--akzent, var(--himbeere));
+  border-radius: 0.7rem;
+  background: color-mix(in oklab, var(--card) 94%, var(--akzent, var(--himbeere)) 4%);
+}
+.ki-quelle__kopf {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+}
+.ki-quelle__nr {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #fff;
+  background: var(--akzent, var(--himbeere));
+}
+.ki-quelle__stufe {
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  font-weight: 750;
+  color: var(--akzent, var(--himbeere));
+  background: color-mix(in oklab, var(--akzent, var(--himbeere)) 12%, transparent);
+}
+.ki-quelle__stelle {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 750;
+  line-height: 1.25;
+  color: var(--card-foreground);
+}
+.ki-quelle__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.1rem 0.6rem;
+  margin: 0.15rem 0 0;
+  font-size: 0.68rem;
+  color: var(--muted-foreground);
+}
+.ki-quelle__warnung,
+.ki-quelle__hinweis {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.4rem 0 0;
+  font-size: 0.7rem;
+  font-weight: 650;
+}
+.ki-quelle__warnung {
+  color: var(--danger, var(--destructive));
+}
+.ki-quelle__hinweis {
+  color: var(--muted-foreground);
+}
+.ki-quelle__text {
+  margin: 0.5rem 0 0;
+  padding: 0.1rem 0 0.1rem 0.6rem;
+  border-left: 2px solid var(--border);
+  font-size: 0.74rem;
+  line-height: 1.15rem;
+  white-space: pre-line;
+  color: var(--muted-foreground);
+}
+.ki-quelle__text--gekuerzt {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+.ki-quelle__fuss {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+.ki-quelle__mehr,
+.ki-quelle__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--himbeere);
+}
+.ki-quelle__link--intern {
+  color: var(--muted-foreground);
+}
+.ki-quelle__mehr:hover,
+.ki-quelle__link:hover {
+  text-decoration: underline;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-quelle--blinkt {
+    animation: ki-quelle-blinken 1.4s ease;
+  }
+  @keyframes ki-quelle-blinken {
+    0%,
+    30% {
+      box-shadow: 0 0 0 3px color-mix(in oklab, var(--himbeere) 40%, transparent);
+    }
+    100% {
+      box-shadow: 0 0 0 0 transparent;
+    }
+  }
+}
+/* --- Sprachausgabe (Vorlesen) ------------------------------------------------ */
+.ki-vorlesen {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+}
+.ki-vorlesen__knopf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--background);
+  color: var(--muted-foreground);
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.ki-vorlesen__knopf:hover:not(:disabled) {
+  color: var(--primary);
+  border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+}
+.ki-vorlesen__knopf--aktiv {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
+}
+.ki-vorlesen__hinweis {
+  font-size: 0.68rem;
+  color: var(--muted-foreground);
+}
+.ki-composer__optionen {
+  display: flex;
+  justify-content: flex-end;
+}
+.ki-vorlesen-schalter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.ki-vorlesen-schalter--an {
+  color: var(--primary);
+  border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+  background: color-mix(in oklab, var(--primary) 8%, transparent);
+}
+
+/* --- Diktat (Mikrofon) ------------------------------------------------------ */
+.ki-composer__knopf--still {
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--muted-foreground);
+}
+.ki-composer__knopf--still:hover:not(:disabled) {
+  color: var(--primary);
+  border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
+}
+.ki-mikrofon--aufnahme {
+  color: var(--destructive);
+  border-color: var(--destructive);
+  background: color-mix(in oklab, var(--destructive) 12%, transparent);
+}
+.ki-mikrofon__meldung {
+  align-self: center;
+  font-size: 0.68rem;
+  color: var(--muted-foreground);
+}
+
+/* ---- Handy: Masse ---------------------------------------------------------
+   Vier Aenderungen, die alle denselben Grund haben: das Panel ist am
+   Schreibtisch entworfen, wo die Maus pixelgenau trifft und keine Tastatur
+   einfaehrt.
+
+   Bis 1024 px und nicht nur bis 768: das Blatt-Layout darueber haengt am
+   Platz, diese Masse haengen daran, dass mit dem Finger bedient wird - und
+   das gilt auf dem Tablet genauso. */
+@media (max-width: 1023.98px) {
+  /* 16 px ist keine Geschmacksfrage: Safari auf iOS zoomt beim Fokus in jedes
+     Eingabefeld, das kleiner ist, und bleibt danach vergroessert. Der Nutzer
+     scrollt sich dann aus dem Gespraech heraus. */
+  .ki-composer textarea {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    min-height: 2.25rem;
+  }
+
+  /* Der untere Rand des Blatts liegt ueber dem Home-Indicator des iPhone und
+     der Gestenleiste von Android. Ohne den Zuschlag sitzt der Sendeknopf
+     genau dort, wo das Betriebssystem seine eigene Wischgeste erwartet. */
+  .ki-composer {
+    padding: 0.65rem 0.85rem calc(0.85rem + env(safe-area-inset-bottom));
+  }
+
+  /* 44 px, weil im Feld Handschuhe getragen werden. Betrifft Senden, Stopp
+     und vor allem das Mikrofon: von allen Knoepfen im Composer ist es der,
+     der auf dem Handy am ehesten gebraucht wird, und er war der kleinste. */
+  .ki-composer__knopf,
+  .ki-composer__feld .ki-mikrofon {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .ki-composer__feld {
+    padding: 0.35rem 0.35rem 0.35rem 0.85rem;
+  }
+
+  /* Dieselben 44 px im Kopf. Dort stehen auf dem Handy nur noch zwei Knoepfe
+     (Mehr und Schliessen), die uebrigen liegen in der Mehr-Ansicht - vier
+     Ziele mit 0,15 rem Abstand waren enger beieinander als eine Fingerkuppe
+     breit ist. */
+  .ki-pane__knopf {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .ki-pane__werkzeuge {
+    gap: 0.25rem;
+  }
+}
+
+/* ---- Buehne: der Assistent in der Mitte (ki-pane.tsx, darstellung "buehne") ----------
+   Dieselbe .ki-pane wie am Rand, nur anders gestellt. Die Huelle verlaesst den
+   Dokumentfluss, die Hauptspalte bekommt ihre Breite zurueck, und die Karte steht
+   mittig - darueber Himbi, die Seite dahinter unscharf. Weil das Panel dabei gemountet
+   bleibt, laeuft eine begonnene Antwort durch den Wechsel hindurch weiter.
+
+   Zu (nicht --offen) heisst hier nicht "Breite 0" wie am Rand, sondern unsichtbar:
+   die Huelle liegt ja ueber der ganzen Seite. visibility statt display, damit das
+   Verschwinden die Blende noch mitnimmt. */
+.ki-pane-huelle--buehne {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: 100svh;
+  padding: env(safe-area-inset-top, 0px) 1rem env(safe-area-inset-bottom, 0px);
+  overflow: visible;
+  transform: none;
+  box-shadow: none;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+}
+.ki-pane-huelle--buehne.ki-pane-huelle--offen {
+  width: auto;
+  visibility: visible;
+  opacity: 1;
+}
+/* Platzhalter fuer Himbi: sie ist fix positioniert und kann selbst keinen Platz belegen. */
+.ki-pane-huelle--buehne::before {
+  content: "";
+  flex: 0 0 auto;
+  height: var(--ki-buehne-kopf);
+}
+/* Figur und Karte sollen ein Stueck sein, nicht zwei Dinge uebereinander. Darum:
+   keine harte Kante oben, ein Schein, der nach oben in die Kugel hinein ausblutet -
+   und die Figur steht ein Stueck tief darin. Farbe und Schrift kommen aus den beiden
+   Bloecken weiter unten, denn die Blende bleibt zwar immer dunkel (die Frequenzkugel
+   braucht das), die Karte selbst aber soll dem Thema der Seite folgen. */
+.ki-pane-huelle--buehne .ki-pane {
+  position: relative;
+  width: var(--ki-buehne-breite);
+  height: var(--ki-buehne-hoehe);
+  max-height: 100%;
+  border: 1px solid var(--ki-buehne-rand, rgb(255 255 255 / 0.1));
+  border-top-color: var(--ki-buehne-rand-oben, rgb(255 255 255 / 0.16));
+  border-radius: 2.25rem;
+  background: var(--ki-buehne-flaeche, rgb(14 10 18 / 0.72));
+  box-shadow: 0 40px 100px -30px rgb(0 0 0 / 0.75), inset 0 1px 0 rgb(255 255 255 / 0.07);
+  overflow: hidden;
+  pointer-events: auto;
+  transform: scale(0.96) translateY(1.25rem);
+}
+/* Der Uebergang nach oben: ein Schein an der Oberkante, der in derselben Farbe glimmt
+   wie die Kugel. Damit endet die Karte nicht, sie geht in die Figur ueber. */
+.ki-pane-huelle--buehne .ki-pane::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 11rem;
+  pointer-events: none;
+  background: radial-gradient(120% 100% at 50% 0%, rgb(150 70 220 / 0.34), rgb(19 112 143 / 0.12) 45%, transparent 72%);
+}
+/* Dunkles Thema: die Karte bleibt die Glas-Tafel, die zur dunklen Blende passt. */
+.dark .ki-pane-huelle--buehne .ki-pane {
+  --ki-buehne-flaeche: rgb(14 10 18 / 0.72);
+  --ki-buehne-rand: rgb(255 255 255 / 0.1);
+  --ki-buehne-rand-oben: rgb(255 255 255 / 0.16);
+}
+.dark .ki-pane-huelle--buehne .ki-pane,
+.dark .ki-pane-huelle--buehne .ki-pane * {
+  --card: rgb(28 22 34 / 0.74);
+  --card-foreground: #f2ecf5;
+  --muted: rgb(255 255 255 / 0.06);
+  --muted-foreground: #b6a9c2;
+  --border: rgb(255 255 255 / 0.12);
+  --foreground: #f2ecf5;
+  --background: transparent;
+}
+/* Helles Thema: dieselbe Karte, aber mit den hellen Farben der Seite - ohne das wuerde
+   heller Text auf hellem Grund verschwinden. Die Blende dahinter bleibt trotzdem dunkel. */
+:root:not(.dark) .ki-pane-huelle--buehne .ki-pane {
+  --ki-buehne-flaeche: rgb(255 255 255 / 0.88);
+  --ki-buehne-rand: rgb(11 30 38 / 0.12);
+  --ki-buehne-rand-oben: rgb(11 30 38 / 0.18);
+}
+:root:not(.dark) .ki-pane-huelle--buehne .ki-pane,
+:root:not(.dark) .ki-pane-huelle--buehne .ki-pane * {
+  --card: rgb(255 255 255 / 0.9);
+  --card-foreground: #0b1e26;
+  --muted: rgb(11 30 38 / 0.06);
+  --muted-foreground: #4b6874;
+  --border: rgb(11 30 38 / 0.12);
+  --foreground: #0b1e26;
+  --background: transparent;
+}
+.ki-pane-huelle--buehne.ki-pane-huelle--offen .ki-pane {
+  transform: none;
+}
+/* Himbi steht mit den Fuessen knapp auf der oberen Kante - der Titel rueckt darunter. */
+/* Die Figur steht ein gutes Stueck in der Karte. Der Kopfbereich rueckt so weit nach
+   unten, dass ihre Stiefel ueber der Schrift bleiben und nicht darauf. */
+.ki-pane-huelle--buehne .ki-pane__kopf {
+  position: relative;
+  padding-top: 2.4rem;
+  border-bottom-color: var(--ki-buehne-rand, rgb(255 255 255 / 0.08));
+  background: transparent;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-pane-huelle--buehne {
+    transition: opacity 0.32s ease, visibility 0s linear 0.32s;
+  }
+  .ki-pane-huelle--buehne.ki-pane-huelle--offen {
+    transition: opacity 0.32s ease, visibility 0s;
+  }
+  .ki-pane-huelle--buehne .ki-pane {
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+/* Die Seite dahinter tritt unscharf zurueck. */
+.ki-pane-hintergrund--buehne {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 66;
+  border: 0;
+  /* Deutlich dunkler als eine uebliche Blende: die Frequenzkugel hinter Himbi
+     (haustier/wellen.tsx) zeichnet additiv, ihre Linien brauchen einen dunklen Grund.
+     Sonst traegt sie im hellen Thema nicht. */
+  background: rgb(6 4 9 / 0.82);
+  backdrop-filter: blur(20px) saturate(0.8);
+  -webkit-backdrop-filter: blur(20px) saturate(0.8);
+  opacity: 0;
+  pointer-events: none;
+}
+.ki-pane-hintergrund--buehne.ki-pane-hintergrund--offen {
+  opacity: 1;
+  pointer-events: auto;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-pane-hintergrund--buehne {
+    transition: opacity 0.32s ease;
+  }
+}
+
+/* ---- Schein am Bildrand -------------------------------------------------------------
+   Zweite Haelfte derselben Idee wie Himbis Aura (haustier.css): waehrend der Agent
+   arbeitet oder auf eine Freigabe wartet, glimmt der Rand des Bildes. Man sieht am
+   Augenwinkel, dass etwas laeuft, ohne den Text zu lesen.
+
+   Liegt auf der Huelle, die ohnehin ueber der ganzen Seite liegt und keine Klicks
+   annimmt - so kostet der Schein kein zusaetzliches Element. */
+.ki-pane-huelle--buehne::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 110px -26px var(--ki-rand, rgb(216 27 96 / 0.75));
+  opacity: 0;
+}
+.ki-pane-huelle--buehne.ki-pane-huelle--offen::after {
+  opacity: 0.55;
+}
+.ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen::after {
+  --ki-rand: rgb(216 27 96 / 0.95);
+  opacity: 1;
+}
+.ki-pane-huelle--buehne[data-phase="freigabe"].ki-pane-huelle--offen::after {
+  --ki-rand: rgb(242 193 78 / 0.95);
+  opacity: 1;
+}
+.ki-pane-huelle--buehne[data-phase="fehler"].ki-pane-huelle--offen::after {
+  --ki-rand: rgb(190 40 40 / 0.8);
+  opacity: 0.9;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-pane-huelle--buehne::after {
+    transition: opacity 0.5s ease;
+  }
+  .ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen::after,
+  .ki-pane-huelle--buehne[data-phase="freigabe"].ki-pane-huelle--offen::after {
+    animation: ki-rand-atmen 2.6s ease-in-out infinite;
+  }
+  .ki-pane-huelle--buehne[data-phase="freigabe"].ki-pane-huelle--offen::after {
+    animation-duration: 1.6s;
+  }
+}
+@keyframes ki-rand-atmen {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Leerzustand auf der Buehne: die grosse Himbeere im Panel entfaellt - die echte Himbi
+   steht schon eine Handbreit darueber. Damit ruecken Titel und Vorschlaege direkt unter
+   sie, und die Frage sieht aus, als stelle man sie ihr. */
+.ki-pane-huelle--buehne .ki-leer__zeichen {
+  display: none;
+}
+.ki-pane-huelle--buehne .ki-leer {
+  padding-top: 0.5rem;
+}
+.ki-pane-huelle--buehne .ki-leer__vorschlaege {
+  max-width: 34rem;
+  margin-inline: auto;
+}
+
+/* ---- Aura ueber dem ganzen Bild -----------------------------------------------------
+   Die zweite, grosse Haelfte der Schicht um Himbi (haustier.css, .hb-aura). Ihre eigene
+   Aura ist der Heiligenschein dicht um die Figur, diese hier ist das Licht im Raum: drei
+   sehr weiche Flecken, die langsam durch das Bild ziehen.
+
+   Liegt fest im Fenster und damit hinter der Karte, ohne z-index - sie steht vor dem
+   Karten-Element in der Huelle. Weil sie aus dem Fluss faellt, aendert sie die Aufteilung
+   der Huelle nicht, in der Himbis Platzhalter und die Karte uebereinander stehen. */
+.ki-buehne-aura {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+.ki-pane-huelle--buehne.ki-pane-huelle--offen .ki-buehne-aura {
+  opacity: 0.6;
+}
+.ki-buehne-aura__blob {
+  position: absolute;
+  width: 62vmax;
+  height: 62vmax;
+  border-radius: 50%;
+  filter: blur(90px);
+}
+.ki-buehne-aura__blob--1 {
+  left: -16vmax;
+  top: -18vmax;
+  background: radial-gradient(circle, rgb(216 27 96 / 0.9), rgb(216 27 96 / 0) 68%);
+}
+.ki-buehne-aura__blob--2 {
+  right: -20vmax;
+  top: 6vmax;
+  background: radial-gradient(circle, rgb(19 112 143 / 0.85), rgb(19 112 143 / 0) 66%);
+}
+.ki-buehne-aura__blob--3 {
+  left: 20vmax;
+  bottom: -26vmax;
+  background: radial-gradient(circle, rgb(242 193 78 / 0.6), rgb(242 193 78 / 0) 64%);
+}
+
+/* Auch hier sagt die Phase, wie hell es ist - dieselbe Abstufung wie am Bildrand. */
+.ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen .ki-buehne-aura {
+  opacity: 1;
+}
+.ki-pane-huelle--buehne[data-phase="freigabe"].ki-pane-huelle--offen .ki-buehne-aura {
+  opacity: 0.9;
+}
+.ki-pane-huelle--buehne[data-phase="fehler"].ki-pane-huelle--offen .ki-buehne-aura {
+  opacity: 0.35;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ki-buehne-aura {
+    transition: opacity 0.6s ease;
+  }
+  .ki-pane-huelle--buehne.ki-pane-huelle--offen .ki-buehne-aura__blob--1 {
+    animation: ki-aura-1 26s ease-in-out infinite;
+  }
+  .ki-pane-huelle--buehne.ki-pane-huelle--offen .ki-buehne-aura__blob--2 {
+    animation: ki-aura-2 34s ease-in-out infinite;
+  }
+  .ki-pane-huelle--buehne.ki-pane-huelle--offen .ki-buehne-aura__blob--3 {
+    animation: ki-aura-3 21s ease-in-out infinite;
+  }
+  .ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen .ki-buehne-aura__blob--1 {
+    animation-duration: 9s;
+  }
+  .ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen .ki-buehne-aura__blob--2 {
+    animation-duration: 12s;
+  }
+  .ki-pane-huelle--buehne[data-phase="arbeitet"].ki-pane-huelle--offen .ki-buehne-aura__blob--3 {
+    animation-duration: 7s;
+  }
+}
+
+@keyframes ki-aura-1 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(12vmax, 8vmax, 0) scale(1.18);
+  }
+}
+@keyframes ki-aura-2 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.1);
+  }
+  50% {
+    transform: translate3d(-14vmax, 12vmax, 0) scale(0.92);
+  }
+}
+@keyframes ki-aura-3 {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(0.95);
+  }
+  50% {
+    transform: translate3d(-10vmax, -14vmax, 0) scale(1.22);
+  }
+}
+
+/* Huelle um den Diktatknopf: haelt die Groesse des Knopfs (die Kugel liegt absolut
+   darin), damit beide Einsatzorte - Seitenpanel und das aeltere Formular - ohne
+   Anpassung funktionieren. */
+.ki-mikrofon__huelle {
+  position: relative;
+  display: inline-flex;
+}
+.ki-mikrofon__huelle > button {
+  position: relative;
+  z-index: 1;
+}
+/* Ringe rings um den Diktatknopf (mikrofon-welle.tsx), die vom Rand nach aussen
+   laufen. Die Leinwand ist groesser als der Knopf selbst, damit die Ringe Platz
+   zum Auslaufen haben, und liegt darunter, damit der Knopf klickbar bleibt. */
+.ki-mikrofon__welle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: calc(100% + 2.4rem);
+  height: calc(100% + 2.4rem);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Breite Welle unter dem Eingabefeld waehrend des Diktats (diktat-welle.tsx). Erbt die
+   Farbe vom Knopf, damit sie nicht wie ein Fremdkoerper unter der Nachricht steht. */
+.ki-diktat-welle {
+  display: block;
+  width: 100%;
+  height: 1.5rem;
+  margin-top: 0.15rem;
+  color: var(--himbeere);
+  pointer-events: none;
+}
+
+/* Pegelanzeige waehrend der Aufnahme: fuenf Balken, im Bildtakt aus dem
+   Frequenzband gesetzt (mikrofon.tsx). Die Hoehe steuert allein
+   transform: scaleY - das laeuft auf der Grafikkarte, waehrend eine
+   Aenderung von height sechzigmal je Sekunde das Layout neu berechnen
+   liesse. */
+.ki-mikrofon__pegel {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 1.25rem;
+  padding: 0 0.25rem;
+}
+.ki-mikrofon__balken {
+  display: block;
+  width: 2px;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--destructive);
+  transform: scaleY(0.12);
+  transform-origin: center;
+  transition: transform 80ms linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Ohne Bewegung: ein ruhiger, gleichmaessiger Balkensatz statt Zappeln -
+     mikrofon.tsx setzt dann gar keine Werte mehr. */
+  .ki-mikrofon__balken {
+    transform: scaleY(0.5);
+    transition: none;
+  }
+}
+
+/* Bezug zu einem Prüfbericht: das Gespräch setzt auf dem Ergebnis der Prüfung auf. */
+.ki-bezug {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-bottom: 0.4rem;
+  padding: 0.3rem 0.4rem 0.3rem 0.6rem;
+  border: 1px solid color-mix(in oklab, var(--primary) 35%, transparent);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 650;
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 8%, transparent);
+}
+.ki-bezug > span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ki-bezug button {
+  display: grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  color: inherit;
+}
+.ki-bezug button:hover {
+  background: color-mix(in oklab, var(--primary) 16%, transparent);
+}
+/* Feste Kachel-Reihe unter dem Bezug-Pill: unabhaengig davon, ob das Modell im Text darauf
+   verweist (oeffnePruefBereich), gibt es hier immer alle sechs Sprungziele auf einen Blick. */
+.ki-bezug-kacheln {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+.ki-bezug-kacheln__knopf {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 650;
+  color: var(--muted-foreground);
+  background: var(--card);
+  transition: border-color 0.12s ease, color 0.12s ease;
+}
+.ki-bezug-kacheln__knopf:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* ---- Ladehinweis der Live-Sprachausgabe (sprachausgabe.tsx) --------------
+   Zwischen dem Absenden und dem ersten Ton vergehen ein bis zwei Sekunden.
+   Ohne ein Lebenszeichen haelt man das fuer kaputt und drueckt noch einmal.
+   Drei Balken genuegen; sie stehen im Schalter, der ohnehin sagt, worum es
+   geht. */
+.ki-vorlesen-welle {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-inline-start: 4px;
+}
+
+.ki-vorlesen-welle > span {
+  width: 2px;
+  height: 6px;
+  border-radius: 1px;
+  background: currentColor;
+  opacity: 0.7;
+  animation: ki-vorlesen-huepf 900ms ease-in-out infinite;
+}
+
+.ki-vorlesen-welle > span:nth-child(2) { animation-delay: 150ms; }
+.ki-vorlesen-welle > span:nth-child(3) { animation-delay: 300ms; }
+
+@keyframes ki-vorlesen-huepf {
+  0%, 100% { transform: scaleY(0.6); }
+  50% { transform: scaleY(1.6); }
+}
+
+/* Wer Bewegung abgestellt hat, bekommt sie auch hier nicht: dann steht die
+   Welle still und zeigt allein durch ihre Anwesenheit, dass etwas laeuft. */
+@media (prefers-reduced-motion: reduce) {
+  .ki-vorlesen-welle > span { animation: none; }
+}
+
+/* ---- Agenten-Seitenansicht auf dem Handy (ki-pane.tsx) -------------------
+   Der Agent oeffnet Ansichten im Hauptfenster, und genau die soll man sehen.
+   Ein Blatt ueber fast die ganze Hoehe wuerde die Fuehrung verdecken - also
+   die untere Haelfte, und oben bleibt die Seite stehen. Wer lesen statt
+   zusehen will, macht es mit dem Griff gross. */
+@media (max-width: 767.98px) {
+  .ki-pane-huelle--agentseite.ki-pane-huelle--offen {
+    height: 45dvh;
+  }
+
+  .ki-pane-huelle--agentseite.ki-pane-huelle--gross.ki-pane-huelle--offen {
+    height: 92dvh;
+  }
+
+  .ki-pane__handygriff {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 1.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 0;
+    cursor: grab;
+    z-index: 2;
+  }
+
+  .ki-pane__handygriff > span {
+    display: block;
+    width: 2.5rem;
+    height: 0.25rem;
+    border-radius: 999px;
+    background: var(--border);
+  }
+}
+
+/* Am Schreibtisch gibt es den Griff nicht - dort zieht man die Breite. */
+@media (min-width: 768px) {
+  .ki-pane__handygriff {
+    display: none;
+  }
+}

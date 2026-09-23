@@ -1,0 +1,126 @@
+# =============================================================================
+# Datenbank-Migrationen auf die gehostete Supabase-Datenbank
+# =============================================================================
+# Trigger : - Push auf main, der supabase/migrations/** aendert (also nach dem Merge einer PR)
+#           - von Hand: Actions -> "Datenbank-Migration" -> Run workflow.
+#             Von Hand ist "nur_pruefen" standardmaessig AN: es zeigt nur, was angewendet WUERDE.
+#
+# Ablauf  : 1. Migrationsdateien pruefen (Namen, Reihenfolge; falls scripts/pruefe-migrationen.mjs da ist)
+#           2. Projekt verbinden, Stand lokal gegen gehostet vergleichen
+#           3. Trockenlauf (supabase db push --dry-run)
+#           4. Anwenden (supabase db push), ausser bei "nur_pruefen"
+#           5. Nachpruefung: danach darf nichts mehr offen sein (upToDate)
+#           6. PostgREST-Schema neu laden (sonst kennt die API neue Spalten/Funktionen nicht)
+#
+# Schutz  : - Umgebung "Production": in Settings -> Environments -> Production Pflicht-Reviewer eintragen,
+#             dann wartet jeder Lauf VOR dem Anwenden auf eine Freigabe.
+#           - Nur ein Lauf gleichzeitig; ein laufender wird nie abgebrochen (halbe Migration waere schlimmer).
+#           - Es werden nur Migrationen angewendet, die neuer sind als die letzte gehostete. Eine aeltere oder
+#             geaenderte Datei wird stillschweigend uebersprungen: das faengt die PR-Pipeline ab.
+#           - Kein Datenbankpasswort im Repository: die CLI holt sich mit dem Zugriffstoken eine kurzlebige
+#             Anmeldung fuer den Lauf.
+#
+# Einmalig einzurichten (Settings -> Secrets and variables -> Actions -> Environment secrets, Umgebung
+# "Production"; oder als Repository-Secret):
+#   SUPABASE_ACCESS_TOKEN   Persoenliches Zugriffstoken (supabase.com/dashboard/account/tokens) einer Person,
+#                           die auf das Projekt zugreifen darf. Am besten ein eigenes Token nur dafuer.
+# Das Projekt steht unten in SUPABASE_PROJECT_REF (keine Zugangsdaten, nur die Kennung).
+# =============================================================================
+
+name: Datenbank-Migration
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+  workflow_dispatch:
+    inputs:
+      nur_pruefen:
+        description: "Nur anzeigen, was angewendet wuerde (nichts aendern)"
+        required: true
+        default: true
+        type: boolean
+
+concurrency:
+  group: datenbank-migration-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_PROJECT_REF: hlcpxgnnyqmpqzpvgnxu
+  # true, wenn wirklich angewendet werden soll (Push auf main oder von Hand mit nur_pruefen=false)
+  ANWENDEN: ${{ github.event_name == 'push' || inputs.nur_pruefen == false }}
+
+jobs:
+  migrieren:
+    name: Migrationen ${{ (github.event_name == 'push' || inputs.nur_pruefen == false) && 'anwenden' || 'pruefen' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: Production
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Zugangsdaten vorhanden?
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo "::error::Secret SUPABASE_ACCESS_TOKEN fehlt (siehe Kopf von datenbank-migration.yml)."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Migrationsdateien pruefen
+        run: |
+          if [ -f scripts/pruefe-migrationen.mjs ]; then
+            node scripts/pruefe-migrationen.mjs
+          else
+            echo "scripts/pruefe-migrationen.mjs nicht vorhanden, uebersprungen."
+          fi
+
+      - name: Mit dem Projekt verbinden
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+
+      - name: Stand vergleichen (lokal und gehostet)
+        run: supabase migration list --linked
+
+      - name: Trockenlauf
+        id: trocken
+        run: |
+          supabase db push --linked --dry-run | tee trocken.txt
+          if grep -q "up to date" trocken.txt; then echo "offen=nein" >> "$GITHUB_OUTPUT"; else echo "offen=ja" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Migrationen anwenden
+        if: env.ANWENDEN == 'true' && steps.trocken.outputs.offen == 'ja'
+        run: supabase db push --linked
+
+      - name: Nachpruefung, nichts mehr offen
+        if: env.ANWENDEN == 'true' && steps.trocken.outputs.offen == 'ja'
+        run: |
+          supabase db push --linked --dry-run | tee danach.txt
+          grep -q "up to date" danach.txt || { echo "::error::Nach dem Anwenden ist noch etwas offen."; exit 1; }
+
+      - name: PostgREST-Schema neu laden
+        if: env.ANWENDEN == 'true' && steps.trocken.outputs.offen == 'ja'
+        run: supabase db query --linked "notify pgrst, 'reload schema'"
+
+      - name: Zusammenfassung
+        if: always()
+        run: |
+          {
+            echo "### Datenbank-Migration (${SUPABASE_PROJECT_REF})"
+            if [ "$ANWENDEN" = "true" ]; then echo "Modus: anwenden"; else echo "Modus: nur pruefen"; fi
+            echo '```'
+            cat trocken.txt 2>/dev/null | tail -8 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

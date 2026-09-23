@@ -7,7 +7,9 @@
     "skipToContent": "Skip to content",
     "themeLight": "Light theme",
     "themeDark": "Dark theme",
-    "localeSwitcherLabel": "Language selection"
+    "localeSwitcherLabel": "Language selection",
+    "themeLabel": "Colour scheme",
+    "laedt": "The page is loading"
   },
   "notFound": {
     "message": "This page does not exist.",
@@ -16,15 +18,23 @@
   "nav": {
     "platformSubtitle": "Raspberry plantation management",
     "activePersona": "Active role (demo)",
-    "activeRole": "Signed in as",
     "overview": "Overview",
+    "handbook": "Handbook",
+    "handbookHint": "Open product handbook (new tab)",
+    "breadcrumb": "Breadcrumb",
+    "mainNav": "Main navigation",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
+    "collapseMenu": "Collapse menu",
+    "expandMenu": "Expand menu",
+    "toggleZone": "Expand or collapse {zone}",
     "portal": "Open portal",
     "zones": "Four zones",
     "proof": "Traceability",
     "kpis": "KPIs",
-    "compliance": "Compliance"
+    "compliance": "Compliance",
+    "account": "Account",
+    "menu": "Menu"
   },
   "hero": {
     "badge": "Farm management for the raspberry plantation · near Almaty",
@@ -43,6 +53,17 @@
     "rotator1": "down to the row block.",
     "rotator2": "down to the cooling minute.",
     "rotator3": "down to the person."
+  },
+  "werbefilm": {
+    "pausieren": "Pause the film",
+    "fortsetzen": "Play the film",
+    "tonAn": "Turn the film's sound on",
+    "tonAus": "Turn the film's sound off",
+    "fehler": "The film cannot be played at the moment.",
+    "portalTitel": "Damicon in 40 seconds",
+    "portalText": "The promotional film: from the field to the receipt. {sekunden} seconds, with sound.",
+    "ansehen": "Watch",
+    "ausblenden": "Hide this notice"
   },
   "landing": {
     "openZone": "Open area",
@@ -207,7 +228,7 @@
       },
       "stand": {
         "q": "What is already built today?",
-        "a": "{gesamt} modules across four areas: {angebunden} on the database with real writes, {demo} as a usable demo, {entwicklung} as visible menu entries under development. The figures on the start page are placeholders until the first fully measured season."
+        "a": "{gesamt} modules across four areas: {angebunden} on the database with real writes, {entwicklung} as visible menu entries under development. The figures on the start page are placeholders until the first fully measured season."
       },
       "daten": {
         "q": "Where is the data held?",
@@ -253,7 +274,6 @@
     "email": "Email",
     "password": "Password",
     "submit": "Sign in",
-    "submitting": "Signing in ...",
     "error": {
       "ungueltig": "Email or password is not correct.",
       "unbekannt": "Sign-in failed. Please try again later.",
@@ -264,7 +284,7 @@
     "demoPassword": "Password for all accounts:",
     "backToSite": "Back to the start page",
     "demoModeTitle": "Demo mode without database",
-    "demoModeLead": "No Supabase environment is configured. The dashboard runs on sample data and the role can be switched freely.",
+    "demoModeLead": "No database is configured. The dashboard runs on sample data and the role can be switched freely.",
     "toDashboard": "Go to dashboard",
     "signOut": "Sign out",
     "security": "Security",
@@ -273,7 +293,6 @@
       "lead": "A second factor is set up for this account. Please enter the current code from your authenticator app.",
       "codeLabel": "6-digit code",
       "submit": "Confirm",
-      "submitting": "Checking ...",
       "error": {
         "code": "The code is wrong or expired.",
         "unbekannt": "Check failed. Please try again later."
@@ -282,8 +301,8 @@
   },
   "mfa": {
     "title": "Security",
-    "description": "Multi-factor authentication (requirement 4.9). A second factor via an authenticator app protects the account even if the password becomes known.",
-    "keineUmgebung": "Without a Supabase environment there is no real account - multi-factor authentication only applies after signing in.",
+    "description": "Multi-factor authentication. A second factor via an authenticator app protects the account even if the password becomes known.",
+    "keineUmgebung": "Without a connected database there is no real account - multi-factor authentication only applies after signing in.",
     "faktorenTitel": "Configured factors",
     "faktorenLead": "One TOTP factor is enough. Several are possible, for instance for a backup device.",
     "keinFaktor": "No second factor set up yet.",
@@ -297,7 +316,7 @@
     "codeLabel": "Code from the app",
     "bestaetigenKnopf": "Confirm",
     "erfolg": "Second factor set up and active.",
-    "note": "At the next sign-in the code will be requested in addition to the password. Without a configured factor, sign-in stays as before - multi-factor authentication is required by requirement 4.9, enforcing it per role is a later expansion step."
+    "note": "At the next sign-in the code will be requested in addition to the password. Without a configured factor, sign-in stays as before - multi-factor authentication is mandatory, enforcing it per role is a later expansion step."
   },
   "dashboard": {
     "searchPlaceholder": "Search row block, batch, picker, document ...",
@@ -307,63 +326,77 @@
     "dataSource": {
       "db": "Live data",
       "demo": "Sample data",
-      "dbHint": "Connected to the Supabase database, read under the RLS permissions of your role.",
+      "dbHint": "The figures come from live operations. You see the part of them your role is allowed to see.",
       "demoHint": "No database connection - the view shows the built-in sample data.",
       "fehler": "Database unreachable",
       "fehlerHint": "The query failed. Sample data is shown instead - it does not come from the farm."
     },
     "rbacHintLabel": "Roles",
-    "rbacHint": "Which modules are visible depends on the role of the signed-in account. Seven core roles, from administration to the individual picker in the field - the same role also governs read and write permissions in the database.",
+    "rbacHint": "Which modules are visible depends on the role of the signed-in account. Eight core roles, from the CEO and administration to the individual picker in the field, the same role also governs read and write permissions in the database.",
     "home": {
-      "eyebrow": "Farm management",
-      "title": "Damicon operations overview",
-      "description": "Aggregator, Almaty region. The main functions run against the database - with sign-in, role permissions and real write operations. Sub-functions remain visible menu entries with a status.",
-      "kpiTitle": "14 baseline KPIs",
-      "kpiDescription": "To be signed off with the client as the baseline on 01 Oct 2026.",
-      "placeholderBadge": "Placeholder values",
       "target": "Target",
       "zonesTitle": "The four zones",
-      "zonesDescription": "The dashboard's navigation structure, organised like the target architecture.",
-      "dbCount": "{count} connected",
-      "demoCount": "{count} demo",
-      "wipCount": "{count} in development",
-      "openZone": "Open zone",
-      "milestoneTitle": "Milestones of the internal preparation",
-      "milestoneDescription": "Both before the on-site analysis week from 24 Sep to 01 Oct 2026.",
-      "milestoneAName": "Milestone A - prototype with look and feature scope",
-      "milestoneADue": "by 06 Sep 2026",
-      "milestoneAItems": {
-        "tokens": "Design-token switch to the “Kök & Altyn” palette (Kazakhstan’s national colours)",
-        "landing": "Landing page with placeholder texts and images, language switcher for five languages",
-        "zones": "Dashboard skeleton with the four zones as navigation structure",
-        "workflows": "Core workflows by example: row-block overview and picking task with photo evidence"
-      },
-      "milestoneBName": "Milestone B - foundation build with real main functions",
-      "milestoneBDue": "by 19 Sep 2026 at the latest",
-      "milestoneBItems": {
-        "rbac": "Roles and permissions with seven core roles and a permission matrix",
-        "hierarchy": "Location hierarchy - farm, plantation, field plot, row group, row block - including administration",
-        "status": "Row-block status management including the lock state after a plant-protection treatment",
-        "tasks": "Picking tasks with photo evidence of the retail punnet, per brigade and row block",
-        "docs": "Document management for spray records, contracts and ЕСУТД evidence",
-        "i18n": "Multilingual interface in five languages",
-        "kpi": "Dashboard skeleton with the 14 baseline KPIs as tiles"
-      },
-      "milestoneBNote": "All main functions are connected to the database: sign-in, role permissions through row level security, location management, row-block lock, picking task with photo evidence and document storage. The sub-functions remain visible menu entries with a status, as planned.",
-      "kpiSummary": "{berechenbar} measurable today · {erfassung} capture missing · {tabelle} function missing · {ungeklaert} legally unconfirmed",
-      "kpiGerechnet": "computed from {anzahl} records",
-      "kpiGerechnetUngeklaert": "computed from {anzahl} records - legal basis unconfirmed",
-      "kpiSummaryLive": "{gerechnet} computed from real data · {offen} waiting for the function behind them",
-      "kpiExtendedTitle": "Further KPIs",
-      "kpiExtendedDescription": "Part of the signed baseline, but outside the twelve core KPIs in the cockpit.",
-      "kpiNoneForRole": "No company-wide KPIs are configured for your role here. Your own performance is in the payroll module."
+      "zonesDescription": "Each zone with its indicators and its modules.",
+      "openZone": "Open zone"
     },
-    "loading": "Loading data"
+    "loading": "Loading data",
+    "askAi": "Ask AI",
+    "askAiHinweis": "Open or close the AI side panel",
+    "begruessung": {
+      "morgen": "Good morning, {name}",
+      "tag": "Good afternoon, {name}",
+      "abend": "Good evening, {name}",
+      "morgenOhneNamen": "Good morning",
+      "tagOhneNamen": "Good afternoon",
+      "abendOhneNamen": "Good evening",
+      "beschreibung": "What the farm currently reports: figures per zone, open items and the way into the modules.",
+      "spruch": {
+        "0": "What is recorded properly today, nobody has to reconstruct tomorrow.",
+        "1": "The cold chain is decided in the first hour after picking.",
+        "2": "A look at the open items saves the follow-up question later.",
+        "3": "Short ways from the field to the yard keep the quality up.",
+        "4": "Every batch with a document is one batch less in dispute.",
+        "5": "Figures nobody looks at do not improve by themselves.",
+        "6": "Well planned rows save the brigade the second walk.",
+        "7": "Keeping the pre-harvest interval saves the block from being locked."
+      }
+    },
+    "kennzahl": {
+      "ohneZiel": "no target value",
+      "platzhalter": "Placeholder",
+      "zielstand": {
+        "erfuellt": "on target",
+        "knapp": "just off",
+        "verfehlt": "target missed",
+        "offen": "no target value"
+      },
+      "luecke": {
+        "titel": "Not measured yet.",
+        "berechenbar": "The data is there, only the aggregation is still missing.",
+        "erfassungFehlt": "The tables are in place, but nobody enters the values yet.",
+        "tabelleFehlt": "The data model has no place for this yet.",
+        "rechtlichUngeklaert": "The legal basis has not been clarified yet."
+      },
+      "verletzt": "{count} of {gesamt} breached",
+      "vonGesamt": "of {gesamt}"
+    },
+    "zoneModuleLead": "Everything released in this zone for the active role.",
+    "zoneKennzahlTitel": "Key figures",
+    "zoneKennzahlLead": "This area's key figures, the most urgent one first.",
+    "zoneKennzahlMehr": "{count, plural, one {Show # more key figure} other {Show # more key figures}}",
+    "zoneKennzahlWeniger": "Hide additional key figures",
+    "bereiche": {
+      "titel": "The four areas",
+      "lead": "Each area with its metrics, anything off target first.",
+      "ohneKennzahl": "No metric is released for this area."
+    }
   },
   "roles": {
     "switcherHint": "Switch demo role - controls the visible navigation",
     "viewAsHint": "View as role - changes the presentation only; write permissions still follow your profile",
+    "viewAsBadge": "Viewing as: {role}",
     "admin": "Administration",
+    "ceo": "CEO",
     "betriebsleitung": "Farm management",
     "buchhaltung": "Accounting",
     "brigade": "Brigade / field",
@@ -372,30 +405,23 @@
     "kunde": "B2B client",
     "descriptions": {
       "admin": "Full configuration, user and role management, oversight of sensitive finance, access and integration matters.",
+      "ceo": "Overview of all four zones, all key figures and all four compliance areas, without managing the AI provider keys. Receives automatically updated compliance reports on login.",
       "betriebsleitung": "Daily plantation operations, tasks, rotation, staff and approvals. Can view finance but not post entries.",
       "buchhaltung": "Contribution margin, pay, payments, state filings. No user management, no field sign-offs.",
       "brigade": "Accepts picking tasks, records volume and photo evidence in the field, sees rotation and pre-harvest-interval locks.",
       "picker": "Sees only their own picking performance and payslip. No write access to posted quantities or anyone else's data.",
       "erzeuger": "Neighbouring farm supplying produce. Sees its own row blocks, batches, settlement and contracts.",
       "kunde": "Quotas, pre-orders, price lists, AI chat, released documents and own complaints."
-    }
-  },
-  "klassifikation": {
-    "uebernehmen": "Adopt",
-    "anpassen": "Adapt",
-    "neu-bauen": "Build new"
+    },
+    "switcherLabel": "Demo role",
+    "viewAsLabel": "View as"
   },
   "reifegrad": {
     "angebunden": "Database connected",
-    "demo": "Demo operable",
     "in-entwicklung": "In development"
   },
   "moduleMeta": {
-    "inDevelopmentTitle": "Sub-function - in development",
-    "plannedScope": "Planned scope",
-    "classification": "Rating",
-    "milestone": "Milestone",
-    "milestoneB": "Milestone B and later releases"
+    "nichtVerfuegbar": "Not available yet"
   },
   "accessDenied": {
     "title": "The role {role} has no access to this module.",
@@ -463,7 +489,7 @@
     "ueberfaelligLabel": "overdue",
     "ueberspringenKnopf": "Skip",
     "reaktivierenKnopf": "Reactivate",
-    "note": "Weather scenarios (e.g. moving dates forward in heat) are not yet included - the weather integration (growing-degree-day calculation) itself is not built yet. The lock logic is complete: a new treatment automatically locks the affected dates, the release unlocks them again, and the first matching picking task marks a date as done.",
+    "note": "Weather scenarios (e.g. moving dates forward in heat) are not yet included here - the growing-degree-day total is in the weather module. The lock logic is complete: a new treatment automatically locks the affected dates, the release unlocks them again, and the first matching picking task marks a date as done.",
     "formular": {
       "generieren": {
         "titel": "Generate / extend plan",
@@ -476,228 +502,255 @@
   "kpis": {
     "verlustquote": {
       "label": "Loss rate from picking to the client",
-      "braucht": "nothing - scrap per batch is recorded",
-      "basis": "scrap against total quantity across all batches"
+      "basis": "scrap against total quantity across all batches",
+      "kurz": "Loss rate"
     },
     "vermarktungsfaehig": {
       "label": "Share of marketable punnets",
-      "braucht": "quality sorting per punnet"
+      "kurz": "Marketable share"
     },
     "zeitBisVorkuehlung": {
       "label": "Time from picking to pre-cooling",
-      "braucht": "nothing - picking and cooling time per batch",
-      "basis": "average across all measured batches, including limit breaches"
+      "basis": "average across all measured batches, including limit breaches",
+      "kurz": "To pre-cooling"
     },
     "zeitBisKunde": {
       "label": "Time from picking to the client",
-      "braucht": "deliveries with departure and arrival"
+      "kurz": "To the client"
     },
     "pflueckleistung": {
       "label": "Picking output per person and hour",
-      "braucht": "nothing - crate with person against working time",
-      "basis": "harvest quantity per crate against recorded working time"
+      "basis": "harvest quantity per crate against recorded working time",
+      "kurz": "Picking output"
     },
     "pflueckStreuung": {
       "label": "Spread of picking output (best to weakest)",
-      "braucht": "nothing - output per person across the season",
-      "basis": "strongest against weakest worker, at least two people required"
+      "basis": "strongest against weakest worker, at least two people required",
+      "kurz": "Output spread"
     },
     "pflueckintervall": {
       "label": "Picking interval kept per row block",
-      "braucht": "nothing - harvest sequence per row block from the batches",
-      "basis": "share of actual harvest sequences within at most three days"
+      "basis": "share of actual harvest sequences within at most three days",
+      "kurz": "Picking interval"
     },
     "behandlungenWartezeit": {
       "label": "Treatments with the pre-harvest interval kept",
-      "braucht": "nothing - derivable from treatment and lock logic",
-      "basis": "treatments without harvesting during the lock period"
+      "basis": "treatments without harvesting during the lock period",
+      "kurz": "Interval kept"
     },
     "reklamationsquote": {
       "label": "Complaint rate",
-      "braucht": "complaints linked to the batch"
+      "kurz": "Complaint rate"
     },
     "liefertreue": {
       "label": "Delivery reliability (on time and complete)",
-      "braucht": "promised against actual delivery"
+      "kurz": "Delivery reliability"
     },
     "belegteVerkaeufe": {
       "label": "Share of documented sales (ЭСФ and accompanying document)",
-      "braucht": "connection to ЭСФ and the goods accompanying note"
+      "kurz": "Documented sales"
     },
     "deckungsbeitrag": {
       "label": "Contribution margin per kg",
-      "braucht": "nothing - entries per batch against harvest quantity",
-      "basis": "all revenue and cost entries against the total harvest quantity - still without a time window or batch reference per entry"
+      "basis": "all revenue and cost entries against the total harvest quantity - still without a time window or batch reference per entry",
+      "kurz": "Contribution margin"
     },
     "esutdAbdeckung": {
       "label": "Seasonal-worker coverage in ЕСУТД",
-      "braucht": "legal confirmation of the ЕСУТД obligation via enbek.kz (see WMCNL-1447) - connection point named, the legal review of the obligation itself is still outstanding",
-      "basis": "pickers with a recorded employment contract"
+      "basis": "pickers with a recorded employment contract",
+      "kurz": "ЕСУТД coverage"
     },
     "websiteAnfragen": {
       "label": "Enquiries via the website per month",
-      "braucht": "contact form on the website"
+      "kurz": "Website enquiries"
     }
   },
   "modules": {
     "standort": {
       "title": "Location hierarchy",
+      "navTitle": "Locations",
       "description": "Farm, plantation, field plot, row group, row block - a digital field map with a unique row and block identifier along the trellises.",
       "summary": "Field map with row blocks on the trellis, variety, planting year, cane type and trellis orientation per block.",
-      "todo": "Admin interface to create and move plots and row groups, field-geometry editor."
+      "todo": "A screen for creating and moving parcels and row groups, and for drawing the field geometry."
     },
     "reihenbloecke": {
       "title": "Row blocks and status",
+      "navTitle": "Row blocks",
       "description": "Every row block has one status: planted, ready to harvest, dormant, pruning or harvest-locked. A locked block simply must not appear in the picking schedule.",
-      "summary": "State machine per row block. A condition locks the harvest until it is met - here: until the pre-harvest interval expires.",
-      "todo": "Status changes with a mandatory reason, fine-grained access rules per resource, history per row block."
+      "summary": "Every row block carries its own status. While a pre-harvest interval is running, it stays locked for harvesting until that interval expires.",
+      "todo": "Status changes with a mandatory reason, and a history per row block."
     },
     "pflueckaufgaben": {
       "title": "Picking tasks with photo evidence",
+      "navTitle": "Picking tasks",
       "description": "A picking task per brigade and row block with target and actual volume, quality factor and photo evidence of the retail punnet right on the task.",
       "summary": "Task per brigade and row block, photo evidence of the retail punnet, volume and quality factor on the task.",
       "todo": "Offline capture in the field, evidence review with release and rework, link to quality-factor pay."
     },
     "pflanzenschutz": {
       "title": "Plant protection and pre-harvest interval",
+      "navTitle": "Plant protection",
       "description": "Every treatment is recorded with product, quantity, block, date and the person applying it, and locks the row block automatically until the statutory pre-harvest interval expires.",
       "summary": "Block-level treatment records with an automatic harvest lock. A breach is a legal and food-safety risk.",
       "todo": "Pesticide database with pre-harvest intervals, automatic release on deadline, mandatory record upload, residue proof per batch."
     },
     "rotationsplan": {
       "title": "Rotation plan / picking schedule",
+      "navTitle": "Rotation plan",
       "description": "A rolling picking schedule with an interval of two to three days per row block across the whole autumn harvest. One missed round destroys the block for that cycle.",
-      "summary": "The first function to be built. The planning problem is not the forecast but the rotation over six weeks.",
-      "todo": "Interval engine per row block, brigade assignment, conflict check against pre-harvest-interval locks, calendar export (.ics)."
+      "summary": "Shows which row block is due when, spreading the passes across the six weeks of the harvest.",
+      "todo": "Automatic interval calculation per row block, brigade assignment, a check for conflicts with pre-harvest locks, calendar export (.ics)."
     },
     "wetter": {
       "title": "Weather and growing degree days",
-      "description": "A weather API link with growing-degree-days calculation for the volume forecast. Deliberately no machine learning in phase 1 - an explainable heuristic is enough.",
+      "navTitle": "Weather",
+      "description": "Weather data per location with a growing-degree-day calculation as the basis for the volume forecast.",
       "summary": "A simple weather interface with growing degree days per plot. Explainable, verifiable and validatable within a season.",
-      "todo": "Weather-station or API link, growing degree days per plot, alert on shifted ripening windows."
+      "todo": "A weather station on the farm instead of the values from the network, and a note on shifted ripening windows."
     },
     "kuehlkette": {
       "title": "Cold-chain clock",
+      "navTitle": "Cold chain",
       "description": "Timing from picking to pre-cooling with a hard 60-minute threshold, temperature logger, target temperature 0 to 1 degree. Highest priority in the whole farm.",
-      "summary": "The building block the entire price spread hangs on. Over 60 minutes the ware is only industrial ware the next day.",
-      "todo": "Temperature-logger integration, batch clock from the picking time, alarm on threshold breach, KPI calculation."
+      "summary": "Tracks the time from picking to pre-cooling. Over 60 minutes the ware is only industrial ware the next day.",
+      "todo": "Connecting temperature loggers so the readings do not have to be entered by hand."
     },
     "logistik": {
       "title": "Collection rounds and route planning",
+      "navTitle": "Collection rounds",
       "description": "Fixed collection rounds in the field so filled crates do not sit in the sun, plus route planning by the clients' delivery windows.",
       "summary": "Handover receipt with volume and temperature reconciliation (pre-cooling and transport), unbroken cold-chain evidence all the way to the customer.",
-      "todo": "Route list per vehicle and delivery time windows (requirement 3.5 part 1) are still missing."
+      "todo": "Route list per vehicle and delivery time windows are still missing."
     },
     "qr_steigen": {
       "title": "QR crate identification",
-      "description": "QR labels for crates (linking to the public origin lookup), picker ID badges carrying the person's own badge code without biometrics, and a sign-in-free wall poster - all generated server-side as SVG and print-ready via the browser print function.",
+      "navTitle": "QR crates",
+      "description": "QR labels for crates (linking to the public origin lookup), picker ID badges carrying their own badge code without biometrics, and a sign-in-free wall poster - all three can be printed straight from the browser.",
       "summary": "The QR code carries identity from the field to the shop counter - the badge can be scanned by camera at the collection point to attribute a crate or work time to that person, instead of choosing them from a dropdown.",
-      "todo": "A camera scan of the crate labels themselves (not just the picker badge) is not part of this build-out."
+      "todo": "The crate labels cannot be scanned with the camera yet, only the picker badge."
     },
     "esf": {
       "title": "Electronic delivery note (ЭСФ)",
-      "description": "An electronic delivery note in line with the goods-accompanying-document obligation. Connected to the state ЭСФ system, no accounting of its own.",
-      "summary": "Evidence chain from the batch to the delivery note, status feedback from the state system. Mandatory integration.",
+      "navTitle": "Delivery note (ЭСФ)",
+      "description": "An electronic delivery note in line with the goods-accompanying-document obligation. A link to the state ЭСФ system is planned, accounting of its own is not.",
+      "summary": "Will carry the evidence chain from the batch to the delivery note and take in the status feedback from the state system. Mandatory integration.",
       "todo": "Connection to ИС ЭСФ, evidence chain batch to delivery note, status feedback and retry."
     },
     "rollen": {
       "title": "Roles and permissions",
-      "description": "Seven core roles, from administration through farm management and accounting to the brigade and the individual picker in the field, the grower and the B2B client - with a permission matrix over resources and actions.",
-      "summary": "Roles as a clear data structure over resources by actions. New roles without touching the logic.",
+      "navTitle": "Roles and permissions",
+      "description": "Eight core roles, from the CEO and administration through farm management and accounting to the brigade and the individual picker in the field, the grower and the B2B client, with a permission matrix over resources and actions.",
+      "summary": "Sets out who may see and change what. A new role can be added without changing anything in the modules.",
       "todo": "User management, role assignment, fine-grained access rules per resource."
     },
     "finanzen": {
       "title": "Contribution margin and finance",
+      "navTitle": "Finance",
       "description": "Cost centres per row block, cost objects per variety and per client. Contribution margin per kilogram, per row block, per variety and per harvest day - immutable postings.",
       "summary": "Contribution margin per row block, variety and harvest day. Postings are immutable (append only).",
       "todo": "Cost types per harvest day, B2B payment reconciliation, contribution-margin projection per variety."
     },
     "personal": {
       "title": "Picker register and brigades",
+      "navTitle": "Picker register",
       "description": "A person register with a picker ID badge, brigade assignment, output and quality factor per person across the season - the basis for bonuses, retraining and selection the following year.",
       "summary": "Person register, brigade and picker ID badge, output and quality profile per person across the season.",
       "todo": "ЕСУТД registration per contract, brigade planning, output history as the basis for pay calculation."
     },
     "lohn": {
       "title": "Quality-factor pay",
+      "navTitle": "Quality-factor pay",
       "description": "A combined model of base pay, a volume component and a quality factor. A pure piece rate pushes for volume, squeezes berries and is value-destroying for the raspberry.",
       "summary": "Base pay plus volume plus a quality factor. The quality factor is not optional but a precondition.",
-      "todo": "Minimum-wage anchoring, a rate editor with a UI-guided corridor preview, per-picker PDF pay slips, an advance account."
+      "todo": "The minimum wage as a hard floor, editing the pay rates with a preview of the corridor, a payslip as PDF per picker, an advance account."
     },
     "dokumente": {
       "title": "Document management",
+      "navTitle": "Documents",
       "description": "A secure store for spray records, ЕСУТД evidence, supply and framework contracts, grant dossiers and certificates - linked to the row block and the batch.",
       "summary": "A categorised, secure document store linked to the row block and the batch.",
-      "todo": "Versioning, expiry and reminder logic, link to row block and batch."
+      "todo": "Versions per document, expiry dates with a reminder."
     },
     "compliance": {
       "title": "Compliance cockpit",
+      "navTitle": "Compliance",
       "description": "Processing purposes, consents, data incidents and third-party disclosures from five granular tables - reading and writing reserved to office roles only.",
       "summary": "Granular data-protection schema: processing purposes, consents, incidents and disclosures in one place.",
-      "todo": "Legal references for Tax Code, AI Act, Digital Code, retention rules per data product, hosting-location review."
+      "todo": "Legal citations from the tax code, the AI act and the digital code, retention periods per kind of data, a check of the storage location."
     },
     "integrationen": {
       "title": "State integrations",
-      "description": "Connectors to ЭСФ, virtual stock, ЕСУТД and the subsidy portals gosagro.kz and qoldau.kz. Accounting stays with a solution established in the country.",
-      "summary": "One connector per target system with status feedback and retry. No in-house accounting build.",
-      "todo": "Connectors per system, sandbox access, error and retry logic, queue monitoring."
+      "navTitle": "Integrations",
+      "description": "Connectors to ЭСФ, virtual stock, ЕСУТД and the subsidy portals gosagro.kz and qoldau.kz are planned. Accounting stays with a solution established in the country.",
+      "summary": "Will get one connector per target system, with status feedback and retry. Accounting stays out of scope.",
+      "todo": "Connectors per system, test access, handling of errors and retries, an overview of the pending items."
     },
     "foerdermittel": {
       "title": "Grant application dossier",
+      "navTitle": "Grants",
       "description": "Application templates, evidence lists and a deadline monitor for the Kazakh subsidy portals - eligibility as a by-product of ongoing bookkeeping.",
-      "summary": "Deadline monitor and per-dossier evidence documents are connected (requirement 4.12). Application templates and evidence checklists per grant programme remain open.",
-      "todo": "Application templates and evidence checklists per grant programme - a domain decision on what fields and evidence gosagro.kz/qoldau.kz actually require per programme."
+      "summary": "Deadline monitor and per-dossier evidence documents are connected. Application templates and evidence checklists per grant programme remain open.",
+      "todo": "Application templates and evidence checklists per grant programme. The first open question is which fields and documents gosagro.kz and qoldau.kz ask for per programme."
+    },
+    "wirtschaftlichkeit": {
+      "title": "Business case for the rollout",
+      "navTitle": "Business case",
+      "description": "Investment appraisal for the rollout: payback period, return in year one and over three years, one-off and recurring cost, net present value. Model figures so far, not yet operational data.",
+      "summary": "Payback, return, one-off and recurring cost, net present value of the rollout. Model calculation, not yet from operations.",
+      "todo": "Capture of investment, operating and benefit items, history per revision, plan versus actual."
     },
     "sortenkatalog": {
       "title": "Variety and quota catalogue",
+      "navTitle": "Variety catalogue",
       "description": "A catalogue of variety, harvest window (summer-bearing or everbearing), punnet weight, quota and price list - the basis for pre-order and the B2B portal.",
       "summary": "Variety, harvest window, punnet weight, quota and price in one place.",
       "todo": "Quota booking with reservation logic, price-list versions, client assignment."
     },
     "b2b_portal": {
       "title": "B2B portal",
+      "navTitle": "B2B portal",
       "description": "A regular-client portal with quotas, pre-order with lead time, a price list by client group, delivery status, invoice history and complaint reporting.",
       "summary": "Delivery status with handover receipt, price list, and pre-orders with manual office confirmation are connected.",
-      "todo": "Automatic quota consumption, price tiers by client group, and invoice history are still missing (open business decisions)."
+      "todo": "Automatic quota consumption, tiered pricing per customer group and an invoice history. How exactly these should work has not been decided yet."
     },
     "preislisten": {
       "title": "Price lists",
+      "navTitle": "Price lists",
       "description": "Versioned price lists with tiered prices by client group and validity period.",
       "summary": "Price tiers per client and period, versioned and with a validity date.",
-      "todo": "Versioned price lists, tiered prices, validity periods, client assignment."
-    },
-    "ki_assistent": {
-      "title": "AI assistant",
-      "description": "A chat that answers standard enquiries and pulls availability from the system - exclusively from released sources, every answer logged, handed over to a human on uncertainty. Providers (e.g. Sokrates, Claude, or a self-hosted model) are interchangeable, an admin connects them by API key.",
-      "summary": "Answers only from released sources, logs every answer, escalates to a human on uncertainty.",
-      "todo": "Knowledge base currently price list only - variety catalogue and client FAQ as further sources still missing."
+      "todo": "Nothing left open: versions through the validity date, tiers through the minimum quantity and the assignment per customer group are all connected."
     },
     "aggregator": {
       "title": "Aggregator / neighbouring farms",
+      "navTitle": "Aggregator",
       "description": "Connecting neighbouring farms: the purchased volume becomes an invoice line, every buy-in batch is tracked separately and remains traceable to the supplying farm.",
       "summary": "Neighbouring-farm onboarding, buy-in capture with its own batch, separate origin tracking, settlement.",
-      "todo": "Neighbouring-farm onboarding, buy-in capture with its own batch, settlement and payout."
+      "todo": "A margin per neighbouring farm instead of a single one for all, and the payout itself."
     },
     "schulungen": {
       "title": "Training videos",
+      "navTitle": "Training",
       "description": "Multilingual, image-based short onboarding of seasonal workers on the phone - videos per core process, with pictures instead of text.",
-      "summary": "Short image-based videos per core process, multilingual, with progress tracking per person.",
-      "todo": "Video content per core process, Kazakh and Russian language versions, progress tracking per person."
+      "summary": "An illustrated six-step induction, multilingual, with its own progress per person, plus the mandatory training.",
+      "todo": "Videos per core process, filmed and dubbed into Kazakh and Russian."
     },
     "kanaele": {
       "title": "Contact channels",
+      "navTitle": "Contact channels",
       "description": "Locally established contact channels and payment methods, shown publicly in the website footer. Display only, no connection to a real messenger or payment service.",
       "summary": "WhatsApp, Kaspi QR and other channels as contact details - maintained by the office, hidden as a draft until then.",
       "todo": "Enter the real account details for each channel."
     },
     "reklamationen": {
       "title": "Complaint management",
+      "navTitle": "Complaints",
       "description": "A B2B client's complaint per batch - reason, deadline and history, with a status flow through to a credit note. A client reports and sees only their own complaint; the office handles and closes it.",
       "summary": "List, detail and history per complaint, linked to the batch - traceable from there to the row block, picker and cooling curve.",
       "todo": "Admin screen to link a client login to a B2B client record, automatic complaint rate in the KPI cockpit, notification as a deadline approaches."
     },
     "stammdaten": {
       "title": "Master data and tax numbers",
+      "navTitle": "Master data",
       "description": "Legal form and IIN or BIN for the farm itself, its supplying farms and its customers - the details that must appear on every document.",
       "summary": "A peasant farm carries an IIN, a legal entity a BIN. The check digit rejects a transposed number before it reaches an invoice.",
       "todo": "Collect numbers for supplying farms and customers."
@@ -728,7 +781,8 @@
     },
     "freeAt": "Free from",
     "days": "days",
-    "note": "The harvest-locked block is the most easily verifiable benefit of the system: the picking schedule simply must not show it."
+    "keineFreigabeBerechtigung": "Only management can release a pre-harvest interval lock.",
+    "note": "A block with a running pre-harvest interval does not appear in the picking schedule at all. That way nobody can create a task on it by mistake."
   },
   "pflueckaufgabenDemo": {
     "listTitle": "Picking tasks today",
@@ -738,7 +792,6 @@
     "proofTitle": "Photo evidence",
     "proofLead": "Sample photos of the retail punnet, the row block and the crate, right on the task.",
     "noProof": "No evidence for this task yet.",
-    "addProof": "Capture evidence (mock)",
     "reviewTitle": "Evidence review pending",
     "reviewLead": "The task is waiting for release. Check the volume and the punnet evidence, then release or request rework.",
     "approve": "Release",
@@ -792,6 +845,9 @@
       "lohnSatz": "Pay rate valid from {wert} added.",
       "lohnBerechnet": "{wert} settlement(s) calculated - already approved or paid rows stay unchanged.",
       "lohnStatus": "Settlement for {wert} updated.",
+      "lohnMonatsabzuegeBerechnet": "{wert} monthly deduction(s) calculated.",
+      "mwstSchwelleGeprueft": "Checked - revenue over the last 12 months: {wert} ₸.",
+      "mwstRegistriert": "Marked as VAT-registered, effective {wert}.",
       "zukaufImport": "{wert} position(s) imported.",
       "zukaufPreis": "Price added.",
       "kostentraeger": "Cost object \"{wert}\" created.",
@@ -806,6 +862,7 @@
       "foerderdossierStatus": "Dossier \"{wert}\" updated.",
       "lieferung": "Delivery created.",
       "transportMessung": "Transport measurement recorded.",
+      "transportMessungVerstoss": "Transport measurement recorded - limit exceeded (above 8 degrees), the goods have to be downgraded.",
       "uebergabe": "Handover recorded.",
       "lieferungStorniert": "Delivery cancelled.",
       "pfleuckerBrigadeZugewiesen": "{wert} assigned to a crew.",
@@ -819,6 +876,8 @@
       "kiAnbieterDeaktiviert": "Provider \"{wert}\" deactivated.",
       "kiAnbieterStandardGesetzt": "Default provider changed.",
       "kiAnbieterGeloescht": "Provider \"{wert}\" deleted.",
+      "kiRatenlimitGesetzt": "Rate limit for \"{wert}\" saved.",
+      "kiRatenlimitEntfernt": "Rate limit for \"{wert}\" removed.",
       "wetterAktualisiert": "Weather data updated.",
       "kanalAngelegt": "Channel created.",
       "kanalAktualisiert": "Channel updated.",
@@ -836,25 +895,30 @@
       "sorteAktualisiert": "Variety updated.",
       "kontingentErstellt": "Quota created.",
       "kontingentAktualisiert": "Quantity updated.",
-      "stammdatenGespeichert": "Master data saved."
+      "stammdatenGespeichert": "Master data saved.",
+      "transkription": "Dictation accepted.",
+      "nachbarbetrieb": "Neighbouring farm “{wert}” added.",
+      "dokumentGeaendert": "Document “{wert}” updated."
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
+      "qualitaetsfaktorKorridor": "The quality factor is required and must be between 0.90 and 1.10.",
       "gesperrt": "Row block {wert} is locked for the pre-harvest interval - no picking task possible.",
+      "mwstSchwelleUeberschritten": "The VAT registration threshold has been crossed - notification due: {wert}.",
       "keineDatei": "Please select an image file.",
       "zuGross": "The file is larger than 8 MB.",
       "upload": "The photo could not be stored.",
       "berechtigung": "Your role is not allowed to perform this action.",
       "angemeldet": "Session expired. Please sign in again.",
       "doppelt": "An entry with this identifier already exists.",
-      "bezug": "The selected reference record does not exist.",
+      "bezug": "The selected reference is no longer there. Please reload the list and choose again.",
       "nichtGefunden": "The record was not found or can no longer be edited.",
       "regel": "Not possible: the pre-harvest interval has not elapsed yet.",
-      "unbekannt": "Action failed. Details are in the server log.",
+      "unbekannt": "The action failed. Please try again. If it keeps failing, report it to your administrator with the time it happened.",
       "keineCharge": "This task has no batch.",
       "kuehlkette": "Limit broken: {wert} minutes until measurement. The goods have to be downgraded.",
-      "transportKuehlkette": "Limit exceeded: the transport temperature was above 8 degrees. The goods have to be downgraded.",
       "lieferungStorniert": "This delivery was cancelled - no transport measurement can be recorded for it anymore.",
+      "lieferungZugestellt": "This delivery has already been delivered - a delivered shipment is immutable, no transport measurement can be recorded for it anymore.",
       "geraetezeit": "The device clock deviates too far from server time (future, or more than 24 hours off). Please check the device's clock and try again.",
       "keinKunde": "Your account has no B2B client assigned. Please contact the administration.",
       "zukaufBefunde": "{wert} error(s) found in the input - nothing was imported. See the check results below.",
@@ -869,7 +933,13 @@
       "stammdatenOhneRechtsform": "Please choose the legal form first - it decides whether an IIN or a BIN applies.",
       "stammdatenFormat": "The number consists of exactly twelve digits.",
       "stammdatenPruefziffer": "The check digit does not match. Usually two digits have been transposed.",
-      "selbstkontrolle": "Whoever recorded a crate does not inspect it themselves. Someone else needs to check this crate."
+      "selbstkontrolle": "Whoever recorded a crate does not inspect it themselves. Someone else needs to check this crate.",
+      "transkription": "Speech recognition unavailable.",
+      "transkriptionDienst": "The speech recognition service cannot be reached. Your recording is fine – please try again later.",
+      "transkriptionDauer": "Speech recognition took too long. The service is probably still starting up – please try again in a minute.",
+      "dateiGross": "The recording is too large.",
+      "nachbarbetriebVorhanden": "A neighbouring farm with this name already exists.",
+      "ratenlimit": "Too many requests in a short time. Please wait a moment and try again."
     },
     "einladungen": {
       "erfolg": {
@@ -960,7 +1030,8 @@
     "oeffnen": "Open",
     "keineDatei": "no file",
     "col": {
-      "datei": "File"
+      "datei": "File",
+      "aendern": "Edit"
     },
     "feld": {
       "name": "Name",
@@ -968,11 +1039,15 @@
       "bezug": "Reference",
       "stand": "As of",
       "status": "Status",
-      "datei": "File"
+      "datei": "File",
+      "foerderdossier": "Funding dossier"
     },
     "beispiel": {
       "name": "Spray record week 37 - North plot"
-    }
+    },
+    "keinDossier": "no dossier",
+    "aendernKnopf": "Save",
+    "linkNichtVerfuegbar": "file exists, link currently unavailable"
   },
   "pflueckaufgabenVerwaltung": {
     "ohneBrigade": "No brigade",
@@ -1018,7 +1093,7 @@
     "titel": "Record treatment",
     "lead": "The pre-harvest interval comes from the product catalogue - the row block is locked automatically.",
     "erfassen": "Record treatment",
-    "hinweis": "The lock is set by a database trigger and cannot be bypassed by changing the status. The release button appears only once the pre-harvest interval has elapsed.",
+    "hinweis": "The lock is set by the treatment itself and cannot be lifted from the interface. The release button appears only once the pre-harvest interval has elapsed.",
     "feld": {
       "block": "Row block",
       "mittel": "Plant protection product",
@@ -1045,24 +1120,7 @@
       "nachbarbetrieb": "Neighbouring farm"
     },
     "blocksShort": "blocks",
-    "note": "The field map with a unique row and block identifier along the trellises is the basis for the rotation plan, the harvest capture and the contribution margin."
-  },
-  "pflanzenschutzDemo": {
-    "ruleTitle": "Hard legal rule",
-    "ruleLead": "After a plant-protection treatment, harvest is locked per row block until the product-specific pre-harvest interval expires. A breach is a legal risk, not a convenience matter.",
-    "activeTitle": "Active pre-harvest-interval locks",
-    "activeLead": "Row blocks with a running pre-harvest interval. Release is automatic when the deadline passes.",
-    "col": {
-      "block": "Row block",
-      "mittel": "Product",
-      "behandelt": "Treated on",
-      "wartezeit": "Interval",
-      "freigabe": "Free from",
-      "status": "Status"
-    },
-    "days": "days",
-    "locked": "locked",
-    "note": "Because every block is picked every two to three days while the crop still has to be treated, a block can be harvested inside the pre-harvest interval by mistake. That is exactly what the automatic lock prevents."
+    "note": "Every row and every block along the trellises carries a unique identifier. The picking schedule, the harvest figures and the billing all refer to it."
   },
   "rollenDemo": {
     "rolesTitle": "Seven core roles",
@@ -1073,9 +1131,6 @@
     "matrixNote": "Full matrix across all resources and actions. The database-level access rules are written per resource individually.",
     "note": "Identities and roles run across all four areas - together with logging, encryption and multi-factor authentication.",
     "level": "Level",
-    "catiRole": {
-      "keine": "no equivalent - new from requirement 7.1"
-    },
     "scopeWert": {
       "betrieb": "Farm",
       "plantage": "Plantation",
@@ -1089,12 +1144,12 @@
   },
   "finanzenAnsicht": {
     "uebersichtTitel": "Contribution margin at a glance",
-    "uebersichtLead": "Total across all cost objects and postings. Revenue and cost come from the immutable finance ledger (requirement 4.1).",
+    "uebersichtLead": "Revenue and cost from the immutable finance journal, counted by posting date within the selected period.",
     "stat": {
-      "erloes": "Total revenue",
-      "kosten": "Total cost",
-      "deckungsbeitrag": "Total contribution margin",
-      "deckungsbeitragHinweis": "Revenue minus cost, computed by the database"
+      "erloes": "Revenue",
+      "kosten": "Cost",
+      "deckungsbeitrag": "Contribution margin",
+      "gesamt": "{wert} in total"
     },
     "erloes": "Revenue",
     "kosten": "Cost",
@@ -1121,9 +1176,9 @@
       "betrag": "Amount"
     },
     "ledgerTitel": "Postings",
-    "ledgerLead": "Append only: a wrong posting is corrected with a reversing entry, not by changing the original.",
+    "ledgerLead": "A wrong posting is corrected with a reversing entry, not by changing the original.",
     "keineBuchungen": "No posting recorded yet.",
-    "note": "The contribution margin per kilogram is the central management metric (KPI \"deckungsbeitrag\"). It is formed per row block, variety, harvest day and client - not only at year end. Postings are immutable; the database rejects UPDATE and DELETE on the finance ledger regardless of the interface.",
+    "note": "The contribution margin per kilogram is the central management metric. It is formed per row block, variety, harvest day and client - not only at year end.",
     "formular": {
       "kostentraeger": {
         "titel": "Create new cost object",
@@ -1151,31 +1206,142 @@
         "betrag": "Amount in ₸",
         "buchungsdatum": "Posting date",
         "beschreibung": "Description (optional)",
-        "knopf": "Record posting"
+        "knopf": "Record posting",
+        "ohneErntetag": "No harvest day"
       }
+    },
+    "zeitraum": {
+      "label": "Period",
+      "monat": "This month",
+      "vormonat": "Last month",
+      "jahr": "This year",
+      "alles": "All",
+      "gefiltertErntetag": "The table is filtered by harvest day.",
+      "gefiltertBuchungsdatum": "The table is filtered by posting date."
+    },
+    "monatsListe": {
+      "label": "Month",
+      "bitte": "Choose month",
+      "knopf": "Show"
+    },
+    "bereich": {
+      "label": "Finance page sections",
+      "kostentraeger": "Cost objects",
+      "charge": "Per batch",
+      "buchungen": "Postings"
+    },
+    "typFilter": {
+      "label": "Posting type",
+      "alle": "All"
+    },
+    "mehrAnzeigen": "Show more",
+    "keineChargen": "No batch with its own posting in this period. Postings without a batch reference do not appear here.",
+    "ohneErntetag": "no harvest day"
+  },
+  "wirtschaftlichkeitAnsicht": {
+    "eyebrow": "Investment appraisal",
+    "titel": "Is the rollout worth it?",
+    "lead": "What the step costs, when the money is back and what owning it costs, over three years.",
+    "modellPille": "Model calculation",
+    "modellHinweis": "Model calculation dated {stichtag}. The figures come from the management's metric list, not from live operations. Anything estimated is marked on the tile.",
+    "kursHinweis": "Converted at the National Bank of Kazakhstan rate of {stichtag}: 1 EUR = {euro} ₸, 1 RUB = {rubel} ₸.",
+    "jahresnutzenSatz": "Every figure rests on an assumed annual benefit of {tenge} ({rubel}). That number is back-calculated and not yet evidenced by operations.",
+    "geschaetzt": "estimated",
+    "offen": "open",
+    "abschnitt": {
+      "titel": "The six headline figures",
+      "lead": "Selected by management. The remaining four sit in the panel below."
+    },
+    "weitere": {
+      "titel": "Four further figures",
+      "lead": "Payback period, total cost, avoided cost and time to first benefit."
+    },
+    "fussnote": "Return, payback and the cost per kilogram hang entirely on the assumed annual benefit. If the reduction per kilogram looks too high, the annual benefit is set too high. Once operational figures are captured, the page calculates from real items instead of constants.",
+    "diagramm": {
+      "wert": "Value",
+      "nulllinie": "Money back"
+    },
+    "stapel": {
+      "capex": "One-off",
+      "opexJahr": "Year {jahr}"
+    },
+    "einheit": {
+      "monate": "{anzahl} months",
+      "wochenSpanne": "{von} to {bis} weeks",
+      "kilogramm": "kg"
+    },
+    "kennzahl": {
+      "amortisation": {
+        "label": "Payback period",
+        "frage": "When do I get my money back?",
+        "rechenweg": "One-off plus recurring cost, divided by annual benefit, times twelve."
+      },
+      "roiJahr1": {
+        "label": "Return year 1",
+        "frage": "Is it worth anything at all?",
+        "rechenweg": "Annual benefit less one-off and recurring cost, divided by both combined."
+      },
+      "roiDreiJahre": {
+        "label": "Return over 3 years",
+        "frage": "Is it properly worth it?",
+        "rechenweg": "Three times the annual benefit less one-off and three times recurring cost, divided by the outlay."
+      },
+      "capex": {
+        "label": "Cost to acceptance",
+        "frage": "What does the step cost?",
+        "rechenweg": "Fixed price up to acceptance. One number, not a range."
+      },
+      "opex": {
+        "label": "Recurring cost per year",
+        "frage": "What does owning it cost?",
+        "rechenweg": "Hosting, maintenance, support and further development."
+      },
+      "tco": {
+        "label": "Total cost over 3 years",
+        "frage": "What does the comparison really cost?",
+        "rechenweg": "One-off cost plus three years of recurring cost, against any alternative."
+      },
+      "vermiedeneKosten": {
+        "label": "Avoided cost per year",
+        "frage": "Where does the benefit come from?",
+        "rechenweg": "Shrinkage, manual work and audit preparation. Back-calculated from the given return figures."
+      },
+      "kapitalwert": {
+        "label": "Net present value",
+        "frage": "Does it hold up with the CFO?",
+        "rechenweg": "Present value of the benefit less the investment over three years, discounted monthly at {zins}."
+      },
+      "kostenJeKilogramm": {
+        "label": "Cost per kilogram",
+        "frage": "Does the operation get cheaper?",
+        "rechenweg": "Full cost divided by the marketed quantity, before against after. Needs operational figures.",
+        "rechenwegMitWerten": "Full cost divided by the marketed quantity. Before {vorher} ₸, less {ersparnis} ₸ benefit per kilogram at {menge} kg annual volume."
+      },
+      "nutzenbeginn": {
+        "label": "Time to first benefit",
+        "frage": "From when does it pay in?",
+        "rechenweg": "Weeks to live operation, counted against the frost edge."
+      }
+    },
+    "jeKilogramm": {
+      "vorher": "Before",
+      "nachher": "After"
     }
   },
-  "personalDemo": {
-    "brigadenTitle": "Brigades",
-    "brigadenLead": "Brigade planning with shifts and a reserve list across the whole harvest run.",
-    "foreman": "Foreman",
-    "people": "People",
-    "pflueckerTitle": "Picker register",
-    "pflueckerLead": "Person register with a picker ID badge, ЕСУТД registration per contract, output and quality factor per person.",
-    "col": {
-      "name": "Name",
-      "brigade": "Brigade",
-      "ausweis": "ID badge",
-      "esutd": "ЕСУТД",
-      "leistung": "Output",
-      "qfaktor": "Q factor"
-    },
-    "esutd": {
-      "erfasst": "registered",
-      "offen": "pending"
-    },
-    "days": "days",
-    "note": "Keeping the core crew is more important than recruiting: every new onboarding in the middle of the season costs volume and quality."
+  "finanzVorschau": {
+    "titel": "Finances this month",
+    "lead": "What was posted in {monat}.",
+    "leer": "Nothing posted in {monat} yet.",
+    "erloes": "Revenue",
+    "kosten": "Cost",
+    "deckungsbeitrag": "Contribution margin",
+    "buchungen": "Postings: {anzahl}",
+    "link": "Go to finances",
+    "gegenVormonat": "{anteil} against last month",
+    "ueberVormonat": "{anteil} above last month ({betrag})",
+    "unterVormonat": "{anteil} below last month ({betrag})",
+    "ohneVormonat": "Nothing was posted last month, so there is nothing to compare.",
+    "imJahr": "This year so far: {deckungsbeitrag} from {anzahl, plural, one {# posting} other {# postings}}."
   },
   "dokumenteDemo": {
     "listTitle": "Documents",
@@ -1195,6 +1361,66 @@
     "note": "Every document is linked to a row block or a batch. Residue proof per batch is therefore available at the press of a button for trade and authorities."
   },
   "complianceAnsicht": {
+    "mwst": {
+      "titel": "VAT registration",
+      "lead": "Rolling 12-month revenue against the statutory registration threshold - RK Tax Code 2026.",
+      "ja": "Yes",
+      "nein": "No",
+      "nochNie": "Not checked yet",
+      "quelle": "Source:",
+      "keinSatz": "No statutory VAT rate on file yet.",
+      "schwelleUeberschrittenHinweis": "The registration threshold was crossed on {datum}. Notifying the tax authority is due within 5 working days.",
+      "stat": {
+        "registriert": "VAT-registered",
+        "seit": "since",
+        "satz": "Statutory rate",
+        "satzHinweis": "Standard rate only - no medical goods in the range",
+        "umsatz": "Revenue (12 months)",
+        "schwelle": "Threshold:",
+        "letztePruefung": "Last checked"
+      },
+      "horizontalesMonitoring": {
+        "titel": "Ready for horizontal monitoring",
+        "lead": "Kazakhstan abolished the tax authority's automated risk score - a voluntary model with a real benefit took its place.",
+        "readinessTitel": "The structure already fits",
+        "readinessText": "Horizontal monitoring requires ongoing, structured visibility into a company's own accounting. Damicon already produces that trail by design:",
+        "punktProtokoll": "Every write lands in the audit log (audit_events) - including who did it and when.",
+        "punktUnveraenderlich": "Harvest bookings and batches become immutable once closed - no quiet after-the-fact edits.",
+        "punktKuehlkette": "The 60-minute cold-chain rule is evaluated live, not only checked in hindsight.",
+        "vorteil": "Late-payment fee: {ermaessigt} instead of {normal} of the National Bank base rate per day for horizontal-monitoring participants.",
+        "hinweis": "This is a statement about the data structure's readiness, not a claim that enrollment in horizontal monitoring has already happened - that step is its own deliberate application to the tax authority."
+      },
+      "messer": {
+        "label": "Share of the registration threshold"
+      },
+      "formular": {
+        "pruefen": {
+          "knopf": "Check revenue now"
+        },
+        "registrieren": {
+          "titel": "Mark as registered",
+          "lead": "Record this once the registration has actually been filed with the tax office - not an automatic step.",
+          "registriertAm": "Registered on",
+          "knopf": "Mark as registered"
+        }
+      }
+    },
+    "risikoRadar": {
+      "titel": "Risk radar",
+      "lead": "Every open statutory deadline from tax, labor and data-protection law in one place - sorted by urgency.",
+      "anzahlOffen": "{anzahl} open deadline(s)",
+      "alleErledigt": "No open deadline - tax, labor and data-protection obligations are all on track right now.",
+      "ansehen": "View →",
+      "kategorie": {
+        "steuer": "Tax law",
+        "arbeit": "Labor law",
+        "datenschutz": "Data protection"
+      },
+      "labelMwst": "VAT registration after crossing the threshold",
+      "labelEsutd": "ESUTD filing for {name}",
+      "labelVorfall": "Reporting a data-protection incident to the authority",
+      "labelDrittweitergabe": "Notification about disclosure to {empfaenger}"
+    },
     "cockpitTitle": "Compliance cockpit",
     "cockpitLead": "Processing purposes, consents, data incidents and third-party disclosures from the database - under the 2026 Kazakhstani legal framework.",
     "stat": {
@@ -1222,7 +1448,11 @@
       "rechtsgrundlage": "Legal basis",
       "aufbewahrung": "Retention",
       "automatisiert": "Automated decision",
-      "verantwortlich": "Responsible"
+      "verantwortlich": "Responsible",
+      "zeitpunkt": "Timestamp",
+      "urheber": "Actor",
+      "aktion": "Action",
+      "ressource": "Resource"
     },
     "status": {
       "aktiv": "active",
@@ -1242,8 +1472,7 @@
       "de": "German",
       "en": "English",
       "ru": "Russian",
-      "kk": "Kazakh",
-      "tr": "Turkish"
+      "kk": "Kazakh"
     },
     "vorfallArt": {
       "unbefugter_zugriff": "Unauthorised access",
@@ -1271,6 +1500,11 @@
     "zwecke": {
       "titel": "Processing purposes",
       "lead": "Purpose register with legal basis and retention period."
+    },
+    "audit": {
+      "titel": "Audit trail",
+      "lead": "The last 50 logged write operations, newest first - including actor and timestamp (audit_events).",
+      "leer": "No logged operation yet."
     },
     "monate": "{anzahl, plural, one {# month} other {# months}}",
     "ja": "yes",
@@ -1372,29 +1606,6 @@
       "s-kweli": "Aug - Sep"
     }
   },
-  "schulungenDemo": {
-    "libraryTitle": "Video library",
-    "libraryLead": "Multilingual, image-based short onboarding of seasonal workers on the phone.",
-    "col": {
-      "titel": "Title",
-      "thema": "Topic",
-      "dauer": "Length",
-      "sprachen": "Languages"
-    },
-    "note": "Short onboarding as a guided checklist on the phone, multilingual, with pictures instead of text - one short video per core process.",
-    "video": {
-      "v-01": "Picking correctly - recognising ripe fruit",
-      "v-02": "Filling the crate and scanning the QR label",
-      "v-03": "The hour after picking - the cold chain",
-      "v-04": "Hygiene and gloves"
-    },
-    "thema": {
-      "ernte": "Harvest",
-      "feld": "Field",
-      "hof": "Yard",
-      "qualitaet": "Quality"
-    }
-  },
   "kuehlketteAnsicht": {
     "offeneTitel": "Open batches on the clock",
     "offeneLead": "Time since picking against the 60-minute threshold, ticking live per batch.",
@@ -1454,19 +1665,186 @@
     "anlegenKnopf": "Add",
     "note": "Display only, no connection to a real messenger or payment service. A channel appears on the website only once a real value is entered and set to \"active\"."
   },
-  "qrSteigenMock": {
-    "scanTitle": "Scan at the dispatch point (mock)",
-    "scanLead": "A QR label per crate, scanned on handover. Volume, row block, time and person in one step - here without a real server reconciliation.",
-    "simulateScan": "Simulate scan",
-    "registered": "registered"
+  "haustier": {
+    "label": {
+      "ruhe": "DamiAI, your companion. Click to open the chat.",
+      "denkt": "DamiAI is working. Click to open the chat.",
+      "freigabe": "DamiAI needs your approval. Click to open the chat.",
+      "fertig": "DamiAI is done. Click to see the answer.",
+      "fehler": "Something went wrong. Click to open the chat.",
+      "schlaeft": "DamiAI is asleep. Click to open the chat.",
+      "spricht": "DamiAI is speaking.",
+      "tour": "DamiAI, your companion. Click to open the tour.",
+      "kurz": {
+        "ruhe": "Idle",
+        "denkt": "Working",
+        "spricht": "Speaking",
+        "freigabe": "Approval",
+        "fertig": "Done",
+        "fehler": "Error",
+        "schlaeft": "Asleep"
+      }
+    },
+    "arbeitet": "Working on it …",
+    "imHintergrund": "Running in the background, keep working.",
+    "freigabe": "I need your approval.",
+    "ansehen": "View",
+    "fertig": "Done! Your answer is ready.",
+    "fehler": "Something went wrong. Open the chat for details.",
+    "weg": {
+      "halten": "Should I go? Keep holding …",
+      "tschuess": "Bye! Bring me back whenever you need me.",
+      "hinweis": "Hold me down to send me away."
+    },
+    "willkommen": "I’m back!",
+    "zurueckholen": "Bring DamiAI back",
+    "befinden": {
+      "frage": "How is your day going so far?",
+      "gut": "Going well",
+      "mittel": "So-so",
+      "viel": "Swamped",
+      "antwort": {
+        "gut": "Good. Let's get something done.",
+        "mittel": "Fair enough. Tell me if I can take something off your plate.",
+        "viel": "Then let me take the tedious part. Just ask."
+      },
+      "hilfe": "Where do I start?",
+      "hilfeText": "What is on today? Name the three things I should deal with first."
+    },
+    "anstupser": {
+      "neuHeute": {
+        "frage": "Want me to show you what changed today?",
+        "frageText": "What changed today? Summarise the main points briefly."
+      },
+      "kuehlzeit": {
+        "frage": "Want me to check how the cooling times are running?",
+        "frageText": "How are the cooling times running? Name the batches that cut it closest."
+      },
+      "fristen": {
+        "frage": "Want me to go through the open deadlines?",
+        "frageText": "Which deadlines are coming up? Sort them by urgency."
+      }
+    },
+    "tipp": {
+      "frage": "You are in “{bereich}”. Shall I show you what you can do here?",
+      "ja": "Show me",
+      "spaeter": "Later",
+      "frageText": "Explain the area “{bereich}” to me: what can I do here?"
+    },
+    "einstellung": {
+      "titel": "DamiAI, your companion",
+      "text": "Shows in the corner what the agent is doing, even when the chat is closed. Hold DamiAI down to send it away, the tip at the bottom edge brings it back. Switched off here, DamiAI stays away completely.",
+      "tourTitel": "Guided tour",
+      "tourText": "Off means DamiAI stops jumping to the tiles and highlighting them by itself after a check, system-wide. The chat summary still runs automatically, just without the jumping around the page.",
+      "bewegungTitel": "Motion",
+      "bewegungText": "Off means DamiAI stays, but holds still. If your system is already set to reduced motion, you do not need this switch.",
+      "zustandTitel": "State",
+      "stimmungTitel": "Expression",
+      "trachtTitel": "Outfit",
+      "brilleTitel": "Fun glasses",
+      "vorschauHinweis": "A preview only - the companion in the corner is untouched.",
+      "stimmung": {
+        "neutral": "Information",
+        "gut": "Success",
+        "warnung": "Finding",
+        "frage": "Follow-up"
+      },
+      "tracht": {
+        "steppenblau": "Steppe blue",
+        "granat": "Garnet",
+        "jade": "Jade"
+      }
+    },
+    "tour": {
+      "gruss": "Hi, I am DamiAI! Shall I show you Damicon in one minute?",
+      "autoStart": "I will start on my own in a moment. Click or scroll if you would rather look around yourself.",
+      "start": "Start the tour",
+      "nein": "No thanks",
+      "weiter": "Next",
+      "zurueck": "Back",
+      "beenden": "End",
+      "pausiert": "All right, you are in control. Tell me when I should carry on.",
+      "auto": "Continue automatically",
+      "pause": "Pause",
+      "fertigKnopf": "Done",
+      "ende": "That was the tour. Ready to try it yourself?",
+      "anmelden": "Sign in",
+      "nochmal": "Again",
+      "himbeere": {
+        "titel": "Why raspberries are different",
+        "text": "No protective skin, hardly any shelf life: quality is decided in the field."
+      },
+      "sechzig": {
+        "titel": "The hour after picking",
+        "text": "Within 60 minutes the berry must be cooled. Damicon makes that time measurable."
+      },
+      "beleg": {
+        "titel": "Every batch has its proof",
+        "text": "From the cooling curve to the picker: the origin can be traced without gaps."
+      },
+      "zonen": {
+        "titel": "Four areas, one system",
+        "text": "Field, yard, office and market. Every role sees exactly what it needs."
+      },
+      "kpis": {
+        "titel": "The key figures at a glance",
+        "text": "Loss rate, cooling time, picking output: how a farm can be measured."
+      },
+      "compliance": {
+        "titel": "Kazakhstan 2026 at a glance",
+        "text": "New tax code, goods accompanying note, AI law and more: deadlines and risks in one view."
+      },
+      "fragen": {
+        "titel": "Any questions?",
+        "text": "The most common answers are here. On the farm, the AI assistant helps as well."
+      }
+    },
+    "abzeichen": {
+      "titel": "Award",
+      "alt": "KI Innovator award from diind, Deutsches Innovationsinstitut",
+      "schliessen": "Close"
+    },
+    "logo": {
+      "titel": "Damicon",
+      "alt": "Damicon seal"
+    }
   },
   "kiAssistentAnsicht": {
     "chatTitel": "AI assistant",
-    "chatLead": "Answers exclusively from released price and variety data, logs every answer, escalates to the office on repeated uncertainty.",
-    "transparenzHinweis": "These answers come from an AI, not a staff member. They are based exclusively on released price and variety data.",
+    "chatLead": "Answers from released price and variety data, and - depending on role - from live tax, labor, and compliance data it looks up itself. Logs every answer, escalates to the office on repeated uncertainty.",
+    "transparenzHinweis": "These answers come from an AI, not a staff member. They are based exclusively on released data - which tools were used is shown under each answer.",
+    "werkzeug": {
+      "mwstStatusAbrufen": "Checked VAT status",
+      "esutdOffeneFristenAbrufen": "Checked ESUTD deadlines",
+      "complianceUebersichtAbrufen": "Checked compliance",
+      "kuehlketteAbrufen": "Checked cold chain",
+      "risikoRadarAbrufen": "Checked risk radar",
+      "oeffneBereich": "Opened {bereich}",
+      "oeffnePruefBereich": "Opened {bereich}",
+      "wissenSuchen": "Knowledge base searched",
+      "unbekannt": "Step completed",
+      "datenmodellErkunden": "Explored data model",
+      "datenLesen": "Read {tabelle}",
+      "seiteLesen": "Read the page",
+      "klicke": "Clicked: {absicht}",
+      "fuelleFeld": "Filled in: {absicht}",
+      "scrolleZu": "Scrolled",
+      "zeigeAuf": "Pointed at: {absicht}"
+    },
+    "agentDenkt": "Agent is picking the facts …",
+    "agentPrueft": "Agent is checking: {werkzeug} …",
+    "schliessen": "Close",
+    "buehne": "Move to the centre",
+    "andocken": "Dock to the side",
+    "breiteAendern": "Resize: drag or use arrow keys, double-click to reset",
     "keinVerlauf": "No message yet. Ask your first question below.",
     "inputPlaceholder": "Enter a question ...",
     "senden": "Send",
+    "vorlesen": "Read aloud",
+    "vorlesenStopp": "Stop reading",
+    "vorlesenAuto": "Read answers aloud",
+    "vorlesenKeineStimme": "There is no voice for this language yet.",
+    "vorlesenFehler": "Reading aloud is not possible right now.",
     "einwilligungText": "I have read the notice and agree that my question is sent to the configured AI provider.",
     "eskalationKnopf": "Talk to a staff member",
     "eskalationAngefordert": "Handed over to a staff member of the office - they will get in touch shortly.",
@@ -1475,6 +1853,35 @@
       "keinAnbieter": "The AI assistant is not currently set up. Please contact our office.",
       "antwort": "The AI assistant is not reachable right now. Please try again later or contact our office.",
       "badge": "Fallback answer"
+    },
+    "fehler": {
+      "sitzung": "Your session has expired or was ended. Please sign in again.",
+      "anmelden": "Sign in again",
+      "berechtigung": "Your role is not allowed to use the AI assistant.",
+      "zuLang": "This conversation has become too long.",
+      "neuBeginnen": "Start over"
+    },
+    "quellen": {
+      "titel": "Sources",
+      "stufe": {
+        "recht": "Primary law",
+        "untergesetzlich": "Subordinate regulation",
+        "erlaeuterung": "Official explanation",
+        "fachquelle": "Secondary source",
+        "presse": "Press",
+        "unbekannt": "Source"
+      },
+      "gueltigAb": "valid from {datum}",
+      "stand": "as of {datum}",
+      "ueberholt": "This source is outdated.",
+      "auskunft": "Third-party information, not a legal source. Check the primary source.",
+      "mehr": "Show more",
+      "weniger": "Show less",
+      "original": "Open original",
+      "intern": "Internal research",
+      "unbelegt": "There is no source for this citation.",
+      "gestuetzt": "Backed by statute text",
+      "nurFach": "Expert sources only: check the primary source"
     },
     "anbieterVerwaltung": {
       "titel": "Manage AI providers",
@@ -1508,7 +1915,196 @@
         "apiKey": "API key",
         "knopf": "Add provider"
       }
-    }
+    },
+    "ratenlimitVerwaltung": {
+      "titel": "Manage rate limit",
+      "lead": "Visible to administration only. Limits how often a role may trigger a billable AI request per minute. Without an entry, no limit applies.",
+      "keineEinstellung": "No rate limit set yet - the assistant is unlimited for every role.",
+      "alleRollen": "All roles (default)",
+      "standardBadge": "Default",
+      "grenzeText": "{grenze} requests per minute",
+      "keinLimitText": "No limit",
+      "entfernen": "Remove",
+      "entfernenSicher": "Really remove the rate limit for \"{name}\"? The next higher value, or no limit, applies afterwards.",
+      "formular": {
+        "titel": "Set rate limit",
+        "lead": "Applies to a single role, or, with \"All roles\", as the default for every role without its own entry.",
+        "rolle": "Role",
+        "bitteWaehlen": "Please choose",
+        "grenze": "Requests per minute",
+        "grenzePlatzhalter": "empty = no limit",
+        "knopf": "Save rate limit"
+      }
+    },
+    "diktat": {
+      "starten": "Dictate",
+      "stoppen": "Stop recording",
+      "laeuft": "Transcribing … (takes a few seconds)",
+      "oeffnet": "Opening microphone …",
+      "leer": "Nothing recorded.",
+      "fehlgeschlagen": "Speech recognition unavailable.",
+      "keinZugriff": "No microphone access."
+    },
+    "laeuft": {
+      "mwstStatusAbrufen": "Checking VAT status …",
+      "esutdOffeneFristenAbrufen": "Checking ESUTD deadlines …",
+      "complianceUebersichtAbrufen": "Checking compliance …",
+      "kuehlketteAbrufen": "Checking cold chain …",
+      "risikoRadarAbrufen": "Scanning risk radar …",
+      "oeffneBereich": "Opening {bereich} …",
+      "oeffnePruefBereich": "Opening {bereich} …",
+      "wissenSuchen": "Searching knowledge base …",
+      "unbekannt": "Working …",
+      "datenmodellErkunden": "Exploring the data model …",
+      "datenLesen": "Reading {tabelle} …",
+      "seiteLesen": "Reading the page …",
+      "klicke": "Clicking: {absicht} …",
+      "fuelleFeld": "Filling in: {absicht} …",
+      "scrolleZu": "Scrolling …",
+      "zeigeAuf": "Pointing at: {absicht} …"
+    },
+    "ziel": {
+      "mwstStatusAbrufen": "VAT registration",
+      "esutdOffeneFristenAbrufen": "ESUTD deadlines",
+      "complianceUebersichtAbrufen": "Compliance",
+      "kuehlketteAbrufen": "Cold chain",
+      "risikoRadarAbrufen": "Risk radar",
+      "oeffneBereich": "{bereich}",
+      "oeffnePruefBereich": "{bereich}",
+      "wissenSuchen": "Knowledge base",
+      "unbekannt": "Source",
+      "datenmodellErkunden": "Data model",
+      "datenLesen": "{tabelle}",
+      "mwstSchwellePruefen": "VAT registration",
+      "aufgabeAnlegen": "Picking tasks",
+      "aufgabeStatusSetzen": "Picking tasks",
+      "kuehlmessungErfassen": "Picking tasks",
+      "reklamationAnlegen": "Complaints",
+      "lohnPeriodeBerechnen": "Payroll",
+      "mitarbeiterEinschalten": "Chat"
+    },
+    "bereichAllgemein": "the area",
+    "pruefBereich": {
+      "audit": "Audit",
+      "steuer": "Tax",
+      "recht": "Legal",
+      "risiko": "Risk",
+      "massnahmen": "Action plan",
+      "einschraenkungen": "Limitations"
+    },
+    "assistentDenkt": "Assistant is finding the ripest facts …",
+    "leerTitel": "What can I help with?",
+    "modus": {
+      "label": "Mode",
+      "assistent": {
+        "name": "Assistant",
+        "kurz": "Answers with source links – you decide where to go.",
+        "beschreibung": "Ask about anything: company data, how the app works, or general expertise. Every answer shows its sources as steps – click one to jump there."
+      },
+      "agent": {
+        "name": "Agent",
+        "kurz": "Takes over the screen: navigates, clicks and fills in while it answers.",
+        "beschreibung": "Ask a question or give a task: the agent opens the right pages, reads them, clicks, fills in fields and explains as it goes. Anything that submits or deletes needs your confirmation first."
+      },
+      "schalterTitel": "Agent mode",
+      "schalterText": "The AI does not just guide you, it operates the app for you: it opens pages, clicks, fills in forms and highlights sections. You always confirm submitting and deleting yourself.",
+      "infoTitel": "What is the difference?",
+      "aktionenHinweis": "In both modes, actions (such as creating a task) always wait for your confirmation."
+    },
+    "nachUnten": "Scroll to latest",
+    "stopp": "Stop",
+    "einstellungen": "Settings",
+    "eskalationText": "Not getting the answer you need? Hand this conversation over to a person on the team.",
+    "fuehrung": {
+      "zeigt": "Agent is showing you: {ziel}",
+      "beenden": "Stop guiding"
+    },
+    "leerBereiche": "{bereiche} areas and {aktionen} actions for your role – discovered live from the app",
+    "aktion": {
+      "titel": {
+        "mwstSchwellePruefen": "Check VAT threshold",
+        "aufgabeAnlegen": "Create picking task",
+        "aufgabeStatusSetzen": "Set task status",
+        "kuehlmessungErfassen": "Record cooling measurement",
+        "reklamationAnlegen": "File complaint",
+        "lohnPeriodeBerechnen": "Calculate payroll",
+        "mitarbeiterEinschalten": "Hand over to a staff member"
+      },
+      "felder": {
+        "reihenblockCode": "Row block",
+        "zielmengeKg": "Target amount (kg)",
+        "pflueckerAnzahl": "Pickers",
+        "faelligkeit": "Due date",
+        "aufgabeCode": "Task",
+        "neuerStatus": "New status",
+        "temperaturC": "Temperature (°C)",
+        "grund": "Reason",
+        "betreff": "Subject",
+        "beschreibung": "Description",
+        "betroffeneMengeKg": "Affected amount (kg)",
+        "chargeCode": "Batch",
+        "kundenName": "Customer",
+        "periodeStart": "From",
+        "periodeEnde": "To"
+      },
+      "werte": {
+        "angenommen": "accepted",
+        "in_arbeit": "in progress",
+        "qualitaet": "Quality",
+        "menge": "Quantity",
+        "verspaetung": "Delay",
+        "verpackung": "Packaging",
+        "temperatur": "Temperature",
+        "sonstiges": "Other"
+      },
+      "bestaetigen": "Confirm",
+      "ablehnen": "Decline",
+      "freigabeNoetig": "Your approval is required",
+      "laeuft": "Running …",
+      "abgelehnt": "Declined – nothing was changed.",
+      "fehlgeschlagen": "Not executed",
+      "erledigt": "Done",
+      "vorbereiten": "Preparing action …",
+      "zeigen": "Show"
+    },
+    "vorschlaege": {
+      "assistent": {
+        "risiko": "Which legal deadlines are overdue?",
+        "mwst": "What is our VAT registration status?",
+        "kuehlkette": "How is the cold chain doing?",
+        "aufgaben": "Which picking tasks are open?",
+        "reklamationen": "Which complaints are open?",
+        "bereiche": "What can I open and do here?"
+      },
+      "agent": {
+        "risiko": "Run a full risk check and show me everything",
+        "mwst": "Show me where we stand on VAT",
+        "kuehlkette": "Walk me through the cold chain status",
+        "aufgabeAnlegen": "Create a picking task for the first free row block: 100 kg, due tomorrow",
+        "lohnBerechnen": "Calculate payroll for last month",
+        "reklamationMelden": "I want to file a complaint: the berries arrived mushy",
+        "bereiche": "Show me what I can open here"
+      }
+    },
+    "klick": {
+      "titel": "The agent wants to click",
+      "absicht": "Purpose",
+      "element": "Element",
+      "grund": {
+        "senden": "This click sends or changes data.",
+        "loeschen": "This click can delete or cancel something.",
+        "extern": "This link leaves the application.",
+        "doppelt": "This form was just submitted a moment ago. Submitting it again will probably create a duplicate entry."
+      },
+      "nicht": "Not done: {absicht}"
+    },
+    "transparenzHinweisAgent": "These answers come from an AI, not a staff member. Company data comes live from the app and appears as steps under each answer; everything else is general knowledge and is labelled as such.",
+    "pruefBezug": "Based on audit report {id}",
+    "pruefBezugEntfernen": "Remove the link to the audit report",
+    "pruefBezugKacheln": "Jump straight to a tile",
+    "mehr": "More",
+    "groesser": "Enlarge panel",
+    "kleiner": "Shrink panel"
   },
   "legal": {
     "imprintTitle": "Imprint",
@@ -1526,12 +2122,6 @@
     "privacyScopeText": "The prototype processes no personal data. No analytics cookies are set. The theme choice (light/dark) and the demo role are stored only locally in the browser.",
     "residencyTitle": "Data residency (planned operation)",
     "residencyText": "For later live operation, Kazakh Digital Code No. 255-VIII restricts storage of certain data products outside Kazakhstan. The hosting location for the QR, offline-sync and AI architecture will be reviewed legally before going live."
-  },
-  "kpiHerkunft": {
-    "berechenbar": "measurable today",
-    "erfassung-fehlt": "capture missing",
-    "tabelle-fehlt": "function missing",
-    "rechtlich-ungeklaert": "legally unconfirmed"
   },
   "nachweiskette": {
     "titel": "Chain of evidence",
@@ -1806,6 +2396,12 @@
     "satzLead": "Basis of the calculation: hourly rate, per-kg rate and the quality-factor corridor. Whoever is paid by it may see the basis.",
     "keinSatz": "No pay rate on file yet - no period can be calculated without one.",
     "wirkungslos": "The quality factor does not move away from 1.00 across the settlements shown - it currently has no visible effect on pay here. This can be due to missing waste data, not necessarily the formula.",
+    "abschlussLuecke": {
+      "titel": "Completed tasks without crates - missing from the settlement",
+      "eintrag": "{code}: {menge} kg reported, but no crate recorded - the volume component will not be included in the period calculation."
+    },
+    "historieTitel": "Rate history",
+    "historieLead": "All rates ever created, with their validity period - the highlighted one is valid today, not necessarily the most recently created.",
     "stat": {
       "stundenlohn": "Hourly rate",
       "kgSatz": "Per-kg rate",
@@ -1831,10 +2427,18 @@
       "aktion": "Action",
       "aufgabe": "Task",
       "ausschussAnteilig": "Waste (allocated)",
-      "betrag": "Amount"
+      "betrag": "Amount",
+      "gueltigAb": "Valid from",
+      "gueltigBis": "Valid until"
     },
     "freigebenKnopf": "Approve",
     "auszahlenKnopf": "Mark as paid",
+    "zurueckziehenKnopf": "Withdraw approval",
+    "bestaetigung": {
+      "freigeben": "Approve the settlement for {name} now?",
+      "auszahlen": "Mark the settlement for {name} as paid? This can no longer be undone.",
+      "zurueckziehen": "Withdraw the approval of the settlement for {name}? This only works for a person other than the one who approved it."
+    },
     "positionenTitel": "Line items per picking task",
     "positionenLead": "How the volume component is made up per task - the basis for allocating the task's waste.",
     "keinePositionen": "No line item calculated yet.",
@@ -1858,6 +2462,42 @@
         "periodeStart": "Period from",
         "periodeEnde": "Period to",
         "knopf": "Calculate period"
+      },
+      "abzuegeBerechnen": {
+        "titel": "Calculate monthly deductions",
+        "lead": "Aggregates the selected calendar month's payroll entries per picker and records ОПВ/ВОСМС/ИПН plus the employer burden. Running it again for the same month replaces the rows rather than duplicating them.",
+        "jahr": "Year",
+        "monat": "Month (1–12)",
+        "knopf": "Calculate monthly deductions"
+      }
+    },
+    "kz": {
+      "titel": "Statutory payroll deductions (Kazakhstan)",
+      "lead": "ОПВ (pension), ВОСМС (medical insurance) and ИПН (income tax) per calendar month, plus the additional employer burden (ОПВР/СО/СН/ОСМС). Calculated under the RK Tax Code 2026 – an approximation for the standard case, see the note below.",
+      "keinSatz": "No statutory deduction rate on file yet.",
+      "quelle": "Source:",
+      "steuerfrei": "tax-free",
+      "keineAbzuege": "No monthly deductions calculated yet.",
+      "note": "Approximation for the standard case: the standard 30 МРП deduction is applied by default (the law requires a written request for it), special allowances (disability, war veterans) are not modelled, and СН is shown here as a flat percentage without the СО offset that earlier versions of the law applied. Does not replace review by a qualified accountant.",
+      "stat": {
+        "opv": "ОПВ (pension contribution)",
+        "opvHinweis": "Employee side, capped at the assessment ceiling",
+        "vosms": "ВОСМС (medical insurance)",
+        "vosmsHinweis": "Employee side, capped at the assessment ceiling",
+        "ipn": "ИПН (income tax)",
+        "freibetrag": "Allowance:",
+        "arbeitgeberlast": "Total employer burden",
+        "arbeitgeberlastHinweis": "ОПВР + СО + СН + ОСМС, on top of gross pay"
+      },
+      "col": {
+        "pfluecker": "Picker",
+        "monat": "Month",
+        "brutto": "Gross",
+        "opv": "ОПВ",
+        "vosms": "ВОСМС",
+        "ipn": "ИПН",
+        "netto": "Net",
+        "arbeitgeberkosten": "Employer cost"
       }
     }
   },
@@ -1920,6 +2560,14 @@
       "preis": "Price (₸/kg)",
       "rechnungsdatum": "Invoice date",
       "knopf": "Save"
+    },
+    "betriebAufnehmen": {
+      "titel": "Add neighbouring farm",
+      "lead": "A farm must be listed here before the CSV import accepts its rows.",
+      "knopf": "Add farm",
+      "name": "Name",
+      "ort": "Location",
+      "kontakt": "Contact"
     }
   },
   "abrechnungAnsicht": {
@@ -1972,7 +2620,8 @@
       "title": "Crate labels",
       "lead": "QR code and plain-text code for each crate, print-ready. The QR code links to the public origin lookup for the crate's batch.",
       "empty": "No crate with a linked batch yet.",
-      "scanHinweis": "Scan for origin"
+      "scanHinweis": "Scan for origin",
+      "fallbackCode": "Enter without scanning: {code}"
     },
     "ausweise": {
       "title": "Picker ID badges",
@@ -2064,7 +2713,8 @@
         "notizen": "Notes (optional)",
         "knopf": "Update"
       }
-    }
+    },
+    "linkNichtVerfuegbar": "link unavailable"
   },
   "lieferungenAnsicht": {
     "titel": "Deliveries",
@@ -2301,7 +2951,7 @@
       "erfasst": "recorded",
       "offen": "open"
     },
-    "note": "Demand calculation and shift plan come directly from the rotation plan (which row block must be harvested on which day). Weather scenarios are deliberately not part of this view - the weather connection (requirement 2.13) has been deferred."
+    "note": "Demand calculation and shift plan come directly from the rotation plan (which row block must be harvested on which day). Weather scenarios are not part of this view - the growing-degree-day total is in the weather module."
   },
   "erlebnis": {
     "bento": {
@@ -2470,5 +3120,361 @@
     "bereitsKontrolliert": "Already inspected",
     "keinKontrollrecht": "Inspection by management or foreman",
     "naechste": "Next"
+  },
+  "pflanzenschutzProtokoll": {
+    "titel": "Treatments and waiting periods",
+    "lead": "Every recorded plant-protection treatment with dose, operator and waiting period. Entry and release happen at the row block.",
+    "note": "The protocol document is not carried along yet: the column stays empty for now.",
+    "wartezeitTage": "{tage} days",
+    "stat": {
+      "gesamt": "Treatments",
+      "laeuft": "waiting period running",
+      "ohneProtokoll": "without protocol"
+    },
+    "col": {
+      "block": "Row block",
+      "mittel": "Agent",
+      "behandeltAm": "Treated on",
+      "aufwand": "Dose",
+      "person": "Operator",
+      "wartezeit": "Waiting period / release",
+      "zustand": "State"
+    },
+    "zustand": {
+      "laeuft": "waiting period running",
+      "freigegeben": "released",
+      "abgelaufen": "waiting period elapsed, release pending"
+    },
+    "einheit": {
+      "l_ha": "l/ha",
+      "kg_ha": "kg/ha"
+    },
+    "filter": {
+      "label": "Release status",
+      "alle": "All",
+      "offen": "Not released",
+      "freigegeben": "Released"
+    },
+    "gekuerzt": "Showing the latest {anzahl} treatments, the figures above count all of them.",
+    "personVerborgen": "office only",
+    "personVerborgenHinweis": "The operator's name is only visible to the office."
+  },
+  "pruefung": {
+    "knopf": "Compliance audit",
+    "titel": "Compliance audit",
+    "untertitel": "Himbi checks your business against Kazakh law. Every statement is sourced.",
+    "start": "Start audit",
+    "abbrechen": "Cancel",
+    "schliessen": "Close",
+    "neu": "New audit",
+    "auswahl": {
+      "titel": "What should be checked?",
+      "gesperrt": "Not released for your role",
+      "hinweis": "For each area Himbi sends out its own mini-Himbi. It reads your business data, searches the legal texts and reports its findings. Nothing is asserted without a legal source."
+    },
+    "bereich": {
+      "audit": {
+        "name": "Audit",
+        "text": "Audit readiness: statutory audit, evidence, retention, traceability."
+      },
+      "steuer": {
+        "name": "Tax",
+        "text": "VAT, electronic invoices (ESF), transport documents (ESUTD), payroll contributions."
+      },
+      "recht": {
+        "name": "Legal",
+        "text": "Data protection, consent, disclosure to third parties, labour law and safety."
+      },
+      "risiko": {
+        "name": "Risk",
+        "text": "Overdue deadlines, sanctions, food safety and cold chain."
+      }
+    },
+    "agent": {
+      "name": {
+        "audit": "Audit Himbi",
+        "steuer": "Tax Himbi",
+        "recht": "Legal Himbi",
+        "risiko": "Risk Himbi"
+      },
+      "wartet": "waiting",
+      "spawn": "being sent out",
+      "sammelt": "reading data, searching the law",
+      "denkt": "assessing the evidence",
+      "fertig": "done",
+      "fehler": "failed",
+      "fand": "found {stelle}",
+      "bewertet": "assessing: {feld}"
+    },
+    "zaehler": {
+      "daten": "Data",
+      "quellen": "Sources",
+      "befunde": "Findings"
+    },
+    "phase": {
+      "plant": "Himbi is planning the audit",
+      "arbeit": "{fertig} of {gesamt} mini-Himbis done",
+      "synthese": "Himbi is combining the findings",
+      "fertig": "Audit complete",
+      "fehler": "Audit aborted"
+    },
+    "log": {
+      "fakten": "{agent}: read {n} business data sources ({feld})",
+      "recht": "{agent}: {n} legal sources for \"{feld}\", first {stelle}",
+      "befund": "{agent}: finding \"{titel}\"",
+      "spawn": "{agent} starts",
+      "fertig": "{agent} is done",
+      "synthese": "Himbi is combining the findings",
+      "syntheseFertig": "Report sealed",
+      "uebergabe": "{agent}: collector and lawyer hand \"{feld}\" over to the auditor"
+    },
+    "stufe": {
+      "bereit": "Audit ready",
+      "luecken": "With gaps",
+      "nicht-bereit": "Not audit ready"
+    },
+    "status": {
+      "verstoss": "Violation",
+      "luecke": "Gap",
+      "hinweis": "Note",
+      "konform": "Compliant"
+    },
+    "schwere": {
+      "kritisch": "critical",
+      "hoch": "high",
+      "mittel": "medium",
+      "niedrig": "low",
+      "keine": "none"
+    },
+    "rolle": {
+      "admin": "Administration",
+      "ceo": "CEO",
+      "betriebsleitung": "Farm management",
+      "buchhaltung": "Accounting",
+      "brigade": "Field crew",
+      "picker": "Picker",
+      "erzeuger": "Producer",
+      "kunde": "Customer"
+    },
+    "frist": {
+      "sofort": "immediately",
+      "tage7": "7 days",
+      "tage30": "30 days",
+      "tage90": "90 days"
+    },
+    "bericht": {
+      "titel": "Audit report",
+      "reife": "Readiness",
+      "prioritaeten": "The most important steps",
+      "befunde": "Findings",
+      "massnahmen": "Action plan",
+      "alle": "All",
+      "nurMeine": "Only my role",
+      "ohneRechtsbeleg": "No legal source: a note only, no assertion",
+      "ohneDaten": "No business data for your role: a note only",
+      "nachweise": "Evidence from your business data",
+      "betriebsdaten": "Business data",
+      "hinweise": "Limitations",
+      "unvollstaendig": "Not all audit fields could be assessed.",
+      "export": "Save as JSON",
+      "drucken": "Print"
+    },
+    "siegel": {
+      "titel": "Seal and evidence",
+      "id": "Report ID",
+      "erstellt": "Created",
+      "modell": "Model",
+      "pruefsumme": "Checksum",
+      "pruefen": "Verify seal",
+      "gueltig": "Seal valid: the report is unchanged.",
+      "ungueltig": "Seal invalid: the report has been altered."
+    },
+    "fehler": {
+      "allgemein": "The audit could not be completed.",
+      "wissensbasis": "The knowledge base is not available in this environment. No audit runs without legal sources.",
+      "laeuft": "An audit is already running.",
+      "rechte": "This audit is not released for your role.",
+      "anmeldung": "Please sign in again."
+    },
+    "nachbereitung": {
+      "titel": "Next steps",
+      "lead": "Discuss the result with Himbi or work through the checklist. The sealed report stays unchanged.",
+      "besprechen": "Discuss the result with Himbi",
+      "plan": "Ask for a solution plan",
+      "checkliste": "Action checklist",
+      "fortschritt": "{erledigt} of {gesamt} done",
+      "fertig": "All done. A new audit will confirm the progress.",
+      "leer": "Nothing open: the audit found no violations, gaps or notes.",
+      "pruefen": "Review and add evidence so this item can be assessed",
+      "grundlage": "Basis",
+      "loesung": "Work out the solution",
+      "frageStart": "Explain this audit result to me: what are the key points, where do I stand, and what should I do first?",
+      "fragePlan": "Create a concrete, prioritised solution plan for all violations and gaps in the audit report: steps, who is responsible, deadlines and which evidence I should keep. Use the knowledge base and cite the sources.",
+      "frageMassnahme": "How do I implement this action from the audit report in practice? Item: {titel}. Action: {schritt}. List the individual steps, the evidence I need and the legal basis.",
+      "frageHinweis": "The audit could not assess this item reliably: {titel}. What do I need to provide or clarify so it can be assessed?"
+    }
+  },
+  "ceoUebersicht": {
+    "titel": "What matters today",
+    "untertitel": "State of the four audit areas and of finances, checked automatically on every login.",
+    "zuletztGeprueft": "Last checked on {datum}",
+    "nochKeinBericht": "No automatic report yet. The first run starts in the background after this login, reload the page in a few minutes.",
+    "aktualisieren": "Check now",
+    "aktualisiertGerade": "Check running …",
+    "laeuftImHintergrund": "Check running",
+    "laeuftImHintergrundHinweis": "The automatic compliance check keeps running in the background, even on this page. Click to go to the overview for the full progress.",
+    "keineAenderung": "No changes since the last report.",
+    "aenderungenAnzahl": "{anzahl, plural, one {# change} other {# changes}} since the last report",
+    "kachelOeffnen": "{anzahl, plural, one {# finding} other {# findings}} · view details",
+    "bereichAlsPdf": "This area as PDF",
+    "bereichAlsJson": "This area as JSON",
+    "keineMassnahmen": "No open actions.",
+    "aenderungArt": {
+      "neu": "new",
+      "statusVeraendert": "Status changed: {vorher} → {jetzt}",
+      "schwereVeraendert": "Severity changed: {vorher} → {jetzt}"
+    },
+    "punkteTitel": "What needs attention today",
+    "keinePunkte": "No open points from the last report.",
+    "ohneZusammenfassung": "{punkte, plural, one {# open point} other {# open points}} in the last report.",
+    "zahlen": {
+      "sofort": "{anzahl, plural, one {# immediate} other {# immediate}}",
+      "ohneDaten": "{anzahl, plural, one {# point without data} other {# points without data}}"
+    },
+    "veraltet": "Older than 24 hours",
+    "weitereAenderungen": "and {anzahl} more",
+    "vollerBericht": "Open the full report",
+    "laeuftBereits": "A check is already running.",
+    "nichtGeprueft": "Not checked",
+    "ohneDaten": "No current data",
+    "tour": {
+      "frage": "Shall I show you the four review areas?",
+      "kopfTitel": "The big picture",
+      "bereich": "{reife} out of 100 points, {stufe}. {anzahl, plural, one {# finding} other {# findings}}. Click the tile for details.",
+      "massnahmen": "{anzahl, plural, one {# open action} other {# open actions}} with a deadline and an owner.",
+      "einschraenkungen": "{anzahl, plural, one {# review field could not be fully assessed.} other {# review fields could not be fully assessed.}}",
+      "ende": "That was all four areas. Click a tile any time to see the full details.",
+      "neustart": "Restart tour",
+      "zusammenfassung": "Summary in chat",
+      "nachfrage": "What else can I show you?"
+    },
+    "liveHinweis": "The compliance check is running live right now, you can watch every step here. It usually takes under a minute, feel free to keep working in the meantime.",
+    "liveHinweisKnopf": "Got it"
+  },
+  "pruefungAblauf": {
+    "schritt": {
+      "daten": "Business data",
+      "recht": "Law",
+      "bewertung": "Assessment"
+    },
+    "lane": {
+      "fertig": "{n} findings, {q} sources"
+    },
+    "zahl": {
+      "befunde": "Findings",
+      "quellen": "Sources",
+      "zeit": "Time",
+      "agenten": "Agents"
+    },
+    "schwarm": {
+      "titel": "Mini-Himbis at work",
+      "aktiv": "{n} active · {fertig} done",
+      "sammler": "Collector: reads the business data",
+      "jurist": "Lawyer: searches the legal sources",
+      "pruefer": "Auditor: writes the finding",
+      "wartet": "waiting",
+      "fertig": "done"
+    }
+  },
+  "pruefungPdf": {
+    "speichern": "Save as PDF",
+    "json": "Verifiable file (JSON)",
+    "titel": "Compliance audit report",
+    "quelle": "Legal sources",
+    "stufe": "Level",
+    "stand": "in force",
+    "abgerufen": "retrieved",
+    "massnahme": "Action",
+    "verantwortlich": "Responsible",
+    "frist": "Deadline",
+    "anhang": "Appendix: legal sources, verbatim",
+    "haftung": "This report was created by an AI system from the business data and the knowledge base. It does not replace legal or tax advice. The seal (SHA-256 over the canonical report content) allows verifying that the report has not been altered since it was created.",
+    "untertitel": "Raspberry farm Kazakhstan",
+    "vertraulich": "Confidential",
+    "dokumentart": "Compliance · Audit · Tax · Legal · Risk",
+    "auszugArt": "Excerpt from the compliance report",
+    "auszugSub": "Excerpt from report {id}, dated {datum}",
+    "auszugSiegelHinweis": "Excerpt from the fully sealed report; the seal applies to the complete report.",
+    "fussVertraulich": "Confidential · for the intended recipients only",
+    "seite": "Page",
+    "von": "of",
+    "nummer": "Report number",
+    "erstelltAm": "Created on",
+    "ersteller": "Created by",
+    "umfang": "Scope",
+    "umfangWert": "{felder} audit items · {quellen} cited legal sources · {daten} business data sources",
+    "inhalt": "Contents",
+    "siegelKurz": "Seal",
+    "abschnitt": {
+      "zusammenfassung": "Summary",
+      "ergebnis": "Result by area",
+      "methodik": "Method and scope",
+      "freigabe": "Approval"
+    },
+    "tabelle": {
+      "bereich": "Area",
+      "felder": "Items"
+    },
+    "prioritaet": "Priority",
+    "legende": {
+      "verstoss": "Violation: the business data show a breach of an obligation or an overdue obligation.",
+      "luecke": "Gap: an obligation is not evidenced or the data are incomplete.",
+      "hinweis": "Note: cannot be assessed (no business data or no clear legal source).",
+      "konform": "Compliant: business data and law show that the obligation is met.",
+      "stufen": "Audit readiness (0 to 100): 85 and above ready, 60 to 84 with gaps, below 60 not ready."
+    },
+    "methodik": {
+      "absatz1": "The audit was carried out by an AI system with several specialised agents. Each audit item has its own team: a collector reads the business data from the database, a lawyer researches the legal sources in the knowledge base, and an auditor assesses both and writes the finding. A coordinator combines the results.",
+      "absatz2": "Every legal statement names its source. Without a valid legal source or without business data, a finding is downgraded to a note. Audit readiness is calculated from the severity of the evidenced violations and gaps and is not estimated by the model."
+    },
+    "freigabe": {
+      "text": "Noted and approved for further use.",
+      "unterschrift": "Signature",
+      "ort": "Place, date",
+      "pruefer": "External auditor"
+    },
+    "verifikation": "The content of this report is sealed with a SHA-256 checksum. Anyone with the accompanying JSON file can recompute the seal in Damicon with \"Verify seal\"; any later change is detected.",
+    "tipp": "Tip for the print dialog: turn \"Headers and footers\" off, paper size A4. Colours and branding are applied automatically."
+  },
+  "complianceBericht": {
+    "titel": "Compliance report",
+    "lead": "The most recently stored overall report on audit, tax, law and risk.",
+    "zurueck": "Back to overview",
+    "stand": "As of {datum}",
+    "keinBericht": "No stored report yet. The first run starts in the background after the next login."
+  },
+  "startkarte": {
+    "brigade": {
+      "label": "Open picking tasks",
+      "kontext": "Not yet completed.",
+      "keine": "Nothing open.",
+      "weiter": "Go to picking tasks"
+    },
+    "pfluecker": {
+      "label": "Last payroll run",
+      "kontext": "Through {bis} · {status}",
+      "weiter": "Go to payroll",
+      "status": {
+        "entwurf": "draft",
+        "freigegeben": "approved",
+        "ausgezahlt": "paid"
+      }
+    },
+    "kunde": {
+      "label": "Next delivery",
+      "kontext": "{termin}",
+      "kontextMehrere": "{termin} · {anzahl} items",
+      "weiter": "Go to the B2B portal"
+    }
   }
 }

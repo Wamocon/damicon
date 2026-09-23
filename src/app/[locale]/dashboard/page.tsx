@@ -1,8 +1,30 @@
-import { setRequestLocale } from "next-intl/server";
+import { getFormatter, setRequestLocale } from "next-intl/server";
 import { DashboardHome } from "@/components/dashboard/home";
+import { BereicheBox } from "@/components/dashboard/bereiche-box";
+import { TagesUebersicht } from "@/components/dashboard/tages-uebersicht";
+import { StartkarteBrigade } from "@/components/dashboard/startkarte-brigade";
+import { StartkarteFinanzen } from "@/components/dashboard/startkarte-finanzen";
+import { StartkarteKunde } from "@/components/dashboard/startkarte-kunde";
+import { StartkartePfluecker } from "@/components/dashboard/startkarte-pfluecker";
 import { ladeKpis } from "@/lib/data/kpis";
 import { getSessionProfile } from "@/lib/auth";
 import { kpisFuerRolle } from "@/lib/domain/kpis";
+import { startkarteFuer } from "@/lib/domain/startkarte";
+import { darfCeoBerichtLesen } from "@/lib/pruefung/rollen";
+import { hasPermission } from "@/lib/rbac";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import {
+  betriebsZeitzone,
+  spruchIndex,
+  tageszeitBestimmen,
+} from "@/lib/domain/tageszeit";
+
+// Anforderung aus dem Auftrag vom 22.09.2026: der manuelle "Jetzt neu
+// pruefen"-Knopf der CEO-Uebersicht ist eine Server Action auf dieser Seite
+// und kann je nach Aenderungslage mehrere Modellaufrufe brauchen - derselbe
+// Wert wie app/api/ki-pruefung/route.ts fuer denselben zugrunde liegenden
+// Lauf (fuehrePruefungAus()).
+export const maxDuration = 300;
 
 export default async function DashboardPage({
   params,
@@ -13,25 +35,70 @@ export default async function DashboardPage({
   setRequestLocale(locale);
 
   // Die Baseline-Kennzahlen kommen aus public.kpi_baseline (Meilenstein B).
-  const [{ kpis, quelle }, profil] = await Promise.all([ladeKpis(), getSessionProfile()]);
+  const [{ kpis, quelle }, profil, format] = await Promise.all([
+    ladeKpis(),
+    getSessionProfile(),
+    getFormatter(),
+  ]);
 
   // WMC-Vibecode-Cleanup: kpisFuerRolle() lief bisher ausschliesslich
-  // clientseitig in DashboardHome (dort noetig fuer die "Ansicht als"-Vorschau
-  // eines Admins, siehe usePersona()). Ohne diesen serverseitigen Vorfilter
+  // clientseitig in DashboardHome. Ohne diesen serverseitigen Vorfilter
   // erreichten alle 14 Kennzahlen - darunter vertrauliche Werte wie
   // Deckungsbeitrag oder Verlustquote - jeden angemeldeten Client, auch
   // picker/erzeuger/kunde, die laut sichtbarFuer keine einzige sehen sollen.
   // Gefiltert wird nach der echten Profilrolle (nicht der clientseitig
   // umschaltbaren Persona-Rolle, die der Server gar nicht kennt) - ein Admin
   // in der Vorschau bekommt weiterhin alle Kennzahlen vom Server und filtert
-  // clientseitig fuer die Vorschau weiter, demoModus (profil === null) bleibt
-  // unveraendert, da dort ohnehin nur Platzhalterwerte fuer Interessenten
-  // gezeigt werden.
+  // clientseitig fuer die Vorschau weiter (bereiche-box.tsx), demoModus
+  // (profil === null) bleibt unveraendert, da dort ohnehin nur
+  // Platzhalterwerte fuer Interessenten gezeigt werden.
   let sichtbareKpis = kpis;
   if (profil) {
     const { kern, erweitert } = kpisFuerRolle(profil.role, kpis);
     sichtbareKpis = [...kern, ...erweitert];
   }
 
-  return <DashboardHome kpis={sichtbareKpis} quelle={quelle} />;
+  // Wie in [module]/page.tsx: gefiltert wird nach der echten Profilrolle, und
+  // im Demo-Betrieb ohne Supabase ist alles offen - dort gibt es keine
+  // Anmeldung und ohnehin nur Beispielwerte.
+  const darfFinanzenSehen = isSupabaseConfigured()
+    ? hasPermission(profil?.role, "finanzen", "view")
+    : true;
+
+  // Der Compliance-Report gilt seit dem 23.09.2026 fuer ceo UND admin. Entschieden wird an
+  // der ECHTEN Profilrolle, nicht an der clientseitig umschaltbaren Vorschau-Rolle - dieselbe
+  // Abgrenzung wie in ceo-pruefung-kontext.tsx. Im Demo-Betrieb ohne Supabase gibt es keinen
+  // gespeicherten Bericht, dort stuende sonst eine leere Karte.
+  const zeigtCompliance = isSupabaseConfigured() && darfCeoBerichtLesen(profil?.role);
+
+  // Die rechte Haelfte der Begruessungskarte: je Rolle eine andere Zahl. Ausgewaehlt an der
+  // ECHTEN Profilrolle - folgte sie der Vorschau, muesste der Server die Daten ALLER Rollen
+  // mitschicken, also auch Lohn- und Bestelldaten an jemanden, der gerade Finanzen ansieht.
+  const karte = isSupabaseConfigured() ? startkarteFuer(profil?.role) : null;
+  const startkarte =
+    karte === "finanzen" && darfFinanzenSehen ? (
+      <StartkarteFinanzen />
+    ) : karte === "pflueckaufgaben" ? (
+      <StartkarteBrigade />
+    ) : karte === "lohn" ? (
+      <StartkartePfluecker pflueckerId={profil?.pflueckerId ?? null} />
+    ) : karte === "lieferung" ? (
+      <StartkarteKunde b2bKundeId={profil?.b2bKundeId ?? null} />
+    ) : null;
+
+  const jetzt = new Date();
+
+  return (
+    <DashboardHome
+      tageszeit={tageszeitBestimmen(jetzt)}
+      datum={format.dateTime(jetzt, {
+        dateStyle: "full",
+        timeZone: betriebsZeitzone,
+      })}
+      spruch={spruchIndex(jetzt)}
+      startkarte={startkarte}
+      compliance={zeigtCompliance ? <TagesUebersicht /> : null}
+      bereiche={<BereicheBox kpis={sichtbareKpis} quelle={quelle} />}
+    />
+  );
 }

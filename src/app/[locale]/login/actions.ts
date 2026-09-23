@@ -61,7 +61,10 @@ export async function anmelden(
 export async function abmelden(formData: FormData): Promise<void> {
   const locale = sicheresLocale(formData.get("locale"));
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  // Nur diese Sitzung beenden. Der Standard ("global") meldet ALLE Sitzungen des
+  // Kontos ab - bei geteilten Konten (Demo, Tests) warf ein Abmelden dann alle
+  // anderen Nutzer hinaus, und ein laufender KI-Chat brach mit einem Fehler ab.
+  await supabase.auth.signOut({ scope: "local" });
   revalidatePath("/", "layout");
   redirect(`/${locale}/login`);
 }

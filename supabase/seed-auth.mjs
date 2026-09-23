@@ -31,6 +31,9 @@ export const demoPasswort = "DamiconDemo2026!";
 
 const demoBenutzer = [
   { email: "admin@damicon.demo", role: "admin", full_name: "Aigerim Serikbaj" },
+  // Achte Rolle ceo (nachtraeglich, weicht von "Anforderung 7.1: genau sieben
+  // Rollen" ab, siehe supabase/migrations/20261103020000_ceo_rolle.sql).
+  { email: "ceo@damicon.demo", role: "ceo", full_name: "Nurlan Abenov" },
   { email: "leitung@damicon.demo", role: "betriebsleitung", full_name: "Daniyar Omarov" },
   { email: "buchhaltung@damicon.demo", role: "buchhaltung", full_name: "Saltanat Nurlan" },
   { email: "brigade@damicon.demo", role: "brigade", full_name: "Ruslan Beisenov" },
@@ -119,12 +122,22 @@ async function main() {
   }
 
   // Die Brigade-Rolle bekommt eine echte Brigadenzuordnung, damit die
-  // Feld-Ansichten gefiltert werden koennen.
+  // Feld-Ansichten gefiltert werden koennen. Ausdruecklich "Brigade Nord",
+  // nicht die alphabetisch erste (WMCNL-2298): order("name").limit(1) traf
+  // bislang "Brigade Nachbarbetrieb" ("Na" < "No"), eine Brigade eines
+  // Nachbarbetriebs ohne eigene offene Feldaufgaben. Die
+  // Schreib-RLS-Eingrenzung auf die eigene Brigade
+  // (pflueckaufgaben_update_feld, 20261018000000_brigade_schreibumfang.sql)
+  // liess "Aufgabe annehmen" und "Menge melden" damit fuer jede Aufgabe von
+  // Brigade Nord/Ost scheitern, obwohl rbac.ts und die Oberflaeche den
+  // Vorgang anboten. "Brigade Nord" ist die Brigade, zu der auch
+  // pfluecker@damicon.demo (Ausweis MAL-0417, siehe unten) und die
+  // Lohn-Demodaten in seed.sql gehoeren - derselbe Bezug wie ueberall sonst
+  // im Demo-Datensatz.
   const { data: brigade } = await admin
     .from("brigaden")
     .select("id")
-    .order("name")
-    .limit(1)
+    .eq("name", "Brigade Nord")
     .maybeSingle();
 
   if (brigade) {

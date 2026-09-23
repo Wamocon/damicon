@@ -15,29 +15,31 @@ export function Hero() {
 
   return (
     <section className="relative isolate overflow-hidden bg-[#04161c] text-white">
-      {/* Echtes Rundgangsmaterial aus der Plantage im Umland Almaty statt
-          eines Stockfotos - siehe hero-video.tsx. */}
+      {/* Der Werbefilm, stumm in Schleife, mit Pause und Ton zum Zuschalten
+          oben rechts - siehe hero-video.tsx. */}
       <HeroVideo className="absolute inset-0 -z-10 h-full w-full" />
-      {/* Das Video laeuft ungedaempft und bringt die Farbe selbst mit - das
-          Rot der Frucht ist hier das Motiv, nicht die Markenfarbe. Frueher lag
-          darueber ein flaechiger Schleier aus Flaggenblau und Nachtblau; der
-          hat das Material auf etwa ein Zehntel heruntergezogen und alles ins
-          Gruenliche gekippt.
-
-          Stattdessen deckt der Verlauf jetzt nur dort ab, wo Text liegt.
-          Gemessen am Standbild traegt die Textzone links oben von sich aus
-          9,5:1 gegen Weiss, die helle rechte Bildhaelfte dagegen nur 1,1:1 -
-          ein Schleier ueber der ganzen Flaeche loest also ein Problem, das
-          links gar nicht besteht, und kostet rechts das Bild.
+      {/* Der Verlauf deckt nur dort ab, wo Text liegt. Ein Schleier ueber
+          der ganzen Flaeche loest links ein Problem, das dort nicht besteht,
+          und kostet rechts das Bild.
 
           Ab sm zieht deshalb ein seitlicher Verlauf von links (0,88) nach
-          rechts aus: unter der Schrift bleiben auch bei einem hellen
-          Videobild 4,7:1, die Himbeeren rechts stehen frei. Darunter faengt
-          ein flacher vertikaler Verlauf die Stat-Karten und den Uebergang zur
-          naechsten Sektion ab. Auf schmalen Viewports laeuft der Text ueber
-          die volle Breite - dort greift der seitliche Verlauf nicht, deshalb
-          die flaechigere Variante als Basis. */}
-      <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(4,22,28,0.80)_0%,rgba(4,22,28,0.66)_45%,rgba(4,22,28,0.88)_100%)] sm:bg-[linear-gradient(95deg,rgba(4,22,28,0.88)_0%,rgba(4,22,28,0.72)_34%,rgba(4,22,28,0.34)_56%,rgba(4,22,28,0.08)_76%,transparent_100%),linear-gradient(180deg,transparent_58%,rgba(4,22,28,0.45)_82%,rgba(4,22,28,0.82)_100%)]" />
+          rechts aus. Die mittleren Stufen stehen seit dem 23.09.2026 hoeher
+          als zuvor (0,78 statt 0,72 bei 34 %, 0,52 statt 0,34 bei 56 %, 0,20
+          statt 0,08 bei 76 %): das alte Rundgangsmaterial war durchgehend
+          dunkel, der Werbefilm hat helle Luftaufnahmen. Gemessen ueber alle
+          40 Sekunden, Bild fuer Bild mit dem Verlauf verrechnet, traegt die
+          Textflaeche im Mittel 9 bis 16:1 gegen Weiss; an der knappsten
+          Stelle (Sekunde 33,5, Abendaufnahme mit hellem Himmel) liegen mit
+          den alten Stufen 16 % der Flaeche unter 3:1, mit den neuen 9 %.
+          Weiter abdunkeln ginge, kostet dann aber sichtbar Bild.
+
+          Darunter faengt ein flacher vertikaler Verlauf die Stat-Karten und
+          den Uebergang zur naechsten Sektion ab. Auf schmalen Viewports
+          laeuft der Text ueber die volle Breite - dort greift der seitliche
+          Verlauf nicht, deshalb die flaechigere Variante als Basis. Sie
+          bleibt bei 0,66 in der Mitte: das traegt auch ueber einem reinweissen
+          Bild noch 6,2:1, mehr waere nur dunkler. */}
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(4,22,28,0.80)_0%,rgba(4,22,28,0.66)_45%,rgba(4,22,28,0.88)_100%)] sm:bg-[linear-gradient(95deg,rgba(4,22,28,0.88)_0%,rgba(4,22,28,0.78)_34%,rgba(4,22,28,0.52)_56%,rgba(4,22,28,0.20)_76%,transparent_100%),linear-gradient(180deg,transparent_58%,rgba(4,22,28,0.45)_82%,rgba(4,22,28,0.82)_100%)]" />
 
       <div className="container relative flex min-h-[calc(100svh-4rem)] flex-col justify-center py-16">
         <div className="mb-5 inline-flex w-fit items-center gap-2 rounded-full border border-white/15 bg-white/6 px-3 py-1.5 text-xs font-semibold tracking-wide text-white/80 backdrop-blur">

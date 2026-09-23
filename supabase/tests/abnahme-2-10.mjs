@@ -93,7 +93,7 @@ console.log("Abnahmetest Anforderung 2.10 - Stichprobenkontrolle je Steige\n");
 try {
   await db.exec(readFileSync(join(WURZEL, "supabase/fixtures/auth-stub.sql"), "utf8"));
   for (const d of readdirSync(join(WURZEL, "supabase/migrations"))
-    .filter((f) => f.endsWith(".sql"))
+    .filter((f) => f.endsWith(".sql") && !f.endsWith("_pgvector.sql"))
     .sort()) {
     await db.exec(readFileSync(join(WURZEL, "supabase/migrations", d), "utf8"));
   }
@@ -164,16 +164,18 @@ if (!aufg[0]) {
 }
 const { rows: pf } = await db.query(`select id from public.pfluecker limit 1;`);
 
-// Die Feldkraft gehoert derselben Brigade an wie die Aufgabe - genau wie eine
-// echte Feldkraft im Betrieb einer Brigade zugeordnet ist. Ohne diese Zuordnung
-// (brigade_id bliebe null) blockt bereits steigen_update_feld (20261018000000)
-// jeden Kontrollversuch per RLS, bevor der hier eigentlich geprüfte Trigger
-// (Kennzeichenpflicht) ueberhaupt greifen kann - das Recht bliebe ungetestet.
+// Feldkraft und Vorarbeiter gehoeren derselben Brigade an wie die Aufgabe -
+// genau wie eine echte Feldkraft und ihr Vorarbeiter im Betrieb derselben
+// Brigade zugeordnet sind. Ohne diese Zuordnung (brigade_id bliebe null)
+// blockt bereits steigen_insert_feld/steigen_update_feld (20261018000000,
+// 20261109040000/WMCNL-2453) jeden Anlage- bzw. Kontrollversuch per RLS,
+// bevor der hier eigentlich geprüfte Trigger (Kennzeichenpflicht) ueberhaupt
+// greifen kann - das Recht bliebe ungetestet.
 if (aufg[0].brigade_id) {
-  await db.query(`update public.profiles set brigade_id = $1 where id = $2;`, [
-    aufg[0].brigade_id,
-    profilFeldkraft,
-  ]);
+  await db.query(
+    `update public.profiles set brigade_id = $1 where id = any($2::uuid[]);`,
+    [aufg[0].brigade_id, [profilFeldkraft, profilVorarbeiter]],
+  );
 }
 
 // Die Feldkraft legt die Steige an und schickt dabei absichtlich ein fremdes

@@ -1,0 +1,50 @@
+[
+  {
+    "breite": "1600",
+    "schema": "hell",
+    "scrollHoehe": 1854,
+    "sichtHoehe": 900,
+    "kacheln": 0,
+    "spalten": "none"
+  },
+  {
+    "breite": "1440",
+    "schema": "hell",
+    "scrollHoehe": 1902,
+    "sichtHoehe": 900,
+    "kacheln": 0,
+    "spalten": "none"
+  },
+  {
+    "breite": "1440",
+    "schema": "dunkel",
+    "scrollHoehe": 1902,
+    "sichtHoehe": 900,
+    "kacheln": 0,
+    "spalten": "none"
+  },
+  {
+    "breite": "1024",
+    "schema": "hell",
+    "scrollHoehe": 2150,
+    "sichtHoehe": 900,
+    "kacheln": 0,
+    "spalten": "none"
+  },
+  {
+    "breite": "390",
+    "schema": "hell",
+    "scrollHoehe": 3551,
+    "sichtHoehe": 844,
+    "kacheln": 0,
+    "spalten": "none"
+  },
+  {
+    "breite": "390",
+    "schema": "dunkel",
+    "scrollHoehe": 3551,
+    "sichtHoehe": 844,
+    "kacheln": 0,
+    "spalten": "none"
+  }
+]

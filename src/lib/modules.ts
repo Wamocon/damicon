@@ -3,15 +3,15 @@ import type { Resource } from "./rbac";
 // Zielarchitektur aus dem Pitch-Dossier: die vier Zonen Feld, Hof, Buero, Markt.
 export type ZoneKey = "feld" | "hof" | "buero" | "markt";
 
-// Klassifikation je Baustein aus Analyse Kapitel 5.
-export type Klassifikation = "uebernehmen" | "anpassen" | "neu-bauen";
-
-// Reifegrad im Prototyp:
-//  - "angebunden": Hauptfunktion, an die Datenbank angebunden, mit echten
-//    Schreibvorgaengen unter RLS (Meilenstein B)
-//  - "demo": Hauptfunktion, als bedienbare Mock-Oberflaeche gebaut
-//  - "in-entwicklung": Unterfunktion, sichtbarer Menuepunkt mit Status-Badge
-export type Reifegrad = "angebunden" | "demo" | "in-entwicklung";
+// Reifegrad eines Moduls:
+//  - "angebunden": an die Datenbank angebunden, mit echten Schreibvorgaengen
+//    unter RLS
+//  - "in-entwicklung": sichtbarer Menuepunkt, noch ohne eigene Ansicht
+//
+// Es gab einmal einen dritten Wert "demo" fuer bedienbare Mock-Oberflaechen.
+// Kein Modul trug ihn noch, seine Pille war in vier Sprachen uebersetzt, und
+// die FAQ der oeffentlichen Seite meldete darueber "0 als bedienbare Demo".
+export type Reifegrad = "angebunden" | "in-entwicklung";
 
 export interface ModuleDef {
   key: string;
@@ -19,7 +19,6 @@ export interface ModuleDef {
   slug: string;
   icon: string;
   resource: Resource;
-  klassifikation: Klassifikation;
   reifegrad: Reifegrad;
 }
 
@@ -32,7 +31,7 @@ export interface ZoneDef {
 
 export const zones: ZoneDef[] = [
   { key: "feld", slug: "feld", icon: "sprout", accent: "var(--accent)" },
-  { key: "hof", slug: "hof", icon: "snowflake", accent: "var(--chart-5)" },
+  { key: "hof", slug: "hof", icon: "warehouse", accent: "var(--chart-5)" },
   { key: "buero", slug: "buero", icon: "briefcase", accent: "var(--primary)" },
   { key: "markt", slug: "markt", icon: "store", accent: "var(--warning)" },
 ];
@@ -45,7 +44,6 @@ export const modules: ModuleDef[] = [
     slug: "standort",
     icon: "map",
     resource: "standort",
-    klassifikation: "anpassen",
     reifegrad: "angebunden",
   },
   {
@@ -54,7 +52,6 @@ export const modules: ModuleDef[] = [
     slug: "reihenbloecke",
     icon: "grid-3x3",
     resource: "reihenbloecke",
-    klassifikation: "anpassen",
     reifegrad: "angebunden",
   },
   {
@@ -63,7 +60,6 @@ export const modules: ModuleDef[] = [
     slug: "pflueckaufgaben",
     icon: "clipboard-check",
     resource: "pflueckaufgaben",
-    klassifikation: "uebernehmen",
     reifegrad: "angebunden",
   },
   {
@@ -72,7 +68,6 @@ export const modules: ModuleDef[] = [
     slug: "pflanzenschutz",
     icon: "shield-alert",
     resource: "pflanzenschutz",
-    klassifikation: "anpassen",
     // Anforderung 2.4: zeigt jetzt dieselbe echte Reihenbloecke-Ansicht wie
     // das Modul "reihenbloecke" (siehe server-module-views.tsx), nicht mehr
     // die reine Demo-Komponente.
@@ -84,7 +79,6 @@ export const modules: ModuleDef[] = [
     slug: "rotationsplan",
     icon: "calendar-sync",
     resource: "rotationsplan",
-    klassifikation: "neu-bauen",
     // Anforderung 2.2 (P1, "die erste zu bauende Funktion"): Zyklusrechnung
     // und Sperrlogik laufen jetzt vollstaendig in der Datenbank (Migration
     // 20260910000000) - Generator-RPC, automatisches Sperren/Entsperren bei
@@ -100,7 +94,6 @@ export const modules: ModuleDef[] = [
     slug: "wetter",
     icon: "cloud-sun",
     resource: "rotationsplan",
-    klassifikation: "neu-bauen",
     // Anforderung 2.13: Temperatursummen-Heuristik ueber Open-Meteo, siehe
     // wetter-ansicht.tsx. Bewusst kein Prognosemodell ("Prognosemodelle erst
     // ab der zweiten Saison") - die Kennzahl wird sichtbar, nicht bewertet.
@@ -114,7 +107,6 @@ export const modules: ModuleDef[] = [
     slug: "kuehlkette",
     icon: "thermometer-snowflake",
     resource: "kuehlkette",
-    klassifikation: "neu-bauen",
     // Anforderung 3.1: die Live-Alarmlogik (KuehlkettenAlarm, mitzaehlend vor
     // Ablauf der 60-Minuten-Grenze statt nur rueckblickend zu urteilen) gab es
     // bereits je Pflueckaufgabe - hier jetzt betriebsweit fuer alle offenen
@@ -127,7 +119,6 @@ export const modules: ModuleDef[] = [
     slug: "logistik",
     icon: "truck",
     resource: "logistik",
-    klassifikation: "anpassen",
     // Anforderung 3.5 Teil 1 (Tourenplanung mit Routenoptimierung ueber
     // OSRM/Nominatim) und Teil 2 (digitale Uebergabequittung) sind beide
     // angebunden (LogistikAnsicht). Fahrzeugkapazitaet und Lieferzeitfenster
@@ -140,7 +131,6 @@ export const modules: ModuleDef[] = [
     slug: "qr-steigen",
     icon: "qr-code",
     resource: "qr_steigen",
-    klassifikation: "anpassen",
     // WMCNL-1439: QR-Etiketten (Steigen), Pfluecker-Ausweise und ein
     // Aushang-Poster werden serverseitig aus echten steigen/chargen/
     // pfluecker-Zeilen erzeugt (kein Mock mehr, siehe
@@ -164,7 +154,6 @@ export const modules: ModuleDef[] = [
     slug: "lieferschein-esf",
     icon: "file-check-2",
     resource: "integrationen",
-    klassifikation: "neu-bauen",
     reifegrad: "in-entwicklung",
   },
 
@@ -175,7 +164,6 @@ export const modules: ModuleDef[] = [
     slug: "rollen",
     icon: "shield-check",
     resource: "rollen",
-    klassifikation: "uebernehmen",
     // Anforderung E.20: die Einladungsverwaltung (EinladungenAnsicht) schreibt
     // echte kundeneinladungen-Zeilen unter RLS und legt beim Einloesen ein
     // Konto an - der erste schreibende Vorgang in diesem Modul ueberhaupt.
@@ -191,7 +179,6 @@ export const modules: ModuleDef[] = [
     slug: "finanzen",
     icon: "coins",
     resource: "finanzen",
-    klassifikation: "anpassen",
     // Anforderung 4.2 (P0): Kostentraeger und Ledger-Buchungen laufen jetzt
     // ueber echte Schreibpfade unter RLS (Migration 20260909000000), der
     // Deckungsbeitrag kommt aus der Datenbank-View
@@ -200,12 +187,29 @@ export const modules: ModuleDef[] = [
     reifegrad: "angebunden",
   },
   {
+    key: "wirtschaftlichkeit",
+    zone: "buero",
+    slug: "wirtschaftlichkeit",
+    icon: "trending-up",
+    resource: "wirtschaftlichkeit",
+    // Investitionsrechnung zur Einfuehrung: Amortisation, Rendite, CAPEX,
+    // OPEX, Kapitalwert. Steht direkt hinter den Finanzen, weil beide Seiten
+    // Geld zeigen und der Unterschied erklaerungsbeduerftig ist: nebenan der
+    // laufende Betrieb je Monat, hier die einmalige Investition ueber drei
+    // Jahre. Nebeneinander in der Leiste ist der Unterschied leichter zu
+    // erklaeren als quer durch das Menue verteilt.
+    //
+    // Die Zahlen sind noch Modellwerte aus der Kennzahlenliste der
+    // Geschaeftsfuehrung (lib/domain/wirtschaftlichkeit.ts), nicht aus dem
+    // Betrieb - deshalb "in-entwicklung", obwohl die Seite rechnet.
+    reifegrad: "in-entwicklung",
+  },
+  {
     key: "personal",
     zone: "buero",
     slug: "personal",
     icon: "users",
     resource: "personal",
-    klassifikation: "anpassen",
     // Anforderung 2.11: Schicht-Konzept (brigade_einsatzplan),
     // Bedarfsrechnung (brigadenplanung_bedarf) und Reserveliste sind
     // angebunden. Wetterszenarien bleiben offen (Anforderung 2.13, bewusst
@@ -218,7 +222,6 @@ export const modules: ModuleDef[] = [
     slug: "lohn",
     icon: "calculator",
     resource: "lohn",
-    klassifikation: "neu-bauen",
     reifegrad: "angebunden",
   },
   {
@@ -227,7 +230,6 @@ export const modules: ModuleDef[] = [
     slug: "dokumente",
     icon: "folder-lock",
     resource: "dokumente",
-    klassifikation: "uebernehmen",
     reifegrad: "angebunden",
   },
   {
@@ -236,7 +238,6 @@ export const modules: ModuleDef[] = [
     slug: "compliance",
     icon: "scale",
     resource: "compliance",
-    klassifikation: "anpassen",
     reifegrad: "angebunden",
   },
   {
@@ -245,7 +246,6 @@ export const modules: ModuleDef[] = [
     slug: "integrationen",
     icon: "plug",
     resource: "integrationen",
-    klassifikation: "neu-bauen",
     reifegrad: "in-entwicklung",
   },
   {
@@ -254,7 +254,6 @@ export const modules: ModuleDef[] = [
     slug: "foerdermittel",
     icon: "landmark",
     resource: "foerdermittel",
-    klassifikation: "anpassen",
     // Anforderung 4.12: Status/Frist eines Dossiers pflegen und angehaengte
     // Nachweisdokumente sehen ist angebunden. Echte Antragsvorlagen fuer
     // gosagro.kz/qoldau.kz bleiben bewusst offen (fachliche Festlegung, siehe
@@ -269,7 +268,6 @@ export const modules: ModuleDef[] = [
     slug: "sortenkatalog",
     icon: "book-open",
     resource: "sortenkatalog",
-    klassifikation: "anpassen",
     // Sorten-Stammdaten (Name/Typ/Erntefenster/Schalengroesse) und
     // Kontingent-Verwaltung (Menge je Kunde/Sorte/Saison) sowie eine
     // aggregierte Verfuegbarkeits-Uebersicht je Sorte/Saison, siehe Migration
@@ -282,7 +280,6 @@ export const modules: ModuleDef[] = [
     slug: "b2b-portal",
     icon: "handshake",
     resource: "b2b_portal",
-    klassifikation: "anpassen",
     // Anforderung 5.2 Teil 2a: "Meine Lieferungen" mit echtem Lieferstatus.
     // Anforderung 5.1, Teil 2 von 2: Preisliste anzeigen und Vorbestellung
     // aufgeben (manuelle Buero-Bestaetigung statt automatischem
@@ -302,7 +299,6 @@ export const modules: ModuleDef[] = [
     slug: "reklamationen",
     icon: "message-square-warning",
     resource: "reklamationen",
-    klassifikation: "neu-bauen",
     reifegrad: "angebunden",
   },
   {
@@ -311,23 +307,9 @@ export const modules: ModuleDef[] = [
     slug: "preislisten",
     icon: "tag",
     resource: "preislisten",
-    klassifikation: "anpassen",
     // Anforderung 5.1/5.2: Preisstaffelung je Kundengruppe (Migration
     // 20261011000000) - feste Kundengruppe an b2b_kunden, eine Preisliste
     // optional einer Gruppe zugeordnet, gruppenlos = Standard-Fallback.
-    reifegrad: "angebunden",
-  },
-  {
-    key: "ki_assistent",
-    zone: "markt",
-    slug: "ki-assistent",
-    icon: "sparkles",
-    resource: "ki_assistent",
-    klassifikation: "uebernehmen",
-    // Anforderung 5.4/5.5: echter, anbieteruebergreifender Chat statt reinem
-    // Platzhalter-Chatfenster (KiAssistentMock entfaellt). Ein Admin bindet
-    // Sokrates, Claude (Anthropic) oder ein selbst gehostetes Open-Source-
-    // Modell jeweils per API-Key an (ki-assistent-ansicht.tsx).
     reifegrad: "angebunden",
   },
   {
@@ -336,7 +318,6 @@ export const modules: ModuleDef[] = [
     slug: "aggregator",
     icon: "network",
     resource: "aggregator",
-    klassifikation: "anpassen",
     // WMCNL-1453: CSV-Import (src/lib/import/zukauf-parser.ts) schreibt unter
     // RLS echte zukauf_positionen/chargen-Zeilen ueber die atomare RPC
     // public.zukauf_positionen_importieren() - Ende-zu-Ende-Erfassung
@@ -349,7 +330,6 @@ export const modules: ModuleDef[] = [
     slug: "schulungen",
     icon: "graduation-cap",
     resource: "schulungen",
-    klassifikation: "uebernehmen",
     // Anforderung 2.12: mehrsprachige Kurzeinarbeitung als bebilderte
     // Checkliste (einarbeitung_schritte/-fortschritt) loest die bisherige
     // Mock-Ansicht ab, siehe EinarbeitungAnsicht.
@@ -361,7 +341,6 @@ export const modules: ModuleDef[] = [
     slug: "stammdaten",
     icon: "building-2",
     resource: "stammdaten",
-    klassifikation: "neu-bauen",
     // Anforderung E.11: Rechtsform und ИИН/БИН von Betrieb, Zulieferern
     // und Kunden an einer Stelle. Im Buero und nicht bei den drei
     // Fachbereichen, weil dieselbe Person sie fuer alle drei Gruppen
@@ -374,7 +353,6 @@ export const modules: ModuleDef[] = [
     slug: "kanaele",
     icon: "message-circle",
     resource: "kanaele",
-    klassifikation: "neu-bauen",
     // Anforderung 5.6: lokal etablierte Kontaktkanaele/Zahlungswege, vom
     // Buero gepflegt und im Seitenfuss oeffentlich sichtbar. Reine Anzeige,
     // keine echte API-Integration (Nutzer-Entscheidung).

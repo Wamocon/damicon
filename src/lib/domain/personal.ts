@@ -13,6 +13,11 @@ export interface PfleuckerZeile {
   brigadeId: string | null;
   brigadeName: string | null;
   esutd: string;
+  // Migration 20261025000000: die 5-Werktage-ESUTD-Meldefrist, fertig
+  // berechnet aus esutd_vertraege_mit_frist - null, wenn kein offener
+  // Vertrag mit Beginndatum vorliegt (kein Feldarbeiter ohne erkennbare
+  // Frist zeigt einen falschen Countdown).
+  esutdFaelligkeit: string | null;
   letzteMengeKg: number | null;
   letzterQualitaetsfaktor: number | null;
 }
@@ -51,6 +56,11 @@ export const demoBrigaden: BrigadeZeile[] = [
   { id: "demo-brigade-2", name: "Brigade Ost", vorarbeiter: "A. Duissenov", staerke: 5, plantage: "Plantage Ost" },
 ];
 
+// Namenskonvention wie im ganzen Projekt (z. B. CACHE_MS in lib/ai/datenmodell.ts,
+// ABSCHNITT_GUELTIG_MS in domain/sprachausgabe-signatur.ts): Dauer als benannte
+// _MS-Konstante statt eines rohen Ausdrucks an der Verwendungsstelle.
+const EIN_TAG_MS = 1000 * 60 * 60 * 24;
+
 export const demoPfluecker: PfleuckerZeile[] = [
   {
     id: "demo-pfluecker-1",
@@ -59,6 +69,7 @@ export const demoPfluecker: PfleuckerZeile[] = [
     brigadeId: "demo-brigade-1",
     brigadeName: "Brigade Nord",
     esutd: "erfasst",
+    esutdFaelligkeit: null,
     letzteMengeKg: 25.7,
     letzterQualitaetsfaktor: 0.95,
   },
@@ -69,6 +80,9 @@ export const demoPfluecker: PfleuckerZeile[] = [
     brigadeId: null,
     brigadeName: null,
     esutd: "offen",
+    // Demo: Vertrag vor drei Tagen begonnen, Frist laeuft noch (5 Werktage
+    // minus Wochenende) - eine bald faellige, nicht ueberfaellige Kachel.
+    esutdFaelligkeit: new Date(Date.now() + EIN_TAG_MS).toISOString(),
     letzteMengeKg: null,
     letzterQualitaetsfaktor: null,
   },

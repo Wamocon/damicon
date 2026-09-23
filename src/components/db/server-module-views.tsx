@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { StandortAnsicht } from "@/components/db/standort-ansicht";
+import { PflanzenschutzAnsicht } from "@/components/db/pflanzenschutz-ansicht";
 import { ReihenbloeckeAnsicht } from "@/components/db/reihenbloecke-ansicht";
 import { PflueckaufgabenAnsicht } from "@/components/db/pflueckaufgaben-ansicht";
 import { DokumenteAnsicht } from "@/components/db/dokumente-ansicht";
@@ -7,6 +8,7 @@ import { ComplianceAnsicht } from "@/components/db/compliance-ansicht";
 import { ReklamationenAnsicht } from "@/components/db/reklamationen-ansicht";
 import { LohnAnsicht } from "@/components/db/lohn-ansicht";
 import { FinanzenAnsicht } from "@/components/db/finanzen-ansicht";
+import { WirtschaftlichkeitAnsicht } from "@/components/db/wirtschaftlichkeit-ansicht";
 import { RotationsplanAnsicht } from "@/components/db/rotationsplan-ansicht";
 import { ZukaufAnsicht } from "@/components/db/zukauf-ansicht";
 import { QrSteigenAnsicht } from "@/components/db/qr-steigen-ansicht";
@@ -16,7 +18,6 @@ import { FoerdermittelAnsicht } from "@/components/db/foerdermittel-ansicht";
 import { LogistikAnsicht } from "@/components/db/logistik-ansicht";
 import { B2bPortalAnsicht } from "@/components/db/b2b-portal-ansicht";
 import { PersonalAnsicht } from "@/components/db/personal-ansicht";
-import { KiAssistentAnsicht } from "@/components/db/ki-assistent-ansicht";
 import { EinladungenAnsicht } from "@/components/db/einladungen-ansicht";
 import { KuehletteAnsicht } from "@/components/db/kuehlkette-ansicht";
 import { WetterAnsicht } from "@/components/db/wetter-ansicht";
@@ -41,7 +42,15 @@ export function serverModulAnsicht(
   module: ModuleDef,
   kontext: {
     pfad: string;
-    suche: { status?: string; aufgabe?: string; reklamation?: string };
+    suche: {
+      status?: string;
+      aufgabe?: string;
+      reklamation?: string;
+      bereich?: string;
+      zeitraum?: string;
+      typ?: string;
+      zeilen?: string;
+    };
   },
 ): ReactNode | null {
   switch (module.key) {
@@ -51,15 +60,15 @@ export function serverModulAnsicht(
       return (
         <ReihenbloeckeAnsicht pfad={kontext.pfad} statusFilter={kontext.suche.status} />
       );
-    // Anforderung 2.4: eigenstaendiger Dashboard-Eintrag "Pflanzenschutz"
-    // zeigte bisher reine Mock-Daten (PflanzenschutzDemo), obwohl die echte
-    // Behandlungserfassung samt Aufwandmenge und Person bereits als Teil der
-    // Reihenbloecke-Ansicht existiert. Dieselbe echte Ansicht statt einer
-    // zweiten, separat zu pflegenden Oberflaeche.
+    // Anforderung 2.4: eigene Protokollansicht statt der Reihenbloecke-Sicht.
+    // Erfasst und freigegeben wird eine Behandlung weiterhin am Reihenblock,
+    // dort steht der Block mit seinem Sperrzustand vor einem. Diese Seite
+    // zeigt die Behandlungen selbst, auch die laengst freigegebenen, die in
+    // der Blocksicht niemand mehr sieht (sie zeigt nur die juengste offene
+    // Sperre). Das ist der Nachweis, nach dem Handel und Behoerde fragen. Der
+    // Statusparameter der frueheren Blocksicht bleibt als Filter erhalten.
     case "pflanzenschutz":
-      return (
-        <ReihenbloeckeAnsicht pfad={kontext.pfad} statusFilter={kontext.suche.status} />
-      );
+      return <PflanzenschutzAnsicht pfad={kontext.pfad} statusFilter={kontext.suche.status} />;
     case "pflueckaufgaben":
       return (
         <PflueckaufgabenAnsicht pfad={kontext.pfad} auswahl={kontext.suche.aufgabe} />
@@ -75,7 +84,19 @@ export function serverModulAnsicht(
     case "lohn":
       return <LohnAnsicht />;
     case "finanzen":
-      return <FinanzenAnsicht />;
+      return (
+        <FinanzenAnsicht
+          pfad={kontext.pfad}
+          suche={{
+            bereich: kontext.suche.bereich,
+            zeitraum: kontext.suche.zeitraum,
+            typ: kontext.suche.typ,
+            zeilen: kontext.suche.zeilen,
+          }}
+        />
+      );
+    case "wirtschaftlichkeit":
+      return <WirtschaftlichkeitAnsicht />;
     case "rotationsplan":
       return <RotationsplanAnsicht />;
     // Anforderung 2.13: Temperatursummen-Heuristik statt reinem
@@ -133,9 +154,6 @@ export function serverModulAnsicht(
           <PflichtschulungenAnsicht />
         </div>
       );
-    // Anforderung 5.4/5.5: echte Anbindung statt KiAssistentMock.
-    case "ki_assistent":
-      return <KiAssistentAnsicht />;
     // Anforderung 5.6: Kontaktkanaele/Zahlungswege verwalten.
     case "kanaele":
       return <KanaeleAnsicht />;

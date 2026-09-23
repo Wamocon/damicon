@@ -385,6 +385,49 @@ if (leitung && brigade) {
     `sichtbare Zeilen: ${nachweise?.length}`,
   );
 
+  // Dokumente bearbeiten: die UPDATE-Policy dokumente_update_buero gab es seit
+  // 20260905120000, die Anwendung rief sie nie auf (dokumentAendern, neu).
+  {
+    const { data: dokNeu, error: dokNeuFehler } = await leitung
+      .from("dokumente")
+      .insert({ name: "IT-Dokument Entwurf", kategorie: "sonstiges", status: "prueflauf" })
+      .select("id, name, status")
+      .single();
+    check(
+      "Dokumente: Buero legt ein Dokument im Pruefstand an",
+      !dokNeuFehler && dokNeu?.status === "prueflauf",
+      dokNeuFehler?.message ?? `status: ${dokNeu?.status}`,
+    );
+
+    const { data: dokGeaendert, error: dokAendernFehler } = await leitung
+      .from("dokumente")
+      .update({ name: "IT-Dokument geprueft", bezug: "T-N-A-04", status: "gueltig" })
+      .eq("id", dokNeu?.id)
+      .select("id, name, bezug, status")
+      .maybeSingle();
+    check(
+      "Dokumente: Buero fuehrt Bezeichnung, Bezug und Status nach",
+      !dokAendernFehler &&
+        dokGeaendert?.status === "gueltig" &&
+        dokGeaendert?.name === "IT-Dokument geprueft" &&
+        dokGeaendert?.bezug === "T-N-A-04",
+      dokAendernFehler?.message ?? JSON.stringify(dokGeaendert),
+    );
+
+    const { data: brigadeAendernVersuch, error: brigadeAendernFehler } = await brigade
+      .from("dokumente")
+      .update({ status: "abgelaufen" })
+      .eq("id", dokNeu?.id)
+      .select("id");
+    check(
+      "Dokumente: die Brigade aendert kein Dokument (RLS dokumente_update_buero)",
+      !!brigadeAendernFehler || (brigadeAendernVersuch?.length ?? 0) === 0,
+      brigadeAendernFehler?.code ?? `geaenderte Zeilen: ${brigadeAendernVersuch?.length}`,
+    );
+
+    if (dokNeu?.id) await admin.from("dokumente").delete().eq("id", dokNeu.id);
+  }
+
   const { data: aufgabe } = await admin
     .from("pflueckaufgaben")
     .select("id, code, status, qualitaetsfaktor")
@@ -672,6 +715,12 @@ if (leitung && brigade) {
     .from("pflueckaufgaben")
     .update({ status: "beleg_pruefung", ist_menge_kg: 18.5, ausschuss_kg: 1.5 })
     .eq("id", neueAufgabe.id);
+  // WMCNL-2373: der Abschluss verlangt seit dieser Migration mindestens
+  // einen Fotobeleg - ohne diese Zeile scheitert der naechste Schritt jetzt
+  // korrekterweise mit 23514.
+  await admin
+    .from("media_belege")
+    .insert({ pflueckaufgabe_id: neueAufgabe.id, art: "schale" });
   await leitung
     .from("pflueckaufgaben")
     .update({ status: "abgeschlossen" })
@@ -873,6 +922,190 @@ if (leitung && brigade) {
     await admin.from("arbeitszeiten").delete().in("id", fremdeZeitInsert.map((z) => z.id));
   }
 
+  // HOCH (WMCNL-2298): brigade@damicon.demo muss auf die tatsaechlich
+  // arbeitende Brigade Nord zeigen - seed-auth.mjs traf zuvor per
+  // order("name").limit(1) alphabetisch "Brigade Nachbarbetrieb" statt Nord.
+  // pflueckaufgaben_update_feld (20261018000000) laesst die Rolle brigade nur
+  // an der eigenen Brigade schreiben - mit der falschen Zuordnung scheiterten
+  // "Aufgabe annehmen" und "Menge melden" fuer jede reale Feldaufgabe, obwohl
+  // rbac.ts und die Oberflaeche den Vorgang anboten (RLS, nicht rbac.ts, war
+  // die zweite, hier greifende Verteidigungslinie).
+  const { data: eigeneBrigadeName } = await admin
+    .from("brigaden")
+    .select("name")
+    .eq("id", eigeneBrigade.brigade_id)
+    .single();
+  check(
+    "Vorbereitung: brigade@damicon.demo ist Brigade Nord zugewiesen (WMCNL-2298)",
+    eigeneBrigadeName?.name === "Brigade Nord",
+    `zugewiesene Brigade: ${eigeneBrigadeName?.name}`,
+  );
+
+  const { data: brigadeTestAufgabe, error: brigadeTestAufgabeFehler } = await admin
+    .from("pflueckaufgaben")
+    .insert({
+      code: `PA-BR-${Date.now().toString().slice(-8)}`,
+      reihenblock_id: freierBlock.id,
+      brigade_id: eigeneBrigade.brigade_id,
+      zielmenge_kg: 20,
+    })
+    .select("id, code")
+    .single();
+  check(
+    "Vorbereitung: Testaufgabe fuer die eigene Brigade angelegt",
+    !brigadeTestAufgabeFehler && !!brigadeTestAufgabe,
+    brigadeTestAufgabeFehler?.message ?? "",
+  );
+
+  const { data: annehmenErgebnis, error: annehmenFehler } = await brigade
+    .rpc("sync_aufgabe_status_setzen", {
+      p_aktion_id: crypto.randomUUID(),
+      p_aufgabe_id: brigadeTestAufgabe.id,
+      p_neuer_status: "angenommen",
+      p_vorzustand: "offen",
+    })
+    .single();
+  check(
+    "Brigade-RPC: eigene Aufgabe annehmen (offen -> angenommen, WMCNL-2298)",
+    !annehmenFehler && annehmenErgebnis?.ergebnis === "angewendet",
+    annehmenFehler?.message ?? `ergebnis: ${annehmenErgebnis?.ergebnis}`,
+  );
+
+  const { data: startenErgebnis, error: startenFehler } = await brigade
+    .rpc("sync_aufgabe_status_setzen", {
+      p_aktion_id: crypto.randomUUID(),
+      p_aufgabe_id: brigadeTestAufgabe.id,
+      p_neuer_status: "in_arbeit",
+      p_vorzustand: "angenommen",
+    })
+    .single();
+  check(
+    "Brigade-RPC: eigene Aufgabe starten (angenommen -> in_arbeit, WMCNL-2298)",
+    !startenFehler && startenErgebnis?.ergebnis === "angewendet",
+    startenFehler?.message ?? `ergebnis: ${startenErgebnis?.ergebnis}`,
+  );
+
+  const { data: mengeErgebnis, error: mengeFehler } = await brigade
+    .rpc("sync_menge_melden", {
+      p_aktion_id: crypto.randomUUID(),
+      p_aufgabe_id: brigadeTestAufgabe.id,
+      p_ist_menge_kg: 18.5,
+      p_ausschuss_kg: 1,
+    })
+    .single();
+  check(
+    "Brigade-RPC: Menge fuer die eigene Aufgabe melden (WMCNL-2298)",
+    !mengeFehler && mengeErgebnis?.ergebnis === "angewendet",
+    mengeFehler?.message ?? `ergebnis: ${mengeErgebnis?.ergebnis}`,
+  );
+
+  // HOCH (WMCNL-2453): eine Steige an einer fremden Aufgabe muss sauber an
+  // der RLS scheitern (42501 -> "Ihre Rolle darf diesen Vorgang nicht
+  // ausfuehren"), nicht am Trigger steige_nummer_vergeben() mit der
+  // irrefuehrenden technischen Meldung "Steige ohne gueltige Pflueckaufgabe
+  // kann keine Nummer erhalten".
+  const { data: fremdeAufgabe } = await admin
+    .from("pflueckaufgaben")
+    .select("id, brigade_id")
+    .not("brigade_id", "is", null)
+    .neq("brigade_id", eigeneBrigade.brigade_id)
+    .limit(1)
+    .single();
+  const { error: fremdeSteigeFehler, data: fremdeSteigeInsert } = await brigade
+    .from("steigen")
+    .insert({
+      code: `STG-BR-${Date.now().toString().slice(-8)}`,
+      qr_token: `qr-br-${Date.now()}`,
+      pflueckaufgabe_id: fremdeAufgabe.id,
+    })
+    .select("id");
+  check(
+    "Steigen-RLS: Brigade legt keine Steige an einer fremden Aufgabe an (WMCNL-2453)",
+    fremdeSteigeFehler?.code === "42501",
+    fremdeSteigeFehler?.code ?? `eingefuegte Zeilen: ${fremdeSteigeInsert?.length}`,
+  );
+
+  const { error: eigeneSteigeFehler, data: eigeneSteigeInsert } = await brigade
+    .from("steigen")
+    .insert({
+      code: `STG-BR-${Date.now().toString().slice(-8)}-e`,
+      qr_token: `qr-br-e-${Date.now()}`,
+      pflueckaufgabe_id: brigadeTestAufgabe.id,
+    })
+    .select("id");
+  check(
+    "Steigen-RLS: Brigade legt weiterhin eine Steige an der eigenen Aufgabe an (WMCNL-2453)",
+    !eigeneSteigeFehler && (eigeneSteigeInsert?.length ?? 0) === 1,
+    eigeneSteigeFehler?.message ?? `eingefuegte Zeilen: ${eigeneSteigeInsert?.length}`,
+  );
+  if (eigeneSteigeInsert?.length) {
+    await admin.from("steigen").delete().in("id", eigeneSteigeInsert.map((s) => s.id));
+  }
+
+  await admin.from("pflueckaufgaben").delete().eq("id", brigadeTestAufgabe.id);
+
+  // WMCNL-2382: der Korridor 0,90-1,10 gilt fuer die Spalte selbst (CHECK-
+  // Constraint), nicht nur fuer den Abschluss-Weg durch die Anwendung.
+  const { data: korridorTestAufgabe } = await admin
+    .from("pflueckaufgaben")
+    .insert({ code: `PA-QF-${Date.now().toString().slice(-8)}`, reihenblock_id: freierBlock.id, zielmenge_kg: 5 })
+    .select("id")
+    .single();
+  const { error: qfAusserhalbFehler } = await admin
+    .from("pflueckaufgaben")
+    .update({ qualitaetsfaktor: 1.5 })
+    .eq("id", korridorTestAufgabe.id);
+  check(
+    "Pflueckaufgaben-Schema: Qualitaetsfaktor ausserhalb 0,90-1,10 wird abgelehnt (WMCNL-2382)",
+    qfAusserhalbFehler?.code === "23514",
+    qfAusserhalbFehler?.code ?? "kein Fehler",
+  );
+  const { error: qfInnerhalbFehler } = await admin
+    .from("pflueckaufgaben")
+    .update({ qualitaetsfaktor: 1.05 })
+    .eq("id", korridorTestAufgabe.id);
+  check(
+    "Pflueckaufgaben-Schema: Qualitaetsfaktor im Korridor wird angenommen (WMCNL-2382)",
+    !qfInnerhalbFehler,
+    qfInnerhalbFehler?.message ?? "",
+  );
+  await admin.from("pflueckaufgaben").delete().eq("id", korridorTestAufgabe.id);
+
+  // WMCNL-2373: ohne Fotobeleg laesst sich eine Aufgabe nicht abschliessen.
+  const { data: belegTestAufgabe } = await admin
+    .from("pflueckaufgaben")
+    .insert({
+      code: `PA-BL-${Date.now().toString().slice(-8)}`,
+      reihenblock_id: freierBlock.id,
+      zielmenge_kg: 5,
+      status: "beleg_pruefung",
+      ist_menge_kg: 5,
+      qualitaetsfaktor: 1,
+    })
+    .select("id")
+    .single();
+  const { error: abschlussOhneBelegFehler } = await admin
+    .from("pflueckaufgaben")
+    .update({ status: "abgeschlossen" })
+    .eq("id", belegTestAufgabe.id);
+  check(
+    "Pflueckaufgaben-Regel: Abschluss ohne Fotobeleg wird abgelehnt (WMCNL-2373)",
+    abschlussOhneBelegFehler?.code === "23514",
+    abschlussOhneBelegFehler?.code ?? "kein Fehler",
+  );
+  await admin.from("media_belege").insert({ pflueckaufgabe_id: belegTestAufgabe.id, art: "schale" });
+  const { error: abschlussMitBelegFehler } = await admin
+    .from("pflueckaufgaben")
+    .update({ status: "abgeschlossen" })
+    .eq("id", belegTestAufgabe.id);
+  check(
+    "Pflueckaufgaben-Regel: Abschluss mit Fotobeleg gelingt (WMCNL-2373)",
+    !abschlussMitBelegFehler,
+    abschlussMitBelegFehler?.message ?? "",
+  );
+  await admin.from("media_belege").delete().eq("pflueckaufgabe_id", belegTestAufgabe.id);
+  await admin.from("pflueckaufgaben").delete().eq("id", belegTestAufgabe.id);
+
   // HOCH: Steigen mit Personenbezug waren fuer kunde/erzeuger lesbar.
   const { data: kundeSteigen } = await (await anmelden("kunde@damicon.demo")).client
     .from("steigen")
@@ -927,6 +1160,18 @@ if (leitung && brigade) {
   await admin.from("kuehlketten_messungen").delete().eq("charge_id", planungsCharge.id);
   await admin.from("chargen").delete().eq("id", planungsCharge.id);
   await admin.from("pflueckaufgaben").delete().eq("id", planungsAufgabe.id);
+
+  // WMCNL-2376: eine physikalisch unplausible Temperatur wird abgelehnt -
+  // unabhaengig vom 4/8-Grad-Qualitaetsurteil (Bestand hatte 85 Grad an einer
+  // Charge stehen).
+  const { error: unplausibelFehler } = await admin
+    .from("kuehlketten_messungen")
+    .insert({ charge_id: autoCharge.id, gemessen_am: new Date().toISOString(), temperatur_c: 85 });
+  check(
+    "Kuehlketten-Schema: eine physikalisch unplausible Temperatur wird abgelehnt (WMCNL-2376)",
+    unplausibelFehler?.code === "23514",
+    unplausibelFehler?.code ?? "kein Fehler",
+  );
 
   // KRITISCH: zeitBisVorkuehlung blendete genau die Chargen aus, die die
   // 60-Minuten-Regel gerissen haben (Ueberlebenden-Fehler).
@@ -1647,13 +1892,15 @@ if (leitung && brigade) {
     `grundlohn_tenge: ${lohnSarsenbaj?.grundlohn_tenge}`,
   );
   check(
+    // WMCNL-2381: Ausschussquote ist Ausschuss / Menge (nicht / (Menge +
+    // Ausschuss)), deshalb 37440,80 statt der vormals falschen 37659,25.
     "Lohn-Berechnung: Mengenkomponente inklusive Qualitaetsfaktor je Aufgabe",
-    Number(lohnSarsenbaj?.mengen_komponente_tenge) === 37659.25,
+    Number(lohnSarsenbaj?.mengen_komponente_tenge) === 37440.8,
     `mengen_komponente_tenge: ${lohnSarsenbaj?.mengen_komponente_tenge}`,
   );
   check(
     "Lohn-Berechnung: Gesamt-Qualitaetsfaktor unter 1.00 bei ueberdurchschnittlichem Ausschuss",
-    Number(lohnSarsenbaj?.qualitaetsfaktor) === 0.91,
+    Number(lohnSarsenbaj?.qualitaetsfaktor) === 0.9,
     `qualitaetsfaktor: ${lohnSarsenbaj?.qualitaetsfaktor}, ausschussquote: ${lohnSarsenbaj?.ausschussquote}`,
   );
   check(
@@ -1910,24 +2157,59 @@ if (leitung && brigade) {
     zpBrigadeFehler?.code ?? `eingefuegte Zeilen: ${zpBrigadeInsert?.length}`,
   );
 
-  // HOCH (Vorab-Recherche, Risiko 3): rbac.ts gewaehrt "erzeuger" bereits
-  // crud("aggregator"), aber ohne profiles->nachbarbetrieb-Verknuepfung ist
-  // kein echtes Self-Service-Szenario erreichbar (siehe Migrationskopf, Punkt
-  // 3). Dieser Test dokumentiert die Luecke, statt sie stillschweigend zu
-  // uebergehen: die RLS-Policy laesst nur admin/betriebsleitung zu und faengt
-  // eine erzeuger-Anmeldung kontrolliert ab, statt fremde Stammdaten zu
-  // schreiben.
+  // HOCH (Vorab-Recherche, Risiko 3): ohne profiles->nachbarbetrieb-
+  // Verknuepfung ist kein echtes Self-Service-Szenario fuer erzeuger
+  // erreichbar (siehe Migrationskopf 20260908140000, Punkt 3). rbac.ts
+  // gewaehrt erzeuger seit WMCNL-2299 deshalb nur noch view("aggregator")
+  // (vorher crud, das zeigte "Betrieb aufnehmen"/CSV-Import an, obwohl jeder
+  // Schreibversuch serverseitig an genau dieser RLS-Policy scheiterte). Sie
+  // laesst nur admin/betriebsleitung zu und faengt einen (theoretisch
+  // weiterhin per REST moeglichen) erzeuger-Schreibversuch kontrolliert ab,
+  // statt fremde Stammdaten zu schreiben - zweite Verteidigungslinie hinter
+  // rbac.ts.
   const { client: erzeuger, fehler: erzeugerFehler } = await anmelden("erzeuger@damicon.demo");
   check("Auth: Erzeuger meldet sich an", !!erzeuger, erzeugerFehler ?? "");
   if (erzeuger) {
+    // WMCNL-2369: die SELECT-Policies liessen trotz view("aggregator") in
+    // rbac.ts bislang nur has_office_access() durch - das Kernmodul der
+    // Rolle zeigte durchweg Nullwerte und keine bekannten Nachbarbetriebe.
+    const { data: nbErzeuger, error: nbErzeugerFehler } = await erzeuger
+      .from("nachbarbetriebe")
+      .select("id");
+    check(
+      "Zukauf-RLS: erzeuger liest die Nachbarbetriebe (WMCNL-2369)",
+      !nbErzeugerFehler && (nbErzeuger?.length ?? 0) > 0,
+      nbErzeugerFehler?.message ?? `sichtbare Zeilen: ${nbErzeuger?.length}`,
+    );
+
+    const { data: zpErzeugerSelect, error: zpErzeugerSelectFehler } = await erzeuger
+      .from("zukauf_positionen")
+      .select("id");
+    check(
+      "Zukauf-RLS: erzeuger liest die Zukaufpositionen (WMCNL-2369)",
+      !zpErzeugerSelectFehler && (zpErzeugerSelect?.length ?? 0) > 0,
+      zpErzeugerSelectFehler?.message ?? `sichtbare Zeilen: ${zpErzeugerSelect?.length}`,
+    );
+
     const { error: zpErzeugerFehler, data: zpErzeugerInsert } = await erzeuger
       .from("zukauf_positionen")
       .insert({ nachbarbetrieb_id: nbNeu.id, sorte_id: sortePolka.id, menge_kg: 10 })
       .select("id");
     check(
-      "Zukauf-RLS-Luecke dokumentiert: erzeuger hat laut rbac.ts crud(aggregator), scheitert aber an RLS (kein Self-Service ohne Nachbarbetrieb-Verknuepfung)",
+      "Zukauf-RLS: erzeuger legt keine Zukaufposition an (kein Self-Service ohne Nachbarbetrieb-Verknuepfung, WMCNL-2299)",
       !!zpErzeugerFehler || (zpErzeugerInsert?.length ?? 0) === 0,
       zpErzeugerFehler?.code ?? `eingefuegte Zeilen: ${zpErzeugerInsert?.length}`,
+    );
+
+    // WMCNL-2309: abrechnung_je_nachbarbetrieb() lehnt erzeuger ausdruecklich
+    // mit 42501 ab ("eine Abrechnungssumme gehoert ausschliesslich dem
+    // Buero", 20261009000000) - ladeAbrechnung() muss das erkennen, statt es
+    // wie einen echten Fehler mit Demo-Fallback zu behandeln.
+    const { error: abrechnungErzeugerFehler } = await erzeuger.rpc("abrechnung_je_nachbarbetrieb");
+    check(
+      "Zukauf-RPC: erzeuger liest keine Abrechnung gegenueber Lieferbetrieben (WMCNL-2309)",
+      abrechnungErzeugerFehler?.code === "42501",
+      abrechnungErzeugerFehler?.code ?? "kein Fehler",
     );
   }
 
@@ -3140,6 +3422,98 @@ if (leitung && brigade) {
       `foerderdossier_id: ${verknuepftesDokument?.foerderdossier_id}, dossier: ${seedDossier?.id}`,
     );
 
+    // Dossieransicht: ein angehaengter Nachweis muss herunterladbar sein.
+    // ladeFoerdermittel() liest dafuer denselben Weg: Pfad am Dokument, dann
+    // eine signierte URL aus dem Bucket "dokumente" (data/foerdermittel.ts).
+    // Vorher lud die Ansicht den Pfad zwar, zeigte aber nur den Namen.
+    const dossierBelegPfad = `dossier/it-${Date.now()}.pdf`;
+    const { error: dossierBelegUploadFehler } = await leitung.storage
+      .from("dokumente")
+      .upload(dossierBelegPfad, new Blob(["Integrationstest-Nachweis"], { type: "application/pdf" }));
+    const { data: dossierBeleg, error: dossierBelegFehler } = await leitung
+      .from("dokumente")
+      .insert({
+        name: "IT-Nachweis Dossier",
+        kategorie: "foerderdossier",
+        bezug: "Antrag 2026-114",
+        status: "gueltig",
+        storage_path: dossierBelegPfad,
+        foerderdossier_id: seedDossier?.id,
+      })
+      .select("id, storage_path, foerderdossier_id")
+      .single();
+    check(
+      "Fördermittel: Nachweis mit Datei am Dossier angelegt",
+      !dossierBelegUploadFehler && !dossierBelegFehler &&
+        dossierBeleg?.foerderdossier_id === seedDossier?.id,
+      dossierBelegUploadFehler?.message ?? dossierBelegFehler?.message ?? "",
+    );
+
+    const { data: signierteBelege } = await leitung.storage
+      .from("dokumente")
+      .createSignedUrls([dossierBelegPfad], 3600);
+    const signierterBeleg = (signierteBelege ?? [])[0];
+    check(
+      "Fördermittel: der angehaengte Nachweis liefert eine signierte Download-URL",
+      !!signierterBeleg?.signedUrl && signierterBeleg.path === dossierBelegPfad,
+      signierterBeleg?.signedUrl ? "URL erzeugt" : "keine signierte URL",
+    );
+
+    if (dossierBeleg?.id) await admin.from("dokumente").delete().eq("id", dossierBeleg.id);
+    await admin.storage.from("dokumente").remove([dossierBelegPfad]);
+
+    // Anhaengen ueber den Weg der Anwendung: dokumentAnlegen() gibt
+    // foerderdossier_id jetzt mit. Vorher fuellte die Spalte ausschliesslich
+    // der einmalige Backfill aus 20260925000000.
+    const { data: neuerNachweis, error: neuerNachweisFehler } = await leitung
+      .from("dokumente")
+      .insert({
+        name: "IT-Nachweis ohne Datei",
+        kategorie: "foerderdossier",
+        status: "gueltig",
+        foerderdossier_id: seedDossier?.id,
+      })
+      .select("id, foerderdossier_id")
+      .single();
+    check(
+      "Fördermittel: Buero haengt einen neuen Nachweis an ein Dossier",
+      !neuerNachweisFehler && neuerNachweis?.foerderdossier_id === seedDossier?.id,
+      neuerNachweisFehler?.message ?? `dossier: ${neuerNachweis?.foerderdossier_id}`,
+    );
+
+    const { data: dossierMitNachweis } = await leitung
+      .from("foerderdossiers")
+      .select("id, dokumente ( id )")
+      .eq("id", seedDossier?.id)
+      .single();
+    check(
+      "Fördermittel: der angehaengte Nachweis erscheint an seinem Dossier",
+      (dossierMitNachweis?.dokumente ?? []).some((d) => d.id === neuerNachweis?.id),
+      `angehaengte Dokumente: ${(dossierMitNachweis?.dokumente ?? []).length}`,
+    );
+
+    const { data: brigadeNachweisVersuch, error: brigadeNachweisFehler } = await brigade
+      .from("dokumente")
+      .insert({
+        name: "IT-Nachweis unzulaessig",
+        kategorie: "foerderdossier",
+        status: "gueltig",
+        foerderdossier_id: seedDossier?.id,
+      })
+      .select("id");
+    check(
+      "Fördermittel: die Brigade haengt keinen Nachweis an (RLS dokumente_insert_buero)",
+      !!brigadeNachweisFehler || (brigadeNachweisVersuch?.length ?? 0) === 0,
+      brigadeNachweisFehler?.code ?? `geschriebene Zeilen: ${brigadeNachweisVersuch?.length}`,
+    );
+
+    // Aufraeumen, auch wenn die Sperre versagt und die Zeile doch entstanden ist:
+    // sonst bliebe sie im gemeinsamen seedDossier-Fixture fuer spaetere Laeufe stehen.
+    for (const zeile of brigadeNachweisVersuch ?? []) {
+      await admin.from("dokumente").delete().eq("id", zeile.id);
+    }
+    if (neuerNachweis?.id) await admin.from("dokumente").delete().eq("id", neuerNachweis.id);
+
     // RLS: nur Buero-Rollen lesen/schreiben foerderdossiers.
     const { data: brigadeSieht } = await brigade.from("foerderdossiers").select("id");
     check(
@@ -3673,6 +4047,17 @@ if (leitung && brigade) {
         verstossMessungFehler?.message ?? JSON.stringify(verstossMessung),
       );
 
+      // WMCNL-2376: dieselbe Plausibilitaetsgrenze gilt fuer Transportmessungen
+      // (Bestand hatte 60 Grad an einer Lieferung stehen).
+      const { error: unplausibelTpFehler } = await brigade
+        .from("transport_temperatur_messungen")
+        .insert({ lieferung_id: lieferungTp.id, temperatur_c: 60 });
+      check(
+        "Transportmessung-Schema: eine physikalisch unplausible Temperatur wird abgelehnt (WMCNL-2376)",
+        unplausibelTpFehler?.code === "23514",
+        unplausibelTpFehler?.code ?? "kein Fehler",
+      );
+
       // Rueckverfolgung: die eigene Firma (Almaty Fresh Market, echter
       // Demo-Login) sieht die Transportmessungen der eigenen Lieferung.
       const { data: eigeneFirmaSiehtTp } = await (await anmelden("kunde@damicon.demo")).client
@@ -3733,6 +4118,26 @@ if (leitung && brigade) {
         aufStorniertFehler?.code ?? "kein Fehler - eine stornierte Lieferung haette trotzdem eine Messung erhalten!",
       );
       await admin.from("lieferungen").delete().eq("id", storniertTp.id);
+    }
+
+    // WMCNL-2372: dieselbe Sperre gilt fuer eine bereits zugestellte
+    // Lieferung - die Seite behauptet "zugestellt oder storniert ist
+    // unveraenderlich", vorher liess sich hier trotzdem nachtragen.
+    const { data: zugestelltTp, error: zugestelltTpFehler } = await admin
+      .from("lieferungen")
+      .insert({ b2b_kunde_id: almatyFreshTp?.id, menge_kg: 3, status: "zugestellt" })
+      .select("id")
+      .single();
+    if (!zugestelltTpFehler && zugestelltTp?.id) {
+      const { error: aufZugestelltFehler } = await brigade
+        .from("transport_temperatur_messungen")
+        .insert({ lieferung_id: zugestelltTp.id, temperatur_c: 3 });
+      check(
+        "Anforderung 3.2: eine Transportmessung auf einer zugestellten Lieferung wird abgelehnt (Trigger, eigener SQLSTATE DA004, WMCNL-2372)",
+        aufZugestelltFehler?.code === "DA004",
+        aufZugestelltFehler?.code ?? "kein Fehler - eine zugestellte Lieferung haette trotzdem eine Messung erhalten!",
+      );
+      await admin.from("lieferungen").delete().eq("id", zugestelltTp.id);
     }
 
     if (lieferungTp?.id) {
@@ -4225,6 +4630,45 @@ if (leitung && brigade) {
 
     await admin.from("ki_chat_nachrichten").delete().eq("id", eigeneNachricht.id);
   }
+}
+
+// --- Sicherheit: Zwischenspeicher der Sprachausgabe ------------------------
+// Bucket ki-sprachausgabe (Migration 20261101000000) haelt vorgelesene
+// Antworten als mp3. Er ist privat und nur ueber service_role erreichbar: die
+// Berechtigung haengt an der ANTWORT (RLS auf ki_chat_nachrichten, geprueft in
+// api/ki-sprachausgabe), nicht an der Audiodatei. Gaebe es hier eine
+// Lese-Policy fuer authenticated, koennte jemand mit geratener Nachrichten-ID
+// das Audio direkt aus dem Storage ziehen und die Pruefung der Route umgehen.
+{
+  const { data: eimer } = await admin.storage.getBucket("ki-sprachausgabe");
+  check(
+    "Sprachausgabe-Zwischenspeicher: Bucket existiert und ist privat",
+    !!eimer && eimer.public === false,
+    eimer ? `public=${eimer.public}` : "kein Bucket",
+  );
+
+  const pfad = "00000000-0000-4000-8000-0000000000it/probe.mp3";
+  const { error: ablageFehler } = await admin.storage
+    .from("ki-sprachausgabe")
+    .upload(pfad, new Blob([new Uint8Array([1, 2, 3])], { type: "audio/mpeg" }), { contentType: "audio/mpeg", upsert: true });
+  check("Sprachausgabe-Zwischenspeicher: service_role darf ablegen (Weg der Route)", !ablageFehler, ablageFehler?.message ?? "");
+
+  const { client: adminSitzung } = await anmelden("admin@damicon.demo");
+  for (const [bezeichnung, client] of [["admin (angemeldet)", adminSitzung], ["anon", anon]]) {
+    const { data: geladen, error: ladeFehler } = await client.storage.from("ki-sprachausgabe").download(pfad);
+    check(
+      `Sprachausgabe-Zwischenspeicher: ${bezeichnung} kommt nicht an die Audiodatei`,
+      !!ladeFehler || !geladen,
+      ladeFehler?.message ?? "Datei wurde geladen!",
+    );
+    const { data: liste } = await client.storage.from("ki-sprachausgabe").list();
+    check(
+      `Sprachausgabe-Zwischenspeicher: ${bezeichnung} sieht den Inhalt nicht`,
+      (liste?.length ?? 0) === 0,
+      `sichtbare Eintraege: ${liste?.length ?? 0}`,
+    );
+  }
+  await admin.storage.from("ki-sprachausgabe").remove([pfad]);
 }
 
 // --- Anforderung 5.6: Kontaktkanaele/Zahlungswege -------------------------

@@ -139,7 +139,7 @@ export async function NachweiskettenKarte({
       ) : null}
 
       {/* Menge und Ausschuss */}
-      <dl className="mt-4 grid grid-cols-3 gap-2 text-center">
+      <dl className="mt-4 grid grid-cols-1 gap-2 text-center sm:grid-cols-3">
         {[
           [t("menge"), `${format.number(c.mengeKg, { maximumFractionDigits: 1 })} kg`],
           [t("ausschuss"), `${format.number(c.ausschussKg, { maximumFractionDigits: 1 })} kg`],

@@ -1,0 +1,872 @@
+/* Compliance-Pruefung: Bericht und gemeinsame Bedienelemente (der Ablauf steht in pruefung-ablauf.css).
+   Alle Bereiche teilen die Akzentfarbe des Themas; Statusfarben kommen aus den Theme-Tokens. */
+
+[data-bereich] {
+  --farbe: var(--primary);
+}
+
+/* Ziele von Himbis Fuehrung im Dashboard (Compliance-Tour, Live-Lauf-Hinweis, siehe
+   lib/haustier.ts springeZuAnker): Abstand zur festen Kopfzeile (topbar.tsx, h-16 = 4rem auf
+   md+), damit scrollIntoView das Ziel nicht darunter versteckt. */
+[id^="compliance-"] {
+  scroll-margin-top: 5rem;
+}
+
+.pr-knopf {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--foreground);
+  background: var(--card);
+  cursor: pointer;
+  transition: transform 0.12s ease, background-color 0.12s ease;
+}
+.pr-knopf:hover {
+  background: color-mix(in oklab, var(--card) 92%, var(--primary) 8%);
+}
+.pr-knopf:active {
+  transform: scale(0.97);
+}
+.pr-knopf--haupt {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+.pr-knopf--haupt:hover {
+  background: color-mix(in oklab, var(--primary) 88%, #000);
+}
+.pr-knopf:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ---- Bericht ----------------------------------------------------------------- */
+.pr-bericht {
+  display: grid;
+  gap: 1.1rem;
+  margin-top: 1.1rem;
+  animation: pr-bericht-ein 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes pr-bericht-ein {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+.pr-kopfkarte {
+  display: grid;
+  gap: 1.1rem;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  padding: 1.1rem 1.2rem;
+  border: 1px solid var(--border);
+  border-radius: 1.2rem;
+  background: var(--card);
+}
+@container pa (max-width: 620px) {
+  .pr-kopfkarte {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+}
+.pr-messer {
+  position: relative;
+  width: 8.4rem;
+  height: 8.4rem;
+}
+.pr-messer svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+.pr-messer circle {
+  fill: none;
+  stroke-width: 9;
+  stroke-linecap: round;
+}
+.pr-messer__spur {
+  stroke: color-mix(in oklab, var(--foreground) 10%, transparent);
+}
+.pr-messer__wert {
+  stroke: var(--stufe);
+  stroke-dasharray: 301.6;
+  stroke-dashoffset: 301.6;
+  animation: pr-messer 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards;
+}
+@keyframes pr-messer {
+  to {
+    stroke-dashoffset: var(--ziel);
+  }
+}
+.pr-messer__mitte {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+}
+.pr-messer__zahl {
+  font-size: 2.2rem;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--stufe);
+}
+.pr-messer__label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+[data-stufe="bereit"] {
+  --stufe: var(--success);
+}
+[data-stufe="luecken"] {
+  --stufe: var(--warning);
+}
+[data-stufe="nicht-bereit"] {
+  --stufe: var(--destructive);
+}
+.pr-urteil {
+  margin: 0 0 0.3rem;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: var(--stufe);
+}
+.pr-zusammenfassung {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.35rem;
+}
+.pr-zahlenleiste {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.7rem;
+}
+.pr-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--sf);
+  background: color-mix(in oklab, var(--sf) 13%, transparent);
+}
+[data-status="verstoss"] {
+  --sf: var(--destructive);
+}
+[data-status="luecke"] {
+  --sf: var(--warning);
+}
+[data-status="hinweis"] {
+  --sf: var(--muted-foreground);
+}
+[data-status="konform"] {
+  --sf: var(--success);
+}
+.pr-abschnitt__titel {
+  margin: 0 0 0.6rem;
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.pr-prioritaeten {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: p;
+}
+.pr-prioritaeten li {
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 650;
+  background: var(--card);
+  counter-increment: p;
+}
+.pr-prioritaeten li::before {
+  content: counter(p);
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.4rem;
+  height: 1.4rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: #fff;
+  background: var(--primary);
+}
+.pr-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.7rem;
+}
+.pr-filter button {
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 750;
+  background: var(--card);
+  cursor: pointer;
+}
+.pr-filter button[aria-pressed="true"] {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
+}
+.pr-befunde {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pr-befund {
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--sf);
+  border-radius: 1rem;
+  background: var(--card);
+  animation: pr-erscheinen 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 50ms);
+}
+.pr-befund__kopf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.6rem;
+}
+.pr-befund__titel {
+  flex: 1 1 14rem;
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 850;
+}
+.pr-bereichsmarke {
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.64rem;
+  font-weight: 800;
+  color: var(--farbe);
+  background: color-mix(in oklab, var(--farbe) 12%, transparent);
+}
+.pr-befund__text {
+  margin: 0.55rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.3rem;
+}
+.pr-warnzeile {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--warning);
+}
+.pr-nachweise {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0.55rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.7rem;
+  color: var(--muted-foreground);
+}
+.pr-nachweise code {
+  padding: 0.05rem 0.35rem;
+  border-radius: 0.35rem;
+  font-size: 0.66rem;
+  background: color-mix(in oklab, var(--foreground) 7%, transparent);
+}
+.pr-massnahmen {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0.65rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.pr-massnahme {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 0.7rem;
+  font-size: 0.78rem;
+  background: color-mix(in oklab, var(--foreground) 4%, transparent);
+}
+.pr-massnahme input {
+  margin-top: 0.15rem;
+  accent-color: var(--primary);
+}
+.pr-massnahme[data-erledigt="ja"] span:first-of-type {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+.pr-chip {
+  display: inline-block;
+  margin-left: 0.3rem;
+  padding: 0 0.45rem;
+  border-radius: 999px;
+  font-size: 0.64rem;
+  font-weight: 800;
+  background: color-mix(in oklab, var(--foreground) 9%, transparent);
+}
+.pr-chip[data-frist="sofort"] {
+  color: #fff;
+  background: var(--destructive);
+}
+.pr-plan {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+.pr-plan__spalte {
+  padding: 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--card);
+}
+.pr-siegel {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem 1.1rem;
+  border: 1px dashed color-mix(in oklab, var(--primary) 45%, var(--border));
+  border-radius: 1.1rem;
+  background: color-mix(in oklab, var(--card) 95%, var(--primary) 5%);
+}
+.pr-siegel dl {
+  display: grid;
+  gap: 0.2rem 1rem;
+  grid-template-columns: auto 1fr;
+  margin: 0;
+  font-size: 0.74rem;
+}
+.pr-siegel dt {
+  font-weight: 800;
+  color: var(--muted-foreground);
+}
+.pr-siegel dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.pr-siegel code {
+  font-size: 0.68rem;
+}
+.pr-siegel__aktionen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.pr-siegel__urteil {
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+.pr-siegel__urteil[data-ok="ja"] {
+  color: var(--success);
+}
+.pr-siegel__urteil[data-ok="nein"] {
+  color: var(--destructive);
+}
+/* ---- Bereichs-Kacheln (CEO-Uebersicht): ein Bereich, ein Klick, Details im Sheet ---------------- */
+/* Feste Stufen statt auto-fit/minmax: bei "passt fast, aber nicht ganz" liess
+   auto-fit eine Kachel allein in einer sonst leeren Zeile zurueck. Eigener
+   Containment-Kontext, weil die tatsaechliche Breite von Seitenleiste und
+   KI-Panel abhaengt, nicht vom Browserfenster (dieselbe Technik wie
+   pruefung-ablauf.css, dort begruendet). */
+.pr-kacheln-bereich {
+  container: kacheln / inline-size;
+}
+.pr-tour-neustart {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 750;
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 8%, var(--card));
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+.pr-tour-neustart:hover {
+  background: color-mix(in oklab, var(--primary) 16%, var(--card));
+}
+.pr-tour-neustart:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.pr-kacheln {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: 1fr;
+}
+@container kacheln (min-width: 380px) {
+  .pr-kacheln { grid-template-columns: repeat(2, 1fr); }
+}
+@container kacheln (min-width: 640px) {
+  .pr-kacheln { grid-template-columns: repeat(4, 1fr); }
+}
+.pr-kachel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--stufe);
+  border-radius: 1rem;
+  background: var(--card);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+}
+.pr-kachel:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px -10px color-mix(in oklab, var(--stufe) 60%, transparent);
+}
+.pr-kachel:focus-visible {
+  outline: 2px solid var(--stufe);
+  outline-offset: 2px;
+}
+.pr-kachel__kopf {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.pr-kachel__symbol {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 0.6rem;
+  color: var(--farbe);
+  background: color-mix(in oklab, var(--farbe) 14%, transparent);
+}
+.pr-kachel__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+.pr-kachel__pfeil {
+  flex: none;
+  color: var(--muted-foreground);
+  transition: transform 0.15s ease;
+}
+.pr-kachel:hover .pr-kachel__pfeil {
+  transform: translateX(2px);
+}
+.pr-kachel__reife {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+.pr-kachel__zahl {
+  font-size: 1.6rem;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--stufe);
+}
+.pr-kachel__label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.pr-kachel__urteil {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--stufe);
+}
+.pr-kachel__fuss {
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--muted-foreground);
+}
+/* Zugeklappte Abschnitte (CEO-Uebersicht): Massnahmenplan, Hinweise, Siegel stehen dahinter
+   unveraendert (siehe pruefung-bericht.tsx), nur ihre eigene <h3>-UEberschrift wird
+   ausgeblendet - der Aufklapp-Kopf hier traegt denselben Text als Knopf. */
+.pr-aufklappbar {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--card);
+  overflow: hidden;
+}
+.pr-aufklappbar__kopf {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.pr-aufklappbar__titel {
+  flex: 1;
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.pr-aufklappbar__pfeil {
+  flex: none;
+  color: var(--muted-foreground);
+  transition: transform 0.2s ease;
+}
+.pr-aufklappbar[data-offen="true"] .pr-aufklappbar__pfeil {
+  transform: rotate(180deg);
+}
+.pr-aufklappbar__koerper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pr-aufklappbar[data-offen="true"] .pr-aufklappbar__koerper {
+  grid-template-rows: 1fr;
+}
+.pr-aufklappbar__innen {
+  min-height: 0;
+  overflow: hidden;
+}
+/* Das Polster traegt das Padding, NICHT .pr-aufklappbar__innen: Padding auf dem Element,
+   dessen Hoehe die 0fr-Zeile auf 0 zwingt, bleibt beim Zuklappen als sichtbarer Rest stehen
+   (Padding wird nicht mitkomprimiert, min-height:0 wirkt nur auf den Inhalt). Eine Ebene
+   tiefer verschwindet es vollstaendig mit - siehe .pa-lane__innen/.pa-felder als Vorbild. */
+.pr-aufklappbar__polster {
+  padding: 0 0.9rem 0.9rem;
+}
+/* Die Kind-Komponente (Massnahmenplan/Hinweise/Siegel) bringt ihre eigene <h3
+   class="pr-abschnitt__titel"> als erstes Kind mit - hier redundant zum Aufklapp-Kopf,
+   deshalb ausgeblendet statt in der Komponente selbst verzweigt. */
+.pr-aufklappbar__polster > div > h3.pr-abschnitt__titel:first-child {
+  display: none;
+}
+.pr-leer-hinweis {
+  margin: 0;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--card);
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--success);
+}
+
+/* ---- Bereichs-Detail: Pop-up-Inhalt einer Kachel, Kopf im selben Stil wie die Kachel selbst --- */
+.pr-bereich-detail__kopf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 0 0 1.1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.pr-bereich-detail__symbol {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 0.85rem;
+  color: var(--farbe);
+  background: color-mix(in oklab, var(--farbe) 14%, transparent);
+}
+.pr-bereich-detail__zahl {
+  flex: none;
+  font-size: 2.1rem;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--stufe);
+}
+.pr-bereich-detail__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 8rem;
+  margin-right: auto;
+}
+.pr-bereich-detail__urteil {
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: var(--stufe);
+}
+.pr-bereich-detail__hinweis {
+  font-size: 0.76rem;
+  font-weight: 650;
+  color: var(--muted-foreground);
+}
+.pr-bereich-detail__zahlenleiste {
+  margin-top: 0;
+}
+/* Der Bereich steht schon im Titel des Pop-ups: die Bereichsmarke jedes einzelnen Befunds
+   (in der gemeinsamen, ungefilterten Liste noetig, um Bereiche zu unterscheiden) waere hier
+   nur eine Wiederholung. */
+.pr-bereich-detail .pr-bereichsmarke {
+  display: none;
+}
+.pr-bereich-detail__aktionen {
+  margin-bottom: 1.1rem;
+}
+
+.pr-fehler {
+  padding: 0.9rem 1rem;
+  border: 1px solid color-mix(in oklab, var(--destructive) 40%, var(--border));
+  border-radius: 1rem;
+  font-size: 0.85rem;
+  font-weight: 650;
+  color: var(--destructive);
+  background: color-mix(in oklab, var(--destructive) 8%, transparent);
+}
+
+/* ---- Nächste Schritte: Gespräch zum Ergebnis und Checkliste (außerhalb des Berichts) ------------- */
+.pn {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border: 1px solid color-mix(in oklab, var(--primary) 30%, var(--border));
+  border-radius: 1.1rem;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--primary) 7%, var(--card)), var(--card));
+}
+.pn-kopf {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+.pn-kopf__zeichen {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.7rem;
+  color: var(--primary-foreground);
+  background: var(--primary);
+}
+.pn-kopf h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 850;
+}
+.pn-kopf p {
+  margin: 0.1rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.05rem;
+  color: var(--muted-foreground);
+}
+.pn-aktionen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+.pn-liste {
+  display: grid;
+  gap: 0.55rem;
+}
+.pn-liste__kopf {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+.pn-liste__kopf h4 {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.pn-zahl {
+  font-size: 0.72rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  color: var(--primary);
+}
+.pn-balken {
+  height: 0.35rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--foreground) 8%, transparent);
+}
+.pn-balken span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+  transform-origin: left;
+  transition: transform 0.4s ease, background-color 0.3s ease;
+}
+.pn-balken span[data-fertig="ja"] {
+  background: var(--success);
+}
+.pn-gruppe {
+  display: grid;
+  gap: 0.35rem;
+}
+.pn-gruppe h5 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.2rem 0 0;
+}
+.pn-gruppe h5 small {
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted-foreground);
+}
+.pn-gruppe ul {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pn-punkt {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: 0.7rem;
+  background: var(--card);
+  transition: opacity 0.25s ease, border-color 0.25s ease;
+}
+.pn-punkt[data-schwere="kritisch"],
+.pn-punkt[data-schwere="hoch"] {
+  border-left-color: var(--destructive);
+}
+.pn-punkt[data-schwere="mittel"] {
+  border-left-color: var(--warning);
+}
+.pn-punkt[data-erledigt="ja"] {
+  opacity: 0.62;
+  border-left-color: var(--success);
+}
+.pn-punkt label {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.55rem;
+  align-items: start;
+  cursor: pointer;
+}
+.pn-punkt input {
+  margin-top: 0.2rem;
+  accent-color: var(--primary);
+}
+.pn-punkt__text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+  font-size: 0.78rem;
+  line-height: 1.15rem;
+}
+.pn-punkt__text b {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--muted-foreground);
+}
+.pn-punkt[data-erledigt="ja"] .pn-punkt__text span {
+  text-decoration: line-through;
+}
+.pn-punkt__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  padding-left: 1.6rem;
+}
+.pn-grundlage {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.66rem;
+  color: var(--muted-foreground);
+}
+.pn-punkt__frage {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-left: auto;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 10%, transparent);
+  transition: background-color 0.2s ease;
+}
+.pn-punkt__frage:hover {
+  background: color-mix(in oklab, var(--primary) 20%, transparent);
+}
+.pn-leer,
+.pn-fertig {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 650;
+  color: var(--success);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pn-balken span,
+  .pn-punkt {
+    transition: none;
+  }
+}
+
+.pr-tipp {
+  margin: 0.4rem 0 0;
+  font-size: 0.68rem;
+  line-height: 1rem;
+  color: var(--muted-foreground);
+}
+
+/* Lange Texte (Maßnahmen, Fundstellen) dürfen das schmale Panel nie sprengen: Gitterzellen schrumpfen, Wörter brechen um. */
+.pn,
+.pn * {
+  min-width: 0;
+}
+.pn-punkt__text,
+.pn-punkt__text span,
+.pn-punkt__text b,
+.pn-kopf p {
+  overflow-wrap: anywhere;
+}

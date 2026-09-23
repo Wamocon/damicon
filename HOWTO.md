@@ -342,6 +342,49 @@ GitHub → Actions → "Deploy to Vercel" → Run workflow
 
 ---
 
+### 5b. KI-Assistent (Claude) einrichten
+
+**Was liegt wo**
+
+- **Anthropic-API-Schlüssel:** verschlüsselt (AES-256-GCM) in der Datenbank, Tabelle `ki_anbieter`, Spalte `api_key_chiffrat`. Je Supabase-Projekt (dev, prod) ein eigener Eintrag.
+- **`KI_ANBIETER_SCHLUESSEL`:** Umgebungsvariable in Vercel (Production, Preview, Development), ein beliebig langer Zufallswert: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Das Chiffrat ist an genau diesen Wert gebunden. Ein lokal erzeugtes Chiffrat funktioniert auf Vercel nicht, und nach einem Wechsel des Werts muss der API-Schlüssel neu eingetragen werden.
+- **`SUPABASE_SERVICE_ROLE_KEY`:** muss in Vercel gesetzt sein. Die Tabelle `ki_anbieter` ist nur für Admins lesbar, die Anwendung liest den aktiven Anbieter mit diesem Schlüssel.
+
+**Voraussetzung: Migrationen auf die gehostete Datenbank anwenden**
+
+Das macht **kein** Workflow: die PR-Pipeline testet nur gegen eine lokale Datenbank, `deploy.yml` deployt nur nach Vercel. Wer Zugriff auf das Supabase-Projekt hat, führt einmal je Umgebung aus:
+
+```bash
+supabase link --project-ref <projekt-ref>
+supabase migration list        # lokal und remote vergleichen, was fehlt?
+supabase db push --dry-run     # zeigt, was angewendet würde
+supabase db push               # wendet aus (npm run db:push)
+```
+
+Meldet `db push`, dass lokale Migrationen älter sind als die letzte Remote-Migration, zuerst klären, woher die Remote-Migration kommt (z. B. ein anderer Branch), bevor `--include-all` verwendet wird. Ohne die Migrationen zeigen Seiten "Datenbank nicht erreichbar" bzw. Beispieldaten, und der Chat meldet "Could not find the 'werkzeugaufrufe' column". Falls die Meldung nach dem Anwenden bleibt, im SQL-Editor `NOTIFY pgrst, 'reload schema';` ausführen.
+
+**Einrichten (einmal je Umgebung)**
+
+1. `KI_ANBIETER_SCHLUESSEL` in Vercel setzen und neu deployen.
+2. API-Schlüssel eintragen, entweder
+   - **im Panel:** als Admin anmelden, "KI fragen", Zahnrad, Anbieter anlegen: Typ `anthropic`, Basis-URL `https://api.anthropic.com` (ohne `/v1`), Modell `claude-haiku-4-5`, API-Schlüssel. Danach "Als Standard" wählen. Das Formular legt nur an (ein zweiter Versuch mit demselben Namen scheitert), einen Schlüsselwechsel kennt es nicht.
+   - **oder per Skript** (wiederholbar, auch für den Schlüsselwechsel):
+
+     ```bash
+     NEXT_PUBLIC_SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... \
+     KI_ANBIETER_SCHLUESSEL=... ANTHROPIC_API_KEY=... \
+     node scripts/ki-anbieter-upsert.mjs --ja
+     ```
+
+     Werte nur über Umgebungsvariablen, nie als Argument. Ohne `--ja` verweigert das Skript ein gehostetes Ziel. Lokal: `node --env-file=.env.local.docker scripts/ki-anbieter-upsert.mjs`.
+
+**Gut zu wissen**
+
+- Es wird nur das günstigste Modell eingesetzt (`claude-haiku-4-5`).
+- Der Chatverlauf ist je Nutzer getrennt (Tabelle `ki_chat_nachrichten`, RLS und Filter auf das eigene Profil). Auch Büro-Rollen sehen nur ihre eigenen Gespräche.
+- Rollen ohne das Recht `ki_assistent` (Pflücker, Erzeuger) sehen "KI fragen" nicht.
+- **Wissensbasis (Recht, Steuer, Compliance, Audit):** Das Werkzeug `wissenSuchen` wird nur angeboten, wenn ein Index vorhanden ist: bei `npm run dev` immer, in einem Produktions-Build (`next start`, Vercel) nur mit gesetzter `QDRANT_URL`. Wer lokal mit `next start` testet, setzt deshalb `QDRANT_URL=http://127.0.0.1:6333` (Qdrant: `infra/qdrant.compose.yml`, Einbettung: Ollama mit `bge-m3`). Fehlt die Wissensbasis, antwortet der Agent auf Rechts- und Steuerfragen bewusst NICHT aus Trainingswissen, sondern sagt, dass keine belegte Auskunft möglich ist. Ist sie da, wird bei solchen Fragen die Suche als erster Schritt erzwungen (`lib/ai/schritt-steuerung.ts`).
+
 ### 6. Domain-Verwaltung
 
 1. **Sichere eine Domain** für deine Anwendung über [Strato](https://www.strato.de).
@@ -735,6 +778,49 @@ GitHub → Actions → "Deploy to Vercel" → Run workflow
 ```
 
 ---
+
+### 5b. Setting up the AI assistant (Claude)
+
+**What lives where**
+
+- **Anthropic API key:** stored encrypted (AES-256-GCM) in the database, table `ki_anbieter`, column `api_key_chiffrat`. One row per Supabase project (dev, prod).
+- **`KI_ANBIETER_SCHLUESSEL`:** environment variable in Vercel (Production, Preview, Development), any long random value: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. The ciphertext is bound to exactly this value. A ciphertext created locally does not work on Vercel, and after changing the value the API key must be entered again.
+- **`SUPABASE_SERVICE_ROLE_KEY`:** must be set in Vercel. `ki_anbieter` is readable by admins only, so the app reads the active provider with this key.
+
+**Prerequisite: apply the migrations to the hosted database**
+
+**No** workflow does this: the PR pipeline only tests against a local database, and `deploy.yml` only deploys to Vercel. Someone with access to the Supabase project runs, once per environment:
+
+```bash
+supabase link --project-ref <project-ref>
+supabase migration list        # compare local and remote, what is missing?
+supabase db push --dry-run     # shows what would be applied
+supabase db push               # applies it (npm run db:push)
+```
+
+If `db push` reports that local migrations are older than the latest remote migration, first find out where the remote migration came from (for example another branch) before using `--include-all`. Without the migrations, pages show "database unreachable" or sample data, and the chat reports "Could not find the 'werkzeugaufrufe' column". If the message stays after applying, run `NOTIFY pgrst, 'reload schema';` in the SQL editor.
+
+**Setup (once per environment)**
+
+1. Set `KI_ANBIETER_SCHLUESSEL` in Vercel and redeploy.
+2. Enter the API key, either
+   - **in the panel:** sign in as admin, "Ask AI", gear, create provider: type `anthropic`, base URL `https://api.anthropic.com` (without `/v1`), model `claude-haiku-4-5`, API key. Then choose "Set as default". The form only creates (a second attempt with the same name fails) and has no key rotation.
+   - **or with the script** (repeatable, also for key rotation):
+
+     ```bash
+     NEXT_PUBLIC_SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... \
+     KI_ANBIETER_SCHLUESSEL=... ANTHROPIC_API_KEY=... \
+     node scripts/ki-anbieter-upsert.mjs --ja
+     ```
+
+     Pass values via environment variables only, never as arguments. Without `--ja` the script refuses a hosted target. Locally: `node --env-file=.env.local.docker scripts/ki-anbieter-upsert.mjs`.
+
+**Good to know**
+
+- Only the cheapest model is used (`claude-haiku-4-5`).
+- Chat history is separate per user (table `ki_chat_nachrichten`, RLS plus a filter on the own profile). Even office roles only see their own conversations.
+- Roles without the `ki_assistent` permission (picker, producer) do not see "Ask AI".
+- **Knowledge base (law, tax, compliance, audit):** the `wissenSuchen` tool is only offered when an index exists: always with `npm run dev`, in a production build (`next start`, Vercel) only when `QDRANT_URL` is set. Set `QDRANT_URL=http://127.0.0.1:6333` when testing locally with `next start` (Qdrant: `infra/qdrant.compose.yml`, embeddings: Ollama with `bge-m3`). Without the knowledge base the agent deliberately does NOT answer legal or tax questions from training data and says no sourced answer is possible. With it, the search is forced as the first step for such questions (`lib/ai/schritt-steuerung.ts`).
 
 ### 6. Domain Management
 
