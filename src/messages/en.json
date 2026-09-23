@@ -2239,6 +2239,8 @@
     "satzLead": "Basis of the calculation: hourly rate, per-kg rate and the quality-factor corridor. Whoever is paid by it may see the basis.",
     "keinSatz": "No pay rate on file yet - no period can be calculated without one.",
     "wirkungslos": "The quality factor does not move away from 1.00 across the settlements shown - it currently has no visible effect on pay here. This can be due to missing waste data, not necessarily the formula.",
+    "historieTitel": "Rate history",
+    "historieLead": "All rates ever created, with their validity period - the highlighted one is valid today, not necessarily the most recently created.",
     "stat": {
       "stundenlohn": "Hourly rate",
       "kgSatz": "Per-kg rate",
@@ -2264,7 +2266,9 @@
       "aktion": "Action",
       "aufgabe": "Task",
       "ausschussAnteilig": "Waste (allocated)",
-      "betrag": "Amount"
+      "betrag": "Amount",
+      "gueltigAb": "Valid from",
+      "gueltigBis": "Valid until"
     },
     "freigebenKnopf": "Approve",
     "auszahlenKnopf": "Mark as paid",

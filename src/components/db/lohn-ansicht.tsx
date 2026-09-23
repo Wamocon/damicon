@@ -32,7 +32,7 @@ export async function LohnAnsicht() {
   const zahl1 = (n: number, stellen = 1) => format.number(n, { maximumFractionDigits: stellen });
   const datum = (iso: string) => format.dateTime(new Date(iso), { dateStyle: "medium" });
 
-  const { satz, abrechnungen, positionen, steuersatzKz, monatsabzuege } = uebersicht;
+  const { satz, historie, abrechnungen, positionen, steuersatzKz, monatsabzuege } = uebersicht;
   const kzt = await getTranslations("lohnAnsicht.kz");
   const monatName = (monat: number) =>
     format.dateTime(new Date(Date.UTC(2000, monat - 1, 1)), { month: "long" });
@@ -78,6 +78,39 @@ export async function LohnAnsicht() {
 
       {darfBerechnen ? <LohnSatzAnlegenFormular /> : null}
       {darfBerechnen ? <LohnPeriodeBerechnenFormular /> : null}
+
+      {/* WMCNL-2380: bislang war ausschliesslich der juengste Satz ueberhaupt
+          einsehbar (die Karte oben) - kein Weg, aeltere Saetze nachzuschlagen,
+          gegen die eine vergangene Periode tatsaechlich gerechnet hat. */}
+      <Section title={t("historieTitel")} description={t("historieLead")}>
+        <DataTable
+          head={[
+            t("col.gueltigAb"),
+            t("col.gueltigBis"),
+            t("stat.stundenlohn"),
+            t("stat.kgSatz"),
+            t("stat.ziel"),
+            t("stat.korridor"),
+          ]}
+        >
+          {historie.map((s) => (
+            <tr key={s.id} className={s.id === satz?.id ? "bg-primary/5" : undefined}>
+              <td className="px-3 py-2.5 font-semibold text-foreground">{datum(s.gueltigAb)}</td>
+              <td className="px-3 py-2.5 text-muted-foreground">
+                {s.gueltigBis ? datum(s.gueltigBis) : "-"}
+              </td>
+              <td className="px-3 py-2.5 text-muted-foreground">{geld(s.stundenlohnTenge)}</td>
+              <td className="px-3 py-2.5 text-muted-foreground">{geld(s.kgSatzTenge)}</td>
+              <td className="px-3 py-2.5 text-muted-foreground">
+                {zahl1(s.qualitaetsZielAusschussquote)} %
+              </td>
+              <td className="px-3 py-2.5 text-muted-foreground">
+                {zahl1(s.qualitaetsfaktorMin, 2)} – {zahl1(s.qualitaetsfaktorMax, 2)}
+              </td>
+            </tr>
+          ))}
+        </DataTable>
+      </Section>
 
       {faktorWirkungslos ? (
         <Card className="border-warning/30 bg-warning/[0.06] text-xs leading-5 text-warning">

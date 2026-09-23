@@ -2239,6 +2239,8 @@
     "satzLead": "Grundlage der Berechnung: Stundenlohn, kg-Satz und der Korridor des Qualitätsfaktors. Wer danach bezahlt wird, darf die Grundlage sehen.",
     "keinSatz": "Noch kein Lohnsatz hinterlegt - ohne ihn lässt sich keine Periode berechnen.",
     "wirkungslos": "Der Qualitätsfaktor bewegt sich in den angezeigten Abrechnungen nicht von 1,00 weg - er hat hier aktuell keine erkennbare Lohnwirkung. Das kann an fehlenden Ausschusswerten liegen, nicht zwingend an der Formel.",
+    "historieTitel": "Verlauf der Lohnsätze",
+    "historieLead": "Alle angelegten Sätze mit Gültigkeitszeitraum - der markierte ist der heute gültige, nicht zwingend der zuletzt angelegte.",
     "stat": {
       "stundenlohn": "Stundenlohn",
       "kgSatz": "kg-Satz",
@@ -2264,7 +2266,9 @@
       "aktion": "Aktion",
       "aufgabe": "Aufgabe",
       "ausschussAnteilig": "Ausschuss (anteilig)",
-      "betrag": "Betrag"
+      "betrag": "Betrag",
+      "gueltigAb": "Gültig ab",
+      "gueltigBis": "Gültig bis"
     },
     "freigebenKnopf": "Freigeben",
     "auszahlenKnopf": "Als ausgezahlt markieren",
