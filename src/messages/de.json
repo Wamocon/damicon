@@ -1325,7 +1325,11 @@
       "rechtsgrundlage": "Rechtsgrundlage",
       "aufbewahrung": "Aufbewahrung",
       "automatisiert": "Automatisierte Entscheidung",
-      "verantwortlich": "Verantwortlich"
+      "verantwortlich": "Verantwortlich",
+      "zeitpunkt": "Zeitpunkt",
+      "urheber": "Urheber",
+      "aktion": "Aktion",
+      "ressource": "Ressource"
     },
     "status": {
       "aktiv": "aktiv",
@@ -1373,6 +1377,11 @@
     "zwecke": {
       "titel": "Verarbeitungszwecke",
       "lead": "Zweckverzeichnis mit Rechtsgrundlage und Aufbewahrungsfrist."
+    },
+    "audit": {
+      "titel": "Prüfprotokoll",
+      "lead": "Die letzten 50 protokollierten Schreibvorgänge, jüngste zuerst - inklusive Urheber und Zeitstempel (audit_events).",
+      "leer": "Noch kein protokollierter Vorgang."
     },
     "monate": "{anzahl, plural, one {# Monat} other {# Monate}}",
     "ja": "ja",

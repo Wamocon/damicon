@@ -1325,7 +1325,11 @@
       "rechtsgrundlage": "Legal basis",
       "aufbewahrung": "Retention",
       "automatisiert": "Automated decision",
-      "verantwortlich": "Responsible"
+      "verantwortlich": "Responsible",
+      "zeitpunkt": "Timestamp",
+      "urheber": "Actor",
+      "aktion": "Action",
+      "ressource": "Resource"
     },
     "status": {
       "aktiv": "active",
@@ -1373,6 +1377,11 @@
     "zwecke": {
       "titel": "Processing purposes",
       "lead": "Purpose register with legal basis and retention period."
+    },
+    "audit": {
+      "titel": "Audit trail",
+      "lead": "The last 50 logged write operations, newest first - including actor and timestamp (audit_events).",
+      "leer": "No logged operation yet."
     },
     "monate": "{anzahl, plural, one {# month} other {# months}}",
     "ja": "yes",

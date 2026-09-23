@@ -212,6 +212,25 @@ export async function ComplianceAnsicht() {
         </Card>
       </Section>
 
+      <Section id="pruefprotokoll" title={t("audit.titel")} description={t("audit.lead")}>
+        {cockpit.auditEreignisse.length === 0 ? (
+          <Card className="text-center text-xs text-muted-foreground">{t("audit.leer")}</Card>
+        ) : (
+          <DataTable
+            head={[t("col.zeitpunkt"), t("col.urheber"), t("col.aktion"), t("col.ressource")]}
+          >
+            {cockpit.auditEreignisse.map((a) => (
+              <tr key={a.id}>
+                <td className="px-3 py-2.5 text-muted-foreground">{datum(a.erstelltAm)}</td>
+                <td className="px-3 py-2.5 font-semibold text-foreground">{a.actor ?? "-"}</td>
+                <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground">{a.aktion}</td>
+                <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground">{a.ressource}</td>
+              </tr>
+            ))}
+          </DataTable>
+        )}
+      </Section>
+
       <Section title={t("einwilligungen.titel")} description={t("einwilligungen.lead")}>
         <DataTable
           head={[
