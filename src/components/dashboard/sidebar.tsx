@@ -21,10 +21,9 @@ import {
   useZonenGruppen,
 } from "@/components/dashboard/sidebar-zustand";
 import { useNavZiele } from "@/components/dashboard/nav-ziele";
-import { hasPermission } from "@/lib/rbac";
 import {
   moduleHref,
-  modulesForZone,
+  sichtbareModule,
   zones,
   type ModuleDef,
   type ZoneDef,
@@ -442,9 +441,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
             </li>
 
             {zones.map((zone) => {
-              const items = modulesForZone(zone.key).filter((module) =>
-                hasPermission(role, module.resource, "view"),
-              );
+              const items = sichtbareModule(role, zone.key);
               // Ein Bereich ohne sichtbares Modul erscheint gar nicht - damit
               // taucht auch der Link auf seine Bereichsseite nie fuer eine
               // Rolle auf, die dort nichts zu sehen hat.
@@ -473,11 +470,11 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
 
 // Nur noch die feste Spalte ab `md`. Der mobile Teil - Menueknopf oben links
 // und die Schublade von der Seite - ist entfallen: unter `md` traegt die
-// untere Leiste (untere-leiste.tsx) die Navigation. Sie zeigt dort nur die
-// oberste Ebene, also Uebersicht und die vier Bereiche; die Module stehen als
-// Kacheln auf der Bereichsseite. Ein aufklappbarer Baum mit 26 Eintraegen ist
-// die Form fuer eine stehende Spalte, nicht fuer eine Flaeche, die man mit dem
-// Daumen aufzieht.
+// untere Leiste (untere-leiste.tsx) die Navigation. Ihr Menue-Blatt fuehrt
+// dieselben Ziele in zwei Ebenen statt in einem Baum: erst die vier Bereiche,
+// nach einem Tipp die Module des gewaehlten. Ein aufklappbarer Baum mit 27
+// Eintraegen ist die Form fuer eine stehende Spalte, nicht fuer eine Flaeche,
+// die man mit dem Daumen aufzieht - eine Ebene nach der anderen schon.
 const nieAbonnieren = () => () => {};
 
 /**
