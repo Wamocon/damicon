@@ -7,8 +7,10 @@
 
 import { readFileSync } from "node:fs";
 import type { Kpi } from "@/lib/domain/kpis";
+import { STARTKARTEN, startkarteFuer } from "@/lib/domain/startkarte";
 import { UEBERSICHT_REITER, reiterAusText, reiterFuer } from "@/lib/domain/uebersicht-reiter";
 import { auffaelligeZuerst, nurAuffaellige, zielAuswerten } from "@/lib/domain/zielstand";
+import { roles, type Role } from "@/lib/rbac";
 
 let gesamt = 0;
 let fehler = 0;
@@ -37,31 +39,41 @@ function kpi(teil: Partial<Kpi> & { key: string }): Kpi {
 
 // ---- Welche Reiter eine Rolle bekommt --------------------------------------------------------
 
-pruefe("Fuehrung: alle drei Reiter", gleich(reiterFuer({ compliance: true, finanzen: true }), ["compliance", "finanzen", "bereiche"]));
-pruefe("Ohne Compliance (Buchhaltung): zwei Reiter, CEO-Compliance fehlt", gleich(reiterFuer({ compliance: false, finanzen: true }), ["finanzen", "bereiche"]));
-pruefe("Ohne Finanzrecht: CEO-Compliance und Bereiche", gleich(reiterFuer({ compliance: true, finanzen: false }), ["compliance", "bereiche"]));
-pruefe("Weder noch (Pfluecker, Brigade): nur Bereiche", gleich(reiterFuer({ compliance: false, finanzen: false }), ["bereiche"]));
-pruefe("Bereiche sind immer dabei, in jeder Lage", [true, false].every((l) => [true, false].every((k) => reiterFuer({ compliance: l, finanzen: k }).includes("bereiche"))));
-pruefe("Die Reihenfolge ist fest, unabhaengig davon, was wegfaellt", [true, false].every((l) => [true, false].every((k) => {
-  const r = reiterFuer({ compliance: l, finanzen: k });
+pruefe("Mit Compliance: beide Reiter", gleich(reiterFuer({ compliance: true }), ["compliance", "bereiche"]));
+pruefe("Ohne Compliance: nur Bereiche", gleich(reiterFuer({ compliance: false }), ["bereiche"]));
+pruefe("Bereiche sind immer dabei", [true, false].every((c) => reiterFuer({ compliance: c }).includes("bereiche")));
+pruefe("Die Reihenfolge ist fest", [true, false].every((c) => {
+  const r = reiterFuer({ compliance: c });
   return gleich(r, UEBERSICHT_REITER.filter((x) => r.includes(x)));
-})));
+}));
 
 // ---- Der Wert aus der Adresszeile ------------------------------------------------------------
 
-const alle = reiterFuer({ compliance: true, finanzen: true });
-const nurBereiche = reiterFuer({ compliance: false, finanzen: false });
+const alle = reiterFuer({ compliance: true });
+const nurBereiche = reiterFuer({ compliance: false });
 
-pruefe("Gueltiger Reiter wird uebernommen", reiterAusText("finanzen", alle) === "finanzen");
+pruefe("Gueltiger Reiter wird uebernommen", reiterAusText("bereiche", alle) === "bereiche");
 pruefe("Ohne Angabe: der erste erlaubte", reiterAusText(undefined, alle) === "compliance");
 pruefe("Leerer Wert: der erste erlaubte", reiterAusText("", alle) === "compliance");
 pruefe("Unbekannter Wert faellt zurueck, ohne Fehlerseite", reiterAusText("quatsch", alle) === "compliance");
 pruefe("Bekannter, aber fuer die Rolle nicht erlaubter Wert faellt zurueck", reiterAusText("compliance", nurBereiche) === "bereiche");
-pruefe("Bei nur einem Reiter landet jede Eingabe dort", ["compliance", "finanzen", "quatsch", undefined].every((w) => reiterAusText(w, nurBereiche) === "bereiche"));
-pruefe("Ohne Compliance faellt der Standard auf Finanzen", reiterAusText(undefined, reiterFuer({ compliance: false, finanzen: true })) === "finanzen");
-// Ein doppelter Parameter in der Adresszeile kommt als Array an; page.tsx reicht dann
-// undefined weiter. Hier nur die Zusicherung, dass jeder Nicht-Treffer sauber zurueckfaellt.
-pruefe("Nichts Unerwartetes kommt durch", (["LAGE", "compliance ", " bereiche", "0"] as string[]).every((w) => UEBERSICHT_REITER.includes(reiterAusText(w, alle))));
+pruefe("Bei nur einem Reiter landet jede Eingabe dort", ["compliance", "quatsch", undefined].every((w) => reiterAusText(w, nurBereiche) === "bereiche"));
+// Der Reiter "finanzen" gab es kurzzeitig; ein alter Link darauf darf nicht ins Leere fuehren.
+pruefe("Ein Link auf den entfallenen Reiter finanzen faellt sauber zurueck", reiterAusText("finanzen", alle) === "compliance");
+pruefe("Nichts Unerwartetes kommt durch", (["COMPLIANCE", "compliance ", " bereiche", "0"] as string[]).every((w) => UEBERSICHT_REITER.includes(reiterAusText(w, alle))));
+
+// ---- Welche Startkarte eine Rolle bekommt ----------------------------------------------------
+
+pruefe("Fuehrung und Buero bekommen die Finanzzahl", (["admin", "ceo", "betriebsleitung", "buchhaltung"] as Role[]).every((r) => startkarteFuer(r) === "finanzen"));
+pruefe("Brigade bekommt die offenen Pflueckaufgaben", startkarteFuer("brigade") === "pflueckaufgaben");
+pruefe("Pfluecker bekommt den letzten Lohnlauf", startkarteFuer("picker") === "lohn");
+pruefe("Kunde bekommt die naechste Lieferung", startkarteFuer("kunde") === "lieferung");
+// Die Rechtematrix gibt erzeuger finanzen:view, aber das sind die Nachbarbetriebe im Zukauf -
+// ein externer Zulieferer soll den Gesamtdeckungsbeitrag nicht als erste Zahl lesen.
+pruefe("Erzeuger bekommt KEINE Finanzzahl, trotz finanzen:view", startkarteFuer("erzeuger") === null);
+pruefe("Ohne Rolle keine Startkarte", startkarteFuer(null) === null && startkarteFuer(undefined) === null);
+pruefe("Jede Rolle ist entschieden, keine ist vergessen", roles.every((r) => startkarteFuer(r) === null || STARTKARTEN.includes(startkarteFuer(r)!)));
+
 
 // ---- Auswahl der auffaelligen Kennzahlen -----------------------------------------------------
 

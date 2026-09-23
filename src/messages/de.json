@@ -375,7 +375,6 @@
     "reiter": {
       "label": "Bereiche der Übersicht",
       "compliance": "CEO-Compliance",
-      "finanzen": "Finanzen",
       "bereiche": "Bereiche"
     },
     "bereicheReiter": {
@@ -3327,5 +3326,29 @@
     "zurueck": "Zurück zur Übersicht",
     "stand": "Stand {datum}",
     "keinBericht": "Es liegt noch kein gespeicherter Bericht vor. Der erste Lauf startet im Hintergrund nach dem nächsten Login."
+  },
+  "startkarte": {
+    "brigade": {
+      "label": "Offene Pflückaufgaben",
+      "kontext": "Noch nicht abgeschlossen.",
+      "keine": "Nichts offen.",
+      "weiter": "Zu den Pflückaufgaben"
+    },
+    "pfluecker": {
+      "label": "Letzter Lohnlauf",
+      "kontext": "Bis {bis} · {status}",
+      "weiter": "Zum Lohn",
+      "status": {
+        "entwurf": "Entwurf",
+        "freigegeben": "freigegeben",
+        "ausgezahlt": "ausgezahlt"
+      }
+    },
+    "kunde": {
+      "label": "Nächste Lieferung",
+      "kontext": "{termin}",
+      "kontextMehrere": "{termin} · {anzahl} Posten",
+      "weiter": "Zum B2B-Portal"
+    }
   }
 }

@@ -150,7 +150,6 @@
     "reiter": {
       "label": "Шолу бөлімдері",
       "compliance": "CEO комплаенс",
-      "finanzen": "Қаржы",
       "bereiche": "Салалар"
     },
     "bereicheReiter": {
@@ -3327,5 +3326,29 @@
     "zurueck": "Шолуға оралу",
     "stand": "{datum} жағдайы",
     "keinBericht": "Әзірге сақталған есеп жоқ. Алғашқы өту келесі кіруден кейін фонда басталады."
+  },
+  "startkarte": {
+    "brigade": {
+      "label": "Ашық теру тапсырмалары",
+      "kontext": "Әлі аяқталмаған.",
+      "keine": "Ашық тапсырма жоқ.",
+      "weiter": "Теру тапсырмаларына"
+    },
+    "pfluecker": {
+      "label": "Соңғы жалақы есебі",
+      "kontext": "{bis} дейін · {status}",
+      "weiter": "Жалақыға",
+      "status": {
+        "entwurf": "жоба",
+        "freigegeben": "бекітілген",
+        "ausgezahlt": "төленген"
+      }
+    },
+    "kunde": {
+      "label": "Келесі жеткізу",
+      "kontext": "{termin}",
+      "kontextMehrere": "{termin} · {anzahl} позиция",
+      "weiter": "B2B порталына"
+    }
   }
 }

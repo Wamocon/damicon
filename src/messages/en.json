@@ -375,7 +375,6 @@
     "reiter": {
       "label": "Overview sections",
       "compliance": "CEO compliance",
-      "finanzen": "Finances",
       "bereiche": "Areas"
     },
     "bereicheReiter": {
@@ -3327,5 +3326,29 @@
     "zurueck": "Back to overview",
     "stand": "As of {datum}",
     "keinBericht": "No stored report yet. The first run starts in the background after the next login."
+  },
+  "startkarte": {
+    "brigade": {
+      "label": "Open picking tasks",
+      "kontext": "Not yet completed.",
+      "keine": "Nothing open.",
+      "weiter": "Go to picking tasks"
+    },
+    "pfluecker": {
+      "label": "Last payroll run",
+      "kontext": "Through {bis} · {status}",
+      "weiter": "Go to payroll",
+      "status": {
+        "entwurf": "draft",
+        "freigegeben": "approved",
+        "ausgezahlt": "paid"
+      }
+    },
+    "kunde": {
+      "label": "Next delivery",
+      "kontext": "{termin}",
+      "kontextMehrere": "{termin} · {anzahl} items",
+      "weiter": "Go to the B2B portal"
+    }
   }
 }

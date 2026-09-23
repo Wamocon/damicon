@@ -9,14 +9,12 @@
 // Muster wie finanzBereichAusText() in lib/domain/finanzen.ts, an dem sich auch das
 // Rueckfallverhalten orientiert.
 
-export const UEBERSICHT_REITER = ["compliance", "finanzen", "bereiche"] as const;
+export const UEBERSICHT_REITER = ["compliance", "bereiche"] as const;
 export type UebersichtReiter = (typeof UEBERSICHT_REITER)[number];
 
 export interface ReiterLage {
   /** Die vier Pruefbereiche: gespeicherter Compliance-Bericht, fuer ceo und admin. */
   compliance: boolean;
-  /** Erloese, Kosten und Deckungsbeitrag des laufenden Monats. */
-  finanzen: boolean;
 }
 
 /**
@@ -25,6 +23,10 @@ export interface ReiterLage {
  *
  * "bereiche" fehlt bewusst in ReiterLage: die vier Zonen stehen statisch in
  * lib/modules.ts und sind fuer jede Rolle da. Es gibt also immer mindestens einen Reiter.
+ *
+ * Einen Reiter "Finanzen" gab es kurzzeitig auch. Er ist am 23.09.2026 wieder entfallen:
+ * der Deckungsbeitrag steht jetzt in der Begruessungskarte (startkarte-finanzen.tsx), und
+ * ein Reiter fuer eine Zahl, die schon oben steht, waere doppelte Pflege.
  * Die Kennzahlen stehen dort in ihrer Zonenkarte - eine Zone ohne freigegebene Kennzahl
  * bleibt trotzdem ein Einstieg.
  *
@@ -34,7 +36,7 @@ export interface ReiterLage {
  * Rolle und wird fuer diese Person nie Inhalt haben.
  */
 export function reiterFuer(hat: ReiterLage): UebersichtReiter[] {
-  return UEBERSICHT_REITER.filter((r) => (r === "compliance" ? hat.compliance : r === "finanzen" ? hat.finanzen : true));
+  return UEBERSICHT_REITER.filter((r) => (r === "compliance" ? hat.compliance : true));
 }
 
 /**

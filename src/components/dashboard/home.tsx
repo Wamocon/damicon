@@ -31,6 +31,7 @@ export function DashboardHome({
   tageszeit,
   datum,
   spruch,
+  startkarte,
   kopf,
   reiter,
   inhalt,
@@ -39,6 +40,8 @@ export function DashboardHome({
   tageszeit: Tageszeit;
   datum: string;
   spruch: number;
+  /** Die rechte Haelfte der Begruessungskarte - je Rolle eine andere Zahl. */
+  startkarte?: ReactNode;
   /**
    * "Das Wichtigste heute" fuer ceo und admin, oberhalb der Reiterleiste und damit in jedem
    * Reiter sichtbar. Serverseitig an der ECHTEN Profilrolle festgemacht, nicht an der
@@ -53,7 +56,7 @@ export function DashboardHome({
 }) {
   return (
     <div className="space-y-6">
-      <BegruessungsBox tageszeit={tageszeit} datum={datum} spruch={spruch} />
+      <BegruessungsBox tageszeit={tageszeit} datum={datum} spruch={spruch} rechts={startkarte} />
       {kopf}
       {reiter}
       {inhalt}

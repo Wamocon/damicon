@@ -150,7 +150,6 @@
     "reiter": {
       "label": "Разделы обзора",
       "compliance": "CEO-комплаенс",
-      "finanzen": "Финансы",
       "bereiche": "Области"
     },
     "bereicheReiter": {
@@ -3327,5 +3326,29 @@
     "zurueck": "Назад к обзору",
     "stand": "На {datum}",
     "keinBericht": "Сохранённого отчёта пока нет. Первый запуск начнётся в фоне после следующего входа."
+  },
+  "startkarte": {
+    "brigade": {
+      "label": "Открытые задания на сбор",
+      "kontext": "Ещё не завершены.",
+      "keine": "Открытых нет.",
+      "weiter": "К заданиям на сбор"
+    },
+    "pfluecker": {
+      "label": "Последний расчёт зарплаты",
+      "kontext": "По {bis} · {status}",
+      "weiter": "К зарплате",
+      "status": {
+        "entwurf": "черновик",
+        "freigegeben": "утверждён",
+        "ausgezahlt": "выплачен"
+      }
+    },
+    "kunde": {
+      "label": "Ближайшая поставка",
+      "kontext": "{termin}",
+      "kontextMehrere": "{termin} · {anzahl} позиций",
+      "weiter": "К B2B-порталу"
+    }
   }
 }

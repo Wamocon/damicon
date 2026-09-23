@@ -1,13 +1,17 @@
 import { getFormatter, getTranslations, setRequestLocale } from "next-intl/server";
 import { DashboardHome } from "@/components/dashboard/home";
 import { BereicheReiter } from "@/components/dashboard/bereiche-reiter";
-import { FinanzenReiter } from "@/components/dashboard/finanzen-reiter";
+import { StartkarteBrigade } from "@/components/dashboard/startkarte-brigade";
+import { StartkarteFinanzen } from "@/components/dashboard/startkarte-finanzen";
+import { StartkarteKunde } from "@/components/dashboard/startkarte-kunde";
+import { StartkartePfluecker } from "@/components/dashboard/startkarte-pfluecker";
 import { TagesUebersicht } from "@/components/dashboard/tages-uebersicht";
 import { TagesCompliance } from "@/components/dashboard/tages-compliance";
 import { Reiter } from "@/components/ui/kit";
 import { ladeKpis } from "@/lib/data/kpis";
 import { getSessionProfile } from "@/lib/auth";
 import { kpisFuerRolle } from "@/lib/domain/kpis";
+import { startkarteFuer } from "@/lib/domain/startkarte";
 import { reiterAusText, reiterFuer } from "@/lib/domain/uebersicht-reiter";
 import { darfCeoBerichtLesen } from "@/lib/pruefung/rollen";
 import { hasPermission } from "@/lib/rbac";
@@ -78,9 +82,25 @@ export default async function DashboardPage({
   // der Hydration fest - und damit funktionierte der Reiterwechsel nicht mehr ohne
   // JavaScript. Ein Admin in der Vorschau "als picker" sieht deshalb weiter alle Reiter, der
   // Kennzahleninhalt darin ist aber leer gefiltert.
-  const erlaubt = reiterFuer({ compliance: zeigtCompliance, finanzen: darfFinanzenSehen });
+  const erlaubt = reiterFuer({ compliance: zeigtCompliance });
   // Ein doppelter Parameter in der Adresszeile kommt als Array an; dann gilt der Standard.
   const aktiv = reiterAusText(typeof suche.reiter === "string" ? suche.reiter : undefined, erlaubt);
+
+  // Die rechte Haelfte der Begruessungskarte: je Rolle eine andere Zahl. Ausgewaehlt an der
+  // ECHTEN Profilrolle, nicht an der umschaltbaren Vorschau - sonst muesste der Server die
+  // Daten ALLER Rollen mitschicken, also auch Lohn- und Bestelldaten an jemanden, der gerade
+  // Finanzen ansieht. Im Demo-Betrieb ohne Supabase gibt es keine Anmeldung und keine Zahlen.
+  const karte = isSupabaseConfigured() ? startkarteFuer(profil?.role) : null;
+  const startkarte =
+    karte === "finanzen" && darfFinanzenSehen ? (
+      <StartkarteFinanzen />
+    ) : karte === "pflueckaufgaben" ? (
+      <StartkarteBrigade />
+    ) : karte === "lohn" ? (
+      <StartkartePfluecker pflueckerId={profil?.pflueckerId ?? null} />
+    ) : karte === "lieferung" ? (
+      <StartkarteKunde b2bKundeId={profil?.b2bKundeId ?? null} />
+    ) : null;
 
   const jetzt = new Date();
 
@@ -92,6 +112,7 @@ export default async function DashboardPage({
         timeZone: betriebsZeitzone,
       })}
       spruch={spruchIndex(jetzt)}
+      startkarte={startkarte}
       kopf={zeigtCompliance ? <TagesUebersicht /> : null}
       reiter={
         // Ein Reiter allein ist keiner: dann steht sein Inhalt direkt da.
@@ -107,13 +128,7 @@ export default async function DashboardPage({
         ) : null
       }
       inhalt={
-        aktiv === "compliance" ? (
-          <TagesCompliance />
-        ) : aktiv === "finanzen" ? (
-          <FinanzenReiter />
-        ) : (
-          <BereicheReiter kpis={sichtbareKpis} quelle={quelle} />
-        )
+        aktiv === "compliance" ? <TagesCompliance /> : <BereicheReiter kpis={sichtbareKpis} quelle={quelle} />
       }
     />
   );
