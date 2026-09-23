@@ -1,12 +1,17 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { istGueltigerAnbieterTyp } from "@/lib/domain/ki-assistent";
 import { verschluessleApiKey } from "@/lib/ai/schluessel";
 import type { Json } from "@/lib/database.types";
 import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
+import {
+  anbieterAnlegen,
+  anbieterAktivSetzen,
+  anbieterStandardSetzen,
+  anbieterLoeschen,
+} from "@/lib/data/ki-anbieter";
 
 // Admin-Verwaltung der KI-Anbieter (Anforderung 5.4/5.5). Nur "manage" auf
 // die Ressource "ki_assistent" - laut rbac.ts hat ausschliesslich admin diese
@@ -53,20 +58,15 @@ export async function kiAnbieterAnlegen(
     return fehler("fehler.unbekannt");
   }
 
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("ki_anbieter")
-    .insert({
-      name,
-      anzeige_name: anzeigeName,
-      typ,
-      basis_url: basisUrl,
-      modell,
-      api_key_chiffrat: chiffrat,
-      erstellt_von: profil.id,
-    })
-    .select("id, anzeige_name")
-    .single();
+  const { data, error } = await anbieterAnlegen({
+    name,
+    anzeigeName,
+    typ,
+    basisUrl,
+    modell,
+    apiKeyChiffrat: chiffrat,
+    erstelltVon: profil.id,
+  });
 
   if (error) return dbFehler(error);
 
@@ -90,13 +90,7 @@ export async function kiAnbieterAktivSetzen(
   const aktiv = text(formData, "aktiv") === "true";
   if (!id) return fehler("fehler.eingabe");
 
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("ki_anbieter")
-    .update({ aktiv, aktualisiert_am: new Date().toISOString() })
-    .eq("id", id)
-    .select("id, anzeige_name")
-    .maybeSingle();
+  const { data, error } = await anbieterAktivSetzen(id, aktiv);
 
   if (error) return dbFehler(error);
   if (!data) return fehler("fehler.berechtigung");
@@ -120,11 +114,7 @@ export async function kiAnbieterStandardSetzen(
   const id = text(formData, "id");
   if (!id) return fehler("fehler.eingabe");
 
-  const supabase = await createClient();
-  // Atomar in der Datenbank (ki_anbieter_standard_setzen, Migration
-  // 20260930000000): loest den vorherigen Standard in derselben Transaktion
-  // ab, statt zweier getrennter UPDATEs vom Client aus.
-  const { error } = await supabase.rpc("ki_anbieter_standard_setzen", { p_id: id });
+  const { error } = await anbieterStandardSetzen(id);
   if (error) return dbFehler(error);
 
   await protokolliere(profil, "ki_anbieter.standard_gesetzt", id);
@@ -146,13 +136,7 @@ export async function kiAnbieterLoeschen(
   const id = text(formData, "id");
   if (!id) return fehler("fehler.eingabe");
 
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("ki_anbieter")
-    .delete()
-    .eq("id", id)
-    .select("id, anzeige_name")
-    .maybeSingle();
+  const { data, error } = await anbieterLoeschen(id);
 
   if (error) return dbFehler(error);
   if (!data) return fehler("fehler.berechtigung");

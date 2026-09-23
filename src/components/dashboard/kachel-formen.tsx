@@ -520,7 +520,7 @@ export function AnteilPunkte({
               i < erfuellt
                 ? vollstaendig
                   ? "border-success bg-success"
-                  : "border-success bg-success"
+                  : "border-warning bg-warning"
                 : "border-border",
             )}
           />
