@@ -3145,11 +3145,26 @@
     "keineAenderung": "Keine Änderungen seit dem letzten Bericht.",
     "aenderungenAnzahl": "{anzahl, plural, one {# Änderung} other {# Änderungen}} seit dem letzten Bericht",
     "kachelOeffnen": "{anzahl, plural, one {# Befund} other {# Befunde}} · Details ansehen",
+    "bereichAlsPdf": "Diesen Bereich als PDF",
+    "bereichAlsJson": "Diesen Bereich als JSON",
+    "keineMassnahmen": "Keine offenen Maßnahmen.",
     "aenderungArt": {
       "neu": "neu",
       "statusVeraendert": "Status geändert: {vorher} → {jetzt}",
       "schwereVeraendert": "Schwere geändert: {vorher} → {jetzt}"
-    }
+    },
+    "tour": {
+      "frage": "Soll ich dir die vier Prüfbereiche zeigen?",
+      "kopfTitel": "Das Gesamtbild",
+      "bereich": "{reife} von 100 Punkten, {stufe}. {anzahl, plural, one {# Befund} other {# Befunde}}. Für Details auf die Kachel klicken.",
+      "massnahmen": "{anzahl, plural, one {# offene Maßnahme} other {# offene Maßnahmen}} mit Frist und Verantwortlichkeit.",
+      "einschraenkungen": "{anzahl, plural, one {# Prüffeld konnte nicht vollständig bewertet werden.} other {# Prüffelder konnten nicht vollständig bewertet werden.}}",
+      "ende": "Das waren die vier Bereiche. Auf eine Kachel klicken zeigt dir jederzeit alle Details.",
+      "neustart": "Tour erneut starten",
+      "nachfrage": "Was kann ich dir noch zeigen?"
+    },
+    "liveHinweis": "Die Compliance-Prüfung läuft gerade live, hier siehst du jeden Schritt. Das dauert in der Regel unter einer Minute, du kannst in der Zwischenzeit weiterarbeiten.",
+    "liveHinweisKnopf": "Alles klar"
   },
   "pruefungAblauf": {
     "schritt": {
@@ -3192,6 +3207,9 @@
     "untertitel": "Himbeerbetrieb Kasachstan",
     "vertraulich": "Vertraulich",
     "dokumentart": "Compliance · Audit · Steuern · Recht · Risiko",
+    "auszugArt": "Auszug aus dem Compliance-Prüfbericht",
+    "auszugSub": "Auszug aus Bericht {id} vom {datum}",
+    "auszugSiegelHinweis": "Auszug aus dem vollständig versiegelten Bericht, das Siegel gilt für den Gesamtbericht.",
     "fussVertraulich": "Vertraulich · nur für den vorgesehenen Empfängerkreis",
     "seite": "Seite",
     "von": "von",

@@ -1,4 +1,6 @@
 import { STRAHLEN } from "@/components/brand/damicon-logo";
+import { kennzahlen } from "@/lib/pruefung/befund";
+import type { Pruefbereich } from "@/lib/pruefung/rollen";
 import type { Befund, Bericht } from "@/lib/pruefung/typen";
 
 // Der Pruefbericht als Dokument zum Weitergeben (Behoerden, Steuerberater, Pruefer, Banken): Deckblatt mit Marke, Reifegrad
@@ -53,15 +55,24 @@ function tag(iso: string, sprache: string): string {
   }
 }
 
-/** Dateiname ohne Sonderzeichen, aus Berichtsnummer und Datum. */
-export function pdfDateiname(b: Bericht): string {
-  return `Compliance-Prüfbericht-${b.erstelltAm.slice(0, 10)}-${b.id.slice(0, 8)}`;
+/** Nur ein Bereich statt des Gesamtberichts (Bereichs-Kachel in der CEO-Uebersicht,
+ *  ceo-bereichs-kacheln.tsx): dieselbe Vorlage, gefiltert auf einen Pruefbereich. Das Siegel
+ *  bleibt das des GESAMTBERICHTS - ein Auszug traegt kein eigenes, unabhaengig pruefbares
+ *  Siegel, das Dokument sagt das auch so (siehe berichtAlsHtml). */
+export interface BerichtAuszug {
+  bereich: Pruefbereich;
 }
 
-const STIL = (x: PdfTexte, b: Bericht): string => `
+/** Dateiname ohne Sonderzeichen, aus Berichtsnummer und Datum. */
+export function pdfDateiname(b: Bericht, auszug?: BerichtAuszug): string {
+  const teil = auszug ? `-${auszug.bereich}` : "";
+  return `Compliance-Prüfbericht${teil}-${b.erstelltAm.slice(0, 10)}-${b.id.slice(0, 8)}`;
+}
+
+const STIL = (x: PdfTexte, b: Bericht, titelKurz: string): string => `
 @page { size: A4; margin: 25mm 16mm 22mm;
   @top-left { content: url("${logoAlsUrl(18)}"); vertical-align: middle; padding-bottom: 3mm; border-bottom: 0.75pt solid ${PETROL}; }
-  @top-center { content: "Damicon  ·  ${x.p("titel").replace(/"/g, "'")}"; font: 700 7.5pt "Segoe UI", system-ui, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: ${PETROL}; vertical-align: middle; padding-bottom: 3mm; border-bottom: 0.75pt solid ${PETROL}; }
+  @top-center { content: "Damicon  ·  ${titelKurz.replace(/"/g, "'")}"; font: 700 7.5pt "Segoe UI", system-ui, sans-serif; letter-spacing: 0.06em; text-transform: uppercase; color: ${PETROL}; vertical-align: middle; padding-bottom: 3mm; border-bottom: 0.75pt solid ${PETROL}; }
   @top-right { content: "${esc(b.id.slice(0, 8))}"; font: 600 7.5pt ui-monospace, Consolas, monospace; color: ${GRAU}; vertical-align: middle; padding-bottom: 3mm; border-bottom: 0.75pt solid ${PETROL}; }
   @bottom-left { content: "${x.p("fussVertraulich").replace(/"/g, "'")}"; font: 7.5pt "Segoe UI", system-ui, sans-serif; color: ${GRAU}; vertical-align: top; padding-top: 3mm; border-top: 0.5pt solid #cfd8de; }
   @bottom-right { content: "${x.p("seite").replace(/"/g, "'")} " counter(page) " ${x.p("von").replace(/"/g, "'")} " counter(pages); font: 600 7.5pt "Segoe UI", system-ui, sans-serif; color: ${TINTE}; vertical-align: top; padding-top: 3mm; border-top: 0.5pt solid #cfd8de; }
@@ -175,30 +186,39 @@ function ringHtml(reife: number, farbe: string, x: PdfTexte): string {
 
 const STUFE_FARBE = { bereit: "#17805a", luecken: "#b06a10", "nicht-bereit": "#b23a3a" } as const;
 
-export function berichtAlsHtml(b: Bericht, x: PdfTexte): string {
+export function berichtAlsHtml(b: Bericht, x: PdfTexte, auszug?: BerichtAuszug): string {
+  const befunde = auszug ? b.befunde.filter((f) => f.bereich === auszug.bereich) : b.befunde;
   const nachId = new Map(b.belege.map((q) => [q.id, q]));
-  const kz = b.kennzahlen;
+  const kz = auszug ? kennzahlen(befunde) : b.kennzahlen;
   const farbe = STUFE_FARBE[kz.stufe];
-  const plan = b.massnahmen;
-  const bereichsnamen = b.bereiche.map((k) => x.t(`bereich.${k}.name`)).join(" · ");
-  const datenquellen = new Set(b.befunde.flatMap((f) => f.nachweise.map((n) => n.quelle))).size;
+  const plan = auszug ? b.massnahmen.filter((m) => befunde.some((f) => f.id === m.befundId)) : b.massnahmen;
+  const prioritaeten = auszug ? [] : b.prioritaeten;
+  const bereicheFuerTabelle = auszug ? [auszug.bereich] : b.bereiche;
+  // Auszug: nur die Quellen, die eine der gezeigten Befunde tatsaechlich zitiert - sonst
+  // stuenden im Anhang Rechtsquellen zu Bereichen, die dieses Dokument gar nicht zeigt.
+  const belegeFuerAnhang = auszug ? b.belege.filter((q) => befunde.some((f) => f.belege.includes(q.id))) : b.belege;
+  const bereichsnamen = auszug ? x.t(`bereich.${auszug.bereich}.name`) : b.bereiche.map((k) => x.t(`bereich.${k}.name`)).join(" · ");
+  const datenquellen = new Set(befunde.flatMap((f) => f.nachweise.map((n) => n.quelle))).size;
+  const titelText = auszug ? x.t(`bereich.${auszug.bereich}.name`) : x.p("titel");
+  const artText = auszug ? x.p("auszugArt") : x.p("dokumentart");
+  const subText = auszug ? x.p("auszugSub", { id: b.id.slice(0, 8), datum: tag(b.erstelltAm, b.sprache) }) : bereichsnamen;
 
   // Abschnitte in der Reihenfolge, in der sie im Dokument stehen; das Inhaltsverzeichnis auf dem Deckblatt folgt derselben Liste.
   const abschnitte = [
     x.p("abschnitt.zusammenfassung"),
     x.p("abschnitt.ergebnis"),
-    ...(b.prioritaeten.length ? [x.t("bericht.prioritaeten")] : []),
+    ...(prioritaeten.length ? [x.t("bericht.prioritaeten")] : []),
     x.t("bericht.befunde"),
     ...(plan.length ? [x.t("bericht.massnahmen")] : []),
     x.p("abschnitt.methodik"),
-    ...(b.belege.length ? [x.p("anhang")] : []),
+    ...(belegeFuerAnhang.length ? [x.p("anhang")] : []),
     x.p("abschnitt.freigabe"),
     x.t("siegel.titel"),
   ];
 
-  const zeilenBereich = b.bereiche
+  const zeilenBereich = bereicheFuerTabelle
     .map((k) => {
-      const f = b.befunde.filter((y) => y.bereich === k);
+      const f = befunde.filter((y) => y.bereich === k);
       const n = (s: string) => f.filter((y) => y.status === s).length;
       return `<tr><td>${esc(x.t(`bereich.${k}.name`))}</td><td class="zahl">${f.length}</td><td class="zahl">${n("verstoss")}</td><td class="zahl">${n("luecke")}</td><td class="zahl">${n("hinweis")}</td><td class="zahl">${n("konform")}</td></tr>`;
     })
@@ -209,7 +229,7 @@ export function berichtAlsHtml(b: Bericht, x: PdfTexte): string {
         `<tr><td class="zahl">${i + 1}</td><td>${esc(m.schritt)}<br><span class="klein">${esc(m.titel)}</span></td><td class="nb">${esc(x.t(`rolle.${m.verantwortlich}`))}</td><td class="nb">${esc(x.t(`frist.${FRIST[m.frist]}`))}</td><td class="nb">${m.schwere !== "keine" ? esc(x.t(`schwere.${m.schwere}`)) : ""}</td></tr>`,
     )
     .join("");
-  const anhang = b.belege
+  const anhang = belegeFuerAnhang
     .map((q) => {
       const stufe = q.stufe !== null ? `${esc(x.p("stufe"))} ${q.stufe}` : "";
       const stand = q.gueltigAb ? `${esc(x.p("stand"))} ${esc(q.gueltigAb)}` : q.abgerufenAm ? `${esc(x.p("abgerufen"))} ${esc(q.abgerufenAm)}` : "";
@@ -220,7 +240,7 @@ export function berichtAlsHtml(b: Bericht, x: PdfTexte): string {
   const hinweise = [!b.vollstaendig ? x.t("bericht.unvollstaendig") : "", ...b.hinweise].filter(Boolean);
   const unterschrift = (rolle: string) => `<div>${esc(x.p("freigabe.unterschrift"))}: ${esc(rolle)}<br>${esc(x.p("freigabe.ort"))}</div>`;
 
-  return `<!doctype html><html lang="${esc(b.sprache)}"><head><meta charset="utf-8"><title>${esc(pdfDateiname(b))}</title><style>${STIL(x, b)}</style></head><body>
+  return `<!doctype html><html lang="${esc(b.sprache)}"><head><meta charset="utf-8"><title>${esc(pdfDateiname(b, auszug))}</title><style>${STIL(x, b, titelText)}</style></head><body>
 
 <section class="deck">
   <div class="deck__band">
@@ -229,9 +249,9 @@ export function berichtAlsHtml(b: Bericht, x: PdfTexte): string {
   </div>
   <div class="deck__linie"><i></i><i></i></div>
   <div class="deck__inhalt">
-    <p class="deck__art">${esc(x.p("dokumentart"))}</p>
-    <h1>${esc(x.p("titel"))}</h1>
-    <p class="deck__sub">${esc(bereichsnamen)}</p>
+    <p class="deck__art">${esc(artText)}</p>
+    <h1>${esc(titelText)}</h1>
+    <p class="deck__sub">${esc(subText)}</p>
 
     <div class="deck__reife">
       ${ringHtml(kz.reife, farbe, x)}
@@ -246,13 +266,13 @@ export function berichtAlsHtml(b: Bericht, x: PdfTexte): string {
       <tr><th>${esc(x.p("nummer"))}</th><td>${esc(b.id)}</td></tr>
       <tr><th>${esc(x.p("erstelltAm"))}</th><td>${esc(datum(b.erstelltAm, b.sprache))}</td></tr>
       <tr><th>${esc(x.p("ersteller"))}</th><td>${esc(b.ersteller.name)} (${esc(x.t(`rolle.${b.ersteller.rolle}`))})</td></tr>
-      <tr><th>${esc(x.p("umfang"))}</th><td>${esc(x.p("umfangWert", { felder: b.befunde.length, quellen: b.belege.length, daten: datenquellen }))}</td></tr>
+      <tr><th>${esc(x.p("umfang"))}</th><td>${esc(x.p("umfangWert", { felder: befunde.length, quellen: belegeFuerAnhang.length, daten: datenquellen }))}</td></tr>
       <tr><th>${esc(x.t("siegel.modell"))}</th><td>${esc(b.modell)}</td></tr>
     </tbody></table>
 
     <div class="deck__inhaltsliste"><p class="deck__inhaltstitel">${esc(x.p("inhalt"))}</p><ol>${abschnitte.map((a) => `<li>${esc(a)}</li>`).join("")}</ol></div>
   </div>
-  <div class="deck__fuss">${esc(x.p("siegelKurz"))}: <code>${esc(b.siegel.algorithmus)} ${esc(b.siegel.wert)}</code></div>
+  <div class="deck__fuss">${auszug ? `${esc(x.p("auszugSiegelHinweis"))} ` : ""}${esc(x.p("siegelKurz"))}: <code>${esc(b.siegel.algorithmus)} ${esc(b.siegel.wert)}</code></div>
 </section>
 
 <main>
@@ -269,10 +289,10 @@ export function berichtAlsHtml(b: Bericht, x: PdfTexte): string {
   <span style="--f:${PETROL}">${esc(x.p("legende.stufen"))}</span>
 </div>
 
-${b.prioritaeten.length ? `<h2>${esc(x.t("bericht.prioritaeten"))}</h2><ol class="prio">${b.prioritaeten.map((p) => `<li>${esc(p)}</li>`).join("")}</ol>` : ""}
+${prioritaeten.length ? `<h2>${esc(x.t("bericht.prioritaeten"))}</h2><ol class="prio">${prioritaeten.map((p) => `<li>${esc(p)}</li>`).join("")}</ol>` : ""}
 
 <h2>${esc(x.t("bericht.befunde"))}</h2>
-${b.befunde.map((f, i) => befundHtml(f, i + 1, nachId, x)).join("")}
+${befunde.map((f, i) => befundHtml(f, i + 1, nachId, x)).join("")}
 
 ${plan.length ? `<h2>${esc(x.t("bericht.massnahmen"))}</h2><table><thead><tr><th class="zahl">#</th><th>${esc(x.p("massnahme"))}</th><th>${esc(x.p("verantwortlich"))}</th><th>${esc(x.p("frist"))}</th><th>${esc(x.p("prioritaet"))}</th></tr></thead><tbody>${zeilenPlan}</tbody></table>` : ""}
 
@@ -280,7 +300,7 @@ ${plan.length ? `<h2>${esc(x.t("bericht.massnahmen"))}</h2><table><thead><tr><th
 <p>${esc(x.p("methodik.absatz1"))}</p>
 <p>${esc(x.p("methodik.absatz2"))}</p>
 
-${b.belege.length ? `<h2>${esc(x.p("anhang"))}</h2>${anhang}` : ""}
+${belegeFuerAnhang.length ? `<h2>${esc(x.p("anhang"))}</h2>${anhang}` : ""}
 
 <h2>${esc(x.p("abschnitt.freigabe"))}</h2>
 <p>${esc(x.p("freigabe.text"))}</p>
@@ -301,8 +321,9 @@ ${hinweise.length ? `<p class="hinweis"><strong>${esc(x.t("bericht.hinweise"))}:
 </body></html>`;
 }
 
-/** Oeffnet das Druckfenster des Browsers fuer den Bericht (dort "Als PDF speichern"). Laeuft in einem unsichtbaren Rahmen, das Panel bleibt unberuehrt. */
-export function berichtAlsPdfSpeichern(b: Bericht, x: PdfTexte): void {
+/** Oeffnet das Druckfenster des Browsers fuer den Bericht (dort "Als PDF speichern"). Laeuft in einem unsichtbaren Rahmen, das Panel bleibt unberuehrt.
+ *  Mit auszug: nur ein Bereich (Bereichs-Kachel in der CEO-Uebersicht) statt des Gesamtberichts. */
+export function berichtAlsPdfSpeichern(b: Bericht, x: PdfTexte, auszug?: BerichtAuszug): void {
   const rahmen = document.createElement("iframe");
   rahmen.setAttribute("aria-hidden", "true");
   rahmen.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden";
@@ -315,7 +336,7 @@ export function berichtAlsPdfSpeichern(b: Bericht, x: PdfTexte): void {
   }
   const aufraeumen = () => window.setTimeout(() => rahmen.remove(), 500);
   dokument.open();
-  dokument.write(berichtAlsHtml(b, x));
+  dokument.write(berichtAlsHtml(b, x, auszug));
   dokument.close();
   fenster.addEventListener("afterprint", aufraeumen);
   // Schriften und Layout muessen fertig sein, bevor der Druckdialog Seitenzahl und Umbrueche berechnet.

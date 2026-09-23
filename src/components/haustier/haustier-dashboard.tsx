@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
+import { useCeoPruefung } from "@/components/dashboard/ceo-pruefung-kontext";
+import { useComplianceTourAnzeige } from "@/components/dashboard/compliance-tour-kontext";
 import { usePersona } from "@/components/dashboard/persona";
 import { AbzeichenModal } from "@/components/haustier/abzeichen-modal";
 import { DamiconLogo } from "@/components/brand/damicon-logo";
@@ -12,7 +14,8 @@ import { useHaustierAktionen, useHaustierStatus } from "@/components/haustier/ha
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { useIstHandy } from "@/components/ui/handy";
 import { usePathname } from "@/i18n/navigation";
-import { haustierZustand, modulAusPfad, type Stimmung } from "@/lib/haustier";
+import { bewegungReduziert } from "@/lib/bewegung";
+import { haustierZustand, modulAusPfad, springeZuAnker, type Stimmung } from "@/lib/haustier";
 import { modules } from "@/lib/modules";
 import { hasPermission } from "@/lib/rbac";
 
@@ -40,15 +43,22 @@ const ANSTUPSER_SCHLUESSEL = "damicon-haustier-anstupser";
 const TIPP_DAUER_MS = 15000;
 const FERTIG_BLASE_MS = 9000;
 const WILLKOMMEN_MS = 3200;
+// Live-Lauf-Hinweis: springt SOFORT (kein Warten wie beim Tour-Angebot) zur laufenden
+// Pruefung, sobald sie beginnt - der CEO soll beim ersten Login gleich sehen, dass und wie
+// lange es dauert, statt es zu erraten.
+const LIVE_HINWEIS_DAUER_MS = 14000;
 
 export function HaustierDashboard() {
   const t = useTranslations("haustier");
   const moduleT = useTranslations("modules");
+  const ceoT = useTranslations("ceoUebersicht");
   const { verfuegbar, offen, umschalten, setOffen, darstellung } = useKiPane();
   const { phase, text, an, weg, stimmung, inventar } = useHaustierStatus();
   const { stelleFrage, schickeWeg, holeZurueck } = useHaustierAktionen();
   const pfad = usePathname();
   const { role } = usePersona();
+  const tour = useComplianceTourAnzeige();
+  const ceoStand = useCeoPruefung();
   // Auf dem Handy steht Himbi in der unteren Leiste (untere-leiste.tsx) und
   // nicht frei im Bild. Frei schwebend deckte er dort Karteninhalt zu, und
   // daneben trug die Leiste noch einmal dieselbe Himbeere als KI-Knopf -
@@ -59,6 +69,34 @@ export function HaustierDashboard() {
   const [willkommen, setWillkommen] = useState(false);
   const willkommenTimer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(willkommenTimer.current), []);
+
+  // Live-Lauf-Hinweis: einmal je Sitzung, sobald der automatische CEO-Check zu laufen beginnt -
+  // springt sofort zur Live-Anzeige (kein Warten wie beim Tour-Angebot) und hebt sie hervor, damit
+  // der CEO gleich sieht, dass und ungefaehr wie lange es dauert. Haengt am Anker
+  // "compliance-live-lauf" (ceo-auto-pruefung.tsx) - erst vorhanden, sobald die Uebersichtsseite
+  // die laufende Pruefung tatsaechlich zeichnet; deshalb auch bei jedem Seitenwechsel (pfad) ein
+  // neuer Versuch, solange noch nichts gezeigt wurde.
+  const [liveHinweisGezeigt, setLiveHinweisGezeigt] = useState(false);
+  const [liveHinweisAktiv, setLiveHinweisAktiv] = useState(false);
+  const [liveZiel, setLiveZiel] = useState<Element | null>(null);
+  const [liveHuepf, setLiveHuepf] = useState(0);
+  const liveHinweisTimer = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(liveHinweisTimer.current), []);
+  useEffect(() => {
+    if (ceoStand?.phase !== "laeuft" || liveHinweisGezeigt) return;
+    const versuch = window.setTimeout(() => {
+      const ziel = document.getElementById("compliance-live-lauf");
+      if (!ziel) return;
+      setLiveHinweisGezeigt(true);
+      setLiveHinweisAktiv(true);
+      setLiveZiel(ziel);
+      setLiveHuepf((n) => n + 1);
+      springeZuAnker("compliance-live-lauf", { bewegungReduziert: bewegungReduziert() });
+      window.clearTimeout(liveHinweisTimer.current);
+      liveHinweisTimer.current = window.setTimeout(() => setLiveHinweisAktiv(false), LIVE_HINWEIS_DAUER_MS);
+    }, 0);
+    return () => window.clearTimeout(versuch);
+  }, [ceoStand?.phase, liveHinweisGezeigt, pfad]);
 
   // Antwort kam an, waehrend das Panel zu war: Himbi jubelt, bis man hinsieht.
   const [fertig, setFertig] = useState(false);
@@ -212,11 +250,23 @@ export function HaustierDashboard() {
   // Kopfzeile oeffnet weiterhin das angedockte Panel.
   const aufBuehne = offen && darstellung === "buehne";
 
-  const zustand = willkommen ? "fertig" : haustierZustand({ phase, fertigUngelesen: fertig, schlaeft: false });
+  // Echte Arbeit (Freigabe/Arbeitet/Fehler) und eine frisch angekommene Antwort gewinnen immer
+  // vor dem Live-Lauf-Hinweis und der Compliance-Tour: die Fuehrung wartet lieber kurz, als eine
+  // Meldung zu verdecken, die Aufmerksamkeit braucht.
+  const liveHinweisSichtbar = !offen && phase !== "freigabe" && phase !== "arbeitet" && phase !== "fehler" && !fertigBlase && liveHinweisAktiv;
+  const tourAktivSichtbar = !offen && phase !== "freigabe" && phase !== "arbeitet" && phase !== "fehler" && !fertigBlase && !liveHinweisSichtbar && tour.aktiv;
+  const zustand = willkommen
+    ? "fertig"
+    : liveHinweisSichtbar
+      ? "denkt"
+      : tourAktivSichtbar
+        ? tour.tourZustand
+        : haustierZustand({ phase, fertigUngelesen: fertig, schlaeft: false });
   const label = t(`label.${zustand}`);
   const befindenSichtbar = befindenFrage && ruhigGenug && !tipp;
   const tippSichtbar = !!tipp && ruhigGenug && !befindenSichtbar;
   const anstupserSichtbar = !!anstupser && ruhigGenug && !befindenSichtbar && !tippSichtbar && !befindenBlase;
+  const tourFrageSichtbar = tour.frageBereit && ruhigGenug && !tipp;
 
   // Die Antwort des Menschen gewinnt fuer eine Weile vor der Miene aus dem Antworttext:
   // wer gerade gesagt hat, dass viel los ist, soll kein zufriedenes Gesicht sehen.
@@ -264,6 +314,21 @@ export function HaustierDashboard() {
           </div>
         </>
       );
+    } else if (liveHinweisSichtbar) {
+      blase = (
+        <>
+          <p className="hb-blase__text">{ceoT("liveHinweis")}</p>
+          <div className="hb-blase__knoepfe">
+            <button type="button" className="hb-knopf" onClick={() => setLiveHinweisAktiv(false)}>
+              {ceoT("liveHinweisKnopf")}
+            </button>
+          </div>
+        </>
+      );
+    } else if (tourAktivSichtbar) {
+      blase = tour.tourBlase;
+    } else if (tourFrageSichtbar) {
+      blase = tour.frageBlase;
     } else if (befindenSichtbar) {
       blase = (
         <>
@@ -362,6 +427,9 @@ export function HaustierDashboard() {
         blase={blase}
         paneOffen={offen}
         label={label}
+        blickZiel={liveHinweisSichtbar ? liveZiel : tour.tourZiel}
+        positionFolgtBlick
+        huepf={liveHinweisSichtbar ? liveHuepf : tour.huepf}
         aufAbzeichen={() => setAbzeichenOffen(true)}
         aufLogo={() => setLogoOffen(true)}
         inventar={inventar}
@@ -372,6 +440,7 @@ export function HaustierDashboard() {
           setBefindenFrage(false);
           setBefindenBlase(false);
           setAnstupser(null);
+          setLiveHinweisAktiv(false);
           // Bis 22.09.2026 oeffnete ein Klick auf Himbi die Buehne (Mitte,
           // Seite dahinter unscharf) statt des angedockten Panels: das deckte
           // die Seitenleiste zu und liess sich nicht neben der Navigation

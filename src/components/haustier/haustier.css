@@ -560,6 +560,19 @@ html[data-ki-zieht] .haustier__verschiebung {
   border-radius: 1rem 1rem 1rem 0.3rem;
   transform-origin: 0% 100%;
 }
+/* Steht Himbi zu nah am oberen Rand (Compliance-Fuehrung: die Figur kann ueberall auf der
+   Seite landen), passt die Blase nicht mehr ueber ihr hinein - dann steht sie stattdessen
+   darunter. bestimmeHoehe() in haustier-huelle.tsx setzt das Attribut. */
+.haustier[data-hoehe="unten"] .hb-blase {
+  bottom: auto;
+  top: calc(100% + 12px);
+  border-radius: 0.3rem 1rem 1rem 1rem;
+  transform-origin: 100% 0%;
+}
+.haustier[data-hoehe="unten"][data-seite="links"] .hb-blase {
+  border-radius: 1rem 0.3rem 1rem 1rem;
+  transform-origin: 0% 0%;
+}
 .hb-blase::after {
   content: "";
   position: absolute;
@@ -575,6 +588,14 @@ html[data-ki-zieht] .haustier__verschiebung {
 .haustier[data-seite="links"] .hb-blase::after {
   right: auto;
   left: 30px;
+}
+.haustier[data-hoehe="unten"] .hb-blase::after {
+  bottom: auto;
+  top: -6px;
+  border-right: none;
+  border-bottom: none;
+  border-left: 1px solid var(--border, #e5e7eb);
+  border-top: 1px solid var(--border, #e5e7eb);
 }
 @media (prefers-reduced-motion: no-preference) {
   .hb-blase {

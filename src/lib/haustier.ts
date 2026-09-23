@@ -174,3 +174,27 @@ export type TourSchluessel = (typeof TOUR_SCHRITTE)[number]["schluessel"];
 export function tourDauer(text: string): number {
   return Math.min(9500, Math.max(5500, 3800 + text.length * 48));
 }
+
+const FOKUS_KLASSE = "haustier-fokus";
+
+/** Scrollt weich zu einem Abschnitt und hebt ihn kurz farbig hervor (Klasse haustier-fokus,
+ *  siehe haustier.css) - fuer jede Fuehrung, die auf einen Teil der Seite zeigt (Compliance-Tour,
+ *  Live-Lauf-Hinweis). Die Bedingung kommt von aussen (lib/bewegung.ts), damit diese Datei ohne
+ *  React bleibt (siehe Kopfkommentar).
+ *
+ *  scrollIntoView statt eigener scrollTo-Rechnung: findet den tatsaechlichen Scroll-Container
+ *  selbst (nicht zwingend das Fenster) und haelt sich an scroll-margin-top, das die Ziele selbst
+ *  tragen ([id^="compliance-"] in pruefung.css) - damit bleibt der Abstand zur festen Kopfzeile
+ *  an EINER Stelle gepflegt, nicht als Zahl hier UND als CSS-Wert dort. Kein Sprunglink wie auf
+ *  der oeffentlichen Startseite (haustier-tour.tsx): dort muss der Weg ueber Lenis (weiches-
+ *  scrollen.tsx) laufen, um nicht mit dessen eigenem Scrollen zu kaempfen - das Dashboard nutzt
+ *  kein Lenis, direktes scrollIntoView ist hier das einfachere und verlaesslichere Mittel. */
+export function springeZuAnker(anker: string, bedingungen: { bewegungReduziert: boolean }): void {
+  const ziel = document.getElementById(anker);
+  if (!ziel) return;
+  ziel.scrollIntoView({ behavior: bedingungen.bewegungReduziert ? "auto" : "smooth", block: "start" });
+  ziel.classList.remove(FOKUS_KLASSE);
+  void ziel.offsetWidth;
+  window.setTimeout(() => ziel.classList.add(FOKUS_KLASSE), 500);
+  window.setTimeout(() => ziel.classList.remove(FOKUS_KLASSE), 3300);
+}

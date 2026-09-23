@@ -57,6 +57,11 @@ export interface HaustierHuelleProps {
   onKlick: () => void;
   /** Element, auf das Himbi schaut (Tour): ueberstimmt Mauszeiger und Zustand. */
   blickZiel?: Element | null;
+  /** Gesetzt: Himbi zieht nicht nur die Augen zu blickZiel, sondern die ganze Figur dorthin -
+   *  fuer eine Fuehrung, die auf einen bestimmten Teil einer langen, scrollbaren Seite zeigt
+   *  (Dashboard: Compliance-Tour, Live-Lauf-Hinweis). Ohne dieses Flag bleibt es beim reinen
+   *  Blick, wie auf der oeffentlichen Startseite - dort bleibt die Figur bewusst in ihrer Ecke. */
+  positionFolgtBlick?: boolean;
   /** Weiter oben ansetzen, damit Himbi nichts verdeckt, was unten rechts schon sitzt (Tonschalter der Startseite). */
   hoch?: boolean;
   /** Der Assistent steht in der Mitte: Himbi fliegt aus der Ecke ueber die Karte und
@@ -92,6 +97,7 @@ export function HaustierHuelle({
   label,
   onKlick,
   blickZiel,
+  positionFolgtBlick = false,
   hoch = false,
   buehne = false,
   huepf = 0,
@@ -109,6 +115,7 @@ export function HaustierHuelle({
   const [schlaeft, setSchlaeft] = useState(false);
   const [zieht, setZieht] = useState(false);
   const [seite, setSeite] = useState<"rechts" | "links">("rechts");
+  const [hoehe, setHoehe] = useState<"oben" | "unten">("oben");
   const [konfettiNr, setKonfettiNr] = useState(0);
 
   const [halten, setHalten] = useState(false);
@@ -129,6 +136,14 @@ export function HaustierHuelle({
   const bestimmeSeite = useCallback(() => {
     const r = griff.current?.getBoundingClientRect();
     if (r) setSeite(r.left + r.width / 2 < window.innerWidth / 2 ? "links" : "rechts");
+  }, []);
+
+  /** Passt normalerweise ueber die Blase; steht Himbi zu nah am oberen Rand (moeglich, seit
+   *  positionFolgtBlick sie ueberallhin ziehen kann), steht die Blase stattdessen darunter. */
+  const BLASE_MINDESTHOEHE = 210;
+  const bestimmeHoehe = useCallback(() => {
+    const r = griff.current?.getBoundingClientRect();
+    if (r) setHoehe(r.top < BLASE_MINDESTHOEHE ? "unten" : "oben");
   }, []);
 
   /** Haelt Himbi im sichtbaren Bereich, wie auch immer sie dorthin kam (Ziehen, Fenster kleiner, Panel auf). */
@@ -157,17 +172,19 @@ export function HaustierHuelle({
     const nachLayout = window.requestAnimationFrame(() => {
       klemme();
       bestimmeSeite();
+      bestimmeHoehe();
     });
     const beiGroesse = () => {
       klemme();
       bestimmeSeite();
+      bestimmeHoehe();
     };
     window.addEventListener("resize", beiGroesse);
     return () => {
       window.cancelAnimationFrame(nachLayout);
       window.removeEventListener("resize", beiGroesse);
     };
-  }, [klemme, bestimmeSeite, setzeVersatz]);
+  }, [klemme, bestimmeSeite, bestimmeHoehe, setzeVersatz]);
 
   // Das Element gibt es erst, wenn bereit gesetzt ist (davor wird nichts gezeichnet). Die gespeicherte
   // Position wurde im Mount-Effekt nur gemerkt - hier wird sie ans echte Element geschrieben.
@@ -180,9 +197,10 @@ export function HaustierHuelle({
     const id = window.setTimeout(() => {
       klemme();
       bestimmeSeite();
+      bestimmeHoehe();
     }, 620);
     return () => window.clearTimeout(id);
-  }, [paneOffen, klemme, bestimmeSeite]);
+  }, [paneOffen, klemme, bestimmeSeite, bestimmeHoehe]);
 
   // ---- Wohin geschaut wird ------------------------------------------------------------
   // Fuehrt niemand ihren Blick, schaut Himbi auf das Feld, in das gerade geschrieben
@@ -286,6 +304,60 @@ export function HaustierHuelle({
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, [schauZiel, blickZu]);
+
+  // Die ganze Figur zum Blickziel bewegen, nicht nur die Augen (positionFolgtBlick) - fuer eine
+  // Fuehrung auf einer langen, scrollbaren Seite (Dashboard). Rechnet aus der TATSAECHLICH
+  // gezeichneten Position (die den aktuellen Versatz schon einschliesst), deshalb bleibt es
+  // richtig, wo immer Himbi gerade steht. Endet die Fuehrung, geht es zurueck in die Ecke - sonst
+  // bliebe die Figur an einer Bildschirmstelle stehen, die nach dem naechsten Scrollen zu nichts
+  // mehr gehoert (fixed positioniert, folgt dem Dokument nicht von selbst).
+  const folgtGerade = useRef(false);
+  useEffect(() => {
+    // isConnected: der Aufrufer kann ein Element noch referenzieren, das React laengst aus dem
+    // DOM entfernt hat (z. B. der Live-Lauf-Hinweis, dessen Anker verschwindet, sobald der Check
+    // fertig ist, bevor die Blase selbst das mitbekommt) - getBoundingClientRect() liefert dafuer
+    // lautlos ein Nullrechteck, ohne diese Pruefung wuerde das die Figur in eine Bildschirmecke
+    // ziehen, die nichts mit dem eigentlichen Ziel zu tun hat.
+    if (!positionFolgtBlick || !blickZiel || !blickZiel.isConnected) {
+      if (folgtGerade.current) {
+        setzeVersatz(0, 0);
+        bestimmeSeite();
+        bestimmeHoehe();
+      }
+      folgtGerade.current = false;
+      return;
+    }
+    folgtGerade.current = true;
+    let frame = 0;
+    const bewege = () => {
+      frame = 0;
+      if (!blickZiel.isConnected) return;
+      const zielRect = blickZiel.getBoundingClientRect();
+      const eigeneRect = griff.current?.getBoundingClientRect();
+      if (!eigeneRect) return;
+      const breite = eigeneRect.width;
+      const hoehe = eigeneRect.height;
+      // Knapp ausserhalb der unteren rechten Ecke des Ziels, dabei immer im sichtbaren Bereich.
+      const zielX = Math.min(Math.max(zielRect.right - breite * 0.4, breite / 2 + RAND), window.innerWidth - breite / 2 - RAND);
+      const zielY = Math.min(Math.max(zielRect.bottom - hoehe * 0.4, hoehe / 2 + RAND), window.innerHeight - hoehe / 2 - RAND);
+      const deltaX = zielX - (eigeneRect.left + breite / 2);
+      const deltaY = zielY - (eigeneRect.top + hoehe / 2);
+      if (Math.abs(deltaX) > 0.5 || Math.abs(deltaY) > 0.5) setzeVersatz(versatzWert.current.x + deltaX, versatzWert.current.y + deltaY);
+      bestimmeSeite();
+      bestimmeHoehe();
+    };
+    const planen = () => {
+      if (!frame) frame = window.requestAnimationFrame(bewege);
+    };
+    planen();
+    window.addEventListener("scroll", planen, { passive: true });
+    window.addEventListener("resize", planen);
+    return () => {
+      window.removeEventListener("scroll", planen);
+      window.removeEventListener("resize", planen);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [positionFolgtBlick, blickZiel, setzeVersatz, bestimmeSeite, bestimmeHoehe]);
 
   // ---- Mauszeiger: Augen folgen, Naehe weckt, Leerlauf schlaefert ein -------------------
   const letzteAktivitaet = useRef(0);
@@ -405,6 +477,7 @@ export function HaustierHuelle({
       wurzel.current?.style.setProperty("--hb-neigung", "0deg");
       klemme();
       bestimmeSeite();
+      bestimmeHoehe();
       try {
         window.localStorage.setItem(POS_SCHLUESSEL, JSON.stringify(versatzWert.current));
       } catch {
@@ -440,6 +513,7 @@ export function HaustierHuelle({
       // egal
     }
     bestimmeSeite();
+    bestimmeHoehe();
   };
 
   // Erst nach dem Mounten zeichnen: die gespeicherte Position und Einstellung kommen aus dem
@@ -455,6 +529,7 @@ export function HaustierHuelle({
       data-bereit={bereit}
       data-zustand={anzeige}
       data-seite={seite}
+      data-hoehe={hoehe}
       data-pane-offen={paneOffen}
       data-buehne={buehne}
       data-zieht={zieht}

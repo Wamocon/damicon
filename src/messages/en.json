@@ -3145,11 +3145,26 @@
     "keineAenderung": "No changes since the last report.",
     "aenderungenAnzahl": "{anzahl, plural, one {# change} other {# changes}} since the last report",
     "kachelOeffnen": "{anzahl, plural, one {# finding} other {# findings}} · view details",
+    "bereichAlsPdf": "This area as PDF",
+    "bereichAlsJson": "This area as JSON",
+    "keineMassnahmen": "No open actions.",
     "aenderungArt": {
       "neu": "new",
       "statusVeraendert": "Status changed: {vorher} → {jetzt}",
       "schwereVeraendert": "Severity changed: {vorher} → {jetzt}"
-    }
+    },
+    "tour": {
+      "frage": "Shall I show you the four review areas?",
+      "kopfTitel": "The big picture",
+      "bereich": "{reife} out of 100 points, {stufe}. {anzahl, plural, one {# finding} other {# findings}}. Click the tile for details.",
+      "massnahmen": "{anzahl, plural, one {# open action} other {# open actions}} with a deadline and an owner.",
+      "einschraenkungen": "{anzahl, plural, one {# review field could not be fully assessed.} other {# review fields could not be fully assessed.}}",
+      "ende": "That was all four areas. Click a tile any time to see the full details.",
+      "neustart": "Restart tour",
+      "nachfrage": "What else can I show you?"
+    },
+    "liveHinweis": "The compliance check is running live right now, you can watch every step here. It usually takes under a minute, feel free to keep working in the meantime.",
+    "liveHinweisKnopf": "Got it"
   },
   "pruefungAblauf": {
     "schritt": {
@@ -3192,6 +3207,9 @@
     "untertitel": "Raspberry farm Kazakhstan",
     "vertraulich": "Confidential",
     "dokumentart": "Compliance · Audit · Tax · Legal · Risk",
+    "auszugArt": "Excerpt from the compliance report",
+    "auszugSub": "Excerpt from report {id}, dated {datum}",
+    "auszugSiegelHinweis": "Excerpt from the fully sealed report; the seal applies to the complete report.",
     "fussVertraulich": "Confidential · for the intended recipients only",
     "seite": "Page",
     "von": "of",

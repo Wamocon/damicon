@@ -5,6 +5,13 @@
   --farbe: var(--primary);
 }
 
+/* Ziele von Himbis Fuehrung im Dashboard (Compliance-Tour, Live-Lauf-Hinweis, siehe
+   lib/haustier.ts springeZuAnker): Abstand zur festen Kopfzeile (topbar.tsx, h-16 = 4rem auf
+   md+), damit scrollIntoView das Ziel nicht darunter versteckt. */
+[id^="compliance-"] {
+  scroll-margin-top: 5rem;
+}
+
 .pr-knopf {
   display: inline-flex;
   align-items: center;
@@ -383,10 +390,52 @@
   color: var(--destructive);
 }
 /* ---- Bereichs-Kacheln (CEO-Uebersicht): ein Bereich, ein Klick, Details im Sheet ---------------- */
+/* Feste Stufen statt auto-fit/minmax: bei "passt fast, aber nicht ganz" liess
+   auto-fit eine Kachel allein in einer sonst leeren Zeile zurueck. Eigener
+   Containment-Kontext, weil die tatsaechliche Breite von Seitenleiste und
+   KI-Panel abhaengt, nicht vom Browserfenster (dieselbe Technik wie
+   pruefung-ablauf.css, dort begruendet). */
+.pr-kacheln-bereich {
+  container: kacheln / inline-size;
+}
+.pr-kacheln-bereich__kopf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+.pr-kacheln-bereich__kopf .pr-abschnitt__titel {
+  margin-bottom: 0;
+}
+.pr-tour-neustart {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 750;
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 8%, var(--card));
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+.pr-tour-neustart:hover {
+  background: color-mix(in oklab, var(--primary) 16%, var(--card));
+}
 .pr-kacheln {
   display: grid;
   gap: 0.7rem;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  grid-template-columns: 1fr;
+}
+@container kacheln (min-width: 380px) {
+  .pr-kacheln { grid-template-columns: repeat(2, 1fr); }
+}
+@container kacheln (min-width: 640px) {
+  .pr-kacheln { grid-template-columns: repeat(4, 1fr); }
 }
 .pr-kachel {
   display: flex;
@@ -470,11 +519,136 @@
   font-weight: 700;
   color: var(--muted-foreground);
 }
-.pr-bereich-detail__kz {
-  margin: 0 0 0.9rem;
-  font-size: 0.8rem;
-  font-weight: 700;
+/* Zugeklappte Abschnitte (CEO-Uebersicht): Massnahmenplan, Hinweise, Siegel stehen dahinter
+   unveraendert (siehe pruefung-bericht.tsx), nur ihre eigene <h3>-UEberschrift wird
+   ausgeblendet - der Aufklapp-Kopf hier traegt denselben Text als Knopf. */
+.pr-aufklappbar {
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--card);
+  overflow: hidden;
+}
+.pr-aufklappbar__kopf {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.pr-aufklappbar__titel {
+  flex: 1;
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
   color: var(--muted-foreground);
+}
+.pr-aufklappbar__pfeil {
+  flex: none;
+  color: var(--muted-foreground);
+  transition: transform 0.2s ease;
+}
+.pr-aufklappbar[data-offen="true"] .pr-aufklappbar__pfeil {
+  transform: rotate(180deg);
+}
+.pr-aufklappbar__koerper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pr-aufklappbar[data-offen="true"] .pr-aufklappbar__koerper {
+  grid-template-rows: 1fr;
+}
+.pr-aufklappbar__innen {
+  min-height: 0;
+  overflow: hidden;
+}
+/* Das Polster traegt das Padding, NICHT .pr-aufklappbar__innen: Padding auf dem Element,
+   dessen Hoehe die 0fr-Zeile auf 0 zwingt, bleibt beim Zuklappen als sichtbarer Rest stehen
+   (Padding wird nicht mitkomprimiert, min-height:0 wirkt nur auf den Inhalt). Eine Ebene
+   tiefer verschwindet es vollstaendig mit - siehe .pa-lane__innen/.pa-felder als Vorbild. */
+.pr-aufklappbar__polster {
+  padding: 0 0.9rem 0.9rem;
+}
+/* Die Kind-Komponente (Massnahmenplan/Hinweise/Siegel) bringt ihre eigene <h3
+   class="pr-abschnitt__titel"> als erstes Kind mit - hier redundant zum Aufklapp-Kopf,
+   deshalb ausgeblendet statt in der Komponente selbst verzweigt. */
+.pr-aufklappbar__polster > div > h3.pr-abschnitt__titel:first-child {
+  display: none;
+}
+.pr-leer-hinweis {
+  margin: 0;
+  padding: 0.65rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--card);
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--success);
+}
+
+/* ---- Bereichs-Detail: Pop-up-Inhalt einer Kachel, Kopf im selben Stil wie die Kachel selbst --- */
+.pr-bereich-detail__kopf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.9rem;
+  margin: 0 0 1.1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.pr-bereich-detail__symbol {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 0.85rem;
+  color: var(--farbe);
+  background: color-mix(in oklab, var(--farbe) 14%, transparent);
+}
+.pr-bereich-detail__zahl {
+  flex: none;
+  font-size: 2.1rem;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--stufe);
+}
+.pr-bereich-detail__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 8rem;
+  margin-right: auto;
+}
+.pr-bereich-detail__urteil {
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: var(--stufe);
+}
+.pr-bereich-detail__hinweis {
+  font-size: 0.76rem;
+  font-weight: 650;
+  color: var(--muted-foreground);
+}
+.pr-bereich-detail__zahlenleiste {
+  margin-top: 0;
+}
+/* Der Bereich steht schon im Titel des Pop-ups: die Bereichsmarke jedes einzelnen Befunds
+   (in der gemeinsamen, ungefilterten Liste noetig, um Bereiche zu unterscheiden) waere hier
+   nur eine Wiederholung. */
+.pr-bereich-detail .pr-bereichsmarke {
+  display: none;
+}
+.pr-bereich-detail__aktionen {
+  margin-bottom: 1.1rem;
 }
 
 .pr-fehler {
