@@ -263,17 +263,6 @@ export function KiPaneProvider({
     }
   }, []);
 
-  const starteGespraechZurPruefung = useCallback(
-    (bezug: PruefBezug, frage: string) => {
-      speichereBezug(bezug);
-      setAnstoss({ nr: ++anstossNr.current, frage });
-      setOffen(true);
-    },
-    [speichereBezug, setOffen],
-  );
-
-  const entferneBezug = useCallback(() => speichereBezug(null), [speichereBezug]);
-
   const setModus = useCallback((neu: KiModus) => {
     setModusState(neu);
     try {
@@ -282,6 +271,25 @@ export function KiPaneProvider({
       // siehe oben
     }
   }, []);
+
+  const starteGespraechZurPruefung = useCallback(
+    (bezug: PruefBezug, frage: string) => {
+      speichereBezug(bezug);
+      setAnstoss({ nr: ++anstossNr.current, frage });
+      setOffen(true);
+      // Immer im Assistent-Modus, unabhaengig davon, was zuletzt eingestellt war: im
+      // Agent-Modus oeffnet JEDES Werkzeugergebnis mit einem Ziel automatisch die
+      // zugehoerige Ansicht im Hauptfenster (siehe ki-chat.tsx, "Agent-Modus"-Effekt) - ein
+      // Gespraech ueber den Bericht rief dort z. B. complianceUebersichtAbrufen auf und riss
+      // damit die Seite zum Compliance-Cockpit, obwohl niemand das verlangt hatte. Die
+      // Zusammenfassung soll auf der Uebersichtsseite bleiben und nur anklickbare Verweise
+      // anbieten (gemeldet am 23.09.2026).
+      setModus("assistent");
+    },
+    [speichereBezug, setOffen, setModus],
+  );
+
+  const entferneBezug = useCallback(() => speichereBezug(null), [speichereBezug]);
 
   const setDarstellung = useCallback((neu: KiDarstellung) => {
     setDarstellungState(neu);

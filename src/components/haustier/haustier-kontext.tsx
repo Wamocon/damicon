@@ -6,7 +6,9 @@ import {
   leseBewegung,
   leseInventar,
   leseSichtbarkeit,
+  leseTourSchalter,
   schreibeInventar,
+  schreibeTourSchalter,
   type AgentPhase,
   type Inventar,
   type Sichtbarkeit,
@@ -84,6 +86,35 @@ function abonniereInventar(b: () => void): () => void {
 const INVENTAR_SERVERWERT: Inventar = { tracht: 0, brille: true };
 const serverInventarWert = (): Inventar => INVENTAR_SERVERWERT;
 
+// Die gefuehrte Tour liegt ebenso im Browser-Speicher, nach demselben Muster wie die
+// Sichtbarkeit oben: Einstellung (haustier-einstellung.tsx) und Tour-Hook
+// (use-compliance-tour.tsx) teilen sich so denselben Stand, systemweit, ohne dass einer
+// den anderen kennen muss.
+let tourSitzungsWert: boolean | null = null;
+const tourBeobachter = new Set<() => void>();
+function leseTourSpeicher(): boolean {
+  if (tourSitzungsWert !== null) return tourSitzungsWert;
+  try {
+    return leseTourSchalter();
+  } catch {
+    return true;
+  }
+}
+function schreibeTourSpeicher(neu: boolean): void {
+  tourSitzungsWert = neu;
+  schreibeTourSchalter(neu);
+  tourBeobachter.forEach((b) => b());
+}
+function abonniereTour(b: () => void): () => void {
+  tourBeobachter.add(b);
+  window.addEventListener("storage", b);
+  return () => {
+    tourBeobachter.delete(b);
+    window.removeEventListener("storage", b);
+  };
+}
+const tourServerWert = (): boolean => true;
+
 interface Status {
   phase: AgentPhase;
   /** Kurzer Text zur Phase, z. B. "Pruefe MwSt-Status ..." */
@@ -96,6 +127,10 @@ interface Status {
   stimmung: Stimmung;
   /** Tracht und Brille - beides in den Einstellungen wechselbar. */
   inventar: Inventar;
+  /** Einstellung: die gefuehrte Compliance-Tour (use-compliance-tour.tsx) anbieten und
+   *  automatisch starten. Aus heisst nur: kein Herumspringen und Hervorheben auf der Seite -
+   *  die automatische Zusammenfassung im Chat bleibt davon unberuehrt. */
+  tourAn: boolean;
 }
 interface Aktionen {
   melde: (phase: AgentPhase, text: string, stimmung?: Stimmung) => void;
@@ -106,6 +141,7 @@ interface Aktionen {
   schickeWeg: () => void;
   holeZurueck: () => void;
   setInventar: (inventar: Inventar) => void;
+  setTourAn: (an: boolean) => void;
 }
 export interface Vorgabe {
   id: number;
@@ -119,6 +155,7 @@ const StatusKontext = createContext<Status>({
   weg: false,
   stimmung: "neutral",
   inventar: { tracht: 0, brille: true },
+  tourAn: true,
 });
 const AktionenKontext = createContext<Aktionen>({
   melde: () => {},
@@ -127,6 +164,7 @@ const AktionenKontext = createContext<Aktionen>({
   schickeWeg: () => {},
   holeZurueck: () => {},
   setInventar: () => {},
+  setTourAn: () => {},
 });
 const VorgabeKontext = createContext<Vorgabe | null>(null);
 
@@ -147,6 +185,7 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
   }, []);
   const sichtbarkeit = useSyncExternalStore(abonniere, leseSpeicher, serverWert);
   const inventar = useSyncExternalStore(abonniereInventar, leseInventarSpeicher, serverInventarWert);
+  const tourAn = useSyncExternalStore(abonniereTour, leseTourSpeicher, tourServerWert);
   const [vorgabe, setVorgabe] = useState<Vorgabe | null>(null);
 
   const melde = useCallback((neuePhase: AgentPhase, neuerText: string, neueStimmung: Stimmung = "neutral") => {
@@ -159,6 +198,7 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
   const schickeWeg = useCallback(() => schreibeSpeicher("weg"), []);
   const holeZurueck = useCallback(() => schreibeSpeicher("an"), []);
   const setInventar = useCallback((neu: Inventar) => schreibeInventarSpeicher(neu), []);
+  const setTourAn = useCallback((neu: boolean) => schreibeTourSpeicher(neu), []);
 
   const stelleFrage = useCallback(
     (frage: string) => {
@@ -169,12 +209,12 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
   );
 
   const status = useMemo(
-    () => ({ phase, text, an: sichtbarkeit === "an", weg: sichtbarkeit === "weg", stimmung, inventar }),
-    [phase, text, sichtbarkeit, stimmung, inventar],
+    () => ({ phase, text, an: sichtbarkeit === "an", weg: sichtbarkeit === "weg", stimmung, inventar, tourAn }),
+    [phase, text, sichtbarkeit, stimmung, inventar, tourAn],
   );
   const aktionen = useMemo(
-    () => ({ melde, stelleFrage, setAn, schickeWeg, holeZurueck, setInventar }),
-    [melde, stelleFrage, setAn, schickeWeg, holeZurueck, setInventar],
+    () => ({ melde, stelleFrage, setAn, schickeWeg, holeZurueck, setInventar, setTourAn }),
+    [melde, stelleFrage, setAn, schickeWeg, holeZurueck, setInventar, setTourAn],
   );
 
   return (

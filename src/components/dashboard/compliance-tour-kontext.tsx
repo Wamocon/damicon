@@ -65,6 +65,7 @@ const LEER_ANZEIGE: ComplianceTourAnzeige = {
   tourZiel: null,
   huepf: 0,
   verfuegbar: false,
+  tourVerfuegbar: false,
   starten: () => {},
   zusammenfassen: () => {},
 };
@@ -76,12 +77,18 @@ export function useComplianceTourAnzeige(): ComplianceTourAnzeige {
 }
 
 /** Fuer die Kopfzeile der CEO-Uebersicht (ceo-tour-aktionen.tsx): ob es ueberhaupt etwas zu
- *  zeigen gibt, ob die Tour gerade laeuft, und die zwei Funktionen, die sie (wieder) starten
- *  bzw. das Ergebnis im Chat zusammenfassen lassen. */
-export function useComplianceTourSteuerung(): Pick<ComplianceTourAnzeige, "verfuegbar" | "aktiv" | "starten" | "zusammenfassen"> {
+ *  zeigen gibt (verfuegbar, fuer "Zusammenfassung im Chat"), ob zusaetzlich die Tour selbst
+ *  nicht abgestellt ist (tourVerfuegbar, fuer "Tour erneut starten"), ob die Tour gerade laeuft,
+ *  und die zwei Funktionen, die sie (wieder) starten bzw. das Ergebnis im Chat zusammenfassen
+ *  lassen. */
+export function useComplianceTourSteuerung(): Pick<
+  ComplianceTourAnzeige,
+  "verfuegbar" | "tourVerfuegbar" | "aktiv" | "starten" | "zusammenfassen"
+> {
   const api = useContext(ComplianceTourContext);
   return {
     verfuegbar: api?.verfuegbar ?? false,
+    tourVerfuegbar: api?.tourVerfuegbar ?? false,
     aktiv: api?.aktiv ?? false,
     starten: api?.starten ?? LEER_ANZEIGE.starten,
     zusammenfassen: api?.zusammenfassen ?? LEER_ANZEIGE.zusammenfassen,

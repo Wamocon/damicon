@@ -13,16 +13,18 @@ import { useComplianceTourSteuerung } from "@/components/dashboard/compliance-to
 // fallen, nicht erst beim Herunterscrollen zu den Kacheln.
 export function CeoTourAktionen() {
   const tc = useTranslations("ceoUebersicht");
-  const { verfuegbar, aktiv, starten, zusammenfassen } = useComplianceTourSteuerung();
+  const { verfuegbar, tourVerfuegbar, aktiv, starten, zusammenfassen } = useComplianceTourSteuerung();
   if (!verfuegbar) return null;
   return (
     <>
       <button type="button" className="pr-tour-neustart" onClick={zusammenfassen} disabled={aktiv}>
         <MessageSquareText className="h-3.5 w-3.5" aria-hidden /> {tc("tour.zusammenfassung")}
       </button>
-      <button type="button" className="pr-tour-neustart" onClick={starten} disabled={aktiv}>
-        <Sparkles className="h-3.5 w-3.5" aria-hidden /> {tc("tour.neustart")}
-      </button>
+      {tourVerfuegbar ? (
+        <button type="button" className="pr-tour-neustart" onClick={starten} disabled={aktiv}>
+          <Sparkles className="h-3.5 w-3.5" aria-hidden /> {tc("tour.neustart")}
+        </button>
+      ) : null}
     </>
   );
 }
