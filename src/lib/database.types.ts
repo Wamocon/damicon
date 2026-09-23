@@ -1139,6 +1139,45 @@ export type Database = {
           },
         ]
       }
+      ki_ratenlimit_einstellungen: {
+        Row: {
+          aktualisiert_am: string
+          aktualisiert_von: string | null
+          grenze_pro_minute: number | null
+          id: string
+          rolle: Database["public"]["Enums"]["app_role"] | null
+        }
+        Insert: {
+          aktualisiert_am?: string
+          aktualisiert_von?: string | null
+          grenze_pro_minute?: number | null
+          id?: string
+          rolle?: Database["public"]["Enums"]["app_role"] | null
+        }
+        Update: {
+          aktualisiert_am?: string
+          aktualisiert_von?: string | null
+          grenze_pro_minute?: number | null
+          id?: string
+          rolle?: Database["public"]["Enums"]["app_role"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ki_ratenlimit_einstellungen_aktualisiert_von_fkey"
+            columns: ["aktualisiert_von"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ki_ratenlimit_einstellungen_aktualisiert_von_fkey"
+            columns: ["aktualisiert_von"]
+            isOneToOne: false
+            referencedRelation: "schulungsteilnahmen_status"
+            referencedColumns: ["profil_id"]
+          },
+        ]
+      }
       kontaktkanaele: {
         Row: {
           aktiv: boolean
@@ -3819,6 +3858,17 @@ export type Database = {
       }
       ki_anbieter_standard_setzen: {
         Args: { p_id: string }
+        Returns: undefined
+      }
+      ki_ratenlimit_entfernen: {
+        Args: { p_rolle: Database["public"]["Enums"]["app_role"] | null }
+        Returns: undefined
+      }
+      ki_ratenlimit_setzen: {
+        Args: {
+          p_grenze: number | null
+          p_rolle: Database["public"]["Enums"]["app_role"] | null
+        }
         Returns: undefined
       }
       kontingent_verfuegbarkeit_je_sorte: {

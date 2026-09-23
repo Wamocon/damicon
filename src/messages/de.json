@@ -865,6 +865,8 @@
       "kiAnbieterDeaktiviert": "Anbieter \"{wert}\" deaktiviert.",
       "kiAnbieterStandardGesetzt": "Standard-Anbieter umgestellt.",
       "kiAnbieterGeloescht": "Anbieter \"{wert}\" gelöscht.",
+      "kiRatenlimitGesetzt": "Ratenlimit für \"{wert}\" gespeichert.",
+      "kiRatenlimitEntfernt": "Ratenlimit für \"{wert}\" entfernt.",
       "wetterAktualisiert": "Wetterdaten aktualisiert.",
       "kanalAngelegt": "Kanal angelegt.",
       "kanalAktualisiert": "Kanal aktualisiert.",
@@ -925,7 +927,8 @@
       "transkriptionDienst": "Der Spracherkennungsdienst ist nicht erreichbar. Die Aufnahme hat geklappt – bitte später noch einmal versuchen.",
       "transkriptionDauer": "Die Spracherkennung hat zu lange gebraucht. Der Dienst startet vermutlich gerade – bitte in einer Minute noch einmal versuchen.",
       "dateiGross": "Die Aufnahme ist zu groß.",
-      "nachbarbetriebVorhanden": "Ein Nachbarbetrieb mit diesem Namen existiert bereits."
+      "nachbarbetriebVorhanden": "Ein Nachbarbetrieb mit diesem Namen existiert bereits.",
+      "ratenlimit": "Zu viele Anfragen in kurzer Zeit. Bitte kurz warten und es erneut versuchen."
     },
     "einladungen": {
       "erfolg": {
@@ -1805,6 +1808,26 @@
         "basisUrl": "Basis-URL",
         "apiKey": "API-Key",
         "knopf": "Anbieter anlegen"
+      }
+    },
+    "ratenlimitVerwaltung": {
+      "titel": "Ratenlimit verwalten",
+      "lead": "Nur für Administration sichtbar. Begrenzt, wie oft eine Rolle pro Minute eine kostenpflichtige KI-Anfrage auslösen darf. Ohne Eintrag gilt kein Limit.",
+      "keineEinstellung": "Noch kein Ratenlimit eingestellt - der Assistent ist für alle Rollen unbegrenzt nutzbar.",
+      "alleRollen": "Alle Rollen (Standardwert)",
+      "standardBadge": "Standardwert",
+      "grenzeText": "{grenze} Anfragen je Minute",
+      "keinLimitText": "Kein Limit",
+      "entfernen": "Entfernen",
+      "entfernenSicher": "Ratenlimit für \"{name}\" wirklich entfernen? Danach gilt wieder der nächsthöhere Wert beziehungsweise kein Limit.",
+      "formular": {
+        "titel": "Ratenlimit setzen",
+        "lead": "Gilt für eine einzelne Rolle oder, mit \"Alle Rollen\", als Standardwert für jede Rolle ohne eigenen Eintrag.",
+        "rolle": "Rolle",
+        "bitteWaehlen": "Bitte wählen",
+        "grenze": "Anfragen je Minute",
+        "grenzePlatzhalter": "leer = kein Limit",
+        "knopf": "Ratenlimit speichern"
       }
     },
     "diktat": {

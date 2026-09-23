@@ -101,6 +101,7 @@ export function KiPane({
   verlauf,
   agentFaehig,
   einstellungen,
+  ratenlimitVerwaltung = null,
   pruefungBereiche = [],
 }: {
   verlauf: KiChatNachrichtZeile[];
@@ -109,6 +110,9 @@ export function KiPane({
   agentFaehig: boolean;
   /** Anbieterverwaltung - nur fuer Admins, vom Layout als fertiges Element uebergeben. */
   einstellungen: ReactNode | null;
+  /** Ratenlimit-Verwaltung (Vibecode-Cleanup Phase 2) - nur fuer Admins, vom
+   *  Layout als fertiges Element uebergeben, dasselbe Muster wie einstellungen. */
+  ratenlimitVerwaltung?: ReactNode | null;
   /** Bereiche der Compliance-Pruefung, die die Rolle ausloesen darf (leer = kein Knopf). Erzwungen wird es in /api/ki-pruefung. */
   pruefungBereiche?: readonly Pruefbereich[];
 }) {
@@ -189,7 +193,7 @@ export function KiPane({
   // bleibt unberuehrt und gilt am Schreibtisch weiter.
   const agentAktiv = agentFaehig && modus === "agent" && !handy;
   const aufBuehne = darstellung === "buehne";
-  const hatEinstellungen = agentFaehig || einstellungen !== null;
+  const hatEinstellungen = agentFaehig || einstellungen !== null || ratenlimitVerwaltung !== null;
   // Die Mehr-Ansicht gibt es nur auf dem Handy. Wer das Fenster breiter zieht,
   // waehrend sie offen ist, landet wieder im Gespraech, statt auf einer Seite
   // zu stehen, deren Knopf gerade verschwunden ist.
@@ -406,6 +410,14 @@ export function KiPane({
                       {t("anbieterVerwaltung.titel")}
                     </p>
                     {einstellungen}
+                  </div>
+                ) : null}
+                {ratenlimitVerwaltung ? (
+                  <div>
+                    <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                      {t("ratenlimitVerwaltung.titel")}
+                    </p>
+                    {ratenlimitVerwaltung}
                   </div>
                 ) : null}
               </div>
