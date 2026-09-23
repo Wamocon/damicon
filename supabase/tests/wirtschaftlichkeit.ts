@@ -13,6 +13,7 @@
 // Geschaeftsfuehrung zurueck: stimmen die nicht mehr, ist eine Annahme
 // verschoben worden, ohne dass jemand die Herleitung angepasst hat.
 
+import { readFileSync } from "node:fs";
 import {
   CAPEX_EUR,
   HORIZONT_MONATE,
@@ -27,7 +28,9 @@ import {
   ersparnisJeKilogramm,
   euroInRubel,
   euroInTenge,
+  herkunftStufen,
   kapitalwert,
+  kennzahlHerkunft,
   kostenJeKilogramm,
   kostenJeKilogrammNachher,
   monatszins,
@@ -157,6 +160,72 @@ pruefe(
   Math.round(euroInTenge(100_000) / euroInRubel(100_000)),
   Math.round(KURS_RUB_TENGE),
 );
+// --- 6b. Herkunft je Kennzahl ----------------------------------------------
+// kennzahlHerkunft ist die einzige Quelle fuer die Markierung auf der Seite.
+// Stuenden die Stufen zusaetzlich an den Kacheln, waere spaetestens beim
+// ersten Austausch einer Annahme eine der beiden Stellen falsch.
+
+pruefe("jede der zehn Kennzahlen hat eine Herkunft", Object.keys(kennzahlHerkunft).length, 10);
+pruefe(
+  "keine Herkunft ausserhalb der drei Stufen",
+  Object.values(kennzahlHerkunft).every((h) => (herkunftStufen as readonly string[]).includes(h)),
+  true,
+);
+// Was aus dem Jahresnutzen, dem Zins oder der Menge folgt, ist nicht belegt.
+// Amortisation und beide Renditen haengen zwar rechnerisch am Jahresnutzen,
+// standen aber als Ergebnis in der Vorgabe - der Jahresnutzen ist die
+// Rueckrechnung dazu, nicht umgekehrt.
+pruefe(
+  "die drei abgeleiteten Kennzahlen sind als geschaetzt markiert",
+  ["vermiedeneKosten", "kapitalwert", "kostenJeKilogramm"].map((k) => kennzahlHerkunft[k as keyof typeof kennzahlHerkunft]),
+  ["geschaetzt", "geschaetzt", "geschaetzt"],
+);
+pruefe(
+  "die vorgegebenen Kennzahlen sind als belegt markiert",
+  ["amortisation", "roiJahr1", "roiDreiJahre", "capex", "opex", "tco", "nutzenbeginn"].map(
+    (k) => kennzahlHerkunft[k as keyof typeof kennzahlHerkunft],
+  ),
+  ["belegt", "belegt", "belegt", "belegt", "belegt", "belegt", "belegt"],
+);
+
+// --- 6c. Uebersetzungsschluessel -------------------------------------------
+// Ein fehlender Schluessel wirft erst zur Laufzeit, auf der fertigen Seite,
+// und nur in der Sprache, in der er fehlt. Genau so steckt seit Laengerem ein
+// MISSING_MESSAGE fuer dashboard.home.dataLive im Bestand. test:agent prueft
+// die Modul-Schluessel, aber keinen der uebrigen Pfade.
+
+const NAMENSRAUM = "wirtschaftlichkeitAnsicht";
+const quellen = [
+  "src/components/db/wirtschaftlichkeit-ansicht.tsx",
+  "src/components/db/wirtschaftlichkeit-modell.tsx",
+].map((p) => readFileSync(p, "utf8"));
+
+// t("a.b.c") und t(`a.b.c`), beides mit einfachen oder doppelten Anfuehrungszeichen.
+const verwendet = new Set<string>();
+for (const quelle of quellen) {
+  for (const treffer of quelle.matchAll(/\bt\(\s*["'`]([a-zA-Z0-9_.]+)["'`]/g)) {
+    verwendet.add(treffer[1]);
+  }
+}
+
+const holen = (objekt: unknown, pfad: string): unknown =>
+  pfad.split(".").reduce<unknown>((o, teil) => (o as Record<string, unknown>)?.[teil], objekt);
+
+const fehlend: string[] = [];
+for (const sprache of ["de", "en", "kk", "ru"]) {
+  const katalog = JSON.parse(readFileSync(`src/messages/${sprache}.json`, "utf8"));
+  for (const pfad of verwendet) {
+    if (typeof holen(katalog[NAMENSRAUM], pfad) !== "string") fehlend.push(`${sprache}:${pfad}`);
+  }
+}
+
+pruefe("mindestens ein Schluessel wurde im Quelltext gefunden", verwendet.size > 10, true);
+pruefe(
+  `jeder verwendete Schluessel steht in allen vier Sprachen (${verwendet.size} Stueck)`,
+  fehlend.slice(0, 8),
+  [],
+);
+
 pruefe("null Euro bleiben null Tenge", euroInTenge(0), 0);
 pruefe("beide Umrechnungen liefern ganze Zahlen", Number.isInteger(euroInTenge(154_000)) && Number.isInteger(euroInRubel(154_000)), true);
 pruefe("Tenge in Rubel geht ueber den Rubelkurs", tengeInRubel(5310), 1000);

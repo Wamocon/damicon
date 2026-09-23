@@ -100,15 +100,35 @@ export const VOLLKOSTEN_JE_KG_VORHER_TENGE = 1_500;
 export const HORIZONT_JAHRE = 3;
 export const HORIZONT_MONATE = HORIZONT_JAHRE * 12;
 
-/** Kennzahlschluessel, deren Wert nicht belegt ist. Steuert die Markierung. */
-export const herkunft = {
+/**
+ * Woher der Wert jeder einzelnen Kennzahl stammt. Einzige Quelle fuer die
+ * Markierung auf der Seite - das Modell liest hier, es setzt nichts selbst.
+ * Stuenden die Stufen zusaetzlich an den Kacheln, waere spaetestens beim
+ * ersten Austausch einer Annahme eine der beiden Stellen falsch.
+ *
+ * "belegt" heisst: steht so in der Kennzahlenliste der Geschaeftsfuehrung.
+ * Das gilt auch fuer die drei Werte, die rechnerisch am geschaetzten
+ * Jahresnutzen haengen (Amortisation, beide Renditen) - vorgegeben war das
+ * Ergebnis, der Jahresnutzen ist nur die Rueckrechnung dazu. Der Satz ueber
+ * dem Kachelraster sagt das in Worten.
+ */
+export const kennzahlHerkunft = {
+  amortisation: "belegt",
+  roiJahr1: "belegt",
+  roiDreiJahre: "belegt",
   capex: "belegt",
   opex: "belegt",
-  jahresnutzen: "geschaetzt",
-  kalkulationszins: "geschaetzt",
-  vermarkteteMenge: "geschaetzt",
+  tco: "belegt",
+  nutzenbeginn: "belegt",
+  /** Rueckgerechnet, siehe Kopfkommentar. */
+  vermiedeneKosten: "geschaetzt",
+  /** Braucht den Kalkulationszins, den niemand vorgegeben hat. */
+  kapitalwert: "geschaetzt",
+  /** Braucht vermarktete Menge und Vollkosten vorher, beide geschaetzt. */
   kostenJeKilogramm: "geschaetzt",
 } as const satisfies Record<string, Herkunft>;
+
+export type Kennzahlschluessel = keyof typeof kennzahlHerkunft;
 
 // ---------------------------------------------------------------------------
 // Kennzahlen - die Formeln stammen woertlich aus der Vorgabe

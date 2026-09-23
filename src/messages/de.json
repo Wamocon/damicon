@@ -1253,9 +1253,7 @@
     },
     "fussnote": "Rendite, Amortisationsdauer und die Kosten je Kilogramm hängen vollständig am angenommenen Jahresnutzen. Wirkt die gezeigte Senkung je Kilogramm zu hoch, ist der Jahresnutzen zu hoch angesetzt. Sobald die Betriebszahlen erfasst sind, rechnet die Seite aus echten Posten statt aus Konstanten.",
     "diagramm": {
-      "monat": "Monat",
       "wert": "Wert",
-      "jahr": "Jahr",
       "nulllinie": "Geld zurück"
     },
     "stapel": {
@@ -1306,7 +1304,7 @@
       "kapitalwert": {
         "label": "Kapitalwert",
         "frage": "Hält es dem Finanzchef stand?",
-        "rechenweg": "Barwert des Nutzens minus Investition über drei Jahre, monatlich mit 12 Prozent abgezinst."
+        "rechenweg": "Barwert des Nutzens minus Investition über drei Jahre, monatlich mit {zins} abgezinst."
       },
       "kostenJeKilogramm": {
         "label": "Kosten je Kilogramm",

@@ -11,10 +11,13 @@
 //
 // Die Zahlen sind Modellwerte aus der Kennzahlenliste vom 23.09.2026, nicht
 // aus dem Betrieb. Deshalb traegt das Modul reifegrad "in-entwicklung", die
-// Seite eine Kennzeichnung, und jede nicht belegte Kachel eine eigene.
+// Seite eine Kennzeichnung, und jede nicht belegte Kachel eine eigene. Welche
+// das sind, steht in kennzahlHerkunft (lib/domain/wirtschaftlichkeit.ts) und
+// nirgends sonst.
 
 import { getTranslations } from "next-intl/server";
 import { Aufklapper, Card, PageHeader, Section, StatusPill } from "@/components/ui/kit";
+import { cn } from "@/lib/utils";
 import {
   Diagramm,
   baueModell,
@@ -22,12 +25,67 @@ import {
   type Modell,
 } from "@/components/db/wirtschaftlichkeit-modell";
 
+/** Gross im Raster, klein im Aufklapper. Sonst ist die Kachel dieselbe. */
+type Groesse = "gross" | "klein";
+
 function Herkunftspille({ kachel, modell }: { kachel: Kachel; modell: Modell }) {
   if (kachel.herkunft === "belegt") return null;
   return (
     <StatusPill tone={kachel.herkunft === "offen" ? "neutral" : "warning"}>
       {kachel.herkunft === "offen" ? modell.offenLabel : modell.geschaetztLabel}
     </StatusPill>
+  );
+}
+
+/**
+ * Label, Wert, Rubelbetrag, Frage und Rechenweg einer Kennzahl.
+ *
+ * Eine Fassung fuer beide Stellen, nicht zwei: Raster und Aufklapper zeigen
+ * dieselben fuenf Felder in derselben Reihenfolge. Standen sie zweimal da,
+ * wuerde ein sechstes Feld irgendwann nur an einer der beiden Stellen
+ * ankommen, und niemandem faellt auf, an welcher.
+ */
+function Kennzahlfelder({
+  kachel,
+  modell,
+  groesse,
+}: {
+  kachel: Kachel;
+  modell: Modell;
+  groesse: Groesse;
+}) {
+  return (
+    <>
+      {/* Kopfzeile: Name links, Markierung rechts. Der Flex-Container gehoert
+          hierher und nicht um den ganzen Block - liegt der Wert mit darin,
+          stellt er sich neben das Label statt darunter. */}
+      <div className="flex items-start justify-between gap-2">
+        <p className="schrift-label font-semibold uppercase tracking-wide text-muted-foreground">
+          {kachel.label}
+        </p>
+        <Herkunftspille kachel={kachel} modell={modell} />
+      </div>
+      <p
+        className={cn(
+          "mt-1 font-black text-foreground",
+          groesse === "gross" ? "text-2xl" : "text-xl",
+        )}
+        title={kachel.genau}
+      >
+        {kachel.wert}
+        {kachel.klammer ? (
+          <span
+            className={cn(
+              "ml-1.5 font-bold text-muted-foreground",
+              groesse === "gross" ? "text-base" : "text-sm",
+            )}
+          >
+            ({kachel.klammer})
+          </span>
+        ) : null}
+      </p>
+      <p className="mt-0.5 schrift-dense text-muted-foreground">{kachel.frage}</p>
+    </>
   );
 }
 
@@ -41,25 +99,9 @@ function Kennzahlkachel({ kachel, modell }: { kachel: Kachel; modell: Modell }) 
       // hell, dass der Strichel gegen die Kartenflaeche verschwindet. Die
       // Farbe traegt die Bedeutung nicht allein, die Pille daneben sagt sie
       // in Worten (DESIGN.md Regel 7).
-      className={
-        kachel.herkunft === "belegt" ? "p-4" : "border-dashed border-warning/45 p-4"
-      }
+      className={cn("p-4", kachel.herkunft !== "belegt" && "border-dashed border-warning/45")}
     >
-      <div className="flex items-start justify-between gap-2">
-        <p className="schrift-label font-semibold uppercase tracking-wide text-muted-foreground">
-          {kachel.label}
-        </p>
-        <Herkunftspille kachel={kachel} modell={modell} />
-      </div>
-      <p className="mt-1 text-2xl font-black text-foreground" title={kachel.genau}>
-        {kachel.wert}
-        {kachel.klammer ? (
-          <span className="ml-1.5 text-base font-bold text-muted-foreground">
-            ({kachel.klammer})
-          </span>
-        ) : null}
-      </p>
-      <p className="mt-0.5 schrift-dense text-muted-foreground">{kachel.frage}</p>
+      <Kennzahlfelder kachel={kachel} modell={modell} groesse="gross" />
       <div className="mt-3">
         <Diagramm art={kachel.diagramm} />
       </div>
@@ -95,32 +137,17 @@ export async function WirtschaftlichkeitAnsicht() {
       </Section>
 
       <Aufklapper titel={t("weitere.titel")} beschreibung={t("weitere.lead")}>
-        <dl className="grid gap-4 sm:grid-cols-2">
+        {/* Bewusst kein dl: das Label steht bereits als erstes Feld in
+            Kennzahlfelder. Ein zusaetzliches dt daneben liesse jeden
+            Screenreader den Namen zweimal vorlesen. */}
+        <div className="grid gap-4 sm:grid-cols-2">
           {modell.weitere.map((kachel) => (
             <div key={kachel.schluessel} className="min-w-0">
-              <dt className="schrift-label font-semibold uppercase tracking-wide text-muted-foreground">
-                {kachel.label}
-              </dt>
-              <dd>
-                <p className="mt-1 text-xl font-black text-foreground" title={kachel.genau}>
-                  {kachel.wert}
-                  {kachel.klammer ? (
-                    <span className="ml-1.5 text-sm font-bold text-muted-foreground">
-                      ({kachel.klammer})
-                    </span>
-                  ) : null}
-                  {kachel.herkunft !== "belegt" ? (
-                    <span className="ml-2 align-middle">
-                      <Herkunftspille kachel={kachel} modell={modell} />
-                    </span>
-                  ) : null}
-                </p>
-                <p className="mt-0.5 schrift-dense text-muted-foreground">{kachel.frage}</p>
-                <p className="mt-0.5 schrift-label text-muted-foreground">{kachel.rechenweg}</p>
-              </dd>
+              <Kennzahlfelder kachel={kachel} modell={modell} groesse="klein" />
+              <p className="mt-0.5 schrift-label text-muted-foreground">{kachel.rechenweg}</p>
             </div>
           ))}
-        </dl>
+        </div>
       </Aufklapper>
 
       <Card ton="innen" className="p-4">

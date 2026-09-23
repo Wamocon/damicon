@@ -1253,9 +1253,7 @@
     },
     "fussnote": "Return, payback and the cost per kilogram hang entirely on the assumed annual benefit. If the reduction per kilogram looks too high, the annual benefit is set too high. Once operational figures are captured, the page calculates from real items instead of constants.",
     "diagramm": {
-      "monat": "Month",
       "wert": "Value",
-      "jahr": "Year",
       "nulllinie": "Money back"
     },
     "stapel": {
@@ -1306,7 +1304,7 @@
       "kapitalwert": {
         "label": "Net present value",
         "frage": "Does it hold up with the CFO?",
-        "rechenweg": "Present value of the benefit less the investment over three years, discounted monthly at 12 percent."
+        "rechenweg": "Present value of the benefit less the investment over three years, discounted monthly at {zins}."
       },
       "kostenJeKilogramm": {
         "label": "Cost per kilogram",

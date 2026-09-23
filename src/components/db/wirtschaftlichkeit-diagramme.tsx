@@ -36,11 +36,15 @@ import {
 } from "@/components/ui/chart";
 import type { Monatspunkt } from "@/lib/domain/wirtschaftlichkeit";
 
-/** Alle Beschriftungen kommen als Prop - der Client holt keine Uebersetzungen. */
+/**
+ * Alle Beschriftungen kommen als Prop - der Client holt keine Uebersetzungen.
+ * Bewusst nur die zwei, die wirklich gezeichnet werden: Achsentitel fuer Monat
+ * und Jahr standen hier, wurden uebersetzt, durchgereicht und nie gelesen.
+ */
 export interface Diagrammtexte {
-  monat: string;
+  /** Reihenname im Tooltip. */
   wert: string;
-  jahr: string;
+  /** Marke am Nulldurchgang der Barwertkurve. */
   nulllinie: string;
 }
 

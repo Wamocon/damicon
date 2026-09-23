@@ -19,6 +19,7 @@ import {
   HORIZONT_JAHRE,
   HORIZONT_MONATE,
   JAHRESNUTZEN_EUR,
+  KALKULATIONSZINS,
   KURS_EUR_TENGE,
   KURS_RUB_TENGE,
   KURS_STICHTAG,
@@ -35,10 +36,12 @@ import {
   kostenJeKilogrammNachher,
   roi,
   roiReihe,
+  kennzahlHerkunft,
   tco,
   tcoBausteine,
   tengeInRubel,
   type Herkunft,
+  type Kennzahlschluessel,
 } from "@/lib/domain/wirtschaftlichkeit";
 
 export type Diagrammart =
@@ -51,7 +54,8 @@ export type Diagrammart =
   | "keines";
 
 export interface Kachel {
-  schluessel: string;
+  /** Zugleich der Schluessel in kennzahlHerkunft - ein Tippfehler faellt beim Typecheck auf. */
+  schluessel: Kennzahlschluessel;
   /** Kurzer Name der Kennzahl. */
   label: string;
   /** Die Frage, die sie beantwortet - aus der Vorgabe der Geschaeftsfuehrung. */
@@ -66,6 +70,16 @@ export interface Kachel {
   herkunft: Herkunft;
   diagramm: Diagrammart;
 }
+
+/**
+ * Eine Kachel, bevor ihre Herkunft angehaengt wird. Die Stufe steht nicht in
+ * den Literalen hier, sondern kommt aus kennzahlHerkunft im Domain-Modul -
+ * eine Quelle, nicht zwei.
+ */
+type Kachelentwurf = Omit<Kachel, "herkunft">;
+
+const mitHerkunft = (entwuerfe: Kachelentwurf[]): Kachel[] =>
+  entwuerfe.map((e) => ({ ...e, herkunft: kennzahlHerkunft[e.schluessel] }));
 
 export interface Modell {
   /** Die sechs eingerahmten Kennzahlen, je mit eigenem Diagramm. */
@@ -102,14 +116,13 @@ export async function baueModell(): Promise<Modell> {
   const jeKgNachher = kostenJeKilogrammNachher();
   const ersparnis = ersparnisJeKilogramm();
 
-  const fokus: Kachel[] = [
+  const fokus = mitHerkunft([
     {
       schluessel: "roiJahr1",
       label: t("kennzahl.roiJahr1.label"),
       frage: t("kennzahl.roiJahr1.frage"),
       wert: anteil(roi(1) ?? 0),
       rechenweg: t("kennzahl.roiJahr1.rechenweg"),
-      herkunft: "belegt",
       diagramm: "roiJahr1",
     },
     {
@@ -118,7 +131,6 @@ export async function baueModell(): Promise<Modell> {
       frage: t("kennzahl.roiDreiJahre.frage"),
       wert: anteil(roi(HORIZONT_JAHRE) ?? 0),
       rechenweg: t("kennzahl.roiDreiJahre.rechenweg"),
-      herkunft: "belegt",
       diagramm: "roiDreiJahre",
     },
     {
@@ -129,7 +141,6 @@ export async function baueModell(): Promise<Modell> {
       klammer: rubel(CAPEX_EUR),
       genau: tengeGenau(CAPEX_EUR),
       rechenweg: t("kennzahl.capex.rechenweg"),
-      herkunft: "belegt",
       diagramm: "tcoCapex",
     },
     {
@@ -140,7 +151,6 @@ export async function baueModell(): Promise<Modell> {
       klammer: rubel(OPEX_EUR_PRO_JAHR),
       genau: tengeGenau(OPEX_EUR_PRO_JAHR),
       rechenweg: t("kennzahl.opex.rechenweg"),
-      herkunft: "belegt",
       diagramm: "tcoOpex",
     },
     {
@@ -150,8 +160,7 @@ export async function baueModell(): Promise<Modell> {
       wert: tenge(kapital),
       klammer: rubel(kapital),
       genau: tengeGenau(kapital),
-      rechenweg: t("kennzahl.kapitalwert.rechenweg"),
-      herkunft: "geschaetzt",
+      rechenweg: t("kennzahl.kapitalwert.rechenweg", { zins: anteil(KALKULATIONSZINS) }),
       diagramm: "barwert",
     },
     {
@@ -175,19 +184,17 @@ export async function baueModell(): Promise<Modell> {
               ersparnis: genau(ersparnis),
               menge: genau(VERMARKTETE_MENGE_KG),
             }),
-      herkunft: "geschaetzt",
       diagramm: "kostenJeKilogramm",
     },
-  ];
+  ]);
 
-  const weitere: Kachel[] = [
+  const weitere = mitHerkunft([
     {
       schluessel: "amortisation",
       label: t("kennzahl.amortisation.label"),
       frage: t("kennzahl.amortisation.frage"),
       wert: monate === null ? t("offen") : t("einheit.monate", { anzahl: Math.round(monate) }),
       rechenweg: t("kennzahl.amortisation.rechenweg"),
-      herkunft: "belegt",
       diagramm: "keines",
     },
     {
@@ -198,7 +205,6 @@ export async function baueModell(): Promise<Modell> {
       klammer: rubel(tco(HORIZONT_JAHRE)),
       genau: tengeGenau(tco(HORIZONT_JAHRE)),
       rechenweg: t("kennzahl.tco.rechenweg"),
-      herkunft: "belegt",
       diagramm: "keines",
     },
     {
@@ -209,7 +215,6 @@ export async function baueModell(): Promise<Modell> {
       klammer: rubel(JAHRESNUTZEN_EUR),
       genau: tengeGenau(JAHRESNUTZEN_EUR),
       rechenweg: t("kennzahl.vermiedeneKosten.rechenweg"),
-      herkunft: "geschaetzt",
       diagramm: "keines",
     },
     {
@@ -218,10 +223,9 @@ export async function baueModell(): Promise<Modell> {
       frage: t("kennzahl.nutzenbeginn.frage"),
       wert: t("einheit.wochenSpanne", { von: NUTZENBEGINN_WOCHEN.von, bis: NUTZENBEGINN_WOCHEN.bis }),
       rechenweg: t("kennzahl.nutzenbeginn.rechenweg"),
-      herkunft: "belegt",
       diagramm: "keines",
     },
-  ];
+  ]);
 
   return {
     fokus,
@@ -256,9 +260,7 @@ export async function Diagramm({ art }: { art: Diagrammart }): Promise<ReactNode
   const t = await getTranslations("wirtschaftlichkeitAnsicht");
   const locale = await getLocale();
   const texte: Diagrammtexte = {
-    monat: t("diagramm.monat"),
     wert: t("diagramm.wert"),
-    jahr: t("diagramm.jahr"),
     nulllinie: t("diagramm.nulllinie"),
   };
 
