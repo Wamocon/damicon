@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useCeoPruefung } from "@/components/dashboard/ceo-pruefung-kontext";
@@ -256,8 +256,9 @@ export function HaustierDashboard() {
   // Echte Arbeit (Freigabe/Arbeitet/Fehler) und eine frisch angekommene Antwort gewinnen immer
   // vor dem Live-Lauf-Hinweis und der Compliance-Tour: die Fuehrung wartet lieber kurz, als eine
   // Meldung zu verdecken, die Aufmerksamkeit braucht.
-  const liveHinweisSichtbar = !offen && phase !== "freigabe" && phase !== "arbeitet" && phase !== "fehler" && !fertigBlase && liveHinweisAktiv;
-  const tourAktivSichtbar = !offen && phase !== "freigabe" && phase !== "arbeitet" && phase !== "fehler" && !fertigBlase && !liveHinweisSichtbar && tour.aktiv;
+  const keineWichtigereMeldung = phase !== "freigabe" && phase !== "arbeitet" && phase !== "fehler" && !fertigBlase;
+  const liveHinweisSichtbar = !offen && keineWichtigereMeldung && liveHinweisAktiv;
+  const tourAktivSichtbar = !offen && keineWichtigereMeldung && !liveHinweisSichtbar && tour.aktiv;
   const zustand = willkommen
     ? "fertig"
     : liveHinweisSichtbar
@@ -282,12 +283,18 @@ export function HaustierDashboard() {
     setEigeneMiene(wahl === "gut" ? "gut" : wahl === "viel" ? "warnung" : "neutral");
   }
 
-  let blase = null;
-  if (!offen) {
-    if (willkommen) {
-      blase = <p className="hb-blase__text">{t("willkommen")}</p>;
-    } else if (phase === "freigabe") {
-      blase = (
+  // Welche Sprechblase Himbi gerade zeigt: eine einzige, geordnete Kandidatenliste (dringendste
+  // zuerst) statt zwoelf ineinander verschachtelter if/else-Zweige. Jeder Kandidat traegt seine
+  // eigene "sichtbar"-Bedingung (unveraendert dieselben Ausdruecke wie zuvor, einige davon -
+  // liveHinweisSichtbar, tourAktivSichtbar, befindenSichtbar, tippSichtbar, anstupserSichtbar,
+  // tourFrageSichtbar - werden auch anderswo unten gebraucht, deshalb weiterhin eigene Variablen
+  // statt inline in der Liste). Der erste sichtbare Kandidat gewinnt, alle anderen werden zwar
+  // gebaut (reines JSX, ohne Seiteneffekt), aber nicht gezeigt.
+  const blaseKandidaten: { sichtbar: boolean; blase: ReactNode }[] = [
+    { sichtbar: willkommen, blase: <p className="hb-blase__text">{t("willkommen")}</p> },
+    {
+      sichtbar: phase === "freigabe",
+      blase: (
         <>
           <p className="hb-blase__text">{t("freigabe")}</p>
           <div className="hb-blase__knoepfe">
@@ -296,18 +303,21 @@ export function HaustierDashboard() {
             </button>
           </div>
         </>
-      );
-    } else if (phase === "arbeitet") {
-      blase = (
+      ),
+    },
+    {
+      sichtbar: phase === "arbeitet",
+      blase: (
         <>
           <p className="hb-blase__text">{text || t("arbeitet")}</p>
           <p className="hb-blase__klein">{t("imHintergrund")}</p>
         </>
-      );
-    } else if (phase === "fehler") {
-      blase = <p className="hb-blase__text">{t("fehler")}</p>;
-    } else if (fertigBlase) {
-      blase = (
+      ),
+    },
+    { sichtbar: phase === "fehler", blase: <p className="hb-blase__text">{t("fehler")}</p> },
+    {
+      sichtbar: fertigBlase,
+      blase: (
         <>
           <p className="hb-blase__text">{t("fertig")}</p>
           <div className="hb-blase__knoepfe">
@@ -316,9 +326,11 @@ export function HaustierDashboard() {
             </button>
           </div>
         </>
-      );
-    } else if (liveHinweisSichtbar) {
-      blase = (
+      ),
+    },
+    {
+      sichtbar: liveHinweisSichtbar,
+      blase: (
         <>
           <p className="hb-blase__text">{ceoT("liveHinweis")}</p>
           <div className="hb-blase__knoepfe">
@@ -327,13 +339,13 @@ export function HaustierDashboard() {
             </button>
           </div>
         </>
-      );
-    } else if (tourAktivSichtbar) {
-      blase = tour.tourBlase;
-    } else if (tourFrageSichtbar) {
-      blase = tour.frageBlase;
-    } else if (befindenSichtbar) {
-      blase = (
+      ),
+    },
+    { sichtbar: tourAktivSichtbar, blase: tour.tourBlase },
+    { sichtbar: tourFrageSichtbar, blase: tour.frageBlase },
+    {
+      sichtbar: befindenSichtbar,
+      blase: (
         <>
           <p className="hb-blase__text">{t("befinden.frage")}</p>
           <div className="hb-blase__knoepfe">
@@ -348,9 +360,15 @@ export function HaustierDashboard() {
             </button>
           </div>
         </>
-      );
-    } else if (befindenBlase && befinden) {
-      blase = (
+      ),
+    },
+    {
+      sichtbar: befindenBlase && !!befinden,
+      // Wie bei anstupser/tipp unten: erst bei echtem Wert bauen, nicht nur bei echtem
+      // "sichtbar" pruefen - alle Kandidaten werden unabhaengig vom Gewinner konstruiert, ein
+      // befinden.antwort.null wuerde sonst bei jedem Rendern eine next-intl-Fehlermeldung
+      // auf der Konsole erzeugen (live verifiziert).
+      blase: befinden ? (
         <>
           <p className="hb-blase__text">{t(`befinden.antwort.${befinden}`)}</p>
           {befinden === "viel" ? (
@@ -368,9 +386,11 @@ export function HaustierDashboard() {
             </div>
           ) : null}
         </>
-      );
-    } else if (anstupserSichtbar && anstupser) {
-      blase = (
+      ) : null,
+    },
+    {
+      sichtbar: anstupserSichtbar && !!anstupser,
+      blase: anstupser ? (
         <>
           <p className="hb-blase__text">{t(`anstupser.${anstupser}.frage`)}</p>
           <div className="hb-blase__knoepfe">
@@ -396,9 +416,11 @@ export function HaustierDashboard() {
             </button>
           </div>
         </>
-      );
-    } else if (tippSichtbar && tipp) {
-      blase = (
+      ) : null,
+    },
+    {
+      sichtbar: tippSichtbar && !!tipp,
+      blase: tipp ? (
         <>
           <p className="hb-blase__text">{t("tipp.frage", { bereich: tipp.titel })}</p>
           <div className="hb-blase__knoepfe">
@@ -417,9 +439,10 @@ export function HaustierDashboard() {
             </button>
           </div>
         </>
-      );
-    }
-  }
+      ) : null,
+    },
+  ];
+  const blase = offen ? null : (blaseKandidaten.find((k) => k.sichtbar)?.blase ?? null);
 
   return (
     <>
