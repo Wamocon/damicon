@@ -31,6 +31,31 @@ export function darfPruefen(rolle: Role | null | undefined): boolean {
   return erlaubteBereiche(rolle).length > 0;
 }
 
+// ---- Der automatische Bericht auf der Uebersichtsseite -----------------------------------------
+//
+// Die Frage "darf diese Rolle den automatischen Compliance-Bericht?" stand bis zum 23.09.2026 an
+// fuenf Stellen woertlich als `role !== "ceo"`: api/ki-pruefung/auto/route.ts, ceo-auto.ts,
+// actions/compliance-ceo.ts, ceo-pruefung-kontext.tsx und dashboard/page.tsx. Alle fuenf muessen
+// dieselbe Antwort geben, sonst sieht jemand einen Knopf, den der Server danach ablehnt.
+//
+// Lesen und Ausloesen sind bewusst zwei Funktionen, obwohl sie heute dieselbe Liste tragen: die
+// Policies in der Datenbank trennen sie auch (SELECT has_role('ceo','admin'), INSERT
+// has_role('admin') seit 20261110000000_ceo_bericht_admin.sql). Darf spaeter die Buchhaltung
+// mitlesen, ohne einen Lauf bezahlen zu koennen, wird genau eine dieser beiden Zeilen laenger.
+
+const BERICHT_LESEN: readonly Role[] = ["admin", "ceo"];
+const BERICHT_AUSLOESEN: readonly Role[] = ["admin", "ceo"];
+
+/** Darf diese Rolle den gespeicherten Bericht auf der Uebersichtsseite sehen? Spiegelt die SELECT-Policy. */
+export function darfCeoBerichtLesen(rolle: Role | null | undefined): boolean {
+  return rolle ? BERICHT_LESEN.includes(rolle) : false;
+}
+
+/** Darf diese Rolle einen Lauf starten - Knopf und automatischer Lauf beim Login? Spiegelt die INSERT-Policy. */
+export function darfCeoBericht(rolle: Role | null | undefined): boolean {
+  return rolle ? BERICHT_AUSLOESEN.includes(rolle) : false;
+}
+
 export interface Bereichswahl {
   /** Bereiche, die laufen. */
   erlaubt: Pruefbereich[];

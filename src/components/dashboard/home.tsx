@@ -1,77 +1,70 @@
-"use client";
-
-// Die Startseite des Portals: Begruessung und die vier Zonen mit ihren
-// Kennzahlen. Zwei Boxen untereinander.
+// Die Startseite des Portals: Begruessung mit einer Zahl, der Compliance-Report und darunter
+// die vier Bereiche.
 //
-// Vorher standen hier zwoelf Kennzahlkacheln in einem eigenen Block, zwei
-// weitere in einem zweiten, darunter die vier Zonen ohne Zahlen. Wer wissen
-// wollte, woher "8,4 % Verlustquote" kommt, musste selbst darauf kommen,
-// dass das die Zone Hof ist. Die Zuordnung stand im Datenmodell (Kpi.zone),
-// sichtbar war sie nicht. Jetzt traegt jede Zonenkarte ihre eigenen
-// Kennzahlen, der obere Block entfaellt.
+// Der Weg hierher, damit niemand ihn zweimal geht:
 //
-// Die Entwuerfe dazu und ihre Messwerte stehen unter
-// docs/design/uebersicht-entwuerfe-2026-09-21/, -runde2- und -runde3-.
+// Vor dem 21.09.2026 standen zwoelf Kennzahlkacheln in einem eigenen Block, zwei weitere in
+// einem zweiten, darunter die vier Zonen ohne Zahlen. Runde 1 hat die Kennzahlen in die
+// Zonenkarten geholt, weil niemand sah, woher eine Zahl kam. Runde 2 hat die Modulnamen zu
+// Knoepfen gemacht, um einen Klick zu sparen. Danach kamen die Finanz-Vorschau und die
+// CEO-Tagesuebersicht dazu, die in keiner der drei Runden vorkamen.
+//
+// Ergebnis am 23.09.2026, gemessen: 2421 px am Schirm und 5185 px am Handy, also gut sechs
+// Bildschirme. Was zuletzt im Strang stand, ging unter - und das waren ausgerechnet die
+// sechsundzwanzig Modulknoepfe aus Runde 2. Die Massnahme gegen "zu weit weg" hatte "zu viel
+// auf einmal" hergestellt.
+//
+// Gekuerzt wurde deshalb an drei Stellen, nicht durch Verstecken:
+//   - Die sechsundzwanzig Modulknoepfe sind ersatzlos entfallen. Dafuer ist das Menue da.
+//   - Die Kennzahlen stehen nur noch, soweit sie auffallen: vier je Bereich, Auffaelliges
+//     zuerst, aufgefuellt mit dem, was im Ziel liegt.
+//   - Die Begruessungskarte trug vier Informationseinheiten und keine Zahl. Jetzt steht in
+//     ihrer rechten Haelfte die eine Zahl, mit der diese Rolle den Tag beginnt.
+//
+// Reiter gab es dazwischen kurzzeitig auch. Sie sind wieder entfallen: nach den drei
+// Kuerzungen ist die Seite kurz genug, und ein Reiter versteckt, was man nicht suchen kann.
+//
+// Entwuerfe und Messwerte: docs/design/uebersicht-entwuerfe-2026-09-21/, -runde2-, -runde3-
+// und -reiter-2026-09-23.
+//
+// Server Component: usePersona() wird hier nicht mehr gebraucht. Das Nachfiltern der
+// Kennzahlen fuer die Admin-Vorschau sitzt in bereiche-box.tsx.
 import type { ReactNode } from "react";
-import { usePersona } from "@/components/dashboard/persona";
 import { BegruessungsBox } from "@/components/dashboard/begruessung";
-import { ZonenBox } from "@/components/dashboard/zonen-box";
 import { WerbefilmHinweis } from "@/components/werbefilm/dashboard-hinweis";
-import { kpisFuerRolle, type Kpi } from "@/lib/domain/kpis";
 import type { Tageszeit } from "@/lib/domain/tageszeit";
-import type { Datenquelle } from "@/lib/supabase/config";
 
 export function DashboardHome({
-  kpis,
-  quelle,
   tageszeit,
   datum,
   spruch,
-  ceoUebersicht,
-  finanzVorschau,
+  startkarte,
+  compliance,
+  bereiche,
 }: {
-  kpis: Kpi[];
-  quelle: Datenquelle;
   /** Serverseitig bestimmt - siehe lib/domain/tageszeit.ts. */
   tageszeit: Tageszeit;
   datum: string;
   spruch: number;
+  /** Die rechte Haelfte der Begruessungskarte - je Rolle eine andere Zahl. */
+  startkarte?: ReactNode;
   /**
-   * Serverseitig vorgerendert (async Server Component) und von der Seite
-   * durchgereicht, nicht hier importiert: DashboardHome ist "use client"
-   * (usePersona()), eine Server Component laesst sich dort nicht direkt
-   * einbinden. Der Server liefert dieses Fragment bereits fuer admin mit (RLS
-   * erlaubt den Lesezugriff), genau wie er auch fuer eine Admin-Vorschau alle
-   * Kennzahlen mitschickt (siehe kpisFuerRolle() unten) - ob es tatsaechlich
-   * erscheint, entscheidet erst die Vorschau-Rolle hier unten. Der eigentliche
-   * automatische Lauf (ceo-pruefung-kontext.tsx) und der manuelle
-   * "Jetzt neu pruefen"-Knopf bleiben unabhaengig davon an der ECHTEN
-   * Profilrolle festgemacht - eine Admin-Vorschau "als ceo" zeigt nur den
-   * echten, gemeinsamen letzten Bericht, sie loest nie einen neuen Lauf fuer
-   * eine fremde Person aus.
+   * Der Compliance-Report fuer ceo und admin. Serverseitig an der ECHTEN Profilrolle
+   * festgemacht, nicht an der clientseitig umschaltbaren Vorschau-Rolle - eine Admin-Vorschau
+   * "als ceo" soll nicht den echten automatischen Lauf einer fremden Person ausloesen.
    */
-  ceoUebersicht?: ReactNode;
-  /** Ebenfalls serverseitig vorgerendert, aus demselben Grund wie oben. */
-  finanzVorschau?: ReactNode;
+  compliance?: ReactNode;
+  /** Die vier Bereiche mit ihren Kennzahlen. Steht unter dem Report, fuer jede Rolle. */
+  bereiche: ReactNode;
 }) {
-  const { role } = usePersona();
-
-  // kpisFuerRolle() laeuft hier ein zweites Mal, obwohl der Server schon
-  // gefiltert hat: ein Admin in der "Ansicht als"-Vorschau bekommt alle
-  // Kennzahlen vom Server und filtert hier nach der Vorschaurolle weiter,
-  // siehe usePersona(). Kern und erweitert landen zusammen in ihren Zonen -
-  // die Trennung aus Anforderung 4.11 ist in der Zonenansicht nicht mehr
-  // sichtbar, die zwoelf Kern-Kennzahlen stehen also nicht mehr fuer sich.
-  const { kern, erweitert } = kpisFuerRolle(role, kpis);
-  const sichtbar = [...kern, ...erweitert];
-
   return (
     <div className="space-y-6">
-      <BegruessungsBox tageszeit={tageszeit} datum={datum} spruch={spruch} />
+      <BegruessungsBox tageszeit={tageszeit} datum={datum} spruch={spruch} rechts={startkarte} />
+      {/* Der Werbefilm steht wie in main direkt unter der Begruessung - eine Zeile von
+          rund 68 px, kein eingebetteter Spieler (siehe werbefilm/dashboard-hinweis.tsx). */}
       <WerbefilmHinweis />
-      {role === "ceo" ? ceoUebersicht : null}
-      {finanzVorschau}
-      <ZonenBox role={role} kpis={sichtbar} quelle={quelle} />
+      {compliance}
+      {bereiche}
     </div>
   );
 }

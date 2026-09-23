@@ -11,6 +11,7 @@
 
 import { getSessionProfile } from "@/lib/auth";
 import { aktualisiereCeoBericht } from "@/lib/pruefung/ceo-auto";
+import { darfCeoBericht } from "@/lib/pruefung/rollen";
 import type { Ereignis } from "@/lib/pruefung/typen";
 
 export const maxDuration = 300;
@@ -18,7 +19,7 @@ export const maxDuration = 300;
 export async function POST(req: Request) {
   const profil = await getSessionProfile();
   if (!profil) return new Response("nicht angemeldet", { status: 401 });
-  if (profil.role !== "ceo") return new Response("keine berechtigung", { status: 403 });
+  if (!darfCeoBericht(profil.role)) return new Response("keine berechtigung", { status: 403 });
 
   let body: { sprache?: unknown };
   try {

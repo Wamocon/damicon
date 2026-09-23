@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import {
@@ -325,8 +326,10 @@ export interface FinanzVorschau {
   kostenTenge: number;
   buchungen: number;
 }
+// Gecacht aus demselben Grund wie letzterCeoBericht(): der Reiter Lage und die
+// Finanz-Vorschau koennen beide danach fragen.
 
-export async function ladeFinanzVorschau(): Promise<FinanzVorschau> {
+export const ladeFinanzVorschau = cache(async (): Promise<FinanzVorschau> => {
   const grenzen = zeitraumGrenzen("monat");
   // zeitraumGrenzen liefert fuer "monat" immer beide Grenzen, der Rueckfall
   // ist reine Typsicherheit.
@@ -352,7 +355,7 @@ export async function ladeFinanzVorschau(): Promise<FinanzVorschau> {
     kostenTenge: Number(zeile.kosten_tenge),
     buchungen: Number(zeile.buchungen),
   };
-}
+});
 
 // Referenzlisten fuer die Schreibformulare - wie ladeNachbarbetriebe() in
 // lib/data/zukauf.ts: im Demo-Modus die Beispielwerte, weil die Formulare dort

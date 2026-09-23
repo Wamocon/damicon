@@ -1,10 +1,16 @@
 import { getFormatter, setRequestLocale } from "next-intl/server";
 import { DashboardHome } from "@/components/dashboard/home";
-import { CeoComplianceUebersicht } from "@/components/dashboard/ceo-compliance-uebersicht";
-import { FinanzVorschau } from "@/components/dashboard/finanz-vorschau";
+import { BereicheBox } from "@/components/dashboard/bereiche-box";
+import { TagesUebersicht } from "@/components/dashboard/tages-uebersicht";
+import { StartkarteBrigade } from "@/components/dashboard/startkarte-brigade";
+import { StartkarteFinanzen } from "@/components/dashboard/startkarte-finanzen";
+import { StartkarteKunde } from "@/components/dashboard/startkarte-kunde";
+import { StartkartePfluecker } from "@/components/dashboard/startkarte-pfluecker";
 import { ladeKpis } from "@/lib/data/kpis";
 import { getSessionProfile } from "@/lib/auth";
 import { kpisFuerRolle } from "@/lib/domain/kpis";
+import { startkarteFuer } from "@/lib/domain/startkarte";
+import { darfCeoBerichtLesen } from "@/lib/pruefung/rollen";
 import { hasPermission } from "@/lib/rbac";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import {
@@ -36,26 +42,22 @@ export default async function DashboardPage({
   ]);
 
   // WMC-Vibecode-Cleanup: kpisFuerRolle() lief bisher ausschliesslich
-  // clientseitig in DashboardHome (dort noetig fuer die "Ansicht als"-Vorschau
-  // eines Admins, siehe usePersona()). Ohne diesen serverseitigen Vorfilter
+  // clientseitig in DashboardHome. Ohne diesen serverseitigen Vorfilter
   // erreichten alle 14 Kennzahlen - darunter vertrauliche Werte wie
   // Deckungsbeitrag oder Verlustquote - jeden angemeldeten Client, auch
   // picker/erzeuger/kunde, die laut sichtbarFuer keine einzige sehen sollen.
   // Gefiltert wird nach der echten Profilrolle (nicht der clientseitig
   // umschaltbaren Persona-Rolle, die der Server gar nicht kennt) - ein Admin
   // in der Vorschau bekommt weiterhin alle Kennzahlen vom Server und filtert
-  // clientseitig fuer die Vorschau weiter, demoModus (profil === null) bleibt
-  // unveraendert, da dort ohnehin nur Platzhalterwerte fuer Interessenten
-  // gezeigt werden.
+  // clientseitig fuer die Vorschau weiter (bereiche-box.tsx), demoModus
+  // (profil === null) bleibt unveraendert, da dort ohnehin nur
+  // Platzhalterwerte fuer Interessenten gezeigt werden.
   let sichtbareKpis = kpis;
   if (profil) {
     const { kern, erweitert } = kpisFuerRolle(profil.role, kpis);
     sichtbareKpis = [...kern, ...erweitert];
   }
 
-  // Tageszeit und Satz der Begruessung bestimmt der Server. Rechnete der
-  // Browser sie selbst, stuende im ausgelieferten HTML eine andere
-  // Begruessung als nach der Hydration.
   // Wie in [module]/page.tsx: gefiltert wird nach der echten Profilrolle, und
   // im Demo-Betrieb ohne Supabase ist alles offen - dort gibt es keine
   // Anmeldung und ohnehin nur Beispielwerte.
@@ -63,23 +65,40 @@ export default async function DashboardPage({
     ? hasPermission(profil?.role, "finanzen", "view")
     : true;
 
+  // Der Compliance-Report gilt seit dem 23.09.2026 fuer ceo UND admin. Entschieden wird an
+  // der ECHTEN Profilrolle, nicht an der clientseitig umschaltbaren Vorschau-Rolle - dieselbe
+  // Abgrenzung wie in ceo-pruefung-kontext.tsx. Im Demo-Betrieb ohne Supabase gibt es keinen
+  // gespeicherten Bericht, dort stuende sonst eine leere Karte.
+  const zeigtCompliance = isSupabaseConfigured() && darfCeoBerichtLesen(profil?.role);
+
+  // Die rechte Haelfte der Begruessungskarte: je Rolle eine andere Zahl. Ausgewaehlt an der
+  // ECHTEN Profilrolle - folgte sie der Vorschau, muesste der Server die Daten ALLER Rollen
+  // mitschicken, also auch Lohn- und Bestelldaten an jemanden, der gerade Finanzen ansieht.
+  const karte = isSupabaseConfigured() ? startkarteFuer(profil?.role) : null;
+  const startkarte =
+    karte === "finanzen" && darfFinanzenSehen ? (
+      <StartkarteFinanzen />
+    ) : karte === "pflueckaufgaben" ? (
+      <StartkarteBrigade />
+    ) : karte === "lohn" ? (
+      <StartkartePfluecker pflueckerId={profil?.pflueckerId ?? null} />
+    ) : karte === "lieferung" ? (
+      <StartkarteKunde b2bKundeId={profil?.b2bKundeId ?? null} />
+    ) : null;
+
   const jetzt = new Date();
 
   return (
     <DashboardHome
-      kpis={sichtbareKpis}
-      quelle={quelle}
       tageszeit={tageszeitBestimmen(jetzt)}
       datum={format.dateTime(jetzt, {
         dateStyle: "full",
         timeZone: betriebsZeitzone,
       })}
       spruch={spruchIndex(jetzt)}
-      // Auch fuer admin schon serverseitig geladen (RLS erlaubt has_role('ceo','admin')
-      // den Lesezugriff): die Sichtbarkeit fuer eine Admin-Vorschau "als ceo" entscheidet
-      // client-seitig home.tsx anhand der Vorschau-Rolle, siehe dortiger Kommentar.
-      ceoUebersicht={profil?.role === "ceo" || profil?.role === "admin" ? <CeoComplianceUebersicht /> : null}
-      finanzVorschau={darfFinanzenSehen ? <FinanzVorschau /> : null}
+      startkarte={startkarte}
+      compliance={zeigtCompliance ? <TagesUebersicht /> : null}
+      bereiche={<BereicheBox kpis={sichtbareKpis} quelle={quelle} />}
     />
   );
 }
