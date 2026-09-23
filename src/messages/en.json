@@ -324,10 +324,7 @@
       "target": "Target",
       "zonesTitle": "The four zones",
       "zonesDescription": "Each zone with its indicators and its modules.",
-      "wipCount": "{count} not available yet",
-      "openZone": "Open zone",
-      "zoneOhneKennzahl": "No indicator is released for this zone.",
-      "moduleTitel": "Modules"
+      "openZone": "Open zone"
     },
     "loading": "Loading data",
     "askAi": "Ask AI",
@@ -374,7 +371,18 @@
     "zoneKennzahlTitel": "Key figures",
     "zoneKennzahlLead": "This area's key figures, the most urgent one first.",
     "zoneKennzahlMehr": "{count, plural, one {Show # more key figure} other {Show # more key figures}}",
-    "zoneKennzahlWeniger": "Hide additional key figures"
+    "zoneKennzahlWeniger": "Hide additional key figures",
+    "reiter": {
+      "label": "Overview sections",
+      "compliance": "CEO compliance",
+      "finanzen": "Finances",
+      "bereiche": "Areas"
+    },
+    "bereicheReiter": {
+      "titel": "The four areas",
+      "lead": "Each area with its metrics, anything off target first.",
+      "ohneKennzahl": "No metric is released for this area."
+    }
   },
   "roles": {
     "switcherHint": "Switch demo role - controls the visible navigation",
@@ -1222,8 +1230,11 @@
     "deckungsbeitrag": "Contribution margin",
     "buchungen": "Postings: {anzahl}",
     "link": "Go to finances",
-    "kurz": "Finances",
-    "kachelHinweis": "{anzahl, plural, one {# posting} other {# postings}} · go to finances"
+    "gegenVormonat": "{anteil} against last month",
+    "ueberVormonat": "{anteil} above last month ({betrag})",
+    "unterVormonat": "{anteil} below last month ({betrag})",
+    "ohneVormonat": "Nothing was posted last month, so there is nothing to compare.",
+    "imJahr": "This year so far: {deckungsbeitrag} from {anzahl, plural, one {# posting} other {# postings}}."
   },
   "dokumenteDemo": {
     "listTitle": "Documents",
@@ -3206,7 +3217,9 @@
       "nachfrage": "What else can I show you?"
     },
     "liveHinweis": "The compliance check is running live right now, you can watch every step here. It usually takes under a minute, feel free to keep working in the meantime.",
-    "liveHinweisKnopf": "Got it"
+    "liveHinweisKnopf": "Got it",
+    "complianceTitel": "State of the four audit areas",
+    "complianceLead": "Click a tile to see the findings."
   },
   "pruefungAblauf": {
     "schritt": {

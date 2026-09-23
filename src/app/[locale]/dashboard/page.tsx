@@ -1,10 +1,14 @@
-import { getFormatter, setRequestLocale } from "next-intl/server";
+import { getFormatter, getTranslations, setRequestLocale } from "next-intl/server";
 import { DashboardHome } from "@/components/dashboard/home";
+import { BereicheReiter } from "@/components/dashboard/bereiche-reiter";
+import { FinanzenReiter } from "@/components/dashboard/finanzen-reiter";
 import { TagesUebersicht } from "@/components/dashboard/tages-uebersicht";
-import { FinanzVorschau } from "@/components/dashboard/finanz-vorschau";
+import { TagesCompliance } from "@/components/dashboard/tages-compliance";
+import { Reiter } from "@/components/ui/kit";
 import { ladeKpis } from "@/lib/data/kpis";
 import { getSessionProfile } from "@/lib/auth";
 import { kpisFuerRolle } from "@/lib/domain/kpis";
+import { reiterAusText, reiterFuer } from "@/lib/domain/uebersicht-reiter";
 import { darfCeoBerichtLesen } from "@/lib/pruefung/rollen";
 import { hasPermission } from "@/lib/rbac";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -23,40 +27,39 @@ export const maxDuration = 300;
 
 export default async function DashboardPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const { locale } = await params;
+  const [{ locale }, suche] = await Promise.all([params, searchParams]);
   setRequestLocale(locale);
 
   // Die Baseline-Kennzahlen kommen aus public.kpi_baseline (Meilenstein B).
-  const [{ kpis, quelle }, profil, format] = await Promise.all([
+  const [{ kpis, quelle }, profil, format, t] = await Promise.all([
     ladeKpis(),
     getSessionProfile(),
     getFormatter(),
+    getTranslations("dashboard.reiter"),
   ]);
 
   // WMC-Vibecode-Cleanup: kpisFuerRolle() lief bisher ausschliesslich
-  // clientseitig in DashboardHome (dort noetig fuer die "Ansicht als"-Vorschau
-  // eines Admins, siehe usePersona()). Ohne diesen serverseitigen Vorfilter
+  // clientseitig in DashboardHome. Ohne diesen serverseitigen Vorfilter
   // erreichten alle 14 Kennzahlen - darunter vertrauliche Werte wie
   // Deckungsbeitrag oder Verlustquote - jeden angemeldeten Client, auch
   // picker/erzeuger/kunde, die laut sichtbarFuer keine einzige sehen sollen.
   // Gefiltert wird nach der echten Profilrolle (nicht der clientseitig
   // umschaltbaren Persona-Rolle, die der Server gar nicht kennt) - ein Admin
   // in der Vorschau bekommt weiterhin alle Kennzahlen vom Server und filtert
-  // clientseitig fuer die Vorschau weiter, demoModus (profil === null) bleibt
-  // unveraendert, da dort ohnehin nur Platzhalterwerte fuer Interessenten
-  // gezeigt werden.
+  // clientseitig fuer die Vorschau weiter (kennzahlen-reiter.tsx), demoModus
+  // (profil === null) bleibt unveraendert, da dort ohnehin nur
+  // Platzhalterwerte fuer Interessenten gezeigt werden.
   let sichtbareKpis = kpis;
   if (profil) {
     const { kern, erweitert } = kpisFuerRolle(profil.role, kpis);
     sichtbareKpis = [...kern, ...erweitert];
   }
 
-  // Tageszeit und Satz der Begruessung bestimmt der Server. Rechnete der
-  // Browser sie selbst, stuende im ausgelieferten HTML eine andere
-  // Begruessung als nach der Hydration.
   // Wie in [module]/page.tsx: gefiltert wird nach der echten Profilrolle, und
   // im Demo-Betrieb ohne Supabase ist alles offen - dort gibt es keine
   // Anmeldung und ohnehin nur Beispielwerte.
@@ -68,26 +71,50 @@ export default async function DashboardPage({
   // ECHTEN Profilrolle, nicht an der clientseitig umschaltbaren Vorschau-Rolle - dieselbe
   // Abgrenzung wie in ceo-pruefung-kontext.tsx. Im Demo-Betrieb ohne Supabase gibt es keinen
   // gespeicherten Bericht, dort stuende sonst eine leere Karte.
-  const zeigtTagesUebersicht = isSupabaseConfigured() && darfCeoBerichtLesen(profil?.role);
+  const zeigtCompliance = isSupabaseConfigured() && darfCeoBerichtLesen(profil?.role);
 
-  // Die Finanzzahlen stehen an genau einer Stelle: entweder als fuenfte Kachel in der
-  // Tages-Uebersicht, oder - fuer Rollen ohne sie, etwa buchhaltung - weiterhin als eigene
-  // Vorschau darunter. Beides zugleich waere dieselbe Zahl zweimal auf einer Seite, keines
-  // von beidem waere fuer die Buchhaltung ein Rueckschritt gegenueber heute.
+  // Welche Reiter diese Person bekommt. Bewusst an der ECHTEN Rolle und serverseitig: haengte
+  // die Reiterleiste an der clientseitig umschaltbaren Vorschau-Rolle, stuende sie erst nach
+  // der Hydration fest - und damit funktionierte der Reiterwechsel nicht mehr ohne
+  // JavaScript. Ein Admin in der Vorschau "als picker" sieht deshalb weiter alle Reiter, der
+  // Kennzahleninhalt darin ist aber leer gefiltert.
+  const erlaubt = reiterFuer({ compliance: zeigtCompliance, finanzen: darfFinanzenSehen });
+  // Ein doppelter Parameter in der Adresszeile kommt als Array an; dann gilt der Standard.
+  const aktiv = reiterAusText(typeof suche.reiter === "string" ? suche.reiter : undefined, erlaubt);
+
   const jetzt = new Date();
 
   return (
     <DashboardHome
-      kpis={sichtbareKpis}
-      quelle={quelle}
       tageszeit={tageszeitBestimmen(jetzt)}
       datum={format.dateTime(jetzt, {
         dateStyle: "full",
         timeZone: betriebsZeitzone,
       })}
       spruch={spruchIndex(jetzt)}
-      tagesUebersicht={zeigtTagesUebersicht ? <TagesUebersicht mitFinanzen={darfFinanzenSehen} /> : null}
-      finanzVorschau={!zeigtTagesUebersicht && darfFinanzenSehen ? <FinanzVorschau /> : null}
+      kopf={zeigtCompliance ? <TagesUebersicht /> : null}
+      reiter={
+        // Ein Reiter allein ist keiner: dann steht sein Inhalt direkt da.
+        erlaubt.length > 1 ? (
+          <Reiter
+            label={t("label")}
+            aktiv={aktiv}
+            eintraege={erlaubt.map((wert) => ({ wert, text: t(wert) }))}
+            // Die Uebersicht kennt sonst keine Filter, die ein Reiterwechsel mitnehmen
+            // muesste - anders als die Finanzseite reicht hier der eine Parameter.
+            ziel={(wert) => ({ pathname: "/dashboard", query: { reiter: wert } })}
+          />
+        ) : null
+      }
+      inhalt={
+        aktiv === "compliance" ? (
+          <TagesCompliance />
+        ) : aktiv === "finanzen" ? (
+          <FinanzenReiter />
+        ) : (
+          <BereicheReiter kpis={sichtbareKpis} quelle={quelle} />
+        )
+      }
     />
   );
 }

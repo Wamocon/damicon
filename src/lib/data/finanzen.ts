@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import {
@@ -325,8 +326,10 @@ export interface FinanzVorschau {
   kostenTenge: number;
   buchungen: number;
 }
+// Gecacht aus demselben Grund wie letzterCeoBericht(): der Reiter Lage und die
+// Finanz-Vorschau koennen beide danach fragen.
 
-export async function ladeFinanzVorschau(): Promise<FinanzVorschau> {
+export const ladeFinanzVorschau = cache(async (): Promise<FinanzVorschau> => {
   const grenzen = zeitraumGrenzen("monat");
   // zeitraumGrenzen liefert fuer "monat" immer beide Grenzen, der Rueckfall
   // ist reine Typsicherheit.
@@ -352,7 +355,7 @@ export async function ladeFinanzVorschau(): Promise<FinanzVorschau> {
     kostenTenge: Number(zeile.kosten_tenge),
     buchungen: Number(zeile.buchungen),
   };
-}
+});
 
 // Referenzlisten fuer die Schreibformulare - wie ladeNachbarbetriebe() in
 // lib/data/zukauf.ts: im Demo-Modus die Beispielwerte, weil die Formulare dort
@@ -409,3 +412,95 @@ export async function ladeChargeOptionen(): Promise<ChargeOption[]> {
     .limit(200);
   return (data ?? []).map((c) => ({ id: c.id, code: c.code }));
 }
+
+// ---------------------------------------------------------------------------
+// Der Reiter "Finanzen" auf der Uebersichtsseite
+//
+// Drei Zeitraeume aus derselben Summenfunktion: laufender Monat, Vormonat und
+// laufendes Jahr. Der Vormonat traegt die Richtung - drei Zahlen ohne Vergleich
+// sagen nicht, ob 1,0 Mio. ₸ Deckungsbeitrag viel oder wenig sind. Das Jahr
+// ordnet den Monat ein.
+//
+// public.finanz_summe() ist "stable sql" ueber einen Index auf buchungsdatum;
+// drei Aufrufe nebeneinander kosten praktisch so viel wie einer. Bewusst keine
+// eigene Datenbankfunktion fuer drei Zeitraeume: dieselbe Zahl muss auf der
+// Finanzseite und hier gleich herauskommen, und das haelt nur, solange beide
+// durch dieselbe Funktion gehen (siehe Commit 97e5b59).
+// ---------------------------------------------------------------------------
+
+export interface FinanzSpanne {
+  erloesTenge: number;
+  kostenTenge: number;
+  buchungen: number;
+}
+
+export interface FinanzReiter {
+  quelle: Datenquelle;
+  /** Erster Tag des laufenden Monats, "JJJJ-MM-TT". Traegt die Beschriftung. */
+  von: string;
+  monat: FinanzSpanne;
+  /** null, wenn im Vormonat nichts gebucht wurde - dann gibt es nichts zu vergleichen. */
+  vormonat: FinanzSpanne | null;
+  jahr: FinanzSpanne;
+}
+
+export const ladeFinanzReiter = cache(async (): Promise<FinanzReiter> => {
+  const spannen = {
+    monat: zeitraumGrenzen("monat"),
+    vormonat: zeitraumGrenzen("vormonat"),
+    jahr: zeitraumGrenzen("jahr"),
+  };
+  const von = spannen.monat.von ?? "";
+  const leer: FinanzSpanne = { erloesTenge: 0, kostenTenge: 0, buchungen: 0 };
+
+  if (!isSupabaseConfigured()) {
+    const summe = (grenzen: typeof spannen.monat): FinanzSpanne => {
+      const zeilen = demoLedgerEintraege.filter((l) => imZeitraum(l.buchungsdatum, grenzen));
+      return { ...ledgerSummen(zeilen), buchungen: zeilen.length };
+    };
+    const vormonat = summe(spannen.vormonat);
+    return {
+      quelle: "demo",
+      von,
+      monat: summe(spannen.monat),
+      vormonat: vormonat.buchungen > 0 ? vormonat : null,
+      jahr: summe(spannen.jahr),
+    };
+  }
+
+  const supabase = await createClient();
+  const [monat, vormonat, jahr] = await Promise.all(
+    (["monat", "vormonat", "jahr"] as const).map((k) =>
+      supabase.rpc("finanz_summe", { von: spannen[k].von ?? "", bis: spannen[k].bis ?? "" }),
+    ),
+  );
+
+  // Wie bei ladeFinanzVorschau(): ein Lesefehler faellt auf, statt als Null
+  // durchzugehen. Eine 0 neben dem Abzeichen "Live-Daten" ist schlimmer als eine
+  // sichtbar fehlende Zahl (Commit 97ff7f8).
+  if (monat.error || jahr.error) {
+    return { quelle: "fehler", von, monat: leer, vormonat: null, jahr: leer };
+  }
+
+  const zuSpanne = (data: unknown): FinanzSpanne => {
+    const zeile = (data as FinanzSummeZeile[] | null)?.[0];
+    if (!zeile) return leer;
+    return {
+      erloesTenge: Number(zeile.erloes_tenge),
+      kostenTenge: Number(zeile.kosten_tenge),
+      buchungen: Number(zeile.buchungen),
+    };
+  };
+
+  // Der Vormonat ist Beiwerk: scheitert nur er, steht die Seite trotzdem, nur
+  // ohne Vergleichszeile.
+  const vor = vormonat.error ? leer : zuSpanne(vormonat.data);
+
+  return {
+    quelle: "db",
+    von,
+    monat: zuSpanne(monat.data),
+    vormonat: vor.buchungen > 0 ? vor : null,
+    jahr: zuSpanne(jahr.data),
+  };
+});

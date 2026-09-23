@@ -92,3 +92,45 @@ export function nachDringlichkeit(kpis: Kpi[]): Kpi[] {
     return (links.abstand ?? 0) - (rechts.abstand ?? 0);
   });
 }
+
+// Was auf die Uebersichtsseite gehoert: alles, was nicht im Ziel liegt.
+//
+// Entscheidung vom 23.09.2026. Bewusst diese Grenze und nicht "nur verfehlt":
+// die 10-Prozent-Marke oben ist gegriffen und seit dem 21.09. als offener Punkt
+// notiert. Haengt an ihr, OB eine Kennzahl ueberhaupt erscheint, entscheidet eine
+// ungeklaerte Zahl ueber die Sichtbarkeit - bei 9 Prozent Abweichung verschwaende
+// eine Kennzahl, bei 11 erschiene sie. So entscheidet sie nur noch ueber die
+// Reihenfolge innerhalb der Liste.
+//
+// Platzhalter bleiben drin und stehen hinten: ein unterschriebener Ausgangswert
+// ist keine Messung, aber er ist auch nicht "im Ziel". Ihn wegzulassen hiesse zu
+// behaupten, dort sei alles in Ordnung. KennzahlBox schreibt bei ihnen "Platzhalter"
+// statt einer Ampel.
+export function nurAuffaellige(kpis: Kpi[]): Kpi[] {
+  const auffaellig = kpis.filter((kpi) => {
+    const auswertung = zielAuswerten(kpi);
+    return auswertung.platzhalter || auswertung.stand !== "erfuellt";
+  });
+  return nachDringlichkeit(auffaellig);
+}
+
+// Was in einer Zonenkarte steht: das Auffaellige zuerst, danach aufgefuellt bis zu einer
+// Mindestzahl.
+//
+// Entscheidung vom 23.09.2026, Nachtrag zu nurAuffaellige(): eine Zonenkarte mit nur einer
+// einzigen Kachel sieht aus, als fehle etwas, und vier Karten mit unterschiedlich vielen
+// Kacheln stehen unruhig nebeneinander. Gezeigt werden deshalb mindestens vier je Bereich -
+// aufgefuellt mit dem, was im Ziel liegt.
+//
+// Nie weniger als alles Auffaellige: liegen fuenf Kennzahlen daneben, stehen auch fuenf da.
+// Eine Obergrenze waere die falsche Sparsamkeit - sie verstecke genau das, wofuer die Seite
+// gebaut ist. Heute hat keine Zone mehr als vier freigegebene Kennzahlen, die Regel greift
+// also erst, wenn welche dazukommen.
+export function auffaelligeZuerst(kpis: Kpi[], mindestens: number): Kpi[] {
+  // Bewusst nicht einfach nachDringlichkeit(kpis).slice(...): dort steht "erfuellt" VOR
+  // "offen", ein erfuellter Wert verdraengte also beim Auffuellen einen Platzhalter. Erst
+  // alles Auffaellige, dann der Rest - beides je fuer sich nach Dringlichkeit gereiht.
+  const auffaellig = nurAuffaellige(kpis);
+  const uebrig = nachDringlichkeit(kpis.filter((kpi) => !auffaellig.includes(kpi)));
+  return [...auffaellig, ...uebrig].slice(0, Math.max(auffaellig.length, mindestens));
+}

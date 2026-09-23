@@ -1,74 +1,62 @@
-"use client";
-
-// Die Startseite des Portals: Begruessung und die vier Zonen mit ihren
-// Kennzahlen. Zwei Boxen untereinander.
+// Die Startseite des Portals: Begruessung, "Das Wichtigste heute" und darunter drei Reiter
+// - Lage, Kennzahlen, Bereiche.
 //
-// Vorher standen hier zwoelf Kennzahlkacheln in einem eigenen Block, zwei
-// weitere in einem zweiten, darunter die vier Zonen ohne Zahlen. Wer wissen
-// wollte, woher "8,4 % Verlustquote" kommt, musste selbst darauf kommen,
-// dass das die Zone Hof ist. Die Zuordnung stand im Datenmodell (Kpi.zone),
-// sichtbar war sie nicht. Jetzt traegt jede Zonenkarte ihre eigenen
-// Kennzahlen, der obere Block entfaellt.
+// Der Weg hierher, damit niemand ihn zweimal geht:
 //
-// Die Entwuerfe dazu und ihre Messwerte stehen unter
-// docs/design/uebersicht-entwuerfe-2026-09-21/, -runde2- und -runde3-.
+// Vor dem 21.09.2026 standen zwoelf Kennzahlkacheln in einem eigenen Block, zwei weitere in
+// einem zweiten, darunter die vier Zonen ohne Zahlen. Runde 1 hat die Kennzahlen in die
+// Zonenkarten geholt, weil niemand sah, woher eine Zahl kam. Runde 2 hat die Modulnamen zu
+// Knoepfen gemacht, um einen Klick zu sparen. Danach kamen die Finanz-Vorschau und die
+// CEO-Tagesuebersicht dazu, die in keiner der drei Runden vorkamen.
+//
+// Ergebnis am 23.09.2026, gemessen: 2421 px am Schirm und 5185 px am Handy, also gut sechs
+// Bildschirme in einem einzigen Strang. Was zuletzt im Strang stand, ging unter - und das
+// waren ausgerechnet die sechsundzwanzig Modulknoepfe aus Runde 2. Die Massnahme gegen
+// "zu weit weg" hatte "zu viel auf einmal" hergestellt.
+//
+// Jetzt: Begruessung und Zusammenfassung stehen immer sichtbar oben, alles andere liegt
+// hinter einem Reiter. Die Modulknoepfe sind ersatzlos entfallen, dafuer ist das Menue da.
+//
+// Entwuerfe und Messwerte: docs/design/uebersicht-entwuerfe-2026-09-21/, -runde2-, -runde3-
+// und -reiter-2026-09-23.
+//
+// Seit dem Reiter-Umbau eine Server Component: usePersona() wird hier nicht mehr gebraucht.
+// Das Nachfiltern der Kennzahlen fuer die Admin-Vorschau sitzt jetzt in kennzahlen-reiter.tsx,
+// und die Zonenkarten kennen keine Rolle mehr, seit die Modulknoepfe weg sind.
 import type { ReactNode } from "react";
-import { usePersona } from "@/components/dashboard/persona";
 import { BegruessungsBox } from "@/components/dashboard/begruessung";
-import { ZonenBox } from "@/components/dashboard/zonen-box";
-import { kpisFuerRolle, type Kpi } from "@/lib/domain/kpis";
 import type { Tageszeit } from "@/lib/domain/tageszeit";
-import type { Datenquelle } from "@/lib/supabase/config";
 
 export function DashboardHome({
-  kpis,
-  quelle,
   tageszeit,
   datum,
   spruch,
-  tagesUebersicht,
-  finanzVorschau,
+  kopf,
+  reiter,
+  inhalt,
 }: {
-  kpis: Kpi[];
-  quelle: Datenquelle;
   /** Serverseitig bestimmt - siehe lib/domain/tageszeit.ts. */
   tageszeit: Tageszeit;
   datum: string;
   spruch: number;
   /**
-   * "Das Wichtigste heute" fuer ceo und admin. Serverseitig vorgerendert
-   * (async Server Component) und von der Seite durchgereicht, nicht hier
-   * importiert: DashboardHome ist "use client" (usePersona()), eine Server
-   * Component laesst sich dort nicht direkt einbinden. Server-seitig an der
-   * ECHTEN Profilrolle festgemacht, nicht an der hier umschaltbaren
-   * Vorschau-Rolle - eine Admin-Vorschau "als ceo" soll nicht den echten
-   * automatischen Lauf einer fremden Person ausloesen.
+   * "Das Wichtigste heute" fuer ceo und admin, oberhalb der Reiterleiste und damit in jedem
+   * Reiter sichtbar. Serverseitig an der ECHTEN Profilrolle festgemacht, nicht an der
+   * clientseitig umschaltbaren Vorschau-Rolle - eine Admin-Vorschau "als ceo" soll nicht den
+   * echten automatischen Lauf einer fremden Person ausloesen.
    */
-  tagesUebersicht?: ReactNode;
-  /**
-   * Nur fuer Rollen, die Finanzen sehen duerfen, aber keine Tages-Uebersicht
-   * bekommen (buchhaltung, betriebsleitung). Wer beides haette, saehe dieselbe
-   * Zahl zweimal - dort traegt die fuenfte Kachel sie.
-   */
-  finanzVorschau?: ReactNode;
+  kopf?: ReactNode;
+  /** Die Reiterleiste. Fehlt, wenn die Rolle nur einen Reiter hat - ein Reiter allein ist keiner. */
+  reiter?: ReactNode;
+  /** Der Inhalt des aktiven Reiters. Nur dieser wird ueberhaupt gerendert. */
+  inhalt: ReactNode;
 }) {
-  const { role } = usePersona();
-
-  // kpisFuerRolle() laeuft hier ein zweites Mal, obwohl der Server schon
-  // gefiltert hat: ein Admin in der "Ansicht als"-Vorschau bekommt alle
-  // Kennzahlen vom Server und filtert hier nach der Vorschaurolle weiter,
-  // siehe usePersona(). Kern und erweitert landen zusammen in ihren Zonen -
-  // die Trennung aus Anforderung 4.11 ist in der Zonenansicht nicht mehr
-  // sichtbar, die zwoelf Kern-Kennzahlen stehen also nicht mehr fuer sich.
-  const { kern, erweitert } = kpisFuerRolle(role, kpis);
-  const sichtbar = [...kern, ...erweitert];
-
   return (
     <div className="space-y-6">
       <BegruessungsBox tageszeit={tageszeit} datum={datum} spruch={spruch} />
-      {tagesUebersicht}
-      {finanzVorschau}
-      <ZonenBox role={role} kpis={sichtbar} quelle={quelle} />
+      {kopf}
+      {reiter}
+      {inhalt}
     </div>
   );
 }

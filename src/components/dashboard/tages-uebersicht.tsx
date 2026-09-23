@@ -1,27 +1,25 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { ArrowRight } from "lucide-react";
-import { Link } from "@/i18n/navigation";
-import { Section, StatusPill, knopfKlassen } from "@/components/ui/kit";
-import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
+import { Section, StatusPill } from "@/components/ui/kit";
 import { CeoAktualisierenKnopf } from "@/components/dashboard/ceo-aktualisieren-knopf";
-import { CeoAutoPruefung } from "@/components/dashboard/ceo-auto-pruefung";
+import { TagesKopf } from "@/components/dashboard/tages-kopf";
 import { letzterCeoBericht } from "@/lib/data/compliance-ceo";
-import { ladeFinanzVorschau, type FinanzVorschau } from "@/lib/data/finanzen";
 import { betriebsZeitzone } from "@/lib/domain/tageszeit";
 
-// "Das Wichtigste heute" auf der Startseite, fuer die Rollen ceo und admin (die Weiche steht
-// in dashboard/page.tsx ueber darfCeoBerichtLesen()). Laedt den letzten gespeicherten Bericht
-// (lib/data/compliance-ceo.ts) und - wenn die Rolle Finanzen sehen darf - die Zahlen des
-// laufenden Monats fuer die fuenfte Kachel.
+// "Das Wichtigste heute" fuer die Rollen ceo und admin - die Weiche steht in
+// dashboard/page.tsx ueber darfCeoBerichtLesen().
 //
-// Die eigentliche Anzeige steckt in CeoAutoPruefung: live, waehrend ein Lauf arbeitet, sonst
-// der aktuellste Bericht als Kurzfassung mit den Aenderungen seit dem vorigen.
-export async function TagesUebersicht({ mitFinanzen }: { mitFinanzen: boolean }) {
-  const [t, format, zeile, vorschau] = await Promise.all([
+// Steht oberhalb der Reiterleiste und ist damit in jedem Reiter sichtbar: wer auf
+// "Kennzahlen" steht, soll trotzdem sehen, dass in den Steuern zwei kritische Punkte offen
+// sind. Die fuenf Kacheln und der Rest des Berichts stehen dagegen im Reiter "Lage"
+// (tages-lage.tsx).
+//
+// Der Bericht wird hier und dort geladen; letzterCeoBericht() haengt in React.cache(),
+// es bleibt eine Abfrage je Anforderung.
+export async function TagesUebersicht() {
+  const [t, format, zeile] = await Promise.all([
     getTranslations("ceoUebersicht"),
     getFormatter(),
     letzterCeoBericht(),
-    mitFinanzen ? ladeFinanzVorschau() : Promise.resolve<FinanzVorschau | null>(null),
   ]);
 
   return (
@@ -41,30 +39,11 @@ export async function TagesUebersicht({ mitFinanzen }: { mitFinanzen: boolean })
               })}
             </StatusPill>
           ) : null}
-          {/* Die Finanzkachel traegt ihre Quelle nicht selbst - sie steht zwischen vier
-              Kacheln, die keine haben, und ein fuenftes Abzeichen in der Reihe waere Unruhe.
-              Ein Lesefehler muss aber sichtbar bleiben: eine 0 mit "Live-Daten" daneben ist
-              schlimmer als eine fehlende Zahl (siehe Commit 97ff7f8). */}
-          {vorschau ? <DatenquelleBadge quelle={vorschau.quelle} /> : null}
           <CeoAktualisierenKnopf />
         </div>
       }
     >
-      <CeoAutoPruefung
-        initialBericht={zeile?.bericht ?? null}
-        initialAenderungen={zeile?.aenderungen ?? []}
-        vorschau={vorschau}
-      />
-
-      <div className="mt-4">
-        <Link
-          href="/dashboard/compliance"
-          className={knopfKlassen({ variante: "leise", rundung: "schmal", groesse: "formular" })}
-        >
-          {t("vollerBericht")}
-          <ArrowRight className="h-4 w-4" aria-hidden="true" />
-        </Link>
-      </div>
+      <TagesKopf initialBericht={zeile?.bericht ?? null} initialAenderungen={zeile?.aenderungen ?? []} />
     </Section>
   );
 }

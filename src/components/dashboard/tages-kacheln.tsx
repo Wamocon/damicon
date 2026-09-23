@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { useFormatter, useTranslations } from "next-intl";
-import { ChevronDown, ChevronRight, FileDown, FileJson, ShieldCheck, Sparkles, Wallet } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { ChevronDown, ChevronRight, FileDown, FileJson, ShieldCheck, Sparkles } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import {
   type ComplianceTourSchritt,
@@ -17,16 +17,17 @@ import { bereichskacheln } from "@/lib/domain/tagesbericht";
 import { berichtKontext } from "@/lib/pruefung/kontext";
 import type { Pruefbereich } from "@/lib/pruefung/rollen";
 import type { Befund, Bericht, Kennzahlen } from "@/lib/pruefung/typen";
-import type { FinanzVorschau } from "@/lib/data/finanzen";
 
-// Die fuenf Kacheln im Reiter "Lage": Audit, Steuern, Recht, Risiko und Finanzen,
-// gleichrangig nebeneinander. Die Reihenfolge der vier Pruefbereiche ist fest (PRUEFBEREICHE,
+// Die vier Kacheln im Reiter "CEO-Compliance": Audit, Steuern, Recht und Risiko.
+//
+// Die Finanzen standen hier bis zum 23.09.2026 als fuenfte Kachel und mussten ihre Betraege
+// auf 200 px Breite kompakt schreiben. Sie haben jetzt einen eigenen Reiter
+// (finanzen-reiter.tsx). Die Reihenfolge der vier Pruefbereiche ist fest (PRUEFBEREICHE,
 // siehe bereichskacheln()) - eine Kachel, die taeglich die Position wechselt, macht die Seite
 // unlesbar.
 //
 // Jede Kachel ist ein Link und funktioniert damit ohne JavaScript (DESIGN.md Regel 6):
-// die vier Pruefkacheln fuehren auf /dashboard/compliance, die Finanzkachel auf die
-// Finanzseite. Ist JavaScript da, faengt onClick die vier Pruefkacheln ab und oeffnet
+// die Kacheln fuehren auf /dashboard/compliance. Ist JavaScript da, faengt onClick die vier Pruefkacheln ab und oeffnet
 // stattdessen das Blatt mit den Befunden dieses Bereichs - schneller als eine Navigation,
 // und der Rest der Seite bleibt sichtbar dahinter. Vorher waren es Knoepfe, die ohne
 // JavaScript ins Leere fuehrten.
@@ -149,53 +150,7 @@ function Kachel({
   );
 }
 
-function FinanzKachel({ vorschau }: { vorschau: FinanzVorschau }) {
-  const t = useTranslations("finanzVorschau");
-  const format = useFormatter();
-
-  // Kompakte Schreibweise, weil die Kachel rund 200 px breit ist und drei Betraege traegt.
-  // Intl deckt de, en, kk und ru ab. Der genaue Wert steht auf der Finanzseite, auf die die
-  // Kachel fuehrt, und im title-Attribut.
-  const kurz = (n: number) => `${format.number(Math.round(n), { notation: "compact" })} ₸`;
-  const genau = (n: number) => `${format.number(Math.round(n))} ₸`;
-  const monat = format.dateTime(new Date(`${vorschau.von}T00:00:00Z`), {
-    year: "numeric",
-    month: "long",
-    timeZone: "UTC",
-  });
-  const deckungsbeitrag = vorschau.erloesTenge - vorschau.kostenTenge;
-  const leer = vorschau.buchungen === 0;
-
-  return (
-    <Kachel
-      href="/dashboard/buero/finanzen"
-      stufe="neutral"
-      symbol={<Wallet className="h-4 w-4" />}
-      name={t("kurz")}
-      // Ein negativer Deckungsbeitrag ist kein Fehler, aber er soll ins Auge fallen. Die Farbe
-      // ist nicht der einzige Traeger: das Vorzeichen steht in der Zahl.
-      zahl={leer ? "–" : kurz(deckungsbeitrag)}
-      zahlLabel={t("deckungsbeitrag")}
-      urteil={monat}
-      titel={leer ? undefined : genau(deckungsbeitrag)}
-      chips={
-        leer ? null : (
-          <>
-            <span className="pr-wert" title={genau(vorschau.erloesTenge)}>
-              {t("erloes")} {kurz(vorschau.erloesTenge)}
-            </span>
-            <span className="pr-wert" title={genau(vorschau.kostenTenge)}>
-              {t("kosten")} {kurz(vorschau.kostenTenge)}
-            </span>
-          </>
-        )
-      }
-      fuss={leer ? t("leer", { monat }) : t("kachelHinweis", { anzahl: vorschau.buchungen })}
-    />
-  );
-}
-
-export function TagesKacheln({ bericht, vorschau }: { bericht: Bericht | null; vorschau: FinanzVorschau | null }) {
+export function TagesKacheln({ bericht }: { bericht: Bericht | null }) {
   const t = useTranslations("pruefung");
   const tp = useTranslations("pruefungPdf");
   const tc = useTranslations("ceoUebersicht");
@@ -256,9 +211,7 @@ export function TagesKacheln({ bericht, vorschau }: { bericht: Bericht | null; v
           ) : null}
         </div>
 
-        {/* Das Fuenfer-Raster nur, wenn die Finanzkachel wirklich dabei ist - sonst bliebe
-            eine leere Spalte stehen. */}
-        <div className={vorschau ? "pr-kacheln pr-kacheln--fuenf" : "pr-kacheln"}>
+        <div className="pr-kacheln">
           {kacheln.map((k) => {
             const Symbol = BEREICH_SYMBOL[k.bereich];
             const name = t(`bereich.${k.bereich}.name`);
@@ -313,7 +266,6 @@ export function TagesKacheln({ bericht, vorschau }: { bericht: Bericht | null; v
             );
           })}
 
-          {vorschau ? <FinanzKachel vorschau={vorschau} /> : null}
         </div>
       </div>
 

@@ -230,10 +230,12 @@ pruefe("Auto-Lauf: die Sperre haengt am Bericht, nicht an der Person", !ceoAuto.
 
 const seite = quelle("src/app/[locale]/dashboard/page.tsx");
 pruefe("Startseite entscheidet ueber darfCeoBerichtLesen", seite.includes("darfCeoBerichtLesen(profil?.role)") && !seite.includes('profil?.role === "ceo"'));
-pruefe(
-  "Finanzzahlen stehen an genau einer Stelle, nie doppelt",
-  seite.includes("!zeigtTagesUebersicht && darfFinanzenSehen"),
-);
+// Die Finanzzahlen stehen an genau einer Stelle, nie doppelt. Seit dem Reiter-Umbau hat
+// Finanzen einen eigenen Reiter; die Compliance-Kacheln tragen nur noch die vier Pruefbereiche.
+const lage = quelle("src/components/dashboard/tages-compliance.tsx");
+const kachelQuelle = quelle("src/components/dashboard/tages-kacheln.tsx");
+pruefe("Der Reiter CEO-Compliance laedt keine Finanzzahlen mehr", !lage.includes("ladeFinanzVorschau") && !lage.includes("<FinanzVorschau") && !kachelQuelle.includes("FinanzKachel"));
+pruefe("Die Startseite rendert die Finanzen nur als eigenen Reiter", seite.includes("<FinanzenReiter />") && !seite.includes("<FinanzVorschau"));
 
 const kontext = quelle("src/components/dashboard/ceo-pruefung-kontext.tsx");
 pruefe("Der Auto-Lauf haengt an der ECHTEN Rolle, nicht an der Vorschau", kontext.includes("darfCeoBericht(echteRolle)"));

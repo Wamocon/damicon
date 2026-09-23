@@ -89,10 +89,7 @@
       "target": "Мақсат",
       "zonesTitle": "Төрт аймақ",
       "zonesDescription": "Әр аймақ өз көрсеткіштерімен және модульдерімен.",
-      "wipCount": "{count} әзірге қолжетімді емес",
-      "openZone": "Аймақты ашу",
-      "zoneOhneKennzahl": "Бұл аймақ үшін көрсеткіш ашылмаған.",
-      "moduleTitel": "Модульдер"
+      "openZone": "Аймақты ашу"
     },
     "dataSource": {
       "db": "Дерекқор деректері",
@@ -149,7 +146,18 @@
     "zoneKennzahlTitel": "Көрсеткіштер",
     "zoneKennzahlLead": "Осы саланың көрсеткіштері, ең шұғылы бірінші.",
     "zoneKennzahlMehr": "Тағы {count} көрсеткішті көрсету",
-    "zoneKennzahlWeniger": "Қосымша көрсеткіштерді жасыру"
+    "zoneKennzahlWeniger": "Қосымша көрсеткіштерді жасыру",
+    "reiter": {
+      "label": "Шолу бөлімдері",
+      "compliance": "CEO комплаенс",
+      "finanzen": "Қаржы",
+      "bereiche": "Салалар"
+    },
+    "bereicheReiter": {
+      "titel": "Төрт сала",
+      "lead": "Әр сала өз көрсеткіштерімен, алдымен назар аударатыны.",
+      "ohneKennzahl": "Бұл сала үшін көрсеткіш ашылмаған."
+    }
   },
   "roles": {
     "switcherHint": "Демо-рөлді ауыстыру - көрінетін навигацияны басқарады",
@@ -422,8 +430,11 @@
     "deckungsbeitrag": "Маржиналды табыс",
     "buchungen": "Жазбалар: {anzahl}",
     "link": "Қаржы бетіне",
-    "kurz": "Қаржы",
-    "kachelHinweis": "{anzahl, plural, other {# жазба}} · қаржы бетіне"
+    "gegenVormonat": "өткен айға қарағанда {anteil}",
+    "ueberVormonat": "өткен айдан {anteil} жоғары ({betrag})",
+    "unterVormonat": "өткен айдан {anteil} төмен ({betrag})",
+    "ohneVormonat": "Өткен айда ештеңе тіркелмеген, салыстыратын нәрсе жоқ.",
+    "imJahr": "Ағымдағы жылы: {anzahl, plural, other {# жазбадан}} {deckungsbeitrag}."
   },
   "dokumenteDemo": {
     "listTitle": "Құжаттар",
@@ -3206,7 +3217,9 @@
       "nachfrage": "Тағы не көрсетейін?"
     },
     "liveHinweis": "Комплаенс тексеруі дәл қазір тікелей жүріп жатыр, әр қадамды осында көре аласың. Әдетте бір минуттан аз уақыт алады, сен осы уақытта жұмысыңды жалғастыра беруіңе болады.",
-    "liveHinweisKnopf": "Түсінікті"
+    "liveHinweisKnopf": "Түсінікті",
+    "complianceTitel": "Төрт тексеру саласының жағдайы",
+    "complianceLead": "Қорытындыларды көру үшін тақтайшаны басыңыз."
   },
   "pruefungAblauf": {
     "schritt": {

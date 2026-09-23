@@ -324,10 +324,7 @@
       "target": "Ziel",
       "zonesTitle": "Die vier Zonen",
       "zonesDescription": "Jede Zone mit ihren Kennzahlen und ihren Modulen.",
-      "wipCount": "{count} noch nicht verfügbar",
-      "openZone": "Zone öffnen",
-      "zoneOhneKennzahl": "Für diese Zone ist keine Kennzahl freigegeben.",
-      "moduleTitel": "Module"
+      "openZone": "Zone öffnen"
     },
     "loading": "Daten werden geladen",
     "askAi": "KI fragen",
@@ -374,7 +371,18 @@
     "zoneKennzahlTitel": "Kennzahlen",
     "zoneKennzahlLead": "Die Kennzahlen dieses Bereichs, die dringendste zuerst.",
     "zoneKennzahlMehr": "{count, plural, one {# weitere Kennzahl anzeigen} other {# weitere Kennzahlen anzeigen}}",
-    "zoneKennzahlWeniger": "Weitere Kennzahlen ausblenden"
+    "zoneKennzahlWeniger": "Weitere Kennzahlen ausblenden",
+    "reiter": {
+      "label": "Bereiche der Übersicht",
+      "compliance": "CEO-Compliance",
+      "finanzen": "Finanzen",
+      "bereiche": "Bereiche"
+    },
+    "bereicheReiter": {
+      "titel": "Die vier Bereiche",
+      "lead": "Jeder Bereich mit seinen Kennzahlen, Auffälliges zuerst.",
+      "ohneKennzahl": "Für diesen Bereich ist keine Kennzahl freigegeben."
+    }
   },
   "roles": {
     "switcherHint": "Demo-Rolle wechseln - steuert die sichtbare Navigation",
@@ -1222,8 +1230,11 @@
     "deckungsbeitrag": "Deckungsbeitrag",
     "buchungen": "Buchungen: {anzahl}",
     "link": "Zur Finanzseite",
-    "kurz": "Finanzen",
-    "kachelHinweis": "{anzahl, plural, one {# Buchung} other {# Buchungen}} · zur Finanzseite"
+    "gegenVormonat": "{anteil} gegenüber dem Vormonat",
+    "ueberVormonat": "{anteil} über dem Vormonat ({betrag})",
+    "unterVormonat": "{anteil} unter dem Vormonat ({betrag})",
+    "ohneVormonat": "Im Vormonat wurde nichts gebucht, es gibt nichts zu vergleichen.",
+    "imJahr": "Im laufenden Jahr: {deckungsbeitrag} aus {anzahl, plural, one {# Buchung} other {# Buchungen}}."
   },
   "dokumenteDemo": {
     "listTitle": "Dokumente",
@@ -3206,7 +3217,9 @@
       "nachfrage": "Was kann ich dir noch zeigen?"
     },
     "liveHinweis": "Die Compliance-Prüfung läuft gerade live, hier siehst du jeden Schritt. Das dauert in der Regel unter einer Minute, du kannst in der Zwischenzeit weiterarbeiten.",
-    "liveHinweisKnopf": "Alles klar"
+    "liveHinweisKnopf": "Alles klar",
+    "complianceTitel": "Lage der vier Prüfbereiche",
+    "complianceLead": "Ein Klick auf eine Kachel zeigt die Befunde."
   },
   "pruefungAblauf": {
     "schritt": {

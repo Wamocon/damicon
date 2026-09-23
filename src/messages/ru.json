@@ -89,10 +89,7 @@
       "target": "Цель",
       "zonesTitle": "Четыре зоны",
       "zonesDescription": "Каждая зона со своими показателями и модулями.",
-      "wipCount": "{count} пока недоступно",
-      "openZone": "Открыть зону",
-      "zoneOhneKennzahl": "Для этой зоны показатели не открыты.",
-      "moduleTitel": "Модули"
+      "openZone": "Открыть зону"
     },
     "dataSource": {
       "db": "Данные из базы",
@@ -149,7 +146,18 @@
     "zoneKennzahlTitel": "Показатели",
     "zoneKennzahlLead": "Показатели этой области, самый срочный первым.",
     "zoneKennzahlMehr": "{count, plural, one {Показать ещё # показатель} few {Показать ещё # показателя} many {Показать ещё # показателей} other {Показать ещё # показателей}}",
-    "zoneKennzahlWeniger": "Скрыть дополнительные показатели"
+    "zoneKennzahlWeniger": "Скрыть дополнительные показатели",
+    "reiter": {
+      "label": "Разделы обзора",
+      "compliance": "CEO-комплаенс",
+      "finanzen": "Финансы",
+      "bereiche": "Области"
+    },
+    "bereicheReiter": {
+      "titel": "Четыре области",
+      "lead": "Каждая область со своими показателями, сначала то, что вне цели.",
+      "ohneKennzahl": "Для этой области показатели не открыты."
+    }
   },
   "roles": {
     "switcherHint": "Сменить демо-роль — управляет видимой навигацией",
@@ -422,8 +430,11 @@
     "deckungsbeitrag": "Маржинальный доход",
     "buchungen": "Проводки: {anzahl}",
     "link": "К финансам",
-    "kurz": "Финансы",
-    "kachelHinweis": "{anzahl, plural, one {# проводка} few {# проводки} many {# проводок} other {# проводки}} · к финансам"
+    "gegenVormonat": "{anteil} к прошлому месяцу",
+    "ueberVormonat": "на {anteil} выше прошлого месяца ({betrag})",
+    "unterVormonat": "на {anteil} ниже прошлого месяца ({betrag})",
+    "ohneVormonat": "В прошлом месяце ничего не проведено, сравнивать не с чем.",
+    "imJahr": "С начала года: {deckungsbeitrag} из {anzahl, plural, one {# проводки} few {# проводок} many {# проводок} other {# проводок}}."
   },
   "dokumenteDemo": {
     "listTitle": "Документы",
@@ -3206,7 +3217,9 @@
       "nachfrage": "Что ещё тебе показать?"
     },
     "liveHinweis": "Проверка соответствия идёт прямо сейчас, здесь видно каждый шаг. Обычно это занимает меньше минуты, можете пока заниматься своими делами.",
-    "liveHinweisKnopf": "Понятно"
+    "liveHinweisKnopf": "Понятно",
+    "complianceTitel": "Положение четырёх областей проверки",
+    "complianceLead": "Нажмите на плитку, чтобы увидеть выводы."
   },
   "pruefungAblauf": {
     "schritt": {
