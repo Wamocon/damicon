@@ -1,5 +1,5 @@
 import { STRAHLEN } from "@/components/brand/damicon-logo";
-import { kennzahlen } from "@/lib/pruefung/befund";
+import { bereichsAuszug, kennzahlen } from "@/lib/pruefung/befund";
 import type { Pruefbereich } from "@/lib/pruefung/rollen";
 import type { Befund, Bericht } from "@/lib/pruefung/typen";
 
@@ -187,16 +187,19 @@ function ringHtml(reife: number, farbe: string, x: PdfTexte): string {
 const STUFE_FARBE = { bereit: "#17805a", luecken: "#b06a10", "nicht-bereit": "#b23a3a" } as const;
 
 export function berichtAlsHtml(b: Bericht, x: PdfTexte, auszug?: BerichtAuszug): string {
-  const befunde = auszug ? b.befunde.filter((f) => f.bereich === auszug.bereich) : b.befunde;
+  // Auszug: dieselbe Filterung (Befunde/Massnahmen/Belege eines Bereichs) wie der JSON-Export
+  // der Bereichs-Kachel (ceo-bereichs-kacheln.tsx), aus bereichsAuszug() in befund.ts.
+  const auszugDaten = auszug ? bereichsAuszug(b, auszug.bereich) : null;
+  const befunde = auszugDaten?.befunde ?? b.befunde;
   const nachId = new Map(b.belege.map((q) => [q.id, q]));
   const kz = auszug ? kennzahlen(befunde) : b.kennzahlen;
   const farbe = STUFE_FARBE[kz.stufe];
-  const plan = auszug ? b.massnahmen.filter((m) => befunde.some((f) => f.id === m.befundId)) : b.massnahmen;
+  const plan = auszugDaten?.massnahmen ?? b.massnahmen;
   const prioritaeten = auszug ? [] : b.prioritaeten;
   const bereicheFuerTabelle = auszug ? [auszug.bereich] : b.bereiche;
   // Auszug: nur die Quellen, die eine der gezeigten Befunde tatsaechlich zitiert - sonst
   // stuenden im Anhang Rechtsquellen zu Bereichen, die dieses Dokument gar nicht zeigt.
-  const belegeFuerAnhang = auszug ? b.belege.filter((q) => befunde.some((f) => f.belege.includes(q.id))) : b.belege;
+  const belegeFuerAnhang = auszugDaten?.belege ?? b.belege;
   const bereichsnamen = auszug ? x.t(`bereich.${auszug.bereich}.name`) : b.bereiche.map((k) => x.t(`bereich.${k}.name`)).join(" · ");
   const datenquellen = new Set(befunde.flatMap((f) => f.nachweise.map((n) => n.quelle))).size;
   const titelText = auszug ? x.t(`bereich.${auszug.bereich}.name`) : x.p("titel");
