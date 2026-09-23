@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import "@/components/ki/ki-pane.css";
 import { setRequestLocale } from "next-intl/server";
 import { PersonaProvider } from "@/components/dashboard/persona";
+import { BlattProvider, HauptSpalte } from "@/components/dashboard/blatt-kontext";
 import { CeoPruefungProvider } from "@/components/dashboard/ceo-pruefung-kontext";
 import { ComplianceTourProvider } from "@/components/dashboard/compliance-tour-kontext";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
@@ -87,9 +88,14 @@ export default async function DashboardLayout({
         <CeoPruefungProvider>
         <HaustierProvider>
         <ComplianceTourProvider>
+        <BlattProvider>
         <div className="dashboard-shell flex min-h-svh w-full">
           <DashboardSidebar />
-          <div className="flex min-w-0 flex-1 flex-col">
+          {/* Kopfzeile und Hauptbereich in einer eigenen Spalte, die ein
+              offenes Blatt der unteren Leiste stilllegt (blatt-kontext.tsx).
+              Die Leiste selbst steht deshalb daneben statt darin - sie ist
+              fixiert, die Reihenfolge im Baum kostet kein Layout. */}
+          <HauptSpalte>
             <KiFuehrungsAnzeige />
             <DashboardTopbar />
             {/* Der untere Innenabstand haelt den Platz der unteren
@@ -102,8 +108,8 @@ export default async function DashboardLayout({
             >
               {children}
             </main>
-            <UntereLeiste />
-          </div>
+          </HauptSpalte>
+          <UntereLeiste />
           {kiVerlauf ? (
             <KiPane
               verlauf={kiVerlauf.nachrichten}
@@ -121,6 +127,7 @@ export default async function DashboardLayout({
           ) : null}
         </div>
         <HaustierDashboard />
+        </BlattProvider>
         </ComplianceTourProvider>
         </HaustierProvider>
         </CeoPruefungProvider>

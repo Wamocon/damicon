@@ -19,7 +19,11 @@ import { cn } from "@/lib/utils";
 // falsch aussieht - nur eben anders als die andere.
 //
 // Die 56 px sind kein runder Zufallswert, sondern 44 px Beruehrungsflaeche
-// nach WCAG 2.5.5 plus den Innenabstand, der das Symbol traegt.
+// nach WCAG 2.5.5 plus den Innenabstand, der das Symbol traegt. Sie stehen als
+// --blatt-zeile-h in globals.css statt als h-14 hier, weil die Menue-Schiene
+// im Blatt (dashboard/untere-leiste.tsx) ihre Hoehe daraus rechnet - zwei
+// Kopien derselben Zahl waeren genau die Art Kopplung, die leise auseinander
+// laeuft: das Blatt waere ein paar Pixel zu kurz, und niemand rechnet nach.
 export function BlattZeile({
   symbol,
   text,
@@ -39,7 +43,7 @@ export function BlattZeile({
   aktuelleSeite?: boolean;
 }) {
   const klassen = cn(
-    "flex h-14 w-full items-center gap-3 rounded-xl border px-3 text-left text-base font-bold transition-colors",
+    "flex h-[var(--blatt-zeile-h)] w-full items-center gap-3 rounded-xl border px-3 text-left text-base font-bold transition-colors",
     aktiv
       ? "border-primary/30 bg-primary/10 text-primary"
       : "border-border text-foreground hover:bg-muted",

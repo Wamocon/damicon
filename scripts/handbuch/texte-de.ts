@@ -113,7 +113,7 @@ export const de: HandbuchTexte = {
       },
       {
         titel: "Untere Leiste (Telefon)",
-        text: "Unter Tabletbreite ersetzt sie die Seitenleiste. Sie zeigt nur die oberste Ebene, also Übersicht und die vier Bereiche; die Module stehen als Kacheln auf der Bereichsseite. Ein Baum mit 26 Einträgen ist die Form für eine stehende Spalte, nicht für eine Fläche, die man mit dem Daumen aufzieht. Über den Kontoknopf öffnet sich ein Blatt mit Sprache, Farbschema, Handbuch, Sicherheit und Abmelden.",
+        text: "Unter Tabletbreite ersetzt sie die Seitenleiste. Das Menü führt in zwei Ebenen: zuerst Übersicht und die vier Bereiche, nach einem Tipp auf einen Bereich dessen Module, mit dem Bereich selbst als erstem Eintrag. Der Pfeil links oben führt zurück zur Bereichsliste. Ein Baum mit allen 27 Einträgen auf einmal ist die Form für eine stehende Spalte, nicht für eine Fläche, die man mit dem Daumen aufzieht; eine Ebene nach der anderen schon. Die Leiste bleibt dabei bedienbar, ein Tipp auf den Kontoknopf führt also direkt weiter zu Sprache, Farbschema, Handbuch, Sicherheit und Abmelden.",
       },
       {
         titel: "Übersicht",

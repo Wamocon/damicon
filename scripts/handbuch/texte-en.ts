@@ -109,7 +109,7 @@ export const en: HandbuchTexte = {
       },
       {
         titel: "Bottom bar (phone)",
-        text: "Below tablet width it replaces the sidebar. It shows only the top level, that is the overview and the four areas; the modules appear as tiles on the area page. A tree with 26 entries is the right shape for a standing column, not for a surface you open with your thumb. The account button opens a sheet with language, colour scheme, handbook, security and sign-out.",
+        text: "Below tablet width it replaces the sidebar. The menu works in two levels: first the overview and the four areas, then, after a tap on an area, its modules, with the area itself as the first entry. The arrow at the top left leads back to the list of areas. A tree with all 27 entries at once is the right shape for a standing column, not for a surface you open with your thumb; one level at a time is. The bar stays operable while a sheet is open, so a tap on the account button takes you straight on to language, colour scheme, handbook, security and sign-out.",
       },
       {
         titel: "Overview",

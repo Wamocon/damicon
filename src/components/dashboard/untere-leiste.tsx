@@ -1,25 +1,40 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { useTranslations } from "next-intl";
 import { LayoutGrid, UserRound } from "lucide-react";
 import { Icon } from "@/components/icon";
-import { useNavZiele } from "@/components/dashboard/nav-ziele";
+import { useBlatt } from "@/components/dashboard/blatt-kontext";
+import {
+  useModulZiele,
+  useNavZiele,
+  type ModulZiel,
+  type NavZiel,
+} from "@/components/dashboard/nav-ziele";
 import { KontoBlatt } from "@/components/dashboard/konto-blatt";
+import { useAktiveZone } from "@/components/dashboard/sidebar-zustand";
 import { useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { Himbi } from "@/components/haustier/himbi";
 import { Himbeere } from "@/components/ki/himbeere";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { BlattZeile } from "@/components/ui/blatt-zeile";
 import { Sheet } from "@/components/ui/sheet";
+import { usePathname } from "@/i18n/navigation";
 import { haustierZustand } from "@/lib/haustier";
+import { zones, type ZoneKey } from "@/lib/modules";
 import { cn } from "@/lib/utils";
 
 // Untere Leiste, nur unter `md`. Drei Knoepfe: Menue, KI-Assistent, Konto.
 //
 // Die erste Fassung trug die fuenf Navigationsziele der eingeklappten
 // Seitenleiste (Uebersicht und die vier Bereiche). Damit war die Leiste zwar
-// bedienbar, aber nicht vollstaendig: die 26 Module erreichte man nur ueber
+// bedienbar, aber nicht vollstaendig: die 27 Module erreichte man nur ueber
 // den Umweg Bereichsseite, und alles, was nicht Navigation ist - KI,
 // angemeldete Person, Sprache, Farbschema, Abmelden - hing weiterhin an der
 // Kopfzeile oder an der Schublade, also wieder am oberen Rand.
@@ -31,6 +46,12 @@ import { cn } from "@/lib/utils";
 // Ohne Beschriftung, wie die erste Fassung. Anders als bei den Bereichen
 // ("Schneeflocke" fuer den Hof) sind diese drei Zeichen gelaeufig; jedes
 // traegt zusaetzlich aria-label und title.
+//
+// Die Leiste bleibt sichtbar und bedienbar, waehrend ein Blatt offen ist: sie
+// steigt dafuer ueber das Blatt (z-110), die Blende darunter deckt nur den
+// Rest der Seite ab, und das Blatt endet oberhalb von ihr (ui/sheet.tsx). Wer
+// das Menue offen hat, kommt damit mit einem Tipp ins Konto-Blatt, statt erst
+// schliessen zu muessen.
 
 type Blatt = "menue" | "konto" | null;
 
@@ -103,28 +124,103 @@ function HimbiKnopf() {
   );
 }
 
-// Inhalt des Menue-Blatts: die oberste Ebene, also "Uebersicht" und die vier
-// Bereiche - mehr nicht.
+// Erste Ebene: "Uebersicht" und die vier Bereiche.
 //
-// Die Module stehen bewusst nicht darin. Sie stehen als Kacheln auf der
-// Bereichsseite, mit Titel, Kurzbeschreibung und Reifegrad, und dort hat jede
-// Kachel Platz. Der aufklappbare Baum aus der Seitenleiste bringt auf dem
-// Handy 26 Eintraege in eine Flaeche, die man mit dem Daumen aufzieht: man
-// scrollt, klappt auf, verliert die Uebersicht und trifft daneben. Zwei
-// kurze Schritte (Bereich, dann Modul) sind hier besser als ein langer.
+// Die Bereiche fuehren hier nirgendwohin, sie klappen die zweite Ebene auf -
+// deshalb Knoepfe statt Links. BlattZeile macht das ohne href von selbst, mit
+// gleichem Mass und gleichem Pfeil. aria-current entfaellt dabei: es gehoert
+// an eine Seite, nicht an ein Bedienelement, das keine ist. `aktiv` bleibt,
+// damit sichtbar ist, in welchem Bereich man gerade steht.
+function BereichsListe({
+  ziele,
+  onBereich,
+  onNavigate,
+}: {
+  ziele: NavZiel[];
+  onBereich: (zone: ZoneKey) => void;
+  onNavigate: () => void;
+}) {
+  return (
+    <ul className="space-y-1.5 p-4">
+      {ziele.map((ziel) => {
+        const symbol = <Icon name={ziel.icon} className="h-5 w-5" />;
+
+        if (ziel.key === "overview") {
+          return (
+            <li key={ziel.key}>
+              <BlattZeile
+                href={ziel.href}
+                onClick={onNavigate}
+                aktiv={ziel.imZiel}
+                aktuelleSeite={ziel.aktuelleSeite}
+                symbol={symbol}
+                text={ziel.name}
+              />
+            </li>
+          );
+        }
+
+        // In eine eigene Konstante, weil die Typverengung von ziel.key nicht
+        // in die Closure des Klickhandlers reicht.
+        const bereich = ziel.key;
+        return (
+          <li key={ziel.key}>
+            <BlattZeile
+              onClick={() => onBereich(bereich)}
+              aktiv={ziel.imZiel}
+              symbol={symbol}
+              text={ziel.name}
+            />
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
+// Zweite Ebene: die Module eines Bereichs.
 //
-// Entscheidung des Auftraggebers vom 20.09.2026.
-function BereichsListe({ onNavigate }: { onNavigate: () => void }) {
-  const ziele = useNavZiele();
+// Ganz oben steht der Bereich selbst. Ohne ihn waere seine Seite aus dem Menue
+// nicht mehr erreichbar, seit ein Tipp auf den Bereich nur noch aufklappt -
+// und sie traegt mehr als die Modulliste, naemlich Kacheln mit
+// Kurzbeschreibung und Reifegrad. Beschriftet ist sie mit dem Bereichsnamen
+// und nicht mit "Uebersicht": das Wort steht eine Ebene hoeher schon fuer das
+// Dashboard, und zweimal dasselbe Wort fuer zwei verschiedene Seiten ist
+// schlechter als eine Wiederholung des Bereichsnamens aus dem Kopf darueber.
+function ModulListe({
+  zone,
+  ziele,
+  onNavigate,
+}: {
+  zone: ZoneKey;
+  ziele: ModulZiel[];
+  onNavigate: () => void;
+}) {
+  const zoneT = useTranslations("zones");
+  const pathname = usePathname();
+
+  const bereich = zones.find((eintrag) => eintrag.key === zone);
+  const bereichHref = `/dashboard/${zone}`;
+  const aufBereichsseite = pathname === bereichHref;
 
   return (
     <ul className="space-y-1.5 p-4">
+      <li>
+        <BlattZeile
+          href={bereichHref}
+          onClick={onNavigate}
+          aktiv={aufBereichsseite}
+          aktuelleSeite={aufBereichsseite}
+          symbol={<Icon name={bereich?.icon ?? "layout-grid"} className="h-5 w-5" />}
+          text={zoneT(`${zone}.name`)}
+        />
+      </li>
       {ziele.map((ziel) => (
         <li key={ziel.key}>
           <BlattZeile
             href={ziel.href}
             onClick={onNavigate}
-            aktiv={ziel.imZiel}
+            aktiv={ziel.aktuelleSeite}
             aktuelleSeite={ziel.aktuelleSeite}
             symbol={<Icon name={ziel.icon} className="h-5 w-5" />}
             text={ziel.name}
@@ -135,26 +231,138 @@ function BereichsListe({ onNavigate }: { onNavigate: () => void }) {
   );
 }
 
+// Beide Ebenen nebeneinander auf einer Schiene, die waagerecht durchgeschoben
+// wird. Ein harter Tausch liesse offen, ob man tiefer geht oder zurueck; der
+// Weg nach links sagt es, und der Pfeil im Kopf wird damit selbsterklaerend.
+//
+// Beide Ebenen bleiben im Baum, die abgewandte traegt `inert` - sonst liefe
+// die Tabulatortaste durch eine Liste, die halb aus dem Bild geschoben ist.
+// Die Hoehe der Schiene faehrt mit (menue-schiene, globals.css): ohne sie
+// stuende unter der kurzen Bereichsliste die Luecke der laengsten Modulliste.
+function MenueBlattInhalt({
+  zone,
+  gezeigteZone,
+  onBereich,
+  onNavigate,
+}: {
+  zone: ZoneKey | null;
+  gezeigteZone: ZoneKey | null;
+  onBereich: (zone: ZoneKey) => void;
+  onNavigate: () => void;
+}) {
+  // Beide Listen entstehen hier und werden weitergereicht, statt dass jede
+  // Ebene ihre eigene holt: die Hoehe der Schiene rechnet mit ihrer Laenge,
+  // und zwei Ableitungen derselben Liste koennten auseinanderlaufen, ohne dass
+  // es auffaellt - das Blatt waere dann ein paar Pixel zu kurz.
+  const ziele = useNavZiele();
+  const modulZiele = useModulZiele(gezeigteZone);
+
+  // Die Bereichsseite zaehlt als eigene Zeile mit.
+  const zeilen = zone ? modulZiele.length + 1 : ziele.length;
+
+  return (
+    <div
+      className="menue-schiene overflow-x-clip overflow-y-visible transition-[height] duration-weit ease-schwung motion-reduce:transition-none"
+      style={{ "--zeilen": String(zeilen) } as CSSProperties}
+    >
+      <div
+        className={cn(
+          "flex w-[200%] items-start transition-transform duration-weit ease-schwung motion-reduce:transition-none",
+          zone ? "-translate-x-1/2" : "translate-x-0",
+        )}
+      >
+        <div className="w-1/2 shrink-0" inert={zone ? true : undefined}>
+          <BereichsListe
+            ziele={ziele}
+            onBereich={onBereich}
+            onNavigate={onNavigate}
+          />
+        </div>
+        <div className="w-1/2 shrink-0" inert={zone ? undefined : true}>
+          {gezeigteZone ? (
+            <ModulListe
+              zone={gezeigteZone}
+              ziele={modulZiele}
+              onNavigate={onNavigate}
+            />
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function UntereLeiste() {
   const nav = useTranslations("nav");
   const t = useTranslations("dashboard");
+  const zoneT = useTranslations("zones");
   const [blatt, setBlatt] = useState<Blatt>(null);
+  // Welche Ebene des Menues offen ist. `gezeigteZone` haelt daneben fest,
+  // wessen Module die zweite Ansicht zeichnet: beim Zurueck wird `zone` sofort
+  // null, die Ansicht faehrt aber noch nach rechts aus dem Bild und waere
+  // sonst waehrend der ganzen Bewegung leer.
+  const [zone, setZone] = useState<ZoneKey | null>(null);
+  const [gezeigteZone, setGezeigteZone] = useState<ZoneKey | null>(null);
+  const aktiveZone = useAktiveZone();
+  const navRef = useRef<HTMLElement>(null);
   // Der KI-Knopf schaltet kein eigenes Blatt, sondern dasselbe Panel wie der
   // Knopf in der Kopfzeile am Schreibtisch (ki-pane-kontext.tsx). Ohne
   // Datenbank oder ohne das Recht dazu gibt es das Panel nicht - dann traegt
   // die Leiste zwei Knoepfe statt drei.
   const ki = useKiPane();
+  const { setOffen } = useBlatt();
 
-  const umschalten = (ziel: Exclude<Blatt, null>) =>
-    setBlatt((aktuell) => (aktuell === ziel ? null : ziel));
+  // Solange ein Blatt offen ist, liegt die Seite dahinter still - das ersetzt
+  // das aria-modal, das die Blaetter hier nicht mehr tragen koennen
+  // (blatt-kontext.tsx).
+  useEffect(() => {
+    setOffen(blatt !== null);
+  }, [blatt, setOffen]);
+
+  const schliessen = () => {
+    setBlatt(null);
+    setZone(null);
+    setGezeigteZone(null);
+  };
+
+  const umschalten = (ziel: Exclude<Blatt, null>) => {
+    if (blatt === ziel) {
+      schliessen();
+      return;
+    }
+    // Das Menue oeffnet in dem Bereich, in dem die geoeffnete Seite liegt:
+    // von dort aus ist das naechste Ziel meistens ein Nachbarmodul. Gesetzt
+    // wird das hier beim Oeffnen und nicht in einem Effekt auf aktiveZone -
+    // sonst spraenge das Menue nach jedem Zurueck wieder in den Bereich.
+    if (ziel === "menue") {
+      setZone(aktiveZone);
+      setGezeigteZone(aktiveZone);
+    }
+    setBlatt(ziel);
+  };
+
+  const hinein = (gewaehlt: ZoneKey) => {
+    setGezeigteZone(gewaehlt);
+    setZone(gewaehlt);
+  };
 
   return (
     <>
       <nav
+        ref={navRef}
         aria-label={nav("mainNav")}
-        className="fixed inset-x-0 bottom-0 z-50 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden print:hidden"
+        className={cn(
+          // pointer-events-none an der Huelle: sie ist ein durchsichtiger
+          // Kasten ueber die volle Breite, und ohne das schluckt sie die Tipps
+          // links und rechts neben der Pille - bei offenem Blatt waeren das
+          // genau die Stellen, an denen man daneben tippt, um zu schliessen.
+          "pointer-events-none fixed inset-x-0 bottom-0 px-4 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden print:hidden",
+          // Ueber das Blatt, aber nur dann: das KI-Panel liegt weiterhin als
+          // Vollbild darueber (z-70), und das soll es auch.
+          blatt ? "z-[110]" : "z-50",
+        )}
       >
-        <ul className="flex items-center justify-around gap-1 rounded-full border border-border bg-schwebend p-1.5 shadow-lg shadow-black/10">
+        <ul className="pointer-events-auto flex items-center justify-around gap-1 rounded-full border border-border bg-schwebend p-1.5 shadow-lg shadow-black/10">
           <li className="flex-1">
             <LeistenKnopf
               label={nav("openMenu")}
@@ -171,9 +379,10 @@ export function UntereLeiste() {
                 label={t("askAi")}
                 aktiv={ki.offen}
                 onClick={() => {
-                  // Ein offenes Blatt zuerst schliessen: sonst legt sich das
-                  // Panel darueber und das Menue bleibt unsichtbar offen.
-                  setBlatt(null);
+                  // Panel und Blaetter schliessen einander aus: das Panel ist
+                  // auf dem Handy formatfuellend und liegt ueber allem, ein
+                  // Blatt darunter waere offen, aber unsichtbar.
+                  schliessen();
                   ki.umschalten();
                 }}
               >
@@ -196,18 +405,26 @@ export function UntereLeiste() {
 
       <Sheet
         offen={blatt === "menue"}
-        onSchliessen={() => setBlatt(null)}
-        titel={nav("menu")}
+        onSchliessen={schliessen}
+        titel={zone ? zoneT(`${zone}.name`) : nav("menu")}
+        onZurueck={zone ? () => setZone(null) : undefined}
+        zusatzFokus={navRef}
       >
-        <BereichsListe onNavigate={() => setBlatt(null)} />
+        <MenueBlattInhalt
+          zone={zone}
+          gezeigteZone={gezeigteZone}
+          onBereich={hinein}
+          onNavigate={schliessen}
+        />
       </Sheet>
 
       <Sheet
         offen={blatt === "konto"}
-        onSchliessen={() => setBlatt(null)}
+        onSchliessen={schliessen}
         titel={nav("account")}
+        zusatzFokus={navRef}
       >
-        <KontoBlatt onNavigate={() => setBlatt(null)} />
+        <KontoBlatt onNavigate={schliessen} />
       </Sheet>
     </>
   );

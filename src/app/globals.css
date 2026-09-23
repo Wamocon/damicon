@@ -318,6 +318,11 @@
      Schreibtisch, eine Stufe groesser auf dem Handy. */
   --schrift-label: 0.6875rem;
   --schrift-dense: 0.75rem;
+  /* Hoehe einer Zeile in einem Blatt (ui/blatt-zeile.tsx): 44 px
+     Beruehrungsflaeche nach WCAG 2.5.5 plus den Innenabstand, der das Symbol
+     traegt. Steht hier und nicht nur als h-14 an der Komponente, weil die
+     Menue-Schiene weiter unten mit demselben Wert rechnet. */
+  --blatt-zeile-h: 3.5rem;
 }
 
 /* Der Platz fuer die untere Leiste haengt am LAYOUT: die Leiste gibt es
@@ -369,6 +374,31 @@
 @utility schrift-dense {
   font-size: var(--schrift-dense);
   line-height: 1.5;
+}
+
+/*
+  Die zwei Ebenen des Menue-Blatts auf dem Handy (dashboard/untere-leiste.tsx)
+  liegen als Flex-Geschwister nebeneinander und werden waagerecht
+  durchgeschoben. Die Schiene darum braucht deshalb eine ausgeschriebene Hoehe:
+  auto waere immer die der hoeheren Ebene, und die kuerzere haette unten eine
+  Luecke stehen.
+
+  Gerechnet statt gemessen, weil beide Ebenen reine BlattZeile-Listen sind und
+  die Zeile wegen truncate nicht umbrechen kann - die Hoehe steht damit schon
+  beim Rendern fest. Drei Werte gehen ein:
+
+    --blatt-zeile-h   Zeilenhoehe, oben gesetzt und von der Zeile selbst gelesen
+    0.375rem          Abstand zwischen zwei Zeilen (space-y-1.5 an der Liste)
+    2rem              Innenabstand oben und unten zusammen (p-4 an der Liste)
+
+  Die beiden Zahlen stehen an der Liste in untere-leiste.tsx. Wer sie dort
+  aendert, muss hier mit - und wer eine Ebene um einen Eintrag ergaenzt, der
+  keine BlattZeile ist, sollte statt dieser Formel die Hoehe messen.
+*/
+@utility menue-schiene {
+  height: calc(
+    var(--blatt-zeile-h) * var(--zeilen) + 0.375rem * (var(--zeilen) - 1) + 2rem
+  );
 }
 
 /* Die Flaeche der unteren Leiste faehrt von unten auf (ui/sheet.tsx). Nur
