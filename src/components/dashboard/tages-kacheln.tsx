@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { ChevronDown, ChevronRight, FileDown, FileJson, ShieldCheck, Sparkles } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import {
+  type AufklappbarSteuerung,
   type ComplianceTourSchritt,
   useComplianceTourSteuerung,
   useRegistriereComplianceTour,
@@ -14,9 +15,10 @@ import { BefundKarte, Hinweise, Massnahmenplan, Siegel } from "@/components/prue
 import { BEREICH_SYMBOL } from "@/components/pruefung/symbole";
 import { Sheet } from "@/components/ui/sheet";
 import { bereichskacheln } from "@/lib/domain/tagesbericht";
+import { bereichsAuszug } from "@/lib/pruefung/befund";
 import { berichtKontext } from "@/lib/pruefung/kontext";
 import type { Pruefbereich } from "@/lib/pruefung/rollen";
-import type { Befund, Bericht, Kennzahlen } from "@/lib/pruefung/typen";
+import type { Bericht, Kennzahlen } from "@/lib/pruefung/typen";
 
 // Die vier Kacheln im Reiter "CEO-Compliance": Audit, Steuern, Recht und Risiko.
 //
@@ -44,6 +46,8 @@ function Aufklappbar({
   anzahl,
   symbol,
   children,
+  offenVonAussen,
+  onOffenVonAussen,
 }: {
   /** Anker fuer Himbis Tour (compliance-tour-kontext.tsx): springt hierher UND klappt auf, siehe use-compliance-tour.tsx. */
   id?: string;
@@ -51,11 +55,19 @@ function Aufklappbar({
   anzahl?: number;
   symbol?: ReactNode;
   children: ReactNode;
+  /** Von aussen gesteuert (Himbis Tour oeffnet/schliesst dieses Aufklappbar ueber eine typisierte
+   *  Prop statt einer DOM-Suche, siehe AufklappbarSteuerung in compliance-tour-kontext.tsx). Ohne
+   *  beide Props verwaltet die Komponente ihren Zustand wie bisher selbst (z. B. das Siegel unten,
+   *  kein Tour-Anker). */
+  offenVonAussen?: boolean;
+  onOffenVonAussen?: (offen: boolean) => void;
 }) {
-  const [offen, setOffen] = useState(false);
+  const [offenIntern, setOffenIntern] = useState(false);
+  const offen = offenVonAussen ?? offenIntern;
+  const umschalten = onOffenVonAussen ?? setOffenIntern;
   return (
     <div id={id} className="pr-aufklappbar" data-offen={offen}>
-      <button type="button" className="pr-aufklappbar__kopf" onClick={() => setOffen((v) => !v)} aria-expanded={offen}>
+      <button type="button" className="pr-aufklappbar__kopf" onClick={() => umschalten(!offen)} aria-expanded={offen}>
         {symbol}
         <span className="pr-aufklappbar__titel">{titel}</span>
         {typeof anzahl === "number" ? <span className="pr-chip">{anzahl}</span> : null}
@@ -71,16 +83,16 @@ function Aufklappbar({
 }
 
 /** Nur dieser Bereich als eigene JSON-Datei: dieselben Befunde/Massnahmen/Quellen wie im
- *  Sheet, dazu die Kennung des Gesamtberichts, dessen Siegel gilt (siehe bericht-pdf.ts fuer
- *  die PDF-Fassung desselben Gedankens: das Siegel deckt den GESAMTBERICHT, kein eigenes
- *  Siegel fuer den Auszug vortaeuschen). */
-function bereichAlsJson(bericht: Bericht, aktiv: { bereich: Pruefbereich; befunde: Befund[]; kz: Kennzahlen }): void {
-  const massnahmen = bericht.massnahmen.filter((m) => aktiv.befunde.some((f) => f.id === m.befundId));
-  const belege = bericht.belege.filter((q) => aktiv.befunde.some((f) => f.belege.includes(q.id)));
+ *  Sheet (bereichsAuszug() in befund.ts, dieselbe Funktion wie fuer den PDF-Auszug in
+ *  bericht-pdf.ts), dazu die Kennung des Gesamtberichts, dessen Siegel gilt (siehe
+ *  bericht-pdf.ts fuer die PDF-Fassung desselben Gedankens: das Siegel deckt den
+ *  GESAMTBERICHT, kein eigenes Siegel fuer den Auszug vortaeuschen). */
+function bereichAlsJson(bericht: Bericht, bereich: Pruefbereich, kz: Kennzahlen): void {
+  const { befunde, massnahmen, belege } = bereichsAuszug(bericht, bereich);
   const auszug = {
-    bereich: aktiv.bereich,
-    kennzahlen: aktiv.kz,
-    befunde: aktiv.befunde,
+    bereich,
+    kennzahlen: kz,
+    befunde,
     massnahmen,
     belege,
     teilVonBericht: { id: bericht.id, erstelltAm: bericht.erstelltAm, siegel: bericht.siegel },
@@ -88,7 +100,7 @@ function bereichAlsJson(bericht: Bericht, aktiv: { bereich: Pruefbereich; befund
   const url = URL.createObjectURL(new Blob([JSON.stringify(auszug, null, 2)], { type: "application/json" }));
   const a = document.createElement("a");
   a.href = url;
-  a.download = `compliance-pruefung-${bericht.id}-${aktiv.bereich}.json`;
+  a.download = `compliance-pruefung-${bericht.id}-${bereich}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }
@@ -156,7 +168,32 @@ export function TagesKacheln({ bericht }: { bericht: Bericht | null }) {
   const tc = useTranslations("ceoUebersicht");
   const [offenerBereich, setOffenerBereich] = useState<Pruefbereich | null>(null);
 
-  const kacheln = bereichskacheln(bericht);
+  // Fuer Himbis Tour: welche Aufklappbaren (Massnahmen/Einschraenkungen) offen sind, hier statt
+  // in der jeweiligen Aufklappbar-Instanz selbst - nur so kann die Tour eines gezielt oeffnen, um
+  // dorthin zu zeigen, und beim Verlassen wieder schliessen, ueber eine typisierte Prop statt
+  // einer DOM-Suche (oeffneFallsZugeklappt/schliesseWiederZu in use-compliance-tour.tsx). Ueber
+  // eine Ref gespiegelt, damit die Steuerung selbst als Objekt stabil bleibt (siehe unten) und
+  // trotzdem immer den aktuellen Stand liest.
+  const [aufklappbarOffen, setAufklappbarOffenState] = useState<Record<string, boolean>>({});
+  const aufklappbarOffenRef = useRef(aufklappbarOffen);
+  useEffect(() => {
+    aufklappbarOffenRef.current = aufklappbarOffen;
+  }, [aufklappbarOffen]);
+  const setAufklappbarOffen = useCallback((anker: string, offen: boolean) => {
+    setAufklappbarOffenState((alt) => (alt[anker] === offen ? alt : { ...alt, [anker]: offen }));
+  }, []);
+  const aufklappbarSteuerung = useMemo<AufklappbarSteuerung>(
+    () => ({
+      istZu: (anker) => aufklappbarOffenRef.current[anker] !== true,
+      setOffen: setAufklappbarOffen,
+    }),
+    [setAufklappbarOffen],
+  );
+
+  // Einmal je Bericht, nicht bei jedem Rendern neu: bereichskacheln() filtert und berechnet die
+  // Kennzahlen aller vier Bereiche, vorher bei jedem Rendern neu (z. B. beim Auf-/Zuklappen eines
+  // anderen Abschnitts), obwohl sich der Bericht selbst nicht geaendert hatte.
+  const kacheln = useMemo(() => bereichskacheln(bericht), [bericht]);
   const aktiv = kacheln.find((k) => k.bereich === offenerBereich) ?? null;
   const aktiveBefunde = aktiv && bericht ? bericht.befunde.filter((b) => b.bereich === aktiv.bereich) : [];
   const AktivSymbol = aktiv ? BEREICH_SYMBOL[aktiv.bereich] : null;
@@ -192,7 +229,9 @@ export function TagesKacheln({ bericht }: { bericht: Bericht | null }) {
     : null;
   // Fuer "Ergebnis besprechen"/"Loesungsplan" am Ende der Tour: derselbe Berichtsbezug, den auch
   // der manuelle Nachbereitungs-Abschnitt (pruefung-nachbereitung.tsx) an den Chat uebergibt.
-  useRegistriereComplianceTour(tourSchritte, bericht ? { id: bericht.id, kontext: berichtKontext(bericht) } : null);
+  // Dritter Parameter aufklappbarSteuerung: damit oeffnet/schliesst die Tour Massnahmen und
+  // Einschraenkungen ueber die typisierte Prop oben statt ueber eine DOM-Suche.
+  useRegistriereComplianceTour(tourSchritte, bericht ? { id: bericht.id, kontext: berichtKontext(bericht) } : null, aufklappbarSteuerung);
   const tourSteuerung = useComplianceTourSteuerung();
 
   return (
@@ -274,12 +313,24 @@ export function TagesKacheln({ bericht }: { bericht: Bericht | null }) {
           {bericht.massnahmen.length === 0 ? (
             <p className="pr-leer-hinweis">{tc("keineMassnahmen")}</p>
           ) : (
-            <Aufklappbar id="compliance-massnahmen" titel={t("bericht.massnahmen")} anzahl={bericht.massnahmen.length}>
+            <Aufklappbar
+              id="compliance-massnahmen"
+              titel={t("bericht.massnahmen")}
+              anzahl={bericht.massnahmen.length}
+              offenVonAussen={aufklappbarOffen["compliance-massnahmen"] ?? false}
+              onOffenVonAussen={(offen) => setAufklappbarOffen("compliance-massnahmen", offen)}
+            >
               <Massnahmenplan bericht={bericht} />
             </Aufklappbar>
           )}
           {hatHinweise ? (
-            <Aufklappbar id="compliance-einschraenkungen" titel={t("bericht.hinweise")} anzahl={bericht.hinweise.length || undefined}>
+            <Aufklappbar
+              id="compliance-einschraenkungen"
+              titel={t("bericht.hinweise")}
+              anzahl={bericht.hinweise.length || undefined}
+              offenVonAussen={aufklappbarOffen["compliance-einschraenkungen"] ?? false}
+              onOffenVonAussen={(offen) => setAufklappbarOffen("compliance-einschraenkungen", offen)}
+            >
               <Hinweise bericht={bericht} />
             </Aufklappbar>
           ) : null}
@@ -331,7 +382,7 @@ export function TagesKacheln({ bericht }: { bericht: Bericht | null }) {
               <button
                 type="button"
                 className="pr-knopf"
-                onClick={() => bereichAlsJson(bericht, { bereich: aktiv.bereich, befunde: aktiveBefunde, kz: aktiv.kz! })}
+                onClick={() => bereichAlsJson(bericht, aktiv.bereich, aktiv.kz!)}
               >
                 <FileJson className="h-4 w-4" /> {tc("bereichAlsJson")}
               </button>
