@@ -1614,6 +1614,8 @@
     "einstellung": {
       "titel": "DamiAI, your companion",
       "text": "Shows in the corner what the agent is doing, even when the chat is closed. Hold DamiAI down to send it away, the tip at the bottom edge brings it back. Switched off here, DamiAI stays away completely.",
+      "tourTitel": "Guided tour",
+      "tourText": "Off means DamiAI stops jumping to the tiles and highlighting them by itself after a check, system-wide. The chat summary still runs automatically, just without the jumping around the page.",
       "bewegungTitel": "Motion",
       "bewegungText": "Off means DamiAI stays, but holds still. If your system is already set to reduced motion, you do not need this switch.",
       "zustandTitel": "State",

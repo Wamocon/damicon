@@ -1614,6 +1614,8 @@
     "einstellung": {
       "titel": "DamiAI, dein Begleiter",
       "text": "Zeigt in der Ecke, was der Agent gerade tut, auch wenn der Chat geschlossen ist. Zum Wegschicken auf DamiAI gedrückt halten, die Spitze am unteren Rand holt sie zurück. Hier ausgeschaltet bleibt DamiAI ganz weg.",
+      "tourTitel": "Geführte Tour",
+      "tourText": "Aus heißt: DamiAI springt nach einer Prüfung nicht mehr selbst zu den Kacheln und hebt sie nicht mehr hervor, systemweit. Die Zusammenfassung im Chat kommt trotzdem weiter automatisch, nur ohne das Herumspringen auf der Seite.",
       "bewegungTitel": "Bewegung",
       "bewegungText": "Aus heißt: DamiAI bleibt da, steht aber still. Wer das Betriebssystem schon auf weniger Bewegung gestellt hat, braucht diesen Schalter nicht.",
       "zustandTitel": "Zustand",
