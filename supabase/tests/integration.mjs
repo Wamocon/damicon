@@ -1161,6 +1161,18 @@ if (leitung && brigade) {
   await admin.from("chargen").delete().eq("id", planungsCharge.id);
   await admin.from("pflueckaufgaben").delete().eq("id", planungsAufgabe.id);
 
+  // WMCNL-2376: eine physikalisch unplausible Temperatur wird abgelehnt -
+  // unabhaengig vom 4/8-Grad-Qualitaetsurteil (Bestand hatte 85 Grad an einer
+  // Charge stehen).
+  const { error: unplausibelFehler } = await admin
+    .from("kuehlketten_messungen")
+    .insert({ charge_id: autoCharge.id, gemessen_am: new Date().toISOString(), temperatur_c: 85 });
+  check(
+    "Kuehlketten-Schema: eine physikalisch unplausible Temperatur wird abgelehnt (WMCNL-2376)",
+    unplausibelFehler?.code === "23514",
+    unplausibelFehler?.code ?? "kein Fehler",
+  );
+
   // KRITISCH: zeitBisVorkuehlung blendete genau die Chargen aus, die die
   // 60-Minuten-Regel gerissen haben (Ueberlebenden-Fehler).
   const { data: verstossMessung, error: verstossMessungFehler } = await admin
@@ -4033,6 +4045,17 @@ if (leitung && brigade) {
         "Anforderung 3.2: 9 Grad ergibt 'verstoss' (> 8 Grad, unabhaengig von der Zeit)",
         !verstossMessungFehler && verstossMessung?.ergebnis === "verstoss",
         verstossMessungFehler?.message ?? JSON.stringify(verstossMessung),
+      );
+
+      // WMCNL-2376: dieselbe Plausibilitaetsgrenze gilt fuer Transportmessungen
+      // (Bestand hatte 60 Grad an einer Lieferung stehen).
+      const { error: unplausibelTpFehler } = await brigade
+        .from("transport_temperatur_messungen")
+        .insert({ lieferung_id: lieferungTp.id, temperatur_c: 60 });
+      check(
+        "Transportmessung-Schema: eine physikalisch unplausible Temperatur wird abgelehnt (WMCNL-2376)",
+        unplausibelTpFehler?.code === "23514",
+        unplausibelTpFehler?.code ?? "kein Fehler",
       );
 
       // Rueckverfolgung: die eigene Firma (Almaty Fresh Market, echter
