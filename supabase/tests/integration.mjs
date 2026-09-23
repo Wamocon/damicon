@@ -1965,6 +1965,28 @@ if (leitung && brigade) {
   const { client: erzeuger, fehler: erzeugerFehler } = await anmelden("erzeuger@damicon.demo");
   check("Auth: Erzeuger meldet sich an", !!erzeuger, erzeugerFehler ?? "");
   if (erzeuger) {
+    // WMCNL-2369: erzeuger hat laut rbac.ts crud("aggregator"), die
+    // SELECT-Policies liessen bislang trotzdem nur has_office_access() durch -
+    // das Kernmodul der Rolle zeigte durchweg Nullwerte und keine bekannten
+    // Nachbarbetriebe.
+    const { data: nbErzeuger, error: nbErzeugerFehler } = await erzeuger
+      .from("nachbarbetriebe")
+      .select("id");
+    check(
+      "Zukauf-RLS: erzeuger liest die Nachbarbetriebe (WMCNL-2369)",
+      !nbErzeugerFehler && (nbErzeuger?.length ?? 0) > 0,
+      nbErzeugerFehler?.message ?? `sichtbare Zeilen: ${nbErzeuger?.length}`,
+    );
+
+    const { data: zpErzeugerSelect, error: zpErzeugerSelectFehler } = await erzeuger
+      .from("zukauf_positionen")
+      .select("id");
+    check(
+      "Zukauf-RLS: erzeuger liest die Zukaufpositionen (WMCNL-2369)",
+      !zpErzeugerSelectFehler && (zpErzeugerSelect?.length ?? 0) > 0,
+      zpErzeugerSelectFehler?.message ?? `sichtbare Zeilen: ${zpErzeugerSelect?.length}`,
+    );
+
     const { error: zpErzeugerFehler, data: zpErzeugerInsert } = await erzeuger
       .from("zukauf_positionen")
       .insert({ nachbarbetrieb_id: nbNeu.id, sorte_id: sortePolka.id, menge_kg: 10 })
