@@ -1649,12 +1649,20 @@ for (const [name, kaputteAntwort] of [
     const status = readFileSync(new URL("../../src/lib/actions/status.ts", import.meta.url), "utf8");
     const knopf = readFileSync(new URL("../../src/components/ki/mikrofon.tsx", import.meta.url), "utf8");
     const chat = readFileSync(new URL("../../src/components/ki/ki-chat.tsx", import.meta.url), "utf8");
+    const chatSprache = readFileSync(new URL("../../src/components/ki/ki-chat-sprache.ts", import.meta.url), "utf8");
     const route = readFileSync(new URL("../../src/app/api/ki-assistent/route.ts", import.meta.url), "utf8");
 
     pruefe("Kette 1/5: die Aktion gibt die Sprachen zurueck", aktion.includes("ok(\"ok.transkription\", antwort.text, gehoerteSprachen)"));
     pruefe("Kette 2/5: der Status kann sie tragen", status.includes("sprachen?: string[]"));
     pruefe("Kette 3/5: der Mikrofonknopf reicht sie weiter", knopf.includes("beiText(status.wert, status.sprachen)"));
-    pruefe("Kette 4/5: das Chatfenster schickt sie mit der Frage", chat.includes("diktatSprachen: diktatSprachen.current"));
+    // Seit der Zerlegung von ki-chat.tsx (wmc-vibecode-cleanup Phase 3) haelt
+    // ki-chat-sprache.ts den Diktat-Zustand; ki-chat.tsx reicht den fertigen
+    // Wert nur noch in die Anfrage durch (beginneZug()/merkeDiktatSprachen()).
+    pruefe(
+      "Kette 4/5: das Chatfenster schickt sie mit der Frage",
+      chatSprache.includes("diktatSprachen.current = sprachen") &&
+        chat.includes("anfrageDaten.current = { ...anfrageDaten.current, diktatSprachen }"),
+    );
     pruefe("Kette 5/5: die Route wertet sie aus", route.includes("body.diktatSprachen") && route.includes("bestimmeAntwortsprache("));
   }
 
