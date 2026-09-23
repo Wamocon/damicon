@@ -16,9 +16,19 @@ import type { PruefBezug } from "@/components/ki/ki-pane-kontext";
 
 export type { ComplianceTourSchritt } from "@/components/dashboard/use-compliance-tour";
 
+/** Typisierte Gegenstelle zur DOM-Suche von frueher: die Bereichsuebersicht
+ *  (ceo-bereichs-kacheln.tsx) haelt den Auf/Zu-Zustand ihrer Aufklappbaren selbst (Massnahmen,
+ *  Einschraenkungen) und meldet hierueber, ob ein Anker gerade zugeklappt ist bzw. klappt ihn auf
+ *  Wunsch der Tour auf oder wieder zu - use-compliance-tour.tsx kennt damit nur noch die
+ *  Anker-id, nie mehr ein DOM-Element oder einen CSS-Selektor. */
+export interface AufklappbarSteuerung {
+  istZu: (anker: string) => boolean;
+  setOffen: (anker: string, offen: boolean) => void;
+}
+
 interface ComplianceTourApi extends ComplianceTourAnzeige {
   schritte: ComplianceTourSchritt[] | null;
-  registriere: (schritte: ComplianceTourSchritt[] | null, bezug: PruefBezug | null) => void;
+  registriere: (schritte: ComplianceTourSchritt[] | null, bezug: PruefBezug | null, steuerung: AufklappbarSteuerung | null) => void;
 }
 
 const ComplianceTourContext = createContext<ComplianceTourApi | null>(null);
@@ -26,11 +36,13 @@ const ComplianceTourContext = createContext<ComplianceTourApi | null>(null);
 export function ComplianceTourProvider({ children }: { children: ReactNode }) {
   const [schritte, setSchritte] = useState<ComplianceTourSchritt[] | null>(null);
   const [bezug, setBezug] = useState<PruefBezug | null>(null);
-  const registriere = useCallback((s: ComplianceTourSchritt[] | null, b: PruefBezug | null) => {
+  const [steuerung, setSteuerung] = useState<AufklappbarSteuerung | null>(null);
+  const registriere = useCallback((s: ComplianceTourSchritt[] | null, b: PruefBezug | null, st: AufklappbarSteuerung | null) => {
     setSchritte(s);
     setBezug(b);
+    setSteuerung(st);
   }, []);
-  const anzeige = useComplianceTour(schritte, bezug);
+  const anzeige = useComplianceTour(schritte, bezug, steuerung);
   const value = useMemo<ComplianceTourApi>(() => ({ schritte, registriere, ...anzeige }), [schritte, registriere, anzeige]);
   return <ComplianceTourContext.Provider value={value}>{children}</ComplianceTourContext.Provider>;
 }
@@ -40,18 +52,25 @@ export function useComplianceTourSchritte(): ComplianceTourSchritt[] | null {
   return useContext(ComplianceTourContext)?.schritte ?? null;
 }
 
-/** Fuer die Bereichsuebersicht: ihre Stationen UND den Berichtsbezug (fuer "Ergebnis besprechen"
- *  am Ende der Tour) anmelden, solange sie gemountet ist - beim Verlassen der Seite (Unmount)
- *  wieder abmelden, sonst zeigt Himbi anderswo ins Leere. */
-export function useRegistriereComplianceTour(schritte: ComplianceTourSchritt[] | null, bezug: PruefBezug | null): void {
+/** Fuer die Bereichsuebersicht: ihre Stationen, den Berichtsbezug (fuer "Ergebnis besprechen" am
+ *  Ende der Tour) UND die Steuerung ihrer Aufklappbaren anmelden, solange sie gemountet ist - beim
+ *  Verlassen der Seite (Unmount) wieder abmelden, sonst zeigt Himbi anderswo ins Leere. */
+export function useRegistriereComplianceTour(
+  schritte: ComplianceTourSchritt[] | null,
+  bezug: PruefBezug | null,
+  steuerung: AufklappbarSteuerung | null = null,
+): void {
   const api = useContext(ComplianceTourContext);
   const registriere = api?.registriere;
   const schluessel = `${schritte?.map((s) => `${s.anker}:${s.titel}:${s.text}`).join("|") ?? ""}::${bezug?.id ?? ""}`;
   useEffect(() => {
-    registriere?.(schritte, bezug);
-    return () => registriere?.(null, null);
-    // schritte/bezug bewusst nicht in den Abhaengigkeiten: schluessel fasst ihren Inhalt zusammen -
-    // ueber die Objekt-Referenzen selbst wuerde jeder Render (neue Bericht-Referenz) erneut anmelden.
+    registriere?.(schritte, bezug, steuerung);
+    return () => registriere?.(null, null, null);
+    // schritte/bezug/steuerung bewusst nicht in den Abhaengigkeiten: schluessel fasst schritte/bezug
+    // zusammen - ueber die Objekt-Referenzen selbst wuerde jeder Render (neue Bericht-Referenz)
+    // erneut anmelden. steuerung bleibt ueber ihre Lebensdauer als Objekt-Referenz stabil (siehe
+    // ceo-bereichs-kacheln.tsx), ein spaeterer Aufruf dieses Effekts sieht ueber den Closure ohnehin
+    // immer die zuletzt uebergebene Steuerung.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [registriere, schluessel]);
 }
