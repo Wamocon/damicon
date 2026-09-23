@@ -4097,6 +4097,26 @@ if (leitung && brigade) {
       await admin.from("lieferungen").delete().eq("id", storniertTp.id);
     }
 
+    // WMCNL-2372: dieselbe Sperre gilt fuer eine bereits zugestellte
+    // Lieferung - die Seite behauptet "zugestellt oder storniert ist
+    // unveraenderlich", vorher liess sich hier trotzdem nachtragen.
+    const { data: zugestelltTp, error: zugestelltTpFehler } = await admin
+      .from("lieferungen")
+      .insert({ b2b_kunde_id: almatyFreshTp?.id, menge_kg: 3, status: "zugestellt" })
+      .select("id")
+      .single();
+    if (!zugestelltTpFehler && zugestelltTp?.id) {
+      const { error: aufZugestelltFehler } = await brigade
+        .from("transport_temperatur_messungen")
+        .insert({ lieferung_id: zugestelltTp.id, temperatur_c: 3 });
+      check(
+        "Anforderung 3.2: eine Transportmessung auf einer zugestellten Lieferung wird abgelehnt (Trigger, eigener SQLSTATE DA004, WMCNL-2372)",
+        aufZugestelltFehler?.code === "DA004",
+        aufZugestelltFehler?.code ?? "kein Fehler - eine zugestellte Lieferung haette trotzdem eine Messung erhalten!",
+      );
+      await admin.from("lieferungen").delete().eq("id", zugestelltTp.id);
+    }
+
     if (lieferungTp?.id) {
       await admin.from("lieferungen").delete().eq("id", lieferungTp.id);
     }

@@ -51,6 +51,12 @@ export function dbFehler(error: PostgrestError | { code?: string; message: strin
       // ueberladenen 23514/P0001-Sammelklasse (adversarischer Review-Fund,
       // dieselbe Ueberlegung wie bei DA001).
       return fehler("fehler.lieferungStorniert");
+    case "DA004":
+      // transport_kuehlkette_bewerten() (WMCNL-2372): Transportmessung auf
+      // einer bereits zugestellten Lieferung - eigener Code statt DA002,
+      // sonst behauptete die Meldung faelschlich, die Lieferung sei
+      // storniert.
+      return fehler("fehler.lieferungZugestellt");
     case "DA003":
       // steige_kontrolle_pruefen() (Anforderung 2.10, QA-Ultra-Fund
       // 17.09.2026): Vier-Augen-Regel. Eigener Code statt 42501/

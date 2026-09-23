@@ -149,7 +149,12 @@ export async function LogistikAnsicht() {
                   </div>
                 ) : null}
 
-                {darfErfassen && l.status !== "storniert" ? (
+                {/* WMCNL-2372: die Seite behauptet selbst, eine zugestellte
+                    oder stornierte Lieferung sei unveraenderlich - das
+                    Formular blieb bislang trotzdem bis auf den Storno-Fall
+                    stehen. Es gibt keinen separaten "im Uebergabemoment"-Weg
+                    (uebergabeErfassen() nimmt keine Temperatur entgegen). */}
+                {darfErfassen && l.status === "geplant" ? (
                   <TransportMessungFormular lieferungId={l.id} />
                 ) : null}
 
