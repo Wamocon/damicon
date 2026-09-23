@@ -690,6 +690,13 @@
       "summary": "Deadline monitor and per-dossier evidence documents are connected. Application templates and evidence checklists per grant programme remain open.",
       "todo": "Application templates and evidence checklists per grant programme. The first open question is which fields and documents gosagro.kz and qoldau.kz ask for per programme."
     },
+    "wirtschaftlichkeit": {
+      "title": "Business case for the rollout",
+      "navTitle": "Business case",
+      "description": "Investment appraisal for the rollout: payback period, return in year one and over three years, one-off and recurring cost, net present value. Model figures so far, not yet operational data.",
+      "summary": "Payback, return, one-off and recurring cost, net present value of the rollout. Model calculation, not yet from operations.",
+      "todo": "Capture of investment, operating and benefit items, history per revision, plan versus actual."
+    },
     "sortenkatalog": {
       "title": "Variety and quota catalogue",
       "navTitle": "Variety catalogue",
@@ -1225,6 +1232,98 @@
     "mehrAnzeigen": "Show more",
     "keineChargen": "No batch with its own posting in this period. Postings without a batch reference do not appear here.",
     "ohneErntetag": "no harvest day"
+  },
+  "wirtschaftlichkeitAnsicht": {
+    "eyebrow": "Investment appraisal",
+    "titel": "Is the rollout worth it?",
+    "lead": "What the step costs, when the money is back and what owning it costs, over three years.",
+    "modellPille": "Model calculation",
+    "modellHinweis": "Model calculation dated {stichtag}. The figures come from the management's metric list, not from live operations. Anything estimated is marked on the tile.",
+    "kursHinweis": "Converted at the National Bank of Kazakhstan rate of {stichtag}: 1 EUR = {euro} ₸, 1 RUB = {rubel} ₸.",
+    "jahresnutzenSatz": "Every figure rests on an assumed annual benefit of {tenge} ({rubel}). That number is back-calculated and not yet evidenced by operations.",
+    "geschaetzt": "estimated",
+    "offen": "open",
+    "abschnitt": {
+      "titel": "The six headline figures",
+      "lead": "Selected by management. The remaining four sit in the panel below."
+    },
+    "weitere": {
+      "titel": "Four further figures",
+      "lead": "Payback period, total cost, avoided cost and time to first benefit."
+    },
+    "fussnote": "Return, payback and the cost per kilogram hang entirely on the assumed annual benefit. If the reduction per kilogram looks too high, the annual benefit is set too high. Once operational figures are captured, the page calculates from real items instead of constants.",
+    "diagramm": {
+      "monat": "Month",
+      "wert": "Value",
+      "jahr": "Year",
+      "nulllinie": "Money back"
+    },
+    "stapel": {
+      "capex": "One-off",
+      "opexJahr": "Year {jahr}"
+    },
+    "einheit": {
+      "monate": "{anzahl} months",
+      "wochenSpanne": "{von} to {bis} weeks",
+      "kilogramm": "kg"
+    },
+    "kennzahl": {
+      "amortisation": {
+        "label": "Payback period",
+        "frage": "When do I get my money back?",
+        "rechenweg": "One-off plus recurring cost, divided by annual benefit, times twelve."
+      },
+      "roiJahr1": {
+        "label": "Return year 1",
+        "frage": "Is it worth anything at all?",
+        "rechenweg": "Annual benefit less one-off and recurring cost, divided by both combined."
+      },
+      "roiDreiJahre": {
+        "label": "Return over 3 years",
+        "frage": "Is it properly worth it?",
+        "rechenweg": "Three times the annual benefit less one-off and three times recurring cost, divided by the outlay."
+      },
+      "capex": {
+        "label": "Cost to acceptance",
+        "frage": "What does the step cost?",
+        "rechenweg": "Fixed price up to acceptance. One number, not a range."
+      },
+      "opex": {
+        "label": "Recurring cost per year",
+        "frage": "What does owning it cost?",
+        "rechenweg": "Hosting, maintenance, support and further development."
+      },
+      "tco": {
+        "label": "Total cost over 3 years",
+        "frage": "What does the comparison really cost?",
+        "rechenweg": "One-off cost plus three years of recurring cost, against any alternative."
+      },
+      "vermiedeneKosten": {
+        "label": "Avoided cost per year",
+        "frage": "Where does the benefit come from?",
+        "rechenweg": "Shrinkage, manual work and audit preparation. Back-calculated from the given return figures."
+      },
+      "kapitalwert": {
+        "label": "Net present value",
+        "frage": "Does it hold up with the CFO?",
+        "rechenweg": "Present value of the benefit less the investment over three years, discounted monthly at 12 percent."
+      },
+      "kostenJeKilogramm": {
+        "label": "Cost per kilogram",
+        "frage": "Does the operation get cheaper?",
+        "rechenweg": "Full cost divided by the marketed quantity, before against after. Needs operational figures.",
+        "rechenwegMitWerten": "Full cost divided by the marketed quantity. Before {vorher} ₸, less {ersparnis} ₸ benefit per kilogram at {menge} kg annual volume."
+      },
+      "nutzenbeginn": {
+        "label": "Time to first benefit",
+        "frage": "From when does it pay in?",
+        "rechenweg": "Weeks to live operation, counted against the frost edge."
+      }
+    },
+    "jeKilogramm": {
+      "vorher": "Before",
+      "nachher": "After"
+    }
   },
   "finanzVorschau": {
     "titel": "Finances this month",

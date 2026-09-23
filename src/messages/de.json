@@ -690,6 +690,13 @@
       "summary": "Fristenmonitor und Nachweisdokumente je Dossier sind angebunden. Antragsvorlagen und Nachweis-Checklisten je Förderprogramm bleiben offen.",
       "todo": "Antragsvorlagen und Nachweis-Checklisten je Förderprogramm. Offen ist zuerst, welche Felder und Nachweise gosagro.kz und qoldau.kz je Programm verlangen."
     },
+    "wirtschaftlichkeit": {
+      "title": "Wirtschaftlichkeit der Einführung",
+      "navTitle": "Wirtschaftlichkeit",
+      "description": "Investitionsrechnung zur Einführung: Amortisationsdauer, Rendite im ersten Jahr und über drei Jahre, einmalige und laufende Kosten, Kapitalwert. Noch Modellwerte, keine Betriebszahlen.",
+      "summary": "Amortisation, Rendite, einmalige und laufende Kosten, Kapitalwert der Einführung. Modellrechnung, noch nicht aus dem Betrieb.",
+      "todo": "Erfassung der Investitions-, Betriebs- und Nutzenposten, Historie je Stand, Plan-Ist-Vergleich."
+    },
     "sortenkatalog": {
       "title": "Sorten- und Kontingentkatalog",
       "navTitle": "Sortenkatalog",
@@ -1225,6 +1232,98 @@
     "mehrAnzeigen": "Mehr anzeigen",
     "keineChargen": "Keine Charge mit eigener Buchung in diesem Zeitraum. Buchungen ohne Chargenbezug stehen hier nicht.",
     "ohneErntetag": "ohne Erntetag"
+  },
+  "wirtschaftlichkeitAnsicht": {
+    "eyebrow": "Investitionsrechnung",
+    "titel": "Lohnt sich die Einführung?",
+    "lead": "Was der Sprung kostet, wann das Geld zurück ist und was das Besitzen kostet, gerechnet über drei Jahre.",
+    "modellPille": "Modellrechnung",
+    "modellHinweis": "Modellrechnung vom {stichtag}. Die Werte stammen aus der Kennzahlenliste der Geschäftsführung, nicht aus dem laufenden Betrieb. Was geschätzt ist, steht an der Kachel.",
+    "kursHinweis": "Umgerechnet zum Kurs der Nationalbank der Republik Kasachstan vom {stichtag}: 1 EUR = {euro} ₸, 1 RUB = {rubel} ₸.",
+    "jahresnutzenSatz": "Alle Kennzahlen beruhen auf einem angenommenen Jahresnutzen von {tenge} ({rubel}). Diese Zahl ist zurückgerechnet und noch nicht aus dem Betrieb belegt.",
+    "geschaetzt": "geschätzt",
+    "offen": "offen",
+    "abschnitt": {
+      "titel": "Die sechs Kennzahlen im Fokus",
+      "lead": "Ausgewählt von der Geschäftsführung. Die übrigen vier stehen unten im Aufklapper."
+    },
+    "weitere": {
+      "titel": "Vier weitere Kennzahlen",
+      "lead": "Amortisationsdauer, Gesamtkosten, vermiedene Kosten und Zeit bis zum Nutzenbeginn."
+    },
+    "fussnote": "Rendite, Amortisationsdauer und die Kosten je Kilogramm hängen vollständig am angenommenen Jahresnutzen. Wirkt die gezeigte Senkung je Kilogramm zu hoch, ist der Jahresnutzen zu hoch angesetzt. Sobald die Betriebszahlen erfasst sind, rechnet die Seite aus echten Posten statt aus Konstanten.",
+    "diagramm": {
+      "monat": "Monat",
+      "wert": "Wert",
+      "jahr": "Jahr",
+      "nulllinie": "Geld zurück"
+    },
+    "stapel": {
+      "capex": "Einmalig",
+      "opexJahr": "Jahr {jahr}"
+    },
+    "einheit": {
+      "monate": "{anzahl} Monate",
+      "wochenSpanne": "{von} bis {bis} Wochen",
+      "kilogramm": "kg"
+    },
+    "kennzahl": {
+      "amortisation": {
+        "label": "Amortisationsdauer",
+        "frage": "Wann habe ich mein Geld zurück?",
+        "rechenweg": "Einmalige plus laufende Kosten, geteilt durch den Jahresnutzen, mal zwölf."
+      },
+      "roiJahr1": {
+        "label": "Rendite Jahr 1",
+        "frage": "Lohnt es sich überhaupt?",
+        "rechenweg": "Jahresnutzen minus einmalige und laufende Kosten, geteilt durch beide zusammen."
+      },
+      "roiDreiJahre": {
+        "label": "Rendite über 3 Jahre",
+        "frage": "Lohnt es sich richtig?",
+        "rechenweg": "Dreifacher Jahresnutzen minus einmalige und dreifache laufende Kosten, geteilt durch den Einsatz."
+      },
+      "capex": {
+        "label": "Kosten bis Abnahme",
+        "frage": "Was kostet der Sprung?",
+        "rechenweg": "Festpreis bis zur Abnahme. Eine Zahl, keine Spanne."
+      },
+      "opex": {
+        "label": "Laufende Kosten je Jahr",
+        "frage": "Was kostet das Besitzen?",
+        "rechenweg": "Hosting, Wartung, Support und Weiterentwicklung."
+      },
+      "tco": {
+        "label": "Gesamtkosten über 3 Jahre",
+        "frage": "Was kostet der Vergleich wirklich?",
+        "rechenweg": "Einmalige Kosten plus drei Jahre laufende Kosten, gegen jede Alternative."
+      },
+      "vermiedeneKosten": {
+        "label": "Vermiedene Kosten je Jahr",
+        "frage": "Woher kommt der Nutzen?",
+        "rechenweg": "Schwund, Handarbeit und Auditvorbereitung. Zurückgerechnet aus den vorgegebenen Renditewerten."
+      },
+      "kapitalwert": {
+        "label": "Kapitalwert",
+        "frage": "Hält es dem Finanzchef stand?",
+        "rechenweg": "Barwert des Nutzens minus Investition über drei Jahre, monatlich mit 12 Prozent abgezinst."
+      },
+      "kostenJeKilogramm": {
+        "label": "Kosten je Kilogramm",
+        "frage": "Wird der Betrieb günstiger?",
+        "rechenweg": "Vollkosten geteilt durch die vermarktete Menge, vorher gegen nachher. Braucht Betriebszahlen.",
+        "rechenwegMitWerten": "Vollkosten geteilt durch die vermarktete Menge. Vorher {vorher} ₸, abzüglich {ersparnis} ₸ Nutzen je Kilogramm bei {menge} kg Jahresmenge."
+      },
+      "nutzenbeginn": {
+        "label": "Zeit bis Nutzenbeginn",
+        "frage": "Ab wann zahlt es ein?",
+        "rechenweg": "Wochen bis zum Echtbetrieb, gerechnet gegen die Frostkante."
+      }
+    },
+    "jeKilogramm": {
+      "vorher": "Vorher",
+      "nachher": "Nachher"
+    }
   },
   "finanzVorschau": {
     "titel": "Finanzen im laufenden Monat",

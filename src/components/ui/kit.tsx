@@ -7,7 +7,7 @@ import {
   type ReactElement,
   type ReactNode,
 } from "react";
-import { Loader2 } from "lucide-react";
+import { ChevronDown, Loader2 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
@@ -204,6 +204,50 @@ export function PageHeader({
         <div className="flex shrink-0 flex-wrap items-center gap-2">{children}</div>
       ) : null}
     </header>
+  );
+}
+
+/**
+ * Aufklappbarer Abschnitt.
+ *
+ * <details> statt eines eigenen Zustands: Der Inhalt soll den Blick auf das
+ * Wesentliche nicht verstellen, aber die Seite bleibt Server Component, und
+ * ohne JavaScript muss das Aufklappen trotzdem gehen (DESIGN.md Regel 6). Das
+ * Sidebar-Muster mit aria-expanded braucht beides nicht zu leisten, es laeuft
+ * ohnehin im Browser.
+ *
+ * Lag urspruenglich privat in finanzen-ansicht.tsx. Hochgezogen, als die
+ * Wirtschaftlichkeitsseite denselben Baustein brauchte - zwei Kopien
+ * derselben Zeile laufen auseinander, ohne dass eine von beiden falsch
+ * aussieht (DESIGN.md Regel 2).
+ */
+export function Aufklapper({
+  titel,
+  beschreibung,
+  children,
+}: {
+  titel: string;
+  beschreibung?: string;
+  children: ReactNode;
+}) {
+  return (
+    <details className="group rounded-xl border border-border bg-card">
+      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 transition duration-knapp hover:bg-muted/30 lg:min-h-9 [&::-webkit-details-marker]:hidden">
+        <span>
+          <span className="schrift-dense font-black text-card-foreground">{titel}</span>
+          {beschreibung ? (
+            <span className="mt-0.5 block schrift-label text-muted-foreground">
+              {beschreibung}
+            </span>
+          ) : null}
+        </span>
+        <ChevronDown
+          aria-hidden="true"
+          className="h-4 w-4 shrink-0 text-muted-foreground transition duration-knapp group-open:rotate-180 motion-reduce:transition-none"
+        />
+      </summary>
+      <div className="border-t border-border p-4">{children}</div>
+    </details>
   );
 }
 

@@ -242,6 +242,20 @@ export const modules: ModuleDef[] = [
     // FoerdermittelAnsicht).
     reifegrad: "angebunden",
   },
+  {
+    key: "wirtschaftlichkeit",
+    zone: "buero",
+    slug: "wirtschaftlichkeit",
+    icon: "trending-up",
+    resource: "wirtschaftlichkeit",
+    // Investitionsrechnung zur Einfuehrung: Amortisation, ROI, CAPEX, OPEX,
+    // Kapitalwert. Die Zahlen sind noch Modellwerte aus der Kennzahlenliste
+    // der Geschaeftsfuehrung (lib/domain/wirtschaftlichkeit.ts), nicht aus
+    // dem Betrieb - deshalb "in-entwicklung", obwohl die Seite rechnet.
+    // Drei Layout-Entwuerfe liegen gleichzeitig darauf, der Umschalter ist
+    // nur fuer admin und ceo sichtbar. Faellt mit der Entscheidung weg.
+    reifegrad: "in-entwicklung",
+  },
 
   // --------------------------------------------------------------- Zone Markt
   {

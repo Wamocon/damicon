@@ -1,6 +1,6 @@
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
-import { ChevronDown } from "lucide-react";
 import {
+  Aufklapper,
   Card,
   DataTable,
   FilterPillen,
@@ -59,45 +59,6 @@ import type { ReactNode } from "react";
 // den Pillen, welches Datum gerade gilt.
 
 const ALLE = "alle";
-
-/**
- * Aufklappbarer Abschnitt fuer die Erfassungsformulare.
- *
- * <details> statt eines eigenen Zustands: Das Formular soll den Blick auf die
- * Tabelle nicht verstellen, aber die Seite bleibt Server Component, und ohne
- * JavaScript muss das Aufklappen trotzdem gehen (DESIGN.md Regel 6). Das
- * Sidebar-Muster mit aria-expanded braucht beides nicht zu leisten, es laeuft
- * ohnehin im Browser.
- */
-function Aufklapper({
-  titel,
-  beschreibung,
-  children,
-}: {
-  titel: string;
-  beschreibung?: string;
-  children: ReactNode;
-}) {
-  return (
-    <details className="group rounded-xl border border-border bg-card">
-      <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 transition duration-knapp hover:bg-muted/30 lg:min-h-9 [&::-webkit-details-marker]:hidden">
-        <span>
-          <span className="schrift-dense font-black text-card-foreground">{titel}</span>
-          {beschreibung ? (
-            <span className="mt-0.5 block schrift-label text-muted-foreground">
-              {beschreibung}
-            </span>
-          ) : null}
-        </span>
-        <ChevronDown
-          aria-hidden="true"
-          className="h-4 w-4 shrink-0 text-muted-foreground transition duration-knapp group-open:rotate-180 motion-reduce:transition-none"
-        />
-      </summary>
-      <div className="border-t border-border p-4">{children}</div>
-    </details>
-  );
-}
 
 export async function FinanzenAnsicht({
   pfad,
