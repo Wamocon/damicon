@@ -1698,6 +1698,7 @@
       "kuehlketteAbrufen": "Checked cold chain",
       "risikoRadarAbrufen": "Checked risk radar",
       "oeffneBereich": "Opened {bereich}",
+      "oeffnePruefBereich": "Opened {bereich}",
       "wissenSuchen": "Knowledge base searched",
       "unbekannt": "Step completed",
       "datenmodellErkunden": "Explored data model",
@@ -1809,6 +1810,7 @@
       "kuehlketteAbrufen": "Checking cold chain …",
       "risikoRadarAbrufen": "Scanning risk radar …",
       "oeffneBereich": "Opening {bereich} …",
+      "oeffnePruefBereich": "Opening {bereich} …",
       "wissenSuchen": "Searching knowledge base …",
       "unbekannt": "Working …",
       "datenmodellErkunden": "Exploring the data model …",
@@ -1826,6 +1828,7 @@
       "kuehlketteAbrufen": "Cold chain",
       "risikoRadarAbrufen": "Risk radar",
       "oeffneBereich": "{bereich}",
+      "oeffnePruefBereich": "{bereich}",
       "wissenSuchen": "Knowledge base",
       "unbekannt": "Source",
       "datenmodellErkunden": "Data model",
@@ -1839,6 +1842,14 @@
       "mitarbeiterEinschalten": "Chat"
     },
     "bereichAllgemein": "the area",
+    "pruefBereich": {
+      "audit": "Audit",
+      "steuer": "Tax",
+      "recht": "Legal",
+      "risiko": "Risk",
+      "massnahmen": "Action plan",
+      "einschraenkungen": "Limitations"
+    },
     "assistentDenkt": "Assistant is finding the ripest facts …",
     "leerTitel": "What can I help with?",
     "modus": {
@@ -1948,6 +1959,7 @@
     "transparenzHinweisAgent": "These answers come from an AI, not a staff member. Company data comes live from the app and appears as steps under each answer; everything else is general knowledge and is labelled as such.",
     "pruefBezug": "Based on audit report {id}",
     "pruefBezugEntfernen": "Remove the link to the audit report",
+    "pruefBezugKacheln": "Jump straight to a tile",
     "mehr": "More",
     "groesser": "Enlarge panel",
     "kleiner": "Shrink panel"
@@ -3188,6 +3200,7 @@
       "einschraenkungen": "{anzahl, plural, one {# review field could not be fully assessed.} other {# review fields could not be fully assessed.}}",
       "ende": "That was all four areas. Click a tile any time to see the full details.",
       "neustart": "Restart tour",
+      "zusammenfassung": "Summary in chat",
       "nachfrage": "What else can I show you?"
     },
     "liveHinweis": "The compliance check is running live right now, you can watch every step here. It usually takes under a minute, feel free to keep working in the meantime.",

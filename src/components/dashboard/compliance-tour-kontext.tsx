@@ -66,6 +66,7 @@ const LEER_ANZEIGE: ComplianceTourAnzeige = {
   huepf: 0,
   verfuegbar: false,
   starten: () => {},
+  zusammenfassen: () => {},
 };
 
 /** Fuer Himbi (haustier-dashboard.tsx): alles, was in ihre Blase, ihren Zustand und ihr
@@ -74,13 +75,15 @@ export function useComplianceTourAnzeige(): ComplianceTourAnzeige {
   return useContext(ComplianceTourContext) ?? LEER_ANZEIGE;
 }
 
-/** Fuer einen Neustart-Knopf ausserhalb von Himbi (ceo-bereichs-kacheln.tsx): ob es ueberhaupt
- *  etwas zu zeigen gibt, ob die Tour gerade laeuft, und die eine Funktion, die sie (wieder) startet. */
-export function useComplianceTourSteuerung(): Pick<ComplianceTourAnzeige, "verfuegbar" | "aktiv" | "starten"> {
+/** Fuer die Kopfzeile der CEO-Uebersicht (ceo-tour-aktionen.tsx): ob es ueberhaupt etwas zu
+ *  zeigen gibt, ob die Tour gerade laeuft, und die zwei Funktionen, die sie (wieder) starten
+ *  bzw. das Ergebnis im Chat zusammenfassen lassen. */
+export function useComplianceTourSteuerung(): Pick<ComplianceTourAnzeige, "verfuegbar" | "aktiv" | "starten" | "zusammenfassen"> {
   const api = useContext(ComplianceTourContext);
   return {
     verfuegbar: api?.verfuegbar ?? false,
     aktiv: api?.aktiv ?? false,
     starten: api?.starten ?? LEER_ANZEIGE.starten,
+    zusammenfassen: api?.zusammenfassen ?? LEER_ANZEIGE.zusammenfassen,
   };
 }

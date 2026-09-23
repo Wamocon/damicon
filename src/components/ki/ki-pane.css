@@ -2090,6 +2090,31 @@ html[data-ki-zieht] body {
 .ki-bezug button:hover {
   background: color-mix(in oklab, var(--primary) 16%, transparent);
 }
+/* Feste Kachel-Reihe unter dem Bezug-Pill: unabhaengig davon, ob das Modell im Text darauf
+   verweist (oeffnePruefBereich), gibt es hier immer alle sechs Sprungziele auf einen Blick. */
+.ki-bezug-kacheln {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-bottom: 0.5rem;
+}
+.ki-bezug-kacheln__knopf {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 650;
+  color: var(--muted-foreground);
+  background: var(--card);
+  transition: border-color 0.12s ease, color 0.12s ease;
+}
+.ki-bezug-kacheln__knopf:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
 
 /* ---- Ladehinweis der Live-Sprachausgabe (sprachausgabe.tsx) --------------
    Zwischen dem Absenden und dem ersten Ton vergehen ein bis zwei Sekunden.

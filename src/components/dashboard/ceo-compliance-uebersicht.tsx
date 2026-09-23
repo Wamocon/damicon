@@ -2,6 +2,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { Section, StatusPill } from "@/components/ui/kit";
 import { CeoAktualisierenKnopf } from "@/components/dashboard/ceo-aktualisieren-knopf";
 import { CeoAutoPruefung } from "@/components/dashboard/ceo-auto-pruefung";
+import { CeoTourAktionen } from "@/components/dashboard/ceo-tour-aktionen";
 import { letzterCeoBericht } from "@/lib/data/compliance-ceo";
 import { betriebsZeitzone } from "@/lib/domain/tageszeit";
 
@@ -33,6 +34,7 @@ export async function CeoComplianceUebersicht() {
               })}
             </StatusPill>
           ) : null}
+          <CeoTourAktionen />
           <CeoAktualisierenKnopf />
         </div>
       }

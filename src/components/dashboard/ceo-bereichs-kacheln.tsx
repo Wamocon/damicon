@@ -2,12 +2,8 @@
 
 import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronDown, ChevronRight, FileDown, FileJson, ShieldCheck, Sparkles } from "lucide-react";
-import {
-  type ComplianceTourSchritt,
-  useComplianceTourSteuerung,
-  useRegistriereComplianceTour,
-} from "@/components/dashboard/compliance-tour-kontext";
+import { ChevronDown, ChevronRight, FileDown, FileJson, ShieldCheck } from "lucide-react";
+import { type ComplianceTourSchritt, useRegistriereComplianceTour } from "@/components/dashboard/compliance-tour-kontext";
 import { berichtAlsPdfSpeichern } from "@/components/pruefung/bericht-pdf";
 import { BefundKarte, Hinweise, Kopfkarte, Massnahmenplan, Prioritaeten, Siegel } from "@/components/pruefung/pruefung-bericht";
 import { BEREICH_SYMBOL } from "@/components/pruefung/symbole";
@@ -120,7 +116,6 @@ export function CeoBereichsKacheln({ bericht }: { bericht: Bericht }) {
   // Fuer "Ergebnis besprechen"/"Lösungsplan" am Ende der Tour: derselbe Berichtsbezug, den auch
   // der manuelle Nachbereitungs-Abschnitt (pruefung-nachbereitung.tsx) an den Chat uebergibt.
   useRegistriereComplianceTour(tourSchritte, { id: bericht.id, kontext: berichtKontext(bericht) });
-  const tourSteuerung = useComplianceTourSteuerung();
 
   return (
     <>
@@ -130,14 +125,7 @@ export function CeoBereichsKacheln({ bericht }: { bericht: Bericht }) {
       <Prioritaeten bericht={bericht} />
 
       <div className="pr-kacheln-bereich">
-        <div className="pr-kacheln-bereich__kopf">
-          <h3 className="pr-abschnitt__titel">{t("bericht.befunde")}</h3>
-          {tourSteuerung.verfuegbar && !tourSteuerung.aktiv ? (
-            <button type="button" className="pr-tour-neustart" onClick={tourSteuerung.starten}>
-              <Sparkles className="h-3.5 w-3.5" aria-hidden /> {tc("tour.neustart")}
-            </button>
-          ) : null}
-        </div>
+        <h3 className="pr-abschnitt__titel">{t("bericht.befunde")}</h3>
         <div className="pr-kacheln">
           {bereiche.map(({ bereich, befunde, kz }) => {
             const Symbol = BEREICH_SYMBOL[bereich];

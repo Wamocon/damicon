@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useCeoPruefung } from "@/components/dashboard/ceo-pruefung-kontext";
+import { useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { useKiPane, type PruefBezug } from "@/components/ki/ki-pane-kontext";
 import { bewegungReduziert } from "@/lib/bewegung";
 import { springeZuAnker, tourDauer, type HaustierZustand } from "@/lib/haustier";
@@ -59,11 +60,16 @@ export interface ComplianceTourAnzeige {
   tourZustand: HaustierZustand;
   tourZiel: Element | null;
   huepf: number;
-  /** Es gibt einen Bericht mit Stationen - ein Neustart-Knopf darf angezeigt werden. */
+  /** Es gibt einen Bericht mit Stationen UND Himbi ist zu sehen - ein Neustart-Knopf darf
+   *  angezeigt werden (ohne sichtbare Figur gaebe es niemanden, der die Tour fuehrt). */
   verfuegbar: boolean;
   /** Die Tour von vorn beginnen - fuer das Angebot, den automatischen Start und einen
    *  jederzeit erreichbaren Neustart-Knopf (dieselbe Funktion fuer alle drei). */
   starten: () => void;
+  /** Oeffnet den KI-Chat im Seitenpanel und laesst Himbi das Ergebnis dort zusammenfassen,
+   *  mit anklickbaren Verweisen auf die Kacheln (oeffnePruefBereich, route.ts). Fuer den
+   *  automatischen Lauf nach einer frischen Pruefung UND einen jederzeit erreichbaren Knopf. */
+  zusammenfassen: () => void;
 }
 
 export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezug: PruefBezug | null): ComplianceTourAnzeige {
@@ -71,6 +77,12 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
   const tc = useTranslations("ceoUebersicht");
   const tp = useTranslations("pruefung");
   const ceoStand = useCeoPruefung();
+  // Himbi ist abgestellt (Einstellungen) oder weggeschickt (Griff halten/Entf): dann gibt es
+  // keine Huelle, die die Tour zeigen koennte - weder Angebot noch automatischer Start, sonst
+  // wuerde die Seite unsichtbar gesteuert scrollen und Abschnitte auf- und zuklappen, ohne dass
+  // zu sehen waere, wer das tut oder warum.
+  const { an: himbiAn, weg: himbiWeg } = useHaustierStatus();
+  const himbiSichtbar = himbiAn && !himbiWeg;
   const { starteGespraechZurPruefung } = useKiPane();
   const besprechen = useCallback(
     (frage: string) => {
@@ -78,6 +90,10 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
     },
     [bezug, starteGespraechZurPruefung],
   );
+  // Dieselbe Frage wie der Knopf "Ergebnis mit Himbi besprechen" am Ende der Tour
+  // (tourBlase unten): beide sollen zur gleich ausfuehrlichen Antwort fuehren, nicht zu einer
+  // kuerzeren Sonderfassung nur fuer den automatischen Anstoss.
+  const zusammenfassen = useCallback(() => besprechen(tp("nachbereitung.frageStart")), [besprechen, tp]);
 
   const [phase, setPhase] = useState<Phase>("aus");
   const [schritt, setSchritt] = useState(0);
@@ -96,12 +112,13 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
     }
   }, []);
 
-  // Sobald Stationen da sind (und noch nicht entschieden), nach kurzer Verzoegerung anbieten.
+  // Sobald Stationen da sind (und noch nicht entschieden), nach kurzer Verzoegerung anbieten -
+  // aber nur, wenn Himbi ueberhaupt zu sehen ist (sonst gaebe es niemanden, der fragt).
   useEffect(() => {
-    if (!schritte || schritte.length === 0 || entschieden.current || phase !== "aus") return;
+    if (!himbiSichtbar || !schritte || schritte.length === 0 || entschieden.current || phase !== "aus") return;
     const id = window.setTimeout(() => setPhase("frage"), ANGEBOT_VERZOEGERUNG_MS);
     return () => window.clearTimeout(id);
-  }, [schritte, phase]);
+  }, [himbiSichtbar, schritte, phase]);
 
   const merken = useCallback(() => {
     entschieden.current = true;
@@ -144,7 +161,14 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
     // Zurueck an den Seitenanfang - sonst bliebe man dort stehen, wo die letzte Station war
     // (haeufig weit unten bei den Einschraenkungen), statt wieder beim Gesamtbild zu landen.
     window.scrollTo({ top: 0, behavior: bewegungReduziert() ? "auto" : "smooth" });
-  }, [schliesseGeoeffnete]);
+    // Siehe zusammenfassenNachTour weiter unten: erst HIER, nicht beim Start, sonst oeffnet das
+    // Seitenpanel waehrend die Tour noch selbst durch die Seite scrollt - der Platz, den es
+    // wegnimmt, verschiebt das Layout und damit jedes noch bevorstehende Sprungziel der Tour.
+    if (zusammenfassenNachTour.current) {
+      zusammenfassenNachTour.current = false;
+      zusammenfassen();
+    }
+  }, [schliesseGeoeffnete, zusammenfassen]);
 
   const starten = useCallback(() => {
     merken();
@@ -169,19 +193,35 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
   // bereitsteht, startet die Tour von selbst, ohne vorher zu fragen. Nur einmal je Sitzung
   // (entschieden), genau wie das Angebot, das sie hier ersetzt.
   const wartetAufAutostart = useRef(false);
+  // Gesetzt zusammen mit dem automatischen Start, siehe unten - beenden() fragt es ab und
+  // loescht es wieder, damit ein spaeterer manueller Neustart (Knopf "Tour erneut starten")
+  // KEINE zweite automatische Zusammenfassung nach sich zieht: nur der eine, echte automatische
+  // Lauf nach einer frischen Pruefung soll das ausloesen.
+  const zusammenfassenNachTour = useRef(false);
   const vorigeCeoPhase = useRef(ceoStand?.phase);
   useEffect(() => {
     if (vorigeCeoPhase.current === "laeuft" && ceoStand?.phase === "fertig") wartetAufAutostart.current = true;
     vorigeCeoPhase.current = ceoStand?.phase;
   }, [ceoStand?.phase]);
   useEffect(() => {
-    if (!wartetAufAutostart.current || entschieden.current || !schritte || schritte.length === 0 || phase !== "aus") return;
+    if (!wartetAufAutostart.current) return;
+    if (!himbiSichtbar) {
+      // Himbi ist gerade nicht zu sehen - die Gelegenheit ist vorbei, kein spaeteres Nachholen,
+      // wenn sie wieder eingeschaltet wird (das wirkte sonst wie ein zufaelliges Aufpoppen).
+      wartetAufAutostart.current = false;
+      return;
+    }
+    if (entschieden.current || !schritte || schritte.length === 0 || phase !== "aus") return;
     const id = window.setTimeout(() => {
       wartetAufAutostart.current = false;
+      // Zusaetzlich zur Tour (Anfrage vom 23.09.2026): dieselbe Gelegenheit, ohne dass jemand
+      // danach fragen muss - aber erst wenn die Tour selbst fertig ist (beenden() unten), sonst
+      // unterbricht das oeffnende Seitenpanel die noch laufende Tour (gemeldet am 23.09.2026).
+      zusammenfassenNachTour.current = true;
       starten();
     }, 0);
     return () => window.clearTimeout(id);
-  }, [schritte, phase, starten]);
+  }, [himbiSichtbar, schritte, phase, starten]);
 
   // Autopilot: nach der Lesezeit der Station zur naechsten.
   const aktuell = schritte?.[schritt];
@@ -333,7 +373,8 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
     tourZustand: phase === "fertig" ? "fertig" : "ruhe",
     tourZiel: phase === "laeuft" ? ziel : null,
     huepf,
-    verfuegbar: !!schritte && schritte.length > 0,
+    verfuegbar: himbiSichtbar && !!schritte && schritte.length > 0,
     starten,
+    zusammenfassen,
   };
 }
