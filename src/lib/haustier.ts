@@ -81,6 +81,29 @@ export function schreibeBewegung(an: boolean): void {
   document.documentElement.toggleAttribute("data-hb-still", !an);
 }
 
+const TOUR_SCHLUESSEL = "damicon-haustier-tour";
+
+/** Die gefuehrte Compliance-Tour (use-compliance-tour.tsx): an, solange nichts anderes
+ *  gespeichert ist. Wer sie abstellt, bekommt trotzdem weiter die automatische
+ *  Zusammenfassung im Chat - nur das Herumspringen und Hervorheben auf der Seite
+ *  entfaellt, systemweit, nicht nur auf der Seite, auf der man gerade abstellt (derselbe
+ *  Speicher wie die Sichtbarkeit oben, siehe haustier-kontext.tsx). */
+export function leseTourSchalter(): boolean {
+  try {
+    return window.localStorage.getItem(TOUR_SCHLUESSEL) !== "aus";
+  } catch {
+    return true;
+  }
+}
+
+export function schreibeTourSchalter(an: boolean): void {
+  try {
+    window.localStorage.setItem(TOUR_SCHLUESSEL, an ? "an" : "aus");
+  } catch {
+    // Speicher gesperrt: gilt dann nur fuer diese Sitzung
+  }
+}
+
 export interface Inventar {
   /** Welche der drei Trachten (himbi.tsx, TRACHTEN) Chapan, Aermel, Kappe und Stiefel tragen. */
   tracht: 0 | 1 | 2;

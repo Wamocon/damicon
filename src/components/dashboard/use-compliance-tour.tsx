@@ -60,9 +60,12 @@ export interface ComplianceTourAnzeige {
   tourZustand: HaustierZustand;
   tourZiel: Element | null;
   huepf: number;
-  /** Es gibt einen Bericht mit Stationen UND Himbi ist zu sehen - ein Neustart-Knopf darf
-   *  angezeigt werden (ohne sichtbare Figur gaebe es niemanden, der die Tour fuehrt). */
+  /** Es gibt einen Bericht mit Stationen UND Himbi ist zu sehen - der Knopf "Zusammenfassung im
+   *  Chat" darf angezeigt werden (ohne sichtbare Figur gaebe es niemanden, der sie anbietet). */
   verfuegbar: boolean;
+  /** Zusaetzlich: die gefuehrte Tour selbst ist in den Einstellungen nicht abgestellt - nur dann
+   *  darf auch ein Neustart-Knopf fuer die Tour erscheinen (haustier-einstellung.tsx). */
+  tourVerfuegbar: boolean;
   /** Die Tour von vorn beginnen - fuer das Angebot, den automatischen Start und einen
    *  jederzeit erreichbaren Neustart-Knopf (dieselbe Funktion fuer alle drei). */
   starten: () => void;
@@ -81,7 +84,7 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
   // keine Huelle, die die Tour zeigen koennte - weder Angebot noch automatischer Start, sonst
   // wuerde die Seite unsichtbar gesteuert scrollen und Abschnitte auf- und zuklappen, ohne dass
   // zu sehen waere, wer das tut oder warum.
-  const { an: himbiAn, weg: himbiWeg } = useHaustierStatus();
+  const { an: himbiAn, weg: himbiWeg, tourAn } = useHaustierStatus();
   const himbiSichtbar = himbiAn && !himbiWeg;
   const { starteGespraechZurPruefung } = useKiPane();
   const besprechen = useCallback(
@@ -113,12 +116,13 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
   }, []);
 
   // Sobald Stationen da sind (und noch nicht entschieden), nach kurzer Verzoegerung anbieten -
-  // aber nur, wenn Himbi ueberhaupt zu sehen ist (sonst gaebe es niemanden, der fragt).
+  // aber nur, wenn Himbi ueberhaupt zu sehen ist (sonst gaebe es niemanden, der fragt) und die
+  // Tour in den Einstellungen nicht abgestellt ist (dann gibt es nichts anzubieten).
   useEffect(() => {
-    if (!himbiSichtbar || !schritte || schritte.length === 0 || entschieden.current || phase !== "aus") return;
+    if (!tourAn || !himbiSichtbar || !schritte || schritte.length === 0 || entschieden.current || phase !== "aus") return;
     const id = window.setTimeout(() => setPhase("frage"), ANGEBOT_VERZOEGERUNG_MS);
     return () => window.clearTimeout(id);
-  }, [himbiSichtbar, schritte, phase]);
+  }, [tourAn, himbiSichtbar, schritte, phase]);
 
   const merken = useCallback(() => {
     entschieden.current = true;
@@ -214,6 +218,15 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
     if (entschieden.current || !schritte || schritte.length === 0 || phase !== "aus") return;
     const id = window.setTimeout(() => {
       wartetAufAutostart.current = false;
+      if (!tourAn) {
+        // In den Einstellungen abgestellt: kein Herumspringen und Hervorheben, aber dieselbe
+        // Gelegenheit soll trotzdem nicht ungenutzt verstreichen - direkt die Zusammenfassung im
+        // Chat, ohne den Umweg ueber eine Tour, die ohnehin nicht laufen soll. merken() haelt wie
+        // sonst auch fest, dass diese Gelegenheit schon "entschieden" ist.
+        merken();
+        zusammenfassen();
+        return;
+      }
       // Zusaetzlich zur Tour (Anfrage vom 23.09.2026): dieselbe Gelegenheit, ohne dass jemand
       // danach fragen muss - aber erst wenn die Tour selbst fertig ist (beenden() unten), sonst
       // unterbricht das oeffnende Seitenpanel die noch laufende Tour (gemeldet am 23.09.2026).
@@ -221,7 +234,7 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
       starten();
     }, 0);
     return () => window.clearTimeout(id);
-  }, [himbiSichtbar, schritte, phase, starten]);
+  }, [tourAn, himbiSichtbar, schritte, phase, starten, zusammenfassen, merken]);
 
   // Autopilot: nach der Lesezeit der Station zur naechsten.
   const aktuell = schritte?.[schritt];
@@ -374,6 +387,7 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
     tourZiel: phase === "laeuft" ? ziel : null,
     huepf,
     verfuegbar: himbiSichtbar && !!schritte && schritte.length > 0,
+    tourVerfuegbar: tourAn && himbiSichtbar && !!schritte && schritte.length > 0,
     starten,
     zusammenfassen,
   };
