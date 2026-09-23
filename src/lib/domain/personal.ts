@@ -56,6 +56,11 @@ export const demoBrigaden: BrigadeZeile[] = [
   { id: "demo-brigade-2", name: "Brigade Ost", vorarbeiter: "A. Duissenov", staerke: 5, plantage: "Plantage Ost" },
 ];
 
+// Namenskonvention wie im ganzen Projekt (z. B. CACHE_MS in lib/ai/datenmodell.ts,
+// ABSCHNITT_GUELTIG_MS in domain/sprachausgabe-signatur.ts): Dauer als benannte
+// _MS-Konstante statt eines rohen Ausdrucks an der Verwendungsstelle.
+const EIN_TAG_MS = 1000 * 60 * 60 * 24;
+
 export const demoPfluecker: PfleuckerZeile[] = [
   {
     id: "demo-pfluecker-1",
@@ -77,7 +82,7 @@ export const demoPfluecker: PfleuckerZeile[] = [
     esutd: "offen",
     // Demo: Vertrag vor drei Tagen begonnen, Frist laeuft noch (5 Werktage
     // minus Wochenende) - eine bald faellige, nicht ueberfaellige Kachel.
-    esutdFaelligkeit: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
+    esutdFaelligkeit: new Date(Date.now() + EIN_TAG_MS).toISOString(),
     letzteMengeKg: null,
     letzterQualitaetsfaktor: null,
   },

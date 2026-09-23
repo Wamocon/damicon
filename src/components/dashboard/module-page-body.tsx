@@ -11,10 +11,10 @@ import { hasPermission } from "@/lib/rbac";
 import type { ModuleDef } from "@/lib/modules";
 
 // Der Kopf sitzt wie auf der Uebersicht und den Bereichsseiten in einer Box.
-// Was darunter steht, kommt aus der jeweiligen Modulansicht und folgt dem
-// Boxensystem noch nicht - die Abschnitte dort bauen auf <Section>, und die
-// traegt bis heute keinen Rahmen (siehe docs/design/boxensystem-audit-
-// 2026-09-21.md, Punkt 1).
+// Was darunter steht, kommt aus der jeweiligen Modulansicht und baut auf
+// <Section>, die seit dem Umbau vom 21.09.2026 selbst die Abschnittsbox ist
+// (Rahmen, Kartengrund, Schatten - siehe docs/design/boxensystem-audit-
+// 2026-09-21.md, Punkt 1). Kopf und Inhalt tragen damit durchgehend Boxen.
 export function ModulePageBody({
   module,
   children,
