@@ -2,27 +2,48 @@
 
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { useComplianceTourSchritte } from "@/components/dashboard/compliance-tour-kontext";
-import { bewegungReduziert, feinerZeiger } from "@/lib/bewegung";
+import { useCeoPruefung } from "@/components/dashboard/ceo-pruefung-kontext";
+import { bewegungReduziert } from "@/lib/bewegung";
 import { springeZuAnker, tourDauer, type HaustierZustand } from "@/lib/haustier";
 
 // Himbis Fuehrung durch die vier Complianceprüfungen auf der CEO-Startseite: dasselbe
 // Drehbuch-Prinzip wie die Tour auf der oeffentlichen Startseite (haustier-tour.tsx) - Station
 // fuer Station, mit Autopilot und Fortschrittsbalken - aber mit LEBENDIGEM statt festem Text
-// (die Stationen kommen aus dem aktuellen Bericht, siehe compliance-tour-kontext.tsx) und ohne
-// eigene Figur: sie nutzt die Huelle mit, die HaustierDashboard ohnehin schon zeigt. Deshalb
-// liefert dieser Hook keine <HaustierHuelle>, sondern nur das, was HaustierDashboard in ihre
-// Blase, ihren Zustand und ihr Blickziel einmischen muss.
+// (die Stationen kommen aus dem aktuellen Bericht, ueber den Parameter schritte statt aus
+// fester Konfiguration) und ohne eigene Figur: sie nutzt die Huelle mit, die HaustierDashboard
+// ohnehin schon zeigt. Deshalb liefert dieser Hook keine <HaustierHuelle>, sondern nur das, was
+// HaustierDashboard in ihre Blase, ihren Zustand und ihr Blickziel einmischen muss.
+//
+// Gerufen wird dieser Hook NICHT direkt von HaustierDashboard, sondern einmal zentral aus
+// compliance-tour-kontext.tsx (ComplianceTourProvider) - so kann auch ein Neustart-Knopf an
+// ganz anderer Stelle (ceo-bereichs-kacheln.tsx) dieselbe, eine Tour steuern.
+
+export interface ComplianceTourSchritt {
+  /** id des Abschnitts, zu dem gescrollt wird (Kopfkarte, eine Bereichs-Kachel, Massnahmen, Einschraenkungen). */
+  anker: string;
+  titel: string;
+  text: string;
+}
 
 const ANGEBOT_SCHLUESSEL = "damicon-compliance-tour";
 const ANGEBOT_VERZOEGERUNG_MS = 6500;
 
 /** Massnahmenplan und Einschraenkungen stehen zugeklappt (ceo-bereichs-kacheln.tsx,
  *  .pr-aufklappbar) - zeigt die Tour dorthin, waere die Hervorhebung sonst leer. Ein Klick auf
- *  den Aufklapp-Kopf ist derselbe Weg, den auch ein Mensch ginge, kein eigener Zustand noetig. */
-function oeffneFallsZugeklappt(ziel: Element): void {
+ *  den Aufklapp-Kopf ist derselbe Weg, den auch ein Mensch ginge, kein eigener Zustand noetig.
+ *  Gibt die id zurueck, wenn die Tour selbst geoeffnet hat (fuer das spaetere Wiederzuklappen). */
+function oeffneFallsZugeklappt(ziel: Element): string | null {
   const zugeklappt = ziel.closest('.pr-aufklappbar[data-offen="false"]');
-  zugeklappt?.querySelector<HTMLButtonElement>(".pr-aufklappbar__kopf")?.click();
+  if (!zugeklappt || !zugeklappt.id) return null;
+  zugeklappt.querySelector<HTMLButtonElement>(".pr-aufklappbar__kopf")?.click();
+  return zugeklappt.id;
+}
+
+/** Nur zuklappen, was noch offen ist - der Mensch kann es waehrend der Tour selbst schon
+ *  zugeklappt haben, dann gibt es nichts mehr zu tun. */
+function schliesseWiederZu(anker: string): void {
+  const el = document.getElementById(anker);
+  if (el?.getAttribute("data-offen") === "true") el.querySelector<HTMLButtonElement>(".pr-aufklappbar__kopf")?.click();
 }
 
 type Phase = "aus" | "frage" | "laeuft" | "fertig";
@@ -37,12 +58,17 @@ export interface ComplianceTourAnzeige {
   tourZustand: HaustierZustand;
   tourZiel: Element | null;
   huepf: number;
+  /** Es gibt einen Bericht mit Stationen - ein Neustart-Knopf darf angezeigt werden. */
+  verfuegbar: boolean;
+  /** Die Tour von vorn beginnen - fuer das Angebot, den automatischen Start und einen
+   *  jederzeit erreichbaren Neustart-Knopf (dieselbe Funktion fuer alle drei). */
+  starten: () => void;
 }
 
-export function useComplianceTour(): ComplianceTourAnzeige {
+export function useComplianceTour(schritte: ComplianceTourSchritt[] | null): ComplianceTourAnzeige {
   const t = useTranslations("haustier");
   const tc = useTranslations("ceoUebersicht");
-  const schritte = useComplianceTourSchritte();
+  const ceoStand = useCeoPruefung();
 
   const [phase, setPhase] = useState<Phase>("aus");
   const [schritt, setSchritt] = useState(0);
@@ -51,6 +77,7 @@ export function useComplianceTour(): ComplianceTourAnzeige {
   const [ziel, setZiel] = useState<Element | null>(null);
   const [huepf, setHuepf] = useState(0);
   const entschieden = useRef(false);
+  const geoeffnetVonTour = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     try {
@@ -83,18 +110,29 @@ export function useComplianceTour(): ComplianceTourAnzeige {
       setSchritt(neu);
       const ziel = document.getElementById(s.anker);
       setZiel(ziel);
-      if (ziel) oeffneFallsZugeklappt(ziel);
-      springeZuAnker(s.anker, { feinerZeiger: feinerZeiger(), bewegungReduziert: bewegungReduziert() });
+      if (ziel) {
+        const geoeffnet = oeffneFallsZugeklappt(ziel);
+        if (geoeffnet) geoeffnetVonTour.current.add(geoeffnet);
+      }
+      springeZuAnker(s.anker, { bewegungReduziert: bewegungReduziert() });
       setHuepf((n) => n + 1);
     },
     [schritte],
   );
 
+  // Beim Verlassen der Tour (Ende erreicht oder abgebrochen) alles wieder zuklappen, was sie
+  // selbst aufgeklappt hat - die Seite soll danach wieder so kompakt aussehen wie zuvor.
+  const schliesseGeoeffnete = useCallback(() => {
+    geoeffnetVonTour.current.forEach(schliesseWiederZu);
+    geoeffnetVonTour.current.clear();
+  }, []);
+
   const beenden = useCallback(() => {
     setPhase("fertig");
     setZiel(null);
     setAuto(false);
-  }, []);
+    schliesseGeoeffnete();
+  }, [schliesseGeoeffnete]);
 
   const starten = useCallback(() => {
     merken();
@@ -113,6 +151,25 @@ export function useComplianceTour(): ComplianceTourAnzeige {
     setAuto(false);
     setUebernommen(true);
   }, []);
+
+  // Der automatische Hintergrund-Check ist gerade zu Ende gegangen (der CEO hat den Live-Lauf
+  // schon gesehen, siehe haustier-dashboard.tsx) - sobald der neue Bericht mit seinen Stationen
+  // bereitsteht, startet die Tour von selbst, ohne vorher zu fragen. Nur einmal je Sitzung
+  // (entschieden), genau wie das Angebot, das sie hier ersetzt.
+  const wartetAufAutostart = useRef(false);
+  const vorigeCeoPhase = useRef(ceoStand?.phase);
+  useEffect(() => {
+    if (vorigeCeoPhase.current === "laeuft" && ceoStand?.phase === "fertig") wartetAufAutostart.current = true;
+    vorigeCeoPhase.current = ceoStand?.phase;
+  }, [ceoStand?.phase]);
+  useEffect(() => {
+    if (!wartetAufAutostart.current || entschieden.current || !schritte || schritte.length === 0 || phase !== "aus") return;
+    const id = window.setTimeout(() => {
+      wartetAufAutostart.current = false;
+      starten();
+    }, 0);
+    return () => window.clearTimeout(id);
+  }, [schritte, phase, starten]);
 
   // Autopilot: nach der Lesezeit der Station zur naechsten.
   const aktuell = schritte?.[schritt];
@@ -243,5 +300,7 @@ export function useComplianceTour(): ComplianceTourAnzeige {
     tourZustand: phase === "fertig" ? "fertig" : "ruhe",
     tourZiel: phase === "laeuft" ? ziel : null,
     huepf,
+    verfuegbar: !!schritte && schritte.length > 0,
+    starten,
   };
 }

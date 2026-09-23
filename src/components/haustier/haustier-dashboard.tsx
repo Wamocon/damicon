@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useCeoPruefung } from "@/components/dashboard/ceo-pruefung-kontext";
+import { useComplianceTourAnzeige } from "@/components/dashboard/compliance-tour-kontext";
 import { usePersona } from "@/components/dashboard/persona";
-import { useComplianceTour } from "@/components/dashboard/use-compliance-tour";
 import { AbzeichenModal } from "@/components/haustier/abzeichen-modal";
 import { DamiconLogo } from "@/components/brand/damicon-logo";
 import { HaustierHuelle } from "@/components/haustier/haustier-huelle";
@@ -14,7 +14,7 @@ import { useHaustierAktionen, useHaustierStatus } from "@/components/haustier/ha
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { useIstHandy } from "@/components/ui/handy";
 import { usePathname } from "@/i18n/navigation";
-import { bewegungReduziert, feinerZeiger } from "@/lib/bewegung";
+import { bewegungReduziert } from "@/lib/bewegung";
 import { haustierZustand, modulAusPfad, springeZuAnker, type Stimmung } from "@/lib/haustier";
 import { modules } from "@/lib/modules";
 import { hasPermission } from "@/lib/rbac";
@@ -57,7 +57,7 @@ export function HaustierDashboard() {
   const { stelleFrage, schickeWeg, holeZurueck } = useHaustierAktionen();
   const pfad = usePathname();
   const { role } = usePersona();
-  const tour = useComplianceTour();
+  const tour = useComplianceTourAnzeige();
   const ceoStand = useCeoPruefung();
   // Auf dem Handy steht Himbi in der unteren Leiste (untere-leiste.tsx) und
   // nicht frei im Bild. Frei schwebend deckte er dort Karteninhalt zu, und
@@ -91,7 +91,7 @@ export function HaustierDashboard() {
       setLiveHinweisAktiv(true);
       setLiveZiel(ziel);
       setLiveHuepf((n) => n + 1);
-      springeZuAnker("compliance-live-lauf", { feinerZeiger: feinerZeiger(), bewegungReduziert: bewegungReduziert() });
+      springeZuAnker("compliance-live-lauf", { bewegungReduziert: bewegungReduziert() });
       window.clearTimeout(liveHinweisTimer.current);
       liveHinweisTimer.current = window.setTimeout(() => setLiveHinweisAktiv(false), LIVE_HINWEIS_DAUER_MS);
     }, 0);

@@ -1,22 +1,21 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useComplianceTour, type ComplianceTourAnzeige, type ComplianceTourSchritt } from "@/components/dashboard/use-compliance-tour";
 
-// Bruecke zwischen der CEO-Bereichsuebersicht (ceo-bereichs-kacheln.tsx, kennt den Bericht) und
-// Himbi im Dashboard (haustier-dashboard.tsx, haelt die einzige schwebende Figur). Beide haengen
-// nur als Geschwister unter demselben Layout - die Uebersicht meldet hier an, WELCHE Stationen es
-// auf der aktuellen Seite zu zeigen gibt (leer/verlassen: wieder abmelden), Himbi fragt hier ab,
-// ob es ueberhaupt etwas zu fuehren gibt. Ohne diese Bruecke braeuchte die Tour eine zweite,
-// eigene Figur - zwei Himbis auf einer Seite waeren kein Fuehrer, sondern eine Verwirrung.
+// Bruecke zwischen der CEO-Bereichsuebersicht (ceo-bereichs-kacheln.tsx, kennt den Bericht,
+// meldet die Stationen an), Himbi im Dashboard (haustier-dashboard.tsx, haelt die einzige
+// schwebende Figur, zeigt die Tour) und einem Neustart-Knopf (ceo-bereichs-kacheln.tsx, jederzeit
+// erreichbar). Alle drei haengen nur als Geschwister unter demselben Layout - ohne diese Bruecke
+// braeuchte die Tour eine zweite, eigene Figur oder einen unerreichbaren, einmaligen Zustand.
+//
+// Der Hook mit der eigentlichen Tour-Logik (use-compliance-tour.tsx) wird bewusst HIER, ein
+// einziges Mal, aufgerufen - nicht in HaustierDashboard. Nur so teilen sich die Huelle (die die
+// Tour anzeigt) und der Neustart-Knopf (der sie erneut auslöst) denselben Zustand.
 
-export interface ComplianceTourSchritt {
-  /** id des Abschnitts, zu dem gescrollt wird (Kopfkarte oder eine Bereichs-Kachel). */
-  anker: string;
-  titel: string;
-  text: string;
-}
+export type { ComplianceTourSchritt } from "@/components/dashboard/use-compliance-tour";
 
-interface ComplianceTourApi {
+interface ComplianceTourApi extends ComplianceTourAnzeige {
   schritte: ComplianceTourSchritt[] | null;
   registriere: (schritte: ComplianceTourSchritt[] | null) => void;
 }
@@ -26,11 +25,12 @@ const ComplianceTourContext = createContext<ComplianceTourApi | null>(null);
 export function ComplianceTourProvider({ children }: { children: ReactNode }) {
   const [schritte, setSchritte] = useState<ComplianceTourSchritt[] | null>(null);
   const registriere = useCallback((s: ComplianceTourSchritt[] | null) => setSchritte(s), []);
-  const value = useMemo(() => ({ schritte, registriere }), [schritte, registriere]);
+  const anzeige = useComplianceTour(schritte);
+  const value = useMemo<ComplianceTourApi>(() => ({ schritte, registriere, ...anzeige }), [schritte, registriere, anzeige]);
   return <ComplianceTourContext.Provider value={value}>{children}</ComplianceTourContext.Provider>;
 }
 
-/** Fuer Himbi: die Stationen der aktuellen Seite, oder null - dann gibt es (noch) keine Tour. */
+/** Fuer die Bereichsuebersicht: die aktuellen Stationen, oder null - dann gibt es (noch) keine Tour. */
 export function useComplianceTourSchritte(): ComplianceTourSchritt[] | null {
   return useContext(ComplianceTourContext)?.schritte ?? null;
 }
@@ -48,4 +48,33 @@ export function useRegistriereComplianceTour(schritte: ComplianceTourSchritt[] |
     // ueber die Array-Referenz selbst wuerde jeder Render (neue Bericht-Referenz) erneut anmelden.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [registriere, schluessel]);
+}
+
+const LEER_ANZEIGE: ComplianceTourAnzeige = {
+  frageBereit: false,
+  frageBlase: null,
+  aktiv: false,
+  tourBlase: null,
+  tourZustand: "ruhe",
+  tourZiel: null,
+  huepf: 0,
+  verfuegbar: false,
+  starten: () => {},
+};
+
+/** Fuer Himbi (haustier-dashboard.tsx): alles, was in ihre Blase, ihren Zustand und ihr
+ *  Blickziel einfliesst. */
+export function useComplianceTourAnzeige(): ComplianceTourAnzeige {
+  return useContext(ComplianceTourContext) ?? LEER_ANZEIGE;
+}
+
+/** Fuer einen Neustart-Knopf ausserhalb von Himbi (ceo-bereichs-kacheln.tsx): ob es ueberhaupt
+ *  etwas zu zeigen gibt, ob die Tour gerade laeuft, und die eine Funktion, die sie (wieder) startet. */
+export function useComplianceTourSteuerung(): Pick<ComplianceTourAnzeige, "verfuegbar" | "aktiv" | "starten"> {
+  const api = useContext(ComplianceTourContext);
+  return {
+    verfuegbar: api?.verfuegbar ?? false,
+    aktiv: api?.aktiv ?? false,
+    starten: api?.starten ?? LEER_ANZEIGE.starten,
+  };
 }

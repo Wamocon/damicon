@@ -3125,7 +3125,8 @@
       "bereich": "{reife} out of 100 points, {stufe}. {anzahl, plural, one {# finding} other {# findings}}. Click the tile for details.",
       "massnahmen": "{anzahl, plural, one {# open action} other {# open actions}} with a deadline and an owner.",
       "einschraenkungen": "{anzahl, plural, one {# review field could not be fully assessed.} other {# review fields could not be fully assessed.}}",
-      "ende": "That was all four areas. Click a tile any time to see the full details."
+      "ende": "That was all four areas. Click a tile any time to see the full details.",
+      "neustart": "Restart tour"
     },
     "liveHinweis": "The compliance check is running live right now, you can watch every step here. It usually takes under a minute, feel free to keep working in the meantime.",
     "liveHinweisKnopf": "Got it"
