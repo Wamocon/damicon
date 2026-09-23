@@ -1,0 +1,44 @@
+/* Tages-Uebersicht auf der Startseite: der Kopf oberhalb der Reiterleiste und die vier
+   Kacheln im Reiter "CEO-Compliance".
+
+   Erweitert die Bausteine aus components/pruefung/pruefung.css, statt sie zu kopieren -
+   deshalb tragen die Klassen hier denselben pr-Praefix. Die Datei liegt beim Dashboard und
+   nicht bei der Pruefung, weil sie ausschliesslich dort gilt: pruefung.css beschreibt den
+   Bericht, diese Datei seine Fassung auf der Startseite.
+
+   Farbe traegt nirgends allein die Bedeutung (DESIGN.md Regel 7): jede Stufe steht zusaetzlich
+   als Wort in der Urteilszeile, jeder Zahlenchip traegt seinen Namen. */
+
+/* pruefung.css enthaelt @container pa (max-width: 620px) fuer die Kopfkarte. Der Container
+   wird sonst nur von .pa in pruefung-ablauf.css aufgemacht, also im KI-Panel. Ohne ihn
+   bliebe die Kopfkarte auf dem Handy zweispaltig - der Ring neben einem 120 px schmalen
+   Textblock. Dieselbe Zeile, damit die vorhandene Regel hier genauso greift. */
+.tages-flaeche {
+  container: pa / inline-size;
+  display: grid;
+  gap: 0.9rem;
+}
+
+/* Die Kacheln sind Links, keine Knoepfe - sie funktionieren damit ohne JavaScript
+   (DESIGN.md Regel 6). Mit JavaScript faengt onClick sie ab und oeffnet das Blatt; ohne
+   fuehrt der Link auf /dashboard/compliance. */
+.pr-kachel--verweis {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Hover hebt die Kachel um 1 px (pruefung.css). Der Rueckfall fehlte dort. */
+@media (prefers-reduced-motion: reduce) {
+  .pr-kachel {
+    transition: none;
+  }
+  .pr-kachel:hover {
+    transform: none;
+  }
+}
+
+/* Bereich, den der Bericht nicht fuehrt: traegt keine Reife und darf deshalb weder gruen
+   noch rot wirken. */
+[data-stufe="offen"] {
+  --stufe: var(--muted-foreground);
+}

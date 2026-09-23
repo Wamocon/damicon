@@ -335,10 +335,7 @@
       "target": "Ziel",
       "zonesTitle": "Die vier Zonen",
       "zonesDescription": "Jede Zone mit ihren Kennzahlen und ihren Modulen.",
-      "wipCount": "{count} noch nicht verfügbar",
-      "openZone": "Zone öffnen",
-      "zoneOhneKennzahl": "Für diese Zone ist keine Kennzahl freigegeben.",
-      "moduleTitel": "Module"
+      "openZone": "Zone öffnen"
     },
     "loading": "Daten werden geladen",
     "askAi": "KI fragen",
@@ -385,7 +382,12 @@
     "zoneKennzahlTitel": "Kennzahlen",
     "zoneKennzahlLead": "Die Kennzahlen dieses Bereichs, die dringendste zuerst.",
     "zoneKennzahlMehr": "{count, plural, one {# weitere Kennzahl anzeigen} other {# weitere Kennzahlen anzeigen}}",
-    "zoneKennzahlWeniger": "Weitere Kennzahlen ausblenden"
+    "zoneKennzahlWeniger": "Weitere Kennzahlen ausblenden",
+    "bereiche": {
+      "titel": "Die vier Bereiche",
+      "lead": "Jeder Bereich mit seinen Kennzahlen, Auffälliges zuerst.",
+      "ohneKennzahl": "Für diesen Bereich ist keine Kennzahl freigegeben."
+    }
   },
   "roles": {
     "switcherHint": "Demo-Rolle wechseln - steuert die sichtbare Navigation",
@@ -1235,7 +1237,12 @@
     "kosten": "Kosten",
     "deckungsbeitrag": "Deckungsbeitrag",
     "buchungen": "Buchungen: {anzahl}",
-    "link": "Zur Finanzseite"
+    "link": "Zur Finanzseite",
+    "gegenVormonat": "{anteil} gegenüber dem Vormonat",
+    "ueberVormonat": "{anteil} über dem Vormonat ({betrag})",
+    "unterVormonat": "{anteil} unter dem Vormonat ({betrag})",
+    "ohneVormonat": "Im Vormonat wurde nichts gebucht, es gibt nichts zu vergleichen.",
+    "imJahr": "Im laufenden Jahr: {deckungsbeitrag} aus {anzahl, plural, one {# Buchung} other {# Buchungen}}."
   },
   "dokumenteDemo": {
     "listTitle": "Dokumente",
@@ -3209,8 +3216,8 @@
     }
   },
   "ceoUebersicht": {
-    "titel": "Compliance-Übersicht",
-    "untertitel": "Automatisch bei jedem Login geprüft, alle vier Bereiche in einem Lauf.",
+    "titel": "Das Wichtigste heute",
+    "untertitel": "Stand der vier Prüfbereiche und der Finanzen, automatisch bei jedem Login geprüft.",
     "zuletztGeprueft": "Zuletzt geprüft am {datum}",
     "nochKeinBericht": "Noch kein automatischer Bericht vorhanden. Der erste Lauf startet im Hintergrund nach diesem Login, laden Sie die Seite in ein paar Minuten neu.",
     "aktualisieren": "Jetzt neu prüfen",
@@ -3228,6 +3235,19 @@
       "statusVeraendert": "Status geändert: {vorher} → {jetzt}",
       "schwereVeraendert": "Schwere geändert: {vorher} → {jetzt}"
     },
+    "punkteTitel": "Worauf es heute ankommt",
+    "keinePunkte": "Keine offenen Punkte aus dem letzten Bericht.",
+    "ohneZusammenfassung": "{punkte, plural, one {# offener Punkt} other {# offene Punkte}} im letzten Bericht.",
+    "zahlen": {
+      "sofort": "{anzahl, plural, one {# sofort} other {# sofort}}",
+      "ohneDaten": "{anzahl, plural, one {# Punkt ohne Daten} other {# Punkte ohne Daten}}"
+    },
+    "veraltet": "Älter als 24 Stunden",
+    "weitereAenderungen": "und {anzahl} weitere",
+    "vollerBericht": "Vollen Bericht öffnen",
+    "laeuftBereits": "Eine Prüfung läuft bereits.",
+    "nichtGeprueft": "Nicht geprüft",
+    "ohneDaten": "Keine aktuellen Daten",
     "tour": {
       "frage": "Soll ich dir die vier Prüfbereiche zeigen?",
       "kopfTitel": "Das Gesamtbild",
@@ -3326,5 +3346,36 @@
     },
     "verifikation": "Der Inhalt dieses Berichts ist mit einer SHA-256-Prüfsumme versiegelt. Wer die begleitende JSON-Datei besitzt, kann das Siegel in Damicon über „Siegel prüfen“ nachrechnen; jede nachträgliche Änderung fällt auf.",
     "tipp": "Tipp für den Druckdialog: „Kopf- und Fußzeilen“ ausschalten, Papierformat A4. Farben und Marke werden automatisch übernommen."
+  },
+  "complianceBericht": {
+    "titel": "Compliance-Bericht",
+    "lead": "Der zuletzt gespeicherte Gesamtbericht über Audit, Steuern, Recht und Risiko.",
+    "zurueck": "Zurück zur Übersicht",
+    "stand": "Stand {datum}",
+    "keinBericht": "Es liegt noch kein gespeicherter Bericht vor. Der erste Lauf startet im Hintergrund nach dem nächsten Login."
+  },
+  "startkarte": {
+    "brigade": {
+      "label": "Offene Pflückaufgaben",
+      "kontext": "Noch nicht abgeschlossen.",
+      "keine": "Nichts offen.",
+      "weiter": "Zu den Pflückaufgaben"
+    },
+    "pfluecker": {
+      "label": "Letzter Lohnlauf",
+      "kontext": "Bis {bis} · {status}",
+      "weiter": "Zum Lohn",
+      "status": {
+        "entwurf": "Entwurf",
+        "freigegeben": "freigegeben",
+        "ausgezahlt": "ausgezahlt"
+      }
+    },
+    "kunde": {
+      "label": "Nächste Lieferung",
+      "kontext": "{termin}",
+      "kontextMehrere": "{termin} · {anzahl} Posten",
+      "weiter": "Zum B2B-Portal"
+    }
   }
 }

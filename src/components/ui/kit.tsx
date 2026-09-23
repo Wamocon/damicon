@@ -261,8 +261,8 @@ export function Stat({
 // Faellt eine Zelle weg, deren Kopf stehen bleibt, verschieben sich alle
 // Beschriftungen ab dieser Spalte um eins. Sichtbar wird das nur unter `md`
 // und nur an einem falschen Namen neben einem richtigen Wert - am Schreibtisch
-// faellt es niemandem auf. Deshalb steht der Fall in kit-bausteine.tsx auf dem
-// Pruefstand, in beiden Richtungen.
+// faellt es niemandem auf. Deshalb steht der Fall in
+// supabase/tests/kit-bausteine.tsx auf dem Pruefstand, in beiden Richtungen.
 //
 // Zellen mit colSpan sind keine Werte, sondern Meldungen ueber die ganze
 // Breite ("keine Daten"). Sie bekommen keine Beschriftung und zaehlen ihre

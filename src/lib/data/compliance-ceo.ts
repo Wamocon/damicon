@@ -1,9 +1,10 @@
+import { cache } from "react";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 import type { BefundAenderung, Bericht } from "@/lib/pruefung/typen";
 
 // Liest den automatischen CEO-Compliance-Bericht (compliance_ceo_berichte,
-// Migration 20261103030000). RLS beschraenkt SELECT auf ceo/admin (has_role()),
+// Migration 20261108020000). RLS beschraenkt SELECT auf ceo/admin (has_role()),
 // diese Funktion filtert selbst nicht zusaetzlich nach Rolle.
 
 export interface CeoBerichtZeile {
@@ -29,8 +30,11 @@ function zuZeile(data: {
     aenderungen: Array.isArray(data.aenderungen) ? (data.aenderungen as BefundAenderung[]) : [],
   };
 }
+// Seit dem Reiter-Umbau lesen zwei Server Components denselben Bericht: der Kopf
+// (tages-uebersicht.tsx) und der Reiter Lage (tages-lage.tsx). React.cache() macht daraus
+// eine Abfrage je Anforderung - dasselbe Muster wie ladeKpis() und getSessionProfile().
 
-export async function letzterCeoBericht(): Promise<CeoBerichtZeile | null> {
+export const letzterCeoBericht = cache(async (): Promise<CeoBerichtZeile | null> => {
   if (!isSupabaseConfigured()) return null;
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -41,4 +45,4 @@ export async function letzterCeoBericht(): Promise<CeoBerichtZeile | null> {
     .maybeSingle();
   if (error || !data) return null;
   return zuZeile(data);
-}
+});

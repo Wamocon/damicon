@@ -335,10 +335,7 @@
       "target": "Target",
       "zonesTitle": "The four zones",
       "zonesDescription": "Each zone with its indicators and its modules.",
-      "wipCount": "{count} not available yet",
-      "openZone": "Open zone",
-      "zoneOhneKennzahl": "No indicator is released for this zone.",
-      "moduleTitel": "Modules"
+      "openZone": "Open zone"
     },
     "loading": "Loading data",
     "askAi": "Ask AI",
@@ -385,7 +382,12 @@
     "zoneKennzahlTitel": "Key figures",
     "zoneKennzahlLead": "This area's key figures, the most urgent one first.",
     "zoneKennzahlMehr": "{count, plural, one {Show # more key figure} other {Show # more key figures}}",
-    "zoneKennzahlWeniger": "Hide additional key figures"
+    "zoneKennzahlWeniger": "Hide additional key figures",
+    "bereiche": {
+      "titel": "The four areas",
+      "lead": "Each area with its metrics, anything off target first.",
+      "ohneKennzahl": "No metric is released for this area."
+    }
   },
   "roles": {
     "switcherHint": "Switch demo role - controls the visible navigation",
@@ -1235,7 +1237,12 @@
     "kosten": "Cost",
     "deckungsbeitrag": "Contribution margin",
     "buchungen": "Postings: {anzahl}",
-    "link": "Go to finances"
+    "link": "Go to finances",
+    "gegenVormonat": "{anteil} against last month",
+    "ueberVormonat": "{anteil} above last month ({betrag})",
+    "unterVormonat": "{anteil} below last month ({betrag})",
+    "ohneVormonat": "Nothing was posted last month, so there is nothing to compare.",
+    "imJahr": "This year so far: {deckungsbeitrag} from {anzahl, plural, one {# posting} other {# postings}}."
   },
   "dokumenteDemo": {
     "listTitle": "Documents",
@@ -3209,8 +3216,8 @@
     }
   },
   "ceoUebersicht": {
-    "titel": "Compliance overview",
-    "untertitel": "Checked automatically on every login, all four areas in one run.",
+    "titel": "What matters today",
+    "untertitel": "State of the four audit areas and of finances, checked automatically on every login.",
     "zuletztGeprueft": "Last checked on {datum}",
     "nochKeinBericht": "No automatic report yet. The first run starts in the background after this login, reload the page in a few minutes.",
     "aktualisieren": "Check now",
@@ -3228,6 +3235,19 @@
       "statusVeraendert": "Status changed: {vorher} → {jetzt}",
       "schwereVeraendert": "Severity changed: {vorher} → {jetzt}"
     },
+    "punkteTitel": "What needs attention today",
+    "keinePunkte": "No open points from the last report.",
+    "ohneZusammenfassung": "{punkte, plural, one {# open point} other {# open points}} in the last report.",
+    "zahlen": {
+      "sofort": "{anzahl, plural, one {# immediate} other {# immediate}}",
+      "ohneDaten": "{anzahl, plural, one {# point without data} other {# points without data}}"
+    },
+    "veraltet": "Older than 24 hours",
+    "weitereAenderungen": "and {anzahl} more",
+    "vollerBericht": "Open the full report",
+    "laeuftBereits": "A check is already running.",
+    "nichtGeprueft": "Not checked",
+    "ohneDaten": "No current data",
     "tour": {
       "frage": "Shall I show you the four review areas?",
       "kopfTitel": "The big picture",
@@ -3326,5 +3346,36 @@
     },
     "verifikation": "The content of this report is sealed with a SHA-256 checksum. Anyone with the accompanying JSON file can recompute the seal in Damicon with \"Verify seal\"; any later change is detected.",
     "tipp": "Tip for the print dialog: turn \"Headers and footers\" off, paper size A4. Colours and branding are applied automatically."
+  },
+  "complianceBericht": {
+    "titel": "Compliance report",
+    "lead": "The most recently stored overall report on audit, tax, law and risk.",
+    "zurueck": "Back to overview",
+    "stand": "As of {datum}",
+    "keinBericht": "No stored report yet. The first run starts in the background after the next login."
+  },
+  "startkarte": {
+    "brigade": {
+      "label": "Open picking tasks",
+      "kontext": "Not yet completed.",
+      "keine": "Nothing open.",
+      "weiter": "Go to picking tasks"
+    },
+    "pfluecker": {
+      "label": "Last payroll run",
+      "kontext": "Through {bis} · {status}",
+      "weiter": "Go to payroll",
+      "status": {
+        "entwurf": "draft",
+        "freigegeben": "approved",
+        "ausgezahlt": "paid"
+      }
+    },
+    "kunde": {
+      "label": "Next delivery",
+      "kontext": "{termin}",
+      "kontextMehrere": "{termin} · {anzahl} items",
+      "weiter": "Go to the B2B portal"
+    }
   }
 }

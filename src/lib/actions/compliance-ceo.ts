@@ -4,16 +4,18 @@ import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
 import { getSessionProfile } from "@/lib/auth";
 import { aktualisiereCeoBericht, type AktualisiereCeoBerichtErgebnis } from "@/lib/pruefung/ceo-auto";
+import { darfCeoBericht } from "@/lib/pruefung/rollen";
 
-// Manueller "Jetzt neu pruefen"-Knopf auf der CEO-Uebersicht
-// (ceo-compliance-uebersicht.tsx). Anders als der Login-Ausloeser
+// Manueller "Jetzt neu pruefen"-Knopf auf der Tages-Uebersicht
+// (tages-uebersicht.tsx). Anders als der Login-Ausloeser
 // (app/api/ki-pruefung/auto/route.ts, live gestreamt) ist das eine einfache,
 // blockierende Server Action ohne Live-Fortschritt: wer den Knopf drueckt,
 // wartet bewusst auf ein Ergebnis. erzwungen: true ueberspringt deshalb auch
-// die Aenderungserkennung.
+// die Aenderungserkennung UND die Abkuehlzeit - sonst taete der Knopf sichtbar
+// nichts, wenn gerade jemand anderes einen Lauf ausgeloest hat.
 export async function ceoBerichtAktualisieren(): Promise<AktualisiereCeoBerichtErgebnis> {
   const profil = await getSessionProfile();
-  if (!profil || profil.role !== "ceo") {
+  if (!profil || !darfCeoBericht(profil.role)) {
     return { status: "fehler", grund: "keine-berechtigung" };
   }
   const sprache = await getLocale();
