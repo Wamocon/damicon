@@ -13,7 +13,7 @@ import { text, zahl, aktualisiere, protokolliere as protokolliereBasis } from "@
 // admin diese Aktion (ueber all(resource)), NICHT einmal ceo (dort bewusst
 // ausgenommen, siehe Kommentar bei rolePermissions.ceo: ein IT-Betriebsthema,
 // kein Fuehrungsthema). RLS auf ki_ratenlimit_einstellungen (nur admin, siehe
-// Migration 20261109090000) ist die zweite Verteidigungslinie.
+// Migration 20261110010000) ist die zweite Verteidigungslinie.
 
 function protokolliere(profil: SessionProfile, aktion: string, ressourceId: string | null, grenze: number | null) {
   return protokolliereBasis(profil, aktion, "ki_ratenlimit_einstellungen", ressourceId, {

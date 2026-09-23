@@ -12,7 +12,7 @@
 // Zwei getrennte Verantwortlichkeiten in dieser Datei:
 //   1. ladeRatenlimitGrenze() - liest den admin-konfigurierten GRENZWERT aus
 //      der Datenbank (Tabelle ki_ratenlimit_einstellungen, Migration
-//      20261109090000, Verwaltungsoberflaeche in den KI-Einstellungen,
+//      20261110010000, Verwaltungsoberflaeche in den KI-Einstellungen,
 //      KiRatenlimitVerwaltung in components/db/ki-assistent-formulare.tsx).
 //      Auf ausdruecklichen Wunsch admin-konfigurierbar statt einer fest
 //      codierten Konstante: OHNE jede Admin-Einstellung gilt ausdruecklich
