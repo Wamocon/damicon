@@ -364,7 +364,11 @@ export function HaustierDashboard() {
     },
     {
       sichtbar: befindenBlase && !!befinden,
-      blase: (
+      // Wie bei anstupser/tipp unten: erst bei echtem Wert bauen, nicht nur bei echtem
+      // "sichtbar" pruefen - alle Kandidaten werden unabhaengig vom Gewinner konstruiert, ein
+      // befinden.antwort.null wuerde sonst bei jedem Rendern eine next-intl-Fehlermeldung
+      // auf der Konsole erzeugen (live verifiziert).
+      blase: befinden ? (
         <>
           <p className="hb-blase__text">{t(`befinden.antwort.${befinden}`)}</p>
           {befinden === "viel" ? (
@@ -382,7 +386,7 @@ export function HaustierDashboard() {
             </div>
           ) : null}
         </>
-      ),
+      ) : null,
     },
     {
       sichtbar: anstupserSichtbar && !!anstupser,
