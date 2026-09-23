@@ -2240,6 +2240,10 @@
     "satzLead": "Basis of the calculation: hourly rate, per-kg rate and the quality-factor corridor. Whoever is paid by it may see the basis.",
     "keinSatz": "No pay rate on file yet - no period can be calculated without one.",
     "wirkungslos": "The quality factor does not move away from 1.00 across the settlements shown - it currently has no visible effect on pay here. This can be due to missing waste data, not necessarily the formula.",
+    "abschlussLuecke": {
+      "titel": "Completed tasks without crates - missing from the settlement",
+      "eintrag": "{code}: {menge} kg reported, but no crate recorded - the volume component will not be included in the period calculation."
+    },
     "historieTitel": "Rate history",
     "historieLead": "All rates ever created, with their validity period - the highlighted one is valid today, not necessarily the most recently created.",
     "stat": {

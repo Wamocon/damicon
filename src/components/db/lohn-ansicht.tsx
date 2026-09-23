@@ -32,7 +32,8 @@ export async function LohnAnsicht() {
   const zahl1 = (n: number, stellen = 1) => format.number(n, { maximumFractionDigits: stellen });
   const datum = (iso: string) => format.dateTime(new Date(iso), { dateStyle: "medium" });
 
-  const { satz, historie, abrechnungen, positionen, steuersatzKz, monatsabzuege } = uebersicht;
+  const { satz, historie, abrechnungen, positionen, steuersatzKz, monatsabzuege, abschlussLuecken } =
+    uebersicht;
   const kzt = await getTranslations("lohnAnsicht.kz");
   const monatName = (monat: number) =>
     format.dateTime(new Date(Date.UTC(2000, monat - 1, 1)), { month: "long" });
@@ -115,6 +116,22 @@ export async function LohnAnsicht() {
       {faktorWirkungslos ? (
         <Card className="border-warning/30 bg-warning/[0.06] text-xs leading-5 text-warning">
           {t("wirkungslos")}
+        </Card>
+      ) : null}
+
+      {/* WMCNL-2375: lohn_periode_berechnen() liest die Mengenkomponente nur
+          aus Steigen - eine abgeschlossene Aufgabe mit gemeldeter Menge, aber
+          ohne jede Steige, fiel bislang kommentarlos aus der Abrechnung. */}
+      {abschlussLuecken.length > 0 ? (
+        <Card className="space-y-2 border-warning/30 bg-warning/[0.06] text-xs leading-5 text-warning">
+          <p className="font-semibold">{t("abschlussLuecke.titel")}</p>
+          <ul className="list-disc space-y-0.5 pl-4">
+            {abschlussLuecken.map((a) => (
+              <li key={a.id}>
+                {t("abschlussLuecke.eintrag", { code: a.code, menge: zahl1(a.istMengeKg) })}
+              </li>
+            ))}
+          </ul>
         </Card>
       ) : null}
 

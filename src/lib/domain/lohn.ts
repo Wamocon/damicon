@@ -54,6 +54,19 @@ export interface LohnAbrechnung {
   status: LohnStatus;
 }
 
+// WMCNL-2375: lohn_periode_berechnen() liest die Mengenkomponente
+// ausschliesslich aus steigen (bewusste Architekturentscheidung, siehe
+// Migrationskopf 20260908130000, Punkt 1 - Ausschuss liegt nur je Aufgabe
+// vor und wird ueber den kg-Anteil der Steigen umgelegt). Eine abgeschlossene
+// Aufgabe mit gemeldeter Menge, aber ohne jede Steige, geht dadurch still
+// aus der Lohnabrechnung - dieser Typ traegt genau diesen Luecke-Befund,
+// damit er sichtbar wird, statt das Kernmodell umzubauen.
+export interface LohnAbschlussLuecke {
+  id: string;
+  code: string;
+  istMengeKg: number;
+}
+
 export interface LohnPosition {
   id: string;
   pfluecker: string;

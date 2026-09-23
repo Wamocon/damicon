@@ -2240,6 +2240,10 @@
     "satzLead": "Grundlage der Berechnung: Stundenlohn, kg-Satz und der Korridor des Qualitätsfaktors. Wer danach bezahlt wird, darf die Grundlage sehen.",
     "keinSatz": "Noch kein Lohnsatz hinterlegt - ohne ihn lässt sich keine Periode berechnen.",
     "wirkungslos": "Der Qualitätsfaktor bewegt sich in den angezeigten Abrechnungen nicht von 1,00 weg - er hat hier aktuell keine erkennbare Lohnwirkung. Das kann an fehlenden Ausschusswerten liegen, nicht zwingend an der Formel.",
+    "abschlussLuecke": {
+      "titel": "Abgeschlossene Aufgaben ohne Steige - fehlen in der Abrechnung",
+      "eintrag": "{code}: {menge} kg gemeldet, aber keine Steige erfasst - die Mengenkomponente wird bei der Periodenberechnung nicht berücksichtigt."
+    },
     "historieTitel": "Verlauf der Lohnsätze",
     "historieLead": "Alle angelegten Sätze mit Gültigkeitszeitraum - der markierte ist der heute gültige, nicht zwingend der zuletzt angelegte.",
     "stat": {

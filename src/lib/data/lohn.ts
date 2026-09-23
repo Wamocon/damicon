@@ -7,6 +7,7 @@ import {
   demoLohnSatz,
   demoLohnSteuersatzKz,
   type LohnAbrechnung,
+  type LohnAbschlussLuecke,
   type LohnMonatsabzug,
   type LohnPosition,
   type LohnSatz,
@@ -37,6 +38,9 @@ export interface LohnUebersicht {
   positionen: LohnPosition[];
   steuersatzKz: LohnSteuersatzKz | null;
   monatsabzuege: LohnMonatsabzug[];
+  /** WMCNL-2375: abgeschlossene Aufgaben mit gemeldeter Menge, aber ohne
+   *  jede Steige - fallen sonst kommentarlos aus der Lohnabrechnung. */
+  abschlussLuecken: LohnAbschlussLuecke[];
 }
 
 function demoUebersicht(quelle: LohnUebersicht["quelle"] = "demo"): LohnUebersicht {
@@ -48,6 +52,7 @@ function demoUebersicht(quelle: LohnUebersicht["quelle"] = "demo"): LohnUebersic
     positionen: demoLohnPositionen,
     steuersatzKz: demoLohnSteuersatzKz,
     monatsabzuege: demoLohnMonatsabzuege,
+    abschlussLuecken: [],
   };
 }
 
@@ -62,6 +67,7 @@ export async function ladeLohnUebersicht(): Promise<LohnUebersicht> {
     { data: positionRows, error: positionFehler },
     { data: steuersatzRows, error: steuersatzFehler },
     { data: monatsabzugRows, error: monatsabzugFehler },
+    { data: lueckenRows, error: lueckenFehler },
   ] = await Promise.all([
     // WMCNL-2380: alle Saetze laden, nicht nur den juengsten - die Karte
     // "Grundlage der Berechnung" braucht den HEUTE gueltigen Satz (siehe
@@ -99,9 +105,27 @@ export async function ladeLohnUebersicht(): Promise<LohnUebersicht> {
       .order("jahr", { ascending: false })
       .order("monat", { ascending: false })
       .limit(100),
+    // WMCNL-2375: abgeschlossene Aufgaben mit gemeldeter Menge, deren
+    // Mengenkomponente lohn_periode_berechnen() mangels Steigen niemals
+    // erfassen wird (siehe Kommentar an LohnAbschlussLuecke). Das
+    // eingebettete steigen(id) liefert je Aufgabe ein (ggf. leeres) Array -
+    // kein separater Join noetig.
+    supabase
+      .from("pflueckaufgaben")
+      .select("id, code, ist_menge_kg, steigen ( id )")
+      .eq("status", "abgeschlossen")
+      .gt("ist_menge_kg", 0)
+      .limit(200),
   ]);
 
-  if (satzFehler || abrechnungFehler || positionFehler || steuersatzFehler || monatsabzugFehler) {
+  if (
+    satzFehler ||
+    abrechnungFehler ||
+    positionFehler ||
+    steuersatzFehler ||
+    monatsabzugFehler ||
+    lueckenFehler
+  ) {
     return demoUebersicht("fehler");
   }
 
@@ -205,5 +229,18 @@ export async function ladeLohnUebersicht(): Promise<LohnUebersicht> {
     };
   });
 
-  return { quelle: "db", satz, historie, abrechnungen, positionen, steuersatzKz, monatsabzuege };
+  const abschlussLuecken: LohnAbschlussLuecke[] = (lueckenRows ?? [])
+    .filter((a) => (a.steigen ?? []).length === 0)
+    .map((a) => ({ id: a.id, code: a.code, istMengeKg: Number(a.ist_menge_kg) }));
+
+  return {
+    quelle: "db",
+    satz,
+    historie,
+    abrechnungen,
+    positionen,
+    steuersatzKz,
+    monatsabzuege,
+    abschlussLuecken,
+  };
 }
