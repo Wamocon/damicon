@@ -993,6 +993,49 @@ if (leitung && brigade) {
     mengeFehler?.message ?? `ergebnis: ${mengeErgebnis?.ergebnis}`,
   );
 
+  // HOCH (WMCNL-2453): eine Steige an einer fremden Aufgabe muss sauber an
+  // der RLS scheitern (42501 -> "Ihre Rolle darf diesen Vorgang nicht
+  // ausfuehren"), nicht am Trigger steige_nummer_vergeben() mit der
+  // irrefuehrenden technischen Meldung "Steige ohne gueltige Pflueckaufgabe
+  // kann keine Nummer erhalten".
+  const { data: fremdeAufgabe } = await admin
+    .from("pflueckaufgaben")
+    .select("id, brigade_id")
+    .not("brigade_id", "is", null)
+    .neq("brigade_id", eigeneBrigade.brigade_id)
+    .limit(1)
+    .single();
+  const { error: fremdeSteigeFehler, data: fremdeSteigeInsert } = await brigade
+    .from("steigen")
+    .insert({
+      code: `STG-BR-${Date.now().toString().slice(-8)}`,
+      qr_token: `qr-br-${Date.now()}`,
+      pflueckaufgabe_id: fremdeAufgabe.id,
+    })
+    .select("id");
+  check(
+    "Steigen-RLS: Brigade legt keine Steige an einer fremden Aufgabe an (WMCNL-2453)",
+    fremdeSteigeFehler?.code === "42501",
+    fremdeSteigeFehler?.code ?? `eingefuegte Zeilen: ${fremdeSteigeInsert?.length}`,
+  );
+
+  const { error: eigeneSteigeFehler, data: eigeneSteigeInsert } = await brigade
+    .from("steigen")
+    .insert({
+      code: `STG-BR-${Date.now().toString().slice(-8)}-e`,
+      qr_token: `qr-br-e-${Date.now()}`,
+      pflueckaufgabe_id: brigadeTestAufgabe.id,
+    })
+    .select("id");
+  check(
+    "Steigen-RLS: Brigade legt weiterhin eine Steige an der eigenen Aufgabe an (WMCNL-2453)",
+    !eigeneSteigeFehler && (eigeneSteigeInsert?.length ?? 0) === 1,
+    eigeneSteigeFehler?.message ?? `eingefuegte Zeilen: ${eigeneSteigeInsert?.length}`,
+  );
+  if (eigeneSteigeInsert?.length) {
+    await admin.from("steigen").delete().in("id", eigeneSteigeInsert.map((s) => s.id));
+  }
+
   await admin.from("pflueckaufgaben").delete().eq("id", brigadeTestAufgabe.id);
 
   // HOCH: Steigen mit Personenbezug waren fuer kunde/erzeuger lesbar.
