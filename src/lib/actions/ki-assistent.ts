@@ -17,6 +17,7 @@ import {
 import { hasPermission } from "@/lib/rbac";
 import { sendeChatAnfrage } from "@/lib/ai/anbieter-client";
 import { sendeAgentAnfrage } from "@/lib/ai/agent";
+import { ladeRatenlimitGrenze, ratenlimitUeberschritten } from "@/lib/ai/ratenbegrenzung";
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
 import { transkribiereAudio, transkriptionsMeldung, waermeTranskriptionVor } from "@/lib/ai/transkription-client";
 import { spracherkennungAnbieter, transkribiereMitSoniox } from "@/lib/ai/soniox-client";
@@ -38,16 +39,19 @@ import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/a
 //      sendeChatAnfrage() (das laut eigenem Vertrag schon nie wirft) kann
 //      diese Aktion nicht zu einem ungefangenen Serverfehler machen.
 //
-// Bewusst offen (adversarischer Review, nicht in diesem Schritt behoben):
-// weder hier noch bei kiEskalationAnfordern gibt es eine Ratenbegrenzung -
-// jede Rolle mit "ki_assistent:create" kann beliebig oft einen echten,
-// kostenpflichtigen Modellaufruf bzw. eine Eskalationszeile ausloesen. Ein
-// Doppelklick/Retry auf "Senden" kann zudem zu doppelten Nachrichten und
-// doppeltem Modellaufruf fuehren (istErsteNachricht liest den Verlauf vor
-// dem Insert, keine Sperre gegen echte Gleichzeitigkeit) - abgemildert,
-// nicht ausgeschlossen, durch SubmitKnopf() (formular-kit.tsx), das den
-// Knopf waehrend eines laufenden Requests deaktiviert, dasselbe Mass an
-// Schutz wie bei jedem anderen Formular in diesem Projekt.
+// Ratenbegrenzung (Vibecode-Cleanup Phase 2, kritische Stabilisierung):
+// kiNachrichtSenden ist jetzt ueber ratenlimitUeberschritten() (lib/ai/
+// ratenbegrenzung.ts) begrenzt, siehe RBAC-Gate unten - vorher konnte jede
+// Rolle mit "ki_assistent:create" beliebig oft einen echten,
+// kostenpflichtigen Modellaufruf ausloesen. Bewusst weiterhin offen, nicht in
+// diesem Schritt behoben: kiEskalationAnfordern hat keine eigene Begrenzung
+// (loest keinen Modellaufruf aus, deutlich geringeres Kostenrisiko). Ein
+// Doppelklick/Retry auf "Senden" kann ausserdem weiterhin zu doppelten
+// Nachrichten und doppeltem Modellaufruf fuehren (istErsteNachricht liest den
+// Verlauf vor dem Insert, keine Sperre gegen echte Gleichzeitigkeit) -
+// abgemildert, nicht ausgeschlossen, durch SubmitKnopf() (formular-kit.tsx),
+// das den Knopf waehrend eines laufenden Requests deaktiviert, dasselbe Mass
+// an Schutz wie bei jedem anderen Formular in diesem Projekt.
 
 const MAX_VERLAUF_FUER_MODELL = 10;
 
@@ -95,6 +99,15 @@ export async function kiNachrichtSenden(
     profil = await requirePermission("ki_assistent", "create");
   } catch (error) {
     return zugriffsFehler(error);
+  }
+
+  // 1b. Ratenbegrenzung, siehe Kommentar oben und lib/ai/ratenbegrenzung.ts.
+  // Admin-konfigurierbar (KiRatenlimitVerwaltung in den KI-Einstellungen) -
+  // ohne Admin-Einstellung liefert ladeRatenlimitGrenze() null und
+  // ratenlimitUeberschritten() blockiert dann nie.
+  const ratenGrenze = await ladeRatenlimitGrenze(profil.role);
+  if (ratenlimitUeberschritten(profil.id, ratenGrenze)) {
+    return fehler("fehler.ratenlimit");
   }
 
   const nachricht = text(formData, "nachricht");

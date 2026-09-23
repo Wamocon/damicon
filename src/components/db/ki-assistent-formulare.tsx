@@ -32,6 +32,7 @@ import {
   kiAnbieterLoeschen,
   kiAnbieterStandardSetzen,
 } from "@/lib/actions/ki-anbieter";
+import { kiRatenlimitEntfernen, kiRatenlimitSetzen } from "@/lib/actions/ki-ratenlimit";
 import { leer } from "@/lib/actions/status";
 import { MikrofonKnopf as MikrofonAufnahmeKnopf } from "@/components/ki/mikrofon";
 import {
@@ -39,7 +40,9 @@ import {
   MAX_NACHRICHT_LAENGE,
   type KiAnbieterZeile,
   type KiChatNachrichtZeile,
+  type KiRatenlimitZeile,
 } from "@/lib/domain/ki-assistent";
+import { roles } from "@/lib/rbac";
 
 // --- Chatfenster -------------------------------------------------------------
 
@@ -338,6 +341,113 @@ function KiAnbieterZeileKarte({ anbieter }: { anbieter: KiAnbieterZeile }) {
       <AktionsMeldung status={standardStatus} />
       <AktionsMeldung status={loeschenStatus} />
     </Card>
+  );
+}
+
+// --- Admin: Ratenlimit-Verwaltung (Vibecode-Cleanup Phase 2, Fund 1) --------
+// Admin-konfigurierbares Ratenlimit statt einer fest codierten Konstante,
+// dasselbe Formular-/Karten-Muster wie KiAnbieterVerwaltung oben. Ohne jede
+// Zeile hier gilt fuer den Assistenten ausdruecklich kein Limit (siehe
+// lib/ai/ratenbegrenzung.ts) - "kein Eintrag" ist deshalb ein gueltiger,
+// beabsichtigter Zustand, kein Ladefehler.
+
+export function KiRatenlimitVerwaltung({ einstellungen }: { einstellungen: KiRatenlimitZeile[] }) {
+  const t = useTranslations("kiAssistentAnsicht.ratenlimitVerwaltung");
+
+  return (
+    <div className="space-y-3">
+      <p className="text-[11px] leading-4 text-muted-foreground">{t("lead")}</p>
+      {einstellungen.length === 0 ? (
+        <Card className="text-center text-xs text-muted-foreground">{t("keineEinstellung")}</Card>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {einstellungen.map((z) => (
+            <KiRatenlimitZeileKarte key={z.rolle ?? "alle"} zeile={z} />
+          ))}
+        </div>
+      )}
+      <KiRatenlimitSetzenFormular />
+    </div>
+  );
+}
+
+function KiRatenlimitZeileKarte({ zeile }: { zeile: KiRatenlimitZeile }) {
+  const t = useTranslations("kiAssistentAnsicht.ratenlimitVerwaltung");
+  const tRolle = useTranslations("roles");
+  const [entfernenStatus, entfernenAction] = useActionState(kiRatenlimitEntfernen, leer);
+  const rolleWert = zeile.rolle ?? "alle";
+  const label = zeile.rolle ? tRolle(zeile.rolle) : t("alleRollen");
+
+  return (
+    <Card>
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="text-sm font-black text-card-foreground">{label}</p>
+          <p className="text-[11px] text-muted-foreground">
+            {zeile.grenzeProMinute !== null
+              ? t("grenzeText", { grenze: String(zeile.grenzeProMinute) })
+              : t("keinLimitText")}
+          </p>
+        </div>
+        {!zeile.rolle ? <StatusPill tone="info">{t("standardBadge")}</StatusPill> : null}
+      </div>
+
+      <form
+        action={entfernenAction}
+        onSubmit={(event) => {
+          if (!window.confirm(t("entfernenSicher", { name: label }))) event.preventDefault();
+        }}
+        className="mt-3 border-t border-border pt-2.5"
+      >
+        <PfadFeld />
+        <input type="hidden" name="rolle" value={rolleWert} />
+        <button
+          type="submit"
+          className="inline-flex h-7 items-center rounded-lg border border-destructive/30 px-2.5 text-[11px] font-semibold text-destructive transition hover:border-destructive"
+        >
+          {t("entfernen")}
+        </button>
+      </form>
+      <AktionsMeldung status={entfernenStatus} />
+    </Card>
+  );
+}
+
+function KiRatenlimitSetzenFormular() {
+  const t = useTranslations("kiAssistentAnsicht.ratenlimitVerwaltung.formular");
+  const tVerwaltung = useTranslations("kiAssistentAnsicht.ratenlimitVerwaltung");
+  const tRolle = useTranslations("roles");
+  const [status, action] = useActionState(kiRatenlimitSetzen, leer);
+
+  return (
+    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+      <form action={action} className="grid gap-2.5 sm:grid-cols-2">
+        <PfadFeld />
+        <Auswahl
+          label={t("rolle")}
+          name="rolle"
+          required
+          options={[
+            { wert: "", text: t("bitteWaehlen") },
+            { wert: "alle", text: tVerwaltung("alleRollen") },
+            ...roles.map((r) => ({ wert: r, text: tRolle(r) })),
+          ]}
+        />
+        <Feld
+          label={t("grenze")}
+          name="grenze_pro_minute"
+          type="number"
+          inputMode="decimal"
+          placeholder={t("grenzePlatzhalter")}
+        />
+        <div className="flex items-end sm:col-span-2">
+          <SubmitKnopf label={t("knopf")} />
+        </div>
+        <div className="sm:col-span-2">
+          <AktionsMeldung status={status} />
+        </div>
+      </form>
+    </FormularKarte>
   );
 }
 

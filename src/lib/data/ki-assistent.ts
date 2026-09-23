@@ -5,6 +5,7 @@ import { getSessionProfile } from "@/lib/auth";
 import type {
   KiAnbieterZeile,
   KiChatNachrichtZeile,
+  KiRatenlimitZeile,
   WissensPreisliste,
 } from "@/lib/domain/ki-assistent";
 
@@ -46,6 +47,40 @@ export async function ladeKiAnbieterListe(): Promise<KiAnbieterUebersicht> {
       aktiv: a.aktiv,
       istStandard: a.ist_standard,
       erstelltAm: a.erstellt_am,
+    })),
+  };
+}
+
+// --- Ratenlimit-Einstellungen (nur Admin - RLS filtert alles andere ohnehin auf leer) --
+// Vibecode-Cleanup Phase 2, Fund 1: admin-konfigurierbares Ratenlimit statt
+// einer fest codierten Konstante. Dieselbe Lese-Seite (Sitzung des Admins,
+// RLS greift) wie ladeKiAnbieterListe() oben - der tatsaechliche
+// Durchsetzungs-Check fuer eine beliebige anfragende Rolle laeuft separat
+// ueber den service_role-Client (ladeRatenlimitGrenze(), lib/ai/
+// ratenbegrenzung.ts), nicht ueber diese Funktion.
+
+export interface KiRatenlimitUebersicht {
+  quelle: Datenquelle;
+  einstellungen: KiRatenlimitZeile[];
+}
+
+export async function ladeKiRatenlimitEinstellungen(): Promise<KiRatenlimitUebersicht> {
+  if (!isSupabaseConfigured()) return { quelle: "demo", einstellungen: [] };
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("ki_ratenlimit_einstellungen")
+    .select("rolle, grenze_pro_minute, aktualisiert_am")
+    .order("rolle", { ascending: true, nullsFirst: true });
+
+  if (error || !data) return { quelle: "fehler", einstellungen: [] };
+
+  return {
+    quelle: "db",
+    einstellungen: data.map((z) => ({
+      rolle: z.rolle,
+      grenzeProMinute: z.grenze_pro_minute,
+      aktualisiertAm: z.aktualisiert_am,
     })),
   };
 }

@@ -8,7 +8,7 @@ import { ComplianceTourProvider } from "@/components/dashboard/compliance-tour-k
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { UntereLeiste } from "@/components/dashboard/untere-leiste";
-import { KiAnbieterVerwaltung } from "@/components/db/ki-assistent-formulare";
+import { KiAnbieterVerwaltung, KiRatenlimitVerwaltung } from "@/components/db/ki-assistent-formulare";
 import { KiFuehrungsAnzeige } from "@/components/ki/ki-fuehrung";
 import { KiPane } from "@/components/ki/ki-pane";
 import { erlaubteBereiche } from "@/lib/pruefung/rollen";
@@ -19,7 +19,7 @@ import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { ladeAktivenStandardAnbieter } from "@/lib/ai/lade-anbieter";
-import { ladeKiAnbieterListe, ladeKiChatVerlauf } from "@/lib/data/ki-assistent";
+import { ladeKiAnbieterListe, ladeKiChatVerlauf, ladeKiRatenlimitEinstellungen } from "@/lib/data/ki-assistent";
 import { agentSeitenansichtAn } from "@/lib/domain/schalter";
 
 // Das Diktat laeuft als Server Action auf DIESER Seiten-Route, nicht ueber
@@ -61,13 +61,16 @@ export default async function DashboardLayout({
   // gerendertes Element ins Panel, statt eine eigene Seite zu brauchen.
   const darfKiNutzen = !demoModus && hasPermission(profil?.role, "ki_assistent", "create");
   const istKiAdmin = !demoModus && hasPermission(profil?.role, "ki_assistent", "manage");
-  const [aktiverAnbieter, kiVerlauf, anbieterListe] = darfKiNutzen
+  const [aktiverAnbieter, kiVerlauf, anbieterListe, ratenlimitEinstellungen] = darfKiNutzen
     ? await Promise.all([
         ladeAktivenStandardAnbieter(),
         ladeKiChatVerlauf(),
         istKiAdmin ? ladeKiAnbieterListe() : Promise.resolve(null),
+        // Ratenlimit-Verwaltung (Vibecode-Cleanup Phase 2, Fund 1): dieselbe
+        // Admin-Gate wie die Anbieterverwaltung, eigene Tabelle/Ladefunktion.
+        istKiAdmin ? ladeKiRatenlimitEinstellungen() : Promise.resolve(null),
       ])
-    : [null, null, null];
+    : [null, null, null, null];
 
   return (
     <PersonaProvider
@@ -108,6 +111,11 @@ export default async function DashboardLayout({
               pruefungBereiche={aktiverAnbieter?.typ === "anthropic" ? erlaubteBereiche(profil?.role) : []}
               einstellungen={
                 anbieterListe ? <KiAnbieterVerwaltung anbieter={anbieterListe.anbieter} /> : null
+              }
+              ratenlimitVerwaltung={
+                ratenlimitEinstellungen ? (
+                  <KiRatenlimitVerwaltung einstellungen={ratenlimitEinstellungen.einstellungen} />
+                ) : null
               }
             />
           ) : null}

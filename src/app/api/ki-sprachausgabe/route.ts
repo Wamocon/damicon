@@ -16,6 +16,7 @@ import { istSprache, stimmenSprache } from "@/lib/domain/antwortsprache";
 import { erkenneSprache } from "@/lib/wissen/chunker";
 import { pruefeAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
 import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
+import { ladeRatenlimitGrenze, ratenlimitUeberschritten, skaliereFuerSprachausgabe } from "@/lib/ai/ratenbegrenzung";
 
 // Zwischenspeicher: Bucket "ki-sprachausgabe" (Migration 20261101000000),
 // privat und nur ueber service_role erreichbar. Die Berechtigung haengt an der
@@ -38,6 +39,19 @@ export async function POST(req: Request) {
   // Dieselbe Berechtigung wie der Chat selbst: wer nicht chatten darf, hat
   // auch keine Antworten zum Vorlesen.
   if (!hasPermission(profil.role, "ki_assistent", "create")) return fehler(403, "keine-berechtigung");
+
+  // Ratenbegrenzung (Vibecode-Cleanup Phase 2): lib/ai/ratenbegrenzung.ts,
+  // eigener Namensraum ("tts:"), getrennt vom Chat-Zaehler in
+  // actions/ki-assistent.ts bzw. api/ki-assistent/route.ts - eine einzige
+  // Antwort kann hier mehrere Abschnitte ausloesen (Weg 2 unten), ein
+  // gemeinsamer Zaehler wuerde das Chat-Budget allein durch Sprachausgabe
+  // aufbrauchen. Admin-konfigurierbar (KiRatenlimitVerwaltung in den
+  // KI-Einstellungen), dieselbe Grenze wie der Chat, aber skaliert
+  // (skaliereFuerSprachausgabe) - ohne Admin-Einstellung gilt kein Limit.
+  const ratenGrenze = await ladeRatenlimitGrenze(profil.role);
+  if (ratenlimitUeberschritten(`tts:${profil.id}`, skaliereFuerSprachausgabe(ratenGrenze))) {
+    return fehler(429, "ratenlimit");
+  }
 
   let body: { nachrichtId?: unknown; sprache?: unknown; abschnitt?: unknown };
   try {
@@ -89,7 +103,15 @@ export async function POST(req: Request) {
     if (!stimmeDesZuges) return fehler(422, "keine-stimme", { sprache: zugSprache });
 
     const erzeugt = await erzeugeSprachausgabe(abschnittText, stimmeDesZuges);
-    if (!erzeugt.ok) return fehler(502, "dienst-fehler", { grund: erzeugt.grund });
+    if (!erzeugt.ok) {
+      // Vibecode-Cleanup-Fund (Phase 2): erzeugt.grund kann interne Details
+      // enthalten (Name einer Umgebungsvariable, bis zu 200 Zeichen
+      // Rohantwort von Sokrates/Caesar, siehe ai/sprachausgabe-client.ts) -
+      // nur ins Server-Protokoll, nicht an den Client. Dasselbe Muster wie
+      // weiter unten bei Weg 1.
+      console.error("[damicon] Sprachausgabe-Abschnitt fehlgeschlagen:", erzeugt.grund);
+      return fehler(502, "dienst-nicht-erreichbar");
+    }
     // Abschnitte werden NICHT zwischengespeichert: sie entstehen einmal,
     // werden einmal gesprochen, und der fertige Text ist danach ueber die
     // Nachrichten-ID erreichbar. Ein Zwischenspeicher waere Ablage ohne Leser.
@@ -98,10 +120,11 @@ export async function POST(req: Request) {
     // gueltige Signatur laesst sich innerhalb ihrer zehn Minuten wiederholt
     // einloesen, und weil nichts zwischengespeichert wird, kostet jede
     // Wiederholung eine Erzeugung. Die Signatur verhindert FREMDEN und
-    // VERAENDERTEN Text, nicht die Wiederholung des eigenen. Wer angemeldet
-    // ist, kann denselben Aufwand ohnehin ueber den Chat ausloesen - dort
-    // fehlt eine Ratenbegrenzung genauso (siehe actions/ki-assistent.ts).
-    // Ein Zwischenspeicher je Signatur waere der naechste Schritt.
+    // VERAENDERTEN Text, nicht die Wiederholung des eigenen. Die allgemeine
+    // Ratenbegrenzung oben (Vibecode-Cleanup Phase 2, lib/ai/
+    // ratenbegrenzung.ts) bremst auch dieses Muster mit, ist aber grosszuegig
+    // genug bemessen, um es nicht zuverlaessig zu verhindern. Ein
+    // Zwischenspeicher je Signatur waere der naechste, engere Schritt.
     return new Response(new Uint8Array(erzeugt.audio), {
       status: 200,
       headers: {

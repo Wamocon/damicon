@@ -453,7 +453,13 @@ pruefe("Auftrag: Arten werden unterschieden (code, kreativ, injektion)", zwecken
 pruefe("Auftrag: bei Zweckentfremdung keine Werkzeuge (toolChoice none), in Rechtsfragen und Agent-Modus ebenso", JSON.stringify(waehleSchritt({ stepNumber: 0, modus: "agent", neueNutzerFrage: true, frage: "Schreibe Code fuer die Steuer", wissenAngeboten: true, ausserhalb: true })) === '{"toolChoice":"none"}');
 pruefe("Auftrag: ohne Zweckentfremdung bleibt die Werkzeugwahl unveraendert", JSON.stringify(waehleSchritt({ stepNumber: 0, modus: "assistent", neueNutzerFrage: true, frage: "Ab welchem Umsatz Mehrwertsteuer?", wissenAngeboten: true, ausserhalb: false })) === '{"toolChoice":{"type":"tool","toolName":"wissenSuchen"}}');
 const routeQuelle4 = liesQuelle("src/app/api/ki-assistent/route.ts", "utf8");
-pruefe("Auftrag: der Systemprompt nennt den Auftrag und lehnt Fremdes ab, 'beantworte ALLES' ist weg", routeQuelle4.includes("NICHT DEIN AUFTRAG: Du bist kein Allzweck-Chatbot") && routeQuelle4.includes("DEIN AUFTRAG ist ausschliesslich der Betrieb") && !routeQuelle4.includes("Du beantwortest Fragen zu ALLEM"));
+// Vibecode-Cleanup Phase 2, Fund 3: der eigentliche Auftragstext steht jetzt
+// EINMAL in domain/ki-assistent.ts (baueAssistentKernauftrag), route.ts
+// importiert ihn statt ihn ein zweites Mal zu formulieren - deshalb hier
+// gegen die Domain-Quelle pruefen, plus dass route.ts tatsaechlich von dort
+// importiert (keine stille Rueckkehr zu einer eigenen Kopie).
+const domainQuelle = liesQuelle("src/lib/domain/ki-assistent.ts", "utf8");
+pruefe("Auftrag: der Systemprompt nennt den Auftrag und lehnt Fremdes ab, 'beantworte ALLES' ist weg", domainQuelle.includes("NICHT DEIN AUFTRAG: Du bist kein Allzweck-Chatbot") && domainQuelle.includes("DEIN AUFTRAG ist ausschliesslich der Betrieb") && !domainQuelle.includes("Du beantwortest Fragen zu ALLEM") && routeQuelle4.includes("baueAssistentKernauftrag"));
 pruefe("Auftrag: Route erkennt Zweckentfremdung, kuerzt die Ausgabe und haengt die Anweisung ans Ende", routeQuelle4.includes("zweckentfremdung(neueNutzerNachricht)") && routeQuelle4.includes("maxOutputTokens: ausserhalb ? 220") && routeQuelle4.includes('ausserhalb ? ABLEHNUNG_ANWEISUNG : ""'));
 
 // Gegen das echte SDK: der erste Aufruf traegt toolChoice { type: "tool", toolName: "wissenSuchen" },

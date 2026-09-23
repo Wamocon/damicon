@@ -867,6 +867,8 @@
       "kiAnbieterDeaktiviert": "Provider \"{wert}\" deactivated.",
       "kiAnbieterStandardGesetzt": "Default provider changed.",
       "kiAnbieterGeloescht": "Provider \"{wert}\" deleted.",
+      "kiRatenlimitGesetzt": "Rate limit for \"{wert}\" saved.",
+      "kiRatenlimitEntfernt": "Rate limit for \"{wert}\" removed.",
       "wetterAktualisiert": "Weather data updated.",
       "kanalAngelegt": "Channel created.",
       "kanalAktualisiert": "Channel updated.",
@@ -927,7 +929,8 @@
       "transkriptionDienst": "The speech recognition service cannot be reached. Your recording is fine – please try again later.",
       "transkriptionDauer": "Speech recognition took too long. The service is probably still starting up – please try again in a minute.",
       "dateiGross": "The recording is too large.",
-      "nachbarbetriebVorhanden": "A neighbouring farm with this name already exists."
+      "nachbarbetriebVorhanden": "A neighbouring farm with this name already exists.",
+      "ratenlimit": "Too many requests in a short time. Please wait a moment and try again."
     },
     "einladungen": {
       "erfolg": {
@@ -1812,6 +1815,26 @@
         "basisUrl": "Base URL",
         "apiKey": "API key",
         "knopf": "Add provider"
+      }
+    },
+    "ratenlimitVerwaltung": {
+      "titel": "Manage rate limit",
+      "lead": "Visible to administration only. Limits how often a role may trigger a billable AI request per minute. Without an entry, no limit applies.",
+      "keineEinstellung": "No rate limit set yet - the assistant is unlimited for every role.",
+      "alleRollen": "All roles (default)",
+      "standardBadge": "Default",
+      "grenzeText": "{grenze} requests per minute",
+      "keinLimitText": "No limit",
+      "entfernen": "Remove",
+      "entfernenSicher": "Really remove the rate limit for \"{name}\"? The next higher value, or no limit, applies afterwards.",
+      "formular": {
+        "titel": "Set rate limit",
+        "lead": "Applies to a single role, or, with \"All roles\", as the default for every role without its own entry.",
+        "rolle": "Role",
+        "bitteWaehlen": "Please choose",
+        "grenze": "Requests per minute",
+        "grenzePlatzhalter": "empty = no limit",
+        "knopf": "Save rate limit"
       }
     },
     "diktat": {
