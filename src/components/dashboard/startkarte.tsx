@@ -59,7 +59,11 @@ export function Startkarte({
         {wert}
       </Link>
       {kontext ? <p className="mt-1 text-xs leading-5 text-muted-foreground">{kontext}</p> : null}
-      {chips ? <div className="mt-2 flex flex-wrap gap-1.5">{chips}</div> : null}
+      {/* Zwei gleich breite Zellen statt linksbuendiger Pillen: sonst steht rechts neben
+          "Erloese" und "Kosten" leerer Platz, am Handy ueber die halbe Kartenbreite. Das
+          Raster gilt in beiden Lagen - auch die rechte Haelfte am Schirm ist mit 352 px
+          schmal genug, dass zwei Zellen besser sitzen als zwei Pillen. */}
+      {chips ? <div className="mt-2 grid grid-cols-2 gap-1.5">{chips}</div> : null}
     </div>
   );
 }
@@ -67,7 +71,7 @@ export function Startkarte({
 /** Ein kleiner Wert neben der grossen Zahl. Wie .pr-wert im Pruefbericht, nur ohne dessen CSS. */
 export function StartkarteChip({ children }: { children: ReactNode }) {
   return (
-    <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold tabular-nums text-muted-foreground">
+    <span className="flex min-w-0 items-center justify-center truncate rounded-full bg-muted px-2 py-1 text-[11px] font-semibold tabular-nums text-muted-foreground">
       {children}
     </span>
   );

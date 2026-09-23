@@ -31,6 +31,7 @@
 // Kennzahlen fuer die Admin-Vorschau sitzt in bereiche-box.tsx.
 import type { ReactNode } from "react";
 import { BegruessungsBox } from "@/components/dashboard/begruessung";
+import { WerbefilmHinweis } from "@/components/werbefilm/dashboard-hinweis";
 import type { Tageszeit } from "@/lib/domain/tageszeit";
 
 export function DashboardHome({
@@ -59,6 +60,9 @@ export function DashboardHome({
   return (
     <div className="space-y-6">
       <BegruessungsBox tageszeit={tageszeit} datum={datum} spruch={spruch} rechts={startkarte} />
+      {/* Der Werbefilm steht wie in main direkt unter der Begruessung - eine Zeile von
+          rund 68 px, kein eingebetteter Spieler (siehe werbefilm/dashboard-hinweis.tsx). */}
+      <WerbefilmHinweis />
       {compliance}
       {bereiche}
     </div>

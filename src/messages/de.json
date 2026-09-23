@@ -52,6 +52,17 @@
     "rotator2": "bis zur Kühlminute.",
     "rotator3": "bis zur Person."
   },
+  "werbefilm": {
+    "pausieren": "Film anhalten",
+    "fortsetzen": "Film abspielen",
+    "tonAn": "Ton des Films einschalten",
+    "tonAus": "Ton des Films ausschalten",
+    "fehler": "Der Film lässt sich gerade nicht abspielen.",
+    "portalTitel": "Damicon in 40 Sekunden",
+    "portalText": "Der Werbefilm: vom Feld bis zum Beleg. {sekunden} Sekunden, mit Ton.",
+    "ansehen": "Ansehen",
+    "ausblenden": "Hinweis ausblenden"
+  },
   "landing": {
     "openZone": "Bereich öffnen",
     "berryEyebrow": "Warum die Himbeere anders ist",

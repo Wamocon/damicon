@@ -63,24 +63,34 @@ export function TagesKopf({
     return <p className="rounded-xl border border-dashed border-border p-4 text-xs leading-5 text-muted-foreground">{text}</p>;
   }
 
+  // Auf schmalen Karten steht das Pruefungsergebnis oben, die Aenderungsliste darunter: sonst
+  // schiebt eine Liste mit fuenf Eintraegen den Reifegrad unter die Falz, und man scrollt an
+  // der Antwort vorbei, die man sucht. Ab @3xl kehrt die Reihenfolge in den Quelltextstand aus
+  // main zurueck, wo die Aenderungen zuerst stehen - dort ist beides ohne Scrollen sichtbar.
+  //
+  // .tages-flaeche ist ein Grid (tages.css); order wirkt dort wie im Flexlayout.
   return (
-    <div className="tages-flaeche space-y-4">
-      {aenderungen.length === 0 ? (
-        <p className="text-xs text-muted-foreground">{t("keineAenderung")}</p>
-      ) : (
-        <div className="space-y-1.5 rounded-xl border border-border bg-muted/20 p-3">
-          <p className="text-xs font-semibold text-foreground">{t("aenderungenAnzahl", { anzahl: aenderungen.length })}</p>
-          <ul className="space-y-1 text-[11px] leading-5 text-muted-foreground">
-            {aenderungen.map((a) => (
-              <AenderungsZeile key={a.befundId} a={a} />
-            ))}
-          </ul>
-        </div>
-      )}
-      <div id="compliance-kopf">
+    <div className="tages-flaeche">
+      <div className="order-2 @3xl:order-1">
+        {aenderungen.length === 0 ? (
+          <p className="text-xs text-muted-foreground">{t("keineAenderung")}</p>
+        ) : (
+          <div className="space-y-1.5 rounded-xl border border-border bg-muted/20 p-3">
+            <p className="text-xs font-semibold text-foreground">{t("aenderungenAnzahl", { anzahl: aenderungen.length })}</p>
+            <ul className="space-y-1 text-[11px] leading-5 text-muted-foreground">
+              {aenderungen.map((a) => (
+                <AenderungsZeile key={a.befundId} a={a} />
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+      <div id="compliance-kopf" className="order-1 @3xl:order-2">
         <Kopfkarte bericht={bericht} />
       </div>
-      <Prioritaeten bericht={bericht} />
+      <div className="order-3">
+        <Prioritaeten bericht={bericht} />
+      </div>
     </div>
   );
 }
