@@ -29,7 +29,12 @@ export function risikoSortieren(eintraege: RisikoEintrag[], jetzt: number): Risi
     const aUeberfaellig = aZeit < jetzt;
     const bUeberfaellig = bZeit < jetzt;
     if (aUeberfaellig !== bUeberfaellig) return aUeberfaellig ? -1 : 1;
-    return aUeberfaellig ? aZeit - bZeit : aZeit - bZeit;
+    // Innerhalb derselben Gruppe (beide ueberfaellig oder beide offen) gilt in
+    // beiden Faellen aufsteigend nach Zeit: bei ueberfaelligen ist das der
+    // aelteste Verstoss zuerst (kleinster Zeitwert zuerst), bei offenen der
+    // naechste faellige Termin zuerst (ebenfalls kleinster Zeitwert zuerst).
+    // Beide Zweige des vorherigen Ternarys rechneten bereits dasselbe.
+    return aZeit - bZeit;
   });
 }
 
