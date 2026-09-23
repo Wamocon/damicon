@@ -715,6 +715,12 @@ if (leitung && brigade) {
     .from("pflueckaufgaben")
     .update({ status: "beleg_pruefung", ist_menge_kg: 18.5, ausschuss_kg: 1.5 })
     .eq("id", neueAufgabe.id);
+  // WMCNL-2373: der Abschluss verlangt seit dieser Migration mindestens
+  // einen Fotobeleg - ohne diese Zeile scheitert der naechste Schritt jetzt
+  // korrekterweise mit 23514.
+  await admin
+    .from("media_belege")
+    .insert({ pflueckaufgabe_id: neueAufgabe.id, art: "schale" });
   await leitung
     .from("pflueckaufgaben")
     .update({ status: "abgeschlossen" })
@@ -1064,6 +1070,41 @@ if (leitung && brigade) {
     qfInnerhalbFehler?.message ?? "",
   );
   await admin.from("pflueckaufgaben").delete().eq("id", korridorTestAufgabe.id);
+
+  // WMCNL-2373: ohne Fotobeleg laesst sich eine Aufgabe nicht abschliessen.
+  const { data: belegTestAufgabe } = await admin
+    .from("pflueckaufgaben")
+    .insert({
+      code: `PA-BL-${Date.now().toString().slice(-8)}`,
+      reihenblock_id: freierBlock.id,
+      zielmenge_kg: 5,
+      status: "beleg_pruefung",
+      ist_menge_kg: 5,
+      qualitaetsfaktor: 1,
+    })
+    .select("id")
+    .single();
+  const { error: abschlussOhneBelegFehler } = await admin
+    .from("pflueckaufgaben")
+    .update({ status: "abgeschlossen" })
+    .eq("id", belegTestAufgabe.id);
+  check(
+    "Pflueckaufgaben-Regel: Abschluss ohne Fotobeleg wird abgelehnt (WMCNL-2373)",
+    abschlussOhneBelegFehler?.code === "23514",
+    abschlussOhneBelegFehler?.code ?? "kein Fehler",
+  );
+  await admin.from("media_belege").insert({ pflueckaufgabe_id: belegTestAufgabe.id, art: "schale" });
+  const { error: abschlussMitBelegFehler } = await admin
+    .from("pflueckaufgaben")
+    .update({ status: "abgeschlossen" })
+    .eq("id", belegTestAufgabe.id);
+  check(
+    "Pflueckaufgaben-Regel: Abschluss mit Fotobeleg gelingt (WMCNL-2373)",
+    !abschlussMitBelegFehler,
+    abschlussMitBelegFehler?.message ?? "",
+  );
+  await admin.from("media_belege").delete().eq("pflueckaufgabe_id", belegTestAufgabe.id);
+  await admin.from("pflueckaufgaben").delete().eq("id", belegTestAufgabe.id);
 
   // HOCH: Steigen mit Personenbezug waren fuer kunde/erzeuger lesbar.
   const { data: kundeSteigen } = await (await anmelden("kunde@damicon.demo")).client
