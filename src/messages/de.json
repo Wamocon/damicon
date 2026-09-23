@@ -876,6 +876,7 @@
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
+      "qualitaetsfaktorKorridor": "Der Qualitätsfaktor ist Pflicht und muss zwischen 0,90 und 1,10 liegen.",
       "gesperrt": "Reihenblock {wert} ist wartezeitgesperrt - keine Pflückaufgabe möglich.",
       "mwstSchwelleUeberschritten": "Die MwSt-Registrierungsschwelle wurde überschritten - Meldefrist: {wert}.",
       "keineDatei": "Bitte eine Bilddatei auswählen.",

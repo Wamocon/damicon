@@ -876,6 +876,7 @@
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
+      "qualitaetsfaktorKorridor": "The quality factor is required and must be between 0.90 and 1.10.",
       "gesperrt": "Row block {wert} is locked for the pre-harvest interval - no picking task possible.",
       "mwstSchwelleUeberschritten": "The VAT registration threshold has been crossed - notification due: {wert}.",
       "keineDatei": "Please select an image file.",

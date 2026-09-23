@@ -1038,6 +1038,33 @@ if (leitung && brigade) {
 
   await admin.from("pflueckaufgaben").delete().eq("id", brigadeTestAufgabe.id);
 
+  // WMCNL-2382: der Korridor 0,90-1,10 gilt fuer die Spalte selbst (CHECK-
+  // Constraint), nicht nur fuer den Abschluss-Weg durch die Anwendung.
+  const { data: korridorTestAufgabe } = await admin
+    .from("pflueckaufgaben")
+    .insert({ code: `PA-QF-${Date.now().toString().slice(-8)}`, reihenblock_id: freierBlock.id, zielmenge_kg: 5 })
+    .select("id")
+    .single();
+  const { error: qfAusserhalbFehler } = await admin
+    .from("pflueckaufgaben")
+    .update({ qualitaetsfaktor: 1.5 })
+    .eq("id", korridorTestAufgabe.id);
+  check(
+    "Pflueckaufgaben-Schema: Qualitaetsfaktor ausserhalb 0,90-1,10 wird abgelehnt (WMCNL-2382)",
+    qfAusserhalbFehler?.code === "23514",
+    qfAusserhalbFehler?.code ?? "kein Fehler",
+  );
+  const { error: qfInnerhalbFehler } = await admin
+    .from("pflueckaufgaben")
+    .update({ qualitaetsfaktor: 1.05 })
+    .eq("id", korridorTestAufgabe.id);
+  check(
+    "Pflueckaufgaben-Schema: Qualitaetsfaktor im Korridor wird angenommen (WMCNL-2382)",
+    !qfInnerhalbFehler,
+    qfInnerhalbFehler?.message ?? "",
+  );
+  await admin.from("pflueckaufgaben").delete().eq("id", korridorTestAufgabe.id);
+
   // HOCH: Steigen mit Personenbezug waren fuer kunde/erzeuger lesbar.
   const { data: kundeSteigen } = await (await anmelden("kunde@damicon.demo")).client
     .from("steigen")
