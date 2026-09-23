@@ -82,8 +82,8 @@ export default async function DashboardLayout({
         nutzerId={profil?.id ?? null}
       >
         <CeoPruefungProvider>
-        <ComplianceTourProvider>
         <HaustierProvider>
+        <ComplianceTourProvider>
         <div className="dashboard-shell flex min-h-svh w-full">
           <DashboardSidebar />
           <div className="flex min-w-0 flex-1 flex-col">
@@ -113,8 +113,8 @@ export default async function DashboardLayout({
           ) : null}
         </div>
         <HaustierDashboard />
-        </HaustierProvider>
         </ComplianceTourProvider>
+        </HaustierProvider>
         </CeoPruefungProvider>
       </KiPaneProvider>
     </PersonaProvider>

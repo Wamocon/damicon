@@ -3126,7 +3126,8 @@
       "massnahmen": "{anzahl, plural, one {# offene Maßnahme} other {# offene Maßnahmen}} mit Frist und Verantwortlichkeit.",
       "einschraenkungen": "{anzahl, plural, one {# Prüffeld konnte nicht vollständig bewertet werden.} other {# Prüffelder konnten nicht vollständig bewertet werden.}}",
       "ende": "Das waren die vier Bereiche. Auf eine Kachel klicken zeigt dir jederzeit alle Details.",
-      "neustart": "Tour erneut starten"
+      "neustart": "Tour erneut starten",
+      "nachfrage": "Was kann ich dir noch zeigen?"
     },
     "liveHinweis": "Die Compliance-Prüfung läuft gerade live, hier siehst du jeden Schritt. Das dauert in der Regel unter einer Minute, du kannst in der Zwischenzeit weiterarbeiten.",
     "liveHinweisKnopf": "Alles klar"

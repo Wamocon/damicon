@@ -14,6 +14,7 @@ import { BEREICH_SYMBOL } from "@/components/pruefung/symbole";
 import "@/components/pruefung/pruefung.css";
 import { Sheet } from "@/components/ui/sheet";
 import { kennzahlen } from "@/lib/pruefung/befund";
+import { berichtKontext } from "@/lib/pruefung/kontext";
 import { PRUEFBEREICHE, type Pruefbereich } from "@/lib/pruefung/rollen";
 import type { Befund, Bericht, Kennzahlen } from "@/lib/pruefung/typen";
 
@@ -116,7 +117,9 @@ export function CeoBereichsKacheln({ bericht }: { bericht: Bericht }) {
       ? [{ anker: "compliance-einschraenkungen", titel: t("bericht.hinweise"), text: tc("tour.einschraenkungen", { anzahl: bericht.hinweise.length }) }]
       : []),
   ];
-  useRegistriereComplianceTour(tourSchritte);
+  // Fuer "Ergebnis besprechen"/"Lösungsplan" am Ende der Tour: derselbe Berichtsbezug, den auch
+  // der manuelle Nachbereitungs-Abschnitt (pruefung-nachbereitung.tsx) an den Chat uebergibt.
+  useRegistriereComplianceTour(tourSchritte, { id: bericht.id, kontext: berichtKontext(bericht) });
   const tourSteuerung = useComplianceTourSteuerung();
 
   return (

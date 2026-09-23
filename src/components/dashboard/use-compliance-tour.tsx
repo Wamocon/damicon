@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useCeoPruefung } from "@/components/dashboard/ceo-pruefung-kontext";
+import { useKiPane, type PruefBezug } from "@/components/ki/ki-pane-kontext";
 import { bewegungReduziert } from "@/lib/bewegung";
 import { springeZuAnker, tourDauer, type HaustierZustand } from "@/lib/haustier";
 
@@ -65,10 +66,18 @@ export interface ComplianceTourAnzeige {
   starten: () => void;
 }
 
-export function useComplianceTour(schritte: ComplianceTourSchritt[] | null): ComplianceTourAnzeige {
+export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezug: PruefBezug | null): ComplianceTourAnzeige {
   const t = useTranslations("haustier");
   const tc = useTranslations("ceoUebersicht");
+  const tp = useTranslations("pruefung");
   const ceoStand = useCeoPruefung();
+  const { starteGespraechZurPruefung } = useKiPane();
+  const besprechen = useCallback(
+    (frage: string) => {
+      if (bezug) starteGespraechZurPruefung(bezug, frage);
+    },
+    [bezug, starteGespraechZurPruefung],
+  );
 
   const [phase, setPhase] = useState<Phase>("aus");
   const [schritt, setSchritt] = useState(0);
@@ -132,6 +141,9 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null): Com
     setZiel(null);
     setAuto(false);
     schliesseGeoeffnete();
+    // Zurueck an den Seitenanfang - sonst bliebe man dort stehen, wo die letzte Station war
+    // (haeufig weit unten bei den Einschraenkungen), statt wieder beim Gesamtbild zu landen.
+    window.scrollTo({ top: 0, behavior: bewegungReduziert() ? "auto" : "smooth" });
   }, [schliesseGeoeffnete]);
 
   const starten = useCallback(() => {
@@ -283,7 +295,28 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null): Com
     tourBlase = (
       <>
         <p className="hb-blase__text">{tc("tour.ende")}</p>
+        <p className="hb-blase__klein">{tc("tour.nachfrage")}</p>
         <div className="hb-blase__knoepfe">
+          <button
+            type="button"
+            className="hb-knopf"
+            onClick={() => {
+              setPhase("aus");
+              besprechen(tp("nachbereitung.frageStart"));
+            }}
+          >
+            {tp("nachbereitung.besprechen")}
+          </button>
+          <button
+            type="button"
+            className="hb-knopf hb-knopf--leise"
+            onClick={() => {
+              setPhase("aus");
+              besprechen(tp("nachbereitung.fragePlan"));
+            }}
+          >
+            {tp("nachbereitung.plan")}
+          </button>
           <button type="button" className="hb-knopf hb-knopf--leise" onClick={() => setPhase("aus")}>
             {t("tour.fertigKnopf")}
           </button>

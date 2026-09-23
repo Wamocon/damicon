@@ -115,6 +115,7 @@ export function HaustierHuelle({
   const [schlaeft, setSchlaeft] = useState(false);
   const [zieht, setZieht] = useState(false);
   const [seite, setSeite] = useState<"rechts" | "links">("rechts");
+  const [hoehe, setHoehe] = useState<"oben" | "unten">("oben");
   const [konfettiNr, setKonfettiNr] = useState(0);
 
   const [halten, setHalten] = useState(false);
@@ -135,6 +136,14 @@ export function HaustierHuelle({
   const bestimmeSeite = useCallback(() => {
     const r = griff.current?.getBoundingClientRect();
     if (r) setSeite(r.left + r.width / 2 < window.innerWidth / 2 ? "links" : "rechts");
+  }, []);
+
+  /** Passt normalerweise ueber die Blase; steht Himbi zu nah am oberen Rand (moeglich, seit
+   *  positionFolgtBlick sie ueberallhin ziehen kann), steht die Blase stattdessen darunter. */
+  const BLASE_MINDESTHOEHE = 210;
+  const bestimmeHoehe = useCallback(() => {
+    const r = griff.current?.getBoundingClientRect();
+    if (r) setHoehe(r.top < BLASE_MINDESTHOEHE ? "unten" : "oben");
   }, []);
 
   /** Haelt Himbi im sichtbaren Bereich, wie auch immer sie dorthin kam (Ziehen, Fenster kleiner, Panel auf). */
@@ -163,17 +172,19 @@ export function HaustierHuelle({
     const nachLayout = window.requestAnimationFrame(() => {
       klemme();
       bestimmeSeite();
+      bestimmeHoehe();
     });
     const beiGroesse = () => {
       klemme();
       bestimmeSeite();
+      bestimmeHoehe();
     };
     window.addEventListener("resize", beiGroesse);
     return () => {
       window.cancelAnimationFrame(nachLayout);
       window.removeEventListener("resize", beiGroesse);
     };
-  }, [klemme, bestimmeSeite, setzeVersatz]);
+  }, [klemme, bestimmeSeite, bestimmeHoehe, setzeVersatz]);
 
   // Das Element gibt es erst, wenn bereit gesetzt ist (davor wird nichts gezeichnet). Die gespeicherte
   // Position wurde im Mount-Effekt nur gemerkt - hier wird sie ans echte Element geschrieben.
@@ -186,9 +197,10 @@ export function HaustierHuelle({
     const id = window.setTimeout(() => {
       klemme();
       bestimmeSeite();
+      bestimmeHoehe();
     }, 620);
     return () => window.clearTimeout(id);
-  }, [paneOffen, klemme, bestimmeSeite]);
+  }, [paneOffen, klemme, bestimmeSeite, bestimmeHoehe]);
 
   // ---- Wohin geschaut wird ------------------------------------------------------------
   // Fuehrt niemand ihren Blick, schaut Himbi auf das Feld, in das gerade geschrieben
@@ -307,7 +319,11 @@ export function HaustierHuelle({
     // lautlos ein Nullrechteck, ohne diese Pruefung wuerde das die Figur in eine Bildschirmecke
     // ziehen, die nichts mit dem eigentlichen Ziel zu tun hat.
     if (!positionFolgtBlick || !blickZiel || !blickZiel.isConnected) {
-      if (folgtGerade.current) setzeVersatz(0, 0);
+      if (folgtGerade.current) {
+        setzeVersatz(0, 0);
+        bestimmeSeite();
+        bestimmeHoehe();
+      }
       folgtGerade.current = false;
       return;
     }
@@ -327,6 +343,8 @@ export function HaustierHuelle({
       const deltaX = zielX - (eigeneRect.left + breite / 2);
       const deltaY = zielY - (eigeneRect.top + hoehe / 2);
       if (Math.abs(deltaX) > 0.5 || Math.abs(deltaY) > 0.5) setzeVersatz(versatzWert.current.x + deltaX, versatzWert.current.y + deltaY);
+      bestimmeSeite();
+      bestimmeHoehe();
     };
     const planen = () => {
       if (!frame) frame = window.requestAnimationFrame(bewege);
@@ -339,7 +357,7 @@ export function HaustierHuelle({
       window.removeEventListener("resize", planen);
       if (frame) window.cancelAnimationFrame(frame);
     };
-  }, [positionFolgtBlick, blickZiel, setzeVersatz]);
+  }, [positionFolgtBlick, blickZiel, setzeVersatz, bestimmeSeite, bestimmeHoehe]);
 
   // ---- Mauszeiger: Augen folgen, Naehe weckt, Leerlauf schlaefert ein -------------------
   const letzteAktivitaet = useRef(0);
@@ -459,6 +477,7 @@ export function HaustierHuelle({
       wurzel.current?.style.setProperty("--hb-neigung", "0deg");
       klemme();
       bestimmeSeite();
+      bestimmeHoehe();
       try {
         window.localStorage.setItem(POS_SCHLUESSEL, JSON.stringify(versatzWert.current));
       } catch {
@@ -494,6 +513,7 @@ export function HaustierHuelle({
       // egal
     }
     bestimmeSeite();
+    bestimmeHoehe();
   };
 
   // Erst nach dem Mounten zeichnen: die gespeicherte Position und Einstellung kommen aus dem
@@ -509,6 +529,7 @@ export function HaustierHuelle({
       data-bereit={bereit}
       data-zustand={anzeige}
       data-seite={seite}
+      data-hoehe={hoehe}
       data-pane-offen={paneOffen}
       data-buehne={buehne}
       data-zieht={zieht}
