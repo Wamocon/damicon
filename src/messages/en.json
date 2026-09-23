@@ -759,6 +759,7 @@
     },
     "freeAt": "Free from",
     "days": "days",
+    "keineFreigabeBerechtigung": "Only management can release a pre-harvest interval lock.",
     "note": "A block with a running pre-harvest interval does not appear in the picking schedule at all. That way nobody can create a task on it by mistake."
   },
   "pflueckaufgabenDemo": {

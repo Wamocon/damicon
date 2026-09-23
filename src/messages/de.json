@@ -759,6 +759,7 @@
     },
     "freeAt": "Frei ab",
     "days": "Tage",
+    "keineFreigabeBerechtigung": "Nur die Betriebsleitung gibt eine Wartezeitsperre frei.",
     "note": "Ein Block mit laufender Wartezeit erscheint gar nicht erst im Pflückplan. So kann niemand versehentlich eine Aufgabe darauf anlegen."
   },
   "pflueckaufgabenDemo": {
