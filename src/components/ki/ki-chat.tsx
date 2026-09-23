@@ -71,7 +71,14 @@ import { BelegAnbieter, QuellenListe, ZitatMarke } from "@/components/ki/ki-quel
 import { chatFehlerArt } from "@/lib/ai/chat-fehler";
 import { zerlege } from "@/lib/markdown-bloecke";
 import { belegeAusErgebnis, verlinkeZitate, zitierteKennungen } from "@/lib/wissen/belege";
+import { BEREICH_SYMBOL, PRUEF_BEREICH_ANKER } from "@/components/pruefung/symbole";
+import { PRUEFBEREICHE } from "@/lib/pruefung/rollen";
 import { cn } from "@/lib/utils";
+
+/** Reihenfolge der immer sichtbaren Kachel-Links unter dem Bezug-Pill (siehe .ki-bezug-kacheln
+ *  weiter unten) - dieselben sechs Ziele wie oeffnePruefBereich (api/ki-assistent/route.ts) und
+ *  Himbis gefuehrte Tour, unabhaengig davon anzeigen, ob das Modell selbst darauf verweist. */
+const PRUEF_BEZUG_KACHELN = [...PRUEFBEREICHE, "massnahmen", "einschraenkungen"] as const;
 
 // Werkzeugfaehiger Agentenchat im Seitenpanel (ki-pane.tsx) - Vercel AI SDK
 // useChat gegen src/app/api/ki-assistent/route.ts. Zwei Modi (siehe
@@ -1128,6 +1135,24 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
             <button type="button" onClick={entferneBezug} aria-label={t("pruefBezugEntfernen")} title={t("pruefBezugEntfernen")}>
               <X className="h-3.5 w-3.5" />
             </button>
+          </div>
+        ) : null}
+        {pruefBezug ? (
+          <div className="ki-bezug-kacheln" role="note" aria-label={t("pruefBezugKacheln")}>
+            {PRUEF_BEZUG_KACHELN.map((bereich) => {
+              const Symbol = (BEREICH_SYMBOL as Record<string, typeof BEREICH_SYMBOL.audit>)[bereich];
+              return (
+                <button
+                  key={bereich}
+                  type="button"
+                  className="ki-bezug-kacheln__knopf"
+                  onClick={() => oeffneZiel(`/dashboard#${PRUEF_BEREICH_ANKER[bereich]}`, bereichTitel(bereich))}
+                >
+                  {Symbol ? <Symbol className="h-3 w-3" aria-hidden /> : null}
+                  {bereichTitel(bereich)}
+                </button>
+              );
+            })}
           </div>
         ) : null}
         {istErsteNachricht ? (

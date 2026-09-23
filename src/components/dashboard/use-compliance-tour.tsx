@@ -90,7 +90,10 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
     },
     [bezug, starteGespraechZurPruefung],
   );
-  const zusammenfassen = useCallback(() => besprechen(tp("nachbereitung.frageUebersicht")), [besprechen, tp]);
+  // Dieselbe Frage wie der Knopf "Ergebnis mit Himbi besprechen" am Ende der Tour
+  // (tourBlase unten): beide sollen zur gleich ausfuehrlichen Antwort fuehren, nicht zu einer
+  // kuerzeren Sonderfassung nur fuer den automatischen Anstoss.
+  const zusammenfassen = useCallback(() => besprechen(tp("nachbereitung.frageStart")), [besprechen, tp]);
 
   const [phase, setPhase] = useState<Phase>("aus");
   const [schritt, setSchritt] = useState(0);
@@ -158,7 +161,14 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
     // Zurueck an den Seitenanfang - sonst bliebe man dort stehen, wo die letzte Station war
     // (haeufig weit unten bei den Einschraenkungen), statt wieder beim Gesamtbild zu landen.
     window.scrollTo({ top: 0, behavior: bewegungReduziert() ? "auto" : "smooth" });
-  }, [schliesseGeoeffnete]);
+    // Siehe zusammenfassenNachTour weiter unten: erst HIER, nicht beim Start, sonst oeffnet das
+    // Seitenpanel waehrend die Tour noch selbst durch die Seite scrollt - der Platz, den es
+    // wegnimmt, verschiebt das Layout und damit jedes noch bevorstehende Sprungziel der Tour.
+    if (zusammenfassenNachTour.current) {
+      zusammenfassenNachTour.current = false;
+      zusammenfassen();
+    }
+  }, [schliesseGeoeffnete, zusammenfassen]);
 
   const starten = useCallback(() => {
     merken();
@@ -183,6 +193,11 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
   // bereitsteht, startet die Tour von selbst, ohne vorher zu fragen. Nur einmal je Sitzung
   // (entschieden), genau wie das Angebot, das sie hier ersetzt.
   const wartetAufAutostart = useRef(false);
+  // Gesetzt zusammen mit dem automatischen Start, siehe unten - beenden() fragt es ab und
+  // loescht es wieder, damit ein spaeterer manueller Neustart (Knopf "Tour erneut starten")
+  // KEINE zweite automatische Zusammenfassung nach sich zieht: nur der eine, echte automatische
+  // Lauf nach einer frischen Pruefung soll das ausloesen.
+  const zusammenfassenNachTour = useRef(false);
   const vorigeCeoPhase = useRef(ceoStand?.phase);
   useEffect(() => {
     if (vorigeCeoPhase.current === "laeuft" && ceoStand?.phase === "fertig") wartetAufAutostart.current = true;
@@ -199,15 +214,14 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
     if (entschieden.current || !schritte || schritte.length === 0 || phase !== "aus") return;
     const id = window.setTimeout(() => {
       wartetAufAutostart.current = false;
+      // Zusaetzlich zur Tour (Anfrage vom 23.09.2026): dieselbe Gelegenheit, ohne dass jemand
+      // danach fragen muss - aber erst wenn die Tour selbst fertig ist (beenden() unten), sonst
+      // unterbricht das oeffnende Seitenpanel die noch laufende Tour (gemeldet am 23.09.2026).
+      zusammenfassenNachTour.current = true;
       starten();
-      // Zusaetzlich zur Tour (Anfrage vom 23.09.2026): dieselbe Gelegenheit, ohne dass
-      // jemand danach fragen muss - die Tour laeuft im Hauptfenster, die Zusammenfassung
-      // parallel im Seitenpanel (starteGespraechZurPruefung oeffnet nur das Panel, holt es
-      // nicht in die Mitte, siehe ki-pane-kontext.tsx).
-      zusammenfassen();
     }, 0);
     return () => window.clearTimeout(id);
-  }, [himbiSichtbar, schritte, phase, starten, zusammenfassen]);
+  }, [himbiSichtbar, schritte, phase, starten]);
 
   // Autopilot: nach der Lesezeit der Station zur naechsten.
   const aktuell = schritte?.[schritt];

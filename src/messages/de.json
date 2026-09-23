@@ -1959,6 +1959,7 @@
     "transparenzHinweisAgent": "Diese Antworten stammen von einer KI, nicht von einem Mitarbeiter. Betriebsdaten kommen live aus der Anwendung und erscheinen als Schritte unter der Antwort, alles andere ist Allgemeinwissen und wird so gekennzeichnet.",
     "pruefBezug": "Bezug: Prüfbericht {id}",
     "pruefBezugEntfernen": "Bezug zum Prüfbericht entfernen",
+    "pruefBezugKacheln": "Direkt zu einer Kachel springen",
     "mehr": "Mehr",
     "groesser": "Panel vergrößern",
     "kleiner": "Panel verkleinern"
@@ -3167,7 +3168,6 @@
       "loesung": "Lösung ausarbeiten",
       "frageStart": "Erkläre mir dieses Prüfergebnis: Was sind die wichtigsten Punkte, wo stehe ich, und was sollte ich als Erstes tun?",
       "fragePlan": "Erstelle mir einen konkreten, priorisierten Lösungsplan für alle Verstöße und Lücken aus dem Prüfbericht: Schritte, Verantwortliche, Fristen und welche Nachweise ich ablegen sollte. Nutze die Wissensbasis und nenne die Fundstellen.",
-      "frageUebersicht": "Fasse das Ergebnis der Complianceprüfung knapp zusammen: das Gesamtbild in ein bis zwei Sätzen, danach zu jedem der vier Bereiche eine Zeile mit Reifegrad und wichtigstem Befund, jeweils verlinkt auf die passende Kachel. Schließe mit den dringendsten offenen Maßnahmen, ebenfalls verlinkt.",
       "frageMassnahme": "Wie setze ich diese Maßnahme aus dem Prüfbericht konkret um? Feld: {titel}. Maßnahme: {schritt}. Nenne die einzelnen Schritte, die Nachweise, die ich brauche, und die Rechtsgrundlage.",
       "frageHinweis": "Der Prüfbericht konnte dieses Feld nicht belastbar bewerten: {titel}. Was muss ich bereitstellen oder klären, damit es beurteilt werden kann?"
     }
