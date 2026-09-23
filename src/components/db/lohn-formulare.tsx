@@ -118,22 +118,35 @@ export function LohnMonatAbzuegeBerechnenFormular() {
 }
 
 // Statuswechsel einer einzelnen Abrechnung (entwurf -> freigegeben ->
-// ausgezahlt). Bewusst ein eigenes kleines Formular je Zeile, analog
+// ausgezahlt, sowie die Ruecknahme freigegeben -> entwurf, siehe
+// lohn_abrechnung_freigabe_pruefen()/Migration 20261017000000 - eine
+// Buchhaltungsperson nimmt eine ANDERE Freigabe zurueck, nicht die eigene).
+// Bewusst ein eigenes kleines Formular je Zeile, analog
 // ReklamationInPruefungFormular - kein Mehrfachauswahl-Mechanismus, jede
-// Freigabe ist ein bewusster Einzelschritt.
+// Aktion ist ein bewusster Einzelschritt. Ein geldrelevanter Schritt (jedes
+// Ziel hier) verlangt zusaetzlich eine Bestaetigung - WMCNL-2301: bisher
+// buchte ein Fehlklick sofort und endgueltig.
 export function LohnStatusFormular({
   id,
   ziel,
   label,
+  bestaetigung,
 }: {
   id: string;
-  ziel: Extract<LohnStatus, "freigegeben" | "ausgezahlt">;
+  ziel: LohnStatus;
   label: string;
+  bestaetigung: string;
 }) {
   const [status, action] = useActionState(lohnStatusSetzen, leer);
 
   return (
-    <form action={action} className="space-y-1">
+    <form
+      action={action}
+      className="space-y-1"
+      onSubmit={(event) => {
+        if (!window.confirm(bestaetigung)) event.preventDefault();
+      }}
+    >
       <PfadFeld />
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="status" value={ziel} />

@@ -2272,6 +2272,12 @@
     },
     "freigebenKnopf": "Approve",
     "auszahlenKnopf": "Mark as paid",
+    "zurueckziehenKnopf": "Withdraw approval",
+    "bestaetigung": {
+      "freigeben": "Approve the settlement for {name} now?",
+      "auszahlen": "Mark the settlement for {name} as paid? This can no longer be undone.",
+      "zurueckziehen": "Withdraw the approval of the settlement for {name}? This only works for a person other than the one who approved it."
+    },
     "positionenTitel": "Line items per picking task",
     "positionenLead": "How the volume component is made up per task - the basis for allocating the task's waste.",
     "keinePositionen": "No line item calculated yet.",

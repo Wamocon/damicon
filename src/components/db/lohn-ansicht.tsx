@@ -168,9 +168,27 @@ export async function LohnAnsicht() {
                 </td>
                 <td className="px-3 py-2.5">
                   {darfFreigeben && a.status === "entwurf" ? (
-                    <LohnStatusFormular id={a.id} ziel="freigegeben" label={t("freigebenKnopf")} />
+                    <LohnStatusFormular
+                      id={a.id}
+                      ziel="freigegeben"
+                      label={t("freigebenKnopf")}
+                      bestaetigung={t("bestaetigung.freigeben", { name: a.pfluecker })}
+                    />
                   ) : darfFreigeben && a.status === "freigegeben" ? (
-                    <LohnStatusFormular id={a.id} ziel="ausgezahlt" label={t("auszahlenKnopf")} />
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <LohnStatusFormular
+                        id={a.id}
+                        ziel="ausgezahlt"
+                        label={t("auszahlenKnopf")}
+                        bestaetigung={t("bestaetigung.auszahlen", { name: a.pfluecker })}
+                      />
+                      <LohnStatusFormular
+                        id={a.id}
+                        ziel="entwurf"
+                        label={t("zurueckziehenKnopf")}
+                        bestaetigung={t("bestaetigung.zurueckziehen", { name: a.pfluecker })}
+                      />
+                    </div>
                   ) : (
                     <span className="text-[11px] text-muted-foreground">–</span>
                   )}

@@ -2272,6 +2272,12 @@
     },
     "freigebenKnopf": "Freigeben",
     "auszahlenKnopf": "Als ausgezahlt markieren",
+    "zurueckziehenKnopf": "Freigabe zurückziehen",
+    "bestaetigung": {
+      "freigeben": "Lohnabrechnung von {name} jetzt freigeben?",
+      "auszahlen": "Lohnabrechnung von {name} als ausgezahlt markieren? Das lässt sich nicht mehr zurücknehmen.",
+      "zurueckziehen": "Freigabe der Lohnabrechnung von {name} zurückziehen? Das geht nur durch eine andere Person als die, die freigegeben hat."
+    },
     "positionenTitel": "Positionen je Pflückaufgabe",
     "positionenLead": "Wie sich die Mengenkomponente je Aufgabe zusammensetzt - Grundlage der Umlage aus dem Ausschuss der Aufgabe.",
     "keinePositionen": "Noch keine Position berechnet.",
