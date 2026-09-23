@@ -1698,6 +1698,7 @@
       "kuehlketteAbrufen": "Checked cold chain",
       "risikoRadarAbrufen": "Checked risk radar",
       "oeffneBereich": "Opened {bereich}",
+      "oeffnePruefBereich": "Opened {bereich}",
       "wissenSuchen": "Knowledge base searched",
       "unbekannt": "Step completed",
       "datenmodellErkunden": "Explored data model",
@@ -1809,6 +1810,7 @@
       "kuehlketteAbrufen": "Checking cold chain …",
       "risikoRadarAbrufen": "Scanning risk radar …",
       "oeffneBereich": "Opening {bereich} …",
+      "oeffnePruefBereich": "Opening {bereich} …",
       "wissenSuchen": "Searching knowledge base …",
       "unbekannt": "Working …",
       "datenmodellErkunden": "Exploring the data model …",
@@ -1826,6 +1828,7 @@
       "kuehlketteAbrufen": "Cold chain",
       "risikoRadarAbrufen": "Risk radar",
       "oeffneBereich": "{bereich}",
+      "oeffnePruefBereich": "{bereich}",
       "wissenSuchen": "Knowledge base",
       "unbekannt": "Source",
       "datenmodellErkunden": "Data model",
@@ -1839,6 +1842,14 @@
       "mitarbeiterEinschalten": "Chat"
     },
     "bereichAllgemein": "the area",
+    "pruefBereich": {
+      "audit": "Audit",
+      "steuer": "Tax",
+      "recht": "Legal",
+      "risiko": "Risk",
+      "massnahmen": "Action plan",
+      "einschraenkungen": "Limitations"
+    },
     "assistentDenkt": "Assistant is finding the ripest facts …",
     "leerTitel": "What can I help with?",
     "modus": {
@@ -3156,6 +3167,7 @@
       "loesung": "Work out the solution",
       "frageStart": "Explain this audit result to me: what are the key points, where do I stand, and what should I do first?",
       "fragePlan": "Create a concrete, prioritised solution plan for all violations and gaps in the audit report: steps, who is responsible, deadlines and which evidence I should keep. Use the knowledge base and cite the sources.",
+      "frageUebersicht": "Summarise the compliance check result briefly: the overall picture in one or two sentences, then one line per area with its maturity score and most important finding, each linked to the matching tile. Close with the most urgent open actions, also linked.",
       "frageMassnahme": "How do I implement this action from the audit report in practice? Item: {titel}. Action: {schritt}. List the individual steps, the evidence I need and the legal basis.",
       "frageHinweis": "The audit could not assess this item reliably: {titel}. What do I need to provide or clarify so it can be assessed?"
     }
@@ -3188,6 +3200,7 @@
       "einschraenkungen": "{anzahl, plural, one {# review field could not be fully assessed.} other {# review fields could not be fully assessed.}}",
       "ende": "That was all four areas. Click a tile any time to see the full details.",
       "neustart": "Restart tour",
+      "zusammenfassung": "Summary in chat",
       "nachfrage": "What else can I show you?"
     },
     "liveHinweis": "The compliance check is running live right now, you can watch every step here. It usually takes under a minute, feel free to keep working in the meantime.",

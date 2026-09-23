@@ -93,6 +93,7 @@ const werkzeugIcon: Record<string, ComponentType<{ className?: string }>> = {
   kuehlketteAbrufen: Snowflake,
   risikoRadarAbrufen: Radar,
   oeffneBereich: Compass,
+  oeffnePruefBereich: Compass,
   wissenSuchen: BookOpenCheck,
   datenmodellErkunden: Database,
   datenLesen: Table2,
@@ -495,6 +496,9 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   function bereichTitel(bereich: string | null): string {
     if (bereich === "uebersicht") return navT("overview");
     if (bereich === "sicherheit") return authT("security");
+    // oeffnePruefBereich (route.ts): Kacheln der CEO-Complianceuebersicht sind keine echten
+    // App-Module (modules.ts) und stehen deshalb in einer eigenen kleinen Liste.
+    if (bereich && t.has(`pruefBereich.${bereich}`)) return t(`pruefBereich.${bereich}`);
     return bereich && bekannteBereiche.has(bereich) ? moduleT(`${bereich}.title`) : t("bereichAllgemein");
   }
 

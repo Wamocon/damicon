@@ -66,6 +66,10 @@ export interface ComplianceTourAnzeige {
   /** Die Tour von vorn beginnen - fuer das Angebot, den automatischen Start und einen
    *  jederzeit erreichbaren Neustart-Knopf (dieselbe Funktion fuer alle drei). */
   starten: () => void;
+  /** Oeffnet den KI-Chat im Seitenpanel und laesst Himbi das Ergebnis dort zusammenfassen,
+   *  mit anklickbaren Verweisen auf die Kacheln (oeffnePruefBereich, route.ts). Fuer den
+   *  automatischen Lauf nach einer frischen Pruefung UND einen jederzeit erreichbaren Knopf. */
+  zusammenfassen: () => void;
 }
 
 export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezug: PruefBezug | null): ComplianceTourAnzeige {
@@ -86,6 +90,7 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
     },
     [bezug, starteGespraechZurPruefung],
   );
+  const zusammenfassen = useCallback(() => besprechen(tp("nachbereitung.frageUebersicht")), [besprechen, tp]);
 
   const [phase, setPhase] = useState<Phase>("aus");
   const [schritt, setSchritt] = useState(0);
@@ -195,9 +200,14 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
     const id = window.setTimeout(() => {
       wartetAufAutostart.current = false;
       starten();
+      // Zusaetzlich zur Tour (Anfrage vom 23.09.2026): dieselbe Gelegenheit, ohne dass
+      // jemand danach fragen muss - die Tour laeuft im Hauptfenster, die Zusammenfassung
+      // parallel im Seitenpanel (starteGespraechZurPruefung oeffnet nur das Panel, holt es
+      // nicht in die Mitte, siehe ki-pane-kontext.tsx).
+      zusammenfassen();
     }, 0);
     return () => window.clearTimeout(id);
-  }, [himbiSichtbar, schritte, phase, starten]);
+  }, [himbiSichtbar, schritte, phase, starten, zusammenfassen]);
 
   // Autopilot: nach der Lesezeit der Station zur naechsten.
   const aktuell = schritte?.[schritt];
@@ -351,5 +361,6 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
     huepf,
     verfuegbar: himbiSichtbar && !!schritte && schritte.length > 0,
     starten,
+    zusammenfassen,
   };
 }

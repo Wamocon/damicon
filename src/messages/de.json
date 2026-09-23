@@ -1698,6 +1698,7 @@
       "kuehlketteAbrufen": "Kühlkette geprüft",
       "risikoRadarAbrufen": "Risiko-Radar geprüft",
       "oeffneBereich": "{bereich} geöffnet",
+      "oeffnePruefBereich": "{bereich} geöffnet",
       "wissenSuchen": "Wissensbasis durchsucht",
       "unbekannt": "Schritt abgeschlossen",
       "datenmodellErkunden": "Datenmodell erkundet",
@@ -1809,6 +1810,7 @@
       "kuehlketteAbrufen": "Prüfe Kühlkette …",
       "risikoRadarAbrufen": "Durchsuche Risiko-Radar …",
       "oeffneBereich": "Öffne {bereich} …",
+      "oeffnePruefBereich": "Öffne {bereich} …",
       "wissenSuchen": "Durchsuche Wissensbasis …",
       "unbekannt": "Arbeite …",
       "datenmodellErkunden": "Erkunde das Datenmodell …",
@@ -1826,6 +1828,7 @@
       "kuehlketteAbrufen": "Kühlkette",
       "risikoRadarAbrufen": "Risiko-Radar",
       "oeffneBereich": "{bereich}",
+      "oeffnePruefBereich": "{bereich}",
       "wissenSuchen": "Wissensbasis",
       "unbekannt": "Quelle",
       "datenmodellErkunden": "Datenmodell",
@@ -1839,6 +1842,14 @@
       "mitarbeiterEinschalten": "Chat"
     },
     "bereichAllgemein": "den Bereich",
+    "pruefBereich": {
+      "audit": "Audit",
+      "steuer": "Steuern",
+      "recht": "Recht",
+      "risiko": "Risiko",
+      "massnahmen": "Maßnahmenplan",
+      "einschraenkungen": "Einschränkungen"
+    },
     "assistentDenkt": "Assistent sucht die reifsten Fakten …",
     "leerTitel": "Wobei kann ich helfen?",
     "modus": {
@@ -3156,6 +3167,7 @@
       "loesung": "Lösung ausarbeiten",
       "frageStart": "Erkläre mir dieses Prüfergebnis: Was sind die wichtigsten Punkte, wo stehe ich, und was sollte ich als Erstes tun?",
       "fragePlan": "Erstelle mir einen konkreten, priorisierten Lösungsplan für alle Verstöße und Lücken aus dem Prüfbericht: Schritte, Verantwortliche, Fristen und welche Nachweise ich ablegen sollte. Nutze die Wissensbasis und nenne die Fundstellen.",
+      "frageUebersicht": "Fasse das Ergebnis der Complianceprüfung knapp zusammen: das Gesamtbild in ein bis zwei Sätzen, danach zu jedem der vier Bereiche eine Zeile mit Reifegrad und wichtigstem Befund, jeweils verlinkt auf die passende Kachel. Schließe mit den dringendsten offenen Maßnahmen, ebenfalls verlinkt.",
       "frageMassnahme": "Wie setze ich diese Maßnahme aus dem Prüfbericht konkret um? Feld: {titel}. Maßnahme: {schritt}. Nenne die einzelnen Schritte, die Nachweise, die ich brauche, und die Rechtsgrundlage.",
       "frageHinweis": "Der Prüfbericht konnte dieses Feld nicht belastbar bewerten: {titel}. Was muss ich bereitstellen oder klären, damit es beurteilt werden kann?"
     }
@@ -3188,6 +3200,7 @@
       "einschraenkungen": "{anzahl, plural, one {# Prüffeld konnte nicht vollständig bewertet werden.} other {# Prüffelder konnten nicht vollständig bewertet werden.}}",
       "ende": "Das waren die vier Bereiche. Auf eine Kachel klicken zeigt dir jederzeit alle Details.",
       "neustart": "Tour erneut starten",
+      "zusammenfassung": "Zusammenfassung im Chat",
       "nachfrage": "Was kann ich dir noch zeigen?"
     },
     "liveHinweis": "Die Compliance-Prüfung läuft gerade live, hier siehst du jeden Schritt. Das dauert in der Regel unter einer Minute, du kannst in der Zwischenzeit weiterarbeiten.",
