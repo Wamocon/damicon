@@ -916,6 +916,85 @@ if (leitung && brigade) {
     await admin.from("arbeitszeiten").delete().in("id", fremdeZeitInsert.map((z) => z.id));
   }
 
+  // HOCH (WMCNL-2298): brigade@damicon.demo muss auf die tatsaechlich
+  // arbeitende Brigade Nord zeigen - seed-auth.mjs traf zuvor per
+  // order("name").limit(1) alphabetisch "Brigade Nachbarbetrieb" statt Nord.
+  // pflueckaufgaben_update_feld (20261018000000) laesst die Rolle brigade nur
+  // an der eigenen Brigade schreiben - mit der falschen Zuordnung scheiterten
+  // "Aufgabe annehmen" und "Menge melden" fuer jede reale Feldaufgabe, obwohl
+  // rbac.ts und die Oberflaeche den Vorgang anboten (RLS, nicht rbac.ts, war
+  // die zweite, hier greifende Verteidigungslinie).
+  const { data: eigeneBrigadeName } = await admin
+    .from("brigaden")
+    .select("name")
+    .eq("id", eigeneBrigade.brigade_id)
+    .single();
+  check(
+    "Vorbereitung: brigade@damicon.demo ist Brigade Nord zugewiesen (WMCNL-2298)",
+    eigeneBrigadeName?.name === "Brigade Nord",
+    `zugewiesene Brigade: ${eigeneBrigadeName?.name}`,
+  );
+
+  const { data: brigadeTestAufgabe, error: brigadeTestAufgabeFehler } = await admin
+    .from("pflueckaufgaben")
+    .insert({
+      code: `PA-BR-${Date.now().toString().slice(-8)}`,
+      reihenblock_id: freierBlock.id,
+      brigade_id: eigeneBrigade.brigade_id,
+      zielmenge_kg: 20,
+    })
+    .select("id, code")
+    .single();
+  check(
+    "Vorbereitung: Testaufgabe fuer die eigene Brigade angelegt",
+    !brigadeTestAufgabeFehler && !!brigadeTestAufgabe,
+    brigadeTestAufgabeFehler?.message ?? "",
+  );
+
+  const { data: annehmenErgebnis, error: annehmenFehler } = await brigade
+    .rpc("sync_aufgabe_status_setzen", {
+      p_aktion_id: crypto.randomUUID(),
+      p_aufgabe_id: brigadeTestAufgabe.id,
+      p_neuer_status: "angenommen",
+      p_vorzustand: "offen",
+    })
+    .single();
+  check(
+    "Brigade-RPC: eigene Aufgabe annehmen (offen -> angenommen, WMCNL-2298)",
+    !annehmenFehler && annehmenErgebnis?.ergebnis === "angewendet",
+    annehmenFehler?.message ?? `ergebnis: ${annehmenErgebnis?.ergebnis}`,
+  );
+
+  const { data: startenErgebnis, error: startenFehler } = await brigade
+    .rpc("sync_aufgabe_status_setzen", {
+      p_aktion_id: crypto.randomUUID(),
+      p_aufgabe_id: brigadeTestAufgabe.id,
+      p_neuer_status: "in_arbeit",
+      p_vorzustand: "angenommen",
+    })
+    .single();
+  check(
+    "Brigade-RPC: eigene Aufgabe starten (angenommen -> in_arbeit, WMCNL-2298)",
+    !startenFehler && startenErgebnis?.ergebnis === "angewendet",
+    startenFehler?.message ?? `ergebnis: ${startenErgebnis?.ergebnis}`,
+  );
+
+  const { data: mengeErgebnis, error: mengeFehler } = await brigade
+    .rpc("sync_menge_melden", {
+      p_aktion_id: crypto.randomUUID(),
+      p_aufgabe_id: brigadeTestAufgabe.id,
+      p_ist_menge_kg: 18.5,
+      p_ausschuss_kg: 1,
+    })
+    .single();
+  check(
+    "Brigade-RPC: Menge fuer die eigene Aufgabe melden (WMCNL-2298)",
+    !mengeFehler && mengeErgebnis?.ergebnis === "angewendet",
+    mengeFehler?.message ?? `ergebnis: ${mengeErgebnis?.ergebnis}`,
+  );
+
+  await admin.from("pflueckaufgaben").delete().eq("id", brigadeTestAufgabe.id);
+
   // HOCH: Steigen mit Personenbezug waren fuer kunde/erzeuger lesbar.
   const { data: kundeSteigen } = await (await anmelden("kunde@damicon.demo")).client
     .from("steigen")
