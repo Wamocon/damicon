@@ -66,6 +66,12 @@ export const resources = [
   // steht. Das ist eine andere Befugnis als Kunden oder Preise pflegen.
   "stammdaten",
   "preislisten",
+  // Investitionsrechnung zur Einfuehrung (CAPEX, OPEX, ROI, Kapitalwert).
+  // Bewusst eine eigene Ressource statt einer Mitnutzung von "finanzen":
+  // erzeuger hat dort view (fuer den eigenen Deckungsbeitrag) und wuerde
+  // sonst die Investitionsrechnung des Betriebs mitlesen. Das ist eine
+  // andere Befugnis als den laufenden Deckungsbeitrag zu sehen.
+  "wirtschaftlichkeit",
 ] as const;
 
 export type Resource = (typeof resources)[number];
@@ -201,6 +207,7 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...crud("personal"),
     ...view("lohn"),
     ...view("finanzen"),
+    ...view("wirtschaftlichkeit"),
     ...crud("dokumente"),
     ...crud("compliance"),
     ...view("integrationen"),
@@ -251,6 +258,7 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...crud("lohn"),
     `lohn:approve`,
     ...all("finanzen"),
+    ...all("wirtschaftlichkeit"),
     ...crud("dokumente"),
     ...crud("compliance"),
     ...crud("integrationen"),

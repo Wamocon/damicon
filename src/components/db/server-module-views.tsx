@@ -8,6 +8,7 @@ import { ComplianceAnsicht } from "@/components/db/compliance-ansicht";
 import { ReklamationenAnsicht } from "@/components/db/reklamationen-ansicht";
 import { LohnAnsicht } from "@/components/db/lohn-ansicht";
 import { FinanzenAnsicht } from "@/components/db/finanzen-ansicht";
+import { WirtschaftlichkeitAnsicht } from "@/components/db/wirtschaftlichkeit-ansicht";
 import { RotationsplanAnsicht } from "@/components/db/rotationsplan-ansicht";
 import { ZukaufAnsicht } from "@/components/db/zukauf-ansicht";
 import { QrSteigenAnsicht } from "@/components/db/qr-steigen-ansicht";
@@ -94,6 +95,8 @@ export function serverModulAnsicht(
           }}
         />
       );
+    case "wirtschaftlichkeit":
+      return <WirtschaftlichkeitAnsicht />;
     case "rotationsplan":
       return <RotationsplanAnsicht />;
     // Anforderung 2.13: Temperatursummen-Heuristik statt reinem

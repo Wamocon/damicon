@@ -187,6 +187,24 @@ export const modules: ModuleDef[] = [
     reifegrad: "angebunden",
   },
   {
+    key: "wirtschaftlichkeit",
+    zone: "buero",
+    slug: "wirtschaftlichkeit",
+    icon: "trending-up",
+    resource: "wirtschaftlichkeit",
+    // Investitionsrechnung zur Einfuehrung: Amortisation, Rendite, CAPEX,
+    // OPEX, Kapitalwert. Steht direkt hinter den Finanzen, weil beide Seiten
+    // Geld zeigen und der Unterschied erklaerungsbeduerftig ist: nebenan der
+    // laufende Betrieb je Monat, hier die einmalige Investition ueber drei
+    // Jahre. Nebeneinander in der Leiste ist der Unterschied leichter zu
+    // erklaeren als quer durch das Menue verteilt.
+    //
+    // Die Zahlen sind noch Modellwerte aus der Kennzahlenliste der
+    // Geschaeftsfuehrung (lib/domain/wirtschaftlichkeit.ts), nicht aus dem
+    // Betrieb - deshalb "in-entwicklung", obwohl die Seite rechnet.
+    reifegrad: "in-entwicklung",
+  },
+  {
     key: "personal",
     zone: "buero",
     slug: "personal",
