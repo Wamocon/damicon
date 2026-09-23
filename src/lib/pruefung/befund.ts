@@ -130,6 +130,23 @@ export function gesamtKennzahlen(befunde: readonly Befund[], bereiche: readonly 
   return { ...basis, reife, stufe: reife >= 85 ? "bereit" : reife >= 60 ? "luecken" : "nicht-bereit" };
 }
 
+/** Alles zu einem einzelnen Bereich eines Gesamtberichts: seine Befunde, die Massnahmen, die zu
+ *  diesen Befunden gehoeren, und die Belege, die diese Befunde zitieren - dieselbe Filterung, die
+ *  sowohl der Bereichs-Export in der CEO-Uebersicht (ceo-bereichs-kacheln.tsx, JSON) als auch der
+ *  Bereichs-Auszug im PDF (bericht-pdf.ts) braucht. Vorher an beiden Stellen unabhaengig
+ *  nachgebaut - hier jetzt eine gemeinsame Stelle fuer dieselbe Filterung. */
+export function bereichsAuszug(
+  bericht: Bericht,
+  bereich: Pruefbereich,
+): { befunde: Befund[]; massnahmen: MassnahmeMitBezug[]; belege: Bericht["belege"] } {
+  const befunde = bericht.befunde.filter((b) => b.bereich === bereich);
+  return {
+    befunde,
+    massnahmen: bericht.massnahmen.filter((m) => befunde.some((f) => f.id === m.befundId)),
+    belege: bericht.belege.filter((q) => befunde.some((f) => f.belege.includes(q.id))),
+  };
+}
+
 /** Alle Massnahmen, dringendste zuerst (erst Schwere des Befunds, dann Frist). */
 export function massnahmenplan(befunde: readonly Befund[]): MassnahmeMitBezug[] {
   return befunde
