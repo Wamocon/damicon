@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/kit";
 // Bewusst schlicht gehalten: gleiche Hoehe, gleiche Radien wie im uebrigen
 // Dashboard, keine eigene Formularbibliothek.
 
-const feldKlassen =
+export const feldKlassen =
   "h-11 w-full rounded-lg border border-border bg-background px-3 text-base text-foreground outline-none transition focus:border-primary lg:h-9 lg:px-2.5 lg:text-xs";
 
 // WMC-Vibecode-Cleanup-Fund: bis hierher praktisch wortgleich in rund 15
