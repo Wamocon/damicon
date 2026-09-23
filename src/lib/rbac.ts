@@ -320,7 +320,18 @@ export const rolePermissions: Record<Role, Permission[]> = {
     ...view("pflueckaufgaben"),
     ...view("finanzen"),
     ...view("dokumente"),
-    ...crud("aggregator"),
+    // WMCNL-2299: bis vor Kurzem crud("aggregator"). Die Schreib-RLS auf
+    // nachbarbetriebe/zukauf_positionen bleibt laut Migrationskopf
+    // 20260908140000 (Punkt 3) ausdruecklich admin/betriebsleitung
+    // vorbehalten - ein echtes Self-Service-Szenario fuer erzeuger braucht
+    // eine profiles->nachbarbetrieb-Verknuepfung, die es (noch) nicht gibt.
+    // Mit crud() zeigte die Oberflaeche "Betrieb aufnehmen" und den
+    // CSV-Import trotzdem an; jeder Versuch scheiterte serverseitig an der
+    // RLS (fehler.berechtigung), ohne dass rbac.ts (die erste
+    // Verteidigungslinie) das schon verhinderte. view() spiegelt die
+    // tatsaechliche Rechtelage wider, bis die Self-Service-Anforderung
+    // feststeht.
+    ...view("aggregator"),
     ...view("b2b_portal"),
     ...view("schulungen"),
   ],

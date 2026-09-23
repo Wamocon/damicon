@@ -2077,20 +2077,22 @@ if (leitung && brigade) {
     zpBrigadeFehler?.code ?? `eingefuegte Zeilen: ${zpBrigadeInsert?.length}`,
   );
 
-  // HOCH (Vorab-Recherche, Risiko 3): rbac.ts gewaehrt "erzeuger" bereits
-  // crud("aggregator"), aber ohne profiles->nachbarbetrieb-Verknuepfung ist
-  // kein echtes Self-Service-Szenario erreichbar (siehe Migrationskopf, Punkt
-  // 3). Dieser Test dokumentiert die Luecke, statt sie stillschweigend zu
-  // uebergehen: die RLS-Policy laesst nur admin/betriebsleitung zu und faengt
-  // eine erzeuger-Anmeldung kontrolliert ab, statt fremde Stammdaten zu
-  // schreiben.
+  // HOCH (Vorab-Recherche, Risiko 3): ohne profiles->nachbarbetrieb-
+  // Verknuepfung ist kein echtes Self-Service-Szenario fuer erzeuger
+  // erreichbar (siehe Migrationskopf 20260908140000, Punkt 3). rbac.ts
+  // gewaehrt erzeuger seit WMCNL-2299 deshalb nur noch view("aggregator")
+  // (vorher crud, das zeigte "Betrieb aufnehmen"/CSV-Import an, obwohl jeder
+  // Schreibversuch serverseitig an genau dieser RLS-Policy scheiterte). Sie
+  // laesst nur admin/betriebsleitung zu und faengt einen (theoretisch
+  // weiterhin per REST moeglichen) erzeuger-Schreibversuch kontrolliert ab,
+  // statt fremde Stammdaten zu schreiben - zweite Verteidigungslinie hinter
+  // rbac.ts.
   const { client: erzeuger, fehler: erzeugerFehler } = await anmelden("erzeuger@damicon.demo");
   check("Auth: Erzeuger meldet sich an", !!erzeuger, erzeugerFehler ?? "");
   if (erzeuger) {
-    // WMCNL-2369: erzeuger hat laut rbac.ts crud("aggregator"), die
-    // SELECT-Policies liessen bislang trotzdem nur has_office_access() durch -
-    // das Kernmodul der Rolle zeigte durchweg Nullwerte und keine bekannten
-    // Nachbarbetriebe.
+    // WMCNL-2369: die SELECT-Policies liessen trotz view("aggregator") in
+    // rbac.ts bislang nur has_office_access() durch - das Kernmodul der
+    // Rolle zeigte durchweg Nullwerte und keine bekannten Nachbarbetriebe.
     const { data: nbErzeuger, error: nbErzeugerFehler } = await erzeuger
       .from("nachbarbetriebe")
       .select("id");
@@ -2114,9 +2116,20 @@ if (leitung && brigade) {
       .insert({ nachbarbetrieb_id: nbNeu.id, sorte_id: sortePolka.id, menge_kg: 10 })
       .select("id");
     check(
-      "Zukauf-RLS-Luecke dokumentiert: erzeuger hat laut rbac.ts crud(aggregator), scheitert aber an RLS (kein Self-Service ohne Nachbarbetrieb-Verknuepfung)",
+      "Zukauf-RLS: erzeuger legt keine Zukaufposition an (kein Self-Service ohne Nachbarbetrieb-Verknuepfung, WMCNL-2299)",
       !!zpErzeugerFehler || (zpErzeugerInsert?.length ?? 0) === 0,
       zpErzeugerFehler?.code ?? `eingefuegte Zeilen: ${zpErzeugerInsert?.length}`,
+    );
+
+    // WMCNL-2309: abrechnung_je_nachbarbetrieb() lehnt erzeuger ausdruecklich
+    // mit 42501 ab ("eine Abrechnungssumme gehoert ausschliesslich dem
+    // Buero", 20261009000000) - ladeAbrechnung() muss das erkennen, statt es
+    // wie einen echten Fehler mit Demo-Fallback zu behandeln.
+    const { error: abrechnungErzeugerFehler } = await erzeuger.rpc("abrechnung_je_nachbarbetrieb");
+    check(
+      "Zukauf-RPC: erzeuger liest keine Abrechnung gegenueber Lieferbetrieben (WMCNL-2309)",
+      abrechnungErzeugerFehler?.code === "42501",
+      abrechnungErzeugerFehler?.code ?? "kein Fehler",
     );
   }
 
