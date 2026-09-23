@@ -34,7 +34,7 @@ export function TagesKopf({
   if (stand?.phase === "laeuft") {
     return (
       <div id="compliance-live-lauf">
-        <PruefungAblauf stand={stand} />
+        <PruefungAblauf stand={stand} kompakt />
       </div>
     );
   }

@@ -683,6 +683,7 @@
       "kuehlketteAbrufen": "Проверена холодовая цепь",
       "risikoRadarAbrufen": "Проверен радар рисков",
       "oeffneBereich": "Открыто: {bereich}",
+      "oeffnePruefBereich": "Открыто: {bereich}",
       "wissenSuchen": "База знаний просмотрена",
       "unbekannt": "Шаг выполнен",
       "datenmodellErkunden": "Модель данных изучена",
@@ -794,6 +795,7 @@
       "kuehlketteAbrufen": "Проверяю холодовую цепь …",
       "risikoRadarAbrufen": "Просматриваю радар рисков …",
       "oeffneBereich": "Открываю: {bereich} …",
+      "oeffnePruefBereich": "Открываю: {bereich} …",
       "wissenSuchen": "Ищу в базе знаний …",
       "unbekannt": "Работаю …",
       "datenmodellErkunden": "Изучаю модель данных …",
@@ -811,6 +813,7 @@
       "kuehlketteAbrufen": "Холодовая цепь",
       "risikoRadarAbrufen": "Радар рисков",
       "oeffneBereich": "{bereich}",
+      "oeffnePruefBereich": "{bereich}",
       "wissenSuchen": "База знаний",
       "unbekannt": "Источник",
       "datenmodellErkunden": "Модель данных",
@@ -824,6 +827,14 @@
       "mitarbeiterEinschalten": "Чат"
     },
     "bereichAllgemein": "раздел",
+    "pruefBereich": {
+      "audit": "Аудит",
+      "steuer": "Налоги",
+      "recht": "Право",
+      "risiko": "Риски",
+      "massnahmen": "План мер",
+      "einschraenkungen": "Ограничения"
+    },
     "assistentDenkt": "Ассистент отбирает самые спелые факты …",
     "leerTitel": "Чем могу помочь?",
     "modus": {
@@ -933,6 +944,7 @@
     "transparenzHinweisAgent": "Эти ответы даёт ИИ, а не сотрудник. Данные предприятия берутся из приложения в реальном времени и показываются шагами под ответом, всё остальное - общие знания и помечено как таковое.",
     "pruefBezug": "Основа: отчёт о проверке {id}",
     "pruefBezugEntfernen": "Убрать связь с отчётом о проверке",
+    "pruefBezugKacheln": "Перейти сразу к разделу",
     "mehr": "Ещё",
     "groesser": "Увеличить панель",
     "kleiner": "Уменьшить панель"
@@ -3214,6 +3226,7 @@
       "einschraenkungen": "{anzahl, plural, one {# поле проверки не удалось оценить полностью.} few {# поля проверки не удалось оценить полностью.} many {# полей проверки не удалось оценить полностью.} other {# поля проверки не удалось оценить полностью.}}",
       "ende": "Это были все четыре области. Нажмите на плитку в любой момент, чтобы увидеть все подробности.",
       "neustart": "Показать тур снова",
+      "zusammenfassung": "Сводка в чате",
       "nachfrage": "Что ещё тебе показать?"
     },
     "liveHinweis": "Проверка соответствия идёт прямо сейчас, здесь видно каждый шаг. Обычно это занимает меньше минуты, можете пока заниматься своими делами.",

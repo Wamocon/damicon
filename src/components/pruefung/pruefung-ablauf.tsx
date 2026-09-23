@@ -177,10 +177,36 @@ function Stationen({ f, stufe }: { f: FeldStand; stufe: Stufe }) {
   );
 }
 
-/** Alle Mini-Himbis auf einen Blick: je Bereich eine Zeile, je Pruefungsfeld ein Team mit sichtbarer Uebergabe. */
-function Schwarm({ stand }: { stand: PruefungStand }) {
+/** Eine Mini-Himbi-Karte, wahlweise mit kleinem Bereichs-Zeichen (kompakte Einzeiler-Reihe ohne eigene Zeilen-Beschriftung). */
+function AgentKarte({ bereich, id, f, stand, zeigeBereich }: { bereich: Pruefbereich; id: string; f: FeldStand; stand: PruefungStand; zeigeBereich: boolean }) {
   const t = useTranslations("pruefung");
   const ta = useTranslations("pruefungAblauf");
+  const stufe = stufeVon(f);
+  const befund = stand.befunde.find((b) => b.feld === id);
+  const rolle = stufe === "sammelt" ? ta("schwarm.sammler") : stufe === "denkt" ? ta("schwarm.pruefer") : stufe === "fertig" ? ta("schwarm.fertig") : ta("schwarm.wartet");
+  const Symbol = BEREICH_SYMBOL[bereich];
+  const bezeichnung = zeigeBereich ? `${t(`agent.name.${bereich}`)}: ${f.titel}` : f.titel;
+  return (
+    <li className="pa-agent" data-stufe={stufe} data-status={befund?.status} title={`${bezeichnung} - ${rolle}`}>
+      {zeigeBereich ? (
+        <span className="pa-agent__bereich" aria-hidden>
+          <Symbol className="h-2.5 w-2.5" />
+        </span>
+      ) : null}
+      <span className="pa-agent__figur" aria-hidden>
+        <Himbi zustand={STUFE_ZUSTAND[stufe]} groesse={22} />
+      </span>
+      <Stationen f={f} stufe={stufe} />
+      <span className="sr-only">{`${bezeichnung}: ${rolle}`}</span>
+    </li>
+  );
+}
+
+/** Alle Mini-Himbis auf einen Blick: normal je Bereich eine Zeile, kompakt alle Teams in einer einzigen,
+ *  bei Bedarf seitlich scrollenden Reihe (CEO-Uebersicht, laeuft nur nebenbei im Hintergrund mit). */
+function Schwarm({ stand, kompakt = false }: { stand: PruefungStand; kompakt?: boolean }) {
+  const ta = useTranslations("pruefungAblauf");
+  const t = useTranslations("pruefung");
   const zeilen = stand.reihenfolge.flatMap((bereich) => {
     const a = stand.agenten[bereich];
     return a ? [{ bereich, a }] : [];
@@ -195,33 +221,31 @@ function Schwarm({ stand }: { stand: PruefungStand }) {
         <strong>{ta("schwarm.titel")}</strong>
         <span aria-live="polite">{ta("schwarm.aktiv", { n: aktiv, fertig })}</span>
       </header>
-      {zeilen.map(({ bereich, a }) => {
-        const Symbol = BEREICH_SYMBOL[bereich];
-        return (
-          <div key={bereich} className="pa-schwarm__zeile" data-bereich={bereich} data-phase={a.phase}>
-            <span className="pa-schwarm__bereich">
-              <Symbol className="h-3.5 w-3.5" aria-hidden /> {t(`agent.name.${bereich}`)}
-            </span>
-            <ul>
-              {a.reihenfolge.map((id) => {
-                const f = a.felder[id]!;
-                const stufe = stufeVon(f);
-                const befund = stand.befunde.find((b) => b.feld === id);
-                const rolle = stufe === "sammelt" ? ta("schwarm.sammler") : stufe === "denkt" ? ta("schwarm.pruefer") : stufe === "fertig" ? ta("schwarm.fertig") : ta("schwarm.wartet");
-                return (
-                  <li key={id} className="pa-agent" data-stufe={stufe} data-status={befund?.status} title={`${f.titel} - ${rolle}`}>
-                    <span className="pa-agent__figur" aria-hidden>
-                      <Himbi zustand={STUFE_ZUSTAND[stufe]} groesse={22} />
-                    </span>
-                    <Stationen f={f} stufe={stufe} />
-                    <span className="sr-only">{`${f.titel}: ${rolle}`}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        );
-      })}
+      {kompakt ? (
+        <ul className="pa-schwarm__reihe">
+          {zeilen.flatMap(({ bereich, a }) =>
+            a.reihenfolge.map((id) => (
+              <AgentKarte key={id} bereich={bereich} id={id} f={a.felder[id]!} stand={stand} zeigeBereich />
+            )),
+          )}
+        </ul>
+      ) : (
+        zeilen.map(({ bereich, a }) => {
+          const Symbol = BEREICH_SYMBOL[bereich];
+          return (
+            <div key={bereich} className="pa-schwarm__zeile" data-bereich={bereich} data-phase={a.phase}>
+              <span className="pa-schwarm__bereich">
+                <Symbol className="h-3.5 w-3.5" aria-hidden /> {t(`agent.name.${bereich}`)}
+              </span>
+              <ul>
+                {a.reihenfolge.map((id) => (
+                  <AgentKarte key={id} bereich={bereich} id={id} f={a.felder[id]!} stand={stand} zeigeBereich={false} />
+                ))}
+              </ul>
+            </div>
+          );
+        })
+      )}
     </section>
   );
 }
@@ -237,7 +261,16 @@ function protokollText(z: LogZeile, stand: PruefungStand, t: ReturnType<typeof u
   return z.text === "spawn" ? t("log.spawn", { agent }) : t("log.fertig", { agent });
 }
 
-export function PruefungAblauf({ stand }: { stand: PruefungStand }) {
+export function PruefungAblauf({
+  stand,
+  kompakt = false,
+}: {
+  stand: PruefungStand;
+  /** Ohne die einzelnen Spuren je Bereich (pa-lanes) - fuer eine eingebettete Live-Anzeige, die
+   *  nicht den ganzen Bildschirm fuer sich hat (CEO-Uebersicht). Lauf und Datenerhebung laufen
+   *  unveraendert im Hintergrund weiter, nur das Zeichnen der Spuren entfaellt. */
+  kompakt?: boolean;
+}) {
   const t = useTranslations("pruefung");
   const ta = useTranslations("pruefungAblauf");
   const laeuft = stand.phase === "laeuft";
@@ -298,17 +331,19 @@ export function PruefungAblauf({ stand }: { stand: PruefungStand }) {
         ) : null}
       </div>
 
-      <Schwarm stand={stand} />
+      <Schwarm stand={stand} kompakt={kompakt} />
 
-      <div className="pa-lanes" data-fluss={aktiveSpuren > 0 ? "ja" : "nein"}>
-        <span className="pa-strang" aria-hidden />
-        <ul>
-          {stand.reihenfolge.map((bereich) => {
-            const a = stand.agenten[bereich];
-            return a ? <Lane key={bereich} bereich={bereich} a={a} befunde={stand.befunde.filter((b) => b.bereich === bereich)} jetzt={jetzt} laeuft={laeuft} /> : null;
-          })}
-        </ul>
-      </div>
+      {!kompakt ? (
+        <div className="pa-lanes" data-fluss={aktiveSpuren > 0 ? "ja" : "nein"}>
+          <span className="pa-strang" aria-hidden />
+          <ul>
+            {stand.reihenfolge.map((bereich) => {
+              const a = stand.agenten[bereich];
+              return a ? <Lane key={bereich} bereich={bereich} a={a} befunde={stand.befunde.filter((b) => b.bereich === bereich)} jetzt={jetzt} laeuft={laeuft} /> : null;
+            })}
+          </ul>
+        </div>
+      ) : null}
 
       {stand.synthese !== "aus" ? (
         <div className={cn("pa-synthese")} data-phase={stand.synthese}>

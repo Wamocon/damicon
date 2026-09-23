@@ -83,7 +83,10 @@ export function HaustierDashboard() {
   const liveHinweisTimer = useRef<number | undefined>(undefined);
   useEffect(() => () => window.clearTimeout(liveHinweisTimer.current), []);
   useEffect(() => {
-    if (ceoStand?.phase !== "laeuft" || liveHinweisGezeigt) return;
+    // an/weg: HaustierDashboard zeichnet zwar spaeter "return null", aber Hooks laufen davon
+    // unberuehrt weiter - ohne diese Pruefung wuerde die Seite bei abgestelltem oder weggeschicktem
+    // Himbi trotzdem unsichtbar zur Live-Anzeige springen, mit niemandem, der das erklaert.
+    if (!an || weg || ceoStand?.phase !== "laeuft" || liveHinweisGezeigt) return;
     const versuch = window.setTimeout(() => {
       const ziel = document.getElementById("compliance-live-lauf");
       if (!ziel) return;
@@ -96,7 +99,7 @@ export function HaustierDashboard() {
       liveHinweisTimer.current = window.setTimeout(() => setLiveHinweisAktiv(false), LIVE_HINWEIS_DAUER_MS);
     }, 0);
     return () => window.clearTimeout(versuch);
-  }, [ceoStand?.phase, liveHinweisGezeigt, pfad]);
+  }, [an, weg, ceoStand?.phase, liveHinweisGezeigt, pfad]);
 
   // Antwort kam an, waehrend das Panel zu war: Himbi jubelt, bis man hinsieht.
   const [fertig, setFertig] = useState(false);

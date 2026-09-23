@@ -129,9 +129,17 @@ export async function aktualisiereCeoBericht({ profil, erzwungen, sprache, emit 
     if (bereiche.length === 0) return { status: "fehler", grund: "keine-berechtigung" };
     const werkzeuge = baueWerkzeuge(profil.role, { nurLesen: true }) as Record<string, unknown>;
     const letzter = await letzterCeoBericht();
+    // Der gespeicherte Bericht ist Text in EINER festen Sprache (von der KI beim Lauf erzeugt,
+    // nicht nachtraeglich uebersetzbar wie die Oberflaeche selbst) - weicht die angeforderte
+    // Sprache davon ab, reicht ein unveraenderter Datenstand nicht: der Bericht muss trotzdem
+    // neu erzeugt werden, diesmal in der angeforderten Sprache.
+    const spracheAbweichend = !!letzter && letzter.bericht.sprache !== sprache;
 
-    if (!erzwungen && letzter) {
-      // Vor der Hash-Pruefung, denn auch die kostet schon Lesevorgaenge.
+    if (!erzwungen && !spracheAbweichend && letzter) {
+      // Vor der Hash-Pruefung, denn auch die kostet schon Lesevorgaenge. Die Sprach-
+      // abweichung steht oben in der Bedingung und uebergeht damit auch die Abkuehlzeit:
+      // sonst zeigte ein Sprachwechsel bis zu 15 Minuten lang den Bericht in der alten
+      // Sprache.
       if (Date.now() - new Date(letzter.erstelltAm).getTime() < ABKUEHLZEIT_MS) {
         return { status: "uebersprungen", bericht: letzter.bericht };
       }
@@ -151,12 +159,18 @@ export async function aktualisiereCeoBericht({ profil, erzwungen, sprache, emit 
     });
     if (!kette) return { status: "fehler", grund: "kein-anbieter" };
     const anbieter = kette.primaer;
+    // "sprachwechsel" zaehlt wie "auto-login" (automatisch, nicht vom Knopf ausgeloest) - eine
+    // dritte gespeicherte Quelle wuerde compliance-ceo.ts' engeren Lesetyp aufweiten muessen,
+    // fuer eine reine Bookkeeping-Unterscheidung nicht noetig; im Audit-Protokoll (unten) steht
+    // die Abweichung ohnehin.
     const quelle: "auto-login" | "manuell" = erzwungen ? "manuell" : "auto-login";
 
     await protokolliere(profil, "compliance_pruefung_auto_gestartet", "compliance_pruefung", null, {
       bereiche,
       quelle,
       modell: anbieter.modell,
+      sprache,
+      spracheAbweichend,
     }).catch(() => {});
 
     const bericht = await fuehrePruefungAus(

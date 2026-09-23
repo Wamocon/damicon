@@ -30,11 +30,15 @@ export function CeoPruefungProvider({ children }: { children: ReactNode }) {
   const sprache = useLocale();
   const router = useRouter();
   const { stand, starten } = usePruefung("/api/ki-pruefung/auto");
-  const gestartet = useRef(false);
+  // Haelt fest, fuer welche Sprache zuletzt gestartet wurde (statt nur "schon mal
+  // gestartet") - damit ein spaeterer Sprachwechsel denselben Lauf noch einmal ausloest.
+  // aktualisiereCeoBericht() erzwingt in diesem Fall serverseitig einen echten neuen Lauf,
+  // auch wenn sich sonst nichts geaendert hat (siehe dort: spracheAbweichend).
+  const gestarteteSprache = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!aktiv || gestartet.current) return;
-    gestartet.current = true;
+    if (!aktiv || gestarteteSprache.current === sprache) return;
+    gestarteteSprache.current = sprache;
     void starten([], sprache);
   }, [aktiv, sprache, starten]);
 
