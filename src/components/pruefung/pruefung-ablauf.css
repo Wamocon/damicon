@@ -295,6 +295,21 @@
   padding: 0;
   list-style: none;
 }
+/* Kompakt: alle Teams aller Bereiche in einer einzigen, notfalls seitlich scrollenden Reihe statt vier
+   gestapelten Zeilen - fuer die CEO-Uebersicht, die nur nebenbei im Hintergrund mitlaeuft. */
+.pa-schwarm__reihe {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0.05rem 0.05rem 0.4rem;
+  list-style: none;
+  scrollbar-width: thin;
+}
+.pa-schwarm__reihe .pa-agent {
+  flex: none;
+}
 .pa-agent {
   display: grid;
   justify-items: center;
@@ -339,6 +354,11 @@
   place-items: center;
   width: 1.45rem;
   height: 1.45rem;
+}
+.pa-agent__bereich {
+  display: grid;
+  place-items: center;
+  color: var(--muted-foreground);
 }
 .pa-stationen {
   display: flex;
