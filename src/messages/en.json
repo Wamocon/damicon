@@ -19,6 +19,8 @@
     "platformSubtitle": "Raspberry plantation management",
     "activePersona": "Active role (demo)",
     "overview": "Overview",
+    "handbook": "Handbook",
+    "handbookHint": "Open product handbook (new tab)",
     "breadcrumb": "Breadcrumb",
     "mainNav": "Main navigation",
     "openMenu": "Open menu",

@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!--
+  ERZEUGT - nicht von Hand bearbeiten.
+  Quelle:  scripts/handbuch/texte-kk.ts + src/lib/modules.ts + src/lib/rbac.ts
+  Neu bauen: npm run handbuch
+-->
+<title>Damicon – Өнім нұсқаулығы | WAMOCON</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20128%20128%22%3E%3Crect%20width%3D%22128%22%20height%3D%22128%22%20rx%3D%2228%22%20fill%3D%22%2300768f%22%2F%3E%3Ccircle%20cx%3D%2264%22%20cy%3D%2264%22%20r%3D%2246%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-opacity%3D%22.85%22%20stroke-width%3D%224.5%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23f2c14b%22%20stroke-width%3D%224.5%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M43%2068%20L34%2068%22%2F%3E%3Cpath%20d%3D%22M44%2061.5%20L35.5%2058.7%22%2F%3E%3Cpath%20d%3D%22M47%2055.7%20L39.7%2050.4%22%2F%3E%3Cpath%20d%3D%22M51.7%2051%20L46.4%2043.7%22%2F%3E%3Cpath%20d%3D%22M57.5%2048%20L54.7%2039.5%22%2F%3E%3Cpath%20d%3D%22M64%2047%20L64%2038%22%2F%3E%3Cpath%20d%3D%22M70.5%2048%20L73.3%2039.5%22%2F%3E%3Cpath%20d%3D%22M76.3%2051%20L81.6%2043.7%22%2F%3E%3Cpath%20d%3D%22M81%2055.7%20L88.3%2050.4%22%2F%3E%3Cpath%20d%3D%22M84%2061.5%20L92.5%2058.7%22%2F%3E%3Cpath%20d%3D%22M85%2068%20L94%2068%22%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2264%22%20cy%3D%2268%22%20r%3D%2215%22%20fill%3D%22%23ff5c7a%22%2F%3E%3Cpath%20d%3D%22M32%2092H96%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-opacity%3D%22.85%22%20stroke-width%3D%225.5%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E" />
+<script>
+  // Farbschema vor dem ersten Bild setzen, sonst blitzt das helle Schema auf.
+  // Derselbe Schluessel wie im Portal (src/components/theme-toggle.tsx): das
+  // Handbuch laeuft unter derselben Adresse und uebernimmt damit die Wahl,
+  // die der Nutzer im Portal getroffen hat.
+  (function () {
+    try {
+      var gewaehlt = localStorage.getItem('damicon-theme');
+      var dunkelBevorzugt = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (gewaehlt === 'dark' || (!gewaehlt && dunkelBevorzugt)) {
+        document.documentElement.classList.add('dark');
+      }
+    } catch (e) {}
+  })();
+</script>
+<style>
+/* Farben, Radien und Schriften sind die des Portals (src/app/globals.css).
+   Sie stehen hier als eigene Werte, weil das Handbuch eine eigenstaendige
+   Datei ist und ohne die Anwendung geoeffnet werden koennen muss - aendert
+   sich die Palette dort, gehoert sie hier nachgezogen. */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  color-scheme: light;
+  --hintergrund: #f6fafb;
+  --vordergrund: #0b1e26;
+  --karte: #ffffff;
+  --primaer: #00768f;
+  --primaer-auf: #ffffff;
+  --zweit: #e3f2f6;
+  --gedaempft: #eaf2f4;
+  --gedaempft-text: #5a7078;
+  --akzent: #8c6209;
+  --gut: #297956;
+  --warnung: #945d0c;
+  --gefahr: #c23b4e;
+  --rand: #dbe8ec;
+  --ring: #0095ac;
+  --leiste: #ffffff;
+  --leiste-rand: #dceaee;
+  --leiste-akzent: #eaf4f7;
+  --radius: 0.625rem;
+  --schrift: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --schrift-titel: "Manrope", "Inter", "Segoe UI", system-ui, sans-serif;
+  --markierung: rgba(0, 149, 172, 0.28);
+}
+
+.dark {
+  color-scheme: dark;
+  --hintergrund: #04161c;
+  --vordergrund: #e6f4f8;
+  --karte: #081e26;
+  --primaer: #3fd0e6;
+  --primaer-auf: #01222b;
+  --zweit: #0d2f3a;
+  --gedaempft: #0c2933;
+  --gedaempft-text: #9ab8c1;
+  --akzent: #f2c14b;
+  --gut: #5ecfa0;
+  --warnung: #e8b34a;
+  --gefahr: #fb7185;
+  --rand: rgba(255, 255, 255, 0.09);
+  --ring: #5fdcef;
+  --leiste: #051b22;
+  --leiste-rand: rgba(255, 255, 255, 0.09);
+  --leiste-akzent: #0c2b35;
+  --markierung: rgba(63, 208, 230, 0.26);
+}
+
+html { scroll-behavior: smooth; }
+
+/* Das hidden-Attribut wirkt ueber display: none aus dem Browser-Stylesheet -
+   und verliert damit gegen jede eigene display-Regel. Der Weg zurueck ins
+   Portal traegt .knopf mit display: inline-flex und stand deshalb sichtbar da,
+   obwohl er ausserhalb des Portals ins Leere zeigt. */
+[hidden] { display: none !important; }
+
+body {
+  font-family: var(--schrift);
+  background: var(--hintergrund);
+  color: var(--vordergrund);
+  line-height: 1.7;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--primaer); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 4px; }
+
+/* ── Kopfzeile ─────────────────────────────────────────────────────────── */
+/* 64 px hoch wie die Kopfzeile des Portals (md:h-16). */
+.kopf {
+  position: sticky; top: 0; z-index: 50;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; padding: 0 1.25rem;
+  background: var(--leiste);
+  border-bottom: 1px solid var(--leiste-rand);
+}
+
+.marke { display: flex; align-items: center; gap: 0.7rem; color: inherit; }
+.marke:hover { text-decoration: none; }
+
+.marke-zeichen { width: 36px; height: 36px; flex-shrink: 0; display: block; }
+
+.marke-text { display: flex; flex-direction: column; line-height: 1.25; }
+.marke-name { font-family: var(--schrift-titel); font-weight: 800; font-size: 1.05rem; }
+.marke-unter { font-size: 0.7rem; font-weight: 600; color: var(--gedaempft-text); }
+
+.kopf-werkzeuge { display: flex; align-items: center; gap: 0.6rem; }
+
+.knopf {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+  height: 36px; padding: 0 0.85rem;
+  border-radius: calc(var(--radius) * 0.8);
+  font-family: inherit; font-size: 0.82rem; font-weight: 700;
+  cursor: pointer; border: 1px solid transparent; white-space: nowrap;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+.knopf-voll { background: var(--primaer); color: var(--primaer-auf); }
+.knopf-voll:hover { filter: brightness(1.08); text-decoration: none; }
+.knopf-rand { background: transparent; color: var(--gedaempft-text); border-color: var(--rand); }
+.knopf-rand:hover { color: var(--vordergrund); border-color: var(--primaer); text-decoration: none; }
+
+/* ── Suche ─────────────────────────────────────────────────────────────── */
+.suche {
+  display: flex; align-items: center; gap: 0.5rem;
+  height: 36px; padding: 0 0.7rem;
+  background: var(--gedaempft);
+  border: 1px solid var(--rand);
+  border-radius: calc(var(--radius) * 0.8);
+}
+.suche:focus-within { border-color: var(--primaer); }
+.suche-zeichen { color: var(--gedaempft-text); font-size: 1rem; line-height: 1; }
+
+.suche-feld {
+  background: none; border: none; outline: none;
+  color: var(--vordergrund); font-family: inherit; font-size: 0.85rem;
+  width: 200px; padding: 0;
+}
+.suche-feld::placeholder { color: var(--gedaempft-text); }
+.suche-feld::-webkit-search-cancel-button { display: none; }
+
+/* Haelt seine Breite auch leer, sonst wackelt die Kopfzeile bei jedem
+   Tastendruck. */
+.suche-zaehler {
+  font-size: 0.72rem; color: var(--gedaempft-text);
+  font-variant-numeric: tabular-nums; min-width: 4.5rem; text-align: right;
+}
+.suche-zaehler.leer { color: var(--warnung); font-weight: 700; }
+
+.suche-loeschen {
+  background: none; border: none; cursor: pointer; padding: 0 0 0 0.2rem;
+  color: var(--gedaempft-text); font-size: 1.15rem; line-height: 1;
+}
+.suche-loeschen:hover { color: var(--vordergrund); }
+
+/* ── Sprachumschalter ──────────────────────────────────────────────────── */
+.sprachen {
+  display: flex; align-items: center; gap: 2px;
+  padding: 3px; background: var(--gedaempft);
+  border: 1px solid var(--rand); border-radius: calc(var(--radius) * 0.8);
+}
+.sprache {
+  border: none; background: none; cursor: pointer;
+  font-family: inherit; font-size: 0.72rem; font-weight: 800;
+  color: var(--gedaempft-text);
+  padding: 0.25rem 0.45rem; border-radius: calc(var(--radius) * 0.5);
+  transition: background-color 0.15s, color 0.15s;
+}
+.sprache:hover { color: var(--vordergrund); }
+.sprache-aktiv { background: var(--primaer); color: var(--primaer-auf); }
+.sprache-aktiv:hover { color: var(--primaer-auf); }
+
+/* ── Raster ────────────────────────────────────────────────────────────── */
+.raster {
+  display: grid; grid-template-columns: 300px minmax(0, 1fr);
+  max-width: 1500px; margin: 0 auto;
+  min-height: calc(100vh - 64px);
+}
+
+#toc {
+  position: sticky; top: 64px; align-self: start;
+  height: calc(100vh - 64px); overflow-y: auto;
+  padding: 1.75rem 1.25rem 3rem;
+  border-right: 1px solid var(--rand);
+}
+
+.toc-titel {
+  font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.14em; color: var(--gedaempft-text); margin-bottom: 0.9rem;
+}
+
+.toc-link {
+  display: block; color: var(--gedaempft-text); font-size: 0.82rem;
+  padding: 0.3rem 0.5rem; border-radius: calc(var(--radius) * 0.6);
+  border-left: 2px solid transparent;
+}
+.toc-link:hover { background: var(--leiste-akzent); color: var(--vordergrund); text-decoration: none; }
+.toc-link.aktiv { color: var(--primaer); border-left-color: var(--primaer); font-weight: 700; }
+
+.toc-1 {
+  font-weight: 700; color: var(--vordergrund); font-size: 0.85rem;
+  margin-top: 0.9rem; padding-top: 0.6rem; border-top: 1px solid var(--rand);
+}
+.toc-1:first-of-type { margin-top: 0; border-top: none; }
+.toc-2 { padding-left: 1rem; }
+.toc-3 { padding-left: 1.9rem; font-size: 0.78rem; }
+
+main { padding: 2.5rem 3rem 6rem; max-width: 62rem; min-width: 0; }
+
+/* ── Deckblatt ─────────────────────────────────────────────────────────── */
+.deckblatt {
+  background: var(--karte);
+  border: 1px solid var(--rand);
+  border-radius: calc(var(--radius) * 2);
+  padding: 3rem; margin-bottom: 3.5rem;
+}
+.deckblatt-zeichen { width: 64px; height: 64px; display: block; margin-bottom: 1.5rem; }
+.deckblatt-art {
+  font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.16em; color: var(--primaer); margin-bottom: 0.9rem;
+}
+.deckblatt h1 {
+  font-family: var(--schrift-titel); font-size: 3rem; font-weight: 800;
+  line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 0.6rem;
+}
+.deckblatt-unter { color: var(--gedaempft-text); font-size: 1.05rem; max-width: 46rem; }
+.deckblatt-daten {
+  display: flex; flex-wrap: wrap; gap: 2.5rem;
+  margin-top: 2.25rem; padding-top: 1.75rem; border-top: 1px solid var(--rand);
+}
+.dt-name {
+  display: block; font-size: 0.66rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--gedaempft-text); margin-bottom: 0.3rem;
+}
+.dt-wert { font-weight: 700; font-size: 0.95rem; }
+
+/* ── Ueberschriften ────────────────────────────────────────────────────── */
+section { margin-bottom: 3.5rem; }
+
+h2 {
+  font-family: var(--schrift-titel); font-size: 1.85rem; font-weight: 800;
+  letter-spacing: -0.015em; margin-bottom: 1.25rem;
+  padding-bottom: 0.7rem; border-bottom: 2px solid var(--primaer);
+  display: flex; align-items: baseline; gap: 0.7rem;
+}
+h2 .nr { color: var(--primaer); font-size: 1.1rem; font-weight: 800; }
+
+h3 {
+  font-family: var(--schrift-titel); font-size: 1.3rem; font-weight: 700;
+  margin: 2.25rem 0 0.9rem;
+}
+
+h4 {
+  font-family: var(--schrift-titel); font-size: 1.02rem; font-weight: 700;
+  margin: 1.85rem 0 0.5rem;
+  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+}
+
+p { margin-bottom: 0.9rem; }
+p:last-child { margin-bottom: 0; }
+.abstand-oben { margin-top: 0.8rem; }
+
+ol, ul { margin: 0 0 1rem 1.3rem; }
+li { margin-bottom: 0.45rem; }
+
+code {
+  font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+  font-size: 0.86em; background: var(--gedaempft);
+  padding: 0.1rem 0.35rem; border-radius: 4px;
+  border: 1px solid var(--rand); white-space: nowrap;
+}
+
+/* ── Kaesten ───────────────────────────────────────────────────────────── */
+.kasten {
+  border: 1px solid var(--rand); border-left-width: 3px;
+  border-radius: var(--radius); padding: 1.1rem 1.35rem;
+  margin: 1.25rem 0; background: var(--karte);
+}
+.kasten-titel { font-weight: 800; margin-bottom: 0.5rem; font-size: 0.95rem; }
+.kasten-info { border-left-color: var(--primaer); }
+.kasten-info .kasten-titel { color: var(--primaer); }
+.kasten-wichtig { border-left-color: var(--gut); }
+.kasten-wichtig .kasten-titel { color: var(--gut); }
+.kasten-warnung { border-left-color: var(--warnung); }
+.kasten-warnung .kasten-titel { color: var(--warnung); }
+
+/* ── Karten ────────────────────────────────────────────────────────────── */
+.karten-raster {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem; margin: 1.25rem 0;
+}
+.karte-klein {
+  background: var(--karte); border: 1px solid var(--rand);
+  border-radius: var(--radius); padding: 1.1rem 1.25rem;
+}
+.karte-klein-titel { font-family: var(--schrift-titel); font-weight: 700; margin-bottom: 0.2rem; }
+.karte-klein-zeile {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--primaer); margin-bottom: 0.6rem;
+}
+.karte-klein p { font-size: 0.89rem; color: var(--gedaempft-text); }
+
+/* ── Merkmale eines Moduls ─────────────────────────────────────────────── */
+.merkmale {
+  border: 1px solid var(--rand); border-radius: var(--radius);
+  background: var(--karte); margin: 0.9rem 0 1.5rem; overflow: hidden;
+}
+.merkmal {
+  display: grid; grid-template-columns: 11rem minmax(0, 1fr);
+  gap: 1rem; padding: 0.6rem 1.1rem;
+  border-top: 1px solid var(--rand); font-size: 0.89rem;
+}
+.merkmal:first-child { border-top: none; }
+.merkmal-name { font-weight: 700; color: var(--gedaempft-text); }
+
+/* ── Tabellen ──────────────────────────────────────────────────────────── */
+.tabelle {
+  margin: 1.25rem 0; overflow-x: auto;
+  border: 1px solid var(--rand); border-radius: var(--radius);
+  background: var(--karte);
+}
+table { width: 100%; border-collapse: collapse; font-size: 0.89rem; }
+th {
+  text-align: left; font-weight: 800; font-size: 0.72rem;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--gedaempft-text); background: var(--gedaempft);
+  padding: 0.7rem 1rem; border-bottom: 1px solid var(--rand);
+  white-space: nowrap;
+}
+td { padding: 0.7rem 1rem; border-bottom: 1px solid var(--rand); vertical-align: top; }
+tbody tr:last-child td { border-bottom: none; }
+
+/* Die Rechtematrix ist breit: neun Spalten. Die erste bleibt stehen. */
+.tabelle-matrix table { font-size: 0.82rem; }
+.tabelle-matrix th:not(:first-child), .tabelle-matrix td:not(:first-child) {
+  text-align: center; white-space: normal;
+}
+.tabelle-matrix th:first-child, .tabelle-matrix td:first-child {
+  position: sticky; left: 0; background: var(--karte); z-index: 1;
+}
+.tabelle-matrix th:first-child { background: var(--gedaempft); }
+
+.recht { font-size: 1rem; line-height: 1; }
+.recht-schreiben { color: var(--primaer); }
+.recht-lesen { color: var(--gedaempft-text); }
+.recht-keins { color: var(--rand); }
+.legende { font-size: 0.82rem; color: var(--gedaempft-text); }
+
+/* ── Pillen ────────────────────────────────────────────────────────────── */
+.pille {
+  display: inline-block; padding: 0.15rem 0.6rem;
+  border-radius: 999px; font-size: 0.68rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;
+}
+.pille-gut { background: color-mix(in srgb, var(--gut) 14%, transparent); color: var(--gut); }
+.pille-offen { background: color-mix(in srgb, var(--warnung) 14%, transparent); color: var(--warnung); }
+.pille-jetzt { background: color-mix(in srgb, var(--primaer) 14%, transparent); color: var(--primaer); }
+
+/* ── Suche: Treffer und Filter ─────────────────────────────────────────── */
+mark.treffer { background: var(--markierung); color: inherit; border-radius: 3px; padding: 0 2px; }
+mark.treffer-aktiv {
+  background: var(--akzent); color: var(--hintergrund);
+  font-weight: 700; box-shadow: 0 0 0 3px color-mix(in srgb, var(--akzent) 30%, transparent);
+}
+
+.ausgeblendet { display: none; }
+
+.such-hinweis {
+  display: none; margin-bottom: 1.5rem;
+  background: var(--karte); border: 1px solid var(--rand);
+  border-left: 3px solid var(--warnung); border-radius: var(--radius);
+  padding: 1.1rem 1.35rem; color: var(--gedaempft-text); font-size: 0.92rem;
+}
+.such-hinweis.sichtbar { display: block; }
+.such-hinweis strong { color: var(--vordergrund); }
+
+/* ── Fuss ──────────────────────────────────────────────────────────────── */
+.fuss {
+  border-top: 1px solid var(--rand); padding: 1.75rem 3rem;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+  font-size: 0.8rem; color: var(--gedaempft-text);
+}
+
+/* ── Schmale Schirme ───────────────────────────────────────────────────── */
+@media (max-width: 1180px) {
+  .raster { grid-template-columns: 1fr; }
+  #toc { display: none; }
+  main { padding: 2rem 1.5rem 4rem; }
+  .fuss { padding: 1.5rem; }
+  .suche-feld { width: 130px; }
+  .marke-unter { display: none; }
+}
+
+@media (max-width: 820px) {
+  .kopf { height: auto; padding: 0.7rem 1rem; flex-wrap: wrap; position: static; }
+  .kopf-werkzeuge { width: 100%; flex-wrap: wrap; }
+  .suche { flex: 1 1 100%; }
+  .suche-feld { width: 100%; flex: 1; }
+  .deckblatt { padding: 1.75rem; }
+  .deckblatt h1 { font-size: 2.1rem; }
+  .deckblatt-daten { gap: 1.25rem; }
+  .merkmal { grid-template-columns: 1fr; gap: 0.15rem; }
+  h2 { font-size: 1.5rem; }
+}
+
+/* ── Druck ─────────────────────────────────────────────────────────────── */
+@media print {
+  .kein-druck, .kopf, #toc, .fuss { display: none !important; }
+  .raster { display: block; max-width: none; }
+  main { padding: 0; max-width: none; }
+
+  /* Der PDF-Export ist immer das vollstaendige Handbuch, nie der gerade
+     gefilterte Ausschnitt. Das Skript setzt die Suche vor dem Druck zurueck;
+     diese Regeln sind das zweite Netz, falls JavaScript abgeschaltet ist oder
+     der Druck ueber Strg+P am Skript vorbeilaeuft. Ohne sie druckte eine
+     Suche nach "Kuehlkette" ein Handbuch aus drei Absaetzen - und niemand
+     saehe dem PDF an, dass etwas fehlt. */
+  .ausgeblendet { display: revert !important; }
+  .such-hinweis { display: none !important; }
+  mark.treffer, mark.treffer-aktiv {
+    background: none !important; color: inherit !important;
+    box-shadow: none !important; font-weight: inherit !important; padding: 0 !important;
+  }
+
+  body { background: #fff; color: #000; font-size: 10.5pt; }
+  :root {
+    --hintergrund: #fff; --vordergrund: #000; --karte: #fff;
+    --gedaempft: #f4f4f4; --gedaempft-text: #444; --rand: #bbb;
+    --primaer: #005f74; --gut: #1f5e43; --warnung: #7a4c09;
+  }
+
+  section { break-before: page; }
+  section:first-of-type { break-before: auto; }
+  .deckblatt { break-after: page; border: none; padding: 0; }
+  h2, h3, h4 { break-after: avoid; }
+  table, .kasten, .karte-klein, .merkmale { break-inside: avoid; }
+  thead { display: table-header-group; }
+  .tabelle, .tabelle-matrix { overflow: visible; }
+  .tabelle-matrix th:first-child, .tabelle-matrix td:first-child { position: static; }
+  a { color: #000; text-decoration: none; }
+  @page { margin: 16mm 14mm; }
+}
+</style>
+</head>
+<body>
+
+<header class="kopf kein-druck">
+  <a class="marke" href="#ueberblick">
+    <svg class="marke-zeichen" viewBox="0 0 128 128" role="img" aria-label="Damicon">
+      <rect width="128" height="128" rx="28" fill="var(--primaer)" />
+      <circle cx="64" cy="64" r="46" fill="none" stroke="var(--primaer-auf)" stroke-opacity="0.85" stroke-width="4.5" />
+      <g fill="none" stroke="#f2c14b" stroke-width="4.5" stroke-linecap="round"><path d="M43 68 L34 68" /><path d="M44 61.5 L35.5 58.7" /><path d="M47 55.7 L39.7 50.4" /><path d="M51.7 51 L46.4 43.7" /><path d="M57.5 48 L54.7 39.5" /><path d="M64 47 L64 38" /><path d="M70.5 48 L73.3 39.5" /><path d="M76.3 51 L81.6 43.7" /><path d="M81 55.7 L88.3 50.4" /><path d="M84 61.5 L92.5 58.7" /><path d="M85 68 L94 68" /></g>
+      <circle cx="64" cy="68" r="15" fill="#ff5c7a" />
+      <path d="M32 92H96" fill="none" stroke="var(--primaer-auf)" stroke-opacity="0.85" stroke-width="5.5" stroke-linecap="round" />
+    </svg>
+    <span class="marke-text">
+      <span class="marke-name">Damicon</span>
+      <span class="marke-unter">Өнім нұсқаулығы</span>
+    </span>
+  </a>
+
+  <div class="kopf-werkzeuge">
+    <div class="suche">
+      <span class="suche-zeichen" aria-hidden="true">⌕</span>
+      <input type="search" id="suchfeld" class="suche-feld"
+        placeholder="Нұсқаулықтан іздеу …"
+        aria-label="Нұсқаулықтан іздеу"
+        autocomplete="off" spellcheck="false" />
+      <span class="suche-zaehler" id="such-zaehler" role="status" aria-live="polite"></span>
+      <button type="button" class="suche-loeschen" id="such-loeschen"
+        title="Іздеуді тазалау (Esc)"
+        aria-label="Іздеуді тазалау (Esc)" hidden>×</button>
+    </div>
+
+    <div class="sprachen" role="group" aria-label="Тіл">
+      <button type="button" class="sprache" data-sprache="de" title="Deutsch">DE</button><button type="button" class="sprache" data-sprache="en" title="English">EN</button><button type="button" class="sprache sprache-aktiv" data-sprache="kk" title="Қазақша">KK</button><button type="button" class="sprache" data-sprache="ru" title="Русский">RU</button>
+    </div>
+
+    <button type="button" class="knopf knopf-rand" id="thema-knopf"
+      title="Түс схемасын ауыстыру" aria-label="Түс схемасын ауыстыру">
+      <span id="thema-zeichen" aria-hidden="true">◐</span>
+    </button>
+
+    <a class="knopf knopf-rand" id="portal-knopf" href="../"
+      title="Портал шолуына оралу" hidden>← Порталға</a>
+
+    <button type="button" class="knopf knopf-voll" onclick="handbuchAlsPdf()"
+      title="Толық нұсқаулықты PDF етіп сақтау (Басып шығару → PDF етіп сақтау)">PDF сақтау</button>
+  </div>
+</header>
+
+<div class="raster">
+  <nav id="toc" class="kein-druck" aria-label="Мазмұны">
+    <div class="toc-titel">Мазмұны</div>
+    <a class="toc-link toc-1" href="#ueberblick">01 Шолу</a>
+    <a class="toc-link toc-2" href="#ueberblick-zonen">1.1 Төрт аймақ</a>
+    <a class="toc-link toc-2" href="#ueberblick-rollen">1.2 Рөлдер</a>
+    <a class="toc-link toc-1" href="#bedienung">02 Порталмен жұмыс</a>
+    <a class="toc-link toc-2" href="#bedienung-anmelden">2.1 Жүйеге кіру</a>
+    <a class="toc-link toc-2" href="#bedienung-aufbau">2.2 Интерфейстің құрылымы</a>
+    <a class="toc-link toc-2" href="#bedienung-sprache">2.3 Тілді ауыстыру</a>
+    <a class="toc-link toc-2" href="#bedienung-thema">2.4 Түс схемасы</a>
+    <a class="toc-link toc-2" href="#bedienung-rolle">2.5 Рөлді ауыстыру</a>
+    <a class="toc-link toc-2" href="#bedienung-offline">2.6 Байланыссыз жұмыс</a>
+    <a class="toc-link toc-1" href="#bereiche">03 Аймақтар мен модульдер</a>
+    <a class="toc-link toc-2" href="#bereich-feld">3.1 Дала</a>
+    <a class="toc-link toc-3" href="#modul-standort">3.1.1 Телімдер</a>
+    <a class="toc-link toc-3" href="#modul-reihenbloecke">3.1.2 Қатар блоктары</a>
+    <a class="toc-link toc-3" href="#modul-pflueckaufgaben">3.1.3 Теру тапсырмалары</a>
+    <a class="toc-link toc-3" href="#modul-pflanzenschutz">3.1.4 Өсімдік қорғау</a>
+    <a class="toc-link toc-3" href="#modul-rotationsplan">3.1.5 Ротация жоспары</a>
+    <a class="toc-link toc-3" href="#modul-wetter">3.1.6 Ауа райы</a>
+    <a class="toc-link toc-2" href="#bereich-hof">3.2 Аула</a>
+    <a class="toc-link toc-3" href="#modul-kuehlkette">3.2.1 Суық тізбек</a>
+    <a class="toc-link toc-3" href="#modul-logistik">3.2.2 Жинау рейстері</a>
+    <a class="toc-link toc-3" href="#modul-qr_steigen">3.2.3 QR жәшіктер</a>
+    <a class="toc-link toc-3" href="#modul-esf">3.2.4 Жүкқұжат (ЭСФ)</a>
+    <a class="toc-link toc-2" href="#bereich-buero">3.3 Кеңсе</a>
+    <a class="toc-link toc-3" href="#modul-rollen">3.3.1 Рөлдер мен құқықтар</a>
+    <a class="toc-link toc-3" href="#modul-finanzen">3.3.2 Қаржы</a>
+    <a class="toc-link toc-3" href="#modul-personal">3.3.3 Терімшілер құрамы</a>
+    <a class="toc-link toc-3" href="#modul-lohn">3.3.4 Сапа коэффициенті</a>
+    <a class="toc-link toc-3" href="#modul-dokumente">3.3.5 Құжаттар</a>
+    <a class="toc-link toc-3" href="#modul-compliance">3.3.6 Сәйкестік</a>
+    <a class="toc-link toc-3" href="#modul-integrationen">3.3.7 Интеграциялар</a>
+    <a class="toc-link toc-3" href="#modul-foerdermittel">3.3.8 Субсидиялар</a>
+    <a class="toc-link toc-3" href="#modul-stammdaten">3.3.9 Анықтамалық деректер</a>
+    <a class="toc-link toc-2" href="#bereich-markt">3.4 Нарық</a>
+    <a class="toc-link toc-3" href="#modul-sortenkatalog">3.4.1 Сұрыптар каталогы</a>
+    <a class="toc-link toc-3" href="#modul-b2b_portal">3.4.2 B2B-портал</a>
+    <a class="toc-link toc-3" href="#modul-reklamationen">3.4.3 Шағымдар</a>
+    <a class="toc-link toc-3" href="#modul-preislisten">3.4.4 Баға тізімдері</a>
+    <a class="toc-link toc-3" href="#modul-aggregator">3.4.5 Агрегатор</a>
+    <a class="toc-link toc-3" href="#modul-schulungen">3.4.6 Оқыту</a>
+    <a class="toc-link toc-3" href="#modul-kanaele">3.4.7 Байланыс арналары</a>
+    <a class="toc-link toc-1" href="#anleitungen">04 Нұсқаулар</a>
+    <a class="toc-link toc-2" href="#anleitung-wartezeit">4.1 Күту мерзімі бойынша бұғаттауды қою және алу</a>
+    <a class="toc-link toc-2" href="#anleitung-pflueckaufgabe">4.2 Фотодәлелі бар теру тапсырмасы</a>
+    <a class="toc-link toc-2" href="#anleitung-nachweiskette">4.3 Жеткізілімнің растама тізбегін көрсету</a>
+    <a class="toc-link toc-2" href="#anleitung-dokument">4.4 Құжатты тіркеу</a>
+    <a class="toc-link toc-2" href="#anleitung-zugang">4.5 Қолжетімділікті орнату: шақыру және екінші фактор</a>
+    <a class="toc-link toc-1" href="#referenz">05 Анықтамалық</a>
+    <a class="toc-link toc-2" href="#referenz-seiten">5.1 Беттер</a>
+    <a class="toc-link toc-2" href="#referenz-rechte">5.2 Рөлдер бойынша құқықтар</a>
+    <a class="toc-link toc-2" href="#referenz-schnittstellen">5.3 Интерфейстер</a>
+    <a class="toc-link toc-1" href="#technik">06 Технологиялар</a>
+    <a class="toc-link toc-2" href="#technik-stack">6.1 Пайдаланылатын технологиялар</a>
+    <a class="toc-link toc-2" href="#technik-meilensteine">6.2 Бақылау нүктелері</a>
+    <a class="toc-link toc-1" href="#recht">07 Құқық және деректерді сақтау</a>
+    <a class="toc-link toc-1" href="#glossar">08 Глоссарий</a>
+  </nav>
+
+  <main>
+    <div class="such-hinweis" id="such-hinweis" role="status" aria-live="polite"></div>
+
+    <div class="deckblatt">
+      <svg class="deckblatt-zeichen" viewBox="0 0 128 128" role="img" aria-label="Damicon">
+      <rect width="128" height="128" rx="28" fill="var(--primaer)" />
+      <circle cx="64" cy="64" r="46" fill="none" stroke="var(--primaer-auf)" stroke-opacity="0.85" stroke-width="4.5" />
+      <g fill="none" stroke="#f2c14b" stroke-width="4.5" stroke-linecap="round"><path d="M43 68 L34 68" /><path d="M44 61.5 L35.5 58.7" /><path d="M47 55.7 L39.7 50.4" /><path d="M51.7 51 L46.4 43.7" /><path d="M57.5 48 L54.7 39.5" /><path d="M64 47 L64 38" /><path d="M70.5 48 L73.3 39.5" /><path d="M76.3 51 L81.6 43.7" /><path d="M81 55.7 L88.3 50.4" /><path d="M84 61.5 L92.5 58.7" /><path d="M85 68 L94 68" /></g>
+      <circle cx="64" cy="68" r="15" fill="#ff5c7a" />
+      <path d="M32 92H96" fill="none" stroke="var(--primaer-auf)" stroke-opacity="0.85" stroke-width="5.5" stroke-linecap="round" />
+    </svg>
+      <div class="deckblatt-art">Өнім нұсқаулығы · WAMOCON GmbH</div>
+      <h1>Damicon</h1>
+      <p class="deckblatt-unter">Алматы маңындағы таңқурай шаруашылығын басқару</p>
+      <div class="deckblatt-daten">
+        <div><span class="dt-name">Нұсқа</span><span class="dt-wert">0.1.0</span></div>
+        <div><span class="dt-name">Күйі</span><span class="dt-wert"><span class="pille pille-jetzt">Прототип</span></span></div>
+        <div><span class="dt-name">Тілдер</span><span class="dt-wert">DE · EN · KK · RU</span></div>
+        <div><span class="dt-name">Жағдай бойынша</span><span class="dt-wert">2026 жылғы 23 қыркүйек</span></div>
+      </div>
+    </div>
+
+    <section id="ueberblick">
+      <h2><span class="nr">01</span> Шолу</h2>
+      <p>Damicon таңқурай шаруашылығын қатардан бастап шот-фактураға дейін басқарады: қайда не піскен, кім терген, өнім қаншалықты жылдам салқындатылған, оған қанша шығын кеткен және қанша түсім әкелген. Портал жемістің жолын қайталайтын төрт аймаққа бөлінген — Дала, Аула, Кеңсе, Нарық.</p>
+
+      <div class="kasten kasten-wichtig">
+        <div class="kasten-titel">Мәселенің мәні</div>
+        <p>Таңқурайда нарықтағы көшбасшылық көлеммен емес, дәлелденушілікпен қалыптасады. Салқындату қисығы, партия, шығу тегі блогы, теруші және өңдеу туралы растама әрбір жеткізілім үшін толық болуы тиіс. Damicon дәл осыны тіркейді.</p>
+      </div>
+
+      <div class="kasten kasten-warnung">
+        <div class="kasten-titel">Осы нұсқаның күйі</div>
+        <p>Портал — прототип. Негізгі функциялар нақты дерекқормен жұмыс істейді: кіру, рөл құқықтары, учаскелерді басқару, қатар блогын бұғаттау, фотодәлелі бар теру тапсырмалары, құжаттарды сақтау. Екі модуль әзірге өз экраны жоқ мәзір тармағы күйінде қалып отыр. Көрсеткіштер алғашқы толық өлшенген маусым жиналғанға дейін бастапқы мәндерді көрсетеді. Дерекқорға қосылымсыз портал демонстрациялық режимде үлгі деректермен жұмыс істейді.</p>
+      </div>
+
+      <h3 id="ueberblick-zonen">1.1 Төрт аймақ</h3>
+      <p>Әр аймақтың өз бастапқы беті бар, онда модульдер тақталар түрінде көрсетіледі. Олардың қайсысы көрінетіні тіркелгінің рөліне байланысты.</p>
+      <div class="karten-raster">
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Дала</div>
+          <div class="karte-klein-zeile">Өсіру, терім, өсімдік қорғау</div>
+          <p>Телім моделі, күту мерзіміне бұғаттауды қоса қатар блогының күйі, фотодәлелі бар теру тапсырмалары, ротация жоспары және ауа райы деректері.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Аула</div>
+          <div class="karte-klein-zeile">Суық тізбек, логистика</div>
+          <p>60 минуттық көрсеткішпен алдын ала суыту, температура тіркегіштері, жинау рейстері, жәшіктерді QR арқылы сәйкестендіру және электрондық жүкқұжат.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Кеңсе</div>
+          <div class="karte-klein-zeile">Қаржы, персонал, сәйкестік</div>
+          <p>Рөлдер мен құқықтар, қатар блогы және жинау күні бойынша маржиналды табыс, сапа коэффициентімен еңбекақы, құжат айналымы, сәйкестік тақтасы және міндетті мемлекеттік интеграциялар.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Нарық</div>
+          <div class="karte-klein-zeile">Өткізу, ЖИ, жұртшылық</div>
+          <p>Сұрыптар мен квоталар каталогы, алдын ала тапсырысы бар B2B-портал, тексерілген дерекқорға негізделген ЖИ-чат, көрші шаруашылықтарға арналған агрегатор платформасы және көптілді оқыту.</p>
+        </div>
+      </div>
+
+      <h3 id="ueberblick-rollen">1.2 Рөлдер</h3>
+      <p>Сегіз рөл. Тіркелгінің рөлі навигацияда қандай модульдер пайда болатынын және оларда нені өзгертуге болатынын айқындайды — бұл тек интерфейсте ғана емес, дерекқорда да қайта тексеріледі.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Рөл</th><th>Міндеттері мен құқықтары</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Әкімшілік</strong></td><td>Толық баптау, пайдаланушылар мен рөлдерді басқару, сезімтал қаржы, қатынау және интеграцияны қадағалау.</td></tr>
+            <tr><td><strong>Бас директор</strong></td><td>Барлық төрт аймақты, барлық көрсеткіштерді және барлық төрт комплаенс саласын шолу, ЖИ-провайдер кілттерін басқарусыз. Жүйеге кіргенде автоматты түрде жаңартылған комплаенс есептерін алады.</td></tr>
+            <tr><td><strong>Шаруашылық басшылығы</strong></td><td>Күнделікті плантация жұмысы, тапсырмалар, ротация, персонал және бекітулер. Қаржыны көре алады, бірақ өткізбе жасай алмайды.</td></tr>
+            <tr><td><strong>Бухгалтерия</strong></td><td>Маржиналды табыс, жалақы, төлемдер, мемлекеттік есептілік. Пайдаланушыларды басқару және дала тапсырмаларын жабу жоқ.</td></tr>
+            <tr><td><strong>Бригада / дала</strong></td><td>Терім тапсырмаларын қабылдайды, далада көлем мен фотодәлелді тіркейді, ротация мен күту бұғаттарын көреді.</td></tr>
+            <tr><td><strong>Терімші</strong></td><td>Тек өз терім өнімділігі мен жалақы есебін көреді. Өткізілген көлемдерге немесе басқа біреудің деректеріне жазу құқығы жоқ.</td></tr>
+            <tr><td><strong>Өндіруші / көрші шаруашылық</strong></td><td>Сатып алудағы көрші шаруашылық. Өз қатар блоктарын, партияларын, есеп айырысу мен шарттарын көреді.</td></tr>
+            <tr><td><strong>B2B тапсырыс беруші</strong></td><td>Квоталар, алдын ала тапсырыс, баға тізімдері, ЖИ-чат, берілген құжаттар және өз шағымдары.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="kasten kasten-info">
+        <div class="kasten-titel">Осы нұсқаулықты пайдалану</div>
+        <p>Іздеу: жоғарғы оң жақтағы өріс, оған / пернесімен немесе Ctrl+K тіркесімімен өтуге болады. Іздеу сәйкестігі жоқ тарауларды жасырып, табылғанды бөліп көрсетеді; Enter келесі сәйкестікке, Shift+Enter алдыңғысына өтеді, Esc іздеуді тазалайды.</p>
+        <p class="abstand-oben">PDF етіп сақтау: жоғарғы оң жақтағы түйме, содан кейін басып шығару терезесінде «PDF етіп сақтау» таңдаңыз. Экспорт әрқашан таңдалған тілдегі толық нұсқаулықты қамтиды — белсенді іздеу сүзгісі алдын ала тазаланады, сондықтан нені жетіспейтіні көрінбейтін үзінді пайда болмайды. Бұл Ctrl+P үшін де қолданылады.</p>
+      </div>
+    </section>
+
+    <section id="bedienung">
+      <h2><span class="nr">02</span> Порталмен жұмыс</h2>
+      <p>Бұл тарау интерфейсті сипаттайды: қалай кіру керек, навигация қалай құрылған және параметрлер қайда орналасқан. Жекелеген модульдердің не істейтіні келесі тарауда баяндалады.</p>
+
+      <h3 id="bedienung-anmelden">2.1 Жүйеге кіру</h3>
+      <ol>
+          <li>Порталды ашыңыз. Мекенжайда тіл коды болмаса, неміс нұсқасы ашылады.</li>
+          <li>Бастапқы бетте «Порталға» тармағын таңдаңыз немесе кіру бетін тікелей ашыңыз.</li>
+          <li>Электрондық пошта мекенжайы мен құпия сөзді енгізіңіз.</li>
+          <li>Тіркелгі үшін екінші фактор орнатылған болса, әрі қарай алты таңбалы код сұралады. Бірден шолуға өту мүмкін емес — тексеру беттің алдында тұр, оның ішінде емес.</li>
+          <li>Кіргеннен кейін төрт аймақ пен шаруашылық көрсеткіштері бар шолу ашылады.</li>
+      </ol>
+      <div class="kasten kasten-info">
+        <div class="kasten-titel">Танысуға арналған тіркелгілер</div>
+        <p>Прототип үшін әр рөлге бір тіркелгі жасалған: admin@damicon.demo, ceo@damicon.demo, leitung@damicon.demo, buchhaltung@damicon.demo, brigade@damicon.demo, pfluecker@damicon.demo, erzeuger@damicon.demo, kunde@damicon.demo.</p>
+        <p class="abstand-oben">Сегіз тіркелгінің құпия сөзі бірдей: DamiconDemo2026! — Портал дерекқорсыз жұмыс істесе, кіру мүлде қажет емес және үлгі деректер пайдаланылады. Әр экран жоғарғы оң жақта қай көзден оқитынын көрсетеді.</p>
+      </div>
+
+      <h3 id="bedienung-aufbau">2.2 Интерфейстің құрылымы</h3>
+      <p>Компьютерде навигацияны бүйірлік панель, телефонда экранның астыңғы жолағы алып жүреді. Екеуі де бір беттерге апарады.</p>
+      <div class="karten-raster">
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Бүйірлік панель</div>
+          <p>Сол жақ шетте, планшет енінен бастап. Жоғарыда шолу, төменде өз модульдері бар ашылмалы топтар түріндегі төрт аймақ. Рөл бірде-бір модульді көре алмайтын аймақ мүлде көрінбейді. Панельді тар белгішелер бағанына дейін жиюға болады; ол үшін ауыстырғыш жоғарғы жолақта орналасқан. Төменде нұсқаулық, кірген пайдаланушы туралы мәлімет, қауіпсіздік беті және шығу тұр.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Жоғарғы жолақ</div>
+          <p>Ашық беттің жолын, бүйірлік панель енінің ауыстырғышын, тіл таңдауын, түс схемасын және әкімшілік үшін «Кімнің атынан қарау» өрісін қамтиды.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Астыңғы жолақ (телефон)</div>
+          <p>Планшеттен тар экрандарда ол бүйірлік панельді алмастырады. Тек жоғарғы деңгейді — шолу мен төрт аймақты көрсетеді; модульдер аймақ бетінде тақталар түрінде беріледі. 26 тармақтан тұратын ағаш тік бағанға лайық, бас бармақпен ашатын бетке емес. Тіркелгі түймесі тіл, түс схемасы, нұсқаулық, қауіпсіздік және шығу тармақтары бар парақты ашады.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Шолу</div>
+          <p>Кіргеннен кейінгі бастапқы бет. Сәлемдесу және көрсеткіштері бар төрт аймақ. Бас директор мен әкімшілік олардың үстінен «Бүгінгі ең маңыздысы» блогын көреді: дайындық дәрежесі, соңғы тексеру есебінен бір сөйлем, алдыңғы есептен бергі өзгерістер және бес тақта — аудит, салық, құқық, тәуекел және қаржы.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Аймақ беті</div>
+          <p>Әр аймақтың өз беті бар, онда модульдер қысқаша сипаттамасымен тақталар түрінде көрсетіледі. Бүйірлік панель жоқ телефонда бұл — модульдерге апаратын негізгі жол.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Модуль беті</div>
+          <p>Модуль мазмұнын көрсетеді: кестелер, нысандар, көрсеткіштер. Жоғарғы оң жақта деректердің дерекқордан келетіні немесе үлгі мәндер екені айтылады. Әзірге салынбаған модульдер бір сөйлеммен не істей алатынын хабарлайды.</p>
+        </div>
+      </div>
+
+      <h3 id="bedienung-sprache">2.3 Тілді ауыстыру</h3>
+      <p>Тіл таңдау жоғарғы жолақта, телефонда — тіркелгі парағында орналасқан. Төрт тіл қолжетімді: неміс, ағылшын, қазақ және орыс. Неміс және ағылшын тілдері толық аударылған, қазақ пен орыс тілдері прототип үшін негізінен аударылған; аударма жоқ жерде неміс мәтіні шығады. Тіл мекенжайдың құрамында, сондықтан нақты тілдік нұсқаға сілтеме беруге болады. Бұл нұсқаулық порталдың ағымдағы тілін ұстанады және жоғарғы оң жақта өз ауыстырғышы бар.</p>
+
+      <h3 id="bedienung-thema">2.4 Түс схемасы</h3>
+      <p>Ашық және қараңғы, жоғарғы жолақта ауысады. Таңдау браузерде сақталады және осы нұсқаулыққа да қолданылады. Таңдау жасалмаса, портал операциялық жүйенің параметрін ұстанады.</p>
+
+      <h3 id="bedienung-rolle">2.5 Рөлді ауыстыру</h3>
+      <p>Қолданыстағы рөл — кірген тіркелгінің рөлі; ол бүйірлік панельдің төменгі жағында көрсетіледі. Басқа рөлді көру үшін тиісті тіркелгімен кіріңіз. Әкімшілікте қосымша «Кімнің атынан қарау» өрісі бар: ол тек экранда көрінетінді өзгертеді. Өзгерту құқықтары бұрынғысынша профиль бойынша айқындалады — оның үстіне дерекқорда, ал онда интерфейстегі ауыстыру ештеңе бермейді.</p>
+
+      <h3 id="bedienung-offline">2.6 Байланыссыз жұмыс</h3>
+      <p>Далада байланыс сенімсіз. Сондықтан теру тапсырмалары, жәшіктер, жұмыс уақыты және салқындату өлшемдері туралы хабарламалар құрылғыдағы кезекке түсіп, кейінірек өздігінен жіберіледі. Бұл ретте олар жұмыс үстеліндегі енгізумен бірдей тексеруден өтеді — кезектен келген хабарлама оны жасаған адамнан артық құқық бермейді.</p>
+    </section>
+
+    <section id="bereiche">
+      <h2><span class="nr">03</span> Аймақтар мен модульдер</h2>
+      <p>Төрт аймақтағы 26 модуль. Бұл тарау әрқайсысын сипаттайды: не үшін қажет, кім көре алады және кім онда жұмыс істей алады, әрі әлі не істелмеген. Құқықтар туралы мәліметтер портал пайдалану кезінде ұстанатын дәл сол матрицадан алынған.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Модуль</th><th>Күйі</th><th>Көретіндер</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Телімдер</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бригада / дала</td></tr>
+            <tr><td><strong>Қатар блоктары</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, Бригада / дала, Өндіруші / көрші шаруашылық</td></tr>
+            <tr><td><strong>Теру тапсырмалары</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, Бригада / дала, Өндіруші / көрші шаруашылық</td></tr>
+            <tr><td><strong>Өсімдік қорғау</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бригада / дала</td></tr>
+            <tr><td><strong>Ротация жоспары</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бригада / дала</td></tr>
+            <tr><td><strong>Ауа райы</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бригада / дала</td></tr>
+            <tr><td><strong>Суық тізбек</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бригада / дала</td></tr>
+            <tr><td><strong>Жинау рейстері</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бригада / дала</td></tr>
+            <tr><td><strong>QR жәшіктер</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бригада / дала</td></tr>
+            <tr><td><strong>Жүкқұжат (ЭСФ)</strong></td><td><span class="pille pille-offen">әзірленуде</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия</td></tr>
+            <tr><td><strong>Рөлдер мен құқықтар</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы</td></tr>
+            <tr><td><strong>Қаржы</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, Өндіруші / көрші шаруашылық</td></tr>
+            <tr><td><strong>Терімшілер құрамы</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы</td></tr>
+            <tr><td><strong>Сапа коэффициенті</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, Терімші</td></tr>
+            <tr><td><strong>Құжаттар</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, Өндіруші / көрші шаруашылық, B2B тапсырыс беруші</td></tr>
+            <tr><td><strong>Сәйкестік</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия</td></tr>
+            <tr><td><strong>Интеграциялар</strong></td><td><span class="pille pille-offen">әзірленуде</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия</td></tr>
+            <tr><td><strong>Субсидиялар</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия</td></tr>
+            <tr><td><strong>Анықтамалық деректер</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия</td></tr>
+            <tr><td><strong>Сұрыптар каталогы</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, B2B тапсырыс беруші</td></tr>
+            <tr><td><strong>B2B-портал</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, Өндіруші / көрші шаруашылық, B2B тапсырыс беруші</td></tr>
+            <tr><td><strong>Шағымдар</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, B2B тапсырыс беруші</td></tr>
+            <tr><td><strong>Баға тізімдері</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы</td></tr>
+            <tr><td><strong>Агрегатор</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, Өндіруші / көрші шаруашылық</td></tr>
+            <tr><td><strong>Оқыту</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, Бригада / дала, Терімші, Өндіруші / көрші шаруашылық</td></tr>
+            <tr><td><strong>Байланыс арналары</strong></td><td><span class="pille pille-gut">жұмысқа дайын</span></td><td>Әкімшілік, Бас директор, Шаруашылық басшылығы</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kasten kasten-info">
+        <p><strong>жұмысқа дайын</strong> — Дерекқормен жұмыс істейді: нақты деректерді оқиды және жазады, әрбір жазу рөлге байланған және журналда тіркеледі.</p>
+        <p class="abstand-oben"><strong>әзірленуде</strong> — Өз экраны жоқ көрінетін мәзір тармағы. Модуль беті бір сөйлеммен не істей алатынын хабарлайды.</p>
+      </div>
+
+      <h3 id="bereich-feld">3.1 Дала</h3>
+      <p>Телім моделі, күту мерзіміне бұғаттауды қоса қатар блогының күйі, фотодәлелі бар теру тапсырмалары, ротация жоспары және ауа райы деректері.</p>
+
+      <h4 id="modul-standort">3.1.1 Телім иерархиясы <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Шаруашылық, плантация, дала телімі, қатарлар тобы, қатар блогы - шпалера бойындағы қатарлар мен блоктардың бірегей белгісі бар цифрлық дала картасы.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Шпалерадағы қатар блоктары бар дала картасы: әр блокқа сұрып, отырғызу жылы, өркен түрі және шпалера бағыты.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/feld/standort</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бригада / дала</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Телімдер мен қатар топтарын құру және жылжыту, дала геометриясын сызу үшін бет.</span></div>
+      </div>
+
+      <h4 id="modul-reihenbloecke">3.1.2 Қатар блоктары және күйлері <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Әр қатар блогының бір ғана күйі бар: отырғызылған, теруге дайын, тыныштықта, кесу немесе күту мерзіміне бұғатталған. Бұғатталған блок теру жоспарында мүлде көрінбеуі керек.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Әр қатар блогы өз күйін жүргізеді. Күту мерзімі жүріп жатқанда, ол мерзім аяқталғанша теруге бұғатталып тұрады.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/feld/reihenbloecke</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, Бригада / дала, Өндіруші / көрші шаруашылық</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Себебін міндетті түрде көрсететін күй ауыстыру және әр қатар блогы бойынша тарих.</span></div>
+      </div>
+
+      <h4 id="modul-pflueckaufgaben">3.1.3 Фотодәлелі бар теру тапсырмалары <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Бригада мен қатар блогы бойынша теру тапсырмасы: жоспарлы және нақты мөлшер, сапа коэффициенті және сату науасының фотодәлелі тікелей тапсырмада.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Бригада мен қатар блогы бойынша тапсырма, науаның фотодәлелі, мөлшер және сапа коэффициенті тапсырмада.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/feld/pflueckaufgaben</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, Бригада / дала, Өндіруші / көрші шаруашылық</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бригада / дала</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Далада желісіз енгізу, қабылдау және пысықтауы бар дәлел тексеруі, сапа коэффициентімен еңбекақыға байланыстыру.</span></div>
+      </div>
+
+      <h4 id="modul-pflanzenschutz">3.1.4 Өсімдік қорғау және күту мерзімі <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Әр өңдеу препаратымен, мөлшерімен, блогымен, күнімен және орындаушысымен тіркеледі әрі қатар блогын заңды күту мерзімі аяқталғанша автоматты бұғаттайды.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Блок дәлдігімен өңдеу құжаттамасы және автоматты жинау бұғаты. Бұзушылық - құқықтық және азық-түлік қауіпсіздігі тәуекелі.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/feld/pflanzenschutz</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бригада / дала</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Күту мерзімдері бар препараттар базасы, мерзім өткенде автоматты босату, хаттаманы міндетті жүктеу, әр партия бойынша пестицид қалдығының дәлелі.</span></div>
+      </div>
+
+      <h4 id="modul-rotationsplan">3.1.5 Ротация / теру жоспары <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Күзгі жинаудың бүкіл кезеңінде әр қатар блогы үшін екі-үш күндік аралықпен жылжымалы теру жоспары. Жіберіп алған бір өтім блокты сол цикл үшін жояды.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Қай қатар блогының кезегі қашан екенін көрсетеді және терім өткелдерін терім маусымының алты аптасына бөледі.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/feld/rotationsplan</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бригада / дала</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Әр қатар блогы бойынша аралықты автоматты есептеу, бригада бөлу, күту мерзімі бұғаттарымен қайшылықты тексеру, күнтізбеге экспорт (.ics).</span></div>
+      </div>
+
+      <h4 id="modul-wetter">3.1.6 Ауа райы және температура қосындысы <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Мөлшер болжамының негізі ретінде әр телім бойынша ауа райы деректері және температура қосындысын есептеу.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Телім бойынша температура қосындысы бар қарапайым ауа райы интерфейсі. Түсіндірілетін, тексерілетін және бір маусым ішінде расталатын.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/feld/wetter</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бригада / дала</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Желіден алынатын деректердің орнына шаруашылықтың өз метеостансасы, ауысқан пісу терезелері туралы ескерту.</span></div>
+      </div>
+
+      <h3 id="bereich-hof">3.2 Аула</h3>
+      <p>60 минуттық көрсеткішпен алдын ала суыту, температура тіркегіштері, жинау рейстері, жәшіктерді QR арқылы сәйкестендіру және электрондық жүкқұжат.</p>
+
+      <h4 id="modul-kuehlkette">3.2.1 Суық тізбек таймері <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Терімнен алдын ала суытуға дейінгі уақытты қатаң 60 минуттық шекпен өлшеу, температура тіркегіштері, мақсатты температура 0-1 градус. Бүкіл шаруашылықтағы ең жоғары басымдық.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Терімнен алдын ала салқындатуға дейінгі уақытты бақылайды. 60 минуттан асса, тауар ертесіне тек өңдеуге ғана жарайды.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/hof/kuehlkette</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бригада / дала</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Температура тіркеуіштерін қосу, сонда мәндерді қолмен енгізудің қажеті болмайды.</span></div>
+      </div>
+
+      <h4 id="modul-logistik">3.2.2 Жинау рейстері және маршрут жоспарлау <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Толған жәшіктер күн астында тұрмауы үшін даладағы тұрақты жинау рейстері, оған қоса тұтынушылардың жеткізу терезелері бойынша маршрут жоспарлау.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Мөлшер мен температураны (алдын ала суыту және тасымалдау) салыстыратын қабылдау-тапсыру түбіртегі, тұтынушыға дейінгі үзіліссіз суық тізбек дәлелі.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/hof/logistik</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бригада / дала</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бригада / дала</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Көлік бойынша маршрут парағы мен жеткізу уақыт терезелері әлі жоқ.</span></div>
+      </div>
+
+      <h4 id="modul-qr_steigen">3.2.3 Жәшіктерді QR арқылы сәйкестендіру <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Жәшіктерге арналған QR-жапсырмалар (шығу тегі туралы жария беттің сілтемесімен), өз куәлік кодын алып жүретін биометриясыз терімші куәліктері және кіруді талап етпейтін қабырғалық постер - үшеуін де шолғыштан тікелей басып шығаруға болады.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>QR-код сәйкестікті даладан сауда сөресіне дейін алып жүреді - куәлікті жинау пунктінде камерамен сканерлеп, жәшікті немесе жұмыс уақытын ашылмалы тізімнен таңдаудың орнына сол адамға тіркеуге болады.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/hof/qr-steigen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бригада / дала</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Жәшік жапсырмаларын камерамен сканерлеу әлі мүмкін емес, тек терімші куәлігін.</span></div>
+      </div>
+
+      <h4 id="modul-esf">3.2.4 Электрондық жүкқұжат (ЭСФ) <span class="pille pille-offen">әзірленуде</span></h4>
+      <p>Ілеспе жүкқұжат міндетіне сай электрондық жүкқұжат. Мемлекеттік ЭСФ жүйесіне қосылу жоспарланған, өз бухгалтериясы болмайды.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Болашақта партиядан жүкқұжатқа дейінгі құжат тізбегін жүргізеді және мемлекеттік жүйеден кері күйді қабылдайды. Міндетті интеграция.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/hof/lieferschein-esf</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>ЭСФ АЖ-ға қосылу, партия - жүкқұжат құжат тізбегі, кері күй және қайта жіберу.</span></div>
+      </div>
+
+      <h3 id="bereich-buero">3.3 Кеңсе</h3>
+      <p>Рөлдер мен құқықтар, қатар блогы және жинау күні бойынша маржиналды табыс, сапа коэффициентімен еңбекақы, құжат айналымы, сәйкестік тақтасы және міндетті мемлекеттік интеграциялар.</p>
+
+      <h4 id="modul-rollen">3.3.1 Рөлдер мен құқықтар <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Сегіз негізгі рөл: бас директор, әкімшілік, шаруашылық басшылығы, бухгалтерия, даладағы бригада мен терімші, өндіруші және B2B-тұтынушы, ресурстар мен әрекеттер бойынша құқық матрицасымен.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Кім нені көре және өзгерте алатынын белгілейді. Жаңа рөлді модульдерге тиіспей қосуға болады.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/buero/rollen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Пайдаланушыларды басқару, рөл тағайындау, ресурс бойынша нақтыланған қатынау ережелері.</span></div>
+      </div>
+
+      <h4 id="modul-finanzen">3.3.2 Маржиналды табыс және қаржы <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Қатар блогы бойынша шығын орталықтары, сұрып және тұтынушы бойынша шығын нысандары. Килограмға, қатар блогына, сұрыпқа және жинау күніне маржиналды табыс - жазбалар өзгермейді.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Қатар блогы, сұрып және жинау күні бойынша маржиналды табыс. Жазбалар өзгермейді (тек қосу).</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/buero/finanzen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, Өндіруші / көрші шаруашылық</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Жинау күні бойынша шығын түрлері, B2B төлемдерін салыстыру, сұрып бойынша маржиналды табыс болжамы.</span></div>
+      </div>
+
+      <h4 id="modul-personal">3.3.3 Терімшілер құрамы және бригадалар <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Терімші куәлігі, бригадаға бекітілуі, маусым бойы әр адамның өнімділік және сапа коэффициенттері бар адамдар тізілімі - сыйақы, қосымша оқыту және келесі жылға іріктеу негізі.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Адамдар тізілімі, бригада және терімші куәлігі, маусым бойы әр адамның өнімділік және сапа профилі.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/buero/personal</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Әр шарт бойынша ЕСУТД-да тіркеу, бригаданы жоспарлау, еңбекақы есебінің негізі ретінде өнімділік тарихы.</span></div>
+      </div>
+
+      <h4 id="modul-lohn">3.3.4 Сапа коэффициентімен еңбекақы <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Негізгі төлем, мөлшер бөлігі және сапа коэффициентінен тұратын аралас модель. Таза кесімді төлем мөлшерге қысым жасайды, жидекті жаныштайды және таңқурайда құнды жояды.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Негізгі жалақы плюс мөлшер плюс сапа коэффициенті. Сапа коэффициенті - таңдау емес, шарт.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/buero/lohn</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, Терімші</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Ең төменгі жалақыны қатаң шек ретінде бекіту, дәлізді алдын ала көрсететін жалақы мөлшерлемелерін баптау, әр терімшіге PDF жалақы парағы, аванс шоты.</span></div>
+      </div>
+
+      <h4 id="modul-dokumente">3.3.5 Құжат айналымы <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Өңдеу хаттамалары, ЕСУТД дәлелдері, жеткізу және шеңберлік шарттар, субсидия досьелері мен сертификаттарға арналған қорғалған сақтау - қатар блогы және партиямен байланыстырылған.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Қатар блогы мен партияға байланысы бар, санатталған қорғалған құжат қоймасы.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/buero/dokumente</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, Өндіруші / көрші шаруашылық, B2B тапсырыс беруші</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Әр құжат бойынша нұсқалар, еске салуы бар жарамдылық мерзімдері.</span></div>
+      </div>
+
+      <h4 id="modul-compliance">3.3.6 Сәйкестік тақтасы <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Бес егжей-тегжейлі кестеден алынған өңдеу мақсаттары, келісімдер, деректерді қорғау оқиғалары және үшінші тұлғаларға беру - оқу мен жазу тек кеңсе рөлдеріне ғана.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Егжей-тегжейлі деректерді қорғау схемасы: өңдеу мақсаттары, келісімдер, оқиғалар және берулер бір жерде.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/buero/compliance</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Салық кодексінен, ЖИ туралы заңнан және Цифрлық кодекстен құқықтық сілтемелер, дерек түрі бойынша сақтау мерзімдері, сақтау орнын тексеру.</span></div>
+      </div>
+
+      <h4 id="modul-integrationen">3.3.7 Мемлекеттік интеграциялар <span class="pille pille-offen">әзірленуде</span></h4>
+      <p>ЭСФ, виртуалды қойма, ЕСУТД және gosagro.kz, qoldau.kz субсидия порталдарына коннекторлар жоспарланған. Бухгалтерия елде орныққан шешімде қалады.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Әр мақсатты жүйеге кері күйі мен қайталауы бар бір коннектор қосылады. Бухгалтерия ауқымнан тыс қалады.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/buero/integrationen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Әр жүйеге коннектор, сынақ қолжетімділігі, қателер мен қайталауларды өңдеу, күтудегі жазбаларға шолу.</span></div>
+      </div>
+
+      <h4 id="modul-foerdermittel">3.3.8 Субсидия досьесі <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Қазақстандық субсидия порталдарына арналған өтініш үлгілері, дәлел тізімдері және мерзім мониторы - өтініш беруге дайындық ағымдағы есептің қосымша нәтижесі ретінде.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Мерзім мониторы және досье бойынша дәлел құжаттары қосылды. Бағдарлама бойынша өтініш үлгілері мен дәлел тізімдері ашық қалады.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/buero/foerdermittel</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Бағдарлама бойынша өтініш үлгілері мен дәлел тізімдері. Алдымен gosagro.kz пен qoldau.kz әр бағдарлама бойынша қандай өрістер мен құжаттарды талап ететіні ашық.</span></div>
+      </div>
+
+      <h4 id="modul-stammdaten">3.3.9 Анықтамалық деректер және салық нөмірлері <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Меншікті шаруашылықтың, жеткізуші шаруашылықтардың және сатып алушылардың ұйымдық-құқықтық нысаны мен ЖСН немесе БСН - әр құжатта тұруға тиіс деректемелер.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Шаруа қожалығының ЖСН-і, заңды тұлғаның БСН-і болады. Бақылау саны цифрлардың орын ауыстыруын шотқа түспей тұрып қайтарады.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/buero/stammdaten</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Жеткізуші шаруашылықтар мен сатып алушылардың нөмірлерін жинау.</span></div>
+      </div>
+
+      <h3 id="bereich-markt">3.4 Нарық</h3>
+      <p>Сұрыптар мен квоталар каталогы, алдын ала тапсырысы бар B2B-портал, тексерілген дерекқорға негізделген ЖИ-чат, көрші шаруашылықтарға арналған агрегатор платформасы және көптілді оқыту.</p>
+
+      <h4 id="modul-sortenkatalog">3.4.1 Сұрыптар мен квоталар каталогы <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Сұрып, жинау терезесі (жазда өнім беретін немесе ремонтантты), науа салмағы, квота және баға тізімінен тұратын каталог - алдын ала тапсырыс пен B2B-порталдың негізі.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Сұрып, жинау терезесі, науа салмағы, квота және баға бір жерде.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/markt/sortenkatalog</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, B2B тапсырыс беруші</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Резервтеу логикасы бар квота брондау, баға тізімінің нұсқалары, тұтынушыға бекіту.</span></div>
+      </div>
+
+      <h4 id="modul-b2b_portal">3.4.2 B2B-портал <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Тұрақты тұтынушыларға арналған портал: квоталар, алдын ала тапсырыс, тұтынушы тобы бойынша баға тізімі, жеткізу күйі, шот тарихы және шағым беру.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Қабылдап-тапсыру түбіртегі бар жеткізу күйі, баға тізімі және кеңсе қолмен растайтын алдын ала тапсырыстар қосылды.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/markt/b2b-portal</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, Өндіруші / көрші шаруашылық, B2B тапсырыс беруші</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, B2B тапсырыс беруші</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Квотаны автоматты есептен шығару, тұтынушы тобы бойынша сатылы баға және шот-фактура тарихы. Бұлардың нақты қалай жұмыс істейтіні әлі шешілмеген.</span></div>
+      </div>
+
+      <h4 id="modul-reklamationen">3.4.3 Шағымдарды басқару <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>B2B тапсырыс берушінің партия бойынша шағымы - себебі, мерзімі және тарихы, күй ауысуымен өтемақыға дейін. Тапсырыс беруші тек өз шағымын береді және көреді, кеңсе оны өңдеп жабады.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Партиямен байланысқан әр шағым бойынша тізім, егжей-тегжей және тарих - одан қатар, терімші және суыту қисығына дейін бақылауға болады.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/markt/reklamationen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, B2B тапсырыс беруші</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, B2B тапсырыс беруші</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Тапсырыс беруші логинін B2B тапсырыс беруші жазбасымен байланыстыратын әкімші экраны, көрсеткіштер тақтасындағы автоматты шағым үлесі, мерзім жақындағанда хабарландыру.</span></div>
+      </div>
+
+      <h4 id="modul-preislisten">3.4.4 Баға тізімдері <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Тұтынушы топтары бойынша сатылы бағалары және қолданылу мерзімі бар нұсқаланған баға тізімдері.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Тұтынушы және кезең бойынша баға сатылары, нұсқалармен және қолданылу күнімен.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/markt/preislisten</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Ашық мәселе жоқ: жарамдылық күні арқылы нұсқалар, ең аз мөлшер арқылы сатылар және тұтынушы тобы бойынша тағайындау қосылған.</span></div>
+      </div>
+
+      <h4 id="modul-aggregator">3.4.5 Агрегатор / көрші шаруашылықтар <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Көрші шаруашылықтарды қосу: сатып алынған мөлшер шот позициясына айналады, әр сатып алу партиясы бөлек жүргізіледі және жеткізген шаруашылыққа дейін қадағаланады.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Көрші шаруашылықты қосу, бөлек партиямен сатып алуды тіркеу, шығу тегін бөлек жүргізу, есеп айырысу.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/markt/aggregator</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, Өндіруші / көрші шаруашылық</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Барлығына ортақ емес, әр көрші шаруашылыққа жеке маржа, және төлемнің өзі.</span></div>
+      </div>
+
+      <h4 id="modul-schulungen">3.4.6 Оқыту бейнелері <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Маусымдық жұмысшыларды телефонда көптілді әрі көрнекі қысқа даярлау - әр негізгі процеске бір бейне, мәтіннің орнына суреттермен.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>Алты қадамнан тұратын суретті қысқаша кіріспе, көптілді, әр адамның жеке ілгерілеуімен, оған қоса міндетті оқулар.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/markt/schulungen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, Бригада / дала, Терімші, Өндіруші / көрші шаруашылық</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы, Бухгалтерия, Бригада / дала, Терімші</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Әр негізгі үдеріс бойынша бейнелер: түсіріліп, қазақша және орысша дыбысталуы керек.</span></div>
+      </div>
+
+      <h4 id="modul-kanaele">3.4.7 Байланыс арналары <span class="pille pille-gut">жұмысқа дайын</span></h4>
+      <p>Жергілікті қалыптасқан байланыс арналары мен төлем тәсілдері, сайттың төменгі жағында жария көрсетіледі. Тек көрсету, нақты мессенджер немесе төлем қызметіне қосылу жоқ.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Қысқаша</span><span>WhatsApp, Kaspi QR және басқа арналар байланыс деректері ретінде - кеңсе жүргізеді, дейінше жоба ретінде жасырын.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Мекенжайы</span><span><code>/kk/dashboard/markt/kanaele</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Көретіндер</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы</span></div>
+        <div class="merkmal"><span class="merkmal-name">Өзгерте алатындар</span><span>Әкімшілік, Бас директор, Шаруашылық басшылығы</span></div>
+        <div class="merkmal"><span class="merkmal-name">Әлі істелмеген</span><span>Әр арна үшін нақты есептік деректерді енгізу.</span></div>
+      </div>
+    </section>
+
+    <section id="anleitungen">
+      <h2><span class="nr">04</span> Нұсқаулар</h2>
+      <p>Шаруашылық жұмысының негізін қамтитын бес рәсім. Жолдар бүйірлік панель бойынша көрсетілген.</p>
+
+      <h3 id="anleitung-wartezeit">4.1 Күту мерзімі бойынша бұғаттауды қою және алу</h3>
+      <p>Өсімдік қорғау құралдарымен өңдегеннен кейін қатар блогын күту мерзімі өткенше жинауға болмайды. Портал бұл бұғаттауды өзі қояды.</p>
+      <ol>
+          <li>Шаруашылық басшылығы ретінде кіріп, Дала → Қатар блоктары және күйлері бөлімін ашыңыз.</li>
+          <li>Төменде «Өңдеуді тіркеу»: қатар блогы мен препаратты таңдаңыз. Күту мерзімі препараттар каталогынан алынады, қолмен енгізілмейді.</li>
+          <li>Блок бірден бұғатталған күйге ауысады. «Бұғаттау» бағанында препарат, өңдеу күні, күту мерзімі, босату күні және қалған күндер көрсетіледі.</li>
+          <li>Күйді ауыстыру енді мүмкін емес. Ереже дерекқорда орналасқан және интерфейсті айналып өткен жағдайда да әрекет етеді.</li>
+          <li>Мерзім өткен соң «Босату» түймесі пайда болады. Ол бұғаттауды алып, сонымен бірге өңдеуді жабады.</li>
+          <li>Күй тақталарын басу кестені сүзеді; сүзілген күйді сілтеме арқылы беруге болады.</li>
+      </ol>
+
+      <h3 id="anleitung-pflueckaufgabe">4.2 Фотодәлелі бар теру тапсырмасы</h3>
+      <ol>
+          <li>Дала → Фотодәлелі бар теру тапсырмалары бөлімін ашыңыз.</li>
+          <li>Төменде жаңа тапсырма жасаңыз. Бұғатталған блоктар таңдауға ұсынылмайды және дерекқор тарапынан қосымша қабылданбайды.</li>
+          <li>Сол жақта бригада мен қатар блогы бойынша тапсырманы таңдаңыз. Орындалу барысы — нақты көлемнің жоспарлы көлемге қатынасы.</li>
+          <li>Бригада атынан тапсырманы қабылдап, теруді бастаңыз және оң жақта фотодәлел жүктеңіз. Телефонда камера бірден ашылады. Файл жабық қоймаға түседі және тек қысқа мерзімді қолтаңбалы сілтемелер арқылы көрсетіледі.</li>
+          <li>«Көлемді хабарлау» тапсырманы дәлелді тексеруге ауыстырады.</li>
+          <li>Шаруашылық басшылығы немесе әкімшілік дәлелді тексеріп, сапа коэффициентін енгізеді және тапсырманы жабады.</li>
+      </ol>
+
+      <h3 id="anleitung-nachweiskette">4.3 Жеткізілімнің растама тізбегін көрсету</h3>
+      <p>Бұл — тапсырыс беруші үшін маңызды рәсім: жәшіктен оны толтырған адамға дейін.</p>
+      <ol>
+          <li>Дала → Фотодәлелі бар теру тапсырмалары бөлімін ашып, сол жақтан тапсырманы таңдаңыз.</li>
+          <li>Оң жақта «Растама тізбегі» бөлімінде партия көрсетіледі: 60 минуттық шегі бар салқындату қисығы, көлем мен жарамсыз өнім, оларды толтырған адам көрсетілген жәшіктер және қалдықтар бойынша растама.</li>
+          <li>«Жәшікті тіркеу» жәшікті адаммен байланыстырады. Тек содан кейін тізбек тапсырыс берушіден терушіге дейін жетеді.</li>
+          <li>«Жұмыс уақытын хабарлау» сағатына келетін килограмм бойынша өнімділіктің бөлгішін береді.</li>
+          <li>«Салқындату өлшемін тіркеу»: минуттар мен бағаны дерекқор теру уақыты бойынша есептейді. 60 минуттан асса, интерфейс бұзушылық туралы хабарлайды және өнімді төмен сортқа ауыстыру қажет.</li>
+          <li>Содан кейін шолудағы көрсеткіштер өзгерген нақты мәнді көрсетеді — енгізілген емес, есептелген.</li>
+      </ol>
+
+      <h3 id="anleitung-dokument">4.4 Құжатты тіркеу</h3>
+      <ol>
+          <li>Кеңсе рөлімен Кеңсе → Құжат айналымы бөлімін ашыңыз.</li>
+          <li>«Құжатты тіркеу» бөлімінде атауын, санатын, байланысын және күнін енгізіңіз. Файлдың өзі — PDF немесе сурет — міндетті емес.</li>
+          <li>Сақталған файлдар «Файл» бағанынан қолтаңбалы сілтеме арқылы ашылады. Тікелей жария қолжетімділік жоқ.</li>
+      </ol>
+
+      <h3 id="anleitung-zugang">4.5 Қолжетімділікті орнату: шақыру және екінші фактор</h3>
+      <p>Тапсырыс берушілердің жаңа тіркелгілері шақыру арқылы жасалады. Екінші факторды әркім өзіне өзі орнатады.</p>
+      <ol>
+          <li>Әкімшілік немесе шаруашылық басшылығы рөлімен Кеңсе → Рөлдер мен құқықтар бөлімін ашыңыз.</li>
+          <li>«Шақырулар» бөлімінде электрондық пошта мекенжайы мен рөлді енгізіңіз. Бұл бөлім осында, өйткені ол жоғарыдағы құқықтар матрицасымен бір нәрсе — тек оның жазушы жағы.</li>
+          <li>Шақырылған адам шақыру сілтемесін ашып, өзіне құпия сөз белгілейді. Бұл бет кірусіз қолжетімді: онда тұрған адамның әлі тіркелгісі жоқ.</li>
+          <li>Пайдаланылмаған шақыруды белсендірілмеген кезде кері қайтаруға болады.</li>
+          <li>Екінші фактор үшін бүйірлік панельдің төменгі жағындағы «Қауіпсіздік» тармағын, телефонда тіркелгі парағындағы сол тармақты ашыңыз.</li>
+          <li>«Бастау» QR-код пен кілтті көрсетеді — екеуі де бір-ақ рет беріледі. Аутентификатор қолданбасында сканерлеп, алты таңбалы кодты енгізіңіз және растаңыз. Тек содан кейін фактор күшіне енеді.</li>
+      </ol>
+    </section>
+
+    <section id="referenz">
+      <h2><span class="nr">05</span> Анықтамалық</h2>
+
+      <h3 id="referenz-seiten">5.1 Беттер</h3>
+      <p>Порталдың барлық мекенжайлары. {locale} — de, en, kk немесе ru төрт тіл кодының бірі; кодсыз неміс нұсқасы ашылады.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Мекенжай</th><th>Мазмұны</th><th>Қолжетімділік</th></tr></thead>
+          <tbody>
+            <tr><td><code>/</code></td><td>Неміс нұсқасына бағыттайды.</td><td>Барлығы</td></tr>
+            <tr><td><code>/{locale}</code></td><td>Жария бастапқы бет: мәселенің мәні, таңқурайдың неліктен талап қоятыны, 60 минут көрінісі, сапа эталоны, шығу тегі туралы жария анықтамаға сілтемесі бар растама тізбегі, аймақтар, көрсеткіштер.</td><td>Барлығы</td></tr>
+            <tr><td><code>/{locale}/login</code></td><td>Кіру. Дерекқорға қосылымсыз мұнда түсініктеме мен порталға тікелей жол көрсетіледі.</td><td>Барлығы</td></tr>
+            <tr><td><code>/{locale}/login/mfa</code></td><td>Екінші факторды сұрау. Тіркелгі үшін екінші фактор расталған болса, тек құпия сөзбен ашылған сеанс жеткіліксіз.</td><td>Кіргеннен кейін</td></tr>
+            <tr><td><code>/{locale}/einladung</code></td><td>Шақырылған қолжетімділікті белсендіру және өз құпия сөзін белгілеу. Кірусіз қолжетімді — мұнда келген адамның әлі тіркелгісі жоқ.</td><td>Барлығы</td></tr>
+            <tr><td><code>/{locale}/dashboard</code></td><td>Төрт аймақ пен олардың көрсеткіштері бар шолу. Бас директор мен әкімшілік үшін қосымша «Бүгінгі ең маңыздысы» блогы.</td><td>Кіргеннен кейін</td></tr>
+            <tr><td><code>/{locale}/dashboard/{аймақ}</code></td><td>Аймақтың бастапқы беті (feld, hof, buero, markt), модульдері тақталар түрінде.</td><td>Рөл бойынша</td></tr>
+            <tr><td><code>/{locale}/dashboard/{аймақ}/{модуль}</code></td><td>Жекелеген модуль. 26 модульдің барлық мекенжайы «Аймақтар мен модульдер» тарауында келтірілген.</td><td>Рөл бойынша</td></tr>
+            <tr><td><code>/{locale}/dashboard/compliance</code></td><td>Соңғы сақталған сәйкестік есебі толық күйінде: аймақ бойынша сүзгісі бар тұжырымдар, шаралар жоспары, ескертпелер, мөр тексерісі және PDF шығару.</td><td>Бас директор, әкімшілік</td></tr>
+            <tr><td><code>/{locale}/dashboard/sicherheit</code></td><td>Өзінің екінші факторын орнату, растау немесе жою. Әр рөл мұнда тек өзін басқарады.</td><td>Кіргеннен кейін</td></tr>
+            <tr><td><code>/{locale}/dashboard/handbuch</code></td><td>Осы нұсқаулық, портал тілінде. Толық мәтінді іздеу және толық PDF экспорты бар.</td><td>Кіргеннен кейін</td></tr>
+            <tr><td><code>/{locale}/herkunft</code></td><td>Шығу тегі туралы жария анықтамаға кіру, кодты қолмен енгізу өрісімен — QR-кодты сканерлей алмайтындар үшін.</td><td>Барлығы</td></tr>
+            <tr><td><code>/{locale}/herkunft/{код}</code></td><td>Бір нақты партия бойынша анықтама. Ол партия нөмірін де, теруші, көлем немесе баға туралы мәліметтерді де ашпайды; сондықтан кірусіз қолжетімді болуы орынды.</td><td>Барлығы</td></tr>
+            <tr><td><code>/{locale}/herkunft/aushang</code></td><td>Басып шығаруға арналған хабарландыру. Ондағы QR-код жекелеген партияға емес, код енгізу бетіне бағыттайды: хабарландыру тоңазытқыш камерасының жанында апталап ілініп тұрады, ал жәшік бірнеше сағат қана тұрады.</td><td>Барлығы</td></tr>
+            <tr><td><code>/{locale}/impressum</code></td><td>WAMOCON GmbH шығыс деректері.</td><td>Барлығы</td></tr>
+            <tr><td><code>/{locale}/datenschutz</code></td><td>Деректерді қорғау туралы мәліметтер, сақтау орны туралы нұсқауларды қоса.</td><td>Барлығы</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>/dashboard бөліміндегі беттер кіруді талап етеді. Дерекқорға қосылымсыз бұл тексеру орындалмайды, өйткені сеанс болмайды — осылайша демонстрациялық режим баптаусыз іске қосыла береді.</p>
+
+      <h3 id="referenz-rechte">5.2 Рөлдер бойынша құқықтар</h3>
+      <p>Қай рөл қай модульді көре және өзгерте алады. Кесте портал пайдалану кезінде ұстанатын дәл сол құқықтар матрицасынан жасалған — сондықтан портал өзгермей тұрып ол ескіре алмайды.</p>
+      <p class="legende">
+        <span class="recht recht-schreiben">●</span> Рөлдер бойынша құқықтар &nbsp;
+        <span class="recht recht-lesen">○</span> Көретіндер &nbsp;
+        <span class="recht recht-keins">·</span> —
+      </p>
+      <div class="tabelle tabelle-matrix">
+        <table>
+          <thead><tr><th>Модуль</th><th>Әкімшілік</th><th>Бас директор</th><th>Шаруашылық басшылығы</th><th>Бухгалтерия</th><th>Бригада / дала</th><th>Терімші</th><th>Өндіруші / көрші шаруашылық</th><th>B2B тапсырыс беруші</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Телімдер</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Қатар блоктары</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Теру тапсырмалары</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Өсімдік қорғау</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Ротация жоспары</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Ауа райы</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Суық тізбек</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Жинау рейстері</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>QR жәшіктер</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Жүкқұжат (ЭСФ)</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Рөлдер мен құқықтар</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Қаржы</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Терімшілер құрамы</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Сапа коэффициенті</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Құжаттар</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-lesen">○</span></td></tr>
+            <tr><td><strong>Сәйкестік</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Интеграциялар</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Субсидиялар</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Сұрыптар каталогы</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td></tr>
+            <tr><td><strong>B2B-портал</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td></tr>
+            <tr><td><strong>Шағымдар</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td></tr>
+            <tr><td><strong>Баға тізімдері</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Агрегатор</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Оқыту</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Анықтамалық деректер</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Байланыс арналары</strong></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-schreiben" title="Рөлдер бойынша құқықтар">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kasten kasten-wichtig">
+        <div class="kasten-titel">Бір емес, екі тексеру</div>
+        <p>Интерфейс тек рөлге рұқсат етілгенді көрсетеді — бұл ыңғайлылық, қорғаныс емес. Міндетті болып дерекқордағы тексеру саналады: онда профильдің рөлі әрбір оқу мен жазуды, тікелей жүгінуді қоса, шешеді. Оған қоса қолданба әрбір жазу алдында құқықтарды тағы бір рет тексереді.</p>
+      </div>
+
+      <h3 id="referenz-schnittstellen">5.3 Интерфейстер</h3>
+      <p>Өз беті жоқ міндеттерге арналған бес нүкте. Әрқайсысы сеанс пен құқықты өзі тексереді.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Мекенжай</th><th>Мақсаты</th><th>Қолжетімділік</th></tr></thead>
+          <tbody>
+            <tr><td><code>/api/ki-assistent</code></td><td>Әңгіме барысындағы ЖИ-көмекші. Жауап соңында тұтас емес, жасалу барысында пайда болады.</td><td>ЖИ-көмекшіге құқық, берілген келісім</td></tr>
+            <tr><td><code>/api/ki-pruefung</code></td><td>Аудит, салық, құқық және тәуекел бойынша төрт салада сәйкестікті тексеру. Орындалу барысы үздіксіз беріледі, сондықтан интерфейс оны көрсете алады. Сақталған құқықтық дереккөздерсіз тексеру қабылданбайды — дәлелсіз тексерудің құны жоқ. Бір адамға бір мезгілде бір ғана тексеру жүреді.</td><td>Тексеру құқығы бар рөл</td></tr>
+            <tr><td><code>/api/ki-pruefung/auto</code></td><td>Сол тексеру, кіру кезінде іске қосылады. Алдымен бірдеңе өзгерді ме деген арзан тексеру; толық жүріс қажет болғанда ғана орындалады.</td><td>Бас директор, әкімшілік</td></tr>
+            <tr><td><code>/api/ki-sprachausgabe</code></td><td>Сақталған жауапты дауыстап оқиды. Тек бар хабарламаның идентификаторы бойынша, ешқашан еркін берілген мәтін бойынша емес — әйтпесе бұл нүкте кез келген мазмұнға арналған сөз генераторына айналар еді.</td><td>ЖИ-көмекшіге құқық</td></tr>
+            <tr><td><code>/api/sync</code></td><td>Далада байланыссыз жасалған кезектегі хабарламаларды қабылдайды. Олар тиісті нысандармен бірдей тексеруден өтеді.</td><td>Кіргеннен кейін, екінші фактор өзекті</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="technik">
+      <h2><span class="nr">06</span> Технологиялар</h2>
+
+      <h3 id="technik-stack">6.1 Пайдаланылатын технологиялар</h3>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Қабат</th><th>Технология</th><th>Мақсаты</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Қолданба</strong></td><td><code>Next.js 16</code></td><td>Беттер серверде құрастырылады; тіл мекенжай құрамында.</td></tr>
+            <tr><td><strong>Бағдарламалау тілі</strong></td><td><code>TypeScript</code></td><td>Пәндік ұғымдар мен құқықтар матрицасының типті қауіпсіз моделі.</td></tr>
+            <tr><td><strong>Безендіру</strong></td><td><code>Tailwind CSS v4</code></td><td>Түстер мен өлшемдер бір жерде, ашық және қараңғы схема.</td></tr>
+            <tr><td><strong>Тілдер</strong></td><td><code>next-intl</code></td><td>Төрт тіл; аударма болмаса, неміс мәтіні шығады.</td></tr>
+            <tr><td><strong>Дерекқор</strong></td><td><code>Supabase-тегі PostgreSQL</code></td><td>Деректер құқық тексерісімен бірге дерекқордың өзінде, тек қолданбада емес.</td></tr>
+            <tr><td><strong>Файлдар</strong></td><td><code>Жабық қойма</code></td><td>Фотодәлелдер мен құжаттар тек қысқа мерзімді қолтаңбалы сілтемелер арқылы қолжетімді.</td></tr>
+            <tr><td><strong>Байланыссыз</strong></td><td><code>Құрылғыдағы кезек</code></td><td>Даладан келген хабарламалар жергілікті сақталып, кейін жіберіледі.</td></tr>
+            <tr><td><strong>ЖИ</strong></td><td><code>Ауыстырылатын жеткізушілер</code></td><td>Көмекші, сәйкестікті тексеру және дауыстап оқу қорғалған деректер негізінде.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="technik-meilensteine">6.2 Бақылау нүктелері</h3>
+      <p>Ішкі дайындық. Екі мерзім де 2026 жылғы 24 қыркүйек пен 1 қазан аралығындағы орнында талдау аптасынан бұрын.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Бақылау нүктесі</th><th>Мерзімі</th><th>Мазмұны</th></tr></thead>
+          <tbody>
+            <tr><td><strong>A — Прототип</strong> <span class="pille pille-gut">орындалды</span></td><td>2026 жылғы 6 қыркүйекке дейін</td><td>Түстер мен өлшемдер негізі, тіл ауыстырғышы бар жария бастапқы бет, төрт аймақты порталдың қаңқасы, алғашқы рәсімдер: қатар блоктарының шолуы және фотодәлелі бар теру тапсырмасы.</td></tr>
+            <tr><td><strong>B — Қаңқа</strong> <span class="pille pille-jetzt">ағымдағы нұсқа</span></td><td>2026 жылғы 19 қыркүйекке дейін</td><td>Негізгі функциялар нақты дерекқормен: кіру және рөл құқықтары, учаскелерді басқару, күту мерзімі бойынша бұғаттауы бар қатар блогының күйлері, жабық қоймадағы фотодәлелі бар теру тапсырмалары, құжат айналымы, бастапқы мәндерден алынған көрсеткіштер.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kasten kasten-warnung">
+        <div class="kasten-titel">Тапсырыс беруші кестесімен арақатынасы</div>
+        <p>Бұл ішкі кесте тапсырыс берушіге бірінші кезең үшін айтылған мерзімнен (2026 жылғы 16 қазан — 20 желтоқсан) тығыз. Прототип — ішкі демонстрациялық жүйе, шарт бойынша келісілген жұмыс көлемі емес.</p>
+      </div>
+    </section>
+
+    <section id="recht">
+      <h2><span class="nr">07</span> Құқық және деректерді сақтау</h2>
+      <p>Қазақстан 2026 жылы жаңа міндеттерді бірінен соң бірін енгізді. Порталға енгізілген қорғаныс шаралары олардың мәніне сай келеді; алайда хабарлама мен келісім мәтіндерін жай ғана аудару емес, қазақстандық құқық бойынша қайта жазу қажет.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>2026 жылғы құқықтық негіз</th><th>Damicon үшін маңызы</th></tr></thead>
+          <tbody>
+            <tr><td><strong>2026 жылғы Салық кодексі</strong></td><td>Маржиналдық табыс пен шығындарды бөлуге әсер етеді.</td></tr>
+            <tr><td><strong>Электрондық ілеспе жүкқұжат (ЭСФ)</strong></td><td>Бухгалтерияның өз әзірлемесі арқылы емес, шығыс кезегі арқылы өтеді.</td></tr>
+            <tr><td><strong>ЖИ туралы № 230-VIII заң</strong></td><td>ЖИ-чат үшін ашықтық туралы хабарлама мен келісімді талап етеді.</td></tr>
+            <tr><td><strong>№ 255-VIII Цифрлық кодекс</strong></td><td>Деректерді сақтау: жекелеген деректерді Қазақстаннан тыс орналастыру шектелген. QR, кезек және ЖИ деректерінің сақталу орнын өнеркәсіптік пайдалануға көшер алдында құқықтық тұрғыдан тексеру қажет.</td></tr>
+            <tr><td><strong>Қатаңдатылған дербес деректер заңнамасы (2026 жылғы 24 тамыздан бастап)</strong></td><td>Ең алдымен тапсырыс берушілер мен көрші шаруашылықтардың тіркелгілерін жасауға қатысты.</td></tr>
+            <tr><td><strong>ЕСУТД — еңбек шарттарын есепке алу</strong></td><td>Әрбір маусымдық шарт шығыс кезегі арқылы мемлекеттік жүйеде тіркеледі.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kasten kasten-info">
+        <div class="kasten-titel">Прототип үшін</div>
+        <p>Прототип дербес деректерді өңдемейді және мінез-құлықты талдауға арналған cookie файлдарын қолданбайды. Түс схемасы мен демонстрациялық рөл тек браузерде сақталады.</p>
+      </div>
+    </section>
+
+    <section id="glossar">
+      <h2><span class="nr">08</span> Глоссарий</h2>
+      <p>Порталда және осы нұсқаулықта кездесетін ұғымдар.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Ұғым</th><th>Түсіндірмесі</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Қатар блогы</strong></td><td>Учаске құрылымының ең кіші бірлігі: шпалер қатарының шектелген үзігі. Бәрі — күй, бұғаттау, өнім, маржиналдық табыс — соған байланған.</td></tr>
+            <tr><td><strong>Күту мерзімі бойынша бұғаттау</strong></td><td>Өсімдік қорғау құралдарымен өңдегеннен кейінгі қатар блогының күйі: препараттың күту мерзімі өткенше жинауға тыйым салынады.</td></tr>
+            <tr><td><strong>Партия</strong></td><td>Бір қатар блогының бір күндегі өнімі. Салқындату қисығын, жәшіктерді және қалдықтар бойынша растаманы алып жүреді.</td></tr>
+            <tr><td><strong>Жәшік</strong></td><td>Терілген таңқурайға арналған көлік ыдысы, QR-код арқылы партия мен адамға байланады.</td></tr>
+            <tr><td><strong>Суық тізбек сағаты</strong></td><td>Теруден алдын ала салқындатуға дейінгі уақытты өлшеу. 60 минуттан асса, өнім келесі күні тек өнеркәсіптік өңдеуге жарайды.</td></tr>
+            <tr><td><strong>Сапа коэффициенті бойынша еңбекақы</strong></td><td>Негізгі төлем, көлем үшін үстеме және сапа коэффициенті. Таза кесімді ақы таңқурайда құнды жояды, өйткені жылдам әрі дөрекі теруге әкеледі.</td></tr>
+            <tr><td><strong>Растама тізбегі</strong></td><td>Жеткізілген жәшіктен қатар блогына, салқындату қисығына, жәшік пен терушіге дейінгі үзіліссіз тізбек.</td></tr>
+            <tr><td><strong>Рөл құқықтары</strong></td><td>Қай рөл қай модульді көре және өзгерте алатынының сәйкестігі. Интерфейсте және міндетті түрде дерекқорда қолданылады.</td></tr>
+            <tr><td><strong>Екінші фактор</strong></td><td>Кіру кезіндегі қосымша алты таңбалы код, аутентификатор қолданбасы жасайды.</td></tr>
+            <tr><td><strong>Демонстрациялық режим</strong></td><td>Дерекқорға қосылымсыз жұмыс. Портал үлгі деректерді көрсетеді, кіру жоқ және ештеңе сақталмайды.</td></tr>
+            <tr><td><strong>ЭСФ / ЕСУТД</strong></td><td>Электрондық шот-фактуралар мен еңбек шарттарын есепке алуға арналған қазақстандық міндетті жүйелер.</td></tr>
+            <tr><td><strong>WAMOCON</strong></td><td>WAMOCON GmbH — Damicon тапсырыс берушісі әрі әзірлеушісі.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer class="fuss">
+  <div>© 2026 WAMOCON GmbH — Барлық құқықтар қорғалған</div>
+  <div>Damicon өнім нұсқаулығы 0.1.0 · Құпия · 2026 жылғы қыркүйек</div>
+</footer>
+
+<script>
+(function () {
+  var TEXT = {"keine":"0 сәйкестік","abZwei":"кемінде 2 таңба","treffer":"сәйкестік","ohneFundstelle":"{begriff} бойынша ештеңе табылмады. Бұған қарамастан PDF экспорты әрқашан толық нұсқаулықты қамтиды."};
+  var SPRACHEN = ['de', 'en', 'kk', 'ru'];
+
+  var haupt = document.querySelector('main');
+  var deckblatt = document.querySelector('.deckblatt');
+  var suchfeld = document.getElementById('suchfeld');
+  var zaehlerEl = document.getElementById('such-zaehler');
+  var hinweisEl = document.getElementById('such-hinweis');
+  var loeschenEl = document.getElementById('such-loeschen');
+  var abschnitte = Array.prototype.slice.call(haupt.querySelectorAll('section[id]'));
+  var tocLinks = Array.prototype.slice.call(document.querySelectorAll('.toc-link'));
+
+  var treffer = [];
+  var aktiver = -1;
+
+  // ── Wo laeuft das Handbuch? ─────────────────────────────────────────
+  // Im Portal unter /<sprache>/dashboard/handbuch, sonst als Datei neben
+  // ihren Geschwistern. Der Sprachumschalter und der Weg zurueck ins Portal
+  // muessen in beiden Faellen stimmen.
+  var imPortal = /\/(de|en|kk|ru)\/dashboard\/handbuch\/?$/.test(location.pathname);
+
+  function zielFuerSprache(code) {
+    if (imPortal) return location.pathname.replace(/\/(de|en|kk|ru)\//, '/' + code + '/');
+    return code === 'de' ? 'index.html' : 'index-' + code + '.html';
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.sprache'), function (knopf) {
+    knopf.addEventListener('click', function () {
+      var code = knopf.getAttribute('data-sprache');
+      if (SPRACHEN.indexOf(code) !== -1) location.href = zielFuerSprache(code);
+    });
+  });
+
+  // Der Weg zurueck ins Portal ergibt nur im Portal einen Sinn - als lose
+  // Datei geoeffnet zeigt der Knopf ins Leere und bleibt deshalb verborgen.
+  var portalKnopf = document.getElementById('portal-knopf');
+  if (imPortal) {
+    portalKnopf.setAttribute('href', location.pathname.replace(/\/handbuch\/?$/, ''));
+    portalKnopf.hidden = false;
+  }
+
+  // ── Farbschema, geteilt mit dem Portal ──────────────────────────────
+  var themaKnopf = document.getElementById('thema-knopf');
+  var themaZeichen = document.getElementById('thema-zeichen');
+
+  function themaZeigen() {
+    themaZeichen.textContent = document.documentElement.classList.contains('dark') ? '☀' : '☾';
+  }
+  themaZeigen();
+
+  themaKnopf.addEventListener('click', function () {
+    var dunkelJetzt = !document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', dunkelJetzt);
+    try { localStorage.setItem('damicon-theme', dunkelJetzt ? 'dark' : 'light'); } catch (e) {}
+    themaZeigen();
+  });
+
+  // ── Normalisierung fuer die Suche ───────────────────────────────────
+  // Umlaute zaehlen wie ihr Grundbuchstabe, damit "Kuhlkette" die
+  // "Kuehlkette" findet. Entscheidend ist, dass die Abbildung die LAENGE
+  // erhaelt: die Fundstelle wird ueber ihren Index im normalisierten Text in
+  // den Originaltext zurueckgerechnet. Deshalb wird zeichenweise abgebildet
+  // und ein toLowerCase(), das aus einem Zeichen zwei macht, verworfen.
+  var ERSATZ = {
+    '\u00e4': 'a', '\u00c4': 'a', '\u00f6': 'o', '\u00d6': 'o',
+    '\u00fc': 'u', '\u00dc': 'u', '\u00df': 's',
+    '\u0131': 'i', '\u0130': 'i', '\u00e7': 'c', '\u00c7': 'c',
+    '\u0451': '\u0435', '\u0401': '\u0435'
+  };
+
+  function normal(text) {
+    var aus = '';
+    for (var i = 0; i < text.length; i++) {
+      var zeichen = text[i];
+      var ersatz = ERSATZ[zeichen];
+      if (ersatz !== undefined) { aus += ersatz; continue; }
+      var klein = zeichen.toLowerCase();
+      aus += klein.length === 1 ? klein : zeichen;
+    }
+    return aus;
+  }
+
+  // ── Markierungen ────────────────────────────────────────────────────
+  function markierungenSetzen(begriff) {
+    var gesucht = normal(begriff);
+    var laeufer = document.createTreeWalker(haupt, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (knoten) {
+        if (!knoten.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        var eltern = knoten.parentElement;
+        if (!eltern || eltern.closest('.such-hinweis')) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+
+    // Erst einsammeln, dann ersetzen - der Laeufer darf nicht ueber einen
+    // Baum laufen, den er gerade selbst umbaut.
+    var knoten = [];
+    while (laeufer.nextNode()) knoten.push(laeufer.currentNode);
+
+    for (var i = 0; i < knoten.length; i++) {
+      var textknoten = knoten[i];
+      var text = textknoten.nodeValue;
+      var flach = normal(text);
+      var pos = flach.indexOf(gesucht);
+      if (pos === -1) continue;
+
+      var teile = document.createDocumentFragment();
+      var gelesen = 0;
+      while (pos !== -1) {
+        if (pos > gelesen) teile.appendChild(document.createTextNode(text.slice(gelesen, pos)));
+        var marke = document.createElement('mark');
+        marke.className = 'treffer';
+        marke.textContent = text.slice(pos, pos + gesucht.length);
+        teile.appendChild(marke);
+        gelesen = pos + gesucht.length;
+        pos = flach.indexOf(gesucht, gelesen);
+      }
+      if (gelesen < text.length) teile.appendChild(document.createTextNode(text.slice(gelesen)));
+      textknoten.parentNode.replaceChild(teile, textknoten);
+    }
+  }
+
+  function markierungenEntfernen() {
+    var marken = Array.prototype.slice.call(haupt.querySelectorAll('mark.treffer'));
+    for (var i = 0; i < marken.length; i++) {
+      var eltern = marken[i].parentNode;
+      eltern.replaceChild(document.createTextNode(marken[i].textContent), marken[i]);
+      eltern.normalize();
+    }
+  }
+
+  // ── Filtern ─────────────────────────────────────────────────────────
+  // Ein Unterabschnitt reicht von seiner Ueberschrift bis zur naechsten
+  // gleicher oder hoeherer Ebene.
+  function bereichHatTreffer(ueberschrift) {
+    if (ueberschrift.querySelector('mark.treffer')) return true;
+    var grenze = ueberschrift.tagName === 'H3' ? ['H3'] : ['H3', 'H4'];
+    var element = ueberschrift.nextElementSibling;
+    while (element && grenze.indexOf(element.tagName) === -1) {
+      if (element.querySelector && element.querySelector('mark.treffer')) return true;
+      element = element.nextElementSibling;
+    }
+    return false;
+  }
+
+  function filtern(aktiv) {
+    for (var i = 0; i < abschnitte.length; i++) {
+      abschnitte[i].classList.toggle('ausgeblendet', aktiv && !abschnitte[i].querySelector('mark.treffer'));
+    }
+    // Das Deckblatt traegt keinen durchsuchbaren Inhalt und stuende bei einer
+    // Suche nur als ganzseitiger Block vor dem ersten Ergebnis.
+    if (deckblatt) deckblatt.classList.toggle('ausgeblendet', aktiv);
+
+    for (var j = 0; j < tocLinks.length; j++) {
+      var link = tocLinks[j];
+      if (!aktiv) { link.classList.remove('ausgeblendet'); continue; }
+      var ziel = document.getElementById(link.getAttribute('href').slice(1));
+      var hat = false;
+      if (ziel) {
+        hat = ziel.tagName === 'SECTION'
+          ? !!ziel.querySelector('mark.treffer')
+          : bereichHatTreffer(ziel);
+      }
+      link.classList.toggle('ausgeblendet', !hat);
+    }
+  }
+
+  // ── Von Treffer zu Treffer ──────────────────────────────────────────
+  function zaehlerSchreiben(begriff) {
+    if (!begriff) { zaehlerEl.textContent = ''; zaehlerEl.classList.remove('leer'); return; }
+    if (!treffer.length) {
+      zaehlerEl.textContent = TEXT.keine;
+      zaehlerEl.classList.add('leer');
+      return;
+    }
+    zaehlerEl.classList.remove('leer');
+    zaehlerEl.textContent = aktiver >= 0
+      ? (aktiver + 1) + ' / ' + treffer.length
+      : treffer.length + ' ' + TEXT.treffer;
+  }
+
+  function zuTreffer(index) {
+    if (!treffer.length) return;
+    if (aktiver >= 0 && treffer[aktiver]) treffer[aktiver].classList.remove('treffer-aktiv');
+    aktiver = (index + treffer.length) % treffer.length;
+    treffer[aktiver].classList.add('treffer-aktiv');
+    treffer[aktiver].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    zaehlerSchreiben(suchfeld.value.trim());
+  }
+
+  // ── Suchen ──────────────────────────────────────────────────────────
+  function suchen(roh) {
+    var begriff = roh.trim();
+    markierungenEntfernen();
+    treffer = [];
+    aktiver = -1;
+    loeschenEl.hidden = begriff === '';
+
+    // Ein einzelner Buchstabe traefe fast jedes Wort - das filtert nichts und
+    // markiert nur das halbe Handbuch bunt.
+    if (begriff.length < 2) {
+      filtern(false);
+      hinweisEl.classList.remove('sichtbar');
+      zaehlerEl.classList.remove('leer');
+      zaehlerEl.textContent = begriff ? TEXT.abZwei : '';
+      return;
+    }
+
+    markierungenSetzen(begriff);
+    treffer = Array.prototype.slice.call(haupt.querySelectorAll('mark.treffer'));
+    filtern(true);
+    zaehlerSchreiben(begriff);
+
+    if (!treffer.length) {
+      // Den Suchbegriff als Text einsetzen, nicht als HTML - er kommt aus der
+      // Eingabe des Nutzers.
+      var teile = TEXT.ohneFundstelle.split('{begriff}');
+      hinweisEl.textContent = '';
+      hinweisEl.appendChild(document.createTextNode(teile[0]));
+      var stark = document.createElement('strong');
+      stark.textContent = '\u201e' + begriff + '\u201c';
+      hinweisEl.appendChild(stark);
+      if (teile[1]) hinweisEl.appendChild(document.createTextNode(teile[1]));
+      hinweisEl.classList.add('sichtbar');
+    } else {
+      hinweisEl.classList.remove('sichtbar');
+    }
+  }
+
+  function zuruecksetzen() {
+    suchfeld.value = '';
+    suchen('');
+  }
+
+  // ── PDF ─────────────────────────────────────────────────────────────
+  // "Nur ein vollstaendiger": vor dem Druck faellt der Suchfilter, sonst
+  // landete der gerade gefilterte Ausschnitt im PDF und saehe darin aus wie
+  // das ganze Handbuch. Der beforeprint-Haken deckt Strg+P und das Druckmenue
+  // des Browsers mit ab; die Regeln in @media print sind das dritte Netz,
+  // falls JavaScript gar nicht laeuft.
+  function fuerDruckOeffnen() {
+    if (suchfeld.value) zuruecksetzen();
+  }
+  window.addEventListener('beforeprint', fuerDruckOeffnen);
+  window.handbuchAlsPdf = function () {
+    fuerDruckOeffnen();
+    window.print();
+  };
+
+  // ── Bedienung ───────────────────────────────────────────────────────
+  var warteschlange;
+  suchfeld.addEventListener('input', function () {
+    clearTimeout(warteschlange);
+    var wert = suchfeld.value;
+    // Den Baum nicht bei jedem Anschlag umbauen.
+    warteschlange = setTimeout(function () { suchen(wert); }, 140);
+  });
+
+  suchfeld.addEventListener('keydown', function (ereignis) {
+    if (ereignis.key === 'Enter') {
+      ereignis.preventDefault();
+      // Die laufende Eingabe sofort auswerten, sonst springt die Eingabetaste
+      // auf den Treffern des vorherigen Anschlags.
+      clearTimeout(warteschlange);
+      if (!treffer.length) suchen(suchfeld.value);
+      zuTreffer(ereignis.shiftKey ? aktiver - 1 : aktiver + 1);
+    }
+    if (ereignis.key === 'Escape') { zuruecksetzen(); suchfeld.blur(); }
+  });
+
+  loeschenEl.addEventListener('click', function () {
+    zuruecksetzen();
+    suchfeld.focus();
+  });
+
+  document.addEventListener('keydown', function (ereignis) {
+    var imFeld = document.activeElement === suchfeld;
+    var kuerzel =
+      (ereignis.key === '/' && !imFeld && !ereignis.ctrlKey && !ereignis.metaKey) ||
+      ((ereignis.ctrlKey || ereignis.metaKey) && ereignis.key.toLowerCase() === 'k');
+    if (kuerzel) {
+      ereignis.preventDefault();
+      suchfeld.focus();
+      suchfeld.select();
+      return;
+    }
+    if (ereignis.key === 'Escape' && !imFeld && suchfeld.value) zuruecksetzen();
+  });
+
+  // ── Inhaltsverzeichnis mitlaufen lassen ─────────────────────────────
+  var beobachtbar = haupt.querySelectorAll('section[id], h3[id], h4[id]');
+  var beobachter = new IntersectionObserver(function (eintraege) {
+    for (var i = 0; i < eintraege.length; i++) {
+      if (!eintraege[i].isIntersecting) continue;
+      for (var j = 0; j < tocLinks.length; j++) tocLinks[j].classList.remove('aktiv');
+      var aktivLink = document.querySelector('.toc-link[href="#' + eintraege[i].target.id + '"]');
+      if (aktivLink) aktivLink.classList.add('aktiv');
+    }
+  }, { rootMargin: '-15% 0px -75% 0px' });
+  Array.prototype.forEach.call(beobachtbar, function (element) { beobachter.observe(element); });
+})();
+</script>
+</body>
+</html>

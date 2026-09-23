@@ -1,0 +1,1570 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!--
+  ERZEUGT - nicht von Hand bearbeiten.
+  Quelle:  scripts/handbuch/texte-ru.ts + src/lib/modules.ts + src/lib/rbac.ts
+  Neu bauen: npm run handbuch
+-->
+<title>Damicon – Руководство по продукту | WAMOCON</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20128%20128%22%3E%3Crect%20width%3D%22128%22%20height%3D%22128%22%20rx%3D%2228%22%20fill%3D%22%2300768f%22%2F%3E%3Ccircle%20cx%3D%2264%22%20cy%3D%2264%22%20r%3D%2246%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-opacity%3D%22.85%22%20stroke-width%3D%224.5%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23f2c14b%22%20stroke-width%3D%224.5%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M43%2068%20L34%2068%22%2F%3E%3Cpath%20d%3D%22M44%2061.5%20L35.5%2058.7%22%2F%3E%3Cpath%20d%3D%22M47%2055.7%20L39.7%2050.4%22%2F%3E%3Cpath%20d%3D%22M51.7%2051%20L46.4%2043.7%22%2F%3E%3Cpath%20d%3D%22M57.5%2048%20L54.7%2039.5%22%2F%3E%3Cpath%20d%3D%22M64%2047%20L64%2038%22%2F%3E%3Cpath%20d%3D%22M70.5%2048%20L73.3%2039.5%22%2F%3E%3Cpath%20d%3D%22M76.3%2051%20L81.6%2043.7%22%2F%3E%3Cpath%20d%3D%22M81%2055.7%20L88.3%2050.4%22%2F%3E%3Cpath%20d%3D%22M84%2061.5%20L92.5%2058.7%22%2F%3E%3Cpath%20d%3D%22M85%2068%20L94%2068%22%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2264%22%20cy%3D%2268%22%20r%3D%2215%22%20fill%3D%22%23ff5c7a%22%2F%3E%3Cpath%20d%3D%22M32%2092H96%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-opacity%3D%22.85%22%20stroke-width%3D%225.5%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E" />
+<script>
+  // Farbschema vor dem ersten Bild setzen, sonst blitzt das helle Schema auf.
+  // Derselbe Schluessel wie im Portal (src/components/theme-toggle.tsx): das
+  // Handbuch laeuft unter derselben Adresse und uebernimmt damit die Wahl,
+  // die der Nutzer im Portal getroffen hat.
+  (function () {
+    try {
+      var gewaehlt = localStorage.getItem('damicon-theme');
+      var dunkelBevorzugt = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (gewaehlt === 'dark' || (!gewaehlt && dunkelBevorzugt)) {
+        document.documentElement.classList.add('dark');
+      }
+    } catch (e) {}
+  })();
+</script>
+<style>
+/* Farben, Radien und Schriften sind die des Portals (src/app/globals.css).
+   Sie stehen hier als eigene Werte, weil das Handbuch eine eigenstaendige
+   Datei ist und ohne die Anwendung geoeffnet werden koennen muss - aendert
+   sich die Palette dort, gehoert sie hier nachgezogen. */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  color-scheme: light;
+  --hintergrund: #f6fafb;
+  --vordergrund: #0b1e26;
+  --karte: #ffffff;
+  --primaer: #00768f;
+  --primaer-auf: #ffffff;
+  --zweit: #e3f2f6;
+  --gedaempft: #eaf2f4;
+  --gedaempft-text: #5a7078;
+  --akzent: #8c6209;
+  --gut: #297956;
+  --warnung: #945d0c;
+  --gefahr: #c23b4e;
+  --rand: #dbe8ec;
+  --ring: #0095ac;
+  --leiste: #ffffff;
+  --leiste-rand: #dceaee;
+  --leiste-akzent: #eaf4f7;
+  --radius: 0.625rem;
+  --schrift: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --schrift-titel: "Manrope", "Inter", "Segoe UI", system-ui, sans-serif;
+  --markierung: rgba(0, 149, 172, 0.28);
+}
+
+.dark {
+  color-scheme: dark;
+  --hintergrund: #04161c;
+  --vordergrund: #e6f4f8;
+  --karte: #081e26;
+  --primaer: #3fd0e6;
+  --primaer-auf: #01222b;
+  --zweit: #0d2f3a;
+  --gedaempft: #0c2933;
+  --gedaempft-text: #9ab8c1;
+  --akzent: #f2c14b;
+  --gut: #5ecfa0;
+  --warnung: #e8b34a;
+  --gefahr: #fb7185;
+  --rand: rgba(255, 255, 255, 0.09);
+  --ring: #5fdcef;
+  --leiste: #051b22;
+  --leiste-rand: rgba(255, 255, 255, 0.09);
+  --leiste-akzent: #0c2b35;
+  --markierung: rgba(63, 208, 230, 0.26);
+}
+
+html { scroll-behavior: smooth; }
+
+/* Das hidden-Attribut wirkt ueber display: none aus dem Browser-Stylesheet -
+   und verliert damit gegen jede eigene display-Regel. Der Weg zurueck ins
+   Portal traegt .knopf mit display: inline-flex und stand deshalb sichtbar da,
+   obwohl er ausserhalb des Portals ins Leere zeigt. */
+[hidden] { display: none !important; }
+
+body {
+  font-family: var(--schrift);
+  background: var(--hintergrund);
+  color: var(--vordergrund);
+  line-height: 1.7;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--primaer); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 4px; }
+
+/* ── Kopfzeile ─────────────────────────────────────────────────────────── */
+/* 64 px hoch wie die Kopfzeile des Portals (md:h-16). */
+.kopf {
+  position: sticky; top: 0; z-index: 50;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; padding: 0 1.25rem;
+  background: var(--leiste);
+  border-bottom: 1px solid var(--leiste-rand);
+}
+
+.marke { display: flex; align-items: center; gap: 0.7rem; color: inherit; }
+.marke:hover { text-decoration: none; }
+
+.marke-zeichen { width: 36px; height: 36px; flex-shrink: 0; display: block; }
+
+.marke-text { display: flex; flex-direction: column; line-height: 1.25; }
+.marke-name { font-family: var(--schrift-titel); font-weight: 800; font-size: 1.05rem; }
+.marke-unter { font-size: 0.7rem; font-weight: 600; color: var(--gedaempft-text); }
+
+.kopf-werkzeuge { display: flex; align-items: center; gap: 0.6rem; }
+
+.knopf {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+  height: 36px; padding: 0 0.85rem;
+  border-radius: calc(var(--radius) * 0.8);
+  font-family: inherit; font-size: 0.82rem; font-weight: 700;
+  cursor: pointer; border: 1px solid transparent; white-space: nowrap;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+.knopf-voll { background: var(--primaer); color: var(--primaer-auf); }
+.knopf-voll:hover { filter: brightness(1.08); text-decoration: none; }
+.knopf-rand { background: transparent; color: var(--gedaempft-text); border-color: var(--rand); }
+.knopf-rand:hover { color: var(--vordergrund); border-color: var(--primaer); text-decoration: none; }
+
+/* ── Suche ─────────────────────────────────────────────────────────────── */
+.suche {
+  display: flex; align-items: center; gap: 0.5rem;
+  height: 36px; padding: 0 0.7rem;
+  background: var(--gedaempft);
+  border: 1px solid var(--rand);
+  border-radius: calc(var(--radius) * 0.8);
+}
+.suche:focus-within { border-color: var(--primaer); }
+.suche-zeichen { color: var(--gedaempft-text); font-size: 1rem; line-height: 1; }
+
+.suche-feld {
+  background: none; border: none; outline: none;
+  color: var(--vordergrund); font-family: inherit; font-size: 0.85rem;
+  width: 200px; padding: 0;
+}
+.suche-feld::placeholder { color: var(--gedaempft-text); }
+.suche-feld::-webkit-search-cancel-button { display: none; }
+
+/* Haelt seine Breite auch leer, sonst wackelt die Kopfzeile bei jedem
+   Tastendruck. */
+.suche-zaehler {
+  font-size: 0.72rem; color: var(--gedaempft-text);
+  font-variant-numeric: tabular-nums; min-width: 4.5rem; text-align: right;
+}
+.suche-zaehler.leer { color: var(--warnung); font-weight: 700; }
+
+.suche-loeschen {
+  background: none; border: none; cursor: pointer; padding: 0 0 0 0.2rem;
+  color: var(--gedaempft-text); font-size: 1.15rem; line-height: 1;
+}
+.suche-loeschen:hover { color: var(--vordergrund); }
+
+/* ── Sprachumschalter ──────────────────────────────────────────────────── */
+.sprachen {
+  display: flex; align-items: center; gap: 2px;
+  padding: 3px; background: var(--gedaempft);
+  border: 1px solid var(--rand); border-radius: calc(var(--radius) * 0.8);
+}
+.sprache {
+  border: none; background: none; cursor: pointer;
+  font-family: inherit; font-size: 0.72rem; font-weight: 800;
+  color: var(--gedaempft-text);
+  padding: 0.25rem 0.45rem; border-radius: calc(var(--radius) * 0.5);
+  transition: background-color 0.15s, color 0.15s;
+}
+.sprache:hover { color: var(--vordergrund); }
+.sprache-aktiv { background: var(--primaer); color: var(--primaer-auf); }
+.sprache-aktiv:hover { color: var(--primaer-auf); }
+
+/* ── Raster ────────────────────────────────────────────────────────────── */
+.raster {
+  display: grid; grid-template-columns: 300px minmax(0, 1fr);
+  max-width: 1500px; margin: 0 auto;
+  min-height: calc(100vh - 64px);
+}
+
+#toc {
+  position: sticky; top: 64px; align-self: start;
+  height: calc(100vh - 64px); overflow-y: auto;
+  padding: 1.75rem 1.25rem 3rem;
+  border-right: 1px solid var(--rand);
+}
+
+.toc-titel {
+  font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.14em; color: var(--gedaempft-text); margin-bottom: 0.9rem;
+}
+
+.toc-link {
+  display: block; color: var(--gedaempft-text); font-size: 0.82rem;
+  padding: 0.3rem 0.5rem; border-radius: calc(var(--radius) * 0.6);
+  border-left: 2px solid transparent;
+}
+.toc-link:hover { background: var(--leiste-akzent); color: var(--vordergrund); text-decoration: none; }
+.toc-link.aktiv { color: var(--primaer); border-left-color: var(--primaer); font-weight: 700; }
+
+.toc-1 {
+  font-weight: 700; color: var(--vordergrund); font-size: 0.85rem;
+  margin-top: 0.9rem; padding-top: 0.6rem; border-top: 1px solid var(--rand);
+}
+.toc-1:first-of-type { margin-top: 0; border-top: none; }
+.toc-2 { padding-left: 1rem; }
+.toc-3 { padding-left: 1.9rem; font-size: 0.78rem; }
+
+main { padding: 2.5rem 3rem 6rem; max-width: 62rem; min-width: 0; }
+
+/* ── Deckblatt ─────────────────────────────────────────────────────────── */
+.deckblatt {
+  background: var(--karte);
+  border: 1px solid var(--rand);
+  border-radius: calc(var(--radius) * 2);
+  padding: 3rem; margin-bottom: 3.5rem;
+}
+.deckblatt-zeichen { width: 64px; height: 64px; display: block; margin-bottom: 1.5rem; }
+.deckblatt-art {
+  font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.16em; color: var(--primaer); margin-bottom: 0.9rem;
+}
+.deckblatt h1 {
+  font-family: var(--schrift-titel); font-size: 3rem; font-weight: 800;
+  line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 0.6rem;
+}
+.deckblatt-unter { color: var(--gedaempft-text); font-size: 1.05rem; max-width: 46rem; }
+.deckblatt-daten {
+  display: flex; flex-wrap: wrap; gap: 2.5rem;
+  margin-top: 2.25rem; padding-top: 1.75rem; border-top: 1px solid var(--rand);
+}
+.dt-name {
+  display: block; font-size: 0.66rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--gedaempft-text); margin-bottom: 0.3rem;
+}
+.dt-wert { font-weight: 700; font-size: 0.95rem; }
+
+/* ── Ueberschriften ────────────────────────────────────────────────────── */
+section { margin-bottom: 3.5rem; }
+
+h2 {
+  font-family: var(--schrift-titel); font-size: 1.85rem; font-weight: 800;
+  letter-spacing: -0.015em; margin-bottom: 1.25rem;
+  padding-bottom: 0.7rem; border-bottom: 2px solid var(--primaer);
+  display: flex; align-items: baseline; gap: 0.7rem;
+}
+h2 .nr { color: var(--primaer); font-size: 1.1rem; font-weight: 800; }
+
+h3 {
+  font-family: var(--schrift-titel); font-size: 1.3rem; font-weight: 700;
+  margin: 2.25rem 0 0.9rem;
+}
+
+h4 {
+  font-family: var(--schrift-titel); font-size: 1.02rem; font-weight: 700;
+  margin: 1.85rem 0 0.5rem;
+  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+}
+
+p { margin-bottom: 0.9rem; }
+p:last-child { margin-bottom: 0; }
+.abstand-oben { margin-top: 0.8rem; }
+
+ol, ul { margin: 0 0 1rem 1.3rem; }
+li { margin-bottom: 0.45rem; }
+
+code {
+  font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+  font-size: 0.86em; background: var(--gedaempft);
+  padding: 0.1rem 0.35rem; border-radius: 4px;
+  border: 1px solid var(--rand); white-space: nowrap;
+}
+
+/* ── Kaesten ───────────────────────────────────────────────────────────── */
+.kasten {
+  border: 1px solid var(--rand); border-left-width: 3px;
+  border-radius: var(--radius); padding: 1.1rem 1.35rem;
+  margin: 1.25rem 0; background: var(--karte);
+}
+.kasten-titel { font-weight: 800; margin-bottom: 0.5rem; font-size: 0.95rem; }
+.kasten-info { border-left-color: var(--primaer); }
+.kasten-info .kasten-titel { color: var(--primaer); }
+.kasten-wichtig { border-left-color: var(--gut); }
+.kasten-wichtig .kasten-titel { color: var(--gut); }
+.kasten-warnung { border-left-color: var(--warnung); }
+.kasten-warnung .kasten-titel { color: var(--warnung); }
+
+/* ── Karten ────────────────────────────────────────────────────────────── */
+.karten-raster {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem; margin: 1.25rem 0;
+}
+.karte-klein {
+  background: var(--karte); border: 1px solid var(--rand);
+  border-radius: var(--radius); padding: 1.1rem 1.25rem;
+}
+.karte-klein-titel { font-family: var(--schrift-titel); font-weight: 700; margin-bottom: 0.2rem; }
+.karte-klein-zeile {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--primaer); margin-bottom: 0.6rem;
+}
+.karte-klein p { font-size: 0.89rem; color: var(--gedaempft-text); }
+
+/* ── Merkmale eines Moduls ─────────────────────────────────────────────── */
+.merkmale {
+  border: 1px solid var(--rand); border-radius: var(--radius);
+  background: var(--karte); margin: 0.9rem 0 1.5rem; overflow: hidden;
+}
+.merkmal {
+  display: grid; grid-template-columns: 11rem minmax(0, 1fr);
+  gap: 1rem; padding: 0.6rem 1.1rem;
+  border-top: 1px solid var(--rand); font-size: 0.89rem;
+}
+.merkmal:first-child { border-top: none; }
+.merkmal-name { font-weight: 700; color: var(--gedaempft-text); }
+
+/* ── Tabellen ──────────────────────────────────────────────────────────── */
+.tabelle {
+  margin: 1.25rem 0; overflow-x: auto;
+  border: 1px solid var(--rand); border-radius: var(--radius);
+  background: var(--karte);
+}
+table { width: 100%; border-collapse: collapse; font-size: 0.89rem; }
+th {
+  text-align: left; font-weight: 800; font-size: 0.72rem;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--gedaempft-text); background: var(--gedaempft);
+  padding: 0.7rem 1rem; border-bottom: 1px solid var(--rand);
+  white-space: nowrap;
+}
+td { padding: 0.7rem 1rem; border-bottom: 1px solid var(--rand); vertical-align: top; }
+tbody tr:last-child td { border-bottom: none; }
+
+/* Die Rechtematrix ist breit: neun Spalten. Die erste bleibt stehen. */
+.tabelle-matrix table { font-size: 0.82rem; }
+.tabelle-matrix th:not(:first-child), .tabelle-matrix td:not(:first-child) {
+  text-align: center; white-space: normal;
+}
+.tabelle-matrix th:first-child, .tabelle-matrix td:first-child {
+  position: sticky; left: 0; background: var(--karte); z-index: 1;
+}
+.tabelle-matrix th:first-child { background: var(--gedaempft); }
+
+.recht { font-size: 1rem; line-height: 1; }
+.recht-schreiben { color: var(--primaer); }
+.recht-lesen { color: var(--gedaempft-text); }
+.recht-keins { color: var(--rand); }
+.legende { font-size: 0.82rem; color: var(--gedaempft-text); }
+
+/* ── Pillen ────────────────────────────────────────────────────────────── */
+.pille {
+  display: inline-block; padding: 0.15rem 0.6rem;
+  border-radius: 999px; font-size: 0.68rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;
+}
+.pille-gut { background: color-mix(in srgb, var(--gut) 14%, transparent); color: var(--gut); }
+.pille-offen { background: color-mix(in srgb, var(--warnung) 14%, transparent); color: var(--warnung); }
+.pille-jetzt { background: color-mix(in srgb, var(--primaer) 14%, transparent); color: var(--primaer); }
+
+/* ── Suche: Treffer und Filter ─────────────────────────────────────────── */
+mark.treffer { background: var(--markierung); color: inherit; border-radius: 3px; padding: 0 2px; }
+mark.treffer-aktiv {
+  background: var(--akzent); color: var(--hintergrund);
+  font-weight: 700; box-shadow: 0 0 0 3px color-mix(in srgb, var(--akzent) 30%, transparent);
+}
+
+.ausgeblendet { display: none; }
+
+.such-hinweis {
+  display: none; margin-bottom: 1.5rem;
+  background: var(--karte); border: 1px solid var(--rand);
+  border-left: 3px solid var(--warnung); border-radius: var(--radius);
+  padding: 1.1rem 1.35rem; color: var(--gedaempft-text); font-size: 0.92rem;
+}
+.such-hinweis.sichtbar { display: block; }
+.such-hinweis strong { color: var(--vordergrund); }
+
+/* ── Fuss ──────────────────────────────────────────────────────────────── */
+.fuss {
+  border-top: 1px solid var(--rand); padding: 1.75rem 3rem;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+  font-size: 0.8rem; color: var(--gedaempft-text);
+}
+
+/* ── Schmale Schirme ───────────────────────────────────────────────────── */
+@media (max-width: 1180px) {
+  .raster { grid-template-columns: 1fr; }
+  #toc { display: none; }
+  main { padding: 2rem 1.5rem 4rem; }
+  .fuss { padding: 1.5rem; }
+  .suche-feld { width: 130px; }
+  .marke-unter { display: none; }
+}
+
+@media (max-width: 820px) {
+  .kopf { height: auto; padding: 0.7rem 1rem; flex-wrap: wrap; position: static; }
+  .kopf-werkzeuge { width: 100%; flex-wrap: wrap; }
+  .suche { flex: 1 1 100%; }
+  .suche-feld { width: 100%; flex: 1; }
+  .deckblatt { padding: 1.75rem; }
+  .deckblatt h1 { font-size: 2.1rem; }
+  .deckblatt-daten { gap: 1.25rem; }
+  .merkmal { grid-template-columns: 1fr; gap: 0.15rem; }
+  h2 { font-size: 1.5rem; }
+}
+
+/* ── Druck ─────────────────────────────────────────────────────────────── */
+@media print {
+  .kein-druck, .kopf, #toc, .fuss { display: none !important; }
+  .raster { display: block; max-width: none; }
+  main { padding: 0; max-width: none; }
+
+  /* Der PDF-Export ist immer das vollstaendige Handbuch, nie der gerade
+     gefilterte Ausschnitt. Das Skript setzt die Suche vor dem Druck zurueck;
+     diese Regeln sind das zweite Netz, falls JavaScript abgeschaltet ist oder
+     der Druck ueber Strg+P am Skript vorbeilaeuft. Ohne sie druckte eine
+     Suche nach "Kuehlkette" ein Handbuch aus drei Absaetzen - und niemand
+     saehe dem PDF an, dass etwas fehlt. */
+  .ausgeblendet { display: revert !important; }
+  .such-hinweis { display: none !important; }
+  mark.treffer, mark.treffer-aktiv {
+    background: none !important; color: inherit !important;
+    box-shadow: none !important; font-weight: inherit !important; padding: 0 !important;
+  }
+
+  body { background: #fff; color: #000; font-size: 10.5pt; }
+  :root {
+    --hintergrund: #fff; --vordergrund: #000; --karte: #fff;
+    --gedaempft: #f4f4f4; --gedaempft-text: #444; --rand: #bbb;
+    --primaer: #005f74; --gut: #1f5e43; --warnung: #7a4c09;
+  }
+
+  section { break-before: page; }
+  section:first-of-type { break-before: auto; }
+  .deckblatt { break-after: page; border: none; padding: 0; }
+  h2, h3, h4 { break-after: avoid; }
+  table, .kasten, .karte-klein, .merkmale { break-inside: avoid; }
+  thead { display: table-header-group; }
+  .tabelle, .tabelle-matrix { overflow: visible; }
+  .tabelle-matrix th:first-child, .tabelle-matrix td:first-child { position: static; }
+  a { color: #000; text-decoration: none; }
+  @page { margin: 16mm 14mm; }
+}
+</style>
+</head>
+<body>
+
+<header class="kopf kein-druck">
+  <a class="marke" href="#ueberblick">
+    <svg class="marke-zeichen" viewBox="0 0 128 128" role="img" aria-label="Damicon">
+      <rect width="128" height="128" rx="28" fill="var(--primaer)" />
+      <circle cx="64" cy="64" r="46" fill="none" stroke="var(--primaer-auf)" stroke-opacity="0.85" stroke-width="4.5" />
+      <g fill="none" stroke="#f2c14b" stroke-width="4.5" stroke-linecap="round"><path d="M43 68 L34 68" /><path d="M44 61.5 L35.5 58.7" /><path d="M47 55.7 L39.7 50.4" /><path d="M51.7 51 L46.4 43.7" /><path d="M57.5 48 L54.7 39.5" /><path d="M64 47 L64 38" /><path d="M70.5 48 L73.3 39.5" /><path d="M76.3 51 L81.6 43.7" /><path d="M81 55.7 L88.3 50.4" /><path d="M84 61.5 L92.5 58.7" /><path d="M85 68 L94 68" /></g>
+      <circle cx="64" cy="68" r="15" fill="#ff5c7a" />
+      <path d="M32 92H96" fill="none" stroke="var(--primaer-auf)" stroke-opacity="0.85" stroke-width="5.5" stroke-linecap="round" />
+    </svg>
+    <span class="marke-text">
+      <span class="marke-name">Damicon</span>
+      <span class="marke-unter">Руководство по продукту</span>
+    </span>
+  </a>
+
+  <div class="kopf-werkzeuge">
+    <div class="suche">
+      <span class="suche-zeichen" aria-hidden="true">⌕</span>
+      <input type="search" id="suchfeld" class="suche-feld"
+        placeholder="Поиск по руководству …"
+        aria-label="Поиск по руководству"
+        autocomplete="off" spellcheck="false" />
+      <span class="suche-zaehler" id="such-zaehler" role="status" aria-live="polite"></span>
+      <button type="button" class="suche-loeschen" id="such-loeschen"
+        title="Очистить поиск (Esc)"
+        aria-label="Очистить поиск (Esc)" hidden>×</button>
+    </div>
+
+    <div class="sprachen" role="group" aria-label="Язык">
+      <button type="button" class="sprache" data-sprache="de" title="Deutsch">DE</button><button type="button" class="sprache" data-sprache="en" title="English">EN</button><button type="button" class="sprache" data-sprache="kk" title="Қазақша">KK</button><button type="button" class="sprache sprache-aktiv" data-sprache="ru" title="Русский">RU</button>
+    </div>
+
+    <button type="button" class="knopf knopf-rand" id="thema-knopf"
+      title="Сменить цветовую схему" aria-label="Сменить цветовую схему">
+      <span id="thema-zeichen" aria-hidden="true">◐</span>
+    </button>
+
+    <a class="knopf knopf-rand" id="portal-knopf" href="../"
+      title="Вернуться к обзору портала" hidden>← В портал</a>
+
+    <button type="button" class="knopf knopf-voll" onclick="handbuchAlsPdf()"
+      title="Сохранить полное руководство в PDF (Печать → Сохранить как PDF)">Сохранить PDF</button>
+  </div>
+</header>
+
+<div class="raster">
+  <nav id="toc" class="kein-druck" aria-label="Содержание">
+    <div class="toc-titel">Содержание</div>
+    <a class="toc-link toc-1" href="#ueberblick">01 Обзор</a>
+    <a class="toc-link toc-2" href="#ueberblick-zonen">1.1 Четыре зоны</a>
+    <a class="toc-link toc-2" href="#ueberblick-rollen">1.2 Роли</a>
+    <a class="toc-link toc-1" href="#bedienung">02 Работа с порталом</a>
+    <a class="toc-link toc-2" href="#bedienung-anmelden">2.1 Вход в систему</a>
+    <a class="toc-link toc-2" href="#bedienung-aufbau">2.2 Устройство интерфейса</a>
+    <a class="toc-link toc-2" href="#bedienung-sprache">2.3 Переключение языка</a>
+    <a class="toc-link toc-2" href="#bedienung-thema">2.4 Цветовая схема</a>
+    <a class="toc-link toc-2" href="#bedienung-rolle">2.5 Смена роли</a>
+    <a class="toc-link toc-2" href="#bedienung-offline">2.6 Работа без связи</a>
+    <a class="toc-link toc-1" href="#bereiche">03 Зоны и модули</a>
+    <a class="toc-link toc-2" href="#bereich-feld">3.1 Поле</a>
+    <a class="toc-link toc-3" href="#modul-standort">3.1.1 Участки</a>
+    <a class="toc-link toc-3" href="#modul-reihenbloecke">3.1.2 Рядные блоки</a>
+    <a class="toc-link toc-3" href="#modul-pflueckaufgaben">3.1.3 Задания на сбор</a>
+    <a class="toc-link toc-3" href="#modul-pflanzenschutz">3.1.4 Защита растений</a>
+    <a class="toc-link toc-3" href="#modul-rotationsplan">3.1.5 План ротации</a>
+    <a class="toc-link toc-3" href="#modul-wetter">3.1.6 Погода</a>
+    <a class="toc-link toc-2" href="#bereich-hof">3.2 Двор</a>
+    <a class="toc-link toc-3" href="#modul-kuehlkette">3.2.1 Холодовая цепь</a>
+    <a class="toc-link toc-3" href="#modul-logistik">3.2.2 Рейсы вывоза</a>
+    <a class="toc-link toc-3" href="#modul-qr_steigen">3.2.3 QR-ящики</a>
+    <a class="toc-link toc-3" href="#modul-esf">3.2.4 Накладная (ЭСФ)</a>
+    <a class="toc-link toc-2" href="#bereich-buero">3.3 Офис</a>
+    <a class="toc-link toc-3" href="#modul-rollen">3.3.1 Роли и права</a>
+    <a class="toc-link toc-3" href="#modul-finanzen">3.3.2 Финансы</a>
+    <a class="toc-link toc-3" href="#modul-personal">3.3.3 Реестр сборщиков</a>
+    <a class="toc-link toc-3" href="#modul-lohn">3.3.4 Оплата по качеству</a>
+    <a class="toc-link toc-3" href="#modul-dokumente">3.3.5 Документы</a>
+    <a class="toc-link toc-3" href="#modul-compliance">3.3.6 Комплаенс</a>
+    <a class="toc-link toc-3" href="#modul-integrationen">3.3.7 Интеграции</a>
+    <a class="toc-link toc-3" href="#modul-foerdermittel">3.3.8 Субсидии</a>
+    <a class="toc-link toc-3" href="#modul-stammdaten">3.3.9 Справочные данные</a>
+    <a class="toc-link toc-2" href="#bereich-markt">3.4 Рынок</a>
+    <a class="toc-link toc-3" href="#modul-sortenkatalog">3.4.1 Каталог сортов</a>
+    <a class="toc-link toc-3" href="#modul-b2b_portal">3.4.2 B2B-портал</a>
+    <a class="toc-link toc-3" href="#modul-reklamationen">3.4.3 Рекламации</a>
+    <a class="toc-link toc-3" href="#modul-preislisten">3.4.4 Прайс-листы</a>
+    <a class="toc-link toc-3" href="#modul-aggregator">3.4.5 Агрегатор</a>
+    <a class="toc-link toc-3" href="#modul-schulungen">3.4.6 Обучение</a>
+    <a class="toc-link toc-3" href="#modul-kanaele">3.4.7 Каналы связи</a>
+    <a class="toc-link toc-1" href="#anleitungen">04 Инструкции</a>
+    <a class="toc-link toc-2" href="#anleitung-wartezeit">4.1 Установка и снятие блокировки по сроку ожидания</a>
+    <a class="toc-link toc-2" href="#anleitung-pflueckaufgabe">4.2 Задание на сбор с фотоподтверждением</a>
+    <a class="toc-link toc-2" href="#anleitung-nachweiskette">4.3 Показать цепочку подтверждений для поставки</a>
+    <a class="toc-link toc-2" href="#anleitung-dokument">4.4 Занести документ</a>
+    <a class="toc-link toc-2" href="#anleitung-zugang">4.5 Настройка доступа: приглашение и второй фактор</a>
+    <a class="toc-link toc-1" href="#referenz">05 Справочник</a>
+    <a class="toc-link toc-2" href="#referenz-seiten">5.1 Страницы</a>
+    <a class="toc-link toc-2" href="#referenz-rechte">5.2 Права по ролям</a>
+    <a class="toc-link toc-2" href="#referenz-schnittstellen">5.3 Интерфейсы</a>
+    <a class="toc-link toc-1" href="#technik">06 Технологии</a>
+    <a class="toc-link toc-2" href="#technik-stack">6.1 Используемые технологии</a>
+    <a class="toc-link toc-2" href="#technik-meilensteine">6.2 Контрольные точки</a>
+    <a class="toc-link toc-1" href="#recht">07 Право и хранение данных</a>
+    <a class="toc-link toc-1" href="#glossar">08 Глоссарий</a>
+  </nav>
+
+  <main>
+    <div class="such-hinweis" id="such-hinweis" role="status" aria-live="polite"></div>
+
+    <div class="deckblatt">
+      <svg class="deckblatt-zeichen" viewBox="0 0 128 128" role="img" aria-label="Damicon">
+      <rect width="128" height="128" rx="28" fill="var(--primaer)" />
+      <circle cx="64" cy="64" r="46" fill="none" stroke="var(--primaer-auf)" stroke-opacity="0.85" stroke-width="4.5" />
+      <g fill="none" stroke="#f2c14b" stroke-width="4.5" stroke-linecap="round"><path d="M43 68 L34 68" /><path d="M44 61.5 L35.5 58.7" /><path d="M47 55.7 L39.7 50.4" /><path d="M51.7 51 L46.4 43.7" /><path d="M57.5 48 L54.7 39.5" /><path d="M64 47 L64 38" /><path d="M70.5 48 L73.3 39.5" /><path d="M76.3 51 L81.6 43.7" /><path d="M81 55.7 L88.3 50.4" /><path d="M84 61.5 L92.5 58.7" /><path d="M85 68 L94 68" /></g>
+      <circle cx="64" cy="68" r="15" fill="#ff5c7a" />
+      <path d="M32 92H96" fill="none" stroke="var(--primaer-auf)" stroke-opacity="0.85" stroke-width="5.5" stroke-linecap="round" />
+    </svg>
+      <div class="deckblatt-art">Руководство по продукту · WAMOCON GmbH</div>
+      <h1>Damicon</h1>
+      <p class="deckblatt-unter">Управление малиновым хозяйством в окрестностях Алматы</p>
+      <div class="deckblatt-daten">
+        <div><span class="dt-name">Версия</span><span class="dt-wert">0.1.0</span></div>
+        <div><span class="dt-name">Статус</span><span class="dt-wert"><span class="pille pille-jetzt">Прототип</span></span></div>
+        <div><span class="dt-name">Языки</span><span class="dt-wert">DE · EN · KK · RU</span></div>
+        <div><span class="dt-name">По состоянию на</span><span class="dt-wert">23 сентября 2026 года</span></div>
+      </div>
+    </div>
+
+    <section id="ueberblick">
+      <h2><span class="nr">01</span> Обзор</h2>
+      <p>Damicon управляет малиновым хозяйством от ряда до счёта: что и где созрело, кто собирал, как быстро продукция была охлаждена, во что она обошлась и что принесла. Портал разделён на четыре зоны, повторяющие путь ягоды, — Поле, Двор, Офис, Рынок.</p>
+
+      <div class="kasten kasten-wichtig">
+        <div class="kasten-titel">О чём речь</div>
+        <p>В малине лидерство на рынке создаётся не объёмом, а доказуемостью. Кривая охлаждения, партия, блок происхождения, сборщик и подтверждение обработки должны быть полными для каждой поставки. Именно это и фиксирует Damicon.</p>
+      </div>
+
+      <div class="kasten kasten-warnung">
+        <div class="kasten-titel">Состояние этой версии</div>
+        <p>Портал представляет собой прототип. Основные функции работают с настоящей базой данных: вход, права ролей, управление участками, блокировка рядного блока, задания на сбор с фотоподтверждением, хранение документов. Два модуля пока остаются пунктом меню без собственного экрана. Показатели отражают исходные значения, пока не будет собран первый полностью измеренный сезон. Без подключения к базе данных портал работает в демонстрационном режиме на примерных данных.</p>
+      </div>
+
+      <h3 id="ueberblick-zonen">1.1 Четыре зоны</h3>
+      <p>У каждой зоны есть своя начальная страница, где её модули показаны плитками. Какие из них видны, зависит от роли учётной записи.</p>
+      <div class="karten-raster">
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Поле</div>
+          <div class="karte-klein-zeile">Выращивание, сбор, защита растений</div>
+          <p>Модель участков, статус рядного блока включая блокировку на срок ожидания, задания на сбор с фотоподтверждением, план ротации и данные о погоде.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Двор</div>
+          <div class="karte-klein-zeile">Холодовая цепь, логистика</div>
+          <p>Предварительное охлаждение с показателем 60 минут, регистраторы температуры, рейсы вывоза, QR-идентификация ящиков и электронная накладная.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Офис</div>
+          <div class="karte-klein-zeile">Финансы, персонал, комплаенс</div>
+          <p>Роли и права, маржинальный доход по рядному блоку и дню уборки, оплата труда с коэффициентом качества, управление документами, центр комплаенса и обязательные государственные интеграции.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Рынок</div>
+          <div class="karte-klein-zeile">Сбыт, ИИ, публичность</div>
+          <p>Каталог сортов и квот, B2B-портал с предзаказом, ИИ-чат на проверенной базе данных, платформа-агрегатор для соседних хозяйств и многоязычное обучение.</p>
+        </div>
+      </div>
+
+      <h3 id="ueberblick-rollen">1.2 Роли</h3>
+      <p>Восемь ролей. Роль учётной записи определяет, какие модули появятся в навигации и что в них можно изменить, — и это проверяется не только в интерфейсе, но ещё раз в базе данных.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Роль</th><th>Задачи и права</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Администрирование</strong></td><td>Полная настройка, управление пользователями и ролями, надзор за чувствительными финансами, доступом и интеграциями.</td></tr>
+            <tr><td><strong>Генеральный директор</strong></td><td>Обзор всех четырёх зон, всех показателей и всех четырёх областей комплаенса, без управления ключами ИИ-провайдера. Получает автоматически обновляемые отчёты о соответствии при входе в систему.</td></tr>
+            <tr><td><strong>Руководство хозяйства</strong></td><td>Ежедневная работа плантации, задания, ротация, персонал и согласования. Может смотреть финансы, но не проводить проводки.</td></tr>
+            <tr><td><strong>Бухгалтерия</strong></td><td>Маржинальный доход, оплата труда, платежи, государственная отчётность. Без управления пользователями и закрытия полевых задач.</td></tr>
+            <tr><td><strong>Бригада / поле</strong></td><td>Принимает задания на сбор, фиксирует объём и фотоподтверждение в поле, видит ротацию и блокировки по сроку ожидания.</td></tr>
+            <tr><td><strong>Сборщик</strong></td><td>Видит только собственную производительность сбора и расчётный лист. Нет права записи в проведённые количества или чужие данные.</td></tr>
+            <tr><td><strong>Производитель / соседнее хозяйство</strong></td><td>Соседнее хозяйство в закупке. Видит свои рядные блоки, партии, расчёты и договоры.</td></tr>
+            <tr><td><strong>B2B-клиент</strong></td><td>Квоты, предзаказ, прайс-листы, ИИ-чат, предоставленные документы и собственные рекламации.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="kasten kasten-info">
+        <div class="kasten-titel">Как пользоваться этим руководством</div>
+        <p>Поиск: поле справа вверху, перейти к нему можно клавишей / или сочетанием Ctrl+K. Поиск скрывает главы без совпадений и подсвечивает найденное; Enter переходит к следующему совпадению, Shift+Enter — к предыдущему, Esc сбрасывает поиск.</p>
+        <p class="abstand-oben">Сохранение в PDF: кнопка справа вверху, затем в диалоге печати выберите «Сохранить как PDF». Экспорт всегда содержит полное руководство на выбранном языке — активный фильтр поиска предварительно сбрасывается, чтобы не получился фрагмент, по которому не видно, чего в нём не хватает. То же относится и к Ctrl+P.</p>
+      </div>
+    </section>
+
+    <section id="bedienung">
+      <h2><span class="nr">02</span> Работа с порталом</h2>
+      <p>Эта глава описывает интерфейс: как войти, как устроена навигация и где находятся настройки. О том, что делают отдельные модули, говорится в следующей главе.</p>
+
+      <h3 id="bedienung-anmelden">2.1 Вход в систему</h3>
+      <ol>
+          <li>Откройте портал. Без кода языка в адресе вы попадёте на немецкую версию.</li>
+          <li>На начальной странице выберите «В портал» либо сразу откройте страницу входа.</li>
+          <li>Введите адрес электронной почты и пароль.</li>
+          <li>Если для учётной записи настроен второй фактор, далее запрашивается шестизначный код. Перейти сразу к обзору не получится — проверка стоит перед страницей, а не внутри неё.</li>
+          <li>После входа открывается обзор с четырьмя зонами и показателями хозяйства.</li>
+      </ol>
+      <div class="kasten kasten-info">
+        <div class="kasten-titel">Учётные записи для ознакомления</div>
+        <p>Для прототипа создано по одной учётной записи на роль: admin@damicon.demo, ceo@damicon.demo, leitung@damicon.demo, buchhaltung@damicon.demo, brigade@damicon.demo, pfluecker@damicon.demo, erzeuger@damicon.demo, kunde@damicon.demo.</p>
+        <p class="abstand-oben">Пароль у всех восьми записей одинаковый: DamiconDemo2026! — Если портал работает без базы данных, вход не требуется вовсе и используются примерные данные. Каждый экран справа вверху показывает, из какого источника он читает.</p>
+      </div>
+
+      <h3 id="bedienung-aufbau">2.2 Устройство интерфейса</h3>
+      <p>На компьютере навигацию несёт боковая панель, на телефоне — полоса внизу экрана. Обе ведут к одним и тем же страницам.</p>
+      <div class="karten-raster">
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Боковая панель</div>
+          <p>У левого края, начиная с ширины планшета. Сверху обзор, ниже четыре зоны в виде раскрывающихся групп с их модулями. Зона, в которой роль не видит ни одного модуля, не появляется совсем. Панель можно свернуть до узкого столбца значков; переключатель для этого находится в верхней строке. Внизу расположены руководство, сведения о вошедшем пользователе, страница безопасности и выход.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Верхняя строка</div>
+          <p>Содержит путь к открытой странице, переключатель ширины боковой панели, выбор языка, цветовую схему и — для администрирования — поле «Просмотр от имени».</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Нижняя полоса (телефон)</div>
+          <p>На экранах уже планшета она заменяет боковую панель. Показывает только верхний уровень — обзор и четыре зоны; модули выводятся плитками на странице зоны. Дерево из 26 пунктов уместно для стоящего столбца, а не для поверхности, которую открывают большим пальцем. Кнопка учётной записи открывает лист с языком, цветовой схемой, руководством, безопасностью и выходом.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Обзор</div>
+          <p>Начальная страница после входа. Приветствие и четыре зоны с их показателями. Генеральный директор и администрирование видят над ними блок «Самое важное сегодня»: степень готовности, одна фраза из последнего отчёта проверки, изменения с момента предыдущего отчёта и пять плиток — аудит, налоги, право, риски и финансы.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Страница зоны</div>
+          <p>У каждой зоны есть своя страница, где модули показаны плитками с кратким описанием. На телефоне, где боковой панели нет, это основной путь к модулям.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Страница модуля</div>
+          <p>Показывает содержимое модуля: таблицы, формы, показатели. Справа вверху указано, приходят ли данные из базы или это примерные значения. Модули, которые ещё не построены, одной фразой сообщают, что они будут уметь.</p>
+        </div>
+      </div>
+
+      <h3 id="bedienung-sprache">2.3 Переключение языка</h3>
+      <p>Выбор языка находится в верхней строке, на телефоне — в листе учётной записи. Доступны четыре языка: немецкий, английский, казахский и русский. Немецкий и английский переведены полностью, казахский и русский для прототипа — в значительной части; там, где перевода нет, появляется немецкий текст. Язык входит в адрес, поэтому на конкретную языковую версию можно дать ссылку. Это руководство следует языку, на котором сейчас работает портал, и имеет собственный переключатель справа вверху.</p>
+
+      <h3 id="bedienung-thema">2.4 Цветовая схема</h3>
+      <p>Светлая и тёмная, переключается в верхней строке. Выбор сохраняется в браузере и действует также для этого руководства. Если выбор не сделан, портал следует настройке операционной системы.</p>
+
+      <h3 id="bedienung-rolle">2.5 Смена роли</h3>
+      <p>Действующая роль — это роль учётной записи, под которой выполнен вход; она указана внизу боковой панели. Чтобы увидеть другую роль, войдите под соответствующей записью. У администрирования дополнительно есть поле «Просмотр от имени»: оно меняет только то, что выводится на экран. Права на изменение по-прежнему определяются профилем — причём в базе данных, где переключение в интерфейсе ничего не даёт.</p>
+
+      <h3 id="bedienung-offline">2.6 Работа без связи</h3>
+      <p>В поле связь ненадёжна. Поэтому сообщения о заданиях на сбор, лотках, рабочем времени и замерах охлаждения попадают в очередь на устройстве и уходят позже сами. При этом они проходят ту же проверку, что и ввод за рабочим столом, — сообщение из очереди не даёт больше прав, чем есть у создавшего его человека.</p>
+    </section>
+
+    <section id="bereiche">
+      <h2><span class="nr">03</span> Зоны и модули</h2>
+      <p>26 модулей в четырёх зонах. Эта глава описывает каждый: для чего он нужен, кто может его видеть и кто в нём работать, и что ещё предстоит сделать. Сведения о правах взяты из той же матрицы, по которой портал работает в эксплуатации.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Модуль</th><th>Состояние</th><th>Видят</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Участки</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бригада / поле</td></tr>
+            <tr><td><strong>Рядные блоки</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, Бригада / поле, Производитель / соседнее хозяйство</td></tr>
+            <tr><td><strong>Задания на сбор</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, Бригада / поле, Производитель / соседнее хозяйство</td></tr>
+            <tr><td><strong>Защита растений</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бригада / поле</td></tr>
+            <tr><td><strong>План ротации</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бригада / поле</td></tr>
+            <tr><td><strong>Погода</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бригада / поле</td></tr>
+            <tr><td><strong>Холодовая цепь</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бригада / поле</td></tr>
+            <tr><td><strong>Рейсы вывоза</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бригада / поле</td></tr>
+            <tr><td><strong>QR-ящики</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бригада / поле</td></tr>
+            <tr><td><strong>Накладная (ЭСФ)</strong></td><td><span class="pille pille-offen">в разработке</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия</td></tr>
+            <tr><td><strong>Роли и права</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства</td></tr>
+            <tr><td><strong>Финансы</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, Производитель / соседнее хозяйство</td></tr>
+            <tr><td><strong>Реестр сборщиков</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства</td></tr>
+            <tr><td><strong>Оплата по качеству</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, Сборщик</td></tr>
+            <tr><td><strong>Документы</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, Производитель / соседнее хозяйство, B2B-клиент</td></tr>
+            <tr><td><strong>Комплаенс</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия</td></tr>
+            <tr><td><strong>Интеграции</strong></td><td><span class="pille pille-offen">в разработке</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия</td></tr>
+            <tr><td><strong>Субсидии</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия</td></tr>
+            <tr><td><strong>Справочные данные</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия</td></tr>
+            <tr><td><strong>Каталог сортов</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, B2B-клиент</td></tr>
+            <tr><td><strong>B2B-портал</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, Производитель / соседнее хозяйство, B2B-клиент</td></tr>
+            <tr><td><strong>Рекламации</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, B2B-клиент</td></tr>
+            <tr><td><strong>Прайс-листы</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства</td></tr>
+            <tr><td><strong>Агрегатор</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, Производитель / соседнее хозяйство</td></tr>
+            <tr><td><strong>Обучение</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, Бригада / поле, Сборщик, Производитель / соседнее хозяйство</td></tr>
+            <tr><td><strong>Каналы связи</strong></td><td><span class="pille pille-gut">готов к работе</span></td><td>Администрирование, Генеральный директор, Руководство хозяйства</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kasten kasten-info">
+        <p><strong>готов к работе</strong> — Работает с базой данных: читает и записывает реальные данные, каждая запись привязана к роли и фиксируется в журнале.</p>
+        <p class="abstand-oben"><strong>в разработке</strong> — Видимый пункт меню без собственного экрана. Страница модуля одной фразой сообщает, что он будет уметь.</p>
+      </div>
+
+      <h3 id="bereich-feld">3.1 Поле</h3>
+      <p>Модель участков, статус рядного блока включая блокировку на срок ожидания, задания на сбор с фотоподтверждением, план ротации и данные о погоде.</p>
+
+      <h4 id="modul-standort">3.1.1 Иерархия участков <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Хозяйство, плантация, полевой участок, группа рядов, рядный блок — цифровая карта поля с однозначным обозначением рядов и блоков вдоль шпалер.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Карта поля с рядными блоками на шпалере, сортом, годом посадки, типом побегов и ориентацией шпалеры для каждого блока.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/feld/standort</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бригада / поле</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Экран для создания и перемещения участков и групп рядов, а также для черчения геометрии поля.</span></div>
+      </div>
+
+      <h4 id="modul-reihenbloecke">3.1.2 Рядные блоки и статусы <span class="pille pille-gut">готов к работе</span></h4>
+      <p>У каждого рядного блока один статус: засажен, готов к сбору, в покое, обрезка или заблокирован на срок ожидания. Заблокированный блок просто не должен появляться в плане сбора.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Каждый рядный блок ведёт собственный статус. Пока идёт срок ожидания, он остаётся закрытым для уборки — до его окончания.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/feld/reihenbloecke</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, Бригада / поле, Производитель / соседнее хозяйство</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Смена статуса с обязательным обоснованием и история по каждому рядному блоку.</span></div>
+      </div>
+
+      <h4 id="modul-pflueckaufgaben">3.1.3 Задания на сбор с фотоподтверждением <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Задание на сбор для бригады и рядного блока с плановым и фактическим объёмом, коэффициентом качества и фотоподтверждением потребительского лотка прямо в задании.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Задание по бригаде и рядному блоку, фотоподтверждение лотка, объём и коэффициент качества прямо в задании.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/feld/pflueckaufgaben</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, Бригада / поле, Производитель / соседнее хозяйство</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бригада / поле</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Офлайн-ввод в поле, проверка подтверждений с приёмкой и доработкой, связь с оплатой по коэффициенту качества.</span></div>
+      </div>
+
+      <h4 id="modul-pflanzenschutz">3.1.4 Защита растений и срок ожидания <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Каждая обработка фиксируется с препаратом, объёмом, блоком, датой и исполнителем и автоматически блокирует рядный блок до окончания установленного законом срока ожидания.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Документирование обработок по блокам с автоматической блокировкой уборки. Нарушение — это правовой риск и риск безопасности продуктов.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/feld/pflanzenschutz</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бригада / поле</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>База препаратов со сроками ожидания, автоматическое снятие блокировки по истечении срока, обязательная загрузка протокола, подтверждение по остаточным веществам для каждой партии.</span></div>
+      </div>
+
+      <h4 id="modul-rotationsplan">3.1.5 План ротации / план сбора <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Скользящий план сбора с интервалом в два-три дня для каждого рядного блока на протяжении всей осенней уборки. Один пропущенный проход уничтожает блок на весь цикл.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Показывает, какой рядный блок когда на очереди, и распределяет проходы на шесть недель уборки.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/feld/rotationsplan</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бригада / поле</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Автоматический расчёт интервала по рядному блоку, распределение бригад, проверка конфликтов со сроками ожидания, экспорт в календарь (.ics).</span></div>
+      </div>
+
+      <h4 id="modul-wetter">3.1.6 Погода и сумма температур <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Погодные данные по участкам с расчётом суммы эффективных температур как основа для прогноза объёмов.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Простой погодный интерфейс с суммой температур по участкам. Объяснимо, проверяемо и подтверждаемо в пределах одного сезона.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/feld/wetter</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бригада / поле</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Собственная метеостанция на хозяйстве вместо данных из сети, подсказка о сдвинутых окнах созревания.</span></div>
+      </div>
+
+      <h3 id="bereich-hof">3.2 Двор</h3>
+      <p>Предварительное охлаждение с показателем 60 минут, регистраторы температуры, рейсы вывоза, QR-идентификация ящиков и электронная накладная.</p>
+
+      <h4 id="modul-kuehlkette">3.2.1 Таймер холодовой цепи <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Замер времени от сбора до предварительного охлаждения с жёстким порогом в 60 минут, регистраторы температуры, целевая температура 0-1 градус. Наивысший приоритет во всём хозяйстве.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Отслеживает время от сбора до предварительного охлаждения. Свыше 60 минут товар на следующий день годится только на переработку.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/hof/kuehlkette</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бригада / поле</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Подключение регистраторов температуры, чтобы значения не приходилось вводить вручную.</span></div>
+      </div>
+
+      <h4 id="modul-logistik">3.2.2 Рейсы вывоза и планирование маршрутов <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Фиксированные рейсы вывоза с поля, чтобы наполненные ящики не стояли на солнце, плюс планирование маршрутов по окнам доставки клиентов.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Квитанция приёма-передачи со сверкой объёма и температуры (предварительное охлаждение и транспортировка), непрерывное доказательство холодовой цепи вплоть до клиента.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/hof/logistik</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бригада / поле</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бригада / поле</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Маршрутный лист по машинам и временные окна доставки пока отсутствуют.</span></div>
+      </div>
+
+      <h4 id="modul-qr_steigen">3.2.3 QR-идентификация ящиков <span class="pille pille-gut">готов к работе</span></h4>
+      <p>QR-этикетки для ящиков (ссылка на публичную страницу происхождения), пропуска сборщиков с собственным кодом пропуска без биометрии и не требующий входа настенный плакат - все три можно распечатать прямо из браузера.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>QR-код несёт идентичность от поля до прилавка - пропуск можно отсканировать камерой на пункте сбора, чтобы отнести ящик или рабочее время к этому человеку, вместо выбора из выпадающего списка.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/hof/qr-steigen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бригада / поле</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Этикетки ящиков пока нельзя отсканировать камерой, только пропуск сборщика.</span></div>
+      </div>
+
+      <h4 id="modul-esf">3.2.4 Электронная накладная (ЭСФ) <span class="pille pille-offen">в разработке</span></h4>
+      <p>Электронная накладная в соответствии с обязанностью оформлять сопроводительную накладную. Подключение к государственной системе ЭСФ планируется, собственной бухгалтерии не будет.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>В дальнейшем будет вести цепочку документов от партии до накладной и принимать ответный статус из государственной системы. Обязательная интеграция.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/hof/lieferschein-esf</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Подключение к ИС ЭСФ, цепочка документов партия — накладная, ответный статус и повторная отправка.</span></div>
+      </div>
+
+      <h3 id="bereich-buero">3.3 Офис</h3>
+      <p>Роли и права, маржинальный доход по рядному блоку и дню уборки, оплата труда с коэффициентом качества, управление документами, центр комплаенса и обязательные государственные интеграции.</p>
+
+      <h4 id="modul-rollen">3.3.1 Роли и права <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Восемь основных ролей: генеральный директор, администрация, руководство хозяйства, бухгалтерия, бригада в поле, сборщик, производитель и B2B-клиент, с матрицей прав по ресурсам и действиям.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Определяет, кто что может видеть и изменять. Новую роль можно добавить, ничего не меняя в модулях.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/buero/rollen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Управление пользователями, назначение ролей, детальные правила доступа по ресурсам.</span></div>
+      </div>
+
+      <h4 id="modul-finanzen">3.3.2 Маржинальный доход и финансы <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Места возникновения затрат по рядным блокам, объекты затрат по сортам и клиентам. Маржинальный доход на килограмм, по рядному блоку, сорту и дню уборки — проводки неизменяемы.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Маржинальный доход по рядному блоку, сорту и дню уборки. Проводки неизменяемы (только добавление).</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/buero/finanzen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, Производитель / соседнее хозяйство</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Виды затрат по дням уборки, сверка платежей B2B, прогноз маржинального дохода по сортам.</span></div>
+      </div>
+
+      <h4 id="modul-personal">3.3.3 Реестр сборщиков и бригады <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Реестр сборщиков с пропуском сборщика, распределением по бригадам, коэффициентами выработки и качества по каждому человеку за сезон — основа для премий, дообучения и отбора на следующий год.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Реестр сборщиков, бригада и пропуск сборщика, профиль выработки и качества по каждому человеку за сезон.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/buero/personal</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Учёт в ЕСУТД по каждому договору, планирование бригад, история выработки как основа расчёта оплаты.</span></div>
+      </div>
+
+      <h4 id="modul-lohn">3.3.4 Оплата с коэффициентом качества <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Комбинированная модель из базовой оплаты, объёмной части и коэффициента качества. Чистая сдельная оплата давит на объём, мнёт ягоду и для малины разрушает стоимость.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Базовая оплата плюс объём плюс коэффициент качества. Коэффициент качества — не опция, а условие.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/buero/lohn</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, Сборщик</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Минимальная оплата как жёсткая нижняя граница, ведение ставок с предпросмотром коридора, расчётный листок в PDF на каждого сборщика, авансовый счёт.</span></div>
+      </div>
+
+      <h4 id="modul-dokumente">3.3.5 Управление документами <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Защищённое хранилище протоколов обработок, подтверждений ЕСУТД, договоров поставки и рамочных договоров, досье на субсидии и сертификатов — со связью с рядным блоком и партией.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Категоризированное защищённое хранилище документов со связью с рядным блоком и партией.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/buero/dokumente</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, Производитель / соседнее хозяйство, B2B-клиент</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Версии по каждому документу, сроки действия с напоминанием.</span></div>
+      </div>
+
+      <h4 id="modul-compliance">3.3.6 Центр комплаенса <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Цели обработки, согласия, инциденты защиты данных и передачи третьим лицам из пяти детализированных таблиц — чтение и запись только для офисных ролей.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Детализированная схема защиты данных: цели обработки, согласия, инциденты и передачи в одном месте.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/buero/compliance</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Правовые ссылки из налогового кодекса, закона об ИИ и цифрового кодекса, сроки хранения по видам данных, проверка места хранения.</span></div>
+      </div>
+
+      <h4 id="modul-integrationen">3.3.7 Государственные интеграции <span class="pille pille-offen">в разработке</span></h4>
+      <p>Коннекторы к ЭСФ, виртуальному складу, ЕСУТД и порталам субсидий gosagro.kz и qoldau.kz планируются. Бухгалтерия остаётся в решении, устоявшемся в стране.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Получит по одному коннектору на каждую целевую систему, с ответным статусом и повтором. Бухгалтерия остаётся вне области.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/buero/integrationen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Коннекторы по каждой системе, тестовый доступ, обработка ошибок и повторов, обзор ожидающих записей.</span></div>
+      </div>
+
+      <h4 id="modul-foerdermittel">3.3.8 Досье на субсидию <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Шаблоны заявок, перечни подтверждающих документов и монитор сроков для казахстанских порталов субсидий — готовность к заявке как побочный продукт текущего учёта.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Монитор сроков и подтверждающие документы по каждому досье подключены. Шаблоны заявок и чек-листы подтверждений по каждой программе остаются открытыми.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/buero/foerdermittel</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Шаблоны заявок и чек-листы подтверждений по каждой программе. Сначала открыт вопрос, какие поля и документы требуют gosagro.kz и qoldau.kz по каждой программе.</span></div>
+      </div>
+
+      <h4 id="modul-stammdaten">3.3.9 Справочные данные и налоговые номера <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Организационно-правовая форма и ИИН или БИН для собственного хозяйства, хозяйств-поставщиков и покупателей - реквизиты, которые обязаны стоять на каждом документе.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Крестьянское хозяйство имеет ИИН, юридическое лицо - БИН. Контрольная цифра отклоняет перестановку цифр до того, как она попадёт в счёт.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/buero/stammdaten</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Собрать номера хозяйств-поставщиков и покупателей.</span></div>
+      </div>
+
+      <h3 id="bereich-markt">3.4 Рынок</h3>
+      <p>Каталог сортов и квот, B2B-портал с предзаказом, ИИ-чат на проверенной базе данных, платформа-агрегатор для соседних хозяйств и многоязычное обучение.</p>
+
+      <h4 id="modul-sortenkatalog">3.4.1 Каталог сортов и квот <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Каталог из сорта, окна уборки (летние или ремонтантные), веса лотка, квоты и прайс-листа — основа для предзаказа и B2B-портала.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Сорт, окно уборки, вес лотка, квота и цена в одном месте.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/markt/sortenkatalog</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, B2B-клиент</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Бронирование квот с логикой резервирования, версии прайс-листов, привязка к клиентам.</span></div>
+      </div>
+
+      <h4 id="modul-b2b_portal">3.4.2 B2B-портал <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Портал постоянных клиентов с квотами, предзаказом с упреждением, прайс-листом по группам клиентов, статусом поставки, историей счетов и подачей рекламаций.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Подключены статус поставки с квитанцией приёма-передачи, прайс-лист и предзаказы с ручным подтверждением офисом.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/markt/b2b-portal</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, Производитель / соседнее хозяйство, B2B-клиент</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства, B2B-клиент</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Автоматическое списание квоты, ступенчатые цены по группам клиентов и история счетов. Как именно это должно работать, пока не решено.</span></div>
+      </div>
+
+      <h4 id="modul-reklamationen">3.4.3 Управление рекламациями <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Рекламация B2B-клиента по партии — причина, срок и история, со сменой статуса вплоть до кредит-ноты. Клиент подаёт и видит только свою рекламацию, офис обрабатывает и закрывает её.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Список, детали и история по каждой рекламации, привязанные к партии — оттуда прослеживаются ряд, сборщик и кривая охлаждения.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/markt/reklamationen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, B2B-клиент</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, B2B-клиент</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Экран администрирования для привязки логина клиента к записи B2B-клиента, автоматическая доля рекламаций в панели показателей, уведомление при приближении срока.</span></div>
+      </div>
+
+      <h4 id="modul-preislisten">3.4.4 Прайс-листы <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Версионированные прайс-листы со ступенчатыми ценами по группам клиентов и сроком действия.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Ценовые ступени по клиентам и периодам, с версиями и датой действия.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/markt/preislisten</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Открытых вопросов нет: версии через дату действия, ступени через минимальное количество и привязка к группе клиентов подключены.</span></div>
+      </div>
+
+      <h4 id="modul-aggregator">3.4.5 Агрегатор / соседние хозяйства <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Подключение соседних хозяйств: закупленный объём становится позицией счёта, каждая закупочная партия ведётся отдельно и остаётся прослеживаемой до поставившего хозяйства.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Подключение соседнего хозяйства, учёт закупа отдельной партией, раздельное ведение происхождения, расчёты.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/markt/aggregator</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, Производитель / соседнее хозяйство</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Своя наценка по каждому соседнему хозяйству вместо единой для всех, и сама выплата.</span></div>
+      </div>
+
+      <h4 id="modul-schulungen">3.4.6 Обучающие видео <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Многоязычное наглядное вводное обучение сезонных работников на телефоне — видео по каждому ключевому процессу, с картинками вместо текста.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>Иллюстрированное вводное обучение из шести шагов, многоязычное, с собственным прогрессом у каждого, плюс обязательные обучения.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/markt/schulungen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, Бригада / поле, Сборщик, Производитель / соседнее хозяйство</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства, Бухгалтерия, Бригада / поле, Сборщик</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Видео по каждому ключевому процессу: снять и озвучить на казахском и русском.</span></div>
+      </div>
+
+      <h4 id="modul-kanaele">3.4.7 Каналы связи <span class="pille pille-gut">готов к работе</span></h4>
+      <p>Локально распространённые каналы связи и способы оплаты, отображаются публично в подвале сайта. Только отображение, без подключения к реальному мессенджеру или платёжному сервису.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Коротко</span><span>WhatsApp, Kaspi QR и другие каналы как контактные данные - ведёт офис, до этого скрыты как черновик.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Адрес</span><span><code>/ru/dashboard/markt/kanaele</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Видят</span><span>Администрирование, Генеральный директор, Руководство хозяйства</span></div>
+        <div class="merkmal"><span class="merkmal-name">Могут изменять</span><span>Администрирование, Генеральный директор, Руководство хозяйства</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ещё предстоит</span><span>Внести реальные данные по каждому каналу.</span></div>
+      </div>
+    </section>
+
+    <section id="anleitungen">
+      <h2><span class="nr">04</span> Инструкции</h2>
+      <p>Пять процедур, охватывающих основу работы хозяйства. Пути указаны по боковой панели.</p>
+
+      <h3 id="anleitung-wartezeit">4.1 Установка и снятие блокировки по сроку ожидания</h3>
+      <p>После обработки средствами защиты растений рядный блок нельзя убирать до истечения срока ожидания. Портал устанавливает эту блокировку сам.</p>
+      <ol>
+          <li>Войдите как руководство хозяйства и откройте Поле → Рядные блоки и статусы.</li>
+          <li>Внизу «Зарегистрировать обработку»: выберите рядный блок и препарат. Срок ожидания берётся из каталога препаратов, вручную он не вводится.</li>
+          <li>Блок сразу переходит в состояние блокировки. В столбце «Блокировка» показаны препарат, дата обработки, срок ожидания, дата снятия и оставшиеся дни.</li>
+          <li>Сменить статус теперь невозможно. Правило находится в базе данных и действует даже в обход интерфейса.</li>
+          <li>По истечении срока появляется кнопка «Снять блокировку». Она снимает блокировку и одновременно закрывает обработку.</li>
+          <li>Щелчок по плиткам статусов фильтрует таблицу; отфильтрованное состояние можно передать ссылкой.</li>
+      </ol>
+
+      <h3 id="anleitung-pflueckaufgabe">4.2 Задание на сбор с фотоподтверждением</h3>
+      <ol>
+          <li>Откройте Поле → Задания на сбор с фотоподтверждением.</li>
+          <li>Внизу создайте новое задание. Заблокированные блоки не предлагаются для выбора и дополнительно отклоняются базой данных.</li>
+          <li>Слева выберите задание по бригаде и рядному блоку. Ход работы — фактическое количество против планового.</li>
+          <li>От имени бригады примите задание, начните сбор и справа загрузите фотоподтверждение. На телефоне сразу открывается камера. Файл попадает в закрытое хранилище и показывается только по недолговечным подписанным ссылкам.</li>
+          <li>«Сообщить количество» переводит задание в проверку подтверждения.</li>
+          <li>Руководство хозяйства или администрирование проверяют подтверждение, вносят коэффициент качества и закрывают задание.</li>
+      </ol>
+
+      <h3 id="anleitung-nachweiskette">4.3 Показать цепочку подтверждений для поставки</h3>
+      <p>Это та процедура, которая важна для заказчика: от лотка обратно к человеку, который его наполнил.</p>
+      <ol>
+          <li>Откройте Поле → Задания на сбор с фотоподтверждением и выберите задание слева.</li>
+          <li>Справа в разделе «Цепочка подтверждений» показана партия: кривая охлаждения с границей в 60 минут, количество и отбраковка, лотки с указанием наполнившего их человека и подтверждение по остаткам.</li>
+          <li>«Зарегистрировать лоток» связывает лоток с человеком. Только после этого цепочка доходит от заказчика до сборщика.</li>
+          <li>«Сообщить рабочее время» даёт знаменатель для выработки в килограммах в час.</li>
+          <li>«Зарегистрировать замер охлаждения»: минуты и оценку база данных вычисляет по времени сбора. Свыше 60 минут интерфейс сообщает о нарушении, и продукцию следует перевести в более низкий сорт.</li>
+          <li>После этого показатели на обзоре отражают изменившееся фактическое значение — вычисленное, а не введённое.</li>
+      </ol>
+
+      <h3 id="anleitung-dokument">4.4 Занести документ</h3>
+      <ol>
+          <li>Под офисной ролью откройте Офис → Управление документами.</li>
+          <li>В разделе «Занести документ» укажите название, категорию, привязку и дату. Сам файл — PDF или изображение — необязателен.</li>
+          <li>Сохранённые файлы открываются из столбца «Файл» по подписанной ссылке. Прямого публичного доступа нет.</li>
+      </ol>
+
+      <h3 id="anleitung-zugang">4.5 Настройка доступа: приглашение и второй фактор</h3>
+      <p>Новые учётные записи заказчиков создаются по приглашению. Второй фактор каждый настраивает себе сам.</p>
+      <ol>
+          <li>Под ролью администрирования или руководства хозяйства откройте Офис → Роли и права.</li>
+          <li>В разделе «Приглашения» укажите адрес электронной почты и роль. Раздел находится здесь, потому что это то же самое, что и матрица прав выше, — только её записывающая сторона.</li>
+          <li>Приглашённый открывает ссылку из приглашения и задаёт себе пароль. Эта страница доступна без входа: у того, кто на неё попал, учётной записи ещё нет.</li>
+          <li>Неиспользованное приглашение можно отозвать, пока оно не активировано.</li>
+          <li>Для второго фактора откройте «Безопасность» внизу боковой панели, на телефоне — тот же пункт в листе учётной записи.</li>
+          <li>«Начать» показывает QR-код и ключ — и то и другое выдаётся лишь один раз. Отсканируйте в приложении-аутентификаторе, введите шестизначный код и подтвердите. Только после этого фактор считается действующим.</li>
+      </ol>
+    </section>
+
+    <section id="referenz">
+      <h2><span class="nr">05</span> Справочник</h2>
+
+      <h3 id="referenz-seiten">5.1 Страницы</h3>
+      <p>Все адреса портала. {locale} обозначает один из четырёх языковых кодов de, en, kk или ru; без кода открывается немецкая версия.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Адрес</th><th>Содержание</th><th>Доступ</th></tr></thead>
+          <tbody>
+            <tr><td><code>/</code></td><td>Перенаправляет на немецкую версию.</td><td>Все</td></tr>
+            <tr><td><code>/{locale}</code></td><td>Публичная начальная страница: о чём речь, почему малина требовательна, сцена 60 минут, эталон качества, цепочка подтверждений со ссылкой на публичную справку о происхождении, зоны, показатели.</td><td>Все</td></tr>
+            <tr><td><code>/{locale}/login</code></td><td>Вход. Без подключения к базе данных здесь выводится пояснение и прямой путь в портал.</td><td>Все</td></tr>
+            <tr><td><code>/{locale}/login/mfa</code></td><td>Запрос второго фактора. Сессии с одним паролем недостаточно, если для учётной записи подтверждён второй фактор.</td><td>После входа</td></tr>
+            <tr><td><code>/{locale}/einladung</code></td><td>Активация приглашённого доступа и создание собственного пароля. Доступно без входа — у того, кто сюда попал, учётной записи ещё нет.</td><td>Все</td></tr>
+            <tr><td><code>/{locale}/dashboard</code></td><td>Обзор с четырьмя зонами и их показателями. Для генерального директора и администрирования дополнительно блок «Самое важное сегодня».</td><td>После входа</td></tr>
+            <tr><td><code>/{locale}/dashboard/{зона}</code></td><td>Начальная страница зоны (feld, hof, buero, markt) с её модулями в виде плиток.</td><td>По роли</td></tr>
+            <tr><td><code>/{locale}/dashboard/{зона}/{модуль}</code></td><td>Отдельный модуль. Адреса всех 26 модулей приведены в главе «Зоны и модули».</td><td>По роли</td></tr>
+            <tr><td><code>/{locale}/dashboard/compliance</code></td><td>Последний сохранённый отчёт о соответствии полностью: выводы с фильтром по областям, план мер, примечания, проверка печати и вывод в PDF.</td><td>Генеральный директор, администрирование</td></tr>
+            <tr><td><code>/{locale}/dashboard/sicherheit</code></td><td>Настроить, подтвердить или удалить собственный второй фактор. Каждая роль управляет здесь только собой.</td><td>После входа</td></tr>
+            <tr><td><code>/{locale}/dashboard/handbuch</code></td><td>Это руководство на языке портала. С полнотекстовым поиском и полным экспортом в PDF.</td><td>После входа</td></tr>
+            <tr><td><code>/{locale}/herkunft</code></td><td>Вход в публичную справку о происхождении с полем для ввода кода вручную — для тех, кто не может отсканировать QR-код.</td><td>Все</td></tr>
+            <tr><td><code>/{locale}/herkunft/{код}</code></td><td>Справка по одной конкретной партии. Она не раскрывает ни номер партии, ни сведения о сборщике, количестве или цене; именно поэтому она допустима без входа.</td><td>Все</td></tr>
+            <tr><td><code>/{locale}/herkunft/aushang</code></td><td>Объявление для печати. QR-код на нём ведёт на страницу ввода кода, а не на отдельную партию: объявление висит у холодильной камеры неделями, а лоток стоит считанные часы.</td><td>Все</td></tr>
+            <tr><td><code>/{locale}/impressum</code></td><td>Выходные данные WAMOCON GmbH.</td><td>Все</td></tr>
+            <tr><td><code>/{locale}/datenschutz</code></td><td>Сведения о защите данных, включая указания о месте их хранения.</td><td>Все</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Страницы в разделе /dashboard требуют входа. Без подключения к базе данных эта проверка не выполняется, поскольку сессии тогда нет, — так демонстрационный режим остаётся запускаемым без настройки.</p>
+
+      <h3 id="referenz-rechte">5.2 Права по ролям</h3>
+      <p>Какая роль какой модуль может видеть и изменять. Таблица построена из той же матрицы прав, по которой портал работает в эксплуатации, — она не может устареть без того, чтобы вместе с ней изменился и портал.</p>
+      <p class="legende">
+        <span class="recht recht-schreiben">●</span> Права по ролям &nbsp;
+        <span class="recht recht-lesen">○</span> Видят &nbsp;
+        <span class="recht recht-keins">·</span> —
+      </p>
+      <div class="tabelle tabelle-matrix">
+        <table>
+          <thead><tr><th>Модуль</th><th>Администрирование</th><th>Генеральный директор</th><th>Руководство хозяйства</th><th>Бухгалтерия</th><th>Бригада / поле</th><th>Сборщик</th><th>Производитель / соседнее хозяйство</th><th>B2B-клиент</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Участки</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Рядные блоки</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Задания на сбор</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Защита растений</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>План ротации</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Погода</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Холодовая цепь</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Рейсы вывоза</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>QR-ящики</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Накладная (ЭСФ)</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Роли и права</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Финансы</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Реестр сборщиков</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Оплата по качеству</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Документы</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-lesen">○</span></td></tr>
+            <tr><td><strong>Комплаенс</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Интеграции</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Субсидии</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Каталог сортов</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td></tr>
+            <tr><td><strong>B2B-портал</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td></tr>
+            <tr><td><strong>Рекламации</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td></tr>
+            <tr><td><strong>Прайс-листы</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Агрегатор</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Обучение</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Справочные данные</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Каналы связи</strong></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-schreiben" title="Права по ролям">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kasten kasten-wichtig">
+        <div class="kasten-titel">Две проверки, а не одна</div>
+        <p>Интерфейс показывает только то, что роли разрешено, — это удобство, а не защита. Обязательна проверка в базе данных: там роль профиля решает каждое чтение и каждую запись, в том числе при прямом обращении. Дополнительно приложение проверяет права ещё раз перед каждой записью.</p>
+      </div>
+
+      <h3 id="referenz-schnittstellen">5.3 Интерфейсы</h3>
+      <p>Пять конечных точек для задач, у которых нет собственной страницы. Каждая сама проверяет сессию и права.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Адрес</th><th>Назначение</th><th>Доступ</th></tr></thead>
+          <tbody>
+            <tr><td><code>/api/ki-assistent</code></td><td>ИИ-помощник в ходе разговора. Ответ появляется по мере создания, а не целиком в конце.</td><td>Право на ИИ-помощника, данное согласие</td></tr>
+            <tr><td><code>/api/ki-pruefung</code></td><td>Проверка соответствия по четырём областям: аудит, налоги, право и риски. Ход выполнения передаётся непрерывно, чтобы интерфейс мог его показывать. Без сохранённых правовых источников проверка отклоняется — проверка без доказательств бесполезна. На человека одновременно выполняется только одна проверка.</td><td>Роль с правом на проверку</td></tr>
+            <tr><td><code>/api/ki-pruefung/auto</code></td><td>Та же проверка, запускаемая при входе. Сначала недорогая проверка того, изменилось ли что-либо вообще; полный прогон следует лишь при необходимости.</td><td>Генеральный директор, администрирование</td></tr>
+            <tr><td><code>/api/ki-sprachausgabe</code></td><td>Озвучивает уже сохранённый ответ. Только по идентификатору существующего сообщения и никогда по произвольно переданному тексту — иначе конечная точка стала бы генератором речи для любого содержания.</td><td>Право на ИИ-помощника</td></tr>
+            <tr><td><code>/api/sync</code></td><td>Принимает сообщения из очереди, созданные в поле без связи. Они проходят те же проверки, что и соответствующие формы.</td><td>После входа, второй фактор актуален</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="technik">
+      <h2><span class="nr">06</span> Технологии</h2>
+
+      <h3 id="technik-stack">6.1 Используемые технологии</h3>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Слой</th><th>Технология</th><th>Назначение</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Приложение</strong></td><td><code>Next.js 16</code></td><td>Страницы собираются на сервере; язык входит в адрес.</td></tr>
+            <tr><td><strong>Язык программирования</strong></td><td><code>TypeScript</code></td><td>Типобезопасная модель предметных понятий и матрицы прав.</td></tr>
+            <tr><td><strong>Оформление</strong></td><td><code>Tailwind CSS v4</code></td><td>Цвета и размеры заданы в одном месте, светлая и тёмная схема.</td></tr>
+            <tr><td><strong>Языки</strong></td><td><code>next-intl</code></td><td>Четыре языка; при отсутствии перевода выводится немецкий текст.</td></tr>
+            <tr><td><strong>База данных</strong></td><td><code>PostgreSQL в Supabase</code></td><td>Данные вместе с проверкой прав в самой базе, а не только в приложении.</td></tr>
+            <tr><td><strong>Файлы</strong></td><td><code>Закрытое хранилище</code></td><td>Фотоподтверждения и документы, доступные лишь по недолговечным подписанным ссылкам.</td></tr>
+            <tr><td><strong>Без связи</strong></td><td><code>Очередь на устройстве</code></td><td>Сообщения из поля сохраняются локально и передаются позже.</td></tr>
+            <tr><td><strong>ИИ</strong></td><td><code>Взаимозаменяемые поставщики</code></td><td>Помощник, проверка соответствия и озвучивание на защищённой базе данных.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="technik-meilensteine">6.2 Контрольные точки</h3>
+      <p>Внутренняя подготовка. Обе даты предшествуют неделе выездного анализа с 24 сентября по 1 октября 2026 года.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Контрольная точка</th><th>Срок</th><th>Содержание</th></tr></thead>
+          <tbody>
+            <tr><td><strong>A — Прототип</strong> <span class="pille pille-gut">выполнено</span></td><td>до 6 сентября 2026</td><td>Основа цветов и размеров, публичная начальная страница с переключателем языка, каркас портала с четырьмя зонами, первые процедуры: обзор рядных блоков и задание на сбор с фотоподтверждением.</td></tr>
+            <tr><td><strong>B — Каркас</strong> <span class="pille pille-jetzt">текущая версия</span></td><td>до 19 сентября 2026</td><td>Основные функции с настоящей базой данных: вход и права ролей, управление участками, статусы рядных блоков с блокировкой по сроку ожидания, задания на сбор с фотоподтверждением в закрытом хранилище, управление документами, показатели из исходных значений.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kasten kasten-warnung">
+        <div class="kasten-titel">Соотношение с графиком заказчика</div>
+        <p>Этот внутренний график плотнее срока, названного заказчику для первой фазы (16 октября — 20 декабря 2026 года). Прототип является внутренней демонстрационной системой, а не согласованным по договору объёмом работ.</p>
+      </div>
+    </section>
+
+    <section id="recht">
+      <h2><span class="nr">07</span> Право и хранение данных</h2>
+      <p>В 2026 году Казахстан ввёл новые обязанности одну за другой. Меры защиты, заложенные в портале, их смыслу уже отвечают; однако тексты уведомлений и согласий необходимо составить заново по казахстанскому праву, а не просто перевести.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Правовое основание 2026</th><th>Значение для Damicon</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Налоговый кодекс 2026</strong></td><td>Влияет на маржинальный доход и отнесение затрат.</td></tr>
+            <tr><td><strong>Электронная сопроводительная накладная (ЭСФ)</strong></td><td>Проходит через исходящую очередь, а не через собственную разработку бухгалтерии.</td></tr>
+            <tr><td><strong>Закон об ИИ № 230-VIII</strong></td><td>Требует уведомления о прозрачности и согласия для ИИ-чата.</td></tr>
+            <tr><td><strong>Цифровой кодекс № 255-VIII</strong></td><td>Хранение данных: размещение отдельных данных за пределами Казахстана ограничено. Место хранения данных QR, очереди и ИИ необходимо проверить юридически до перевода в промышленную эксплуатацию.</td></tr>
+            <tr><td><strong>Ужесточённое законодательство о персональных данных (с 24 августа 2026)</strong></td><td>Касается прежде всего создания учётных записей заказчиков и соседних хозяйств.</td></tr>
+            <tr><td><strong>ЕСУТД — учёт трудовых договоров</strong></td><td>Каждый сезонный договор регистрируется в государственной системе через исходящую очередь.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="kasten kasten-info">
+        <div class="kasten-titel">Для прототипа</div>
+        <p>Прототип не обрабатывает персональные данные и не использует файлы cookie для анализа поведения. Цветовая схема и демонстрационная роль хранятся только в браузере.</p>
+      </div>
+    </section>
+
+    <section id="glossar">
+      <h2><span class="nr">08</span> Глоссарий</h2>
+      <p>Понятия, встречающиеся в портале и в этом руководстве.</p>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Понятие</th><th>Пояснение</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Рядный блок</strong></td><td>Наименьшая единица структуры участков: отграниченный отрезок шпалерного ряда. К нему привязано всё — статус, блокировка, урожай, маржинальный доход.</td></tr>
+            <tr><td><strong>Блокировка по сроку ожидания</strong></td><td>Состояние рядного блока после обработки средствами защиты растений: уборка запрещена до истечения срока ожидания препарата.</td></tr>
+            <tr><td><strong>Партия</strong></td><td>Урожай одного рядного блока за один день. Несёт кривую охлаждения, лотки и подтверждение по остаткам.</td></tr>
+            <tr><td><strong>Лоток</strong></td><td>Транспортная тара для собранной малины, привязываемая к партии и человеку по QR-коду.</td></tr>
+            <tr><td><strong>Часы холодовой цепи</strong></td><td>Измерение времени от сбора до предварительного охлаждения. Свыше 60 минут продукция на следующий день годится лишь для промышленной переработки.</td></tr>
+            <tr><td><strong>Оплата с коэффициентом качества</strong></td><td>Базовая оплата плюс составляющая за количество плюс коэффициент качества. Чистая сдельная оплата в малине разрушает стоимость, поскольку ведёт к быстрому и грубому сбору.</td></tr>
+            <tr><td><strong>Цепочка подтверждений</strong></td><td>Непрерывная цепочка от поставленного лотка обратно к рядному блоку, кривой охлаждения, лотку и сборщику.</td></tr>
+            <tr><td><strong>Права ролей</strong></td><td>Соответствие того, какая роль может видеть и изменять какой модуль. Действует в интерфейсе и, обязательным образом, в базе данных.</td></tr>
+            <tr><td><strong>Второй фактор</strong></td><td>Дополнительный шестизначный код при входе, создаваемый приложением-аутентификатором.</td></tr>
+            <tr><td><strong>Демонстрационный режим</strong></td><td>Работа без подключения к базе данных. Портал показывает примерные данные, входа нет и ничего не сохраняется.</td></tr>
+            <tr><td><strong>ЭСФ / ЕСУТД</strong></td><td>Казахстанские обязательные системы для электронных счетов-фактур и для учёта трудовых договоров соответственно.</td></tr>
+            <tr><td><strong>WAMOCON</strong></td><td>WAMOCON GmbH — заказчик и разработчик Damicon.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer class="fuss">
+  <div>© 2026 WAMOCON GmbH — Все права защищены</div>
+  <div>Руководство по продукту Damicon 0.1.0 · Конфиденциально · сентябрь 2026</div>
+</footer>
+
+<script>
+(function () {
+  var TEXT = {"keine":"0 совпадений","abZwei":"от 2 символов","treffer":"совпадений","ohneFundstelle":"По запросу {begriff} ничего не найдено. Независимо от этого экспорт в PDF всегда содержит полное руководство."};
+  var SPRACHEN = ['de', 'en', 'kk', 'ru'];
+
+  var haupt = document.querySelector('main');
+  var deckblatt = document.querySelector('.deckblatt');
+  var suchfeld = document.getElementById('suchfeld');
+  var zaehlerEl = document.getElementById('such-zaehler');
+  var hinweisEl = document.getElementById('such-hinweis');
+  var loeschenEl = document.getElementById('such-loeschen');
+  var abschnitte = Array.prototype.slice.call(haupt.querySelectorAll('section[id]'));
+  var tocLinks = Array.prototype.slice.call(document.querySelectorAll('.toc-link'));
+
+  var treffer = [];
+  var aktiver = -1;
+
+  // ── Wo laeuft das Handbuch? ─────────────────────────────────────────
+  // Im Portal unter /<sprache>/dashboard/handbuch, sonst als Datei neben
+  // ihren Geschwistern. Der Sprachumschalter und der Weg zurueck ins Portal
+  // muessen in beiden Faellen stimmen.
+  var imPortal = /\/(de|en|kk|ru)\/dashboard\/handbuch\/?$/.test(location.pathname);
+
+  function zielFuerSprache(code) {
+    if (imPortal) return location.pathname.replace(/\/(de|en|kk|ru)\//, '/' + code + '/');
+    return code === 'de' ? 'index.html' : 'index-' + code + '.html';
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.sprache'), function (knopf) {
+    knopf.addEventListener('click', function () {
+      var code = knopf.getAttribute('data-sprache');
+      if (SPRACHEN.indexOf(code) !== -1) location.href = zielFuerSprache(code);
+    });
+  });
+
+  // Der Weg zurueck ins Portal ergibt nur im Portal einen Sinn - als lose
+  // Datei geoeffnet zeigt der Knopf ins Leere und bleibt deshalb verborgen.
+  var portalKnopf = document.getElementById('portal-knopf');
+  if (imPortal) {
+    portalKnopf.setAttribute('href', location.pathname.replace(/\/handbuch\/?$/, ''));
+    portalKnopf.hidden = false;
+  }
+
+  // ── Farbschema, geteilt mit dem Portal ──────────────────────────────
+  var themaKnopf = document.getElementById('thema-knopf');
+  var themaZeichen = document.getElementById('thema-zeichen');
+
+  function themaZeigen() {
+    themaZeichen.textContent = document.documentElement.classList.contains('dark') ? '☀' : '☾';
+  }
+  themaZeigen();
+
+  themaKnopf.addEventListener('click', function () {
+    var dunkelJetzt = !document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', dunkelJetzt);
+    try { localStorage.setItem('damicon-theme', dunkelJetzt ? 'dark' : 'light'); } catch (e) {}
+    themaZeigen();
+  });
+
+  // ── Normalisierung fuer die Suche ───────────────────────────────────
+  // Umlaute zaehlen wie ihr Grundbuchstabe, damit "Kuhlkette" die
+  // "Kuehlkette" findet. Entscheidend ist, dass die Abbildung die LAENGE
+  // erhaelt: die Fundstelle wird ueber ihren Index im normalisierten Text in
+  // den Originaltext zurueckgerechnet. Deshalb wird zeichenweise abgebildet
+  // und ein toLowerCase(), das aus einem Zeichen zwei macht, verworfen.
+  var ERSATZ = {
+    '\u00e4': 'a', '\u00c4': 'a', '\u00f6': 'o', '\u00d6': 'o',
+    '\u00fc': 'u', '\u00dc': 'u', '\u00df': 's',
+    '\u0131': 'i', '\u0130': 'i', '\u00e7': 'c', '\u00c7': 'c',
+    '\u0451': '\u0435', '\u0401': '\u0435'
+  };
+
+  function normal(text) {
+    var aus = '';
+    for (var i = 0; i < text.length; i++) {
+      var zeichen = text[i];
+      var ersatz = ERSATZ[zeichen];
+      if (ersatz !== undefined) { aus += ersatz; continue; }
+      var klein = zeichen.toLowerCase();
+      aus += klein.length === 1 ? klein : zeichen;
+    }
+    return aus;
+  }
+
+  // ── Markierungen ────────────────────────────────────────────────────
+  function markierungenSetzen(begriff) {
+    var gesucht = normal(begriff);
+    var laeufer = document.createTreeWalker(haupt, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (knoten) {
+        if (!knoten.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        var eltern = knoten.parentElement;
+        if (!eltern || eltern.closest('.such-hinweis')) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+
+    // Erst einsammeln, dann ersetzen - der Laeufer darf nicht ueber einen
+    // Baum laufen, den er gerade selbst umbaut.
+    var knoten = [];
+    while (laeufer.nextNode()) knoten.push(laeufer.currentNode);
+
+    for (var i = 0; i < knoten.length; i++) {
+      var textknoten = knoten[i];
+      var text = textknoten.nodeValue;
+      var flach = normal(text);
+      var pos = flach.indexOf(gesucht);
+      if (pos === -1) continue;
+
+      var teile = document.createDocumentFragment();
+      var gelesen = 0;
+      while (pos !== -1) {
+        if (pos > gelesen) teile.appendChild(document.createTextNode(text.slice(gelesen, pos)));
+        var marke = document.createElement('mark');
+        marke.className = 'treffer';
+        marke.textContent = text.slice(pos, pos + gesucht.length);
+        teile.appendChild(marke);
+        gelesen = pos + gesucht.length;
+        pos = flach.indexOf(gesucht, gelesen);
+      }
+      if (gelesen < text.length) teile.appendChild(document.createTextNode(text.slice(gelesen)));
+      textknoten.parentNode.replaceChild(teile, textknoten);
+    }
+  }
+
+  function markierungenEntfernen() {
+    var marken = Array.prototype.slice.call(haupt.querySelectorAll('mark.treffer'));
+    for (var i = 0; i < marken.length; i++) {
+      var eltern = marken[i].parentNode;
+      eltern.replaceChild(document.createTextNode(marken[i].textContent), marken[i]);
+      eltern.normalize();
+    }
+  }
+
+  // ── Filtern ─────────────────────────────────────────────────────────
+  // Ein Unterabschnitt reicht von seiner Ueberschrift bis zur naechsten
+  // gleicher oder hoeherer Ebene.
+  function bereichHatTreffer(ueberschrift) {
+    if (ueberschrift.querySelector('mark.treffer')) return true;
+    var grenze = ueberschrift.tagName === 'H3' ? ['H3'] : ['H3', 'H4'];
+    var element = ueberschrift.nextElementSibling;
+    while (element && grenze.indexOf(element.tagName) === -1) {
+      if (element.querySelector && element.querySelector('mark.treffer')) return true;
+      element = element.nextElementSibling;
+    }
+    return false;
+  }
+
+  function filtern(aktiv) {
+    for (var i = 0; i < abschnitte.length; i++) {
+      abschnitte[i].classList.toggle('ausgeblendet', aktiv && !abschnitte[i].querySelector('mark.treffer'));
+    }
+    // Das Deckblatt traegt keinen durchsuchbaren Inhalt und stuende bei einer
+    // Suche nur als ganzseitiger Block vor dem ersten Ergebnis.
+    if (deckblatt) deckblatt.classList.toggle('ausgeblendet', aktiv);
+
+    for (var j = 0; j < tocLinks.length; j++) {
+      var link = tocLinks[j];
+      if (!aktiv) { link.classList.remove('ausgeblendet'); continue; }
+      var ziel = document.getElementById(link.getAttribute('href').slice(1));
+      var hat = false;
+      if (ziel) {
+        hat = ziel.tagName === 'SECTION'
+          ? !!ziel.querySelector('mark.treffer')
+          : bereichHatTreffer(ziel);
+      }
+      link.classList.toggle('ausgeblendet', !hat);
+    }
+  }
+
+  // ── Von Treffer zu Treffer ──────────────────────────────────────────
+  function zaehlerSchreiben(begriff) {
+    if (!begriff) { zaehlerEl.textContent = ''; zaehlerEl.classList.remove('leer'); return; }
+    if (!treffer.length) {
+      zaehlerEl.textContent = TEXT.keine;
+      zaehlerEl.classList.add('leer');
+      return;
+    }
+    zaehlerEl.classList.remove('leer');
+    zaehlerEl.textContent = aktiver >= 0
+      ? (aktiver + 1) + ' / ' + treffer.length
+      : treffer.length + ' ' + TEXT.treffer;
+  }
+
+  function zuTreffer(index) {
+    if (!treffer.length) return;
+    if (aktiver >= 0 && treffer[aktiver]) treffer[aktiver].classList.remove('treffer-aktiv');
+    aktiver = (index + treffer.length) % treffer.length;
+    treffer[aktiver].classList.add('treffer-aktiv');
+    treffer[aktiver].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    zaehlerSchreiben(suchfeld.value.trim());
+  }
+
+  // ── Suchen ──────────────────────────────────────────────────────────
+  function suchen(roh) {
+    var begriff = roh.trim();
+    markierungenEntfernen();
+    treffer = [];
+    aktiver = -1;
+    loeschenEl.hidden = begriff === '';
+
+    // Ein einzelner Buchstabe traefe fast jedes Wort - das filtert nichts und
+    // markiert nur das halbe Handbuch bunt.
+    if (begriff.length < 2) {
+      filtern(false);
+      hinweisEl.classList.remove('sichtbar');
+      zaehlerEl.classList.remove('leer');
+      zaehlerEl.textContent = begriff ? TEXT.abZwei : '';
+      return;
+    }
+
+    markierungenSetzen(begriff);
+    treffer = Array.prototype.slice.call(haupt.querySelectorAll('mark.treffer'));
+    filtern(true);
+    zaehlerSchreiben(begriff);
+
+    if (!treffer.length) {
+      // Den Suchbegriff als Text einsetzen, nicht als HTML - er kommt aus der
+      // Eingabe des Nutzers.
+      var teile = TEXT.ohneFundstelle.split('{begriff}');
+      hinweisEl.textContent = '';
+      hinweisEl.appendChild(document.createTextNode(teile[0]));
+      var stark = document.createElement('strong');
+      stark.textContent = '\u201e' + begriff + '\u201c';
+      hinweisEl.appendChild(stark);
+      if (teile[1]) hinweisEl.appendChild(document.createTextNode(teile[1]));
+      hinweisEl.classList.add('sichtbar');
+    } else {
+      hinweisEl.classList.remove('sichtbar');
+    }
+  }
+
+  function zuruecksetzen() {
+    suchfeld.value = '';
+    suchen('');
+  }
+
+  // ── PDF ─────────────────────────────────────────────────────────────
+  // "Nur ein vollstaendiger": vor dem Druck faellt der Suchfilter, sonst
+  // landete der gerade gefilterte Ausschnitt im PDF und saehe darin aus wie
+  // das ganze Handbuch. Der beforeprint-Haken deckt Strg+P und das Druckmenue
+  // des Browsers mit ab; die Regeln in @media print sind das dritte Netz,
+  // falls JavaScript gar nicht laeuft.
+  function fuerDruckOeffnen() {
+    if (suchfeld.value) zuruecksetzen();
+  }
+  window.addEventListener('beforeprint', fuerDruckOeffnen);
+  window.handbuchAlsPdf = function () {
+    fuerDruckOeffnen();
+    window.print();
+  };
+
+  // ── Bedienung ───────────────────────────────────────────────────────
+  var warteschlange;
+  suchfeld.addEventListener('input', function () {
+    clearTimeout(warteschlange);
+    var wert = suchfeld.value;
+    // Den Baum nicht bei jedem Anschlag umbauen.
+    warteschlange = setTimeout(function () { suchen(wert); }, 140);
+  });
+
+  suchfeld.addEventListener('keydown', function (ereignis) {
+    if (ereignis.key === 'Enter') {
+      ereignis.preventDefault();
+      // Die laufende Eingabe sofort auswerten, sonst springt die Eingabetaste
+      // auf den Treffern des vorherigen Anschlags.
+      clearTimeout(warteschlange);
+      if (!treffer.length) suchen(suchfeld.value);
+      zuTreffer(ereignis.shiftKey ? aktiver - 1 : aktiver + 1);
+    }
+    if (ereignis.key === 'Escape') { zuruecksetzen(); suchfeld.blur(); }
+  });
+
+  loeschenEl.addEventListener('click', function () {
+    zuruecksetzen();
+    suchfeld.focus();
+  });
+
+  document.addEventListener('keydown', function (ereignis) {
+    var imFeld = document.activeElement === suchfeld;
+    var kuerzel =
+      (ereignis.key === '/' && !imFeld && !ereignis.ctrlKey && !ereignis.metaKey) ||
+      ((ereignis.ctrlKey || ereignis.metaKey) && ereignis.key.toLowerCase() === 'k');
+    if (kuerzel) {
+      ereignis.preventDefault();
+      suchfeld.focus();
+      suchfeld.select();
+      return;
+    }
+    if (ereignis.key === 'Escape' && !imFeld && suchfeld.value) zuruecksetzen();
+  });
+
+  // ── Inhaltsverzeichnis mitlaufen lassen ─────────────────────────────
+  var beobachtbar = haupt.querySelectorAll('section[id], h3[id], h4[id]');
+  var beobachter = new IntersectionObserver(function (eintraege) {
+    for (var i = 0; i < eintraege.length; i++) {
+      if (!eintraege[i].isIntersecting) continue;
+      for (var j = 0; j < tocLinks.length; j++) tocLinks[j].classList.remove('aktiv');
+      var aktivLink = document.querySelector('.toc-link[href="#' + eintraege[i].target.id + '"]');
+      if (aktivLink) aktivLink.classList.add('aktiv');
+    }
+  }, { rootMargin: '-15% 0px -75% 0px' });
+  Array.prototype.forEach.call(beobachtbar, function (element) { beobachter.observe(element); });
+})();
+</script>
+</body>
+</html>

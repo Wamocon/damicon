@@ -19,6 +19,14 @@ const nextConfig: NextConfig = {
     // von 1 MB fuer Server Actions.
     serverActions: { bodySizeLimit: "8mb" },
   },
+  // Das Produkthandbuch liegt unter docs/ und damit ausserhalb von src/. Die
+  // Route /[locale]/dashboard/handbuch liest es zur Laufzeit; ohne diesen
+  // Eintrag findet die Ablaufverfolgung die Datei nicht und sie fehlt im
+  // Deployment. Die eckigen Klammern des Routenschluessels sind escapt, weil
+  // der Schluessel als Glob ausgewertet wird.
+  outputFileTracingIncludes: {
+    "/\\[locale\\]/dashboard/handbuch": ["./docs/manual/index*.html"],
+  },
 };
 
 export default withNextIntl(nextConfig);

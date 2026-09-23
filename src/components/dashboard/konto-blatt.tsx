@@ -7,6 +7,7 @@ import { Link } from "@/i18n/navigation";
 import { LocaleSwitcher } from "@/components/site/locale-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { PersonaSwitcher, usePersona } from "@/components/dashboard/persona";
+import { HandbuchLinkBlatt } from "@/components/dashboard/handbuch-link";
 import { abmelden } from "@/app/[locale]/login/actions";
 
 // Inhalt des Konto-Blatts in der unteren Leiste (untere-leiste.tsx).
@@ -93,30 +94,37 @@ export function KontoBlatt({ onNavigate }: { onNavigate?: () => void }) {
         <ThemeToggle />
       </Zeile>
 
-      {/* Im Demo-Modus gibt es keine Sitzung - Sicherheit und Abmelden haetten
-          dort nichts, worauf sie wirken koennten. */}
-      {!demoModus ? (
-        <div className="mt-2 space-y-2 border-t border-border px-4 pt-4">
-          <Link
-            href="/dashboard/sicherheit"
-            onClick={onNavigate}
-            className="flex h-12 w-full items-center gap-2.5 rounded-xl border border-border px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
-          >
-            <ShieldCheck className="h-4 w-4 shrink-0 text-muted-foreground" />
-            {t("security")}
-          </Link>
-          <form action={abmelden}>
-            <input type="hidden" name="locale" value={locale} />
-            <button
-              type="submit"
-              className="flex h-12 w-full items-center gap-2.5 rounded-xl border border-border px-4 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/5"
+      <div className="mt-2 space-y-2 border-t border-border px-4 pt-4">
+        {/* Auf dem Telefon gibt es die Seitenleiste nicht - ohne diesen
+            Eintrag waere das Handbuch am Geraet nicht erreichbar. Es haengt
+            an keiner Sitzung und steht deshalb auch im Demo-Modus. */}
+        <HandbuchLinkBlatt />
+
+        {/* Im Demo-Modus gibt es keine Sitzung - Sicherheit und Abmelden
+            haetten dort nichts, worauf sie wirken koennten. */}
+        {!demoModus ? (
+          <>
+            <Link
+              href="/dashboard/sicherheit"
+              onClick={onNavigate}
+              className="flex h-12 w-full items-center gap-2.5 rounded-xl border border-border px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
             >
-              <LogOut className="h-4 w-4 shrink-0" />
-              {t("signOut")}
-            </button>
-          </form>
-        </div>
-      ) : null}
+              <ShieldCheck className="h-4 w-4 shrink-0 text-muted-foreground" />
+              {t("security")}
+            </Link>
+            <form action={abmelden}>
+              <input type="hidden" name="locale" value={locale} />
+              <button
+                type="submit"
+                className="flex h-12 w-full items-center gap-2.5 rounded-xl border border-border px-4 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/5"
+              >
+                <LogOut className="h-4 w-4 shrink-0" />
+                {t("signOut")}
+              </button>
+            </form>
+          </>
+        ) : null}
+      </div>
     </div>
   );
 }
