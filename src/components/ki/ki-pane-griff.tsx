@@ -16,11 +16,13 @@ import { useTranslations } from "next-intl";
 
 const SCHLUESSEL = "damicon-ki-breite";
 const VARIABLE = "--ki-pane-breite";
-const MINIMUM = 352; // 22rem
+// Exportiert: ki-pane.tsx nutzt dieselben zwei Werte, wenn es das Panel fuer
+// die Pruefungsansicht voruebergehend verbreitert (siehe dort).
+export const MINIMUM = 352; // 22rem
 const MAXIMUM_ABSOLUT = 960;
 // So schmal darf die Ansicht neben dem Panel hoechstens werden: die Kopfzeile
 // (Suche, Sprache, Profil, Abmelden) braucht rund 680px, darunter laeuft sie ueber.
-const HAUPTSPALTE_MINDESTBREITE = 680;
+export const HAUPTSPALTE_MINDESTBREITE = 680;
 const SCHRITT = 24;
 const SCHRITT_GROSS = 96;
 

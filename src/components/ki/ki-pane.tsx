@@ -20,7 +20,7 @@ import { Himbeere } from "@/components/ki/himbeere";
 import { HaustierEinstellung } from "@/components/haustier/haustier-einstellung";
 import { useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { KiChat } from "@/components/ki/ki-chat";
-import { KiPaneGriff } from "@/components/ki/ki-pane-griff";
+import { HAUPTSPALTE_MINDESTBREITE, KiPaneGriff, MINIMUM as PANE_BREITE_MINIMUM } from "@/components/ki/ki-pane-griff";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { EskalationsFormular, KiChatFenster } from "@/components/db/ki-assistent-formulare";
 import type { KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
@@ -46,6 +46,11 @@ import { cn } from "@/lib/utils";
 // Erklaerung beim Ueberfahren, worin der Unterschied besteht.
 
 type Ansicht = "chat" | "einstellungen" | "hilfe" | "pruefung" | "mehr";
+
+// Wie breit das Panel fuer die Pruefungsansicht hoechstens wird: enger als das
+// per Griff ziehbare Maximum (ki-pane-griff.tsx) - hier soll nur genug Platz fuer
+// Spuren und Bericht entstehen, nicht die volle vom Nutzer ziehbare Breite.
+const PRUEFUNG_BREITE_MAXIMUM = 600;
 
 function ModusEinstellung() {
   const t = useTranslations("kiAssistentAnsicht");
@@ -135,7 +140,7 @@ export function KiPane({
     if (ansicht !== "pruefung" || !offen) return;
     const wurzel = document.documentElement.style;
     const links = document.getElementById("main")?.getBoundingClientRect().left ?? 0;
-    const ziel = Math.max(352, Math.min(600, Math.floor(window.innerWidth - links - 680)));
+    const ziel = Math.max(PANE_BREITE_MINIMUM, Math.min(PRUEFUNG_BREITE_MAXIMUM, Math.floor(window.innerWidth - links - HAUPTSPALTE_MINDESTBREITE)));
     const aktuell = document.querySelector(".ki-pane-huelle")?.getBoundingClientRect().width ?? 0;
     if (aktuell >= ziel - 16) return;
     const vorher = wurzel.getPropertyValue("--ki-pane-breite");
