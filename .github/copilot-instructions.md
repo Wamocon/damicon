@@ -97,7 +97,7 @@ Run through every item before declaring the app ready for deployment:
 - [ ] **Vercel env vars are set** - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` must exist in Vercel project Settings -> Environment Variables for Production BEFORE the deploy runs.
 - [ ] **`npm run build` succeeds locally** with actual env vars from `.env.local` (not placeholders). If it fails locally it will fail on Vercel.
 - [ ] **No hardcoded `localhost` URLs** in production code paths.
-- [ ] **All `[PLACEHOLDER]` markers replaced** in `docs/manual/index.html`.
+- [ ] **Handbook regenerated** (`npm run handbuch`) and the generated files committed.
 
 ### Code Review
 - Use the `@reviewer` agent before opening a PR. It runs a structured checklist covering code quality, Next.js 16 compliance, Supabase security, styling, and build checks.
@@ -124,21 +124,34 @@ This check is non-negotiable and must run on every request, not just complex one
 
 ## Product Handbook (Non-Negotiable)
 
-The project ships a live product handbook at `docs/manual/index.html`, deployed via GitHub Pages.
+The project ships a product handbook in four languages, served to signed-in users at
+`/{locale}/dashboard/handbuch`.
 **This handbook must always reflect the current state of the application.**
+
+It is **generated**, never hand-written: `scripts/handbuch/` reads the app (modules, zones,
+roles, permissions) plus the hand-written texts in `texte-*.ts` and writes
+`docs/manual/index*.html`. Editing the HTML directly is always wrong - the next
+`npm run handbuch` overwrites it.
 
 ### Handbook maintenance rules
 
-1. **Always check freshness first.** Before starting any feature work, check if `docs/manual/index.html` is up to date.
-   Use the `@handbook` agent or the `.github/skills/handbook/SKILL.md` skill to assess freshness.
+1. **Always check freshness first.** Run `npm run handbuch` and look at `git status docs/manual`.
+   A clean tree means the app-driven half is current; only the hand-written texts can be stale.
 2. **Update after every feature.** After implementing any user-facing feature, route, API, schema change, or branding update,
    update the handbook. This is not optional.
-3. **No placeholders in production.** All `[PLACEHOLDER]` markers in the handbook must be replaced with real values
-   before the app is considered ready for deployment.
-4. **Brand consistency.** The handbook CSS variables (`--primary`, `--primary-dark`, logo) must match the app's actual color palette.
+3. **All four languages or none.** Edit `texte-de.ts` first, then `texte-en.ts`, `texte-kk.ts`,
+   `texte-ru.ts`. A half-translated handbook is worse than an untranslated one, because nothing
+   signals which half is missing. `npm run typecheck` catches a forgotten field.
+4. **Brand consistency.** The handbook stylesheet mirrors the tokens in `src/app/globals.css` and
+   uses the real Damicon logo. If the palette changes, pull it across in `scripts/handbuch/stil.ts`.
 5. **Version and date.** The handbook version must match `package.json`. The date must always be the current month and year.
-6. **PDF and OneDrive.** The handbook includes a "PDF speichern" button (uses `window.print()`) and an OneDrive save
-   instructions modal. These must never be removed.
+6. **Search and PDF export.** The handbook has a full-text search and a PDF export that always
+   contains the COMPLETE handbook in the selected language - an active search filter is cleared
+   before printing, and the print stylesheet restores hidden chapters as a second net. Neither
+   may be removed or weakened.
+
+7. **Confidential.** The handbook stays behind the sign-in check at
+   `/{locale}/dashboard/handbuch`. It must not be moved to `public/`.
 
 ### When to run the @handbook agent
 
@@ -150,8 +163,11 @@ The project ships a live product handbook at `docs/manual/index.html`, deployed 
 ### Handbook file locations
 
 ```
-docs/index.html          <- redirect (do not change)
-docs/manual/index.html   <- THE handbook (maintained by @handbook agent)
+scripts/handbuch/texte-de.ts      <- hand-written texts, leading version (EDIT THIS)
+scripts/handbuch/texte-{en,kk,ru}.ts  <- the other three languages (EDIT THESE TOO)
+scripts/handbuch/erzeugen.ts      <- generator: npm run handbuch
+docs/manual/index*.html           <- GENERATED output (never edit by hand)
+src/app/[locale]/dashboard/handbuch/route.ts  <- serves it, behind sign-in
 .github/skills/handbook/SKILL.md  <- skill definition (read before editing)
 .github/agents/handbook.agent.md  <- agent definition
 ```

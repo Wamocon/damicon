@@ -1,6 +1,9 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import { getSessionProfile } from "@/lib/auth";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 // Das Produkthandbuch liegt als fertige HTML-Datei unter docs/manual/, je eine
 // Fassung pro Sprache. Erzeugt werden sie aus scripts/handbuch/ mit
@@ -32,6 +35,15 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ locale: string }> },
 ) {
+  // Zweite Verteidigungslinie. Der Proxy leitet Unangemeldete bereits auf die
+  // Anmeldung um, aber er tut das ueber einen Pfad-Ausdruck in einer anderen
+  // Datei - faellt dieser Pfad einmal aus dem Ausdruck, gaebe die Route ein
+  // als vertraulich gekennzeichnetes Dokument ungeprueft heraus. Dieselbe
+  // Prueflogik wie in den Geschwisterseiten (compliance/page.tsx): ohne
+  // Supabase gibt es keine Sitzung, dann bleibt es wie das uebrige Dashboard
+  // im Demo-Modus offen.
+  if (isSupabaseConfigured() && !(await getSessionProfile())) notFound();
+
   const { locale } = await params;
 
   // Der Parameter kommt aus der Adresse. Ohne diese Pruefung liesse sich ueber

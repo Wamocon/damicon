@@ -312,5 +312,5 @@ zweiten, weniger prominenten Abschnitt. Rollen ohne betriebsweite Sicht
 
 ## Dokumentation
 
-- **[docs/manual/index.html](docs/manual/index.html)** - Produkthandbuch
+- **[docs/manual/index.html](docs/manual/index.html)** - Produkthandbuch (DE; daneben `index-en`, `index-kk`, `index-ru`). Erzeugt mit `npm run handbuch`, im Portal unter `/{locale}/dashboard/handbuch`. Nicht von Hand bearbeiten - Quelle ist `scripts/handbuch/`.
 - Technische Analyse: `WMC_TechnischeAnalyse_1Cati_Himbeerplantage.md` (extern)

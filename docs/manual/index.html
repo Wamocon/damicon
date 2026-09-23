@@ -534,13 +534,14 @@ mark.treffer-aktiv {
     <a class="toc-link toc-2" href="#bereich-buero">3.3 Büro</a>
     <a class="toc-link toc-3" href="#modul-rollen">3.3.1 Rollen und Rechte</a>
     <a class="toc-link toc-3" href="#modul-finanzen">3.3.2 Finanzen</a>
-    <a class="toc-link toc-3" href="#modul-personal">3.3.3 Pflückerstamm</a>
-    <a class="toc-link toc-3" href="#modul-lohn">3.3.4 Qualitätsfaktor-Lohn</a>
-    <a class="toc-link toc-3" href="#modul-dokumente">3.3.5 Dokumente</a>
-    <a class="toc-link toc-3" href="#modul-compliance">3.3.6 Compliance</a>
-    <a class="toc-link toc-3" href="#modul-integrationen">3.3.7 Integrationen</a>
-    <a class="toc-link toc-3" href="#modul-foerdermittel">3.3.8 Fördermittel</a>
-    <a class="toc-link toc-3" href="#modul-stammdaten">3.3.9 Stammdaten</a>
+    <a class="toc-link toc-3" href="#modul-wirtschaftlichkeit">3.3.3 Wirtschaftlichkeit</a>
+    <a class="toc-link toc-3" href="#modul-personal">3.3.4 Pflückerstamm</a>
+    <a class="toc-link toc-3" href="#modul-lohn">3.3.5 Qualitätsfaktor-Lohn</a>
+    <a class="toc-link toc-3" href="#modul-dokumente">3.3.6 Dokumente</a>
+    <a class="toc-link toc-3" href="#modul-compliance">3.3.7 Compliance</a>
+    <a class="toc-link toc-3" href="#modul-integrationen">3.3.8 Integrationen</a>
+    <a class="toc-link toc-3" href="#modul-foerdermittel">3.3.9 Fördermittel</a>
+    <a class="toc-link toc-3" href="#modul-stammdaten">3.3.10 Stammdaten</a>
     <a class="toc-link toc-2" href="#bereich-markt">3.4 Markt</a>
     <a class="toc-link toc-3" href="#modul-sortenkatalog">3.4.1 Sortenkatalog</a>
     <a class="toc-link toc-3" href="#modul-b2b_portal">3.4.2 B2B-Portal</a>
@@ -731,6 +732,7 @@ mark.treffer-aktiv {
             <tr><td><strong>Lieferschein (ЭСФ)</strong></td><td><span class="pille pille-offen">in Entwicklung</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
             <tr><td><strong>Rollen und Rechte</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung</td></tr>
             <tr><td><strong>Finanzen</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Erzeuger / Nachbarbetrieb</td></tr>
+            <tr><td><strong>Wirtschaftlichkeit</strong></td><td><span class="pille pille-offen">in Entwicklung</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
             <tr><td><strong>Pflückerstamm</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung</td></tr>
             <tr><td><strong>Qualitätsfaktor-Lohn</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Pflücker</td></tr>
             <tr><td><strong>Dokumente</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Erzeuger / Nachbarbetrieb, B2B-Kunde</td></tr>
@@ -882,7 +884,17 @@ mark.treffer-aktiv {
         <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Kostenarten je Erntetag, B2B-Zahlungsabgleich, Deckungsbeitragsprojektion je Sorte.</span></div>
       </div>
 
-      <h4 id="modul-personal">3.3.3 Pflückerstamm und Brigaden <span class="pille pille-gut">einsatzbereit</span></h4>
+      <h4 id="modul-wirtschaftlichkeit">3.3.3 Wirtschaftlichkeit der Einführung <span class="pille pille-offen">in Entwicklung</span></h4>
+      <p>Investitionsrechnung zur Einführung: Amortisationsdauer, Rendite im ersten Jahr und über drei Jahre, einmalige und laufende Kosten, Kapitalwert. Noch Modellwerte, keine Betriebszahlen.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Amortisation, Rendite, einmalige und laufende Kosten, Kapitalwert der Einführung. Modellrechnung, noch nicht aus dem Betrieb.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/buero/wirtschaftlichkeit</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Buchhaltung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Erfassung der Investitions-, Betriebs- und Nutzenposten, Historie je Stand, Plan-Ist-Vergleich.</span></div>
+      </div>
+
+      <h4 id="modul-personal">3.3.4 Pflückerstamm und Brigaden <span class="pille pille-gut">einsatzbereit</span></h4>
       <p>Personenstamm mit Pflückerausweis, Brigadenzuordnung, Leistungs- und Qualitätsfaktor je Person über die Saison - Grundlage für Prämien, Nachschulung und Auswahl im Folgejahr.</p>
       <div class="merkmale">
         <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Personenstamm, Brigade und Pflückerausweis, Leistungs- und Qualitätsprofil je Person über die Saison.</span></div>
@@ -892,7 +904,7 @@ mark.treffer-aktiv {
         <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>ЕСУТД-Erfassung je Vertrag, Brigadenplanung, Leistungshistorie als Grundlage der Lohnberechnung.</span></div>
       </div>
 
-      <h4 id="modul-lohn">3.3.4 Qualitätsfaktor-Lohn <span class="pille pille-gut">einsatzbereit</span></h4>
+      <h4 id="modul-lohn">3.3.5 Qualitätsfaktor-Lohn <span class="pille pille-gut">einsatzbereit</span></h4>
       <p>Kombimodell aus Grundvergütung, Mengenkomponente und Qualitätsfaktor. Reiner Stücklohn drückt auf Menge, quetscht Beeren und ist bei der Himbeere wertvernichtend.</p>
       <div class="merkmale">
         <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Grundlohn plus Menge plus Qualitätsfaktor. Der Qualitätsfaktor ist keine Option, sondern Voraussetzung.</span></div>
@@ -902,7 +914,7 @@ mark.treffer-aktiv {
         <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Mindestlohn als feste Untergrenze, Pflege der Lohnsätze mit Vorschau auf den Korridor, Lohnzettel als PDF je Pflücker, Vorschusskonto.</span></div>
       </div>
 
-      <h4 id="modul-dokumente">3.3.5 Dokumentenverwaltung <span class="pille pille-gut">einsatzbereit</span></h4>
+      <h4 id="modul-dokumente">3.3.6 Dokumentenverwaltung <span class="pille pille-gut">einsatzbereit</span></h4>
       <p>Geschützte Ablage für Spritzmittelprotokolle, ЕСУТД-Nachweise, Liefer- und Rahmenverträge, Förderdossiers und Zertifikate - verknüpft mit Reihenblock und Charge.</p>
       <div class="merkmale">
         <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Kategorisierte, geschützte Dokumentenablage mit Verknüpfung zu Reihenblock und Charge.</span></div>
@@ -912,7 +924,7 @@ mark.treffer-aktiv {
         <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Versionen je Dokument, Ablauffristen mit Erinnerung.</span></div>
       </div>
 
-      <h4 id="modul-compliance">3.3.6 Compliance-Cockpit <span class="pille pille-gut">einsatzbereit</span></h4>
+      <h4 id="modul-compliance">3.3.7 Compliance-Cockpit <span class="pille pille-gut">einsatzbereit</span></h4>
       <p>Verarbeitungszwecke, Einwilligungen, Datenschutzvorfälle und Drittweitergaben aus fünf granularen Tabellen - Lesen und Schreiben ausschließlich für die Büro-Rollen.</p>
       <div class="merkmale">
         <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Granulares Datenschutz-Schema: Verarbeitungszwecke, Einwilligungen, Vorfälle und Drittweitergaben an einem Ort.</span></div>
@@ -922,7 +934,7 @@ mark.treffer-aktiv {
         <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Rechtszitate aus Steuergesetzbuch, KI-Gesetz und Digitalkodex, Aufbewahrungsfristen je Datenart, Prüfung des Speicherorts.</span></div>
       </div>
 
-      <h4 id="modul-integrationen">3.3.7 Staatliche Integrationen <span class="pille pille-offen">in Entwicklung</span></h4>
+      <h4 id="modul-integrationen">3.3.8 Staatliche Integrationen <span class="pille pille-offen">in Entwicklung</span></h4>
       <p>Vorgesehen sind Konnektoren zu ЭСФ, virtuellem Lagerbestand, ЕСУТД und den Förderportalen gosagro.kz und qoldau.kz. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.</p>
       <div class="merkmale">
         <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Bekommt je Zielsystem einen Konnektor mit Statusrückmeldung und Wiederholung. Die Buchhaltung bleibt außen vor.</span></div>
@@ -932,7 +944,7 @@ mark.treffer-aktiv {
         <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Konnektoren je System, Testzugänge, Umgang mit Fehlern und Wiederholungen, Überblick über die wartenden Vorgänge.</span></div>
       </div>
 
-      <h4 id="modul-foerdermittel">3.3.8 Fördermitteldossier <span class="pille pille-gut">einsatzbereit</span></h4>
+      <h4 id="modul-foerdermittel">3.3.9 Fördermitteldossier <span class="pille pille-gut">einsatzbereit</span></h4>
       <p>Antragsvorlagen, Nachweislisten und Fristenmonitor für die kasachstanischen Förderportale - Antragsfähigkeit als Nebenprodukt der laufenden Buchführung.</p>
       <div class="merkmale">
         <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Fristenmonitor und Nachweisdokumente je Dossier sind angebunden. Antragsvorlagen und Nachweis-Checklisten je Förderprogramm bleiben offen.</span></div>
@@ -942,7 +954,7 @@ mark.treffer-aktiv {
         <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Antragsvorlagen und Nachweis-Checklisten je Förderprogramm. Offen ist zuerst, welche Felder und Nachweise gosagro.kz und qoldau.kz je Programm verlangen.</span></div>
       </div>
 
-      <h4 id="modul-stammdaten">3.3.9 Stammdaten und Steuernummern <span class="pille pille-gut">einsatzbereit</span></h4>
+      <h4 id="modul-stammdaten">3.3.10 Stammdaten und Steuernummern <span class="pille pille-gut">einsatzbereit</span></h4>
       <p>Rechtsform und ИИН oder БИН für den eigenen Betrieb, die Zulieferbetriebe und die Kunden - die Angaben, die auf jedem Beleg stehen müssen.</p>
       <div class="merkmale">
         <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Ein bäuerlicher Betrieb trägt einen ИИН, eine juristische Person einen БИН. Die Prüfziffer weist einen Zahlendreher ab, bevor er auf eine Rechnung gerät.</span></div>
@@ -1134,6 +1146,7 @@ mark.treffer-aktiv {
             <tr><td><strong>Lieferschein (ЭСФ)</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
             <tr><td><strong>Rollen und Rechte</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
             <tr><td><strong>Finanzen</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Wirtschaftlichkeit</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
             <tr><td><strong>Pflückerstamm</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
             <tr><td><strong>Qualitätsfaktor-Lohn</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
             <tr><td><strong>Dokumente</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-lesen">○</span></td></tr>

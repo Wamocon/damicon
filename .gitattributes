@@ -1,0 +1,15 @@
+# Vom Handbuch-Generator geschriebene Dateien (scripts/handbuch/erzeugen.ts).
+#
+# Der Generator schreibt LF. Ohne diese Regel wandelt Git sie auf Windows beim
+# Auschecken in CRLF um, und der naechste `npm run handbuch` meldet vier
+# geaenderte Dateien, die inhaltlich Zeichen fuer Zeichen identisch sind.
+#
+# Das ist nicht nur laestig: der Freshness-Check des Handbuch-Agenten
+# (.github/skills/handbook/SKILL.md, Schritt 1) liest genau dieses `git status`
+# als "die Anwendung hat sich bewegt". Ein Unterschied, der keiner ist, haette
+# dort jedes Mal eine Aenderung vorgetaeuscht.
+docs/manual/*.html text eol=lf
+
+# Dieselbe Regel fuer die Quellen daneben, damit Generator und Repo sich auch
+# dort nicht widersprechen.
+scripts/handbuch/*.ts text eol=lf
