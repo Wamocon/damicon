@@ -48,11 +48,21 @@ export async function qrSvg(inhalt: string, groesse: QrGroesse = "etikett"): Pro
 // Absolute URL fuer den QR-Inhalt: ein Telefon, das den Code scannt, kennt
 // weder das aktuelle Origin noch die aktuelle Locale - beides muss im Inhalt
 // selbst stehen, sonst weiss die Kamera-App nichts damit anzufangen.
-// NEXT_PUBLIC_APP_URL ist bereits die dokumentierte Konvention dieses
-// Projekts fuer die eigene Basis-URL (siehe .env.example); der Fallback greift
-// nur, wenn die Variable in einer lokalen Umgebung einmal fehlt.
+// NEXT_PUBLIC_APP_URL ist die dokumentierte Konvention dieses Projekts fuer
+// die eigene Basis-URL (siehe .env.example), muss auf der oeffentlichen
+// Instanz aber manuell gesetzt werden. WMCNL-2368: fehlte genau das auf der
+// Vercel-Produktivumgebung, kodierten alle Etiketten und das Aushang-Poster
+// weiterhin http://localhost:3000 - unbenutzbar auf jedem Geraet ausser dem
+// Entwicklungsrechner. Zweite Stufe wie bereits in generateMetadata()
+// ([locale]/layout.tsx): VERCEL_PROJECT_PRODUCTION_URL traegt Vercel von
+// selbst ein, kein manueller Schritt noetig. localhost bleibt nur der letzte
+// Fallback fuer die lokale Entwicklung ohne beide Variablen.
 export function absoluteUrl(locale: string, pfad: string): string {
-  const basis = (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(/\/+$/, "");
+  const produktionsUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const basisRoh =
+    process.env.NEXT_PUBLIC_APP_URL ??
+    (produktionsUrl ? `https://${produktionsUrl}` : "http://localhost:3000");
+  const basis = basisRoh.replace(/\/+$/, "");
   const weg = pfad.startsWith("/") ? pfad : `/${pfad}`;
   return `${basis}/${locale}${weg}`;
 }

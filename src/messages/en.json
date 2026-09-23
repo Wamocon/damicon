@@ -2440,7 +2440,8 @@
       "title": "Crate labels",
       "lead": "QR code and plain-text code for each crate, print-ready. The QR code links to the public origin lookup for the crate's batch.",
       "empty": "No crate with a linked batch yet.",
-      "scanHinweis": "Scan for origin"
+      "scanHinweis": "Scan for origin",
+      "fallbackCode": "Enter without scanning: {code}"
     },
     "ausweise": {
       "title": "Picker ID badges",

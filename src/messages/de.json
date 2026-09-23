@@ -2440,7 +2440,8 @@
       "title": "Etiketten für Steigen",
       "lead": "QR-Code und Klartext-Code je Steige, druckfertig. Der QR-Code verlinkt auf die öffentliche Herkunftsauskunft der zugehörigen Charge.",
       "empty": "Noch keine Steige mit verknüpfter Charge vorhanden.",
-      "scanHinweis": "Herkunft scannen"
+      "scanHinweis": "Herkunft scannen",
+      "fallbackCode": "Ohne Scan eintippen: {code}"
     },
     "ausweise": {
       "title": "Pflückerausweise",
