@@ -1,838 +1,1583 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!--
-    HANDBOOK META - updated by Copilot on every relevant change
-    APP_NAME        : Damicon
-    APP_VERSION     : 0.1.0
-    LAST_UPDATED    : September 2026
-    PRIMARY_COLOR   : #00768f
-    PRIMARY_DARK    : #005a6e
-    LOGO_EMOJI      : &#127827;
-  -->
-  <title>Damicon &ndash; Produkthandbuch | WAMOCON</title>
-  <style>
-    /* ── Reset & Base ──────────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      /* Brand colors - Copilot updates these to match the app.
-         Das Handbuch hat ein dunkles Theme (--bg-page #0d1526). Dort traegt
-         das App-Primary #00768f zu wenig Kontrast, deshalb steht hier das
-         helle Flaggenblau #00afca (App: --ring/--chart-4) und #00768f als
-         --primary-dark. Beide Werte stammen aus der Palette der App. */
-      --primary:      #00afca;
-      --primary-dark: #00768f;
-      --primary-glow: rgba(0,175,202,0.18);
-      --success:      #10b981;
-      --warning:      #f59e0b;
-      --danger:       #ef4444;
-
-      /* Dark-theme background layers */
-      --bg-page:   #0d1526;
-      --bg-card:   rgba(255,255,255,0.03);
-      --bg-code:   rgba(255,255,255,0.06);
-
-      /* Text hierarchy */
-      --text:       #f1f5f9;
-      --text-muted: #94a3b8;
-      --text-dim:   #475569;
-
-      /* Borders */
-      --border: rgba(255,255,255,0.08);
-    }
-
-    html { scroll-behavior: smooth; }
-
-    body {
-      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
-      background: var(--bg-page);
-      color: var(--text);
-      line-height: 1.7;
-      min-height: 100vh;
-    }
-
-    a { color: var(--primary); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-
-    /* ── No-print utility ─────────────────────────────────────────── */
-    @media print {
-      .no-print { display: none !important; }
-      #toc-sidebar { display: none !important; }
-      .layout { display: block !important; }
-      main { padding: 2rem !important; max-width: 100% !important; }
-      .page-header { position: static !important; }
-      body { background: #fff !important; color: #000 !important; }
-      :root {
-        --text: #000; --text-muted: #333; --bg-page: #fff;
-        --bg-card: #f5f5f5; --border: #ddd; --primary: #1d4ed8;
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!--
+  ERZEUGT - nicht von Hand bearbeiten.
+  Quelle:  scripts/handbuch/texte-de.ts + src/lib/modules.ts + src/lib/rbac.ts
+  Neu bauen: npm run handbuch
+-->
+<title>Damicon – Produkthandbuch | WAMOCON</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20128%20128%22%3E%3Crect%20width%3D%22128%22%20height%3D%22128%22%20rx%3D%2228%22%20fill%3D%22%2300768f%22%2F%3E%3Ccircle%20cx%3D%2264%22%20cy%3D%2264%22%20r%3D%2246%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-opacity%3D%22.85%22%20stroke-width%3D%224.5%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23f2c14b%22%20stroke-width%3D%224.5%22%20stroke-linecap%3D%22round%22%3E%3Cpath%20d%3D%22M43%2068%20L34%2068%22%2F%3E%3Cpath%20d%3D%22M44%2061.5%20L35.5%2058.7%22%2F%3E%3Cpath%20d%3D%22M47%2055.7%20L39.7%2050.4%22%2F%3E%3Cpath%20d%3D%22M51.7%2051%20L46.4%2043.7%22%2F%3E%3Cpath%20d%3D%22M57.5%2048%20L54.7%2039.5%22%2F%3E%3Cpath%20d%3D%22M64%2047%20L64%2038%22%2F%3E%3Cpath%20d%3D%22M70.5%2048%20L73.3%2039.5%22%2F%3E%3Cpath%20d%3D%22M76.3%2051%20L81.6%2043.7%22%2F%3E%3Cpath%20d%3D%22M81%2055.7%20L88.3%2050.4%22%2F%3E%3Cpath%20d%3D%22M84%2061.5%20L92.5%2058.7%22%2F%3E%3Cpath%20d%3D%22M85%2068%20L94%2068%22%2F%3E%3C%2Fg%3E%3Ccircle%20cx%3D%2264%22%20cy%3D%2268%22%20r%3D%2215%22%20fill%3D%22%23ff5c7a%22%2F%3E%3Cpath%20d%3D%22M32%2092H96%22%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-opacity%3D%22.85%22%20stroke-width%3D%225.5%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E" />
+<script>
+  // Farbschema vor dem ersten Bild setzen, sonst blitzt das helle Schema auf.
+  // Derselbe Schluessel wie im Portal (src/components/theme-toggle.tsx): das
+  // Handbuch laeuft unter derselben Adresse und uebernimmt damit die Wahl,
+  // die der Nutzer im Portal getroffen hat.
+  (function () {
+    try {
+      var gewaehlt = localStorage.getItem('damicon-theme');
+      var dunkelBevorzugt = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (gewaehlt === 'dark' || (!gewaehlt && dunkelBevorzugt)) {
+        document.documentElement.classList.add('dark');
       }
-      .cover { background: #f0f4ff !important; border-color: #1d4ed8 !important; }
-      h2 { color: #1d4ed8 !important; border-color: #1d4ed8 !important; }
-      .page-footer { position: static !important; border-top: 1px solid #ddd; }
-    }
+    } catch (e) {}
+  })();
+</script>
+<style>
+/* Farben, Radien und Schriften sind die des Portals (src/app/globals.css).
+   Sie stehen hier als eigene Werte, weil das Handbuch eine eigenstaendige
+   Datei ist und ohne die Anwendung geoeffnet werden koennen muss - aendert
+   sich die Palette dort, gehoert sie hier nachgezogen. */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    /* ── Header ───────────────────────────────────────────────────── */
-    .page-header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      height: 70px;
-      background: rgba(13,21,38,0.95);
-      border-bottom: 1px solid var(--border);
-      backdrop-filter: blur(12px);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 2rem;
-      gap: 1rem;
-    }
+:root {
+  color-scheme: light;
+  --hintergrund: #f6fafb;
+  --vordergrund: #0b1e26;
+  --karte: #ffffff;
+  --primaer: #00768f;
+  --primaer-auf: #ffffff;
+  --zweit: #e3f2f6;
+  --gedaempft: #eaf2f4;
+  --gedaempft-text: #5a7078;
+  --akzent: #8c6209;
+  --gut: #297956;
+  --warnung: #945d0c;
+  --gefahr: #c23b4e;
+  --rand: #dbe8ec;
+  --ring: #0095ac;
+  --leiste: #ffffff;
+  --leiste-rand: #dceaee;
+  --leiste-akzent: #eaf4f7;
+  --radius: 0.625rem;
+  --schrift: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --schrift-titel: "Manrope", "Inter", "Segoe UI", system-ui, sans-serif;
+  --markierung: rgba(0, 149, 172, 0.28);
+}
 
-    .brand { display: flex; align-items: center; gap: 0.75rem; }
+.dark {
+  color-scheme: dark;
+  --hintergrund: #04161c;
+  --vordergrund: #e6f4f8;
+  --karte: #081e26;
+  --primaer: #3fd0e6;
+  --primaer-auf: #01222b;
+  --zweit: #0d2f3a;
+  --gedaempft: #0c2933;
+  --gedaempft-text: #9ab8c1;
+  --akzent: #f2c14b;
+  --gut: #5ecfa0;
+  --warnung: #e8b34a;
+  --gefahr: #fb7185;
+  --rand: rgba(255, 255, 255, 0.09);
+  --ring: #5fdcef;
+  --leiste: #051b22;
+  --leiste-rand: rgba(255, 255, 255, 0.09);
+  --leiste-akzent: #0c2b35;
+  --markierung: rgba(63, 208, 230, 0.26);
+}
 
-    .logo-mark {
-      width: 44px; height: 44px; border-radius: 12px;
-      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-      display: flex; align-items: center; justify-content: center;
-      font-size: 22px; font-weight: 900; color: #fff;
-      box-shadow: 0 4px 12px var(--primary-glow);
-      flex-shrink: 0;
-    }
+html { scroll-behavior: smooth; }
 
-    .brand-name { color: #fff; font-weight: 800; font-size: 1.1rem; }
-    .brand-sub  { color: var(--text-muted); font-size: 0.7rem; letter-spacing: 0.05em; font-weight: 600; }
-    .header-meta { color: var(--text-dim); font-size: 0.75rem; text-align: right; }
+/* Das hidden-Attribut wirkt ueber display: none aus dem Browser-Stylesheet -
+   und verliert damit gegen jede eigene display-Regel. Der Weg zurueck ins
+   Portal traegt .knopf mit display: inline-flex und stand deshalb sichtbar da,
+   obwohl er ausserhalb des Portals ins Leere zeigt. */
+[hidden] { display: none !important; }
 
-    /* ── Header actions ───────────────────────────────────────────── */
-    .header-actions { display: flex; align-items: center; gap: 0.75rem; }
+body {
+  font-family: var(--schrift);
+  background: var(--hintergrund);
+  color: var(--vordergrund);
+  line-height: 1.7;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
 
-    .btn {
-      display: inline-flex; align-items: center; gap: 0.5rem;
-      padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.82rem;
-      font-weight: 700; cursor: pointer; border: none; transition: 0.2s;
-      text-decoration: none; white-space: nowrap;
-    }
+a { color: var(--primaer); text-decoration: none; }
+a:hover { text-decoration: underline; }
 
-    .btn-primary {
-      background: var(--primary); color: #fff;
-    }
-    .btn-primary:hover { background: var(--primary-dark); text-decoration: none; }
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; border-radius: 4px; }
 
-    .btn-outline {
-      background: transparent; color: var(--text-muted);
-      border: 1px solid var(--border);
-    }
-    .btn-outline:hover { border-color: var(--primary); color: var(--primary); text-decoration: none; }
+/* ── Kopfzeile ─────────────────────────────────────────────────────────── */
+/* 64 px hoch wie die Kopfzeile des Portals (md:h-16). */
+.kopf {
+  position: sticky; top: 0; z-index: 50;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; padding: 0 1.25rem;
+  background: var(--leiste);
+  border-bottom: 1px solid var(--leiste-rand);
+}
 
-    /* ── PDF download / OneDrive buttons ─────────────────────────── */
-    .download-bar {
-      display: flex; align-items: center; gap: 0.5rem;
-      background: rgba(59,130,246,0.06);
-      border: 1px solid rgba(59,130,246,0.2);
-      border-radius: 10px; padding: 0.5rem 1rem;
-      font-size: 0.8rem; color: var(--text-muted);
-    }
-    .download-bar strong { color: var(--text); }
+.marke { display: flex; align-items: center; gap: 0.7rem; color: inherit; }
+.marke:hover { text-decoration: none; }
 
-    /* ── Layout ───────────────────────────────────────────────────── */
-    .layout {
-      display: grid;
-      grid-template-columns: 280px 1fr;
-      min-height: calc(100vh - 70px);
-      max-width: 1400px;
-      margin: 0 auto;
-    }
+.marke-zeichen { width: 36px; height: 36px; flex-shrink: 0; display: block; }
 
-    /* ── Sidebar TOC ──────────────────────────────────────────────── */
-    #toc-sidebar {
-      position: sticky;
-      top: 70px;
-      height: calc(100vh - 70px);
-      overflow-y: auto;
-      padding: 2rem 1.5rem;
-      border-right: 1px solid var(--border);
-      background: rgba(13,21,38,0.4);
-    }
+.marke-text { display: flex; flex-direction: column; line-height: 1.25; }
+.marke-name { font-family: var(--schrift-titel); font-weight: 800; font-size: 1.05rem; }
+.marke-unter { font-size: 0.7rem; font-weight: 600; color: var(--gedaempft-text); }
 
-    .toc-title {
-      font-size: 0.7rem; font-weight: 900;
-      text-transform: uppercase; letter-spacing: 0.15em;
-      color: var(--text-dim); margin-bottom: 1rem;
-    }
+.kopf-werkzeuge { display: flex; align-items: center; gap: 0.6rem; }
 
-    .toc-link {
-      display: block; padding: 0.5rem 0;
-      color: var(--text-muted); text-decoration: none;
-      font-size: 0.85rem; transition: 0.2s;
-    }
-    .toc-link:hover { color: var(--primary); transform: translateX(4px); text-decoration: none; }
-    .toc-link.l1 {
-      font-weight: 700; color: var(--text);
-      border-top: 1px solid var(--border);
-      margin-top: 1rem; padding-top: 1rem;
-    }
-    .toc-link.l2 { padding-left: 1rem; font-size: 0.8rem; }
-    .toc-link.l1:first-of-type { border-top: none; margin-top: 0; }
+.knopf {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+  height: 36px; padding: 0 0.85rem;
+  border-radius: calc(var(--radius) * 0.8);
+  font-family: inherit; font-size: 0.82rem; font-weight: 700;
+  cursor: pointer; border: 1px solid transparent; white-space: nowrap;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+.knopf-voll { background: var(--primaer); color: var(--primaer-auf); }
+.knopf-voll:hover { filter: brightness(1.08); text-decoration: none; }
+.knopf-rand { background: transparent; color: var(--gedaempft-text); border-color: var(--rand); }
+.knopf-rand:hover { color: var(--vordergrund); border-color: var(--primaer); text-decoration: none; }
 
-    /* ── Main content ─────────────────────────────────────────────── */
-    main { padding: 3rem 4rem 6rem; max-width: 900px; }
+/* ── Suche ─────────────────────────────────────────────────────────────── */
+.suche {
+  display: flex; align-items: center; gap: 0.5rem;
+  height: 36px; padding: 0 0.7rem;
+  background: var(--gedaempft);
+  border: 1px solid var(--rand);
+  border-radius: calc(var(--radius) * 0.8);
+}
+.suche:focus-within { border-color: var(--primaer); }
+.suche-zeichen { color: var(--gedaempft-text); font-size: 1rem; line-height: 1; }
 
-    /* ── Cover page ───────────────────────────────────────────────── */
-    .cover {
-      background: linear-gradient(160deg, rgba(30,60,130,0.2) 0%, rgba(13,21,38,0.9) 100%);
-      border: 1px solid rgba(59,130,246,0.25);
-      border-radius: 24px; padding: 4rem;
-      margin-bottom: 4rem; position: relative; overflow: hidden;
-    }
-    .cover::before {
-      content: '';
-      position: absolute; top: -40px; right: -40px;
-      width: 300px; height: 300px;
-      background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
-      pointer-events: none;
-    }
+.suche-feld {
+  background: none; border: none; outline: none;
+  color: var(--vordergrund); font-family: inherit; font-size: 0.85rem;
+  width: 200px; padding: 0;
+}
+.suche-feld::placeholder { color: var(--gedaempft-text); }
+.suche-feld::-webkit-search-cancel-button { display: none; }
 
-    .doc-type {
-      font-size: 0.7rem; font-weight: 800; text-transform: uppercase;
-      letter-spacing: 0.2em; color: var(--primary); margin-bottom: 1rem;
-    }
-    .cover h1 { font-size: 3rem; font-weight: 900; margin-bottom: 0.5rem; letter-spacing: -0.02em; }
-    .cover-sub { font-size: 1.2rem; color: var(--text-muted); margin-bottom: 3rem; }
-    .cover-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 2rem; }
-    .meta-label { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 0.3rem; }
-    .meta-value { font-weight: 700; font-size: 1rem; }
+/* Haelt seine Breite auch leer, sonst wackelt die Kopfzeile bei jedem
+   Tastendruck. */
+.suche-zaehler {
+  font-size: 0.72rem; color: var(--gedaempft-text);
+  font-variant-numeric: tabular-nums; min-width: 4.5rem; text-align: right;
+}
+.suche-zaehler.leer { color: var(--warnung); font-weight: 700; }
 
-    /* ── Typography ───────────────────────────────────────────────── */
-    h2 {
-      font-size: 2rem; font-weight: 900; margin: 4rem 0 1.5rem;
-      border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem;
-      display: flex; align-items: center; gap: 0.8rem;
-    }
-    h2 .num { color: var(--primary); opacity: 0.5; font-size: 1.2rem; }
-    h3 { font-size: 1.3rem; font-weight: 800; margin: 2.5rem 0 1rem; color: var(--primary); }
-    p { margin-bottom: 1.2rem; }
-    ul, ol { margin-bottom: 1.5rem; padding-left: 1.5rem; }
-    li { margin-bottom: 0.52rem; }
-    li::marker { color: var(--primary); }
-    strong { color: #fff; }
-    code {
-      background: var(--bg-code); border: 1px solid var(--border);
-      border-radius: 6px; padding: 0.15em 0.45em;
-      font-family: 'JetBrains Mono', 'Fira Code', monospace;
-      font-size: 0.88em; color: var(--primary);
-    }
+.suche-loeschen {
+  background: none; border: none; cursor: pointer; padding: 0 0 0 0.2rem;
+  color: var(--gedaempft-text); font-size: 1.15rem; line-height: 1;
+}
+.suche-loeschen:hover { color: var(--vordergrund); }
 
-    /* ── Cards & Blocks ───────────────────────────────────────────── */
-    .card {
-      background: var(--bg-card); border: 1px solid var(--border);
-      border-radius: 16px; padding: 1.5rem; margin: 1.5rem 0;
-    }
+/* ── Sprachumschalter ──────────────────────────────────────────────────── */
+.sprachen {
+  display: flex; align-items: center; gap: 2px;
+  padding: 3px; background: var(--gedaempft);
+  border: 1px solid var(--rand); border-radius: calc(var(--radius) * 0.8);
+}
+.sprache {
+  border: none; background: none; cursor: pointer;
+  font-family: inherit; font-size: 0.72rem; font-weight: 800;
+  color: var(--gedaempft-text);
+  padding: 0.25rem 0.45rem; border-radius: calc(var(--radius) * 0.5);
+  transition: background-color 0.15s, color 0.15s;
+}
+.sprache:hover { color: var(--vordergrund); }
+.sprache-aktiv { background: var(--primaer); color: var(--primaer-auf); }
+.sprache-aktiv:hover { color: var(--primaer-auf); }
 
-    .badge {
-      display: inline-block; padding: 0.2rem 0.6rem; border-radius: 20px;
-      font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em;
-    }
-    .badge-success { background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.2); }
-    .badge-primary { background: var(--primary-glow); color: var(--primary); border: 1px solid rgba(59,130,246,0.2); }
-    .badge-warning { background: rgba(245,158,11,0.1); color: var(--warning); border: 1px solid rgba(245,158,11,0.2); }
-    .badge-danger  { background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid rgba(239,68,68,0.2); }
+/* ── Raster ────────────────────────────────────────────────────────────── */
+.raster {
+  display: grid; grid-template-columns: 300px minmax(0, 1fr);
+  max-width: 1500px; margin: 0 auto;
+  min-height: calc(100vh - 64px);
+}
 
-    .info-box {
-      padding: 1.2rem 1.5rem; border-radius: 12px; margin: 2rem 0;
-      border-left: 4px solid var(--primary); background: rgba(59,130,246,0.05);
-    }
-    .info-box-title { font-weight: 900; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--primary); margin-bottom: 0.5rem; }
+#toc {
+  position: sticky; top: 64px; align-self: start;
+  height: calc(100vh - 64px); overflow-y: auto;
+  padding: 1.75rem 1.25rem 3rem;
+  border-right: 1px solid var(--rand);
+}
 
-    .warn-box {
-      padding: 1.2rem 1.5rem; border-radius: 12px; margin: 2rem 0;
-      border-left: 4px solid var(--danger); background: rgba(239,68,68,0.05);
-    }
-    .warn-box-title { font-weight: 900; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--danger); margin-bottom: 0.5rem; }
+.toc-titel {
+  font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.14em; color: var(--gedaempft-text); margin-bottom: 0.9rem;
+}
 
-    /* ── Feature Grid ─────────────────────────────────────────────── */
-    .feature-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin: 2rem 0; }
-    .feature-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; }
-    .feature-icon { font-size: 1.8rem; margin-bottom: 0.7rem; }
-    .feature-title { font-weight: 800; font-size: 0.95rem; margin-bottom: 0.4rem; color: #fff; }
-    .feature-desc { font-size: 0.82rem; color: var(--text-muted); }
+.toc-link {
+  display: block; color: var(--gedaempft-text); font-size: 0.82rem;
+  padding: 0.3rem 0.5rem; border-radius: calc(var(--radius) * 0.6);
+  border-left: 2px solid transparent;
+}
+.toc-link:hover { background: var(--leiste-akzent); color: var(--vordergrund); text-decoration: none; }
+.toc-link.aktiv { color: var(--primaer); border-left-color: var(--primaer); font-weight: 700; }
 
-    /* ── Table ────────────────────────────────────────────────────── */
-    .table-wrap { overflow-x: auto; margin: 2rem 0; border-radius: 12px; border: 1px solid var(--border); }
-    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-    th {
-      text-align: left; padding: 1rem;
-      background: rgba(255,255,255,0.02); color: var(--text-muted);
-      font-weight: 800; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.1em;
-    }
-    td { padding: 1rem; border-top: 1px solid var(--border); vertical-align: top; }
-    tr:hover td { background: rgba(59,130,246,0.02); }
+.toc-1 {
+  font-weight: 700; color: var(--vordergrund); font-size: 0.85rem;
+  margin-top: 0.9rem; padding-top: 0.6rem; border-top: 1px solid var(--rand);
+}
+.toc-1:first-of-type { margin-top: 0; border-top: none; }
+.toc-2 { padding-left: 1rem; }
+.toc-3 { padding-left: 1.9rem; font-size: 0.78rem; }
 
-    .yes { color: var(--success); font-weight: 700; }
-    .no  { color: var(--text-dim); }
+main { padding: 2.5rem 3rem 6rem; max-width: 62rem; min-width: 0; }
 
-    /* ── Footer ───────────────────────────────────────────────────── */
-    .page-footer {
-      border-top: 1px solid var(--border);
-      padding: 2rem 4rem;
-      color: var(--text-dim);
-      font-size: 0.75rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      max-width: 1400px;
-      margin: 0 auto;
-    }
+/* ── Deckblatt ─────────────────────────────────────────────────────────── */
+.deckblatt {
+  background: var(--karte);
+  border: 1px solid var(--rand);
+  border-radius: calc(var(--radius) * 2);
+  padding: 3rem; margin-bottom: 3.5rem;
+}
+.deckblatt-zeichen { width: 64px; height: 64px; display: block; margin-bottom: 1.5rem; }
+.deckblatt-art {
+  font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.16em; color: var(--primaer); margin-bottom: 0.9rem;
+}
+.deckblatt h1 {
+  font-family: var(--schrift-titel); font-size: 3rem; font-weight: 800;
+  line-height: 1.1; letter-spacing: -0.02em; margin-bottom: 0.6rem;
+}
+.deckblatt-unter { color: var(--gedaempft-text); font-size: 1.05rem; max-width: 46rem; }
+.deckblatt-daten {
+  display: flex; flex-wrap: wrap; gap: 2.5rem;
+  margin-top: 2.25rem; padding-top: 1.75rem; border-top: 1px solid var(--rand);
+}
+.dt-name {
+  display: block; font-size: 0.66rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: 0.1em; color: var(--gedaempft-text); margin-bottom: 0.3rem;
+}
+.dt-wert { font-weight: 700; font-size: 0.95rem; }
 
-    /* ── Responsive ───────────────────────────────────────────────── */
-    @media (max-width: 1000px) {
-      .layout { grid-template-columns: 1fr; }
-      #toc-sidebar { display: none; }
-      main { padding: 2rem 1.5rem 4rem; }
-      .cover { padding: 2rem; }
-      .cover h1 { font-size: 2rem; }
-      .page-footer { flex-direction: column; gap: 0.5rem; text-align: center; padding: 1.5rem; }
-      .header-actions .download-bar { display: none; }
-    }
-  </style>
+/* ── Ueberschriften ────────────────────────────────────────────────────── */
+section { margin-bottom: 3.5rem; }
+
+h2 {
+  font-family: var(--schrift-titel); font-size: 1.85rem; font-weight: 800;
+  letter-spacing: -0.015em; margin-bottom: 1.25rem;
+  padding-bottom: 0.7rem; border-bottom: 2px solid var(--primaer);
+  display: flex; align-items: baseline; gap: 0.7rem;
+}
+h2 .nr { color: var(--primaer); font-size: 1.1rem; font-weight: 800; }
+
+h3 {
+  font-family: var(--schrift-titel); font-size: 1.3rem; font-weight: 700;
+  margin: 2.25rem 0 0.9rem;
+}
+
+h4 {
+  font-family: var(--schrift-titel); font-size: 1.02rem; font-weight: 700;
+  margin: 1.85rem 0 0.5rem;
+  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+}
+
+p { margin-bottom: 0.9rem; }
+p:last-child { margin-bottom: 0; }
+.abstand-oben { margin-top: 0.8rem; }
+
+ol, ul { margin: 0 0 1rem 1.3rem; }
+li { margin-bottom: 0.45rem; }
+
+code {
+  font-family: ui-monospace, "Cascadia Code", "Consolas", monospace;
+  font-size: 0.86em; background: var(--gedaempft);
+  padding: 0.1rem 0.35rem; border-radius: 4px;
+  border: 1px solid var(--rand); white-space: nowrap;
+}
+
+/* ── Kaesten ───────────────────────────────────────────────────────────── */
+.kasten {
+  border: 1px solid var(--rand); border-left-width: 3px;
+  border-radius: var(--radius); padding: 1.1rem 1.35rem;
+  margin: 1.25rem 0; background: var(--karte);
+}
+.kasten-titel { font-weight: 800; margin-bottom: 0.5rem; font-size: 0.95rem; }
+.kasten-info { border-left-color: var(--primaer); }
+.kasten-info .kasten-titel { color: var(--primaer); }
+.kasten-wichtig { border-left-color: var(--gut); }
+.kasten-wichtig .kasten-titel { color: var(--gut); }
+.kasten-warnung { border-left-color: var(--warnung); }
+.kasten-warnung .kasten-titel { color: var(--warnung); }
+
+/* ── Karten ────────────────────────────────────────────────────────────── */
+.karten-raster {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem; margin: 1.25rem 0;
+}
+.karte-klein {
+  background: var(--karte); border: 1px solid var(--rand);
+  border-radius: var(--radius); padding: 1.1rem 1.25rem;
+}
+.karte-klein-titel { font-family: var(--schrift-titel); font-weight: 700; margin-bottom: 0.2rem; }
+.karte-klein-zeile {
+  font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--primaer); margin-bottom: 0.6rem;
+}
+.karte-klein p { font-size: 0.89rem; color: var(--gedaempft-text); }
+
+/* ── Merkmale eines Moduls ─────────────────────────────────────────────── */
+.merkmale {
+  border: 1px solid var(--rand); border-radius: var(--radius);
+  background: var(--karte); margin: 0.9rem 0 1.5rem; overflow: hidden;
+}
+.merkmal {
+  display: grid; grid-template-columns: 11rem minmax(0, 1fr);
+  gap: 1rem; padding: 0.6rem 1.1rem;
+  border-top: 1px solid var(--rand); font-size: 0.89rem;
+}
+.merkmal:first-child { border-top: none; }
+.merkmal-name { font-weight: 700; color: var(--gedaempft-text); }
+
+/* ── Tabellen ──────────────────────────────────────────────────────────── */
+.tabelle {
+  margin: 1.25rem 0; overflow-x: auto;
+  border: 1px solid var(--rand); border-radius: var(--radius);
+  background: var(--karte);
+}
+table { width: 100%; border-collapse: collapse; font-size: 0.89rem; }
+th {
+  text-align: left; font-weight: 800; font-size: 0.72rem;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--gedaempft-text); background: var(--gedaempft);
+  padding: 0.7rem 1rem; border-bottom: 1px solid var(--rand);
+  white-space: nowrap;
+}
+td { padding: 0.7rem 1rem; border-bottom: 1px solid var(--rand); vertical-align: top; }
+tbody tr:last-child td { border-bottom: none; }
+
+/* Die Rechtematrix ist breit: neun Spalten. Die erste bleibt stehen. */
+.tabelle-matrix table { font-size: 0.82rem; }
+.tabelle-matrix th:not(:first-child), .tabelle-matrix td:not(:first-child) {
+  text-align: center; white-space: normal;
+}
+.tabelle-matrix th:first-child, .tabelle-matrix td:first-child {
+  position: sticky; left: 0; background: var(--karte); z-index: 1;
+}
+.tabelle-matrix th:first-child { background: var(--gedaempft); }
+
+.recht { font-size: 1rem; line-height: 1; }
+.recht-schreiben { color: var(--primaer); }
+.recht-lesen { color: var(--gedaempft-text); }
+.recht-keins { color: var(--rand); }
+.legende { font-size: 0.82rem; color: var(--gedaempft-text); }
+
+/* ── Pillen ────────────────────────────────────────────────────────────── */
+.pille {
+  display: inline-block; padding: 0.15rem 0.6rem;
+  border-radius: 999px; font-size: 0.68rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;
+}
+.pille-gut { background: color-mix(in srgb, var(--gut) 14%, transparent); color: var(--gut); }
+.pille-offen { background: color-mix(in srgb, var(--warnung) 14%, transparent); color: var(--warnung); }
+.pille-jetzt { background: color-mix(in srgb, var(--primaer) 14%, transparent); color: var(--primaer); }
+
+/* ── Suche: Treffer und Filter ─────────────────────────────────────────── */
+mark.treffer { background: var(--markierung); color: inherit; border-radius: 3px; padding: 0 2px; }
+mark.treffer-aktiv {
+  background: var(--akzent); color: var(--hintergrund);
+  font-weight: 700; box-shadow: 0 0 0 3px color-mix(in srgb, var(--akzent) 30%, transparent);
+}
+
+.ausgeblendet { display: none; }
+
+.such-hinweis {
+  display: none; margin-bottom: 1.5rem;
+  background: var(--karte); border: 1px solid var(--rand);
+  border-left: 3px solid var(--warnung); border-radius: var(--radius);
+  padding: 1.1rem 1.35rem; color: var(--gedaempft-text); font-size: 0.92rem;
+}
+.such-hinweis.sichtbar { display: block; }
+.such-hinweis strong { color: var(--vordergrund); }
+
+/* ── Fuss ──────────────────────────────────────────────────────────────── */
+.fuss {
+  border-top: 1px solid var(--rand); padding: 1.75rem 3rem;
+  display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+  font-size: 0.8rem; color: var(--gedaempft-text);
+}
+
+/* ── Schmale Schirme ───────────────────────────────────────────────────── */
+@media (max-width: 1180px) {
+  .raster { grid-template-columns: 1fr; }
+  #toc { display: none; }
+  main { padding: 2rem 1.5rem 4rem; }
+  .fuss { padding: 1.5rem; }
+  .suche-feld { width: 130px; }
+  .marke-unter { display: none; }
+}
+
+@media (max-width: 820px) {
+  .kopf { height: auto; padding: 0.7rem 1rem; flex-wrap: wrap; position: static; }
+  .kopf-werkzeuge { width: 100%; flex-wrap: wrap; }
+  .suche { flex: 1 1 100%; }
+  .suche-feld { width: 100%; flex: 1; }
+  .deckblatt { padding: 1.75rem; }
+  .deckblatt h1 { font-size: 2.1rem; }
+  .deckblatt-daten { gap: 1.25rem; }
+  .merkmal { grid-template-columns: 1fr; gap: 0.15rem; }
+  h2 { font-size: 1.5rem; }
+}
+
+/* ── Druck ─────────────────────────────────────────────────────────────── */
+@media print {
+  .kein-druck, .kopf, #toc, .fuss { display: none !important; }
+  .raster { display: block; max-width: none; }
+  main { padding: 0; max-width: none; }
+
+  /* Der PDF-Export ist immer das vollstaendige Handbuch, nie der gerade
+     gefilterte Ausschnitt. Das Skript setzt die Suche vor dem Druck zurueck;
+     diese Regeln sind das zweite Netz, falls JavaScript abgeschaltet ist oder
+     der Druck ueber Strg+P am Skript vorbeilaeuft. Ohne sie druckte eine
+     Suche nach "Kuehlkette" ein Handbuch aus drei Absaetzen - und niemand
+     saehe dem PDF an, dass etwas fehlt. */
+  .ausgeblendet { display: revert !important; }
+  .such-hinweis { display: none !important; }
+  mark.treffer, mark.treffer-aktiv {
+    background: none !important; color: inherit !important;
+    box-shadow: none !important; font-weight: inherit !important; padding: 0 !important;
+  }
+
+  body { background: #fff; color: #000; font-size: 10.5pt; }
+  :root {
+    --hintergrund: #fff; --vordergrund: #000; --karte: #fff;
+    --gedaempft: #f4f4f4; --gedaempft-text: #444; --rand: #bbb;
+    --primaer: #005f74; --gut: #1f5e43; --warnung: #7a4c09;
+  }
+
+  section { break-before: page; }
+  section:first-of-type { break-before: auto; }
+  .deckblatt { break-after: page; border: none; padding: 0; }
+  h2, h3, h4 { break-after: avoid; }
+  table, .kasten, .karte-klein, .merkmale { break-inside: avoid; }
+  thead { display: table-header-group; }
+  .tabelle, .tabelle-matrix { overflow: visible; }
+  .tabelle-matrix th:first-child, .tabelle-matrix td:first-child { position: static; }
+  a { color: #000; text-decoration: none; }
+  @page { margin: 16mm 14mm; }
+}
+</style>
 </head>
 <body>
 
-<!-- ── Header ──────────────────────────────────────────────────────── -->
-<header class="page-header no-print">
-  <div class="brand">
-    <!-- LOGO: Copilot updates the emoji/letter and gradient to match the app -->
-    <div class="logo-mark" aria-label="App logo">&#127827;</div>
-    <div>
-      <div class="brand-name">Damicon</div>
-      <div class="brand-sub">WAMOCON &middot; Produkthandbuch (interner Prototyp)</div>
-    </div>
-  </div>
+<header class="kopf kein-druck">
+  <a class="marke" href="#ueberblick">
+    <svg class="marke-zeichen" viewBox="0 0 128 128" role="img" aria-label="Damicon">
+      <rect width="128" height="128" rx="28" fill="var(--primaer)" />
+      <circle cx="64" cy="64" r="46" fill="none" stroke="var(--primaer-auf)" stroke-opacity="0.85" stroke-width="4.5" />
+      <g fill="none" stroke="#f2c14b" stroke-width="4.5" stroke-linecap="round"><path d="M43 68 L34 68" /><path d="M44 61.5 L35.5 58.7" /><path d="M47 55.7 L39.7 50.4" /><path d="M51.7 51 L46.4 43.7" /><path d="M57.5 48 L54.7 39.5" /><path d="M64 47 L64 38" /><path d="M70.5 48 L73.3 39.5" /><path d="M76.3 51 L81.6 43.7" /><path d="M81 55.7 L88.3 50.4" /><path d="M84 61.5 L92.5 58.7" /><path d="M85 68 L94 68" /></g>
+      <circle cx="64" cy="68" r="15" fill="#ff5c7a" />
+      <path d="M32 92H96" fill="none" stroke="var(--primaer-auf)" stroke-opacity="0.85" stroke-width="5.5" stroke-linecap="round" />
+    </svg>
+    <span class="marke-text">
+      <span class="marke-name">Damicon</span>
+      <span class="marke-unter">Produkthandbuch</span>
+    </span>
+  </a>
 
-  <div class="header-actions">
-    <div class="download-bar">
-      <strong>PDF &amp; OneDrive:</strong>&nbsp;Drucken &rarr; Als PDF speichern &rarr; In OneDrive ablegen
+  <div class="kopf-werkzeuge">
+    <div class="suche">
+      <span class="suche-zeichen" aria-hidden="true">⌕</span>
+      <input type="search" id="suchfeld" class="suche-feld"
+        placeholder="Handbuch durchsuchen …"
+        aria-label="Handbuch durchsuchen"
+        autocomplete="off" spellcheck="false" />
+      <span class="suche-zaehler" id="such-zaehler" role="status" aria-live="polite"></span>
+      <button type="button" class="suche-loeschen" id="such-loeschen"
+        title="Suche zurücksetzen (Esc)"
+        aria-label="Suche zurücksetzen (Esc)" hidden>×</button>
     </div>
-    <!-- PDF Download button - uses browser print dialog (Save as PDF) -->
-    <button class="btn btn-primary" onclick="window.print()" title="Als PDF speichern (Drucken &rarr; Als PDF speichern)">
-      &#128196; PDF speichern
+
+    <div class="sprachen" role="group" aria-label="Sprache">
+      <button type="button" class="sprache sprache-aktiv" data-sprache="de" title="Deutsch">DE</button><button type="button" class="sprache" data-sprache="en" title="English">EN</button><button type="button" class="sprache" data-sprache="kk" title="Қазақша">KK</button><button type="button" class="sprache" data-sprache="ru" title="Русский">RU</button>
+    </div>
+
+    <button type="button" class="knopf knopf-rand" id="thema-knopf"
+      title="Farbschema wechseln" aria-label="Farbschema wechseln">
+      <span id="thema-zeichen" aria-hidden="true">◐</span>
     </button>
-    <!-- OneDrive save - opens instructions modal -->
-    <button class="btn btn-outline" onclick="document.getElementById('onedrive-modal').style.display='flex'" title="In OneDrive speichern">
-      &#9729; OneDrive
-    </button>
+
+    <a class="knopf knopf-rand" id="portal-knopf" href="../"
+      title="Zurück zur Übersicht des Portals" hidden>← Zum Portal</a>
+
+    <button type="button" class="knopf knopf-voll" onclick="handbuchAlsPdf()"
+      title="Vollständiges Handbuch als PDF speichern (Drucken → Als PDF speichern)">PDF speichern</button>
   </div>
 </header>
 
-<!-- ── OneDrive instructions modal ─────────────────────────────────── -->
-<div id="onedrive-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:200; align-items:center; justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
-  <div style="background:#1e2a42; border:1px solid var(--border); border-radius:20px; padding:2.5rem; max-width:480px; width:90%;">
-    <h3 style="color:var(--primary); margin-bottom:1rem;">&#9729; In OneDrive speichern</h3>
-    <ol style="color:var(--text-muted); font-size:0.9rem; line-height:1.8;">
-      <li>Klicke auf <strong style="color:#fff;">&#128196; PDF speichern</strong></li>
-      <li>Im Druckdialog: Drucker auf <strong style="color:#fff;">"Als PDF speichern"</strong> stellen</li>
-      <li>Speicherort: <strong style="color:#fff;">OneDrive-Ordner</strong> ausw&auml;hlen</li>
-      <li><strong style="color:#fff;">Speichern</strong> klicken &mdash; fertig</li>
-    </ol>
-    <p style="color:var(--text-dim); font-size:0.8rem; margin-top:1.5rem;">
-      Alternativ: Datei herunterladen und per <strong>OneDrive Sync-Client</strong>
-      oder <strong>onedrive.live.com</strong> hochladen.
-    </p>
-    <button class="btn btn-primary" style="margin-top:1.5rem; width:100%;" onclick="document.getElementById('onedrive-modal').style.display='none'">
-      Verstanden
-    </button>
-  </div>
-</div>
-
-<!-- ── Main layout ──────────────────────────────────────────────────── -->
-<div class="layout">
-
-  <!-- ── Sidebar TOC ─────────────────────────────────────────────── -->
-  <nav id="toc-sidebar" class="no-print" aria-label="Inhaltsverzeichnis">
-    <div class="toc-title">Inhalt</div>
-    <a class="toc-link l1" href="#uebersicht">01 &Uuml;bersicht</a>
-    <a class="toc-link l1" href="#features">02 Zonen &amp; Module</a>
-    <a class="toc-link l2" href="#feature-list">2.1 Modul&uuml;bersicht</a>
-    <a class="toc-link l2" href="#plaene">2.2 Reifegrad &amp; Klassifikation</a>
-    <a class="toc-link l1" href="#tutorials">03 Erste Schritte</a>
-    <a class="toc-link l2" href="#tut-konto">3.1 Prototyp starten</a>
-    <a class="toc-link l2" href="#tut-start">3.2 Demo-Rolle wechseln</a>
-    <a class="toc-link l2" href="#tut-upgrade">3.3 Sprache umschalten</a>
-    <a class="toc-link l1" href="#howto">04 How-to Guides</a>
-    <a class="toc-link l2" href="#ht-profil">4.1 Reihenblock-Status pr&uuml;fen</a>
-    <a class="toc-link l2" href="#ht-loeschen">4.2 Pfl&uuml;ckaufgabe mit Fotobeleg</a>
-    <a class="toc-link l1" href="#referenz">05 Funktionsreferenz</a>
-    <a class="toc-link l2" href="#routen">5.1 Routen</a>
-    <a class="toc-link l2" href="#api">5.2 Rollen &amp; Rechte</a>
-    <a class="toc-link l1" href="#tech">06 Technische Architektur</a>
-    <a class="toc-link l2" href="#tech-stack">6.1 Stack</a>
-    <a class="toc-link l2" href="#tech-schema">6.2 Herkunft aus 1&Ccedil;at&#305;</a>
-    <a class="toc-link l1" href="#ci-cd">07 Meilensteine</a>
-    <a class="toc-link l1" href="#compliance">08 Compliance &amp; Datenresidenz</a>
-    <a class="toc-link l1" href="#glossar">09 Glossar</a>
+<div class="raster">
+  <nav id="toc" class="kein-druck" aria-label="Inhalt">
+    <div class="toc-titel">Inhalt</div>
+    <a class="toc-link toc-1" href="#ueberblick">01 Überblick</a>
+    <a class="toc-link toc-2" href="#ueberblick-zonen">1.1 Die vier Bereiche</a>
+    <a class="toc-link toc-2" href="#ueberblick-rollen">1.2 Rollen</a>
+    <a class="toc-link toc-1" href="#bedienung">02 Das Portal bedienen</a>
+    <a class="toc-link toc-2" href="#bedienung-anmelden">2.1 Anmelden</a>
+    <a class="toc-link toc-2" href="#bedienung-aufbau">2.2 Aufbau der Oberfläche</a>
+    <a class="toc-link toc-2" href="#bedienung-sprache">2.3 Sprache umschalten</a>
+    <a class="toc-link toc-2" href="#bedienung-thema">2.4 Farbschema</a>
+    <a class="toc-link toc-2" href="#bedienung-rolle">2.5 Rolle wechseln</a>
+    <a class="toc-link toc-2" href="#bedienung-offline">2.6 Ohne Netz arbeiten</a>
+    <a class="toc-link toc-1" href="#bereiche">03 Bereiche und Module</a>
+    <a class="toc-link toc-2" href="#bereich-feld">3.1 Feld</a>
+    <a class="toc-link toc-3" href="#modul-standort">3.1.1 Standorte</a>
+    <a class="toc-link toc-3" href="#modul-reihenbloecke">3.1.2 Reihenblöcke</a>
+    <a class="toc-link toc-3" href="#modul-pflueckaufgaben">3.1.3 Pflückaufgaben</a>
+    <a class="toc-link toc-3" href="#modul-pflanzenschutz">3.1.4 Pflanzenschutz</a>
+    <a class="toc-link toc-3" href="#modul-rotationsplan">3.1.5 Rotationsplan</a>
+    <a class="toc-link toc-3" href="#modul-wetter">3.1.6 Wetter</a>
+    <a class="toc-link toc-2" href="#bereich-hof">3.2 Hof</a>
+    <a class="toc-link toc-3" href="#modul-kuehlkette">3.2.1 Kühlkette</a>
+    <a class="toc-link toc-3" href="#modul-logistik">3.2.2 Abholrunden</a>
+    <a class="toc-link toc-3" href="#modul-qr_steigen">3.2.3 QR-Steigen</a>
+    <a class="toc-link toc-3" href="#modul-esf">3.2.4 Lieferschein (ЭСФ)</a>
+    <a class="toc-link toc-2" href="#bereich-buero">3.3 Büro</a>
+    <a class="toc-link toc-3" href="#modul-rollen">3.3.1 Rollen und Rechte</a>
+    <a class="toc-link toc-3" href="#modul-finanzen">3.3.2 Finanzen</a>
+    <a class="toc-link toc-3" href="#modul-wirtschaftlichkeit">3.3.3 Wirtschaftlichkeit</a>
+    <a class="toc-link toc-3" href="#modul-personal">3.3.4 Pflückerstamm</a>
+    <a class="toc-link toc-3" href="#modul-lohn">3.3.5 Qualitätsfaktor-Lohn</a>
+    <a class="toc-link toc-3" href="#modul-dokumente">3.3.6 Dokumente</a>
+    <a class="toc-link toc-3" href="#modul-compliance">3.3.7 Compliance</a>
+    <a class="toc-link toc-3" href="#modul-integrationen">3.3.8 Integrationen</a>
+    <a class="toc-link toc-3" href="#modul-foerdermittel">3.3.9 Fördermittel</a>
+    <a class="toc-link toc-3" href="#modul-stammdaten">3.3.10 Stammdaten</a>
+    <a class="toc-link toc-2" href="#bereich-markt">3.4 Markt</a>
+    <a class="toc-link toc-3" href="#modul-sortenkatalog">3.4.1 Sortenkatalog</a>
+    <a class="toc-link toc-3" href="#modul-b2b_portal">3.4.2 B2B-Portal</a>
+    <a class="toc-link toc-3" href="#modul-reklamationen">3.4.3 Reklamationen</a>
+    <a class="toc-link toc-3" href="#modul-preislisten">3.4.4 Preislisten</a>
+    <a class="toc-link toc-3" href="#modul-aggregator">3.4.5 Aggregator</a>
+    <a class="toc-link toc-3" href="#modul-schulungen">3.4.6 Schulungen</a>
+    <a class="toc-link toc-3" href="#modul-kanaele">3.4.7 Kontaktkanäle</a>
+    <a class="toc-link toc-1" href="#anleitungen">04 Anleitungen</a>
+    <a class="toc-link toc-2" href="#anleitung-wartezeit">4.1 Wartezeitsperre auslösen und aufheben</a>
+    <a class="toc-link toc-2" href="#anleitung-pflueckaufgabe">4.2 Pflückaufgabe mit Fotobeleg</a>
+    <a class="toc-link toc-2" href="#anleitung-nachweiskette">4.3 Die Nachweiskette einer Lieferung zeigen</a>
+    <a class="toc-link toc-2" href="#anleitung-dokument">4.4 Ein Dokument aufnehmen</a>
+    <a class="toc-link toc-2" href="#anleitung-zugang">4.5 Zugang einrichten: Einladung und zweiter Faktor</a>
+    <a class="toc-link toc-1" href="#referenz">05 Referenz</a>
+    <a class="toc-link toc-2" href="#referenz-seiten">5.1 Seiten</a>
+    <a class="toc-link toc-2" href="#referenz-rechte">5.2 Rechte je Rolle</a>
+    <a class="toc-link toc-2" href="#referenz-schnittstellen">5.3 Schnittstellen</a>
+    <a class="toc-link toc-1" href="#technik">06 Technik</a>
+    <a class="toc-link toc-2" href="#technik-stack">6.1 Verwendete Technik</a>
+    <a class="toc-link toc-2" href="#technik-meilensteine">6.2 Meilensteine</a>
+    <a class="toc-link toc-1" href="#recht">07 Recht und Datenhaltung</a>
+    <a class="toc-link toc-1" href="#glossar">08 Glossar</a>
   </nav>
 
-  <!-- ── Main ────────────────────────────────────────────────────── -->
   <main>
+    <div class="such-hinweis" id="such-hinweis" role="status" aria-live="polite"></div>
 
-    <!-- ── Cover ─────────────────────────────────────────────────── -->
-    <div class="cover">
-      <div class="doc-type">Internes Produkthandbuch &middot; WAMOCON GmbH</div>
+    <div class="deckblatt">
+      <svg class="deckblatt-zeichen" viewBox="0 0 128 128" role="img" aria-label="Damicon">
+      <rect width="128" height="128" rx="28" fill="var(--primaer)" />
+      <circle cx="64" cy="64" r="46" fill="none" stroke="var(--primaer-auf)" stroke-opacity="0.85" stroke-width="4.5" />
+      <g fill="none" stroke="#f2c14b" stroke-width="4.5" stroke-linecap="round"><path d="M43 68 L34 68" /><path d="M44 61.5 L35.5 58.7" /><path d="M47 55.7 L39.7 50.4" /><path d="M51.7 51 L46.4 43.7" /><path d="M57.5 48 L54.7 39.5" /><path d="M64 47 L64 38" /><path d="M70.5 48 L73.3 39.5" /><path d="M76.3 51 L81.6 43.7" /><path d="M81 55.7 L88.3 50.4" /><path d="M84 61.5 L92.5 58.7" /><path d="M85 68 L94 68" /></g>
+      <circle cx="64" cy="68" r="15" fill="#ff5c7a" />
+      <path d="M32 92H96" fill="none" stroke="var(--primaer-auf)" stroke-opacity="0.85" stroke-width="5.5" stroke-linecap="round" />
+    </svg>
+      <div class="deckblatt-art">Produkthandbuch · WAMOCON GmbH</div>
       <h1>Damicon</h1>
-      <div class="cover-sub">Betriebssteuerung f&uuml;r einen Himbeerbetrieb im Umland Almaty &ndash; Blaupause auf Basis des 1&Ccedil;at&#305;-ERP-&Ouml;kosystems</div>
-      <div class="cover-meta">
-        <div><div class="meta-label">Version</div><div class="meta-value">0.1.0</div></div>
-        <div><div class="meta-label">Status</div><div class="meta-value"><span class="badge badge-primary">Prototyp (Meilenstein C)</span></div></div>
-        <div><div class="meta-label">Sprachen</div><div class="meta-value">DE &middot; EN &middot; TR &middot; KK &middot; RU</div></div>
-        <div><div class="meta-label">Datum</div><div class="meta-value">23. September 2026</div></div>
+      <p class="deckblatt-unter">Betriebssteuerung für einen Himbeerbetrieb im Umland von Almaty</p>
+      <div class="deckblatt-daten">
+        <div><span class="dt-name">Version</span><span class="dt-wert">0.1.0</span></div>
+        <div><span class="dt-name">Status</span><span class="dt-wert"><span class="pille pille-jetzt">Prototyp</span></span></div>
+        <div><span class="dt-name">Sprachen</span><span class="dt-wert">DE · EN · KK · RU</span></div>
+        <div><span class="dt-name">Stand</span><span class="dt-wert">23. September 2026</span></div>
       </div>
     </div>
 
-    <!-- ── 1. Uebersicht ──────────────────────────────────────────── -->
-    <section id="uebersicht">
-      <h2><span class="num">01</span> &Uuml;bersicht</h2>
-      <p>
-        Damicon &uuml;bertr&auml;gt das bestehende 1&Ccedil;at&#305;-ERP-&Ouml;kosystem
-        aus der Immobilienbranche identisch, nur mit anderem fachlichen Fokus, auf einen
-        Himbeerbetrieb. Die fachneutrale Mechanik von 1&Ccedil;at&#305; &ndash; Standort-Hierarchie,
-        Sperrlogik, Beleg-Ketten, Rollenrechte, Offline-Warteschlangen &ndash; wird
-        &uuml;bernommen, das Domänenvokabular von Immobilie auf Agrar umgestellt.
-      </p>
-      <div class="card">
-        <strong>Was Damicon l&ouml;st:</strong> Marktf&uuml;hrerschaft entsteht nicht &uuml;ber Tonnen,
-        sondern &uuml;ber Belegbarkeit. K&uuml;hlkurve, Charge, Herkunftsblock, Pfl&uuml;cker und
-        Behandlungsnachweis m&uuml;ssen f&uuml;r jede Lieferung l&uuml;ckenlos stehen. Ein ERP, das
-        Nachweisketten kann, ist hier kein Komfortmerkmal, sondern der ganze Business Case.
-      </div>
-      <div class="warn-box">
-        <div class="warn-box-title">Prototyp-Hinweis</div>
-        <p>
-          Dieser Stand ist ein interner Proof-of-Concept. Mit Meilenstein B sind die
-          Hauptfunktionen an die Datenbank angebunden: echte Anmeldung, Rollenrechte
-          &uuml;ber Row Level Security, Standortverwaltung, Reihenblock-Sperre,
-          Pfl&uuml;ckaufgabe mit Fotobeleg und Dokumentenablage. Unterfunktionen bleiben
-          sichtbare Men&uuml;punkte mit Status &bdquo;in Entwicklung&ldquo;. Die Kennzahlenwerte
-          sind weiterhin Platzhalter &ndash; die Berechnung folgt mit den Erntedaten der
-          ersten gemessenen Saison. Ohne Supabase-Umgebung l&auml;uft der Prototyp
-          unver&auml;ndert im Demo-Modus mit Beispieldaten.
-        </p>
-      </div>
-      <div class="feature-grid">
-        <div class="feature-card">
-          <div class="feature-icon">&#127793;</div>
-          <div class="feature-title">Zone Feld</div>
-          <div class="feature-desc">Standort-Hierarchie, Reihenblock-Status inkl. Wartezeitsperre, Pfl&uuml;ckaufgaben mit Fotobeleg, Rotationsplan.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#10052;&#65039;</div>
-          <div class="feature-title">Zone Hof</div>
-          <div class="feature-desc">K&uuml;hlketten-Uhr mit 60-Minuten-Grenzwert, Temperaturlogger, Abholrunden, QR-Steigenkennung, elektronischer Lieferschein.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#128188;</div>
-          <div class="feature-title">Zone B&uuml;ro</div>
-          <div class="feature-desc">Rollen und Rechte, Deckungsbeitrag je Reihenblock und Erntetag, Qualit&auml;tsfaktor-Lohn, Dokumente, Compliance-Cockpit, staatliche Integrationen.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">&#127978;</div>
-          <div class="feature-title">Zone Markt</div>
-          <div class="feature-desc">Sorten- und Kontingentkatalog, B2B-Portal, Retrieval-KI-Chat, Aggregator f&uuml;r Nachbarbetriebe, Schulungsvideos.</div>
-        </div>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Rolle</th><th>1&Ccedil;at&#305;-Vorbild</th><th>Beschreibung</th></tr></thead>
-          <tbody>
-            <tr><td><strong>Administration</strong></td><td>admin</td><td>Volle Konfiguration, Nutzer- und Rollenverwaltung, sensible Finanz- und Integrationsaufsicht. Sieht auf der &Uuml;bersicht denselben Tagesblock wie die Gesch&auml;ftsf&uuml;hrung und kann den Compliance-Lauf ebenfalls ausl&ouml;sen.</td></tr>
-            <tr><td><strong>Gesch&auml;ftsf&uuml;hrung (CEO)</strong></td><td>kein Vorbild</td><td>Nachtr&auml;glich hinzugef&uuml;gt (weicht von der urspr&uuml;nglich abgenommenen Sieben-Rollen-Anforderung ab). Praktisch alle Rechte der Administration, ausser der Verwaltung der KI-Provider-Schl&uuml;ssel. Erh&auml;lt beim Login automatisch einen aktualisierten Compliance-Bericht (alle vier Pr&uuml;fbereiche), sobald sich die Betriebsdaten seit dem letzten Bericht ge&auml;ndert haben. Seit September 2026 gilt das ebenso f&uuml;r die Administration; ein Bericht, der keine 15 Minuten alt ist, wird dabei nicht neu erzeugt, damit nicht zwei Anmeldungen am Morgen denselben Lauf zweimal bezahlen.</td></tr>
-            <tr><td><strong>Betriebsleitung</strong></td><td>manager</td><td>T&auml;glicher Plantagenbetrieb, Aufgaben, Rotation, Personal, Freigaben. Kann Finanzen einsehen, nicht buchen.</td></tr>
-            <tr><td><strong>Buchhaltung</strong></td><td>accountant</td><td>Deckungsbeitrag, Lohn, Zahlungen, staatliche Meldungen.</td></tr>
-            <tr><td><strong>Brigade / Feld</strong></td><td>staff</td><td>Nimmt Pfl&uuml;ckaufgaben an, erfasst Menge und Fotobeleg im Feld.</td></tr>
-            <tr><td><strong>Erzeuger / Nachbarbetrieb</strong></td><td>owner</td><td>Zukauf-Betrieb. Sieht eigene Reihenbl&ouml;cke, Chargen, Abrechnung, Vertr&auml;ge.</td></tr>
-            <tr><td><strong>B2B-Kunde</strong></td><td>tenant</td><td>Kontingente, Vorbestellung, Preislisten, KI-Chat, freigegebene Dokumente.</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
+    <section id="ueberblick">
+      <h2><span class="nr">01</span> Überblick</h2>
+      <p>Damicon steuert den Betrieb einer Himbeerplantage von der Reihe bis zur Rechnung: wo was reif ist, wer gepflückt hat, wie schnell die Ware gekühlt wurde, was sie gekostet und was sie eingebracht hat. Das Portal ist in vier Bereiche geteilt, die dem Weg der Frucht folgen — Feld, Hof, Büro, Markt.</p>
 
-    <!-- ── 2. Zonen & Module ──────────────────────────────────────── -->
-    <section id="features">
-      <h2><span class="num">02</span> Zonen &amp; Module</h2>
+      <div class="kasten kasten-wichtig">
+        <div class="kasten-titel">Worum es geht</div>
+        <p>Marktführerschaft entsteht bei der Himbeere nicht über die Menge, sondern über den Nachweis. Kühlkurve, Charge, Herkunftsblock, Pflücker und Behandlungsnachweis müssen für jede Lieferung lückenlos stehen. Genau das hält Damicon fest.</p>
+      </div>
 
-      <h3 id="feature-list">2.1 Modul&uuml;bersicht</h3>
-      <p>
-        Gegliedert wie die Zielarchitektur im Pitch-Dossier: Feld, Hof, B&uuml;ro, Markt.
-        Aufruf im Dashboard &uuml;ber die Seitenleiste. Sichtbarkeit je Modul richtet sich
-        nach der Rolle des angemeldeten Kontos (RBAC).
-      </p>
-      <div class="table-wrap">
+      <div class="kasten kasten-warnung">
+        <div class="kasten-titel">Stand dieser Fassung</div>
+        <p>Das Portal ist ein Prototyp. Die Hauptfunktionen arbeiten mit einer echten Datenbank: Anmeldung, Rollenrechte, Standortverwaltung, Reihenblock-Sperre, Pflückaufgabe mit Fotobeleg, Dokumentenablage. Zwei Module sind noch Menüpunkt ohne Ansicht. Die Kennzahlen zeigen Ausgangswerte, bis die erste vollständig gemessene Saison vorliegt. Ohne Datenbankverbindung läuft das Portal im Demo-Modus mit Beispieldaten.</p>
+      </div>
+
+      <h3 id="ueberblick-zonen">1.1 Die vier Bereiche</h3>
+      <p>Jeder Bereich hat eine eigene Startseite mit seinen Modulen als Kacheln. Welche davon sichtbar sind, hängt an der Rolle des angemeldeten Kontos.</p>
+      <div class="karten-raster">
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Feld</div>
+          <div class="karte-klein-zeile">Anbau, Ernte, Pflanzenschutz</div>
+          <p>Standortmodell, Reihenblock-Status inklusive Wartezeitsperre, Pflückaufgaben mit Fotobeleg, Rotationsplan und Wetteranbindung.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Hof</div>
+          <div class="karte-klein-zeile">Kühlkette, Logistik</div>
+          <p>Vorkühlung mit 60-Minuten-KPI, Temperaturlogger, Abholrunden, QR-Steigenkennung und elektronischer Lieferschein.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Büro</div>
+          <div class="karte-klein-zeile">Finanzen, Personal, Compliance</div>
+          <p>Rollen und Rechte, Deckungsbeitrag je Reihenblock und Erntetag, Qualitätsfaktor-Lohn, Dokumentenverwaltung, Compliance-Cockpit und die staatlichen Pflichtintegrationen.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Markt</div>
+          <div class="karte-klein-zeile">Vertrieb, KI, Öffentlichkeit</div>
+          <p>Sorten- und Kontingentkatalog, B2B-Portal mit Vorbestellung, KI-Chat auf gesicherter Datenbasis, Aggregator-Plattform für Nachbarbetriebe und mehrsprachige Schulungen.</p>
+        </div>
+      </div>
+
+      <h3 id="ueberblick-rollen">1.2 Rollen</h3>
+      <p>Acht Rollen. Die Rolle des angemeldeten Kontos entscheidet, welche Module in der Navigation erscheinen und was sich davon ändern lässt — geprüft wird das nicht nur in der Oberfläche, sondern noch einmal in der Datenbank.</p>
+      <div class="tabelle">
         <table>
-          <thead><tr><th>Zone</th><th>Modul</th><th>Reifegrad</th><th>Klassifikation</th></tr></thead>
+          <thead><tr><th>Rolle</th><th>Aufgabe und Rechte</th></tr></thead>
           <tbody>
-            <tr><td rowspan="6">Feld</td><td>Standort-Hierarchie</td><td class="yes">DB angebunden</td><td>Anpassen</td></tr>
-            <tr><td>Reihenbl&ouml;cke und Status</td><td class="yes">DB angebunden</td><td>Anpassen</td></tr>
-            <tr><td>Pfl&uuml;ckaufgaben mit Fotobeleg</td><td class="yes">DB angebunden</td><td>&Uuml;bernehmen</td></tr>
-            <tr><td>Pflanzenschutz und Wartezeit</td><td class="yes">DB angebunden</td><td>Anpassen</td></tr>
-            <tr><td>Rotationsplan / Pfl&uuml;ckplan</td><td class="yes">DB angebunden</td><td>Neu bauen</td></tr>
-            <tr><td>Wetter und Temperatursumme</td><td class="yes">DB angebunden</td><td>Neu bauen</td></tr>
-            <tr><td rowspan="4">Hof</td><td>K&uuml;hlketten-Uhr</td><td class="yes">DB angebunden</td><td>Neu bauen</td></tr>
-            <tr><td>Abholrunden und Tourenplanung</td><td class="yes">DB angebunden</td><td>Anpassen</td></tr>
-            <tr><td>QR-Steigenkennung</td><td class="yes">DB angebunden</td><td>Anpassen</td></tr>
-            <tr><td>Elektronischer Lieferschein (&#1069;&#1057;&#1060;)</td><td class="no">in Entwicklung</td><td>Neu bauen</td></tr>
-            <tr><td rowspan="10">B&uuml;ro</td><td>Rollen und Rechte</td><td class="yes">DB angebunden</td><td>&Uuml;bernehmen</td></tr>
-            <tr><td>Deckungsbeitrag und Finanzen</td><td class="yes">DB angebunden</td><td>Anpassen</td></tr>
-            <tr><td>Wirtschaftlichkeit der Einf&uuml;hrung</td><td class="no">Modellwerte</td><td>Neu bauen</td></tr>
-            <tr><td>Pfl&uuml;ckerstamm und Brigaden</td><td class="yes">DB angebunden</td><td>Anpassen</td></tr>
-            <tr><td>Qualit&auml;tsfaktor-Lohn</td><td class="yes">DB angebunden</td><td>Neu bauen</td></tr>
-            <tr><td>Dokumentenverwaltung</td><td class="yes">DB angebunden</td><td>&Uuml;bernehmen</td></tr>
-            <tr><td>Compliance-Cockpit</td><td class="yes">DB angebunden</td><td>Anpassen</td></tr>
-            <tr><td>Staatliche Integrationen</td><td class="no">in Entwicklung</td><td>Neu bauen</td></tr>
-            <tr><td>F&ouml;rdermitteldossier</td><td class="yes">DB angebunden</td><td>Anpassen</td></tr>
-            <tr><td>Stammdaten und Steuernummern</td><td class="yes">DB angebunden</td><td>Neu bauen</td></tr>
-            <tr><td rowspan="7">Markt</td><td>Sorten- und Kontingentkatalog</td><td class="yes">DB angebunden</td><td>Anpassen</td></tr>
-            <tr><td>B2B-Portal</td><td class="yes">DB angebunden</td><td>Anpassen</td></tr>
-            <tr><td>Reklamationsmanagement</td><td class="yes">DB angebunden</td><td>Neu bauen</td></tr>
-            <tr><td>Preislisten</td><td class="yes">DB angebunden</td><td>Anpassen</td></tr>
-            <tr><td>Aggregator / Nachbarbetriebe</td><td class="yes">DB angebunden</td><td>Anpassen</td></tr>
-            <tr><td>Schulungsvideos</td><td class="yes">DB angebunden</td><td>&Uuml;bernehmen</td></tr>
-            <tr><td>Kontaktkan&auml;le</td><td class="yes">DB angebunden</td><td>Neu bauen</td></tr>
+            <tr><td><strong>Administration</strong></td><td>Volle Konfiguration, Nutzer- und Rollenverwaltung, sensible Finanz-, Zugriffs- und Integrationsaufsicht.</td></tr>
+            <tr><td><strong>Geschäftsführung</strong></td><td>Überblick über alle vier Zonen, alle Kennzahlen und alle vier Compliance-Bereiche, ohne Verwaltung der KI-Provider-Schlüssel. Erhält automatisch aktualisierte Compliance-Berichte beim Login.</td></tr>
+            <tr><td><strong>Betriebsleitung</strong></td><td>Täglicher Plantagenbetrieb, Aufgaben, Rotation, Personal und Freigaben. Kann Finanzen einsehen, aber nicht buchen.</td></tr>
+            <tr><td><strong>Buchhaltung</strong></td><td>Deckungsbeitrag, Lohn, Zahlungen, staatliche Meldungen. Keine Nutzerverwaltung, keine Feldabschlüsse.</td></tr>
+            <tr><td><strong>Brigade / Feld</strong></td><td>Nimmt Pflückaufgaben an, erfasst Menge und Fotobeleg im Feld, sieht Rotation und Wartezeitsperren.</td></tr>
+            <tr><td><strong>Pflücker</strong></td><td>Sieht ausschließlich die eigene Pflückleistung und Lohnabrechnung. Keine Schreibrechte auf gebuchte Mengen oder auf Daten anderer.</td></tr>
+            <tr><td><strong>Erzeuger / Nachbarbetrieb</strong></td><td>Nachbarbetrieb im Zukauf. Sieht eigene Reihenblöcke, Chargen, Abrechnung und Verträge.</td></tr>
+            <tr><td><strong>B2B-Kunde</strong></td><td>Kontingente, Vorbestellung, Preislisten, KI-Chat, freigegebene Dokumente und eigene Reklamationen.</td></tr>
           </tbody>
         </table>
       </div>
 
-      <h3 id="plaene">2.2 Reifegrad &amp; Klassifikation</h3>
-      <p>
-        Die Einstufung &Uuml;bernehmen / Anpassen / Neu bauen stammt aus der Migrationsanalyse und
-        beschreibt den Bau, nicht den Betrieb. Sie stand bis September 2026 als Pille auf jeder
-        Modulkarte im Portal und ist dort entfernt worden; die Tabelle oben ist seither ihr
-        einziger Ort.
-      </p>
-      <div class="table-wrap">
+      <div class="kasten kasten-info">
+        <div class="kasten-titel">Dieses Handbuch bedienen</div>
+        <p>Suchen: Feld oben rechts, oder mit / beziehungsweise Strg+K dorthin springen. Die Suche blendet Kapitel ohne Fundstelle aus und hebt die Treffer hervor; Eingabe springt zum nächsten, Umschalt+Eingabe zum vorherigen, Esc setzt zurück. Umlaute sind dabei gleichgültig — „Kuhlkette“ findet die Kühlkette.</p>
+        <p class="abstand-oben">Als PDF speichern: Schaltfläche oben rechts, dann im Druckdialog „Als PDF speichern“ wählen. Der Export enthält immer das vollständige Handbuch in der gerade gewählten Sprache — ein aktiver Suchfilter wird vorher zurückgesetzt, damit kein Ausschnitt entsteht, dem man das Fehlende nicht ansieht. Das gilt auch für Strg+P.</p>
+      </div>
+    </section>
+
+    <section id="bedienung">
+      <h2><span class="nr">02</span> Das Portal bedienen</h2>
+      <p>Dieses Kapitel beschreibt die Oberfläche: wie man sich anmeldet, wie die Navigation aufgebaut ist und wo die Einstellungen liegen. Was die einzelnen Module tun, steht im nächsten Kapitel.</p>
+
+      <h3 id="bedienung-anmelden">2.1 Anmelden</h3>
+      <ol>
+          <li>Das Portal öffnen. Ohne Sprachkürzel in der Adresse führt der Weg automatisch auf die deutsche Fassung.</li>
+          <li>Auf der Startseite „Zum Portal“ wählen oder direkt die Anmeldeseite aufrufen.</li>
+          <li>Mailadresse und Passwort eingeben.</li>
+          <li>Ist für das Konto ein zweiter Faktor hinterlegt, folgt die Abfrage des sechsstelligen Codes. Ein Sprung direkt auf die Übersicht hilft nicht — die Prüfung liegt vor der Seite, nicht in ihr.</li>
+          <li>Nach der Anmeldung steht die Übersicht mit den vier Bereichen und den Kennzahlen des Betriebs.</li>
+      </ol>
+      <div class="kasten kasten-info">
+        <div class="kasten-titel">Zugänge zum Ausprobieren</div>
+        <p>Für den Prototyp ist je Rolle ein Konto eingerichtet: admin@damicon.demo, ceo@damicon.demo, leitung@damicon.demo, buchhaltung@damicon.demo, brigade@damicon.demo, pfluecker@damicon.demo, erzeuger@damicon.demo, kunde@damicon.demo.</p>
+        <p class="abstand-oben">Das Passwort ist für alle acht Konten dasselbe: DamiconDemo2026! — Läuft das Portal ohne Datenbank, entfällt die Anmeldung ganz und es arbeitet mit Beispieldaten. Jede Ansicht zeigt oben rechts an, aus welcher Quelle sie liest.</p>
+      </div>
+
+      <h3 id="bedienung-aufbau">2.2 Aufbau der Oberfläche</h3>
+      <p>Am Schreibtisch trägt die Seitenleiste die Navigation, auf dem Telefon die Leiste am unteren Rand. Beide führen zu denselben Seiten.</p>
+      <div class="karten-raster">
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Seitenleiste</div>
+          <p>Am linken Rand, ab Tabletbreite. Oben die Übersicht, darunter die vier Bereiche als aufklappbare Gruppen mit ihren Modulen. Ein Bereich, in dem die Rolle kein einziges Modul sehen darf, erscheint gar nicht. Die Leiste lässt sich auf eine schmale Symbolspalte einklappen; der Umschalter dafür sitzt in der Kopfzeile. Unten stehen das Handbuch, die angemeldete Person, der Zugang zur Sicherheitsseite und das Abmelden.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Kopfzeile</div>
+          <p>Trägt den Navigationspfad der geöffneten Seite, den Umschalter für die Breite der Seitenleiste, die Sprachauswahl, das Farbschema und — für die Administration — das Feld „Ansicht als“.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Untere Leiste (Telefon)</div>
+          <p>Unter Tabletbreite ersetzt sie die Seitenleiste. Sie zeigt nur die oberste Ebene, also Übersicht und die vier Bereiche; die Module stehen als Kacheln auf der Bereichsseite. Ein Baum mit 26 Einträgen ist die Form für eine stehende Spalte, nicht für eine Fläche, die man mit dem Daumen aufzieht. Über den Kontoknopf öffnet sich ein Blatt mit Sprache, Farbschema, Handbuch, Sicherheit und Abmelden.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Übersicht</div>
+          <p>Die Startseite nach der Anmeldung. Begrüßung, die vier Bereiche mit ihren Kennzahlen. Geschäftsführung und Administration sehen darüber „Das Wichtigste heute“: Reifegrad, ein Satz aus dem letzten Prüfbericht, die Änderungen seit dem Bericht davor und fünf Kacheln für Audit, Steuern, Recht, Risiko und Finanzen.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Bereichsseite</div>
+          <p>Jeder Bereich hat eine eigene Seite mit seinen Modulen als Kacheln, samt Kurzbeschreibung. Sie ist der Weg zu den Modulen auf dem Telefon, wo die Seitenleiste fehlt.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Modulseite</div>
+          <p>Zeigt die Ansicht des Moduls: Tabellen, Formulare, Kennzahlen. Oben rechts steht, ob die Daten aus der Datenbank kommen oder Beispieldaten sind. Module, die noch nicht gebaut sind, nennen in einem Satz, was sie können werden.</p>
+        </div>
+      </div>
+
+      <h3 id="bedienung-sprache">2.3 Sprache umschalten</h3>
+      <p>Die Sprachauswahl sitzt in der Kopfzeile, auf dem Telefon im Konto-Blatt. Vier Sprachen stehen zur Wahl: Deutsch, Englisch, Kasachisch und Russisch. Deutsch und Englisch sind vollständig übersetzt, Kasachisch und Russisch für den Prototyp in weiten Teilen; wo eine Übersetzung fehlt, erscheint der deutsche Text. Die Sprache steht in der Adresse, ein Sprachstand lässt sich also verlinken. Dieses Handbuch folgt der Sprache, in der das Portal gerade läuft, und hat oben rechts einen eigenen Umschalter.</p>
+
+      <h3 id="bedienung-thema">2.4 Farbschema</h3>
+      <p>Hell und Dunkel, umschaltbar in der Kopfzeile. Die Wahl bleibt im Browser gespeichert und gilt auch für dieses Handbuch. Ohne eigene Wahl richtet sich das Portal nach der Einstellung des Betriebssystems.</p>
+
+      <h3 id="bedienung-rolle">2.5 Rolle wechseln</h3>
+      <p>Die wirksame Rolle ist die des angemeldeten Kontos; sie steht unten in der Seitenleiste. Um eine andere Rolle zu sehen, meldet man sich mit dem passenden Konto an. Die Administration hat zusätzlich das Feld „Ansicht als“: es ändert nur, was auf dem Schirm erscheint. Die Schreibrechte richten sich weiterhin nach dem Profil — und zwar in der Datenbank, wo ein Umschalten in der Oberfläche nichts bewirkt.</p>
+
+      <h3 id="bedienung-offline">2.6 Ohne Netz arbeiten</h3>
+      <p>Im Feld ist das Netz unzuverlässig. Meldungen zu Pflückaufgaben, Steigen, Arbeitszeiten und Kühlmessungen wandern deshalb in eine Warteschlange im Gerät und gehen später von selbst hinaus. Sie laufen dabei über dieselbe Prüfung wie eine Eingabe am Schreibtisch — eine Meldung aus der Warteschlange hat keine weiteren Rechte als die Person, die sie erfasst hat.</p>
+    </section>
+
+    <section id="bereiche">
+      <h2><span class="nr">03</span> Bereiche und Module</h2>
+      <p>26 Module in vier Bereichen. Dieses Kapitel beschreibt jedes einzelne: wozu es da ist, wer es sehen und wer darin arbeiten darf, und was noch offen ist. Die Angaben zu Rechten stammen aus derselben Rechtematrix, nach der sich das Portal im Betrieb richtet.</p>
+      <div class="tabelle">
         <table>
-          <thead><tr><th>Begriff</th><th>Bedeutung</th></tr></thead>
+          <thead><tr><th>Modul</th><th>Stand</th><th>Sichtbar für</th></tr></thead>
           <tbody>
-            <tr><td><strong>DB angebunden</strong></td><td>Hauptfunktion mit echter Persistenz: liest und schreibt in die Datenbank, Schreibvorgänge sind &uuml;ber Row Level Security an die Rolle gebunden und werden im Audit-Protokoll festgehalten.</td></tr>
-            <tr><td><strong>in Entwicklung</strong></td><td>Sichtbarer Men&uuml;punkt ohne eigene Ansicht. Die Modulseite nennt in einem Satz, was das Modul k&ouml;nnen wird. Betrifft noch zwei Module: Elektronischer Lieferschein und Staatliche Integrationen.</td></tr>
-            <tr><td><strong>&Uuml;bernehmen</strong></td><td>Code und Architektur aus 1&Ccedil;at&#305; bleiben, nur die Beschriftung &auml;ndert sich.</td></tr>
-            <tr><td><strong>Anpassen</strong></td><td>Das Muster bleibt, Datenmodell und Logik werden umgebaut.</td></tr>
-            <tr><td><strong>Neu bauen</strong></td><td>Es gibt kein Vorbild in 1&Ccedil;at&#305;. Betrifft neun Module, darunter die Bausteine, an denen der Business Case h&auml;ngt: K&uuml;hlkette, Rotationsplan, Wetter und Qualit&auml;tsfaktor-Lohn.</td></tr>
+            <tr><td><strong>Standorte</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</td></tr>
+            <tr><td><strong>Reihenblöcke</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Brigade / Feld, Erzeuger / Nachbarbetrieb</td></tr>
+            <tr><td><strong>Pflückaufgaben</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Brigade / Feld, Erzeuger / Nachbarbetrieb</td></tr>
+            <tr><td><strong>Pflanzenschutz</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</td></tr>
+            <tr><td><strong>Rotationsplan</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</td></tr>
+            <tr><td><strong>Wetter</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</td></tr>
+            <tr><td><strong>Kühlkette</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</td></tr>
+            <tr><td><strong>Abholrunden</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</td></tr>
+            <tr><td><strong>QR-Steigen</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</td></tr>
+            <tr><td><strong>Lieferschein (ЭСФ)</strong></td><td><span class="pille pille-offen">in Entwicklung</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
+            <tr><td><strong>Rollen und Rechte</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung</td></tr>
+            <tr><td><strong>Finanzen</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Erzeuger / Nachbarbetrieb</td></tr>
+            <tr><td><strong>Wirtschaftlichkeit</strong></td><td><span class="pille pille-offen">in Entwicklung</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
+            <tr><td><strong>Pflückerstamm</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung</td></tr>
+            <tr><td><strong>Qualitätsfaktor-Lohn</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Pflücker</td></tr>
+            <tr><td><strong>Dokumente</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Erzeuger / Nachbarbetrieb, B2B-Kunde</td></tr>
+            <tr><td><strong>Compliance</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
+            <tr><td><strong>Integrationen</strong></td><td><span class="pille pille-offen">in Entwicklung</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
+            <tr><td><strong>Fördermittel</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
+            <tr><td><strong>Stammdaten</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</td></tr>
+            <tr><td><strong>Sortenkatalog</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, B2B-Kunde</td></tr>
+            <tr><td><strong>B2B-Portal</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Erzeuger / Nachbarbetrieb, B2B-Kunde</td></tr>
+            <tr><td><strong>Reklamationen</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, B2B-Kunde</td></tr>
+            <tr><td><strong>Preislisten</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung</td></tr>
+            <tr><td><strong>Aggregator</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Erzeuger / Nachbarbetrieb</td></tr>
+            <tr><td><strong>Schulungen</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Brigade / Feld, Pflücker, Erzeuger / Nachbarbetrieb</td></tr>
+            <tr><td><strong>Kontaktkanäle</strong></td><td><span class="pille pille-gut">einsatzbereit</span></td><td>Administration, Geschäftsführung, Betriebsleitung</td></tr>
           </tbody>
         </table>
       </div>
-    </section>
-
-    <!-- ── 3. Erste Schritte ─────────────────────────────────────── -->
-    <section id="tutorials">
-      <h2><span class="num">03</span> Erste Schritte</h2>
-
-      <h3 id="tut-konto">3.1 Prototyp starten</h3>
-      <p><strong>Ohne Datenbank (reine Demo):</strong></p>
-      <ol>
-        <li><code>npm install</code> im Projektverzeichnis ausf&uuml;hren</li>
-        <li><code>npm run dev</code> &ndash; Startet den Dev-Server (Turbopack)</li>
-        <li><code>http://localhost:3000</code> &ouml;ffnen &ndash; leitet automatisch auf <code>/de</code> weiter</li>
-        <li>&Uuml;ber &bdquo;Zum Portal&ldquo; oder <code>/de/dashboard</code> ins Dashboard wechseln</li>
-      </ol>
-      <p><strong>Mit Datenbank (Meilenstein B):</strong></p>
-      <ol>
-        <li><code>supabase start</code> &ndash; lokale Supabase-Instanz (ben&ouml;tigt Docker)</li>
-        <li><code>npm run db:reset</code> &ndash; Migrationen, Seed-Daten und die sechs Demo-Benutzer</li>
-        <li><code>npm run dev</code>, dann <code>/de/login</code> &ouml;ffnen</li>
-      </ol>
-      <div class="info-box">
-        <div class="info-box-title">Demo-Zug&auml;nge</div>
-        <p>
-          Je Rolle ein Konto, Passwort f&uuml;r alle <code>DamiconDemo2026!</code>:
-          <code>admin@damicon.demo</code>, <code>ceo@damicon.demo</code>,
-          <code>leitung@damicon.demo</code>,
-          <code>buchhaltung@damicon.demo</code>, <code>brigade@damicon.demo</code>,
-          <code>pfluecker@damicon.demo</code>,
-          <code>erzeuger@damicon.demo</code>, <code>kunde@damicon.demo</code>.
-          Ohne Supabase-Umgebung entf&auml;llt die Anmeldung und der Prototyp l&auml;uft
-          mit Beispieldaten &ndash; jede Ansicht zeigt oben rechts, welche Quelle sie liest.
-        </p>
+      <div class="kasten kasten-info">
+        <p><strong>einsatzbereit</strong> — Arbeitet mit der Datenbank: liest und schreibt echte Daten, jeder Schreibvorgang ist an die Rolle gebunden und wird im Protokoll festgehalten.</p>
+        <p class="abstand-oben"><strong>in Entwicklung</strong> — Sichtbarer Menüpunkt ohne eigene Ansicht. Die Modulseite nennt in einem Satz, was das Modul können wird.</p>
       </div>
 
-      <h3 id="tut-start">3.2 Rolle wechseln</h3>
+      <h3 id="bereich-feld">3.1 Feld</h3>
+      <p>Standortmodell, Reihenblock-Status inklusive Wartezeitsperre, Pflückaufgaben mit Fotobeleg, Rotationsplan und Wetteranbindung.</p>
+
+      <h4 id="modul-standort">3.1.1 Standort-Hierarchie <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Betrieb, Plantage, Feldparzelle, Reihengruppe, Reihenblock - eine digitale Feldkarte mit eindeutiger Reihen- und Blockkennung entlang der Spaliere.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Feldkarte mit Reihenblöcken am Spalier, Sorte, Pflanzjahr, Rutentyp und Spalierrichtung je Block.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/feld/standort</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Oberfläche zum Anlegen und Verschieben von Parzellen und Reihengruppen, Zeichnen der Feldgeometrie.</span></div>
+      </div>
+
+      <h4 id="modul-reihenbloecke">3.1.2 Reihenblöcke und Status <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Jeder Reihenblock hat einen Status: bepflanzt, erntereif, ruhend, Rückschnitt oder wartezeitgesperrt. Ein gesperrter Block darf im Pflückplan schlicht nicht erscheinen.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Jeder Reihenblock führt seinen eigenen Status. Läuft eine Wartezeit, bleibt er für die Ernte gesperrt, bis sie abgelaufen ist.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/feld/reihenbloecke</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Brigade / Feld, Erzeuger / Nachbarbetrieb</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Statuswechsel mit Begründungspflicht und ein Verlauf je Reihenblock.</span></div>
+      </div>
+
+      <h4 id="modul-pflueckaufgaben">3.1.3 Pflückaufgaben mit Fotobeleg <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Pflückaufgabe je Brigade und Reihenblock mit Ziel- und Istmenge, Q-Faktor und Fotobeleg der Verkaufsschale direkt an der Aufgabe.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Aufgabe je Brigade und Reihenblock, Fotobeleg der Verkaufsschale, Menge und Qualitätsfaktor an der Aufgabe.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/feld/pflueckaufgaben</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Brigade / Feld, Erzeuger / Nachbarbetrieb</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Offline-Erfassung im Feld, Belegprüfung mit Freigabe und Nacharbeit, Verknüpfung mit dem Qualitätsfaktor-Lohn.</span></div>
+      </div>
+
+      <h4 id="modul-pflanzenschutz">3.1.4 Pflanzenschutz und Wartezeit <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Jede Behandlung wird mit Mittel, Menge, Block, Datum und ausführender Person erfasst und sperrt den Reihenblock automatisch bis zum Ablauf der gesetzlichen Wartezeit.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Blockgenaue Behandlungsdokumentation mit automatischer Erntesperre. Ein Verstoß ist ein Rechts- und Lebensmittelsicherheitsrisiko.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/feld/pflanzenschutz</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Spritzmitteldatenbank mit Wartezeiten, automatische Freigabe bei Fristablauf, Protokoll-Upload-Pflicht, Rückstandsnachweis je Charge.</span></div>
+      </div>
+
+      <h4 id="modul-rotationsplan">3.1.5 Rotationsplan / Pflückplan <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Rollierender Pflückplan mit Intervall von zwei bis drei Tagen je Reihenblock über die gesamte Herbsternte. Ein ausgelassener Durchgang vernichtet den Block für diesen Zyklus.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Zeigt, welcher Reihenblock wann an der Reihe ist, und verteilt die Durchgänge über die sechs Wochen der Ernte.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/feld/rotationsplan</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Automatische Intervallrechnung je Reihenblock, Brigadenzuteilung, Prüfung auf Konflikte mit Wartezeitsperren, Kalender-Export (.ics).</span></div>
+      </div>
+
+      <h4 id="modul-wetter">3.1.6 Wetter und Temperatursumme <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Wetterdaten je Standort mit Temperatursummenrechnung als Grundlage für die Mengenprognose.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Einfache Wetterschnittstelle mit Temperatursumme je Parzelle. Erklärbar, prüfbar und innerhalb einer Saison validierbar.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/feld/wetter</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Eine eigene Wetterstation am Betrieb statt der Werte aus dem Netz, Hinweis auf verschobene Reifefenster.</span></div>
+      </div>
+
+      <h3 id="bereich-hof">3.2 Hof</h3>
+      <p>Vorkühlung mit 60-Minuten-KPI, Temperaturlogger, Abholrunden, QR-Steigenkennung und elektronischer Lieferschein.</p>
+
+      <h4 id="modul-kuehlkette">3.2.1 Kühlketten-Uhr <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Zeitmessung von Pflücken bis Vorkühlung mit hartem 60-Minuten-Grenzwert, Temperaturlogger, Zieltemperatur 0 bis 1 Grad. Höchste Priorität im gesamten Betrieb.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Überwacht die Zeit von der Pflückung bis zur Vorkühlung. Über 60 Minuten ist die Ware am nächsten Tag nur noch Industrieware.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/hof/kuehlkette</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Anschluss von Temperaturloggern, damit die Messwerte nicht von Hand erfasst werden müssen.</span></div>
+      </div>
+
+      <h4 id="modul-logistik">3.2.2 Abholrunden und Tourenplanung <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Feste Abholrunden im Feld, damit gefüllte Steigen nicht in der Sonne stehen, plus Tourenplanung nach den Lieferfenstern der Kunden.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Übergabequittung mit Mengen- und Temperaturabgleich (Vorkühlung und Transport), lückenloser Kühlkettennachweis bis zum Kunden.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/hof/logistik</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Tourenliste je Fahrzeug und Lieferzeitfenster fehlen noch.</span></div>
+      </div>
+
+      <h4 id="modul-qr_steigen">3.2.3 QR-Steigenkennung <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>QR-Etiketten für Steigen (Link zur öffentlichen Herkunftsauskunft), Pflückerausweise mit dem eigenen Ausweis-Code ohne Biometrie und ein anmeldungsfreies Aushang-Poster - alle drei lassen sich direkt aus dem Browser drucken.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Der QR-Code trägt die Identität vom Feld bis zur Ladentheke - der Ausweis lässt sich am Sammelpunkt per Kamera scannen, um Steige und Arbeitszeit der Person zuzuordnen, statt sie aus einem Dropdown zu wählen.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/hof/qr-steigen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Brigade / Feld</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Die Steigen-Etiketten lassen sich noch nicht mit der Kamera scannen, nur der Pflückerausweis.</span></div>
+      </div>
+
+      <h4 id="modul-esf">3.2.4 Elektronischer Lieferschein (ЭСФ) <span class="pille pille-offen">in Entwicklung</span></h4>
+      <p>Elektronischer Lieferschein im Einklang mit der Pflicht zum Warenbegleitschein. Die Anbindung an das staatliche ЭСФ-System ist vorgesehen, eine eigene Buchhaltung nicht.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Führt künftig die Belegkette von der Charge zum Lieferschein und nimmt die Statusrückmeldung aus dem staatlichen System auf. Pflichtintegration.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/hof/lieferschein-esf</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Buchhaltung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Anbindung an das ИС ЭСФ, Belegkette Charge zu Lieferschein, Statusrückmeldung und Wiederholung.</span></div>
+      </div>
+
+      <h3 id="bereich-buero">3.3 Büro</h3>
+      <p>Rollen und Rechte, Deckungsbeitrag je Reihenblock und Erntetag, Qualitätsfaktor-Lohn, Dokumentenverwaltung, Compliance-Cockpit und die staatlichen Pflichtintegrationen.</p>
+
+      <h4 id="modul-rollen">3.3.1 Rollen und Rechte <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Acht Kernrollen von der Geschäftsführung und Administration über Betriebsleitung und Buchhaltung bis zur Brigade und dem einzelnen Pflücker im Feld, dem Erzeuger und dem B2B-Kunden, mit einer Rechtematrix über Ressourcen und Aktionen.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Legt fest, wer was sehen und ändern darf. Eine neue Rolle lässt sich anlegen, ohne dass an den Modulen etwas geändert werden muss.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/buero/rollen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Nutzerverwaltung, Rollenzuweisung, feingranulare Zugriffsregeln je Ressource.</span></div>
+      </div>
+
+      <h4 id="modul-finanzen">3.3.2 Deckungsbeitrag und Finanzen <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Kostenstellen je Reihenblock, Kostenträger je Sorte und je Kunde. Deckungsbeitrag je Kilogramm, je Reihenblock, je Sorte und je Erntetag - unveränderliche Buchungen.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Deckungsbeitrag je Reihenblock, Sorte und Erntetag. Buchungen sind unveränderlich (nur Anfügen).</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/buero/finanzen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Erzeuger / Nachbarbetrieb</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Buchhaltung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Kostenarten je Erntetag, B2B-Zahlungsabgleich, Deckungsbeitragsprojektion je Sorte.</span></div>
+      </div>
+
+      <h4 id="modul-wirtschaftlichkeit">3.3.3 Wirtschaftlichkeit der Einführung <span class="pille pille-offen">in Entwicklung</span></h4>
+      <p>Investitionsrechnung zur Einführung: Amortisationsdauer, Rendite im ersten Jahr und über drei Jahre, einmalige und laufende Kosten, Kapitalwert. Noch Modellwerte, keine Betriebszahlen.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Amortisation, Rendite, einmalige und laufende Kosten, Kapitalwert der Einführung. Modellrechnung, noch nicht aus dem Betrieb.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/buero/wirtschaftlichkeit</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Buchhaltung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Erfassung der Investitions-, Betriebs- und Nutzenposten, Historie je Stand, Plan-Ist-Vergleich.</span></div>
+      </div>
+
+      <h4 id="modul-personal">3.3.4 Pflückerstamm und Brigaden <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Personenstamm mit Pflückerausweis, Brigadenzuordnung, Leistungs- und Qualitätsfaktor je Person über die Saison - Grundlage für Prämien, Nachschulung und Auswahl im Folgejahr.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Personenstamm, Brigade und Pflückerausweis, Leistungs- und Qualitätsprofil je Person über die Saison.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/buero/personal</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>ЕСУТД-Erfassung je Vertrag, Brigadenplanung, Leistungshistorie als Grundlage der Lohnberechnung.</span></div>
+      </div>
+
+      <h4 id="modul-lohn">3.3.5 Qualitätsfaktor-Lohn <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Kombimodell aus Grundvergütung, Mengenkomponente und Qualitätsfaktor. Reiner Stücklohn drückt auf Menge, quetscht Beeren und ist bei der Himbeere wertvernichtend.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Grundlohn plus Menge plus Qualitätsfaktor. Der Qualitätsfaktor ist keine Option, sondern Voraussetzung.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/buero/lohn</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Pflücker</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Buchhaltung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Mindestlohn als feste Untergrenze, Pflege der Lohnsätze mit Vorschau auf den Korridor, Lohnzettel als PDF je Pflücker, Vorschusskonto.</span></div>
+      </div>
+
+      <h4 id="modul-dokumente">3.3.6 Dokumentenverwaltung <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Geschützte Ablage für Spritzmittelprotokolle, ЕСУТД-Nachweise, Liefer- und Rahmenverträge, Förderdossiers und Zertifikate - verknüpft mit Reihenblock und Charge.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Kategorisierte, geschützte Dokumentenablage mit Verknüpfung zu Reihenblock und Charge.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/buero/dokumente</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Erzeuger / Nachbarbetrieb, B2B-Kunde</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Versionen je Dokument, Ablauffristen mit Erinnerung.</span></div>
+      </div>
+
+      <h4 id="modul-compliance">3.3.7 Compliance-Cockpit <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Verarbeitungszwecke, Einwilligungen, Datenschutzvorfälle und Drittweitergaben aus fünf granularen Tabellen - Lesen und Schreiben ausschließlich für die Büro-Rollen.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Granulares Datenschutz-Schema: Verarbeitungszwecke, Einwilligungen, Vorfälle und Drittweitergaben an einem Ort.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/buero/compliance</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Rechtszitate aus Steuergesetzbuch, KI-Gesetz und Digitalkodex, Aufbewahrungsfristen je Datenart, Prüfung des Speicherorts.</span></div>
+      </div>
+
+      <h4 id="modul-integrationen">3.3.8 Staatliche Integrationen <span class="pille pille-offen">in Entwicklung</span></h4>
+      <p>Vorgesehen sind Konnektoren zu ЭСФ, virtuellem Lagerbestand, ЕСУТД und den Förderportalen gosagro.kz und qoldau.kz. Die Buchhaltung bleibt bei einer im Land etablierten Lösung.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Bekommt je Zielsystem einen Konnektor mit Statusrückmeldung und Wiederholung. Die Buchhaltung bleibt außen vor.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/buero/integrationen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Buchhaltung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Konnektoren je System, Testzugänge, Umgang mit Fehlern und Wiederholungen, Überblick über die wartenden Vorgänge.</span></div>
+      </div>
+
+      <h4 id="modul-foerdermittel">3.3.9 Fördermitteldossier <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Antragsvorlagen, Nachweislisten und Fristenmonitor für die kasachstanischen Förderportale - Antragsfähigkeit als Nebenprodukt der laufenden Buchführung.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Fristenmonitor und Nachweisdokumente je Dossier sind angebunden. Antragsvorlagen und Nachweis-Checklisten je Förderprogramm bleiben offen.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/buero/foerdermittel</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Antragsvorlagen und Nachweis-Checklisten je Förderprogramm. Offen ist zuerst, welche Felder und Nachweise gosagro.kz und qoldau.kz je Programm verlangen.</span></div>
+      </div>
+
+      <h4 id="modul-stammdaten">3.3.10 Stammdaten und Steuernummern <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Rechtsform und ИИН oder БИН für den eigenen Betrieb, die Zulieferbetriebe und die Kunden - die Angaben, die auf jedem Beleg stehen müssen.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Ein bäuerlicher Betrieb trägt einen ИИН, eine juristische Person einen БИН. Die Prüfziffer weist einen Zahlendreher ab, bevor er auf eine Rechnung gerät.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/buero/stammdaten</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Nummern für Zulieferbetriebe und Kunden erheben.</span></div>
+      </div>
+
+      <h3 id="bereich-markt">3.4 Markt</h3>
+      <p>Sorten- und Kontingentkatalog, B2B-Portal mit Vorbestellung, KI-Chat auf gesicherter Datenbasis, Aggregator-Plattform für Nachbarbetriebe und mehrsprachige Schulungen.</p>
+
+      <h4 id="modul-sortenkatalog">3.4.1 Sorten- und Kontingentkatalog <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Katalog aus Sorte, Erntefenster (sommertragend oder remontierend), Schalengewicht, Kontingent und Preisliste - die Basis für Vorbestellung und B2B-Portal.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Sorte, Erntefenster, Schalengewicht, Kontingent und Preis an einem Ort.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/markt/sortenkatalog</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, B2B-Kunde</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Kontingentbuchung mit Reservierungslogik, Preislistenversionen, Kundenzuordnung.</span></div>
+      </div>
+
+      <h4 id="modul-b2b_portal">3.4.2 B2B-Portal <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Stammkundenportal mit Kontingenten, Vorbestellung mit Vorlauf, Preisliste nach Kundengruppe, Lieferstatus, Rechnungshistorie und Reklamationsmeldung.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Lieferstatus mit Übergabequittung, Preisliste und Vorbestellung mit manueller Bestätigung durchs Büro sind angebunden.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/markt/b2b-portal</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Erzeuger / Nachbarbetrieb, B2B-Kunde</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung, B2B-Kunde</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Automatischer Kontingent-Verbrauch, Preisstaffelung je Kundengruppe und Rechnungshistorie. Wie das im Einzelnen gelten soll, ist noch nicht entschieden.</span></div>
+      </div>
+
+      <h4 id="modul-reklamationen">3.4.3 Reklamationsmanagement <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Reklamation eines B2B-Kunden je Charge - Grund, Frist und Verlauf, mit Statuswechsel bis zur Gutschrift. Ein Kunde meldet und sieht nur die eigene Reklamation, das Büro bearbeitet und schließt ab.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Liste, Detail und Verlauf je Reklamation, angebunden an die Charge - von dort zu Reihenblock, Pflücker und Kühlkurve zurückverfolgbar.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/markt/reklamationen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, B2B-Kunde</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, B2B-Kunde</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Admin-Oberfläche für die Zuordnung Kunde-Login zu B2B-Kunde, automatische Reklamationsquote im Kennzahlen-Cockpit, Benachrichtigung bei nahender Frist.</span></div>
+      </div>
+
+      <h4 id="modul-preislisten">3.4.4 Preislisten <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Versionierte Preislisten mit Staffelpreisen je Kundengruppe und Gültigkeitszeitraum.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Preisstaffeln je Kunde und Zeitraum, versioniert und mit Gültigkeitsdatum.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/markt/preislisten</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Nichts mehr offen: Versionen über das Gültigkeitsdatum, Staffeln über die Mindestmenge und die Zuordnung je Kundengruppe sind angebunden.</span></div>
+      </div>
+
+      <h4 id="modul-aggregator">3.4.5 Aggregator / Nachbarbetriebe <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Anschluss von Nachbarbetrieben: Zukaufmenge wird zur Rechnungsposition, jede Zukaufcharge wird getrennt geführt und bleibt auf den liefernden Betrieb zurückverfolgbar.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Nachbarbetrieb-Onboarding, Zukauf-Erfassung mit eigener Charge, getrennte Herkunftsführung, Abrechnung.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/markt/aggregator</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Erzeuger / Nachbarbetrieb</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Eine Spanne je Nachbarbetrieb statt einer einheitlichen für alle, und die Auszahlung selbst.</span></div>
+      </div>
+
+      <h4 id="modul-schulungen">3.4.6 Schulungsvideos <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Mehrsprachige, bildbasierte Kurzeinarbeitung der Saisonkräfte auf dem Telefon - Videos je Kernprozess, mit Bildern statt Text.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>Bebilderte Kurzeinarbeitung in sechs Schritten, mehrsprachig, mit eigenem Fortschritt je Person, dazu die Pflichtschulungen.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/markt/schulungen</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Brigade / Feld, Pflücker, Erzeuger / Nachbarbetrieb</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung, Buchhaltung, Brigade / Feld, Pflücker</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Videos je Kernprozess, gedreht und auf Kasachisch und Russisch vertont.</span></div>
+      </div>
+
+      <h4 id="modul-kanaele">3.4.7 Kontaktkanäle <span class="pille pille-gut">einsatzbereit</span></h4>
+      <p>Lokal etablierte Kontaktkanäle und Zahlungswege, im Seitenfuß der Website öffentlich sichtbar. Reine Anzeige, keine Anbindung an einen echten Messenger- oder Zahlungsdienst.</p>
+      <div class="merkmale">
+        <div class="merkmal"><span class="merkmal-name">Kurz gesagt</span><span>WhatsApp, Kaspi QR und weitere Kanäle als Kontaktangabe - vom Büro gepflegt, bis dahin als Entwurf verborgen.</span></div>
+        <div class="merkmal"><span class="merkmal-name">Aufruf</span><span><code>/de/dashboard/markt/kanaele</code></span></div>
+        <div class="merkmal"><span class="merkmal-name">Sichtbar für</span><span>Administration, Geschäftsführung, Betriebsleitung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Ändern dürfen</span><span>Administration, Geschäftsführung, Betriebsleitung</span></div>
+        <div class="merkmal"><span class="merkmal-name">Noch offen</span><span>Echte Kontodaten je Kanal eintragen.</span></div>
+      </div>
+    </section>
+
+    <section id="anleitungen">
+      <h2><span class="nr">04</span> Anleitungen</h2>
+      <p>Fünf Abläufe, die den Kern des Betriebs abdecken. Die Pfade beziehen sich auf die Seitenleiste.</p>
+
+      <h3 id="anleitung-wartezeit">4.1 Wartezeitsperre auslösen und aufheben</h3>
+      <p>Nach einer Pflanzenschutzbehandlung darf ein Reihenblock bis zum Ablauf der Wartezeit nicht beerntet werden. Das Portal setzt diese Sperre selbst.</p>
       <ol>
-        <li>Die wirksame Rolle ist die Rolle des angemeldeten Kontos &ndash; sie steht in der Seitenleiste und in der Kopfzeile</li>
-        <li>Zum Vergleich mit einer anderen Rolle abmelden und mit dem passenden Demo-Konto neu anmelden</li>
-        <li>Die Administration hat zus&auml;tzlich das Auswahlfeld &bdquo;Ansicht als&ldquo;: es &auml;ndert nur die Darstellung, die Schreibrechte richten sich weiter nach dem Profil</li>
-        <li>Die Seitenleiste zeigt nur die f&uuml;r die Rolle freigegebenen Module; beim direkten Aufruf eines gesperrten Moduls erscheint ein Zugriffs-Hinweis. Dieselbe Rolle entscheidet in der Datenbank &uuml;ber Lese- und Schreibrechte (Row Level Security)</li>
+          <li>Als Betriebsleitung anmelden und Feld → Reihenblöcke und Status öffnen.</li>
+          <li>Unten „Behandlung erfassen“: Reihenblock und Mittel wählen. Die Wartezeit kommt aus dem Mittelkatalog, sie wird nicht von Hand eingetragen.</li>
+          <li>Der Block steht sofort auf wartezeitgesperrt. Die Spalte „Sperre“ zeigt Mittel, Behandlungsdatum, Wartezeit, Freigabedatum und die verbleibenden Tage.</li>
+          <li>Ein Statuswechsel ist jetzt nicht mehr möglich. Die Regel liegt in der Datenbank und greift auch dann, wenn jemand an der Oberfläche vorbei arbeitet.</li>
+          <li>Ist die Wartezeit abgelaufen, erscheint die Schaltfläche „Freigeben“. Sie hebt die Sperre auf und quittiert zugleich die Behandlung.</li>
+          <li>Ein Klick auf die Statuskacheln filtert die Tabelle; der gefilterte Stand lässt sich als Link weitergeben.</li>
       </ol>
 
-      <h3 id="tut-upgrade">3.3 Sprache umschalten</h3>
+      <h3 id="anleitung-pflueckaufgabe">4.2 Pflückaufgabe mit Fotobeleg</h3>
       <ol>
-        <li>Sprachumschalter im Kopfbereich (Globus-Symbol): DE, EN, TR, KK, RU</li>
-        <li>Die Startsprache ist Deutsch. Kasachisch kommt gegen&uuml;ber 1&Ccedil;at&#305; hinzu; Englisch wurde auf ausdr&uuml;ckliche Anweisung wieder aufgenommen (deckt sich mit der Pitch-Dossier-Empfehlung, Dokumente in Russisch und Englisch bereitzustellen)</li>
-        <li>Deutsch und Englisch sind vollst&auml;ndig; TR, KK und RU sind f&uuml;r den Prototyp bewusst teil&uuml;bersetzt und fallen sonst per Deep-Merge auf Deutsch zur&uuml;ck</li>
+          <li>Feld → Pflückaufgaben mit Fotobeleg öffnen.</li>
+          <li>Unten eine neue Pflückaufgabe anlegen. Gesperrte Blöcke stehen nicht zur Auswahl und werden von der Datenbank zusätzlich abgewiesen.</li>
+          <li>Links eine Aufgabe je Brigade und Reihenblock wählen. Der Fortschritt ist Istmenge gegen Zielmenge.</li>
+          <li>Als Brigade die Aufgabe annehmen, das Pflücken starten und rechts einen Fotobeleg hochladen. Auf dem Telefon öffnet sich dafür direkt die Kamera. Die Datei liegt in einem privaten Ablagebereich und wird nur über kurzlebige, signierte Links angezeigt.</li>
+          <li>„Menge melden“ setzt die Aufgabe auf Belegprüfung.</li>
+          <li>Betriebsleitung oder Administration prüfen den Beleg, tragen den Qualitätsfaktor ein und geben die Aufgabe frei.</li>
+      </ol>
+
+      <h3 id="anleitung-nachweiskette">4.3 Die Nachweiskette einer Lieferung zeigen</h3>
+      <p>Das ist der Ablauf, auf den es beim Kunden ankommt: von der Schale zurück bis zur Person, die sie gefüllt hat.</p>
+      <ol>
+          <li>Feld → Pflückaufgaben mit Fotobeleg öffnen und links eine Aufgabe wählen.</li>
+          <li>Rechts unter „Nachweiskette“ steht die Charge: Kühlkurve mit der 60-Minuten-Grenze, Menge und Ausschuss, die Steigen mit der Person, die sie gefüllt hat, und der Rückstandsnachweis.</li>
+          <li>„Steige erfassen“ ordnet eine Steige einer Person zu. Erst damit reicht die Kette vom Kunden bis zum Pflücker.</li>
+          <li>„Arbeitszeit melden“ liefert den Nenner der Pflückleistung in Kilogramm je Stunde.</li>
+          <li>„Kühlmessung erfassen“: Minuten und Urteil rechnet die Datenbank aus dem Pflückzeitpunkt. Über 60 Minuten meldet die Oberfläche einen Verstoß, und die Ware ist abzuwerten.</li>
+          <li>Auf der Übersicht zeigen die Kennzahlen danach den geänderten Istwert — gerechnet, nicht gesetzt.</li>
+      </ol>
+
+      <h3 id="anleitung-dokument">4.4 Ein Dokument aufnehmen</h3>
+      <ol>
+          <li>Als Bürorolle Büro → Dokumentenverwaltung öffnen.</li>
+          <li>Unter „Dokument aufnehmen“ Bezeichnung, Kategorie, Bezug und Stand erfassen. Die Datei selbst — PDF oder Bild — ist dabei nicht zwingend.</li>
+          <li>Hinterlegte Dateien öffnen sich über die Spalte „Datei“ per signiertem Link. Einen öffentlichen Direktzugriff gibt es nicht.</li>
+      </ol>
+
+      <h3 id="anleitung-zugang">4.5 Zugang einrichten: Einladung und zweiter Faktor</h3>
+      <p>Neue Kundenkonten entstehen über eine Einladung. Den zweiten Faktor richtet jede Person für sich selbst ein.</p>
+      <ol>
+          <li>Als Administration oder Betriebsleitung Büro → Rollen und Rechte öffnen.</li>
+          <li>Unter „Einladungen“ Mailadresse und Rolle erfassen. Die Verwaltung sitzt hier, weil sie dieselbe Sache ist wie die Rechtematrix darüber — nur deren schreibende Seite.</li>
+          <li>Die eingeladene Person öffnet den Einladungslink und vergibt ihr Passwort. Diese Seite ist ohne Anmeldung erreichbar: wer dort landet, hat noch kein Konto.</li>
+          <li>Eine offene Einladung lässt sich zurückziehen, solange sie nicht eingelöst ist.</li>
+          <li>Für den zweiten Faktor: unten in der Seitenleiste „Sicherheit“ öffnen, auf dem Telefon denselben Punkt im Konto-Blatt.</li>
+          <li>„Starten“ zeigt QR-Code und Schlüssel — beides wird nur ein einziges Mal herausgegeben. In einer Authenticator-App scannen, den sechsstelligen Code eingeben und bestätigen. Erst damit gilt der Faktor.</li>
       </ol>
     </section>
 
-    <!-- ── 4. How-to Guides ───────────────────────────────────────── -->
-    <section id="howto">
-      <h2><span class="num">04</span> How-to Guides</h2>
-
-      <h3 id="ht-profil">4.1 Wartezeitsperre ausl&ouml;sen und aufheben</h3>
-      <ol>
-        <li>Als <code>leitung@damicon.demo</code> anmelden, <code>Dashboard &rarr; Feld &rarr; Reihenbl&ouml;cke und Status</code> &ouml;ffnen</li>
-        <li>Unten <strong>Behandlung erfassen</strong>: Reihenblock und Pflanzenschutzmittel w&auml;hlen. Die Wartezeit kommt aus dem Mittelkatalog</li>
-        <li>Der Block steht sofort auf <strong>wartezeitgesperrt</strong>, die Spalte &bdquo;Sperre&ldquo; zeigt Mittel, Behandlungsdatum, Wartezeit, Freigabedatum und die Resttage</li>
-        <li>Ein Statuswechsel ist jetzt nicht mehr m&ouml;glich &ndash; die Regel liegt als Trigger in der Datenbank und greift auch bei direktem Datenbankzugriff</li>
-        <li>Ist die Wartezeit abgelaufen, erscheint die Schaltfl&auml;che <strong>Freigeben</strong>; sie ruft die Datenbankfunktion <code>reihenblock_freigeben()</code> auf und quittiert zugleich die Behandlung</li>
-        <li>Auf die Statuskacheln klicken filtert die Tabelle; der gefilterte Stand ist als Link teilbar</li>
-      </ol>
-
-      <h3 id="ht-loeschen">4.2 Pfl&uuml;ckaufgabe mit Fotobeleg</h3>
-      <ol>
-        <li><code>Dashboard &rarr; Feld &rarr; Pfl&uuml;ckaufgaben mit Fotobeleg</code> &ouml;ffnen</li>
-        <li>Unten <strong>Neue Pflückaufgabe</strong> anlegen &ndash; wartezeitgesperrte Bl&ouml;cke stehen nicht zur Auswahl und werden von der Datenbank zus&auml;tzlich abgewiesen</li>
-        <li>Links eine Aufgabe je Brigade und Reihenblock w&auml;hlen; Fortschritt ist Istmenge gegen Zielmenge</li>
-        <li>Als Brigade die Aufgabe annehmen, das Pfl&uuml;cken starten und rechts einen <strong>Fotobeleg</strong> hochladen (auf dem Telefon &ouml;ffnet sich direkt die Kamera). Die Datei liegt in einem privaten Storage-Bucket und wird nur &uuml;ber kurzlebige signierte Links angezeigt</li>
-        <li><strong>Menge melden</strong> setzt die Aufgabe auf Belegpr&uuml;fung</li>
-        <li>Betriebsleitung oder Administration pr&uuml;fen den Beleg, tragen den Qualit&auml;tsfaktor ein und geben die Aufgabe frei</li>
-      </ol>
-
-      <h3 id="ht-kette">4.3 Nachweiskette einer Lieferung zeigen</h3>
-      <ol>
-        <li><code>Dashboard &rarr; Feld &rarr; Pfl&uuml;ckaufgaben mit Fotobeleg</code> &ouml;ffnen, links eine Aufgabe w&auml;hlen</li>
-        <li>Rechts unter <strong>Nachweiskette</strong> steht die Charge: Kühlkurve mit der 60-Minuten-Grenze, Menge und Ausschuss, die Steigen mit der Person, die sie gef&uuml;llt hat, und der Rückstandsnachweis</li>
-        <li><strong>Steige erfassen</strong> ordnet eine Steige einer Person zu - erst damit reicht die Kette vom Kunden bis zum Pfl&uuml;cker</li>
-        <li><strong>Arbeitszeit melden</strong> liefert den Nenner der Pfl&uuml;ckleistung in kg je Stunde</li>
-        <li><strong>K&uuml;hlmessung erfassen</strong>: Minuten und Urteil rechnet die Datenbank aus dem Pfl&uuml;ckzeitpunkt. &Uuml;ber 60 Minuten meldet die Oberfl&auml;che einen Versto&szlig; und die Ware ist abzuwerten</li>
-        <li>Auf der &Uuml;bersicht zeigen die Kennzahlenkacheln danach den ge&auml;nderten Istwert - gerechnet, nicht gesetzt</li>
-      </ol>
-
-      <h3 id="ht-dokumente">4.4 Dokument aufnehmen</h3>
-      <ol>
-        <li>Als B&uuml;rorolle <code>Dashboard &rarr; B&uuml;ro &rarr; Dokumentenverwaltung</code> &ouml;ffnen</li>
-        <li>Unter <strong>Dokument aufnehmen</strong> Bezeichnung, Kategorie, Bezug und Stand erfassen; die Datei (PDF oder Bild) ist optional</li>
-        <li>Hinterlegte Dateien &ouml;ffnen sich &uuml;ber die Spalte &bdquo;Datei&ldquo; per signiertem Link &ndash; kein &ouml;ffentlicher Direktzugriff</li>
-      </ol>
-    </section>
-
-    <!-- ── 5. Funktionsreferenz ───────────────────────────────────── -->
     <section id="referenz">
-      <h2><span class="num">05</span> Funktionsreferenz</h2>
+      <h2><span class="nr">05</span> Referenz</h2>
 
-      <h3 id="routen">5.1 Routen-&Uuml;bersicht</h3>
-      <div class="table-wrap">
+      <h3 id="referenz-seiten">5.1 Seiten</h3>
+      <p>Alle Adressen des Portals. {locale} steht für eines der vier Sprachkürzel de, en, kk oder ru; ohne Kürzel führt der Weg auf die deutsche Fassung.</p>
+      <div class="tabelle">
         <table>
-          <thead><tr><th>Route</th><th>Beschreibung</th><th>Zugriff</th></tr></thead>
+          <thead><tr><th>Adresse</th><th>Inhalt</th><th>Zugriff</th></tr></thead>
           <tbody>
-            <tr><td><code>/</code></td><td>Weiterleitung auf <code>/de</code> (Locale-Praefix erzwungen)</td><td>Alle</td></tr>
-            <tr><td><code>/[locale]</code></td><td>&Ouml;ffentliche Landingpage in Kapiteln: Hero mit Plantagenvideo, &bdquo;Warum die Himbeere anders ist&ldquo; als Bento-Raster, 60-Minuten-Szene (angeheftete Scroll-Szene mit Uhr, K&uuml;hlkurve, Bildsequenz und Frostkristallen), Kapitelbild der Anlage, Preisspread, Qualit&auml;tsma&szlig;stab mit Lupe und Vergleichsregler, Bestand, animierte Nachweiskette mit Link zur Herkunftsauskunft, vier Hebel, vier Bereiche, KPI-Band, Compliance. Dazu weiches Scrollen (Lenis, nur Maus/Trackpad), &Uuml;berblendung beim Sprachwechsel und beim Sprung ins Portal (View Transitions API), Zeiger-Folger, zuschaltbare Feldger&auml;usche und ein 3D-Rundgang (Gaussian Splat), der erst erscheint, wenn ein Scan hinterlegt ist. Medien zentral in <code>src/lib/site-medien.ts</code>, Aufnahmeplan in <code>docs/aufnahmeplan.md</code>. Reduzierte Bewegung und Datensparmodus zeigen Standbilder. Rein produktbezogen, keine 1&Ccedil;at&#305;-Nennung.</td><td>Alle</td></tr>
-            <tr><td><code>/[locale]/login</code></td><td>Anmeldung; im Demo-Modus stattdessen Hinweis und direkter Weg ins Dashboard</td><td>Alle</td></tr>
-            <tr><td><code>/[locale]/dashboard</code></td><td>Betriebs&uuml;bersicht: Begr&uuml;&szlig;ung, die vier Zonen mit ihren Kennzahlen aus <code>kpi_baseline</code>. F&uuml;r Gesch&auml;ftsf&uuml;hrung und Administration dar&uuml;ber &bdquo;Das Wichtigste heute&ldquo;: Reifegrad, ein Satz aus dem gespeicherten Pr&uuml;fbericht, bis zu drei Punkte, die &Auml;nderungen seit dem letzten Bericht und f&uuml;nf Kacheln nebeneinander &ndash; Audit, Steuern, Recht, Risiko und Finanzen. Rollen mit Finanzrecht, aber ohne diesen Block (Buchhaltung, Betriebsleitung) sehen die Finanzzahlen weiterhin als eigene Vorschau.</td><td>Anmeldung</td></tr>
-            <tr><td><code>/[locale]/dashboard/compliance</code></td><td>Der zuletzt gespeicherte Compliance-Gesamtbericht in voller L&auml;nge: Befunde mit Bereichsfilter, Ma&szlig;nahmenplan, Hinweise, Siegelpr&uuml;fung und PDF-Ausgabe. Ziel jeder Bereichskachel der &Uuml;bersicht, auch ohne JavaScript.</td><td>Gesch&auml;ftsf&uuml;hrung, Administration</td></tr>
-            <tr><td><code>/[locale]/dashboard/[zone]</code></td><td>Zonen&uuml;bersicht (feld, hof, buero, markt) mit den Modulen der Zone</td><td>RBAC</td></tr>
-            <tr><td><code>/[locale]/dashboard/[zone]/[modul]</code></td><td>Einzelmodul &ndash; datenbankgest&uuml;tzte Ansicht, Demo-Oberfl&auml;che oder Platzhalter &bdquo;in Entwicklung&ldquo;</td><td>RBAC + RLS</td></tr>
-            <tr><td><code>/[locale]/impressum</code></td><td>Impressum (WAMOCON GmbH)</td><td>Alle</td></tr>
-            <tr><td><code>/[locale]/datenschutz</code></td><td>Datenschutz inkl. Hinweis zur Datenresidenz</td><td>Alle</td></tr>
+            <tr><td><code>/</code></td><td>Leitet auf die deutsche Fassung weiter.</td><td>Alle</td></tr>
+            <tr><td><code>/{locale}</code></td><td>Öffentliche Startseite: worum es geht, warum die Himbeere besondere Anforderungen stellt, die 60-Minuten-Szene, Qualitätsmaßstab, Nachweiskette mit Link zur Herkunftsauskunft, Bereiche, Kennzahlen.</td><td>Alle</td></tr>
+            <tr><td><code>/{locale}/login</code></td><td>Anmeldung. Ohne Datenbankverbindung steht hier stattdessen ein Hinweis und der direkte Weg ins Portal.</td><td>Alle</td></tr>
+            <tr><td><code>/{locale}/login/mfa</code></td><td>Abfrage des zweiten Faktors. Eine Sitzung mit bloßem Passwort reicht nicht, wenn für das Konto ein bestätigter zweiter Faktor hinterlegt ist.</td><td>Angemeldet</td></tr>
+            <tr><td><code>/{locale}/einladung</code></td><td>Einen eingeladenen Zugang einlösen und das eigene Passwort vergeben. Ohne Anmeldung erreichbar — wer hier landet, hat noch kein Konto.</td><td>Alle</td></tr>
+            <tr><td><code>/{locale}/dashboard</code></td><td>Übersicht mit den vier Bereichen und ihren Kennzahlen. Für Geschäftsführung und Administration zusätzlich der Tagesblock „Das Wichtigste heute“.</td><td>Angemeldet</td></tr>
+            <tr><td><code>/{locale}/dashboard/{bereich}</code></td><td>Startseite eines Bereichs (feld, hof, buero, markt) mit seinen Modulen als Kacheln.</td><td>Nach Rolle</td></tr>
+            <tr><td><code>/{locale}/dashboard/{bereich}/{modul}</code></td><td>Ein einzelnes Modul. Die Adressen der 26 Module stehen im Kapitel „Bereiche und Module“.</td><td>Nach Rolle</td></tr>
+            <tr><td><code>/{locale}/dashboard/compliance</code></td><td>Der zuletzt gespeicherte Compliance-Bericht in voller Länge: Befunde mit Bereichsfilter, Maßnahmenplan, Hinweise, Siegelprüfung und PDF-Ausgabe.</td><td>Geschäftsführung, Administration</td></tr>
+            <tr><td><code>/{locale}/dashboard/sicherheit</code></td><td>Den eigenen zweiten Faktor einrichten, bestätigen oder entfernen. Jede Rolle verwaltet hier ausschließlich sich selbst.</td><td>Angemeldet</td></tr>
+            <tr><td><code>/{locale}/dashboard/handbuch</code></td><td>Dieses Handbuch, in der Sprache des Portals. Mit Volltextsuche und vollständigem PDF-Export.</td><td>Angemeldet</td></tr>
+            <tr><td><code>/{locale}/herkunft</code></td><td>Eingang zur öffentlichen Herkunftsauskunft mit Feld zum Abtippen des Codes — für alle, die keinen QR-Code scannen können.</td><td>Alle</td></tr>
+            <tr><td><code>/{locale}/herkunft/{code}</code></td><td>Die Auskunft zu genau einer Charge. Sie gibt weder die Chargennummer noch Pflücker-, Mengen- oder Preisangaben heraus; deshalb ist sie ohne Anmeldung vertretbar.</td><td>Alle</td></tr>
+            <tr><td><code>/{locale}/herkunft/aushang</code></td><td>Aushang zum Ausdrucken. Der QR-Code darauf zeigt auf die Codeeingabe, nicht auf eine einzelne Charge: ein Aushang hängt wochenlang am Kühlraum, eine Schale steht nur Stunden.</td><td>Alle</td></tr>
+            <tr><td><code>/{locale}/impressum</code></td><td>Impressum der WAMOCON GmbH.</td><td>Alle</td></tr>
+            <tr><td><code>/{locale}/datenschutz</code></td><td>Datenschutzhinweise samt Angaben zur Datenhaltung.</td><td>Alle</td></tr>
           </tbody>
         </table>
       </div>
-      <p><code>[locale]</code> ist eines von <code>de</code>, <code>en</code>, <code>tr</code>, <code>kk</code>, <code>ru</code>. Locale-Routing &uuml;ber <code>src/proxy.ts</code> (Next.js 16) und next-intl.</p>
+      <p>Die Seiten unter /dashboard verlangen eine Anmeldung. Ohne Datenbankverbindung entfällt diese Prüfung, weil es dann keine Sitzung gibt — der Demo-Modus bleibt so ohne Einrichtung startbar.</p>
 
-      <h3 id="api">5.2 Rollen &amp; Rechte (RBAC)</h3>
-      <p>
-        &Uuml;bernommen aus <code>1&Ccedil;at&#305;/apps/web/lib/rbac.ts</code>. Sechs Kernrollen &uuml;ber
-        27 Ressourcen mal 7 Aktionen als reine Datenstruktur. Die Guardianship-/Kind-Rollen
-        aus 1&Ccedil;at&#305; (guest, service_provider, child_owner, child_tenant, child_guest)
-        sind wie in der Analyse gefordert entfernt.
+      <h3 id="referenz-rechte">5.2 Rechte je Rolle</h3>
+      <p>Welche Rolle welches Modul sehen und ändern darf. Die Tabelle ist aus derselben Rechtematrix erzeugt, nach der sich das Portal im Betrieb richtet — sie kann also nicht veralten, ohne dass sich das Portal mit ihr ändert.</p>
+      <p class="legende">
+        <span class="recht recht-schreiben">●</span> Rechte je Rolle &nbsp;
+        <span class="recht recht-lesen">○</span> Sichtbar für &nbsp;
+        <span class="recht recht-keins">·</span> —
       </p>
-      <p>
-        Mit Meilenstein B h&auml;ngt an jeder Rolle eine echte Identit&auml;t: Supabase Auth legt
-        beim Anlegen eines Benutzers &uuml;ber den Trigger <code>handle_new_auth_user()</code> das
-        Profil an, die Profilrolle beantwortet in der Datenbank <code>current_app_role()</code>
-        und damit jede RLS-Policy. Die Anwendung pr&uuml;ft zus&auml;tzlich vor jedem
-        Schreibvorgang &uuml;ber <code>requirePermission()</code> &ndash; zwei unabh&auml;ngige
-        Verteidigungslinien.
-      </p>
-      <div class="info-box">
-        <div class="info-box-title">Schreibrechte je Ressource</div>
-        <p>
-          Standort-Hierarchie, Sortenkatalog, Pflanzenschutz und Personal: Administration und
-          Betriebsleitung. Pfl&uuml;ckaufgaben, Fotobelege und Chargen zus&auml;tzlich die Brigade.
-          Dokumente: Administration, Betriebsleitung und Buchhaltung. Das Audit-Protokoll ist
-          f&uuml;r alle Angemeldeten schreibbar, aber weder &auml;nder- noch l&ouml;schbar.
-          Gepr&uuml;ft wird das nicht nur im Test, sondern in <code>npm run db:test</code>
-          f&uuml;r jede Rolle einzeln.
-        </p>
-      </div>
-    </section>
-
-    <!-- ── 6. Technische Architektur ──────────────────────────────── -->
-    <section id="tech">
-      <h2><span class="num">06</span> Technische Architektur</h2>
-
-      <h3 id="tech-stack">6.1 Stack</h3>
-      <div class="table-wrap">
+      <div class="tabelle tabelle-matrix">
         <table>
-          <thead><tr><th>Schicht</th><th>Technologie</th><th>Aufgabe</th></tr></thead>
+          <thead><tr><th>Modul</th><th>Administration</th><th>Geschäftsführung</th><th>Betriebsleitung</th><th>Buchhaltung</th><th>Brigade / Feld</th><th>Pflücker</th><th>Erzeuger / Nachbarbetrieb</th><th>B2B-Kunde</th></tr></thead>
           <tbody>
-            <tr><td>Framework</td><td>Next.js 16 (App Router, <code>src/app/</code>)</td><td>SSR, statische Locale-Seiten, <code>src/proxy.ts</code></td></tr>
-            <tr><td>Sprache</td><td>TypeScript (strict)</td><td>Typsicheres Domänenmodell und RBAC</td></tr>
-            <tr><td>Styling</td><td>Tailwind CSS v4</td><td>Design-Tokens in <code>src/app/globals.css</code>, Hell/Dunkel</td></tr>
-            <tr><td>i18n</td><td>next-intl v4</td><td>F&uuml;nf Locales (de/en/tr/kk/ru), Fallback auf Deutsch per Deep-Merge</td></tr>
-            <tr><td>Icons</td><td>lucide-react</td><td>Kuratierte Icon-Registry (<code>src/components/icon.tsx</code>)</td></tr>
-            <tr><td>Bilder</td><td>next/image, eigene SVG-Platzhalter</td><td>Belegplatzhalter unter <code>public/belege/</code>, sp&auml;ter 1:1 durch Betriebsmaterial ersetzt</td></tr>
-            <tr><td>Datenbank</td><td>Supabase (PostgreSQL, RLS), lokal via Docker</td><td>39 Tabellen, Migrationen in <code>supabase/migrations/</code></td></tr>
-            <tr><td>Auth</td><td>Supabase Auth, <code>@supabase/ssr</code></td><td>Session-Cookies, Auffrischung und Routenschutz in <code>src/proxy.ts</code></td></tr>
-            <tr><td>Dateien</td><td>Supabase Storage</td><td>Private Buckets <code>belege</code> und <code>dokumente</code>, Auslieferung nur &uuml;ber signierte Links</td></tr>
-            <tr><td>Schreibvorgänge</td><td>Server Actions</td><td><code>src/lib/actions/</code>, jeweils RBAC-gepr&uuml;ft und mit Audit-Eintrag</td></tr>
-            <tr><td>UI-State</td><td><code>localStorage</code></td><td>Theme und Rollenansicht, nur lokal im Browser</td></tr>
+            <tr><td><strong>Standorte</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Reihenblöcke</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Pflückaufgaben</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Pflanzenschutz</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Rotationsplan</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Wetter</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Kühlkette</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Abholrunden</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>QR-Steigen</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Lieferschein (ЭСФ)</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Rollen und Rechte</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Finanzen</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Wirtschaftlichkeit</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Pflückerstamm</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Qualitätsfaktor-Lohn</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Dokumente</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-lesen">○</span></td></tr>
+            <tr><td><strong>Compliance</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Integrationen</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Fördermittel</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Sortenkatalog</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td></tr>
+            <tr><td><strong>B2B-Portal</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td></tr>
+            <tr><td><strong>Reklamationen</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td></tr>
+            <tr><td><strong>Preislisten</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Aggregator</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Schulungen</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-lesen">○</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Stammdaten</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
+            <tr><td><strong>Kontaktkanäle</strong></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-schreiben" title="Rechte je Rolle">●</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td><td><span class="recht recht-keins">·</span></td></tr>
           </tbody>
         </table>
       </div>
-      <div class="info-box">
-        <div class="info-box-title">Datenbankschema</div>
-        <p>
-          Das vollst&auml;ndige Schema (Standort-Hierarchie, Ernte, Kühlkette, Finanzen, Compliance,
-          Integrationen) liegt als Supabase-Migrationen vor: <code>..._initial_schema.sql</code>
-          (39 Tabellen, Enums, Trigger), <code>..._rls_policies.sql</code> (Lesezugriff),
-          <code>..._auth_und_schreibrechte.sql</code> (Profil-Trigger, Schreib-Policies je Rolle,
-          Sperrlogik, <code>reihenblock_freigeben()</code>), <code>..._storage_belege.sql</code>
-          (private Buckets) und <code>..._pflueckaufgabe_sperre.sql</code>.
-          Seed-Daten in <code>supabase/seed.sql</code>, Demo-Benutzer &uuml;ber
-          <code>supabase/seed-auth.mjs</code>. Die 1&Ccedil;at&#305;-Muster sind erhalten:
-          der <code>reihenbloecke</code>-Zustandsautomat (<code>blocked</code> &rarr; <code>wartezeitgesperrt</code>),
-          die Unveraenderlichkeit von <code>finance_ledger_entries</code> (append-only Trigger) und die
-          <code>integration_outbox</code> als Bruecke zu ЭСФ / ЕСУТД. Angebunden sind die
-          Module Standort-Hierarchie, Reihenbl&ouml;cke und Status, Pfl&uuml;ckaufgaben mit
-          Fotobeleg, Dokumentenverwaltung sowie die KPI-Kacheln; die &uuml;brigen Module lesen
-          weiterhin aus <code>src/lib/domain/</code>.
-        </p>
-      </div>
-      <div class="info-box">
-        <div class="info-box-title">Design-Token-Umstellung</div>
-        <p>Damicon f&uuml;hrt die Landesfarben Kasachstans: &bdquo;K&ouml;k &amp; Altyn&ldquo; (<code>--primary:#00768f</code>, <code>--accent:#8c6209</code>) statt der vorherigen Himbeer-Palette (<code>#b11742</code>/<code>#4f7c3a</code>) und der 1&Ccedil;at&#305;-T&uuml;rkis/Amber-Palette (<code>#066B63</code>). K&ouml;k ist das Himmelblau der Flagge (<code>#00afca</code>), Altyn ihr Gold (<code>#fec50c</code>) &ndash; beide Originalwerte sind f&uuml;r Text zu hell (2,6:1 bzw. 1,4:1 auf Wei&szlig;) und stehen deshalb nur als Fl&auml;chenfarbe auf <code>--ring</code>, <code>--chart-4</code> ; Altyn sitzt als leicht abgetoentes <code>#f2c14b</code> auf <code>--brand-altyn</code>. Struktur und Variablennamen bleiben identisch; neu ist allein <code>--brand-altyn</code> f&uuml;r das Blatt der Bildmarke, das auf <code>--primary</code> sitzt. Schriften: Manrope f&uuml;r &Uuml;berschriften, Inter f&uuml;r Flie&szlig;text und Tabellen, beide mit <code>cyrillic-ext</code> f&uuml;r das kasachische Alphabet.</p>
+      <div class="kasten kasten-wichtig">
+        <div class="kasten-titel">Zwei Prüfungen, nicht eine</div>
+        <p>Die Oberfläche zeigt nur, was die Rolle darf — das ist Bequemlichkeit, keine Sicherheit. Verbindlich ist die Prüfung in der Datenbank: dort entscheidet die Rolle des Profils über jeden Lese- und Schreibvorgang, auch bei direktem Zugriff. Zusätzlich prüft die Anwendung vor jedem Schreibvorgang noch einmal selbst.</p>
       </div>
 
-      <h3 id="tech-schema">6.2 Herkunft aus 1&Ccedil;at&#305;</h3>
-      <div class="table-wrap">
+      <h3 id="referenz-schnittstellen">5.3 Schnittstellen</h3>
+      <p>Fünf Endpunkte für Aufgaben, die keine eigene Seite haben. Jeder prüft Sitzung und Recht selbst.</p>
+      <div class="tabelle">
         <table>
-          <thead><tr><th>Damicon</th><th>1&Ccedil;at&#305;-Quelle</th><th>&Uuml;bertragbarkeit</th></tr></thead>
+          <thead><tr><th>Adresse</th><th>Aufgabe</th><th>Zugriff</th></tr></thead>
           <tbody>
-            <tr><td>Standort-Hierarchie</td><td>Migration 2, <code>site-management-data.ts</code></td><td>zentrale Analogie, eine Ebene tiefer</td></tr>
-            <tr><td>Reihenblock-Zustandsautomat</td><td><code>units</code> (occupied/vacant/reserved/maintenance/blocked)</td><td>1:1, <code>blocked</code> = wartezeitgesperrt</td></tr>
-            <tr><td>Pfl&uuml;ckaufgaben + Fotobeleg</td><td>Migration 6: <code>workforce_tasks</code>, <code>media_reports</code></td><td>direkt nutzbar</td></tr>
-            <tr><td>Erntesperre</td><td><code>payment-restriction-control.tsx</code></td><td>Muster bleibt, Bedingung wechselt</td></tr>
-            <tr><td>RBAC</td><td><code>lib/rbac.ts</code></td><td>Engine bleibt, Rollen umbenannt</td></tr>
-            <tr><td>Dokumente</td><td><code>document-storage.ts</code>, Migration 9</td><td>direkt nutzbar</td></tr>
-            <tr><td>Compliance-Cockpit</td><td><code>compliance-repository.ts</code></td><td>Grundger&uuml;st 1:1, Rechtszitate neu</td></tr>
-            <tr><td>Staatliche Integrationen</td><td><code>integration_outbox</code></td><td>Muster 1:1, Konnektoren neu</td></tr>
-            <tr><td>Retrieval-KI-Chat</td><td><code>ai-retrieval.ts</code>, <code>ai-guardrails.ts</code></td><td>Architektur erf&uuml;llt das Verdikt bereits</td></tr>
+            <tr><td><code>/api/ki-assistent</code></td><td>Der KI-Assistent im laufenden Gespräch. Die Antwort erscheint, während sie entsteht, statt erst am Ende in einem Stück.</td><td>Recht am KI-Assistenten, erteilte Einwilligung</td></tr>
+            <tr><td><code>/api/ki-pruefung</code></td><td>Der Compliance-Lauf über die vier Prüfbereiche Audit, Steuer, Recht und Risiko. Der Fortschritt kommt laufend, damit die Oberfläche den Ablauf zeigen kann. Ohne hinterlegte Rechtsquellen lehnt der Lauf ab — eine Prüfung ohne Belege wäre wertlos. Je Person läuft nur eine Prüfung gleichzeitig.</td><td>Rolle mit Prüfrecht</td></tr>
+            <tr><td><code>/api/ki-pruefung/auto</code></td><td>Derselbe Lauf, ausgelöst beim Anmelden. Zuerst die günstige Prüfung, ob sich überhaupt etwas geändert hat; der vollständige Lauf folgt nur bei Bedarf.</td><td>Geschäftsführung, Administration</td></tr>
+            <tr><td><code>/api/ki-sprachausgabe</code></td><td>Liest eine bereits gespeicherte Antwort vor. Nur über die Kennung einer vorhandenen Nachricht, nie mit frei übergebenem Text — sonst wäre der Endpunkt ein Sprachgenerator für beliebige Inhalte.</td><td>Recht am KI-Assistenten</td></tr>
+            <tr><td><code>/api/sync</code></td><td>Nimmt die Meldungen aus der Warteschlange entgegen, die im Feld ohne Netz entstanden sind. Sie laufen durch dieselbe Prüfung wie die zugehörigen Formulare.</td><td>Angemeldet, zweiter Faktor aktuell</td></tr>
           </tbody>
         </table>
       </div>
     </section>
 
-    <!-- ── 7. Meilensteine ────────────────────────────────────────── -->
-    <section id="ci-cd">
-      <h2><span class="num">07</span> Meilensteine</h2>
-      <p>Interne Vorbereitung, beide Termine <strong>vor</strong> der Vor-Ort-Analysewoche vom 24.09. bis 01.10.2026.</p>
-      <div class="table-wrap">
+    <section id="technik">
+      <h2><span class="nr">06</span> Technik</h2>
+
+      <h3 id="technik-stack">6.1 Verwendete Technik</h3>
+      <div class="tabelle">
+        <table>
+          <thead><tr><th>Schicht</th><th>Technik</th><th>Aufgabe</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Anwendung</strong></td><td><code>Next.js 16</code></td><td>Seiten werden auf dem Server gebaut; die Sprache steht in der Adresse.</td></tr>
+            <tr><td><strong>Sprache</strong></td><td><code>TypeScript</code></td><td>Typsicheres Modell der Fachbegriffe und der Rechtematrix.</td></tr>
+            <tr><td><strong>Gestaltung</strong></td><td><code>Tailwind CSS v4</code></td><td>Farb- und Maßvorgaben an einer Stelle, Hell- und Dunkelschema.</td></tr>
+            <tr><td><strong>Sprachen</strong></td><td><code>next-intl</code></td><td>Vier Sprachen; fehlt eine Übersetzung, erscheint der deutsche Text.</td></tr>
+            <tr><td><strong>Datenbank</strong></td><td><code>PostgreSQL bei Supabase</code></td><td>Daten samt Rechteprüfung in der Datenbank selbst, nicht nur in der Anwendung.</td></tr>
+            <tr><td><strong>Dateien</strong></td><td><code>Privater Ablagebereich</code></td><td>Fotobelege und Dokumente, erreichbar nur über kurzlebige signierte Links.</td></tr>
+            <tr><td><strong>Ohne Netz</strong></td><td><code>Warteschlange im Gerät</code></td><td>Meldungen aus dem Feld werden zwischengespeichert und später übertragen.</td></tr>
+            <tr><td><strong>KI</strong></td><td><code>Austauschbare Anbieter</code></td><td>Assistent, Compliance-Prüfung und Sprachausgabe auf gesicherter Datenbasis.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3 id="technik-meilensteine">6.2 Meilensteine</h3>
+      <p>Interne Vorbereitung. Beide Termine liegen vor der Analysewoche vor Ort vom 24. September bis 1. Oktober 2026.</p>
+      <div class="tabelle">
         <table>
           <thead><tr><th>Meilenstein</th><th>Termin</th><th>Inhalt</th></tr></thead>
           <tbody>
-            <tr>
-              <td><strong>A &ndash; Prototyp</strong> <span class="badge badge-success">erledigt</span></td>
-              <td>bis 06.09.2026</td>
-              <td>Design-Token-Fundament (inzwischen Palette &bdquo;K&ouml;k &amp; Altyn&ldquo;), Landingpage mit Platzhaltern und Sprachumschalter, Dashboard-Ger&uuml;st mit vier Zonen, Kern-Workflows (Reihenblock-&Uuml;bersicht, Pfl&uuml;ckaufgabe mit Fotobeleg).</td>
-            </tr>
-            <tr>
-              <td><strong>B &ndash; Grundger&uuml;st</strong> <span class="badge badge-primary">dieser Stand</span></td>
-              <td>sp&auml;testens 19.09.2026</td>
-              <td>Hauptfunktionen echt funktionsf&auml;hig: Anmeldung und RBAC mit Row Level Security, Standort-Hierarchie mit Verwaltungsoberfl&auml;che, Reihenblock-Statusverwaltung inklusive Wartezeitsperre, Pfl&uuml;ckaufgaben mit Fotobeleg im privaten Storage, Dokumentenverwaltung, KPI-Kacheln aus <code>kpi_baseline</code>. Unterfunktionen bleiben Men&uuml;punkt mit Status &bdquo;in Entwicklung&ldquo;.</td>
-            </tr>
+            <tr><td><strong>A — Prototyp</strong> <span class="pille pille-gut">erledigt</span></td><td>bis 6. September 2026</td><td>Farb- und Maßfundament, öffentliche Startseite mit Sprachumschalter, Portalgerüst mit vier Bereichen, erste Abläufe: Reihenblock-Übersicht und Pflückaufgabe mit Fotobeleg.</td></tr>
+            <tr><td><strong>B — Grundgerüst</strong> <span class="pille pille-jetzt">dieser Stand</span></td><td>bis 19. September 2026</td><td>Hauptfunktionen mit echter Datenbank: Anmeldung und Rollenrechte, Standortverwaltung, Reihenblock-Status mit Wartezeitsperre, Pflückaufgaben mit Fotobeleg im privaten Ablagebereich, Dokumentenverwaltung, Kennzahlen aus den Ausgangswerten.</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="warn-box">
-        <div class="warn-box-title">Abgrenzung zum Kunden-Zeitplan</div>
-        <p>Dieser interne Zeitplan ist enger als der f&uuml;r den Kunden kommunizierte Termin f&uuml;r Phase 1 &bdquo;Fundament&ldquo; (16.10. bis 20.12.2026). Der Prototyp ist ein internes Demonstrations-System und nicht der vertraglich zugesicherte Leistungsumfang.</p>
+      <div class="kasten kasten-warnung">
+        <div class="kasten-titel">Abgrenzung zum Zeitplan des Kunden</div>
+        <p>Dieser interne Zeitplan ist enger als der Termin, der dem Kunden für die erste Phase genannt wurde (16. Oktober bis 20. Dezember 2026). Der Prototyp ist ein internes Demonstrationssystem und nicht der vertraglich zugesicherte Leistungsumfang.</p>
       </div>
     </section>
 
-    <!-- ── 8. Compliance & Datenresidenz ──────────────────────────── -->
-    <section id="compliance">
-      <h2><span class="num">08</span> Compliance &amp; Datenresidenz</h2>
-      <p>
-        Kasachstan hat 2026 in Serie neue Pflichten gesetzt. Die Sicherheitsgates aus
-        1&Ccedil;at&#305; erf&uuml;llen den Geist bereits; Transparenzhinweis- und Einwilligungstexte
-        m&uuml;ssen nach kasachstanischem Recht neu formuliert, nicht nur &uuml;bersetzt werden.
-      </p>
-      <div class="table-wrap">
+    <section id="recht">
+      <h2><span class="nr">07</span> Recht und Datenhaltung</h2>
+      <p>Kasachstan hat 2026 in kurzer Folge neue Pflichten gesetzt. Die Sicherheitsvorkehrungen des Portals erfüllen deren Anspruch bereits; Hinweis- und Einwilligungstexte müssen nach kasachstanischem Recht jedoch neu formuliert und nicht bloß übersetzt werden.</p>
+      <div class="tabelle">
         <table>
-          <thead><tr><th>Rechtsgrundlage 2026</th><th>Auswirkung auf Damicon</th></tr></thead>
+          <thead><tr><th>Rechtsgrundlage 2026</th><th>Bedeutung für Damicon</th></tr></thead>
           <tbody>
-            <tr><td>Steuergesetzbuch 2026</td><td>Wirkt auf Deckungsbeitrag und Kostentr&auml;ger.</td></tr>
-            <tr><td>Elektronischer Warenbegleitschein (&#1069;&#1057;&#1060;)</td><td>&Uuml;ber <code>integration_outbox</code>-Muster, kein Eigenbau der Buchhaltung.</td></tr>
-            <tr><td>KI-Gesetz Nr. 230-VIII</td><td>Transparenzhinweis und Einwilligung f&uuml;r den Retrieval-KI-Chat.</td></tr>
-            <tr><td>Digitalkodex Nr. 255-VIII</td><td><strong>Datenresidenz:</strong> Speicherung bestimmter Datenprodukte au&szlig;erhalb Kasachstans eingeschr&auml;nkt. Hosting-Standort f&uuml;r QR-, Offline-Sync- und KI-Architektur ist vor Produktivsetzung rechtlich zu pr&uuml;fen.</td></tr>
-            <tr><td>Versch&auml;rftes Datenschutzrecht (seit 24.08.2026)</td><td>Digest-Muster f&uuml;r Identit&auml;ten aus 1&Ccedil;at&#305; passt; Ziel wechselt zu Kunden- und Nachbarbetrieb-Onboarding.</td></tr>
-            <tr><td>&#1045;&#1057;&#1059;&#1058;&#1044;-Arbeitsvertragserfassung</td><td>Jeder Saisonvertrag wird &uuml;ber die Outbox im staatlichen System erfasst.</td></tr>
+            <tr><td><strong>Steuergesetzbuch 2026</strong></td><td>Wirkt auf Deckungsbeitrag und Kostenzuordnung.</td></tr>
+            <tr><td><strong>Elektronischer Warenbegleitschein (ЭСФ)</strong></td><td>Läuft über eine Ausgangswarteschlange, nicht über einen Eigenbau der Buchhaltung.</td></tr>
+            <tr><td><strong>KI-Gesetz Nr. 230-VIII</strong></td><td>Verlangt Transparenzhinweis und Einwilligung für den KI-Chat.</td></tr>
+            <tr><td><strong>Digitalkodex Nr. 255-VIII</strong></td><td>Datenhaltung: Die Speicherung bestimmter Daten außerhalb Kasachstans ist eingeschränkt. Der Standort für QR-, Warteschlangen- und KI-Daten ist vor dem Produktivbetrieb rechtlich zu prüfen.</td></tr>
+            <tr><td><strong>Verschärftes Datenschutzrecht (seit 24. August 2026)</strong></td><td>Betrifft vor allem das Anlegen von Kunden- und Nachbarbetriebskonten.</td></tr>
+            <tr><td><strong>ЕСУТД — Arbeitsvertragserfassung</strong></td><td>Jeder Saisonvertrag wird über die Ausgangswarteschlange im staatlichen System erfasst.</td></tr>
           </tbody>
         </table>
       </div>
-      <div class="info-box">
-        <div class="info-box-title">Prototyp</div>
-        <p>Der Prototyp verarbeitet keine personenbezogenen Daten und setzt keine Analyse-Cookies. Theme-Auswahl und Demo-Rolle liegen nur lokal im Browser.</p>
+      <div class="kasten kasten-info">
+        <div class="kasten-titel">Für den Prototyp</div>
+        <p>Der Prototyp verarbeitet keine personenbezogenen Daten und setzt keine Cookies zur Auswertung des Verhaltens. Farbschema und Demo-Rolle liegen ausschließlich im Browser.</p>
       </div>
     </section>
 
-    <!-- ── 9. Glossar ─────────────────────────────────────────────── -->
     <section id="glossar">
-      <h2><span class="num">09</span> Glossar</h2>
-      <div class="table-wrap">
+      <h2><span class="nr">08</span> Glossar</h2>
+      <p>Begriffe, die im Portal und in diesem Handbuch vorkommen.</p>
+      <div class="tabelle">
         <table>
-          <thead><tr><th>Begriff</th><th>Erkl&auml;rung</th></tr></thead>
+          <thead><tr><th>Begriff</th><th>Erklärung</th></tr></thead>
           <tbody>
-            <tr><td><strong>1&Ccedil;at&#305;</strong></td><td>Bestehendes ERP-&Ouml;kosystem aus der Immobilienbranche, das Damicon als Blaupause dient.</td></tr>
-            <tr><td><strong>Reihenblock</strong></td><td>Kleinste Einheit der Standort-Hierarchie. Entspricht der Wohneinheit (<code>unit</code>) in 1&Ccedil;at&#305;.</td></tr>
-            <tr><td><strong>wartezeitgesperrt</strong></td><td>Reihenblock-Status: Ernte nach Pflanzenschutzbehandlung bis Ablauf der Wartezeit gesperrt. Entspricht <code>blocked</code>.</td></tr>
-            <tr><td><strong>Steige</strong></td><td>Transportgebinde f&uuml;r geerntete Himbeeren, per QR einer Charge zugeordnet.</td></tr>
-            <tr><td><strong>K&uuml;hlketten-Uhr</strong></td><td>Zeitmessung Pfl&uuml;cken bis Vork&uuml;hlung mit hartem 60-Minuten-Grenzwert.</td></tr>
-            <tr><td><strong>Qualit&auml;tsfaktor-Lohn</strong></td><td>Grundverg&uuml;tung plus Mengenkomponente plus Qualit&auml;tsfaktor. Reiner St&uuml;cklohn ist bei der Himbeere wertvernichtend.</td></tr>
-            <tr><td><strong>RBAC</strong></td><td>Role-Based Access Control &ndash; Rollen- und Ressourcen-Rechtematrix, &uuml;bernommen aus 1&Ccedil;at&#305;.</td></tr>
-            <tr><td><strong>&#1069;&#1057;&#1060; / &#1045;&#1057;&#1059;&#1058;&#1044;</strong></td><td>Kasachstanische Pflichtsysteme f&uuml;r elektronische Rechnungen bzw. Arbeitsvertragserfassung.</td></tr>
-            <tr><td><strong>WAMOCON</strong></td><td>WAMOCON GmbH &ndash; Auftraggeber und Entwickler von Damicon.</td></tr>
+            <tr><td><strong>Reihenblock</strong></td><td>Kleinste Einheit der Standortgliederung: ein abgegrenzter Abschnitt einer Spalierreihe. Alles — Status, Sperre, Ernte, Deckungsbeitrag — hängt an ihm.</td></tr>
+            <tr><td><strong>Wartezeitsperre</strong></td><td>Zustand eines Reihenblocks nach einer Pflanzenschutzbehandlung: Ernte gesperrt, bis die Wartezeit des Mittels abgelaufen ist.</td></tr>
+            <tr><td><strong>Charge</strong></td><td>Die Ernte eines Reihenblocks an einem Tag. Trägt die Kühlkurve, die Steigen und den Rückstandsnachweis.</td></tr>
+            <tr><td><strong>Steige</strong></td><td>Transportgebinde für geerntete Himbeeren, über einen QR-Code einer Charge und einer Person zugeordnet.</td></tr>
+            <tr><td><strong>Kühlketten-Uhr</strong></td><td>Zeitmessung vom Pflücken bis zur Vorkühlung. Über 60 Minuten ist die Ware am nächsten Tag nur noch Industrieware.</td></tr>
+            <tr><td><strong>Qualitätsfaktor-Lohn</strong></td><td>Grundvergütung plus Mengenanteil plus Qualitätsfaktor. Reiner Stücklohn ist bei der Himbeere wertvernichtend, weil er zu schnellem und grobem Pflücken führt.</td></tr>
+            <tr><td><strong>Nachweiskette</strong></td><td>Die lückenlose Kette von der ausgelieferten Schale zurück zu Reihenblock, Kühlkurve, Steige und Pflücker.</td></tr>
+            <tr><td><strong>Rollenrechte</strong></td><td>Die Zuordnung, welche Rolle welches Modul sehen und ändern darf. Sie gilt in der Oberfläche und, verbindlich, in der Datenbank.</td></tr>
+            <tr><td><strong>Zweiter Faktor</strong></td><td>Zusätzlicher sechsstelliger Code beim Anmelden, erzeugt von einer Authenticator-App.</td></tr>
+            <tr><td><strong>Demo-Modus</strong></td><td>Betrieb ohne Datenbankverbindung. Das Portal zeigt Beispieldaten, es gibt keine Anmeldung und nichts wird gespeichert.</td></tr>
+            <tr><td><strong>ЭСФ / ЕСУТД</strong></td><td>Kasachstanische Pflichtsysteme für elektronische Rechnungen beziehungsweise für die Erfassung von Arbeitsverträgen.</td></tr>
+            <tr><td><strong>WAMOCON</strong></td><td>WAMOCON GmbH — Auftraggeber und Entwickler von Damicon.</td></tr>
           </tbody>
         </table>
       </div>
     </section>
-
   </main>
 </div>
 
-<!-- ── Footer ───────────────────────────────────────────────────────── -->
-<footer class="page-footer">
-  <div>&copy; 2026 WAMOCON GmbH &ndash; Alle Rechte vorbehalten</div>
-  <div>Damicon Produkthandbuch v0.1.0 &middot; Vertraulich &middot; Interner Prototyp &middot; September 2026</div>
+<footer class="fuss">
+  <div>© 2026 WAMOCON GmbH — Alle Rechte vorbehalten</div>
+  <div>Damicon Produkthandbuch 0.1.0 · Vertraulich · September 2026</div>
 </footer>
 
-<!-- ── Smooth active TOC highlighting ───────────────────────────────── -->
 <script>
-  (function () {
-    const links = document.querySelectorAll('.toc-link');
-    const sections = document.querySelectorAll('section[id], .cover');
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            links.forEach((l) => l.style.removeProperty('color'));
-            const active = document.querySelector('.toc-link[href="#' + entry.target.id + '"]');
-            if (active) active.style.color = 'var(--primary)';
-          }
-        });
-      },
-      { rootMargin: '-20% 0px -70% 0px' }
-    );
-    sections.forEach((s) => observer.observe(s));
-  })();
-</script>
+(function () {
+  var TEXT = {"keine":"0 Treffer","abZwei":"ab 2 Zeichen","treffer":"Treffer","ohneFundstelle":"Keine Fundstelle für {begriff}. Der PDF-Export enthält davon unabhängig immer das vollständige Handbuch."};
+  var SPRACHEN = ['de', 'en', 'kk', 'ru'];
 
+  var haupt = document.querySelector('main');
+  var deckblatt = document.querySelector('.deckblatt');
+  var suchfeld = document.getElementById('suchfeld');
+  var zaehlerEl = document.getElementById('such-zaehler');
+  var hinweisEl = document.getElementById('such-hinweis');
+  var loeschenEl = document.getElementById('such-loeschen');
+  var abschnitte = Array.prototype.slice.call(haupt.querySelectorAll('section[id]'));
+  var tocLinks = Array.prototype.slice.call(document.querySelectorAll('.toc-link'));
+
+  var treffer = [];
+  var aktiver = -1;
+
+  // ── Wo laeuft das Handbuch? ─────────────────────────────────────────
+  // Im Portal unter /<sprache>/dashboard/handbuch, sonst als Datei neben
+  // ihren Geschwistern. Der Sprachumschalter und der Weg zurueck ins Portal
+  // muessen in beiden Faellen stimmen.
+  var imPortal = /\/(de|en|kk|ru)\/dashboard\/handbuch\/?$/.test(location.pathname);
+
+  function zielFuerSprache(code) {
+    if (imPortal) return location.pathname.replace(/\/(de|en|kk|ru)\//, '/' + code + '/');
+    return code === 'de' ? 'index.html' : 'index-' + code + '.html';
+  }
+
+  Array.prototype.forEach.call(document.querySelectorAll('.sprache'), function (knopf) {
+    knopf.addEventListener('click', function () {
+      var code = knopf.getAttribute('data-sprache');
+      if (SPRACHEN.indexOf(code) !== -1) location.href = zielFuerSprache(code);
+    });
+  });
+
+  // Der Weg zurueck ins Portal ergibt nur im Portal einen Sinn - als lose
+  // Datei geoeffnet zeigt der Knopf ins Leere und bleibt deshalb verborgen.
+  var portalKnopf = document.getElementById('portal-knopf');
+  if (imPortal) {
+    portalKnopf.setAttribute('href', location.pathname.replace(/\/handbuch\/?$/, ''));
+    portalKnopf.hidden = false;
+  }
+
+  // ── Farbschema, geteilt mit dem Portal ──────────────────────────────
+  var themaKnopf = document.getElementById('thema-knopf');
+  var themaZeichen = document.getElementById('thema-zeichen');
+
+  function themaZeigen() {
+    themaZeichen.textContent = document.documentElement.classList.contains('dark') ? '☀' : '☾';
+  }
+  themaZeigen();
+
+  themaKnopf.addEventListener('click', function () {
+    var dunkelJetzt = !document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', dunkelJetzt);
+    try { localStorage.setItem('damicon-theme', dunkelJetzt ? 'dark' : 'light'); } catch (e) {}
+    themaZeigen();
+  });
+
+  // ── Normalisierung fuer die Suche ───────────────────────────────────
+  // Umlaute zaehlen wie ihr Grundbuchstabe, damit "Kuhlkette" die
+  // "Kuehlkette" findet. Entscheidend ist, dass die Abbildung die LAENGE
+  // erhaelt: die Fundstelle wird ueber ihren Index im normalisierten Text in
+  // den Originaltext zurueckgerechnet. Deshalb wird zeichenweise abgebildet
+  // und ein toLowerCase(), das aus einem Zeichen zwei macht, verworfen.
+  var ERSATZ = {
+    '\u00e4': 'a', '\u00c4': 'a', '\u00f6': 'o', '\u00d6': 'o',
+    '\u00fc': 'u', '\u00dc': 'u', '\u00df': 's',
+    '\u0131': 'i', '\u0130': 'i', '\u00e7': 'c', '\u00c7': 'c',
+    '\u0451': '\u0435', '\u0401': '\u0435'
+  };
+
+  function normal(text) {
+    var aus = '';
+    for (var i = 0; i < text.length; i++) {
+      var zeichen = text[i];
+      var ersatz = ERSATZ[zeichen];
+      if (ersatz !== undefined) { aus += ersatz; continue; }
+      var klein = zeichen.toLowerCase();
+      aus += klein.length === 1 ? klein : zeichen;
+    }
+    return aus;
+  }
+
+  // ── Markierungen ────────────────────────────────────────────────────
+  function markierungenSetzen(begriff) {
+    var gesucht = normal(begriff);
+    var laeufer = document.createTreeWalker(haupt, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (knoten) {
+        if (!knoten.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        var eltern = knoten.parentElement;
+        if (!eltern || eltern.closest('.such-hinweis')) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      }
+    });
+
+    // Erst einsammeln, dann ersetzen - der Laeufer darf nicht ueber einen
+    // Baum laufen, den er gerade selbst umbaut.
+    var knoten = [];
+    while (laeufer.nextNode()) knoten.push(laeufer.currentNode);
+
+    for (var i = 0; i < knoten.length; i++) {
+      var textknoten = knoten[i];
+      var text = textknoten.nodeValue;
+      var flach = normal(text);
+      var pos = flach.indexOf(gesucht);
+      if (pos === -1) continue;
+
+      var teile = document.createDocumentFragment();
+      var gelesen = 0;
+      while (pos !== -1) {
+        if (pos > gelesen) teile.appendChild(document.createTextNode(text.slice(gelesen, pos)));
+        var marke = document.createElement('mark');
+        marke.className = 'treffer';
+        marke.textContent = text.slice(pos, pos + gesucht.length);
+        teile.appendChild(marke);
+        gelesen = pos + gesucht.length;
+        pos = flach.indexOf(gesucht, gelesen);
+      }
+      if (gelesen < text.length) teile.appendChild(document.createTextNode(text.slice(gelesen)));
+      textknoten.parentNode.replaceChild(teile, textknoten);
+    }
+  }
+
+  function markierungenEntfernen() {
+    var marken = Array.prototype.slice.call(haupt.querySelectorAll('mark.treffer'));
+    for (var i = 0; i < marken.length; i++) {
+      var eltern = marken[i].parentNode;
+      eltern.replaceChild(document.createTextNode(marken[i].textContent), marken[i]);
+      eltern.normalize();
+    }
+  }
+
+  // ── Filtern ─────────────────────────────────────────────────────────
+  // Ein Unterabschnitt reicht von seiner Ueberschrift bis zur naechsten
+  // gleicher oder hoeherer Ebene.
+  function bereichHatTreffer(ueberschrift) {
+    if (ueberschrift.querySelector('mark.treffer')) return true;
+    var grenze = ueberschrift.tagName === 'H3' ? ['H3'] : ['H3', 'H4'];
+    var element = ueberschrift.nextElementSibling;
+    while (element && grenze.indexOf(element.tagName) === -1) {
+      if (element.querySelector && element.querySelector('mark.treffer')) return true;
+      element = element.nextElementSibling;
+    }
+    return false;
+  }
+
+  function filtern(aktiv) {
+    for (var i = 0; i < abschnitte.length; i++) {
+      abschnitte[i].classList.toggle('ausgeblendet', aktiv && !abschnitte[i].querySelector('mark.treffer'));
+    }
+    // Das Deckblatt traegt keinen durchsuchbaren Inhalt und stuende bei einer
+    // Suche nur als ganzseitiger Block vor dem ersten Ergebnis.
+    if (deckblatt) deckblatt.classList.toggle('ausgeblendet', aktiv);
+
+    for (var j = 0; j < tocLinks.length; j++) {
+      var link = tocLinks[j];
+      if (!aktiv) { link.classList.remove('ausgeblendet'); continue; }
+      var ziel = document.getElementById(link.getAttribute('href').slice(1));
+      var hat = false;
+      if (ziel) {
+        hat = ziel.tagName === 'SECTION'
+          ? !!ziel.querySelector('mark.treffer')
+          : bereichHatTreffer(ziel);
+      }
+      link.classList.toggle('ausgeblendet', !hat);
+    }
+  }
+
+  // ── Von Treffer zu Treffer ──────────────────────────────────────────
+  function zaehlerSchreiben(begriff) {
+    if (!begriff) { zaehlerEl.textContent = ''; zaehlerEl.classList.remove('leer'); return; }
+    if (!treffer.length) {
+      zaehlerEl.textContent = TEXT.keine;
+      zaehlerEl.classList.add('leer');
+      return;
+    }
+    zaehlerEl.classList.remove('leer');
+    zaehlerEl.textContent = aktiver >= 0
+      ? (aktiver + 1) + ' / ' + treffer.length
+      : treffer.length + ' ' + TEXT.treffer;
+  }
+
+  function zuTreffer(index) {
+    if (!treffer.length) return;
+    if (aktiver >= 0 && treffer[aktiver]) treffer[aktiver].classList.remove('treffer-aktiv');
+    aktiver = (index + treffer.length) % treffer.length;
+    treffer[aktiver].classList.add('treffer-aktiv');
+    treffer[aktiver].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    zaehlerSchreiben(suchfeld.value.trim());
+  }
+
+  // ── Suchen ──────────────────────────────────────────────────────────
+  function suchen(roh) {
+    var begriff = roh.trim();
+    markierungenEntfernen();
+    treffer = [];
+    aktiver = -1;
+    loeschenEl.hidden = begriff === '';
+
+    // Ein einzelner Buchstabe traefe fast jedes Wort - das filtert nichts und
+    // markiert nur das halbe Handbuch bunt.
+    if (begriff.length < 2) {
+      filtern(false);
+      hinweisEl.classList.remove('sichtbar');
+      zaehlerEl.classList.remove('leer');
+      zaehlerEl.textContent = begriff ? TEXT.abZwei : '';
+      return;
+    }
+
+    markierungenSetzen(begriff);
+    treffer = Array.prototype.slice.call(haupt.querySelectorAll('mark.treffer'));
+    filtern(true);
+    zaehlerSchreiben(begriff);
+
+    if (!treffer.length) {
+      // Den Suchbegriff als Text einsetzen, nicht als HTML - er kommt aus der
+      // Eingabe des Nutzers.
+      var teile = TEXT.ohneFundstelle.split('{begriff}');
+      hinweisEl.textContent = '';
+      hinweisEl.appendChild(document.createTextNode(teile[0]));
+      var stark = document.createElement('strong');
+      stark.textContent = '\u201e' + begriff + '\u201c';
+      hinweisEl.appendChild(stark);
+      if (teile[1]) hinweisEl.appendChild(document.createTextNode(teile[1]));
+      hinweisEl.classList.add('sichtbar');
+    } else {
+      hinweisEl.classList.remove('sichtbar');
+    }
+  }
+
+  function zuruecksetzen() {
+    suchfeld.value = '';
+    suchen('');
+  }
+
+  // ── PDF ─────────────────────────────────────────────────────────────
+  // "Nur ein vollstaendiger": vor dem Druck faellt der Suchfilter, sonst
+  // landete der gerade gefilterte Ausschnitt im PDF und saehe darin aus wie
+  // das ganze Handbuch. Der beforeprint-Haken deckt Strg+P und das Druckmenue
+  // des Browsers mit ab; die Regeln in @media print sind das dritte Netz,
+  // falls JavaScript gar nicht laeuft.
+  function fuerDruckOeffnen() {
+    if (suchfeld.value) zuruecksetzen();
+  }
+  window.addEventListener('beforeprint', fuerDruckOeffnen);
+  window.handbuchAlsPdf = function () {
+    fuerDruckOeffnen();
+    window.print();
+  };
+
+  // ── Bedienung ───────────────────────────────────────────────────────
+  var warteschlange;
+  suchfeld.addEventListener('input', function () {
+    clearTimeout(warteschlange);
+    var wert = suchfeld.value;
+    // Den Baum nicht bei jedem Anschlag umbauen.
+    warteschlange = setTimeout(function () { suchen(wert); }, 140);
+  });
+
+  suchfeld.addEventListener('keydown', function (ereignis) {
+    if (ereignis.key === 'Enter') {
+      ereignis.preventDefault();
+      // Die laufende Eingabe sofort auswerten, sonst springt die Eingabetaste
+      // auf den Treffern des vorherigen Anschlags.
+      clearTimeout(warteschlange);
+      if (!treffer.length) suchen(suchfeld.value);
+      zuTreffer(ereignis.shiftKey ? aktiver - 1 : aktiver + 1);
+    }
+    if (ereignis.key === 'Escape') { zuruecksetzen(); suchfeld.blur(); }
+  });
+
+  loeschenEl.addEventListener('click', function () {
+    zuruecksetzen();
+    suchfeld.focus();
+  });
+
+  document.addEventListener('keydown', function (ereignis) {
+    var imFeld = document.activeElement === suchfeld;
+    var kuerzel =
+      (ereignis.key === '/' && !imFeld && !ereignis.ctrlKey && !ereignis.metaKey) ||
+      ((ereignis.ctrlKey || ereignis.metaKey) && ereignis.key.toLowerCase() === 'k');
+    if (kuerzel) {
+      ereignis.preventDefault();
+      suchfeld.focus();
+      suchfeld.select();
+      return;
+    }
+    if (ereignis.key === 'Escape' && !imFeld && suchfeld.value) zuruecksetzen();
+  });
+
+  // ── Inhaltsverzeichnis mitlaufen lassen ─────────────────────────────
+  var beobachtbar = haupt.querySelectorAll('section[id], h3[id], h4[id]');
+  var beobachter = new IntersectionObserver(function (eintraege) {
+    for (var i = 0; i < eintraege.length; i++) {
+      if (!eintraege[i].isIntersecting) continue;
+      for (var j = 0; j < tocLinks.length; j++) tocLinks[j].classList.remove('aktiv');
+      var aktivLink = document.querySelector('.toc-link[href="#' + eintraege[i].target.id + '"]');
+      if (aktivLink) aktivLink.classList.add('aktiv');
+    }
+  }, { rootMargin: '-15% 0px -75% 0px' });
+  Array.prototype.forEach.call(beobachtbar, function (element) { beobachter.observe(element); });
+})();
+</script>
 </body>
 </html>

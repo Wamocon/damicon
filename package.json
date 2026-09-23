@@ -9,6 +9,7 @@
     "start": "next start",
     "test:e2e": "playwright test",
     "test:e2e:report": "playwright show-report",
+    "handbuch": "npx --yes tsx scripts/handbuch/erzeugen.ts",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",

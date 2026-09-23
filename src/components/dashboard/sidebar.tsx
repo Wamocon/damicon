@@ -12,6 +12,10 @@ import {
   BenutzerFussSchmal,
 } from "@/components/dashboard/benutzer-fuss";
 import {
+  HandbuchLink,
+  HandbuchLinkSchmal,
+} from "@/components/dashboard/handbuch-link";
+import {
   sidebarBreiteInitScript,
   useAktiveZone,
   useZonenGruppen,
@@ -95,6 +99,7 @@ function SidebarRail() {
           ))}
         </nav>
 
+        <HandbuchLinkSchmal />
         <BenutzerFussSchmal />
       </div>
     </div>
@@ -459,6 +464,7 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }) {
           </ul>
         </nav>
 
+        <HandbuchLink />
         <BenutzerFuss onNavigate={onNavigate} />
       </div>
     </div>

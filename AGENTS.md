@@ -212,16 +212,16 @@ applyTo: "**/*.tsx"
 <th width="50%">EN</th>
 </tr>
 <tr>
-<td><strong>Zweck:</strong> Das Produkthandbuch <code>docs/manual/index.html</code> aktuell halten - es muss immer den aktuellen Stand der Applikation widerspiegeln.</td>
-<td><strong>Purpose:</strong> Keep the product handbook <code>docs/manual/index.html</code> up to date - it must always reflect the current state of the application.</td>
+<td><strong>Zweck:</strong> Das viersprachige Produkthandbuch aktuell halten - es muss immer den aktuellen Stand der Applikation widerspiegeln. Es wird <strong>erzeugt</strong> (<code>npm run handbuch</code>), nicht von Hand geschrieben: Quelle sind <code>scripts/handbuch/</code> und die Anwendung selbst.</td>
+<td><strong>Purpose:</strong> Keep the four-language product handbook up to date - it must always reflect the current state of the application. It is <strong>generated</strong> (<code>npm run handbuch</code>), not hand-written: the sources are <code>scripts/handbuch/</code> and the application itself.</td>
 </tr>
 <tr>
 <td><strong>Wann verwenden:</strong><br>- Nach jeder Feature-Implementierung (nicht optional)<br>- Nach dem Anwenden von Supabase-Migrationen<br>- Nach Branding-/Logo-/Farb-Änderungen<br>- Am Anfang jeder Session zur Freshness-Prüfung</td>
 <td><strong>When to use:</strong><br>- After every feature implementation (not optional)<br>- After applying Supabase migrations<br>- After any branding/logo/color change<br>- At session start for a freshness check</td>
 </tr>
 <tr>
-<td><strong>Was er tut:</strong><br>✔ Codebase lesen (Routen, Schema, Features, Branding)<br>✔ Veraltete Sektionen identifizieren<br>✔ Nur geänderte HTML-Fragmente aktualisieren<br>✔ Alle <code>[PLACEHOLDER]</code>-Marker ersetzen<br>✔ Inhaltsverzeichnis synchronisieren<br>✔ Version und Datum aktualisieren<br>✘ <strong>Schreibt kein App-Code</strong></td>
-<td><strong>What it does:</strong><br>✔ Read codebase (routes, schema, features, branding)<br>✔ Identify stale sections<br>✔ Update only changed HTML fragments<br>✔ Replace all <code>[PLACEHOLDER]</code> markers<br>✔ Sync table of contents<br>✔ Update version and date<br>✘ <strong>Does not write app code</strong></td>
+<td><strong>Was er tut:</strong><br>✔ <code>npm run handbuch</code> ausführen - Module, Bereiche, Rollen und Rechte kommen automatisch aus der App<br>✔ Prüfen, was die App nicht selbst weiß: Seiten, Schnittstellen, Anleitungen, Glossar<br>✔ <code>scripts/handbuch/texte-*.ts</code> anpassen, in <strong>allen vier Sprachen</strong><br>✔ Erzeugte Dateien mitcommitten<br>✘ <strong>Bearbeitet nie <code>docs/manual/*.html</code> von Hand</strong><br>✘ <strong>Schreibt kein App-Code</strong></td>
+<td><strong>What it does:</strong><br>✔ Run <code>npm run handbuch</code> - modules, zones, roles and permissions come from the app automatically<br>✔ Check what the app does not know about itself: pages, endpoints, how-tos, glossary<br>✔ Update <code>scripts/handbuch/texte-*.ts</code> in <strong>all four languages</strong><br>✔ Commit the generated files alongside<br>✘ <strong>Never edits <code>docs/manual/*.html</code> by hand</strong><br>✘ <strong>Does not write app code</strong></td>
 </tr>
 <tr>
 <td><strong>Verwendung:</strong> <code>@handbook Aktualisiere das Handbuch nach der Dashboard-Implementierung</code></td>
@@ -314,7 +314,7 @@ Datei: public/Anforderungsdokument_[ProjektName].docx
 |---|---|---|
 | **next-browser** | `.github/skills/next-browser/SKILL.md` | CLI that exposes React DevTools and the Next.js dev overlay as shell commands - component trees, props, errors, performance, screenshots - structured output for AI agents. |
 | **anforderungsdokument** | `.github/skills/anforderungsdokument/SKILL.md` | Drei Entwicklungsprompts: Tiefenanalyse, Marketing/UX-Rework und Anforderungsdokument (9 Kapitel + Quellenverzeichnis als .docx). Nur Web/SaaS - keine mobilen Apps. Nur Quellen nicht älter als 1 Jahr. IDEA.md ausfüllen, Prompt 3 aufrufen, .docx generieren, zur Freigabe einreichen. |
-| **handbook** | `.github/skills/handbook/SKILL.md` | Produkthandbuch-Wartungsskill. Halt `docs/manual/index.html` aktuell - liest Codebase, vergleicht Routen/Schema/Features, aktualisiert Sektionen. Wird nach jeder Feature-Implementierung ausgefuhrt. / Product handbook maintenance skill. Keeps `docs/manual/index.html` accurate - reads codebase, compares routes/schema/features, updates sections. Runs after every feature implementation. |
+| **handbook** | `.github/skills/handbook/SKILL.md` | Produkthandbuch-Wartungsskill. Das Handbuch wird aus `scripts/handbuch/` und der App erzeugt (`npm run handbuch`), in vier Sprachen, und im Portal unter `/{locale}/dashboard/handbuch` ausgeliefert. Nach jeder Feature-Implementierung ausführen. / Product handbook maintenance skill. The handbook is generated from `scripts/handbuch/` and the app (`npm run handbuch`), in four languages, served at `/{locale}/dashboard/handbuch`. Run after every feature implementation. |
 
 ### `next-browser` - AI-Driven Browser for Next.js
 
