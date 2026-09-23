@@ -54,6 +54,19 @@ export interface LohnAbrechnung {
   status: LohnStatus;
 }
 
+// WMCNL-2375: lohn_periode_berechnen() liest die Mengenkomponente
+// ausschliesslich aus steigen (bewusste Architekturentscheidung, siehe
+// Migrationskopf 20260908130000, Punkt 1 - Ausschuss liegt nur je Aufgabe
+// vor und wird ueber den kg-Anteil der Steigen umgelegt). Eine abgeschlossene
+// Aufgabe mit gemeldeter Menge, aber ohne jede Steige, geht dadurch still
+// aus der Lohnabrechnung - dieser Typ traegt genau diesen Luecke-Befund,
+// damit er sichtbar wird, statt das Kernmodell umzubauen.
+export interface LohnAbschlussLuecke {
+  id: string;
+  code: string;
+  istMengeKg: number;
+}
+
 export interface LohnPosition {
   id: string;
   pfluecker: string;
@@ -137,11 +150,11 @@ export const demoLohnAbrechnungen: LohnAbrechnung[] = [
     periodeEnde: "2026-09-02",
     stunden: 7.2,
     mengeKg: 47.8,
-    ausschussquote: 9.56,
+    ausschussquote: 10.56,
     grundlohnTenge: 6480,
-    mengenKomponenteTenge: 37659.25,
-    qualitaetsfaktor: 0.91,
-    gesamtTenge: 44139.25,
+    mengenKomponenteTenge: 37440.8,
+    qualitaetsfaktor: 0.9,
+    gesamtTenge: 43920.8,
     status: "entwurf",
   },
   {
@@ -152,11 +165,11 @@ export const demoLohnAbrechnungen: LohnAbrechnung[] = [
     periodeEnde: "2026-09-02",
     stunden: 7.33,
     mengeKg: 47.8,
-    ausschussquote: 9.56,
+    ausschussquote: 10.56,
     grundlohnTenge: 6600,
-    mengenKomponenteTenge: 37659.25,
-    qualitaetsfaktor: 0.91,
-    gesamtTenge: 44259.25,
+    mengenKomponenteTenge: 37440.8,
+    qualitaetsfaktor: 0.9,
+    gesamtTenge: 44040.8,
     status: "freigegeben",
   },
   {
@@ -185,8 +198,8 @@ export const demoLohnPositionen: LohnPosition[] = [
     aufgabeCode: "PA-2026-0912-01",
     mengeKg: 25.7,
     ausschussAnteiligKg: 2.1,
-    qualitaetsfaktor: 0.95,
-    betragTenge: 20752.75,
+    qualitaetsfaktor: 0.94,
+    betragTenge: 20534.3,
   },
   {
     id: "demo-pos-2",
@@ -207,8 +220,8 @@ export const demoLohnPositionen: LohnPosition[] = [
     aufgabeCode: "PA-2026-0912-01",
     mengeKg: 25.7,
     ausschussAnteiligKg: 2.1,
-    qualitaetsfaktor: 0.95,
-    betragTenge: 20752.75,
+    qualitaetsfaktor: 0.94,
+    betragTenge: 20534.3,
   },
   {
     id: "demo-pos-4",
@@ -264,17 +277,17 @@ export const demoLohnMonatsabzuege: LohnMonatsabzug[] = [
     pfleuckerAusweis: "MAL-0417",
     jahr: 2026,
     monat: 9,
-    bruttoGesamtTenge: 44139.25,
-    opvTenge: 4413.93,
-    vosmsTenge: 882.79,
+    bruttoGesamtTenge: 43920.8,
+    opvTenge: 4392.08,
+    vosmsTenge: 878.42,
     ipnBemessungsgrundlageTenge: 0,
     ipnTenge: 0,
-    nettoTenge: 38842.53,
-    opvrTenge: 1544.87,
-    soTenge: 2206.96,
-    snTenge: 2648.36,
-    osmsTenge: 1324.18,
-    arbeitgeberkostenGesamtTenge: 51863.62,
+    nettoTenge: 38650.3,
+    opvrTenge: 1537.23,
+    soTenge: 2196.04,
+    snTenge: 2635.25,
+    osmsTenge: 1317.62,
+    arbeitgeberkostenGesamtTenge: 51606.94,
   },
   {
     id: "demo-monatsabzug-2",
@@ -282,16 +295,16 @@ export const demoLohnMonatsabzuege: LohnMonatsabzug[] = [
     pfleuckerAusweis: "MAL-0418",
     jahr: 2026,
     monat: 9,
-    bruttoGesamtTenge: 44259.25,
-    opvTenge: 4425.93,
-    vosmsTenge: 885.19,
+    bruttoGesamtTenge: 44040.8,
+    opvTenge: 4404.08,
+    vosmsTenge: 880.82,
     ipnBemessungsgrundlageTenge: 0,
     ipnTenge: 0,
-    nettoTenge: 38948.13,
-    opvrTenge: 1549.07,
-    soTenge: 2212.96,
-    snTenge: 2655.56,
-    osmsTenge: 1327.78,
-    arbeitgeberkostenGesamtTenge: 52004.62,
+    nettoTenge: 38755.9,
+    opvrTenge: 1541.43,
+    soTenge: 2202.04,
+    snTenge: 2642.45,
+    osmsTenge: 1321.22,
+    arbeitgeberkostenGesamtTenge: 51747.94,
   },
 ];

@@ -759,6 +759,7 @@
     },
     "freeAt": "Frei ab",
     "days": "Tage",
+    "keineFreigabeBerechtigung": "Nur die Betriebsleitung gibt eine Wartezeitsperre frei.",
     "note": "Ein Block mit laufender Wartezeit erscheint gar nicht erst im Pflückplan. So kann niemand versehentlich eine Aufgabe darauf anlegen."
   },
   "pflueckaufgabenDemo": {
@@ -839,6 +840,7 @@
       "foerderdossierStatus": "Dossier \"{wert}\" aktualisiert.",
       "lieferung": "Lieferung angelegt.",
       "transportMessung": "Transportmessung erfasst.",
+      "transportMessungVerstoss": "Transportmessung erfasst - Grenzwert überschritten (über 8 Grad), die Ware ist abzuwerten.",
       "uebergabe": "Übergabe erfasst.",
       "lieferungStorniert": "Lieferung storniert.",
       "pfleuckerBrigadeZugewiesen": "{wert} einer Brigade zugewiesen.",
@@ -876,6 +878,7 @@
     },
     "fehler": {
       "eingabe": "Bitte alle Pflichtfelder ausfüllen.",
+      "qualitaetsfaktorKorridor": "Der Qualitätsfaktor ist Pflicht und muss zwischen 0,90 und 1,10 liegen.",
       "gesperrt": "Reihenblock {wert} ist wartezeitgesperrt - keine Pflückaufgabe möglich.",
       "mwstSchwelleUeberschritten": "Die MwSt-Registrierungsschwelle wurde überschritten - Meldefrist: {wert}.",
       "keineDatei": "Bitte eine Bilddatei auswählen.",
@@ -890,8 +893,8 @@
       "unbekannt": "Der Vorgang ist fehlgeschlagen. Bitte noch einmal versuchen. Bleibt es dabei, melden Sie ihn mit der Uhrzeit bei der Administration.",
       "keineCharge": "Zu dieser Aufgabe gehört keine Charge.",
       "kuehlkette": "Grenzwert gerissen: {wert} Minuten bis zur Messung. Die Ware ist abzuwerten.",
-      "transportKuehlkette": "Grenzwert überschritten: Die Transporttemperatur lag über 8 Grad. Die Ware ist abzuwerten.",
       "lieferungStorniert": "Diese Lieferung wurde storniert - dafür lässt sich keine Transportmessung mehr erfassen.",
+      "lieferungZugestellt": "Diese Lieferung wurde bereits zugestellt - eine zugestellte Lieferung ist unveränderlich, dafür lässt sich keine Transportmessung mehr erfassen.",
       "geraetezeit": "Die Geräteuhr weicht zu stark von der Serverzeit ab (Zukunft oder mehr als 24 Stunden Differenz). Bitte die Uhrzeit des Geräts prüfen und erneut versuchen.",
       "keinKunde": "Ihrem Zugang ist kein B2B-Kunde zugeordnet. Bitte an die Administration wenden.",
       "zukaufBefunde": "{wert} Fehler in der Eingabe gefunden - nichts wurde übernommen. Siehe Prüfergebnis unten.",
@@ -1327,7 +1330,11 @@
       "rechtsgrundlage": "Rechtsgrundlage",
       "aufbewahrung": "Aufbewahrung",
       "automatisiert": "Automatisierte Entscheidung",
-      "verantwortlich": "Verantwortlich"
+      "verantwortlich": "Verantwortlich",
+      "zeitpunkt": "Zeitpunkt",
+      "urheber": "Urheber",
+      "aktion": "Aktion",
+      "ressource": "Ressource"
     },
     "status": {
       "aktiv": "aktiv",
@@ -1375,6 +1382,11 @@
     "zwecke": {
       "titel": "Verarbeitungszwecke",
       "lead": "Zweckverzeichnis mit Rechtsgrundlage und Aufbewahrungsfrist."
+    },
+    "audit": {
+      "titel": "Prüfprotokoll",
+      "lead": "Die letzten 50 protokollierten Schreibvorgänge, jüngste zuerst - inklusive Urheber und Zeitstempel (audit_events).",
+      "leer": "Noch kein protokollierter Vorgang."
     },
     "monate": "{anzahl, plural, one {# Monat} other {# Monate}}",
     "ja": "ja",
@@ -2232,6 +2244,12 @@
     "satzLead": "Grundlage der Berechnung: Stundenlohn, kg-Satz und der Korridor des Qualitätsfaktors. Wer danach bezahlt wird, darf die Grundlage sehen.",
     "keinSatz": "Noch kein Lohnsatz hinterlegt - ohne ihn lässt sich keine Periode berechnen.",
     "wirkungslos": "Der Qualitätsfaktor bewegt sich in den angezeigten Abrechnungen nicht von 1,00 weg - er hat hier aktuell keine erkennbare Lohnwirkung. Das kann an fehlenden Ausschusswerten liegen, nicht zwingend an der Formel.",
+    "abschlussLuecke": {
+      "titel": "Abgeschlossene Aufgaben ohne Steige - fehlen in der Abrechnung",
+      "eintrag": "{code}: {menge} kg gemeldet, aber keine Steige erfasst - die Mengenkomponente wird bei der Periodenberechnung nicht berücksichtigt."
+    },
+    "historieTitel": "Verlauf der Lohnsätze",
+    "historieLead": "Alle angelegten Sätze mit Gültigkeitszeitraum - der markierte ist der heute gültige, nicht zwingend der zuletzt angelegte.",
     "stat": {
       "stundenlohn": "Stundenlohn",
       "kgSatz": "kg-Satz",
@@ -2257,10 +2275,18 @@
       "aktion": "Aktion",
       "aufgabe": "Aufgabe",
       "ausschussAnteilig": "Ausschuss (anteilig)",
-      "betrag": "Betrag"
+      "betrag": "Betrag",
+      "gueltigAb": "Gültig ab",
+      "gueltigBis": "Gültig bis"
     },
     "freigebenKnopf": "Freigeben",
     "auszahlenKnopf": "Als ausgezahlt markieren",
+    "zurueckziehenKnopf": "Freigabe zurückziehen",
+    "bestaetigung": {
+      "freigeben": "Lohnabrechnung von {name} jetzt freigeben?",
+      "auszahlen": "Lohnabrechnung von {name} als ausgezahlt markieren? Das lässt sich nicht mehr zurücknehmen.",
+      "zurueckziehen": "Freigabe der Lohnabrechnung von {name} zurückziehen? Das geht nur durch eine andere Person als die, die freigegeben hat."
+    },
     "positionenTitel": "Positionen je Pflückaufgabe",
     "positionenLead": "Wie sich die Mengenkomponente je Aufgabe zusammensetzt - Grundlage der Umlage aus dem Ausschuss der Aufgabe.",
     "keinePositionen": "Noch keine Position berechnet.",
@@ -2442,7 +2468,8 @@
       "title": "Etiketten für Steigen",
       "lead": "QR-Code und Klartext-Code je Steige, druckfertig. Der QR-Code verlinkt auf die öffentliche Herkunftsauskunft der zugehörigen Charge.",
       "empty": "Noch keine Steige mit verknüpfter Charge vorhanden.",
-      "scanHinweis": "Herkunft scannen"
+      "scanHinweis": "Herkunft scannen",
+      "fallbackCode": "Ohne Scan eintippen: {code}"
     },
     "ausweise": {
       "title": "Pflückerausweise",
@@ -3147,6 +3174,9 @@
     "keineAenderung": "Keine Änderungen seit dem letzten Bericht.",
     "aenderungenAnzahl": "{anzahl, plural, one {# Änderung} other {# Änderungen}} seit dem letzten Bericht",
     "kachelOeffnen": "{anzahl, plural, one {# Befund} other {# Befunde}} · Details ansehen",
+    "bereichAlsPdf": "Diesen Bereich als PDF",
+    "bereichAlsJson": "Diesen Bereich als JSON",
+    "keineMassnahmen": "Keine offenen Maßnahmen.",
     "aenderungArt": {
       "neu": "neu",
       "statusVeraendert": "Status geändert: {vorher} → {jetzt}",
@@ -3164,7 +3194,19 @@
     "vollerBericht": "Vollen Bericht öffnen",
     "laeuftBereits": "Eine Prüfung läuft bereits.",
     "nichtGeprueft": "Nicht geprüft",
-    "ohneDaten": "Keine aktuellen Daten"
+    "ohneDaten": "Keine aktuellen Daten",
+    "tour": {
+      "frage": "Soll ich dir die vier Prüfbereiche zeigen?",
+      "kopfTitel": "Das Gesamtbild",
+      "bereich": "{reife} von 100 Punkten, {stufe}. {anzahl, plural, one {# Befund} other {# Befunde}}. Für Details auf die Kachel klicken.",
+      "massnahmen": "{anzahl, plural, one {# offene Maßnahme} other {# offene Maßnahmen}} mit Frist und Verantwortlichkeit.",
+      "einschraenkungen": "{anzahl, plural, one {# Prüffeld konnte nicht vollständig bewertet werden.} other {# Prüffelder konnten nicht vollständig bewertet werden.}}",
+      "ende": "Das waren die vier Bereiche. Auf eine Kachel klicken zeigt dir jederzeit alle Details.",
+      "neustart": "Tour erneut starten",
+      "nachfrage": "Was kann ich dir noch zeigen?"
+    },
+    "liveHinweis": "Die Compliance-Prüfung läuft gerade live, hier siehst du jeden Schritt. Das dauert in der Regel unter einer Minute, du kannst in der Zwischenzeit weiterarbeiten.",
+    "liveHinweisKnopf": "Alles klar"
   },
   "pruefungAblauf": {
     "schritt": {
@@ -3207,6 +3249,9 @@
     "untertitel": "Himbeerbetrieb Kasachstan",
     "vertraulich": "Vertraulich",
     "dokumentart": "Compliance · Audit · Steuern · Recht · Risiko",
+    "auszugArt": "Auszug aus dem Compliance-Prüfbericht",
+    "auszugSub": "Auszug aus Bericht {id} vom {datum}",
+    "auszugSiegelHinweis": "Auszug aus dem vollständig versiegelten Bericht, das Siegel gilt für den Gesamtbericht.",
     "fussVertraulich": "Vertraulich · nur für den vorgesehenen Empfängerkreis",
     "seite": "Seite",
     "von": "von",

@@ -46,10 +46,17 @@
   color: var(--muted-foreground);
 }
 
-/* Fuenf Kacheln nebeneinander, sobald der Platz reicht. Das Grundraster .pr-kacheln ist
-   auto-fit/minmax(210px) und legte sonst ab rund 1100 px 4+1 um - eine einzelne Kachel in
-   der zweiten Reihe sieht aus wie ein Nachtrag, dabei sind alle fuenf gleichrangig. */
-@media (min-width: 1280px) {
+/* Fuenf Kacheln nebeneinander, sobald der Platz reicht. pruefung.css bricht .pr-kacheln
+   bei 380 px auf zwei und bei 640 px auf vier Spalten um - fuer vier Pruefbereiche passt das,
+   mit der Finanzkachel bliebe die fuenfte allein in einer zweiten Reihe und saehe aus wie ein
+   Nachtrag, dabei sind alle fuenf gleichrangig.
+
+   Container-Abfrage und keine Fensterbreite, aus demselben Grund wie die Regeln nebenan:
+   massgeblich ist die Breite der SPALTE, nicht die des Fensters - das KI-Panel nimmt daneben
+   bis zu 27rem weg. Den Container "kacheln" macht .pr-kacheln-bereich auf (pruefung.css).
+   Ohne diese Huelle greift hier nichts, und genau das war der Fehler, der die fuenf Kacheln
+   zwischen 768 und 1279 px untereinander ueber die volle Breite stellte. */
+@container kacheln (min-width: 900px) {
   .pr-kacheln--fuenf {
     grid-template-columns: repeat(5, 1fr);
   }

@@ -271,6 +271,8 @@ export function AufgabeStatusFormular({
           name="qualitaetsfaktor"
           inputMode="decimal"
           placeholder="1,05"
+          defaultValue="1,00"
+          required
         />
       ) : null}
       <Button type="submit" rundung="schmal" breit className="lg:h-9">

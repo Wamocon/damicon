@@ -759,6 +759,7 @@
     },
     "freeAt": "Free from",
     "days": "days",
+    "keineFreigabeBerechtigung": "Only management can release a pre-harvest interval lock.",
     "note": "A block with a running pre-harvest interval does not appear in the picking schedule at all. That way nobody can create a task on it by mistake."
   },
   "pflueckaufgabenDemo": {
@@ -839,6 +840,7 @@
       "foerderdossierStatus": "Dossier \"{wert}\" updated.",
       "lieferung": "Delivery created.",
       "transportMessung": "Transport measurement recorded.",
+      "transportMessungVerstoss": "Transport measurement recorded - limit exceeded (above 8 degrees), the goods have to be downgraded.",
       "uebergabe": "Handover recorded.",
       "lieferungStorniert": "Delivery cancelled.",
       "pfleuckerBrigadeZugewiesen": "{wert} assigned to a crew.",
@@ -876,6 +878,7 @@
     },
     "fehler": {
       "eingabe": "Please fill in all required fields.",
+      "qualitaetsfaktorKorridor": "The quality factor is required and must be between 0.90 and 1.10.",
       "gesperrt": "Row block {wert} is locked for the pre-harvest interval - no picking task possible.",
       "mwstSchwelleUeberschritten": "The VAT registration threshold has been crossed - notification due: {wert}.",
       "keineDatei": "Please select an image file.",
@@ -890,8 +893,8 @@
       "unbekannt": "The action failed. Please try again. If it keeps failing, report it to your administrator with the time it happened.",
       "keineCharge": "This task has no batch.",
       "kuehlkette": "Limit broken: {wert} minutes until measurement. The goods have to be downgraded.",
-      "transportKuehlkette": "Limit exceeded: the transport temperature was above 8 degrees. The goods have to be downgraded.",
       "lieferungStorniert": "This delivery was cancelled - no transport measurement can be recorded for it anymore.",
+      "lieferungZugestellt": "This delivery has already been delivered - a delivered shipment is immutable, no transport measurement can be recorded for it anymore.",
       "geraetezeit": "The device clock deviates too far from server time (future, or more than 24 hours off). Please check the device's clock and try again.",
       "keinKunde": "Your account has no B2B client assigned. Please contact the administration.",
       "zukaufBefunde": "{wert} error(s) found in the input - nothing was imported. See the check results below.",
@@ -1327,7 +1330,11 @@
       "rechtsgrundlage": "Legal basis",
       "aufbewahrung": "Retention",
       "automatisiert": "Automated decision",
-      "verantwortlich": "Responsible"
+      "verantwortlich": "Responsible",
+      "zeitpunkt": "Timestamp",
+      "urheber": "Actor",
+      "aktion": "Action",
+      "ressource": "Resource"
     },
     "status": {
       "aktiv": "active",
@@ -1375,6 +1382,11 @@
     "zwecke": {
       "titel": "Processing purposes",
       "lead": "Purpose register with legal basis and retention period."
+    },
+    "audit": {
+      "titel": "Audit trail",
+      "lead": "The last 50 logged write operations, newest first - including actor and timestamp (audit_events).",
+      "leer": "No logged operation yet."
     },
     "monate": "{anzahl, plural, one {# month} other {# months}}",
     "ja": "yes",
@@ -2232,6 +2244,12 @@
     "satzLead": "Basis of the calculation: hourly rate, per-kg rate and the quality-factor corridor. Whoever is paid by it may see the basis.",
     "keinSatz": "No pay rate on file yet - no period can be calculated without one.",
     "wirkungslos": "The quality factor does not move away from 1.00 across the settlements shown - it currently has no visible effect on pay here. This can be due to missing waste data, not necessarily the formula.",
+    "abschlussLuecke": {
+      "titel": "Completed tasks without crates - missing from the settlement",
+      "eintrag": "{code}: {menge} kg reported, but no crate recorded - the volume component will not be included in the period calculation."
+    },
+    "historieTitel": "Rate history",
+    "historieLead": "All rates ever created, with their validity period - the highlighted one is valid today, not necessarily the most recently created.",
     "stat": {
       "stundenlohn": "Hourly rate",
       "kgSatz": "Per-kg rate",
@@ -2257,10 +2275,18 @@
       "aktion": "Action",
       "aufgabe": "Task",
       "ausschussAnteilig": "Waste (allocated)",
-      "betrag": "Amount"
+      "betrag": "Amount",
+      "gueltigAb": "Valid from",
+      "gueltigBis": "Valid until"
     },
     "freigebenKnopf": "Approve",
     "auszahlenKnopf": "Mark as paid",
+    "zurueckziehenKnopf": "Withdraw approval",
+    "bestaetigung": {
+      "freigeben": "Approve the settlement for {name} now?",
+      "auszahlen": "Mark the settlement for {name} as paid? This can no longer be undone.",
+      "zurueckziehen": "Withdraw the approval of the settlement for {name}? This only works for a person other than the one who approved it."
+    },
     "positionenTitel": "Line items per picking task",
     "positionenLead": "How the volume component is made up per task - the basis for allocating the task's waste.",
     "keinePositionen": "No line item calculated yet.",
@@ -2442,7 +2468,8 @@
       "title": "Crate labels",
       "lead": "QR code and plain-text code for each crate, print-ready. The QR code links to the public origin lookup for the crate's batch.",
       "empty": "No crate with a linked batch yet.",
-      "scanHinweis": "Scan for origin"
+      "scanHinweis": "Scan for origin",
+      "fallbackCode": "Enter without scanning: {code}"
     },
     "ausweise": {
       "title": "Picker ID badges",
@@ -3147,6 +3174,9 @@
     "keineAenderung": "No changes since the last report.",
     "aenderungenAnzahl": "{anzahl, plural, one {# change} other {# changes}} since the last report",
     "kachelOeffnen": "{anzahl, plural, one {# finding} other {# findings}} · view details",
+    "bereichAlsPdf": "This area as PDF",
+    "bereichAlsJson": "This area as JSON",
+    "keineMassnahmen": "No open actions.",
     "aenderungArt": {
       "neu": "new",
       "statusVeraendert": "Status changed: {vorher} → {jetzt}",
@@ -3164,7 +3194,19 @@
     "vollerBericht": "Open the full report",
     "laeuftBereits": "A check is already running.",
     "nichtGeprueft": "Not checked",
-    "ohneDaten": "No current data"
+    "ohneDaten": "No current data",
+    "tour": {
+      "frage": "Shall I show you the four review areas?",
+      "kopfTitel": "The big picture",
+      "bereich": "{reife} out of 100 points, {stufe}. {anzahl, plural, one {# finding} other {# findings}}. Click the tile for details.",
+      "massnahmen": "{anzahl, plural, one {# open action} other {# open actions}} with a deadline and an owner.",
+      "einschraenkungen": "{anzahl, plural, one {# review field could not be fully assessed.} other {# review fields could not be fully assessed.}}",
+      "ende": "That was all four areas. Click a tile any time to see the full details.",
+      "neustart": "Restart tour",
+      "nachfrage": "What else can I show you?"
+    },
+    "liveHinweis": "The compliance check is running live right now, you can watch every step here. It usually takes under a minute, feel free to keep working in the meantime.",
+    "liveHinweisKnopf": "Got it"
   },
   "pruefungAblauf": {
     "schritt": {
@@ -3207,6 +3249,9 @@
     "untertitel": "Raspberry farm Kazakhstan",
     "vertraulich": "Confidential",
     "dokumentart": "Compliance · Audit · Tax · Legal · Risk",
+    "auszugArt": "Excerpt from the compliance report",
+    "auszugSub": "Excerpt from report {id}, dated {datum}",
+    "auszugSiegelHinweis": "Excerpt from the fully sealed report; the seal applies to the complete report.",
     "fussVertraulich": "Confidential · for the intended recipients only",
     "seite": "Page",
     "von": "of",

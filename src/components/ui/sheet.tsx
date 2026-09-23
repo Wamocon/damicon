@@ -23,11 +23,15 @@ export function Sheet({
   onSchliessen,
   titel,
   children,
+  position = "unten",
 }: {
   offen: boolean;
   onSchliessen: () => void;
   titel: string;
   children: ReactNode;
+  /** "unten": faehrt von der Kante hoch (Handy-Menues, Standard). "mitte": mittiges Fenster,
+   *  fuer Detailinhalte, die nicht von einer Seitenkante zu kommen scheinen sollen. */
+  position?: "unten" | "mitte";
 }) {
   const nav = useTranslations("nav");
   const titelId = useId();
@@ -99,8 +103,15 @@ export function Sheet({
 
   if (!offen) return null;
 
+  const mitte = position === "mitte";
+
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col justify-end print:hidden">
+    <div
+      className={cn(
+        "fixed inset-0 z-[100] flex print:hidden",
+        mitte ? "items-center justify-center p-4" : "flex-col justify-end",
+      )}
+    >
       <button
         type="button"
         aria-label={nav("closeMenu")}
@@ -114,11 +125,15 @@ export function Sheet({
         aria-labelledby={titelId}
         tabIndex={-1}
         className={cn(
-          "relative flex min-h-0 w-full flex-col rounded-t-2xl border-t border-border bg-schwebend shadow-2xl outline-none",
-          // Bis unter den Home-Indicator, damit die Flaeche am Rand nicht
-          // abrupt endet; den Abstand traegt der Inhalt weiter unten.
+          "relative flex min-h-0 flex-col border-border bg-schwebend shadow-2xl outline-none",
+          mitte
+            ? "w-full max-w-3xl rounded-2xl border motion-safe:animate-[sheet-auf-mitte_180ms_ease-out]"
+            : cn(
+                // Bis unter den Home-Indicator, damit die Flaeche am Rand nicht
+                // abrupt endet; den Abstand traegt der Inhalt weiter unten.
+                "w-full rounded-t-2xl border-t motion-safe:animate-[sheet-auf_200ms_ease-out]",
+              ),
           "max-h-[85svh]",
-          "motion-safe:animate-[sheet-auf_200ms_ease-out]",
         )}
       >
         <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border px-4">

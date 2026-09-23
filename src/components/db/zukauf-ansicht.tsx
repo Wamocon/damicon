@@ -34,7 +34,12 @@ export async function ZukaufAnsicht() {
   const darfImportieren = live && hasPermission(profil?.role, "aggregator", "create");
   const darfPreisPflegen = live && hasPermission(profil?.role, "aggregator", "update");
   const darfSpannePflegen = live && hasPermission(profil?.role, "aggregator", "update");
-  const siehtAbrechnung = live && hasPermission(profil?.role, "aggregator", "view");
+  // WMCNL-2309: abrechnung_je_nachbarbetrieb() bleibt Buero/Admin
+  // vorbehalten (siehe abrechnung.erlaubt) - fuer erzeuger (view-Recht auf
+  // das Modul, aber nicht auf diese Abrechnung) blendet der Abschnitt
+  // dadurch sauber aus, statt "Datenbank nicht erreichbar" samt
+  // Beispielzeile zu zeigen.
+  const siehtAbrechnung = live && hasPermission(profil?.role, "aggregator", "view") && abrechnung.erlaubt;
 
   const zahl1 = (n: number) => format.number(n, { maximumFractionDigits: 1 });
   const geld = (n: number) => `${format.number(Math.round(n))} ₸`;

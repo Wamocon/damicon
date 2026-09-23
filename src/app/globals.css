@@ -381,6 +381,15 @@
   }
 }
 
+/* Mittige Variante von Sheet (position="mitte", ui/sheet.tsx): Einblenden statt Hochfahren,
+   passend zu einem Fenster, das nicht von einer Kante der Seite kommt. */
+@keyframes sheet-auf-mitte {
+  from {
+    transform: scale(0.96);
+    opacity: 0;
+  }
+}
+
 /*
   Tabellen auf dem Handy: aus jeder Zeile wird eine Karte.
 

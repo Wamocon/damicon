@@ -120,14 +120,18 @@ export function BenutzerFuss({ onNavigate }: { onNavigate?: () => void }) {
               haetten dort nichts, worauf sie wirken koennten. */}
           {!demoModus ? (
             <span className="flex shrink-0 items-center gap-1">
+              {/* WMCNL-2384: ein reiner Icon-Knopf ohne sichtbaren Text ging
+                  in einer Modul-Link-Durchsicht komplett unter - die einzige
+                  MFA-Seite blieb praktisch unauffindbar. Mit Textlabel wie
+                  im mobilen Kontoblatt (konto-blatt.tsx). */}
               <Link
                 href="/dashboard/sicherheit"
                 onClick={onNavigate}
-                aria-label={t("security")}
                 title={t("security")}
-                className={knopfKlassen}
+                className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-sidebar-border px-2 text-[11px] font-semibold text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground"
               >
-                <ShieldCheck className="h-4 w-4" />
+                <ShieldCheck className="h-4 w-4 shrink-0" />
+                {t("security")}
               </Link>
               <AbmeldeKnopf className={knopfKlassen} />
             </span>

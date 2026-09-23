@@ -2,11 +2,13 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import { einsAus } from "@/lib/data/util";
 import {
+  demoAuditEreignisse,
   demoDrittweitergaben,
   demoEinwilligungen,
   demoVerarbeitungszwecke,
   demoVorfaelle,
   kennzahlenAus,
+  type AuditEreignisZeile,
   type ComplianceKennzahlen,
   type DrittweitergabeZeile,
   type EinwilligungZeile,
@@ -28,6 +30,9 @@ export interface ComplianceCockpit {
   einwilligungen: EinwilligungZeile[];
   vorfaelle: VorfallZeile[];
   drittweitergaben: DrittweitergabeZeile[];
+  /** Pruefprotokoll (WMCNL-2303), juengste zuerst, auf die letzten 50 begrenzt
+   *  - audit_events waechst unbegrenzt je Schreibvorgang app-weit. */
+  auditEreignisse: AuditEreignisZeile[];
 }
 
 function demoCockpit(quelle: ComplianceCockpit["quelle"] = "demo"): ComplianceCockpit {
@@ -38,6 +43,7 @@ function demoCockpit(quelle: ComplianceCockpit["quelle"] = "demo"): ComplianceCo
     einwilligungen: demoEinwilligungen,
     vorfaelle: demoVorfaelle,
     drittweitergaben: demoDrittweitergaben,
+    auditEreignisse: demoAuditEreignisse,
   };
 }
 
@@ -77,7 +83,7 @@ export async function ladeCompliance(): Promise<ComplianceCockpit> {
   const supabase = await createClient();
   const jetzt = new Date().toISOString();
 
-  const [zweckeErg, einwilligungenErg, vorfaelleErg, drittweitergabenErg] = await Promise.all([
+  const [zweckeErg, einwilligungenErg, vorfaelleErg, drittweitergabenErg, auditErg] = await Promise.all([
     supabase
       .from("verarbeitungszwecke")
       .select(
@@ -112,13 +118,25 @@ export async function ladeCompliance(): Promise<ComplianceCockpit> {
          b2b_kunden ( name )`,
       )
       .order("weitergegeben_am", { ascending: false }),
+    supabase
+      .from("audit_events")
+      .select("id, actor, aktion, ressource, ressource_id, created_at")
+      .order("created_at", { ascending: false })
+      .limit(50),
   ]);
 
-  if (zweckeErg.error || einwilligungenErg.error || vorfaelleErg.error || drittweitergabenErg.error) {
+  if (
+    zweckeErg.error ||
+    einwilligungenErg.error ||
+    vorfaelleErg.error ||
+    drittweitergabenErg.error ||
+    auditErg.error
+  ) {
     console.error(
       "[damicon] Compliance-Daten konnten nicht geladen werden:",
       zweckeErg.error?.message ?? einwilligungenErg.error?.message ??
-        vorfaelleErg.error?.message ?? drittweitergabenErg.error?.message,
+        vorfaelleErg.error?.message ?? drittweitergabenErg.error?.message ??
+        auditErg.error?.message,
     );
     return demoCockpit("fehler");
   }
@@ -183,6 +201,15 @@ export async function ladeCompliance(): Promise<ComplianceCockpit> {
     };
   });
 
+  const auditEreignisse: AuditEreignisZeile[] = (auditErg.data ?? []).map((a) => ({
+    id: a.id,
+    actor: a.actor,
+    aktion: a.aktion,
+    ressource: a.ressource,
+    ressourceId: a.ressource_id,
+    erstelltAm: a.created_at,
+  }));
+
   return {
     quelle: "db",
     kennzahlen: kennzahlenAus(einwilligungen, vorfaelle, drittweitergaben),
@@ -190,5 +217,6 @@ export async function ladeCompliance(): Promise<ComplianceCockpit> {
     einwilligungen,
     vorfaelle,
     drittweitergaben,
+    auditEreignisse,
   };
 }

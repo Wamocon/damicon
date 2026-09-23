@@ -40,7 +40,11 @@ export function CeoAutoPruefung({
   const stand = useCeoPruefung();
 
   if (stand?.phase === "laeuft") {
-    return <PruefungAblauf stand={stand} />;
+    return (
+      <div id="compliance-live-lauf">
+        <PruefungAblauf stand={stand} />
+      </div>
+    );
   }
 
   // stand kommt aus dem geteilten Kontext (kann ein aelterer automatischer Lauf sein) und

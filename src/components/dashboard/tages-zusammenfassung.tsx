@@ -51,7 +51,9 @@ export function TagesZusammenfassung({ stand }: { stand: Tagesbericht }) {
 
   return (
     <div className="space-y-4">
-      <div className="pr-kopfkarte pr-kopfkarte--kompakt" data-stufe={stand.stufe}>
+      {/* Erste Station von Himbis Tour (tages-kacheln.tsx registriert die Schritte).
+          Der Anker sitzt oberhalb der Reiterleiste und ist damit in jedem Reiter sichtbar. */}
+      <div id="compliance-kopf" className="pr-kopfkarte pr-kopfkarte--kompakt" data-stufe={stand.stufe}>
         <Ring reife={stand.reife} stufe={stand.stufe} label={tp("bericht.reife")} />
         <div>
           <p className="pr-urteil">{tp(`stufe.${stand.stufe}`)}</p>
