@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { RefreshCw, TriangleAlert } from "lucide-react";
+import { usePersona } from "@/components/dashboard/persona";
 import { ceoBerichtAktualisieren } from "@/lib/actions/compliance-ceo";
 
 // Erzwingt einen sofortigen, vollen Lauf (ueberspringt die Aenderungserkennung,
@@ -10,9 +11,17 @@ import { ceoBerichtAktualisieren } from "@/lib/actions/compliance-ceo";
 // wartet hier jemand aktiv auf ein Ergebnis, revalidatePath() in der Server
 // Action zeigt den neuen Bericht danach ohne weiteres Zutun dieser Komponente.
 export function CeoAktualisierenKnopf() {
+  const { echteRolle } = usePersona();
   const t = useTranslations("ceoUebersicht");
   const [isPending, startTransition] = useTransition();
   const [fehler, setFehler] = useState(false);
+
+  // Server Action prueft ohnehin serverseitig gegen die echte Profilrolle
+  // (compliance-ceo.ts: profil.role !== "ceo" -> "keine-berechtigung") - hier
+  // zusaetzlich schon der Knopf selbst versteckt, damit eine Admin-Vorschau
+  // "als ceo" keinen Knopf zeigt, der ohnehin nur mit einer Fehlermeldung
+  // enden wuerde.
+  if (echteRolle !== "ceo") return null;
 
   return (
     <div className="flex items-center gap-2">
