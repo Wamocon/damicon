@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { useCeoPruefung } from "@/components/dashboard/ceo-pruefung-kontext";
+import { useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { useKiPane, type PruefBezug } from "@/components/ki/ki-pane-kontext";
 import { bewegungReduziert } from "@/lib/bewegung";
 import { springeZuAnker, tourDauer, type HaustierZustand } from "@/lib/haustier";
@@ -59,7 +60,8 @@ export interface ComplianceTourAnzeige {
   tourZustand: HaustierZustand;
   tourZiel: Element | null;
   huepf: number;
-  /** Es gibt einen Bericht mit Stationen - ein Neustart-Knopf darf angezeigt werden. */
+  /** Es gibt einen Bericht mit Stationen UND Himbi ist zu sehen - ein Neustart-Knopf darf
+   *  angezeigt werden (ohne sichtbare Figur gaebe es niemanden, der die Tour fuehrt). */
   verfuegbar: boolean;
   /** Die Tour von vorn beginnen - fuer das Angebot, den automatischen Start und einen
    *  jederzeit erreichbaren Neustart-Knopf (dieselbe Funktion fuer alle drei). */
@@ -71,6 +73,12 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
   const tc = useTranslations("ceoUebersicht");
   const tp = useTranslations("pruefung");
   const ceoStand = useCeoPruefung();
+  // Himbi ist abgestellt (Einstellungen) oder weggeschickt (Griff halten/Entf): dann gibt es
+  // keine Huelle, die die Tour zeigen koennte - weder Angebot noch automatischer Start, sonst
+  // wuerde die Seite unsichtbar gesteuert scrollen und Abschnitte auf- und zuklappen, ohne dass
+  // zu sehen waere, wer das tut oder warum.
+  const { an: himbiAn, weg: himbiWeg } = useHaustierStatus();
+  const himbiSichtbar = himbiAn && !himbiWeg;
   const { starteGespraechZurPruefung } = useKiPane();
   const besprechen = useCallback(
     (frage: string) => {
@@ -96,12 +104,13 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
     }
   }, []);
 
-  // Sobald Stationen da sind (und noch nicht entschieden), nach kurzer Verzoegerung anbieten.
+  // Sobald Stationen da sind (und noch nicht entschieden), nach kurzer Verzoegerung anbieten -
+  // aber nur, wenn Himbi ueberhaupt zu sehen ist (sonst gaebe es niemanden, der fragt).
   useEffect(() => {
-    if (!schritte || schritte.length === 0 || entschieden.current || phase !== "aus") return;
+    if (!himbiSichtbar || !schritte || schritte.length === 0 || entschieden.current || phase !== "aus") return;
     const id = window.setTimeout(() => setPhase("frage"), ANGEBOT_VERZOEGERUNG_MS);
     return () => window.clearTimeout(id);
-  }, [schritte, phase]);
+  }, [himbiSichtbar, schritte, phase]);
 
   const merken = useCallback(() => {
     entschieden.current = true;
@@ -175,13 +184,20 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
     vorigeCeoPhase.current = ceoStand?.phase;
   }, [ceoStand?.phase]);
   useEffect(() => {
-    if (!wartetAufAutostart.current || entschieden.current || !schritte || schritte.length === 0 || phase !== "aus") return;
+    if (!wartetAufAutostart.current) return;
+    if (!himbiSichtbar) {
+      // Himbi ist gerade nicht zu sehen - die Gelegenheit ist vorbei, kein spaeteres Nachholen,
+      // wenn sie wieder eingeschaltet wird (das wirkte sonst wie ein zufaelliges Aufpoppen).
+      wartetAufAutostart.current = false;
+      return;
+    }
+    if (entschieden.current || !schritte || schritte.length === 0 || phase !== "aus") return;
     const id = window.setTimeout(() => {
       wartetAufAutostart.current = false;
       starten();
     }, 0);
     return () => window.clearTimeout(id);
-  }, [schritte, phase, starten]);
+  }, [himbiSichtbar, schritte, phase, starten]);
 
   // Autopilot: nach der Lesezeit der Station zur naechsten.
   const aktuell = schritte?.[schritt];
@@ -333,7 +349,7 @@ export function useComplianceTour(schritte: ComplianceTourSchritt[] | null, bezu
     tourZustand: phase === "fertig" ? "fertig" : "ruhe",
     tourZiel: phase === "laeuft" ? ziel : null,
     huepf,
-    verfuegbar: !!schritte && schritte.length > 0,
+    verfuegbar: himbiSichtbar && !!schritte && schritte.length > 0,
     starten,
   };
 }
