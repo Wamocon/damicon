@@ -40,9 +40,15 @@ export function DashboardHome({
    * Serverseitig vorgerendert (async Server Component) und von der Seite
    * durchgereicht, nicht hier importiert: DashboardHome ist "use client"
    * (usePersona()), eine Server Component laesst sich dort nicht direkt
-   * einbinden. Server-seitig an der ECHTEN Profilrolle festgemacht, nicht an
-   * der hier umschaltbaren Vorschau-Rolle - eine Admin-Vorschau "als ceo" soll
-   * nicht den echten automatischen Lauf einer fremden Person ausloesen.
+   * einbinden. Der Server liefert dieses Fragment bereits fuer admin mit (RLS
+   * erlaubt den Lesezugriff), genau wie er auch fuer eine Admin-Vorschau alle
+   * Kennzahlen mitschickt (siehe kpisFuerRolle() unten) - ob es tatsaechlich
+   * erscheint, entscheidet erst die Vorschau-Rolle hier unten. Der eigentliche
+   * automatische Lauf (ceo-pruefung-kontext.tsx) und der manuelle
+   * "Jetzt neu pruefen"-Knopf bleiben unabhaengig davon an der ECHTEN
+   * Profilrolle festgemacht - eine Admin-Vorschau "als ceo" zeigt nur den
+   * echten, gemeinsamen letzten Bericht, sie loest nie einen neuen Lauf fuer
+   * eine fremde Person aus.
    */
   ceoUebersicht?: ReactNode;
   /** Ebenfalls serverseitig vorgerendert, aus demselben Grund wie oben. */
@@ -63,7 +69,7 @@ export function DashboardHome({
     <div className="space-y-6">
       <BegruessungsBox tageszeit={tageszeit} datum={datum} spruch={spruch} />
       <WerbefilmHinweis />
-      {ceoUebersicht}
+      {role === "ceo" ? ceoUebersicht : null}
       {finanzVorschau}
       <ZonenBox role={role} kpis={sichtbar} quelle={quelle} />
     </div>

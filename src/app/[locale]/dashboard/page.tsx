@@ -75,7 +75,10 @@ export default async function DashboardPage({
         timeZone: betriebsZeitzone,
       })}
       spruch={spruchIndex(jetzt)}
-      ceoUebersicht={profil?.role === "ceo" ? <CeoComplianceUebersicht /> : null}
+      // Auch fuer admin schon serverseitig geladen (RLS erlaubt has_role('ceo','admin')
+      // den Lesezugriff): die Sichtbarkeit fuer eine Admin-Vorschau "als ceo" entscheidet
+      // client-seitig home.tsx anhand der Vorschau-Rolle, siehe dortiger Kommentar.
+      ceoUebersicht={profil?.role === "ceo" || profil?.role === "admin" ? <CeoComplianceUebersicht /> : null}
       finanzVorschau={darfFinanzenSehen ? <FinanzVorschau /> : null}
     />
   );

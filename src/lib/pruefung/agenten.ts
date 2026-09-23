@@ -1,7 +1,7 @@
 import { generateText, stepCountIs, streamText, tool, type LanguageModel } from "ai";
 import { z } from "zod";
 import type { Role } from "@/lib/rbac";
-import { befundEingabe, kennzahlen, massnahmenplan, pruefeBefund, sha256Hex, siegelFuer, sortiereBefunde } from "@/lib/pruefung/befund";
+import { befundEingabe, gesamtKennzahlen, massnahmenplan, pruefeBefund, sha256Hex, siegelFuer, sortiereBefunde } from "@/lib/pruefung/befund";
 import { punkteFuer, type Pruefpunkt } from "@/lib/pruefung/felder";
 import { feldTitel } from "@/lib/pruefung/felder-titel";
 import type { Pruefbereich } from "@/lib/pruefung/rollen";
@@ -386,7 +386,7 @@ export async function fuehrePruefungAus(
 
   // ---- Zusammenführen -------------------------------------------------------------------------
   emit({ t: "synthese", phase: "start" });
-  const kz = kennzahlen(befunde);
+  const kz = gesamtKennzahlen(befunde, anfrage.bereiche);
   let zusammenfassung = "";
   let prioritaeten: string[] = [];
   // Zwei Versuche: ein einzelner Ausreißer des Modells (zu lange Zusammenfassung, kurzer Ausfall) darf den

@@ -17,8 +17,10 @@ import {
   smoothStream,
   stepCountIs,
   streamText,
+  tool,
   type UIMessage,
 } from "ai";
+import { z } from "zod";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission, roles, type Role } from "@/lib/rbac";
 import { bestimmeAntwortsprache } from "@/lib/domain/antwortsprache";
@@ -31,6 +33,7 @@ import { ladeAnbieterKette, meldeAnbieterwechsel } from "@/lib/ai/anbieter-kette
 import type { AusweichEreignis } from "@/lib/ai/ausfall-modell";
 import { baueWerkzeuge } from "@/lib/ai/tools";
 import { naechsteBelegNummer } from "@/lib/wissen/belege";
+import { PRUEF_BEREICH_ANKER } from "@/components/pruefung/symbole";
 import { waehleSchritt } from "@/lib/ai/schritt-steuerung";
 import { ABLEHNUNG_ANWEISUNG, zweckentfremdung } from "@/lib/ai/bereich-schutz";
 import { pruefeWissenGesundheit } from "@/lib/wissen/suche";
@@ -267,15 +270,44 @@ function pruefGespraechAnweisung(kontext: string): string {
     "- Beantworte Fragen zum Ergebnis auf Grundlage dieses Berichts: erkläre Befunde, Schweregrade, Zusammenhänge und Maßnahmen verständlich, Schritt für Schritt, mit Beispielen aus dem Betrieb. Erfinde keine Befunde, Zahlen, Fristen oder Artikel, die nicht im Bericht oder in der Wissenssuche stehen. Fehlt etwas im Bericht, sage das.",
     "- Für neue oder vertiefende Rechtsaussagen (Pflichten, Fristen, Sanktionen, Nachweise) rufe zusätzlich wissenSuchen auf und belege sie wie üblich. Nenne Fundstellen aus dem Bericht im Klartext, zum Beispiel 'НК РК ст. 101', und benutze die Kennungen des Berichts NIE als Zitatmarke.",
     "- Bei der Frage nach einer Lösung oder Checkliste: konkrete Schritte, wer es tut, bis wann, welchen Nachweis man ablegt und woran man erkennt, dass die Lücke geschlossen ist. Knapp und praktisch, keine Rechtsberatung, sondern eine Umsetzungshilfe; bei Unsicherheit auf die Fachperson (Steuerberater, Rechtsanwalt) verweisen.",
+    "- Rufe oeffnePruefBereich auf, sobald du einen der vier Prüfbereiche, den Massnahmenplan oder die Einschraenkungen konkret besprichst, auch wenn du den Namen nicht woertlich nennst (Mehrwertsteuer gehoert zu Steuern, Kuehlkette zu Risiko). Das verlinkt genau die Stelle im Text - die Oberflaeche zeigt zusaetzlich immer eine feste Uebersicht aller sechs Kacheln, unabhaengig davon, was du schreibst.",
     "BERICHT-ANFANG",
     kontext,
     "BERICHT-ENDE",
   ].join("\n");
 }
 
+/** Nur im Gespraech zu einem Pruefbericht angeboten (siehe pruefKontext unten, gleiche
+ *  Bedingung wie pruefGespraechAnweisung): verweist auf eine Kachel der CEO-Complianceuebersicht,
+ *  auf die sich GENAU DIESER Bericht bezieht. Ergaenzt die immer sichtbare Link-Reihe (ki-chat.tsx,
+ *  PRUEF_BEREICH_ANKER) um punktgenaue Verweise mitten im Text - verlaesst sich das Modell nicht
+ *  darauf, bleiben die sechs festen Links trotzdem da. Dieselben Anker wie Himbis gefuehrte Tour
+ *  (use-compliance-tour.tsx, ceo-bereichs-kacheln.tsx) und derselbe Ergebnis-Ausschnitt (ziel,
+ *  bereich) wie oeffneBereich, damit ki-chat.tsx daraus ohne weiteren Sonderfall denselben
+ *  anklickbaren Quellenverweis baut. */
+function bauePruefBereichWerkzeug() {
+  return tool({
+    description:
+      "Verweist auf eine Kachel der CEO-Complianceuebersicht (Audit, Steuern, Recht, Risiko, Maßnahmenplan oder Einschränkungen), auf die sich der besprochene Prüfbericht bezieht. Rufe dieses Werkzeug immer auf, wenn du einen dieser Bereiche im Text nennst.",
+    inputSchema: z.object({
+      bereich: z.enum(["audit", "steuer", "recht", "risiko", "massnahmen", "einschraenkungen"]),
+    }),
+    execute: async ({ bereich }) => ({ ziel: `/dashboard#${PRUEF_BEREICH_ANKER[bereich]}`, bereich }),
+  });
+}
+
+// Nachtrag zur Sprachanweisung (23.09.2026): eine russische Oberflaeche und
+// eine russisch getippte Frage ergaben die richtige antwortSprache "ru", die
+// Antwort begann trotzdem mit dem deutschen Fazit-Satz aus dem BERICHT-ANFANG-
+// Block (pruefGespraechAnweisung), erst danach russisch. FORMAT_ANWEISUNG
+// verlangt "beginne mit einem einzeiligen Fazit in Fettschrift" - genau das
+// liefert der eingebettete Berichtstext schon fertig auf Deutsch, das Modell
+// uebernahm diesen einen Satz eher als Zitat denn als selbst zu verfassenden
+// Text. Deshalb unten ein Satz, der ausdruecklich die Eroeffnungszeile nennt.
 function spracheAnweisung(sprache: string): string {
   const name = SPRACHNAMEN[sprache] ?? SPRACHNAMEN.de;
-  return `LANGUAGE (highest priority, overrides everything above): The user wrote their message in ${name}. Write EVERY reply in ${name} - the whole text, including headings, table headers and the sentences before and after tool calls - even though these instructions and all tool data are in German. This holds regardless of the interface language, of the language of earlier messages, and of the language of the data your tools return: match the language the user just wrote in. Only switch language if the user explicitly asks for another one. In German use real umlauts (ä, ö, ü, ß), never ae/oe/ue.`;
+  return `LANGUAGE (highest priority, overrides everything above): The user wrote their message in ${name}. Write EVERY reply in ${name} - the whole text, including headings, table headers and the sentences before and after tool calls - even though these instructions and all tool data are in German. This holds regardless of the interface language, of the language of earlier messages, and of the language of the data your tools return: match the language the user just wrote in. Only switch language if the user explicitly asks for another one. In German use real umlauts (ä, ö, ü, ß), never ae/oe/ue.
+Your opening bold one-line Fazit is the line most likely to slip into the wrong language, because injected data (the Prüfbericht text, a quoted source) often already contains a ready-made summary sentence in German. Never reuse or lightly edit that sentence in its original language, not even for the first few words - compose your own Fazit from scratch, entirely in ${name}, like every other sentence in your reply.`;
 }
 
 function rollenKontext(rolle: Role, vorschau: boolean): string {
@@ -431,12 +463,15 @@ export async function POST(req: Request) {
   const pruefKontext = pruefKontextAus(body.pruefkontext, profil.role);
 
   await pruefeWissenGesundheit();
-  const werkzeuge = baueWerkzeuge(rolle, {
+  const werkzeugeOhneBericht = baueWerkzeuge(rolle, {
     vorschau,
     agentModus: modus === "agent",
     oberflaeche: modus === "agent" ? "steuern" : "lesen",
     belegStart: naechsteBelegNummer(nachrichten),
   });
+  // oeffnePruefBereich nur, wenn es ueberhaupt einen Bericht gibt, auf dessen Kacheln es
+  // verweisen koennte (siehe pruefGespraechAnweisung, dieselbe Bedingung).
+  const werkzeuge = pruefKontext ? { ...werkzeugeOhneBericht, oeffnePruefBereich: bauePruefBereichWerkzeug() } : werkzeugeOhneBericht;
   const heute = `Heutiges Datum: ${new Date().toISOString().slice(0, 10)}`;
   const systemPrompt = [
     basisPrompt(baueGesamtWissenskontext(quellen, preislisten)),

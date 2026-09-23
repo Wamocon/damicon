@@ -114,6 +114,22 @@ export function kennzahlen(befunde: readonly Befund[]): Kennzahlen {
   };
 }
 
+/** Kennzahlen eines Gesamtberichts ueber mehrere Bereiche: dieselben Zaehlungen wie kennzahlen()
+ *  (anzahl/nachStatus/nachSchwere ueber ALLE Befunde), aber die Reife ist der Durchschnitt der
+ *  einzelnen Bereichsreifen - nicht 100 minus der Summe aller Abzuege. kennzahlen() selbst zieht
+ *  pro Befund ab, unabhaengig vom Bereich; ueber die Gesamtmenge angewandt faellt die Reife damit
+ *  allein durch die ANZAHL geprueften Bereiche, nicht durch ihre Qualitaet - eine Pruefung mit vier
+ *  saubereren Bereichen zu je 97 stuende sonst schlechter da (87) als jeder einzelne von ihnen.
+ *  Auf der Kachel-Ebene (ein Bereich) bleibt kennzahlen() unveraendert richtig, dort gibt es diese
+ *  Verzerrung nicht. */
+export function gesamtKennzahlen(befunde: readonly Befund[], bereiche: readonly Pruefbereich[]): Kennzahlen {
+  const basis = kennzahlen(befunde);
+  if (bereiche.length === 0) return basis;
+  const jeBereich = bereiche.map((b) => kennzahlen(befunde.filter((f) => f.bereich === b)).reife);
+  const reife = Math.round(jeBereich.reduce((summe, r) => summe + r, 0) / jeBereich.length);
+  return { ...basis, reife, stufe: reife >= 85 ? "bereit" : reife >= 60 ? "luecken" : "nicht-bereit" };
+}
+
 /** Alle Massnahmen, dringendste zuerst (erst Schwere des Befunds, dann Frist). */
 export function massnahmenplan(befunde: readonly Befund[]): MassnahmeMitBezug[] {
   return befunde

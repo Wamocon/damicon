@@ -398,17 +398,6 @@
 .pr-kacheln-bereich {
   container: kacheln / inline-size;
 }
-.pr-kacheln-bereich__kopf {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  margin-bottom: 0.6rem;
-}
-.pr-kacheln-bereich__kopf .pr-abschnitt__titel {
-  margin-bottom: 0;
-}
 .pr-tour-neustart {
   display: inline-flex;
   align-items: center;
@@ -425,6 +414,10 @@
 }
 .pr-tour-neustart:hover {
   background: color-mix(in oklab, var(--primary) 16%, var(--card));
+}
+.pr-tour-neustart:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 .pr-kacheln {
   display: grid;

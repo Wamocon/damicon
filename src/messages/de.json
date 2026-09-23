@@ -1709,6 +1709,7 @@
       "kuehlketteAbrufen": "Kühlkette geprüft",
       "risikoRadarAbrufen": "Risiko-Radar geprüft",
       "oeffneBereich": "{bereich} geöffnet",
+      "oeffnePruefBereich": "{bereich} geöffnet",
       "wissenSuchen": "Wissensbasis durchsucht",
       "unbekannt": "Schritt abgeschlossen",
       "datenmodellErkunden": "Datenmodell erkundet",
@@ -1820,6 +1821,7 @@
       "kuehlketteAbrufen": "Prüfe Kühlkette …",
       "risikoRadarAbrufen": "Durchsuche Risiko-Radar …",
       "oeffneBereich": "Öffne {bereich} …",
+      "oeffnePruefBereich": "Öffne {bereich} …",
       "wissenSuchen": "Durchsuche Wissensbasis …",
       "unbekannt": "Arbeite …",
       "datenmodellErkunden": "Erkunde das Datenmodell …",
@@ -1837,6 +1839,7 @@
       "kuehlketteAbrufen": "Kühlkette",
       "risikoRadarAbrufen": "Risiko-Radar",
       "oeffneBereich": "{bereich}",
+      "oeffnePruefBereich": "{bereich}",
       "wissenSuchen": "Wissensbasis",
       "unbekannt": "Quelle",
       "datenmodellErkunden": "Datenmodell",
@@ -1850,6 +1853,14 @@
       "mitarbeiterEinschalten": "Chat"
     },
     "bereichAllgemein": "den Bereich",
+    "pruefBereich": {
+      "audit": "Audit",
+      "steuer": "Steuern",
+      "recht": "Recht",
+      "risiko": "Risiko",
+      "massnahmen": "Maßnahmenplan",
+      "einschraenkungen": "Einschränkungen"
+    },
     "assistentDenkt": "Assistent sucht die reifsten Fakten …",
     "leerTitel": "Wobei kann ich helfen?",
     "modus": {
@@ -1959,6 +1970,7 @@
     "transparenzHinweisAgent": "Diese Antworten stammen von einer KI, nicht von einem Mitarbeiter. Betriebsdaten kommen live aus der Anwendung und erscheinen als Schritte unter der Antwort, alles andere ist Allgemeinwissen und wird so gekennzeichnet.",
     "pruefBezug": "Bezug: Prüfbericht {id}",
     "pruefBezugEntfernen": "Bezug zum Prüfbericht entfernen",
+    "pruefBezugKacheln": "Direkt zu einer Kachel springen",
     "mehr": "Mehr",
     "groesser": "Panel vergrößern",
     "kleiner": "Panel verkleinern"
@@ -3199,6 +3211,7 @@
       "einschraenkungen": "{anzahl, plural, one {# Prüffeld konnte nicht vollständig bewertet werden.} other {# Prüffelder konnten nicht vollständig bewertet werden.}}",
       "ende": "Das waren die vier Bereiche. Auf eine Kachel klicken zeigt dir jederzeit alle Details.",
       "neustart": "Tour erneut starten",
+      "zusammenfassung": "Zusammenfassung im Chat",
       "nachfrage": "Was kann ich dir noch zeigen?"
     },
     "liveHinweis": "Die Compliance-Prüfung läuft gerade live, hier siehst du jeden Schritt. Das dauert in der Regel unter einer Minute, du kannst in der Zwischenzeit weiterarbeiten.",
