@@ -249,14 +249,22 @@ export async function aufgabeStatusSetzen(
       return zugriffsFehler(error);
     }
 
-    const supabase = await createClient();
+    // WMCNL-2382: der Faktor ist lohnrelevant und ging bisher unbelegt
+    // (kein Pflichtfeld, keine Grenzen) in die Abrechnung ein. Derselbe
+    // Korridor wie der Standard-Korridor der Lohnsaetze (qualitaetsfaktor_
+    // min/max, 20260908130000), hier fest statt dynamisch nachgeschlagen -
+    // dieses Feld ist bewusst ein eigener, manueller Wert (Migrationskopf,
+    // Punkt 2), keine Kopplung an die konfigurierbare Lohnsatz-Tabelle.
+    // Zweite Verteidigungslinie: CHECK-Constraint auf der Spalte selbst.
     const qualitaet = zahl(formData, "qualitaetsfaktor");
+    if (qualitaet === null || qualitaet < 0.9 || qualitaet > 1.1) {
+      return fehler("fehler.qualitaetsfaktorKorridor");
+    }
+
+    const supabase = await createClient();
     const { data, error } = await supabase
       .from("pflueckaufgaben")
-      .update({
-        status: "abgeschlossen",
-        ...(qualitaet !== null ? { qualitaetsfaktor: qualitaet } : {}),
-      })
+      .update({ status: "abgeschlossen", qualitaetsfaktor: qualitaet })
       .eq("id", id)
       .eq("status", "beleg_pruefung")
       .select("id, code")

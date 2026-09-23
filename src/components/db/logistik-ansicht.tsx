@@ -14,6 +14,7 @@ import {
   ladeChargeOptionenFuerLieferung,
   ladeLieferungen,
 } from "@/lib/data/lieferungen";
+import { kuehlketteGesamturteil } from "@/lib/domain/lieferungen";
 import { ladeLieferungenOhneTour, ladeTouren } from "@/lib/data/tourenplanung";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
@@ -78,7 +79,9 @@ export async function LogistikAnsicht() {
           <Card className="text-center text-xs text-muted-foreground">{t("keineLieferungen")}</Card>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            {uebersicht.lieferungen.map((l) => (
+            {uebersicht.lieferungen.map((l) => {
+              const gesamturteil = kuehlketteGesamturteil(l);
+              return (
               <Card key={l.id}>
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div>
@@ -116,13 +119,13 @@ export async function LogistikAnsicht() {
                       <dd className="font-semibold text-foreground">{l.empfaengerName}</dd>
                     </div>
                   ) : null}
-                  {l.letzteKuehlmessung ? (
+                  {gesamturteil ? (
                     <div className="col-span-2">
                       <dt className="text-muted-foreground">{t("temperatur")}</dt>
                       <dd>
-                        <StatusPill tone={kuehlTon[l.letzteKuehlmessung.ergebnis] ?? "neutral"}>
-                          {l.letzteKuehlmessung.temperaturC} °C ·{" "}
-                          {kkT(`ergebnis.${l.letzteKuehlmessung.ergebnis}`)}
+                        <StatusPill tone={kuehlTon[gesamturteil.ergebnis] ?? "neutral"}>
+                          {gesamturteil.temperaturC} °C ·{" "}
+                          {kkT(`ergebnis.${gesamturteil.ergebnis}`)}
                         </StatusPill>
                       </dd>
                     </div>
@@ -146,7 +149,12 @@ export async function LogistikAnsicht() {
                   </div>
                 ) : null}
 
-                {darfErfassen && l.status !== "storniert" ? (
+                {/* WMCNL-2372: die Seite behauptet selbst, eine zugestellte
+                    oder stornierte Lieferung sei unveraenderlich - das
+                    Formular blieb bislang trotzdem bis auf den Storno-Fall
+                    stehen. Es gibt keinen separaten "im Uebergabemoment"-Weg
+                    (uebergabeErfassen() nimmt keine Temperatur entgegen). */}
+                {darfErfassen && l.status === "geplant" ? (
                   <TransportMessungFormular lieferungId={l.id} />
                 ) : null}
 
@@ -157,7 +165,8 @@ export async function LogistikAnsicht() {
                   </>
                 ) : null}
               </Card>
-            ))}
+              );
+            })}
           </div>
         )}
       </Section>

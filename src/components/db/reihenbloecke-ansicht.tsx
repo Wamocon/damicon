@@ -169,11 +169,21 @@ export async function ReihenbloeckeAnsicht({
                   <td className="px-3 py-2.5">
                     <div className="space-y-1.5">
                       {gesperrt ? (
-                        block.sperre?.faellig && darfFreigeben ? (
+                        // WMCNL-2306: der Knopf haengt jetzt ausschliesslich
+                        // an der Berechtigung, nicht mehr zusaetzlich am
+                        // client-seitig vorberechneten "faellig" - die
+                        // Datenbank (reihenblock_freigeben()) prueft die
+                        // Wartezeit ohnehin serverseitig und lehnt einen
+                        // verfruehten Versuch mit einer sprechenden Meldung
+                        // ab. Vorher blieb ein gesperrter Block ohne jede
+                        // Bedienmoeglichkeit stehen, sobald "faellig" aus
+                        // irgendeinem Grund nicht zutraf, selbst wenn die
+                        // Wartezeit laengst abgelaufen war.
+                        darfFreigeben ? (
                           <FreigabeKnopf id={block.id} />
                         ) : (
                           <span className="text-[11px] text-muted-foreground">
-                            {a("gesperrtHinweis")}
+                            {t("keineFreigabeBerechtigung")}
                           </span>
                         )
                       ) : darfStatusAendern ? (

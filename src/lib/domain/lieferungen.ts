@@ -45,6 +45,39 @@ export interface LieferungZeile {
   transportMessungen: TransportMessungZeile[];
 }
 
+// Rangfolge fuer den Kuehlketten-Gesamtstatus einer Lieferung: eine einzelne
+// "ok"-Uebergabemessung darf eine Grenzwertverletzung beim Transport nicht
+// uebertoenen (WMCNL-2371) - massgeblich ist immer die schlechteste der
+// vorliegenden Messungen (Vorkuehlung an der Charge UND Transport).
+const kuehlketteRang: Record<string, number> = { ok: 0, warnung: 1, verstoss: 2 };
+
+export interface KuehlketteMessungHinweis {
+  temperaturC: number;
+  ergebnis: string;
+}
+
+export function kuehlketteGesamturteil(
+  lieferung: Pick<LieferungZeile, "letzteKuehlmessung" | "transportMessungen">,
+): KuehlketteMessungHinweis | null {
+  const messungen: KuehlketteMessungHinweis[] = [
+    ...(lieferung.letzteKuehlmessung
+      ? [
+          {
+            temperaturC: lieferung.letzteKuehlmessung.temperaturC,
+            ergebnis: lieferung.letzteKuehlmessung.ergebnis,
+          },
+        ]
+      : []),
+    ...lieferung.transportMessungen.map((m) => ({ temperaturC: m.temperaturC, ergebnis: m.ergebnis })),
+  ];
+  if (messungen.length === 0) return null;
+  return messungen.reduce((schlechteste, aktuell) =>
+    (kuehlketteRang[aktuell.ergebnis] ?? 0) > (kuehlketteRang[schlechteste.ergebnis] ?? 0)
+      ? aktuell
+      : schlechteste,
+  );
+}
+
 export const demoLieferungen: LieferungZeile[] = [
   {
     id: "demo-lieferung-1",

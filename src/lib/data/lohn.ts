@@ -7,6 +7,7 @@ import {
   demoLohnSatz,
   demoLohnSteuersatzKz,
   type LohnAbrechnung,
+  type LohnAbschlussLuecke,
   type LohnMonatsabzug,
   type LohnPosition,
   type LohnSatz,
@@ -26,21 +27,32 @@ import { einsAus } from "@/lib/data/util";
 
 export interface LohnUebersicht {
   quelle: Datenquelle;
+  /** Der heute gueltige Satz (gueltig_ab <= heute < gueltig_bis) - nicht
+   *  zwingend der juengst angelegte, siehe historie. */
   satz: LohnSatz | null;
+  /** Alle Saetze, juengster Gueltigkeitsbeginn zuerst (WMCNL-2380: bislang
+   *  gab es dafuer gar keine Ansicht, nur den - faelschlich als "aktuell"
+   *  gezeigten - juengsten Satz). */
+  historie: LohnSatz[];
   abrechnungen: LohnAbrechnung[];
   positionen: LohnPosition[];
   steuersatzKz: LohnSteuersatzKz | null;
   monatsabzuege: LohnMonatsabzug[];
+  /** WMCNL-2375: abgeschlossene Aufgaben mit gemeldeter Menge, aber ohne
+   *  jede Steige - fallen sonst kommentarlos aus der Lohnabrechnung. */
+  abschlussLuecken: LohnAbschlussLuecke[];
 }
 
 function demoUebersicht(quelle: LohnUebersicht["quelle"] = "demo"): LohnUebersicht {
   return {
     quelle,
     satz: demoLohnSatz,
+    historie: [demoLohnSatz],
     abrechnungen: demoLohnAbrechnungen,
     positionen: demoLohnPositionen,
     steuersatzKz: demoLohnSteuersatzKz,
     monatsabzuege: demoLohnMonatsabzuege,
+    abschlussLuecken: [],
   };
 }
 
@@ -55,8 +67,13 @@ export async function ladeLohnUebersicht(): Promise<LohnUebersicht> {
     { data: positionRows, error: positionFehler },
     { data: steuersatzRows, error: steuersatzFehler },
     { data: monatsabzugRows, error: monatsabzugFehler },
+    { data: lueckenRows, error: lueckenFehler },
   ] = await Promise.all([
-    supabase.from("lohn_saetze").select("*").order("gueltig_ab", { ascending: false }).limit(1),
+    // WMCNL-2380: alle Saetze laden, nicht nur den juengsten - die Karte
+    // "Grundlage der Berechnung" braucht den HEUTE gueltigen Satz (siehe
+    // Filter unten, derselbe wie in lohn_periode_berechnen()), und die
+    // Historie zeigt den Rest.
+    supabase.from("lohn_saetze").select("*").order("gueltig_ab", { ascending: false }),
     supabase
       .from("lohn_abrechnungen")
       .select(
@@ -88,25 +105,51 @@ export async function ladeLohnUebersicht(): Promise<LohnUebersicht> {
       .order("jahr", { ascending: false })
       .order("monat", { ascending: false })
       .limit(100),
+    // WMCNL-2375: abgeschlossene Aufgaben mit gemeldeter Menge, deren
+    // Mengenkomponente lohn_periode_berechnen() mangels Steigen niemals
+    // erfassen wird (siehe Kommentar an LohnAbschlussLuecke). Das
+    // eingebettete steigen(id) liefert je Aufgabe ein (ggf. leeres) Array -
+    // kein separater Join noetig.
+    supabase
+      .from("pflueckaufgaben")
+      .select("id, code, ist_menge_kg, steigen ( id )")
+      .eq("status", "abgeschlossen")
+      .gt("ist_menge_kg", 0)
+      .limit(200),
   ]);
 
-  if (satzFehler || abrechnungFehler || positionFehler || steuersatzFehler || monatsabzugFehler) {
+  if (
+    satzFehler ||
+    abrechnungFehler ||
+    positionFehler ||
+    steuersatzFehler ||
+    monatsabzugFehler ||
+    lueckenFehler
+  ) {
     return demoUebersicht("fehler");
   }
 
-  const satz: LohnSatz | null = satzRows?.[0]
-    ? {
-        id: satzRows[0].id,
-        gueltigAb: satzRows[0].gueltig_ab,
-        gueltigBis: satzRows[0].gueltig_bis,
-        stundenlohnTenge: Number(satzRows[0].stundenlohn_tenge),
-        kgSatzTenge: Number(satzRows[0].kg_satz_tenge),
-        qualitaetsZielAusschussquote: Number(satzRows[0].qualitaets_ziel_ausschussquote),
-        qualitaetsfaktorMin: Number(satzRows[0].qualitaetsfaktor_min),
-        qualitaetsfaktorMax: Number(satzRows[0].qualitaetsfaktor_max),
-        notiz: satzRows[0].notiz,
-      }
-    : null;
+  const historie: LohnSatz[] = (satzRows ?? []).map((s) => ({
+    id: s.id,
+    gueltigAb: s.gueltig_ab,
+    gueltigBis: s.gueltig_bis,
+    stundenlohnTenge: Number(s.stundenlohn_tenge),
+    kgSatzTenge: Number(s.kg_satz_tenge),
+    qualitaetsZielAusschussquote: Number(s.qualitaets_ziel_ausschussquote),
+    qualitaetsfaktorMin: Number(s.qualitaetsfaktor_min),
+    qualitaetsfaktorMax: Number(s.qualitaetsfaktor_max),
+    notiz: s.notiz,
+  }));
+
+  // Derselbe Filter wie in lohn_periode_berechnen() (Migration
+  // 20260908130000): gueltig_ab <= heute < gueltig_bis (bzw. offenes Ende).
+  // Vorher zeigte die Karte schlicht den juengsten Satz nach gueltig_ab -
+  // ein zukuenftig gueltiger Satz verdraengte damit den tatsaechlich
+  // rechnungsrelevanten (WMCNL-2380).
+  const heuteIso = new Date().toISOString().slice(0, 10);
+  const satz: LohnSatz | null =
+    historie.find((s) => s.gueltigAb <= heuteIso && (s.gueltigBis === null || s.gueltigBis > heuteIso)) ??
+    null;
 
   const abrechnungen: LohnAbrechnung[] = (abrechnungRows ?? []).map((a) => {
     const pfluecker = einsAus(a.pfluecker);
@@ -186,5 +229,18 @@ export async function ladeLohnUebersicht(): Promise<LohnUebersicht> {
     };
   });
 
-  return { quelle: "db", satz, abrechnungen, positionen, steuersatzKz, monatsabzuege };
+  const abschlussLuecken: LohnAbschlussLuecke[] = (lueckenRows ?? [])
+    .filter((a) => (a.steigen ?? []).length === 0)
+    .map((a) => ({ id: a.id, code: a.code, istMengeKg: Number(a.ist_menge_kg) }));
+
+  return {
+    quelle: "db",
+    satz,
+    historie,
+    abrechnungen,
+    positionen,
+    steuersatzKz,
+    monatsabzuege,
+    abschlussLuecken,
+  };
 }
