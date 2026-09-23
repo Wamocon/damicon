@@ -53,14 +53,10 @@
     "rotator3": "bis zur Person."
   },
   "werbefilm": {
-    "eyebrow": "Der Film",
-    "titel": "Von der Staude bis zum Beleg",
-    "lead": "Vierzig Sekunden vom Feld im Umland Almaty bis zur Schale im Laden: pflücken, am Gerät erfassen, die erste Stunde einhalten, verkaufen. Der Film startet erst auf Klick, dann mit Ton.",
-    "filmTitel": "Damicon in 40 Sekunden",
-    "megabyte": "{megabyte} MB",
-    "tonsprache": "Ton auf Russisch",
-    "abspielenLang": "Werbefilm abspielen. {sekunden} Sekunden, {megabyte} MB, Tonspur auf Russisch.",
-    "sprachHinweis": "Der Film ist auf Russisch vertont und trägt seine Einblendungen fest im Bild. Untertitel in den übrigen Sprachen gibt es noch nicht.",
+    "pausieren": "Film anhalten",
+    "fortsetzen": "Film abspielen",
+    "tonAn": "Ton des Films einschalten",
+    "tonAus": "Ton des Films ausschalten",
     "fehler": "Der Film lässt sich gerade nicht abspielen.",
     "portalTitel": "Damicon in 40 Sekunden",
     "portalText": "Der Werbefilm: vom Feld bis zum Beleg. {sekunden} Sekunden, mit Ton.",

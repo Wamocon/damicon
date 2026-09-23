@@ -2,7 +2,6 @@ import { setRequestLocale } from "next-intl/server";
 import { SiteNavbar } from "@/components/site/navbar";
 import { SiteFooter } from "@/components/site/footer";
 import { Hero } from "@/components/site/hero";
-import { WerbefilmAbschnitt } from "@/components/werbefilm/abschnitt";
 import { BeereBento } from "@/components/site/beere-bento";
 import { SechzigMinuten } from "@/components/site/sechzig-minuten";
 import { FarmReality } from "@/components/site/farm-reality";
@@ -26,9 +25,9 @@ import {
 import { HaustierTour } from "@/components/haustier/haustier-tour";
 import { feldTon } from "@/lib/site-medien";
 
-// Der Werbefilm steht direkt hinter dem Hero: wer einmal scrollt, sieht ihn.
-// Er laeuft nur auf Klick und ersetzt das Hero-Video nicht - die Begruendung
-// steht in components/werbefilm/abschnitt.tsx.
+// Der Werbefilm ist das Bild des Heros, siehe components/site/hero-video.tsx.
+// Einen eigenen Abschnitt dafuer gibt es nicht: derselbe Film zweimal auf
+// derselben Seite waere eine Wiederholung, keine zweite Aussage.
 //
 // Reihenfolge als Erzaehlung: warum die Himbeere anders ist, die erste
 // Stunde nach dem Pfluecken, dann der echte Betrieb, Preis, Massstab,
@@ -52,7 +51,6 @@ export default async function LandingPage({
       <SiteNavbar />
       <main id="main" className="pt-16">
         <Hero />
-        <WerbefilmAbschnitt />
         <BeereBento />
         <SechzigMinuten />
         <FarmReality />

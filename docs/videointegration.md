@@ -1,118 +1,130 @@
-# Werbefilm auf der Seite und im Portal
+# Werbefilm im Hero und im Portal
 
-Stand 23.09.2026. Beschreibt, wie `Damicon_Werbevideo_Final_RU.mp4` eingebunden
-ist, warum er das Hero-Video nicht ersetzt und was noch offen ist.
+Stand 23.09.2026. Beschreibt, wo `Damicon_Werbevideo_Final_RU.mp4` läuft, was
+der Wechsel gekostet hat und was offen bleibt.
 
-## Warum der Film das Hero-Video nicht ersetzt
+## Entscheidung
 
-Die naheliegende Lesart der Aufgabe war, die Datei hinter `hero-video.tsx` gegen
-den Werbefilm zu tauschen. Das führt zu nichts, und zwar aus fünf Gründen, die
-alle im bestehenden Code nachzulesen sind:
+Der Werbefilm ist seit dem 23.09.2026 das Bild des Heros und hat das
+Rundgangsmaterial der Plantage (`hero-himbeere.mp4`) dort abgelöst. Ein erster
+Entwurf hatte den Film stattdessen in einen eigenen Abschnitt unter dem Hero
+gestellt, weil ein Stück mit Anfang, Ende und Tonspur andere Eigenschaften hat
+als eine Bildtapete. Die Projektleitung hat anders entschieden: der Film gehört
+nach oben. Diese Seite hält fest, was daraus folgt, damit die Punkte später
+nicht neu gesucht werden müssen.
 
-1. Das Hero-Video ist Hintergrund, kein Bild. Über ihm liegt der Verlauf aus
-   `hero.tsx`, der die Textzone mit bis zu 88 % abdeckt. Ein Film, dessen
-   Aussage im Bild steht, wäre dort nicht zu sehen.
-2. Hintergrundmaterial läuft stumm und in Schleife (`autoPlay muted loop`). Der
-   Werbefilm hat Anfang, Ende, Tonspur und ein Schlussbild. Stumm in
-   Endlosschleife bleibt davon nichts übrig.
-3. `medienErlaubt()` in `lib/bewegung.ts` schaltet das Hero-Video bei
-   `prefers-reduced-motion` und im Sparnetz ganz ab. Für Hintergrundbewegung ist
-   das richtig. Ein Film, den jemand ausdrücklich sehen will, darf daran nicht
-   scheitern.
-4. Die Datei ist rund 18 MB gegenüber 2,5 MB beim Hero-Video. Als Hintergrund
-   liefe dieser Download bei jedem Seitenaufruf ungefragt mit.
-5. Der Film trägt seine Einblendungen fest im Bild, unten mittig auf Russisch.
-   Hinter der deutschen Überschrift des Heros stünde damit russischer Text.
+Einen eigenen Abschnitt für den Film gibt es nicht mehr. Derselbe Film zweimal
+auf derselben Seite wäre eine Wiederholung, keine zweite Aussage.
 
-Der Film steht deshalb als eigener Abschnitt direkt hinter dem Hero. Das
-Hero-Video bleibt unverändert.
+## Wie er im Hero läuft
 
-## Was eingebaut ist
+`src/components/site/hero-video.tsx`:
 
-Drei Dateien unter `src/components/werbefilm/`:
+- **Stumm beim Start, in Schleife.** Stumm ist keine Wahl, sondern Vorgabe
+  jedes Browsers: von selbst darf eine Seite keinen Ton machen. Der Film
+  beginnt und endet mit derselben Luftaufnahme, die Nahtstelle der Schleife
+  fällt deshalb kaum auf.
+- **Pause und Ton oben rechts**, zwei Knöpfe zu 44 × 44 px unter der Kopfzeile.
+  Nicht unten rechts: dort stehen schon der Tonschalter der Seite und das
+  Maskottchen mit seiner Sprechblase. Beide Knöpfe sind mit dem Tabulator
+  erreichbar, der Tonknopf trägt `aria-pressed`.
+- **Weich eingeblendet.** Das Standbild steht sofort, der Film legt sich
+  darüber, sobald wirklich Bilder kommen (`playing`, nicht `canplay`), in einer
+  Sekunde Überblendung. Bei reduzierter Bewegung neutralisiert die globale
+  Regel in `globals.css` den Übergang, dann steht der Film sofort.
+- **`medienErlaubt()` gilt weiter.** Bei reduzierter Bewegung oder im Sparnetz
+  fängt nichts von allein an, und `preload` bleibt auf `none`. Anders als
+  früher bleibt es dann aber nicht beim Standbild: der Abspielknopf steht da.
+- Die Steuerung ist ein Geschwister des Videos, kein Kind. Das Video liegt auf
+  `-z-10` hinter der Schrift; ein Knopf darin wäre nicht anzuklicken.
 
-- `spieler.tsx` ist die gemeinsame Fläche für beide Orte. Sie startet nie von
-  selbst, lädt bis zum Klick nur das Standbild (`preload="none"`, 64 KB) und
-  spielt dann mit Ton. Die eigene Deckfläche verschwindet beim Start, damit sie
-  den fest eingebrannten Einblendungen des Films nicht im Weg steht; danach
-  bedienen die Bordmittel des Browsers.
-- `abschnitt.tsx` ist der Abschnitt der öffentlichen Seite, eingehängt in
-  `app/[locale]/page.tsx` zwischen `Hero` und `BeereBento`. Der Abschnitt bleibt
-  hell, obwohl der Hero darüber nachtblau ist: zwei dunkle Blöcke hintereinander
-  lesen sich als einer.
-- `dashboard-hinweis.tsx` ist die Zeile in der Portal-Übersicht, eingehängt in
-  `dashboard/home.tsx` hinter der Begrüßung. Sie ist 70 px hoch statt der rund
-  360 px, die ein eingebetteter Spieler in dieser Spalte bräuchte. Angesehen
-  wird der Film im `Sheet` (`position="mitte"`), das Fokusfalle, Esc und
-  abgedunkelten Hintergrund schon mitbringt. Beim Schließen verschwindet das
-  Videoelement, der Ton kann also nicht weiterlaufen.
+## Was der Wechsel gekostet hat
 
-Dazu `zustand.ts` für das Wegklicken der Portal-Zeile. Massgeblich ist eine
-Klasse am `<html>`, die ein kurzes Skript vor dem ersten Paint setzt - gleiches
-Muster wie `sidebar-zustand.ts`. Über React allein stünde die Zeile im
-ausgelieferten HTML, verschwände nach der Hydration wieder und zöge dabei die
-halbe Übersicht nach oben.
+**Der Verlauf musste nach.** Die Deckung über der Textzone war auf das alte
+Rundgangsmaterial abgestimmt, das durchgehend dunkel ist. Der Werbefilm hat
+helle Luftaufnahmen. Gemessen wurde Bild für Bild über alle 40 Sekunden: die
+Pixel des Videos im Bereich der Überschrift, mit dem Verlauf verrechnet, gegen
+Weiß.
 
-Die Medienangaben stehen in `lib/site-medien.ts` unter `werbefilm`, die Texte in
-`src/messages/*.json` unter `werbefilm` in allen vier Sprachen.
+| | Mittel | schwächste Stelle | Fläche unter 3:1 |
+|---|---|---|---|
+| alte Stufen | 8,6 – 15,6:1 | 1,71:1 (Sek. 33,5) | bis 16,3 % |
+| neue Stufen | 10,0 – 15,6:1 | 2,56:1 (Sek. 33,5) | bis 8,8 % |
+
+Angehoben wurden die mittleren Stufen des seitlichen Verlaufs: 0,78 statt 0,72
+bei 34 %, 0,52 statt 0,34 bei 56 %, 0,20 statt 0,08 bei 76 %. Der Wert bei 0 %
+bleibt bei 0,88, die rechte Bildhälfte bleibt frei.
+
+Die 8,8 % beziehen sich auf den vollen Textkasten einschließlich des leeren
+rechten Rands; die Schrift selbst endet bei etwa 61 % der Breite, wo die
+Deckung bei 0,44 liegt. Die Messung ist also konservativ. Weiter abdunkeln
+ginge, kostet dann aber sichtbar Bild.
+
+Der Verlauf für schmale Viewports bleibt unverändert. Dort läuft der Text über
+die volle Breite, und 0,66 in der Mitte trägt auch über einem reinweißen Bild
+noch 6,2:1.
+
+**Die Startseite lädt jetzt 19 MB.** Gemessen über zwölf Sekunden nach dem
+Aufruf: 19,2 MB insgesamt, davon 18,0 MB Video. Vorher waren es 2,5 MB für das
+Rundgangsvideo. Der Film läuft in Schleife, die Datei wird also vollständig
+geholt. Wer im Sparnetz unterwegs ist oder reduzierte Bewegung eingestellt hat,
+lädt weiterhin nur das Standbild (50 KB).
+
+## Im Portal
+
+`src/components/werbefilm/dashboard-hinweis.tsx`: eine 70 px hohe Zeile in der
+Übersicht, hinter der Begrüßung. Der Film geht im vorhandenen `Sheet`
+(`position="mitte"`) auf, das Fokusfalle, Esc und abgedunkelten Hintergrund
+schon mitbringt, und läuft dort mit Ton - der Klick auf die Zeile ist die
+Eingabe, die das erlaubt. Beim Schließen verschwindet das Videoelement, der Ton
+kann also nicht weiterlaufen. Die Zeile lässt sich wegklicken; gemerkt wird das
+über eine Klasse am `<html>`, gleiches Muster wie `sidebar-zustand.ts`.
+
+## Standbild
+
+`public/werbefilm-standbild.webp` ist Sekunde 25,5 des Films: die Kundin mit der
+Himbeerschale im Laden, 1280 × 720, 50 KB. Sie steht rechts im Bild, dort, wo
+die Schrift des Heros ohnehin nicht hinreicht.
+
+Gezogen mit Chromium über Playwright: Video über einen lokalen Server mit
+Range-Unterstützung ausliefern, `currentTime` setzen, auf
+`requestVideoFrameCallback` warten, auf ein Canvas zeichnen, als WebP ausgeben.
+Ohne Range-Unterstützung bleibt `seekable` leer und jeder Sprung landet wieder
+bei Sekunde 0. Das mitgelieferte ffmpeg von Playwright taugt nicht dafür, es
+ist mit `--disable-everything` gebaut und hat keinen H.264-Decoder.
+
+Das frühere `hero-standbild.webp` ist damit unbenutzt und entfernt.
+`hero-himbeere.mp4` bleibt: seine Tonspur ist weiterhin der Feldton des
+Tonschalters.
 
 ## Der Film, technisch
 
 40,0 s, 1280 × 720, H.264 (avc1) mit AAC-Tonspur bei 48 kHz, 24 Bilder/s,
 18,8 MB, also rund 3,7 Mbit/s. Der `moov`-Atom steht vor `mdat`, der Film läuft
-also beim Laden an und muss nicht erst vollständig übertragen werden.
-
-Die Fläche der Seite ist nie breiter als 1248 px (Container 80 rem abzüglich
-Innenabstand). Das Material wird damit an keiner Stelle hochskaliert.
+also beim Laden an.
 
 Inhalt: Luftbild der Anlage vor dem Tienschan, Pflücken von Hand, das Büro mit
 Papierbelegen, ein Pflücker mit dem Gerät im Feld, die 60-Minuten-Uhr in der
-Anwendung, eine Kundin im Laden, Schlussbild „DAMICON — от куста до чека".
+Anwendung, die Kundin im Laden, ein Händler am Rechner, Schlussbild
+„DAMICON — от куста до чека".
 
-## Standbild
+## Offen und bewusst so
 
-`public/werbefilm-standbild.webp` ist Sekunde 0,6 des Films, 1280 × 720, 64 KB.
-Kein zweites Motiv, sondern der Film selbst.
-
-Gezogen wurde es mit Chromium über Playwright: Video über einen lokalen Server
-mit Range-Unterstützung ausliefern, `currentTime` setzen, auf
-`requestVideoFrameCallback` warten, auf ein Canvas zeichnen, als WebP ausgeben.
-Ohne Range-Unterstützung bleibt `seekable` leer und jeder Sprung landet wieder
-bei Sekunde 0. Das mitgelieferte ffmpeg von Playwright taugt dafür nicht, es ist
-mit `--disable-everything` gebaut und hat keinen H.264-Decoder.
-
-## Was geprüft wurde
-
-Gegen den Produktionsbuild auf Port 3123, mit Chromium:
-
-- Vor dem Klick geht keine Anfrage auf die MP4-Datei hinaus, weder auf der Seite
-  noch im Portal. Nur das Standbild wird geladen.
-- Nach dem Klick läuft der Film mit Ton (`muted` false, `volume` 1).
-- Der Abspielknopf ist per Tabulator erreichbar, Enter startet, und der Fokus
-  ist als nachtblauer Ring in der weißen Abspielscheibe zu sehen.
-- Esc und ein Klick neben das Blatt beenden die Wiedergabe im Portal; danach
-  steht kein Videoelement mehr im Dokument.
-- Auf 390 px Breite entsteht kein waagerechter Überlauf.
-- In der russischen Fassung fehlen Sprachchip und Sprachhinweis, dort sind sie
-  gegenstandslos.
-- Der Hinweis im Portal bleibt nach dem Wegklicken auch über einen Neustart
-  weg, ohne beim Laden aufzublitzen.
-- Hell und dunkel: der Sprachhinweis trägt im Dunkelmodus rund 9:1.
-
-## Offen
-
-- **Untertitel.** Der Film ist auf Russisch vertont. Für Deutsch, Englisch und
-  Kasachisch gibt es weder Untertitel noch eine eigene Tonfassung; die Seite
-  sagt das vor dem Klick, mehr kann sie nicht tun. `werbefilm.untertitel` in
-  `lib/site-medien.ts` ist vorbereitet: liegt eine VTT-Datei vor, trägt der
-  Spieler sie als `<track>` nach, ohne dass eine Komponente anzufassen wäre. Die
-  Tonspur wurde nicht transkribiert - die Angabe „Russisch" stützt sich auf den
-  Dateinamen und die Einblendungen im Bild.
-- **Die fest eingebrannten Einblendungen** lassen sich nicht abschalten. Sie
-  erscheinen in jeder Sprachfassung. Nur eine neue Fassung des Films ohne
-  eingebrannten Text würde das lösen.
-- **Dateigröße.** 18,8 MB liegen als Datei im Repository, wie schon
-  `hero-himbeere.mp4`. Bei 720p wären 2 bis 2,5 Mbit/s üblich, das wären rund
-  10 bis 12 MB statt 18,8. Eine Neukodierung braucht ein vollständiges ffmpeg,
-  das hier nicht zur Verfügung stand. Alternativ ließe sich die Datei nach
+- **Der Film bleibt einsprachig russisch.** Untertitel sind nicht vorgesehen,
+  der Hinweis auf die Sprache ist auf Wunsch entfallen. Im Hero läuft er stumm,
+  die Sprache fällt also erst auf, wenn jemand den Ton zuschaltet.
+- **Die Einblendungen sind fest im Bild** und erscheinen in jeder Sprachfassung.
+  Sie sitzen unten mittig; die Schrift des Heros steht oben links, die
+  Stat-Karten links unten. Eine Überschneidung ist damit möglich, aber nicht
+  die Regel.
+- **Dateigröße.** 18,8 MB liegen als Datei im Repository. Bei 720p wären 2 bis
+  2,5 Mbit/s üblich, also rund 10 bis 12 MB. Eine Neukodierung braucht ein
+  vollständiges ffmpeg, das hier nicht zur Verfügung stand. Alternativ nach
   Supabase Storage auslagern; dann ändert sich nur `werbefilm.quelle`.
+- **Zwei Tonschalter auf der Startseite.** Der Knopf im Hero schaltet den Ton
+  des Films, der schwebende Knopf unten rechts die Feldgeräusche aus
+  `hero-himbeere.mp4`. Beide gleichzeitig an ergibt zwei Tonspuren
+  übereinander. Ob der Feldton bleiben soll, ist noch zu entscheiden.
+- **Dateiname.** `Damicon_Werbevideo_Final_RU.mp4` bleibt, wie geliefert. Er
+  passt nicht zur Kleinschreibung der übrigen Dateien unter `public/`; ein
+  Umbenennen wäre eine Zeile in `site-medien.ts`.

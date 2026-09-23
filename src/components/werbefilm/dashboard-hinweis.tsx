@@ -118,11 +118,8 @@ export function WerbefilmHinweis() {
         titel={t("portalTitel")}
         position="mitte"
       >
-        {/* autoStart: der Klick auf die Zeile war die Aufforderung, den Film
-            zu sehen. Ein zweiter Knopf im Blatt waere eine Rueckfrage auf
-            eine Frage, die schon beantwortet ist. */}
         <div className="p-3 sm:p-4">
-          <WerbefilmSpieler autoStart />
+          <WerbefilmSpieler />
         </div>
       </Sheet>
     </>

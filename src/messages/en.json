@@ -53,14 +53,10 @@
     "rotator3": "down to the person."
   },
   "werbefilm": {
-    "eyebrow": "The film",
-    "titel": "From the cane to the receipt",
-    "lead": "Forty seconds from the field outside Almaty to the punnet in the shop: picking, recording on the device, keeping the first hour, selling. The film starts on click, and then with sound.",
-    "filmTitel": "Damicon in 40 seconds",
-    "megabyte": "{megabyte} MB",
-    "tonsprache": "Russian audio",
-    "abspielenLang": "Play the promotional film. {sekunden} seconds, {megabyte} MB, Russian audio.",
-    "sprachHinweis": "The film has a Russian soundtrack and carries its captions burned into the picture. Subtitles in the other languages are not available yet.",
+    "pausieren": "Pause the film",
+    "fortsetzen": "Play the film",
+    "tonAn": "Turn the film's sound on",
+    "tonAus": "Turn the film's sound off",
     "fehler": "The film cannot be played at the moment.",
     "portalTitel": "Damicon in 40 seconds",
     "portalText": "The promotional film: from the field to the receipt. {sekunden} seconds, with sound.",

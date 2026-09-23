@@ -152,42 +152,31 @@ export type PlantagenScan = {
 export const plantagenScan = null as PlantagenScan | null;
 
 /**
- * Der Werbefilm. Anders als das Hero-Video und die Loop-Clips ist er kein
- * Hintergrundmaterial, sondern ein Stueck mit Anfang, Ende und Tonspur - er
- * laeuft deshalb nie von selbst, sondern nur auf Klick, und dann mit Ton.
+ * Der Werbefilm. Er ist das Bild des Heros (components/site/hero-video.tsx)
+ * und laeuft dort in Schleife, stumm bis jemand den Ton zuschaltet. Im Portal
+ * steht er als Zeile in der Uebersicht und geht im Sheet auf.
  *
- * `megabyte` steht sichtbar am Abspielknopf, wie beim Plantagen-Scan: 18 MB
- * laedt niemand ungefragt. Bis zum Klick kommt nur das Standbild ueber die
- * Leitung (64 KB), das Video traegt deshalb preload="none".
- *
- * Das Standbild ist Sekunde 0,6 des Films, aus dem Material selbst gezogen -
- * kein zweites Motiv, das etwas anderes verspricht als der Film zeigt.
+ * Das Standbild ist Sekunde 25,5 des Films, aus dem Material selbst gezogen:
+ * die Kundin mit der Himbeerschale im Laden. Kein zweites Motiv, das etwas
+ * anderes verspricht als der Film zeigt - und im Hero steht sie rechts, wo
+ * die Schrift ohnehin nicht hinreicht.
  */
 export type Werbefilm = {
   readonly quelle: string;
   readonly standbild: string;
-  /** Laufzeit in Sekunden, gerundet. Steht am Knopf, damit die Laenge vorher klar ist. */
+  /** Laufzeit in Sekunden, gerundet. Steht in der Zeile der Portal-Uebersicht. */
   readonly sekunden: number;
-  readonly megabyte: number;
   /**
-   * Sprache der Tonspur als BCP-47-Kennung. Der Film ist auf Russisch
-   * vertont und traegt seine Einblendungen fest im Bild; fuer de/en/kk ist
-   * das eine Fremdsprache, deshalb steht sie am Knopf und als lang-Attribut
-   * am Videoelement.
+   * Sprache der Tonspur als BCP-47-Kennung, fuer das lang-Attribut am
+   * Videoelement. Der Film bleibt einsprachig russisch und traegt seine
+   * Einblendungen fest im Bild; Untertitel sind nicht vorgesehen.
    */
   readonly tonsprache: string;
-  /**
-   * Untertitelspuren je Sprache. Noch keine vorhanden - sobald eine VTT-Datei
-   * unter /untertitel/ liegt, traegt der Spieler sie als <track> nach.
-   */
-  readonly untertitel: readonly { readonly sprache: string; readonly quelle: string }[];
 };
 
 export const werbefilm: Werbefilm = {
   quelle: "/Damicon_Werbevideo_Final_RU.mp4",
   standbild: "/werbefilm-standbild.webp",
   sekunden: 40,
-  megabyte: 18,
   tonsprache: "ru",
-  untertitel: [],
 };
