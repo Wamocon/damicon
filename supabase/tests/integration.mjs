@@ -1690,13 +1690,15 @@ if (leitung && brigade) {
     `grundlohn_tenge: ${lohnSarsenbaj?.grundlohn_tenge}`,
   );
   check(
+    // WMCNL-2381: Ausschussquote ist Ausschuss / Menge (nicht / (Menge +
+    // Ausschuss)), deshalb 37440,80 statt der vormals falschen 37659,25.
     "Lohn-Berechnung: Mengenkomponente inklusive Qualitaetsfaktor je Aufgabe",
-    Number(lohnSarsenbaj?.mengen_komponente_tenge) === 37659.25,
+    Number(lohnSarsenbaj?.mengen_komponente_tenge) === 37440.8,
     `mengen_komponente_tenge: ${lohnSarsenbaj?.mengen_komponente_tenge}`,
   );
   check(
     "Lohn-Berechnung: Gesamt-Qualitaetsfaktor unter 1.00 bei ueberdurchschnittlichem Ausschuss",
-    Number(lohnSarsenbaj?.qualitaetsfaktor) === 0.91,
+    Number(lohnSarsenbaj?.qualitaetsfaktor) === 0.9,
     `qualitaetsfaktor: ${lohnSarsenbaj?.qualitaetsfaktor}, ausschussquote: ${lohnSarsenbaj?.ausschussquote}`,
   );
   check(
