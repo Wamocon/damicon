@@ -16,6 +16,7 @@ import type { ReactNode } from "react";
 import { usePersona } from "@/components/dashboard/persona";
 import { BegruessungsBox } from "@/components/dashboard/begruessung";
 import { ZonenBox } from "@/components/dashboard/zonen-box";
+import { WerbefilmHinweis } from "@/components/werbefilm/dashboard-hinweis";
 import { kpisFuerRolle, type Kpi } from "@/lib/domain/kpis";
 import type { Tageszeit } from "@/lib/domain/tageszeit";
 import type { Datenquelle } from "@/lib/supabase/config";
@@ -67,6 +68,7 @@ export function DashboardHome({
   return (
     <div className="space-y-6">
       <BegruessungsBox tageszeit={tageszeit} datum={datum} spruch={spruch} />
+      <WerbefilmHinweis />
       {role === "ceo" ? ceoUebersicht : null}
       {finanzVorschau}
       <ZonenBox role={role} kpis={sichtbar} quelle={quelle} />

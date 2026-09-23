@@ -55,5 +55,5 @@ export const plantagenScan = {
 
 ## Offene Punkte vor der Veröffentlichung
 
-- Die Tonspur des Hero-Videos (`public/hero-himbeere.mp4`) ist zurzeit der Feldton. Sie stammt aus dem Parallelprojekt. Vor dem Livegang einmal anhören und klären, ob Musik darin liegt und wer die Rechte hat. Bis dahin ist der Tonschalter die einzige Stelle, die sie abspielt.
+- Die Tonspur des Rundgangsvideos (`public/hero-himbeere.mp4`) ist zurzeit der Feldton. Sie stammt aus dem Parallelprojekt. Vor dem Livegang einmal anhören und klären, ob Musik darin liegt und wer die Rechte hat. Seit der Hero den Werbefilm zeigt (23.09.2026), ist der Tonschalter die einzige Stelle, die diese Datei überhaupt noch abspielt.
 - KI-generierte Bilder (Punkt 13 der Entscheidungstabelle) sind noch nicht erzeugt. Dafür fehlt ein Schlüssel für einen Bildgenerator oder die Freigabe des Higgsfield-Connectors. Falls sie kommen, dann nur als sichtbar gekennzeichnete Platzhalter bis zum Shooting und nie für die Qualitätsfotos, die einen Maßstab belegen.

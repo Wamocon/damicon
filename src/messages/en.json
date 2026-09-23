@@ -52,6 +52,17 @@
     "rotator2": "down to the cooling minute.",
     "rotator3": "down to the person."
   },
+  "werbefilm": {
+    "pausieren": "Pause the film",
+    "fortsetzen": "Play the film",
+    "tonAn": "Turn the film's sound on",
+    "tonAus": "Turn the film's sound off",
+    "fehler": "The film cannot be played at the moment.",
+    "portalTitel": "Damicon in 40 seconds",
+    "portalText": "The promotional film: from the field to the receipt. {sekunden} seconds, with sound.",
+    "ansehen": "Watch",
+    "ausblenden": "Hide this notice"
+  },
   "landing": {
     "openZone": "Open area",
     "berryEyebrow": "Why the raspberry is different",

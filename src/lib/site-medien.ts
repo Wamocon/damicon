@@ -150,3 +150,33 @@ export type PlantagenScan = {
 // Noch kein Scan vorhanden. Solange hier null steht, erscheint der Abschnitt
 // nicht. Aufnahme und Export beschreibt docs/aufnahmeplan.md.
 export const plantagenScan = null as PlantagenScan | null;
+
+/**
+ * Der Werbefilm. Er ist das Bild des Heros (components/site/hero-video.tsx)
+ * und laeuft dort in Schleife, stumm bis jemand den Ton zuschaltet. Im Portal
+ * steht er als Zeile in der Uebersicht und geht im Sheet auf.
+ *
+ * Das Standbild ist Sekunde 25,5 des Films, aus dem Material selbst gezogen:
+ * die Kundin mit der Himbeerschale im Laden. Kein zweites Motiv, das etwas
+ * anderes verspricht als der Film zeigt - und im Hero steht sie rechts, wo
+ * die Schrift ohnehin nicht hinreicht.
+ */
+export type Werbefilm = {
+  readonly quelle: string;
+  readonly standbild: string;
+  /** Laufzeit in Sekunden, gerundet. Steht in der Zeile der Portal-Uebersicht. */
+  readonly sekunden: number;
+  /**
+   * Sprache der Tonspur als BCP-47-Kennung, fuer das lang-Attribut am
+   * Videoelement. Der Film bleibt einsprachig russisch und traegt seine
+   * Einblendungen fest im Bild; Untertitel sind nicht vorgesehen.
+   */
+  readonly tonsprache: string;
+};
+
+export const werbefilm: Werbefilm = {
+  quelle: "/Damicon_Werbevideo_Final_RU.mp4",
+  standbild: "/werbefilm-standbild.webp",
+  sekunden: 40,
+  tonsprache: "ru",
+};

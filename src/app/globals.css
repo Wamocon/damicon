@@ -1302,6 +1302,17 @@ html.lenis.lenis-smooth {
   }
 }
 
+/* Der Hinweis auf den Werbefilm in der Portal-Uebersicht, weggeklickt.
+
+   Die Klasse setzt werbefilmInitScript am <html>, bevor das erste Bild steht
+   (siehe components/werbefilm/zustand.ts). Ueber CSS statt ueber React, weil
+   der Hinweis sonst im ausgelieferten HTML stuende, nach der Hydration wieder
+   verschwaende und dabei die ganze Uebersicht um eine Zeile nach oben zoege.
+   Gleicher Weg wie .sidebar-schmal fuer die Breite der Seitenleiste. */
+.werbefilm-weg .werbefilm-hinweis {
+  display: none;
+}
+
 /*
   Drucken (WMCNL-1439): Etiketten, Pfluecker-Ausweise und das Aushang-Poster
   sind fuer Papier gedacht, nicht fuer den Bildschirm. Navigation/UI-Chrome
