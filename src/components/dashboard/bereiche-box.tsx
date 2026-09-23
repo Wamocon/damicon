@@ -12,7 +12,9 @@ import { auffaelligeZuerst } from "@/lib/domain/zielstand";
 import { zones } from "@/lib/modules";
 import type { Datenquelle } from "@/lib/supabase/config";
 
-// Der Reiter "Bereiche": vier Einstiege, jeder mit den Kennzahlen seiner Zone.
+// Die vier Bereiche unter dem Compliance-Report: je ein Einstieg mit den Kennzahlen seiner
+// Zone. Stand am 23.09.2026 kurzzeitig hinter einem Reiter; der ist wieder entfallen, die
+// Seite ist ein Strang.
 //
 // Zwei Entscheidungen stecken darin, beide vom 23.09.2026:
 //
@@ -51,8 +53,8 @@ const SYMBOL: Record<string, LucideIcon> = {
   store: Store,
 };
 
-export function BereicheReiter({ kpis, quelle }: { kpis: Kpi[]; quelle: Datenquelle }) {
-  const t = useTranslations("dashboard.bereicheReiter");
+export function BereicheBox({ kpis, quelle }: { kpis: Kpi[]; quelle: Datenquelle }) {
+  const t = useTranslations("dashboard.bereiche");
   const tq = useTranslations("dashboard.home");
   const zoneT = useTranslations("zones");
   const { role } = usePersona();

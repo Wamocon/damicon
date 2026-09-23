@@ -372,12 +372,7 @@
     "zoneKennzahlLead": "This area's key figures, the most urgent one first.",
     "zoneKennzahlMehr": "{count, plural, one {Show # more key figure} other {Show # more key figures}}",
     "zoneKennzahlWeniger": "Hide additional key figures",
-    "reiter": {
-      "label": "Overview sections",
-      "compliance": "CEO compliance",
-      "bereiche": "Areas"
-    },
-    "bereicheReiter": {
+    "bereiche": {
       "titel": "The four areas",
       "lead": "Each area with its metrics, anything off target first.",
       "ohneKennzahl": "No metric is released for this area."
@@ -3231,9 +3226,7 @@
       "nachfrage": "What else can I show you?"
     },
     "liveHinweis": "The compliance check is running live right now, you can watch every step here. It usually takes under a minute, feel free to keep working in the meantime.",
-    "liveHinweisKnopf": "Got it",
-    "complianceTitel": "State of the four audit areas",
-    "complianceLead": "Click a tile to see the findings."
+    "liveHinweisKnopf": "Got it"
   },
   "pruefungAblauf": {
     "schritt": {

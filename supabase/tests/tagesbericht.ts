@@ -124,13 +124,12 @@ pruefe("Auto-Lauf: die Sperre haengt am Bericht, nicht an der Person", !ceoAuto.
 
 const seite = quelle("src/app/[locale]/dashboard/page.tsx");
 pruefe("Startseite entscheidet ueber darfCeoBerichtLesen", seite.includes("darfCeoBerichtLesen(profil?.role)") && !seite.includes('profil?.role === "ceo"'));
-// Die Finanzzahlen stehen an genau einer Stelle. Seit dem 23.09.2026 ist das die rechte
-// Haelfte der Begruessungskarte - der Reiter Compliance traegt nur noch die vier
-// Pruefbereiche, einen eigenen Finanzreiter gibt es nicht mehr.
-const compliance = quelle("src/components/dashboard/tages-compliance.tsx");
+// Die Finanzzahlen stehen an genau einer Stelle: in der rechten Haelfte der
+// Begruessungskarte. Der Compliance-Report traegt nur die vier Pruefbereiche.
+const report = quelle("src/components/dashboard/tages-uebersicht.tsx");
 const kachelQuelle2 = quelle("src/components/dashboard/tages-kacheln.tsx");
-pruefe("Der Reiter Compliance laedt keine Finanzzahlen", !compliance.includes("ladeFinanzVorschau") && !kachelQuelle2.includes("FinanzKachel"));
-pruefe("Die Finanzzahl haengt an der Startkarte, nicht an einem Reiter", seite.includes("<StartkarteFinanzen />") && !seite.includes("FinanzenReiter"));
+pruefe("Der Compliance-Report laedt keine Finanzzahlen", !report.includes("ladeFinanzVorschau") && !kachelQuelle2.includes("FinanzKachel"));
+pruefe("Die Finanzzahl haengt allein an der Startkarte", seite.includes("<StartkarteFinanzen />") && !seite.includes("FinanzenReiter"));
 
 const kontext = quelle("src/components/dashboard/ceo-pruefung-kontext.tsx");
 pruefe("Der Auto-Lauf haengt an der ECHTEN Rolle, nicht an der Vorschau", kontext.includes("darfCeoBericht(echteRolle)"));

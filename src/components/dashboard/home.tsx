@@ -1,5 +1,5 @@
-// Die Startseite des Portals: Begruessung, "Das Wichtigste heute" und darunter drei Reiter
-// - Lage, Kennzahlen, Bereiche.
+// Die Startseite des Portals: Begruessung mit einer Zahl, der Compliance-Report und darunter
+// die vier Bereiche.
 //
 // Der Weg hierher, damit niemand ihn zweimal geht:
 //
@@ -10,19 +10,25 @@
 // CEO-Tagesuebersicht dazu, die in keiner der drei Runden vorkamen.
 //
 // Ergebnis am 23.09.2026, gemessen: 2421 px am Schirm und 5185 px am Handy, also gut sechs
-// Bildschirme in einem einzigen Strang. Was zuletzt im Strang stand, ging unter - und das
-// waren ausgerechnet die sechsundzwanzig Modulknoepfe aus Runde 2. Die Massnahme gegen
-// "zu weit weg" hatte "zu viel auf einmal" hergestellt.
+// Bildschirme. Was zuletzt im Strang stand, ging unter - und das waren ausgerechnet die
+// sechsundzwanzig Modulknoepfe aus Runde 2. Die Massnahme gegen "zu weit weg" hatte "zu viel
+// auf einmal" hergestellt.
 //
-// Jetzt: Begruessung und Zusammenfassung stehen immer sichtbar oben, alles andere liegt
-// hinter einem Reiter. Die Modulknoepfe sind ersatzlos entfallen, dafuer ist das Menue da.
+// Gekuerzt wurde deshalb an drei Stellen, nicht durch Verstecken:
+//   - Die sechsundzwanzig Modulknoepfe sind ersatzlos entfallen. Dafuer ist das Menue da.
+//   - Die Kennzahlen stehen nur noch, soweit sie auffallen: vier je Bereich, Auffaelliges
+//     zuerst, aufgefuellt mit dem, was im Ziel liegt.
+//   - Die Begruessungskarte trug vier Informationseinheiten und keine Zahl. Jetzt steht in
+//     ihrer rechten Haelfte die eine Zahl, mit der diese Rolle den Tag beginnt.
+//
+// Reiter gab es dazwischen kurzzeitig auch. Sie sind wieder entfallen: nach den drei
+// Kuerzungen ist die Seite kurz genug, und ein Reiter versteckt, was man nicht suchen kann.
 //
 // Entwuerfe und Messwerte: docs/design/uebersicht-entwuerfe-2026-09-21/, -runde2-, -runde3-
 // und -reiter-2026-09-23.
 //
-// Seit dem Reiter-Umbau eine Server Component: usePersona() wird hier nicht mehr gebraucht.
-// Das Nachfiltern der Kennzahlen fuer die Admin-Vorschau sitzt jetzt in kennzahlen-reiter.tsx,
-// und die Zonenkarten kennen keine Rolle mehr, seit die Modulknoepfe weg sind.
+// Server Component: usePersona() wird hier nicht mehr gebraucht. Das Nachfiltern der
+// Kennzahlen fuer die Admin-Vorschau sitzt in bereiche-box.tsx.
 import type { ReactNode } from "react";
 import { BegruessungsBox } from "@/components/dashboard/begruessung";
 import type { Tageszeit } from "@/lib/domain/tageszeit";
@@ -32,9 +38,8 @@ export function DashboardHome({
   datum,
   spruch,
   startkarte,
-  kopf,
-  reiter,
-  inhalt,
+  compliance,
+  bereiche,
 }: {
   /** Serverseitig bestimmt - siehe lib/domain/tageszeit.ts. */
   tageszeit: Tageszeit;
@@ -43,23 +48,19 @@ export function DashboardHome({
   /** Die rechte Haelfte der Begruessungskarte - je Rolle eine andere Zahl. */
   startkarte?: ReactNode;
   /**
-   * "Das Wichtigste heute" fuer ceo und admin, oberhalb der Reiterleiste und damit in jedem
-   * Reiter sichtbar. Serverseitig an der ECHTEN Profilrolle festgemacht, nicht an der
-   * clientseitig umschaltbaren Vorschau-Rolle - eine Admin-Vorschau "als ceo" soll nicht den
-   * echten automatischen Lauf einer fremden Person ausloesen.
+   * Der Compliance-Report fuer ceo und admin. Serverseitig an der ECHTEN Profilrolle
+   * festgemacht, nicht an der clientseitig umschaltbaren Vorschau-Rolle - eine Admin-Vorschau
+   * "als ceo" soll nicht den echten automatischen Lauf einer fremden Person ausloesen.
    */
-  kopf?: ReactNode;
-  /** Die Reiterleiste. Fehlt, wenn die Rolle nur einen Reiter hat - ein Reiter allein ist keiner. */
-  reiter?: ReactNode;
-  /** Der Inhalt des aktiven Reiters. Nur dieser wird ueberhaupt gerendert. */
-  inhalt: ReactNode;
+  compliance?: ReactNode;
+  /** Die vier Bereiche mit ihren Kennzahlen. Steht unter dem Report, fuer jede Rolle. */
+  bereiche: ReactNode;
 }) {
   return (
     <div className="space-y-6">
       <BegruessungsBox tageszeit={tageszeit} datum={datum} spruch={spruch} rechts={startkarte} />
-      {kopf}
-      {reiter}
-      {inhalt}
+      {compliance}
+      {bereiche}
     </div>
   );
 }

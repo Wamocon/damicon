@@ -1,20 +1,23 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Section, StatusPill } from "@/components/ui/kit";
+import { ArrowRight } from "lucide-react";
+import { Link } from "@/i18n/navigation";
+import { Section, StatusPill, knopfKlassen } from "@/components/ui/kit";
 import { CeoAktualisierenKnopf } from "@/components/dashboard/ceo-aktualisieren-knopf";
 import { TagesKopf } from "@/components/dashboard/tages-kopf";
+import { TagesKachelnLive } from "@/components/dashboard/tages-kacheln-live";
 import { letzterCeoBericht } from "@/lib/data/compliance-ceo";
 import { betriebsZeitzone } from "@/lib/domain/tageszeit";
 
-// "Das Wichtigste heute" fuer die Rollen ceo und admin - die Weiche steht in
-// dashboard/page.tsx ueber darfCeoBerichtLesen().
+// Der Compliance-Report auf der Startseite, fuer die Rollen ceo und admin - die Weiche steht
+// in dashboard/page.tsx ueber darfCeoBerichtLesen().
 //
-// Steht oberhalb der Reiterleiste und ist damit in jedem Reiter sichtbar: wer auf
-// "Kennzahlen" steht, soll trotzdem sehen, dass in den Steuern zwei kritische Punkte offen
-// sind. Die fuenf Kacheln und der Rest des Berichts stehen dagegen im Reiter "Lage"
-// (tages-lage.tsx).
+// Ein Block, nicht mehr zwei: Zusammenfassung, Prioritaeten, die vier Bereichskacheln und der
+// zugeklappte Rest stehen wieder zusammen, so wie in main. Die Reiter, die beides kurzzeitig
+// getrennt haben, sind am 23.09.2026 wieder entfallen - die Bereiche stehen jetzt als eigener
+// Block unter dem Report statt hinter einem Reiter.
 //
-// Der Bericht wird hier und dort geladen; letzterCeoBericht() haengt in React.cache(),
-// es bleibt eine Abfrage je Anforderung.
+// Der Bericht wird hier und in TagesKachelnLive gebraucht; letzterCeoBericht() haengt in
+// React.cache(), es bleibt eine Abfrage je Anforderung.
 export async function TagesUebersicht() {
   const [t, format, zeile] = await Promise.all([
     getTranslations("ceoUebersicht"),
@@ -43,7 +46,20 @@ export async function TagesUebersicht() {
         </div>
       }
     >
-      <TagesKopf initialBericht={zeile?.bericht ?? null} initialAenderungen={zeile?.aenderungen ?? []} />
+      <div className="space-y-4">
+        <TagesKopf initialBericht={zeile?.bericht ?? null} initialAenderungen={zeile?.aenderungen ?? []} />
+        <TagesKachelnLive initialBericht={zeile?.bericht ?? null} initialAenderungen={zeile?.aenderungen ?? []} />
+
+        <div>
+          <Link
+            href="/dashboard/compliance"
+            className={knopfKlassen({ variante: "leise", rundung: "schmal", groesse: "formular" })}
+          >
+            {t("vollerBericht")}
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </div>
+      </div>
     </Section>
   );
 }

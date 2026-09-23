@@ -372,12 +372,7 @@
     "zoneKennzahlLead": "Die Kennzahlen dieses Bereichs, die dringendste zuerst.",
     "zoneKennzahlMehr": "{count, plural, one {# weitere Kennzahl anzeigen} other {# weitere Kennzahlen anzeigen}}",
     "zoneKennzahlWeniger": "Weitere Kennzahlen ausblenden",
-    "reiter": {
-      "label": "Bereiche der Übersicht",
-      "compliance": "CEO-Compliance",
-      "bereiche": "Bereiche"
-    },
-    "bereicheReiter": {
+    "bereiche": {
       "titel": "Die vier Bereiche",
       "lead": "Jeder Bereich mit seinen Kennzahlen, Auffälliges zuerst.",
       "ohneKennzahl": "Für diesen Bereich ist keine Kennzahl freigegeben."
@@ -3231,9 +3226,7 @@
       "nachfrage": "Was kann ich dir noch zeigen?"
     },
     "liveHinweis": "Die Compliance-Prüfung läuft gerade live, hier siehst du jeden Schritt. Das dauert in der Regel unter einer Minute, du kannst in der Zwischenzeit weiterarbeiten.",
-    "liveHinweisKnopf": "Alles klar",
-    "complianceTitel": "Lage der vier Prüfbereiche",
-    "complianceLead": "Ein Klick auf eine Kachel zeigt die Befunde."
+    "liveHinweisKnopf": "Alles klar"
   },
   "pruefungAblauf": {
     "schritt": {

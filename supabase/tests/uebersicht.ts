@@ -1,5 +1,5 @@
-// Tests fuer die Reiter der Uebersichtsseite (lib/domain/uebersicht-reiter.ts) und fuer die
-// Auswahl der auffaelligen Kennzahlen (lib/domain/zielstand.ts).
+// Tests fuer die Startkarten-Zuordnung (lib/domain/startkarte.ts) und fuer die Auswahl der
+// Kennzahlen, die auf die Uebersichtsseite gehoeren (lib/domain/zielstand.ts).
 //
 // Kein Netzwerk, keine Datenbank: beides sind reine Funktionen ueber fertige Objekte.
 // Genau deshalb liegen sie in lib/domain und nicht in den Komponenten.
@@ -8,7 +8,6 @@
 import { readFileSync } from "node:fs";
 import type { Kpi } from "@/lib/domain/kpis";
 import { STARTKARTEN, startkarteFuer } from "@/lib/domain/startkarte";
-import { UEBERSICHT_REITER, reiterAusText, reiterFuer } from "@/lib/domain/uebersicht-reiter";
 import { auffaelligeZuerst, nurAuffaellige, zielAuswerten } from "@/lib/domain/zielstand";
 import { roles, type Role } from "@/lib/rbac";
 
@@ -36,31 +35,6 @@ function kpi(teil: Partial<Kpi> & { key: string }): Kpi {
     ...teil,
   } as Kpi;
 }
-
-// ---- Welche Reiter eine Rolle bekommt --------------------------------------------------------
-
-pruefe("Mit Compliance: beide Reiter", gleich(reiterFuer({ compliance: true }), ["compliance", "bereiche"]));
-pruefe("Ohne Compliance: nur Bereiche", gleich(reiterFuer({ compliance: false }), ["bereiche"]));
-pruefe("Bereiche sind immer dabei", [true, false].every((c) => reiterFuer({ compliance: c }).includes("bereiche")));
-pruefe("Die Reihenfolge ist fest", [true, false].every((c) => {
-  const r = reiterFuer({ compliance: c });
-  return gleich(r, UEBERSICHT_REITER.filter((x) => r.includes(x)));
-}));
-
-// ---- Der Wert aus der Adresszeile ------------------------------------------------------------
-
-const alle = reiterFuer({ compliance: true });
-const nurBereiche = reiterFuer({ compliance: false });
-
-pruefe("Gueltiger Reiter wird uebernommen", reiterAusText("bereiche", alle) === "bereiche");
-pruefe("Ohne Angabe: der erste erlaubte", reiterAusText(undefined, alle) === "compliance");
-pruefe("Leerer Wert: der erste erlaubte", reiterAusText("", alle) === "compliance");
-pruefe("Unbekannter Wert faellt zurueck, ohne Fehlerseite", reiterAusText("quatsch", alle) === "compliance");
-pruefe("Bekannter, aber fuer die Rolle nicht erlaubter Wert faellt zurueck", reiterAusText("compliance", nurBereiche) === "bereiche");
-pruefe("Bei nur einem Reiter landet jede Eingabe dort", ["compliance", "quatsch", undefined].every((w) => reiterAusText(w, nurBereiche) === "bereiche"));
-// Der Reiter "finanzen" gab es kurzzeitig; ein alter Link darauf darf nicht ins Leere fuehren.
-pruefe("Ein Link auf den entfallenen Reiter finanzen faellt sauber zurueck", reiterAusText("finanzen", alle) === "compliance");
-pruefe("Nichts Unerwartetes kommt durch", (["COMPLIANCE", "compliance ", " bereiche", "0"] as string[]).every((w) => UEBERSICHT_REITER.includes(reiterAusText(w, alle))));
 
 // ---- Welche Startkarte eine Rolle bekommt ----------------------------------------------------
 
@@ -137,10 +111,10 @@ pruefe("Und das Erfuellte faellt dann raus", !auffaelligeZuerst([...fuenfAuffael
 
 const quelle = (p: string) => readFileSync(p, "utf8");
 const seite = quelle("src/app/[locale]/dashboard/page.tsx");
-pruefe("Startseite liest den Reiter aus der Adresszeile", seite.includes("reiterAusText") && seite.includes("searchParams"));
-pruefe("Startseite bestimmt die erlaubten Reiter serverseitig", seite.includes("reiterFuer"));
-const bereiche = quelle("src/components/dashboard/bereiche-reiter.tsx");
+const bereiche = quelle("src/components/dashboard/bereiche-box.tsx");
 pruefe("Die Kennzahlen stehen bei ihrem Bereich, vier je Bereich", bereiche.includes("auffaelligeZuerst") && bereiche.includes("kpi.zone === zone.key") && bereiche.includes("JE_BEREICH = 4"));
+pruefe("Die Startseite kennt keine Reiter mehr", !seite.includes("reiterAusText") && !seite.includes("searchParams"));
+pruefe("Die Bereiche stehen unter dem Report, nicht dahinter", seite.indexOf("compliance={") < seite.indexOf("bereiche={"));
 
 console.log(`\nPruefungen: ${gesamt}   bestanden: ${gesamt - fehler}   fehlgeschlagen: ${fehler}`);
 if (fehler > 0) process.exit(1);
