@@ -428,6 +428,7 @@ export function HaustierDashboard() {
         paneOffen={offen}
         label={label}
         blickZiel={liveHinweisSichtbar ? liveZiel : tour.tourZiel}
+        positionFolgtBlick
         huepf={liveHinweisSichtbar ? liveHuepf : tour.huepf}
         aufAbzeichen={() => setAbzeichenOffen(true)}
         aufLogo={() => setLogoOffen(true)}

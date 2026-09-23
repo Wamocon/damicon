@@ -57,6 +57,11 @@ export interface HaustierHuelleProps {
   onKlick: () => void;
   /** Element, auf das Himbi schaut (Tour): ueberstimmt Mauszeiger und Zustand. */
   blickZiel?: Element | null;
+  /** Gesetzt: Himbi zieht nicht nur die Augen zu blickZiel, sondern die ganze Figur dorthin -
+   *  fuer eine Fuehrung, die auf einen bestimmten Teil einer langen, scrollbaren Seite zeigt
+   *  (Dashboard: Compliance-Tour, Live-Lauf-Hinweis). Ohne dieses Flag bleibt es beim reinen
+   *  Blick, wie auf der oeffentlichen Startseite - dort bleibt die Figur bewusst in ihrer Ecke. */
+  positionFolgtBlick?: boolean;
   /** Weiter oben ansetzen, damit Himbi nichts verdeckt, was unten rechts schon sitzt (Tonschalter der Startseite). */
   hoch?: boolean;
   /** Der Assistent steht in der Mitte: Himbi fliegt aus der Ecke ueber die Karte und
@@ -92,6 +97,7 @@ export function HaustierHuelle({
   label,
   onKlick,
   blickZiel,
+  positionFolgtBlick = false,
   hoch = false,
   buehne = false,
   huepf = 0,
@@ -286,6 +292,54 @@ export function HaustierHuelle({
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, [schauZiel, blickZu]);
+
+  // Die ganze Figur zum Blickziel bewegen, nicht nur die Augen (positionFolgtBlick) - fuer eine
+  // Fuehrung auf einer langen, scrollbaren Seite (Dashboard). Rechnet aus der TATSAECHLICH
+  // gezeichneten Position (die den aktuellen Versatz schon einschliesst), deshalb bleibt es
+  // richtig, wo immer Himbi gerade steht. Endet die Fuehrung, geht es zurueck in die Ecke - sonst
+  // bliebe die Figur an einer Bildschirmstelle stehen, die nach dem naechsten Scrollen zu nichts
+  // mehr gehoert (fixed positioniert, folgt dem Dokument nicht von selbst).
+  const folgtGerade = useRef(false);
+  useEffect(() => {
+    // isConnected: der Aufrufer kann ein Element noch referenzieren, das React laengst aus dem
+    // DOM entfernt hat (z. B. der Live-Lauf-Hinweis, dessen Anker verschwindet, sobald der Check
+    // fertig ist, bevor die Blase selbst das mitbekommt) - getBoundingClientRect() liefert dafuer
+    // lautlos ein Nullrechteck, ohne diese Pruefung wuerde das die Figur in eine Bildschirmecke
+    // ziehen, die nichts mit dem eigentlichen Ziel zu tun hat.
+    if (!positionFolgtBlick || !blickZiel || !blickZiel.isConnected) {
+      if (folgtGerade.current) setzeVersatz(0, 0);
+      folgtGerade.current = false;
+      return;
+    }
+    folgtGerade.current = true;
+    let frame = 0;
+    const bewege = () => {
+      frame = 0;
+      if (!blickZiel.isConnected) return;
+      const zielRect = blickZiel.getBoundingClientRect();
+      const eigeneRect = griff.current?.getBoundingClientRect();
+      if (!eigeneRect) return;
+      const breite = eigeneRect.width;
+      const hoehe = eigeneRect.height;
+      // Knapp ausserhalb der unteren rechten Ecke des Ziels, dabei immer im sichtbaren Bereich.
+      const zielX = Math.min(Math.max(zielRect.right - breite * 0.4, breite / 2 + RAND), window.innerWidth - breite / 2 - RAND);
+      const zielY = Math.min(Math.max(zielRect.bottom - hoehe * 0.4, hoehe / 2 + RAND), window.innerHeight - hoehe / 2 - RAND);
+      const deltaX = zielX - (eigeneRect.left + breite / 2);
+      const deltaY = zielY - (eigeneRect.top + hoehe / 2);
+      if (Math.abs(deltaX) > 0.5 || Math.abs(deltaY) > 0.5) setzeVersatz(versatzWert.current.x + deltaX, versatzWert.current.y + deltaY);
+    };
+    const planen = () => {
+      if (!frame) frame = window.requestAnimationFrame(bewege);
+    };
+    planen();
+    window.addEventListener("scroll", planen, { passive: true });
+    window.addEventListener("resize", planen);
+    return () => {
+      window.removeEventListener("scroll", planen);
+      window.removeEventListener("resize", planen);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, [positionFolgtBlick, blickZiel, setzeVersatz]);
 
   // ---- Mauszeiger: Augen folgen, Naehe weckt, Leerlauf schlaefert ein -------------------
   const letzteAktivitaet = useRef(0);
