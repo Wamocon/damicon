@@ -1,8 +1,14 @@
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { useTranslations } from "next-intl";
-import { X } from "lucide-react";
+import { ChevronLeft, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // Flaeche, die von unten aufgeht. Gebaut fuer die untere Leiste auf dem Handy
@@ -17,6 +23,18 @@ import { cn } from "@/lib/utils";
 // werden, was bei jedem Rendern erneut zu pruefen waere. Die drei Dinge, die
 // hier wirklich gebraucht werden - Esc, Klick daneben, Rollen im Baum - sind
 // unten ausgeschrieben.
+//
+// Bei "unten" endet die Flaeche oberhalb der unteren Leiste statt an der
+// Bildschirmkante: die Leiste bleibt sichtbar und bedienbar, solange ein Blatt
+// offen ist. Daran haengen drei Dinge, die sonst nicht zusammenpassen wuerden -
+// die Blende liegt dort unter der Leiste, die Leiste gehoert in die Fokusfalle
+// (zusatzFokus), und aria-modal faellt weg, weil hinter dem Blatt eben doch
+// etwas Bedienbares steht.
+
+// Was die Tabulatortaste ansteuern kann. Als Modulkonstante, seit die
+// Fokusfalle das Dokument abfragt statt nur die eigene Flaeche.
+const FOKUSSIERBAR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export function Sheet({
   offen,
@@ -24,6 +42,8 @@ export function Sheet({
   titel,
   children,
   position = "unten",
+  onZurueck,
+  zusatzFokus,
 }: {
   offen: boolean;
   onSchliessen: () => void;
@@ -32,10 +52,16 @@ export function Sheet({
   /** "unten": faehrt von der Kante hoch (Handy-Menues, Standard). "mitte": mittiges Fenster,
    *  fuer Detailinhalte, die nicht von einer Seitenkante zu kommen scheinen sollen. */
   position?: "unten" | "mitte";
+  /** Gesetzt: der Kopf traegt links einen Weg zurueck. Fehlt: nur den Titel. */
+  onZurueck?: () => void;
+  /** Ein zweiter Baum, der mit in die Fokusfalle gehoert - die untere Leiste,
+   *  die bei offenem Blatt bedienbar bleibt. */
+  zusatzFokus?: RefObject<HTMLElement | null>;
 }) {
   const nav = useTranslations("nav");
   const titelId = useId();
   const flaecheRef = useRef<HTMLDivElement>(null);
+  const inhaltRef = useRef<HTMLDivElement>(null);
 
   // Esc schliesst, und solange das Sheet offen ist, scrollt die Seite
   // darunter nicht mit.
@@ -56,28 +82,57 @@ export function Sheet({
   // Der Fokus springt in die Flaeche, sobald sie aufgeht - sonst bliebe er
   // auf dem Knopf in der Leiste, und die erste Tabulatortaste liefe durch die
   // Seite dahinter statt durch das Menue davor.
+  //
+  // Und erneut, wenn der Titel wechselt: im Menue-Blatt heisst der Dialog nach
+  // einem Wechsel der Ebene anders ("Menue" -> "Feld"), und ohne den Sprung
+  // meldet das keine Vorlesehilfe. Der Inhalt faengt dabei wieder oben an,
+  // sonst stuende die kurze Bereichsliste nach dem Zurueck aus einer langen
+  // Modulliste mitten im Scrollweg. Fuer die mittigen Blaetter aendert das
+  // nichts - dort wechselt der Titel nur zusammen mit offen.
   useEffect(() => {
-    if (offen) flaecheRef.current?.focus();
-  }, [offen]);
+    if (!offen) return;
+    flaecheRef.current?.focus();
+    inhaltRef.current?.scrollTo({ top: 0 });
+  }, [offen, titel]);
 
-  // Der Fokus bleibt in der Flaeche, solange sie offen ist. Ohne das laeuft
-  // die Tabulatortaste aus dem Blatt heraus in die Seite darunter, und dort
-  // ist nichts zu sehen - waehrend aria-modal="true" zusagt, dass es hinter
-  // dem Blatt gar nichts gibt. Eine Zusage, die nicht stimmt, ist fuer einen
-  // Screenreader schlimmer als gar keine.
+  // Der Fokus bleibt in der Flaeche, solange sie offen ist - und bei "unten"
+  // zusammen mit der unteren Leiste, die daneben bedienbar bleibt. Ohne das
+  // liefe die Tabulatortaste aus dem Blatt heraus in die abgedunkelte Seite
+  // darunter, oder die Leiste waere zwar mit dem Finger, aber nicht mit der
+  // Tastatur erreichbar - also eine Bedienung, die nur ein Zeigegeraet kennt.
+  //
+  // Die Ringreihenfolge kommt von querySelectorAll auf dem Dokument: das
+  // liefert Dokumentreihenfolge, und damit stehen Leiste und Blatt richtig
+  // hintereinander, obwohl sie in zwei getrennten Baeumen haengen. Der Filter
+  // laesst nur durch, was in einem der beiden liegt - die Blende bleibt aussen
+  // vor, wie bisher.
   //
   // Bewusst kein `inert` am Geschwisterelement: die Flaeche liegt als
-  // fixiertes Element ueber der ganzen Seite, ein gemeinsamer Vorfahr, den man
-  // inert setzen koennte, ist das <body> selbst - und der traegt auch das
-  // Blatt. Die Fokusfalle hier leistet dasselbe mit weniger Eingriff.
+  // fixiertes Element ueber der ganzen Seite, ein gemeinsamer Vorfahr waere das
+  // <body> selbst - und der traegt auch das Blatt. Was hinter dem Blatt liegt,
+  // legt stattdessen das Dashboard-Layout stumm (dashboard/blatt-kontext.tsx).
   useEffect(() => {
     if (!offen) return;
     const beiTab = (event: KeyboardEvent) => {
       if (event.key !== "Tab") return;
       const flaeche = flaecheRef.current;
       if (!flaeche) return;
-      const ziele = flaeche.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      const zusatz = zusatzFokus?.current ?? null;
+      const ziele = Array.from(
+        document.querySelectorAll<HTMLElement>(FOKUSSIERBAR),
+      ).filter(
+        (element) =>
+          (flaeche.contains(element) || (zusatz?.contains(element) ?? false)) &&
+          // Faengt den Fall ab, dass das Fenster bei offenem Blatt ueber md
+          // waechst: die Leiste traegt md:hidden, ihre Knoepfe waeren sonst
+          // weiterhin mit der Tabulatortaste erreichbar.
+          element.offsetParent !== null &&
+          // Was inert ist, ueberspringt der Browser von selbst. Stuende es
+          // trotzdem in dieser Liste, laege die Ringgrenze auf einem Element,
+          // das nie den Fokus bekommt - und der Sprung zurueck an den Anfang
+          // bliebe aus. Betrifft die abgewandte Ebene im Menue-Blatt, die
+          // waehrend der Bewegung noch gefuellt ist.
+          element.closest("[inert]") === null,
       );
       if (ziele.length === 0) {
         event.preventDefault();
@@ -99,7 +154,7 @@ export function Sheet({
     };
     document.addEventListener("keydown", beiTab);
     return () => document.removeEventListener("keydown", beiTab);
-  }, [offen]);
+  }, [offen, zusatzFokus]);
 
   if (!offen) return null;
 
@@ -109,11 +164,21 @@ export function Sheet({
     <div
       className={cn(
         "fixed inset-0 z-[100] flex print:hidden",
-        mitte ? "items-center justify-center p-4" : "flex-col justify-end",
+        mitte
+          ? "items-center justify-center p-4"
+          : // Die Unterkante steigt um den Platz der unteren Leiste. Die Blende
+            // darunter bleibt inset-0 und deckt den Streifen weiter ab - sie
+            // liegt dort nur unter der Leiste statt darueber.
+            "flex-col justify-end pb-[var(--untere-leiste-raum)]",
       )}
     >
+      {/* tabIndex -1: die Blende liegt in der Dokumentreihenfolge zwischen
+          Leiste und Blatt, und tabbierbar waere sie genau die Luecke, durch die
+          der Fokus aus dem Ring faellt. Mit dem Finger schliesst sie weiterhin,
+          mit der Tastatur tun es Esc und das Kreuz. */}
       <button
         type="button"
+        tabIndex={-1}
         aria-label={nav("closeMenu")}
         onClick={onSchliessen}
         className="absolute inset-0 bg-black/40 backdrop-blur-[1px]"
@@ -121,25 +186,52 @@ export function Sheet({
       <div
         ref={flaecheRef}
         role="dialog"
-        aria-modal="true"
+        // Nur bei den mittigen Blaettern stimmt die Zusage, dass es hinter dem
+        // Blatt nichts gibt. Unten bleibt die Leiste bedienbar, und eine
+        // Zusage, die nicht stimmt, ist fuer eine Vorlesehilfe schlimmer als
+        // gar keine. Weglassen statt false: das ist eindeutiger.
+        aria-modal={mitte ? true : undefined}
         aria-labelledby={titelId}
         tabIndex={-1}
         className={cn(
-          "relative flex min-h-0 flex-col border-border bg-schwebend shadow-2xl outline-none",
+          // overflow-hidden, damit der Inhalt die untere Rundung nicht
+          // ueberlaeuft - der Scrollbereich darin schneidet rechteckig.
+          "relative flex min-h-0 flex-col overflow-hidden border-border bg-schwebend shadow-2xl outline-none",
           mitte
-            ? "w-full max-w-3xl rounded-2xl border motion-safe:animate-[sheet-auf-mitte_180ms_ease-out]"
+            ? "w-full max-w-3xl max-h-[85svh] rounded-2xl border motion-safe:animate-[sheet-auf-mitte_180ms_ease-out]"
             : cn(
-                // Bis unter den Home-Indicator, damit die Flaeche am Rand nicht
-                // abrupt endet; den Abstand traegt der Inhalt weiter unten.
-                "w-full rounded-t-2xl border-t motion-safe:animate-[sheet-auf_200ms_ease-out]",
+                // Rundum gerundet und gerahmt: die Flaeche klebt nicht mehr an
+                // der Bildschirmkante, sondern schwebt ueber der Leiste, und
+                // eine scharfe Unterkante saehe dort abgeschnitten aus.
+                "w-full rounded-2xl border motion-safe:animate-[sheet-auf_200ms_ease-out]",
+                // Der Leistenplatz geht vom Budget ab statt oben drauf: sonst
+                // laege die Oberkante auf einem 844 px hohen Telefon
+                // rechnerisch ueber dem Bildschirmrand. So bleibt sie bei
+                // 15 svh, also da, wo sie vorher schon stand. Ab md ist die
+                // Variable 0px und die Formel faellt auf 85svh zurueck.
+                "max-h-[calc(85svh-var(--untere-leiste-raum))]",
               ),
-          "max-h-[85svh]",
         )}
       >
-        <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border px-4">
+        <div className="flex h-14 shrink-0 items-center gap-1 border-b border-border px-4">
+          {/* Pfeil und Titel sind zwei Elemente und nicht ein Knopf "< Feld":
+              der Knopf fuehrt zur Ebene darueber und nicht nach Feld, und ein
+              sichtbarer Text, der etwas anderes sagt als der Vorlese-Name,
+              verstiesse gegen WCAG 2.5.3. Beieinander stehen sie trotzdem. */}
+          {onZurueck ? (
+            <button
+              type="button"
+              onClick={onZurueck}
+              aria-label={nav("back")}
+              title={nav("back")}
+              className="-ml-2 inline-flex h-11 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+          ) : null}
           <h2
             id={titelId}
-            className="min-w-0 truncate text-sm font-black text-card-foreground"
+            className="min-w-0 flex-1 truncate text-sm font-black text-card-foreground"
           >
             {titel}
           </h2>
@@ -153,7 +245,12 @@ export function Sheet({
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
+        {/* Kein eigener Systemabstand mehr am Fuss: --untere-leiste-raum traegt
+            ihn bereits, und das Blatt endet oberhalb davon. */}
+        <div
+          ref={inhaltRef}
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        >
           {children}
         </div>
       </div>
