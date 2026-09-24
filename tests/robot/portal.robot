@@ -1,8 +1,9 @@
 *** Settings ***
-Documentation     Portal-Tests in drei Geraeteprofilen: Schreibtisch,
-...               Handy quer und Handy hoch. Geprueft wird, was die
-...               Fenstergroesse entscheidet - Erreichbarkeit der Bedienung,
-...               Lesbarkeit der Texte und der Weg durch die Ebenen.
+Documentation     Portal-Tests in vier Geraeteprofilen: Schreibtisch,
+...               Handy quer, Handy hoch und schmales Handy. Geprueft wird,
+...               was die Fenstergroesse entscheidet - Erreichbarkeit der
+...               Bedienung, Lesbarkeit der Texte, der Weg durch die Ebenen
+...               und die globale Suche.
 ...
 ...               Voraussetzung: der Entwicklungsserver laeuft unter ${BASIS}
 ...               und die Demo-Konten sind angelegt (npm run db:seed-auth).
@@ -28,16 +29,85 @@ Schreibtisch Traegt Alle Bedienelemente Und Den Vollen Pfad
     Should Be Equal    ${stationen}[2]    Rollen und Rechte
     Befund Festhalten    ${SCHREIBTISCH}    modulseite
 
-Schreibtisch Zeigt Das Suchfeld Statt Eines Knopfes
-    [Documentation]    Ab 1280 px ist Platz fuer das Feld. Darunter wird es
-    ...    zum Knopf, siehe den Test im Querformat.
+Schreibtisch Zeigt Die Suche Als Knopf Neben Der Glocke
+    [Documentation]    Auch am Schreibtisch ist die Suche nur ein Knopf mit
+    ...    Lupe, links neben der Glocke wie auf dem Handy - kein Eingabefeld
+    ...    und keine Leiste im Look eines Suchfelds. Getippt wird erst im
+    ...    Suchfenster.
+    [Tags]    schreibtisch
+    Portal Oeffnen    ${SCHREIBTISCH}
+    Seite Ansteuern    /dashboard/buero/rollen
+    Suche Ist Nur Ein Knopf
+    Suchknopf Steht Links Neben Der Glocke
+
+Schreibtisch Oeffnet Das Suchfenster Mittig Oben
+    [Documentation]    Der Knopf mit der Lupe oeffnet das Suchfenster oben in
+    ...    der Mitte des Bildschirms, nicht an seiner eigenen Stelle. Getippt
+    ...    wird erst im Fenster.
+    [Tags]    schreibtisch
+    Portal Oeffnen    ${SCHREIBTISCH}
+    Seite Ansteuern    /dashboard/hof/kuehlkette
+    Click    ${KOPFBALKEN} [data-suche="knopf"]
+    Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
+    Suchfenster Steht Mittig Oben
+    Befund Festhalten    ${SCHREIBTISCH}    suche-mittig-oben
+
+Suche Findet Seitentexte Unter Erwaehnt In
+    [Documentation]    Unter den Namenstreffern stehen Seiten, deren Text den
+    ...    Begriff nennt, mit der Stelle als Beleg. "Wartezeit" steht im Namen
+    ...    von Pflanzenschutz und im Text der Reihenbloecke.
     [Tags]    schreibtisch
     Portal Oeffnen    ${SCHREIBTISCH}
     Seite Ansteuern    /dashboard
-    ${breite} =    Evaluate JavaScript    ${None}
-    ...    () => { const f = [...document.querySelectorAll('header.sticky div')].find((e) => /suchen/i.test(e.textContent) && e.children.length <= 2); return f ? Math.round(f.getBoundingClientRect().width) : 0; }
-    Should Be True    ${breite} > 200
-    ...    msg=Das Suchfeld ist nur ${breite} px breit statt eines lesbaren Feldes.
+    Suche Per Tastatur Oeffnen    Control+k
+    Keyboard Input    type    Wartezeit
+    Wait For Elements State    [role="option"] >> text=Reihenblöcke    visible
+    ${gruppen} =    Evaluate JavaScript    ${None}
+    ...    () => [...document.querySelectorAll('[role="listbox"] [role="group"]')].map((g) => document.getElementById(g.getAttribute('aria-labelledby')).textContent + ': ' + [...g.querySelectorAll('[role="option"]')].map((o) => o.innerText.split('\\n')[0]).join(', '))
+    Should Contain    ${gruppen}    Seiten und Module: Pflanzenschutz
+    ...    msg=Pflanzenschutz fehlt unter den Namenstreffern: ${gruppen}
+    Should Contain    ${gruppen}    Erwähnt in: Reihenblöcke
+    ...    msg=Die Reihenbloecke fehlen unter "Erwaehnt in": ${gruppen}
+
+Strg K Oeffnet Die Suche Und Enter Fuehrt Zum Treffer
+    [Documentation]    Dasselbe Kuerzel wie im Handbuch. Der erste Treffer ist
+    ...    markiert, Enter oeffnet ihn, und das Fenster ist danach zu.
+    [Tags]    schreibtisch
+    Portal Oeffnen    ${SCHREIBTISCH}
+    Seite Ansteuern    /dashboard
+    Suche Per Tastatur Oeffnen    Control+k
+    Keyboard Input    type    Rollen
+    Wait For Elements State    [role="option"][aria-selected="true"] >> text=Rollen    visible
+    Keyboard Key    press    Enter
+    Wait For Condition    url    contains    /dashboard/buero/rollen    timeout=20s
+    Wait For Elements State    ${SUCHFENSTER}    detached    timeout=10s
+
+Schraegstrich Oeffnet Die Suche Und Esc Schliesst Sie
+    [Documentation]    "/" ausserhalb eines Eingabefeldes oeffnet, Esc schliesst
+    ...    ohne Sprung - die Seite bleibt dieselbe.
+    [Tags]    schreibtisch
+    Portal Oeffnen    ${SCHREIBTISCH}
+    Seite Ansteuern    /dashboard/feld/reihenbloecke
+    Suche Per Tastatur Oeffnen    /
+    Keyboard Key    press    Escape
+    Wait For Elements State    ${SUCHFENSTER}    detached    timeout=10s
+    ${adresse} =    Get Url
+    Should End With    ${adresse}    /dashboard/feld/reihenbloecke
+
+Zuletzt Geoeffnet Nennt Die Zuvor Besuchte Seite
+    [Documentation]    Bei leerem Feld zeigt die Suche die zuletzt selbst
+    ...    geoeffneten Seiten. Die gerade offene Seite steht nicht darin.
+    [Tags]    schreibtisch
+    Portal Oeffnen    ${SCHREIBTISCH}
+    Seite Ansteuern    /dashboard/feld/reihenbloecke
+    Seite Ansteuern    /dashboard
+    Suche Per Tastatur Oeffnen    Control+k
+    ${eintraege} =    Evaluate JavaScript    ${None}
+    ...    () => [...document.querySelectorAll('[role="option"]')].map((o) => o.innerText.split('\\n')[0])
+    Should Contain    ${eintraege}    Reihenblöcke
+    ...    msg=Die zuvor besuchte Seite fehlt unter "Zuletzt geoeffnet": ${eintraege}
+    Should Not Contain    ${eintraege}    Übersicht
+    ...    msg=Die gerade offene Seite steht unter "Zuletzt geoeffnet".
 
 Zonenkarten Nennen Die Module Der Zone
     [Documentation]    Die Uebersichtskarten tragen die Modulnamen. Kein Name
@@ -63,18 +133,17 @@ Handy Quer Schneidet Keine Bedienelemente Ab
     Befund Festhalten    ${MOBIL_QUER}    modulseite
 
 Handy Quer Zeigt Die Suche Als Knopf
-    [Documentation]    Unter 1280 px weicht das Feld einem Knopf, sonst
-    ...    schrumpft es zu einer leeren Pille.
+    [Documentation]    Im Querformat steht die Suche wie am Schreibtisch als
+    ...    Knopf links neben der Glocke. Das Fenster geht oben in der Mitte
+    ...    auf.
     [Tags]    mobil-quer
     Portal Oeffnen    ${MOBIL_QUER}
-    Seite Ansteuern    /dashboard
-    ${knopf} =    Get Element Count    ${KOPFBALKEN} span[title*="suchen"]
-    Should Be Equal As Integers    ${knopf}    1
-    ...    msg=Der Suchknopf fehlt oder steht doppelt.
-    ${feld} =    Evaluate JavaScript    ${None}
-    ...    () => [...document.querySelectorAll('header.sticky div')].filter((e) => /suchen/i.test(e.textContent) && e.getBoundingClientRect().width > 0 && e.children.length <= 2).length
-    Should Be Equal As Integers    ${feld}    0
-    ...    msg=Im Querformat steht noch ein Suchfeld statt des Knopfes.
+    Seite Ansteuern    /dashboard/buero/rollen
+    Suche Ist Nur Ein Knopf
+    Suchknopf Steht Links Neben Der Glocke
+    Click    ${KOPFBALKEN} [data-suche="knopf"]
+    Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
+    Suchfenster Steht Mittig Oben
 
 Handy Quer Kuerzt Den Pfad Auf Die Offene Seite
     [Documentation]    Wird es eng, faellt die mittlere Station weg. Die
@@ -109,6 +178,40 @@ Handy Hoch Traegt Den Rueckweg Statt Des Pfades
     Should Contain    ${rueckweg}    Büro
     Kein Waagerechtes Scrollen    ${MOBIL_HOCH}    modulseite
     Befund Festhalten    ${MOBIL_HOCH}    modulseite
+
+Handy Hoch Traegt Die Suche Neben Der Glocke
+    [Documentation]    Auf dem Handy sitzt die Suche in der Kopfzeile links
+    ...    neben der Glocke. Ein Tipp oeffnet das Fenster von oben mit dem
+    ...    Fokus im Feld, ein Treffer fuehrt auf seine Seite.
+    [Tags]    mobil-hoch
+    Portal Oeffnen    ${MOBIL_HOCH}
+    Seite Ansteuern    /dashboard/buero/rollen
+    Suchknopf Steht Links Neben Der Glocke
+    Bildmarke Steht Mittig
+    Kein Waagerechtes Scrollen    ${MOBIL_HOCH}    suche
+    Click    ${KOPFBALKEN} [data-suche="knopf"]
+    Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
+    ${oben} =    Evaluate JavaScript    ${None}
+    ...    () => Math.round(document.querySelector('[role="dialog"][aria-modal="true"]').getBoundingClientRect().top)
+    Should Be True    ${oben} <= 16
+    ...    msg=Das Suchfenster haengt nicht oben, sondern ${oben} px darunter.
+    Fill Text    ${SUCHFELD}    Kühlkette
+    Befund Festhalten    ${MOBIL_HOCH}    suche-offen
+    Click    [role="option"] >> nth=0
+    Wait For Condition    url    contains    /dashboard/hof/kuehlkette    timeout=20s
+
+Handy Schmal Traegt Suche Und Glocke Ohne Querscrollen
+    [Documentation]    Bei 360 px ist die Kopfzeile am engsten: Rueckweg,
+    ...    Bildmarke in der Mitte und rechts Suche und Glocke. Nichts darf
+    ...    abgeschnitten sein, und die Marke bleibt mittig.
+    [Tags]    mobil-schmal
+    Portal Oeffnen    ${MOBIL_SCHMAL}
+    Seite Ansteuern    /dashboard/buero/rollen
+    Bedienelemente Der Kopfzeile Sind Erreichbar    ${MOBIL_SCHMAL}    modulseite
+    Kein Waagerechtes Scrollen    ${MOBIL_SCHMAL}    modulseite
+    Suchknopf Steht Links Neben Der Glocke
+    Bildmarke Steht Mittig
+    Befund Festhalten    ${MOBIL_SCHMAL}    modulseite
 
 Handy Hoch Zeigt Die Zonenkarten Ohne Abgeschnittene Namen
     [Documentation]    Bei 390 px stehen die Modulnamen zweispaltig. Passt ein

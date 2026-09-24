@@ -20,11 +20,8 @@ import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { cn } from "@/lib/utils";
 import { SyncStatus } from "@/components/dashboard/sync-status";
 import { Glocke } from "@/components/dashboard/glocke";
-import {
-  TopbarPfad,
-  TopbarSuche,
-  TopbarSuchknopf,
-} from "@/components/dashboard/topbar-pfad";
+import { TopbarPfad } from "@/components/dashboard/topbar-pfad";
+import { TopbarSuchknopf } from "@/components/suche/such-ausloeser";
 import {
   istSchmal,
   schmalAbonnieren,
@@ -136,9 +133,9 @@ export function DashboardTopbar() {
         // Nachbarn", je nachdem wie lang der Rueckweg gerade ist ("Feld"
         // gegen "Genel bakış").
         //
-        // Ausgeblendete Kinder belegen keine Rasterzelle: Menue-Umschalter und
-        // Suche, die es erst ab md beziehungsweise sm gibt, verschieben die
-        // Aufteilung darunter nicht.
+        // Ausgeblendete Kinder belegen keine Rasterzelle: der Menue-Umschalter
+        // ab md verschiebt die Aufteilung darunter nicht. Der Suchknopf steht
+        // in der rechten Gruppe und braucht keine eigene Zelle.
         eltern
           ? "grid grid-cols-[1fr_auto_1fr]"
           : // Auf der Uebersicht gibt es keinen Rueckweg - dort steht die
@@ -153,10 +150,13 @@ export function DashboardTopbar() {
           einer langen Modulseite steht. Welche Seite die Ebene darueber ist,
           leitet useElternSeite() aus dem Pfad ab.
 
-          Bei 390 px Fensterbreite bleiben nach dem Innenabstand 358 px: rund
-          65 px fuer den Rueckweg, 119 px fuer die Marke, 80 px fuer
-          Synchronisierung und Meldungen. Der Rest ist Luft, auch im
-          tuerkischen "Genel bakış". */}
+          Gemessen mit Rueckweg und mittiger Bildmarke: rechts stehen
+          Synchronisierung oder CEO-Hinweis, Suche und Meldungen, zusammen
+          124 px. Die beiden Aussenspalten sind bei 390 px je 149 px breit,
+          bei 360 px je 134 px - beides passt, die Marke steht genau mittig.
+          Erst bei 320 px braucht die rechte Gruppe mehr als ihre Spalte, und
+          die Marke rueckt 10 px aus der Mitte. Der Rueckweg links hat damit
+          auch fuer "Genel bakış" genug Platz. */}
       {eltern ? (
         <Link
           href={eltern.href}
@@ -192,30 +192,30 @@ export function DashboardTopbar() {
       </Link>
 
       <MenueUmschalter />
-      {/* Der Pfad steht zwischen Umschalter und Suche. Anders als die frühere
+      {/* Der Pfad steht rechts neben dem Umschalter. Anders als die frühere
           Zeile über der Überschrift scrollt er nicht mit dem Inhalt weg. */}
       <TopbarPfad />
-      {/* Das Suchfeld fuellt die Luecke zwischen Pfad und Werkzeugen, aber
-          erst ab xl. Darunter steht es als Knopf rechts in der Gruppe - fuer
-          Feld und Pfad nebeneinander reicht die Zeile dort nicht. */}
-      <TopbarSuche />
       {/* Was unter md in das Konto-Blatt der unteren Leiste gewandert ist -
-          "KI fragen", Rollenumschalter, Sprache, Farbschema -, steht hier erst
-          ab md wieder. Sichtbar bleibt auf dem Handy nur, was beim Arbeiten
-          sichtbar bleiben muss: der Stand der Synchronisierung und die
-          Glocke (glocke.tsx, fuer Kunde und Picker ausgeblendet). */}
-      {/* md:ml-auto haelt die Gruppe rechts, auch wenn die Suche gerade ein
-          Knopf ist und damit kein wachsendes Element mehr in der Zeile steht. */}
+          Rolle bzw. "Ansicht als", "KI fragen", Sprache, Farbschema -, steht
+          hier erst ab md wieder. Sichtbar bleibt auf dem Handy nur, was beim
+          Arbeiten sichtbar bleiben muss: der Stand der Synchronisierung, die
+          Suche und die Glocke (glocke.tsx, fuer Kunde und Picker
+          ausgeblendet). */}
+      {/* md:ml-auto haelt die Gruppe rechts: vor ihr steht kein wachsendes
+          Element, das die Luecke fuellen wuerde. */}
       <div className="flex flex-1 items-center justify-end gap-2 md:ml-auto md:flex-none">
         <span className="hidden md:contents">
-          <TopbarSuchknopf />
-          <KiFragenKnopf />
+          {/* Reihenfolge der Gruppe: DESIGN.md, Abschnitt Hauptspalte. */}
           <PersonaSwitcher className="hidden lg:inline-flex" />
+          <KiFragenKnopf />
           <LocaleSwitcher compact />
           <ThemeToggle />
         </span>
         {zeigeSync ? <SyncStatus /> : null}
         <CeoPruefungHinweis />
+        {/* Die Suche, auf jeder Breite links neben der Glocke. Sie oeffnet das
+            Suchfenster oben in der Mitte (suche/such-kontext.tsx). */}
+        <TopbarSuchknopf />
         <Glocke />
       </div>
     </header>

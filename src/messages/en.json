@@ -319,8 +319,23 @@
     "erfolg": "Second factor set up and active.",
     "note": "At the next sign-in the code will be requested in addition to the password. Without a configured factor, sign-in stays as before - multi-factor authentication is mandatory, enforcing it per role is a later expansion step."
   },
+  "suche": {
+    "titel": "Search",
+    "platzhalter": "Search pages and modules …",
+    "eingabe": "Search pages and modules",
+    "oeffnen": "Open search",
+    "schliessen": "Close search",
+    "bedienung": "Arrow keys choose a result, Enter opens it, Esc closes the search.",
+    "ergebnisse": "Results",
+    "gruppeTreffer": "Pages and modules",
+    "gruppeZuletzt": "Recently opened",
+    "gruppeErwaehnt": "Mentioned in",
+    "leer": "Type the name of a zone, module or page.",
+    "keineTreffer": "No page or module matches “{begriff}”.",
+    "anzahl": "{anzahl, plural, one {# result} other {# results}}",
+    "kiFragen": "Ask AI: {begriff}"
+  },
   "dashboard": {
-    "searchPlaceholder": "Search row block, batch, picker, document ...",
     "notifications": "Notifications",
     "open": "Open",
     "zoneEmpty": "No module in this zone is enabled for the active role.",

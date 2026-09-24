@@ -10,14 +10,15 @@
     legt dieses Skript sie an und installiert Robot Framework samt Browser.
 
 .PARAMETER Profil
-    Nur ein Geraeteprofil laufen lassen: schreibtisch, mobil-quer, mobil-hoch.
+    Nur ein Geraeteprofil laufen lassen: schreibtisch, mobil-quer, mobil-hoch,
+    mobil-schmal.
 
 .EXAMPLE
     ./tests/robot/ausfuehren.ps1
     ./tests/robot/ausfuehren.ps1 -Profil mobil-quer
 #>
 param(
-    [ValidateSet('schreibtisch', 'mobil-quer', 'mobil-hoch')]
+    [ValidateSet('schreibtisch', 'mobil-quer', 'mobil-hoch', 'mobil-schmal')]
     [string]$Profil
 )
 

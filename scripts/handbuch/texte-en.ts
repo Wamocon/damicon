@@ -105,7 +105,11 @@ export const en: HandbuchTexte = {
       },
       {
         titel: "Header",
-        text: "Carries the breadcrumb of the open page, the toggle for the sidebar width, the language selector, the colour scheme and — for administrators — the “View as” field. The bell sits on the far right: a click opens the notifications, and as long as there are none, it says so. Alerts and deadlines are still shown in the modules themselves. B2B clients and pickers do not see the bell.",
+        text: "Carries the breadcrumb of the open page, the toggle for the sidebar width, the search, the language selector, the colour scheme and — for administrators — the “View as” field. The bell sits on the far right: a click opens the notifications, and as long as there are none, it says so. Alerts and deadlines are still shown in the modules themselves. B2B clients and pickers do not see the bell. On the phone it keeps the way back, the search and the notifications.",
+      },
+      {
+        titel: "Search",
+        text: "Opens with a click on the magnifier in the header to the left of the bell, and at the desk also with the keys / or Ctrl+K (Mac: ⌘K). The search window opens at the top centre of the screen. The search finds the overview, the zones, the modules and the pages Security, Compliance report and Handbook, and only what the role also sees in the navigation. It searches names in the selected language. Below them, under “Mentioned in”, it lists the modules whose description contains the term, with the passage. Arrow keys choose a result, Enter opens it, Esc closes the search. With an empty field it lists the pages you opened yourself most recently. If nothing matches, it offers to ask the AI about the term. It does not yet find row blocks, batches, pickers or documents.",
       },
       {
         titel: "Bottom bar (phone)",

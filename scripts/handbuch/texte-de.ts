@@ -109,7 +109,11 @@ export const de: HandbuchTexte = {
       },
       {
         titel: "Kopfzeile",
-        text: "Trägt den Navigationspfad der geöffneten Seite, den Umschalter für die Breite der Seitenleiste, die Sprachauswahl, das Farbschema und — für die Administration — das Feld „Ansicht als“. Ganz rechts steht die Glocke: Ein Klick öffnet die Benachrichtigungen, und solange keine vorliegen, sagt sie das. Alarme und Fristen stehen weiterhin in den Modulen selbst. B2B-Kunden und Pflücker sehen die Glocke nicht.",
+        text: "Trägt den Navigationspfad der geöffneten Seite, den Umschalter für die Breite der Seitenleiste, die Suche, die Sprachauswahl, das Farbschema und — für die Administration — das Feld „Ansicht als“. Ganz rechts steht die Glocke: Ein Klick öffnet die Benachrichtigungen, und solange keine vorliegen, sagt sie das. Alarme und Fristen stehen weiterhin in den Modulen selbst. B2B-Kunden und Pflücker sehen die Glocke nicht. Auf dem Telefon bleiben der Weg zurück, die Suche und die Meldungen.",
+      },
+      {
+        titel: "Suche",
+        text: "Öffnet sich mit einem Klick auf die Lupe in der Kopfzeile links neben der Glocke, am Schreibtisch auch mit den Tasten / oder Strg+K (Mac: ⌘K). Das Suchfenster geht oben in der Mitte des Bildschirms auf. Die Suche findet die Übersicht, die Bereiche, die Module und die Seiten Sicherheit, Compliance-Bericht und Handbuch, und zwar nur, was die Rolle auch in der Navigation sieht. Gesucht wird nach Namen in der eingestellten Sprache, Umlaute dürfen fehlen: „Kuhlkette“ findet „Kühlkette“. Darunter stehen unter „Erwähnt in“ die Module, in deren Beschreibung der Begriff vorkommt, mit der Stelle im Text. Pfeiltasten wählen einen Treffer, die Eingabetaste öffnet ihn, Esc schließt die Suche. Bei leerem Feld stehen die zuletzt selbst geöffneten Seiten. Findet die Suche nichts, bietet sie an, die KI mit dem Begriff zu fragen. Reihenblöcke, Chargen, Pflücker und Dokumente findet sie noch nicht.",
       },
       {
         titel: "Untere Leiste (Telefon)",

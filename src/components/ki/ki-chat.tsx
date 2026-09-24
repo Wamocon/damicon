@@ -494,6 +494,9 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
       // Der Effekt oben hat anfrageDaten noch nicht aktualisiert, wenn Bezug und Anstoss im selben Zug gesetzt werden.
       anfrageDaten.current = { ...anfrageDaten.current, pruefkontext };
       sende(anstoss.frage);
+      // Der Anstoss kommt oft aus einer Ebene, die sich dabei schliesst (die
+      // Suche): ohne das stuende der Tastaturfokus danach auf <body>.
+      eingabeRef.current?.focus();
     }
     // sende() und die Zustandswerte sind pro Render neu; ausgeloest wird nur durch einen neuen Anstoss.
     // eslint-disable-next-line react-hooks/exhaustive-deps
