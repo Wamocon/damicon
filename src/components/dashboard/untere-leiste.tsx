@@ -25,9 +25,8 @@ import { Himbeere } from "@/components/ki/himbeere";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { BlattZeile } from "@/components/ui/blatt-zeile";
 import { Sheet } from "@/components/ui/sheet";
-import { usePathname } from "@/i18n/navigation";
 import { haustierZustand } from "@/lib/haustier";
-import { zones, type ZoneKey } from "@/lib/modules";
+import type { ZoneKey } from "@/lib/modules";
 import { cn } from "@/lib/utils";
 
 // Untere Leiste, nur unter `md`. Drei Knoepfe: Menue, KI-Assistent, Konto.
@@ -54,6 +53,11 @@ import { cn } from "@/lib/utils";
 // schliessen zu muessen.
 
 type Blatt = "menue" | "konto" | null;
+
+// Abstand und Innenabstand beider Menue-Ebenen. Eine Konstante, weil die Hoehe
+// der Schiene (menue-schiene, globals.css) mit genau diesen zwei Werten rechnet:
+// 0.375rem zwischen den Zeilen, 2rem oben und unten zusammen.
+const BLATT_LISTE = "space-y-1.5 p-4";
 
 function LeistenKnopf({
   label,
@@ -141,7 +145,7 @@ function BereichsListe({
   onNavigate: () => void;
 }) {
   return (
-    <ul className="space-y-1.5 p-4">
+    <ul className={BLATT_LISTE}>
       {ziele.map((ziel) => {
         const symbol = <Icon name={ziel.icon} className="h-5 w-5" />;
 
@@ -187,34 +191,34 @@ function BereichsListe({
 // und nicht mit "Uebersicht": das Wort steht eine Ebene hoeher schon fuer das
 // Dashboard, und zweimal dasselbe Wort fuer zwei verschiedene Seiten ist
 // schlechter als eine Wiederholung des Bereichsnamens aus dem Kopf darueber.
+//
+// Die Bereichszeile kommt fertig aus useNavZiele, samt Route, Symbol, Namen und
+// der Frage, ob ihre Seite offen ist. Sie fehlt nur in einem Randfall: die
+// geoeffnete Seite liegt in einem Bereich, in dem die Rolle kein Modul sehen
+// darf - dann steht der Bereich auch nicht in der ersten Ebene.
 function ModulListe({
-  zone,
+  bereich,
   ziele,
   onNavigate,
 }: {
-  zone: ZoneKey;
+  bereich: NavZiel | undefined;
   ziele: ModulZiel[];
   onNavigate: () => void;
 }) {
-  const zoneT = useTranslations("zones");
-  const pathname = usePathname();
-
-  const bereich = zones.find((eintrag) => eintrag.key === zone);
-  const bereichHref = `/dashboard/${zone}`;
-  const aufBereichsseite = pathname === bereichHref;
-
   return (
-    <ul className="space-y-1.5 p-4">
-      <li>
-        <BlattZeile
-          href={bereichHref}
-          onClick={onNavigate}
-          aktiv={aufBereichsseite}
-          aktuelleSeite={aufBereichsseite}
-          symbol={<Icon name={bereich?.icon ?? "layout-grid"} className="h-5 w-5" />}
-          text={zoneT(`${zone}.name`)}
-        />
-      </li>
+    <ul className={BLATT_LISTE}>
+      {bereich ? (
+        <li>
+          <BlattZeile
+            href={bereich.href}
+            onClick={onNavigate}
+            aktiv={bereich.aktuelleSeite}
+            aktuelleSeite={bereich.aktuelleSeite}
+            symbol={<Icon name={bereich.icon} className="h-5 w-5" />}
+            text={bereich.name}
+          />
+        </li>
+      ) : null}
       {ziele.map((ziel) => (
         <li key={ziel.key}>
           <BlattZeile
@@ -256,9 +260,10 @@ function MenueBlattInhalt({
   // es auffaellt - das Blatt waere dann ein paar Pixel zu kurz.
   const ziele = useNavZiele();
   const modulZiele = useModulZiele(gezeigteZone);
+  const bereich = ziele.find((ziel) => ziel.key === gezeigteZone);
 
-  // Die Bereichsseite zaehlt als eigene Zeile mit.
-  const zeilen = zone ? modulZiele.length + 1 : ziele.length;
+  // Die Bereichsseite zaehlt als eigene Zeile mit, sofern es sie gibt.
+  const zeilen = zone ? modulZiele.length + (bereich ? 1 : 0) : ziele.length;
 
   return (
     <div
@@ -281,7 +286,7 @@ function MenueBlattInhalt({
         <div className="w-1/2 shrink-0" inert={zone ? undefined : true}>
           {gezeigteZone ? (
             <ModulListe
-              zone={gezeigteZone}
+              bereich={bereich}
               ziele={modulZiele}
               onNavigate={onNavigate}
             />
