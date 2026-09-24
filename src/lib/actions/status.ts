@@ -64,6 +64,14 @@ export function dbFehler(error: PostgrestError | { code?: string; message: strin
       // diesen Vorgang nicht ausfuehren" - irrefuehrend, denn die Rolle darf
       // den Vorgang durchaus, nur nicht an der selbst erfassten Steige.
       return fehler("fehler.selbstkontrolle");
+    case "DA005":
+      // pflueckaufgabe_sperre_pruefen() (WMCNL-2472): der Reihenblock ist
+      // wartezeitgesperrt und muss zusaetzlich zur je Behandlung bereits
+      // abgelaufenen Wartezeit ueber Reihenbloecke manuell freigegeben
+      // werden. Eigener Code statt der ueberladenen 23514-Sammelklasse
+      // (fehler.regel), sonst zeigt die Oberflaeche faelschlich "Wartezeit
+      // ist noch nicht abgelaufen", obwohl genau das nicht die Ursache ist.
+      return fehler("fehler.reihenblockGesperrt");
     default:
       return fehler("fehler.unbekannt");
   }

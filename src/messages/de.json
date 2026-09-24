@@ -931,6 +931,7 @@
       "bezug": "Der gewählte Bezug ist nicht mehr vorhanden. Bitte die Liste neu laden und erneut auswählen.",
       "nichtGefunden": "Der Datensatz wurde nicht gefunden oder ist nicht mehr bearbeitbar.",
       "regel": "Nicht möglich: Die Wartezeit ist noch nicht abgelaufen.",
+      "reihenblockGesperrt": "Nicht möglich: Der Reihenblock ist wartezeitgesperrt und muss zusätzlich über Reihenblöcke freigegeben werden.",
       "unbekannt": "Der Vorgang ist fehlgeschlagen. Bitte noch einmal versuchen. Bleibt es dabei, melden Sie ihn mit der Uhrzeit bei der Administration.",
       "keineCharge": "Zu dieser Aufgabe gehört keine Charge.",
       "kuehlkette": "Grenzwert gerissen: {wert} Minuten bis zur Messung. Die Ware ist abzuwerten.",

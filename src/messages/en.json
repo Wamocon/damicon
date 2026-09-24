@@ -931,6 +931,7 @@
       "bezug": "The selected reference is no longer there. Please reload the list and choose again.",
       "nichtGefunden": "The record was not found or can no longer be edited.",
       "regel": "Not possible: the pre-harvest interval has not elapsed yet.",
+      "reihenblockGesperrt": "Not possible: the row block is still under a pre-harvest lock and must also be released under Row blocks.",
       "unbekannt": "The action failed. Please try again. If it keeps failing, report it to your administrator with the time it happened.",
       "keineCharge": "This task has no batch.",
       "kuehlkette": "Limit broken: {wert} minutes until measurement. The goods have to be downgraded.",
