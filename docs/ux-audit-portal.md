@@ -37,7 +37,7 @@ Jeder Punkt nennt seine Fundstelle. Wo eine Zahl steht, ist sie gemessen und nic
 
 ### 1. Die globale Suche ist eine Attrappe
 
-**Teilweise erledigt am 24.09.2026** (Branch `feat/globale-suche`, WMCNL-2484). Stufe 1 der Suche findet Übersicht, Bereiche, Module, Sicherheit, Compliance-Bericht und Handbuch, gefiltert nach der Rolle, auf jeder Breite und auch auf dem Handy (Knopf neben der Glocke). Der Platzhalter sagt jetzt „Seite oder Modul suchen …“. Offen bleibt die Datensatzsuche über Reihenblöcke, Chargen, Pflücker und Dokumente, die der alte Platzhalter versprach: WMCNL-1467. Der Befund unten beschreibt den Stand vor dem Umbau.
+**Teilweise erledigt am 24.09.2026** (Branch `feat/globale-suche`, WMCNL-2484). Stufe 1 der Suche findet Übersicht, Bereiche, Module, Sicherheit, Compliance-Bericht und Handbuch, gefiltert nach der Rolle, dazu unter „Erwähnt in“ Module, deren Seitentext den Begriff nennt. Sie ist auf jeder Breite erreichbar, auch auf dem Handy (Knopf neben der Glocke), und das Fenster geht dort auf, wo der Auslöser sitzt. Der Platzhalter sagt jetzt „Seite oder Modul suchen …“. Offen bleibt die Datensatzsuche über Reihenblöcke, Chargen, Pflücker und Dokumente, die der alte Platzhalter versprach: WMCNL-1467. Der Befund unten beschreibt den Stand vor dem Umbau.
 
 In `src/components/dashboard/topbar.tsx:106-109` steht ein `<span>` in einem `<div>`. Kein `<input>`, kein Fokus, keine Funktion. Mit Rahmen, Lupensymbol und dem Platzhalter „Reihenblock, Charge, Pflücker, Dokument suchen …" sieht das Element exakt wie ein Suchfeld aus.
 
