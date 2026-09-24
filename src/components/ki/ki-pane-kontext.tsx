@@ -81,6 +81,14 @@ interface KiPaneWert {
   entferneBezug: () => void;
   /** Frage, die der Chat als Naechstes stellen soll (nr zaehlt hoch, damit dieselbe Frage zweimal geht). */
   anstoss: { nr: number; frage: string } | null;
+  /** Oeffnet den Chat und stellt die Frage, als haette man sie getippt. Modus und Pruefbezug
+   *  bleiben, wie sie sind - anders als bei starteGespraechZurPruefung. Fuer "KI fragen" in der
+   *  globalen Suche. */
+  frageStellen: (frage: string) => void;
+  /** Der Agent fuehrt gerade selbst von Seite zu Seite (fuehreZu). Die globale Suche zeichnet
+   *  solche Stationen nicht als "zuletzt geoeffnet" auf - aufgerufen hat sie nicht die Person.
+   *  Ein Klick auf einen Schritt im Chat (oeffneZiel) zaehlt dagegen als eigene Navigation. */
+  tourLaeuft: boolean;
 }
 
 const MODUS_SCHLUESSEL = "damicon-ki-modus";
@@ -113,6 +121,8 @@ const Standard: KiPaneWert = {
   starteGespraechZurPruefung: () => {},
   entferneBezug: () => {},
   anstoss: null,
+  frageStellen: () => {},
+  tourLaeuft: false,
 };
 
 const KiPaneKontext = createContext<KiPaneWert>(Standard);
@@ -201,6 +211,7 @@ export function KiPaneProvider({
   const [pruefBezug, setPruefBezug] = useState<PruefBezug | null>(null);
   const [anstoss, setAnstoss] = useState<{ nr: number; frage: string } | null>(null);
   const anstossNr = useRef(0);
+  const [tourLaeuft, setTourLaeuft] = useState(false);
 
   const warteschlange = useRef<KiFuehrung[]>([]);
   const timer = useRef<number | undefined>(undefined);
@@ -291,6 +302,14 @@ export function KiPaneProvider({
 
   const entferneBezug = useCallback(() => speichereBezug(null), [speichereBezug]);
 
+  const frageStellen = useCallback(
+    (frage: string) => {
+      setAnstoss({ nr: ++anstossNr.current, frage });
+      setOffen(true);
+    },
+    [setOffen],
+  );
+
   const setDarstellung = useCallback((neu: KiDarstellung) => {
     setDarstellungState(neu);
     try {
@@ -355,6 +374,7 @@ export function KiPaneProvider({
       const naechste = warteschlange.current.shift();
       if (!naechste) {
         laeuft.current = false;
+        setTourLaeuft(false);
         timer.current = window.setTimeout(() => setFuehrung(null), AUSKLINGZEIT_MS);
         return;
       }
@@ -372,6 +392,7 @@ export function KiPaneProvider({
       const letzte = warteschlange.current.at(-1);
       if (letzte?.ziel === ziel) return;
       warteschlange.current.push({ ziel, label });
+      setTourLaeuft(true);
       // Eine Fuehrung, die niemand sieht, ist keine: war das Panel zu, geht es
       // auf. Vorher lief die Tour im Hauptfenster ab, waehrend der Assistent
       // eingeklappt war und niemand die Begleitung dazu lesen konnte.
@@ -384,6 +405,7 @@ export function KiPaneProvider({
   const fuehrungBeenden = useCallback(() => {
     warteschlange.current = [];
     laeuft.current = false;
+    setTourLaeuft(false);
     window.clearTimeout(timer.current);
     setFuehrung(null);
   }, []);
@@ -391,6 +413,8 @@ export function KiPaneProvider({
   const oeffneZiel = useCallback(
     (ziel: string, label: string) => {
       warteschlange.current = [{ ziel, label }];
+      // Der Klick ersetzt eine laufende Tour - ab hier navigiert die Person selbst.
+      setTourLaeuft(false);
       naechsteStation();
     },
     [naechsteStation],
@@ -432,6 +456,8 @@ export function KiPaneProvider({
       starteGespraechZurPruefung,
       entferneBezug,
       anstoss,
+      frageStellen,
+      tourLaeuft,
     }),
     [
       verfuegbar,
@@ -452,6 +478,8 @@ export function KiPaneProvider({
       starteGespraechZurPruefung,
       entferneBezug,
       anstoss,
+      frageStellen,
+      tourLaeuft,
     ],
   );
 

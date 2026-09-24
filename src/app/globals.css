@@ -420,6 +420,13 @@
   }
 }
 
+@keyframes sheet-auf-oben {
+  from {
+    transform: translateY(-0.5rem);
+    opacity: 0;
+  }
+}
+
 /*
   Tabellen auf dem Handy: aus jeder Zeile wird eine Karte.
 

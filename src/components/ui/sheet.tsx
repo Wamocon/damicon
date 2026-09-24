@@ -30,6 +30,11 @@ import { cn } from "@/lib/utils";
 // die Blende liegt dort unter der Leiste, die Leiste gehoert in die Fokusfalle
 // (zusatzFokus), und aria-modal faellt weg, weil hinter dem Blatt eben doch
 // etwas Bedienbares steht.
+//
+// "oben" ist das Gegenstueck fuer Ausloeser am oberen Rand - die globale Suche,
+// deren Knopf in der Kopfzeile sitzt. Das Blatt waechst von oben nach unten,
+// das Eingabefeld im Kopf bleibt dabei stehen, und die Bildschirmtastatur des
+// Handys deckt allenfalls das untere Ende der Liste ab statt des Feldes.
 
 // Was die Tabulatortaste ansteuern kann. Als Modulkonstante, seit die
 // Fokusfalle das Dokument abfragt statt nur die eigene Flaeche.
@@ -44,24 +49,36 @@ export function Sheet({
   position = "unten",
   onZurueck,
   zusatzFokus,
+  anfangsFokus,
+  kopf,
+  schliessenLabel,
 }: {
   offen: boolean;
   onSchliessen: () => void;
   titel: string;
   children: ReactNode;
   /** "unten": faehrt von der Kante hoch (Handy-Menues, Standard). "mitte": mittiges Fenster,
-   *  fuer Detailinhalte, die nicht von einer Seitenkante zu kommen scheinen sollen. */
-  position?: "unten" | "mitte";
+   *  fuer Detailinhalte, die nicht von einer Seitenkante zu kommen scheinen sollen. "oben":
+   *  haengt am oberen Rand, fuer Ausloeser in der Kopfzeile. */
+  position?: "unten" | "mitte" | "oben";
   /** Gesetzt: der Kopf traegt links einen Weg zurueck. Fehlt: nur den Titel. */
   onZurueck?: () => void;
   /** Ein zweiter Baum, der mit in die Fokusfalle gehoert - die untere Leiste,
    *  die bei offenem Blatt bedienbar bleibt. */
   zusatzFokus?: RefObject<HTMLElement | null>;
+  /** Bekommt beim Oeffnen den Fokus statt der Flaeche - etwa ein Suchfeld. */
+  anfangsFokus?: RefObject<HTMLElement | null>;
+  /** Ersetzt den sichtbaren Titel im Kopf, etwa durch ein Eingabefeld. Der Titel
+   *  bleibt fuer Vorlesehilfen stehen, er benennt den Dialog. */
+  kopf?: ReactNode;
+  /** Name fuer Kreuz und Blende. Fehlt er, heissen beide "Menue schliessen". */
+  schliessenLabel?: string;
 }) {
   const nav = useTranslations("nav");
   const titelId = useId();
   const flaecheRef = useRef<HTMLDivElement>(null);
   const inhaltRef = useRef<HTMLDivElement>(null);
+  const schliessenText = schliessenLabel ?? nav("closeMenu");
 
   // Esc schliesst, und solange das Sheet offen ist, scrollt die Seite
   // darunter nicht mit.
@@ -89,11 +106,15 @@ export function Sheet({
   // sonst stuende die kurze Bereichsliste nach dem Zurueck aus einer langen
   // Modulliste mitten im Scrollweg. Fuer die mittigen Blaetter aendert das
   // nichts - dort wechselt der Titel nur zusammen mit offen.
+  //
+  // Mit anfangsFokus geht der Fokus stattdessen dorthin. Ein autoFocus im
+  // Inhalt reichte nicht: der Effekt hier laeuft nach denen der Kinder und
+  // zoege den Fokus wieder auf die Flaeche.
   useEffect(() => {
     if (!offen) return;
-    flaecheRef.current?.focus();
+    (anfangsFokus?.current ?? flaecheRef.current)?.focus();
     inhaltRef.current?.scrollTo({ top: 0 });
-  }, [offen, titel]);
+  }, [offen, titel, anfangsFokus]);
 
   // Der Fokus bleibt in der Flaeche, solange sie offen ist - und bei "unten"
   // zusammen mit der unteren Leiste, die daneben bedienbar bleibt. Ohne das
@@ -159,17 +180,21 @@ export function Sheet({
   if (!offen) return null;
 
   const mitte = position === "mitte";
+  const oben = position === "oben";
 
   return (
     <div
       className={cn(
         "fixed inset-0 z-[100] flex print:hidden",
-        mitte
-          ? "items-center justify-center p-4"
-          : // Die Unterkante steigt um den Platz der unteren Leiste. Die Blende
-            // darunter bleibt inset-0 und deckt den Streifen weiter ab - sie
-            // liegt dort nur unter der Leiste statt darueber.
-            "flex-col justify-end pb-[var(--untere-leiste-raum)]",
+        mitte && "items-center justify-center p-4",
+        // Auf dem Handy fast randlos, damit die Liste Platz hat; am Schreibtisch
+        // schmal und etwas unterhalb der Kopfzeile, wo der Blick ohnehin ist.
+        oben &&
+          "flex-col items-stretch p-2 pt-[max(0.5rem,env(safe-area-inset-top))] md:items-center md:px-4 md:pt-[10svh]",
+        // Die Unterkante steigt um den Platz der unteren Leiste. Die Blende
+        // darunter bleibt inset-0 und deckt den Streifen weiter ab - sie
+        // liegt dort nur unter der Leiste statt darueber.
+        !mitte && !oben && "flex-col justify-end pb-[var(--untere-leiste-raum)]",
       )}
     >
       {/* tabIndex -1: die Blende liegt in der Dokumentreihenfolge zwischen
@@ -179,18 +204,18 @@ export function Sheet({
       <button
         type="button"
         tabIndex={-1}
-        aria-label={nav("closeMenu")}
+        aria-label={schliessenText}
         onClick={onSchliessen}
         className="absolute inset-0 bg-black/40 backdrop-blur-[1px]"
       />
       <div
         ref={flaecheRef}
         role="dialog"
-        // Nur bei den mittigen Blaettern stimmt die Zusage, dass es hinter dem
-        // Blatt nichts gibt. Unten bleibt die Leiste bedienbar, und eine
-        // Zusage, die nicht stimmt, ist fuer eine Vorlesehilfe schlimmer als
-        // gar keine. Weglassen statt false: das ist eindeutiger.
-        aria-modal={mitte ? true : undefined}
+        // Nur bei den Blaettern in der Mitte und oben stimmt die Zusage, dass
+        // es hinter dem Blatt nichts gibt. Unten bleibt die Leiste bedienbar,
+        // und eine Zusage, die nicht stimmt, ist fuer eine Vorlesehilfe
+        // schlimmer als gar keine. Weglassen statt false: das ist eindeutiger.
+        aria-modal={mitte || oben ? true : undefined}
         aria-labelledby={titelId}
         tabIndex={-1}
         className={cn(
@@ -199,6 +224,11 @@ export function Sheet({
           "relative flex min-h-0 flex-col overflow-hidden border-border bg-schwebend shadow-2xl outline-none",
           mitte
             ? "w-full max-w-3xl max-h-[85svh] rounded-2xl border motion-safe:animate-[sheet-auf-mitte_180ms_ease-out]"
+            : oben
+            ? // Waechst mit dem Inhalt, hoechstens bis zum Rand. Auf Android
+              // schrumpft der Rand mit, sobald die Tastatur aufgeht
+              // (interactiveWidget "resizes-content" im Layout).
+              "w-full max-h-full rounded-2xl border motion-safe:animate-[sheet-auf-oben_180ms_ease-out] md:max-w-2xl md:max-h-[min(36rem,80svh)]"
             : cn(
                 // Rundum gerundet und gerahmt: die Flaeche klebt nicht mehr an
                 // der Bildschirmkante, sondern schwebt ueber der Leiste, und
@@ -231,14 +261,19 @@ export function Sheet({
           ) : null}
           <h2
             id={titelId}
-            className="min-w-0 flex-1 truncate text-sm font-black text-card-foreground"
+            className={
+              kopf
+                ? "sr-only"
+                : "min-w-0 flex-1 truncate text-sm font-black text-card-foreground"
+            }
           >
             {titel}
           </h2>
+          {kopf}
           <button
             type="button"
             onClick={onSchliessen}
-            aria-label={nav("closeMenu")}
+            aria-label={schliessenText}
             className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <X className="h-5 w-5" />
