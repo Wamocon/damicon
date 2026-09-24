@@ -702,6 +702,10 @@ mark.treffer-aktiv {
           <div class="karte-klein-titel">Module page</div>
           <p>Shows the module's view: tables, forms, figures. The top right states whether the data comes from the database or is sample data. Modules that have not been built yet state in one sentence what they will do.</p>
         </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">List with detail view</div>
+          <p>Modules with many entries show a list with filters and pages, starting with the picking tasks. Clicking an entry opens the detail view with tabs on the right, and the list stays usable next to it. Where there is too little room, for example on a phone or next to the open AI chat, the detail view takes the place of the list. Filters, page and the selected entry are part of the address: a link shows exactly this view, and Back closes the detail view again. New entries are created with the button directly above the list.</p>
+        </div>
       </div>
 
       <h3 id="bedienung-sprache">2.3 Switching language</h3>
@@ -1059,19 +1063,19 @@ mark.treffer-aktiv {
 
       <h3 id="anleitung-pflueckaufgabe">4.2 A picking task with photo evidence</h3>
       <ol>
-          <li>Open Field → Picking tasks with photo evidence.</li>
-          <li>Create a new picking task at the bottom. Locked blocks are not offered for selection and are rejected by the database as well.</li>
-          <li>On the left, pick a task per brigade and row block. Progress is actual against target quantity.</li>
-          <li>As the brigade, accept the task, start picking and upload photo evidence on the right. On a phone this opens the camera directly. The file goes into a private storage area and is only ever shown through short-lived signed links.</li>
+          <li>Open Field → Picking tasks with photo evidence. The list shows all tasks, latest due date first, 20 per page. The pills above the list filter by status and show the number of matches. Search, brigade and period sit next to them, on a phone behind “Filters”.</li>
+          <li>Expand “New picking task” above the list and enter row block, brigade, due date with time (farm time, Almaty) and target quantity. Locked blocks are not offered for selection and are rejected by the database as well. After saving, the new task opens in the detail view.</li>
+          <li>Clicking a task opens the detail view on the right; on a phone it replaces the list. In the Overview tab, “Next step” says what to do next. The arrows at the top go to the previous and next task, Esc or Back closes the view.</li>
+          <li>As the brigade, accept the task, start picking and upload photo evidence in the Photo evidence tab. On a phone this opens the camera directly. The file goes into a private storage area and is only ever shown through short-lived signed links.</li>
           <li>“Report quantity” moves the task to evidence review.</li>
-          <li>Farm management or administrators review the evidence, enter the quality factor and release the task.</li>
+          <li>Farm management or administrators then see thumbnails of the evidence in the overview, enter the quality factor and release the task.</li>
       </ol>
 
       <h3 id="anleitung-nachweiskette">4.3 Showing the chain of evidence for a delivery</h3>
       <p>This is the procedure that matters to the customer: from the punnet back to the person who filled it.</p>
       <ol>
-          <li>Open Field → Picking tasks with photo evidence and select a task on the left.</li>
-          <li>On the right, under “Chain of evidence”, the batch is shown: cooling curve with the 60-minute limit, quantity and rejects, the crates with the person who filled them, and the residue record.</li>
+          <li>Open Field → Picking tasks with photo evidence and select a task.</li>
+          <li>In the “Chain of evidence” tab of the detail view, the batch is shown: cooling curve with the 60-minute limit, quantity and rejects, the crates with the person who filled them, and the residue record.</li>
           <li>“Record crate” assigns a crate to a person. Only then does the chain reach from the customer all the way to the picker.</li>
           <li>“Report working time” supplies the denominator for picking performance in kilograms per hour.</li>
           <li>“Record cooling measurement”: the database derives minutes and verdict from the time of picking. Above 60 minutes the interface reports a breach and the goods have to be downgraded.</li>
