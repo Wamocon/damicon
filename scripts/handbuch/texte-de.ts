@@ -109,7 +109,11 @@ export const de: HandbuchTexte = {
       },
       {
         titel: "Kopfzeile",
-        text: "Trägt den Navigationspfad der geöffneten Seite, den Umschalter für die Breite der Seitenleiste, die Sprachauswahl, das Farbschema und — für die Administration — das Feld „Ansicht als“.",
+        text: "Trägt den Navigationspfad der geöffneten Seite, den Umschalter für die Breite der Seitenleiste, die Suche, die Sprachauswahl, das Farbschema und — für die Administration — das Feld „Ansicht als“. Auf dem Telefon bleiben der Weg zurück, die Suche und die Meldungen.",
+      },
+      {
+        titel: "Suche",
+        text: "Öffnet sich mit einem Klick auf das Suchfeld in der Kopfzeile, auf schmalen Bildschirmen und auf dem Telefon mit einem Tipp auf die Lupe links neben der Glocke, am Schreibtisch auch mit den Tasten / oder Strg+K (Mac: ⌘K). Sie findet die Übersicht, die Bereiche, die Module und die Seiten Sicherheit, Compliance-Bericht und Handbuch, und zwar nur, was die Rolle auch in der Navigation sieht. Gesucht wird nach Namen in der eingestellten Sprache, Umlaute dürfen fehlen: „Kuhlkette“ findet „Kühlkette“. Pfeiltasten wählen einen Treffer, die Eingabetaste öffnet ihn, Esc schließt die Suche. Bei leerem Feld stehen die zuletzt selbst geöffneten Seiten. Findet die Suche nichts, bietet sie an, die KI mit dem Begriff zu fragen. Reihenblöcke, Chargen, Pflücker und Dokumente findet sie noch nicht.",
       },
       {
         titel: "Untere Leiste (Telefon)",

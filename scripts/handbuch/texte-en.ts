@@ -105,7 +105,11 @@ export const en: HandbuchTexte = {
       },
       {
         titel: "Header",
-        text: "Carries the breadcrumb of the open page, the toggle for the sidebar width, the language selector, the colour scheme and — for administrators — the “View as” field.",
+        text: "Carries the breadcrumb of the open page, the toggle for the sidebar width, the search, the language selector, the colour scheme and — for administrators — the “View as” field. On the phone it keeps the way back, the search and the notifications.",
+      },
+      {
+        titel: "Search",
+        text: "Opens with a click on the search field in the header, on narrow screens and on the phone with a tap on the magnifier to the left of the bell, and at the desk also with the keys / or Ctrl+K (Mac: ⌘K). It finds the overview, the zones, the modules and the pages Security, Compliance report and Handbook, and only what the role also sees in the navigation. It searches names in the selected language. Arrow keys choose a result, Enter opens it, Esc closes the search. With an empty field it lists the pages you opened yourself most recently. If nothing matches, it offers to ask the AI about the term. It does not yet find row blocks, batches, pickers or documents.",
       },
       {
         titel: "Bottom bar (phone)",

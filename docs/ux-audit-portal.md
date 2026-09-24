@@ -10,7 +10,7 @@ Jeder Punkt nennt seine Fundstelle. Wo eine Zahl steht, ist sie gemessen und nic
 
 | # | Punkt | Nutzen | Aufwand | Stand |
 |---|---|---|---|---|
-| 1 | Globale Suche ist eine Attrappe | sehr hoch | mittel | offen |
+| 1 | Globale Suche ist eine Attrappe | sehr hoch | mittel | teilweise |
 | 2 | Tabellen ohne Sortieren, Filtern, Blättern | sehr hoch | hoch | offen |
 | 3 | Abfragen ohne Zeilenbegrenzung | sehr hoch | hoch | offen |
 | 4 | Öffentliche Routen ohne Fehlergrenze | hoch | niedrig | offen |
@@ -24,7 +24,7 @@ Jeder Punkt nennt seine Fundstelle. Wo eine Zahl steht, ist sie gemessen und nic
 | 12 | Keine Brotkrumen | mittel | niedrig | **erledigt** |
 | 13 | Sitzungsablauf ohne Vorwarnung | mittel | mittel | offen |
 | 14 | Keine Sammelaktionen | mittel | mittel | offen |
-| 15 | Keine Tastaturkürzel | mittel | mittel | offen |
+| 15 | Keine Tastaturkürzel | mittel | mittel | teilweise |
 | 16 | „Ansicht als" auf dem Tablet unerreichbar | mittel | sehr niedrig | teilweise |
 | 17 | Unerklärtes Fachkürzel „1Çatı" | mittel | sehr niedrig | **erledigt** |
 | 18 | Keine gespeicherten Ansichten | niedrig–mittel | mittel | offen |
@@ -36,6 +36,8 @@ Jeder Punkt nennt seine Fundstelle. Wo eine Zahl steht, ist sie gemessen und nic
 ## Hoher Nutzen
 
 ### 1. Die globale Suche ist eine Attrappe
+
+**Teilweise erledigt am 24.09.2026** (Branch `feat/globale-suche`, WMCNL-2484). Stufe 1 der Suche findet Übersicht, Bereiche, Module, Sicherheit, Compliance-Bericht und Handbuch, gefiltert nach der Rolle, auf jeder Breite und auch auf dem Handy (Knopf neben der Glocke). Der Platzhalter sagt jetzt „Seite oder Modul suchen …“. Offen bleibt die Datensatzsuche über Reihenblöcke, Chargen, Pflücker und Dokumente, die der alte Platzhalter versprach: WMCNL-1467. Der Befund unten beschreibt den Stand vor dem Umbau.
 
 In `src/components/dashboard/topbar.tsx:106-109` steht ein `<span>` in einem `<div>`. Kein `<input>`, kein Fokus, keine Funktion. Mit Rahmen, Lupensymbol und dem Platzhalter „Reihenblock, Charge, Pflücker, Dokument suchen …" sieht das Element exakt wie ein Suchfeld aus.
 
@@ -144,6 +146,8 @@ Zehn Pflückaufgaben freigeben heißt zehnmal klicken. Mehrfachauswahl mit einer
 *Nutzen: mittel · Aufwand: mittel*
 
 ### 15. Keine Tastaturkürzel
+
+**Teilweise erledigt am 24.09.2026** (Branch `feat/globale-suche`, WMCNL-2484). `/` und Strg+K bzw. ⌘K öffnen die Suche, dieselben Kürzel wie im Handbuch; Strg+K geht auch auf russischer und kasachischer Belegung. Offen bleiben Befehlsfeld und „neuer Datensatz“.
 
 Kein Sprung zur Suche, kein Befehlsfeld, kein „neuer Datensatz". Tastaturereignisse werden im ganzen Projekt nur vom Maskottchen behandelt. Vielnutzer im Büro gewinnen dadurch mehr als durch jede optische Verbesserung.
 
