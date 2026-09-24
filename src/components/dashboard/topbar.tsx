@@ -197,16 +197,17 @@ export function DashboardTopbar() {
           Zeile über der Überschrift scrollt er nicht mit dem Inhalt weg. */}
       <TopbarPfad />
       {/* Was unter md in das Konto-Blatt der unteren Leiste gewandert ist -
-          "KI fragen", Rollenumschalter, Sprache, Farbschema -, steht hier erst
-          ab md wieder. Sichtbar bleibt auf dem Handy nur, was beim Arbeiten
-          sichtbar bleiben muss: der Stand der Synchronisierung, die Suche und
-          die Meldungen. */}
+          Rolle bzw. "Ansicht als", "KI fragen", Sprache, Farbschema -, steht
+          hier erst ab md wieder. Sichtbar bleibt auf dem Handy nur, was beim
+          Arbeiten sichtbar bleiben muss: der Stand der Synchronisierung, die
+          Suche und die Meldungen. */}
       {/* md:ml-auto haelt die Gruppe rechts: vor ihr steht kein wachsendes
           Element, das die Luecke fuellen wuerde. */}
       <div className="flex flex-1 items-center justify-end gap-2 md:ml-auto md:flex-none">
         <span className="hidden md:contents">
-          <KiFragenKnopf />
+          {/* Die Rolle vor "KI fragen" (Erwin, 24.09.2026). */}
           <PersonaSwitcher className="hidden lg:inline-flex" />
+          <KiFragenKnopf />
           <LocaleSwitcher compact />
           <ThemeToggle />
         </span>
