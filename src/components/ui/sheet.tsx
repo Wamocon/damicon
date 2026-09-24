@@ -41,7 +41,8 @@ import { cn } from "@/lib/utils";
 //
 // "rechts" ist die Schublade am Schreibtisch, volle Hoehe am rechten Rand -
 // dieselbe Seite, von der das KI-Panel kommt. Gebaut fuer die Benachrichtigungen
-// (dashboard/glocke.tsx), deren Liste mehr Hoehe braucht als ein Popover hat.
+// (dashboard/glocke.tsx), deren Liste mehr Platz braucht als ein Popover an der
+// Glocke bietet.
 //
 // modal: ein Blatt "unten", das nicht aus der unteren Leiste kommt, sondern aus
 // der Kopfzeile (die Glocke auf dem Handy). Die Leiste liegt dann unter der
@@ -234,7 +235,9 @@ export function Sheet({
         // Nur bei den Blaettern in der Mitte und oben stimmt die Zusage, dass
         // es hinter dem Blatt nichts gibt. Unten bleibt die Leiste bedienbar,
         // und eine Zusage, die nicht stimmt, ist fuer eine Vorlesehilfe
-        // schlimmer als gar keine. Weglassen statt false: das ist eindeutiger.
+        // schlimmer als gar keine - ausser das Blatt kommt nicht aus der
+        // Leiste (modal), dann liegt sie unter der Blende. Weglassen statt
+        // false: das ist eindeutiger.
         aria-modal={mitte || oben || rechts || modal ? true : undefined}
         aria-labelledby={titelId}
         tabIndex={-1}
@@ -254,8 +257,8 @@ export function Sheet({
             : rechts
             ? // Buendig am Rand und ohne Rundung wie das KI-Panel, das von
               // derselben Seite kommt. 28rem: breit genug, dass ein Eintrag
-              // mit Symbol, Titel und zwei Zeilen Text nicht umbricht wie im
-              // 320 px schmalen Popover davor.
+              // mit Symbol, Titel und zwei Zeilen Text nicht bei jedem zweiten
+              // Wort umbricht, wie es 320 px taten.
               "h-full w-full max-w-md border-l pt-[env(safe-area-inset-top)] motion-safe:animate-[sheet-auf-rechts_220ms_ease-out]"
             : cn(
                 // Rundum gerundet und gerahmt: die Flaeche klebt nicht mehr an

@@ -24,8 +24,9 @@ import type { Role } from "@/lib/rbac";
 // kommen mit Stufe 2 (WMCNL-2486): pro Person, ueber Supabase Realtime.
 //
 // Am Schreibtisch eine Schublade vom rechten Rand, auf dem Handy ein Blatt von
-// unten wie Menue und Konto (ui/sheet.tsx). Das Popover an der Glocke davor war
-// fuer eine Liste mit Symbol, Titel und zwei Zeilen Text zu schmal.
+// unten wie Menue und Konto (ui/sheet.tsx). Ein Popover an der Glocke nach dem
+// Muster des Sync-Panels war ausprobiert und verworfen: fuer eine Liste mit
+// Symbol, Titel und zwei Zeilen Text zu schmal.
 //
 // Das Fenster haengt wie die Suche (suche/such-kontext.tsx) im Layout und nicht
 // in der Kopfzeile: deren backdrop-blur macht sie zum Bezugsrahmen fuer
