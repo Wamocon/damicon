@@ -29,15 +29,16 @@ Schreibtisch Traegt Alle Bedienelemente Und Den Vollen Pfad
     Should Be Equal    ${stationen}[2]    Rollen und Rechte
     Befund Festhalten    ${SCHREIBTISCH}    modulseite
 
-Schreibtisch Zeigt Die Suche Als Knopf Hinter Dem Pfad
+Schreibtisch Zeigt Die Suche Als Knopf Neben Der Glocke
     [Documentation]    Auch am Schreibtisch ist die Suche nur ein Knopf mit
-    ...    Lupe direkt hinter dem Pfad, kein Eingabefeld und keine Leiste im
-    ...    Look eines Suchfelds. Getippt wird erst im Suchfenster.
+    ...    Lupe, links neben der Glocke wie auf dem Handy - kein Eingabefeld
+    ...    und keine Leiste im Look eines Suchfelds. Getippt wird erst im
+    ...    Suchfenster.
     [Tags]    schreibtisch
     Portal Oeffnen    ${SCHREIBTISCH}
     Seite Ansteuern    /dashboard/buero/rollen
     Suche Ist Nur Ein Knopf
-    Suchknopf Steht Hinter Dem Pfad
+    Suchknopf Steht Links Neben Der Glocke
 
 Schreibtisch Oeffnet Das Suchfenster Mittig Oben
     [Documentation]    Der Knopf mit der Lupe oeffnet das Suchfenster oben in
@@ -133,13 +134,13 @@ Handy Quer Schneidet Keine Bedienelemente Ab
 
 Handy Quer Zeigt Die Suche Als Knopf
     [Documentation]    Im Querformat steht die Suche wie am Schreibtisch als
-    ...    Knopf direkt hinter dem Pfad. Das Fenster geht oben in der Mitte
+    ...    Knopf links neben der Glocke. Das Fenster geht oben in der Mitte
     ...    auf.
     [Tags]    mobil-quer
     Portal Oeffnen    ${MOBIL_QUER}
     Seite Ansteuern    /dashboard/buero/rollen
     Suche Ist Nur Ein Knopf
-    Suchknopf Steht Hinter Dem Pfad
+    Suchknopf Steht Links Neben Der Glocke
     Click    ${KOPFBALKEN} [data-suche="knopf"] >> visible=true
     Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
     Suchfenster Steht Mittig Oben

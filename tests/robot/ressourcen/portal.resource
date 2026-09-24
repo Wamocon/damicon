@@ -101,26 +101,18 @@ Suche Per Tastatur Oeffnen
     Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
 
 Suchknopf Steht Links Neben Der Glocke
-    [Documentation]    Auf dem Handy ist die Suche ein Knopf direkt links
+    [Documentation]    Auf jeder Breite ist die Suche ein Knopf direkt links
     ...    neben den Meldungen. Zwischen beiden liegen die 8 px Abstand der
-    ...    Werkzeuggruppe. Der Knopf steht zweimal im Dokument, gemessen wird
-    ...    der sichtbare.
+    ...    Werkzeuggruppe.
     ${abstand} =    Evaluate JavaScript    ${None}
     ...    () => { const k = [...document.querySelectorAll('header.sticky [data-suche="knopf"]')].find((e) => e.getBoundingClientRect().width > 0); const g = document.querySelector('header.sticky button[aria-label="Benachrichtigungen"]'); if (!k || !g) return -1; return Math.round(g.getBoundingClientRect().left - k.getBoundingClientRect().right); }
     Should Be Equal As Integers    ${abstand}    8
     ...    msg=Der Suchknopf steht nicht direkt links neben der Glocke (Abstand ${abstand} px, -1 heisst: fehlt).
 
-Suchknopf Steht Hinter Dem Pfad
-    [Documentation]    Ab 768 px steht die Suche als Knopf direkt hinter dem
-    ...    Pfad. Der Abstand ist der der Kopfzeile, 12 px.
-    ${abstand} =    Evaluate JavaScript    ${None}
-    ...    () => { const k = [...document.querySelectorAll('header.sticky [data-suche="knopf"]')].find((e) => e.getBoundingClientRect().width > 0); const p = [...document.querySelectorAll('header.sticky nav[aria-label]')].find((e) => e.getBoundingClientRect().width > 0); if (!k || !p) return -1; return Math.round(k.getBoundingClientRect().left - p.getBoundingClientRect().right); }
-    Should Be Equal As Integers    ${abstand}    12
-    ...    msg=Der Suchknopf steht nicht direkt hinter dem Pfad (Abstand ${abstand} px, -1 heisst: fehlt).
-
 Sichtbare Suchknoepfe Zaehlen
-    [Documentation]    Wie viele Suchknoepfe gerade zu sehen sind. Im Dokument
-    ...    stehen zwei, je Breite ist hoechstens einer sichtbar.
+    [Documentation]    Wie viele Suchknoepfe gerade zu sehen sind. Erwartet ist
+    ...    genau einer; ein zweiter hiesse, dass ein alter Ausloeser
+    ...    zurueckgekehrt ist.
     ${anzahl} =    Evaluate JavaScript    ${None}
     ...    () => [...document.querySelectorAll('header.sticky [data-suche="knopf"]')].filter((e) => e.getBoundingClientRect().width > 0).length
     RETURN    ${anzahl}
