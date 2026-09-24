@@ -27,6 +27,7 @@ import type { KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
 import type { Pruefbereich } from "@/lib/pruefung/rollen";
 import { BlattZeile } from "@/components/ui/blatt-zeile";
 import { useIstHandy } from "@/components/ui/handy";
+import { useScrollSperre } from "@/components/ui/scroll-sperre";
 import { cn } from "@/lib/utils";
 
 // Andockbares Seitenpanel (Layout dashboard/layout.tsx): sitzt NEBEN dem
@@ -166,7 +167,8 @@ export function KiPane({
 
   // Esc schliesst, und solange das Blatt offen ist, scrollt die Seite darunter
   // nicht mit. Beides kannte bisher nur ui/sheet.tsx, obwohl Menue-, Konto- und
-  // KI-Blatt auf dem Handy dieselbe Flaeche sind und gleich aussehen.
+  // KI-Blatt auf dem Handy dieselbe Flaeche sind und gleich aussehen. Die
+  // Sperre ist dieselbe wie dort (ui/scroll-sperre.ts).
   //
   // Die Bauweisen bleiben getrennt: ui/sheet.tsx haengt beim Schliessen aus,
   // dieses Panel muss gemountet bleiben, sonst reisst eine laufende Antwort
@@ -175,18 +177,14 @@ export function KiPane({
   //
   // Nur unter md: ab dort ist das Panel eine angedockte Spalte neben der Seite,
   // und die soll weiter scrollen, waehrend man daneben liest.
+  useScrollSperre(offen && handy);
   useEffect(() => {
     if (!offen || !handy) return;
     const beiTaste = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOffen(false);
     };
     document.addEventListener("keydown", beiTaste);
-    const vorher = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", beiTaste);
-      document.body.style.overflow = vorher;
-    };
+    return () => document.removeEventListener("keydown", beiTaste);
   }, [offen, handy, setOffen]);
 
   if (!verfuegbar) return null;

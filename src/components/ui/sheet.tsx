@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useEffectEvent,
   useId,
   useRef,
   type ReactNode,
@@ -9,6 +10,7 @@ import {
 } from "react";
 import { useTranslations } from "next-intl";
 import { ChevronLeft, X } from "lucide-react";
+import { useScrollSperre } from "@/components/ui/scroll-sperre";
 import { cn } from "@/lib/utils";
 
 // Flaeche, die von unten aufgeht. Gebaut fuer die untere Leiste auf dem Handy
@@ -81,28 +83,21 @@ export function Sheet({
   const inhaltRef = useRef<HTMLDivElement>(null);
   const schliessenText = schliessenLabel ?? nav("closeMenu");
 
-  // Esc schliesst, und solange das Sheet offen ist, scrollt die Seite
-  // darunter nicht mit.
-  //
-  // Gesperrt wird am <html>, nicht am <body>. Das <html> traegt
-  // overflow-x: clip, und damit reicht der Browser ein overflow des <body>
-  // nicht mehr an das Fenster weiter: der <body> wurde selbst zum
-  // Scrollcontainer, die klebende Kopfzeile klebte an ihm statt am Fenster
-  // und verschwand bei gescrollter Seite nach oben - die Seitenleiste mit ihr.
+  // Solange das Sheet offen ist, scrollt die Seite darunter nicht mit.
+  useScrollSperre(offen);
+
+  // Esc schliesst. onSchliessen im Ereignis gelesen: die Aufrufer reichen
+  // meist eine neue Funktion je Rendern herein, und der Listener soll nicht
+  // bei jedem Tastendruck im Suchfeld neu gesetzt werden.
+  const schliesse = useEffectEvent(() => onSchliessen());
   useEffect(() => {
     if (!offen) return;
     const beiTaste = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onSchliessen();
+      if (event.key === "Escape") schliesse();
     };
     document.addEventListener("keydown", beiTaste);
-    const wurzel = document.documentElement;
-    const vorher = wurzel.style.overflow;
-    wurzel.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", beiTaste);
-      wurzel.style.overflow = vorher;
-    };
-  }, [offen, onSchliessen]);
+    return () => document.removeEventListener("keydown", beiTaste);
+  }, [offen]);
 
   // Der Fokus springt in die Flaeche, sobald sie aufgeht - sonst bliebe er
   // auf dem Knopf in der Leiste, und die erste Tabulatortaste liefe durch die
@@ -197,7 +192,8 @@ export function Sheet({
         mitte && "items-center justify-center p-4",
         // Auf dem Handy fast randlos, damit die Liste Platz hat. Ab md schmal,
         // mittig im Fenster und etwas unterhalb der Kopfzeile - egal, wo der
-        // Ausloeser sitzt.
+        // Ausloeser sitzt. 10svh sind bei 1000 px Fensterhoehe 100 px, knapp
+        // unter der 64 px hohen Kopfzeile.
         oben &&
           "flex-col items-stretch p-2 pt-[max(0.5rem,env(safe-area-inset-top))] md:items-center md:px-4 md:pt-[10svh]",
         // Die Unterkante steigt um den Platz der unteren Leiste. Die Blende
@@ -236,7 +232,9 @@ export function Sheet({
             : oben
             ? // Waechst mit dem Inhalt, hoechstens bis zum Rand. Auf Android
               // schrumpft der Rand mit, sobald die Tastatur aufgeht
-              // (interactiveWidget "resizes-content" im Layout).
+              // (interactiveWidget "resizes-content" im Layout). Ab md
+              // hoechstens 36rem, auf niedrigen Fenstern 80svh: die Suche
+              // bleibt ein kompaktes Fenster, laengere Listen scrollen darin.
               "w-full max-h-full rounded-2xl border motion-safe:animate-[sheet-auf-oben_180ms_ease-out] md:max-w-2xl md:max-h-[min(36rem,80svh)]"
             : cn(
                 // Rundum gerundet und gerahmt: die Flaeche klebt nicht mehr an
