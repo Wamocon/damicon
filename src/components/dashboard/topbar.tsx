@@ -21,7 +21,7 @@ import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { cn } from "@/lib/utils";
 import { SyncStatus } from "@/components/dashboard/sync-status";
 import { TopbarPfad } from "@/components/dashboard/topbar-pfad";
-import { TopbarSuche, TopbarSuchknopf } from "@/components/suche/such-ausloeser";
+import { TopbarSuchknopf } from "@/components/suche/such-ausloeser";
 import {
   istSchmal,
   schmalAbonnieren,
@@ -135,9 +135,9 @@ export function DashboardTopbar() {
         // gegen "Genel bakış").
         //
         // Ausgeblendete Kinder belegen keine Rasterzelle: der Menue-Umschalter
-        // ab md und das Suchfeld ab xl verschieben die Aufteilung darunter
-        // nicht. Der Suchknopf steht in der rechten Gruppe und braucht keine
-        // eigene Zelle.
+        // und die Lupe hinter dem Pfad, beide erst ab md, verschieben die
+        // Aufteilung darunter nicht. Der Suchknopf steht in der rechten
+        // Gruppe und braucht keine eigene Zelle.
         eltern
           ? "grid grid-cols-[1fr_auto_1fr]"
           : // Auf der Uebersicht gibt es keinen Rueckweg - dort steht die
@@ -197,21 +197,18 @@ export function DashboardTopbar() {
       {/* Der Pfad steht zwischen Umschalter und Suche. Anders als die frühere
           Zeile über der Überschrift scrollt er nicht mit dem Inhalt weg. */}
       <TopbarPfad />
-      {/* Die Suche beginnt direkt hinter dem Pfad: ab xl als Knopf im Look
-          eines Suchfelds, der die Luecke bis zu den Werkzeugen fuellt,
-          darunter als Lupe an derselben Stelle - fuer Feld und Pfad
-          nebeneinander reicht die Zeile dort nicht. Beide oeffnen das
-          Suchfenster oben in der Mitte (suche/such-kontext.tsx). Auf dem
-          Handy steht die Lupe stattdessen neben der Glocke, siehe unten. */}
-      <TopbarSuchknopf className="hidden md:inline-flex xl:hidden" />
-      <TopbarSuche />
+      {/* Die Suche ist ab md eine Lupe direkt hinter dem Pfad - kein Feld,
+          keine Leiste. Sie oeffnet das Suchfenster oben in der Mitte
+          (suche/such-kontext.tsx). Auf dem Handy steht sie stattdessen neben
+          der Glocke, siehe unten. */}
+      <TopbarSuchknopf className="hidden md:inline-flex" />
       {/* Was unter md in das Konto-Blatt der unteren Leiste gewandert ist -
           "KI fragen", Rollenumschalter, Sprache, Farbschema -, steht hier erst
           ab md wieder. Sichtbar bleibt auf dem Handy nur, was beim Arbeiten
           sichtbar bleiben muss: der Stand der Synchronisierung, die Suche und
           die Meldungen. */}
-      {/* md:ml-auto haelt die Gruppe rechts, auch wenn die Suche gerade ein
-          Knopf ist und damit kein wachsendes Element mehr in der Zeile steht. */}
+      {/* md:ml-auto haelt die Gruppe rechts: vor ihr steht kein wachsendes
+          Element, das die Luecke fuellen wuerde. */}
       <div className="flex flex-1 items-center justify-end gap-2 md:ml-auto md:flex-none">
         <span className="hidden md:contents">
           <KiFragenKnopf />
