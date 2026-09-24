@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 // Die beiden Ausloeser der globalen Suche in der Kopfzeile. Beide oeffnen
 // dasselbe Suchfenster (such-kontext.tsx) - getippt wird nie in der
-// Kopfzeile selbst, erst im Fenster, das von oben aufgeht.
+// Kopfzeile selbst, erst im Fenster, das oben in der Mitte aufgeht.
 
 const suchStil =
   "items-center rounded-lg border border-border bg-card text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
@@ -69,10 +69,9 @@ export function TopbarSuche() {
  * Unter xl ein Symbolknopf. Er steht zweimal in der Kopfzeile, sichtbar ist
  * je nach Breite genau einer (topbar.tsx gibt die Sichtbarkeit mit):
  *
- *   md bis xl  direkt hinter dem Pfad - dort, wo ab xl das Feld beginnt und
- *              wo das Suchfenster aufgeht (such-kontext.tsx, Anker)
+ *   md bis xl  direkt hinter dem Pfad - dort, wo ab xl das Feld beginnt
  *   unter md   links neben der Glocke; das Fenster nimmt dort oben die volle
- *              Breite ein und liegt damit ebenfalls am Knopf
+ *              Breite ein
  *
  * Er sieht aus wie die uebrigen Symbolknoepfe der Kopfzeile (36 px), faengt
  * unter lg aber 44 px: das Pseudoelement ragt ringsum 4 px ueber den Rand

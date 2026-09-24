@@ -20,7 +20,7 @@ import {
   type SuchGruppe,
   type SuchOption,
 } from "@/components/suche/such-liste";
-import { Sheet, type SheetAnker } from "@/components/ui/sheet";
+import { Sheet } from "@/components/ui/sheet";
 import { zerlegeAnfrage } from "@/lib/suche/kern";
 import {
   baueSeitenZiele,
@@ -33,7 +33,7 @@ import {
 import { browserAblage, merkeZuletzt, zuletztAufloesen } from "@/lib/suche/zuletzt";
 
 // Das Suchfenster: ein Blatt mit dem Eingabefeld im Kopf und den Treffern
-// darunter, dort aufgehend, wo sein Ausloeser sitzt. Aufgebaut nach dem
+// darunter, oben in der Mitte des Bildschirms. Aufgebaut nach dem
 // WAI-ARIA-Muster "Combobox mit Listbox": der Fokus bleibt immer im Feld, die
 // Pfeiltasten verschieben nur die Markierung (aria-activedescendant), Enter
 // oeffnet den markierten Treffer. So kann man weitertippen, ohne erst zurueck
@@ -65,14 +65,11 @@ export function SuchDialog({
   feldRef,
   zuletzt,
   nutzerId,
-  anker,
   onSchliessen,
 }: {
   feldRef: RefObject<HTMLInputElement | null>;
   zuletzt: readonly string[];
   nutzerId: string | null;
-  /** Wo der Ausloeser sitzt; null auf dem Handy. */
-  anker: SheetAnker | null;
   /** fokusZurueck: ohne Sprung geschlossen, der Ausloeser bekommt den Fokus wieder. */
   onSchliessen: (fokusZurueck: boolean) => void;
 }) {
@@ -214,7 +211,6 @@ export function SuchDialog({
       onSchliessen={() => onSchliessen(true)}
       titel={t("titel")}
       position="oben"
-      anker={anker}
       anfangsFokus={feldRef}
       schliessenLabel={t("schliessen")}
       kopf={

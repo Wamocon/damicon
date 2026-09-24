@@ -16,13 +16,14 @@ import { usePathname } from "@/i18n/navigation";
 import { useBlatt } from "@/components/dashboard/blatt-kontext";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { SuchDialog } from "@/components/suche/such-dialog";
-import type { SheetAnker } from "@/components/ui/sheet";
 import { istSuchKuerzel } from "@/lib/suche/kern";
 import { zielSchluesselFuerPfad } from "@/lib/suche/seiten-ziele";
 import { browserAblage, liesZuletzt, merkeZuletzt } from "@/lib/suche/zuletzt";
 
 // Gemeinsamer Zustand der globalen Suche: die Ausloeser in der Kopfzeile
 // (such-ausloeser.tsx) oeffnen, der Dialog steht genau einmal im Layout.
+// Er geht immer oben in der Mitte des Bildschirms auf, egal welcher Ausloeser
+// ihn oeffnet (Sheet "oben").
 //
 // Der Dialog haengt hier und nicht in der Kopfzeile. Deren backdrop-blur macht
 // sie zum Bezugsrahmen fuer fixierte Kinder - ein Blatt darin waere auf die
@@ -47,40 +48,6 @@ function istEingabefeld(ziel: EventTarget | null): boolean {
   );
 }
 
-// Das Fenster geht dort auf, wo sein Ausloeser sitzt: ab xl legt es sich
-// ueber das Feld, darunter an die Lupe hinter dem Pfad. Das Eingabefeld im
-// Kopf des Fensters steht dann auf der Hoehe des Ausloesers - der Kopf ist
-// 56 px hoch, der Ausloeser 36 px, also 10 px hoeher ansetzen.
-//
-// Auf dem Handy (unter md) kein Anker: dort sitzt die Lupe neben der Glocke
-// in der obersten Zeile, und das Fenster nimmt oben die volle Breite ein.
-const ANKER_AB = "(min-width: 768px)";
-const BREITE_MIN = 560;
-const BREITE_MAX = 720;
-const RAND = 8;
-
-function bestimmeAnker(): SheetAnker | null {
-  if (!window.matchMedia(ANKER_AB).matches) return null;
-  // Der sichtbare Ausloeser, auch wenn die Suche per Tastenkuerzel aufging:
-  // das Fenster steht immer an derselben Stelle, egal wie man es oeffnet.
-  const sichtbar = (auswahl: string) =>
-    Array.from(document.querySelectorAll<HTMLElement>(auswahl)).find(
-      (element) => element.getBoundingClientRect().width > 0,
-    );
-  const ausloeser = sichtbar('[data-suche="feld"]') ?? sichtbar('[data-suche="knopf"]');
-  if (!ausloeser) return null;
-
-  const rahmen = ausloeser.getBoundingClientRect();
-  const breite = Math.min(
-    Math.max(rahmen.width, BREITE_MIN),
-    BREITE_MAX,
-    window.innerWidth - 2 * RAND,
-  );
-  const left = Math.min(Math.max(RAND, rahmen.left), window.innerWidth - RAND - breite);
-  const top = Math.max(RAND / 2, rahmen.top - 10);
-  return { top, left, width: breite, maxHoehe: window.innerHeight - top - 2 * RAND };
-}
-
 export function SuchProvider({
   nutzerId,
   children,
@@ -91,7 +58,6 @@ export function SuchProvider({
 }) {
   const [offen, setOffen] = useState(false);
   const [zuletzt, setZuletzt] = useState<string[]>([]);
-  const [anker, setAnker] = useState<SheetAnker | null>(null);
   const feldRef = useRef<HTMLInputElement>(null);
   // Wer die Suche geoeffnet hat, bekommt den Fokus zurueck, wenn sie ohne
   // Sprung geschlossen wird - sonst stuende er nach Esc irgendwo am Seitenanfang.
@@ -111,7 +77,6 @@ export function SuchProvider({
     // Die Liste beim Oeffnen lesen und nicht beim Rendern: der Server kennt
     // keinen localStorage, und jedes Oeffnen soll den neuesten Stand zeigen.
     setZuletzt(liesZuletzt(browserAblage(), nutzerId));
-    setAnker(bestimmeAnker());
     // Sofort rendern und noch im selben Tipp fokussieren. iOS oeffnet die
     // Tastatur nur, wenn der Fokus innerhalb der Beruehrung gesetzt wird -
     // ein Effekt danach kaeme zu spaet, das Feld waere fokussiert, aber ohne
@@ -141,15 +106,6 @@ export function SuchProvider({
     return () => document.removeEventListener("keydown", beiTaste);
   }, [blattOffen, oeffne]);
 
-  // Aendert sich die Fenstergroesse, waehrend die Suche offen ist, wandert der
-  // Ausloeser mit - das Fenster zieht nach, notfalls vom Anker an den Rand.
-  useEffect(() => {
-    if (!offen) return;
-    const nachziehen = () => setAnker(bestimmeAnker());
-    window.addEventListener("resize", nachziehen);
-    return () => window.removeEventListener("resize", nachziehen);
-  }, [offen]);
-
   // Jede selbst aufgerufene Seite landet in "Zuletzt geoeffnet", egal ob ueber
   // Seitenleiste, Link oder Suche. Stationen einer Agent-Fuehrung nicht: die
   // hat nicht die Person aufgerufen.
@@ -178,7 +134,6 @@ export function SuchProvider({
           feldRef={feldRef}
           zuletzt={zuletzt}
           nutzerId={nutzerId}
-          anker={anker}
           onSchliessen={schliesse}
         />
       ) : null}
