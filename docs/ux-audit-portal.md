@@ -103,7 +103,7 @@ Einen CSV-Import gibt es (`src/lib/import/zukauf-parser.ts`), einen Export nirge
 
 Eine Benachrichtigung, die immer leuchtet und nie etwas zeigt, trainiert Nutzer darauf, Warnungen zu übersehen. Das ist heikel in einem System, dessen Kern Wartezeitsperren und Kühlketten-Alarme sind.
 
-**Teilweise am 24.09.2026 (WMCNL-2485).** Die Glocke öffnet ein Panel, das sagt, dass keine neuen Benachrichtigungen vorliegen, und darauf hinweist, dass Alarme und Fristen weiterhin in den Modulen stehen. Der Punkt behauptet nicht mehr dauerhaft „ungelesen“, er verschwindet nach dem ersten Öffnen. Kunden und Pflücker sehen die Glocke nicht. Offen bleiben echte Benachrichtigungen, pro Person und über Supabase Realtime (WMCNL-2486).
+**Teilweise am 24.09.2026 (WMCNL-2485).** Die Glocke öffnet am Schreibtisch eine Schublade von rechts und auf dem Handy ein Blatt von unten, das sagt, dass keine neuen Benachrichtigungen vorliegen, und darauf hinweist, dass Alarme und Fristen weiterhin in den Modulen stehen. Der Punkt behauptet nicht mehr dauerhaft „ungelesen“, er verschwindet nach dem ersten Öffnen. Kunden und Pflücker sehen die Glocke nicht. Offen bleiben echte Benachrichtigungen, pro Person und über Supabase Realtime (WMCNL-2486).
 
 *Nutzen: mittel · Aufwand: niedrig (ausblenden) bis hoch (echt bauen)*
 

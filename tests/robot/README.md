@@ -61,7 +61,7 @@ die Kopfzeile keinen eigenen Scrollbereich hat.
 | Rueckweg | Traegt die Kopfzeile auf dem Handy eine Station zurueck? |
 | Untere Leiste | Verdeckt sie den letzten Abschnitt? |
 | Weg durch die Ebenen | Uebersicht, Bereich und ueber den Pfad zurueck |
-| Glocke | Oeffnet sie den leeren Stand, auf dem Handy in voller Breite, und schliessen Esc und ein Tipp daneben? |
+| Glocke | Oeffnet sie am Schreibtisch eine Schublade von rechts, auf dem Handy ein Blatt von unten, jeweils mit dem leeren Stand, und schliessen Esc und ein Tipp auf die Blende? |
 | Punkt an der Glocke | Ist er nach dem ersten Oeffnen weg, auch nach dem Neuladen? |
 | Glocke als Kunde | Fehlt sie in der Ansicht als Kunde? |
 

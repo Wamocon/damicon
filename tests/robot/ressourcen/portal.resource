@@ -15,7 +15,9 @@ ${PASSWORT}       DamiconDemo2026!
 ${BILDER}         ${CURDIR}/../ergebnisse/bilder
 ${KOPFBALKEN}     header.sticky
 ${GLOCKE}         ${KOPFBALKEN} button[aria-label="Benachrichtigungen"]
-${GLOCKEN_PANEL}    ${KOPFBALKEN} [role="dialog"]
+# Das Fenster der Glocke haengt im Layout, nicht in der Kopfzeile. Gefunden
+# ueber Rolle und Namen, damit es nicht mit dem Suchfenster verwechselt wird.
+${GLOCKEN_PANEL}    role=dialog[name="Benachrichtigungen"]
 ${GLOCKEN_PUNKT}    ${GLOCKE} [data-glocke-punkt]
 
 # Die vier Geraeteprofile. Breite und Hoehe sind CSS-Pixel, nicht Geraetepixel.
@@ -182,20 +184,19 @@ Glocke Oeffnen
     Click    ${GLOCKE}
     Wait For Elements State    ${GLOCKEN_PANEL}    visible    timeout=10s
 
-Glocken Panel Nutzt Die Volle Breite
-    [Documentation]    Auf dem Handy laeuft das Panel ueber die ganze Breite,
-    ...    mit 16 px Rand wie die Karten darunter. Ein schmales Panel an der
-    ...    Glocke liess links ungenutzten Platz und brach den Text unnoetig um.
-    ...    Gemessen gegen die Kopfzeile, nicht gegen das Fenster: das html
-    ...    haelt mit scrollbar-gutter den Platz einer Scrollleiste frei, bei
-    ...    klassischen Scrollleisten (Windows, auch headless) 15 px rechts.
-    ...    Kopfzeile und Karten enden davor, und genau dort soll das Panel
-    ...    auch enden.
-    [Arguments]    ${profil}
+Glocken Fenster Liegt
+    [Documentation]    Am Schreibtisch eine Schublade am rechten Rand in voller
+    ...    Hoehe und mindestens 400 px breit, auf dem Handy ein Blatt im
+    ...    unteren Teil des Bildschirms. Gemessen gegen die fixierte Flaeche
+    ...    um das Fenster, nicht gegen window.innerWidth: das html haelt mit
+    ...    scrollbar-gutter Platz fuer eine Scrollleiste frei, bei klassischen
+    ...    Scrollleisten (Windows, auch headless) 15 px am rechten Rand.
+    [Arguments]    ${profil}    ${soll}
     ${lage} =    Evaluate JavaScript    ${None}
-    ...    () => { const p = document.querySelector('header.sticky [role="dialog"]'); if (!p) return 'kein Panel'; const r = p.getBoundingClientRect(); const k = document.querySelector('header.sticky').getBoundingClientRect(); const links = r.left - k.left; const rechts = k.right - r.right; return Math.abs(links - 16) <= 1 && Math.abs(rechts - 16) <= 1 ? 'ok' : 'links ' + Math.round(links) + ' px, rechts ' + Math.round(rechts) + ' px Rand in einer ' + Math.round(k.width) + ' px breiten Kopfzeile'; }
-    Run Keyword If    '${lage}' != 'ok'    Befund Festhalten    ${profil}    glocke-schmal
-    Should Be Equal    ${lage}    ok    msg=Das Panel der Glocke nutzt nicht die volle Breite: ${lage}
+    ...    (soll) => { const d = [...document.querySelectorAll('[role="dialog"]')].find((e) => e.getAttribute('aria-labelledby') && document.getElementById(e.getAttribute('aria-labelledby'))?.textContent === 'Benachrichtigungen'); if (!d) return 'kein Fenster'; const r = d.getBoundingClientRect(); const c = d.parentElement.getBoundingClientRect(); const lage = 'links ' + Math.round(r.left - c.left) + ', rechts ' + Math.round(c.right - r.right) + ', oben ' + Math.round(r.top - c.top) + ', unten ' + Math.round(c.bottom - r.bottom) + ' px, ' + Math.round(r.width) + ' px breit'; if (soll === 'rechts') return Math.abs(c.right - r.right) <= 1 && Math.abs(r.top - c.top) <= 1 && Math.abs(c.bottom - r.bottom) <= 1 && r.width >= 400 ? 'ok' : lage; return r.left >= c.left - 1 && r.right <= c.right + 1 && r.top > c.top + c.height * 0.15 && r.bottom > c.top + c.height * 0.6 ? 'ok' : lage; }
+    ...    arg=${soll}
+    Run Keyword If    '${lage}' != 'ok'    Befund Festhalten    ${profil}    glocke-lage
+    Should Be Equal    ${lage}    ok    msg=Das Fenster der Glocke liegt nicht ${soll}: ${lage}
 
 Kein Text Ist Abgeschnitten
     [Documentation]    Sucht Elemente, deren Inhalt breiter ist als ihr Kasten.

@@ -245,16 +245,18 @@ Der Weg Durch Die Ebenen Funktioniert In Jedem Profil
     Wait For Condition    url    ends    /dashboard    timeout=20s
     Befund Festhalten    ${SCHREIBTISCH}    weg-zurueck
 
-Schreibtisch Glocke Zeigt Den Leeren Stand
-    [Documentation]    Die Glocke oeffnet ein Panel, das sagt, dass nichts
-    ...    vorliegt. Esc schliesst es und gibt den Fokus an die Glocke zurueck,
-    ...    sonst stuende man mit der Tastatur irgendwo im Dokument.
+Schreibtisch Glocke Oeffnet Die Schublade Von Rechts
+    [Documentation]    Die Glocke oeffnet am Schreibtisch eine Schublade in
+    ...    voller Hoehe am rechten Rand, die sagt, dass nichts vorliegt. Esc
+    ...    schliesst sie und gibt den Fokus an die Glocke zurueck, sonst
+    ...    stuende man mit der Tastatur irgendwo im Dokument.
     [Tags]    schreibtisch
     Portal Oeffnen    ${SCHREIBTISCH}
     Seite Ansteuern    /dashboard
     Glocke Oeffnen
     Get Text    ${GLOCKEN_PANEL}    contains    Keine neuen Benachrichtigungen
     Get Attribute    ${GLOCKE}    aria-expanded    ==    true
+    Glocken Fenster Liegt    ${SCHREIBTISCH}    rechts
     Befund Festhalten    ${SCHREIBTISCH}    glocke-offen
     Keyboard Key    press    Escape
     Get Element Count    ${GLOCKEN_PANEL}    ==    0
@@ -263,23 +265,20 @@ Schreibtisch Glocke Zeigt Den Leeren Stand
     Should Be Equal    ${fokus}    Benachrichtigungen
     ...    msg=Nach Esc steht der Fokus nicht auf der Glocke, sondern auf ${fokus}.
 
-Handy Hoch Glocke Zeigt Den Leeren Stand In Voller Breite
-    [Documentation]    Bei 390 px laeuft das Panel ueber die ganze Breite,
-    ...    mit 16 px Rand wie die Karten darunter. Ein Tipp daneben
-    ...    schliesst es.
+Handy Hoch Glocke Oeffnet Ein Blatt Von Unten
+    [Documentation]    Auf dem Handy kommt das Fenster als Blatt von unten, wie
+    ...    Menue und Konto. Ein Tipp auf die Blende darueber schliesst es.
     [Tags]    mobil-hoch
     Portal Oeffnen    ${MOBIL_HOCH}
     Seite Ansteuern    /dashboard
     Glocke Oeffnen
     Get Text    ${GLOCKEN_PANEL}    contains    Keine neuen Benachrichtigungen
-    Glocken Panel Nutzt Die Volle Breite    ${MOBIL_HOCH}
-    Kein Waagerechtes Scrollen    ${MOBIL_HOCH}    glocke-offen
+    Glocken Fenster Liegt    ${MOBIL_HOCH}    unten
     Befund Festhalten    ${MOBIL_HOCH}    glocke-offen
-    # Der freie Rand der Kopfzeile ueber der Bildmarke: in main liegt bei
-    # 390 px das Panel selbst ueber der Begruessung, und weiter unten koennte
-    # ein Kartenlink das Panel durch einen Seitenwechsel schliessen.
-    # Das Panel beginnt erst 8 px unter der Kopfzeile, verdeckt sie also nicht.
-    Click With Options    ${KOPFBALKEN}    left    position_x=60    position_y=3
+    # Rohe Mauskoordinaten statt Click: oben liegt die Blende ueber der
+    # Seite, und genau sie soll den Tipp bekommen. Click auf ein Element
+    # darunter wuerde an der Blende als Verdeckung scheitern.
+    Mouse Button    click    195    60
     Get Element Count    ${GLOCKEN_PANEL}    ==    0
 
 Punkt An Der Glocke Verschwindet Nach Dem Ersten Oeffnen

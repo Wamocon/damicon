@@ -1581,7 +1581,8 @@
   "benachrichtigungen": {
     "titel": "Notifications",
     "leer": "No new notifications.",
-    "leerHinweis": "Alerts and deadlines are still shown directly in the modules."
+    "leerHinweis": "Alerts and deadlines are still shown directly in the modules.",
+    "schliessen": "Close notifications"
   },
   "sync": {
     "knopf": {

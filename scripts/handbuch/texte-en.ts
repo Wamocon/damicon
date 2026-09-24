@@ -105,7 +105,7 @@ export const en: HandbuchTexte = {
       },
       {
         titel: "Header",
-        text: "Carries the breadcrumb of the open page, the toggle for the sidebar width, the search, the language selector, the colour scheme and — for administrators — the “View as” field. The bell sits on the far right: a click opens the notifications, and as long as there are none, it says so. Alerts and deadlines are still shown in the modules themselves. B2B clients and pickers do not see the bell. On the phone it keeps the way back, the search and the notifications.",
+        text: "Carries the breadcrumb of the open page, the toggle for the sidebar width, the search, the language selector, the colour scheme and — for administrators — the “View as” field. The bell sits on the far right: a click opens the notifications at the right edge of the screen, on the phone as a sheet from below, and as long as there are none, it says so there. Alerts and deadlines are still shown in the modules themselves. B2B clients and pickers do not see the bell. On the phone it keeps the way back, the search and the notifications.",
       },
       {
         titel: "Search",

@@ -1581,7 +1581,8 @@
   "benachrichtigungen": {
     "titel": "Benachrichtigungen",
     "leer": "Keine neuen Benachrichtigungen.",
-    "leerHinweis": "Alarme und Fristen sehen Sie weiterhin direkt in den Modulen."
+    "leerHinweis": "Alarme und Fristen sehen Sie weiterhin direkt in den Modulen.",
+    "schliessen": "Benachrichtigungen schließen"
   },
   "sync": {
     "knopf": {

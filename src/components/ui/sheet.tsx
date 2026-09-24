@@ -38,6 +38,14 @@ import { cn } from "@/lib/utils";
 // Bildschirms und waechst nach unten, das Eingabefeld im Kopf bleibt dabei
 // stehen, und die Bildschirmtastatur des Handys deckt allenfalls das untere
 // Ende der Liste ab statt des Feldes.
+//
+// "rechts" ist die Schublade am Schreibtisch, volle Hoehe am rechten Rand -
+// dieselbe Seite, von der das KI-Panel kommt. Gebaut fuer die Benachrichtigungen
+// (dashboard/glocke.tsx), deren Liste mehr Hoehe braucht als ein Popover hat.
+//
+// modal: ein Blatt "unten", das nicht aus der unteren Leiste kommt, sondern aus
+// der Kopfzeile (die Glocke auf dem Handy). Die Leiste liegt dann unter der
+// Blende und ist nicht bedienbar - die Zusage aria-modal stimmt also wieder.
 
 // Was die Tabulatortaste ansteuern kann. Als Modulkonstante, seit die
 // Fokusfalle das Dokument abfragt statt nur die eigene Flaeche.
@@ -55,6 +63,7 @@ export function Sheet({
   anfangsFokus,
   kopf,
   schliessenLabel,
+  modal,
 }: {
   offen: boolean;
   onSchliessen: () => void;
@@ -62,8 +71,12 @@ export function Sheet({
   children: ReactNode;
   /** "unten": faehrt von der Kante hoch (Handy-Menues, Standard). "mitte": mittiges Fenster,
    *  fuer Detailinhalte, die nicht von einer Seitenkante zu kommen scheinen sollen. "oben":
-   *  oben in der Mitte, fuer Ausloeser in der Kopfzeile. */
-  position?: "unten" | "mitte" | "oben";
+   *  oben in der Mitte, fuer Ausloeser in der Kopfzeile. "rechts": Schublade in voller Hoehe
+   *  am rechten Rand, fuer den Schreibtisch. */
+  position?: "unten" | "mitte" | "oben" | "rechts";
+  /** Erzwingt aria-modal auch bei "unten" - wenn die untere Leiste waehrend des Blatts
+   *  nicht bedienbar ist, weil es nicht aus ihr kommt. Die anderen Positionen sind es immer. */
+  modal?: boolean;
   /** Gesetzt: der Kopf traegt links einen Weg zurueck. Fehlt: nur den Titel. */
   onZurueck?: () => void;
   /** Ein zweiter Baum, der mit in die Fokusfalle gehoert - die untere Leiste,
@@ -184,6 +197,7 @@ export function Sheet({
 
   const mitte = position === "mitte";
   const oben = position === "oben";
+  const rechts = position === "rechts";
 
   return (
     <div
@@ -196,10 +210,11 @@ export function Sheet({
         // unter der 64 px hohen Kopfzeile.
         oben &&
           "flex-col items-stretch p-2 pt-[max(0.5rem,env(safe-area-inset-top))] md:items-center md:px-4 md:pt-[10svh]",
+        rechts && "justify-end",
         // Die Unterkante steigt um den Platz der unteren Leiste. Die Blende
         // darunter bleibt inset-0 und deckt den Streifen weiter ab - sie
         // liegt dort nur unter der Leiste statt darueber.
-        !mitte && !oben && "flex-col justify-end pb-[var(--untere-leiste-raum)]",
+        !mitte && !oben && !rechts && "flex-col justify-end pb-[var(--untere-leiste-raum)]",
       )}
     >
       {/* tabIndex -1: die Blende liegt in der Dokumentreihenfolge zwischen
@@ -220,7 +235,7 @@ export function Sheet({
         // es hinter dem Blatt nichts gibt. Unten bleibt die Leiste bedienbar,
         // und eine Zusage, die nicht stimmt, ist fuer eine Vorlesehilfe
         // schlimmer als gar keine. Weglassen statt false: das ist eindeutiger.
-        aria-modal={mitte || oben ? true : undefined}
+        aria-modal={mitte || oben || rechts || modal ? true : undefined}
         aria-labelledby={titelId}
         tabIndex={-1}
         className={cn(
@@ -236,6 +251,12 @@ export function Sheet({
               // hoechstens 36rem, auf niedrigen Fenstern 80svh: die Suche
               // bleibt ein kompaktes Fenster, laengere Listen scrollen darin.
               "w-full max-h-full rounded-2xl border motion-safe:animate-[sheet-auf-oben_180ms_ease-out] md:max-w-2xl md:max-h-[min(36rem,80svh)]"
+            : rechts
+            ? // Buendig am Rand und ohne Rundung wie das KI-Panel, das von
+              // derselben Seite kommt. 28rem: breit genug, dass ein Eintrag
+              // mit Symbol, Titel und zwei Zeilen Text nicht umbricht wie im
+              // 320 px schmalen Popover davor.
+              "h-full w-full max-w-md border-l pt-[env(safe-area-inset-top)] motion-safe:animate-[sheet-auf-rechts_220ms_ease-out]"
             : cn(
                 // Rundum gerundet und gerahmt: die Flaeche klebt nicht mehr an
                 // der Bildschirmkante, sondern schwebt ueber der Leiste, und

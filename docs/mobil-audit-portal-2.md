@@ -277,7 +277,7 @@ Auf dem Handy trägt die Kopfzeile rechts nur noch Sync-Anzeige und Glocke. Die 
 
 *Dagegen:* Wenn Benachrichtigungen ohnehin gebaut werden sollen, spart das Ausblenden nichts und kostet den Platzhalter, an dem man sie später erwartet. Die Frage ist nicht das Ausblenden, sondern ob es die Funktion geben soll.
 
-**Entschieden am 24.09.2026: die Glocke bleibt, und sie bekommt ein Ziel.** Benachrichtigungen werden in zwei Stufen gebaut. Seit Stufe 1 (WMCNL-2485) öffnet die Glocke ein Panel mit dem Stand „keine neuen Benachrichtigungen“, und der Punkt verschwindet nach dem ersten Öffnen. Für Kunden und Pflücker ist die Glocke ausgeblendet, dort ist der Platz frei. Echte Einträge folgen mit Stufe 2 (WMCNL-2486).
+**Entschieden am 24.09.2026: die Glocke bleibt, und sie bekommt ein Ziel.** Benachrichtigungen werden in zwei Stufen gebaut. Seit Stufe 1 (WMCNL-2485) öffnet die Glocke ein Blatt von unten mit dem Stand „keine neuen Benachrichtigungen“, und der Punkt verschwindet nach dem ersten Öffnen. Für Kunden und Pflücker ist die Glocke ausgeblendet, dort ist der Platz frei. Echte Einträge folgen mit Stufe 2 (WMCNL-2486).
 
 *Nutzen: niedrig · Aufwand: sehr niedrig*
 
