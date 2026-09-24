@@ -14,6 +14,9 @@ ${KONTO}          admin@damicon.demo
 ${PASSWORT}       DamiconDemo2026!
 ${BILDER}         ${CURDIR}/../ergebnisse/bilder
 ${KOPFBALKEN}     header.sticky
+${GLOCKE}         ${KOPFBALKEN} button[aria-label="Benachrichtigungen"]
+${GLOCKEN_PANEL}    ${KOPFBALKEN} [role="dialog"]
+${GLOCKEN_PUNKT}    ${GLOCKE} [data-glocke-punkt]
 
 # Die drei Geraeteprofile. Breite und Hoehe sind CSS-Pixel, nicht Geraetepixel.
 # 390x844 ist iPhone 14/15 hoch, 844x390 dasselbe Geraet gedreht. Dieselbe
@@ -101,6 +104,20 @@ Untere Leiste Verdeckt Den Inhalt Nicht
     Run Keyword If    ${verdeckt} > 0    Befund Festhalten    ${profil}    inhalt-verdeckt
     Should Be True    ${verdeckt} <= 0
     ...    msg=Die untere Leiste verdeckt ${verdeckt} px des letzten Abschnitts.
+
+Glocke Oeffnen
+    [Documentation]    Klickt die Glocke und wartet, bis ihr Panel steht.
+    Click    ${GLOCKE}
+    Wait For Elements State    ${GLOCKEN_PANEL}    visible    timeout=10s
+
+Glocken Panel Liegt Im Fenster
+    [Documentation]    Das Panel haengt rechts an der Glocke. Auf schmalen
+    ...    Schirmen darf es links nicht aus dem Fenster laufen.
+    [Arguments]    ${profil}
+    ${lage} =    Evaluate JavaScript    ${None}
+    ...    () => { const p = document.querySelector('header.sticky [role="dialog"]'); if (!p) return 'kein Panel'; const r = p.getBoundingClientRect(); return r.left >= 0 && r.right <= window.innerWidth ? 'ok' : 'links ' + Math.round(r.left) + ', rechts ' + Math.round(r.right) + ' bei ' + window.innerWidth; }
+    Run Keyword If    '${lage}' != 'ok'    Befund Festhalten    ${profil}    glocke-ausserhalb
+    Should Be Equal    ${lage}    ok    msg=Das Panel der Glocke liegt nicht im Fenster: ${lage}
 
 Kein Text Ist Abgeschnitten
     [Documentation]    Sucht Elemente, deren Inhalt breiter ist als ihr Kasten.

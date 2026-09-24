@@ -141,3 +141,69 @@ Der Weg Durch Die Ebenen Funktioniert In Jedem Profil
     Click    ${KOPFBALKEN} nav[aria-label] a[href$="/dashboard"]
     Wait For Condition    url    ends    /dashboard    timeout=20s
     Befund Festhalten    ${SCHREIBTISCH}    weg-zurueck
+
+Schreibtisch Glocke Zeigt Den Leeren Stand
+    [Documentation]    Die Glocke oeffnet ein Panel, das sagt, dass nichts
+    ...    vorliegt. Esc schliesst es und gibt den Fokus an die Glocke zurueck,
+    ...    sonst stuende man mit der Tastatur irgendwo im Dokument.
+    [Tags]    schreibtisch
+    Portal Oeffnen    ${SCHREIBTISCH}
+    Seite Ansteuern    /dashboard
+    Glocke Oeffnen
+    Get Text    ${GLOCKEN_PANEL}    contains    Keine neuen Benachrichtigungen
+    Get Attribute    ${GLOCKE}    aria-expanded    ==    true
+    Befund Festhalten    ${SCHREIBTISCH}    glocke-offen
+    Keyboard Key    press    Escape
+    Get Element Count    ${GLOCKEN_PANEL}    ==    0
+    ${fokus} =    Evaluate JavaScript    ${None}
+    ...    () => document.activeElement && document.activeElement.getAttribute('aria-label')
+    Should Be Equal    ${fokus}    Benachrichtigungen
+    ...    msg=Nach Esc steht der Fokus nicht auf der Glocke, sondern auf ${fokus}.
+
+Handy Hoch Glocke Zeigt Den Leeren Stand Im Fenster
+    [Documentation]    Bei 390 px haengt das 320 px breite Panel rechts an
+    ...    der Glocke. Es muss ganz im Fenster liegen, und ein Tipp daneben
+    ...    schliesst es.
+    [Tags]    mobil-hoch
+    Portal Oeffnen    ${MOBIL_HOCH}
+    Seite Ansteuern    /dashboard
+    Glocke Oeffnen
+    Get Text    ${GLOCKEN_PANEL}    contains    Keine neuen Benachrichtigungen
+    Glocken Panel Liegt Im Fenster    ${MOBIL_HOCH}
+    Kein Waagerechtes Scrollen    ${MOBIL_HOCH}    glocke-offen
+    Befund Festhalten    ${MOBIL_HOCH}    glocke-offen
+    # Der freie Rand der Kopfzeile ueber der Bildmarke: in main liegt bei
+    # 390 px das Panel selbst ueber der Begruessung, und weiter unten koennte
+    # ein Kartenlink das Panel durch einen Seitenwechsel schliessen.
+    Click With Options    ${KOPFBALKEN}    left    position_x=60    position_y=3
+    Get Element Count    ${GLOCKEN_PANEL}    ==    0
+
+Punkt An Der Glocke Verschwindet Nach Dem Ersten Oeffnen
+    [Documentation]    Der Punkt heisst "noch nie hineingeschaut". Ein frischer
+    ...    Browser zeigt ihn, nach dem ersten Oeffnen bleibt er weg, auch
+    ...    nach dem Neuladen.
+    [Tags]    schreibtisch
+    Portal Oeffnen    ${SCHREIBTISCH}
+    Seite Ansteuern    /dashboard
+    Wait For Elements State    ${GLOCKEN_PUNKT}    attached    timeout=10s
+    Glocke Oeffnen
+    Get Element Count    ${GLOCKEN_PUNKT}    ==    0
+    Reload
+    Wait For Elements State    ${GLOCKE}    visible    timeout=20s
+    Get Element Count    ${GLOCKEN_PUNKT}    ==    0
+
+Glocke Fehlt In Der Ansicht Als Kunde
+    [Documentation]    Fuer Kunde und Picker gibt es vorerst nichts, was die
+    ...    Glocke melden koennte. Die Regel gilt fuer die angezeigte Rolle,
+    ...    also auch, wenn die Administration "Ansicht als" nutzt.
+    [Tags]    schreibtisch
+    Portal Oeffnen    ${SCHREIBTISCH}
+    Seite Ansteuern    /dashboard
+    Wait For Elements State    ${GLOCKE}    visible    timeout=20s
+    LocalStorage Set Item    damicon-persona    kunde
+    Reload
+    Wait For Elements State    ${KOPFBALKEN}    visible    timeout=20s
+    Get Element Count    ${GLOCKE}    ==    0
+    LocalStorage Set Item    damicon-persona    admin
+    Reload
+    Wait For Elements State    ${GLOCKE}    visible    timeout=20s

@@ -1563,6 +1563,11 @@
     },
     "note": "Reading and writing stays reserved to office roles (admin, farm management, accounting) - a data subject's right of access is deliberately not part of this step. Two topics remain open from the previous cockpit: data residency (Digital Code No. 255-VIII) and AI transparency (Law No. 230-VIII)."
   },
+  "benachrichtigungen": {
+    "titel": "Notifications",
+    "leer": "No new notifications.",
+    "leerHinweis": "Alerts and deadlines are still shown directly in the modules."
+  },
   "sync": {
     "knopf": {
       "label": "Sync status"

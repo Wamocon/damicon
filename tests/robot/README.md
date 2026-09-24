@@ -1,6 +1,6 @@
 # Portal-Tests mit Robot Framework
 
-Zehn Tests des Portals in drei Geraeteprofilen. Geprueft wird, was die
+Vierzehn Tests des Portals in drei Geraeteprofilen. Geprueft wird, was die
 Fenstergroesse entscheidet: ob die Bedienung erreichbar bleibt, ob Text
 lesbar bleibt und ob der Weg durch die Ebenen funktioniert.
 
@@ -54,6 +54,9 @@ die Kopfzeile keinen eigenen Scrollbereich hat.
 | Rueckweg | Traegt die Kopfzeile auf dem Handy eine Station zurueck? |
 | Untere Leiste | Verdeckt sie den letzten Abschnitt? |
 | Weg durch die Ebenen | Uebersicht, Bereich und ueber den Pfad zurueck |
+| Glocke | Oeffnet sie den leeren Stand, im Fenster, und schliessen Esc und ein Tipp daneben? |
+| Punkt an der Glocke | Ist er nach dem ersten Oeffnen weg, auch nach dem Neuladen? |
+| Glocke als Kunde | Fehlt sie in der Ansicht als Kunde? |
 
 ## Beweisen die Tests etwas
 
