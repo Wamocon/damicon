@@ -21,8 +21,7 @@ import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { cn } from "@/lib/utils";
 import { SyncStatus } from "@/components/dashboard/sync-status";
 import { TopbarPfad } from "@/components/dashboard/topbar-pfad";
-import { TopbarSuchknopf } from "@/components/suche/such-ausloeser";
-import { TopbarSuche } from "@/components/suche/such-leiste";
+import { TopbarSuche, TopbarSuchknopf } from "@/components/suche/such-ausloeser";
 import {
   istSchmal,
   schmalAbonnieren,
@@ -198,13 +197,12 @@ export function DashboardTopbar() {
       {/* Der Pfad steht zwischen Umschalter und Suche. Anders als die frühere
           Zeile über der Überschrift scrollt er nicht mit dem Inhalt weg. */}
       <TopbarPfad />
-      {/* Die Suche beginnt direkt hinter dem Pfad: ab xl als echtes Feld, das
-          die Luecke bis zu den Werkzeugen fuellt und seine Treffer darunter
-          aufklappt (suche/such-leiste.tsx), darunter als Lupe an derselben
+      {/* Die Suche beginnt direkt hinter dem Pfad: ab xl als Feld, das die
+          Luecke bis zu den Werkzeugen fuellt, darunter als Lupe an derselben
           Stelle - fuer Feld und Pfad nebeneinander reicht die Zeile dort
-          nicht. Die Lupe oeffnet das Suchfenster an ihrer Stelle
-          (suche/such-kontext.tsx). Auf dem Handy steht sie stattdessen neben
-          der Glocke, siehe unten. */}
+          nicht. Das Suchfenster geht dort auf, wo sie sitzt
+          (suche/such-kontext.tsx). Auf dem Handy steht die Lupe stattdessen
+          neben der Glocke, siehe unten. */}
       <TopbarSuchknopf className="hidden md:inline-flex xl:hidden" />
       <TopbarSuche />
       {/* Was unter md in das Konto-Blatt der unteren Leiste gewandert ist -

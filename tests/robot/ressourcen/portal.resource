@@ -25,14 +25,12 @@ ${KOPFBALKEN}     header.sticky
 &{MOBIL_HOCH}      name=mobil-hoch      breite=${390}     hoehe=${844}
 &{MOBIL_SCHMAL}    name=mobil-schmal    breite=${360}     hoehe=${780}
 
-# Das Suchfenster (unter 1280 px) ist der Dialog mit dem Suchfeld darin.
-# aria-modal allein reicht nicht: im Entwicklungsmodus ist auch das
-# Fehler-Overlay von Next.js ein modaler Dialog, und es steht auf der
-# Uebersicht, solange dort eine Meldung in der Konsole landet.
+# Das Suchfenster ist der Dialog mit dem Suchfeld darin. aria-modal allein
+# reicht nicht: im Entwicklungsmodus ist auch das Fehler-Overlay von Next.js
+# ein modaler Dialog, und es steht auf der Uebersicht, solange dort eine
+# Meldung in der Konsole landet.
 ${SUCHFENSTER}    [role="dialog"][aria-modal="true"]:has([role="combobox"][aria-controls])
-# Das sichtbare Suchfeld: ab 1280 px das Feld in der Kopfzeile, darunter das
-# im Fenster. Beide stehen im Dokument, eines davon ist immer ausgeblendet.
-${SUCHFELD}       [role="combobox"][aria-controls] >> visible=true
+${SUCHFELD}       [role="combobox"][aria-controls]
 
 
 *** Keywords ***
@@ -95,18 +93,12 @@ Bedienelemente Der Kopfzeile Sind Erreichbar
 
 Suche Per Tastatur Oeffnen
     [Documentation]    Oeffnet die globale Suche mit einem Tastenkuerzel und
-    ...    wartet, bis das Suchfeld den Fokus hat - ab 1280 px das Feld in der
-    ...    Kopfzeile, darunter das im Fenster. Getippt wird danach, ohne erst
-    ...    hineinzuklicken.
+    ...    wartet, bis das Fenster steht und das Feld den Fokus hat - getippt
+    ...    wird danach, ohne erst hineinzuklicken.
     [Arguments]    ${kuerzel}
     Keyboard Key    press    ${kuerzel}
+    Wait For Elements State    ${SUCHFENSTER}    visible    timeout=10s
     Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
-
-Suche Ist Zu
-    [Documentation]    Wartet, bis weder die Liste unter dem Feld der
-    ...    Kopfzeile noch ein Suchfenster offen ist.
-    Wait For Elements State    ${SUCHFENSTER}    detached    timeout=10s
-    Wait For Elements State    ${KOPFBALKEN} [data-suche="liste"]    hidden    timeout=10s
 
 Suchknopf Steht Links Neben Der Glocke
     [Documentation]    Auf dem Handy ist die Suche ein Knopf direkt links
@@ -144,7 +136,7 @@ Suchfenster Liegt Am Ausloeser
     ...    (sel) => { const a = [...document.querySelectorAll(sel)].find((e) => e.getBoundingClientRect().width > 0); const d = document.querySelector('[role="dialog"][aria-modal="true"]'); if (!a || !d) return 'fehlt'; const r = a.getBoundingClientRect(), f = d.getBoundingClientRect(); const z = (n) => String(Math.round(n)); return f.left <= r.left + 1 && f.right >= r.right - 1 && f.top <= r.top + 1 ? 'ok' : 'Ausloeser ' + z(r.left) + '-' + z(r.right) + '/' + z(r.top) + ', Fenster ' + z(f.left) + '-' + z(f.right) + '/' + z(f.top); }
     ...    arg=${ausloeser}
     Should Be Equal    ${lage}    ok
-    ...    msg=Das Suchfenster liegt nicht am Ausloeser: ${lage}    values=${False}
+    ...    msg=Das Suchfenster liegt nicht am Ausloeser: ${lage}
 
 Bildmarke Steht Mittig
     [Documentation]    Mit Rueckweg steht die Bildmarke in der Mitte der

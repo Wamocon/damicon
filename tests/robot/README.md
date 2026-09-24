@@ -51,10 +51,10 @@ die Kopfzeile keinen eigenen Scrollbereich hat.
 | Kein Querscrollen | Laesst sich die Seite zur Seite schieben? |
 | Pfad vollstaendig | Zeigt die Kopfzeile Haus, Bereich und Seite? |
 | Pfad gekuerzt | Faellt im Querformat die mittlere Station weg, nicht die offene Seite? |
-| Suchfeld und Suchknopf | Ab 1280 px ein echtes Eingabefeld, darunter ein Knopf direkt hinter dem Pfad, auf dem Handy links neben der Glocke? |
-| Treffer am Ausloeser | Haengen die Treffer ab 1280 px direkt unter dem Feld der Kopfzeile, ohne Fenster? Geht das Suchfenster darunter am Knopf auf statt irgendwo in der Mitte? |
+| Suchfeld und Suchknopf | Feld ab 1280 px, darunter ein Knopf direkt hinter dem Pfad, auf dem Handy links neben der Glocke? |
+| Fenster am Ausloeser | Geht das Suchfenster ueber dem Feld bzw. am Knopf auf statt irgendwo in der Mitte? |
 | Erwaehnt in | Stehen unter den Namenstreffern die Seiten, deren Text den Begriff nennt? |
-| Suche per Tastatur | Springen Strg+K und "/" ins Suchfeld, fuehrt Enter zum Treffer, klappt Esc die Liste zu und leert ein zweites Esc das Feld, ohne Sprung? |
+| Suche per Tastatur | Oeffnen Strg+K und "/" die Suche mit Fokus im Feld, fuehrt Enter zum Treffer, schliesst Esc ohne Sprung? |
 | Suche auf dem Handy | Oeffnet ein Tipp das Fenster oben, fuehrt ein Treffer auf seine Seite, bleibt die Bildmarke mittig, auch bei 360 px? |
 | Zuletzt geoeffnet | Nennt die Suche bei leerem Feld die zuvor besuchte Seite, aber nicht die offene? |
 | Zonenkarten | Nennen die Karten die Module, ohne Namen abzuschneiden? |
@@ -80,9 +80,9 @@ Fuer die Suchtests wiederholt am 24.09.2026: mit dem Suchknopf wieder hinter
 `hidden md:inline-flex` schlugen `Handy Hoch Traegt Die Suche Neben Der Glocke`
 und `Handy Schmal Traegt Suche Und Glocke Ohne Querscrollen` fehl, beide mit
 "Der Suchknopf steht nicht direkt links neben der Glocke (Abstand -1 px, -1
-heisst: fehlt)". Ebenso fuer die Treffer am Feld: mit der Liste oben in der
-Mitte des Bildschirms statt unter dem Feld schlug `Suchfeld Klappt Die Treffer
-Darunter Auf` fehl mit "Feld 566+527/50, Liste 304+1296/96".
+heisst: fehlt)". Ebenso fuer das Fenster am Ausloeser: ohne Anker schlug
+`Suchfenster Legt Sich Ueber Das Feld` fehl mit "Ausloeser 566-1093/14,
+Fenster 464-1136/100" - das Fenster ging mittig und 86 px tiefer auf.
 
 ## Grenzen
 

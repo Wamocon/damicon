@@ -21,27 +21,20 @@ import { istSuchKuerzel } from "@/lib/suche/kern";
 import { zielSchluesselFuerPfad } from "@/lib/suche/seiten-ziele";
 import { browserAblage, liesZuletzt, merkeZuletzt } from "@/lib/suche/zuletzt";
 
-// Gemeinsamer Zustand der globalen Suche. Ab xl ist sie ein echtes Feld in
-// der Kopfzeile (such-leiste.tsx), darunter oeffnet die Lupe
-// (such-ausloeser.tsx) ein Suchfenster, das genau einmal im Layout steht.
+// Gemeinsamer Zustand der globalen Suche: die Ausloeser in der Kopfzeile
+// (such-ausloeser.tsx) oeffnen, der Dialog steht genau einmal im Layout.
 //
-// Das Fenster haengt hier und nicht in der Kopfzeile. Deren backdrop-blur
-// macht sie zum Bezugsrahmen fuer fixierte Kinder - ein Blatt darin waere auf
-// die Kopfzeile beschnitten. Ausserdem wird die Spalte mit der Kopfzeile
-// inert, sobald ein Blatt der unteren Leiste offen ist (blatt-kontext.tsx).
+// Der Dialog haengt hier und nicht in der Kopfzeile. Deren backdrop-blur macht
+// sie zum Bezugsrahmen fuer fixierte Kinder - ein Blatt darin waere auf die
+// Kopfzeile beschnitten. Ausserdem wird die Spalte mit der Kopfzeile inert,
+// sobald ein Blatt der unteren Leiste offen ist (blatt-kontext.tsx).
 
 interface SuchWert {
   offen: boolean;
   oeffne: () => void;
-  /** Wem die Zuletzt-Liste gehoert, auch fuer die Leiste in der Kopfzeile. */
-  nutzerId: string | null;
 }
 
-const SuchKontext = createContext<SuchWert>({
-  offen: false,
-  oeffne: () => {},
-  nutzerId: null,
-});
+const SuchKontext = createContext<SuchWert>({ offen: false, oeffne: () => {} });
 
 export function useSuche(): SuchWert {
   return useContext(SuchKontext);
@@ -54,9 +47,10 @@ function istEingabefeld(ziel: EventTarget | null): boolean {
   );
 }
 
-// Das Fenster geht dort auf, wo die Lupe sitzt: zwischen md und xl hinter dem
-// Pfad. Das Eingabefeld im Kopf des Fensters steht dann auf ihrer Hoehe - der
-// Kopf ist 56 px hoch, die Lupe 36 px, also 10 px hoeher ansetzen.
+// Das Fenster geht dort auf, wo sein Ausloeser sitzt: ab xl legt es sich
+// ueber das Feld, darunter an die Lupe hinter dem Pfad. Das Eingabefeld im
+// Kopf des Fensters steht dann auf der Hoehe des Ausloesers - der Kopf ist
+// 56 px hoch, der Ausloeser 36 px, also 10 px hoeher ansetzen.
 //
 // Auf dem Handy (unter md) kein Anker: dort sitzt die Lupe neben der Glocke
 // in der obersten Zeile, und das Fenster nimmt oben die volle Breite ein.
@@ -65,17 +59,15 @@ const BREITE_MIN = 560;
 const BREITE_MAX = 720;
 const RAND = 8;
 
-function sichtbar<T extends HTMLElement>(auswahl: string): T | undefined {
-  return Array.from(document.querySelectorAll<T>(auswahl)).find(
-    (element) => element.getBoundingClientRect().width > 0,
-  );
-}
-
 function bestimmeAnker(): SheetAnker | null {
   if (!window.matchMedia(ANKER_AB).matches) return null;
-  // Die sichtbare Lupe, auch wenn die Suche per Tastenkuerzel aufging: das
-  // Fenster steht immer an derselben Stelle, egal wie man es oeffnet.
-  const ausloeser = sichtbar('[data-suche="knopf"]');
+  // Der sichtbare Ausloeser, auch wenn die Suche per Tastenkuerzel aufging:
+  // das Fenster steht immer an derselben Stelle, egal wie man es oeffnet.
+  const sichtbar = (auswahl: string) =>
+    Array.from(document.querySelectorAll<HTMLElement>(auswahl)).find(
+      (element) => element.getBoundingClientRect().width > 0,
+    );
+  const ausloeser = sichtbar('[data-suche="feld"]') ?? sichtbar('[data-suche="knopf"]');
   if (!ausloeser) return null;
 
   const rahmen = ausloeser.getBoundingClientRect();
@@ -112,14 +104,6 @@ export function SuchProvider({
     if (offen) {
       feldRef.current?.focus();
       feldRef.current?.select();
-      return;
-    }
-    // Steht das Feld der Kopfzeile sichtbar da (ab xl), springt das Kuerzel
-    // dorthin, und das Feld klappt seine Liste selbst auf - kein Fenster.
-    const leiste = sichtbar<HTMLInputElement>('input[data-suche="feld"]');
-    if (leiste) {
-      leiste.focus();
-      leiste.select();
       return;
     }
     ausloeserRef.current =
@@ -182,7 +166,7 @@ export function SuchProvider({
     merkeSeite(pathname);
   }, [pathname]);
 
-  const wert = useMemo(() => ({ offen, oeffne, nutzerId }), [offen, oeffne, nutzerId]);
+  const wert = useMemo(() => ({ offen, oeffne }), [offen, oeffne]);
 
   return (
     <SuchKontext.Provider value={wert}>

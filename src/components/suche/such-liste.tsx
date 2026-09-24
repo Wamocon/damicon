@@ -4,14 +4,13 @@ import { useTranslations } from "next-intl";
 import { Icon } from "@/components/icon";
 import { Himbeere } from "@/components/ki/himbeere";
 import { BlattZeilenInhalt, blattZeilenKlassen } from "@/components/ui/blatt-zeile";
-import type { SuchSitzung } from "@/components/suche/such-sitzung";
 import type { SeitenZiel } from "@/lib/suche/seiten-ziele";
 import { cn } from "@/lib/utils";
 
-// Die Trefferliste der Suche, unter dem Feld der Kopfzeile (such-leiste.tsx)
-// wie im Suchfenster (such-dialog.tsx): Gruppen mit Ueberschrift, darin die
-// Optionen. Die Optionen sind ueber alle Gruppen laufend nummeriert - die
-// Pfeiltasten gehen durch die ganze Liste, nicht nur durch eine Gruppe.
+// Die Trefferliste des Suchfensters (such-dialog.tsx): Gruppen mit
+// Ueberschrift, darin die Optionen. Die Optionen sind ueber alle Gruppen
+// laufend nummeriert - die Pfeiltasten gehen durch die ganze Liste, nicht nur
+// durch eine Gruppe.
 
 export type SuchOption =
   | { art: "ziel"; ziel: SeitenZiel; auszug?: string }
@@ -81,33 +80,6 @@ function SuchZeile({
         />
       )}
     </div>
-  );
-}
-
-/** Alles unter dem Eingabefeld: Hinweis, Trefferliste, Bedienhinweis und
- *  Ansage fuer Vorlesehilfen. Gleich in Suchleiste und Suchfenster. */
-export function SuchErgebnisse({ sitzung }: { sitzung: SuchSitzung }) {
-  const t = useTranslations("suche");
-
-  return (
-    <>
-      {sitzung.hinweis ? (
-        <p className="px-3 py-4 text-sm text-muted-foreground">{sitzung.hinweis}</p>
-      ) : null}
-      <SuchListe
-        listeId={sitzung.listeId}
-        gruppen={sitzung.gruppen}
-        aktivIndex={sitzung.aktivIndex}
-        onAktiv={sitzung.setAktiv}
-        onWaehle={sitzung.waehle}
-      />
-      <p id={sitzung.hinweisId} className="sr-only">
-        {t("bedienung")}
-      </p>
-      <p role="status" className="sr-only">
-        {sitzung.ansage}
-      </p>
-    </>
   );
 }
 

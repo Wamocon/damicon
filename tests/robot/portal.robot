@@ -30,15 +30,12 @@ Schreibtisch Traegt Alle Bedienelemente Und Den Vollen Pfad
     Befund Festhalten    ${SCHREIBTISCH}    modulseite
 
 Schreibtisch Zeigt Das Suchfeld Statt Eines Knopfes
-    [Documentation]    Ab 1280 px ist Platz fuer das Feld - ein echtes
-    ...    Eingabefeld in der Kopfzeile. Darunter wird es zum Lupenknopf,
-    ...    siehe den Test im Querformat.
+    [Documentation]    Ab 1280 px ist Platz fuer das Feld - einen Knopf im
+    ...    Look eines Suchfelds, getippt wird erst im Suchfenster. Darunter
+    ...    wird es zum Lupenknopf, siehe den Test im Querformat.
     [Tags]    schreibtisch
     Portal Oeffnen    ${SCHREIBTISCH}
     Seite Ansteuern    /dashboard
-    ${art} =    Get Property    ${KOPFBALKEN} [data-suche="feld"]    tagName
-    Should Be Equal    ${art}    INPUT
-    ...    msg=Die Suche in der Kopfzeile ist kein Eingabefeld, sondern ein ${art}.
     ${breite} =    Evaluate JavaScript    ${None}
     ...    () => { const f = document.querySelector('header.sticky [data-suche="feld"]'); return f ? Math.round(f.getBoundingClientRect().width) : 0; }
     Should Be True    ${breite} > 200
@@ -47,22 +44,16 @@ Schreibtisch Zeigt Das Suchfeld Statt Eines Knopfes
     Should Be Equal As Integers    ${knoepfe}    0
     ...    msg=Am Schreibtisch steht neben dem Feld zusaetzlich ein Suchknopf.
 
-Suchfeld Klappt Die Treffer Darunter Auf
-    [Documentation]    Ab 1280 px tippt man direkt ins Feld der Kopfzeile. Die
-    ...    Treffer haengen als Liste darunter, so breit wie das Feld - ohne
-    ...    Blende und ohne zweites Fenster an anderer Stelle.
+Suchfenster Legt Sich Ueber Das Feld
+    [Documentation]    Das Fenster geht dort auf, wo der Ausloeser sitzt: ab
+    ...    1280 px genau ueber dem Feld, die Treffer klappen darunter auf.
     [Tags]    schreibtisch
     Portal Oeffnen    ${SCHREIBTISCH}
     Seite Ansteuern    /dashboard/hof/kuehlkette
-    Click    ${KOPFBALKEN} input[data-suche="feld"]
-    Wait For Elements State    ${KOPFBALKEN} input[data-suche="feld"]    focused    timeout=10s
-    Keyboard Input    type    Rollen
-    Wait For Elements State    [role="option"] >> text="Rollen und Rechte"    visible
-    ${lage} =    Evaluate JavaScript    ${None}
-    ...    () => { if (document.querySelector('[role="dialog"][aria-modal="true"]')) return 'ein Fenster ist offen'; const rahmen = document.querySelector('header.sticky input[data-suche="feld"]').parentElement.getBoundingClientRect(); const liste = document.querySelector('header.sticky [data-suche="liste"]').getBoundingClientRect(); const z = (n) => String(Math.round(n)); return Math.abs(liste.left - rahmen.left) <= 1 && liste.width >= rahmen.width - 1 && liste.top >= rahmen.bottom && liste.top - rahmen.bottom <= 12 ? 'ok' : 'Feld ' + z(rahmen.left) + '+' + z(rahmen.width) + '/' + z(rahmen.bottom) + ', Liste ' + z(liste.left) + '+' + z(liste.width) + '/' + z(liste.top); }
-    Should Be Equal    ${lage}    ok
-    ...    msg=Die Treffer haengen nicht direkt unter dem Feld: ${lage}    values=${False}
-    Befund Festhalten    ${SCHREIBTISCH}    suche-im-feld
+    Click    ${KOPFBALKEN} [data-suche="feld"]
+    Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
+    Suchfenster Liegt Am Ausloeser    header.sticky [data-suche="feld"]
+    Befund Festhalten    ${SCHREIBTISCH}    suche-am-feld
 
 Suche Findet Seitentexte Unter Erwaehnt In
     [Documentation]    Unter den Namenstreffern stehen Seiten, deren Text den
@@ -83,8 +74,7 @@ Suche Findet Seitentexte Unter Erwaehnt In
 
 Strg K Oeffnet Die Suche Und Enter Fuehrt Zum Treffer
     [Documentation]    Dasselbe Kuerzel wie im Handbuch. Der erste Treffer ist
-    ...    markiert, Enter oeffnet ihn. Danach ist die Liste zu und das Feld
-    ...    wieder leer.
+    ...    markiert, Enter oeffnet ihn, und das Fenster ist danach zu.
     [Tags]    schreibtisch
     Portal Oeffnen    ${SCHREIBTISCH}
     Seite Ansteuern    /dashboard
@@ -93,25 +83,17 @@ Strg K Oeffnet Die Suche Und Enter Fuehrt Zum Treffer
     Wait For Elements State    [role="option"][aria-selected="true"] >> text=Rollen    visible
     Keyboard Key    press    Enter
     Wait For Condition    url    contains    /dashboard/buero/rollen    timeout=20s
-    Suche Ist Zu
-    Get Property    ${SUCHFELD}    value    ==    ${EMPTY}
+    Wait For Elements State    ${SUCHFENSTER}    detached    timeout=10s
 
 Schraegstrich Oeffnet Die Suche Und Esc Schliesst Sie
-    [Documentation]    "/" ausserhalb eines Eingabefeldes springt ins Feld. Das
-    ...    erste Esc klappt die Treffer zu und laesst den Begriff stehen, das
-    ...    zweite leert das Feld. Die Seite bleibt dieselbe.
+    [Documentation]    "/" ausserhalb eines Eingabefeldes oeffnet, Esc schliesst
+    ...    ohne Sprung - die Seite bleibt dieselbe.
     [Tags]    schreibtisch
     Portal Oeffnen    ${SCHREIBTISCH}
     Seite Ansteuern    /dashboard/feld/reihenbloecke
     Suche Per Tastatur Oeffnen    /
-    Keyboard Input    type    Rollen
-    Wait For Elements State    [role="option"] >> text="Rollen und Rechte"    visible
     Keyboard Key    press    Escape
-    Suche Ist Zu
-    Get Property    ${SUCHFELD}    value    ==    Rollen
-    Keyboard Key    press    Escape
-    Get Property    ${SUCHFELD}    value    ==    ${EMPTY}
-    Wait For Elements State    ${SUCHFELD}    focused
+    Wait For Elements State    ${SUCHFENSTER}    detached    timeout=10s
     ${adresse} =    Get Url
     Should End With    ${adresse}    /dashboard/feld/reihenbloecke
 
