@@ -116,6 +116,22 @@ pruefe("Die Kennzahlen stehen bei ihrem Bereich, vier je Bereich", bereiche.incl
 pruefe("Die Startseite kennt keine Reiter mehr", !seite.includes("reiterAusText") && !seite.includes("searchParams"));
 pruefe("Die Bereiche stehen unter dem Report, nicht dahinter", seite.indexOf("compliance={") < seite.indexOf("bereiche={"));
 
+// "Zusammenfassung im Chat" und "Tour erneut starten" stehen in der Kopfzeile des Reports
+// (#117). Beim Umbau auf diese Uebersicht (#122) gingen sie mit der alten Datei verloren,
+// ohne dass es jemand merkte - diese Pruefung haelt sie dort fest.
+const uebersicht = quelle("src/components/dashboard/tages-uebersicht.tsx");
+const tourAktionen = quelle("src/components/dashboard/ceo-tour-aktionen.tsx");
+const kacheln = quelle("src/components/dashboard/tages-kacheln.tsx");
+pruefe(
+  "Kopfzeile: beide Tour-Knoepfe stehen neben 'Jetzt neu pruefen'",
+  /action=\{[\s\S]*<CeoTourAktionen \/>[\s\S]*<CeoAktualisierenKnopf \/>/.test(uebersicht),
+);
+pruefe(
+  "Kopfzeile: es sind Zusammenfassung UND Tour-Neustart",
+  tourAktionen.includes('tc("tour.zusammenfassung")') && tourAktionen.includes('tc("tour.neustart")'),
+);
+pruefe("Kein zweiter Neustart-Knopf neben 'Befunde'", !kacheln.includes('tc("tour.neustart")'));
+
 console.log(`\nPruefungen: ${gesamt}   bestanden: ${gesamt - fehler}   fehlgeschlagen: ${fehler}`);
 if (fehler > 0) process.exit(1);
 console.log("Alle Pruefungen bestanden.");
