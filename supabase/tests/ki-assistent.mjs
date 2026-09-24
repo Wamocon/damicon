@@ -2123,8 +2123,50 @@ for (const [name, kaputteAntwort] of [
     const chat = readFileSync(new URL("../../src/components/ki/ki-chat.tsx", import.meta.url), "utf8");
     const sprache = readFileSync(new URL("../../src/components/ki/ki-chat-sprache.ts", import.meta.url), "utf8");
     pruefe("Diktat-Sprachen: nur Senden-Knopf und Enter geben 'aus dem Feld' an", (chat.match(/sende\(eingabe, true\)/g) ?? []).length === 2);
-    pruefe("Diktat-Sprachen: Tour-Zusammenfassung, Vorgabe und Vorschlag senden ohne sie", chat.includes("sende(anstoss.frage);") && chat.includes("sende(vorgabe.text);") && chat.includes("sende(vorschlag)"));
-    pruefe("Diktat-Sprachen: beginneZug gibt sie ohne ausFeld nicht heraus und verbraucht sie nicht", sprache.includes("function beginneZug(ausFeld = false)") && /if \(!ausFeld\) \{[\s\S]*?return undefined;/.test(sprache));
+    pruefe("Diktat-Sprachen: Vorgabe und Vorschlag senden ohne 'aus dem Feld'", chat.includes("sende(vorgabe.text);") && chat.includes("sende(vorschlag)"));
+    pruefe("Diktat-Sprachen: beginneZug gibt sie ohne ausFeld nicht heraus und verbraucht sie nicht", sprache.includes("function beginneZug(ausFeld = false, erzwingeVorlesen = false)") && /if \(!ausFeld\) \{[\s\S]*?return undefined;/.test(sprache));
+  }
+
+  // (h) Regression 24.09.2026: die Reparatur in (g) hat "nicht diktiert" und "nicht vorlesen"
+  //     ueber dasselbe Flag entschieden und dabei die automatische Zusammenfassung nach der
+  //     gefuehrten Tour (und jede Frage aus dem Pruefbericht) STUMM gemacht - vorher lief das
+  //     nur zufaellig mit, wenn kurz zuvor diktiert worden war. Jetzt ein eigenes, verlaessliches
+  //     Signal (erzwingeVorlesen), unabhaengig von Diktat und vom Schalter "Antworten vorlesen".
+  {
+    const chat = readFileSync(new URL("../../src/components/ki/ki-chat.tsx", import.meta.url), "utf8");
+    const sprache = readFileSync(new URL("../../src/components/ki/ki-chat-sprache.ts", import.meta.url), "utf8");
+    pruefe("Vorlesen erzwingen: die Tour-/Pruefbericht-Frage sendet mit erzwingeVorlesen=true", chat.includes("sende(anstoss.frage, false, true);"));
+    pruefe("Vorlesen erzwingen: sende() reicht den dritten Parameter an beginneZug weiter", chat.includes("beginneZug(ausFeld, erzwingeVorlesen)"));
+    pruefe(
+      "Vorlesen erzwingen: wirkt auch OHNE ausFeld (kein Diktat noetig)",
+      /if \(!ausFeld\) \{[\s\S]{0,200}?setZugDiktiert\(erzwingeVorlesen\);/.test(sprache),
+      "setZugDiktiert(erzwingeVorlesen) im !ausFeld-Zweig nicht gefunden",
+    );
+    pruefe(
+      "Vorlesen erzwingen: gewinnt auch dann, wenn zuletzt NICHT diktiert wurde",
+      sprache.includes("setZugDiktiert(erzwingeVorlesen || zuletztDiktiert.current);"),
+    );
+    // Reine Verhaltenspruefung der Zustandslogik, unabhaengig vom DOM: derselbe Aufbau wie
+    // beginneZug() selbst, mit einer erfundenen React-useState-Attrappe.
+    function testeBeginneZug(ausFeld, erzwingeVorlesen, zuletztDiktiertWert) {
+      let zugDiktiert = null;
+      const setZugDiktiert = (wert) => {
+        zugDiktiert = wert;
+      };
+      const zuletztDiktiert = { current: zuletztDiktiertWert };
+      // Nachgebaut aus dem echten beginneZug() oben - haelt fest, WAS die Funktion tun soll,
+      // nicht nur, dass die Zeichenkette im Quelltext steht.
+      if (!ausFeld) {
+        setZugDiktiert(erzwingeVorlesen);
+      } else {
+        setZugDiktiert(erzwingeVorlesen || zuletztDiktiert.current);
+      }
+      return zugDiktiert;
+    }
+    pruefe("Verhalten: Tour-Frage (ausFeld=false, erzwingeVorlesen=true) wird IMMER vorgelesen, auch ohne vorheriges Diktat", testeBeginneZug(false, true, false) === true);
+    pruefe("Verhalten: eine normale Systemfrage (Vorschlag/Vorgabe, beides false) bleibt stumm", testeBeginneZug(false, false, false) === false);
+    pruefe("Verhalten: ein echtes Diktat (ausFeld=true) wird weiterhin vorgelesen, auch ohne erzwingeVorlesen", testeBeginneZug(true, false, true) === true);
+    pruefe("Verhalten: eine getippte Frage (ausFeld=true, nichts diktiert, nichts erzwungen) bleibt stumm", testeBeginneZug(true, false, false) === false);
     // Und die Serverseite: bei einer diktierten Frage gewinnt das Diktat, sonst die Frage - fuer alle 16 Kombinationen
     // aus Oberflaeche und Sprache der Frage gilt: ohne Diktat-Sprachen antwortet der Assistent in der Sprache der Frage.
     const fragen = { de: "Erkläre mir dieses Prüfergebnis: Was sind die wichtigsten Punkte und was sollte ich zuerst tun?", en: "Explain this audit result to me: what are the key points and what should I do first?", ru: "Объясни мне результат этой проверки: каковы главные пункты и что сделать в первую очередь?", kk: "Осы тексеру нәтижесін түсіндір: ең маңызды тармақтар қандай және алдымен не істеуім керек?" };

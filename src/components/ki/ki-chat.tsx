@@ -349,12 +349,14 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   }
 
   /** `ausFeld`: der Text stammt aus dem Eingabefeld (Senden-Knopf, Enter) - nur dann
-   *  gelten die Sprachen eines vorigen Diktats, siehe beginneZug(). */
-  function sende(text: string, ausFeld = false) {
+   *  gelten die Sprachen eines vorigen Diktats, siehe beginneZug(). `erzwingeVorlesen`:
+   *  diese Antwort soll IMMER gesprochen werden (die Zusammenfassung nach der gefuehrten
+   *  Tour, sowie jede Frage aus dem Pruefbericht) - unabhaengig von Diktat und Schalter. */
+  function sende(text: string, ausFeld = false, erzwingeVorlesen = false) {
     const bereinigt = text.trim();
     if (!bereinigt || beschaeftigt) return;
     if (istErsteNachricht && !einwilligung) return;
-    const diktatSprachen = beginneZug(ausFeld);
+    const diktatSprachen = beginneZug(ausFeld, erzwingeVorlesen);
     zugModus.current = modus;
     werkzeugeNeuerZug();
     klebtUnten.current = true;
@@ -531,7 +533,9 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     } else {
       // Der Effekt oben hat anfrageDaten noch nicht aktualisiert, wenn Bezug und Anstoss im selben Zug gesetzt werden.
       anfrageDaten.current = { ...anfrageDaten.current, pruefkontext };
-      sende(anstoss.frage);
+      // Diese Frage stellt die Oberflaeche selbst (Tour-Zusammenfassung, Knopf im
+      // Pruefbericht) - immer gesprochen, das ist ihr Zweck (siehe beginneZug()).
+      sende(anstoss.frage, false, true);
     }
     // sende() und die Zustandswerte sind pro Render neu; ausgeloest wird nur durch einen neuen Anstoss.
     // eslint-disable-next-line react-hooks/exhaustive-deps
