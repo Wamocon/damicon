@@ -33,8 +33,8 @@ function PfadListe({
             // umschliesst es dann quadratisch wie die uebrigen Symbolknoepfe
             // der Kopfzeile, statt als breite Pille mit Luft danebenzustehen.
             "w-9 justify-center"
-          : // Sonst ein Boden: ohne ihn schrumpft der Pfad neben dem
-            // wachsenden Suchfeld auf null und ist schlicht weg.
+          : // Sonst ein Boden: wird die Kopfzeile eng, etwa mit angedocktem
+            // KI-Panel, schrumpfte der Pfad ohne ihn auf null und waere weg.
             "min-w-24 px-2.5",
         className,
       )}
@@ -103,7 +103,7 @@ function PfadListe({
 }
 
 /**
- * Der Pfad in der Kopfzeile, zwischen Einklappknopf und Suche. Anders als die
+ * Der Pfad in der Kopfzeile, rechts neben dem Einklappknopf. Anders als die
  * frueher ueber der Ueberschrift stehende Zeile scrollt er nicht mit dem
  * Inhalt weg - gebraucht wird er genau dann, wenn man mitten auf einer langen
  * Modulseite steht.
@@ -111,7 +111,9 @@ function PfadListe({
  * Wird es eng, faellt die mittlere Station weg, bevor die offene Seite
  * abgeschnitten wird. Bei 900 px stand sonst "Haus > Bereich" da und genau
  * die Seite fehlte, auf der man ist. Gemessen passt der volle Pfad ab
- * 1280 px, darunter nicht mehr.
+ * 1280 px, darunter nicht mehr - nachgemessen am 24.09.2026 mit der Lupe
+ * neben der Glocke, ausgeklappter Seitenleiste, "Ansicht als" und dem
+ * laengsten Modulnamen in allen vier Sprachen.
  *
  * Erst ab md. Darunter traegt die Kopfzeile den einstufigen Rueckweg
  * (topbar.tsx), der auf 390 px in eine Zeile passt.

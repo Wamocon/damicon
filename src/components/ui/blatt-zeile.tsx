@@ -27,7 +27,7 @@ import { cn } from "@/lib/utils";
 //
 // Klassen und Inhalt stehen zusaetzlich einzeln bereit, fuer Zeilen, die
 // weder Link noch Knopf sein duerfen: die Treffer der globalen Suche sind
-// Optionen einer Liste (suche/such-dialog.tsx) und sollen trotzdem genau so
+// Optionen einer Liste (suche/such-liste.tsx) und sollen trotzdem genau so
 // aussehen wie die Zeilen im Menue-Blatt.
 export function blattZeilenKlassen(aktiv: boolean): string {
   return cn(

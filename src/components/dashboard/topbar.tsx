@@ -205,7 +205,7 @@ export function DashboardTopbar() {
           Element, das die Luecke fuellen wuerde. */}
       <div className="flex flex-1 items-center justify-end gap-2 md:ml-auto md:flex-none">
         <span className="hidden md:contents">
-          {/* Die Rolle vor "KI fragen" (Erwin, 24.09.2026). */}
+          {/* Reihenfolge der Gruppe: DESIGN.md, Abschnitt Hauptspalte. */}
           <PersonaSwitcher className="hidden lg:inline-flex" />
           <KiFragenKnopf />
           <LocaleSwitcher compact />
@@ -213,9 +213,8 @@ export function DashboardTopbar() {
         </span>
         {zeigeSync ? <SyncStatus /> : null}
         <CeoPruefungHinweis />
-        {/* Die Suche ist auf jeder Breite eine Lupe links neben der Glocke -
-            kein Feld, keine Leiste. Sie oeffnet das Suchfenster oben in der
-            Mitte (suche/such-kontext.tsx). */}
+        {/* Die Suche, auf jeder Breite links neben der Glocke. Sie oeffnet das
+            Suchfenster oben in der Mitte (suche/such-kontext.tsx). */}
         <TopbarSuchknopf />
         <button
           type="button"
