@@ -15,12 +15,22 @@ ${PASSWORT}       DamiconDemo2026!
 ${BILDER}         ${CURDIR}/../ergebnisse/bilder
 ${KOPFBALKEN}     header.sticky
 
-# Die drei Geraeteprofile. Breite und Hoehe sind CSS-Pixel, nicht Geraetepixel.
+# Die vier Geraeteprofile. Breite und Hoehe sind CSS-Pixel, nicht Geraetepixel.
 # 390x844 ist iPhone 14/15 hoch, 844x390 dasselbe Geraet gedreht. Dieselbe
-# Breite trifft auch Tablet hoch und ein halbes Laptopfenster.
+# Breite trifft auch Tablet hoch und ein halbes Laptopfenster. 360 px ist die
+# Breite kleiner Android-Telefone und der engste Fall der Kopfzeile: Rueckweg,
+# Bildmarke in der Mitte, rechts Suche und Glocke.
 &{SCHREIBTISCH}    name=schreibtisch    breite=${1600}    hoehe=${1000}
 &{MOBIL_QUER}      name=mobil-quer      breite=${844}     hoehe=${390}
 &{MOBIL_HOCH}      name=mobil-hoch      breite=${390}     hoehe=${844}
+&{MOBIL_SCHMAL}    name=mobil-schmal    breite=${360}     hoehe=${780}
+
+# Das Suchfenster ist der Dialog mit dem Suchfeld darin. aria-modal allein
+# reicht nicht: im Entwicklungsmodus ist auch das Fehler-Overlay von Next.js
+# ein modaler Dialog, und es steht auf der Uebersicht, solange dort eine
+# Meldung in der Konsole landet.
+${SUCHFENSTER}    [role="dialog"][aria-modal="true"]:has([role="combobox"][aria-controls])
+${SUCHFELD}       [role="combobox"][aria-controls]
 
 
 *** Keywords ***
@@ -80,6 +90,68 @@ Bedienelemente Der Kopfzeile Sind Erreichbar
     Run Keyword If    ${anzahl} > 0    Befund Festhalten    ${profil}    ${name}-kopfzeile-abgeschnitten
     Should Be Empty    ${abgeschnitten}
     ...    msg=Abgeschnitten am rechten Rand: ${abgeschnitten}
+
+Suche Per Tastatur Oeffnen
+    [Documentation]    Oeffnet die globale Suche mit einem Tastenkuerzel und
+    ...    wartet, bis das Fenster steht und das Feld den Fokus hat - getippt
+    ...    wird danach, ohne erst hineinzuklicken.
+    [Arguments]    ${kuerzel}
+    Keyboard Key    press    ${kuerzel}
+    Wait For Elements State    ${SUCHFENSTER}    visible    timeout=10s
+    Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
+
+Suchknopf Steht Links Neben Der Glocke
+    [Documentation]    Auf jeder Breite ist die Suche ein Knopf direkt links
+    ...    neben den Meldungen. Zwischen beiden liegen die 8 px Abstand der
+    ...    Werkzeuggruppe.
+    ${abstand} =    Evaluate JavaScript    ${None}
+    ...    () => { const k = document.querySelector('header.sticky [data-suche="knopf"]'); const g = document.querySelector('header.sticky button[aria-label="Benachrichtigungen"]'); if (!k || !g) return -1; return Math.round(g.getBoundingClientRect().left - k.getBoundingClientRect().right); }
+    Should Be Equal As Integers    ${abstand}    8
+    ...    msg=Der Suchknopf steht nicht direkt links neben der Glocke (Abstand ${abstand} px, -1 heisst: fehlt).
+
+Sichtbare Suchknoepfe Zaehlen
+    [Documentation]    Wie viele Suchknoepfe gerade zu sehen sind. Erwartet ist
+    ...    genau einer; ein zweiter hiesse, dass ein alter Ausloeser
+    ...    zurueckgekehrt ist.
+    ${anzahl} =    Evaluate JavaScript    ${None}
+    ...    () => [...document.querySelectorAll('header.sticky [data-suche="knopf"]')].filter((e) => e.getBoundingClientRect().width > 0).length
+    RETURN    ${anzahl}
+
+Suche Ist Nur Ein Knopf
+    [Documentation]    In der Kopfzeile steht fuer die Suche genau ein
+    ...    sichtbarer Knopf mit Lupe, hoechstens 44 px breit - kein
+    ...    Eingabefeld und keine Leiste im Look eines Suchfelds.
+    ${knoepfe} =    Sichtbare Suchknoepfe Zaehlen
+    Should Be Equal As Integers    ${knoepfe}    1
+    ...    msg=Der Suchknopf fehlt oder steht doppelt sichtbar.
+    ${breite} =    Evaluate JavaScript    ${None}
+    ...    () => Math.round(document.querySelector('header.sticky [data-suche="knopf"]').getBoundingClientRect().width)
+    Should Be True    ${breite} <= 44
+    ...    msg=Die Suche ist ${breite} px breit, eine Leiste statt eines Knopfes.
+    ${felder} =    Get Element Count    ${KOPFBALKEN} input
+    Should Be Equal As Integers    ${felder}    0
+    ...    msg=In der Kopfzeile steht ein Eingabefeld.
+
+Suchfenster Steht Mittig Oben
+    [Documentation]    Das Fenster geht auf jeder Breite oben in der Mitte des
+    ...    Bildschirms auf, egal wo sein Ausloeser sitzt. Mittig heisst: links
+    ...    und rechts gleich viel Abstand zum Fensterrand, gemessen am Fenster
+    ...    und nicht an der Spalte neben der Seitenleiste. Oben heisst: die
+    ...    Oberkante liegt im obersten Achtel des Fensters.
+    Wait For Elements State    ${SUCHFENSTER}    stable    timeout=10s
+    ${lage} =    Evaluate JavaScript    ${None}
+    ...    () => { const d = document.querySelector('[role="dialog"][aria-modal="true"]:has([role="combobox"][aria-controls])'); if (!d) return 'fehlt'; const f = d.getBoundingClientRect(); const links = f.left, rechts = window.innerWidth - f.right; const z = (n) => String(Math.round(n)); return Math.abs(links - rechts) <= 2 && f.top <= window.innerHeight / 8 ? 'ok' : 'links ' + z(links) + ' px, rechts ' + z(rechts) + ' px, oben ' + z(f.top) + ' von ' + z(window.innerHeight) + ' px'; }
+    Should Be Equal    ${lage}    ok
+    ...    msg=Das Suchfenster steht nicht mittig oben: ${lage}    values=${False}
+
+Bildmarke Steht Mittig
+    [Documentation]    Mit Rueckweg steht die Bildmarke in der Mitte der
+    ...    Kopfzeile. Wird die rechte Gruppe zu breit, rueckt sie aus der
+    ...    Mitte - genau das soll die Suche neben der Glocke nicht ausloesen.
+    ${versatz} =    Evaluate JavaScript    ${None}
+    ...    () => { const m = document.querySelector('header.sticky a[aria-label="Damicon"] > *'); if (!m) return 999; const r = m.getBoundingClientRect(); return Math.round(Math.abs(r.left + r.width / 2 - window.innerWidth / 2)); }
+    Should Be True    ${versatz} <= 2
+    ...    msg=Die Bildmarke steht ${versatz} px neben der Mitte.
 
 Sichtbare Stationen Des Pfades
     [Documentation]    Der Pfad steht zweimal im Dokument: einmal vollstaendig

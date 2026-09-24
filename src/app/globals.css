@@ -420,6 +420,13 @@
   }
 }
 
+@keyframes sheet-auf-oben {
+  from {
+    transform: translateY(-0.5rem);
+    opacity: 0;
+  }
+}
+
 /*
   Tabellen auf dem Handy: aus jeder Zeile wird eine Karte.
 
@@ -604,6 +611,10 @@
     @apply font-sans scroll-smooth;
     max-width: 100%;
     overflow-x: clip;
+    /* Haelt den Platz der Scrollleiste frei, auch wenn eine Ebene das
+       Scrollen am <html> sperrt (ui/scroll-sperre.ts) - sonst sprang die
+       Seite bei Windows-Scrollleisten beim Oeffnen um deren Breite. */
+    scrollbar-gutter: stable;
   }
   body {
     @apply bg-background text-foreground;
