@@ -135,13 +135,28 @@ export function useKiChatSprache({
 
   /** sende() in ki-chat.tsx: einmal je abgeschickter Frage. Liefert die
    *  Sprachen, die beim Diktat gehoert wurden (fuer anfrageDaten), und setzt
-   *  den Diktat-/Live-Zustand fuer die neue Runde zurueck. */
-  function beginneZug(): string[] | undefined {
+   *  den Diktat-/Live-Zustand fuer die neue Runde zurueck.
+   *
+   *  `ausFeld`: die Frage kommt aus dem Eingabefeld - nur dann gehoeren die
+   *  Diktat-Sprachen dazu. Eine Frage, die die Oberflaeche selbst stellt
+   *  (Zusammenfassung nach der Tour, Vorschlag, Frage von Himbi), steht in der
+   *  Oberflaechensprache und darf weder die Diktat-Sprachen bekommen noch sie
+   *  verbrauchen: sie gehoeren zu dem Text, der noch im Feld steht. Bis zum
+   *  24.09.2026 bekam JEDE Frage die zuletzt diktierten Sprachen, und der
+   *  Server zieht sie der Sprache der Frage vor - wer vorher deutsch diktiert
+   *  hatte, bekam die russisch gestellte Tour-Frage auf Deutsch beantwortet. */
+  function beginneZug(ausFeld = false): string[] | undefined {
     stoppeAlles();
     // Auf dem iPhone darf Ton nur aus einer Geste heraus starten - dieser
     // Klick ist die Geste. Spaeter, beim ersten Abschnitt, waere es zu
     // spaet: der Browser bliebe stumm, ohne einen Fehler zu melden.
     live.entsperre();
+    if (!ausFeld) {
+      // Nicht diktiert, und nichts vom Diktat verbrauchen.
+      setZugDiktiert(false);
+      gesehenerAbschnitt.current.clear();
+      return undefined;
+    }
     // Die gehoerten Sprachen gelten genau fuer diese eine Frage.
     const gehoerteSprachen = diktatSprachen.current;
     diktatSprachen.current = undefined;

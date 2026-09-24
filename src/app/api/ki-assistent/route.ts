@@ -24,6 +24,7 @@ import { z } from "zod";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission, roles, type Role } from "@/lib/rbac";
 import { bestimmeAntwortsprache } from "@/lib/domain/antwortsprache";
+import { formatAnweisung, mitSprachErinnerung, quellenAnweisung } from "@/lib/domain/antwort-anweisungen";
 import { erzeugeSatzZerleger } from "@/lib/domain/sprachausgabe";
 import { ABSCHNITT_GUELTIG_MS, signiereAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
 import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
@@ -128,16 +129,8 @@ function alteAusgabenKuerzen(nachrichten: UIMessage[]): UIMessage[] {
   });
 }
 
-const FORMAT_ANWEISUNG = [
-  "Formatiere jede Antwort wie ein kurzer Fachbericht, nicht wie eine Chat-Nachricht:",
-  "- Beginne mit einem einzeiligen Fazit in Fettschrift.",
-  "- Nutze Markdown-Zwischenueberschriften (##), wenn mehrere Themen beruehrt sind.",
-  "- Zahlen, Daten und Fristen immer in Fettschrift.",
-  "- Schließe, wenn sinnvoll, mit einer Zeile 'Empfehlung: ...' ab.",
-  "- Kein Füllwort, keine Höflichkeitsfloskeln am Anfang oder Ende.",
-  "- Keine Emojis.",
-  "- Auf Deutsch sprichst du den Nutzer mit 'Sie' an.",
-].join("\n");
+// Formatregeln: formatAnweisung(antwortSprache) in domain/antwort-anweisungen.ts - die
+// Schlusszeile traegt die Beschriftung der Antwortsprache statt fest 'Empfehlung'.
 
 type KiModus = "assistent" | "agent";
 
@@ -211,15 +204,8 @@ const AKTIONS_ANWEISUNG =
 const OHNE_QUELLEN_ANWEISUNG =
   "RECHT UND STEUERN OHNE BELEGE: Dir steht in dieser Sitzung keine Wissensbasis für Recht, Steuern, Compliance und Audit zur Verfügung. Beantworte Fragen zu Gesetzen, Steuersätzen, Schwellenwerten, Fristen, Pflichten, Sanktionen oder Prüfungen deshalb NICHT aus deinem Trainingswissen: in Kasachstan gilt seit 2026 ein neuer Steuerkodex, und dein Wissen dazu ist veraltet oder falsch. Sage stattdessen in einem kurzen Satz, dass dazu gerade keine belegte Auskunft möglich ist, und verweise auf Steuerberater, Anwalt oder die zuständige Behörde. Zahlen und Fristen aus den Betriebsdaten (zum Beispiel der MwSt-Status) darfst du weiterhin nennen, aber nicht als Rechtsauskunft ausgeben.";
 
-const QUELLEN_ANWEISUNG = [
-  "QUELLEN UND BELEGE: Bei jeder Frage zu Recht, Steuern, Arbeitsrecht, Compliance oder Audit rufst du ZUERST wissenSuchen auf (mit frageRussisch) und antwortest auf Grundlage der gefundenen Belege. Regeln:",
-  "1. Jede rechtliche Aussage, Zahl, Frist oder Sanktion bekommt direkt dahinter die Kennung ihres Belegs in eckigen Klammern, zum Beispiel [S1]; mehrere Belege: [S1][S3].",
-  "2. Zitiere nur Kennungen, die wissenSuchen in DIESER Antwort geliefert hat. Erfinde nie Fundstellen, Artikelnummern oder Zitate.",
-  "3. Nenne bei wichtigen Aussagen die Fundstelle im Klartext (zum Beispiel 'НК РК ст. 82'). Ist der Beleg russisch oder kasachisch, gib den maßgeblichen Satz kurz im Original mit deutscher Übersetzung wieder.",
-  "4. Belege der Stufe 4 oder 5 sind Auskünfte Dritter, keine Rechtsquellen: schreibe 'laut Fachquelle' und weise darauf hin, dass die Primärquelle zu prüfen ist. Bei überholten oder widerspruechlichen Belegen sage das ausdrücklich und nenne den Stand (Abrufdatum), wenn die Angabe zeitkritisch ist.",
-  "5. Liefert das Werkzeug nichts Passendes, sage 'Dazu habe ich in der Wissensbasis keine Stelle gefunden' und gib alles Weitere nur als Allgemeinwissen an. Kein Beleg, keine Behauptung.",
-  "6. Schließe verbindliche Rechts- und Steuerfragen mit einem Satz ab, dass eine Beratung durch Steuerberater oder Anwalt die Auskunft nicht ersetzt.",
-].join("\n");
+// Belegpflicht: quellenAnweisung(antwortSprache) in domain/antwort-anweisungen.ts - Uebersetzung
+// und Festsaetze in der Antwortsprache statt fest auf Deutsch.
 
 /** Nur ein Pfad innerhalb der Anwendung, ohne Sprachpraefix - als Kontext fuer
  *  den Prompt, nie als Adresse, die irgendwohin aufgeloest wird. */
@@ -476,7 +462,7 @@ export async function POST(req: Request) {
   const systemPrompt = [
     baueAssistentKernauftrag(baueGesamtWissenskontext(quellen, preislisten)),
     rollenKontext(rolle, vorschau),
-    FORMAT_ANWEISUNG,
+    formatAnweisung(antwortSprache),
     MODUS_ANWEISUNG[modus],
     OBERFLAECHE_ANWEISUNG[modus],
     NAVIGATION_ANWEISUNG,
@@ -487,7 +473,7 @@ export async function POST(req: Request) {
     ZUGENDE_ANWEISUNG,
     pruefKontext ? pruefGespraechAnweisung(pruefKontext) : "",
     // Nur wenn die Wissenssuche fuer diese Rolle angeboten wird: sonst gaebe es nichts zu belegen.
-    "wissenSuchen" in werkzeuge ? QUELLEN_ANWEISUNG : OHNE_QUELLEN_ANWEISUNG,
+    "wissenSuchen" in werkzeuge ? quellenAnweisung(antwortSprache) : OHNE_QUELLEN_ANWEISUNG,
     heute,
     ortHinweis,
     spracheAnweisung(antwortSprache),
@@ -502,7 +488,10 @@ export async function POST(req: Request) {
     system: systemPrompt,
     // Unvollstaendige Werkzeugaufrufe (Stopp mitten im Aufruf, Abbruch) wuerden
     // sonst jede weitere Anfrage des Verlaufs scheitern lassen.
-    messages: await convertToModelMessages(schnappschuesseKuerzen(nachrichten), { tools: werkzeuge, ignoreIncompleteToolCalls: true }),
+    // An der letzten Frage haengt ein Hinweis in der Antwortsprache - nur in dieser Kopie fuers Modell,
+    // gespeichert und angezeigt wird die Frage unveraendert. Der Systemprompt ist deutsch, und die
+    // Sprachanweisung darin verlor gegen die vielen deutschen Vorgaben (siehe domain/antwort-anweisungen.ts).
+    messages: await convertToModelMessages(mitSprachErinnerung(schnappschuesseKuerzen(nachrichten), antwortSprache), { tools: werkzeuge, ignoreIncompleteToolCalls: true }),
     tools: werkzeuge,
     stopWhen: stepCountIs(ausserhalb ? 1 : MAX_SCHRITTE[modus]),
     // Eine Ablehnung braucht zwei Saetze, keine Seite.

@@ -100,6 +100,26 @@ export function stimmenSprache(
   return { sprache: antwortsprache, abweichung: false };
 }
 
+/**
+ * Passt ein erzeugter Text zur verlangten Sprache? Fuer Texte, die einmal
+ * entstehen und dann gespeichert werden (die Zusammenfassung eines Berichts):
+ * ein deutscher Text in einem russischen Bericht wird verworfen und neu
+ * erzeugt, statt fuer immer im Bericht zu stehen.
+ *
+ * Im Zweifel passt er: ist der Text zu kurz oder unklar (kein Erkenner-
+ * Ergebnis), wird nichts abgelehnt. Russisch und Kasachisch gelten als
+ * zusammengehoerig - sie teilen sich die Schrift, der Erkenner trennt sie nur
+ * an einzelnen Sonderbuchstaben, und das reicht nicht, um daran einen Text
+ * zu verwerfen.
+ */
+export function sprachePasst(gewuenscht: string, text: string, erkenner: Erkenner): boolean {
+  if (!istSprache(gewuenscht)) return true;
+  const erkannt = erkenner(text ?? "");
+  if (!istSprache(erkannt) || erkannt === gewuenscht) return true;
+  const kyrillisch = (s: string) => s === "ru" || s === "kk";
+  return kyrillisch(gewuenscht) && kyrillisch(erkannt);
+}
+
 /** Die Anweisung ans Modell. Steht hier, damit Test und Laufzeit denselben
  *  Satz sehen. */
 export const SPRACHNAME: Record<Sprache, string> = {

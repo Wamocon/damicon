@@ -64,6 +64,43 @@ Preisseite zu bestätigen.
 | „Antworten vorlesen“ und Live-Vorlesen liefen beide | Doppelte, überlappende Wiedergabe; Stopp hielt nur einen Weg an |
 | Stimmen `de/en/ru/kk-female` auf Sokrates, vermutlich Piper- oder VITS-Klasse | Obergrenze der Natürlichkeit, die kein Code-Fix hebt |
 
+## Nachtrag: Antwortsprache (24.09.2026)
+
+Gemeldet wurde: Oberfläche auf Russisch, die Tour läuft, und die Zusammenfassung
+kommt auf Deutsch, im Bericht wie im Chat. Die Oberfläche ist in allen vier
+Sprachen vollständig und enthält keine deutschen Reste (geprüft für Tour,
+Bericht und Chat). Das Deutsch entsteht in KI-erzeugtem Text, und dafür gab es
+drei Ursachen im Code:
+
+1. **Der Systemprompt verlangte Deutsch.** Der Prompt des Assistenten ist
+   deutsch, und einzelne Zeilen forderten deutsche Ausgabe: die Schlusszeile
+   „Empfehlung: …“, „im Original mit deutscher Übersetzung“ und ein deutscher
+   Festsatz für „keine Stelle gefunden“. Genau diese Zeilen gelten bei Fragen
+   zu Compliance, Recht und Steuern, also auch bei der Zusammenfassung nach der
+   Tour. Die Sprachanweisung am Ende sagte Russisch, die Zeilen davor sagten
+   Deutsch. Jetzt richten sich diese Zeilen nach der Antwortsprache
+   (`src/lib/domain/antwort-anweisungen.ts`), auf Deutsch bleibt der Wortlaut
+   identisch. Zusätzlich steht an der letzten Frage ein Hinweis in der Sprache
+   der Antwort („Ответь на русском языке.“), nur in der Kopie für das Modell.
+2. **Die Zusammenfassung im Bericht** (Übersicht und Tour) hatte ihre
+   Sprachvorgabe mitten in einem deutschen Satz. Sie steht jetzt zuletzt, auf
+   Englisch und mit höchster Priorität, wie beim Prüfer im selben Modul. Kommt
+   der Text trotzdem in der falschen Sprache, wird er verworfen und neu
+   erzeugt. Scheitern beide Versuche, steht der Kennzahlentext in der
+   verlangten Sprache da, nie ein deutscher Absatz in einem russischen Bericht.
+   Die Prüfung ist eindeutig oder gar nicht (`erkenneSpracheEindeutig`): ein
+   kurzer deutscher Satz ohne Umlaut gilt nie als Englisch.
+3. **Ein altes Diktat bestimmte die Sprache der nächsten Frage.** Die Sprachen
+   des letzten Diktats hingen an der nächsten gesendeten Frage, auch an der
+   automatischen Tour-Frage, und der Server zieht sie der Sprache der Frage
+   vor. Wer vorher deutsch diktiert hatte, bekam die russisch gestellte
+   Tour-Frage auf Deutsch beantwortet. Sie gelten jetzt nur noch für den Text
+   aus dem Eingabefeld.
+
+Nicht geändert: Die Zusammenfassung im Chat folgt nach der Tour nur, wenn die
+Tour nach dem automatischen Check von selbst gestartet ist. Bei „Tour erneut
+starten“ ist das im Code ausdrücklich nicht vorgesehen.
+
 ## Anbieter im Vergleich (Auszug)
 
 ### Spracherkennung für de, en, ru und kk

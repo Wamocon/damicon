@@ -348,11 +348,13 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     void stop();
   }
 
-  function sende(text: string) {
+  /** `ausFeld`: der Text stammt aus dem Eingabefeld (Senden-Knopf, Enter) - nur dann
+   *  gelten die Sprachen eines vorigen Diktats, siehe beginneZug(). */
+  function sende(text: string, ausFeld = false) {
     const bereinigt = text.trim();
     if (!bereinigt || beschaeftigt) return;
     if (istErsteNachricht && !einwilligung) return;
-    const diktatSprachen = beginneZug();
+    const diktatSprachen = beginneZug(ausFeld);
     zugModus.current = modus;
     werkzeugeNeuerZug();
     klebtUnten.current = true;
@@ -365,13 +367,13 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
 
   function absenden(e: FormEvent) {
     e.preventDefault();
-    sende(eingabe);
+    sende(eingabe, true);
   }
 
   function beiTaste(e: KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
-      sende(eingabe);
+      sende(eingabe, true);
     }
   }
 

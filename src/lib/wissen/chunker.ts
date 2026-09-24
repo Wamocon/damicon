@@ -284,6 +284,23 @@ export function erkenneSprache(text: string, mindestBuchstaben = 40): "ru" | "kk
   return lateinischeSprache(probe) ?? "en";
 }
 
+/** Wie erkenneSprache, aber OHNE den Englisch-Standard: lateinischer Text, fuer den
+ *  nichts spricht (kein Umlaut, keine unterscheidenden Woerter), ergibt null statt
+ *  "en". Fuer alles, was aufgrund des Ergebnisses etwas VERWIRFT oder ablehnt: ein
+ *  kurzer deutscher Satz wie "Lohnabrechnung fristgerecht abgeben" darf dort nie
+ *  als Englisch gelten. */
+export function erkenneSpracheEindeutig(text: string, mindestBuchstaben = 40): "ru" | "kk" | "de" | "en" | null {
+  const probe = text.slice(0, 4000);
+  const kyrillisch = (probe.match(/[Ѐ-ӿ]/g) ?? []).length;
+  const lateinisch = (probe.match(/[A-Za-zÀ-ÿ]/g) ?? []).length;
+  if (kyrillisch + lateinisch < mindestBuchstaben) return null;
+  if (kyrillisch > lateinisch) {
+    const kasachisch = (probe.match(/[әіңғүұқөһӘІҢҒҮҰҚӨҺ]/g) ?? []).length;
+    return kasachisch / kyrillisch > 0.01 ? "kk" : "ru";
+  }
+  return lateinischeSprache(probe);
+}
+
 // Deutsch gegen Englisch. Frueher galt: Umlaute oder eines von zehn Woertern
 // -> Deutsch, sonst Englisch. "Wie geht es Ihnen heute?" hat weder Umlaut
 // noch eines dieser Woerter und kam deshalb als Englisch heraus - fuer ein

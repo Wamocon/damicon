@@ -84,8 +84,16 @@ import {
   pegelAusZeitbereich,
 } from "../../src/lib/domain/diktat.ts";
 import { erkenneMitRueckfall, GESAMTDECKEL_MS, GRUND_LEER, HEDGE_AB_MS } from "../../src/lib/domain/spracherkennung.ts";
-import { bestimmeAntwortsprache, mehrheitsSprache, stimmenSprache } from "../../src/lib/domain/antwortsprache.ts";
-import { erkenneSprache } from "../../src/lib/wissen/chunker.ts";
+import { bestimmeAntwortsprache, mehrheitsSprache, sprachePasst, stimmenSprache } from "../../src/lib/domain/antwortsprache.ts";
+import {
+  EMPFEHLUNG,
+  ERINNERUNG,
+  formatAnweisung,
+  KEINE_STELLE,
+  mitSprachErinnerung,
+  quellenAnweisung,
+} from "../../src/lib/domain/antwort-anweisungen.ts";
+import { erkenneSprache, erkenneSpracheEindeutig } from "../../src/lib/wissen/chunker.ts";
 import { erzeugeWarteschlange, HOECHSTENS_GLEICHZEITIG } from "../../src/lib/domain/sprachausgabe-warteschlange.ts";
 import { ANFANG, DARSTELLUNG_SCHLUESSEL, istDarstellung, naechsterZustand, NUTZER_SCHLUESSEL, OFFEN_SCHLUESSEL } from "../../src/lib/domain/ki-ansicht.ts";
 import { agentSeitenansichtAn, diktatLiveAn, schalterAn, sprachausgabeLiveAn } from "../../src/lib/domain/schalter.ts";
@@ -2005,6 +2013,130 @@ for (const [name, kaputteAntwort] of [
   pruefe("Zerleger: kasachische Abkuerzungen (ж., т.б.) ebenso", kk[0]?.includes("2026 ж. 1 қаңтардан") && kk[0].includes("т.б. салықтар."), JSON.stringify(kk));
   const liste = wortweise("## Nächste Schritte\n\n1. Steuerberater kontaktieren\n2. Unterlagen sammeln\n\nDas ist alles für heute.");
   pruefe("Zerleger: Zeilen ohne Satzzeichen sind Grenzen, kein Brei", liste[0] === "Nächste Schritte" && liste.join(" ").includes("Steuerberater kontaktieren."), JSON.stringify(liste));
+}
+
+// --- 16. Antwortsprache in allen vier Sprachen (24.09.2026) -------------------------
+// Gemeldet: Oberflaeche russisch, die Tour laeuft, und die Zusammenfassung kommt auf
+// Deutsch - im Bericht wie im Chat. Ursachen im Code (nicht in der Oberflaeche, die
+// ist in allen vier Sprachen vollstaendig):
+//   - Zeilen im deutschen Systemprompt VERLANGTEN Deutsch: 'Empfehlung: ...',
+//     "mit deutscher Uebersetzung", ein deutscher Festsatz. Genau diese Zeilen gelten
+//     fuer Compliance-Fragen, also auch fuer die Zusammenfassung nach der Tour.
+//   - Die Sprachvorgabe der Berichts-Zusammenfassung stand mitten in einem deutschen Satz.
+{
+  const SPRACHEN_ALLE = ["de", "en", "ru", "kk"];
+  const meldung = (sprache) => JSON.parse(readFileSync(new URL(`../../src/messages/${sprache}.json`, import.meta.url), "utf8"));
+
+  // (a) Die Fragen der Tour-Knoepfe: in jeder Oberflaechensprache eine Frage in dieser
+  //     Sprache - und die Antwortsprache folgt ihr, 4 x 4 Faelle.
+  for (const ober of SPRACHEN_ALLE) {
+    const nach = meldung(ober).pruefung.nachbereitung;
+    for (const schluessel of ["frageStart", "fragePlan", "frageMassnahme", "frageHinweis"]) {
+      const frage = nach[schluessel];
+      const r = bestimmeAntwortsprache({ frage, oberflaeche: ober }, (t) => erkenneSprache(t, 10));
+      pruefe(`Tour-Frage ${ober}.${schluessel}: die Antwort kommt in ${ober}`, r.sprache === ober && r.herkunft === "frage", `${r.sprache} (${r.herkunft})`);
+    }
+  }
+
+  // (b) Die Oberflaeche selbst: nichts fehlt, nichts ist Deutsch in en/ru/kk.
+  {
+    const flach = (o, p = "") =>
+      Object.entries(o).flatMap(([k, v]) => (v && typeof v === "object" ? flach(v, p ? `${p}.${k}` : k) : typeof v === "string" ? [[p ? `${p}.${k}` : k, v]] : []));
+    const de = Object.fromEntries(flach(meldung("de")));
+    for (const ober of ["en", "ru", "kk"]) {
+      const fremd = Object.fromEntries(flach(meldung(ober)));
+      const fehlt = Object.keys(de).filter((k) => !(k in fremd));
+      pruefe(`Oberflaeche ${ober}: kein Schluessel fehlt gegenueber Deutsch`, fehlt.length === 0, fehlt.slice(0, 3).join(", "));
+      const deutsch = Object.entries(fremd).filter(
+        ([k, v]) => /^(ceoUebersicht|pruefung|haustier|pruefungAblauf|complianceBericht|kiAssistentAnsicht)\./.test(k) && erkenneSprache(v, 25) === "de",
+      );
+      pruefe(`Oberflaeche ${ober}: in Tour, Bericht und Chat steht kein deutscher Text`, deutsch.length === 0, deutsch.slice(0, 2).map(([k]) => k).join(", "));
+    }
+  }
+
+  // (c) Die Anweisungen: nur auf Deutsch duerfen sie Deutsch verlangen.
+  {
+    pruefe("Anweisung de: bleibt wie bisher ('Empfehlung: ...', deutsche Uebersetzung)", formatAnweisung("de").includes("'Empfehlung: ...'") && quellenAnweisung("de").includes("mit deutscher Übersetzung") && quellenAnweisung("de").includes("Dazu habe ich in der Wissensbasis keine Stelle gefunden"));
+    for (const sprache of ["en", "ru", "kk"]) {
+      const f = formatAnweisung(sprache);
+      const q = quellenAnweisung(sprache);
+      pruefe(`Anweisung ${sprache}: die Schlusszeile heisst '${EMPFEHLUNG[sprache]}', nicht 'Empfehlung'`, f.includes(`'${EMPFEHLUNG[sprache]}: ...'`) && !f.includes("'Empfehlung: ...'"));
+      pruefe(`Anweisung ${sprache}: uebersetzt wird in die Antwortsprache, nicht ins Deutsche`, !q.includes("deutscher Übersetzung") && q.includes("nicht ins Deutsche"));
+      pruefe(`Anweisung ${sprache}: der Festsatz 'keine Stelle gefunden' steht in ${sprache}`, q.includes(KEINE_STELLE[sprache]) && !q.includes("Dazu habe ich in der Wissensbasis"));
+    }
+    pruefe("Anweisung: vier Beschriftungen, vier Festsaetze, vier Erinnerungen - alle verschieden", [EMPFEHLUNG, KEINE_STELLE, ERINNERUNG].every((t) => new Set(SPRACHEN_ALLE.map((s) => t[s])).size === 4));
+  }
+
+  // (d) Der Hinweis an der Frage: in der Sprache der Antwort, nur in der Kopie fuers Modell.
+  {
+    for (const sprache of SPRACHEN_ALLE) {
+      const original = [{ role: "user", parts: [{ type: "text", text: "Frage" }] }];
+      const kopie = mitSprachErinnerung(original, sprache);
+      const letzter = kopie.at(-1).parts.at(-1);
+      pruefe(`Erinnerung ${sprache}: haengt an der Frage, in ${sprache}`, letzter.type === "text" && letzter.text.includes(ERINNERUNG[sprache]) && kopie.at(-1).parts.length === 2);
+      pruefe(`Erinnerung ${sprache}: die Originalnachricht bleibt unveraendert`, original[0].parts.length === 1);
+    }
+    const freigabe = [{ role: "user", parts: [] }, { role: "assistant", parts: [{ type: "text", text: "x" }] }];
+    pruefe("Erinnerung: eine Freigabe-Runde (letzte Nachricht vom Assistenten) bleibt, wie sie ist", JSON.stringify(mitSprachErinnerung(freigabe, "ru")) === JSON.stringify(freigabe));
+  }
+
+  // (e) Der erzeugte Text muss zur Sprache passen (Berichts-Zusammenfassung).
+  {
+    const text = {
+      de: "Die Prüfungsreife liegt bei 72 von 100. Die größten Risiken sind die fehlende MwSt-Registrierung und die überfällige Kühlkettenprüfung.",
+      en: "Audit readiness is 72 out of 100. The biggest risks are the missing VAT registration and the overdue cold chain inspection.",
+      ru: "Готовность к проверке составляет 72 из 100. Наибольшие риски: отсутствие регистрации по НДС и просроченная проверка холодовой цепи.",
+      kk: "Тексеруге дайындық 100-дің 72-сі. Ең үлкен тәуекелдер: ҚҚС тіркеуінің болмауы және суық тізбекті тексерудің мерзімі өтіп кетуі.",
+    };
+    const erk = (t) => erkenneSpracheEindeutig(t, 25);
+    for (const gewuenscht of SPRACHEN_ALLE) {
+      for (const vorhanden of SPRACHEN_ALLE) {
+        const erwartet = gewuenscht === vorhanden || (["ru", "kk"].includes(gewuenscht) && ["ru", "kk"].includes(vorhanden));
+        pruefe(`Sprachpruefung: verlangt ${gewuenscht}, Text ${vorhanden} -> ${erwartet ? "passt" : "verworfen"}`, sprachePasst(gewuenscht, text[vorhanden], erk) === erwartet);
+      }
+    }
+    // Kurze deutsche Prioritaeten ohne Umlaut und ohne unterscheidende Woerter: erkenneSprache haette sie
+    // als Englisch gezaehlt und einen deutschen Bericht faelschlich auf den Kennzahlentext zurueckgeworfen.
+    for (const kurz of ["Lohnabrechnung fristgerecht abgeben", "Registrierung beantragen bald", "Steuerberater kontaktieren heute"]) {
+      pruefe(`Sprachpruefung: kurzer deutscher Satz '${kurz}' passt zu Deutsch`, sprachePasst("de", kurz, erk) === true);
+    }
+    pruefe("Sprachpruefung: ein zu kurzer Text wird nie verworfen", sprachePasst("ru", "Ja.", erk) === true);
+    pruefe("Sprachpruefung: eine unbekannte Sprache wird nie verworfen", sprachePasst("tr", text.de, erk) === true);
+  }
+
+  // (f) Verdrahtung.
+  {
+    const route = readFileSync(new URL("../../src/app/api/ki-assistent/route.ts", import.meta.url), "utf8");
+    pruefe("Route: Format- und Quellenanweisung folgen der Antwortsprache", route.includes("formatAnweisung(antwortSprache)") && route.includes("quellenAnweisung(antwortSprache)"));
+    pruefe("Route: keine feste deutsche Format- oder Quellenanweisung mehr", !route.includes("const FORMAT_ANWEISUNG") && !route.includes("const QUELLEN_ANWEISUNG"));
+    pruefe("Route: der Sprachhinweis geht an die letzte Frage (nur fuers Modell)", route.includes("mitSprachErinnerung(schnappschuesseKuerzen(nachrichten), antwortSprache)"));
+    const agenten = readFileSync(new URL("../../src/lib/pruefung/agenten.ts", import.meta.url), "utf8");
+    pruefe("Bericht: die Sprachvorgabe der Zusammenfassung steht zuletzt, auf Englisch, mit hoechster Prioritaet", agenten.includes("LANGUAGE (highest priority, overrides everything above): Write the zusammenfassung"));
+    pruefe("Bericht: eine Zusammenfassung in falscher Sprache wird verworfen und neu erzeugt", agenten.includes("sprachePasst(anfrage.sprache, t, erkenner)") && agenten.includes("nicht in der verlangten Sprache"));
+    pruefe("Bericht: die Feldbeschreibungen tragen die verlangte Sprache", agenten.includes("sentences in ${sprache}") && agenten.includes("steps in ${sprache}"));
+  }
+
+  // (g) Diktat-Sprachen gehoeren nur zum Text aus dem Eingabefeld. Der Server zieht sie der Sprache der Frage
+  //     vor - hingen sie an JEDER Frage, bekam die russische Tour-Frage nach einem deutschen Diktat eine deutsche
+  //     Antwort.
+  {
+    const chat = readFileSync(new URL("../../src/components/ki/ki-chat.tsx", import.meta.url), "utf8");
+    const sprache = readFileSync(new URL("../../src/components/ki/ki-chat-sprache.ts", import.meta.url), "utf8");
+    pruefe("Diktat-Sprachen: nur Senden-Knopf und Enter geben 'aus dem Feld' an", (chat.match(/sende\(eingabe, true\)/g) ?? []).length === 2);
+    pruefe("Diktat-Sprachen: Tour-Zusammenfassung, Vorgabe und Vorschlag senden ohne sie", chat.includes("sende(anstoss.frage);") && chat.includes("sende(vorgabe.text);") && chat.includes("sende(vorschlag)"));
+    pruefe("Diktat-Sprachen: beginneZug gibt sie ohne ausFeld nicht heraus und verbraucht sie nicht", sprache.includes("function beginneZug(ausFeld = false)") && /if \(!ausFeld\) \{[\s\S]*?return undefined;/.test(sprache));
+    // Und die Serverseite: bei einer diktierten Frage gewinnt das Diktat, sonst die Frage - fuer alle 16 Kombinationen
+    // aus Oberflaeche und Sprache der Frage gilt: ohne Diktat-Sprachen antwortet der Assistent in der Sprache der Frage.
+    const fragen = { de: "Erkläre mir dieses Prüfergebnis: Was sind die wichtigsten Punkte und was sollte ich zuerst tun?", en: "Explain this audit result to me: what are the key points and what should I do first?", ru: "Объясни мне результат этой проверки: каковы главные пункты и что сделать в первую очередь?", kk: "Осы тексеру нәтижесін түсіндір: ең маңызды тармақтар қандай және алдымен не істеуім керек?" };
+    let ok = 0;
+    for (const ober of ["de", "en", "ru", "kk"]) {
+      for (const [fragesprache, frage] of Object.entries(fragen)) {
+        if (bestimmeAntwortsprache({ frage, oberflaeche: ober }, (t) => erkenneSprache(t, 10)).sprache === fragesprache) ok++;
+      }
+    }
+    pruefe("Antwortsprache ohne Diktat: 16 von 16 Kombinationen aus Oberflaeche und Fragesprache antworten in der Sprache der Frage", ok === 16, `${ok}/16`);
+    pruefe("Antwortsprache: ein (veraltetes) Diktat 'de' schlaegt die russische Frage - deshalb darf es nicht an fremden Fragen haengen", bestimmeAntwortsprache({ frage: fragen.ru, oberflaeche: "ru", diktatSprachen: ["de", "de"] }, (t) => erkenneSprache(t, 10)).sprache === "de");
+  }
 }
 
 console.log("\n" + "-".repeat(58));
