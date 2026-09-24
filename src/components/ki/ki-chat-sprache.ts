@@ -149,16 +149,28 @@ export function useKiChatSprache({
    *  verbrauchen: sie gehoeren zu dem Text, der noch im Feld steht. Bis zum
    *  24.09.2026 bekam JEDE Frage die zuletzt diktierten Sprachen, und der
    *  Server zieht sie der Sprache der Frage vor - wer vorher deutsch diktiert
-   *  hatte, bekam die russisch gestellte Tour-Frage auf Deutsch beantwortet. */
-  function beginneZug(ausFeld = false): string[] | undefined {
+   *  hatte, bekam die russisch gestellte Tour-Frage auf Deutsch beantwortet.
+   *
+   *  `erzwingeVorlesen`: unabhaengig von alledem - fuer eine Frage, die IMMER
+   *  gesprochen werden soll, auch ohne Diktat und ohne den Schalter "Antworten
+   *  vorlesen" (die Zusammenfassung nach der gefuehrten Tour, use-compliance-
+   *  tour.tsx: dort ist Sprechen der Sinn der Funktion, kein Diktat-Nebeneffekt).
+   *  Bis zum 24.09.2026 lief das zufaellig ueber `zuletztDiktiert.current` mit -
+   *  wer kurz zuvor diktiert hatte, bekam die Tour-Zusammenfassung noch satzweise
+   *  vorgelesen, wer nicht, gar nicht. Die Reparatur oben (ausFeld) hat diesen
+   *  Zufallstreffer beendet und die Zusammenfassung dabei versehentlich stumm
+   *  gemacht - deshalb jetzt ein eigenes, verlaessliches Signal statt eines
+   *  Seiteneffekts des Diktats. */
+  function beginneZug(ausFeld = false, erzwingeVorlesen = false): string[] | undefined {
     stoppeAlles();
     // Auf dem iPhone darf Ton nur aus einer Geste heraus starten - dieser
     // Klick ist die Geste. Spaeter, beim ersten Abschnitt, waere es zu
     // spaet: der Browser bliebe stumm, ohne einen Fehler zu melden.
     live.entsperre();
     if (!ausFeld) {
-      // Nicht diktiert, und nichts vom Diktat verbrauchen.
-      setZugDiktiert(false);
+      // Nicht diktiert, und nichts vom Diktat verbrauchen - aber erzwingeVorlesen
+      // gilt unabhaengig davon.
+      setZugDiktiert(erzwingeVorlesen);
       gesehenerAbschnitt.current.clear();
       return undefined;
     }
@@ -167,7 +179,7 @@ export function useKiChatSprache({
     diktatSprachen.current = undefined;
     // Und ebenso, ob dieser Zug diktiert wurde: eine getippte Frage danach
     // wird nicht mehr von selbst vorgelesen.
-    setZugDiktiert(zuletztDiktiert.current);
+    setZugDiktiert(erzwingeVorlesen || zuletztDiktiert.current);
     zuletztDiktiert.current = false;
     // Die gesehenen Abschnitte gehoeren zum vorigen Zug - sonst waechst die
     // Liste ueber eine lange Sitzung immer weiter.
