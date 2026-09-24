@@ -1578,6 +1578,12 @@
     },
     "note": "Lesen und Schreiben bleibt den Büro-Rollen vorbehalten (admin, Betriebsleitung, Buchhaltung) - ein Selbstauskunftsrecht der Betroffenen ist bewusst nicht Teil dieses Schritts. Offen bleiben zwei weitere Themen aus dem bisherigen Cockpit: Datenresidenz (Digitalkodex Nr. 255-VIII) und KI-Transparenz (Gesetz Nr. 230-VIII)."
   },
+  "benachrichtigungen": {
+    "titel": "Benachrichtigungen",
+    "leer": "Keine neuen Benachrichtigungen.",
+    "leerHinweis": "Alarme und Fristen sehen Sie weiterhin direkt in den Modulen.",
+    "schliessen": "Benachrichtigungen schließen"
+  },
   "sync": {
     "knopf": {
       "label": "Synchronisierung"

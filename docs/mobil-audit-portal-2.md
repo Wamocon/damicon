@@ -32,7 +32,7 @@ Das betrifft die Hülle. Die Module darin sind unverändert für den Schreibtisc
 | 14 | Die Blätter sind keine echten Dialoge | mittel | niedrig | **erledigt** |
 | 15 | Keine Zurück-Geste für Blätter und Panel | mittel | mittel | entschieden |
 | 16 | Der Modultipp ist mobil ersatzlos entfallen | niedrig–mittel | niedrig | offen |
-| 17 | Die Glocke belegt einen von zwei Plätzen | niedrig | sehr niedrig | offen |
+| 17 | Die Glocke belegt einen von zwei Plätzen | niedrig | sehr niedrig | entschieden |
 | 18 | Querformat ist nirgends bedacht | niedrig | niedrig | offen |
 | 19 | Kein Breakpoint unter 640 px | niedrig | niedrig | offen |
 | 20 | Zwei fast gleiche 56-px-Zeilen | niedrig | sehr niedrig | offen |
@@ -269,13 +269,15 @@ Er ist die einzige Stelle, an der das System von sich aus Hilfe anbietet. Gerade
 
 ## Kleinerer Nutzen
 
-### 17. Die Glocke belegt einen von zwei Plätzen
+### 17. Die Glocke belegt einen von zwei Plätzen — entschieden
 
 Auf dem Handy trägt die Kopfzeile rechts nur noch Sync-Anzeige und Glocke. Die Glocke ist ein `<button>` ohne `onClick`, mit einem fest eingebauten Punkt, der dauerhaft ungelesene Meldungen suggeriert (UX-Audit, Punkt 8). Von zwei verbliebenen Plätzen belegt damit einer eine Attrappe.
 
 *Dafür:* Ausblenden ist eine Klasse. Auf einem Schirm mit zwei Plätzen zählt jeder.
 
 *Dagegen:* Wenn Benachrichtigungen ohnehin gebaut werden sollen, spart das Ausblenden nichts und kostet den Platzhalter, an dem man sie später erwartet. Die Frage ist nicht das Ausblenden, sondern ob es die Funktion geben soll.
+
+**Entschieden am 24.09.2026: die Glocke bleibt, und sie bekommt ein Ziel.** Benachrichtigungen werden in zwei Stufen gebaut. Seit Stufe 1 (WMCNL-2485) öffnet die Glocke ein Blatt von unten mit dem Stand „keine neuen Benachrichtigungen“, und der Punkt verschwindet nach dem ersten Öffnen. Für Kunden und Pflücker ist die Glocke ausgeblendet, dort ist der Platz frei. Echte Einträge folgen mit Stufe 2 (WMCNL-2486).
 
 *Nutzen: niedrig · Aufwand: sehr niedrig*
 

@@ -1,9 +1,9 @@
 # Portal-Tests mit Robot Framework
 
-Siebzehn Tests des Portals in vier Geraeteprofilen. Geprueft wird, was die
-Fenstergroesse entscheidet: ob die Bedienung erreichbar bleibt, ob Text
-lesbar bleibt, ob der Weg durch die Ebenen funktioniert und ob die globale
-Suche auf jeder Breite erreichbar ist.
+Einundzwanzig Tests des Portals in vier Geraeteprofilen. Geprueft wird, was
+die Fenstergroesse entscheidet: ob die Bedienung erreichbar bleibt, ob Text
+lesbar bleibt, ob der Weg durch die Ebenen funktioniert, ob die globale
+Suche auf jeder Breite erreichbar ist und ob die Glocke ihren Stand zeigt.
 
 Jeder Fehlschlag legt ein Bildschirmfoto unter `ergebnisse/bilder/` ab. Der
 Name nennt Profil und Befund, etwa `mobil-quer-modulseite-kopfzeile-abgeschnitten.png`.
@@ -61,6 +61,9 @@ die Kopfzeile keinen eigenen Scrollbereich hat.
 | Rueckweg | Traegt die Kopfzeile auf dem Handy eine Station zurueck? |
 | Untere Leiste | Verdeckt sie den letzten Abschnitt? |
 | Weg durch die Ebenen | Uebersicht, Bereich und ueber den Pfad zurueck |
+| Glocke | Oeffnet sie am Schreibtisch eine Schublade von rechts, auf dem Handy ein Blatt von unten, jeweils mit dem leeren Stand, und schliessen Esc und ein Tipp auf die Blende? |
+| Punkt an der Glocke | Ist er nach dem ersten Oeffnen weg, auch nach dem Neuladen? |
+| Glocke als Kunde | Fehlt sie in der Ansicht als Kunde? |
 
 ## Beweisen die Tests etwas
 

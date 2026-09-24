@@ -244,3 +244,69 @@ Der Weg Durch Die Ebenen Funktioniert In Jedem Profil
     Click    ${KOPFBALKEN} nav[aria-label] a[href$="/dashboard"]
     Wait For Condition    url    ends    /dashboard    timeout=20s
     Befund Festhalten    ${SCHREIBTISCH}    weg-zurueck
+
+Schreibtisch Glocke Oeffnet Die Schublade Von Rechts
+    [Documentation]    Die Glocke oeffnet am Schreibtisch eine Schublade in
+    ...    voller Hoehe am rechten Rand, die sagt, dass nichts vorliegt. Esc
+    ...    schliesst sie und gibt den Fokus an die Glocke zurueck, sonst
+    ...    stuende man mit der Tastatur irgendwo im Dokument.
+    [Tags]    schreibtisch
+    Portal Oeffnen    ${SCHREIBTISCH}
+    Seite Ansteuern    /dashboard
+    Glocke Oeffnen
+    Get Text    ${GLOCKEN_PANEL}    contains    Keine neuen Benachrichtigungen
+    Get Attribute    ${GLOCKE}    aria-expanded    ==    true
+    Glocken Fenster Liegt    ${SCHREIBTISCH}    rechts
+    Befund Festhalten    ${SCHREIBTISCH}    glocke-offen
+    Keyboard Key    press    Escape
+    Get Element Count    ${GLOCKEN_PANEL}    ==    0
+    ${fokus} =    Evaluate JavaScript    ${None}
+    ...    () => document.activeElement && document.activeElement.getAttribute('aria-label')
+    Should Be Equal    ${fokus}    Benachrichtigungen
+    ...    msg=Nach Esc steht der Fokus nicht auf der Glocke, sondern auf ${fokus}.
+
+Handy Hoch Glocke Oeffnet Ein Blatt Von Unten
+    [Documentation]    Auf dem Handy kommt das Fenster als Blatt von unten, wie
+    ...    Menue und Konto. Ein Tipp auf die Blende darueber schliesst es.
+    [Tags]    mobil-hoch
+    Portal Oeffnen    ${MOBIL_HOCH}
+    Seite Ansteuern    /dashboard
+    Glocke Oeffnen
+    Get Text    ${GLOCKEN_PANEL}    contains    Keine neuen Benachrichtigungen
+    Glocken Fenster Liegt    ${MOBIL_HOCH}    unten
+    Befund Festhalten    ${MOBIL_HOCH}    glocke-offen
+    # Rohe Mauskoordinaten statt Click: oben liegt die Blende ueber der
+    # Seite, und genau sie soll den Tipp bekommen. Click auf ein Element
+    # darunter wuerde an der Blende als Verdeckung scheitern.
+    Mouse Button    click    195    60
+    Get Element Count    ${GLOCKEN_PANEL}    ==    0
+
+Punkt An Der Glocke Verschwindet Nach Dem Ersten Oeffnen
+    [Documentation]    Der Punkt heisst "noch nie hineingeschaut". Ein frischer
+    ...    Browser zeigt ihn, nach dem ersten Oeffnen bleibt er weg, auch
+    ...    nach dem Neuladen.
+    [Tags]    schreibtisch
+    Portal Oeffnen    ${SCHREIBTISCH}
+    Seite Ansteuern    /dashboard
+    Wait For Elements State    ${GLOCKEN_PUNKT}    attached    timeout=10s
+    Glocke Oeffnen
+    Get Element Count    ${GLOCKEN_PUNKT}    ==    0
+    Reload
+    Wait For Elements State    ${GLOCKE}    visible    timeout=20s
+    Get Element Count    ${GLOCKEN_PUNKT}    ==    0
+
+Glocke Fehlt In Der Ansicht Als Kunde
+    [Documentation]    Fuer Kunde und Picker gibt es vorerst nichts, was die
+    ...    Glocke melden koennte. Die Regel gilt fuer die angezeigte Rolle,
+    ...    also auch, wenn die Administration "Ansicht als" nutzt.
+    [Tags]    schreibtisch
+    Portal Oeffnen    ${SCHREIBTISCH}
+    Seite Ansteuern    /dashboard
+    Wait For Elements State    ${GLOCKE}    visible    timeout=20s
+    LocalStorage Set Item    damicon-persona    kunde
+    Reload
+    Wait For Elements State    ${KOPFBALKEN}    visible    timeout=20s
+    Get Element Count    ${GLOCKE}    ==    0
+    LocalStorage Set Item    damicon-persona    admin
+    Reload
+    Wait For Elements State    ${GLOCKE}    visible    timeout=20s

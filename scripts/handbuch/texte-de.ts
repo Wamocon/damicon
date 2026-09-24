@@ -109,7 +109,7 @@ export const de: HandbuchTexte = {
       },
       {
         titel: "Kopfzeile",
-        text: "Trägt den Navigationspfad der geöffneten Seite, den Umschalter für die Breite der Seitenleiste, die Suche, die Sprachauswahl, das Farbschema und — für die Administration — das Feld „Ansicht als“. Auf dem Telefon bleiben der Weg zurück, die Suche und die Meldungen.",
+        text: "Trägt den Navigationspfad der geöffneten Seite, den Umschalter für die Breite der Seitenleiste, die Suche, die Sprachauswahl, das Farbschema und — für die Administration — das Feld „Ansicht als“. Ganz rechts steht die Glocke: Ein Klick öffnet die Benachrichtigungen am rechten Bildschirmrand, auf dem Telefon als Blatt von unten, und solange keine vorliegen, steht das dort. Alarme und Fristen stehen weiterhin in den Modulen selbst. B2B-Kunden und Pflücker sehen die Glocke nicht. Auf dem Telefon bleiben der Weg zurück, die Suche und die Meldungen.",
       },
       {
         titel: "Suche",

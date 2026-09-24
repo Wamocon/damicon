@@ -14,6 +14,11 @@ ${KONTO}          admin@damicon.demo
 ${PASSWORT}       DamiconDemo2026!
 ${BILDER}         ${CURDIR}/../ergebnisse/bilder
 ${KOPFBALKEN}     header.sticky
+${GLOCKE}         ${KOPFBALKEN} button[aria-label="Benachrichtigungen"]
+# Das Fenster der Glocke haengt im Layout, nicht in der Kopfzeile. Gefunden
+# ueber Rolle und Namen, damit es nicht mit dem Suchfenster verwechselt wird.
+${GLOCKEN_PANEL}    role=dialog[name="Benachrichtigungen"]
+${GLOCKEN_PUNKT}    ${GLOCKE} [data-glocke-punkt]
 
 # Die vier Geraeteprofile. Breite und Hoehe sind CSS-Pixel, nicht Geraetepixel.
 # 390x844 ist iPhone 14/15 hoch, 844x390 dasselbe Geraet gedreht. Dieselbe
@@ -173,6 +178,25 @@ Untere Leiste Verdeckt Den Inhalt Nicht
     Run Keyword If    ${verdeckt} > 0    Befund Festhalten    ${profil}    inhalt-verdeckt
     Should Be True    ${verdeckt} <= 0
     ...    msg=Die untere Leiste verdeckt ${verdeckt} px des letzten Abschnitts.
+
+Glocke Oeffnen
+    [Documentation]    Klickt die Glocke und wartet, bis ihr Panel steht.
+    Click    ${GLOCKE}
+    Wait For Elements State    ${GLOCKEN_PANEL}    visible    timeout=10s
+
+Glocken Fenster Liegt
+    [Documentation]    Am Schreibtisch eine Schublade am rechten Rand in voller
+    ...    Hoehe und mindestens 400 px breit, auf dem Handy ein Blatt im
+    ...    unteren Teil des Bildschirms. Gemessen gegen die fixierte Flaeche
+    ...    um das Fenster, nicht gegen window.innerWidth: das html haelt mit
+    ...    scrollbar-gutter Platz fuer eine Scrollleiste frei, bei klassischen
+    ...    Scrollleisten (Windows, auch headless) 15 px am rechten Rand.
+    [Arguments]    ${profil}    ${soll}
+    ${lage} =    Evaluate JavaScript    ${None}
+    ...    (soll) => { const d = [...document.querySelectorAll('[role="dialog"]')].find((e) => e.getAttribute('aria-labelledby') && document.getElementById(e.getAttribute('aria-labelledby'))?.textContent === 'Benachrichtigungen'); if (!d) return 'kein Fenster'; const r = d.getBoundingClientRect(); const c = d.parentElement.getBoundingClientRect(); const lage = 'links ' + Math.round(r.left - c.left) + ', rechts ' + Math.round(c.right - r.right) + ', oben ' + Math.round(r.top - c.top) + ', unten ' + Math.round(c.bottom - r.bottom) + ' px, ' + Math.round(r.width) + ' px breit'; if (soll === 'rechts') return Math.abs(c.right - r.right) <= 1 && Math.abs(r.top - c.top) <= 1 && Math.abs(c.bottom - r.bottom) <= 1 && r.width >= 400 ? 'ok' : lage; return r.left >= c.left - 1 && r.right <= c.right + 1 && r.top > c.top + c.height * 0.15 && r.bottom > c.top + c.height * 0.6 ? 'ok' : lage; }
+    ...    arg=${soll}
+    Run Keyword If    '${lage}' != 'ok'    Befund Festhalten    ${profil}    glocke-lage
+    Should Be Equal    ${lage}    ok    msg=Das Fenster der Glocke liegt nicht ${soll}: ${lage}
 
 Kein Text Ist Abgeschnitten
     [Documentation]    Sucht Elemente, deren Inhalt breiter ist als ihr Kasten.

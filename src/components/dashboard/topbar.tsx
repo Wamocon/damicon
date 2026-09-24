@@ -3,7 +3,6 @@
 import { useSyncExternalStore } from "react";
 import { useTranslations } from "next-intl";
 import {
-  Bell,
   ChevronLeft,
   Loader2,
   PanelLeftClose,
@@ -20,6 +19,7 @@ import { Himbeere } from "@/components/ki/himbeere";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { cn } from "@/lib/utils";
 import { SyncStatus } from "@/components/dashboard/sync-status";
+import { Glocke } from "@/components/dashboard/glocke";
 import { TopbarPfad } from "@/components/dashboard/topbar-pfad";
 import { TopbarSuchknopf } from "@/components/suche/such-ausloeser";
 import {
@@ -113,7 +113,6 @@ function CeoPruefungHinweis() {
 }
 
 export function DashboardTopbar() {
-  const t = useTranslations("dashboard");
   // Null auf der Uebersicht - dort gibt es kein Zurueck, und links steht die
   // Marke statt eines Rueckwegs.
   const eltern = useElternSeite();
@@ -200,7 +199,8 @@ export function DashboardTopbar() {
           Rolle bzw. "Ansicht als", "KI fragen", Sprache, Farbschema -, steht
           hier erst ab md wieder. Sichtbar bleibt auf dem Handy nur, was beim
           Arbeiten sichtbar bleiben muss: der Stand der Synchronisierung, die
-          Suche und die Meldungen. */}
+          Suche und die Glocke (glocke.tsx, fuer Kunde und Picker
+          ausgeblendet). */}
       {/* md:ml-auto haelt die Gruppe rechts: vor ihr steht kein wachsendes
           Element, das die Luecke fuellen wuerde. */}
       <div className="flex flex-1 items-center justify-end gap-2 md:ml-auto md:flex-none">
@@ -216,14 +216,7 @@ export function DashboardTopbar() {
         {/* Die Suche, auf jeder Breite links neben der Glocke. Sie oeffnet das
             Suchfenster oben in der Mitte (suche/such-kontext.tsx). */}
         <TopbarSuchknopf />
-        <button
-          type="button"
-          aria-label={t("notifications")}
-          className="relative inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-colors hover:bg-muted"
-        >
-          <Bell className="h-4 w-4" />
-          <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-primary" />
-        </button>
+        <Glocke />
       </div>
     </header>
   );

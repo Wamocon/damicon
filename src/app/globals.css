@@ -427,6 +427,14 @@
   }
 }
 
+/* Schublade vom rechten Rand (position="rechts", ui/sheet.tsx): faehrt ganz
+   herein, wie das KI-Panel von derselben Seite. */
+@keyframes sheet-auf-rechts {
+  from {
+    transform: translateX(100%);
+  }
+}
+
 /*
   Tabellen auf dem Handy: aus jeder Zeile wird eine Karte.
 
