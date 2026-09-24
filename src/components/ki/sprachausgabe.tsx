@@ -75,6 +75,43 @@ export function useSprachausgabe(sprache: string) {
       if (!istVorlesbar(id)) return;
       audioRef.current?.pause();
       setHinweis(null);
+      const zielSprache = antwortSprache ?? sprache;
+
+      // Erster Weg: der Ton als Strom (GET, api/ki-sprachausgabe). Das
+      // <audio>-Element beginnt, sobald die ersten Sekunden geladen sind - bei
+      // einer langen Antwort ist das der Unterschied zwischen sofort und vielen
+      // Sekunden Stille. play() steht hier VOR jedem await: auf dem iPhone
+      // zaehlt der Ton dann noch zur Geste (Klick) und wird nicht verweigert.
+      if (!urls.current.has(id)) {
+        const audio = audioRef.current ?? new Audio();
+        audioRef.current = audio;
+        audio.src = `/api/ki-sprachausgabe?nachricht=${encodeURIComponent(id)}&sprache=${encodeURIComponent(zielSprache)}`;
+        audio.onended = () => setSpielt(null);
+        audio.onpause = () => setSpielt((aktuell) => (aktuell === id ? null : aktuell));
+        // Reisst der Strom mittendrin ab, kommt kein "ended" - ohne das hier
+        // bliebe der Knopf auf "Stopp" stehen.
+        audio.onerror = () => setSpielt((aktuell) => (aktuell === id ? null : aktuell));
+        setLaedt(id);
+        try {
+          await audio.play();
+          setSpielt(id);
+          return;
+        } catch (f) {
+          const name = (f as Error)?.name;
+          // Eine andere Antwort wurde inzwischen gestartet, oder der Browser
+          // verweigert Ton ohne Geste - beides kein Fall fuer den Rueckfall.
+          if (name === "AbortError") return;
+          if (name === "NotAllowedError") {
+            setSpielt(null);
+            return;
+          }
+          // Sonst (404 direkt nach dem Stream, Dienst weg): der Datei-Weg
+          // unten, mit zweitem Versuch und genauer Meldung.
+        } finally {
+          setLaedt((aktuell) => (aktuell === id ? null : aktuell));
+        }
+      }
+
       let url = urls.current.get(id);
       if (!url) {
         setLaedt(id);
@@ -88,7 +125,7 @@ export function useSprachausgabe(sprache: string) {
             antwort = await fetch("/api/ki-sprachausgabe", {
               method: "POST",
               headers: { "content-type": "application/json" },
-              body: JSON.stringify({ nachrichtId: id, sprache: antwortSprache ?? sprache }),
+              body: JSON.stringify({ nachrichtId: id, sprache: zielSprache }),
             });
             if (antwort.status !== 404) break;
           }

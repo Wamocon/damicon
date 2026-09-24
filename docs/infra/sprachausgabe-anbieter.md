@@ -76,6 +76,7 @@ davor einiges schief. Alles davon ist behoben:
 | Russisch und Kasachisch: „т. е.“, „ст.“, „п.“, „млн.“, „ж.“, „т.б.“ galten als Satzende, ein Satz zerfiel in bis zu sieben Stücke | Abkürzungen in allen vier Sprachen, kyrillische Initialen |
 | Überschriften und Listen ohne Satzzeichen liefen ineinander | Ein Zeilenende ist eine Grenze |
 | Agent-Modus: Textteile ohne Trenner („LohnabrechnungHier …“) | Ein Absatz bei jedem Ende eines Textteils |
+| Ein Abschnitt, der an einem Zeilenende oder am Antwortende aufhörte, ging ohne Satzzeichen an die Stimme. Sie las das letzte Wort wie mitten im Satz und brach dort ab | Solche Abschnitte bekommen einen Punkt. Ein Schnitt am Komma mitten im Satz bleibt ohne |
 
 Außerdem im Client (`ki-chat-sprache.ts`): Kamen für eine Antwort schon
 Live-Abschnitte, wird sie nach dem Ende nicht noch einmal ganz vorgelesen
@@ -83,6 +84,33 @@ Live-Abschnitte, wird sie nach dem Ende nicht noch einmal ganz vorgelesen
 Schließen des Panels halten jetzt **beide** Wiedergaben an. Der Vorlese-Knopf
 schickt die Sprache der Antwort aus den Nachrichten-Metadaten mit, nicht mehr
 die Oberflächensprache.
+
+## Vorlese-Knopf: der Ton als Strom
+
+Bis zum 24.09.2026 lief der Knopf an einer fertigen Antwort so: Route fragt
+den Anbieter, wartet auf die **komplette** Datei, schickt sie, der Browser lädt
+sie ganz und spielt erst dann. Bei einer langen Antwort vergingen so viele
+Sekunden, bis der erste Ton kam, weil die Datei erst fertig ist, wenn auch der
+letzte Satz erzeugt ist.
+
+Jetzt gibt es `GET /api/ki-sprachausgabe?nachricht=<id>&sprache=<de>`. Die
+Route reicht den Ton weiter, während der Anbieter ihn erzeugt (Soniox liefert
+seine Antwort stückweise, siehe `generateStream` im offiziellen SDK), und das
+`<audio>`-Element spielt MP3 schon während des Ladens. Dieselben Prüfungen wie
+beim POST: Anmeldung, Berechtigung, Ratenbegrenzung, Lesen der Antwort über
+RLS, nur Nachrichten-IDs, nie freier Text.
+
+- Der Strom wird geteilt (`tee()`): ein Zweig geht an den Hörer, der andere
+  nach der Antwort in den Zwischenspeicher. Reißt der Strom ab, wird nichts
+  abgelegt.
+- Der Browser behält den frischen Strom nicht (`no-store`). Beim nächsten Mal
+  kommt die Datei fertig aus dem Speicher.
+- Der Rückfall auf Sokrates greift nur, solange noch kein Ton geflossen ist.
+- Scheitert der Strom im Browser (etwa ein 404 direkt nach dem Ende des Chat-
+  Streams), nimmt der Knopf den bisherigen Datei-Weg per POST mit zweitem
+  Versuch und genauer Meldung.
+- `play()` steht vor jedem `await`. Auf dem iPhone gehört der Ton dadurch noch
+  zur Geste und wird nicht verweigert.
 
 ## Datenstandort
 
@@ -105,3 +133,13 @@ dieser Zwischenspeicher im Land liegen muss.
 | `SONIOX_TTS_URL` | nein | Nur, wenn sich die Adresse nicht ableiten lässt |
 | `SONIOX_TTS_STIMME` | nein | Stimmname bei Soniox, Voreinstellung `Maya` |
 | `KI_SOKRATES_API_SCHLUESSEL` | ja | Sokrates bleibt der Rückfall |
+
+**Achtung bei Vorschau-Umgebungen:** In Vercel können Variablen für einen
+einzelnen Branch gesetzt sein. Am 24.09.2026 standen `KI_DIKTAT_LIVE`,
+`KI_SPRACHAUSGABE_LIVE`, `KI_SPRACHAUSGABE_ANBIETER` und
+`KI_SPRACHAUSGABE_SIGNATUR` nur für `feat/ki-sprache-live-diktat`. Die Vorschau
+des davon abgeleiteten Branches `feat/ki-sprachmodus` lief deshalb mit der
+alten Kette: Vorlesen erst nach der fertigen Antwort, Sokrates-Stimme, kein
+Live-Diktat und damit auch kein Sprachmodus. Für jeden neuen Branch, der die
+Sprachfunktionen zeigen soll, und vor dem Merge für Production sind alle vier
+zu setzen (`vercel env ls` zeigt, für welchen Branch sie gelten).

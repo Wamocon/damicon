@@ -373,7 +373,7 @@ export const de: HandbuchTexte = {
       {
         pfad: "/api/ki-sprachausgabe",
         aufgabe:
-          "Liest Antworten vor: eine gespeicherte Antwort über die Kennung ihrer Nachricht, oder beim Vorlesen während des Schreibens einzelne Abschnitte, die der Chat beim Entstehen signiert hat. Nie frei übergebener Text, sonst wäre der Endpunkt ein Sprachgenerator für beliebige Inhalte. Die Stimme kommt vom eingestellten Anbieter (Soniox oder Sokrates); fällt er aus, spricht Sokrates.",
+          "Liest Antworten vor: eine gespeicherte Antwort über die Kennung ihrer Nachricht, oder beim Vorlesen während des Schreibens einzelne Abschnitte, die der Chat beim Entstehen signiert hat. Nie frei übergebener Text, sonst wäre der Endpunkt ein Sprachgenerator für beliebige Inhalte. Die Stimme kommt vom eingestellten Anbieter (Soniox oder Sokrates); fällt er aus, spricht Sokrates. Eine gespeicherte Antwort kommt als Strom: Der Ton beginnt, während er noch erzeugt wird, statt erst nach der ganzen Datei.",
         zugriff: "Recht am KI-Assistenten",
       },
       {

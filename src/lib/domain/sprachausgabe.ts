@@ -364,12 +364,20 @@ export function erzeugeSatzZerleger(): SatzZerleger {
   let ersterRaus = false;
   let fertig = false;
 
-  /** Vom Puffer abschneiden und als Abschnitt herausgeben. */
-  function schneide(bis: number): Abschnitt | null {
+  /** Vom Puffer abschneiden und als Abschnitt herausgeben. `amEnde`: der
+   *  Rest der fertigen Antwort. */
+  function schneide(bis: number, amEnde = false): Abschnitt | null {
     const roh = puffer.slice(0, bis);
     puffer = puffer.slice(bis);
-    const text = textFuerSprachausgabe(roh).trim();
+    let text = textFuerSprachausgabe(roh).trim();
     if (!text) return null;
+    // Endet der Abschnitt an einem Zeilenende oder am Ende der Antwort, ist
+    // seine letzte Zeile vollstaendig und bekommt ein Satzzeichen wie alle
+    // anderen (textFuerSprachausgabe laesst die letzte Zeile offen, weil sie
+    // im Stream sonst nur ein Satzanfang sein kann). Ohne Punkt liest die
+    // Stimme das letzte Wort wie mitten im Satz und bricht dort ab - bei einem
+    // Listenpunkt oder einem Vorab-Satz ohne Punkt klang das abgehackt.
+    if (amEnde || /\n[ \t]*$/.test(roh)) text = mitSatzzeichen(text);
     if (gesamtZeichen + text.length > MAX_SPRACHAUSGABE_ZEICHEN) {
       fertig = true;
       const rest = MAX_SPRACHAUSGABE_ZEICHEN - gesamtZeichen;
@@ -461,7 +469,7 @@ export function erzeugeSatzZerleger(): SatzZerleger {
     abschliessen(): Abschnitt[] {
       if (fertig) return [];
       const raus = ernte();
-      const rest = schneide(puffer.length);
+      const rest = schneide(puffer.length, true);
       if (rest) raus.push(rest);
       return raus;
     },
