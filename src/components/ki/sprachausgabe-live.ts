@@ -23,6 +23,7 @@
 //      mehr gestellt hat.
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { erzeugeWarteschlange, type Warteschlange } from "@/lib/domain/sprachausgabe-warteschlange";
+import { trenneAnalyse, verbindeAnalyse } from "@/lib/ausgabe-pegel";
 
 export type LiveAbschnitt = { zug: string; nr: number; text: string; sig: string; ablauf: number };
 
@@ -89,6 +90,7 @@ export function useLiveSprachausgabe(aktiv: boolean) {
       // schon gestoppt
     }
     quelle.current = null;
+    trenneAnalyse();
     try {
       ersatzSpieler.current?.pause();
     } catch {
@@ -152,8 +154,12 @@ export function useLiveSprachausgabe(aktiv: boolean) {
 
     const q = ctx.createBufferSource();
     q.buffer = daten;
-    q.connect(ctx.destination);
+    // Fuer die Kugel des Sprachmodus (lib/ausgabe-pegel.ts): reagiert nur, wer diese Datei
+    // importiert, sonst kostet es nichts - der Analyser haengt einfach ungenutzt zwischen
+    // Quelle und Ziel im Signalpfad.
+    verbindeAnalyse(ctx, q, ctx.destination);
     q.onended = () => {
+      trenneAnalyse();
       puffer.current.delete(naechster.nr);
       w.fertigGespielt(naechster.nr);
       if (quelle.current === q) quelle.current = null;

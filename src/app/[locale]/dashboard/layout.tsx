@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import "@/components/ki/ki-pane.css";
+import "@/components/ki/sprachmodus.css";
 import { setRequestLocale } from "next-intl/server";
 import { PersonaProvider } from "@/components/dashboard/persona";
 import { BlattProvider, HauptSpalte } from "@/components/dashboard/blatt-kontext";
@@ -16,6 +17,8 @@ import { erlaubteBereiche } from "@/lib/pruefung/rollen";
 import { HaustierDashboard } from "@/components/haustier/haustier-dashboard";
 import { HaustierProvider } from "@/components/haustier/haustier-kontext";
 import { KiPaneProvider } from "@/components/ki/ki-pane-kontext";
+import { Sprachmodus } from "@/components/ki/sprachmodus";
+import { diktatLiveAn } from "@/lib/domain/schalter";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -83,6 +86,10 @@ export default async function DashboardLayout({
       <KiPaneProvider
         verfuegbar={darfKiNutzen && kiVerlauf !== null}
         seitenansichtAn={agentSeitenansichtAn()}
+        // Sprachmodus braucht Werkzeuge (Anthropic-Anbieter) UND das eingeschaltete
+        // Live-Diktat (KI_DIKTAT_LIVE) - ohne Live-Erkennung waere ein Gespraech nur
+        // Diktat-Datei-Umwege mit langen Wartezeiten.
+        sprachmodusMoeglich={aktiverAnbieter?.typ === "anthropic" && diktatLiveAn()}
         nutzerId={profil?.id ?? null}
       >
         <CeoPruefungProvider>
@@ -97,6 +104,7 @@ export default async function DashboardLayout({
               fixiert, die Reihenfolge im Baum kostet kein Layout. */}
           <HauptSpalte>
             <KiFuehrungsAnzeige />
+            <Sprachmodus />
             <DashboardTopbar />
             {/* Der untere Innenabstand haelt den Platz der unteren
                 Navigationsleiste frei (--untere-leiste-raum, globals.css) -

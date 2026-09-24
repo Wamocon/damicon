@@ -2106,7 +2106,27 @@
     "pruefBezugKacheln": "Direkt zu einer Kachel springen",
     "mehr": "Mehr",
     "groesser": "Panel vergrößern",
-    "kleiner": "Panel verkleinern"
+    "kleiner": "Panel verkleinern",
+    "sprachmodus": {
+      "titel": "Sprachmodus",
+      "starten": "Sprachmodus starten",
+      "beenden": "Sprachmodus beenden",
+      "unterbrechen": "Antippen zum Unterbrechen",
+      "stumm": "Mikrofon stummschalten",
+      "fortsetzen": "Mikrofon wieder einschalten",
+      "untertitel": "Untertitel",
+      "hoertZu": "Ich höre zu …",
+      "keinZugriff": "Kein Mikrofonzugriff. Bitte in den Browsereinstellungen erlauben.",
+      "status": {
+        "startet": "Mikrofon wird geöffnet …",
+        "hoert": "Ich höre zu",
+        "versteht": "Einen Moment …",
+        "denkt": "Ich schaue nach …",
+        "spricht": "Himbi spricht",
+        "pausiert": "Mikrofon stummgeschaltet",
+        "fehler": "Etwas ist schiefgegangen"
+      }
+    }
   },
   "legal": {
     "imprintTitle": "Impressum",

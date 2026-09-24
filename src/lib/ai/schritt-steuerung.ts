@@ -45,7 +45,7 @@ export type ToolChoice = "auto" | "required" | "none" | { type: "tool"; toolName
 
 export interface SchrittEingabe {
   stepNumber: number;
-  modus: "assistent" | "agent";
+  modus: "assistent" | "agent" | "sprache";
   /** Ist die letzte Nachricht eine neue Nutzerfrage (und keine Freigabe-Runde)? */
   neueNutzerFrage: boolean;
   frage: string;
@@ -63,7 +63,9 @@ export function waehleSchritt(e: SchrittEingabe): { toolChoice: ToolChoice } | u
   if (e.wissenAngeboten && istRechtsfrage(e.frage)) {
     return { toolChoice: { type: "tool", toolName: "wissenSuchen" } };
   }
-  // Agent-Modus, neue Frage: der erste Schritt MUSS ein Werkzeug rufen (siehe route.ts).
-  if (e.modus === "agent") return { toolChoice: "required" };
+  // Agent- und Sprachmodus, neue Frage: der erste Schritt MUSS ein Werkzeug rufen (siehe route.ts).
+  // Im Sprachmodus zeigt der Assistent, wovon er spricht - eine Antwort ohne Werkzeug liesse das
+  // Hauptfenster stehen. ohneAnsicht bleibt der Fluchtweg fuer reine Hoeflichkeiten.
+  if (e.modus === "agent" || e.modus === "sprache") return { toolChoice: "required" };
   return undefined;
 }

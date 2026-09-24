@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
   type ComponentType,
   type FormEvent,
   type KeyboardEvent,
@@ -74,6 +75,15 @@ import {
 } from "@/components/ki/ki-chat-segmente";
 import { clientErgebnisseBereit, useKlientWerkzeuge, type WerkzeugChat } from "@/components/ki/ki-chat-werkzeuge";
 import { antwortSpracheAus, useKiChatSprache } from "@/components/ki/ki-chat-sprache";
+import {
+  abonniereSprachBus,
+  leseEinwilligung,
+  leseSprachFrage,
+  leseStopp,
+  meldeChatStand,
+  registriereEntsperren,
+  zaehlerServer,
+} from "@/components/ki/sprachmodus-bus";
 import { KiChatAktionskarte } from "@/components/ki/ki-chat-aktionskarte";
 import { KiChatComposer } from "@/components/ki/ki-chat-composer";
 
@@ -178,6 +188,9 @@ const Markdown = memo(function Markdown({ text }: { text: string }) {
   );
 });
 
+/** Der Modus eines Zuges: die Einstellung (assistent, agent) oder der Sprachmodus. */
+type ZugModus = KiModus | "sprache";
+
 export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   // Alle Texte dieses Fensters kommen aus der Systemsprache - so wie ueberall
   // sonst in der Anwendung. Bis zum 21.09.2026 wechselte das Fenster je Zug
@@ -192,7 +205,11 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const pfad = usePathname();
   const router = useRouter();
   const { role: rolle } = usePersona();
-  const { modus, offen, fuehrung, oeffneZiel, fuehreZu, bewegeZeiger, pruefBezug, entferneBezug, anstoss } = useKiPane();
+  const { modus: panelModus, offen, fuehrung, oeffneZiel, fuehreZu, bewegeZeiger, pruefBezug, entferneBezug, anstoss, sprachmodus } = useKiPane();
+  // Im Sprachmodus (components/ki/sprachmodus.tsx) laeuft jede Anfrage als "sprache": kurze,
+  // sprechbare Antworten, Navigation und Hervorheben ohne Klicken. Der Modus der Einstellung
+  // bleibt dabei unberuehrt und gilt wieder, sobald der Sprachmodus endet.
+  const modus: ZugModus = sprachmodus ? "sprache" : panelModus;
 
   const [eingabe, setEingabe] = useState("");
   const [einwilligung, setEinwilligung] = useState(false);
@@ -201,7 +218,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const eingabeRef = useRef<HTMLTextAreaElement>(null);
   const klebtUnten = useRef(true);
-  const zugModus = useRef<KiModus | null>(null);
+  const zugModus = useRef<ZugModus | null>(null);
   const gefolgt = useRef(new Set<string>());
   const aktualisiert = useRef(new Set<string>());
 
@@ -228,7 +245,11 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     neuerZug: werkzeugeNeuerZug,
     abbrechen: werkzeugeAbbrechen,
     unterSchrittGrenze,
-  } = useKlientWerkzeuge({ bewegeZeiger, istAgentModus: () => anfrageDaten.current.modus === "agent" });
+  } = useKlientWerkzeuge({
+    bewegeZeiger,
+    istAgentModus: () => anfrageDaten.current.modus !== "assistent",
+    istNurZeigen: () => anfrageDaten.current.modus === "sprache",
+  });
 
   const initialMessages = useMemo(() => verlaufZuNachrichten(verlauf), [verlauf]);
   const transport = useMemo(
@@ -271,6 +292,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     messages,
     beschaeftigt,
     offen,
+    sprachmodus,
   });
   const istErsteNachricht = messages.length === 0;
 
@@ -314,12 +336,12 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     }
   }, [messages, router]);
 
-  // Agent-Modus: jedes Werkzeugergebnis des LAUFENDEN Zuges oeffnet seine
+  // Agent- und Sprachmodus: jedes Werkzeugergebnis des LAUFENDEN Zuges oeffnet seine
   // Ansicht im Hauptfenster. zugModus wird beim Absenden festgehalten - wer
   // mitten in einer Antwort auf Agent umschaltet, bekommt keine Nachtour fuer
   // Schritte, die im Assistent-Modus begonnen wurden.
   useEffect(() => {
-    if (zugModus.current !== "agent") return;
+    if (zugModus.current !== "agent" && zugModus.current !== "sprache") return;
     const letzte = messages.at(-1);
     if (!letzte || letzte.role !== "assistant") return;
     for (const teil of letzte.parts) {
@@ -453,7 +475,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     );
   }, [messages]);
 
-  const vorschlaege = useMemo(() => waehleVorschlaege(rolle, modus), [rolle, modus]);
+  const vorschlaege = useMemo(() => waehleVorschlaege(rolle, panelModus), [rolle, panelModus]);
   const zaehler = useMemo(
     () => ({
       bereiche: modules.filter((m) => hasPermission(rolle, m.resource, "view")).length,
@@ -537,6 +559,68 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [anstoss]);
 
+  // --- Sprachmodus (components/ki/sprachmodus.tsx) ------------------------------------
+  // Der Sprachmodus hat keinen eigenen Chat: er stellt seine Fragen DIESEM Chat und hoert
+  // mit, was er tut (sprachmodus-bus.ts). So gibt es einen Verlauf, einen Satz Werkzeuge
+  // und eine Navigation - und nach dem Gespraech steht alles hier zum Nachlesen.
+  const sprachFrage = useSyncExternalStore(abonniereSprachBus, leseSprachFrage, () => null);
+  const stoppZaehler = useSyncExternalStore(abonniereSprachBus, leseStopp, zaehlerServer);
+  const einwilligungZaehler = useSyncExternalStore(abonniereSprachBus, leseEinwilligung, zaehlerServer);
+  const letzteSprachFrage = useRef(0);
+  const letzterStopp = useRef(stoppZaehler);
+  const letzteEinwilligung = useRef(einwilligungZaehler);
+
+  useEffect(() => {
+    if (!sprachFrage || sprachFrage.nr === letzteSprachFrage.current) return;
+    letzteSprachFrage.current = sprachFrage.nr;
+    if (!sprachmodus) return;
+    // Gesprochen, also wie ein Diktat: die gehoerten Sprachen gehen mit und entscheiden
+    // ueber die Sprache der Antwort (domain/antwortsprache.ts).
+    merkeDiktatSprachen(sprachFrage.sprachen);
+    sende(sprachFrage.text, true);
+    // sende() ist pro Render neu; ausgeloest wird nur durch eine neue Frage.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sprachFrage]);
+
+  useEffect(() => {
+    if (stoppZaehler === letzterStopp.current) return;
+    letzterStopp.current = stoppZaehler;
+    stopp();
+    // stopp() ist pro Render neu; ausgeloest wird nur durch einen neuen Stopp.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stoppZaehler]);
+
+  useEffect(() => {
+    if (einwilligungZaehler === letzteEinwilligung.current) return;
+    letzteEinwilligung.current = einwilligungZaehler;
+    setEinwilligung(true);
+    anfrageDaten.current = { ...anfrageDaten.current, einwilligung: true };
+  }, [einwilligungZaehler]);
+
+  useEffect(() => {
+    registriereEntsperren(live.entsperre);
+    return () => registriereEntsperren(null);
+  }, [live.entsperre]);
+
+  const letzteNachricht = messages.at(-1);
+  const antwortText = letzteNachricht?.role === "assistant" ? textVonNachricht(letzteNachricht) : "";
+  useEffect(() => {
+    meldeChatStand({
+      beschaeftigt,
+      spricht: live.spricht || sprachausgabe.spielt !== null,
+      laedt: live.laedtErsten || sprachausgabe.laedt !== null,
+      antwort: antwortText,
+      einwilligungFehlt: istErsteNachricht && !einwilligung,
+      fehler: Boolean(error),
+      bereit: true,
+    });
+  }, [beschaeftigt, live.spricht, live.laedtErsten, sprachausgabe.spielt, sprachausgabe.laedt, antwortText, istErsteNachricht, einwilligung, error]);
+  useEffect(
+    () => () =>
+      meldeChatStand({ beschaeftigt: false, spricht: false, laedt: false, antwort: "", einwilligungFehlt: false, fehler: false, bereit: false }),
+    [],
+  );
+
   // Das ganze Chatfenster spricht die Sprache dieses Gespraechs: der Anbieter
   // legt die Texte der erkannten Sprache ueber die der Oberflaeche, damit auch
   // die Kindkomponenten (Mikrofon, Vorlesen, Quellen) mitziehen und nicht
@@ -551,7 +635,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
                 <Himbeere groesse={78} schweben />
               </span>
               <h3 className="ki-leer__titel">{t("leerTitel")}</h3>
-              <p className="ki-leer__text">{t(`modus.${modus}.beschreibung`)}</p>
+              <p className="ki-leer__text">{t(`modus.${panelModus}.beschreibung`)}</p>
               <p className="ki-leer__faehigkeiten">{t("leerBereiche", zaehler)}</p>
               <div className="ki-leer__vorschlaege">
                 {vorschlaege.map((schluessel, index) => {

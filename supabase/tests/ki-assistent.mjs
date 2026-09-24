@@ -92,8 +92,19 @@ import {
   KEINE_STELLE,
   mitSprachErinnerung,
   quellenAnweisung,
+  SPRACHMODUS_FUEHRUNG,
+  SPRACHMODUS_OBERFLAECHE,
+  sprachmodusFormatAnweisung,
 } from "../../src/lib/domain/antwort-anweisungen.ts";
 import { erkenneSprache, erkenneSpracheEindeutig } from "../../src/lib/wissen/chunker.ts";
+import {
+  antwortFertig,
+  assistentIstDran,
+  besterPlatz,
+  naechstePhase,
+  nimmtAuf,
+  PLAETZE,
+} from "../../src/lib/domain/sprachmodus.ts";
 import { erzeugeWarteschlange, HOECHSTENS_GLEICHZEITIG } from "../../src/lib/domain/sprachausgabe-warteschlange.ts";
 import { ANFANG, DARSTELLUNG_SCHLUESSEL, istDarstellung, naechsterZustand, NUTZER_SCHLUESSEL, OFFEN_SCHLUESSEL } from "../../src/lib/domain/ki-ansicht.ts";
 import { agentSeitenansichtAn, diktatLiveAn, schalterAn, sprachausgabeLiveAn } from "../../src/lib/domain/schalter.ts";
@@ -2136,6 +2147,108 @@ for (const [name, kaputteAntwort] of [
     }
     pruefe("Antwortsprache ohne Diktat: 16 von 16 Kombinationen aus Oberflaeche und Fragesprache antworten in der Sprache der Frage", ok === 16, `${ok}/16`);
     pruefe("Antwortsprache: ein (veraltetes) Diktat 'de' schlaegt die russische Frage - deshalb darf es nicht an fremden Fragen haengen", bestimmeAntwortsprache({ frage: fragen.ru, oberflaeche: "ru", diktatSprachen: ["de", "de"] }, (t) => erkenneSprache(t, 10)).sprache === "de");
+  }
+}
+
+// --- 17. Sprachmodus (24.09.2026): Ablauf, Kugel-Platzierung, Prompt-Anweisungen ----
+// Live-Gespraech ohne sichtbaren Chat: eine Kugel in der Mitte, die auf Stimme reagiert,
+// und die Faehigkeit, selbst zu einem Bereich zu springen und ihn hervorzuheben - dabei
+// rueckt die Kugel zur Seite, statt das Ziel zu verdecken.
+{
+  // (a) Ablauf: halbduplex, das Mikrofon nimmt nur auf, waehrend zugehoert wird.
+  pruefe("Sprachmodus: aus -> starten -> startet", naechstePhase("aus", { art: "starten" }) === "startet");
+  pruefe("Sprachmodus: startet -> Mikrofon bereit -> hoert", naechstePhase("startet", { art: "mikrofon-bereit" }) === "hoert");
+  pruefe("Sprachmodus: hoert waehrend Aufnahme, sonst nicht", nimmtAuf("hoert") === true && nimmtAuf("denkt") === false && nimmtAuf("spricht") === false && nimmtAuf("startet") === false);
+  {
+    let p = "hoert";
+    for (const [ereignis, erwartet] of [
+      [{ art: "aeusserung-ende" }, "versteht"],
+      [{ art: "frage-gestellt" }, "denkt"],
+      [{ art: "antwort-spricht" }, "spricht"],
+      [{ art: "antwort-fertig" }, "hoert"],
+    ]) {
+      p = naechstePhase(p, ereignis);
+      pruefe(`Sprachmodus: Ablauf ${ereignis.art} -> ${erwartet}`, p === erwartet, p);
+    }
+  }
+  pruefe("Sprachmodus: nichts gehoert fuehrt zurueck zum Zuhoeren, nicht zu einer Frage", naechstePhase("versteht", { art: "nichts-gehoert" }) === "hoert");
+  pruefe("Sprachmodus: waehrend der Assistent dran ist (denkt/spricht), zaehlt assistentIstDran", assistentIstDran("denkt") === true && assistentIstDran("spricht") === true && assistentIstDran("hoert") === false && assistentIstDran("pausiert") === false);
+  pruefe("Sprachmodus: ein Tipp waehrend des Sprechens unterbricht sofort zurueck zum Zuhoeren", naechstePhase("spricht", { art: "unterbrechen" }) === "hoert");
+  pruefe("Sprachmodus: pausieren geht aus jeder aktiven Phase, fortsetzen fuehrt zum Zuhoeren", naechstePhase("hoert", { art: "pausieren" }) === "pausiert" && naechstePhase("spricht", { art: "pausieren" }) === "pausiert" && naechstePhase("pausiert", { art: "fortsetzen" }) === "hoert");
+  pruefe("Sprachmodus: ein Fehler aus jeder Phase (ausser aus) fuehrt zu 'fehler'", naechstePhase("hoert", { art: "fehler" }) === "fehler" && naechstePhase("denkt", { art: "fehler" }) === "fehler" && naechstePhase("aus", { art: "fehler" }) === "aus");
+  pruefe("Sprachmodus: beenden fuehrt aus jeder Phase zu 'aus'", ["hoert", "denkt", "spricht", "pausiert", "fehler", "versteht"].every((p) => naechstePhase(p, { art: "beenden" }) === "aus"));
+  pruefe("Sprachmodus: ein unbekannter Uebergang aendert die Phase nicht", naechstePhase("hoert", { art: "beliebig-unbekannt" }) === "hoert");
+  pruefe("Sprachmodus: antwortFertig nur ohne Beschaeftigung, Sprechen und Laden", antwortFertig({ beschaeftigt: false, spricht: false, laedt: false }) === true && antwortFertig({ beschaeftigt: false, spricht: false, laedt: true }) === false && antwortFertig({ beschaeftigt: true, spricht: false, laedt: false }) === false);
+
+  // (b) Kugel-Platzierung: nie ueber dem Ziel, am weitesten davon entfernt, stabil bei
+  //     unveraendertem Ziel (kein Herumspringen), notfalls die kleinste Ueberlappung.
+  const fenster = { breite: 1440, hoehe: 900 };
+  const blase = { breite: 96, hoehe: 96 };
+  const raender = { oben: 64, rechts: 0, unten: 0, links: 0 };
+  {
+    const zielUntenRechts = { x: 1000, y: 600, breite: 380, hoehe: 250 };
+    const { platz, rechteck } = besterPlatz(zielUntenRechts, fenster, blase, raender);
+    const zielMitAbstand = { x: zielUntenRechts.x - 16, y: zielUntenRechts.y - 16, breite: zielUntenRechts.breite + 32, hoehe: zielUntenRechts.hoehe + 32 };
+    const ueberlappt = rechteck.x < zielMitAbstand.x + zielMitAbstand.breite && rechteck.x + rechteck.breite > zielMitAbstand.x && rechteck.y < zielMitAbstand.y + zielMitAbstand.hoehe && rechteck.y + rechteck.hoehe > zielMitAbstand.y;
+    pruefe("Kugel-Platz: kein Platz ueberlappt ein kleines Ziel", !ueberlappt, platz);
+    pruefe("Kugel-Platz: bei einem Ziel unten rechts geht sie nach oben links", platz === "oben-links", platz);
+  }
+  {
+    const zielObenLinks = { x: 20, y: 80, breite: 500, hoehe: 300 };
+    const { platz } = besterPlatz(zielObenLinks, fenster, blase, raender);
+    pruefe("Kugel-Platz: bei einem Ziel oben links geht sie nach unten rechts", platz === "unten-rechts", platz);
+  }
+  {
+    // Randfall: das Ziel fuellt praktisch den ganzen Bildschirm - jeder Platz ueberlappt,
+    // dann gewinnt die kleinste Ueberlappung statt ein Fehler oder eine feste Ecke.
+    const riesig = { x: 0, y: 64, breite: fenster.breite, hoehe: fenster.hoehe - 64 };
+    const { platz, rechteck } = besterPlatz(riesig, fenster, blase, raender);
+    pruefe("Kugel-Platz: ueberlappt jeder Platz, wird trotzdem einer gewaehlt", PLAETZE.includes(platz), platz);
+    pruefe("Kugel-Platz: das gewaehlte Rechteck liegt im Fenster", rechteck.x >= 0 && rechteck.y >= 0 && rechteck.x + rechteck.breite <= fenster.breite && rechteck.y + rechteck.hoehe <= fenster.hoehe);
+  }
+  {
+    // Bleibt das Ziel gleich, bleibt die Kugel an ihrem Platz (kein staendiges Umsetzen).
+    const ziel = { x: 300, y: 300, breite: 200, hoehe: 150 };
+    const erster = besterPlatz(ziel, fenster, blase, raender);
+    const zweiter = besterPlatz(ziel, fenster, blase, raender, 16, erster.platz);
+    pruefe("Kugel-Platz: bei unveraendertem Ziel bleibt der Platz stabil", zweiter.platz === erster.platz);
+  }
+  {
+    // Wechselt das Ziel so, dass es genau dort liegt, wo die Kugel gerade steht, wird ein
+    // anderer Platz gewaehlt - unabhaengig davon, welche Ecke das im Einzelfall ist.
+    const erstesZiel = { x: 1200, y: 700, breite: 100, hoehe: 80 };
+    const { platz: altPlatz, rechteck: alteBlase } = besterPlatz(erstesZiel, fenster, blase, raender);
+    const neuesZielAmPlatzDerBlase = { x: alteBlase.x - 20, y: alteBlase.y - 20, breite: alteBlase.breite + 40, hoehe: alteBlase.hoehe + 40 };
+    const { platz: neuPlatz } = besterPlatz(neuesZielAmPlatzDerBlase, fenster, blase, raender, 16, altPlatz);
+    pruefe("Kugel-Platz: ist der bisherige Platz jetzt belegt, wird ein anderer gewaehlt", neuPlatz !== altPlatz, `${altPlatz} -> ${neuPlatz}`);
+  }
+
+  // (c) Werkzeuge und Anweisungen des Sprachmodus.
+  {
+    const werkzeugeQuelle = readFileSync(new URL("../../src/lib/ai/ui-werkzeuge.ts", import.meta.url), "utf8");
+    pruefe("Sprachmodus-Werkzeuge: 'zeigen' erlaubt seiteLesen, scrolleZu, zeigeAuf, aber nicht klicke/fuelleFeld", werkzeugeQuelle.includes('if (stufe === "zeigen") return { seiteLesen, scrolleZu, zeigeAuf };'));
+    const uiSteuerungQuelle = readFileSync(new URL("../../src/components/ki/ui-steuerung.ts", import.meta.url), "utf8");
+    pruefe("Sprachmodus-Werkzeuge: Klicken und Ausfuellen sind bei nurZeigen gesperrt", uiSteuerungQuelle.includes("umgebung.nurZeigen && (name ===") );
+    const schrittQuelle = readFileSync(new URL("../../src/lib/ai/schritt-steuerung.ts", import.meta.url), "utf8");
+    pruefe("Sprachmodus: der erste Schritt einer neuen Frage MUSS ein Werkzeug rufen, wie im Agent-Modus", schrittQuelle.includes('e.modus === "agent" || e.modus === "sprache") return { toolChoice: "required" };'));
+    const routeQuelle = readFileSync(new URL("../../src/app/api/ki-assistent/route.ts", import.meta.url), "utf8");
+    pruefe("Route: der Sprachmodus bekommt oberflaeche 'zeigen' und nurLesen (keine Aktionen)", routeQuelle.includes('nurLesen: modus === "sprache"') && routeQuelle.includes('modus === "sprache" ? "zeigen"'));
+    pruefe("Route: der Sprachmodus nutzt eine eigene, kuerzere Formatanweisung", routeQuelle.includes('modus === "sprache" ? sprachmodusFormatAnweisung(antwortSprache) : formatAnweisung(antwortSprache)'));
+  }
+  for (const sprache of ["de", "en", "ru", "kk"]) {
+    const anweisung = sprachmodusFormatAnweisung(sprache);
+    pruefe(`Sprachmodus-Anweisung ${sprache}: kein Markdown, kurze Saetze verlangt`, anweisung.includes("Kein Markdown") && anweisung.includes("höchstens vier Sätze"));
+    pruefe(`Sprachmodus-Anweisung ${sprache}: aendert nie etwas`, anweisung.includes("Ändere NIE etwas"));
+  }
+  pruefe("Sprachmodus-Fuehrung: Navigation und Hervorheben, keine Erwaehnung von Klicken/Ausfuellen", SPRACHMODUS_FUEHRUNG.includes("oeffneBereich") && SPRACHMODUS_FUEHRUNG.includes("zeigeAuf") && !SPRACHMODUS_FUEHRUNG.includes("fuelleFeld") && !SPRACHMODUS_FUEHRUNG.includes("klicke"));
+  pruefe("Sprachmodus-Oberflaeche: nennt ausdruecklich, dass Klicken und Ausfuellen fehlen", SPRACHMODUS_OBERFLAECHE.includes("Klicken, Ausfüllen und Absenden kannst du nicht"));
+
+  // (d) Kopfzeilenknopf und Layout-Verdrahtung: nur mit Werkzeugen UND eingeschaltetem Live-Diktat.
+  {
+    const layoutQuelle = readFileSync(new URL("../../src/app/[locale]/dashboard/layout.tsx", import.meta.url), "utf8");
+    pruefe("Layout: sprachmodusMoeglich braucht Anthropic-Anbieter UND diktatLiveAn()", layoutQuelle.includes('sprachmodusMoeglich={aktiverAnbieter?.typ === "anthropic" && diktatLiveAn()}'));
+    const topbarQuelle = readFileSync(new URL("../../src/components/dashboard/topbar.tsx", import.meta.url), "utf8");
+    pruefe("Kopfzeile: der Sprachmodus-Knopf prueft verfuegbar UND sprachmodusMoeglich", topbarQuelle.includes("if (!verfuegbar || !sprachmodusMoeglich) return null;"));
   }
 }
 

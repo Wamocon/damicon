@@ -56,10 +56,13 @@ export function clientErgebnisseBereit(nachrichten: UIMessage[]): boolean {
 export function useKlientWerkzeuge({
   bewegeZeiger,
   istAgentModus,
+  istNurZeigen = () => false,
 }: {
   bewegeZeiger: ZeigerSteuerung["bewegen"];
   /** Liest den Modus bei AUSFUEHRUNG des Werkzeugs, nicht bei dessen Anstoss. */
   istAgentModus: () => boolean;
+  /** Sprachmodus: zeigen und scrollen ja, klicken und ausfuellen nie (ui-steuerung.ts). */
+  istNurZeigen?: () => boolean;
 }) {
   const [clientAktiv, setClientAktiv] = useState<string | null>(null);
   const [klickAnfrage, setKlickAnfrage] = useState<KlickAnfrageMitEntscheidung | null>(null);
@@ -109,6 +112,7 @@ export function useKlientWerkzeuge({
         zeiger: { bewegen: bewegeZeiger },
         bestaetigen: frageNutzer,
         agentModus: istAgentModus(),
+        nurZeigen: istNurZeigen(),
       });
       await warteBisBereit();
       setClientAktiv(null);

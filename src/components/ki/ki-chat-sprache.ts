@@ -24,6 +24,7 @@ export function useKiChatSprache({
   messages,
   beschaeftigt,
   offen,
+  sprachmodus = false,
 }: {
   /** Systemsprache (useLocale()). */
   sprache: string;
@@ -31,6 +32,8 @@ export function useKiChatSprache({
   beschaeftigt: boolean;
   /** Ob das Panel gerade offen ist (useKiPane().offen). */
   offen: boolean;
+  /** Sprachmodus: jede Antwort wird vorgelesen, auch bei geschlossenem Panel. */
+  sprachmodus?: boolean;
 }) {
   const sprachausgabe = useSprachausgabe(sprache);
 
@@ -43,7 +46,7 @@ export function useKiChatSprache({
   // entschieden.
   const [zugDiktiert, setZugDiktiert] = useState(false);
   const zuletztDiktiert = useRef(false);
-  const live = useLiveSprachausgabe(sprachausgabe.vorlesen || zugDiktiert);
+  const live = useLiveSprachausgabe(sprachausgabe.vorlesen || zugDiktiert || sprachmodus);
   const gesehenerAbschnitt = useRef(new Set<string>());
 
   const [diktiert, setDiktiert] = useState(false);
@@ -57,7 +60,9 @@ export function useKiChatSprache({
   useEffect(() => {
     const jetztFertig = warBeschaeftigt.current && !beschaeftigt;
     warBeschaeftigt.current = beschaeftigt;
-    if (!jetztFertig || !sprachausgabe.vorlesen) return;
+    // Im Sprachmodus auch ohne den Schalter "Antworten vorlesen": dort gibt es keinen
+    // sichtbaren Chat, die Stimme ist die Antwort.
+    if (!jetztFertig || !(sprachausgabe.vorlesen || sprachmodus)) return;
     const letzte = messages.at(-1);
     if (!letzte || letzte.role !== "assistant" || !istVorlesbar(letzte.id) || vorgelesen.current.has(letzte.id)) return;
     vorgelesen.current.add(letzte.id);
@@ -66,7 +71,7 @@ export function useKiChatSprache({
     // zweites Mal von vorn - ueber die Live-Stimme hinweg.
     if (gesehenerAbschnitt.current.size > 0) return;
     void sprachausgabe.spiele(letzte.id, antwortSpracheAus(letzte));
-  }, [beschaeftigt, messages, sprachausgabe]);
+  }, [beschaeftigt, messages, sprachausgabe, sprachmodus]);
 
   // Panel zu heisst still. Es bleibt gemountet, damit eine laufende
   // Antwort nicht abreisst - gesprochen wird trotzdem nicht weiter.

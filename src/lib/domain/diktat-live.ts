@@ -108,11 +108,27 @@ export interface LiveKonfiguration {
   enable_language_identification: true;
   enable_endpoint_detection: true;
   max_endpoint_delay_ms: number;
+  /** Nur im Gespraech (Sprachmodus), siehe GESPRAECH_ENDPUNKT. */
+  endpoint_sensitivity?: number;
+  endpoint_latency_adjustment_level?: number;
   context: DiktatKontext;
 }
 
-export function liveKonfiguration(oberflaeche: string | undefined): LiveKonfiguration {
+/** Wofuer zugehoert wird. "diktat" schreibt ins Eingabefeld und darf sich Zeit lassen;
+ *  "gespraech" ist der Sprachmodus, dort wartet jemand auf eine Antwort. */
+export type LiveZweck = "diktat" | "gespraech";
+
+/** Endpunkterkennung im Gespraech. Soniox nennt diese Werte selbst als Startpunkt fuer
+ *  reaktives Turn-Taking (soniox.com/docs/stt/rt/endpoint-detection, abgerufen 24.09.2026):
+ *  das Ende einer Aeusserung wird frueher erkannt, bleibt aber semantisch - ein erkennbar
+ *  unfertiger Satz bekommt weiter mehr Zeit. Beim Diktat bleibt es bei der Voreinstellung,
+ *  dort ist ein zu frueher Schnitt aergerlicher als eine Sekunde Warten. Je Sprache nicht
+ *  gemessen; nachziehen, sobald echte Gespraeche vorliegen. */
+export const GESPRAECH_ENDPUNKT = { endpoint_sensitivity: 0.3, endpoint_latency_adjustment_level: 2 } as const;
+
+export function liveKonfiguration(oberflaeche: string | undefined, zweck: LiveZweck = "diktat"): LiveKonfiguration {
   return {
+    ...(zweck === "gespraech" ? GESPRAECH_ENDPUNKT : {}),
     model: LIVE_MODELL,
     // Der Browser schickt, was MediaRecorder liefert (webm/opus, auf dem
     // iPhone mp4) - genau so macht es das offizielle Web-SDK.

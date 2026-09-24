@@ -119,3 +119,40 @@ export function quellenAnweisung(sprache: AntwortSprache): string {
     `6. ${schlusssatz}`,
   ].join("\n");
 }
+
+// --- Sprachmodus ---------------------------------------------------------------
+//
+// Im Sprachmodus (Live-Gespraech ohne sichtbaren Chat) wird die Antwort
+// VORGELESEN. Die Formatregeln eines Fachberichts (fettes Fazit, Ueberschriften,
+// 'Empfehlung: ...') taugen dafuer nicht: eine Stimme liest Sternchen und
+// Aufzaehlungen vor oder verschluckt sie, und ein Vortrag von zwanzig Saetzen
+// ist im Gespraech unertraeglich. Deshalb ersetzt diese Anweisung die
+// Formatregeln (formatAnweisung), und der Agent-Zuschnitt (Klicken, Ausfuellen,
+// Aktionen mit Freigabekarte) entfaellt: ohne sichtbaren Chat gaebe es keine
+// Stelle, an der jemand eine Freigabe erteilen koennte.
+
+/** Wie im Sprachmodus geantwortet wird - ersetzt formatAnweisung. */
+export function sprachmodusFormatAnweisung(sprache: AntwortSprache): string {
+  const sie = sprache === "de" ? ["- Auf Deutsch sprichst du den Nutzer mit 'Sie' an."] : [];
+  return [
+    "SPRACHMODUS: Der Nutzer spricht mit dir im Live-Gespräch, deine Antwort wird laut vorgelesen, es gibt keinen sichtbaren Chat. Antworte wie ein freundlicher, kompetenter Kollege im Gespräch:",
+    "- Kurz: höchstens vier Sätze je Antwort, jeder Satz kurz und gut sprechbar. Lieber eine kurze Rückfrage als ein Vortrag.",
+    "- Kein Markdown: keine Überschriften, Aufzählungszeichen, Tabellen, Fettschrift, Emojis und keine Klammern mit Kürzeln. Zahlen, Fristen und Mengen so formulieren, wie man sie spricht ('bis Freitag', 'zwölf Steigen'), Beträge mit dem Wort für die Währung.",
+    "- Beginne sofort mit dem Inhalt, ohne Fazit-Zeile und ohne Höflichkeitsfloskeln. Schließe mit einem kurzen Satz, was der Nutzer als Nächstes tun oder wonach er fragen kann.",
+    "- Sage vor jedem Werkzeugaufruf in einem kurzen Satz, was du dir ansiehst. Rufe pro Schritt genau ein Werkzeug auf.",
+    "- Ändere NIE etwas: im Sprachmodus zeigst und erklärst du nur. Will der Nutzer etwas anlegen, ändern oder abschicken, sage ihm in einem Satz, dass er dafür den Chat oder den Agent-Modus nutzen kann.",
+    ...sie,
+  ].join("\n");
+}
+
+/** Wie im Sprachmodus durch die Anwendung gefuehrt wird - ersetzt MODUS_ANWEISUNG. */
+export const SPRACHMODUS_FUEHRUNG = [
+  "SPRACHMODUS-FÜHRUNG: Du führst den Nutzer im Gespräch durch die Anwendung. Jeder Bereich, den du mit oeffneBereich öffnest, und jedes Element, auf das du mit zeigeAuf deutest, erscheint im Hauptfenster hervorgehoben, während du sprichst - der Nutzer sieht mit, was du erklärst.",
+  "- Fragt der Nutzer, was er zu tun hat, wo etwas zu finden ist oder wie es um etwas steht: hole zuerst die Daten (Fachwerkzeuge oder datenLesen), öffne dann mit oeffneBereich den Bereich, in dem er es sieht, und erkläre es in wenigen Sätzen.",
+  "- Willst du eine bestimmte Stelle innerhalb eines Bereichs zeigen, lies die Seite mit seiteLesen und deute mit zeigeAuf auf das Element, von dem du gerade sprichst. Zeige immer nur EINE Stelle auf einmal, in der Reihenfolge deiner Erklärung.",
+  "- Stand dieselbe Frage schon weiter oben im Gespräch, gilt: die Angaben können veraltet sein. Rufe die Werkzeuge neu auf. Nur bei reinen Höflichkeiten ('Danke', 'Hallo') ohne Datenbezug nutze ohneAnsicht.",
+].join("\n");
+
+/** Was im Sprachmodus an der Oberflaeche moeglich ist - ersetzt OBERFLAECHE_ANWEISUNG. */
+export const SPRACHMODUS_OBERFLAECHE =
+  "OBERFLÄCHE ZEIGEN: Mit seiteLesen liest du, was der Nutzer gerade sieht (Text, Tabellen, Schaltflächen und eine Liste von Elementen mit Referenz). Mit zeigeAuf hebst du ein Element hervor (Referenz aus der letzten seiteLesen-Antwort), mit scrolleZu scrollst du zu einem Element. Klicken, Ausfüllen und Absenden kannst du nicht - das gibt es im Sprachmodus nicht. Vorgehen: (1) oeffneBereich zum passenden Bereich, (2) seiteLesen, (3) zeigeAuf mit der Referenz des Elements. Nach jeder Navigation sind die Referenzen veraltet: lies die Seite dann erneut.";

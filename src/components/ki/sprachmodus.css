@@ -1,0 +1,218 @@
+/* Sprachmodus (components/ki/sprachmodus.tsx): Live-Gespraech ohne sichtbaren
+   Chat. Eigene Datei statt in ki-pane.css, weil das Overlay unabhaengig vom
+   Panel besteht (es liegt DARUEBER, das Panel bleibt unsichtbar aktiv
+   dahinter). Nutzt dieselben Tokens wie die Buehne (--ki-buehne-*), damit
+   beide zur selben Bildsprache gehoeren. Alle Bewegung an
+   prefers-reduced-motion gebunden. */
+
+.ki-sprachmodus {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  isolation: isolate;
+}
+
+.ki-sprachmodus__hintergrund {
+  position: absolute;
+  inset: 0;
+  background: rgb(4 10 14 / 0.55);
+  backdrop-filter: blur(20px) saturate(0.85);
+  -webkit-backdrop-filter: blur(20px) saturate(0.85);
+}
+:root:not(.dark) .ki-sprachmodus__hintergrund {
+  background: rgb(242 246 248 / 0.6);
+}
+@supports not (backdrop-filter: blur(1px)) {
+  /* Manche Mobilgeraete melden Unterstuetzung, rendern die Unschaerfe aber
+     nicht zuverlaessig (siehe Recherche) - hier greift dann die deckendere
+     Ersatzflaeche allein, ohne dass Text auf dem Hintergrund lesbar bliebe. */
+  .ki-sprachmodus__hintergrund {
+    background: rgb(4 10 14 / 0.86);
+  }
+  :root:not(.dark) .ki-sprachmodus__hintergrund {
+    background: rgb(242 246 248 / 0.92);
+  }
+}
+
+/* ---- Kugel: Mitte oder klein am Rand ---------------------------------------- */
+.ki-sprachmodus__kugel-huelle {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+/* Verschoben (ein Bereich ist hervorgehoben): fest positioniert am berechneten
+   Platz (besterPlatz, domain/sprachmodus.ts), keine eigene Verlaufsanimation
+   noetig - die Groessenaenderung der Kugel selbst (220px -> 96px, per Prop)
+   traegt den Uebergang, die Positionierung springt weich per transition. */
+.ki-sprachmodus--verschoben .ki-sprachmodus__kugel-huelle {
+  position: fixed;
+  gap: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-sprachmodus__kugel-huelle {
+    transition: left 0.45s cubic-bezier(0.16, 1, 0.3, 1), top 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+      width 0.45s cubic-bezier(0.16, 1, 0.3, 1), height 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+.ki-sprachmodus__kugel-knopf {
+  display: block;
+  padding: 0;
+  border: none;
+  background: none;
+  border-radius: 999px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.ki-sprachmodus__kugel-knopf:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 6px;
+}
+.ki-sprachmodus--verschoben .ki-sprachmodus__kugel-knopf {
+  filter: drop-shadow(0 8px 24px rgb(0 0 0 / 0.35));
+}
+
+.ki-sprachmodus__status {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.92);
+  text-align: center;
+}
+:root:not(.dark) .ki-sprachmodus__status {
+  color: #0b1e26;
+}
+
+/* ---- Untertitel -------------------------------------------------------------- */
+.ki-sprachmodus__untertitel {
+  position: relative;
+  z-index: 2;
+  margin-top: 1.5rem;
+  max-width: min(34rem, calc(100vw - 3rem));
+  min-height: 1.6em;
+  text-align: center;
+}
+.ki-sprachmodus__untertitel-zeile {
+  font-size: 1.0625rem;
+  line-height: 1.5;
+  color: rgb(255 255 255 / 0.88);
+}
+:root:not(.dark) .ki-sprachmodus__untertitel-zeile {
+  color: #0b1e26;
+}
+.ki-sprachmodus__untertitel-zeile--nutzer {
+  font-style: italic;
+  color: rgb(255 255 255 / 0.66);
+}
+:root:not(.dark) .ki-sprachmodus__untertitel-zeile--nutzer {
+  color: rgb(11 30 38 / 0.66);
+}
+
+.ki-sprachmodus__meldung {
+  position: relative;
+  z-index: 2;
+  margin-top: 0.75rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--destructive) 20%, transparent);
+  color: var(--destructive-foreground, #fff);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/* ---- Bedienleiste ------------------------------------------------------------- */
+.ki-sprachmodus__leiste {
+  position: fixed;
+  left: 50%;
+  bottom: max(1.5rem, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 999px;
+  background: rgb(20 16 26 / 0.7);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+:root:not(.dark) .ki-sprachmodus__leiste {
+  background: rgb(255 255 255 / 0.85);
+  border-color: rgb(11 30 38 / 0.12);
+}
+/* 44px Mindestmass wie ueberall sonst auf dem Handy (DESIGN.md #8/#10) - hier
+   auf allen Breiten, weil der Sprachmodus auf dem Hof ebenso am Handy bedient wird. */
+.ki-sprachmodus__knopf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: rgb(255 255 255 / 0.85);
+  cursor: pointer;
+}
+:root:not(.dark) .ki-sprachmodus__knopf {
+  color: #0b1e26;
+}
+.ki-sprachmodus__knopf:hover {
+  background: rgb(255 255 255 / 0.1);
+}
+:root:not(.dark) .ki-sprachmodus__knopf:hover {
+  background: rgb(11 30 38 / 0.08);
+}
+.ki-sprachmodus__knopf:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.ki-sprachmodus__knopf--aktiv {
+  background: color-mix(in oklab, var(--primary) 18%, transparent);
+  color: var(--primary);
+}
+.ki-sprachmodus__knopf--beenden {
+  color: var(--destructive);
+}
+.ki-sprachmodus__knopf--beenden:hover {
+  background: color-mix(in oklab, var(--destructive) 16%, transparent);
+}
+
+/* ---- Spotlight (sprach-spotlight.tsx) ---------------------------------------- */
+.ki-sprachmodus__spotlight {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+.ki-sprachmodus__spotlight-maske path {
+  fill: rgb(4 10 14 / 0.62);
+}
+:root:not(.dark) .ki-sprachmodus__spotlight-maske path {
+  fill: rgb(242 246 248 / 0.7);
+}
+.ki-sprachmodus__spotlight-ring {
+  position: fixed;
+  border-radius: 0.75rem;
+  outline: 2px solid var(--primary);
+  outline-offset: 0;
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--primary) 25%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-sprachmodus__spotlight-ring {
+    transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1), top 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+      width 0.35s cubic-bezier(0.16, 1, 0.3, 1), height 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: ki-sprachmodus-ring 2.4s ease-in-out infinite;
+  }
+}
+@keyframes ki-sprachmodus-ring {
+  0%, 100% { box-shadow: 0 0 0 4px color-mix(in oklab, var(--primary) 25%, transparent); }
+  50% { box-shadow: 0 0 0 8px color-mix(in oklab, var(--primary) 12%, transparent); }
+}

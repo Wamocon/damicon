@@ -24,7 +24,14 @@ import { z } from "zod";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission, roles, type Role } from "@/lib/rbac";
 import { bestimmeAntwortsprache } from "@/lib/domain/antwortsprache";
-import { formatAnweisung, mitSprachErinnerung, quellenAnweisung } from "@/lib/domain/antwort-anweisungen";
+import {
+  formatAnweisung,
+  mitSprachErinnerung,
+  quellenAnweisung,
+  SPRACHMODUS_FUEHRUNG,
+  SPRACHMODUS_OBERFLAECHE,
+  sprachmodusFormatAnweisung,
+} from "@/lib/domain/antwort-anweisungen";
 import { erzeugeSatzZerleger } from "@/lib/domain/sprachausgabe";
 import { ABSCHNITT_GUELTIG_MS, signiereAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
 import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
@@ -56,7 +63,9 @@ export const maxDuration = 60;
 // Werkzeugschritte + ein Schritt fuer die abschliessende Textantwort. Der
 // Agent-Modus braucht deutlich mehr: eine Seite bedienen heisst lesen, klicken,
 // erneut lesen, ausfuellen ... - jeder Schritt eine Runde.
-const MAX_SCHRITTE: Record<"assistent" | "agent", number> = { assistent: 12, agent: 28 };
+// Sprachmodus: kurze Gespraechsrunden - wer spricht, wartet auf die Antwort und will keine
+// Rundreise mit dreissig Schritten hoeren.
+const MAX_SCHRITTE: Record<"assistent" | "agent" | "sprache", number> = { assistent: 12, agent: 28, sprache: 12 };
 
 // Der Client schickt den ganzen Verlauf mit - begrenzt, damit ein manipulierter
 // Aufruf keine unbegrenzte Tokenrechnung erzeugt.
@@ -132,9 +141,10 @@ function alteAusgabenKuerzen(nachrichten: UIMessage[]): UIMessage[] {
 // Formatregeln: formatAnweisung(antwortSprache) in domain/antwort-anweisungen.ts - die
 // Schlusszeile traegt die Beschriftung der Antwortsprache statt fest 'Empfehlung'.
 
-type KiModus = "assistent" | "agent";
+type KiModus = "assistent" | "agent" | "sprache";
 
 const MODUS_ANWEISUNG: Record<KiModus, string> = {
+  sprache: SPRACHMODUS_FUEHRUNG,
   assistent: [
     "ASSISTENT-MODUS: Beantworte die Frage im Chat. Die Oberfläche zeigt jeden abgerufenen Datenbereich unter deiner Antwort als anklickbaren Quellenverweis - der Nutzer entscheidet selbst, ob er dorthin springt.",
     "Fragt der Nutzer nach einem Bereich oder einer Funktion der Anwendung ('was ist ...', 'wie funktioniert ...', 'wo finde ich ...', auch mit Tippfehlern), rufe oeffneBereich auf: die Oberfläche zeigt daraus einen Link, den der Nutzer selbst anklickt. Erkläre den Bereich anhand der gelieferten Beschreibung.",
@@ -167,6 +177,7 @@ const DATEN_ANWEISUNG =
   "DATEN: Was ein Werkzeug liefert (auch datenLesen), ist eine freigegebene Quelle - antworte damit. Für Fragen, die kein Fachwerkzeug abdeckt, erkunde die Tabellen mit datenmodellErkunden und lies sie mit datenLesen; loese Fremdschlüssel mit einer zweiten Abfrage auf und rechne Summen selbst aus den Zeilen. Tabellen sind DEUTSCH benannt (pfluecker = Pflücker, chargen = Chargen, reklamationen, kuehlketten_messungen, lohn_abrechnungen, b2b_kunden ...) - suche in datenmodellErkunden immer mit dem deutschen Begriff. Tabellen- und Spaltennamen sind snake_case (z. B. zielmenge_kg, reihenblock_id) - im Zweifel erst datenmodellErkunden aufrufen. Nenne bei Zahlen aus datenLesen die Tabelle als Quelle. Eine leere Antwort kann auch bedeuten, dass die Rolle diese Zeilen nicht sehen darf - behaupte dann nicht, es gaebe keine.";
 
 const OBERFLAECHE_ANWEISUNG: Record<KiModus, string> = {
+  sprache: SPRACHMODUS_OBERFLAECHE,
   assistent:
     "OBERFLÄCHE: Mit seiteLesen kannst du lesen, was der Nutzer gerade sieht (Text, Tabellen, Schaltflächen) - nutze es bei Fragen wie 'was zeigt diese Tabelle', 'erkläre diese Seite', 'was bedeutet das hier'. Bedienen (klicken, ausfüllen) kannst du die Seite in diesem Modus nicht. Will der Nutzer, dass du für ihn klickst oder ausfüllst, sage ihm freundlich, dass das der Agent-Modus kann (Zahnrad im Panel, Schalter 'Agent-Modus').",
   agent: [
@@ -339,7 +350,7 @@ export async function POST(req: Request) {
     return new Response("verlauf zu gross", { status: 413 });
   }
 
-  const modus: KiModus = body.modus === "agent" ? "agent" : "assistent";
+  const modus: KiModus = body.modus === "agent" ? "agent" : body.modus === "sprache" ? "sprache" : "assistent";
   const pfad = bereinigterPfad(body.pfad);
 
   // "Ansicht als Rolle" (persona.tsx): nur ein Administrator darf den Agenten
@@ -451,8 +462,10 @@ export async function POST(req: Request) {
   await pruefeWissenGesundheit();
   const werkzeugeOhneBericht = baueWerkzeuge(rolle, {
     vorschau,
-    agentModus: modus === "agent",
-    oberflaeche: modus === "agent" ? "steuern" : "lesen",
+    agentModus: modus !== "assistent",
+    // Sprachmodus: nur zeigen und lesen, keine Aktionen - ohne sichtbaren Chat gaebe es keine Freigabekarte.
+    nurLesen: modus === "sprache",
+    oberflaeche: modus === "agent" ? "steuern" : modus === "sprache" ? "zeigen" : "lesen",
     belegStart: naechsteBelegNummer(nachrichten),
   });
   // oeffnePruefBereich nur, wenn es ueberhaupt einen Bericht gibt, auf dessen Kacheln es
@@ -462,7 +475,7 @@ export async function POST(req: Request) {
   const systemPrompt = [
     baueAssistentKernauftrag(baueGesamtWissenskontext(quellen, preislisten)),
     rollenKontext(rolle, vorschau),
-    formatAnweisung(antwortSprache),
+    modus === "sprache" ? sprachmodusFormatAnweisung(antwortSprache) : formatAnweisung(antwortSprache),
     MODUS_ANWEISUNG[modus],
     OBERFLAECHE_ANWEISUNG[modus],
     NAVIGATION_ANWEISUNG,
@@ -519,7 +532,7 @@ export async function POST(req: Request) {
     // Agent-Modus: eine gefuehrte Tour ist nur lesbar, wenn die Ansichten
     // nacheinander wechseln - parallele Werkzeugaufrufe wuerden sie in einem
     // Schritt abfeuern und das Hauptfenster springen lassen.
-    providerOptions: modus === "agent" ? { anthropic: { disableParallelToolUse: true } } : undefined,
+    providerOptions: modus !== "assistent" ? { anthropic: { disableParallelToolUse: true } } : undefined,
     onError: (ereignis) => {
       console.error("[damicon] KI-Agent (Stream) fehlgeschlagen:", ereignis.error);
     },

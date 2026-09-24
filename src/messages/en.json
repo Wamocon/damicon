@@ -2106,7 +2106,27 @@
     "pruefBezugKacheln": "Jump straight to a tile",
     "mehr": "More",
     "groesser": "Enlarge panel",
-    "kleiner": "Shrink panel"
+    "kleiner": "Shrink panel",
+    "sprachmodus": {
+      "titel": "Voice mode",
+      "starten": "Start voice mode",
+      "beenden": "End voice mode",
+      "unterbrechen": "Tap to interrupt",
+      "stumm": "Mute microphone",
+      "fortsetzen": "Unmute microphone",
+      "untertitel": "Captions",
+      "hoertZu": "Listening …",
+      "keinZugriff": "No microphone access. Please allow it in your browser settings.",
+      "status": {
+        "startet": "Opening microphone …",
+        "hoert": "Listening",
+        "versteht": "One moment …",
+        "denkt": "Checking …",
+        "spricht": "Himbi is speaking",
+        "pausiert": "Microphone muted",
+        "fehler": "Something went wrong"
+      }
+    }
   },
   "legal": {
     "imprintTitle": "Imprint",

@@ -560,6 +560,10 @@ export const de: HandbuchTexte = {
         text: "Kasachstanische Pflichtsysteme für elektronische Rechnungen beziehungsweise für die Erfassung von Arbeitsverträgen.",
       },
       {
+        begriff: "Sprachmodus",
+        text: "Live-Gespräch mit dem Assistenten ohne sichtbaren Chat: eine Kugel reagiert auf die Stimme, der Assistent kann selbst zu einem Bereich springen und ihn zeigen.",
+      },
+      {
         begriff: "WAMOCON",
         text: "WAMOCON GmbH — Auftraggeber und Entwickler von Damicon.",
       },

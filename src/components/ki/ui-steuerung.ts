@@ -9,6 +9,8 @@
 //   * Gesperrt: Abmelden, Passwortfelder, Links aus der Anwendung heraus.
 //   * Der Agent sieht nur, was auch der Nutzer sieht (sichtbare Elemente).
 
+import { setzeHervorhebung } from "@/components/ki/hervorhebung";
+
 export interface ElementInfo {
   ref: string;
   typ: string;
@@ -48,6 +50,9 @@ export interface Umgebung {
   zeiger: ZeigerSteuerung;
   bestaetigen: (anfrage: KlickAnfrage) => Promise<boolean>;
   agentModus: boolean;
+  /** Sprachmodus: zeigen, lesen und scrollen - aber nie klicken oder ausfuellen. Ohne sichtbaren
+   *  Chat gibt es keine Stelle, an der der Nutzer eine Freigabe erteilen koennte. */
+  nurZeigen?: boolean;
 }
 
 const MAX_ELEMENTE = 140;
@@ -246,6 +251,8 @@ export function klickStufe(el: HTMLElement): Klickstufe {
 }
 
 function hebeHervor(el: Element): void {
+  // Der Sprachmodus legt einen Lichtkegel um genau dieses Element (hervorhebung.ts).
+  setzeHervorhebung(el);
   el.classList.remove(FOKUS_KLASSE);
   void (el as HTMLElement).offsetWidth;
   el.classList.add(FOKUS_KLASSE);
@@ -418,6 +425,9 @@ export async function fuehreUiWerkzeugAus(name: string, eingabe: unknown, umgebu
     if (name === "seiteLesen") return await schnappschuss(text("fokus") || undefined);
     if (!umgebung.agentModus) {
       return { ok: false, hinweis: "Die Seite bedienen kann ich nur im Agent-Modus (Zahnrad im Panel). Lesen ist in beiden Modi möglich." };
+    }
+    if (umgebung.nurZeigen && (name === "klicke" || name === "fuelleFeld")) {
+      return { ok: false, gesperrt: true, hinweis: "Im Sprachmodus zeige und erkläre ich nur. Klicken und Ausfüllen gehen im Chat oder im Agent-Modus." };
     }
     if (name === "klicke") return await klicken(text("ref"), text("absicht"), umgebung);
     if (name === "fuelleFeld") return await ausfuellen(text("ref"), text("wert"), umgebung);
