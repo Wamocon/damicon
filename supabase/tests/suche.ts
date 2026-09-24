@@ -241,6 +241,11 @@ pruefe(
   "leere Eingabe liefert keine Treffer",
   sucheSeiten(pickerZiele, "   ").length === 0,
 );
+pruefe(
+  "die Tagline eines Bereichs fuehrt nicht auf Module, die die Rolle nicht sieht",
+  sucheSeiten(pickerZiele, "Finanzen").length === 0,
+  sucheSeiten(pickerZiele, "Finanzen").map((z) => z.schluessel).join(","),
+);
 
 // --- 4. Zuletzt geoeffnet ---------------------------------------------------
 

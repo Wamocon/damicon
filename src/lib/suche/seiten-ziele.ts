@@ -47,7 +47,7 @@ export const HOECHSTENS_TREFFER = 8;
 
 // Gewichte innerhalb derselben Stufe: der Name vor dem Beiwerk. Sucht jemand
 // "Feld", steht der Bereich Feld vor den Modulen, die nur ueber ihren
-// Bereichsnamen passen.
+// Bereichsnamen passen - und die folgen ihm, so sieht man, was darin liegt.
 const NAME = 3;
 const BEIWERK = 1;
 
@@ -81,15 +81,18 @@ export function baueSeitenZiele(
     if (sichtbar.length === 0) continue;
 
     const bereich = t(`zones.${zone.key}.name`);
-    const tagline = t(`zones.${zone.key}.tagline`);
     ziele.push({
       schluessel: `bereich:${zone.key}`,
       titel: bereich,
-      untertitel: tagline,
+      // Die Tagline zaehlt die Module des Bereichs auf ("Finanzen, Personal,
+      // Compliance"). Sie steht nur darunter und wird nicht durchsucht: fuer
+      // den Pfluecker faende "Finanzen" sonst den Bereich Buero, in dem er
+      // gar keine Finanzen sieht.
+      untertitel: t(`zones.${zone.key}.tagline`),
       href: `/dashboard/${zone.key}`,
       extern: false,
       symbol: zone.icon,
-      felder: [indexFeld(bereich, NAME), indexFeld(tagline, BEIWERK)],
+      felder: [indexFeld(bereich, NAME)],
     });
 
     for (const modul of sichtbar) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { ChevronRight, House, Search } from "lucide-react";
+import { ChevronRight, House } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { useSeitenPfad, type PfadStation } from "@/components/dashboard/nav-ziele";
 import { cn } from "@/lib/utils";
@@ -140,41 +140,4 @@ export function TopbarPfad() {
   }
 
   return <PfadListe stationen={stationen} className="hidden md:flex" />;
-}
-
-// Die Suche ist bis heute eine Attrappe (Punkt 1 des UX-Audits, PT-D-07 im
-// UI-Bericht). Form und Ort aendern sich hier, die Funktion nicht.
-const suchStil =
-  "items-center rounded-lg border border-border bg-card text-muted-foreground";
-
-/**
- * Das Suchfeld, erst ab xl. Es waechst in die Luecke zwischen Pfad und
- * Werkzeugen. Darunter uebernimmt TopbarSuchknopf.
- */
-export function TopbarSuche() {
-  const t = useTranslations("dashboard");
-  return (
-    <div className={cn("hidden min-w-0 flex-1 gap-2 px-3 py-2 text-sm xl:flex", suchStil)}>
-      <Search className="h-4 w-4 shrink-0" />
-      <span className="truncate">{t("searchPlaceholder")}</span>
-    </div>
-  );
-}
-
-/**
- * Der Suchknopf unterhalb von xl. Er steht rechts bei den uebrigen
- * Werkzeugen und nicht neben dem Pfad: dort waere er ein einzelnes Symbol
- * mitten in der Zeile, hier reiht er sich bei Sprache und Farbschema ein.
- */
-export function TopbarSuchknopf() {
-  const t = useTranslations("dashboard");
-  return (
-    <span
-      aria-hidden
-      title={t("searchPlaceholder")}
-      className={cn("hidden h-9 w-9 shrink-0 justify-center md:inline-flex xl:hidden", suchStil)}
-    >
-      <Search className="h-4 w-4" />
-    </span>
-  );
 }

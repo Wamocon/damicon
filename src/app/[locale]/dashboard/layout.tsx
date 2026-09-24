@@ -16,6 +16,7 @@ import { erlaubteBereiche } from "@/lib/pruefung/rollen";
 import { HaustierDashboard } from "@/components/haustier/haustier-dashboard";
 import { HaustierProvider } from "@/components/haustier/haustier-kontext";
 import { KiPaneProvider } from "@/components/ki/ki-pane-kontext";
+import { SuchProvider } from "@/components/suche/such-kontext";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -89,6 +90,10 @@ export default async function DashboardLayout({
         <HaustierProvider>
         <ComplianceTourProvider>
         <BlattProvider>
+        {/* Die globale Suche umschliesst die Shell und legt ihr Fenster
+            daneben ab statt in die Kopfzeile (suche/such-kontext.tsx). Sie
+            braucht Persona, KI-Panel und Blattzustand, also hier innen. */}
+        <SuchProvider nutzerId={profil?.id ?? null}>
         <div className="dashboard-shell flex min-h-svh w-full">
           <DashboardSidebar />
           {/* Kopfzeile und Hauptbereich in einer eigenen Spalte, die ein
@@ -126,6 +131,7 @@ export default async function DashboardLayout({
             />
           ) : null}
         </div>
+        </SuchProvider>
         <HaustierDashboard />
         </BlattProvider>
         </ComplianceTourProvider>

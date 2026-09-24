@@ -319,8 +319,23 @@
     "erfolg": "Zweiter Faktor eingerichtet und aktiv.",
     "note": "Bei der nächsten Anmeldung wird der Code zusätzlich zum Passwort abgefragt. Ohne eingerichteten Faktor bleibt die Anmeldung wie bisher - Mehrfaktor-Authentifizierung ist Pflicht, ihre Durchsetzung je Rolle ist ein späterer Ausbauschritt."
   },
+  "suche": {
+    "titel": "Suche",
+    "platzhalter": "Seite oder Modul suchen …",
+    "eingabe": "Seite oder Modul suchen",
+    "oeffnen": "Suche öffnen",
+    "schliessen": "Suche schließen",
+    "kuerzel": "Tastenkürzel: / oder Strg+K (Mac: ⌘K)",
+    "bedienung": "Pfeiltasten wählen einen Treffer, die Eingabetaste öffnet ihn, Esc schließt die Suche.",
+    "ergebnisse": "Treffer",
+    "gruppeTreffer": "Seiten und Module",
+    "gruppeZuletzt": "Zuletzt geöffnet",
+    "leer": "Namen eines Bereichs, Moduls oder einer Seite eingeben.",
+    "keineTreffer": "Keine Seite und kein Modul zu „{begriff}“.",
+    "anzahl": "{anzahl, plural, =0 {Keine Treffer} one {# Treffer} other {# Treffer}}",
+    "kiFragen": "KI fragen: {begriff}"
+  },
   "dashboard": {
-    "searchPlaceholder": "Reihenblock, Charge, Pflücker, Dokument suchen ...",
     "notifications": "Benachrichtigungen",
     "open": "Öffnen",
     "zoneEmpty": "Für die aktive Rolle ist in dieser Zone kein Modul freigegeben.",
