@@ -105,7 +105,7 @@ Suchknopf Steht Links Neben Der Glocke
     ...    neben den Meldungen. Zwischen beiden liegen die 8 px Abstand der
     ...    Werkzeuggruppe.
     ${abstand} =    Evaluate JavaScript    ${None}
-    ...    () => { const k = [...document.querySelectorAll('header.sticky [data-suche="knopf"]')].find((e) => e.getBoundingClientRect().width > 0); const g = document.querySelector('header.sticky button[aria-label="Benachrichtigungen"]'); if (!k || !g) return -1; return Math.round(g.getBoundingClientRect().left - k.getBoundingClientRect().right); }
+    ...    () => { const k = document.querySelector('header.sticky [data-suche="knopf"]'); const g = document.querySelector('header.sticky button[aria-label="Benachrichtigungen"]'); if (!k || !g) return -1; return Math.round(g.getBoundingClientRect().left - k.getBoundingClientRect().right); }
     Should Be Equal As Integers    ${abstand}    8
     ...    msg=Der Suchknopf steht nicht direkt links neben der Glocke (Abstand ${abstand} px, -1 heisst: fehlt).
 
@@ -125,12 +125,12 @@ Suche Ist Nur Ein Knopf
     Should Be Equal As Integers    ${knoepfe}    1
     ...    msg=Der Suchknopf fehlt oder steht doppelt sichtbar.
     ${breite} =    Evaluate JavaScript    ${None}
-    ...    () => Math.round([...document.querySelectorAll('header.sticky [data-suche="knopf"]')].find((e) => e.getBoundingClientRect().width > 0).getBoundingClientRect().width)
+    ...    () => Math.round(document.querySelector('header.sticky [data-suche="knopf"]').getBoundingClientRect().width)
     Should Be True    ${breite} <= 44
     ...    msg=Die Suche ist ${breite} px breit, eine Leiste statt eines Knopfes.
-    ${felder} =    Get Element Count    ${KOPFBALKEN} input, ${KOPFBALKEN} [data-suche="feld"]
+    ${felder} =    Get Element Count    ${KOPFBALKEN} input
     Should Be Equal As Integers    ${felder}    0
-    ...    msg=In der Kopfzeile steht ein Eingabefeld oder eine Suchleiste.
+    ...    msg=In der Kopfzeile steht ein Eingabefeld.
 
 Suchfenster Steht Mittig Oben
     [Documentation]    Das Fenster geht auf jeder Breite oben in der Mitte des

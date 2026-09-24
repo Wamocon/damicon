@@ -47,7 +47,7 @@ Schreibtisch Oeffnet Das Suchfenster Mittig Oben
     [Tags]    schreibtisch
     Portal Oeffnen    ${SCHREIBTISCH}
     Seite Ansteuern    /dashboard/hof/kuehlkette
-    Click    ${KOPFBALKEN} [data-suche="knopf"] >> visible=true
+    Click    ${KOPFBALKEN} [data-suche="knopf"]
     Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
     Suchfenster Steht Mittig Oben
     Befund Festhalten    ${SCHREIBTISCH}    suche-mittig-oben
@@ -141,7 +141,7 @@ Handy Quer Zeigt Die Suche Als Knopf
     Seite Ansteuern    /dashboard/buero/rollen
     Suche Ist Nur Ein Knopf
     Suchknopf Steht Links Neben Der Glocke
-    Click    ${KOPFBALKEN} [data-suche="knopf"] >> visible=true
+    Click    ${KOPFBALKEN} [data-suche="knopf"]
     Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
     Suchfenster Steht Mittig Oben
 
@@ -189,7 +189,7 @@ Handy Hoch Traegt Die Suche Neben Der Glocke
     Suchknopf Steht Links Neben Der Glocke
     Bildmarke Steht Mittig
     Kein Waagerechtes Scrollen    ${MOBIL_HOCH}    suche
-    Click    ${KOPFBALKEN} [data-suche="knopf"] >> visible=true
+    Click    ${KOPFBALKEN} [data-suche="knopf"]
     Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
     ${oben} =    Evaluate JavaScript    ${None}
     ...    () => Math.round(document.querySelector('[role="dialog"][aria-modal="true"]').getBoundingClientRect().top)
