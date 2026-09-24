@@ -332,8 +332,9 @@ if (leitung && brigade) {
     zielmenge_kg: 10,
   });
   check(
+    // WMCNL-2472: eigener Code DA005 statt der ueberladenen 23514-Sammelklasse.
     "Sperre: keine Pflueckaufgabe auf gesperrtem Reihenblock",
-    aufgabeFehler?.code === "23514",
+    aufgabeFehler?.code === "DA005",
     aufgabeFehler?.code ?? "kein Fehler",
   );
 
@@ -488,8 +489,9 @@ if (leitung && brigade) {
       .update({ ist_menge_kg: Number(laufend.ist_menge_kg) + 5 })
       .eq("id", laufend.id);
     check(
+      // WMCNL-2472: eigener Code DA005 statt der ueberladenen 23514-Sammelklasse.
       "Haertung: laufende Aufgabe stoppt bei nachtraeglicher Behandlung",
-      weiterFehler?.code === "23514",
+      weiterFehler?.code === "DA005",
       weiterFehler?.code ?? "kein Fehler",
     );
 
