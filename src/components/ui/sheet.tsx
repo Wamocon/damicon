@@ -41,6 +41,15 @@ import { cn } from "@/lib/utils";
 const FOKUSSIERBAR =
   'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+/** Wo ein Blatt "oben" hingehoert, in Fensterkoordinaten: dorthin, wo sein
+ *  Ausloeser sitzt. */
+export interface SheetAnker {
+  top: number;
+  left: number;
+  width: number;
+  maxHoehe: number;
+}
+
 export function Sheet({
   offen,
   onSchliessen,
@@ -52,6 +61,7 @@ export function Sheet({
   anfangsFokus,
   kopf,
   schliessenLabel,
+  anker,
 }: {
   offen: boolean;
   onSchliessen: () => void;
@@ -73,6 +83,10 @@ export function Sheet({
   kopf?: ReactNode;
   /** Name fuer Kreuz und Blende. Fehlt er, heissen beide "Menue schliessen". */
   schliessenLabel?: string;
+  /** Nur bei "oben": das Blatt geht dort auf, wo sein Ausloeser sitzt, statt
+   *  ueber die volle Breite. Fehlt er, etwa auf dem Handy, bleibt es beim
+   *  Rand. */
+  anker?: SheetAnker | null;
 }) {
   const nav = useTranslations("nav");
   const titelId = useId();
@@ -188,15 +202,20 @@ export function Sheet({
 
   const mitte = position === "mitte";
   const oben = position === "oben";
+  // Mit Anker sitzt das Blatt absolut dort, wo sein Ausloeser ist - der Weg
+  // zwischen Knopf und Inhalt bleibt null. Ohne Anker (Handy) haengt es
+  // randlos oben: dort sitzt der Knopf ohnehin in der obersten Zeile.
+  const amAnker = oben && anker ? anker : null;
 
   return (
     <div
       className={cn(
         "fixed inset-0 z-[100] flex print:hidden",
         mitte && "items-center justify-center p-4",
-        // Auf dem Handy fast randlos, damit die Liste Platz hat; am Schreibtisch
-        // schmal und etwas unterhalb der Kopfzeile, wo der Blick ohnehin ist.
+        // Auf dem Handy fast randlos, damit die Liste Platz hat. Ohne Anker am
+        // Schreibtisch schmal und etwas unterhalb der Kopfzeile.
         oben &&
+          !amAnker &&
           "flex-col items-stretch p-2 pt-[max(0.5rem,env(safe-area-inset-top))] md:items-center md:px-4 md:pt-[10svh]",
         // Die Unterkante steigt um den Platz der unteren Leiste. Die Blende
         // darunter bleibt inset-0 und deckt den Streifen weiter ab - sie
@@ -225,12 +244,25 @@ export function Sheet({
         aria-modal={mitte || oben ? true : undefined}
         aria-labelledby={titelId}
         tabIndex={-1}
+        style={
+          amAnker
+            ? {
+                top: amAnker.top,
+                left: amAnker.left,
+                width: amAnker.width,
+                maxHeight: amAnker.maxHoehe,
+              }
+            : undefined
+        }
         className={cn(
           // overflow-hidden, damit der Inhalt die untere Rundung nicht
           // ueberlaeuft - der Scrollbereich darin schneidet rechteckig.
           "relative flex min-h-0 flex-col overflow-hidden border-border bg-schwebend shadow-2xl outline-none",
           mitte
             ? "w-full max-w-3xl max-h-[85svh] rounded-2xl border motion-safe:animate-[sheet-auf-mitte_180ms_ease-out]"
+            : amAnker
+            ? // Lage und Groesse kommen aus dem Anker (style oben).
+              "absolute rounded-2xl border motion-safe:animate-[sheet-auf-oben_180ms_ease-out]"
             : oben
             ? // Waechst mit dem Inhalt, hoechstens bis zum Rand. Auf Android
               // schrumpft der Rand mit, sobald die Tastatur aufgeht

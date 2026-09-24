@@ -13,28 +13,37 @@ import { useLocale, useTranslations } from "next-intl";
 import { Search } from "lucide-react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { usePersona } from "@/components/dashboard/persona";
-import { Icon } from "@/components/icon";
-import { Himbeere } from "@/components/ki/himbeere";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
-import { BlattZeilenInhalt, blattZeilenKlassen } from "@/components/ui/blatt-zeile";
-import { Sheet } from "@/components/ui/sheet";
+import {
+  optionId,
+  SuchListe,
+  type SuchGruppe,
+  type SuchOption,
+} from "@/components/suche/such-liste";
+import { Sheet, type SheetAnker } from "@/components/ui/sheet";
 import { zerlegeAnfrage } from "@/lib/suche/kern";
 import {
   baueSeitenZiele,
+  sucheInTexten,
   sucheSeiten,
   zielSchluesselFuerPfad,
   type SeitenZiel,
+  type ZielSchluessel,
 } from "@/lib/suche/seiten-ziele";
 import { browserAblage, merkeZuletzt, zuletztAufloesen } from "@/lib/suche/zuletzt";
-import { cn } from "@/lib/utils";
 
-// Das Suchfenster: ein Blatt von oben mit dem Eingabefeld im Kopf und den
-// Treffern darunter. Aufgebaut nach dem WAI-ARIA-Muster "Combobox mit
-// Listbox": der Fokus bleibt immer im Feld, die Pfeiltasten verschieben nur
-// die Markierung (aria-activedescendant), Enter oeffnet den markierten
-// Treffer. So kann man weitertippen, ohne erst zurueck ins Feld zu muessen.
+// Das Suchfenster: ein Blatt mit dem Eingabefeld im Kopf und den Treffern
+// darunter, dort aufgehend, wo sein Ausloeser sitzt. Aufgebaut nach dem
+// WAI-ARIA-Muster "Combobox mit Listbox": der Fokus bleibt immer im Feld, die
+// Pfeiltasten verschieben nur die Markierung (aria-activedescendant), Enter
+// oeffnet den markierten Treffer. So kann man weitertippen, ohne erst zurueck
+// ins Feld zu muessen.
+//
+// Bis zu drei Gruppen: die Namenstreffer, darunter "Erwaehnt in" mit Seiten,
+// deren Text den Begriff nennt, und wenn beides leer bleibt die Frage an die
+// KI. Die Liste selbst zeichnet such-liste.tsx.
 
-type Option = { art: "ziel"; ziel: SeitenZiel } | { art: "ki"; begriff: string };
+type Option = SuchOption;
 
 // Ein einzelner Buchstabe ist keine Frage an die KI.
 const KI_AB = 2;
@@ -42,15 +51,28 @@ const KI_AB = 2;
 // die Vorlesehilfe bei jedem Buchstaben dazwischen.
 const ANSAGE_NACH_MS = 400;
 
+function suche(ziele: readonly SeitenZiel[], begriff: string) {
+  const namen = sucheSeiten(ziele, begriff);
+  const erwaehnt = sucheInTexten(
+    ziele,
+    begriff,
+    new Set<ZielSchluessel>(namen.map((ziel) => ziel.schluessel)),
+  );
+  return { namen, erwaehnt };
+}
+
 export function SuchDialog({
   feldRef,
   zuletzt,
   nutzerId,
+  anker,
   onSchliessen,
 }: {
   feldRef: RefObject<HTMLInputElement | null>;
   zuletzt: readonly string[];
   nutzerId: string | null;
+  /** Wo der Ausloeser sitzt; null auf dem Handy. */
+  anker: SheetAnker | null;
   /** fokusZurueck: ohne Sprung geschlossen, der Ausloeser bekommt den Fokus wieder. */
   onSchliessen: (fokusZurueck: boolean) => void;
 }) {
@@ -62,7 +84,6 @@ export function SuchDialog({
   const router = useRouter();
   const ki = useKiPane();
   const listeId = useId();
-  const gruppeId = useId();
   const hinweisId = useId();
   const [eingabe, setEingabe] = useState("");
   const [aktiv, setAktiv] = useState(0);
@@ -81,38 +102,48 @@ export function SuchDialog({
   const offeneSeite = zielSchluesselFuerPfad(pathname);
   const begriff = eingabe.trim();
   const mitAnfrage = zerlegeAnfrage(begriff) !== null;
-  const treffer = mitAnfrage ? sucheSeiten(ziele, begriff) : [];
+  const { namen, erwaehnt } = mitAnfrage ? suche(ziele, begriff) : { namen: [], erwaehnt: [] };
   const zuletztZiele = mitAnfrage ? [] : zuletztAufloesen(zuletzt, ziele, offeneSeite);
-  const kiZeile =
-    mitAnfrage && treffer.length === 0 && ki.verfuegbar && begriff.length >= KI_AB;
+  const nichtsGefunden = mitAnfrage && namen.length === 0 && erwaehnt.length === 0;
+  const kiZeile = nichtsGefunden && ki.verfuegbar && begriff.length >= KI_AB;
 
-  const optionen: Option[] = [
-    ...(mitAnfrage ? treffer : zuletztZiele).map((ziel): Option => ({ art: "ziel", ziel })),
-    ...(kiZeile ? [{ art: "ki", begriff } satisfies Option] : []),
-  ];
+  const gruppen: SuchGruppe[] = (
+    mitAnfrage
+      ? [
+          {
+            titel: t("gruppeTreffer"),
+            optionen: namen.map((ziel): Option => ({ art: "ziel", ziel })),
+          },
+          {
+            titel: t("gruppeErwaehnt"),
+            optionen: erwaehnt.map(
+              ({ ziel, auszug }): Option => ({ art: "ziel", ziel, auszug }),
+            ),
+          },
+          { titel: null, optionen: kiZeile ? [{ art: "ki", begriff } satisfies Option] : [] },
+        ]
+      : [
+          {
+            titel: t("gruppeZuletzt"),
+            optionen: zuletztZiele.map((ziel): Option => ({ art: "ziel", ziel })),
+          },
+        ]
+  ).filter((gruppe) => gruppe.optionen.length > 0);
+  const optionen = gruppen.flatMap((gruppe) => gruppe.optionen);
   const aktivIndex = optionen.length > 0 ? Math.min(aktiv, optionen.length - 1) : -1;
-  const optionId = (index: number) => `${listeId}-${index}`;
 
-  const gruppenTitel = mitAnfrage
-    ? treffer.length > 0
-      ? t("gruppeTreffer")
-      : null
-    : zuletztZiele.length > 0
-      ? t("gruppeZuletzt")
-      : null;
-  const hinweis = mitAnfrage
-    ? treffer.length === 0
-      ? t("keineTreffer", { begriff })
-      : null
-    : zuletztZiele.length === 0
+  const hinweis = nichtsGefunden
+    ? t("keineTreffer", { begriff })
+    : !mitAnfrage && zuletztZiele.length === 0
       ? t("leer")
       : null;
 
   const angesagtBegriff = angesagt.trim();
-  const angesagtAnzahl =
-    zerlegeAnfrage(angesagtBegriff) === null
-      ? null
-      : sucheSeiten(ziele, angesagtBegriff).length;
+  const angesagtErgebnis =
+    zerlegeAnfrage(angesagtBegriff) === null ? null : suche(ziele, angesagtBegriff);
+  const angesagtAnzahl = angesagtErgebnis
+    ? angesagtErgebnis.namen.length + angesagtErgebnis.erwaehnt.length
+    : null;
   const ansage =
     angesagtAnzahl === null
       ? ""
@@ -163,7 +194,7 @@ export function SuchDialog({
       const schritt = event.key === "ArrowDown" ? 1 : -1;
       const neu = (aktivIndex + schritt + optionen.length) % optionen.length;
       setAktiv(neu);
-      document.getElementById(optionId(neu))?.scrollIntoView({ block: "nearest" });
+      document.getElementById(optionId(listeId, neu))?.scrollIntoView({ block: "nearest" });
       return;
     }
     if (event.key === "Enter") {
@@ -177,47 +208,13 @@ export function SuchDialog({
     }
   }
 
-  const zeilen = optionen.map((option, index) => (
-    <div
-      key={option.art === "ziel" ? option.ziel.schluessel : "ki"}
-      id={optionId(index)}
-      role="option"
-      aria-selected={index === aktivIndex}
-      // Der Fokus bleibt im Feld, auch wenn man mit der Maus waehlt.
-      onMouseDown={(event) => event.preventDefault()}
-      onPointerMove={() => {
-        if (index !== aktivIndex) setAktiv(index);
-      }}
-      onClick={() => waehle(option)}
-      className={cn(
-        blattZeilenKlassen(false),
-        "cursor-pointer lg:h-12",
-        // Nicht nur Farbe: der Rahmen traegt die Markierung auch fuer alle,
-        // die den Farbton nicht unterscheiden.
-        index === aktivIndex && "border-primary/40 bg-muted ring-2 ring-ring",
-      )}
-    >
-      {option.art === "ziel" ? (
-        <BlattZeilenInhalt
-          symbol={<Icon name={option.ziel.symbol} className="h-4 w-4" />}
-          text={option.ziel.titel}
-          untertitel={option.ziel.untertitel}
-        />
-      ) : (
-        <BlattZeilenInhalt
-          symbol={<Himbeere groesse={18} />}
-          text={t("kiFragen", { begriff: option.begriff })}
-        />
-      )}
-    </div>
-  ));
-
   return (
     <Sheet
       offen
       onSchliessen={() => onSchliessen(true)}
       titel={t("titel")}
       position="oben"
+      anker={anker}
       anfangsFokus={feldRef}
       schliessenLabel={t("schliessen")}
       kopf={
@@ -232,7 +229,7 @@ export function SuchDialog({
             aria-autocomplete="list"
             aria-controls={listeId}
             aria-expanded={optionen.length > 0}
-            aria-activedescendant={aktivIndex >= 0 ? optionId(aktivIndex) : undefined}
+            aria-activedescendant={aktivIndex >= 0 ? optionId(listeId, aktivIndex) : undefined}
             value={eingabe}
             onChange={(event) => beiEingabe(event.target.value)}
             onKeyDown={beiTaste}
@@ -252,27 +249,13 @@ export function SuchDialog({
     >
       <div className="p-2">
         {hinweis ? <p className="px-3 py-4 text-sm text-muted-foreground">{hinweis}</p> : null}
-        <div
-          role="listbox"
-          id={listeId}
-          aria-label={t("ergebnisse")}
-          hidden={optionen.length === 0}
-        >
-          {gruppenTitel ? (
-            <div role="group" aria-labelledby={gruppeId} className="space-y-1">
-              <div
-                id={gruppeId}
-                role="presentation"
-                className="px-3 pb-1 pt-2 schrift-label font-semibold uppercase tracking-wide text-muted-foreground"
-              >
-                {gruppenTitel}
-              </div>
-              {zeilen}
-            </div>
-          ) : (
-            <div className="space-y-1">{zeilen}</div>
-          )}
-        </div>
+        <SuchListe
+          listeId={listeId}
+          gruppen={gruppen}
+          aktivIndex={aktivIndex}
+          onAktiv={setAktiv}
+          onWaehle={waehle}
+        />
         <p id={hinweisId} className="sr-only">
           {t("bedienung")}
         </p>

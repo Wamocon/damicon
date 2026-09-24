@@ -66,14 +66,20 @@ export function TopbarSuche() {
 }
 
 /**
- * Unter xl ein Symbolknopf, auf dem Handy direkt links neben der Glocke.
+ * Unter xl ein Symbolknopf. Er steht zweimal in der Kopfzeile, sichtbar ist
+ * je nach Breite genau einer (topbar.tsx gibt die Sichtbarkeit mit):
+ *
+ *   md bis xl  direkt hinter dem Pfad - dort, wo ab xl das Feld beginnt und
+ *              wo das Suchfenster aufgeht (such-kontext.tsx, Anker)
+ *   unter md   links neben der Glocke; das Fenster nimmt dort oben die volle
+ *              Breite ein und liegt damit ebenfalls am Knopf
  *
  * Er sieht aus wie die uebrigen Symbolknoepfe der Kopfzeile (36 px), faengt
  * unter lg aber 44 px: das Pseudoelement ragt ringsum 4 px ueber den Rand
- * (DESIGN.md, Touch-Ziele). Der Abstand zur Glocke ist 8 px, die beiden
- * Flaechen beruehren sich also, ohne sich zu ueberlappen.
+ * (DESIGN.md, Touch-Ziele). Bei 8 px Abstand zum Nachbarn beruehren sich die
+ * beiden Flaechen, ohne sich zu ueberlappen.
  */
-export function TopbarSuchknopf() {
+export function TopbarSuchknopf({ className }: { className: string }) {
   const t = useTranslations("suche");
   const { offen, oeffne } = useSuche();
 
@@ -88,9 +94,10 @@ export function TopbarSuchknopf() {
       aria-keyshortcuts={KUERZEL}
       title={t("oeffnen")}
       className={cn(
-        "relative inline-flex h-9 w-9 shrink-0 justify-center xl:hidden",
+        "relative h-9 w-9 shrink-0 justify-center",
         "after:absolute after:-inset-1 lg:after:hidden",
         suchStil,
+        className,
       )}
     >
       <Search aria-hidden="true" className="h-4 w-4" />

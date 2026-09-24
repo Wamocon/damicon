@@ -330,6 +330,7 @@
     "ergebnisse": "Results",
     "gruppeTreffer": "Pages and modules",
     "gruppeZuletzt": "Recently opened",
+    "gruppeErwaehnt": "Mentioned in",
     "leer": "Type the name of a zone, module or page.",
     "keineTreffer": "No page or module matches “{begriff}”.",
     "anzahl": "{anzahl, plural, =0 {No results} one {# result} other {# results}}",

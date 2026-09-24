@@ -7,7 +7,14 @@ import {
   type ZoneKey,
 } from "@/lib/modules";
 import { darfCeoBerichtLesen } from "@/lib/pruefung/rollen";
-import { bewerte, indexFeld, zerlegeAnfrage, type IndexFeld } from "./kern";
+import {
+  auszug,
+  bewerte,
+  indexFeld,
+  TEILWORT_AB,
+  zerlegeAnfrage,
+  type IndexFeld,
+} from "./kern";
 
 // Was die Suche in Stufe 1 findet: die Uebersicht, die Bereiche, die Module
 // und die Seiten daneben (Sicherheit, Compliance-Bericht, Handbuch).
@@ -19,6 +26,15 @@ import { bewerte, indexFeld, zerlegeAnfrage, type IndexFeld } from "./kern";
 // damit "Ansicht als" auch hier gilt. Die Modulseite prueft ohnehin selbst
 // noch einmal serverseitig - die Suche bietet nur nichts an, was die
 // Navigation nicht auch anbietet.
+//
+// Gesucht wird in zwei Schichten. Zuerst die Namen: Titel, Kurzname,
+// Bereich. Danach, unter "Erwaehnt in", die Texte, die auf den Modulseiten
+// stehen - die Beschreibung im Kopf der Modulseite und die Zusammenfassung
+// auf der Bereichsseite. Nur was dort zu lesen ist: der Text "todo" (was noch
+// offen ist) liest nur die KI und das Handbuch, ein Treffer darin fuehrte auf
+// eine Seite, auf der das Wort gar nicht steht. Aus demselben Grund fehlen
+// die Beschreibungen der Bereiche: sie zaehlen Module auf, die nicht jede
+// Rolle sieht.
 
 export type ZielSchluessel =
   | "uebersicht"
@@ -38,12 +54,27 @@ export interface SeitenZiel {
   /** Name aus der Symbolablage (components/icon.tsx). */
   symbol: string;
   felder: readonly IndexFeld[];
+  /** Was auf der Seite zu lesen ist, fuer "Erwaehnt in". Nur bei Modulen. */
+  texte?: readonly SeitenText[];
+}
+
+/** Ein Text der Seite: im Original fuer den Auszug, normalisiert fuer die Suche. */
+export interface SeitenText {
+  roh: string;
+  feld: IndexFeld;
+}
+
+/** Ein Ziel, in dessen Seitentext die Anfrage vorkommt, samt der Stelle. */
+export interface Erwaehnung {
+  ziel: SeitenZiel;
+  auszug: string;
 }
 
 /** Text zu einem vollen Schluesselpfad, etwa "modules.lohn.title". */
 export type Uebersetze = (schluessel: string) => string;
 
 export const HOECHSTENS_TREFFER = 8;
+export const HOECHSTENS_ERWAEHNUNGEN = 5;
 
 // Gewichte innerhalb derselben Stufe: der Name vor dem Beiwerk. Sucht jemand
 // "Feld", steht der Bereich Feld vor den Modulen, die nur ueber ihren
@@ -113,6 +144,10 @@ export function baueSeitenZiele(
           indexFeld(titel, NAME),
           indexFeld(bereich, BEIWERK),
         ],
+        texte: [
+          t(`modules.${modul.key}.description`),
+          t(`modules.${modul.key}.summary`),
+        ].map((roh) => ({ roh, feld: indexFeld(roh, BEIWERK) })),
       });
     }
   }
@@ -182,6 +217,44 @@ export function sucheSeiten(
     .sort((a, b) => b.wert - a.wert || a.reihe - b.reihe)
     .slice(0, max)
     .map((eintrag) => eintrag.ziel);
+}
+
+/**
+ * Ziele, in deren Seitentext die Anfrage vorkommt - fuer die Gruppe
+ * "Erwaehnt in" unter den Namenstreffern. Was schon ueber den Namen gefunden
+ * wurde, steht in `ohne` und kommt nicht doppelt. Erst ab drei Zeichen:
+ * kuerzer passt in fast jeden Absatz.
+ */
+export function sucheInTexten(
+  ziele: readonly SeitenZiel[],
+  roh: string,
+  ohne: ReadonlySet<ZielSchluessel>,
+  max = HOECHSTENS_ERWAEHNUNGEN,
+): Erwaehnung[] {
+  const anfrage = zerlegeAnfrage(roh);
+  if (!anfrage || anfrage.normal.length < TEILWORT_AB) return [];
+
+  const bewertet: { erwaehnung: Erwaehnung; reihe: number; wert: number }[] = [];
+  ziele.forEach((ziel, reihe) => {
+    if (!ziel.texte?.length || ohne.has(ziel.schluessel)) return;
+    const wert = bewerte(
+      ziel.texte.map((text) => text.feld),
+      anfrage,
+    );
+    if (wert === null) return;
+    // Die erste Stelle, an der ein Wort der Anfrage steht, als Beleg unter dem
+    // Namen. Auszug und Bewertung normalisieren Wort fuer Wort gleich, eine
+    // Stelle gibt es also immer; ohne sie bliebe die Zeile lieber weg.
+    const stelle = ziel.texte
+      .map((text) => auszug(text.roh, anfrage))
+      .find((gefunden) => gefunden !== null);
+    if (stelle) bewertet.push({ erwaehnung: { ziel, auszug: stelle }, reihe, wert });
+  });
+
+  return bewertet
+    .sort((a, b) => b.wert - a.wert || a.reihe - b.reihe)
+    .slice(0, max)
+    .map((eintrag) => eintrag.erwaehnung);
 }
 
 /**

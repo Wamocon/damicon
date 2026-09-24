@@ -197,10 +197,13 @@ export function DashboardTopbar() {
       {/* Der Pfad steht zwischen Umschalter und Suche. Anders als die frühere
           Zeile über der Überschrift scrollt er nicht mit dem Inhalt weg. */}
       <TopbarPfad />
-      {/* Das Suchfeld fuellt die Luecke zwischen Pfad und Werkzeugen, aber
-          erst ab xl. Darunter steht die Suche als Knopf links neben der
-          Glocke - fuer Feld und Pfad nebeneinander reicht die Zeile dort
-          nicht. Beide oeffnen dasselbe Suchfenster (suche/such-kontext.tsx). */}
+      {/* Die Suche beginnt direkt hinter dem Pfad: ab xl als Feld, das die
+          Luecke bis zu den Werkzeugen fuellt, darunter als Lupe an derselben
+          Stelle - fuer Feld und Pfad nebeneinander reicht die Zeile dort
+          nicht. Das Suchfenster geht dort auf, wo sie sitzt
+          (suche/such-kontext.tsx). Auf dem Handy steht die Lupe stattdessen
+          neben der Glocke, siehe unten. */}
+      <TopbarSuchknopf className="hidden md:inline-flex xl:hidden" />
       <TopbarSuche />
       {/* Was unter md in das Konto-Blatt der unteren Leiste gewandert ist -
           "KI fragen", Rollenumschalter, Sprache, Farbschema -, steht hier erst
@@ -218,7 +221,7 @@ export function DashboardTopbar() {
         </span>
         {zeigeSync ? <SyncStatus /> : null}
         <CeoPruefungHinweis />
-        <TopbarSuchknopf />
+        <TopbarSuchknopf className="inline-flex md:hidden" />
         <button
           type="button"
           aria-label={t("notifications")}

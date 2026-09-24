@@ -59,8 +59,9 @@ export function zerlegeAnfrage(roh: string): Anfrage | null {
 }
 
 // Teilwoerter erst ab drei Zeichen: "ko" steckt in zu vielen Namen, als dass
-// ein Treffer mitten im Wort noch etwas ueber das Gesuchte sagte.
-const TEILWORT_AB = 3;
+// ein Treffer mitten im Wort noch etwas ueber das Gesuchte sagte. Dieselbe
+// Grenze gilt fuer die Suche in Seitentexten insgesamt.
+export const TEILWORT_AB = 3;
 
 /**
  * Wert eines Ziels fuer eine Anfrage, oder null ohne Treffer.
@@ -100,6 +101,37 @@ export function bewerte(
 
 function beginntWort(feld: IndexFeld, wort: string): boolean {
   return feld.woerter.some((w) => w.startsWith(wort));
+}
+
+// So viele Woerter stehen vor dem gefundenen im Auszug, und so viele
+// insgesamt. Die Zeile im Suchfenster kuerzt ohnehin am Ende - der Begriff
+// soll vorn stehen, wo er sichtbar bleibt.
+const AUSZUG_DAVOR = 3;
+const AUSZUG_WOERTER = 12;
+
+/**
+ * Das Stueck eines Seitentextes, in dem die Anfrage vorkommt, mit ein paar
+ * Woertern davor, oder null ohne Fundstelle. Verglichen wird Wort fuer Wort
+ * mit derselben Normalisierung wie bei der Suche - so zeigt der Auszug auch
+ * dann die richtige Stelle, wenn "Kuhlkette" gesucht und "Kühlkette"
+ * geschrieben ist.
+ */
+export function auszug(text: string, anfrage: Anfrage): string | null {
+  const woerter = text.split(/\s+/).filter(Boolean);
+  const passt = (roh: string) =>
+    normalisiere(roh)
+      .split(" ")
+      .some((teil) =>
+        anfrage.woerter.some(
+          (wort) =>
+            teil.startsWith(wort) || (wort.length >= TEILWORT_AB && teil.includes(wort)),
+        ),
+      );
+  const fund = woerter.findIndex(passt);
+  if (fund < 0) return null;
+  const start = Math.max(0, fund - AUSZUG_DAVOR);
+  const ende = Math.min(woerter.length, start + AUSZUG_WOERTER);
+  return `${start > 0 ? "… " : ""}${woerter.slice(start, ende).join(" ")}${ende < woerter.length ? " …" : ""}`;
 }
 
 function stufeImFeld(feld: IndexFeld, anfrage: Anfrage): number {

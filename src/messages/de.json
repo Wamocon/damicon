@@ -330,6 +330,7 @@
     "ergebnisse": "Treffer",
     "gruppeTreffer": "Seiten und Module",
     "gruppeZuletzt": "Zuletzt geöffnet",
+    "gruppeErwaehnt": "Erwähnt in",
     "leer": "Namen eines Bereichs, Moduls oder einer Seite eingeben.",
     "keineTreffer": "Keine Seite und kein Modul zu „{begriff}“.",
     "anzahl": "{anzahl, plural, =0 {Keine Treffer} one {# Treffer} other {# Treffer}}",

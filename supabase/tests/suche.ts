@@ -11,6 +11,7 @@
 
 import { readFileSync } from "node:fs";
 import {
+  auszug,
   bewerte,
   indexFeld,
   istSuchKuerzel,
@@ -20,10 +21,12 @@ import {
 } from "@/lib/suche/kern";
 import {
   baueSeitenZiele,
+  sucheInTexten,
   sucheSeiten,
   zielSchluesselFuerPfad,
   type SeitenZiel,
   type Uebersetze,
+  type ZielSchluessel,
 } from "@/lib/suche/seiten-ziele";
 import {
   liesZuletzt,
@@ -246,6 +249,84 @@ pruefe(
   sucheSeiten(pickerZiele, "Finanzen").length === 0,
   sucheSeiten(pickerZiele, "Finanzen").map((z) => z.schluessel).join(","),
 );
+
+// --- 3b. Erwaehnt in: Texte der Modulseiten ---------------------------------
+
+{
+  const ziele = baueSeitenZiele("admin", { demoModus: false, locale: "de" }, uebersetzer("de"));
+  const erwaehnt = (anfrage: string) => {
+    const namen = new Set<ZielSchluessel>(sucheSeiten(ziele, anfrage).map((z) => z.schluessel));
+    return sucheInTexten(ziele, anfrage, namen).map((e) => e.ziel.schluessel);
+  };
+
+  const wartezeitNamen = sucheSeiten(ziele, "Wartezeit").map((z) => z.schluessel);
+  const wartezeitText = erwaehnt("Wartezeit");
+  pruefe(
+    "Wartezeit: Pflanzenschutz ueber den Namen, Reihenbloecke ueber den Seitentext",
+    wartezeitNamen.includes("modul:pflanzenschutz") && wartezeitText.includes("modul:reihenbloecke"),
+    `Namen ${wartezeitNamen.join(",")} | Text ${wartezeitText.join(",")}`,
+  );
+  pruefe(
+    "was schon ueber den Namen gefunden wurde, steht nicht noch einmal unter Erwaehnt in",
+    !wartezeitText.includes("modul:pflanzenschutz"),
+  );
+  pruefe(
+    "Erntesperre findet Pflanzenschutz nur ueber den Seitentext",
+    sucheSeiten(ziele, "Erntesperre").length === 0 &&
+      erwaehnt("Erntesperre").includes("modul:pflanzenschutz"),
+  );
+  pruefe(
+    "der Text todo (nur KI und Handbuch) wird nicht durchsucht",
+    erwaehnt("Spritzmitteldatenbank").length === 0 && sucheSeiten(ziele, "Spritzmitteldatenbank").length === 0,
+  );
+  pruefe("unter drei Zeichen keine Suche im Text", erwaehnt("ch").length === 0);
+  pruefe(
+    "hoechstens fuenf Erwaehnungen",
+    erwaehnt("Reihenblock").length <= 5,
+    String(erwaehnt("Reihenblock").length),
+  );
+
+  const picker = baueSeitenZiele("picker", { demoModus: false, locale: "de" }, uebersetzer("de"));
+  pruefe(
+    "der Pfluecker findet Wartezeit nirgends - die Seiten mit dem Wort sieht er nicht",
+    sucheInTexten(picker, "Wartezeit", new Set()).length === 0,
+  );
+
+  // Fuer jede Rolle und Sprache: jede Erwaehnung zeigt auf ein Ziel, das die
+  // Rolle sieht, und traegt einen Auszug.
+  const falsch: string[] = [];
+  for (const sprache of sprachen) {
+    const t = uebersetzer(sprache);
+    for (const rolle of roles) {
+      const eigene = baueSeitenZiele(rolle, { demoModus: false, locale: sprache }, t);
+      const sichtbar = new Set(eigene.map((z) => z.schluessel));
+      for (const modul of modules) {
+        const wort = t(`modules.${modul.key}.description`).split(/\s+/).find((w) => w.length >= 6);
+        if (!wort) continue;
+        for (const e of sucheInTexten(eigene, wort, new Set())) {
+          if (!sichtbar.has(e.ziel.schluessel) || !e.auszug) falsch.push(`${sprache}/${rolle}/${wort}`);
+        }
+      }
+    }
+  }
+  pruefe("Erwaehnungen nur fuer sichtbare Ziele und immer mit Auszug", falsch.length === 0, falsch.slice(0, 5).join("; "));
+}
+
+{
+  const text =
+    "Jede Behandlung wird mit Mittel, Menge, Block, Datum und ausführender Person erfasst und sperrt den Reihenblock automatisch bis zum Ablauf der gesetzlichen Wartezeit.";
+  const hinten = auszug(text, zerlegeAnfrage("Wartezeit")!);
+  pruefe(
+    "Auszug setzt kurz vor dem Fund ein und markiert den Schnitt",
+    !!hinten && hinten.startsWith("… ") && hinten.includes("Wartezeit"),
+    hinten ?? "null",
+  );
+  const vorn = auszug(text, zerlegeAnfrage("Jede")!);
+  pruefe("Auszug am Textanfang ohne Schnitt vorn", !!vorn && vorn.startsWith("Jede ") && vorn.endsWith(" …"), vorn ?? "null");
+  const ohneUmlaut = auszug(text, zerlegeAnfrage("ausfuhrender")!);
+  pruefe("Auszug findet die Stelle auch ohne Umlaut", !!ohneUmlaut && ohneUmlaut.includes("ausführender"), ohneUmlaut ?? "null");
+  pruefe("kein Auszug ohne Fund", auszug(text, zerlegeAnfrage("Kühlkette")!) === null);
+}
 
 // --- 4. Zuletzt geoeffnet ---------------------------------------------------
 
