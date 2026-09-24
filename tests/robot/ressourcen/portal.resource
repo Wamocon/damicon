@@ -110,14 +110,15 @@ Glocke Oeffnen
     Click    ${GLOCKE}
     Wait For Elements State    ${GLOCKEN_PANEL}    visible    timeout=10s
 
-Glocken Panel Liegt Im Fenster
-    [Documentation]    Das Panel haengt rechts an der Glocke. Auf schmalen
-    ...    Schirmen darf es links nicht aus dem Fenster laufen.
+Glocken Panel Nutzt Die Volle Breite
+    [Documentation]    Auf dem Handy laeuft das Panel ueber die ganze Breite,
+    ...    mit 16 px Rand wie die Karten darunter. Ein schmales Panel an der
+    ...    Glocke liess links ungenutzten Platz und brach den Text unnoetig um.
     [Arguments]    ${profil}
     ${lage} =    Evaluate JavaScript    ${None}
-    ...    () => { const p = document.querySelector('header.sticky [role="dialog"]'); if (!p) return 'kein Panel'; const r = p.getBoundingClientRect(); return r.left >= 0 && r.right <= window.innerWidth ? 'ok' : 'links ' + Math.round(r.left) + ', rechts ' + Math.round(r.right) + ' bei ' + window.innerWidth; }
-    Run Keyword If    '${lage}' != 'ok'    Befund Festhalten    ${profil}    glocke-ausserhalb
-    Should Be Equal    ${lage}    ok    msg=Das Panel der Glocke liegt nicht im Fenster: ${lage}
+    ...    () => { const p = document.querySelector('header.sticky [role="dialog"]'); if (!p) return 'kein Panel'; const r = p.getBoundingClientRect(); const rechts = window.innerWidth - r.right; return Math.abs(r.left - 16) <= 1 && Math.abs(rechts - 16) <= 1 ? 'ok' : 'links ' + Math.round(r.left) + ' px, rechts ' + Math.round(rechts) + ' px Rand bei ' + window.innerWidth + ' px'; }
+    Run Keyword If    '${lage}' != 'ok'    Befund Festhalten    ${profil}    glocke-schmal
+    Should Be Equal    ${lage}    ok    msg=Das Panel der Glocke nutzt nicht die volle Breite: ${lage}
 
 Kein Text Ist Abgeschnitten
     [Documentation]    Sucht Elemente, deren Inhalt breiter ist als ihr Kasten.

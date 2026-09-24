@@ -160,21 +160,22 @@ Schreibtisch Glocke Zeigt Den Leeren Stand
     Should Be Equal    ${fokus}    Benachrichtigungen
     ...    msg=Nach Esc steht der Fokus nicht auf der Glocke, sondern auf ${fokus}.
 
-Handy Hoch Glocke Zeigt Den Leeren Stand Im Fenster
-    [Documentation]    Bei 390 px haengt das 320 px breite Panel rechts an
-    ...    der Glocke. Es muss ganz im Fenster liegen, und ein Tipp daneben
+Handy Hoch Glocke Zeigt Den Leeren Stand In Voller Breite
+    [Documentation]    Bei 390 px laeuft das Panel ueber die ganze Breite,
+    ...    mit 16 px Rand wie die Karten darunter. Ein Tipp daneben
     ...    schliesst es.
     [Tags]    mobil-hoch
     Portal Oeffnen    ${MOBIL_HOCH}
     Seite Ansteuern    /dashboard
     Glocke Oeffnen
     Get Text    ${GLOCKEN_PANEL}    contains    Keine neuen Benachrichtigungen
-    Glocken Panel Liegt Im Fenster    ${MOBIL_HOCH}
+    Glocken Panel Nutzt Die Volle Breite    ${MOBIL_HOCH}
     Kein Waagerechtes Scrollen    ${MOBIL_HOCH}    glocke-offen
     Befund Festhalten    ${MOBIL_HOCH}    glocke-offen
     # Der freie Rand der Kopfzeile ueber der Bildmarke: in main liegt bei
     # 390 px das Panel selbst ueber der Begruessung, und weiter unten koennte
     # ein Kartenlink das Panel durch einen Seitenwechsel schliessen.
+    # Das Panel beginnt erst 8 px unter der Kopfzeile, verdeckt sie also nicht.
     Click With Options    ${KOPFBALKEN}    left    position_x=60    position_y=3
     Get Element Count    ${GLOCKEN_PANEL}    ==    0
 

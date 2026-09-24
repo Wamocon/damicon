@@ -119,7 +119,10 @@ export function Glocke() {
   }
 
   return (
-    <div className="relative" ref={wurzelRef}>
+    // Erst ab md der Bezugsrahmen fuer das Panel. Darunter ist es die
+    // Kopfzeile selbst (sticky, also positioniert), damit das Panel ihre
+    // volle Breite nutzen kann statt an der Glocke zu haengen.
+    <div className="md:relative" ref={wurzelRef}>
       <button
         ref={knopfRef}
         type="button"
@@ -141,9 +144,10 @@ export function Glocke() {
       </button>
 
       {offen ? (
-        // Rechts buendig an der Glocke, die 16 px vom Fensterrand steht. Unter
-        // 352 px Fensterbreite blieben links sonst keine 16 px, dort haelt
-        // max-w das Panel im Fenster.
+        // Unter md volle Breite der Kopfzeile mit 16 px Rand wie die Karten
+        // darunter, 8 px unter ihrer Kante. Ein 320 px breites Panel an der
+        // Glocke liess bei 390 px links 54 px leer und brach den Hinweis
+        // unnoetig um. Ab md haengt es wie das Sync-Panel rechts an der Glocke.
         //
         // bg-schwebend und nicht bg-card wie beim Sync-Panel: --card ist im
         // Dunkeln zu 26 % durchsichtig, und durch das Panel schimmerte der
@@ -154,7 +158,7 @@ export function Glocke() {
           role="dialog"
           aria-labelledby={titelId}
           tabIndex={-1}
-          className="absolute right-0 top-11 z-50 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-border bg-schwebend p-3 shadow-lg outline-none"
+          className="absolute left-4 right-4 top-[calc(100%+0.5rem)] z-50 rounded-xl border border-border bg-schwebend p-3 shadow-lg outline-none md:left-auto md:right-0 md:top-11 md:w-80"
         >
           <p id={titelId} className="text-xs font-black text-card-foreground">
             {t("titel")}
