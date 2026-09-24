@@ -17,12 +17,16 @@ test("WMCNL-2414: Brigade kann eine offene Pflückaufgabe annehmen", async ({ pa
   await anmelden(page, "brigade");
   await page.goto("/de/dashboard/feld/pflueckaufgaben");
 
-  const offeneAufgabe = page.getByRole("link", { name: /offen/ }).first();
+  // Nur Eintraege der Liste: Pillen und Filter nennen ebenfalls Status, und
+  // test.fail soll am Defekt scheitern, nicht an einem falschen Link.
+  const offeneAufgabe = page.locator("[data-eintrag]").filter({ hasText: /offen/ }).first();
   await expect(offeneAufgabe).toBeVisible();
   await offeneAufgabe.click();
 
-  await page.getByRole("button", { name: "Aufgabe annehmen" }).click();
-  await expect(page.getByRole("button", { name: "Pflücken starten" })).toBeVisible();
+  // Der naechste Schritt steht in der Detailansicht (WMCNL-2488).
+  const panel = page.locator("#detailpanel");
+  await panel.getByRole("button", { name: "Aufgabe annehmen" }).click();
+  await expect(panel.getByRole("button", { name: "Pflücken starten" })).toBeVisible();
 });
 
 test("WMCNL-2420: Pflücker sieht den eigenen Lohnsatz als Berechnungsgrundlage", async ({ page }) => {

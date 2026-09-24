@@ -179,6 +179,33 @@ Untere Leiste Verdeckt Den Inhalt Nicht
     Should Be True    ${verdeckt} <= 0
     ...    msg=Die untere Leiste verdeckt ${verdeckt} px des letzten Abschnitts.
 
+Detailansicht Oeffnen
+    [Documentation]    Oeffnet den ersten Eintrag einer Liste mit
+    ...    Detailansicht und wartet, bis sie steht und ihre Anordnung an
+    ...    <html> gemeldet hat (ui/detailpanel-steuerung.tsx).
+    Click    css=[data-eintrag] >> nth=0
+    Wait For Condition    url    contains    aufgabe=    timeout=20s
+    Wait For Elements State    css=#detailpanel    visible    timeout=20s
+    Wait For Function    () => Boolean(document.documentElement.dataset.detailpanel)    timeout=10s
+
+Anordnung Der Detailansicht Ist
+    [Documentation]    angedockt, schublade oder ersetzt - je nach der Breite,
+    ...    die der Liste bleibt (DESIGN.md Abschnitt 14).
+    [Arguments]    ${profil}    ${soll}
+    ${ist} =    Evaluate JavaScript    ${None}
+    ...    () => document.documentElement.dataset.detailpanel || 'keine'
+    Run Keyword If    '${ist}' != '${soll}'    Befund Festhalten    ${profil}    detailansicht-anordnung
+    Should Be Equal    ${ist}    ${soll}    msg=Die Detailansicht steht ${ist} statt ${soll}.
+
+Detailansicht Steht Neben Der Liste
+    [Documentation]    Angedockt beginnt die Detailansicht rechts von der
+    ...    Liste. Ein negativer Abstand hiesse: sie liegt darueber.
+    [Arguments]    ${profil}
+    ${abstand} =    Evaluate JavaScript    ${None}
+    ...    () => { const p = document.getElementById('detailpanel').getBoundingClientRect(); const l = document.getElementById('liste').getBoundingClientRect(); return Math.round(p.left - l.right); }
+    Run Keyword If    ${abstand} < 0    Befund Festhalten    ${profil}    detailansicht-ueberlappt
+    Should Be True    ${abstand} >= 0    msg=Die Detailansicht ueberdeckt die Liste um ${abstand} px.
+
 Glocke Oeffnen
     [Documentation]    Klickt die Glocke und wartet, bis ihr Panel steht.
     Click    ${GLOCKE}

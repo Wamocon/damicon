@@ -310,3 +310,52 @@ Glocke Fehlt In Der Ansicht Als Kunde
     LocalStorage Set Item    damicon-persona    admin
     Reload
     Wait For Elements State    ${GLOCKE}    visible    timeout=20s
+
+Schreibtisch Dockt Die Detailansicht Neben Der Liste An
+    [Documentation]    Liste mit Detailansicht (DESIGN.md Abschnitt 14): bei
+    ...    1600 px ist genug Platz, die Detailansicht steht rechts neben der
+    ...    Liste und ueberdeckt sie nicht.
+    [Tags]    schreibtisch
+    Portal Oeffnen    ${SCHREIBTISCH}
+    Seite Ansteuern    /dashboard/feld/pflueckaufgaben
+    Detailansicht Oeffnen
+    Anordnung Der Detailansicht Ist    ${SCHREIBTISCH}    angedockt
+    Detailansicht Steht Neben Der Liste    ${SCHREIBTISCH}
+    Kein Waagerechtes Scrollen    ${SCHREIBTISCH}    detailansicht
+    Befund Festhalten    ${SCHREIBTISCH}    detailansicht
+
+Handy Quer Ersetzt Die Liste Durch Die Detailansicht
+    [Documentation]    Bei 844 px bleiben neben der Seitenleiste keine 36rem
+    ...    fuer die Liste. Eine Schublade liesse nur einen Streifen stehen,
+    ...    deshalb tritt die Detailansicht an ihre Stelle.
+    [Tags]    mobil-quer
+    Portal Oeffnen    ${MOBIL_QUER}
+    Seite Ansteuern    /dashboard/feld/pflueckaufgaben
+    Detailansicht Oeffnen
+    Anordnung Der Detailansicht Ist    ${MOBIL_QUER}    ersetzt
+    Kein Waagerechtes Scrollen    ${MOBIL_QUER}    detailansicht
+
+Handy Hoch Fuehrt Aus Der Detailansicht Zur Liste Zurueck
+    [Documentation]    Auf dem Handy ersetzt die Detailansicht die Liste,
+    ...    "Zur Liste" fuehrt zurueck, und die untere Leiste verdeckt nichts.
+    [Tags]    mobil-hoch
+    Portal Oeffnen    ${MOBIL_HOCH}
+    Seite Ansteuern    /dashboard/feld/pflueckaufgaben
+    Detailansicht Oeffnen
+    Anordnung Der Detailansicht Ist    ${MOBIL_HOCH}    ersetzt
+    Untere Leiste Verdeckt Den Inhalt Nicht    ${MOBIL_HOCH}
+    Click    css=#detailpanel >> text=Zur Liste
+    Wait For Condition    url    not contains    aufgabe=    timeout=20s
+    Wait For Elements State    css=[data-eintrag] >> nth=0    visible    timeout=20s
+
+Handy Schmal Zeigt Pillen Und Filterblatt Ohne Querscrollen
+    [Documentation]    Bei 360 px wischen die Status-Pillen in einer Reihe,
+    ...    statt die Seite zu verbreitern. Suche, Brigade und Zeitraum liegen
+    ...    hinter "Filter" in einem Blatt von unten.
+    [Tags]    mobil-schmal
+    Portal Oeffnen    ${MOBIL_SCHMAL}
+    Seite Ansteuern    /dashboard/feld/pflueckaufgaben
+    Kein Waagerechtes Scrollen    ${MOBIL_SCHMAL}    pflueckaufgaben
+    Click    css=button[aria-haspopup="dialog"] >> text=Filter
+    Wait For Elements State    role=dialog[name="Filter"]    visible    timeout=10s
+    Befund Festhalten    ${MOBIL_SCHMAL}    filterblatt

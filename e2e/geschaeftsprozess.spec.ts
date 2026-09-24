@@ -64,8 +64,13 @@ test.describe.serial("Hauptgeschaeftsprozess: Vorbestellung bis Deckungsbeitrag"
     await expect(page.getByText("0 neue Termine erzeugt.")).toBeVisible();
 
     // Einen freien (nicht gesperrten) Reihenblock fuer die neue Aufgabe waehlen.
+    // Das Formular klappt ueber der Liste auf (Liste mit Detailansicht,
+    // WMCNL-2488); die Ueberschrift steht im <summary>, nicht im <form>.
     await page.goto("/de/dashboard/feld/pflueckaufgaben");
-    const formular = page.locator("form", { hasText: "Neue Pflückaufgabe" }).first();
+    await page.locator("summary", { hasText: "Neue Pflückaufgabe" }).click();
+    const formular = page.locator("form", {
+      has: page.getByRole("button", { name: "Aufgabe anlegen" }),
+    });
     const reihenblockAuswahl = formular.getByLabel("Reihenblock");
     const ersterFreierBlock = await reihenblockAuswahl
       .locator("option")
@@ -74,6 +79,9 @@ test.describe.serial("Hauptgeschaeftsprozess: Vorbestellung bis Deckungsbeitrag"
     expect(ersterFreierBlock, "Kein freier Reihenblock in der Auswahl gefunden").not.toBeNull();
     await reihenblockAuswahl.selectOption(ersterFreierBlock!);
     await formular.getByLabel("Brigade").selectOption("Brigade Nord");
+    // Pflichtfeld seit WMCNL-2488: Datum und Uhrzeit, gelesen in Betriebszeit Almaty.
+    const morgen = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    await formular.getByLabel("Fälligkeit").fill(`${morgen}T18:00`);
     await formular.getByLabel("Zielmenge in kg").fill("40");
     await formular.getByLabel("Pflücker").fill("5");
     await formular.getByRole("button", { name: "Aufgabe anlegen" }).click();
@@ -84,31 +92,43 @@ test.describe.serial("Hauptgeschaeftsprozess: Vorbestellung bis Deckungsbeitrag"
     const treffer = meldungsText.match(/Pflückaufgabe (\S+) angelegt\./);
     expect(treffer, `Aufgaben-Code konnte nicht aus "${meldungsText}" gelesen werden`).not.toBeNull();
     pflueckaufgabeCode = treffer![1];
+
+    // Danach oeffnet die neue Aufgabe in der Detailansicht.
+    await expect(page).toHaveURL(/aufgabe=/);
+    await expect(
+      page.getByRole("region", { name: new RegExp(pflueckaufgabeCode) }),
+    ).toBeVisible();
   });
 
   test("[Brigade]-E2E-Ernten und Menge melden", async ({ page }) => {
     test.skip(!pflueckaufgabeCode, "Vorherige Phase hat keinen Aufgaben-Code geliefert.");
     await anmelden(page, "brigade");
 
-    await page.goto("/de/dashboard/feld/pflueckaufgaben");
+    // Die Suche grenzt die Liste auf diese Aufgabe ein; 20 je Seite reichen
+    // sonst nicht, wenn viele Aufgaben dieselbe Faelligkeit haben.
+    await page.goto(`/de/dashboard/feld/pflueckaufgaben?suche=${pflueckaufgabeCode}`);
     await page.getByRole("link", { name: new RegExp(pflueckaufgabeCode) }).click();
+    const panel = page.getByRole("region", { name: new RegExp(pflueckaufgabeCode) });
 
-    await page.getByRole("button", { name: "Aufgabe annehmen" }).click();
+    await panel.getByRole("button", { name: "Aufgabe annehmen" }).click();
     // Bekannter Defekt WMCNL-2414: die Aktion wird derzeit rollenseitig
     // abgewiesen. Sobald behoben, muessen die folgenden Schritte wieder aktiv
     // sein (siehe e2e/bekannte-defekte.spec.ts fuer den isolierten Nachweis).
-    await expect(page.getByText("Ihre Rolle darf diesen Vorgang nicht ausführen.")).toBeVisible();
+    await expect(panel.getByText("Ihre Rolle darf diesen Vorgang nicht ausführen.")).toBeVisible();
     test.fixme(true, "Blockiert durch WMCNL-2414: Aufgabe annehmen fuer Brigade nicht moeglich.");
 
-    await page.getByRole("button", { name: "Pflücken starten" }).click();
-    await page.getByLabel("Gewicht in kg").fill("12,5");
-    await page.getByRole("button", { name: "Steige erfassen" }).click();
-    await page.getByLabel("Minuten").fill("90");
-    await page.getByRole("button", { name: "Arbeitszeit melden" }).click();
-    await page.getByLabel("Temperatur in °C").fill("3,5");
-    await page.getByRole("button", { name: "Kühlmessung erfassen" }).click();
-    await page.getByLabel("Ist-Menge").fill("41,2");
-    await page.getByRole("button", { name: "Menge melden und zur Belegprüfung geben" }).click();
+    await panel.getByRole("button", { name: "Pflücken starten" }).click();
+    // Steigen, Arbeitszeit und Kuehlmessung stehen im Reiter Nachweiskette.
+    await panel.getByRole("link", { name: "Nachweiskette", exact: true }).click();
+    await panel.getByLabel("Gewicht in kg").fill("12,5");
+    await panel.getByRole("button", { name: "Steige erfassen" }).click();
+    await panel.getByLabel("Minuten").fill("90");
+    await panel.getByRole("button", { name: "Arbeitszeit melden" }).click();
+    await panel.getByLabel("Temperatur in °C").fill("3,5");
+    await panel.getByRole("button", { name: "Kühlmessung erfassen" }).click();
+    await panel.getByRole("link", { name: "Übersicht", exact: true }).click();
+    await panel.getByLabel("Ist-Menge").fill("41,2");
+    await panel.getByRole("button", { name: "Menge melden und zur Belegprüfung geben" }).click();
     await expect(page.getByText("Belegprüfung offen")).toHaveCount(0);
   });
 
@@ -117,16 +137,19 @@ test.describe.serial("Hauptgeschaeftsprozess: Vorbestellung bis Deckungsbeitrag"
     test.fixme(true, "Erwartet einen von der Brigade angenommenen Auftrag, siehe WMCNL-2414.");
     await anmelden(page, "leitung");
 
-    await page.goto("/de/dashboard/feld/pflueckaufgaben");
+    await page.goto(`/de/dashboard/feld/pflueckaufgaben?suche=${pflueckaufgabeCode}`);
     await page.getByRole("link", { name: new RegExp(pflueckaufgabeCode) }).click();
-    await expect(page.getByText("Belegprüfung offen")).toBeVisible();
+    const panel = page.getByRole("region", { name: new RegExp(pflueckaufgabeCode) });
+    await expect(panel.getByText("Belegprüfung offen")).toBeVisible();
 
-    await page.getByLabel("Qualitätsfaktor").fill("1,06");
-    await page.getByRole("button", { name: "Freigeben" }).click();
-    await expect(page.getByText(new RegExp(`${pflueckaufgabeCode}.*abgeschlossen`))).toBeVisible();
+    await panel.getByLabel("Qualitätsfaktor").fill("1,06");
+    await panel.getByRole("button", { name: "Freigeben" }).click();
+    // Der Status steht im Kopf der Detailansicht; der Code dort und in der
+    // Liste - deshalb auf die Detailansicht beschraenkt.
+    await expect(panel.getByText("abgeschlossen", { exact: true }).first()).toBeVisible();
 
-    const nachweiskette = page.locator("section", { hasText: "Nachweiskette" }).first();
-    chargenCode = (await nachweiskette.getByText(/^CH-/).first().textContent())?.trim() ?? "";
+    await panel.getByRole("link", { name: "Nachweiskette", exact: true }).click();
+    chargenCode = (await panel.getByText(/^CH-/).first().textContent())?.trim() ?? "";
     expect(chargenCode, "Chargen-Code konnte nicht aus der Nachweiskette gelesen werden").not.toBe("");
   });
 
