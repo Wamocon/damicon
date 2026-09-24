@@ -82,17 +82,24 @@ export function Sheet({
 
   // Esc schliesst, und solange das Sheet offen ist, scrollt die Seite
   // darunter nicht mit.
+  //
+  // Gesperrt wird am <html>, nicht am <body>. Das <html> traegt
+  // overflow-x: clip, und damit reicht der Browser ein overflow des <body>
+  // nicht mehr an das Fenster weiter: der <body> wurde selbst zum
+  // Scrollcontainer, die klebende Kopfzeile klebte an ihm statt am Fenster
+  // und verschwand bei gescrollter Seite nach oben - die Seitenleiste mit ihr.
   useEffect(() => {
     if (!offen) return;
     const beiTaste = (event: KeyboardEvent) => {
       if (event.key === "Escape") onSchliessen();
     };
     document.addEventListener("keydown", beiTaste);
-    const vorher = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const wurzel = document.documentElement;
+    const vorher = wurzel.style.overflow;
+    wurzel.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", beiTaste);
-      document.body.style.overflow = vorher;
+      wurzel.style.overflow = vorher;
     };
   }, [offen, onSchliessen]);
 
