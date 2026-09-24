@@ -361,7 +361,7 @@ export const en: HandbuchTexte = {
       {
         pfad: "/api/ki-sprachausgabe",
         aufgabe:
-          "Reads answers aloud: a stored answer by the identifier of its message, or, when reading aloud while the answer is still being written, single sections that the chat signed as they were created. Never freely supplied text, otherwise the endpoint would be a speech generator for arbitrary content. The voice comes from the configured provider (Soniox or Sokrates); if it fails, Sokrates speaks.",
+          "Reads answers aloud: a stored answer by the identifier of its message, or, when reading aloud while the answer is still being written, single sections that the chat signed as they were created. Never freely supplied text, otherwise the endpoint would be a speech generator for arbitrary content. The voice comes from the configured provider (Soniox or Sokrates); if it fails, Sokrates speaks. A stored answer is streamed: playback starts while the audio is still being generated instead of after the whole file.",
         zugriff: "AI assistant permission",
       },
       {

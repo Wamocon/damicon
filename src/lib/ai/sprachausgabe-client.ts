@@ -24,6 +24,11 @@ export const SOKRATES_BASIS = "https://sokrates.test-qualitaetsmanagement.com/ap
 
 export type SprachausgabeAntwort = { ok: true; audio: ArrayBuffer; typ: string } | { ok: false; grund: string };
 
+/** Der Ton als Strom, WAEHREND er entsteht (siehe oeffneSprachausgabeStrom). */
+export type SprachausgabeStrom = { ok: true; strom: ReadableStream<Uint8Array>; typ: string } | { ok: false; grund: string };
+
+type Geoeffnet = { ok: true; antwort: Response } | { ok: false; grund: string };
+
 // Piper antwortet fuer eine Antwort ueblicher Laenge in unter einer Sekunde
 // (gemessen auf Caesar, 19.09.2026); 30 s lassen Luft fuer die laengsten
 // Antworten (MAX_SPRACHAUSGABE_ZEICHEN) und bleiben unter Cloudflares 100 s.
@@ -100,6 +105,54 @@ export async function erzeugeSprachausgabeMitRueckfall(
   return { ok: false, grund: letzterGrund };
 }
 
+/** Wie erzeugeSprachausgabe, aber der Ton wird weitergereicht, WAEHREND ihn der
+ *  Anbieter erzeugt - statt erst die ganze Datei abzuwarten. Beide Anbieter
+ *  schicken ihre Antwort stueckweise (Soniox: github.com/soniox/soniox-js,
+ *  packages/core/src/tts-rest.ts, generateStream). Fuer eine lange Antwort ist
+ *  das der Unterschied zwischen "sofort" und "nach vielen Sekunden Stille": die
+ *  Datei ist erst fertig, wenn der letzte Satz erzeugt ist, der erste Satz ist
+ *  es nach einem Bruchteil davon.
+ *
+ *  Das Zeitlimit gilt hier nur bis zur Antwort des Anbieters, nicht fuer das
+ *  Lesen des Stroms - der darf so lange laufen, wie die Stimme spricht. */
+export async function oeffneSprachausgabeStrom(text: string, stimme: Stimme): Promise<SprachausgabeStrom> {
+  const controller = new AbortController();
+  const zeitlimit = stimme.anbieter === "soniox" ? SONIOX_ZEITLIMIT_MS : sprachausgabeZeitlimitMs();
+  const timeout = setTimeout(() => controller.abort(), zeitlimit);
+  try {
+    const geoeffnet =
+      stimme.anbieter === "soniox" ? await sonioxAnfrage(text, stimme, controller.signal) : await sokratesAnfrage(text, stimme, controller.signal);
+    if (!geoeffnet.ok) return geoeffnet;
+    const typ = stimme.anbieter === "soniox" ? sonioxTyp(geoeffnet.antwort) : (geoeffnet.antwort.headers.get("content-type") ?? "");
+    if (!geoeffnet.antwort.body) return { ok: false, grund: "antwort-leer" };
+    return { ok: true, strom: geoeffnet.antwort.body, typ };
+  } catch (error) {
+    const grund = error instanceof Error ? error.message : String(error);
+    return { ok: false, grund: controller.signal.aborted ? "zeitueberschreitung" : `dienst-nicht-erreichbar: ${grund}` };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+/** Die Stimmen der Reihe nach, wie erzeugeSprachausgabeMitRueckfall - der
+ *  Rueckfall greift aber nur, solange noch kein Ton geflossen ist. Bricht ein
+ *  Strom mittendrin ab, endet das Vorlesen dort; ein zweiter Anbieter finge
+ *  von vorn an und spraeche den Anfang doppelt. */
+export async function oeffneSprachausgabeStromMitRueckfall(
+  text: string,
+  stimmen: readonly Stimme[],
+  melde: (zeile: string) => void = (zeile) => console.error(zeile),
+): Promise<(SprachausgabeStrom & { ok: true; stimme: Stimme }) | { ok: false; grund: string }> {
+  let letzterGrund = "keine-stimme";
+  for (const stimme of stimmen) {
+    const ergebnis = await oeffneSprachausgabeStrom(text, stimme);
+    if (ergebnis.ok) return { ...ergebnis, stimme };
+    letzterGrund = `${stimme.anbieter}: ${ergebnis.grund}`;
+    if (stimmen.length > 1) melde(`[damicon] Sprachausgabe (Strom) ueber ${stimme.anbieter} fehlgeschlagen: ${ergebnis.grund}`);
+  }
+  return { ok: false, grund: letzterGrund };
+}
+
 // --- Soniox TTS v2 ------------------------------------------------------------
 //
 // POST {tts-rt.<region>.soniox.com}/tts mit {model, language, voice,
@@ -133,40 +186,52 @@ export function sonioxTtsBasis(): string | null {
   }
 }
 
-async function erzeugeMitSoniox(text: string, stimme: Stimme): Promise<SprachausgabeAntwort> {
+/** Die Anfrage selbst, fuer Datei (erzeugeMitSoniox) und Strom
+ *  (oeffneSprachausgabeStrom) gleich. Liest den Koerper NICHT. */
+async function sonioxAnfrage(text: string, stimme: Stimme, signal: AbortSignal): Promise<Geoeffnet> {
   const schluessel = process.env.SONIOX_API_KEY?.trim();
   if (!schluessel) return { ok: false, grund: "kein-schluessel" };
   const basis = sonioxTtsBasis();
   if (!basis) return { ok: false, grund: "keine-basis-url" };
+  const antwort = await fetch(`${basis}/tts`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${schluessel}`, "content-type": "application/json" },
+    body: JSON.stringify({
+      model: SONIOX_TTS_MODELL,
+      language: stimme.sprache,
+      voice: stimme.stimme,
+      // MP3, weil Bucket (nur audio/mpeg) und beide Abspieler es kennen - und
+      // weil ein <audio>-Element MP3 schon waehrend des Ladens abspielt.
+      audio_format: "mp3",
+      text,
+    }),
+    signal,
+  });
+  if (!antwort.ok) {
+    if (antwort.status === 401 || antwort.status === 403) {
+      return { ok: false, grund: `zugang-abgewiesen (http-${antwort.status}) - SONIOX_API_KEY pruefen` };
+    }
+    const auszug = await antwort.text().catch(() => "");
+    return { ok: false, grund: `http-${antwort.status}: ${auszug.slice(0, 200)}` };
+  }
+  return { ok: true, antwort };
+}
 
+/** Soniox schickt das Audio ohne verlaesslichen Typ; angefragt war MP3. */
+function sonioxTyp(antwort: Response): string {
+  const typ = antwort.headers.get("content-type") ?? "";
+  return typ.startsWith("audio/") ? typ : "audio/mpeg";
+}
+
+async function erzeugeMitSoniox(text: string, stimme: Stimme): Promise<SprachausgabeAntwort> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), SONIOX_ZEITLIMIT_MS);
   try {
-    const antwort = await fetch(`${basis}/tts`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${schluessel}`, "content-type": "application/json" },
-      body: JSON.stringify({
-        model: SONIOX_TTS_MODELL,
-        language: stimme.sprache,
-        voice: stimme.stimme,
-        // MP3, weil Bucket (nur audio/mpeg) und beide Abspieler es kennen.
-        audio_format: "mp3",
-        text,
-      }),
-      signal: controller.signal,
-    });
-    if (!antwort.ok) {
-      if (antwort.status === 401 || antwort.status === 403) {
-        return { ok: false, grund: `zugang-abgewiesen (http-${antwort.status}) - SONIOX_API_KEY pruefen` };
-      }
-      const auszug = await antwort.text().catch(() => "");
-      return { ok: false, grund: `http-${antwort.status}: ${auszug.slice(0, 200)}` };
-    }
-    const audio = await antwort.arrayBuffer();
+    const geoeffnet = await sonioxAnfrage(text, stimme, controller.signal);
+    if (!geoeffnet.ok) return geoeffnet;
+    const audio = await geoeffnet.antwort.arrayBuffer();
     if (audio.byteLength === 0) return { ok: false, grund: "antwort-leer" };
-    // Soniox schickt das Audio ohne verlaesslichen Typ; angefragt war MP3.
-    const typ = antwort.headers.get("content-type") ?? "";
-    return { ok: true, audio, typ: typ.startsWith("audio/") ? typ : "audio/mpeg" };
+    return { ok: true, audio, typ: sonioxTyp(geoeffnet.antwort) };
   } catch (error) {
     const grund = error instanceof Error ? error.message : String(error);
     return { ok: false, grund: controller.signal.aborted ? "zeitueberschreitung" : `dienst-nicht-erreichbar: ${grund}` };
@@ -177,32 +242,38 @@ async function erzeugeMitSoniox(text: string, stimme: Stimme): Promise<Sprachaus
 
 // --- Sokrates -----------------------------------------------------------------
 
-async function erzeugeMitSokrates(text: string, stimme: Stimme): Promise<SprachausgabeAntwort> {
+/** Die Anfrage selbst, fuer Datei und Strom gleich. Liest den Koerper NICHT. */
+async function sokratesAnfrage(text: string, stimme: Stimme, signal: AbortSignal): Promise<Geoeffnet> {
   const zugang = sprachausgabeZugangsHeader();
   if (!zugang.ok) return zugang;
+  const antwort = await fetch(sprachausgabeUrl(), {
+    method: "POST",
+    headers: { "content-type": "application/json", ...zugang.headers },
+    body: baueSprachausgabeAnfrage(text, stimme),
+    signal,
+    redirect: "manual",
+  });
+  if (!antwort.ok) {
+    if ([301, 302, 303, 307, 308, 401, 403].includes(antwort.status)) {
+      return { ok: false, grund: `zugang-abgewiesen (http-${antwort.status}) - KI_SOKRATES_API_SCHLUESSEL bzw. KI_TRANSKRIPTION_ACCESS_ID/-SECRET prüfen` };
+    }
+    const auszug = await antwort.text().catch(() => "");
+    return { ok: false, grund: `http-${antwort.status}: ${auszug.slice(0, 200)}` };
+  }
+  const typ = antwort.headers.get("content-type") ?? "";
+  if (!typ.startsWith("audio/")) return { ok: false, grund: `antwort-unerwartete-form (${typ || "ohne content-type"})` };
+  return { ok: true, antwort };
+}
 
+async function erzeugeMitSokrates(text: string, stimme: Stimme): Promise<SprachausgabeAntwort> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), sprachausgabeZeitlimitMs());
   try {
-    const antwort = await fetch(sprachausgabeUrl(), {
-      method: "POST",
-      headers: { "content-type": "application/json", ...zugang.headers },
-      body: baueSprachausgabeAnfrage(text, stimme),
-      signal: controller.signal,
-      redirect: "manual",
-    });
-    if (!antwort.ok) {
-      if ([301, 302, 303, 307, 308, 401, 403].includes(antwort.status)) {
-        return { ok: false, grund: `zugang-abgewiesen (http-${antwort.status}) - KI_SOKRATES_API_SCHLUESSEL bzw. KI_TRANSKRIPTION_ACCESS_ID/-SECRET prüfen` };
-      }
-      const auszug = await antwort.text().catch(() => "");
-      return { ok: false, grund: `http-${antwort.status}: ${auszug.slice(0, 200)}` };
-    }
-    const typ = antwort.headers.get("content-type") ?? "";
-    if (!typ.startsWith("audio/")) return { ok: false, grund: `antwort-unerwartete-form (${typ || "ohne content-type"})` };
-    const audio = await antwort.arrayBuffer();
+    const geoeffnet = await sokratesAnfrage(text, stimme, controller.signal);
+    if (!geoeffnet.ok) return geoeffnet;
+    const audio = await geoeffnet.antwort.arrayBuffer();
     if (audio.byteLength === 0) return { ok: false, grund: "antwort-leer" };
-    return { ok: true, audio, typ };
+    return { ok: true, audio, typ: geoeffnet.antwort.headers.get("content-type") ?? "audio/mpeg" };
   } catch (error) {
     const grund = error instanceof Error ? error.message : String(error);
     return { ok: false, grund: controller.signal.aborted ? "zeitueberschreitung" : grund };

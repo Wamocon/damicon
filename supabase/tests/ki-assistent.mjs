@@ -2023,7 +2023,98 @@ for (const [name, kaputteAntwort] of [
   const kk = wortweise("Құжаттар 2026 ж. 1 қаңтардан бастап талап етіледі, т.б. салықтар. Бұл маңызды.");
   pruefe("Zerleger: kasachische Abkuerzungen (ж., т.б.) ebenso", kk[0]?.includes("2026 ж. 1 қаңтардан") && kk[0].includes("т.б. салықтар."), JSON.stringify(kk));
   const liste = wortweise("## Nächste Schritte\n\n1. Steuerberater kontaktieren\n2. Unterlagen sammeln\n\nDas ist alles für heute.");
-  pruefe("Zerleger: Zeilen ohne Satzzeichen sind Grenzen, kein Brei", liste[0] === "Nächste Schritte" && liste.join(" ").includes("Steuerberater kontaktieren."), JSON.stringify(liste));
+  pruefe("Zerleger: Zeilen ohne Satzzeichen sind Grenzen, kein Brei", liste[0]?.startsWith("Nächste Schritte") && liste.join(" ").includes("Steuerberater kontaktieren."), JSON.stringify(liste));
+
+  // (m) 24.09.2026: ein Abschnitt, der an einem Zeilenende oder am Ende der Antwort aufhoert,
+  //     bekommt ein Satzzeichen. Ohne Punkt las die Stimme das letzte Wort wie mitten im Satz
+  //     und brach dort ab ("hackt am Wortende ab").
+  pruefe("Zerleger: ein Abschnitt am Zeilenende endet mit Punkt (Ueberschrift)", liste[0] === "Nächste Schritte.", JSON.stringify(liste));
+  const vorab = wortweise("Ich sehe mir Ihre Aufgaben an\n\nHeute stehen drei Dinge an.");
+  pruefe("Zerleger: ein Vorab-Satz ohne Punkt (vor einem Werkzeug) wird als ganzer Satz gesprochen", vorab[0] === "Ich sehe mir Ihre Aufgaben an.", JSON.stringify(vorab));
+  const ohneSchluss = wortweise("Heute ist alles erledigt. Morgen kommt die Lieferung aus Almaty");
+  pruefe("Zerleger: der Rest am Ende der Antwort bekommt ein Satzzeichen", ohneSchluss.at(-1)?.endsWith("aus Almaty."), JSON.stringify(ohneSchluss));
+  const fragend = wortweise("Soll ich Ihnen den Bereich zeigen?");
+  pruefe("Zerleger: vorhandene Satzzeichen bleiben unveraendert", fragend[0] === "Soll ich Ihnen den Bereich zeigen?", JSON.stringify(fragend));
+  const kommaSchnitt = wortweise(
+    "Wenn Sie heute ins Büro kommen und die Lieferscheine der Woche sehen möchten, finden Sie diese in der Übersicht unter Wareneingang und Kühlkette der Anlage",
+  );
+  pruefe("Zerleger: ein Schnitt am Komma MITTEN im Satz bekommt keinen Punkt", kommaSchnitt[0]?.endsWith(",") && !kommaSchnitt[0].endsWith(".,"), JSON.stringify(kommaSchnitt));
+
+  // (n) Vorlesen einer fertigen Antwort als Strom (GET): das <audio>-Element spielt, waehrend
+  //     der Ton entsteht, statt auf die ganze Datei zu warten.
+  const route = readFileSync(new URL("../../src/app/api/ki-sprachausgabe/route.ts", import.meta.url), "utf8");
+  const client = readFileSync(new URL("../../src/lib/ai/sprachausgabe-client.ts", import.meta.url), "utf8");
+  const knopf = readFileSync(new URL("../../src/components/ki/sprachausgabe.tsx", import.meta.url), "utf8");
+  pruefe("Strom: die Route hat GET mit denselben Pruefungen (zugang) wie POST", /export async function GET\(req: Request\) \{\s*const z = await zugang\(\);/.test(route) && /export async function POST\(req: Request\) \{\s*const z = await zugang\(\);/.test(route));
+  pruefe("Strom: Zugang prueft Anmeldung, Berechtigung und Ratenbegrenzung", /async function zugang\(\)[\s\S]*?getSessionProfile\(\)[\s\S]*?hasPermission\(profil\.role, "ki_assistent", "create"\)[\s\S]*?ratenlimitUeberschritten\(/.test(route));
+  pruefe("Strom: GET liest die Antwort wie POST ueber RLS (fertigeAntwort, createClient)", route.includes('return fertigeAntwort(adresse.searchParams.get("nachricht") ?? "", adresse.searchParams.get("sprache") ?? "de", true);') && /async function fertigeAntwort[\s\S]*?UUID\.test\(nachrichtId\)[\s\S]*?await createClient\(\)/.test(route));
+  pruefe("Strom: GET nimmt nur Nachrichten-IDs, keinen freien Text", !/searchParams\.get\("text"\)/.test(route));
+  pruefe("Strom: ein Zweig zum Hoerer, einer in den Zwischenspeicher (tee), nie im Browser behalten", route.includes("geoeffnet.strom.tee()") && route.includes('"cache-control": "no-store"'));
+  pruefe("Strom: ein abgerissener Strom wird NICHT abgelegt", /catch \{\s*\/\/ Strom abgerissen[^\n]*\n\s*return;/.test(route));
+  pruefe("Strom: Soniox und Sokrates teilen sich die Anfrage fuer Datei und Strom", (client.match(/await sonioxAnfrage\(/g) ?? []).length === 2 && (client.match(/await sokratesAnfrage\(/g) ?? []).length === 2);
+  pruefe("Strom: Rueckfall auf den naechsten Anbieter nur, solange noch kein Ton floss", client.includes("export async function oeffneSprachausgabeStromMitRueckfall("));
+  pruefe("Strom: der Knopf spielt die GET-Adresse und faellt bei Fehler auf die Datei zurueck", knopf.includes("audio.src = `/api/ki-sprachausgabe?nachricht=${encodeURIComponent(id)}") && knopf.includes('body: JSON.stringify({ nachrichtId: id, sprache: zielSprache })'));
+  {
+    const start = knopf.indexOf("async (id: string, antwortSprache?: string) => {");
+    const erstesAwait = knopf.indexOf("await ", start);
+    pruefe("Strom: das erste await im Knopf ist play() - vor jedem fetch (iPhone: Ton gehoert zur Geste)", start > 0 && knopf.startsWith("await audio.play();", erstesAwait) && erstesAwait < knopf.indexOf("await fetch(", start));
+  }
+}
+
+// Strom mit echtem fetch-Ersatz: der Koerper kommt stueckweise, und das Ergebnis reicht ihn
+// unveraendert weiter; faellt der erste Anbieter vor dem ersten Ton aus, uebernimmt der zweite.
+{
+  const alt = { fetch: globalThis.fetch, key: process.env.SONIOX_API_KEY, url: process.env.SONIOX_API_URL, sok: process.env.KI_SOKRATES_API_SCHLUESSEL };
+  process.env.SONIOX_API_KEY = "test-schluessel";
+  process.env.SONIOX_API_URL = "https://api.eu.soniox.com";
+  process.env.KI_SOKRATES_API_SCHLUESSEL = "test-sokrates";
+  const stueckStrom = (teile) =>
+    new ReadableStream({
+      start(c) {
+        for (const t of teile) c.enqueue(new Uint8Array(t));
+        c.close();
+      },
+    });
+  const aufrufe = [];
+  globalThis.fetch = async (adresse) => {
+    aufrufe.push(String(adresse));
+    if (String(adresse).includes("soniox")) return new Response("kaputt", { status: 500 });
+    return new Response(stueckStrom([[1, 2], [3], [4, 5, 6]]), { status: 200, headers: { "content-type": "audio/mpeg" } });
+  };
+  try {
+    const { oeffneSprachausgabeStromMitRueckfall } = await import("../../src/lib/ai/sprachausgabe-client.ts");
+    const gemeldet = [];
+    const ergebnis = await oeffneSprachausgabeStromMitRueckfall(
+      "Hallo.",
+      [
+        { anbieter: "soniox", stimme: "Maya", sprache: "de" },
+        { anbieter: "sokrates", stimme: "de-female", sprache: "de" },
+      ],
+      (z) => gemeldet.push(z),
+    );
+    pruefe("Strom: faellt Soniox vor dem ersten Ton aus, spricht Sokrates", ergebnis.ok && ergebnis.stimme.anbieter === "sokrates", JSON.stringify(ergebnis.ok ? ergebnis.stimme : ergebnis));
+    pruefe("Strom: der Ausfall steht im Protokoll", gemeldet.length === 1 && gemeldet[0].includes("soniox"));
+    if (ergebnis.ok) {
+      const leser = ergebnis.strom.getReader();
+      const bytes = [];
+      let stuecke = 0;
+      for (;;) {
+        const { done, value } = await leser.read();
+        if (done) break;
+        stuecke++;
+        bytes.push(...value);
+      }
+      pruefe("Strom: die Stuecke kommen einzeln und unveraendert an", stuecke === 3 && bytes.join(",") === "1,2,3,4,5,6", `${stuecke} Stuecke: ${bytes}`);
+      pruefe("Strom: der Typ kommt vom Anbieter", ergebnis.typ === "audio/mpeg");
+    }
+    pruefe("Strom: Soniox wurde zuerst gefragt, dann Sokrates", aufrufe.length === 2 && aufrufe[0].includes("tts-rt.eu.soniox.com/tts") && aufrufe[1] === sprachausgabeUrl(), JSON.stringify(aufrufe));
+  } finally {
+    globalThis.fetch = alt.fetch;
+    for (const [name, wert] of [["SONIOX_API_KEY", alt.key], ["SONIOX_API_URL", alt.url], ["KI_SOKRATES_API_SCHLUESSEL", alt.sok]]) {
+      if (wert === undefined) delete process.env[name];
+      else process.env[name] = wert;
+    }
+  }
 }
 
 // --- 16. Antwortsprache in allen vier Sprachen (24.09.2026) -------------------------
