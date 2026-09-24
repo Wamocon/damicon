@@ -40,10 +40,37 @@ Schreibtisch Zeigt Das Suchfeld Statt Eines Knopfes
     ...    () => { const f = document.querySelector('header.sticky [data-suche="feld"]'); return f ? Math.round(f.getBoundingClientRect().width) : 0; }
     Should Be True    ${breite} > 200
     ...    msg=Das Suchfeld ist nur ${breite} px breit statt eines lesbaren Feldes.
-    ${knopf} =    Evaluate JavaScript    ${None}
-    ...    () => { const k = document.querySelector('header.sticky [data-suche="knopf"]'); return k ? Math.round(k.getBoundingClientRect().width) : 0; }
-    Should Be Equal As Integers    ${knopf}    0
-    ...    msg=Am Schreibtisch steht neben dem Feld zusaetzlich der Suchknopf.
+    ${knoepfe} =    Sichtbare Suchknoepfe Zaehlen
+    Should Be Equal As Integers    ${knoepfe}    0
+    ...    msg=Am Schreibtisch steht neben dem Feld zusaetzlich ein Suchknopf.
+
+Suchfenster Legt Sich Ueber Das Feld
+    [Documentation]    Das Fenster geht dort auf, wo der Ausloeser sitzt: ab
+    ...    1280 px genau ueber dem Feld, die Treffer klappen darunter auf.
+    [Tags]    schreibtisch
+    Portal Oeffnen    ${SCHREIBTISCH}
+    Seite Ansteuern    /dashboard/hof/kuehlkette
+    Click    ${KOPFBALKEN} [data-suche="feld"]
+    Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
+    Suchfenster Liegt Am Ausloeser    header.sticky [data-suche="feld"]
+    Befund Festhalten    ${SCHREIBTISCH}    suche-am-feld
+
+Suche Findet Seitentexte Unter Erwaehnt In
+    [Documentation]    Unter den Namenstreffern stehen Seiten, deren Text den
+    ...    Begriff nennt, mit der Stelle als Beleg. "Wartezeit" steht im Namen
+    ...    von Pflanzenschutz und im Text der Reihenbloecke.
+    [Tags]    schreibtisch
+    Portal Oeffnen    ${SCHREIBTISCH}
+    Seite Ansteuern    /dashboard
+    Suche Per Tastatur Oeffnen    Control+k
+    Keyboard Input    type    Wartezeit
+    Wait For Elements State    [role="option"] >> text=Reihenblöcke    visible
+    ${gruppen} =    Evaluate JavaScript    ${None}
+    ...    () => [...document.querySelectorAll('[role="listbox"] [role="group"]')].map((g) => document.getElementById(g.getAttribute('aria-labelledby')).textContent + ': ' + [...g.querySelectorAll('[role="option"]')].map((o) => o.innerText.split('\\n')[0]).join(', '))
+    Should Contain    ${gruppen}    Seiten und Module: Pflanzenschutz
+    ...    msg=Pflanzenschutz fehlt unter den Namenstreffern: ${gruppen}
+    Should Contain    ${gruppen}    Erwähnt in: Reihenblöcke
+    ...    msg=Die Reihenbloecke fehlen unter "Erwaehnt in": ${gruppen}
 
 Strg K Oeffnet Die Suche Und Enter Fuehrt Zum Treffer
     [Documentation]    Dasselbe Kuerzel wie im Handbuch. Der erste Treffer ist
@@ -110,20 +137,23 @@ Handy Quer Schneidet Keine Bedienelemente Ab
 
 Handy Quer Zeigt Die Suche Als Knopf
     [Documentation]    Unter 1280 px weicht das Feld einem Knopf, sonst
-    ...    schrumpft es zu einer leeren Pille. Der Knopf steht links neben
-    ...    der Glocke, an derselben Stelle wie auf dem Handy hoch.
+    ...    schrumpft es zu einer leeren Pille. Der Knopf steht direkt hinter
+    ...    dem Pfad, wo ab 1280 px das Feld beginnt, und das Fenster geht
+    ...    an ihm auf.
     [Tags]    mobil-quer
     Portal Oeffnen    ${MOBIL_QUER}
-    Seite Ansteuern    /dashboard
-    ${knopf} =    Get Element Count    ${KOPFBALKEN} [data-suche="knopf"]
-    Should Be Equal As Integers    ${knopf}    1
-    ...    msg=Der Suchknopf fehlt oder steht doppelt.
-    Wait For Elements State    ${KOPFBALKEN} [data-suche="knopf"]    visible
+    Seite Ansteuern    /dashboard/buero/rollen
+    ${knoepfe} =    Sichtbare Suchknoepfe Zaehlen
+    Should Be Equal As Integers    ${knoepfe}    1
+    ...    msg=Der Suchknopf fehlt oder steht doppelt sichtbar.
     ${feld} =    Evaluate JavaScript    ${None}
     ...    () => { const f = document.querySelector('header.sticky [data-suche="feld"]'); return f ? Math.round(f.getBoundingClientRect().width) : 0; }
     Should Be Equal As Integers    ${feld}    0
     ...    msg=Im Querformat steht noch ein Suchfeld statt des Knopfes.
-    Suchknopf Steht Links Neben Der Glocke
+    Suchknopf Steht Hinter Dem Pfad
+    Click    ${KOPFBALKEN} [data-suche="knopf"] >> visible=true
+    Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
+    Suchfenster Liegt Am Ausloeser    header.sticky [data-suche="knopf"]
 
 Handy Quer Kuerzt Den Pfad Auf Die Offene Seite
     [Documentation]    Wird es eng, faellt die mittlere Station weg. Die
@@ -169,7 +199,7 @@ Handy Hoch Traegt Die Suche Neben Der Glocke
     Suchknopf Steht Links Neben Der Glocke
     Bildmarke Steht Mittig
     Kein Waagerechtes Scrollen    ${MOBIL_HOCH}    suche
-    Click    ${KOPFBALKEN} [data-suche="knopf"]
+    Click    ${KOPFBALKEN} [data-suche="knopf"] >> visible=true
     Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
     ${oben} =    Evaluate JavaScript    ${None}
     ...    () => Math.round(document.querySelector('[role="dialog"][aria-modal="true"]').getBoundingClientRect().top)

@@ -1,6 +1,6 @@
 # Portal-Tests mit Robot Framework
 
-Fuenfzehn Tests des Portals in vier Geraeteprofilen. Geprueft wird, was die
+Siebzehn Tests des Portals in vier Geraeteprofilen. Geprueft wird, was die
 Fenstergroesse entscheidet: ob die Bedienung erreichbar bleibt, ob Text
 lesbar bleibt, ob der Weg durch die Ebenen funktioniert und ob die globale
 Suche auf jeder Breite erreichbar ist.
@@ -51,7 +51,9 @@ die Kopfzeile keinen eigenen Scrollbereich hat.
 | Kein Querscrollen | Laesst sich die Seite zur Seite schieben? |
 | Pfad vollstaendig | Zeigt die Kopfzeile Haus, Bereich und Seite? |
 | Pfad gekuerzt | Faellt im Querformat die mittlere Station weg, nicht die offene Seite? |
-| Suchfeld und Suchknopf | Feld ab 1280 px, darunter ein Knopf links neben der Glocke? |
+| Suchfeld und Suchknopf | Feld ab 1280 px, darunter ein Knopf direkt hinter dem Pfad, auf dem Handy links neben der Glocke? |
+| Fenster am Ausloeser | Geht das Suchfenster ueber dem Feld bzw. am Knopf auf statt irgendwo in der Mitte? |
+| Erwaehnt in | Stehen unter den Namenstreffern die Seiten, deren Text den Begriff nennt? |
 | Suche per Tastatur | Oeffnen Strg+K und "/" die Suche mit Fokus im Feld, fuehrt Enter zum Treffer, schliesst Esc ohne Sprung? |
 | Suche auf dem Handy | Oeffnet ein Tipp das Fenster oben, fuehrt ein Treffer auf seine Seite, bleibt die Bildmarke mittig, auch bei 360 px? |
 | Zuletzt geoeffnet | Nennt die Suche bei leerem Feld die zuvor besuchte Seite, aber nicht die offene? |
@@ -78,7 +80,9 @@ Fuer die Suchtests wiederholt am 24.09.2026: mit dem Suchknopf wieder hinter
 `hidden md:inline-flex` schlugen `Handy Hoch Traegt Die Suche Neben Der Glocke`
 und `Handy Schmal Traegt Suche Und Glocke Ohne Querscrollen` fehl, beide mit
 "Der Suchknopf steht nicht direkt links neben der Glocke (Abstand -1 px, -1
-heisst: fehlt)".
+heisst: fehlt)". Ebenso fuer das Fenster am Ausloeser: ohne Anker schlug
+`Suchfenster Legt Sich Ueber Das Feld` fehl mit "Ausloeser 566-1093/14,
+Fenster 464-1136/100" - das Fenster ging mittig und 86 px tiefer auf.
 
 ## Grenzen
 
