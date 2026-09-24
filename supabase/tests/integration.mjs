@@ -332,8 +332,9 @@ if (leitung && brigade) {
     zielmenge_kg: 10,
   });
   check(
+    // WMCNL-2472: eigener Code DA005 statt der ueberladenen 23514-Sammelklasse.
     "Sperre: keine Pflueckaufgabe auf gesperrtem Reihenblock",
-    aufgabeFehler?.code === "23514",
+    aufgabeFehler?.code === "DA005",
     aufgabeFehler?.code ?? "kein Fehler",
   );
 
@@ -488,8 +489,9 @@ if (leitung && brigade) {
       .update({ ist_menge_kg: Number(laufend.ist_menge_kg) + 5 })
       .eq("id", laufend.id);
     check(
+      // WMCNL-2472: eigener Code DA005 statt der ueberladenen 23514-Sammelklasse.
       "Haertung: laufende Aufgabe stoppt bei nachtraeglicher Behandlung",
-      weiterFehler?.code === "23514",
+      weiterFehler?.code === "DA005",
       weiterFehler?.code ?? "kein Fehler",
     );
 
@@ -1892,10 +1894,14 @@ if (leitung && brigade) {
     `grundlohn_tenge: ${lohnSarsenbaj?.grundlohn_tenge}`,
   );
   check(
-    // WMCNL-2381: Ausschussquote ist Ausschuss / Menge (nicht / (Menge +
-    // Ausschuss)), deshalb 37440,80 statt der vormals falschen 37659,25.
-    "Lohn-Berechnung: Mengenkomponente inklusive Qualitaetsfaktor je Aufgabe",
-    Number(lohnSarsenbaj?.mengen_komponente_tenge) === 37440.8,
+    // WMCNL-2473: nur PA-2026-0912-04 (abgeschlossen) zaehlt, PA-2026-0912-01
+    // (beleg_pruefung, nie durch die Betriebsleitung abgeschlossen) faellt
+    // seit der Statusfilterung in lohn_periode_berechnen() heraus - deshalb
+    // 16906,50 (eine Position) statt der vormaligen 37440,80 (zwei
+    // Positionen, WMCNL-2381 hatte hier nur die Ausschussquote korrigiert,
+    // nicht den fehlenden Statusfilter).
+    "Lohn-Berechnung: Mengenkomponente nur aus abgeschlossenen Aufgaben",
+    Number(lohnSarsenbaj?.mengen_komponente_tenge) === 16906.5,
     `mengen_komponente_tenge: ${lohnSarsenbaj?.mengen_komponente_tenge}`,
   );
   check(
@@ -1912,28 +1918,42 @@ if (leitung && brigade) {
 
   const { data: lohnPositionenSarsenbaj } = await admin
     .from("lohn_positionen")
-    .select("menge_kg, qualitaetsfaktor, ausschuss_anteilig_kg, betrag_tenge")
+    .select("pflueckaufgabe_id, menge_kg, qualitaetsfaktor, ausschuss_anteilig_kg, betrag_tenge")
     .eq("lohn_abrechnung_id", lohnSarsenbaj.id)
     .order("menge_kg", { ascending: false });
+  const { data: lohnAufgabeVierId } = await admin
+    .from("pflueckaufgaben")
+    .select("id")
+    .eq("code", "PA-2026-0912-04")
+    .single();
   check(
-    "Lohn-Positionen: zwei Positionen, Ausschuss ueber den kg-Anteil umgelegt (symmetrischer Seed: 50/50 je Aufgabe)",
-    lohnPositionenSarsenbaj?.length === 2 &&
-      Number(lohnPositionenSarsenbaj[0].ausschuss_anteilig_kg) === 2.1 &&
-      Number(lohnPositionenSarsenbaj[1].ausschuss_anteilig_kg) === 2.95,
+    // WMCNL-2473: PA-2026-0912-01 haengt in beleg_pruefung (nie abgeschlossen)
+    // und liefert deshalb keine eigene Position mehr - nur noch PA-04.
+    "Lohn-Positionen: nur die abgeschlossene Aufgabe liefert eine Position",
+    lohnPositionenSarsenbaj?.length === 1 &&
+      lohnPositionenSarsenbaj[0].pflueckaufgabe_id === lohnAufgabeVierId?.id &&
+      Number(lohnPositionenSarsenbaj[0].ausschuss_anteilig_kg) === 2.95,
     JSON.stringify(lohnPositionenSarsenbaj),
   );
 
   const { data: lohnQojschybaj } = await admin
     .from("lohn_abrechnungen")
-    .select("qualitaetsfaktor, ausschussquote")
+    .select("qualitaetsfaktor, ausschussquote, menge_kg, mengen_komponente_tenge")
     .eq("periode_start", "2026-09-01")
     .eq("periode_ende", "2026-09-02")
     .eq("pfluecker_id", lohnQojschybajId)
     .single();
   check(
-    "Lohn-Berechnung: 0% Ausschuss hebt den Qualitaetsfaktor auf das Maximum des Korridors",
-    Number(lohnQojschybaj?.qualitaetsfaktor) === 1.1 && Number(lohnQojschybaj?.ausschussquote) === 0,
-    `qualitaetsfaktor: ${lohnQojschybaj?.qualitaetsfaktor}, ausschussquote: ${lohnQojschybaj?.ausschussquote}`,
+    // WMCNL-2473: PA-2026-0912-02 (Qojschybajs einzige Aufgabe der Periode)
+    // steht auf in_arbeit, also nie durch die Betriebsleitung abgeschlossen
+    // und mit Qualitaetsfaktor bestaetigt - die Mengenkomponente bleibt
+    // deshalb 0, unabhaengig vom tatsaechlich gemeldeten Ausschuss (hier 0%,
+    // vormals faelschlich mit Qualitaetsfaktor 1.1 ausbezahlt).
+    "Lohn-Berechnung: eine nicht abgeschlossene Aufgabe zahlt keine Mengenkomponente aus",
+    Number(lohnQojschybaj?.menge_kg) === 0 &&
+      Number(lohnQojschybaj?.mengen_komponente_tenge) === 0 &&
+      lohnQojschybaj?.ausschussquote === null,
+    `menge_kg: ${lohnQojschybaj?.menge_kg}, mengen_komponente_tenge: ${lohnQojschybaj?.mengen_komponente_tenge}, ausschussquote: ${lohnQojschybaj?.ausschussquote}`,
   );
 
   // Freigabe: die Buchhaltung darf, die Brigade nicht (rbac: lohn:approve nur
