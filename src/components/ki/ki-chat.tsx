@@ -52,6 +52,7 @@ import { AKTIONS_NAMEN, AKTIONS_RECHTE, istAktion } from "@/lib/ai/aktionen-meta
 import { istClientWerkzeug } from "@/lib/ai/client-werkzeuge-meta";
 import { istVorlesbar, stimmeVorhanden, VorlesenKnopf } from "@/components/ki/sprachausgabe";
 import { mitUmlauten } from "@/lib/text/umlaute";
+import { haengeDiktatAn } from "@/lib/domain/diktat-live";
 import { type KiChatNachrichtZeile } from "@/lib/domain/ki-assistent";
 import { modules } from "@/lib/modules";
 import { hasPermission } from "@/lib/rbac";
@@ -72,7 +73,7 @@ import {
   type AktionsKarte,
 } from "@/components/ki/ki-chat-segmente";
 import { clientErgebnisseBereit, useKlientWerkzeuge, type WerkzeugChat } from "@/components/ki/ki-chat-werkzeuge";
-import { useKiChatSprache } from "@/components/ki/ki-chat-sprache";
+import { antwortSpracheAus, useKiChatSprache } from "@/components/ki/ki-chat-sprache";
 import { KiChatAktionskarte } from "@/components/ki/ki-chat-aktionskarte";
 import { KiChatComposer } from "@/components/ki/ki-chat-composer";
 
@@ -256,7 +257,16 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const beschaeftigt = status === "submitted" || status === "streaming" || clientAktiv !== null;
 
   // Vorlese-/Diktat-Zustand - siehe ki-chat-sprache.ts.
-  const { sprachausgabe, live, diktiert, beiMikrofonAufnahme, merkeDiktatSprachen, beginneZug } = useKiChatSprache({
+  const {
+    sprachausgabe,
+    live,
+    diktiert,
+    stoppeAlles: stoppeStimme,
+    beiMikrofonAufnahme,
+    beiMikrofonStart: stilleFuerDiktat,
+    merkeDiktatSprachen,
+    beginneZug,
+  } = useKiChatSprache({
     sprache,
     messages,
     beschaeftigt,
@@ -332,8 +342,8 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
 
   function stopp() {
     // Zuerst die Stimme: wer auf Stopp drueckt, will sofort Ruhe, nicht erst
-    // nach dem laufenden Abschnitt.
-    live.stoppeAlles();
+    // nach dem laufenden Abschnitt - beide Wege, live und die ganze Antwort.
+    stoppeStimme();
     werkzeugeAbbrechen();
     void stop();
   }
@@ -369,7 +379,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     // Wer zu tippen beginnt, hoert nicht mehr zu. Erst ab dem zweiten
     // Zeichen: ein einzelner Tastendruck ist oft ein Versehen, und der
     // erkannte Diktattext landet ebenfalls ueber diesen Weg im Feld.
-    if (wert.length > 1 && live.spricht) live.stoppeAlles();
+    if (wert.length > 1 && (live.spricht || sprachausgabe.spielt)) stoppeStimme();
     setEingabe(wert);
     const el = eingabeRef.current;
     if (el) {
@@ -378,10 +388,36 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     }
   }
 
-  function beiMikrofonText(text: string, sprachen?: string[]) {
+  // Was vor dem Diktat im Feld stand. Das Diktat wird daran ANGEHAENGT -
+  // bis zum 24.09.2026 ersetzte es den Inhalt, und wer nach einer Denkpause
+  // weiterdiktierte, verlor den ersten Teil samt allem Getippten.
+  const diktatBasis = useRef<string | null>(null);
+
+  function beiMikrofonStart() {
+    diktatBasis.current = eingabeRef.current?.value ?? eingabe;
+    stilleFuerDiktat();
+  }
+
+  /** Live-Diktat: was bis jetzt gehoert wurde, steht schon im Feld. */
+  function beiMikrofonZwischentext(zwischentext: string) {
+    setzeFeld(haengeDiktatAn(diktatBasis.current ?? "", zwischentext));
+  }
+
+  function setzeFeld(wert: string) {
+    setEingabe(wert);
+    const el = eingabeRef.current;
+    if (el) {
+      el.style.height = "auto";
+      el.style.height = `${Math.min(el.scrollHeight, 140)}px`;
+    }
+  }
+
+  function beiMikrofonText(diktat: string, sprachen?: string[]) {
     // Merken, solange der Text im Feld steht: abgeschickt wird von
     // Hand, und erst dann zaehlt es.
     merkeDiktatSprachen(sprachen);
+    const text = haengeDiktatAn(diktatBasis.current ?? "", diktat);
+    diktatBasis.current = null;
     beiEingabe(text);
     const feld = eingabeRef.current;
     feld?.focus();
@@ -620,7 +656,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
                     {istVorlesbar(nachricht.id) &&
                     !(beschaeftigt && nachricht.id === letzteId) &&
                     stimmeVorhanden(sprache) ? (
-                      <VorlesenKnopf id={nachricht.id} zustand={sprachausgabe} />
+                      <VorlesenKnopf id={nachricht.id} zustand={sprachausgabe} sprache={antwortSpracheAus(nachricht)} />
                     ) : null}
                   </div>
                 </div>
@@ -735,6 +771,8 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
         einwilligungFehlt={einwilligungFehlt}
         diktiert={diktiert}
         onMikrofonAufnahme={beiMikrofonAufnahme}
+        onMikrofonStart={beiMikrofonStart}
+        onMikrofonZwischentext={beiMikrofonZwischentext}
         onMikrofonText={beiMikrofonText}
         onStop={stopp}
         sprachausgabe={sprachausgabe}

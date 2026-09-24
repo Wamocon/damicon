@@ -337,7 +337,7 @@ export const en: HandbuchTexte = {
 
     schnittstellenTitel: "Interfaces",
     schnittstellenEinleitung:
-      "Five endpoints for tasks that have no page of their own. Each checks session and permission itself.",
+      "Six endpoints for tasks that have no page of their own. Each checks session and permission itself.",
     spalteAufgabe: "Purpose",
     schnittstellen: [
       {
@@ -361,8 +361,14 @@ export const en: HandbuchTexte = {
       {
         pfad: "/api/ki-sprachausgabe",
         aufgabe:
-          "Reads out an already stored answer. Only by the identifier of an existing message, never with freely supplied text — otherwise the endpoint would be a speech generator for arbitrary content.",
+          "Reads answers aloud: a stored answer by the identifier of its message, or, when reading aloud while the answer is still being written, single sections that the chat signed as they were created. Never freely supplied text, otherwise the endpoint would be a speech generator for arbitrary content. The voice comes from the configured provider (Soniox or Sokrates); if it fails, Sokrates speaks.",
         zugriff: "AI assistant permission",
+      },
+      {
+        pfad: "/api/ki-spracherkennung",
+        aufgabe:
+          "Issues a short-lived key for live dictation: speech recognition only, single use, one minute to connect. With it the browser sends speech straight to the recognition service, and the text appears in the input field while the person is still speaking. The actual key never leaves the server. If the endpoint declines, the same recording goes to recognition as a file, as before.",
+        zugriff: "AI assistant permission, live dictation switched on",
       },
       {
         pfad: "/api/sync",

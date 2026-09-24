@@ -43,14 +43,36 @@ import {
   textFuerSprachausgabe,
   ABSCHNITT_ZEICHEN,
   ERSTER_ABSCHNITT_ZEICHEN,
+  ZWEITER_ABSCHNITT_ZEICHEN,
   erzeugeSatzZerleger,
+  sprechfassung,
+  stimmenFuer,
+  SONIOX_STIMME_STANDARD,
+  VORLESETEXT_VERSION,
 } from "../../src/lib/domain/sprachausgabe.ts";
-import { erzeugeSprachausgabe, sprachausgabeUrl, sprachausgabeZugangsHeader } from "../../src/lib/ai/sprachausgabe-client.ts";
+import {
+  erzeugeSprachausgabe,
+  erzeugeSprachausgabeMitRueckfall,
+  SONIOX_TTS_MODELL,
+  sonioxTtsBasis,
+  sprachausgabeUrl,
+  sprachausgabeZugangsHeader,
+} from "../../src/lib/ai/sprachausgabe-client.ts";
+import {
+  diktatKontext,
+  erzeugeTokenSammler,
+  haengeDiktatAn,
+  LIVE_MODELL,
+  liveKonfiguration,
+  sonioxLiveAdresse,
+  sprachHinweise,
+} from "../../src/lib/domain/diktat-live.ts";
 import {
   transkriptionBasisUrl,
   transkribiereAudio,
   transkriptionsMeldung,
   transkriptionSprachen,
+  istWhisperErfindung,
   transkriptionZeitlimitMs,
   transkriptionZugangsHeader,
 } from "../../src/lib/ai/transkription-client.ts";
@@ -61,14 +83,15 @@ import {
   erzeugeStilleWaechter,
   pegelAusZeitbereich,
 } from "../../src/lib/domain/diktat.ts";
-import { erkenneMitRueckfall, GESAMTDECKEL_MS, HEDGE_AB_MS } from "../../src/lib/domain/spracherkennung.ts";
+import { erkenneMitRueckfall, GESAMTDECKEL_MS, GRUND_LEER, HEDGE_AB_MS } from "../../src/lib/domain/spracherkennung.ts";
 import { bestimmeAntwortsprache, mehrheitsSprache, stimmenSprache } from "../../src/lib/domain/antwortsprache.ts";
 import { erkenneSprache } from "../../src/lib/wissen/chunker.ts";
 import { erzeugeWarteschlange, HOECHSTENS_GLEICHZEITIG } from "../../src/lib/domain/sprachausgabe-warteschlange.ts";
 import { ANFANG, DARSTELLUNG_SCHLUESSEL, istDarstellung, naechsterZustand, NUTZER_SCHLUESSEL, OFFEN_SCHLUESSEL } from "../../src/lib/domain/ki-ansicht.ts";
-import { agentSeitenansichtAn, schalterAn, sprachausgabeLiveAn } from "../../src/lib/domain/schalter.ts";
+import { agentSeitenansichtAn, diktatLiveAn, schalterAn, sprachausgabeLiveAn } from "../../src/lib/domain/schalter.ts";
 import { ABSCHNITT_GUELTIG_MS, pruefeAbschnitt, signiereAbschnitt, sprachausgabeGeheimnis } from "../../src/lib/domain/sprachausgabe-signatur.ts";
 import {
+  holeSonioxSchluessel,
   sonioxBasisUrl,
   sonioxZeitlimitMs,
   spracherkennungAnbieter,
@@ -417,10 +440,11 @@ for (const [name, kaputteAntwort] of [
   pruefe("Sprachausgabe: keine tuerkische Stimme mehr", !("tr" in STIMMEN));
   // Der Stimmwechsel aendert auch den Ablagepfad: alte Piper-Aufnahmen
   // werden nicht mehr gefunden, statt mit der neuen Stimme verwechselt zu
-  // werden.
+  // werden. Seit 24.09.2026 stecken auch Anbieter, Sprache und der Stand der
+  // Textaufbereitung darin - bessere Aufbereitung, neues Audio.
   pruefe(
-    "Zwischenspeicher: der Pfad traegt den neuen Stimmnamen, nicht den alten Piper-Namen",
-    pfadDe.endsWith("/de-female.mp3") && !pfadDe.includes("piper"),
+    "Zwischenspeicher: der Pfad traegt Anbieter, Stimme, Sprache und Textstand, nicht den alten Piper-Namen",
+    pfadDe.endsWith(`/sokrates-de-female-de-v${VORLESETEXT_VERSION}.mp3`) && !pfadDe.includes("piper"),
     pfadDe,
   );
 }
@@ -620,12 +644,14 @@ for (const [name, kaputteAntwort] of [
   // Die Oberflaeche zeigt den Schluessel der Server Action an - fehlt er in
   // einer der vier Sprachen, wirft next-intl zur Laufzeit.
   const sprachen = ["de", "en", "kk", "ru"];
-  const schluessel = ["transkription", "transkriptionDienst", "transkriptionDauer"];
+  const schluessel = ["transkription", "transkriptionDienst", "transkriptionDauer", "transkriptionLeer"];
   for (const sprache of sprachen) {
     const texte = JSON.parse(readFileSync(new URL(`../../src/messages/${sprache}.json`, import.meta.url), "utf8"));
     const fehlend = schluessel.filter((k) => typeof texte.aktionen?.fehler?.[k] !== "string");
-    pruefe(`Meldung: ${sprache}.json kennt alle drei Diktat-Meldungen`, fehlend.length === 0, fehlend.join(", "));
+    pruefe(`Meldung: ${sprache}.json kennt alle vier Diktat-Meldungen`, fehlend.length === 0, fehlend.join(", "));
   }
+  // Nichts gehoert ist kein Ausfall - die Meldung sagt das auch so.
+  pruefe("Meldung: nichts gehoert -> fehler.transkriptionLeer", transkriptionsMeldung("leer") === "fehler.transkriptionLeer");
 }
 
 // --- 8. Antwortsprache: die Systemsprache entscheidet ----------------------
@@ -1042,9 +1068,13 @@ for (const [name, kaputteAntwort] of [
         await transkribiereMitSoniox(new Blob([new Uint8Array([1])]), "aufnahme.webm", sprache);
         return JSON.parse(String(aufrufe[1]?.koerper ?? "{}"));
       };
-      for (const sprache of ["de", "en", "ru", "kk"]) {
+      // kk und ru gehen seit 24.09.2026 gemeinsam mit: in Kasachstan wird
+      // zwischen beiden gewechselt, oft im selben Satz.
+      for (const [sprache, erwartet] of [["de", ["de"]], ["en", ["en"]], ["ru", ["ru", "kk"]], ["kk", ["kk", "ru"]]]) {
         const koerper = await lauf(sprache);
-        pruefe(`Sprachhinweis: ${sprache} geht als language_hints mit`, JSON.stringify(koerper.language_hints) === JSON.stringify([sprache]), JSON.stringify(koerper.language_hints));
+        pruefe(`Sprachhinweis: ${sprache} geht als language_hints ${JSON.stringify(erwartet)} mit`, JSON.stringify(koerper.language_hints) === JSON.stringify(erwartet), JSON.stringify(koerper.language_hints));
+        // Datei-Weg und Live-Weg muessen dieselbe Regel haben.
+        pruefe(`Sprachhinweis: ${sprache} - Datei-Weg und Live-Weg gleich`, JSON.stringify(koerper.language_hints) === JSON.stringify(sprachHinweise(sprache)));
       }
       pruefe("Sprachhinweis: eine unbekannte Sprache wird still verworfen", (await lauf("klingonisch")).language_hints === undefined);
       pruefe("Sprachhinweis: ohne Angabe erkennt Soniox selbst", (await lauf(undefined)).language_hints === undefined);
@@ -1190,13 +1220,19 @@ for (const [name, kaputteAntwort] of [
 // darf sich beliebigen Text auf unsere Rechnung vorlesen lassen.
 {
   // (a) Der erste Abschnitt faellt frueh - er entscheidet, wie lange es still
-  //     bleibt, bevor ueberhaupt etwas klingt.
+  //     bleibt, bevor ueberhaupt etwas klingt. Seit 24.09.2026 als GANZER
+  //     Satz: am ersten Komma zu schneiden brach genau den ersten Eindruck
+  //     mitten in der Satzmelodie. Nur ein langer erster Satz wird geteilt.
   {
     const z = erzeugeSatzZerleger();
-    const erste = z.fuettere("Die Lieferung aus Almaty ist am Dienstag angekommen, pünktlich um 14 Uhr.");
-    pruefe("Zerleger: der erste Abschnitt kommt sofort", erste.length >= 1, JSON.stringify(erste[0]?.text ?? ""));
-    pruefe("Zerleger: und er endet am ersten Komma, nicht erst am Satzende", erste[0]?.text.endsWith(","), erste[0]?.text);
-    pruefe("Zerleger: er ist kurz genug, um schnell zu klingen", (erste[0]?.text.length ?? 999) <= ERSTER_ABSCHNITT_ZEICHEN + 20, `${erste[0]?.text.length} Zeichen`);
+    const erste = z.fuettere("Die Lieferung aus Almaty ist am Dienstag angekommen, pünktlich um 14 Uhr. Die");
+    pruefe("Zerleger: der erste Abschnitt kommt, sobald der erste Satz steht", erste.length >= 1, JSON.stringify(erste[0]?.text ?? ""));
+    pruefe("Zerleger: und er ist der ganze Satz, nicht nur bis zum Komma", erste[0]?.text === "Die Lieferung aus Almaty ist am Dienstag angekommen, pünktlich um 14 Uhr.", erste[0]?.text);
+    const lang = erzeugeSatzZerleger().fuettere(
+      "Die Lieferung aus Almaty ist nach einer langen Fahrt über die Grenze, mehreren Kontrollen und einem Umweg über Taraz ",
+    );
+    pruefe("Zerleger: ein langer erster Satz wird am letzten Komma geteilt", lang[0]?.text.endsWith(","), lang[0]?.text);
+    pruefe("Zerleger: und bleibt kurz genug, um schnell zu klingen", (lang[0]?.text.length ?? 999) <= ERSTER_ABSCHNITT_ZEICHEN * 1.5 + 30, `${lang[0]?.text.length} Zeichen`);
   }
 
   // (b) Danach laengere Abschnitte: die Stimme braucht ganze Saetze fuer die
@@ -1678,6 +1714,298 @@ for (const [name, kaputteAntwort] of [
   }
 }
 
+
+// --- 15. Umbau Sprache 24.09.2026: Live-Diktat, Soniox-Stimme, Vorlesetext ---
+// Eingabe und Ausgabe galten "in allen Sprachen" als schlecht. Die Ursachen
+// lagen zum groessten Teil im eigenen Code, nicht beim Anbieter: Diktat nur
+// als Datei (kein Text waehrend des Sprechens), Stilleregel, die leise
+// Sprechende verwarf, Diktat ersetzte das Feld, Whisper erfand auf Stille
+// Saetze; beim Vorlesen Belegmarken, Sternchen und russische Abkuerzungen
+// als eigene "Saetze", jeder Satz eine eigene Anfrage. Diese Pruefungen
+// halten die Korrekturen fest.
+{
+  // (a) Sprachhinweise und Kontext - dieselbe Regel fuer Live und Datei.
+  pruefe("Live-Diktat: kk bekommt kk und ru als Hinweis", JSON.stringify(sprachHinweise("kk")) === '["kk","ru"]');
+  pruefe("Live-Diktat: ru bekommt ru und kk als Hinweis", JSON.stringify(sprachHinweise("ru")) === '["ru","kk"]');
+  pruefe("Live-Diktat: de bleibt bei de", JSON.stringify(sprachHinweise("de")) === '["de"]');
+  pruefe("Live-Diktat: Unbekanntes geht nicht mit", sprachHinweise("tr").length === 0 && sprachHinweise(undefined).length === 0);
+  const konf = liveKonfiguration("kk");
+  pruefe("Live-Diktat: Echtzeitmodell stt-rt-v5", konf.model === LIVE_MODELL && LIVE_MODELL === "stt-rt-v5");
+  pruefe("Live-Diktat: Endpunkt- und Spracherkennung an", konf.enable_endpoint_detection === true && konf.enable_language_identification === true);
+  pruefe("Live-Diktat: Endpunkt-Verzoegerung im erlaubten Bereich (500-3000)", konf.max_endpoint_delay_ms >= 500 && konf.max_endpoint_delay_ms <= 3000);
+  pruefe("Live-Diktat: Fachwoerter gehen mit (Himbi, ЕСУТД, таңқурай)", ["Himbi", "ЕСУТД", "таңқурай"].every((w) => konf.context.terms.includes(w)));
+  pruefe("Live-Diktat: keine doppelten Fachwoerter", new Set(diktatKontext().terms).size === diktatKontext().terms.length);
+  pruefe("Live-Diktat: die Konfiguration traegt keinen Schluessel", !("api_key" in konf) && !JSON.stringify(konf).includes("SONIOX_API_KEY"));
+
+  // (b) Adresse: keine Region im Code, abgeleitet aus SONIOX_API_URL.
+  pruefe("Live-Diktat: EU-Adresse aus api.eu.soniox.com", sonioxLiveAdresse("https://api.eu.soniox.com") === "wss://stt-rt.eu.soniox.com/transcribe-websocket");
+  pruefe("Live-Diktat: US-Adresse aus api.soniox.com", sonioxLiveAdresse("https://api.soniox.com/") === "wss://stt-rt.soniox.com/transcribe-websocket");
+  pruefe("Live-Diktat: ohne SONIOX_API_URL keine Adresse", sonioxLiveAdresse(undefined) === null && sonioxLiveAdresse("") === null);
+  pruefe("Live-Diktat: fremder Host wird nicht geraten", sonioxLiveAdresse("https://soniox.example.kz") === null);
+  pruefe("Live-Diktat: SONIOX_STT_WS_URL gewinnt", sonioxLiveAdresse("https://api.soniox.com", "wss://stt-rt.kz.example/ws") === "wss://stt-rt.kz.example/ws");
+  pruefe("Live-Diktat: nur wss:// ist erlaubt", sonioxLiveAdresse("https://api.soniox.com", "ws://unverschluesselt") === null);
+
+  // (c) Token sammeln: endgueltig bleibt, vorlaeufig wird ersetzt.
+  {
+    const s = erzeugeTokenSammler();
+    pruefe("Token: am Anfang nichts gehoert", !s.hatGehoert() && s.stand().anzeige === "");
+    let st = s.nimm({ tokens: [{ text: "Hal", is_final: false }] });
+    pruefe("Token: Vorlaeufiges erscheint sofort", st.anzeige === "Hal" && st.endgueltig === "" && s.hatGehoert(), st.anzeige);
+    st = s.nimm({ tokens: [{ text: "Hallo", is_final: true, language: "de" }, { text: " Wel", is_final: false }] });
+    pruefe("Token: Endgueltiges bleibt, Vorlaeufiges wird ersetzt", st.endgueltig === "Hallo" && st.anzeige === "Hallo Wel", st.anzeige);
+    st = s.nimm({ tokens: [{ text: " Welt", is_final: true, language: "de" }, { text: "<end>", is_final: true }] });
+    pruefe("Token: <end> meldet das Ende der Aeusserung, ohne im Text zu landen", st.endpunkt && st.endgueltig === "Hallo Welt" && !st.anzeige.includes("<"), st.anzeige);
+    st = s.nimm({ tokens: [{ text: "<fin>", is_final: true }], finished: true });
+    pruefe("Token: finished schliesst ab", st.fertig && st.endgueltig === "Hallo Welt");
+    pruefe("Token: gehoerte Sprachen je endgueltigem Token", JSON.stringify(s.sprachen()) === '["de","de"]', JSON.stringify(s.sprachen()));
+    const f = erzeugeTokenSammler().nimm({ error_code: 401, error_message: "Invalid API key" });
+    pruefe("Token: ein Fehler des Dienstes beendet und wird gemeldet", f.fertig && f.fehler?.startsWith("soniox-401"), f.fehler);
+  }
+
+  // (d) Diktat haengt an, statt zu ersetzen.
+  pruefe("Diktat: leeres Feld -> nur das Diktat", haengeDiktatAn("", " Hallo ") === "Hallo");
+  pruefe("Diktat: vorhandener Text bleibt stehen", haengeDiktatAn("Frage:", "wie viele Steigen?") === "Frage: wie viele Steigen?");
+  pruefe("Diktat: kein doppeltes Leerzeichen", haengeDiktatAn("Frage: ", "Steigen") === "Frage: Steigen");
+  pruefe("Diktat: leeres Diktat aendert nichts", haengeDiktatAn("abc", "   ") === "abc");
+  const chatQuelle = readFileSync(new URL("../../src/components/ki/ki-chat.tsx", import.meta.url), "utf8");
+  pruefe("Diktat: das Chatfenster haengt an (haengeDiktatAn)", chatQuelle.includes("haengeDiktatAn(diktatBasis.current"));
+  const altQuelle = readFileSync(new URL("../../src/components/db/ki-assistent-formulare.tsx", import.meta.url), "utf8");
+  pruefe("Diktat: das aeltere Fenster ebenso", altQuelle.includes("haengeDiktatAn(basis.current") && !altQuelle.includes("feld.value = text;"));
+
+  // (e) Mikrofon: feste Vorgaben, kurze Stuecke, Live mit Datei-Rueckfall.
+  const knopfQuelle = readFileSync(new URL("../../src/components/ki/mikrofon.tsx", import.meta.url), "utf8");
+  pruefe("Mikrofon: oeffnet mit festen Vorgaben", knopfQuelle.includes("getUserMedia({ audio: AUFNAHME_VORGABEN })"));
+  pruefe("Mikrofon: nimmt in kurzen Stuecken auf (Live kann mitlaufen)", knopfQuelle.includes("recorder.start(AUFNAHME_STUECK_MS)"));
+  pruefe("Mikrofon: scheitert Live, geht dieselbe Aufnahme als Datei", knopfQuelle.includes("weiter als Datei") && knopfQuelle.includes("transkribiereSprachnachricht(leer, daten)"));
+  pruefe("Mikrofon: beim Klick verstummt jede Wiedergabe", knopfQuelle.includes("beiStart?.()"));
+  pruefe("Mikrofon: der Pegel-Kontext wird fortgesetzt (iPhone)", knopfQuelle.includes('kontext.state === "suspended"'));
+  const spracheQuelle = readFileSync(new URL("../../src/components/ki/ki-chat-sprache.ts", import.meta.url), "utf8");
+  pruefe("Wiedergabe: Stopp haelt beide Wege an, live und die ganze Antwort", /function stoppeAlles\(\) \{\s*live\.stoppeAlles\(\);\s*sprachausgabe\.stoppe\(\);/.test(spracheQuelle));
+  pruefe("Wiedergabe: kamen Live-Abschnitte, wird die Antwort nicht noch einmal gelesen", spracheQuelle.includes("if (gesehenerAbschnitt.current.size > 0) return;"));
+
+  // (f) Schalter: Live-Diktat voreingestellt aus.
+  const vorher = process.env.KI_DIKTAT_LIVE;
+  delete process.env.KI_DIKTAT_LIVE;
+  pruefe("Schalter: Live-Diktat ist voreingestellt aus", diktatLiveAn() === false);
+  process.env.KI_DIKTAT_LIVE = "an";
+  pruefe("Schalter: und laesst sich einschalten", diktatLiveAn() === true);
+  if (vorher === undefined) delete process.env.KI_DIKTAT_LIVE; else process.env.KI_DIKTAT_LIVE = vorher;
+  const beispiel = readFileSync(new URL("../../.env.example", import.meta.url), "utf8");
+  for (const name of ["KI_DIKTAT_LIVE", "SONIOX_STT_WS_URL", "KI_SPRACHAUSGABE_ANBIETER", "SONIOX_TTS_STIMME", "SONIOX_TTS_URL"]) {
+    pruefe(`Schalter: ${name} steht in .env.example`, beispiel.includes(name));
+  }
+
+  // (g) Schluessel-Route: dieselben Schranken wie Chat und Diktat.
+  const route = readFileSync(new URL("../../src/app/api/ki-spracherkennung/route.ts", import.meta.url), "utf8");
+  pruefe("Schluessel-Route: prueft Anmeldung und Berechtigung", route.includes("getSessionProfile()") && route.includes('hasPermission(profil.role, "ki_assistent", "create")'));
+  pruefe("Schluessel-Route: prueft den Schalter", route.includes("diktatLiveAn()"));
+  pruefe("Schluessel-Route: zaehlt gegen die Ratenbegrenzung (stt:)", route.includes("ratenlimitUeberschritten(`stt:${profil.id}`"));
+  pruefe("Schluessel-Route: wird nie zwischengespeichert", route.includes('"cache-control": "no-store"'));
+  pruefe("Schluessel-Route: gibt den echten Schluessel nie heraus", !route.includes("SONIOX_API_KEY") && route.includes("holeSonioxSchluessel("));
+}
+
+{
+  // (h) Kurzzeitschluessel bei Soniox holen.
+  const echtesFetch = globalThis.fetch;
+  const aufrufe = [];
+  let antwort = () => new Response(JSON.stringify({ api_key: "temp:abc", expires_at: "2026-09-24T10:00:00Z" }), { status: 200 });
+  globalThis.fetch = async (url, init = {}) => {
+    aufrufe.push({ url: String(url), init });
+    return antwort();
+  };
+  const umgebung = { k: process.env.SONIOX_API_KEY, u: process.env.SONIOX_API_URL };
+  try {
+    delete process.env.SONIOX_API_KEY;
+    process.env.SONIOX_API_URL = "https://api.eu.soniox.com";
+    const ohne = await holeSonioxSchluessel("transcribe_websocket", { gueltigS: 60, sitzungS: 120 });
+    pruefe("Schluessel: ohne SONIOX_API_KEY keiner", !ohne.ok && ohne.grund === "kein-schluessel");
+    process.env.SONIOX_API_KEY = "echter-schluessel";
+    const gut = await holeSonioxSchluessel("transcribe_websocket", { gueltigS: 60, sitzungS: 120, referenz: "pseudonym" });
+    const koerper = JSON.parse(aufrufe.at(-1).init.body);
+    pruefe("Schluessel: richtige Adresse (EU)", aufrufe.at(-1).url === "https://api.eu.soniox.com/v1/auth/temporary-api-key", aufrufe.at(-1).url);
+    pruefe("Schluessel: nur fuer den Zweck, nur einmal, kurz", koerper.usage_type === "transcribe_websocket" && koerper.single_use === true && koerper.expires_in_seconds === 60 && koerper.max_session_duration_seconds === 120, JSON.stringify(koerper));
+    pruefe("Schluessel: pseudonyme Referenz", koerper.client_reference_id === "pseudonym");
+    pruefe("Schluessel: der kurzlebige kommt zurueck", gut.ok && gut.schluessel === "temp:abc");
+    await holeSonioxSchluessel("tts_rt", { gueltigS: 99999, sitzungS: 0 });
+    const geklemmt = JSON.parse(aufrufe.at(-1).init.body);
+    pruefe("Schluessel: Laufzeiten werden auf Sonioxs Grenzen geklemmt", geklemmt.expires_in_seconds === 3600 && geklemmt.max_session_duration_seconds === 1, JSON.stringify(geklemmt));
+    antwort = () => new Response("nope", { status: 401 });
+    const abgewiesen = await holeSonioxSchluessel("transcribe_websocket", { gueltigS: 60, sitzungS: 120 });
+    pruefe("Schluessel: 401 wird verstaendlich, ohne den Schluessel zu nennen", !abgewiesen.ok && abgewiesen.grund.startsWith("zugang-abgewiesen") && !abgewiesen.grund.includes("echter-schluessel"), abgewiesen.ok ? "" : abgewiesen.grund);
+  } finally {
+    globalThis.fetch = echtesFetch;
+    if (umgebung.k === undefined) delete process.env.SONIOX_API_KEY; else process.env.SONIOX_API_KEY = umgebung.k;
+    if (umgebung.u === undefined) delete process.env.SONIOX_API_URL; else process.env.SONIOX_API_URL = umgebung.u;
+  }
+}
+
+{
+  // (i) Datei-Weg: Kontext, "nichts gehoert", Aufraeumen im Hintergrund.
+  const echtesFetch = globalThis.fetch;
+  const aufrufe = [];
+  const json = (o) => new Response(JSON.stringify(o), { status: 200, headers: { "content-type": "application/json" } });
+  let plan = [];
+  globalThis.fetch = async (url, init = {}) => {
+    aufrufe.push({ url: String(url), methode: init.method ?? "GET", koerper: init.body });
+    return plan.shift() ?? json({});
+  };
+  const umgebung = { k: process.env.SONIOX_API_KEY, u: process.env.SONIOX_API_URL };
+  try {
+    process.env.SONIOX_API_KEY = "testschluessel";
+    process.env.SONIOX_API_URL = "https://api.soniox.com";
+    plan = [json({ id: "d" }), json({ id: "a" }), json({ status: "completed" }), json({ text: "Himbi" }), json({}), json({})];
+    let hintergrund = null;
+    const mit = await transkribiereMitSoniox(new Blob([new Uint8Array([1])]), "a.webm", "kk", undefined, {
+      kontext: diktatKontext(),
+      imHintergrund: (arbeit) => {
+        hintergrund = arbeit;
+      },
+    });
+    const auftrag = JSON.parse(String(aufrufe[1]?.koerper ?? "{}"));
+    pruefe("Datei-Weg: die Fachwoerter gehen als context mit", Array.isArray(auftrag.context?.terms) && auftrag.context.terms.includes("Himbi"));
+    pruefe("Datei-Weg: Text kommt, bevor aufgeraeumt ist", mit.ok && hintergrund instanceof Promise);
+    await hintergrund;
+    pruefe("Datei-Weg: aufgeraeumt wird trotzdem (Auftrag und Datei)", aufrufe.filter((a) => a.methode === "DELETE").length === 2);
+
+    aufrufe.length = 0;
+    plan = [json({ id: "d" }), json({ id: "a" }), json({ status: "completed" }), json({ text: "  " }), json({}), json({})];
+    const leer = await transkribiereMitSoniox(new Blob([new Uint8Array([1])]), "a.webm", "de");
+    pruefe("Datei-Weg: nichts gehoert heisst 'leer', nicht 'Ausfall'", !leer.ok && leer.grund === "leer", leer.ok ? "" : leer.grund);
+  } finally {
+    globalThis.fetch = echtesFetch;
+    if (umgebung.k === undefined) delete process.env.SONIOX_API_KEY; else process.env.SONIOX_API_KEY = umgebung.k;
+    if (umgebung.u === undefined) delete process.env.SONIOX_API_URL; else process.env.SONIOX_API_URL = umgebung.u;
+  }
+
+  // Hat Soniox nichts gehoert, laeuft Whisper gar nicht erst los.
+  let whisperGestartet = 0;
+  const e = await erkenneMitRueckfall(
+    async () => ({ ok: false, grund: GRUND_LEER }),
+    async () => {
+      whisperGestartet++;
+      return { ok: true, text: "Untertitel der Amara.org-Gemeinschaft" };
+    },
+    () => {},
+  );
+  pruefe("Wettlauf: 'leer' von Soniox steht - kein Whisper, keine erfundenen Saetze", !e.ok && e.grund === GRUND_LEER && whisperGestartet === 0, JSON.stringify(e));
+  pruefe("Whisper: typische Erfindung auf Stille wird erkannt", istWhisperErfindung("Untertitel der Amara.org-Gemeinschaft") && istWhisperErfindung("Продолжение следует...") && istWhisperErfindung("Thanks for watching!"));
+  pruefe("Whisper: echte kurze Diktate bleiben", !istWhisperErfindung("Danke.") && !istWhisperErfindung("Vielen Dank für die Info") && !istWhisperErfindung("Спасибо"));
+}
+
+{
+  // (j) Stimmen: Anbieter-Schalter mit Sokrates als Rueckfall.
+  const umgebung = { a: process.env.KI_SPRACHAUSGABE_ANBIETER, s: process.env.SONIOX_TTS_STIMME, k: process.env.SONIOX_API_KEY, u: process.env.SONIOX_API_URL, t: process.env.SONIOX_TTS_URL, so: process.env.KI_SOKRATES_API_SCHLUESSEL };
+  const echtesFetch = globalThis.fetch;
+  try {
+    delete process.env.KI_SPRACHAUSGABE_ANBIETER;
+    delete process.env.SONIOX_TTS_STIMME;
+    pruefe("Stimmen: ohne Schalter bleibt es bei Sokrates", JSON.stringify(stimmenFuer("de")) === JSON.stringify([STIMMEN.de]));
+    process.env.KI_SPRACHAUSGABE_ANBIETER = "soniox";
+    const kk = stimmenFuer("kk");
+    pruefe("Stimmen: Soniox zuerst, Sokrates als Rueckfall", kk.length === 2 && kk[0].anbieter === "soniox" && kk[1].anbieter === "sokrates", JSON.stringify(kk));
+    pruefe("Stimmen: eine Soniox-Stimme fuer alle Sprachen, Sprache als Feld", kk[0].stimme === SONIOX_STIMME_STANDARD && kk[0].sprache === "kk" && stimmenFuer("ru")[0].stimme === SONIOX_STIMME_STANDARD);
+    process.env.SONIOX_TTS_STIMME = "Adrian";
+    pruefe("Stimmen: SONIOX_TTS_STIMME waehlt die Stimme", stimmenFuer("de")[0].stimme === "Adrian");
+    process.env.SONIOX_TTS_STIMME = "Adrian; rm -rf";
+    pruefe("Stimmen: Unsinn in SONIOX_TTS_STIMME faellt auf die Voreinstellung", stimmenFuer("de")[0].stimme === SONIOX_STIMME_STANDARD);
+    pruefe("Stimmen: keine Sprache ohne Stimme erfunden", stimmenFuer("tr").length === 0);
+    pruefe(
+      "Zwischenspeicher: Soniox-Audio je Sprache getrennt (dieselbe Stimme, andere Sprache)",
+      sprachausgabePfad("11111111-2222-4333-8444-555555555555", stimmenFuer("de")[0]) !== sprachausgabePfad("11111111-2222-4333-8444-555555555555", stimmenFuer("kk")[0]),
+    );
+
+    // Adresse der Soniox-Stimme: dieselbe Ableitung wie beim Live-Diktat.
+    delete process.env.SONIOX_TTS_URL;
+    process.env.SONIOX_API_URL = "https://api.eu.soniox.com";
+    pruefe("Soniox-Stimme: EU-Adresse aus api.eu.soniox.com", sonioxTtsBasis() === "https://tts-rt.eu.soniox.com");
+    process.env.SONIOX_TTS_URL = "https://tts.kz.example/";
+    pruefe("Soniox-Stimme: SONIOX_TTS_URL gewinnt", sonioxTtsBasis() === "https://tts.kz.example");
+    delete process.env.SONIOX_TTS_URL;
+
+    // Soniox faellt aus -> Sokrates spricht.
+    process.env.SONIOX_API_KEY = "testschluessel";
+    process.env.KI_SOKRATES_API_SCHLUESSEL = "sokrates-test";
+    process.env.SONIOX_TTS_STIMME = "Maya";
+    const aufrufe = [];
+    let sonioxAntwort = () => new Response("kaputt", { status: 500 });
+    globalThis.fetch = async (url, init = {}) => {
+      aufrufe.push({ url: String(url), init });
+      if (String(url).includes("tts-rt")) return sonioxAntwort();
+      return new Response(new Uint8Array([9, 9]), { status: 200, headers: { "content-type": "audio/mpeg" } });
+    };
+    const meldungen = [];
+    const rueck = await erzeugeSprachausgabeMitRueckfall("Сәлем", stimmenFuer("kk"), (z) => meldungen.push(z));
+    const sonioxAufruf = aufrufe.find((a) => a.url.includes("tts-rt"));
+    const k = JSON.parse(sonioxAufruf?.init.body ?? "{}");
+    pruefe("Soniox-Stimme: Anfrage an /tts mit Modell, Sprache, Stimme, MP3", sonioxAufruf?.url === "https://tts-rt.eu.soniox.com/tts" && k.model === SONIOX_TTS_MODELL && k.language === "kk" && k.voice === "Maya" && k.audio_format === "mp3" && k.text === "Сәлем", JSON.stringify(k));
+    pruefe("Soniox-Stimme: mit dem Schluessel im Kopf, nicht im Koerper", sonioxAufruf?.init.headers?.Authorization === "Bearer testschluessel" && !sonioxAufruf.init.body.includes("testschluessel"));
+    pruefe("Rueckfall: faellt Soniox aus, spricht Sokrates", rueck.ok && rueck.stimme.anbieter === "sokrates", rueck.ok ? rueck.stimme.anbieter : rueck.grund);
+    pruefe("Rueckfall: und das steht im Protokoll", meldungen.some((z) => z.includes("soniox")));
+    sonioxAntwort = () => new Response(new Uint8Array([1, 2, 3]), { status: 200 });
+    const gut = await erzeugeSprachausgabeMitRueckfall("Hallo", stimmenFuer("de"));
+    pruefe("Soniox-Stimme: klappt es, spricht Soniox (MP3)", gut.ok && gut.stimme.anbieter === "soniox" && gut.typ === "audio/mpeg");
+    pruefe("Soniox-Stimme: erzeugeSprachausgabe waehlt nach Anbieter", (await erzeugeSprachausgabe("Hallo", stimmenFuer("de")[0])).ok);
+  } finally {
+    globalThis.fetch = echtesFetch;
+    for (const [name, wert] of [
+      ["KI_SPRACHAUSGABE_ANBIETER", umgebung.a],
+      ["SONIOX_TTS_STIMME", umgebung.s],
+      ["SONIOX_API_KEY", umgebung.k],
+      ["SONIOX_API_URL", umgebung.u],
+      ["SONIOX_TTS_URL", umgebung.t],
+      ["KI_SOKRATES_API_SCHLUESSEL", umgebung.so],
+    ]) {
+      if (wert === undefined) delete process.env[name];
+      else process.env[name] = wert;
+    }
+  }
+
+  const ttsRoute = readFileSync(new URL("../../src/app/api/ki-sprachausgabe/route.ts", import.meta.url), "utf8");
+  pruefe("Vorlese-Route: beide Wege nutzen die Anbieterkette", (ttsRoute.match(/erzeugeSprachausgabeMitRueckfall\(zumSprechen\(/g) ?? []).length === 2);
+  pruefe("Vorlese-Route: abgelegt wird nach der Antwort", ttsRoute.includes("after(async () =>"));
+}
+
+{
+  // (k) Vorlesetext: was nie gesprochen werden soll, faellt weg.
+  const t = textFuerSprachausgabe(
+    "**Fazit: Die Schwelle ist erreicht.** [S1][S3]\n\n## Steuern\n\n- Frist: 15.10.2026 → Prüfung ✅\n1. Steuerberater kontaktieren\n15. März ist Stichtag\n\nQuelle: https://example.kz/doc zu ki_assistent und _kursiv_.",
+  );
+  pruefe("Vorlesetext: keine Belegmarken [S1]", !/\[S\d/.test(t), t);
+  pruefe("Vorlesetext: keine nackte Adresse", !t.includes("https") && !t.includes("example.kz"));
+  pruefe("Vorlesetext: keine Sternchen, Haken oder Pfeile", !/[*✅→]/.test(t), t);
+  pruefe("Vorlesetext: Ueberschrift bekommt einen Punkt (Pause)", t.includes("Steuern.\n"), t);
+  pruefe("Vorlesetext: nummerierte Liste ohne Nummer", t.includes("\nSteuerberater kontaktieren."), t);
+  pruefe("Vorlesetext: ein Datum am Zeilenanfang bleibt stehen", t.includes("15. März ist Stichtag."), t);
+  pruefe("Vorlesetext: Unterstrich in Kennungen bleibt", t.includes("ki_assistent") && t.includes("kursiv") && !t.includes("_kursiv_"), t);
+
+  pruefe("Sprechfassung: ₸ auf Russisch", sprechfassung("5 000 000 ₸", "ru") === "5000000 тенге" && sprechfassung("1.150.000 ₸", "ru") === "1150000 тенге");
+  pruefe("Sprechfassung: ₸ auf Kasachisch und Deutsch", sprechfassung("300₸", "kk") === "300 теңге" && sprechfassung("300 KZT", "de") === "300 Tenge");
+  pruefe("Sprechfassung: Tausendertrennung mit zwei Gruppen wird eine Zahl", sprechfassung("1 150 000 kg", "ru") === "1150000 kg" && sprechfassung("1 150", "ru") === "1150");
+  pruefe("Sprechfassung: Mehrdeutiges bleibt ('3.5', '20 000')", sprechfassung("3.5 und 20 000", "de") === "3.5 und 20 000");
+
+  // (l) Zerleger Wort fuer Wort - so wie der Stream wirklich kommt.
+  const wortweise = (text) => {
+    const z = erzeugeSatzZerleger();
+    const raus = [];
+    for (const w of text.match(/\S+\s*/g)) raus.push(...z.fuettere(w));
+    raus.push(...z.abschliessen());
+    return raus.map((a) => a.text);
+  };
+  const de = wortweise(
+    "**Fazit: Die Schwelle ist erreicht.**\n\nIhr Umsatz liegt über dem Grenzwert. Die Frist endet am 15. März 2026. Der Umsatz lag bei 1,2 Mio. Tenge. Bitte melden Sie sich bis dahin beim Finanzamt. Danach wird es teuer, z. B. durch Strafen. Wir prüfen das gern mit Ihnen gemeinsam in der nächsten Woche.",
+  );
+  pruefe("Zerleger: das fette Fazit ist der erste Abschnitt, als ganzer Satz", de[0] === "Fazit: Die Schwelle ist erreicht.", JSON.stringify(de[0]));
+  pruefe("Zerleger: '15. März' bleibt zusammen", de.some((a) => a.includes("am 15. März 2026.")), JSON.stringify(de));
+  pruefe("Zerleger: 'Mio.' ist kein Satzende", de.some((a) => a.includes("1,2 Mio. Tenge.")));
+  pruefe("Zerleger: danach mehrere Saetze je Abschnitt, nicht jeder Satz allein", de.length <= 4 && de.slice(1, -1).every((a) => a.length >= ZWEITER_ABSCHNITT_ZEICHEN), JSON.stringify(de.map((a) => a.length)));
+  const ru = wortweise("**Итого:** 5 млн. тг., т. е. больше порога, см. п. 3 ст. 82 НК РК. А. Серикбай уже подал заявление.");
+  pruefe("Zerleger: russische Abkuerzungen zerreissen den Satz nicht", ru[0]?.endsWith("ст. 82 НК РК.") && ru[0].includes("т. е.") && ru[0].includes("см. п. 3"), JSON.stringify(ru));
+  pruefe("Zerleger: kyrillische Initiale ist kein Satzende", ru.join(" ").includes("А. Серикбай уже") && !ru.some((a) => a === "А."), JSON.stringify(ru));
+  const kk = wortweise("Құжаттар 2026 ж. 1 қаңтардан бастап талап етіледі, т.б. салықтар. Бұл маңызды.");
+  pruefe("Zerleger: kasachische Abkuerzungen (ж., т.б.) ebenso", kk[0]?.includes("2026 ж. 1 қаңтардан") && kk[0].includes("т.б. салықтар."), JSON.stringify(kk));
+  const liste = wortweise("## Nächste Schritte\n\n1. Steuerberater kontaktieren\n2. Unterlagen sammeln\n\nDas ist alles für heute.");
+  pruefe("Zerleger: Zeilen ohne Satzzeichen sind Grenzen, kein Brei", liste[0] === "Nächste Schritte" && liste.join(" ").includes("Steuerberater kontaktieren."), JSON.stringify(liste));
+}
 
 console.log("\n" + "-".repeat(58));
 console.log(`Pruefungen: ${bestanden + fehlgeschlagen}   bestanden: ${bestanden}   fehlgeschlagen: ${fehlgeschlagen}`);

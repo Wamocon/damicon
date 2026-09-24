@@ -12,6 +12,13 @@ import type { UIMessage } from "ai";
 import { istVorlesbar, useSprachausgabe } from "@/components/ki/sprachausgabe";
 import { useLiveSprachausgabe, type LiveAbschnitt } from "@/components/ki/sprachausgabe-live";
 
+/** Die Sprache einer Antwort aus ihren Metadaten (api/ki-assistent schickt
+ *  { sprache, sprachHerkunft } mit) - oder undefined bei alten Nachrichten. */
+export function antwortSpracheAus(nachricht: UIMessage): string | undefined {
+  const meta = nachricht.metadata as { sprache?: unknown } | undefined;
+  return typeof meta?.sprache === "string" ? meta.sprache : undefined;
+}
+
 export function useKiChatSprache({
   sprache,
   messages,
@@ -54,14 +61,23 @@ export function useKiChatSprache({
     const letzte = messages.at(-1);
     if (!letzte || letzte.role !== "assistant" || !istVorlesbar(letzte.id) || vorgelesen.current.has(letzte.id)) return;
     vorgelesen.current.add(letzte.id);
-    void sprachausgabe.spiele(letzte.id);
+    // Kamen fuer diese Antwort schon Live-Abschnitte, ist sie schon
+    // (oder noch) gesprochen. Bis zum 24.09.2026 las Weg 1 sie danach ein
+    // zweites Mal von vorn - ueber die Live-Stimme hinweg.
+    if (gesehenerAbschnitt.current.size > 0) return;
+    void sprachausgabe.spiele(letzte.id, antwortSpracheAus(letzte));
   }, [beschaeftigt, messages, sprachausgabe]);
 
   // Panel zu heisst still. Es bleibt gemountet, damit eine laufende
   // Antwort nicht abreisst - gesprochen wird trotzdem nicht weiter.
+  // Beide Wege: die Live-Abschnitte und die ganze vorgelesene Antwort.
+  const stoppeVorlesen = sprachausgabe.stoppe;
   useEffect(() => {
-    if (!offen) live.stoppeAlles();
-  }, [offen, live]);
+    if (!offen) {
+      live.stoppeAlles();
+      stoppeVorlesen();
+    }
+  }, [offen, live, stoppeVorlesen]);
 
   // Abschnitte aus dem Stream ans Vorlesen weiterreichen. Jeder nur einmal:
   // useChat liefert die Nachricht bei jedem Render erneut, samt aller schon
@@ -81,12 +97,26 @@ export function useKiChatSprache({
     }
   }, [messages, live, sprache]);
 
+  /** Alles, was gerade spricht, verstummt: Live-Abschnitte UND die ganze
+   *  vorgelesene Antwort (Weg 1). Bis zum 24.09.2026 hielten Stopp,
+   *  Mikrofon, Tippen und neue Frage nur die Live-Abschnitte an - die ganze
+   *  Antwort sprach weiter, auch ins Diktat hinein. */
+  function stoppeAlles() {
+    live.stoppeAlles();
+    sprachausgabe.stoppe();
+  }
+
+  /** MikrofonKnopf: Klick auf das Mikrofon, noch bevor es offen ist. */
+  function beiMikrofonStart() {
+    stoppeAlles();
+  }
+
   /** MikrofonKnopf: Aufnahme startet/endet. */
   function beiMikrofonAufnahme(an: boolean) {
     setDiktiert(an);
     // Mikrofon an: sofort still, sonst nimmt das Mikrofon die
     // eigene Stimme des Assistenten mit auf.
-    if (an) live.stoppeAlles();
+    if (an) stoppeAlles();
     // Mikrofon aus ist eine Geste - der richtige Moment, den
     // AudioContext zu entsperren (iPhone), und dieser Zug wird
     // vorgelesen, auch wenn der Schalter aus ist.
@@ -107,7 +137,7 @@ export function useKiChatSprache({
    *  Sprachen, die beim Diktat gehoert wurden (fuer anfrageDaten), und setzt
    *  den Diktat-/Live-Zustand fuer die neue Runde zurueck. */
   function beginneZug(): string[] | undefined {
-    live.stoppeAlles();
+    stoppeAlles();
     // Auf dem iPhone darf Ton nur aus einer Geste heraus starten - dieser
     // Klick ist die Geste. Spaeter, beim ersten Abschnitt, waere es zu
     // spaet: der Browser bliebe stumm, ohne einen Fehler zu melden.
@@ -129,6 +159,8 @@ export function useKiChatSprache({
     sprachausgabe,
     live,
     diktiert,
+    stoppeAlles,
+    beiMikrofonStart,
     beiMikrofonAufnahme,
     merkeDiktatSprachen,
     beginneZug,

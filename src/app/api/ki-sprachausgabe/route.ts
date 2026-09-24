@@ -10,8 +10,17 @@
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
-import { erzeugeSprachausgabe } from "@/lib/ai/sprachausgabe-client";
-import { istSprachausgabeSprache, sprachausgabePfad, stimmeFuerOberflaeche, textFuerSprachausgabe } from "@/lib/domain/sprachausgabe";
+import { erzeugeSprachausgabeMitRueckfall } from "@/lib/ai/sprachausgabe-client";
+import {
+  istSprachausgabeSprache,
+  sprachausgabePfad,
+  sprechfassung,
+  stimmenFuer,
+  textFuerSprachausgabe,
+  type SprachausgabeSprache,
+} from "@/lib/domain/sprachausgabe";
+import { fuerSprache } from "@/lib/text/umlaute";
+import { after } from "next/server";
 import { istSprache, stimmenSprache } from "@/lib/domain/antwortsprache";
 import { erkenneSprache } from "@/lib/wissen/chunker";
 import { pruefeAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
@@ -99,10 +108,14 @@ export async function POST(req: Request) {
     // Die Sprache kommt vom Zug, nicht aus der Oberflaeche und nicht je
     // Abschnitt neu geraten: alle Abschnitte eines Zuges klingen gleich.
     const zugSprache = istSprache(body.sprache) ? body.sprache : "de";
-    const stimmeDesZuges = istSprachausgabeSprache(zugSprache) ? stimmeFuerOberflaeche(zugSprache) : null;
-    if (!stimmeDesZuges) return fehler(422, "keine-stimme", { sprache: zugSprache });
+    const stimmenDesZuges = istSprachausgabeSprache(zugSprache) ? stimmenFuer(zugSprache) : [];
+    if (!istSprachausgabeSprache(zugSprache) || stimmenDesZuges.length === 0) {
+      return fehler(422, "keine-stimme", { sprache: zugSprache });
+    }
 
-    const erzeugt = await erzeugeSprachausgabe(abschnittText, stimmeDesZuges);
+    // Signiert ist der Text, wie er aus dem Stream kam; die Sprechfassung
+    // entsteht erst hier, nach der Pruefung.
+    const erzeugt = await erzeugeSprachausgabeMitRueckfall(zumSprechen(abschnittText, zugSprache), stimmenDesZuges);
     if (!erzeugt.ok) {
       // Vibecode-Cleanup-Fund (Phase 2): erzeugt.grund kann interne Details
       // enthalten (Name einer Umgebungsvariable, bis zu 200 Zeichen
@@ -177,33 +190,49 @@ export async function POST(req: Request) {
     console.warn("[damicon] Sprachausgabe: Antworttext ist " + gepruefte.sprache + ", angekuendigt war " + gewuenscht);
   }
   const sprache = istSprachausgabeSprache(gepruefte.sprache) ? gepruefte.sprache : "de";
-  const stimme = stimmeFuerOberflaeche(sprache);
-  if (!stimme) return fehler(422, "keine-stimme", { sprache });
+  const stimmen = stimmenFuer(sprache);
+  if (stimmen.length === 0) return fehler(422, "keine-stimme", { sprache });
 
   const dienst = createServiceRoleClient();
-  const pfad = sprachausgabePfad(nachrichtId, stimme);
+  // Gesucht wird unter der BEVORZUGTEN Stimme. Hat beim letzten Mal der
+  // Rueckfall gesprochen, liegt das Audio unter dessen Pfad - dann wird neu
+  // erzeugt, und die bessere Stimme bekommt ihre Chance.
+  const pfad = sprachausgabePfad(nachrichtId, stimmen[0]);
 
-  // 1. Schon einmal vorgelesen? Dann ohne Caesar ausliefern.
+  // 1. Schon einmal vorgelesen? Dann ohne Dienst ausliefern.
   const { data: gespeichert } = await dienst.storage.from(BUCKET).download(pfad);
   if (gespeichert) {
     return audioAntwort(await gespeichert.arrayBuffer(), gespeichert.type || "audio/mpeg", sprache, "treffer");
   }
 
   // 2. Sonst erzeugen lassen ...
-  const ergebnis = await erzeugeSprachausgabe(text, stimme);
+  const ergebnis = await erzeugeSprachausgabeMitRueckfall(zumSprechen(text, sprache), stimmen);
   if (!ergebnis.ok) {
     console.error("[damicon] Sprachausgabe fehlgeschlagen:", ergebnis.grund);
     return fehler(502, "dienst-nicht-erreichbar");
   }
 
-  // 3. ... und ablegen. Ein Fehler beim Ablegen darf die fertige Antwort nicht
+  // 3. ... und ablegen, NACH der Antwort (after): wer zuhoert, wartet nicht
+  // auf den Speicher. Ein Fehler beim Ablegen darf die fertige Antwort nicht
   // kaputtmachen - dann bleibt es beim naechsten Mal eben wieder langsam.
-  const { error: ablageFehler } = await dienst.storage
-    .from(BUCKET)
-    .upload(pfad, ergebnis.audio, { contentType: ergebnis.typ, upsert: false });
-  if (ablageFehler) console.error("[damicon] Sprachausgabe nicht zwischengespeichert:", ablageFehler.message);
+  const ablagePfad = sprachausgabePfad(nachrichtId, ergebnis.stimme);
+  const audio = ergebnis.audio;
+  after(async () => {
+    const { error: ablageFehler } = await dienst.storage
+      .from(BUCKET)
+      .upload(ablagePfad, audio, { contentType: ergebnis.typ, upsert: false });
+    if (ablageFehler) console.error("[damicon] Sprachausgabe nicht zwischengespeichert:", ablageFehler.message);
+  });
 
-  return audioAntwort(ergebnis.audio, ergebnis.typ, sprache, "neu");
+  return audioAntwort(audio, ergebnis.typ, sprache, "neu");
+}
+
+/** Der Text, wie ihn die Stimme bekommt: Symbole und Tausendertrennung als
+ *  Worte (sprechfassung), und auf Deutsch echte Umlaute - schreibt das Modell
+ *  "Pruefung", liest die Stimme sonst "Pru-efung". In der Anzeige greift
+ *  dieselbe Korrektur schon (ki-chat.tsx), beim Vorlesen fehlte sie. */
+function zumSprechen(text: string, sprache: SprachausgabeSprache): string {
+  return sprechfassung(fuerSprache(text, sprache), sprache);
 }
 
 function audioAntwort(audio: ArrayBuffer, typ: string, sprache: string, herkunft: "treffer" | "neu") {

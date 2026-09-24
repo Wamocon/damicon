@@ -41,6 +41,8 @@ export function KiChatComposer({
   einwilligungFehlt,
   diktiert,
   onMikrofonAufnahme,
+  onMikrofonStart,
+  onMikrofonZwischentext,
   onMikrofonText,
   onStop,
   sprachausgabe,
@@ -63,6 +65,8 @@ export function KiChatComposer({
   einwilligungFehlt: boolean;
   diktiert: boolean;
   onMikrofonAufnahme: (an: boolean) => void;
+  onMikrofonStart: () => void;
+  onMikrofonZwischentext: (text: string) => void;
   onMikrofonText: (text: string, sprachen?: string[]) => void;
   onStop: () => void;
   sprachausgabe: ReturnType<typeof useSprachausgabe>;
@@ -122,6 +126,8 @@ export function KiChatComposer({
           className="ki-composer__knopf ki-composer__knopf--still"
           deaktiviert={beschaeftigt || einwilligungFehlt}
           beiAufnahme={onMikrofonAufnahme}
+          beiStart={onMikrofonStart}
+          beiZwischentext={onMikrofonZwischentext}
           beiText={onMikrofonText}
         />
         {beschaeftigt ? (

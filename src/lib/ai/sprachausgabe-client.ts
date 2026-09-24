@@ -9,6 +9,11 @@
 // erreichbar - die URL laesst sich weiterhin ueber KI_SPRACHAUSGABE_URL auf
 // Caesar zurueckbiegen, wer im LAN sitzt.
 //
+// Seit 24.09.2026 zweiter Anbieter: Soniox TTS v2 (tts-rt-v2), gewaehlt ueber
+// KI_SPRACHAUSGABE_ANBIETER (domain/sprachausgabe.ts, stimmenFuer). Sokrates
+// bleibt der Rueckfall - erzeugeSprachausgabeMitRueckfall() versucht die
+// Stimmen der Reihe nach.
+//
 // Wie transkribiereAudio() wirft diese Funktion NIE: jeder Fehlerpfad endet
 // in { ok: false }.
 import type { Stimme } from "@/lib/domain/sprachausgabe";
@@ -71,7 +76,108 @@ export function baueSprachausgabeAnfrage(text: string, stimme: Stimme) {
   return JSON.stringify({ input: text, voice: stimme.stimme });
 }
 
+/** Erzeugt Audio bei dem Anbieter, zu dem die Stimme gehoert. */
 export async function erzeugeSprachausgabe(text: string, stimme: Stimme): Promise<SprachausgabeAntwort> {
+  return stimme.anbieter === "soniox" ? erzeugeMitSoniox(text, stimme) : erzeugeMitSokrates(text, stimme);
+}
+
+/** Versucht die Stimmen der Reihe nach (stimmenFuer: erst der eingestellte
+ *  Anbieter, dann Sokrates) und sagt, welche es geworden ist - die Route legt
+ *  das Audio unter genau dieser Stimme ab. Faellt der erste Anbieter aus,
+ *  steht das im Protokoll; wer vorliest, hoert trotzdem etwas. */
+export async function erzeugeSprachausgabeMitRueckfall(
+  text: string,
+  stimmen: readonly Stimme[],
+  melde: (zeile: string) => void = (zeile) => console.error(zeile),
+): Promise<(SprachausgabeAntwort & { ok: true; stimme: Stimme }) | { ok: false; grund: string }> {
+  let letzterGrund = "keine-stimme";
+  for (const stimme of stimmen) {
+    const ergebnis = await erzeugeSprachausgabe(text, stimme);
+    if (ergebnis.ok) return { ...ergebnis, stimme };
+    letzterGrund = `${stimme.anbieter}: ${ergebnis.grund}`;
+    if (stimmen.length > 1) melde(`[damicon] Sprachausgabe ueber ${stimme.anbieter} fehlgeschlagen: ${ergebnis.grund}`);
+  }
+  return { ok: false, grund: letzterGrund };
+}
+
+// --- Soniox TTS v2 ------------------------------------------------------------
+//
+// POST {tts-rt.<region>.soniox.com}/tts mit {model, language, voice,
+// audio_format, text}, Antwort ist das Audio selbst (github.com/soniox/
+// soniox-js, packages/core/src/tts-rest.ts). Die Stimmen dort sind
+// mehrsprachig; die Sprache geht als eigenes Feld mit.
+
+/** Aktuelles TTS-Modell (Standard im offiziellen SDK seit 11.08.2026). */
+export const SONIOX_TTS_MODELL = "tts-rt-v2";
+
+// Eine Antwort bis MAX_SPRACHAUSGABE_ZEICHEN braucht bei Soniox nur einen
+// Bruchteil ihrer Sprechdauer; 30 s wie bei Sokrates lassen Luft.
+const SONIOX_ZEITLIMIT_MS = 30_000;
+
+/** Adresse der Soniox-Sprachausgabe. Wie bei der Spracherkennung steht keine
+ *  Region im Code: aus SONIOX_API_URL abgeleitet (api.eu.soniox.com ->
+ *  tts-rt.eu.soniox.com) oder ausdruecklich ueber SONIOX_TTS_URL. Dieselbe
+ *  Ableitung wie sonioxLiveAdresse() in domain/diktat-live.ts (dort stt-rt);
+ *  hier noch einmal geschrieben, weil diese Datei mit blossem Node getestet
+ *  wird und keine Laufzeit-Importe hat. */
+export function sonioxTtsBasis(): string | null {
+  const direkt = process.env.SONIOX_TTS_URL?.trim();
+  if (direkt) return /^https:\/\//.test(direkt) ? direkt.replace(/\/+$/, "") : null;
+  const api = process.env.SONIOX_API_URL?.trim();
+  if (!api) return null;
+  try {
+    const host = new URL(api).host;
+    return host.startsWith("api.") ? `https://tts-rt.${host.slice("api.".length)}` : null;
+  } catch {
+    return null;
+  }
+}
+
+async function erzeugeMitSoniox(text: string, stimme: Stimme): Promise<SprachausgabeAntwort> {
+  const schluessel = process.env.SONIOX_API_KEY?.trim();
+  if (!schluessel) return { ok: false, grund: "kein-schluessel" };
+  const basis = sonioxTtsBasis();
+  if (!basis) return { ok: false, grund: "keine-basis-url" };
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), SONIOX_ZEITLIMIT_MS);
+  try {
+    const antwort = await fetch(`${basis}/tts`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${schluessel}`, "content-type": "application/json" },
+      body: JSON.stringify({
+        model: SONIOX_TTS_MODELL,
+        language: stimme.sprache,
+        voice: stimme.stimme,
+        // MP3, weil Bucket (nur audio/mpeg) und beide Abspieler es kennen.
+        audio_format: "mp3",
+        text,
+      }),
+      signal: controller.signal,
+    });
+    if (!antwort.ok) {
+      if (antwort.status === 401 || antwort.status === 403) {
+        return { ok: false, grund: `zugang-abgewiesen (http-${antwort.status}) - SONIOX_API_KEY pruefen` };
+      }
+      const auszug = await antwort.text().catch(() => "");
+      return { ok: false, grund: `http-${antwort.status}: ${auszug.slice(0, 200)}` };
+    }
+    const audio = await antwort.arrayBuffer();
+    if (audio.byteLength === 0) return { ok: false, grund: "antwort-leer" };
+    // Soniox schickt das Audio ohne verlaesslichen Typ; angefragt war MP3.
+    const typ = antwort.headers.get("content-type") ?? "";
+    return { ok: true, audio, typ: typ.startsWith("audio/") ? typ : "audio/mpeg" };
+  } catch (error) {
+    const grund = error instanceof Error ? error.message : String(error);
+    return { ok: false, grund: controller.signal.aborted ? "zeitueberschreitung" : `dienst-nicht-erreichbar: ${grund}` };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+// --- Sokrates -----------------------------------------------------------------
+
+async function erzeugeMitSokrates(text: string, stimme: Stimme): Promise<SprachausgabeAntwort> {
   const zugang = sprachausgabeZugangsHeader();
   if (!zugang.ok) return zugang;
 

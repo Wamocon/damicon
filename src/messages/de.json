@@ -938,6 +938,7 @@
       "transkription": "Spracherkennung nicht möglich.",
       "transkriptionDienst": "Der Spracherkennungsdienst ist nicht erreichbar. Die Aufnahme hat geklappt – bitte später noch einmal versuchen.",
       "transkriptionDauer": "Die Spracherkennung hat zu lange gebraucht. Der Dienst startet vermutlich gerade – bitte in einer Minute noch einmal versuchen.",
+      "transkriptionLeer": "Nichts verstanden. Bitte etwas lauter oder näher am Mikrofon sprechen.",
       "dateiGross": "Die Aufnahme ist zu groß.",
       "nachbarbetriebVorhanden": "Ein Nachbarbetrieb mit diesem Namen existiert bereits.",
       "ratenlimit": "Zu viele Anfragen in kurzer Zeit. Bitte kurz warten und es erneut versuchen."

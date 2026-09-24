@@ -1,6 +1,6 @@
 # Spracherkennung: Anbieter und Datenstandort
 
-Stand 21.09.2026.
+Stand 24.09.2026 (Live-Diktat ergänzt; Stand davor 21.09.2026).
 
 ## Der Schalter
 
@@ -20,6 +20,71 @@ geschehen über die Umgebung, ohne neuen Code:
 KI_SPRACHERKENNUNG_ANBIETER=soniox    # an
 KI_SPRACHERKENNUNG_ANBIETER=whisper   # aus
 ```
+
+## Live-Diktat (seit 24.09.2026)
+
+Der zweite Schalter `KI_DIKTAT_LIVE` entscheidet, **wie** diktiert wird:
+
+| Wert | Bedeutung |
+|---|---|
+| `aus` (Voreinstellung) | Datei-Weg: aufnehmen bis Stille, dann die ganze Datei hochladen (Soniox asynchron bzw. Whisper, siehe oben). |
+| `an` | Live-Weg: der Browser streamt direkt zu Soniox `stt-rt-v5` (WebSocket). Der Text erscheint **während** des Sprechens im Eingabefeld, das Ende der Äußerung erkennt das Modell selbst. |
+
+So läuft es (`src/lib/domain/diktat-live.ts`, `src/components/ki/diktat-live.ts`):
+
+1. Klick aufs Mikrofon. Sofort, noch während der Browser nach der
+   Mikrofon-Erlaubnis fragt, holt er über `POST /api/ki-spracherkennung`
+   einen **kurzlebigen Schlüssel**: nur für Spracherkennung, nur einmal,
+   60 s zum Verbinden, höchstens 120 s Sitzung. Der echte `SONIOX_API_KEY`
+   verlässt den Server nie. Die Route prüft Anmeldung, Recht am
+   KI-Assistenten, den Schalter und die Ratenbegrenzung (`stt:`).
+2. MediaRecorder liefert alle 100 ms ein Stück (webm/opus, auf dem iPhone
+   mp4). Was vor dem Verbindungsaufbau aufgenommen wird, wird gepuffert;
+   die ersten Worte gehen nicht verloren.
+3. Soniox schickt vorläufige und endgültige Wörter zurück, beide stehen
+   sofort im Feld. Das Modell meldet das Ende der Äußerung (Endpunkt,
+   höchstens 1,5 s nach dem letzten Wort, semantisch: ein erkennbar
+   unfertiger Satz bekommt mehr Zeit). Die alte Lautstärkeregel bleibt nur
+   als Gurt (Höchstdauer 60 s, „leer“ nur, wenn auch das Modell nichts
+   gehört hat).
+4. **Rückfall:** Sagt die Route ab, kommt keine Verbindung zustande, reißt sie
+   ab oder meldet Soniox einen Fehler, geht **dieselbe Aufnahme** als Datei
+   über den bisherigen Weg. Wer diktiert, verliert nie etwas.
+5. Ins Protokoll (`audit_events`, `ki_chat.diktat`) meldet der Browser danach
+   Zahl der Zeichen und gehörte Sprachen mit `dienst: soniox-live`, nie den
+   Text.
+
+Was sich außerdem geändert hat, für beide Wege:
+
+- **Anhängen statt Ersetzen.** Das Diktat ersetzte bis dahin den Inhalt des
+  Eingabefelds. Wer nach einer Denkpause weiterdiktierte, verlor den ersten
+  Teil samt allem Getippten.
+- **Fachwörter.** Soniox bekommt `context` (Domäne und rund 40 Fachwörter in
+  de/ru/kk: Himbi, Reihenblock, Pflückaufgabe, ЕСУТД, НК РК, таңқурай und
+  weitere).
+- **Sprachhinweise kk und ru.** Auf kasachischer Oberfläche gehen `kk` und
+  `ru` mit, auf russischer `ru` und `kk`, weil in Kasachstan zwischen beiden
+  gewechselt wird. Hinweise gewichten nur, sie beschränken nicht.
+- **„Nichts gehört“ ist kein Ausfall.** Liefert Soniox leeren Text, läuft
+  Whisper nicht mehr auf derselben Aufnahme los. Whisper erfindet auf
+  Stille Sätze („Untertitel der Amara.org-Gemeinschaft“, „Продолжение
+  следует…“), und die gewannen bisher als erster Text. Solche Sätze filtert
+  der Whisper-Client zusätzlich heraus. Die Meldung sagt jetzt „Nichts
+  verstanden“ statt „Spracherkennung nicht möglich“.
+- **Mikrofon mit festen Vorgaben** (`AUFNAHME_VORGABEN` in
+  `src/lib/domain/diktat.ts`): Rauschunterdrückung und Echofilter aus, wie
+  im offiziellen Soniox-SDK, weil sie auf menschliche Ohren abgestimmt sind
+  und Silbenanfänge wegschneiden. Pegelregelung an, mono.
+- **Vorlesen verstummt beim Mikrofon-Klick**, und zwar beide Wege, nicht nur
+  die Live-Abschnitte. Vorher konnte die Stimme des Assistenten ins Diktat
+  laufen.
+- Das Aufräumen bei Soniox (Datei-Weg) läuft nach der Antwort (`after()`),
+  gelöscht wird trotzdem.
+
+**Nicht gemessen:** Gegen den echten Dienst war aus der Entwicklungsumgebung
+kein Zugriff möglich. Vor dem Einschalten in Produktion einmal selbst
+diktieren (Chrome, Safari auf dem iPhone, je eine Sprache) und prüfen, dass
+in `audit_events` `dienst = soniox-live` steht.
 
 ## Datenstandort — was wann gilt
 
@@ -113,3 +178,10 @@ hochgeladene Dateien 30 Tage.
 | `SONIOX_API_URL` | ja, wenn `soniox` | Regionale Adresse, z. B. `https://api.soniox.com` |
 | `SONIOX_API_KEY` | ja, wenn `soniox` | Nur aus der Umgebung. Nie in Code, Protokollen oder einem PR |
 | `SONIOX_ZEITLIMIT_MS` | nein | Voreinstellung 20000, Obergrenze 20000. Siehe *Zwei Dienste im Wettlauf* |
+| `KI_DIKTAT_LIVE` | nein | `aus` (Voreinstellung) oder `an`. Siehe *Live-Diktat* |
+| `SONIOX_STT_WS_URL` | nein | Nur, wenn sich die WebSocket-Adresse nicht aus `SONIOX_API_URL` ableiten lässt (`api.eu.soniox.com` wird zu `wss://stt-rt.eu.soniox.com/transcribe-websocket`) |
+
+Beim Live-Diktat geht die Stimme **vom Browser direkt** an Soniox, nicht über
+Vercel. Für den Datenstandort gilt dieselbe Region (`SONIOX_API_URL` bzw.
+`SONIOX_STT_WS_URL`), und für AVV und Einwilligungen gelten dieselben Regeln
+wie oben. Der Unterschied: Der Server sieht die Aufnahme gar nicht mehr.

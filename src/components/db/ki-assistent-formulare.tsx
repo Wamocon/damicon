@@ -35,6 +35,7 @@ import {
 import { kiRatenlimitEntfernen, kiRatenlimitSetzen } from "@/lib/actions/ki-ratenlimit";
 import { leer } from "@/lib/actions/status";
 import { MikrofonKnopf as MikrofonAufnahmeKnopf } from "@/components/ki/mikrofon";
+import { haengeDiktatAn } from "@/lib/domain/diktat-live";
 import {
   kiAnbieterTypen,
   MAX_NACHRICHT_LAENGE,
@@ -196,16 +197,25 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
 // landet im Eingabefeld, NICHT direkt im Chat: ein verhoertes Diktat, das
 // ungeprueft an die Kundschaft ginge, waere schlimmer als ein Tippfehler.
 // Abgeschickt wird weiterhin von Hand.
+//
+// Seit 24.09.2026 wird das Diktat ANGEHAENGT, nicht eingesetzt: sonst loescht
+// ein zweites Diktat nach einer Denkpause das erste (haengeDiktatAn).
 function MikrofonKnopf({ eingabeRef }: { eingabeRef: React.RefObject<HTMLInputElement | null> }) {
+  const basis = useRef("");
+  const setze = (text: string) => {
+    const feld = eingabeRef.current;
+    if (feld) feld.value = haengeDiktatAn(basis.current, text);
+  };
   return (
     <MikrofonAufnahmeKnopf
       className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground transition hover:border-primary disabled:opacity-60"
+      beiStart={() => {
+        basis.current = eingabeRef.current?.value ?? "";
+      }}
+      beiZwischentext={setze}
       beiText={(text) => {
-        const feld = eingabeRef.current;
-        if (feld) {
-          feld.value = text;
-          feld.focus();
-        }
+        setze(text);
+        eingabeRef.current?.focus();
       }}
     />
   );

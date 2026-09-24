@@ -66,7 +66,12 @@ export function useSprachausgabe(sprache: string) {
   }, []);
 
   const spiele = useCallback(
-    async (id: string) => {
+    /** `antwortSprache`: die Sprache DIESER Antwort, wie der Chat-Stream sie
+     *  in den Metadaten mitschickt (api/ki-assistent, messageMetadata). Bis
+     *  zum 24.09.2026 ging hier immer die Oberflaechensprache mit, und die
+     *  Route musste sie am Text erraten - bei kurzen oder gemischten
+     *  Antworten mit der falschen Stimme. */
+    async (id: string, antwortSprache?: string) => {
       if (!istVorlesbar(id)) return;
       audioRef.current?.pause();
       setHinweis(null);
@@ -83,7 +88,7 @@ export function useSprachausgabe(sprache: string) {
             antwort = await fetch("/api/ki-sprachausgabe", {
               method: "POST",
               headers: { "content-type": "application/json" },
-              body: JSON.stringify({ nachrichtId: id, sprache }),
+              body: JSON.stringify({ nachrichtId: id, sprache: antwortSprache ?? sprache }),
             });
             if (antwort.status !== 404) break;
           }
@@ -124,9 +129,12 @@ export function useSprachausgabe(sprache: string) {
 export function VorlesenKnopf({
   id,
   zustand,
+  sprache,
 }: {
   id: string;
   zustand: ReturnType<typeof useSprachausgabe>;
+  /** Sprache dieser Antwort (Nachrichten-Metadaten), falls bekannt. */
+  sprache?: string;
 }) {
   const t = useTranslations("kiAssistentAnsicht");
   const { spielt, laedt, hinweis, spiele, stoppe } = zustand;
@@ -138,7 +146,7 @@ export function VorlesenKnopf({
     <div className="ki-vorlesen">
       <button
         type="button"
-        onClick={() => (aktiv ? stoppe() : void spiele(id))}
+        onClick={() => (aktiv ? stoppe() : void spiele(id, sprache))}
         disabled={beschaeftigt}
         aria-label={aktiv ? t("vorlesenStopp") : t("vorlesen")}
         title={aktiv ? t("vorlesenStopp") : t("vorlesen")}

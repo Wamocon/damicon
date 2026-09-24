@@ -938,6 +938,7 @@
       "transkription": "Speech recognition unavailable.",
       "transkriptionDienst": "The speech recognition service cannot be reached. Your recording is fine – please try again later.",
       "transkriptionDauer": "Speech recognition took too long. The service is probably still starting up – please try again in a minute.",
+      "transkriptionLeer": "Nothing was understood. Please speak a little louder or closer to the microphone.",
       "dateiGross": "The recording is too large.",
       "nachbarbetriebVorhanden": "A neighbouring farm with this name already exists.",
       "ratenlimit": "Too many requests in a short time. Please wait a moment and try again."

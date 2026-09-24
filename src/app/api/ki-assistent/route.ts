@@ -623,6 +623,12 @@ export async function POST(req: Request) {
         writer.write(teil);
         if (teil.type === "text-delta" && typeof teil.delta === "string") {
           for (const a of zerleger.fuettere(teil.delta)) schickeAbschnitt(a.nr, a.text);
+        } else if (teil.type === "text-end") {
+          // Im Agent-Modus folgen mehrere Textteile aufeinander, dazwischen
+          // Werkzeugaufrufe. Ohne Trenner klebte "Ich oeffne die
+          // Lohnabrechnung" am naechsten Teil ("LohnabrechnungHier ...") -
+          // onFinish setzt dort ebenfalls einen Absatz.
+          for (const a of zerleger.fuettere("\n\n")) schickeAbschnitt(a.nr, a.text);
         }
       }
       for (const a of zerleger.abschliessen()) schickeAbschnitt(a.nr, a.text);

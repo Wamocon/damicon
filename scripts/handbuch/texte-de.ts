@@ -349,7 +349,7 @@ export const de: HandbuchTexte = {
 
     schnittstellenTitel: "Schnittstellen",
     schnittstellenEinleitung:
-      "Fünf Endpunkte für Aufgaben, die keine eigene Seite haben. Jeder prüft Sitzung und Recht selbst.",
+      "Sechs Endpunkte für Aufgaben, die keine eigene Seite haben. Jeder prüft Sitzung und Recht selbst.",
     spalteAufgabe: "Aufgabe",
     schnittstellen: [
       {
@@ -373,8 +373,14 @@ export const de: HandbuchTexte = {
       {
         pfad: "/api/ki-sprachausgabe",
         aufgabe:
-          "Liest eine bereits gespeicherte Antwort vor. Nur über die Kennung einer vorhandenen Nachricht, nie mit frei übergebenem Text — sonst wäre der Endpunkt ein Sprachgenerator für beliebige Inhalte.",
+          "Liest Antworten vor: eine gespeicherte Antwort über die Kennung ihrer Nachricht, oder beim Vorlesen während des Schreibens einzelne Abschnitte, die der Chat beim Entstehen signiert hat. Nie frei übergebener Text, sonst wäre der Endpunkt ein Sprachgenerator für beliebige Inhalte. Die Stimme kommt vom eingestellten Anbieter (Soniox oder Sokrates); fällt er aus, spricht Sokrates.",
         zugriff: "Recht am KI-Assistenten",
+      },
+      {
+        pfad: "/api/ki-spracherkennung",
+        aufgabe:
+          "Stellt für das Live-Diktat einen kurzlebigen Schlüssel aus: nur für die Spracherkennung, nur einmal, eine Minute zum Verbinden. Damit schickt der Browser das Gesprochene direkt an den Erkennungsdienst, und der Text erscheint schon während des Sprechens im Eingabefeld. Der eigentliche Schlüssel verlässt den Server nie. Sagt der Endpunkt ab, geht dieselbe Aufnahme wie bisher als Datei zur Erkennung.",
+        zugriff: "Recht am KI-Assistenten, Live-Diktat eingeschaltet",
       },
       {
         pfad: "/api/sync",
