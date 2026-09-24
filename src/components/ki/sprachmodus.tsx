@@ -10,7 +10,6 @@ import {
   abonniereSprachBus,
   chatStandServer,
   entsperreTon,
-  erteileEinwilligung,
   leseChatStand,
   stelleSprachFrage,
   unterbrichChat,
@@ -343,7 +342,12 @@ function SprachmodusInhalt() {
       window.clearTimeout(ruheTimer.current);
       if (phaseRef.current !== "denkt" && phaseRef.current !== "spricht") return;
       if (stand.einwilligungFehlt) {
-        erteileEinwilligung();
+        // Der Chat hat die Frage verworfen, weil dem Hinweis zur KI-Nutzung noch
+        // nicht zugestimmt ist. Eine Zustimmung darf hier nicht ungesehen gesetzt
+        // werden (bis zum 24.09.2026 tat der Sprachmodus genau das) - der Start
+        // prueft sie deshalb schon vorher (ki-pane-kontext.tsx, starteSprachmodus).
+        setMeldung(t("einwilligungZuerst"));
+        dispatch({ art: "fehler" });
         return;
       }
       if (stand.fehler) {
@@ -360,7 +364,7 @@ function SprachmodusInhalt() {
       }
     };
     return abonniereSprachBus(reagiere);
-  }, [dispatch, tAktion]);
+  }, [dispatch, t, tAktion]);
 
   // Alles schliessen, wenn der Sprachmodus endet.
   useEffect(

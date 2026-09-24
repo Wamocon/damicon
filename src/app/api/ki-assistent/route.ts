@@ -32,7 +32,7 @@ import {
   SPRACHMODUS_OBERFLAECHE,
   sprachmodusFormatAnweisung,
 } from "@/lib/domain/antwort-anweisungen";
-import { erzeugeSatzZerleger } from "@/lib/domain/sprachausgabe";
+import { erzeugeSatzZerleger, sprachausgabeStromAn } from "@/lib/domain/sprachausgabe";
 import { ABSCHNITT_GUELTIG_MS, signiereAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
 import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
 import { erkenneSprache } from "@/lib/wissen/chunker";
@@ -327,7 +327,7 @@ export async function POST(req: Request) {
     return new Response("ratenlimit", { status: 429 });
   }
 
-  let body: { messages?: unknown; einwilligung?: boolean; modus?: unknown; pfad?: unknown; rolle?: unknown; sprache?: unknown; diktatSprachen?: unknown; pruefkontext?: unknown };
+  let body: { messages?: unknown; einwilligung?: boolean; modus?: unknown; pfad?: unknown; rolle?: unknown; sprache?: unknown; diktatSprachen?: unknown; pruefkontext?: unknown; vorleseWeg?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -603,8 +603,30 @@ export async function POST(req: Request) {
   // desselben Stroms.
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
-      const zerleger = erzeugeSatzZerleger();
+      // Spricht der Browser ueber den Soniox-Strom (domain/sprachausgabe-strom.ts),
+      // geht jeder Satz sofort hinaus - im Strom gibt es keine Abschnittsgrenzen,
+      // und laengere Stuecke hielten nur Text zurueck. Sonst (Abschnitte als
+      // einzelne Anfragen) laengere Stuecke mit eigener Satzmelodie.
+      //
+      // Entscheidend ist, welchen Weg der Browser wirklich nimmt (vorleseWeg) -
+      // faellt er auf einzelne Anfragen zurueck (kein WebSocket, Strom abgesagt),
+      // klaengen Einzelsaetze als eigene Anfragen abgehackt.
+      const stil = sprachausgabeStromAn() && body.vorleseWeg === "strom" ? "saetze" : "abschnitte";
+      const zerleger = erzeugeSatzZerleger(stil);
       const ablauf = Date.now() + ABSCHNITT_GUELTIG_MS;
+      // Zug-Nachweis zu Beginn: damit holt sich der Browser den Schluessel fuer
+      // den Vorlese-Strom (api/ki-sprachausgabe/schluessel), noch waehrend das
+      // Modell ueber den ersten Satz nachdenkt. Dieselbe Signatur wie ein
+      // Abschnitt, Nummer 0 und leerer Text - der Abschnitts-Weg lehnt leeren
+      // Text ab, eine Verwechslung ist ausgeschlossen.
+      writer.write({
+        type: "data-nachweis",
+        data: {
+          zug: antwortId,
+          ablauf,
+          sig: signiereAbschnitt({ nutzerId: profil.id, zug: antwortId, nr: 0, text: "", ablauf }, geheimnis),
+        },
+      });
       const schickeAbschnitt = (nr: number, text: string) => {
         writer.write({
           type: "data-satz",
@@ -626,11 +648,12 @@ export async function POST(req: Request) {
         if (teil.type === "text-delta" && typeof teil.delta === "string") {
           for (const a of zerleger.fuettere(teil.delta)) schickeAbschnitt(a.nr, a.text);
         } else if (teil.type === "text-end") {
-          // Im Agent-Modus folgen mehrere Textteile aufeinander, dazwischen
-          // Werkzeugaufrufe. Ohne Trenner klebte "Ich oeffne die
-          // Lohnabrechnung" am naechsten Teil ("LohnabrechnungHier ...") -
-          // onFinish setzt dort ebenfalls einen Absatz.
-          for (const a of zerleger.fuettere("\n\n")) schickeAbschnitt(a.nr, a.text);
+          // Ende eines Textteils: danach ruft das Modell ein Werkzeug auf oder
+          // hoert auf. Der Teil ist vollstaendig und geht ganz hinaus - sonst
+          // lag ein fertiger Satz waehrend der Werkzeuge stumm im Puffer, und
+          // "Ich oeffne die Lohnabrechnung" klebte am naechsten Teil
+          // ("LohnabrechnungHier ...").
+          for (const a of zerleger.schrittEnde()) schickeAbschnitt(a.nr, a.text);
         }
       }
       for (const a of zerleger.abschliessen()) schickeAbschnitt(a.nr, a.text);

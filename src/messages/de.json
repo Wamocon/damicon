@@ -2110,6 +2110,9 @@
     "sprachmodus": {
       "titel": "Sprachmodus",
       "starten": "Sprachmodus starten",
+      "kurz": "Gespräch",
+      "hinweis": "Sprachmodus: live mit Himbi sprechen, ohne zu tippen",
+      "einwilligungZuerst": "Bitte zuerst im Chat dem Hinweis zur KI-Nutzung zustimmen, dann den Sprachmodus neu starten.",
       "beenden": "Sprachmodus beenden",
       "unterbrechen": "Antippen oder einfach dazwischenreden",
       "stumm": "Mikrofon stummschalten",

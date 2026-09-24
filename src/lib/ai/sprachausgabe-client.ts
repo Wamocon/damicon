@@ -186,6 +186,10 @@ export function sonioxTtsBasis(): string | null {
   }
 }
 
+/** Hat Soniox reduce_silence einmal abgelehnt ("Model does not support
+ *  silence reduction"), fragt diese Instanz ohne. */
+let stilleKuerzenAbgelehnt = false;
+
 /** Die Anfrage selbst, fuer Datei (erzeugeMitSoniox) und Strom
  *  (oeffneSprachausgabeStrom) gleich. Liest den Koerper NICHT. */
 async function sonioxAnfrage(text: string, stimme: Stimme, signal: AbortSignal): Promise<Geoeffnet> {
@@ -193,20 +197,34 @@ async function sonioxAnfrage(text: string, stimme: Stimme, signal: AbortSignal):
   if (!schluessel) return { ok: false, grund: "kein-schluessel" };
   const basis = sonioxTtsBasis();
   if (!basis) return { ok: false, grund: "keine-basis-url" };
-  const antwort = await fetch(`${basis}/tts`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${schluessel}`, "content-type": "application/json" },
-    body: JSON.stringify({
-      model: SONIOX_TTS_MODELL,
-      language: stimme.sprache,
-      voice: stimme.stimme,
-      // MP3, weil Bucket (nur audio/mpeg) und beide Abspieler es kennen - und
-      // weil ein <audio>-Element MP3 schon waehrend des Ladens abspielt.
-      audio_format: "mp3",
-      text,
-    }),
-    signal,
-  });
+  const mitStille = Boolean(stimme.stilleKuerzen) && !stilleKuerzenAbgelehnt;
+  const anfrage = (stille: boolean) =>
+    fetch(`${basis}/tts`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${schluessel}`, "content-type": "application/json" },
+      body: JSON.stringify({
+        model: SONIOX_TTS_MODELL,
+        language: stimme.sprache,
+        voice: stimme.stimme,
+        // MP3, weil Bucket (nur audio/mpeg) und beide Abspieler es kennen - und
+        // weil ein <audio>-Element MP3 schon waehrend des Ladens abspielt.
+        audio_format: "mp3",
+        // Tempo und kuerzere Pausen (domain/sprachausgabe.ts, sprechTempo und
+        // stilleKuerzen) - bis zum 24.09.2026 ging beides nicht mit, und
+        // Soniox sprach mit Standardtempo und vollen Pausen.
+        ...(stimme.tempo !== undefined ? { speed: stimme.tempo } : {}),
+        ...(stille ? { reduce_silence: true } : {}),
+        text,
+      }),
+      signal,
+    });
+  let antwort = await anfrage(mitStille);
+  if (!antwort.ok && antwort.status === 400 && mitStille) {
+    const auszug = await antwort.text().catch(() => "");
+    if (!/silence/i.test(auszug)) return { ok: false, grund: `http-400: ${auszug.slice(0, 200)}` };
+    stilleKuerzenAbgelehnt = true;
+    antwort = await anfrage(false);
+  }
   if (!antwort.ok) {
     if (antwort.status === 401 || antwort.status === 403) {
       return { ok: false, grund: `zugang-abgewiesen (http-${antwort.status}) - SONIOX_API_KEY pruefen` };

@@ -2110,6 +2110,9 @@
     "sprachmodus": {
       "titel": "Voice mode",
       "starten": "Start voice mode",
+      "kurz": "Talk",
+      "hinweis": "Voice mode: talk to Himbi live, no typing",
+      "einwilligungZuerst": "Please accept the AI notice in the chat first, then start voice mode again.",
       "beenden": "End voice mode",
       "unterbrechen": "Tap or just start talking",
       "stumm": "Mute microphone",

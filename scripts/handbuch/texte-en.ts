@@ -361,8 +361,14 @@ export const en: HandbuchTexte = {
       {
         pfad: "/api/ki-sprachausgabe",
         aufgabe:
-          "Reads answers aloud: a stored answer by the identifier of its message, or, when reading aloud while the answer is still being written, single sections that the chat signed as they were created. Never freely supplied text, otherwise the endpoint would be a speech generator for arbitrary content. The voice comes from the configured provider (Soniox or Sokrates); if it fails, Sokrates speaks. A stored answer is streamed: playback starts while the audio is still being generated instead of after the whole file.",
+          "Reads answers aloud: a stored answer by the identifier of its message, or, when reading aloud while the answer is still being written, single sections that the chat signed as they were created. Never freely supplied text, otherwise the endpoint would be a speech generator for arbitrary content. The voice comes from the configured provider (Soniox or Sokrates); if it fails, Sokrates speaks. A stored answer is streamed: playback starts while the audio is still being generated instead of after the whole file. When Soniox speaks, this endpoint is only the fallback; reading aloud then runs over the stream (next entry).",
         zugriff: "AI assistant permission",
+      },
+      {
+        pfad: "/api/ki-sprachausgabe/schluessel",
+        aufgabe:
+          "Issues a short-lived key for reading aloud, together with voice, speed and format per language. The browser then talks to the speech service directly: every sentence goes in at once, and the audio plays while it is being generated, without pauses between sections. A key is only issued with proof, that is for the answer currently being written or for one of your own saved answers. It opens exactly one stream, is valid for 60 seconds, and each person gets at most twelve keys per minute. The actual key never leaves the server. If the endpoint declines, the previous path reads aloud in single sections.",
+        zugriff: "Permission for the AI assistant, Soniox as speech output",
       },
       {
         pfad: "/api/ki-spracherkennung",
@@ -536,7 +542,7 @@ export const en: HandbuchTexte = {
       },
       {
         begriff: "Voice mode",
-        text: "A live conversation with the assistant without a visible chat: a bubble reacts to the voice, and the assistant can jump to and highlight a section on its own. Interrupt as in a conversation: just start talking, or tap the bubble.",
+        text: "A live conversation with the assistant without a visible chat: a bubble reacts to the voice, and the assistant can jump to and highlight a section on its own. Interrupt as in a conversation: just start talking, or tap the bubble. To start: the “Talk” button in the header, or in the chat the send button while the input field is empty.",
       },
       { begriff: "WAMOCON", text: "WAMOCON GmbH — client and developer of Damicon." },
     ],

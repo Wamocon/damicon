@@ -47,10 +47,15 @@ function SprachmodusKnopf() {
       type="button"
       onClick={starteSprachmodus}
       aria-label={t("starten")}
-      title={t("starten")}
-      className="ki-fragen-knopf inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-colors hover:bg-muted"
+      title={t("hinweis")}
+      className="ki-fragen-knopf inline-flex h-9 min-w-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-border bg-card px-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
     >
       <AudioLines className="h-4 w-4" />
+      {/* Sichtbar beschriftet erst ab lg, wie "KI fragen" daneben (Platz bei
+          768 px). Bis zum 24.09.2026 war der Knopf nur ein Symbol, und er wurde
+          nicht gefunden. Der zweite Einstieg sitzt im Chat (Senden-Knopf bei
+          leerem Feld), dort auch auf dem Handy. */}
+      <span className="hidden lg:inline">{t("kurz")}</span>
     </button>
   );
 }

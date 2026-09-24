@@ -12,6 +12,7 @@ import {
 } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { setzeHervorhebung } from "@/components/ki/hervorhebung";
+import { leseChatStand, unterbrichChat } from "@/components/ki/sprachmodus-bus";
 import {
   ANFANG,
   DARSTELLUNG_SCHLUESSEL,
@@ -422,6 +423,18 @@ export function KiPaneProvider({
 
   const starteSprachmodus = useCallback(() => {
     if (sprachmodusRef.current) return;
+    // Vor der ersten Nachricht steht im Chat der Hinweis zur KI-Nutzung, dem
+    // zugestimmt werden muss. Ohne Zustimmung ginge die erste gesprochene Frage
+    // verloren (der Chat verwirft sie) - also zuerst den Chat zeigen, wo der
+    // Hinweis steht. Dort ist der Sprachmodus-Knopf bis zur Zustimmung gesperrt.
+    if (leseChatStand().einwilligungFehlt) {
+      setOffen(true);
+      return;
+    }
+    // Eine laufende Antwort endet hier: sonst spraeche sie in das Zuhoeren
+    // hinein, und die erste Frage im Sprachmodus ginge verloren (der Chat
+    // nimmt keine neue an, solange er beschaeftigt ist).
+    unterbrichChat();
     sprachmodusRef.current = true;
     panelVorSprachmodus.current = offen;
     if (offen) setOffen(false);

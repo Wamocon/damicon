@@ -75,6 +75,7 @@ import {
 } from "@/components/ki/ki-chat-segmente";
 import { clientErgebnisseBereit, useKlientWerkzeuge, type WerkzeugChat } from "@/components/ki/ki-chat-werkzeuge";
 import { antwortSpracheAus, useKiChatSprache } from "@/components/ki/ki-chat-sprache";
+import { stromMoeglich } from "@/components/ki/sprachausgabe-strom";
 import {
   abonniereSprachBus,
   leseEinwilligung,
@@ -205,7 +206,20 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const pfad = usePathname();
   const router = useRouter();
   const { role: rolle } = usePersona();
-  const { modus: panelModus, offen, fuehrung, oeffneZiel, fuehreZu, bewegeZeiger, pruefBezug, entferneBezug, anstoss, sprachmodus } = useKiPane();
+  const {
+    modus: panelModus,
+    offen,
+    fuehrung,
+    oeffneZiel,
+    fuehreZu,
+    bewegeZeiger,
+    pruefBezug,
+    entferneBezug,
+    anstoss,
+    sprachmodus,
+    sprachmodusMoeglich,
+    starteSprachmodus,
+  } = useKiPane();
   // Im Sprachmodus (components/ki/sprachmodus.tsx) laeuft jede Anfrage als "sprache": kurze,
   // sprechbare Antworten, Navigation und Hervorheben ohne Klicken. Der Modus der Einstellung
   // bleibt dabei unberuehrt und gilt wieder, sobald der Sprachmodus endet.
@@ -279,7 +293,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
 
   // Vorlese-/Diktat-Zustand - siehe ki-chat-sprache.ts.
   const {
-    sprachausgabe,
+    vorlesen,
     live,
     diktiert,
     stoppeAlles: stoppeStimme,
@@ -383,7 +397,9 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     werkzeugeNeuerZug();
     klebtUnten.current = true;
     setNachUntenKnopf(false);
-    anfrageDaten.current = { ...anfrageDaten.current, diktatSprachen };
+    // Welchen Vorlese-Weg dieser Browser nimmt: danach schneidet der Server die
+    // Abschnitte (Strom satzweise, sonst laengere Stuecke fuer einzelne Anfragen).
+    anfrageDaten.current = { ...anfrageDaten.current, diktatSprachen, vorleseWeg: stromMoeglich() ? "strom" : "abschnitte" };
     sendMessage({ text: bereinigt });
     setEingabe("");
     if (eingabeRef.current) eingabeRef.current.style.height = "";
@@ -405,7 +421,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     // Wer zu tippen beginnt, hoert nicht mehr zu. Erst ab dem zweiten
     // Zeichen: ein einzelner Tastendruck ist oft ein Versehen, und der
     // erkannte Diktattext landet ebenfalls ueber diesen Weg im Feld.
-    if (wert.length > 1 && (live.spricht || sprachausgabe.spielt)) stoppeStimme();
+    if (wert.length > 1 && vorlesen.phase !== "still") stoppeStimme();
     setEingabe(wert);
     const el = eingabeRef.current;
     if (el) {
@@ -611,14 +627,14 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   useEffect(() => {
     meldeChatStand({
       beschaeftigt,
-      spricht: live.spricht || sprachausgabe.spielt !== null,
-      laedt: live.laedtErsten || sprachausgabe.laedt !== null,
+      spricht: vorlesen.phase === "spricht",
+      laedt: vorlesen.phase === "laedt",
       antwort: antwortText,
       einwilligungFehlt: istErsteNachricht && !einwilligung,
       fehler: Boolean(error),
       bereit: true,
     });
-  }, [beschaeftigt, live.spricht, live.laedtErsten, sprachausgabe.spielt, sprachausgabe.laedt, antwortText, istErsteNachricht, einwilligung, error]);
+  }, [beschaeftigt, vorlesen.phase, antwortText, istErsteNachricht, einwilligung, error]);
   useEffect(
     () => () =>
       meldeChatStand({ beschaeftigt: false, spricht: false, laedt: false, antwort: "", einwilligungFehlt: false, fehler: false, bereit: false }),
@@ -740,13 +756,19 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
                       zitiert={zitierteKennungen(textVonNachricht(nachricht))}
                     />
                     </BelegAnbieter>
-                    {/* Vorlesen nur, wenn die Antwort schon gespeichert ist UND es fuer
-                        ihre Sprache eine Stimme gibt - fehlt eine, so
-                        erscheint deshalb gar kein Knopf statt eines Fehlers nach dem Klick. */}
+                    {/* Vorlesen, wenn es fuer die Sprache eine Stimme gibt - fehlt eine,
+                        erscheint gar kein Knopf statt eines Fehlers nach dem Klick. Waehrend
+                        eine Antwort noch entsteht, nur dann, wenn sie schon vorgelesen wird:
+                        dann ist der Knopf ihr Stopp. */}
                     {istVorlesbar(nachricht.id) &&
-                    !(beschaeftigt && nachricht.id === letzteId) &&
+                    (vorlesen.liest(nachricht.id) || !(beschaeftigt && nachricht.id === letzteId)) &&
                     stimmeVorhanden(sprache) ? (
-                      <VorlesenKnopf id={nachricht.id} zustand={sprachausgabe} sprache={antwortSpracheAus(nachricht)} />
+                      <VorlesenKnopf
+                        id={nachricht.id}
+                        text={textVonNachricht(nachricht)}
+                        sprache={antwortSpracheAus(nachricht)}
+                        vorlesen={vorlesen}
+                      />
                     ) : null}
                   </div>
                 </div>
@@ -865,8 +887,13 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
         onMikrofonZwischentext={beiMikrofonZwischentext}
         onMikrofonText={beiMikrofonText}
         onStop={stopp}
-        sprachausgabe={sprachausgabe}
-        live={live}
+        vorlesen={vorlesen}
+        sprachmodusMoeglich={sprachmodusMoeglich}
+        onSprachmodus={() => {
+          // Was gerade spricht, verstummt - der Sprachmodus beginnt mit Zuhoeren.
+          stoppeStimme();
+          starteSprachmodus();
+        }}
       />
     </div>
   );

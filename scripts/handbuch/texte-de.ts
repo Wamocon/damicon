@@ -373,8 +373,14 @@ export const de: HandbuchTexte = {
       {
         pfad: "/api/ki-sprachausgabe",
         aufgabe:
-          "Liest Antworten vor: eine gespeicherte Antwort über die Kennung ihrer Nachricht, oder beim Vorlesen während des Schreibens einzelne Abschnitte, die der Chat beim Entstehen signiert hat. Nie frei übergebener Text, sonst wäre der Endpunkt ein Sprachgenerator für beliebige Inhalte. Die Stimme kommt vom eingestellten Anbieter (Soniox oder Sokrates); fällt er aus, spricht Sokrates. Eine gespeicherte Antwort kommt als Strom: Der Ton beginnt, während er noch erzeugt wird, statt erst nach der ganzen Datei.",
+          "Liest Antworten vor: eine gespeicherte Antwort über die Kennung ihrer Nachricht, oder beim Vorlesen während des Schreibens einzelne Abschnitte, die der Chat beim Entstehen signiert hat. Nie frei übergebener Text, sonst wäre der Endpunkt ein Sprachgenerator für beliebige Inhalte. Die Stimme kommt vom eingestellten Anbieter (Soniox oder Sokrates); fällt er aus, spricht Sokrates. Eine gespeicherte Antwort kommt als Strom: Der Ton beginnt, während er noch erzeugt wird, statt erst nach der ganzen Datei. Spricht Soniox, ist dieser Endpunkt nur noch der Rückfall; vorgelesen wird dann über den Strom (nächster Eintrag).",
         zugriff: "Recht am KI-Assistenten",
+      },
+      {
+        pfad: "/api/ki-sprachausgabe/schluessel",
+        aufgabe:
+          "Stellt für das Vorlesen einen kurzlebigen Schlüssel aus, dazu Stimme, Tempo und Format je Sprache. Damit spricht der Browser direkt mit dem Sprachdienst: Jeder Satz geht sofort hinein, und der Ton klingt, während er entsteht, ohne Pausen zwischen den Abschnitten. Einen Schlüssel gibt es nur mit Nachweis, also für die gerade laufende Antwort oder eine eigene gespeicherte Antwort. Er öffnet genau einen Strom, ist 60 Sekunden gültig, und je Person gibt es höchstens zwölf Schlüssel pro Minute. Der eigentliche Schlüssel verlässt den Server nie. Sagt der Endpunkt ab, liest der bisherige Weg über einzelne Abschnitte vor.",
+        zugriff: "Recht am KI-Assistenten, Soniox als Sprachausgabe",
       },
       {
         pfad: "/api/ki-spracherkennung",
@@ -561,7 +567,7 @@ export const de: HandbuchTexte = {
       },
       {
         begriff: "Sprachmodus",
-        text: "Live-Gespräch mit dem Assistenten ohne sichtbaren Chat: eine Kugel reagiert auf die Stimme, der Assistent kann selbst zu einem Bereich springen und ihn zeigen. Unterbrechen wie im Gespräch: einfach dazwischenreden oder auf die Kugel tippen.",
+        text: "Live-Gespräch mit dem Assistenten ohne sichtbaren Chat: eine Kugel reagiert auf die Stimme, der Assistent kann selbst zu einem Bereich springen und ihn zeigen. Unterbrechen wie im Gespräch: einfach dazwischenreden oder auf die Kugel tippen. Starten: Knopf „Gespräch“ in der Kopfzeile, oder im Chat der Senden-Knopf, solange das Eingabefeld leer ist.",
       },
       {
         begriff: "WAMOCON",

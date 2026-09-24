@@ -24,6 +24,11 @@ export interface Stimme {
    *  (auch die Sprache), Soniox nimmt die Sprache zusaetzlich. */
   stimme: string;
   sprache: SprachausgabeSprache;
+  /** Nur Soniox: Sprechtempo (speed, 0,7 bis 1,3), siehe sprechTempo(). */
+  tempo?: number;
+  /** Nur Soniox: kuerzere Pausen zwischen Woertern (reduce_silence), siehe
+   *  stilleKuerzen(). */
+  stilleKuerzen?: boolean;
 }
 
 // Eine Stimme je Sprache, benannt nach der Auswahlregel des Dienstes:
@@ -65,10 +70,72 @@ export function sprachausgabeAnbieter(): SprachausgabeAnbieter {
   return process.env.KI_SPRACHAUSGABE_ANBIETER?.trim().toLowerCase() === "soniox" ? "soniox" : "sokrates";
 }
 
-function sonioxStimme(): string {
-  const wert = process.env.SONIOX_TTS_STIMME?.trim();
-  // Nur, was wie ein Stimmname oder eine Klon-ID aussieht - kein Freitext.
-  return wert && /^[A-Za-z0-9_-]{1,64}$/.test(wert) ? wert : SONIOX_STIMME_STANDARD;
+/** Vorlesen als Strom (Soniox-WebSocket direkt aus dem Browser, domain/
+ *  sprachausgabe-strom.ts)? Immer, wenn Soniox spricht - ausser
+ *  KI_SPRACHAUSGABE_STROM steht auf "aus"; dann bleibt es bei einzelnen
+ *  Abschnitten ueber api/ki-sprachausgabe. Sokrates hat keinen Strom. */
+export function sprachausgabeStromAn(roh: string | undefined = process.env.KI_SPRACHAUSGABE_STROM): boolean {
+  const w = roh?.trim().toLowerCase();
+  if (w === "aus" || w === "off" || w === "false" || w === "0") return false;
+  return sprachausgabeAnbieter() === "soniox";
+}
+
+/** Nur, was wie ein Stimmname oder eine Klon-ID aussieht - kein Freitext. */
+function gueltigerStimmname(wert: string | undefined): string | null {
+  const w = wert?.trim();
+  return w && /^[A-Za-z0-9_-]{1,64}$/.test(w) ? w : null;
+}
+
+/** Die Soniox-Stimme fuer eine Sprache: SONIOX_TTS_STIMME_DE (_EN, _RU, _KK)
+ *  vor SONIOX_TTS_STIMME vor Maya. Soniox beschreibt Maya selbst als
+ *  bedaechtig ("measured delivery", GET /v1/tts-models, Stand 24.09.2026) -
+ *  je Sprache laesst sich deshalb eine andere Stimme setzen, sobald ein
+ *  Hoertest mit Muttersprachlern eine bessere gefunden hat. */
+export function sonioxStimmeFuer(sprache: SprachausgabeSprache): string {
+  return (
+    gueltigerStimmname(process.env[`SONIOX_TTS_STIMME_${sprache.toUpperCase()}`]) ??
+    gueltigerStimmname(process.env.SONIOX_TTS_STIMME) ??
+    SONIOX_STIMME_STANDARD
+  );
+}
+
+/** Sprechtempo bei Soniox, wenn KI_SPRACHAUSGABE_TEMPO nichts sagt. Soniox
+ *  erlaubt 0,7 bis 1,3 (speed, Standard 1,0). Am 24.09.2026 kam die
+ *  Rueckmeldung, das deutsche Vorlesen sei sehr langsam; zusammen mit der
+ *  bedaechtigen Standardstimme ist 1,1 ein vorsichtiger Schritt. Soniox raet,
+ *  speed sparsam zu verwenden, weil es den Rhythmus einer Stimme glaettet. */
+export const SONIOX_TEMPO_STANDARD = 1.1;
+export const SONIOX_TEMPO_MIN = 0.7;
+export const SONIOX_TEMPO_MAX = 1.3;
+
+/** Tempo je Sprache aus KI_SPRACHAUSGABE_TEMPO: entweder eine Zahl fuer alle
+ *  ("1.1") oder je Sprache ("de:1.15,ru:1.05,en:1"). Sprachen ohne Angabe
+ *  und unsinnige Werte bekommen die Voreinstellung; Werte ausserhalb von 0,7
+ *  bis 1,3 werden begrenzt, weil Soniox sie sonst mit invalid_request ablehnt. */
+export function sprechTempo(sprache: SprachausgabeSprache, roh: string | undefined = process.env.KI_SPRACHAUSGABE_TEMPO): number {
+  const begrenzt = (n: number) => Math.round(Math.min(SONIOX_TEMPO_MAX, Math.max(SONIOX_TEMPO_MIN, n)) * 100) / 100;
+  const text = roh?.trim();
+  if (!text) return SONIOX_TEMPO_STANDARD;
+  const allein = Number(text.replace(",", "."));
+  if (/^\d+(?:[.,]\d+)?$/.test(text) && Number.isFinite(allein)) return begrenzt(allein);
+  // Getrennt an ";" und Leerraum, am Komma nur vor dem naechsten Sprachkuerzel -
+  // "de:1,15;ru:1,05" ist deutsch geschrieben und gemeint.
+  const normiert = text.replace(/\s*:\s*/g, ":");
+  for (const teil of normiert.split(/[;\s]+|,(?=\s*[a-z]{2}\s*:)/i)) {
+    const [schluessel, wert] = teil.split(":");
+    if (schluessel?.trim().toLowerCase() !== sprache) continue;
+    const n = Number(wert?.trim().replace(",", "."));
+    if (Number.isFinite(n) && n > 0) return begrenzt(n);
+  }
+  return SONIOX_TEMPO_STANDARD;
+}
+
+/** Soniox kuerzt die Pausen zwischen Woertern (reduce_silence), ausser
+ *  KI_SPRACHAUSGABE_STILLE_KUERZEN steht auf "aus". Laut Soniox strafft das
+ *  den Vortrag, ohne das Tempo der Woerter zu aendern (Standard dort: false). */
+export function stilleKuerzen(roh: string | undefined = process.env.KI_SPRACHAUSGABE_STILLE_KUERZEN): boolean {
+  const w = roh?.trim().toLowerCase();
+  return !(w === "aus" || w === "off" || w === "false" || w === "0");
 }
 
 /** Die Stimmen fuer eine Sprache, in der Reihenfolge, in der sie versucht
@@ -78,7 +145,9 @@ export function stimmenFuer(sprache: string): Stimme[] {
   if (!istSprachausgabeSprache(sprache)) return [];
   const rueckfall = STIMMEN[sprache];
   const liste: Stimme[] = [];
-  if (sprachausgabeAnbieter() === "soniox") liste.push({ anbieter: "soniox", stimme: sonioxStimme(), sprache });
+  if (sprachausgabeAnbieter() === "soniox") {
+    liste.push({ anbieter: "soniox", stimme: sonioxStimmeFuer(sprache), sprache, tempo: sprechTempo(sprache), stilleKuerzen: stilleKuerzen() });
+  }
   if (rueckfall) liste.push(rueckfall);
   return liste;
 }
@@ -86,17 +155,22 @@ export function stimmenFuer(sprache: string): Stimme[] {
 /** Stand der Textaufbereitung fuer die Stimme (textFuerSprachausgabe,
  *  sprechfassung). Steckt im Ablagepfad: wird die Aufbereitung besser,
  *  entsteht neues Audio, statt dass der Speicher das alte, schlechtere
- *  weiter ausliefert. Bei jeder Aenderung dort hochzaehlen. */
-export const VORLESETEXT_VERSION = 2;
+ *  weiter ausliefert. Bei jeder Aenderung dort hochzaehlen.
+ *
+ *  3 (24.09.2026): Ueberschriften mit Doppelpunkt, Tabellen ohne Kopfzeile,
+ *  Kennungen und Grossbuchstabenwoerter entschaerft, keine Zeilenumbrueche
+ *  mehr an die Stimme, dazu Tempo und kuerzere Pausen bei Soniox. */
+export const VORLESETEXT_VERSION = 3;
 
 /** Ablageort des erzeugten Audios im Bucket "ki-sprachausgabe" (Migration
- *  20261101000000). Anbieter, Stimme, Sprache und Textstand stecken im
+ *  20261101000000). Anbieter, Stimme, Sprache, Tempo und Textstand stecken im
  *  Dateinamen: nach jedem Wechsel entsteht ein neuer Pfad, altes Audio wird
  *  nicht mehr gefunden. Der Text selbst kann sich nicht aendern - eine
  *  Antwort ist unveraenderlich. */
 export function sprachausgabePfad(nachrichtId: string, stimme: Stimme): string {
   const kennung = (wert: string) => wert.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
-  return `${nachrichtId}/${kennung(stimme.anbieter)}-${kennung(stimme.stimme)}-${stimme.sprache}-v${VORLESETEXT_VERSION}.mp3`;
+  const tempo = stimme.tempo !== undefined ? `-t${Math.round(stimme.tempo * 100)}` : "";
+  return `${nachrichtId}/${kennung(stimme.anbieter)}-${kennung(stimme.stimme)}-${stimme.sprache}${tempo}-v${VORLESETEXT_VERSION}.mp3`;
 }
 
 export function istSprachausgabeSprache(wert: string | null | undefined): wert is SprachausgabeSprache {
@@ -133,12 +207,84 @@ const ZEICHEN = /[☀-➿⬀-⯿\u{1F000}-\u{1FAFF}️‍]/gu;
 // Aufzaehlung, und "15." davor kein Satzende.
 const MONATE = "Januar|Februar|März|Maerz|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember";
 
-/** Eine Zeile ohne Satzzeichen am Ende (Ueberschrift, Listenpunkt,
- *  Tabellenzeile) bekommt einen Punkt - sonst liest die Stimme sie ohne
- *  Pause in die naechste Zeile hinein. */
+/** Eine Zeile ohne Satzzeichen am Ende (Listenpunkt, Tabellenzeile) bekommt
+ *  einen Punkt - sonst liest die Stimme sie ohne Pause in die naechste Zeile
+ *  hinein. */
 function mitSatzzeichen(zeile: string): string {
   const t = zeile.trimEnd();
   return !t || /[.!?…:;,]$/.test(t) ? t : `${t}.`;
+}
+
+/** Trennzeile einer Markdown-Tabelle ("|---|:---:|"). */
+const TRENNZEILE = /^[ \t]*\|?[ \t]*:?-{3,}:?[ \t]*(\|[ \t]*:?-{3,}:?[ \t]*)*\|?[ \t]*$/;
+
+/** Beginnt die Zeile mit "|"? Nur dann ist sie fuer sich allein erkennbar eine
+ *  Tabellenzeile. Striche im Fliesstext ("Offen | In Arbeit | Erledigt") sind
+ *  eine Aufzaehlung (Pruefung vom 24.09.2026: dort wurde der erste Wert zu einer
+ *  angekuendigten Ueberschrift). Tabellen ohne fuehrenden Strich erkennt
+ *  tabellenZuSaetzen an ihrer Trennzeile. */
+function istTabellenzeile(zeile: string): boolean {
+  return /^[ \t]*\|/.test(zeile);
+}
+
+/** Tabellen als Saetze: die Kopfzeile faellt weg, jede Zeile wird "Erste
+ *  Zelle: die anderen, durch Komma". Leere Zellen und reine Striche fallen
+ *  weg. Bis zum 24.09.2026 las die Stimme die Kopfzeile als eigenen Satz
+ *  ("Bereich, Status, Frist.") und jede Zelle mit Komma dahinter - bei einer
+ *  Uebersicht mit zehn Zeilen eine Folge kurzer Saetze mit Pausen. */
+function tabellenZuSaetzen(text: string): string {
+  const zeilen = text.split("\n");
+  // Zeilen eines Blocks mit Trennzeile sind Tabellenzeilen, auch ohne
+  // fuehrenden Strich (Markdown erlaubt das): die Zeile davor ist der Kopf, die
+  // Zeilen danach mit einem Strich sind Datenzeilen.
+  const imBlock = new Set<number>();
+  for (let t = 0; t < zeilen.length; t++) {
+    if (!TRENNZEILE.test(zeilen[t]!)) continue;
+    if (t > 0 && zeilen[t - 1]!.includes("|")) imBlock.add(t - 1);
+    for (let d = t + 1; d < zeilen.length && zeilen[d]!.includes("|"); d++) imBlock.add(d);
+  }
+  const raus: string[] = [];
+  for (let i = 0; i < zeilen.length; i++) {
+    const zeile = zeilen[i]!;
+    if (TRENNZEILE.test(zeile)) continue;
+    if (!istTabellenzeile(zeile) && !imBlock.has(i)) {
+      raus.push(zeile);
+      continue;
+    }
+    // Die Zeile direkt vor der Trennzeile ist die Kopfzeile.
+    if (i + 1 < zeilen.length && TRENNZEILE.test(zeilen[i + 1]!)) continue;
+    const zellen = zeile
+      .replace(/^[ \t]*\|/, "")
+      .replace(/\|[ \t]*$/, "")
+      .split("|")
+      .map((z) => z.trim())
+      .filter((z) => z && !/^[-–—]+$/.test(z));
+    if (zellen.length === 0) continue;
+    raus.push(zellen.length === 1 ? zellen[0]! : `${zellen[0]}: ${zellen.slice(1).join(", ")}`);
+  }
+  return raus.join("\n");
+}
+
+/** Abkuerzungen aus Grossbuchstaben, die buchstabiert werden sollen und
+ *  deshalb gross bleiben - lateinisch und kyrillisch, so wie sie in dieser
+ *  Anwendung vorkommen (ЕСУТД 61-mal, ХАССП 44-mal, ВОСМС 33-mal im Code,
+ *  Pruefung vom 24.09.2026). Kuerzere als fuenf Buchstaben (MwSt, ЭСФ, НДС,
+ *  GmbH) fasst die Regel ohnehin nicht an, Woerter ohne Vokal (МТСЗН) auch
+ *  nicht - die sind immer Abkuerzungen. */
+const AKRONYME = new Set(["HACCP", "ESUTD", "DSGVO", "UNECE", "IFRS", "ЕСУТД", "ЭСУТД", "ХАССП", "ВОСМС", "ЕГИСС", "МТСЗН"]);
+const VOKAL = /[AEIOUYÄÖÜАЕЁИОУЫЭЮЯӘІӨҰҮ]/u;
+
+/** Kennungen wie "CH-T-N-A-01-2609201616-40A7": mindestens vier Gruppen aus
+ *  Grossbuchstaben und Ziffern, durch Bindestriche verbunden, mit Ziffern UND
+ *  mit mindestens zwei Gruppen nur aus Buchstaben (istKennung). Telefonnummern
+ *  (+7-701-234-56-78), Datumsangaben und IBANs haben keine solchen Gruppen und
+ *  bleiben - bis zum 24.09.2026 verschluckte die Regel Telefonnummern ganz.
+ *  Die Stimme liest sie Zeichen fuer Zeichen - in einer Zusammenfassung vom
+ *  24.09.2026 standen drei davon, jede mehrere Sekunden lang. Im Chat
+ *  bleiben sie sichtbar, vorgelesen werden sie nicht. */
+const KENNUNG = /(?<![\p{L}\d-])[\p{Lu}\d]{1,10}(?:-[\p{Lu}\d]{1,16}){3,}(?![\p{L}\d-])/gu;
+function istKennung(k: string): boolean {
+  return /\d/.test(k) && k.split("-").filter((g) => /^\p{Lu}+$/u.test(g)).length >= 2;
 }
 
 /** Macht aus der Markdown-Antwort vorlesbaren Text: keine Sternchen,
@@ -155,24 +301,33 @@ function mitSatzzeichen(zeile: string): string {
  *    - Zeilen ohne Satzzeichen bekommen eines (siehe mitSatzzeichen),
  *    - einzelne Sternchen fallen weg: ein Abschnitt kann mitten in einem
  *      Fettdruck beginnen oder enden,
- *    - Unterstriche in Kennungen bleiben ("ki_assistent" wurde "kiassistent"). */
+ *    - Unterstriche in Kennungen bleiben ("ki_assistent" wurde "kiassistent").
+ *
+ *  Seit VORLESETEXT_VERSION 3: Ueberschriften enden mit Doppelpunkt, Tabellen
+ *  ohne Kopfzeile (tabellenZuSaetzen), lange Kennungen fallen weg (KENNUNG),
+ *  Grossbuchstabenwoerter ab fuenf Buchstaben werden normal geschrieben. */
 export function textFuerSprachausgabe(markdown: string): string {
-  let text = markdown
-    .replace(/```[\s\S]*?```/g, " ") // Codebloecke nicht vorlesen
+  let text = tabellenZuSaetzen(markdown.replace(/```[\s\S]*?```/g, " ")) // Codebloecke nicht vorlesen
     .replace(/`([^`]*)`/g, "$1")
     .replace(/!\[[^\]]*\]\([^)]*\)/g, " ") // Bilder
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1") // Links: nur der Text
     .replace(/[ \t]*\[S\d+(?:[ \t]*[,;][ \t]*S?\d+)*\]/g, "") // Belegmarken
-    .replace(/https?:\/\/[^\s)\]]+/g, "") // nackte Adressen
-    .replace(/^\s{0,3}#{1,6}\s+/gm, "") // Ueberschriften
+    .replace(/https?:\/\/[^\s)\]]*[^\s)\].,;:!?]/g, "") // nackte Adressen (ohne den Satzpunkt dahinter)
+    // Ueberschriften enden mit Doppelpunkt statt Punkt: sie leiten ein, was
+    // folgt, und ein Punkt machte aus "Wichtigste Punkte" einen eigenen Satz
+    // mit voller Satzpause davor und danach.
+    .replace(/^[ \t]{0,3}#{1,6}[ \t]+(.*?)[ \t]*$/gm, (_, titel: string) => (!titel || /[.!?…:;,]$/.test(titel) ? titel : `${titel}:`))
     .replace(/^\s*>\s?/gm, "") // Zitate
     .replace(/^\s*[-*+]\s+/gm, "") // Aufzaehlungszeichen
     .replace(new RegExp(`^[ \\t]*\\d{1,2}[.)][ \\t]+(?!(?:${MONATE})\\b)(?=\\S)`, "gm"), "") // nummerierte Listen
-    // Tabellen: nur Leerzeichen/Tabs ([ \t]), nie \s - das griffe ueber den
-    // Zeilenumbruch und zoege zwei Zeilen zu einer zusammen.
-    .replace(/^[ \t]*\|?[ \t]*:?-{3,}:?[ \t]*(\|[ \t]*:?-{3,}:?[ \t]*)*\|?[ \t]*$/gm, "") // Trennzeilen
-    .replace(/^[ \t]*\|(.*)\|[ \t]*$/gm, "$1") // aeussere Tabellenstriche
-    .replace(/[ \t]*\|[ \t]*/g, ", ") // Zellen einer Zeile: "Polana, 1150"
+    .replace(/[ \t]*\|[ \t]*/g, ", ") // ein verirrter Strich im Fliesstext
+    .replace(KENNUNG, (kennung: string) => (istKennung(kennung) ? "" : kennung))
+    // Woerter ganz in Grossbuchstaben liest die Stimme laut oder buchstabiert
+    // sie ("KRITISCH", "СРОЧНО"). Ab fuenf Buchstaben sind das Hervorhebungen,
+    // keine Abkuerzungen - ausser denen in AKRONYME.
+    .replace(/(?<![\p{L}\d])\p{Lu}{5,}(?![\p{L}\d])/gu, (wort: string) =>
+      AKRONYME.has(wort) || !VOKAL.test(wort) ? wort : wort[0] + wort.slice(1).toLowerCase(),
+    )
     .replace(/(\*\*|__)(.*?)\1/g, "$2")
     .replace(/\*(\S(?:[^*\n]*\S)?)\*/g, "$1") // *kursiv*
     // _kursiv_ nur als ganzes Wort - nie der Unterstrich in einer Kennung.
@@ -191,7 +346,18 @@ export function textFuerSprachausgabe(markdown: string): string {
   // Jede Zeile ausser der letzten endet mit einem Satzzeichen. Die letzte
   // nicht: im Zerleger ist sie womoeglich nur der Anfang eines Satzes.
   const zeilen = text.split("\n");
-  text = zeilen.map((zeile, i) => (i < zeilen.length - 1 ? mitSatzzeichen(zeile) : zeile.trimEnd())).filter(Boolean).join("\n");
+  text = zeilen
+    .map((zeile, i) => {
+      if (i === zeilen.length - 1) return zeile.trimEnd();
+      // Eine Ankuendigung, auf die gleich die naechste folgt ("Gesperrte
+      // Chargen:" vor "Naechste Schritte:", weil die Kennungen dazwischen
+      // wegfielen), kuendigt nichts an: Punkt statt Doppelpunkt.
+      const t = zeile.trimEnd();
+      if (t.endsWith(":") && zeilen[i + 1]!.trimEnd().endsWith(":")) return `${t.slice(0, -1)}.`;
+      return mitSatzzeichen(zeile);
+    })
+    .filter(Boolean)
+    .join("\n");
 
   if (text.length > MAX_SPRACHAUSGABE_ZEICHEN) {
     const abgeschnitten = text.slice(0, MAX_SPRACHAUSGABE_ZEICHEN);
@@ -202,6 +368,7 @@ export function textFuerSprachausgabe(markdown: string): string {
 }
 
 const TENGE: Record<SprachausgabeSprache, string> = { de: "Tenge", en: "tenge", ru: "тенге", kk: "теңге" };
+const ETWA: Record<SprachausgabeSprache, string> = { de: "etwa", en: "about", ru: "около", kk: "шамамен" };
 
 /** Letzter Schritt vor der Stimme, wenn die Sprache feststeht: was keine
  *  Stimme zuverlaessig liest, wird zu Worten.
@@ -214,6 +381,11 @@ const TENGE: Record<SprachausgabeSprache, string> = { de: "Tenge", en: "tenge", 
  *      eindeutig) und "1 150 000" bzw. mit geschuetztem Leerzeichen werden
  *      zu "1150000". Sonst liest die Stimme "eins Punkt einhundertfuenfzig"
  *      oder drei einzelne Zahlen.
+ *    - "≈ 5" und "~5" werden "etwa 5" (je Sprache).
+ *    - Zeilenumbrueche werden Leerzeichen: jede Zeile endet hier schon mit
+ *      einem Satzzeichen (textFuerSprachausgabe), und ein Umbruch zusaetzlich
+ *      kann bei der Stimme eine Absatzpause ausloesen. Erst hier, nicht im
+ *      Zerleger - der braucht die Zeilenenden als Grenze.
  *
  *  Zahlen selbst, Prozent und Einheiten bleiben der Stimme ueberlassen: im
  *  Russischen und Kasachischen richtet sich ihre Form nach dem Satz ("два
@@ -223,8 +395,11 @@ export function sprechfassung(text: string, sprache: SprachausgabeSprache): stri
     .replace(/(\d)(?:[   ]?)(?:₸|KZT\b)/g, `$1 ${TENGE[sprache]}`)
     .replace(/(?:₸|\bKZT\b)/g, TENGE[sprache])
     .replace(/\b\d{1,3}(?:\.\d{3}){2,}(?![.,]?\d)/g, (zahl) => zahl.replace(/\./g, ""))
-    .replace(/\b\d{1,3}(?:[  ]\d{3})+(?!\d)/g, (zahl) => zahl.replace(/[  ]/g, ""))
-    .replace(/\b\d{1,3}(?: \d{3}){2,}(?!\d)/g, (zahl) => zahl.replace(/ /g, ""))
+    .replace(/(?<!\+[\d \t  ]*)\b\d{1,3}(?:[  ]\d{3})+(?!\d)(?![ \t]\d{2}\b)/g, (zahl) => zahl.replace(/[  ]/g, ""))
+    .replace(/(?<!\+[\d \t  ]*)\b\d{1,3}(?: \d{3}){2,}(?!\d)(?! \d{2}\b)/g, (zahl) => zahl.replace(/ /g, ""))
+    .replace(/(\d)[ \t]?~[ \t]?(?=\d)/g, "$1-") // "5~10" ist eine Spanne, kein "etwa"
+    .replace(/(?<!\d)(?:≈|~)[ \t]?(?=\d)/g, `${ETWA[sprache]} `)
+    .replace(/[ \t]*\n+[ \t]*/g, " ")
     .replace(/[ \t]{2,}/g, " ")
     .trim();
 }
@@ -251,6 +426,19 @@ export const ZWEITER_ABSCHNITT_ZEICHEN = 120;
 /** Danach: so lang, dass die Satzmelodie stimmt. */
 export const ABSCHNITT_ZEICHEN = 250;
 
+/** Stil "saetze" (Strom, siehe erzeugeSatzZerleger): ab dem zweiten Abschnitt
+ *  jeder Satz, sobald er fertig ist - nur ganz kurze werden zusammengefasst.
+ *  Im Strom (Soniox-WebSocket, components/ki/sprachausgabe-strom.ts) gibt es
+ *  keine Abschnittsgrenzen, die Stimme spricht durch; lange Abschnitte bringen
+ *  dort nichts und halten nur Text zurueck. Und ein Strom, der zu lange
+ *  keinen Text bekommt, wird von Soniox nach einigen Sekunden beendet. */
+export const SATZ_ZIEL_ZEICHEN = 60;
+
+/** "abschnitte": einzelne Anfragen je Abschnitt (Rueckfall, Sokrates) -
+ *  lieber laengere Stuecke mit eigener Satzmelodie. "saetze": ein Strom je
+ *  Antwort - jeder Satz sofort. */
+export type ZerlegerStil = "abschnitte" | "saetze";
+
 // Kein Satzende, obwohl da ein Punkt steht. Nur, was in diesen Antworten
 // wirklich vorkommt - seit 24.09.2026 auch Russisch und Kasachisch: die
 // Antworten zu Recht und Steuern zitieren "НК РК ст. 82", und bis dahin
@@ -259,13 +447,14 @@ export const ABSCHNITT_ZEICHEN = 250;
 const ABKUERZUNGEN = [
   // Deutsch
   "z. b.", "z.b.", "d. h.", "d.h.", "u. a.", "u.a.", "o. ä.", "o.ä.", "u. u.", "u.u.",
-  "bzw.", "ca.", "evtl.", "usw.", "inkl.", "exkl.", "max.", "min.",
+  "bzw.", "ca.", "evtl.", "usw.", "inkl.", "exkl.", "max.", "min.", "ff.",
   "nr.", "abs.", "art.", "bspw.", "ggf.", "vgl.", "bzgl.", "mio.", "mrd.", "tsd.",
+  "jan.", "feb.", "mär.", "apr.", "jun.", "jul.", "aug.", "sep.", "sept.", "okt.", "nov.", "dez.", "mar.", "oct.", "dec.",
   "std.", "st.", "tel.", "str.", "jh.", "gem.", "lt.", "zzgl.", "mwst.",
   // Englisch
-  "dr.", "prof.", "hr.", "fr.", "mr.", "mrs.", "ms.", "etc.", "approx.", "e.g.", "i.e.", "vs.",
+  "dr.", "prof.", "hr.", "fr.", "mr.", "mrs.", "ms.", "etc.", "approx.", "e.g.", "i.e.", "vs.", "no.", "u.s.",
   // Russisch
-  "т. е.", "т.е.", "т. д.", "т.д.", "т. п.", "т.п.", "т. к.", "т.к.", "и т. д.", "и др.",
+  "т. е.", "т.е.", "т. д.", "т.д.", "т. п.", "т.п.", "т. к.", "т.к.", "т. н.", "т.н.", "и т. д.", "и др.",
   "ст.", "п.", "пп.", "ч.", "г.", "гг.", "млн.", "млрд.", "тыс.", "тг.", "руб.",
   "см.", "им.", "ул.", "д.", "др.", "пр.", "напр.", "прим.", "обл.", "р-н.",
   // Kasachisch
@@ -299,6 +488,17 @@ function istSatzende(text: string, i: number, amEnde = false): boolean {
   const naechstes = /^[\s"'»«“”)\]*_]*(\S)/u.exec(danach);
   if (!naechstes) return amEnde;
   const rest = danach.slice(naechstes.index + naechstes[0].length - 1);
+
+  // Mehrteilige Abkuerzung: ein einzelner Kleinbuchstabe mit Punkt, dahinter
+  // ein Buchstabe mit Punkt ("z. B.", "u. U.", "i. d. R.", "z. T."). Die Liste
+  // unten greift erst am LETZTEN Punkt; am ersten galt der Grossbuchstabe
+  // danach als Satzanfang, und die Stimme sagte "zet" [neue Anfrage] "Be. mit
+  // einem Nachtrag" (Simulation vom 24.09.2026). Steht der Buchstabe noch
+  // allein am Pufferende, entscheidet erst der naechste Punkt: warten.
+  if (zeichen === "." && /(?:^|[^\p{L}])\p{Ll}$/u.test(text.slice(0, i))) {
+    if (/^\s*\p{L}\./u.test(danach)) return false;
+    if (/^\s*\p{L}$/u.test(danach)) return amEnde;
+  }
 
   if (zeichen === ".") {
     // Ein Satz beginnt nicht klein. "3. und 4." oder "15. des Monats" sind
@@ -334,8 +534,28 @@ function istSatzende(text: string, i: number, amEnde = false): boolean {
 function istZeilenende(text: string, i: number): boolean {
   if (text[i] !== "\n") return false;
   const zeilenAnfang = text.lastIndexOf("\n", i - 1) + 1;
-  return /[^\s*_#>|-]/.test(text.slice(zeilenAnfang, i));
+  const zeile = text.slice(zeilenAnfang, i);
+  if (!/[^\s*_#>|-]/.test(zeile) || TRENNZEILE.test(zeile)) return false;
+  // Eine Tabellenzeile ist erst eine Grenze, wenn die naechste Zeile ganz da
+  // und keine Trennzeile ist: sonst koennte die Kopfzeile allein als Abschnitt
+  // hinausgehen, bevor feststeht, dass sie eine ist (tabellenZuSaetzen laesst
+  // sie weg - aber nur, wenn sie ihre Trennzeile im selben Stueck sieht).
+  if (istTabellenzeile(zeile)) {
+    const naechstesEnde = text.indexOf("\n", i + 1);
+    const naechste = text.slice(i + 1, naechstesEnde < 0 ? text.length : naechstesEnde);
+    // Noch unvollstaendig und koennte eine Trennzeile werden: warten.
+    if (naechstesEnde < 0 && !/[^\s|:-]/.test(naechste)) return false;
+    if (TRENNZEILE.test(naechste)) return false;
+  }
+  return true;
 }
+
+/** Unsichtbare Marke vor einem Abschnitt, der NICHT an einem Zeilenanfang
+ *  beginnt: die Regeln fuer Zeilenanfaenge (Listennummer, Ueberschrift,
+ *  Aufzaehlungszeichen, Zitat) greifen dann nicht auf seine erste Zeile. Bis
+ *  zum 24.09.2026 verlor "Umsatz war gut. 3. Quartal: stabil." im Strom die "3."
+ *  - der Abschnitt "3. Quartal: stabil." sah aus wie ein Listenpunkt. */
+const KEIN_ZEILENANFANG = "\u2063";
 
 export interface Abschnitt {
   /** Fortlaufend ab 1, je Zug. Die Reihenfolge haengt daran. */
@@ -346,6 +566,12 @@ export interface Abschnitt {
 export interface SatzZerleger {
   /** Naechstes Stueck aus dem Stream. Gibt zurueck, was jetzt sprechbar ist. */
   fuettere(stueck: string): Abschnitt[];
+  /** Ende eines Textteils (text-end im Stream: danach ruft das Modell ein
+   *  Werkzeug oder hoert auf). Der Teil ist vollstaendig, also geht auch sein
+   *  Rest hinaus. Bis zum 24.09.2026 wartete der Rest auf die Zielmarke des
+   *  naechsten Abschnitts - waehrend der Werkzeuge blieb ein fertiger Satz
+   *  stumm liegen, und die Ueberschrift des naechsten Teils hing am vorigen. */
+  schrittEnde(): Abschnitt[];
   /** Ende der Antwort: gibt den Rest heraus. */
   abschliessen(): Abschnitt[];
 }
@@ -356,20 +582,26 @@ export interface SatzZerleger {
  * Der Zustand ist absichtlich in einer Closure und nicht in einem Modul:
  * zwei Antworten duerfen sich nicht ins Gehege kommen.
  */
-export function erzeugeSatzZerleger(): SatzZerleger {
+export function erzeugeSatzZerleger(stil: ZerlegerStil = "abschnitte"): SatzZerleger {
   let puffer = "";
   let inCodeblock = false;
   let nr = 0;
   let gesamtZeichen = 0;
   let ersterRaus = false;
   let fertig = false;
+  // Beginnt der Puffer an einem Zeilenanfang? (Am Anfang der Antwort ja.)
+  let amZeilenanfang = true;
 
   /** Vom Puffer abschneiden und als Abschnitt herausgeben. `amEnde`: der
    *  Rest der fertigen Antwort. */
   function schneide(bis: number, amEnde = false): Abschnitt | null {
     const roh = puffer.slice(0, bis);
     puffer = puffer.slice(bis);
-    let text = textFuerSprachausgabe(roh).trim();
+    const beginntZeile = amZeilenanfang;
+    amZeilenanfang = /\n[ \t]*$/.test(roh);
+    let text = (beginntZeile ? textFuerSprachausgabe(roh) : textFuerSprachausgabe(KEIN_ZEILENANFANG + roh))
+      .replaceAll(KEIN_ZEILENANFANG, "")
+      .trim();
     if (!text) return null;
     // Endet der Abschnitt an einem Zeilenende oder am Ende der Antwort, ist
     // seine letzte Zeile vollstaendig und bekommt ein Satzzeichen wie alle
@@ -378,16 +610,38 @@ export function erzeugeSatzZerleger(): SatzZerleger {
     // Stimme das letzte Wort wie mitten im Satz und bricht dort ab - bei einem
     // Listenpunkt oder einem Vorab-Satz ohne Punkt klang das abgehackt.
     if (amEnde || /\n[ \t]*$/.test(roh)) text = mitSatzzeichen(text);
+    // Am Ende der Antwort kuendigt nichts mehr etwas an ("Quellen:", wenn die
+    // Adressen darunter wegfallen): Punkt statt Doppelpunkt.
+    if (amEnde && text.endsWith(":")) text = `${text.slice(0, -1)}.`;
     if (gesamtZeichen + text.length > MAX_SPRACHAUSGABE_ZEICHEN) {
       fertig = true;
       const rest = MAX_SPRACHAUSGABE_ZEICHEN - gesamtZeichen;
       if (rest < 20) return null;
       gesamtZeichen = MAX_SPRACHAUSGABE_ZEICHEN;
-      return { nr: ++nr, text: text.slice(0, rest).trim() };
+      // Am letzten ECHTEN Satzende vor der Grenze (istSatzende: nicht an
+      // "Abs." oder "п."). Gibt es keins, faellt der Rest weg - der vorige
+      // Abschnitt endete an einem Satzende. Bis zum 24.09.2026 endete eine
+      // lange Zusammenfassung mitten im Wort ("Letzte Schwelle").
+      const teil = text.slice(0, rest);
+      for (let i = teil.length - 1; i >= 20; i--) {
+        if (teil[i] === "\n" || istSatzende(teil, i, true)) return { nr: ++nr, text: teil.slice(0, i + 1).trim() };
+      }
+      return null;
     }
     gesamtZeichen += text.length;
     ersterRaus = true;
     return { nr: ++nr, text };
+  }
+
+  /** Ein Notschnitt (Komma, Wortende) darf nie mitten in einer Tabellenzeile
+   *  liegen: dann am Anfang dieser Zeile schneiden, oder warten. Sonst ging
+   *  die Kopfzeile ohne ihre Trennzeile hinaus und wurde als Datenzeile
+   *  gelesen, und Betraege in einer Zelle zerrissen ("230" ... "000 Tenge"). */
+  function ohneTabellenschnitt(schnitt: number): number {
+    const anfang = puffer.lastIndexOf("\n", schnitt - 1) + 1;
+    const ende = puffer.indexOf("\n", anfang);
+    if (!istTabellenzeile(puffer.slice(anfang, ende < 0 ? puffer.length : ende))) return schnitt;
+    return anfang >= 12 ? anfang : -1;
   }
 
   /** Wo endet der naechste Abschnitt im Puffer - oder -1, wenn noch keiner. */
@@ -409,12 +663,12 @@ export function erzeugeSatzZerleger(): SatzZerleger {
         for (let i = puffer.length - 1; i >= 12; i--) {
           if (puffer[i] !== ",") continue;
           if (/[0-9]/.test(puffer[i - 1] ?? "") && /[0-9]/.test(puffer[i + 1] ?? "")) continue;
-          return i + 1;
+          return ohneTabellenschnitt(i + 1);
         }
         // Weder Komma noch Punkt in Sicht: am letzten Wortende trennen,
         // statt weiter stumm zu warten.
         const platz = puffer.lastIndexOf(" ", Math.floor(ERSTER_ABSCHNITT_ZEICHEN * 1.5));
-        if (platz >= 12) return platz + 1;
+        if (platz >= 12) return ohneTabellenschnitt(platz + 1);
       }
       return -1;
     }
@@ -427,7 +681,7 @@ export function erzeugeSatzZerleger(): SatzZerleger {
     // war - der Stream liefert Wort fuer Wort, und die Zielmarke wurde nie
     // erreicht. Jeder Satz war eine eigene Anfrage mit eigener Satzmelodie
     // und eigener Pause: abgehackt.
-    const ziel = nr <= 1 ? ZWEITER_ABSCHNITT_ZEICHEN : ABSCHNITT_ZEICHEN;
+    const ziel = stil === "saetze" ? SATZ_ZIEL_ZEICHEN : nr <= 1 ? ZWEITER_ABSCHNITT_ZEICHEN : ABSCHNITT_ZEICHEN;
     for (let i = 0; i < puffer.length; i++) {
       if (i + 1 >= ziel && grenzeBei(i)) return i + 1;
     }
@@ -439,7 +693,7 @@ export function erzeugeSatzZerleger(): SatzZerleger {
       for (let i = 0; i < ziel * 2; i++) if (grenzeBei(i)) letztes = i + 1;
       if (letztes > 0) return letztes;
       const platz = puffer.lastIndexOf(" ", ziel * 2);
-      if (platz > ziel) return platz + 1;
+      if (platz > ziel) return ohneTabellenschnitt(platz + 1);
     }
     return -1;
   }
@@ -466,6 +720,14 @@ export function erzeugeSatzZerleger(): SatzZerleger {
       }
       return ernte();
     },
+    schrittEnde(): Abschnitt[] {
+      if (fertig) return [];
+      const raus = ernte();
+      if (fertig) return raus;
+      const rest = schneide(puffer.length, true);
+      if (rest) raus.push(rest);
+      return raus;
+    },
     abschliessen(): Abschnitt[] {
       if (fertig) return [];
       const raus = ernte();
@@ -474,4 +736,13 @@ export function erzeugeSatzZerleger(): SatzZerleger {
       return raus;
     },
   };
+}
+
+/** Eine FERTIGE Antwort in Saetze fuer den Strom - fuer den Vorlese-Knopf an
+ *  einer Nachricht. Derselbe Zerleger wie waehrend des Schreibens, nur auf
+ *  einmal gefuettert: dieselbe Aufbereitung, dieselbe Grenze von
+ *  MAX_SPRACHAUSGABE_ZEICHEN, dieselben Satzgrenzen. */
+export function saetzeAusAntwort(markdown: string): string[] {
+  const zerleger = erzeugeSatzZerleger("saetze");
+  return [...zerleger.fuettere(markdown), ...zerleger.abschliessen()].map((a) => a.text);
 }

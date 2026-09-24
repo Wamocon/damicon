@@ -4,9 +4,18 @@ Stand 24.09.2026.
 
 ## Was es ist
 
-Ein Knopf in der Kopfzeile (`AudioLines`-Symbol, neben „KI fragen“) öffnet ein
-vollflächiges Overlay: der Hintergrund wird unscharf, in der Mitte schwebt eine
-Kugel, die auf die eigene Stimme und auf die Stimme von Himbi reagiert. Es gibt
+Zwei Einstiege öffnen ein vollflächiges Overlay:
+
+- im Chat der **Senden-Knopf, solange das Eingabefeld leer ist** (Wellensymbol,
+  dort also, wo man spricht, auch auf dem Handy). Sobald etwas im Feld steht,
+  ist er wieder Senden; das Mikrofon daneben bleibt das Diktat ins Textfeld.
+- in der Kopfzeile der Knopf **„Gespräch“** neben „KI fragen“ (ab 1024 px
+  beschriftet, darunter nur das Symbol, unter 768 px ausgeblendet).
+
+Bis zum 24.09.2026 gab es nur den Kopfzeilenknopf, als Symbol ohne
+Beschriftung, und er wurde nicht gefunden.
+
+Im Overlay wird der Hintergrund unscharf, in der Mitte schwebt eine Kugel, die auf die eigene Stimme und auf die Stimme von Himbi reagiert. Es gibt
 keinen sichtbaren Chat, nur das Gespräch. Springt Himbi zu einem Bereich der
 Anwendung, um etwas zu zeigen, legt sich ein Lichtkegel um das Ziel und die
 Kugel rückt klein an den freien Rand, damit sie nicht verdeckt, wovon Himbi
@@ -124,9 +133,9 @@ Reines Canvas 2D, keine neue Abhängigkeit (kein WebGL, kein Rive). Laut
 Recherche wiegen three.js und Rive mehrere hundert KB für eine einzelne Kugel.
 Der Pegel läuft **nie durch React**: eine eigene
 `requestAnimationFrame`-Schleife liest Mikrofonpegel (`lib/hoeren.ts`) und
-Ausgabepegel (`lib/ausgabe-pegel.ts`: ein `AnalyserNode` zwischen
-`AudioBufferSourceNode` und `ctx.destination` in `sprachausgabe-live.ts`) und
-zeichnet direkt. Seit 24.09.2026 meldet der Sprachmodus seinen Mikrofonstrom
+Ausgabepegel (`lib/ausgabe-pegel.ts`: ein gemeinsamer Ausgang je
+AudioContext, `ausgangFuer()`, mit einem `AnalyserNode` davor; Strom und
+Abschnitte spielen beide darüber) und zeichnet direkt. Seit 24.09.2026 meldet der Sprachmodus seinen Mikrofonstrom
 auch wirklich bei `lib/hoeren.ts` an (`starteHoeren`). Vorher tat das nur der
 Diktatknopf, und die Kugel reagierte nie auf die eigene Stimme.
 
@@ -146,7 +155,7 @@ Diktatknopf, und die Kugel reagierte nie auf die eigene Stimme.
 
 ## Voraussetzung zum Einschalten
 
-Der Kopfzeilenknopf erscheint nur, wenn **beides** gilt
+Beide Einstiege erscheinen nur, wenn **beides** gilt
 (`sprachmodusMoeglich` in `dashboard/layout.tsx`):
 
 1. ein Anbieter mit Werkzeugen (`typ === "anthropic"`),
@@ -159,6 +168,24 @@ bessere Stimme `KI_SPRACHAUSGABE_ANBIETER=soniox`. In Vercel können diese
 Variablen je Branch gesetzt sein: am 24.09.2026 fehlten sie für die Vorschau
 von `feat/ki-sprachmodus`, der Knopf fehlte dort deshalb, und Vorlesen lief
 über die alte Kette (siehe `sprachausgabe-anbieter.md`, Abschnitt Variablen).
+
+**Zustimmung zum KI-Hinweis.** Vor der ersten Nachricht muss im Chat dem
+Hinweis zur KI-Nutzung zugestimmt sein. Bis zum 24.09.2026 setzte der
+Sprachmodus diese Zustimmung selbst, ohne dass sie jemand sah, und die erste
+gesprochene Frage ging verloren. Jetzt öffnet der Kopfzeilenknopf in diesem Fall
+den Chat (dort steht der Hinweis), und der Knopf im Eingabefeld ist bis zur
+Zustimmung gesperrt. Beide Einstiege unterbrechen eine laufende Antwort, bevor
+der Sprachmodus beginnt; sonst spräche sie in das Zuhören hinein, und die erste
+Frage ginge verloren.
+
+**Die Stimme.** Der Sprachmodus spricht über denselben Weg wie das Vorlesen im
+Chat, mit Soniox also über den Strom (`sprachausgabe-anbieter.md`, Abschnitt
+„Vorlesen als Strom“): der kurze Vorab-Satz klingt, während das Werkzeug noch
+läuft. Zwei Fehler, die ihn bis zum 24.09.2026 stumm gemacht oder abgeschnitten
+hätten, sind behoben: die Regel „Panel zu heißt still“ griff auch im
+Sprachmodus (dort ist das Panel immer zu), und jede Folgeanfrage nach einem
+Werkzeug im Browser (zeigeAuf, oeffneBereich) schnitt die laufende Stimme ab.
+Eine Runde ist jetzt eine Frage, nicht eine Serverantwort.
 
 ## Was noch nicht gemessen ist
 

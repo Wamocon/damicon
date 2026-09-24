@@ -235,10 +235,14 @@ export type SonioxSchluesselZweck = "transcribe_websocket" | "tts_rt";
 export type SonioxSchluesselAntwort = { ok: true; schluessel: string; ablauf: string } | { ok: false; grund: string };
 
 /** Wirft nie. `referenz` landet bei Soniox als client_reference_id - nur eine
- *  pseudonyme Kennung, nie ein Name oder eine Adresse. */
+ *  pseudonyme Kennung, nie ein Name oder eine Adresse. `einmalig` (Standard):
+ *  der Schluessel oeffnet genau eine Sitzung - fuer das Diktat. Das Vorlesen
+ *  braucht mehrere Stroeme je Antwort (Werkzeugpausen, 2-Minuten-Grenze je
+ *  Strom) und holt ihn deshalb mehrfach verwendbar, dafuer mit kurzer
+ *  Gueltigkeit und begrenzter Dauer je Strom. */
 export async function holeSonioxSchluessel(
   zweck: SonioxSchluesselZweck,
-  { gueltigS, sitzungS, referenz }: { gueltigS: number; sitzungS: number; referenz?: string },
+  { gueltigS, sitzungS, referenz, einmalig = true }: { gueltigS: number; sitzungS: number; referenz?: string; einmalig?: boolean },
 ): Promise<SonioxSchluesselAntwort> {
   const key = schluessel();
   if (!key) return { ok: false, grund: "kein-schluessel" };
@@ -254,7 +258,7 @@ export async function holeSonioxSchluessel(
       body: JSON.stringify({
         usage_type: zweck,
         expires_in_seconds: Math.min(3600, Math.max(1, Math.round(gueltigS))),
-        single_use: true,
+        single_use: einmalig,
         max_session_duration_seconds: Math.min(18_000, Math.max(1, Math.round(sitzungS))),
         ...(referenz ? { client_reference_id: referenz.slice(0, 256) } : {}),
       }),
