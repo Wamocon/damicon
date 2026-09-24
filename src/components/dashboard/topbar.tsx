@@ -135,9 +135,8 @@ export function DashboardTopbar() {
         // gegen "Genel bakış").
         //
         // Ausgeblendete Kinder belegen keine Rasterzelle: der Menue-Umschalter
-        // und die Lupe hinter dem Pfad, beide erst ab md, verschieben die
-        // Aufteilung darunter nicht. Der Suchknopf steht in der rechten
-        // Gruppe und braucht keine eigene Zelle.
+        // ab md verschiebt die Aufteilung darunter nicht. Der Suchknopf steht
+        // in der rechten Gruppe und braucht keine eigene Zelle.
         eltern
           ? "grid grid-cols-[1fr_auto_1fr]"
           : // Auf der Uebersicht gibt es keinen Rueckweg - dort steht die
@@ -194,14 +193,9 @@ export function DashboardTopbar() {
       </Link>
 
       <MenueUmschalter />
-      {/* Der Pfad steht zwischen Umschalter und Suche. Anders als die frühere
+      {/* Der Pfad steht rechts neben dem Umschalter. Anders als die frühere
           Zeile über der Überschrift scrollt er nicht mit dem Inhalt weg. */}
       <TopbarPfad />
-      {/* Die Suche ist ab md eine Lupe direkt hinter dem Pfad - kein Feld,
-          keine Leiste. Sie oeffnet das Suchfenster oben in der Mitte
-          (suche/such-kontext.tsx). Auf dem Handy steht sie stattdessen neben
-          der Glocke, siehe unten. */}
-      <TopbarSuchknopf className="hidden md:inline-flex" />
       {/* Was unter md in das Konto-Blatt der unteren Leiste gewandert ist -
           "KI fragen", Rollenumschalter, Sprache, Farbschema -, steht hier erst
           ab md wieder. Sichtbar bleibt auf dem Handy nur, was beim Arbeiten
@@ -218,7 +212,10 @@ export function DashboardTopbar() {
         </span>
         {zeigeSync ? <SyncStatus /> : null}
         <CeoPruefungHinweis />
-        <TopbarSuchknopf className="inline-flex md:hidden" />
+        {/* Die Suche ist auf jeder Breite eine Lupe links neben der Glocke -
+            kein Feld, keine Leiste. Sie oeffnet das Suchfenster oben in der
+            Mitte (suche/such-kontext.tsx). */}
+        <TopbarSuchknopf />
         <button
           type="button"
           aria-label={t("notifications")}

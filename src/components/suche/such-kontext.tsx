@@ -20,10 +20,10 @@ import { istSuchKuerzel } from "@/lib/suche/kern";
 import { zielSchluesselFuerPfad } from "@/lib/suche/seiten-ziele";
 import { browserAblage, liesZuletzt, merkeZuletzt } from "@/lib/suche/zuletzt";
 
-// Gemeinsamer Zustand der globalen Suche: die Ausloeser in der Kopfzeile
-// (such-ausloeser.tsx) oeffnen, der Dialog steht genau einmal im Layout.
-// Er geht immer oben in der Mitte des Bildschirms auf, egal welcher Ausloeser
-// ihn oeffnet (Sheet "oben").
+// Gemeinsamer Zustand der globalen Suche: die Lupe in der Kopfzeile
+// (such-ausloeser.tsx) und die Tastenkuerzel oeffnen, der Dialog steht genau
+// einmal im Layout. Er geht immer oben in der Mitte des Bildschirms auf
+// (Sheet "oben").
 //
 // Der Dialog haengt hier und nicht in der Kopfzeile. Deren backdrop-blur macht
 // sie zum Bezugsrahmen fuer fixierte Kinder - ein Blatt darin waere auf die
