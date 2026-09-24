@@ -44,16 +44,17 @@ Schreibtisch Zeigt Das Suchfeld Statt Eines Knopfes
     Should Be Equal As Integers    ${knoepfe}    0
     ...    msg=Am Schreibtisch steht neben dem Feld zusaetzlich ein Suchknopf.
 
-Suchfenster Legt Sich Ueber Das Feld
-    [Documentation]    Das Fenster geht dort auf, wo der Ausloeser sitzt: ab
-    ...    1280 px genau ueber dem Feld, die Treffer klappen darunter auf.
+Schreibtisch Oeffnet Das Suchfenster Mittig Oben
+    [Documentation]    Der Knopf im Look eines Suchfelds oeffnet das
+    ...    Suchfenster oben in der Mitte des Bildschirms, nicht an seiner
+    ...    eigenen Stelle. Getippt wird erst im Fenster.
     [Tags]    schreibtisch
     Portal Oeffnen    ${SCHREIBTISCH}
     Seite Ansteuern    /dashboard/hof/kuehlkette
     Click    ${KOPFBALKEN} [data-suche="feld"]
     Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
-    Suchfenster Liegt Am Ausloeser    header.sticky [data-suche="feld"]
-    Befund Festhalten    ${SCHREIBTISCH}    suche-am-feld
+    Suchfenster Steht Mittig Oben
+    Befund Festhalten    ${SCHREIBTISCH}    suche-mittig-oben
 
 Suche Findet Seitentexte Unter Erwaehnt In
     [Documentation]    Unter den Namenstreffern stehen Seiten, deren Text den
@@ -138,8 +139,8 @@ Handy Quer Schneidet Keine Bedienelemente Ab
 Handy Quer Zeigt Die Suche Als Knopf
     [Documentation]    Unter 1280 px weicht das Feld einem Knopf, sonst
     ...    schrumpft es zu einer leeren Pille. Der Knopf steht direkt hinter
-    ...    dem Pfad, wo ab 1280 px das Feld beginnt, und das Fenster geht
-    ...    an ihm auf.
+    ...    dem Pfad, wo ab 1280 px das Feld beginnt. Das Fenster geht wie am
+    ...    Schreibtisch oben in der Mitte auf.
     [Tags]    mobil-quer
     Portal Oeffnen    ${MOBIL_QUER}
     Seite Ansteuern    /dashboard/buero/rollen
@@ -153,7 +154,7 @@ Handy Quer Zeigt Die Suche Als Knopf
     Suchknopf Steht Hinter Dem Pfad
     Click    ${KOPFBALKEN} [data-suche="knopf"] >> visible=true
     Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
-    Suchfenster Liegt Am Ausloeser    header.sticky [data-suche="knopf"]
+    Suchfenster Steht Mittig Oben
 
 Handy Quer Kuerzt Den Pfad Auf Die Offene Seite
     [Documentation]    Wird es eng, faellt die mittlere Station weg. Die

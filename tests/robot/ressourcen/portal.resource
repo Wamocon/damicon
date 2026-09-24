@@ -126,17 +126,17 @@ Sichtbare Suchknoepfe Zaehlen
     ...    () => [...document.querySelectorAll('header.sticky [data-suche="knopf"]')].filter((e) => e.getBoundingClientRect().width > 0).length
     RETURN    ${anzahl}
 
-Suchfenster Liegt Am Ausloeser
-    [Documentation]    Das Fenster geht dort auf, wo sein Ausloeser sitzt:
-    ...    es ueberdeckt ihn und beginnt nicht tiefer als er. Passt es rechts
-    ...    nicht neben den Knopf, rueckt es nach links, deckt ihn aber weiter.
-    [Arguments]    ${ausloeser}
+Suchfenster Steht Mittig Oben
+    [Documentation]    Das Fenster geht auf jeder Breite oben in der Mitte des
+    ...    Bildschirms auf, egal wo sein Ausloeser sitzt. Mittig heisst: links
+    ...    und rechts gleich viel Abstand zum Fensterrand, gemessen am Fenster
+    ...    und nicht an der Spalte neben der Seitenleiste. Oben heisst: die
+    ...    Oberkante liegt im obersten Achtel des Fensters.
     Wait For Elements State    ${SUCHFENSTER}    stable    timeout=10s
     ${lage} =    Evaluate JavaScript    ${None}
-    ...    (sel) => { const a = [...document.querySelectorAll(sel)].find((e) => e.getBoundingClientRect().width > 0); const d = document.querySelector('[role="dialog"][aria-modal="true"]'); if (!a || !d) return 'fehlt'; const r = a.getBoundingClientRect(), f = d.getBoundingClientRect(); const z = (n) => String(Math.round(n)); return f.left <= r.left + 1 && f.right >= r.right - 1 && f.top <= r.top + 1 ? 'ok' : 'Ausloeser ' + z(r.left) + '-' + z(r.right) + '/' + z(r.top) + ', Fenster ' + z(f.left) + '-' + z(f.right) + '/' + z(f.top); }
-    ...    arg=${ausloeser}
+    ...    () => { const d = document.querySelector('[role="dialog"][aria-modal="true"]:has([role="combobox"][aria-controls])'); if (!d) return 'fehlt'; const f = d.getBoundingClientRect(); const links = f.left, rechts = window.innerWidth - f.right; const z = (n) => String(Math.round(n)); return Math.abs(links - rechts) <= 2 && f.top <= window.innerHeight / 8 ? 'ok' : 'links ' + z(links) + ' px, rechts ' + z(rechts) + ' px, oben ' + z(f.top) + ' von ' + z(window.innerHeight) + ' px'; }
     Should Be Equal    ${lage}    ok
-    ...    msg=Das Suchfenster liegt nicht am Ausloeser: ${lage}
+    ...    msg=Das Suchfenster steht nicht mittig oben: ${lage}    values=${False}
 
 Bildmarke Steht Mittig
     [Documentation]    Mit Rueckweg steht die Bildmarke in der Mitte der
