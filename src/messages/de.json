@@ -332,7 +332,7 @@
     "gruppeErwaehnt": "Erwähnt in",
     "leer": "Namen eines Bereichs, Moduls oder einer Seite eingeben.",
     "keineTreffer": "Keine Seite und kein Modul zu „{begriff}“.",
-    "anzahl": "{anzahl, plural, =0 {Keine Treffer} one {# Treffer} other {# Treffer}}",
+    "anzahl": "{anzahl, plural, one {# Treffer} other {# Treffer}}",
     "kiFragen": "KI fragen: {begriff}"
   },
   "dashboard": {

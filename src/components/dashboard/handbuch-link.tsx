@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { BookOpen } from "lucide-react";
+import { handbuchHref } from "@/lib/handbuch";
 
 // Zugang zum Produkthandbuch, in der Navigation direkt ueber dem
 // Benutzerbereich. Es steht dort und nicht bei den vier Bereichen, weil es
@@ -19,7 +20,7 @@ function useHandbuch() {
   const locale = useLocale();
   const nav = useTranslations("nav");
   return {
-    href: `/${locale}/dashboard/handbuch`,
+    href: handbuchHref(locale),
     name: nav("handbook"),
     hinweis: nav("handbookHint"),
   };

@@ -14,23 +14,14 @@ import { Search } from "lucide-react";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { usePersona } from "@/components/dashboard/persona";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
-import {
-  optionId,
-  SuchListe,
-  type SuchGruppe,
-  type SuchOption,
-} from "@/components/suche/such-liste";
+import { optionId, SuchListe } from "@/components/suche/such-liste";
 import { Sheet } from "@/components/ui/sheet";
-import { zerlegeAnfrage } from "@/lib/suche/kern";
+import { baueSuchErgebnis, type SuchOption } from "@/lib/suche/gruppen";
 import {
   baueSeitenZiele,
-  sucheInTexten,
-  sucheSeiten,
   zielSchluesselFuerPfad,
-  type SeitenZiel,
   type ZielSchluessel,
 } from "@/lib/suche/seiten-ziele";
-import { browserAblage, merkeZuletzt, zuletztAufloesen } from "@/lib/suche/zuletzt";
 
 // Das Suchfenster: ein Blatt mit dem Eingabefeld im Kopf und den Treffern
 // darunter, oben in der Mitte des Bildschirms. Aufgebaut nach dem
@@ -39,37 +30,24 @@ import { browserAblage, merkeZuletzt, zuletztAufloesen } from "@/lib/suche/zulet
 // oeffnet den markierten Treffer. So kann man weitertippen, ohne erst zurueck
 // ins Feld zu muessen.
 //
-// Bis zu drei Gruppen: die Namenstreffer, darunter "Erwaehnt in" mit Seiten,
-// deren Text den Begriff nennt, und wenn beides leer bleibt die Frage an die
-// KI. Die Liste selbst zeichnet such-liste.tsx.
+// Was zu einer Eingabe erscheint, rechnet lib/suche/gruppen.ts aus; die Liste
+// selbst zeichnet such-liste.tsx. Hier bleiben Eingabe, Markierung, Auswahl
+// und die Ansage fuer Vorlesehilfen.
 
-type Option = SuchOption;
-
-// Ein einzelner Buchstabe ist keine Frage an die KI.
-const KI_AB = 2;
 // Die Trefferzahl wird erst vorgelesen, wenn das Tippen ruht - sonst redet
 // die Vorlesehilfe bei jedem Buchstaben dazwischen.
 const ANSAGE_NACH_MS = 400;
 
-function suche(ziele: readonly SeitenZiel[], begriff: string) {
-  const namen = sucheSeiten(ziele, begriff);
-  const erwaehnt = sucheInTexten(
-    ziele,
-    begriff,
-    new Set<ZielSchluessel>(namen.map((ziel) => ziel.schluessel)),
-  );
-  return { namen, erwaehnt };
-}
-
 export function SuchDialog({
   feldRef,
   zuletzt,
-  nutzerId,
+  onMerke,
   onSchliessen,
 }: {
   feldRef: RefObject<HTMLInputElement | null>;
   zuletzt: readonly string[];
-  nutzerId: string | null;
+  /** Fuer "Zuletzt geoeffnet", wo die Aufzeichnung ueber den Pfad nichts sieht. */
+  onMerke: (schluessel: ZielSchluessel) => void;
   /** fokusZurueck: ohne Sprung geschlossen, der Ausloeser bekommt den Fokus wieder. */
   onSchliessen: (fokusZurueck: boolean) => void;
 }) {
@@ -84,7 +62,7 @@ export function SuchDialog({
   const hinweisId = useId();
   const [eingabe, setEingabe] = useState("");
   const [aktiv, setAktiv] = useState(0);
-  const [angesagt, setAngesagt] = useState("");
+  const [ruhendeEingabe, setRuhendeEingabe] = useState("");
   const ansageTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => () => window.clearTimeout(ansageTimer.current), []);
@@ -98,64 +76,39 @@ export function SuchDialog({
 
   const offeneSeite = zielSchluesselFuerPfad(pathname);
   const begriff = eingabe.trim();
-  const mitAnfrage = zerlegeAnfrage(begriff) !== null;
-  const { namen, erwaehnt } = mitAnfrage ? suche(ziele, begriff) : { namen: [], erwaehnt: [] };
-  const zuletztZiele = mitAnfrage ? [] : zuletztAufloesen(zuletzt, ziele, offeneSeite);
-  const nichtsGefunden = mitAnfrage && namen.length === 0 && erwaehnt.length === 0;
-  const kiZeile = nichtsGefunden && ki.verfuegbar && begriff.length >= KI_AB;
-
-  const gruppen: SuchGruppe[] = (
-    mitAnfrage
-      ? [
-          {
-            titel: t("gruppeTreffer"),
-            optionen: namen.map((ziel): Option => ({ art: "ziel", ziel })),
-          },
-          {
-            titel: t("gruppeErwaehnt"),
-            optionen: erwaehnt.map(
-              ({ ziel, auszug }): Option => ({ art: "ziel", ziel, auszug }),
-            ),
-          },
-          { titel: null, optionen: kiZeile ? [{ art: "ki", begriff } satisfies Option] : [] },
-        ]
-      : [
-          {
-            titel: t("gruppeZuletzt"),
-            optionen: zuletztZiele.map((ziel): Option => ({ art: "ziel", ziel })),
-          },
-        ]
-  ).filter((gruppe) => gruppe.optionen.length > 0);
-  const optionen = gruppen.flatMap((gruppe) => gruppe.optionen);
+  const ergebnis = baueSuchErgebnis({
+    ziele,
+    begriff,
+    zuletzt,
+    offeneSeite,
+    kiVerfuegbar: ki.verfuegbar,
+  });
+  const optionen = ergebnis.gruppen.flatMap((gruppe) => gruppe.optionen);
   const aktivIndex = optionen.length > 0 ? Math.min(aktiv, optionen.length - 1) : -1;
 
-  const hinweis = nichtsGefunden
-    ? t("keineTreffer", { begriff })
-    : !mitAnfrage && zuletztZiele.length === 0
-      ? t("leer")
-      : null;
-
-  const angesagtBegriff = angesagt.trim();
-  const angesagtErgebnis =
-    zerlegeAnfrage(angesagtBegriff) === null ? null : suche(ziele, angesagtBegriff);
-  const angesagtAnzahl = angesagtErgebnis
-    ? angesagtErgebnis.namen.length + angesagtErgebnis.erwaehnt.length
-    : null;
+  const hinweis =
+    ergebnis.hinweis === "keineTreffer"
+      ? t("keineTreffer", { begriff })
+      : ergebnis.hinweis === "leer"
+        ? t("leer")
+        : null;
+  // Angesagt wird erst, wenn die Eingabe ruht, und dann das Ergebnis, das
+  // ohnehin gerade dasteht. Solange getippt wird, bleibt die Region leer.
   const ansage =
-    angesagtAnzahl === null
+    ruhendeEingabe !== eingabe || ergebnis.anzahl === null
       ? ""
-      : angesagtAnzahl === 0
-        ? t("keineTreffer", { begriff: angesagtBegriff })
-        : t("anzahl", { anzahl: angesagtAnzahl });
+      : ergebnis.anzahl === 0
+        ? t("keineTreffer", { begriff })
+        : t("anzahl", { anzahl: ergebnis.anzahl });
 
   function beiEingabe(wert: string) {
     setEingabe(wert);
     setAktiv(0);
     window.clearTimeout(ansageTimer.current);
-    ansageTimer.current = window.setTimeout(() => setAngesagt(wert), ANSAGE_NACH_MS);
+    ansageTimer.current = window.setTimeout(() => setRuhendeEingabe(wert), ANSAGE_NACH_MS);
   }
 
-  function waehle(option: Option) {
+  function waehle(option: SuchOption) {
     if (option.art === "ki") {
       // Erst die Suche zu, dann das Panel auf: beide liegen ueber der Seite,
       // uebereinander waere eines zu viel.
@@ -168,7 +121,7 @@ export function SuchDialog({
       // Das Handbuch laeuft im neuen Tab ausserhalb von React - die
       // Aufzeichnung ueber den Pfad sieht es nicht, also hier von Hand.
       window.open(ziel.href, "_blank", "noopener");
-      merkeZuletzt(browserAblage(), nutzerId, ziel.schluessel);
+      onMerke(ziel.schluessel);
       onSchliessen(true);
       return;
     }
@@ -180,13 +133,11 @@ export function SuchDialog({
     router.push(ziel.href);
   }
 
-  // Pfeile und Enter gehoeren dem Feld. stopPropagation, damit sie nicht
-  // zusaetzlich bei Himbis Tour ankommen, die am window auf Pfeile hoert.
-  // Esc und Tab laufen weiter zum Sheet: Schliessen und Fokusfalle.
+  // Pfeile und Enter gehoeren dem Feld. Esc und Tab laufen weiter zum Sheet:
+  // Schliessen und Fokusfalle.
   function beiTaste(event: KeyboardEvent<HTMLInputElement>) {
     if (event.key === "ArrowDown" || event.key === "ArrowUp") {
       event.preventDefault();
-      event.stopPropagation();
       if (optionen.length === 0) return;
       const schritt = event.key === "ArrowDown" ? 1 : -1;
       const neu = (aktivIndex + schritt + optionen.length) % optionen.length;
@@ -196,7 +147,6 @@ export function SuchDialog({
     }
     if (event.key === "Enter") {
       event.preventDefault();
-      event.stopPropagation();
       // Waehrend eine Eingabemethode noch Zeichen zusammensetzt, bestaetigt
       // Enter nur das Zeichen.
       if (event.nativeEvent.isComposing) return;
@@ -247,7 +197,7 @@ export function SuchDialog({
         {hinweis ? <p className="px-3 py-4 text-sm text-muted-foreground">{hinweis}</p> : null}
         <SuchListe
           listeId={listeId}
-          gruppen={gruppen}
+          gruppen={ergebnis.gruppen}
           aktivIndex={aktivIndex}
           onAktiv={setAktiv}
           onWaehle={waehle}

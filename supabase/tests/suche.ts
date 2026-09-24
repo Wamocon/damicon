@@ -9,18 +9,24 @@
 //
 // Aufruf: npm run test:suche (ueber tsx, damit die @/-Pfade aufloesen).
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import {
   auszug,
   bewerte,
+  GEWICHT,
   indexFeld,
   istSuchKuerzel,
+  laengstesWort,
   normalisiere,
+  STUFE,
+  STUFEN_ABSTAND,
   zerlegeAnfrage,
+  type Anfrage,
   type Taste,
 } from "@/lib/suche/kern";
 import {
   baueSeitenZiele,
+  HOECHSTENS_ERWAEHNUNGEN,
   sucheInTexten,
   sucheSeiten,
   zielSchluesselFuerPfad,
@@ -28,14 +34,18 @@ import {
   type Uebersetze,
   type ZielSchluessel,
 } from "@/lib/suche/seiten-ziele";
+import { baueSuchErgebnis, KI_AB, type SuchErgebnis } from "@/lib/suche/gruppen";
 import {
+  HOECHSTENS_GEMERKT,
+  HOECHSTENS_ZULETZT,
   liesZuletzt,
   merkeZuletzt,
   zuletztAufloesen,
   ZULETZT_SPEICHER,
   type Ablage,
 } from "@/lib/suche/zuletzt";
-import { modules, moduleHref, sichtbareModule, zones } from "@/lib/modules";
+import { deepMerge, type MessageTree } from "@/i18n/deep-merge";
+import { modules, sichtbareModule, zones } from "@/lib/modules";
 import { darfCeoBerichtLesen } from "@/lib/pruefung/rollen";
 import { roles } from "@/lib/rbac";
 
@@ -52,34 +62,30 @@ function pruefe(name: string, bedingung: boolean, zusatz = "") {
   }
 }
 
-// --- Texte wie zur Laufzeit: jede Sprache ueber Deutsch gelegt ------------
-// Nachgebaut aus src/i18n/request.ts - fehlende oder leere Texte fallen dort
-// auf die deutsche Fassung zurueck, also auch hier.
-
-type Baum = { [k: string]: string | Baum };
-const sprachen = ["de", "en", "ru", "kk"] as const;
-
-function lade(sprache: string): Baum {
-  return JSON.parse(readFileSync(`src/messages/${sprache}.json`, "utf8")) as Baum;
+// Eine Anfrage, die es geben muss - leere Eingaben prueft Abschnitt 1 eigens.
+function anfrage(roh: string): Anfrage {
+  const zerlegt = zerlegeAnfrage(roh);
+  if (!zerlegt) throw new Error(`Keine Anfrage: "${roh}"`);
+  return zerlegt;
 }
 
-function mische(basis: Baum, drueber: Baum): Baum {
-  const ergebnis: Baum = { ...basis };
-  for (const [k, v] of Object.entries(drueber)) {
-    const alt = ergebnis[k];
-    if (typeof v === "object" && typeof alt === "object") ergebnis[k] = mische(alt, v);
-    else if (v !== "") ergebnis[k] = v;
-  }
-  return ergebnis;
+// --- Texte wie zur Laufzeit: jede Sprache ueber Deutsch gelegt ------------
+// Mit derselben Regel wie src/i18n/request.ts (deep-merge.ts): fehlende oder
+// leere Texte fallen auf die deutsche Fassung zurueck.
+
+const sprachen = ["de", "en", "ru", "kk"] as const;
+
+function lade(sprache: string): MessageTree {
+  return JSON.parse(readFileSync(`src/messages/${sprache}.json`, "utf8")) as MessageTree;
 }
 
 const deutsch = lade("de");
 function uebersetzer(sprache: string): Uebersetze {
-  const baum = sprache === "de" ? deutsch : mische(deutsch, lade(sprache));
+  const baum = sprache === "de" ? deutsch : deepMerge(deutsch, lade(sprache));
   return (pfad) => {
     const wert = pfad
       .split(".")
-      .reduce<unknown>((b, k) => (b && typeof b === "object" ? (b as Baum)[k] : undefined), baum);
+      .reduce<unknown>((b, k) => (b && typeof b === "object" ? (b as MessageTree)[k] : undefined), baum);
     if (typeof wert !== "string") throw new Error(`Text fehlt: ${pfad} (${sprache})`);
     return wert;
   };
@@ -96,6 +102,11 @@ pruefe(
 pruefe("ß wird ss", normalisiere("Straße") === "strasse");
 pruefe("ё wird е, kyrillisch klein", normalisiere("ЁЛКА") === "елка");
 pruefe("й bleibt ein eigener Buchstabe", normalisiere("Мой") === "мой" && normalisiere("мой") !== normalisiere("мои"));
+pruefe(
+  "ein Betonungszeichen zerteilt das Wort nicht",
+  normalisiere("Ку́хня") === "кухня",
+  normalisiere("Ку́хня"),
+);
 pruefe("é wird e", normalisiere("Café") === "cafe");
 pruefe(
   "kasachische Buchstaben bleiben erhalten",
@@ -109,16 +120,19 @@ pruefe("leere Anfrage wird zu null", zerlegeAnfrage("  -- / ") === null);
 
 // --- 2. Rangstufen ----------------------------------------------------------
 
-const wert = (felder: string[], anfrage: string) =>
+const wert = (felder: string[], roh: string) =>
   bewerte(
-    felder.map((f) => indexFeld(f, 3)),
-    zerlegeAnfrage(anfrage)!,
+    felder.map((f) => indexFeld(f, GEWICHT.name)),
+    anfrage(roh),
   );
 const stufen = [
   wert(["Lohn"], "lohn"), // Feld gleich Anfrage
   wert(["Lohnabrechnung"], "lohn"), // Feld beginnt mit Anfrage
   wert(["Qualität und Lohn"], "lohn"), // Wortanfang
-  bewerte([indexFeld("Feld", 1), indexFeld("Reihenblöcke", 3)], zerlegeAnfrage("feld reihen")!), // ueber zwei Felder
+  bewerte(
+    [indexFeld("Feld", GEWICHT.beiwerk), indexFeld("Reihenblöcke", GEWICHT.name)],
+    anfrage("feld reihen"),
+  ), // ueber zwei Felder
   wert(["Kühlkette"], "kette"), // Teilwort
 ];
 pruefe(
@@ -130,19 +144,40 @@ pruefe("Teilwort erst ab drei Zeichen", wert(["Kühlkette"], "ke") === null);
 pruefe("kein Treffer ergibt null", wert(["Lohn"], "Kühlkette") === null);
 pruefe(
   "Kuhlkette und Kuehlkette finden Kühlkette genau",
-  wert(["Kühlkette"], "Kuhlkette") === 53 && wert(["Kühlkette"], "Kuehlkette") === 53,
+  wert(["Kühlkette"], "Kuhlkette") === STUFE.gleich * STUFEN_ABSTAND + GEWICHT.name &&
+    wert(["Kühlkette"], "Kuehlkette") === STUFE.gleich * STUFEN_ABSTAND + GEWICHT.name,
 );
+{
+  const verteilt = bewerte(
+    [indexFeld("Feld", GEWICHT.beiwerk), indexFeld("Reihenblöcke", GEWICHT.name)],
+    anfrage("Feld Blöcke"),
+  );
+  pruefe(
+    "ein Wortanfang in einem Feld und ein Teilwort im anderen ergeben zusammen einen Treffer",
+    verteilt === STUFE.teilwort * STUFEN_ABSTAND,
+    String(verteilt),
+  );
+  const bereichsname = bewerte([indexFeld("Hof", GEWICHT.beiwerk)], anfrage("Hof"));
+  const eigenerName = bewerte([indexFeld("Hofladen", GEWICHT.name)], anfrage("Hof"));
+  pruefe(
+    "der Bereichsname eines Moduls zaehlt hoechstens als Wortanfang, der eigene Name davor",
+    bereichsname === STUFE.woerter * STUFEN_ABSTAND + GEWICHT.beiwerk &&
+      eigenerName !== null &&
+      eigenerName > bereichsname,
+    `${bereichsname} < ${eigenerName}`,
+  );
+}
 
 // --- 3. Abdeckung: jede Rolle, jede Sprache, beide Betriebsarten ------------
 
 const modulFehler: string[] = [];
-const unsichtbarGefunden: string[] = [];
+const unsichtbarVorhanden: string[] = [];
 const bereichFehler: string[] = [];
 const seitenFehler: string[] = [];
-const hrefFehler: string[] = [];
+const rundlaufFehler: string[] = [];
 let laeufe = 0;
 
-const erster = (ziele: SeitenZiel[], anfrage: string) => sucheSeiten(ziele, anfrage)[0]?.schluessel;
+const erster = (ziele: SeitenZiel[], roh: string) => sucheSeiten(ziele, anfrage(roh))[0]?.schluessel;
 
 for (const sprache of sprachen) {
   const t = uebersetzer(sprache);
@@ -150,6 +185,7 @@ for (const sprache of sprachen) {
     for (const demoModus of [false, true]) {
       laeufe++;
       const ziele = baueSeitenZiele(rolle, { demoModus, locale: sprache }, t);
+      const vorhanden = new Set<string>(ziele.map((z) => z.schluessel));
       const lauf = `${sprache}/${rolle}/${demoModus ? "demo" : "db"}`;
 
       for (const zone of zones) {
@@ -159,23 +195,23 @@ for (const sprache of sprachen) {
         for (const modul of sichtbar) {
           const titel = t(`modules.${modul.key}.title`);
           const kurz = t(`modules.${modul.key}.navTitle`);
-          for (const anfrage of [titel, kurz, titel.toUpperCase()]) {
-            const gefunden = erster(ziele, anfrage);
+          for (const roh of [titel, kurz, titel.toUpperCase()]) {
+            const gefunden = erster(ziele, roh);
             if (gefunden !== `modul:${modul.key}`) {
-              modulFehler.push(`${lauf} "${anfrage}" -> ${gefunden ?? "nichts"}`);
+              modulFehler.push(`${lauf} "${roh}" -> ${gefunden ?? "nichts"}`);
             }
           }
         }
 
+        // Die Suche kann nur liefern, was in der Zielliste steht - also darf
+        // ein unsichtbares Modul dort gar nicht erst stehen.
         for (const modul of modules.filter((m) => m.zone === zone.key)) {
-          if (sichtbareSchluessel.has(modul.key)) continue;
-          const treffer = sucheSeiten(ziele, t(`modules.${modul.key}.title`), 50);
-          if (treffer.some((z) => z.schluessel === `modul:${modul.key}`)) {
-            unsichtbarGefunden.push(`${lauf} ${modul.key}`);
+          if (!sichtbareSchluessel.has(modul.key) && vorhanden.has(`modul:${modul.key}`)) {
+            unsichtbarVorhanden.push(`${lauf} ${modul.key}`);
           }
         }
 
-        const hatBereich = ziele.some((z) => z.schluessel === `bereich:${zone.key}`);
+        const hatBereich = vorhanden.has(`bereich:${zone.key}`);
         if (hatBereich !== sichtbar.length > 0) {
           bereichFehler.push(`${lauf} ${zone.key}: Ziel ${hatBereich}, Module ${sichtbar.length}`);
         } else if (hatBereich && erster(ziele, t(`zones.${zone.key}.name`)) !== `bereich:${zone.key}`) {
@@ -183,28 +219,28 @@ for (const sprache of sprachen) {
         }
       }
 
-      const hat = (s: string) => ziele.some((z) => z.schluessel === s);
-      if (hat("seite:sicherheit") === demoModus) seitenFehler.push(`${lauf} Sicherheit`);
-      if (hat("seite:compliance") !== (!demoModus && darfCeoBerichtLesen(rolle))) {
+      if (vorhanden.has("seite:sicherheit") === demoModus) seitenFehler.push(`${lauf} Sicherheit`);
+      if (vorhanden.has("seite:compliance") !== (!demoModus && darfCeoBerichtLesen(rolle))) {
         seitenFehler.push(`${lauf} Compliance`);
       }
       const handbuch = ziele.find((z) => z.schluessel === "seite:handbuch");
       if (!handbuch?.extern || handbuch.href !== `/${sprache}/dashboard/handbuch`) {
         seitenFehler.push(`${lauf} Handbuch`);
       }
-      if (!hat("uebersicht")) seitenFehler.push(`${lauf} Uebersicht`);
+      if (!vorhanden.has("uebersicht")) seitenFehler.push(`${lauf} Uebersicht`);
 
-      // Jede Adresse ohne Sprachpraefix ist eine bekannte Dashboard-Route -
-      // die Client-Navigation setzt das Praefix selbst davor.
-      const erlaubt = new Set([
-        "/dashboard",
-        "/dashboard/sicherheit",
-        "/dashboard/compliance",
-        ...zones.map((z) => `/dashboard/${z.key}`),
-        ...modules.map(moduleHref),
-      ]);
+      // Rundlauf: jede interne Adresse fuehrt ueber dieselbe Zuordnung, mit
+      // der die Suche die offene Seite erkennt, auf ihr eigenes Ziel zurueck.
+      // Die festen Seiten muessen zudem als Route im App-Verzeichnis liegen.
       for (const ziel of ziele) {
-        if (!ziel.extern && !erlaubt.has(ziel.href)) hrefFehler.push(`${lauf} ${ziel.href}`);
+        if (ziel.extern) continue;
+        if (zielSchluesselFuerPfad(ziel.href) !== ziel.schluessel) {
+          rundlaufFehler.push(`${lauf} ${ziel.href} -> ${zielSchluesselFuerPfad(ziel.href) ?? "nichts"}`);
+        }
+        if (ziel.schluessel.startsWith("seite:")) {
+          const datei = `src/app/[locale]${ziel.href}/page.tsx`;
+          if (!existsSync(datei)) rundlaufFehler.push(`${lauf} ${datei} fehlt`);
+        }
       }
     }
   }
@@ -216,7 +252,7 @@ pruefe(
   modulFehler.length === 0,
   modulFehler.length ? zeige(modulFehler) : `${laeufe} Laeufe`,
 );
-pruefe("kein unsichtbares Modul wird gefunden", unsichtbarGefunden.length === 0, zeige(unsichtbarGefunden));
+pruefe("kein unsichtbares Modul steht in der Zielliste", unsichtbarVorhanden.length === 0, zeige(unsichtbarVorhanden));
 pruefe(
   "Bereiche genau dann, wenn sie ein sichtbares Modul haben, und mit ihrem Namen auf Rang 1",
   bereichFehler.length === 0,
@@ -227,39 +263,49 @@ pruefe(
   seitenFehler.length === 0,
   zeige(seitenFehler),
 );
-pruefe("alle internen Adressen sind bekannte Dashboard-Routen", hrefFehler.length === 0, zeige(hrefFehler));
+pruefe(
+  "jede interne Adresse fuehrt auf ihr Ziel zurueck, feste Seiten gibt es als Route",
+  rundlaufFehler.length === 0,
+  zeige(rundlaufFehler),
+);
 
 const pickerZiele = baueSeitenZiele("picker", { demoModus: true, locale: "de" }, uebersetzer("de"));
 const pickerModule = pickerZiele.filter((z) => z.schluessel.startsWith("modul:")).length;
 pruefe("Pfluecker sieht genau zwei Module", pickerModule === 2, String(pickerModule));
-pruefe(
-  "Suche nach einem Bereichsnamen zeigt den Bereich vor seinen Modulen",
-  (() => {
-    const ziele = baueSeitenZiele("admin", { demoModus: false, locale: "de" }, uebersetzer("de"));
-    const treffer = sucheSeiten(ziele, "Feld");
-    return treffer[0]?.schluessel === "bereich:feld" && treffer.length > 1;
-  })(),
-);
-pruefe(
-  "leere Eingabe liefert keine Treffer",
-  sucheSeiten(pickerZiele, "   ").length === 0,
-);
+{
+  const adminZiele = baueSeitenZiele("admin", { demoModus: false, locale: "de" }, uebersetzer("de"));
+  const feld = uebersetzer("de")("zones.feld.name");
+  const treffer = sucheSeiten(adminZiele, anfrage("Feld"));
+  pruefe(
+    "Suche nach einem Bereichsnamen zeigt den Bereich und dahinter seine Module",
+    treffer[0]?.schluessel === "bereich:feld" &&
+      treffer.length > 1 &&
+      treffer.slice(1).every((z) => z.schluessel.startsWith("modul:") && z.untertitel === feld),
+    treffer.map((z) => z.schluessel).join(","),
+  );
+  const verteilt = sucheSeiten(adminZiele, anfrage("Feld Blöcke")).map((z) => z.schluessel);
+  pruefe(
+    "ein zweites passendes Wort laesst den Treffer nicht verschwinden (Feld Blöcke)",
+    verteilt.includes("modul:reihenbloecke"),
+    verteilt.join(","),
+  );
+}
 pruefe(
   "die Tagline eines Bereichs fuehrt nicht auf Module, die die Rolle nicht sieht",
-  sucheSeiten(pickerZiele, "Finanzen").length === 0,
-  sucheSeiten(pickerZiele, "Finanzen").map((z) => z.schluessel).join(","),
+  sucheSeiten(pickerZiele, anfrage("Finanzen")).length === 0,
+  sucheSeiten(pickerZiele, anfrage("Finanzen")).map((z) => z.schluessel).join(","),
 );
 
 // --- 3b. Erwaehnt in: Texte der Modulseiten ---------------------------------
 
 {
   const ziele = baueSeitenZiele("admin", { demoModus: false, locale: "de" }, uebersetzer("de"));
-  const erwaehnt = (anfrage: string) => {
-    const namen = new Set<ZielSchluessel>(sucheSeiten(ziele, anfrage).map((z) => z.schluessel));
-    return sucheInTexten(ziele, anfrage, namen).map((e) => e.ziel.schluessel);
+  const erwaehnt = (roh: string) => {
+    const namen = new Set<ZielSchluessel>(sucheSeiten(ziele, anfrage(roh)).map((z) => z.schluessel));
+    return sucheInTexten(ziele, anfrage(roh), namen).map((e) => e.ziel.schluessel);
   };
 
-  const wartezeitNamen = sucheSeiten(ziele, "Wartezeit").map((z) => z.schluessel);
+  const wartezeitNamen = sucheSeiten(ziele, anfrage("Wartezeit")).map((z) => z.schluessel);
   const wartezeitText = erwaehnt("Wartezeit");
   pruefe(
     "Wartezeit: Pflanzenschutz ueber den Namen, Reihenbloecke ueber den Seitentext",
@@ -272,60 +318,130 @@ pruefe(
   );
   pruefe(
     "Erntesperre findet Pflanzenschutz nur ueber den Seitentext",
-    sucheSeiten(ziele, "Erntesperre").length === 0 &&
+    sucheSeiten(ziele, anfrage("Erntesperre")).length === 0 &&
       erwaehnt("Erntesperre").includes("modul:pflanzenschutz"),
   );
   pruefe(
     "der Text todo (nur KI und Handbuch) wird nicht durchsucht",
-    erwaehnt("Spritzmitteldatenbank").length === 0 && sucheSeiten(ziele, "Spritzmitteldatenbank").length === 0,
+    erwaehnt("Spritzmitteldatenbank").length === 0 &&
+      sucheSeiten(ziele, anfrage("Spritzmitteldatenbank")).length === 0,
   );
   pruefe("unter drei Zeichen keine Suche im Text", erwaehnt("ch").length === 0);
   pruefe(
-    "hoechstens fuenf Erwaehnungen",
-    erwaehnt("Reihenblock").length <= 5,
+    "auch nicht mit Leerzeichen dazwischen (a b)",
+    erwaehnt("a b").length === 0,
+    erwaehnt("a b").join(","),
+  );
+  pruefe(
+    "genau fuenf Erwaehnungen, wenn mehr Seiten passen",
+    erwaehnt("Reihenblock").length === HOECHSTENS_ERWAEHNUNGEN,
     String(erwaehnt("Reihenblock").length),
   );
 
   const picker = baueSeitenZiele("picker", { demoModus: false, locale: "de" }, uebersetzer("de"));
   pruefe(
     "der Pfluecker findet Wartezeit nirgends - die Seiten mit dem Wort sieht er nicht",
-    sucheInTexten(picker, "Wartezeit", new Set()).length === 0,
+    sucheInTexten(picker, anfrage("Wartezeit"), new Set()).length === 0,
   );
 
-  // Fuer jede Rolle und Sprache: jede Erwaehnung zeigt auf ein Ziel, das die
-  // Rolle sieht, und traegt einen Auszug.
+  // Fuer jede Rolle und Sprache: jede Erwaehnung zeigt auf ein Modul, das die
+  // Rolle laut sichtbareModule() sieht, und ihr Auszug enthaelt das gesuchte
+  // Wort. Beides unabhaengig von der Zielliste geprueft, aus der die
+  // Erwaehnungen stammen.
   const falsch: string[] = [];
   for (const sprache of sprachen) {
     const t = uebersetzer(sprache);
     for (const rolle of roles) {
       const eigene = baueSeitenZiele(rolle, { demoModus: false, locale: sprache }, t);
-      const sichtbar = new Set(eigene.map((z) => z.schluessel));
       for (const modul of modules) {
         const wort = t(`modules.${modul.key}.description`).split(/\s+/).find((w) => w.length >= 6);
-        if (!wort) continue;
-        for (const e of sucheInTexten(eigene, wort, new Set())) {
-          if (!sichtbar.has(e.ziel.schluessel) || !e.auszug) falsch.push(`${sprache}/${rolle}/${wort}`);
+        const gesucht = wort ? zerlegeAnfrage(wort) : null;
+        if (!gesucht) continue;
+        for (const e of sucheInTexten(eigene, gesucht, new Set())) {
+          const schluessel = e.ziel.schluessel.replace(/^modul:/, "");
+          const ziel = modules.find((m) => m.key === schluessel);
+          const sichtbar = !!ziel && sichtbareModule(rolle, ziel.zone).some((m) => m.key === schluessel);
+          const belegt = normalisiere(e.auszug).includes(laengstesWort(gesucht));
+          if (!sichtbar || !belegt) {
+            falsch.push(`${sprache}/${rolle}/${wort} -> ${e.ziel.schluessel}${sichtbar ? "" : " unsichtbar"}${belegt ? "" : " ohne Beleg"}`);
+          }
         }
       }
     }
   }
-  pruefe("Erwaehnungen nur fuer sichtbare Ziele und immer mit Auszug", falsch.length === 0, falsch.slice(0, 5).join("; "));
+  pruefe(
+    "Erwaehnungen nur fuer sichtbare Module und mit dem Wort im Auszug",
+    falsch.length === 0,
+    zeige(falsch),
+  );
+}
+
+// --- 3c. Gruppen im Suchfenster --------------------------------------------
+
+{
+  const ziele = baueSeitenZiele("admin", { demoModus: false, locale: "de" }, uebersetzer("de"));
+  const ergebnis = (begriff: string, zuletzt: string[] = [], kiVerfuegbar = true) =>
+    baueSuchErgebnis({ ziele, begriff, zuletzt, offeneSeite: "uebersicht", kiVerfuegbar });
+  const arten = (e: SuchErgebnis) => e.gruppen.map((g) => g.art).join(",");
+
+  const leer = ergebnis("");
+  pruefe(
+    "ohne Eingabe und ohne Verlauf: keine Gruppe, der Hinweis, keine Ansage",
+    leer.gruppen.length === 0 && leer.hinweis === "leer" && leer.anzahl === null,
+  );
+  const verlauf = ergebnis("", ["uebersicht", "modul:lohn"]);
+  pruefe(
+    "ohne Eingabe: Zuletzt geoeffnet ohne die offene Seite",
+    arten(verlauf) === "zuletzt" &&
+      verlauf.gruppen[0]!.optionen.length === 1 &&
+      verlauf.hinweis === null,
+    arten(verlauf),
+  );
+  const wartezeit = ergebnis("Wartezeit");
+  pruefe(
+    "Namenstreffer vor Erwaehnt in, die Ansage zaehlt beide",
+    arten(wartezeit) === "treffer,erwaehnt" &&
+      wartezeit.anzahl === wartezeit.gruppen.reduce((s, g) => s + g.optionen.length, 0) &&
+      wartezeit.hinweis === null,
+    `${arten(wartezeit)} / ${wartezeit.anzahl}`,
+  );
+  const nichts = ergebnis("Xylophon");
+  pruefe(
+    "ohne Treffer: nur die Frage an die KI, mit Hinweis und der Ansage 0",
+    arten(nichts) === "ki" && nichts.hinweis === "keineTreffer" && nichts.anzahl === 0,
+    arten(nichts),
+  );
+  // Ein Buchstabe, der in keinem deutschen Namen steht, damit nur die Laenge
+  // ueber die KI-Zeile entscheidet.
+  const einBuchstabe = ergebnis("ж".repeat(KI_AB - 1));
+  pruefe(
+    "ein einzelner Buchstabe ohne Treffer ist keine Frage an die KI",
+    einBuchstabe.gruppen.length === 0 && einBuchstabe.hinweis === "keineTreffer",
+    arten(einBuchstabe),
+  );
+  pruefe("ohne verfuegbare KI keine KI-Zeile", ergebnis("Xylophon", [], false).gruppen.length === 0);
 }
 
 {
   const text =
     "Jede Behandlung wird mit Mittel, Menge, Block, Datum und ausführender Person erfasst und sperrt den Reihenblock automatisch bis zum Ablauf der gesetzlichen Wartezeit.";
-  const hinten = auszug(text, zerlegeAnfrage("Wartezeit")!);
+  const hinten = auszug(text, anfrage("Wartezeit"));
   pruefe(
-    "Auszug setzt kurz vor dem Fund ein und markiert den Schnitt",
-    !!hinten && hinten.startsWith("… ") && hinten.includes("Wartezeit"),
+    "Auszug setzt kurz vor dem Fund ein, markiert den Schnitt vorn und am Textende keinen",
+    !!hinten && hinten.startsWith("… ") && hinten.includes("Wartezeit") && !hinten.endsWith("…"),
     hinten ?? "null",
   );
-  const vorn = auszug(text, zerlegeAnfrage("Jede")!);
+  const vorn = auszug(text, anfrage("Jede"));
   pruefe("Auszug am Textanfang ohne Schnitt vorn", !!vorn && vorn.startsWith("Jede ") && vorn.endsWith(" …"), vorn ?? "null");
-  const ohneUmlaut = auszug(text, zerlegeAnfrage("ausfuhrender")!);
+  const ohneUmlaut = auszug(text, anfrage("ausfuhrender"));
   pruefe("Auszug findet die Stelle auch ohne Umlaut", !!ohneUmlaut && ohneUmlaut.includes("ausführender"), ohneUmlaut ?? "null");
-  pruefe("kein Auszug ohne Fund", auszug(text, zerlegeAnfrage("Kühlkette")!) === null);
+  const zweiWoerter = auszug(text, anfrage("Wartezeit d"));
+  pruefe(
+    "bei mehreren Woertern setzt der Auszug am laengsten an, nicht an einem Buchstaben",
+    !!zweiWoerter && zweiWoerter.includes("Wartezeit"),
+    zweiWoerter ?? "null",
+  );
+  pruefe("kein Auszug ohne Fund", auszug(text, anfrage("Kühlkette")) === null);
 }
 
 // --- 4. Zuletzt geoeffnet ---------------------------------------------------
@@ -351,10 +467,20 @@ function ablage(): Ablage & { daten: Map<string, string> } {
   );
 
   for (const m of modules) merkeZuletzt(a, "u1", `modul:${m.key}`);
-  pruefe("hoechstens zehn Eintraege", liesZuletzt(a, "u1").length === 10);
+  pruefe(
+    "hoechstens so viele Eintraege wie gemerkt werden",
+    liesZuletzt(a, "u1").length === HOECHSTENS_GEMERKT,
+    String(liesZuletzt(a, "u1").length),
+  );
 
   pruefe("andere Person sieht eine leere Liste", liesZuletzt(a, "u2").length === 0);
   pruefe("und die fremde Liste ist danach geloescht", !a.daten.has(ZULETZT_SPEICHER));
+
+  merkeZuletzt(a, null, "uebersicht");
+  pruefe(
+    "ohne Anmeldung (Demo) eine eigene Liste, die niemand Angemeldetes sieht",
+    liesZuletzt(a, null).join(",") === "uebersicht" && liesZuletzt(a, "u1").length === 0,
+  );
 
   a.setItem(ZULETZT_SPEICHER, "{kaputt");
   pruefe("kaputtes JSON ergibt eine leere Liste", liesZuletzt(a, "u1").length === 0);
@@ -389,12 +515,16 @@ function ablage(): Ablage & { daten: Map<string, string> } {
     aufgeloest === "modul:schulungen,seite:handbuch",
     aufgeloest,
   );
-  const fuenf = zuletztAufloesen(
+  const doppelt = zuletztAufloesen(["uebersicht", "uebersicht", "seite:handbuch"], ziele, null)
+    .map((z) => z.schluessel)
+    .join(",");
+  pruefe("Doppelte aus einem veraenderten Speicher erscheinen einmal", doppelt === "uebersicht,seite:handbuch", doppelt);
+  const alle = zuletztAufloesen(
     ziele.map((z) => z.schluessel),
     ziele,
     null,
   );
-  pruefe("hoechstens fuenf aufgeloeste Eintraege", fuenf.length === 5, String(fuenf.length));
+  pruefe("hoechstens fuenf aufgeloeste Eintraege", alle.length === HOECHSTENS_ZULETZT, String(alle.length));
 }
 
 // --- 5. Pfad zu Ziel --------------------------------------------------------
@@ -405,6 +535,7 @@ const pfade: [string, string | null][] = [
   ["/dashboard/hof/qr-steigen", "modul:qr_steigen"],
   ["/dashboard/sicherheit", "seite:sicherheit"],
   ["/dashboard/compliance", "seite:compliance"],
+  ["/dashboard/sicherheit/mehr", null],
   ["/dashboard/buero/gibt-es-nicht", null],
   ["/dashboard/feld/reihenbloecke/mehr", null],
   ["/herkunft/abc", null],
@@ -423,23 +554,32 @@ const taste = (teil: Partial<Taste>): Taste => ({
   shiftKey: false,
   ...teil,
 });
-const kuerzel: [string, Taste, boolean, boolean][] = [
-  ["/ ausserhalb eines Feldes", taste({ key: "/", code: "Slash" }), false, true],
-  ["/ mit Umschalt (deutsche Tastatur)", taste({ key: "/", code: "Digit7", shiftKey: true }), false, true],
-  ["/ im Eingabefeld", taste({ key: "/", code: "Slash" }), true, false],
-  ["Strg+/", taste({ key: "/", ctrlKey: true }), false, false],
-  ["Strg+K", taste({ key: "k", code: "KeyK", ctrlKey: true }), false, true],
-  ["Strg+K im Eingabefeld", taste({ key: "k", code: "KeyK", ctrlKey: true }), true, true],
-  ["Cmd+K", taste({ key: "k", code: "KeyK", metaKey: true }), false, true],
-  ["Strg+Umschalt+K", taste({ key: "K", code: "KeyK", ctrlKey: true, shiftKey: true }), false, false],
-  ["Strg+Alt+K", taste({ key: "k", code: "KeyK", ctrlKey: true, altKey: true }), false, false],
-  ["Strg+K auf russischer Belegung", taste({ key: "л", code: "KeyK", ctrlKey: true }), false, true],
-  ["Strg+T auf der K-Taste (Dvorak)", taste({ key: "t", code: "KeyK", ctrlKey: true }), false, false],
-  ["K ohne Strg", taste({ key: "k", code: "KeyK" }), false, false],
-  ["gehaltene Taste", taste({ key: "k", code: "KeyK", ctrlKey: true, repeat: true }), false, false],
+const WIN = false;
+const MAC = true;
+// Name, Taste, im Eingabefeld, Mac, erwartet
+const kuerzel: [string, Taste, boolean, boolean, boolean][] = [
+  ["/ ausserhalb eines Feldes", taste({ key: "/", code: "Slash" }), false, WIN, true],
+  ["/ mit Umschalt (deutsche Tastatur)", taste({ key: "/", code: "Digit7", shiftKey: true }), false, WIN, true],
+  ["/ mit AltGr (Windows meldet Strg+Alt)", taste({ key: "/", ctrlKey: true, altKey: true }), false, WIN, true],
+  ["/ im Eingabefeld", taste({ key: "/", code: "Slash" }), true, WIN, false],
+  ["Strg+/", taste({ key: "/", ctrlKey: true }), false, WIN, false],
+  ["Cmd+/", taste({ key: "/", metaKey: true }), false, MAC, false],
+  ["Strg+K", taste({ key: "k", code: "KeyK", ctrlKey: true }), false, WIN, true],
+  ["Strg+K im Eingabefeld", taste({ key: "k", code: "KeyK", ctrlKey: true }), true, WIN, true],
+  ["Windows-Taste+K", taste({ key: "k", code: "KeyK", metaKey: true }), false, WIN, false],
+  ["Cmd+K auf dem Mac", taste({ key: "k", code: "KeyK", metaKey: true }), false, MAC, true],
+  ["Cmd+K auf dem Mac im Eingabefeld", taste({ key: "k", code: "KeyK", metaKey: true }), true, MAC, true],
+  ["Strg+K auf dem Mac (loescht dort bis Zeilenende)", taste({ key: "k", code: "KeyK", ctrlKey: true }), true, MAC, false],
+  ["Strg+Umschalt+K", taste({ key: "K", code: "KeyK", ctrlKey: true, shiftKey: true }), false, WIN, false],
+  ["Strg+Alt+K", taste({ key: "k", code: "KeyK", ctrlKey: true, altKey: true }), false, WIN, false],
+  ["Strg+K auf russischer Belegung", taste({ key: "л", code: "KeyK", ctrlKey: true }), false, WIN, true],
+  ["Strg+T auf der K-Taste (Dvorak)", taste({ key: "t", code: "KeyK", ctrlKey: true }), false, WIN, false],
+  ["K ohne Strg", taste({ key: "k", code: "KeyK" }), false, WIN, false],
+  ["gehaltene Taste", taste({ key: "k", code: "KeyK", ctrlKey: true, repeat: true }), false, WIN, false],
+  ["waehrend eine Eingabemethode Zeichen setzt", taste({ key: "k", code: "KeyK", ctrlKey: true, isComposing: true }), false, WIN, false],
 ];
 const kuerzelFehler = kuerzel
-  .filter(([, t, imFeld, erwartet]) => istSuchKuerzel(t, imFeld) !== erwartet)
+  .filter(([, t, imFeld, mac, erwartet]) => istSuchKuerzel(t, imFeld, mac) !== erwartet)
   .map(([name]) => name);
 pruefe("Tastenkuerzel", kuerzelFehler.length === 0, kuerzelFehler.join(", ") || `${kuerzel.length} Faelle`);
 

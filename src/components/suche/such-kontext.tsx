@@ -13,11 +13,11 @@ import {
 } from "react";
 import { flushSync } from "react-dom";
 import { usePathname } from "@/i18n/navigation";
-import { useBlatt } from "@/components/dashboard/blatt-kontext";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { SuchDialog } from "@/components/suche/such-dialog";
+import { seiteGesperrt } from "@/components/ui/scroll-sperre";
 import { istSuchKuerzel } from "@/lib/suche/kern";
-import { zielSchluesselFuerPfad } from "@/lib/suche/seiten-ziele";
+import { zielSchluesselFuerPfad, type ZielSchluessel } from "@/lib/suche/seiten-ziele";
 import { browserAblage, liesZuletzt, merkeZuletzt } from "@/lib/suche/zuletzt";
 
 // Gemeinsamer Zustand der globalen Suche: die Lupe in der Kopfzeile
@@ -29,6 +29,9 @@ import { browserAblage, liesZuletzt, merkeZuletzt } from "@/lib/suche/zuletzt";
 // sie zum Bezugsrahmen fuer fixierte Kinder - ein Blatt darin waere auf die
 // Kopfzeile beschnitten. Ausserdem wird die Spalte mit der Kopfzeile inert,
 // sobald ein Blatt der unteren Leiste offen ist (blatt-kontext.tsx).
+//
+// "Zuletzt geoeffnet" schreibt nur diese Stelle (merke): beim Seitenwechsel
+// und, ueber den Dialog, beim Handbuch, das im neuen Tab aufgeht.
 
 interface SuchWert {
   offen: boolean;
@@ -63,8 +66,12 @@ export function SuchProvider({
   // Sprung geschlossen wird - sonst stuende er nach Esc irgendwo am Seitenanfang.
   const ausloeserRef = useRef<HTMLElement | null>(null);
   const pathname = usePathname();
-  const { offen: blattOffen } = useBlatt();
   const { tourLaeuft } = useKiPane();
+
+  const merke = useCallback(
+    (schluessel: ZielSchluessel) => merkeZuletzt(browserAblage(), nutzerId, schluessel),
+    [nutzerId],
+  );
 
   const oeffne = useCallback(() => {
     if (offen) {
@@ -92,19 +99,23 @@ export function SuchProvider({
     if (fokusZurueck && ausloeser?.isConnected) ausloeser.focus();
   }, []);
 
-  // Tastenkuerzel wie im Handbuch: "/" und Strg+K bzw. Cmd+K. Solange ein
-  // Blatt der unteren Leiste offen ist, bleibt die Suche zu - Blaetter und
-  // Suche schliessen einander aus wie Blaetter und KI-Panel.
+  // Tastenkuerzel wie im Handbuch: "/" und Strg+K, auf dem Mac Cmd+K.
+  //
+  // Solange eine andere Ebene ueber der Seite liegt - ein Blatt, die
+  // KI-Buehne, das KI-Panel auf dem Handy -, bleibt die Suche zu. Jede solche
+  // Ebene sperrt das Scrollen (ui/scroll-sperre.ts), daran ist sie zu
+  // erkennen. Sonst laege die Suche darueber, und ein Esc schloesse beide.
   useEffect(() => {
+    const mac = /Mac|iPhone|iPad/.test(navigator.userAgent);
     const beiTaste = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || blattOffen) return;
-      if (!istSuchKuerzel(event, istEingabefeld(event.target))) return;
+      if (event.defaultPrevented || (!offen && seiteGesperrt())) return;
+      if (!istSuchKuerzel(event, istEingabefeld(event.target), mac)) return;
       event.preventDefault();
       oeffne();
     };
     document.addEventListener("keydown", beiTaste);
     return () => document.removeEventListener("keydown", beiTaste);
-  }, [blattOffen, oeffne]);
+  }, [offen, oeffne]);
 
   // Jede selbst aufgerufene Seite landet in "Zuletzt geoeffnet", egal ob ueber
   // Seitenleiste, Link oder Suche. Stationen einer Agent-Fuehrung nicht: die
@@ -116,7 +127,7 @@ export function SuchProvider({
   const merkeSeite = useEffectEvent((pfad: string) => {
     if (tourLaeuft) return;
     const schluessel = zielSchluesselFuerPfad(pfad);
-    if (schluessel) merkeZuletzt(browserAblage(), nutzerId, schluessel);
+    if (schluessel) merke(schluessel);
   });
   useEffect(() => {
     merkeSeite(pathname);
@@ -133,7 +144,7 @@ export function SuchProvider({
         <SuchDialog
           feldRef={feldRef}
           zuletzt={zuletzt}
-          nutzerId={nutzerId}
+          onMerke={merke}
           onSchliessen={schliesse}
         />
       ) : null}

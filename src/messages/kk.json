@@ -107,7 +107,7 @@
     "gruppeErwaehnt": "Беттерде аталады",
     "leer": "Аймақтың, модульдің немесе беттің атауын енгізіңіз.",
     "keineTreffer": "«{begriff}» бойынша бет те, модуль де табылмады.",
-    "anzahl": "{anzahl, plural, =0 {Нәтиже жоқ} other {# нәтиже}}",
+    "anzahl": "{anzahl, plural, other {# нәтиже}}",
     "kiFragen": "ЖИ-ден сұрау: {begriff}"
   },
   "dashboard": {

@@ -6,13 +6,16 @@ import {
   zones,
   type ZoneKey,
 } from "@/lib/modules";
+import { handbuchHref } from "@/lib/handbuch";
 import { darfCeoBerichtLesen } from "@/lib/pruefung/rollen";
 import {
   auszug,
   bewerte,
+  GEWICHT,
   indexFeld,
+  laengstesWort,
   TEILWORT_AB,
-  zerlegeAnfrage,
+  type Anfrage,
   type IndexFeld,
 } from "./kern";
 
@@ -76,11 +79,10 @@ export type Uebersetze = (schluessel: string) => string;
 export const HOECHSTENS_TREFFER = 8;
 export const HOECHSTENS_ERWAEHNUNGEN = 5;
 
-// Gewichte innerhalb derselben Stufe: der Name vor dem Beiwerk. Sucht jemand
-// "Feld", steht der Bereich Feld vor den Modulen, die nur ueber ihren
-// Bereichsnamen passen - und die folgen ihm, so sieht man, was darin liegt.
-const NAME = 3;
-const BEIWERK = 1;
+interface Umgebung {
+  demoModus: boolean;
+  locale: string;
+}
 
 /**
  * Alle Ziele, die diese Rolle sehen darf, in der Reihenfolge der
@@ -89,11 +91,11 @@ const BEIWERK = 1;
  */
 export function baueSeitenZiele(
   rolle: Role | null | undefined,
-  { demoModus, locale }: { demoModus: boolean; locale: string },
+  umgebung: Umgebung,
   t: Uebersetze,
 ): SeitenZiel[] {
   const uebersicht = t("nav.overview");
-  const ziele: SeitenZiel[] = [
+  return [
     {
       schluessel: "uebersicht",
       titel: uebersicht,
@@ -101,10 +103,19 @@ export function baueSeitenZiele(
       href: "/dashboard",
       extern: false,
       symbol: "house",
-      felder: [indexFeld(uebersicht, NAME)],
+      felder: [indexFeld(uebersicht, GEWICHT.name)],
     },
+    ...bereichsZiele(rolle, t),
+    ...nebenSeiten(rolle, umgebung, t),
   ];
+}
 
+// Je Bereich erst der Bereich selbst, dann seine Module - wie in der
+// Seitenleiste. Sucht jemand "Feld", steht der Bereich vor den Modulen, die
+// nur ueber ihren Bereichsnamen passen, und die folgen ihm: so sieht man,
+// was darin liegt.
+function bereichsZiele(rolle: Role | null | undefined, t: Uebersetze): SeitenZiel[] {
+  const ziele: SeitenZiel[] = [];
   for (const zone of zones) {
     const sichtbar = sichtbareModule(rolle, zone.key);
     // Ein Bereich ohne ein einziges sichtbares Modul fehlt auch in der
@@ -123,7 +134,7 @@ export function baueSeitenZiele(
       href: `/dashboard/${zone.key}`,
       extern: false,
       symbol: zone.icon,
-      felder: [indexFeld(bereich, NAME)],
+      felder: [indexFeld(bereich, GEWICHT.name)],
     });
 
     for (const modul of sichtbar) {
@@ -140,101 +151,118 @@ export function baueSeitenZiele(
         extern: false,
         symbol: modul.icon,
         felder: [
-          indexFeld(kurz, NAME),
-          indexFeld(titel, NAME),
-          indexFeld(bereich, BEIWERK),
+          indexFeld(kurz, GEWICHT.name),
+          indexFeld(titel, GEWICHT.name),
+          indexFeld(bereich, GEWICHT.beiwerk),
         ],
         texte: [
           t(`modules.${modul.key}.description`),
           t(`modules.${modul.key}.summary`),
-        ].map((roh) => ({ roh, feld: indexFeld(roh, BEIWERK) })),
+        ].map((roh) => ({ roh, feld: indexFeld(roh, GEWICHT.beiwerk) })),
       });
     }
   }
+  return ziele;
+}
 
-  // Ohne Supabase haben beide Seiten nichts zu zeigen: Sicherheit braucht
-  // eine Sitzung, und der Compliance-Bericht antwortet im Demo-Betrieb mit
-  // 404 (compliance/page.tsx).
-  if (!demoModus) {
-    const sicherheit = t("auth.security");
-    ziele.push({
-      schluessel: "seite:sicherheit",
-      titel: sicherheit,
-      untertitel: null,
-      href: "/dashboard/sicherheit",
-      extern: false,
-      symbol: "shield-check",
-      felder: [indexFeld(sicherheit, NAME)],
-    });
+// Die Seiten neben den Bereichen, die im Dashboard liegen. Eine Tabelle fuer
+// beide Richtungen: nebenSeiten() baut daraus die Ziele,
+// zielSchluesselFuerPfad() erkennt daran die offene Seite.
+//
+// Ohne Supabase haben beide nichts zu zeigen: Sicherheit braucht eine
+// Sitzung, und der Compliance-Bericht antwortet im Demo-Betrieb mit 404
+// (compliance/page.tsx).
+const DASHBOARD_SEITEN = [
+  {
+    schluessel: "seite:sicherheit",
+    segment: "sicherheit",
+    text: "auth.security",
+    symbol: "shield-check",
+    fuer: () => true,
+  },
+  {
+    schluessel: "seite:compliance",
+    segment: "compliance",
+    text: "complianceBericht.titel",
+    symbol: "scale",
+    fuer: darfCeoBerichtLesen,
+  },
+] as const satisfies readonly {
+  schluessel: ZielSchluessel;
+  segment: string;
+  text: string;
+  symbol: string;
+  fuer: (rolle: Role | null | undefined) => boolean;
+}[];
 
-    if (darfCeoBerichtLesen(rolle)) {
-      const bericht = t("complianceBericht.titel");
-      ziele.push({
-        schluessel: "seite:compliance",
-        titel: bericht,
-        untertitel: null,
-        href: "/dashboard/compliance",
-        extern: false,
-        symbol: "scale",
-        felder: [indexFeld(bericht, NAME)],
+function nebenSeiten(
+  rolle: Role | null | undefined,
+  { demoModus, locale }: Umgebung,
+  t: Uebersetze,
+): SeitenZiel[] {
+  const ziele: SeitenZiel[] = demoModus
+    ? []
+    : DASHBOARD_SEITEN.filter((seite) => seite.fuer(rolle)).map((seite) => {
+        const titel = t(seite.text);
+        return {
+          schluessel: seite.schluessel,
+          titel,
+          untertitel: null,
+          href: `/dashboard/${seite.segment}`,
+          extern: false,
+          symbol: seite.symbol,
+          felder: [indexFeld(titel, GEWICHT.name)],
+        };
       });
-    }
-  }
 
-  // Das Handbuch ist ein Route Handler mit fertiger HTML-Seite und oeffnet in
-  // einem neuen Tab (handbuch-link.tsx). Deshalb die volle Adresse mit
-  // Sprachpraefix - an der Client-Navigation vorbei.
+  // Das Handbuch oeffnet in einem neuen Tab, an der Client-Navigation vorbei
+  // (lib/handbuch.ts). Name und Hinweis wie in der Navigation.
   const handbuch = t("nav.handbook");
   ziele.push({
     schluessel: "seite:handbuch",
     titel: handbuch,
     untertitel: t("nav.handbookHint"),
-    href: `/${locale}/dashboard/handbuch`,
+    href: handbuchHref(locale),
     extern: true,
     symbol: "book-open",
-    felder: [indexFeld(handbuch, NAME)],
+    felder: [indexFeld(handbuch, GEWICHT.name)],
   });
-
   return ziele;
 }
 
-/** Die besten Treffer zu einer Eingabe, leer bei leerer Eingabe. */
-export function sucheSeiten(
-  ziele: readonly SeitenZiel[],
-  roh: string,
-  max = HOECHSTENS_TREFFER,
-): SeitenZiel[] {
-  const anfrage = zerlegeAnfrage(roh);
-  if (!anfrage) return [];
-
-  const bewertet: { ziel: SeitenZiel; reihe: number; wert: number }[] = [];
-  ziele.forEach((ziel, reihe) => {
-    const wert = bewerte(ziel.felder, anfrage);
-    if (wert !== null) bewertet.push({ ziel, reihe, wert });
-  });
-
-  return bewertet
+// Bewerten, nach Wert und bei Gleichstand nach der Reihenfolge der Ziele
+// sortieren, die besten behalten - fuer Namen und Texte gleich.
+function beste<T>(bewertet: readonly { eintrag: T; reihe: number; wert: number }[], max: number): T[] {
+  return [...bewertet]
     .sort((a, b) => b.wert - a.wert || a.reihe - b.reihe)
     .slice(0, max)
-    .map((eintrag) => eintrag.ziel);
+    .map((b) => b.eintrag);
+}
+
+/** Die besten Treffer ueber den Namen. */
+export function sucheSeiten(ziele: readonly SeitenZiel[], anfrage: Anfrage): SeitenZiel[] {
+  const bewertet: { eintrag: SeitenZiel; reihe: number; wert: number }[] = [];
+  ziele.forEach((ziel, reihe) => {
+    const wert = bewerte(ziel.felder, anfrage);
+    if (wert !== null) bewertet.push({ eintrag: ziel, reihe, wert });
+  });
+  return beste(bewertet, HOECHSTENS_TREFFER);
 }
 
 /**
  * Ziele, in deren Seitentext die Anfrage vorkommt - fuer die Gruppe
  * "Erwaehnt in" unter den Namenstreffern. Was schon ueber den Namen gefunden
- * wurde, steht in `ohne` und kommt nicht doppelt. Erst ab drei Zeichen:
- * kuerzer passt in fast jeden Absatz.
+ * wurde, steht in `ohne` und kommt nicht doppelt. Erst wenn ein Wort der
+ * Anfrage drei Zeichen hat: kuerzer passt in fast jeden Absatz.
  */
 export function sucheInTexten(
   ziele: readonly SeitenZiel[],
-  roh: string,
+  anfrage: Anfrage,
   ohne: ReadonlySet<ZielSchluessel>,
-  max = HOECHSTENS_ERWAEHNUNGEN,
 ): Erwaehnung[] {
-  const anfrage = zerlegeAnfrage(roh);
-  if (!anfrage || anfrage.normal.length < TEILWORT_AB) return [];
+  if (laengstesWort(anfrage).length < TEILWORT_AB) return [];
 
-  const bewertet: { erwaehnung: Erwaehnung; reihe: number; wert: number }[] = [];
+  const bewertet: { eintrag: Erwaehnung; reihe: number; wert: number }[] = [];
   ziele.forEach((ziel, reihe) => {
     if (!ziel.texte?.length || ohne.has(ziel.schluessel)) return;
     const wert = bewerte(
@@ -242,19 +270,15 @@ export function sucheInTexten(
       anfrage,
     );
     if (wert === null) return;
-    // Die erste Stelle, an der ein Wort der Anfrage steht, als Beleg unter dem
-    // Namen. Auszug und Bewertung normalisieren Wort fuer Wort gleich, eine
-    // Stelle gibt es also immer; ohne sie bliebe die Zeile lieber weg.
+    // Die erste Stelle, an der das laengste Wort der Anfrage steht, als Beleg
+    // unter dem Namen. Die Bewertung verlangt jedes Wort in einem der Texte,
+    // eine Stelle gibt es also immer; ohne sie bliebe die Zeile lieber weg.
     const stelle = ziel.texte
       .map((text) => auszug(text.roh, anfrage))
       .find((gefunden) => gefunden !== null);
-    if (stelle) bewertet.push({ erwaehnung: { ziel, auszug: stelle }, reihe, wert });
+    if (stelle) bewertet.push({ eintrag: { ziel, auszug: stelle }, reihe, wert });
   });
-
-  return bewertet
-    .sort((a, b) => b.wert - a.wert || a.reihe - b.reihe)
-    .slice(0, max)
-    .map((eintrag) => eintrag.erwaehnung);
+  return beste(bewertet, HOECHSTENS_ERWAEHNUNGEN);
 }
 
 /**
@@ -265,8 +289,9 @@ export function zielSchluesselFuerPfad(pfad: string): ZielSchluessel | null {
   const [wurzel, zweites, drittes, ...rest] = pfad.split("/").filter(Boolean);
   if (wurzel !== "dashboard" || rest.length > 0) return null;
   if (!zweites) return "uebersicht";
-  if (!drittes && zweites === "sicherheit") return "seite:sicherheit";
-  if (!drittes && zweites === "compliance") return "seite:compliance";
+
+  const seite = DASHBOARD_SEITEN.find((s) => s.segment === zweites);
+  if (seite) return drittes ? null : seite.schluessel;
 
   const zone = zones.find((z) => z.key === zweites);
   if (!zone) return null;

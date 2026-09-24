@@ -12,8 +12,11 @@ import type { SeitenZiel, ZielSchluessel } from "./seiten-ziele";
 // schon der Zugriff auf localStorage werfen.
 
 export const ZULETZT_SPEICHER = "damicon-suche-zuletzt";
-const HOECHSTENS_GEMERKT = 10;
+/** Angezeigt werden die letzten fuenf. */
 export const HOECHSTENS_ZULETZT = 5;
+/** Gemerkt werden mehr, weil beim Aufloesen welche wegfallen koennen: die
+ *  offene Seite, und was die Ansichtsrolle gerade nicht sieht. */
+export const HOECHSTENS_GEMERKT = 10;
 
 export interface Ablage {
   getItem(schluessel: string): string | null;
@@ -89,21 +92,24 @@ export function merkeZuletzt(
 
 /**
  * Die gemerkten Schluessel als Ziele, neueste zuerst. Was die Rolle nicht
- * sehen darf, was es nicht mehr gibt und die gerade offene Seite fallen weg.
+ * sehen darf, was es nicht mehr gibt, die gerade offene Seite und Doppelte
+ * fallen weg - Doppelte stehen nur in einem von Hand veraenderten Speicher,
+ * gaeben dann aber zwei Zeilen mit demselben React-Schluessel.
  */
 export function zuletztAufloesen(
   liste: readonly string[],
   ziele: readonly SeitenZiel[],
   offeneSeite: ZielSchluessel | null,
-  max = HOECHSTENS_ZULETZT,
 ): SeitenZiel[] {
   const nachSchluessel = new Map<string, SeitenZiel>(
     ziele.map((ziel) => [ziel.schluessel, ziel]),
   );
+  const gesehen = new Set<string>();
   const ergebnis: SeitenZiel[] = [];
   for (const schluessel of liste) {
-    if (ergebnis.length === max) break;
-    if (schluessel === offeneSeite) continue;
+    if (ergebnis.length === HOECHSTENS_ZULETZT) break;
+    if (schluessel === offeneSeite || gesehen.has(schluessel)) continue;
+    gesehen.add(schluessel);
     const ziel = nachSchluessel.get(schluessel);
     if (ziel) ergebnis.push(ziel);
   }
