@@ -12,6 +12,45 @@
    schon im HTML steht, kennt die Breite vor dem ersten Bild. */
 @custom-variant schmal (&:where(.sidebar-schmal, .sidebar-schmal *));
 
+/* Liste mit Detailansicht (DESIGN.md Abschnitt 14, WMCNL-2488). Die
+   Detailansicht ordnet sich nach der Breite, die der Liste tatsaechlich zur
+   Verfuegung steht, nicht nach der Fensterbreite: ein angedockter KI-Chat
+   nimmt der Hauptspalte bis zu 960 px, und am selben Fenster passt dann
+   weniger daneben. Deshalb Container-Abfragen auf den Behaelter "liste"
+   (ui/liste.tsx).
+
+     angedockt  ab 56rem: 28,5rem Liste + 1,5rem Abstand + 26rem Panel
+     schublade  36 bis 56rem, ab md: das Panel liegt ueber der Liste
+     ersetzt   unter 36rem oder auf dem Handy: das Panel ersetzt die Liste;
+                daneben bliebe nur ein Streifen, in dem man nichts lesen kann */
+@custom-variant panel-angedockt {
+  @container liste (width >= 56rem) {
+    @slot;
+  }
+}
+@custom-variant panel-schublade {
+  @media (width >= 48rem) {
+    @container liste (36rem <= width < 56rem) {
+      @slot;
+    }
+  }
+}
+@custom-variant panel-ersetzt {
+  @media (width < 48rem) {
+    @slot;
+  }
+  @container liste (width < 36rem) {
+    @slot;
+  }
+}
+
+/* Mit und ohne JavaScript: wo eine Bedienung beides kennt, etwa der
+   Filterknopf auf dem Handy (ui/listen-filter.tsx), der ohne Skript nichts
+   oeffnen koennte. Ueber die Media Query und nicht ueber einen Zustand nach
+   der Hydration - sonst sprang das Layout, sobald das Skript geladen war. */
+@custom-variant mit-js (@media (scripting: enabled));
+@custom-variant ohne-js (@media (scripting: none));
+
 /*
   Damicon Design-Tokens - Palette "Koek & Altyn" (Himmel & Gold).
 
@@ -432,6 +471,31 @@
 @keyframes sheet-auf-rechts {
   from {
     transform: translateX(100%);
+  }
+}
+
+/* Detailansicht einer Liste (ui/liste.tsx, DESIGN.md Abschnitt 14). Die
+   Breite steht hier, weil drei Stellen mit ihr rechnen: das Raster der Liste,
+   die Schublade und Himbi, der ihr ausweicht (haustier.css). */
+:root {
+  --detailpanel-breite: 26rem;
+}
+
+/* Als Schublade gleitet sie ein kurzes Stueck herein statt vom Rand: sie
+   beginnt mitten im Hauptbereich, nicht an der Bildschirmkante. */
+@keyframes detailpanel-auf {
+  from {
+    transform: translateX(1.5rem);
+    opacity: 0;
+  }
+}
+
+/* Ladeanzeige an einem Listeneintrag oder in der Detailansicht: erst nach
+   150 ms sichtbar, damit schnelle Antworten nicht flackern (Next-Doku zu
+   useLinkStatus, "Gracefully handling fast navigation"). */
+@keyframes lade-einblenden {
+  to {
+    opacity: 1;
   }
 }
 
