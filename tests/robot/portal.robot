@@ -29,29 +29,24 @@ Schreibtisch Traegt Alle Bedienelemente Und Den Vollen Pfad
     Should Be Equal    ${stationen}[2]    Rollen und Rechte
     Befund Festhalten    ${SCHREIBTISCH}    modulseite
 
-Schreibtisch Zeigt Das Suchfeld Statt Eines Knopfes
-    [Documentation]    Ab 1280 px ist Platz fuer das Feld - einen Knopf im
-    ...    Look eines Suchfelds, getippt wird erst im Suchfenster. Darunter
-    ...    wird es zum Lupenknopf, siehe den Test im Querformat.
+Schreibtisch Zeigt Die Suche Als Knopf Hinter Dem Pfad
+    [Documentation]    Auch am Schreibtisch ist die Suche nur ein Knopf mit
+    ...    Lupe direkt hinter dem Pfad, kein Eingabefeld und keine Leiste im
+    ...    Look eines Suchfelds. Getippt wird erst im Suchfenster.
     [Tags]    schreibtisch
     Portal Oeffnen    ${SCHREIBTISCH}
-    Seite Ansteuern    /dashboard
-    ${breite} =    Evaluate JavaScript    ${None}
-    ...    () => { const f = document.querySelector('header.sticky [data-suche="feld"]'); return f ? Math.round(f.getBoundingClientRect().width) : 0; }
-    Should Be True    ${breite} > 200
-    ...    msg=Das Suchfeld ist nur ${breite} px breit statt eines lesbaren Feldes.
-    ${knoepfe} =    Sichtbare Suchknoepfe Zaehlen
-    Should Be Equal As Integers    ${knoepfe}    0
-    ...    msg=Am Schreibtisch steht neben dem Feld zusaetzlich ein Suchknopf.
+    Seite Ansteuern    /dashboard/buero/rollen
+    Suche Ist Nur Ein Knopf
+    Suchknopf Steht Hinter Dem Pfad
 
 Schreibtisch Oeffnet Das Suchfenster Mittig Oben
-    [Documentation]    Der Knopf im Look eines Suchfelds oeffnet das
-    ...    Suchfenster oben in der Mitte des Bildschirms, nicht an seiner
-    ...    eigenen Stelle. Getippt wird erst im Fenster.
+    [Documentation]    Der Knopf mit der Lupe oeffnet das Suchfenster oben in
+    ...    der Mitte des Bildschirms, nicht an seiner eigenen Stelle. Getippt
+    ...    wird erst im Fenster.
     [Tags]    schreibtisch
     Portal Oeffnen    ${SCHREIBTISCH}
     Seite Ansteuern    /dashboard/hof/kuehlkette
-    Click    ${KOPFBALKEN} [data-suche="feld"]
+    Click    ${KOPFBALKEN} [data-suche="knopf"] >> visible=true
     Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
     Suchfenster Steht Mittig Oben
     Befund Festhalten    ${SCHREIBTISCH}    suche-mittig-oben
@@ -137,20 +132,13 @@ Handy Quer Schneidet Keine Bedienelemente Ab
     Befund Festhalten    ${MOBIL_QUER}    modulseite
 
 Handy Quer Zeigt Die Suche Als Knopf
-    [Documentation]    Unter 1280 px weicht das Feld einem Knopf, sonst
-    ...    schrumpft es zu einer leeren Pille. Der Knopf steht direkt hinter
-    ...    dem Pfad, wo ab 1280 px das Feld beginnt. Das Fenster geht wie am
-    ...    Schreibtisch oben in der Mitte auf.
+    [Documentation]    Im Querformat steht die Suche wie am Schreibtisch als
+    ...    Knopf direkt hinter dem Pfad. Das Fenster geht oben in der Mitte
+    ...    auf.
     [Tags]    mobil-quer
     Portal Oeffnen    ${MOBIL_QUER}
     Seite Ansteuern    /dashboard/buero/rollen
-    ${knoepfe} =    Sichtbare Suchknoepfe Zaehlen
-    Should Be Equal As Integers    ${knoepfe}    1
-    ...    msg=Der Suchknopf fehlt oder steht doppelt sichtbar.
-    ${feld} =    Evaluate JavaScript    ${None}
-    ...    () => { const f = document.querySelector('header.sticky [data-suche="feld"]'); return f ? Math.round(f.getBoundingClientRect().width) : 0; }
-    Should Be Equal As Integers    ${feld}    0
-    ...    msg=Im Querformat steht noch ein Suchfeld statt des Knopfes.
+    Suche Ist Nur Ein Knopf
     Suchknopf Steht Hinter Dem Pfad
     Click    ${KOPFBALKEN} [data-suche="knopf"] >> visible=true
     Wait For Elements State    ${SUCHFELD}    focused    timeout=10s

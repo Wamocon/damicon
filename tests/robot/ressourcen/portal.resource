@@ -111,9 +111,8 @@ Suchknopf Steht Links Neben Der Glocke
     ...    msg=Der Suchknopf steht nicht direkt links neben der Glocke (Abstand ${abstand} px, -1 heisst: fehlt).
 
 Suchknopf Steht Hinter Dem Pfad
-    [Documentation]    Zwischen 768 und 1279 px steht die Suche als Knopf
-    ...    direkt hinter dem Pfad - dort, wo ab 1280 px das Feld beginnt. Der
-    ...    Abstand ist der der Kopfzeile, 12 px.
+    [Documentation]    Ab 768 px steht die Suche als Knopf direkt hinter dem
+    ...    Pfad. Der Abstand ist der der Kopfzeile, 12 px.
     ${abstand} =    Evaluate JavaScript    ${None}
     ...    () => { const k = [...document.querySelectorAll('header.sticky [data-suche="knopf"]')].find((e) => e.getBoundingClientRect().width > 0); const p = [...document.querySelectorAll('header.sticky nav[aria-label]')].find((e) => e.getBoundingClientRect().width > 0); if (!k || !p) return -1; return Math.round(k.getBoundingClientRect().left - p.getBoundingClientRect().right); }
     Should Be Equal As Integers    ${abstand}    12
@@ -125,6 +124,21 @@ Sichtbare Suchknoepfe Zaehlen
     ${anzahl} =    Evaluate JavaScript    ${None}
     ...    () => [...document.querySelectorAll('header.sticky [data-suche="knopf"]')].filter((e) => e.getBoundingClientRect().width > 0).length
     RETURN    ${anzahl}
+
+Suche Ist Nur Ein Knopf
+    [Documentation]    In der Kopfzeile steht fuer die Suche genau ein
+    ...    sichtbarer Knopf mit Lupe, hoechstens 44 px breit - kein
+    ...    Eingabefeld und keine Leiste im Look eines Suchfelds.
+    ${knoepfe} =    Sichtbare Suchknoepfe Zaehlen
+    Should Be Equal As Integers    ${knoepfe}    1
+    ...    msg=Der Suchknopf fehlt oder steht doppelt sichtbar.
+    ${breite} =    Evaluate JavaScript    ${None}
+    ...    () => Math.round([...document.querySelectorAll('header.sticky [data-suche="knopf"]')].find((e) => e.getBoundingClientRect().width > 0).getBoundingClientRect().width)
+    Should Be True    ${breite} <= 44
+    ...    msg=Die Suche ist ${breite} px breit, eine Leiste statt eines Knopfes.
+    ${felder} =    Get Element Count    ${KOPFBALKEN} input, ${KOPFBALKEN} [data-suche="feld"]
+    Should Be Equal As Integers    ${felder}    0
+    ...    msg=In der Kopfzeile steht ein Eingabefeld oder eine Suchleiste.
 
 Suchfenster Steht Mittig Oben
     [Documentation]    Das Fenster geht auf jeder Breite oben in der Mitte des

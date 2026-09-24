@@ -51,7 +51,7 @@ die Kopfzeile keinen eigenen Scrollbereich hat.
 | Kein Querscrollen | Laesst sich die Seite zur Seite schieben? |
 | Pfad vollstaendig | Zeigt die Kopfzeile Haus, Bereich und Seite? |
 | Pfad gekuerzt | Faellt im Querformat die mittlere Station weg, nicht die offene Seite? |
-| Suchfeld und Suchknopf | Ab 1280 px ein Knopf im Look eines Suchfelds, darunter eine Lupe direkt hinter dem Pfad, auf dem Handy links neben der Glocke? |
+| Suchknopf | Auf jeder Breite nur ein Knopf mit Lupe, kein Eingabefeld und keine Leiste? Ab 768 px direkt hinter dem Pfad, auf dem Handy links neben der Glocke? |
 | Fenster mittig oben | Geht das Suchfenster auf jeder Breite oben in der Mitte des Bildschirms auf, egal wo der Ausloeser sitzt? |
 | Erwaehnt in | Stehen unter den Namenstreffern die Seiten, deren Text den Begriff nennt? |
 | Suche per Tastatur | Oeffnen Strg+K und "/" die Suche mit Fokus im Feld, fuehrt Enter zum Treffer, schliesst Esc ohne Sprung? |
@@ -84,7 +84,10 @@ heisst: fehlt)". Ebenso fuer das Fenster mittig oben: mit dem Fenster am
 Ausloeser (Stand 51d42b1) schlugen `Schreibtisch Oeffnet Das Suchfenster
 Mittig Oben` fehl mit "links 566 px, rechts 474 px, oben 4 von 1000 px" und
 `Handy Quer Zeigt Die Suche Als Knopf` mit "links 276 px, rechts 8 px, oben
-4 von 390 px".
+4 von 390 px". Und fuer den Knopf am Schreibtisch: gegen den Stand mit der
+Leiste im Look eines Suchfelds (4506682) schlug `Schreibtisch Zeigt Die Suche
+Als Knopf Hinter Dem Pfad` fehl mit "Der Suchknopf fehlt oder steht doppelt
+sichtbar.: 0 != 1".
 
 ## Grenzen
 
