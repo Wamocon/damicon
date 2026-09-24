@@ -561,7 +561,7 @@ export const de: HandbuchTexte = {
       },
       {
         begriff: "Sprachmodus",
-        text: "Live-Gespräch mit dem Assistenten ohne sichtbaren Chat: eine Kugel reagiert auf die Stimme, der Assistent kann selbst zu einem Bereich springen und ihn zeigen.",
+        text: "Live-Gespräch mit dem Assistenten ohne sichtbaren Chat: eine Kugel reagiert auf die Stimme, der Assistent kann selbst zu einem Bereich springen und ihn zeigen. Unterbrechen wie im Gespräch: einfach dazwischenreden oder auf die Kugel tippen.",
       },
       {
         begriff: "WAMOCON",

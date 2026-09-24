@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { Mic, MicOff, Subtitles, X } from "lucide-react";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
@@ -16,21 +16,21 @@ import {
   unterbrichChat,
 } from "@/components/ki/sprachmodus-bus";
 import { leseAusgabePegel } from "@/lib/ausgabe-pegel";
+import { leseLautstaerke, starteHoeren, stoppeHoeren } from "@/lib/hoeren";
 import {
   antwortFertig,
   assistentIstDran,
+  erzeugeUnterbrechungsWaechter,
+  nachSitzungsAbbruch,
   naechstePhase,
+  NEUVERSUCH_MS,
   nimmtAuf,
   RUHE_VOR_ZUHOEREN_MS,
   type Phase,
 } from "@/lib/domain/sprachmodus";
-import {
-  AUFNAHME_STUECK_MS,
-  AUFNAHME_VORGABEN,
-} from "@/lib/domain/diktat";
-import { starteLiveSitzung, type LiveSitzung } from "@/components/ki/diktat-live";
+import { AUFNAHME_STUECK_MS, AUFNAHME_VORGABEN } from "@/lib/domain/diktat";
+import { starteLiveSitzung, type LiveErgebnis, type LiveSitzung } from "@/components/ki/diktat-live";
 import { cn } from "@/lib/utils";
-import { useSyncExternalStore } from "react";
 
 // Der Sprachmodus: ein Live-Gespraech mit Himbi ohne sichtbaren Chat.
 //
@@ -57,6 +57,17 @@ const GROESSE_MITTE = 220;
 const GROESSE_KLEIN = 96;
 const RAENDER = { oben: 72, rechts: 16, unten: 16, links: 16 };
 
+/** Wie das Mikrofon im Gespraech geoeffnet wird: wie beim Diktat, aber MIT
+ *  Echounterdrueckung. Beim Diktat verstummt jede Wiedergabe, solange das
+ *  Mikrofon offen ist; hier spricht Himbi, waehrend das Mikrofon offen bleibt
+ *  (Dazwischenreden, siehe erzeugeUnterbrechungsWaechter). Ohne Filter hoerte
+ *  das Mikrofon die Stimme aus dem Lautsprecher mit. */
+const GESPRAECH_AUFNAHME: MediaTrackConstraints = { ...AUFNAHME_VORGABEN, echoCancellation: true };
+
+/** Eine Aufnahme = eine Aeusserung. Bis sie zu einer Live-Sitzung gehoert,
+ *  sammelt sie ihre Stuecke (Vorlauf beim Dazwischenreden). */
+type Aufnahme = { recorder: MediaRecorder; puffer: Blob[]; sitzung: LiveSitzung | null };
+
 function SprachmodusInhalt() {
   const t = useTranslations("kiAssistentAnsicht.sprachmodus");
   const tAktion = useTranslations("aktionen");
@@ -69,15 +80,19 @@ function SprachmodusInhalt() {
   const [untertitelAn, setUntertitelAn] = useState(true);
 
   const liveRef = useRef<LiveSitzung | null>(null);
-  const recorderRef = useRef<MediaRecorder | null>(null);
+  const aufnahmeRef = useRef<Aufnahme | null>(null);
   const stromRef = useRef<MediaStream | null>(null);
   const ruheTimer = useRef<number | undefined>(undefined);
+  const neuTimer = useRef<number | undefined>(undefined);
+  const sitzungSeit = useRef(0);
+  const fehlversuche = useRef(0);
   const phaseRef = useRef(phase);
-  phaseRef.current = phase;
+  // Als erster Effekt: alle folgenden lesen im selben Durchlauf schon die neue Phase.
+  useEffect(() => {
+    phaseRef.current = phase;
+  }, [phase]);
 
   const chatStand = useSyncExternalStore(abonniereSprachBus, leseChatStand, chatStandServer);
-  const chatStandRef = useRef(chatStand);
-  chatStandRef.current = chatStand;
 
   const dispatch = useCallback((ereignis: Parameters<typeof naechstePhase>[1]) => {
     setPhase((bisher) => {
@@ -88,141 +103,324 @@ function SprachmodusInhalt() {
 
   // --- Mikrofon: einmal geoeffnet, bleibt fuer die ganze Sitzung offen -----------------
   //
-  // Anders als beim Diktatknopf (mikrofon.tsx) wird das Mikrofon hier NICHT je Aeusserung
-  // neu geoeffnet: staendiges Oeffnen/Schliessen laesst auf iOS die Audiosession zwischen
-  // "nur Wiedergabe" und "Aufnahme und Wiedergabe" wechseln, und die erste Antwort nach dem
-  // Wiederoeffnen kommt dann stumm ueber den Hoerer statt den Lautsprecher (siehe Recherche,
-  // Abschnitt iOS-Audiosession). Waehrend der Assistent dran ist, wird nur das SENDEN der
-  // Sitzung pausiert (recorder.pause()), nicht der Strom geschlossen.
+  // Anders als beim Diktatknopf (mikrofon.tsx) wird der Mikrofonstrom hier NICHT je
+  // Aeusserung neu geoeffnet: staendiges Oeffnen/Schliessen laesst auf iOS die
+  // Audiosession zwischen "nur Wiedergabe" und "Aufnahme und Wiedergabe" wechseln, und die
+  // erste Antwort nach dem Wiederoeffnen kommt dann stumm ueber den Hoerer statt den
+  // Lautsprecher. Neu je Aeusserung ist nur der MediaRecorder auf diesem Strom (siehe
+  // starteAufnahme) - das beruehrt die Audiosession nicht.
+  // Ist der Strom schon offen (Neustart nach einem Fehler), fuehrt erneutVersuchen() selbst
+  // weiter - hier wird nur geoeffnet, was noch nicht offen ist.
   useEffect(() => {
+    if (phase !== "startet" || stromRef.current) return;
     let abgebrochen = false;
     void (async () => {
       try {
-        const strom = await navigator.mediaDevices.getUserMedia({ audio: AUFNAHME_VORGABEN });
+        const strom = await navigator.mediaDevices.getUserMedia({ audio: GESPRAECH_AUFNAHME });
         if (abgebrochen) {
           strom.getTracks().forEach((s) => s.stop());
           return;
         }
         stromRef.current = strom;
-        const recorder = new MediaRecorder(strom);
-        recorder.ondataavailable = (e) => {
-          if (e.data.size > 0) liveRef.current?.sende(e.data);
-        };
-        recorderRef.current = recorder;
-        recorder.start(AUFNAHME_STUECK_MS);
+        // Die Kugel reagiert auf die eigene Stimme (lib/hoeren.ts), und das Dazwischenreden
+        // misst dort die Lautstaerke.
+        starteHoeren(strom);
+        setMeldung(null);
         dispatch({ art: "mikrofon-bereit" });
       } catch {
+        if (abgebrochen) return;
         setMeldung(t("keinZugriff"));
         dispatch({ art: "fehler" });
       }
     })();
     return () => {
       abgebrochen = true;
-      recorderRef.current?.stop();
-      stromRef.current?.getTracks().forEach((s) => s.stop());
-      liveRef.current?.abbrechen();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, dispatch, t]);
+
+  // --- Aufnahme je Aeusserung --------------------------------------------------------------
+  //
+  // Bis zum 24.09.2026 lief EIN MediaRecorder fuer den ganzen Sprachmodus, pausiert und
+  // fortgesetzt. Nur sein allererstes Stueck traegt aber den Dateikopf (webm/mp4); jede
+  // weitere Aeusserung begann fuer Soniox mitten in einer Datei ohne Kopf und wurde nicht
+  // erkannt - die erste Frage ging, die zweite nicht mehr. Jetzt beginnt jede Aeusserung
+  // eine eigene Aufnahme, und ihr erstes Stueck ist wieder ein Dateikopf.
+  const starteAufnahme = useCallback((): Aufnahme | null => {
+    if (aufnahmeRef.current) return aufnahmeRef.current;
+    const strom = stromRef.current;
+    if (!strom) return null;
+    try {
+      const recorder = new MediaRecorder(strom);
+      const aufnahme: Aufnahme = { recorder, puffer: [], sitzung: null };
+      recorder.ondataavailable = (e) => {
+        if (e.data.size === 0) return;
+        if (aufnahme.sitzung) aufnahme.sitzung.sende(e.data);
+        else aufnahme.puffer.push(e.data);
+      };
+      recorder.start(AUFNAHME_STUECK_MS);
+      aufnahmeRef.current = aufnahme;
+      return aufnahme;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  /** Aufnahme verwerfen, ohne dass noch etwas an eine Sitzung geht. */
+  const verwirfAufnahme = useCallback(() => {
+    const aufnahme = aufnahmeRef.current;
+    aufnahmeRef.current = null;
+    if (!aufnahme) return;
+    aufnahme.sitzung = null;
+    aufnahme.puffer = [];
+    try {
+      if (aufnahme.recorder.state !== "inactive") aufnahme.recorder.stop();
+    } catch {
+      // schon gestoppt
+    }
+  }, []);
+
+  /** Aufnahme beenden und warten, bis ihr letztes Stueck bei der Sitzung ist. */
+  const schliesseAufnahme = useCallback((): Promise<void> => {
+    const aufnahme = aufnahmeRef.current;
+    aufnahmeRef.current = null;
+    if (!aufnahme || aufnahme.recorder.state === "inactive") return Promise.resolve();
+    return new Promise((fertig) => {
+      const notbremse = window.setTimeout(fertig, 500);
+      aufnahme.recorder.addEventListener(
+        "stop",
+        () => {
+          window.clearTimeout(notbremse);
+          fertig();
+        },
+        { once: true },
+      );
+      try {
+        aufnahme.recorder.stop();
+      } catch {
+        fertig();
+      }
+    });
   }, []);
 
   // --- Eine Aeusserung: eine Live-Sitzung ------------------------------------------------
+  const beginneRef = useRef<() => void>(() => {});
+
+  const sitzungAbgebrochen = useCallback(
+    (grund: string, gehoert: boolean) => {
+      liveRef.current = null;
+      verwirfAufnahme();
+      setZwischentext("");
+      const { weiter, fehlversuche: neu } = nachSitzungsAbbruch({
+        grund,
+        dauerMs: performance.now() - sitzungSeit.current,
+        gehoert,
+        fehlversucheBisher: fehlversuche.current,
+      });
+      fehlversuche.current = neu;
+      if (weiter === "nicht-eingerichtet") {
+        setMeldung(t("liveFehlt"));
+        dispatch({ art: "fehler" });
+      } else if (weiter === "aufgeben") {
+        setMeldung(t("verbindungFehlt"));
+        dispatch({ art: "fehler" });
+      } else if (weiter === "stumm") {
+        // Zwei Minuten nichts gehoert: stumm schalten, statt weiter Stille an die
+        // Erkennung zu schicken. Ein Tipp auf den Mikrofonknopf setzt fort.
+        dispatch({ art: "pausieren" });
+      } else {
+        window.clearTimeout(neuTimer.current);
+        neuTimer.current = window.setTimeout(() => {
+          if (phaseRef.current === "hoert" && !liveRef.current) beginneRef.current();
+        }, NEUVERSUCH_MS);
+      }
+    },
+    [dispatch, t, verwirfAufnahme],
+  );
+
   const beginneAeusserung = useCallback(() => {
     if (liveRef.current) return;
-    setZwischentext("");
-    liveRef.current = starteLiveSitzung({
+    const aufnahme = starteAufnahme();
+    if (!aufnahme) {
+      // Nicht mitten im Effekt, der diese Aeusserung beginnt, den Zustand umwerfen.
+      queueMicrotask(() => {
+        setMeldung(t("keinZugriff"));
+        dispatch({ art: "fehler" });
+      });
+      return;
+    }
+    sitzungSeit.current = performance.now();
+    const sitzung: LiveSitzung = starteLiveSitzung({
       sprache,
       zweck: "gespraech",
-      beiStand: (stand) => setZwischentext(stand.anzeige),
-      beiEndpunkt: () => dispatch({ art: "aeusserung-ende" }),
+      beiStand: (stand) => {
+        if (liveRef.current === sitzung) setZwischentext(stand.anzeige);
+      },
+      beiEndpunkt: () => {
+        if (liveRef.current === sitzung) dispatch({ art: "aeusserung-ende" });
+      },
+      // Bis zum 24.09.2026 gab es diesen Weg nicht: scheiterte die Sitzung (Schluessel,
+      // Verbindung, Dienst), kam nie ein Endpunkt, und die Kugel hoerte endlos zu.
+      beiScheitern: (grund) => {
+        if (liveRef.current === sitzung) sitzungAbgebrochen(grund, sitzung.hatGehoert());
+      },
     });
-  }, [sprache, dispatch]);
+    liveRef.current = sitzung;
+    aufnahme.sitzung = sitzung;
+    for (const stueck of aufnahme.puffer) sitzung.sende(stueck);
+    aufnahme.puffer = [];
+  }, [sprache, dispatch, t, starteAufnahme, sitzungAbgebrochen]);
+  useEffect(() => {
+    beginneRef.current = beginneAeusserung;
+  }, [beginneAeusserung]);
 
   useEffect(() => {
     if (nimmtAuf(phase)) beginneAeusserung();
   }, [phase, beginneAeusserung]);
 
-  // Aeusserung zu Ende: die laufende Sitzung abschliessen und, wenn etwas dabei
-  // herauskam, als Frage an den Chat weiterreichen (sprachmodus-bus.ts).
+  // Aeusserung zu Ende: Aufnahme schliessen (ihr letztes Stueck geht noch an die
+  // Sitzung), die Sitzung abschliessen und, wenn etwas dabei herauskam, als Frage an den
+  // Chat weiterreichen (sprachmodus-bus.ts).
   useEffect(() => {
     if (phase !== "versteht") return;
     const sitzung = liveRef.current;
     liveRef.current = null;
-    if (!sitzung) {
-      dispatch({ art: "nichts-gehoert" });
-      return;
-    }
-    void sitzung.beende().then((ergebnis) => {
-      setZwischentext("");
-      if (ergebnis.ok && ergebnis.text) {
-        stelleSprachFrage(ergebnis.text, ergebnis.sprachen);
-        dispatch({ art: "frage-gestellt" });
-      } else {
-        if (!ergebnis.ok) console.warn("[damicon] Sprachmodus: Aeusserung nicht erkannt:", ergebnis.grund);
-        dispatch({ art: "nichts-gehoert" });
-      }
-    });
-  }, [phase, dispatch]);
+    void schliesseAufnahme()
+      .then((): Promise<LiveErgebnis> | LiveErgebnis => (sitzung ? sitzung.beende() : { ok: false, grund: "keine-sitzung" }))
+      .then((ergebnis) => {
+        setZwischentext("");
+        if (ergebnis.ok && ergebnis.text) {
+          fehlversuche.current = 0;
+          stelleSprachFrage(ergebnis.text, ergebnis.sprachen);
+          dispatch({ art: "frage-gestellt" });
+        } else {
+          if (!ergebnis.ok) console.warn("[damicon] Sprachmodus: Aeusserung nicht erkannt:", ergebnis.grund);
+          dispatch({ art: "nichts-gehoert" });
+        }
+      });
+  }, [phase, dispatch, schliesseAufnahme]);
 
-  // Waehrend der Assistent dran ist (denkt/spricht), sendet die Aufnahme nichts - sonst
-  // hoerte die Erkennung die eigene Stimme aus dem Lautsprecher (Halbduplex, siehe
-  // domain/sprachmodus.ts). Der Mikrofonstrom selbst bleibt offen (siehe oben).
+  // --- Dazwischenreden, waehrend Himbi spricht --------------------------------------------
+  //
+  // Wie in einem echten Gespraech: wer spricht, unterbricht. Der Waechter vergleicht die
+  // Lautstaerke am Mikrofon mit der eigenen Ausgabe (Echo) und dem Grundrauschen und
+  // schlaegt erst nach einem Moment durchgehender Sprache an (domain/sprachmodus.ts).
+  // Sobald es nach Sprache klingt, laeuft schon eine Aufnahme mit - sonst fehlte der
+  // Anfang des Satzes, der den Waechter ausgeloest hat. Verklingt es wieder, wird sie
+  // verworfen. Der Tipp auf die Kugel bleibt der sichere Weg (laute Halle).
   useEffect(() => {
-    const recorder = recorderRef.current;
-    if (!recorder) return;
-    if (assistentIstDran(phase) && recorder.state === "recording") recorder.pause();
-    else if (phase === "hoert" && recorder.state === "paused") recorder.resume();
-  }, [phase]);
+    if (phase !== "spricht") return;
+    const waechter = erzeugeUnterbrechungsWaechter();
+    let bild = 0;
+    let unterbrochen = false;
+    const schritt = () => {
+      const urteil = waechter.melde(leseLautstaerke(), leseAusgabePegel(), performance.now());
+      if (urteil === "unterbrechen") {
+        unterbrochen = true;
+        unterbrichChat();
+        dispatch({ art: "unterbrechen" });
+        return;
+      }
+      if (urteil === "vielleicht") starteAufnahme();
+      else if (aufnahmeRef.current && !aufnahmeRef.current.sitzung) verwirfAufnahme();
+      bild = window.requestAnimationFrame(schritt);
+    };
+    bild = window.requestAnimationFrame(schritt);
+    return () => {
+      window.cancelAnimationFrame(bild);
+      // Endet die Phase anders als durch Dazwischenreden (Antwort fertig, Tipp, Pause),
+      // gehoert ein Vorlauf nicht zur naechsten Frage: er kann das Echo der letzten Worte
+      // enthalten, und Himbi hoerte sich sonst selbst eine Frage stellen.
+      if (!unterbrochen && aufnahmeRef.current && !aufnahmeRef.current.sitzung) verwirfAufnahme();
+    };
+  }, [phase, dispatch, starteAufnahme, verwirfAufnahme]);
 
   // --- An den Chat-Zustand gekoppelt: denkt -> spricht -> wieder zuhoeren ---------------
+  // Direkt am Bus statt in einem Effekt auf chatStand: der Chat meldet seinen Stand aus
+  // einem eigenen Effekt (ki-chat.tsx), und hier wird im Rueckruf darauf reagiert.
   useEffect(() => {
-    if (phaseRef.current !== "denkt" && phaseRef.current !== "spricht") return;
-    if (chatStand.einwilligungFehlt) {
-      erteileEinwilligung();
-      return;
-    }
-    if (chatStand.fehler) {
-      setMeldung(tAktion("fehler.unbekannt"));
-      dispatch({ art: "unterbrechen" });
-      return;
-    }
-    const spricht = chatStand.spricht || chatStand.laedt;
-    if (spricht && phaseRef.current === "denkt") dispatch({ art: "antwort-spricht" });
-    if (!spricht && antwortFertig(chatStand)) {
+    const reagiere = () => {
+      const stand = leseChatStand();
       window.clearTimeout(ruheTimer.current);
-      // Kurze Gnadenfrist: zwischen Streamende und dem Anstoss des Vorlesens liegt ein
-      // Renderdurchlauf, ohne diese Pause hoerte die Kugel genau in diese Luecke hinein zu.
-      ruheTimer.current = window.setTimeout(() => dispatch({ art: "antwort-fertig" }), RUHE_VOR_ZUHOEREN_MS);
-    }
-    return () => window.clearTimeout(ruheTimer.current);
-  }, [chatStand, dispatch, tAktion]);
+      if (phaseRef.current !== "denkt" && phaseRef.current !== "spricht") return;
+      if (stand.einwilligungFehlt) {
+        erteileEinwilligung();
+        return;
+      }
+      if (stand.fehler) {
+        setMeldung(tAktion("fehler.unbekannt"));
+        dispatch({ art: "unterbrechen" });
+        return;
+      }
+      const spricht = stand.spricht || stand.laedt;
+      if (spricht && phaseRef.current === "denkt") dispatch({ art: "antwort-spricht" });
+      if (!spricht && antwortFertig(stand)) {
+        // Kurze Gnadenfrist: zwischen Streamende und dem Anstoss des Vorlesens liegt ein
+        // Renderdurchlauf, ohne diese Pause hoerte die Kugel genau in diese Luecke hinein zu.
+        ruheTimer.current = window.setTimeout(() => dispatch({ art: "antwort-fertig" }), RUHE_VOR_ZUHOEREN_MS);
+      }
+    };
+    return abonniereSprachBus(reagiere);
+  }, [dispatch, tAktion]);
 
-  useEffect(() => () => window.clearTimeout(ruheTimer.current), []);
+  // Alles schliessen, wenn der Sprachmodus endet.
+  useEffect(
+    () => () => {
+      window.clearTimeout(ruheTimer.current);
+      window.clearTimeout(neuTimer.current);
+      liveRef.current?.abbrechen();
+      liveRef.current = null;
+      verwirfAufnahme();
+      stromRef.current?.getTracks().forEach((s) => s.stop());
+      stromRef.current = null;
+      stoppeHoeren();
+    },
+    [verwirfAufnahme],
+  );
 
   // --- Bedienung --------------------------------------------------------------------------
+  const erneutVersuchen = useCallback(() => {
+    setMeldung(null);
+    fehlversuche.current = 0;
+    // fehler -> startet; ist das Mikrofon noch offen, gleich weiter zum Zuhoeren,
+    // sonst oeffnet der Effekt fuer "startet" es neu.
+    dispatch({ art: "fortsetzen" });
+    if (stromRef.current) dispatch({ art: "mikrofon-bereit" });
+  }, [dispatch]);
+
   const beiKugelKlick = useCallback(() => {
     entsperreTon();
+    if (phaseRef.current === "fehler") {
+      erneutVersuchen();
+      return;
+    }
     if (assistentIstDran(phaseRef.current)) {
       unterbrichChat();
       dispatch({ art: "unterbrechen" });
     }
-  }, [dispatch]);
+  }, [dispatch, erneutVersuchen]);
 
   const beenden = useCallback(() => {
     if (assistentIstDran(phaseRef.current)) unterbrichChat();
     liveRef.current?.abbrechen();
+    liveRef.current = null;
+    verwirfAufnahme();
     beendeSprachmodus();
-  }, [beendeSprachmodus]);
+  }, [beendeSprachmodus, verwirfAufnahme]);
 
   const pausieren = useCallback(() => {
-    if (phaseRef.current === "pausiert") {
+    if (phaseRef.current === "fehler") {
+      erneutVersuchen();
+    } else if (phaseRef.current === "pausiert") {
       dispatch({ art: "fortsetzen" });
     } else {
       if (assistentIstDran(phaseRef.current)) unterbrichChat();
+      window.clearTimeout(neuTimer.current);
       liveRef.current?.abbrechen();
       liveRef.current = null;
+      verwirfAufnahme();
       dispatch({ art: "pausieren" });
     }
-  }, [dispatch]);
+  }, [dispatch, erneutVersuchen, verwirfAufnahme]);
 
   // Escape beendet, wie bei der Buehne des Panels (ki-pane-kontext.tsx).
   useEffect(() => {
@@ -259,6 +457,7 @@ function SprachmodusInhalt() {
     : phase === "spricht" ? t("status.spricht")
     : phase === "pausiert" ? t("status.pausiert")
     : t("status.fehler");
+  const kugelBeschriftung = phase === "fehler" ? t("erneut") : assistentIstDran(phase) ? t("unterbrechen") : statusText;
 
   return (
     <div
@@ -293,8 +492,8 @@ function SprachmodusInhalt() {
           type="button"
           onClick={beiKugelKlick}
           className="ki-sprachmodus__kugel-knopf"
-          aria-label={assistentIstDran(phase) ? t("unterbrechen") : statusText}
-          title={assistentIstDran(phase) ? t("unterbrechen") : undefined}
+          aria-label={kugelBeschriftung}
+          title={phase === "fehler" || assistentIstDran(phase) ? kugelBeschriftung : undefined}
         >
           <SprachKugel
             zustand={kugelZustand}
@@ -324,8 +523,8 @@ function SprachmodusInhalt() {
           type="button"
           onClick={pausieren}
           aria-pressed={phase === "pausiert"}
-          aria-label={phase === "pausiert" ? t("fortsetzen") : t("stumm")}
-          title={phase === "pausiert" ? t("fortsetzen") : t("stumm")}
+          aria-label={phase === "fehler" ? t("erneut") : phase === "pausiert" ? t("fortsetzen") : t("stumm")}
+          title={phase === "fehler" ? t("erneut") : phase === "pausiert" ? t("fortsetzen") : t("stumm")}
           className="ki-sprachmodus__knopf"
         >
           {phase === "pausiert" ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}

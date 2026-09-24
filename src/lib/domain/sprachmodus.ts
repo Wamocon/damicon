@@ -10,16 +10,19 @@
 // supabase/tests/ki-assistent.mjs sie Fall fuer Fall pruefen kann:
 //
 //   1. der Ablauf des Gespraechs (wer ist dran?),
-//   2. wohin die Kugel rueckt, wenn ein Bereich hervorgehoben ist.
+//   2. wohin die Kugel rueckt, wenn ein Bereich hervorgehoben ist,
+//   3. was nach dem Abbruch einer Live-Sitzung geschieht,
+//   4. wann Dazwischenreden Himbi unterbricht.
 
 // --- 1. Ablauf ---------------------------------------------------------------------
 //
 // Halbduplex: entweder hoert die Kugel zu, oder der Assistent ist dran. Waehrend
 // der Assistent spricht, ist das Mikrofon nicht in der Erkennung - sonst hoerte
 // die Erkennung die eigene Stimme des Assistenten aus dem Lautsprecher und
-// antwortete sich selbst. Unterbrochen wird per Tipp auf die Kugel (oder die
-// Leertaste): das ist in lauter Umgebung (Hof, Halle) verlaesslicher als eine
-// Erkennung "der Nutzer spricht dazwischen", die auf jedes Geraeusch anspringt.
+// antwortete sich selbst. Unterbrochen wird wie im Gespraech durch Sprechen
+// (Abschnitt 4: nur, was deutlich lauter ist als Echo und Grundrauschen) oder
+// per Tipp auf die Kugel bzw. die Leertaste - der sichere Weg in lauter Umgebung
+// (Hof, Halle).
 
 export type Phase =
   /** Kein Sprachmodus. */
@@ -207,4 +210,117 @@ export function besterPlatz(
     ? frei.sort((a, b) => b.entfernung - a.entfernung || a.rang - b.rang)[0]!
     : kandidaten.sort((a, b) => a.deckt - b.deckt || b.entfernung - a.entfernung || a.rang - b.rang)[0]!;
   return { platz: auswahl.platz, rechteck: auswahl.rechteck };
+}
+
+// --- 3. Wenn die Live-Sitzung abbricht ---------------------------------------------
+//
+// Bis zum 24.09.2026 gab es darauf keine Antwort: kam kein Endpunkt, hoerte die Kugel
+// endlos zu. Jetzt entscheidet diese Regel, was nach einem Abbruch geschieht.
+
+/** So oft wird nach schnellen Abbruechen neu verbunden, bevor der Sprachmodus aufgibt. */
+export const MAX_NEUVERSUCHE = 2;
+/** Pause vor dem Neuverbinden. */
+export const NEUVERSUCH_MS = 500;
+/** Eine Sitzung, die so lange lief, ist nicht gescheitert, sondern an ihre Zeitgrenze
+ *  gestossen (SITZUNG_HOECHSTENS_S in domain/diktat-live.ts, derzeit 120 s). */
+export const LANGE_SITZUNG_MS = 15_000;
+
+export type NachAbbruch = "nicht-eingerichtet" | "stumm" | "neu-versuchen" | "aufgeben";
+
+/** Was nach dem Abbruch einer Live-Sitzung geschieht.
+ *
+ *    - Die Schluessel-Route sagt ab (401, 403, 404: nicht angemeldet, keine Berechtigung,
+ *      Live-Diktat aus): Neuverbinden hilft nicht, der Nutzer bekommt eine Meldung.
+ *    - Die Sitzung lief lange und hat nichts gehoert: niemand spricht. Stumm schalten
+ *      statt minutenlang Stille an die Erkennung zu schicken.
+ *    - Sonst neu verbinden. Nur schnelle Abbrueche zaehlen als Fehlversuch; nach
+ *      MAX_NEUVERSUCHE davon gibt der Sprachmodus mit einer Meldung auf. */
+export function nachSitzungsAbbruch(a: {
+  grund: string;
+  dauerMs: number;
+  gehoert: boolean;
+  fehlversucheBisher: number;
+}): { weiter: NachAbbruch; fehlversuche: number } {
+  if (/^schluessel-http-(401|403|404)$/.test(a.grund)) return { weiter: "nicht-eingerichtet", fehlversuche: a.fehlversucheBisher };
+  const lang = a.dauerMs >= LANGE_SITZUNG_MS;
+  if (lang && !a.gehoert) return { weiter: "stumm", fehlversuche: 0 };
+  const fehlversuche = (lang ? 0 : a.fehlversucheBisher) + 1;
+  return { weiter: fehlversuche > MAX_NEUVERSUCHE ? "aufgeben" : "neu-versuchen", fehlversuche };
+}
+
+// --- 4. Dazwischenreden -------------------------------------------------------------
+//
+// In einem Gespraech unterbricht man, indem man spricht. Die Schwierigkeit: waehrend
+// Himbi spricht, hoert das Mikrofon auch Himbi - aus dem Lautsprecher, gedaempft durch
+// die Echounterdrueckung des Browsers, aber nicht immer ganz. Drei Schranken halten
+// dieses Echo davon ab, Himbi selbst zu unterbrechen:
+//
+//   1. Mindestpegel: leises Murmeln und Raumgeraeusche zaehlen nie.
+//   2. Grundrauschen: gemessen in den Pausen der Ausgabe; Sprache muss deutlich darueber
+//      liegen (dasselbe Prinzip wie beim Diktat, domain/diktat.ts).
+//   3. Echo: das Mikrofon muss lauter sein als ein Bruchteil dessen, was gerade
+//      ausgegeben wird - samt Nachhall, denn das Echo kommt verzoegert an und klingt nach.
+//
+// Und erst durchgehende Sprache von dauerMs loest aus, kein einzelner Knall. Kurze
+// Luecken zwischen Silben zaehlen dabei nur halb dagegen (leckender Zaehler).
+//
+// Die Werte sind Ausgangswerte auf derselben Skala wie das Diktat (RMS 0..1) und am
+// echten Geraet nachzuziehen. Im Zweifel unterbricht die Kugel lieber nicht: ein Tipp
+// auf die Kugel bleibt immer der sichere Weg.
+
+export interface UnterbrechenEinstellungen {
+  mindestPegel: number;
+  rauschFaktor: number;
+  /** Was als Grundrauschen durchgeht, wie DiktatEinstellungen.rauschDeckel. */
+  rauschDeckel: number;
+  /** Das Mikrofon muss lauter sein als dieses Vielfache der (nachhallenden) Ausgabe. */
+  echoFaktor: number;
+  /** Zeitkonstante des Nachhalls der Ausgabe. */
+  nachhallMs: number;
+  /** So lange muss durchgehend gesprochen werden. */
+  dauerMs: number;
+}
+
+export const UNTERBRECHEN_STANDARD: UnterbrechenEinstellungen = {
+  mindestPegel: 0.04,
+  rauschFaktor: 3,
+  rauschDeckel: 0.1,
+  echoFaktor: 0.5,
+  nachhallMs: 300,
+  dauerMs: 400,
+};
+
+/** "vielleicht": es klingt nach Sprache, aber noch nicht lange genug - Zeit, eine
+ *  Aufnahme mitlaufen zu lassen, damit der Anfang des Satzes nicht verloren geht. */
+export type UnterbrechenUrteil = "still" | "vielleicht" | "unterbrechen";
+
+export interface UnterbrechungsWaechter {
+  /** mikrofon und ausgabe: RMS 0..1. jetztMs: monoton steigend (performance.now()). */
+  melde(mikrofon: number, ausgabe: number, jetztMs: number): UnterbrechenUrteil;
+}
+
+export function erzeugeUnterbrechungsWaechter(e: UnterbrechenEinstellungen = UNTERBRECHEN_STANDARD): UnterbrechungsWaechter {
+  let zuletztMs: number | null = null;
+  let nachhall = 0;
+  let grundrauschen = Number.POSITIVE_INFINITY;
+  let gesprochenMs = 0;
+  return {
+    melde(mikrofon, ausgabe, jetztMs) {
+      // Hoechstens 100 ms je Schritt: nach einem Tab-Wechsel steht die Bildschleife, und
+      // die ganze Pause auf einmal gezaehlt waere ein Sprung.
+      const dt = zuletztMs === null ? 0 : Math.min(100, Math.max(0, jetztMs - zuletztMs));
+      zuletztMs = jetztMs;
+      nachhall = Math.max(ausgabe, nachhall * Math.exp(-dt / e.nachhallMs));
+      // Grundrauschen nur, wenn die Ausgabe schweigt - sonst waere das Echo das Rauschen.
+      if (nachhall < 0.01 && mikrofon <= e.rauschDeckel) grundrauschen = Math.min(grundrauschen, mikrofon);
+      const schwelle = Math.max(
+        e.mindestPegel,
+        Number.isFinite(grundrauschen) ? grundrauschen * e.rauschFaktor : 0,
+        nachhall * e.echoFaktor,
+      );
+      gesprochenMs = mikrofon > schwelle ? gesprochenMs + dt : Math.max(0, gesprochenMs - 2 * dt);
+      if (gesprochenMs >= e.dauerMs) return "unterbrechen";
+      return gesprochenMs > 0 ? "vielleicht" : "still";
+    },
+  };
 }

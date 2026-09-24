@@ -536,7 +536,7 @@ export const en: HandbuchTexte = {
       },
       {
         begriff: "Voice mode",
-        text: "A live conversation with the assistant without a visible chat: a bubble reacts to the voice, and the assistant can jump to and highlight a section on its own.",
+        text: "A live conversation with the assistant without a visible chat: a bubble reacts to the voice, and the assistant can jump to and highlight a section on its own. Interrupt as in a conversation: just start talking, or tap the bubble.",
       },
       { begriff: "WAMOCON", text: "WAMOCON GmbH — client and developer of Damicon." },
     ],

@@ -101,10 +101,16 @@ import {
   antwortFertig,
   assistentIstDran,
   besterPlatz,
+  erzeugeUnterbrechungsWaechter,
+  LANGE_SITZUNG_MS,
+  MAX_NEUVERSUCHE,
+  nachSitzungsAbbruch,
   naechstePhase,
   nimmtAuf,
   PLAETZE,
+  UNTERBRECHEN_STANDARD,
 } from "../../src/lib/domain/sprachmodus.ts";
+import { waehleSchritt } from "../../src/lib/ai/schritt-steuerung.ts";
 import { erzeugeWarteschlange, HOECHSTENS_GLEICHZEITIG } from "../../src/lib/domain/sprachausgabe-warteschlange.ts";
 import { ANFANG, DARSTELLUNG_SCHLUESSEL, istDarstellung, naechsterZustand, NUTZER_SCHLUESSEL, OFFEN_SCHLUESSEL } from "../../src/lib/domain/ki-ansicht.ts";
 import { agentSeitenansichtAn, diktatLiveAn, schalterAn, sprachausgabeLiveAn } from "../../src/lib/domain/schalter.ts";
@@ -2363,7 +2369,7 @@ for (const [name, kaputteAntwort] of [
     const uiSteuerungQuelle = readFileSync(new URL("../../src/components/ki/ui-steuerung.ts", import.meta.url), "utf8");
     pruefe("Sprachmodus-Werkzeuge: Klicken und Ausfuellen sind bei nurZeigen gesperrt", uiSteuerungQuelle.includes("umgebung.nurZeigen && (name ===") );
     const schrittQuelle = readFileSync(new URL("../../src/lib/ai/schritt-steuerung.ts", import.meta.url), "utf8");
-    pruefe("Sprachmodus: der erste Schritt einer neuen Frage MUSS ein Werkzeug rufen, wie im Agent-Modus", schrittQuelle.includes('e.modus === "agent" || e.modus === "sprache") return { toolChoice: "required" };'));
+    pruefe("Agent-Modus: der erste Schritt einer neuen Frage MUSS ein Werkzeug rufen", schrittQuelle.includes('if (e.modus === "agent") return { toolChoice: "required" };'));
     const routeQuelle = readFileSync(new URL("../../src/app/api/ki-assistent/route.ts", import.meta.url), "utf8");
     pruefe("Route: der Sprachmodus bekommt oberflaeche 'zeigen' und nurLesen (keine Aktionen)", routeQuelle.includes('nurLesen: modus === "sprache"') && routeQuelle.includes('modus === "sprache" ? "zeigen"'));
     pruefe("Route: der Sprachmodus nutzt eine eigene, kuerzere Formatanweisung", routeQuelle.includes('modus === "sprache" ? sprachmodusFormatAnweisung(antwortSprache) : formatAnweisung(antwortSprache)'));
@@ -2382,6 +2388,114 @@ for (const [name, kaputteAntwort] of [
     pruefe("Layout: sprachmodusMoeglich braucht Anthropic-Anbieter UND diktatLiveAn()", layoutQuelle.includes('sprachmodusMoeglich={aktiverAnbieter?.typ === "anthropic" && diktatLiveAn()}'));
     const topbarQuelle = readFileSync(new URL("../../src/components/dashboard/topbar.tsx", import.meta.url), "utf8");
     pruefe("Kopfzeile: der Sprachmodus-Knopf prueft verfuegbar UND sprachmodusMoeglich", topbarQuelle.includes("if (!verfuegbar || !sprachmodusMoeglich) return null;"));
+  }
+}
+
+// --- 18. Sprachmodus als echtes Live-Gespraech (24.09.2026) ------------------------------
+// Rueckmeldung nach dem ersten Test: kein Live-Gefuehl. Gefunden: (1) Vor dem ersten Werkzeug
+// war Himbi stumm (toolChoice "required" erlaubt bei Anthropic keinen Satz davor), (2) ab der
+// zweiten Aeusserung fehlte der Aufnahme der Dateikopf, (3) die Kugel bekam nie den Pegel der
+// eigenen Stimme, (4) eine gescheiterte Live-Sitzung liess die Kugel endlos zuhoeren. Neu:
+// Dazwischenreden wie im Gespraech.
+{
+  // (a) Erster Schritt: im Sprachmodus frei, damit ein Vorab-Satz sofort vorgelesen wird.
+  const frage = { stepNumber: 0, neueNutzerFrage: true, frage: "Was muss ich heute im Büro machen?", wissenAngeboten: true };
+  pruefe("Schritt: Sprachmodus erzwingt im ersten Schritt KEIN Werkzeug (Satz vor dem Werkzeug erlaubt)", waehleSchritt({ ...frage, modus: "sprache" }) === undefined);
+  pruefe("Schritt: Agent-Modus erzwingt weiterhin ein Werkzeug", waehleSchritt({ ...frage, modus: "agent" })?.toolChoice === "required");
+  pruefe("Schritt: Rechtsfrage im Sprachmodus bleibt bei der erzwungenen Wissenssuche", JSON.stringify(waehleSchritt({ ...frage, modus: "sprache", frage: "Ab wann muss ich mich für die Mehrwertsteuer registrieren?" })?.toolChoice) === JSON.stringify({ type: "tool", toolName: "wissenSuchen" }));
+  pruefe("Schritt: Zweckentfremdung bleibt auch im Sprachmodus ohne Werkzeuge", waehleSchritt({ ...frage, modus: "sprache", ausserhalb: true })?.toolChoice === "none");
+  for (const sprache of ["de", "en", "ru", "kk"]) {
+    const anweisung = sprachmodusFormatAnweisung(sprache);
+    pruefe(`Sprachmodus-Anweisung ${sprache}: kurzer Vorab-Satz vor dem Werkzeug, im selben Schritt`, anweisung.includes("höchstens acht Wörtern") && anweisung.includes("im selben Schritt das passende Werkzeug"));
+    pruefe(`Sprachmodus-Anweisung ${sprache}: keine Antwort aus dem Gedächtnis, jedes Mal Werkzeuge`, anweisung.includes("rufe jedes Mal die Werkzeuge auf"));
+  }
+
+  // (b) Nach einem Abbruch der Live-Sitzung.
+  const abbruch = (grund, dauerMs, gehoert, fehlversucheBisher = 0) => nachSitzungsAbbruch({ grund, dauerMs, gehoert, fehlversucheBisher });
+  pruefe("Abbruch: Route sagt 404 (Live-Diktat aus) -> Meldung, kein Neuversuch", abbruch("schluessel-http-404", 200, false).weiter === "nicht-eingerichtet");
+  pruefe("Abbruch: 401/403 ebenso", abbruch("schluessel-http-401", 200, false).weiter === "nicht-eingerichtet" && abbruch("schluessel-http-403", 200, false).weiter === "nicht-eingerichtet");
+  pruefe("Abbruch: 429/500 sind voruebergehend -> neu verbinden", abbruch("schluessel-http-429", 200, false).weiter === "neu-versuchen" && abbruch("schluessel-http-500", 200, false).weiter === "neu-versuchen");
+  pruefe("Abbruch: schneller Verbindungsfehler -> neu verbinden, zaehlt als Fehlversuch", JSON.stringify(abbruch("websocket-fehler", 300, false)) === JSON.stringify({ weiter: "neu-versuchen", fehlversuche: 1 }));
+  pruefe(`Abbruch: nach ${MAX_NEUVERSUCHE} schnellen Fehlversuchen gibt er mit Meldung auf`, abbruch("websocket-fehler", 300, false, MAX_NEUVERSUCHE).weiter === "aufgeben");
+  pruefe("Abbruch: lange Sitzung ohne Gehoertes (Zeitgrenze, niemand spricht) -> stumm schalten statt Stille zu senden", JSON.stringify(abbruch("websocket-geschlossen", LANGE_SITZUNG_MS + 1, false, 2)) === JSON.stringify({ weiter: "stumm", fehlversuche: 0 }));
+  pruefe("Abbruch: lange Sitzung MIT Gehoertem -> neu verbinden, Zaehler von vorn", JSON.stringify(abbruch("websocket-geschlossen", LANGE_SITZUNG_MS + 1, true, 2)) === JSON.stringify({ weiter: "neu-versuchen", fehlversuche: 1 }));
+
+  // (c) Dazwischenreden: Bildschleife mit 16 ms je Schritt nachgespielt.
+  const spiele = (verlauf, einstellungen) => {
+    const w = erzeugeUnterbrechungsWaechter(einstellungen);
+    let t = 0;
+    const urteile = [];
+    for (const [mikrofon, ausgabe, ms] of verlauf) {
+      for (let i = 0; i < ms; i += 16) {
+        urteile.push(w.melde(mikrofon, ausgabe, t));
+        t += 16;
+      }
+    }
+    return urteile;
+  };
+  const d = UNTERBRECHEN_STANDARD.dauerMs;
+  {
+    // Himbi spricht laut (Ausgabe 0.2), das Mikrofon hoert nur gedaempftes Echo (0.06).
+    const u = spiele([[0.002, 0, 300], [0.06, 0.2, 3000]]);
+    pruefe("Dazwischenreden: Echo der eigenen Stimme unterbricht NICHT", !u.includes("unterbrechen"), u.at(-1));
+  }
+  {
+    // Echo, dann spricht der Nutzer deutlich (0.2) ueber die Ausgabe hinweg.
+    const u = spiele([[0.002, 0, 300], [0.06, 0.2, 1000], [0.2, 0.2, d + 200]]);
+    pruefe("Dazwischenreden: deutliche Stimme ueber der Ausgabe unterbricht", u.includes("unterbrechen"));
+    const erstes = u.indexOf("unterbrechen");
+    const beginn = Math.ceil(300 / 16) + Math.ceil(1000 / 16);
+    pruefe("Dazwischenreden: erst nach durchgehender Sprache von dauerMs, nicht sofort", (erstes - beginn) * 16 >= d - 16, `${(erstes - beginn) * 16} ms`);
+    pruefe("Dazwischenreden: davor 'vielleicht' (Zeit fuer den Vorlauf der Aufnahme)", u.slice(beginn, erstes).every((x) => x === "vielleicht") && erstes > beginn);
+  }
+  {
+    // Ein kurzer Knall (Tuer, Husten) von 150 ms reicht nicht.
+    const u = spiele([[0.002, 0, 300], [0.3, 0.1, 150], [0.01, 0.1, 1000]]);
+    pruefe("Dazwischenreden: ein kurzer Knall unterbricht nicht", !u.includes("unterbrechen"));
+    pruefe("Dazwischenreden: nach dem Knall wieder 'still' (Vorlauf wird verworfen)", u.at(-1) === "still");
+  }
+  {
+    // Nachhall: die Ausgabe verstummt kurz zwischen zwei Saetzen, das Echo klingt im Raum nach.
+    const u = spiele([[0.002, 0, 300], [0.08, 0.2, 1000], [0.07, 0, 200], [0.06, 0.2, 1000]]);
+    pruefe("Dazwischenreden: Nachhall in einer Satzpause unterbricht nicht", !u.includes("unterbrechen"));
+  }
+  {
+    // Lauter Hof: Grundrauschen 0.05, gemessen in einer Ausgabepause. Gleich lautes Geraeusch
+    // waehrend Himbi spricht, ist kein Dazwischenreden, deutlich lautere Sprache schon.
+    const laerm = spiele([[0.05, 0, 400], [0.06, 0.05, 2000]]);
+    pruefe("Dazwischenreden: Laerm in Hoehe des Grundrauschens unterbricht nicht", !laerm.includes("unterbrechen"));
+    const stimme = spiele([[0.05, 0, 400], [0.25, 0.05, d + 200]]);
+    pruefe("Dazwischenreden: Sprache deutlich ueber dem Laerm unterbricht", stimme.includes("unterbrechen"));
+  }
+  {
+    // Silbenluecken: 100 ms Sprache, 40 ms Pause im Wechsel - der leckende Zaehler traegt das.
+    const silben = [];
+    for (let i = 0; i < 12; i++) silben.push([0.2, 0.1, 96], [0.01, 0.1, 32]);
+    const u = spiele([[0.002, 0, 300], ...silben]);
+    pruefe("Dazwischenreden: normale Sprache mit Silbenluecken unterbricht trotzdem", u.includes("unterbrechen"));
+  }
+
+  // (d) Verdrahtung im Browser (Quelltext, die Bausteine laufen nur im Browser).
+  const modus = readFileSync(new URL("../../src/components/ki/sprachmodus.tsx", import.meta.url), "utf8");
+  const live = readFileSync(new URL("../../src/components/ki/diktat-live.ts", import.meta.url), "utf8");
+  const hoeren = readFileSync(new URL("../../src/lib/hoeren.ts", import.meta.url), "utf8");
+  pruefe("Aufnahme: je Aeusserung ein neuer MediaRecorder (erstes Stueck = Dateikopf)", modus.includes("const recorder = new MediaRecorder(strom);") && /const beginneAeusserung = useCallback\(\(\) => \{[\s\S]*?const aufnahme = starteAufnahme\(\);/.test(modus));
+  pruefe("Aufnahme: kein pause()/resume() eines Recorders fuer die ganze Sitzung mehr", !/recorder\.(pause|resume)\(\)/.test(modus));
+  pruefe("Aufnahme: das letzte Stueck geht vor dem Ende-Zeichen an die Sitzung", /schliesseAufnahme\(\)\s*\.then\([^)]*\): Promise<LiveErgebnis> \| LiveErgebnis => \(sitzung \? sitzung\.beende\(\)/.test(modus));
+  pruefe("Aufnahme: Mikrofonstrom bleibt fuer die ganze Sitzung offen (iOS-Audiosession)", (modus.match(/getUserMedia\(/g) ?? []).length === 1 && modus.includes("stromRef.current?.getTracks().forEach((s) => s.stop());"));
+  pruefe("Kugel: bekommt den Pegel der eigenen Stimme (starteHoeren) und gibt ihn wieder frei", modus.includes("starteHoeren(strom);") && modus.includes("stoppeHoeren();"));
+  pruefe("Echo: im Gespraech mit Echounterdrueckung, sonst wie beim Diktat", modus.includes("const GESPRAECH_AUFNAHME: MediaTrackConstraints = { ...AUFNAHME_VORGABEN, echoCancellation: true };") && modus.includes("getUserMedia({ audio: GESPRAECH_AUFNAHME })"));
+  pruefe("Abbruch: der Sprachmodus hoert auf das Scheitern der Sitzung", modus.includes("beiScheitern: (grund) => {") && modus.includes("nachSitzungsAbbruch({"));
+  pruefe("Abbruch: diktat-live meldet ein Scheitern nur vor beende()/abbrechen()", live.includes("if (!beendet) beiScheitern?.(grund);") && /abbrechen\(\) \{\s*beendet = true;/.test(live));
+  pruefe("Dazwischenreden: nur waehrend Himbi spricht, mit Mikrofon- und Ausgabepegel", /if \(phase !== "spricht"\) return;\s*const waechter = erzeugeUnterbrechungsWaechter\(\);/.test(modus) && modus.includes("waechter.melde(leseLautstaerke(), leseAusgabePegel(), performance.now())"));
+  pruefe("Dazwischenreden: Vorlauf ohne Unterbrechung wird verworfen (kein Echo als Frage)", modus.includes("if (!unterbrochen && aufnahmeRef.current && !aufnahmeRef.current.sitzung) verwirfAufnahme();"));
+  pruefe("Lautstaerke: RMS auf der Skala des Diktats (pegelAusZeitbereich)", hoeren.includes("lautstaerke = pegelAusZeitbereich(zeitRoh);") && hoeren.includes("export function leseLautstaerke(): number"));
+  pruefe("Komponente: keine abgeschaltete Hook-Pruefung mehr", !modus.includes("eslint-disable"));
+
+  // (e) Texte in allen vier Sprachen.
+  for (const sprache of ["de", "en", "ru", "kk"]) {
+    const texte = JSON.parse(readFileSync(new URL(`../../src/messages/${sprache}.json`, import.meta.url), "utf8")).kiAssistentAnsicht.sprachmodus;
+    pruefe(`Texte ${sprache}: liveFehlt, verbindungFehlt, erneut vorhanden`, ["liveFehlt", "verbindungFehlt", "erneut"].every((k) => typeof texte[k] === "string" && texte[k].length > 3), JSON.stringify(Object.keys(texte)));
   }
 }
 

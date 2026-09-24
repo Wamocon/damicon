@@ -55,6 +55,7 @@ export function starteLiveSitzung({
   zweck = "diktat",
   beiStand,
   beiEndpunkt,
+  beiScheitern,
 }: {
   sprache: string;
   /** "gespraech" im Sprachmodus: schnellere Endpunkterkennung (GESPRAECH_ENDPUNKT). */
@@ -63,6 +64,11 @@ export function starteLiveSitzung({
   beiStand: (stand: SammelStand) => void;
   /** Das Modell hat das Ende der Aeusserung erkannt. */
   beiEndpunkt: () => void;
+  /** Die Sitzung ist gescheitert, bevor beende() oder abbrechen() gerufen wurde
+   *  (Schluessel, Verbindung, Dienst). Der Diktatknopf braucht das nicht - er
+   *  faellt bei beende() auf den Datei-Weg zurueck. Der Sprachmodus schon: ohne
+   *  diese Meldung kaeme nie ein Endpunkt, und die Kugel hoerte endlos zu. */
+  beiScheitern?: (grund: string) => void;
 }): LiveSitzung {
   const sammler = erzeugeTokenSammler();
   let ws: WebSocket | null = null;
@@ -97,6 +103,7 @@ export function starteLiveSitzung({
     } catch {
       // schon zu
     }
+    if (!beendet) beiScheitern?.(grund);
   };
 
   const aufbau = setTimeout(() => {
