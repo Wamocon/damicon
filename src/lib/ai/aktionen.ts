@@ -35,6 +35,10 @@ import { reklamationGruende } from "@/lib/domain/reklamationen";
 import { zielFuerModul, ZIEL_MWST } from "@/lib/ai/ziele";
 
 const datum = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format JJJJ-MM-TT");
+// Datum mit Uhrzeit in Betriebszeit Almaty, wie das Formularfeld datetime-local.
+const datumUhrzeit = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Format JJJJ-MM-TTTHH:MM");
 
 function formular(felder: Record<string, string | number | null | undefined>): FormData {
   const daten = new FormData();
@@ -88,12 +92,13 @@ const mwstPruefen = tool({
 
 const aufgabeAnlegenWerkzeug = tool({
   description:
-    "Legt eine Pflückaufgabe für einen Reihenblock an (Status 'offen'). Der Reihenblock wird über seinen Code angegeben (z. B. 'A-03'); schlage den Code per datenLesen nach, wenn der Nutzer ihn nicht nennt. Blocks in der Wartezeit werden abgelehnt.",
+    "Legt eine Pflückaufgabe für einen Reihenblock an (Status 'offen'). Der Reihenblock wird über seinen Code angegeben (z. B. 'A-03'); schlage den Code per datenLesen nach, wenn der Nutzer ihn nicht nennt. Die Fälligkeit ist Pflicht, mit Datum und Uhrzeit in Betriebszeit Almaty: nennt der Nutzer sie nicht vollständig, frage nach, statt eine Uhrzeit zu erfinden. Blocks in der Wartezeit werden abgelehnt.",
   inputSchema: z.object({
     reihenblockCode: z.string().min(1).max(40),
     zielmengeKg: z.number().positive().max(100000),
     pflueckerAnzahl: z.number().int().min(0).max(500).optional(),
-    faelligkeit: datum.optional().describe("Fälligkeitsdatum JJJJ-MM-TT"),
+    // Pflicht seit WMCNL-2488, wie im Formular und in der Server-Aktion.
+    faelligkeit: datumUhrzeit.describe("Fälligkeit in Betriebszeit Almaty, JJJJ-MM-TTTHH:MM"),
   }),
   needsApproval: true,
   execute: async ({ reihenblockCode, zielmengeKg, pflueckerAnzahl, faelligkeit }) => {
@@ -108,7 +113,10 @@ const aufgabeAnlegenWerkzeug = tool({
         faelligkeit,
       }),
     );
-    return ergebnis(status, zielFuerModul("pflueckaufgaben", rolle));
+    // Die neue Aufgabe gleich in der Detailansicht oeffnen, wie nach dem
+    // Anlegen im Formular.
+    const modul = zielFuerModul("pflueckaufgaben", rolle);
+    return ergebnis(status, modul && status.id ? `${modul}?aufgabe=${status.id}` : modul);
   },
 });
 

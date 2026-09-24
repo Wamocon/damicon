@@ -19,6 +19,7 @@ import {
   generiereTicketCode,
   protokolliere as protokolliereBasis,
 } from "@/lib/actions/formular-helfer";
+import { wandzeitZuUtc } from "@/lib/listen/zeitraum";
 
 // Vorstufe zu Anforderung 2.5 (Offline-first): aufgabeStatusSetzen() und
 // mengeMelden() aktualisierten bisher blind per .eq("id", id), ohne den
@@ -63,7 +64,13 @@ export async function aufgabeAnlegen(
 
   const blockId = text(formData, "reihenblock_id");
   const zielmenge = zahl(formData, "zielmenge_kg");
-  if (!blockId || zielmenge === null) return fehler("fehler.eingabe");
+  // Pflichtfeld seit WMCNL-2488: Datum UND Uhrzeit, gelesen in Betriebszeit
+  // Almaty ("2026-09-24T14:30" aus datetime-local, dasselbe Format vom
+  // KI-Werkzeug). Ein reines Datum reicht nicht mehr - frueher wurde es als
+  // Mitternacht UTC gespeichert, in Almaty also 5 Uhr frueh desselben Tages.
+  const faelligkeitRoh = text(formData, "faelligkeit");
+  const faelligkeit = /T\d{2}:\d{2}/.test(faelligkeitRoh) ? wandzeitZuUtc(faelligkeitRoh) : null;
+  if (!blockId || zielmenge === null || !faelligkeit) return fehler("fehler.eingabe");
 
   const supabase = await createClient();
 
@@ -80,8 +87,6 @@ export async function aufgabeAnlegen(
 
   const code = generiereTicketCode("PA");
 
-  const faelligkeit = text(formData, "faelligkeit");
-
   const { data, error } = await supabase
     .from("pflueckaufgaben")
     .insert({
@@ -91,7 +96,7 @@ export async function aufgabeAnlegen(
       brigade_id: text(formData, "brigade_id") || null,
       zielmenge_kg: zielmenge,
       pfluecker_anzahl: zahl(formData, "pfluecker_anzahl") ?? 0,
-      faelligkeit: faelligkeit ? new Date(faelligkeit).toISOString() : null,
+      faelligkeit: faelligkeit.toISOString(),
       status: "offen",
     })
     .select("id, code")
@@ -104,7 +109,8 @@ export async function aufgabeAnlegen(
     block: block.code,
   });
   aktualisiere(formData);
-  return ok("ok.aufgabe", data.code);
+  // Die ID oeffnet die neue Aufgabe danach in der Detailansicht.
+  return { ...ok("ok.aufgabe", data.code), id: data.id };
 }
 
 // ---------------------------------------------------------------------------

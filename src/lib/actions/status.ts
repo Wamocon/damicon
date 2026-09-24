@@ -8,6 +8,9 @@ export interface AktionsStatus {
   meldung?: string;
   /** Zusatzangabe fuer Meldungen mit Platzhalter, z. B. der Blockcode. */
   wert?: string;
+  /** ID eines neu angelegten Datensatzes. Die Oberflaeche oeffnet ihn danach in
+   *  der Detailansicht (Liste mit Detailansicht, WMCNL-2488). */
+  id?: string;
   /** Nur beim Diktat: die Sprachen, die der Dienst gehoert hat. Sie
    *  entscheiden ueber die Antwortsprache (domain/antwortsprache.ts) und
    *  muessen deshalb bis in den Browser und von dort zurueck. */
