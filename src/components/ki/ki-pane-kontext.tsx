@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "@/i18n/navigation";
+import { useScrollSperre } from "@/components/ui/scroll-sperre";
 import {
   ANFANG,
   DARSTELLUNG_SCHLUESSEL,
@@ -49,6 +50,12 @@ export interface PruefBezug {
   kontext: string;
 }
 
+export interface Anstoss {
+  nr: number;
+  frage: string;
+  zurPruefung: boolean;
+}
+
 export interface KiFuehrung {
   label: string;
   ziel: string;
@@ -79,8 +86,10 @@ interface KiPaneWert {
   /** Oeffnet den Chat mit dem Bericht als Grundlage und stellt die erste Frage. */
   starteGespraechZurPruefung: (bezug: PruefBezug, frage: string) => void;
   entferneBezug: () => void;
-  /** Frage, die der Chat als Naechstes stellen soll (nr zaehlt hoch, damit dieselbe Frage zweimal geht). */
-  anstoss: { nr: number; frage: string } | null;
+  /** Frage, die der Chat als Naechstes stellen soll (nr zaehlt hoch, damit dieselbe Frage zweimal geht).
+   *  zurPruefung: die Frage gilt einem Pruefbericht (starteGespraechZurPruefung) und ergibt nur
+   *  mit diesem Bericht als Grundlage Sinn. */
+  anstoss: Anstoss | null;
   /** Oeffnet den Chat und stellt die Frage, als haette man sie getippt. Modus und Pruefbezug
    *  bleiben, wie sie sind - anders als bei starteGespraechZurPruefung. Fuer "KI fragen" in der
    *  globalen Suche. */
@@ -209,7 +218,7 @@ export function KiPaneProvider({
   const [zeiger, setZeiger] = useState<KiZeiger | null>(null);
   const zeigerTimer = useRef<number | undefined>(undefined);
   const [pruefBezug, setPruefBezug] = useState<PruefBezug | null>(null);
-  const [anstoss, setAnstoss] = useState<{ nr: number; frage: string } | null>(null);
+  const [anstoss, setAnstoss] = useState<Anstoss | null>(null);
   const anstossNr = useRef(0);
   const [tourLaeuft, setTourLaeuft] = useState(false);
 
@@ -283,11 +292,20 @@ export function KiPaneProvider({
     }
   }, []);
 
+  // Stellt eine Frage von aussen und oeffnet den Chat - fuer die globale Suche
+  // wie fuer den Pruefbericht.
+  const stosseAn = useCallback(
+    (frage: string, zurPruefung: boolean) => {
+      setAnstoss({ nr: ++anstossNr.current, frage, zurPruefung });
+      setOffen(true);
+    },
+    [setOffen],
+  );
+
   const starteGespraechZurPruefung = useCallback(
     (bezug: PruefBezug, frage: string) => {
       speichereBezug(bezug);
-      setAnstoss({ nr: ++anstossNr.current, frage });
-      setOffen(true);
+      stosseAn(frage, true);
       // Immer im Assistent-Modus, unabhaengig davon, was zuletzt eingestellt war: im
       // Agent-Modus oeffnet JEDES Werkzeugergebnis mit einem Ziel automatisch die
       // zugehoerige Ansicht im Hauptfenster (siehe ki-chat.tsx, "Agent-Modus"-Effekt) - ein
@@ -297,18 +315,12 @@ export function KiPaneProvider({
       // anbieten (gemeldet am 23.09.2026).
       setModus("assistent");
     },
-    [speichereBezug, setOffen, setModus],
+    [speichereBezug, stosseAn, setModus],
   );
 
   const entferneBezug = useCallback(() => speichereBezug(null), [speichereBezug]);
 
-  const frageStellen = useCallback(
-    (frage: string) => {
-      setAnstoss({ nr: ++anstossNr.current, frage });
-      setOffen(true);
-    },
-    [setOffen],
-  );
+  const frageStellen = useCallback((frage: string) => stosseAn(frage, false), [stosseAn]);
 
   const setDarstellung = useCallback((neu: KiDarstellung) => {
     setDarstellungState(neu);
@@ -359,14 +371,7 @@ export function KiPaneProvider({
   }, [offen, darstellung, setOffen]);
 
   // Solange die Buehne steht, scrollt die Seite dahinter nicht mit.
-  useEffect(() => {
-    if (!offen || darstellung !== "buehne") return;
-    const vorher = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = vorher;
-    };
-  }, [offen, darstellung]);
+  useScrollSperre(offen && darstellung === "buehne");
 
   const naechsteStation = useCallback(
     function station() {

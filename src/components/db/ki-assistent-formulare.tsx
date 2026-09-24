@@ -103,6 +103,10 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
   // dann steht die Frage nur im Feld, wie ein Diktat vom Mikrofon. Sonst geht
   // sie gleich ab. Gelesen im Ereignis, damit der Effekt nur auf einen neuen
   // Anstoss hin laeuft und nicht bei jeder Antwort erneut.
+  //
+  // Fragen zu einem Pruefbericht bleiben aussen vor: dieser Chat schickt nur
+  // den Text (lib/actions/ki-assistent.ts), der Bericht kaeme nicht mit, und
+  // das Modell antwortete auf etwas, das es nie gesehen hat.
   const letzterAnstoss = useRef(0);
   const nimmAnstoss = useEffectEvent((frage: string) => {
     const feld = eingabeRef.current;
@@ -114,7 +118,7 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
   useEffect(() => {
     if (!anstoss || anstoss.nr === letzterAnstoss.current) return;
     letzterAnstoss.current = anstoss.nr;
-    nimmAnstoss(anstoss.frage);
+    if (!anstoss.zurPruefung) nimmAnstoss(anstoss.frage);
   }, [anstoss]);
 
   return (
