@@ -28,7 +28,7 @@ import {
   type Phase,
 } from "@/lib/domain/sprachmodus";
 import { AUFNAHME_STUECK_MS, AUFNAHME_VORGABEN } from "@/lib/domain/diktat";
-import { textFuerSprachausgabe } from "@/lib/domain/sprachausgabe";
+import { Markdown } from "@/components/ki/ki-chat";
 import { starteLiveSitzung, type LiveErgebnis, type LiveSitzung } from "@/components/ki/diktat-live";
 import { cn } from "@/lib/utils";
 
@@ -543,9 +543,11 @@ function SprachmodusInhalt() {
           ) : (chatStand.antwort || phase === "spricht" || phase === "denkt") ? (
             // Nie das rohe Markdown der Antwort ("**fett**", "1. ...") - das
             // stand bis zum 25.09.2026 unbereinigt im Untertitel, bei
-            // laengeren Antworten kaum lesbar. Dieselbe Aufbereitung wie
-            // fuers Vorlesen: der Untertitel zeigt, was auch gesagt wird.
-            <p className="ki-sprachmodus__untertitel-zeile">{textFuerSprachausgabe(chatStand.antwort)}</p>
+            // laengeren Antworten kaum lesbar. Dieselbe Markdown-Darstellung
+            // wie im sichtbaren Chat (Absaetze, Fettdruck, Listen).
+            <div className="ki-sprachmodus__untertitel-zeile">
+              <Markdown text={chatStand.antwort} />
+            </div>
           ) : null}
         </div>
       ) : null}

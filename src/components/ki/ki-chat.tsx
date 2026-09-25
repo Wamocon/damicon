@@ -171,7 +171,11 @@ const MarkdownBlock = memo(function MarkdownBlock({ text }: { text: string }) {
   );
 });
 
-const Markdown = memo(function Markdown({ text }: { text: string }) {
+// Exportiert: der Sprachmodus (sprachmodus.tsx) zeigt seinen Untertitel damit
+// statt roh - "**fett**" und "1. 2. 3." standen sonst als Zeichen da, nicht
+// als Formatierung, bei laengeren Antworten kaum lesbar (Rueckmeldung vom
+// 25.09.2026). Dieselbe, fuers Streamen schon optimierte Komponente.
+export const Markdown = memo(function Markdown({ text }: { text: string }) {
   // Zerlegung des vorigen Renders mitfuehren (React-Muster "Werte aus dem
   // vorigen Render ableiten"), damit zerlege() nur den Zuwachs verarbeitet.
   const [zerlegung, setZerlegung] = useState(() => zerlege(text, null));

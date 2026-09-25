@@ -16,35 +16,27 @@
   isolation: isolate;
 }
 
-/* Deckend genug, um allein - OHNE Unschaerfe - lesbar zu bleiben: die
- * @supports-Abfrage unten faengt nur Geraete ab, die backdrop-filter GAR
- * NICHT melden. Manche Mobilgeraete (siehe Recherche) melden Unterstuetzung,
- * rendern die Unschaerfe aber nicht zuverlaessig - fuer die greift @supports
- * nicht, und es blieb bis zum 25.09.2026 bei der duennen, nur 55-60 Prozent
- * deckenden Farbe OHNE Unschaerfe: auf einer ohnehin hellen Seite (helles
- * Thema) sah das aus wie eine fast weisse Flaeche ueber dem ganzen Bild,
- * gemeldet als "alles einfach weiss", ausgeloest genau dann, wenn der
- * Sprachmodus zu einem Bereich sprang und ihn zeigte. Deshalb jetzt von
- * vornherein so deckend wie die bisherige Ersatzflaeche - die Unschaerfe
- * kommt dort, wo sie funktioniert, obendrauf. */
+/* Dunkel, UNABHAENGIG vom hellen/dunklen Thema der Anwendung: eine Abdunkelung
+ * dient dem Kontrast zum hervorgehobenen Ziel, nicht der Bildsprache der
+ * Seite. Bis zum 25.09.2026 war sie im hellen Thema selbst hell (erst 55-60,
+ * dann 92 Prozent deckendes rgb(242 246 248)) - jede noch so hohe Deckkraft
+ * einer HELLEN Farbe ueber einer ohnehin hellen Seite ergibt wieder eine
+ * helle Seite, keine Abdunkelung. Gemeldet als "der Bildschirm ist immer noch
+ * weiss", auch nachdem das Loch im Ausschnitt (sprach-spotlight.tsx) schon
+ * richtig sass. Jetzt in beiden Themen dunkel; die Unschaerfe (wo sie
+ * rendert) sorgt fuer den weichen, nicht ganz schwarzen Eindruck. */
 .ki-sprachmodus__hintergrund {
   position: absolute;
   inset: 0;
-  background: rgb(4 10 14 / 0.86);
+  background: rgb(4 10 14 / 0.72);
   backdrop-filter: blur(20px) saturate(0.85);
   -webkit-backdrop-filter: blur(20px) saturate(0.85);
 }
-:root:not(.dark) .ki-sprachmodus__hintergrund {
-  background: rgb(242 246 248 / 0.92);
-}
 @supports not (backdrop-filter: blur(1px)) {
-  /* Geraete ohne jede Unterstuetzung brauchen keine eigene, noch deckendere
-     Ersatzflaeche mehr - die Grundflaeche oben ist bereits so deckend. */
+  /* Ohne jede Unterstuetzung fuer die Unschaerfe deckender, damit der
+     Kontrast zum Ziel auch ganz ohne sie sicher genug ausfaellt. */
   .ki-sprachmodus__hintergrund {
-    background: rgb(4 10 14 / 0.94);
-  }
-  :root:not(.dark) .ki-sprachmodus__hintergrund {
-    background: rgb(242 246 248 / 0.96);
+    background: rgb(4 10 14 / 0.88);
   }
 }
 
@@ -97,9 +89,9 @@
   font-weight: 600;
   color: rgb(255 255 255 / 0.92);
   text-align: center;
-}
-:root:not(.dark) .ki-sprachmodus__status {
-  color: #0b1e26;
+  /* Der Hintergrund darunter ist seit dem 25.09.2026 in beiden Themen dunkel
+     (siehe .ki-sprachmodus__hintergrund) - der Text bleibt deshalb hell,
+     unabhaengig vom hellen/dunklen Thema der Anwendung. */
 }
 .ki-sprachmodus__status-symbol {
   width: 1.05rem;
@@ -122,7 +114,9 @@
   position: relative;
   z-index: 2;
   margin-top: 1.5rem;
-  max-width: min(34rem, calc(100vw - 3rem));
+  max-width: min(38rem, calc(100vw - 3rem));
+  max-height: min(60vh, 26rem);
+  overflow-y: auto;
   min-height: 1.6em;
   text-align: center;
 }
@@ -130,16 +124,28 @@
   font-size: 1.0625rem;
   line-height: 1.5;
   color: rgb(255 255 255 / 0.88);
-}
-:root:not(.dark) .ki-sprachmodus__untertitel-zeile {
-  color: #0b1e26;
+  text-align: left;
 }
 .ki-sprachmodus__untertitel-zeile--nutzer {
   font-style: italic;
   color: rgb(255 255 255 / 0.66);
+  text-align: center;
 }
-:root:not(.dark) .ki-sprachmodus__untertitel-zeile--nutzer {
-  color: rgb(11 30 38 / 0.66);
+/* Die Antwort kommt hier als echtes Markdown (Absaetze, Fettdruck, Listen,
+ * .ki-md aus ki-chat.tsx) statt als roher Text mit sichtbaren "**"- und
+ * Listenzeichen (Rueckmeldung vom 25.09.2026). Der Hintergrund ist in beiden
+ * Themen dunkel (siehe .ki-sprachmodus__hintergrund) - .ki-md faerbt Fettdruck
+ * und Ueberschriften sonst ueber Kartenfarben ein, die im hellen Thema dunkel
+ * und damit auf diesem Hintergrund unlesbar waeren. */
+.ki-sprachmodus__untertitel-zeile .ki-md,
+.ki-sprachmodus__untertitel-zeile .ki-md strong,
+.ki-sprachmodus__untertitel-zeile .ki-md h1,
+.ki-sprachmodus__untertitel-zeile .ki-md h2,
+.ki-sprachmodus__untertitel-zeile .ki-md h3 {
+  color: inherit;
+}
+.ki-sprachmodus__untertitel-zeile .ki-md li::marker {
+  color: rgb(255 255 255 / 0.6);
 }
 
 .ki-sprachmodus__meldung {
@@ -220,11 +226,10 @@
   z-index: 1;
   pointer-events: none;
 }
+/* Dunkel in beiden Themen - derselbe Grund wie bei .ki-sprachmodus__hintergrund
+ * oben: eine helle Abdunkelung ueber einer hellen Seite dunkelt nichts ab. */
 .ki-sprachmodus__spotlight-maske path {
   fill: rgb(4 10 14 / 0.62);
-}
-:root:not(.dark) .ki-sprachmodus__spotlight-maske path {
-  fill: rgb(242 246 248 / 0.7);
 }
 .ki-sprachmodus__spotlight-ring {
   position: fixed;
