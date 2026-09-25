@@ -16,25 +16,35 @@
   isolation: isolate;
 }
 
+/* Deckend genug, um allein - OHNE Unschaerfe - lesbar zu bleiben: die
+ * @supports-Abfrage unten faengt nur Geraete ab, die backdrop-filter GAR
+ * NICHT melden. Manche Mobilgeraete (siehe Recherche) melden Unterstuetzung,
+ * rendern die Unschaerfe aber nicht zuverlaessig - fuer die greift @supports
+ * nicht, und es blieb bis zum 25.09.2026 bei der duennen, nur 55-60 Prozent
+ * deckenden Farbe OHNE Unschaerfe: auf einer ohnehin hellen Seite (helles
+ * Thema) sah das aus wie eine fast weisse Flaeche ueber dem ganzen Bild,
+ * gemeldet als "alles einfach weiss", ausgeloest genau dann, wenn der
+ * Sprachmodus zu einem Bereich sprang und ihn zeigte. Deshalb jetzt von
+ * vornherein so deckend wie die bisherige Ersatzflaeche - die Unschaerfe
+ * kommt dort, wo sie funktioniert, obendrauf. */
 .ki-sprachmodus__hintergrund {
   position: absolute;
   inset: 0;
-  background: rgb(4 10 14 / 0.55);
+  background: rgb(4 10 14 / 0.86);
   backdrop-filter: blur(20px) saturate(0.85);
   -webkit-backdrop-filter: blur(20px) saturate(0.85);
 }
 :root:not(.dark) .ki-sprachmodus__hintergrund {
-  background: rgb(242 246 248 / 0.6);
+  background: rgb(242 246 248 / 0.92);
 }
 @supports not (backdrop-filter: blur(1px)) {
-  /* Manche Mobilgeraete melden Unterstuetzung, rendern die Unschaerfe aber
-     nicht zuverlaessig (siehe Recherche) - hier greift dann die deckendere
-     Ersatzflaeche allein, ohne dass Text auf dem Hintergrund lesbar bliebe. */
+  /* Geraete ohne jede Unterstuetzung brauchen keine eigene, noch deckendere
+     Ersatzflaeche mehr - die Grundflaeche oben ist bereits so deckend. */
   .ki-sprachmodus__hintergrund {
-    background: rgb(4 10 14 / 0.86);
+    background: rgb(4 10 14 / 0.94);
   }
   :root:not(.dark) .ki-sprachmodus__hintergrund {
-    background: rgb(242 246 248 / 0.92);
+    background: rgb(242 246 248 / 0.96);
   }
 }
 
