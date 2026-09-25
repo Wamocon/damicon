@@ -1,9 +1,11 @@
-import type { ComponentProps, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import { DetailpanelSteuerung, LadeMelder } from "@/components/ui/detailpanel-steuerung";
+import { knopfKlassen, type Ziel } from "@/components/ui/kit";
+import { DetailpanelSteuerung } from "@/components/ui/detailpanel-steuerung";
+import { LadeMelder } from "@/components/ui/lade-status";
 
 // Liste mit Detailansicht (DESIGN.md Abschnitt 14, WMCNL-2488). Eine Liste,
 // deren Eintraege per Klick rechts eine Detailansicht oeffnen. Zuerst gebaut
@@ -12,9 +14,8 @@ import { DetailpanelSteuerung, LadeMelder } from "@/components/ui/detailpanel-st
 //
 // Alles hier ist Server-tauglich: Auswahl, Seite und Filter stehen in der
 // Adresse, jeder Wechsel ist ein Link. Was im Browser laufen muss - Esc,
-// Fokus, Ladeanzeige -, steckt in detailpanel-steuerung.tsx.
-
-type Ziel = ComponentProps<typeof Link>["href"];
+// Fokus, Ladeanzeige -, steckt in detailpanel-steuerung.tsx und
+// lade-status.tsx.
 
 const BEHAELTER_ID = "liste-mit-detailpanel";
 
@@ -24,13 +25,16 @@ const BEHAELTER_ID = "liste-mit-detailpanel";
  * Fensterbreite - siehe die Varianten panel-* in globals.css:
  *
  *   angedockt  rechts neben der Liste, die bedienbar bleibt;
- *   schublade  ueber der Liste, im Hauptbereich und mitscrollend;
- *   ersetzt    an Stelle der Liste, mit "Liste" zurueck.
+ *   schublade  ueber der Liste, im Hauptbereich und unter der Kopfzeile klebend;
+ *   ersetzt    an Stelle der Liste, mit "Zur Liste" zurueck.
  *
  * Mit einer Auswahl gehoert der Platz der Detailansicht: angedockt waechst sie
  * von 26 bis 60rem, und die Liste schrumpft dafuer bis 28,5rem; die Schublade
  * waechst bis 40rem (--detailpanel-angedockt und --detailpanel-schublade in
  * globals.css).
+ *
+ * Das Raster traegt die gewaehlte Anordnung als --anordnung. Die Steuerung
+ * liest sie dort, statt die Grenzen ein zweites Mal zu kennen.
  */
 export function ListeMitDetailpanel({
   liste,
@@ -52,12 +56,20 @@ export function ListeMitDetailpanel({
   return (
     <div id={BEHAELTER_ID} className="@container/liste">
       <div
+        data-raster=""
+        data-panel-offen={offen ? "" : undefined}
         className={cn(
-          "grid items-start gap-6",
+          "group/raster grid items-start gap-(--detailpanel-abstand)",
+          "panel-ersetzt:[--anordnung:ersetzt] panel-schublade:[--anordnung:schublade] panel-angedockt:[--anordnung:angedockt]",
           offen && "panel-angedockt:grid-cols-[minmax(0,1fr)_var(--detailpanel-angedockt)]",
         )}
       >
-        <div className={cn("col-start-1 row-start-1 min-w-0", offen && "panel-ersetzt:hidden")}>
+        {/* Fokusziel beim Schliessen, wenn die Zeile nicht auf der Seite steht. */}
+        <div
+          id={`${BEHAELTER_ID}-liste`}
+          tabIndex={-1}
+          className={cn("col-start-1 row-start-1 min-w-0 outline-none", offen && "panel-ersetzt:hidden")}
+        >
           {liste}
         </div>
         {offen ? (
@@ -68,7 +80,7 @@ export function ListeMitDetailpanel({
               // Ueber der Liste, aber unter Kopfzeile (z-40) und unterer
               // Leiste (z-50): die Schublade gehoert zur Seite, nicht darueber.
               "panel-schublade:sticky panel-schublade:top-20 panel-schublade:z-20",
-              "panel-schublade:w-[var(--detailpanel-schublade)] panel-schublade:justify-self-end",
+              "panel-schublade:w-(--detailpanel-schublade) panel-schublade:justify-self-end",
             )}
           >
             {panel}
@@ -128,6 +140,16 @@ export function ListenEintrag({
   );
 }
 
+// Neben einer offenen Schublade bleiben links nur 10rem Liste sichtbar, und
+// die Mitte der Liste liegt unter der Schublade. Das Blaettern rueckt dann
+// nach links und zeigt nur Pfeile und "2 / 6"; die Woerter bleiben fuer
+// Vorlesehilfen da.
+const kompakt = {
+  leiste: "panel-schublade:group-data-[panel-offen]/raster:justify-start panel-schublade:group-data-[panel-offen]/raster:gap-1.5",
+  wort: "panel-schublade:group-data-[panel-offen]/raster:sr-only",
+  kurz: "hidden panel-schublade:group-data-[panel-offen]/raster:inline",
+};
+
 /**
  * "‹ Zurueck · Seite 2 von 6 · Weiter ›". Links auf die Nachbarseiten, sonst
  * nichts. Anders als Filter und Auswahl scrollen sie: der Knopf steht unter
@@ -146,39 +168,40 @@ export function Blaettern({
   const t = useTranslations("liste.blaettern");
   if (seiten <= 1) return null;
 
-  const knopf =
-    "relative inline-flex min-h-11 items-center gap-1 rounded-lg border border-border bg-card px-3 text-sm font-semibold text-foreground transition duration-knapp hover:border-primary/40 lg:min-h-9 lg:text-xs";
-  const gesperrt =
-    "inline-flex min-h-11 items-center gap-1 rounded-lg border border-border px-3 text-sm font-semibold text-muted-foreground opacity-50 lg:min-h-9 lg:text-xs";
+  const knopf = knopfKlassen({ variante: "leise", rundung: "schmal", groesse: "formular" });
+  const gesperrt = cn(knopf, "pointer-events-none opacity-50");
 
   return (
     // Mittig statt an den Raendern: unten rechts steht Himbi (haustier.css)
     // und laege sonst ueber "Weiter".
-    <nav aria-label={t("label")} className="flex items-center justify-center gap-3 pt-1">
+    <nav aria-label={t("label")} className={cn("flex items-center justify-center gap-3 pt-1", kompakt.leiste)}>
       {seite > 1 ? (
         <Link href={ziel(seite - 1)} prefetch={false} className={knopf}>
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          {t("zurueck")}
+          <span className={kompakt.wort}>{t("zurueck")}</span>
           <LadeMelder bereich="liste" />
         </Link>
       ) : (
         <span aria-disabled="true" className={gesperrt}>
           <ChevronLeft className="h-4 w-4" aria-hidden="true" />
-          {t("zurueck")}
+          <span className={kompakt.wort}>{t("zurueck")}</span>
         </span>
       )}
       <span className="schrift-label font-semibold text-muted-foreground tabular-nums">
-        {t("stand", { seite, seiten })}
+        <span className={kompakt.wort}>{t("stand", { seite, seiten })}</span>
+        <span aria-hidden="true" className={kompakt.kurz}>
+          {seite} / {seiten}
+        </span>
       </span>
       {seite < seiten ? (
         <Link href={ziel(seite + 1)} prefetch={false} className={knopf}>
-          {t("weiter")}
+          <span className={kompakt.wort}>{t("weiter")}</span>
           <ChevronRight className="h-4 w-4" aria-hidden="true" />
           <LadeMelder bereich="liste" />
         </Link>
       ) : (
         <span aria-disabled="true" className={gesperrt}>
-          {t("weiter")}
+          <span className={kompakt.wort}>{t("weiter")}</span>
           <ChevronRight className="h-4 w-4" aria-hidden="true" />
         </span>
       )}

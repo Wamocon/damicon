@@ -54,6 +54,9 @@ export function suchtextBereinigen(wert: string, laenge = 60): string {
 
 export type Parameterwert = string | number | undefined;
 
+/** Zustand einer Liste aus der Adresse: Filter, Seite, Auswahl, Reiter. */
+export type ListenWerte = Readonly<Record<string, Parameterwert>>;
+
 /**
  * Baut die Query fuer einen Link aus dem aktuellen Zustand und einer Aenderung.
  *
@@ -71,9 +74,9 @@ export function listenQuery({
   filterSchluessel,
   seitenSchluessel = "seite",
 }: {
-  werte: Readonly<Record<string, Parameterwert>>;
-  standard: Readonly<Record<string, Parameterwert>>;
-  aenderung?: Readonly<Record<string, Parameterwert>>;
+  werte: ListenWerte;
+  standard: ListenWerte;
+  aenderung?: ListenWerte;
   filterSchluessel: readonly string[];
   seitenSchluessel?: string;
 }): Record<string, string> {
@@ -95,8 +98,8 @@ export function listenQuery({
 
 /** Wie viele Filter vom Standard abweichen, fuer den Zaehler am Filterknopf. */
 export function aktiveFilter(
-  werte: Readonly<Record<string, Parameterwert>>,
-  standard: Readonly<Record<string, Parameterwert>>,
+  werte: ListenWerte,
+  standard: ListenWerte,
   schluessel: readonly string[],
 ): number {
   return schluessel.filter((name) => {

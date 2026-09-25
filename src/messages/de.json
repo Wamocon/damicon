@@ -805,13 +805,9 @@
     "listLead": "Je Brigade und Reihenblock, späteste Fälligkeit zuerst. Fortschritt ist Istmenge gegen Zielmenge.",
     "block": "Block",
     "qFactor": "Q-Faktor",
-    "proofTitle": "Fotobeleg",
-    "proofLead": "Beispielfotos der Verkaufsschale, des Reihenblocks und der Steige, direkt an der Aufgabe.",
     "noProof": "Noch kein Beleg zu dieser Aufgabe.",
     "reviewTitle": "Belegprüfung offen",
-    "reviewLead": "Die Aufgabe wartet auf Freigabe. Menge und Schalenbeleg prüfen, dann freigeben oder Nacharbeit anfordern.",
     "approve": "Freigeben",
-    "rework": "Nacharbeit",
     "art": {
       "schale": "Verkaufsschale",
       "reihenblock": "Reihenblock",
@@ -1131,6 +1127,7 @@
     "panel": {
       "titel": "Pflückaufgabe {code}",
       "nichtGefundenTitel": "Pflückaufgabe nicht gefunden",
+      "ladefehlerTitel": "Pflückaufgabe nicht geladen",
       "reiterLabel": "Bereiche der Detailansicht",
       "uebersicht": "Übersicht",
       "fotos": "Fotobelege",
@@ -1148,7 +1145,7 @@
       "titel": "Nächster Schritt",
       "mengeHinweis": "Steigen, Arbeitszeit und Kühlmessungen erfassen Sie im Reiter Nachweiskette.",
       "pruefenLead": "Menge und Fotobelege prüfen, den Qualitätsfaktor setzen und freigeben.",
-      "belegAnsehen": "Beleg {nummer} ansehen",
+      "belegeAnsehen": "Fotobelege ansehen ({anzahl})",
       "keinBeleg": "Noch kein Fotobeleg. Ohne Beleg ist keine Freigabe möglich.",
       "warten": "Die Aufgabe wartet auf die Belegprüfung durch die Betriebsleitung.",
       "mengeKorrigieren": "Menge korrigieren",
@@ -3563,7 +3560,6 @@
       "schliessen": "Filter schließen"
     },
     "zeitraum": {
-      "label": "Zeitraum",
       "alle": "Alle",
       "heute": "Heute",
       "woche": "Diese Woche",
@@ -3584,7 +3580,8 @@
       "zurListe": "Zur Liste",
       "vorheriger": "Vorheriger Eintrag",
       "naechster": "Nächster Eintrag",
-      "nichtGefunden": "Dieser Eintrag ist nicht vorhanden oder für Ihre Rolle nicht sichtbar."
+      "nichtGefunden": "Dieser Eintrag ist nicht vorhanden oder für Ihre Rolle nicht sichtbar.",
+      "ladefehler": "Dieser Eintrag lässt sich gerade nicht laden. Bitte versuchen Sie es gleich noch einmal."
     }
   }
 }

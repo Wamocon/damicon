@@ -6,6 +6,7 @@ import {
   type ComponentProps,
   type ReactElement,
   type ReactNode,
+  type Ref,
 } from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
@@ -232,17 +233,35 @@ export function PageHeader({
 export function Aufklapper({
   titel,
   beschreibung,
+  symbol,
+  variante = "standard",
+  ref,
   children,
 }: {
   titel: string;
   beschreibung?: string;
+  /** Vor dem Titel, etwa ein Plus fuer "+ Neu ..." (DESIGN.md Abschnitt 14). */
+  symbol?: ReactNode;
+  /** "aktion": Titel in Primaerfarbe - der Knopf zum Anlegen ueber einer Liste. */
+  variante?: "standard" | "aktion";
+  /** Wer das Formular nach dem Speichern zuklappen will, braucht das <details>. */
+  ref?: Ref<HTMLDetailsElement>;
   children: ReactNode;
 }) {
   return (
-    <details className="group rounded-xl border border-border bg-card">
+    <details ref={ref} className="group rounded-xl border border-border bg-card">
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 transition duration-knapp hover:bg-muted/30 lg:min-h-9 [&::-webkit-details-marker]:hidden">
         <span>
-          <span className="schrift-dense font-black text-card-foreground">{titel}</span>
+          <span
+            className={cn(
+              variante === "aktion"
+                ? "inline-flex items-center gap-2 text-sm font-bold text-primary lg:text-xs"
+                : "schrift-dense font-black text-card-foreground",
+            )}
+          >
+            {symbol}
+            {titel}
+          </span>
           {beschreibung ? (
             <span className="mt-0.5 block schrift-label text-muted-foreground">
               {beschreibung}
@@ -602,6 +621,17 @@ export function Button({
 
 export type Ziel = ComponentProps<typeof Link>["href"];
 
+/**
+ * Knopf nur mit Symbol: Pfeile und Schliessen im Kopf der Detailansicht.
+ * relative, weil ein LadeMelder darin stehen kann.
+ */
+export const symbolKnopfKlassen =
+  "relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition duration-knapp hover:bg-muted hover:text-foreground lg:h-9 lg:w-9";
+
+/** Verweis als Text in Primaerfarbe, etwa "Zuruecksetzen" neben Filtern. */
+export const textVerweisKlassen =
+  "inline-flex min-h-11 items-center text-sm font-semibold text-primary lg:min-h-9 lg:text-xs";
+
 export interface LeistenEintrag {
   wert: string;
   text: string;
@@ -622,7 +652,7 @@ interface LeistenVerhalten {
   ersetzen?: boolean;
   /** false: kein Vorladen. Dann zeigt ein Melder verlaesslich, dass geladen wird. */
   vorladen?: boolean;
-  /** Steht in jedem Link, etwa ein LadeMelder (ui/detailpanel-steuerung.tsx). */
+  /** Steht in jedem Link, etwa ein LadeMelder (ui/lade-status.tsx). */
   melder?: ReactNode;
 }
 
@@ -687,13 +717,14 @@ export function Reiter({
   );
 }
 
+// Pillen sind Filter: jeder Wechsel legt einen Verlaufseintrag an, Zurueck
+// fuehrt zum vorigen Filter. Deshalb kein "ersetzen" wie bei den Reitern.
 export function FilterPillen({
   label,
   eintraege,
   aktiv,
   ziel,
   rollen,
-  ersetzen,
   vorladen,
   melder,
 }: {
@@ -707,7 +738,7 @@ export function FilterPillen({
    * nach unten.
    */
   rollen?: boolean;
-} & LeistenVerhalten) {
+} & Omit<LeistenVerhalten, "ersetzen">) {
   return (
     <nav
       aria-label={label}
@@ -723,7 +754,6 @@ export function FilterPillen({
             key={eintrag.wert}
             href={ziel(eintrag.wert)}
             scroll={false}
-            replace={ersetzen}
             prefetch={vorladen === false ? false : undefined}
             aria-current={ist ? "true" : undefined}
             className={cn(

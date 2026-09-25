@@ -1,24 +1,29 @@
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Camera } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { FilterPillen, Section, StatusPill, type Tone } from "@/components/ui/kit";
+import { FilterPillen, Section, textVerweisKlassen, type Ziel } from "@/components/ui/kit";
 import { Blaettern, LeererZustand, ListenEintrag } from "@/components/ui/liste";
 import { Listenfilter, type FilterFeld } from "@/components/ui/listen-filter";
-import { LadeMelder, ListenInhalt } from "@/components/ui/detailpanel-steuerung";
+import { LadeMelder, ListenInhalt } from "@/components/ui/lade-status";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
-import { FaelligkeitAnzeige } from "@/components/db/faelligkeit-anzeige";
 import { AufgabeAnlegenFormular } from "@/components/db/pflueckaufgaben-formulare";
-import type { AuswahlOption } from "@/components/db/standort-formulare";
-import { aktiveFilter, listenQuery, type Parameterwert } from "@/lib/listen/parameter";
-import { zeitraumStufen } from "@/lib/listen/zeitraum";
-import { aufgabenStatusMeta } from "@/lib/domain/pflueckaufgaben";
 import {
+  AufgabenMarken,
+  Fortschrittsbalken,
+  istGegenZiel,
+  qFaktor,
+} from "@/components/db/pflueckaufgabe-anzeige";
+import type { AuswahlOption } from "@/components/db/standort-formulare";
+import { aktiveFilter, type ListenWerte, type Parameterwert } from "@/lib/listen/parameter";
+import { zeitraumStufen } from "@/lib/listen/zeitraum";
+import {
+  fortschrittProzent,
   pflueckFilterSchluessel,
   statusFilter,
   type StatusFilter,
 } from "@/lib/domain/pflueckaufgaben-liste";
 import type { AufgabenSeite } from "@/lib/data/pflueckaufgaben-liste";
-import type { BrigadeOption } from "@/lib/data/pflueckaufgaben";
+import type { AufgabeZeile, BrigadeOption } from "@/lib/data/pflueckaufgaben";
 import type { Role } from "@/lib/rbac";
 
 // Die Liste der Pflueckaufgaben mit Filterleiste und Neuanlage (WMCNL-2488).
@@ -33,36 +38,39 @@ const pillenSchluessel: Record<StatusFilter, string> = {
   abgeschlossen: "abgeschlossen",
 };
 
-type Werte = Readonly<Record<string, Parameterwert>>;
+type Query = (aenderung: Record<string, Parameterwert>) => Record<string, string>;
 
 export async function PflueckaufgabenListe({
   pfad,
   werte,
   standard,
+  query,
   seite,
   brigaden,
   rolle,
+  belegeSichtbar,
   neuanlage,
 }: {
   pfad: string;
-  werte: Werte;
-  standard: Werte;
+  werte: ListenWerte;
+  standard: ListenWerte;
+  /** Links auf diese Liste, gebaut in der Ansicht (listenQuery). */
+  query: Query;
   seite: AufgabenSeite;
   brigaden: BrigadeOption[];
   rolle: Role | null;
+  /** Ohne Leserecht auf Fotobelege entfaellt ihre Anzahl (darfBelegeSehen). */
+  belegeSichtbar: boolean;
   /** Nur mit Recht zum Anlegen und mindestens einem freien Reihenblock. */
   neuanlage: { bloecke: AuswahlOption[] } | null;
 }) {
-  const [t, v, st, z, format] = await Promise.all([
+  const [t, v, z, format] = await Promise.all([
     getTranslations("pflueckaufgabenDemo"),
     getTranslations("pflueckaufgabenVerwaltung"),
-    getTranslations("aufgabenStatus"),
     getTranslations("liste.zeitraum"),
     getFormatter(),
   ]);
 
-  const query = (aenderung: Record<string, Parameterwert>) =>
-    listenQuery({ werte, standard, aenderung, filterSchluessel: pflueckFilterSchluessel });
   const offen = typeof werte.aufgabe === "string" ? werte.aufgabe : null;
 
   const brigadeOptionen = [
@@ -102,8 +110,16 @@ export async function PflueckaufgabenListe({
       bis: { name: "bis", label: z("bis") },
     },
   ];
-  const aktive = aktiveFilter(werte, standard, ["suche", "brigade", "zeitraum"]);
+  const aktive = aktiveFilter(
+    werte,
+    standard,
+    felder.map((feld) => feld.name),
+  );
   const gefiltert = aktive > 0 || werte.status !== standard.status;
+  // Alle Filter zurueck auf den Standard, die Auswahl bleibt offen.
+  const ohneFilter = query(
+    Object.fromEntries(pflueckFilterSchluessel.map((schluessel) => [schluessel, standard[schluessel]])),
+  );
 
   const pillen = (
     <FilterPillen
@@ -155,86 +171,24 @@ export async function PflueckaufgabenListe({
 
           {seite.zeilen.length > 0 ? (
             <ul className="space-y-2">
-              {seite.zeilen.map((aufgabe) => {
-                const fortschritt =
-                  aufgabe.zielmengeKg > 0
-                    ? Math.min(100, Math.round((aufgabe.istMengeKg / aufgabe.zielmengeKg) * 100))
-                    : 0;
-                return (
-                  <li key={aufgabe.id}>
-                    <ListenEintrag
-                      id={aufgabe.id}
-                      ziel={{ pathname: pfad, query: query({ aufgabe: aufgabe.id }) }}
-                      aktiv={aufgabe.id === offen}
-                      ersetzen={offen !== null}
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="font-mono text-xs font-semibold text-foreground">
-                          {aufgabe.code}
-                        </span>
-                        <span className="flex flex-wrap items-center gap-1.5">
-                          {aufgabe.status !== "abgeschlossen" ? (
-                            <FaelligkeitAnzeige faelligkeit={aufgabe.faelligkeit} />
-                          ) : null}
-                          <StatusPill tone={aufgabenStatusMeta[aufgabe.status].tone as Tone}>
-                            {st(aufgabe.status)}
-                          </StatusPill>
-                        </span>
-                      </div>
-                      <p className="mt-1 text-sm font-semibold text-card-foreground">
-                        {aufgabe.brigade || v("ohneBrigade")} · {t("block")} {aufgabe.reihenblock}
-                        {aufgabe.sorte ? ` · ${aufgabe.sorte}` : ""}
-                      </p>
-                      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground tabular-nums">
-                        <span>
-                          {format.number(aufgabe.istMengeKg, { maximumFractionDigits: 1 })} /{" "}
-                          {format.number(aufgabe.zielmengeKg, { maximumFractionDigits: 1 })} kg
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <Camera className="h-3 w-3" aria-hidden="true" />
-                          {aufgabe.belegAnzahl}
-                        </span>
-                        {aufgabe.qualitaetsfaktor ? (
-                          <span>
-                            {t("qFactor")}{" "}
-                            {format.number(aufgabe.qualitaetsfaktor, {
-                              minimumFractionDigits: 2,
-                              maximumFractionDigits: 2,
-                            })}
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                        <div
-                          className="h-full rounded-full bg-primary"
-                          style={{ width: `${fortschritt}%` }}
-                        />
-                      </div>
-                    </ListenEintrag>
-                  </li>
-                );
-              })}
+              {seite.zeilen.map((aufgabe) => (
+                <li key={aufgabe.id}>
+                  <AufgabenKarte
+                    aufgabe={aufgabe}
+                    ziel={{ pathname: pfad, query: query({ aufgabe: aufgabe.id }) }}
+                    aktiv={aufgabe.id === offen}
+                    ersetzen={offen !== null}
+                    belegeSichtbar={belegeSichtbar}
+                  />
+                </li>
+              ))}
             </ul>
           ) : gefiltert ? (
             <LeererZustand
               titel={v("liste.leerGefiltertTitel")}
               text={v("liste.leerGefiltert")}
               aktion={
-                <Link
-                  href={{
-                    pathname: pfad,
-                    query: query({
-                      status: standard.status,
-                      suche: standard.suche,
-                      brigade: standard.brigade,
-                      zeitraum: standard.zeitraum,
-                      von: undefined,
-                      bis: undefined,
-                    }),
-                  }}
-                  scroll={false}
-                  className="inline-flex min-h-11 items-center text-sm font-semibold text-primary lg:min-h-9 lg:text-xs"
-                >
+                <Link href={{ pathname: pfad, query: ohneFilter }} scroll={false} className={textVerweisKlassen}>
                   {v("liste.filterZuruecksetzen")}
                 </Link>
               }
@@ -251,5 +205,62 @@ export async function PflueckaufgabenListe({
         </ListenInhalt>
       </div>
     </Section>
+  );
+}
+
+/** Eine Zeile der Liste: Code, Status, Brigade und Block, Mengen, Fortschritt. */
+async function AufgabenKarte({
+  aufgabe,
+  ziel,
+  aktiv,
+  ersetzen,
+  belegeSichtbar,
+}: {
+  aufgabe: AufgabeZeile;
+  ziel: Ziel;
+  aktiv: boolean;
+  ersetzen: boolean;
+  belegeSichtbar: boolean;
+}) {
+  const [t, v, format] = await Promise.all([
+    getTranslations("pflueckaufgabenDemo"),
+    getTranslations("pflueckaufgabenVerwaltung"),
+    getFormatter(),
+  ]);
+  // Ohne Leserecht auf die Brigaden (erzeuger) fehlt der Name, obwohl die
+  // Aufgabe zugeteilt ist - dann steht dort nichts statt "ohne Zuordnung".
+  const brigade = aufgabe.brigadeId === null ? v("ohneBrigade") : aufgabe.brigade;
+  const ort = [brigade, `${t("block")} ${aufgabe.reihenblock}`, aufgabe.sorte]
+    .filter(Boolean)
+    .join(" · ");
+
+  return (
+    <ListenEintrag id={aufgabe.id} ziel={ziel} aktiv={aktiv} ersetzen={ersetzen}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <span className="font-mono text-xs font-semibold text-foreground">{aufgabe.code}</span>
+        <span className="flex flex-wrap items-center gap-1.5">
+          <AufgabenMarken status={aufgabe.status} faelligkeit={aufgabe.faelligkeit} />
+        </span>
+      </div>
+      <p className="mt-1 text-sm font-semibold text-card-foreground">{ort}</p>
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground tabular-nums">
+        <span>{istGegenZiel(format, aufgabe.istMengeKg, aufgabe.zielmengeKg)}</span>
+        {belegeSichtbar ? (
+          <span className="inline-flex items-center gap-1">
+            <Camera className="h-3 w-3" aria-hidden="true" />
+            <span className="sr-only">{v("panel.fotos")}</span>
+            {aufgabe.belegAnzahl}
+          </span>
+        ) : null}
+        {aufgabe.qualitaetsfaktor !== null ? (
+          <span>
+            {t("qFactor")} {qFaktor(format, aufgabe.qualitaetsfaktor)}
+          </span>
+        ) : null}
+      </div>
+      <div className="mt-2">
+        <Fortschrittsbalken prozent={fortschrittProzent(aufgabe.istMengeKg, aufgabe.zielmengeKg)} />
+      </div>
+    </ListenEintrag>
   );
 }

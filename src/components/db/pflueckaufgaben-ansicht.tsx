@@ -11,17 +11,23 @@ import { ladeAufgabenSeite } from "@/lib/data/pflueckaufgaben-liste";
 import { ladeNachweiskette, ladePfluecker } from "@/lib/data/nachweiskette";
 import { ladeReihenbloecke } from "@/lib/data/reihenbloecke";
 import { getSessionProfile } from "@/lib/auth";
-import { hasPermission } from "@/lib/rbac";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
-import { leseParameter, listenQuery, type SuchParameter } from "@/lib/listen/parameter";
+import {
+  leseParameter,
+  listenQuery,
+  type Parameterwert,
+  type SuchParameter,
+} from "@/lib/listen/parameter";
 import { nachbarn } from "@/lib/listen/seiten";
 import { zeitraumGrenzen } from "@/lib/listen/zeitraum";
 import {
   brigadeBedingung,
-  darfAufgabeBearbeiten,
+  darfBelegeSehen,
   pflueckFilterSchluessel,
   pflueckListenSchema,
+  pflueckRechte,
   pflueckStandard,
+  schreibUmfang,
 } from "@/lib/domain/pflueckaufgaben-liste";
 
 // Pflueckaufgaben mit Fotobeleg (Meilenstein B), seit WMCNL-2488 als Liste
@@ -47,11 +53,10 @@ export async function PflueckaufgabenAnsicht({
   const werte = { ...roh, brigade: roh.brigade ?? standard.brigade };
   const jetzt = new Date();
 
-  const mitDatenbank = isSupabaseConfigured();
-  const darfBearbeitenRecht = mitDatenbank && hasPermission(rolle, "pflueckaufgaben", "update");
-  const darfAnlegenRecht = mitDatenbank && hasPermission(rolle, "pflueckaufgaben", "create");
-  const darfAbschliessenRecht =
-    mitDatenbank && hasPermission(rolle, "pflueckaufgaben", "approve");
+  // Was geladen wird, haengt nur am Recht und an der Datenbank; ob sie auch
+  // antwortet (live), steht erst danach fest.
+  const vorab = pflueckRechte(profil, isSupabaseConfigured());
+  const umfang = schreibUmfang(profil);
 
   const [seite, brigaden, bloecke, detail, spiegel, pflueckerListe] = await Promise.all([
     ladeAufgabenSeite(
@@ -65,17 +70,15 @@ export async function PflueckaufgabenAnsicht({
       jetzt,
     ),
     ladeBrigaden(),
-    darfAnlegenRecht ? ladeReihenbloecke() : Promise.resolve(null),
+    vorab.anlegen ? ladeReihenbloecke() : Promise.resolve(null),
     werte.aufgabe ? ladeAufgabe(werte.aufgabe) : Promise.resolve(null),
     // Offline-Spiegel (Anforderung 2.5) fuer die Rollen, die im Feld
     // schreiben: alle offenen Aufgaben, unabhaengig vom Filter der Liste.
-    darfBearbeitenRecht
-      ? ladeAufgabenSpiegel(rolle === "brigade" ? { brigadeId: profil?.brigadeId ?? null } : null)
-      : Promise.resolve([]),
-    // Die Pflueckerliste ist fuer die Brigade auf die eigene Brigade
-    // beschraenkt - Administration und Betriebsleitung sehen weiterhin alle.
-    darfBearbeitenRecht
-      ? ladePfluecker(rolle === "brigade" ? profil?.brigadeId : null)
+    vorab.bearbeiten ? ladeAufgabenSpiegel(umfang) : Promise.resolve([]),
+    // Die Brigade bekommt nur die Pfluecker der eigenen Brigade, ohne
+    // Zuordnung gar keine; Administration und Betriebsleitung alle.
+    vorab.bearbeiten && (umfang === null || umfang.brigadeId)
+      ? ladePfluecker(umfang?.brigadeId ?? null)
       : Promise.resolve([]),
   ]);
 
@@ -83,15 +86,7 @@ export async function PflueckaufgabenAnsicht({
   // Datenbankfehler (Rueckfall auf Beispieldaten) entfallen alle Formulare.
   const live = seite.quelle === "db";
   const aufgabe = detail?.aufgabe ?? null;
-  const darfBearbeiten = live && darfBearbeitenRecht;
-  const darfHandeln = Boolean(aufgabe && darfBearbeiten && darfAufgabeBearbeiten(profil, aufgabe));
-  const darfAbschliessen = live && darfAbschliessenRecht;
-  // Anforderung 2.10: Die Stichprobenkontrolle je Steige ist ein anderes Recht
-  // als der Abschluss der ganzen Aufgabe. Sie steht zusaetzlich dem am
-  // Sammelpunkt benannten Vorarbeiter offen, der die Rolle "brigade" traegt und
-  // damit kein approve hat. Dieselbe Bedingung prueft steigeKontrollieren()
-  // (lib/actions/nachweiskette.ts).
-  const darfKontrollieren = live && (darfAbschliessen || profil?.darfKontrollieren === true);
+  const rechte = pflueckRechte(profil, live, aufgabe);
 
   // Die Nachweiskette nur, wenn ihr Reiter offen ist - sie ist die teuerste
   // Abfrage der Seite und wird sonst nicht gezeigt.
@@ -102,17 +97,15 @@ export async function PflueckaufgabenAnsicht({
     .filter((block) => block.status !== "wartezeitgesperrt")
     .map((block) => ({ wert: block.id, text: `${block.code} - ${block.parzelle}` }));
 
-  const listenQueryOhneAuswahl = listenQuery({
-    werte,
-    standard,
-    aenderung: { aufgabe: undefined, reiter: undefined },
-    filterSchluessel: pflueckFilterSchluessel,
-  });
-  const listenSuche = new URLSearchParams(listenQueryOhneAuswahl).toString();
+  // Jeder Link der Seite entsteht hier: Standardwerte fallen weg, ein
+  // Filterwechsel springt auf Seite 1 (listenQuery).
+  const query = (aenderung: Record<string, Parameterwert>) =>
+    listenQuery({ werte, standard, aenderung, filterSchluessel: pflueckFilterSchluessel });
+  const listenSuche = new URLSearchParams(query({ aufgabe: undefined, reiter: undefined })).toString();
 
   return (
     <div className="space-y-6">
-      {live && darfBearbeitenRecht ? (
+      {rechte.bearbeiten ? (
         <ReferenzCacheSync
           aufgaben={spiegel}
           pfluecker={pflueckerListe}
@@ -132,13 +125,13 @@ export async function PflueckaufgabenAnsicht({
             pfad={pfad}
             werte={werte}
             standard={standard}
+            query={query}
             seite={seite}
             brigaden={brigaden}
             rolle={rolle}
+            belegeSichtbar={darfBelegeSehen(rolle)}
             neuanlage={
-              live && darfAnlegenRecht && offeneBloecke.length > 0
-                ? { bloecke: offeneBloecke }
-                : null
+              rechte.anlegen && offeneBloecke.length > 0 ? { bloecke: offeneBloecke } : null
             }
           />
         }
@@ -146,9 +139,9 @@ export async function PflueckaufgabenAnsicht({
           werte.aufgabe ? (
             <PflueckaufgabeDetail
               pfad={pfad}
-              werte={werte}
-              standard={standard}
+              query={query}
               aufgabe={aufgabe}
+              ladefehler={detail?.quelle === "fehler"}
               live={live}
               reiter={werte.reiter}
               nachbarn={nachbarn(
@@ -157,12 +150,8 @@ export async function PflueckaufgabenAnsicht({
               )}
               kette={kette}
               pfluecker={pflueckerListe}
-              rechte={{
-                darfHandeln,
-                fremdeBrigade: Boolean(aufgabe && darfBearbeiten && !darfHandeln),
-                darfAbschliessen,
-                darfKontrollieren,
-              }}
+              rechte={rechte}
+              belegeSichtbar={darfBelegeSehen(rolle)}
             />
           ) : null
         }

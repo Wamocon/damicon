@@ -198,7 +198,7 @@ export const de: HandbuchTexte = {
           "„Neue Pflückaufgabe“ über der Liste aufklappen und Reihenblock, Brigade, Fälligkeit mit Datum und Uhrzeit (Betriebszeit Almaty) und Zielmenge eintragen. Gesperrte Blöcke stehen nicht zur Auswahl und werden von der Datenbank zusätzlich abgewiesen. Nach dem Anlegen öffnet die neue Aufgabe in der Detailansicht.",
           "Ein Klick auf eine Aufgabe öffnet rechts die Detailansicht, auf dem Telefon ersetzt sie die Liste. Im Reiter Übersicht steht unter „Nächster Schritt“, was als Nächstes zu tun ist. Die Pfeile oben führen zur vorigen und nächsten Aufgabe, Esc oder Zurück schließen die Ansicht.",
           "Als Brigade die Aufgabe annehmen, das Pflücken starten und im Reiter Fotobelege einen Beleg hochladen. Auf dem Telefon öffnet sich dafür direkt die Kamera. Die Datei liegt in einem privaten Ablagebereich und wird nur über kurzlebige, signierte Links angezeigt.",
-          "„Menge melden“ setzt die Aufgabe auf Belegprüfung.",
+          "„Menge melden“ setzt die Aufgabe auf Belegprüfung. Ab dann zählt ihre Fälligkeit nicht mehr: überfällig sind nur Aufgaben, an denen die Brigade noch pflückt.",
           "Betriebsleitung oder Administration sehen dann in der Übersicht Vorschaubilder der Belege, tragen den Qualitätsfaktor ein und geben die Aufgabe frei.",
         ],
       },

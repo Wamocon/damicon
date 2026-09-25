@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
-import { Camera, Check, ChevronDown, Plus } from "lucide-react";
+import { Camera, Check, Plus } from "lucide-react";
 import { useRouter } from "@/i18n/navigation";
 import {
   aufgabeAnlegen,
@@ -11,7 +11,7 @@ import {
   mengeMelden,
 } from "@/lib/actions/pflueckaufgaben";
 import { fehler, leer, ok, type AktionsStatus } from "@/lib/actions/status";
-import { Button, feldKlassen } from "@/components/ui/kit";
+import { Aufklapper, Button } from "@/components/ui/kit";
 import { QualitaetsReferenz } from "@/components/db/qualitaets-referenz";
 import {
   AktionsMeldung,
@@ -29,7 +29,9 @@ import type { AuswahlOption } from "@/components/db/standort-formulare";
 
 // Neue Pflueckaufgabe, aufklappbar direkt ueber der Liste (Entscheidung vom
 // 24.09.2026, WMCNL-2488; vorher ein Formular ganz unten auf der Seite).
-// <details> wie der Aufklapper in ui/kit.tsx: ohne JavaScript bedienbar.
+// Der Aufklapper aus ui/kit.tsx in der Variante "aktion": ein <details>, ohne
+// JavaScript bedienbar, und derselbe Baustein fuer die Neuanlage der
+// uebrigen Module (WMCNL-2490).
 //
 // Gesperrte Reihenbloecke stehen gar nicht erst zur Wahl - und die Datenbank
 // weist sie zusaetzlich ab (Trigger trg_pflueckaufgabe_sperre). Die
@@ -68,22 +70,15 @@ export function AufgabeAnlegenFormular({
     router.push(`${pfad}?${suche}`, { scroll: false });
   }, [status, router, pfad, query]);
 
-  const beschriftung = "schrift-label font-semibold text-card-foreground";
-
   return (
     <div className="space-y-2">
-      <details ref={aufklapper} className="group rounded-xl border border-border bg-card">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-2.5 transition duration-knapp hover:bg-muted/30 lg:min-h-9 [&::-webkit-details-marker]:hidden">
-          <span className="inline-flex items-center gap-2 text-sm font-bold text-primary lg:text-xs">
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            {t("neu.titel")}
-          </span>
-          <ChevronDown
-            aria-hidden="true"
-            className="h-4 w-4 shrink-0 text-muted-foreground transition duration-knapp group-open:rotate-180 motion-reduce:transition-none"
-          />
-        </summary>
-        <div className="@container/neu border-t border-border p-4">
+      <Aufklapper
+        ref={aufklapper}
+        titel={t("neu.titel")}
+        symbol={<Plus className="h-4 w-4" aria-hidden="true" />}
+        variante="aktion"
+      >
+        <div className="@container/neu">
           <p className="schrift-label text-muted-foreground">{t("neu.lead")}</p>
           <form
             ref={formular}
@@ -97,13 +92,13 @@ export function AufgabeAnlegenFormular({
               name="brigade_id"
               options={[{ wert: "", text: t("feld.ohneBrigade") }, ...brigaden]}
             />
-            <label className="block space-y-1">
-              <span className={beschriftung}>{t("feld.faelligkeit")}</span>
-              <input type="datetime-local" name="faelligkeit" required className={feldKlassen} />
-              <span className="block schrift-label text-muted-foreground">
-                {t("feld.faelligkeitHinweis")}
-              </span>
-            </label>
+            <Feld
+              label={t("feld.faelligkeit")}
+              name="faelligkeit"
+              type="datetime-local"
+              required
+              hinweis={t("feld.faelligkeitHinweis")}
+            />
             <Feld
               label={t("feld.zielmenge")}
               name="zielmenge_kg"
@@ -122,8 +117,8 @@ export function AufgabeAnlegenFormular({
             </div>
           </form>
         </div>
-      </details>
-      {/* Ausserhalb von <details>: die Meldung bleibt sichtbar, wenn das
+      </Aufklapper>
+      {/* Ausserhalb des Aufklappers: die Meldung bleibt sichtbar, wenn das
           Formular nach dem Anlegen zuklappt. */}
       <AktionsMeldung status={status} />
     </div>

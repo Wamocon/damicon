@@ -37,6 +37,10 @@ ${GLOCKEN_PUNKT}    ${GLOCKE} [data-glocke-punkt]
 ${SUCHFENSTER}    [role="dialog"][aria-modal="true"]:has([role="combobox"][aria-controls])
 ${SUCHFELD}       [role="combobox"][aria-controls]
 
+# Die Detailansicht einer Liste (DESIGN.md Abschnitt 14). Nur die sichtbare:
+# waehrend React streamt, steht sie kurz doppelt im Dokument.
+${DETAILANSICHT}    css=#detailpanel >> visible=true
+
 
 *** Keywords ***
 Portal Oeffnen
@@ -182,10 +186,12 @@ Untere Leiste Verdeckt Den Inhalt Nicht
 Detailansicht Oeffnen
     [Documentation]    Oeffnet den ersten Eintrag einer Liste mit
     ...    Detailansicht und wartet, bis sie steht und ihre Anordnung an
-    ...    <html> gemeldet hat (ui/detailpanel-steuerung.tsx).
+    ...    <html> gemeldet hat (ui/detailpanel-steuerung.tsx). Nur die
+    ...    sichtbare Fassung zaehlt: waehrend React streamt, steht die
+    ...    Detailansicht kurz ein zweites Mal versteckt im Dokument.
     Click    css=[data-eintrag] >> nth=0
     Wait For Condition    url    contains    aufgabe=    timeout=20s
-    Wait For Elements State    css=#detailpanel    visible    timeout=20s
+    Wait For Elements State    ${DETAILANSICHT}    visible    timeout=20s
     Wait For Function    () => Boolean(document.documentElement.dataset.detailpanel)    timeout=10s
 
 Anordnung Der Detailansicht Ist
@@ -202,7 +208,7 @@ Detailansicht Steht Neben Der Liste
     ...    Liste. Ein negativer Abstand hiesse: sie liegt darueber.
     [Arguments]    ${profil}
     ${abstand} =    Evaluate JavaScript    ${None}
-    ...    () => { const p = document.getElementById('detailpanel').getBoundingClientRect(); const l = document.getElementById('liste').getBoundingClientRect(); return Math.round(p.left - l.right); }
+    ...    () => { const sichtbar = (id) => [...document.querySelectorAll('#' + id)].find((e) => e.checkVisibility()); const p = sichtbar('detailpanel').getBoundingClientRect(); const l = sichtbar('liste').getBoundingClientRect(); return Math.round(p.left - l.right); }
     Run Keyword If    ${abstand} < 0    Befund Festhalten    ${profil}    detailansicht-ueberlappt
     Should Be True    ${abstand} >= 0    msg=Die Detailansicht ueberdeckt die Liste um ${abstand} px.
 
@@ -213,11 +219,22 @@ Detailansicht Nutzt Den Platz
     ...    globals.css).
     [Arguments]    ${profil}
     ${masse} =    Evaluate JavaScript    ${None}
-    ...    () => { const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16; const breite = (id) => Math.round(document.getElementById(id).getBoundingClientRect().width / rem * 10) / 10; return { panel: breite('detailpanel'), liste: breite('liste') }; }
+    ...    () => { const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16; const breite = (id) => Math.round([...document.querySelectorAll('#' + id)].find((e) => e.checkVisibility()).getBoundingClientRect().width / rem * 10) / 10; return { panel: breite('detailpanel'), liste: breite('liste') }; }
     ${zu_schmal} =    Evaluate    ${masse}[panel] <= 26 or ${masse}[liste] < 28.4
     Run Keyword If    ${zu_schmal}    Befund Festhalten    ${profil}    detailansicht-breite
     Should Be True    ${masse}[panel] > 26    msg=Die Detailansicht ist nur ${masse}[panel]rem breit.
     Should Be True    ${masse}[liste] >= 28.4    msg=Die Liste ist nur ${masse}[liste]rem breit.
+
+Pillen Wischen In Einer Reihe
+    [Documentation]    Auf dem Handy stehen die Status-Pillen in einer Zeile
+    ...    und lassen sich waagerecht wischen, statt umzubrechen oder die
+    ...    Seite zu verbreitern. Kein Querscrollen der Seite allein beweist
+    ...    das nicht: umgebrochene Pillen scrollen auch nicht.
+    [Arguments]    ${profil}
+    ${lage} =    Evaluate JavaScript    ${None}
+    ...    () => { const n = [...document.querySelectorAll('nav[aria-label="Status"]')].find((e) => e.checkVisibility()); if (!n) return 'keine Pillen'; const zeilen = new Set([...n.querySelectorAll('a')].map((a) => Math.round(a.getBoundingClientRect().top))).size; const wischbar = getComputedStyle(n).overflowX === 'auto' && n.scrollWidth > n.clientWidth; return zeilen === 1 && wischbar ? 'ok' : zeilen + ' Zeilen, wischbar: ' + wischbar; }
+    Run Keyword If    '${lage}' != 'ok'    Befund Festhalten    ${profil}    pillen
+    Should Be Equal    ${lage}    ok    msg=Die Status-Pillen wischen nicht in einer Reihe: ${lage}
 
 Glocke Oeffnen
     [Documentation]    Klickt die Glocke und wartet, bis ihr Panel steht.

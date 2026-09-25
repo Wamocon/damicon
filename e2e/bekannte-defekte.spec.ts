@@ -9,22 +9,44 @@ import { anmelden } from "./helpers";
  * passed" und macht dadurch sichtbar, dass der zugehoerige Jira-Vorgang
  * geschlossen und dieser Testfall wieder in den normalen Ablauf
  * (geschaeftsprozess.spec.ts) uebernommen werden kann.
+ *
+ * Achtung, schreibend: ist WMCNL-2414 behoben, nimmt der erste Test eine
+ * offene Pflueckaufgabe tatsaechlich an. Nicht gegen eine Datenbank laufen
+ * lassen, deren Daten erhalten bleiben sollen.
  */
 
 test("WMCNL-2414: Brigade kann eine offene Pflückaufgabe annehmen", async ({ page }) => {
   test.fail(true, "Bug WMCNL-2414: 'Ihre Rolle darf diesen Vorgang nicht ausführen.'");
 
   await anmelden(page, "brigade");
-  await page.goto("/de/dashboard/feld/pflueckaufgaben");
+  await page.goto("/de/dashboard/feld/pflueckaufgaben?status=zu-erledigen");
 
-  // Nur Eintraege der Liste: Pillen und Filter nennen ebenfalls Status, und
-  // test.fail soll am Defekt scheitern, nicht an einem falschen Link.
-  const offeneAufgabe = page.locator("[data-eintrag]").filter({ hasText: /offen/ }).first();
-  await expect(offeneAufgabe).toBeVisible();
-  await offeneAufgabe.click();
+  // Die Liste zeigt 20 Aufgaben je Seite, spaeteste Faelligkeit zuerst: eine
+  // offene steht nicht zwingend auf Seite 1. Findet sich keine, wird der Test
+  // uebersprungen - unter test.fail zaehlte ein Scheitern an der Vorbedingung
+  // sonst als erwarteter Fehler, und ein behobener Bug fiele nie auf.
+  // Nur Eintraege der Liste: Pillen und Filter nennen ebenfalls Status.
+  const eintraege = page.locator("[data-eintrag]");
+  let offeneAufgabe = null;
+  for (let seite = 1; seite <= 10 && !offeneAufgabe; seite++) {
+    await expect(eintraege.first()).toBeVisible();
+    const treffer = eintraege.filter({ hasText: /offen/ }).first();
+    if (await treffer.count()) {
+      offeneAufgabe = treffer;
+      break;
+    }
+    const weiter = page
+      .getByRole("navigation", { name: "Seiten der Liste" })
+      .getByRole("link", { name: /Weiter/ });
+    if (!(await weiter.count())) break;
+    await weiter.click();
+    await expect(page).toHaveURL(new RegExp(`seite=${seite + 1}`));
+  }
+  test.skip(!offeneAufgabe, "Vorbedingung fehlt: keine offene Aufgabe der eigenen Brigade.");
+  await offeneAufgabe!.click();
 
   // Der naechste Schritt steht in der Detailansicht (WMCNL-2488).
-  const panel = page.locator("#detailpanel");
+  const panel = page.getByRole("region", { name: /^Pflückaufgabe / });
   await panel.getByRole("button", { name: "Aufgabe annehmen" }).click();
   await expect(panel.getByRole("button", { name: "Pflücken starten" })).toBeVisible();
 });

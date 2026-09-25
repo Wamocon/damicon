@@ -5,31 +5,30 @@ import {
   useId,
   useRef,
   useState,
-  useSyncExternalStore,
   useTransition,
   type ChangeEvent,
   type FormEvent,
   type ReactNode,
   type RefObject,
 } from "react";
-import { createPortal } from "react-dom";
+import { createPortal, flushSync } from "react-dom";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Search, SlidersHorizontal } from "lucide-react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { Sheet } from "@/components/ui/sheet";
-import { feldKlassen, knopfKlassen } from "@/components/ui/kit";
-import { useLadeMeldung } from "@/components/ui/detailpanel-steuerung";
-import { listenQuery, type Parameterwert } from "@/lib/listen/parameter";
+import { feldKlassen, knopfKlassen, textVerweisKlassen } from "@/components/ui/kit";
+import { useLadeMeldung } from "@/components/ui/lade-status";
+import { listenQuery, type ListenWerte, type Parameterwert } from "@/lib/listen/parameter";
 import { cn } from "@/lib/utils";
 
 // Filterleiste einer Liste (DESIGN.md Abschnitt 14, WMCNL-2488).
 //
-// Ein gewoehnliches GET-Formular: ohne JavaScript schickt "Anwenden" die
-// Felder in die Adresse, und der Server rendert die gefilterte Liste. Mit
-// JavaScript greift eine Auswahl sofort, die Suche nach einer kurzen
-// Tipppause, und der Knopf wird unsichtbar (bleibt aber fuer Vorlesehilfen
-// und die Enter-Taste da).
+// Ein gewoehnliches GET-Formular: Enter schickt die Felder in die Adresse,
+// und der Server rendert die gefilterte Liste. Mit JavaScript greift eine
+// Auswahl sofort, die Suche nach einer kurzen Tipppause, und "Anwenden" wird
+// unsichtbar - fuer Vorlesehilfen bleibt er da, und wer ihn mit der Tastatur
+// erreicht, sieht ihn wieder.
 //
 // Auf dem Handy stehen nur die Status-Pillen in der Leiste; Suche und die
 // uebrigen Filter liegen hinter "Filter (n)" in einem Blatt von unten
@@ -54,8 +53,6 @@ export type FilterFeld =
       von: { name: string; label: string };
       bis: { name: string; label: string };
     };
-
-type Werte = Readonly<Record<string, Parameterwert>>;
 
 const SUCHPAUSE_MS = 400;
 
@@ -89,8 +86,8 @@ function Felder({
   sucheRef,
 }: {
   felder: readonly FilterFeld[];
-  werte: Werte;
-  standard: Werte;
+  werte: ListenWerte;
+  standard: ListenWerte;
   praefix: string;
   sucheRef?: RefObject<HTMLInputElement | null>;
 }) {
@@ -188,18 +185,21 @@ export function Listenfilter({
   felder,
   pillen,
   aktiveAnzahl,
+  seitenSchluessel = "seite",
 }: {
   /** Pfad der Liste ohne Sprache, etwa "/dashboard/feld/pflueckaufgaben". */
   pfad: string;
   /** Der ganze Zustand der Liste, auch Auswahl und Reiter - sie bleiben erhalten. */
-  werte: Werte;
-  standard: Werte;
+  werte: ListenWerte;
+  standard: ListenWerte;
   filterSchluessel: readonly string[];
   felder: readonly FilterFeld[];
   /** Status-Pillen, serverseitig gerendert (FilterPillen). */
   pillen?: ReactNode;
   /** Abweichende Filter ausser den Pillen, fuer "Filter (n)". */
   aktiveAnzahl: number;
+  /** Name des Seitenparameters, wie bei listenQuery(). */
+  seitenSchluessel?: string;
 }) {
   const t = useTranslations("liste.filter");
   const router = useRouter();
@@ -207,14 +207,10 @@ export function Listenfilter({
   const pfadMitSprache = usePathname();
   const [laeuft, starte] = useTransition();
   useLadeMeldung("liste", laeuft);
+  // Das Blatt haengt per Portal an <body>. Offen ist es erst nach einem Klick,
+  // also nie beim Server-Rendern oder bei der Hydration.
   const [blattOffen, setBlattOffen] = useState(false);
-  // false beim Server-Rendern und bei der Hydration, danach true: das Blatt
-  // haengt per Portal an <body>, und das gibt es erst im Browser.
-  const imBrowser = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
+  const filterKnopf = useRef<HTMLButtonElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const sucheImBlatt = useRef<HTMLInputElement>(null);
   const tippPause = useRef<number | undefined>(undefined);
@@ -228,15 +224,36 @@ export function Listenfilter({
   const behalten = Object.entries(werte).filter(
     ([name, wert]) =>
       !namen.includes(name) &&
-      name !== "seite" &&
+      name !== seitenSchluessel &&
       wert !== undefined &&
       wert !== "" &&
       String(wert) !== String(standard[name] ?? ""),
   );
 
+  // Wer das Blatt geoeffnet hat, bekommt den Fokus zurueck - sonst stuende er
+  // nach Esc oder "Anzeigen" irgendwo am Seitenanfang (wie bei der Glocke).
+  function schliesseBlatt() {
+    if (!blattOffen) return;
+    flushSync(() => setBlattOffen(false));
+    filterKnopf.current?.focus();
+  }
+
+  // Der Zustand der Liste beim Navigieren, nicht der beim Tippen: klickt
+  // jemand waehrend der Tipppause eine Pille oder eine Zeile, nimmt die Suche
+  // deren Stand mit, statt ihn mit einem veralteten zu ueberschreiben.
+  const aktuell = useRef({ werte, standard });
+  useEffect(() => {
+    aktuell.current = { werte, standard };
+  });
+
   function navigiere(aenderung: Record<string, Parameterwert>, ersetzen = false) {
     window.clearTimeout(tippPause.current);
-    const query = listenQuery({ werte, standard, aenderung, filterSchluessel });
+    const query = listenQuery({
+      ...aktuell.current,
+      aenderung,
+      filterSchluessel,
+      seitenSchluessel,
+    });
     const suche = new URLSearchParams(query).toString();
     const ziel = suche ? `${pfad}?${suche}` : pfad;
     starte(() => {
@@ -268,7 +285,7 @@ export function Listenfilter({
   function beiAbsenden(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     navigiere(ausFormular(event.currentTarget, felder));
-    setBlattOffen(false);
+    schliesseBlatt();
   }
 
   function beiAenderung(event: ChangeEvent<HTMLFormElement>) {
@@ -297,64 +314,64 @@ export function Listenfilter({
   const zuruecksetzen = (() => {
     const aenderung: Record<string, Parameterwert> = {};
     for (const name of namen) aenderung[name] = standard[name];
-    const query = listenQuery({ werte, standard, aenderung, filterSchluessel });
+    const query = listenQuery({ werte, standard, aenderung, filterSchluessel, seitenSchluessel });
     return { pathname: pfad, query };
   })();
 
-  const blatt =
-    imBrowser && blattOffen
-      ? createPortal(
-          <Sheet
-            offen
-            onSchliessen={() => setBlattOffen(false)}
-            titel={t("titel")}
-            position="unten"
-            modal
-            anfangsFokus={sucheImBlatt}
-            schliessenLabel={t("schliessen")}
-          >
-            <form onSubmit={beiAbsenden} className="@container/filter space-y-3 p-4">
-              <Felder
-                felder={felder}
-                werte={werte}
-                standard={standard}
-                praefix={blattPraefix}
-                sucheRef={sucheImBlatt}
-              />
-              <div className="flex gap-2 pt-1">
-                <button
-                  type="submit"
-                  className={knopfKlassen({ rundung: "schmal", groesse: "gross", breit: true })}
+  const blatt = blattOffen
+    ? createPortal(
+        <Sheet
+          offen
+          onSchliessen={schliesseBlatt}
+          titel={t("titel")}
+          position="unten"
+          modal
+          anfangsFokus={sucheImBlatt}
+          schliessenLabel={t("schliessen")}
+        >
+          <form onSubmit={beiAbsenden} className="@container/filter space-y-3 p-4">
+            <Felder
+              felder={felder}
+              werte={werte}
+              standard={standard}
+              praefix={blattPraefix}
+              sucheRef={sucheImBlatt}
+            />
+            <div className="flex gap-2 pt-1">
+              <button
+                type="submit"
+                className={knopfKlassen({ rundung: "schmal", groesse: "gross", breit: true })}
+              >
+                {t("anzeigen")}
+              </button>
+              {aktiveAnzahl > 0 ? (
+                <Link
+                  href={zuruecksetzen}
+                  scroll={false}
+                  onClick={schliesseBlatt}
+                  className={knopfKlassen({
+                    variante: "leise",
+                    rundung: "schmal",
+                    groesse: "gross",
+                    className: "shrink-0",
+                  })}
                 >
-                  {t("anzeigen")}
-                </button>
-                {aktiveAnzahl > 0 ? (
-                  <Link
-                    href={zuruecksetzen}
-                    scroll={false}
-                    onClick={() => setBlattOffen(false)}
-                    className={knopfKlassen({
-                      variante: "leise",
-                      rundung: "schmal",
-                      groesse: "gross",
-                      className: "shrink-0",
-                    })}
-                  >
-                    {t("zuruecksetzen")}
-                  </Link>
-                ) : null}
-              </div>
-            </form>
-          </Sheet>,
-          document.body,
-        )
-      : null;
+                  {t("zuruecksetzen")}
+                </Link>
+              ) : null}
+            </div>
+          </form>
+        </Sheet>,
+        document.body,
+      )
+    : null;
 
   return (
     <div className="space-y-3">
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">{pillen}</div>
         <button
+          ref={filterKnopf}
           type="button"
           onClick={() => setBlattOffen(true)}
           aria-haspopup="dialog"
@@ -390,17 +407,15 @@ export function Listenfilter({
               type="submit"
               className={cn(
                 knopfKlassen({ variante: "leise", rundung: "schmal", groesse: "formular" }),
-                "mit-js:sr-only",
+                // Unsichtbar, aber erreichbar: wer ihn mit der Tastatur
+                // ansteuert, sieht ihn wieder (WCAG 2.4.7).
+                "mit-js:sr-only mit-js:focus-visible:not-sr-only",
               )}
             >
               {t("anwenden")}
             </button>
             {aktiveAnzahl > 0 ? (
-              <Link
-                href={zuruecksetzen}
-                scroll={false}
-                className="inline-flex min-h-11 items-center text-sm font-semibold text-primary lg:min-h-9 lg:text-xs"
-              >
+              <Link href={zuruecksetzen} scroll={false} className={textVerweisKlassen}>
                 {t("zuruecksetzen")}
               </Link>
             ) : null}

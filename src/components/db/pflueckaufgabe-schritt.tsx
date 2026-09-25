@@ -4,35 +4,29 @@ import { Link } from "@/i18n/navigation";
 import { Aufklapper, type Ziel } from "@/components/ui/kit";
 import { AufgabeStatusFormular, MengeFormular } from "@/components/db/pflueckaufgaben-formulare";
 import type { AufgabeDetail } from "@/lib/data/pflueckaufgaben";
+import type { PflueckRechte } from "@/lib/domain/pflueckaufgaben-liste";
 
 // "Naechster Schritt" in der Uebersicht der Detailansicht (WMCNL-2488). Eine
 // Regel fuer jeden Status: der naechste Handgriff steht hier, nicht irgendwo
 // weiter unten. Vorher stand er an zweiter oder vierter Stelle der rechten
 // Spalte, unter den Beispielfotos.
 //
-// Wer was darf, entscheidet der Aufrufer. Die Datenbank prueft ohnehin selbst;
-// die Pruefung hier sorgt nur dafuer, dass niemand Knoepfe sieht, die dann
-// abgelehnt werden.
+// Wer was darf, entscheidet pflueckRechte() (lib/domain). Die Datenbank prueft
+// ohnehin selbst; die Pruefung hier sorgt nur dafuer, dass niemand Knoepfe
+// sieht, die dann abgelehnt werden.
 
 const MAX_VORSCHAU = 4;
 
 export async function PflueckaufgabeSchritt({
   aufgabe,
   live,
-  darfHandeln,
-  fremdeBrigade,
-  darfAbschliessen,
+  rechte,
   fotoZiel,
 }: {
   aufgabe: AufgabeDetail;
   /** Mit Datenbank. Im Demo-Modus gibt es keine Anmeldung und nichts zu speichern. */
   live: boolean;
-  /** Recht zum Bearbeiten und, fuer die Brigade, eigene oder freie Aufgabe. */
-  darfHandeln: boolean;
-  /** Recht zum Bearbeiten, aber die Aufgabe gehoert einer anderen Brigade. */
-  fremdeBrigade: boolean;
-  /** Belegpruefung und Freigabe (pflueckaufgaben:approve). */
-  darfAbschliessen: boolean;
+  rechte: PflueckRechte;
   /** Reiter Fotobelege dieser Aufgabe, fuer die Vorschaubilder. */
   fotoZiel: Ziel;
 }) {
@@ -43,7 +37,7 @@ export async function PflueckaufgabeSchritt({
   ]);
 
   const hinweis = (text: string) => <p className="schrift-dense text-muted-foreground">{text}</p>;
-  const ohneRecht = hinweis(fremdeBrigade ? s("fremdeBrigade") : s("nurAnsicht"));
+  const ohneRecht = hinweis(rechte.fremdeBrigade ? s("fremdeBrigade") : s("nurAnsicht"));
 
   const mengeKorrigieren = (
     <Aufklapper titel={s("mengeKorrigieren")}>
@@ -62,21 +56,21 @@ export async function PflueckaufgabeSchritt({
   } else {
     switch (aufgabe.status) {
       case "offen":
-        inhalt = darfHandeln ? (
+        inhalt = rechte.handeln ? (
           <AufgabeStatusFormular id={aufgabe.id} ziel="angenommen" label={v("ablauf.annehmen")} />
         ) : (
           ohneRecht
         );
         break;
       case "angenommen":
-        inhalt = darfHandeln ? (
+        inhalt = rechte.handeln ? (
           <AufgabeStatusFormular id={aufgabe.id} ziel="in_arbeit" label={v("ablauf.starten")} />
         ) : (
           ohneRecht
         );
         break;
       case "in_arbeit":
-        inhalt = darfHandeln ? (
+        inhalt = rechte.handeln ? (
           <div className="space-y-3">
             {hinweis(s("mengeHinweis"))}
             <MengeFormular
@@ -91,7 +85,7 @@ export async function PflueckaufgabeSchritt({
         );
         break;
       case "beleg_pruefung":
-        if (darfAbschliessen) {
+        if (rechte.abschliessen) {
           const vorschau = aufgabe.belege.slice(0, MAX_VORSCHAU);
           inhalt = (
             <div className="space-y-3">
@@ -99,47 +93,53 @@ export async function PflueckaufgabeSchritt({
                 <p className="text-sm font-black text-warning">{t("reviewTitle")}</p>
                 <p className="mt-1 schrift-dense text-muted-foreground">{s("pruefenLead")}</p>
                 {vorschau.length > 0 ? (
-                  <ul className="mt-3 flex flex-wrap gap-2">
-                    {vorschau.map((beleg, index) => (
-                      <li key={beleg.id}>
-                        <Link
-                          href={fotoZiel}
-                          replace
-                          scroll={false}
-                          prefetch={false}
-                          aria-label={s("belegAnsehen", { nummer: index + 1 })}
-                          className="relative block h-16 w-16 overflow-hidden rounded-lg border border-border bg-muted/30 transition duration-knapp hover:border-primary/40"
-                        >
-                          <Image
-                            src={beleg.bildUrl}
-                            alt=""
-                            fill
-                            sizes="64px"
-                            // Signierte Storage-URLs und SVG-Platzhalter laufen
-                            // beide nicht durch den Bildoptimierer.
-                            unoptimized
-                            className="object-cover"
-                          />
-                        </Link>
-                      </li>
+                  // Ein Link fuer alle Vorschaubilder: sie fuehren ohnehin
+                  // alle in denselben Reiter.
+                  <Link
+                    href={fotoZiel}
+                    replace
+                    scroll={false}
+                    prefetch={false}
+                    aria-label={s("belegeAnsehen", { anzahl: aufgabe.belegAnzahl })}
+                    className="mt-3 flex w-fit flex-wrap gap-2 rounded-lg"
+                  >
+                    {vorschau.map((beleg) => (
+                      <span
+                        key={beleg.id}
+                        className="relative block h-16 w-16 overflow-hidden rounded-lg border border-border bg-muted/30 transition duration-knapp hover:border-primary/40"
+                      >
+                        <Image
+                          src={beleg.bildUrl}
+                          alt=""
+                          fill
+                          // Signierte Storage-URLs und SVG-Platzhalter laufen
+                          // beide nicht durch den Bildoptimierer.
+                          unoptimized
+                          className="object-cover"
+                        />
+                      </span>
                     ))}
-                  </ul>
+                  </Link>
                 ) : (
                   <p className="mt-2 schrift-dense font-semibold text-destructive">
                     {s("keinBeleg")}
                   </p>
                 )}
               </div>
-              <AufgabeStatusFormular
-                id={aufgabe.id}
-                ziel="abgeschlossen"
-                label={t("approve")}
-                mitQualitaet
-              />
-              {darfHandeln ? mengeKorrigieren : null}
+              {/* Ohne Fotobeleg lehnt die Datenbank die Freigabe ab (Trigger
+                  aus 20261109060000) - dann gibt es den Knopf gar nicht. */}
+              {vorschau.length > 0 ? (
+                <AufgabeStatusFormular
+                  id={aufgabe.id}
+                  ziel="abgeschlossen"
+                  label={t("approve")}
+                  mitQualitaet
+                />
+              ) : null}
+              {rechte.handeln ? mengeKorrigieren : null}
             </div>
           );
-        } else if (darfHandeln) {
+        } else if (rechte.handeln) {
           inhalt = (
             <div className="space-y-3">
               {hinweis(s("warten"))}

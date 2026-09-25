@@ -345,7 +345,7 @@ Handy Hoch Fuehrt Aus Der Detailansicht Zur Liste Zurueck
     Detailansicht Oeffnen
     Anordnung Der Detailansicht Ist    ${MOBIL_HOCH}    ersetzt
     Untere Leiste Verdeckt Den Inhalt Nicht    ${MOBIL_HOCH}
-    Click    css=#detailpanel >> text=Zur Liste
+    Click    ${DETAILANSICHT} >> text=Zur Liste
     Wait For Condition    url    not contains    aufgabe=    timeout=20s
     Wait For Elements State    css=[data-eintrag] >> nth=0    visible    timeout=20s
 
@@ -357,6 +357,7 @@ Handy Schmal Zeigt Pillen Und Filterblatt Ohne Querscrollen
     Portal Oeffnen    ${MOBIL_SCHMAL}
     Seite Ansteuern    /dashboard/feld/pflueckaufgaben
     Kein Waagerechtes Scrollen    ${MOBIL_SCHMAL}    pflueckaufgaben
+    Pillen Wischen In Einer Reihe    ${MOBIL_SCHMAL}
     Click    css=button[aria-haspopup="dialog"] >> text=Filter
     Wait For Elements State    role=dialog[name="Filter"]    visible    timeout=10s
     Befund Festhalten    ${MOBIL_SCHMAL}    filterblatt

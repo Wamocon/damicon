@@ -2,13 +2,14 @@ import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured, type Datenquelle } from "@/lib/supabase/config";
 import {
   demoAufgaben,
-  istUuid,
   zeileAusDb,
   ZEILEN_SPALTEN,
   type AufgabeZeile,
 } from "@/lib/data/pflueckaufgaben";
+import { istUuid } from "@/lib/utils";
 import {
   PRO_SEITE,
+  faelligkeitZaehltBei,
   passtZuStatus,
   passtZuUebrigemFilter,
   statusFilter,
@@ -65,8 +66,9 @@ export function demoSeite(
 }
 
 // In Suchtext und PostgREST-Muster wird das Leerzeichen zum Platzhalter:
-// "T-N 01" findet "T-N-A-01". Der Text ist schon bereinigt
-// (suchtextBereinigen), Komma und Klammern kommen darin nicht mehr vor.
+// "T-N 01" findet "T-N-A-01" - dieselbe Regel wie suchMuster() im
+// Demo-Modus. Der Text ist schon bereinigt (suchtextBereinigen), Komma und
+// Klammern kommen darin nicht mehr vor.
 function sqlMuster(suche: string): string {
   return `%${suche.replace(/ /g, "%")}%`;
 }
@@ -128,7 +130,7 @@ export async function ladeAufgabenSeite(
   const abfrage = (nurZaehlen: boolean) => {
     let q = supabase
       .from("pflueckaufgaben")
-      .select(ZEILEN_SPALTEN, { count: "exact", head: nurZaehlen });
+      .select(ZEILEN_SPALTEN, { count: nurZaehlen ? "exact" : undefined, head: nurZaehlen });
     if (suchTeile) q = q.or(suchTeile.join(","));
     switch (filter.brigade.art) {
       case "ohne":
@@ -146,47 +148,39 @@ export async function ladeAufgabenSeite(
     return q;
   };
 
+  // Was eine Pille umfasst, steht nur hier - Zaehler und Seite benutzen
+  // dieselbe Regel, so wie passtZuStatus() im Demo-Modus.
   const jetztIso = jetzt.toISOString();
-  const [alle, abgeschlossen, ueberfaellig, belegpruefung] = await Promise.all([
-    abfrage(true),
-    abfrage(true).eq("status", "abgeschlossen"),
-    abfrage(true).neq("status", "abgeschlossen").lt("faelligkeit", jetztIso),
-    abfrage(true).eq("status", "beleg_pruefung"),
-  ]);
-  const zaehlFehler = alle.error ?? abgeschlossen.error ?? ueberfaellig.error ?? belegpruefung.error;
+  const mitStatus = (q: ReturnType<typeof abfrage>, status: StatusFilter) => {
+    switch (status) {
+      case "alle":
+        return q;
+      case "zu-erledigen":
+        return q.neq("status", "abgeschlossen");
+      case "ueberfaellig":
+        return q.in("status", [...faelligkeitZaehltBei]).lt("faelligkeit", jetztIso);
+      case "belegpruefung":
+        return q.eq("status", "beleg_pruefung");
+      case "abgeschlossen":
+        return q.eq("status", "abgeschlossen");
+    }
+  };
+
+  const zaehlungen = await Promise.all(statusFilter.map((wert) => mitStatus(abfrage(true), wert)));
+  const zaehlFehler = zaehlungen.find((ergebnis) => ergebnis.error)?.error;
   if (zaehlFehler) {
     console.error("[damicon] Pflueckaufgaben nicht zaehlbar:", zaehlFehler.message);
     return demoSeite(filter, seite, jetzt, "fehler");
   }
-
-  const zaehler: Record<StatusFilter, number> = {
-    alle: alle.count ?? 0,
-    "zu-erledigen": (alle.count ?? 0) - (abgeschlossen.count ?? 0),
-    ueberfaellig: ueberfaellig.count ?? 0,
-    belegpruefung: belegpruefung.count ?? 0,
-    abgeschlossen: abgeschlossen.count ?? 0,
-  };
+  const zaehler = leereZaehler();
+  statusFilter.forEach((wert, index) => {
+    zaehler[wert] = zaehlungen[index].count ?? 0;
+  });
   const gesamt = zaehler[filter.status];
   const modell = seitenModell(gesamt, seite, PRO_SEITE);
 
-  let seitenAbfrage = abfrage(false);
-  switch (filter.status) {
-    case "zu-erledigen":
-      seitenAbfrage = seitenAbfrage.neq("status", "abgeschlossen");
-      break;
-    case "ueberfaellig":
-      seitenAbfrage = seitenAbfrage.neq("status", "abgeschlossen").lt("faelligkeit", jetztIso);
-      break;
-    case "belegpruefung":
-      seitenAbfrage = seitenAbfrage.eq("status", "beleg_pruefung");
-      break;
-    case "abgeschlossen":
-      seitenAbfrage = seitenAbfrage.eq("status", "abgeschlossen");
-      break;
-  }
-
   // Dieselbe Reihenfolge wie vergleicheAufgaben() im Demo-Modus.
-  const { data, error } = await seitenAbfrage
+  const { data, error } = await mitStatus(abfrage(false), filter.status)
     .order("faelligkeit", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false })
     .order("id")
@@ -203,10 +197,11 @@ export async function ladeAufgabenSeite(
   const ids = data.map((zeile) => zeile.id);
   const belegAnzahl = new Map<string, number>();
   if (ids.length > 0) {
-    const { data: belege } = await supabase
+    const { data: belege, error: belegFehler } = await supabase
       .from("media_belege")
       .select("pflueckaufgabe_id")
       .in("pflueckaufgabe_id", ids);
+    if (belegFehler) console.error("[damicon] Belege nicht zaehlbar:", belegFehler.message);
     for (const beleg of belege ?? []) {
       if (!beleg.pflueckaufgabe_id) continue;
       belegAnzahl.set(beleg.pflueckaufgabe_id, (belegAnzahl.get(beleg.pflueckaufgabe_id) ?? 0) + 1);

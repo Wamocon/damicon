@@ -1,150 +1,24 @@
 "use client";
 
-import {
-  useEffect,
-  useRef,
-  useSyncExternalStore,
-  type ComponentProps,
-  type MouseEvent,
-  type ReactNode,
-} from "react";
-import { useLinkStatus } from "next/link";
+import { useEffect, useRef, type MouseEvent } from "react";
 import { ChevronLeft, X } from "lucide-react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { seiteGesperrt } from "@/components/ui/scroll-sperre";
+import { symbolKnopfKlassen, type Ziel } from "@/components/ui/kit";
 import { cn } from "@/lib/utils";
 
 // Die Teile der Liste mit Detailansicht, die im Browser laufen muessen
-// (DESIGN.md Abschnitt 14, WMCNL-2488). Alles andere rendert der Server: Liste,
-// Detailansicht und alle Wechsel sind Links auf eine andere Adresse und
-// funktionieren deshalb auch ohne JavaScript.
-
-type Ziel = ComponentProps<typeof Link>["href"];
-
-// ---------------------------------------------------------------------------
-// Ladezustand
+// (DESIGN.md Abschnitt 14, WMCNL-2488): Schliessen, Esc, Fokus, Zurueck und
+// das Signal fuer Himbi. Den Ladezustand fuehrt lade-status.tsx. Alles andere
+// rendert der Server: Liste, Detailansicht und alle Wechsel sind Links auf
+// eine andere Adresse.
 //
-// Ein Klick auf einen Eintrag, einen Reiter oder einen Filter wartet auf den
-// Server. Bei Suchparametern greift kein loading.tsx - Next.js behaelt die
-// alte Ansicht, bis die neue da ist (layout-router.js ignoriert die Query im
-// Schluessel des Segments). Ohne Rueckmeldung wirkt der Klick wirkungslos.
-//
-// Der Link weiss, dass er laedt (useLinkStatus), die Flaeche, die sich
-// aendern wird, weiss es nicht. Dazwischen steht dieser kleine Speicher: je
-// Bereich ein Zaehler, den Melder hoch- und herunterzaehlen.
-// ---------------------------------------------------------------------------
-
-type Bereich = "liste" | "detailpanel";
-
-const laufend: Record<Bereich, number> = { liste: 0, detailpanel: 0 };
-const hoerer = new Set<() => void>();
-
-function melde(bereich: Bereich, schritt: 1 | -1) {
-  laufend[bereich] = Math.max(0, laufend[bereich] + schritt);
-  hoerer.forEach((hoeren) => hoeren());
-}
-
-function abonniere(hoeren: () => void) {
-  hoerer.add(hoeren);
-  return () => {
-    hoerer.delete(hoeren);
-  };
-}
-
-export function useLaedt(bereich: Bereich): boolean {
-  return useSyncExternalStore(
-    abonniere,
-    () => laufend[bereich] > 0,
-    () => false,
-  );
-}
-
-/** Meldet einen laufenden Wechsel, der nicht ueber einen Link geht (Filterformular). */
-export function useLadeMeldung(bereich: Bereich, laeuft: boolean) {
-  useEffect(() => {
-    if (!laeuft) return;
-    melde(bereich, 1);
-    return () => melde(bereich, -1);
-  }, [bereich, laeuft]);
-}
-
-/**
- * Steht in einem Link und zeigt, dass er laedt: ein Punkt, der erst nach
- * 150 ms erscheint, damit schnelle Antworten nicht flackern. Feste Groesse,
- * nur die Deckkraft wechselt - so springt nichts.
- */
-export function LadeMelder({
-  bereich,
-  className,
-}: {
-  bereich: Bereich;
-  className?: string;
-}) {
-  const { pending } = useLinkStatus();
-  useLadeMeldung(bereich, pending);
-  return (
-    <span
-      aria-hidden="true"
-      className={cn(
-        "pointer-events-none absolute right-2 top-2 h-2 w-2 rounded-full bg-primary opacity-0",
-        pending && "animate-[lade-einblenden_200ms_ease_150ms_forwards]",
-        className,
-      )}
-    />
-  );
-}
-
-/** Schmaler Balken unter dem Kopf der Detailansicht, solange sie laedt. */
-export function PanelLadebalken() {
-  const laedt = useLaedt("detailpanel");
-  return (
-    <span
-      aria-hidden="true"
-      className={cn(
-        "pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-primary opacity-0",
-        laedt && "animate-[lade-einblenden_200ms_ease_150ms_forwards]",
-      )}
-    />
-  );
-}
-
-/** Inhalt der Detailansicht: blasser, solange die naechste Aufgabe laedt. */
-export function PanelInhalt({ children }: { children: ReactNode }) {
-  const laedt = useLaedt("detailpanel");
-  return (
-    <div
-      aria-busy={laedt || undefined}
-      className={cn(
-        "min-h-0 flex-1 p-4 transition-opacity duration-knapp",
-        "panel-angedockt:overflow-y-auto panel-angedockt:overscroll-contain",
-        "panel-schublade:overflow-y-auto panel-schublade:overscroll-contain",
-        laedt && "opacity-60",
-      )}
-    >
-      {children}
-    </div>
-  );
-}
-
-/** Eintraege der Liste: blasser, solange ein Filter oder eine Seite laedt. */
-export function ListenInhalt({ children }: { children: ReactNode }) {
-  const laedt = useLaedt("liste");
-  return (
-    <div
-      aria-busy={laedt || undefined}
-      className={cn("space-y-3 transition-opacity duration-knapp", laedt && "opacity-60")}
-    >
-      {children}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Schliessen, Esc, Fokus, Zurueck
-// ---------------------------------------------------------------------------
+// Die Bausteine gehen von einer Liste mit Detailansicht je Seite aus: die
+// Schliessen-Aktion, die IDs der Detailansicht und das Signal an <html> gibt
+// es je Seite einmal (DESIGN.md Abschnitt 14, Regeln).
 
 // Die eine offene Detailansicht der Seite meldet hier, wie sie schliesst.
-// Die Links "Liste" und das Kreuz rufen es auf. Ohne Skript sind es
+// Die Links "Zur Liste" und das Kreuz rufen es auf. Ohne Skript sind es
 // gewoehnliche Links auf die Liste.
 let schliessenAktion: (() => void) | null = null;
 
@@ -176,10 +50,7 @@ export function PanelSchliessen({
         onClick={beiKlick}
         aria-label={label}
         title={label}
-        className={cn(
-          "inline-flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground transition duration-knapp hover:bg-muted hover:text-foreground lg:h-9 lg:w-9",
-          className,
-        )}
+        className={cn(symbolKnopfKlassen, className)}
       >
         <X className="h-4 w-4" aria-hidden="true" />
       </Link>
@@ -204,22 +75,15 @@ export function PanelSchliessen({
 
 type Anordnung = "angedockt" | "schublade" | "ersetzt";
 
-// Dieselben Grenzen wie die Varianten panel-* in globals.css.
+/**
+ * Die Anordnung, wie das CSS sie gerade gewaehlt hat: das Raster traegt sie
+ * als --anordnung (Varianten panel-* in globals.css, ui/liste.tsx). Die
+ * Grenzen stehen damit nur im CSS und nicht noch einmal hier.
+ */
 function anordnung(behaelter: HTMLElement | null): Anordnung {
-  const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-  const breite = (behaelter?.clientWidth ?? 0) / rem;
-  if (breite >= 56) return "angedockt";
-  if (window.matchMedia("(width >= 48rem)").matches && breite >= 36) return "schublade";
-  return "ersetzt";
-}
-
-/** Die Liste hinter der Detailansicht: Pfad und Query ohne Auswahl und Reiter. */
-function aktuelleListe(): string {
-  const query = new URLSearchParams(window.location.search);
-  query.delete("aufgabe");
-  query.delete("reiter");
-  query.sort();
-  return `${window.location.pathname}?${query.toString()}`;
+  const raster = behaelter?.querySelector<HTMLElement>("[data-raster]");
+  const wert = raster ? getComputedStyle(raster).getPropertyValue("--anordnung").trim() : "";
+  return wert === "angedockt" || wert === "schublade" ? wert : "ersetzt";
 }
 
 function tastaturImFeld(ziel: EventTarget | null): boolean {
@@ -236,11 +100,11 @@ function tastaturImFeld(ziel: EventTarget | null): boolean {
  * "zu" auf "offen" und zurueck.
  *
  * Zurueck: Oeffnen aus der Liste legt einen Verlaufseintrag an, Wechsel der
- * Aufgabe oder des Reiters ersetzen ihn (replace an den Links). Schliessen
+ * Auswahl oder des Reiters ersetzen ihn (replace an den Links). Schliessen
  * geht deshalb einen Schritt zurueck, genau auf die Liste von vorher - die
  * Zurueck-Taste und die Zurueck-Geste auf Android tun dasselbe. Kam man ueber
- * einen geteilten Link oder hat inzwischen gefiltert, gibt es diesen Schritt
- * nicht; dann ersetzt Schliessen die Adresse durch die Liste.
+ * einen geteilten Link oder hat inzwischen gefiltert oder geblaettert, gibt
+ * es diesen Schritt nicht; dann ersetzt Schliessen die Adresse durch die Liste.
  */
 export function DetailpanelSteuerung({
   auswahlId,
@@ -257,7 +121,11 @@ export function DetailpanelSteuerung({
 }) {
   const router = useRouter();
   const vorige = useRef<{ auswahl: string | null; liste: string } | null>(null);
-  const listeBeimOeffnen = useRef<string | null>(null);
+  // Aus der Liste geoeffnet und seitdem weder gefiltert noch geblaettert: dann
+  // steht die Liste von vorher genau einen Schritt zurueck im Verlauf. Welche
+  // Parameter Auswahl und Reiter heissen, muss die Steuerung dafuer nicht
+  // wissen - der Listenschluessel kommt vom Modul.
+  const ausListe = useRef(false);
 
   // Wechsel beobachten: Fokus fuehren, merken, woher geoeffnet wurde.
   useEffect(() => {
@@ -267,9 +135,10 @@ export function DetailpanelSteuerung({
     // oeffnet, soll den Fokus nicht mitten auf der Seite finden.
     if (!vorher) return;
 
+    let rahmen = 0;
     if (!vorher.auswahl && auswahlId) {
-      listeBeimOeffnen.current = aktuelleListe();
-      requestAnimationFrame(() => {
+      ausListe.current = true;
+      rahmen = requestAnimationFrame(() => {
         const titel = document.getElementById("detailpanel-titel");
         titel?.focus({ preventScroll: true });
         // Ersetzt die Detailansicht die Liste, steht man sonst mitten in ihr.
@@ -277,44 +146,39 @@ export function DetailpanelSteuerung({
           titel?.scrollIntoView({ block: "start" });
         }
       });
-      return;
-    }
-
-    if (vorher.auswahl && auswahlId && vorher.liste !== listenSchluessel) {
+    } else if (vorher.auswahl && auswahlId) {
       // Gefiltert oder geblaettert, waehrend die Detailansicht offen war: der
       // Schritt zurueck fuehrte jetzt auf eine andere Liste.
-      listeBeimOeffnen.current = null;
-    }
-
-    if (vorher.auswahl && auswahlId && vorher.auswahl !== auswahlId) {
+      if (vorher.liste !== listenSchluessel) ausListe.current = false;
       // Pfeile und Reiter behalten ihren Fokus; nur wer aus der Liste kommt,
-      // landet auf dem Titel der neuen Aufgabe.
+      // landet auf dem Titel der neuen Auswahl.
       const panel = document.getElementById("detailpanel");
-      if (!panel?.contains(document.activeElement)) {
-        requestAnimationFrame(() =>
+      if (vorher.auswahl !== auswahlId && !panel?.contains(document.activeElement)) {
+        rahmen = requestAnimationFrame(() =>
           document.getElementById("detailpanel-titel")?.focus({ preventScroll: true }),
         );
       }
-      return;
-    }
-
-    if (vorher.auswahl && !auswahlId) {
-      listeBeimOeffnen.current = null;
-      requestAnimationFrame(() => {
-        const zeile =
-          document.getElementById(`eintrag-${vorher.auswahl}`) ?? document.getElementById("liste");
-        zeile?.focus({ preventScroll: true });
-        zeile?.scrollIntoView({ block: "nearest" });
+    } else if (vorher.auswahl && !auswahlId) {
+      ausListe.current = false;
+      rahmen = requestAnimationFrame(() => {
+        // Die Zeile, sonst die Liste selbst - etwa nach einem geteilten Link,
+        // dessen Eintrag nicht auf dieser Seite steht.
+        const ziel =
+          document.getElementById(`eintrag-${vorher.auswahl}`) ??
+          document.getElementById(`${behaelterId}-liste`);
+        ziel?.focus({ preventScroll: true });
+        ziel?.scrollIntoView({ block: "nearest" });
       });
     }
+    return () => cancelAnimationFrame(rahmen);
   }, [auswahlId, listenSchluessel, behaelterId]);
 
-  // Schliessen und Esc, solange eine Aufgabe offen ist.
+  // Schliessen und Esc, solange etwas offen ist.
   useEffect(() => {
     if (!auswahlId) return;
     const schliessen = () => {
-      if (listeBeimOeffnen.current !== null && listeBeimOeffnen.current === aktuelleListe()) {
-        listeBeimOeffnen.current = null;
+      if (ausListe.current) {
+        ausListe.current = false;
         router.back();
       } else {
         router.replace(schliessenZiel, { scroll: false });
@@ -358,13 +222,13 @@ export function DetailpanelSteuerung({
       if (panel) wurzel.style.setProperty("--detailpanel-ist", `${panel.offsetWidth}px`);
     };
     bestimme();
+    // Der Behaelter aendert seine Breite mit jedem Fensterwechsel, auch ueber
+    // die md-Grenze hinweg - ein eigener resize-Listener waere doppelt.
     const beobachter = new ResizeObserver(bestimme);
     if (behaelter) beobachter.observe(behaelter);
     if (panel) beobachter.observe(panel);
-    window.addEventListener("resize", bestimme);
     return () => {
       beobachter.disconnect();
-      window.removeEventListener("resize", bestimme);
       aufraeumen();
     };
   }, [auswahlId, behaelterId]);

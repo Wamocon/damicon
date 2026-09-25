@@ -194,7 +194,7 @@ export const en: HandbuchTexte = {
           "Expand “New picking task” above the list and enter row block, brigade, due date with time (farm time, Almaty) and target quantity. Locked blocks are not offered for selection and are rejected by the database as well. After saving, the new task opens in the detail view.",
           "Clicking a task opens the detail view on the right; on a phone it replaces the list. In the Overview tab, “Next step” says what to do next. The arrows at the top go to the previous and next task, Esc or Back closes the view.",
           "As the brigade, accept the task, start picking and upload photo evidence in the Photo evidence tab. On a phone this opens the camera directly. The file goes into a private storage area and is only ever shown through short-lived signed links.",
-          "“Report quantity” moves the task to evidence review.",
+          "“Report quantity” moves the task to evidence review. From then on its due date no longer counts: only tasks the brigade is still picking can be overdue.",
           "Farm management or administrators then see thumbnails of the evidence in the overview, enter the quality factor and release the task.",
         ],
       },

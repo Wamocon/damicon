@@ -1,14 +1,11 @@
-import type { ComponentProps, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
-import {
-  LadeMelder,
-  PanelInhalt,
-  PanelLadebalken,
-  PanelSchliessen,
-} from "@/components/ui/detailpanel-steuerung";
+import { symbolKnopfKlassen, type Ziel } from "@/components/ui/kit";
+import { PanelSchliessen } from "@/components/ui/detailpanel-steuerung";
+import { LadeMelder, PanelInhalt, PanelLadebalken } from "@/components/ui/lade-status";
 
 // Die Huelle der Detailansicht (DESIGN.md Abschnitt 14, WMCNL-2488): Kopf mit
 // Titel, Status, Pfeilen und Schliessen, darunter Reiter und Inhalt. Was
@@ -16,8 +13,6 @@ import {
 //
 // Im Code heisst sie Detailpanel, in allen Texten fuer Nutzer
 // "Detailansicht". "Seitenpanel" ist in DESIGN.md schon der KI-Chat.
-
-type Ziel = ComponentProps<typeof Link>["href"];
 
 export function Detailpanel({
   titel,
@@ -48,15 +43,12 @@ export function Detailpanel({
 }) {
   const t = useTranslations("liste.panel");
 
-  const pfeil =
-    "relative inline-flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground transition duration-knapp hover:bg-muted hover:text-foreground lg:h-9 lg:w-9";
-  const pfeilGesperrt =
-    "inline-flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground opacity-40 lg:h-9 lg:w-9";
+  const pfeil = symbolKnopfKlassen;
+  const pfeilGesperrt = cn(symbolKnopfKlassen, "pointer-events-none opacity-40");
 
   return (
     <section
       id="detailpanel"
-      data-detailpanel=""
       aria-labelledby="detailpanel-titel"
       className={cn(
         "flex min-w-0 flex-col rounded-2xl border border-border bg-card-deckend shadow-sm shadow-black/3",

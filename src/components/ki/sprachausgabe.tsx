@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Square, Volume2, VolumeX } from "lucide-react";
 import { stimmeFuerOberflaeche } from "@/lib/domain/sprachausgabe";
-import { cn } from "@/lib/utils";
+import { cn, istUuid } from "@/lib/utils";
 
 // Sprachausgabe im KI-Seitenpanel: je Antwort ein Vorlese-Knopf, dazu ein
 // Schalter "Antworten vorlesen" (Standard: aus - reiner Text bleibt der
@@ -12,12 +12,10 @@ import { cn } from "@/lib/utils";
 // gespeicherter Antworten annimmt, nie freien Text.
 
 const SCHALTER_SCHLUESSEL = "damicon.ki.vorlesen";
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 /** Nur gespeicherte Antworten haben eine Datenbank-ID (UUID) - nur fuer die
  *  gibt es etwas vorzulesen. */
 export function istVorlesbar(id: string): boolean {
-  return UUID.test(id);
+  return istUuid(id);
 }
 
 /** Gibt es fuer die Systemsprache ueberhaupt eine Stimme? Dieselbe Tabelle

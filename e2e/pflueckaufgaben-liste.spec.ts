@@ -14,8 +14,11 @@ import { anmelden } from "./helpers";
 
 const SEITE = "/de/dashboard/feld/pflueckaufgaben";
 const eintraege = (page: Page) => page.locator("[data-eintrag]");
-const detailansicht = (page: Page) => page.locator("#detailpanel");
+// Ueber die Rolle statt ueber #detailpanel: waehrend React streamt, steht die
+// Detailansicht kurz doppelt im Dokument, einmal davon versteckt.
+const detailansicht = (page: Page) => page.getByRole("region", { name: /^Pflückaufgabe / });
 const verlauf = (page: Page) => page.evaluate(() => history.length);
+const zahl = (text: string | null) => Number((text ?? "").replace(/\D/g, "") || 0);
 
 test.describe("Pflückaufgaben: Liste mit Detailansicht", () => {
   test.beforeEach(async ({ page }) => {
@@ -43,18 +46,19 @@ test.describe("Pflückaufgaben: Liste mit Detailansicht", () => {
     // Reiter und Pfeile ersetzen den Verlaufseintrag.
     await detailansicht(page).getByRole("link", { name: /^Fotobelege/ }).click();
     await expect(page).toHaveURL(/reiter=fotos/);
+    // Die erste Zeile hat immer einen Nachfolger, sobald die Liste zwei hat.
     const weiter = detailansicht(page).getByRole("link", { name: "Nächster Eintrag" });
-    if (await weiter.count()) {
-      await weiter.click();
-      await expect(page).not.toHaveURL(new RegExp(`aufgabe=${id}`));
-      // Der Reiter bleibt beim Wechsel der Aufgabe stehen.
-      await expect(page).toHaveURL(/reiter=fotos/);
-    }
+    await expect(weiter).toBeVisible();
+    await weiter.click();
+    await expect(page).not.toHaveURL(new RegExp(`aufgabe=${id}`));
+    // Der Reiter bleibt beim Wechsel der Aufgabe stehen.
+    await expect(page).toHaveURL(/reiter=fotos/);
     expect(await verlauf(page)).toBe(nachOeffnen);
 
-    // Zurueck fuehrt auf die Liste von vorher.
+    // Zurueck fuehrt genau auf die Liste von vorher: nicht auf eine zuvor
+    // angesehene Aufgabe und nicht aus der Seite heraus.
     await page.goBack();
-    await expect(page).not.toHaveURL(/aufgabe=/);
+    await expect(page).toHaveURL(/\/feld\/pflueckaufgaben$/);
     await expect(detailansicht(page)).toHaveCount(0);
   });
 
@@ -77,6 +81,9 @@ test.describe("Pflückaufgaben: Liste mit Detailansicht", () => {
 
   test("eine Status-Pille springt auf Seite 1", async ({ page }) => {
     await page.goto(SEITE);
+    // Erst die Liste abwarten: count() wartet nicht, und vor dem Streamen
+    // der Liste uebersprang sich der Test sonst selbst.
+    await expect(eintraege(page).first()).toBeVisible();
     const blaettern = page.getByRole("navigation", { name: "Seiten der Liste" });
     test.skip(!(await blaettern.count()), "Weniger als 20 Aufgaben, nichts zu blaettern.");
 
@@ -93,10 +100,54 @@ test.describe("Pflückaufgaben: Liste mit Detailansicht", () => {
 
   test("die Suche greift nach der Tipppause", async ({ page }) => {
     await page.goto(SEITE);
-    const code = (await eintraege(page).first().locator(".font-mono").textContent())!.trim();
+    // Der Code der letzten Zeile: die erste enthielte ihn auch ohne Filter.
+    const code = (await eintraege(page).last().locator(".font-mono").textContent())!.trim();
     await page.getByRole("searchbox", { name: "Suche" }).fill(code);
     await expect(page).toHaveURL(new RegExp(`suche=${code}`));
+    await expect(eintraege(page)).toHaveCount(1);
     await expect(eintraege(page).first()).toContainText(code);
+  });
+
+  test("die Zahlen an den Pillen passen zueinander und zur Liste", async ({ page }) => {
+    await page.goto(SEITE);
+    const status = page.getByRole("navigation", { name: "Status" });
+    const anzahl = async (name: RegExp) =>
+      zahl(await status.getByRole("link", { name }).locator("span").first().textContent());
+    const alle = await anzahl(/^Alle/);
+    const offen = await anzahl(/^Zu erledigen/);
+    const ueberfaellig = await anzahl(/^Überfällig/);
+    const pruefung = await anzahl(/^Belegprüfung/);
+    const fertig = await anzahl(/^Abgeschlossen/);
+    expect(offen + fertig).toBe(alle);
+    expect(ueberfaellig).toBeLessThanOrEqual(offen);
+    expect(pruefung).toBeLessThanOrEqual(offen);
+
+    // Eine kleine Pille ganz durchblaettern: so viele Zeilen, wie sie verspricht.
+    const kandidaten = [
+      { name: /^Belegprüfung/, soll: pruefung },
+      { name: /^Überfällig/, soll: ueberfaellig },
+      { name: /^Zu erledigen/, soll: offen },
+      { name: /^Abgeschlossen/, soll: fertig },
+    ].filter((pille) => pille.soll > 0 && pille.soll <= 60);
+    test.skip(kandidaten.length === 0, "Keine Pille mit 1 bis 60 Aufgaben in den Testdaten.");
+    // Die groesste passende, damit moeglichst ueber mehrere Seiten gezaehlt wird.
+    const { name, soll } = kandidaten.sort((a, b) => b.soll - a.soll)[0];
+    await status.getByRole("link", { name }).click();
+    await expect(status.getByRole("link", { name })).toHaveAttribute("aria-current", "true");
+    await expect(page.locator("#liste p[aria-live]")).toHaveText(new RegExp(`^${soll}\\s`));
+
+    let gezaehlt = 0;
+    for (let seite = 1; ; seite++) {
+      await expect(eintraege(page).first()).toBeVisible();
+      gezaehlt += await eintraege(page).count();
+      const weiter = page
+        .getByRole("navigation", { name: "Seiten der Liste" })
+        .getByRole("link", { name: /Weiter/ });
+      if (!(await weiter.count())) break;
+      await weiter.click();
+      await expect(page).toHaveURL(new RegExp(`seite=${seite + 1}`));
+    }
+    expect(gezaehlt).toBe(soll);
   });
 
   test("auf dem Handy ersetzt die Detailansicht die Liste", async ({ page }) => {
@@ -114,6 +165,52 @@ test.describe("Pflückaufgaben: Liste mit Detailansicht", () => {
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );
     expect(ueberstand).toBeLessThanOrEqual(0);
+  });
+});
+
+// Die Brigade darf nur eigene und freie Aufgaben bearbeiten
+// (20261018000000_brigade_schreibumfang.sql). Mit "Alle Brigaden" sieht sie
+// auch fremde; dort darf die Oberflaeche keine Knoepfe zeigen, die die
+// Datenbank ablehnen wuerde. Fremd heisst: nicht die Brigade, deren Aufgaben
+// unter "Eigene Brigade" stehen - bestimmt aus der Liste, nicht aus den
+// Knoepfen, die hier geprueft werden.
+test.describe("Pflückaufgaben als Brigade", () => {
+  test("an Aufgaben anderer Brigaden nur der Hinweis, keine Knöpfe", async ({ page }) => {
+    await anmelden(page, "brigade");
+    await page.goto(`${SEITE}?brigade=meine`);
+    await expect(eintraege(page).first()).toBeVisible();
+    const orte = await eintraege(page).locator("p").allTextContents();
+    const eigene = new Set(
+      orte.map((ort) => ort.split(" · ")[0].trim()).filter((name) => name !== "Ohne Brigade"),
+    );
+    test.skip(eigene.size === 0, "Die Brigade-Anmeldung hat auf Seite 1 keine eigenen Aufgaben.");
+
+    const optionen = await page
+      .locator('select[name="brigade"]')
+      .first()
+      .locator("option")
+      .evaluateAll((liste) =>
+        liste.map((option) => ({
+          wert: (option as HTMLOptionElement).value,
+          text: option.textContent?.trim() ?? "",
+        })),
+      );
+    const fremde = optionen.find(
+      (option) => !["alle", "meine", "ohne"].includes(option.wert) && !eigene.has(option.text),
+    );
+    test.skip(!fremde, "Es gibt keine zweite Brigade.");
+
+    await page.goto(`${SEITE}?brigade=${fremde!.wert}&status=zu-erledigen`);
+    const erste = eintraege(page).first();
+    test.skip(!(await erste.count()), "Die andere Brigade hat keine offenen Aufgaben.");
+    await erste.click();
+
+    const schritt = detailansicht(page).getByRole("region", { name: "Nächster Schritt" });
+    await expect(
+      schritt.getByText(/gehört zu einer anderen Brigade|wartet auf die Belegprüfung/),
+    ).toBeVisible();
+    await expect(schritt.getByRole("button")).toHaveCount(0);
+    await expect(schritt.getByText("Menge korrigieren")).toHaveCount(0);
   });
 });
 

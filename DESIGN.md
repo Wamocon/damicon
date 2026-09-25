@@ -318,7 +318,7 @@ Ist ein Eintrag gewählt, gehört der Platz der Detailansicht, damit man in ihr 
 | Anordnung | Wann | Verhalten |
 |---|---|---|
 | angedockt | Behälter ab 56rem (28,5rem Liste + 1,5rem Abstand + 26rem) | Sie steht rechts neben der Liste, die bedienbar bleibt, und ist 26 bis 60rem breit. Ein Klick auf einen anderen Eintrag wechselt den Inhalt. Sie klebt unter der Kopfzeile und scrollt in sich. |
-| Schublade | ab `md`, Behälter 36 bis 56rem | Sie liegt über dem rechten Teil der Liste, im Hauptbereich und mitscrollend, ohne Blende, auf `z-20`. Sie ist 26 bis 40rem breit; links bleiben mindestens 10rem Liste sichtbar und anklickbar. |
+| Schublade | ab `md`, Behälter 36 bis 56rem | Sie liegt über dem rechten Teil der Liste, ohne Blende, auf `z-20` und damit unter Kopfzeile und unterer Leiste. Wie angedockt klebt sie unter der Kopfzeile und scrollt in sich. Sie ist 26 bis 40rem breit; links bleiben mindestens 10rem Liste sichtbar und anklickbar. |
 | ersetzt | unter `md` oder Behälter unter 36rem | Sie steht an Stelle der Liste, mit „‹ Zur Liste“. Daneben bliebe nur ein Streifen, in dem man nichts lesen kann. |
 
 Beispiele (Seitenleiste offen):
@@ -359,13 +359,14 @@ KI-Chat und Detailansicht dürfen gleichzeitig offen sein, die Anordnung wechsel
 - Mit JavaScript greift eine Auswahl sofort, die Suche nach 400 ms Tipppause. Dabei ersetzt die Suche den Verlaufseintrag, statt je Buchstabe einen neuen anzulegen. „Anwenden“ bleibt dann nur für Vorlesehilfen und Enter.
 - Beim Zeitraum erscheinen Von und Bis per CSS, sobald „Eigener Zeitraum“ gewählt ist (`:has()` auf die gewählte Option).
 - Auf dem Handy stehen nur die Pillen (waagerecht wischbar) und „Filter (n)“. Die übrigen Felder liegen in einem Blatt von unten.
-- Die Varianten `mit-js`/`ohne-js` (`@media (scripting)`) halten die Felder ohne JavaScript sichtbar, ohne dass das Layout nach der Hydration springt. Sie fragen, ob JavaScript an ist, nicht, ob das Bundle geladen ist. Fehlt das Bundle, sieht die Leiste aus wie mit JavaScript, und „Filter (n)“ öffnet auf dem Handy nichts. Ein Rückfall über einen Anker mit `:target` wäre möglich.
+- Die Variante `mit-js` (`@media (scripting: enabled)`) schaltet nur um, wenn JavaScript an ist: „Anwenden“ wird zum Sprungziel für Vorlesehilfen, und auf dem Handy erscheint „Filter (n)“ statt der Felder. Ohne JavaScript bleibt alles sichtbar, und das Layout springt nach der Hydration nicht. Die Abfrage fragt, ob JavaScript an ist, nicht, ob das Bundle geladen ist. Fehlt das Bundle, sieht die Leiste aus wie mit JavaScript, und „Filter (n)“ öffnet auf dem Handy nichts. Ein Rückfall über einen Anker mit `:target` wäre möglich.
 
 **Blättern statt Nachladen.** Anders als bei `TabellenFuss` („Mehr anzeigen“, Finanzen) bleibt die Liste beim Weiterblättern gleich lang. Eine Liste, neben der eine Detailansicht steht, soll nicht wachsen. Die Blätterknöpfe scrollen an den Anfang der Liste. Sie stehen mittig, weil unten rechts Himbi liegt und sonst „Weiter“ verdeckt.
 
 **Neuanlage.**
 
-- Ein Knopf „+ Neu …“ direkt über der Liste klappt das Formular darüber auf, wie der `Aufklapper` bei Finanzen. Das `<details>` ist ohne Skript bedienbar.
+- Ein Knopf „+ Neu …“ direkt über der Liste klappt das Formular darüber auf: ein `Aufklapper` mit `variante="aktion"` und Symbol, wie bei Finanzen. Das `<details>` ist ohne Skript bedienbar.
+- Braucht ein Pflichtfeld eine Angabe zum Format, steht sie als `hinweis` am `Feld` und ist per `aria-describedby` verknüpft. Bei den Pflückaufgaben ist das „Betriebszeit Almaty“ an der Fälligkeit.
 - Nach dem Speichern klappt es zu, und der neue Eintrag öffnet in der Detailansicht. Die Server-Aktion gibt dafür die ID zurück (`AktionsStatus.id`).
 - Die Meldung steht außerhalb des Aufklappers und bleibt sichtbar.
 
@@ -387,19 +388,21 @@ KI-Chat und Detailansicht dürfen gleichzeitig offen sein, die Anordnung wechsel
 | Baustein | Datei | Aufgabe |
 |---|---|---|
 | `leseParameter`, `listenQuery`, `aktiveFilter` | `lib/listen/parameter.ts` | Zustand der Liste lesen und Links bauen |
-| `zeitraumGrenzen`, `wandzeitZuUtc` | `lib/listen/zeitraum.ts` | Zeitraumstufen und eigener Zeitraum in Betriebszeit Almaty, halboffen |
+| `zeitraumGrenzen`, `wandzeitZuUtc`, `istGueltigerTag` | `lib/listen/zeitraum.ts` | Zeitraumstufen und eigener Zeitraum in Betriebszeit Almaty, halboffen; Tage, die es nicht gibt, fallen heraus |
 | `seitenModell`, `nachbarn` | `lib/listen/seiten.ts` | Blättern und die Pfeile der Detailansicht |
 | `ListeMitDetailpanel`, `ListenEintrag`, `Blaettern`, `LeererZustand` | `ui/liste.tsx` | Behälter mit den drei Anordnungen, Zeile als Link, Blättern, Leerzustand |
 | `Detailpanel` | `ui/detailpanel.tsx` | Hülle mit Kopf, Reitern und Inhalt |
-| `DetailpanelSteuerung`, `LadeMelder`, `PanelSchliessen` | `ui/detailpanel-steuerung.tsx` | Zurück, Esc, Fokus, Ladeanzeige, Signal für Himbi |
+| `DetailpanelSteuerung`, `PanelSchliessen` | `ui/detailpanel-steuerung.tsx` | Zurück, Esc, Fokus, Signal für Himbi |
+| `LadeMelder`, `ListenInhalt`, `PanelInhalt`, `useLadeMeldung` | `ui/lade-status.tsx` | Punkt am geklickten Link; Liste oder Detailansicht blasser, bis die Antwort da ist |
 | `Listenfilter` | `ui/listen-filter.tsx` | Filterleiste und Handy-Blatt |
+| `FilterPillen`, `Reiter`, `Aufklapper`, `symbolKnopfKlassen`, `textVerweisKlassen` | `ui/kit.tsx` | Pillen mit Anzahl, Reiter, Neuanlage, Pfeile und Schließen, Textlinks |
 
 **Was modulspezifisch bleibt:**
 - das Schema der Suchparameter und die Bedeutung der Pillen,
 - die Abfragen und der Inhalt einer Zeile,
 - die Reiter und der „nächste Schritt“.
 
-Bei den Pflückaufgaben steht der nächste Handgriff immer im Reiter Übersicht, je Status und Rolle (`db/pflueckaufgabe-schritt.tsx`).
+Bei den Pflückaufgaben steht der nächste Handgriff immer im Reiter Übersicht, je Status und Rolle (`db/pflueckaufgabe-schritt.tsx`). Welche Knöpfe erscheinen, entscheidet `pflueckRechte()` an einer Stelle; die Datenbank prüft ohnehin selbst. Überfällig ist eine Pflückaufgabe nur, solange die Brigade pflückt (offen, angenommen, in Arbeit). Ab der Belegprüfung zählt die Fälligkeit nicht mehr, und das Abzeichen entfällt. Die Regel steht einmal in `faelligkeitZaehlt()` und gilt für Pille, Liste, Demo-Modus und Anzeige (entschieden am 25.09.2026).
 
 **Regeln.**
 
@@ -409,3 +412,5 @@ Bei den Pflückaufgaben steht der nächste Handgriff immer im Reiter Übersicht,
 - Nichts mit `position: fixed` in einem `@container`. Blätter gehen per Portal an `<body>` (Regel 12).
 - Spalten und Anordnung in der Detailansicht per Container-Abfrage, nie per `sm:` oder `md:`: dieselbe Detailansicht ist auf dem Handy und neben einem KI-Chat gleich schmal.
 - Pfeile, Reiter und Vorschaubilder tragen nie den Code des Eintrags im Namen. Sonst steht er mehrfach auf der Seite, und weder Vorlesehilfe noch Test weiß, welcher gemeint ist.
+- Die Anordnung steht an einer Stelle: Das Raster setzt `--anordnung` per Container-Abfrage, und das Skript liest sie dort ab (`getComputedStyle`), statt die Grenzen nachzurechnen.
+- Je Seite höchstens eine Liste mit Detailansicht. `#liste`, `#detailpanel` und der Ladezustand in `ui/lade-status.tsx` gelten für die ganze Seite.

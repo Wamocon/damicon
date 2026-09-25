@@ -805,13 +805,9 @@
     "listLead": "Per brigade and row block, latest due date first. Progress is actual volume against target volume.",
     "block": "Block",
     "qFactor": "Q factor",
-    "proofTitle": "Photo evidence",
-    "proofLead": "Sample photos of the retail punnet, the row block and the crate, right on the task.",
     "noProof": "No evidence for this task yet.",
     "reviewTitle": "Evidence review pending",
-    "reviewLead": "The task is waiting for release. Check the volume and the punnet evidence, then release or request rework.",
     "approve": "Release",
-    "rework": "Rework",
     "art": {
       "schale": "Retail punnet",
       "reihenblock": "Row block",
@@ -1131,6 +1127,7 @@
     "panel": {
       "titel": "Picking task {code}",
       "nichtGefundenTitel": "Picking task not found",
+      "ladefehlerTitel": "Picking task not loaded",
       "reiterLabel": "Sections of the detail view",
       "uebersicht": "Overview",
       "fotos": "Photo evidence",
@@ -1148,7 +1145,7 @@
       "titel": "Next step",
       "mengeHinweis": "Record crates, working time and cooling measurements in the Chain of evidence tab.",
       "pruefenLead": "Check the quantity and photo evidence, set the quality factor and approve.",
-      "belegAnsehen": "View evidence {nummer}",
+      "belegeAnsehen": "View photo evidence ({anzahl})",
       "keinBeleg": "No photo evidence yet. Approval requires at least one.",
       "warten": "The task is waiting for the evidence review by farm management.",
       "mengeKorrigieren": "Correct quantity",
@@ -3563,7 +3560,6 @@
       "schliessen": "Close filters"
     },
     "zeitraum": {
-      "label": "Period",
       "alle": "All",
       "heute": "Today",
       "woche": "This week",
@@ -3584,7 +3580,8 @@
       "zurListe": "Back to list",
       "vorheriger": "Previous entry",
       "naechster": "Next entry",
-      "nichtGefunden": "This entry does not exist or is not visible for your role."
+      "nichtGefunden": "This entry does not exist or is not visible for your role.",
+      "ladefehler": "This entry cannot be loaded right now. Please try again in a moment."
     }
   }
 }

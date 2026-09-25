@@ -1,20 +1,20 @@
 import { z } from "zod";
-import type { Role } from "@/lib/rbac";
+import { hasPermission, type Role } from "@/lib/rbac";
 import type { AufgabenStatus } from "@/lib/domain/pflueckaufgaben";
 import { suchtextBereinigen } from "@/lib/listen/parameter";
-import { zeitraumStufen, type ZeitraumGrenzen } from "@/lib/listen/zeitraum";
+import { istGueltigerTag, zeitraumStufen, type ZeitraumGrenzen } from "@/lib/listen/zeitraum";
 
 // Liste und Detailansicht der Pflueckaufgaben (WMCNL-2488): was in der Adresse
-// steht, was ein Filter bedeutet und wer eine Aufgabe bearbeiten darf. Reine
-// Regeln ohne Datenbank, damit Datenschicht, Demo-Modus und Tests dieselben
-// benutzen.
+// steht, was ein Filter bedeutet und wer was darf. Reine Regeln ohne
+// Datenbank, damit Datenschicht, Demo-Modus und Tests dieselben benutzen.
 
 export const PRO_SEITE = 20;
 
 /**
  * Die Status-Pillen ueber der Liste. "zu-erledigen" fasst alles zusammen, was
- * noch nicht abgeschlossen ist; "ueberfaellig" ist kein Status der Datenbank,
- * sondern eine Faelligkeit in der Vergangenheit bei offener Aufgabe.
+ * noch nicht abgeschlossen ist - fuer die Leitung ist auch die Belegpruefung
+ * noch Arbeit. "ueberfaellig" ist kein Status der Datenbank, sondern eine
+ * Faelligkeit in der Vergangenheit, solange die Brigade noch pflueckt.
  */
 export const statusFilter = [
   "alle",
@@ -24,6 +24,22 @@ export const statusFilter = [
   "abgeschlossen",
 ] as const;
 export type StatusFilter = (typeof statusFilter)[number];
+
+/**
+ * Die Faelligkeit zaehlt, solange die Brigade noch pflueckt. In der
+ * Belegpruefung hat sie geliefert, und abgeschlossen ist abgeschlossen: dort
+ * ist nichts mehr ueberfaellig, und das Abzeichen entfaellt (entschieden am
+ * 25.09.2026). Eine Quelle fuer Pille, Liste, Demo-Modus und Anzeige.
+ */
+export const faelligkeitZaehltBei = [
+  "offen",
+  "angenommen",
+  "in_arbeit",
+] as const satisfies readonly AufgabenStatus[];
+
+export function faelligkeitZaehlt(status: AufgabenStatus): boolean {
+  return (faelligkeitZaehltBei as readonly AufgabenStatus[]).includes(status);
+}
 
 /** Die Reiter der Detailansicht. */
 export const panelReiter = ["uebersicht", "fotos", "kette"] as const;
@@ -46,14 +62,12 @@ export const pflueckListenSchema = z.object({
     .optional()
     .catch(undefined),
   zeitraum: z.enum(zeitraumStufen).catch("alle"),
-  von: z.string().regex(DATUM).optional().catch(undefined),
-  bis: z.string().regex(DATUM).optional().catch(undefined),
+  von: z.string().regex(DATUM).refine(istGueltigerTag).optional().catch(undefined),
+  bis: z.string().regex(DATUM).refine(istGueltigerTag).optional().catch(undefined),
   seite: z.coerce.number().int().min(1).max(10_000).catch(1),
   aufgabe: z.string().regex(KENNUNG).optional().catch(undefined),
   reiter: z.enum(panelReiter).catch("uebersicht"),
 });
-
-export type PflueckListenWerte = z.output<typeof pflueckListenSchema>;
 
 /** Diese Schluessel sind Filter: aendert sich einer, springt die Liste auf Seite 1. */
 export const pflueckFilterSchluessel = ["status", "suche", "brigade", "zeitraum", "von", "bis"] as const;
@@ -132,7 +146,7 @@ export function passtZuStatus(
       return aufgabe.status !== "abgeschlossen";
     case "ueberfaellig":
       return (
-        aufgabe.status !== "abgeschlossen" &&
+        faelligkeitZaehlt(aufgabe.status) &&
         aufgabe.faelligkeit !== null &&
         new Date(aufgabe.faelligkeit).getTime() < jetzt.getTime()
       );
@@ -165,13 +179,26 @@ export function passtZuUebrigemFilter(
     if (grenzen.vor && zeit >= new Date(grenzen.vor).getTime()) return false;
   }
   if (suche) {
-    const nadel = suche.toLocaleLowerCase("de");
-    const heuhaufen = [aufgabe.code, aufgabe.reihenblock, aufgabe.sorte]
-      .join(" ")
-      .toLocaleLowerCase("de");
-    if (!heuhaufen.includes(nadel)) return false;
+    const muster = suchMuster(suche);
+    if (![aufgabe.code, aufgabe.reihenblock, aufgabe.sorte].some((feld) => muster.test(feld))) {
+      return false;
+    }
   }
   return true;
+}
+
+/**
+ * Die Suchregel, wie sie die Datenbankabfrage anwendet
+ * (lib/data/pflueckaufgaben-liste.ts): jedes Feld fuer sich, ohne Ruecksicht
+ * auf Gross- und Kleinschreibung, das Leerzeichen als Platzhalter. "T-N 01"
+ * findet "T-N-A-01" - in der Datenbank wie im Demo-Modus.
+ */
+export function suchMuster(suche: string): RegExp {
+  const teile = suche
+    .split(" ")
+    .filter(Boolean)
+    .map((teil) => teil.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  return new RegExp(teile.join(".*"), "i");
 }
 
 /**
@@ -196,10 +223,12 @@ export function vergleicheAufgaben(a: FilterbareAufgabe, b: FilterbareAufgabe): 
 }
 
 /**
- * Darf diese Anmeldung die Aufgabe bearbeiten? Spiegelt die Datenbankregel:
- * die Brigade nur ihre eigenen und die ohne Zuordnung. Ohne diese Pruefung
- * saehe sie bei fremden Aufgaben Knoepfe, die die Datenbank dann ablehnt.
- * Das Recht an sich ("pflueckaufgaben:update") prueft der Aufrufer.
+ * Darf diese Anmeldung die Aufgabe bearbeiten? Spiegelt die Datenbankregeln
+ * (pflueckaufgaben_update_feld, steigen_insert_feld, media_belege_insert_feld):
+ * die Brigade nur ihre eigenen und die ohne Zuordnung. Die Oberflaeche blendet
+ * damit Knoepfe aus, die die Datenbank ablehnen wuerde; belegKern prueft
+ * damit vor dem Upload. Das Recht an sich ("pflueckaufgaben:update") prueft
+ * der Aufrufer.
  */
 export function darfAufgabeBearbeiten(
   profil: { role: Role; brigadeId: string | null } | null | undefined,
@@ -208,4 +237,78 @@ export function darfAufgabeBearbeiten(
   if (!profil) return false;
   if (profil.role !== "brigade") return true;
   return aufgabe.brigadeId === null || aufgabe.brigadeId === profil.brigadeId;
+}
+
+type Profil = { role: Role; brigadeId: string | null; darfKontrollieren?: boolean };
+
+/** Was eine Anmeldung auf der Seite darf - eine Stelle fuer alle Knoepfe. */
+export interface PflueckRechte {
+  /** Schreibende Rolle mit Datenbank: Formulare, Offline-Spiegel, Pflueckerliste. */
+  bearbeiten: boolean;
+  anlegen: boolean;
+  /** Belegpruefung und Freigabe (pflueckaufgaben:approve). */
+  abschliessen: boolean;
+  /** Stichprobenkontrolle je Steige (Anforderung 2.10). */
+  kontrollieren: boolean;
+  /** Fuer die gewaehlte Aufgabe: bearbeiten, und sie ist eigen oder frei. */
+  handeln: boolean;
+  /** Bearbeiten duerfte sie, aber die Aufgabe gehoert einer anderen Brigade. */
+  fremdeBrigade: boolean;
+}
+
+/**
+ * Die Rechte der Seite. Geschrieben wird nur mit echter Datenbank (live):
+ * bei Beispieldaten oder einem Rueckfall auf sie entfallen alle Formulare.
+ * Die Kontrolle steht zusaetzlich dem Vorarbeiter am Sammelpunkt offen, der
+ * die Rolle "brigade" traegt und damit kein approve hat - dieselbe Bedingung
+ * prueft steigeKontrollieren() (lib/actions/nachweiskette.ts).
+ */
+export function pflueckRechte(
+  profil: Profil | null | undefined,
+  live: boolean,
+  aufgabe: { brigadeId: string | null } | null = null,
+): PflueckRechte {
+  const rolle = profil?.role ?? null;
+  const bearbeiten = live && hasPermission(rolle, "pflueckaufgaben", "update");
+  const abschliessen = live && hasPermission(rolle, "pflueckaufgaben", "approve");
+  const handeln = Boolean(aufgabe && bearbeiten && darfAufgabeBearbeiten(profil, aufgabe));
+  return {
+    bearbeiten,
+    anlegen: live && hasPermission(rolle, "pflueckaufgaben", "create"),
+    abschliessen,
+    kontrollieren: live && (abschliessen || profil?.darfKontrollieren === true),
+    handeln,
+    fremdeBrigade: Boolean(aufgabe && bearbeiten && !handeln),
+  };
+}
+
+/**
+ * Wessen Aufgaben und Pfluecker eine Anmeldung zum Schreiben laedt: null
+ * heisst alle (Leitung, Administration), sonst die eigene Brigade samt der
+ * Aufgaben ohne Zuordnung. Eine Brigade-Anmeldung ohne Zuordnung bekommt nur
+ * die freien Aufgaben und keine Pfluecker - vorher stand dann die ganze
+ * Pflueckerliste samt Ausweisnummern im Offline-Speicher.
+ */
+export function schreibUmfang(profil: Profil | null | undefined): { brigadeId: string | null } | null {
+  if (profil?.role !== "brigade") return null;
+  return { brigadeId: profil.brigadeId };
+}
+
+// Spiegel von media_belege_select_feld (20260905160000_haerten.sql). has_role
+// zaehlt den CEO dort als admin, hier steht er ausdruecklich.
+const BELEGE_LESEN: readonly Role[] = ["admin", "ceo", "betriebsleitung", "buchhaltung", "brigade"];
+
+/**
+ * Darf die Rolle Fotobelege sehen? Sonst liefert die Datenbank keine, und die
+ * Oberflaeche zeigte "0 Fotos" oder "keine Belege", wo es in Wahrheit welche
+ * gibt. Ohne Leserecht entfallen Fotoangaben und der Reiter ganz.
+ */
+export function darfBelegeSehen(rolle: Role | null | undefined): boolean {
+  return rolle !== null && rolle !== undefined && BELEGE_LESEN.includes(rolle);
+}
+
+/** Fortschritt in Prozent, Ist gegen Ziel, auf 0 bis 100 begrenzt. */
+export function fortschrittProzent(ist: number, ziel: number): number {
+  if (!(ziel > 0)) return 0;
+  return Math.max(0, Math.min(100, Math.round((ist / ziel) * 100)));
 }

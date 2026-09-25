@@ -54,7 +54,6 @@
    oeffnen koennte. Ueber die Media Query und nicht ueber einen Zustand nach
    der Hydration - sonst sprang das Layout, sobald das Skript geladen war. */
 @custom-variant mit-js (@media (scripting: enabled));
-@custom-variant ohne-js (@media (scripting: none));
 
 /*
   Damicon Design-Tokens - Palette "Koek & Altyn" (Himmel & Gold).
@@ -483,17 +482,18 @@
    ein Eintrag gewaehlt, bekommt die Detailansicht den Platz: angedockt
    schrumpft die Liste bis auf 28,5rem, bevor die Detailansicht aufhoert zu
    wachsen, sonst muesste man in ihr scrollen. 100cqw ist die Breite des
-   Behaelters "liste", 1,5rem der Abstand im Raster (gap-6). Himbi misst die
-   tatsaechliche Breite (--detailpanel-ist, detailpanel-steuerung.tsx). */
+   Behaelters "liste", --detailpanel-abstand der Abstand im Raster. Himbi
+   misst die tatsaechliche Breite (--detailpanel-ist, detailpanel-steuerung.tsx). */
 :root {
   --detailpanel-breite: 26rem;
   --detailpanel-max: 60rem;
   --detailpanel-schublade-max: 40rem;
+  --detailpanel-abstand: 1.5rem;
   --liste-min-breite: 28.5rem;
   --liste-rest: 10rem;
   --detailpanel-angedockt: clamp(
     var(--detailpanel-breite),
-    100cqw - var(--liste-min-breite) - 1.5rem,
+    100cqw - var(--liste-min-breite) - var(--detailpanel-abstand),
     var(--detailpanel-max)
   );
   --detailpanel-schublade: min(var(--detailpanel-schublade-max), 100cqw - var(--liste-rest));

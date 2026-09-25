@@ -12,6 +12,13 @@ import { anmelden, testMarker } from "./helpers";
  * freigegeben werden, bevor sie gepflueckt wurde), daher laufen sie seriell
  * und geben Daten (Vorbestellmenge, Aufgaben-Code, Chargen-Code) ueber
  * Modulvariablen an die jeweils naechste Phase weiter.
+ *
+ * Achtung, schreibend: jeder Lauf legt echte Datensaetze an und aendert ihren
+ * Status - Vorbestellung, Ernteplan, Pflueckaufgabe samt Steige, Arbeitszeit
+ * und Kuehlmessung, Freigabe, Lieferung, Lohnperiode, Kostentraeger und
+ * Buchung. Nur gegen die Vercel-Vorschau oder eine Datenbank laufen lassen,
+ * deren Daten verworfen werden duerfen. Nur lesend ist
+ * pflueckaufgaben-liste.spec.ts.
  */
 
 test.describe.serial("Hauptgeschaeftsprozess: Vorbestellung bis Deckungsbeitrag", () => {

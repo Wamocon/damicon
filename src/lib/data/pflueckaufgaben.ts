@@ -5,6 +5,7 @@ import {
   type AufgabenStatus,
 } from "@/lib/domain/pflueckaufgaben";
 import { einsAus } from "@/lib/data/util";
+import { istUuid } from "@/lib/utils";
 
 // Pflueckaufgaben mit Fotobeleg aus der Datenbank (Meilenstein B), seit
 // WMCNL-2488 in drei Zuschnitten:
@@ -22,14 +23,8 @@ import { einsAus } from "@/lib/data/util";
 
 const SIGNATUR_SEKUNDEN = 60 * 60;
 
-// Datenbank-IDs sind UUIDs. Eine andere Kennung aus der Adresse faende nichts
-// und liesse Postgres mit 22P02 (ungueltige uuid) abbrechen - sie wird vorher
-// abgewiesen.
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-export function istUuid(wert: string): boolean {
-  return UUID.test(wert);
-}
+/** Hoechstens so viele offene Aufgaben wandern in den Offline-Speicher. */
+const SPIEGEL_GRENZE = 500;
 
 export interface BelegAnsicht {
   id: string;
@@ -47,7 +42,6 @@ export interface AufgabeZeile {
   id: string;
   code: string;
   reihenblock: string;
-  reihenblockId: string;
   sorte: string;
   brigade: string;
   brigadeId: string | null;
@@ -107,7 +101,6 @@ export function zeileAusDb(zeile: DbZeile, belegAnzahl: number): AufgabeZeile {
     id: zeile.id,
     code: zeile.code,
     reihenblock: block?.code ?? "",
-    reihenblockId: block?.id ?? "",
     sorte: einsAus(zeile.sorten)?.name ?? "",
     // Leer, wo die Rolle die Brigaden nicht lesen darf (erzeuger, siehe
     // Migration 20261023000000_lesezugriff_nach_rolle.sql).
@@ -144,7 +137,6 @@ export function demoAufgaben(): AufgabeDetail[] {
     id: aufgabe.id,
     code: aufgabe.id,
     reihenblock: aufgabe.reihenblock,
-    reihenblockId: aufgabe.reihenblock,
     sorte: aufgabe.sorte,
     brigade: aufgabe.brigade,
     brigadeId: demoBrigadeId(aufgabe.brigade),
@@ -195,8 +187,10 @@ export async function ladeAufgabe(id: string): Promise<AufgabeLaden> {
     .maybeSingle();
 
   if (error) {
+    // Kein Rueckfall auf Beispieldaten: zu einer UUID gibt es keine, und die
+    // Detailansicht meldete einen Datenbankfehler dann als "nicht gefunden".
     console.error("[damicon] Pflueckaufgabe nicht ladbar:", error.message);
-    return { quelle: "fehler", aufgabe: demo() };
+    return { quelle: "fehler", aufgabe: null };
   }
   if (!data) return { quelle: "db", aufgabe: null };
 
@@ -277,13 +271,18 @@ export async function ladeAufgabenSpiegel(nurBrigade: {
       ? abfrage.or(`brigade_id.eq.${nurBrigade.brigadeId},brigade_id.is.null`)
       : abfrage.is("brigade_id", null);
   }
+  // Die dringendsten zuerst: stoesst der Spiegel an seine Grenze, fallen die
+  // am weitesten in der Zukunft faelligen weg, nicht die ueberfaelligen.
   const { data, error } = await abfrage
-    .order("faelligkeit", { ascending: false, nullsFirst: false })
-    .limit(500);
+    .order("faelligkeit", { ascending: true, nullsFirst: false })
+    .limit(SPIEGEL_GRENZE);
 
   if (error || !data) {
     if (error) console.error("[damicon] Offline-Spiegel nicht ladbar:", error.message);
     return [];
+  }
+  if (data.length === SPIEGEL_GRENZE) {
+    console.warn(`[damicon] Offline-Spiegel an der Grenze von ${SPIEGEL_GRENZE} offenen Aufgaben.`);
   }
 
   return data.map((zeile) => {

@@ -9,6 +9,16 @@
 // stuende am fruehen Nachmittag.
 export const betriebsZeitzone = "Asia/Almaty";
 
+/** Kalendertag in der Betriebszeitzone als "JJJJ-MM-TT" - der Tag auf dem Feld. */
+export function tagInZone(zeitpunkt: Date, zeitzone: string = betriebsZeitzone): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: zeitzone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(zeitpunkt);
+}
+
 export type Tageszeit = "morgen" | "tag" | "abend";
 
 export function tageszeitBestimmen(
@@ -53,14 +63,7 @@ export function spruchIndex(
   anzahl: number = spruchAnzahl,
   zeitzone: string = betriebsZeitzone,
 ): number {
-  // Datum in der Betriebszeitzone, als "2026-09-21".
-  const tag = new Intl.DateTimeFormat("en-CA", {
-    timeZone: zeitzone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(jetzt);
-  const tageSeitEpoche = Math.floor(Date.parse(tag) / 86_400_000);
+  const tageSeitEpoche = Math.floor(Date.parse(tagInZone(jetzt, zeitzone)) / 86_400_000);
   const abschnitt = abschnittNummer[tageszeitBestimmen(jetzt, zeitzone)];
   return (tageSeitEpoche * 3 + abschnitt) % anzahl;
 }

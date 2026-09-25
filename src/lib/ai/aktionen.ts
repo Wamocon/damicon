@@ -27,6 +27,7 @@ import { AKTIONS_RECHTE, type AktionsName } from "@/lib/ai/aktionen-meta";
 import { leer, type AktionsStatus } from "@/lib/actions/status";
 import { mwstSchwellePruefen } from "@/lib/actions/mwst";
 import { aufgabeAnlegen, aufgabeStatusKern } from "@/lib/actions/pflueckaufgaben";
+import { DATUM_UHRZEIT } from "@/lib/domain/pflueckaufgaben";
 import { kuehlmessungKern } from "@/lib/actions/nachweiskette";
 import { reklamationAnlegen } from "@/lib/actions/reklamationen";
 import { lohnPeriodeBerechnen } from "@/lib/actions/lohn";
@@ -36,9 +37,9 @@ import { zielFuerModul, ZIEL_MWST } from "@/lib/ai/ziele";
 
 const datum = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format JJJJ-MM-TT");
 // Datum mit Uhrzeit in Betriebszeit Almaty, wie das Formularfeld datetime-local.
-const datumUhrzeit = z
-  .string()
-  .regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, "Format JJJJ-MM-TTTHH:MM");
+// Dieselbe Regel wie aufgabeAnlegen() (faelligkeitLesen), das auch den
+// Abstand zu heute prueft.
+const datumUhrzeit = z.string().regex(DATUM_UHRZEIT, "Format JJJJ-MM-TTTHH:MM");
 
 function formular(felder: Record<string, string | number | null | undefined>): FormData {
   const daten = new FormData();

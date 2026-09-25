@@ -1,6 +1,6 @@
 "use client";
 
-import type { FormEvent, ReactNode } from "react";
+import { useId, type FormEvent, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
@@ -12,10 +12,8 @@ import { Button, feldKlassen } from "@/components/ui/kit";
 // Bewusst schlicht gehalten: gleiche Hoehe, gleiche Radien wie im uebrigen
 // Dashboard, keine eigene Formularbibliothek.
 
-// Die Klassen stehen seit WMCNL-2488 in ui/kit.tsx, weil auch die
-// Filterleiste der Listen (ui/listen-filter.tsx) sie braucht. Hier weiter
-// ausgegeben, damit die bisherigen Importe gelten.
-export { feldKlassen };
+// Die Feldklassen stehen seit WMCNL-2488 in ui/kit.tsx, weil auch die
+// Filterleiste der Listen (ui/listen-filter.tsx) sie braucht.
 
 // WMC-Vibecode-Cleanup-Fund: bis hierher praktisch wortgleich in rund 15
 // *-formulare.tsx-Dateien einzeln neu geschrieben (immer derselbe versteckte
@@ -51,6 +49,7 @@ export function Feld({
   defaultValue,
   inputMode,
   form,
+  hinweis,
 }: {
   label: string;
   name: string;
@@ -60,7 +59,10 @@ export function Feld({
   defaultValue?: string;
   inputMode?: "text" | "decimal";
   form?: string;
+  /** Kurzer Hinweis unter dem Feld, etwa die Zeitzone; Vorlesehilfen lesen ihn mit. */
+  hinweis?: string;
 }) {
+  const hinweisId = useId();
   return (
     <label className="block space-y-1">
       <span className="schrift-label font-semibold text-card-foreground">
@@ -74,8 +76,14 @@ export function Feld({
         defaultValue={defaultValue}
         inputMode={inputMode}
         form={form}
+        aria-describedby={hinweis ? hinweisId : undefined}
         className={feldKlassen}
       />
+      {hinweis ? (
+        <span id={hinweisId} className="block schrift-label text-muted-foreground">
+          {hinweis}
+        </span>
+      ) : null}
     </label>
   );
 }

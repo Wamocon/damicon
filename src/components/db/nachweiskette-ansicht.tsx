@@ -9,6 +9,8 @@ import {
 } from "@/components/db/nachweiskette-formulare";
 import { KuehlkettenAlarm } from "@/components/db/kuehlketten-alarm";
 import { SteigeScanFeld } from "@/components/db/steige-scan-feld";
+import { kg } from "@/components/db/pflueckaufgabe-anzeige";
+import type { AufgabenStatus } from "@/lib/domain/pflueckaufgaben";
 import type { KuehlMessung, Nachweiskette, PflueckerOption } from "@/lib/data/nachweiskette";
 
 const ergebnisTon: Record<string, Tone> = {
@@ -17,17 +19,27 @@ const ergebnisTon: Record<string, Tone> = {
   verstoss: "danger",
 };
 
+// So viele Steigen stehen in der Karte; mehr ruft der Scan am Sammelpunkt auf.
+const STEIGEN_VORSCHAU = 6;
+
 // Die Kette einer Pflueckaufgabe an einem Ort: Charge, Kuehlkurve mit der
 // 60-Minuten-Grenze, Steigen mit Person und der Rueckstandsnachweis.
 export async function NachweiskettenKarte({
   kette,
   aufgabeId,
+  aufgabeStatus,
   pfluecker,
   darfErfassen,
   darfKontrollieren,
 }: {
   kette: Nachweiskette;
   aufgabeId: string;
+  /**
+   * Nach dem Abschluss nimmt die Datenbank keine Steige mehr an
+   * (steige_nach_abschluss_fest, 20261003000000) - der Knopf entfaellt dann.
+   * Arbeitszeit und Kuehlmessung bleiben erlaubt.
+   */
+  aufgabeStatus: AufgabenStatus;
   pfluecker: PflueckerOption[];
   darfErfassen: boolean;
   /** Anforderung 2.10: Stichprobenkontrolle je Steige - Buero-/Leitungsrecht. */
@@ -147,15 +159,20 @@ export async function NachweiskettenKarte({
           {/* Menge und Ausschuss */}
           <dl className="mt-4 grid grid-cols-1 gap-2 text-center @xs/kette:grid-cols-3">
             {[
-              [t("menge"), `${format.number(c.mengeKg, { maximumFractionDigits: 1 })} kg`],
-              [t("ausschuss"), `${format.number(c.ausschussKg, { maximumFractionDigits: 1 })} kg`],
+              [t("menge"), kg(format, c.mengeKg)],
+              [t("ausschuss"), kg(format, c.ausschussKg)],
               [t("steigen"), String(kette.steigen.length)],
             ].map(([label, wert]) => (
-              <div key={label} className="rounded-lg border border-border bg-muted/30 p-2">
-                <dd className="text-sm font-black text-foreground">{wert}</dd>
+              // dt vor dd, wie es eine Definitionsliste verlangt; sichtbar
+              // steht der Wert trotzdem oben (flex-col-reverse).
+              <div
+                key={label}
+                className="flex flex-col-reverse rounded-lg border border-border bg-muted/30 p-2"
+              >
                 <dt className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
                   {label}
                 </dt>
+                <dd className="text-sm font-black text-foreground">{wert}</dd>
               </div>
             ))}
           </dl>
@@ -185,7 +202,7 @@ export async function NachweiskettenKarte({
               {/* Code, Person und Gewicht brechen nicht in sich um; wird es
                   eng, rutscht die Kontrolle als Ganzes in die naechste Zeile. */}
               <ul className="mt-1.5 space-y-1">
-                {kette.steigen.slice(0, 6).map((s) => (
+                {kette.steigen.slice(0, STEIGEN_VORSCHAU).map((s) => (
                   <li
                     key={s.id}
                     className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px]"
@@ -198,9 +215,7 @@ export async function NachweiskettenKarte({
                         {s.pfluecker ?? t("ohnePerson")}
                       </span>
                       <span className="whitespace-nowrap text-muted-foreground tabular-nums">
-                        {s.gewichtKg !== null
-                          ? `${format.number(s.gewichtKg, { maximumFractionDigits: 1 })} kg`
-                          : "-"}
+                        {s.gewichtKg !== null ? kg(format, s.gewichtKg) : "-"}
                       </span>
                     </span>
                     {s.kontrolliertAm ? (
@@ -213,9 +228,9 @@ export async function NachweiskettenKarte({
                     ) : null}
                   </li>
                 ))}
-                {kette.steigen.length > 6 ? (
+                {kette.steigen.length > STEIGEN_VORSCHAU ? (
                   <li className="text-[11px] text-muted-foreground">
-                    {t("weitereSteigen", { anzahl: kette.steigen.length - 6 })}
+                    {t("weitereSteigen", { anzahl: kette.steigen.length - STEIGEN_VORSCHAU })}
                   </li>
                 ) : null}
               </ul>
@@ -266,7 +281,9 @@ export async function NachweiskettenKarte({
 
           {darfErfassen && pfluecker.length > 0 ? (
             <div className="mt-4 space-y-3 border-t border-border pt-4">
-              <SteigeFormular aufgabeId={aufgabeId} pfluecker={pfluecker} />
+              {aufgabeStatus !== "abgeschlossen" ? (
+                <SteigeFormular aufgabeId={aufgabeId} pfluecker={pfluecker} />
+              ) : null}
               <ArbeitszeitFormular aufgabeId={aufgabeId} pfluecker={pfluecker} />
               <KuehlmessungFormular aufgabeId={aufgabeId} />
             </div>

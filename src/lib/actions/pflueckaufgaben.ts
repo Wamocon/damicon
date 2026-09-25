@@ -11,7 +11,11 @@ import {
 } from "@/lib/actions/status";
 import type { KernErgebnis } from "@/lib/actions/nachweiskette";
 import type { Json } from "@/lib/database.types";
-import { aufgabenStatus, type AufgabenStatus } from "@/lib/domain/pflueckaufgaben";
+import {
+  aufgabenStatus,
+  faelligkeitLesen,
+  type AufgabenStatus,
+} from "@/lib/domain/pflueckaufgaben";
 import {
   text,
   zahl,
@@ -19,7 +23,6 @@ import {
   generiereTicketCode,
   protokolliere as protokolliereBasis,
 } from "@/lib/actions/formular-helfer";
-import { wandzeitZuUtc } from "@/lib/listen/zeitraum";
 import { darfAufgabeBearbeiten } from "@/lib/domain/pflueckaufgaben-liste";
 import { istUuid } from "@/lib/utils";
 
@@ -70,8 +73,7 @@ export async function aufgabeAnlegen(
   // Almaty ("2026-09-24T14:30" aus datetime-local, dasselbe Format vom
   // KI-Werkzeug). Ein reines Datum reicht nicht mehr - frueher wurde es als
   // Mitternacht UTC gespeichert, in Almaty also 5 Uhr frueh desselben Tages.
-  const faelligkeitRoh = text(formData, "faelligkeit");
-  const faelligkeit = /T\d{2}:\d{2}/.test(faelligkeitRoh) ? wandzeitZuUtc(faelligkeitRoh) : null;
+  const faelligkeit = faelligkeitLesen(text(formData, "faelligkeit"));
   if (!blockId || zielmenge === null || !faelligkeit) return fehler("fehler.eingabe");
 
   const supabase = await createClient();

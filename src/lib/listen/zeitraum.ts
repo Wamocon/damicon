@@ -1,4 +1,6 @@
-import { betriebsZeitzone } from "@/lib/domain/tageszeit";
+import { betriebsZeitzone, tagInZone } from "@/lib/domain/tageszeit";
+
+export { tagInZone };
 
 // Zeitraumfilter fuer Listen: feste Stufen plus ein eigener Zeitraum mit
 // Von und Bis (Entscheidung vom 24.09.2026, WMCNL-2488).
@@ -86,14 +88,19 @@ export function wandzeitZuUtc(wandzeit: string, zeitzone: string = betriebsZeitz
   return new Date(naiv - versatzMinuten(erster, zeitzone) * 60_000);
 }
 
-/** Kalendertag in der Zeitzone als "JJJJ-MM-TT". */
-export function tagInZone(zeitpunkt: Date, zeitzone: string = betriebsZeitzone): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: zeitzone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(zeitpunkt);
+/**
+ * Ein Kalendertag "JJJJ-MM-TT", den es gibt. Das Format allein laesst
+ * "2026-02-31" durch; ein solcher Tag faellt aus der Adresse, statt den
+ * eigenen Zeitraum still um seine Grenze zu bringen.
+ */
+export function istGueltigerTag(tag: string): boolean {
+  const treffer = DATUM.exec(tag);
+  if (!treffer) return false;
+  const [jahr, monat, t] = treffer.slice(1).map(Number);
+  const datum = new Date(Date.UTC(jahr, monat - 1, t));
+  return (
+    datum.getUTCFullYear() === jahr && datum.getUTCMonth() === monat - 1 && datum.getUTCDate() === t
+  );
 }
 
 /** Kalenderrechnung auf "JJJJ-MM-TT", unabhaengig von jeder Zeitzone. */
@@ -142,8 +149,8 @@ export function zeitraumGrenzen(
         vor: tagesbeginn(`${jahr + 1}-01-01`, zeitzone),
       };
     case "eigen": {
-      let von = eigen.von && DATUM.test(eigen.von) ? eigen.von : undefined;
-      let bis = eigen.bis && DATUM.test(eigen.bis) ? eigen.bis : undefined;
+      let von = eigen.von && istGueltigerTag(eigen.von) ? eigen.von : undefined;
+      let bis = eigen.bis && istGueltigerTag(eigen.bis) ? eigen.bis : undefined;
       // Vertauscht eingegeben: gemeint ist trotzdem der Zeitraum dazwischen.
       if (von && bis && von > bis) [von, bis] = [bis, von];
       return {
