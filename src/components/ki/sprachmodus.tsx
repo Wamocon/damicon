@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Mic, MicOff, Subtitles, X } from "lucide-react";
+import { AlertTriangle, Ear, Loader2, Mic, MicOff, Subtitles, Volume2, X } from "lucide-react";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { SprachKugel, type KugelZustand } from "@/components/ki/sprach-kugel";
 import { SprachSpotlight, useHervorhebungsRechteck, useKugelPlatz } from "@/components/ki/sprach-spotlight";
@@ -28,6 +28,7 @@ import {
   type Phase,
 } from "@/lib/domain/sprachmodus";
 import { AUFNAHME_STUECK_MS, AUFNAHME_VORGABEN } from "@/lib/domain/diktat";
+import { textFuerSprachausgabe } from "@/lib/domain/sprachausgabe";
 import { starteLiveSitzung, type LiveErgebnis, type LiveSitzung } from "@/components/ki/diktat-live";
 import { cn } from "@/lib/utils";
 
@@ -55,6 +56,19 @@ export function Sprachmodus() {
 const GROESSE_MITTE = 220;
 const GROESSE_KLEIN = 96;
 const RAENDER = { oben: 72, rechts: 16, unten: 16, links: 16 };
+
+/** Ein Symbol je Kugelzustand, neben dem Zustandstext - der Ton haengt nie an
+ *  der Farbe der Kugel allein (Rueckmeldung vom 25.09.2026: die vier Farben
+ *  liessen sich nicht sicher als "hoert zu / denkt nach / spricht / Fehler"
+ *  lesen). "denkt" dreht sich (Loader2), das macht "arbeitet gerade" auch
+ *  ohne jedes Lesen der Beschriftung sofort klar. */
+const STATUS_SYMBOL: Record<KugelZustand, typeof Ear> = {
+  hoert: Ear,
+  denkt: Loader2,
+  spricht: Volume2,
+  pausiert: MicOff,
+  fehler: AlertTriangle,
+};
 
 /** Wie das Mikrofon im Gespraech geoeffnet wird: wie beim Diktat, aber MIT
  *  Echounterdrueckung. Beim Diktat verstummt jede Wiedergabe, solange das
@@ -451,6 +465,10 @@ function SprachmodusInhalt() {
 
   const kugelZustand: KugelZustand =
     phase === "fehler" ? "fehler" : phase === "pausiert" ? "pausiert" : phase === "spricht" ? "spricht" : phase === "denkt" ? "denkt" : "hoert";
+  // Der Zustand haengt nie an der Farbe allein (Rueckmeldung vom 25.09.2026:
+  // "weiss anhand der Farbe nicht, ob die KI zuhoert, denkt oder spricht") -
+  // dasselbe Symbol wie der Zustandstext daneben, unabhaengig vom Farbsehen.
+  const StatusSymbol = STATUS_SYMBOL[kugelZustand];
 
   const ausgabePegel = { lesen: leseAusgabePegel };
   const statusText =
@@ -505,7 +523,15 @@ function SprachmodusInhalt() {
             groesse={verschoben ? GROESSE_KLEIN : GROESSE_MITTE}
           />
         </button>
-        {!verschoben ? <p className="ki-sprachmodus__status">{statusText}</p> : null}
+        {!verschoben ? (
+          <p className="ki-sprachmodus__status">
+            <StatusSymbol
+              className={cn("ki-sprachmodus__status-symbol", kugelZustand === "denkt" && "ki-sprachmodus__status-symbol--dreht")}
+              aria-hidden
+            />
+            {statusText}
+          </p>
+        ) : null}
       </div>
 
       {!verschoben && untertitelAn ? (
@@ -515,7 +541,11 @@ function SprachmodusInhalt() {
               {zwischentext || (phase === "hoert" ? t("hoertZu") : "")}
             </p>
           ) : (chatStand.antwort || phase === "spricht" || phase === "denkt") ? (
-            <p className="ki-sprachmodus__untertitel-zeile">{chatStand.antwort}</p>
+            // Nie das rohe Markdown der Antwort ("**fett**", "1. ...") - das
+            // stand bis zum 25.09.2026 unbereinigt im Untertitel, bei
+            // laengeren Antworten kaum lesbar. Dieselbe Aufbereitung wie
+            // fuers Vorlesen: der Untertitel zeigt, was auch gesagt wird.
+            <p className="ki-sprachmodus__untertitel-zeile">{textFuerSprachausgabe(chatStand.antwort)}</p>
           ) : null}
         </div>
       ) : null}

@@ -90,6 +90,9 @@
 }
 
 .ki-sprachmodus__status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   font-size: 0.9375rem;
   font-weight: 600;
   color: rgb(255 255 255 / 0.92);
@@ -97,6 +100,21 @@
 }
 :root:not(.dark) .ki-sprachmodus__status {
   color: #0b1e26;
+}
+.ki-sprachmodus__status-symbol {
+  width: 1.05rem;
+  height: 1.05rem;
+  flex-shrink: 0;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ki-sprachmodus__status-symbol--dreht {
+    animation: ki-sprachmodus-dreht 1.1s linear infinite;
+  }
+}
+@keyframes ki-sprachmodus-dreht {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ---- Untertitel -------------------------------------------------------------- */
