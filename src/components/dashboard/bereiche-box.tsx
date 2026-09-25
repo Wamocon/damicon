@@ -55,7 +55,7 @@ const SYMBOL: Record<string, LucideIcon> = {
 
 export function BereicheBox({ kpis, quelle }: { kpis: Kpi[]; quelle: Datenquelle }) {
   const t = useTranslations("dashboard.bereiche");
-  const tq = useTranslations("dashboard.home");
+  const quelleT = useTranslations("dashboard.dataSource");
   const zoneT = useTranslations("zones");
   const { role } = usePersona();
 
@@ -68,7 +68,7 @@ export function BereicheBox({ kpis, quelle }: { kpis: Kpi[]; quelle: Datenquelle
       description={t("lead")}
       action={
         <StatusPill tone={quelle === "db" ? "success" : "warning"}>
-          {quelle === "db" ? tq("dataLive") : tq("dataDemo")}
+          {quelleT(quelle === "db" ? "db" : "demo")}
         </StatusPill>
       }
     >

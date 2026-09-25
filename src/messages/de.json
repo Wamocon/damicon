@@ -401,6 +401,8 @@
     "zoneKennzahlLead": "Die Kennzahlen dieses Bereichs, die dringendste zuerst.",
     "zoneKennzahlMehr": "{count, plural, one {# weitere Kennzahl anzeigen} other {# weitere Kennzahlen anzeigen}}",
     "zoneKennzahlWeniger": "Weitere Kennzahlen ausblenden",
+    "zoneModuleTitel": "Module",
+    "zoneOhneKennzahl": "Für diese Zone ist keine Kennzahl freigegeben.",
     "bereiche": {
       "titel": "Die vier Bereiche",
       "lead": "Jeder Bereich mit seinen Kennzahlen, Auffälliges zuerst.",
