@@ -725,9 +725,13 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     } else {
       // Der Effekt oben hat anfrageDaten noch nicht aktualisiert, wenn Bezug und Anstoss im selben Zug gesetzt werden.
       anfrageDaten.current = { ...anfrageDaten.current, pruefkontext };
-      // Diese Frage stellt die Oberflaeche selbst (Tour-Zusammenfassung, Knopf im
-      // Pruefbericht) - immer gesprochen, das ist ihr Zweck (siehe beginneZug()).
-      sende(anstoss.frage, false, true);
+      // Eine Frage zum Pruefbericht (Tour-Zusammenfassung, Knopf im Bericht) stellt die
+      // Oberflaeche selbst - immer gesprochen, das ist ihr Zweck (siehe beginneZug()). Eine
+      // Frage aus der Suche ("KI fragen") ist dagegen wie getippt.
+      sende(anstoss.frage, false, anstoss.zurPruefung);
+      // Der Anstoss kommt oft aus einer Ebene, die sich dabei schliesst (die
+      // Suche): ohne das stuende der Tastaturfokus danach auf <body>.
+      eingabeRef.current?.focus();
     }
     // sende() und die Zustandswerte sind pro Render neu; ausgeloest wird nur durch einen neuen Anstoss.
     // eslint-disable-next-line react-hooks/exhaustive-deps

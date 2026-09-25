@@ -68,7 +68,7 @@ export function BereicheBox({ kpis, quelle }: { kpis: Kpi[]; quelle: Datenquelle
       description={t("lead")}
       action={
         <StatusPill tone={quelle === "db" ? "success" : "warning"}>
-          {quelle === "db" ? quelleT("db") : quelleT("demo")}
+          {quelleT(quelle === "db" ? "db" : "demo")}
         </StatusPill>
       }
     >

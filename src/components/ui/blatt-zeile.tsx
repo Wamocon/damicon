@@ -24,6 +24,63 @@ import { cn } from "@/lib/utils";
 // im Blatt (dashboard/untere-leiste.tsx) ihre Hoehe daraus rechnet - zwei
 // Kopien derselben Zahl waeren genau die Art Kopplung, die leise auseinander
 // laeuft: das Blatt waere ein paar Pixel zu kurz, und niemand rechnet nach.
+//
+// Klassen und Inhalt stehen zusaetzlich einzeln bereit, fuer Zeilen, die
+// weder Link noch Knopf sein duerfen: die Treffer der globalen Suche sind
+// Optionen einer Liste (suche/such-liste.tsx) und sollen trotzdem genau so
+// aussehen wie die Zeilen im Menue-Blatt.
+export function blattZeilenKlassen(aktiv: boolean): string {
+  return cn(
+    "flex h-[var(--blatt-zeile-h)] w-full items-center gap-3 rounded-xl border px-3 text-left text-base font-bold transition-colors",
+    aktiv
+      ? "border-primary/30 bg-primary/10 text-primary"
+      : "border-border text-foreground hover:bg-muted",
+  );
+}
+
+export function BlattZeilenInhalt({
+  symbol,
+  text,
+  untertitel,
+  aktiv = false,
+}: {
+  symbol: ReactNode;
+  text: string;
+  /** Kleine zweite Zeile unter dem Text, etwa der Bereich eines Moduls. */
+  untertitel?: string | null;
+  aktiv?: boolean;
+}) {
+  return (
+    <>
+      <span
+        className={cn(
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
+          // Im aktiven Zustand erbt das Symbol das Primaer der Zeile, sonst
+          // steht es zurueck: gelesen wird der Text daneben, das Symbol hilft
+          // nur beim Wiederfinden.
+          aktiv ? "bg-primary/15" : "bg-muted text-muted-foreground",
+        )}
+      >
+        {symbol}
+      </span>
+      {untertitel ? (
+        <span className="min-w-0 flex-1">
+          <span className="block truncate">{text}</span>
+          <span className="block truncate text-xs font-medium text-muted-foreground">
+            {untertitel}
+          </span>
+        </span>
+      ) : (
+        <span className="min-w-0 flex-1 truncate">{text}</span>
+      )}
+      <ChevronRight
+        className="h-4 w-4 shrink-0 text-muted-foreground"
+        aria-hidden="true"
+      />
+    </>
+  );
+}
+
 export function BlattZeile({
   symbol,
   text,
@@ -42,33 +99,8 @@ export function BlattZeile({
   /** Genau diese Seite ist offen - traegt aria-current="page". */
   aktuelleSeite?: boolean;
 }) {
-  const klassen = cn(
-    "flex h-[var(--blatt-zeile-h)] w-full items-center gap-3 rounded-xl border px-3 text-left text-base font-bold transition-colors",
-    aktiv
-      ? "border-primary/30 bg-primary/10 text-primary"
-      : "border-border text-foreground hover:bg-muted",
-  );
-
-  const inhalt = (
-    <>
-      <span
-        className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
-          // Im aktiven Zustand erbt das Symbol das Primaer der Zeile, sonst
-          // steht es zurueck: gelesen wird der Text daneben, das Symbol hilft
-          // nur beim Wiederfinden.
-          aktiv ? "bg-primary/15" : "bg-muted text-muted-foreground",
-        )}
-      >
-        {symbol}
-      </span>
-      <span className="min-w-0 flex-1 truncate">{text}</span>
-      <ChevronRight
-        className="h-4 w-4 shrink-0 text-muted-foreground"
-        aria-hidden="true"
-      />
-    </>
-  );
+  const klassen = blattZeilenKlassen(aktiv);
+  const inhalt = <BlattZeilenInhalt symbol={symbol} text={text} aktiv={aktiv} />;
 
   if (href) {
     return (

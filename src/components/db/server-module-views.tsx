@@ -27,6 +27,7 @@ import { PreislistenAnsicht } from "@/components/db/preislisten-ansicht";
 import { SortenkatalogAnsicht } from "@/components/db/sortenkatalog-ansicht";
 import { RollenDemo } from "@/components/demo/buero";
 import type { ModuleDef } from "@/lib/modules";
+import { einzelwert, type SuchParameter } from "@/lib/listen/parameter";
 
 // Module, die in Meilenstein B an der Datenbank haengen. Sie werden als Server
 // Component gerendert (Daten + Server Actions).
@@ -42,24 +43,16 @@ export function serverModulAnsicht(
   module: ModuleDef,
   kontext: {
     pfad: string;
-    suche: {
-      status?: string;
-      aufgabe?: string;
-      reklamation?: string;
-      bereich?: string;
-      zeitraum?: string;
-      typ?: string;
-      zeilen?: string;
-    };
+    /** Alle Suchparameter der Seite. Jede Ansicht liest nur ihre eigenen. */
+    suche: SuchParameter;
   },
 ): ReactNode | null {
+  const wert = (schluessel: string) => einzelwert(kontext.suche[schluessel]);
   switch (module.key) {
     case "standort":
       return <StandortAnsicht />;
     case "reihenbloecke":
-      return (
-        <ReihenbloeckeAnsicht pfad={kontext.pfad} statusFilter={kontext.suche.status} />
-      );
+      return <ReihenbloeckeAnsicht pfad={kontext.pfad} statusFilter={wert("status")} />;
     // Anforderung 2.4: eigene Protokollansicht statt der Reihenbloecke-Sicht.
     // Erfasst und freigegeben wird eine Behandlung weiterhin am Reihenblock,
     // dort steht der Block mit seinem Sperrzustand vor einem. Diese Seite
@@ -68,19 +61,17 @@ export function serverModulAnsicht(
     // Sperre). Das ist der Nachweis, nach dem Handel und Behoerde fragen. Der
     // Statusparameter der frueheren Blocksicht bleibt als Filter erhalten.
     case "pflanzenschutz":
-      return <PflanzenschutzAnsicht pfad={kontext.pfad} statusFilter={kontext.suche.status} />;
+      return <PflanzenschutzAnsicht pfad={kontext.pfad} statusFilter={wert("status")} />;
+    // Liste mit Detailansicht (WMCNL-2488): Filter, Seite, Auswahl und Reiter
+    // liest die Ansicht selbst aus der Adresse.
     case "pflueckaufgaben":
-      return (
-        <PflueckaufgabenAnsicht pfad={kontext.pfad} auswahl={kontext.suche.aufgabe} />
-      );
+      return <PflueckaufgabenAnsicht pfad={kontext.pfad} suche={kontext.suche} />;
     case "dokumente":
       return <DokumenteAnsicht />;
     case "compliance":
       return <ComplianceAnsicht />;
     case "reklamationen":
-      return (
-        <ReklamationenAnsicht pfad={kontext.pfad} auswahl={kontext.suche.reklamation} />
-      );
+      return <ReklamationenAnsicht pfad={kontext.pfad} auswahl={wert("reklamation")} />;
     case "lohn":
       return <LohnAnsicht />;
     case "finanzen":
@@ -88,10 +79,10 @@ export function serverModulAnsicht(
         <FinanzenAnsicht
           pfad={kontext.pfad}
           suche={{
-            bereich: kontext.suche.bereich,
-            zeitraum: kontext.suche.zeitraum,
-            typ: kontext.suche.typ,
-            zeilen: kontext.suche.zeilen,
+            bereich: wert("bereich"),
+            zeitraum: wert("zeitraum"),
+            typ: wert("typ"),
+            zeilen: wert("zeilen"),
           }}
         />
       );

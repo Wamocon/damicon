@@ -7,6 +7,7 @@ import { PersonaProvider } from "@/components/dashboard/persona";
 import { BlattProvider, HauptSpalte } from "@/components/dashboard/blatt-kontext";
 import { CeoPruefungProvider } from "@/components/dashboard/ceo-pruefung-kontext";
 import { ComplianceTourProvider } from "@/components/dashboard/compliance-tour-kontext";
+import { GlockenProvider } from "@/components/dashboard/glocke";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { UntereLeiste } from "@/components/dashboard/untere-leiste";
@@ -19,6 +20,7 @@ import { HaustierProvider } from "@/components/haustier/haustier-kontext";
 import { KiPaneProvider } from "@/components/ki/ki-pane-kontext";
 import { Sprachmodus } from "@/components/ki/sprachmodus";
 import { diktatLiveAn } from "@/lib/domain/schalter";
+import { SuchProvider } from "@/components/suche/such-kontext";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -96,6 +98,13 @@ export default async function DashboardLayout({
         <HaustierProvider>
         <ComplianceTourProvider>
         <BlattProvider>
+        {/* Die globale Suche umschliesst die Shell und legt ihr Fenster
+            daneben ab statt in die Kopfzeile (suche/such-kontext.tsx). Sie
+            braucht Persona, KI-Panel und Blattzustand, also hier innen. */}
+        <SuchProvider nutzerId={profil?.id ?? null}>
+        {/* Dasselbe fuer die Benachrichtigungen: die Glocke sitzt in der
+            Kopfzeile, ihr Fenster haengt hier (dashboard/glocke.tsx). */}
+        <GlockenProvider>
         <div className="dashboard-shell flex min-h-svh w-full">
           <DashboardSidebar />
           {/* Kopfzeile und Hauptbereich in einer eigenen Spalte, die ein
@@ -134,6 +143,8 @@ export default async function DashboardLayout({
             />
           ) : null}
         </div>
+        </GlockenProvider>
+        </SuchProvider>
         <HaustierDashboard />
         </BlattProvider>
         </ComplianceTourProvider>

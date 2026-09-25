@@ -1303,6 +1303,85 @@ await mussScheitern(
   await db.query("select set_config('request.jwt.claim.role', '', false);");
 }
 
+// --- 16. Fotobelege: nur an eigene oder freie Aufgaben (WMCNL-2488) -----------
+// Regression: media_belege_insert_feld und belege_insert_feld auf
+// storage.objects fragten nur nach der Rolle. Eine Brigade konnte Fotos an
+// Aufgaben fremder Brigaden haengen. 20261110050000 grenzt beides ein, wie
+// 20261109040000 die Steigen. Nur nicht abgeschlossene Aufgaben: sonst koennte
+// eine Abschlussregel greifen, und der Test maesse die falsche Schranke.
+{
+  await alsAdmin(db);
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+  const offen = "a.status <> 'abgeschlossen'";
+  const { rows: zugeteilt } = await db.query(
+    `select a.id, a.brigade_id from public.pflueckaufgaben a
+      where a.brigade_id is not null and ${offen}
+      order by a.id limit 1;`,
+  );
+  const eigene = zugeteilt[0];
+  const { rows: fremd } = await db.query(
+    `select a.id from public.pflueckaufgaben a
+      where a.brigade_id is not null and a.brigade_id <> $1 and ${offen}
+      order by a.id limit 1;`,
+    [eigene.brigade_id],
+  );
+  const { rows: frei } = await db.query(
+    `select a.id from public.pflueckaufgaben a
+      where a.brigade_id is null and ${offen}
+      order by a.id limit 1;`,
+  );
+  await db.query("update public.profiles set brigade_id = $1 where auth_user_id = $2;", [
+    eigene.brigade_id,
+    brigadeAuthId,
+  ]);
+
+  const fehlerCode = async (sql, params) => {
+    try {
+      await db.query(sql, params);
+      return null;
+    } catch (e) {
+      return e?.cause?.code ?? e?.code;
+    }
+  };
+  const beleg = (aufgabeId) =>
+    fehlerCode(
+      `insert into public.media_belege (pflueckaufgabe_id, art, storage_path)
+       values ($1, 'schale', $2);`,
+      [aufgabeId, `${aufgabeId}/pglite-test.jpg`],
+    );
+  const datei = (pfad) =>
+    fehlerCode("insert into storage.objects (bucket_id, name) values ('belege', $1);", [pfad]);
+
+  await alsRolle(db, "authenticated", brigadeAuthId);
+
+  const fremdBeleg = await beleg(fremd[0].id);
+  check(
+    "Brigade: kein Fotobeleg an einer fremden Aufgabe",
+    fremdBeleg === "42501",
+    fremdBeleg ? `errcode: ${fremdBeleg}` : "der Beleg wurde angelegt",
+  );
+  const eigenerBeleg = await beleg(eigene.id);
+  check("Brigade: Fotobeleg an der eigenen Aufgabe", eigenerBeleg === null, `errcode: ${eigenerBeleg}`);
+  if (frei.length > 0) {
+    const freierBeleg = await beleg(frei[0].id);
+    check("Brigade: Fotobeleg an einer freien Aufgabe", freierBeleg === null, `errcode: ${freierBeleg}`);
+  }
+
+  const fremdeDatei = await datei(`${fremd[0].id}/pglite-test.jpg`);
+  check(
+    "Brigade: keine Datei im Ordner einer fremden Aufgabe",
+    fremdeDatei === "42501",
+    fremdeDatei ? `errcode: ${fremdeDatei}` : "die Datei wurde angelegt",
+  );
+  const eigeneDatei = await datei(`${eigene.id}/pglite-test.jpg`);
+  check("Brigade: Datei im Ordner der eigenen Aufgabe", eigeneDatei === null, `errcode: ${eigeneDatei}`);
+  const quittung = await datei("lieferungen/pglite-test.jpg");
+  check("Brigade: Uebergabequittung unter lieferungen/ bleibt moeglich", quittung === null, `errcode: ${quittung}`);
+
+  await alsAdmin(db);
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+}
+
 // --- Aufraeumen ---------------------------------------------------------------
 await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [behandlungId]);
 await db.query("update public.reihenbloecke set status = 'ruhend' where id = $1;", [blockId]);

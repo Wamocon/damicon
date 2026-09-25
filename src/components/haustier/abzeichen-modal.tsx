@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
+import { useScrollSperre } from "@/components/ui/scroll-sperre";
 import { cn } from "@/lib/utils";
 
 // Kleines Anzeige-Portal fuer DamiAI: zeigt, worauf man gerade getippt hat - das
@@ -31,16 +32,13 @@ export function AbzeichenModal({
 
   const schliessen = useCallback(() => onClose(), [onClose]);
 
+  useScrollSperre(true);
+
   useEffect(() => {
     const beiTaste = (e: KeyboardEvent) => e.key === "Escape" && schliessen();
     window.addEventListener("keydown", beiTaste);
-    const vorher = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
     wurzel.current?.focus();
-    return () => {
-      window.removeEventListener("keydown", beiTaste);
-      document.body.style.overflow = vorher;
-    };
+    return () => window.removeEventListener("keydown", beiTaste);
   }, [schliessen]);
 
   return createPortal(

@@ -12,6 +12,49 @@
    schon im HTML steht, kennt die Breite vor dem ersten Bild. */
 @custom-variant schmal (&:where(.sidebar-schmal, .sidebar-schmal *));
 
+/* Liste mit Detailansicht (DESIGN.md Abschnitt 14, WMCNL-2488). Die
+   Detailansicht ordnet sich nach der Breite, die der Liste tatsaechlich zur
+   Verfuegung steht, nicht nach der Fensterbreite: ein angedockter KI-Chat
+   nimmt der Hauptspalte bis zu 960 px, und am selben Fenster passt dann
+   weniger daneben. Deshalb Container-Abfragen auf den Behaelter "liste"
+   (ui/liste.tsx).
+
+     angedockt  ab 56rem: 28,5rem Liste + 1,5rem Abstand + 26rem Panel;
+                mit mehr Platz waechst das Panel bis 60rem, erst dann die Liste
+     schublade  36 bis 56rem, ab md: das Panel liegt ueber der Liste, 26 bis
+                40rem breit, links bleiben 10rem Liste sichtbar
+     ersetzt   unter 36rem oder auf dem Handy: das Panel ersetzt die Liste;
+                daneben bliebe nur ein Streifen, in dem man nichts lesen kann
+
+   Die Grenzen muessen zu den Breiten unten (:root) passen: 56 = 28,5 + 1,5 +
+   26 und 36 = 26 + 10. Media- und Container-Abfragen kennen keine Variablen. */
+@custom-variant panel-angedockt {
+  @container liste (width >= 56rem) {
+    @slot;
+  }
+}
+@custom-variant panel-schublade {
+  @media (width >= 48rem) {
+    @container liste (36rem <= width < 56rem) {
+      @slot;
+    }
+  }
+}
+@custom-variant panel-ersetzt {
+  @media (width < 48rem) {
+    @slot;
+  }
+  @container liste (width < 36rem) {
+    @slot;
+  }
+}
+
+/* Mit und ohne JavaScript: wo eine Bedienung beides kennt, etwa der
+   Filterknopf auf dem Handy (ui/listen-filter.tsx), der ohne Skript nichts
+   oeffnen koennte. Ueber die Media Query und nicht ueber einen Zustand nach
+   der Hydration - sonst sprang das Layout, sobald das Skript geladen war. */
+@custom-variant mit-js (@media (scripting: enabled));
+
 /*
   Damicon Design-Tokens - Palette "Koek & Altyn" (Himmel & Gold).
 
@@ -420,6 +463,60 @@
   }
 }
 
+@keyframes sheet-auf-oben {
+  from {
+    transform: translateY(-0.5rem);
+    opacity: 0;
+  }
+}
+
+/* Schublade vom rechten Rand (position="rechts", ui/sheet.tsx): faehrt ganz
+   herein, wie das KI-Panel von derselben Seite. */
+@keyframes sheet-auf-rechts {
+  from {
+    transform: translateX(100%);
+  }
+}
+
+/* Detailansicht einer Liste (ui/liste.tsx, DESIGN.md Abschnitt 14). Ist
+   ein Eintrag gewaehlt, bekommt die Detailansicht den Platz: angedockt
+   schrumpft die Liste bis auf 28,5rem, bevor die Detailansicht aufhoert zu
+   wachsen, sonst muesste man in ihr scrollen. 100cqw ist die Breite des
+   Behaelters "liste", --detailpanel-abstand der Abstand im Raster. Himbi
+   misst die tatsaechliche Breite (--detailpanel-ist, detailpanel-steuerung.tsx). */
+:root {
+  --detailpanel-breite: 26rem;
+  --detailpanel-max: 60rem;
+  --detailpanel-schublade-max: 40rem;
+  --detailpanel-abstand: 1.5rem;
+  --liste-min-breite: 28.5rem;
+  --liste-rest: 10rem;
+  --detailpanel-angedockt: clamp(
+    var(--detailpanel-breite),
+    100cqw - var(--liste-min-breite) - var(--detailpanel-abstand),
+    var(--detailpanel-max)
+  );
+  --detailpanel-schublade: min(var(--detailpanel-schublade-max), 100cqw - var(--liste-rest));
+}
+
+/* Als Schublade gleitet sie ein kurzes Stueck herein statt vom Rand: sie
+   beginnt mitten im Hauptbereich, nicht an der Bildschirmkante. */
+@keyframes detailpanel-auf {
+  from {
+    transform: translateX(1.5rem);
+    opacity: 0;
+  }
+}
+
+/* Ladeanzeige an einem Listeneintrag oder in der Detailansicht: erst nach
+   150 ms sichtbar, damit schnelle Antworten nicht flackern (Next-Doku zu
+   useLinkStatus, "Gracefully handling fast navigation"). */
+@keyframes lade-einblenden {
+  to {
+    opacity: 1;
+  }
+}
+
 /*
   Tabellen auf dem Handy: aus jeder Zeile wird eine Karte.
 
@@ -604,6 +701,10 @@
     @apply font-sans scroll-smooth;
     max-width: 100%;
     overflow-x: clip;
+    /* Haelt den Platz der Scrollleiste frei, auch wenn eine Ebene das
+       Scrollen am <html> sperrt (ui/scroll-sperre.ts) - sonst sprang die
+       Seite bei Windows-Scrollleisten beim Oeffnen um deren Breite. */
+    scrollbar-gutter: stable;
   }
   body {
     @apply bg-background text-foreground;

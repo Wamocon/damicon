@@ -26,6 +26,7 @@ import { erkenneSprache } from "@/lib/wissen/chunker";
 import { pruefeAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
 import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
 import { ladeRatenlimitGrenze, ratenlimitUeberschritten, skaliereFuerSprachausgabe } from "@/lib/ai/ratenbegrenzung";
+import { istUuid } from "@/lib/utils";
 
 // Zwischenspeicher: Bucket "ki-sprachausgabe" (Migration 20261101000000),
 // privat und nur ueber service_role erreichbar. Die Berechtigung haengt an der
@@ -36,7 +37,6 @@ const BUCKET = "ki-sprachausgabe";
 
 export const maxDuration = 60;
 
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function fehler(status: number, grund: string, extra: Record<string, string> = {}) {
   return Response.json({ grund, ...extra }, { status });
@@ -190,7 +190,7 @@ export async function POST(req: Request) {
 /** Weg 1 fuer beide Methoden. `alsStrom`: der Ton geht weiter, waehrend er
  *  entsteht (GET), sonst als fertige Datei (POST, der bewaehrte Rueckfall). */
 async function fertigeAntwort(nachrichtId: string, gemeldeteSprache: string, alsStrom: boolean): Promise<Response> {
-  if (!UUID.test(nachrichtId)) return fehler(400, "ungueltige-eingabe");
+  if (!istUuid(nachrichtId)) return fehler(400, "ungueltige-eingabe");
 
   const supabase = await createClient();
   const { data: nachricht, error } = await supabase

@@ -109,7 +109,11 @@ export const de: HandbuchTexte = {
       },
       {
         titel: "Kopfzeile",
-        text: "Trägt den Navigationspfad der geöffneten Seite, den Umschalter für die Breite der Seitenleiste, die Sprachauswahl, das Farbschema und — für die Administration — das Feld „Ansicht als“.",
+        text: "Trägt den Navigationspfad der geöffneten Seite, den Umschalter für die Breite der Seitenleiste, die Suche, die Sprachauswahl, das Farbschema und — für die Administration — das Feld „Ansicht als“. Ganz rechts steht die Glocke: Ein Klick öffnet die Benachrichtigungen am rechten Bildschirmrand, auf dem Telefon als Blatt von unten, und solange keine vorliegen, steht das dort. Alarme und Fristen stehen weiterhin in den Modulen selbst. B2B-Kunden und Pflücker sehen die Glocke nicht. Auf dem Telefon bleiben der Weg zurück, die Suche und die Meldungen.",
+      },
+      {
+        titel: "Suche",
+        text: "Öffnet sich mit einem Klick auf die Lupe in der Kopfzeile links neben der Glocke, am Schreibtisch auch mit den Tasten / oder Strg+K (Mac: ⌘K). Das Suchfenster geht oben in der Mitte des Bildschirms auf. Die Suche findet die Übersicht, die Bereiche, die Module und die Seiten Sicherheit, Compliance-Bericht und Handbuch, und zwar nur, was die Rolle auch in der Navigation sieht. Gesucht wird nach Namen in der eingestellten Sprache, Umlaute dürfen fehlen: „Kuhlkette“ findet „Kühlkette“. Darunter stehen unter „Erwähnt in“ die Module, in deren Beschreibung der Begriff vorkommt, mit der Stelle im Text. Pfeiltasten wählen einen Treffer, die Eingabetaste öffnet ihn, Esc schließt die Suche. Bei leerem Feld stehen die zuletzt selbst geöffneten Seiten. Findet die Suche nichts, bietet sie an, die KI mit dem Begriff zu fragen. Reihenblöcke, Chargen, Pflücker und Dokumente findet sie noch nicht.",
       },
       {
         titel: "Untere Leiste (Telefon)",
@@ -126,6 +130,10 @@ export const de: HandbuchTexte = {
       {
         titel: "Modulseite",
         text: "Zeigt die Ansicht des Moduls: Tabellen, Formulare, Kennzahlen. Oben rechts steht, ob die Daten aus der Datenbank kommen oder Beispieldaten sind. Module, die noch nicht gebaut sind, nennen in einem Satz, was sie können werden.",
+      },
+      {
+        titel: "Liste mit Detailansicht",
+        text: "Module mit vielen Einträgen zeigen eine Liste mit Filtern und Blättern, zuerst die Pflückaufgaben. Ein Klick auf einen Eintrag öffnet rechts die Detailansicht mit Reitern, die Liste bleibt daneben bedienbar. Die Liste wird dabei schmaler, und die Detailansicht bekommt den Platz, damit ihr Inhalt möglichst ohne Scrollen passt. Ist zu wenig Platz, etwa auf dem Telefon oder neben dem geöffneten KI-Chat, tritt die Detailansicht an die Stelle der Liste. Filter, Seite und gewählter Eintrag stehen in der Adresse: Ein Link zeigt genau diese Ansicht, und Zurück schließt die Detailansicht wieder. Neue Einträge legt man über den Knopf direkt über der Liste an.",
       },
     ],
     spracheTitel: "Sprache umschalten",
@@ -186,12 +194,12 @@ export const de: HandbuchTexte = {
         id: "pflueckaufgabe",
         titel: "Pflückaufgabe mit Fotobeleg",
         schritte: [
-          "Feld → Pflückaufgaben mit Fotobeleg öffnen.",
-          "Unten eine neue Pflückaufgabe anlegen. Gesperrte Blöcke stehen nicht zur Auswahl und werden von der Datenbank zusätzlich abgewiesen.",
-          "Links eine Aufgabe je Brigade und Reihenblock wählen. Der Fortschritt ist Istmenge gegen Zielmenge.",
-          "Als Brigade die Aufgabe annehmen, das Pflücken starten und rechts einen Fotobeleg hochladen. Auf dem Telefon öffnet sich dafür direkt die Kamera. Die Datei liegt in einem privaten Ablagebereich und wird nur über kurzlebige, signierte Links angezeigt.",
-          "„Menge melden“ setzt die Aufgabe auf Belegprüfung.",
-          "Betriebsleitung oder Administration prüfen den Beleg, tragen den Qualitätsfaktor ein und geben die Aufgabe frei.",
+          "Feld → Pflückaufgaben mit Fotobeleg öffnen. Die Liste zeigt alle Aufgaben, späteste Fälligkeit zuerst, 20 je Seite. Die Pillen über der Liste filtern nach Status und nennen die Treffer. Suche, Brigade und Zeitraum stehen daneben, auf dem Telefon hinter „Filter“.",
+          "„Neue Pflückaufgabe“ über der Liste aufklappen und Reihenblock, Brigade, Fälligkeit mit Datum und Uhrzeit (Betriebszeit Almaty) und Zielmenge eintragen. Gesperrte Blöcke stehen nicht zur Auswahl und werden von der Datenbank zusätzlich abgewiesen. Nach dem Anlegen öffnet die neue Aufgabe in der Detailansicht.",
+          "Ein Klick auf eine Aufgabe öffnet rechts die Detailansicht, auf dem Telefon ersetzt sie die Liste. Im Reiter Übersicht steht unter „Nächster Schritt“, was als Nächstes zu tun ist. Die Pfeile oben führen zur vorigen und nächsten Aufgabe, Esc oder Zurück schließen die Ansicht.",
+          "Als Brigade die Aufgabe annehmen, das Pflücken starten und im Reiter Fotobelege einen Beleg hochladen. Auf dem Telefon öffnet sich dafür direkt die Kamera. Die Datei liegt in einem privaten Ablagebereich und wird nur über kurzlebige, signierte Links angezeigt.",
+          "„Menge melden“ setzt die Aufgabe auf Belegprüfung. Ab dann zählt ihre Fälligkeit nicht mehr: überfällig sind nur Aufgaben, an denen die Brigade noch pflückt.",
+          "Betriebsleitung oder Administration sehen dann in der Übersicht Vorschaubilder der Belege, tragen den Qualitätsfaktor ein und geben die Aufgabe frei.",
         ],
       },
       {
@@ -200,8 +208,8 @@ export const de: HandbuchTexte = {
         einleitung:
           "Das ist der Ablauf, auf den es beim Kunden ankommt: von der Schale zurück bis zur Person, die sie gefüllt hat.",
         schritte: [
-          "Feld → Pflückaufgaben mit Fotobeleg öffnen und links eine Aufgabe wählen.",
-          "Rechts unter „Nachweiskette“ steht die Charge: Kühlkurve mit der 60-Minuten-Grenze, Menge und Ausschuss, die Steigen mit der Person, die sie gefüllt hat, und der Rückstandsnachweis.",
+          "Feld → Pflückaufgaben mit Fotobeleg öffnen und eine Aufgabe wählen.",
+          "Im Reiter „Nachweiskette“ der Detailansicht steht die Charge: Kühlkurve mit der 60-Minuten-Grenze, Menge und Ausschuss, die Steigen mit der Person, die sie gefüllt hat, und der Rückstandsnachweis.",
           "„Steige erfassen“ ordnet eine Steige einer Person zu. Erst damit reicht die Kette vom Kunden bis zum Pflücker.",
           "„Arbeitszeit melden“ liefert den Nenner der Pflückleistung in Kilogramm je Stunde.",
           "„Kühlmessung erfassen“: Minuten und Urteil rechnet die Datenbank aus dem Pflückzeitpunkt. Über 60 Minuten meldet die Oberfläche einen Verstoß, und die Ware ist abzuwerten.",

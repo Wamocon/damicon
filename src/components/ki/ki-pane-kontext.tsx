@@ -14,6 +14,7 @@ import { useRouter } from "@/i18n/navigation";
 import { setzeHervorhebung } from "@/components/ki/hervorhebung";
 import { klappeAuf, stelleZu } from "@/components/ki/ui-steuerung";
 import { leseChatStand, unterbrichChat } from "@/components/ki/sprachmodus-bus";
+import { useScrollSperre } from "@/components/ui/scroll-sperre";
 import {
   ANFANG,
   DARSTELLUNG_SCHLUESSEL,
@@ -52,6 +53,12 @@ export interface PruefBezug {
   kontext: string;
 }
 
+export interface Anstoss {
+  nr: number;
+  frage: string;
+  zurPruefung: boolean;
+}
+
 export interface KiFuehrung {
   label: string;
   ziel: string;
@@ -83,8 +90,18 @@ interface KiPaneWert {
   /** Oeffnet den Chat mit dem Bericht als Grundlage und stellt die erste Frage. */
   starteGespraechZurPruefung: (bezug: PruefBezug, frage: string) => void;
   entferneBezug: () => void;
-  /** Frage, die der Chat als Naechstes stellen soll (nr zaehlt hoch, damit dieselbe Frage zweimal geht). */
-  anstoss: { nr: number; frage: string } | null;
+  /** Frage, die der Chat als Naechstes stellen soll (nr zaehlt hoch, damit dieselbe Frage zweimal geht).
+   *  zurPruefung: die Frage gilt einem Pruefbericht (starteGespraechZurPruefung) und ergibt nur
+   *  mit diesem Bericht als Grundlage Sinn. */
+  anstoss: Anstoss | null;
+  /** Oeffnet den Chat und stellt die Frage, als haette man sie getippt. Modus und Pruefbezug
+   *  bleiben, wie sie sind - anders als bei starteGespraechZurPruefung. Fuer "KI fragen" in der
+   *  globalen Suche. */
+  frageStellen: (frage: string) => void;
+  /** Der Agent fuehrt gerade selbst von Seite zu Seite (fuehreZu). Die globale Suche zeichnet
+   *  solche Stationen nicht als "zuletzt geoeffnet" auf - aufgerufen hat sie nicht die Person.
+   *  Ein Klick auf einen Schritt im Chat (oeffneZiel) zaehlt dagegen als eigene Navigation. */
+  tourLaeuft: boolean;
   /** Sprachmodus (components/ki/sprachmodus.tsx): Live-Gespraech ohne sichtbaren Chat. */
   sprachmodus: boolean;
   starteSprachmodus: () => void;
@@ -125,6 +142,8 @@ const Standard: KiPaneWert = {
   sprachmodus: false,
   starteSprachmodus: () => {},
   beendeSprachmodus: () => {},
+  frageStellen: () => {},
+  tourLaeuft: false,
 };
 
 const KiPaneKontext = createContext<KiPaneWert>(Standard);
@@ -233,7 +252,7 @@ export function KiPaneProvider({
   const [zeiger, setZeiger] = useState<KiZeiger | null>(null);
   const zeigerTimer = useRef<number | undefined>(undefined);
   const [pruefBezug, setPruefBezug] = useState<PruefBezug | null>(null);
-  const [anstoss, setAnstoss] = useState<{ nr: number; frage: string } | null>(null);
+  const [anstoss, setAnstoss] = useState<Anstoss | null>(null);
   const anstossNr = useRef(0);
   // Sprachmodus: solange er laeuft, oeffnet eine Navigation des Assistenten NICHT das
   // Panel - das Gespraech hat keinen sichtbaren Chat, und das Panel naehme der Seite den
@@ -242,6 +261,7 @@ export function KiPaneProvider({
   const [sprachmodus, setSprachmodus] = useState(false);
   const sprachmodusRef = useRef(false);
   const panelVorSprachmodus = useRef(false);
+  const [tourLaeuft, setTourLaeuft] = useState(false);
 
   const warteschlange = useRef<KiFuehrung[]>([]);
   const timer = useRef<number | undefined>(undefined);
@@ -313,11 +333,20 @@ export function KiPaneProvider({
     }
   }, []);
 
+  // Stellt eine Frage von aussen und oeffnet den Chat - fuer die globale Suche
+  // wie fuer den Pruefbericht.
+  const stosseAn = useCallback(
+    (frage: string, zurPruefung: boolean) => {
+      setAnstoss({ nr: ++anstossNr.current, frage, zurPruefung });
+      setOffen(true);
+    },
+    [setOffen],
+  );
+
   const starteGespraechZurPruefung = useCallback(
     (bezug: PruefBezug, frage: string) => {
       speichereBezug(bezug);
-      setAnstoss({ nr: ++anstossNr.current, frage });
-      setOffen(true);
+      stosseAn(frage, true);
       // Immer im Assistent-Modus, unabhaengig davon, was zuletzt eingestellt war: im
       // Agent-Modus oeffnet JEDES Werkzeugergebnis mit einem Ziel automatisch die
       // zugehoerige Ansicht im Hauptfenster (siehe ki-chat.tsx, "Agent-Modus"-Effekt) - ein
@@ -327,10 +356,12 @@ export function KiPaneProvider({
       // anbieten (gemeldet am 23.09.2026).
       setModus("assistent");
     },
-    [speichereBezug, setOffen, setModus],
+    [speichereBezug, stosseAn, setModus],
   );
 
   const entferneBezug = useCallback(() => speichereBezug(null), [speichereBezug]);
+
+  const frageStellen = useCallback((frage: string) => stosseAn(frage, false), [stosseAn]);
 
   const setDarstellung = useCallback((neu: KiDarstellung) => {
     setDarstellungState(neu);
@@ -381,14 +412,7 @@ export function KiPaneProvider({
   }, [offen, darstellung, setOffen]);
 
   // Solange die Buehne steht, scrollt die Seite dahinter nicht mit.
-  useEffect(() => {
-    if (!offen || darstellung !== "buehne") return;
-    const vorher = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = vorher;
-    };
-  }, [offen, darstellung]);
+  useScrollSperre(offen && darstellung === "buehne");
 
   const naechsteStation = useCallback(
     function station() {
@@ -396,6 +420,7 @@ export function KiPaneProvider({
       const naechste = warteschlange.current.shift();
       if (!naechste) {
         laeuft.current = false;
+        setTourLaeuft(false);
         timer.current = window.setTimeout(() => setFuehrung(null), AUSKLINGZEIT_MS);
         return;
       }
@@ -419,6 +444,7 @@ export function KiPaneProvider({
       const letzte = warteschlange.current.at(-1);
       if (letzte?.ziel === ziel) return;
       warteschlange.current.push({ ziel, label });
+      setTourLaeuft(true);
       // Eine Fuehrung, die niemand sieht, ist keine: war das Panel zu, geht es
       // auf. Vorher lief die Tour im Hauptfenster ab, waehrend der Assistent
       // eingeklappt war und niemand die Begleitung dazu lesen konnte.
@@ -432,6 +458,7 @@ export function KiPaneProvider({
     warteschlange.current = [];
     laeuft.current = false;
     stationsNr += 1;
+    setTourLaeuft(false);
     window.clearTimeout(timer.current);
     setFuehrung(null);
   }, []);
@@ -439,6 +466,10 @@ export function KiPaneProvider({
   const oeffneZiel = useCallback(
     (ziel: string, label: string) => {
       warteschlange.current = [{ ziel, label }];
+      // Der Klick ersetzt eine laufende Tour - ab hier navigiert die Person selbst.
+      // Ausser im Sprachmodus: dort ruft Himbis Fuehrung oeffneZiel auf (ki-chat.tsx),
+      // und die globale Suche soll diese Stationen nicht als "zuletzt geoeffnet" fuehren.
+      setTourLaeuft(sprachmodusRef.current);
       naechsteStation();
     },
     [naechsteStation],
@@ -517,6 +548,8 @@ export function KiPaneProvider({
       sprachmodus,
       starteSprachmodus,
       beendeSprachmodus,
+      frageStellen,
+      tourLaeuft,
     }),
     [
       verfuegbar,
@@ -541,6 +574,8 @@ export function KiPaneProvider({
       sprachmodus,
       starteSprachmodus,
       beendeSprachmodus,
+      frageStellen,
+      tourLaeuft,
     ],
   );
 

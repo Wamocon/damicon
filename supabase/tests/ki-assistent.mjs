@@ -2115,7 +2115,7 @@ for (const [name, kaputteAntwort] of [
   const knopf = readFileSync(new URL("../../src/components/ki/sprachausgabe.tsx", import.meta.url), "utf8");
   pruefe("Strom: die Route hat GET mit denselben Pruefungen (zugang) wie POST", /export async function GET\(req: Request\) \{\s*const z = await zugang\(\);/.test(route) && /export async function POST\(req: Request\) \{\s*const z = await zugang\(\);/.test(route));
   pruefe("Strom: Zugang prueft Anmeldung, Berechtigung und Ratenbegrenzung", /async function zugang\(\)[\s\S]*?getSessionProfile\(\)[\s\S]*?hasPermission\(profil\.role, "ki_assistent", "create"\)[\s\S]*?ratenlimitUeberschritten\(/.test(route));
-  pruefe("Strom: GET liest die Antwort wie POST ueber RLS (fertigeAntwort, createClient)", route.includes('return fertigeAntwort(adresse.searchParams.get("nachricht") ?? "", adresse.searchParams.get("sprache") ?? "de", true);') && /async function fertigeAntwort[\s\S]*?UUID\.test\(nachrichtId\)[\s\S]*?await createClient\(\)/.test(route));
+  pruefe("Strom: GET liest die Antwort wie POST ueber RLS (fertigeAntwort, createClient)", route.includes('return fertigeAntwort(adresse.searchParams.get("nachricht") ?? "", adresse.searchParams.get("sprache") ?? "de", true);') && /async function fertigeAntwort[\s\S]*?(?:UUID\.test|istUuid)\(nachrichtId\)[\s\S]*?await createClient\(\)/.test(route));
   pruefe("Strom: GET nimmt nur Nachrichten-IDs, keinen freien Text", !/searchParams\.get\("text"\)/.test(route));
   pruefe("Strom: ein Zweig zum Hoerer, einer in den Zwischenspeicher (tee), nie im Browser behalten", route.includes("geoeffnet.strom.tee()") && route.includes('"cache-control": "no-store"'));
   pruefe("Strom: ein abgerissener Strom wird NICHT abgelegt", /catch \{\s*\/\/ Strom abgerissen[^\n]*\n\s*return;/.test(route));
@@ -2305,7 +2305,9 @@ for (const [name, kaputteAntwort] of [
   {
     const chat = readFileSync(new URL("../../src/components/ki/ki-chat.tsx", import.meta.url), "utf8");
     const sprache = readFileSync(new URL("../../src/components/ki/ki-chat-sprache.ts", import.meta.url), "utf8");
-    pruefe("Vorlesen erzwingen: die Tour-/Pruefbericht-Frage sendet mit erzwingeVorlesen=true", chat.includes("sende(anstoss.frage, false, true);"));
+    // Seit main (globale Suche) traegt der Anstoss zurPruefung: nur die Frage zum Pruefbericht
+    // (starteGespraechZurPruefung) erzwingt das Vorlesen, "KI fragen" aus der Suche ist wie getippt.
+    pruefe("Vorlesen erzwingen: die Tour-/Pruefbericht-Frage sendet mit erzwingeVorlesen=true", chat.includes("sende(anstoss.frage, false, anstoss.zurPruefung);") && readFileSync(new URL("../../src/components/ki/ki-pane-kontext.tsx", import.meta.url), "utf8").includes("stosseAn(frage, true);"));
     pruefe("Vorlesen erzwingen: sende() reicht den dritten Parameter an beginneZug weiter", chat.includes("beginneZug(ausFeld, erzwingeVorlesen)"));
     // Seit dem Umbau vom 24.09.2026 stehen die Regeln in domain/vorlesen-zustand.ts und
     // beginneZug() ruft sie auf - geprueft wird hier das echte Verhalten, nicht ein Nachbau.
@@ -3300,7 +3302,7 @@ for (const [name, kaputteAntwort] of [
   const steuer2 = lies4("components/ki/ui-steuerung.ts");
   pruefe("Seite lesen: der aktive Filter ist markiert, die Adresse traegt die Abfrage (?bereich=)", steuer2.includes('info.aktiv = true;') && steuer2.includes("${window.location.pathname}${window.location.search}${window.location.hash}"));
   pruefe("Seite lesen: Punkte kurzer Listen (hoechstens 8) sind eigene Abschnitte", steuer2.includes("ol > li, ul > li") && steuer2.includes("const MAX_LISTENPUNKTE = 8;"));
-  pruefe("Texte: die Zonenseite hat ihre Modul-Ueberschrift, die Bereiche-Box ihre Datenquelle (fehlende Schluessel von main)", ["de", "en", "ru", "kk"].every((sp) => typeof JSON.parse(readFileSync(new URL(`../../src/messages/${sp}.json`, import.meta.url), "utf8")).dashboard.home.moduleTitel === "string") && lies4("components/dashboard/bereiche-box.tsx").includes('quelleT("db") : quelleT("demo")'));
+  pruefe("Texte: die Zonenseite hat ihre Modul-Ueberschrift, die Bereiche-Box ihre Datenquelle (fehlende Schluessel von main)", ["de", "en", "ru", "kk"].every((sp) => typeof JSON.parse(readFileSync(new URL(`../../src/messages/${sp}.json`, import.meta.url), "utf8")).dashboard.home.moduleTitel === "string") && /quelleT\((?:quelle === "db" \? "db" : "demo"|"db"\) : quelleT\("demo")\)/.test(lies4("components/dashboard/bereiche-box.tsx")));
   pruefe("Seite lesen: Referenzen bleiben stabil (nie neu ab e1), Abschnitte bekommen eigene a-Referenzen", !steuer2.includes("forEach((e) => e.removeAttribute(REF_ATTRIBUT))") && steuer2.includes("const ref = `e${++letzteElementNr}`;") && steuer2.includes("abschnitte: abschnitteDer(haupt),") && steuer2.includes("export function seitenKarte(): string"));
   pruefe("Werkzeuge: zeigeAuf und scrolleZu nehmen auch Abschnitte (a3), Referenzen bis e99999", lies4("lib/ai/ui-werkzeuge.ts").includes("regex(/^[ea]\\d{1,5}$/") && lies4("lib/ai/ui-werkzeuge.ts").includes("inputSchema: z.object({ ref: zielRef, absicht }),"));
   const strom2 = lies4("components/ki/sprachausgabe-strom.ts");

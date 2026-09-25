@@ -30,19 +30,11 @@ export default async function ModulePage({
     ? hasPermission(profil?.role, found.resource, "view")
     : true;
 
+  // Alle Suchparameter gehen unveraendert weiter; jede Ansicht liest ihre
+  // eigenen (lib/listen/parameter.ts). Vorher stand hier eine Liste erlaubter
+  // Schluessel, die fuer jeden neuen Filter an zwei Stellen nachzuziehen war.
   const ansicht = darfSehen
-    ? serverModulAnsicht(found, {
-        pfad: `/dashboard/${zone}/${slug}`,
-        suche: {
-          status: typeof suche.status === "string" ? suche.status : undefined,
-          aufgabe: typeof suche.aufgabe === "string" ? suche.aufgabe : undefined,
-          reklamation: typeof suche.reklamation === "string" ? suche.reklamation : undefined,
-          bereich: typeof suche.bereich === "string" ? suche.bereich : undefined,
-          zeitraum: typeof suche.zeitraum === "string" ? suche.zeitraum : undefined,
-          typ: typeof suche.typ === "string" ? suche.typ : undefined,
-          zeilen: typeof suche.zeilen === "string" ? suche.zeilen : undefined,
-        },
-      })
+    ? serverModulAnsicht(found, { pfad: `/dashboard/${zone}/${slug}`, suche })
     : null;
 
   return <ModulePageBody module={found}>{ansicht}</ModulePageBody>;

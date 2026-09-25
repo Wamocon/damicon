@@ -197,11 +197,17 @@ export async function warteBisRuhig(maxMs = 3200, ruheMs = 380): Promise<void> {
   });
 }
 
+// Die Adresse samt Query: eine Liste mit Detailansicht (DESIGN.md Abschnitt 14)
+// haelt Filter, Seite und gewaehlten Eintrag dort. Ohne sie saehe der Agent
+// nicht, dass sich die Ansicht geaendert hat, und zwei Aufgaben derselben
+// Seite waeren fuer ihn eine.
+const adresse = () => `${window.location.pathname}${window.location.search}${window.location.hash}`;
+
 export async function schnappschuss(fokus?: string): Promise<Schnappschuss> {
   await warteBisRuhig(1800, 250);
   const haupt = wurzel();
-  // Mit Abfrage: ?bereich=steuer sagt dem Modell, dass der Pruefbericht schon gefiltert ist.
-  const url = `${window.location.pathname}${window.location.search}${window.location.hash}`;
+  // Mit Abfrage: ?bereich=steuer sagt dem Modell auch, dass der Pruefbericht schon gefiltert ist.
+  const url = adresse();
   if (!haupt) return { url, titel: document.title, ueberschriften: [], text: "", elemente: [], abschnitte: [], hinweis: "Kein Inhaltsbereich gefunden." };
 
   const stichwort = fokus?.trim().toLowerCase();
@@ -220,7 +226,7 @@ export async function schnappschuss(fokus?: string): Promise<Schnappschuss> {
     }
     const ref = refFuer(el);
     const info: ElementInfo = { ref, typ: typVon(el), label: label || "(ohne Beschriftung)", gruppe };
-    if (el instanceof HTMLAnchorElement) info.ziel = el.pathname + el.hash;
+    if (el instanceof HTMLAnchorElement) info.ziel = el.pathname + el.search + el.hash;
     if (el instanceof HTMLInputElement && (el.type === "checkbox" || el.type === "radio")) info.angehakt = el.checked;
     else if (el instanceof HTMLSelectElement) {
       info.wert = bereinigt(el.selectedOptions[0]?.textContent);
@@ -479,7 +485,7 @@ function ungueltigeFelder(form: HTMLFormElement): { feld: string; problem: strin
 const zuletztGesendet = new Map<string, number>();
 const DOPPELT_FENSTER_MS = 120_000;
 const sendeSchluessel = (el: HTMLElement, label: string): string =>
-  `${window.location.pathname}|${el.closest("form")?.getAttribute("action") ?? ""}|${label}`;
+  `${adresse()}|${el.closest("form")?.getAttribute("action") ?? ""}|${label}`;
 
 async function klicken(ref: string, absicht: string, umgebung: Umgebung) {
   const el = elementFuerRef(ref);
@@ -512,7 +518,7 @@ async function klicken(ref: string, absicht: string, umgebung: Umgebung) {
     const erlaubt = await umgebung.bestaetigen({ absicht, label, grund: kuerzlichGesendet ? "doppelt" : stufe.grund });
     if (!erlaubt) return { ok: false, abgelehnt: true, hinweis: "Der Nutzer hat diesen Klick abgelehnt. Nichts wurde ausgeführt." };
   }
-  const vorher = `${window.location.pathname}${window.location.hash}`;
+  const vorher = adresse();
   let abgeschickt = false;
   const merke = () => {
     abgeschickt = true;
@@ -522,7 +528,7 @@ async function klicken(ref: string, absicht: string, umgebung: Umgebung) {
   el.click();
   await warteBisRuhig();
   formular?.removeEventListener("submit", merke, true);
-  const nachher = `${window.location.pathname}${window.location.hash}`;
+  const nachher = adresse();
   if (sendetFormular && !abgeschickt) {
     return { ok: false, abgeschickt: false, hinweis: "Der Klick hat das Formular NICHT abgeschickt. Lies die Seite erneut und prüfe die Felder." };
   }

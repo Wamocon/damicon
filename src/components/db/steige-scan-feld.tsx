@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Camera, Package, RotateCcw } from "lucide-react";
 import { steigenCodeAusScan, normalisiereSteigenCode } from "@/lib/domain/steige-scan";
 import { SteigeKontrollierenKnopf } from "@/components/db/nachweiskette-formulare";
-import { feldKlassen } from "@/components/db/formular-kit";
+import { feldKlassen } from "@/components/ui/kit";
 import { ScanFeldRahmen, useScanFeld, type ScanErgebnis } from "@/components/db/scan-feld";
 
 // Anforderung 2.7, letzter offener Teil des Abnahmekriteriums: "ein Scan am

@@ -1,6 +1,6 @@
 # Damicon – Design-System
 
-Stand 19.09.2026. Beschreibt, was im Code steht, nicht einen Wunschzustand. Quellen: `src/app/globals.css` (Tokens), `src/components/ui/kit.tsx` (Bausteine), `src/components/dashboard/`, `src/components/brand/damicon-logo.tsx`, `src/components/ki/ki-pane.css`. Bei Abweichungen gilt der Code; diese Datei wird nachgezogen.
+Stand 25.09.2026. Beschreibt, was im Code steht, nicht einen Wunschzustand. Quellen: `src/app/globals.css` (Tokens), `src/components/ui/kit.tsx` (Bausteine), `src/components/dashboard/`, `src/components/brand/damicon-logo.tsx`, `src/components/ki/ki-pane.css`. Bei Abweichungen gilt der Code; diese Datei wird nachgezogen.
 
 ## 1. Charakter
 
@@ -132,8 +132,9 @@ Die folgenden liegen in `kit.tsx`; `Sheet` und `BlattZeile` stehen in eigenen Da
 | `DataTable` | Tabelle | ab `md` `overflow-x-auto` und `min-w-[640px]`, Kopf auf `muted/40`, Trennlinien `divide-border`. Darunter wird jede Zeile zu einer Karte: Beschriftung links, Wert rechts (`.datentabelle` in `globals.css`). Die Beschriftung kommt aus `data-kopf`, das der Baustein selbst an jede Zelle hängt — keine der 29 Aufrufstellen weiß davon. Eine Zelle, in der etwas eingegeben wird, steht einspaltig und ihre Felder untereinander über die volle Breite: zwei Spalten sind für einen Wert richtig, den man liest, und falsch für ein Formular, das man bedient. Geprüft durch `npm run test:kit`. |
 | `Skeleton` | Platzhalter beim Laden | `animate-pulse rounded bg-muted`, zurückgenommen bei `motion-reduce`; Höhe und Breite gibt die aufrufende Seite |
 | `SkeletonCard` | Platzhalter in Kartenform | wie `Skeleton`, dazu `rounded-xl border bg-card`, damit beim Einsetzen des Inhalts nichts springt |
-| `Sheet` (`ui/sheet.tsx`) | Fläche, die von unten aufgeht | Nur unter `md` verwendet, für die untere Leiste. Trägt Esc, Klick daneben, Scroll-Sperre und eine Fokusfalle; `bg-card-deckend`, `max-h-[85svh]`. Hängt beim Schließen aus — was gemountet bleiben muss, wie das KI-Panel mit einer laufenden Antwort, baut seine Fläche selbst (`ki-pane.css`). |
-| `BlattZeile` (`ui/blatt-zeile.tsx`) | Eine Zeile in so einer Fläche | Symbol links, Text, Pfeil rechts, `h-14` (44 px Berührungsfläche plus Innenabstand). Mit `href` ein Link mit `aria-current`, ohne einen Knopf. Verwendet im Menü-Blatt und in der Mehr-Ansicht des KI-Panels: beide Blätter gehen vom selben Knopfband auf und müssen deshalb gleich aussehen. |
+| `Sheet` (`ui/sheet.tsx`) | Fläche, die von unten, in der Mitte oder von oben aufgeht | `unten` unter `md` für die untere Leiste, `mitte` für Detailinhalte (Tageskacheln), `oben` für die globale Suche: ab `md` mittig oben, 672 px breit (`max-w-2xl`) und 10 % unter dem oberen Rand, auf dem Handy randlos oben. Trägt Esc, Klick daneben, Scroll-Sperre und eine Fokusfalle; `bg-schwebend`. Höhe: `unten` bis 85svh abzüglich der unteren Leiste, `mitte` bis 85svh, `oben` bis zum Rand, ab `md` höchstens 36rem bzw. 80svh. Optional `anfangsFokus` (etwa ein Suchfeld statt der Fläche), `kopf` (Inhalt statt des sichtbaren Titels, der Titel bleibt für Vorlesehilfen) und `schliessenLabel`. Die Scroll-Sperre ist `useScrollSperre` aus `ui/scroll-sperre.ts`, dieselbe für KI-Bühne, KI-Panel auf dem Handy und Abzeichen. Sie sitzt am `<html>`, nicht am `<body>`: das `<html>` trägt `overflow-x: clip`, und ein gesperrter `<body>` wurde dann selbst zum Scrollcontainer, an dem die klebende Kopfzeile hing statt am Fenster. Ein Zähler gibt die Seite erst frei, wenn die letzte Ebene schließt, und `scrollbar-gutter: stable` am `<html>` hält den Platz der Scrollleiste frei, sonst sprang die Seite beim Öffnen um deren Breite. Hängt beim Schließen aus — was gemountet bleiben muss, wie das KI-Panel mit einer laufenden Antwort, baut seine Fläche selbst (`ki-pane.css`). |
+| Liste mit Detailansicht (`ui/liste.tsx`, `ui/detailpanel.tsx`, `ui/listen-filter.tsx`) | Liste mit Filterleiste und Blättern, deren Einträge rechts eine Detailansicht öffnen | Zustand in der Adresse, drei Anordnungen nach verfügbarer Breite, siehe Abschnitt 14. `Reiter` und `FilterPillen` kennen dafür `ersetzen`, `vorladen`, `melder` und Trefferzahlen, `Reiter` zusätzlich `dicht`. |
+| `BlattZeile` (`ui/blatt-zeile.tsx`) | Eine Zeile in so einer Fläche | Symbol links, Text, Pfeil rechts, `h-14` (44 px Berührungsfläche plus Innenabstand). Mit `href` ein Link mit `aria-current`, ohne einen Knopf. Verwendet im Menü-Blatt und in der Mehr-Ansicht des KI-Panels: beide Blätter gehen vom selben Knopfband auf und müssen deshalb gleich aussehen. Inhalt und Klassen stehen einzeln bereit (`BlattZeilenInhalt` mit optionalem Untertitel, `blattZeilenKlassen`) für Zeilen, die weder Link noch Knopf sind: die Treffer der Suche sind Optionen einer Liste. |
 
 Ton-Zuordnung der Statuspille: Hintergrund 10–12 %, Text und Rand in der Statusfarbe (Rand 25 %). `info` nutzt `primary`.
 
@@ -154,11 +155,13 @@ Ton-Zuordnung der Statuspille: Hintergrund 10–12 %, Text und Rand in der Statu
    - **„Übersicht“ ist ein fünftes Feld.** Sie steht auf derselben Ebene wie die vier Bereiche und bekommt deshalb dieselbe Fläche und dieselbe 24-px-Spur. Ohne diese Fläche hing die Zeile sichtbar lose über vier Karten. Als aktive Seite füllt sie wie jeder aktive Eintrag `bg-primary`.
    - **Zustand.** Zugeklappt zeigt der Kopf die Zahl seiner Einträge, oder einen Punkt in der Farbe der aktiven Seite, wenn die offene Seite in ihm liegt. Gespeichert werden die **offenen** Bereiche in `localStorage` (`damicon-sidebar-bereiche`); Standard ist „keiner offen“, aufgeklappt wird dann nur der Bereich der geöffneten Seite. Das ist eine Höhenfrage: bei 1000 px Fensterhöhe bleiben dem Menü rund 810 px, vier offene Gruppen brauchen gut 1200 px – „alles offen“ hieße also immer Scrollbalken. Mit einer offenen Gruppe passt auch die größte (Büro, neun Einträge) ohne Scrollen, zwei liegen knapp darüber. Der Store liegt auf Modulebene in `sidebar-zustand.ts`, weil feste Spalte und Menü-Blatt gleichzeitig im Baum hängen – im selben Modul wie die Breite, aus demselben Grund. Der Bereich der geöffneten Seite klappt auf – nur beim Wechsel des Bereichs, sonst ließe sich der Bereich, in dem man steht, nie zuklappen.
    - **Kurznamen.** Die Einträge tragen `modules.<key>.navTitle`, nicht `title`. Der volle Titel steht im Hover-Text und als Seitentitel. Grund: verfügbar sind 201 px, der längste ausgeschriebene Titel braucht 229 px auf Deutsch und 326 px auf Kasachisch – keine vertretbare Spaltenbreite deckt alle fünf Sprachen ab.
-   - **Einklappbar zur Symbolleiste.** Ab `md` lässt sich die Spalte auf 64 px (`w-16`) einklappen; der Zustand liegt in `localStorage` (`damicon-sidebar-schmal`). Eingeklappt zeigt `SidebarRail` Bildmarke, fünf Symbole und den Benutzer-Fuß. Die fünf Symbole sind: „Übersicht“ und die vier Bereiche, jedes als Link auf die Bereichsseite, die die Module ohnehin als Kacheln auflistet – deshalb braucht die Leiste kein Ausklapp-Fenster, um brauchbar zu sein. Ohne sichtbare Beschriftung trägt jedes Ziel `aria-label` und `title`. Die Breite wechselt über `transition-[width]`, abgeschaltet unter `motion-reduce`. Der Umschalter selbst sitzt links neben der Suche in der Kopfzeile und nicht in der Leiste – dort bliebe er sonst nicht an derselben Stelle, sondern wanderte zwischen „neben dem Logo“ und „darunter“. Unter `md` ist er ausgeblendet, dort gibt es keine feste Spalte. Der Zustand liegt in `sidebar-zustand.ts`, weil Leiste und Kopfzeile einander nicht kennen.
+   - **Einklappbar zur Symbolleiste.** Ab `md` lässt sich die Spalte auf 64 px (`w-16`) einklappen; der Zustand liegt in `localStorage` (`damicon-sidebar-schmal`). Eingeklappt zeigt `SidebarRail` Bildmarke, fünf Symbole und den Benutzer-Fuß. Die fünf Symbole sind: „Übersicht“ und die vier Bereiche, jedes als Link auf die Bereichsseite, die die Module ohnehin als Kacheln auflistet – deshalb braucht die Leiste kein Ausklapp-Fenster, um brauchbar zu sein. Ohne sichtbare Beschriftung trägt jedes Ziel `aria-label` und `title`. Die Breite wechselt über `transition-[width]`, abgeschaltet unter `motion-reduce`. Der Umschalter selbst sitzt links in der Kopfzeile, vor dem Pfad, und nicht in der Leiste – dort bliebe er sonst nicht an derselben Stelle, sondern wanderte zwischen „neben dem Logo“ und „darunter“. Unter `md` ist er ausgeblendet, dort gibt es keine feste Spalte. Der Zustand liegt in `sidebar-zustand.ts`, weil Leiste und Kopfzeile einander nicht kennen.
    - **Markierung in der Symbolleiste.** Der Bereich gilt als aktiv, sobald die geöffnete Seite in ihm liegt, nicht erst auf der Bereichsseite selbst – sonst zeigte die eingeklappte Leiste gar nicht, wo man steht. Für `aria-current` wird dagegen der **genaue** Pfad verglichen: `"page"` nur auf der Bereichsseite, sonst `"true"` für den laufenden Bereich. `useIsActive` taugt dafür nicht, es vergleicht mit Präfix.
    - **Benutzer am Fuß.** `BenutzerFuss` zeigt Kürzel, Namen, echte Rolle und daneben Sicherheit und Abmelden; eingeklappt bleibt nur das Kürzel als Link auf die Sicherheitsseite plus Abmelden (`BenutzerFussSchmal`). Vorher stand dieselbe Angabe zweimal auf dem Schirm: Kachel „Angemeldet als“ oben in der Leiste und Benutzerbereich rechts in der Kopfzeile. Wichtig ist die Unterscheidung, die dabei fast verloren gegangen wäre: die Kachel zeigte die **Ansichtsrolle**, die Kopfzeile die **echte Profilrolle**. Für Admins mit „Ansicht als“ sind das zwei Dinge, und nur die echte entscheidet in der Datenbank über Schreibrechte. Deshalb steht am Fuß die echte Rolle, und die Ansichtsrolle nur dann zusätzlich als Pille, wenn sie abweicht. Im Demo-Modus gibt es keine Sitzung – dort entfallen Sicherheit und Abmelden, und statt eines Namens steht die Demo-Rolle. Die Rollenbeschreibung, früher ausgeschrieben in der Kachel, sitzt jetzt im Hover-Text.
    - **Bewegung und Tastatur.** Das Panel läuft über `grid-template-rows` von `0fr` auf `1fr`, abgeschaltet unter `motion-reduce`. Zugeklappte Panels tragen `inert`, sonst blieben ihre Links in Tabreihenfolge und Vorlesereihenfolge. Das Chevron im Kopf trägt `aria-expanded`/`aria-controls` (siehe „Der Bereichskopf ist zweigeteilt“), der aktive Eintrag `aria-current="page"`.
-2. **Hauptspalte:** Kopfzeile (`DashboardTopbar`) ab `md` mit Menü-Umschalter links, Sprachumschalter, Theme-Umschalter, Rollenumschalter „Ansicht als“ und „KI fragen“, dazu die Synchronisationsanzeige. Die angemeldete Person steht nicht mehr hier, sondern am Fuß der Seitenleiste. Darunter der Seiteninhalt.
+2. **Hauptspalte:** Kopfzeile (`DashboardTopbar`) ab `md` mit Menü-Umschalter und Pfad links, rechts von links nach rechts: Rolle bzw. Rollenumschalter „Ansicht als“, „Gespräch“ (Sprachmodus), „KI fragen“, Sprachumschalter, Theme-Umschalter, Synchronisationsanzeige, Suche und Meldungen. Die Rolle steht vor „KI fragen“ (Erwin, 24.09.2026). Die angemeldete Person steht nicht mehr hier, sondern am Fuß der Seitenleiste. Darunter der Seiteninhalt.
+
+   Die **globale Suche** (`components/suche/`) ist in der Kopfzeile nur ein Knopf mit Lupe, auf jeder Breite links neben der Glocke. Getippt wird nie in der Kopfzeile, sondern im Suchfenster. Es geht immer oben in der Mitte des Bildschirms auf (`Sheet` `oben`), egal welcher Knopf es öffnet: ab `md` 672 px breit und 10 % unter dem oberen Rand, auf dem Handy über die volle Breite. Das ist so gewollt (Erwin, 24.09.2026): eine Leiste im Look eines Suchfelds, ein echtes Eingabefeld in der Kopfzeile und ein Fenster, das am Auslöser aufgeht, waren umgesetzt und sind wieder entfallen. Das Fenster hängt neben der Shell im Layout und nicht in der Kopfzeile: deren `backdrop-blur` macht sie zum Bezugsrahmen für fixierte Kinder, ein Blatt darin wäre auf die Kopfzeile beschnitten. Stufe 1 findet Übersicht, Bereiche, Module und die Seiten daneben, gefiltert nach der Ansichtsrolle wie die Seitenleiste. Darunter stehen unter „Erwähnt in“ Module, deren Beschreibung oder Zusammenfassung den Begriff nennt. Durchsucht wird nur, was auf den Seiten zu lesen ist, und die Fundstelle steht als Beleg dabei. Datensätze folgen (WMCNL-1467).
 3. **KI-Seitenpanel** rechts, andockbar (siehe 8).
 4. **Untere Navigationsleiste** (`untere-leiste.tsx`), nur unter `md`. Eine schwebende, abgerundete Fläche mit drei Knöpfen: Menü, KI-Assistent, Konto. Jeder führt eine eigene Fläche von unten herauf (`ui/sheet.tsx`), der KI-Knopf öffnet das bestehende Panel. Im Einzelnen:
 
@@ -174,17 +177,19 @@ Ton-Zuordnung der Statuspille: Hintergrund 10–12 %, Text und Rand in der Statu
    - **Himbi ist der KI-Knopf.** Auf dem Handy steht das Maskottchen in der Leiste statt frei im Bild. Frei schwebend deckte es Karteninhalt zu, und daneben trug die Leiste noch einmal dieselbe Himbeere – zwei Zeichen für dieselbe Sache, eines davon im Weg. Ein Tipp darauf öffnet den Assistenten, also genau das, was ein Tipp auf die schwebende Figur auch tat. Die Figur zeigt weiter ihre Phase (denkt, wartet auf Freigabe, Fehler), dazu ein Punkt neben ihr, weil das Gesicht bei 28 px klein ist. Abgeschaltet oder weggeschickt bleibt es bei der schlichten Himbeere. Was auf dem Handy entfällt, sind die Sprechblasen: Willkommensgruß, Modultipp und der Hinweis „Antwort ist fertig“ – sie standen über dem Inhalt, und der Tipp auf Himbi führt ohnehin dorthin, wohin ihre Knöpfe führten.
    - **Konto-Blatt** (`konto-blatt.tsx`). Person mit echter Rolle, „Ansicht als“, Sprache, Farbschema, Sicherheit, Abmelden. Damit ist der Rollenumschalter auf dem Handy überhaupt erst erreichbar – er trug `hidden lg:inline-flex` und fehlte unter 1024 px vollständig.
    - **Blätter statt Dialog.** `ui/sheet.tsx` ist kein `<dialog>`: dessen `::backdrop` fügt sich schlecht in die übrige Tiefenstaffelung, und `showModal()` müsste über einen Effekt nachgezogen werden. Esc, Klick daneben, gesperrtes Scrollen dahinter und Fokus in der Fläche sind ausgeschrieben.
-   - **Kopfzeile darunter.** Unter `md` ist sie 56 px hoch (`h-14`, ab `md` wieder 64) und trägt rechts nur noch, was beim Arbeiten sichtbar bleiben muss: Synchronisierung und Meldungen. Links steht auf einer Unterseite der Weg zurück („‹ Büro"), und **sobald er da ist, rücken Bildmarke und Name in die Mitte**. Auf der Übersicht gibt es keinen Rückweg — dort steht die Marke links, wo sonst nichts wäre. Der Untertitel entfällt auf dem Handy.
+   - **Kopfzeile darunter.** Unter `md` ist sie 56 px hoch (`h-14`, ab `md` wieder 64) und trägt rechts nur noch, was beim Arbeiten sichtbar bleiben muss: Synchronisierung, Suche und Meldungen. Die Glocke (`glocke.tsx`) öffnet am Schreibtisch eine Schublade in voller Höhe am rechten Rand (`Sheet` mit `position="rechts"`, 28rem breit, bündig und ohne Rundung wie das KI-Panel, das von derselben Seite kommt), auf dem Handy ein Blatt von unten wie Menü und Konto. Ein Popover an der Glocke war für eine Liste mit Symbol, Titel und zwei Zeilen Text zu schmal. Das Fenster hängt wie die Suche im Layout und nicht in der Kopfzeile, deren `backdrop-blur` fixierte Kinder auf die Kopfzeile beschneiden würde. Auf dem Handy trägt das Blatt `modal`: es kommt nicht aus der unteren Leiste, die Leiste liegt unter seiner Blende. Solange es keine Benachrichtigungen gibt, zeigt es einen Leerzustand mit dem Hinweis, dass Alarme und Fristen weiter in den Modulen stehen. Der Punkt an der Glocke bedeutet „noch nie geöffnet“, nicht „ungelesen“, und verschwindet nach dem ersten Klick. Kunde und Picker sehen die Glocke nicht. Links steht auf einer Unterseite der Weg zurück („‹ Büro"), und **sobald er da ist, rücken Bildmarke und Name in die Mitte**. Auf der Übersicht gibt es keinen Rückweg — dort steht die Marke links, wo sonst nichts wäre. Der Untertitel entfällt auf dem Handy.
 
-     Für die Mitte drei Rasterspalten mit gleich breiten Außenspalten (`grid-cols-[1fr_auto_1fr]`, ab `md` wieder `flex`); in einer Reihe säße die Marke nur irgendwo zwischen den Nachbarn, je nachdem wie lang der Rückweg gerade ist — „Feld“ gegen „Genel bakış“ verschöbe sie um gut 20 px. Ausgeblendete Kinder belegen keine Rasterzelle, deshalb stören Menü-Umschalter und Suche darunter nicht; die Suche erscheint dafür erst ab `md` statt ab `sm`, sonst hätte sie zwischen 640 und 768 px eine vierte Spalte aufgemacht.
+     Für die Mitte drei Rasterspalten mit gleich breiten Außenspalten (`grid-cols-[1fr_auto_1fr]`, ab `md` wieder `flex`); in einer Reihe säße die Marke nur irgendwo zwischen den Nachbarn, je nachdem wie lang der Rückweg gerade ist — „Feld“ gegen „Genel bakış“ verschöbe sie um gut 20 px. Ausgeblendete Kinder belegen keine Rasterzelle, deshalb stört der Menü-Umschalter darunter nicht. Der Suchknopf steht in der rechten Gruppe und braucht keine eigene Zelle. Gemessen: rechts Synchronisierung oder CEO-Hinweis, Suche und Meldungen, zusammen 124 px; die Außenspalten sind bei 390 px je 149 px breit, bei 360 px je 134 px, die Marke steht in beiden Fällen genau mittig. Erst bei 320 px braucht die rechte Gruppe mehr als ihre Spalte, und die Marke rückt 10 px aus der Mitte.
 
-     Der Rückweg gehört dorthin, weil er mitscrollt: die Brotkrumen im Inhalt sind weg, sobald man eine lange Modulseite liest, und genau dann braucht man sie. Auf der Übersicht gibt es kein Zurück — dort steht die Marke, also genau einmal und da, wo man ankommt. Nebeneinander wäre beides zu eng: von 358 px gehen 80 px für die zwei Anzeigen rechts ab, Bildmarke mit Namen kostet rund 166 px, für den Rückweg blieben 112 px.
+     Der Rückweg gehört dorthin, weil er mitscrollt: die Brotkrumen im Inhalt sind weg, sobald man eine lange Modulseite liest, und genau dann braucht man sie. Auf der Übersicht gibt es kein Zurück — dort steht die Marke, also genau einmal und da, wo man ankommt. Nebeneinander wäre beides zu eng: von 358 px gehen 124 px für Synchronisierung, Suche und Meldungen ab, Bildmarke mit Namen kostet rund 166 px, für den Rückweg blieben 68 px.
 
      Welche Seite die Ebene darüber ist, leitet `useElternSeite()` (`nav-ziele.ts`) aus dem Pfad ab — die Kopfzeile liegt im Layout und weiß nichts von der Seite darunter, während die Brotkrumen Zone und Modul von der Seite gereicht bekommen. Zwei Ableitungen, dasselbe Ergebnis; das ist der Preis dafür, dass die Kopfzeile außerhalb der Seite liegt.
    - **Eine Quelle für die Navigationsziele.** Übersicht und Bereiche (`useNavZiele`) sowie die Module eines Bereichs (`useModulZiele`) stehen samt Rechteprüfung in `nav-ziele.ts`, gelesen von der Symbolleiste der eingeklappten Seitenleiste und von beiden Ebenen des Menü-Blatts. Die Rechteprüfung selbst ist `sichtbareModule()` in `lib/modules.ts`, auch die ausgeklappte Seitenleiste fragt dort. Zwei Kopien hätten beim nächsten neuen Bereich einzeln nachgezogen werden müssen.
    - **Stapelregel für die untere Bildschirmkante.** Wer dort etwas Festes ablegt, rechnet mit `--untere-leiste-raum` (`globals.css`). Die Variable ist ab `md` 0 und darunter Leistenhöhe plus Abstand plus `env(safe-area-inset-bottom)`; der Systemabstand ist der Home-Indicator des iPhone und die Gestenleiste von Android, ohne ihn wird ein Bedienelement zum Wischziel des Betriebssystems. Sie steht erst zur Verfügung, seit der Viewport-Export `viewportFit: "cover"` setzt. Heute lesen sie vier Stellen: die Leiste selbst, der untere Innenabstand der Hauptspalte, Himbi samt Versteck (`haustier.css`) und das Blatt von unten (`ui/sheet.tsx`, Unterkante und `max-h`).
 
-     Von unten nach oben: Leiste (`z-50`), Himbi darüber versetzt (`z-60`), KI-Panel als Vollbild darüber (`z-65`/`z-70`), Blatt zuoberst (`z-100`). Solange ein Blatt offen ist, steigt die Leiste darüber (`z-[110]`) – nur dann, damit das KI-Panel sie weiterhin abdeckt. Das Blatt endet oberhalb der Leiste, seine Blende liegt darunter und deckt den Streifen trotzdem ab; die Leiste bleibt also sichtbar und bedienbar. Weil hinter dem Blatt damit etwas Bedienbares steht, trägt es kein `aria-modal` mehr: die Fokusfalle umspannt Blatt und Leiste gemeinsam, und die Spalte aus Kopfzeile und Hauptbereich wird per `inert` stillgelegt (`dashboard/blatt-kontext.tsx`).
+     Von unten nach oben: Detailansicht einer Liste als Schublade (`z-20`, gehört zur Seite und bleibt unter der Kopfzeile, siehe Abschnitt 14), Leiste (`z-50`), Himbi darüber versetzt (`z-60`), KI-Panel als Vollbild darüber (`z-65`/`z-70`), Blatt zuoberst (`z-100`). Solange ein Blatt offen ist, steigt die Leiste darüber (`z-[110]`) – nur dann, damit das KI-Panel sie weiterhin abdeckt. Das Blatt endet oberhalb der Leiste, seine Blende liegt darunter und deckt den Streifen trotzdem ab; die Leiste bleibt also sichtbar und bedienbar. Weil hinter dem Blatt damit etwas Bedienbares steht, trägt es kein `aria-modal` mehr: die Fokusfalle umspannt Blatt und Leiste gemeinsam, und die Spalte aus Kopfzeile und Hauptbereich wird per `inert` stillgelegt (`dashboard/blatt-kontext.tsx`).
+
+     Das Suchfenster liegt ebenfalls auf `z-100`, aber anders als die Blätter der Leiste mit `aria-modal`: die Leiste steigt dafür nicht, sie liegt unter seiner Blende. Blätter und Suche schließen einander aus wie Blätter und KI-Panel: solange eine andere Ebene die Seite sperrt (Blatt, KI-Bühne, KI-Panel auf dem Handy), öffnen die Tastenkürzel die Suche nicht. Sonst läge sie darüber, und ein Esc schlösse beide.
 
 Jede angebundene Ansicht zeigt oben rechts ihre Datenquelle: „Live-Daten“ oder „Beispieldaten“. Im Demo-Modus (keine Supabase-Variablen) ist die Rolle frei umschaltbar.
 
@@ -237,6 +242,8 @@ Noch offen: Zurück schließt das Blatt nicht, weil es keinen Verlaufseintrag an
 | Überschriften aufdecken | `data-art="wisch"`, Maske auf den Kindern (ein beschnittenes Element meldet dem IntersectionObserver in Chrome keine Sichtbarkeit) |
 | Kurven | `cubic-bezier(0.22, 1, 0.36, 1)` für Einblenden und Balken, `0.16, 1, 0.3, 1` für das KI-Panel |
 | Dauern | 0,25–0,6 s für Übergänge, bis 1,1 s für wachsende Balken |
+| Detailansicht als Schublade | `detailpanel-auf`: 1,5rem von rechts und einblenden, 200 ms, nur mit `motion-safe` |
+| Ladeanzeige an Links | `lade-einblenden`: Punkt oder Balken erst nach 150 ms, damit schnelle Antworten nicht flackern (`useLinkStatus`) |
 | Weiches Scrollen | Lenis (`weiches-scrollen.tsx`) |
 | Kamerafahrt | scrollgetriebene CSS-Animation, Firefox zeigt das Bild ruhig |
 | Ladebild | `lkw-lader.tsx`: LKW steht, Fahrbahn und Laternen wandern um genau eine Periode, Raddrehung auf die Fahrbahngeschwindigkeit gerechnet; Himbi faehrt auf dem Kuehlkoffer mit |
@@ -250,6 +257,10 @@ Unter `prefers-reduced-motion: reduce` sind alle Animationen und Übergänge auf
 - Text mindestens 4,5:1, Grafik und Bedienelemente mindestens 3:1.
 - Touch-Ziele: ab `lg` Buttons ab `h-9` (36 px), darunter mindestens `h-11` (44 px). **Zwei Grenzen, nicht eine:** `md` (768) trennt das Layout - ab dort Seitenleiste, Tabellen statt Karten, volle Kopfzeile. `lg` (1024) trennt die Maße, denn bis dahin wird mit dem Finger bedient: ein Tablet ist 810 bis 1024 px breit, und DESIGN.md nennt das Tablet im Kühlhaus als Nutzungsfall. Vorher lag genau diese Zone in der Schreibtisch-Fassung. Die dichte Maske gilt für den Schreibtisch, nicht für die Hand: mit Handschuhen im Kühlhaus ist 44 px der Unterschied zwischen Treffen und Danebentippen (WCAG 2.5.5). Eingabefelder tragen unter `lg` zusätzlich `text-base` — Safari auf iOS zoomt bei allem unter 16 px beim Fokus hinein und bleibt vergrößert. Muster: `h-11 text-base lg:h-9 lg:text-xs`.
 - `aria-label` und `title` auf reinen Symbolknöpfen.
+- Symbolknöpfe der Kopfzeile unter `lg`: sichtbar 36 px wie ihre Nachbarn, fangen aber 44 px über ein Pseudoelement (`relative after:absolute after:-inset-1 lg:after:hidden`). Umgesetzt beim Suchknopf; bei 8 px Abstand bleiben zur Glocke 4 px Luft, hätte auch sie die Fläche, berührten sich beide, ohne sich zu überlappen. Die Glocke hat es noch nicht.
+- Tastenkürzel: `/` und Strg+K, auf dem Mac ⌘K, öffnen die globale Suche, wie im Handbuch. `/` nur außerhalb von Eingabefeldern. Strg+K zählt auf dem Mac nicht: es löscht dort in jedem Textfeld bis zum Zeilenende. Strg+K erkennt auf russischer und kasachischer Belegung die Taste über `event.code`, weil `event.key` dort ein kyrillischer Buchstabe ist.
+- Die Suche folgt dem WAI-ARIA-Muster Combobox mit Listbox: der Fokus bleibt im Feld, die Pfeiltasten verschieben nur die Markierung (`aria-activedescendant`), Enter öffnet, Esc schließt und gibt den Fokus an den Auslöser zurück. Die Trefferzahl liest eine `role="status"`-Region vor, sobald das Tippen ruht. Die markierte Zeile trägt zusätzlich zur Farbe einen Rahmen.
+- Detailansicht einer Liste: Esc schließt sie, außer in einem Eingabefeld, im KI-Panel oder solange eine andere Ebene die Seite sperrt. Beim Öffnen aus der Liste geht der Fokus auf ihren Titel, beim Schließen zurück auf die Zeile. Keine Fokusfalle: die Liste daneben bleibt bedienbar (Abschnitt 14).
 - `<details>` für häufige Fragen: Die Bedienung kommt vom Browser, nur Zeichen und Einblenden sind gestaltet.
 - Texte stehen nicht in Bildern, damit sie übersetzt und vorgelesen werden können.
 
@@ -269,6 +280,8 @@ Etiketten, Pflücker-Ausweise und der Aushang sind für Papier gedacht. Unter `@
 8. Kein Schwarz als Grund im Dark Mode: `--background` ist `#04161c`.
 9. Eine Tabellenspalte, die nur manchmal erscheint, braucht ihren Spaltenkopf unter genau derselben Bedingung (`...(darfAendern ? [t("col.aendern")] : [])`). `DataTable` ordnet Beschriftung und Wert über die Reihenfolge zu. Fällt eine Zelle weg, deren Kopf stehen bleibt, verschiebt sich alles dahinter um eine Spalte — sichtbar nur unter `md`, und dort nur als falscher Name neben einem richtigen Wert.
 10. Was verdecken soll, nimmt `--card-deckend`, nicht `--card`: das Kartentoken ist im Dark Mode zu 26 % durchsichtig. Das gilt für alles Feste und Festgehaltene — untere Leiste, Blätter, die erste Spalte einer Matrix.
+11. Eine Liste, deren Einträge Details haben, baut auf der Liste mit Detailansicht auf (Abschnitt 14): Filter, Seite, Auswahl und Reiter stehen in der Adresse, das Anlegen klappt über der Liste auf. Keine zweite Detailspalte daneben, kein Formular am Seitenende.
+12. Innerhalb eines Behälters mit Container-Abfrage (`@container`) liegt nichts mit `position: fixed`: der Behälter wird dessen Bezugsrahmen, und ein Blatt landet im Behälter statt vor der Seite. Blätter aus einer Liste heraus gehen per Portal an `<body>` (`ui/listen-filter.tsx`).
 
 ## 13. Bekannte Unstimmigkeiten
 
@@ -276,3 +289,128 @@ Etiketten, Pflücker-Ausweise und der Aushang sind für Papier gedacht. Unter `@
 - **Sidebar-Tokens** duplizieren die Kernpalette. Wer die Palette ändert, muss beide Blöcke anfassen.
 - **Buttons haben kein gemeinsames Bauteil.** Höhe, Radius (`rounded-lg`, `rounded-xl`, `rounded-full`) und Hover sind an den Verwendungsstellen einzeln geschrieben. Ein `Button` in `kit.tsx` würde das vereinheitlichen.
 - **Logo-README:** Der Abschnitt „Nächste Schritte“ in `docs/design/logo-vorschlaege/README.md` nennt noch offene Punkte, die mit der Wahl von C teils erledigt sind. Die Form ist außerdem noch nicht im Vektorprogramm nachgezogen.
+
+## 14. Liste mit Detailansicht
+
+Seit 24.09.2026, zuerst auf Feld › Pflückaufgaben (WMCNL-2488). Gedacht für jede Seite, auf der man aus einer Liste einen Eintrag öffnet, ansieht und bearbeitet. Als Nächstes folgen Reklamationen (WMCNL-2489), die Neuanlage über der Liste in den übrigen Modulen (WMCNL-2490) sowie Filter und Blättern für die langen Listen (WMCNL-2491). Im Code heißt die Fläche **Detailpanel**, in allen Texten für Nutzer **Detailansicht**. „Seitenpanel“ ist schon der KI-Chat (Abschnitt 8).
+
+**Aufbau.**
+
+- Oben steht die Filterleiste mit Status-Pillen samt Trefferzahl.
+- Darunter folgen der aufklappbare Knopf „+ Neu …“, die Trefferzahl und die Einträge.
+- Am Ende steht das Blättern: „‹ Zurück · Seite 2 von 6 · Weiter ›“, 20 Einträge je Seite.
+- Ein Klick auf einen Eintrag öffnet rechts die Detailansicht. Oben stehen Titel, Status, ‹ › für die Nachbarn auf der Seite und Schließen, darunter Reiter und Inhalt.
+- Ohne Auswahl zeigt die Seite nur die Liste.
+
+**Zustand in der Adresse.**
+
+- Filter, Seite, gewählter Eintrag und Reiter sind Suchparameter. Jedes Modul liest sie mit einem eigenen zod-Schema (`lib/listen/parameter.ts`).
+- Ungültige Werte fallen auf den Standard zurück, und Standardwerte fallen aus der Adresse.
+- Ein Filterwechsel springt auf Seite 1. Auswahl und Reiter bleiben dabei stehen.
+- Die Detailansicht lädt ihren Eintrag unabhängig von Filter und Seite. Ein Link auf einen Eintrag funktioniert also immer.
+- Die Seite bleibt serverseitig gerendert. Jeder Wechsel ist ein Link und funktioniert auch, solange das Skript-Bundle noch lädt oder gar nicht ankommt, etwa bei schlechtem Netz auf dem Feld. Die Filter sind ein GET-Formular, das dann Enter im Suchfeld abschickt. Nur das Filterblatt auf dem Handy und die sofort wirkenden Auswahlfelder brauchen das Skript.
+- Ganz ohne JavaScript zeigt das Dashboard nur den Ladezustand. Die Modulseiten streamen über `loading.tsx`, und den Inhalt setzt ein Inline-Skript ein. Das gilt für alle Modulseiten und ist keine Eigenheit dieses Musters.
+
+**Drei Anordnungen.** Maßgeblich ist die Breite, die der Liste tatsächlich bleibt, nicht die Fensterbreite, denn ein angedockter KI-Chat nimmt der Hauptspalte bis zu 960 px. Deshalb fragt der Code den Behälter `liste` per Container-Abfrage ab (Varianten `panel-angedockt`, `panel-schublade` und `panel-ersetzt` in `globals.css`).
+
+Ist ein Eintrag gewählt, gehört der Platz der Detailansicht, damit man in ihr nicht scrollen muss. Sie ist mindestens 26rem breit (`--detailpanel-breite`). Angedockt wächst sie bis 60rem, und die Liste schrumpft dafür bis 28,5rem. Erst danach wird die Liste wieder breiter (`--detailpanel-angedockt`). Die Schublade wächst bis 40rem und lässt links mindestens 10rem Liste frei (`--detailpanel-schublade`). Ohne Auswahl hat die Liste die volle Breite.
+
+| Anordnung | Wann | Verhalten |
+|---|---|---|
+| angedockt | Behälter ab 56rem (28,5rem Liste + 1,5rem Abstand + 26rem) | Sie steht rechts neben der Liste, die bedienbar bleibt, und ist 26 bis 60rem breit. Ein Klick auf einen anderen Eintrag wechselt den Inhalt. Sie klebt unter der Kopfzeile und scrollt in sich. |
+| Schublade | ab `md`, Behälter 36 bis 56rem | Sie liegt über dem rechten Teil der Liste, ohne Blende, auf `z-20` und damit unter Kopfzeile und unterer Leiste. Wie angedockt klebt sie unter der Kopfzeile und scrollt in sich. Sie ist 26 bis 40rem breit; links bleiben mindestens 10rem Liste sichtbar und anklickbar. |
+| ersetzt | unter `md` oder Behälter unter 36rem | Sie steht an Stelle der Liste, mit „‹ Zur Liste“. Daneben bliebe nur ein Streifen, in dem man nichts lesen kann. |
+
+Beispiele (Seitenleiste offen):
+- 2016 px: angedockt, Detailansicht 60rem, Liste rund 40rem.
+- 1600 px ohne KI-Chat: angedockt, Detailansicht rund 46rem, Liste 28,5rem.
+- 1280 px: angedockt, beide am Minimum.
+- 1024 px: Schublade, rund 30rem.
+- 1280 px mit angedocktem KI-Chat: ersetzt.
+- Tablet und Handy: ersetzt.
+
+**Inhalt nach Breite.** Wie breit die Detailansicht ist, hängt nicht am Fenster. Ihr Inhalt richtet sich deshalb nach Container-Abfragen, nicht nach `sm:` oder `md:`. Bei den Pflückaufgaben stehen Übersicht und Fotobelege ab 42rem zweispaltig: links die Angaben, rechts der nächste Schritt bzw. das Hochladen. Die Nachweiskette ist schon ab 36rem zweispaltig, weil ihre Karte eigenen Innenabstand hat. Eine Zeile mit Code, Person und Gewicht bricht nicht in sich um; wird es eng, rutschen die Knöpfe als Ganzes in die nächste Zeile.
+
+KI-Chat und Detailansicht dürfen gleichzeitig offen sein, die Anordnung wechselt von selbst.
+
+**Zurück.**
+
+- Öffnen aus der Liste legt einen Verlaufseintrag an.
+- Der Wechsel des Eintrags (Zeile, Pfeile) und des Reiters ersetzt ihn (`replace`).
+- Schließen geht einen Schritt zurück, genau auf die Liste von vorher. Zurück-Taste und Zurück-Geste auf Android tun dasselbe.
+- Kam man über einen geteilten Link oder hat inzwischen gefiltert, ersetzt Schließen die Adresse durch die Liste (`ui/detailpanel-steuerung.tsx`).
+
+**Fokus und Tastatur.**
+
+- Beim Öffnen aus der Liste geht der Fokus auf den Titel der Detailansicht, beim Schließen zurück auf die Zeile.
+- Beim ersten Laden eines geteilten Links bleibt er, wo er ist.
+- Esc schließt, außer in einem Eingabefeld, im KI-Panel oder wenn eine andere Ebene die Seite sperrt.
+- Die Detailansicht ist nicht modal und hat keine Fokusfalle.
+
+**Laden.**
+
+- Bei geänderten Suchparametern greift kein `loading.tsx`: Next.js behält die alte Ansicht, bis die neue da ist.
+- Zeilen, Pillen, Pfeile und Reiter laden deshalb nicht vor (`prefetch={false}`). Nach einem Klick zeigen sie über `useLinkStatus` einen Punkt.
+- Liste oder Detailansicht werden blasser, bis die Antwort da ist.
+- Der Inhalt der Detailansicht hängt an einem `key` aus Eintrag und Reiter. So wandern Formularmeldungen und halb getippte Werte nicht zum nächsten Eintrag.
+
+**Filterleiste** (`ui/listen-filter.tsx`). Sie ist ein gewöhnliches GET-Formular.
+- Enter schickt die Felder in die Adresse, auch solange das Skript-Bundle fehlt. „Anwenden“ ist nur ohne JavaScript sichtbar.
+- Mit JavaScript greift eine Auswahl sofort, die Suche nach 400 ms Tipppause. Dabei ersetzt die Suche den Verlaufseintrag, statt je Buchstabe einen neuen anzulegen. „Anwenden“ bleibt dann nur für Vorlesehilfen und Enter.
+- Beim Zeitraum erscheinen Von und Bis per CSS, sobald „Eigener Zeitraum“ gewählt ist (`:has()` auf die gewählte Option).
+- Auf dem Handy stehen nur die Pillen (waagerecht wischbar) und „Filter (n)“. Die übrigen Felder liegen in einem Blatt von unten.
+- Die Variante `mit-js` (`@media (scripting: enabled)`) schaltet nur um, wenn JavaScript an ist: „Anwenden“ wird zum Sprungziel für Vorlesehilfen, und auf dem Handy erscheint „Filter (n)“ statt der Felder. Ohne JavaScript bleibt alles sichtbar, und das Layout springt nach der Hydration nicht. Die Abfrage fragt, ob JavaScript an ist, nicht, ob das Bundle geladen ist. Fehlt das Bundle, sieht die Leiste aus wie mit JavaScript, und „Filter (n)“ öffnet auf dem Handy nichts. Ein Rückfall über einen Anker mit `:target` wäre möglich.
+
+**Blättern statt Nachladen.** Anders als bei `TabellenFuss` („Mehr anzeigen“, Finanzen) bleibt die Liste beim Weiterblättern gleich lang. Eine Liste, neben der eine Detailansicht steht, soll nicht wachsen. Die Blätterknöpfe scrollen an den Anfang der Liste. Sie stehen mittig, weil unten rechts Himbi liegt und sonst „Weiter“ verdeckt.
+
+**Neuanlage.**
+
+- Ein Knopf „+ Neu …“ direkt über der Liste klappt das Formular darüber auf: ein `Aufklapper` mit `variante="aktion"` und Symbol, wie bei Finanzen. Das `<details>` ist ohne Skript bedienbar.
+- Braucht ein Pflichtfeld eine Angabe zum Format, steht sie als `hinweis` am `Feld` und ist per `aria-describedby` verknüpft. Bei den Pflückaufgaben ist das „Betriebszeit Almaty“ an der Fälligkeit.
+- Nach dem Speichern klappt es zu, und der neue Eintrag öffnet in der Detailansicht. Die Server-Aktion gibt dafür die ID zurück (`AktionsStatus.id`).
+- Die Meldung steht außerhalb des Aufklappers und bleibt sichtbar.
+
+**Leerzustand.** `LeererZustand` sagt, warum die Liste leer ist. Mit Filtern steht dort „Keine Treffer“ und ein Link zum Zurücksetzen, ohne Filter ein Hinweis, dass Einträge hier erscheinen werden.
+
+**Himbi.** Er steht immer links von dem, was rechts andockt.
+- Neben der angedockten Detailansicht rückt er um ihre Breite nach links, mit angedocktem KI-Chat um beide.
+- Liegt sie als Schublade über der Liste oder ersetzt sie die Liste, blendet er sich aus. Neben der Schublade bleiben nur 10rem Liste, dort verdeckte er Karten.
+- Anordnung und Breite meldet `ui/detailpanel-steuerung.tsx` als `data-detailpanel` und `--detailpanel-ist` an `<html>`. Die Breite wird gemessen, weil sie mit dem Platz wächst. Die Regeln stehen in `haustier.css`.
+
+**KI-Agent.**
+
+- Die Detailansicht liegt in `#main` und ist eine benannte Region. Der Agent findet ihre Bedienelemente also mit Gruppenname.
+- Auswahl und Filter stehen in der Query, deshalb zählt `ui-steuerung.ts` sie mit, wenn es einen Seitenwechsel erkennt.
+- Mit 20 Einträgen je Seite bleibt die Seite unter der Grenze von 140 Bedienelementen, die der Agent liest.
+
+**Bausteine.**
+
+| Baustein | Datei | Aufgabe |
+|---|---|---|
+| `leseParameter`, `listenQuery`, `aktiveFilter` | `lib/listen/parameter.ts` | Zustand der Liste lesen und Links bauen |
+| `zeitraumGrenzen`, `wandzeitZuUtc`, `istGueltigerTag` | `lib/listen/zeitraum.ts` | Zeitraumstufen und eigener Zeitraum in Betriebszeit Almaty, halboffen; Tage, die es nicht gibt, fallen heraus |
+| `seitenModell`, `nachbarn` | `lib/listen/seiten.ts` | Blättern und die Pfeile der Detailansicht |
+| `ListeMitDetailpanel`, `ListenEintrag`, `Blaettern`, `LeererZustand` | `ui/liste.tsx` | Behälter mit den drei Anordnungen, Zeile als Link, Blättern, Leerzustand |
+| `Detailpanel` | `ui/detailpanel.tsx` | Hülle mit Kopf, Reitern und Inhalt |
+| `DetailpanelSteuerung`, `PanelSchliessen` | `ui/detailpanel-steuerung.tsx` | Zurück, Esc, Fokus, Signal für Himbi |
+| `LadeMelder`, `ListenInhalt`, `PanelInhalt`, `useLadeMeldung` | `ui/lade-status.tsx` | Punkt am geklickten Link; Liste oder Detailansicht blasser, bis die Antwort da ist |
+| `Listenfilter` | `ui/listen-filter.tsx` | Filterleiste und Handy-Blatt |
+| `FilterPillen`, `Reiter`, `Aufklapper`, `symbolKnopfKlassen`, `textVerweisKlassen` | `ui/kit.tsx` | Pillen mit Anzahl, Reiter, Neuanlage, Pfeile und Schließen, Textlinks |
+
+**Was modulspezifisch bleibt:**
+- das Schema der Suchparameter und die Bedeutung der Pillen,
+- die Abfragen und der Inhalt einer Zeile,
+- die Reiter und der „nächste Schritt“.
+
+Bei den Pflückaufgaben steht der nächste Handgriff immer im Reiter Übersicht, je Status und Rolle (`db/pflueckaufgabe-schritt.tsx`). Welche Knöpfe erscheinen, entscheidet `pflueckRechte()` an einer Stelle; die Datenbank prüft ohnehin selbst. Überfällig ist eine Pflückaufgabe nur, solange die Brigade pflückt (offen, angenommen, in Arbeit). Ab der Belegprüfung zählt die Fälligkeit nicht mehr, und das Abzeichen entfällt. Die Regel steht einmal in `faelligkeitZaehlt()` und gilt für Pille, Liste, Demo-Modus und Anzeige (entschieden am 25.09.2026).
+
+**Regeln.**
+
+- Der Inhalt der Detailansicht hängt an einem `key` aus Eintrag und Reiter.
+- Nur die Dateien des gewählten Eintrags werden signiert, nicht die der ganzen Liste.
+- Ein Offline-Spiegel speist sich nie aus der gefilterten Seite, sondern aus einer eigenen Abfrage.
+- Nichts mit `position: fixed` in einem `@container`. Blätter gehen per Portal an `<body>` (Regel 12).
+- Spalten und Anordnung in der Detailansicht per Container-Abfrage, nie per `sm:` oder `md:`: dieselbe Detailansicht ist auf dem Handy und neben einem KI-Chat gleich schmal.
+- Pfeile, Reiter und Vorschaubilder tragen nie den Code des Eintrags im Namen. Sonst steht er mehrfach auf der Seite, und weder Vorlesehilfe noch Test weiß, welcher gemeint ist.
+- Die Anordnung steht an einer Stelle: Das Raster setzt `--anordnung` per Container-Abfrage, und das Skript liest sie dort ab (`getComputedStyle`), statt die Grenzen nachzurechnen.
+- Je Seite höchstens eine Liste mit Detailansicht. `#liste`, `#detailpanel` und der Ladezustand in `ui/lade-status.tsx` gelten für die ganze Seite.

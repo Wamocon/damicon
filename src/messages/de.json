@@ -319,8 +319,23 @@
     "erfolg": "Zweiter Faktor eingerichtet und aktiv.",
     "note": "Bei der nächsten Anmeldung wird der Code zusätzlich zum Passwort abgefragt. Ohne eingerichteten Faktor bleibt die Anmeldung wie bisher - Mehrfaktor-Authentifizierung ist Pflicht, ihre Durchsetzung je Rolle ist ein späterer Ausbauschritt."
   },
+  "suche": {
+    "titel": "Suche",
+    "platzhalter": "Seite oder Modul suchen …",
+    "eingabe": "Seite oder Modul suchen",
+    "oeffnen": "Suche öffnen",
+    "schliessen": "Suche schließen",
+    "bedienung": "Pfeiltasten wählen einen Treffer, die Eingabetaste öffnet ihn, Esc schließt die Suche.",
+    "ergebnisse": "Treffer",
+    "gruppeTreffer": "Seiten und Module",
+    "gruppeZuletzt": "Zuletzt geöffnet",
+    "gruppeErwaehnt": "Erwähnt in",
+    "leer": "Namen eines Bereichs, Moduls oder einer Seite eingeben.",
+    "keineTreffer": "Keine Seite und kein Modul zu „{begriff}“.",
+    "anzahl": "{anzahl, plural, one {# Treffer} other {# Treffer}}",
+    "kiFragen": "KI fragen: {begriff}"
+  },
   "dashboard": {
-    "searchPlaceholder": "Reihenblock, Charge, Pflücker, Dokument suchen ...",
     "notifications": "Benachrichtigungen",
     "open": "Öffnen",
     "zoneEmpty": "Für die aktive Rolle ist in dieser Zone kein Modul freigegeben.",
@@ -387,6 +402,8 @@
     "zoneKennzahlLead": "Die Kennzahlen dieses Bereichs, die dringendste zuerst.",
     "zoneKennzahlMehr": "{count, plural, one {# weitere Kennzahl anzeigen} other {# weitere Kennzahlen anzeigen}}",
     "zoneKennzahlWeniger": "Weitere Kennzahlen ausblenden",
+    "zoneModuleTitel": "Module",
+    "zoneOhneKennzahl": "Für diese Zone ist keine Kennzahl freigegeben.",
     "bereiche": {
       "titel": "Die vier Bereiche",
       "lead": "Jeder Bereich mit seinen Kennzahlen, Auffälliges zuerst.",
@@ -787,17 +804,13 @@
     "note": "Ein Block mit laufender Wartezeit erscheint gar nicht erst im Pflückplan. So kann niemand versehentlich eine Aufgabe darauf anlegen."
   },
   "pflueckaufgabenDemo": {
-    "listTitle": "Pflückaufgaben heute",
-    "listLead": "Je Brigade und Reihenblock. Fortschritt ist Istmenge gegen Zielmenge.",
+    "listTitle": "Pflückaufgaben",
+    "listLead": "Je Brigade und Reihenblock, späteste Fälligkeit zuerst. Fortschritt ist Istmenge gegen Zielmenge.",
     "block": "Block",
     "qFactor": "Q-Faktor",
-    "proofTitle": "Fotobeleg",
-    "proofLead": "Beispielfotos der Verkaufsschale, des Reihenblocks und der Steige, direkt an der Aufgabe.",
     "noProof": "Noch kein Beleg zu dieser Aufgabe.",
     "reviewTitle": "Belegprüfung offen",
-    "reviewLead": "Die Aufgabe wartet auf Freigabe. Menge und Schalenbeleg prüfen, dann freigeben oder Nacharbeit anfordern.",
     "approve": "Freigeben",
-    "rework": "Nacharbeit",
     "art": {
       "schale": "Verkaufsschale",
       "reihenblock": "Reihenblock",
@@ -916,6 +929,7 @@
       "bezug": "Der gewählte Bezug ist nicht mehr vorhanden. Bitte die Liste neu laden und erneut auswählen.",
       "nichtGefunden": "Der Datensatz wurde nicht gefunden oder ist nicht mehr bearbeitbar.",
       "regel": "Nicht möglich: Die Wartezeit ist noch nicht abgelaufen.",
+      "reihenblockGesperrt": "Nicht möglich: Der Reihenblock ist wartezeitgesperrt und muss zusätzlich über Reihenblöcke freigegeben werden.",
       "unbekannt": "Der Vorgang ist fehlgeschlagen. Bitte noch einmal versuchen. Bleibt es dabei, melden Sie ihn mit der Uhrzeit bei der Administration.",
       "keineCharge": "Zu dieser Aufgabe gehört keine Charge.",
       "kuehlkette": "Grenzwert gerissen: {wert} Minuten bis zur Messung. Die Ware ist abzuwerten.",
@@ -1067,8 +1081,6 @@
       "knopf": "Fotobeleg hochladen"
     },
     "ablauf": {
-      "titel": "Ablauf der Aufgabe",
-      "lead": "Annehmen, pflücken, Menge melden, Beleg prüfen lassen.",
       "annehmen": "Aufgabe annehmen",
       "starten": "Pflücken starten"
     },
@@ -1089,7 +1101,62 @@
       "datei": "Foto",
       "hinweis": "Hinweis",
       "hinweisBeispiel": "Verkaufsschale 125 g, geschlossene Fruchtdecke",
-      "ausschuss": "Ausschuss in kg"
+      "ausschuss": "Ausschuss in kg",
+      "faelligkeit": "Fälligkeit",
+      "faelligkeitHinweis": "Datum und Uhrzeit in Betriebszeit Almaty"
+    },
+    "filter": {
+      "status": "Status",
+      "alle": "Alle",
+      "zuErledigen": "Zu erledigen",
+      "ueberfaellig": "Überfällig",
+      "belegpruefung": "Belegprüfung",
+      "abgeschlossen": "Abgeschlossen",
+      "suche": "Suche",
+      "suchePlatzhalter": "Code, Reihenblock oder Sorte",
+      "brigade": "Brigade",
+      "brigadeAlle": "Alle Brigaden",
+      "brigadeMeine": "Eigene Brigade und ohne Zuordnung",
+      "brigadeOhne": "Ohne Zuordnung",
+      "zeitraum": "Fällig im Zeitraum"
+    },
+    "liste": {
+      "treffer": "{anzahl, plural, =0 {Keine Pflückaufgaben} one {# Pflückaufgabe} other {# Pflückaufgaben}}",
+      "leerTitel": "Noch keine Pflückaufgaben",
+      "leerText": "Sobald Pflückaufgaben angelegt sind, stehen sie hier.",
+      "leerGefiltertTitel": "Keine Treffer",
+      "leerGefiltert": "Für diese Auswahl gibt es keine Pflückaufgaben.",
+      "filterZuruecksetzen": "Filter zurücksetzen"
+    },
+    "panel": {
+      "titel": "Pflückaufgabe {code}",
+      "nichtGefundenTitel": "Pflückaufgabe nicht gefunden",
+      "ladefehlerTitel": "Pflückaufgabe nicht geladen",
+      "reiterLabel": "Bereiche der Detailansicht",
+      "uebersicht": "Übersicht",
+      "fotos": "Fotobelege",
+      "kette": "Nachweiskette",
+      "sorte": "Sorte",
+      "faellig": "Fällig",
+      "ohneFaelligkeit": "ohne Fälligkeit",
+      "fortschritt": "Fortschritt",
+      "ziel": "Ziel",
+      "ist": "Ist",
+      "ausschuss": "Ausschuss",
+      "ketteNurLive": "Die Nachweiskette gibt es nur mit angebundener Datenbank."
+    },
+    "schritt": {
+      "titel": "Nächster Schritt",
+      "mengeHinweis": "Steigen, Arbeitszeit und Kühlmessungen erfassen Sie im Reiter Nachweiskette.",
+      "pruefenLead": "Menge und Fotobelege prüfen, den Qualitätsfaktor setzen und freigeben.",
+      "belegeAnsehen": "Fotobelege ansehen ({anzahl})",
+      "keinBeleg": "Noch kein Fotobeleg. Ohne Beleg ist keine Freigabe möglich.",
+      "warten": "Die Aufgabe wartet auf die Belegprüfung durch die Betriebsleitung.",
+      "mengeKorrigieren": "Menge korrigieren",
+      "fertig": "Abgeschlossen. Menge, Ausschuss und Qualitätsfaktor sind festgeschrieben.",
+      "nurAnsicht": "Ihre Rolle kann diese Aufgabe nur ansehen.",
+      "fremdeBrigade": "Diese Aufgabe gehört zu einer anderen Brigade.",
+      "nurMitDatenbank": "Bearbeiten ist nur mit angebundener Datenbank möglich."
     }
   },
   "pflanzenschutzVerwaltung": {
@@ -1563,6 +1630,12 @@
       }
     },
     "note": "Lesen und Schreiben bleibt den Büro-Rollen vorbehalten (admin, Betriebsleitung, Buchhaltung) - ein Selbstauskunftsrecht der Betroffenen ist bewusst nicht Teil dieses Schritts. Offen bleiben zwei weitere Themen aus dem bisherigen Cockpit: Datenresidenz (Digitalkodex Nr. 255-VIII) und KI-Transparenz (Gesetz Nr. 230-VIII)."
+  },
+  "benachrichtigungen": {
+    "titel": "Benachrichtigungen",
+    "leer": "Keine neuen Benachrichtigungen.",
+    "leerHinweis": "Alarme und Fristen sehen Sie weiterhin direkt in den Modulen.",
+    "schliessen": "Benachrichtigungen schließen"
   },
   "sync": {
     "knopf": {
@@ -3514,6 +3587,41 @@
       "kontext": "{termin}",
       "kontextMehrere": "{termin} · {anzahl} Posten",
       "weiter": "Zum B2B-Portal"
+    }
+  },
+  "liste": {
+    "filter": {
+      "titel": "Filter",
+      "knopf": "Filter",
+      "knopfMitAnzahl": "Filter ({anzahl})",
+      "anwenden": "Anwenden",
+      "anzeigen": "Anzeigen",
+      "zuruecksetzen": "Zurücksetzen",
+      "schliessen": "Filter schließen"
+    },
+    "zeitraum": {
+      "alle": "Alle",
+      "heute": "Heute",
+      "woche": "Diese Woche",
+      "monat": "Dieser Monat",
+      "saison": "Diese Saison",
+      "eigen": "Eigener Zeitraum",
+      "von": "Von",
+      "bis": "Bis"
+    },
+    "blaettern": {
+      "label": "Seiten der Liste",
+      "zurueck": "Zurück",
+      "weiter": "Weiter",
+      "stand": "Seite {seite} von {seiten}"
+    },
+    "panel": {
+      "schliessen": "Detailansicht schließen",
+      "zurListe": "Zur Liste",
+      "vorheriger": "Vorheriger Eintrag",
+      "naechster": "Nächster Eintrag",
+      "nichtGefunden": "Dieser Eintrag ist nicht vorhanden oder für Ihre Rolle nicht sichtbar.",
+      "ladefehler": "Dieser Eintrag lässt sich gerade nicht laden. Bitte versuchen Sie es gleich noch einmal."
     }
   }
 }

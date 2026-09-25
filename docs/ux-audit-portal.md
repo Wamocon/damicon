@@ -10,21 +10,21 @@ Jeder Punkt nennt seine Fundstelle. Wo eine Zahl steht, ist sie gemessen und nic
 
 | # | Punkt | Nutzen | Aufwand | Stand |
 |---|---|---|---|---|
-| 1 | Globale Suche ist eine Attrappe | sehr hoch | mittel | offen |
-| 2 | Tabellen ohne Sortieren, Filtern, Blättern | sehr hoch | hoch | offen |
-| 3 | Abfragen ohne Zeilenbegrenzung | sehr hoch | hoch | offen |
+| 1 | Globale Suche ist eine Attrappe | sehr hoch | mittel | teilweise |
+| 2 | Tabellen ohne Sortieren, Filtern, Blättern | sehr hoch | hoch | teilweise |
+| 3 | Abfragen ohne Zeilenbegrenzung | sehr hoch | hoch | teilweise |
 | 4 | Öffentliche Routen ohne Fehlergrenze | hoch | niedrig | offen |
 | 5 | Tastaturbedienung ist unsichtbar | hoch | niedrig | **erledigt** |
 | 6 | Löschen ohne Rückfrage | hoch | niedrig | offen |
 | 7 | Kein Datenexport | hoch | mittel | offen |
-| 8 | Glocke ist eine Attrappe | mittel | niedrig–hoch | offen |
+| 8 | Glocke ist eine Attrappe | mittel | niedrig–hoch | teilweise |
 | 9 | Kein Ladezustand beim Modulwechsel | mittel | niedrig | **erledigt** |
 | 10 | Breite Tabellen ohne fixierte Kopfzeile | mittel | niedrig | teilweise |
 | 11 | Zu kleine Berührungsflächen | mittel | niedrig | teilweise |
 | 12 | Keine Brotkrumen | mittel | niedrig | **erledigt** |
 | 13 | Sitzungsablauf ohne Vorwarnung | mittel | mittel | offen |
 | 14 | Keine Sammelaktionen | mittel | mittel | offen |
-| 15 | Keine Tastaturkürzel | mittel | mittel | offen |
+| 15 | Keine Tastaturkürzel | mittel | mittel | teilweise |
 | 16 | „Ansicht als" auf dem Tablet unerreichbar | mittel | sehr niedrig | teilweise |
 | 17 | Unerklärtes Fachkürzel „1Çatı" | mittel | sehr niedrig | **erledigt** |
 | 18 | Keine gespeicherten Ansichten | niedrig–mittel | mittel | offen |
@@ -37,6 +37,8 @@ Jeder Punkt nennt seine Fundstelle. Wo eine Zahl steht, ist sie gemessen und nic
 
 ### 1. Die globale Suche ist eine Attrappe
 
+**Teilweise erledigt am 24.09.2026** (Branch `feat/globale-suche`, WMCNL-2484). Stufe 1 der Suche findet Übersicht, Bereiche, Module, Sicherheit, Compliance-Bericht und Handbuch, gefiltert nach der Rolle, dazu unter „Erwähnt in“ Module, deren Seitentext den Begriff nennt. Sie ist auf jeder Breite als Knopf links neben der Glocke erreichbar, auch auf dem Handy, und das Suchfenster geht immer oben in der Mitte des Bildschirms auf. Der Platzhalter sagt jetzt „Seite oder Modul suchen …“. Offen bleibt die Datensatzsuche über Reihenblöcke, Chargen, Pflücker und Dokumente, die der alte Platzhalter versprach: WMCNL-1467. Der Befund unten beschreibt den Stand vor dem Umbau.
+
 In `src/components/dashboard/topbar.tsx:106-109` steht ein `<span>` in einem `<div>`. Kein `<input>`, kein Fokus, keine Funktion. Mit Rahmen, Lupensymbol und dem Platzhalter „Reihenblock, Charge, Pflücker, Dokument suchen …" sieht das Element exakt wie ein Suchfeld aus.
 
 In einem ERP ist die Suche der meistbenutzte Weg zu einem Datensatz. Hier führt sie ins Nichts und ist dabei aktiv irreführend: Nutzer klicken hinein und tippen, bevor sie merken, dass nichts passiert.
@@ -45,6 +47,13 @@ In einem ERP ist die Suche der meistbenutzte Weg zu einem Datensatz. Hier führt
 
 ### 2. Tabellen können nichts
 
+**Teilweise erledigt am 24.09.2026** (Branch `feat/liste-detailpanel`, WMCNL-2488):
+- **Pflückaufgaben:** Sie haben Filter (Status-Pillen mit Trefferzahl, Suche, Brigade, Zeitraum) und Blättern, gebaut als wiederverwendbare Liste mit Detailansicht (DESIGN.md Abschnitt 14).
+- **Sortierung:** Nach Spalten sortieren lässt sich noch nicht. Die Liste steht fest nach Fälligkeit, späteste zuerst.
+- **Übrige Listen:** Sie folgen mit WMCNL-2491.
+
+Der Befund unten beschreibt den Stand vor dem Umbau.
+
 `DataTable` nimmt `head: string[]` entgegen (`src/components/ui/kit.tsx:167`). Keine Sortierung, keine Filter, keine Seitenaufteilung, keine Spaltenwahl, keine Zeilenauswahl.
 
 Sortieren nach Datum, Menge oder Status ist für Buchhaltung und Betriebsleitung die Grundoperation. Sie fehlt im gesamten System.
@@ -52,6 +61,11 @@ Sortieren nach Datum, Menge oder Status ist für Buchhaltung und Betriebsleitung
 *Nutzen: sehr hoch · Aufwand: hoch*
 
 ### 3. Abfragen ohne Zeilenbegrenzung
+
+**Teilweise erledigt am 24.09.2026** (WMCNL-2488):
+- **Pflückaufgaben:** Die Liste lädt 20 Zeilen je Seite statt aller.
+- **Fotos:** Signiert werden nur noch die Fotos der geöffneten Aufgabe, nicht die aller Aufgaben.
+- **Übrige Abfragen ohne Grenze:** Sie folgen mit WMCNL-2491.
 
 Von 164 `.select()`-Aufrufen tragen 21 ein `.limit()`. Bei den heutigen Demodaten fällt das nicht auf. Eine echte Saison bringt Tausende Steigen, Chargen und Pflückaufgaben; dann lädt die Seite alles und die Oberfläche steht.
 
@@ -101,6 +115,8 @@ Einen CSV-Import gibt es (`src/lib/import/zukauf-parser.ts`), einen Export nirge
 
 Eine Benachrichtigung, die immer leuchtet und nie etwas zeigt, trainiert Nutzer darauf, Warnungen zu übersehen. Das ist heikel in einem System, dessen Kern Wartezeitsperren und Kühlketten-Alarme sind.
 
+**Teilweise am 24.09.2026 (WMCNL-2485).** Die Glocke öffnet am Schreibtisch eine Schublade von rechts und auf dem Handy ein Blatt von unten, das sagt, dass keine neuen Benachrichtigungen vorliegen, und darauf hinweist, dass Alarme und Fristen weiterhin in den Modulen stehen. Der Punkt behauptet nicht mehr dauerhaft „ungelesen“, er verschwindet nach dem ersten Öffnen. Kunden und Pflücker sehen die Glocke nicht. Offen bleiben echte Benachrichtigungen, pro Person und über Supabase Realtime (WMCNL-2486).
+
 *Nutzen: mittel · Aufwand: niedrig (ausblenden) bis hoch (echt bauen)*
 
 ### 9. Kein Ladezustand beim Modulwechsel — erledigt
@@ -144,6 +160,8 @@ Zehn Pflückaufgaben freigeben heißt zehnmal klicken. Mehrfachauswahl mit einer
 *Nutzen: mittel · Aufwand: mittel*
 
 ### 15. Keine Tastaturkürzel
+
+**Teilweise erledigt am 24.09.2026** (Branch `feat/globale-suche`, WMCNL-2484). `/` und Strg+K bzw. ⌘K öffnen die Suche, dieselben Kürzel wie im Handbuch; Strg+K geht auch auf russischer und kasachischer Belegung. Offen bleiben Befehlsfeld und „neuer Datensatz“.
 
 Kein Sprung zur Suche, kein Befehlsfeld, kein „neuer Datensatz". Tastaturereignisse werden im ganzen Projekt nur vom Maskottchen behandelt. Vielnutzer im Büro gewinnen dadurch mehr als durch jede optische Verbesserung.
 

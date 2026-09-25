@@ -75,6 +75,12 @@ alter table storage.objects enable row level security;
 
 grant usage on schema auth, storage, public to anon, authenticated, service_role;
 
+-- Wie auf der Plattform: Tabellenrechte auf storage.objects, damit die
+-- Storage-Policies ueberhaupt greifen. Ohne sie scheitert jeder Upload schon
+-- an der fehlenden Berechtigung, und ein Test auf "verboten" waere gruen,
+-- ohne die Policy je beruehrt zu haben.
+grant select, insert, update, delete on storage.objects to anon, authenticated, service_role;
+
 -- Supabase erteilt anon/authenticated/service_role automatisch Tabellen-Grants;
 -- ohne die Plattform drumherum fehlen sie. Row Level Security bleibt die
 -- eigentliche Schranke - die Grants oeffnen nur die Tuer, durch die RLS dann

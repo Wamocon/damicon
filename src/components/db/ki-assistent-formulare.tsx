@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useEffectEvent, useRef } from "react";
 import { useFormatter, useTranslations } from "next-intl";
 import {
   Landmark,
@@ -34,6 +34,7 @@ import {
 } from "@/lib/actions/ki-anbieter";
 import { kiRatenlimitEntfernen, kiRatenlimitSetzen } from "@/lib/actions/ki-ratenlimit";
 import { leer } from "@/lib/actions/status";
+import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { MikrofonKnopf as MikrofonAufnahmeKnopf } from "@/components/ki/mikrofon";
 import { haengeDiktatAn } from "@/lib/domain/diktat-live";
 import {
@@ -85,8 +86,9 @@ export function EskalationsFormular() {
 export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const t = useTranslations("kiAssistentAnsicht");
   const format = useFormatter();
-  const [sendenStatus, sendenAction] = useActionState(kiNachrichtSenden, leer);
+  const [sendenStatus, sendenAction, sendetGerade] = useActionState(kiNachrichtSenden, leer);
   const eingabeRef = useRef<HTMLInputElement>(null);
+  const { anstoss } = useKiPane();
 
   // Caesar laedt sein Modell beim ersten Aufruf (gemessen 221 s kalt gegen
   // 7,2 s warm). Ein Anstoss beim Oeffnen des Moduls sorgt dafuer, dass die
@@ -95,6 +97,30 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
     void waermeSpracherkennungVor().catch(() => undefined);
   }, []);
   const istErsteNachricht = verlauf.length === 0;
+
+  // Eine Frage von aussen, etwa "KI fragen" aus der globalen Suche - wie im
+  // Agent-Chat (ki-chat.tsx). Vor der ersten Nachricht fehlt noch die
+  // Einwilligung, und waehrend einer laufenden Anfrage ginge sie verloren:
+  // dann steht die Frage nur im Feld, wie ein Diktat vom Mikrofon. Sonst geht
+  // sie gleich ab. Gelesen im Ereignis, damit der Effekt nur auf einen neuen
+  // Anstoss hin laeuft und nicht bei jeder Antwort erneut.
+  //
+  // Fragen zu einem Pruefbericht bleiben aussen vor: dieser Chat schickt nur
+  // den Text (lib/actions/ki-assistent.ts), der Bericht kaeme nicht mit, und
+  // das Modell antwortete auf etwas, das es nie gesehen hat.
+  const letzterAnstoss = useRef(0);
+  const nimmAnstoss = useEffectEvent((frage: string) => {
+    const feld = eingabeRef.current;
+    if (!feld) return;
+    feld.value = frage;
+    feld.focus();
+    if (!istErsteNachricht && !sendetGerade) feld.form?.requestSubmit();
+  });
+  useEffect(() => {
+    if (!anstoss || anstoss.nr === letzterAnstoss.current) return;
+    letzterAnstoss.current = anstoss.nr;
+    if (!anstoss.zurPruefung) nimmAnstoss(anstoss.frage);
+  }, [anstoss]);
 
   return (
     <div className="space-y-3">

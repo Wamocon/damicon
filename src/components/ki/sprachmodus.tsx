@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "
 import { useLocale, useTranslations } from "next-intl";
 import { AlertTriangle, Ear, Loader2, Mic, MicOff, Subtitles, Volume2, X } from "lucide-react";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
+import { useScrollSperre } from "@/components/ui/scroll-sperre";
 import { SprachKugel, type KugelZustand } from "@/components/ki/sprach-kugel";
 import { SprachSpotlight, useHervorhebungsRechteck } from "@/components/ki/sprach-spotlight";
 import { loeseSprechZiel, ueberschriftImSatz, zeigeSprechStelle } from "@/components/ki/sprach-mitlesen";
@@ -495,13 +496,12 @@ function SprachmodusInhalt() {
       }
     };
     window.addEventListener("keydown", beiTaste);
-    const vorher = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      window.removeEventListener("keydown", beiTaste);
-      document.body.style.overflow = vorher;
-    };
+    return () => window.removeEventListener("keydown", beiTaste);
   }, [beenden, beiKugelKlick]);
+  // Die Seite scrollt nur noch, wenn Himbi sie scrollt. Ueber die gemeinsame Sperre am
+  // <html> (ui/scroll-sperre.ts): eine eigene Sperre am <body> machte ihn zum
+  // Scrollcontainer, und Kopfzeile und Seitenleiste scrollten mit.
+  useScrollSperre(true);
 
   // --- Kugel-Platzierung: Mitte oder links ueber der Menueleiste --------------------------
   //
