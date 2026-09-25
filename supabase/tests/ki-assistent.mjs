@@ -2467,6 +2467,27 @@ for (const [name, kaputteAntwort] of [
       const m = JSON.parse(readFileSync(new URL(`../../src/messages/${sp}.json`, import.meta.url), "utf8")).haustier.einstellung;
       pruefe(`Auto-Start: Texte ${sp}`, typeof m.autoTitel === "string" && m.autoTitel.length > 3 && typeof m.autoText === "string" && m.autoText.length > 40);
     }
+
+    // Takt zwischen Stimme und Bildschirm, Seitenleiste (Rueckmeldung vom 25.09.2026).
+    const takt = lies3("components/ki/sprach-takt.ts");
+    const werkz = lies3("components/ki/ki-chat-werkzeuge.ts");
+    const steuer = lies3("components/ki/ui-steuerung.ts");
+    const seitenleiste = lies3("components/dashboard/sidebar.tsx");
+    const modusCss = lies3("components/ki/sprachmodus.css");
+    pruefe("Takt: eine sichtbare Handlung wartet, bis die Stimme still ist (zwei Takte hintereinander)", takt.includes('stimme.current === "still" ? still + 1 : 0') && takt.includes("STILL_NOETIG = 2"));
+    pruefe("Takt: seiteLesen wartet nur auf die Reihe, nicht auf die Stimme", takt.includes('werkzeug !== "seiteLesen"'));
+    pruefe("Takt: neue Frage oder Stopp lassen alles Wartende verfallen", takt.includes("zug.current += 1") && chat.includes("takt.neuerZug();") && (chat.match(/takt\.neuerZug\(\)/g) ?? []).length === 2);
+    pruefe("Takt: jedes Client-Werkzeug ruft vorAusfuehrung, ein Abbruch verhindert die Ausfuehrung", werkz.includes("await vorAusfuehrung?.(aufruf.toolName);") && /await vorAusfuehrung[\s\S]{0,120}if \(abgebrochen\.current\)/.test(werkz));
+    pruefe("Takt: im Chat mit dem Sprachmodus verdrahtet", chat.includes("vorAusfuehrung: takt.vorAusfuehrung") && chat.includes("taktStimme.current = vorlesen.phase") && chat.includes("taktAktiv.current = sprachmodus"));
+    pruefe("Sprachmodus: nur oeffneBereich wechselt die Seite, Fachwerkzeuge mit Ziel tun es nicht", chat.includes('if (zugModus.current === "sprache" && name !== "oeffneBereich") continue;'));
+    pruefe("Sprachmodus: der Seitenwechsel laeuft im Takt der Stimme", chat.includes('if (zugModus.current === "sprache") takt.oeffneImTakt(() => fuehreZu(ziel, label), ziel);'));
+    pruefe("Takt: eine Navigation wartet die neue Seite ab, bevor die naechste Handlung laeuft", takt.includes("wartePfad(ziel)") && takt.includes("window.location.pathname.endsWith(pfad)"));
+    pruefe("Scrollen: ein Element im Bild wird nicht gescrollt, in Leiste und Kopf nur das Noetigste", steuer.includes("function inSichtBringen") && steuer.includes('block: inRahmen ? "nearest" : "center"') && !/el\.scrollIntoView\(\{ behavior: "smooth", block: "center" \}\)/.test(steuer));
+    pruefe("Seitenleiste: Filter direkt auf der Leiste, gesteuert ueber data-sprach-links am html", seitenleiste.includes("data-seitenleiste") && modusCss.includes("html[data-sprach-links] [data-seitenleiste]") && modusCss.includes("blur(5px)") && !modusCss.includes("seitenleiste-unschaerfe") && !modus.includes("seitenleiste-unschaerfe"));
+    pruefe("Seitenleiste: der Sprachmodus setzt und entfernt data-sprach-links beim Andocken", modus.includes('wurzel.setAttribute("data-sprach-links", "")') && modus.includes('wurzel.removeAttribute("data-sprach-links")'));
+    pruefe("Anweisung: Seitenwechsel nur mit oeffneBereich, Stimme vor Handlung", SPRACHMODUS_FUEHRUNG.includes("SEITENWECHSEL NUR MIT oeffneBereich") && SPRACHMODUS_FUEHRUNG.includes("erst aus, wenn deine Stimme den Satz davor zu Ende gesprochen hat"));
+    pruefe("Anweisung: nie fragen, ob ein Bereich geoeffnet werden soll, in dem der Nutzer schon steht", SPRACHMODUS_FUEHRUNG.includes("FRAGE NIE, OB DU EINEN BEREICH ÖFFNEN SOLLST, IN DEM DER NUTZER SCHON STEHT"));
+    pruefe("Anweisung: keine Klickschleifen auf 'Ansehen', keine wiederholten Fuellsaetze, Werkzeug-Grenzen benennen", SPRACHMODUS_FUEHRUNG.includes("KEINE SCHLEIFEN UND KEINE FÜLLSÄTZE") && SPRACHMODUS_FUEHRUNG.includes("'Ansehen'") && SPRACHMODUS_FUEHRUNG.includes("legt aufgabeAnlegen nur Pflückaufgaben an"));
   }
 
   // (d) Kopfzeilenknopf und Layout-Verdrahtung: nur mit Werkzeugen UND eingeschaltetem Live-Diktat.

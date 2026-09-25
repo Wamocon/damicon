@@ -75,6 +75,7 @@ import {
   type AktionsKarte,
 } from "@/components/ki/ki-chat-segmente";
 import { clientErgebnisseBereit, useKlientWerkzeuge, type WerkzeugChat } from "@/components/ki/ki-chat-werkzeuge";
+import { useSprachTakt } from "@/components/ki/sprach-takt";
 import { antwortSpracheAus, useKiChatSprache } from "@/components/ki/ki-chat-sprache";
 import { stromMoeglich } from "@/components/ki/sprachausgabe-strom";
 import {
@@ -257,6 +258,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   // Klickfreigabe dafuer - siehe ki-chat-werkzeuge.ts. Muss vor useChat()
   // stehen: dessen onToolCall braucht starteClientWerkzeug schon fuer den
   // Aufruf selbst; der Chat (fuer setChat) existiert erst danach.
+  const takt = useSprachTakt();
   const {
     clientAktiv,
     klickAnfrage,
@@ -272,6 +274,9 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     // gleichen Rechte haben wie der Chat") - "sprache" zaehlt hier wie
     // "agent", kein eigener nurZeigen-Fall mehr noetig.
     istAgentModus: () => anfrageDaten.current.modus !== "assistent",
+    // Im Sprachmodus wartet jede sichtbare Handlung, bis die Stimme den Satz
+    // davor gesprochen hat (sprach-takt.ts).
+    vorAusfuehrung: takt.vorAusfuehrung,
   });
 
   const initialMessages = useMemo(() => verlaufZuNachrichten(verlauf), [verlauf]);
@@ -318,6 +323,15 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     sprachmodus,
   });
   const istErsteNachricht = messages.length === 0;
+
+  const taktStimme = takt.stimme;
+  const taktAktiv = takt.aktiv;
+  useEffect(() => {
+    taktStimme.current = vorlesen.phase;
+  }, [vorlesen.phase, taktStimme]);
+  useEffect(() => {
+    taktAktiv.current = sprachmodus;
+  }, [sprachmodus, taktAktiv]);
 
   // Automatisches Nachscrollen: folgt dem Text, solange der Nutzer nicht
   // selbst nach oben gescrollt hat. Bewusst OHNE Scroll-Animation: eine
@@ -374,12 +388,19 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
       const ziel = eigenschaftAusAusgabe(teil.output, "ziel");
       if (!ziel) continue;
       const name = getToolName(teil);
+      // Sprachmodus: nur ein ausdrücklich geöffneter Bereich wechselt die Seite.
+      // Jedes Fachwerkzeug mit Ziel (Compliance-Übersicht, Aufgaben ...) sprang
+      // bisher sofort dorthin, obwohl Himbi noch über die aktuelle Seite sprach
+      // (Rückmeldung vom 25.09.2026). Und die Seite wechselt erst, wenn die
+      // Stimme den Satz davor gesprochen hat.
+      if (zugModus.current === "sprache" && name !== "oeffneBereich") continue;
       const eingabeTeil = teil.input as { tabelle?: unknown } | undefined;
       const label = beschriftung("ziel", name, {
         bereich: eigenschaftAusAusgabe(teil.output, "bereich"),
         tabelle: typeof eingabeTeil?.tabelle === "string" ? eingabeTeil.tabelle : null,
       });
-      fuehreZu(ziel, label);
+      if (zugModus.current === "sprache") takt.oeffneImTakt(() => fuehreZu(ziel, label), ziel);
+      else fuehreZu(ziel, label);
     }
     // beschriftung/t sind pro Render neue Funktionen; relevant ist nur der Nachrichtenstand.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -390,6 +411,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     // nach dem laufenden Abschnitt - beide Wege, live und die ganze Antwort.
     stoppeStimme();
     werkzeugeAbbrechen();
+    takt.neuerZug();
     void stop();
   }
 
@@ -404,6 +426,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     const diktatSprachen = beginneZug(ausFeld, erzwingeVorlesen);
     zugModus.current = modus;
     werkzeugeNeuerZug();
+    takt.neuerZug();
     klebtUnten.current = true;
     setNachUntenKnopf(false);
     // Welchen Vorlese-Weg dieser Browser nimmt: danach schneidet der Server die

@@ -180,6 +180,36 @@ Diktatknopf, und die Kugel reagierte nie auf die eigene Stimme.
   am weitesten vom Ziel entfernt ist und es nicht überlappt; bleibt bei
   unverändertem Ziel am selben Platz (kein Herumspringen).
 
+### Takt zwischen Stimme und Bildschirm (`src/components/ki/sprach-takt.ts`)
+
+Der Text einer Antwort ist fertig, lange bevor die Stimme ihn gesprochen hat. Ein
+Werkzeugaufruf direkt dahinter lief früher sofort, und das Gezeigte eilte dem
+Gesprochenen voraus. Seit 25.09.2026 gilt:
+
+- Jede sichtbare Handlung im Sprachmodus (Bereich öffnen, `zeigeAuf`, `klicke`,
+  `fuelleFeld`, `scrolleZu`) wartet, bis die Stimme verstummt ist, also den Satz
+  davor gesprochen hat (zwei Takte hintereinander "still", höchstens 30 s).
+  `seiteLesen` ändert das Bild nicht und wartet nur auf die Reihe.
+- Nur `oeffneBereich` wechselt die Seite. Fachwerkzeuge mit einem Ziel
+  (Compliance-Übersicht, Aufgaben ...) öffneten ihre Ansicht bisher sofort und rissen
+  die Seite weg, während Himbi noch über die aktuelle sprach. Im Agent-Modus bleibt das
+  Verhalten unverändert.
+- Der Seitenwechsel und das, was danach die Seite liest, laufen in einer Reihe, und die
+  Reihe wartet die neue Seite ab. Eine neue Frage oder Stopp lässt alles Wartende
+  verfallen.
+- Die Anweisung (`SPRACHMODUS_FUEHRUNG`) verlangt: Seitenwechsel nur mit
+  `oeffneBereich`, nie fragen, ob ein Bereich geöffnet werden soll, in dem der Nutzer
+  schon steht, keine Klickschleifen auf "Ansehen" und keine wiederholten Füllsätze.
+
+### Navigationsleiste
+
+Beim Andocken setzt der Sprachmodus `data-sprach-links` am `<html>`; ein Filter
+`blur` liegt direkt auf der Leiste (`data-seitenleiste`, `sidebar.tsx`). Der frühere
+`backdrop-filter` auf einer Fläche darüber wirkte im echten Chrome nicht. Außerdem
+scrollt `ui-steuerung.ts` nur noch, wenn ein Element nicht ganz im Bild ist
+(`inSichtBringen`): `scrollIntoView` verschob sonst die `overflow-hidden`-Leiste selbst
+nach oben.
+
 ## Voraussetzung zum Einschalten
 
 Beide Einstiege erscheinen nur, wenn **beides** gilt

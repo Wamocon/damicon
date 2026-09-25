@@ -256,9 +256,24 @@ function hebeHervor(el: Element): void {
   window.setTimeout(() => el.classList.remove(FOKUS_KLASSE), 2800);
 }
 
+/** Bringt ein Element ins Bild - aber nur, wenn es nicht schon ganz zu sehen ist.
+ *  Ein Element der Navigationsleiste liegt fast immer im Bild; scrollIntoView
+ *  verschob dort die (overflow-hidden) Leiste selbst nach oben, und sie blieb
+ *  verrutscht (Rueckmeldung vom 25.09.2026). Innerhalb von Leiste und Kopf wird
+ *  nur das Noetigste gescrollt. Liefert, ob gescrollt wurde. */
+function inSichtBringen(el: HTMLElement): boolean {
+  const r = el.getBoundingClientRect();
+  const inRahmen = el.closest("aside, nav, header") !== null;
+  // Im Inhalt zaehlt der Streifen unter der festen Kopfzeile nicht als sichtbar.
+  const ganzSichtbar = r.top >= (inRahmen ? 0 : 72) && r.left >= 0 && r.bottom <= window.innerHeight && r.right <= window.innerWidth;
+  if (ganzSichtbar) return false;
+  el.scrollIntoView({ behavior: "smooth", block: inRahmen ? "nearest" : "center" });
+  return true;
+}
+
 async function hinFahren(el: HTMLElement, zeiger: ZeigerSteuerung, klick: boolean): Promise<void> {
-  el.scrollIntoView({ behavior: "smooth", block: "center" });
-  await warte(420);
+  const gescrollt = inSichtBringen(el);
+  await warte(gescrollt ? 420 : 80);
   const r = el.getBoundingClientRect();
   await zeiger.bewegen(r.left + Math.min(r.width / 2, 120), r.top + r.height / 2, klick);
 }
@@ -392,8 +407,8 @@ async function ausfuellen(ref: string, wert: string, umgebung: Umgebung) {
 async function scrollen(ref: string | undefined, richtung: string | undefined) {
   if (ref) {
     const el = elementFuerRef(ref);
-    el.scrollIntoView({ behavior: "smooth", block: "center" });
-    await warte(500);
+    const gescrollt = inSichtBringen(el);
+    await warte(gescrollt ? 500 : 80);
     return { ok: true };
   }
   const schritt = window.innerHeight * 0.8;

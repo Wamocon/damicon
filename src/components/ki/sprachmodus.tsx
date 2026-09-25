@@ -506,6 +506,15 @@ function SprachmodusInhalt() {
   const zielSichtbar = zielRechteck !== null && zielRechteck.breite > 0 && zielRechteck.hoehe > 0;
   const angedockt = zielSichtbar || assistentIstDran(phase);
 
+  // Die Navigationsleiste wird unscharf, solange Kugel und Text links stehen
+  // (Filter direkt auf der Leiste, siehe sprachmodus.css).
+  useEffect(() => {
+    if (!angedockt) return;
+    const wurzel = document.documentElement;
+    wurzel.setAttribute("data-sprach-links", "");
+    return () => wurzel.removeAttribute("data-sprach-links");
+  }, [angedockt]);
+
   const kugelZustand: KugelZustand =
     phase === "fehler" ? "fehler" : phase === "pausiert" ? "pausiert" : phase === "spricht" ? "spricht" : phase === "denkt" ? "denkt" : "hoert";
   // Der Zustand haengt nie an der Farbe allein (Rueckmeldung vom 25.09.2026:
@@ -587,14 +596,13 @@ function SprachmodusInhalt() {
 
       {angedockt ? (
         // Links, vertikal mittig ueber der Navigationsleiste (nur diese wird
-        // unscharf, siehe .ki-sprachmodus__seitenleiste-unschaerfe weiter
-        // unten - die Mitte bleibt frei und scharf). EIN Flex-Block fuer Kugel
+        // unscharf, siehe data-sprach-links in sprachmodus.css - die Mitte
+        // bleibt frei und scharf). EIN Flex-Block fuer Kugel
         // und Text: waechst der Text nach unten, ruecken beide zusammen als
         // Einheit wieder mittig - die Kugel wandert dabei von selbst nach
         // oben (Rueckmeldung vom 25.09.2026). max-height haelt die Einheit
         // dabei immer im Rahmen der Navigationsleiste.
         <>
-          <div className="ki-sprachmodus__seitenleiste-unschaerfe" aria-hidden />
           <div className="ki-sprachmodus__links-spalte">
             <div className="ki-sprachmodus__kugel-huelle ki-sprachmodus__kugel-huelle--links">
               {kugelKnopf}
