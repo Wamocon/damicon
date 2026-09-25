@@ -36,6 +36,7 @@ import { ladeKuehlkettenUebersicht } from "@/lib/data/kuehlkette";
 import { baueRisikoEintraege, risikoAufbereiten } from "@/lib/domain/risikoradar";
 import { moduleHref, modules, sichtbareModule, zones } from "@/lib/modules";
 import { darfCeoBerichtLesen, PRUEFBEREICHE } from "@/lib/pruefung/rollen";
+import { startkarteFuer } from "@/lib/domain/startkarte";
 import { baueAktionen } from "@/lib/ai/aktionen";
 import { baueDatenWerkzeuge } from "@/lib/ai/daten-werkzeuge";
 import { baueUiWerkzeuge } from "@/lib/ai/ui-werkzeuge";
@@ -202,12 +203,20 @@ function baueNavigationsWerkzeug(rolle: Role | null | undefined) {
   // Hof" oeffnete nur das Modul Kuehlkette, "Zeig mir die Pruefberichte" das
   // Datenschutz-Cockpit (Live-Test vom 25.09.2026).
   const zonenTexte = de.zones as Record<string, { name: string; tagline: string; description: string }>;
+  // Die Uebersicht zeigt je Rolle anderes (dashboard/page.tsx): den Deckungsbeitrag nur
+  // mit Finanz-Startkarte, den Compliance-Check nur, wer den Bericht lesen darf.
+  const uebersichtText = [
+    "Startseite:",
+    startkarteFuer(rolle) === "finanzen" && hasPermission(rolle, "finanzen", "view") ? "Begruessung mit Deckungsbeitrag," : "Begruessung,",
+    darfCeoBerichtLesen(rolle)
+      ? "'Das Wichtigste heute' mit dem automatischen Compliance-Check (Reife, wichtigste Schritte, Kacheln der Pruefbereiche Audit, Steuern, Recht, Risiko, Massnahmen, Einschraenkungen, Siegel)"
+      : "",
+    "und die Bereiche mit ihren Kennzahlen.",
+  ]
+    .filter(Boolean)
+    .join(" ");
   const feste: Record<string, { ziel: string; titel: string; text: string }> = {
-    uebersicht: {
-      ziel: "/dashboard",
-      titel: "Uebersicht",
-      text: "Startseite: Begruessung mit Deckungsbeitrag, 'Das Wichtigste heute' mit dem automatischen Compliance-Check (Reife, wichtigste Schritte, Kacheln der Pruefbereiche Audit, Steuern, Recht, Risiko, Massnahmen, Einschraenkungen, Siegel) und die vier Bereiche mit ihren Kennzahlen.",
-    },
+    uebersicht: { ziel: "/dashboard", titel: "Uebersicht", text: uebersichtText },
     sicherheit: { ziel: "/dashboard/sicherheit", titel: "Kontosicherheit", text: "Eigene Anmeldung, Zwei-Faktor-Authentifizierung (MFA) und Sitzungssicherheit." },
   };
   for (const zone of zones) {

@@ -148,6 +148,10 @@ function hebeHervor(element: Element): void {
 // Jede Station bekommt eine Nummer; ein Suchlauf einer ueberholten Station
 // (neue Station, Fuehrung beendet, Sprachmodus beendet) setzt keinen Rahmen mehr.
 let stationsNr = 0;
+// Das zuletzt per router.push angesteuerte Ziel. Solange es noch nicht erreicht ist,
+// laeuft eine Navigation: dann zaehlt "steht schon auf dem Ziel" nicht, sonst
+// bliebe man auf der Zwischenseite stehen (Pruefung vom 25.09.2026).
+let letzterPush: string | null = null;
 
 /** Ist die Seite schon die des Ziels (Pfad und Abfrage, ohne Sprachpraefix)? */
 function stehtAuf(ziel: string): boolean {
@@ -158,13 +162,12 @@ function stehtAuf(ziel: string): boolean {
 function fokussiere(ziel: string): void {
   const meine = ++stationsNr;
   const anker = ziel.split("#")[1];
-  const pfad = ziel.split("#")[0].split("?")[0];
   let versuche = 0;
   const suche = () => {
     if (meine !== stationsNr) return;
     // Erst suchen, wenn die NEUE Seite steht: bis zum 25.09.2026 rahmte ein zu frueher
     // Versuch noch die alte Seite, und der Rahmen verschwand mit dem Wechsel.
-    const angekommen = window.location.pathname.endsWith(pfad) && document.querySelector("#main h1");
+    const angekommen = stehtAuf(ziel) && document.querySelector("#main h1");
     if (angekommen) {
       if (!anker) {
         // Ohne Anker (ganzes Modul, oder man ist schon dort): nach oben scrollen und
@@ -400,7 +403,11 @@ export function KiPaneProvider({
       setFuehrung(naechste);
       // Steht die Seite schon da, nicht neu laden: ein zweites Oeffnen derselben
       // Seite scrollte sie nach oben, mitten in der Erklaerung weiter unten.
-      if (!stehtAuf(naechste.ziel)) router.push(naechste.ziel);
+      const navigationLaeuft = letzterPush !== null && !stehtAuf(letzterPush);
+      if (navigationLaeuft || !stehtAuf(naechste.ziel)) {
+        router.push(naechste.ziel);
+        letzterPush = naechste.ziel;
+      }
       fokussiere(naechste.ziel);
       timer.current = window.setTimeout(station, VERWEILZEIT_MS);
     },

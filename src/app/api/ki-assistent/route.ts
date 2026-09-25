@@ -26,6 +26,7 @@ import { hasPermission, roles, type Role } from "@/lib/rbac";
 import { bestimmeAntwortsprache } from "@/lib/domain/antwortsprache";
 import {
   formatAnweisung,
+  mitSeitenkarte,
   mitSprachErinnerung,
   quellenAnweisung,
   SPRACHMODUS_FUEHRUNG,
@@ -33,7 +34,7 @@ import {
   sprachmodusFormatAnweisung,
   sprechmarkenAnweisung,
 } from "@/lib/domain/antwort-anweisungen";
-import { erzeugeMarkenFilter, nurBekannteZiele } from "@/lib/domain/sprechmarken";
+import { erzeugeMarkenFilter } from "@/lib/domain/sprechmarken";
 import { erzeugeSatzZerleger, ohneSprechmarken, sprachausgabeStromAn } from "@/lib/domain/sprachausgabe";
 import { ABSCHNITT_GUELTIG_MS, signiereAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
 import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
@@ -105,10 +106,18 @@ function textAusNachricht(nachricht: UIMessage): string {
 const MAX_SEITENKARTE_ZEICHEN = 4_000;
 function bereinigteSeitenkarte(roh: unknown): string | null {
   if (typeof roh !== "string" || !roh.trim()) return null;
+  // Nur das erwartete Format: eine Zeile "Seite: ..." und Zeilen "a3 Titel" /
+  // "e12 Titel", Titel hoechstens 60 Zeichen. Alles andere faellt weg.
   const zeilen = roh
     .slice(0, MAX_SEITENKARTE_ZEICHEN)
     .split("\n")
-    .map((z) => z.replace(/[\u0000-\u001f\u007f<>{}[\]`]/g, " ").replace(/\s+/g, " ").trim().slice(0, 120))
+    .map((z) => z.replace(/[\u0000-\u001f\u007f<>{}[\]`]/g, " ").replace(/\s+/g, " ").trim())
+    .map((z) => {
+      const seite = /^Seite: (.{1,120})$/.exec(z);
+      if (seite) return `Seite: ${seite[1]}`;
+      const eintrag = /^([ea]\d{1,5}) (.{1,})$/.exec(z);
+      return eintrag ? `${eintrag[1]} ${eintrag[2]!.slice(0, 60)}` : "";
+    })
     .filter(Boolean);
   return zeilen.length > 0 ? zeilen.join("\n") : null;
 }
@@ -531,7 +540,7 @@ export async function POST(req: Request) {
     "wissenSuchen" in werkzeuge ? quellenAnweisung(antwortSprache) : OHNE_QUELLEN_ANWEISUNG,
     heute,
     ortHinweis,
-    markenAn ? sprechmarkenAnweisung(seitenkarte) : "",
+    markenAn ? sprechmarkenAnweisung(Boolean(seitenkarte) && letzte.role === "user") : "",
     spracheAnweisung(antwortSprache),
     ausserhalb ? ABLEHNUNG_ANWEISUNG : "",
   ]
@@ -547,7 +556,7 @@ export async function POST(req: Request) {
     // An der letzten Frage haengt ein Hinweis in der Antwortsprache - nur in dieser Kopie fuers Modell,
     // gespeichert und angezeigt wird die Frage unveraendert. Der Systemprompt ist deutsch, und die
     // Sprachanweisung darin verlor gegen die vielen deutschen Vorgaben (siehe domain/antwort-anweisungen.ts).
-    messages: await convertToModelMessages(mitSprachErinnerung(schnappschuesseKuerzen(nachrichten), antwortSprache), { tools: werkzeuge, ignoreIncompleteToolCalls: true }),
+    messages: await convertToModelMessages(mitSprachErinnerung(mitSeitenkarte(schnappschuesseKuerzen(nachrichten), markenAn ? seitenkarte : null), antwortSprache), { tools: werkzeuge, ignoreIncompleteToolCalls: true }),
     tools: werkzeuge,
     stopWhen: stepCountIs(ausserhalb ? 1 : MAX_SCHRITTE[modus]),
     // Eine Ablehnung braucht zwei Saetze, keine Seite.
@@ -586,8 +595,9 @@ export async function POST(req: Request) {
       // Der Text ALLER Schritte: im Agent-Modus steckt die Begleitung der Tour
       // (ein Satz je Station) in den Schritten vor der Schlussantwort.
       // Sprechmarken gehoeren nie in den gespeicherten Verlauf (Anzeige, Vorlesen-Knopf).
+      // Nur im Sprachmodus: sonst kann "[[...]]" gewoehnlicher Text sein.
       const gesamtText = steps
-        .map((schritt) => ohneSprechmarken(schritt.text).trim())
+        .map((schritt) => (markenAn ? ohneSprechmarken(schritt.text) : schritt.text).trim())
         .filter(Boolean)
         .join("\n\n");
 
@@ -692,12 +702,18 @@ export async function POST(req: Request) {
       // sie aus jedem Textstueck, der Zerleger bekommt einen Platzhalter und ordnet
       // das Ziel seinem Satz zu. Ziele, die das Modell nicht kennen kann (erfundene
       // Referenz), fallen weg.
-      const marken = erzeugeMarkenFilter();
-      const bekannt = markenAn ? bekannteReferenzen(nachrichten, seitenkarte) : null;
+      // Nur im Sprachmodus: ausserhalb davon kann "[[...]]" gewoehnlicher Text sein.
+      const marken = markenAn ? erzeugeMarkenFilter(bekannteReferenzen(nachrichten, seitenkarte)) : null;
       const fuettere = (stueck: { zerleger: string; ziele: string[] }) => {
-        for (const a of zerleger.fuettere(stueck.zerleger, nurBekannteZiele(stueck.ziele, bekannt))) schickeAbschnitt(a.nr, a.text, a.ziele);
+        for (const a of zerleger.fuettere(stueck.zerleger, stueck.ziele)) schickeAbschnitt(a.nr, a.text, a.ziele);
       };
       for await (const teil of result.toUIMessageStream({ generateMessageId: () => antwortId, messageMetadata: nachrichtenBeigabe })) {
+        if (!marken) {
+          writer.write(teil);
+          if (teil.type === "text-delta" && typeof teil.delta === "string") fuettere({ zerleger: teil.delta, ziele: [] });
+          else if (teil.type === "text-end") for (const a of zerleger.schrittEnde()) schickeAbschnitt(a.nr, a.text, a.ziele);
+          continue;
+        }
         if (teil.type === "text-delta" && typeof teil.delta === "string") {
           const stueck = marken.fuettere(teil.delta);
           if (stueck.anzeige) writer.write({ ...teil, delta: stueck.anzeige });

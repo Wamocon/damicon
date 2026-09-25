@@ -1738,7 +1738,7 @@
       "titel": "DamiAI, dein Begleiter",
       "text": "Zeigt in der Ecke, was der Agent gerade tut, auch wenn der Chat geschlossen ist. Zum Wegschicken auf DamiAI gedrückt halten, die Spitze am unteren Rand holt sie zurück. Hier ausgeschaltet bleibt DamiAI ganz weg.",
       "tourTitel": "Geführte Tour",
-      "tourText": "Aus heißt: DamiAI springt nach einer Prüfung nicht mehr selbst zu den Kacheln und hebt sie nicht mehr hervor, systemweit. Die Zusammenfassung im Chat kommt trotzdem weiter automatisch, nur ohne das Herumspringen auf der Seite.",
+      "tourText": "Aus heißt: DamiAI springt nach einer Prüfung nicht mehr selbst zu den Kacheln und hebt sie nicht mehr hervor, systemweit. Ist „Automatisch starten“ eingeschaltet, kommt die Zusammenfassung im Chat trotzdem weiter von selbst, nur ohne das Herumspringen auf der Seite.",
       "autoTitel": "Automatisch starten",
       "autoText": "Standardmäßig aus. Aus heißt: nach einer Prüfung startet weder die Tour noch die Zusammenfassung im Chat von selbst, und DamiAI fragt auch nicht mehr von sich aus nach. Die Knöpfe „Tour erneut starten“ und „Zusammenfassung im Chat“ in der Übersicht bleiben, damit startest du beides selbst.",
       "bewegungTitel": "Bewegung",
@@ -1989,6 +1989,13 @@
       "mitarbeiterEinschalten": "Chat"
     },
     "bereichAllgemein": "den Bereich",
+    "zielExtra": {
+      "pruefbericht": "Prüfbericht",
+      "feld": "Feld",
+      "hof": "Hof",
+      "buero": "Büro",
+      "markt": "Markt"
+    },
     "pruefBereich": {
       "audit": "Audit",
       "steuer": "Steuern",

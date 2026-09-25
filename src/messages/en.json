@@ -1738,7 +1738,7 @@
       "titel": "DamiAI, your companion",
       "text": "Shows in the corner what the agent is doing, even when the chat is closed. Hold DamiAI down to send it away, the tip at the bottom edge brings it back. Switched off here, DamiAI stays away completely.",
       "tourTitel": "Guided tour",
-      "tourText": "Off means DamiAI stops jumping to the tiles and highlighting them by itself after a check, system-wide. The chat summary still runs automatically, just without the jumping around the page.",
+      "tourText": "Off means DamiAI stops jumping to the tiles and highlighting them by itself after a check, system-wide. With “Start automatically” switched on, the chat summary still runs by itself, just without the jumping around the page.",
       "autoTitel": "Start automatically",
       "autoText": "Off by default. Off means neither the tour nor the chat summary starts by itself after a check, and DamiAI no longer offers it on its own. The buttons “Restart tour” and “Summary in chat” stay on the overview, so you can start both yourself.",
       "bewegungTitel": "Motion",
@@ -1989,6 +1989,13 @@
       "mitarbeiterEinschalten": "Chat"
     },
     "bereichAllgemein": "the area",
+    "zielExtra": {
+      "pruefbericht": "Audit report",
+      "feld": "Field",
+      "hof": "Yard",
+      "buero": "Office",
+      "markt": "Market"
+    },
     "pruefBereich": {
       "audit": "Audit",
       "steuer": "Tax",

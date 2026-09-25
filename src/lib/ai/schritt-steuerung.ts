@@ -46,12 +46,17 @@ export function istRechtsfrage(text: string): boolean {
 // auch wenn "Audit", "Compliance" oder "Steuern" darin vorkommen. Bis zum 25.09.2026
 // erzwang der Server dort zuerst die Wissenssuche: Himbi schwieg mehrere Sekunden und
 // begann mit Rechtstexten statt mit dem Bericht.
-const NAVIGATION =
-  /(?:^|[^\p{L}])(?:zeig(?:e|en|t)?|öffne(?:n|t)?|oeffne(?:n|t)?|geh(?:e)? (?:zu|zum|zur|in)|wechsle|bring(?:e)? mich|führ(?:e)? mich|fuehr(?:e)? mich|navigiere|bereich(?:e|s)?|seite(?:n)?|prüfbericht(?:e|s)?|pruefbericht(?:e|s)?|bericht(?:e|s)?|übersicht|uebersicht|kachel(?:n)?|cockpit|zone(?:n)?|покажи(?:те)?|открой(?:те)?|перейди(?:те)?|раздел|отч[её]т|көрсет(?:іңіз|ші)?|бөлім|есеп)(?![\p{L}])/iu;
+// Ein Rechtskern macht aus einer Zeige-Bitte doch eine Rechtsfrage ("Welche Frist gilt
+// laut Gesetz ... auf dieser Seite?"): dann bleibt die Wissenssuche erzwungen.
+const RECHTSKERN =
+  /(?:frist|strafe|sanktion|bu(?:ss|ß)geld|pflicht|schwelle|gesetz|paragraf|paragraph|steuersatz|haftung|deadline|penalt|fine|law|срок|штраф|закон|санкци|обязан|порог|мерзім|айыппұл|заң|міндет)/iu;
+const ZEIGEVERB =
+  /(?:^|[^\p{L}])(?:zeig(?:e|en|t)?|öffne(?:n|t)?|oeffne(?:n|t)?|geh(?:e)? (?:zu|zum|zur|in)|wechsle|bring(?:e)? mich|führ(?:e)? mich|fuehr(?:e)? mich|navigiere|erkl(?:ä|ae)r(?:e|en)?(?: mir)? (?:den|die|das) (?:bereich|seite|übersicht|uebersicht|prüfbericht|pruefbericht|bericht|zone)|покажи(?:те)?|открой(?:те)?|перейди(?:те)?|көрсет(?:іңіз|ші)?)(?![\p{L}])/iu;
 
-/** Bittet der Nutzer darum, etwas zu zeigen oder zu oeffnen? */
+/** Bittet der Nutzer darum, etwas zu zeigen oder zu oeffnen, ohne eine Rechtsfrage
+ *  zu stellen? Ein Seitenwort allein ("Bereich", "Bericht") reicht nicht. */
 export function istNavigationsbitte(text: string): boolean {
-  return NAVIGATION.test(text);
+  return ZEIGEVERB.test(text) && !RECHTSKERN.test(text);
 }
 
 export type ToolChoice = "auto" | "required" | "none" | { type: "tool"; toolName: "wissenSuchen" };

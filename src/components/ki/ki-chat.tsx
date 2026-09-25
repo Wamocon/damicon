@@ -78,7 +78,6 @@ import { clientErgebnisseBereit, useKlientWerkzeuge, type WerkzeugChat } from "@
 import { useSprachTakt } from "@/components/ki/sprach-takt";
 import { setzeHervorhebung } from "@/components/ki/hervorhebung";
 import { seitenKarte } from "@/components/ki/ui-steuerung";
-import { ohneSprechmarken } from "@/lib/domain/sprachausgabe";
 import { antwortSpracheAus, useKiChatSprache } from "@/components/ki/ki-chat-sprache";
 import { stromMoeglich } from "@/components/ki/sprachausgabe-strom";
 import {
@@ -176,7 +175,7 @@ const linkPruefung = (url: string) => (url.startsWith("quelle:S") ? url : defaul
 const MarkdownBlock = memo(function MarkdownBlock({ text }: { text: string }) {
   return (
     <ReactMarkdown remarkPlugins={MARKDOWN_PLUGINS} components={MARKDOWN_KOMPONENTEN} urlTransform={linkPruefung}>
-      {verlinkeZitate(mitUmlauten(ohneSprechmarken(text)))}
+      {verlinkeZitate(mitUmlauten(text))}
     </ReactMarkdown>
   );
 });

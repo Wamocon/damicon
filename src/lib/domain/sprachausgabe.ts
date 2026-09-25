@@ -702,7 +702,10 @@ export function erzeugeSatzZerleger(stil: ZerlegerStil = "abschnitte"): SatzZerl
     const mitMarken = puffer.slice(0, bis);
     puffer = puffer.slice(bis);
     const anzahlMarken = mitMarken.split(MARKEN_PLATZHALTER).length - 1;
-    const ziele = [...uebertrag, ...warteZiele.splice(0, anzahlMarken)];
+    // Die eigene Marke des Satzes geht vor einer uebertragenen (einer Marke am Ende
+    // des Textteils vor einem Werkzeug): gezeigt wird das erste Ziel.
+    const eigene = warteZiele.splice(0, anzahlMarken);
+    const ziele = eigene.length > 0 ? eigene : uebertrag;
     uebertrag = [];
     const roh = anzahlMarken > 0 ? mitMarken.replaceAll(MARKEN_PLATZHALTER, "") : mitMarken;
     const mitZielen = (a: Abschnitt): Abschnitt => (ziele.length > 0 ? { ...a, ziele } : a);

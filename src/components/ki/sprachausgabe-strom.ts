@@ -135,6 +135,8 @@ export interface SprechStand {
   satz: string | null;
   /** Die Stelle, auf die seine Sprechmarke zeigt (domain/sprechmarken.ts). */
   ziel?: GebundenesZiel | null;
+  /** Der Satz davor: der Stoppwort-Waechter prueft Himbis Echo gegen beide. */
+  vorher?: string | null;
 }
 
 export interface StromSprecher {
@@ -567,7 +569,9 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       fertigSekunden += puffer.duration;
       if (geplant.size === 0) {
         stillSeit = performance.now();
-        saetzeBeiStille = verlauf.length;
+        // Nur, was schon an Soniox ging: ein Satz, der noch in der Warteschlange
+        // liegt, hat nicht geklungen.
+        saetzeBeiStille = verlauf.length - ausstehend.length;
       }
       melde();
     };
@@ -703,7 +707,7 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       const vorAnker = laengen.slice(0, anker.index).reduce((summe, n) => summe + n, 0);
       const position = vorAnker + Math.max(0, gespielt - anker.sekunden) * (gemesseneRate ?? ZEICHEN_JE_SEKUNDE) * letztesTempo;
       const index = Math.max(Math.min(anker.index, anzahl - 1), satzBeiPosition(laengen, position));
-      return { index, anzahl, satz: verlauf[index]?.anzeige ?? null, ziel: verlauf[index]?.ziel ?? null };
+      return { index, anzahl, satz: verlauf[index]?.anzeige ?? null, ziel: verlauf[index]?.ziel ?? null, vorher: verlauf[index - 1]?.anzeige ?? null };
     },
 
     aufgegeben: () => hatAufgegeben,

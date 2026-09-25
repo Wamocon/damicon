@@ -2279,7 +2279,7 @@ for (const [name, kaputteAntwort] of [
     const route = readFileSync(new URL("../../src/app/api/ki-assistent/route.ts", import.meta.url), "utf8");
     pruefe("Route: Format- und Quellenanweisung folgen der Antwortsprache", route.includes("formatAnweisung(antwortSprache)") && route.includes("quellenAnweisung(antwortSprache)"));
     pruefe("Route: keine feste deutsche Format- oder Quellenanweisung mehr", !route.includes("const FORMAT_ANWEISUNG") && !route.includes("const QUELLEN_ANWEISUNG"));
-    pruefe("Route: der Sprachhinweis geht an die letzte Frage (nur fuers Modell)", route.includes("mitSprachErinnerung(schnappschuesseKuerzen(nachrichten), antwortSprache)"));
+    pruefe("Route: der Sprachhinweis geht an die letzte Frage (nur fuers Modell)", route.includes("mitSprachErinnerung(mitSeitenkarte(schnappschuesseKuerzen(nachrichten), markenAn ? seitenkarte : null), antwortSprache)"));
     const agenten = readFileSync(new URL("../../src/lib/pruefung/agenten.ts", import.meta.url), "utf8");
     pruefe("Bericht: die Sprachvorgabe der Zusammenfassung steht zuletzt, auf Englisch, mit hoechster Prioritaet", agenten.includes("LANGUAGE (highest priority, overrides everything above): Write the zusammenfassung"));
     pruefe("Bericht: eine Zusammenfassung in falscher Sprache wird verworfen und neu erzeugt", agenten.includes("sprachePasst(anfrage.sprache, t, erkenner)") && agenten.includes("nicht in der verlangten Sprache"));
@@ -2482,7 +2482,8 @@ for (const [name, kaputteAntwort] of [
     pruefe("Takt: im Chat mit dem Sprachmodus verdrahtet", chat.includes("vorAusfuehrung: takt.vorAusfuehrung") && chat.includes("taktStimme.current = vorlesen.phase") && chat.includes("taktAktiv.current = sprachmodus"));
     pruefe("Sprachmodus: nur oeffneBereich wechselt die Seite, Fachwerkzeuge mit Ziel tun es nicht", chat.includes('if (zugModus.current === "sprache" && name !== "oeffneBereich") continue;'));
     pruefe("Sprachmodus: der Seitenwechsel laeuft im Takt der Stimme", chat.includes('if (zugModus.current === "sprache") {') && chat.includes("takt.oeffneImTakt(() => oeffneZiel(ziel, label), ziel, jetzt === null ? null : Math.max(0, jetzt - nachher))"));
-    pruefe("Takt: eine Navigation wartet die neue Seite ab, bevor die naechste Handlung laeuft", takt.includes("await wartePfad(ziel, meinZug)") && takt.includes("window.location.pathname.endsWith(pfad)"));
+    pruefe("Takt: eine Navigation wartet die neue Seite ab, bevor die naechste Handlung laeuft", takt.includes("await wartePfad(ziel, meinZug)") && takt.includes("!stehtAufZiel(ziel)") && takt.includes("${window.location.pathname}${window.location.search}"));
+    pruefe("Takt/Fuehrung: ein Wechsel nur des Filters (?bereich=) zaehlt als Seitenwechsel", takt.includes("const wechsel = !stehtAufZiel(ziel);") && lies3("components/ki/ki-pane-kontext.tsx").includes("const angekommen = stehtAuf(ziel) && document.querySelector(\"#main h1\");"));
     pruefe("Scrollen: ein Element im Bild wird nicht gescrollt, in Leiste und Kopf nur das Noetigste", steuer.includes("function inSichtBringen") && steuer.includes('block: inRahmen ? "nearest" : "center"') && !/el\.scrollIntoView\(\{ behavior: "smooth", block: "center" \}\)/.test(steuer));
     pruefe("Seitenleiste: Filter direkt auf der Leiste, gesteuert ueber data-sprach-links am html", seitenleiste.includes("data-seitenleiste") && modusCss.includes("html[data-sprach-links] [data-seitenleiste]") && modusCss.includes("blur(5px)") && !modusCss.includes("seitenleiste-unschaerfe") && !modus.includes("seitenleiste-unschaerfe"));
     pruefe("Seitenleiste: der Sprachmodus setzt und entfernt data-sprach-links beim Andocken", modus.includes('wurzel.setAttribute("data-sprach-links", "")') && modus.includes('wurzel.removeAttribute("data-sprach-links")'));
@@ -3223,8 +3224,36 @@ for (const [name, kaputteAntwort] of [
     const r = lauf(["Text mit [[Risiko-Radar]] Überschrift. Und [[ kaputt"]);
     return r.raus[0].ziele?.[0] === "t:Risiko-Radar" && !r.anzeige.includes("kaputt") && !r.anzeige.includes("[[");
   })());
+  {
+    // Unbekannte Referenz: faellt samt Platzhalter weg, die folgenden Ziele bleiben am richtigen Satz.
+    const f = marken.erzeugeMarkenFilter(new Set(["a44"]));
+    const z = sa.erzeugeSatzZerleger("saetze");
+    const raus = [];
+    for (const st of ["Ich schaue nach. ", "[[a9]] Oben sehen Sie Ihre Aufgaben. ", "[[a44]] Darunter stehen die Fristen. ", "Das ist alles."]) {
+      const g = f.fuettere(st);
+      raus.push(...z.fuettere(g.zerleger, g.ziele));
+    }
+    raus.push(...z.abschliessen());
+    const fristen = raus.find((a) => a.text.startsWith("Darunter"));
+    const aufgaben = raus.find((a) => a.text.startsWith("Oben"));
+    pruefe("Sprechmarken: eine unbekannte Referenz verschiebt die folgenden Ziele nicht", fristen?.ziele?.[0] === "a44" && !aufgaben?.ziele, JSON.stringify(raus));
+  }
+  {
+    // Marke am Ende eines Textteils UND eigene Marke des naechsten Satzes: die eigene gilt.
+    const f = marken.erzeugeMarkenFilter();
+    const z = sa.erzeugeSatzZerleger("saetze");
+    const raus = [];
+    let g = f.fuettere("Ich schaue in die Daten. [[a4]]");
+    raus.push(...z.fuettere(g.zerleger, g.ziele));
+    g = f.leere();
+    raus.push(...z.fuettere(g.zerleger, g.ziele), ...z.schrittEnde());
+    g = f.fuettere("[[a6]] Im Radar stehen zwei Fristen.");
+    raus.push(...z.fuettere(g.zerleger, g.ziele), ...z.abschliessen());
+    pruefe("Sprechmarken: die eigene Marke eines Satzes geht vor einer uebertragenen", raus.at(-1)?.ziele?.[0] === "a6", JSON.stringify(raus));
+  }
   pruefe("Sprechmarken: zielAusMarke erkennt e-, a-, Anker- und Textziele", marken.zielAusMarke("E12") === "e12" && marken.zielAusMarke(" a3 ") === "a3" && marken.zielAusMarke("#compliance-kachel-audit") === "#compliance-kachel-audit" && marken.zielAusMarke("Risiko-Radar") === "t:Risiko-Radar" && marken.zielAusMarke("<script>") === null);
   pruefe("Sprechmarken: erfundene Referenzen fallen weg, Anker und Texte bleiben", JSON.stringify(marken.nurBekannteZiele(["a3", "e99", "#x", "t:Y"], new Set(["a3"]))) === JSON.stringify(["a3", "#x", "t:Y"]) && marken.nurBekannteZiele(["e1"], null).length === 1);
+  pruefe("Sprechmarken: ausserhalb des Sprachmodus bleibt Text mit [[...]] unberuehrt (kein Filter in Anzeige und Speicher)", !lies4("components/ki/ki-chat.tsx").includes("ohneSprechmarken"));
   pruefe("Sprechmarken: ohneSprechmarken fuer gespeicherte und angezeigte Texte", sa.ohneSprechmarken("[[a3]] Im Radar [[e2]]. Und hier [[a4]] weiter [[a5") === "Im Radar. Und hier weiter");
   pruefe("Sprechmarken: werden nie gesprochen (textFuerSprachausgabe, auch der Platzhalter)", sa.textFuerSprachausgabe("Im [[a3]] Radar.") === "Im Radar." && !sa.textFuerSprachausgabe("A \uE000 B.").includes("\uE000"));
 
@@ -3237,6 +3266,7 @@ for (const [name, kaputteAntwort] of [
   const frage = { stepNumber: 0, neueNutzerFrage: true, wissenAngeboten: true, modus: "sprache" };
   pruefe("Schritt: 'Zeig mir den Pruefbericht Audit' ist im Sprachmodus eine Fuehrung, keine erzwungene Wissenssuche", schritt.waehleSchritt({ ...frage, frage: "Zeig mir den Prüfbericht Audit." }) === undefined && schritt.istNavigationsbitte("Erkläre mir den Bereich Hof."));
   pruefe("Schritt: eine echte Rechtsfrage bleibt bei der Wissenssuche, auch mit 'Gehalt' oder 'Berichtspflicht'", JSON.stringify(schritt.waehleSchritt({ ...frage, frage: "Wie hoch ist die Lohnsteuer auf das Gehalt?" })?.toolChoice) === JSON.stringify({ type: "tool", toolName: "wissenSuchen" }) && !schritt.istNavigationsbitte("Wie ist die Berichtspflicht bei Datenschutzvorfällen?"));
+  pruefe("Schritt: ein Seitenwort allein oder ein Rechtskern macht keine Zeige-Bitte (Wissenssuche bleibt)", ["Welche Frist gilt laut Gesetz für die Mehrwertsteuer-Registrierung in diesem Bereich?", "Welche Strafe droht laut Bericht bei der Umsatzsteuer?", "Was sagt das Gesetz zu dem, was auf dieser Seite steht?", "Zeig mir die Strafe für verspätete Umsatzsteuer."].every((f) => JSON.stringify(schritt.waehleSchritt({ ...frage, frage: f })?.toolChoice) === JSON.stringify({ type: "tool", toolName: "wissenSuchen" })));
   pruefe("Schritt: im Agent-Modus bleibt die Wissenssuche auch bei einer Zeige-Bitte mit Rechtsbegriff", JSON.stringify(schritt.waehleSchritt({ ...frage, modus: "agent", frage: "Zeig mir den Prüfbericht Audit." })?.toolChoice) === JSON.stringify({ type: "tool", toolName: "wissenSuchen" }));
 
   // Ziele von oeffneBereich (Quelltext, die Werkzeuge brauchen den Server).
@@ -3251,8 +3281,12 @@ for (const [name, kaputteAntwort] of [
   // Verdrahtung: Server, Chat, Fuehrung, Seite.
   const route = lies4("app/api/ki-assistent/route.ts");
   pruefe("Route: Marken werden aus jedem Textstueck gefiltert, die Anzeige bekommt sauberen Text", route.includes("const stueck = marken.fuettere(teil.delta);") && route.includes("if (stueck.anzeige) writer.write({ ...teil, delta: stueck.anzeige });") && route.includes("const rest = marken.leere();"));
-  pruefe("Route: Ziele reisen unsigniert neben dem signierten Satz, erfundene fallen weg", route.includes("...(ziele && ziele.length > 0 ? { ziele } : {})") && route.includes("nurBekannteZiele(stueck.ziele, bekannt)") && route.includes("bekannteReferenzen(nachrichten, seitenkarte)"));
-  pruefe("Route: gespeicherter Text ohne Marken, Anweisung nur im Sprachmodus mit Live-Vorlesen", route.includes("ohneSprechmarken(schritt.text).trim()") && route.includes('const markenAn = modus === "sprache" && liveVorlesen;') && route.includes('markenAn ? sprechmarkenAnweisung(seitenkarte) : ""'));
+  pruefe("Route: Ziele reisen unsigniert neben dem signierten Satz, erfundene fallen weg", route.includes("...(ziele && ziele.length > 0 ? { ziele } : {})") && route.includes("erzeugeMarkenFilter(bekannteReferenzen(nachrichten, seitenkarte))"));
+  pruefe("Route: gespeicherter Text ohne Marken, Anweisung nur im Sprachmodus mit Live-Vorlesen", route.includes("(markenAn ? ohneSprechmarken(schritt.text) : schritt.text).trim()") && route.includes("const marken = markenAn ? erzeugeMarkenFilter(") && route.includes('const markenAn = modus === "sprache" && liveVorlesen;') && route.includes('markenAn ? sprechmarkenAnweisung(Boolean(seitenkarte) && letzte.role === "user") : ""'));
+  pruefe("Route: die Seitenkarte steht als Datenblock an der Frage, nicht im Systemprompt, nur im erwarteten Format", !lies4("lib/domain/antwort-anweisungen.ts").includes("SEITENKARTE (Daten der aktuellen Seite") && lies4("lib/domain/antwort-anweisungen.ts").includes("export function mitSeitenkarte") && route.includes("const eintrag = /^([ea]\\d{1,5}) (.{1,})$/.exec(z);"));
+  pruefe("Texte: Zonen und Pruefbericht haben eigene Beschriftungen in allen vier Sprachen", ["de", "en", "ru", "kk"].every((sp) => { const z = JSON.parse(readFileSync(new URL(`../../src/messages/${sp}.json`, import.meta.url), "utf8")).kiAssistentAnsicht.zielExtra; return ["pruefbericht", "feld", "hof", "buero", "markt"].every((k) => typeof z?.[k] === "string" && z[k].length > 1); }) && lies4("components/ki/ki-chat-segmente.ts").includes("t.has(`zielExtra.${bereich}`)"));
+  pruefe("Texte: die Tour-Hilfe verspricht die Zusammenfassung nur mit eingeschaltetem Auto-Start", ["de", "en", "ru", "kk"].every((sp) => { const t = JSON.parse(readFileSync(new URL(`../../src/messages/${sp}.json`, import.meta.url), "utf8")).haustier.einstellung; return t.tourText.includes(t.autoTitel); }));
+  pruefe("Ziele: die Beschreibung der Uebersicht richtet sich nach der Rolle", tools.includes("darfCeoBerichtLesen(rolle)\n      ? \"'Das Wichtigste heute' mit dem automatischen Compliance-Check") || (tools.includes("const uebersichtText = [") && tools.includes('startkarteFuer(rolle) === "finanzen"')));
   pruefe("Route: die Seitenkarte ist begrenzt und bereinigt (Eingabe aus dem Browser)", route.includes("const MAX_SEITENKARTE_ZEICHEN = 4_000;") && route.includes("function bereinigteSeitenkarte(roh: unknown)"));
   const chat2 = lies4("components/ki/ki-chat.tsx");
   pruefe("Chat: im Sprachmodus nur das laufende Gespraech (plus eine Frage davor) ans Modell, beginnend mit einer Frage", chat2.includes("prepareSendMessagesRequest") && chat2.includes("const VOR_SPRACHMODUS = 2;") && chat2.includes('while (ab > 0 && alle[ab]?.role !== "user") ab -= 1;'));
@@ -3262,7 +3296,7 @@ for (const [name, kaputteAntwort] of [
   const pane = lies4("components/ki/ki-pane-kontext.tsx");
   pruefe("Fuehrung: Beenden des Sprachmodus beendet auch Warteschlange, Suchlaeufe und Zeiger", /const beendeSprachmodus = useCallback\(\(\) => \{[\s\S]{0,500}fuehrungBeenden\(\);[\s\S]{0,120}setZeiger\(null\);/.test(pane));
   pruefe("Fuehrung: der Rahmen wartet auf die neue Seite und rahmt ihren Kopf, nicht die ganze Seite", pane.includes('document.querySelector("#main h1")') && pane.includes("hebeHervor(stelleZu(h1));") && !pane.includes('"#main > :first-child"') && pane.includes("if (meine !== stationsNr) return;"));
-  pruefe("Fuehrung: dieselbe Seite wird nicht neu geladen", pane.includes("if (!stehtAuf(naechste.ziel)) router.push(naechste.ziel);"));
+  pruefe("Fuehrung: dieselbe Seite wird nicht neu geladen, ausser eine andere Navigation laeuft noch", pane.includes("const navigationLaeuft = letzterPush !== null && !stehtAuf(letzterPush);") && pane.includes("if (navigationLaeuft || !stehtAuf(naechste.ziel)) {"));
   const steuer2 = lies4("components/ki/ui-steuerung.ts");
   pruefe("Seite lesen: der aktive Filter ist markiert, die Adresse traegt die Abfrage (?bereich=)", steuer2.includes('info.aktiv = true;') && steuer2.includes("${window.location.pathname}${window.location.search}${window.location.hash}"));
   pruefe("Seite lesen: Punkte kurzer Listen (hoechstens 8) sind eigene Abschnitte", steuer2.includes("ol > li, ul > li") && steuer2.includes("const MAX_LISTENPUNKTE = 8;"));
@@ -3270,7 +3304,7 @@ for (const [name, kaputteAntwort] of [
   pruefe("Seite lesen: Referenzen bleiben stabil (nie neu ab e1), Abschnitte bekommen eigene a-Referenzen", !steuer2.includes("forEach((e) => e.removeAttribute(REF_ATTRIBUT))") && steuer2.includes("const ref = `e${++letzteElementNr}`;") && steuer2.includes("abschnitte: abschnitteDer(haupt),") && steuer2.includes("export function seitenKarte(): string"));
   pruefe("Werkzeuge: zeigeAuf und scrolleZu nehmen auch Abschnitte (a3), Referenzen bis e99999", lies4("lib/ai/ui-werkzeuge.ts").includes("regex(/^[ea]\\d{1,5}$/") && lies4("lib/ai/ui-werkzeuge.ts").includes("inputSchema: z.object({ ref: zielRef, absicht }),"));
   const strom2 = lies4("components/ki/sprachausgabe-strom.ts");
-  pruefe("Sprecher: meldet 'alles gesagt', sobald die Stimme kurz still ist, auch bei offenem Strom", strom2.includes("const STILL_FERTIG_MS = 350;") && strom2.includes("stillSeit = performance.now();") && strom2.includes("saetzeBeiStille = verlauf.length;"));
+  pruefe("Sprecher: meldet 'alles gesagt', sobald die Stimme kurz still ist, auch bei offenem Strom", strom2.includes("const STILL_FERTIG_MS = 350;") && strom2.includes("stillSeit = performance.now();") && strom2.includes("saetzeBeiStille = verlauf.length - ausstehend.length;"));
   pruefe("Sprecher: ein Satz, der erst waehrend der Stille kommt, gilt NICHT als gesprochen", strom2.includes("const fertig = Math.min(saetzeBeiStille, anzahl);") && strom2.includes("return { index: fertig, anzahl, satz: null };"));
   pruefe("Sprecher: die Schaetzung setzt an jeder Sprechpause neu auf (kein aufsummierter Fehler)", strom2.includes("anker = { index: fertig, sekunden: fertigSekunden };") && strom2.includes("const position = vorAnker + Math.max(0, gespielt - anker.sekunden)"));
   pruefe("Mitlesen: nach einer Pause zeigt der Sprachmodus die Marke, wenn der Satz wirklich klingt", lies4("components/ki/sprachmodus.tsx").includes("const schluessel = jetzt ? `${jetzt.index}:${jetzt.satz === null ? 0 : 1}` : \"\";"));
@@ -3279,9 +3313,11 @@ for (const [name, kaputteAntwort] of [
   pruefe("Takt: waehrend des Seitenwechsels haelt die Stimme an, mit Notbremse", takt2.includes("if (wechsel) halte.current?.(true);") && takt2.includes("const HALTEN_MAX_MS = 3_500;") && takt2.includes("window.setTimeout(() => halte.current?.(false), HALTEN_MAX_MS)"));
   pruefe("Takt: ein neuer Strom setzt eine angehaltene Stimme nicht von selbst fort", strom2.includes('if (ctx.state === "suspended" && !rueck.gehalten?.())') && lies4("components/ki/sprachausgabe-live.ts").includes('if (kontext.current.state === "suspended" && !gehaltenRef.current)'));
   const modus2 = lies4("components/ki/sprachmodus.tsx");
-  pruefe("Stopp-Waechter: eigene Live-Erkennung, solange Himbi denkt oder spricht", modus2.includes("const himbiDran = assistentIstDran(phase);") && modus2.includes("const neu = stand.endgueltig.slice(geprueftBis);") && modus2.includes("if (endgueltig && istStoppBefehl(endgueltig)) return loeseAus(endgueltig);"));
-  pruefe("Stopp-Waechter: schon der vorlaeufige Text haelt an, wenn er 350 ms ein reiner Stoppbefehl bleibt", modus2.includes("const STOPP_STABIL_MS = 350;") && modus2.includes("const vorlaeufig = letzteAeusserung(stand.anzeige.slice(geprueftBis));") && modus2.includes("if (kandidat === vorlaeufig) loeseAus(vorlaeufig);"));
-  pruefe("Stopp-Waechter: Himbis eigenes Stoppwort zaehlt nicht, bei offener Karte nur Absage", modus2.includes("if (wort && stoppWortIn(leseChatStand().antwort, wort)) return;") && /if \(leseFreigabeAnfrage\(\)\) \{\s*entscheideFreigabe\(false\);/.test(modus2));
+  pruefe("Stopp-Waechter: eigene Live-Erkennung, solange Himbi denkt oder spricht", modus2.includes("const himbiDran = assistentIstDran(phase);") && modus2.includes("const neu = stand.endgueltig.slice(geprueftBis);") && modus2.includes("const endgueltig = stoppIn(neu);") && modus2.includes("if (endgueltig) return loeseAus(endgueltig);"));
+  pruefe("Stopp-Waechter: ein Stopp in jedem Satz und am Ende unpunktierten Textes zaehlt", modus2.includes("return stoppBefehlAmEnde(text);") && sm.stoppBefehlAmEnde("und die Datenschutzmeldungen stopp") === "stopp" && sm.stoppBefehlAmEnde("Himbi bitte hör auf") !== null && sm.stoppBefehlAmEnde("das ist gut so") === null);
+  pruefe("Stopp-Waechter: schon der vorlaeufige Text haelt an, wenn er 350 ms ein reiner Stoppbefehl bleibt", modus2.includes("const STOPP_STABIL_MS = 350;") && modus2.includes("const vorlaeufig = stoppIn(stand.anzeige.slice(geprueftBis));") && modus2.includes("if (kandidat === vorlaeufig && sitzung === diese) loeseAus(vorlaeufig);"));
+  pruefe("Stopp-Waechter: nach abgelehnter Karte hoert er weiter, bricht die Sitzung ab, startet er neu (hoechstens dreimal)", /if \(leseFreigabeAnfrage\(\)\) \{\s*entscheideFreigabe\(false\);\s*return;\s*\}\s*aus = true;/.test(modus2) && modus2.includes("if (versuche <= 3) neustartUhr = window.setTimeout(starte, 600);"));
+  pruefe("Stopp-Waechter: Himbis eigenes Stoppwort zaehlt nicht, bei offener Karte nur Absage", modus2.includes("if (wort && stoppWortIn(zuletztGesagt, wort)) return;") && modus2.includes('const zuletztGesagt = gerade ? `${gerade.satz ?? ""} ${gerade.vorher ?? ""}` : leseChatStand().antwort;') && /if \(leseFreigabeAnfrage\(\)\) \{\s*entscheideFreigabe\(false\);/.test(modus2));
   pruefe("Tour: kein automatischer Start waehrend des Sprachmodus", lies4("components/dashboard/use-compliance-tour.tsx").includes("const { starteGespraechZurPruefung, sprachmodus } = useKiPane();"));
 }
 

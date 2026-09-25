@@ -172,6 +172,22 @@ export function istStoppBefehl(text: string): boolean {
   return kern;
 }
 
+/** Endet ein Text mit einem Stoppbefehl, auch wenn davor anderes steht, das kein
+ *  Satzzeichen abtrennt ("... die Datenschutzmeldungen stopp")? Liefert den
+ *  Befehl (die letzten Woerter aus Stopp- und Beiwoertern) oder null. Fuer den
+ *  Stoppwort-Waechter: dort geht dem Befehl oft unpunktierter Resthall voraus. */
+export function stoppBefehlAmEnde(text: string): string | null {
+  const woerter = woerterVon(text);
+  const ende: string[] = [];
+  for (let i = woerter.length - 1; i >= 0 && ende.length < 6; i--) {
+    const w = woerter[i]!;
+    if (STOPP_KERN.has(w) || STOPP_BEIWOERTER.has(w) || HOEREN.has(w) || w === "auf") ende.unshift(w);
+    else break;
+  }
+  const befehl = ende.join(" ");
+  return ende.length > 0 && istStoppBefehl(befehl) ? befehl : null;
+}
+
 /** Das (erste) Stoppwort in einem Text, oder - mit `wort` - ob genau dieses Wort
  *  darin vorkommt. Fuer den Stoppwort-Waechter: sagt Himbi "Stopp" gerade selbst,
  *  ist ein erkanntes "Stopp" ihr eigenes Echo. */

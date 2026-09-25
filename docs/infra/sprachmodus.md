@@ -124,11 +124,20 @@ Mikrofon (mit Echounterdrückung). Er reagiert nur auf endgültig erkannten Text
 der ein reiner Stoppbefehl ist (`istStoppBefehl`: „Stopp“, „Stopp, stopp“,
 „Himbi, stopp“, „Stopp die Führung“, „Hör auf“, „Abbrechen“, in den vier
 Sprachen). Sagt Himbi das Wort gerade selbst, zählt es nicht. Bei offener
-Freigabekarte lehnt „Stopp“ nur die Karte ab. Bis zum 25.09.2026 gab es den
-Wächter nicht: ein kurzes „Stopp“ erreichte die 400 ms des Lautstärke-Wächters
-nie, beim Nachdenken hörte gar nichts zu. Stopp beendet die Stimme, die laufende
-Anfrage, wartende Handlungen, die Führungs-Warteschlange und den Rahmen und
-schließt den Sprachmodus.
+Freigabekarte lehnt „Stopp“ nur die Karte ab, der Wächter hört danach weiter.
+Bis zum 25.09.2026 gab es den Wächter nicht: ein kurzes „Stopp“ erreichte die
+400 ms des Lautstärke-Wächters nie, beim Nachdenken hörte gar nichts zu. Stopp
+beendet die Stimme, die laufende Anfrage, wartende Handlungen, die
+Führungs-Warteschlange und den Rahmen und schließt den Sprachmodus.
+
+Einzelheiten des Wächters: Er wertet schon den vorläufigen Text aus, wenn er
+350 ms lang ein reiner Stoppbefehl bleibt (`STOPP_STABIL_MS`), sonst erst den
+endgültigen (im Test rund drei Sekunden später). Gezählt wird ein Stoppbefehl in
+jedem Satz und am Ende unpunktierten Textes (`stoppBefehlAmEnde`). Als Echo gilt
+nur ein Stoppwort, das im gerade klingenden oder im vorigen Satz steht. Bricht
+seine Sitzung ab (Verbindung, Zeitgrenze einer Sitzung), startet er höchstens
+dreimal je Antwort neu. Das Mikrofon hört damit während des ganzen Gesprächs mit,
+auch während Himbi spricht; das Handbuch sagt das offen.
 
 **Unterbrechen** geht auf zwei Wegen:
 
@@ -266,15 +275,20 @@ Der Weg einer Marke:
    Abschnitte der Seite (`a3`: Karten, Kacheln, Aufklappbereiche, Anker). Beide
    bleiben je Seitenaufruf stabil, nie wieder neu ab `e1`. Jede Sprachmodus-Anfrage
    trägt die **Seitenkarte** der aktuellen Seite mit (`seitenKarte()`), damit das
-   Modell ohne vorheriges `seiteLesen` Marken setzen kann. Der Server begrenzt und
-   bereinigt sie und kennzeichnet sie im Prompt als Daten.
+   Modell ohne vorheriges `seiteLesen` Marken setzen kann. Der Server lässt nur das
+   erwartete Format durch (eine Zeile „Seite:“, Zeilen „a3 Titel“, Titel höchstens
+   60 Zeichen) und hängt sie als begrenzten Datenblock an die aktuelle Frage
+   (`mitSeitenkarte`), nicht an den Systemprompt.
 2. **Server:** `erzeugeMarkenFilter` nimmt jede Marke aus dem Text, auch über
    Stückgrenzen hinweg. Anzeige, gespeicherter Verlauf, Signatur und Rückfallweg
    sehen nur sauberen Text. Der Satzzerleger bekommt einen Platzhalter
    (`MARKEN_PLATZHALTER`), trennt dort immer den Satz und hängt das Ziel an genau
    diesen Satz (`data-satz.ziele`, unsigniert). Eine Marke am Ende eines Textteils
-   gehört zum ersten Satz nach dem Werkzeug. Referenzen, die das Modell nicht
-   kennen kann, fallen weg (`nurBekannteZiele`).
+   gehört zum ersten Satz nach dem Werkzeug, die eigene Marke eines Satzes geht
+   ihr aber vor. Referenzen, die das Modell nicht kennen kann, fallen samt
+   Platzhalter weg (`erzeugeMarkenFilter(bekannt)`), sonst rückten alle folgenden
+   Ziele einen Satz nach vorn. Filter und Bereinigung laufen nur im Sprachmodus:
+   außerhalb davon kann „[[…]]“ gewöhnlicher Text sein.
 3. **Browser:** Beim Eintreffen des Satzes wird das Ziel an sein Element gebunden
    (`bindeSprechZiel`), damit ein späteres `seiteLesen` nichts verschiebt. Der
    Sprecher führt es je Satz mit, `stand()` meldet den klingenden Satz samt Ziel,

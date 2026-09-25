@@ -28,6 +28,7 @@ import {
   istAbsageBefehl,
   istStoppBefehl,
   istZusageBefehl,
+  stoppBefehlAmEnde,
   stoppWortIn,
   nachSitzungsAbbruch,
   naechstePhase,
@@ -538,6 +539,7 @@ function SprachmodusInhalt() {
       letzter = schluessel;
       if (jetzt.satz === null) return;
       untertitelRef.current?.setAttribute("data-satz-jetzt", jetzt.satz ?? "");
+      untertitelRef.current?.setAttribute("data-satz-index", String(jetzt.index));
       if (jetzt.ziel) {
         markeGesehen = true;
         const stelle = loeseSprechZiel(jetzt.ziel);
@@ -559,79 +561,117 @@ function SprachmodusInhalt() {
   // und beim Nachdenken hoerte gar nichts zu (Live-Test vom 25.09.2026: "Stopp"
   // blieb ohne Wirkung, Himbi sprach und fuehrte weiter). Deshalb laeuft in
   // dieser Zeit eine eigene Live-Erkennung auf demselben Mikrofon (mit
-  // Echounterdrueckung), die NUR auf endgueltig erkannte, kurze Stoppbefehle
-  // reagiert (istStoppBefehl). Ein Stoppwort, das Himbi gerade selbst sagt,
-  // zaehlt nicht. Bei offener Freigabekarte lehnt "Stopp" nur die Karte ab, wie
-  // beim Zuhoeren.
+  // Echounterdrueckung), die NUR auf kurze Stoppbefehle reagiert (istStoppBefehl):
+  // endgueltig erkannt, oder vorlaeufig und STOPP_STABIL_MS lang unveraendert. Ein
+  // Stoppwort, das Himbi gerade selbst sagt, zaehlt nicht. Bei offener
+  // Freigabekarte lehnt "Stopp" nur die Karte ab, wie beim Zuhoeren, und der
+  // Waechter hoert weiter. Bricht die Sitzung ab (Verbindung, Zeitgrenze einer
+  // Sitzung), startet er neu, hoechstens dreimal je Antwort.
   useEffect(() => {
     if (!himbiDran) return;
     const strom = stromRef.current;
     if (!strom) return;
     let aus = false;
-    let recorder: MediaRecorder;
-    try {
-      recorder = new MediaRecorder(strom);
-    } catch {
-      return;
-    }
-    let geprueftBis = 0;
-    let kandidat: string | null = null;
+    let versuche = 0;
+    let recorder: MediaRecorder | null = null;
+    let sitzung: LiveSitzung | null = null;
     let kandidatUhr: number | undefined;
-    const letzteAeusserung = (text: string) => text.split(/(?<=[.!?…])\s+/).filter((t) => t.trim()).at(-1) ?? "";
-    const loeseAus = (aeusserung: string) => {
-      if (aus) return;
-      // Hat Himbi dieses Wort gerade selbst gesagt, ist es das eigene Echo.
-      const wort = stoppWortIn(aeusserung);
-      if (wort && stoppWortIn(leseChatStand().antwort, wort)) return;
-      aus = true;
-      if (leseFreigabeAnfrage()) {
-        entscheideFreigabe(false);
-        return;
-      }
-      beendenRef.current();
+    let neustartUhr: number | undefined;
+    // Ein Stoppbefehl in irgendeinem Satz des neuen Textes oder an seinem Ende (dem
+    // oft unpunktierter Resthall vorausgeht) - nicht nur als letzter eigener Satz.
+    const stoppIn = (text: string): string | null => {
+      for (const satz of text.split(/(?<=[.!?…])\s+/)) if (satz.trim() && istStoppBefehl(satz)) return satz;
+      return stoppBefehlAmEnde(text);
     };
-    const sitzung = starteLiveSitzung({
-      sprache,
-      zweck: "gespraech",
-      beiStand: (stand) => {
-        if (aus) return;
-        const neu = stand.endgueltig.slice(geprueftBis);
-        const endgueltig = letzteAeusserung(neu);
-        if (endgueltig && istStoppBefehl(endgueltig)) return loeseAus(endgueltig);
-        // Schneller: der vorlaeufige Text, wenn er 350 ms lang ein reiner
-        // Stoppbefehl bleibt. Der endgueltige kam im Test erst nach rund drei
-        // Sekunden, und so lange lief die Fuehrung weiter.
-        const vorlaeufig = letzteAeusserung(stand.anzeige.slice(geprueftBis));
-        if (vorlaeufig && istStoppBefehl(vorlaeufig)) {
-          if (kandidat !== vorlaeufig) {
-            kandidat = vorlaeufig;
-            window.clearTimeout(kandidatUhr);
-            kandidatUhr = window.setTimeout(() => {
-              if (kandidat === vorlaeufig) loeseAus(vorlaeufig);
-            }, STOPP_STABIL_MS);
-          }
-        } else {
-          kandidat = null;
-          window.clearTimeout(kandidatUhr);
-        }
-        // Ein abgeschlossener Satz ohne Stopp: der naechste beginnt dahinter.
-        if (/[.!?…]\s*$/.test(neu) || neu.length > 160) geprueftBis = stand.endgueltig.length;
-      },
-      beiEndpunkt: () => {},
-    });
-    recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) sitzung.sende(e.data);
-    };
-    recorder.start(AUFNAHME_STUECK_MS);
-    return () => {
-      aus = true;
+    const stoppeTeil = () => {
       window.clearTimeout(kandidatUhr);
       try {
-        if (recorder.state !== "inactive") recorder.stop();
+        if (recorder && recorder.state !== "inactive") recorder.stop();
       } catch {
         // schon gestoppt
       }
-      sitzung.abbrechen();
+      sitzung?.abbrechen();
+      recorder = null;
+      sitzung = null;
+    };
+    const starte = () => {
+      if (aus) return;
+      let neuerRecorder: MediaRecorder;
+      try {
+        neuerRecorder = new MediaRecorder(strom);
+      } catch {
+        return;
+      }
+      let geprueftBis = 0;
+      let kandidat: string | null = null;
+      let endgueltigBisher = "";
+      const loeseAus = (aeusserung: string): void => {
+        if (aus) return;
+        // Hat Himbi dieses Wort gerade selbst gesagt (im klingenden oder vorigen
+        // Satz), ist es das eigene Echo. Nicht die ganze Antwort: ein "halt"
+        // irgendwo darin sperrte sonst jedes "Halt" bis zum Ende.
+        const wort = stoppWortIn(aeusserung);
+        const gerade = leseGerade();
+        const zuletztGesagt = gerade ? `${gerade.satz ?? ""} ${gerade.vorher ?? ""}` : leseChatStand().antwort;
+        if (wort && stoppWortIn(zuletztGesagt, wort)) return;
+        kandidat = null;
+        window.clearTimeout(kandidatUhr);
+        geprueftBis = endgueltigBisher.length;
+        if (leseFreigabeAnfrage()) {
+          entscheideFreigabe(false);
+          return;
+        }
+        aus = true;
+        beendenRef.current();
+      };
+      const diese = starteLiveSitzung({
+        sprache,
+        zweck: "gespraech",
+        beiStand: (stand) => {
+          if (aus || sitzung !== diese) return;
+          endgueltigBisher = stand.endgueltig;
+          const neu = stand.endgueltig.slice(geprueftBis);
+          const endgueltig = stoppIn(neu);
+          if (endgueltig) return loeseAus(endgueltig);
+          // Schneller: der vorlaeufige Text, wenn er STOPP_STABIL_MS lang ein reiner
+          // Stoppbefehl bleibt. Der endgueltige kam im Test erst nach rund drei
+          // Sekunden, und so lange lief die Fuehrung weiter.
+          const vorlaeufig = stoppIn(stand.anzeige.slice(geprueftBis));
+          if (vorlaeufig) {
+            if (kandidat !== vorlaeufig) {
+              kandidat = vorlaeufig;
+              window.clearTimeout(kandidatUhr);
+              kandidatUhr = window.setTimeout(() => {
+                if (kandidat === vorlaeufig && sitzung === diese) loeseAus(vorlaeufig);
+              }, STOPP_STABIL_MS);
+            }
+          } else {
+            kandidat = null;
+            window.clearTimeout(kandidatUhr);
+          }
+          // Ein abgeschlossener Satz ohne Stopp: der naechste beginnt dahinter.
+          if (/[.!?…]\s*$/.test(neu) || neu.length > 160) geprueftBis = stand.endgueltig.length;
+        },
+        beiEndpunkt: () => {},
+        beiScheitern: () => {
+          if (aus || sitzung !== diese) return;
+          stoppeTeil();
+          versuche += 1;
+          if (versuche <= 3) neustartUhr = window.setTimeout(starte, 600);
+        },
+      });
+      recorder = neuerRecorder;
+      sitzung = diese;
+      neuerRecorder.ondataavailable = (e) => {
+        if (e.data.size > 0 && sitzung === diese) diese.sende(e.data);
+      };
+      neuerRecorder.start(AUFNAHME_STUECK_MS);
+    };
+    starte();
+    return () => {
+      aus = true;
+      window.clearTimeout(neustartUhr);
+      stoppeTeil();
     };
   }, [himbiDran, sprache]);
 

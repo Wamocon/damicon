@@ -422,7 +422,7 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
     const nr = spieltNr.current;
     if (nr === null) return { index: fertigBis.current, anzahl, satz: null };
     const schein = scheine.current.get(nr);
-    return { index: nr - 1, anzahl, satz: schein?.a.text ?? null, ziel: schein?.a.gebunden ?? null };
+    return { index: nr - 1, anzahl, satz: schein?.a.text ?? null, ziel: schein?.a.gebunden ?? null, vorher: scheine.current.get(nr - 1)?.a.text ?? null };
   }, []);
 
   /** Haelt die Stimme an (Seitenwechsel im Sprachmodus, sprach-takt.ts), ohne

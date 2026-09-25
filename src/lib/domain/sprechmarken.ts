@@ -46,7 +46,10 @@ export interface MarkenFilter {
   leere(): GefiltertesStueck;
 }
 
-export function erzeugeMarkenFilter(): MarkenFilter {
+/** `bekannt`: die Referenzen, die das Modell kennen kann (route.ts). Eine Marke auf
+ *  eine andere e-/a-Referenz faellt samt Platzhalter weg - fiele nur das Ziel weg,
+ *  rueckten alle folgenden Ziele einen Satz nach vorn (Pruefung vom 25.09.2026). */
+export function erzeugeMarkenFilter(bekannt: ReadonlySet<string> | null = null): MarkenFilter {
   let rest = "";
 
   function verarbeite(text: string, amEnde: boolean): GefiltertesStueck {
@@ -92,8 +95,8 @@ export function erzeugeMarkenFilter(): MarkenFilter {
         continue;
       }
       const ziel = zielAusMarke(innen);
-      // Auch eine unbrauchbare Marke wird nie angezeigt oder gesprochen.
-      if (ziel) {
+      // Auch eine unbrauchbare oder unbekannte Marke wird nie angezeigt oder gesprochen.
+      if (ziel && nurBekannteZiele([ziel], bekannt).length > 0) {
         zerleger += MARKEN_PLATZHALTER;
         ziele.push(ziel);
       }

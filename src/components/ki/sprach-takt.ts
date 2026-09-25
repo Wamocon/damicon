@@ -41,6 +41,13 @@ const REIHE_ANLAUF_MS = 200;
 
 const pause = (ms: number) => new Promise<void>((weiter) => window.setTimeout(weiter, ms));
 
+/** Steht der Browser schon auf dem Ziel (Pfad UND Abfrage, ohne Sprachpraefix)?
+ *  Die Abfrage zaehlt mit: /dashboard/compliance?bereich=steuer ist ein anderer
+ *  Stand als ?bereich=audit, auch wenn der Pfad gleich bleibt. */
+function stehtAufZiel(ziel: string): boolean {
+  return `${window.location.pathname}${window.location.search}`.endsWith(ziel.split("#")[0]);
+}
+
 export function useSprachTakt() {
   /** Vom Chat gesetzt (in einem Effekt): was die Stimme gerade tut. */
   const stimme = useRef<VorlesePhase>("still");
@@ -59,8 +66,7 @@ export function useSprachTakt() {
    *  oder bis das Zeitlimit greift. Ohne das las seiteLesen eine noch ladende Seite. */
   const wartePfad = useCallback(
     async (ziel: string, meinZug: number) => {
-      const pfad = ziel.split("#")[0].split("?")[0];
-      for (let ms = 0; ms < SEITE_MAX_MS && gilt(meinZug) && !window.location.pathname.endsWith(pfad); ms += 100) await pause(100);
+      for (let ms = 0; ms < SEITE_MAX_MS && gilt(meinZug) && !stehtAufZiel(ziel); ms += 100) await pause(100);
       for (let ms = 0; ms < INHALT_MAX_MS && gilt(meinZug) && !document.querySelector("#main h1"); ms += 100) await pause(100);
       await pause(SEITE_NACHLAUF_MS);
     },
@@ -117,7 +123,7 @@ export function useSprachTakt() {
         .then(async () => {
           await warteBisMarke(meinZug, vorSaetzen);
           if (!gilt(meinZug)) return;
-          const wechsel = !window.location.pathname.endsWith(ziel.split("#")[0].split("?")[0]);
+          const wechsel = !stehtAufZiel(ziel);
           if (wechsel) halte.current?.(true);
           const notbremse = window.setTimeout(() => halte.current?.(false), HALTEN_MAX_MS);
           try {
