@@ -505,6 +505,54 @@ function SprachmodusInhalt() {
     : t("status.fehler");
   const kugelBeschriftung = phase === "fehler" ? t("erneut") : assistentIstDran(phase) ? t("unterbrechen") : statusText;
 
+  // Kugel + Knopf: identischer Inhalt in allen drei Lagen (Mitte, links,
+  // neben einem Ziel) - nur Groesse und Abzeichen/Statuszeile daneben
+  // unterscheiden sich.
+  const kugelKnopf = (
+    <button
+      type="button"
+      onClick={beiKugelKlick}
+      className="ki-sprachmodus__kugel-knopf"
+      aria-label={kugelBeschriftung}
+      title={kugelBeschriftung}
+    >
+      <SprachKugel zustand={kugelZustand} ausgabePegel={ausgabePegel} groesse={angedockt ? GROESSE_KLEIN : GROESSE_MITTE} />
+      {/* Neben einem hervorgehobenen Element ist fuer den Zustandstext daneben
+          kein Platz reserviert. Ein Abzeichen auf der Kugel selbst zeigt
+          trotzdem, was gerade laeuft: die Farbe allein reicht nicht
+          (Rueckmeldung vom 25.09.2026 zum Fuehrmodus). */}
+      {beiSeite ? (
+        <span className={cn("ki-sprachmodus__abzeichen", `ki-sprachmodus__abzeichen--${kugelZustand}`)} aria-hidden>
+          <StatusSymbol className={cn("ki-sprachmodus__status-symbol", kugelZustand === "denkt" && "ki-sprachmodus__status-symbol--dreht")} />
+        </span>
+      ) : null}
+    </button>
+  );
+  const statusZeile = !beiSeite ? (
+    <p className="ki-sprachmodus__status">
+      <StatusSymbol className={cn("ki-sprachmodus__status-symbol", kugelZustand === "denkt" && "ki-sprachmodus__status-symbol--dreht")} aria-hidden />
+      {statusText}
+    </p>
+  ) : null;
+  const untertitel =
+    !beiSeite && untertitelAn ? (
+      <div className="ki-sprachmodus__untertitel" aria-hidden={phase !== "hoert" && phase !== "versteht"}>
+        {phase === "hoert" || phase === "versteht" ? (
+          <p className="ki-sprachmodus__untertitel-zeile ki-sprachmodus__untertitel-zeile--nutzer">
+            {zwischentext || (phase === "hoert" ? t("hoertZu") : "")}
+          </p>
+        ) : (chatStand.antwort || phase === "spricht" || phase === "denkt") ? (
+          // Nie das rohe Markdown der Antwort ("**fett**", "1. ...") - das
+          // stand bis zum 25.09.2026 unbereinigt im Untertitel, bei
+          // laengeren Antworten kaum lesbar. Dieselbe Markdown-Darstellung
+          // wie im sichtbaren Chat (Absaetze, Fettdruck, Listen).
+          <div className="ki-sprachmodus__untertitel-zeile">
+            <Markdown text={chatStand.antwort} />
+          </div>
+        ) : null}
+      </div>
+    ) : null;
+
   return (
     <div
       role="dialog"
@@ -520,74 +568,40 @@ function SprachmodusInhalt() {
         {statusText}
       </p>
 
-      <div
-        className={cn("ki-sprachmodus__kugel-huelle", angedockt && !beiSeite && "ki-sprachmodus__kugel-huelle--links")}
-        style={
-          kugelPlatz
-            ? {
-                left: kugelPlatz.rechteck.x,
-                top: kugelPlatz.rechteck.y,
-                width: kugelPlatz.rechteck.breite,
-                height: kugelPlatz.rechteck.hoehe,
-              }
-            : undefined
-        }
-      >
-        <button
-          type="button"
-          onClick={beiKugelKlick}
-          className="ki-sprachmodus__kugel-knopf"
-          aria-label={kugelBeschriftung}
-          title={kugelBeschriftung}
-        >
-          <SprachKugel
-            zustand={kugelZustand}
-            ausgabePegel={ausgabePegel}
-            groesse={angedockt ? GROESSE_KLEIN : GROESSE_MITTE}
-          />
-          {/* Neben einem hervorgehobenen Element ist fuer den Zustandstext daneben
-              kein Platz reserviert. Ein Abzeichen auf der Kugel selbst zeigt
-              trotzdem, was gerade laeuft: die Farbe allein reicht nicht
-              (Rueckmeldung vom 25.09.2026 zum Fuehrmodus). */}
-          {beiSeite ? (
-            <span className={cn("ki-sprachmodus__abzeichen", `ki-sprachmodus__abzeichen--${kugelZustand}`)} aria-hidden>
-              <StatusSymbol
-                className={cn("ki-sprachmodus__status-symbol", kugelZustand === "denkt" && "ki-sprachmodus__status-symbol--dreht")}
-              />
-            </span>
-          ) : null}
-        </button>
-        {!beiSeite ? (
-          <p className="ki-sprachmodus__status">
-            <StatusSymbol
-              className={cn("ki-sprachmodus__status-symbol", kugelZustand === "denkt" && "ki-sprachmodus__status-symbol--dreht")}
-              aria-hidden
-            />
-            {statusText}
-          </p>
-        ) : null}
-      </div>
-
-      {!beiSeite && untertitelAn ? (
-        <div
-          className={cn("ki-sprachmodus__untertitel", angedockt && "ki-sprachmodus__untertitel--links")}
-          aria-hidden={phase !== "hoert" && phase !== "versteht"}
-        >
-          {phase === "hoert" || phase === "versteht" ? (
-            <p className="ki-sprachmodus__untertitel-zeile ki-sprachmodus__untertitel-zeile--nutzer">
-              {zwischentext || (phase === "hoert" ? t("hoertZu") : "")}
-            </p>
-          ) : (chatStand.antwort || phase === "spricht" || phase === "denkt") ? (
-            // Nie das rohe Markdown der Antwort ("**fett**", "1. ...") - das
-            // stand bis zum 25.09.2026 unbereinigt im Untertitel, bei
-            // laengeren Antworten kaum lesbar. Dieselbe Markdown-Darstellung
-            // wie im sichtbaren Chat (Absaetze, Fettdruck, Listen).
-            <div className="ki-sprachmodus__untertitel-zeile">
-              <Markdown text={chatStand.antwort} />
+      {angedockt && !beiSeite ? (
+        // Links, vertikal mittig ueber der Navigationsleiste (nur diese wird
+        // unscharf, siehe .ki-sprachmodus__seitenleiste-unschaerfe weiter
+        // unten - die Mitte bleibt frei und scharf). EIN Flex-Block fuer Kugel
+        // und Text: waechst der Text nach unten, ruecken beide zusammen als
+        // Einheit wieder mittig - die Kugel wandert dabei von selbst nach
+        // oben (Rueckmeldung vom 25.09.2026). max-height haelt die Einheit
+        // dabei immer im Rahmen der Navigationsleiste.
+        <>
+          <div className="ki-sprachmodus__seitenleiste-unschaerfe" aria-hidden />
+          <div className="ki-sprachmodus__links-spalte">
+            <div className="ki-sprachmodus__kugel-huelle ki-sprachmodus__kugel-huelle--links">
+              {kugelKnopf}
+              {statusZeile}
             </div>
-          ) : null}
-        </div>
-      ) : null}
+            {untertitel}
+          </div>
+        </>
+      ) : (
+        <>
+          <div
+            className={cn("ki-sprachmodus__kugel-huelle", beiSeite && "ki-sprachmodus__kugel-huelle--beiseite")}
+            style={
+              kugelPlatz
+                ? { left: kugelPlatz.rechteck.x, top: kugelPlatz.rechteck.y, width: kugelPlatz.rechteck.breite, height: kugelPlatz.rechteck.hoehe }
+                : undefined
+            }
+          >
+            {kugelKnopf}
+            {statusZeile}
+          </div>
+          {untertitel}
+        </>
+      )}
 
       {meldung ? <p className="ki-sprachmodus__meldung">{meldung}</p> : null}
 
