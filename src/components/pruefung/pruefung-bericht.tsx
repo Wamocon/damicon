@@ -1,12 +1,13 @@
 "use client";
 
 import { Fragment, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { CheckCircle2, Database, FileDown, FileJson, FileWarning, ShieldCheck, TriangleAlert } from "lucide-react";
 import { berichtAlsPdfSpeichern } from "@/components/pruefung/bericht-pdf";
 import { BEREICH_SYMBOL } from "@/components/pruefung/symbole";
 import { BelegAnbieter, QuellenListe, ZitatMarke } from "@/components/ki/ki-quellen";
 import { siegelGueltig } from "@/lib/pruefung/befund";
+import { titelInSprache } from "@/lib/pruefung/felder-titel";
 import { PRUEFBEREICHE, type Pruefbereich } from "@/lib/pruefung/rollen";
 import { FRISTEN, type Befund, type Bericht } from "@/lib/pruefung/typen";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ function MitZitaten({ text }: { text: string }) {
 }
 
 export function BefundKarte({ b, belege, index }: { b: Befund; belege: Bericht["belege"]; index: number }) {
+  const sprache = useLocale();
   const t = useTranslations("pruefung");
   const [erledigt, setErledigt] = useState<ReadonlySet<number>>(new Set());
   const eigene = belege.filter((x) => b.belege.includes(x.id));
@@ -42,7 +44,7 @@ export function BefundKarte({ b, belege, index }: { b: Befund; belege: Bericht["
           {t(`status.${b.status}`)}
         </span>
         {b.schwere !== "keine" ? <span className="pr-chip">{t(`schwere.${b.schwere}`)}</span> : null}
-        <h4 className="pr-befund__titel">{b.titel}</h4>
+        <h4 className="pr-befund__titel">{titelInSprache(b.titel, b.feld, sprache)}</h4>
         <span className="pr-bereichsmarke">{t(`bereich.${b.bereich}.name`)}</span>
       </div>
       <BelegAnbieter nachrichtId={b.id} belege={eigene}>

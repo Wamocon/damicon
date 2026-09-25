@@ -2533,7 +2533,7 @@ for (const [name, kaputteAntwort] of [
     const anweisung = sprachmodusFormatAnweisung(sprache);
     pruefe(`Sprachmodus-Anweisung ${sprache}: kurzer Vorab-Satz vor dem Werkzeug, im selben Schritt`, anweisung.includes("höchstens acht Wörtern") && anweisung.includes("im selben Schritt das passende Werkzeug"));
     pruefe(`Sprachmodus-Anweisung ${sprache}: keine Antwort aus dem Gedächtnis, Daten jedes Mal neu`, anweisung.includes("hole die Daten jedes Mal neu mit den Werkzeugen"));
-    pruefe(`Sprachmodus-Anweisung ${sprache}: kein Fuellsatz ueber das Lesen nach dem Vorab-Satz`, anweisung.includes("'Ich lese nun die Seite' ist verboten"));
+    pruefe(`Sprachmodus-Anweisung ${sprache}: kein Fuellsatz ueber das Lesen nach dem Vorab-Satz`, anweisung.includes("'Ich lese nun die Seite' und 'Ich lese den Bericht' sind verboten") && anweisung.includes("seiteLesen rufst du ohne jeden Satz davor auf"));
     pruefe(`Sprachmodus-Anweisung ${sprache}: Sprechmarken als einzige Ausnahme vom Markdown-Verbot`, anweisung.includes("Einzige Ausnahme sind die Sprechmarken [[...]]"));
   }
 
@@ -3318,6 +3318,15 @@ for (const [name, kaputteAntwort] of [
   pruefe("Stopp-Waechter: schon der vorlaeufige Text haelt an, wenn er 350 ms ein reiner Stoppbefehl bleibt", modus2.includes("const STOPP_STABIL_MS = 350;") && modus2.includes("const vorlaeufig = stoppIn(stand.anzeige.slice(geprueftBis));") && modus2.includes("if (kandidat === vorlaeufig && sitzung === diese) loeseAus(vorlaeufig);"));
   pruefe("Stopp-Waechter: nach abgelehnter Karte hoert er weiter, bricht die Sitzung ab, startet er neu (hoechstens dreimal)", /if \(leseFreigabeAnfrage\(\)\) \{\s*entscheideFreigabe\(false\);\s*return;\s*\}\s*aus = true;/.test(modus2) && modus2.includes("if (versuche <= 3) neustartUhr = window.setTimeout(starte, 600);"));
   pruefe("Stopp-Waechter: Himbis eigenes Stoppwort zaehlt nicht, bei offener Karte nur Absage", modus2.includes("if (wort && stoppWortIn(zuletztGesagt, wort)) return;") && modus2.includes('const zuletztGesagt = gerade ? `${gerade.satz ?? ""} ${gerade.vorher ?? ""}` : leseChatStand().antwort;') && /if \(leseFreigabeAnfrage\(\)\) \{\s*entscheideFreigabe\(false\);/.test(modus2));
+  // Rueckmeldung vom 25.09.2026 (zweiter Teil): Figur weg, "Sprachmodus beenden", Endpunkt, Titel in der richtigen Sprache.
+  pruefe("Sprachmodus: die Himbi-Figur ist ausgeblendet, solange er laeuft (nicht abgebaut)", lies4("components/haustier/haustier-dashboard.tsx").includes("verborgen={sprachmodus}") && lies4("components/haustier/haustier-huelle.tsx").includes("hidden={verborgen}") && lies4("components/haustier/haustier.css").includes(".haustier[hidden]"));
+  pruefe("Stopp: 'Sprachmodus beenden' und Gegenstuecke beenden, 'Beende die Aufgabe' bleibt eine Frage", ["Sprachmodus beenden", "Beende den Sprachmodus", "Gespräch beenden", "End voice mode", "Выключи голосовой режим", "Дауыс режимін аяқта"].every((t) => sm.istStoppBefehl(t)) && !sm.istStoppBefehl("Beende die Aufgabe") && !sm.istStoppBefehl("Was ist aus dem Bericht geworden?"));
+  pruefe("Stopp: 'Sprachmodus beenden' bei offener Karte lehnt ab und beendet", /if \(istStoppBefehl\(ergebnis\.text\)\) \{\s*entscheideFreigabe\(false\);\s*beendenRef\.current\(\);/.test(modus2));
+  const diktat = await import("../../src/lib/domain/diktat-live.ts");
+  pruefe("Endpunkt im Gespraech: ruhiger eingestellt (Empfindlichkeit 0, Latenzsenkung Stufe 1), damit nicht mitten im Satz geschnitten wird", diktat.GESPRAECH_ENDPUNKT.endpoint_sensitivity === 0 && diktat.GESPRAECH_ENDPUNKT.endpoint_latency_adjustment_level === 1);
+  const ft = await import("../../src/lib/pruefung/felder-titel.ts");
+  pruefe("Befund-Titel: ein deutscher Titel im russischen Bericht wird durch den uebersetzten Feldtitel ersetzt", ft.titelInSprache("Überfällige Meldepflichten im Datenschutz und bei Statistik", "ri-fristen", "ru") === ft.feldTitel("ri-fristen", "ru", "x") && ft.titelInSprache("Санкции за нарушения", "ri-gesamt", "ru") === "Санкции за нарушения");
+  pruefe("Befund-Titel: beim Erzeugen, in der Aenderungsliste und in der Befundkarte angewandt", lies4("lib/pruefung/agenten.ts").includes("titel: titelInSprache(schreibweise(b.titel), b.feld, anfrage.sprache),") && lies4("components/dashboard/tages-kopf.tsx").includes("titelInSprache(a.titel, a.befundId, useLocale())") && lies4("components/pruefung/pruefung-bericht.tsx").includes("titelInSprache(b.titel, b.feld, sprache)"));
   pruefe("Tour: kein automatischer Start waehrend des Sprachmodus", lies4("components/dashboard/use-compliance-tour.tsx").includes("const { starteGespraechZurPruefung, sprachmodus } = useKiPane();"));
 }
 

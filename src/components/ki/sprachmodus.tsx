@@ -336,6 +336,12 @@ function SprachmodusInhalt() {
             dispatch({ art: "frage-gestellt" });
             return;
           }
+          // "Sprachmodus beenden" bei offener Karte: ablehnen UND beenden.
+          if (istStoppBefehl(ergebnis.text)) {
+            entscheideFreigabe(false);
+            beendenRef.current();
+            return;
+          }
         } else if (istStoppBefehl(ergebnis.text)) {
           // Sicherer Weg zu beenden, ohne Knopf oder Taste (Rueckmeldung vom
           // 25.09.2026: "ich muss ihn stoppen koennen mit Stopp").

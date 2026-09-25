@@ -71,6 +71,9 @@ export interface HaustierHuelleProps {
   huepf?: number;
   /** Wegschicken durch Gedrueckt-Halten (oder Entf-Taste). Ohne diesen Eintrag laesst sich Himbi nicht wegschicken. */
   weg?: WegTexte;
+  /** Ausgeblendet, aber nicht abgebaut: Position und Zustand bleiben erhalten
+   *  (waehrend des Sprachmodus, Rueckmeldung vom 25.09.2026). */
+  verborgen?: boolean;
   /** Gesetzt: die drei Sterne auf dem Chapan werden klickbar - alle drei rufen sie auf (himbi.tsx). */
   aufAbzeichen?: () => void;
   /** Gesetzt: die Anstecknadel auf der Kappe wird klickbar (himbi.tsx). */
@@ -102,6 +105,7 @@ export function HaustierHuelle({
   buehne = false,
   huepf = 0,
   weg,
+  verborgen = false,
   aufAbzeichen,
   aufLogo,
   inventar,
@@ -526,6 +530,7 @@ export function HaustierHuelle({
     <div
       ref={wurzel}
       className="haustier"
+      hidden={verborgen}
       data-bereit={bereit}
       data-zustand={anzeige}
       data-seite={seite}

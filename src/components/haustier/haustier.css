@@ -22,6 +22,11 @@
   pointer-events: none;
 }
 
+/* Im Sprachmodus ausgeblendet (verborgen in haustier-huelle.tsx). */
+.haustier[hidden] {
+  display: none;
+}
+
 .haustier[data-hoch="true"] {
   bottom: calc(84px + var(--untere-leiste-raum, 0px));
 }

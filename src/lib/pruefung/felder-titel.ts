@@ -69,3 +69,27 @@ const TITEL: Record<string, Record<string, string>> = {
 export function feldTitel(id: string, sprache: string, standard: string): string {
   return TITEL[sprache]?.[id] ?? standard;
 }
+
+const DEUTSCHE_WOERTER = /(?:^|[^\p{L}])(?:und|der|die|das|bei|im|mit|für|zur|zum|von|des)(?![\p{L}])/iu;
+const ENGLISCHE_WOERTER = /(?:^|[^\p{L}])(?:and|the|of|with|for|to|in)(?![\p{L}])/iu;
+
+/** Passt ein Befund-Titel zur Sprache? Grob und ohne Modell: das Schriftsystem
+ *  (Russisch und Kasachisch kyrillisch, sonst lateinisch) und fuer Deutsch und
+ *  Englisch Umlaute und haeufige Woerter. Im Zweifel ja. */
+export function titelPasstZurSprache(titel: string, sprache: string): boolean {
+  const kyrillisch = (titel.match(/\p{Script=Cyrillic}/gu) ?? []).length;
+  const lateinisch = (titel.match(/\p{Script=Latin}/gu) ?? []).length;
+  if (sprache === "ru" || sprache === "kk") return kyrillisch > 0;
+  if (kyrillisch > lateinisch) return false;
+  if (sprache === "en") return !/[äöüß]/i.test(titel) && !DEUTSCHE_WOERTER.test(titel);
+  if (sprache === "de") return /[äöüß]/i.test(titel) || !ENGLISCHE_WOERTER.test(titel);
+  return true;
+}
+
+/** Der Titel eines Befunds in der gewuenschten Sprache: der Titel des Modells, wenn er
+ *  passt, sonst der uebersetzte Feldtitel. Das Modell schreibt trotz Anweisung
+ *  gelegentlich einen deutschen Titel in einen russischen Bericht (Rueckmeldung vom
+ *  25.09.2026: "ich habe Russisch eingestellt, aber da steht etwas auf Deutsch"). */
+export function titelInSprache(titel: string, feld: string, sprache: string): string {
+  return titelPasstZurSprache(titel, sprache) ? titel : feldTitel(feld, sprache, titel);
+}

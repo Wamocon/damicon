@@ -131,17 +131,25 @@ export const RUHE_VOR_ZUHOEREN_MS = 700;
 // "Himbi, stopp", "Stopp die Fuehrung", "Nein, hoer auf" zaehlen auch - eine kurze
 // Aeusserung aus Stoppwort und Beiwoertern. Alles mit einem anderen Inhalt
 // ("Stopp den Bericht bitte") bleibt eine Frage.
+// Auch "Sprachmodus beenden", "Gespräch beenden", "Beende den Sprachmodus" (Rueckmeldung vom
+// 25.09.2026: "ich sage Sprachmodus beenden und der Sprachmodus wird beendet").
 const STOPP_KERN = new Set([
   // Deutsch
-  "stopp", "stop", "halt", "abbrechen", "aufhören", "aufhoeren",
+  "stopp", "stop", "halt", "abbrechen", "aufhören", "aufhoeren", "beenden", "beende", "schließen", "schliessen", "verlassen", "aus",
+  // Englisch
+  "end", "exit", "quit", "close",
   // Russisch
-  "стоп", "стой", "хватит", "остановись", "прекрати",
+  "стоп", "стой", "хватит", "остановись", "прекрати", "выключи", "выключить", "заверши", "завершить", "закончи", "закончить", "выйди", "выйти",
   // Kasachisch
-  "тоқта", "тоқтат", "тоқтаңыз",
+  "тоқта", "тоқтат", "тоқтаңыз", "аяқта", "аяқтау", "өшір", "өшіру", "жап", "жабу",
 ]);
 const STOPP_BEIWOERTER = new Set([
   "bitte", "please", "пожалуйста", "өтінемін", "himbi", "химби", "jetzt", "sofort", "mal", "doch",
   "ok", "okay", "hey", "nein", "die", "führung", "fuehrung", "danke", "einfach", "alles",
+  "den", "das", "sprachmodus", "gespräch", "gespraech", "modus",
+  "the", "voice", "mode", "conversation",
+  "голосовой", "режим", "разговор",
+  "дауыс", "режимі", "режимін", "әңгіме", "әңгімені",
 ]);
 const HOEREN = new Set(["hör", "hoer", "hören", "hoeren"]);
 const HOEFLICHKEIT = /^(bitte|please|пожалуйста|өтінемін)[\s,]+|[\s,]+(bitte|please|пожалуйста|өтінемін)$/gi;

@@ -124,7 +124,13 @@ export type LiveZweck = "diktat" | "gespraech";
  *  unfertiger Satz bekommt weiter mehr Zeit. Beim Diktat bleibt es bei der Voreinstellung,
  *  dort ist ein zu frueher Schnitt aergerlicher als eine Sekunde Warten. Je Sprache nicht
  *  gemessen; nachziehen, sobald echte Gespraeche vorliegen. */
-export const GESPRAECH_ENDPUNKT = { endpoint_sensitivity: 0.3, endpoint_latency_adjustment_level: 2 } as const;
+//
+// Seit dem 25.09.2026 ruhiger: mit 0,3 und Stufe 2 schnitt die Erkennung "sehr selten,
+// aber immer wieder" mitten in einer Aeusserung ab, bevor der Nutzer fertig war
+// (Rueckmeldung vom 25.09.2026). Empfindlichkeit wieder auf die Voreinstellung 0 (Werte
+// -1 bis 1, hoeher = frueher), Latenzsenkung nur noch Stufe 1 (0 bis 3). Kostet im
+// Schnitt einen Bruchteil einer Sekunde, dafuer bleibt eine Denkpause eine Pause.
+export const GESPRAECH_ENDPUNKT = { endpoint_sensitivity: 0, endpoint_latency_adjustment_level: 1 } as const;
 
 export function liveKonfiguration(oberflaeche: string | undefined, zweck: LiveZweck = "diktat"): LiveKonfiguration {
   return {

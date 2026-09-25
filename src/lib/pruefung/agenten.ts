@@ -3,7 +3,7 @@ import { z } from "zod";
 import type { Role } from "@/lib/rbac";
 import { befundEingabe, gesamtKennzahlen, massnahmenplan, pruefeBefund, sha256Hex, siegelFuer, sortiereBefunde } from "@/lib/pruefung/befund";
 import { punkteFuer, type Pruefpunkt } from "@/lib/pruefung/felder";
-import { feldTitel } from "@/lib/pruefung/felder-titel";
+import { feldTitel, titelInSprache } from "@/lib/pruefung/felder-titel";
 import type { Pruefbereich } from "@/lib/pruefung/rollen";
 import type { Befund, Bericht, Ereignis, Nachweis } from "@/lib/pruefung/typen";
 import { sprachePasst } from "@/lib/domain/antwortsprache";
@@ -220,7 +220,7 @@ export async function fuehrePruefungAus(
   const schreibweise = (text: string) => fuerSprache(text, anfrage.sprache);
   const bereinige = (b: Befund): Befund => ({
     ...b,
-    titel: schreibweise(b.titel),
+    titel: titelInSprache(schreibweise(b.titel), b.feld, anfrage.sprache),
     befund: schreibweise(b.befund),
     massnahmen: b.massnahmen.map((m) => ({ ...m, schritt: schreibweise(m.schritt) })),
   });
