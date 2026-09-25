@@ -372,8 +372,8 @@ KI-Chat und Detailansicht dürfen gleichzeitig offen sein, die Anordnung wechsel
 **Leerzustand.** `LeererZustand` sagt, warum die Liste leer ist. Mit Filtern steht dort „Keine Treffer“ und ein Link zum Zurücksetzen, ohne Filter ein Hinweis, dass Einträge hier erscheinen werden.
 
 **Himbi.** Er steht immer links von dem, was rechts andockt.
-- Neben der angedockten Detailansicht und der Schublade rückt er um ihre Breite nach links, mit angedocktem KI-Chat um beide.
-- Wo die Detailansicht die Liste ersetzt, blendet er sich aus.
+- Neben der angedockten Detailansicht rückt er um ihre Breite nach links, mit angedocktem KI-Chat um beide.
+- Liegt sie als Schublade über der Liste oder ersetzt sie die Liste, blendet er sich aus. Neben der Schublade bleiben nur 10rem Liste, dort verdeckte er Karten.
 - Anordnung und Breite meldet `ui/detailpanel-steuerung.tsx` als `data-detailpanel` und `--detailpanel-ist` an `<html>`. Die Breite wird gemessen, weil sie mit dem Platz wächst. Die Regeln stehen in `haustier.css`.
 
 **KI-Agent.**

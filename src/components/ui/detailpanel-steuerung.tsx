@@ -337,10 +337,10 @@ export function DetailpanelSteuerung({
   }, [auswahlId, router, schliessenZiel]);
 
   // Anordnung und Breite an <html> melden. Himbi weicht damit aus
-  // (haustier.css): neben der angedockten oder ueber der Liste liegenden
-  // Detailansicht rueckt er um ihre Breite nach links, wo sie die Liste
-  // ersetzt, blendet er sich aus. Die Breite wird gemessen, weil sie mit dem
-  // Platz waechst (--detailpanel-angedockt in globals.css).
+  // (haustier.css): neben der angedockten Detailansicht rueckt er um ihre
+  // Breite nach links; liegt sie als Schublade ueber der Liste oder ersetzt
+  // sie die Liste, blendet er sich aus. Die Breite wird gemessen, weil sie
+  // mit dem Platz waechst (--detailpanel-angedockt in globals.css).
   useEffect(() => {
     const wurzel = document.documentElement;
     const aufraeumen = () => {
