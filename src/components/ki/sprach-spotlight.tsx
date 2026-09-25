@@ -4,18 +4,12 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 import { abonniereHervorhebung, hervorhebungServer, leseHervorhebung } from "@/components/ki/hervorhebung";
 import { besterPlatz, type Platz, type Raender, type Rechteck } from "@/lib/domain/sprachmodus";
 
-// Lichtkegel um das Element, das der Assistent gerade zeigt - waehrend des
-// Sprachmodus. Rest der Seite bleibt unter dem Unschaerfe-Hintergrund des
-// Overlays sichtbar, aber gedimmt; das Ziel selbst steht scharf und hell
-// darueber, mit einem duennen Ring.
-//
-// Technik: EIN SVG-Pfad mit "fill-rule: evenodd" - ein Aussenrechteck (das ganze
-// Fenster) und ein inneres, abgerundetes Rechteck (das Ziel). Das ist die
-// robusteste der verglichenen Techniken (driver.js, react-joyride): sie haengt
-// nicht vom Stacking-Context des Ziels ab, im Unterschied zum aelteren
-// box-shadow/z-index-Trick (intro.js) - ein Ziel in einem Container mit
-// overflow:hidden, transform oder filter bleibt so erreichbar (siehe
-// docs/infra/sprachmodus-recherche.md, Abschnitt Spotlight).
+// Rahmen um das Element, das der Assistent gerade zeigt - waehrend des
+// Sprachmodus. Die Seite bleibt ueberall normal hell und scharf sichtbar
+// (Rueckmeldung vom 25.09.2026: "die Mitte muss ich gut sehen und lesen
+// koennen, sie darf nicht verblurt werden") - bis zum 25.09.2026 dunkelte
+// hier zusaetzlich eine Flaeche mit einem Loch fuer das Ziel ab; das ist
+// entfallen, es bleibt nur der Rahmen, der das Ziel umrandet.
 //
 // Nachverfolgung: ResizeObserver auf dem Ziel selbst (Groessenaenderung),
 // dazu Scroll- und Resize-Listener - im Unterschied zu react-joyride bewusst
@@ -24,30 +18,6 @@ import { besterPlatz, type Platz, type Raender, type Rechteck } from "@/lib/doma
 // Scrollbalken, dort scrollt der Anker ohnehin per scrollIntoView mit).
 
 const ABSTAND = 16;
-const RUNDUNG = 12;
-
-function pfad(ziel: Rechteck, fenster: { breite: number; hoehe: number }): string {
-  const x = ziel.x - ABSTAND;
-  const y = ziel.y - ABSTAND;
-  const b = ziel.breite + 2 * ABSTAND;
-  const h = ziel.hoehe + 2 * ABSTAND;
-  const r = Math.min(RUNDUNG, b / 2, h / 2);
-  const aussen = `M0,0H${fenster.breite}V${fenster.hoehe}H0Z`;
-  // Abgerundetes Innenrechteck von Hand (kein <rect rx>, das ginge nur additiv,
-  // nicht als zweiter Teilpfad in derselben "d"-Definition).
-  const innen = [
-    `M${x + r},${y}`,
-    `H${x + b - r}`,
-    `A${r},${r} 0 0 1 ${x + b},${y + r}`,
-    `V${y + h - r}`,
-    `A${r},${r} 0 0 1 ${x + b - r},${y + h}`,
-    `H${x + r}`,
-    `A${r},${r} 0 0 1 ${x},${y + h - r}`,
-    `V${y + r}`,
-    `A${r},${r} 0 0 1 ${x + r},${y}Z`,
-  ].join("");
-  return `${aussen} ${innen}`;
-}
 
 function rechteckVon(element: Element): Rechteck {
   const r = element.getBoundingClientRect();
@@ -100,33 +70,20 @@ export function useHervorhebungsRechteck(): Rechteck | null {
 }
 
 export function SprachSpotlight({ rechteck }: { rechteck: Rechteck | null }) {
-  const [fenster, setFenster] = useState({ breite: 0, hoehe: 0 });
-  useEffect(() => {
-    const messen = () => setFenster({ breite: window.innerWidth, hoehe: window.innerHeight });
-    messen();
-    window.addEventListener("resize", messen);
-    return () => window.removeEventListener("resize", messen);
-  }, []);
-
-  // Zusaetzliche Sicherung direkt hier: ein Rechteck ohne Flaeche (verwaistes
-  // Ziel, Element noch nicht ausgemessen) darf nie die ganze Seite abdunkeln.
-  if (!rechteck || rechteck.breite <= 0 || rechteck.hoehe <= 0 || fenster.breite === 0) return null;
+  // Ein Rechteck ohne Flaeche (verwaistes Ziel, Element noch nicht ausgemessen) zeigt keinen Rahmen.
+  if (!rechteck || rechteck.breite <= 0 || rechteck.hoehe <= 0) return null;
 
   return (
-    <div className="ki-sprachmodus__spotlight" aria-hidden>
-      <svg width={fenster.breite} height={fenster.hoehe} className="ki-sprachmodus__spotlight-maske">
-        <path d={pfad(rechteck, fenster)} fillRule="evenodd" />
-      </svg>
-      <div
-        className="ki-sprachmodus__spotlight-ring"
-        style={{
-          left: rechteck.x - ABSTAND,
-          top: rechteck.y - ABSTAND,
-          width: rechteck.breite + 2 * ABSTAND,
-          height: rechteck.hoehe + 2 * ABSTAND,
-        }}
-      />
-    </div>
+    <div
+      className="ki-sprachmodus__spotlight-ring"
+      aria-hidden
+      style={{
+        left: rechteck.x - ABSTAND,
+        top: rechteck.y - ABSTAND,
+        width: rechteck.breite + 2 * ABSTAND,
+        height: rechteck.hoehe + 2 * ABSTAND,
+      }}
+    />
   );
 }
 

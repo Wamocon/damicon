@@ -471,10 +471,21 @@ function SprachmodusInhalt() {
     };
   }, [beenden, beiKugelKlick]);
 
-  // --- Kugel-Platzierung: Mitte, oder klein an den Rand bei Hervorhebung ----------------
+  // --- Kugel-Platzierung: Mitte, neben einem Ziel, oder links ueber der Menueleiste ------
+  //
+  // Drei Faelle statt bisher zwei (Rueckmeldung vom 25.09.2026: "sobald er
+  // anfaengt, mir den Inhalt der UI zu erzaehlen, soll er nach links ueber die
+  // Menueleiste, die Mitte muss frei und gut lesbar bleiben"):
+  //   1. beiSeite: ein bestimmtes Element ist hervorgehoben (zeigeAuf) - die
+  //      Kugel rueckt genau daneben (wie bisher, besterPlatz).
+  //   2. angedockt (ohne beiSeite): der Assistent denkt oder spricht, aber
+  //      zeigt auf nichts Bestimmtes - Kugel und Text sitzen links, ueber der
+  //      Navigationsleiste, DAMIT DIE MITTE FREI BLEIBT.
+  //   3. sonst (Zuhoeren, Fehler, Pause): Kugel gross in der Mitte wie bisher.
   const zielRechteck = useHervorhebungsRechteck();
   const kugelPlatz = useKugelPlatz(zielRechteck, { breite: GROESSE_KLEIN, hoehe: GROESSE_KLEIN }, RAENDER);
-  const verschoben = kugelPlatz !== null;
+  const beiSeite = kugelPlatz !== null;
+  const angedockt = beiSeite || assistentIstDran(phase);
 
   const kugelZustand: KugelZustand =
     phase === "fehler" ? "fehler" : phase === "pausiert" ? "pausiert" : phase === "spricht" ? "spricht" : phase === "denkt" ? "denkt" : "hoert";
@@ -499,16 +510,8 @@ function SprachmodusInhalt() {
       role="dialog"
       aria-modal="true"
       aria-label={t("titel")}
-      className={cn("ki-sprachmodus", verschoben && "ki-sprachmodus--verschoben")}
+      className={cn("ki-sprachmodus", angedockt && "ki-sprachmodus--angedockt")}
     >
-      {/* Nur EINE der beiden Abdunkelungen zur Zeit: solange ein Bereich
-          hervorgehoben ist, dunkelt SprachSpotlight schon ab - mit einem Loch
-          fuer das Ziel. Die volle Flaeche hier kennt dieses Loch nicht und
-          lag bislang IMMER zusaetzlich darueber, auch ueber dem Loch -
-          dadurch blieb die hervorgehobene Stelle nie wirklich klar sichtbar,
-          sondern nur etwas weniger dunkel als die Umgebung (Rueckmeldung vom
-          25.09.2026: "die Mitte muss klar sichtbar sein"). */}
-      {!verschoben ? <div className="ki-sprachmodus__hintergrund" /> : null}
       <SprachSpotlight rechteck={zielRechteck} />
 
       {/* Statusansage fuer Screenreader - ohne den Fokus zu verschieben, ein zweiter Kanal
@@ -518,7 +521,7 @@ function SprachmodusInhalt() {
       </p>
 
       <div
-        className="ki-sprachmodus__kugel-huelle"
+        className={cn("ki-sprachmodus__kugel-huelle", angedockt && !beiSeite && "ki-sprachmodus__kugel-huelle--links")}
         style={
           kugelPlatz
             ? {
@@ -540,14 +543,13 @@ function SprachmodusInhalt() {
           <SprachKugel
             zustand={kugelZustand}
             ausgabePegel={ausgabePegel}
-            groesse={verschoben ? GROESSE_KLEIN : GROESSE_MITTE}
+            groesse={angedockt ? GROESSE_KLEIN : GROESSE_MITTE}
           />
-          {/* In der Ecke (Bereich hervorgehoben) bleibt die Kugel rund - fuer den
-              Zustandstext daneben ist dort kein Platz reserviert. Ein Abzeichen
-              auf der Kugel selbst zeigt trotzdem, was gerade laeuft: die Farbe
-              allein reicht nicht (Rueckmeldung vom 25.09.2026 zum Fuehrmodus,
-              in der Ecke fehlte jede Zustandsanzeige). */}
-          {verschoben ? (
+          {/* Neben einem hervorgehobenen Element ist fuer den Zustandstext daneben
+              kein Platz reserviert. Ein Abzeichen auf der Kugel selbst zeigt
+              trotzdem, was gerade laeuft: die Farbe allein reicht nicht
+              (Rueckmeldung vom 25.09.2026 zum Fuehrmodus). */}
+          {beiSeite ? (
             <span className={cn("ki-sprachmodus__abzeichen", `ki-sprachmodus__abzeichen--${kugelZustand}`)} aria-hidden>
               <StatusSymbol
                 className={cn("ki-sprachmodus__status-symbol", kugelZustand === "denkt" && "ki-sprachmodus__status-symbol--dreht")}
@@ -555,7 +557,7 @@ function SprachmodusInhalt() {
             </span>
           ) : null}
         </button>
-        {!verschoben ? (
+        {!beiSeite ? (
           <p className="ki-sprachmodus__status">
             <StatusSymbol
               className={cn("ki-sprachmodus__status-symbol", kugelZustand === "denkt" && "ki-sprachmodus__status-symbol--dreht")}
@@ -566,8 +568,11 @@ function SprachmodusInhalt() {
         ) : null}
       </div>
 
-      {!verschoben && untertitelAn ? (
-        <div className="ki-sprachmodus__untertitel" aria-hidden={phase !== "hoert" && phase !== "versteht"}>
+      {!beiSeite && untertitelAn ? (
+        <div
+          className={cn("ki-sprachmodus__untertitel", angedockt && "ki-sprachmodus__untertitel--links")}
+          aria-hidden={phase !== "hoert" && phase !== "versteht"}
+        >
           {phase === "hoert" || phase === "versteht" ? (
             <p className="ki-sprachmodus__untertitel-zeile ki-sprachmodus__untertitel-zeile--nutzer">
               {zwischentext || (phase === "hoert" ? t("hoertZu") : "")}
