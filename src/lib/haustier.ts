@@ -104,6 +104,27 @@ export function schreibeTourSchalter(an: boolean): void {
   }
 }
 
+// Automatischer Start von Tour UND Zusammenfassung nach einer Pruefung (und das einmalige
+// Angebot dazu). Aus heisst: nichts startet von selbst - die Knoepfe in der Uebersicht
+// ("Tour erneut starten", "Zusammenfassung im Chat") bleiben. Voreinstellung an.
+const AUTO_SCHLUESSEL = "damicon-haustier-auto";
+
+export function leseAutoStart(): boolean {
+  try {
+    return window.localStorage.getItem(AUTO_SCHLUESSEL) !== "aus";
+  } catch {
+    return true;
+  }
+}
+
+export function schreibeAutoStart(an: boolean): void {
+  try {
+    window.localStorage.setItem(AUTO_SCHLUESSEL, an ? "an" : "aus");
+  } catch {
+    // Speicher gesperrt: gilt dann nur fuer diese Sitzung
+  }
+}
+
 export interface Inventar {
   /** Welche der drei Trachten (himbi.tsx, TRACHTEN) Chapan, Aermel, Kappe und Stiefel tragen. */
   tracht: 0 | 1 | 2;

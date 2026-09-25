@@ -45,7 +45,7 @@ export type ToolChoice = "auto" | "required" | "none" | { type: "tool"; toolName
 
 export interface SchrittEingabe {
   stepNumber: number;
-  modus: "assistent" | "agent";
+  modus: "assistent" | "agent" | "sprache";
   /** Ist die letzte Nachricht eine neue Nutzerfrage (und keine Freigabe-Runde)? */
   neueNutzerFrage: boolean;
   frage: string;
@@ -64,6 +64,12 @@ export function waehleSchritt(e: SchrittEingabe): { toolChoice: ToolChoice } | u
     return { toolChoice: { type: "tool", toolName: "wissenSuchen" } };
   }
   // Agent-Modus, neue Frage: der erste Schritt MUSS ein Werkzeug rufen (siehe route.ts).
+  // ohneAnsicht bleibt der Fluchtweg fuer reine Hoeflichkeiten.
   if (e.modus === "agent") return { toolChoice: "required" };
+  // Sprachmodus bewusst NICHT erzwungen (seit 24.09.2026). Bei Anthropic heisst "required",
+  // dass das Modell vor dem Werkzeugaufruf keinen einzigen Satz schreiben darf - im Gespraech
+  // war es dann still, bis die Daten geladen waren, oft mehrere Sekunden. Jetzt sagt es zuerst
+  // in einem kurzen Satz, was es sich ansieht (sprachmodusFormatAnweisung), dieser Satz wird
+  // sofort vorgelesen, und im selben Schritt folgt das Werkzeug.
   return undefined;
 }

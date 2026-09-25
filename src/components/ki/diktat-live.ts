@@ -11,7 +11,7 @@
 // ab, Dienst meldet einen Fehler), geht dieselbe Aufnahme als Datei ueber den
 // bisherigen Weg (transkribiereSprachnachricht). Wer diktiert, merkt davon
 // hoechstens, dass der Text erst am Ende erscheint.
-import { erzeugeTokenSammler, type LiveKonfiguration, type SammelStand } from "@/lib/domain/diktat-live";
+import { erzeugeTokenSammler, type LiveKonfiguration, type LiveZweck, type SammelStand } from "@/lib/domain/diktat-live";
 
 export type LiveErgebnis =
   /** `text` kann leer sein: dann hat das Modell zugehoert und nichts gehoert. */
@@ -52,14 +52,23 @@ export function liveDiktatMoeglich(): boolean {
 
 export function starteLiveSitzung({
   sprache,
+  zweck = "diktat",
   beiStand,
   beiEndpunkt,
+  beiScheitern,
 }: {
   sprache: string;
+  /** "gespraech" im Sprachmodus: schnellere Endpunkterkennung (GESPRAECH_ENDPUNKT). */
+  zweck?: LiveZweck;
   /** Neuer Zwischenstand - fuer die Anzeige im Eingabefeld. */
   beiStand: (stand: SammelStand) => void;
   /** Das Modell hat das Ende der Aeusserung erkannt. */
   beiEndpunkt: () => void;
+  /** Die Sitzung ist gescheitert, bevor beende() oder abbrechen() gerufen wurde
+   *  (Schluessel, Verbindung, Dienst). Der Diktatknopf braucht das nicht - er
+   *  faellt bei beende() auf den Datei-Weg zurueck. Der Sprachmodus schon: ohne
+   *  diese Meldung kaeme nie ein Endpunkt, und die Kugel hoerte endlos zu. */
+  beiScheitern?: (grund: string) => void;
 }): LiveSitzung {
   const sammler = erzeugeTokenSammler();
   let ws: WebSocket | null = null;
@@ -94,6 +103,7 @@ export function starteLiveSitzung({
     } catch {
       // schon zu
     }
+    if (!beendet) beiScheitern?.(grund);
   };
 
   const aufbau = setTimeout(() => {
@@ -106,7 +116,7 @@ export function starteLiveSitzung({
       const antwort = await fetch("/api/ki-spracherkennung", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ sprache }),
+        body: JSON.stringify({ sprache, zweck }),
       });
       if (antwort.status === 404) abgesagt = true;
       if (!antwort.ok) return scheitere(`schluessel-http-${antwort.status}`);

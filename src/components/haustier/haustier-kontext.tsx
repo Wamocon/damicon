@@ -3,10 +3,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import {
+  leseAutoStart,
   leseBewegung,
   leseInventar,
   leseSichtbarkeit,
   leseTourSchalter,
+  schreibeAutoStart,
   schreibeInventar,
   schreibeTourSchalter,
   type AgentPhase,
@@ -115,6 +117,32 @@ function abonniereTour(b: () => void): () => void {
 }
 const tourServerWert = (): boolean => true;
 
+// Der automatische Start (Tour + Zusammenfassung) liegt ebenso im Browser-Speicher, nach
+// demselben Muster wie die Tour oben.
+let autoSitzungsWert: boolean | null = null;
+const autoBeobachter = new Set<() => void>();
+function leseAutoSpeicher(): boolean {
+  if (autoSitzungsWert !== null) return autoSitzungsWert;
+  try {
+    return leseAutoStart();
+  } catch {
+    return true;
+  }
+}
+function schreibeAutoSpeicher(neu: boolean): void {
+  autoSitzungsWert = neu;
+  schreibeAutoStart(neu);
+  autoBeobachter.forEach((b) => b());
+}
+function abonniereAuto(b: () => void): () => void {
+  autoBeobachter.add(b);
+  window.addEventListener("storage", b);
+  return () => {
+    autoBeobachter.delete(b);
+    window.removeEventListener("storage", b);
+  };
+}
+
 interface Status {
   phase: AgentPhase;
   /** Kurzer Text zur Phase, z. B. "Pruefe MwSt-Status ..." */
@@ -131,6 +159,10 @@ interface Status {
    *  automatisch starten. Aus heisst nur: kein Herumspringen und Hervorheben auf der Seite -
    *  die automatische Zusammenfassung im Chat bleibt davon unberuehrt. */
   tourAn: boolean;
+  /** Einstellung: Tour UND Zusammenfassung starten nach einer Pruefung von selbst (samt dem
+   *  einmaligen Angebot). Aus heisst: nichts startet von selbst, die Knoepfe in der Uebersicht
+   *  bleiben. */
+  autoStart: boolean;
 }
 interface Aktionen {
   melde: (phase: AgentPhase, text: string, stimmung?: Stimmung) => void;
@@ -142,6 +174,7 @@ interface Aktionen {
   holeZurueck: () => void;
   setInventar: (inventar: Inventar) => void;
   setTourAn: (an: boolean) => void;
+  setAutoStart: (an: boolean) => void;
 }
 export interface Vorgabe {
   id: number;
@@ -156,6 +189,7 @@ const StatusKontext = createContext<Status>({
   stimmung: "neutral",
   inventar: { tracht: 0, brille: true },
   tourAn: true,
+  autoStart: true,
 });
 const AktionenKontext = createContext<Aktionen>({
   melde: () => {},
@@ -165,6 +199,7 @@ const AktionenKontext = createContext<Aktionen>({
   holeZurueck: () => {},
   setInventar: () => {},
   setTourAn: () => {},
+  setAutoStart: () => {},
 });
 const VorgabeKontext = createContext<Vorgabe | null>(null);
 
@@ -186,6 +221,7 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
   const sichtbarkeit = useSyncExternalStore(abonniere, leseSpeicher, serverWert);
   const inventar = useSyncExternalStore(abonniereInventar, leseInventarSpeicher, serverInventarWert);
   const tourAn = useSyncExternalStore(abonniereTour, leseTourSpeicher, tourServerWert);
+  const autoStart = useSyncExternalStore(abonniereAuto, leseAutoSpeicher, tourServerWert);
   const [vorgabe, setVorgabe] = useState<Vorgabe | null>(null);
 
   const melde = useCallback((neuePhase: AgentPhase, neuerText: string, neueStimmung: Stimmung = "neutral") => {
@@ -199,6 +235,7 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
   const holeZurueck = useCallback(() => schreibeSpeicher("an"), []);
   const setInventar = useCallback((neu: Inventar) => schreibeInventarSpeicher(neu), []);
   const setTourAn = useCallback((neu: boolean) => schreibeTourSpeicher(neu), []);
+  const setAutoStart = useCallback((neu: boolean) => schreibeAutoSpeicher(neu), []);
 
   const stelleFrage = useCallback(
     (frage: string) => {
@@ -209,12 +246,12 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
   );
 
   const status = useMemo(
-    () => ({ phase, text, an: sichtbarkeit === "an", weg: sichtbarkeit === "weg", stimmung, inventar, tourAn }),
-    [phase, text, sichtbarkeit, stimmung, inventar, tourAn],
+    () => ({ phase, text, an: sichtbarkeit === "an", weg: sichtbarkeit === "weg", stimmung, inventar, tourAn, autoStart }),
+    [phase, text, sichtbarkeit, stimmung, inventar, tourAn, autoStart],
   );
   const aktionen = useMemo(
-    () => ({ melde, stelleFrage, setAn, schickeWeg, holeZurueck, setInventar, setTourAn }),
-    [melde, stelleFrage, setAn, schickeWeg, holeZurueck, setInventar, setTourAn],
+    () => ({ melde, stelleFrage, setAn, schickeWeg, holeZurueck, setInventar, setTourAn, setAutoStart }),
+    [melde, stelleFrage, setAn, schickeWeg, holeZurueck, setInventar, setTourAn, setAutoStart],
   );
 
   return (

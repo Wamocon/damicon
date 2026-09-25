@@ -18,6 +18,7 @@ import { PersonaSwitcher, usePersona } from "@/components/dashboard/persona";
 import { useCeoPruefung } from "@/components/dashboard/ceo-pruefung-kontext";
 import { Himbeere } from "@/components/ki/himbeere";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
+import { AudioLines } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SyncStatus } from "@/components/dashboard/sync-status";
 import {
@@ -31,6 +32,33 @@ import {
   schmalServer,
   schmalSetzen,
 } from "@/components/dashboard/sidebar-zustand";
+
+/** Startet den Sprachmodus (components/ki/sprachmodus.tsx): ein Live-Gespraech
+ *  ohne sichtbaren Chat. Nur, wenn ein Anbieter mit Werkzeugen bereitsteht UND
+ *  das Live-Diktat eingeschaltet ist (sprachmodusMoeglich, siehe dashboard/layout.tsx) -
+ *  sonst gaebe es weder Navigation noch eine brauchbare Spracherkennung dafuer. */
+function SprachmodusKnopf() {
+  const t = useTranslations("kiAssistentAnsicht.sprachmodus");
+  const { verfuegbar, sprachmodusMoeglich, starteSprachmodus } = useKiPane();
+  if (!verfuegbar || !sprachmodusMoeglich) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={starteSprachmodus}
+      aria-label={t("starten")}
+      title={t("hinweis")}
+      className="ki-fragen-knopf inline-flex h-9 min-w-9 shrink-0 items-center justify-center gap-2 rounded-lg border border-border bg-card px-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+    >
+      <AudioLines className="h-4 w-4" />
+      {/* Sichtbar beschriftet erst ab lg, wie "KI fragen" daneben (Platz bei
+          768 px). Bis zum 24.09.2026 war der Knopf nur ein Symbol, und er wurde
+          nicht gefunden. Der zweite Einstieg sitzt im Chat (Senden-Knopf bei
+          leerem Feld), dort auch auf dem Handy. */}
+      <span className="hidden lg:inline">{t("kurz")}</span>
+    </button>
+  );
+}
 
 function KiFragenKnopf() {
   const t = useTranslations("dashboard");
@@ -210,6 +238,7 @@ export function DashboardTopbar() {
       <div className="flex flex-1 items-center justify-end gap-2 md:ml-auto md:flex-none">
         <span className="hidden md:contents">
           <TopbarSuchknopf />
+          <SprachmodusKnopf />
           <KiFragenKnopf />
           <PersonaSwitcher className="hidden lg:inline-flex" />
           <LocaleSwitcher compact />

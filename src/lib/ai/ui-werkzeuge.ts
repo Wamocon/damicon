@@ -71,7 +71,13 @@ type SteuerWerkzeuge = {
   zeigeAuf: typeof zeigeAuf;
 };
 
-/** 'lesen' = nur seiteLesen (Assistent-Modus), 'steuern' = alles (Agent-Modus). */
+/** 'lesen' = nur seiteLesen (Assistent-Modus), 'steuern' = alles (Agent-Modus
+ *  UND seit dem 25.09.2026 Sprachmodus - "der Sprachmodus soll die gleichen
+ *  Rechte haben wie der Chat": jede Aktion, die etwas aendert, geht ueber
+ *  dieselbe Freigabekarte wie im Chat, nur meldet der Sprachmodus sie
+ *  zusaetzlich an sprachmodus-bus.ts und nimmt "Ja"/"Nein" als Aeusserung
+ *  entgegen statt eines Klicks - siehe sprachmodus.tsx). */
 export function baueUiWerkzeuge(stufe: "lesen" | "steuern"): { seiteLesen: typeof seiteLesen } & Partial<SteuerWerkzeuge> {
-  return stufe === "steuern" ? { seiteLesen, klicke, fuelleFeld, scrolleZu, zeigeAuf } : { seiteLesen };
+  if (stufe === "steuern") return { seiteLesen, klicke, fuelleFeld, scrolleZu, zeigeAuf };
+  return { seiteLesen };
 }

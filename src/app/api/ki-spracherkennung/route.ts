@@ -17,7 +17,7 @@
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { diktatLiveAn } from "@/lib/domain/schalter";
-import { liveKonfiguration, SCHLUESSEL_GUELTIG_S, SITZUNG_HOECHSTENS_S, sonioxLiveAdresse } from "@/lib/domain/diktat-live";
+import { liveKonfiguration, SCHLUESSEL_GUELTIG_S, SITZUNG_HOECHSTENS_S, sonioxLiveAdresse, type LiveZweck } from "@/lib/domain/diktat-live";
 import { holeSonioxSchluessel, sonioxBasisUrl } from "@/lib/ai/soniox-client";
 import { ladeRatenlimitGrenze, ratenlimitUeberschritten } from "@/lib/ai/ratenbegrenzung";
 import { createHash } from "node:crypto";
@@ -48,9 +48,12 @@ export async function POST(req: Request) {
   }
 
   let sprache: string | undefined;
+  let zweck: LiveZweck = "diktat";
   try {
-    const body = (await req.json()) as { sprache?: unknown };
+    const body = (await req.json()) as { sprache?: unknown; zweck?: unknown };
     sprache = typeof body.sprache === "string" ? body.sprache : undefined;
+    // Nur die zwei bekannten Werte; alles andere ist ein Diktat.
+    if (body.zweck === "gespraech") zweck = "gespraech";
   } catch {
     sprache = undefined;
   }
@@ -69,7 +72,7 @@ export async function POST(req: Request) {
   }
 
   return Response.json(
-    { schluessel: schluessel.schluessel, adresse, konfiguration: liveKonfiguration(sprache) },
+    { schluessel: schluessel.schluessel, adresse, konfiguration: liveKonfiguration(sprache, zweck) },
     { headers: { "cache-control": "no-store" } },
   );
 }

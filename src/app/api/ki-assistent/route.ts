@@ -24,8 +24,15 @@ import { z } from "zod";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission, roles, type Role } from "@/lib/rbac";
 import { bestimmeAntwortsprache } from "@/lib/domain/antwortsprache";
-import { formatAnweisung, mitSprachErinnerung, quellenAnweisung } from "@/lib/domain/antwort-anweisungen";
-import { erzeugeSatzZerleger } from "@/lib/domain/sprachausgabe";
+import {
+  formatAnweisung,
+  mitSprachErinnerung,
+  quellenAnweisung,
+  SPRACHMODUS_FUEHRUNG,
+  SPRACHMODUS_OBERFLAECHE,
+  sprachmodusFormatAnweisung,
+} from "@/lib/domain/antwort-anweisungen";
+import { erzeugeSatzZerleger, sprachausgabeStromAn } from "@/lib/domain/sprachausgabe";
 import { ABSCHNITT_GUELTIG_MS, signiereAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
 import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
 import { erkenneSprache } from "@/lib/wissen/chunker";
@@ -56,7 +63,9 @@ export const maxDuration = 60;
 // Werkzeugschritte + ein Schritt fuer die abschliessende Textantwort. Der
 // Agent-Modus braucht deutlich mehr: eine Seite bedienen heisst lesen, klicken,
 // erneut lesen, ausfuellen ... - jeder Schritt eine Runde.
-const MAX_SCHRITTE: Record<"assistent" | "agent", number> = { assistent: 12, agent: 28 };
+// Sprachmodus: kurze Gespraechsrunden - wer spricht, wartet auf die Antwort und will keine
+// Rundreise mit dreissig Schritten hoeren.
+const MAX_SCHRITTE: Record<"assistent" | "agent" | "sprache", number> = { assistent: 12, agent: 28, sprache: 12 };
 
 // Der Client schickt den ganzen Verlauf mit - begrenzt, damit ein manipulierter
 // Aufruf keine unbegrenzte Tokenrechnung erzeugt.
@@ -132,9 +141,10 @@ function alteAusgabenKuerzen(nachrichten: UIMessage[]): UIMessage[] {
 // Formatregeln: formatAnweisung(antwortSprache) in domain/antwort-anweisungen.ts - die
 // Schlusszeile traegt die Beschriftung der Antwortsprache statt fest 'Empfehlung'.
 
-type KiModus = "assistent" | "agent";
+type KiModus = "assistent" | "agent" | "sprache";
 
 const MODUS_ANWEISUNG: Record<KiModus, string> = {
+  sprache: SPRACHMODUS_FUEHRUNG,
   assistent: [
     "ASSISTENT-MODUS: Beantworte die Frage im Chat. Die Oberfläche zeigt jeden abgerufenen Datenbereich unter deiner Antwort als anklickbaren Quellenverweis - der Nutzer entscheidet selbst, ob er dorthin springt.",
     "Fragt der Nutzer nach einem Bereich oder einer Funktion der Anwendung ('was ist ...', 'wie funktioniert ...', 'wo finde ich ...', auch mit Tippfehlern), rufe oeffneBereich auf: die Oberfläche zeigt daraus einen Link, den der Nutzer selbst anklickt. Erkläre den Bereich anhand der gelieferten Beschreibung.",
@@ -167,6 +177,7 @@ const DATEN_ANWEISUNG =
   "DATEN: Was ein Werkzeug liefert (auch datenLesen), ist eine freigegebene Quelle - antworte damit. Für Fragen, die kein Fachwerkzeug abdeckt, erkunde die Tabellen mit datenmodellErkunden und lies sie mit datenLesen; loese Fremdschlüssel mit einer zweiten Abfrage auf und rechne Summen selbst aus den Zeilen. Tabellen sind DEUTSCH benannt (pfluecker = Pflücker, chargen = Chargen, reklamationen, kuehlketten_messungen, lohn_abrechnungen, b2b_kunden ...) - suche in datenmodellErkunden immer mit dem deutschen Begriff. Tabellen- und Spaltennamen sind snake_case (z. B. zielmenge_kg, reihenblock_id) - im Zweifel erst datenmodellErkunden aufrufen. Nenne bei Zahlen aus datenLesen die Tabelle als Quelle. Eine leere Antwort kann auch bedeuten, dass die Rolle diese Zeilen nicht sehen darf - behaupte dann nicht, es gaebe keine.";
 
 const OBERFLAECHE_ANWEISUNG: Record<KiModus, string> = {
+  sprache: SPRACHMODUS_OBERFLAECHE,
   assistent:
     "OBERFLÄCHE: Mit seiteLesen kannst du lesen, was der Nutzer gerade sieht (Text, Tabellen, Schaltflächen) - nutze es bei Fragen wie 'was zeigt diese Tabelle', 'erkläre diese Seite', 'was bedeutet das hier'. Bedienen (klicken, ausfüllen) kannst du die Seite in diesem Modus nicht. Will der Nutzer, dass du für ihn klickst oder ausfüllst, sage ihm freundlich, dass das der Agent-Modus kann (Zahnrad im Panel, Schalter 'Agent-Modus').",
   agent: [
@@ -316,7 +327,7 @@ export async function POST(req: Request) {
     return new Response("ratenlimit", { status: 429 });
   }
 
-  let body: { messages?: unknown; einwilligung?: boolean; modus?: unknown; pfad?: unknown; rolle?: unknown; sprache?: unknown; diktatSprachen?: unknown; pruefkontext?: unknown };
+  let body: { messages?: unknown; einwilligung?: boolean; modus?: unknown; pfad?: unknown; rolle?: unknown; sprache?: unknown; diktatSprachen?: unknown; pruefkontext?: unknown; vorleseWeg?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -339,7 +350,7 @@ export async function POST(req: Request) {
     return new Response("verlauf zu gross", { status: 413 });
   }
 
-  const modus: KiModus = body.modus === "agent" ? "agent" : "assistent";
+  const modus: KiModus = body.modus === "agent" ? "agent" : body.modus === "sprache" ? "sprache" : "assistent";
   const pfad = bereinigterPfad(body.pfad);
 
   // "Ansicht als Rolle" (persona.tsx): nur ein Administrator darf den Agenten
@@ -451,8 +462,11 @@ export async function POST(req: Request) {
   await pruefeWissenGesundheit();
   const werkzeugeOhneBericht = baueWerkzeuge(rolle, {
     vorschau,
-    agentModus: modus === "agent",
-    oberflaeche: modus === "agent" ? "steuern" : "lesen",
+    // Sprachmodus zaehlt seit dem 25.09.2026 wie Agent-Modus - dieselben
+    // Rechte wie der sichtbare Chat, dieselbe Freigabekarte fuer Aktionen,
+    // nur zusaetzlich an sprachmodus-bus.ts gemeldet (siehe ui-werkzeuge.ts).
+    agentModus: modus !== "assistent",
+    oberflaeche: modus === "assistent" ? "lesen" : "steuern",
     belegStart: naechsteBelegNummer(nachrichten),
   });
   // oeffnePruefBereich nur, wenn es ueberhaupt einen Bericht gibt, auf dessen Kacheln es
@@ -462,7 +476,7 @@ export async function POST(req: Request) {
   const systemPrompt = [
     baueAssistentKernauftrag(baueGesamtWissenskontext(quellen, preislisten)),
     rollenKontext(rolle, vorschau),
-    formatAnweisung(antwortSprache),
+    modus === "sprache" ? sprachmodusFormatAnweisung(antwortSprache) : formatAnweisung(antwortSprache),
     MODUS_ANWEISUNG[modus],
     OBERFLAECHE_ANWEISUNG[modus],
     NAVIGATION_ANWEISUNG,
@@ -519,7 +533,7 @@ export async function POST(req: Request) {
     // Agent-Modus: eine gefuehrte Tour ist nur lesbar, wenn die Ansichten
     // nacheinander wechseln - parallele Werkzeugaufrufe wuerden sie in einem
     // Schritt abfeuern und das Hauptfenster springen lassen.
-    providerOptions: modus === "agent" ? { anthropic: { disableParallelToolUse: true } } : undefined,
+    providerOptions: modus !== "assistent" ? { anthropic: { disableParallelToolUse: true } } : undefined,
     onError: (ereignis) => {
       console.error("[damicon] KI-Agent (Stream) fehlgeschlagen:", ereignis.error);
     },
@@ -590,8 +604,30 @@ export async function POST(req: Request) {
   // desselben Stroms.
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
-      const zerleger = erzeugeSatzZerleger();
+      // Spricht der Browser ueber den Soniox-Strom (domain/sprachausgabe-strom.ts),
+      // geht jeder Satz sofort hinaus - im Strom gibt es keine Abschnittsgrenzen,
+      // und laengere Stuecke hielten nur Text zurueck. Sonst (Abschnitte als
+      // einzelne Anfragen) laengere Stuecke mit eigener Satzmelodie.
+      //
+      // Entscheidend ist, welchen Weg der Browser wirklich nimmt (vorleseWeg) -
+      // faellt er auf einzelne Anfragen zurueck (kein WebSocket, Strom abgesagt),
+      // klaengen Einzelsaetze als eigene Anfragen abgehackt.
+      const stil = sprachausgabeStromAn() && body.vorleseWeg === "strom" ? "saetze" : "abschnitte";
+      const zerleger = erzeugeSatzZerleger(stil);
       const ablauf = Date.now() + ABSCHNITT_GUELTIG_MS;
+      // Zug-Nachweis zu Beginn: damit holt sich der Browser den Schluessel fuer
+      // den Vorlese-Strom (api/ki-sprachausgabe/schluessel), noch waehrend das
+      // Modell ueber den ersten Satz nachdenkt. Dieselbe Signatur wie ein
+      // Abschnitt, Nummer 0 und leerer Text - der Abschnitts-Weg lehnt leeren
+      // Text ab, eine Verwechslung ist ausgeschlossen.
+      writer.write({
+        type: "data-nachweis",
+        data: {
+          zug: antwortId,
+          ablauf,
+          sig: signiereAbschnitt({ nutzerId: profil.id, zug: antwortId, nr: 0, text: "", ablauf }, geheimnis),
+        },
+      });
       const schickeAbschnitt = (nr: number, text: string) => {
         writer.write({
           type: "data-satz",
@@ -613,11 +649,12 @@ export async function POST(req: Request) {
         if (teil.type === "text-delta" && typeof teil.delta === "string") {
           for (const a of zerleger.fuettere(teil.delta)) schickeAbschnitt(a.nr, a.text);
         } else if (teil.type === "text-end") {
-          // Im Agent-Modus folgen mehrere Textteile aufeinander, dazwischen
-          // Werkzeugaufrufe. Ohne Trenner klebte "Ich oeffne die
-          // Lohnabrechnung" am naechsten Teil ("LohnabrechnungHier ...") -
-          // onFinish setzt dort ebenfalls einen Absatz.
-          for (const a of zerleger.fuettere("\n\n")) schickeAbschnitt(a.nr, a.text);
+          // Ende eines Textteils: danach ruft das Modell ein Werkzeug auf oder
+          // hoert auf. Der Teil ist vollstaendig und geht ganz hinaus - sonst
+          // lag ein fertiger Satz waehrend der Werkzeuge stumm im Puffer, und
+          // "Ich oeffne die Lohnabrechnung" klebte am naechsten Teil
+          // ("LohnabrechnungHier ...").
+          for (const a of zerleger.schrittEnde()) schickeAbschnitt(a.nr, a.text);
         }
       }
       for (const a of zerleger.abschliessen()) schickeAbschnitt(a.nr, a.text);

@@ -11,6 +11,8 @@ import {
   type ReactNode,
 } from "react";
 import { useRouter } from "@/i18n/navigation";
+import { setzeHervorhebung } from "@/components/ki/hervorhebung";
+import { leseChatStand, unterbrichChat } from "@/components/ki/sprachmodus-bus";
 import {
   ANFANG,
   DARSTELLUNG_SCHLUESSEL,
@@ -56,6 +58,7 @@ export interface KiFuehrung {
 
 interface KiPaneWert {
   verfuegbar: boolean;
+  sprachmodusMoeglich: boolean;
   offen: boolean;
   setOffen: (offen: boolean) => void;
   umschalten: () => void;
@@ -81,6 +84,10 @@ interface KiPaneWert {
   entferneBezug: () => void;
   /** Frage, die der Chat als Naechstes stellen soll (nr zaehlt hoch, damit dieselbe Frage zweimal geht). */
   anstoss: { nr: number; frage: string } | null;
+  /** Sprachmodus (components/ki/sprachmodus.tsx): Live-Gespraech ohne sichtbaren Chat. */
+  sprachmodus: boolean;
+  starteSprachmodus: () => void;
+  beendeSprachmodus: () => void;
 }
 
 const MODUS_SCHLUESSEL = "damicon-ki-modus";
@@ -95,6 +102,7 @@ const ZEIGER_NACHLAUF_MS = 2600;
 
 const Standard: KiPaneWert = {
   verfuegbar: false,
+  sprachmodusMoeglich: false,
   offen: false,
   setOffen: () => {},
   umschalten: () => {},
@@ -113,6 +121,9 @@ const Standard: KiPaneWert = {
   starteGespraechZurPruefung: () => {},
   entferneBezug: () => {},
   anstoss: null,
+  sprachmodus: false,
+  starteSprachmodus: () => {},
+  beendeSprachmodus: () => {},
 };
 
 const KiPaneKontext = createContext<KiPaneWert>(Standard);
@@ -125,6 +136,8 @@ export function useKiPane(): KiPaneWert {
  *  aufleuchten. Die Zielseite rendert erst nach der Navigation - deshalb
  *  wird kurz auf das Element gewartet, statt einmalig zu suchen. */
 function hebeHervor(element: Element): void {
+  // Der Sprachmodus legt einen Lichtkegel um genau dieses Element (hervorhebung.ts).
+  setzeHervorhebung(element);
   element.classList.remove(FOKUS_KLASSE);
   void (element as HTMLElement).offsetWidth;
   element.classList.add(FOKUS_KLASSE);
@@ -168,12 +181,17 @@ function fokussiere(ziel: string): void {
 export function KiPaneProvider({
   verfuegbar,
   seitenansichtAn = false,
+  sprachmodusMoeglich = false,
   nutzerId,
   children,
 }: {
   verfuegbar: boolean;
   /** KI_AGENT_SEITENANSICHT. Aus heisst: alles bleibt wie vorher. */
   seitenansichtAn?: boolean;
+  /** Anbieter mit Werkzeugen (Anthropic) UND KI_DIKTAT_LIVE an: ohne beides gibt es
+   *  weder Navigation noch Live-Erkennung fuer ein Gespraech - der Knopf in der
+   *  Kopfzeile bleibt dann verborgen (topbar.tsx). */
+  sprachmodusMoeglich?: boolean;
   /** Wem die gemerkte Ansicht gehoert. Meldet sich jemand anderes an diesem
    *  Rechner an, wird sie vergessen. */
   nutzerId?: string | null;
@@ -201,6 +219,13 @@ export function KiPaneProvider({
   const [pruefBezug, setPruefBezug] = useState<PruefBezug | null>(null);
   const [anstoss, setAnstoss] = useState<{ nr: number; frage: string } | null>(null);
   const anstossNr = useRef(0);
+  // Sprachmodus: solange er laeuft, oeffnet eine Navigation des Assistenten NICHT das
+  // Panel - das Gespraech hat keinen sichtbaren Chat, und das Panel naehme der Seite den
+  // Platz, die der Assistent gerade zeigt. War das Panel beim Start offen, ist es danach
+  // wieder offen.
+  const [sprachmodus, setSprachmodus] = useState(false);
+  const sprachmodusRef = useRef(false);
+  const panelVorSprachmodus = useRef(false);
 
   const warteschlange = useRef<KiFuehrung[]>([]);
   const timer = useRef<number | undefined>(undefined);
@@ -321,11 +346,11 @@ export function KiPaneProvider({
   //
   // Hinter KI_AGENT_SEITENANSICHT: steht der Schalter aus, bleibt alles beim Alten.
   useEffect(() => {
-    if (!fuehrung || !seitenansichtAn) return;
+    if (!fuehrung || !seitenansichtAn || sprachmodus) return;
     const ziel = naechsterZustand({ darstellung, offen }, "agent-navigation", true);
     if (ziel.darstellung !== darstellung) setDarstellung(ziel.darstellung);
     if (ziel.offen && !offen) setOffen(true);
-  }, [fuehrung, darstellung, offen, seitenansichtAn, setDarstellung, setOffen]);
+  }, [fuehrung, darstellung, offen, seitenansichtAn, sprachmodus, setDarstellung, setOffen]);
 
   // Die Buehne legt sich ueber die Seite und ist damit ein Dialog: Escape schliesst sie.
   // Das angedockte Panel bleibt offen - es verdeckt nichts, und wer darin tippt, will
@@ -375,7 +400,7 @@ export function KiPaneProvider({
       // Eine Fuehrung, die niemand sieht, ist keine: war das Panel zu, geht es
       // auf. Vorher lief die Tour im Hauptfenster ab, waehrend der Assistent
       // eingeklappt war und niemand die Begleitung dazu lesen konnte.
-      if (seitenansichtAn) setOffen(true);
+      if (seitenansichtAn && !sprachmodusRef.current) setOffen(true);
       if (!laeuft.current) naechsteStation();
     },
     [naechsteStation, seitenansichtAn, setOffen],
@@ -396,6 +421,34 @@ export function KiPaneProvider({
     [naechsteStation],
   );
 
+  const starteSprachmodus = useCallback(() => {
+    if (sprachmodusRef.current) return;
+    // Vor der ersten Nachricht steht im Chat der Hinweis zur KI-Nutzung, dem
+    // zugestimmt werden muss. Ohne Zustimmung ginge die erste gesprochene Frage
+    // verloren (der Chat verwirft sie) - also zuerst den Chat zeigen, wo der
+    // Hinweis steht. Dort ist der Sprachmodus-Knopf bis zur Zustimmung gesperrt.
+    if (leseChatStand().einwilligungFehlt) {
+      setOffen(true);
+      return;
+    }
+    // Eine laufende Antwort endet hier: sonst spraeche sie in das Zuhoeren
+    // hinein, und die erste Frage im Sprachmodus ginge verloren (der Chat
+    // nimmt keine neue an, solange er beschaeftigt ist).
+    unterbrichChat();
+    sprachmodusRef.current = true;
+    panelVorSprachmodus.current = offen;
+    if (offen) setOffen(false);
+    setSprachmodus(true);
+  }, [offen, setOffen]);
+
+  const beendeSprachmodus = useCallback(() => {
+    if (!sprachmodusRef.current) return;
+    sprachmodusRef.current = false;
+    setSprachmodus(false);
+    setzeHervorhebung(null);
+    if (panelVorSprachmodus.current) setOffen(true);
+  }, [setOffen]);
+
   const bewegeZeiger = useCallback((x: number, y: number, klick = false) => {
     window.clearTimeout(zeigerTimer.current);
     setZeiger((alt) => ({ x, y, klicks: (alt?.klicks ?? 0) + (klick ? 1 : 0) }));
@@ -414,6 +467,7 @@ export function KiPaneProvider({
   const wert = useMemo<KiPaneWert>(
     () => ({
       verfuegbar,
+      sprachmodusMoeglich,
       offen,
       setOffen,
       umschalten: () => setOffen(!offen),
@@ -432,9 +486,13 @@ export function KiPaneProvider({
       starteGespraechZurPruefung,
       entferneBezug,
       anstoss,
+      sprachmodus,
+      starteSprachmodus,
+      beendeSprachmodus,
     }),
     [
       verfuegbar,
+      sprachmodusMoeglich,
       offen,
       setOffen,
       modus,
@@ -452,6 +510,9 @@ export function KiPaneProvider({
       starteGespraechZurPruefung,
       entferneBezug,
       anstoss,
+      sprachmodus,
+      starteSprachmodus,
+      beendeSprachmodus,
     ],
   );
 

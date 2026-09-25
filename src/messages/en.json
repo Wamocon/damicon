@@ -1738,6 +1738,8 @@
       "text": "Shows in the corner what the agent is doing, even when the chat is closed. Hold DamiAI down to send it away, the tip at the bottom edge brings it back. Switched off here, DamiAI stays away completely.",
       "tourTitel": "Guided tour",
       "tourText": "Off means DamiAI stops jumping to the tiles and highlighting them by itself after a check, system-wide. The chat summary still runs automatically, just without the jumping around the page.",
+      "autoTitel": "Start automatically",
+      "autoText": "Off means neither the tour nor the chat summary starts by itself after a check, and DamiAI no longer offers it on its own. The buttons “Restart tour” and “Summary in chat” stay on the overview, so you can start both yourself.",
       "bewegungTitel": "Motion",
       "bewegungText": "Off means DamiAI stays, but holds still. If your system is already set to reduced motion, you do not need this switch.",
       "zustandTitel": "State",
@@ -2106,7 +2108,34 @@
     "pruefBezugKacheln": "Jump straight to a tile",
     "mehr": "More",
     "groesser": "Enlarge panel",
-    "kleiner": "Shrink panel"
+    "kleiner": "Shrink panel",
+    "sprachmodus": {
+      "titel": "Voice mode",
+      "starten": "Start voice mode",
+      "kurz": "Talk",
+      "hinweis": "Voice mode: talk to Himbi live, no typing",
+      "einwilligungZuerst": "Please accept the AI notice in the chat first, then start voice mode again.",
+      "freigabeHinweis": "Say “Yes” to approve or “No” to decline.",
+      "beenden": "End voice mode",
+      "unterbrechen": "Tap or just start talking",
+      "stumm": "Mute microphone",
+      "fortsetzen": "Unmute microphone",
+      "untertitel": "Captions",
+      "hoertZu": "Listening …",
+      "keinZugriff": "No microphone access. Please allow it in your browser settings.",
+      "liveFehlt": "Live speech recognition is not available here. Voice mode needs it.",
+      "verbindungFehlt": "The connection to speech recognition dropped. Tap the orb to try again.",
+      "erneut": "Try again",
+      "status": {
+        "startet": "Opening microphone …",
+        "hoert": "Listening",
+        "versteht": "One moment …",
+        "denkt": "Checking …",
+        "spricht": "Himbi is speaking",
+        "pausiert": "Microphone muted",
+        "fehler": "Something went wrong"
+      }
+    }
   },
   "legal": {
     "imprintTitle": "Imprint",

@@ -1738,6 +1738,8 @@
       "text": "Zeigt in der Ecke, was der Agent gerade tut, auch wenn der Chat geschlossen ist. Zum Wegschicken auf DamiAI gedrückt halten, die Spitze am unteren Rand holt sie zurück. Hier ausgeschaltet bleibt DamiAI ganz weg.",
       "tourTitel": "Geführte Tour",
       "tourText": "Aus heißt: DamiAI springt nach einer Prüfung nicht mehr selbst zu den Kacheln und hebt sie nicht mehr hervor, systemweit. Die Zusammenfassung im Chat kommt trotzdem weiter automatisch, nur ohne das Herumspringen auf der Seite.",
+      "autoTitel": "Automatisch starten",
+      "autoText": "Aus heißt: nach einer Prüfung startet weder die Tour noch die Zusammenfassung im Chat von selbst, und DamiAI fragt auch nicht mehr von sich aus nach. Die Knöpfe „Tour erneut starten“ und „Zusammenfassung im Chat“ in der Übersicht bleiben, damit startest du beides selbst.",
       "bewegungTitel": "Bewegung",
       "bewegungText": "Aus heißt: DamiAI bleibt da, steht aber still. Wer das Betriebssystem schon auf weniger Bewegung gestellt hat, braucht diesen Schalter nicht.",
       "zustandTitel": "Zustand",
@@ -2106,7 +2108,34 @@
     "pruefBezugKacheln": "Direkt zu einer Kachel springen",
     "mehr": "Mehr",
     "groesser": "Panel vergrößern",
-    "kleiner": "Panel verkleinern"
+    "kleiner": "Panel verkleinern",
+    "sprachmodus": {
+      "titel": "Sprachmodus",
+      "starten": "Sprachmodus starten",
+      "kurz": "Gespräch",
+      "hinweis": "Sprachmodus: live mit Himbi sprechen, ohne zu tippen",
+      "einwilligungZuerst": "Bitte zuerst im Chat dem Hinweis zur KI-Nutzung zustimmen, dann den Sprachmodus neu starten.",
+      "freigabeHinweis": "Sagen Sie „Ja“ zum Freigeben oder „Nein“ zum Ablehnen.",
+      "beenden": "Sprachmodus beenden",
+      "unterbrechen": "Antippen oder einfach dazwischenreden",
+      "stumm": "Mikrofon stummschalten",
+      "fortsetzen": "Mikrofon wieder einschalten",
+      "untertitel": "Untertitel",
+      "hoertZu": "Ich höre zu …",
+      "keinZugriff": "Kein Mikrofonzugriff. Bitte in den Browsereinstellungen erlauben.",
+      "liveFehlt": "Die Live-Spracherkennung steht hier nicht zur Verfügung. Der Sprachmodus braucht sie.",
+      "verbindungFehlt": "Die Verbindung zur Spracherkennung ist abgerissen. Tippen Sie auf die Kugel, um es erneut zu versuchen.",
+      "erneut": "Erneut versuchen",
+      "status": {
+        "startet": "Mikrofon wird geöffnet …",
+        "hoert": "Ich höre zu",
+        "versteht": "Einen Moment …",
+        "denkt": "Ich schaue nach …",
+        "spricht": "Himbi spricht",
+        "pausiert": "Mikrofon stummgeschaltet",
+        "fehler": "Etwas ist schiefgegangen"
+      }
+    }
   },
   "legal": {
     "imprintTitle": "Impressum",
