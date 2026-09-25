@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { AlertTriangle, Ear, Loader2, Mic, MicOff, Subtitles, Volume2, X } from "lucide-react";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { useScrollSperre } from "@/components/ui/scroll-sperre";
-import { SprachKugel, type KugelZustand } from "@/components/ki/sprach-kugel";
+import { SprachHimbi, type SprachZustand } from "@/components/ki/sprach-himbi";
 import { SprachSpotlight, useHervorhebungsRechteck } from "@/components/ki/sprach-spotlight";
 import { loeseSprechZiel, ueberschriftImSatz, zeigeSprechStelle } from "@/components/ki/sprach-mitlesen";
 import {
@@ -47,12 +47,13 @@ import { cn } from "@/lib/utils";
 //
 // Vollflaechiges Overlay ueber der Seite (dieselbe Grundidee wie die "Buehne"
 // des Panels, ki-pane.css: unscharfer Hintergrund, .ki-buehne-*), in der Mitte
-// die Kugel (sprach-kugel.tsx). Solange nichts hervorgehoben ist, bleibt sie
-// dort stehen. Springt der Assistent zu einem Bereich (oeffneBereich/zeigeAuf,
-// ueber ki-pane-kontext.tsx und components/ki/hervorhebung.ts gemeldet), legt
-// sich ein Lichtkegel um das Ziel (sprach-spotlight.tsx) und die Kugel rueckt
-// klein an den freien Rand (besterPlatz, domain/sprachmodus.ts) - sie zeigt
-// weiter den Zustand des Gespraechs, verdeckt aber nicht, wovon Himbi spricht.
+// Himbi (sprach-himbi.tsx; bis zum 25.09.2026 eine Kugel). Solange nichts
+// hervorgehoben ist und Himbi zuhoert, steht er dort. Denkt oder spricht er oder
+// springt der Assistent zu einem Bereich (oeffneBereich/zeigeAuf, ueber
+// ki-pane-kontext.tsx und components/ki/hervorhebung.ts gemeldet), rueckt er
+// klein nach links ueber die Navigationsleiste und das Ziel bekommt einen Rahmen
+// (sprach-spotlight.tsx) - er zeigt weiter den Zustand des Gespraechs, verdeckt
+// aber nicht, wovon er spricht.
 //
 // Die Frage geht ueber sprachmodus-bus.ts an den ganz normalen Chat im
 // Seitenpanel (der bleibt dabei UNSICHTBAR, aber gemountet und aktiv - er
@@ -64,19 +65,22 @@ export function Sprachmodus() {
   return <SprachmodusInhalt />;
 }
 
-const GROESSE_MITTE = 220;
+/** Breite von Himbi in der Mitte und links angedockt (Hoehe jeweils das 1,5-Fache). Die
+ *  Kugel war 220 und 96 Pixel gross; die Figur ist schmaler als hoch, darum etwas weniger
+ *  breit bei aehnlicher Flaeche. */
+const GROESSE_MITTE = 160;
 /** So lange muss ein vorlaeufig erkanntes "Stopp" stehen bleiben, bevor der
  *  Stoppwort-Waechter anhaelt (kurz genug, um sofort zu wirken, lang genug, dass
  *  ein vorlaeufiges Wort, das die Erkennung gleich korrigiert, nichts ausloest). */
 const STOPP_STABIL_MS = 350;
-const GROESSE_KLEIN = 96;
+const GROESSE_KLEIN = 84;
 
-/** Ein Symbol je Kugelzustand, neben dem Zustandstext - der Ton haengt nie an
- *  der Farbe der Kugel allein (Rueckmeldung vom 25.09.2026: die vier Farben
+/** Ein Symbol je Zustand, neben dem Zustandstext - der Ton haengt nie an
+ *  der Farbe des Scheins hinter Himbi allein (Rueckmeldung vom 25.09.2026: die vier Farben
  *  liessen sich nicht sicher als "hoert zu / denkt nach / spricht / Fehler"
  *  lesen). "denkt" dreht sich (Loader2), das macht "arbeitet gerade" auch
  *  ohne jedes Lesen der Beschriftung sofort klar. */
-const STATUS_SYMBOL: Record<KugelZustand, typeof Ear> = {
+const STATUS_SYMBOL: Record<SprachZustand, typeof Ear> = {
   hoert: Ear,
   denkt: Loader2,
   spricht: Volume2,
@@ -690,14 +694,13 @@ function SprachmodusInhalt() {
     return () => wurzel.removeAttribute("data-sprach-links");
   }, [angedockt]);
 
-  const kugelZustand: KugelZustand =
+  const kugelZustand: SprachZustand =
     phase === "fehler" ? "fehler" : phase === "pausiert" ? "pausiert" : phase === "spricht" ? "spricht" : phase === "denkt" ? "denkt" : "hoert";
   // Der Zustand haengt nie an der Farbe allein (Rueckmeldung vom 25.09.2026:
   // "weiss anhand der Farbe nicht, ob die KI zuhoert, denkt oder spricht") -
   // dasselbe Symbol wie der Zustandstext daneben, unabhaengig vom Farbsehen.
   const StatusSymbol = STATUS_SYMBOL[kugelZustand];
 
-  const ausgabePegel = { lesen: leseAusgabePegel };
   const statusText =
     phase === "startet" ? t("status.startet")
     : phase === "hoert" ? t("status.hoert")
@@ -708,8 +711,11 @@ function SprachmodusInhalt() {
     : t("status.fehler");
   const kugelBeschriftung = phase === "fehler" ? t("erneut") : assistentIstDran(phase) ? t("unterbrechen") : statusText;
 
-  // Kugel + Knopf: identischer Inhalt in beiden Lagen (Mitte, links) - nur die
-  // Groesse unterscheidet sich.
+  // Himbi + Knopf: identischer Inhalt in beiden Lagen (Mitte, links) - nur die
+  // Groesse unterscheidet sich. Bis zum 25.09.2026 stand hier eine Kugel; jetzt fuehrt
+  // Himbi das Gespraech, mit Lippen, die der Stimme folgen (sprach-himbi.tsx). Ist ein
+  // Bereich hervorgehoben, sieht Himbi zu ihm hin.
+  const blickziel = zielSichtbar && zielRechteck ? { x: zielRechteck.x + zielRechteck.breite / 2, y: zielRechteck.y + zielRechteck.hoehe / 2 } : null;
   const kugelKnopf = (
     <button
       type="button"
@@ -718,7 +724,7 @@ function SprachmodusInhalt() {
       aria-label={kugelBeschriftung}
       title={kugelBeschriftung}
     >
-      <SprachKugel zustand={kugelZustand} ausgabePegel={ausgabePegel} groesse={angedockt ? GROESSE_KLEIN : GROESSE_MITTE} />
+      <SprachHimbi zustand={kugelZustand} breite={angedockt ? GROESSE_KLEIN : GROESSE_MITTE} blickziel={blickziel} links={angedockt} />
     </button>
   );
   const statusZeile = (

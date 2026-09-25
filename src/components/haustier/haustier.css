@@ -227,6 +227,16 @@ html[data-ki-zieht] .haustier__verschiebung {
   opacity: 1;
 }
 
+/* Lippen im Sprachmodus (himbi.tsx mit lippen, components/ki/sprach-himbi.tsx): in
+   Ruhe, beim Denken und beim Sprechen formt die Bildschleife den Mund aus dem Klang.
+   Schlaf (Pause) und Fehler behalten ihre festen Mundbilder. */
+.hb-svg[data-lippen]:is([data-zustand="ruhe"], [data-zustand="denkt"], [data-zustand="spricht"]) .hb-mund > * {
+  opacity: 0;
+}
+.hb-svg[data-lippen]:is([data-zustand="ruhe"], [data-zustand="denkt"], [data-zustand="spricht"]) .hb-mund > .hb-mund--lippen {
+  opacity: 1;
+}
+
 .hb-svg[data-zustand="freigabe"] .hb-braue--l,
 .hb-svg[data-zustand="fehler"] .hb-braue--l {
   transform: rotate(-16deg) translateY(-2px);

@@ -57,9 +57,67 @@
   padding: 0;
   border: none;
   background: none;
-  border-radius: 999px;
+  border-radius: 1.5rem;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+}
+
+/* ---- Himbi als Gegenueber (sprach-himbi.tsx) ----------------------------------
+ * Ersetzt seit dem 25.09.2026 die Kugel. Der Schein hinter der Figur traegt die
+ * Farbe des Zustands (wie vorher die Kugel) und waechst mit der Stimme: beim
+ * Zuhoeren mit der eigenen, beim Sprechen mit der von Himbi. --himbi-schein und
+ * --himbi-nicken setzt die Bildschleife, 0..1. */
+.ki-himbi {
+  --himbi-farbe: oklch(72% 0.14 200);
+  position: relative;
+  display: block;
+}
+.ki-himbi[data-zustand="denkt"] {
+  --himbi-farbe: oklch(80% 0.15 55);
+}
+.ki-himbi[data-zustand="spricht"] {
+  --himbi-farbe: oklch(72% 0.19 350);
+}
+.ki-himbi[data-zustand="pausiert"] {
+  --himbi-farbe: oklch(70% 0.02 250);
+}
+.ki-himbi[data-zustand="fehler"] {
+  --himbi-farbe: oklch(68% 0.19 25);
+}
+.ki-himbi__schein {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  /* Groesser als die Figur und erst zum Rand hin durchsichtig: die Mitte deckt Himbi
+     ohnehin zu, sichtbar ist der Ring um ihn herum. */
+  width: 165%;
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    color-mix(in oklab, var(--himbi-farbe) 80%, transparent) 35%,
+    color-mix(in oklab, var(--himbi-farbe) 35%, transparent) 70%,
+    transparent
+  );
+  opacity: calc(0.55 + var(--himbi-schein, 0) * 0.45);
+  scale: calc(0.92 + var(--himbi-schein, 0) * 0.3);
+  pointer-events: none;
+}
+.ki-himbi__koerper {
+  position: relative;
+  translate: 0 calc(var(--himbi-nicken, 0) * -3%);
+}
+.ki-himbi .hb-svg {
+  width: 100%;
+  height: auto;
+}
+/* Beim Sprechen schwebt Himbi ruhig, statt zu tanzen wie in der Ecke: im Gespraech
+   geht es um das Gesagte, Mund, Arme und Nicken tragen die Bewegung. */
+@media (prefers-reduced-motion: no-preference) {
+  .ki-himbi .hb-svg[data-zustand="spricht"] .hb-figur {
+    animation: hb-schweben 2.6s ease-in-out infinite;
+  }
 }
 .ki-sprachmodus__kugel-knopf:focus-visible {
   outline: 3px solid var(--ring);

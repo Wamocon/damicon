@@ -2205,7 +2205,7 @@
       "hoertZu": "Ich höre zu …",
       "keinZugriff": "Kein Mikrofonzugriff. Bitte in den Browsereinstellungen erlauben.",
       "liveFehlt": "Die Live-Spracherkennung steht hier nicht zur Verfügung. Der Sprachmodus braucht sie.",
-      "verbindungFehlt": "Die Verbindung zur Spracherkennung ist abgerissen. Tippen Sie auf die Kugel, um es erneut zu versuchen.",
+      "verbindungFehlt": "Die Verbindung zur Spracherkennung ist abgerissen. Tippen Sie auf Himbi, um es erneut zu versuchen.",
       "erneut": "Erneut versuchen",
       "status": {
         "startet": "Mikrofon wird geöffnet …",

@@ -2205,7 +2205,7 @@
       "hoertZu": "Listening …",
       "keinZugriff": "No microphone access. Please allow it in your browser settings.",
       "liveFehlt": "Live speech recognition is not available here. Voice mode needs it.",
-      "verbindungFehlt": "The connection to speech recognition dropped. Tap the orb to try again.",
+      "verbindungFehlt": "The connection to speech recognition dropped. Tap Himbi to try again.",
       "erneut": "Try again",
       "status": {
         "startet": "Opening microphone …",

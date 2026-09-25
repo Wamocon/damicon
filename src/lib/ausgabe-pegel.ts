@@ -29,7 +29,9 @@ export function ausgangFuer(kontext: AudioContext): AudioNode {
   try {
     analyse = kontext.createAnalyser();
     analyse.fftSize = 512;
-    analyse.smoothingTimeConstant = 0.6;
+    // Wirkt nur auf das Spektrum (die Lippen), nicht auf das Zeitsignal des Pegels.
+    // 0,3 statt 0,6: sonst hinkt der Mund jeder Silbe ein paar Bilder hinterher.
+    analyse.smoothingTimeConstant = 0.3;
     roh = new Uint8Array(new ArrayBuffer(analyse.fftSize));
     ausgang.connect(analyse);
     analyse.connect(kontext.destination);
@@ -55,4 +57,40 @@ export function leseAusgabePegel(): number {
     summe += abweichung * abweichung;
   }
   return Math.sqrt(summe / roh.length);
+}
+
+export interface AusgabeSpektrum {
+  /** Betrag je Frequenz-Bin, 0..255 (dB-skaliert zwischen minDb und maxDb). */
+  frequenzen: Uint8Array<ArrayBuffer>;
+  abtastrate: number;
+  fftGroesse: number;
+  minDb: number;
+  maxDb: number;
+  /** Wie viel spaeter das Gemessene aus dem Lautsprecher klingt, in Sekunden
+   *  (outputLatency + baseLatency; bei Bluetooth-Kopfhoerern leicht 0,2 s). */
+  latenz: number;
+}
+
+let spektrum: Uint8Array<ArrayBuffer> | null = null;
+
+/** Das Spektrum der laufenden Ausgabe, fuer die Lippen von Himbi im Sprachmodus
+ *  (components/ki/sprach-himbi.tsx, lib/domain/lippen.ts). Liest denselben Analyser
+ *  wie leseAusgabePegel: dessen Zeitsignal, von dem das Dazwischenreden abhaengt,
+ *  bleibt davon unberuehrt. Ohne Wiedergabe null. */
+export function leseAusgabeSpektrum(): AusgabeSpektrum | null {
+  if (!analyse || !kontextDesAusgangs) return null;
+  if (!spektrum || spektrum.length !== analyse.frequencyBinCount) {
+    spektrum = new Uint8Array(new ArrayBuffer(analyse.frequencyBinCount));
+  }
+  analyse.getByteFrequencyData(spektrum);
+  const k = kontextDesAusgangs as AudioContext & { outputLatency?: number };
+  const latenz = (Number.isFinite(k.outputLatency) ? (k.outputLatency ?? 0) : 0) + (Number.isFinite(k.baseLatency) ? k.baseLatency : 0);
+  return {
+    frequenzen: spektrum,
+    abtastrate: kontextDesAusgangs.sampleRate,
+    fftGroesse: analyse.fftSize,
+    minDb: analyse.minDecibels,
+    maxDb: analyse.maxDecibels,
+    latenz: Math.min(Math.max(latenz, 0), 0.4),
+  };
 }

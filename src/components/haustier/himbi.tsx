@@ -1,5 +1,6 @@
 import { useId } from "react";
 import type { HaustierZustand, Stimmung } from "@/lib/haustier";
+import { MUND_ZU, mundGeometrie } from "@/lib/domain/lippen";
 
 // Himbi: die Himbeere als Begleiter. Reines SVG mit Gesicht - Augen mit Pupillen, die
 // ueber die CSS-Variablen --bx/--by ueberall hinsehen koennen, Lidern zum Blinzeln,
@@ -136,6 +137,7 @@ export function Himbi({
   brille = true,
   aufAbzeichen,
   aufLogo,
+  lippen = false,
 }: {
   zustand: HaustierZustand;
   /** Faerbt nur Brauen, Wangen und eine kurze Reaktion - der Zustand bleibt der Zustand. */
@@ -150,14 +152,20 @@ export function Himbi({
   aufAbzeichen?: () => void;
   /** Gesetzt: die Anstecknadel auf der Kappe wird klickbar und zeigt das volle Damicon-Siegel. */
   aufLogo?: () => void;
+  /** Ein formbarer Mund fuer den Sprachmodus (components/ki/sprach-himbi.tsx): er ersetzt
+   *  in Ruhe, beim Denken und beim Sprechen die festen Mundbilder. Geformt wird er von
+   *  aussen, Bild fuer Bild ueber die data-lippe-Elemente, ohne React. */
+  lippen?: boolean;
 }) {
   const id = useId().replace(/:/g, "");
   const t = TRACHTEN[tracht];
+  const mund = lippen ? mundGeometrie(MUND_ZU) : null;
   return (
     <svg
       className="hb-svg"
       data-zustand={zustand}
       data-stimmung={stimmung}
+      data-lippen={lippen ? "" : undefined}
       width={groesse}
       height={(groesse * 144) / 96}
       viewBox="0 0 96 144"
@@ -336,6 +344,19 @@ export function Himbi({
           </g>
           <path className="hb-mund--traurig" d="M41 87Q48 80 55 87" fill="none" stroke="#5a0d27" strokeWidth="2.6" strokeLinecap="round" />
           <circle className="hb-mund--schlaf" cx="48" cy="85" r="2.4" fill="#5a0d27" />
+          {mund ? (
+            <g className="hb-mund--lippen">
+              <clipPath id={`${id}-mund`}>
+                <path data-lippe="clip" d={mund.pfad} />
+              </clipPath>
+              <path data-lippe="hoehle" d={mund.pfad} fill="#5a0d27" />
+              <g clipPath={`url(#${id}-mund)`}>
+                <ellipse data-lippe="zunge" cx={mund.zunge.cx} cy={mund.zunge.cy} rx={mund.zunge.rx} ry={mund.zunge.ry} fill="#ff7aa2" />
+                <rect data-lippe="zaehne" x="36" y={mund.zaehne.y} width="24" height={mund.zaehne.hoehe} rx="0.8" fill="#fff" opacity={mund.zaehne.deckkraft} />
+              </g>
+              <path data-lippe="umriss" d={mund.pfad} fill="none" stroke="#5a0d27" strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
+            </g>
+          ) : null}
         </g>
 
         {/* KI-Funken: kreisen, solange der Agent arbeitet */}

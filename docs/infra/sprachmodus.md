@@ -196,17 +196,65 @@ Bis zum 24.09.2026 gab es diesen Weg nicht: kam kein Endpunkt, hörte die Kugel
 endlos zu. Ein Tipp auf die Kugel oder den Mikrofonknopf versucht es nach einer
 Meldung erneut.
 
-### Die Kugel (`src/components/ki/sprach-kugel.tsx`)
+### Himbi als Gegenüber (`src/components/ki/sprach-himbi.tsx`)
 
-Reines Canvas 2D, keine neue Abhängigkeit (kein WebGL, kein Rive). Laut
-Recherche wiegen three.js und Rive mehrere hundert KB für eine einzelne Kugel.
-Der Pegel läuft **nie durch React**: eine eigene
-`requestAnimationFrame`-Schleife liest Mikrofonpegel (`lib/hoeren.ts`) und
-Ausgabepegel (`lib/ausgabe-pegel.ts`: ein gemeinsamer Ausgang je
-AudioContext, `ausgangFuer()`, mit einem `AnalyserNode` davor; Strom und
-Abschnitte spielen beide darüber) und zeichnet direkt. Seit 24.09.2026 meldet der Sprachmodus seinen Mikrofonstrom
-auch wirklich bei `lib/hoeren.ts` an (`starteHoeren`). Vorher tat das nur der
-Diktatknopf, und die Kugel reagierte nie auf die eigene Stimme.
+Bis zum 25.09.2026 stand hier eine abstrakte Kugel (Canvas 2D). Seitdem führt
+die Himbi-Figur das Gespräch (Rückmeldung vom 25.09.2026: „anstatt der
+Sprachblase die Himbi-Figur, die beim Sprechen die Lippen bewegt“). Die Figur in
+der Ecke ist währenddessen ausgeblendet, es gibt also nur einen Himbi.
+
+| Zustand | Figur (`HaustierZustand`) | Mund | Blick | Schein |
+|---|---|---|---|---|
+| Zuhören | `ruhe` (schwebt) | Lächeln, zu | geradeaus zur Person | türkis, wächst mit der eigenen Stimme |
+| Denken | `denkt` (KI-Funken kreisen) | fast gerade, zu | nach oben zur Seite | orange |
+| Sprechen | `spricht` (schwebt ruhig, Arme gestikulieren) | folgt der Stimme | zum hervorgehobenen Bereich, sonst zur Seite hin | rosa, wächst mit der Stimme von Himbi |
+| Pause | `schlaeft` | Schlafmund | | grau |
+| Fehler | `fehler` | traurig | | rot |
+
+Zustandstext und Symbol daneben bleiben: der Zustand hängt nie an Farbe oder
+Mimik allein. Ein Tipp auf Himbi unterbricht oder versucht es nach einem
+Fehler erneut, wie vorher der Tipp auf die Kugel.
+
+**Lippen** (`src/lib/domain/lippen.ts`, reine Rechnung, getestet in
+`supabase/tests/haustier.ts`). Recherche vom 25.09.2026 (27 Quellen, darunter
+lipsync-engine, wawa-lipsync, Rhubarb, TalkingHead/HeadAudio, Rive, Azure- und
+Soniox-Dokumentation, W3C zu WCAG 2.3.3, web.dev zur Ausgabelatenz):
+
+- Keine Bibliothek. Rive oder Lottie verlangten, Himbi neu zu zeichnen;
+  wawa-lipsync erwartet ein `<audio>`-Element, unsere Stimme spielt über
+  AudioBufferSourceNodes. Verfahren nach dem Vorbild von lipsync-engine.
+- Gelesen wird am gemeinsamen Ausgang (`lib/ausgabe-pegel.ts`,
+  `leseAusgabeSpektrum()`): derselbe `AnalyserNode` wie der Pegel für das
+  Dazwischenreden. `smoothingTimeConstant` 0,3 statt 0,6 wirkt nur auf das
+  Spektrum, nicht auf das Zeitsignal des Pegels.
+- Fünf Bänder: Grund 80 bis 300 Hz, tief 300 bis 700, Mitte 700 bis 1800, hoch
+  1800 bis 4000, Zischen 4000 bis 8000. Daraus stufenlos vier Größen: `offen`
+  (Lautstärke, an die laufende Spitze angepasst), `breite`, `rund` und
+  `zaehne`. Kein Umschalten zwischen festen Mundbildern.
+- Kalibriert mit der echten Soniox-Stimme (Probewörter in allen vier Sprachen,
+  abgespielt durch einen echten AnalyserNode in Chromium). Anteile an der ganzen
+  Stimme trennten I nicht von U, weil der zweite Formant bei I viel leiser ist.
+  Darum Verhältnisse: `kiefer = Mitte/(tief+Mitte)` (A 0,75, O 0,29, U 0,02),
+  `vorn = hoch/(hoch+Mitte)` (I und E 0,8, A 0,1, O und U 0), `nasal =
+  Grund/(Grund+tief+Mitte)` (M 0,76 bis 0,88, Vokale 0,63 bis 0,71).
+- Grenze: M und L klingen bei dieser Stimme im Spektrum fast wie U; der Mund
+  wird dort kurz schmal statt ganz zu. Genauer ginge es mit den Zeitstempeln je
+  Zeichen, die Soniox TTS auf Wunsch liefert (`return_timestamps`): die Form
+  aus dem Text, die Öffnung aus dem Pegel. Das greift in den Strom ein und ist
+  noch nicht umgesetzt.
+- Glättung zeitbasiert (`1 − exp(−dt/τ)`): Öffnen 35 ms, Schließen 110 ms,
+  Form 60 ms, bei 60 und 120 Hz gleich.
+- Die Mundform wartet `outputLatency + baseLatency` (höchstens 0,4 s): der
+  Analyser misst vor dem Gerät, bei Bluetooth-Kopfhörern klingt der Ton rund
+  0,2 s später.
+- Reduzierte Bewegung (Systemeinstellung oder Himbis Schalter „Bewegung“): der
+  Mund steht still, beim Sprechen ruhig offen; kein Nicken, kein wachsender
+  Schein.
+
+Wie vorher bei der Kugel läuft nichts davon durch React: eine
+`requestAnimationFrame`-Schleife schreibt Mundpfad (`data-lippe`-Elemente in
+`himbi.tsx`, Prop `lippen`), Blick (`--bx`, `--by`), Schein und Nicken direkt.
+Der Mikrofonpegel kommt aus `lib/hoeren.ts` (`starteHoeren`, seit 24.09.2026).
 
 ### Hervorhebung
 
