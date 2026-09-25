@@ -6,8 +6,7 @@ import { AlertTriangle, Ear, Loader2, Mic, MicOff, Subtitles, Volume2, X } from 
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { SprachKugel, type KugelZustand } from "@/components/ki/sprach-kugel";
 import { SprachSpotlight, useHervorhebungsRechteck } from "@/components/ki/sprach-spotlight";
-import { findeMitleseZiel, zeigeMitleseZiel } from "@/components/ki/sprach-mitlesen";
-import { leseHervorhebung, setzeHervorhebung } from "@/components/ki/hervorhebung";
+import { loeseSprechZiel, ueberschriftImSatz, zeigeSprechStelle } from "@/components/ki/sprach-mitlesen";
 import {
   abonniereSprachBus,
   chatStandServer,
@@ -29,6 +28,7 @@ import {
   istAbsageBefehl,
   istStoppBefehl,
   istZusageBefehl,
+  stoppWortIn,
   nachSitzungsAbbruch,
   naechstePhase,
   NEUVERSUCH_MS,
@@ -509,37 +509,102 @@ function SprachmodusInhalt() {
   const zielSichtbar = zielRechteck !== null && zielRechteck.breite > 0 && zielRechteck.hoehe > 0;
   const angedockt = zielSichtbar || assistentIstDran(phase);
 
-  // Mitlesen: bei einer längeren Erklärung wandert der Rahmen mit, damit man
-  // sieht, bei welchem Punkt Himbi ist (Rückmeldung vom 25.09.2026). Der Satz,
-  // der gerade klingt, kommt vom Vorlese-Strom (sprachmodus-bus.ts, leseGerade),
-  // die Stelle auf der Seite aus dem Vergleich seiner Wörter mit den Texten der
-  // Seite (sprach-mitlesen.ts). Passt kein Satz zu einer Stelle, bleibt der
-  // Rahmen, wo er war.
-  const meinZiel = useRef<Element | null>(null);
+  // Mitlesen: der Rahmen in der Mitte folgt dem Satz, den die Stimme gerade
+  // spricht (Rückmeldung vom 25.09.2026: "ich kann nicht nachvollziehen, bei
+  // welchem Punkt er gerade ist"). Welcher Satz klingt, weiß der Vorlese-Strom
+  // (sprachmodus-bus.ts, leseGerade); welche Stelle er meint, sagt seine
+  // Sprechmarke (domain/sprechmarken.ts, sprach-mitlesen.ts). Ein Satz ohne Marke
+  // lässt den Rahmen stehen. Nur wenn in der ganzen Antwort noch keine Marke kam,
+  // zeigt eine wörtlich genannte Überschrift die Stelle - nie Wortähnlichkeit.
+  //
+  // Nebenbei steht der klingende Satz als data-satz-jetzt am Untertitel: der
+  // Führungstest liest dort mit, was gerade gesprochen wird.
+  const untertitelRef = useRef<HTMLDivElement | null>(null);
+  const himbiDran = assistentIstDran(phase);
   useEffect(() => {
-    if (phase !== "spricht") return;
-    let letzter: string | null = null;
+    if (!himbiDran) return;
+    let letzterIndex = -1;
+    let markeGesehen = false;
     const uhr = window.setInterval(() => {
-      const satz = leseGerade()?.satz ?? null;
-      if (!satz || satz === letzter) return;
-      letzter = satz;
-      const treffer = findeMitleseZiel(satz);
-      if (!treffer) return;
-      const ziel = treffer.el;
-      meinZiel.current = ziel;
-      zeigeMitleseZiel(ziel);
-      setzeHervorhebung(ziel);
-      // Ein aufgeklapptes Element wächst erst noch: danach ins Bild holen.
-      if (treffer.aufgeklappt) aufklappTimer = window.setTimeout(() => zeigeMitleseZiel(ziel), 400);
-    }, 300);
-    let aufklappTimer: number | undefined;
-    return () => {
-      window.clearInterval(uhr);
-      window.clearTimeout(aufklappTimer);
-      if (meinZiel.current && leseHervorhebung() === meinZiel.current) setzeHervorhebung(null);
-      meinZiel.current = null;
+      const jetzt = leseGerade();
+      if (!jetzt || jetzt.index === letzterIndex) return;
+      letzterIndex = jetzt.index;
+      untertitelRef.current?.setAttribute("data-satz-jetzt", jetzt.satz ?? "");
+      if (jetzt.ziel) {
+        markeGesehen = true;
+        const stelle = loeseSprechZiel(jetzt.ziel);
+        if (stelle) zeigeSprechStelle(stelle);
+        return;
+      }
+      if (markeGesehen || !jetzt.satz) return;
+      const stelle = ueberschriftImSatz(jetzt.satz);
+      if (stelle) zeigeSprechStelle(stelle);
+    }, 150);
+    return () => window.clearInterval(uhr);
+  }, [himbiDran]);
+
+  // --- Stoppwort, waehrend Himbi denkt oder spricht -------------------------------------
+  //
+  // Waehrend Himbi dran ist, laeuft keine Spracherkennung fuer Fragen, nur der
+  // Lautstaerke-Waechter fuer das Dazwischenreden. Der verlangt 400 ms
+  // durchgehende Sprache, ein kurzes "Stopp" (ein kurzer Vokal) erreicht das nie,
+  // und beim Nachdenken hoerte gar nichts zu (Live-Test vom 25.09.2026: "Stopp"
+  // blieb ohne Wirkung, Himbi sprach und fuehrte weiter). Deshalb laeuft in
+  // dieser Zeit eine eigene Live-Erkennung auf demselben Mikrofon (mit
+  // Echounterdrueckung), die NUR auf endgueltig erkannte, kurze Stoppbefehle
+  // reagiert (istStoppBefehl). Ein Stoppwort, das Himbi gerade selbst sagt,
+  // zaehlt nicht. Bei offener Freigabekarte lehnt "Stopp" nur die Karte ab, wie
+  // beim Zuhoeren.
+  useEffect(() => {
+    if (!himbiDran) return;
+    const strom = stromRef.current;
+    if (!strom) return;
+    let aus = false;
+    let recorder: MediaRecorder;
+    try {
+      recorder = new MediaRecorder(strom);
+    } catch {
+      return;
+    }
+    let geprueftBis = 0;
+    const sitzung = starteLiveSitzung({
+      sprache,
+      zweck: "gespraech",
+      beiStand: (stand) => {
+        if (aus) return;
+        const neu = stand.endgueltig.slice(geprueftBis);
+        const letzter = neu.split(/(?<=[.!?…])\s+/).filter((t) => t.trim()).at(-1) ?? "";
+        if (letzter && istStoppBefehl(letzter)) {
+          // Hat Himbi dieses Wort gerade selbst gesagt, ist es das eigene Echo.
+          const wort = stoppWortIn(letzter);
+          if (wort && stoppWortIn(leseChatStand().antwort, wort)) return;
+          aus = true;
+          if (leseFreigabeAnfrage()) {
+            entscheideFreigabe(false);
+            return;
+          }
+          beendenRef.current();
+          return;
+        }
+        // Ein abgeschlossener Satz ohne Stopp: der naechste beginnt dahinter.
+        if (/[.!?…]\s*$/.test(neu) || neu.length > 160) geprueftBis = stand.endgueltig.length;
+      },
+      beiEndpunkt: () => {},
+    });
+    recorder.ondataavailable = (e) => {
+      if (e.data.size > 0) sitzung.sende(e.data);
     };
-  }, [phase]);
+    recorder.start(AUFNAHME_STUECK_MS);
+    return () => {
+      aus = true;
+      try {
+        if (recorder.state !== "inactive") recorder.stop();
+      } catch {
+        // schon gestoppt
+      }
+      sitzung.abbrechen();
+    };
+  }, [himbiDran, sprache]);
 
   // Die Navigationsleiste wird unscharf, solange Kugel und Text links stehen
   // (Filter direkt auf der Leiste, siehe sprachmodus.css).
@@ -597,7 +662,7 @@ function SprachmodusInhalt() {
       <p className="ki-sprachmodus__untertitel-zeile ki-sprachmodus__untertitel-zeile--nutzer">{t("freigabeHinweis")}</p>
     </div>
   ) : untertitelAn ? (
-    <div className="ki-sprachmodus__untertitel" aria-hidden={phase !== "hoert" && phase !== "versteht"}>
+    <div ref={untertitelRef} className="ki-sprachmodus__untertitel" aria-hidden={phase !== "hoert" && phase !== "versteht"}>
       {phase === "hoert" || phase === "versteht" ? (
         <p className="ki-sprachmodus__untertitel-zeile ki-sprachmodus__untertitel-zeile--nutzer">
           {zwischentext || (phase === "hoert" ? t("hoertZu") : "")}

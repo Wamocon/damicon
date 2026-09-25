@@ -18,6 +18,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { UIMessage } from "ai";
 import { istVorlesbar, useSprachausgabe } from "@/components/ki/sprachausgabe";
 import { useLiveSprachausgabe, type LiveAbschnitt, type ZugNachweis } from "@/components/ki/sprachausgabe-live";
+import { bindeSprechZiel } from "@/components/ki/sprach-mitlesen";
 import {
   nachSchalterKlick,
   schalterZeigtAn,
@@ -149,10 +150,13 @@ export function useKiChatSprache({
         continue;
       }
       if (teil.type !== "data-satz" || !teil.data) continue;
-      const a = teil.data as LiveAbschnitt & { sprache?: string };
-      const schluessel = `${a.zug}#${a.nr}`;
+      const roh = teil.data as LiveAbschnitt & { sprache?: string };
+      const schluessel = `${roh.zug}#${roh.nr}`;
       if (gesehenerAbschnitt.current.has(schluessel)) continue;
       gesehenerAbschnitt.current.add(schluessel);
+      // Sprechmarken jetzt an ihr Element binden, nicht erst beim Sprechen: bis
+      // dahin kann ein weiteres seiteLesen die Seite schon neu gelesen haben.
+      const a: LiveAbschnitt & { sprache?: string } = roh.ziele?.length ? { ...roh, gebunden: bindeSprechZiel(roh.ziele) } : roh;
       // Die Sprache kommt vom Zug, nicht aus der Oberflaeche: der Text
       // antwortet in der Sprache der Frage, und die Stimme folgt ihm.
       const eintrag = { a, sprache: a.sprache ?? sprache };

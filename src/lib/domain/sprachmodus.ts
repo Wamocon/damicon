@@ -127,20 +127,59 @@ export const RUHE_VOR_ZUHOEREN_MS = 700;
 // stoppen koennen mit Stopp"). Nur die ganze Aeusserung zaehlt, nicht ein Wort
 // mittendrin ("Was bedeutet Stopp bei einer Kuehlkette?" bleibt eine Frage).
 
-const STOPP_WOERTER = new Set([
+// Seit dem 25.09.2026 (zweite Fassung) etwas toleranter: "Stopp, stopp",
+// "Himbi, stopp", "Stopp die Fuehrung", "Nein, hoer auf" zaehlen auch - eine kurze
+// Aeusserung aus Stoppwort und Beiwoertern. Alles mit einem anderen Inhalt
+// ("Stopp den Bericht bitte") bleibt eine Frage.
+const STOPP_KERN = new Set([
   // Deutsch
-  "stopp", "stop", "halt", "hör auf", "hoer auf",
+  "stopp", "stop", "halt", "abbrechen", "aufhören", "aufhoeren",
   // Russisch
   "стоп", "стой", "хватит", "остановись", "прекрати",
   // Kasachisch
   "тоқта", "тоқтат", "тоқтаңыз",
 ]);
+const STOPP_BEIWOERTER = new Set([
+  "bitte", "please", "пожалуйста", "өтінемін", "himbi", "химби", "jetzt", "sofort", "mal", "doch",
+  "ok", "okay", "hey", "nein", "die", "führung", "fuehrung", "danke", "einfach", "alles",
+]);
+const HOEREN = new Set(["hör", "hoer", "hören", "hoeren"]);
 const HOEFLICHKEIT = /^(bitte|please|пожалуйста|өтінемін)[\s,]+|[\s,]+(bitte|please|пожалуйста|өтінемін)$/gi;
 
-/** Ist diese fertig erkannte Aeusserung nur der Befehl, den Sprachmodus zu
- *  beenden - mit oder ohne Bitte, mit oder ohne Ausrufezeichen? */
+function woerterVon(text: string): string[] {
+  return text.toLowerCase().replace(/[^\p{L}\s]/gu, " ").split(/\s+/).filter(Boolean);
+}
+
+/** Ist diese erkannte Aeusserung nur der Befehl anzuhalten: ein Stoppwort, dazu
+ *  hoechstens Beiwoerter wie "bitte", "Himbi" oder "die Fuehrung"? */
 export function istStoppBefehl(text: string): boolean {
-  return STOPP_WOERTER.has(bereinigteAeusserung(text));
+  const woerter = woerterVon(text);
+  if (woerter.length === 0 || woerter.length > 6) return false;
+  let kern = false;
+  for (let i = 0; i < woerter.length; i++) {
+    const w = woerter[i]!;
+    if (STOPP_KERN.has(w)) {
+      kern = true;
+      continue;
+    }
+    if (HOEREN.has(w) && woerter.includes("auf")) {
+      kern = true;
+      continue;
+    }
+    if (w === "auf" && woerter.some((x) => HOEREN.has(x))) continue;
+    if (!STOPP_BEIWOERTER.has(w)) return false;
+  }
+  return kern;
+}
+
+/** Das (erste) Stoppwort in einem Text, oder - mit `wort` - ob genau dieses Wort
+ *  darin vorkommt. Fuer den Stoppwort-Waechter: sagt Himbi "Stopp" gerade selbst,
+ *  ist ein erkanntes "Stopp" ihr eigenes Echo. */
+export function stoppWortIn(text: string, wort?: string): string | null {
+  for (const w of woerterVon(text)) {
+    if (wort ? w === wort : STOPP_KERN.has(w)) return w;
+  }
+  return null;
 }
 
 // --- 1c. Zusage/Absage bei einer offenen Freigabe -------------------------------

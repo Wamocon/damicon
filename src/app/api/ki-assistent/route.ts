@@ -31,8 +31,10 @@ import {
   SPRACHMODUS_FUEHRUNG,
   SPRACHMODUS_OBERFLAECHE,
   sprachmodusFormatAnweisung,
+  sprechmarkenAnweisung,
 } from "@/lib/domain/antwort-anweisungen";
-import { erzeugeSatzZerleger, sprachausgabeStromAn } from "@/lib/domain/sprachausgabe";
+import { erzeugeMarkenFilter, nurBekannteZiele } from "@/lib/domain/sprechmarken";
+import { erzeugeSatzZerleger, ohneSprechmarken, sprachausgabeStromAn } from "@/lib/domain/sprachausgabe";
 import { ABSCHNITT_GUELTIG_MS, signiereAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
 import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
 import { erkenneSprache } from "@/lib/wissen/chunker";
@@ -96,6 +98,39 @@ function textAusNachricht(nachricht: UIMessage): string {
 // einfacheres Gegenstueck in domain/ki-assistent.ts - beide wurden erst am
 // 22./23.09.2026 fuer je ihren Sendeweg gezielt nachgebessert (WMCNL-2415,
 // Fazit-Zeile), ein Zusammenlegen haette dieselben Fehlerbilder riskiert.
+
+// Seitenkarte des Sprachmodus (ui-steuerung.ts, seitenKarte): kommt vom Browser,
+// ist also Eingabe des Nutzers. Begrenzt, ohne Steuerzeichen, und im Prompt als
+// Daten gekennzeichnet.
+const MAX_SEITENKARTE_ZEICHEN = 4_000;
+function bereinigteSeitenkarte(roh: unknown): string | null {
+  if (typeof roh !== "string" || !roh.trim()) return null;
+  const zeilen = roh
+    .slice(0, MAX_SEITENKARTE_ZEICHEN)
+    .split("\n")
+    .map((z) => z.replace(/[\u0000-\u001f\u007f<>{}[\]`]/g, " ").replace(/\s+/g, " ").trim().slice(0, 120))
+    .filter(Boolean);
+  return zeilen.length > 0 ? zeilen.join("\n") : null;
+}
+
+/** Die Referenzen, die das Modell kennt: aus der Seitenkarte dieser Anfrage und
+ *  aus der juengsten seiteLesen-Antwort. Eine Sprechmarke auf eine andere, erfundene
+ *  Referenz wird verworfen, bevor sie einen falschen Rahmen setzt. */
+function bekannteReferenzen(nachrichten: UIMessage[], seitenkarte: string | null): Set<string> {
+  const bekannt = new Set<string>();
+  for (const treffer of (seitenkarte ?? "").matchAll(/^([ea]\d{1,5}) /gm)) bekannt.add(treffer[1]!);
+  for (let i = nachrichten.length - 1; i >= 0; i--) {
+    for (const teil of [...nachrichten[i]!.parts].reverse()) {
+      const t = teil as unknown as { type: string; state?: string; output?: { elemente?: { ref?: unknown }[]; abschnitte?: { ref?: unknown }[] } };
+      if (t.type !== "tool-seiteLesen" || t.state !== "output-available") continue;
+      for (const e of [...(t.output?.elemente ?? []), ...(t.output?.abschnitte ?? [])]) {
+        if (typeof e.ref === "string") bekannt.add(e.ref);
+      }
+      return bekannt;
+    }
+  }
+  return bekannt;
+}
 
 /** Aeltere Seitenstaende aus dem Verlauf loeschen: nur der juengste seiteLesen-
  *  Schnappschuss ist noch gueltig, die anderen wuerden nur Tokens kosten und das
@@ -327,7 +362,7 @@ export async function POST(req: Request) {
     return new Response("ratenlimit", { status: 429 });
   }
 
-  let body: { messages?: unknown; einwilligung?: boolean; modus?: unknown; pfad?: unknown; rolle?: unknown; sprache?: unknown; diktatSprachen?: unknown; pruefkontext?: unknown; vorleseWeg?: unknown };
+  let body: { messages?: unknown; einwilligung?: boolean; modus?: unknown; pfad?: unknown; rolle?: unknown; sprache?: unknown; diktatSprachen?: unknown; pruefkontext?: unknown; vorleseWeg?: unknown; seitenkarte?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -448,6 +483,12 @@ export async function POST(req: Request) {
   }
 
   const ortHinweis = pfad ? `Der Nutzer sieht gerade diese Ansicht: ${pfad}` : "";
+  // Sprechmarken (domain/sprechmarken.ts) nur, wo sie ausgewertet werden: im
+  // Sprachmodus mit Live-Vorlesen (unten filtert der Server sie aus dem Text).
+  const geheimnis = sprachausgabeGeheimnis();
+  const liveVorlesen = sprachausgabeLiveAn() && Boolean(geheimnis);
+  const markenAn = modus === "sprache" && liveVorlesen;
+  const seitenkarte = modus === "sprache" ? bereinigteSeitenkarte(body.seitenkarte) : null;
   // Die Datenbank-ID der Antwort steht schon VOR dem Stream fest und geht als
   // Nachrichten-ID an den Client (generateMessageId unten), gespeichert wird
   // die Zeile in onFinish unter genau dieser ID. So kennt der Client fuer jede
@@ -490,6 +531,7 @@ export async function POST(req: Request) {
     "wissenSuchen" in werkzeuge ? quellenAnweisung(antwortSprache) : OHNE_QUELLEN_ANWEISUNG,
     heute,
     ortHinweis,
+    markenAn ? sprechmarkenAnweisung(seitenkarte) : "",
     spracheAnweisung(antwortSprache),
     ausserhalb ? ABLEHNUNG_ANWEISUNG : "",
   ]
@@ -543,8 +585,9 @@ export async function POST(req: Request) {
         .filter((name): name is string => Boolean(name));
       // Der Text ALLER Schritte: im Agent-Modus steckt die Begleitung der Tour
       // (ein Satz je Station) in den Schritten vor der Schlussantwort.
+      // Sprechmarken gehoeren nie in den gespeicherten Verlauf (Anzeige, Vorlesen-Knopf).
       const gesamtText = steps
-        .map((schritt) => schritt.text.trim())
+        .map((schritt) => ohneSprechmarken(schritt.text).trim())
         .filter(Boolean)
         .join("\n\n");
 
@@ -587,8 +630,7 @@ export async function POST(req: Request) {
   // Server prueft sie dort noch einmal gegen den fertigen Text.
   const nachrichtenBeigabe = () => ({ sprache: antwortSprache, sprachHerkunft });
 
-  const geheimnis = sprachausgabeGeheimnis();
-  if (!sprachausgabeLiveAn() || !geheimnis) {
+  if (!liveVorlesen || !geheimnis) {
     return result.toUIMessageStreamResponse({ generateMessageId: () => antwortId, messageMetadata: nachrichtenBeigabe });
   }
 
@@ -628,7 +670,7 @@ export async function POST(req: Request) {
           sig: signiereAbschnitt({ nutzerId: profil.id, zug: antwortId, nr: 0, text: "", ablauf }, geheimnis),
         },
       });
-      const schickeAbschnitt = (nr: number, text: string) => {
+      const schickeAbschnitt = (nr: number, text: string, ziele?: string[]) => {
         writer.write({
           type: "data-satz",
           data: {
@@ -640,24 +682,45 @@ export async function POST(req: Request) {
             // Ohne Signatur waere die Abschnitts-Route ein offener
             // Sprachgenerator - siehe domain/sprachausgabe-signatur.ts.
             sig: signiereAbschnitt({ nutzerId: profil.id, zug: antwortId, nr, text, ablauf }, geheimnis),
+            // Sprechmarken: unsigniert, sie steuern nur den Rahmen im eigenen Browser.
+            ...(ziele && ziele.length > 0 ? { ziele } : {}),
           },
         });
       };
 
+      // Sprechmarken ("[[a3]]") verlassen den Server nie im Text: der Filter nimmt
+      // sie aus jedem Textstueck, der Zerleger bekommt einen Platzhalter und ordnet
+      // das Ziel seinem Satz zu. Ziele, die das Modell nicht kennen kann (erfundene
+      // Referenz), fallen weg.
+      const marken = erzeugeMarkenFilter();
+      const bekannt = markenAn ? bekannteReferenzen(nachrichten, seitenkarte) : null;
+      const fuettere = (stueck: { zerleger: string; ziele: string[] }) => {
+        for (const a of zerleger.fuettere(stueck.zerleger, nurBekannteZiele(stueck.ziele, bekannt))) schickeAbschnitt(a.nr, a.text, a.ziele);
+      };
       for await (const teil of result.toUIMessageStream({ generateMessageId: () => antwortId, messageMetadata: nachrichtenBeigabe })) {
-        writer.write(teil);
         if (teil.type === "text-delta" && typeof teil.delta === "string") {
-          for (const a of zerleger.fuettere(teil.delta)) schickeAbschnitt(a.nr, a.text);
-        } else if (teil.type === "text-end") {
+          const stueck = marken.fuettere(teil.delta);
+          if (stueck.anzeige) writer.write({ ...teil, delta: stueck.anzeige });
+          fuettere(stueck);
+          continue;
+        }
+        if (teil.type === "text-end") {
+          // Was der Filter noch zurueckhielt (eine offene Marke am Ende), zuerst.
+          const rest = marken.leere();
+          if (rest.anzeige) writer.write({ type: "text-delta", id: teil.id, delta: rest.anzeige });
+          fuettere(rest);
+          writer.write(teil);
           // Ende eines Textteils: danach ruft das Modell ein Werkzeug auf oder
           // hoert auf. Der Teil ist vollstaendig und geht ganz hinaus - sonst
           // lag ein fertiger Satz waehrend der Werkzeuge stumm im Puffer, und
           // "Ich oeffne die Lohnabrechnung" klebte am naechsten Teil
           // ("LohnabrechnungHier ...").
-          for (const a of zerleger.schrittEnde()) schickeAbschnitt(a.nr, a.text);
+          for (const a of zerleger.schrittEnde()) schickeAbschnitt(a.nr, a.text, a.ziele);
+          continue;
         }
+        writer.write(teil);
       }
-      for (const a of zerleger.abschliessen()) schickeAbschnitt(a.nr, a.text);
+      for (const a of zerleger.abschliessen()) schickeAbschnitt(a.nr, a.text, a.ziele);
     },
   });
 

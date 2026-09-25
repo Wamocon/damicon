@@ -32,8 +32,19 @@ import { fuerSprache } from "@/lib/text/umlaute";
 import { ausgangFuer } from "@/lib/ausgabe-pegel";
 import type { VorlesePhase } from "@/lib/domain/vorlesen-zustand";
 import { erzeugeStromSprecher, stromMoeglich, type SprechStand, type StromSprecher, type StromZustand } from "@/components/ki/sprachausgabe-strom";
+import type { GebundenesZiel } from "@/components/ki/sprach-mitlesen";
 
-export type LiveAbschnitt = { zug: string; nr: number; text: string; sig: string; ablauf: number };
+export type LiveAbschnitt = {
+  zug: string;
+  nr: number;
+  text: string;
+  sig: string;
+  ablauf: number;
+  /** Sprechmarken des Abschnitts (vom Server, unsigniert, domain/sprechmarken.ts). */
+  ziele?: string[];
+  /** Dieselben, im Browser beim Eintreffen an ihr Element gebunden (ki-chat-sprache.ts). */
+  gebunden?: GebundenesZiel | null;
+};
 /** Zug-Nachweis aus dem Chat-Stream (data-nachweis): damit gibt es einen
  *  Schluessel fuer den Vorlese-Strom. */
 export type ZugNachweis = { zug: string; ablauf: number; sig: string };
@@ -80,6 +91,11 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
   const scheine = useRef(new Map<number, { a: LiveAbschnitt; sprache: string }>());
   const laufendeNr = useRef(0);
   const knoten = useRef<AudioBufferSourceNode | null>(null);
+  // Fuer gerade() im Abschnitts-Weg: welcher Abschnitt gerade klingt, und bis
+  // zu welchem alle fertig sind.
+  const spieltNr = useRef<number | null>(null);
+  const gehaltenRef = useRef(false);
+  const fertigBis = useRef(0);
 
   function schlange(): Warteschlange {
     warteschlange.current ??= erzeugeWarteschlange();
@@ -94,7 +110,7 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
       const Klasse = typeof AudioContext !== "undefined" ? AudioContext : undefined;
       if (Klasse) {
         kontext.current ??= new Klasse();
-        if (kontext.current.state === "suspended") void kontext.current.resume();
+        if (kontext.current.state === "suspended" && !gehaltenRef.current) void kontext.current.resume();
         hatWebAudio.current = true;
         return;
       }
@@ -133,6 +149,11 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
   const stoppeAlles = useCallback(() => {
     durchgang.current += 1;
     sprecher.current?.stopp();
+    // Eine angehaltene Stimme (Seitenwechsel) nicht angehalten zuruecklassen.
+    if (gehaltenRef.current) {
+      gehaltenRef.current = false;
+      if (kontext.current?.state === "suspended") void kontext.current.resume().catch(() => {});
+    }
     try {
       knoten.current?.stop();
     } catch {
@@ -152,6 +173,8 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
     ersatzToene.current.clear();
     scheine.current.clear();
     laufendeNr.current = 0;
+    spieltNr.current = null;
+    fertigBis.current = 0;
     anDenStrom.current = [];
     nachricht.current = null;
     weg.current = null;
@@ -177,11 +200,14 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
       const url = ersatzToene.current.get(naechster.nr);
       if (!url) return aktualisiereAbschnitte();
       spieler.src = url;
+      spieltNr.current = naechster.nr;
       spieler.onended = () => {
         if (meinDurchgang !== durchgang.current) return;
         URL.revokeObjectURL(url);
         ersatzToene.current.delete(naechster.nr);
         w.fertigGespielt(naechster.nr);
+        spieltNr.current = null;
+        fertigBis.current = Math.max(fertigBis.current, naechster.nr);
         spieleWeiter();
       };
       aktualisiereAbschnitte();
@@ -212,9 +238,12 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
       puffer.current.delete(naechster.nr);
       w.fertigGespielt(naechster.nr);
       if (knoten.current === q) knoten.current = null;
+      spieltNr.current = null;
+      fertigBis.current = Math.max(fertigBis.current, naechster.nr);
       spieleWeiter();
     };
     knoten.current = q;
+    spieltNr.current = naechster.nr;
     q.start();
     aktualisiereAbschnitte();
   }, [aktualisiereAbschnitte]);
@@ -291,6 +320,7 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
   const holeSprecher = useCallback((): StromSprecher => {
     sprecher.current ??= erzeugeStromSprecher(() => kontext.current, {
       beiZustand: (z) => setStromZustand(z),
+      gehalten: () => gehaltenRef.current,
       beiAufgabe: (grund, ungesprochen) => {
         console.warn("[damicon] Vorlese-Strom aufgegeben:", grund);
         // Knopf an einer Nachricht: klang noch nichts, liest der bisherige Weg
@@ -342,7 +372,7 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
       weg.current ??= stromMoeglich() && hatWebAudio.current ? "strom" : "abschnitte";
       if (weg.current === "strom") {
         anDenStrom.current.push({ a, sprache });
-        holeSprecher().sprich(zumSprechen(a.text, sprache), sprache, a.text);
+        holeSprecher().sprich(zumSprechen(a.text, sprache), sprache, a.text, a.gebunden ?? null);
       } else {
         stelleAbschnittEin(a, sprache);
       }
@@ -384,7 +414,26 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
 
   /** Wo die Stimme gerade ist (nur im Strom-Weg, sonst null) - fuer den Takt und
    *  das Mitlesen im Sprachmodus. */
-  const gerade = useCallback((): SprechStand | null => (weg.current === "strom" ? (sprecher.current?.stand() ?? null) : null), []);
+  const gerade = useCallback((): SprechStand | null => {
+    if (weg.current === "strom") return sprecher.current?.stand() ?? null;
+    if (weg.current !== "abschnitte" || laufendeNr.current === 0) return null;
+    // Abschnitts-Weg: die laufende Nummer der Warteschlange ist der Satz.
+    const anzahl = laufendeNr.current;
+    const nr = spieltNr.current;
+    if (nr === null) return { index: fertigBis.current, anzahl, satz: null };
+    const schein = scheine.current.get(nr);
+    return { index: nr - 1, anzahl, satz: schein?.a.text ?? null, ziel: schein?.a.gebunden ?? null };
+  }, []);
+
+  /** Haelt die Stimme an (Seitenwechsel im Sprachmodus, sprach-takt.ts), ohne
+   *  etwas zu verwerfen: der AudioContext steht, die Zeitachse mit ihm. */
+  const halte = useCallback((an: boolean) => {
+    gehaltenRef.current = an;
+    const ctx = kontext.current;
+    if (!ctx) return;
+    if (an && ctx.state === "running") void ctx.suspend().catch(() => {});
+    else if (!an && ctx.state === "suspended") void ctx.resume().catch(() => {});
+  }, []);
 
   const spricht = stromZustand.spricht || abschnittSpricht;
   const laedt = !spricht && (stromZustand.laedt || abschnittLaedt);
@@ -407,7 +456,8 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
       stoppeAlles,
       entsperre,
       gerade,
+      halte,
     }),
-    [phase, quelle, neueRunde, nimmNachweis, nimmAbschnitt, folgeQuelle, schliesseRunde, sprichNachricht, stoppeAlles, entsperre, gerade],
+    [phase, quelle, neueRunde, nimmNachweis, nimmAbschnitt, folgeQuelle, schliesseRunde, sprichNachricht, stoppeAlles, entsperre, gerade, halte],
   );
 }

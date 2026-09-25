@@ -41,6 +41,19 @@ export function istRechtsfrage(text: string): boolean {
   return STAEMME.some((s) => t.includes(s));
 }
 
+// Eine Bitte, etwas zu ZEIGEN oder zu OEFFNEN ("Zeig mir den Pruefbericht Audit",
+// "Erklaere mir den Bereich Hof"), ist im Sprachmodus eine Fuehrung, keine Rechtsfrage,
+// auch wenn "Audit", "Compliance" oder "Steuern" darin vorkommen. Bis zum 25.09.2026
+// erzwang der Server dort zuerst die Wissenssuche: Himbi schwieg mehrere Sekunden und
+// begann mit Rechtstexten statt mit dem Bericht.
+const NAVIGATION =
+  /(?:^|[^\p{L}])(?:zeig(?:e|en|t)?|öffne(?:n|t)?|oeffne(?:n|t)?|geh(?:e)? (?:zu|zum|zur|in)|wechsle|bring(?:e)? mich|führ(?:e)? mich|fuehr(?:e)? mich|navigiere|bereich(?:e|s)?|seite(?:n)?|prüfbericht(?:e|s)?|pruefbericht(?:e|s)?|bericht(?:e|s)?|übersicht|uebersicht|kachel(?:n)?|cockpit|zone(?:n)?|покажи(?:те)?|открой(?:те)?|перейди(?:те)?|раздел|отч[её]т|көрсет(?:іңіз|ші)?|бөлім|есеп)(?![\p{L}])/iu;
+
+/** Bittet der Nutzer darum, etwas zu zeigen oder zu oeffnen? */
+export function istNavigationsbitte(text: string): boolean {
+  return NAVIGATION.test(text);
+}
+
 export type ToolChoice = "auto" | "required" | "none" | { type: "tool"; toolName: "wissenSuchen" };
 
 export interface SchrittEingabe {
@@ -60,7 +73,7 @@ export function waehleSchritt(e: SchrittEingabe): { toolChoice: ToolChoice } | u
   // Zweckentfremdung: in JEDEM Schritt ohne Werkzeuge, es wird nur abgelehnt.
   if (e.ausserhalb && e.neueNutzerFrage) return { toolChoice: "none" };
   if (e.stepNumber !== 0 || !e.neueNutzerFrage) return undefined;
-  if (e.wissenAngeboten && istRechtsfrage(e.frage)) {
+  if (e.wissenAngeboten && istRechtsfrage(e.frage) && !(e.modus === "sprache" && istNavigationsbitte(e.frage))) {
     return { toolChoice: { type: "tool", toolName: "wissenSuchen" } };
   }
   // Agent-Modus, neue Frage: der erste Schritt MUSS ein Werkzeug rufen (siehe route.ts).

@@ -27,12 +27,23 @@ export interface ElementInfo {
   ziel?: string;
 }
 
+/** Eine Stelle der Seite, auf die der Sprachmodus mit einer Sprechmarke
+ *  ("[[a3]]", domain/sprechmarken.ts) zeigen kann: Abschnitt, Karte, Kachel,
+ *  Aufklappbereich. Anders als die Elemente auch ohne Bedienung. */
+export interface AbschnittInfo {
+  ref: string;
+  titel: string;
+  /** Zugeklappt: beim Zeigen klappt der Sprachmodus die Stelle auf. */
+  zugeklappt?: true;
+}
+
 export interface Schnappschuss {
   url: string;
   titel: string;
   ueberschriften: string[];
   text: string;
   elemente: ElementInfo[];
+  abschnitte: AbschnittInfo[];
   hinweis?: string;
 }
 
@@ -53,9 +64,35 @@ export interface Umgebung {
 }
 
 const MAX_ELEMENTE = 140;
+const MAX_ABSCHNITTE = 60;
 const MAX_TEXT = 3200;
 const FOKUS_KLASSE = "ki-fokus";
 const REF_ATTRIBUT = "data-ki-ref";
+const ABSCHNITT_ATTRIBUT = "data-ki-abschnitt";
+
+// Referenzen werden je Seitenaufruf nie wiederverwendet: ein Element behaelt
+// seine Nummer ueber jedes seiteLesen hinweg, ein neues bekommt eine neue. Bis
+// zum 25.09.2026 wurde bei jedem seiteLesen ab e1 neu gezaehlt - eine Sprechmarke
+// oder ein zeigeAuf, das auf das Lesen davor zurueckging, traf dann still ein
+// ganz anderes Element.
+let letzteElementNr = 0;
+let letzteAbschnittNr = 0;
+
+function refFuer(el: HTMLElement): string {
+  const alt = el.getAttribute(REF_ATTRIBUT);
+  if (alt) return alt;
+  const ref = `e${++letzteElementNr}`;
+  el.setAttribute(REF_ATTRIBUT, ref);
+  return ref;
+}
+
+function abschnittRefFuer(el: HTMLElement): string {
+  const alt = el.getAttribute(ABSCHNITT_ATTRIBUT);
+  if (alt) return alt;
+  const ref = `a${++letzteAbschnittNr}`;
+  el.setAttribute(ABSCHNITT_ATTRIBUT, ref);
+  return ref;
+}
 
 const INTERAKTIV =
   'a[href], button, input:not([type="hidden"]), select, textarea, summary, [role="button"], [role="tab"], [role="switch"], [role="checkbox"], [role="menuitem"]';
@@ -160,12 +197,10 @@ export async function schnappschuss(fokus?: string): Promise<Schnappschuss> {
   await warteBisRuhig(1800, 250);
   const haupt = wurzel();
   const url = `${window.location.pathname}${window.location.hash}`;
-  if (!haupt) return { url, titel: document.title, ueberschriften: [], text: "", elemente: [], hinweis: "Kein Inhaltsbereich gefunden." };
+  if (!haupt) return { url, titel: document.title, ueberschriften: [], text: "", elemente: [], abschnitte: [], hinweis: "Kein Inhaltsbereich gefunden." };
 
-  document.querySelectorAll(`[${REF_ATTRIBUT}]`).forEach((e) => e.removeAttribute(REF_ATTRIBUT));
   const stichwort = fokus?.trim().toLowerCase();
   const elemente: ElementInfo[] = [];
-  let zaehler = 0;
   let abgeschnitten = false;
 
   for (const el of Array.from(haupt.querySelectorAll<HTMLElement>(INTERAKTIV))) {
@@ -178,9 +213,7 @@ export async function schnappschuss(fokus?: string): Promise<Schnappschuss> {
       abgeschnitten = true;
       break;
     }
-    zaehler += 1;
-    const ref = `e${zaehler}`;
-    el.setAttribute(REF_ATTRIBUT, ref);
+    const ref = refFuer(el);
     const info: ElementInfo = { ref, typ: typVon(el), label: label || "(ohne Beschriftung)", gruppe };
     if (el instanceof HTMLAnchorElement) info.ziel = el.pathname + el.hash;
     if (el instanceof HTMLInputElement && (el.type === "checkbox" || el.type === "radio")) info.angehakt = el.checked;
@@ -208,13 +241,146 @@ export async function schnappschuss(fokus?: string): Promise<Schnappschuss> {
       .slice(0, 30),
     text: text.length > MAX_TEXT ? `${text.slice(0, MAX_TEXT)}…` : text,
     elemente,
+    abschnitte: abschnitteDer(haupt),
     hinweis: abgeschnitten
       ? `Mehr als ${MAX_ELEMENTE} Elemente - nutze 'fokus', um die Liste einzugrenzen.`
       : undefined,
   };
 }
 
+// --- Abschnitte und Seitenkarte (Sprechmarken im Sprachmodus) -------------------
+
+// Was eine Stelle umschliesst, auf die man zeigt: Aufklappbereich, Karte,
+// Listeneintrag. Nie #main selbst und nie hoeher als fast das ganze Bild - ein
+// Rahmen um eine halbe Seite zeigt nichts.
+const HUELLEN = "details, .pr-aufklappbar, [data-offen], article, li, section, [class*='rounded']";
+const KOEPFE = "h1, h2, h3, h4, summary, [aria-expanded], [role='heading']";
+
+function passendeHoehe(el: HTMLElement): boolean {
+  const h = el.getBoundingClientRect().height;
+  return h > 0 && h <= window.innerHeight * 0.85;
+}
+
+/** Die Stelle, die zu einer Ueberschrift oder einem Aufklapp-Knopf gehoert:
+ *  die naechste passende Huelle, sonst das Element selbst. */
+export function stelleZu(el: HTMLElement): HTMLElement {
+  const haupt = wurzel();
+  let huelle = el.parentElement?.closest<HTMLElement>(HUELLEN) ?? null;
+  // Eine Ueberschrift, die selbst schon eine Huelle ist (summary in details):
+  if (el.matches("summary")) huelle = el.closest<HTMLElement>("details");
+  for (let tiefe = 0; huelle && tiefe < 4; tiefe++) {
+    if (huelle === haupt || !haupt?.contains(huelle)) break;
+    if (passendeHoehe(huelle)) return huelle;
+    huelle = huelle.parentElement?.closest<HTMLElement>(HUELLEN) ?? null;
+  }
+  return el;
+}
+
+function titelVon(el: HTMLElement): string {
+  const kopf = el.matches(KOEPFE) ? el : el.querySelector<HTMLElement>(KOEPFE);
+  const roh = kopf ? (kopf.getAttribute("aria-label") ?? kopf.textContent) : (el.getAttribute("aria-label") ?? el.textContent);
+  return bereinigt(roh, 60);
+}
+
+function istZugeklappt(stelle: HTMLElement): boolean {
+  if (stelle instanceof HTMLDetailsElement) return !stelle.open;
+  if (stelle.getAttribute("data-offen") === "false") return true;
+  return stelle.matches("[aria-expanded='false']") || stelle.querySelector(":scope > [aria-expanded='false'], :scope > * > [aria-expanded='false']") !== null;
+}
+
+/** Alle Stellen der Seite mit stabiler Referenz: Ueberschriften (samt ihrer
+ *  Karte), Aufklappbereiche und Elemente mit sprechendem Anker (id). */
+function abschnitteDer(haupt: HTMLElement): AbschnittInfo[] {
+  const gesehen = new Set<HTMLElement>();
+  const liste: AbschnittInfo[] = [];
+  const kandidaten = haupt.querySelectorAll<HTMLElement>(`${KOEPFE}, [id]`);
+  for (const k of Array.from(kandidaten)) {
+    if (liste.length >= MAX_ABSCHNITTE) break;
+    if (!sichtbar(k)) continue;
+    if (k.matches("input, select, textarea, button:not([aria-expanded]), label, option")) continue;
+    if (k.hasAttribute("id") && !/^[a-z][a-z0-9-]{2,}$/.test(k.id)) continue;
+    if (k.matches("[aria-expanded]") && (k.matches("[role='tab'], [role='combobox'], [aria-haspopup]:not([aria-haspopup='false'])") || klickStufe(k).stufe !== "erlaubt")) continue;
+    const stelle = k.hasAttribute("id") && !k.matches(KOEPFE) && passendeHoehe(k) ? k : stelleZu(k);
+    if (gesehen.has(stelle)) continue;
+    const titel = titelVon(k);
+    if (!titel || titel.length < 2) continue;
+    gesehen.add(stelle);
+    const info: AbschnittInfo = { ref: abschnittRefFuer(stelle), titel };
+    if (istZugeklappt(stelle)) info.zugeklappt = true;
+    liste.push(info);
+  }
+  return liste;
+}
+
+/** Die Seitenkarte fuer den Sprachmodus: jede Stelle der aktuellen Seite mit
+ *  Referenz, kompakt als Text. Geht mit jeder Anfrage mit (ki-chat.tsx), damit
+ *  das Modell auf der Seite, die der Nutzer gerade sieht, ohne vorheriges
+ *  seiteLesen Sprechmarken setzen kann. */
+export function seitenKarte(): string {
+  const haupt = wurzel();
+  if (!haupt) return "";
+  const titel = bereinigt(haupt.querySelector("h1")?.textContent ?? document.title, 80);
+  const zeilen = abschnitteDer(haupt).map((a) => `${a.ref} ${a.titel}${a.zugeklappt ? " (zugeklappt)" : ""}`);
+  return [`Seite: ${window.location.pathname} - ${titel}`, ...zeilen].join("\n");
+}
+
+/** Die Stelle zu einem Sprechziel (domain/sprechmarken.ts) oder null. */
+export function stelleZuSprechziel(ziel: string): HTMLElement | null {
+  const haupt = wurzel();
+  if (!haupt) return null;
+  let el: HTMLElement | null = null;
+  if (/^e\d+$/.test(ziel)) el = document.querySelector<HTMLElement>(`[${REF_ATTRIBUT}="${CSS.escape(ziel)}"]`);
+  else if (/^a\d+$/.test(ziel)) el = document.querySelector<HTMLElement>(`[${ABSCHNITT_ATTRIBUT}="${CSS.escape(ziel)}"]`);
+  else if (ziel.startsWith("#")) {
+    const anker = document.getElementById(ziel.slice(1));
+    el = anker && haupt.contains(anker) ? (passendeHoehe(anker) ? anker : stelleZu(anker)) : null;
+  } else if (ziel.startsWith("t:")) {
+    const gesucht = normiert(ziel.slice(2));
+    const koepfe = Array.from(haupt.querySelectorAll<HTMLElement>(`${KOEPFE}, a[id], [class*='titel']`)).filter(sichtbar);
+    const treffer =
+      koepfe.find((k) => normiert(k.textContent ?? "") === gesucht) ??
+      koepfe.find((k) => normiert(k.textContent ?? "").startsWith(gesucht) && gesucht.length >= 4);
+    el = treffer ? stelleZu(treffer) : null;
+  }
+  if (!el || !el.isConnected || !haupt.contains(el)) return null;
+  return el;
+}
+
+function normiert(text: string): string {
+  return text.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+}
+
+/** Klappt eine Stelle auf, wenn sie oder ein Behaelter um sie zugeklappt ist -
+ *  nur, was die Anwendung auch ohne Rueckfrage anklicken wuerde. Liefert, ob
+ *  etwas aufgeklappt wurde (dann waechst die Stelle noch). */
+export function klappeAuf(stelle: HTMLElement): boolean {
+  let geaendert = false;
+  for (let d = stelle.closest<HTMLDetailsElement>("details:not([open])"); d; d = d.parentElement?.closest<HTMLDetailsElement>("details:not([open])") ?? null) {
+    d.open = true;
+    geaendert = true;
+  }
+  if (stelle instanceof HTMLDetailsElement && !stelle.open) {
+    stelle.open = true;
+    geaendert = true;
+  }
+  const knopf = stelle.matches("[aria-expanded='false']")
+    ? stelle
+    : stelle.querySelector<HTMLElement>(":scope > [aria-expanded='false'], :scope > * > [aria-expanded='false']");
+  if (knopf && sichtbar(knopf) && !knopf.matches("[role='tab'], [role='combobox'], [aria-haspopup]:not([aria-haspopup='false'])") && klickStufe(knopf).stufe === "erlaubt") {
+    knopf.click();
+    geaendert = true;
+  }
+  return geaendert;
+}
+
 function elementFuerRef(ref: string): HTMLElement {
+  if (/^a\d+$/.test(ref)) {
+    const abschnitt = document.querySelector<HTMLElement>(`[${ABSCHNITT_ATTRIBUT}="${CSS.escape(ref)}"]`);
+    if (!abschnitt || !abschnitt.isConnected || !sichtbar(abschnitt)) {
+      throw new Error(`Die Referenz ${ref} ist veraltet oder nicht mehr sichtbar. Rufe seiteLesen erneut auf.`);
+    }
+    return abschnitt;
+  }
   const el = document.querySelector<HTMLElement>(`[${REF_ATTRIBUT}="${CSS.escape(ref)}"]`);
   if (!el || !el.isConnected || !sichtbar(el)) {
     throw new Error(`Die Referenz ${ref} ist veraltet oder nicht mehr sichtbar. Rufe seiteLesen erneut auf.`);
@@ -267,6 +433,11 @@ export function inSichtBringen(el: HTMLElement): boolean {
   // Im Inhalt zaehlt der Streifen unter der festen Kopfzeile nicht als sichtbar.
   const ganzSichtbar = r.top >= (inRahmen ? 0 : 72) && r.left >= 0 && r.bottom <= window.innerHeight && r.right <= window.innerWidth;
   if (ganzSichtbar) return false;
+  if (!inRahmen && r.height > window.innerHeight - 160) {
+    // Hoeher als das Bild: der Anfang gehoert unter die Kopfzeile, nicht die Mitte.
+    window.scrollTo({ top: window.scrollY + r.top - 88, behavior: "smooth" });
+    return true;
+  }
   el.scrollIntoView({ behavior: "smooth", block: inRahmen ? "nearest" : "center" });
   return true;
 }
@@ -421,10 +592,14 @@ async function scrollen(ref: string | undefined, richtung: string | undefined) {
 
 async function zeigen(ref: string, umgebung: Umgebung) {
   const el = elementFuerRef(ref);
+  const abschnitt = /^a\d+$/.test(ref);
+  // Ein zugeklappter Abschnitt zeigt nichts: erst aufklappen, dann hinzeigen.
+  const aufgeklappt = abschnitt && klappeAuf(el);
+  if (aufgeklappt) await warte(320);
   await hinFahren(el, umgebung.zeiger, false);
   hebeHervor(el);
   await warte(500);
-  return { ok: true, gezeigt: labelVon(el) };
+  return { ok: true, gezeigt: abschnitt ? titelVon(el) : labelVon(el), ...(aufgeklappt ? { aufgeklappt: true } : {}) };
 }
 
 /** Fuehrt ein Client-Werkzeug aus. Wirft nur bei Programmfehlern - erwartbare

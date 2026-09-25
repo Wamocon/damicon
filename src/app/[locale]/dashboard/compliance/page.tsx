@@ -7,7 +7,7 @@ import { ComplianceBerichtAnsicht } from "@/components/dashboard/compliance-beri
 import { getSessionProfile } from "@/lib/auth";
 import { letzterCeoBericht } from "@/lib/data/compliance-ceo";
 import { betriebsZeitzone } from "@/lib/domain/tageszeit";
-import { darfCeoBerichtLesen } from "@/lib/pruefung/rollen";
+import { darfCeoBerichtLesen, PRUEFBEREICHE, type Pruefbereich } from "@/lib/pruefung/rollen";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 // Der zuletzt gespeicherte Compliance-Gesamtbericht in voller Laenge: Befunde mit Filter,
@@ -26,10 +26,16 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 // Zone Buero (/dashboard/buero/compliance, Datenschutz und MwSt) - das bleibt, wo es ist.
 export default async function ComplianceBerichtSeite({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ bereich?: string | string[] }>;
 }) {
   const { locale } = await params;
+  // ?bereich=audit (steuer, recht, risiko): mit diesem Pruefbereich gefiltert oeffnen
+  // (oeffneBereich "pruefbericht" mit abschnitt, lib/ai/tools.ts).
+  const { bereich } = await searchParams;
+  const startBereich = typeof bereich === "string" && (PRUEFBEREICHE as readonly string[]).includes(bereich) ? (bereich as Pruefbereich) : null;
   setRequestLocale(locale);
 
   const profil = await getSessionProfile();
@@ -72,7 +78,7 @@ export default async function ComplianceBerichtSeite({
       </PageHeader>
 
       {zeile ? (
-        <ComplianceBerichtAnsicht bericht={zeile.bericht} />
+        <ComplianceBerichtAnsicht bericht={zeile.bericht} startBereich={startBereich} />
       ) : (
         <Card ton="box" className="text-center text-xs text-muted-foreground">
           {t("keinBericht")}

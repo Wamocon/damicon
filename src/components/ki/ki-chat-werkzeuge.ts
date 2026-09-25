@@ -64,7 +64,7 @@ export function useKlientWerkzeuge({
   /** Wird vor jeder Ausfuehrung abgewartet. Der Sprachmodus haelt damit jede
    *  sichtbare Handlung zurueck, bis die Stimme den Satz davor gesprochen hat -
    *  sonst eilt die Fuehrung dem Gesprochenen voraus. */
-  vorAusfuehrung?: (werkzeug: string) => Promise<void>;
+  vorAusfuehrung?: (werkzeug: string) => Promise<boolean>;
 }) {
   const [clientAktiv, setClientAktiv] = useState<string | null>(null);
   const [klickAnfrage, setKlickAnfrage] = useState<KlickAnfrageMitEntscheidung | null>(null);
@@ -110,8 +110,8 @@ export function useKlientWerkzeuge({
     void (async () => {
       setClientAktiv(aufruf.toolName);
       zugSchritte.current += 1;
-      await vorAusfuehrung?.(aufruf.toolName);
-      if (abgebrochen.current) {
+      const nochGueltig = (await vorAusfuehrung?.(aufruf.toolName)) ?? true;
+      if (!nochGueltig || abgebrochen.current) {
         setClientAktiv(null);
         return;
       }

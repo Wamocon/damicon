@@ -12,6 +12,7 @@ import {
 } from "react";
 import { useRouter } from "@/i18n/navigation";
 import { setzeHervorhebung } from "@/components/ki/hervorhebung";
+import { klappeAuf, stelleZu } from "@/components/ki/ui-steuerung";
 import { leseChatStand, unterbrichChat } from "@/components/ki/sprachmodus-bus";
 import {
   ANFANG,
@@ -144,36 +145,48 @@ function hebeHervor(element: Element): void {
   window.setTimeout(() => element.classList.remove(FOKUS_KLASSE), 2800);
 }
 
+// Jede Station bekommt eine Nummer; ein Suchlauf einer ueberholten Station
+// (neue Station, Fuehrung beendet, Sprachmodus beendet) setzt keinen Rahmen mehr.
+let stationsNr = 0;
+
+/** Ist die Seite schon die des Ziels (Pfad und Abfrage, ohne Sprachpraefix)? */
+function stehtAuf(ziel: string): boolean {
+  const ohneAnker = ziel.split("#")[0];
+  return `${window.location.pathname}${window.location.search}`.endsWith(ohneAnker);
+}
+
 function fokussiere(ziel: string): void {
+  const meine = ++stationsNr;
   const anker = ziel.split("#")[1];
-  if (!anker) {
-    // Ohne Anker (ganzes Modul, oder man ist schon dort): nach oben scrollen und
-    // den Kopf der Seite hervorheben - sonst wirkt ein Ziel, das gleich der
-    // aktuellen Seite ist, als sei nichts passiert.
-    let versuche = 0;
-    const kopf = () => {
-      const erstes = document.querySelector("#main > :first-child");
-      if (erstes) {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        hebeHervor(erstes);
-        return;
-      }
-      versuche += 1;
-      if (versuche < 40) window.setTimeout(kopf, 60);
-    };
-    window.setTimeout(kopf, 120);
-    return;
-  }
+  const pfad = ziel.split("#")[0].split("?")[0];
   let versuche = 0;
   const suche = () => {
-    const element = document.getElementById(anker);
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth", block: "start" });
-      hebeHervor(element);
-      return;
+    if (meine !== stationsNr) return;
+    // Erst suchen, wenn die NEUE Seite steht: bis zum 25.09.2026 rahmte ein zu frueher
+    // Versuch noch die alte Seite, und der Rahmen verschwand mit dem Wechsel.
+    const angekommen = window.location.pathname.endsWith(pfad) && document.querySelector("#main h1");
+    if (angekommen) {
+      if (!anker) {
+        // Ohne Anker (ganzes Modul, oder man ist schon dort): nach oben scrollen und
+        // den Kopf der Seite hervorheben, nicht die ganze Seite.
+        const h1 = document.querySelector<HTMLElement>("#main h1");
+        if (h1) {
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          hebeHervor(stelleZu(h1));
+          return;
+        }
+      } else {
+        const element = document.getElementById(anker);
+        if (element) {
+          klappeAuf(element);
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+          hebeHervor(element);
+          return;
+        }
+      }
     }
     versuche += 1;
-    if (versuche < 40) window.setTimeout(suche, 60);
+    if (versuche < 60) window.setTimeout(suche, 80);
   };
   window.setTimeout(suche, 120);
 }
@@ -385,7 +398,9 @@ export function KiPaneProvider({
       }
       laeuft.current = true;
       setFuehrung(naechste);
-      router.push(naechste.ziel);
+      // Steht die Seite schon da, nicht neu laden: ein zweites Oeffnen derselben
+      // Seite scrollte sie nach oben, mitten in der Erklaerung weiter unten.
+      if (!stehtAuf(naechste.ziel)) router.push(naechste.ziel);
       fokussiere(naechste.ziel);
       timer.current = window.setTimeout(station, VERWEILZEIT_MS);
     },
@@ -409,6 +424,7 @@ export function KiPaneProvider({
   const fuehrungBeenden = useCallback(() => {
     warteschlange.current = [];
     laeuft.current = false;
+    stationsNr += 1;
     window.clearTimeout(timer.current);
     setFuehrung(null);
   }, []);
@@ -444,10 +460,15 @@ export function KiPaneProvider({
   const beendeSprachmodus = useCallback(() => {
     if (!sprachmodusRef.current) return;
     sprachmodusRef.current = false;
+    // Die Fuehrung endet mit: keine wartende Station, kein Suchlauf, der danach noch
+    // einen Rahmen setzt oder die Seite wechselt (Befund vom 25.09.2026).
+    fuehrungBeenden();
+    window.clearTimeout(zeigerTimer.current);
+    setZeiger(null);
     setSprachmodus(false);
     setzeHervorhebung(null);
     if (panelVorSprachmodus.current) setOffen(true);
-  }, [setOffen]);
+  }, [setOffen, fuehrungBeenden]);
 
   const bewegeZeiger = useCallback((x: number, y: number, klick = false) => {
     window.clearTimeout(zeigerTimer.current);

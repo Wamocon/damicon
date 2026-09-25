@@ -126,7 +126,7 @@ function leseAutoSpeicher(): boolean {
   try {
     return leseAutoStart();
   } catch {
-    return true;
+    return false;
   }
 }
 function schreibeAutoSpeicher(neu: boolean): void {
@@ -134,6 +134,8 @@ function schreibeAutoSpeicher(neu: boolean): void {
   schreibeAutoStart(neu);
   autoBeobachter.forEach((b) => b());
 }
+// Voreinstellung aus: der Server rendert "aus", wie der Browser ohne gespeicherten Wert.
+const autoServerWert = (): boolean => false;
 function abonniereAuto(b: () => void): () => void {
   autoBeobachter.add(b);
   window.addEventListener("storage", b);
@@ -189,7 +191,7 @@ const StatusKontext = createContext<Status>({
   stimmung: "neutral",
   inventar: { tracht: 0, brille: true },
   tourAn: true,
-  autoStart: true,
+  autoStart: false,
 });
 const AktionenKontext = createContext<Aktionen>({
   melde: () => {},
@@ -221,7 +223,7 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
   const sichtbarkeit = useSyncExternalStore(abonniere, leseSpeicher, serverWert);
   const inventar = useSyncExternalStore(abonniereInventar, leseInventarSpeicher, serverInventarWert);
   const tourAn = useSyncExternalStore(abonniereTour, leseTourSpeicher, tourServerWert);
-  const autoStart = useSyncExternalStore(abonniereAuto, leseAutoSpeicher, tourServerWert);
+  const autoStart = useSyncExternalStore(abonniereAuto, leseAutoSpeicher, autoServerWert);
   const [vorgabe, setVorgabe] = useState<Vorgabe | null>(null);
 
   const melde = useCallback((neuePhase: AgentPhase, neuerText: string, neueStimmung: Stimmung = "neutral") => {

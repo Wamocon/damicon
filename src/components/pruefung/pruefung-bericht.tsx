@@ -253,9 +253,11 @@ export function Siegel({ bericht }: { bericht: Bericht }) {
   );
 }
 
-export function PruefungBericht({ bericht }: { bericht: Bericht }) {
+/** `startBereich`: mit diesem Pruefbereich gefiltert beginnen (/dashboard/compliance?bereich=audit,
+ *  die Fuehrung im Sprachmodus oeffnet so "den Pruefbericht Audit"). */
+export function PruefungBericht({ bericht, startBereich = null }: { bericht: Bericht; startBereich?: Pruefbereich | null }) {
   const t = useTranslations("pruefung");
-  const [filter, setFilter] = useState<Pruefbereich | "alle">("alle");
+  const [filter, setFilter] = useState<Pruefbereich | "alle">(startBereich && bericht.bereiche.includes(startBereich) ? startBereich : "alle");
   const bereiche = PRUEFBEREICHE.filter((b) => bericht.bereiche.includes(b));
   const befunde = useMemo(() => bericht.befunde.filter((b) => filter === "alle" || b.bereich === filter), [bericht.befunde, filter]);
 
@@ -264,7 +266,7 @@ export function PruefungBericht({ bericht }: { bericht: Bericht }) {
       <Kopfkarte bericht={bericht} />
       <Prioritaeten bericht={bericht} />
 
-      <div>
+      <div id="bericht-befunde">
         <h3 className="pr-abschnitt__titel">{t("bericht.befunde")}</h3>
         <div className="pr-filter" role="group" aria-label={t("bericht.befunde")}>
           <button type="button" aria-pressed={filter === "alle"} onClick={() => setFilter("alle")}>

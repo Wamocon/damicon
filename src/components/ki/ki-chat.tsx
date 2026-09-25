@@ -76,6 +76,9 @@ import {
 } from "@/components/ki/ki-chat-segmente";
 import { clientErgebnisseBereit, useKlientWerkzeuge, type WerkzeugChat } from "@/components/ki/ki-chat-werkzeuge";
 import { useSprachTakt } from "@/components/ki/sprach-takt";
+import { setzeHervorhebung } from "@/components/ki/hervorhebung";
+import { seitenKarte } from "@/components/ki/ui-steuerung";
+import { ohneSprechmarken } from "@/lib/domain/sprachausgabe";
 import { antwortSpracheAus, useKiChatSprache } from "@/components/ki/ki-chat-sprache";
 import { stromMoeglich } from "@/components/ki/sprachausgabe-strom";
 import {
@@ -131,6 +134,9 @@ const werkzeugIcon: Record<string, ComponentType<{ className?: string }>> = {
 };
 
 // Mindestabstand zwischen zwei Aktualisierungen des Chats waehrend des Streamens.
+// Im Sprachmodus gehen so viele Nachrichten von VOR seinem Beginn mit (eine Frage
+// und ihre Antwort), damit ein "erklaer mir das genauer" noch weiss, worum es ging.
+const VOR_SPRACHMODUS = 2;
 const STREAM_DROSSEL_MS = 80;
 const NAH_AM_ENDE_PX = 96;
 
@@ -170,7 +176,7 @@ const linkPruefung = (url: string) => (url.startsWith("quelle:S") ? url : defaul
 const MarkdownBlock = memo(function MarkdownBlock({ text }: { text: string }) {
   return (
     <ReactMarkdown remarkPlugins={MARKDOWN_PLUGINS} components={MARKDOWN_KOMPONENTEN} urlTransform={linkPruefung}>
-      {verlinkeZitate(mitUmlauten(text))}
+      {verlinkeZitate(mitUmlauten(ohneSprechmarken(text)))}
     </ReactMarkdown>
   );
 });
@@ -220,6 +226,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     fuehrung,
     oeffneZiel,
     fuehreZu,
+    fuehrungBeenden,
     bewegeZeiger,
     pruefBezug,
     entferneBezug,
@@ -249,7 +256,11 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   // gelesen, damit der einmal angelegte Transport stets den aktuellen Stand
   // sieht.
   // pruefkontext: der Prüfbericht, auf dem das Gespräch aufsetzt (nach einer Compliance-Prüfung), sonst undefined.
-  const pruefkontext = pruefBezug?.kontext;
+  // Im Sprachmodus nie: dort zeigt die Fuehrung selbst auf den Bericht (Sprechmarken,
+  // oeffneBereich "pruefbericht"), und die Anweisung zum Pruefbezug verlangte ein
+  // Werkzeug, das im Sprachmodus nichts bewirkt (Befund vom 25.09.2026: ein Bezug von
+  // morgens faerbte jede spaetere Sprachmodus-Frage ein).
+  const pruefkontext = sprachmodus ? undefined : pruefBezug?.kontext;
   const anfrageDaten = useRef<Record<string, unknown>>({ einwilligung, modus, pfad, rolle, sprache, pruefkontext });
   useEffect(() => {
     anfrageDaten.current = { ...anfrageDaten.current, einwilligung, modus, pfad, rolle, sprache, pruefkontext };
@@ -281,8 +292,36 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   });
 
   const initialMessages = useMemo(() => verlaufZuNachrichten(verlauf), [verlauf]);
+  // Ab welcher Nachricht das laufende Sprachmodus-Gespraech beginnt (null: kein
+  // Sprachmodus). Im Sprachmodus geht nur dieses Gespraech ans Modell, dazu die
+  // letzte Frage davor: alte Fragen zu anderen Seiten liessen Himbi sonst frueher
+  // gezeigte Bereiche wieder oeffnen (Rueckmeldung vom 25.09.2026).
+  const sprachStart = useRef<number | null>(null);
   const transport = useMemo(
-    () => new DefaultChatTransport({ api: "/api/ki-assistent", body: () => anfrageDaten.current }),
+    () =>
+      new DefaultChatTransport({
+        api: "/api/ki-assistent",
+        prepareSendMessagesRequest: ({ id, messages: alle, trigger, messageId }) => {
+          const daten = anfrageDaten.current;
+          const imSprachmodus = daten.modus === "sprache";
+          const start = sprachStart.current;
+          let ab = imSprachmodus && start !== null ? Math.max(0, Math.min(start, alle.length - 1) - VOR_SPRACHMODUS) : 0;
+          // Der Verlauf fuers Modell beginnt immer mit einer Frage, nie mit einer Antwort.
+          while (ab > 0 && alle[ab]?.role !== "user") ab -= 1;
+          return {
+            body: {
+              ...daten,
+              // Die Seitenkarte der Seite, die der Nutzer JETZT sieht (ui-steuerung.ts):
+              // damit setzt das Modell Sprechmarken ohne vorheriges seiteLesen.
+              ...(imSprachmodus ? { seitenkarte: seitenKarte() } : {}),
+              id,
+              messages: alle.slice(ab),
+              trigger,
+              messageId,
+            },
+          };
+        },
+      }),
     [],
   );
   const chat = useChat({
@@ -328,7 +367,15 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const taktStimme = takt.stimme;
   const taktAktiv = takt.aktiv;
   const taktStand = takt.stand;
+  const taktHalte = takt.halte;
   const geradeSprechend = live.gerade;
+  const halteStimme = live.halte;
+  useEffect(() => {
+    taktHalte.current = halteStimme;
+    return () => {
+      taktHalte.current = null;
+    };
+  }, [halteStimme, taktHalte]);
   useEffect(() => {
     taktStimme.current = vorlesen.phase;
   }, [vorlesen.phase, taktStimme]);
@@ -343,6 +390,15 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   useEffect(() => {
     taktAktiv.current = sprachmodus;
   }, [sprachmodus, taktAktiv]);
+  // Beginn des Sprachmodus-Gespraechs merken (siehe sprachStart oben).
+  const nachrichtenAnzahl = messages.length;
+  useEffect(() => {
+    if (!sprachmodus) {
+      sprachStart.current = null;
+      return;
+    }
+    sprachStart.current ??= nachrichtenAnzahl;
+  }, [sprachmodus, nachrichtenAnzahl]);
 
   // Automatisches Nachscrollen: folgt dem Text, solange der Nutzer nicht
   // selbst nach oben gescrollt hat. Bewusst OHNE Scroll-Animation: eine
@@ -415,12 +471,23 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
         // liegt schon bei der Stimme und darf den Wechsel nicht aufhalten.
         const nachher = letzte.parts.slice(letzte.parts.indexOf(teil) + 1).filter((p) => p.type === "data-satz").length;
         const jetzt = takt.marke();
-        takt.oeffneImTakt(() => fuehreZu(ziel, label), ziel, jetzt === null ? null : Math.max(0, jetzt - nachher));
+        // oeffneZiel statt fuehreZu: im Sprachmodus gibt die Stimme den Takt vor,
+        // keine Verweilzeit je Station (die schob einen zweiten Wechsel hinter das
+        // Gesprochene), und eine aeltere Station in der Warteschlange verfaellt.
+        takt.oeffneImTakt(() => oeffneZiel(ziel, label), ziel, jetzt === null ? null : Math.max(0, jetzt - nachher));
       } else fuehreZu(ziel, label);
     }
     // beschriftung/t sind pro Render neue Funktionen; relevant ist nur der Nachrichtenstand.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messages, fuehreZu]);
+  }, [messages, fuehreZu, oeffneZiel]);
+
+  /** Sprachmodus: die Fuehrung der vorigen Anfrage endet ganz - keine wartende
+   *  Station, kein stehengebliebener Rahmen (Befund vom 25.09.2026: der Rahmen der
+   *  ersten Anfrage stand noch, waehrend Himbi schon die zweite beantwortete). */
+  function fuehrungAufraeumen() {
+    fuehrungBeenden();
+    setzeHervorhebung(null);
+  }
 
   function stopp() {
     // Zuerst die Stimme: wer auf Stopp drueckt, will sofort Ruhe, nicht erst
@@ -428,6 +495,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     stoppeStimme();
     werkzeugeAbbrechen();
     takt.neuerZug();
+    if (sprachmodus) fuehrungAufraeumen();
     void stop();
   }
 
@@ -443,6 +511,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     zugModus.current = modus;
     werkzeugeNeuerZug();
     takt.neuerZug();
+    if (modus === "sprache") fuehrungAufraeumen();
     klebtUnten.current = true;
     setNachUntenKnopf(false);
     // Welchen Vorlese-Weg dieser Browser nimmt: danach schneidet der Server die

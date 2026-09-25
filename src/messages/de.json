@@ -1739,7 +1739,7 @@
       "tourTitel": "Geführte Tour",
       "tourText": "Aus heißt: DamiAI springt nach einer Prüfung nicht mehr selbst zu den Kacheln und hebt sie nicht mehr hervor, systemweit. Die Zusammenfassung im Chat kommt trotzdem weiter automatisch, nur ohne das Herumspringen auf der Seite.",
       "autoTitel": "Automatisch starten",
-      "autoText": "Aus heißt: nach einer Prüfung startet weder die Tour noch die Zusammenfassung im Chat von selbst, und DamiAI fragt auch nicht mehr von sich aus nach. Die Knöpfe „Tour erneut starten“ und „Zusammenfassung im Chat“ in der Übersicht bleiben, damit startest du beides selbst.",
+      "autoText": "Standardmäßig aus. Aus heißt: nach einer Prüfung startet weder die Tour noch die Zusammenfassung im Chat von selbst, und DamiAI fragt auch nicht mehr von sich aus nach. Die Knöpfe „Tour erneut starten“ und „Zusammenfassung im Chat“ in der Übersicht bleiben, damit startest du beides selbst.",
       "bewegungTitel": "Bewegung",
       "bewegungText": "Aus heißt: DamiAI bleibt da, steht aber still. Wer das Betriebssystem schon auf weniger Bewegung gestellt hat, braucht diesen Schalter nicht.",
       "zustandTitel": "Zustand",

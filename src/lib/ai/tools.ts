@@ -34,7 +34,8 @@ import { ladeOffeneEsutdFristen } from "@/lib/data/esutd";
 import { ladeCompliance } from "@/lib/data/compliance";
 import { ladeKuehlkettenUebersicht } from "@/lib/data/kuehlkette";
 import { baueRisikoEintraege, risikoAufbereiten } from "@/lib/domain/risikoradar";
-import { moduleHref, modules } from "@/lib/modules";
+import { moduleHref, modules, sichtbareModule, zones } from "@/lib/modules";
+import { darfCeoBerichtLesen, PRUEFBEREICHE } from "@/lib/pruefung/rollen";
 import { baueAktionen } from "@/lib/ai/aktionen";
 import { baueDatenWerkzeuge } from "@/lib/ai/daten-werkzeuge";
 import { baueUiWerkzeuge } from "@/lib/ai/ui-werkzeuge";
@@ -194,35 +195,71 @@ function baueNavigationsWerkzeug(rolle: Role | null | undefined) {
     const eintrag = texte[schluessel];
     return eintrag?.title ? `${eintrag.title}${eintrag.summary ? ` - ${eintrag.summary}` : ""}` : schluessel;
   };
-  // Neben den Modulen zwei feste Ziele, die jede Rolle hat: die Startuebersicht
-  // und die Kontosicherheit (Anmeldung, MFA). Sie stehen nicht in modules.ts.
+  // Neben den Modulen feste Ziele: die Startuebersicht und die Kontosicherheit
+  // (jede Rolle), die vier Zonen mit ihrer Uebersichtsseite (wer darin ein Modul
+  // sieht) und der volle Compliance-Pruefbericht (wer ihn lesen darf). Bis zum
+  // 25.09.2026 gab es weder Zonen noch Pruefbericht: "Erklaere mir den Bereich
+  // Hof" oeffnete nur das Modul Kuehlkette, "Zeig mir die Pruefberichte" das
+  // Datenschutz-Cockpit (Live-Test vom 25.09.2026).
+  const zonenTexte = de.zones as Record<string, { name: string; tagline: string; description: string }>;
   const feste: Record<string, { ziel: string; titel: string; text: string }> = {
-    uebersicht: { ziel: "/dashboard", titel: "Uebersicht", text: "Startseite mit den Kennzahlen des Betriebs auf einen Blick." },
+    uebersicht: {
+      ziel: "/dashboard",
+      titel: "Uebersicht",
+      text: "Startseite: Begruessung mit Deckungsbeitrag, 'Das Wichtigste heute' mit dem automatischen Compliance-Check (Reife, wichtigste Schritte, Kacheln der Pruefbereiche Audit, Steuern, Recht, Risiko, Massnahmen, Einschraenkungen, Siegel) und die vier Bereiche mit ihren Kennzahlen.",
+    },
     sicherheit: { ziel: "/dashboard/sicherheit", titel: "Kontosicherheit", text: "Eigene Anmeldung, Zwei-Faktor-Authentifizierung (MFA) und Sitzungssicherheit." },
   };
+  for (const zone of zones) {
+    const zonenModule = sichtbareModule(rolle, zone.key);
+    if (zonenModule.length === 0) continue;
+    const z = zonenTexte[zone.key];
+    const modulTitel = zonenModule.map((m) => texte[m.key]?.title ?? m.key).join(", ");
+    feste[zone.key] = {
+      ziel: `/dashboard/${zone.slug}`,
+      titel: `Zone ${z?.name ?? zone.key}`,
+      text: `Uebersichtsseite der Zone ${z?.name ?? zone.key} (${z?.tagline ?? ""}): ${z?.description ?? ""} Module: ${modulTitel}.`,
+    };
+  }
+  if (darfCeoBerichtLesen(rolle)) {
+    feste.pruefbericht = {
+      ziel: "/dashboard/compliance",
+      titel: "Compliance-Pruefbericht",
+      text: "Der zuletzt gespeicherte Gesamtbericht der Compliance-Pruefung: Kopf mit Reife und Zusammenfassung, Prioritaeten, Befunde mit Filter nach Pruefbereich (Audit, Steuern, Recht, Risiko), Massnahmenplan, Hinweise und Siegel. Mit 'abschnitt' audit, steuer, recht oder risiko oeffnet er gefiltert auf diesen Pruefbereich. Nicht das Datenschutz-Cockpit (compliance).",
+    };
+  }
   const liste = [
     ...Object.entries(feste).map(([k, v]) => `${k}: ${v.titel} - ${v.text}`),
     ...sichtbar.map((m) => `${m.key}: ${beschreibung(m.key)}`),
   ].join("\n");
   const schluessel = [...Object.keys(feste), ...sichtbar.map((m) => m.key)] as [string, ...string[]];
   return tool({
-    description: `Oeffnet einen Bereich der Anwendung im Hauptfenster des Nutzers und liefert dessen Beschreibung. Nutze es bei JEDER Frage zu einem Bereich oder einer Funktion der Anwendung ('was ist ...', 'wie funktioniert ...', 'wo finde ich ...', 'zeig mir ...') - auch bei Tippfehlern oder unvollstaendigen Fragen: ordne sie dem wahrscheinlichsten Bereich zu (z. B. 'qr crate identification' -> qr_steigen, 'Lohnabrechnung' -> lohn, 'Kuehlung' -> kuehlkette, 'Datenschutz' -> compliance) und erklaere den Bereich anhand der gelieferten Beschreibung. Bei Compliance kannst du mit 'abschnitt' direkt zu einem Abschnitt springen. Erlaubte Bereiche (Schluessel: Titel - Kurzbeschreibung):
+    description: `Oeffnet einen Bereich der Anwendung im Hauptfenster des Nutzers und liefert dessen Beschreibung. Nutze es bei JEDER Frage zu einem Bereich oder einer Funktion der Anwendung ('was ist ...', 'wie funktioniert ...', 'wo finde ich ...', 'zeig mir ...') - auch bei Tippfehlern oder unvollstaendigen Fragen: ordne sie dem wahrscheinlichsten Bereich zu (z. B. 'qr crate identification' -> qr_steigen, 'Lohnabrechnung' -> lohn, 'Kuehlung' -> kuehlkette, 'Datenschutz' -> compliance, 'Bereich Hof' -> hof, 'Pruefbericht Audit' -> pruefbericht mit abschnitt audit) und erklaere den Bereich anhand der gelieferten Beschreibung. Beim Compliance-Cockpit (compliance) springt 'abschnitt' zu einem Abschnitt, beim Pruefbericht (pruefbericht) filtert er auf einen Pruefbereich. Erlaubte Bereiche (Schluessel: Titel - Kurzbeschreibung):
 ${liste}`,
     inputSchema: z.object({
       bereich: z.enum(schluessel),
       abschnitt: z
-        .enum(["mwst-registrierung", "risiko-radar", "datenschutzvorfaelle", "drittweitergaben"])
+        .enum(["mwst-registrierung", "risiko-radar", "datenschutzvorfaelle", "drittweitergaben", "pruefprotokoll", ...PRUEFBEREICHE])
         .optional()
-        .describe("Nur bei bereich=compliance: Abschnitt, zu dem gescrollt wird"),
+        .describe("Bei bereich=compliance: Abschnitt, zu dem gescrollt wird. Bei bereich=pruefbericht: audit, steuer, recht oder risiko filtert den Bericht auf diesen Pruefbereich."),
     }),
     execute: async ({ bereich, abschnitt }) => {
       const fest = feste[bereich];
-      if (fest) return { ziel: fest.ziel, bereich, titel: fest.titel, beschreibung: fest.text };
+      if (fest) {
+        const pruefbereich = bereich === "pruefbericht" && (PRUEFBEREICHE as readonly string[]).includes(abschnitt ?? "") ? abschnitt : null;
+        return {
+          ziel: pruefbereich ? `${fest.ziel}?bereich=${pruefbereich}` : fest.ziel,
+          bereich,
+          titel: fest.titel,
+          beschreibung: fest.text,
+          ...(pruefbereich ? { pruefbereich } : {}),
+        };
+      }
       const modul = sichtbar.find((m) => m.key === bereich);
       if (!modul) return { fehler: "unbekannter-bereich" };
       const eintrag = texte[modul.key];
       return {
-        ziel: `${moduleHref(modul)}${bereich === "compliance" && abschnitt ? `#${abschnitt}` : ""}`,
+        ziel: `${moduleHref(modul)}${bereich === "compliance" && abschnitt && !(PRUEFBEREICHE as readonly string[]).includes(abschnitt) ? `#${abschnitt}` : ""}`,
         bereich: modul.key,
         titel: eintrag?.title ?? modul.key,
         beschreibung: [eintrag?.description, eintrag?.summary].filter(Boolean).join(" "),

@@ -3,6 +3,35 @@
 // Der Aufruf selbst: lib/ai/sprachausgabe-client.ts, die Route:
 // app/api/ki-sprachausgabe/route.ts.
 
+// --- Sprechmarken (domain/sprechmarken.ts) --------------------------------------
+
+/** Steht im Text für den Zerleger an der Stelle einer Sprechmarke ("[[a3]]"). Ein
+ *  Zeichen aus dem privaten Bereich: kommt in echtem Text nicht vor und lässt sich
+ *  nicht teilen. */
+export const MARKEN_PLATZHALTER = "\uE000";
+
+/** Ein Ziel: "e12" (Element aus seiteLesen), "a3" (Abschnitt aus seiteLesen oder
+ *  der Seitenkarte), "#anker" (id auf der Seite) oder "t:Überschrift" (Text einer
+ *  sichtbaren Überschrift, falls das Modell den Titel statt der Referenz schreibt). */
+export type SprechZiel = string;
+
+/** Entfernt Marken aus einem fertigen Text (Speichern, Anzeige, Vorlesen), samt
+ *  einer abgeschnittenen Marke am Ende ("… [[a1"). Leerraum um die Marke wird
+ *  so zusammengefasst, dass weder doppelte Leerzeichen noch ein Leerzeichen vor
+ *  einem Satzzeichen stehen bleiben. */
+export function ohneSprechmarken(text: string): string {
+  if (!text.includes("[[")) return text;
+  return text
+    .replace(/[ \t]*\[\[[^[\]\n]{1,80}\]\][ \t]*/g, (treffer, stelle: number, ganz: string) => {
+      const vor = ganz[stelle - 1];
+      const nach = ganz[stelle + treffer.length];
+      if (vor === undefined || vor === "\n" || nach === undefined || nach === "\n") return "";
+      if (/[.,;:!?…)\]»“"']/.test(nach)) return "";
+      return " ";
+    })
+    .replace(/[ \t]*\[\[[^[\]\n]{0,80}$/, "");
+}
+
 export const sprachausgabeSprachen = ["de", "ru", "kk", "en"] as const;
 export type SprachausgabeSprache = (typeof sprachausgabeSprachen)[number];
 
@@ -348,7 +377,10 @@ function istKennung(k: string): boolean {
  *  ohne Kopfzeile (tabellenZuSaetzen), lange Kennungen fallen weg (KENNUNG),
  *  Grossbuchstabenwoerter ab fuenf Buchstaben werden normal geschrieben. */
 export function textFuerSprachausgabe(markdown: string): string {
-  let text = tabellenZuSaetzen(markdown.replace(/```[\s\S]*?```/g, " ")) // Codebloecke nicht vorlesen
+  // Sprechmarken ("[[a3]]", domain/sprechmarken.ts) werden nie gesprochen. Der
+  // Zerleger zieht sie schon vorher heraus, hier nur als letzte Absicherung.
+  const ohneMarken = ohneSprechmarken(markdown).replaceAll(MARKEN_PLATZHALTER, "");
+  let text = tabellenZuSaetzen(ohneMarken.replace(/```[\s\S]*?```/g, " ")) // Codebloecke nicht vorlesen
     .replace(/`([^`]*)`/g, "$1")
     .replace(/!\[[^\]]*\]\([^)]*\)/g, " ") // Bilder
     .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1") // Links: nur der Text
@@ -542,11 +574,13 @@ function istSatzende(text: string, i: number, amEnde = false): boolean {
   // Unterstrich zaehlen als Platz: das Fazit jeder Antwort steht in
   // Fettschrift ("**... erreicht.**"), und bis zum 24.09.2026 verdeckte das
   // "**" hinter dem Punkt ausgerechnet das erste Satzende.
+  // Eine Sprechmarke (Platzhalter) direkt hinter dem Punkt zaehlt wie Leerraum:
+  // "Satz.[[a3]]Naechster" endet am Punkt, die Marke gehoert zum naechsten Satz.
   const danach = text.slice(i + 1);
-  if (danach && !/^[\s"'»«“”)\]*_]/.test(danach)) return false;
+  if (danach && !/^[\s"'»«“”)\]*_\uE000]/.test(danach)) return false;
 
   // Was kommt als naechstes Wort? Nichts in Sicht: warten.
-  const naechstes = /^[\s"'»«“”)\]*_]*(\S)/u.exec(danach);
+  const naechstes = /^[\s"'»«“”)\]*_\uE000]*([^\s\uE000])/u.exec(danach);
   if (!naechstes) return amEnde;
   const rest = danach.slice(naechstes.index + naechstes[0].length - 1);
 
@@ -622,11 +656,16 @@ export interface Abschnitt {
   /** Fortlaufend ab 1, je Zug. Die Reihenfolge haengt daran. */
   nr: number;
   text: string;
+  /** Sprechmarken dieses Abschnitts (domain/sprechmarken.ts): die Stelle der
+   *  Seite, die gezeigt wird, sobald die Stimme ihn erreicht. */
+  ziele?: SprechZiel[];
 }
 
 export interface SatzZerleger {
-  /** Naechstes Stueck aus dem Stream. Gibt zurueck, was jetzt sprechbar ist. */
-  fuettere(stueck: string): Abschnitt[];
+  /** Naechstes Stueck aus dem Stream. Gibt zurueck, was jetzt sprechbar ist.
+   *  `ziele`: die Ziele der Marken-Platzhalter in diesem Stueck, der Reihe nach
+   *  (erzeugeMarkenFilter in domain/sprechmarken.ts). */
+  fuettere(stueck: string, ziele?: readonly SprechZiel[]): Abschnitt[];
   /** Ende eines Textteils (text-end im Stream: danach ruft das Modell ein
    *  Werkzeug oder hoert auf). Der Teil ist vollstaendig, also geht auch sein
    *  Rest hinaus. Bis zum 24.09.2026 wartete der Rest auf die Zielmarke des
@@ -652,12 +691,21 @@ export function erzeugeSatzZerleger(stil: ZerlegerStil = "abschnitte"): SatzZerl
   let fertig = false;
   // Beginnt der Puffer an einem Zeilenanfang? (Am Anfang der Antwort ja.)
   let amZeilenanfang = true;
+  // Ziele der Platzhalter im Puffer, in ihrer Reihenfolge; und Ziele eines
+  // Abschnitts ohne sprechbaren Text, die an den naechsten weitergehen.
+  const warteZiele: SprechZiel[] = [];
+  let uebertrag: SprechZiel[] = [];
 
   /** Vom Puffer abschneiden und als Abschnitt herausgeben. `amEnde`: der
    *  Rest der fertigen Antwort. */
   function schneide(bis: number, amEnde = false): Abschnitt | null {
-    const roh = puffer.slice(0, bis);
+    const mitMarken = puffer.slice(0, bis);
     puffer = puffer.slice(bis);
+    const anzahlMarken = mitMarken.split(MARKEN_PLATZHALTER).length - 1;
+    const ziele = [...uebertrag, ...warteZiele.splice(0, anzahlMarken)];
+    uebertrag = [];
+    const roh = anzahlMarken > 0 ? mitMarken.replaceAll(MARKEN_PLATZHALTER, "") : mitMarken;
+    const mitZielen = (a: Abschnitt): Abschnitt => (ziele.length > 0 ? { ...a, ziele } : a);
     // Ein neues Stueck, das mit einem Zeilenumbruch beginnt, faengt selbst
     // dann eine Zeile von vorn an, wenn der VORIGE Schnitt (z. B. der Rest vor
     // einem Werkzeugschritt, schrittEnde()) mitten in einer Zeile endete -
@@ -678,7 +726,12 @@ export function erzeugeSatzZerleger(stil: ZerlegerStil = "abschnitte"): SatzZerl
       // solcher Rest sein.
       .replace(/^[.!?…,:;]+[ \t]*/, "")
       .trim();
-    if (!text) return null;
+    if (!text) {
+      // Nichts zu sprechen (nur eine Marke, etwa vor einem Werkzeugaufruf): das
+      // Ziel gehoert zum naechsten Satz.
+      uebertrag = ziele;
+      return null;
+    }
     // Endet der Abschnitt an einem Zeilenende oder am Ende der Antwort, ist
     // seine letzte Zeile vollstaendig und bekommt ein Satzzeichen wie alle
     // anderen (textFuerSprachausgabe laesst die letzte Zeile offen, weil sie
@@ -700,13 +753,13 @@ export function erzeugeSatzZerleger(stil: ZerlegerStil = "abschnitte"): SatzZerl
       // lange Zusammenfassung mitten im Wort ("Letzte Schwelle").
       const teil = text.slice(0, rest);
       for (let i = teil.length - 1; i >= 20; i--) {
-        if (teil[i] === "\n" || istSatzende(teil, i, true)) return { nr: ++nr, text: teil.slice(0, i + 1).trim() };
+        if (teil[i] === "\n" || istSatzende(teil, i, true)) return mitZielen({ nr: ++nr, text: teil.slice(0, i + 1).trim() });
       }
       return null;
     }
     gesamtZeichen += text.length;
     ersterRaus = true;
-    return { nr: ++nr, text };
+    return mitZielen({ nr: ++nr, text });
   }
 
   /** Ein Notschnitt (Komma, Wortende) darf nie mitten in einer Tabellenzeile
@@ -748,6 +801,17 @@ export function erzeugeSatzZerleger(stil: ZerlegerStil = "abschnitte"): SatzZerl
   /** Wo endet der naechste Abschnitt im Puffer - oder -1, wenn noch keiner. */
   function naechsteGrenze(): number {
     const grenzeBei = (i: number) => istSatzende(puffer, i) || istZeilenende(puffer, i);
+
+    // Eine Sprechmarke ist immer eine Satzgrenze: steht vor ihr ein ganzer
+    // Satz, geht er jetzt hinaus, auch wenn er kurz ist. Sonst klebte er mit dem
+    // markierten Satz zusammen, und der Rahmen wechselte schon einen Satz zu frueh.
+    // Jede Marke zaehlt, nicht nur die erste: eine Marke am Pufferanfang
+    // gehoert zum laufenden Satz, erst die naechste trennt.
+    let letzte = -1;
+    for (let i = 0, marke = puffer.indexOf(MARKEN_PLATZHALTER); marke >= 0; marke = puffer.indexOf(MARKEN_PLATZHALTER, marke + 1)) {
+      for (; i < marke; i++) if (grenzeBei(i)) letzte = i + 1;
+      if (letzte > 0 && puffer.slice(0, letzte).replaceAll(MARKEN_PLATZHALTER, "").trim()) return letzte;
+    }
 
     // Der ERSTE Abschnitt hat eine andere Aufgabe als alle weiteren: er soll
     // so frueh wie moeglich klingen - aber als ganzer Satz. Bis zum
@@ -811,13 +875,20 @@ export function erzeugeSatzZerleger(stil: ZerlegerStil = "abschnitte"): SatzZerl
   }
 
   return {
-    fuettere(stueck: string): Abschnitt[] {
+    fuettere(stueck: string, ziele: readonly SprechZiel[] = []): Abschnitt[] {
       if (fertig || !stueck) return [];
+      warteZiele.push(...ziele);
       // Codebloecke ueber Stueckgrenzen hinweg: die Zaehlung der ``` muss
       // den ganzen Strom sehen, nicht nur das aktuelle Stueck.
       for (const teil of stueck.split(/(```)/)) {
         if (teil === "```") { inCodeblock = !inCodeblock; continue; }
         if (!inCodeblock) puffer += teil;
+        else if (teil.includes(MARKEN_PLATZHALTER)) {
+          // Codebloecke werden nicht gesprochen: ihre Marken fallen mit weg,
+          // sonst verrutschte jedes spaetere Ziel um einen Satz.
+          const imPuffer = puffer.split(MARKEN_PLATZHALTER).length - 1;
+          warteZiele.splice(imPuffer, teil.split(MARKEN_PLATZHALTER).length - 1);
+        }
       }
       return ernte();
     },
@@ -825,6 +896,13 @@ export function erzeugeSatzZerleger(stil: ZerlegerStil = "abschnitte"): SatzZerl
       if (fertig) return [];
       const raus = ernte();
       if (fertig) return raus;
+      // Eine Marke ganz am Ende des Textteils ("Ich oeffne den Bericht. [[a2]]",
+      // danach ein Werkzeug) gehoert zum Satz NACH dem Werkzeug, nicht zu diesem.
+      const nachlauf = /\uE000[\s\uE000]*$/.exec(puffer);
+      if (nachlauf && puffer.slice(0, nachlauf.index).trim()) {
+        const vorher = schneide(nachlauf.index, true);
+        if (vorher) raus.push(vorher);
+      }
       const rest = schneide(puffer.length, true);
       if (rest) raus.push(rest);
       return raus;

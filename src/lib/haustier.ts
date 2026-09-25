@@ -106,14 +106,16 @@ export function schreibeTourSchalter(an: boolean): void {
 
 // Automatischer Start von Tour UND Zusammenfassung nach einer Pruefung (und das einmalige
 // Angebot dazu). Aus heisst: nichts startet von selbst - die Knoepfe in der Uebersicht
-// ("Tour erneut starten", "Zusammenfassung im Chat") bleiben. Voreinstellung an.
+// ("Tour erneut starten", "Zusammenfassung im Chat") bleiben. Voreinstellung AUS (seit
+// 25.09.2026, Rueckmeldung: "per Default aus, wenn der User es braucht, schaltet er sie ein"):
+// nur ein ausdruecklich gespeichertes "an" startet von selbst.
 const AUTO_SCHLUESSEL = "damicon-haustier-auto";
 
 export function leseAutoStart(): boolean {
   try {
-    return window.localStorage.getItem(AUTO_SCHLUESSEL) !== "aus";
+    return window.localStorage.getItem(AUTO_SCHLUESSEL) === "an";
   } catch {
-    return true;
+    return false;
   }
 }
 

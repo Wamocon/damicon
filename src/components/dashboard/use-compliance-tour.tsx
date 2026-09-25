@@ -254,7 +254,7 @@ export function useComplianceTour(
   // zusammenfassen() direkt und fragen den Schalter nicht.
   const { an: himbiAn, weg: himbiWeg, tourAn, autoStart } = useHaustierStatus();
   const himbiSichtbar = himbiAn && !himbiWeg;
-  const { starteGespraechZurPruefung } = useKiPane();
+  const { starteGespraechZurPruefung, sprachmodus } = useKiPane();
   const besprechen = useCallback(
     (frage: string) => {
       if (bezug) starteGespraechZurPruefung(bezug, frage);
@@ -296,10 +296,11 @@ export function useComplianceTour(
   // aber nur, wenn Himbi ueberhaupt zu sehen ist (sonst gaebe es niemanden, der fragt) und die
   // Tour in den Einstellungen nicht abgestellt ist (dann gibt es nichts anzubieten).
   useEffect(() => {
-    if (!autoStart || !tourAn || !himbiSichtbar || !schritte || schritte.length === 0 || entschieden.current || phase !== "aus") return;
+    // Nie mitten in ein laufendes Sprachgespraech (Befund vom 25.09.2026).
+    if (!autoStart || sprachmodus || !tourAn || !himbiSichtbar || !schritte || schritte.length === 0 || entschieden.current || phase !== "aus") return;
     const id = window.setTimeout(() => dispatch({ art: "angebot_zeigen" }), ANGEBOT_VERZOEGERUNG_MS);
     return () => window.clearTimeout(id);
-  }, [autoStart, tourAn, himbiSichtbar, schritte, phase]);
+  }, [autoStart, sprachmodus, tourAn, himbiSichtbar, schritte, phase]);
 
   const merken = useCallback(() => {
     entschieden.current = true;
@@ -380,7 +381,7 @@ export function useComplianceTour(
   }, [ceoStand?.phase]);
   useEffect(() => {
     if (!wartetAufAutostart.current) return;
-    if (!autoStart) {
+    if (!autoStart || sprachmodus) {
       // Der Nutzer will keinen automatischen Start: die Gelegenheit verfaellt, kein
       // spaeteres Nachholen, wenn er den Schalter wieder einschaltet.
       wartetAufAutostart.current = false;
@@ -411,7 +412,7 @@ export function useComplianceTour(
       starten();
     }, 0);
     return () => window.clearTimeout(id);
-  }, [autoStart, tourAn, himbiSichtbar, schritte, phase, starten, zusammenfassen, merken]);
+  }, [autoStart, sprachmodus, tourAn, himbiSichtbar, schritte, phase, starten, zusammenfassen, merken]);
 
   // Autopilot: nach der Lesezeit der Station zur naechsten.
   const aktuell = schritte?.[schritt];
