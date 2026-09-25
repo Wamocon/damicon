@@ -20,6 +20,8 @@ import {
   protokolliere as protokolliereBasis,
 } from "@/lib/actions/formular-helfer";
 import { wandzeitZuUtc } from "@/lib/listen/zeitraum";
+import { darfAufgabeBearbeiten } from "@/lib/domain/pflueckaufgaben-liste";
+import { istUuid } from "@/lib/utils";
 
 // Vorstufe zu Anforderung 2.5 (Offline-first): aufgabeStatusSetzen() und
 // mengeMelden() aktualisierten bisher blind per .eq("id", id), ohne den
@@ -355,13 +357,27 @@ export async function belegKern(
   }
 
   const { aufgabeId, art, hinweis, geraetZeitpunkt, datei, aktionId } = params;
-  if (!aufgabeId || !(belegArten as readonly string[]).includes(art)) {
+  if (!istUuid(aufgabeId) || !(belegArten as readonly string[]).includes(art)) {
     return { erledigt: false, status: fehler("fehler.eingabe") };
   }
   if (!datei || datei.size === 0) return { erledigt: false, status: fehler("fehler.keineDatei") };
   if (datei.size > maxDateigroesse) return { erledigt: false, status: fehler("fehler.zuGross") };
 
   const supabase = await createClient();
+
+  // Die Brigade nur an eigene und freie Aufgaben - dieselbe Schranke wie die
+  // Datenbank (20261110050000, Cleanup WMCNL-2488). Vorher geprueft, weil
+  // sonst Storage zuerst ablehnt und die Oberflaeche "Upload fehlgeschlagen"
+  // meldet statt einer Rechtemeldung.
+  const { data: aufgabe } = await supabase
+    .from("pflueckaufgaben")
+    .select("brigade_id")
+    .eq("id", aufgabeId)
+    .maybeSingle();
+  if (!aufgabe) return { erledigt: false, status: fehler("fehler.eingabe") };
+  if (!darfAufgabeBearbeiten(profil, { brigadeId: aufgabe.brigade_id })) {
+    return { erledigt: false, status: fehler("fehler.berechtigung") };
+  }
 
   // Deterministisch aus aktionId statt Date.now(): der Sync-Fall braucht
   // Wiederholbarkeit, der Online-Fall (kein aktionId) erzeugt sich seine
