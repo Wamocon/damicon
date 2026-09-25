@@ -156,6 +156,21 @@
   min-height: 1.6em;
   text-align: center;
 }
+/* Eine offene Freigabe (Klick- oder Aktionskarte): deutlich umrandet, damit
+ * sie nicht mit einer gewoehnlichen Antwort verwechselt wird - der
+ * Sprachmodus hat seit dem 25.09.2026 dieselben Rechte wie der Chat, eine
+ * Aktion aendert also wirklich Daten. */
+.ki-sprachmodus__untertitel--freigabe {
+  border: 2px solid var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--primary) 20%, transparent), 0 10px 30px rgb(0 0 0 / 0.28);
+}
+.ki-sprachmodus__untertitel--freigabe .ki-sprachmodus__untertitel-zeile--nutzer {
+  margin-top: 0.5rem;
+  font-style: normal;
+  font-weight: 600;
+  color: var(--primary);
+  opacity: 1;
+}
 .ki-sprachmodus__untertitel-zeile {
   font-size: 1.0625rem;
   line-height: 1.5;

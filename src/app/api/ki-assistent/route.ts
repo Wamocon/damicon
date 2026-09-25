@@ -462,10 +462,11 @@ export async function POST(req: Request) {
   await pruefeWissenGesundheit();
   const werkzeugeOhneBericht = baueWerkzeuge(rolle, {
     vorschau,
+    // Sprachmodus zaehlt seit dem 25.09.2026 wie Agent-Modus - dieselben
+    // Rechte wie der sichtbare Chat, dieselbe Freigabekarte fuer Aktionen,
+    // nur zusaetzlich an sprachmodus-bus.ts gemeldet (siehe ui-werkzeuge.ts).
     agentModus: modus !== "assistent",
-    // Sprachmodus: nur zeigen und lesen, keine Aktionen - ohne sichtbaren Chat gaebe es keine Freigabekarte.
-    nurLesen: modus === "sprache",
-    oberflaeche: modus === "agent" ? "steuern" : modus === "sprache" ? "zeigen" : "lesen",
+    oberflaeche: modus === "assistent" ? "lesen" : "steuern",
     belegStart: naechsteBelegNummer(nachrichten),
   });
   // oeffnePruefBereich nur, wenn es ueberhaupt einen Bericht gibt, auf dessen Kacheln es

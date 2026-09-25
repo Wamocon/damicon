@@ -40,12 +40,25 @@ zwei Wege, die sich auseinanderentwickeln könnten.
 Der Systemprompt kennt jetzt `"assistent" | "agent" | "sprache"`
 (`src/app/api/ki-assistent/route.ts`, `src/lib/domain/antwort-anweisungen.ts`):
 
-- **Werkzeuge:** wie der Agent-Modus navigiert und liest er die Seite
-  (`oeffneBereich`, `seiteLesen`, `zeigeAuf`, `scrolleZu`), kann aber **nicht
-  klicken oder ausfüllen** (`baueUiWerkzeuge("zeigen")`,
-  `src/lib/ai/ui-werkzeuge.ts`) und **keine Aktionen** auslösen (`nurLesen:
-  true`). Ohne sichtbaren Chat gäbe es keine Stelle, an der jemand eine
-  Freigabekarte bestätigen könnte.
+- **Werkzeuge:** seit dem 25.09.2026 **dieselben Rechte wie der sichtbare
+  Chat** (Rückmeldung: „der Sprachmodus soll die gleichen Rechte haben wie der
+  Chat“). Er navigiert, liest, zeigt, **klickt und füllt aus**
+  (`baueUiWerkzeuge("steuern")`, `src/lib/ai/ui-werkzeuge.ts`) und löst die
+  **Aktionen** aus (`aufgabeAnlegen` und weitere, kein `nurLesen` mehr). Bis
+  dahin war beides gesperrt, weil es ohne sichtbaren Chat keine Stelle für die
+  Freigabekarte gab. Die Sicherheitsstufen bleiben unverändert: gesperrt bleibt
+  gesperrt (Abmelden, Passwortfelder), und was etwas absendet, ändert oder
+  löscht, braucht weiter eine ausdrückliche Freigabe.
+- **Freigabe per Sprache:** Der Chat (`ki-chat.tsx`) meldet die offene
+  Freigabekarte (Klick oder Aktion) über `sprachmodus-bus.ts` an den
+  Sprachmodus. Der zeigt sie **deutlich umrandet** (auch bei ausgeschalteten
+  Untertiteln oder gerade gezeigter Stelle) mit dem Hinweis „Sagen Sie Ja oder
+  Nein“. Die nächste **ganze Äußerung** zählt zuerst als Antwort darauf
+  (`istZusageBefehl`/`istAbsageBefehl`, `src/lib/domain/sprachmodus.ts`), nicht
+  als neue Frage. „Ja, aber was kostet das?“ ist keine Zusage und wird als Frage
+  weitergereicht, Schweigen oder Unklares gibt **nie** eine Freigabe. „Stopp“
+  lehnt bei offener Karte nur die Aktion ab, sonst beendet es den Sprachmodus.
+  Die Karte im sichtbaren Chat bleibt ein zweiter Weg (Klick).
 - **Format:** `sprachmodusFormatAnweisung()` ersetzt die Fachbericht-Regeln
   (kein Markdown, höchstens vier kurze Sätze, kein Fazit-Satz, keine
   Höflichkeitsfloskeln). Die Antwort wird vorgelesen, nicht gelesen.

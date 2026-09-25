@@ -50,9 +50,6 @@ export interface Umgebung {
   zeiger: ZeigerSteuerung;
   bestaetigen: (anfrage: KlickAnfrage) => Promise<boolean>;
   agentModus: boolean;
-  /** Sprachmodus: zeigen, lesen und scrollen - aber nie klicken oder ausfuellen. Ohne sichtbaren
-   *  Chat gibt es keine Stelle, an der der Nutzer eine Freigabe erteilen koennte. */
-  nurZeigen?: boolean;
 }
 
 const MAX_ELEMENTE = 140;
@@ -424,10 +421,7 @@ export async function fuehreUiWerkzeugAus(name: string, eingabe: unknown, umgebu
   try {
     if (name === "seiteLesen") return await schnappschuss(text("fokus") || undefined);
     if (!umgebung.agentModus) {
-      return { ok: false, hinweis: "Die Seite bedienen kann ich nur im Agent-Modus (Zahnrad im Panel). Lesen ist in beiden Modi möglich." };
-    }
-    if (umgebung.nurZeigen && (name === "klicke" || name === "fuelleFeld")) {
-      return { ok: false, gesperrt: true, hinweis: "Im Sprachmodus zeige und erkläre ich nur. Klicken und Ausfüllen gehen im Chat oder im Agent-Modus." };
+      return { ok: false, hinweis: "Die Seite bedienen kann ich nur im Agent-Modus (Zahnrad im Panel) oder im Sprachmodus. Lesen ist in jedem Modus möglich." };
     }
     if (name === "klicke") return await klicken(text("ref"), text("absicht"), umgebung);
     if (name === "fuelleFeld") return await ausfuellen(text("ref"), text("wert"), umgebung);

@@ -140,13 +140,61 @@ const HOEFLICHKEIT = /^(bitte|please|пожалуйста|өтінемін)[\s,]
 /** Ist diese fertig erkannte Aeusserung nur der Befehl, den Sprachmodus zu
  *  beenden - mit oder ohne Bitte, mit oder ohne Ausrufezeichen? */
 export function istStoppBefehl(text: string): boolean {
-  const bereinigt = text
+  return STOPP_WOERTER.has(bereinigteAeusserung(text));
+}
+
+// --- 1c. Zusage/Absage bei einer offenen Freigabe -------------------------------
+//
+// Seit dem 25.09.2026 hat der Sprachmodus dieselben Rechte wie der sichtbare
+// Chat: eine Aktion, die Daten aendert, zeigt die Anwendung als Karte und
+// wartet auf eine Entscheidung. Ohne Knopf im Sprachmodus zaehlt dafuer die
+// naechste ganze Aeusserung - wie beim Wortbefehl "Stopp" nur als exaktes
+// Wort, nicht als Wort mittendrin ("Ja, aber was kostet das?" ist keine reine
+// Zusage und wird als Frage weitergereicht, nicht als Freigabe gewertet).
+
+const ZUSAGE_WOERTER = new Set([
+  // Deutsch
+  "ja", "jawohl", "genau", "mach das", "bestätigen", "bestätige", "freigeben", "gib frei", "ok", "okay",
+  // Englisch
+  "yes", "yeah", "confirm", "approve", "do it",
+  // Russisch
+  "да", "давай", "подтверждаю", "подтвердить", "хорошо",
+  // Kasachisch
+  "иә", "жарайды", "растаймын",
+]);
+const ABSAGE_WOERTER = new Set([
+  // Deutsch
+  "nein", "nicht", "abbrechen", "lass es", "stopp", "stop",
+  // Englisch
+  "no", "cancel", "don't",
+  // Russisch
+  "нет", "отмена", "не надо",
+  // Kasachisch
+  "жоқ", "тоқтат",
+]);
+
+function bereinigteAeusserung(text: string): string {
+  return text
     .trim()
     .toLowerCase()
     .replace(HOEFLICHKEIT, "")
     .replace(/[.!?…]+$/, "")
     .trim();
-  return STOPP_WOERTER.has(bereinigt);
+}
+
+/** Ist diese fertig erkannte Aeusserung eine reine Zusage zu einer offenen
+ *  Freigabe (Klick- oder Aktionskarte)? */
+export function istZusageBefehl(text: string): boolean {
+  return ZUSAGE_WOERTER.has(bereinigteAeusserung(text));
+}
+
+/** Ist diese fertig erkannte Aeusserung eine reine Absage zu einer offenen
+ *  Freigabe? "Stopp"/"Stop" zaehlen bewusst auch hier: waehrend eine Karte
+ *  offen ist, soll damit die Aktion abgelehnt werden - nicht der ganze
+ *  Sprachmodus enden (istStoppBefehl wird dafuer bei offener Freigabe nicht
+ *  geprueft, siehe sprachmodus.tsx). */
+export function istAbsageBefehl(text: string): boolean {
+  return ABSAGE_WOERTER.has(bereinigteAeusserung(text));
 }
 
 // --- 2. Wohin die Kugel rueckt -------------------------------------------------

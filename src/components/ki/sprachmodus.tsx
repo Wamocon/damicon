@@ -9,8 +9,11 @@ import { SprachSpotlight, useHervorhebungsRechteck, useKugelPlatz } from "@/comp
 import {
   abonniereSprachBus,
   chatStandServer,
+  entscheideFreigabe,
   entsperreTon,
+  freigabeAnfrageServer,
   leseChatStand,
+  leseFreigabeAnfrage,
   stelleSprachFrage,
   unterbrichChat,
 } from "@/components/ki/sprachmodus-bus";
@@ -20,7 +23,9 @@ import {
   antwortFertig,
   assistentIstDran,
   erzeugeUnterbrechungsWaechter,
+  istAbsageBefehl,
   istStoppBefehl,
+  istZusageBefehl,
   nachSitzungsAbbruch,
   naechstePhase,
   NEUVERSUCH_MS,
@@ -107,6 +112,7 @@ function SprachmodusInhalt() {
   }, [phase]);
 
   const chatStand = useSyncExternalStore(abonniereSprachBus, leseChatStand, chatStandServer);
+  const freigabeAnfrage = useSyncExternalStore(abonniereSprachBus, leseFreigabeAnfrage, freigabeAnfrageServer);
 
   const dispatch = useCallback((ereignis: Parameters<typeof naechstePhase>[1]) => {
     setPhase((bisher) => {
@@ -305,20 +311,33 @@ function SprachmodusInhalt() {
       .then((): Promise<LiveErgebnis> | LiveErgebnis => (sitzung ? sitzung.beende() : { ok: false, grund: "keine-sitzung" }))
       .then((ergebnis) => {
         setZwischentext("");
-        if (ergebnis.ok && ergebnis.text && istStoppBefehl(ergebnis.text)) {
+        if (!ergebnis.ok || !ergebnis.text) {
+          if (!ergebnis.ok) console.warn("[damicon] Sprachmodus: Aeusserung nicht erkannt:", ergebnis.grund);
+          dispatch({ art: "nichts-gehoert" });
+          return;
+        }
+        // Der Sprachmodus hat seit dem 25.09.2026 dieselben Rechte wie der
+        // sichtbare Chat: eine Aktion, die etwas aendert, wartet auf eine
+        // Freigabe (sprachmodus-bus.ts). Ist gerade eine offen, zaehlt die
+        // Aeusserung zuerst als Zusage oder Absage dazu, nicht als neue Frage -
+        // "Stopp" lehnt dann NUR die Karte ab, nicht den ganzen Sprachmodus
+        // (istAbsageBefehl deckt das ab, istStoppBefehl wird hier bewusst
+        // nicht geprueft).
+        if (leseFreigabeAnfrage()) {
+          if (istZusageBefehl(ergebnis.text) || istAbsageBefehl(ergebnis.text)) {
+            entscheideFreigabe(istZusageBefehl(ergebnis.text));
+            dispatch({ art: "frage-gestellt" });
+            return;
+          }
+        } else if (istStoppBefehl(ergebnis.text)) {
           // Sicherer Weg zu beenden, ohne Knopf oder Taste (Rueckmeldung vom
           // 25.09.2026: "ich muss ihn stoppen koennen mit Stopp").
           beendenRef.current();
           return;
         }
-        if (ergebnis.ok && ergebnis.text) {
-          fehlversuche.current = 0;
-          stelleSprachFrage(ergebnis.text, ergebnis.sprachen);
-          dispatch({ art: "frage-gestellt" });
-        } else {
-          if (!ergebnis.ok) console.warn("[damicon] Sprachmodus: Aeusserung nicht erkannt:", ergebnis.grund);
-          dispatch({ art: "nichts-gehoert" });
-        }
+        fehlversuche.current = 0;
+        stelleSprachFrage(ergebnis.text, ergebnis.sprachen);
+        dispatch({ art: "frage-gestellt" });
       });
   }, [phase, dispatch, schliesseAufnahme]);
 
@@ -534,24 +553,33 @@ function SprachmodusInhalt() {
       {statusText}
     </p>
   ) : null;
-  const untertitel =
-    !beiSeite && untertitelAn ? (
-      <div className="ki-sprachmodus__untertitel" aria-hidden={phase !== "hoert" && phase !== "versteht"}>
-        {phase === "hoert" || phase === "versteht" ? (
-          <p className="ki-sprachmodus__untertitel-zeile ki-sprachmodus__untertitel-zeile--nutzer">
-            {zwischentext || (phase === "hoert" ? t("hoertZu") : "")}
-          </p>
-        ) : (chatStand.antwort || phase === "spricht" || phase === "denkt") ? (
-          // Nie das rohe Markdown der Antwort ("**fett**", "1. ...") - das
-          // stand bis zum 25.09.2026 unbereinigt im Untertitel, bei
-          // laengeren Antworten kaum lesbar. Dieselbe Markdown-Darstellung
-          // wie im sichtbaren Chat (Absaetze, Fettdruck, Listen).
-          <div className="ki-sprachmodus__untertitel-zeile">
-            <Markdown text={chatStand.antwort} />
-          </div>
-        ) : null}
-      </div>
-    ) : null;
+  // Eine offene Freigabe (Klick- oder Aktionskarte, sprachmodus-bus.ts) geht
+  // ÜBER allem anderen: sichtbar, egal ob gerade auf ein Element gezeigt wird
+  // (beiSeite) oder die Untertitel ausgeschaltet sind - eine Sicherheitsfrage
+  // darf nie unsichtbar bleiben. "Ja"/"Nein" loest sie auf (siehe die
+  // "versteht"-Auswertung oben, istZusageBefehl/istAbsageBefehl).
+  const untertitel = freigabeAnfrage ? (
+    <div className="ki-sprachmodus__untertitel ki-sprachmodus__untertitel--freigabe" role="alertdialog" aria-live="assertive">
+      <p className="ki-sprachmodus__untertitel-zeile">{freigabeAnfrage.text}</p>
+      <p className="ki-sprachmodus__untertitel-zeile ki-sprachmodus__untertitel-zeile--nutzer">{t("freigabeHinweis")}</p>
+    </div>
+  ) : !beiSeite && untertitelAn ? (
+    <div className="ki-sprachmodus__untertitel" aria-hidden={phase !== "hoert" && phase !== "versteht"}>
+      {phase === "hoert" || phase === "versteht" ? (
+        <p className="ki-sprachmodus__untertitel-zeile ki-sprachmodus__untertitel-zeile--nutzer">
+          {zwischentext || (phase === "hoert" ? t("hoertZu") : "")}
+        </p>
+      ) : (chatStand.antwort || phase === "spricht" || phase === "denkt") ? (
+        // Nie das rohe Markdown der Antwort ("**fett**", "1. ...") - das
+        // stand bis zum 25.09.2026 unbereinigt im Untertitel, bei
+        // laengeren Antworten kaum lesbar. Dieselbe Markdown-Darstellung
+        // wie im sichtbaren Chat (Absaetze, Fettdruck, Listen).
+        <div className="ki-sprachmodus__untertitel-zeile">
+          <Markdown text={chatStand.antwort} />
+        </div>
+      ) : null}
+    </div>
+  ) : null;
 
   return (
     <div

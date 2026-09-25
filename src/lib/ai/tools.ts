@@ -255,7 +255,7 @@ export function baueWerkzeuge(
     /** Agent-Modus: ergaenzt ohneAnsicht, den bewussten Verzicht auf eine Ansicht. */
     agentModus?: boolean;
     /** Client-Werkzeuge (laufen im Browser): "lesen" = nur seiteLesen, "steuern" = Seite bedienen. */
-    oberflaeche?: "lesen" | "steuern" | "zeigen";
+    oberflaeche?: "lesen" | "steuern";
     /** Erste freie Belegkennung der laufenden Antwort (siehe naechsteBelegNummer). */
     belegStart?: number;
   } = {},

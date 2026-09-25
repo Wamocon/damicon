@@ -2,6 +2,7 @@
 
 import {
   memo,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -82,6 +83,7 @@ import {
   leseSprachFrage,
   leseStopp,
   meldeChatStand,
+  meldeFreigabeAnfrage,
   registriereEntsperren,
   zaehlerServer,
 } from "@/components/ki/sprachmodus-bus";
@@ -265,8 +267,11 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     unterSchrittGrenze,
   } = useKlientWerkzeuge({
     bewegeZeiger,
+    // Der Sprachmodus hat seit dem 25.09.2026 dieselben Rechte wie der
+    // sichtbare Chat (Rueckmeldung vom 25.09.2026: "der Sprachmodus soll die
+    // gleichen Rechte haben wie der Chat") - "sprache" zaehlt hier wie
+    // "agent", kein eigener nurZeigen-Fall mehr noetig.
     istAgentModus: () => anfrageDaten.current.modus !== "assistent",
-    istNurZeigen: () => anfrageDaten.current.modus === "sprache",
   });
 
   const initialMessages = useMemo(() => verlaufZuNachrichten(verlauf), [verlauf]);
@@ -471,18 +476,56 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
     feld?.setSelectionRange(text.length, text.length);
   }
 
-  function freigabe(karte: AktionsKarte, erlaubt: boolean) {
-    if (!karte.approvalId) return;
-    zugModus.current = modus;
-    klebtUnten.current = true;
-    void addToolApprovalResponse({
-      id: karte.approvalId,
-      approved: erlaubt,
-      // Ohne Grund erfindet das Modell gern einen ("das System hat abgelehnt") -
-      // dabei hat der Nutzer schlicht nein gesagt.
-      reason: erlaubt ? undefined : "Der Nutzer hat die Aktion selbst abgelehnt. Es gab keinen Systemfehler.",
-    });
-  }
+  const freigabe = useCallback(
+    (karte: AktionsKarte, erlaubt: boolean) => {
+      if (!karte.approvalId) return;
+      zugModus.current = modus;
+      klebtUnten.current = true;
+      void addToolApprovalResponse({
+        id: karte.approvalId,
+        approved: erlaubt,
+        // Ohne Grund erfindet das Modell gern einen ("das System hat abgelehnt") -
+        // dabei hat der Nutzer schlicht nein gesagt.
+        reason: erlaubt ? undefined : "Der Nutzer hat die Aktion selbst abgelehnt. Es gab keinen Systemfehler.",
+      });
+    },
+    [modus, addToolApprovalResponse],
+  );
+
+  // Eine Aktion, die gerade auf Freigabe wartet (Kartenzustand "freigabe") -
+  // wie freigabeOffen unten: nur auf der letzten Nachricht, aus demselben Grund.
+  const anstehendeAktion = useMemo(() => {
+    const letzte = messages.at(-1);
+    if (!letzte || letzte.role !== "assistant") return null;
+    const segment = segmentiere(letzte).find((s) => s.art === "aktion" && s.karte.zustand === "freigabe");
+    return segment && segment.art === "aktion" ? segment.karte : null;
+  }, [messages]);
+
+  // Meldet die offene Freigabekarte (Klick ODER Aktion) an den Sprachmodus -
+  // der Sprachmodus hat seit dem 25.09.2026 dieselben Rechte wie der sichtbare
+  // Chat und braucht deshalb auch dessen Freigabeschritt (sprachmodus-bus.ts,
+  // Kommentar dort). Harmlos, wenn der Sprachmodus gar nicht laeuft: niemand
+  // liest die Meldung dann. Derselbe Text wie auf der sichtbaren Karte, aus
+  // denselben Uebersetzungen (t, "kiAssistentAnsicht").
+  useEffect(() => {
+    if (klickAnfrage) {
+      meldeFreigabeAnfrage(`${t("klick.titel")}: ${klickAnfrage.absicht} – ${klickAnfrage.label}`, (erlaubt) =>
+        klickAnfrage.entscheide(erlaubt),
+      );
+      return;
+    }
+    if (anstehendeAktion) {
+      const karte = anstehendeAktion;
+      const felder = Object.entries(karte.eingabe)
+        .filter(([, wert]) => wert !== undefined && wert !== null && wert !== "")
+        .map(([schluessel, wert]) => `${t.has(`aktion.felder.${schluessel}`) ? t(`aktion.felder.${schluessel}`) : schluessel}: ${String(wert)}`)
+        .join(", ");
+      const titel = t(`aktion.titel.${karte.name}`);
+      meldeFreigabeAnfrage(felder ? `${titel}: ${felder}` : titel, (erlaubt) => freigabe(karte, erlaubt));
+      return;
+    }
+    meldeFreigabeAnfrage(null, null);
+  }, [klickAnfrage, anstehendeAktion, t, freigabe]);
 
   // Waehrend eines laufenden Zugs: der zuletzt begonnene Werkzeugaufruf, fuer
   // die Statuszeile ("Agent prueft ..."); ohne laufendes Werkzeug "denkt nach".

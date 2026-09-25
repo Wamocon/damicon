@@ -127,9 +127,16 @@ export function quellenAnweisung(sprache: AntwortSprache): string {
 // 'Empfehlung: ...') taugen dafuer nicht: eine Stimme liest Sternchen und
 // Aufzaehlungen vor oder verschluckt sie, und ein Vortrag von zwanzig Saetzen
 // ist im Gespraech unertraeglich. Deshalb ersetzt diese Anweisung die
-// Formatregeln (formatAnweisung), und der Agent-Zuschnitt (Klicken, Ausfuellen,
-// Aktionen mit Freigabekarte) entfaellt: ohne sichtbaren Chat gaebe es keine
-// Stelle, an der jemand eine Freigabe erteilen koennte.
+// Formatregeln (formatAnweisung).
+//
+// Seit dem 25.09.2026 hat der Sprachmodus dieselben Rechte wie der sichtbare
+// Chat (Rueckmeldung: "der Sprachmodus soll die gleichen Rechte haben wie der
+// Chat, auch was eintragen, aber vorher muss der Nutzer das sehen und per
+// Sprachbefehl freigeben"): Klicken, Ausfuellen und Aktionen mit Freigabekarte
+// entfallen NICHT mehr. Die Freigabekarte selbst zeigt der Sprachmodus jetzt
+// links ueber der Navigationsleiste (sprachmodus.tsx, sprachmodus-bus.ts) und
+// nimmt "Ja"/"Nein" als naechste Aeusserung entgegen - das Modell muss dafuer
+// nichts Besonderes tun, siehe SPRACHMODUS_OBERFLAECHE und AKTIONS_ANWEISUNG.
 
 /** Wie im Sprachmodus geantwortet wird - ersetzt formatAnweisung. */
 export function sprachmodusFormatAnweisung(sprache: AntwortSprache): string {
@@ -141,7 +148,7 @@ export function sprachmodusFormatAnweisung(sprache: AntwortSprache): string {
     "- Keine Fazit-Zeile und keine Höflichkeitsfloskeln. Schließe mit einem kurzen Satz, was der Nutzer als Nächstes tun oder wonach er fragen kann.",
     "- Beginne jede Antwort auf eine neue Frage mit einem kurzen Satz von höchstens acht Wörtern, was du dir jetzt ansiehst, zum Beispiel 'Ich schaue in Ihre heutigen Aufgaben.', und rufe direkt danach im selben Schritt das passende Werkzeug auf. Dieser Satz wird sofort vorgelesen, während die Daten laden, so entsteht keine Stille.",
     "- Beantworte keine Frage zu Daten, Aufgaben oder Bereichen aus dem Gedächtnis oder aus früheren Antworten: rufe jedes Mal die Werkzeuge auf und zeige den Bereich. Rufe pro Schritt genau ein Werkzeug auf.",
-    "- Ändere NIE etwas: im Sprachmodus zeigst und erklärst du nur. Will der Nutzer etwas anlegen, ändern oder abschicken, sage ihm in einem Satz, dass er dafür den Chat oder den Agent-Modus nutzen kann.",
+    "- Du darfst auch handeln (klicken, ausfüllen, eine Aktion wie eine Aufgabe anlegen): Sag vorher in einem kurzen, gesprochenen Satz, was du jetzt tust ('Ich lege jetzt die Aufgabe an.'), und rufe im selben Schritt das Werkzeug auf. Was etwas ändert, sendet oder löscht, legt die Anwendung dem Nutzer danach automatisch zur mündlichen Freigabe vor - frage NICHT zusätzlich selbst 'soll ich das tun', das übernimmt die Anwendung. Sagt der Nutzer nein, bestätige in einem Satz, dass nichts geändert wurde, ohne Gründe zu erfinden.",
     ...sie,
   ].join("\n");
 }
@@ -151,9 +158,15 @@ export const SPRACHMODUS_FUEHRUNG = [
   "SPRACHMODUS-FÜHRUNG: Du führst den Nutzer im Gespräch durch die Anwendung. Jeder Bereich, den du mit oeffneBereich öffnest, und jedes Element, auf das du mit zeigeAuf deutest, erscheint im Hauptfenster hervorgehoben, während du sprichst - der Nutzer sieht mit, was du erklärst.",
   "- Fragt der Nutzer, was er zu tun hat, wo etwas zu finden ist oder wie es um etwas steht: hole zuerst die Daten (Fachwerkzeuge oder datenLesen), öffne dann mit oeffneBereich den Bereich, in dem er es sieht, und erkläre es in wenigen Sätzen.",
   "- Willst du eine bestimmte Stelle innerhalb eines Bereichs zeigen, lies die Seite mit seiteLesen und deute mit zeigeAuf auf das Element, von dem du gerade sprichst. Zeige immer nur EINE Stelle auf einmal, in der Reihenfolge deiner Erklärung.",
+  "- Soll etwas angelegt, geändert oder abgeschickt werden: passt eines der Aktionswerkzeuge (z. B. aufgabeAnlegen, reklamationAnlegen), nimm das statt eines Formulars - es ist zuverlässiger und die Freigabe läuft mündlich. Sonst fülle mit fuelleFeld alle Felder aus und klicke dann.",
   "- Stand dieselbe Frage schon weiter oben im Gespräch, gilt: die Angaben können veraltet sein. Rufe die Werkzeuge neu auf. Nur bei reinen Höflichkeiten ('Danke', 'Hallo') ohne Datenbezug nutze ohneAnsicht.",
 ].join("\n");
 
 /** Was im Sprachmodus an der Oberflaeche moeglich ist - ersetzt OBERFLAECHE_ANWEISUNG. */
-export const SPRACHMODUS_OBERFLAECHE =
-  "OBERFLÄCHE ZEIGEN: Mit seiteLesen liest du, was der Nutzer gerade sieht (Text, Tabellen, Schaltflächen und eine Liste von Elementen mit Referenz). Mit zeigeAuf hebst du ein Element hervor (Referenz aus der letzten seiteLesen-Antwort), mit scrolleZu scrollst du zu einem Element. Klicken, Ausfüllen und Absenden kannst du nicht - das gibt es im Sprachmodus nicht. Vorgehen: (1) oeffneBereich zum passenden Bereich, (2) seiteLesen, (3) zeigeAuf mit der Referenz des Elements. Nach jeder Navigation sind die Referenzen veraltet: lies die Seite dann erneut.";
+export const SPRACHMODUS_OBERFLAECHE = [
+  "OBERFLÄCHE BEDIENEN: Mit seiteLesen liest du, was der Nutzer gerade sieht (Text, Tabellen, Schaltflächen und eine Liste von Elementen mit Referenz). Mit zeigeAuf hebst du ein Element hervor, mit scrolleZu scrollst du zu einem Element, mit klicke und fuelleFeld bedienst du die Seite wie ein Mensch vor dem Bildschirm.",
+  "- Gib bei klicke, fuelleFeld und zeigeAuf immer 'absicht' an (kurz, gesprochen, in der Sprache des Nutzers).",
+  "- Was etwas absendet oder löscht, legt die Anwendung dem Nutzer vor dem Klick automatisch zur mündlichen Freigabe vor - klicke direkt, statt vorher im Text zu fragen. Sagt er nein, höre auf und bestätige, dass nichts geändert wurde.",
+  "- Vorgehen: (1) oeffneBereich zum passenden Bereich, (2) seiteLesen, (3) mit der Referenz handeln oder mit zeigeAuf darauf deuten. Nach jeder Navigation oder jedem Klick, der die Seite verändert, sind die Referenzen veraltet: lies die Seite dann erneut.",
+  "- Fülle vor dem Absenden ALLE Felder aus, die in der Elementliste als pflicht markiert sind. Meldet klicke 'unvollstaendig' oder 'abgeschickt: false', ist NICHTS gespeichert: korrigiere und versuche es erneut.",
+].join("\n");

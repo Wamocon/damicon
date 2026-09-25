@@ -2113,6 +2113,7 @@
       "kurz": "Talk",
       "hinweis": "Voice mode: talk to Himbi live, no typing",
       "einwilligungZuerst": "Please accept the AI notice in the chat first, then start voice mode again.",
+      "freigabeHinweis": "Say “Yes” to approve or “No” to decline.",
       "beenden": "End voice mode",
       "unterbrechen": "Tap or just start talking",
       "stumm": "Mute microphone",

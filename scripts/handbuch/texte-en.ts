@@ -542,7 +542,7 @@ export const en: HandbuchTexte = {
       },
       {
         begriff: "Voice mode",
-        text: "A live conversation with the assistant without a visible chat: a bubble reacts to the voice, and the assistant can jump to and highlight a section on its own. Interrupt as in a conversation: just start talking, or tap the bubble. To start: the “Talk” button in the header, or in the chat the send button while the input field is empty.",
+        text: "A live conversation with the assistant without a visible chat: a bubble reacts to the voice, and the assistant can jump to and highlight a section on its own. Interrupt as in a conversation: just start talking, or tap the bubble. To start: the “Talk” button in the header, or in the chat the send button while the input field is empty. Voice mode can do the same as the chat, including entering data. Before any change is saved, it shows the change clearly outlined on screen, and you approve it by saying “Yes” or decline it with “No”. Say “Stop” to end voice mode.",
       },
       { begriff: "WAMOCON", text: "WAMOCON GmbH — client and developer of Damicon." },
     ],

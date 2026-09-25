@@ -125,6 +125,61 @@ export function zaehlerServer(): number {
   return 0;
 }
 
+// --- Freigabe (Klick- oder Aktionskarte) ------------------------------------------
+//
+// Bekommt der Sprachmodus dieselben Rechte wie der sichtbare Chat (25.09.2026:
+// "der Sprachmodus soll die gleichen Rechte haben wie der Chat"), braucht er auch
+// dessen Freigabeschritt: eine Aktion, die Daten aendert, zeigt der Chat als Karte
+// und wartet auf eine Entscheidung (ki-chat-werkzeuge.ts: klickAnfrage;
+// ki-chat-aktionskarte.tsx: eine Aktion im Zustand "freigabe"). Vorher war das der
+// Grund, Klicken und Ausfuellen im Sprachmodus ganz zu sperren: "ohne sichtbaren
+// Chat gibt es keine Stelle, an der jemand eine Freigabe erteilen koennte". Jetzt
+// gibt es diese Stelle: der Chat meldet den Text der offenen Karte hier, der
+// Sprachmodus zeigt ihn UND nimmt "Ja"/"Nein" als naechste Aeusserung entgegen,
+// statt sie als neue Frage an den Chat weiterzureichen (sprachmodus.tsx,
+// istZusageBefehl/istAbsageBefehl in domain/sprachmodus.ts).
+
+export interface FreigabeAnfrage {
+  /** Fortlaufend: eine Entscheidung gilt nur fuer GENAU die Anfrage, zu der der
+   *  Sprachmodus sie zuletzt gesehen hat - kommt sie zu spaet (die Karte ist
+   *  inzwischen weg, z. B. weil im Chat selbst geklickt wurde), passiert nichts. */
+  nr: number;
+  text: string;
+}
+
+let freigabeAnfrage: FreigabeAnfrage | null = null;
+let freigabeNr = 0;
+let freigabeEntscheider: ((erlaubt: boolean) => void) | null = null;
+
+/** Chat -> Sprachmodus: eine Karte wartet auf Freigabe (oder null: erledigt,
+ *  abgebrochen oder zurueckgezogen). `entscheide` loest GENAU diese Anfrage auf -
+ *  dieselbe Funktion, die auch ein Klick auf die Karte im Chat selbst aufriefe. */
+export function meldeFreigabeAnfrage(text: string | null, entscheide: ((erlaubt: boolean) => void) | null): void {
+  // Derselbe Text zaehlt nicht als neue Anfrage - sonst meldete jeder Rerender
+  // des Chats (z. B. weil freigabe() bei jedem Aufruf neu entsteht) eine neue
+  // Nummer, obwohl sich an der offenen Karte nichts geaendert hat.
+  if (text === (freigabeAnfrage?.text ?? null)) {
+    freigabeEntscheider = entscheide;
+    return;
+  }
+  freigabeAnfrage = text ? { nr: ++freigabeNr, text } : null;
+  freigabeEntscheider = entscheide;
+  melde();
+}
+
+export function leseFreigabeAnfrage(): FreigabeAnfrage | null {
+  return freigabeAnfrage;
+}
+
+export function freigabeAnfrageServer(): null {
+  return null;
+}
+
+/** Sprachmodus -> Chat: "Ja" oder "Nein" zur AKTUELLEN Anfrage. */
+export function entscheideFreigabe(erlaubt: boolean): void {
+  freigabeEntscheider?.(erlaubt);
+}
+
 // --- Ton entsperren --------------------------------------------------------------
 //
 // Auf dem iPhone darf Ton nur aus einer Geste heraus beginnen, und zwar im selben

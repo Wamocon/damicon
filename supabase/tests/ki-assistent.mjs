@@ -108,7 +108,9 @@ import {
   assistentIstDran,
   besterPlatz,
   erzeugeUnterbrechungsWaechter,
+  istAbsageBefehl,
   istStoppBefehl,
+  istZusageBefehl,
   LANGE_SITZUNG_MS,
   MAX_NEUVERSUCHE,
   nachSitzungsAbbruch,
@@ -2413,22 +2415,39 @@ for (const [name, kaputteAntwort] of [
   // (c) Werkzeuge und Anweisungen des Sprachmodus.
   {
     const werkzeugeQuelle = readFileSync(new URL("../../src/lib/ai/ui-werkzeuge.ts", import.meta.url), "utf8");
-    pruefe("Sprachmodus-Werkzeuge: 'zeigen' erlaubt seiteLesen, scrolleZu, zeigeAuf, aber nicht klicke/fuelleFeld", werkzeugeQuelle.includes('if (stufe === "zeigen") return { seiteLesen, scrolleZu, zeigeAuf };'));
+    // Seit dem 25.09.2026 hat der Sprachmodus dieselben Rechte wie der sichtbare Chat:
+    // es gibt nur noch 'lesen' und 'steuern', kein 'zeigen' mehr.
+    pruefe("Sprachmodus-Werkzeuge: nur noch 'lesen' und 'steuern', Sprachmodus bekommt alles wie der Agent", werkzeugeQuelle.includes('if (stufe === "steuern") return { seiteLesen, klicke, fuelleFeld, scrolleZu, zeigeAuf };') && !werkzeugeQuelle.includes('stufe === "zeigen"'));
     const uiSteuerungQuelle = readFileSync(new URL("../../src/components/ki/ui-steuerung.ts", import.meta.url), "utf8");
-    pruefe("Sprachmodus-Werkzeuge: Klicken und Ausfuellen sind bei nurZeigen gesperrt", uiSteuerungQuelle.includes("umgebung.nurZeigen && (name ===") );
+    pruefe("Sprachmodus-Werkzeuge: Klicken und Ausfuellen sind nicht mehr gesperrt (kein nurZeigen)", !uiSteuerungQuelle.includes("nurZeigen"));
     const schrittQuelle = readFileSync(new URL("../../src/lib/ai/schritt-steuerung.ts", import.meta.url), "utf8");
     pruefe("Agent-Modus: der erste Schritt einer neuen Frage MUSS ein Werkzeug rufen", schrittQuelle.includes('if (e.modus === "agent") return { toolChoice: "required" };'));
     const routeQuelle = readFileSync(new URL("../../src/app/api/ki-assistent/route.ts", import.meta.url), "utf8");
-    pruefe("Route: der Sprachmodus bekommt oberflaeche 'zeigen' und nurLesen (keine Aktionen)", routeQuelle.includes('nurLesen: modus === "sprache"') && routeQuelle.includes('modus === "sprache" ? "zeigen"'));
+    pruefe("Route: der Sprachmodus bekommt oberflaeche 'steuern' und die Aktionen wie der Agent", routeQuelle.includes('oberflaeche: modus === "assistent" ? "lesen" : "steuern"') && !routeQuelle.includes("nurLesen"));
     pruefe("Route: der Sprachmodus nutzt eine eigene, kuerzere Formatanweisung", routeQuelle.includes('modus === "sprache" ? sprachmodusFormatAnweisung(antwortSprache) : formatAnweisung(antwortSprache)'));
   }
   for (const sprache of ["de", "en", "ru", "kk"]) {
     const anweisung = sprachmodusFormatAnweisung(sprache);
     pruefe(`Sprachmodus-Anweisung ${sprache}: kein Markdown, kurze Saetze verlangt`, anweisung.includes("Kein Markdown") && anweisung.includes("höchstens vier Sätze"));
-    pruefe(`Sprachmodus-Anweisung ${sprache}: aendert nie etwas`, anweisung.includes("Ändere NIE etwas"));
+    pruefe(`Sprachmodus-Anweisung ${sprache}: darf handeln, kuendigt an, Freigabe laeuft muendlich`, !anweisung.includes("Ändere NIE etwas") && anweisung.includes("Du darfst auch handeln") && anweisung.includes("mündlichen Freigabe"));
   }
-  pruefe("Sprachmodus-Fuehrung: Navigation und Hervorheben, keine Erwaehnung von Klicken/Ausfuellen", SPRACHMODUS_FUEHRUNG.includes("oeffneBereich") && SPRACHMODUS_FUEHRUNG.includes("zeigeAuf") && !SPRACHMODUS_FUEHRUNG.includes("fuelleFeld") && !SPRACHMODUS_FUEHRUNG.includes("klicke"));
-  pruefe("Sprachmodus-Oberflaeche: nennt ausdruecklich, dass Klicken und Ausfuellen fehlen", SPRACHMODUS_OBERFLAECHE.includes("Klicken, Ausfüllen und Absenden kannst du nicht"));
+  pruefe("Sprachmodus-Fuehrung: Navigation, Hervorheben UND Handeln (Aktionswerkzeuge vor Formularen)", SPRACHMODUS_FUEHRUNG.includes("oeffneBereich") && SPRACHMODUS_FUEHRUNG.includes("zeigeAuf") && SPRACHMODUS_FUEHRUNG.includes("fuelleFeld") && SPRACHMODUS_FUEHRUNG.includes("aufgabeAnlegen"));
+  pruefe("Sprachmodus-Oberflaeche: Klicken und Ausfuellen sind da, Freigabe laeuft muendlich", !SPRACHMODUS_OBERFLAECHE.includes("kannst du nicht") && SPRACHMODUS_OBERFLAECHE.includes("klicke") && SPRACHMODUS_OBERFLAECHE.includes("fuelleFeld") && SPRACHMODUS_OBERFLAECHE.includes("mündlichen Freigabe"));
+
+  // (h) Freigabe im Sprachmodus: der Chat meldet die offene Karte an den Bus, der
+  //     Sprachmodus zeigt sie und wertet "Ja"/"Nein" vor jeder neuen Frage aus.
+  {
+    const lies3 = (pfad) => readFileSync(new URL(`../../src/${pfad}`, import.meta.url), "utf8");
+    const bus = lies3("components/ki/sprachmodus-bus.ts");
+    const chat = lies3("components/ki/ki-chat.tsx");
+    const modus = lies3("components/ki/sprachmodus.tsx");
+    pruefe("Freigabe-Bus: derselbe Text zaehlt nicht als neue Anfrage", /if \(text === \(freigabeAnfrage\?\.text \?\? null\)\) \{[\s\S]{0,120}return;/.test(bus));
+    pruefe("Freigabe-Bus: Entscheidung geht an genau die gemeldete Karte", bus.includes("freigabeEntscheider?.(erlaubt)"));
+    pruefe("Freigabe: der Chat meldet Klick- UND Aktionskarte an den Bus", chat.includes("meldeFreigabeAnfrage(`${t(\"klick.titel\")}") && chat.includes("anstehendeAktion") && chat.includes("meldeFreigabeAnfrage(null, null)"));
+    pruefe("Freigabe: der Sprachmodus wertet Ja/Nein VOR einer neuen Frage aus und stellt sie dann nicht", /leseFreigabeAnfrage\(\)\) \{[\s\S]{0,400}entscheideFreigabe\(istZusageBefehl\(ergebnis\.text\)\);[\s\S]{0,120}return;/.test(modus));
+    pruefe("Freigabe: bei offener Karte lehnt 'Stopp' nur die Karte ab, beendet nicht den Sprachmodus", /else if \(istStoppBefehl\(ergebnis\.text\)\)/.test(modus));
+    pruefe("Freigabe: die Karte im Sprachmodus geht ueber allem, auch ohne Untertitel", /const untertitel = freigabeAnfrage \? \(/.test(modus));
+  }
 
   // (d) Kopfzeilenknopf und Layout-Verdrahtung: nur mit Werkzeugen UND eingeschaltetem Live-Diktat.
   {
@@ -2841,6 +2860,13 @@ for (const [name, kaputteAntwort] of [
   pruefe("Stopp-Befehl: eine Bitte davor oder danach zaehlt weiterhin", istStoppBefehl("Bitte stopp") && istStoppBefehl("Stopp, bitte") && istStoppBefehl("please stop"));
   pruefe("Stopp-Befehl: nur die ganze Aeusserung, nicht ein Wort mittendrin", !istStoppBefehl("Was bedeutet Stopp bei einer Kühlkette?") && !istStoppBefehl("Stopp den Bericht bitte") && !istStoppBefehl(""));
   pruefe("Sprachmodus: der Wortbefehl beendet statt eine Frage zu stellen", /istStoppBefehl\(ergebnis\.text\)[\s\S]{0,260}beendenRef\.current\(\)/.test(lies2("components/ki/sprachmodus.tsx")));
+
+  // (g) Zusage/Absage bei einer offenen Freigabe (Rueckmeldung vom 25.09.2026:
+  //     "der Sprachmodus soll die gleichen Rechte haben wie der Chat").
+  pruefe("Zusage: die vier Sprachen", istZusageBefehl("Ja") && istZusageBefehl("ja!") && istZusageBefehl("Bestätigen") && istZusageBefehl("Yes") && istZusageBefehl("Да") && istZusageBefehl("Иә"));
+  pruefe("Absage: die vier Sprachen, auch 'Stopp' waehrend einer Freigabe", istAbsageBefehl("Nein") && istAbsageBefehl("nein!") && istAbsageBefehl("Abbrechen") && istAbsageBefehl("No") && istAbsageBefehl("Нет") && istAbsageBefehl("Жоқ") && istAbsageBefehl("Stopp"));
+  pruefe("Zusage/Absage: nur die ganze Aeusserung, nicht ein Wort mittendrin", !istZusageBefehl("Ja, aber was kostet das?") && !istAbsageBefehl("Nein, warten Sie") && !istZusageBefehl("") && !istAbsageBefehl(""));
+  pruefe("Zusage/Absage: eine Bitte davor oder danach zaehlt weiterhin", istZusageBefehl("Bitte ja") && istAbsageBefehl("Nein, bitte"));
 }
 
 // (e) Der Strom-Sprecher im Durchlauf: nachgebauter WebSocket und AudioContext, echter Code
