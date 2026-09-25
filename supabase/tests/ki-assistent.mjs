@@ -108,6 +108,7 @@ import {
   assistentIstDran,
   besterPlatz,
   erzeugeUnterbrechungsWaechter,
+  istStoppBefehl,
   LANGE_SITZUNG_MS,
   MAX_NEUVERSUCHE,
   nachSitzungsAbbruch,
@@ -2833,6 +2834,13 @@ for (const [name, kaputteAntwort] of [
   pruefe("Strom: Nachrichten fremder Stroeme (auch Fehler) werden ignoriert", strom.includes("if (!aktiv || e.stream !== aktiv.id) return;") && strom.includes("if (!aktiv || e.stream !== aktiv.id) {"));
   pruefe("Strom: stopp() schickt cancel und laesst die Verbindung offen", /stopp\(\) \{[\s\S]*?if \(aktiv\) sende\(abbruchNachricht\(aktiv\.id\)\);[\s\S]*?planeLeerlauf\(\);/.test(strom) && !/stopp\(\) \{[^}]*schliesseVerbindung\(\)/.test(strom));
   pruefe("Strom: ein gescheiterter Verbindungsaufbau bleibt nicht zwischengespeichert", strom.includes("if (ws === socket) {\n          ws = null;\n          wsOeffnet = null;") || /if \(ws === socket\) \{\s*ws = null;\s*wsOeffnet = null;/.test(strom));
+
+  // (f) Wortbefehl "Stopp": sicherer Weg, den Sprachmodus per Aeusserung zu
+  //     beenden, ohne Knopf oder Taste (Rueckmeldung vom 25.09.2026).
+  pruefe("Stopp-Befehl: die vier Sprachen, mit und ohne Ausrufezeichen", istStoppBefehl("Stopp") && istStoppBefehl("stopp!") && istStoppBefehl("Stop") && istStoppBefehl("Halt") && istStoppBefehl("Стоп") && istStoppBefehl("хватит!") && istStoppBefehl("Тоқта"));
+  pruefe("Stopp-Befehl: eine Bitte davor oder danach zaehlt weiterhin", istStoppBefehl("Bitte stopp") && istStoppBefehl("Stopp, bitte") && istStoppBefehl("please stop"));
+  pruefe("Stopp-Befehl: nur die ganze Aeusserung, nicht ein Wort mittendrin", !istStoppBefehl("Was bedeutet Stopp bei einer Kühlkette?") && !istStoppBefehl("Stopp den Bericht bitte") && !istStoppBefehl(""));
+  pruefe("Sprachmodus: der Wortbefehl beendet statt eine Frage zu stellen", /istStoppBefehl\(ergebnis\.text\)[\s\S]{0,260}beendenRef\.current\(\)/.test(lies2("components/ki/sprachmodus.tsx")));
 }
 
 // (e) Der Strom-Sprecher im Durchlauf: nachgebauter WebSocket und AudioContext, echter Code

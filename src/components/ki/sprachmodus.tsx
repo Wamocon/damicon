@@ -20,6 +20,7 @@ import {
   antwortFertig,
   assistentIstDran,
   erzeugeUnterbrechungsWaechter,
+  istStoppBefehl,
   nachSitzungsAbbruch,
   naechstePhase,
   NEUVERSUCH_MS,
@@ -217,6 +218,9 @@ function SprachmodusInhalt() {
 
   // --- Eine Aeusserung: eine Live-Sitzung ------------------------------------------------
   const beginneRef = useRef<() => void>(() => {});
+  // beenden() ist erst weiter unten definiert, gebraucht wird sie schon hier
+  // (Wortbefehl "Stopp") - derselbe Ref-Umweg wie bei beginneRef oben.
+  const beendenRef = useRef<() => void>(() => {});
 
   const sitzungAbgebrochen = useCallback(
     (grund: string, gehoert: boolean) => {
@@ -301,6 +305,12 @@ function SprachmodusInhalt() {
       .then((): Promise<LiveErgebnis> | LiveErgebnis => (sitzung ? sitzung.beende() : { ok: false, grund: "keine-sitzung" }))
       .then((ergebnis) => {
         setZwischentext("");
+        if (ergebnis.ok && ergebnis.text && istStoppBefehl(ergebnis.text)) {
+          // Sicherer Weg zu beenden, ohne Knopf oder Taste (Rueckmeldung vom
+          // 25.09.2026: "ich muss ihn stoppen koennen mit Stopp").
+          beendenRef.current();
+          return;
+        }
         if (ergebnis.ok && ergebnis.text) {
           fehlversuche.current = 0;
           stelleSprachFrage(ergebnis.text, ergebnis.sprachen);
@@ -424,6 +434,9 @@ function SprachmodusInhalt() {
     verwirfAufnahme();
     beendeSprachmodus();
   }, [beendeSprachmodus, verwirfAufnahme]);
+  useEffect(() => {
+    beendenRef.current = beenden;
+  }, [beenden]);
 
   const pausieren = useCallback(() => {
     if (phaseRef.current === "fehler") {
@@ -488,7 +501,14 @@ function SprachmodusInhalt() {
       aria-label={t("titel")}
       className={cn("ki-sprachmodus", verschoben && "ki-sprachmodus--verschoben")}
     >
-      <div className="ki-sprachmodus__hintergrund" />
+      {/* Nur EINE der beiden Abdunkelungen zur Zeit: solange ein Bereich
+          hervorgehoben ist, dunkelt SprachSpotlight schon ab - mit einem Loch
+          fuer das Ziel. Die volle Flaeche hier kennt dieses Loch nicht und
+          lag bislang IMMER zusaetzlich darueber, auch ueber dem Loch -
+          dadurch blieb die hervorgehobene Stelle nie wirklich klar sichtbar,
+          sondern nur etwas weniger dunkel als die Umgebung (Rueckmeldung vom
+          25.09.2026: "die Mitte muss klar sichtbar sein"). */}
+      {!verschoben ? <div className="ki-sprachmodus__hintergrund" /> : null}
       <SprachSpotlight rechteck={zielRechteck} />
 
       {/* Statusansage fuer Screenreader - ohne den Fokus zu verschieben, ein zweiter Kanal

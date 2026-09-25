@@ -120,6 +120,35 @@ export function antwortFertig(stand: { beschaeftigt: boolean; spricht: boolean; 
  *  ohne diese Gnadenfrist hoerte die Kugel mitten in diese Luecke hinein zu. */
 export const RUHE_VOR_ZUHOEREN_MS = 700;
 
+// --- 1b. Wortbefehl "Stopp" ----------------------------------------------------
+//
+// Sicherer Weg, das Gespraech zu beenden, als reine Aeusserung erkannt - kein
+// Knopf, keine Taste noetig (Rueckmeldung vom 25.09.2026: "ich muss ihn
+// stoppen koennen mit Stopp"). Nur die ganze Aeusserung zaehlt, nicht ein Wort
+// mittendrin ("Was bedeutet Stopp bei einer Kuehlkette?" bleibt eine Frage).
+
+const STOPP_WOERTER = new Set([
+  // Deutsch
+  "stopp", "stop", "halt", "hör auf", "hoer auf",
+  // Russisch
+  "стоп", "стой", "хватит", "остановись", "прекрати",
+  // Kasachisch
+  "тоқта", "тоқтат", "тоқтаңыз",
+]);
+const HOEFLICHKEIT = /^(bitte|please|пожалуйста|өтінемін)[\s,]+|[\s,]+(bitte|please|пожалуйста|өтінемін)$/gi;
+
+/** Ist diese fertig erkannte Aeusserung nur der Befehl, den Sprachmodus zu
+ *  beenden - mit oder ohne Bitte, mit oder ohne Ausrufezeichen? */
+export function istStoppBefehl(text: string): boolean {
+  const bereinigt = text
+    .trim()
+    .toLowerCase()
+    .replace(HOEFLICHKEIT, "")
+    .replace(/[.!?…]+$/, "")
+    .trim();
+  return STOPP_WOERTER.has(bereinigt);
+}
+
 // --- 2. Wohin die Kugel rueckt -------------------------------------------------
 //
 // Ist ein Bereich hervorgehoben, darf ihn die Kugel nicht verdecken. Sie rueckt
