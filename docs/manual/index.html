@@ -680,11 +680,15 @@ mark.treffer-aktiv {
         </div>
         <div class="karte-klein">
           <div class="karte-klein-titel">Kopfzeile</div>
-          <p>Trägt den Navigationspfad der geöffneten Seite, den Umschalter für die Breite der Seitenleiste, die Sprachauswahl, das Farbschema und — für die Administration — das Feld „Ansicht als“.</p>
+          <p>Trägt den Navigationspfad der geöffneten Seite, den Umschalter für die Breite der Seitenleiste, die Suche, die Sprachauswahl, das Farbschema und — für die Administration — das Feld „Ansicht als“. Ganz rechts steht die Glocke: Ein Klick öffnet die Benachrichtigungen am rechten Bildschirmrand, auf dem Telefon als Blatt von unten, und solange keine vorliegen, steht das dort. Alarme und Fristen stehen weiterhin in den Modulen selbst. B2B-Kunden und Pflücker sehen die Glocke nicht. Auf dem Telefon bleiben der Weg zurück, die Suche und die Meldungen.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Suche</div>
+          <p>Öffnet sich mit einem Klick auf die Lupe in der Kopfzeile links neben der Glocke, am Schreibtisch auch mit den Tasten / oder Strg+K (Mac: ⌘K). Das Suchfenster geht oben in der Mitte des Bildschirms auf. Die Suche findet die Übersicht, die Bereiche, die Module und die Seiten Sicherheit, Compliance-Bericht und Handbuch, und zwar nur, was die Rolle auch in der Navigation sieht. Gesucht wird nach Namen in der eingestellten Sprache, Umlaute dürfen fehlen: „Kuhlkette“ findet „Kühlkette“. Darunter stehen unter „Erwähnt in“ die Module, in deren Beschreibung der Begriff vorkommt, mit der Stelle im Text. Pfeiltasten wählen einen Treffer, die Eingabetaste öffnet ihn, Esc schließt die Suche. Bei leerem Feld stehen die zuletzt selbst geöffneten Seiten. Findet die Suche nichts, bietet sie an, die KI mit dem Begriff zu fragen. Reihenblöcke, Chargen, Pflücker und Dokumente findet sie noch nicht.</p>
         </div>
         <div class="karte-klein">
           <div class="karte-klein-titel">Untere Leiste (Telefon)</div>
-          <p>Unter Tabletbreite ersetzt sie die Seitenleiste. Sie zeigt nur die oberste Ebene, also Übersicht und die vier Bereiche; die Module stehen als Kacheln auf der Bereichsseite. Ein Baum mit 26 Einträgen ist die Form für eine stehende Spalte, nicht für eine Fläche, die man mit dem Daumen aufzieht. Über den Kontoknopf öffnet sich ein Blatt mit Sprache, Farbschema, Handbuch, Sicherheit und Abmelden.</p>
+          <p>Unter Tabletbreite ersetzt sie die Seitenleiste. Das Menü führt in zwei Ebenen: zuerst Übersicht und die vier Bereiche, nach einem Tipp auf einen Bereich dessen Module, mit dem Bereich selbst als erstem Eintrag. Der Pfeil links oben führt zurück zur Bereichsliste. Ein Baum mit allen 27 Einträgen auf einmal ist die Form für eine stehende Spalte, nicht für eine Fläche, die man mit dem Daumen aufzieht; eine Ebene nach der anderen schon. Die Leiste bleibt dabei bedienbar, ein Tipp auf den Kontoknopf führt also direkt weiter zu Sprache, Farbschema, Handbuch, Sicherheit und Abmelden.</p>
         </div>
         <div class="karte-klein">
           <div class="karte-klein-titel">Übersicht</div>
@@ -697,6 +701,10 @@ mark.treffer-aktiv {
         <div class="karte-klein">
           <div class="karte-klein-titel">Modulseite</div>
           <p>Zeigt die Ansicht des Moduls: Tabellen, Formulare, Kennzahlen. Oben rechts steht, ob die Daten aus der Datenbank kommen oder Beispieldaten sind. Module, die noch nicht gebaut sind, nennen in einem Satz, was sie können werden.</p>
+        </div>
+        <div class="karte-klein">
+          <div class="karte-klein-titel">Liste mit Detailansicht</div>
+          <p>Module mit vielen Einträgen zeigen eine Liste mit Filtern und Blättern, zuerst die Pflückaufgaben. Ein Klick auf einen Eintrag öffnet rechts die Detailansicht mit Reitern, die Liste bleibt daneben bedienbar. Die Liste wird dabei schmaler, und die Detailansicht bekommt den Platz, damit ihr Inhalt möglichst ohne Scrollen passt. Ist zu wenig Platz, etwa auf dem Telefon oder neben dem geöffneten KI-Chat, tritt die Detailansicht an die Stelle der Liste. Filter, Seite und gewählter Eintrag stehen in der Adresse: Ein Link zeigt genau diese Ansicht, und Zurück schließt die Detailansicht wieder. Neue Einträge legt man über den Knopf direkt über der Liste an.</p>
         </div>
       </div>
 
@@ -1055,19 +1063,19 @@ mark.treffer-aktiv {
 
       <h3 id="anleitung-pflueckaufgabe">4.2 Pflückaufgabe mit Fotobeleg</h3>
       <ol>
-          <li>Feld → Pflückaufgaben mit Fotobeleg öffnen.</li>
-          <li>Unten eine neue Pflückaufgabe anlegen. Gesperrte Blöcke stehen nicht zur Auswahl und werden von der Datenbank zusätzlich abgewiesen.</li>
-          <li>Links eine Aufgabe je Brigade und Reihenblock wählen. Der Fortschritt ist Istmenge gegen Zielmenge.</li>
-          <li>Als Brigade die Aufgabe annehmen, das Pflücken starten und rechts einen Fotobeleg hochladen. Auf dem Telefon öffnet sich dafür direkt die Kamera. Die Datei liegt in einem privaten Ablagebereich und wird nur über kurzlebige, signierte Links angezeigt.</li>
-          <li>„Menge melden“ setzt die Aufgabe auf Belegprüfung.</li>
-          <li>Betriebsleitung oder Administration prüfen den Beleg, tragen den Qualitätsfaktor ein und geben die Aufgabe frei.</li>
+          <li>Feld → Pflückaufgaben mit Fotobeleg öffnen. Die Liste zeigt alle Aufgaben, späteste Fälligkeit zuerst, 20 je Seite. Die Pillen über der Liste filtern nach Status und nennen die Treffer. Suche, Brigade und Zeitraum stehen daneben, auf dem Telefon hinter „Filter“.</li>
+          <li>„Neue Pflückaufgabe“ über der Liste aufklappen und Reihenblock, Brigade, Fälligkeit mit Datum und Uhrzeit (Betriebszeit Almaty) und Zielmenge eintragen. Gesperrte Blöcke stehen nicht zur Auswahl und werden von der Datenbank zusätzlich abgewiesen. Nach dem Anlegen öffnet die neue Aufgabe in der Detailansicht.</li>
+          <li>Ein Klick auf eine Aufgabe öffnet rechts die Detailansicht, auf dem Telefon ersetzt sie die Liste. Im Reiter Übersicht steht unter „Nächster Schritt“, was als Nächstes zu tun ist. Die Pfeile oben führen zur vorigen und nächsten Aufgabe, Esc oder Zurück schließen die Ansicht.</li>
+          <li>Als Brigade die Aufgabe annehmen, das Pflücken starten und im Reiter Fotobelege einen Beleg hochladen. Auf dem Telefon öffnet sich dafür direkt die Kamera. Die Datei liegt in einem privaten Ablagebereich und wird nur über kurzlebige, signierte Links angezeigt.</li>
+          <li>„Menge melden“ setzt die Aufgabe auf Belegprüfung. Ab dann zählt ihre Fälligkeit nicht mehr: überfällig sind nur Aufgaben, an denen die Brigade noch pflückt.</li>
+          <li>Betriebsleitung oder Administration sehen dann in der Übersicht Vorschaubilder der Belege, tragen den Qualitätsfaktor ein und geben die Aufgabe frei.</li>
       </ol>
 
       <h3 id="anleitung-nachweiskette">4.3 Die Nachweiskette einer Lieferung zeigen</h3>
       <p>Das ist der Ablauf, auf den es beim Kunden ankommt: von der Schale zurück bis zur Person, die sie gefüllt hat.</p>
       <ol>
-          <li>Feld → Pflückaufgaben mit Fotobeleg öffnen und links eine Aufgabe wählen.</li>
-          <li>Rechts unter „Nachweiskette“ steht die Charge: Kühlkurve mit der 60-Minuten-Grenze, Menge und Ausschuss, die Steigen mit der Person, die sie gefüllt hat, und der Rückstandsnachweis.</li>
+          <li>Feld → Pflückaufgaben mit Fotobeleg öffnen und eine Aufgabe wählen.</li>
+          <li>Im Reiter „Nachweiskette“ der Detailansicht steht die Charge: Kühlkurve mit der 60-Minuten-Grenze, Menge und Ausschuss, die Steigen mit der Person, die sie gefüllt hat, und der Rückstandsnachweis.</li>
           <li>„Steige erfassen“ ordnet eine Steige einer Person zu. Erst damit reicht die Kette vom Kunden bis zum Pflücker.</li>
           <li>„Arbeitszeit melden“ liefert den Nenner der Pflückleistung in Kilogramm je Stunde.</li>
           <li>„Kühlmessung erfassen“: Minuten und Urteil rechnet die Datenbank aus dem Pflückzeitpunkt. Über 60 Minuten meldet die Oberfläche einen Verstoß, und die Ware ist abzuwerten.</li>

@@ -1,8 +1,16 @@
 "use client";
 
-import { useEffect, useId, useRef, type ReactNode } from "react";
+import {
+  useEffect,
+  useEffectEvent,
+  useId,
+  useRef,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import { useTranslations } from "next-intl";
-import { X } from "lucide-react";
+import { ChevronLeft, X } from "lucide-react";
+import { useScrollSperre } from "@/components/ui/scroll-sperre";
 import { cn } from "@/lib/utils";
 
 // Flaeche, die von unten aufgeht. Gebaut fuer die untere Leiste auf dem Handy
@@ -17,6 +25,33 @@ import { cn } from "@/lib/utils";
 // werden, was bei jedem Rendern erneut zu pruefen waere. Die drei Dinge, die
 // hier wirklich gebraucht werden - Esc, Klick daneben, Rollen im Baum - sind
 // unten ausgeschrieben.
+//
+// Bei "unten" endet die Flaeche oberhalb der unteren Leiste statt an der
+// Bildschirmkante: die Leiste bleibt sichtbar und bedienbar, solange ein Blatt
+// offen ist. Daran haengen drei Dinge, die sonst nicht zusammenpassen wuerden -
+// die Blende liegt dort unter der Leiste, die Leiste gehoert in die Fokusfalle
+// (zusatzFokus), und aria-modal faellt weg, weil hinter dem Blatt eben doch
+// etwas Bedienbares steht.
+//
+// "oben" ist das Gegenstueck fuer Ausloeser am oberen Rand - die globale Suche,
+// deren Knopf in der Kopfzeile sitzt. Das Blatt steht oben in der Mitte des
+// Bildschirms und waechst nach unten, das Eingabefeld im Kopf bleibt dabei
+// stehen, und die Bildschirmtastatur des Handys deckt allenfalls das untere
+// Ende der Liste ab statt des Feldes.
+//
+// "rechts" ist die Schublade am Schreibtisch, volle Hoehe am rechten Rand -
+// dieselbe Seite, von der das KI-Panel kommt. Gebaut fuer die Benachrichtigungen
+// (dashboard/glocke.tsx), deren Liste mehr Platz braucht als ein Popover an der
+// Glocke bietet.
+//
+// modal: ein Blatt "unten", das nicht aus der unteren Leiste kommt, sondern aus
+// der Kopfzeile (die Glocke auf dem Handy). Die Leiste liegt dann unter der
+// Blende und ist nicht bedienbar - die Zusage aria-modal stimmt also wieder.
+
+// Was die Tabulatortaste ansteuern kann. Als Modulkonstante, seit die
+// Fokusfalle das Dokument abfragt statt nur die eigene Flaeche.
+const FOKUSSIERBAR =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export function Sheet({
   offen,
@@ -24,60 +59,118 @@ export function Sheet({
   titel,
   children,
   position = "unten",
+  onZurueck,
+  zusatzFokus,
+  anfangsFokus,
+  kopf,
+  schliessenLabel,
+  modal,
 }: {
   offen: boolean;
   onSchliessen: () => void;
   titel: string;
   children: ReactNode;
   /** "unten": faehrt von der Kante hoch (Handy-Menues, Standard). "mitte": mittiges Fenster,
-   *  fuer Detailinhalte, die nicht von einer Seitenkante zu kommen scheinen sollen. */
-  position?: "unten" | "mitte";
+   *  fuer Detailinhalte, die nicht von einer Seitenkante zu kommen scheinen sollen. "oben":
+   *  oben in der Mitte, fuer Ausloeser in der Kopfzeile. "rechts": Schublade in voller Hoehe
+   *  am rechten Rand, fuer den Schreibtisch. */
+  position?: "unten" | "mitte" | "oben" | "rechts";
+  /** Erzwingt aria-modal auch bei "unten" - wenn die untere Leiste waehrend des Blatts
+   *  nicht bedienbar ist, weil es nicht aus ihr kommt. Die anderen Positionen sind es immer. */
+  modal?: boolean;
+  /** Gesetzt: der Kopf traegt links einen Weg zurueck. Fehlt: nur den Titel. */
+  onZurueck?: () => void;
+  /** Ein zweiter Baum, der mit in die Fokusfalle gehoert - die untere Leiste,
+   *  die bei offenem Blatt bedienbar bleibt. */
+  zusatzFokus?: RefObject<HTMLElement | null>;
+  /** Bekommt beim Oeffnen den Fokus statt der Flaeche - etwa ein Suchfeld. */
+  anfangsFokus?: RefObject<HTMLElement | null>;
+  /** Ersetzt den sichtbaren Titel im Kopf, etwa durch ein Eingabefeld. Der Titel
+   *  bleibt fuer Vorlesehilfen stehen, er benennt den Dialog. */
+  kopf?: ReactNode;
+  /** Name fuer Kreuz und Blende. Fehlt er, heissen beide "Menue schliessen". */
+  schliessenLabel?: string;
 }) {
   const nav = useTranslations("nav");
   const titelId = useId();
   const flaecheRef = useRef<HTMLDivElement>(null);
+  const inhaltRef = useRef<HTMLDivElement>(null);
+  const schliessenText = schliessenLabel ?? nav("closeMenu");
 
-  // Esc schliesst, und solange das Sheet offen ist, scrollt die Seite
-  // darunter nicht mit.
+  // Solange das Sheet offen ist, scrollt die Seite darunter nicht mit.
+  useScrollSperre(offen);
+
+  // Esc schliesst. onSchliessen im Ereignis gelesen: die Aufrufer reichen
+  // meist eine neue Funktion je Rendern herein, und der Listener soll nicht
+  // bei jedem Tastendruck im Suchfeld neu gesetzt werden.
+  const schliesse = useEffectEvent(() => onSchliessen());
   useEffect(() => {
     if (!offen) return;
     const beiTaste = (event: KeyboardEvent) => {
-      if (event.key === "Escape") onSchliessen();
+      if (event.key === "Escape") schliesse();
     };
     document.addEventListener("keydown", beiTaste);
-    const vorher = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", beiTaste);
-      document.body.style.overflow = vorher;
-    };
-  }, [offen, onSchliessen]);
+    return () => document.removeEventListener("keydown", beiTaste);
+  }, [offen]);
 
   // Der Fokus springt in die Flaeche, sobald sie aufgeht - sonst bliebe er
   // auf dem Knopf in der Leiste, und die erste Tabulatortaste liefe durch die
   // Seite dahinter statt durch das Menue davor.
+  //
+  // Und erneut, wenn der Titel wechselt: im Menue-Blatt heisst der Dialog nach
+  // einem Wechsel der Ebene anders ("Menue" -> "Feld"), und ohne den Sprung
+  // meldet das keine Vorlesehilfe. Der Inhalt faengt dabei wieder oben an,
+  // sonst stuende die kurze Bereichsliste nach dem Zurueck aus einer langen
+  // Modulliste mitten im Scrollweg. Fuer die mittigen Blaetter aendert das
+  // nichts - dort wechselt der Titel nur zusammen mit offen.
+  //
+  // Mit anfangsFokus geht der Fokus stattdessen dorthin. Ein autoFocus im
+  // Inhalt reichte nicht: der Effekt hier laeuft nach denen der Kinder und
+  // zoege den Fokus wieder auf die Flaeche.
   useEffect(() => {
-    if (offen) flaecheRef.current?.focus();
-  }, [offen]);
+    if (!offen) return;
+    (anfangsFokus?.current ?? flaecheRef.current)?.focus();
+    inhaltRef.current?.scrollTo({ top: 0 });
+  }, [offen, titel, anfangsFokus]);
 
-  // Der Fokus bleibt in der Flaeche, solange sie offen ist. Ohne das laeuft
-  // die Tabulatortaste aus dem Blatt heraus in die Seite darunter, und dort
-  // ist nichts zu sehen - waehrend aria-modal="true" zusagt, dass es hinter
-  // dem Blatt gar nichts gibt. Eine Zusage, die nicht stimmt, ist fuer einen
-  // Screenreader schlimmer als gar keine.
+  // Der Fokus bleibt in der Flaeche, solange sie offen ist - und bei "unten"
+  // zusammen mit der unteren Leiste, die daneben bedienbar bleibt. Ohne das
+  // liefe die Tabulatortaste aus dem Blatt heraus in die abgedunkelte Seite
+  // darunter, oder die Leiste waere zwar mit dem Finger, aber nicht mit der
+  // Tastatur erreichbar - also eine Bedienung, die nur ein Zeigegeraet kennt.
+  //
+  // Die Ringreihenfolge kommt von querySelectorAll auf dem Dokument: das
+  // liefert Dokumentreihenfolge, und damit stehen Leiste und Blatt richtig
+  // hintereinander, obwohl sie in zwei getrennten Baeumen haengen. Der Filter
+  // laesst nur durch, was in einem der beiden liegt - die Blende bleibt aussen
+  // vor, wie bisher.
   //
   // Bewusst kein `inert` am Geschwisterelement: die Flaeche liegt als
-  // fixiertes Element ueber der ganzen Seite, ein gemeinsamer Vorfahr, den man
-  // inert setzen koennte, ist das <body> selbst - und der traegt auch das
-  // Blatt. Die Fokusfalle hier leistet dasselbe mit weniger Eingriff.
+  // fixiertes Element ueber der ganzen Seite, ein gemeinsamer Vorfahr waere das
+  // <body> selbst - und der traegt auch das Blatt. Was hinter dem Blatt liegt,
+  // legt stattdessen das Dashboard-Layout stumm (dashboard/blatt-kontext.tsx).
   useEffect(() => {
     if (!offen) return;
     const beiTab = (event: KeyboardEvent) => {
       if (event.key !== "Tab") return;
       const flaeche = flaecheRef.current;
       if (!flaeche) return;
-      const ziele = flaeche.querySelectorAll<HTMLElement>(
-        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      const zusatz = zusatzFokus?.current ?? null;
+      const ziele = Array.from(
+        document.querySelectorAll<HTMLElement>(FOKUSSIERBAR),
+      ).filter(
+        (element) =>
+          (flaeche.contains(element) || (zusatz?.contains(element) ?? false)) &&
+          // Faengt den Fall ab, dass das Fenster bei offenem Blatt ueber md
+          // waechst: die Leiste traegt md:hidden, ihre Knoepfe waeren sonst
+          // weiterhin mit der Tabulatortaste erreichbar.
+          element.offsetParent !== null &&
+          // Was inert ist, ueberspringt der Browser von selbst. Stuende es
+          // trotzdem in dieser Liste, laege die Ringgrenze auf einem Element,
+          // das nie den Fokus bekommt - und der Sprung zurueck an den Anfang
+          // bliebe aus. Betrifft die abgewandte Ebene im Menue-Blatt, die
+          // waehrend der Bewegung noch gefuellt ist.
+          element.closest("[inert]") === null,
       );
       if (ziele.length === 0) {
         event.preventDefault();
@@ -99,61 +192,131 @@ export function Sheet({
     };
     document.addEventListener("keydown", beiTab);
     return () => document.removeEventListener("keydown", beiTab);
-  }, [offen]);
+  }, [offen, zusatzFokus]);
 
   if (!offen) return null;
 
   const mitte = position === "mitte";
+  const oben = position === "oben";
+  const rechts = position === "rechts";
 
   return (
     <div
       className={cn(
         "fixed inset-0 z-[100] flex print:hidden",
-        mitte ? "items-center justify-center p-4" : "flex-col justify-end",
+        mitte && "items-center justify-center p-4",
+        // Auf dem Handy fast randlos, damit die Liste Platz hat. Ab md schmal,
+        // mittig im Fenster und etwas unterhalb der Kopfzeile - egal, wo der
+        // Ausloeser sitzt. 10svh sind bei 1000 px Fensterhoehe 100 px, knapp
+        // unter der 64 px hohen Kopfzeile.
+        oben &&
+          "flex-col items-stretch p-2 pt-[max(0.5rem,env(safe-area-inset-top))] md:items-center md:px-4 md:pt-[10svh]",
+        rechts && "justify-end",
+        // Die Unterkante steigt um den Platz der unteren Leiste. Die Blende
+        // darunter bleibt inset-0 und deckt den Streifen weiter ab - sie
+        // liegt dort nur unter der Leiste statt darueber.
+        !mitte && !oben && !rechts && "flex-col justify-end pb-[var(--untere-leiste-raum)]",
       )}
     >
+      {/* tabIndex -1: die Blende liegt in der Dokumentreihenfolge zwischen
+          Leiste und Blatt, und tabbierbar waere sie genau die Luecke, durch die
+          der Fokus aus dem Ring faellt. Mit dem Finger schliesst sie weiterhin,
+          mit der Tastatur tun es Esc und das Kreuz. */}
       <button
         type="button"
-        aria-label={nav("closeMenu")}
+        tabIndex={-1}
+        aria-label={schliessenText}
         onClick={onSchliessen}
         className="absolute inset-0 bg-black/40 backdrop-blur-[1px]"
       />
       <div
         ref={flaecheRef}
         role="dialog"
-        aria-modal="true"
+        // Nur bei den Blaettern in der Mitte und oben stimmt die Zusage, dass
+        // es hinter dem Blatt nichts gibt. Unten bleibt die Leiste bedienbar,
+        // und eine Zusage, die nicht stimmt, ist fuer eine Vorlesehilfe
+        // schlimmer als gar keine - ausser das Blatt kommt nicht aus der
+        // Leiste (modal), dann liegt sie unter der Blende. Weglassen statt
+        // false: das ist eindeutiger.
+        aria-modal={mitte || oben || rechts || modal ? true : undefined}
         aria-labelledby={titelId}
         tabIndex={-1}
         className={cn(
-          "relative flex min-h-0 flex-col border-border bg-schwebend shadow-2xl outline-none",
+          // overflow-hidden, damit der Inhalt die untere Rundung nicht
+          // ueberlaeuft - der Scrollbereich darin schneidet rechteckig.
+          "relative flex min-h-0 flex-col overflow-hidden border-border bg-schwebend shadow-2xl outline-none",
           mitte
-            ? "w-full max-w-3xl rounded-2xl border motion-safe:animate-[sheet-auf-mitte_180ms_ease-out]"
+            ? "w-full max-w-3xl max-h-[85svh] rounded-2xl border motion-safe:animate-[sheet-auf-mitte_180ms_ease-out]"
+            : oben
+            ? // Waechst mit dem Inhalt, hoechstens bis zum Rand. Auf Android
+              // schrumpft der Rand mit, sobald die Tastatur aufgeht
+              // (interactiveWidget "resizes-content" im Layout). Ab md
+              // hoechstens 36rem, auf niedrigen Fenstern 80svh: die Suche
+              // bleibt ein kompaktes Fenster, laengere Listen scrollen darin.
+              "w-full max-h-full rounded-2xl border motion-safe:animate-[sheet-auf-oben_180ms_ease-out] md:max-w-2xl md:max-h-[min(36rem,80svh)]"
+            : rechts
+            ? // Buendig am Rand und ohne Rundung wie das KI-Panel, das von
+              // derselben Seite kommt. 28rem: breit genug, dass ein Eintrag
+              // mit Symbol, Titel und zwei Zeilen Text nicht bei jedem zweiten
+              // Wort umbricht, wie es 320 px taten.
+              "h-full w-full max-w-md border-l pt-[env(safe-area-inset-top)] motion-safe:animate-[sheet-auf-rechts_220ms_ease-out]"
             : cn(
-                // Bis unter den Home-Indicator, damit die Flaeche am Rand nicht
-                // abrupt endet; den Abstand traegt der Inhalt weiter unten.
-                "w-full rounded-t-2xl border-t motion-safe:animate-[sheet-auf_200ms_ease-out]",
+                // Rundum gerundet und gerahmt: die Flaeche klebt nicht mehr an
+                // der Bildschirmkante, sondern schwebt ueber der Leiste, und
+                // eine scharfe Unterkante saehe dort abgeschnitten aus.
+                "w-full rounded-2xl border motion-safe:animate-[sheet-auf_200ms_ease-out]",
+                // Der Leistenplatz geht vom Budget ab statt oben drauf: sonst
+                // laege die Oberkante auf einem 844 px hohen Telefon
+                // rechnerisch ueber dem Bildschirmrand. So bleibt sie bei
+                // 15 svh, also da, wo sie vorher schon stand. Ab md ist die
+                // Variable 0px und die Formel faellt auf 85svh zurueck.
+                "max-h-[calc(85svh-var(--untere-leiste-raum))]",
               ),
-          "max-h-[85svh]",
         )}
       >
-        <div className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border px-4">
+        <div className="flex h-14 shrink-0 items-center gap-1 border-b border-border px-4">
+          {/* Pfeil und Titel sind zwei Elemente und nicht ein Knopf "< Feld":
+              der Knopf fuehrt zur Ebene darueber und nicht nach Feld, und ein
+              sichtbarer Text, der etwas anderes sagt als der Vorlese-Name,
+              verstiesse gegen WCAG 2.5.3. Beieinander stehen sie trotzdem. */}
+          {onZurueck ? (
+            <button
+              type="button"
+              onClick={onZurueck}
+              aria-label={nav("back")}
+              title={nav("back")}
+              className="-ml-2 inline-flex h-11 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+          ) : null}
           <h2
             id={titelId}
-            className="min-w-0 truncate text-sm font-black text-card-foreground"
+            className={
+              kopf
+                ? "sr-only"
+                : "min-w-0 flex-1 truncate text-sm font-black text-card-foreground"
+            }
           >
             {titel}
           </h2>
+          {kopf}
           <button
             type="button"
             onClick={onSchliessen}
-            aria-label={nav("closeMenu")}
+            aria-label={schliessenText}
             className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
+        {/* Kein eigener Systemabstand mehr am Fuss: --untere-leiste-raum traegt
+            ihn bereits, und das Blatt endet oberhalb davon. */}
+        <div
+          ref={inhaltRef}
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        >
           {children}
         </div>
       </div>

@@ -34,7 +34,8 @@
     "kpis": "KPIs",
     "compliance": "Compliance",
     "account": "Account",
-    "menu": "Menu"
+    "menu": "Menu",
+    "back": "Back"
   },
   "hero": {
     "badge": "Farm management for the raspberry plantation · near Almaty",
@@ -318,8 +319,23 @@
     "erfolg": "Second factor set up and active.",
     "note": "At the next sign-in the code will be requested in addition to the password. Without a configured factor, sign-in stays as before - multi-factor authentication is mandatory, enforcing it per role is a later expansion step."
   },
+  "suche": {
+    "titel": "Search",
+    "platzhalter": "Search pages and modules …",
+    "eingabe": "Search pages and modules",
+    "oeffnen": "Open search",
+    "schliessen": "Close search",
+    "bedienung": "Arrow keys choose a result, Enter opens it, Esc closes the search.",
+    "ergebnisse": "Results",
+    "gruppeTreffer": "Pages and modules",
+    "gruppeZuletzt": "Recently opened",
+    "gruppeErwaehnt": "Mentioned in",
+    "leer": "Type the name of a zone, module or page.",
+    "keineTreffer": "No page or module matches “{begriff}”.",
+    "anzahl": "{anzahl, plural, one {# result} other {# results}}",
+    "kiFragen": "Ask AI: {begriff}"
+  },
   "dashboard": {
-    "searchPlaceholder": "Search row block, batch, picker, document ...",
     "notifications": "Notifications",
     "open": "Open",
     "zoneEmpty": "No module in this zone is enabled for the active role.",
@@ -385,6 +401,8 @@
     "zoneKennzahlLead": "This area's key figures, the most urgent one first.",
     "zoneKennzahlMehr": "{count, plural, one {Show # more key figure} other {Show # more key figures}}",
     "zoneKennzahlWeniger": "Hide additional key figures",
+    "zoneModuleTitel": "Modules",
+    "zoneOhneKennzahl": "No indicator is released for this zone.",
     "bereiche": {
       "titel": "The four areas",
       "lead": "Each area with its metrics, anything off target first.",
@@ -785,17 +803,13 @@
     "note": "A block with a running pre-harvest interval does not appear in the picking schedule at all. That way nobody can create a task on it by mistake."
   },
   "pflueckaufgabenDemo": {
-    "listTitle": "Picking tasks today",
-    "listLead": "Per brigade and row block. Progress is actual volume against target volume.",
+    "listTitle": "Picking tasks",
+    "listLead": "Per brigade and row block, latest due date first. Progress is actual volume against target volume.",
     "block": "Block",
     "qFactor": "Q factor",
-    "proofTitle": "Photo evidence",
-    "proofLead": "Sample photos of the retail punnet, the row block and the crate, right on the task.",
     "noProof": "No evidence for this task yet.",
     "reviewTitle": "Evidence review pending",
-    "reviewLead": "The task is waiting for release. Check the volume and the punnet evidence, then release or request rework.",
     "approve": "Release",
-    "rework": "Rework",
     "art": {
       "schale": "Retail punnet",
       "reihenblock": "Row block",
@@ -914,6 +928,7 @@
       "bezug": "The selected reference is no longer there. Please reload the list and choose again.",
       "nichtGefunden": "The record was not found or can no longer be edited.",
       "regel": "Not possible: the pre-harvest interval has not elapsed yet.",
+      "reihenblockGesperrt": "Not possible: the row block is still under a pre-harvest lock and must also be released under Row blocks.",
       "unbekannt": "The action failed. Please try again. If it keeps failing, report it to your administrator with the time it happened.",
       "keineCharge": "This task has no batch.",
       "kuehlkette": "Limit broken: {wert} minutes until measurement. The goods have to be downgraded.",
@@ -1064,8 +1079,6 @@
       "knopf": "Upload photo evidence"
     },
     "ablauf": {
-      "titel": "Task flow",
-      "lead": "Accept, pick, report the quantity, have the proof reviewed.",
       "annehmen": "Accept task",
       "starten": "Start picking"
     },
@@ -1086,7 +1099,62 @@
       "datei": "Photo",
       "hinweis": "Note",
       "hinweisBeispiel": "Retail punnet 125 g, closed fruit surface",
-      "ausschuss": "Rejects in kg"
+      "ausschuss": "Rejects in kg",
+      "faelligkeit": "Due",
+      "faelligkeitHinweis": "Date and time in farm time (Almaty)"
+    },
+    "filter": {
+      "status": "Status",
+      "alle": "All",
+      "zuErledigen": "To do",
+      "ueberfaellig": "Overdue",
+      "belegpruefung": "Evidence review",
+      "abgeschlossen": "Completed",
+      "suche": "Search",
+      "suchePlatzhalter": "Code, row block or variety",
+      "brigade": "Brigade",
+      "brigadeAlle": "All brigades",
+      "brigadeMeine": "Own brigade and unassigned",
+      "brigadeOhne": "Unassigned",
+      "zeitraum": "Due in period"
+    },
+    "liste": {
+      "treffer": "{anzahl, plural, =0 {No picking tasks} one {# picking task} other {# picking tasks}}",
+      "leerTitel": "No picking tasks yet",
+      "leerText": "Picking tasks appear here once they have been created.",
+      "leerGefiltertTitel": "No matches",
+      "leerGefiltert": "There are no picking tasks for this selection.",
+      "filterZuruecksetzen": "Reset filters"
+    },
+    "panel": {
+      "titel": "Picking task {code}",
+      "nichtGefundenTitel": "Picking task not found",
+      "ladefehlerTitel": "Picking task not loaded",
+      "reiterLabel": "Sections of the detail view",
+      "uebersicht": "Overview",
+      "fotos": "Photo evidence",
+      "kette": "Chain of evidence",
+      "sorte": "Variety",
+      "faellig": "Due",
+      "ohneFaelligkeit": "no due date",
+      "fortschritt": "Progress",
+      "ziel": "Target",
+      "ist": "Actual",
+      "ausschuss": "Rejects",
+      "ketteNurLive": "The chain of evidence is only available with a connected database."
+    },
+    "schritt": {
+      "titel": "Next step",
+      "mengeHinweis": "Record crates, working time and cooling measurements in the Chain of evidence tab.",
+      "pruefenLead": "Check the quantity and photo evidence, set the quality factor and approve.",
+      "belegeAnsehen": "View photo evidence ({anzahl})",
+      "keinBeleg": "No photo evidence yet. Approval requires at least one.",
+      "warten": "The task is waiting for the evidence review by farm management.",
+      "mengeKorrigieren": "Correct quantity",
+      "fertig": "Completed. Quantity, rejects and quality factor are locked.",
+      "nurAnsicht": "Your role can only view this task.",
+      "fremdeBrigade": "This task belongs to another brigade.",
+      "nurMitDatenbank": "Editing is only possible with a connected database."
     }
   },
   "pflanzenschutzVerwaltung": {
@@ -1560,6 +1628,12 @@
       }
     },
     "note": "Reading and writing stays reserved to office roles (admin, farm management, accounting) - a data subject's right of access is deliberately not part of this step. Two topics remain open from the previous cockpit: data residency (Digital Code No. 255-VIII) and AI transparency (Law No. 230-VIII)."
+  },
+  "benachrichtigungen": {
+    "titel": "Notifications",
+    "leer": "No new notifications.",
+    "leerHinweis": "Alerts and deadlines are still shown directly in the modules.",
+    "schliessen": "Close notifications"
   },
   "sync": {
     "knopf": {
@@ -3475,6 +3549,41 @@
       "kontext": "{termin}",
       "kontextMehrere": "{termin} · {anzahl} items",
       "weiter": "Go to the B2B portal"
+    }
+  },
+  "liste": {
+    "filter": {
+      "titel": "Filters",
+      "knopf": "Filters",
+      "knopfMitAnzahl": "Filters ({anzahl})",
+      "anwenden": "Apply",
+      "anzeigen": "Show results",
+      "zuruecksetzen": "Reset",
+      "schliessen": "Close filters"
+    },
+    "zeitraum": {
+      "alle": "All",
+      "heute": "Today",
+      "woche": "This week",
+      "monat": "This month",
+      "saison": "This season",
+      "eigen": "Custom period",
+      "von": "From",
+      "bis": "To"
+    },
+    "blaettern": {
+      "label": "List pages",
+      "zurueck": "Previous",
+      "weiter": "Next",
+      "stand": "Page {seite} of {seiten}"
+    },
+    "panel": {
+      "schliessen": "Close detail view",
+      "zurListe": "Back to list",
+      "vorheriger": "Previous entry",
+      "naechster": "Next entry",
+      "nichtGefunden": "This entry does not exist or is not visible for your role.",
+      "ladefehler": "This entry cannot be loaded right now. Please try again in a moment."
     }
   }
 }

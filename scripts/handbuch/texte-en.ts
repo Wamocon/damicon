@@ -105,11 +105,15 @@ export const en: HandbuchTexte = {
       },
       {
         titel: "Header",
-        text: "Carries the breadcrumb of the open page, the toggle for the sidebar width, the language selector, the colour scheme and — for administrators — the “View as” field.",
+        text: "Carries the breadcrumb of the open page, the toggle for the sidebar width, the search, the language selector, the colour scheme and — for administrators — the “View as” field. The bell sits on the far right: a click opens the notifications at the right edge of the screen, on the phone as a sheet from below, and as long as there are none, it says so there. Alerts and deadlines are still shown in the modules themselves. B2B clients and pickers do not see the bell. On the phone it keeps the way back, the search and the notifications.",
+      },
+      {
+        titel: "Search",
+        text: "Opens with a click on the magnifier in the header to the left of the bell, and at the desk also with the keys / or Ctrl+K (Mac: ⌘K). The search window opens at the top centre of the screen. The search finds the overview, the zones, the modules and the pages Security, Compliance report and Handbook, and only what the role also sees in the navigation. It searches names in the selected language. Below them, under “Mentioned in”, it lists the modules whose description contains the term, with the passage. Arrow keys choose a result, Enter opens it, Esc closes the search. With an empty field it lists the pages you opened yourself most recently. If nothing matches, it offers to ask the AI about the term. It does not yet find row blocks, batches, pickers or documents.",
       },
       {
         titel: "Bottom bar (phone)",
-        text: "Below tablet width it replaces the sidebar. It shows only the top level, that is the overview and the four areas; the modules appear as tiles on the area page. A tree with 26 entries is the right shape for a standing column, not for a surface you open with your thumb. The account button opens a sheet with language, colour scheme, handbook, security and sign-out.",
+        text: "Below tablet width it replaces the sidebar. The menu works in two levels: first the overview and the four areas, then, after a tap on an area, its modules, with the area itself as the first entry. The arrow at the top left leads back to the list of areas. A tree with all 27 entries at once is the right shape for a standing column, not for a surface you open with your thumb; one level at a time is. The bar stays operable while a sheet is open, so a tap on the account button takes you straight on to language, colour scheme, handbook, security and sign-out.",
       },
       {
         titel: "Overview",
@@ -122,6 +126,10 @@ export const en: HandbuchTexte = {
       {
         titel: "Module page",
         text: "Shows the module's view: tables, forms, figures. The top right states whether the data comes from the database or is sample data. Modules that have not been built yet state in one sentence what they will do.",
+      },
+      {
+        titel: "List with detail view",
+        text: "Modules with many entries show a list with filters and pages, starting with the picking tasks. Clicking an entry opens the detail view with tabs on the right, and the list stays usable next to it. The list becomes narrower so that the detail view gets the room and its content fits without scrolling where possible. Where there is too little room, for example on a phone or next to the open AI chat, the detail view takes the place of the list. Filters, page and the selected entry are part of the address: a link shows exactly this view, and Back closes the detail view again. New entries are created with the button directly above the list.",
       },
     ],
     spracheTitel: "Switching language",
@@ -182,12 +190,12 @@ export const en: HandbuchTexte = {
         id: "pflueckaufgabe",
         titel: "A picking task with photo evidence",
         schritte: [
-          "Open Field → Picking tasks with photo evidence.",
-          "Create a new picking task at the bottom. Locked blocks are not offered for selection and are rejected by the database as well.",
-          "On the left, pick a task per brigade and row block. Progress is actual against target quantity.",
-          "As the brigade, accept the task, start picking and upload photo evidence on the right. On a phone this opens the camera directly. The file goes into a private storage area and is only ever shown through short-lived signed links.",
-          "“Report quantity” moves the task to evidence review.",
-          "Farm management or administrators review the evidence, enter the quality factor and release the task.",
+          "Open Field → Picking tasks with photo evidence. The list shows all tasks, latest due date first, 20 per page. The pills above the list filter by status and show the number of matches. Search, brigade and period sit next to them, on a phone behind “Filters”.",
+          "Expand “New picking task” above the list and enter row block, brigade, due date with time (farm time, Almaty) and target quantity. Locked blocks are not offered for selection and are rejected by the database as well. After saving, the new task opens in the detail view.",
+          "Clicking a task opens the detail view on the right; on a phone it replaces the list. In the Overview tab, “Next step” says what to do next. The arrows at the top go to the previous and next task, Esc or Back closes the view.",
+          "As the brigade, accept the task, start picking and upload photo evidence in the Photo evidence tab. On a phone this opens the camera directly. The file goes into a private storage area and is only ever shown through short-lived signed links.",
+          "“Report quantity” moves the task to evidence review. From then on its due date no longer counts: only tasks the brigade is still picking can be overdue.",
+          "Farm management or administrators then see thumbnails of the evidence in the overview, enter the quality factor and release the task.",
         ],
       },
       {
@@ -196,8 +204,8 @@ export const en: HandbuchTexte = {
         einleitung:
           "This is the procedure that matters to the customer: from the punnet back to the person who filled it.",
         schritte: [
-          "Open Field → Picking tasks with photo evidence and select a task on the left.",
-          "On the right, under “Chain of evidence”, the batch is shown: cooling curve with the 60-minute limit, quantity and rejects, the crates with the person who filled them, and the residue record.",
+          "Open Field → Picking tasks with photo evidence and select a task.",
+          "In the “Chain of evidence” tab of the detail view, the batch is shown: cooling curve with the 60-minute limit, quantity and rejects, the crates with the person who filled them, and the residue record.",
           "“Record crate” assigns a crate to a person. Only then does the chain reach from the customer all the way to the picker.",
           "“Report working time” supplies the denominator for picking performance in kilograms per hour.",
           "“Record cooling measurement”: the database derives minutes and verdict from the time of picking. Above 60 minutes the interface reports a breach and the goods have to be downgraded.",

@@ -3,8 +3,10 @@ import { redirect } from "next/navigation";
 import "@/components/ki/ki-pane.css";
 import { setRequestLocale } from "next-intl/server";
 import { PersonaProvider } from "@/components/dashboard/persona";
+import { BlattProvider, HauptSpalte } from "@/components/dashboard/blatt-kontext";
 import { CeoPruefungProvider } from "@/components/dashboard/ceo-pruefung-kontext";
 import { ComplianceTourProvider } from "@/components/dashboard/compliance-tour-kontext";
+import { GlockenProvider } from "@/components/dashboard/glocke";
 import { DashboardSidebar } from "@/components/dashboard/sidebar";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
 import { UntereLeiste } from "@/components/dashboard/untere-leiste";
@@ -15,6 +17,7 @@ import { erlaubteBereiche } from "@/lib/pruefung/rollen";
 import { HaustierDashboard } from "@/components/haustier/haustier-dashboard";
 import { HaustierProvider } from "@/components/haustier/haustier-kontext";
 import { KiPaneProvider } from "@/components/ki/ki-pane-kontext";
+import { SuchProvider } from "@/components/suche/such-kontext";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
@@ -87,9 +90,21 @@ export default async function DashboardLayout({
         <CeoPruefungProvider>
         <HaustierProvider>
         <ComplianceTourProvider>
+        <BlattProvider>
+        {/* Die globale Suche umschliesst die Shell und legt ihr Fenster
+            daneben ab statt in die Kopfzeile (suche/such-kontext.tsx). Sie
+            braucht Persona, KI-Panel und Blattzustand, also hier innen. */}
+        <SuchProvider nutzerId={profil?.id ?? null}>
+        {/* Dasselbe fuer die Benachrichtigungen: die Glocke sitzt in der
+            Kopfzeile, ihr Fenster haengt hier (dashboard/glocke.tsx). */}
+        <GlockenProvider>
         <div className="dashboard-shell flex min-h-svh w-full">
           <DashboardSidebar />
-          <div className="flex min-w-0 flex-1 flex-col">
+          {/* Kopfzeile und Hauptbereich in einer eigenen Spalte, die ein
+              offenes Blatt der unteren Leiste stilllegt (blatt-kontext.tsx).
+              Die Leiste selbst steht deshalb daneben statt darin - sie ist
+              fixiert, die Reihenfolge im Baum kostet kein Layout. */}
+          <HauptSpalte>
             <KiFuehrungsAnzeige />
             <DashboardTopbar />
             {/* Der untere Innenabstand haelt den Platz der unteren
@@ -102,8 +117,8 @@ export default async function DashboardLayout({
             >
               {children}
             </main>
-            <UntereLeiste />
-          </div>
+          </HauptSpalte>
+          <UntereLeiste />
           {kiVerlauf ? (
             <KiPane
               verlauf={kiVerlauf.nachrichten}
@@ -120,7 +135,10 @@ export default async function DashboardLayout({
             />
           ) : null}
         </div>
+        </GlockenProvider>
+        </SuchProvider>
         <HaustierDashboard />
+        </BlattProvider>
         </ComplianceTourProvider>
         </HaustierProvider>
         </CeoPruefungProvider>

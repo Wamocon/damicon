@@ -4,12 +4,18 @@ import { useTranslations } from "next-intl";
 import { usePathname } from "@/i18n/navigation";
 import { usePersona } from "@/components/dashboard/persona";
 import { useAktiveZone } from "@/components/dashboard/sidebar-zustand";
-import { hasPermission } from "@/lib/rbac";
-import { moduleByPath, modulesForZone, zones, type ZoneKey } from "@/lib/modules";
+import {
+  moduleByPath,
+  moduleHref,
+  sichtbareModule,
+  zones,
+  type ZoneKey,
+} from "@/lib/modules";
 
-// Die oberste Navigationsebene als Liste: Uebersicht und die vier Bereiche,
-// gefiltert nach dem, was die Rolle sehen darf, samt der Frage, welches Ziel
-// gerade offen ist.
+// Die Navigationsziele des Menue-Blatts als Listen: oben Uebersicht und die
+// vier Bereiche (useNavZiele), darunter die Module eines Bereichs
+// (useModulZiele) - beide gefiltert nach dem, was die Rolle sehen darf, samt
+// der Frage, welches Ziel gerade offen ist.
 //
 // Herausgeloest aus SidebarRail, als die untere Leiste auf dem Handy dieselben
 // fuenf Ziele tragen sollte. Diese Fassung der Leiste ist inzwischen ersetzt
@@ -62,10 +68,7 @@ export function useNavZiele(): NavZiel[] {
   for (const zone of zones) {
     // Ein Bereich, in dem die Rolle kein einziges Modul sehen darf, steht auch
     // nicht in der Navigation - sonst fuehrt das Ziel auf eine leere Seite.
-    const sichtbar = modulesForZone(zone.key).some((module) =>
-      hasPermission(role, module.resource, "view"),
-    );
-    if (!sichtbar) continue;
+    if (sichtbareModule(role, zone.key).length === 0) continue;
 
     const href = `/dashboard/${zone.key}`;
     ziele.push({
@@ -79,6 +82,48 @@ export function useNavZiele(): NavZiel[] {
   }
 
   return ziele;
+}
+
+export interface ModulZiel {
+  /** Schluessel aus modules.ts, dient auch als key der Liste. */
+  key: string;
+  href: string;
+  /** Name aus der Symbolablage (components/icon.tsx). */
+  icon: string;
+  name: string;
+  /** Genau diese Seite ist geoeffnet - traegt aria-current="page". */
+  aktuelleSeite: boolean;
+}
+
+/**
+ * Die Module eines Bereichs als fertige Ziele - die zweite Ebene des
+ * Menue-Blatts auf dem Handy (dashboard/untere-leiste.tsx).
+ *
+ * Kurznamen wie in der Seitenleiste: der ausgeschriebene Titel passt in keiner
+ * der vier Sprachen in eine Zeile, auf Kasachisch braucht er bis zu 326 px.
+ *
+ * Die Bereichsseite selbst steht bewusst nicht in dieser Liste, obwohl sie im
+ * Blatt als erste Zeile darueber steht. Sie ist kein Modul, holt Symbol und
+ * Namen aus zones statt aus modules, und ein Feld "ist der Bereich selbst"
+ * haette jede Zeile mitzuschleppen, nur damit eine einzige es setzt.
+ */
+export function useModulZiele(zone: ZoneKey | null): ModulZiel[] {
+  const { role } = usePersona();
+  const moduleT = useTranslations("modules");
+  const pathname = usePathname();
+
+  if (!zone) return [];
+
+  return sichtbareModule(role, zone).map((module) => {
+    const href = moduleHref(module);
+    return {
+      key: module.key,
+      href,
+      icon: module.icon,
+      name: moduleT(`${module.key}.navTitle`),
+      aktuelleSeite: pathname === href,
+    };
+  });
 }
 
 export interface PfadStation {

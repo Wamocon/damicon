@@ -3,6 +3,30 @@
 // "Aufgabe-mit-Fotobeleg-Maschine". Hier direkt als Pflueckaufgabe je Brigade
 // und Reihenblock genutzt.
 
+import { wandzeitZuUtc } from "@/lib/listen/zeitraum";
+
+/** Datum mit Uhrzeit, wie datetime-local es liefert: "2026-09-24T14:30". */
+export const DATUM_UHRZEIT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+
+/** So weit darf eine Faelligkeit von heute entfernt liegen, in Tagen. */
+const FAELLIGKEIT_SPANNE_TAGE = 366;
+
+/**
+ * Faelligkeit einer neuen Pflueckaufgabe, aus dem Formular oder vom
+ * KI-Werkzeug: Datum und Uhrzeit in Betriebszeit Almaty, Pflicht seit
+ * WMCNL-2488. null ohne Uhrzeit, bei einem Tag, den es nicht gibt, und bei
+ * mehr als einem Jahr Abstand zu heute - ein Tippfehler wie 2206 statt 2026
+ * landete sonst still in der Planung.
+ */
+export function faelligkeitLesen(roh: string, jetzt: Date = new Date()): Date | null {
+  const wert = roh.trim();
+  if (!DATUM_UHRZEIT.test(wert)) return null;
+  const zeitpunkt = wandzeitZuUtc(wert);
+  if (!zeitpunkt) return null;
+  const abstandTage = Math.abs(zeitpunkt.getTime() - jetzt.getTime()) / 86_400_000;
+  return abstandTage > FAELLIGKEIT_SPANNE_TAGE ? null : zeitpunkt;
+}
+
 // Reihenfolge wie im Datenbank-Enum public.pflueckaufgabe_status.
 export const aufgabenStatus = [
   "offen",

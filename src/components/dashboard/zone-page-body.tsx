@@ -94,7 +94,7 @@ function Kennzahlen({
     return (
       <Section title={t("zoneKennzahlTitel")} description={t("zoneKennzahlLead")}>
         <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          {t("home.zoneOhneKennzahl")}
+          {t("zoneOhneKennzahl")}
         </p>
       </Section>
     );
@@ -211,7 +211,7 @@ export function ZonePageBody({
           danach, womit man daran arbeitet. */}
       <Kennzahlen kpis={kpis} quelle={quelle} verteilungen={verteilungen} />
 
-      <Section title={t("home.moduleTitel")} description={t("zoneModuleLead")}>
+      <Section title={t("zoneModuleTitel")} description={t("zoneModuleLead")}>
         {items.length === 0 ? (
           <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
             {t("zoneEmpty")}

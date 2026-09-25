@@ -1,4 +1,4 @@
-import type { Resource } from "./rbac";
+import { hasPermission, type Resource, type Role } from "./rbac";
 
 // Zielarchitektur aus dem Pitch-Dossier: die vier Zonen Feld, Hof, Buero, Markt.
 export type ZoneKey = "feld" | "hof" | "buero" | "markt";
@@ -362,6 +362,26 @@ export const modules: ModuleDef[] = [
 
 export function modulesForZone(zone: ZoneKey): ModuleDef[] {
   return modules.filter((module) => module.zone === zone);
+}
+
+// Die Module eines Bereichs, die eine Rolle sehen darf.
+//
+// Einzige Stelle mit dieser Filterung: die Seitenleiste am Schreibtisch, die
+// Frage in nav-ziele.ts, ob ein Bereich ueberhaupt in die Navigation gehoert,
+// und die zweite Ebene des Menue-Blatts auf dem Handy fragen alle dasselbe.
+// Drei Kopien waeren beim naechsten Zusatz zur Sichtbarkeitsregel einzeln
+// nachzuziehen, und die vergessene faellt niemandem auf: sie sieht nicht
+// falsch aus, nur anders als die anderen beiden.
+//
+// Bewusst eine Funktion und keine Hook - in der Seitenleiste steht der Aufruf
+// in zones.map(), und eine Hook in einer Schleife bricht die Hook-Regeln.
+export function sichtbareModule(
+  role: Role | null | undefined,
+  zone: ZoneKey,
+): ModuleDef[] {
+  return modulesForZone(zone).filter((module) =>
+    hasPermission(role, module.resource, "view"),
+  );
 }
 
 export function moduleByPath(zone: string, slug: string): ModuleDef | undefined {

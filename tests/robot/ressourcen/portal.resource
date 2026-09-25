@@ -14,13 +14,32 @@ ${KONTO}          admin@damicon.demo
 ${PASSWORT}       DamiconDemo2026!
 ${BILDER}         ${CURDIR}/../ergebnisse/bilder
 ${KOPFBALKEN}     header.sticky
+${GLOCKE}         ${KOPFBALKEN} button[aria-label="Benachrichtigungen"]
+# Das Fenster der Glocke haengt im Layout, nicht in der Kopfzeile. Gefunden
+# ueber Rolle und Namen, damit es nicht mit dem Suchfenster verwechselt wird.
+${GLOCKEN_PANEL}    role=dialog[name="Benachrichtigungen"]
+${GLOCKEN_PUNKT}    ${GLOCKE} [data-glocke-punkt]
 
-# Die drei Geraeteprofile. Breite und Hoehe sind CSS-Pixel, nicht Geraetepixel.
+# Die vier Geraeteprofile. Breite und Hoehe sind CSS-Pixel, nicht Geraetepixel.
 # 390x844 ist iPhone 14/15 hoch, 844x390 dasselbe Geraet gedreht. Dieselbe
-# Breite trifft auch Tablet hoch und ein halbes Laptopfenster.
+# Breite trifft auch Tablet hoch und ein halbes Laptopfenster. 360 px ist die
+# Breite kleiner Android-Telefone und der engste Fall der Kopfzeile: Rueckweg,
+# Bildmarke in der Mitte, rechts Suche und Glocke.
 &{SCHREIBTISCH}    name=schreibtisch    breite=${1600}    hoehe=${1000}
 &{MOBIL_QUER}      name=mobil-quer      breite=${844}     hoehe=${390}
 &{MOBIL_HOCH}      name=mobil-hoch      breite=${390}     hoehe=${844}
+&{MOBIL_SCHMAL}    name=mobil-schmal    breite=${360}     hoehe=${780}
+
+# Das Suchfenster ist der Dialog mit dem Suchfeld darin. aria-modal allein
+# reicht nicht: im Entwicklungsmodus ist auch das Fehler-Overlay von Next.js
+# ein modaler Dialog, und es steht auf der Uebersicht, solange dort eine
+# Meldung in der Konsole landet.
+${SUCHFENSTER}    [role="dialog"][aria-modal="true"]:has([role="combobox"][aria-controls])
+${SUCHFELD}       [role="combobox"][aria-controls]
+
+# Die Detailansicht einer Liste (DESIGN.md Abschnitt 14). Nur die sichtbare:
+# waehrend React streamt, steht sie kurz doppelt im Dokument.
+${DETAILANSICHT}    css=#detailpanel >> visible=true
 
 
 *** Keywords ***
@@ -81,6 +100,68 @@ Bedienelemente Der Kopfzeile Sind Erreichbar
     Should Be Empty    ${abgeschnitten}
     ...    msg=Abgeschnitten am rechten Rand: ${abgeschnitten}
 
+Suche Per Tastatur Oeffnen
+    [Documentation]    Oeffnet die globale Suche mit einem Tastenkuerzel und
+    ...    wartet, bis das Fenster steht und das Feld den Fokus hat - getippt
+    ...    wird danach, ohne erst hineinzuklicken.
+    [Arguments]    ${kuerzel}
+    Keyboard Key    press    ${kuerzel}
+    Wait For Elements State    ${SUCHFENSTER}    visible    timeout=10s
+    Wait For Elements State    ${SUCHFELD}    focused    timeout=10s
+
+Suchknopf Steht Links Neben Der Glocke
+    [Documentation]    Auf jeder Breite ist die Suche ein Knopf direkt links
+    ...    neben den Meldungen. Zwischen beiden liegen die 8 px Abstand der
+    ...    Werkzeuggruppe.
+    ${abstand} =    Evaluate JavaScript    ${None}
+    ...    () => { const k = document.querySelector('header.sticky [data-suche="knopf"]'); const g = document.querySelector('header.sticky button[aria-label="Benachrichtigungen"]'); if (!k || !g) return -1; return Math.round(g.getBoundingClientRect().left - k.getBoundingClientRect().right); }
+    Should Be Equal As Integers    ${abstand}    8
+    ...    msg=Der Suchknopf steht nicht direkt links neben der Glocke (Abstand ${abstand} px, -1 heisst: fehlt).
+
+Sichtbare Suchknoepfe Zaehlen
+    [Documentation]    Wie viele Suchknoepfe gerade zu sehen sind. Erwartet ist
+    ...    genau einer; ein zweiter hiesse, dass ein alter Ausloeser
+    ...    zurueckgekehrt ist.
+    ${anzahl} =    Evaluate JavaScript    ${None}
+    ...    () => [...document.querySelectorAll('header.sticky [data-suche="knopf"]')].filter((e) => e.getBoundingClientRect().width > 0).length
+    RETURN    ${anzahl}
+
+Suche Ist Nur Ein Knopf
+    [Documentation]    In der Kopfzeile steht fuer die Suche genau ein
+    ...    sichtbarer Knopf mit Lupe, hoechstens 44 px breit - kein
+    ...    Eingabefeld und keine Leiste im Look eines Suchfelds.
+    ${knoepfe} =    Sichtbare Suchknoepfe Zaehlen
+    Should Be Equal As Integers    ${knoepfe}    1
+    ...    msg=Der Suchknopf fehlt oder steht doppelt sichtbar.
+    ${breite} =    Evaluate JavaScript    ${None}
+    ...    () => Math.round(document.querySelector('header.sticky [data-suche="knopf"]').getBoundingClientRect().width)
+    Should Be True    ${breite} <= 44
+    ...    msg=Die Suche ist ${breite} px breit, eine Leiste statt eines Knopfes.
+    ${felder} =    Get Element Count    ${KOPFBALKEN} input
+    Should Be Equal As Integers    ${felder}    0
+    ...    msg=In der Kopfzeile steht ein Eingabefeld.
+
+Suchfenster Steht Mittig Oben
+    [Documentation]    Das Fenster geht auf jeder Breite oben in der Mitte des
+    ...    Bildschirms auf, egal wo sein Ausloeser sitzt. Mittig heisst: links
+    ...    und rechts gleich viel Abstand zum Fensterrand, gemessen am Fenster
+    ...    und nicht an der Spalte neben der Seitenleiste. Oben heisst: die
+    ...    Oberkante liegt im obersten Achtel des Fensters.
+    Wait For Elements State    ${SUCHFENSTER}    stable    timeout=10s
+    ${lage} =    Evaluate JavaScript    ${None}
+    ...    () => { const d = document.querySelector('[role="dialog"][aria-modal="true"]:has([role="combobox"][aria-controls])'); if (!d) return 'fehlt'; const f = d.getBoundingClientRect(); const links = f.left, rechts = window.innerWidth - f.right; const z = (n) => String(Math.round(n)); return Math.abs(links - rechts) <= 2 && f.top <= window.innerHeight / 8 ? 'ok' : 'links ' + z(links) + ' px, rechts ' + z(rechts) + ' px, oben ' + z(f.top) + ' von ' + z(window.innerHeight) + ' px'; }
+    Should Be Equal    ${lage}    ok
+    ...    msg=Das Suchfenster steht nicht mittig oben: ${lage}    values=${False}
+
+Bildmarke Steht Mittig
+    [Documentation]    Mit Rueckweg steht die Bildmarke in der Mitte der
+    ...    Kopfzeile. Wird die rechte Gruppe zu breit, rueckt sie aus der
+    ...    Mitte - genau das soll die Suche neben der Glocke nicht ausloesen.
+    ${versatz} =    Evaluate JavaScript    ${None}
+    ...    () => { const m = document.querySelector('header.sticky a[aria-label="Damicon"] > *'); if (!m) return 999; const r = m.getBoundingClientRect(); return Math.round(Math.abs(r.left + r.width / 2 - window.innerWidth / 2)); }
+    Should Be True    ${versatz} <= 2
+    ...    msg=Die Bildmarke steht ${versatz} px neben der Mitte.
+
 Sichtbare Stationen Des Pfades
     [Documentation]    Der Pfad steht zweimal im Dokument: einmal vollstaendig
     ...    und einmal gekuerzt, umgeschaltet per CSS. Gezaehlt wird nur die
@@ -101,6 +182,78 @@ Untere Leiste Verdeckt Den Inhalt Nicht
     Run Keyword If    ${verdeckt} > 0    Befund Festhalten    ${profil}    inhalt-verdeckt
     Should Be True    ${verdeckt} <= 0
     ...    msg=Die untere Leiste verdeckt ${verdeckt} px des letzten Abschnitts.
+
+Detailansicht Oeffnen
+    [Documentation]    Oeffnet den ersten Eintrag einer Liste mit
+    ...    Detailansicht und wartet, bis sie steht und ihre Anordnung an
+    ...    <html> gemeldet hat (ui/detailpanel-steuerung.tsx). Nur die
+    ...    sichtbare Fassung zaehlt: waehrend React streamt, steht die
+    ...    Detailansicht kurz ein zweites Mal versteckt im Dokument.
+    Click    css=[data-eintrag] >> nth=0
+    Wait For Condition    url    contains    aufgabe=    timeout=20s
+    Wait For Elements State    ${DETAILANSICHT}    visible    timeout=20s
+    Wait For Function    () => Boolean(document.documentElement.dataset.detailpanel)    timeout=10s
+
+Anordnung Der Detailansicht Ist
+    [Documentation]    angedockt, schublade oder ersetzt - je nach der Breite,
+    ...    die der Liste bleibt (DESIGN.md Abschnitt 14).
+    [Arguments]    ${profil}    ${soll}
+    ${ist} =    Evaluate JavaScript    ${None}
+    ...    () => document.documentElement.dataset.detailpanel || 'keine'
+    Run Keyword If    '${ist}' != '${soll}'    Befund Festhalten    ${profil}    detailansicht-anordnung
+    Should Be Equal    ${ist}    ${soll}    msg=Die Detailansicht steht ${ist} statt ${soll}.
+
+Detailansicht Steht Neben Der Liste
+    [Documentation]    Angedockt beginnt die Detailansicht rechts von der
+    ...    Liste. Ein negativer Abstand hiesse: sie liegt darueber.
+    [Arguments]    ${profil}
+    ${abstand} =    Evaluate JavaScript    ${None}
+    ...    () => { const sichtbar = (id) => [...document.querySelectorAll('#' + id)].find((e) => e.checkVisibility()); const p = sichtbar('detailpanel').getBoundingClientRect(); const l = sichtbar('liste').getBoundingClientRect(); return Math.round(p.left - l.right); }
+    Run Keyword If    ${abstand} < 0    Befund Festhalten    ${profil}    detailansicht-ueberlappt
+    Should Be True    ${abstand} >= 0    msg=Die Detailansicht ueberdeckt die Liste um ${abstand} px.
+
+Detailansicht Nutzt Den Platz
+    [Documentation]    Mit einer Auswahl gehoert der Platz der Detailansicht:
+    ...    angedockt waechst sie ueber ihre Mindestbreite von 26rem hinaus, die
+    ...    Liste behaelt mindestens 28,5rem (--detailpanel-angedockt in
+    ...    globals.css).
+    [Arguments]    ${profil}
+    ${masse} =    Evaluate JavaScript    ${None}
+    ...    () => { const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16; const breite = (id) => Math.round([...document.querySelectorAll('#' + id)].find((e) => e.checkVisibility()).getBoundingClientRect().width / rem * 10) / 10; return { panel: breite('detailpanel'), liste: breite('liste') }; }
+    ${zu_schmal} =    Evaluate    ${masse}[panel] <= 26 or ${masse}[liste] < 28.4
+    Run Keyword If    ${zu_schmal}    Befund Festhalten    ${profil}    detailansicht-breite
+    Should Be True    ${masse}[panel] > 26    msg=Die Detailansicht ist nur ${masse}[panel]rem breit.
+    Should Be True    ${masse}[liste] >= 28.4    msg=Die Liste ist nur ${masse}[liste]rem breit.
+
+Pillen Wischen In Einer Reihe
+    [Documentation]    Auf dem Handy stehen die Status-Pillen in einer Zeile
+    ...    und lassen sich waagerecht wischen, statt umzubrechen oder die
+    ...    Seite zu verbreitern. Kein Querscrollen der Seite allein beweist
+    ...    das nicht: umgebrochene Pillen scrollen auch nicht.
+    [Arguments]    ${profil}
+    ${lage} =    Evaluate JavaScript    ${None}
+    ...    () => { const n = [...document.querySelectorAll('nav[aria-label="Status"]')].find((e) => e.checkVisibility()); if (!n) return 'keine Pillen'; const zeilen = new Set([...n.querySelectorAll('a')].map((a) => Math.round(a.getBoundingClientRect().top))).size; const wischbar = getComputedStyle(n).overflowX === 'auto' && n.scrollWidth > n.clientWidth; return zeilen === 1 && wischbar ? 'ok' : zeilen + ' Zeilen, wischbar: ' + wischbar; }
+    Run Keyword If    '${lage}' != 'ok'    Befund Festhalten    ${profil}    pillen
+    Should Be Equal    ${lage}    ok    msg=Die Status-Pillen wischen nicht in einer Reihe: ${lage}
+
+Glocke Oeffnen
+    [Documentation]    Klickt die Glocke und wartet, bis ihr Panel steht.
+    Click    ${GLOCKE}
+    Wait For Elements State    ${GLOCKEN_PANEL}    visible    timeout=10s
+
+Glocken Fenster Liegt
+    [Documentation]    Am Schreibtisch eine Schublade am rechten Rand in voller
+    ...    Hoehe und mindestens 400 px breit, auf dem Handy ein Blatt im
+    ...    unteren Teil des Bildschirms. Gemessen gegen die fixierte Flaeche
+    ...    um das Fenster, nicht gegen window.innerWidth: das html haelt mit
+    ...    scrollbar-gutter Platz fuer eine Scrollleiste frei, bei klassischen
+    ...    Scrollleisten (Windows, auch headless) 15 px am rechten Rand.
+    [Arguments]    ${profil}    ${soll}
+    ${lage} =    Evaluate JavaScript    ${None}
+    ...    (soll) => { const d = [...document.querySelectorAll('[role="dialog"]')].find((e) => e.getAttribute('aria-labelledby') && document.getElementById(e.getAttribute('aria-labelledby'))?.textContent === 'Benachrichtigungen'); if (!d) return 'kein Fenster'; const r = d.getBoundingClientRect(); const c = d.parentElement.getBoundingClientRect(); const lage = 'links ' + Math.round(r.left - c.left) + ', rechts ' + Math.round(c.right - r.right) + ', oben ' + Math.round(r.top - c.top) + ', unten ' + Math.round(c.bottom - r.bottom) + ' px, ' + Math.round(r.width) + ' px breit'; if (soll === 'rechts') return Math.abs(c.right - r.right) <= 1 && Math.abs(r.top - c.top) <= 1 && Math.abs(c.bottom - r.bottom) <= 1 && r.width >= 400 ? 'ok' : lage; return r.left >= c.left - 1 && r.right <= c.right + 1 && r.top > c.top + c.height * 0.15 && r.bottom > c.top + c.height * 0.6 ? 'ok' : lage; }
+    ...    arg=${soll}
+    Run Keyword If    '${lage}' != 'ok'    Befund Festhalten    ${profil}    glocke-lage
+    Should Be Equal    ${lage}    ok    msg=Das Fenster der Glocke liegt nicht ${soll}: ${lage}
 
 Kein Text Ist Abgeschnitten
     [Documentation]    Sucht Elemente, deren Inhalt breiter ist als ihr Kasten.

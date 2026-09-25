@@ -6,12 +6,21 @@ import {
   type ComponentProps,
   type ReactElement,
   type ReactNode,
+  type Ref,
 } from "react";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 
 export type Tone = "success" | "info" | "neutral" | "warning" | "danger";
+
+/**
+ * Eingabefeld und Auswahl: 44 px und 16 px Schrift bis lg (Beruehrung, kein
+ * iOS-Zoom beim Fokus), darueber die dichte Schreibtischmaske. DESIGN.md
+ * Abschnitt 10.
+ */
+export const feldKlassen =
+  "h-11 w-full rounded-lg border border-border bg-background px-3 text-base text-foreground outline-none transition focus:border-primary lg:h-9 lg:px-2.5 lg:text-xs";
 
 const toneClasses: Record<Tone, string> = {
   success: "bg-success/10 text-success border-success/25",
@@ -224,17 +233,35 @@ export function PageHeader({
 export function Aufklapper({
   titel,
   beschreibung,
+  symbol,
+  variante = "standard",
+  ref,
   children,
 }: {
   titel: string;
   beschreibung?: string;
+  /** Vor dem Titel, etwa ein Plus fuer "+ Neu ..." (DESIGN.md Abschnitt 14). */
+  symbol?: ReactNode;
+  /** "aktion": Titel in Primaerfarbe - der Knopf zum Anlegen ueber einer Liste. */
+  variante?: "standard" | "aktion";
+  /** Wer das Formular nach dem Speichern zuklappen will, braucht das <details>. */
+  ref?: Ref<HTMLDetailsElement>;
   children: ReactNode;
 }) {
   return (
-    <details className="group rounded-xl border border-border bg-card">
+    <details ref={ref} className="group rounded-xl border border-border bg-card">
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 transition duration-knapp hover:bg-muted/30 lg:min-h-9 [&::-webkit-details-marker]:hidden">
         <span>
-          <span className="schrift-dense font-black text-card-foreground">{titel}</span>
+          <span
+            className={cn(
+              variante === "aktion"
+                ? "inline-flex items-center gap-2 text-sm font-bold text-primary lg:text-xs"
+                : "schrift-dense font-black text-card-foreground",
+            )}
+          >
+            {symbol}
+            {titel}
+          </span>
           {beschreibung ? (
             <span className="mt-0.5 block schrift-label text-muted-foreground">
               {beschreibung}
@@ -592,28 +619,65 @@ export function Button({
 // die Oberflaeche ohne JavaScript benutzbar bleibt.
 // ---------------------------------------------------------------------------
 
-type Ziel = ComponentProps<typeof Link>["href"];
+export type Ziel = ComponentProps<typeof Link>["href"];
+
+/**
+ * Knopf nur mit Symbol: Pfeile und Schliessen im Kopf der Detailansicht.
+ * relative, weil ein LadeMelder darin stehen kann.
+ */
+export const symbolKnopfKlassen =
+  "relative inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition duration-knapp hover:bg-muted hover:text-foreground lg:h-9 lg:w-9";
+
+/** Verweis als Text in Primaerfarbe, etwa "Zuruecksetzen" neben Filtern. */
+export const textVerweisKlassen =
+  "inline-flex min-h-11 items-center text-sm font-semibold text-primary lg:min-h-9 lg:text-xs";
 
 export interface LeistenEintrag {
   wert: string;
   text: string;
+  /** Trefferzahl hinter dem Text, etwa bei Status-Pillen ueber einer Liste. */
+  anzahl?: string;
 }
 
 // Masse nach DESIGN.md Abschnitt 10: 44 px Tippflaeche bis lg, darueber 36 px.
 const leistenMass = "min-h-11 lg:min-h-9";
+
+// Drei Schalter fuer Reiter und Pillen, die in einer Liste mit Detailansicht
+// stehen (DESIGN.md Abschnitt 14). Ohne sie verhalten sich beide wie bisher.
+interface LeistenVerhalten {
+  /**
+   * Ersetzt den Verlaufseintrag statt einen neuen anzulegen. Fuer Reiter der
+   * Detailansicht: Zurueck soll sie schliessen, nicht jeden Reiter abschreiten.
+   */
+  ersetzen?: boolean;
+  /** false: kein Vorladen. Dann zeigt ein Melder verlaesslich, dass geladen wird. */
+  vorladen?: boolean;
+  /** Steht in jedem Link, etwa ein LadeMelder (ui/lade-status.tsx). */
+  melder?: ReactNode;
+}
 
 export function Reiter({
   label,
   eintraege,
   aktiv,
   ziel,
+  ersetzen,
+  vorladen,
+  melder,
+  dicht,
 }: {
   /** Beschriftung der Navigation fuer Screenreader. */
   label: string;
   eintraege: LeistenEintrag[];
   aktiv: string;
   ziel: (wert: string) => Ziel;
-}) {
+  /**
+   * Schmalere Mindestbreite je Reiter, fuer enge Flaechen wie die
+   * Detailansicht (mindestens 26rem): drei Reiter passen dort sonst nicht in
+   * eine Zeile.
+   */
+  dicht?: boolean;
+} & LeistenVerhalten) {
   return (
     <nav
       aria-label={label}
@@ -626,12 +690,15 @@ export function Reiter({
             key={eintrag.wert}
             href={ziel(eintrag.wert)}
             scroll={false}
+            replace={ersetzen}
+            prefetch={vorladen === false ? false : undefined}
             aria-current={ist ? "page" : undefined}
             className={cn(
               // basis-32 statt fester Breiten: auf schmalen Schirmen brechen
               // lange Beschriftungen in eine zweite Reihe, statt abgeschnitten
               // zu werden. Ein gekuerzter Reitername ist kein Reitername mehr.
-              "inline-flex flex-1 basis-32 items-center justify-center rounded-lg px-3 py-2 text-center text-sm font-semibold transition duration-knapp lg:text-xs",
+              "relative inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-center text-sm font-semibold transition duration-knapp lg:text-xs",
+              dicht ? "basis-24" : "basis-32",
               leistenMass,
               ist
                 ? "bg-primary text-primary-foreground"
@@ -639,6 +706,10 @@ export function Reiter({
             )}
           >
             {eintrag.text}
+            {eintrag.anzahl ? (
+              <span className="tabular-nums opacity-80">{eintrag.anzahl}</span>
+            ) : null}
+            {melder}
           </Link>
         );
       })}
@@ -646,19 +717,36 @@ export function Reiter({
   );
 }
 
+// Pillen sind Filter: jeder Wechsel legt einen Verlaufseintrag an, Zurueck
+// fuehrt zum vorigen Filter. Deshalb kein "ersetzen" wie bei den Reitern.
 export function FilterPillen({
   label,
   eintraege,
   aktiv,
   ziel,
+  rollen,
+  vorladen,
+  melder,
 }: {
   label: string;
   eintraege: LeistenEintrag[];
   aktiv: string;
   ziel: (wert: string) => Ziel;
-}) {
+  /**
+   * Auf dem Handy eine Reihe zum Wischen statt mehrerer Zeilen: fuenf Pillen
+   * mit Zahlen braechen bei 390 px in drei Zeilen um und schoeben die Liste
+   * nach unten.
+   */
+  rollen?: boolean;
+} & Omit<LeistenVerhalten, "ersetzen">) {
   return (
-    <nav aria-label={label} className="flex flex-wrap gap-2">
+    <nav
+      aria-label={label}
+      className={cn(
+        "flex flex-wrap gap-2",
+        rollen && "max-md:-mx-1 max-md:flex-nowrap max-md:overflow-x-auto max-md:px-1 max-md:pb-1",
+      )}
+    >
       {eintraege.map((eintrag) => {
         const ist = eintrag.wert === aktiv;
         return (
@@ -666,9 +754,10 @@ export function FilterPillen({
             key={eintrag.wert}
             href={ziel(eintrag.wert)}
             scroll={false}
+            prefetch={vorladen === false ? false : undefined}
             aria-current={ist ? "true" : undefined}
             className={cn(
-              "inline-flex items-center rounded-full border px-3 text-xs font-semibold transition duration-knapp",
+              "relative inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition duration-knapp",
               leistenMass,
               ist
                 ? "border-primary bg-primary/5 text-foreground"
@@ -676,6 +765,17 @@ export function FilterPillen({
             )}
           >
             {eintrag.text}
+            {eintrag.anzahl ? (
+              <span
+                className={cn(
+                  "rounded-full px-1.5 tabular-nums",
+                  ist ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground",
+                )}
+              >
+                {eintrag.anzahl}
+              </span>
+            ) : null}
+            {melder}
           </Link>
         );
       })}
