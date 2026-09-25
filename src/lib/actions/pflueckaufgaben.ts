@@ -11,7 +11,11 @@ import {
 } from "@/lib/actions/status";
 import type { KernErgebnis } from "@/lib/actions/nachweiskette";
 import type { Json } from "@/lib/database.types";
-import { aufgabenStatus, type AufgabenStatus } from "@/lib/domain/pflueckaufgaben";
+import {
+  aufgabenStatus,
+  faelligkeitLesen,
+  type AufgabenStatus,
+} from "@/lib/domain/pflueckaufgaben";
 import {
   text,
   zahl,
@@ -19,6 +23,8 @@ import {
   generiereTicketCode,
   protokolliere as protokolliereBasis,
 } from "@/lib/actions/formular-helfer";
+import { darfAufgabeBearbeiten } from "@/lib/domain/pflueckaufgaben-liste";
+import { istUuid } from "@/lib/utils";
 
 // Vorstufe zu Anforderung 2.5 (Offline-first): aufgabeStatusSetzen() und
 // mengeMelden() aktualisierten bisher blind per .eq("id", id), ohne den
@@ -63,7 +69,12 @@ export async function aufgabeAnlegen(
 
   const blockId = text(formData, "reihenblock_id");
   const zielmenge = zahl(formData, "zielmenge_kg");
-  if (!blockId || zielmenge === null) return fehler("fehler.eingabe");
+  // Pflichtfeld seit WMCNL-2488: Datum UND Uhrzeit, gelesen in Betriebszeit
+  // Almaty ("2026-09-24T14:30" aus datetime-local, dasselbe Format vom
+  // KI-Werkzeug). Ein reines Datum reicht nicht mehr - frueher wurde es als
+  // Mitternacht UTC gespeichert, in Almaty also 5 Uhr frueh desselben Tages.
+  const faelligkeit = faelligkeitLesen(text(formData, "faelligkeit"));
+  if (!blockId || zielmenge === null || !faelligkeit) return fehler("fehler.eingabe");
 
   const supabase = await createClient();
 
@@ -80,8 +91,6 @@ export async function aufgabeAnlegen(
 
   const code = generiereTicketCode("PA");
 
-  const faelligkeit = text(formData, "faelligkeit");
-
   const { data, error } = await supabase
     .from("pflueckaufgaben")
     .insert({
@@ -91,7 +100,7 @@ export async function aufgabeAnlegen(
       brigade_id: text(formData, "brigade_id") || null,
       zielmenge_kg: zielmenge,
       pfluecker_anzahl: zahl(formData, "pfluecker_anzahl") ?? 0,
-      faelligkeit: faelligkeit ? new Date(faelligkeit).toISOString() : null,
+      faelligkeit: faelligkeit.toISOString(),
       status: "offen",
     })
     .select("id, code")
@@ -104,7 +113,8 @@ export async function aufgabeAnlegen(
     block: block.code,
   });
   aktualisiere(formData);
-  return ok("ok.aufgabe", data.code);
+  // Die ID oeffnet die neue Aufgabe danach in der Detailansicht.
+  return { ...ok("ok.aufgabe", data.code), id: data.id };
 }
 
 // ---------------------------------------------------------------------------
@@ -349,13 +359,27 @@ export async function belegKern(
   }
 
   const { aufgabeId, art, hinweis, geraetZeitpunkt, datei, aktionId } = params;
-  if (!aufgabeId || !(belegArten as readonly string[]).includes(art)) {
+  if (!istUuid(aufgabeId) || !(belegArten as readonly string[]).includes(art)) {
     return { erledigt: false, status: fehler("fehler.eingabe") };
   }
   if (!datei || datei.size === 0) return { erledigt: false, status: fehler("fehler.keineDatei") };
   if (datei.size > maxDateigroesse) return { erledigt: false, status: fehler("fehler.zuGross") };
 
   const supabase = await createClient();
+
+  // Die Brigade nur an eigene und freie Aufgaben - dieselbe Schranke wie die
+  // Datenbank (20261110050000, Cleanup WMCNL-2488). Vorher geprueft, weil
+  // sonst Storage zuerst ablehnt und die Oberflaeche "Upload fehlgeschlagen"
+  // meldet statt einer Rechtemeldung.
+  const { data: aufgabe } = await supabase
+    .from("pflueckaufgaben")
+    .select("brigade_id")
+    .eq("id", aufgabeId)
+    .maybeSingle();
+  if (!aufgabe) return { erledigt: false, status: fehler("fehler.eingabe") };
+  if (!darfAufgabeBearbeiten(profil, { brigadeId: aufgabe.brigade_id })) {
+    return { erledigt: false, status: fehler("fehler.berechtigung") };
+  }
 
   // Deterministisch aus aktionId statt Date.now(): der Sync-Fall braucht
   // Wiederholbarkeit, der Online-Fall (kein aktionId) erzeugt sich seine

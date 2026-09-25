@@ -1,12 +1,13 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { istUuid } from "@/lib/utils";
 
 // Die Zahlen fuer die rechte Haelfte der Begruessungskarte, je Rolle eine.
 //
 // Bewusst eigene, schlanke Abfragen statt eines Auszugs aus den Modul-Ladefunktionen -
 // dasselbe Vorgehen wie bei ladeOffeneEsutdFristen() in lib/data/esutd.ts und aus demselben
-// Grund: ladePflueckaufgaben(), ladeLohnUebersicht() und ladeVorbestellungen() sind fuer
+// Grund: ladeAufgabenSeite(), ladeLohnUebersicht() und ladeVorbestellungen() sind fuer
 // ihre Modulseiten gebaut und holen Listen, Optionen und Referenzdaten mit. Die Startseite
 // braucht je genau eine Zahl; die ganze Lohnuebersicht fuer einen Pfluecker zu laden, der
 // nur seinen letzten Lohnlauf sehen soll, waere Verschwendung.
@@ -14,18 +15,31 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 // Alle drei geben bei fehlender Datenbank, fehlender Zuordnung oder Lesefehler null zurueck.
 // Die Karte laesst die rechte Haelfte dann weg - lieber nichts als eine erfundene Null.
 
-/** Offene Pflueckaufgaben ueber alle Brigaden. Fuer die Rolle brigade. */
-export const ladeOffenePflueckaufgaben = cache(async (): Promise<number | null> => {
-  if (!isSupabaseConfigured()) return null;
-  const supabase = await createClient();
-  // "offen" und "angenommen" zaehlen als noch zu erledigen; in_arbeit laeuft bereits,
-  // beleg_pruefung und abgeschlossen sind durch.
-  const { count, error } = await supabase
-    .from("pflueckaufgaben")
-    .select("id", { count: "exact", head: true })
-    .in("status", ["offen", "angenommen"]);
-  return error ? null : (count ?? 0);
-});
+/**
+ * Offene Pflueckaufgaben der Brigade: dieselbe Zahl wie die Pille "Zu
+ * erledigen" auf der Seite, mit deren Vorbelegung - die eigene Brigade und die
+ * Aufgaben ohne Zuordnung, alles ausser abgeschlossen. Vorher zaehlte die Karte
+ * "offen" und "angenommen" ueber alle Brigaden, und Karte und Liste gaben zwei
+ * Antworten auf dieselbe Frage (entschieden am 25.09.2026, WMCNL-2488).
+ */
+export const ladeOffenePflueckaufgaben = cache(
+  async (brigadeId: string | null): Promise<number | null> => {
+    if (!isSupabaseConfigured()) return null;
+    const supabase = await createClient();
+    let abfrage = supabase
+      .from("pflueckaufgaben")
+      .select("id", { count: "exact", head: true })
+      .neq("status", "abgeschlossen");
+    // Ohne zugeordnete Brigade bleiben nur die Aufgaben ohne Zuordnung, wie bei
+    // brigadeBedingung("meine") in lib/domain/pflueckaufgaben-liste.ts.
+    abfrage =
+      brigadeId && istUuid(brigadeId)
+        ? abfrage.or(`brigade_id.eq.${brigadeId},brigade_id.is.null`)
+        : abfrage.is("brigade_id", null);
+    const { count, error } = await abfrage;
+    return error ? null : (count ?? 0);
+  },
+);
 
 export interface LetzterLohn {
   gesamtTenge: number;

@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useState, type FormEvent } from "react";
+import { useActionState, useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslations } from "next-intl";
-import { Camera, Check } from "lucide-react";
+import { Camera, Check, Plus } from "lucide-react";
+import { useRouter } from "@/i18n/navigation";
 import {
   aufgabeAnlegen,
   aufgabeStatusSetzen,
@@ -10,13 +11,12 @@ import {
   mengeMelden,
 } from "@/lib/actions/pflueckaufgaben";
 import { fehler, leer, ok, type AktionsStatus } from "@/lib/actions/status";
-import { Button } from "@/components/ui/kit";
+import { Aufklapper, Button } from "@/components/ui/kit";
 import { QualitaetsReferenz } from "@/components/db/qualitaets-referenz";
 import {
   AktionsMeldung,
   Auswahl,
   Feld,
-  FormularKarte,
   mitGeraetZeitstempel,
   PfadFeld,
   SubmitKnopf,
@@ -27,54 +27,101 @@ import { bildFuerWarteschlangeVerkleinern } from "@/lib/offline/bild";
 import type { AktionTyp } from "@/lib/offline/db";
 import type { AuswahlOption } from "@/components/db/standort-formulare";
 
-// Neue Pflueckaufgabe. Gesperrte Reihenbloecke stehen gar nicht erst zur Wahl -
-// und die Datenbank weist sie zusaetzlich ab (Trigger trg_pflueckaufgabe_sperre).
+// Neue Pflueckaufgabe, aufklappbar direkt ueber der Liste (Entscheidung vom
+// 24.09.2026, WMCNL-2488; vorher ein Formular ganz unten auf der Seite).
+// Der Aufklapper aus ui/kit.tsx in der Variante "aktion": ein <details>, ohne
+// JavaScript bedienbar, und derselbe Baustein fuer die Neuanlage der
+// uebrigen Module (WMCNL-2490).
+//
+// Gesperrte Reihenbloecke stehen gar nicht erst zur Wahl - und die Datenbank
+// weist sie zusaetzlich ab (Trigger trg_pflueckaufgabe_sperre). Die
+// Faelligkeit ist Pflicht, mit Datum und Uhrzeit in Betriebszeit Almaty; die
+// Server-Aktion prueft das ebenfalls.
+//
+// Nach dem Anlegen klappt das Formular zu, und die neue Aufgabe oeffnet in der
+// Detailansicht: die Brigade kann sie gleich annehmen, und wer plant, sieht
+// sofort, ob Block und Brigade stimmen.
 export function AufgabeAnlegenFormular({
   bloecke,
   brigaden,
+  pfad,
+  query,
 }: {
   bloecke: AuswahlOption[];
   brigaden: AuswahlOption[];
+  /** Pfad der Liste ohne Sprache. */
+  pfad: string;
+  /** Aktueller Zustand der Liste, die neue Aufgabe oeffnet darin. */
+  query: Record<string, string>;
 }) {
   const [status, action] = useActionState(aufgabeAnlegen, leer);
   const t = useTranslations("pflueckaufgabenVerwaltung");
+  const router = useRouter();
+  const aufklapper = useRef<HTMLDetailsElement>(null);
+  const formular = useRef<HTMLFormElement>(null);
+  const erledigt = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (status.stand !== "ok" || !status.id || erledigt.current === status.id) return;
+    erledigt.current = status.id;
+    formular.current?.reset();
+    if (aufklapper.current) aufklapper.current.open = false;
+    const suche = new URLSearchParams({ ...query, aufgabe: status.id }).toString();
+    router.push(`${pfad}?${suche}`, { scroll: false });
+  }, [status, router, pfad, query]);
 
   return (
-    <FormularKarte titel={t("neu.titel")} beschreibung={t("neu.lead")}>
-      <form action={action} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5 lg:items-end">
-        <PfadFeld />
-        <Auswahl
-          label={t("feld.block")}
-          name="reihenblock_id"
-          options={bloecke}
-          required
-        />
-        <Auswahl
-          label={t("feld.brigade")}
-          name="brigade_id"
-          options={[{ wert: "", text: t("feld.ohneBrigade") }, ...brigaden]}
-        />
-        <Feld
-          label={t("feld.zielmenge")}
-          name="zielmenge_kg"
-          inputMode="decimal"
-          required
-          placeholder="30"
-        />
-        <Feld
-          label={t("feld.pfluecker")}
-          name="pfluecker_anzahl"
-          inputMode="decimal"
-          placeholder="4"
-        />
-        <div className="flex items-end">
-          <SubmitKnopf label={t("neu.knopf")} />
+    <div className="space-y-2">
+      <Aufklapper
+        ref={aufklapper}
+        titel={t("neu.titel")}
+        symbol={<Plus className="h-4 w-4" aria-hidden="true" />}
+        variante="aktion"
+      >
+        <div className="@container/neu">
+          <p className="schrift-label text-muted-foreground">{t("neu.lead")}</p>
+          <form
+            ref={formular}
+            action={action}
+            className="mt-3 grid gap-2.5 @lg/neu:grid-cols-2 @3xl/neu:grid-cols-3"
+          >
+            <PfadFeld />
+            <Auswahl label={t("feld.block")} name="reihenblock_id" options={bloecke} required />
+            <Auswahl
+              label={t("feld.brigade")}
+              name="brigade_id"
+              options={[{ wert: "", text: t("feld.ohneBrigade") }, ...brigaden]}
+            />
+            <Feld
+              label={t("feld.faelligkeit")}
+              name="faelligkeit"
+              type="datetime-local"
+              required
+              hinweis={t("feld.faelligkeitHinweis")}
+            />
+            <Feld
+              label={t("feld.zielmenge")}
+              name="zielmenge_kg"
+              inputMode="decimal"
+              required
+              placeholder="30"
+            />
+            <Feld
+              label={t("feld.pfluecker")}
+              name="pfluecker_anzahl"
+              inputMode="decimal"
+              placeholder="4"
+            />
+            <div className="flex items-end">
+              <SubmitKnopf label={t("neu.knopf")} />
+            </div>
+          </form>
         </div>
-        <div className="sm:col-span-2 lg:col-span-5">
-          <AktionsMeldung status={status} />
-        </div>
-      </form>
-    </FormularKarte>
+      </Aufklapper>
+      {/* Ausserhalb des Aufklappers: die Meldung bleibt sichtbar, wenn das
+          Formular nach dem Anlegen zuklappt. */}
+      <AktionsMeldung status={status} />
+    </div>
   );
 }
 
@@ -104,10 +151,12 @@ export function MengeFormular({
   const t = useTranslations("pflueckaufgabenVerwaltung");
 
   return (
-    <form action={action} className="space-y-2.5" onSubmit={onSubmit}>
+    // Steht nur in der Detailansicht, deren Breite nicht am Fenster haengt:
+    // die Spalten richten sich nach dem Formular selbst.
+    <form action={action} className="@container/menge space-y-2.5" onSubmit={onSubmit}>
       <PfadFeld />
       <input type="hidden" name="id" value={id} />
-      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2.5 @sm/menge:grid-cols-2 @lg/menge:grid-cols-3">
         <Feld
           label={t("feld.istMenge")}
           name="ist_menge_kg"

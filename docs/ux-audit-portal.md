@@ -11,8 +11,8 @@ Jeder Punkt nennt seine Fundstelle. Wo eine Zahl steht, ist sie gemessen und nic
 | # | Punkt | Nutzen | Aufwand | Stand |
 |---|---|---|---|---|
 | 1 | Globale Suche ist eine Attrappe | sehr hoch | mittel | teilweise |
-| 2 | Tabellen ohne Sortieren, Filtern, Blättern | sehr hoch | hoch | offen |
-| 3 | Abfragen ohne Zeilenbegrenzung | sehr hoch | hoch | offen |
+| 2 | Tabellen ohne Sortieren, Filtern, Blättern | sehr hoch | hoch | teilweise |
+| 3 | Abfragen ohne Zeilenbegrenzung | sehr hoch | hoch | teilweise |
 | 4 | Öffentliche Routen ohne Fehlergrenze | hoch | niedrig | offen |
 | 5 | Tastaturbedienung ist unsichtbar | hoch | niedrig | **erledigt** |
 | 6 | Löschen ohne Rückfrage | hoch | niedrig | offen |
@@ -47,6 +47,13 @@ In einem ERP ist die Suche der meistbenutzte Weg zu einem Datensatz. Hier führt
 
 ### 2. Tabellen können nichts
 
+**Teilweise erledigt am 24.09.2026** (Branch `feat/liste-detailpanel`, WMCNL-2488):
+- **Pflückaufgaben:** Sie haben Filter (Status-Pillen mit Trefferzahl, Suche, Brigade, Zeitraum) und Blättern, gebaut als wiederverwendbare Liste mit Detailansicht (DESIGN.md Abschnitt 14).
+- **Sortierung:** Nach Spalten sortieren lässt sich noch nicht. Die Liste steht fest nach Fälligkeit, späteste zuerst.
+- **Übrige Listen:** Sie folgen mit WMCNL-2491.
+
+Der Befund unten beschreibt den Stand vor dem Umbau.
+
 `DataTable` nimmt `head: string[]` entgegen (`src/components/ui/kit.tsx:167`). Keine Sortierung, keine Filter, keine Seitenaufteilung, keine Spaltenwahl, keine Zeilenauswahl.
 
 Sortieren nach Datum, Menge oder Status ist für Buchhaltung und Betriebsleitung die Grundoperation. Sie fehlt im gesamten System.
@@ -54,6 +61,11 @@ Sortieren nach Datum, Menge oder Status ist für Buchhaltung und Betriebsleitung
 *Nutzen: sehr hoch · Aufwand: hoch*
 
 ### 3. Abfragen ohne Zeilenbegrenzung
+
+**Teilweise erledigt am 24.09.2026** (WMCNL-2488):
+- **Pflückaufgaben:** Die Liste lädt 20 Zeilen je Seite statt aller.
+- **Fotos:** Signiert werden nur noch die Fotos der geöffneten Aufgabe, nicht die aller Aufgaben.
+- **Übrige Abfragen ohne Grenze:** Sie folgen mit WMCNL-2491.
 
 Von 164 `.select()`-Aufrufen tragen 21 ein `.limit()`. Bei den heutigen Demodaten fällt das nicht auf. Eine echte Saison bringt Tausende Steigen, Chargen und Pflückaufgaben; dann lädt die Seite alles und die Oberfläche steht.
 

@@ -801,17 +801,13 @@
     "note": "A block with a running pre-harvest interval does not appear in the picking schedule at all. That way nobody can create a task on it by mistake."
   },
   "pflueckaufgabenDemo": {
-    "listTitle": "Picking tasks today",
-    "listLead": "Per brigade and row block. Progress is actual volume against target volume.",
+    "listTitle": "Picking tasks",
+    "listLead": "Per brigade and row block, latest due date first. Progress is actual volume against target volume.",
     "block": "Block",
     "qFactor": "Q factor",
-    "proofTitle": "Photo evidence",
-    "proofLead": "Sample photos of the retail punnet, the row block and the crate, right on the task.",
     "noProof": "No evidence for this task yet.",
     "reviewTitle": "Evidence review pending",
-    "reviewLead": "The task is waiting for release. Check the volume and the punnet evidence, then release or request rework.",
     "approve": "Release",
-    "rework": "Rework",
     "art": {
       "schale": "Retail punnet",
       "reihenblock": "Row block",
@@ -1081,8 +1077,6 @@
       "knopf": "Upload photo evidence"
     },
     "ablauf": {
-      "titel": "Task flow",
-      "lead": "Accept, pick, report the quantity, have the proof reviewed.",
       "annehmen": "Accept task",
       "starten": "Start picking"
     },
@@ -1103,7 +1097,62 @@
       "datei": "Photo",
       "hinweis": "Note",
       "hinweisBeispiel": "Retail punnet 125 g, closed fruit surface",
-      "ausschuss": "Rejects in kg"
+      "ausschuss": "Rejects in kg",
+      "faelligkeit": "Due",
+      "faelligkeitHinweis": "Date and time in farm time (Almaty)"
+    },
+    "filter": {
+      "status": "Status",
+      "alle": "All",
+      "zuErledigen": "To do",
+      "ueberfaellig": "Overdue",
+      "belegpruefung": "Evidence review",
+      "abgeschlossen": "Completed",
+      "suche": "Search",
+      "suchePlatzhalter": "Code, row block or variety",
+      "brigade": "Brigade",
+      "brigadeAlle": "All brigades",
+      "brigadeMeine": "Own brigade and unassigned",
+      "brigadeOhne": "Unassigned",
+      "zeitraum": "Due in period"
+    },
+    "liste": {
+      "treffer": "{anzahl, plural, =0 {No picking tasks} one {# picking task} other {# picking tasks}}",
+      "leerTitel": "No picking tasks yet",
+      "leerText": "Picking tasks appear here once they have been created.",
+      "leerGefiltertTitel": "No matches",
+      "leerGefiltert": "There are no picking tasks for this selection.",
+      "filterZuruecksetzen": "Reset filters"
+    },
+    "panel": {
+      "titel": "Picking task {code}",
+      "nichtGefundenTitel": "Picking task not found",
+      "ladefehlerTitel": "Picking task not loaded",
+      "reiterLabel": "Sections of the detail view",
+      "uebersicht": "Overview",
+      "fotos": "Photo evidence",
+      "kette": "Chain of evidence",
+      "sorte": "Variety",
+      "faellig": "Due",
+      "ohneFaelligkeit": "no due date",
+      "fortschritt": "Progress",
+      "ziel": "Target",
+      "ist": "Actual",
+      "ausschuss": "Rejects",
+      "ketteNurLive": "The chain of evidence is only available with a connected database."
+    },
+    "schritt": {
+      "titel": "Next step",
+      "mengeHinweis": "Record crates, working time and cooling measurements in the Chain of evidence tab.",
+      "pruefenLead": "Check the quantity and photo evidence, set the quality factor and approve.",
+      "belegeAnsehen": "View photo evidence ({anzahl})",
+      "keinBeleg": "No photo evidence yet. Approval requires at least one.",
+      "warten": "The task is waiting for the evidence review by farm management.",
+      "mengeKorrigieren": "Correct quantity",
+      "fertig": "Completed. Quantity, rejects and quality factor are locked.",
+      "nurAnsicht": "Your role can only view this task.",
+      "fremdeBrigade": "This task belongs to another brigade.",
+      "nurMitDatenbank": "Editing is only possible with a connected database."
     }
   },
   "pflanzenschutzVerwaltung": {
@@ -3498,6 +3547,41 @@
       "kontext": "{termin}",
       "kontextMehrere": "{termin} · {anzahl} items",
       "weiter": "Go to the B2B portal"
+    }
+  },
+  "liste": {
+    "filter": {
+      "titel": "Filters",
+      "knopf": "Filters",
+      "knopfMitAnzahl": "Filters ({anzahl})",
+      "anwenden": "Apply",
+      "anzeigen": "Show results",
+      "zuruecksetzen": "Reset",
+      "schliessen": "Close filters"
+    },
+    "zeitraum": {
+      "alle": "All",
+      "heute": "Today",
+      "woche": "This week",
+      "monat": "This month",
+      "saison": "This season",
+      "eigen": "Custom period",
+      "von": "From",
+      "bis": "To"
+    },
+    "blaettern": {
+      "label": "List pages",
+      "zurueck": "Previous",
+      "weiter": "Next",
+      "stand": "Page {seite} of {seiten}"
+    },
+    "panel": {
+      "schliessen": "Close detail view",
+      "zurListe": "Back to list",
+      "vorheriger": "Previous entry",
+      "naechster": "Next entry",
+      "nichtGefunden": "This entry does not exist or is not visible for your role.",
+      "ladefehler": "This entry cannot be loaded right now. Please try again in a moment."
     }
   }
 }

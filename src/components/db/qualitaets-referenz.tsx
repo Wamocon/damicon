@@ -28,8 +28,10 @@ export function QualitaetsReferenz() {
       <summary className="cursor-pointer select-none px-2.5 py-1.5 font-semibold text-card-foreground">
         {t("aufklappen")}
       </summary>
-      <div className="space-y-3 px-2.5 pb-2.5">
-        <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+      {/* Steht im Hochladen der Detailansicht, die unabhaengig vom Fenster
+          schmal sein kann. Fuenf Beeren brauchen rund 19,5rem. */}
+      <div className="@container/referenz space-y-3 px-2.5 pb-2.5">
+        <div className="grid grid-cols-3 gap-2 @xs/referenz:grid-cols-5">
           {merkmale.map(({ variante, key }) => (
             <div key={key} className="flex flex-col items-center gap-1 text-center">
               <div className="flex items-center justify-center rounded-lg bg-[#04161c] p-1.5">
