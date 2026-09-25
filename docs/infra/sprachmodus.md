@@ -84,18 +84,51 @@ Der Systemprompt kennt jetzt `"assistent" | "agent" | "sprache"`
   dem Werkzeug keinen Satz schreiben, und im Gespräch war es still, bis die
   Daten geladen waren. Der Agent-Modus erzwingt das Werkzeug weiterhin, eine
   Rechtsfrage erzwingt auch im Sprachmodus die Wissenssuche.
-- **Führung:** `SPRACHMODUS_FUEHRUNG` verlangt, vor jeder Erklärung mit
-  `oeffneBereich` den passenden Bereich zu öffnen und mit `zeigeAuf` auf die
-  besprochene Stelle zu deuten. Die Formatanweisung verbietet zusätzlich,
-  Fragen zu Daten aus dem Gedächtnis oder aus früheren Antworten zu beantworten.
+- **Führung:** `SPRACHMODUS_FUEHRUNG` verlangt, auf der passenden Seite zu
+  bleiben, einen anderen Bereich nur mit `oeffneBereich` und angekündigt zu
+  öffnen, danach `seiteLesen` und die Erklärung Stelle für Stelle mit
+  Sprechmarken (siehe unten). Die Formatanweisung verbietet zusätzlich, Fragen zu
+  Daten aus dem Gedächtnis oder aus früheren Antworten zu beantworten, und
+  Füllsätze wie „Ich lese nun die Seite“.
+- **Ziele von `oeffneBereich`** (`lib/ai/tools.ts`): Übersicht, Kontosicherheit,
+  alle sichtbaren Module, seit 25.09.2026 auch die vier **Zonen** (`feld`, `hof`,
+  `buero`, `markt`, nur mit mindestens einem sichtbaren Modul) und der volle
+  **Prüfbericht** (`pruefbericht` → `/dashboard/compliance`, nur für Rollen mit
+  `darfCeoBerichtLesen`). Mit `abschnitt` `audit`, `steuer`, `recht` oder `risiko`
+  öffnet der Prüfbericht gefiltert (`?bereich=audit`, die Seite übernimmt den
+  Filter). Vorher öffnete „Bereich Hof“ nur das Modul Kühlkette und „Prüfberichte“
+  das Datenschutz-Cockpit. Das Blatt einer Bereichskachel auf der Übersicht ist
+  bewusst kein Ziel: es liegt über dem Sprachmodus (z-index 100) und verdeckt
+  Kugel und Freigabekarte.
+- **Keine erzwungene Wissenssuche bei Zeige-Bitten:** Enthält eine Frage
+  „Audit“, „Compliance“ oder „Steuern“, erzwingt `waehleSchritt()` sonst im ersten
+  Schritt `wissenSuchen`. Im Sprachmodus nicht, wenn es eine Zeige-Bitte ist
+  (`istNavigationsbitte`: „zeig“, „öffne“, „Bereich“, „Prüfbericht“ …).
+- **Verlauf:** Im Sprachmodus geht nur das laufende Gespräch ans Modell (dazu die
+  letzte Frage davor, `VOR_SPRACHMODUS` in `ki-chat.tsx`), beginnend mit einer
+  Frage. Alte Fragen zu anderen Seiten ließen Himbi sonst früher gezeigte Bereiche
+  wieder öffnen. Ein Prüfbezug aus dem Chat geht im Sprachmodus nicht mit.
 
 ## Clientseitig
 
 ### Ablauf (Zustandsautomat, `src/lib/domain/sprachmodus.ts`)
 
 Halbduplex: `hoert` → `versteht` → `denkt` → `spricht` → wieder `hoert`.
-Während Himbi dran ist, geht nichts an die Erkennung, sonst hörte sie die
+Während Himbi dran ist, geht keine Frage an die Erkennung, sonst hörte sie die
 eigene Stimme aus dem Lautsprecher.
+
+**Stopp** geht auf drei Wegen: als Äußerung beim Zuhören, über den
+**Stoppwort-Wächter**, solange Himbi denkt oder spricht, und über Kugel, Leiste
+oder Escape. Der Wächter ist eine eigene Soniox-Live-Sitzung auf demselben
+Mikrofon (mit Echounterdrückung). Er reagiert nur auf endgültig erkannten Text,
+der ein reiner Stoppbefehl ist (`istStoppBefehl`: „Stopp“, „Stopp, stopp“,
+„Himbi, stopp“, „Stopp die Führung“, „Hör auf“, „Abbrechen“, in den vier
+Sprachen). Sagt Himbi das Wort gerade selbst, zählt es nicht. Bei offener
+Freigabekarte lehnt „Stopp“ nur die Karte ab. Bis zum 25.09.2026 gab es den
+Wächter nicht: ein kurzes „Stopp“ erreichte die 400 ms des Lautstärke-Wächters
+nie, beim Nachdenken hörte gar nichts zu. Stopp beendet die Stimme, die laufende
+Anfrage, wartende Handlungen, die Führungs-Warteschlange und den Rahmen und
+schließt den Sprachmodus.
 
 **Unterbrechen** geht auf zwei Wegen:
 
@@ -166,19 +199,19 @@ Abschnitte spielen beide darüber) und zeichnet direkt. Seit 24.09.2026 meldet d
 auch wirklich bei `lib/hoeren.ts` an (`starteHoeren`). Vorher tat das nur der
 Diktatknopf, und die Kugel reagierte nie auf die eigene Stimme.
 
-### Hervorhebung und Blasen-Platzierung
+### Hervorhebung
 
 - `components/ki/hervorhebung.ts`: welches Element gerade gezeigt wird, ein
-  Modul mit einem Wert wie `lib/hoeren.ts`. Gesetzt an genau zwei Stellen:
-  `ki-pane-kontext.tsx` (`hebeHervor`, nach `oeffneBereich`) und
-  `ui-steuerung.ts` (`zeigeAuf`).
-- `components/ki/sprach-spotlight.tsx`: ein SVG-Pfad mit `fill-rule: evenodd`
-  (Außenrechteck minus Zielausschnitt). Laut Recherche die robusteste
-  Spotlight-Technik, unabhängig vom Stacking-Context des Ziels (anders als der
-  ältere `box-shadow`/`z-index`-Trick).
-- `besterPlatz()` in `domain/sprachmodus.ts`: wählt die Ecke oder Kante, die
-  am weitesten vom Ziel entfernt ist und es nicht überlappt; bleibt bei
-  unverändertem Ziel am selben Platz (kein Herumspringen).
+  Modul mit einem Wert wie `lib/hoeren.ts`. Gesetzt von `fokussiere`
+  (`ki-pane-kontext.tsx`, nach `oeffneBereich`), `zeigeAuf` (`ui-steuerung.ts`)
+  und den Sprechmarken (`sprach-mitlesen.ts`). Eine neue Frage und Stopp setzen
+  ihn zurück.
+- `components/ki/sprach-spotlight.tsx`: nur ein Rahmen um das Ziel, keine
+  Abdunkelung.
+- `fokussiere` wartet auf die neue Seite (Pfad und `#main h1`) und rahmt dann
+  ihren Kopf, nicht die ganze Seite. Ein Suchlauf einer überholten Station setzt
+  keinen Rahmen mehr (`stationsNr`). Steht die Zielseite schon da, wird sie nicht
+  neu geladen (`stehtAuf`).
 
 ### Takt zwischen Stimme und Bildschirm (`src/components/ki/sprach-takt.ts`)
 
@@ -187,9 +220,16 @@ Werkzeugaufruf direkt dahinter lief früher sofort, und das Gezeigte eilte dem
 Gesprochenen voraus. Seit 25.09.2026 gilt:
 
 - Jede sichtbare Handlung im Sprachmodus (Bereich öffnen, `zeigeAuf`, `klicke`,
-  `fuelleFeld`, `scrolleZu`) wartet, bis die Stimme verstummt ist, also den Satz
-  davor gesprochen hat (zwei Takte hintereinander "still", höchstens 30 s).
-  `seiteLesen` ändert das Bild nicht und wartet nur auf die Reihe.
+  `fuelleFeld`, `scrolleZu`) wartet, bis die Stimme den Satz davor gesprochen hat.
+  Der Sprecher meldet „alles gesagt“, sobald die Stimme 350 ms still ist, auch
+  wenn der Strom für den nächsten Satz noch offen ist (`STILL_FERTIG_MS`). Vorher
+  kam ein Seitenwechsel erst mit dem nächsten Satz. `seiteLesen` ändert das Bild
+  nicht und wartet nur auf die Reihe.
+- Während die neue Seite lädt, hält die Stimme an (`AudioContext.suspend` über
+  `live.halte`, höchstens 3,5 s), damit sie nicht über die neue Seite spricht,
+  während noch die alte zu sehen ist.
+- Eine Handlung einer abgelösten Anfrage (neue Frage, Stopp) läuft nicht mehr nach
+  (`vorAusfuehrung` liefert dann `false`).
 - Nur `oeffneBereich` wechselt die Seite. Fachwerkzeuge mit einem Ziel
   (Compliance-Übersicht, Aufgaben ...) öffneten ihre Ansicht bisher sofort und rissen
   die Seite weg, während Himbi noch über die aktuelle sprach. Im Agent-Modus bleibt das
@@ -210,19 +250,42 @@ wird beschrieben, die Seite wechselt nicht). Der Sprecher (`sprachausgabe-strom.
 Sprechgeschwindigkeit wird aus jedem fertigen Strom nachgemessen. Ohne Satzposition
 (Vorlesen über einzelne Abschnitte) wartet ein Seitenwechsel höchstens 6 s.
 
-### Mitlesen (`sprach-mitlesen.ts`, `domain/sprachmodus-mitlesen.ts`)
+### Sprechmarken und Mitlesen (`domain/sprechmarken.ts`, `sprach-mitlesen.ts`)
 
-Bei einer längeren Erklärung, etwa der Compliance-Prüfung, wandert der Rahmen in der
-Mitte mit: der Satz, der gerade klingt (`leseGerade()` im Bus), wird mit den Texten
-im Hauptbereich verglichen (Überschriften, Bereiche, Listeneinträge, Kacheln).
-Treffer in der Überschrift und Zahlen zählen mehr, die kleinere Stelle gewinnt bei
-gleichem Wert, und passt nichts, bleibt der Rahmen, wo er war. Das Modell muss dafür
-nicht auf jeden Punkt zeigen. Zeigt es mit `zeigeAuf`, gilt der zuletzt gesetzte Rahmen.
+Der Rahmen in der Mitte folgt dem Satz, den die Stimme gerade spricht. Welche
+Stelle ein Satz meint, sagt seit dem 25.09.2026 (zweite Fassung) eine
+**Sprechmarke**: das Modell schreibt „[[a3]] Im Risiko-Radar stehen zwei
+Fristen.“, und genau diese Stelle wird gezeigt, wenn die Stimme den Satz
+erreicht. Die erste Fassung verglich Wörter des Satzes mit den Texten der Seite
+und landete regelmäßig auf fremden Karten (ein Satz über Kühlkettenverstöße im
+Prüfbericht traf die Zonenkarte „Hof“, gemessen im Ausgangslauf vom 25.09.2026).
 
-Liegt die gemeinte Stelle in einem **zugeklappten Element** (`details`, Aufklappbereich
-mit `aria-expanded="false"`), wird es aufgeklappt, und der Text dahinter zählt beim
-Vergleich mit. Aufgeklappt wird nur, was die Anwendung auch ohne Rückfrage anklickt
-(`klickStufe`), keine Menüs, Reiter oder Auswahlfelder.
+Der Weg einer Marke:
+
+1. **Referenzen:** `seiteLesen` liefert neben den Elementen (`e12`) auch die
+   Abschnitte der Seite (`a3`: Karten, Kacheln, Aufklappbereiche, Anker). Beide
+   bleiben je Seitenaufruf stabil, nie wieder neu ab `e1`. Jede Sprachmodus-Anfrage
+   trägt die **Seitenkarte** der aktuellen Seite mit (`seitenKarte()`), damit das
+   Modell ohne vorheriges `seiteLesen` Marken setzen kann. Der Server begrenzt und
+   bereinigt sie und kennzeichnet sie im Prompt als Daten.
+2. **Server:** `erzeugeMarkenFilter` nimmt jede Marke aus dem Text, auch über
+   Stückgrenzen hinweg. Anzeige, gespeicherter Verlauf, Signatur und Rückfallweg
+   sehen nur sauberen Text. Der Satzzerleger bekommt einen Platzhalter
+   (`MARKEN_PLATZHALTER`), trennt dort immer den Satz und hängt das Ziel an genau
+   diesen Satz (`data-satz.ziele`, unsigniert). Eine Marke am Ende eines Textteils
+   gehört zum ersten Satz nach dem Werkzeug. Referenzen, die das Modell nicht
+   kennen kann, fallen weg (`nurBekannteZiele`).
+3. **Browser:** Beim Eintreffen des Satzes wird das Ziel an sein Element gebunden
+   (`bindeSprechZiel`), damit ein späteres `seiteLesen` nichts verschiebt. Der
+   Sprecher führt es je Satz mit, `stand()` meldet den klingenden Satz samt Ziel,
+   und der Sprachmodus zeigt die Stelle (`zeigeSprechStelle`).
+
+Liegt die Stelle in einem **zugeklappten Element** (`details`, `aria-expanded`,
+`data-offen`), wird es aufgeklappt (`klappeAuf`), nur was die Anwendung auch ohne
+Rückfrage anklickt. Ein Satz ohne Marke lässt den Rahmen stehen. Nur wenn in der
+ganzen Antwort keine Marke kam, zeigt eine wörtlich genannte, sichtbare
+Überschrift die Stelle (`ueberschriftImSatz`), nie Wortähnlichkeit. Der
+klingende Satz steht als `data-satz-jetzt` am Untertitel (für den Führungstest).
 
 ### Navigationsleiste
 

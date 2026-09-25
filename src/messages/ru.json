@@ -103,7 +103,8 @@
       "target": "Цель",
       "zonesTitle": "Четыре зоны",
       "zonesDescription": "Каждая зона со своими показателями и модулями.",
-      "openZone": "Открыть зону"
+      "openZone": "Открыть зону",
+      "moduleTitel": "Модули"
     },
     "dataSource": {
       "db": "Данные из базы",

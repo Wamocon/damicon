@@ -63,6 +63,10 @@ export function Sprachmodus() {
 }
 
 const GROESSE_MITTE = 220;
+/** So lange muss ein vorlaeufig erkanntes "Stopp" stehen bleiben, bevor der
+ *  Stoppwort-Waechter anhaelt (kurz genug, um sofort zu wirken, lang genug, dass
+ *  ein vorlaeufiges Wort, das die Erkennung gleich korrigiert, nichts ausloest). */
+const STOPP_STABIL_MS = 350;
 const GROESSE_KLEIN = 96;
 
 /** Ein Symbol je Kugelzustand, neben dem Zustandstext - der Ton haengt nie an
@@ -523,12 +527,16 @@ function SprachmodusInhalt() {
   const himbiDran = assistentIstDran(phase);
   useEffect(() => {
     if (!himbiDran) return;
-    let letzterIndex = -1;
+    let letzter = "";
     let markeGesehen = false;
     const uhr = window.setInterval(() => {
       const jetzt = leseGerade();
-      if (!jetzt || jetzt.index === letzterIndex) return;
-      letzterIndex = jetzt.index;
+      // Satz und ob er klingt: nach einer Sprechpause steht derselbe Index erst
+      // still (noch nicht gesprochen) und klingt dann - erst dann gilt seine Marke.
+      const schluessel = jetzt ? `${jetzt.index}:${jetzt.satz === null ? 0 : 1}` : "";
+      if (!jetzt || schluessel === letzter) return;
+      letzter = schluessel;
+      if (jetzt.satz === null) return;
       untertitelRef.current?.setAttribute("data-satz-jetzt", jetzt.satz ?? "");
       if (jetzt.ziel) {
         markeGesehen = true;
@@ -567,24 +575,44 @@ function SprachmodusInhalt() {
       return;
     }
     let geprueftBis = 0;
+    let kandidat: string | null = null;
+    let kandidatUhr: number | undefined;
+    const letzteAeusserung = (text: string) => text.split(/(?<=[.!?…])\s+/).filter((t) => t.trim()).at(-1) ?? "";
+    const loeseAus = (aeusserung: string) => {
+      if (aus) return;
+      // Hat Himbi dieses Wort gerade selbst gesagt, ist es das eigene Echo.
+      const wort = stoppWortIn(aeusserung);
+      if (wort && stoppWortIn(leseChatStand().antwort, wort)) return;
+      aus = true;
+      if (leseFreigabeAnfrage()) {
+        entscheideFreigabe(false);
+        return;
+      }
+      beendenRef.current();
+    };
     const sitzung = starteLiveSitzung({
       sprache,
       zweck: "gespraech",
       beiStand: (stand) => {
         if (aus) return;
         const neu = stand.endgueltig.slice(geprueftBis);
-        const letzter = neu.split(/(?<=[.!?…])\s+/).filter((t) => t.trim()).at(-1) ?? "";
-        if (letzter && istStoppBefehl(letzter)) {
-          // Hat Himbi dieses Wort gerade selbst gesagt, ist es das eigene Echo.
-          const wort = stoppWortIn(letzter);
-          if (wort && stoppWortIn(leseChatStand().antwort, wort)) return;
-          aus = true;
-          if (leseFreigabeAnfrage()) {
-            entscheideFreigabe(false);
-            return;
+        const endgueltig = letzteAeusserung(neu);
+        if (endgueltig && istStoppBefehl(endgueltig)) return loeseAus(endgueltig);
+        // Schneller: der vorlaeufige Text, wenn er 350 ms lang ein reiner
+        // Stoppbefehl bleibt. Der endgueltige kam im Test erst nach rund drei
+        // Sekunden, und so lange lief die Fuehrung weiter.
+        const vorlaeufig = letzteAeusserung(stand.anzeige.slice(geprueftBis));
+        if (vorlaeufig && istStoppBefehl(vorlaeufig)) {
+          if (kandidat !== vorlaeufig) {
+            kandidat = vorlaeufig;
+            window.clearTimeout(kandidatUhr);
+            kandidatUhr = window.setTimeout(() => {
+              if (kandidat === vorlaeufig) loeseAus(vorlaeufig);
+            }, STOPP_STABIL_MS);
           }
-          beendenRef.current();
-          return;
+        } else {
+          kandidat = null;
+          window.clearTimeout(kandidatUhr);
         }
         // Ein abgeschlossener Satz ohne Stopp: der naechste beginnt dahinter.
         if (/[.!?…]\s*$/.test(neu) || neu.length > 160) geprueftBis = stand.endgueltig.length;
@@ -597,6 +625,7 @@ function SprachmodusInhalt() {
     recorder.start(AUFNAHME_STUECK_MS);
     return () => {
       aus = true;
+      window.clearTimeout(kandidatUhr);
       try {
         if (recorder.state !== "inactive") recorder.stop();
       } catch {

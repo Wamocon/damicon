@@ -251,7 +251,9 @@ ${liste}`,
           ziel: pruefbereich ? `${fest.ziel}?bereich=${pruefbereich}` : fest.ziel,
           bereich,
           titel: fest.titel,
-          beschreibung: fest.text,
+          beschreibung: pruefbereich
+            ? `${fest.text} Geoeffnet gefiltert auf den Pruefbereich ${pruefbereich}: der Filter ist schon gesetzt, nicht erneut anklicken.`
+            : fest.text,
           ...(pruefbereich ? { pruefbereich } : {}),
         };
       }

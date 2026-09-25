@@ -338,7 +338,8 @@
       "target": "Target",
       "zonesTitle": "The four zones",
       "zonesDescription": "Each zone with its indicators and its modules.",
-      "openZone": "Open zone"
+      "openZone": "Open zone",
+      "moduleTitel": "Modules"
     },
     "loading": "Loading data",
     "askAi": "Ask AI",

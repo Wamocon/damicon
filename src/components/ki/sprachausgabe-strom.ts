@@ -227,6 +227,14 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
   // stand() nie "fertig", solange der Strom offen war (bis zu 4 s), und ein
   // Seitenwechsel kam erst mit dem naechsten Satz.
   let stillSeit: number | null = null;
+  // Wie viele Saetze uebergeben waren, als die Stimme verstummte: nur DIESE sind
+  // dann gesagt. Ein Satz, der erst waehrend der Stille kommt, ist es noch nicht.
+  let saetzeBeiStille = 0;
+  // Fester Punkt der Schaetzung: bis zu diesem Satz ist alles gesagt, und so viel
+  // Ton war da schon gespielt. An jeder Sprechpause neu gesetzt - sonst summierte
+  // sich der Fehler der Zeichenrate ueber viele Saetze, und das Mitlesen zeigte
+  // einen Satz zu spaet (Fuehrungstest vom 25.09.2026).
+  let anker = { index: 0, sekunden: 0 };
   let letzterStrom: string | null = null;
   let zeitEnde = 0;
   let vorlauf = STROM_VORLAUF_S;
@@ -557,7 +565,10 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       geplant.delete(quelle);
       startZeiten.delete(quelle);
       fertigSekunden += puffer.duration;
-      if (geplant.size === 0) stillSeit = performance.now();
+      if (geplant.size === 0) {
+        stillSeit = performance.now();
+        saetzeBeiStille = verlauf.length;
+      }
       melde();
     };
     melde();
@@ -662,6 +673,8 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       fertigSekunden = 0;
       verlauf = [];
       stillSeit = null;
+      saetzeBeiStille = 0;
+      anker = { index: 0, sekunden: 0 };
       letzterStrom = null;
       zeitEnde = 0;
       vorlauf = STROM_VORLAUF_S;
@@ -675,18 +688,21 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       const anzahl = verlauf.length;
       const nichtsOffen = geplant.size === 0 && !aktiv && ausstehend.length === 0 && !arbeitet;
       if (nichtsOffen && fertigSekunden > 0) return { index: anzahl, anzahl, satz: null };
-      // Seit einem Moment still, obwohl schon etwas klang: alles Uebergebene ist gesagt.
+      // Seit einem Moment still, obwohl schon etwas klang: alles, was VOR der Stille
+      // uebergeben war, ist gesagt. Der naechste Satz (index) klingt noch nicht.
       if (geplant.size === 0 && stillSeit !== null && performance.now() - stillSeit >= STILL_FERTIG_MS) {
-        return { index: anzahl, anzahl, satz: null };
+        const fertig = Math.min(saetzeBeiStille, anzahl);
+        anker = { index: fertig, sekunden: fertigSekunden };
+        return { index: fertig, anzahl, satz: null };
       }
       let gespielt = fertigSekunden;
       const erstes = geplant.values().next().value;
       if (erstes) gespielt += Math.max(0, ctx.currentTime - (startZeiten.get(erstes) ?? ctx.currentTime));
-      const position = gespielt * (gemesseneRate ?? ZEICHEN_JE_SEKUNDE) * letztesTempo;
-      const index = satzBeiPosition(
-        verlauf.map((v) => v.zeichen),
-        position,
-      );
+      // Ab dem letzten festen Punkt schaetzen, nicht vom Anfang der Runde.
+      const laengen = verlauf.map((v) => v.zeichen);
+      const vorAnker = laengen.slice(0, anker.index).reduce((summe, n) => summe + n, 0);
+      const position = vorAnker + Math.max(0, gespielt - anker.sekunden) * (gemesseneRate ?? ZEICHEN_JE_SEKUNDE) * letztesTempo;
+      const index = Math.max(Math.min(anker.index, anzahl - 1), satzBeiPosition(laengen, position));
       return { index, anzahl, satz: verlauf[index]?.anzeige ?? null, ziel: verlauf[index]?.ziel ?? null };
     },
 

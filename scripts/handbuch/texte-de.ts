@@ -567,7 +567,7 @@ export const de: HandbuchTexte = {
       },
       {
         begriff: "Sprachmodus",
-        text: "Live-Gespräch mit dem Assistenten ohne sichtbaren Chat: eine Kugel reagiert auf die Stimme, der Assistent kann selbst zu einem Bereich springen und ihn zeigen. Unterbrechen wie im Gespräch: einfach dazwischenreden oder auf die Kugel tippen. Starten: Knopf „Gespräch“ in der Kopfzeile, oder im Chat der Senden-Knopf, solange das Eingabefeld leer ist. Der Sprachmodus darf dasselbe wie der Chat, auch etwas eintragen. Bevor eine Änderung gespeichert wird, zeigt er sie deutlich umrandet auf dem Bildschirm, und Sie geben sie mit „Ja“ frei oder lehnen sie mit „Nein“ ab. Mit „Stopp“ beenden Sie den Sprachmodus.",
+        text: "Live-Gespräch mit dem Assistenten ohne sichtbaren Chat: eine Kugel reagiert auf die Stimme, der Assistent kann selbst zu einem Bereich springen und ihn zeigen. Unterbrechen wie im Gespräch: einfach dazwischenreden oder auf die Kugel tippen. Starten: Knopf „Gespräch“ in der Kopfzeile, oder im Chat der Senden-Knopf, solange das Eingabefeld leer ist. Der Sprachmodus darf dasselbe wie der Chat, auch etwas eintragen. Bevor eine Änderung gespeichert wird, zeigt er sie deutlich umrandet auf dem Bildschirm, und Sie geben sie mit „Ja“ frei oder lehnen sie mit „Nein“ ab. Während er erklärt, umrandet ein Rahmen genau die Stelle, über die er gerade spricht, und zugeklappte Abschnitte klappt er dafür auf. Er öffnet auch die Bereiche Feld, Hof, Büro und Markt und den Compliance-Prüfbericht, auf Wunsch gefiltert nach Audit, Steuern, Recht oder Risiko. Mit „Stopp“ beenden Sie den Sprachmodus, jederzeit, auch während er spricht oder nachdenkt.",
       },
       {
         begriff: "WAMOCON",

@@ -338,7 +338,8 @@
       "target": "Ziel",
       "zonesTitle": "Die vier Zonen",
       "zonesDescription": "Jede Zone mit ihren Kennzahlen und ihren Modulen.",
-      "openZone": "Zone öffnen"
+      "openZone": "Zone öffnen",
+      "moduleTitel": "Module"
     },
     "loading": "Daten werden geladen",
     "askAi": "KI fragen",

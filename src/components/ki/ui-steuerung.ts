@@ -25,6 +25,9 @@ export interface ElementInfo {
   format?: string;
   deaktiviert?: boolean;
   ziel?: string;
+  /** Gedrueckt oder ausgewaehlt (aria-pressed/aria-selected), etwa der aktive
+   *  Filter. Ohne diese Angabe klickte der Agent einen schon gesetzten Filter an. */
+  aktiv?: boolean;
 }
 
 /** Eine Stelle der Seite, auf die der Sprachmodus mit einer Sprechmarke
@@ -65,6 +68,7 @@ export interface Umgebung {
 
 const MAX_ELEMENTE = 140;
 const MAX_ABSCHNITTE = 60;
+const MAX_LISTENPUNKTE = 8;
 const MAX_TEXT = 3200;
 const FOKUS_KLASSE = "ki-fokus";
 const REF_ATTRIBUT = "data-ki-ref";
@@ -196,7 +200,8 @@ export async function warteBisRuhig(maxMs = 3200, ruheMs = 380): Promise<void> {
 export async function schnappschuss(fokus?: string): Promise<Schnappschuss> {
   await warteBisRuhig(1800, 250);
   const haupt = wurzel();
-  const url = `${window.location.pathname}${window.location.hash}`;
+  // Mit Abfrage: ?bereich=steuer sagt dem Modell, dass der Pruefbericht schon gefiltert ist.
+  const url = `${window.location.pathname}${window.location.search}${window.location.hash}`;
   if (!haupt) return { url, titel: document.title, ueberschriften: [], text: "", elemente: [], abschnitte: [], hinweis: "Kein Inhaltsbereich gefunden." };
 
   const stichwort = fokus?.trim().toLowerCase();
@@ -227,6 +232,7 @@ export async function schnappschuss(fokus?: string): Promise<Schnappschuss> {
       if (formate[el.type]) info.format = formate[el.type];
     }
     if ("disabled" in el && (el as HTMLButtonElement).disabled) info.deaktiviert = true;
+    if (el.getAttribute("aria-pressed") === "true" || el.getAttribute("aria-selected") === "true") info.aktiv = true;
     elemente.push(info);
   }
 
@@ -293,14 +299,17 @@ function istZugeklappt(stelle: HTMLElement): boolean {
 function abschnitteDer(haupt: HTMLElement): AbschnittInfo[] {
   const gesehen = new Set<HTMLElement>();
   const liste: AbschnittInfo[] = [];
-  const kandidaten = haupt.querySelectorAll<HTMLElement>(`${KOEPFE}, [id]`);
+  // Dazu die Punkte kurzer Listen ("Die wichtigsten Schritte", Befunde, Massnahmen):
+  // so kann Himbi auf jeden einzelnen Punkt zeigen, von dem er spricht.
+  const kandidaten = haupt.querySelectorAll<HTMLElement>(`${KOEPFE}, [id], ol > li, ul > li`);
   for (const k of Array.from(kandidaten)) {
     if (liste.length >= MAX_ABSCHNITTE) break;
     if (!sichtbar(k)) continue;
+    if (k.matches("li") && ((k.parentElement?.children.length ?? 0) > MAX_LISTENPUNKTE || (k.textContent ?? "").trim().length > 200)) continue;
     if (k.matches("input, select, textarea, button:not([aria-expanded]), label, option")) continue;
     if (k.hasAttribute("id") && !/^[a-z][a-z0-9-]{2,}$/.test(k.id)) continue;
     if (k.matches("[aria-expanded]") && (k.matches("[role='tab'], [role='combobox'], [aria-haspopup]:not([aria-haspopup='false'])") || klickStufe(k).stufe !== "erlaubt")) continue;
-    const stelle = k.hasAttribute("id") && !k.matches(KOEPFE) && passendeHoehe(k) ? k : stelleZu(k);
+    const stelle = (k.hasAttribute("id") || k.matches("li")) && !k.matches(KOEPFE) && passendeHoehe(k) ? k : stelleZu(k);
     if (gesehen.has(stelle)) continue;
     const titel = titelVon(k);
     if (!titel || titel.length < 2) continue;
