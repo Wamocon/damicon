@@ -314,13 +314,14 @@ Glocke Fehlt In Der Ansicht Als Kunde
 Schreibtisch Dockt Die Detailansicht Neben Der Liste An
     [Documentation]    Liste mit Detailansicht (DESIGN.md Abschnitt 14): bei
     ...    1600 px ist genug Platz, die Detailansicht steht rechts neben der
-    ...    Liste und ueberdeckt sie nicht.
+    ...    Liste, ueberdeckt sie nicht und ist breiter als ihre 26rem Minimum.
     [Tags]    schreibtisch
     Portal Oeffnen    ${SCHREIBTISCH}
     Seite Ansteuern    /dashboard/feld/pflueckaufgaben
     Detailansicht Oeffnen
     Anordnung Der Detailansicht Ist    ${SCHREIBTISCH}    angedockt
     Detailansicht Steht Neben Der Liste    ${SCHREIBTISCH}
+    Detailansicht Nutzt Den Platz    ${SCHREIBTISCH}
     Kein Waagerechtes Scrollen    ${SCHREIBTISCH}    detailansicht
     Befund Festhalten    ${SCHREIBTISCH}    detailansicht
 

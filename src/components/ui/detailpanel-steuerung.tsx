@@ -336,27 +336,36 @@ export function DetailpanelSteuerung({
     };
   }, [auswahlId, router, schliessenZiel]);
 
-  // Anordnung an <html> melden. Himbi weicht damit aus (haustier.css): neben
-  // der angedockten oder ueber der Liste liegenden Detailansicht rueckt er
-  // nach links, wo sie die Liste ersetzt, blendet er sich aus.
+  // Anordnung und Breite an <html> melden. Himbi weicht damit aus
+  // (haustier.css): neben der angedockten oder ueber der Liste liegenden
+  // Detailansicht rueckt er um ihre Breite nach links, wo sie die Liste
+  // ersetzt, blendet er sich aus. Die Breite wird gemessen, weil sie mit dem
+  // Platz waechst (--detailpanel-angedockt in globals.css).
   useEffect(() => {
     const wurzel = document.documentElement;
-    if (!auswahlId) {
+    const aufraeumen = () => {
       delete wurzel.dataset.detailpanel;
+      wurzel.style.removeProperty("--detailpanel-ist");
+    };
+    if (!auswahlId) {
+      aufraeumen();
       return;
     }
     const behaelter = document.getElementById(behaelterId);
+    const panel = document.getElementById("detailpanel");
     const bestimme = () => {
       wurzel.dataset.detailpanel = anordnung(behaelter);
+      if (panel) wurzel.style.setProperty("--detailpanel-ist", `${panel.offsetWidth}px`);
     };
     bestimme();
     const beobachter = new ResizeObserver(bestimme);
     if (behaelter) beobachter.observe(behaelter);
+    if (panel) beobachter.observe(panel);
     window.addEventListener("resize", bestimme);
     return () => {
       beobachter.disconnect();
       window.removeEventListener("resize", bestimme);
-      delete wurzel.dataset.detailpanel;
+      aufraeumen();
     };
   }, [auswahlId, behaelterId]);
 

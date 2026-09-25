@@ -128,109 +128,124 @@ export async function PflueckaufgabeDetail({
             }),
       ],
     ];
+    // Ab 42rem zweispaltig: links die Angaben, rechts der naechste Schritt.
+    // Angedockt ist die Detailansicht auf breiten Bildschirmen bis 60rem breit,
+    // einspaltig stuenden die Teile dort nur weiter auseinander.
     inhalt = (
-      <div className="@container/uebersicht space-y-4">
-        <dl className="grid grid-cols-1 gap-x-4 gap-y-2 @xs/uebersicht:grid-cols-2">
-          {zeilen.map(([name, wert]) => (
-            <div key={name} className="min-w-0">
-              <dt className="schrift-label font-semibold uppercase tracking-wide text-muted-foreground">
-                {name}
-              </dt>
-              <dd className="text-sm font-semibold text-card-foreground">{wert}</dd>
+      <div className="@container/uebersicht">
+        <div className="grid gap-4 @2xl/uebersicht:grid-cols-2 @2xl/uebersicht:items-start @2xl/uebersicht:gap-6">
+          <div className="min-w-0 space-y-4">
+            <dl className="grid grid-cols-1 gap-x-4 gap-y-2 @xs/uebersicht:grid-cols-2">
+              {zeilen.map(([name, wert]) => (
+                <div key={name} className="min-w-0">
+                  <dt className="schrift-label font-semibold uppercase tracking-wide text-muted-foreground">
+                    {name}
+                  </dt>
+                  <dd className="text-sm font-semibold text-card-foreground">{wert}</dd>
+                </div>
+              ))}
+            </dl>
+            <div>
+              <div className="flex items-baseline justify-between gap-2 text-xs text-muted-foreground tabular-nums">
+                <span>{v("panel.fortschritt")}</span>
+                <span>
+                  {format.number(aufgabe.istMengeKg, { maximumFractionDigits: 1 })} /{" "}
+                  {kg(aufgabe.zielmengeKg)}
+                </span>
+              </div>
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
+                <div className="h-full rounded-full bg-primary" style={{ width: `${fortschritt}%` }} />
+              </div>
             </div>
-          ))}
-        </dl>
-        <div>
-          <div className="flex items-baseline justify-between gap-2 text-xs text-muted-foreground tabular-nums">
-            <span>{v("panel.fortschritt")}</span>
-            <span>
-              {format.number(aufgabe.istMengeKg, { maximumFractionDigits: 1 })} /{" "}
-              {kg(aufgabe.zielmengeKg)}
-            </span>
+            <dl className="grid grid-cols-2 gap-2 @xs/uebersicht:grid-cols-3">
+              {zahlen.map(([name, wert]) => (
+                <div key={name} className="rounded-lg border border-border bg-card px-3 py-2">
+                  <dt className="schrift-label font-semibold uppercase tracking-wide text-muted-foreground">
+                    {name}
+                  </dt>
+                  <dd className="text-sm font-black text-card-foreground tabular-nums">{wert}</dd>
+                </div>
+              ))}
+            </dl>
           </div>
-          <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-muted">
-            <div className="h-full rounded-full bg-primary" style={{ width: `${fortschritt}%` }} />
+          <div className="min-w-0">
+            <PflueckaufgabeSchritt
+              aufgabe={aufgabe}
+              live={live}
+              darfHandeln={rechte.darfHandeln}
+              fremdeBrigade={rechte.fremdeBrigade}
+              darfAbschliessen={rechte.darfAbschliessen}
+              fotoZiel={zuReiter("fotos")}
+            />
           </div>
         </div>
-        <dl className="grid grid-cols-2 gap-2 @xs/uebersicht:grid-cols-3">
-          {zahlen.map(([name, wert]) => (
-            <div key={name} className="rounded-lg border border-border bg-card px-3 py-2">
-              <dt className="schrift-label font-semibold uppercase tracking-wide text-muted-foreground">
-                {name}
-              </dt>
-              <dd className="text-sm font-black text-card-foreground tabular-nums">{wert}</dd>
-            </div>
-          ))}
-        </dl>
-        <PflueckaufgabeSchritt
-          aufgabe={aufgabe}
-          live={live}
-          darfHandeln={rechte.darfHandeln}
-          fremdeBrigade={rechte.fremdeBrigade}
-          darfAbschliessen={rechte.darfAbschliessen}
-          fotoZiel={zuReiter("fotos")}
-        />
       </div>
     );
   } else if (aktiv === "fotos") {
+    // Breit: Bilder zu zweit nebeneinander, Hochladen und Hinweis in einer
+    // schmalen Spalte daneben statt darunter.
     inhalt = (
-      <div className="space-y-4">
-        {aufgabe.belege.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
-            {t("noProof")}
-          </p>
-        ) : (
-          <div className="space-y-3">
-            {aufgabe.belege.map((beleg, index) => (
-              <figure
-                key={beleg.id}
-                className="overflow-hidden rounded-xl border border-border bg-muted/30"
-              >
-                <div className="relative h-44 w-full">
-                  <Image
-                    src={beleg.bildUrl}
-                    alt={beleg.hinweis}
-                    fill
-                    sizes="(min-width: 768px) 26rem, 100vw"
-                    priority={index === 0}
-                    // Signierte Storage-URLs und SVG-Platzhalter laufen beide
-                    // nicht durch den Bildoptimierer.
-                    unoptimized
-                    className="object-cover"
-                  />
-                </div>
-                <figcaption className="p-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <StatusPill tone="info">{t(`art.${beleg.art}`)}</StatusPill>
-                    <span className="schrift-label text-muted-foreground tabular-nums">
-                      {format.dateTime(new Date(beleg.aufgenommen), {
-                        day: "2-digit",
-                        month: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        timeZone: betriebsZeitzone,
-                      })}
-                    </span>
+      <div className="@container/fotos">
+        <div className="grid gap-4 @2xl/fotos:grid-cols-[minmax(0,1fr)_minmax(0,18rem)] @2xl/fotos:items-start @2xl/fotos:gap-6">
+          {aufgabe.belege.length === 0 ? (
+            <p className="rounded-lg border border-dashed border-border p-4 text-center text-xs text-muted-foreground">
+              {t("noProof")}
+            </p>
+          ) : (
+            <div className="grid min-w-0 gap-3 @md/fotos:grid-cols-2">
+              {aufgabe.belege.map((beleg, index) => (
+                <figure
+                  key={beleg.id}
+                  className="overflow-hidden rounded-xl border border-border bg-muted/30"
+                >
+                  <div className="relative h-44 w-full">
+                    <Image
+                      src={beleg.bildUrl}
+                      alt={beleg.hinweis}
+                      fill
+                      sizes="(min-width: 768px) 26rem, 100vw"
+                      priority={index === 0}
+                      // Signierte Storage-URLs und SVG-Platzhalter laufen beide
+                      // nicht durch den Bildoptimierer.
+                      unoptimized
+                      className="object-cover"
+                    />
                   </div>
-                  <p className="mt-1.5 text-xs text-foreground">{beleg.hinweis}</p>
-                  {!beleg.hochgeladen ? (
-                    <p className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">
-                      {v("platzhalterBild")}
-                    </p>
-                  ) : null}
-                </figcaption>
-              </figure>
-            ))}
+                  <figcaption className="p-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <StatusPill tone="info">{t(`art.${beleg.art}`)}</StatusPill>
+                      <span className="schrift-label text-muted-foreground tabular-nums">
+                        {format.dateTime(new Date(beleg.aufgenommen), {
+                          day: "2-digit",
+                          month: "2-digit",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          timeZone: betriebsZeitzone,
+                        })}
+                      </span>
+                    </div>
+                    <p className="mt-1.5 text-xs text-foreground">{beleg.hinweis}</p>
+                    {!beleg.hochgeladen ? (
+                      <p className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">
+                        {v("platzhalterBild")}
+                      </p>
+                    ) : null}
+                  </figcaption>
+                </figure>
+              ))}
+            </div>
+          )}
+          <div className="min-w-0 space-y-4">
+            {live && rechte.darfHandeln ? (
+              <div className="border-t border-border pt-4 @2xl/fotos:border-t-0 @2xl/fotos:pt-0">
+                <BelegUploadFormular aufgabeId={aufgabe.id} />
+              </div>
+            ) : null}
+            <p className="rounded-xl bg-muted/30 p-3 text-xs leading-5 text-muted-foreground">
+              {t("note")}
+            </p>
           </div>
-        )}
-        {live && rechte.darfHandeln ? (
-          <div className="border-t border-border pt-4">
-            <BelegUploadFormular aufgabeId={aufgabe.id} />
-          </div>
-        ) : null}
-        <p className="rounded-xl bg-muted/30 p-3 text-xs leading-5 text-muted-foreground">
-          {t("note")}
-        </p>
+        </div>
       </div>
     );
   } else {

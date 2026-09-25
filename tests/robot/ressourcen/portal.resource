@@ -206,6 +206,19 @@ Detailansicht Steht Neben Der Liste
     Run Keyword If    ${abstand} < 0    Befund Festhalten    ${profil}    detailansicht-ueberlappt
     Should Be True    ${abstand} >= 0    msg=Die Detailansicht ueberdeckt die Liste um ${abstand} px.
 
+Detailansicht Nutzt Den Platz
+    [Documentation]    Mit einer Auswahl gehoert der Platz der Detailansicht:
+    ...    angedockt waechst sie ueber ihre Mindestbreite von 26rem hinaus, die
+    ...    Liste behaelt mindestens 28,5rem (--detailpanel-angedockt in
+    ...    globals.css).
+    [Arguments]    ${profil}
+    ${masse} =    Evaluate JavaScript    ${None}
+    ...    () => { const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16; const breite = (id) => Math.round(document.getElementById(id).getBoundingClientRect().width / rem * 10) / 10; return { panel: breite('detailpanel'), liste: breite('liste') }; }
+    ${zu_schmal} =    Evaluate    ${masse}[panel] <= 26 or ${masse}[liste] < 28.4
+    Run Keyword If    ${zu_schmal}    Befund Festhalten    ${profil}    detailansicht-breite
+    Should Be True    ${masse}[panel] > 26    msg=Die Detailansicht ist nur ${masse}[panel]rem breit.
+    Should Be True    ${masse}[liste] >= 28.4    msg=Die Liste ist nur ${masse}[liste]rem breit.
+
 Glocke Oeffnen
     [Documentation]    Klickt die Glocke und wartet, bis ihr Panel steht.
     Click    ${GLOCKE}

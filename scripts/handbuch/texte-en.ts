@@ -129,7 +129,7 @@ export const en: HandbuchTexte = {
       },
       {
         titel: "List with detail view",
-        text: "Modules with many entries show a list with filters and pages, starting with the picking tasks. Clicking an entry opens the detail view with tabs on the right, and the list stays usable next to it. Where there is too little room, for example on a phone or next to the open AI chat, the detail view takes the place of the list. Filters, page and the selected entry are part of the address: a link shows exactly this view, and Back closes the detail view again. New entries are created with the button directly above the list.",
+        text: "Modules with many entries show a list with filters and pages, starting with the picking tasks. Clicking an entry opens the detail view with tabs on the right, and the list stays usable next to it. The list becomes narrower so that the detail view gets the room and its content fits without scrolling where possible. Where there is too little room, for example on a phone or next to the open AI chat, the detail view takes the place of the list. Filters, page and the selected entry are part of the address: a link shows exactly this view, and Back closes the detail view again. New entries are created with the button directly above the list.",
       },
     ],
     spracheTitel: "Switching language",

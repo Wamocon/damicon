@@ -19,10 +19,15 @@
    weniger daneben. Deshalb Container-Abfragen auf den Behaelter "liste"
    (ui/liste.tsx).
 
-     angedockt  ab 56rem: 28,5rem Liste + 1,5rem Abstand + 26rem Panel
-     schublade  36 bis 56rem, ab md: das Panel liegt ueber der Liste
+     angedockt  ab 56rem: 28,5rem Liste + 1,5rem Abstand + 26rem Panel;
+                mit mehr Platz waechst das Panel bis 60rem, erst dann die Liste
+     schublade  36 bis 56rem, ab md: das Panel liegt ueber der Liste, 26 bis
+                40rem breit, links bleiben 10rem Liste sichtbar
      ersetzt   unter 36rem oder auf dem Handy: das Panel ersetzt die Liste;
-                daneben bliebe nur ein Streifen, in dem man nichts lesen kann */
+                daneben bliebe nur ein Streifen, in dem man nichts lesen kann
+
+   Die Grenzen muessen zu den Breiten unten (:root) passen: 56 = 28,5 + 1,5 +
+   26 und 36 = 26 + 10. Media- und Container-Abfragen kennen keine Variablen. */
 @custom-variant panel-angedockt {
   @container liste (width >= 56rem) {
     @slot;
@@ -474,11 +479,24 @@
   }
 }
 
-/* Detailansicht einer Liste (ui/liste.tsx, DESIGN.md Abschnitt 14). Die
-   Breite steht hier, weil drei Stellen mit ihr rechnen: das Raster der Liste,
-   die Schublade und Himbi, der ihr ausweicht (haustier.css). */
+/* Detailansicht einer Liste (ui/liste.tsx, DESIGN.md Abschnitt 14). Ist
+   ein Eintrag gewaehlt, bekommt die Detailansicht den Platz: angedockt
+   schrumpft die Liste bis auf 28,5rem, bevor die Detailansicht aufhoert zu
+   wachsen, sonst muesste man in ihr scrollen. 100cqw ist die Breite des
+   Behaelters "liste", 1,5rem der Abstand im Raster (gap-6). Himbi misst die
+   tatsaechliche Breite (--detailpanel-ist, detailpanel-steuerung.tsx). */
 :root {
   --detailpanel-breite: 26rem;
+  --detailpanel-max: 60rem;
+  --detailpanel-schublade-max: 40rem;
+  --liste-min-breite: 28.5rem;
+  --liste-rest: 10rem;
+  --detailpanel-angedockt: clamp(
+    var(--detailpanel-breite),
+    100cqw - var(--liste-min-breite) - 1.5rem,
+    var(--detailpanel-max)
+  );
+  --detailpanel-schublade: min(var(--detailpanel-schublade-max), 100cqw - var(--liste-rest));
 }
 
 /* Als Schublade gleitet sie ein kurzes Stueck herein statt vom Rand: sie

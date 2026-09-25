@@ -1,6 +1,6 @@
 # Damicon – Design-System
 
-Stand 24.09.2026. Beschreibt, was im Code steht, nicht einen Wunschzustand. Quellen: `src/app/globals.css` (Tokens), `src/components/ui/kit.tsx` (Bausteine), `src/components/dashboard/`, `src/components/brand/damicon-logo.tsx`, `src/components/ki/ki-pane.css`. Bei Abweichungen gilt der Code; diese Datei wird nachgezogen.
+Stand 25.09.2026. Beschreibt, was im Code steht, nicht einen Wunschzustand. Quellen: `src/app/globals.css` (Tokens), `src/components/ui/kit.tsx` (Bausteine), `src/components/dashboard/`, `src/components/brand/damicon-logo.tsx`, `src/components/ki/ki-pane.css`. Bei Abweichungen gilt der Code; diese Datei wird nachgezogen.
 
 ## 1. Charakter
 
@@ -311,19 +311,25 @@ Seit 24.09.2026, zuerst auf Feld › Pflückaufgaben (WMCNL-2488). Gedacht für 
 - Die Seite bleibt serverseitig gerendert. Jeder Wechsel ist ein Link und funktioniert auch, solange das Skript-Bundle noch lädt oder gar nicht ankommt, etwa bei schlechtem Netz auf dem Feld. Die Filter sind ein GET-Formular, das dann Enter im Suchfeld abschickt. Nur das Filterblatt auf dem Handy und die sofort wirkenden Auswahlfelder brauchen das Skript.
 - Ganz ohne JavaScript zeigt das Dashboard nur den Ladezustand. Die Modulseiten streamen über `loading.tsx`, und den Inhalt setzt ein Inline-Skript ein. Das gilt für alle Modulseiten und ist keine Eigenheit dieses Musters.
 
-**Drei Anordnungen.** Maßgeblich ist die Breite, die der Liste tatsächlich bleibt, nicht die Fensterbreite, denn ein angedockter KI-Chat nimmt der Hauptspalte bis zu 960 px. Deshalb fragt der Code den Behälter `liste` per Container-Abfrage ab (Varianten `panel-angedockt`, `panel-schublade` und `panel-ersetzt` in `globals.css`). Die Detailansicht ist 26rem breit (`--detailpanel-breite`).
+**Drei Anordnungen.** Maßgeblich ist die Breite, die der Liste tatsächlich bleibt, nicht die Fensterbreite, denn ein angedockter KI-Chat nimmt der Hauptspalte bis zu 960 px. Deshalb fragt der Code den Behälter `liste` per Container-Abfrage ab (Varianten `panel-angedockt`, `panel-schublade` und `panel-ersetzt` in `globals.css`).
+
+Ist ein Eintrag gewählt, gehört der Platz der Detailansicht, damit man in ihr nicht scrollen muss. Sie ist mindestens 26rem breit (`--detailpanel-breite`). Angedockt wächst sie bis 60rem, und die Liste schrumpft dafür bis 28,5rem. Erst danach wird die Liste wieder breiter (`--detailpanel-angedockt`). Die Schublade wächst bis 40rem und lässt links mindestens 10rem Liste frei (`--detailpanel-schublade`). Ohne Auswahl hat die Liste die volle Breite.
 
 | Anordnung | Wann | Verhalten |
 |---|---|---|
-| angedockt | Behälter ab 56rem (28,5rem Liste + 1,5rem Abstand + 26rem) | Sie steht rechts neben der Liste, die bedienbar bleibt. Ein Klick auf einen anderen Eintrag wechselt den Inhalt. Sie klebt unter der Kopfzeile und scrollt in sich. |
-| Schublade | ab `md`, Behälter 36 bis 56rem | Sie liegt über dem rechten Teil der Liste, im Hauptbereich und mitscrollend, ohne Blende, auf `z-20`. |
+| angedockt | Behälter ab 56rem (28,5rem Liste + 1,5rem Abstand + 26rem) | Sie steht rechts neben der Liste, die bedienbar bleibt, und ist 26 bis 60rem breit. Ein Klick auf einen anderen Eintrag wechselt den Inhalt. Sie klebt unter der Kopfzeile und scrollt in sich. |
+| Schublade | ab `md`, Behälter 36 bis 56rem | Sie liegt über dem rechten Teil der Liste, im Hauptbereich und mitscrollend, ohne Blende, auf `z-20`. Sie ist 26 bis 40rem breit; links bleiben mindestens 10rem Liste sichtbar und anklickbar. |
 | ersetzt | unter `md` oder Behälter unter 36rem | Sie steht an Stelle der Liste, mit „‹ Zur Liste“. Daneben bliebe nur ein Streifen, in dem man nichts lesen kann. |
 
-Beispiele:
-- 1600 px ohne KI-Chat: angedockt.
-- 1024 px: Schublade.
+Beispiele (Seitenleiste offen):
+- 2016 px: angedockt, Detailansicht 60rem, Liste rund 40rem.
+- 1600 px ohne KI-Chat: angedockt, Detailansicht rund 46rem, Liste 28,5rem.
+- 1280 px: angedockt, beide am Minimum.
+- 1024 px: Schublade, rund 30rem.
 - 1280 px mit angedocktem KI-Chat: ersetzt.
 - Tablet und Handy: ersetzt.
+
+**Inhalt nach Breite.** Wie breit die Detailansicht ist, hängt nicht am Fenster. Ihr Inhalt richtet sich deshalb nach Container-Abfragen, nicht nach `sm:` oder `md:`. Bei den Pflückaufgaben stehen Übersicht und Fotobelege ab 42rem zweispaltig: links die Angaben, rechts der nächste Schritt bzw. das Hochladen. Die Nachweiskette ist schon ab 36rem zweispaltig, weil ihre Karte eigenen Innenabstand hat. Eine Zeile mit Code, Person und Gewicht bricht nicht in sich um; wird es eng, rutschen die Knöpfe als Ganzes in die nächste Zeile.
 
 KI-Chat und Detailansicht dürfen gleichzeitig offen sein, die Anordnung wechselt von selbst.
 
@@ -368,7 +374,7 @@ KI-Chat und Detailansicht dürfen gleichzeitig offen sein, die Anordnung wechsel
 **Himbi.** Er steht immer links von dem, was rechts andockt.
 - Neben der angedockten Detailansicht und der Schublade rückt er um ihre Breite nach links, mit angedocktem KI-Chat um beide.
 - Wo die Detailansicht die Liste ersetzt, blendet er sich aus.
-- Die Anordnung meldet `ui/detailpanel-steuerung.tsx` als `data-detailpanel` an `<html>`. Die Regeln stehen in `haustier.css`.
+- Anordnung und Breite meldet `ui/detailpanel-steuerung.tsx` als `data-detailpanel` und `--detailpanel-ist` an `<html>`. Die Breite wird gemessen, weil sie mit dem Platz wächst. Die Regeln stehen in `haustier.css`.
 
 **KI-Agent.**
 
@@ -401,4 +407,5 @@ Bei den Pflückaufgaben steht der nächste Handgriff immer im Reiter Übersicht,
 - Nur die Dateien des gewählten Eintrags werden signiert, nicht die der ganzen Liste.
 - Ein Offline-Spiegel speist sich nie aus der gefilterten Seite, sondern aus einer eigenen Abfrage.
 - Nichts mit `position: fixed` in einem `@container`. Blätter gehen per Portal an `<body>` (Regel 12).
+- Spalten und Anordnung in der Detailansicht per Container-Abfrage, nie per `sm:` oder `md:`: dieselbe Detailansicht ist auf dem Handy und neben einem KI-Chat gleich schmal.
 - Pfeile, Reiter und Vorschaubilder tragen nie den Code des Eintrags im Namen. Sonst steht er mehrfach auf der Seite, und weder Vorlesehilfe noch Test weiß, welcher gemeint ist.

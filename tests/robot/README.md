@@ -64,7 +64,7 @@ die Kopfzeile keinen eigenen Scrollbereich hat.
 | Glocke | Oeffnet sie am Schreibtisch eine Schublade von rechts, auf dem Handy ein Blatt von unten, jeweils mit dem leeren Stand, und schliessen Esc und ein Tipp auf die Blende? |
 | Punkt an der Glocke | Ist er nach dem ersten Oeffnen weg, auch nach dem Neuladen? |
 | Glocke als Kunde | Fehlt sie in der Ansicht als Kunde? |
-| Detailansicht | Dockt sie bei 1600 px neben der Liste an, ohne sie zu ueberdecken, und ersetzt sie die Liste bei 844 und 390 px? Fuehrt "Zur Liste" zurueck, verdeckt die untere Leiste nichts? (Pflueckaufgaben, DESIGN.md Abschnitt 14) |
+| Detailansicht | Dockt sie bei 1600 px neben der Liste an, ohne sie zu ueberdecken, breiter als 26rem und mit mindestens 28,5rem Liste daneben, und ersetzt sie die Liste bei 844 und 390 px? Fuehrt "Zur Liste" zurueck, verdeckt die untere Leiste nichts? (Pflueckaufgaben, DESIGN.md Abschnitt 14) |
 | Filterblatt | Wischen die Status-Pillen bei 360 px in einer Reihe, ohne die Seite zu verbreitern, und oeffnet "Filter" ein Blatt von unten? |
 
 ## Beweisen die Tests etwas

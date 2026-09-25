@@ -61,202 +61,218 @@ export async function NachweiskettenKarte({
   const warnung = schwerste === "warnung";
   const verstoesse = kette.behandlungen.filter((b) => !b.eingehalten);
 
+  // Breit zweispaltig: links Kuehlung, Mengen und Steigen, rechts der
+  // Rueckstandsnachweis und das Erfassen. Die Karte steht in der
+  // Detailansicht der Pflueckaufgaben, und die ist angedockt bis 60rem breit
+  // (WMCNL-2488) - einspaltig musste man dort weit scrollen.
   return (
-    <Card>
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="text-sm font-black text-card-foreground">{t("titel")}</p>
-        <span className="font-mono text-xs text-muted-foreground">{c.code}</span>
-      </div>
-      <p className="mt-1 text-xs leading-5 text-muted-foreground">{t("lead")}</p>
-
-      {/* Kühlkette: die Zahl, an der der Preisunterschied hängt.
-          Anforderung 3.1: solange noch keine Messung vorliegt, aber die Uhr
-          bereits läuft (pflückZeitpunkt gesetzt), zeigt eine live
-          mitzählende Warnung die verbleibende Zeit statt nur rückblickend
-          "läuft" zu melden. */}
-      {offen && c.pflueckZeitpunkt ? (
-        <div className="mt-4">
-          <KuehlkettenAlarm key={c.pflueckZeitpunkt} pflueckZeitpunkt={c.pflueckZeitpunkt} />
-          <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
-            {t("kuehlung.regel")}
-          </p>
-        </div>
-      ) : (
-        <div
-          className={`mt-4 rounded-xl border p-3 ${
-            gerissen
-              ? "border-destructive/25 bg-destructive/[0.06]"
-              : offen || warnung
-                ? "border-warning/25 bg-warning/[0.06]"
-                : "border-success/25 bg-success/[0.06]"
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            <Snowflake
-              className={`h-4 w-4 ${
-                gerissen ? "text-destructive" : offen || warnung ? "text-warning" : "text-success"
-              }`}
-            />
-            <p className="text-xs font-black text-foreground">
-              {offen
-                ? t("kuehlung.offen")
-                : t("kuehlung.minuten", { minuten: c.minutenBisVorkuehlung ?? 0 })}
-            </p>
-            <StatusPill tone={gerissen ? "danger" : offen || warnung ? "warning" : "success"}>
-              {gerissen
-                ? t("kuehlung.gerissen")
-                : offen
-                  ? t("kuehlung.laeuft")
-                  : warnung
-                    ? t("kuehlung.grenzwertig")
-                    : t("kuehlung.gehalten")}
-            </StatusPill>
+    <Card className="@container/kette">
+      <div className="grid @xl/kette:grid-cols-2 @xl/kette:items-start @xl/kette:gap-x-6">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <p className="text-sm font-black text-card-foreground">{t("titel")}</p>
+            <span className="font-mono text-xs text-muted-foreground">{c.code}</span>
           </div>
-          <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
-            {t("kuehlung.regel")}
-          </p>
-        </div>
-      )}
-      {kette.messungen.length > 0 ? (
-        <ul className="mt-2 space-y-1">
-          {kette.messungen.map((m) => (
-            <li
-              key={m.id}
-              className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground"
-            >
-              <StatusPill tone={ergebnisTon[m.ergebnis] ?? "neutral"}>
-                {t(`ergebnis.${m.ergebnis}`)}
-              </StatusPill>
-              <span className="font-mono">
-                {format.number(m.temperaturC, { maximumFractionDigits: 1 })} °C
-              </span>
-              {m.minutenSeitPfluecken !== null ? (
-                <span>{t("kuehlung.nachMinuten", { minuten: m.minutenSeitPfluecken })}</span>
-              ) : null}
-            </li>
-          ))}
-        </ul>
-      ) : null}
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">{t("lead")}</p>
 
-      {/* Menge und Ausschuss */}
-      <dl className="mt-4 grid grid-cols-1 gap-2 text-center sm:grid-cols-3">
-        {[
-          [t("menge"), `${format.number(c.mengeKg, { maximumFractionDigits: 1 })} kg`],
-          [t("ausschuss"), `${format.number(c.ausschussKg, { maximumFractionDigits: 1 })} kg`],
-          [t("steigen"), String(kette.steigen.length)],
-        ].map(([label, wert]) => (
-          <div key={label} className="rounded-lg border border-border bg-muted/30 p-2">
-            <dd className="text-sm font-black text-foreground">{wert}</dd>
-            <dt className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-              {label}
-            </dt>
-          </div>
-        ))}
-      </dl>
-
-      {/* Steigen mit Person - hier reicht die Kette bis zum Pflücker */}
-      {kette.steigen.length > 0 ? (
-        <div className="mt-4">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-            {t("steigenTitel")}
-          </p>
-          {/* Anforderung 2.7: "ein Scan am Sammelpunkt ruft die Steige auf".
-              Steht ueber der Liste, weil er sie ersetzt, sobald am Erntetag
-              mehr Steigen zusammenkommen, als sich ueberblicken lassen - die
-              Liste selbst zeigt ohnehin nur die ersten sechs. */}
-          <div className="mt-1.5">
-            <SteigeScanFeld
-              steigen={kette.steigen.map((s) => ({
-                id: s.id,
-                code: s.code,
-                pfluecker: s.pfluecker,
-                gewichtKg: s.gewichtKg,
-                kontrolliertAm: s.kontrolliertAm,
-              }))}
-              darfKontrollieren={darfKontrollieren}
-            />
-          </div>
-          <ul className="mt-1.5 space-y-1">
-            {kette.steigen.slice(0, 6).map((s) => (
-              <li
-                key={s.id}
-                className="flex items-baseline justify-between gap-2 text-[11px]"
-              >
-                <span className="font-mono text-muted-foreground">{s.code}</span>
-                <span className="font-semibold text-foreground">
-                  {s.pfluecker ?? t("ohnePerson")}
-                </span>
-                <span className="text-muted-foreground">
-                  {s.gewichtKg !== null
-                    ? `${format.number(s.gewichtKg, { maximumFractionDigits: 1 })} kg`
-                    : "-"}
-                </span>
-                {s.kontrolliertAm ? (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-success">
-                    <CheckCircle2 className="h-3 w-3" />
-                    {t("steigenKontrolliertLabel")}
-                  </span>
-                ) : darfKontrollieren ? (
-                  <SteigeKontrollierenKnopf id={s.id} code={s.code} />
-                ) : null}
-              </li>
-            ))}
-            {kette.steigen.length > 6 ? (
-              <li className="text-[11px] text-muted-foreground">
-                {t("weitereSteigen", { anzahl: kette.steigen.length - 6 })}
-              </li>
-            ) : null}
-          </ul>
-        </div>
-      ) : null}
-
-      {/* Rückstandsnachweis je Charge */}
-      <div className="mt-4 border-t border-border pt-3">
-        <div className="flex items-center gap-2">
-          {verstoesse.length > 0 ? (
-            <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+          {/* Kühlkette: die Zahl, an der der Preisunterschied hängt.
+              Anforderung 3.1: solange noch keine Messung vorliegt, aber die Uhr
+              bereits läuft (pflückZeitpunkt gesetzt), zeigt eine live
+              mitzählende Warnung die verbleibende Zeit statt nur rückblickend
+              "läuft" zu melden. */}
+          {offen && c.pflueckZeitpunkt ? (
+            <div className="mt-4">
+              <KuehlkettenAlarm key={c.pflueckZeitpunkt} pflueckZeitpunkt={c.pflueckZeitpunkt} />
+              <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
+                {t("kuehlung.regel")}
+              </p>
+            </div>
           ) : (
-            <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-          )}
-          <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-            {t("rueckstand.titel")}
-          </p>
-        </div>
-        {kette.behandlungen.length === 0 ? (
-          <p className="mt-1.5 text-[11px] text-muted-foreground">
-            {t("rueckstand.keine")}
-          </p>
-        ) : (
-          <ul className="mt-1.5 space-y-1.5">
-            {kette.behandlungen.map((b) => (
-              <li key={`${b.mittel}-${b.behandeltAm}`} className="text-[11px]">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <StatusPill tone={b.eingehalten ? "success" : "danger"}>
-                    {b.eingehalten ? t("rueckstand.eingehalten") : t("rueckstand.verletzt")}
-                  </StatusPill>
-                  <span className="font-semibold text-foreground">{b.mittel}</span>
-                </div>
-                <p className="mt-0.5 leading-4 text-muted-foreground">
-                  {t("rueckstand.zeile", {
-                    behandelt: b.behandeltAm,
-                    wartezeit: b.wartezeitTage,
-                    frei: b.freigabeAm,
-                    tage: b.tageVorErnte,
-                  })}
+            <div
+              className={`mt-4 rounded-xl border p-3 ${
+                gerissen
+                  ? "border-destructive/25 bg-destructive/[0.06]"
+                  : offen || warnung
+                    ? "border-warning/25 bg-warning/[0.06]"
+                    : "border-success/25 bg-success/[0.06]"
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <Snowflake
+                  className={`h-4 w-4 ${
+                    gerissen ? "text-destructive" : offen || warnung ? "text-warning" : "text-success"
+                  }`}
+                />
+                <p className="text-xs font-black text-foreground">
+                  {offen
+                    ? t("kuehlung.offen")
+                    : t("kuehlung.minuten", { minuten: c.minutenBisVorkuehlung ?? 0 })}
                 </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+                <StatusPill tone={gerissen ? "danger" : offen || warnung ? "warning" : "success"}>
+                  {gerissen
+                    ? t("kuehlung.gerissen")
+                    : offen
+                      ? t("kuehlung.laeuft")
+                      : warnung
+                        ? t("kuehlung.grenzwertig")
+                        : t("kuehlung.gehalten")}
+                </StatusPill>
+              </div>
+              <p className="mt-1 text-[11px] leading-4 text-muted-foreground">
+                {t("kuehlung.regel")}
+              </p>
+            </div>
+          )}
+          {kette.messungen.length > 0 ? (
+            <ul className="mt-2 space-y-1">
+              {kette.messungen.map((m) => (
+                <li
+                  key={m.id}
+                  className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground"
+                >
+                  <StatusPill tone={ergebnisTon[m.ergebnis] ?? "neutral"}>
+                    {t(`ergebnis.${m.ergebnis}`)}
+                  </StatusPill>
+                  <span className="font-mono">
+                    {format.number(m.temperaturC, { maximumFractionDigits: 1 })} °C
+                  </span>
+                  {m.minutenSeitPfluecken !== null ? (
+                    <span>{t("kuehlung.nachMinuten", { minuten: m.minutenSeitPfluecken })}</span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          ) : null}
 
-      {darfErfassen && pfluecker.length > 0 ? (
-        <div className="mt-4 space-y-3 border-t border-border pt-4">
-          <SteigeFormular aufgabeId={aufgabeId} pfluecker={pfluecker} />
-          <ArbeitszeitFormular aufgabeId={aufgabeId} pfluecker={pfluecker} />
-          <KuehlmessungFormular aufgabeId={aufgabeId} />
+          {/* Menge und Ausschuss */}
+          <dl className="mt-4 grid grid-cols-1 gap-2 text-center @xs/kette:grid-cols-3">
+            {[
+              [t("menge"), `${format.number(c.mengeKg, { maximumFractionDigits: 1 })} kg`],
+              [t("ausschuss"), `${format.number(c.ausschussKg, { maximumFractionDigits: 1 })} kg`],
+              [t("steigen"), String(kette.steigen.length)],
+            ].map(([label, wert]) => (
+              <div key={label} className="rounded-lg border border-border bg-muted/30 p-2">
+                <dd className="text-sm font-black text-foreground">{wert}</dd>
+                <dt className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                  {label}
+                </dt>
+              </div>
+            ))}
+          </dl>
+
+          {/* Steigen mit Person - hier reicht die Kette bis zum Pflücker */}
+          {kette.steigen.length > 0 ? (
+            <div className="mt-4">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+                {t("steigenTitel")}
+              </p>
+              {/* Anforderung 2.7: "ein Scan am Sammelpunkt ruft die Steige auf".
+                  Steht ueber der Liste, weil er sie ersetzt, sobald am Erntetag
+                  mehr Steigen zusammenkommen, als sich ueberblicken lassen - die
+                  Liste selbst zeigt ohnehin nur die ersten sechs. */}
+              <div className="mt-1.5">
+                <SteigeScanFeld
+                  steigen={kette.steigen.map((s) => ({
+                    id: s.id,
+                    code: s.code,
+                    pfluecker: s.pfluecker,
+                    gewichtKg: s.gewichtKg,
+                    kontrolliertAm: s.kontrolliertAm,
+                  }))}
+                  darfKontrollieren={darfKontrollieren}
+                />
+              </div>
+              {/* Code, Person und Gewicht brechen nicht in sich um; wird es
+                  eng, rutscht die Kontrolle als Ganzes in die naechste Zeile. */}
+              <ul className="mt-1.5 space-y-1">
+                {kette.steigen.slice(0, 6).map((s) => (
+                  <li
+                    key={s.id}
+                    className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[11px]"
+                  >
+                    <span className="flex min-w-0 flex-wrap items-baseline gap-x-2">
+                      <span className="whitespace-nowrap font-mono text-muted-foreground">
+                        {s.code}
+                      </span>
+                      <span className="whitespace-nowrap font-semibold text-foreground">
+                        {s.pfluecker ?? t("ohnePerson")}
+                      </span>
+                      <span className="whitespace-nowrap text-muted-foreground tabular-nums">
+                        {s.gewichtKg !== null
+                          ? `${format.number(s.gewichtKg, { maximumFractionDigits: 1 })} kg`
+                          : "-"}
+                      </span>
+                    </span>
+                    {s.kontrolliertAm ? (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-success">
+                        <CheckCircle2 className="h-3 w-3" />
+                        {t("steigenKontrolliertLabel")}
+                      </span>
+                    ) : darfKontrollieren ? (
+                      <SteigeKontrollierenKnopf id={s.id} code={s.code} />
+                    ) : null}
+                  </li>
+                ))}
+                {kette.steigen.length > 6 ? (
+                  <li className="text-[11px] text-muted-foreground">
+                    {t("weitereSteigen", { anzahl: kette.steigen.length - 6 })}
+                  </li>
+                ) : null}
+              </ul>
+            </div>
+          ) : null}
         </div>
-      ) : null}
+
+        <div className="min-w-0">
+          {/* Rückstandsnachweis je Charge */}
+          <div className="mt-4 border-t border-border pt-3 @xl/kette:mt-0 @xl/kette:border-t-0 @xl/kette:pt-0">
+            <div className="flex items-center gap-2">
+              {verstoesse.length > 0 ? (
+                <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+              ) : (
+                <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+              )}
+              <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+                {t("rueckstand.titel")}
+              </p>
+            </div>
+            {kette.behandlungen.length === 0 ? (
+              <p className="mt-1.5 text-[11px] text-muted-foreground">
+                {t("rueckstand.keine")}
+              </p>
+            ) : (
+              <ul className="mt-1.5 space-y-1.5">
+                {kette.behandlungen.map((b) => (
+                  <li key={`${b.mittel}-${b.behandeltAm}`} className="text-[11px]">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <StatusPill tone={b.eingehalten ? "success" : "danger"}>
+                        {b.eingehalten ? t("rueckstand.eingehalten") : t("rueckstand.verletzt")}
+                      </StatusPill>
+                      <span className="font-semibold text-foreground">{b.mittel}</span>
+                    </div>
+                    <p className="mt-0.5 leading-4 text-muted-foreground">
+                      {t("rueckstand.zeile", {
+                        behandelt: b.behandeltAm,
+                        wartezeit: b.wartezeitTage,
+                        frei: b.freigabeAm,
+                        tage: b.tageVorErnte,
+                      })}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {darfErfassen && pfluecker.length > 0 ? (
+            <div className="mt-4 space-y-3 border-t border-border pt-4">
+              <SteigeFormular aufgabeId={aufgabeId} pfluecker={pfluecker} />
+              <ArbeitszeitFormular aufgabeId={aufgabeId} pfluecker={pfluecker} />
+              <KuehlmessungFormular aufgabeId={aufgabeId} />
+            </div>
+          ) : null}
+        </div>
+      </div>
     </Card>
   );
 }

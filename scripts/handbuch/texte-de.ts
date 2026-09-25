@@ -133,7 +133,7 @@ export const de: HandbuchTexte = {
       },
       {
         titel: "Liste mit Detailansicht",
-        text: "Module mit vielen Einträgen zeigen eine Liste mit Filtern und Blättern, zuerst die Pflückaufgaben. Ein Klick auf einen Eintrag öffnet rechts die Detailansicht mit Reitern, die Liste bleibt daneben bedienbar. Ist zu wenig Platz, etwa auf dem Telefon oder neben dem geöffneten KI-Chat, tritt die Detailansicht an die Stelle der Liste. Filter, Seite und gewählter Eintrag stehen in der Adresse: Ein Link zeigt genau diese Ansicht, und Zurück schließt die Detailansicht wieder. Neue Einträge legt man über den Knopf direkt über der Liste an.",
+        text: "Module mit vielen Einträgen zeigen eine Liste mit Filtern und Blättern, zuerst die Pflückaufgaben. Ein Klick auf einen Eintrag öffnet rechts die Detailansicht mit Reitern, die Liste bleibt daneben bedienbar. Die Liste wird dabei schmaler, und die Detailansicht bekommt den Platz, damit ihr Inhalt möglichst ohne Scrollen passt. Ist zu wenig Platz, etwa auf dem Telefon oder neben dem geöffneten KI-Chat, tritt die Detailansicht an die Stelle der Liste. Filter, Seite und gewählter Eintrag stehen in der Adresse: Ein Link zeigt genau diese Ansicht, und Zurück schließt die Detailansicht wieder. Neue Einträge legt man über den Knopf direkt über der Liste an.",
       },
     ],
     spracheTitel: "Sprache umschalten",

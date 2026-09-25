@@ -643,7 +643,8 @@ export function Reiter({
   ziel: (wert: string) => Ziel;
   /**
    * Schmalere Mindestbreite je Reiter, fuer enge Flaechen wie die
-   * Detailansicht (26rem): drei Reiter passen dort sonst nicht in eine Zeile.
+   * Detailansicht (mindestens 26rem): drei Reiter passen dort sonst nicht in
+   * eine Zeile.
    */
   dicht?: boolean;
 } & LeistenVerhalten) {

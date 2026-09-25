@@ -26,6 +26,11 @@ const BEHAELTER_ID = "liste-mit-detailpanel";
  *   angedockt  rechts neben der Liste, die bedienbar bleibt;
  *   schublade  ueber der Liste, im Hauptbereich und mitscrollend;
  *   ersetzt    an Stelle der Liste, mit "Liste" zurueck.
+ *
+ * Mit einer Auswahl gehoert der Platz der Detailansicht: angedockt waechst sie
+ * von 26 bis 60rem, und die Liste schrumpft dafuer bis 28,5rem; die Schublade
+ * waechst bis 40rem (--detailpanel-angedockt und --detailpanel-schublade in
+ * globals.css).
  */
 export function ListeMitDetailpanel({
   liste,
@@ -49,7 +54,7 @@ export function ListeMitDetailpanel({
       <div
         className={cn(
           "grid items-start gap-6",
-          offen && "panel-angedockt:grid-cols-[minmax(0,1fr)_var(--detailpanel-breite)]",
+          offen && "panel-angedockt:grid-cols-[minmax(0,1fr)_var(--detailpanel-angedockt)]",
         )}
       >
         <div className={cn("col-start-1 row-start-1 min-w-0", offen && "panel-ersetzt:hidden")}>
@@ -63,7 +68,7 @@ export function ListeMitDetailpanel({
               // Ueber der Liste, aber unter Kopfzeile (z-40) und unterer
               // Leiste (z-50): die Schublade gehoert zur Seite, nicht darueber.
               "panel-schublade:sticky panel-schublade:top-20 panel-schublade:z-20",
-              "panel-schublade:w-[min(var(--detailpanel-breite),100%)] panel-schublade:justify-self-end",
+              "panel-schublade:w-[var(--detailpanel-schublade)] panel-schublade:justify-self-end",
             )}
           >
             {panel}

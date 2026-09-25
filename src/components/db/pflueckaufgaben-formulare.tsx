@@ -156,10 +156,12 @@ export function MengeFormular({
   const t = useTranslations("pflueckaufgabenVerwaltung");
 
   return (
-    <form action={action} className="space-y-2.5" onSubmit={onSubmit}>
+    // Steht nur in der Detailansicht, deren Breite nicht am Fenster haengt:
+    // die Spalten richten sich nach dem Formular selbst.
+    <form action={action} className="@container/menge space-y-2.5" onSubmit={onSubmit}>
       <PfadFeld />
       <input type="hidden" name="id" value={id} />
-      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2.5 @sm/menge:grid-cols-2 @lg/menge:grid-cols-3">
         <Feld
           label={t("feld.istMenge")}
           name="ist_menge_kg"
