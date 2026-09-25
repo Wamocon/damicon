@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { AlertTriangle, Ear, Loader2, Mic, MicOff, Subtitles, Volume2, X } from "lucide-react";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { SprachKugel, type KugelZustand } from "@/components/ki/sprach-kugel";
-import { SprachSpotlight, useHervorhebungsRechteck, useKugelPlatz } from "@/components/ki/sprach-spotlight";
+import { SprachSpotlight, useHervorhebungsRechteck } from "@/components/ki/sprach-spotlight";
 import {
   abonniereSprachBus,
   chatStandServer,
@@ -61,7 +61,6 @@ export function Sprachmodus() {
 
 const GROESSE_MITTE = 220;
 const GROESSE_KLEIN = 96;
-const RAENDER = { oben: 72, rechts: 16, unten: 16, links: 16 };
 
 /** Ein Symbol je Kugelzustand, neben dem Zustandstext - der Ton haengt nie an
  *  der Farbe der Kugel allein (Rueckmeldung vom 25.09.2026: die vier Farben
@@ -490,21 +489,22 @@ function SprachmodusInhalt() {
     };
   }, [beenden, beiKugelKlick]);
 
-  // --- Kugel-Platzierung: Mitte, neben einem Ziel, oder links ueber der Menueleiste ------
+  // --- Kugel-Platzierung: Mitte oder links ueber der Menueleiste --------------------------
   //
-  // Drei Faelle statt bisher zwei (Rueckmeldung vom 25.09.2026: "sobald er
-  // anfaengt, mir den Inhalt der UI zu erzaehlen, soll er nach links ueber die
-  // Menueleiste, die Mitte muss frei und gut lesbar bleiben"):
-  //   1. beiSeite: ein bestimmtes Element ist hervorgehoben (zeigeAuf) - die
-  //      Kugel rueckt genau daneben (wie bisher, besterPlatz).
-  //   2. angedockt (ohne beiSeite): der Assistent denkt oder spricht, aber
-  //      zeigt auf nichts Bestimmtes - Kugel und Text sitzen links, ueber der
-  //      Navigationsleiste, DAMIT DIE MITTE FREI BLEIBT.
-  //   3. sonst (Zuhoeren, Fehler, Pause): Kugel gross in der Mitte wie bisher.
+  // Zwei Faelle (Rueckmeldung vom 25.09.2026: "sobald er anfaengt, mir den
+  // Inhalt der UI zu erzaehlen, soll er nach links ueber die Menueleiste, links
+  // vertikal mittig, der gesprochene Text darunter, die Mitte muss frei und gut
+  // lesbar bleiben"):
+  //   1. angedockt: der Assistent denkt oder spricht ODER ein Element ist
+  //      hervorgehoben (zeigeAuf) - Kugel, Zustand und Text sitzen links, ueber
+  //      der Navigationsleiste. Ein hervorgehobenes Ziel bekommt nur den
+  //      Rahmen (SprachSpotlight), die Kugel rueckt NICHT mehr daneben: dort
+  //      fehlte das Schriftbild des Gesprochenen, und die Menueleiste blieb
+  //      scharf (Screenshot vom 25.09.2026).
+  //   2. sonst (Zuhoeren, Fehler, Pause): Kugel gross in der Mitte wie bisher.
   const zielRechteck = useHervorhebungsRechteck();
-  const kugelPlatz = useKugelPlatz(zielRechteck, { breite: GROESSE_KLEIN, hoehe: GROESSE_KLEIN }, RAENDER);
-  const beiSeite = kugelPlatz !== null;
-  const angedockt = beiSeite || assistentIstDran(phase);
+  const zielSichtbar = zielRechteck !== null && zielRechteck.breite > 0 && zielRechteck.hoehe > 0;
+  const angedockt = zielSichtbar || assistentIstDran(phase);
 
   const kugelZustand: KugelZustand =
     phase === "fehler" ? "fehler" : phase === "pausiert" ? "pausiert" : phase === "spricht" ? "spricht" : phase === "denkt" ? "denkt" : "hoert";
@@ -524,9 +524,8 @@ function SprachmodusInhalt() {
     : t("status.fehler");
   const kugelBeschriftung = phase === "fehler" ? t("erneut") : assistentIstDran(phase) ? t("unterbrechen") : statusText;
 
-  // Kugel + Knopf: identischer Inhalt in allen drei Lagen (Mitte, links,
-  // neben einem Ziel) - nur Groesse und Abzeichen/Statuszeile daneben
-  // unterscheiden sich.
+  // Kugel + Knopf: identischer Inhalt in beiden Lagen (Mitte, links) - nur die
+  // Groesse unterscheidet sich.
   const kugelKnopf = (
     <button
       type="button"
@@ -536,34 +535,24 @@ function SprachmodusInhalt() {
       title={kugelBeschriftung}
     >
       <SprachKugel zustand={kugelZustand} ausgabePegel={ausgabePegel} groesse={angedockt ? GROESSE_KLEIN : GROESSE_MITTE} />
-      {/* Neben einem hervorgehobenen Element ist fuer den Zustandstext daneben
-          kein Platz reserviert. Ein Abzeichen auf der Kugel selbst zeigt
-          trotzdem, was gerade laeuft: die Farbe allein reicht nicht
-          (Rueckmeldung vom 25.09.2026 zum Fuehrmodus). */}
-      {beiSeite ? (
-        <span className={cn("ki-sprachmodus__abzeichen", `ki-sprachmodus__abzeichen--${kugelZustand}`)} aria-hidden>
-          <StatusSymbol className={cn("ki-sprachmodus__status-symbol", kugelZustand === "denkt" && "ki-sprachmodus__status-symbol--dreht")} />
-        </span>
-      ) : null}
     </button>
   );
-  const statusZeile = !beiSeite ? (
+  const statusZeile = (
     <p className="ki-sprachmodus__status">
       <StatusSymbol className={cn("ki-sprachmodus__status-symbol", kugelZustand === "denkt" && "ki-sprachmodus__status-symbol--dreht")} aria-hidden />
       {statusText}
     </p>
-  ) : null;
+  );
   // Eine offene Freigabe (Klick- oder Aktionskarte, sprachmodus-bus.ts) geht
-  // ÜBER allem anderen: sichtbar, egal ob gerade auf ein Element gezeigt wird
-  // (beiSeite) oder die Untertitel ausgeschaltet sind - eine Sicherheitsfrage
-  // darf nie unsichtbar bleiben. "Ja"/"Nein" loest sie auf (siehe die
-  // "versteht"-Auswertung oben, istZusageBefehl/istAbsageBefehl).
+  // ÜBER allem anderen: sichtbar, auch wenn die Untertitel ausgeschaltet sind -
+  // eine Sicherheitsfrage darf nie unsichtbar bleiben. "Ja"/"Nein" loest sie
+  // auf (siehe die "versteht"-Auswertung oben, istZusageBefehl/istAbsageBefehl).
   const untertitel = freigabeAnfrage ? (
     <div className="ki-sprachmodus__untertitel ki-sprachmodus__untertitel--freigabe" role="alertdialog" aria-live="assertive">
       <p className="ki-sprachmodus__untertitel-zeile">{freigabeAnfrage.text}</p>
       <p className="ki-sprachmodus__untertitel-zeile ki-sprachmodus__untertitel-zeile--nutzer">{t("freigabeHinweis")}</p>
     </div>
-  ) : !beiSeite && untertitelAn ? (
+  ) : untertitelAn ? (
     <div className="ki-sprachmodus__untertitel" aria-hidden={phase !== "hoert" && phase !== "versteht"}>
       {phase === "hoert" || phase === "versteht" ? (
         <p className="ki-sprachmodus__untertitel-zeile ki-sprachmodus__untertitel-zeile--nutzer">
@@ -596,7 +585,7 @@ function SprachmodusInhalt() {
         {statusText}
       </p>
 
-      {angedockt && !beiSeite ? (
+      {angedockt ? (
         // Links, vertikal mittig ueber der Navigationsleiste (nur diese wird
         // unscharf, siehe .ki-sprachmodus__seitenleiste-unschaerfe weiter
         // unten - die Mitte bleibt frei und scharf). EIN Flex-Block fuer Kugel
@@ -616,14 +605,7 @@ function SprachmodusInhalt() {
         </>
       ) : (
         <>
-          <div
-            className={cn("ki-sprachmodus__kugel-huelle", beiSeite && "ki-sprachmodus__kugel-huelle--beiseite")}
-            style={
-              kugelPlatz
-                ? { left: kugelPlatz.rechteck.x, top: kugelPlatz.rechteck.y, width: kugelPlatz.rechteck.breite, height: kugelPlatz.rechteck.hoehe }
-                : undefined
-            }
-          >
+          <div className="ki-sprachmodus__kugel-huelle">
             {kugelKnopf}
             {statusZeile}
           </div>

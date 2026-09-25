@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { abonniereHervorhebung, hervorhebungServer, leseHervorhebung } from "@/components/ki/hervorhebung";
-import { besterPlatz, type Platz, type Raender, type Rechteck } from "@/lib/domain/sprachmodus";
+import type { Rechteck } from "@/lib/domain/sprachmodus";
 
 // Rahmen um das Element, das der Assistent gerade zeigt - waehrend des
 // Sprachmodus. Die Seite bleibt ueberall normal hell und scharf sichtbar
@@ -85,30 +85,4 @@ export function SprachSpotlight({ rechteck }: { rechteck: Rechteck | null }) {
       }}
     />
   );
-}
-
-/** Fuer sprachmodus.tsx: wohin die Kugel rueckt, wenn ein Ziel hervorgehoben ist. */
-export function useKugelPlatz(
-  ziel: Rechteck | null,
-  blase: { breite: number; hoehe: number },
-  raender: Raender,
-): { platz: Platz; rechteck: Rechteck } | null {
-  const [stand, setStand] = useState<{ platz: Platz; rechteck: Rechteck } | null>(null);
-  useEffect(() => {
-    if (!ziel || typeof window === "undefined") {
-      setStand(null);
-      return;
-    }
-    const berechne = () => {
-      const fenster = { breite: window.innerWidth, hoehe: window.innerHeight };
-      setStand((bisher) => besterPlatz(ziel, fenster, blase, raender, ABSTAND, bisher?.platz));
-    };
-    berechne();
-    window.addEventListener("resize", berechne);
-    return () => window.removeEventListener("resize", berechne);
-    // ziel ist ein neues Objekt bei jeder Messung (useHervorhebungsRechteck) - absichtlich
-    // ueber die Werte statt die Referenz verglichen, sonst rechnet jeder Scroll-Frame neu.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ziel?.x, ziel?.y, ziel?.breite, ziel?.hoehe, blase.breite, blase.hoehe, raender]);
-  return stand;
 }

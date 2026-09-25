@@ -15,11 +15,25 @@ Zwei Einstiege öffnen ein vollflächiges Overlay:
 Bis zum 24.09.2026 gab es nur den Kopfzeilenknopf, als Symbol ohne
 Beschriftung, und er wurde nicht gefunden.
 
-Im Overlay wird der Hintergrund unscharf, in der Mitte schwebt eine Kugel, die auf die eigene Stimme und auf die Stimme von Himbi reagiert. Es gibt
-keinen sichtbaren Chat, nur das Gespräch. Springt Himbi zu einem Bereich der
-Anwendung, um etwas zu zeigen, legt sich ein Lichtkegel um das Ziel und die
-Kugel rückt klein an den freien Rand, damit sie nicht verdeckt, wovon Himbi
-gerade spricht.
+Zuhören, Pause und Fehler: eine große Kugel in der Mitte, die auf die eigene
+Stimme und auf die Stimme von Himbi reagiert. Es gibt keinen sichtbaren Chat,
+nur das Gespräch. Die Seite wird **nie abgedunkelt** (Stand 25.09.2026, nach
+mehreren Rückmeldungen: jede Abdunkelung war im hellen Design entweder zu hell
+oder zu dunkel).
+
+Sobald Himbi denkt, spricht oder auf ein Element zeigt, wandert die Kugel als
+**eine Einheit mit Zustandszeile und Schriftbild des Gesprochenen** nach links,
+vertikal mittig über die Navigationsleiste (ab 768 px, wo es die Leiste gibt).
+Wächst der Text, rückt die Einheit mittig nach und die Kugel damit nach oben,
+sie bleibt im Rahmen der Leiste. Nur die Navigationsleiste wird dabei unscharf,
+die **Mitte bleibt frei und scharf**. Zeigt Himbi auf ein Element, bekommt es
+nur einen Rahmen. Bis zum 25.09.2026 rückte die Kugel dafür neben das Ziel und
+zeigte dort keinen Text mehr.
+
+Damit Gesprochenes und Angezeigtes zusammenpassen, verlangt
+`SPRACHMODUS_FUEHRUNG`: nur über das sprechen, was gerade zu sehen ist, auf der
+passenden Seite bleiben statt wegzuspringen, einen anderen Bereich nur vor der
+Erklärung öffnen und ankündigen.
 
 Grundlage der Gestaltung ist eine Recherche zu bestehenden Sprachmodi (ChatGPT
 Voice, Gemini Live, Claude Voice Mode, Copilot Vision, Salesforce Agentforce

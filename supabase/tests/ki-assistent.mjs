@@ -2447,6 +2447,26 @@ for (const [name, kaputteAntwort] of [
     pruefe("Freigabe: der Sprachmodus wertet Ja/Nein VOR einer neuen Frage aus und stellt sie dann nicht", /leseFreigabeAnfrage\(\)\) \{[\s\S]{0,400}entscheideFreigabe\(istZusageBefehl\(ergebnis\.text\)\);[\s\S]{0,120}return;/.test(modus));
     pruefe("Freigabe: bei offener Karte lehnt 'Stopp' nur die Karte ab, beendet nicht den Sprachmodus", /else if \(istStoppBefehl\(ergebnis\.text\)\)/.test(modus));
     pruefe("Freigabe: die Karte im Sprachmodus geht ueber allem, auch ohne Untertitel", /const untertitel = freigabeAnfrage \? \(/.test(modus));
+
+    // Sprachmodus-Layout: links, auch beim Zeigen auf ein Ziel - das Schriftbild darf nie fehlen.
+    pruefe("Sprachmodus: bei einem Ziel bleibt die Kugel links, mit Text (kein Wechsel neben das Ziel mehr)", !modus.includes("useKugelPlatz") && !modus.includes("beiSeite") && modus.includes("const angedockt = zielSichtbar || assistentIstDran(phase);"));
+    pruefe("Sprachmodus: Anweisung verlangt, dass Gesprochenes und Angezeigtes zusammenpassen", SPRACHMODUS_FUEHRUNG.includes("GESPROCHENES UND ANGEZEIGTES MÜSSEN ZUSAMMENPASSEN") && SPRACHMODUS_FUEHRUNG.includes("nie einen Bereich, nachdem du deine Erklärung beendet hast"));
+
+    // (i) Schalter "Automatisch starten" (Tour + Zusammenfassung), Knoepfe bleiben.
+    const tour = lies3("components/dashboard/use-compliance-tour.tsx");
+    const kontext = lies3("components/haustier/haustier-kontext.tsx");
+    const einst = lies3("components/haustier/haustier-einstellung.tsx");
+    const haustierLib = lies3("lib/haustier.ts");
+    pruefe("Auto-Start: Speicher mit Voreinstellung 'an'", haustierLib.includes('window.localStorage.getItem(AUTO_SCHLUESSEL) !== "aus"'));
+    pruefe("Auto-Start: im Kontext als Status und Aktion, Serverwert 'an'", kontext.includes("autoStart") && kontext.includes("setAutoStart") && kontext.includes("useSyncExternalStore(abonniereAuto, leseAutoSpeicher, tourServerWert)"));
+    pruefe("Auto-Start: Schalter in den Einstellungen", einst.includes("setAutoStart(!autoStart)") && einst.includes('t("einstellung.autoTitel")'));
+    pruefe("Auto-Start: das einmalige Angebot kommt nur mit eingeschaltetem Auto-Start", tour.includes('if (!autoStart || !tourAn || !himbiSichtbar'));
+    pruefe("Auto-Start: der automatische Lauf (Tour und Zusammenfassung) verfaellt bei ausgeschaltetem Auto-Start", /if \(!autoStart\) \{[\s\S]{0,260}wartetAufAutostart\.current = false;[\s\S]{0,40}return;/.test(tour));
+    pruefe("Auto-Start: die Knoepfe (starten/zusammenfassen) fragen den Schalter nicht", !/const starten = useCallback\([\s\S]{0,200}autoStart/.test(tour) && !/const zusammenfassen = useCallback\([\s\S]{0,200}autoStart/.test(tour));
+    for (const sp of ["de", "en", "ru", "kk"]) {
+      const m = JSON.parse(readFileSync(new URL(`../../src/messages/${sp}.json`, import.meta.url), "utf8")).haustier.einstellung;
+      pruefe(`Auto-Start: Texte ${sp}`, typeof m.autoTitel === "string" && m.autoTitel.length > 3 && typeof m.autoText === "string" && m.autoText.length > 40);
+    }
   }
 
   // (d) Kopfzeilenknopf und Layout-Verdrahtung: nur mit Werkzeugen UND eingeschaltetem Live-Diktat.

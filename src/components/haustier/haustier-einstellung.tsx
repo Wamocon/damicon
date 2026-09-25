@@ -31,8 +31,8 @@ const serverWert = (): boolean => true;
 
 export function HaustierEinstellung() {
   const t = useTranslations("haustier");
-  const { an, inventar, tourAn } = useHaustierStatus();
-  const { setAn, setInventar, setTourAn } = useHaustierAktionen();
+  const { an, inventar, tourAn, autoStart } = useHaustierStatus();
+  const { setAn, setInventar, setTourAn, setAutoStart } = useHaustierAktionen();
 
   const bewegung = useSyncExternalStore(abonniere, leseBewegung, serverWert);
   const [zustand, setZustand] = useState<HaustierZustand>("ruhe");
@@ -77,6 +77,21 @@ export function HaustierEinstellung() {
         </button>
       </div>
       <p className="ki-einstellung__text">{t("einstellung.tourText")}</p>
+
+      <div className="ki-einstellung__kopf hb-einstellung__zeile">
+        <div className="ki-einstellung__titel">{t("einstellung.autoTitel")}</div>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={autoStart}
+          aria-label={t("einstellung.autoTitel")}
+          onClick={() => setAutoStart(!autoStart)}
+          className="ki-schalter"
+        >
+          <span className="ki-schalter__knopf" />
+        </button>
+      </div>
+      <p className="ki-einstellung__text">{t("einstellung.autoText")}</p>
 
       <div className="ki-einstellung__kopf hb-einstellung__zeile">
         <div className="ki-einstellung__titel">{t("einstellung.bewegungTitel")}</div>
