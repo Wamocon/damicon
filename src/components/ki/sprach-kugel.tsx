@@ -60,8 +60,10 @@ export function SprachKugel({
   const einPegel = useRef(0);
   const ausPegel = useRef(0);
 
-  zustandRef.current = zustand;
-  ausgabeRef.current = ausgabePegel;
+  useEffect(() => {
+    zustandRef.current = zustand;
+    ausgabeRef.current = ausgabePegel;
+  }, [zustand, ausgabePegel]);
 
   useEffect(() => {
     const el = leinwand.current;
@@ -121,13 +123,19 @@ export function SprachKugel({
 
       bild.current = requestAnimationFrame(zeichne);
     };
+    start.current = 0;
     bild.current = requestAnimationFrame(zeichne);
     return () => cancelAnimationFrame(bild.current);
-    // groesse veraendert sich praktisch nie zur Laufzeit (nur beim Wegschieben, dort per CSS-
-    // Transform skaliert statt neu gezeichnet - siehe sprachmodus.tsx); ein Neuaufbau der Schleife
-    // bei jeder Prop-Aenderung waere unnoetig.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // groesse haengt bewusst in den Abhaengigkeiten: sprachmodus.tsx aendert sie zur Laufzeit
+    // (Kugel schrumpft in die Ecke, sobald ein Bereich hervorgehoben wird - GROESSE_KLEIN statt
+    // GROESSE_MITTE). React setzt dabei die width/height-Attribute des <canvas> neu, und das
+    // Canvas-Element setzt bei JEDER Aenderung dieser Attribute seinen ganzen Zeichenzustand
+    // zurueck - auch die hier oben gesetzte ctx2d.scale(dpr, dpr). Ohne diese Abhaengigkeit lief
+    // die Schleife mit der alten, groesseren "groesse" (Kreismitte und Radius aus 220px) weiter,
+    // gezeichnet in eine inzwischen nur noch 96px kleine, unskalierte Leinwand: sichtbar war nur
+    // noch die obere linke Ecke des grossen Kreises - ein Dreieck statt einer Kugel (gemeldet am
+    // 25.09.2026, "Fuehrmodus": die Sprechblase in der Ecke).
+  }, [groesse]);
 
   return <canvas ref={leinwand} width={groesse} height={groesse} className={className} aria-hidden style={{ width: groesse, height: groesse }} />;
 }

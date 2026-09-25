@@ -65,6 +65,7 @@
 }
 
 .ki-sprachmodus__kugel-knopf {
+  position: relative;
   display: block;
   padding: 0;
   border: none;
@@ -80,6 +81,31 @@
 .ki-sprachmodus--verschoben .ki-sprachmodus__kugel-knopf {
   filter: drop-shadow(0 8px 24px rgb(0 0 0 / 0.35));
 }
+
+/* In der Ecke ersetzt ein Abzeichen auf der Kugel den Zustandstext daneben -
+ * eigene Flaeche in der Zustandsfarbe (dieselben Farbtoene wie die Kugel
+ * selbst, sprach-kugel.tsx FARBEN), damit Farbe UND Symbol uebereinstimmen. */
+.ki-sprachmodus__abzeichen {
+  position: absolute;
+  right: -0.2rem;
+  bottom: -0.2rem;
+  display: grid;
+  place-items: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 999px;
+  border: 2px solid rgb(4 10 14 / 0.86);
+  color: #fff;
+}
+.ki-sprachmodus__abzeichen .ki-sprachmodus__status-symbol {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+.ki-sprachmodus__abzeichen--hoert { background: oklch(55% 0.16 200); }
+.ki-sprachmodus__abzeichen--denkt { background: oklch(58% 0.18 30); }
+.ki-sprachmodus__abzeichen--spricht { background: oklch(50% 0.2 350); }
+.ki-sprachmodus__abzeichen--pausiert { background: oklch(50% 0.02 250); }
+.ki-sprachmodus__abzeichen--fehler { background: oklch(45% 0.2 25); }
 
 .ki-sprachmodus__status {
   display: flex;

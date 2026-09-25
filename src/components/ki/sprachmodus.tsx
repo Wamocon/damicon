@@ -515,13 +515,25 @@ function SprachmodusInhalt() {
           onClick={beiKugelKlick}
           className="ki-sprachmodus__kugel-knopf"
           aria-label={kugelBeschriftung}
-          title={phase === "fehler" || assistentIstDran(phase) ? kugelBeschriftung : undefined}
+          title={kugelBeschriftung}
         >
           <SprachKugel
             zustand={kugelZustand}
             ausgabePegel={ausgabePegel}
             groesse={verschoben ? GROESSE_KLEIN : GROESSE_MITTE}
           />
+          {/* In der Ecke (Bereich hervorgehoben) bleibt die Kugel rund - fuer den
+              Zustandstext daneben ist dort kein Platz reserviert. Ein Abzeichen
+              auf der Kugel selbst zeigt trotzdem, was gerade laeuft: die Farbe
+              allein reicht nicht (Rueckmeldung vom 25.09.2026 zum Fuehrmodus,
+              in der Ecke fehlte jede Zustandsanzeige). */}
+          {verschoben ? (
+            <span className={cn("ki-sprachmodus__abzeichen", `ki-sprachmodus__abzeichen--${kugelZustand}`)} aria-hidden>
+              <StatusSymbol
+                className={cn("ki-sprachmodus__status-symbol", kugelZustand === "denkt" && "ki-sprachmodus__status-symbol--dreht")}
+              />
+            </span>
+          ) : null}
         </button>
         {!verschoben ? (
           <p className="ki-sprachmodus__status">
