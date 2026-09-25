@@ -4,10 +4,27 @@ import "@/components/haustier/haustier.css";
 import { useEffect, useRef } from "react";
 import { Himbi } from "@/components/haustier/himbi";
 import { useHaustierStatus } from "@/components/haustier/haustier-kontext";
-import type { HaustierZustand } from "@/lib/haustier";
+import { himbiStill } from "@/lib/haustier";
 import { lesePegel as leseMikrofonPegel } from "@/lib/hoeren";
-import { leseAusgabePegel, leseAusgabeSpektrum } from "@/lib/ausgabe-pegel";
-import { baenderAus, folgeSpitze, glaetteMund, MUND_ZU, mundAusKlang, mundGeometrie, type Mundform } from "@/lib/domain/lippen";
+import { leseAusgabePegel, leseAusgabeSpektrum, spieltUeberElement } from "@/lib/ausgabe-pegel";
+import { baenderAus, folgeSpitze, glaetteMund, MUND_ZU, mundAusKlang, mundGeometrie, SPITZE_BODEN, type Mundform } from "@/lib/domain/lippen";
+import {
+  blickImGespraech,
+  darfRuhen,
+  faelligeForm,
+  glaetteSchein,
+  HIMBI_ZUSTAND,
+  laechelnFuer,
+  nickenProzent,
+  scheinStil,
+  scheinZiel,
+  sichtbareForm,
+  taktMund,
+  type MundEintrag,
+  type SprachZustand,
+} from "@/lib/domain/himbi-gespraech";
+
+export type { SprachZustand } from "@/lib/domain/himbi-gespraech";
 
 // Himbi als Gegenueber im Sprachmodus. Bis zum 25.09.2026 stand dort eine abstrakte
 // Kugel (Canvas); jetzt fuehrt die Figur das Gespraech: sie hoert zu, denkt (die
@@ -17,62 +34,51 @@ import { baenderAus, folgeSpitze, glaetteMund, MUND_ZU, mundAusKlang, mundGeomet
 //
 // Wie bei der Kugel geht nichts davon durch React: eine eigene Bildschleife liest
 // Pegel und Spektrum und schreibt Mundform, Blick, Schein und Nicken direkt an die
-// Elemente. React rendert nur, wenn der Zustand wechselt.
+// Elemente, die sie brauchen. Was sie rechnet, steht als reine Funktionen in
+// lib/domain/himbi-gespraech.ts. React rendert nur, wenn der Zustand wechselt.
+//
+// Ist Himbi in den Einstellungen ausgeschaltet oder weggeschickt, bleibt die Figur
+// auch hier weg ("bleibt ganz weg", sagt die Einstellung): dann zeigt der Schein
+// allein den Zustand, als farbiger Kreis wie frueher die Kugel.
 
-export type SprachZustand = "hoert" | "denkt" | "spricht" | "pausiert" | "fehler";
-
-const HIMBI_ZUSTAND: Record<SprachZustand, HaustierZustand> = {
-  hoert: "ruhe",
-  denkt: "denkt",
-  spricht: "spricht",
-  pausiert: "schlaeft",
-  fehler: "fehler",
-};
-
-/** Wie weit die Pupillen wandern duerfen (SVG-Einheiten, Auge rx 8,4, Pupille r 5,2). */
-const BLICK_X = 2.6;
-const BLICK_Y = 2;
-
-/** Mund beim Sprechen, wenn Bewegung reduziert ist. */
-const RUHIG_OFFEN: Mundform = { offen: 0.3, breite: 0.5, rund: 0, zaehne: 0 };
+/** Groesse der Figur: in der Mitte oder links angedockt. Die Pixel stehen in
+ *  sprachmodus.css (--himbi-b), dort passen sie sich auch kleinen Hoehen an. */
+export type SprachHimbiGroesse = "mitte" | "klein";
 
 export interface Blickziel {
   x: number;
   y: number;
 }
 
-function bewegungReduziert(): boolean {
-  if (typeof window === "undefined") return false;
-  return (
-    window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true ||
-    document.documentElement.hasAttribute("data-hb-still")
-  );
-}
+/** Augenhoehe im viewBox 96 x 144 von himbi.tsx (Augen bei y 68): 68/144. */
+const AUGEN_ANTEIL = 68 / 144;
 
 export function SprachHimbi({
   zustand,
-  breite,
+  groesse,
   blickziel,
   links = false,
 }: {
   zustand: SprachZustand;
-  /** Breite der Figur in Pixeln; die Hoehe ist das 1,5-Fache (viewBox 96 x 144). */
-  breite: number;
+  groesse: SprachHimbiGroesse;
   /** Mittelpunkt eines hervorgehobenen Bereichs (Bildschirmkoordinaten): Himbi sieht hin. */
   blickziel?: Blickziel | null;
   /** Himbi steht links ueber der Navigationsleiste: ohne Ziel sieht er zur Seite hin. */
   links?: boolean;
 }) {
-  const { inventar } = useHaustierStatus();
+  const { inventar, an, weg } = useHaustierStatus();
+  const mitFigur = an && !weg;
   const huelle = useRef<HTMLDivElement>(null);
   const zustandRef = useRef(zustand);
   const blickRef = useRef(blickziel ?? null);
   const linksRef = useRef(links);
+  const weckeRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     zustandRef.current = zustand;
     blickRef.current = blickziel ?? null;
     linksRef.current = links;
+    weckeRef.current();
   }, [zustand, blickziel, links]);
 
   useEffect(() => {
@@ -84,21 +90,26 @@ export function SprachHimbi({
     const clip = teil("clip");
     const zunge = teil("zunge");
     const zaehne = teil("zaehne");
+    const schein = el.querySelector<HTMLElement>(".ki-himbi__schein");
+    const koerper = el.querySelector<HTMLElement>(".ki-himbi__koerper");
 
     let bild = 0;
+    let laeuft = false;
     let letzte = 0;
     let mund: Mundform = MUND_ZU;
-    let spitze = 0.04;
-    let schein = 0;
+    let spitze = SPITZE_BODEN;
+    let scheinWert = 0;
     let letzterPfad = "";
     let letzterBlick = "";
+    let letzterSchein = "";
+    let letztesNicken = "";
     let rechteck: DOMRect | null = null;
     let rechteckZeit = 0;
-    // Die Mundform wartet so lange, wie der Klang braucht, bis er aus dem Lautsprecher
-    // kommt (Analyser misst VOR dem Geraet). Ohne das eilt der Mund bei Bluetooth sichtbar vor.
-    const verlauf: Array<{ t: number; m: Mundform }> = [];
+    const verlauf: MundEintrag[] = [];
     let latenzMs = 0;
-    const reduziert = bewegungReduziert();
+    // Reduzierte Bewegung wird nachgefuehrt, nicht nur beim Einhaengen gelesen: der
+    // Schalter "Bewegung" laesst sich waehrend des Gespraechs umlegen.
+    let still = himbiStill();
 
     const schleife = (jetzt: number) => {
       const dt = letzte ? jetzt - letzte : 16;
@@ -106,28 +117,24 @@ export function SprachHimbi({
       const z = zustandRef.current;
 
       let ziel: Mundform = MUND_ZU;
-      let pegel = 0;
+      let mikrofon = 0;
       if (z === "spricht") {
-        pegel = leseAusgabePegel();
+        const pegel = leseAusgabePegel();
         spitze = folgeSpitze(spitze, pegel, dt);
         const s = leseAusgabeSpektrum();
         if (s) {
           latenzMs = s.latenz * 1000;
           ziel = mundAusKlang(pegel / spitze, baenderAus(s.frequenzen, s.abtastrate, s.fftGroesse, s.minDb, s.maxDb));
         }
+        // Datei-Weg: der Klang laeuft am Analyser vorbei, dann wenigstens im Takt.
+        if (pegel === 0 && spieltUeberElement()) ziel = taktMund(jetzt);
       } else if (z === "hoert") {
-        pegel = leseMikrofonPegel();
+        mikrofon = leseMikrofonPegel();
       }
-      verlauf.push({ t: jetzt, m: ziel });
-      while (verlauf.length > 1 && verlauf[1]!.t <= jetzt - latenzMs) verlauf.shift();
-      const faellig = verlauf[0]!.m;
-      mund = glaetteMund(mund, faellig, dt);
+      mund = glaetteMund(mund, faelligeForm(verlauf, jetzt, ziel, latenzMs), dt);
 
-      // Mund: nur schreiben, wenn sich die Form sichtbar aendert. Mit reduzierter
-      // Bewegung (WCAG 2.3.3) steht er still: beim Sprechen ruhig offen, sonst zu;
-      // Schein, Symbol und Zustandstext sagen dann, wer dran ist.
-      const form = reduziert ? (z === "spricht" ? RUHIG_OFFEN : MUND_ZU) : mund;
-      const g = mundGeometrie(form, z === "denkt" ? 0.2 : 1);
+      // Mund: nur schreiben, wenn sich die Form sichtbar aendert.
+      const g = mundGeometrie(sichtbareForm(still, z, mund), laechelnFuer(z));
       if (g.pfad !== letzterPfad) {
         letzterPfad = g.pfad;
         umriss?.setAttribute("d", g.pfad);
@@ -145,54 +152,80 @@ export function SprachHimbi({
         }
       }
 
-      // Schein hinter der Figur: folgt beim Zuhoeren der eigenen Stimme (das war die
-      // wichtigste Rueckmeldung der Kugel: "er hoert mich"), beim Sprechen der Stimme
-      // von Himbi. Nicken: der Koerper hebt sich mit jeder Silbe ein wenig.
-      const zielSchein = z === "hoert" ? Math.min(1, pegel * 6) : z === "spricht" ? mund.offen : 0;
-      schein += (zielSchein - schein) * (zielSchein > schein ? 0.5 : 0.12);
-      el.style.setProperty("--himbi-schein", reduziert ? "0" : schein.toFixed(3));
-      el.style.setProperty("--himbi-nicken", reduziert ? "0" : (mund.offen * 1).toFixed(3));
+      // Schein und Nicken direkt an ihre zwei Elemente, nicht als geerbte Variable an
+      // die Huelle: die haette je Bild alle Teile der Figur neu berechnen lassen.
+      scheinWert = glaetteSchein(scheinWert, scheinZiel(z, mikrofon, mund.offen), dt);
+      const stil = scheinStil(still ? 0 : scheinWert);
+      const scheinText = `${stil.deckkraft.toFixed(3)} ${stil.groesse.toFixed(3)}`;
+      if (schein && scheinText !== letzterSchein) {
+        letzterSchein = scheinText;
+        schein.style.opacity = stil.deckkraft.toFixed(3);
+        schein.style.scale = stil.groesse.toFixed(3);
+      }
+      const nicken = `0 ${(still ? 0 : nickenProzent(mund.offen)).toFixed(2)}%`;
+      if (koerper && nicken !== letztesNicken) {
+        letztesNicken = nicken;
+        koerper.style.translate = nicken;
+      }
 
-      // Blick: zum hervorgehobenen Bereich, sonst beim Denken nach oben zur Seite,
-      // links angedockt zur Seite hin, und beim Zuhoeren geradeaus zur Person.
-      if (jetzt - rechteckZeit > 250) {
+      // Blick: das Rechteck der Figur wird nur gebraucht, wenn es ein Ziel gibt.
+      const b = blickRef.current;
+      if (b && (!rechteck || jetzt - rechteckZeit > 250)) {
         rechteck = el.getBoundingClientRect();
         rechteckZeit = jetzt;
       }
-      let bx = 0;
-      let by = 0;
-      const b = blickRef.current;
-      if (b && rechteck && z !== "pausiert") {
-        const dx = b.x - (rechteck.left + rechteck.width / 2);
-        const dy = b.y - (rechteck.top + rechteck.height * 0.47);
-        const laenge = Math.hypot(dx, dy) || 1;
-        bx = (dx / laenge) * BLICK_X;
-        by = (dy / laenge) * BLICK_Y;
-      } else if (z === "denkt") {
-        bx = 1.8;
-        by = -1.8;
-      } else if (linksRef.current && z === "spricht") {
-        bx = 1.6;
-      }
-      const blick = `${bx.toFixed(2)} ${by.toFixed(2)}`;
-      if (blick !== letzterBlick) {
-        letzterBlick = blick;
-        el.style.setProperty("--bx", bx.toFixed(2));
-        el.style.setProperty("--by", by.toFixed(2));
+      const abstand = b && rechteck ? { dx: b.x - (rechteck.left + rechteck.width / 2), dy: b.y - (rechteck.top + rechteck.height * AUGEN_ANTEIL) } : null;
+      const blick = blickImGespraech(z, abstand, linksRef.current);
+      const blickText = `${blick.x.toFixed(2)} ${blick.y.toFixed(2)}`;
+      if (blickText !== letzterBlick) {
+        letzterBlick = blickText;
+        el.style.setProperty("--bx", blick.x.toFixed(2));
+        el.style.setProperty("--by", blick.y.toFixed(2));
       }
 
+      // In Pause und Fehler schlaeft die Schleife, sobald alles zur Ruhe gekommen ist.
+      if (darfRuhen(z, mund, scheinWert)) {
+        laeuft = false;
+        return;
+      }
       bild = requestAnimationFrame(schleife);
     };
-    bild = requestAnimationFrame(schleife);
-    return () => cancelAnimationFrame(bild);
-  }, []);
+
+    const wecke = () => {
+      if (laeuft) return;
+      laeuft = true;
+      letzte = 0;
+      bild = requestAnimationFrame(schleife);
+    };
+    weckeRef.current = wecke;
+
+    const neuStill = () => {
+      still = himbiStill();
+      wecke();
+    };
+    const medien = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    medien?.addEventListener?.("change", neuStill);
+    const beobachter = new MutationObserver(neuStill);
+    beobachter.observe(document.documentElement, { attributes: true, attributeFilter: ["data-hb-still"] });
+
+    wecke();
+    return () => {
+      cancelAnimationFrame(bild);
+      laeuft = false;
+      weckeRef.current = () => {};
+      medien?.removeEventListener?.("change", neuStill);
+      beobachter.disconnect();
+    };
+  }, [mitFigur]);
 
   return (
-    <div ref={huelle} className="ki-himbi" data-zustand={zustand} style={{ width: breite, height: breite * 1.5 }}>
+    <div ref={huelle} className="ki-himbi" data-zustand={zustand} data-groesse={groesse} data-figur={mitFigur ? undefined : "aus"}>
       <span className="ki-himbi__schein" aria-hidden />
-      <div className="ki-himbi__koerper">
-        <Himbi zustand={HIMBI_ZUSTAND[zustand]} groesse={breite} tracht={inventar.tracht} brille={inventar.brille} lippen />
-      </div>
+      {mitFigur ? (
+        <div className="ki-himbi__koerper">
+          <Himbi zustand={HIMBI_ZUSTAND[zustand]} groesse={groesse === "klein" ? 84 : 160} tracht={inventar.tracht} brille={inventar.brille} lippen />
+        </div>
+      ) : null}
     </div>
   );
 }

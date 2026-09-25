@@ -2,6 +2,8 @@
 // testbar bleibt: welchen Zustand hat die Himbeere, wenn der Agent gerade dies oder
 // das tut, welchem Modul gehoert ein Pfad, wie sieht die Tour aus.
 
+import { bewegungReduziert } from "@/lib/bewegung";
+
 export type AgentPhase = "ruhe" | "arbeitet" | "freigabe" | "fehler";
 
 export type HaustierZustand = "ruhe" | "denkt" | "freigabe" | "fertig" | "fehler" | "schlaeft" | "spricht" | "traurig";
@@ -70,6 +72,29 @@ export function leseBewegung(): boolean {
   } catch {
     return true;
   }
+}
+
+/** Soll Himbi still stehen? Die Systemeinstellung (prefers-reduced-motion) oder der eigene
+ *  Schalter "Bewegung" (data-hb-still am Dokument, gesetzt von schreibeBewegung und beim
+ *  Start in haustier-kontext.tsx). Das Attribut ist der aktuelle Stand, der Speicher nur
+ *  seine Herkunft. Nur im Browser aufrufen. */
+export function himbiStill(): boolean {
+  return bewegungReduziert() || document.documentElement.hasAttribute("data-hb-still");
+}
+
+/** Wie weit die Pupillen hoechstens wandern (SVG-Einheiten; Auge rx 8,4, Pupille r 5,2). */
+export const AUGEN_MAX = 3.4;
+
+/** Blick beim Nachdenken: nach oben links. Gilt in der Ecke wie im Sprachmodus. */
+export const BLICK_DENKT = { x: -2.6, y: -2.8 } as const;
+
+/** Blickrichtung zu einem Punkt, der dx/dy Pixel von den Augen entfernt liegt: die
+ *  Pupillen wandern bis AUGEN_MAX in seine Richtung, bei nahen Punkten (unter nahPx)
+ *  entsprechend weniger, sonst schielte Himbi auf alles direkt neben sich. */
+export function blickRichtung(dx: number, dy: number, max = AUGEN_MAX, nahPx = 140): { x: number; y: number } {
+  const d = Math.hypot(dx, dy) || 1;
+  const staerke = Math.min(1, d / nahPx);
+  return { x: (dx / d) * max * staerke, y: (dy / d) * max * staerke };
 }
 
 export function schreibeBewegung(an: boolean): void {

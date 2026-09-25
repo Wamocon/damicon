@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { Loader2, Square, Volume2, VolumeX } from "lucide-react";
 import { stimmeFuerOberflaeche } from "@/lib/domain/sprachausgabe";
 import { cn, istUuid } from "@/lib/utils";
+import { meldeElementWiedergabe } from "@/lib/ausgabe-pegel";
 import type { Vorlesen } from "@/components/ki/ki-chat-sprache";
 
 // Sprachausgabe im KI-Seitenpanel: je Antwort ein Vorlese-Knopf, dazu ein
@@ -36,6 +37,14 @@ export function useSprachausgabe(sprache: string) {
   const [hinweis, setHinweis] = useState<Hinweis>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const urls = useRef(new Map<string, string>());
+
+  // Dieser Weg spielt ueber ein <audio>-Element am gemeinsamen Ausgang vorbei: Himbi im
+  // Sprachmodus hoert den Klang nicht und bewegt den Mund dann im festen Takt
+  // (lib/ausgabe-pegel.ts, meldeElementWiedergabe).
+  useEffect(() => {
+    meldeElementWiedergabe(spielt !== null);
+    return () => meldeElementWiedergabe(false);
+  }, [spielt]);
 
   useEffect(() => {
     try {

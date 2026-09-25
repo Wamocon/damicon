@@ -65,15 +65,10 @@ export function Sprachmodus() {
   return <SprachmodusInhalt />;
 }
 
-/** Breite von Himbi in der Mitte und links angedockt (Hoehe jeweils das 1,5-Fache). Die
- *  Kugel war 220 und 96 Pixel gross; die Figur ist schmaler als hoch, darum etwas weniger
- *  breit bei aehnlicher Flaeche. */
-const GROESSE_MITTE = 160;
 /** So lange muss ein vorlaeufig erkanntes "Stopp" stehen bleiben, bevor der
  *  Stoppwort-Waechter anhaelt (kurz genug, um sofort zu wirken, lang genug, dass
  *  ein vorlaeufiges Wort, das die Erkennung gleich korrigiert, nichts ausloest). */
 const STOPP_STABIL_MS = 350;
-const GROESSE_KLEIN = 84;
 
 /** Ein Symbol je Zustand, neben dem Zustandstext - der Ton haengt nie an
  *  der Farbe des Scheins hinter Himbi allein (Rueckmeldung vom 25.09.2026: die vier Farben
@@ -154,7 +149,7 @@ function SprachmodusInhalt() {
           return;
         }
         stromRef.current = strom;
-        // Die Kugel reagiert auf die eigene Stimme (lib/hoeren.ts), und das Dazwischenreden
+        // Der Schein hinter Himbi reagiert auf die eigene Stimme (lib/hoeren.ts), und das Dazwischenreden
         // misst dort die Lautstaerke.
         starteHoeren(strom);
         setMeldung(null);
@@ -294,7 +289,7 @@ function SprachmodusInhalt() {
         if (liveRef.current === sitzung) dispatch({ art: "aeusserung-ende" });
       },
       // Bis zum 24.09.2026 gab es diesen Weg nicht: scheiterte die Sitzung (Schluessel,
-      // Verbindung, Dienst), kam nie ein Endpunkt, und die Kugel hoerte endlos zu.
+      // Verbindung, Dienst), kam nie ein Endpunkt, und der Sprachmodus hoerte endlos zu.
       beiScheitern: (grund) => {
         if (liveRef.current === sitzung) sitzungAbgebrochen(grund, sitzung.hatGehoert());
       },
@@ -366,7 +361,7 @@ function SprachmodusInhalt() {
   // schlaegt erst nach einem Moment durchgehender Sprache an (domain/sprachmodus.ts).
   // Sobald es nach Sprache klingt, laeuft schon eine Aufnahme mit - sonst fehlte der
   // Anfang des Satzes, der den Waechter ausgeloest hat. Verklingt es wieder, wird sie
-  // verworfen. Der Tipp auf die Kugel bleibt der sichere Weg (laute Halle).
+  // verworfen. Der Tipp auf Himbi bleibt der sichere Weg (laute Halle).
   useEffect(() => {
     if (phase !== "spricht") return;
     const waechter = erzeugeUnterbrechungsWaechter();
@@ -420,7 +415,7 @@ function SprachmodusInhalt() {
       if (spricht && phaseRef.current === "denkt") dispatch({ art: "antwort-spricht" });
       if (!spricht && antwortFertig(stand)) {
         // Kurze Gnadenfrist: zwischen Streamende und dem Anstoss des Vorlesens liegt ein
-        // Renderdurchlauf, ohne diese Pause hoerte die Kugel genau in diese Luecke hinein zu.
+        // Renderdurchlauf, ohne diese Pause hoerte das Mikrofon genau in diese Luecke hinein zu.
         ruheTimer.current = window.setTimeout(() => dispatch({ art: "antwort-fertig" }), RUHE_VOR_ZUHOEREN_MS);
       }
     };
@@ -452,7 +447,7 @@ function SprachmodusInhalt() {
     if (stromRef.current) dispatch({ art: "mikrofon-bereit" });
   }, [dispatch]);
 
-  const beiKugelKlick = useCallback(() => {
+  const beiFigurKlick = useCallback(() => {
     entsperreTon();
     if (phaseRef.current === "fehler") {
       erneutVersuchen();
@@ -496,30 +491,40 @@ function SprachmodusInhalt() {
       if (e.key === "Escape") beenden();
       else if (e.key === " " && assistentIstDran(phaseRef.current)) {
         e.preventDefault();
-        beiKugelKlick();
+        beiFigurKlick();
       }
     };
     window.addEventListener("keydown", beiTaste);
     return () => window.removeEventListener("keydown", beiTaste);
-  }, [beenden, beiKugelKlick]);
+  }, [beenden, beiFigurKlick]);
   // Die Seite scrollt nur noch, wenn Himbi sie scrollt. Ueber die gemeinsame Sperre am
   // <html> (ui/scroll-sperre.ts): eine eigene Sperre am <body> machte ihn zum
   // Scrollcontainer, und Kopfzeile und Seitenleiste scrollten mit.
   useScrollSperre(true);
 
-  // --- Kugel-Platzierung: Mitte oder links ueber der Menueleiste --------------------------
+  // Der Dialog nimmt beim Oeffnen den Fokus auf: auf den Himbi-Knopf, die wichtigste
+  // Bedienung (unterbrechen, erneut versuchen). Vorher blieb der Fokus auf der Seite
+  // dahinter, und mit der Tabulatortaste erreichte man den Sprachmodus erst nach allen
+  // Elementen der Seite (Gegenpruefung vom 25.09.2026). Weil der Knopf beim Andocken im
+  // selben Baum bleibt, bleibt auch der Fokus.
+  const figurKnopfRef = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    figurKnopfRef.current?.focus({ preventScroll: true });
+  }, []);
+
+  // --- Platz von Himbi: Mitte oder links ueber der Menueleiste ---------------------------
   //
   // Zwei Faelle (Rueckmeldung vom 25.09.2026: "sobald er anfaengt, mir den
   // Inhalt der UI zu erzaehlen, soll er nach links ueber die Menueleiste, links
   // vertikal mittig, der gesprochene Text darunter, die Mitte muss frei und gut
   // lesbar bleiben"):
   //   1. angedockt: der Assistent denkt oder spricht ODER ein Element ist
-  //      hervorgehoben (zeigeAuf) - Kugel, Zustand und Text sitzen links, ueber
+  //      hervorgehoben (zeigeAuf) - Himbi, Zustand und Text sitzen links, ueber
   //      der Navigationsleiste. Ein hervorgehobenes Ziel bekommt nur den
-  //      Rahmen (SprachSpotlight), die Kugel rueckt NICHT mehr daneben: dort
+  //      Rahmen (SprachSpotlight), Himbi rueckt NICHT daneben: dort
   //      fehlte das Schriftbild des Gesprochenen, und die Menueleiste blieb
   //      scharf (Screenshot vom 25.09.2026).
-  //   2. sonst (Zuhoeren, Fehler, Pause): Kugel gross in der Mitte wie bisher.
+  //   2. sonst (Zuhoeren, Fehler, Pause): Himbi gross in der Mitte.
   const zielRechteck = useHervorhebungsRechteck();
   const zielSichtbar = zielRechteck !== null && zielRechteck.breite > 0 && zielRechteck.hoehe > 0;
   const angedockt = zielSichtbar || assistentIstDran(phase);
@@ -685,7 +690,7 @@ function SprachmodusInhalt() {
     };
   }, [himbiDran, sprache]);
 
-  // Die Navigationsleiste wird unscharf, solange Kugel und Text links stehen
+  // Die Navigationsleiste wird unscharf, solange Himbi und Text links stehen
   // (Filter direkt auf der Leiste, siehe sprachmodus.css).
   useEffect(() => {
     if (!angedockt) return;
@@ -694,12 +699,12 @@ function SprachmodusInhalt() {
     return () => wurzel.removeAttribute("data-sprach-links");
   }, [angedockt]);
 
-  const kugelZustand: SprachZustand =
+  const sprachZustand: SprachZustand =
     phase === "fehler" ? "fehler" : phase === "pausiert" ? "pausiert" : phase === "spricht" ? "spricht" : phase === "denkt" ? "denkt" : "hoert";
   // Der Zustand haengt nie an der Farbe allein (Rueckmeldung vom 25.09.2026:
   // "weiss anhand der Farbe nicht, ob die KI zuhoert, denkt oder spricht") -
   // dasselbe Symbol wie der Zustandstext daneben, unabhaengig vom Farbsehen.
-  const StatusSymbol = STATUS_SYMBOL[kugelZustand];
+  const StatusSymbol = STATUS_SYMBOL[sprachZustand];
 
   const statusText =
     phase === "startet" ? t("status.startet")
@@ -709,27 +714,28 @@ function SprachmodusInhalt() {
     : phase === "spricht" ? t("status.spricht")
     : phase === "pausiert" ? t("status.pausiert")
     : t("status.fehler");
-  const kugelBeschriftung = phase === "fehler" ? t("erneut") : assistentIstDran(phase) ? t("unterbrechen") : statusText;
+  const figurBeschriftung = phase === "fehler" ? t("erneut") : assistentIstDran(phase) ? t("unterbrechen") : statusText;
 
   // Himbi + Knopf: identischer Inhalt in beiden Lagen (Mitte, links) - nur die
-  // Groesse unterscheidet sich. Bis zum 25.09.2026 stand hier eine Kugel; jetzt fuehrt
-  // Himbi das Gespraech, mit Lippen, die der Stimme folgen (sprach-himbi.tsx). Ist ein
-  // Bereich hervorgehoben, sieht Himbi zu ihm hin.
+  // Groesse unterscheidet sich (sprachmodus.css, --himbi-b). Bis zum 25.09.2026 stand
+  // hier eine Kugel; jetzt fuehrt Himbi das Gespraech, mit Lippen, die der Stimme folgen
+  // (sprach-himbi.tsx). Ist ein Bereich hervorgehoben, sieht Himbi zu ihm hin.
   const blickziel = zielSichtbar && zielRechteck ? { x: zielRechteck.x + zielRechteck.breite / 2, y: zielRechteck.y + zielRechteck.hoehe / 2 } : null;
-  const kugelKnopf = (
+  const figurKnopf = (
     <button
+      ref={figurKnopfRef}
       type="button"
-      onClick={beiKugelKlick}
-      className="ki-sprachmodus__kugel-knopf"
-      aria-label={kugelBeschriftung}
-      title={kugelBeschriftung}
+      onClick={beiFigurKlick}
+      className="ki-sprachmodus__figur-knopf"
+      aria-label={figurBeschriftung}
+      title={figurBeschriftung}
     >
-      <SprachHimbi zustand={kugelZustand} breite={angedockt ? GROESSE_KLEIN : GROESSE_MITTE} blickziel={blickziel} links={angedockt} />
+      <SprachHimbi zustand={sprachZustand} groesse={angedockt ? "klein" : "mitte"} blickziel={blickziel} links={angedockt} />
     </button>
   );
   const statusZeile = (
     <p className="ki-sprachmodus__status">
-      <StatusSymbol className={cn("ki-sprachmodus__status-symbol", kugelZustand === "denkt" && "ki-sprachmodus__status-symbol--dreht")} aria-hidden />
+      <StatusSymbol className={cn("ki-sprachmodus__status-symbol", sprachZustand === "denkt" && "ki-sprachmodus__status-symbol--dreht")} aria-hidden />
       {statusText}
     </p>
   );
@@ -770,37 +776,28 @@ function SprachmodusInhalt() {
       <SprachSpotlight rechteck={zielRechteck} />
 
       {/* Statusansage fuer Screenreader - ohne den Fokus zu verschieben, ein zweiter Kanal
-          neben der visuellen Kugel (siehe Recherche, Abschnitt Barrierefreiheit). */}
+          neben Himbi und dem Zustandstext (siehe Recherche, Abschnitt Barrierefreiheit). */}
       <p className="sr-only" role="status" aria-live="polite">
         {statusText}
       </p>
 
-      {angedockt ? (
-        // Links, vertikal mittig ueber der Navigationsleiste (nur diese wird
-        // unscharf, siehe data-sprach-links in sprachmodus.css - die Mitte
-        // bleibt frei und scharf). EIN Flex-Block fuer Kugel
-        // und Text: waechst der Text nach unten, ruecken beide zusammen als
-        // Einheit wieder mittig - die Kugel wandert dabei von selbst nach
-        // oben (Rueckmeldung vom 25.09.2026). max-height haelt die Einheit
-        // dabei immer im Rahmen der Navigationsleiste.
-        <>
-          <div className="ki-sprachmodus__links-spalte">
-            <div className="ki-sprachmodus__kugel-huelle ki-sprachmodus__kugel-huelle--links">
-              {kugelKnopf}
-              {statusZeile}
-            </div>
-            {untertitel}
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="ki-sprachmodus__kugel-huelle">
-            {kugelKnopf}
-            {statusZeile}
-          </div>
-          {untertitel}
-        </>
-      )}
+      {/* EIN Baum fuer beide Lagen, nur die Klassen wechseln: vorher hingen Knopf und
+          Untertitel je Lage an einer anderen Stelle, React baute sie beim Andocken neu,
+          und der Tastaturfokus fiel auf <body> (Gegenpruefung vom 25.09.2026).
+          Angedockt: links, vertikal mittig ueber der Navigationsleiste (nur diese wird
+          unscharf, siehe data-sprach-links in sprachmodus.css - die Mitte bleibt frei
+          und scharf). EIN Flex-Block fuer Himbi und Text: waechst der Text nach unten,
+          ruecken beide zusammen als Einheit wieder mittig - Himbi wandert dabei von
+          selbst nach oben (Rueckmeldung vom 25.09.2026). max-height haelt die Einheit
+          dabei immer im Rahmen der Navigationsleiste. In der Mitte ist die Spalte
+          display: contents, Himbi und Text stehen wie bisher untereinander. */}
+      <div className={angedockt ? "ki-sprachmodus__links-spalte" : "ki-sprachmodus__mitte"}>
+        <div className={cn("ki-sprachmodus__figur-huelle", angedockt && "ki-sprachmodus__figur-huelle--links")}>
+          {figurKnopf}
+          {statusZeile}
+        </div>
+        {untertitel}
+      </div>
 
       {meldung ? <p className="ki-sprachmodus__meldung">{meldung}</p> : null}
 

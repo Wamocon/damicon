@@ -1,6 +1,6 @@
 # Sprachmodus: Live-Gespräch mit Himbi
 
-Stand 24.09.2026.
+Stand 25.09.2026.
 
 ## Was es ist
 
@@ -15,20 +15,21 @@ Zwei Einstiege öffnen ein vollflächiges Overlay:
 Bis zum 24.09.2026 gab es nur den Kopfzeilenknopf, als Symbol ohne
 Beschriftung, und er wurde nicht gefunden.
 
-Zuhören, Pause und Fehler: eine große Kugel in der Mitte, die auf die eigene
-Stimme und auf die Stimme von Himbi reagiert. Es gibt keinen sichtbaren Chat,
+Zuhören, Pause und Fehler: Himbi groß in der Mitte, ein farbiger Schein hinter
+ihm wächst mit der eigenen Stimme (bis zum 25.09.2026 stand dort eine Kugel,
+siehe „Himbi als Gegenüber“). Es gibt keinen sichtbaren Chat,
 nur das Gespräch. Die Seite wird **nie abgedunkelt** (Stand 25.09.2026, nach
 mehreren Rückmeldungen: jede Abdunkelung war im hellen Design entweder zu hell
 oder zu dunkel).
 
-Sobald Himbi denkt, spricht oder auf ein Element zeigt, wandert die Kugel als
+Sobald Himbi denkt, spricht oder auf ein Element zeigt, wandert er als
 **eine Einheit mit Zustandszeile und Schriftbild des Gesprochenen** nach links,
 vertikal mittig über die Navigationsleiste (ab 768 px, wo es die Leiste gibt).
-Wächst der Text, rückt die Einheit mittig nach und die Kugel damit nach oben,
+Wächst der Text, rückt die Einheit mittig nach und Himbi damit nach oben,
 sie bleibt im Rahmen der Leiste. Nur die Navigationsleiste wird dabei unscharf,
 die **Mitte bleibt frei und scharf**. Zeigt Himbi auf ein Element, bekommt es
-nur einen Rahmen. Bis zum 25.09.2026 rückte die Kugel dafür neben das Ziel und
-zeigte dort keinen Text mehr.
+nur einen Rahmen, und Himbi sieht zu ihm hin. Bis zum 25.09.2026 rückte die
+Kugel dafür neben das Ziel und zeigte dort keinen Text mehr.
 
 Damit Gesprochenes und Angezeigtes zusammenpassen, verlangt
 `SPRACHMODUS_FUEHRUNG`: nur über das sprechen, was gerade zu sehen ist, auf der
@@ -99,7 +100,7 @@ Der Systemprompt kennt jetzt `"assistent" | "agent" | "sprache"`
   Filter). Vorher öffnete „Bereich Hof“ nur das Modul Kühlkette und „Prüfberichte“
   das Datenschutz-Cockpit. Das Blatt einer Bereichskachel auf der Übersicht ist
   bewusst kein Ziel: es liegt über dem Sprachmodus (z-index 100) und verdeckt
-  Kugel und Freigabekarte.
+  Himbi und Freigabekarte.
 - **Keine erzwungene Wissenssuche bei Zeige-Bitten:** Enthält eine Frage
   „Audit“, „Compliance“ oder „Steuern“, erzwingt `waehleSchritt()` sonst im ersten
   Schritt `wissenSuchen`. Im Sprachmodus nicht, wenn es eine Zeige-Bitte ist
@@ -118,7 +119,7 @@ Während Himbi dran ist, geht keine Frage an die Erkennung, sonst hörte sie die
 eigene Stimme aus dem Lautsprecher.
 
 **Stopp** geht auf drei Wegen: als Äußerung beim Zuhören, über den
-**Stoppwort-Wächter**, solange Himbi denkt oder spricht, und über Kugel, Leiste
+**Stoppwort-Wächter**, solange Himbi denkt oder spricht, und über Himbi, Leiste
 oder Escape. Der Wächter ist eine eigene Soniox-Live-Sitzung auf demselben
 Mikrofon (mit Echounterdrückung). Er reagiert nur auf endgültig erkannten Text,
 der ein reiner Stoppbefehl ist (`istStoppBefehl`: „Stopp“, „Stopp, stopp“,
@@ -152,7 +153,7 @@ auch während Himbi spricht; das Handbuch sagt das offen.
    Anfang des Satzes nicht verloren geht. Verklingt es wieder, oder endet die
    Antwort auf anderem Weg, wird diese Aufnahme verworfen, sonst hörte Himbi
    das Echo der eigenen letzten Worte als Frage.
-2. **Tipp auf die Kugel** oder die Leertaste: der sichere Weg in lauter
+2. **Tipp auf Himbi** oder die Leertaste: der sichere Weg in lauter
    Umgebung (Hof, Halle).
 
 Die Werte der Schranken (`UNTERBRECHEN_STANDARD`) sind Ausgangswerte auf
@@ -192,33 +193,44 @@ entscheidet `nachSitzungsAbbruch()`:
 | Sitzung lief lange (Zeitgrenze 120 s) und hat nichts gehört | Mikrofon stumm schalten, statt minutenlang Stille an Soniox zu schicken |
 | Sitzung lief lange und hat etwas gehört | neu verbinden, Zähler von vorn |
 
-Bis zum 24.09.2026 gab es diesen Weg nicht: kam kein Endpunkt, hörte die Kugel
-endlos zu. Ein Tipp auf die Kugel oder den Mikrofonknopf versucht es nach einer
-Meldung erneut.
+Bis zum 24.09.2026 gab es diesen Weg nicht: kam kein Endpunkt, hörte der
+Sprachmodus endlos zu. Ein Tipp auf Himbi oder den Mikrofonknopf versucht es nach
+einer Meldung erneut.
 
 ### Himbi als Gegenüber (`src/components/ki/sprach-himbi.tsx`)
 
 Bis zum 25.09.2026 stand hier eine abstrakte Kugel (Canvas 2D). Seitdem führt
 die Himbi-Figur das Gespräch (Rückmeldung vom 25.09.2026: „anstatt der
 Sprachblase die Himbi-Figur, die beim Sprechen die Lippen bewegt“). Die Figur in
-der Ecke ist währenddessen ausgeblendet, es gibt also nur einen Himbi.
+der Ecke ist währenddessen ausgeblendet, auf dem Handy zeigt der KI-Knopf der
+unteren Leiste solange nur die Himbeere: es gibt also nur einen Himbi.
 
 | Zustand | Figur (`HaustierZustand`) | Mund | Blick | Schein |
 |---|---|---|---|---|
-| Zuhören | `ruhe` (schwebt) | Lächeln, zu | geradeaus zur Person | türkis, wächst mit der eigenen Stimme |
-| Denken | `denkt` (KI-Funken kreisen) | fast gerade, zu | nach oben zur Seite | orange |
-| Sprechen | `spricht` (schwebt ruhig, Arme gestikulieren) | folgt der Stimme | zum hervorgehobenen Bereich, sonst zur Seite hin | rosa, wächst mit der Stimme von Himbi |
-| Pause | `schlaeft` | Schlafmund | | grau |
-| Fehler | `fehler` | traurig | | rot |
+| Zuhören | `ruhe` (schwebt) | Lächeln, zu | geradeaus zur Person, zu einem gerahmten Bereich hin | türkis, wächst mit der eigenen Stimme |
+| Denken | `denkt` (KI-Funken kreisen) | fast gerade, zu | nach oben links wie in der Ecke (`BLICK_DENKT`), zu einem gerahmten Bereich hin | orange |
+| Sprechen | `spricht` (schwebt ruhig, Arme gestikulieren, Füße und Rock still) | folgt der Stimme | zum gerahmten Bereich, sonst angedockt zur Seite | rosa, wächst mit der Stimme von Himbi |
+| Pause | `schlaeft` | Schlafmund | geradeaus | grau |
+| Fehler | `fehler` | traurig | zu einem gerahmten Bereich hin | rot |
 
 Zustandstext und Symbol daneben bleiben: der Zustand hängt nie an Farbe oder
 Mimik allein. Ein Tipp auf Himbi unterbricht oder versucht es nach einem
 Fehler erneut, wie vorher der Tipp auf die Kugel.
 
-**Lippen** (`src/lib/domain/lippen.ts`, reine Rechnung, getestet in
-`supabase/tests/haustier.ts`). Recherche vom 25.09.2026 (27 Quellen, darunter
-lipsync-engine, wawa-lipsync, Rhubarb, TalkingHead/HeadAudio, Rive, Azure- und
-Soniox-Dokumentation, W3C zu WCAG 2.3.3, web.dev zur Ausgabelatenz):
+**Himbi ausgeschaltet.** Ist Himbi in den Einstellungen ausgeschaltet oder
+weggeschickt, bleibt die Figur auch im Sprachmodus weg (die Einstellung
+verspricht „bleibt ganz weg“). Dann zeigt der Schein allein als farbiger Kreis
+den Zustand.
+
+**Größe.** In `sprachmodus.css` (`--himbi-b`): in der Mitte bis 160 px breit,
+angedockt bis 84 px, auf niedrigen Bildschirmen (Handy quer) kleiner, damit der
+Kopf nicht abgeschnitten wird. Das Overlay hält unten Platz für die Bedienleiste
+frei.
+
+**Lippen** (`src/lib/domain/lippen.ts`, reine Rechnung). Recherche vom
+25.09.2026 (27 Quellen, darunter lipsync-engine, wawa-lipsync, Rhubarb,
+TalkingHead/HeadAudio, Rive, Azure- und Soniox-Dokumentation, W3C zu WCAG 2.3.3,
+web.dev zur Ausgabelatenz):
 
 - Keine Bibliothek. Rive oder Lottie verlangten, Himbi neu zu zeichnen;
   wawa-lipsync erwartet ein `<audio>`-Element, unsere Stimme spielt über
@@ -226,35 +238,66 @@ Soniox-Dokumentation, W3C zu WCAG 2.3.3, web.dev zur Ausgabelatenz):
 - Gelesen wird am gemeinsamen Ausgang (`lib/ausgabe-pegel.ts`,
   `leseAusgabeSpektrum()`): derselbe `AnalyserNode` wie der Pegel für das
   Dazwischenreden. `smoothingTimeConstant` 0,3 statt 0,6 wirkt nur auf das
-  Spektrum, nicht auf das Zeitsignal des Pegels.
-- Fünf Bänder: Grund 80 bis 300 Hz, tief 300 bis 700, Mitte 700 bis 1800, hoch
-  1800 bis 4000, Zischen 4000 bis 8000. Daraus stufenlos vier Größen: `offen`
-  (Lautstärke, an die laufende Spitze angepasst), `breite`, `rund` und
-  `zaehne`. Kein Umschalten zwischen festen Mundbildern.
-- Kalibriert mit der echten Soniox-Stimme (Probewörter in allen vier Sprachen,
-  abgespielt durch einen echten AnalyserNode in Chromium). Anteile an der ganzen
-  Stimme trennten I nicht von U, weil der zweite Formant bei I viel leiser ist.
-  Darum Verhältnisse: `kiefer = Mitte/(tief+Mitte)` (A 0,75, O 0,29, U 0,02),
-  `vorn = hoch/(hoch+Mitte)` (I und E 0,8, A 0,1, O und U 0), `nasal =
-  Grund/(Grund+tief+Mitte)` (M 0,76 bis 0,88, Vokale 0,63 bis 0,71).
-- Grenze: M und L klingen bei dieser Stimme im Spektrum fast wie U; der Mund
-  wird dort kurz schmal statt ganz zu. Genauer ginge es mit den Zeitstempeln je
-  Zeichen, die Soniox TTS auf Wunsch liefert (`return_timestamps`): die Form
-  aus dem Text, die Öffnung aus dem Pegel. Das greift in den Strom ein und ist
-  noch nicht umgesetzt.
+  Spektrum, nicht auf das Zeitsignal des Pegels. Strom und Abschnitte spielen
+  über diesen Ausgang. Der Datei-Weg (`sprachausgabe.tsx`, `<audio>`) nicht: er
+  meldet seine Wiedergabe (`meldeElementWiedergabe`), und Himbi bewegt den Mund
+  dann im festen Takt (`taktMund`), der nicht der Stimme folgt.
+- Ist der AudioContext angehalten (der Takt hält die Stimme beim Seitenwechsel
+  bis zu 3,5 s an), liefern Pegel und Spektrum nichts: der Analyser gab sonst den
+  zuletzt gerechneten Block weiter, und der Mund stand offen.
+- Fünf halboffene Bänder, jedes Bin gehört genau einem: Grund 80 bis 250 Hz,
+  tief 250 bis 700, Mitte 700 bis 1800, hoch 1800 bis 4000, Zischen 4000 bis
+  8000. Tief beginnt bei 250 Hz, weil der erste Formant von U um 280 Hz liegt.
+  Daraus stufenlos vier Größen: `offen` (Lautstärke, an die laufende Spitze
+  angepasst), `breite`, `rund` und `zaehne`. Kein Umschalten zwischen festen
+  Mundbildern.
+- Kalibriert mit den drei Soniox-Stimmen der App (Lena de, Maya en und ru, Yana
+  kk), Probelaute und Sätze abgespielt durch einen echten AnalyserNode in
+  Chromium. Merkmale: `kiefer = Mitte/(tief+Mitte)` (A hoch, U und I fast 0),
+  `vorn = hoch/(hoch+Mitte)` (I und geschlossenes E hoch), `dunkel =
+  log10(hoch/tief)` für die Rundung (U −4,7 bis −5,7, O −3,0 bis −5,5, dagegen A,
+  offenes E, I und M/L-Sätze −0,5 bis −3,2; Schwelle `RUND_AB` −2,6).
+- Die erste Fassung war nur mit Lena kalibriert und nannte „wenig Kiefer und
+  wenig vorn“ rund. Das traf auch das kasachische A (76 % der Bilder), das
+  russische Э (92 %), das englische „Eee“ (91 %) und Sätze voller M und L (42 bis
+  64 %). Mit „dunkel“: 0 %, 0 %, 0 % und 10 bis 34 %; U bleibt bei 74 bis 89 %.
+- Grenzen, ehrlich: M und N schließen den Mund kaum (ihr Brummen überlappt im
+  Fließtext mit den Vokalen), der Mund ist dort meist halb offen und neutral.
+  Englisches „Oh“ (ein Doppellaut) und deutsches O sind nur in etwa der Hälfte
+  der Bilder rund, offenes E ist neutral statt breit, das englische „Eee“ neutral.
+  Genauer ginge es mit den Zeitstempeln je Zeichen, die Soniox TTS auf Wunsch
+  liefert (`return_timestamps`): die Form aus dem Text, die Öffnung aus dem
+  Pegel. Das greift in den Strom ein und ist nicht umgesetzt.
 - Glättung zeitbasiert (`1 − exp(−dt/τ)`): Öffnen 35 ms, Schließen 110 ms,
-  Form 60 ms, bei 60 und 120 Hz gleich.
+  Form 60 ms, Schein 24 und 130 ms, bei 60 und 120 Hz gleich.
 - Die Mundform wartet `outputLatency + baseLatency` (höchstens 0,4 s): der
-  Analyser misst vor dem Gerät, bei Bluetooth-Kopfhörern klingt der Ton rund
-  0,2 s später.
-- Reduzierte Bewegung (Systemeinstellung oder Himbis Schalter „Bewegung“): der
-  Mund steht still, beim Sprechen ruhig offen; kein Nicken, kein wachsender
-  Schein.
+  Analyser misst vor dem Gerät. Ob ein Browser die Latenz von
+  Bluetooth-Kopfhörern darin meldet, hängt von Browser und Betriebssystem ab;
+  meldet er sie nicht, eilt der Mund dort vor.
+- Reduzierte Bewegung (Systemeinstellung oder Himbis Schalter „Bewegung“,
+  `himbiStill()`): der Mund steht still, beim Sprechen ruhig offen; kein
+  Nicken, kein wachsender Schein, die Figur schwebt nicht. Beides wird während
+  des Gesprächs nachgeführt. Die Still-Regel in `haustier.css` trägt dafür
+  `!important`: vorher verlor sie gegen die Zustandsanimationen, und der Schalter
+  hielt die Figur nie ganz an, auch in der Ecke nicht.
 
 Wie vorher bei der Kugel läuft nichts davon durch React: eine
 `requestAnimationFrame`-Schleife schreibt Mundpfad (`data-lippe`-Elemente in
-`himbi.tsx`, Prop `lippen`), Blick (`--bx`, `--by`), Schein und Nicken direkt.
-Der Mikrofonpegel kommt aus `lib/hoeren.ts` (`starteHoeren`, seit 24.09.2026).
+`himbi.tsx`, Prop `lippen`), Blick (`--bx`, `--by`), Deckkraft und Größe des
+Scheins und das Nicken des Körpers direkt, und nur bei Änderung. Die Rechnung
+dazu steht als reine Funktionen in `lib/domain/himbi-gespraech.ts`. In Pause und
+Fehler schläft die Schleife, ein Zustandswechsel weckt sie. Der Mikrofonpegel
+kommt aus `lib/hoeren.ts` (`starteHoeren`, seit 24.09.2026).
+
+**Barrierefreiheit.** Der Fokusrahmen des Knopfs liegt als eigene Ebene über
+Figur und Schein (vorher drückte der Schein seinen Kontrast auf 1,6 bis 3 zu 1)
+und ist zweifarbig. Beim Wechsel zwischen Mitte und links bleibt der Knopf im
+selben Baum, der Tastaturfokus geht nicht mehr verloren.
+
+**Tests** (`supabase/tests/haustier.ts`): die Lippen gegen echte Bilder der drei
+Stimmen (`supabase/tests/lippen-soniox.json`), Bandgrenzen, Geometrie, Glättung,
+Latenzpuffer, reduzierte Bewegung, Blick, Schein, angehaltener Ausgang und das
+Rendern der Figur mit und ohne Lippen.
 
 ### Hervorhebung
 

@@ -447,8 +447,9 @@ export function HaustierDashboard() {
   return (
     <>
       <HaustierHuelle
-        // Im Sprachmodus spricht die Kugel, die Figur wird nicht gebraucht und kaeme
-        // ihr nur in die Quere (Rueckmeldung vom 25.09.2026).
+        // Im Sprachmodus fuehrt Himbi in der Mitte das Gespraech (ki/sprach-himbi.tsx);
+        // die Figur in der Ecke wird ausgeblendet, damit es nur einen gibt
+        // (Rueckmeldung vom 25.09.2026).
         verborgen={sprachmodus}
         zustand={zustand}
         stimmung={miene}

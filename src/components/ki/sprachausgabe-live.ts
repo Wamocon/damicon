@@ -230,8 +230,8 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
 
     const q = ctx.createBufferSource();
     q.buffer = daten;
-    // Ueber den gemeinsamen Ausgang: die Kugel des Sprachmodus und das
-    // Dazwischenreden lesen dort den Pegel (lib/ausgabe-pegel.ts).
+    // Ueber den gemeinsamen Ausgang: die Lippen von Himbi im Sprachmodus und das
+    // Dazwischenreden lesen dort Pegel und Spektrum (lib/ausgabe-pegel.ts).
     q.connect(ausgangFuer(ctx));
     q.onended = () => {
       if (meinDurchgang !== durchgang.current) return;

@@ -67,7 +67,7 @@ export function starteLiveSitzung({
   /** Die Sitzung ist gescheitert, bevor beende() oder abbrechen() gerufen wurde
    *  (Schluessel, Verbindung, Dienst). Der Diktatknopf braucht das nicht - er
    *  faellt bei beende() auf den Datei-Weg zurueck. Der Sprachmodus schon: ohne
-   *  diese Meldung kaeme nie ein Endpunkt, und die Kugel hoerte endlos zu. */
+   *  diese Meldung kaeme nie ein Endpunkt, und der Sprachmodus hoerte endlos zu. */
   beiScheitern?: (grund: string) => void;
 }): LiveSitzung {
   const sammler = erzeugeTokenSammler();

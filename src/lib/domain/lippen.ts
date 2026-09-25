@@ -31,12 +31,15 @@ export const MUND_ZU: Mundform = { offen: 0, breite: 0.5, rund: 0, zaehne: 0 };
 
 /** Frequenzbaender in Hz (Recherche vom 25.09.2026, Formantbereiche nach der
  *  UPF-Arbeit zu Lippensynchronisation im Browser). Grund: Grundton und das
- *  Brummen der Nasale M und N (Lippen zu). Tief: erster Formant von O und U.
+ *  Brummen der Nasale M und N (Lippen zu). Tief: erster Formant von O und U; er
+ *  beginnt bei 250 Hz, weil der erste Formant von U um 280 Hz liegt (mit der
+ *  Grenze bei 300 Hz galt U nach dem Wegfall der doppelt gezaehlten Randbins als
+ *  geschlossenes M).
  *  Mitte: erster Formant von A, der Kiefer. Hoch: zweiter Formant von E und I
  *  (breite Lippen). Zisch: Reibelaute S, Sch, F, Z. */
 export const BAENDER = {
-  grund: [80, 300],
-  tief: [300, 700],
+  grund: [80, 250],
+  tief: [250, 700],
   mitte: [700, 1800],
   hoch: [1800, 4000],
   zisch: [4000, 8000],
@@ -54,7 +57,9 @@ const klemme = (x: number, min = 0, max = 1) => (x < min ? min : x > max ? max :
 
 /** Die Energie je Band aus getByteFrequencyData (0..255, dB-skaliert zwischen
  *  minDecibels und maxDecibels des Analysers) als lineare Leistung, gemittelt
- *  ueber die Bins des Bands. */
+ *  ueber die Bins des Bands. Die Baender sind halboffen [von, bis): jedes Bin gehoert
+ *  genau einem Band. Bis zur Gegenpruefung vom 25.09.2026 zaehlten die Randbins
+ *  doppelt (bei 48 kHz 281 und 375 Hz in Grund UND Tief). */
 export function baenderAus(
   frequenzen: ArrayLike<number>,
   abtastrate: number,
@@ -64,8 +69,8 @@ export function baenderAus(
 ): Baender {
   const binHz = abtastrate / fftGroesse;
   const band = ([von, bis]: readonly [number, number]) => {
-    const a = Math.max(1, Math.floor(von / binHz));
-    const b = Math.min(frequenzen.length - 1, Math.ceil(bis / binHz));
+    const a = Math.max(1, Math.ceil(von / binHz));
+    const b = Math.min(frequenzen.length - 1, Math.ceil(bis / binHz) - 1);
     if (b < a) return 0;
     let summe = 0;
     for (let i = a; i <= b; i++) {
@@ -81,6 +86,16 @@ export function baenderAus(
  *  Pause: der Mund schliesst. Ohne Schwelle zittert er in jeder Atempause. */
 export const STILLE = 0.1;
 
+/** Rundung aus der "Dunkelheit" des Klangs, log10(hoch/tief): gerundete Lippen senken
+ *  die hoeheren Formanten. Ab RUND_AB beginnt die Rundung, RUND_SPANNE tiefer ist sie
+ *  voll. Gemessen mit drei Soniox-Stimmen (Lena de, Maya en/ru, Yana kk) am 25.09.2026,
+ *  Median je Probe: U -4,7 bis -5,7, O -3,0 bis -5,5; dagegen A -0,5 bis -2,4, offenes
+ *  E (russisch Э) -2,0, I -1,9 bis -2,4 und Saetze voller M und L -2,2 bis -3,2.
+ *  Vorsichtig gewaehlt: ein runder Mund bei A oder M faellt mehr auf als ein neutraler
+ *  bei O. */
+export const RUND_AB = -2.6;
+export const RUND_SPANNE = 1.2;
+
 /** Aus Lautstaerke (0..1, schon an die laufende Spitze angepasst) und den Baendern
  *  die Zielform dieses Bilds. */
 export function mundAusKlang(lautheit: number, b: Baender): Mundform {
@@ -91,26 +106,33 @@ export function mundAusKlang(lautheit: number, b: Baender): Mundform {
   const zischAnteil = b.zisch / gesamt;
   // Verhaeltnisse statt Anteilen an der ganzen Stimme: der zweite Formant ist bei I und
   // E absolut viel leiser als der erste, als Anteil an allem ging er unter, und I galt
-  // als rund. Gemessen mit der echten Soniox-Stimme am 25.09.2026 (Median je Probe;
-  // Einzelvokale, im Fliesstext liegt A eher bei kiefer 0,45 bis 0,6):
-  //            kiefer  vorn   nasal
-  //   A        0,75    0,10   0,63
-  //   O        0,29    0,00   0,67
-  //   U        0,02    0,00   0,69
-  //   I        0,00    0,80   0,71
-  //   E        0,00    0,81   0,64
-  //   M        0,01    0,10   0,76 bis 0,88
+  // als rund. Gemessen mit den echten Soniox-Stimmen am 25.09.2026 (Median je Probe,
+  // Einzelvokale; zuerst nur Lena, die Gegenpruefung ergaenzte Maya und Yana):
+  //            kiefer          vorn            dunkel (log10 hoch/tief)
+  //   A        0,18 bis 0,79   0,02 bis 0,13   -0,5 bis -2,4
+  //   O        0,06 bis 0,32   0,00 bis 0,01   -3,0 bis -5,5
+  //   U        0,01 bis 0,04   0,00            -4,7 bis -5,7
+  //   I        0,00            0,81 bis 0,94   -1,9 bis -2,4
+  //   E        0,00 bis 0,58   0,06 bis 0,85   -0,2 bis -2,2 (offenes E ohne "vorn")
   // kiefer: erster Formant hoch (A) gegen tief (U, I). vorn: zweiter Formant hoch (I, E).
-  // nasal: Brummen unter 300 Hz, bei M und N am staerksten; die Lippen sind dann zu.
+  // dunkel: gerundete Lippen (O, U). Bis zur Gegenpruefung galt "wenig Kiefer und wenig
+  // vorn" als rund; das traf auch kasachisches A (76 % der Bilder), russisches Э (92 %),
+  // englisches "Eee" (91 %) und Saetze voller M und L (42 bis 64 %). Mit "dunkel": 0 %,
+  // 0 %, 0 % und 6 bis 30 %, bei U weiter 74 bis 89 %.
+  // nasal: Brummen unter 300 Hz, bei M und N am staerksten; die Lippen sind dann zu. Im
+  // Fliesstext ueberlappt es mit den Vokalen (M 0,63 bis 0,88, Vokale 0,63 bis 0,74) und
+  // greift darum nur selten.
   const kiefer = b.tief + b.mitte > 0 ? b.mitte / (b.tief + b.mitte) : 0;
   const vorn = b.hoch + b.mitte > 0 ? b.hoch / (b.hoch + b.mitte) : 0;
   const nasal = b.grund + b.tief + b.mitte > 0 ? b.grund / (b.grund + b.tief + b.mitte) : 0;
+  const dunkel = Math.log10(Math.max(b.hoch, 1e-15) / Math.max(b.tief, 1e-15));
   // Zischlaut: Zaehne zeigen, Kiefer fast zu. Ab 50 % Anteil ganz, ab 25 % anteilig.
   const zaehne = klemme((zischAnteil - 0.25) / 0.25);
   // M und N: viel Brummen, kein Kiefer, kein zweiter Formant. Ein U kann das fuer ein
   // Bild auch sein, dann schliesst er kurz: faellt weniger auf als ein offener Mund bei M.
   const zu = klemme((nasal - 0.72) / 0.08) * (1 - klemme(kiefer / 0.15)) * (1 - klemme((vorn - 0.2) / 0.3)) * (1 - zaehne);
-  const rund = klemme((0.55 - vorn) / 0.3) * klemme((0.42 - kiefer) / 0.2) * (1 - zaehne) * (1 - zu);
+  // Rund nur bei dunklem Klang und nicht bei weit offenem Kiefer (A).
+  const rund = klemme((RUND_AB - dunkel) / RUND_SPANNE) * (1 - klemme((kiefer - 0.45) / 0.2)) * (1 - zaehne) * (1 - zu);
   const breite = klemme(0.5 + klemme((vorn - 0.45) / 0.35) * 0.5 - rund * 0.5 + zaehne * 0.3);
   // Kiefer: folgt der Lautstaerke mit etwas Kompression (leise Silben sollen sichtbar
   // sein), weiter offen bei A, enger bei I und U und bei Zischlauten, zu bei M und N.
@@ -123,7 +145,9 @@ export function mundAusKlang(lautheit: number, b: Baender): Mundform {
  *  darf eine Spur weicher sein. Zeitkonstanten in Millisekunden. */
 export const GLAETTUNG = { offenAuf: 35, offenZu: 110, form: 60 } as const;
 
-function naeher(bisher: number, ziel: number, dtMs: number, tauMs: number): number {
+/** Exponentielle Annaeherung an ein Ziel mit Zeitkonstante tauMs, unabhaengig von der
+ *  Bildrate. Auch fuer den Schein im Sprachmodus (domain/himbi-gespraech.ts). */
+export function naeher(bisher: number, ziel: number, dtMs: number, tauMs: number): number {
   if (dtMs <= 0) return bisher;
   const anteil = 1 - Math.exp(-dtMs / tauMs);
   return bisher + (ziel - bisher) * anteil;
@@ -144,7 +168,11 @@ export function glaetteMund(bisher: Mundform, ziel: Mundform, dtMs: number): Mun
 /** Passt die Lautstaerke an die Stimme an: die Spitze folgt lauten Stellen sofort und
  *  sinkt langsam (Halbwertszeit rund 1,5 s), der Boden verhindert, dass Rauschen in
  *  einer langen Pause zur vollen Oeffnung aufgeblasen wird. Rueckgabe: neue Spitze. */
-export function folgeSpitze(spitze: number, pegel: number, dtMs: number, boden = 0.04): number {
+/** Untergrenze der Spitze: Rauschen in einer langen Pause wird nicht zur vollen
+ *  Oeffnung aufgeblasen. Zugleich der Startwert der Spitze. */
+export const SPITZE_BODEN = 0.04;
+
+export function folgeSpitze(spitze: number, pegel: number, dtMs: number, boden = SPITZE_BODEN): number {
   const sinken = Math.pow(0.5, Math.min(dtMs, 100) / 1500);
   return Math.max(boden, pegel, spitze * sinken);
 }

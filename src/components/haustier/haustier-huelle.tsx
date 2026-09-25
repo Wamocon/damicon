@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Keyb
 import { Himbi } from "@/components/haustier/himbi";
 import { Wellen } from "@/components/haustier/wellen";
 import type { HaustierZustand, Inventar, Stimmung } from "@/lib/haustier";
+import { BLICK_DENKT, blickRichtung } from "@/lib/haustier";
 import "@/components/haustier/haustier.css";
 
 // Die schwebende Huelle um Himbi: Position (unten rechts, frei verschiebbar), Augen, Schlaf,
@@ -19,7 +20,6 @@ import "@/components/haustier/haustier.css";
 const POS_SCHLUESSEL = "damicon-haustier-pos";
 const SCHLAF_NACH_MS = 40_000;
 const WECKEN_RADIUS = 220;
-const AUGEN_MAX = 3.4;
 const ZIEHSCHWELLE = 5;
 const RAND = 8;
 // Wegschicken durch Halten: nach HALTEN_START_MS wird Himbi traurig und ein Ring laeuft
@@ -267,11 +267,8 @@ export function HaustierHuelle({
     (px: number, py: number) => {
       const r = griff.current?.getBoundingClientRect();
       if (!r) return;
-      const dx = px - (r.left + r.width / 2);
-      const dy = py - (r.top + r.height * 0.6);
-      const d = Math.hypot(dx, dy) || 1;
-      const staerke = Math.min(1, d / 140);
-      richteAugen((dx / d) * AUGEN_MAX * staerke, (dy / d) * AUGEN_MAX * staerke);
+      const b = blickRichtung(px - (r.left + r.width / 2), py - (r.top + r.height * 0.6));
+      richteAugen(b.x, b.y);
     },
     [richteAugen],
   );
@@ -279,7 +276,7 @@ export function HaustierHuelle({
   // Zustandsabhaengiger Blick: denkt = nach oben links, Schlaf/Fehler = nach unten
   useEffect(() => {
     if (schauZiel) return;
-    if (anzeige === "denkt") richteAugen(-2.6, -2.8);
+    if (anzeige === "denkt") richteAugen(BLICK_DENKT.x, BLICK_DENKT.y);
     else if (anzeige === "schlaeft") richteAugen(0, 1.5);
     else if (anzeige === "traurig") richteAugen(0, 2.6);
     else if (anzeige === "fehler") richteAugen(0, 2);

@@ -14,19 +14,27 @@
   align-items: center;
   justify-content: center;
   isolation: isolate;
+  /* Unten Platz fuer die feste Bedienleiste (44px Knoepfe + 2 x 0,5rem Rand), sonst
+     deckt sie auf dem Handy den Untertitel unter der hohen Figur zu. */
+  padding: 1rem 1rem calc(max(1.5rem, env(safe-area-inset-bottom)) + 60px + 0.75rem);
 }
 
-/* Seit dem 25.09.2026 KEINE Abdunkelung mehr hinter der Kugel: die Seite
+/* Seit dem 25.09.2026 KEINE Abdunkelung mehr hinter der Figur: die Seite
  * bleibt ueberall normal hell und scharf lesbar ("die Mitte muss ich gut
  * sehen und lesen koennen, sie darf nicht verblurt werden"). Vorher stand
  * hier eine volle, unscharfe Abdunkelungsflaeche (.ki-sprachmodus__hintergrund);
- * das Kontrastproblem, das sie loesen sollte (Kugel und Text gegen eine helle
- * Seite), loest jetzt der huebsche, deckende Schatten/Rahmen der Kugel und der
- * Bedienleiste selbst (siehe unten), nicht mehr eine Flaeche ueber der ganzen
- * Seite. */
+ * das Kontrastproblem, das sie loesen sollte (Figur und Text gegen eine helle
+ * Seite), loesen jetzt Schein und Schatten der Figur, die deckenden Karten fuer
+ * Zustand und Text und die Bedienleiste selbst (siehe unten), nicht mehr eine
+ * Flaeche ueber der ganzen Seite. */
 
-/* ---- Kugel: Mitte oder links ueber der Menueleiste --------------------------- */
-.ki-sprachmodus__kugel-huelle {
+/* ---- Himbi: Mitte oder links ueber der Menueleiste --------------------------- */
+/* In der Mitte ist die Spalte nur Klammer fuer denselben Baum wie angedockt
+   (sprachmodus.tsx): Figur und Text stehen direkt im Flex von .ki-sprachmodus. */
+.ki-sprachmodus__mitte {
+  display: contents;
+}
+.ki-sprachmodus__figur-huelle {
   position: relative;
   z-index: 2;
   display: flex;
@@ -35,23 +43,23 @@
   gap: 1rem;
 }
 @media (prefers-reduced-motion: no-preference) {
-  .ki-sprachmodus__kugel-huelle {
+  .ki-sprachmodus__figur-huelle {
     transition: left 0.45s cubic-bezier(0.16, 1, 0.3, 1), top 0.45s cubic-bezier(0.16, 1, 0.3, 1),
       width 0.45s cubic-bezier(0.16, 1, 0.3, 1), height 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   }
 }
 
-/* Ohne ein bestimmtes Ziel, aber der Assistent denkt oder spricht: Kugel und
+/* Ohne ein bestimmtes Ziel, aber der Assistent denkt oder spricht: Himbi und
  * Text ruecken als EINE Einheit (.ki-sprachmodus__links-spalte weiter unten)
  * links ueber die Navigationsleiste, vertikal mittig - die Mitte der Seite
  * bleibt frei und scharf lesbar (Rueckmeldung vom 25.09.2026). Hier drinnen
- * ist die Kugel-Huelle ein ganz normales Flex-Kind, kein eigenes
+ * ist die Huelle der Figur ein ganz normales Flex-Kind, kein eigenes
  * position:fixed - die Positionierung uebernimmt die Spalte. */
-.ki-sprachmodus__kugel-huelle--links {
+.ki-sprachmodus__figur-huelle--links {
   gap: 0.5rem;
 }
 
-.ki-sprachmodus__kugel-knopf {
+.ki-sprachmodus__figur-knopf {
   position: relative;
   display: block;
   padding: 0;
@@ -64,13 +72,24 @@
 
 /* ---- Himbi als Gegenueber (sprach-himbi.tsx) ----------------------------------
  * Ersetzt seit dem 25.09.2026 die Kugel. Der Schein hinter der Figur traegt die
- * Farbe des Zustands (wie vorher die Kugel) und waechst mit der Stimme: beim
- * Zuhoeren mit der eigenen, beim Sprechen mit der von Himbi. --himbi-schein und
- * --himbi-nicken setzt die Bildschleife, 0..1. */
+ * Farbe des Zustands und waechst mit der Stimme: beim Zuhoeren mit der eigenen,
+ * beim Sprechen mit der von Himbi. Deckkraft und Groesse des Scheins und das
+ * Nicken des Koerpers setzt die Bildschleife direkt an diesen zwei Elementen.
+ * Die Groesse steht hier (--himbi-b = Breite, Hoehe das 1,5-Fache wie der viewBox
+ * 96 x 144) und wird auf niedrigen Bildschirmen (Handy quer) kleiner, statt den
+ * Kopf abzuschneiden. */
 .ki-himbi {
   --himbi-farbe: oklch(72% 0.14 200);
+  --himbi-b: clamp(72px, 24vh, 160px);
   position: relative;
   display: block;
+  width: var(--himbi-b);
+  height: calc(var(--himbi-b) * 1.5);
+  /* Eigene Ebene: der Schein bleibt hinter der Figur und unter dem Fokusrahmen. */
+  isolation: isolate;
+}
+.ki-himbi[data-groesse="klein"] {
+  --himbi-b: clamp(52px, 13vh, 84px);
 }
 .ki-himbi[data-zustand="denkt"] {
   --himbi-farbe: oklch(80% 0.15 55);
@@ -86,6 +105,7 @@
 }
 .ki-himbi__schein {
   position: absolute;
+  z-index: -1;
   left: 50%;
   top: 50%;
   /* Groesser als die Figur und erst zum Rand hin durchsichtig: die Mitte deckt Himbi
@@ -100,35 +120,66 @@
     color-mix(in oklab, var(--himbi-farbe) 35%, transparent) 70%,
     transparent
   );
-  opacity: calc(0.55 + var(--himbi-schein, 0) * 0.45);
-  scale: calc(0.92 + var(--himbi-schein, 0) * 0.3);
+  opacity: 0.55;
+  scale: 0.92;
   pointer-events: none;
 }
 .ki-himbi__koerper {
   position: relative;
-  translate: 0 calc(var(--himbi-nicken, 0) * -3%);
 }
 .ki-himbi .hb-svg {
   width: 100%;
   height: auto;
 }
-/* Beim Sprechen schwebt Himbi ruhig, statt zu tanzen wie in der Ecke: im Gespraech
-   geht es um das Gesagte, Mund, Arme und Nicken tragen die Bewegung. */
+/* Himbi in den Einstellungen ausgeschaltet oder weggeschickt: keine Figur, der
+   Schein allein zeigt als farbiger Kreis den Zustand (wie frueher die Kugel). */
+.ki-himbi[data-figur="aus"] {
+  height: var(--himbi-b);
+}
+.ki-himbi[data-figur="aus"] .ki-himbi__schein {
+  width: 100%;
+  background: radial-gradient(
+    closest-side,
+    var(--himbi-farbe) 55%,
+    color-mix(in oklab, var(--himbi-farbe) 40%, transparent) 82%,
+    transparent
+  );
+}
+/* Beim Sprechen schwebt Himbi ruhig und tritt nicht von einem Fuss auf den anderen
+   wie in der Ecke: im Gespraech geht es um das Gesagte, Mund, Arme und Nicken
+   tragen die Bewegung. */
 @media (prefers-reduced-motion: no-preference) {
   .ki-himbi .hb-svg[data-zustand="spricht"] .hb-figur {
     animation: hb-schweben 2.6s ease-in-out infinite;
   }
+  .ki-himbi .hb-svg[data-zustand="spricht"] :is(.hb-bein, .hb-chapan) {
+    animation: none;
+  }
 }
-.ki-sprachmodus__kugel-knopf:focus-visible {
-  outline: 3px solid var(--ring);
+/* Fokusrahmen als eigene Ebene UEBER Figur und Schein (vorher lag der Schein ueber
+   dem outline und drueckte den Kontrast auf 1,6 bis 3 zu 1, Gegenpruefung vom
+   25.09.2026), zweifarbig, damit er auf hellem wie dunklem Grund sichtbar bleibt.
+   Das durchsichtige outline bleibt fuer den Modus erzwungener Farben (Windows),
+   dort werden Schatten nicht gezeichnet. */
+.ki-sprachmodus__figur-knopf:focus-visible {
+  outline: 3px solid transparent;
   outline-offset: 6px;
 }
-.ki-sprachmodus--angedockt .ki-sprachmodus__kugel-knopf {
+.ki-sprachmodus__figur-knopf:focus-visible::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  z-index: 1;
+  border-radius: 1.75rem;
+  box-shadow: 0 0 0 2px var(--background), 0 0 0 5px var(--ring);
+  pointer-events: none;
+}
+.ki-sprachmodus--angedockt .ki-sprachmodus__figur-knopf {
   filter: drop-shadow(0 8px 24px rgb(0 0 0 / 0.35));
 }
 
 /* Eigene, deckende Kartenflaeche statt nur farbigem Text: seit dem
- * 25.09.2026 gibt es keine Abdunkelung mehr hinter der Kugel (die Seite
+ * 25.09.2026 gibt es keine Abdunkelung mehr hinter der Figur (die Seite
  * bleibt frei lesbar) - Text ohne eigenen Untergrund waere dann mal auf
  * hellem, mal auf dunklem oder buntem Seiteninhalt kaum noch zu lesen.
  * --popover/--popover-foreground gehen mit dem hellen/dunklen Thema mit UND
@@ -164,7 +215,7 @@
 
 /* ---- Untertitel -------------------------------------------------------------- */
 /* Eigene Kartenflaeche, aus demselben Grund wie bei .ki-sprachmodus__status
- * oben: seit dem 25.09.2026 keine Abdunkelung mehr hinter der Kugel, Text
+ * oben: seit dem 25.09.2026 keine Abdunkelung mehr hinter der Figur, Text
  * ohne eigenen Untergrund waere gegen beliebigen Seiteninhalt nicht mehr
  * zuverlaessig lesbar. */
 .ki-sprachmodus__untertitel {
@@ -218,18 +269,18 @@
   color: var(--primary);
 }
 
-/* ---- Links-Spalte: Kugel + Text als eine Einheit ueber der Navigationsleiste ---
+/* ---- Links-Spalte: Himbi + Text als eine Einheit ueber der Navigationsleiste ---
  * Nur ab der Breite, ab der die Navigationsleiste ueberhaupt eingeblendet ist
  * (md, wie sidebar.tsx "hidden md:block") - auf dem Handy gibt es keine
- * Leiste, ueber die man andocken koennte, dort bleibt die Kugel ein normales
+ * Leiste, ueber die man andocken koennte, dort bleibt Himbi ein normales
  * Flex-Kind von .ki-sprachmodus (zentriert wie im Ruhezustand).
  *
  * "top: 50%; transform: translateY(-50%)" auf der ganzen Spalte statt auf
- * Kugel und Text einzeln: waechst der Text nach unten, wird die Spalte als
+ * Figur und Text einzeln: waechst der Text nach unten, wird die Spalte als
  * Ganzes hoeher, und dieselbe Zentrierung ruecke sie automatisch wieder
- * mittig - die Kugel wandert dabei von selbst nach oben, ohne eigene Logik
+ * mittig - Himbi wandert dabei von selbst nach oben, ohne eigene Logik
  * dafuer (Rueckmeldung vom 25.09.2026: "links vertikal mittig, wird der Text
- * laenger soll die Kugel nach oben wandern"). max-height plus min-height:0 im
+ * laenger soll die Kugel nach oben wandern", heute Himbi). max-height plus min-height:0 im
  * Text darunter halten die Spalte dabei immer im Rahmen der Navigationsleiste
  * (Kopfzeile oben, Rand unten) - laengerer Text scrollt in sich selbst statt
  * die Spalte aus dem Rahmen wachsen zu lassen. */
@@ -257,15 +308,15 @@
   }
 }
 
-/* Nur die Navigationsleiste wird unscharf, solange Kugel/Text darueber
+/* Nur die Navigationsleiste wird unscharf, solange Himbi und Text darueber
  * liegen - die Mitte der Seite bleibt in jedem Fall scharf (Rueckmeldung vom
  * 25.09.2026: "die Menueleiste links kann verblurt sein"). Der Filter liegt
  * DIREKT auf der Leiste (data-seitenleiste, sidebar.tsx), nicht mehr als
  * backdrop-filter auf einer Flaeche darueber: im echten Chrome wirkte der
  * nicht (Rueckmeldung vom 25.09.2026: "die Seitenleiste ist nicht geblurt"),
  * ein normaler Filter auf dem Element selbst ist dagegen ueberall zuverlaessig.
- * sprachmodus.tsx setzt data-sprach-links am <html>, solange Kugel und Text
- * links stehen. Kugel und Text sind ein eigenes Element ausserhalb der Leiste
+ * sprachmodus.tsx setzt data-sprach-links am <html>, solange Himbi und Text
+ * links stehen. Himbi und Text sind ein eigenes Element ausserhalb der Leiste
  * und bleiben scharf. */
 [data-seitenleiste] {
   transition: filter 0.3s ease;

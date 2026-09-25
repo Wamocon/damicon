@@ -107,7 +107,6 @@ import { satzBeiPosition } from "../../src/lib/domain/sprachmodus-mitlesen.ts";
 import {
   antwortFertig,
   assistentIstDran,
-  besterPlatz,
   erzeugeUnterbrechungsWaechter,
   istAbsageBefehl,
   istStoppBefehl,
@@ -117,7 +116,6 @@ import {
   nachSitzungsAbbruch,
   naechstePhase,
   nimmtAuf,
-  PLAETZE,
   UNTERBRECHEN_STANDARD,
 } from "../../src/lib/domain/sprachmodus.ts";
 import { waehleSchritt } from "../../src/lib/ai/schritt-steuerung.ts";
@@ -2372,48 +2370,9 @@ for (const [name, kaputteAntwort] of [
   pruefe("Sprachmodus: ein unbekannter Uebergang aendert die Phase nicht", naechstePhase("hoert", { art: "beliebig-unbekannt" }) === "hoert");
   pruefe("Sprachmodus: antwortFertig nur ohne Beschaeftigung, Sprechen und Laden", antwortFertig({ beschaeftigt: false, spricht: false, laedt: false }) === true && antwortFertig({ beschaeftigt: false, spricht: false, laedt: true }) === false && antwortFertig({ beschaeftigt: true, spricht: false, laedt: false }) === false);
 
-  // (b) Kugel-Platzierung: nie ueber dem Ziel, am weitesten davon entfernt, stabil bei
-  //     unveraendertem Ziel (kein Herumspringen), notfalls die kleinste Ueberlappung.
-  const fenster = { breite: 1440, hoehe: 900 };
-  const blase = { breite: 96, hoehe: 96 };
-  const raender = { oben: 64, rechts: 0, unten: 0, links: 0 };
-  {
-    const zielUntenRechts = { x: 1000, y: 600, breite: 380, hoehe: 250 };
-    const { platz, rechteck } = besterPlatz(zielUntenRechts, fenster, blase, raender);
-    const zielMitAbstand = { x: zielUntenRechts.x - 16, y: zielUntenRechts.y - 16, breite: zielUntenRechts.breite + 32, hoehe: zielUntenRechts.hoehe + 32 };
-    const ueberlappt = rechteck.x < zielMitAbstand.x + zielMitAbstand.breite && rechteck.x + rechteck.breite > zielMitAbstand.x && rechteck.y < zielMitAbstand.y + zielMitAbstand.hoehe && rechteck.y + rechteck.hoehe > zielMitAbstand.y;
-    pruefe("Kugel-Platz: kein Platz ueberlappt ein kleines Ziel", !ueberlappt, platz);
-    pruefe("Kugel-Platz: bei einem Ziel unten rechts geht sie nach oben links", platz === "oben-links", platz);
-  }
-  {
-    const zielObenLinks = { x: 20, y: 80, breite: 500, hoehe: 300 };
-    const { platz } = besterPlatz(zielObenLinks, fenster, blase, raender);
-    pruefe("Kugel-Platz: bei einem Ziel oben links geht sie nach unten rechts", platz === "unten-rechts", platz);
-  }
-  {
-    // Randfall: das Ziel fuellt praktisch den ganzen Bildschirm - jeder Platz ueberlappt,
-    // dann gewinnt die kleinste Ueberlappung statt ein Fehler oder eine feste Ecke.
-    const riesig = { x: 0, y: 64, breite: fenster.breite, hoehe: fenster.hoehe - 64 };
-    const { platz, rechteck } = besterPlatz(riesig, fenster, blase, raender);
-    pruefe("Kugel-Platz: ueberlappt jeder Platz, wird trotzdem einer gewaehlt", PLAETZE.includes(platz), platz);
-    pruefe("Kugel-Platz: das gewaehlte Rechteck liegt im Fenster", rechteck.x >= 0 && rechteck.y >= 0 && rechteck.x + rechteck.breite <= fenster.breite && rechteck.y + rechteck.hoehe <= fenster.hoehe);
-  }
-  {
-    // Bleibt das Ziel gleich, bleibt die Kugel an ihrem Platz (kein staendiges Umsetzen).
-    const ziel = { x: 300, y: 300, breite: 200, hoehe: 150 };
-    const erster = besterPlatz(ziel, fenster, blase, raender);
-    const zweiter = besterPlatz(ziel, fenster, blase, raender, 16, erster.platz);
-    pruefe("Kugel-Platz: bei unveraendertem Ziel bleibt der Platz stabil", zweiter.platz === erster.platz);
-  }
-  {
-    // Wechselt das Ziel so, dass es genau dort liegt, wo die Kugel gerade steht, wird ein
-    // anderer Platz gewaehlt - unabhaengig davon, welche Ecke das im Einzelfall ist.
-    const erstesZiel = { x: 1200, y: 700, breite: 100, hoehe: 80 };
-    const { platz: altPlatz, rechteck: alteBlase } = besterPlatz(erstesZiel, fenster, blase, raender);
-    const neuesZielAmPlatzDerBlase = { x: alteBlase.x - 20, y: alteBlase.y - 20, breite: alteBlase.breite + 40, hoehe: alteBlase.hoehe + 40 };
-    const { platz: neuPlatz } = besterPlatz(neuesZielAmPlatzDerBlase, fenster, blase, raender, 16, altPlatz);
-    pruefe("Kugel-Platz: ist der bisherige Platz jetzt belegt, wird ein anderer gewaehlt", neuPlatz !== altPlatz, `${altPlatz} -> ${neuPlatz}`);
-  }
+  // (b) Kugel-Platzierung: seit dem 25.09.2026 entfernt, Himbi dockt links an
+  //     (sprachmodus.tsx); die Platzsuche war ungenutzter Code.
+  pruefe("Sprachmodus: die ungenutzte Platzsuche der Kugel ist entfernt", !readFileSync(new URL("../../src/lib/domain/sprachmodus.ts", import.meta.url), "utf8").includes("export function besterPlatz"));
 
   // (c) Werkzeuge und Anweisungen des Sprachmodus.
   {

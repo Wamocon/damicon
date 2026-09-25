@@ -5,9 +5,9 @@
 // Zwei Stellen heben hervor: die Navigation (fokussiere in ki-pane-kontext.tsx,
 // nach oeffneBereich oder einem Quellenverweis) und das Zeigen auf ein Element
 // (zeigeAuf in ui-steuerung.ts). Beide setzen seit jeher nur eine Klasse, die
-// kurz aufleuchtet. Der Sprachmodus braucht mehr: er legt einen Lichtkegel um
-// das Ziel, solange der Assistent darueber spricht, und schiebt seine Kugel aus
-// dem Weg. Dafuer muss er wissen, WELCHES Element es ist - das steht hier.
+// kurz aufleuchtet. Der Sprachmodus braucht mehr: er legt einen Rahmen um das
+// Ziel, solange der Assistent darueber spricht, und Himbi sieht zu ihm hin. Dafuer
+// muss er wissen, WELCHES Element es ist - das steht hier.
 //
 // Ein Modul mit einem einzigen Zustand, wie lib/hoeren.ts: es gibt genau ein
 // hervorgehobenes Ziel, und wer es braucht, liest es ueber useSyncExternalStore.

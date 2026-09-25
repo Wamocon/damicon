@@ -24,7 +24,7 @@ function rechteckVon(element: Element): Rechteck {
   return { x: r.left, y: r.top, breite: r.width, hoehe: r.height };
 }
 
-/** Nur fuer das Spotlight (nicht fuer die Kugel-Platzierung, siehe sprachmodus.tsx):
+/** Fuer das Spotlight und den Blick von Himbi (sprachmodus.tsx):
  *  liefert das aktuelle Zielrechteck oder null, wenn nichts hervorgehoben ist.
  *
  *  Springt der Assistent waehrend des Sprachmodus auf eine neue Seite
