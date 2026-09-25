@@ -55,7 +55,19 @@ function rechteckVon(element: Element): Rechteck {
 }
 
 /** Nur fuer das Spotlight (nicht fuer die Kugel-Platzierung, siehe sprachmodus.tsx):
- *  liefert das aktuelle Zielrechteck oder null, wenn nichts hervorgehoben ist. */
+ *  liefert das aktuelle Zielrechteck oder null, wenn nichts hervorgehoben ist.
+ *
+ *  Springt der Assistent waehrend des Sprachmodus auf eine neue Seite
+ *  (oeffneBereich), raeumt React den kompletten Baum der vorigen Seite ab -
+ *  auch das Element, auf das gerade noch gezeigt wurde. setzeHervorhebung
+ *  haelt trotzdem die alte Referenz, und getBoundingClientRect() eines aus
+ *  dem Dokument entfernten Elements liefert lautlos ein Nullrechteck (x=0,
+ *  y=0, Breite=0, Hoehe=0) - derselbe Fall wie beim Blickziel der Figur
+ *  (haustier-huelle.tsx, isConnected-Pruefung dort). Ohne diese Pruefung
+ *  hier blieb das "Loch" im Abdunkel-Overlay ein 32x32 Pixel grosser Fleck
+ *  in der linken oberen Bildschirmecke, der Rest der Seite blieb komplett
+ *  abgedunkelt - gemeldet als "alles einfach weiss" (Screenshot vom
+ *  25.09.2026, ausgeloest genau beim Sprung zu einem Bereich). */
 export function useHervorhebungsRechteck(): Rechteck | null {
   const element = useSyncExternalStore(abonniereHervorhebung, leseHervorhebung, hervorhebungServer);
   const [rechteck, setRechteck] = useState<Rechteck | null>(null);
@@ -65,20 +77,26 @@ export function useHervorhebungsRechteck(): Rechteck | null {
     // vorigen Ziel wird unten (element ? rechteck : null) verworfen, ohne dass diese
     // Verzweigung selbst noch state setzt.
     if (!element) return;
-    const messen = () => setRechteck(rechteckVon(element));
+    const messen = () => setRechteck(element.isConnected ? rechteckVon(element) : null);
     messen();
     const ro = new ResizeObserver(messen);
     ro.observe(element);
     window.addEventListener("scroll", messen, { passive: true, capture: true });
     window.addEventListener("resize", messen);
+    // Eine Navigation aendert den DOM-Baum, loest aber weder scroll noch
+    // resize aus - ohne diesen Beobachter bliebe das Nullrechteck stehen,
+    // bis zufaellig eines der beiden Ereignisse eintrifft.
+    const beobachter = new MutationObserver(messen);
+    beobachter.observe(document.body, { childList: true, subtree: true });
     return () => {
       ro.disconnect();
+      beobachter.disconnect();
       window.removeEventListener("scroll", messen, { capture: true });
       window.removeEventListener("resize", messen);
     };
   }, [element]);
 
-  return element ? rechteck : null;
+  return element && element.isConnected ? rechteck : null;
 }
 
 export function SprachSpotlight({ rechteck }: { rechteck: Rechteck | null }) {
@@ -90,7 +108,9 @@ export function SprachSpotlight({ rechteck }: { rechteck: Rechteck | null }) {
     return () => window.removeEventListener("resize", messen);
   }, []);
 
-  if (!rechteck || fenster.breite === 0) return null;
+  // Zusaetzliche Sicherung direkt hier: ein Rechteck ohne Flaeche (verwaistes
+  // Ziel, Element noch nicht ausgemessen) darf nie die ganze Seite abdunkeln.
+  if (!rechteck || rechteck.breite <= 0 || rechteck.hoehe <= 0 || fenster.breite === 0) return null;
 
   return (
     <div className="ki-sprachmodus__spotlight" aria-hidden>
