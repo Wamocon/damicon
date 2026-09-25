@@ -401,6 +401,8 @@
     "zoneKennzahlLead": "This area's key figures, the most urgent one first.",
     "zoneKennzahlMehr": "{count, plural, one {Show # more key figure} other {Show # more key figures}}",
     "zoneKennzahlWeniger": "Hide additional key figures",
+    "zoneModuleTitel": "Modules",
+    "zoneOhneKennzahl": "No indicator is released for this zone.",
     "bereiche": {
       "titel": "The four areas",
       "lead": "Each area with its metrics, anything off target first.",
