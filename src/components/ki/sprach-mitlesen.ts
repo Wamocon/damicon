@@ -53,8 +53,17 @@ function zugeklappte(wurzel: HTMLElement, elemente: Stelle[], kandidaten: Mitles
     const inhalt = dahinter ? document.getElementById(dahinter) : null;
     const huelle = knopf.closest<HTMLElement>("li, section, article, [class*='rounded']") ?? knopf;
     const r = huelle.getBoundingClientRect();
+    const mitInhalt = `${textVon(knopf)} ${inhalt ? textVon(inhalt) : ""}`.trim().slice(0, ZUGEKLAPPT_TEXT_MAX);
+    // Die Hülle steht meist schon als sichtbare Stelle in der Liste: dieselbe
+    // Stelle, nur mit Aufklappen und dem Text dahinter, statt zweimal.
+    const schon = elemente.findIndex((e) => e.el === huelle);
+    if (schon >= 0) {
+      elemente[schon]!.aufklappen = () => knopf.click();
+      kandidaten[schon]!.text = `${kandidaten[schon]!.text} ${mitInhalt}`.slice(0, ZUGEKLAPPT_TEXT_MAX);
+      continue;
+    }
     elemente.push({ el: huelle, aufklappen: () => knopf.click() });
-    kandidaten.push({ text: `${textVon(knopf)} ${inhalt ? textVon(inhalt) : ""}`.trim().slice(0, ZUGEKLAPPT_TEXT_MAX), flaeche: r.width * r.height });
+    kandidaten.push({ text: mitInhalt, flaeche: r.width * r.height });
   }
 }
 
@@ -70,7 +79,8 @@ export function findeMitleseZiel(satz: string): MitleseTreffer | null {
     const text = textVon(el);
     if (text.length < TEXT_MIN || text.length > TEXT_MAX) continue;
     const r = el.getBoundingClientRect();
-    if (r.width < 24 || r.height < 12 || r.height > window.innerHeight * 1.5) continue;
+    // Höher als fast das ganze Bild: kein Punkt, auf den man zeigen kann.
+    if (r.width < 24 || r.height < 12 || r.height > window.innerHeight * 0.9) continue;
     stellen.push({ el });
     kandidaten.push({ text, flaeche: r.width * r.height });
   }
