@@ -201,6 +201,29 @@ Gesprochenen voraus. Seit 25.09.2026 gilt:
   `oeffneBereich`, nie fragen, ob ein Bereich geöffnet werden soll, in dem der Nutzer
   schon steht, keine Klickschleifen auf "Ansehen" und keine wiederholten Füllsätze.
 
+**Sprechmarke.** Gewartet wird nur auf die Sätze VOR der Handlung, nicht auf alles,
+was danach noch gesprochen wird: der Text hinter einem `oeffneBereich` geht sofort an
+die Stimme, hinge der Seitenwechsel an "die Stimme ist still", käme er erst nach der
+ganzen Antwort (gemeldet am 25.09.2026: "Ich öffne den Bereich Feld", die Feldkarte
+wird beschrieben, die Seite wechselt nicht). Der Sprecher (`sprachausgabe-strom.ts`,
+`stand()`) schätzt aus der gespielten Tondauer, welcher Satz gerade klingt. Die
+Sprechgeschwindigkeit wird aus jedem fertigen Strom nachgemessen. Ohne Satzposition
+(Vorlesen über einzelne Abschnitte) wartet ein Seitenwechsel höchstens 6 s.
+
+### Mitlesen (`sprach-mitlesen.ts`, `domain/sprachmodus-mitlesen.ts`)
+
+Bei einer längeren Erklärung, etwa der Compliance-Prüfung, wandert der Rahmen in der
+Mitte mit: der Satz, der gerade klingt (`leseGerade()` im Bus), wird mit den Texten
+im Hauptbereich verglichen (Überschriften, Bereiche, Listeneinträge, Kacheln).
+Treffer in der Überschrift und Zahlen zählen mehr, die kleinere Stelle gewinnt bei
+gleichem Wert, und passt nichts, bleibt der Rahmen, wo er war. Das Modell muss dafür
+nicht auf jeden Punkt zeigen. Zeigt es mit `zeigeAuf`, gilt der zuletzt gesetzte Rahmen.
+
+Liegt die gemeinte Stelle in einem **zugeklappten Element** (`details`, Aufklappbereich
+mit `aria-expanded="false"`), wird es aufgeklappt, und der Text dahinter zählt beim
+Vergleich mit. Aufgeklappt wird nur, was die Anwendung auch ohne Rückfrage anklickt
+(`klickStufe`), keine Menüs, Reiter oder Auswahlfelder.
+
 ### Navigationsleiste
 
 Beim Andocken setzt der Sprachmodus `data-sprach-links` am `<html>`; ein Filter

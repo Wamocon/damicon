@@ -86,6 +86,7 @@ import {
   meldeChatStand,
   meldeFreigabeAnfrage,
   registriereEntsperren,
+  registriereGerade,
   zaehlerServer,
 } from "@/components/ki/sprachmodus-bus";
 import { KiChatAktionskarte } from "@/components/ki/ki-chat-aktionskarte";
@@ -326,9 +327,19 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
 
   const taktStimme = takt.stimme;
   const taktAktiv = takt.aktiv;
+  const taktStand = takt.stand;
+  const geradeSprechend = live.gerade;
   useEffect(() => {
     taktStimme.current = vorlesen.phase;
   }, [vorlesen.phase, taktStimme]);
+  useEffect(() => {
+    taktStand.current = geradeSprechend;
+    registriereGerade(geradeSprechend);
+    return () => {
+      taktStand.current = null;
+      registriereGerade(null);
+    };
+  }, [geradeSprechend, taktStand]);
   useEffect(() => {
     taktAktiv.current = sprachmodus;
   }, [sprachmodus, taktAktiv]);
@@ -399,8 +410,13 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
         bereich: eigenschaftAusAusgabe(teil.output, "bereich"),
         tabelle: typeof eingabeTeil?.tabelle === "string" ? eingabeTeil.tabelle : null,
       });
-      if (zugModus.current === "sprache") takt.oeffneImTakt(() => fuehreZu(ziel, label), ziel);
-      else fuehreZu(ziel, label);
+      if (zugModus.current === "sprache") {
+        // Sprechmarke: die Sätze VOR dem Aufruf. Was das Modell danach schreibt,
+        // liegt schon bei der Stimme und darf den Wechsel nicht aufhalten.
+        const nachher = letzte.parts.slice(letzte.parts.indexOf(teil) + 1).filter((p) => p.type === "data-satz").length;
+        const jetzt = takt.marke();
+        takt.oeffneImTakt(() => fuehreZu(ziel, label), ziel, jetzt === null ? null : Math.max(0, jetzt - nachher));
+      } else fuehreZu(ziel, label);
     }
     // beschriftung/t sind pro Render neue Funktionen; relevant ist nur der Nachrichtenstand.
     // eslint-disable-next-line react-hooks/exhaustive-deps

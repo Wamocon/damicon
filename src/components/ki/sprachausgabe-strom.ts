@@ -33,6 +33,7 @@ import {
   STROM_KEEPALIVE_MS,
   STROM_RUHE_MS,
   STROM_VORLAUF_S,
+  ZEICHEN_JE_SEKUNDE,
   abbruchNachricht,
   base64ZuBytes,
   brauchtNeuenStrom,
@@ -49,6 +50,7 @@ import {
   type StromKonfiguration,
   type StromNachweis,
 } from "@/lib/domain/sprachausgabe-strom";
+import { satzBeiPosition } from "@/lib/domain/sprachmodus-mitlesen";
 
 /** Ein Schluessel fuer einen Strom; Stimme und Tempo stehen je Sprache in
  *  `konfigurationen`. */
@@ -118,10 +120,25 @@ export interface StromRueckmeldung {
   beiAufgabe(grund: string, ungesprochen: number): void;
 }
 
+/** Wo die Stimme in dieser Runde gerade ist (geschaetzt, siehe stand()). */
+export interface SprechStand {
+  /** Der Satz, der gerade klingt. `anzahl`: alles ist gesprochen (Ende der Runde
+   *  bis jetzt) - dann ist es genau `anzahl`. */
+  index: number;
+  /** So viele Saetze hat diese Runde bis jetzt an den Sprecher gegeben. */
+  anzahl: number;
+  /** Der Satz, wie er auf der Seite steht (nicht die Sprechfassung). */
+  satz: string | null;
+}
+
 export interface StromSprecher {
   /** Womit der Schluessel geholt wird. Holt gleich einen auf Vorrat. */
   setzeNachweis(nachweis: StromNachweis): void;
-  sprich(text: string, sprache: string): void;
+  /** `anzeige`: der Satz, wie ihn der Nutzer liest (ohne Sprechfassung) - fuer
+   *  das Mitlesen im Sprachmodus. */
+  sprich(text: string, sprache: string, anzeige?: string): void;
+  /** Wo die Stimme ist. Null ohne Ton oder ohne Saetze. */
+  stand(): SprechStand | null;
   /** Kein Text mehr fuer diese Antwort: der laufende Strom wird beendet. */
   ende(): void;
   /** Sofort still, alles verwerfen. */
@@ -144,6 +161,11 @@ type Strom = {
 };
 
 type Wartend = { text: string; sprache: string };
+
+// Gemessene Sprechgeschwindigkeit (Zeichen je Sekunde bei Tempo 1), aus jedem
+// fertigen Strom nachgefuehrt und je Tab geteilt: die feste Schaetzung
+// (ZEICHEN_JE_SEKUNDE) trifft je Stimme und Sprache nur grob.
+let gemesseneRate: number | null = null;
 
 const VERBINDEN_MS = 4_000;
 /** Kommt nach dem Ende eines Stroms so lange nichts mehr, gilt er als beendet -
@@ -184,6 +206,12 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
   let ersetzt = 0;
 
   const geplant = new Set<AudioBufferSourceNode>();
+  // Fuer stand(): wann jedes eingeplante Stueck beginnt, wie viel Ton schon ganz
+  // gespielt ist, und was die Runde bisher gesprochen haben soll.
+  const startZeiten = new Map<AudioBufferSourceNode, number>();
+  let fertigSekunden = 0;
+  let verlauf: Array<{ anzeige: string; zeichen: number }> = [];
+  let letztesTempo = 1;
   let zeitEnde = 0;
   let vorlauf = STROM_VORLAUF_S;
   let gemeldet: StromZustand = { laedt: false, spricht: false };
@@ -405,6 +433,7 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
     const id = neueStromId();
     if (!sende(startNachricht(z.schluessel, id, konfiguration))) return false;
     clearTimeout(leerlauf);
+    letztesTempo = konfiguration.speed && konfiguration.speed > 0 ? konfiguration.speed : 1;
     aktiv = {
       id,
       sprache,
@@ -501,8 +530,11 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
     quelle.start(start);
     zeitEnde = start + puffer.duration;
     geplant.add(quelle);
+    startZeiten.set(quelle, start);
     quelle.onended = () => {
       geplant.delete(quelle);
+      startZeiten.delete(quelle);
+      fertigSekunden += puffer.duration;
       melde();
     };
     melde();
@@ -530,6 +562,11 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       aktiv.audioSekunden += werte.length / STROM_ABTASTRATE;
       spiele(werte);
     } else if (e.art === "beendet") {
+      // Ganzer Strom gehoert: daraus die tatsaechliche Sprechgeschwindigkeit.
+      if (aktiv.zeichen >= 60 && aktiv.audioSekunden >= 3) {
+        const messwert = aktiv.zeichen / aktiv.audioSekunden / (aktiv.tempo && aktiv.tempo > 0 ? aktiv.tempo : 1);
+        gemesseneRate = gemesseneRate === null ? messwert : (gemesseneRate + messwert) / 2;
+      }
       aktiv = null;
       melde();
       void pumpe(durchgang);
@@ -560,11 +597,12 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       fuelleVorrat();
     },
 
-    sprich(text, sprache) {
+    sprich(text, sprache, anzeige) {
       const t = text.trim();
       if (!t || hatAufgegeben) return;
       rundeOffen = true;
       clearTimeout(ruhe);
+      verlauf.push({ anzeige: (anzeige ?? t).trim(), zeichen: t.length });
       ausstehend.push({ text: t, sprache });
       melde();
       void pumpe(durchgang);
@@ -597,10 +635,30 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
         }
       }
       geplant.clear();
+      startZeiten.clear();
+      fertigSekunden = 0;
+      verlauf = [];
       zeitEnde = 0;
       vorlauf = STROM_VORLAUF_S;
       melde();
       planeLeerlauf();
+    },
+
+    stand() {
+      const ctx = kontext();
+      if (!ctx || verlauf.length === 0) return null;
+      const anzahl = verlauf.length;
+      const nichtsOffen = geplant.size === 0 && !aktiv && ausstehend.length === 0 && !arbeitet;
+      if (nichtsOffen) return { index: anzahl, anzahl, satz: null };
+      let gespielt = fertigSekunden;
+      const erstes = geplant.values().next().value;
+      if (erstes) gespielt += Math.max(0, ctx.currentTime - (startZeiten.get(erstes) ?? ctx.currentTime));
+      const position = gespielt * (gemesseneRate ?? ZEICHEN_JE_SEKUNDE) * letztesTempo;
+      const index = satzBeiPosition(
+        verlauf.map((v) => v.zeichen),
+        position,
+      );
+      return { index, anzahl, satz: verlauf[index]?.anzeige ?? null };
     },
 
     aufgegeben: () => hatAufgegeben,

@@ -13,6 +13,8 @@
 // Antwort mit jedem Wort, und ein Kontext wuerde damit jedes Mal alles neu
 // zeichnen, was am Panel haengt.
 
+import type { SprechStand } from "@/components/ki/sprachausgabe-strom";
+
 export interface ChatStand {
   /** Die Anfrage laeuft noch (Stream oder Werkzeuge im Browser). */
   beschaeftigt: boolean;
@@ -195,4 +197,19 @@ export function registriereEntsperren(fn: (() => void) | null): void {
 
 export function entsperreTon(): void {
   entsperrer?.();
+}
+
+// --- Wo die Stimme ist ------------------------------------------------------------
+//
+// Fuers Mitlesen (sprach-mitlesen.ts): welcher Satz klingt gerade? Das weiss der
+// Vorlese-Strom des Chats; der Sprachmodus fragt ihn hier, ohne ihn zu kennen.
+
+let geradeFrager: (() => SprechStand | null) | null = null;
+
+export function registriereGerade(fn: (() => SprechStand | null) | null): void {
+  geradeFrager = fn;
+}
+
+export function leseGerade(): SprechStand | null {
+  return geradeFrager?.() ?? null;
 }

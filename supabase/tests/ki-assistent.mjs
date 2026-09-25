@@ -103,6 +103,7 @@ import {
   sprachmodusFormatAnweisung,
 } from "../../src/lib/domain/antwort-anweisungen.ts";
 import { erkenneSprache, erkenneSpracheEindeutig } from "../../src/lib/wissen/chunker.ts";
+import { bedeutsameWoerter, bestesZiel, satzBeiPosition } from "../../src/lib/domain/sprachmodus-mitlesen.ts";
 import {
   antwortFertig,
   assistentIstDran,
@@ -2480,11 +2481,37 @@ for (const [name, kaputteAntwort] of [
     pruefe("Takt: jedes Client-Werkzeug ruft vorAusfuehrung, ein Abbruch verhindert die Ausfuehrung", werkz.includes("await vorAusfuehrung?.(aufruf.toolName);") && /await vorAusfuehrung[\s\S]{0,120}if \(abgebrochen\.current\)/.test(werkz));
     pruefe("Takt: im Chat mit dem Sprachmodus verdrahtet", chat.includes("vorAusfuehrung: takt.vorAusfuehrung") && chat.includes("taktStimme.current = vorlesen.phase") && chat.includes("taktAktiv.current = sprachmodus"));
     pruefe("Sprachmodus: nur oeffneBereich wechselt die Seite, Fachwerkzeuge mit Ziel tun es nicht", chat.includes('if (zugModus.current === "sprache" && name !== "oeffneBereich") continue;'));
-    pruefe("Sprachmodus: der Seitenwechsel laeuft im Takt der Stimme", chat.includes('if (zugModus.current === "sprache") takt.oeffneImTakt(() => fuehreZu(ziel, label), ziel);'));
+    pruefe("Sprachmodus: der Seitenwechsel laeuft im Takt der Stimme", chat.includes('if (zugModus.current === "sprache") {') && chat.includes("takt.oeffneImTakt(() => fuehreZu(ziel, label), ziel, jetzt === null ? null : Math.max(0, jetzt - nachher))"));
     pruefe("Takt: eine Navigation wartet die neue Seite ab, bevor die naechste Handlung laeuft", takt.includes("wartePfad(ziel)") && takt.includes("window.location.pathname.endsWith(pfad)"));
     pruefe("Scrollen: ein Element im Bild wird nicht gescrollt, in Leiste und Kopf nur das Noetigste", steuer.includes("function inSichtBringen") && steuer.includes('block: inRahmen ? "nearest" : "center"') && !/el\.scrollIntoView\(\{ behavior: "smooth", block: "center" \}\)/.test(steuer));
     pruefe("Seitenleiste: Filter direkt auf der Leiste, gesteuert ueber data-sprach-links am html", seitenleiste.includes("data-seitenleiste") && modusCss.includes("html[data-sprach-links] [data-seitenleiste]") && modusCss.includes("blur(5px)") && !modusCss.includes("seitenleiste-unschaerfe") && !modus.includes("seitenleiste-unschaerfe"));
     pruefe("Seitenleiste: der Sprachmodus setzt und entfernt data-sprach-links beim Andocken", modus.includes('wurzel.setAttribute("data-sprach-links", "")') && modus.includes('wurzel.removeAttribute("data-sprach-links")'));
+    // Sprechmarke und Mitlesen (Rueckmeldung vom 25.09.2026: "Ich oeffne den Bereich Feld" - aber die Seite wechselte nicht).
+    const stromQuelle = lies3("components/ki/sprachausgabe-strom.ts");
+    const liveQuelle = lies3("components/ki/sprachausgabe-live.ts");
+    const mitlesen = lies3("components/ki/sprach-mitlesen.ts");
+    pruefe("Sprechmarke: der Seitenwechsel wartet nur auf die Saetze VOR dem Aufruf, nicht auf die ganze Antwort", chat.includes('.filter((p) => p.type === "data-satz").length') && chat.includes("Math.max(0, jetzt - nachher)") && takt.includes("jetzt.index >= marke"));
+    pruefe("Sprechmarke: ohne Satzposition hoechstens 6 s warten", takt.includes("OHNE_POSITION_MAX_MS = 6_000") && takt.includes("marke === null ? OHNE_POSITION_MAX_MS : MAX_WARTEN_MS"));
+    pruefe("Sprecher: stand() schaetzt den klingenden Satz aus der gespielten Tondauer, kalibriert an fertigen Stroemen", stromQuelle.includes("stand()") && stromQuelle.includes("fertigSekunden += puffer.duration") && stromQuelle.includes("gemesseneRate") && stromQuelle.includes("satzBeiPosition("));
+    pruefe("Sprecher: der angezeigte Satz geht mit (Mitlesen braucht die Woerter der Seite, nicht die Sprechfassung)", stromQuelle.includes("anzeige?: string") && liveQuelle.includes("sprich(zumSprechen(a.text, sprache), sprache, a.text)"));
+    pruefe("Sprecher: stopp() vergisst Verlauf und Zeiten", /stopp\(\) \{[\s\S]{0,900}startZeiten\.clear\(\);[\s\S]{0,120}verlauf = \[\];/.test(stromQuelle));
+    pruefe("Mitlesen: der Chat meldet die Stimme an den Bus, der Sprachmodus fragt sie ab und zeigt die passende Stelle", bus.includes("registriereGerade") && chat.includes("registriereGerade(geradeSprechend)") && modus.includes("leseGerade()?.satz") && modus.includes("findeMitleseZiel(satz)") && mitlesen.includes('getElementById("main")'));
+    pruefe("Mitlesen: liegt die Stelle in einem zugeklappten Element (details, aria-expanded), wird es aufgeklappt", mitlesen.includes('details:not([open])') && mitlesen.includes("aria-expanded='false'") && mitlesen.includes("details.open = true") && mitlesen.includes("knopf.click()") && mitlesen.includes("aufgeklappt: true"));
+    pruefe("Mitlesen: aufgeklappt wird nur, was die Anwendung auch ohne Rueckfrage anklickt, und keine Menues/Reiter", mitlesen.includes('klickStufe(knopf).stufe !== "erlaubt"') && mitlesen.includes("KEIN_AUFKLAPPER") && mitlesen.includes("[aria-haspopup]"));
+    pruefe("Mitlesen: der Sprachmodus holt das aufgeklappte Element nach dem Wachsen ins Bild", modus.includes("treffer.aufgeklappt") && modus.includes("aufklappTimer"));
+    pruefe("Mitlesen: satzBeiPosition waehlt den Satz zur gesprochenen Strecke", satzBeiPosition([10, 20, 30], 0) === 0 && satzBeiPosition([10, 20, 30], 9) === 0 && satzBeiPosition([10, 20, 30], 10) === 1 && satzBeiPosition([10, 20, 30], 29) === 1 && satzBeiPosition([10, 20, 30], 30) === 2 && satzBeiPosition([10, 20, 30], 999) === 2 && satzBeiPosition([], 5) === -1);
+    pruefe("Mitlesen: Woerter mit Umlauten aufgeloest, gekuerzt, Fuellwoerter und kurze Woerter weg, Zahlen bleiben", JSON.stringify(bedeutsameWoerter("Die überfälligen Meldungen: 37 Tage, siehe Seite 2026!")) === JSON.stringify(["ueberf", "meldun", "37", "2026"].filter((w) => w !== "2026").concat(["2026"])) || bedeutsameWoerter("Die überfälligen Meldungen: 37 Tage").join() === "ueberf,meldun,37");
+    const stellen = [
+      { text: "Compliance-Cockpit Verarbeitungszwecke, Einwilligungen, Datenschutzvorfälle und Drittweitergaben", flaeche: 900000 },
+      { text: "Risiko-Radar 2 offene Fristen Benachrichtigung über Weitergabe an ESUTD Überfällig seit 37 Tagen Meldung eines Datenschutzvorfalls Überfällig seit 30 Tagen", flaeche: 400000 },
+      { text: "Mehrwertsteuer-Registrierung Rollierender 12-Monats-Umsatz gegen die gesetzliche Registrierungsschwelle Umsatz jetzt prüfen", flaeche: 500000 },
+      { text: "Prüfprotokoll Die letzten 50 Schreibvorgänge, jüngste zuerst, inklusive Urheber und Zeitstempel", flaeche: 800000 },
+    ];
+    pruefe("Mitlesen: 'Risiko-Radar oben, Ihre zwei ueberfaelligen Meldungen' trifft den Risiko-Radar", bestesZiel("Risiko-Radar oben – Ihre zwei überfälligen Meldungen (37 und 30 Tage zu spät).", stellen) === 1);
+    pruefe("Mitlesen: 'Mehrwertsteuer-Registrierung, Umsatz unter der Schwelle' trifft die Mehrwertsteuer", bestesZiel("Die Mehrwertsteuer-Registrierung zeigt, dass der Umsatz unter der Schwelle liegt.", stellen) === 2);
+    pruefe("Mitlesen: 'Prüfprotokoll' trifft das Prüfprotokoll", bestesZiel("Im Prüfprotokoll stehen die letzten Änderungen mit Urheber.", stellen) === 3);
+    pruefe("Mitlesen: ein Satz ohne Bezug zur Seite waehlt nichts (der Rahmen bleibt)", bestesZiel("Das ist gut, sprechen Sie mich einfach an.", stellen) === null);
+    pruefe("Mitlesen: nur Fuellwoerter und kurze Woerter waehlen nichts", bestesZiel("Ich schaue jetzt nach, ja.", stellen) === null);
     pruefe("Anweisung: Seitenwechsel nur mit oeffneBereich, Stimme vor Handlung", SPRACHMODUS_FUEHRUNG.includes("SEITENWECHSEL NUR MIT oeffneBereich") && SPRACHMODUS_FUEHRUNG.includes("erst aus, wenn deine Stimme den Satz davor zu Ende gesprochen hat"));
     pruefe("Anweisung: nie fragen, ob ein Bereich geoeffnet werden soll, in dem der Nutzer schon steht", SPRACHMODUS_FUEHRUNG.includes("FRAGE NIE, OB DU EINEN BEREICH ÖFFNEN SOLLST, IN DEM DER NUTZER SCHON STEHT"));
     pruefe("Anweisung: keine Klickschleifen auf 'Ansehen', keine wiederholten Fuellsaetze, Werkzeug-Grenzen benennen", SPRACHMODUS_FUEHRUNG.includes("KEINE SCHLEIFEN UND KEINE FÜLLSÄTZE") && SPRACHMODUS_FUEHRUNG.includes("'Ansehen'") && SPRACHMODUS_FUEHRUNG.includes("legt aufgabeAnlegen nur Pflückaufgaben an"));

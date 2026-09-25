@@ -261,7 +261,7 @@ function hebeHervor(el: Element): void {
  *  verschob dort die (overflow-hidden) Leiste selbst nach oben, und sie blieb
  *  verrutscht (Rueckmeldung vom 25.09.2026). Innerhalb von Leiste und Kopf wird
  *  nur das Noetigste gescrollt. Liefert, ob gescrollt wurde. */
-function inSichtBringen(el: HTMLElement): boolean {
+export function inSichtBringen(el: HTMLElement): boolean {
   const r = el.getBoundingClientRect();
   const inRahmen = el.closest("aside, nav, header") !== null;
   // Im Inhalt zaehlt der Streifen unter der festen Kopfzeile nicht als sichtbar.

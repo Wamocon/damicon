@@ -6,6 +6,8 @@ import { AlertTriangle, Ear, Loader2, Mic, MicOff, Subtitles, Volume2, X } from 
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { SprachKugel, type KugelZustand } from "@/components/ki/sprach-kugel";
 import { SprachSpotlight, useHervorhebungsRechteck } from "@/components/ki/sprach-spotlight";
+import { findeMitleseZiel, zeigeMitleseZiel } from "@/components/ki/sprach-mitlesen";
+import { leseHervorhebung, setzeHervorhebung } from "@/components/ki/hervorhebung";
 import {
   abonniereSprachBus,
   chatStandServer,
@@ -14,6 +16,7 @@ import {
   freigabeAnfrageServer,
   leseChatStand,
   leseFreigabeAnfrage,
+  leseGerade,
   stelleSprachFrage,
   unterbrichChat,
 } from "@/components/ki/sprachmodus-bus";
@@ -505,6 +508,38 @@ function SprachmodusInhalt() {
   const zielRechteck = useHervorhebungsRechteck();
   const zielSichtbar = zielRechteck !== null && zielRechteck.breite > 0 && zielRechteck.hoehe > 0;
   const angedockt = zielSichtbar || assistentIstDran(phase);
+
+  // Mitlesen: bei einer längeren Erklärung wandert der Rahmen mit, damit man
+  // sieht, bei welchem Punkt Himbi ist (Rückmeldung vom 25.09.2026). Der Satz,
+  // der gerade klingt, kommt vom Vorlese-Strom (sprachmodus-bus.ts, leseGerade),
+  // die Stelle auf der Seite aus dem Vergleich seiner Wörter mit den Texten der
+  // Seite (sprach-mitlesen.ts). Passt kein Satz zu einer Stelle, bleibt der
+  // Rahmen, wo er war.
+  const meinZiel = useRef<Element | null>(null);
+  useEffect(() => {
+    if (phase !== "spricht") return;
+    let letzter: string | null = null;
+    const uhr = window.setInterval(() => {
+      const satz = leseGerade()?.satz ?? null;
+      if (!satz || satz === letzter) return;
+      letzter = satz;
+      const treffer = findeMitleseZiel(satz);
+      if (!treffer) return;
+      const ziel = treffer.el;
+      meinZiel.current = ziel;
+      zeigeMitleseZiel(ziel);
+      setzeHervorhebung(ziel);
+      // Ein aufgeklapptes Element wächst erst noch: danach ins Bild holen.
+      if (treffer.aufgeklappt) aufklappTimer = window.setTimeout(() => zeigeMitleseZiel(ziel), 400);
+    }, 300);
+    let aufklappTimer: number | undefined;
+    return () => {
+      window.clearInterval(uhr);
+      window.clearTimeout(aufklappTimer);
+      if (meinZiel.current && leseHervorhebung() === meinZiel.current) setzeHervorhebung(null);
+      meinZiel.current = null;
+    };
+  }, [phase]);
 
   // Die Navigationsleiste wird unscharf, solange Kugel und Text links stehen
   // (Filter direkt auf der Leiste, siehe sprachmodus.css).

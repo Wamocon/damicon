@@ -11,9 +11,16 @@
 // verstummt ist, also alles Vorherige gesprochen hat, und läuft dann. Eine
 // Navigation und das, was danach die Seite liest, laufen dabei in einer
 // Reihe, damit seiteLesen nie die alte Seite liest.
+//
+// Wichtig: gewartet wird nur auf die Sätze VOR der Handlung (Sprechmarke), nicht
+// auf alles, was danach noch gesprochen wird. Der Text hinter einem
+// Bereichswechsel geht sofort an die Stimme; hinge der Wechsel an "die Stimme
+// ist still", käme er erst nach der ganzen Antwort ("Ich öffne den Bereich Feld"
+// und die Feldkarte wird beschrieben, ohne dass die Seite wechselt).
 
 import { useCallback, useRef } from "react";
 import type { VorlesePhase } from "@/lib/domain/vorlesen-zustand";
+import type { SprechStand } from "@/components/ki/sprachausgabe-strom";
 
 // Bis die Sätze aus dem Stream beim Vorlesen angekommen sind, steht die Stimme
 // noch still, obwohl gleich gesprochen wird.
@@ -21,6 +28,9 @@ const ANKOMMEN_MS = 450;
 const TAKT_MS = 150;
 const STILL_NOETIG = 2;
 const MAX_WARTEN_MS = 30_000;
+// Ohne Satzposition (Vorlesen über einzelne Abschnitte) bleibt nur "still":
+// dann nicht länger warten, sonst käme ein Wechsel erst nach der ganzen Antwort.
+const OHNE_POSITION_MAX_MS = 6_000;
 const SEITE_MAX_MS = 3_000;
 const INHALT_MAX_MS = 2_500;
 const SEITE_NACHLAUF_MS = 400;
@@ -48,15 +58,33 @@ export function useSprachTakt() {
   const zug = useRef(0);
   const reihe = useRef<Promise<void>>(Promise.resolve());
 
-  const warteAufStimme = useCallback(async (meinZug: number) => {
-    await pause(ANKOMMEN_MS);
+  /** Vom Chat gesetzt: wo die Stimme ist (nur im Strom-Weg). */
+  const stand = useRef<(() => SprechStand | null) | null>(null);
+
+  /** Wartet, bis der Satz mit der Nummer `marke` klingt (alles davor ist gesprochen)
+   *  oder die Stimme ganz still ist. `marke` null: nur auf still warten. */
+  const warteBisMarke = useCallback(async (meinZug: number, marke: number | null) => {
     let still = 0;
-    for (let ms = 0; ms < MAX_WARTEN_MS && still < STILL_NOETIG; ms += TAKT_MS) {
+    const deckel = marke === null ? OHNE_POSITION_MAX_MS : MAX_WARTEN_MS;
+    for (let ms = 0; ms < deckel; ms += TAKT_MS) {
       if (zug.current !== meinZug || !aktiv.current) return;
+      const jetzt = stand.current?.() ?? null;
+      if (marke !== null && jetzt && jetzt.index >= marke) return;
       still = stimme.current === "still" ? still + 1 : 0;
+      if (still >= STILL_NOETIG) return;
       await pause(TAKT_MS);
     }
   }, []);
+
+  /** Alles, was bis jetzt gesagt werden soll, ist gesprochen (Client-Werkzeug: der
+   *  Schritt endet mit dem Aufruf, es kommt kein Text mehr dahinter). */
+  const warteAufStimme = useCallback(
+    async (meinZug: number) => {
+      await pause(ANKOMMEN_MS);
+      await warteBisMarke(meinZug, stand.current?.()?.anzahl ?? null);
+    },
+    [warteBisMarke],
+  );
 
   /** Vor jedem Client-Werkzeug (ki-chat-werkzeuge.ts). seiteLesen ändert nichts
    *  am Bild und wartet nur auf die Reihe, nicht auf die Stimme. */
@@ -72,20 +100,25 @@ export function useSprachTakt() {
     [warteAufStimme],
   );
 
-  /** Öffnet einen Bereich erst, wenn die Stimme den Satz davor gesprochen hat. */
+  /** So viele Sätze hat die Runde bis jetzt an die Stimme gegeben - die
+   *  Sprechmarke für eine Handlung, die JETZT hinter dem letzten Satz steht. */
+  const marke = useCallback((): number | null => stand.current?.()?.anzahl ?? null, []);
+
+  /** Öffnet einen Bereich erst, wenn die Stimme die Sätze vor `vorSaetzen`
+   *  gesprochen hat (null: keine Satzposition bekannt). */
   const oeffneImTakt = useCallback(
-    (oeffne: () => void, ziel: string) => {
+    (oeffne: () => void, ziel: string, vorSaetzen: number | null) => {
       const meinZug = zug.current;
       reihe.current = reihe.current
         .then(async () => {
-          await warteAufStimme(meinZug);
+          await warteBisMarke(meinZug, vorSaetzen);
           if (zug.current !== meinZug || !aktiv.current) return;
           oeffne();
           await wartePfad(ziel);
         })
         .catch(() => {});
     },
-    [warteAufStimme],
+    [warteBisMarke],
   );
 
   /** Neue Frage oder Stopp: alles, was noch wartet, verfällt. */
@@ -93,5 +126,5 @@ export function useSprachTakt() {
     zug.current += 1;
   }, []);
 
-  return { stimme, aktiv, vorAusfuehrung, oeffneImTakt, neuerZug };
+  return { stimme, aktiv, stand, marke, vorAusfuehrung, oeffneImTakt, neuerZug };
 }

@@ -31,7 +31,7 @@ import { istSprachausgabeSprache, saetzeAusAntwort, sprechfassung } from "@/lib/
 import { fuerSprache } from "@/lib/text/umlaute";
 import { ausgangFuer } from "@/lib/ausgabe-pegel";
 import type { VorlesePhase } from "@/lib/domain/vorlesen-zustand";
-import { erzeugeStromSprecher, stromMoeglich, type StromSprecher, type StromZustand } from "@/components/ki/sprachausgabe-strom";
+import { erzeugeStromSprecher, stromMoeglich, type SprechStand, type StromSprecher, type StromZustand } from "@/components/ki/sprachausgabe-strom";
 
 export type LiveAbschnitt = { zug: string; nr: number; text: string; sig: string; ablauf: number };
 /** Zug-Nachweis aus dem Chat-Stream (data-nachweis): damit gibt es einen
@@ -342,7 +342,7 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
       weg.current ??= stromMoeglich() && hatWebAudio.current ? "strom" : "abschnitte";
       if (weg.current === "strom") {
         anDenStrom.current.push({ a, sprache });
-        holeSprecher().sprich(zumSprechen(a.text, sprache), sprache);
+        holeSprecher().sprich(zumSprechen(a.text, sprache), sprache, a.text);
       } else {
         stelleAbschnittEin(a, sprache);
       }
@@ -382,6 +382,10 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
     [stoppeAlles, entsperre, holeSprecher],
   );
 
+  /** Wo die Stimme gerade ist (nur im Strom-Weg, sonst null) - fuer den Takt und
+   *  das Mitlesen im Sprachmodus. */
+  const gerade = useCallback((): SprechStand | null => (weg.current === "strom" ? (sprecher.current?.stand() ?? null) : null), []);
+
   const spricht = stromZustand.spricht || abschnittSpricht;
   const laedt = !spricht && (stromZustand.laedt || abschnittLaedt);
   const phase: VorlesePhase = spricht ? "spricht" : laedt ? "laedt" : "still";
@@ -402,7 +406,8 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
       sprichNachricht,
       stoppeAlles,
       entsperre,
+      gerade,
     }),
-    [phase, quelle, neueRunde, nimmNachweis, nimmAbschnitt, folgeQuelle, schliesseRunde, sprichNachricht, stoppeAlles, entsperre],
+    [phase, quelle, neueRunde, nimmNachweis, nimmAbschnitt, folgeQuelle, schliesseRunde, sprichNachricht, stoppeAlles, entsperre, gerade],
   );
 }
