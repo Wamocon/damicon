@@ -22,17 +22,21 @@ const TAKT_MS = 150;
 const STILL_NOETIG = 2;
 const MAX_WARTEN_MS = 30_000;
 const SEITE_MAX_MS = 3_000;
-const SEITE_NACHLAUF_MS = 500;
+const INHALT_MAX_MS = 2_500;
+const SEITE_NACHLAUF_MS = 400;
 // Die Navigation aus dem Stream wird in einem Effekt eingereiht; ein Werkzeug,
 // das im selben Atemzug ankommt, soll sie nicht überholen.
 const REIHE_ANLAUF_MS = 200;
 
 const pause = (ms: number) => new Promise<void>((weiter) => window.setTimeout(weiter, ms));
 
-/** Wartet, bis die Seite zum Ziel gewechselt hat (oder das Zeitlimit greift). */
+/** Wartet, bis die Seite zum Ziel gewechselt hat und ihre Überschrift steht (oder
+ *  das Zeitlimit greift). Ohne das las seiteLesen eine noch ladende Seite, und
+ *  Himbi sagte "Die Seite wird gerade geladen". */
 async function wartePfad(ziel: string): Promise<void> {
   const pfad = ziel.split("#")[0].split("?")[0];
   for (let ms = 0; ms < SEITE_MAX_MS && !window.location.pathname.endsWith(pfad); ms += 100) await pause(100);
+  for (let ms = 0; ms < INHALT_MAX_MS && !document.querySelector("#main h1"); ms += 100) await pause(100);
   await pause(SEITE_NACHLAUF_MS);
 }
 
