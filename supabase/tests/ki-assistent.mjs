@@ -48,6 +48,7 @@ import {
   sprechfassung,
   stimmenFuer,
   SONIOX_STIMME_STANDARD,
+  SONIOX_STIMME_STANDARD_JE_SPRACHE,
   SONIOX_TEMPO_STANDARD,
   VORLESETEXT_VERSION,
   saetzeAusAntwort,
@@ -1239,6 +1240,29 @@ for (const [name, kaputteAntwort] of [
     pruefe("Antwortsprache: unbekannte Oberflaeche -> Deutsch", unbekannt.sprache === "de");
   }
 
+  // (e2) Dieselbe Grenze gilt auch fuers Diktat: ein paar Ausrutscher-Token vor
+  //      der eigentlichen Aeusserung (Stille, Atmen) sollen nicht die ganze
+  //      Antwort umlenken, wenn kaum Text erkannt wurde. Fehlerbild vom
+  //      25.09.2026: der allererste Sprachmodus-Start antwortete auf
+  //      Kasachisch, obwohl deutsch gesprochen wurde.
+  {
+    const kurzDiktat = bestimmeAntwortsprache({ frage: "Ja.", oberflaeche: "de", diktatSprachen: ["kk", "kk"] }, erkenner);
+    pruefe(
+      "Diktat: zu wenig erkannter Text -> Diktatsprache zaehlt nicht, es gilt die Oberflaeche",
+      kurzDiktat.sprache === "de" && kurzDiktat.herkunft === "oberflaeche",
+      `${kurzDiktat.sprache} (${kurzDiktat.herkunft})`,
+    );
+    const langDiktat = bestimmeAntwortsprache(
+      { frage: "Wie viele Pflücker sind heute eingeteilt?", oberflaeche: "de", diktatSprachen: ["kk", "kk"] },
+      erkenner,
+    );
+    pruefe(
+      "Diktat: genug erkannter Text -> Diktatsprache gilt weiterhin",
+      langDiktat.sprache === "kk" && langDiktat.herkunft === "diktat",
+      `${langDiktat.sprache} (${langDiktat.herkunft})`,
+    );
+  }
+
   // (f) Die Gegenprobe am fertigen Text: haelt sich das Modell nicht an die
   //     Anweisung, liest die Stimme, was WIRKLICH dasteht.
   {
@@ -1959,11 +1983,14 @@ for (const [name, kaputteAntwort] of [
     process.env.KI_SPRACHAUSGABE_ANBIETER = "soniox";
     const kk = stimmenFuer("kk");
     pruefe("Stimmen: Soniox zuerst, Sokrates als Rueckfall", kk.length === 2 && kk[0].anbieter === "soniox" && kk[1].anbieter === "sokrates", JSON.stringify(kk));
-    pruefe("Stimmen: eine Soniox-Stimme fuer alle Sprachen, Sprache als Feld", kk[0].stimme === SONIOX_STIMME_STANDARD && kk[0].sprache === "kk" && stimmenFuer("ru")[0].stimme === SONIOX_STIMME_STANDARD);
+    pruefe(
+      "Stimmen: Soniox spricht, Sprache als Feld - Stimme je Sprache aus der Messreihe vom 25.09.2026",
+      kk[0].stimme === SONIOX_STIMME_STANDARD_JE_SPRACHE.kk && kk[0].sprache === "kk" && stimmenFuer("ru")[0].stimme === SONIOX_STIMME_STANDARD,
+    );
     process.env.SONIOX_TTS_STIMME = "Adrian";
     pruefe("Stimmen: SONIOX_TTS_STIMME waehlt die Stimme", stimmenFuer("de")[0].stimme === "Adrian");
     process.env.SONIOX_TTS_STIMME = "Adrian; rm -rf";
-    pruefe("Stimmen: Unsinn in SONIOX_TTS_STIMME faellt auf die Voreinstellung", stimmenFuer("de")[0].stimme === SONIOX_STIMME_STANDARD);
+    pruefe("Stimmen: Unsinn in SONIOX_TTS_STIMME faellt auf die Voreinstellung der Sprache", stimmenFuer("de")[0].stimme === SONIOX_STIMME_STANDARD_JE_SPRACHE.de);
     pruefe("Stimmen: keine Sprache ohne Stimme erfunden", stimmenFuer("tr").length === 0);
     pruefe(
       "Zwischenspeicher: Soniox-Audio je Sprache getrennt (dieselbe Stimme, andere Sprache)",
@@ -2647,10 +2674,13 @@ for (const [name, kaputteAntwort] of [
     const saetze = saetzeAusAntwort("**Fazit: Alles erledigt.**\n\n## Details\n\n- Punkt eins\n- Punkt zwei");
     pruefe("Fertige Antwort in Saetze fuer den Strom (Knopf an der Nachricht)", saetze[0] === "Fazit: Alles erledigt." && saetze.join(" ").includes("Details:") && saetze.at(-1).endsWith("Punkt zwei."), JSON.stringify(saetze));
   }
-  pruefe("Tempo: Voreinstellung 1,1", sprechTempo("de", undefined) === SONIOX_TEMPO_STANDARD && SONIOX_TEMPO_STANDARD === 1.1);
+  pruefe(
+    "Tempo: Voreinstellung je Sprache (Deutsch schneller, Messreihe vom 25.09.2026)",
+    sprechTempo("de", undefined) === 1.2 && sprechTempo("en", undefined) === SONIOX_TEMPO_STANDARD && SONIOX_TEMPO_STANDARD === 1.1,
+  );
   pruefe("Tempo: eine Zahl fuer alle, auch mit Komma", sprechTempo("ru", "1.2") === 1.2 && sprechTempo("kk", "1,15") === 1.15);
   pruefe("Tempo: je Sprache, andere behalten die Voreinstellung", sprechTempo("de", "de:1.15,ru:1.05") === 1.15 && sprechTempo("ru", "de:1.15,ru:1.05") === 1.05 && sprechTempo("en", "de:1.15") === 1.1);
-  pruefe("Tempo: begrenzt auf 0,7 bis 1,3 (Soniox lehnt sonst ab), Unsinn -> Voreinstellung", sprechTempo("de", "2") === 1.3 && sprechTempo("de", "0.2") === 0.7 && sprechTempo("de", "schnell") === 1.1);
+  pruefe("Tempo: begrenzt auf 0,7 bis 1,3 (Soniox lehnt sonst ab), Unsinn -> Voreinstellung der Sprache", sprechTempo("de", "2") === 1.3 && sprechTempo("de", "0.2") === 0.7 && sprechTempo("de", "schnell") === 1.2);
   pruefe("Pausen kuerzen: an, ausser ausdruecklich aus", stilleKuerzen(undefined) && stilleKuerzen("an") && !stilleKuerzen("aus") && !stilleKuerzen("false"));
   pruefe("Ablagepfad: Tempo und Textstand v3 stecken drin (neues Tempo = neues Audio)", sprachausgabePfad("n1", { anbieter: "soniox", stimme: "Maya", sprache: "de", tempo: 1.1 }) === "n1/soniox-maya-de-t110-v3.mp3" && sprachausgabePfad("n1", { anbieter: "sokrates", stimme: "de-female", sprache: "de" }) === "n1/sokrates-de-female-de-v3.mp3");
   {
@@ -2659,7 +2689,7 @@ for (const [name, kaputteAntwort] of [
     delete process.env.KI_SPRACHAUSGABE_STROM;
     process.env.SONIOX_TTS_STIMME_DE = "Nina";
     const de = stimmenFuer("de")[0];
-    pruefe("Stimme je Sprache: SONIOX_TTS_STIMME_DE gilt fuer Deutsch, Tempo und Pausenkuerzung gehen mit", de.anbieter === "soniox" && de.stimme === "Nina" && de.tempo === 1.1 && de.stilleKuerzen === true, JSON.stringify(de));
+    pruefe("Stimme je Sprache: SONIOX_TTS_STIMME_DE gilt fuer Deutsch, Tempo und Pausenkuerzung gehen mit", de.anbieter === "soniox" && de.stimme === "Nina" && de.tempo === 1.2 && de.stilleKuerzen === true, JSON.stringify(de));
     pruefe("Stimme je Sprache: andere Sprachen behalten die Voreinstellung", stimmenFuer("ru")[0].stimme === SONIOX_STIMME_STANDARD);
     pruefe("Strom: an, wenn Soniox spricht", sprachausgabeStromAn(undefined) === true && sprachausgabeStromAn("aus") === false);
     process.env.KI_SPRACHAUSGABE_ANBIETER = "sokrates";
