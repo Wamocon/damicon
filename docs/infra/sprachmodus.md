@@ -223,9 +223,11 @@ verspricht „bleibt ganz weg“). Dann zeigt der Schein allein als farbiger Kre
 den Zustand.
 
 **Größe.** In `sprachmodus.css` (`--himbi-b`): in der Mitte bis 160 px breit,
-angedockt bis 84 px, auf niedrigen Bildschirmen (Handy quer) kleiner, damit der
-Kopf nicht abgeschnitten wird. Das Overlay hält unten Platz für die Bedienleiste
-frei.
+angedockt bis 84 px, auf niedrigen Bildschirmen (Handy quer) kleiner. Das Overlay
+hält unten Platz für die Bedienleiste frei, und eine lange Antwort scrollt im
+Untertitel, statt Himbi oben aus dem Bild oder den Text unter die Leiste zu
+schieben (Flex-Spalte mit schrumpfendem Untertitel, `justify-content: safe
+center`). Andocken links gibt es nur ab 768 px, wo die Navigationsleiste steht.
 
 **Lippen** (`src/lib/domain/lippen.ts`, reine Rechnung). Recherche vom
 25.09.2026 (27 Quellen, darunter lipsync-engine, wawa-lipsync, Rhubarb,
@@ -245,7 +247,8 @@ web.dev zur Ausgabelatenz):
 - Ist der AudioContext angehalten (der Takt hält die Stimme beim Seitenwechsel
   bis zu 3,5 s an), liefern Pegel und Spektrum nichts: der Analyser gab sonst den
   zuletzt gerechneten Block weiter, und der Mund stand offen.
-- Fünf halboffene Bänder, jedes Bin gehört genau einem: Grund 80 bis 250 Hz,
+- Fünf halboffene Bänder, jedes Bin zwischen 80 und 8000 Hz gehört genau einem
+  (darunter und darüber keinem): Grund 80 bis 250 Hz,
   tief 250 bis 700, Mitte 700 bis 1800, hoch 1800 bis 4000, Zischen 4000 bis
   8000. Tief beginnt bei 250 Hz, weil der erste Formant von U um 280 Hz liegt.
   Daraus stufenlos vier Größen: `offen` (Lautstärke, an die laufende Spitze
@@ -255,16 +258,21 @@ web.dev zur Ausgabelatenz):
   kk), Probelaute und Sätze abgespielt durch einen echten AnalyserNode in
   Chromium. Merkmale: `kiefer = Mitte/(tief+Mitte)` (A hoch, U und I fast 0),
   `vorn = hoch/(hoch+Mitte)` (I und geschlossenes E hoch), `dunkel =
-  log10(hoch/tief)` für die Rundung (U −4,7 bis −5,7, O −3,0 bis −5,5, dagegen A,
-  offenes E, I und M/L-Sätze −0,5 bis −3,2; Schwelle `RUND_AB` −2,6).
+  log10(hoch/tief)` für die Rundung (Median je Probe: U −4,7 bis −5,8, O −3,1 bis
+  −5,7; dagegen A −0,8 bis −2,6, I −1,9 bis −2,5, offenes E −0,1 bis −2,2, Sätze
+  voller M und L −2,3 bis −3,3; Schwelle `RUND_AB` −2,6, mehr als halb rund erst
+  unter −3,2).
 - Die erste Fassung war nur mit Lena kalibriert und nannte „wenig Kiefer und
   wenig vorn“ rund. Das traf auch das kasachische A (76 % der Bilder), das
   russische Э (92 %), das englische „Eee“ (91 %) und Sätze voller M und L (42 bis
-  64 %). Mit „dunkel“: 0 %, 0 %, 0 % und 10 bis 34 %; U bleibt bei 74 bis 89 %.
+  64 %). Mit „dunkel“ sind es 3 %, 0 %, 0 % und 10 bis 34 % mehr als halb rund; U
+  bleibt bei 74 bis 89 %. Knapp ist es beim kasachischen A: sein Median liegt mit
+  −2,59 genau an der Schwelle, viele seiner Bilder bekommen eine leichte Rundung.
 - Grenzen, ehrlich: M und N schließen den Mund kaum (ihr Brummen überlappt im
   Fließtext mit den Vokalen), der Mund ist dort meist halb offen und neutral.
-  Englisches „Oh“ (ein Doppellaut) und deutsches O sind nur in etwa der Hälfte
-  der Bilder rund, offenes E ist neutral statt breit, das englische „Eee“ neutral.
+  Englisches „Oh“ (ein Doppellaut) ist nur in 13 bis 35 % der Bilder rund,
+  deutsches O in etwa der Hälfte, offenes E ist neutral statt breit, das englische
+  „Eee“ neutral.
   Genauer ginge es mit den Zeitstempeln je Zeichen, die Soniox TTS auf Wunsch
   liefert (`return_timestamps`): die Form aus dem Text, die Öffnung aus dem
   Pegel. Das greift in den Strom ein und ist nicht umgesetzt.
@@ -279,7 +287,9 @@ web.dev zur Ausgabelatenz):
   Nicken, kein wachsender Schein, die Figur schwebt nicht. Beides wird während
   des Gesprächs nachgeführt. Die Still-Regel in `haustier.css` trägt dafür
   `!important`: vorher verlor sie gegen die Zustandsanimationen, und der Schalter
-  hielt die Figur nie ganz an, auch in der Ecke nicht.
+  hielt die Figur nie ganz an, auch in der Ecke nicht. Er zeigt jetzt dasselbe wie
+  reduzierte Bewegung: Tränen stehen, Zzz und Konfetti bleiben unsichtbar,
+  Hüpfer, Erscheinen und Abzeichen ohne Sprung.
 
 Wie vorher bei der Kugel läuft nichts davon durch React: eine
 `requestAnimationFrame`-Schleife schreibt Mundpfad (`data-lippe`-Elemente in
@@ -291,8 +301,9 @@ kommt aus `lib/hoeren.ts` (`starteHoeren`, seit 24.09.2026).
 
 **Barrierefreiheit.** Der Fokusrahmen des Knopfs liegt als eigene Ebene über
 Figur und Schein (vorher drückte der Schein seinen Kontrast auf 1,6 bis 3 zu 1)
-und ist zweifarbig. Beim Wechsel zwischen Mitte und links bleibt der Knopf im
-selben Baum, der Tastaturfokus geht nicht mehr verloren.
+und ist zweifarbig. Beim Öffnen bekommt der Himbi-Knopf den Fokus, beim Wechsel
+zwischen Mitte und links bleibt er im selben Baum, und beim Schließen geht der
+Fokus an das Element zurück, das ihn vorher hatte (meist „Gespräch“).
 
 **Tests** (`supabase/tests/haustier.ts`): die Lippen gegen echte Bilder der drei
 Stimmen (`supabase/tests/lippen-soniox.json`), Bandgrenzen, Geometrie, Glättung,

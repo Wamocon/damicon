@@ -7,7 +7,7 @@ import { useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { himbiStill } from "@/lib/haustier";
 import { lesePegel as leseMikrofonPegel } from "@/lib/hoeren";
 import { leseAusgabePegel, leseAusgabeSpektrum, spieltUeberElement } from "@/lib/ausgabe-pegel";
-import { baenderAus, folgeSpitze, glaetteMund, MUND_ZU, mundAusKlang, mundGeometrie, SPITZE_BODEN, type Mundform } from "@/lib/domain/lippen";
+import { folgeSpitze, glaetteMund, MUND_ZU, mundGeometrie, SPITZE_BODEN, type Mundform } from "@/lib/domain/lippen";
 import {
   blickImGespraech,
   darfRuhen,
@@ -19,7 +19,7 @@ import {
   scheinStil,
   scheinZiel,
   sichtbareForm,
-  taktMund,
+  sprechZiel,
   type MundEintrag,
   type SprachZustand,
 } from "@/lib/domain/himbi-gespraech";
@@ -121,13 +121,10 @@ export function SprachHimbi({
       if (z === "spricht") {
         const pegel = leseAusgabePegel();
         spitze = folgeSpitze(spitze, pegel, dt);
-        const s = leseAusgabeSpektrum();
-        if (s) {
-          latenzMs = s.latenz * 1000;
-          ziel = mundAusKlang(pegel / spitze, baenderAus(s.frequenzen, s.abtastrate, s.fftGroesse, s.minDb, s.maxDb));
-        }
+        const spektrum = leseAusgabeSpektrum();
+        if (spektrum) latenzMs = spektrum.latenz * 1000;
         // Datei-Weg: der Klang laeuft am Analyser vorbei, dann wenigstens im Takt.
-        if (pegel === 0 && spieltUeberElement()) ziel = taktMund(jetzt);
+        ziel = sprechZiel({ pegel, spektrum, elementSpielt: spieltUeberElement() }, spitze, jetzt);
       } else if (z === "hoert") {
         mikrofon = leseMikrofonPegel();
       }

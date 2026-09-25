@@ -26,6 +26,7 @@ import {
   scheinStil,
   scheinZiel,
   sichtbareForm,
+  sprechZiel,
   taktMund,
   type MundEintrag,
 } from "../../src/lib/domain/himbi-gespraech";
@@ -222,6 +223,21 @@ pruefe("Lippen (echte Stimmen): I ist breit, E nie rund (auch das offene russisc
   for (const p of proben("E")) assert.ok(anteil(formenVon(p), (m) => m.rund > 0.5) <= 0.1, `${p.sprache}/E rund`);
 });
 
+pruefe("Lippen (echte Stimmen): A oeffnet in jeder Sprache weiter als U, S bleibt enger als A", () => {
+  const mittel = (p: ReferenzProbe | undefined) => {
+    assert.ok(p, "Probe fehlt");
+    const f = formenVon(p!);
+    return f.reduce((summe, m) => summe + m.offen, 0) / f.length;
+  };
+  for (const sprache of ["de", "en", "ru", "kk"]) {
+    const a = mittel(REFERENZ.find((p) => p.sprache === sprache && p.laut === "A"));
+    const u = mittel(REFERENZ.find((p) => p.sprache === sprache && p.laut === "U"));
+    const zisch = mittel(REFERENZ.find((p) => p.sprache === sprache && p.laut === "S"));
+    assert.ok(a >= 1.2 * u, `${sprache}: A ${a.toFixed(2)} gegen U ${u.toFixed(2)}`);
+    assert.ok(zisch < a, `${sprache}: S ${zisch.toFixed(2)} gegen A ${a.toFixed(2)}`);
+  }
+});
+
 pruefe("Lippen (echte Stimmen): S zeigt Zaehne bei fast geschlossenem Kiefer", () => {
   for (const p of proben("S")) {
     const f = formenVon(p);
@@ -230,7 +246,7 @@ pruefe("Lippen (echte Stimmen): S zeigt Zaehne bei fast geschlossenem Kiefer", (
   }
 });
 
-pruefe("Lippen (echte Stimmen): Saetze voller M und L runden hoechstens ein Drittel der Bilder (vorher bis 64 %)", () => {
+pruefe("Lippen (echte Stimmen): Saetze voller M und L runden hoechstens 35 % der Bilder mehr als halb (vorher bis 64 %)", () => {
   const saetze = [...proben("M-Satz"), ...proben("L-Satz")];
   assert.equal(saetze.length, 7);
   for (const p of saetze) {
@@ -287,6 +303,8 @@ pruefe("Lippen: die Glaettung haengt nicht an der Bildrate, Oeffnen schneller al
   for (let i = 0; i < 3; i++) zu = glaetteMund(zu, MUND_ZU, 1000 / 60);
   assert.ok(zu.offen > 0.5, "Schliessen weicher als Oeffnen");
   assert.ok(Math.abs(glaetteMund(MUND_ZU, ziel, 5000).offen - glaetteMund(MUND_ZU, ziel, 100).offen) < 1e-12, "ein verschlucktes Bild zaehlt hoechstens 100 ms");
+  // Form (Breite, Rundung, Zaehne): Zeitkonstante 60 ms, nach 100 ms gut 80 % des Wegs.
+  assert.ok(sechzig.breite > 0.8 && sechzig.breite < 0.88, `Breite nach 100 ms ${sechzig.breite}`);
 });
 
 pruefe("Lippen: die Spitze halbiert sich in 1,5 s, folgt lauten Stellen sofort und bleibt ueber dem Boden", () => {
@@ -305,6 +323,8 @@ pruefe("Lippen: Geometrie - geschlossen laechelt er, rund ist schmaler, S zeigt 
   const winkelY = zu[1]!;
   const unterlippeY = zu[zu.length - 3]!; // Kontrollpunkt der Unterlippe
   assert.ok(winkelY < unterlippeY, "Mundwinkel ueber der Unterlippe (Laecheln)");
+  const winkelBei = (laecheln: number) => Number(/^M-?\d+(?:\.\d+)? (-?\d+(?:\.\d+)?)/.exec(mundGeometrie(MUND_ZU, laecheln).pfad)![1]);
+  assert.ok(winkelBei(0.2) > winkelBei(1) + 1, "beim Nachdenken (Laecheln 0,2) liegen die Mundwinkel tiefer");
   assert.ok(breite({ offen: 0.5, breite: 0.5, rund: 1, zaehne: 0 }) < breite({ offen: 0.5, breite: 0.5, rund: 0, zaehne: 0 }));
   assert.ok(mundGeometrie({ offen: 0.18, breite: 0.8, rund: 0, zaehne: 0.9 }).zaehne.deckkraft > 0.8);
   assert.equal(mundGeometrie(MUND_ZU).zaehne.deckkraft, 0);
@@ -331,11 +351,15 @@ pruefe("Gespraech: der Latenzpuffer liefert die Form von vor latenzMs und bleibt
   assert.equal(faelligeForm(ohne, 0, form(0.3), 0).offen, 0.3);
   assert.equal(faelligeForm(ohne, 16, form(0.7), 0).offen, 0.7);
   assert.equal(ohne.length, 1);
+  const kaputt: MundEintrag[] = [];
+  for (let t = 0; t <= 500; t += 10) faelligeForm(kaputt, t, form(t / 1000), Number.NaN);
+  assert.equal(kaputt.length, 1, "NaN als Latenz friert den Puffer nicht ein");
 });
 
 pruefe("Gespraech: bei reduzierter Bewegung steht der Mund still (sprechend ruhig offen, sonst zu)", () => {
   const offen = { offen: 0.9, breite: 0.2, rund: 1, zaehne: 0 };
   assert.deepEqual(sichtbareForm(true, "spricht", offen), RUHIG_OFFEN);
+  assert.ok(RUHIG_OFFEN.offen >= 0.2 && RUHIG_OFFEN.offen <= 0.4 && RUHIG_OFFEN.rund === 0, "ruhig offen heisst sichtbar offen, nicht rund");
   for (const z of ["hoert", "denkt", "pausiert", "fehler"] as const) assert.deepEqual(sichtbareForm(true, z, offen), MUND_ZU);
   assert.deepEqual(sichtbareForm(false, "spricht", offen), offen);
   assert.equal(laechelnFuer("denkt"), 0.2);
@@ -368,6 +392,7 @@ pruefe("Gespraech: Blick zum Ziel (nicht im Schlaf), beim Denken wie in der Ecke
   assert.ok(nah.x > 0 && nah.x < rechts.x, "nahe Ziele weniger weit");
   assert.deepEqual(blickImGespraech("pausiert", { dx: 400, dy: 0 }, false), { x: 0, y: 0 });
   assert.deepEqual(blickImGespraech("denkt", null, false), { ...BLICK_DENKT });
+  assert.ok(blickImGespraech("denkt", { dx: 400, dy: 0 }, false).x > 3, "auch beim Nachdenken sieht er zum gerahmten Bereich");
   assert.ok(blickImGespraech("spricht", null, true).x > 0);
   assert.deepEqual(blickImGespraech("hoert", null, true), { x: 0, y: 0 });
 });
@@ -376,6 +401,26 @@ pruefe("Gespraech: Takt-Mund fuer den Datei-Weg bleibt im Rahmen und bewegt sich
   const werte = Array.from({ length: 60 }, (_, i) => taktMund(i * 33).offen);
   assert.ok(werte.every((w) => w >= 0 && w <= 0.6));
   assert.ok(Math.max(...werte) - Math.min(...werte) > 0.2);
+  // Silbentakt: 3 bis 6 Oeffnungen je Sekunde (gezaehlt ueber 4 s), ohne Spruenge von Bild zu Bild.
+  const fein = Array.from({ length: 800 }, (_, i) => taktMund(i * 5).offen);
+  const mitte = fein.reduce((a, b) => a + b, 0) / fein.length;
+  let oeffnungen = 0;
+  for (let i = 1; i < fein.length; i++) if (fein[i - 1]! < mitte && fein[i]! >= mitte) oeffnungen++;
+  assert.ok(oeffnungen >= 12 && oeffnungen <= 24, `Oeffnungen in 4 s: ${oeffnungen}`);
+  for (let t = 0; t < 2000; t += 16) assert.ok(Math.abs(taktMund(t + 16).offen - taktMund(t).offen) <= 0.2);
+});
+
+pruefe("Gespraech: sprechZiel teilt den Pegel durch die Spitze, faellt auf den Takt-Mund zurueck und schliesst ohne Klang", () => {
+  const a = REFERENZ.find((p) => p.sprache === "de" && p.laut === "A")!;
+  const spektrum = { frequenzen: Buffer.from(a.bilder[0]!.f, "base64"), abtastrate: a.info.rate, fftGroesse: a.info.fft, minDb: a.info.min, maxDb: a.info.max };
+  const laut = sprechZiel({ pegel: 0.2, spektrum, elementSpielt: false }, 0.2, 0);
+  const leise = sprechZiel({ pegel: 0.2 * STILLE * 0.5, spektrum, elementSpielt: false }, 0.2, 0);
+  assert.ok(laut.offen > 0.5, `volle Lautheit ${laut.offen}`);
+  assert.deepEqual(leise, MUND_ZU, "unter der Stille-Schwelle der Spitze bleibt er zu");
+  assert.ok(sprechZiel({ pegel: 0.1, spektrum, elementSpielt: false }, 0.4, 0).offen < laut.offen, "die Spitze teilt den Pegel");
+  assert.deepEqual(sprechZiel({ pegel: 0, spektrum: null, elementSpielt: true }, 0.2, 123), taktMund(123));
+  assert.deepEqual(sprechZiel({ pegel: 0.2, spektrum: null, elementSpielt: false }, 0.2, 0), MUND_ZU);
+  assert.ok(sprechZiel({ pegel: 0.2, spektrum, elementSpielt: true }, 0.2, 0).offen === laut.offen, "klingt der Analyser, zaehlt er, nicht der Takt");
 });
 
 pruefe("Gespraech: die Bildschleife ruht nur in Pause und Fehler, und erst wenn alles still ist", () => {
@@ -389,7 +434,7 @@ pruefe("Gespraech: die Bildschleife ruht nur in Pause und Fehler, und erst wenn 
 // ---- Ausgang (src/lib/ausgabe-pegel.ts) -----------------------------------------------
 
 function falscherKontext(zustand: string, outputLatency?: number, baseLatency?: number) {
-  const knoten = () => ({ connect() {} });
+  const knoten = () => ({ connect() {} }) as object;
   const analyser = {
     fftSize: 0,
     smoothingTimeConstant: 0,
@@ -408,11 +453,14 @@ pruefe("Ausgang: Spektrum und Pegel nur, solange der Kontext klingt (angehalten:
   assert.equal(leseAusgabeSpektrum(), null);
   assert.equal(leseAusgabePegel(), 0);
   const laeuft = falscherKontext("running", 0.02, 0.01);
-  ausgangFuer(laeuft);
+  const ersterAusgang = ausgangFuer(laeuft);
+  assert.equal(ausgangFuer(laeuft), ersterAusgang, "derselbe Kontext bekommt denselben Ausgang (keine haengenden Analyser)");
   const s = leseAusgabeSpektrum();
   assert.ok(s && s.frequenzen[10] === 90 && s.abtastrate === 48000 && s.fftGroesse === 512);
   assert.ok(Math.abs(s!.latenz - 0.03) < 1e-9);
   assert.ok(leseAusgabePegel() > 0.5);
+  const zweiter = falscherKontext("running");
+  assert.notEqual(ausgangFuer(zweiter), ersterAusgang, "ein neuer Kontext bekommt einen neuen Ausgang");
   setzeAusgangZurueck();
   ausgangFuer(falscherKontext("suspended"));
   assert.equal(leseAusgabeSpektrum(), null);
@@ -422,9 +470,12 @@ pruefe("Ausgang: Spektrum und Pegel nur, solange der Kontext klingt (angehalten:
 
 pruefe("Ausgang: Latenz aus outputLatency + baseLatency, begrenzt, ungueltige Werte zaehlen als 0", () => {
   assert.ok(Math.abs(ausgabeLatenz(0.02, 0.01) - 0.03) < 1e-9);
-  assert.equal(ausgabeLatenz(1, 0.5), LATENZ_HOECHSTENS);
+  assert.equal(LATENZ_HOECHSTENS, 0.4);
+  assert.equal(ausgabeLatenz(1, 0.5), 0.4);
   assert.equal(ausgabeLatenz(undefined, undefined), 0);
   assert.equal(ausgabeLatenz(Number.NaN, 0.01), 0.01);
+  assert.equal(ausgabeLatenz(0.01, Number.NaN), 0.01);
+  assert.equal(ausgabeLatenz(0.01, Number.POSITIVE_INFINITY), 0.01);
   assert.equal(ausgabeLatenz(-1, 0), 0);
 });
 
@@ -442,6 +493,12 @@ pruefe("Figur: mit lippen gibt es den formbaren Mund, ohne ihn bleibt Himbi wie 
   for (const teil of ["umriss", "hoehle", "clip", "zunge", "zaehne"]) assert.ok(mit.includes(`data-lippe="${teil}"`), teil);
   assert.ok(mit.includes("data-lippen"));
   assert.ok(mit.includes(`d="${mundGeometrie(MUND_ZU).pfad}"`), "startet geschlossen");
+  const clipId = /<clipPath id="([^"]+)"><path data-lippe="clip"/.exec(mit)?.[1];
+  assert.ok(clipId, "clipPath des Mundes vorhanden");
+  assert.ok(mit.includes(`clip-path="url(#${clipId})"`), "Zunge und Zaehne haengen am Clip des Mundes");
+  assert.ok(/data-lippe="hoehle"[^>]*fill="#5a0d27"/.test(mit), "Hoehle gefuellt");
+  assert.ok(/data-lippe="zaehne"[^>]*fill="#fff"/.test(mit), "Zaehne weiss");
+  assert.ok(mit.indexOf('data-lippe="hoehle"') < mit.indexOf('data-lippe="zunge"') && mit.indexOf('data-lippe="zunge"') < mit.indexOf('data-lippe="umriss"'), "Reihenfolge Hoehle, Zunge, Umriss");
   const ohne = renderToStaticMarkup(createElement(Himbi, { zustand: "spricht" }));
   assert.ok(!ohne.includes("data-lippe") && !ohne.includes("data-lippen"));
 });

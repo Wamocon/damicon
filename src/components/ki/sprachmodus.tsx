@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { AlertTriangle, Ear, Loader2, Mic, MicOff, Subtitles, Volume2, X } from "lucide-react";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
@@ -506,10 +506,28 @@ function SprachmodusInhalt() {
   // Bedienung (unterbrechen, erneut versuchen). Vorher blieb der Fokus auf der Seite
   // dahinter, und mit der Tabulatortaste erreichte man den Sprachmodus erst nach allen
   // Elementen der Seite (Gegenpruefung vom 25.09.2026). Weil der Knopf beim Andocken im
-  // selben Baum bleibt, bleibt auch der Fokus.
+  // selben Baum bleibt, bleibt auch der Fokus. Beim Schliessen bekommt das Element den
+  // Fokus zurueck, das ihn vorher hatte (meist der Knopf "Gespraech"), sonst fiele er auf
+  // <body> (wie glocke.tsx). Gemerkt wird es vor dem Verschieben (Layout-Effekt) und nur,
+  // wenn es ausserhalb des Sprachmodus liegt: im Entwicklungsmodus haengt React die Effekte
+  // einmal probehalber aus und wieder ein, beim zweiten Mal laege der Fokus schon auf Himbi.
+  // Zurueckgegeben wird nach dem Aushaengen und nur, wenn der Sprachmodus wirklich weg ist;
+  // das Chat-Panel ist erst danach wieder bedienbar (inert).
   const figurKnopfRef = useRef<HTMLButtonElement | null>(null);
+  const vorherFokusRef = useRef<HTMLElement | null>(null);
+  useLayoutEffect(() => {
+    const aktiv = document.activeElement;
+    if (aktiv instanceof HTMLElement && aktiv !== document.body && !aktiv.closest(".ki-sprachmodus")) vorherFokusRef.current = aktiv;
+  }, []);
   useEffect(() => {
     figurKnopfRef.current?.focus({ preventScroll: true });
+    return () => {
+      const vorher = vorherFokusRef.current;
+      window.setTimeout(() => {
+        if (document.querySelector(".ki-sprachmodus")) return;
+        if (vorher && vorher.isConnected && !vorher.closest("[inert]")) vorher.focus({ preventScroll: true });
+      }, 0);
+    };
   }, []);
 
   // --- Platz von Himbi: Mitte oder links ueber der Menueleiste ---------------------------

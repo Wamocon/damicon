@@ -2372,7 +2372,7 @@ for (const [name, kaputteAntwort] of [
 
   // (b) Kugel-Platzierung: seit dem 25.09.2026 entfernt, Himbi dockt links an
   //     (sprachmodus.tsx); die Platzsuche war ungenutzter Code.
-  pruefe("Sprachmodus: die ungenutzte Platzsuche der Kugel ist entfernt", !readFileSync(new URL("../../src/lib/domain/sprachmodus.ts", import.meta.url), "utf8").includes("export function besterPlatz"));
+  pruefe("Sprachmodus: die ungenutzte Platzsuche der frueheren Kugel ist entfernt", !readFileSync(new URL("../../src/lib/domain/sprachmodus.ts", import.meta.url), "utf8").includes("export function besterPlatz"));
 
   // (c) Werkzeuge und Anweisungen des Sprachmodus.
   {
@@ -2411,7 +2411,7 @@ for (const [name, kaputteAntwort] of [
     pruefe("Freigabe: die Karte im Sprachmodus geht ueber allem, auch ohne Untertitel", /const untertitel = freigabeAnfrage \? \(/.test(modus));
 
     // Sprachmodus-Layout: links, auch beim Zeigen auf ein Ziel - das Schriftbild darf nie fehlen.
-    pruefe("Sprachmodus: bei einem Ziel bleibt die Kugel links, mit Text (kein Wechsel neben das Ziel mehr)", !modus.includes("useKugelPlatz") && !modus.includes("beiSeite") && modus.includes("const angedockt = zielSichtbar || assistentIstDran(phase);"));
+    pruefe("Sprachmodus: bei einem Ziel bleibt Himbi links, mit Text (kein Wechsel neben das Ziel mehr)", !modus.includes("useKugelPlatz") && !modus.includes("beiSeite") && modus.includes("const angedockt = zielSichtbar || assistentIstDran(phase);"));
     pruefe("Sprachmodus: Anweisung verlangt, dass Gesprochenes und Angezeigtes zusammenpassen", SPRACHMODUS_FUEHRUNG.includes("GESPROCHENES UND ANGEZEIGTES MÜSSEN IMMER ZUSAMMENPASSEN") && SPRACHMODUS_FUEHRUNG.includes("nie einen Bereich, nachdem du deine Erklärung beendet hast"));
 
     // (i) Schalter "Automatisch starten" (Tour + Zusammenfassung), Knoepfe bleiben.
@@ -2571,7 +2571,7 @@ for (const [name, kaputteAntwort] of [
   pruefe("Aufnahme: kein pause()/resume() eines Recorders fuer die ganze Sitzung mehr", !/recorder\.(pause|resume)\(\)/.test(modus));
   pruefe("Aufnahme: das letzte Stueck geht vor dem Ende-Zeichen an die Sitzung", /schliesseAufnahme\(\)\s*\.then\([^)]*\): Promise<LiveErgebnis> \| LiveErgebnis => \(sitzung \? sitzung\.beende\(\)/.test(modus));
   pruefe("Aufnahme: Mikrofonstrom bleibt fuer die ganze Sitzung offen (iOS-Audiosession)", (modus.match(/getUserMedia\(/g) ?? []).length === 1 && modus.includes("stromRef.current?.getTracks().forEach((s) => s.stop());"));
-  pruefe("Kugel: bekommt den Pegel der eigenen Stimme (starteHoeren) und gibt ihn wieder frei", modus.includes("starteHoeren(strom);") && modus.includes("stoppeHoeren();"));
+  pruefe("Himbi: der Schein bekommt den Pegel der eigenen Stimme (starteHoeren) und gibt ihn wieder frei", modus.includes("starteHoeren(strom);") && modus.includes("stoppeHoeren();"));
   pruefe("Echo: im Gespraech mit Echounterdrueckung, sonst wie beim Diktat", modus.includes("const GESPRAECH_AUFNAHME: MediaTrackConstraints = { ...AUFNAHME_VORGABEN, echoCancellation: true };") && modus.includes("getUserMedia({ audio: GESPRAECH_AUFNAHME })"));
   pruefe("Abbruch: der Sprachmodus hoert auf das Scheitern der Sitzung", modus.includes("beiScheitern: (grund) => {") && modus.includes("nachSitzungsAbbruch({"));
   pruefe("Abbruch: diktat-live meldet ein Scheitern nur vor beende()/abbrechen()", live.includes("if (!beendet) beiScheitern?.(grund);") && /abbrechen\(\) \{\s*beendet = true;/.test(live));
@@ -2646,7 +2646,7 @@ for (const [name, kaputteAntwort] of [
   pruefe("Vorlesen: nach einem Stopp wird derselbe Zug NICHT weiter vorgelesen", !vorlesenErlaubt({ sprachmodus: false, offen: true, einstellung: true, zug: zug("erzwungen", true) }));
   pruefe("Vorlesen: Panel zu heisst still", !vorlesenErlaubt({ sprachmodus: false, offen: false, einstellung: true, zug: zug("erzwungen") }));
   pruefe("Vorlesen: im Sprachmodus immer, auch mit Einstellung aus", vorlesenErlaubt({ sprachmodus: true, offen: false, einstellung: false, zug: zug("normal") }));
-  pruefe("Vorlesen: im Sprachmodus wirkt ein Stopp (Tipp auf die Kugel) auf den laufenden Zug", !vorlesenErlaubt({ sprachmodus: true, offen: false, einstellung: true, zug: zug("normal", true) }));
+  pruefe("Vorlesen: im Sprachmodus wirkt ein Stopp (Tipp auf Himbi) auf den laufenden Zug", !vorlesenErlaubt({ sprachmodus: true, offen: false, einstellung: true, zug: zug("normal", true) }));
   pruefe("Vorlesen: getippte Frage ohne Einstellung bleibt stumm", !vorlesenErlaubt({ sprachmodus: false, offen: true, einstellung: null, zug: zug("normal") }) && !vorlesenErlaubt({ sprachmodus: false, offen: true, einstellung: false, zug: zug("normal") }));
   pruefe("Vorlesen: Wunsch - erzwungen schlaegt alles, diktiert nur aus dem Feld", wunschFuerZug(false, true, false) === "erzwungen" && wunschFuerZug(true, false, true) === "diktiert" && wunschFuerZug(false, false, true) === "normal" && wunschFuerZug(true, false, false) === "normal");
   pruefe("Schalter: zeigt AN, waehrend die Zusammenfassung entsteht (nie eingestellt)", schalterZeigtAn({ einstellung: null, phase: "still", beschaeftigt: true, zug: zug("erzwungen") }));
@@ -2763,7 +2763,7 @@ for (const [name, kaputteAntwort] of [
   pruefe("Live: ein gescheiterter Abschnitt haelt die Reihe nicht auf (spieleWeiter im Fehlerzweig)", /const gescheitert = \(\) => \{[\s\S]*?w\.melde\(eintrag\.nr, "fehler"\);[\s\S]*?spieleWeiter\(\);/.test(live));
   pruefe("Live: Rueckrufe eines alten Durchgangs tun nichts (durchgang)", (live.match(/meinDurchgang !== durchgang\.current/g) ?? []).length >= 5);
   pruefe("Live: gibt der Strom auf, uebernehmen die signierten Abschnitte den Rest", live.includes('weg.current = "abschnitte";') && live.includes("anDenStrom.current.slice(Math.max(0, anDenStrom.current.length - ungesprochen))"));
-  pruefe("Live: alles ueber EINEN Ausgang (Kugel, Dazwischenreden)", live.includes("q.connect(ausgangFuer(ctx));") && lies("components/ki/sprachausgabe-strom.ts").includes("quelle.connect(ausgangFuer(ctx));"));
+  pruefe("Live: alles ueber EINEN Ausgang (Lippen von Himbi, Dazwischenreden)", live.includes("q.connect(ausgangFuer(ctx));") && lies("components/ki/sprachausgabe-strom.ts").includes("quelle.connect(ausgangFuer(ctx));"));
   const fassade = lies("components/ki/ki-chat-sprache.ts");
   pruefe("Fassade: Panel zu heisst still - nie im Sprachmodus, und nicht am ganzen live-Objekt", fassade.includes("if (!offen && !sprachmodus) stoppeLiveUndDatei();") && fassade.includes("}, [offen, sprachmodus, stoppeLiveUndDatei]);"));
   pruefe("Fassade: keine abgeschaltete Hook-Pruefung", !fassade.includes("eslint-disable"));

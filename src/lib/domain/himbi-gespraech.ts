@@ -7,7 +7,7 @@
 // wurde (0 von 15 Mutationen).
 
 import { AUGEN_MAX, BLICK_DENKT, blickRichtung, type HaustierZustand } from "@/lib/haustier";
-import { MUND_ZU, naeher, type Mundform } from "@/lib/domain/lippen";
+import { baenderAus, MUND_ZU, mundAusKlang, naeher, type Mundform } from "@/lib/domain/lippen";
 
 export type SprachZustand = "hoert" | "denkt" | "spricht" | "pausiert" | "fehler";
 
@@ -35,9 +35,32 @@ export interface MundEintrag {
  *  Geraet; ohne den Puffer eilte der Mund bei Bluetooth-Kopfhoerern sichtbar vor.
  *  Veraendert verlauf (haelt nur, was noch faellig werden kann). */
 export function faelligeForm(verlauf: MundEintrag[], jetzt: number, form: Mundform, latenzMs: number): Mundform {
+  // Eine ungueltige Latenz (NaN) liesse den Puffer nie kuerzen: der Mund stuende still.
+  const latenz = Number.isFinite(latenzMs) && latenzMs > 0 ? latenzMs : 0;
   verlauf.push({ t: jetzt, m: form });
-  while (verlauf.length > 1 && verlauf[1]!.t <= jetzt - latenzMs) verlauf.shift();
+  while (verlauf.length > 1 && verlauf[1]!.t <= jetzt - latenz) verlauf.shift();
   return verlauf[0]!.m;
+}
+
+// ---- Klang zu Zielform -----------------------------------------------------------------
+
+export interface KlangBild {
+  /** Pegel der Ausgabe (RMS) dieses Bilds. */
+  pegel: number;
+  /** Spektrum der Ausgabe, null ohne Analyser oder bei angehaltenem Kontext. */
+  spektrum: { frequenzen: ArrayLike<number>; abtastrate: number; fftGroesse: number; minDb: number; maxDb: number } | null;
+  /** Spielt gerade der Datei-Weg (<audio>) am Analyser vorbei? */
+  elementSpielt: boolean;
+}
+
+/** Die Zielform eines Bilds beim Sprechen: Lautheit ist der Pegel geteilt durch die
+ *  laufende Spitze, die Form kommt aus dem Spektrum. Ist am Analyser nichts zu hoeren,
+ *  aber der Datei-Weg spielt, der Takt-Mund. Ohne Spektrum und ohne Datei-Weg: zu. */
+export function sprechZiel(bild: KlangBild, spitze: number, jetzt: number): Mundform {
+  if (bild.pegel === 0 && bild.elementSpielt) return taktMund(jetzt);
+  const s = bild.spektrum;
+  if (!s || spitze <= 0) return MUND_ZU;
+  return mundAusKlang(bild.pegel / spitze, baenderAus(s.frequenzen, s.abtastrate, s.fftGroesse, s.minDb, s.maxDb));
 }
 
 // ---- Was sichtbar wird ----------------------------------------------------------------

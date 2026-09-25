@@ -13,6 +13,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  /* Reicht die Hoehe nicht (Handy quer, lange Antwort), oben anfangen statt den Kopf von
+     Himbi abzuschneiden. Browser ohne "safe" behalten die Zeile davor. */
+  justify-content: safe center;
   isolation: isolate;
   /* Unten Platz fuer die feste Bedienleiste (44px Knoepfe + 2 x 0,5rem Rand), sonst
      deckt sie auf dem Handy den Untertitel unter der hohen Figur zu. */
@@ -267,6 +270,20 @@
 }
 .ki-sprachmodus__untertitel-zeile .ki-md li::marker {
   color: var(--primary);
+}
+
+/* Auf dem Handy (ohne Navigationsleiste zum Andocken) bleibt die Spalte in der Mitte,
+   aber als Flex-Spalte: der Untertitel schrumpft und scrollt in sich, statt unter die
+   Bedienleiste zu wachsen oder Himbi oben aus dem Bild zu schieben. */
+.ki-sprachmodus__links-spalte {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 0;
+  max-height: 100%;
+}
+.ki-sprachmodus__figur-huelle {
+  flex-shrink: 0;
 }
 
 /* ---- Links-Spalte: Himbi + Text als eine Einheit ueber der Navigationsleiste ---

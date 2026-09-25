@@ -88,11 +88,12 @@ export const STILLE = 0.1;
 
 /** Rundung aus der "Dunkelheit" des Klangs, log10(hoch/tief): gerundete Lippen senken
  *  die hoeheren Formanten. Ab RUND_AB beginnt die Rundung, RUND_SPANNE tiefer ist sie
- *  voll. Gemessen mit drei Soniox-Stimmen (Lena de, Maya en/ru, Yana kk) am 25.09.2026,
- *  Median je Probe: U -4,7 bis -5,7, O -3,0 bis -5,5; dagegen A -0,5 bis -2,4, offenes
- *  E (russisch Э) -2,0, I -1,9 bis -2,4 und Saetze voller M und L -2,2 bis -3,2.
- *  Vorsichtig gewaehlt: ein runder Mund bei A oder M faellt mehr auf als ein neutraler
- *  bei O. */
+ *  voll (mehr als halb rund erst unter -3,2). Gemessen mit drei Soniox-Stimmen (Lena de,
+ *  Maya en/ru, Yana kk) am 25.09.2026, Median je Probe: U -4,7 bis -5,8, O -3,1 bis
+ *  -5,7; dagegen A -0,8 bis -2,6, I -1,9 bis -2,5, offenes E -0,1 bis -2,2 und Saetze
+ *  voller M und L -2,3 bis -3,3. Vorsichtig gewaehlt: ein runder Mund bei A oder M faellt
+ *  mehr auf als ein neutraler bei O. Knapp ist es beim kasachischen A (Yana, Median
+ *  -2,59): viele seiner Bilder bekommen eine leichte Rundung, 3 % mehr als eine halbe. */
 export const RUND_AB = -2.6;
 export const RUND_SPANNE = 1.2;
 
@@ -109,19 +110,19 @@ export function mundAusKlang(lautheit: number, b: Baender): Mundform {
   // als rund. Gemessen mit den echten Soniox-Stimmen am 25.09.2026 (Median je Probe,
   // Einzelvokale; zuerst nur Lena, die Gegenpruefung ergaenzte Maya und Yana):
   //            kiefer          vorn            dunkel (log10 hoch/tief)
-  //   A        0,18 bis 0,79   0,02 bis 0,13   -0,5 bis -2,4
-  //   O        0,06 bis 0,32   0,00 bis 0,01   -3,0 bis -5,5
-  //   U        0,01 bis 0,04   0,00            -4,7 bis -5,7
-  //   I        0,00            0,81 bis 0,94   -1,9 bis -2,4
-  //   E        0,00 bis 0,58   0,06 bis 0,85   -0,2 bis -2,2 (offenes E ohne "vorn")
+  //   A        0,17 bis 0,82   0,01 bis 0,12   -0,8 bis -2,6
+  //   O        0,01 bis 0,32   0,00 bis 0,01   -3,1 bis -5,7
+  //   U        0,01 bis 0,03   0,00            -4,7 bis -5,8
+  //   I        0,00 bis 0,16   0,05 bis 0,96   -1,9 bis -2,5 (englisches "Eee" ohne "vorn")
+  //   E        0,00 bis 0,54   0,09 bis 0,96   -0,1 bis -2,2 (offenes E ohne "vorn")
   // kiefer: erster Formant hoch (A) gegen tief (U, I). vorn: zweiter Formant hoch (I, E).
   // dunkel: gerundete Lippen (O, U). Bis zur Gegenpruefung galt "wenig Kiefer und wenig
   // vorn" als rund; das traf auch kasachisches A (76 % der Bilder), russisches Э (92 %),
-  // englisches "Eee" (91 %) und Saetze voller M und L (42 bis 64 %). Mit "dunkel": 0 %,
-  // 0 %, 0 % und 6 bis 30 %, bei U weiter 74 bis 89 %.
-  // nasal: Brummen unter 300 Hz, bei M und N am staerksten; die Lippen sind dann zu. Im
-  // Fliesstext ueberlappt es mit den Vokalen (M 0,63 bis 0,88, Vokale 0,63 bis 0,74) und
-  // greift darum nur selten.
+  // englisches "Eee" (91 %) und Saetze voller M und L (42 bis 64 %). Mit "dunkel" sind es
+  // 3 %, 0 %, 0 % und 10 bis 34 % mehr als halb rund, bei U weiter 74 bis 89 %.
+  // nasal: Grundton und Brummen unter 250 Hz, bei M und N am staerksten; die Lippen sind
+  // dann zu. Im Fliesstext ueberlappt es mit den Vokalen (Mediane: Saetze voller M 0,55
+  // bis 0,74, Vokale 0,17 bis 0,73, kasachisches A 0,73) und greift darum nur selten.
   const kiefer = b.tief + b.mitte > 0 ? b.mitte / (b.tief + b.mitte) : 0;
   const vorn = b.hoch + b.mitte > 0 ? b.hoch / (b.hoch + b.mitte) : 0;
   const nasal = b.grund + b.tief + b.mitte > 0 ? b.grund / (b.grund + b.tief + b.mitte) : 0;
@@ -165,13 +166,13 @@ export function glaetteMund(bisher: Mundform, ziel: Mundform, dtMs: number): Mun
   };
 }
 
-/** Passt die Lautstaerke an die Stimme an: die Spitze folgt lauten Stellen sofort und
- *  sinkt langsam (Halbwertszeit rund 1,5 s), der Boden verhindert, dass Rauschen in
- *  einer langen Pause zur vollen Oeffnung aufgeblasen wird. Rueckgabe: neue Spitze. */
 /** Untergrenze der Spitze: Rauschen in einer langen Pause wird nicht zur vollen
  *  Oeffnung aufgeblasen. Zugleich der Startwert der Spitze. */
 export const SPITZE_BODEN = 0.04;
 
+/** Passt die Lautstaerke an die Stimme an: die Spitze folgt lauten Stellen sofort und
+ *  sinkt langsam (Halbwertszeit rund 1,5 s), der Boden verhindert, dass Rauschen in
+ *  einer langen Pause zur vollen Oeffnung aufgeblasen wird. Rueckgabe: neue Spitze. */
 export function folgeSpitze(spitze: number, pegel: number, dtMs: number, boden = SPITZE_BODEN): number {
   const sinken = Math.pow(0.5, Math.min(dtMs, 100) / 1500);
   return Math.max(boden, pegel, spitze * sinken);

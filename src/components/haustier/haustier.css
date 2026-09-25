@@ -1697,8 +1697,18 @@ html[data-hb-still] .hb-svg *,
 html[data-hb-still] .hb-svg,
 html[data-hb-still] .hb-aura *,
 html[data-hb-still] .haustier__schatten-anim,
-html[data-hb-still] .hb-versteck__innen {
+html[data-hb-still] .hb-versteck__innen,
+html[data-hb-still] .haustier .hb,
+html[data-hb-still] .hb-zzz span,
+html[data-hb-still] .hb-konfetti span,
+html[data-hb-still] .hb-abzeichen {
   animation: none !important;
+}
+/* Was reduzierte Bewegung stattdessen zeigt, zeigt auch der Schalter: die Traenen
+   stehen, statt mit der Animation zu verschwinden. Zzz und Konfetti bleiben wie dort
+   unsichtbar, Abzeichen und Erscheinen stehen ohne Sprung. */
+html[data-hb-still] .hb-svg[data-zustand="traurig"] .hb-traene {
+  opacity: 1;
 }
 
 /* ---- Vorschau in den Einstellungen --------------------------------------------------
