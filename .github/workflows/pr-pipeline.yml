@@ -102,6 +102,17 @@ jobs:
       - name: Wissensbasis in Postgres (pgvector, Rollen, Suche, Schreibschutz)
         run: npm run test:wissen-db
 
+      # Jede Migration laeuft nach dem Merge auch umgeschrieben im Schema public_preview (Preview-
+      # Umgebungen, siehe datenbank-migration.yml). Hier wird public_preview aus allen Migrationen neu
+      # aufgebaut und muss danach genauso aussehen wie public.
+      - name: public_preview aus allen Migrationen aufbauen
+        run: |
+          node scripts/preview-migrationen.mjs einrichten --local
+          node scripts/preview-migrationen.mjs anwenden --local
+
+      - name: Strukturabgleich public und public_preview
+        run: node scripts/preview-abgleich.mjs --local
+
       # Braucht kein laufendes Supabase: PGlite bringt Postgres als WASM mit
       # und wendet alle Migrationen selbst an. Deckt die Einladungen, den
       # Zukauf-Parser, den Ausweis-Scan und den KI-Assistenten ab - bis zu

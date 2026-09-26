@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { bucket } from "@/lib/supabase/buckets";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import {
   dbFehler,
@@ -57,7 +58,7 @@ export async function dokumentAnlegen(
     storagePfad = `${kategorie}/${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${endung}`;
 
     const { error: uploadFehler } = await supabase.storage
-      .from("dokumente")
+      .from(bucket("dokumente"))
       .upload(storagePfad, datei, { contentType: datei.type, upsert: false });
 
     if (uploadFehler) {
@@ -89,7 +90,7 @@ export async function dokumentAnlegen(
     .single();
 
   if (error) {
-    if (storagePfad) await supabase.storage.from("dokumente").remove([storagePfad]);
+    if (storagePfad) await supabase.storage.from(bucket("dokumente")).remove([storagePfad]);
     return dbFehler(error);
   }
 

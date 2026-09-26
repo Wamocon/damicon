@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { bucket } from "@/lib/supabase/buckets";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
 import { text, aktualisiere, protokolliere as protokolliereBasis } from "@/lib/actions/formular-helfer";
@@ -79,7 +80,7 @@ export async function uebergabeErfassen(
     storagePfad = `lieferungen/${id}-${crypto.randomUUID().slice(0, 8)}.${endung}`;
 
     const { error: uploadFehler } = await supabase.storage
-      .from("belege")
+      .from(bucket("belege"))
       .upload(storagePfad, datei, { contentType: datei.type || "image/jpeg" });
 
     if (uploadFehler) {
@@ -110,11 +111,11 @@ export async function uebergabeErfassen(
     .maybeSingle();
 
   if (error) {
-    if (storagePfad) await supabase.storage.from("belege").remove([storagePfad]);
+    if (storagePfad) await supabase.storage.from(bucket("belege")).remove([storagePfad]);
     return dbFehler(error);
   }
   if (!data) {
-    if (storagePfad) await supabase.storage.from("belege").remove([storagePfad]);
+    if (storagePfad) await supabase.storage.from(bucket("belege")).remove([storagePfad]);
     return fehler("fehler.nichtGefunden");
   }
 
