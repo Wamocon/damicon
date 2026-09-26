@@ -153,6 +153,8 @@ export function DashboardTopbar() {
 
   return (
     <header
+      // Der Sprachmodus misst sie auf dem Handy aus, damit Himbi nicht auf ihr landet.
+      data-kopfzeile=""
       className={cn(
         "sticky top-0 z-40 h-14 items-center gap-3 border-b border-border bg-background/80 px-4 backdrop-blur-xl md:flex md:h-16 md:px-6 print:hidden",
         // Sobald links ein Rueckweg steht, ruecken Bildmarke und Name in die

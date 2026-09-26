@@ -119,6 +119,24 @@
   .ki-sprachmodus__leiste .ki-sprachmodus__knopf--untertitel {
     display: none;
   }
+  /* Ist ein Bereich gerahmt, weicht Himbi ihm aus (sprachmodus.tsx, ausweichPlatz):
+     mittig ueber oder unter den Rahmen statt in die Mitte darauf. */
+  .ki-sprachmodus__links-spalte[data-ausweichen] {
+    position: fixed;
+    z-index: 2;
+    left: 50%;
+    top: var(--sprach-y, 50%);
+    translate: -50% 0;
+    max-width: calc(100vw - 2rem);
+  }
+}
+/* Dieselbe Bewegung wie der Rahmen (.ki-sprachmodus__spotlight-ring): gleiten beide
+   gleich lang und gleich geformt, bleibt der Abstand auch mitten im Scrollen erhalten.
+   Mit abweichender Dauer beruehrten sie sich dabei kurz (Messung vom 26.09.2026). */
+@media (max-width: 767.98px) and (prefers-reduced-motion: no-preference) {
+  .ki-sprachmodus__links-spalte[data-ausweichen] {
+    transition: top 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
 }
 .ki-himbi[data-zustand="denkt"] {
   --himbi-farbe: oklch(80% 0.15 55);

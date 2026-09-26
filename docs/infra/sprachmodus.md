@@ -232,7 +232,11 @@ Auf dem Handy (unter 768 px, Rückmeldung vom 26.09.2026) zeigt der Sprachmodus
 keinen mitlaufenden Text, und Himbi ist höchstens halb so groß (Mitte bis 72 px,
 angedockt bis 42 px breit, Tippfläche mindestens 44 px). Der Text deckte dort den
 halben Bildschirm zu, gerade den Bereich, über den Himbi spricht. Eine offene
-Freigabekarte bleibt sichtbar, der Untertitel-Schalter fällt dort weg.
+Freigabekarte bleibt sichtbar, der Untertitel-Schalter fällt dort weg. Ist ein
+Bereich gerahmt, weicht Himbi ihm aus (`ausweichPlatz` in `domain/sprachmodus.ts`,
+Rückmeldung vom 26.09.2026): direkt über den Rahmen, sonst darunter über der
+Bedienleiste, sonst über den Rahmen auf die Kopfzeile, und nur wenn der Rahmen
+fast den ganzen Bildschirm füllt, an den oberen Rand.
 
 **Lippen** (`src/lib/domain/lippen.ts`, reine Rechnung). Recherche vom
 25.09.2026 (27 Quellen, darunter lipsync-engine, wawa-lipsync, Rhubarb,

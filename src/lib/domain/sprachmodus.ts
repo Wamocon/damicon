@@ -274,6 +274,43 @@ export interface Rechteck {
   hoehe: number;
 }
 
+/** Wo Himbi auf dem Handy steht, wenn ein Bereich gerahmt ist. */
+export interface Ausweichplatz {
+  /** Oberkante der Einheit aus Himbi und Zustandszeile, in Pixeln vom Fensterrand. */
+  y: number;
+  /** oben/unten: frei neben dem Rahmen; kopfzeile: ueber dem Rahmen, dafuer auf der
+   *  Kopfzeile; rand: der Rahmen fuellt fast den ganzen Bildschirm, Himbi steht oben. */
+  lage: "oben" | "unten" | "kopfzeile" | "rand";
+}
+
+/**
+ * Auf dem Handy steht Himbi mittig und deckte damit gerade den Bereich zu, ueber den
+ * er spricht (Rueckmeldung vom 26.09.2026: "die Figur verdeckt teilweise die Anzeige,
+ * sie muss ausserhalb verschoben werden, zum Beispiel nach oben"). Er weicht aus:
+ *   1. direkt ueber den Rahmen, wenn dort zwischen Kopfzeile und Rahmen Platz ist,
+ *   2. sonst direkt darunter, wenn er dort ueber der Bedienleiste Platz hat,
+ *   3. sonst ueber den Rahmen, dafuer auf die Kopfzeile (die zeigt im Gespraech nichts,
+ *      was man braucht, der Rahmen schon),
+ *   4. sonst (der Rahmen fuellt fast den ganzen Bildschirm) an den oberen Rand.
+ * rahmen: das Rechteck des Rahmens samt seinem Abstand um das Ziel. frei.oben: Unterkante
+ * der Kopfzeile, frei.unten: Oberkante der Bedienleiste, frei.rand: oberster erlaubter
+ * Punkt (Rand des Fensters samt sicherem Bereich). Der Desktop braucht das nicht: dort
+ * steht Himbi links ueber der Navigationsleiste, der Rahmen in der Mitte.
+ */
+export function ausweichPlatz(
+  rahmen: Rechteck,
+  einheitHoehe: number,
+  frei: { oben: number; unten: number; rand: number },
+  abstand = 8,
+): Ausweichplatz {
+  const ueber = rahmen.y - abstand - einheitHoehe;
+  if (ueber >= frei.oben) return { y: ueber, lage: "oben" };
+  const unter = rahmen.y + rahmen.hoehe + abstand;
+  if (unter >= frei.oben && unter + einheitHoehe <= frei.unten) return { y: unter, lage: "unten" };
+  if (ueber >= frei.rand) return { y: ueber, lage: "kopfzeile" };
+  return { y: frei.rand, lage: "rand" };
+}
+
 // --- 3. Wenn die Live-Sitzung abbricht ---------------------------------------------
 //
 // Bis zum 24.09.2026 gab es darauf keine Antwort: kam kein Endpunkt, hoerte der

@@ -6,7 +6,7 @@ import { AlertTriangle, Ear, Loader2, Mic, MicOff, Subtitles, Volume2, X } from 
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { useScrollSperre } from "@/components/ui/scroll-sperre";
 import { SprachHimbi, type SprachZustand } from "@/components/ki/sprach-himbi";
-import { SprachSpotlight, useHervorhebungsRechteck } from "@/components/ki/sprach-spotlight";
+import { RAHMEN_ABSTAND, SprachSpotlight, useHervorhebungsRechteck } from "@/components/ki/sprach-spotlight";
 import { loeseSprechZiel, ueberschriftImSatz, zeigeSprechStelle } from "@/components/ki/sprach-mitlesen";
 import {
   abonniereSprachBus,
@@ -25,6 +25,7 @@ import { leseLautstaerke, starteHoeren, stoppeHoeren } from "@/lib/hoeren";
 import {
   antwortFertig,
   assistentIstDran,
+  ausweichPlatz,
   erzeugeUnterbrechungsWaechter,
   istAbsageBefehl,
   istStoppBefehl,
@@ -82,6 +83,16 @@ const STATUS_SYMBOL: Record<SprachZustand, typeof Ear> = {
   pausiert: MicOff,
   fehler: AlertTriangle,
 };
+
+/** Handy-Breite wie in sprachmodus.css (unter md, wo es keine Navigationsleiste zum
+ *  Andocken gibt). */
+const HANDY = "(max-width: 767.98px)";
+function abonniereHandy(bescheid: () => void): () => void {
+  const m = window.matchMedia(HANDY);
+  m.addEventListener("change", bescheid);
+  return () => m.removeEventListener("change", bescheid);
+}
+const leseHandy = () => window.matchMedia(HANDY).matches;
 
 /** Wie das Mikrofon im Gespraech geoeffnet wird: wie beim Diktat, aber MIT
  *  Echounterdrueckung. Beim Diktat verstummt jede Wiedergabe, solange das
@@ -547,6 +558,48 @@ function SprachmodusInhalt() {
   const zielSichtbar = zielRechteck !== null && zielRechteck.breite > 0 && zielRechteck.hoehe > 0;
   const angedockt = zielSichtbar || assistentIstDran(phase);
 
+  // Handy: Himbi weicht dem gerahmten Bereich aus (domain/sprachmodus.ts, ausweichPlatz),
+  // statt mittig darueber zu stehen. Gemessen wird die Einheit aus Himbi und Zustandszeile
+  // (samt einer offenen Freigabekarte), die Kopfzeile und die Bedienleiste; das Ergebnis
+  // geht als --sprach-y an die Spalte (sprachmodus.css). Laeuft bei jeder Aenderung des
+  // Rahmens (Scrollen, Groesse) neu, weil das Rechteck dann neu gesetzt wird.
+  const istHandy = useSyncExternalStore(abonniereHandy, leseHandy, () => false);
+  const spalteRef = useRef<HTMLDivElement | null>(null);
+  useLayoutEffect(() => {
+    const spalte = spalteRef.current;
+    if (!spalte) return;
+    if (!istHandy || !zielSichtbar || !zielRechteck) {
+      spalte.removeAttribute("data-ausweichen");
+      spalte.style.removeProperty("--sprach-y");
+      return;
+    }
+    const kopf = document.querySelector("[data-kopfzeile]")?.getBoundingClientRect();
+    const leiste = document.querySelector(".ki-sprachmodus__leiste")?.getBoundingClientRect();
+    const rahmen = {
+      x: zielRechteck.x - RAHMEN_ABSTAND,
+      y: zielRechteck.y - RAHMEN_ABSTAND,
+      breite: zielRechteck.breite + 2 * RAHMEN_ABSTAND,
+      hoehe: zielRechteck.hoehe + 2 * RAHMEN_ABSTAND,
+    };
+    const platz = ausweichPlatz(rahmen, spalte.offsetHeight, {
+      oben: (kopf && kopf.height > 0 ? kopf.bottom : 0) + 8,
+      unten: (leiste ? leiste.top : window.innerHeight) - 8,
+      rand: 8,
+    });
+    // Wechselt Himbi die Seite (ueber/unter dem Rahmen), springt er ohne Gleiten: sonst
+    // glitte er einmal quer durch den Rahmen. Innerhalb derselben Seite gleitet er im
+    // Gleichschritt mit dem Rahmen (sprachmodus.css).
+    const bisher = spalte.getAttribute("data-ausweichen");
+    const springt = bisher !== null && bisher !== platz.lage;
+    if (springt) spalte.style.transition = "none";
+    spalte.setAttribute("data-ausweichen", platz.lage);
+    spalte.style.setProperty("--sprach-y", `${Math.round(platz.y)}px`);
+    if (springt) {
+      void spalte.offsetHeight;
+      requestAnimationFrame(() => spalte.style.removeProperty("transition"));
+    }
+  }, [istHandy, zielSichtbar, zielRechteck, phase, freigabeAnfrage]);
+
   // Mitlesen: der Rahmen in der Mitte folgt dem Satz, den die Stimme gerade
   // spricht (Rückmeldung vom 25.09.2026: "ich kann nicht nachvollziehen, bei
   // welchem Punkt er gerade ist"). Welcher Satz klingt, weiß der Vorlese-Strom
@@ -809,7 +862,7 @@ function SprachmodusInhalt() {
           selbst nach oben (Rueckmeldung vom 25.09.2026). max-height haelt die Einheit
           dabei immer im Rahmen der Navigationsleiste. In der Mitte ist die Spalte
           display: contents, Himbi und Text stehen wie bisher untereinander. */}
-      <div className={angedockt ? "ki-sprachmodus__links-spalte" : "ki-sprachmodus__mitte"}>
+      <div ref={spalteRef} className={angedockt ? "ki-sprachmodus__links-spalte" : "ki-sprachmodus__mitte"}>
         <div className={cn("ki-sprachmodus__figur-huelle", angedockt && "ki-sprachmodus__figur-huelle--links")}>
           {figurKnopf}
           {statusZeile}

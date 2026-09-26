@@ -17,7 +17,9 @@ import type { Rechteck } from "@/lib/domain/sprachmodus";
 // verschachtelte Scrollcontainer haben (Ausnahme: Tabellen mit eigenem
 // Scrollbalken, dort scrollt der Anker ohnehin per scrollIntoView mit).
 
-const ABSTAND = 16;
+/** Abstand des Rahmens um das Ziel; auch Himbi haelt ihn auf dem Handy frei (sprachmodus.tsx). */
+export const RAHMEN_ABSTAND = 16;
+const ABSTAND = RAHMEN_ABSTAND;
 
 function rechteckVon(element: Element): Rechteck {
   const r = element.getBoundingClientRect();

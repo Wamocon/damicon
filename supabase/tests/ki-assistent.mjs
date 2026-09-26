@@ -107,6 +107,7 @@ import { satzBeiPosition } from "../../src/lib/domain/sprachmodus-mitlesen.ts";
 import {
   antwortFertig,
   assistentIstDran,
+  ausweichPlatz,
   erzeugeUnterbrechungsWaechter,
   istAbsageBefehl,
   istStoppBefehl,
@@ -2372,6 +2373,29 @@ for (const [name, kaputteAntwort] of [
 
   // (b) Kugel-Platzierung: seit dem 25.09.2026 entfernt, Himbi dockt links an
   //     (sprachmodus.tsx); die Platzsuche war ungenutzter Code.
+  // Handy: Himbi weicht dem gerahmten Bereich aus (Rueckmeldung vom 26.09.2026). Fenster 390 x 844,
+  // Kopfzeile bis 56 (+8), Bedienleiste ab 758 (-8), Einheit aus Himbi und Zustandszeile 110 hoch.
+  {
+    const frei = { oben: 64, unten: 750, rand: 8 };
+    const h = 110;
+    const ueberlappt = (y, r) => y < r.y + r.hoehe && y + h > r.y;
+    const mitte = { x: 8, y: 420, breite: 374, hoehe: 180 };
+    const a = ausweichPlatz(mitte, h, frei);
+    pruefe("Ausweichen: Platz ueber dem Rahmen -> direkt darueber, ohne Ueberlappung", a.lage === "oben" && a.y === 420 - 8 - h && !ueberlappt(a.y, mitte), a);
+    const oben = { x: 8, y: 80, breite: 374, hoehe: 200 };
+    const b = ausweichPlatz(oben, h, frei);
+    pruefe("Ausweichen: Rahmen oben -> direkt darunter, ueber der Bedienleiste", b.lage === "unten" && b.y === 288 && b.y + h <= frei.unten && !ueberlappt(b.y, oben), b);
+    const fastVoll = { x: 8, y: 180, breite: 374, hoehe: 500 };
+    const c = ausweichPlatz(fastVoll, h, frei);
+    pruefe("Ausweichen: kein Platz zwischen Kopfzeile und Leiste -> ueber den Rahmen auf die Kopfzeile", c.lage === "kopfzeile" && c.y === 180 - 8 - h && c.y >= frei.rand && !ueberlappt(c.y, fastVoll), c);
+    const voll = { x: 0, y: 40, breite: 390, hoehe: 700 };
+    const d = ausweichPlatz(voll, h, frei);
+    pruefe("Ausweichen: Rahmen fuellt den Bildschirm -> an den oberen Rand", d.lage === "rand" && d.y === frei.rand, d);
+    pruefe("Ausweichen: Grenzfall - genau passend ueber dem Rahmen zaehlt noch als oben", ausweichPlatz({ x: 0, y: 64 + 8 + h, breite: 10, hoehe: 10 }, h, frei).lage === "oben");
+    pruefe("Ausweichen: ein Rahmen, der oben aus dem Bild ragt, schickt Himbi nicht darunter, wenn es dort nicht passt", ausweichPlatz({ x: 0, y: -300, breite: 10, hoehe: 1000 }, h, frei).lage === "rand");
+    const moduls = readFileSync(new URL("../../src/components/ki/sprachmodus.tsx", import.meta.url), "utf8");
+    pruefe("Ausweichen: nur auf dem Handy und nur mit sichtbarem Rahmen, Abstand des Rahmens eingerechnet", moduls.includes("if (!istHandy || !zielSichtbar || !zielRechteck) {") && moduls.includes("y: zielRechteck.y - RAHMEN_ABSTAND,") && moduls.includes('const HANDY = "(max-width: 767.98px)";'));
+  }
   pruefe("Sprachmodus: die ungenutzte Platzsuche der frueheren Kugel ist entfernt", !readFileSync(new URL("../../src/lib/domain/sprachmodus.ts", import.meta.url), "utf8").includes("export function besterPlatz"));
 
   // (c) Werkzeuge und Anweisungen des Sprachmodus.
