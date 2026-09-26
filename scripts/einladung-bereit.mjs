@@ -13,6 +13,7 @@
 // =============================================================================
 
 import { createClient } from "@supabase/supabase-js";
+import { DATENBANK_SCHEMA } from "./datenbank-schema.mjs";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -22,7 +23,7 @@ if (!url || !serviceKey) {
   process.exit(1);
 }
 
-const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
+const admin = createClient(url, serviceKey, { auth: { persistSession: false }, db: { schema: DATENBANK_SCHEMA } });
 
 let fehlt = 0;
 function pruefe(name, ok, hinweis = "") {

@@ -261,7 +261,9 @@ Production und Preview teilen eine Supabase-Datenbank. Preview-Umgebungen bekomm
 
 Alle offenen Pull Requests teilen sich ein `public_preview`. Wird eine Migrationsdatei geändert, nachdem sie dort schon angewendet wurde, scheitert der Preview-Lauf: Die Änderung gehört dann in eine neue Migration. Migrationen anderer Pull Requests in `public_preview` meldet der Lauf als Warnung. Wichtig: Der Preview-Workflow führt ungeprüfte Migrationen eines Pull Requests in derselben Datenbank aus, in der auch Production liegt.
 
-Gemeinsam genutzte Objekte bekommen für Preview eigene Zwillinge: der Auth-Trigger `on_auth_user_created_preview` (neue Nutzer erhalten in beiden Schemas ein Profil), die Buckets `belege-preview` und `dokumente-preview` mit Policies auf der Endung `_preview` sowie der Cron-Job `kpi-verlauf-taeglich-preview`. Der Bucket `ki-sprachausgabe` bleibt als Audio-Cache gemeinsam. Die App wählt die Buckets über `bucket()` aus `src/lib/supabase/buckets.ts`: steht `SUPABASE_DB_SCHEMA` auf `public_preview`, nimmt sie die Preview-Buckets.
+Gemeinsam genutzte Objekte bekommen für Preview eigene Zwillinge: der Auth-Trigger `on_auth_user_created_preview` (neue Nutzer erhalten in beiden Schemas ein Profil), die Buckets `belege-preview` und `dokumente-preview` mit Policies auf der Endung `_preview` sowie der Cron-Job `kpi-verlauf-taeglich-preview`. Der Bucket `ki-sprachausgabe` bleibt als Audio-Cache gemeinsam.
+
+Der Code nennt kein Schema fest. `SUPABASE_DB_SCHEMA` (`public` oder `public_preview`) bestimmt alles: `next.config.ts` gibt den Wert beim Build als `NEXT_PUBLIC_DB_SCHEMA` an Server, Proxy und Browser weiter, `src/lib/supabase/schema.ts` prüft ihn und reicht ihn an alle Supabase-Clients. `bucket()` aus `src/lib/supabase/buckets.ts` wählt damit die Preview-Buckets, und die Node-Skripte lesen dieselbe Variable (`scripts/datenbank-schema.mjs`). Ein anderer Wert lässt den Build scheitern. Damit eine Preview-Umgebung `public_preview` nutzt, muss das Schema in Supabase unter „Exposed schemas“ freigegeben und in Vercel für Preview `SUPABASE_DB_SCHEMA=public_preview` gesetzt sein.
 
 Was beim Schreiben einer Migration zu beachten ist:
 
@@ -727,7 +729,9 @@ Production and preview share one Supabase database. Preview environments get the
 
 All open pull requests share one `public_preview`. If a migration file changes after it was already applied there, the preview run fails: the change belongs in a new migration. Migrations of other pull requests found in `public_preview` are reported as a warning. Important: the preview workflow runs unreviewed pull request migrations in the same database that also holds production.
 
-Shared objects get their own preview twins: the auth trigger `on_auth_user_created_preview` (new users get a profile in both schemas), the buckets `belege-preview` and `dokumente-preview` with policies ending in `_preview`, and the cron job `kpi-verlauf-taeglich-preview`. The `ki-sprachausgabe` bucket stays shared as an audio cache. The app picks buckets via `bucket()` in `src/lib/supabase/buckets.ts`: when `SUPABASE_DB_SCHEMA` is `public_preview`, it uses the preview buckets.
+Shared objects get their own preview twins: the auth trigger `on_auth_user_created_preview` (new users get a profile in both schemas), the buckets `belege-preview` and `dokumente-preview` with policies ending in `_preview`, and the cron job `kpi-verlauf-taeglich-preview`. The `ki-sprachausgabe` bucket stays shared as an audio cache.
+
+The code does not hard-code any schema. `SUPABASE_DB_SCHEMA` (`public` or `public_preview`) decides everything: `next.config.ts` passes it at build time as `NEXT_PUBLIC_DB_SCHEMA` to server, proxy and browser, and `src/lib/supabase/schema.ts` validates it and hands it to every Supabase client. `bucket()` in `src/lib/supabase/buckets.ts` uses it to pick the preview buckets, and the Node scripts read the same variable (`scripts/datenbank-schema.mjs`). Any other value fails the build. For a preview environment to use `public_preview`, the schema must be listed under "Exposed schemas" in Supabase and `SUPABASE_DB_SCHEMA=public_preview` must be set for Preview in Vercel.
 
 When writing a migration:
 

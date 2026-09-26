@@ -15,6 +15,7 @@
 // =============================================================================
 
 import { createClient } from "@supabase/supabase-js";
+import { DATENBANK_SCHEMA } from "../../scripts/datenbank-schema.mjs";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -34,9 +35,9 @@ function check(name, ok, detail = "") {
   if (!ok) failures += 1;
 }
 
-const dienst = createClient(url, serviceKey, { auth: { persistSession: false } });
+const dienst = createClient(url, serviceKey, { auth: { persistSession: false }, db: { schema: DATENBANK_SCHEMA } });
 async function alsNutzer(kurz) {
-  const c = createClient(url, anonKey, { auth: { persistSession: false } });
+  const c = createClient(url, anonKey, { auth: { persistSession: false }, db: { schema: DATENBANK_SCHEMA } });
   const { error } = await c.auth.signInWithPassword({ email: `${kurz}@damicon.demo`, password: "DamiconDemo2026!" });
   if (error) throw new Error(`Anmeldung ${kurz}: ${error.message}`);
   return c;
@@ -204,7 +205,7 @@ try {
   check("Admin darf NICHT loeschen", !!adminLoescht.error || (adminLoescht.data ?? []).length === 0);
   const nochDa = await dienst.from("wissen_chunks").select("text").eq("id", uuid(1)).single();
   check("Nach den Angriffen ist die Textstelle unveraendert", nochDa.data?.text === "Testtext A");
-  const anon = createClient(url, anonKey, { auth: { persistSession: false } });
+  const anon = createClient(url, anonKey, { auth: { persistSession: false }, db: { schema: DATENBANK_SCHEMA } });
   const anonSuche = await suche(anon, dichtFrage(einheit(0)));
   check("anon: Suche verweigert", !!anonSuche.error || (anonSuche.data ?? []).length === 0);
   const anonLesen = await anon.from("wissen_chunks").select("id").limit(1);
