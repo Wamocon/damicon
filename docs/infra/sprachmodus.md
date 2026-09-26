@@ -228,6 +228,11 @@ hält unten Platz für die Bedienleiste frei, und eine lange Antwort scrollt im
 Untertitel, statt Himbi oben aus dem Bild oder den Text unter die Leiste zu
 schieben (Flex-Spalte mit schrumpfendem Untertitel, `justify-content: safe
 center`). Andocken links gibt es nur ab 768 px, wo die Navigationsleiste steht.
+Auf dem Handy (unter 768 px, Rückmeldung vom 26.09.2026) zeigt der Sprachmodus
+keinen mitlaufenden Text, und Himbi ist höchstens halb so groß (Mitte bis 72 px,
+angedockt bis 42 px breit, Tippfläche mindestens 44 px). Der Text deckte dort den
+halben Bildschirm zu, gerade den Bereich, über den Himbi spricht. Eine offene
+Freigabekarte bleibt sichtbar, der Untertitel-Schalter fällt dort weg.
 
 **Lippen** (`src/lib/domain/lippen.ts`, reine Rechnung). Recherche vom
 25.09.2026 (27 Quellen, darunter lipsync-engine, wawa-lipsync, Rhubarb,

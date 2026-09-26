@@ -836,7 +836,7 @@ function SprachmodusInhalt() {
           aria-pressed={untertitelAn}
           aria-label={t("untertitel")}
           title={t("untertitel")}
-          className={cn("ki-sprachmodus__knopf", untertitelAn && "ki-sprachmodus__knopf--aktiv")}
+          className={cn("ki-sprachmodus__knopf ki-sprachmodus__knopf--untertitel", untertitelAn && "ki-sprachmodus__knopf--aktiv")}
         >
           <Subtitles className="h-5 w-5" />
         </button>
