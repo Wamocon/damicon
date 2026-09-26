@@ -94,6 +94,22 @@
 .ki-himbi[data-groesse="klein"] {
   --himbi-b: clamp(52px, 13vh, 84px);
 }
+/* Desktop (ab 768 px): der mitlaufende Text ist standardmaessig aus (Rueckmeldung vom
+   26.09.2026), dafuer waechst Himbi mit dem Fenster. In der Mitte bis 260 px breit
+   (15 % der Breite oder 26 % der Hoehe, was kleiner ist), links angedockt bis 190 px:
+   die Spalte ueber der Navigationsleiste ist 17rem breit. Mit eingeschaltetem Text bleibt
+   Himbi angedockt klein wie bisher, damit der Text daneben Platz hat. */
+@media (min-width: 768px) {
+  .ki-himbi {
+    --himbi-b: clamp(120px, min(15vw, 26vh), 260px);
+  }
+  .ki-himbi[data-groesse="klein"] {
+    --himbi-b: clamp(84px, min(11vw, 22vh), 190px);
+  }
+  .ki-sprachmodus[data-untertitel="an"] .ki-himbi[data-groesse="klein"] {
+    --himbi-b: clamp(52px, 13vh, 84px);
+  }
+}
 /* Handy (unter 768 px, Rueckmeldung vom 26.09.2026: "in der mobilen Version muss das
    Schriftbild im Sprachmodus weg und die Figur muss mindestens um die Haelfte kleiner
    werden"). Der mitlaufende Text deckte dort den halben Bildschirm zu, gerade den

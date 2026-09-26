@@ -222,8 +222,17 @@ weggeschickt, bleibt die Figur auch im Sprachmodus weg (die Einstellung
 verspricht „bleibt ganz weg“). Dann zeigt der Schein allein als farbiger Kreis
 den Zustand.
 
-**Größe.** In `sprachmodus.css` (`--himbi-b`): in der Mitte bis 160 px breit,
-angedockt bis 84 px, auf niedrigen Bildschirmen (Handy quer) kleiner. Das Overlay
+**Mitlaufender Text.** Standardmäßig aus (Rückmeldung vom 26.09.2026: „das
+Schriftbild ausschaltbar machen und per Default ausgeschaltet lassen, dafür kann die
+Figur größer werden“). Der Untertitel-Knopf in der Leiste schaltet ihn ein, die Wahl
+merkt sich der Browser (`damicon-sprachmodus-untertitel`, nur ein gespeichertes
+„an“ zählt). Der gerade gesprochene Satz steht als `data-satz-jetzt` am
+Sprachmodus selbst, damit Tests ihn auch ohne Untertitel lesen können.
+
+**Größe.** In `sprachmodus.css` (`--himbi-b`). Desktop: Himbi wächst mit dem
+Fenster, in der Mitte bis 260 px breit (15 % der Breite oder 26 % der Höhe, was
+kleiner ist), links angedockt bis 190 px; mit eingeschaltetem Text bleibt er
+angedockt bis 84 px, damit der Text daneben Platz hat. Das Overlay
 hält unten Platz für die Bedienleiste frei, und eine lange Antwort scrollt im
 Untertitel, statt Himbi oben aus dem Bild oder den Text unter die Leiste zu
 schieben (Flex-Spalte mit schrumpfendem Untertitel, `justify-content: safe

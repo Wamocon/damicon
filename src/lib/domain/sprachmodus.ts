@@ -274,6 +274,16 @@ export interface Rechteck {
   hoehe: number;
 }
 
+/** Mitlaufender Text im Sprachmodus: standardmaessig aus (Rueckmeldung vom 26.09.2026:
+ *  "das Schriftbild ausschaltbar machen und per Default ausgeschaltet lassen, dafuer kann
+ *  die Figur groesser werden"). Nur ein ausdruecklich gespeichertes "an" schaltet ihn ein;
+ *  auf dem Handy bleibt er ohnehin aus (sprachmodus.css). */
+export const UNTERTITEL_SCHLUESSEL = "damicon-sprachmodus-untertitel";
+
+export function untertitelAusSpeicher(wert: string | null | undefined): boolean {
+  return wert === "an";
+}
+
 /** Wo Himbi auf dem Handy steht, wenn ein Bereich gerahmt ist. */
 export interface Ausweichplatz {
   /** Oberkante der Einheit aus Himbi und Zustandszeile, in Pixeln vom Fensterrand. */

@@ -108,6 +108,7 @@ import {
   antwortFertig,
   assistentIstDran,
   ausweichPlatz,
+  untertitelAusSpeicher,
   erzeugeUnterbrechungsWaechter,
   istAbsageBefehl,
   istStoppBefehl,
@@ -2376,6 +2377,7 @@ for (const [name, kaputteAntwort] of [
   // Handy: Himbi weicht dem gerahmten Bereich aus (Rueckmeldung vom 26.09.2026). Fenster 390 x 844,
   // Kopfzeile bis 56 (+8), Bedienleiste ab 758 (-8), Einheit aus Himbi und Zustandszeile 110 hoch.
   {
+    pruefe("Untertitel: standardmaessig aus, nur ein gespeichertes 'an' schaltet ihn ein", untertitelAusSpeicher(null) === false && untertitelAusSpeicher(undefined) === false && untertitelAusSpeicher("aus") === false && untertitelAusSpeicher("true") === false && untertitelAusSpeicher("an") === true);
     const frei = { oben: 64, unten: 750, rand: 8 };
     const h = 110;
     const ueberlappt = (y, r) => y < r.y + r.hoehe && y + h > r.y;
@@ -2510,7 +2512,7 @@ for (const [name, kaputteAntwort] of [
     pruefe("Mitlesen: kein Wortvergleich mehr, ohne Marke nur eine woertlich genannte Ueberschrift, und nur solange keine Marke kam", !mitlesen.includes("bestesZiel") && mitlesen.includes("export function ueberschriftImSatz") && modus.includes("if (markeGesehen || !jetzt.satz) return;"));
     pruefe("Mitlesen: Ziele werden beim Eintreffen des Satzes gebunden, nicht erst beim Sprechen", lies3("components/ki/ki-chat-sprache.ts").includes("gebunden: bindeSprechZiel(roh.ziele)") && mitlesen.includes("if (g.el && g.el.isConnected) return g.el;"));
     pruefe("Mitlesen: zugeklappte Stellen werden aufgeklappt (details, aria-expanded, data-offen), nur was ohne Rueckfrage klickbar ist", steuer.includes("export function klappeAuf") && steuer.includes('details:not([open])') && steuer.includes("aria-expanded='false'") && steuer.includes('klickStufe(knopf).stufe === "erlaubt"') && steuer.includes('stelle.getAttribute("data-offen") === "false"') && mitlesen.includes("const aufgeklappt = klappeAuf(stelle);"));
-    pruefe("Mitlesen: der klingende Satz steht als data-satz-jetzt am Untertitel (Fuehrungstest)", modus.includes('untertitelRef.current?.setAttribute("data-satz-jetzt", jetzt.satz ?? "")') && modus.includes("ref={untertitelRef}"));
+    pruefe("Mitlesen: der klingende Satz steht als data-satz-jetzt am Sprachmodus selbst, auch ohne Untertitel (Fuehrungstest)", modus.includes('wurzelRef.current?.setAttribute("data-satz-jetzt", jetzt.satz ?? "")') && modus.includes("ref={wurzelRef}"));
     pruefe("Mitlesen: satzBeiPosition waehlt den Satz zur gesprochenen Strecke", satzBeiPosition([10, 20, 30], 0) === 0 && satzBeiPosition([10, 20, 30], 9) === 0 && satzBeiPosition([10, 20, 30], 10) === 1 && satzBeiPosition([10, 20, 30], 29) === 1 && satzBeiPosition([10, 20, 30], 30) === 2 && satzBeiPosition([10, 20, 30], 999) === 2 && satzBeiPosition([], 5) === -1);
     pruefe("Anweisung: Seitenwechsel nur mit oeffneBereich, Stimme vor Handlung", SPRACHMODUS_FUEHRUNG.includes("SEITENWECHSEL NUR MIT oeffneBereich") && SPRACHMODUS_FUEHRUNG.includes("erst aus, wenn deine Stimme den Satz davor zu Ende gesprochen hat"));
     pruefe("Anweisung: nie fragen, ob ein Bereich geoeffnet werden soll, und nie den eigenen Bereich erneut oeffnen", SPRACHMODUS_FUEHRUNG.includes("Öffne nie den Bereich, in dem er schon steht, und frage nie, ob du einen Bereich öffnen sollst."));

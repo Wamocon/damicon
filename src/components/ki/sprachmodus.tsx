@@ -26,6 +26,8 @@ import {
   antwortFertig,
   assistentIstDran,
   ausweichPlatz,
+  UNTERTITEL_SCHLUESSEL,
+  untertitelAusSpeicher,
   erzeugeUnterbrechungsWaechter,
   istAbsageBefehl,
   istStoppBefehl,
@@ -84,6 +86,14 @@ const STATUS_SYMBOL: Record<SprachZustand, typeof Ear> = {
   fehler: AlertTriangle,
 };
 
+function leseUntertitelWunsch(): boolean {
+  try {
+    return untertitelAusSpeicher(window.localStorage.getItem(UNTERTITEL_SCHLUESSEL));
+  } catch {
+    return false;
+  }
+}
+
 /** Handy-Breite wie in sprachmodus.css (unter md, wo es keine Navigationsleiste zum
  *  Andocken gibt). */
 const HANDY = "(max-width: 767.98px)";
@@ -114,7 +124,19 @@ function SprachmodusInhalt() {
   const [phase, setPhase] = useState<Phase>("startet");
   const [zwischentext, setZwischentext] = useState("");
   const [meldung, setMeldung] = useState<string | null>(null);
-  const [untertitelAn, setUntertitelAn] = useState(true);
+  // Mitlaufender Text: standardmaessig aus, die Wahl merkt sich der Browser
+  // (domain/sprachmodus.ts, untertitelAusSpeicher). Der Sprachmodus wird nur im Browser
+  // eingehaengt, der Speicher ist beim ersten Rendern also lesbar.
+  const [untertitelAn, setUntertitelAn] = useState(leseUntertitelWunsch);
+  const schalteUntertitel = () => {
+    const neu = !untertitelAn;
+    setUntertitelAn(neu);
+    try {
+      window.localStorage.setItem(UNTERTITEL_SCHLUESSEL, neu ? "an" : "aus");
+    } catch {
+      // Speicher gesperrt: gilt dann nur fuer diese Sitzung.
+    }
+  };
 
   const liveRef = useRef<LiveSitzung | null>(null);
   const aufnahmeRef = useRef<Aufnahme | null>(null);
@@ -620,9 +642,11 @@ function SprachmodusInhalt() {
   // lässt den Rahmen stehen. Nur wenn in der ganzen Antwort noch keine Marke kam,
   // zeigt eine wörtlich genannte Überschrift die Stelle - nie Wortähnlichkeit.
   //
-  // Nebenbei steht der klingende Satz als data-satz-jetzt am Untertitel: der
+  // Nebenbei steht der klingende Satz als data-satz-jetzt am Sprachmodus selbst (seit dem
+  // 26.09.2026 nicht mehr am Untertitel, der ist standardmaessig aus): der
   // Führungstest liest dort mit, was gerade gesprochen wird.
   const untertitelRef = useRef<HTMLDivElement | null>(null);
+  const wurzelRef = useRef<HTMLDivElement | null>(null);
   const himbiDran = assistentIstDran(phase);
   useEffect(() => {
     if (!himbiDran) return;
@@ -636,8 +660,8 @@ function SprachmodusInhalt() {
       if (!jetzt || schluessel === letzter) return;
       letzter = schluessel;
       if (jetzt.satz === null) return;
-      untertitelRef.current?.setAttribute("data-satz-jetzt", jetzt.satz ?? "");
-      untertitelRef.current?.setAttribute("data-satz-index", String(jetzt.index));
+      wurzelRef.current?.setAttribute("data-satz-jetzt", jetzt.satz ?? "");
+      wurzelRef.current?.setAttribute("data-satz-index", String(jetzt.index));
       if (jetzt.ziel) {
         markeGesehen = true;
         const stelle = loeseSprechZiel(jetzt.ziel);
@@ -851,9 +875,11 @@ function SprachmodusInhalt() {
 
   return (
     <div
+      ref={wurzelRef}
       role="dialog"
       aria-modal="true"
       aria-label={t("titel")}
+      data-untertitel={untertitelAn ? "an" : "aus"}
       className={cn("ki-sprachmodus", angedockt && "ki-sprachmodus--angedockt")}
     >
       <SprachSpotlight rechteck={zielRechteck} />
@@ -897,7 +923,7 @@ function SprachmodusInhalt() {
         </button>
         <button
           type="button"
-          onClick={() => setUntertitelAn((an) => !an)}
+          onClick={schalteUntertitel}
           aria-pressed={untertitelAn}
           aria-label={t("untertitel")}
           title={t("untertitel")}
