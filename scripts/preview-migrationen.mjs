@@ -139,6 +139,7 @@ function stand(ziel) {
   const [z] = abfrage(ziel, `select to_regnamespace('${PREVIEW_SCHEMA}') is not null as schema_da,
     to_regclass('${VERLAUF}') is not null as verlauf_da,
     to_regclass('supabase_migrations.schema_migrations') is not null as production_da`);
+  if (!z) throw new Error("Keine Antwort von der Datenbank auf die Standabfrage.");
   return z;
 }
 

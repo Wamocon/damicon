@@ -36,14 +36,18 @@ export function abfrage(ziel, sql) {
   try {
     const datei = join(ordner, "abfrage.sql");
     writeFileSync(datei, sql);
-    const aus = cli(["db", "query", ...ziel, "-f", datei, "--output-format", "json"]);
-    const start = aus.indexOf("{");
+    // --agent no: sonst verpackt die CLI das Ergebnis anders, sobald sie einen KI-Agenten erkennt
+    const aus = cli(["db", "query", ...ziel, "-f", datei, "--output-format", "json", "--agent", "no"]);
+    const start = aus.search(/[[{]/);
     if (start < 0) return [];
+    const ende = Math.max(aus.lastIndexOf("]"), aus.lastIndexOf("}"));
+    let daten;
     try {
-      return JSON.parse(aus.slice(start)).rows ?? [];
+      daten = JSON.parse(aus.slice(start, ende + 1));
     } catch {
-      return [];
+      throw new Error(`Antwort der Supabase-CLI nicht lesbar: ${aus.slice(0, 300)}`);
     }
+    return Array.isArray(daten) ? daten : (daten.rows ?? []);
   } finally {
     rmSync(ordner, { recursive: true, force: true });
   }
