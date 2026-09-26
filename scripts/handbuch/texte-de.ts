@@ -357,7 +357,7 @@ export const de: HandbuchTexte = {
 
     schnittstellenTitel: "Schnittstellen",
     schnittstellenEinleitung:
-      "Fünf Endpunkte für Aufgaben, die keine eigene Seite haben. Jeder prüft Sitzung und Recht selbst.",
+      "Sechs Endpunkte für Aufgaben, die keine eigene Seite haben. Jeder prüft Sitzung und Recht selbst.",
     spalteAufgabe: "Aufgabe",
     schnittstellen: [
       {
@@ -381,8 +381,20 @@ export const de: HandbuchTexte = {
       {
         pfad: "/api/ki-sprachausgabe",
         aufgabe:
-          "Liest eine bereits gespeicherte Antwort vor. Nur über die Kennung einer vorhandenen Nachricht, nie mit frei übergebenem Text — sonst wäre der Endpunkt ein Sprachgenerator für beliebige Inhalte.",
+          "Liest Antworten vor: eine gespeicherte Antwort über die Kennung ihrer Nachricht, oder beim Vorlesen während des Schreibens einzelne Abschnitte, die der Chat beim Entstehen signiert hat. Nie frei übergebener Text, sonst wäre der Endpunkt ein Sprachgenerator für beliebige Inhalte. Die Stimme kommt vom eingestellten Anbieter (Soniox oder Sokrates); fällt er aus, spricht Sokrates. Eine gespeicherte Antwort kommt als Strom: Der Ton beginnt, während er noch erzeugt wird, statt erst nach der ganzen Datei. Spricht Soniox, ist dieser Endpunkt nur noch der Rückfall; vorgelesen wird dann über den Strom (nächster Eintrag).",
         zugriff: "Recht am KI-Assistenten",
+      },
+      {
+        pfad: "/api/ki-sprachausgabe/schluessel",
+        aufgabe:
+          "Stellt für das Vorlesen einen kurzlebigen Schlüssel aus, dazu Stimme, Tempo und Format je Sprache. Damit spricht der Browser direkt mit dem Sprachdienst: Jeder Satz geht sofort hinein, und der Ton klingt, während er entsteht, ohne Pausen zwischen den Abschnitten. Einen Schlüssel gibt es nur mit Nachweis, also für die gerade laufende Antwort oder eine eigene gespeicherte Antwort. Er öffnet genau einen Strom, ist 60 Sekunden gültig, und je Person gibt es höchstens zwölf Schlüssel pro Minute. Der eigentliche Schlüssel verlässt den Server nie. Sagt der Endpunkt ab, liest der bisherige Weg über einzelne Abschnitte vor.",
+        zugriff: "Recht am KI-Assistenten, Soniox als Sprachausgabe",
+      },
+      {
+        pfad: "/api/ki-spracherkennung",
+        aufgabe:
+          "Stellt für das Live-Diktat einen kurzlebigen Schlüssel aus: nur für die Spracherkennung, nur einmal, eine Minute zum Verbinden. Damit schickt der Browser das Gesprochene direkt an den Erkennungsdienst, und der Text erscheint schon während des Sprechens im Eingabefeld. Der eigentliche Schlüssel verlässt den Server nie. Sagt der Endpunkt ab, geht dieselbe Aufnahme wie bisher als Datei zur Erkennung.",
+        zugriff: "Recht am KI-Assistenten, Live-Diktat eingeschaltet",
       },
       {
         pfad: "/api/sync",
@@ -560,6 +572,10 @@ export const de: HandbuchTexte = {
       {
         begriff: "ЭСФ / ЕСУТД",
         text: "Kasachstanische Pflichtsysteme für elektronische Rechnungen beziehungsweise für die Erfassung von Arbeitsverträgen.",
+      },
+      {
+        begriff: "Sprachmodus",
+        text: "Live-Gespräch mit dem Assistenten ohne sichtbaren Chat: Himbi führt das Gespräch: Beim Zuhören steht er groß in der Mitte, beim Erklären rückt er auf breiten Bildschirmen an den linken Rand, und seine Größe richtet sich nach dem Bildschirm. Mitlaufender Text ist standardmäßig aus und lässt sich über den Untertitel-Knopf in der Leiste einschalten; der Browser merkt sich die Wahl (auf dem Handy bleibt er klein, ohne mitlaufenden Text und neben dem gezeigten Bereich, damit die Seite sichtbar bleibt), und beim Sprechen bewegt er die Lippen im Takt der Stimme (die kleine Figur in der Ecke ist solange ausgeblendet; ist Himbi in den Einstellungen ausgeschaltet, zeigt ein farbiger Kreis, ob zugehört, nachgedacht oder gesprochen wird), der Assistent kann selbst zu einem Bereich springen und ihn zeigen. Unterbrechen wie im Gespräch: einfach dazwischenreden oder auf Himbi tippen. Starten: Knopf „Gespräch“ in der Kopfzeile, oder im Chat der Senden-Knopf, solange das Eingabefeld leer ist. Der Sprachmodus darf dasselbe wie der Chat, auch etwas eintragen. Bevor eine Änderung gespeichert wird, zeigt er sie deutlich umrandet auf dem Bildschirm, und Sie geben sie mit „Ja“ frei oder lehnen sie mit „Nein“ ab. Während er erklärt, umrandet ein Rahmen genau die Stelle, über die er gerade spricht, und zugeklappte Abschnitte klappt er dafür auf. Er öffnet auch die Bereiche Feld, Hof, Büro und Markt und den Compliance-Prüfbericht, auf Wunsch gefiltert nach Audit, Steuern, Recht oder Risiko. Mit „Stopp“ oder „Sprachmodus beenden“ beenden Sie den Sprachmodus, jederzeit, auch während er spricht oder nachdenkt. Damit das jederzeit wirkt, hört das Mikrofon während des ganzen Gesprächs mit, auch während der Assistent spricht; dabei reagiert es nur auf das Wort „Stopp“.",
       },
       {
         begriff: "WAMOCON",

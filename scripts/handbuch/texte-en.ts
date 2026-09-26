@@ -345,7 +345,7 @@ export const en: HandbuchTexte = {
 
     schnittstellenTitel: "Interfaces",
     schnittstellenEinleitung:
-      "Five endpoints for tasks that have no page of their own. Each checks session and permission itself.",
+      "Six endpoints for tasks that have no page of their own. Each checks session and permission itself.",
     spalteAufgabe: "Purpose",
     schnittstellen: [
       {
@@ -369,8 +369,20 @@ export const en: HandbuchTexte = {
       {
         pfad: "/api/ki-sprachausgabe",
         aufgabe:
-          "Reads out an already stored answer. Only by the identifier of an existing message, never with freely supplied text — otherwise the endpoint would be a speech generator for arbitrary content.",
+          "Reads answers aloud: a stored answer by the identifier of its message, or, when reading aloud while the answer is still being written, single sections that the chat signed as they were created. Never freely supplied text, otherwise the endpoint would be a speech generator for arbitrary content. The voice comes from the configured provider (Soniox or Sokrates); if it fails, Sokrates speaks. A stored answer is streamed: playback starts while the audio is still being generated instead of after the whole file. When Soniox speaks, this endpoint is only the fallback; reading aloud then runs over the stream (next entry).",
         zugriff: "AI assistant permission",
+      },
+      {
+        pfad: "/api/ki-sprachausgabe/schluessel",
+        aufgabe:
+          "Issues a short-lived key for reading aloud, together with voice, speed and format per language. The browser then talks to the speech service directly: every sentence goes in at once, and the audio plays while it is being generated, without pauses between sections. A key is only issued with proof, that is for the answer currently being written or for one of your own saved answers. It opens exactly one stream, is valid for 60 seconds, and each person gets at most twelve keys per minute. The actual key never leaves the server. If the endpoint declines, the previous path reads aloud in single sections.",
+        zugriff: "Permission for the AI assistant, Soniox as speech output",
+      },
+      {
+        pfad: "/api/ki-spracherkennung",
+        aufgabe:
+          "Issues a short-lived key for live dictation: speech recognition only, single use, one minute to connect. With it the browser sends speech straight to the recognition service, and the text appears in the input field while the person is still speaking. The actual key never leaves the server. If the endpoint declines, the same recording goes to recognition as a file, as before.",
+        zugriff: "AI assistant permission, live dictation switched on",
       },
       {
         pfad: "/api/sync",
@@ -535,6 +547,10 @@ export const en: HandbuchTexte = {
       {
         begriff: "ЭСФ / ЕСУТД",
         text: "Kazakhstani mandatory systems for electronic invoices and for registering employment contracts respectively.",
+      },
+      {
+        begriff: "Voice mode",
+        text: "A live conversation with the assistant without a visible chat: Himbi leads the conversation: large in the middle while listening, at the left edge while explaining on wide screens, sized to fit the screen. Running text is off by default and can be switched on with the subtitles button in the bar; the browser remembers the choice (on a phone Himbi stays small, without running text and beside the highlighted area, so the page stays visible), with lips moving in time with the voice while speaking (the small figure in the corner is hidden meanwhile; if Himbi is switched off in the settings, a coloured circle shows whether it is listening, thinking or speaking), and the assistant can jump to and highlight a section on its own. Interrupt as in a conversation: just start talking, or tap Himbi. To start: the “Talk” button in the header, or in the chat the send button while the input field is empty. Voice mode can do the same as the chat, including entering data. Before any change is saved, it shows the change clearly outlined on screen, and you approve it by saying “Yes” or decline it with “No”. While it explains, a frame outlines exactly the spot it is talking about, and it expands collapsed sections for that. It also opens the zones Field, Yard, Office and Market and the compliance audit report, filtered by audit, tax, law or risk on request. Say “Stop” or “End voice mode” to end voice mode, at any time, even while it is speaking or thinking. So that this always works, the microphone listens throughout the whole conversation, also while the assistant is speaking; during that time it only reacts to the word “Stop”.",
       },
       { begriff: "WAMOCON", text: "WAMOCON GmbH — client and developer of Damicon." },
     ],

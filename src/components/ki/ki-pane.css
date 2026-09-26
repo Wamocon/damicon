@@ -1599,6 +1599,23 @@ html[data-ki-zieht] body {
   border-color: color-mix(in oklab, var(--primary) 45%, var(--border));
   background: color-mix(in oklab, var(--primary) 8%, transparent);
 }
+/* Spricht gerade: ein leiser Puls, damit man sieht, dass der Schalter die
+   laufende Stimme ist - ein Klick darauf stoppt sie (ki-chat-sprache.ts). */
+.ki-vorlesen-schalter--spricht {
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--primary) 18%, transparent);
+  animation: ki-vorlesen-puls 1.6s ease-in-out infinite;
+}
+@keyframes ki-vorlesen-puls {
+  50% { box-shadow: 0 0 0 5px color-mix(in oklab, var(--primary) 8%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ki-vorlesen-schalter--spricht { animation: none; }
+}
+/* Senden-Knopf bei leerem Feld = Einstieg in den Sprachmodus. */
+.ki-composer__knopf--sprachmodus {
+  background: color-mix(in oklab, var(--primary) 14%, var(--background));
+  color: var(--primary);
+}
 
 /* --- Diktat (Mikrofon) ------------------------------------------------------ */
 .ki-composer__knopf--still {

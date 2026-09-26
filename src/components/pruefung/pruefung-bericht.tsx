@@ -1,12 +1,13 @@
 "use client";
 
 import { Fragment, useMemo, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { CheckCircle2, Database, FileDown, FileJson, FileWarning, ShieldCheck, TriangleAlert } from "lucide-react";
 import { berichtAlsPdfSpeichern } from "@/components/pruefung/bericht-pdf";
 import { BEREICH_SYMBOL } from "@/components/pruefung/symbole";
 import { BelegAnbieter, QuellenListe, ZitatMarke } from "@/components/ki/ki-quellen";
 import { siegelGueltig } from "@/lib/pruefung/befund";
+import { titelInSprache } from "@/lib/pruefung/felder-titel";
 import { PRUEFBEREICHE, type Pruefbereich } from "@/lib/pruefung/rollen";
 import { FRISTEN, type Befund, type Bericht } from "@/lib/pruefung/typen";
 import { cn } from "@/lib/utils";
@@ -31,6 +32,7 @@ function MitZitaten({ text }: { text: string }) {
 }
 
 export function BefundKarte({ b, belege, index }: { b: Befund; belege: Bericht["belege"]; index: number }) {
+  const sprache = useLocale();
   const t = useTranslations("pruefung");
   const [erledigt, setErledigt] = useState<ReadonlySet<number>>(new Set());
   const eigene = belege.filter((x) => b.belege.includes(x.id));
@@ -42,7 +44,7 @@ export function BefundKarte({ b, belege, index }: { b: Befund; belege: Bericht["
           {t(`status.${b.status}`)}
         </span>
         {b.schwere !== "keine" ? <span className="pr-chip">{t(`schwere.${b.schwere}`)}</span> : null}
-        <h4 className="pr-befund__titel">{b.titel}</h4>
+        <h4 className="pr-befund__titel">{titelInSprache(b.titel, b.feld, sprache)}</h4>
         <span className="pr-bereichsmarke">{t(`bereich.${b.bereich}.name`)}</span>
       </div>
       <BelegAnbieter nachrichtId={b.id} belege={eigene}>
@@ -253,9 +255,11 @@ export function Siegel({ bericht }: { bericht: Bericht }) {
   );
 }
 
-export function PruefungBericht({ bericht }: { bericht: Bericht }) {
+/** `startBereich`: mit diesem Pruefbereich gefiltert beginnen (/dashboard/compliance?bereich=audit,
+ *  die Fuehrung im Sprachmodus oeffnet so "den Pruefbericht Audit"). */
+export function PruefungBericht({ bericht, startBereich = null }: { bericht: Bericht; startBereich?: Pruefbereich | null }) {
   const t = useTranslations("pruefung");
-  const [filter, setFilter] = useState<Pruefbereich | "alle">("alle");
+  const [filter, setFilter] = useState<Pruefbereich | "alle">(startBereich && bericht.bereiche.includes(startBereich) ? startBereich : "alle");
   const bereiche = PRUEFBEREICHE.filter((b) => bericht.bereiche.includes(b));
   const befunde = useMemo(() => bericht.befunde.filter((b) => filter === "alle" || b.bereich === filter), [bericht.befunde, filter]);
 
@@ -264,7 +268,7 @@ export function PruefungBericht({ bericht }: { bericht: Bericht }) {
       <Kopfkarte bericht={bericht} />
       <Prioritaeten bericht={bericht} />
 
-      <div>
+      <div id="bericht-befunde">
         <h3 className="pr-abschnitt__titel">{t("bericht.befunde")}</h3>
         <div className="pr-filter" role="group" aria-label={t("bericht.befunde")}>
           <button type="button" aria-pressed={filter === "alle"} onClick={() => setFilter("alle")}>

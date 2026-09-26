@@ -1,6 +1,7 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { titelInSprache } from "@/lib/pruefung/felder-titel";
 import { Kopfkarte, Prioritaeten } from "@/components/pruefung/pruefung-bericht";
 import { PruefungAblauf } from "@/components/pruefung/pruefung-ablauf";
 import "@/components/pruefung/pruefung.css";
@@ -27,9 +28,12 @@ import type { BefundAenderung, Bericht } from "@/lib/pruefung/typen";
 function AenderungsZeile({ a }: { a: BefundAenderung }) {
   const t = useTranslations("ceoUebersicht");
   const tp = useTranslations("pruefung");
+  // Titel in der Sprache der Oberflaeche, auch wenn der gespeicherte Bericht einen
+  // anderssprachigen enthaelt (die Befund-Id ist die Id des Pruefungsfelds).
+  const titel = titelInSprache(a.titel, a.befundId, useLocale());
   return (
     <li>
-      <span className="font-medium text-foreground">{a.titel}</span>:{" "}
+      <span className="font-medium text-foreground">{titel}</span>:{" "}
       {a.art === "neu"
         ? t("aenderungArt.neu")
         : a.art === "status_veraendert"

@@ -10,6 +10,7 @@
 // =============================================================================
 
 import { createClient } from "@supabase/supabase-js";
+import { DATENBANK_SCHEMA } from "../../scripts/datenbank-schema.mjs";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -20,8 +21,8 @@ if (!url || !anonKey || !serviceKey) {
   process.exit(1);
 }
 
-const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
-const anon = createClient(url, anonKey, { auth: { persistSession: false } });
+const admin = createClient(url, serviceKey, { auth: { persistSession: false }, db: { schema: DATENBANK_SCHEMA } });
+const anon = createClient(url, anonKey, { auth: { persistSession: false }, db: { schema: DATENBANK_SCHEMA } });
 
 let failures = 0;
 function check(name, ok, detail = "") {
@@ -114,7 +115,7 @@ function check(name, ok, detail = "") {
 // --- 4. Auth: Anmeldung und Profilrolle ------------------------------------
 // Voraussetzung: `npm run db:seed-auth` hat die sechs Demo-Konten angelegt.
 async function anmelden(email) {
-  const client = createClient(url, anonKey, { auth: { persistSession: false } });
+  const client = createClient(url, anonKey, { auth: { persistSession: false }, db: { schema: DATENBANK_SCHEMA } });
   const { error } = await client.auth.signInWithPassword({
     email,
     password: "DamiconDemo2026!", // notsecret - Demo-Zugang, steht so auch in README.md

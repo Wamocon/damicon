@@ -251,6 +251,35 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA app
 **3. Schema über die Supabase API zugänglich machen:**
 Gehe zu `Project Settings → API → Exposed schemas` und füge deinen Schema-Namen hinzu.
 
+#### Preview-Schema `public_preview`
+
+Production und Preview teilen eine Supabase-Datenbank. Preview-Umgebungen bekommen mit `public_preview` eine eigene Kopie von `public` (Struktur und Daten). Jede Migration läuft deshalb in zwei Workflows:
+
+1. **Push in einen Pull Request:** „Datenbank-Migration Preview“ (`datenbank-migration-preview.yml`) schreibt die Migrationen mit `scripts/preview-migrationen.mjs` auf `public_preview` um und wendet sie dort an. So hat die Preview des Pull Requests das neue Schema schon vor dem Merge. Der Verlauf steht mit Prüfsumme in `supabase_migrations.preview_schema_migrations`.
+2. **Merge nach `main`:** „Datenbank-Migration“ (`datenbank-migration.yml`) wendet sie wie bisher per `supabase db push` auf `public` an.
+3. `scripts/preview-abgleich.mjs` vergleicht die Struktur beider Schemas, sobald beide denselben Migrationsstand haben. Jeder Unterschied macht den Lauf rot.
+
+Alle offenen Pull Requests teilen sich ein `public_preview`. Wird eine Migrationsdatei geändert, nachdem sie dort schon angewendet wurde, scheitert der Preview-Lauf: Die Änderung gehört dann in eine neue Migration. Migrationen anderer Pull Requests in `public_preview` meldet der Lauf als Warnung. Wichtig: Der Preview-Workflow führt ungeprüfte Migrationen eines Pull Requests in derselben Datenbank aus, in der auch Production liegt.
+
+Gemeinsam genutzte Objekte bekommen für Preview eigene Zwillinge: der Auth-Trigger `on_auth_user_created_preview` (neue Nutzer erhalten in beiden Schemas ein Profil), die Buckets `belege-preview` und `dokumente-preview` mit Policies auf der Endung `_preview` sowie der Cron-Job `kpi-verlauf-taeglich-preview`. Der Bucket `ki-sprachausgabe` bleibt als Audio-Cache gemeinsam.
+
+Der Code nennt kein Schema fest. `SUPABASE_DB_SCHEMA` (`public` oder `public_preview`) bestimmt alles: `next.config.ts` gibt den Wert beim Build als `NEXT_PUBLIC_DB_SCHEMA` an Server, Proxy und Browser weiter, `src/lib/supabase/schema.ts` prüft ihn und reicht ihn an alle Supabase-Clients. `bucket()` aus `src/lib/supabase/buckets.ts` wählt damit die Preview-Buckets, und die Node-Skripte lesen dieselbe Variable (`scripts/datenbank-schema.mjs`). Ein anderer Wert lässt den Build scheitern. Damit eine Preview-Umgebung `public_preview` nutzt, muss das Schema in Supabase unter „Exposed schemas“ freigegeben und in Vercel für Preview `SUPABASE_DB_SCHEMA=public_preview` gesetzt sein.
+
+Was beim Schreiben einer Migration zu beachten ist:
+
+- Objekte immer als `public.name` ansprechen und `set search_path = public` verwenden, das Skript schreibt beides um. `'public'` als Wert (etwa in `format('%I.%I', 'public', t)`) wird abgelehnt.
+- Weil Preview vor `public` läuft: Katalogabfragen immer mit Schema schreiben (`where conname = 'x' and connamespace = 'public'::regnamespace`) und Erweiterungen mit `create extension if not exists … with schema extensions` anlegen. Sonst findet `public` später das Objekt aus `public_preview` und überspringt sich.
+- Trigger auf `auth`/`storage` rufen in Preview ihre Funktion über eine Fehlerhülle auf: Ein Fehler im Preview-Code wird nur als Warnung protokolliert und bricht keine Anmeldung in Production.
+- Tabellen, Funktionen oder Rechte in `auth`, `storage`, `cron`, `vault` usw. lehnt die Prüfung ab (`npm run db:preview-migrationen -- pruefen`, läuft auch in `scripts/pruefe-migrationen.mjs`). Soll ein Abschnitt bewusst nur für `public` laufen, wird er so eingerahmt:
+
+```sql
+-- preview:auslassen
+...
+-- preview:ende
+```
+
+- Die PR-Pipeline baut `public_preview` lokal aus allen Migrationen neu auf und vergleicht es mit `public`. Fehler zeigen sich also vor dem Merge.
+
 ---
 
 ### 4. GitHub Workflow Konfiguration
@@ -264,6 +293,8 @@ Dieses Projekt nutzt den **zentralen Wamocon CI/CD-Workflow** aus [`Wamocon/gith
 | **PR Pipeline** | `pr-pipeline.yml` | **Automatisch** bei jedem PR auf `main`/`master` | Auto-Fix (ESLint + Prettier) → Typecheck + Lint |
 | **Deploy** | `deploy.yml` | **Manuell** - kein Auto-Trigger | Baut das Projekt via Vercel CLI und deployed auf Vercel |
 | **LP Generator** | `lp-generator.yml` | **Manuell** - kein Auto-Trigger | Generiert eine Landing Page in einem neuen Repo |
+| **Datenbank-Migration Preview** | `datenbank-migration-preview.yml` | **Automatisch** bei jedem Push in einen PR, der Migrationen ändert | Wendet die Migrationen umgeschrieben auf `public_preview` an (siehe Abschnitt 3) |
+| **Datenbank-Migration** | `datenbank-migration.yml` | **Automatisch** nach dem Merge nach `main`, wenn Migrationen dabei sind | Wendet die Migrationen per `supabase db push` auf `public` (Production) an |
 
 > ⚠️ **Kein automatisches Deployment:** Weder ein PR noch ein Push auf `main` startet automatisch ein Deployment. Alle Deployments werden manuell über den Actions-Tab gestartet.
 
@@ -688,6 +719,35 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA app
 **3. Expose the schema via the Supabase API:**
 Go to `Project Settings → API → Exposed schemas` and add your custom schema name.
 
+#### Preview schema `public_preview`
+
+Production and preview share one Supabase database. Preview environments get their own copy of `public` (structure and data) called `public_preview`. Every migration therefore runs in two workflows:
+
+1. **Push to a pull request:** "Datenbank-Migration Preview" (`datenbank-migration-preview.yml`) rewrites the migrations for `public_preview` with `scripts/preview-migrationen.mjs` and applies them there, so the pull request's preview has the new schema before the merge. The history, including a checksum, is kept in `supabase_migrations.preview_schema_migrations`.
+2. **Merge into `main`:** "Datenbank-Migration" (`datenbank-migration.yml`) applies them to `public` with `supabase db push`, as before.
+3. `scripts/preview-abgleich.mjs` compares the structure of both schemas as soon as both have the same migration history. Any difference fails the run.
+
+All open pull requests share one `public_preview`. If a migration file changes after it was already applied there, the preview run fails: the change belongs in a new migration. Migrations of other pull requests found in `public_preview` are reported as a warning. Important: the preview workflow runs unreviewed pull request migrations in the same database that also holds production.
+
+Shared objects get their own preview twins: the auth trigger `on_auth_user_created_preview` (new users get a profile in both schemas), the buckets `belege-preview` and `dokumente-preview` with policies ending in `_preview`, and the cron job `kpi-verlauf-taeglich-preview`. The `ki-sprachausgabe` bucket stays shared as an audio cache.
+
+The code does not hard-code any schema. `SUPABASE_DB_SCHEMA` (`public` or `public_preview`) decides everything: `next.config.ts` passes it at build time as `NEXT_PUBLIC_DB_SCHEMA` to server, proxy and browser, and `src/lib/supabase/schema.ts` validates it and hands it to every Supabase client. `bucket()` in `src/lib/supabase/buckets.ts` uses it to pick the preview buckets, and the Node scripts read the same variable (`scripts/datenbank-schema.mjs`). Any other value fails the build. For a preview environment to use `public_preview`, the schema must be listed under "Exposed schemas" in Supabase and `SUPABASE_DB_SCHEMA=public_preview` must be set for Preview in Vercel.
+
+When writing a migration:
+
+- Always reference objects as `public.name` and use `set search_path = public`; the script rewrites both. `'public'` as a value (for example in `format('%I.%I', 'public', t)`) is rejected.
+- Because preview runs before `public`: always qualify catalog lookups with a schema (`where conname = 'x' and connamespace = 'public'::regnamespace`) and create extensions with `create extension if not exists … with schema extensions`. Otherwise `public` later finds the object from `public_preview` and skips itself.
+- Triggers on `auth`/`storage` call their function through an error wrapper in preview: an error in preview code is only logged as a warning and never breaks a sign-up in production.
+- Tables, functions or grants in `auth`, `storage`, `cron`, `vault` etc. are rejected by the check (`npm run db:preview-migrationen -- pruefen`, also part of `scripts/pruefe-migrationen.mjs`). To run a section for `public` only on purpose, wrap it:
+
+```sql
+-- preview:auslassen
+...
+-- preview:ende
+```
+
+- The PR pipeline rebuilds `public_preview` locally from all migrations and compares it with `public`, so problems show up before the merge.
+
 ---
 
 ### 4. GitHub Workflow Configuration
@@ -701,6 +761,8 @@ This project uses the **centralized Wamocon CI/CD workflow** from [`Wamocon/gith
 | **PR Pipeline** | `pr-pipeline.yml` | **Automatic** on every PR to `main`/`master` | Auto-Fix (ESLint + Prettier) → Typecheck + Lint |
 | **Deploy** | `deploy.yml` | **Manual only** - no auto-trigger | Builds and deploys to Vercel via CLI |
 | **LP Generator** | `lp-generator.yml` | **Manual only** - no auto-trigger | Generates a landing page in a new repo |
+| **Datenbank-Migration Preview** | `datenbank-migration-preview.yml` | **Automatic** on every push to a PR that changes migrations | Applies the rewritten migrations to `public_preview` (see section 3) |
+| **Datenbank-Migration** | `datenbank-migration.yml` | **Automatic** after the merge into `main` when migrations are included | Applies the migrations to `public` (production) with `supabase db push` |
 
 > ⚠️ **No automatic deployment:** Neither a PR nor a push to `main` triggers a deployment automatically. All deployments are started manually from the Actions tab.
 

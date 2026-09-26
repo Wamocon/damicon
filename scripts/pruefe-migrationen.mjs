@@ -12,6 +12,9 @@
 //  3. Bereits vorhandene Migrationen duerfen nicht geaendert, umbenannt oder geloescht werden.
 //  4. Zerstoerende Anweisungen (DROP TABLE/COLUMN/SCHEMA, TRUNCATE, DELETE ohne WHERE) brauchen
 //     in der Datei die ausdrueckliche Freigabe "-- migration:destruktiv-ok".
+//  5. Neue Migrationen muessen sich fuer das Schema public_preview umschreiben lassen
+//     (scripts/preview-umschreiben.mjs), denn jede Migration laeuft dort schon beim Push in den
+//     Pull Request, also vor public. Katalogabfragen und Erweiterungen brauchen deshalb ein Schema.
 //
 // Aufruf:  node scripts/pruefe-migrationen.mjs [--basis origin/main]
 
@@ -19,6 +22,7 @@ import { execFileSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
+import { bucketsAus, neueMigrationPruefen, triggerFunktionenAus, umschreiben } from "./preview-umschreiben.mjs";
 
 const NAME = /^(\d{14})_[a-z0-9_]+\.sql$/;
 const FREIGABE = "-- migration:destruktiv-ok";
@@ -64,7 +68,15 @@ export function pruefe({ dateien, inhalte, basis }) {
   const basisVersionen = basis.dateien.map((d) => NAME.exec(d)?.[1]).filter(Boolean);
   const neuesteBasis = basisVersionen.sort().at(-1) ?? "0";
   const neu = dateien.filter((d) => !basis.dateien.includes(d));
+  const buckets = bucketsAus(Object.values(inhalte));
+  const triggerFunktionen = triggerFunktionenAus(Object.values(inhalte));
   for (const d of neu) {
+    for (const f of umschreiben(inhalte[d] ?? "", { buckets, triggerFunktionen }).fehler) {
+      fehler.push(`${d}: laesst sich nicht fuer public_preview umschreiben (${f}). Anders formulieren oder mit "-- preview:auslassen" ... "-- preview:ende" bewusst ausnehmen.`);
+    }
+    for (const f of neueMigrationPruefen(inhalte[d] ?? "")) {
+      fehler.push(`${d}: ${f}`);
+    }
     const v = NAME.exec(d)?.[1];
     if (v && v <= neuesteBasis) {
       fehler.push(`${d}: ist nicht neuer als die letzte Migration auf dem Basis-Branch (${neuesteBasis}); db push wuerde sie auf einer gehosteten Datenbank ueberspringen. Version erhoehen.`);

@@ -8,11 +8,11 @@
 
 import type { FormEvent, KeyboardEvent, RefObject } from "react";
 import type { useTranslations } from "next-intl";
-import { ArrowUp, Scale, Square, X } from "lucide-react";
+import { ArrowUp, AudioLines, Scale, Square, X } from "lucide-react";
 import { MikrofonKnopf } from "@/components/ki/mikrofon";
 import { DiktatWelle } from "@/components/ki/diktat-welle";
-import { useSprachausgabe, VorlesenSchalter } from "@/components/ki/sprachausgabe";
-import { useLiveSprachausgabe } from "@/components/ki/sprachausgabe-live";
+import { VorlesenSchalter } from "@/components/ki/sprachausgabe";
+import type { Vorlesen } from "@/components/ki/ki-chat-sprache";
 import type { PruefBezug } from "@/components/ki/ki-pane-kontext";
 import { MAX_NACHRICHT_LAENGE } from "@/lib/domain/ki-assistent";
 import { BEREICH_SYMBOL, PRUEF_BEREICH_ANKER } from "@/components/pruefung/symbole";
@@ -41,10 +41,13 @@ export function KiChatComposer({
   einwilligungFehlt,
   diktiert,
   onMikrofonAufnahme,
+  onMikrofonStart,
+  onMikrofonZwischentext,
   onMikrofonText,
   onStop,
-  sprachausgabe,
-  live,
+  vorlesen,
+  sprachmodusMoeglich,
+  onSprachmodus,
 }: {
   t: ReturnType<typeof useTranslations>;
   onSubmit: (e: FormEvent) => void;
@@ -63,10 +66,14 @@ export function KiChatComposer({
   einwilligungFehlt: boolean;
   diktiert: boolean;
   onMikrofonAufnahme: (an: boolean) => void;
+  onMikrofonStart: () => void;
+  onMikrofonZwischentext: (text: string) => void;
   onMikrofonText: (text: string, sprachen?: string[]) => void;
   onStop: () => void;
-  sprachausgabe: ReturnType<typeof useSprachausgabe>;
-  live: ReturnType<typeof useLiveSprachausgabe>;
+  vorlesen: Vorlesen;
+  /** Anbieter mit Werkzeugen und Live-Diktat: der Sprachmodus steht bereit. */
+  sprachmodusMoeglich: boolean;
+  onSprachmodus: () => void;
 }) {
   return (
     <form onSubmit={onSubmit} className="ki-composer">
@@ -122,11 +129,29 @@ export function KiChatComposer({
           className="ki-composer__knopf ki-composer__knopf--still"
           deaktiviert={beschaeftigt || einwilligungFehlt}
           beiAufnahme={onMikrofonAufnahme}
+          beiStart={onMikrofonStart}
+          beiZwischentext={onMikrofonZwischentext}
           beiText={onMikrofonText}
         />
         {beschaeftigt ? (
           <button type="button" onClick={onStop} aria-label={t("stopp")} className="ki-composer__knopf">
             <Square className="h-3.5 w-3.5 fill-current" />
+          </button>
+        ) : !eingabe.trim() && sprachmodusMoeglich ? (
+          /* Leeres Feld: der Senden-Knopf ist der Einstieg in den Sprachmodus
+             (components/ki/sprachmodus.tsx) - dort, wo man spricht, wie in
+             anderen Sprachassistenten. Sobald etwas im Feld steht, ist er
+             wieder Senden. Bis zum 24.09.2026 gab es nur einen unbeschrifteten
+             Knopf in der Kopfzeile, und auf dem Handy gar keinen. */
+          <button
+            type="button"
+            onClick={onSprachmodus}
+            disabled={einwilligungFehlt}
+            aria-label={t("sprachmodus.starten")}
+            title={t("sprachmodus.hinweis")}
+            className="ki-composer__knopf ki-composer__knopf--sprachmodus"
+          >
+            <AudioLines className="h-4 w-4" />
           </button>
         ) : (
           <button type="submit" aria-label={t("senden")} disabled={!eingabe.trim() || einwilligungFehlt} className="ki-composer__knopf">
@@ -136,7 +161,7 @@ export function KiChatComposer({
       </div>
       {diktiert ? <DiktatWelle /> : null}
       <div className="ki-composer__optionen">
-        <VorlesenSchalter zustand={sprachausgabe} laedt={live.laedtErsten} spricht={live.spricht} />
+        <VorlesenSchalter vorlesen={vorlesen} />
       </div>
     </form>
   );

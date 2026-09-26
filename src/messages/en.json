@@ -353,7 +353,8 @@
       "target": "Target",
       "zonesTitle": "The four zones",
       "zonesDescription": "Each zone with its indicators and its modules.",
-      "openZone": "Open zone"
+      "openZone": "Open zone",
+      "moduleTitel": "Modules"
     },
     "loading": "Loading data",
     "askAi": "Ask AI",
@@ -952,6 +953,7 @@
       "transkription": "Speech recognition unavailable.",
       "transkriptionDienst": "The speech recognition service cannot be reached. Your recording is fine – please try again later.",
       "transkriptionDauer": "Speech recognition took too long. The service is probably still starting up – please try again in a minute.",
+      "transkriptionLeer": "Nothing was understood. Please speak a little louder or closer to the microphone.",
       "dateiGross": "The recording is too large.",
       "nachbarbetriebVorhanden": "A neighbouring farm with this name already exists.",
       "ratenlimit": "Too many requests in a short time. Please wait a moment and try again."
@@ -1809,7 +1811,9 @@
       "titel": "DamiAI, your companion",
       "text": "Shows in the corner what the agent is doing, even when the chat is closed. Hold DamiAI down to send it away, the tip at the bottom edge brings it back. Switched off here, DamiAI stays away completely.",
       "tourTitel": "Guided tour",
-      "tourText": "Off means DamiAI stops jumping to the tiles and highlighting them by itself after a check, system-wide. The chat summary still runs automatically, just without the jumping around the page.",
+      "tourText": "Off means DamiAI stops jumping to the tiles and highlighting them by itself after a check, system-wide. With “Start automatically” switched on, the chat summary still runs by itself, just without the jumping around the page.",
+      "autoTitel": "Start automatically",
+      "autoText": "Off by default. Off means neither the tour nor the chat summary starts by itself after a check, and DamiAI no longer offers it on its own. The buttons “Restart tour” and “Summary in chat” stay on the overview, so you can start both yourself.",
       "bewegungTitel": "Motion",
       "bewegungText": "Off means DamiAI stays, but holds still. If your system is already set to reduced motion, you do not need this switch.",
       "zustandTitel": "State",
@@ -2058,6 +2062,13 @@
       "mitarbeiterEinschalten": "Chat"
     },
     "bereichAllgemein": "the area",
+    "zielExtra": {
+      "pruefbericht": "Audit report",
+      "feld": "Field",
+      "hof": "Yard",
+      "buero": "Office",
+      "markt": "Market"
+    },
     "pruefBereich": {
       "audit": "Audit",
       "steuer": "Tax",
@@ -2178,7 +2189,34 @@
     "pruefBezugKacheln": "Jump straight to a tile",
     "mehr": "More",
     "groesser": "Enlarge panel",
-    "kleiner": "Shrink panel"
+    "kleiner": "Shrink panel",
+    "sprachmodus": {
+      "titel": "Voice mode",
+      "starten": "Start voice mode",
+      "kurz": "Talk",
+      "hinweis": "Voice mode: talk to Himbi live, no typing",
+      "einwilligungZuerst": "Please accept the AI notice in the chat first, then start voice mode again.",
+      "freigabeHinweis": "Say “Yes” to approve or “No” to decline.",
+      "beenden": "End voice mode",
+      "unterbrechen": "Tap or just start talking",
+      "stumm": "Mute microphone",
+      "fortsetzen": "Unmute microphone",
+      "untertitel": "Captions",
+      "hoertZu": "Listening …",
+      "keinZugriff": "No microphone access. Please allow it in your browser settings.",
+      "liveFehlt": "Live speech recognition is not available here. Voice mode needs it.",
+      "verbindungFehlt": "The connection to speech recognition dropped. Tap Himbi to try again.",
+      "erneut": "Try again",
+      "status": {
+        "startet": "Opening microphone …",
+        "hoert": "Listening",
+        "versteht": "One moment …",
+        "denkt": "Checking …",
+        "spricht": "Himbi is speaking",
+        "pausiert": "Microphone muted",
+        "fehler": "Something went wrong"
+      }
+    }
   },
   "legal": {
     "imprintTitle": "Imprint",

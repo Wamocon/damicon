@@ -59,6 +59,42 @@ export const DIKTAT_STANDARD: DiktatEinstellungen = {
   hoechstdauerMs: 60_000,
 };
 
+/** Wie das Mikrofon geoeffnet wird (getUserMedia). Bis zum 24.09.2026 ohne
+ *  jede Vorgabe - also mit dem, was der Browser fuer ein Telefonat haelt:
+ *  Rauschunterdrueckung und Pegelregelung an, abgestimmt auf menschliche
+ *  Ohren, nicht auf Spracherkennung. Die Unterdrueckung schneidet
+ *  Silbenanfaenge und leise Laute weg.
+ *
+ *  Das offizielle Soniox-Web-SDK schaltet Unterdrueckung und Echofilter
+ *  deshalb ab (github.com/soniox/soniox-js, packages/client/src/audio/
+ *  microphone.ts): das Modell ist auf rohe Aufnahmen trainiert, Laerm
+ *  eingeschlossen. Waehrend des Diktats verstummt jede Wiedergabe (beiStart
+ *  in mikrofon.tsx), deshalb braucht es auch keine Echounterdrueckung.
+ *
+ *  Die Pegelregelung bleibt hier - anders als im SDK - AN: der Datei-Weg
+ *  verwirft eine Aufnahme, deren Pegel nie ueber die Schwelle kommt
+ *  (erzeugeStilleWaechter, "stopp-leer"), und ohne Regelung trifft das
+ *  leise Sprechende und Headsets mit wenig Verstaerkung noch haeufiger.
+ *
+ *  Mono, weil ein zweiter Kanal nur Bandbreite kostet. Die Abtastrate ist
+ *  nur ein Wunsch - viele Browser nehmen trotzdem mit 48 kHz auf, und das
+ *  ist in Ordnung.
+ *
+ *  Gegen echten Hoflaerm ist das noch nicht gemessen - falls noetig, ist
+ *  noiseSuppression hier der eine Wert zum Umstellen. */
+export const AUFNAHME_VORGABEN: MediaTrackConstraints = {
+  echoCancellation: false,
+  noiseSuppression: false,
+  autoGainControl: true,
+  channelCount: 1,
+  sampleRate: 16_000,
+};
+
+/** MediaRecorder liefert alle so viele Millisekunden ein Stueck. Klein genug,
+ *  dass der Live-Weg fluessig mitschreibt (das SDK nimmt 60 ms), gross genug,
+ *  dass nicht jedes Stueck nur aus Verpackung besteht. */
+export const AUFNAHME_STUECK_MS = 100;
+
 /** Die beiden Werte, die am ehesten nachgezogen werden muessen, lassen sich
  *  ohne Codeaenderung setzen (NEXT_PUBLIC_*, damit sie im Browser ankommen):
  *  NEXT_PUBLIC_DIKTAT_STILLE_PEGEL und NEXT_PUBLIC_DIKTAT_STILLE_MS.

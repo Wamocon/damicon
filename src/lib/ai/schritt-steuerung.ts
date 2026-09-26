@@ -41,11 +41,29 @@ export function istRechtsfrage(text: string): boolean {
   return STAEMME.some((s) => t.includes(s));
 }
 
+// Eine Bitte, etwas zu ZEIGEN oder zu OEFFNEN ("Zeig mir den Pruefbericht Audit",
+// "Erklaere mir den Bereich Hof"), ist im Sprachmodus eine Fuehrung, keine Rechtsfrage,
+// auch wenn "Audit", "Compliance" oder "Steuern" darin vorkommen. Bis zum 25.09.2026
+// erzwang der Server dort zuerst die Wissenssuche: Himbi schwieg mehrere Sekunden und
+// begann mit Rechtstexten statt mit dem Bericht.
+// Ein Rechtskern macht aus einer Zeige-Bitte doch eine Rechtsfrage ("Welche Frist gilt
+// laut Gesetz ... auf dieser Seite?"): dann bleibt die Wissenssuche erzwungen.
+const RECHTSKERN =
+  /(?:frist|strafe|sanktion|bu(?:ss|ß)geld|pflicht|schwelle|gesetz|paragraf|paragraph|steuersatz|haftung|deadline|penalt|fine|law|срок|штраф|закон|санкци|обязан|порог|мерзім|айыппұл|заң|міндет)/iu;
+const ZEIGEVERB =
+  /(?:^|[^\p{L}])(?:zeig(?:e|en|t)?|öffne(?:n|t)?|oeffne(?:n|t)?|geh(?:e)? (?:zu|zum|zur|in)|wechsle|bring(?:e)? mich|führ(?:e)? mich|fuehr(?:e)? mich|navigiere|erkl(?:ä|ae)r(?:e|en)?(?: mir)? (?:den|die|das) (?:bereich|seite|übersicht|uebersicht|prüfbericht|pruefbericht|bericht|zone)|покажи(?:те)?|открой(?:те)?|перейди(?:те)?|көрсет(?:іңіз|ші)?)(?![\p{L}])/iu;
+
+/** Bittet der Nutzer darum, etwas zu zeigen oder zu oeffnen, ohne eine Rechtsfrage
+ *  zu stellen? Ein Seitenwort allein ("Bereich", "Bericht") reicht nicht. */
+export function istNavigationsbitte(text: string): boolean {
+  return ZEIGEVERB.test(text) && !RECHTSKERN.test(text);
+}
+
 export type ToolChoice = "auto" | "required" | "none" | { type: "tool"; toolName: "wissenSuchen" };
 
 export interface SchrittEingabe {
   stepNumber: number;
-  modus: "assistent" | "agent";
+  modus: "assistent" | "agent" | "sprache";
   /** Ist die letzte Nachricht eine neue Nutzerfrage (und keine Freigabe-Runde)? */
   neueNutzerFrage: boolean;
   frage: string;
@@ -60,10 +78,16 @@ export function waehleSchritt(e: SchrittEingabe): { toolChoice: ToolChoice } | u
   // Zweckentfremdung: in JEDEM Schritt ohne Werkzeuge, es wird nur abgelehnt.
   if (e.ausserhalb && e.neueNutzerFrage) return { toolChoice: "none" };
   if (e.stepNumber !== 0 || !e.neueNutzerFrage) return undefined;
-  if (e.wissenAngeboten && istRechtsfrage(e.frage)) {
+  if (e.wissenAngeboten && istRechtsfrage(e.frage) && !(e.modus === "sprache" && istNavigationsbitte(e.frage))) {
     return { toolChoice: { type: "tool", toolName: "wissenSuchen" } };
   }
   // Agent-Modus, neue Frage: der erste Schritt MUSS ein Werkzeug rufen (siehe route.ts).
+  // ohneAnsicht bleibt der Fluchtweg fuer reine Hoeflichkeiten.
   if (e.modus === "agent") return { toolChoice: "required" };
+  // Sprachmodus bewusst NICHT erzwungen (seit 24.09.2026). Bei Anthropic heisst "required",
+  // dass das Modell vor dem Werkzeugaufruf keinen einzigen Satz schreiben darf - im Gespraech
+  // war es dann still, bis die Daten geladen waren, oft mehrere Sekunden. Jetzt sagt es zuerst
+  // in einem kurzen Satz, was es sich ansieht (sprachmodusFormatAnweisung), dieser Satz wird
+  // sofort vorgelesen, und im selben Schritt folgt das Werkzeug.
   return undefined;
 }

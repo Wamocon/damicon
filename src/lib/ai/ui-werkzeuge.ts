@@ -17,8 +17,14 @@ import { z } from "zod";
 
 const ref = z
   .string()
-  .regex(/^e\d{1,3}$/, "Format e12")
+  .regex(/^e\d{1,5}$/, "Format e12")
   .describe("Referenz aus der Elementliste der letzten seiteLesen-Antwort, z. B. 'e12'");
+// Zum Zeigen und Scrollen auch eine Stelle ohne Bedienung (Abschnitt, Karte,
+// Aufklappbereich) aus 'abschnitte' der seiteLesen-Antwort oder der Seitenkarte.
+const zielRef = z
+  .string()
+  .regex(/^[ea]\d{1,5}$/, "Format e12 oder a3")
+  .describe("Referenz eines Elements ('e12') oder eines Abschnitts ('a3') aus der letzten seiteLesen-Antwort bzw. der Seitenkarte");
 const absicht = z
   .string()
   .min(2)
@@ -27,7 +33,7 @@ const absicht = z
 
 const seiteLesen = tool({
   description:
-    "Liest die Seite, die der Nutzer gerade sieht: Adresse, Überschriften, sichtbarer Text (inklusive Tabelleninhalt) und eine Liste bedienbarer Elemente (Schaltflächen, Links, Eingabefelder, Auswahlen) mit je einer Referenz ('ref'). Nutze es, um Fragen zu beantworten, was auf dem Bildschirm steht ('was zeigt diese Tabelle', 'erkläre diese Seite'), und IMMER vor klicke, fuelleFeld oder zeigeAuf. Nach jeder Aktion, die die Seite verändert (Klick, Navigation), sind die Referenzen veraltet - lies die Seite dann erneut. Hat die Seite sehr viele Elemente, grenze mit 'fokus' ein.",
+    "Liest die Seite, die der Nutzer gerade sieht: Adresse, Überschriften, sichtbarer Text (inklusive Tabelleninhalt), eine Liste bedienbarer Elemente (Schaltflächen, Links, Eingabefelder, Auswahlen) mit je einer Referenz ('ref', z. B. e12) und die Abschnitte der Seite (Karten, Kacheln, Aufklappbereiche) mit je einer Referenz (z. B. a3). Referenzen bleiben gültig, solange das Element auf der Seite steht. Nutze es, um Fragen zu beantworten, was auf dem Bildschirm steht ('was zeigt diese Tabelle', 'erkläre diese Seite'), und IMMER vor klicke, fuelleFeld oder zeigeAuf. Nach jeder Aktion, die die Seite verändert (Klick, Navigation), sind die Referenzen veraltet - lies die Seite dann erneut. Hat die Seite sehr viele Elemente, grenze mit 'fokus' ein.",
   inputSchema: z.object({
     fokus: z
       .string()
@@ -53,15 +59,15 @@ const scrolleZu = tool({
   description:
     "Scrollt die Seite: entweder zu einem Element (ref) oder in eine Richtung ('oben', 'unten', 'weiter' = eine Bildschirmhöhe nach unten). Ohne Nebenwirkung.",
   inputSchema: z.object({
-    ref: ref.optional(),
+    ref: zielRef.optional(),
     richtung: z.enum(["oben", "unten", "weiter"]).optional(),
   }),
 });
 
 const zeigeAuf = tool({
   description:
-    "Zeigt dem Nutzer ein Element: der Mauszeiger fährt hin und das Element wird hervorgehoben. Ohne Klick, ohne Nebenwirkung. Nutze es, um bei einer Erklärung auf eine Stelle der Seite zu deuten.",
-  inputSchema: z.object({ ref, absicht }),
+    "Zeigt dem Nutzer ein Element oder einen Abschnitt: der Mauszeiger fährt hin und die Stelle wird hervorgehoben, ein zugeklappter Abschnitt wird aufgeklappt. Ohne Klick, ohne Nebenwirkung. Nutze es, um bei einer Erklärung auf eine Stelle der Seite zu deuten.",
+  inputSchema: z.object({ ref: zielRef, absicht }),
 });
 
 type SteuerWerkzeuge = {
@@ -71,7 +77,13 @@ type SteuerWerkzeuge = {
   zeigeAuf: typeof zeigeAuf;
 };
 
-/** 'lesen' = nur seiteLesen (Assistent-Modus), 'steuern' = alles (Agent-Modus). */
+/** 'lesen' = nur seiteLesen (Assistent-Modus), 'steuern' = alles (Agent-Modus
+ *  UND seit dem 25.09.2026 Sprachmodus - "der Sprachmodus soll die gleichen
+ *  Rechte haben wie der Chat": jede Aktion, die etwas aendert, geht ueber
+ *  dieselbe Freigabekarte wie im Chat, nur meldet der Sprachmodus sie
+ *  zusaetzlich an sprachmodus-bus.ts und nimmt "Ja"/"Nein" als Aeusserung
+ *  entgegen statt eines Klicks - siehe sprachmodus.tsx). */
 export function baueUiWerkzeuge(stufe: "lesen" | "steuern"): { seiteLesen: typeof seiteLesen } & Partial<SteuerWerkzeuge> {
-  return stufe === "steuern" ? { seiteLesen, klicke, fuelleFeld, scrolleZu, zeigeAuf } : { seiteLesen };
+  if (stufe === "steuern") return { seiteLesen, klicke, fuelleFeld, scrolleZu, zeigeAuf };
+  return { seiteLesen };
 }

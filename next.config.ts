@@ -4,6 +4,11 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
+  // Datenbankschema (public oder public_preview) beim Build fuer Server, Proxy und Browser festlegen.
+  // Quelle ist SUPABASE_DB_SCHEMA; NEXT_PUBLIC_DB_SCHEMA setzt der Deploy-Workflow als Ueberschreibung.
+  env: {
+    NEXT_PUBLIC_DB_SCHEMA: process.env.NEXT_PUBLIC_DB_SCHEMA || process.env.SUPABASE_DB_SCHEMA || "public",
+  },
   images: {
     // AVIF zuerst, WebP als Rueckfall. Die Reihenfolge entscheidet: Next.js
     // nimmt das erste Format, das der Browser im Accept-Header anbietet.

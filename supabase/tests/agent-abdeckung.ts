@@ -411,7 +411,7 @@ pruefe("Agent-Modus, keine Rechtsfrage: weiterhin 'required'", JSON.stringify(wa
 pruefe("Assistent, keine Rechtsfrage: nichts erzwingen", waehleSchritt(eingabe({ frage: "Hallo" })) === undefined);
 const routeQuelle3 = liesQuelle("src/app/api/ki-assistent/route.ts", "utf8");
 pruefe("Route nutzt waehleSchritt in prepareStep", routeQuelle3.includes("waehleSchritt({") && routeQuelle3.includes('wissenAngeboten: "wissenSuchen" in werkzeuge'));
-pruefe("Route: ohne Wissensbasis gilt OHNE_QUELLEN_ANWEISUNG (kein Rechtsrat aus Trainingswissen)", routeQuelle3.includes('"wissenSuchen" in werkzeuge ? QUELLEN_ANWEISUNG : OHNE_QUELLEN_ANWEISUNG') && routeQuelle3.includes("NICHT aus deinem Trainingswissen"));
+pruefe("Route: ohne Wissensbasis gilt OHNE_QUELLEN_ANWEISUNG (kein Rechtsrat aus Trainingswissen)", routeQuelle3.includes('"wissenSuchen" in werkzeuge ? quellenAnweisung(antwortSprache) : OHNE_QUELLEN_ANWEISUNG') && routeQuelle3.includes("NICHT aus deinem Trainingswissen"));
 
 // --- Auftrag des Assistenten: kein kostenloser Allzweck-Chatbot (lib/ai/bereich-schutz.ts) ----------------
 const zweckentfremdet = [

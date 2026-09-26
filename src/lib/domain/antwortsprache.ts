@@ -56,6 +56,14 @@ export function mehrheitsSprache(tokenSprachen: ReadonlyArray<string | null | un
  * Die Sprache dieses Zuges. Genau eine Stelle entscheidet das, und beide -
  * die Anweisung ans Modell und die Stimme - bekommen dasselbe Ergebnis.
  */
+/** Kuerzer als das traegt keine Sprachentscheidung - dieselbe Grenze wie bei
+ *  einer getippten Frage (siehe unten, "zwei Woerter reichen nicht"). Ohne
+ *  sie gewann ein einzelnes, falsch erkanntes Token unwidersprochen: der
+ *  allererste Sprachmodus-Start am 25.09.2026 zeichnete vor der eigentlichen
+ *  Aeusserung einen Rest Stille bzw. Atmen auf, Soniox taggte das als "kk",
+ *  und die ganze Antwort - obwohl deutsch gesprochen - kam auf Kasachisch. */
+const MIN_DIKTAT_ZEICHEN = 8;
+
 export function bestimmeAntwortsprache(
   eingabe: {
     /** Sprachen der Soniox-Token, wenn die Frage diktiert wurde. */
@@ -69,8 +77,11 @@ export function bestimmeAntwortsprache(
 ): { sprache: Sprache; herkunft: Herkunft } {
   // a) Diktiert: Soniox hat zugehoert, das ist die beste Auskunft, die es
   //    gibt - besser als ein Erkenner, der auf den transkribierten Text
-  //    schaut und dessen Fehler miterbt.
-  const ausDiktat = eingabe.diktatSprachen?.length ? mehrheitsSprache(eingabe.diktatSprachen) : null;
+  //    schaut und dessen Fehler miterbt. Nur bei genug erkanntem Text: ein
+  //    paar Ausrutscher-Token vor der eigentlichen Aeusserung (Stille,
+  //    Atmen, ein Raeuspern) sollen nicht die ganze Antwort umlenken.
+  const genugText = (eingabe.frage ?? "").trim().length >= MIN_DIKTAT_ZEICHEN;
+  const ausDiktat = eingabe.diktatSprachen?.length && genugText ? mehrheitsSprache(eingabe.diktatSprachen) : null;
   if (ausDiktat) return { sprache: ausDiktat, herkunft: "diktat" };
 
   // b) Getippt: die Sprache der Frage, wenn sie eindeutig ist.
@@ -98,6 +109,26 @@ export function stimmenSprache(
   const erkannt = erkenner(antwortText ?? "");
   if (istSprache(erkannt) && erkannt !== antwortsprache) return { sprache: erkannt, abweichung: true };
   return { sprache: antwortsprache, abweichung: false };
+}
+
+/**
+ * Passt ein erzeugter Text zur verlangten Sprache? Fuer Texte, die einmal
+ * entstehen und dann gespeichert werden (die Zusammenfassung eines Berichts):
+ * ein deutscher Text in einem russischen Bericht wird verworfen und neu
+ * erzeugt, statt fuer immer im Bericht zu stehen.
+ *
+ * Im Zweifel passt er: ist der Text zu kurz oder unklar (kein Erkenner-
+ * Ergebnis), wird nichts abgelehnt. Russisch und Kasachisch gelten als
+ * zusammengehoerig - sie teilen sich die Schrift, der Erkenner trennt sie nur
+ * an einzelnen Sonderbuchstaben, und das reicht nicht, um daran einen Text
+ * zu verwerfen.
+ */
+export function sprachePasst(gewuenscht: string, text: string, erkenner: Erkenner): boolean {
+  if (!istSprache(gewuenscht)) return true;
+  const erkannt = erkenner(text ?? "");
+  if (!istSprache(erkannt) || erkannt === gewuenscht) return true;
+  const kyrillisch = (s: string) => s === "ru" || s === "kk";
+  return kyrillisch(gewuenscht) && kyrillisch(erkannt);
 }
 
 /** Die Anweisung ans Modell. Steht hier, damit Test und Laufzeit denselben

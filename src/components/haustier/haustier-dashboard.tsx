@@ -52,7 +52,7 @@ export function HaustierDashboard() {
   const t = useTranslations("haustier");
   const moduleT = useTranslations("modules");
   const ceoT = useTranslations("ceoUebersicht");
-  const { verfuegbar, offen, umschalten, setOffen, darstellung } = useKiPane();
+  const { verfuegbar, offen, umschalten, setOffen, darstellung, sprachmodus } = useKiPane();
   const { phase, text, an, weg, stimmung, inventar } = useHaustierStatus();
   const { stelleFrage, schickeWeg, holeZurueck } = useHaustierAktionen();
   const pfad = usePathname();
@@ -447,6 +447,10 @@ export function HaustierDashboard() {
   return (
     <>
       <HaustierHuelle
+        // Im Sprachmodus fuehrt Himbi in der Mitte das Gespraech (ki/sprach-himbi.tsx);
+        // die Figur in der Ecke wird ausgeblendet, damit es nur einen gibt
+        // (Rueckmeldung vom 25.09.2026).
+        verborgen={sprachmodus}
         zustand={zustand}
         stimmung={miene}
         buehne={aufBuehne}

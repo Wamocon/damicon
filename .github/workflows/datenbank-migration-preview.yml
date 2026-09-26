@@ -1,0 +1,136 @@
+# =============================================================================
+# Datenbank-Migrationen auf das Schema public_preview (Preview-Umgebungen)
+# =============================================================================
+# Trigger : - Push in einen Pull Request auf main, der Migrationen oder die Preview-Skripte betrifft
+#           - Push auf main (Nachholen): wendet nur an, was in public_preview noch fehlt, z. B. nach
+#             einem direkten Push auf main oder einem abgebrochenen Lauf. public bleibt unberuehrt.
+#           - von Hand: Actions -> "Datenbank-Migration Preview" -> Run workflow.
+#             Von Hand ist "nur_pruefen" standardmaessig AN: es zeigt nur, was angewendet WUERDE.
+#
+# Ablauf  : 1. Migrationsdateien pruefen (Reihenfolge, fuer public_preview umschreibbar)
+#           2. Projekt verbinden
+#           3. Trockenlauf: welche Migrationen in public_preview offen sind
+#           4. Offene Migrationen umgeschrieben auf public_preview anwenden
+#              (scripts/preview-migrationen.mjs, jede in einer eigenen Transaktion)
+#           5. Strukturabgleich mit public, sobald beide denselben Migrationsstand haben
+#           6. PostgREST-Schema neu laden
+#
+# Wichtig : public_preview liegt in derselben Datenbank wie Production und enthaelt eine Kopie der
+#           echten Daten. Dieser Workflow fuehrt die Migrationen eines Pull Requests dort aus, BEVOR
+#           jemand sie freigegeben hat. public selbst migriert erst datenbank-migration.yml nach dem
+#           Merge. Alle offenen Pull Requests teilen sich ein public_preview:
+#           - eine Datenbanksperre (pg_advisory_xact_lock) laesst immer nur eine Migration zugleich laufen;
+#             die concurrency-Gruppe gilt je Pull Request, damit GitHub keine wartenden Laeufe anderer
+#             Pull Requests verwirft
+#           - dieselbe Migration unter neuer Versionsnummer (gleicher Inhalt) wird nicht erneut ausgefuehrt
+#           - eine Migrationsdatei, die nach dem Anwenden geaendert wird, laesst den Lauf scheitern;
+#             die Aenderung gehoert in eine neue Migration
+#           - Migrationen anderer Pull Requests in public_preview werden als Warnung gemeldet
+#           Wer vor jedem Lauf freigeben will: Settings -> Environments -> Preview -> Required reviewers.
+#
+# Zugang  : SUPABASE_ACCESS_TOKEN (Organisations-Secret), wie in datenbank-migration.yml.
+#           Pull Requests aus Forks laufen nicht (dort gibt es keine Secrets).
+# =============================================================================
+
+name: Datenbank-Migration Preview
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+    paths:
+      - "supabase/migrations/**"
+      - "scripts/preview-*.mjs"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/migrations/**"
+      - "scripts/preview-*.mjs"
+  workflow_dispatch:
+    inputs:
+      nur_pruefen:
+        description: "Nur anzeigen, was angewendet wuerde (nichts aendern)"
+        required: true
+        default: true
+        type: boolean
+
+concurrency:
+  group: datenbank-migration-preview-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  SUPABASE_PROJECT_REF: hlcpxgnnyqmpqzpvgnxu
+  ANWENDEN: ${{ github.event_name != 'workflow_dispatch' || inputs.nur_pruefen == false }}
+
+jobs:
+  migrieren:
+    name: public_preview ${{ (github.event_name != 'workflow_dispatch' || inputs.nur_pruefen == false) && 'migrieren' || 'pruefen' }}
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: Preview
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Zugangsdaten vorhanden?
+        run: |
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo "::error::Secret SUPABASE_ACCESS_TOKEN fehlt (siehe Kopf von datenbank-migration-preview.yml)."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # Auf main gibt es keine Basis zum Vergleichen; dort genuegt die Umschreibpruefung.
+      - name: Migrationsdateien pruefen
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch --no-tags --depth=1 origin main
+            node scripts/pruefe-migrationen.mjs --basis FETCH_HEAD
+          else
+            node scripts/pruefe-migrationen.mjs
+            node scripts/preview-migrationen.mjs pruefen
+          fi
+
+      - name: Mit dem Projekt verbinden
+        run: supabase link --project-ref "$SUPABASE_PROJECT_REF"
+
+      - name: Trockenlauf public_preview
+        shell: bash
+        run: node scripts/preview-migrationen.mjs anwenden --linked --nur-anzeigen | tee trocken.txt
+
+      - name: Migrationen auf public_preview anwenden
+        if: env.ANWENDEN == 'true'
+        shell: bash
+        run: node scripts/preview-migrationen.mjs anwenden --linked | tee preview.txt
+
+      - name: Strukturabgleich public und public_preview
+        shell: bash
+        run: node scripts/preview-abgleich.mjs --linked --nur-bei-gleichem-stand 2>&1 | tee abgleich.txt
+
+      - name: PostgREST-Schema neu laden
+        if: env.ANWENDEN == 'true'
+        run: supabase db query --linked "notify pgrst, 'reload schema'"
+
+      - name: Zusammenfassung
+        if: always()
+        run: |
+          {
+            echo "### Datenbank-Migration public_preview (${SUPABASE_PROJECT_REF})"
+            if [ "$ANWENDEN" = "true" ]; then echo "Modus: anwenden"; else echo "Modus: nur pruefen"; fi
+            echo '```'
+            cat preview.txt 2>/dev/null || cat trocken.txt 2>/dev/null || true
+            cat abgleich.txt 2>/dev/null | head -30 || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

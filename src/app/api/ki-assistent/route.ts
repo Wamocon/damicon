@@ -24,7 +24,18 @@ import { z } from "zod";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission, roles, type Role } from "@/lib/rbac";
 import { bestimmeAntwortsprache } from "@/lib/domain/antwortsprache";
-import { erzeugeSatzZerleger } from "@/lib/domain/sprachausgabe";
+import {
+  formatAnweisung,
+  mitSeitenkarte,
+  mitSprachErinnerung,
+  quellenAnweisung,
+  SPRACHMODUS_FUEHRUNG,
+  SPRACHMODUS_OBERFLAECHE,
+  sprachmodusFormatAnweisung,
+  sprechmarkenAnweisung,
+} from "@/lib/domain/antwort-anweisungen";
+import { erzeugeMarkenFilter } from "@/lib/domain/sprechmarken";
+import { erzeugeSatzZerleger, ohneSprechmarken, sprachausgabeStromAn } from "@/lib/domain/sprachausgabe";
 import { ABSCHNITT_GUELTIG_MS, signiereAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
 import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
 import { erkenneSprache } from "@/lib/wissen/chunker";
@@ -55,7 +66,9 @@ export const maxDuration = 60;
 // Werkzeugschritte + ein Schritt fuer die abschliessende Textantwort. Der
 // Agent-Modus braucht deutlich mehr: eine Seite bedienen heisst lesen, klicken,
 // erneut lesen, ausfuellen ... - jeder Schritt eine Runde.
-const MAX_SCHRITTE: Record<"assistent" | "agent", number> = { assistent: 12, agent: 28 };
+// Sprachmodus: kurze Gespraechsrunden - wer spricht, wartet auf die Antwort und will keine
+// Rundreise mit dreissig Schritten hoeren.
+const MAX_SCHRITTE: Record<"assistent" | "agent" | "sprache", number> = { assistent: 12, agent: 28, sprache: 12 };
 
 // Der Client schickt den ganzen Verlauf mit - begrenzt, damit ein manipulierter
 // Aufruf keine unbegrenzte Tokenrechnung erzeugt.
@@ -86,6 +99,47 @@ function textAusNachricht(nachricht: UIMessage): string {
 // einfacheres Gegenstueck in domain/ki-assistent.ts - beide wurden erst am
 // 22./23.09.2026 fuer je ihren Sendeweg gezielt nachgebessert (WMCNL-2415,
 // Fazit-Zeile), ein Zusammenlegen haette dieselben Fehlerbilder riskiert.
+
+// Seitenkarte des Sprachmodus (ui-steuerung.ts, seitenKarte): kommt vom Browser,
+// ist also Eingabe des Nutzers. Begrenzt, ohne Steuerzeichen, und im Prompt als
+// Daten gekennzeichnet.
+const MAX_SEITENKARTE_ZEICHEN = 4_000;
+function bereinigteSeitenkarte(roh: unknown): string | null {
+  if (typeof roh !== "string" || !roh.trim()) return null;
+  // Nur das erwartete Format: eine Zeile "Seite: ..." und Zeilen "a3 Titel" /
+  // "e12 Titel", Titel hoechstens 60 Zeichen. Alles andere faellt weg.
+  const zeilen = roh
+    .slice(0, MAX_SEITENKARTE_ZEICHEN)
+    .split("\n")
+    .map((z) => z.replace(/[\u0000-\u001f\u007f<>{}[\]`]/g, " ").replace(/\s+/g, " ").trim())
+    .map((z) => {
+      const seite = /^Seite: (.{1,120})$/.exec(z);
+      if (seite) return `Seite: ${seite[1]}`;
+      const eintrag = /^([ea]\d{1,5}) (.{1,})$/.exec(z);
+      return eintrag ? `${eintrag[1]} ${eintrag[2]!.slice(0, 60)}` : "";
+    })
+    .filter(Boolean);
+  return zeilen.length > 0 ? zeilen.join("\n") : null;
+}
+
+/** Die Referenzen, die das Modell kennt: aus der Seitenkarte dieser Anfrage und
+ *  aus der juengsten seiteLesen-Antwort. Eine Sprechmarke auf eine andere, erfundene
+ *  Referenz wird verworfen, bevor sie einen falschen Rahmen setzt. */
+function bekannteReferenzen(nachrichten: UIMessage[], seitenkarte: string | null): Set<string> {
+  const bekannt = new Set<string>();
+  for (const treffer of (seitenkarte ?? "").matchAll(/^([ea]\d{1,5}) /gm)) bekannt.add(treffer[1]!);
+  for (let i = nachrichten.length - 1; i >= 0; i--) {
+    for (const teil of [...nachrichten[i]!.parts].reverse()) {
+      const t = teil as unknown as { type: string; state?: string; output?: { elemente?: { ref?: unknown }[]; abschnitte?: { ref?: unknown }[] } };
+      if (t.type !== "tool-seiteLesen" || t.state !== "output-available") continue;
+      for (const e of [...(t.output?.elemente ?? []), ...(t.output?.abschnitte ?? [])]) {
+        if (typeof e.ref === "string") bekannt.add(e.ref);
+      }
+      return bekannt;
+    }
+  }
+  return bekannt;
+}
 
 /** Aeltere Seitenstaende aus dem Verlauf loeschen: nur der juengste seiteLesen-
  *  Schnappschuss ist noch gueltig, die anderen wuerden nur Tokens kosten und das
@@ -128,20 +182,13 @@ function alteAusgabenKuerzen(nachrichten: UIMessage[]): UIMessage[] {
   });
 }
 
-const FORMAT_ANWEISUNG = [
-  "Formatiere jede Antwort wie ein kurzer Fachbericht, nicht wie eine Chat-Nachricht:",
-  "- Beginne mit einem einzeiligen Fazit in Fettschrift.",
-  "- Nutze Markdown-Zwischenueberschriften (##), wenn mehrere Themen beruehrt sind.",
-  "- Zahlen, Daten und Fristen immer in Fettschrift.",
-  "- Schließe, wenn sinnvoll, mit einer Zeile 'Empfehlung: ...' ab.",
-  "- Kein Füllwort, keine Höflichkeitsfloskeln am Anfang oder Ende.",
-  "- Keine Emojis.",
-  "- Auf Deutsch sprichst du den Nutzer mit 'Sie' an.",
-].join("\n");
+// Formatregeln: formatAnweisung(antwortSprache) in domain/antwort-anweisungen.ts - die
+// Schlusszeile traegt die Beschriftung der Antwortsprache statt fest 'Empfehlung'.
 
-type KiModus = "assistent" | "agent";
+type KiModus = "assistent" | "agent" | "sprache";
 
 const MODUS_ANWEISUNG: Record<KiModus, string> = {
+  sprache: SPRACHMODUS_FUEHRUNG,
   assistent: [
     "ASSISTENT-MODUS: Beantworte die Frage im Chat. Die Oberfläche zeigt jeden abgerufenen Datenbereich unter deiner Antwort als anklickbaren Quellenverweis - der Nutzer entscheidet selbst, ob er dorthin springt.",
     "Fragt der Nutzer nach einem Bereich oder einer Funktion der Anwendung ('was ist ...', 'wie funktioniert ...', 'wo finde ich ...', auch mit Tippfehlern), rufe oeffneBereich auf: die Oberfläche zeigt daraus einen Link, den der Nutzer selbst anklickt. Erkläre den Bereich anhand der gelieferten Beschreibung.",
@@ -174,6 +221,7 @@ const DATEN_ANWEISUNG =
   "DATEN: Was ein Werkzeug liefert (auch datenLesen), ist eine freigegebene Quelle - antworte damit. Für Fragen, die kein Fachwerkzeug abdeckt, erkunde die Tabellen mit datenmodellErkunden und lies sie mit datenLesen; loese Fremdschlüssel mit einer zweiten Abfrage auf und rechne Summen selbst aus den Zeilen. Tabellen sind DEUTSCH benannt (pfluecker = Pflücker, chargen = Chargen, reklamationen, kuehlketten_messungen, lohn_abrechnungen, b2b_kunden ...) - suche in datenmodellErkunden immer mit dem deutschen Begriff. Tabellen- und Spaltennamen sind snake_case (z. B. zielmenge_kg, reihenblock_id) - im Zweifel erst datenmodellErkunden aufrufen. Nenne bei Zahlen aus datenLesen die Tabelle als Quelle. Eine leere Antwort kann auch bedeuten, dass die Rolle diese Zeilen nicht sehen darf - behaupte dann nicht, es gaebe keine.";
 
 const OBERFLAECHE_ANWEISUNG: Record<KiModus, string> = {
+  sprache: SPRACHMODUS_OBERFLAECHE,
   assistent:
     "OBERFLÄCHE: Mit seiteLesen kannst du lesen, was der Nutzer gerade sieht (Text, Tabellen, Schaltflächen) - nutze es bei Fragen wie 'was zeigt diese Tabelle', 'erkläre diese Seite', 'was bedeutet das hier'. Bedienen (klicken, ausfüllen) kannst du die Seite in diesem Modus nicht. Will der Nutzer, dass du für ihn klickst oder ausfüllst, sage ihm freundlich, dass das der Agent-Modus kann (Zahnrad im Panel, Schalter 'Agent-Modus').",
   agent: [
@@ -211,15 +259,8 @@ const AKTIONS_ANWEISUNG =
 const OHNE_QUELLEN_ANWEISUNG =
   "RECHT UND STEUERN OHNE BELEGE: Dir steht in dieser Sitzung keine Wissensbasis für Recht, Steuern, Compliance und Audit zur Verfügung. Beantworte Fragen zu Gesetzen, Steuersätzen, Schwellenwerten, Fristen, Pflichten, Sanktionen oder Prüfungen deshalb NICHT aus deinem Trainingswissen: in Kasachstan gilt seit 2026 ein neuer Steuerkodex, und dein Wissen dazu ist veraltet oder falsch. Sage stattdessen in einem kurzen Satz, dass dazu gerade keine belegte Auskunft möglich ist, und verweise auf Steuerberater, Anwalt oder die zuständige Behörde. Zahlen und Fristen aus den Betriebsdaten (zum Beispiel der MwSt-Status) darfst du weiterhin nennen, aber nicht als Rechtsauskunft ausgeben.";
 
-const QUELLEN_ANWEISUNG = [
-  "QUELLEN UND BELEGE: Bei jeder Frage zu Recht, Steuern, Arbeitsrecht, Compliance oder Audit rufst du ZUERST wissenSuchen auf (mit frageRussisch) und antwortest auf Grundlage der gefundenen Belege. Regeln:",
-  "1. Jede rechtliche Aussage, Zahl, Frist oder Sanktion bekommt direkt dahinter die Kennung ihres Belegs in eckigen Klammern, zum Beispiel [S1]; mehrere Belege: [S1][S3].",
-  "2. Zitiere nur Kennungen, die wissenSuchen in DIESER Antwort geliefert hat. Erfinde nie Fundstellen, Artikelnummern oder Zitate.",
-  "3. Nenne bei wichtigen Aussagen die Fundstelle im Klartext (zum Beispiel 'НК РК ст. 82'). Ist der Beleg russisch oder kasachisch, gib den maßgeblichen Satz kurz im Original mit deutscher Übersetzung wieder.",
-  "4. Belege der Stufe 4 oder 5 sind Auskünfte Dritter, keine Rechtsquellen: schreibe 'laut Fachquelle' und weise darauf hin, dass die Primärquelle zu prüfen ist. Bei überholten oder widerspruechlichen Belegen sage das ausdrücklich und nenne den Stand (Abrufdatum), wenn die Angabe zeitkritisch ist.",
-  "5. Liefert das Werkzeug nichts Passendes, sage 'Dazu habe ich in der Wissensbasis keine Stelle gefunden' und gib alles Weitere nur als Allgemeinwissen an. Kein Beleg, keine Behauptung.",
-  "6. Schließe verbindliche Rechts- und Steuerfragen mit einem Satz ab, dass eine Beratung durch Steuerberater oder Anwalt die Auskunft nicht ersetzt.",
-].join("\n");
+// Belegpflicht: quellenAnweisung(antwortSprache) in domain/antwort-anweisungen.ts - Uebersetzung
+// und Festsaetze in der Antwortsprache statt fest auf Deutsch.
 
 /** Nur ein Pfad innerhalb der Anwendung, ohne Sprachpraefix - als Kontext fuer
  *  den Prompt, nie als Adresse, die irgendwohin aufgeloest wird. */
@@ -330,7 +371,7 @@ export async function POST(req: Request) {
     return new Response("ratenlimit", { status: 429 });
   }
 
-  let body: { messages?: unknown; einwilligung?: boolean; modus?: unknown; pfad?: unknown; rolle?: unknown; sprache?: unknown; diktatSprachen?: unknown; pruefkontext?: unknown };
+  let body: { messages?: unknown; einwilligung?: boolean; modus?: unknown; pfad?: unknown; rolle?: unknown; sprache?: unknown; diktatSprachen?: unknown; pruefkontext?: unknown; vorleseWeg?: unknown; seitenkarte?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -353,7 +394,7 @@ export async function POST(req: Request) {
     return new Response("verlauf zu gross", { status: 413 });
   }
 
-  const modus: KiModus = body.modus === "agent" ? "agent" : "assistent";
+  const modus: KiModus = body.modus === "agent" ? "agent" : body.modus === "sprache" ? "sprache" : "assistent";
   const pfad = bereinigterPfad(body.pfad);
 
   // "Ansicht als Rolle" (persona.tsx): nur ein Administrator darf den Agenten
@@ -451,6 +492,12 @@ export async function POST(req: Request) {
   }
 
   const ortHinweis = pfad ? `Der Nutzer sieht gerade diese Ansicht: ${pfad}` : "";
+  // Sprechmarken (domain/sprechmarken.ts) nur, wo sie ausgewertet werden: im
+  // Sprachmodus mit Live-Vorlesen (unten filtert der Server sie aus dem Text).
+  const geheimnis = sprachausgabeGeheimnis();
+  const liveVorlesen = sprachausgabeLiveAn() && Boolean(geheimnis);
+  const markenAn = modus === "sprache" && liveVorlesen;
+  const seitenkarte = modus === "sprache" ? bereinigteSeitenkarte(body.seitenkarte) : null;
   // Die Datenbank-ID der Antwort steht schon VOR dem Stream fest und geht als
   // Nachrichten-ID an den Client (generateMessageId unten), gespeichert wird
   // die Zeile in onFinish unter genau dieser ID. So kennt der Client fuer jede
@@ -465,8 +512,11 @@ export async function POST(req: Request) {
   await pruefeWissenGesundheit();
   const werkzeugeOhneBericht = baueWerkzeuge(rolle, {
     vorschau,
-    agentModus: modus === "agent",
-    oberflaeche: modus === "agent" ? "steuern" : "lesen",
+    // Sprachmodus zaehlt seit dem 25.09.2026 wie Agent-Modus - dieselben
+    // Rechte wie der sichtbare Chat, dieselbe Freigabekarte fuer Aktionen,
+    // nur zusaetzlich an sprachmodus-bus.ts gemeldet (siehe ui-werkzeuge.ts).
+    agentModus: modus !== "assistent",
+    oberflaeche: modus === "assistent" ? "lesen" : "steuern",
     belegStart: naechsteBelegNummer(nachrichten),
   });
   // oeffnePruefBereich nur, wenn es ueberhaupt einen Bericht gibt, auf dessen Kacheln es
@@ -476,7 +526,7 @@ export async function POST(req: Request) {
   const systemPrompt = [
     baueAssistentKernauftrag(baueGesamtWissenskontext(quellen, preislisten)),
     rollenKontext(rolle, vorschau),
-    FORMAT_ANWEISUNG,
+    modus === "sprache" ? sprachmodusFormatAnweisung(antwortSprache) : formatAnweisung(antwortSprache),
     MODUS_ANWEISUNG[modus],
     OBERFLAECHE_ANWEISUNG[modus],
     NAVIGATION_ANWEISUNG,
@@ -487,9 +537,10 @@ export async function POST(req: Request) {
     ZUGENDE_ANWEISUNG,
     pruefKontext ? pruefGespraechAnweisung(pruefKontext) : "",
     // Nur wenn die Wissenssuche fuer diese Rolle angeboten wird: sonst gaebe es nichts zu belegen.
-    "wissenSuchen" in werkzeuge ? QUELLEN_ANWEISUNG : OHNE_QUELLEN_ANWEISUNG,
+    "wissenSuchen" in werkzeuge ? quellenAnweisung(antwortSprache) : OHNE_QUELLEN_ANWEISUNG,
     heute,
     ortHinweis,
+    markenAn ? sprechmarkenAnweisung(Boolean(seitenkarte) && letzte.role === "user") : "",
     spracheAnweisung(antwortSprache),
     ausserhalb ? ABLEHNUNG_ANWEISUNG : "",
   ]
@@ -502,7 +553,10 @@ export async function POST(req: Request) {
     system: systemPrompt,
     // Unvollstaendige Werkzeugaufrufe (Stopp mitten im Aufruf, Abbruch) wuerden
     // sonst jede weitere Anfrage des Verlaufs scheitern lassen.
-    messages: await convertToModelMessages(schnappschuesseKuerzen(nachrichten), { tools: werkzeuge, ignoreIncompleteToolCalls: true }),
+    // An der letzten Frage haengt ein Hinweis in der Antwortsprache - nur in dieser Kopie fuers Modell,
+    // gespeichert und angezeigt wird die Frage unveraendert. Der Systemprompt ist deutsch, und die
+    // Sprachanweisung darin verlor gegen die vielen deutschen Vorgaben (siehe domain/antwort-anweisungen.ts).
+    messages: await convertToModelMessages(mitSprachErinnerung(mitSeitenkarte(schnappschuesseKuerzen(nachrichten), markenAn ? seitenkarte : null), antwortSprache), { tools: werkzeuge, ignoreIncompleteToolCalls: true }),
     tools: werkzeuge,
     stopWhen: stepCountIs(ausserhalb ? 1 : MAX_SCHRITTE[modus]),
     // Eine Ablehnung braucht zwei Saetze, keine Seite.
@@ -530,7 +584,7 @@ export async function POST(req: Request) {
     // Agent-Modus: eine gefuehrte Tour ist nur lesbar, wenn die Ansichten
     // nacheinander wechseln - parallele Werkzeugaufrufe wuerden sie in einem
     // Schritt abfeuern und das Hauptfenster springen lassen.
-    providerOptions: modus === "agent" ? { anthropic: { disableParallelToolUse: true } } : undefined,
+    providerOptions: modus !== "assistent" ? { anthropic: { disableParallelToolUse: true } } : undefined,
     onError: (ereignis) => {
       console.error("[damicon] KI-Agent (Stream) fehlgeschlagen:", ereignis.error);
     },
@@ -540,8 +594,10 @@ export async function POST(req: Request) {
         .filter((name): name is string => Boolean(name));
       // Der Text ALLER Schritte: im Agent-Modus steckt die Begleitung der Tour
       // (ein Satz je Station) in den Schritten vor der Schlussantwort.
+      // Sprechmarken gehoeren nie in den gespeicherten Verlauf (Anzeige, Vorlesen-Knopf).
+      // Nur im Sprachmodus: sonst kann "[[...]]" gewoehnlicher Text sein.
       const gesamtText = steps
-        .map((schritt) => schritt.text.trim())
+        .map((schritt) => (markenAn ? ohneSprechmarken(schritt.text) : schritt.text).trim())
         .filter(Boolean)
         .join("\n\n");
 
@@ -584,8 +640,7 @@ export async function POST(req: Request) {
   // Server prueft sie dort noch einmal gegen den fertigen Text.
   const nachrichtenBeigabe = () => ({ sprache: antwortSprache, sprachHerkunft });
 
-  const geheimnis = sprachausgabeGeheimnis();
-  if (!sprachausgabeLiveAn() || !geheimnis) {
+  if (!liveVorlesen || !geheimnis) {
     return result.toUIMessageStreamResponse({ generateMessageId: () => antwortId, messageMetadata: nachrichtenBeigabe });
   }
 
@@ -601,9 +656,31 @@ export async function POST(req: Request) {
   // desselben Stroms.
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
-      const zerleger = erzeugeSatzZerleger();
+      // Spricht der Browser ueber den Soniox-Strom (domain/sprachausgabe-strom.ts),
+      // geht jeder Satz sofort hinaus - im Strom gibt es keine Abschnittsgrenzen,
+      // und laengere Stuecke hielten nur Text zurueck. Sonst (Abschnitte als
+      // einzelne Anfragen) laengere Stuecke mit eigener Satzmelodie.
+      //
+      // Entscheidend ist, welchen Weg der Browser wirklich nimmt (vorleseWeg) -
+      // faellt er auf einzelne Anfragen zurueck (kein WebSocket, Strom abgesagt),
+      // klaengen Einzelsaetze als eigene Anfragen abgehackt.
+      const stil = sprachausgabeStromAn() && body.vorleseWeg === "strom" ? "saetze" : "abschnitte";
+      const zerleger = erzeugeSatzZerleger(stil);
       const ablauf = Date.now() + ABSCHNITT_GUELTIG_MS;
-      const schickeAbschnitt = (nr: number, text: string) => {
+      // Zug-Nachweis zu Beginn: damit holt sich der Browser den Schluessel fuer
+      // den Vorlese-Strom (api/ki-sprachausgabe/schluessel), noch waehrend das
+      // Modell ueber den ersten Satz nachdenkt. Dieselbe Signatur wie ein
+      // Abschnitt, Nummer 0 und leerer Text - der Abschnitts-Weg lehnt leeren
+      // Text ab, eine Verwechslung ist ausgeschlossen.
+      writer.write({
+        type: "data-nachweis",
+        data: {
+          zug: antwortId,
+          ablauf,
+          sig: signiereAbschnitt({ nutzerId: profil.id, zug: antwortId, nr: 0, text: "", ablauf }, geheimnis),
+        },
+      });
+      const schickeAbschnitt = (nr: number, text: string, ziele?: string[]) => {
         writer.write({
           type: "data-satz",
           data: {
@@ -615,17 +692,51 @@ export async function POST(req: Request) {
             // Ohne Signatur waere die Abschnitts-Route ein offener
             // Sprachgenerator - siehe domain/sprachausgabe-signatur.ts.
             sig: signiereAbschnitt({ nutzerId: profil.id, zug: antwortId, nr, text, ablauf }, geheimnis),
+            // Sprechmarken: unsigniert, sie steuern nur den Rahmen im eigenen Browser.
+            ...(ziele && ziele.length > 0 ? { ziele } : {}),
           },
         });
       };
 
+      // Sprechmarken ("[[a3]]") verlassen den Server nie im Text: der Filter nimmt
+      // sie aus jedem Textstueck, der Zerleger bekommt einen Platzhalter und ordnet
+      // das Ziel seinem Satz zu. Ziele, die das Modell nicht kennen kann (erfundene
+      // Referenz), fallen weg.
+      // Nur im Sprachmodus: ausserhalb davon kann "[[...]]" gewoehnlicher Text sein.
+      const marken = markenAn ? erzeugeMarkenFilter(bekannteReferenzen(nachrichten, seitenkarte)) : null;
+      const fuettere = (stueck: { zerleger: string; ziele: string[] }) => {
+        for (const a of zerleger.fuettere(stueck.zerleger, stueck.ziele)) schickeAbschnitt(a.nr, a.text, a.ziele);
+      };
       for await (const teil of result.toUIMessageStream({ generateMessageId: () => antwortId, messageMetadata: nachrichtenBeigabe })) {
-        writer.write(teil);
-        if (teil.type === "text-delta" && typeof teil.delta === "string") {
-          for (const a of zerleger.fuettere(teil.delta)) schickeAbschnitt(a.nr, a.text);
+        if (!marken) {
+          writer.write(teil);
+          if (teil.type === "text-delta" && typeof teil.delta === "string") fuettere({ zerleger: teil.delta, ziele: [] });
+          else if (teil.type === "text-end") for (const a of zerleger.schrittEnde()) schickeAbschnitt(a.nr, a.text, a.ziele);
+          continue;
         }
+        if (teil.type === "text-delta" && typeof teil.delta === "string") {
+          const stueck = marken.fuettere(teil.delta);
+          if (stueck.anzeige) writer.write({ ...teil, delta: stueck.anzeige });
+          fuettere(stueck);
+          continue;
+        }
+        if (teil.type === "text-end") {
+          // Was der Filter noch zurueckhielt (eine offene Marke am Ende), zuerst.
+          const rest = marken.leere();
+          if (rest.anzeige) writer.write({ type: "text-delta", id: teil.id, delta: rest.anzeige });
+          fuettere(rest);
+          writer.write(teil);
+          // Ende eines Textteils: danach ruft das Modell ein Werkzeug auf oder
+          // hoert auf. Der Teil ist vollstaendig und geht ganz hinaus - sonst
+          // lag ein fertiger Satz waehrend der Werkzeuge stumm im Puffer, und
+          // "Ich oeffne die Lohnabrechnung" klebte am naechsten Teil
+          // ("LohnabrechnungHier ...").
+          for (const a of zerleger.schrittEnde()) schickeAbschnitt(a.nr, a.text, a.ziele);
+          continue;
+        }
+        writer.write(teil);
       }
-      for (const a of zerleger.abschliessen()) schickeAbschnitt(a.nr, a.text);
+      for (const a of zerleger.abschliessen()) schickeAbschnitt(a.nr, a.text, a.ziele);
     },
   });
 
