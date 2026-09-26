@@ -235,8 +235,13 @@ halben Bildschirm zu, gerade den Bereich, über den Himbi spricht. Eine offene
 Freigabekarte bleibt sichtbar, der Untertitel-Schalter fällt dort weg. Ist ein
 Bereich gerahmt, weicht Himbi ihm aus (`ausweichPlatz` in `domain/sprachmodus.ts`,
 Rückmeldung vom 26.09.2026): direkt über den Rahmen, sonst darunter über der
-Bedienleiste, sonst über den Rahmen auf die Kopfzeile, und nur wenn der Rahmen
-fast den ganzen Bildschirm füllt, an den oberen Rand.
+Bedienleiste, sonst über den Rahmen auf die Kopfzeile. Liegt der Rahmen noch ganz
+außerhalb des Bildes (er wird gerade hereingescrollt), steht Himbi am abgewandten
+Rand; reicht er über den ganzen freien Streifen, unten an der Bedienleiste (dort
+liegt nur ein Stück aus seiner Mitte, nicht seine Überschrift). Himbi bleibt immer
+zwischen Fensterrand und Bedienleiste; eine Freigabekarte, die dort nicht passt,
+scrollt in sich. Gemessen wird die Einheit fest positioniert und über die volle
+Breite zentriert, sonst bräche die Karte schmal um.
 
 **Lippen** (`src/lib/domain/lippen.ts`, reine Rechnung). Recherche vom
 25.09.2026 (27 Quellen, darunter lipsync-engine, wawa-lipsync, Rhubarb,

@@ -571,6 +571,7 @@ function SprachmodusInhalt() {
     if (!istHandy || !zielSichtbar || !zielRechteck) {
       spalte.removeAttribute("data-ausweichen");
       spalte.style.removeProperty("--sprach-y");
+      spalte.style.removeProperty("--sprach-max");
       return;
     }
     const kopf = document.querySelector("[data-kopfzeile]")?.getBoundingClientRect();
@@ -581,19 +582,30 @@ function SprachmodusInhalt() {
       breite: zielRechteck.breite + 2 * RAHMEN_ABSTAND,
       hoehe: zielRechteck.hoehe + 2 * RAHMEN_ABSTAND,
     };
+    // Gemessen wird fixiert und ohne Hoechsthoehe: erst dann hat die Einheit ihre echte
+    // Breite und damit ihre echte Hoehe (eine Freigabekarte bricht im Fluss anders um).
+    // Das Messen passiert im selben Bild, gezeichnet wird erst das Ergebnis.
+    const bisher = spalte.getAttribute("data-ausweichen");
+    const erstes = bisher === null;
+    if (erstes) {
+      spalte.style.transition = "none";
+      spalte.setAttribute("data-ausweichen", "messen");
+    }
+    spalte.style.removeProperty("--sprach-max");
     const platz = ausweichPlatz(rahmen, spalte.offsetHeight, {
       oben: (kopf && kopf.height > 0 ? kopf.bottom : 0) + 8,
       unten: (leiste ? leiste.top : window.innerHeight) - 8,
       rand: 8,
     });
-    // Wechselt Himbi die Seite (ueber/unter dem Rahmen), springt er ohne Gleiten: sonst
-    // glitte er einmal quer durch den Rahmen. Innerhalb derselben Seite gleitet er im
-    // Gleichschritt mit dem Rahmen (sprachmodus.css).
-    const bisher = spalte.getAttribute("data-ausweichen");
-    const springt = bisher !== null && bisher !== platz.lage;
+    // Beim ersten Setzen und wenn Himbi die Seite wechselt (ueber/unter dem Rahmen),
+    // springt er ohne Gleiten: sonst glitte er aus der Mitte oder einmal quer durch den
+    // Rahmen. Innerhalb derselben Seite gleitet er im Gleichschritt mit dem Rahmen
+    // (sprachmodus.css).
+    const springt = erstes || bisher !== platz.lage;
     if (springt) spalte.style.transition = "none";
     spalte.setAttribute("data-ausweichen", platz.lage);
     spalte.style.setProperty("--sprach-y", `${Math.round(platz.y)}px`);
+    spalte.style.setProperty("--sprach-max", `${Math.max(0, Math.floor(platz.hoeheFrei))}px`);
     if (springt) {
       void spalte.offsetHeight;
       requestAnimationFrame(() => spalte.style.removeProperty("transition"));

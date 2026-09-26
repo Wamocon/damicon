@@ -2390,7 +2390,32 @@ for (const [name, kaputteAntwort] of [
     pruefe("Ausweichen: kein Platz zwischen Kopfzeile und Leiste -> ueber den Rahmen auf die Kopfzeile", c.lage === "kopfzeile" && c.y === 180 - 8 - h && c.y >= frei.rand && !ueberlappt(c.y, fastVoll), c);
     const voll = { x: 0, y: 40, breite: 390, hoehe: 700 };
     const d = ausweichPlatz(voll, h, frei);
-    pruefe("Ausweichen: Rahmen fuellt den Bildschirm -> an den oberen Rand", d.lage === "rand" && d.y === frei.rand, d);
+    pruefe("Ausweichen: Rahmen fuellt den Bildschirm -> unten an die Bedienleiste, nicht auf seine Ueberschrift", d.lage === "rand" && d.y === frei.unten - h && d.hoeheFrei === h, d);
+    const unterDerLeiste = { x: 8, y: 784, breite: 374, hoehe: 60 };
+    const e = ausweichPlatz(unterDerLeiste, h, frei);
+    pruefe("Ausweichen: Rahmen noch unter der Leiste -> Himbi bleibt ueber der Leiste, nicht aus dem Bild", e.y + h <= frei.unten && e.y >= frei.oben && e.lage === "oben", e);
+    const ganzUnten = { x: 8, y: 684, breite: 374, hoehe: 62 };
+    const f = ausweichPlatz(ganzUnten, h, frei);
+    pruefe("Ausweichen: letzter Eintrag knapp ueber der Leiste -> darueber, ohne Ueberlappung", f.lage === "oben" && f.y + h <= ganzUnten.y && f.y + h <= frei.unten, f);
+    const ueberDemFenster = { x: 8, y: -500, breite: 374, hoehe: 300 };
+    const g = ausweichPlatz(ueberDemFenster, h, frei);
+    pruefe("Ausweichen: Rahmen noch ueber dem Fenster -> oben unter der Kopfzeile", g.lage === "unten" && g.y === frei.oben, g);
+    const quer = { oben: 64, unten: 281, rand: 8 };
+    const k = ausweichPlatz({ x: 8, y: 120, breite: 600, hoehe: 90 }, 308, quer);
+    pruefe("Ausweichen: Einheit hoeher als der Streifen (Freigabekarte quer) -> am Rand, Karte scrollt bis zur Leiste", k.y === quer.rand && k.hoeheFrei === quer.unten - quer.rand && k.hoeheFrei < 308, k);
+    // Stichprobe: in keiner Lage unter die Leiste oder aus dem Bild, oben/unten nie auf dem Rahmen.
+    let zufall = 7;
+    const naechste = () => (zufall = (zufall * 1103515245 + 12345) % 2147483648) / 2147483648;
+    let verstoesse = 0;
+    for (let i = 0; i < 2000; i++) {
+      const r = { x: 0, y: -900 + naechste() * 2600, breite: 390, hoehe: 20 + naechste() * 1200 };
+      const hh = 60 + naechste() * 400;
+      const pl = ausweichPlatz(r, hh, frei);
+      const sichtbar = Math.min(hh, pl.hoeheFrei);
+      if (pl.y < frei.rand || pl.y + sichtbar > frei.unten + 1e-9) verstoesse++;
+      if ((pl.lage === "oben" || pl.lage === "unten") && r.y < frei.unten && r.y + r.hoehe > frei.rand && pl.y < r.y + r.hoehe && pl.y + hh > r.y) verstoesse++;
+    }
+    pruefe("Ausweichen: 2000 Zufallslagen - nie unter die Leiste oder aus dem Bild, oben/unten nie auf einem sichtbaren Rahmen", verstoesse === 0, verstoesse);
     pruefe("Ausweichen: Grenzfall - genau passend ueber dem Rahmen zaehlt noch als oben", ausweichPlatz({ x: 0, y: 64 + 8 + h, breite: 10, hoehe: 10 }, h, frei).lage === "oben");
     pruefe("Ausweichen: ein Rahmen, der oben aus dem Bild ragt, schickt Himbi nicht darunter, wenn es dort nicht passt", ausweichPlatz({ x: 0, y: -300, breite: 10, hoehe: 1000 }, h, frei).lage === "rand");
     const moduls = readFileSync(new URL("../../src/components/ki/sprachmodus.tsx", import.meta.url), "utf8");

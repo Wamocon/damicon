@@ -121,13 +121,19 @@
   }
   /* Ist ein Bereich gerahmt, weicht Himbi ihm aus (sprachmodus.tsx, ausweichPlatz):
      mittig ueber oder unter den Rahmen statt in die Mitte darauf. */
+  /* Zentriert ueber die volle Breite (left und right mit width: fit-content): mit
+     left: 50 % bekam die Einheit nur die halbe Bildschirmbreite, eine Freigabekarte
+     brach dann schmal und hoch um und landete auf dem Rahmen. Hoechstens bis zur
+     Bedienleiste hoch (--sprach-max), eine laengere Karte scrollt in sich. */
   .ki-sprachmodus__links-spalte[data-ausweichen] {
     position: fixed;
     z-index: 2;
-    left: 50%;
     top: var(--sprach-y, 50%);
-    translate: -50% 0;
-    max-width: calc(100vw - 2rem);
+    left: 1rem;
+    right: 1rem;
+    width: fit-content;
+    margin-inline: auto;
+    max-height: var(--sprach-max, calc(100dvh - 2rem));
   }
 }
 /* Dieselbe Bewegung wie der Rahmen (.ki-sprachmodus__spotlight-ring): gleiten beide
