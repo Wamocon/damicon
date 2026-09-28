@@ -17,6 +17,7 @@ import {
 import { hasPermission } from "@/lib/rbac";
 import { sendeChatAnfrage } from "@/lib/ai/anbieter-client";
 import { sendeAgentAnfrage } from "@/lib/ai/agent";
+import { profilFuerTagesLage } from "@/lib/domain/tages-lage";
 import { ladeRatenlimitGrenze, ratenlimitUeberschritten } from "@/lib/ai/ratenbegrenzung";
 import { entschluessleApiKey } from "@/lib/ai/schluessel";
 import { transkribiereAudio, transkriptionsMeldung, waermeTranskriptionVor } from "@/lib/ai/transkription-client";
@@ -188,6 +189,8 @@ export async function kiNachrichtSenden(
           { basisUrl: anbieter.basis_url, modell: anbieter.modell, apiKey },
           profil.role,
           verlaufFuerModell,
+          // Dieser Weg kennt keine Rollenvorschau: immer das eigene Profil.
+          profilFuerTagesLage(profil, false),
         );
         if (antwort.ok) {
           antwortText = antwort.text;
