@@ -12,6 +12,14 @@
 // etwas schiefgegangen ist.
 //
 // Gemessen am 21.09.2026 gegen unsere eigenen Aufnahmen: 1,4-3,4 s je Datei.
+//
+// Importe nur aus Dateien ohne eigene Importe (spracherkennung.ts,
+// diktat-live.ts): seit 28.09.2026 kommen Sprachhinweise und der Grund "leer"
+// von dort statt als zweite Abschrift hierher (Vibecode-Cleanup, Funde 20/21).
+// Der Test laedt diese Datei deshalb erst nach dem Alias-Lader.
+import { createHash } from "node:crypto";
+import { GRUND_LEER } from "@/lib/domain/spracherkennung";
+import { sprachHinweise, type DiktatKontext } from "@/lib/domain/diktat-live";
 
 export type SonioxAntwort =
   /** `sprachen` sind die Sprachen der einzelnen Token. Sie gehen weiter an
@@ -77,10 +85,6 @@ async function aufraeumen(basis: string, kopf: HeadersInit, auftragId: string | 
   }
 }
 
-/** Sprachen, fuer die ein Hinweis mitgeht - dieselben vier, die die
- *  Oberflaeche kennt. Alles andere wird still verworfen. */
-const HINWEIS_SPRACHEN = ["de", "en", "ru", "kk"];
-
 /** language_hints als Liste von ISO-Codes.
  *
  *  Anders als bei Whisper ist der Hinweis hier ungefaehrlich: Soniox
@@ -90,18 +94,12 @@ const HINWEIS_SPRACHEN = ["de", "en", "ru", "kk"];
  *  empfiehlt ihn ausdruecklich, wenn die erwartete Sprache bekannt ist, und
  *  die Oberflaechensprache ist genau das.
  *
- *  Bei kk und ru gehen seit 24.09.2026 BEIDE Sprachen mit: in Kasachstan wird
- *  zwischen ihnen gewechselt, oft im selben Satz, und sie teilen sich die
- *  Schrift. Dieselbe Regel wie sprachHinweise() in domain/diktat-live.ts
- *  (Live-Weg) - hier noch einmal geschrieben, weil diese Datei mit blossem
- *  Node getestet wird und keine Laufzeit-Importe hat; der Test prueft, dass
- *  beide gleich antworten. */
+ *  Die Regel selbst (bei kk und ru BEIDE Sprachen, seit 24.09.2026) steht nur
+ *  in sprachHinweise() in domain/diktat-live.ts, derselben wie im Live-Weg.
+ *  Ohne Hinweis geht das Feld gar nicht mit, auch nicht als leere Liste. */
 function sprachHinweis(sprache?: string): { language_hints?: string[] } {
-  const wert = sprache?.trim().toLowerCase();
-  if (!wert || !HINWEIS_SPRACHEN.includes(wert)) return {};
-  if (wert === "kk") return { language_hints: ["kk", "ru"] };
-  if (wert === "ru") return { language_hints: ["ru", "kk"] };
-  return { language_hints: [wert] };
+  const hinweise = sprachHinweise(sprache);
+  return hinweise.length > 0 ? { language_hints: hinweise } : {};
 }
 
 /** Zusatzangaben fuer die Erkennung. `kontext` ist das Soniox-Feld context
@@ -110,7 +108,7 @@ function sprachHinweis(sprache?: string): { language_hints?: string[] } {
  *  oder "ЕСУТД". `imHintergrund` nimmt das Aufraeumen beim Dienstleister aus
  *  dem Weg der Antwort (Next: after()); ohne wird es abgewartet. */
 export interface SonioxOptionen {
-  kontext?: { general?: Array<{ key: string; value: string }>; terms?: string[] };
+  kontext?: DiktatKontext;
   imHintergrund?: (arbeit: Promise<void>) => void;
 }
 
@@ -188,8 +186,9 @@ export async function transkribiereMitSoniox(
     // ist ein Ergebnis, kein Ausfall: "leer" laesst spracherkennung.ts nicht
     // auf Whisper zurueckfallen - Whisper erfindet auf Stille gern Saetze
     // ("Untertitel der Amara.org-Gemeinschaft"), und der erfundene Satz
-    // gewann bisher, weil der erste Text zaehlt.
-    if (!text) return { ok: false, grund: "leer" };
+    // gewann bisher, weil der erste Text zaehlt. Die Konstante statt eines
+    // eigenen Literals: nur so erkennt ersterErfolg() diesen Grund sicher.
+    if (!text) return { ok: false, grund: GRUND_LEER };
     const sprachen = Array.isArray(j.tokens)
       ? (j.tokens as Array<{ language?: unknown }>)
           .map((t) => t?.language)
@@ -232,17 +231,38 @@ async function grundAusAntwort(schritt: string, antwort: Response): Promise<stri
 
 export type SonioxSchluesselZweck = "transcribe_websocket" | "tts_rt";
 
-export type SonioxSchluesselAntwort = { ok: true; schluessel: string; ablauf: string } | { ok: false; grund: string };
+// Die Ablaufzeit, die Soniox mitschickt, liest niemand: der Browser bekommt
+// eine relative Gueltigkeit (seine Uhr muss nicht stimmen). Deshalb seit
+// 28.09.2026 nicht mehr Teil der Antwort (Vibecode-Cleanup, Fund 19).
+export type SonioxSchluesselAntwort = { ok: true; schluessel: string } | { ok: false; grund: string };
+
+/** So lange darf die Ausgabe eines Kurzzeitschluessels dauern, bevor die Route
+ *  aufgibt (maxDuration der Schluessel-Routen: 15 s). */
+const SCHLUESSEL_ZEITLIMIT_MS = 5_000;
+
+/** Laenge der pseudonymen Kennung bei Soniox (Hex-Zeichen eines SHA-256). */
+const REFERENZ_ZEICHEN = 32;
+
+/** Pseudonyme Kennung einer Person bei Soniox (client_reference_id): nichts,
+ *  was sich ohne unsere Datenbank einer Person zuordnen liesse, und je Zweck
+ *  verschieden. Vorher stand dieselbe Zeile in beiden Schluessel-Routen
+ *  (Vibecode-Cleanup 28.09.2026, Fund 25). */
+export function sonioxReferenz(zweck: "diktat" | "vorlesen", profilId: string): string {
+  return createHash("sha256").update(`damicon-${zweck}:${profilId}`).digest("hex").slice(0, REFERENZ_ZEICHEN);
+}
 
 /** Wirft nie. `referenz` landet bei Soniox als client_reference_id - nur eine
- *  pseudonyme Kennung, nie ein Name oder eine Adresse. `einmalig` (Standard):
- *  der Schluessel oeffnet genau eine Sitzung - fuer das Diktat. Das Vorlesen
- *  braucht mehrere Stroeme je Antwort (Werkzeugpausen, 2-Minuten-Grenze je
- *  Strom) und holt ihn deshalb mehrfach verwendbar, dafuer mit kurzer
- *  Gueltigkeit und begrenzter Dauer je Strom. */
+ *  pseudonyme Kennung (sonioxReferenz), nie ein Name oder eine Adresse.
+ *
+ *  Jeder Schluessel ist EINMALIG (single_use): er oeffnet genau eine Sitzung,
+ *  fuer das Diktat wie fuer das Vorlesen. Das Vorlesen holt fuer jeden Strom
+ *  einen neuen (components/ki/sprachausgabe-strom.ts). Bis zum 28.09.2026 gab
+ *  es hier einen Schalter fuer mehrfach verwendbare Schluessel, den kein
+ *  Aufrufer mehr nutzte - ein mehrfach verwendbarer Schluessel im Browser
+ *  waere ein offener Zugang bis zu seinem Ablauf, also gibt es ihn nicht mehr. */
 export async function holeSonioxSchluessel(
   zweck: SonioxSchluesselZweck,
-  { gueltigS, sitzungS, referenz, einmalig = true }: { gueltigS: number; sitzungS: number; referenz?: string; einmalig?: boolean },
+  { gueltigS, sitzungS, referenz }: { gueltigS: number; sitzungS: number; referenz?: string },
 ): Promise<SonioxSchluesselAntwort> {
   const key = schluessel();
   if (!key) return { ok: false, grund: "kein-schluessel" };
@@ -250,7 +270,7 @@ export async function holeSonioxSchluessel(
   if (!basis) return { ok: false, grund: "keine-basis-url" };
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 5_000);
+  const timeout = setTimeout(() => controller.abort(), SCHLUESSEL_ZEITLIMIT_MS);
   try {
     const antwort = await fetch(`${basis}/v1/auth/temporary-api-key`, {
       method: "POST",
@@ -258,16 +278,16 @@ export async function holeSonioxSchluessel(
       body: JSON.stringify({
         usage_type: zweck,
         expires_in_seconds: Math.min(3600, Math.max(1, Math.round(gueltigS))),
-        single_use: einmalig,
+        single_use: true,
         max_session_duration_seconds: Math.min(18_000, Math.max(1, Math.round(sitzungS))),
         ...(referenz ? { client_reference_id: referenz.slice(0, 256) } : {}),
       }),
       signal: controller.signal,
     });
     if (!antwort.ok) return { ok: false, grund: await grundAusAntwort("schluessel", antwort) };
-    const j = (await antwort.json().catch(() => null)) as { api_key?: unknown; expires_at?: unknown } | null;
+    const j = (await antwort.json().catch(() => null)) as { api_key?: unknown } | null;
     if (typeof j?.api_key !== "string" || !j.api_key) return { ok: false, grund: "schluessel-unerwartete-form" };
-    return { ok: true, schluessel: j.api_key, ablauf: typeof j.expires_at === "string" ? j.expires_at : "" };
+    return { ok: true, schluessel: j.api_key };
   } catch (fehler) {
     const grund = fehler instanceof Error ? fehler.message : String(fehler);
     return { ok: false, grund: controller.signal.aborted ? "zeitueberschreitung" : `dienst-nicht-erreichbar: ${grund}` };

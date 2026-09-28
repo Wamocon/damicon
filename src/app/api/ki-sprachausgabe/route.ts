@@ -27,6 +27,7 @@ import { pruefeAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausg
 import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
 import { ladeRatenlimitGrenze, ratenlimitUeberschritten, skaliereFuerSprachausgabe } from "@/lib/ai/ratenbegrenzung";
 import { istUuid } from "@/lib/utils";
+import { leseAuswahl, waehleVorleseTeil, type Auswahl } from "@/lib/domain/vorlese-auswahl";
 
 // Zwischenspeicher: Bucket "ki-sprachausgabe" (Migration 20261101000000),
 // privat und nur ueber service_role erreichbar. Die Berechtigung haengt an der
@@ -88,24 +89,6 @@ export async function GET(req: Request) {
   // kann die Kopfzeilen seiner Antwort nicht lesen.
   const art = adresse.searchParams.get("plan") === "1" ? "plan" : "strom";
   return fertigeAntwort(adresse.searchParams.get("nachricht") ?? "", adresse.searchParams.get("sprache") ?? "de", art, auswahl);
-}
-
-/** Welcher Teil einer fertigen Antwort (seit 28.09.2026, vorlesePlan):
- *  `block` - der wievielte Sprachblock, `rest` - nur die letzten so vielen
- *  Saetze. Beides nur Zahlen: der Text kommt IMMER aus der gespeicherten
- *  Nachricht, nie aus dem Browser. Ohne `block` (alter Tab) die ganze Antwort. */
-type Auswahl = { rest?: number; block?: number };
-
-function leseAuswahl(rest: unknown, block: unknown): Auswahl | null {
-  const zahl = (wert: unknown): number | undefined | null => {
-    if (wert === null || wert === undefined || wert === "") return undefined;
-    const n = typeof wert === "number" ? wert : typeof wert === "string" && /^\d{1,4}$/.test(wert) ? Number(wert) : Number.NaN;
-    return Number.isInteger(n) && n >= 0 && n <= 9999 ? n : null;
-  };
-  const r = zahl(rest);
-  const b = zahl(block);
-  if (r === null || b === null) return null;
-  return { rest: r, block: b };
 }
 
 export async function POST(req: Request) {
@@ -262,20 +245,11 @@ async function fertigeAntwort(nachrichtId: string, gemeldeteSprache: string, art
   }
   if (art === "plan") return Response.json({ bloecke: plan.bloecke.length }, { headers: { "cache-control": "no-store" } });
 
-  // Die ganze Antwort wie bisher (derselbe Text, derselbe Ablagepfad): ohne
-  // `block` (alter Tab) oder wenn der Plan nur einen Block hat.
-  const ganz = auswahl.block === undefined || (auswahl.rest === undefined && plan.bloecke.length <= 1);
-  let text = ganzerText;
-  let teil: { von: number; bis: number } | undefined;
-  let spracheDesTextes: string = plan.bloecke.length === 1 ? plan.bloecke[0]!.sprache : plan.sprache;
-  if (!ganz || (auswahl.block ?? 0) > 0) {
-    const block = plan.bloecke[auswahl.block ?? 0];
-    if (!block) return fehler(422, "kein-block");
-    text = block.text;
-    teil = { von: block.von, bis: block.bis };
-    spracheDesTextes = block.sprache;
-  }
-  const sprache = istSprachausgabeSprache(spracheDesTextes) ? spracheDesTextes : "de";
+  // Ganze Antwort oder ein Block: domain/vorlese-auswahl.ts.
+  const gewaehlt = waehleVorleseTeil(auswahl, plan, ganzerText);
+  if (!gewaehlt) return fehler(422, "kein-block");
+  const { text, teil } = gewaehlt;
+  const sprache = istSprachausgabeSprache(gewaehlt.sprache) ? gewaehlt.sprache : "de";
   const stimmen = stimmenFuer(sprache);
   if (stimmen.length === 0) return fehler(422, "keine-stimme", { sprache });
 

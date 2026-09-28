@@ -35,9 +35,13 @@ So läuft es (`src/lib/domain/diktat-live.ts`, `src/components/ki/diktat-live.ts
 1. Klick aufs Mikrofon. Sofort, noch während der Browser nach der
    Mikrofon-Erlaubnis fragt, holt er über `POST /api/ki-spracherkennung`
    einen **kurzlebigen Schlüssel**: nur für Spracherkennung, nur einmal,
-   60 s zum Verbinden, höchstens 120 s Sitzung. Der echte `SONIOX_API_KEY`
+   60 s zum Verbinden, höchstens 120 s Sitzung (im Gespräch des Sprachmodus
+   `GESPRAECH_SITZUNG_S`, 30 Minuten). Der echte `SONIOX_API_KEY`
    verlässt den Server nie. Die Route prüft Anmeldung, Recht am
-   KI-Assistenten, den Schalter und die Ratenbegrenzung (`stt:`).
+   KI-Assistenten, den Schalter, seit 28.09.2026 eine feste Obergrenze je
+   Person und Minute (12 Diktate, 6 Gesprächsschlüssel in einem eigenen
+   Zähler, auch ohne Einstellung im Admin-Bereich) und die Ratenbegrenzung
+   (`stt:`). Der Ablauf steht in `src/lib/ai/soniox-zugang.ts`.
 2. MediaRecorder liefert alle 100 ms ein Stück (webm/opus, auf dem iPhone
    mp4). Was vor dem Verbindungsaufbau aufgenommen wird, wird gepuffert;
    die ersten Worte gehen nicht verloren.

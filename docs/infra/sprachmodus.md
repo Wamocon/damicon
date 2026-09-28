@@ -232,7 +232,7 @@ entscheidet `nachSitzungsAbbruch()`:
 | --- | --- |
 | Schlüssel-Route sagt 401, 403 oder 404 (Live-Diktat aus, keine Berechtigung) | Meldung, kein Neuversuch |
 | Schneller Verbindungs- oder Dienstfehler | nach 500 ms neu verbinden, höchstens zweimal, dann Meldung mit „Erneut versuchen“ |
-| Sitzung lief lange (Zeitgrenze 120 s) und hat nichts gehört | Mikrofon stumm schalten, statt minutenlang Stille an Soniox zu schicken |
+| Sitzung lief lange (mindestens `LANGE_SITZUNG_MS`; die Zeitgrenze einer Gesprächssitzung ist `GESPRAECH_SITZUNG_S`) und hat nichts gehört | Mikrofon stumm schalten, statt minutenlang Stille an Soniox zu schicken |
 | Sitzung lief lange und hat etwas gehört | neu verbinden, Zähler von vorn |
 
 Bis zum 24.09.2026 gab es diesen Weg nicht: kam kein Endpunkt, hörte der

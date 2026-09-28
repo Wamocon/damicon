@@ -130,13 +130,6 @@ import { erzeugeWarteschlange, HOECHSTENS_GLEICHZEITIG } from "../../src/lib/dom
 import { ANFANG, DARSTELLUNG_SCHLUESSEL, istDarstellung, naechsterZustand, NUTZER_SCHLUESSEL, OFFEN_SCHLUESSEL } from "../../src/lib/domain/ki-ansicht.ts";
 import { agentSeitenansichtAn, diktatLiveAn, schalterAn, sprachausgabeLiveAn } from "../../src/lib/domain/schalter.ts";
 import { ABSCHNITT_GUELTIG_MS, pruefeAbschnitt, signiereAbschnitt, sprachausgabeGeheimnis } from "../../src/lib/domain/sprachausgabe-signatur.ts";
-import {
-  holeSonioxSchluessel,
-  sonioxBasisUrl,
-  sonioxZeitlimitMs,
-  spracherkennungAnbieter,
-  transkribiereMitSoniox,
-} from "../../src/lib/ai/soniox-client.ts";
 import { readFileSync } from "node:fs";
 import { register } from "node:module";
 
@@ -169,6 +162,11 @@ const {
 } = await import("../../src/lib/domain/sprachausgabe.ts");
 const { bestimmeAntwortsprache, mehrheitsSprache, sprachePasst, stimmenSprache } = await import("../../src/lib/domain/antwortsprache.ts");
 const { erkenneSprache, erkenneSpracheEindeutig } = await import("../../src/lib/wissen/chunker.ts");
+// Seit 28.09.2026 holt auch ai/soniox-client.ts Sprachhinweise und GRUND_LEER ueber
+// den Alias (Vibecode-Cleanup, Funde 20/21) - deshalb ebenfalls erst hier.
+const { holeSonioxSchluessel, sonioxBasisUrl, sonioxZeitlimitMs, spracherkennungAnbieter, transkribiereMitSoniox } = await import(
+  "../../src/lib/ai/soniox-client.ts"
+);
 
 let bestanden = 0;
 let fehlgeschlagen = 0;
@@ -1897,13 +1895,10 @@ for (const [name, kaputteAntwort] of [
     pruefe(`Schalter: ${name} steht in .env.example`, beispiel.includes(name));
   }
 
-  // (g) Schluessel-Route: dieselben Schranken wie Chat und Diktat.
-  const route = readFileSync(new URL("../../src/app/api/ki-spracherkennung/route.ts", import.meta.url), "utf8");
-  pruefe("Schluessel-Route: prueft Anmeldung und Berechtigung", route.includes("getSessionProfile()") && route.includes('hasPermission(profil.role, "ki_assistent", "create")'));
-  pruefe("Schluessel-Route: prueft den Schalter", route.includes("diktatLiveAn()"));
-  pruefe("Schluessel-Route: zaehlt gegen die Ratenbegrenzung (stt:)", route.includes("ratenlimitUeberschritten(`stt:${profil.id}`"));
-  pruefe("Schluessel-Route: wird nie zwischengespeichert", route.includes('"cache-control": "no-store"'));
-  pruefe("Schluessel-Route: gibt den echten Schluessel nie heraus", !route.includes("SONIOX_API_KEY") && route.includes("holeSonioxSchluessel("));
+  // (g) Schluessel-Route: Anmeldung, Recht, Schalter, Grenzen und no-store prueft
+  // seit 28.09.2026 supabase/tests/schluessel-routen.ts als VERHALTEN (Handler mit
+  // Attrappen aufgerufen). Die Quelltext-Pins, die hier standen, liessen eine
+  // auskommentierte Rechtepruefung durch (Vibecode-Cleanup, Funde 81/86).
 }
 
 {
@@ -1972,7 +1967,10 @@ for (const [name, kaputteAntwort] of [
     aufrufe.length = 0;
     plan = [json({ id: "d" }), json({ id: "a" }), json({ status: "completed" }), json({ text: "  " }), json({}), json({})];
     const leer = await transkribiereMitSoniox(new Blob([new Uint8Array([1])]), "a.webm", "de");
-    pruefe("Datei-Weg: nichts gehoert heisst 'leer', nicht 'Ausfall'", !leer.ok && leer.grund === "leer", leer.ok ? "" : leer.grund);
+    // Gegen die Konstante, nicht gegen das Wort: nur dann erkennt ersterErfolg()
+    // das Ergebnis des echten Clients (Vibecode-Cleanup 28.09.2026, Fund 20).
+    pruefe("Datei-Weg: nichts gehoert heisst GRUND_LEER, nicht 'Ausfall'", !leer.ok && leer.grund === GRUND_LEER, leer.ok ? "" : leer.grund);
+    pruefe("Datei-Weg: GRUND_LEER wird als 'nichts gehoert' gemeldet, nicht als Fehler", transkriptionsMeldung(GRUND_LEER) === "fehler.transkriptionLeer");
   } finally {
     globalThis.fetch = echtesFetch;
     if (umgebung.k === undefined) delete process.env.SONIOX_API_KEY; else process.env.SONIOX_API_KEY = umgebung.k;
@@ -2836,15 +2834,12 @@ for (const [name, kaputteAntwort] of [
 
   // (d) Verdrahtung (Quelltext).
   const lies = (pfad) => readFileSync(new URL(`../../src/${pfad}`, import.meta.url), "utf8");
-  const schluesselRoute = lies("app/api/ki-sprachausgabe/schluessel/route.ts");
-  pruefe("Schluessel-Route: angemeldet, Chat-Recht, Strom an, feste Obergrenze, Ratenlimit, Nachweis - alles vor dem Schluessel", /getSessionProfile\(\)[\s\S]*?hasPermission\(profil\.role, "ki_assistent", "create"\)[\s\S]*?sprachausgabeStromAn\(\)[\s\S]*?ratenlimitUeberschritten\(`tts-strom:\$\{profil\.id\}`, STROM_SCHLUESSEL_JE_MINUTE\)[\s\S]*?ratenlimitUeberschritten\(`tts:[\s\S]*?pruefeAbschnitt\(\{ nutzerId: profil\.id, zug, nr: 0, text: "", ablauf, sig \}[\s\S]*?holeSonioxSchluessel\("tts_rt"/.test(schluesselRoute));
-  pruefe("Schluessel-Route: ohne Nachweis kein Schluessel (Zug-Signatur oder eigene gespeicherte Antwort per RLS)", schluesselRoute.includes('if (!geheimnis || !zug) return fehler(403, "nicht-erlaubt");') && /from\("ki_chat_nachrichten"\)[\s\S]*?nachricht\.rolle !== "assistent"\) return fehler\(403/.test(schluesselRoute));
-  pruefe("Schluessel-Route: einmalig (ein Strom je Schluessel), 60 s, begrenzte Dauer je Strom, pseudonym", schluesselRoute.includes("einmalig: true") && STROM_SCHLUESSEL_GUELTIG_S === 60 && STROM_SCHLUESSEL_JE_MINUTE === 12 && schluesselRoute.includes("sitzungS: STROM_SITZUNG_S") && schluesselRoute.includes('createHash("sha256")'));
+  // Die Schluessel-Route selbst (Anmeldung, Recht, Strom an, Grenzen, Nachweis,
+  // einmalig, pseudonym, Konfiguration je Sprache) prueft seit 28.09.2026
+  // supabase/tests/schluessel-routen.ts als Verhalten (Vibecode-Cleanup, Funde 38/86).
+  pruefe("Schluessel: 60 s gueltig, feste Obergrenze 12 je Minute", STROM_SCHLUESSEL_GUELTIG_S === 60 && STROM_SCHLUESSEL_JE_MINUTE === 12);
   pruefe("Chat-Route: Zug-Nachweis zu Beginn jeder Antwort (Nummer 0, leerer Text)", lies("app/api/ki-assistent/route.ts").includes('type: "data-nachweis"') && lies("app/api/ki-assistent/route.ts").includes('signiereAbschnitt({ nutzerId: profil.id, zug: antwortId, nr: 0, text: "", ablauf }, geheimnis)'));
   pruefe("Abschnitts-Weg: ein Zug-Nachweis taugt dort nicht (leerer Text wird abgelehnt)", lies("app/api/ki-sprachausgabe/route.ts").includes('if (!abschnittText || !zug || !Number.isInteger(nr)) return fehler(400, "ungueltige-eingabe");'));
-  pruefe("Schluessel-Route: Konfiguration fuer alle vier Sprachen, PCM, Stimme und Tempo je Sprache", schluesselRoute.includes("for (const sprache of sprachausgabeSprachen)") && schluesselRoute.includes("audio_format: STROM_AUDIOFORMAT") && schluesselRoute.includes("voice: sonioxStimmeFuer(sprache)") && schluesselRoute.includes("speed: sprechTempo(sprache)"));
-  pruefe("Schluessel-Route: der echte Schluessel verlaesst den Server nie (nur der kurzlebige)", !schluesselRoute.includes("SONIOX_API_KEY"));
-  pruefe("Soniox-Client: single_use folgt 'einmalig' (Diktat einmalig, Vorlesen mehrfach)", lies("lib/ai/soniox-client.ts").includes("single_use: einmalig,"));
   const client = lies("lib/ai/sprachausgabe-client.ts");
   pruefe("REST-Anfrage: Tempo und Pausenkuerzung gehen mit", client.includes("{ speed: stimme.tempo }") && client.includes("{ reduce_silence: true }"));
   pruefe("REST-Anfrage: lehnt Soniox die Pausenkuerzung ab, einmal ohne", client.includes("stilleKuerzenAbgelehnt = true;") && client.includes("antwort = await anfrage(false);"));
@@ -3423,7 +3418,8 @@ for (const [name, kaputteAntwort] of [
   const diktat = await import("../../src/lib/domain/diktat-live.ts");
   // 28.09.2026: schnellere Endpunkte (Latenz), der Nachsatz faengt ein zu frueh gesetztes Ende auf.
   pruefe("Endpunkt im Gespraech: Empfindlichkeit 0,2, Latenzsenkung Stufe 2, hoechstens 1 s Verzoegerung", diktat.GESPRAECH_ENDPUNKT.endpoint_sensitivity === 0.2 && diktat.GESPRAECH_ENDPUNKT.endpoint_latency_adjustment_level === 2 && diktat.liveKonfiguration("de", "gespraech").max_endpoint_delay_ms === 1_000 && diktat.liveKonfiguration("de").max_endpoint_delay_ms === diktat.ENDPUNKT_VERZOEGERUNG_MS);
-  pruefe("Gespraech: eine Sitzung haelt 30 Minuten, das Diktat bleibt bei 2 Minuten", diktat.GESPRAECH_SITZUNG_S === 1_800 && diktat.SITZUNG_HOECHSTENS_S === 120 && lies4("app/api/ki-spracherkennung/route.ts").includes('sitzungS: zweck === "gespraech" ? GESPRAECH_SITZUNG_S : SITZUNG_HOECHSTENS_S'));
+  // Dass die Schluessel-Route diese Dauern je Zweck vergibt, prueft schluessel-routen.ts.
+  pruefe("Gespraech: eine Sitzung haelt 30 Minuten, das Diktat bleibt bei 2 Minuten", diktat.GESPRAECH_SITZUNG_S === 1_800 && diktat.SITZUNG_HOECHSTENS_S === 120);
   {
     // textAb: nur Woerter ab der Grenze, Teilstuecke zu Woertern zusammengefasst.
     const s = diktat.erzeugeTokenSammler();

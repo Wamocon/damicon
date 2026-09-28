@@ -82,15 +82,22 @@ erste Fassung war zu offen):
 - nur mit **Nachweis**: die laufende Antwort (Zug-Nachweis, gleiche Signatur wie
   ein Abschnitt mit Nummer 0 und leerem Text; der Abschnitts-Weg lehnt leeren
   Text ab, eine Verwechslung ist ausgeschlossen) oder eine gespeicherte eigene
-  Antwort (Nachrichten-ID, per RLS gelesen),
+  Antwort (Nachrichten-ID, per RLS gelesen), die seit 28.09.2026 höchstens
+  15 Minuten alt sein darf (`NACHWEIS_NACHRICHT_FRISCH_MS`). Ältere Antworten
+  liest der Knopf über den Datei-Weg vor,
 - **einmalig**: ein Schlüssel öffnet genau einen Strom, 60 s lang; ein Strom
   dauert höchstens 150 s,
 - feste Obergrenze von **12 Schlüsseln je Person und Minute**, auch ohne
   Einstellung im Admin-Bereich, dazu die Grenze des Vorlesens,
 - nur angemeldet und mit Recht am KI-Assistenten, pseudonyme Kennung bei Soniox.
 
-Ein Missbrauch kostet also höchstens wenige Sprachminuten einer angemeldeten
-Person mit einer echten Antwort und ist ihr über die Kennung zuzuordnen.
+Was das nicht verhindert: Ein Nachweis lässt sich innerhalb seiner Gültigkeit
+mehrfach einlösen, und die Zähler liegen im Speicher je Serverinstanz. Eine
+angemeldete Person mit Chat-Recht kommt so auf bis zu 12 Ströme je Minute und
+Instanz mit beliebigem Text, ohne Tageskontingent. Das sind Sprachminuten im
+zweistelligen Bereich je Minute. Zuzuordnen ist es über die pseudonyme Kennung.
+Der Ablauf samt Schranken steht in `src/lib/ai/soniox-zugang.ts` und wird in
+`supabase/tests/schluessel-routen.ts` als Verhalten geprüft.
 
 **Grenzen bei Soniox**, gegen die geplant ist: 3 gleichzeitige Ströme für die
 **ganze Organisation** (erhöhbar), 100 Anfragen je Minute, 2 Minuten Audio je
