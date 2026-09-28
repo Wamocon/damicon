@@ -6,7 +6,7 @@
 // Aufruf: npm run test:uebersicht-reiter (ueber tsx, damit die @/-Pfade aufloesen).
 
 import { readFileSync } from "node:fs";
-import type { Kpi } from "@/lib/domain/kpis";
+import { kpis as alleKpis, kpisFuerRolle, type Kpi } from "@/lib/domain/kpis";
 import { STARTKARTEN, startkarteFuer } from "@/lib/domain/startkarte";
 import { auffaelligeZuerst, nurAuffaellige, zielAuswerten } from "@/lib/domain/zielstand";
 import { roles, type Role } from "@/lib/rbac";
@@ -131,6 +131,28 @@ pruefe(
   tourAktionen.includes('tc("tour.zusammenfassung")') && tourAktionen.includes('tc("tour.neustart")'),
 );
 pruefe("Kein zweiter Neustart-Knopf neben 'Befunde'", !kacheln.includes('tc("tour.neustart")'));
+
+// ---- Kennzahlen-Verlauf: Datenbank und Anwendung ziehen dieselbe Grenze (28.09.2026) ----
+// public.kpi_sichtbar() in 20261112000000_kpi_verlauf_nach_rolle.sql spiegelt sichtbarFuer.
+// Laeuft beides auseinander, saehe eine Rolle ueber Himbis datenLesen einen Verlauf, den die
+// Uebersicht ihr nicht zeigt (oder umgekehrt fehlte ihr der Trendpfeil).
+{
+  const migration = readFileSync(new URL("./../migrations/20261112000000_kpi_verlauf_nach_rolle.sql", import.meta.url), "utf8");
+  const inDb = new Map<string, string[]>();
+  for (const m of migration.matchAll(/when '([A-Za-z]+)'\s+then public\.has_role\(([^)]*)\)/g)) {
+    inDb.set(m[1]!, [...m[2]!.matchAll(/'([a-z]+)'/g)].map((r) => r[1]!).sort());
+  }
+  const inApp = new Map(alleKpis.map((k) => [k.key, [...k.sichtbarFuer].sort()]));
+  const fehlend = [...inApp.keys()].filter((k) => !inDb.has(k));
+  const ueberzaehlig = [...inDb.keys()].filter((k) => !inApp.has(k));
+  const abweichend = [...inApp.entries()].filter(([k, r]) => inDb.has(k) && !gleich(inDb.get(k), r)).map(([k]) => k);
+  pruefe("Kennzahlen-Verlauf: jede Kennzahl der Anwendung steht in kpi_sichtbar, keine zusaetzliche", fehlend.length === 0 && ueberzaehlig.length === 0, `fehlt: ${fehlend.join(", ")} zusaetzlich: ${ueberzaehlig.join(", ")}`);
+  pruefe("Kennzahlen-Verlauf: die Rollen je Kennzahl sind in Datenbank und sichtbarFuer gleich", abweichend.length === 0, abweichend.join(", "));
+  pruefe("Kennzahlen-Verlauf: unbekannte Kennzahlen nur fuer admin (und damit ceo)", /else public\.has_role\('admin'\)\s*end;/.test(migration));
+  pruefe("Kennzahlen-Verlauf: die alte Lese-Policy fuer alle faellt weg, die neue haengt an kpi_sichtbar", migration.includes("drop policy if exists kpi_verlauf_select_intern on public.kpi_verlauf;") && /create policy kpi_verlauf_select_rolle on public\.kpi_verlauf\s+for select to authenticated\s+using \(public\.kpi_sichtbar\(schluessel\)\);/.test(migration));
+  // Dieselbe Regel fuer ceo wie in kpisFuerRolle: ceo sieht, was admin sieht.
+  pruefe("Kennzahlen-Verlauf: ceo sieht in der Anwendung genau die Kennzahlen mit admin", gleich(kpisFuerRolle("ceo", alleKpis).kern.concat(kpisFuerRolle("ceo", alleKpis).erweitert).map((k) => k.key).sort(), alleKpis.filter((k) => k.sichtbarFuer.includes("admin")).map((k) => k.key).sort()));
+}
 
 console.log(`\nPruefungen: ${gesamt}   bestanden: ${gesamt - fehler}   fehlgeschlagen: ${fehler}`);
 if (fehler > 0) process.exit(1);

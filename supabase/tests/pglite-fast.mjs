@@ -1238,6 +1238,64 @@ await mussScheitern(
   await db.query("delete from public.kpi_verlauf where gemessen_am in (date '2026-09-20', date '2026-09-21');");
 }
 
+// --- Kennzahlen-Verlauf nur fuer die Rollen der Kennzahl (28.09.2026) ------------
+// 20261112000000_kpi_verlauf_nach_rolle.sql: vorher las jedes Konto jede Zeile, und
+// ueber Himbis datenLesen haette ein Kunde den Verlauf des Deckungsbeitrags lesen
+// koennen. Erwartet wird je Rolle genau das, was die Anwendung ihr zeigt
+// (sichtbarFuer in src/lib/domain/kpis.ts, ceo wie admin) - geladen aus derselben
+// Datei, damit der Test nicht eine eigene Kopie der Liste pflegt.
+{
+  await alsAdmin(db);
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+  const { kpis } = await import("../../src/lib/domain/kpis.ts");
+  const schluessel = [...kpis.map((k) => k.key), "unbekannteKennzahl"];
+  for (const tag of ["2026-09-22", "2026-09-23"]) {
+    await db.query(
+      `insert into public.kpi_verlauf (schluessel, gemessen_am, wert, datensaetze)
+       select s, $2::date, 1, 1 from unnest($1::text[]) s
+       on conflict (schluessel, gemessen_am) do nothing;`,
+      [schluessel, tag],
+    );
+  }
+  const erwartet = (rolle) =>
+    [
+      ...kpis.filter((k) => k.sichtbarFuer.includes(rolle) || (rolle === "ceo" && k.sichtbarFuer.includes("admin"))).map((k) => k.key),
+      ...(rolle === "admin" || rolle === "ceo" ? ["unbekannteKennzahl"] : []),
+    ].sort();
+  const tage = "gemessen_am in (date '2026-09-22', date '2026-09-23')";
+  for (const rolle of ["kunde", "picker", "erzeuger", "brigade", "buchhaltung", "betriebsleitung", "admin", "ceo"]) {
+    const { rows: konto } = await db.query(
+      `insert into auth.users (email, raw_app_meta_data) values ($1, jsonb_build_object('role', $2::text)) returning id;`,
+      [`kv-${rolle}@damicon.demo`, rolle],
+    );
+    await alsRolle(db, "authenticated", konto[0].id);
+    const { rows: verlauf } = await db.query(`select distinct schluessel from public.kpi_verlauf where ${tage};`);
+    const { rows: trend } = await db.query("select schluessel from public.kpi_trend where stand = date '2026-09-23';");
+    await alsAdmin(db);
+    const soll = erwartet(rolle);
+    const ist = verlauf.map((z) => z.schluessel).sort();
+    check(
+      `Kennzahlen-Verlauf: ${rolle} liest genau die Kennzahlen, die die Anwendung zeigt`,
+      JSON.stringify(ist) === JSON.stringify(soll),
+      `sieht ${ist.length}, erwartet ${soll.length}${ist.length !== soll.length ? `: ${ist.join(",")}` : ""}`,
+    );
+    check(
+      `Kennzahlen-Verlauf: ${rolle} bekommt auch in kpi_trend nur diese`,
+      JSON.stringify(trend.map((z) => z.schluessel).sort()) === JSON.stringify(soll),
+      `Trend-Zeilen: ${trend.length}`,
+    );
+  }
+  check("Kennzahlen-Verlauf: Kunde und Pfluecker sehen keinen einzigen Verlauf", erwartet("kunde").length === 0 && erwartet("picker").length === 0);
+  await db.exec("set role anon;");
+  const { rows: anon } = await db.query(`select count(*)::int as n from public.kpi_verlauf where ${tage};`);
+  await alsAdmin(db);
+  check("Kennzahlen-Verlauf: ohne Anmeldung nichts", anon[0].n === 0, `Zeilen: ${anon[0].n}`);
+
+  await db.query(`delete from public.kpi_verlauf where ${tage};`);
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+  await db.query("select set_config('request.jwt.claim.role', '', false);");
+}
+
 // --- CEO-Berichte: ceo und admin schreiben, sonst niemand --------------------
 // Seit 20261110000000_ceo_bericht_admin.sql darf auch admin einen Bericht
 // ausloesen (Auftrag vom 23.09.2026, Tages-Uebersicht fuer ceo UND admin).
