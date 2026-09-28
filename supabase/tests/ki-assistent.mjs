@@ -2265,8 +2265,12 @@ for (const [name, kaputteAntwort] of [
       pruefe(`Erinnerung ${sprache}: haengt an der Frage, in ${sprache}`, letzter.type === "text" && letzter.text.includes(ERINNERUNG[sprache]) && kopie.at(-1).parts.length === 2);
       pruefe(`Erinnerung ${sprache}: die Originalnachricht bleibt unveraendert`, original[0].parts.length === 1);
     }
-    const freigabe = [{ role: "user", parts: [] }, { role: "assistant", parts: [{ type: "text", text: "x" }] }];
-    pruefe("Erinnerung: eine Freigabe-Runde (letzte Nachricht vom Assistenten) bleibt, wie sie ist", JSON.stringify(mitSprachErinnerung(freigabe, "ru")) === JSON.stringify(freigabe));
+    // Seit dem 28.09.2026 auch in Folgeanfragen (nach seiteLesen oder einer Freigabe): an der
+    // letzten Nutzerfrage davor. Gemessen wechselte Himbi sonst nach seiteLesen in die Sprache der Seite.
+    const freigabe = [{ role: "user", parts: [{ type: "text", text: "Да." }] }, { role: "assistant", parts: [{ type: "text", text: "x" }] }];
+    const folge = mitSprachErinnerung(freigabe, "ru");
+    pruefe("Erinnerung: in einer Folgeanfrage haengt sie an der letzten Nutzerfrage, die Antwort bleibt unberuehrt", folge[0].parts.length === 2 && folge[0].parts[1].text.includes(ERINNERUNG.ru) && JSON.stringify(folge[1]) === JSON.stringify(freigabe[1]) && freigabe[0].parts.length === 1);
+    pruefe("Erinnerung: ohne jede Nutzerfrage bleibt alles, wie es ist", JSON.stringify(mitSprachErinnerung([{ role: "assistant", parts: [] }], "ru")) === JSON.stringify([{ role: "assistant", parts: [] }]));
   }
 
   // (e) Der erzeugte Text muss zur Sprache passen (Berichts-Zusammenfassung).

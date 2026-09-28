@@ -62,18 +62,26 @@ export function spracheErinnerung(sprache: AntwortSprache): string {
 
 /** Die Nachrichten, wie sie ans Modell gehen: an der letzten Nutzerfrage haengt
  *  ein Hinweis in der Antwortsprache. Nur die Kopie fuers Modell - gespeichert
- *  und angezeigt wird die Frage unveraendert. Endet der Verlauf nicht mit einer
- *  Nutzerfrage (Freigabe-Runde), bleibt alles, wie es ist. */
+ *  und angezeigt wird die Frage unveraendert.
+ *
+ *  Auch in einer Folgeanfrage (nach einem Werkzeug im Browser wie seiteLesen, oder nach
+ *  einer Freigabe), in der die letzte Nachricht vom Assistenten ist: dann an der letzten
+ *  Nutzerfrage davor. Bis zum 28.09.2026 blieb eine solche Runde ohne Hinweis, und das
+ *  Modell folgte dem Seiteninhalt: gemessen begann Himbi auf "Да" russisch und sprach nach
+ *  seiteLesen deutsch weiter. Seitdem bestimmt zugAusNachrichten (domain/antwortsprache.ts)
+ *  die Sprache auch fuer diese Runden verlaesslich. */
 export function mitSprachErinnerung<T extends { role: string; parts: unknown[] }>(
   nachrichten: readonly T[],
   sprache: AntwortSprache,
 ): T[] {
   const kopie = [...nachrichten];
-  const letzte = kopie.at(-1);
-  if (!letzte || letzte.role !== "user") return kopie;
-  kopie[kopie.length - 1] = {
-    ...letzte,
-    parts: [...letzte.parts, { type: "text", text: `\n\n${spracheErinnerung(sprache)}` }],
+  let i = kopie.length - 1;
+  while (i >= 0 && kopie[i]!.role !== "user") i -= 1;
+  if (i < 0) return kopie;
+  const frage = kopie[i]!;
+  kopie[i] = {
+    ...frage,
+    parts: [...frage.parts, { type: "text", text: `\n\n${spracheErinnerung(sprache)}` }],
   };
   return kopie;
 }
