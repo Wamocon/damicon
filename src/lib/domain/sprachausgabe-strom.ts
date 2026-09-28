@@ -103,6 +103,15 @@ export const STROM_ABTASTRATE_SPARSAM = 16_000;
 /** Ab so vielen Aussetzern in einer Sitzung spricht Himbi sparsam - einer allein kann ein
  *  kurzer Wackler sein. */
 export const AUSSETZER_BIS_SPARSAM = 2;
+/** Nur eine hoerbare Luecke zaehlt dafuer. Gemessen am 28.09.2026 ohne gedrosseltes Netz
+ *  schaltete die Stimme sonst schon nach zwei Wacklern von wenigen Millisekunden auf 16 kHz,
+ *  die der Vorlauf ohnehin auffaengt. */
+export const AUSSETZER_HOERBAR_S = 0.15;
+
+/** Zaehlt diese Luecke als Aussetzer, der fuer eine langsame Verbindung spricht? */
+export function aussetzerHoerbar(luecke: number, nochText: boolean): boolean {
+  return luecke >= AUSSETZER_HOERBAR_S || (nochText && luecke > 0.03);
+}
 
 /** Was der Browser ueber seine Verbindung weiss (Network Information API, nur Chromium). */
 export interface VerbindungsInfo {

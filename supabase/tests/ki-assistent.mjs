@@ -106,6 +106,7 @@ import {
   STROM_SCHLUESSEL_GUELTIG_S,
   STROM_SCHLUESSEL_JE_MINUTE,
   abtastrateFuer,
+  aussetzerHoerbar,
   langsameVerbindung,
   naechsterVorlauf,
   ungesprocheneTexte,
@@ -2706,6 +2707,7 @@ for (const [name, kaputteAntwort] of [
   // 28.09.2026: hoechstens 2 s statt 1 s (Rueckmeldung "jede Sekunde Unterbrechungen", Messung bei schwachem Netz).
   pruefe("Strom: nach jedem Aussetzer doppelter Vorlauf, hoechstens 2 s", naechsterVorlauf(0.25) === 0.5 && naechsterVorlauf(0.5) === 1 && naechsterVorlauf(1) === 2 && naechsterVorlauf(2) === 2);
   // 28.09.2026: bei langsamem Netz 16 statt 24 kHz (ein Drittel weniger Daten), sonst unveraendert.
+  pruefe("Strom: nur hoerbare Luecken (ab 150 ms, mitten im Text ab 30 ms) zaehlen fuer 16 kHz, Wackler nicht", !aussetzerHoerbar(0.01, false) && !aussetzerHoerbar(0.1, false) && aussetzerHoerbar(0.2, false) && aussetzerHoerbar(0.05, true) && !aussetzerHoerbar(0.01, true) && readFileSync(new URL("../../src/components/ki/sprachausgabe-strom.ts", import.meta.url), "utf8").includes("if (aussetzerHoerbar(luecke, nochText)) aussetzerImTab += 1;"));
   pruefe("Strom: sparsam hoechstens 16 kHz, sonst die Vorgabe des Servers", abtastrateFuer(24_000, true) === 16_000 && abtastrateFuer(24_000, false) === 24_000 && abtastrateFuer(8_000, true) === 8_000);
   pruefe("Strom: langsame Verbindung laut Browser (Datensparmodus, 3G, unter 1,5 Mbit/s), ohne Angabe nicht", langsameVerbindung({ saveData: true }) && langsameVerbindung({ effectiveType: "3g" }) && langsameVerbindung({ downlink: 0.7 }) && !langsameVerbindung({ effectiveType: "4g", downlink: 10 }) && !langsameVerbindung({ downlink: 0 }) && !langsameVerbindung(undefined));
   {

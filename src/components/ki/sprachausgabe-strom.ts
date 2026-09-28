@@ -36,6 +36,7 @@ import {
   ZEICHEN_JE_SEKUNDE,
   abbruchNachricht,
   abtastrateFuer,
+  aussetzerHoerbar,
   base64ZuBytes,
   brauchtNeuenStrom,
   endeNachricht,
@@ -578,8 +579,9 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
     if (zeitEnde > 0 && luecke > 0 && strom === letzterStrom && (luecke < 0.8 || nochText)) {
       vorlauf = naechsterVorlauf(vorlauf);
       aussetzerInRunde = true;
-      // Der naechste Strom spricht dann sparsamer (16 kHz), siehe sparsamSprechen().
-      aussetzerImTab += 1;
+      // Der naechste Strom spricht dann sparsamer (16 kHz), siehe sparsamSprechen() - aber
+      // nur nach hoerbaren Luecken, nicht nach Wacklern, die der Vorlauf auffaengt.
+      if (aussetzerHoerbar(luecke, nochText)) aussetzerImTab += 1;
     }
     letzterStrom = strom;
     stillSeit = null;
