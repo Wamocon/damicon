@@ -72,8 +72,26 @@ Der Systemprompt kennt jetzt `"assistent" | "agent" | "sprache"`
   (`istZusageBefehl`/`istAbsageBefehl`, `src/lib/domain/sprachmodus.ts`), nicht
   als neue Frage. „Ja, aber was kostet das?“ ist keine Zusage und wird als Frage
   weitergereicht, Schweigen oder Unklares gibt **nie** eine Freigabe. „Stopp“
-  lehnt bei offener Karte nur die Aktion ab, sonst beendet es den Sprachmodus.
-  Die Karte im sichtbaren Chat bleibt ein zweiter Weg (Klick).
+  lehnt bei offener Karte nur die Aktion ab, „Sprachmodus beenden“ lehnt ab und
+  beendet. Die Karte im sichtbaren Chat bleibt ein zweiter Weg (Klick).
+- **Tagesbegleiter** (seit 28.09.2026, `TAGESBEGLEITER` in
+  `domain/antwort-anweisungen.ts`, im gecachten festen Teil für alle Modi): Fragt
+  der Nutzer, was ansteht, oder beginnt das Gespräch am Tagesbeginn, holt Himbi
+  die Lage mit **einem** Werkzeug (`tagesLageAbrufen`, `lib/ai/tages-lage.ts`:
+  Fristen, fällige Pflückaufgaben, Kühlkette der letzten 24 Stunden,
+  Reklamationen, Touren, Lieferung, Schulung, Lohn, Prüfbericht, nach Rolle und
+  unter RLS), nennt höchstens drei Punkte und schließt mit genau einer Frage.
+  Rückfragen höchstens eine je Antwort; Aktionen aus einem Vorschlag bietet er
+  als Frage an. „Heute“ steht mit Wochentag und Uhrzeit in Almaty im
+  wechselnden Teil (`heuteAnweisung`), damit der Cache nicht jede Minute neu
+  schreibt.
+- **Begrüßung:** Beim ersten Zuhören einer Sitzung stellt der Sprachmodus einmal
+  am Tag je Nutzer selbst die Frage nach der Tageslage
+  (`kiAssistentAnsicht.sprachmodus.tagesbeginn.*`, nach Tageszeit), danach steht
+  die Phase auf „denkt“. Merker `damicon-himbi-tagesbeginn` in
+  `lib/himbi-tagesbeginn.ts` (Nutzer und Almaty-Tag), abschaltbar in den
+  Himbi-Einstellungen („Himbi beginnt den Tag mit mir“, Voreinstellung an).
+  Außerhalb des Sprachmodus bietet eine Sprechblase dasselbe einmal am Tag an.
 - **Format:** `sprachmodusFormatAnweisung()` ersetzt die Fachbericht-Regeln
   (kein Markdown, höchstens vier kurze Sätze, kein Fazit-Satz, keine
   Höflichkeitsfloskeln). Die Antwort wird vorgelesen, nicht gelesen.
@@ -114,33 +132,40 @@ Der Systemprompt kennt jetzt `"assistent" | "agent" | "sprache"`
 
 ### Ablauf (Zustandsautomat, `src/lib/domain/sprachmodus.ts`)
 
-Halbduplex: `hoert` → `versteht` → `denkt` → `spricht` → wieder `hoert`.
-Während Himbi dran ist, geht keine Frage an die Erkennung, sonst hörte sie die
-eigene Stimme aus dem Lautsprecher.
+Phasen: `hoert` → `versteht` → `denkt` → `spricht` → wieder `hoert`. Seit dem
+28.09.2026 hört das Ohr in allen vier Phasen mit (`ohrOffen`), nur nicht im
+Stumm- und Fehlerzustand: eine einzige Live-Sitzung für das ganze Gespräch
+(siehe Mikrofon). Was davon Himbis eigene Stimme ist, trennen zwei Grenzen im
+Audio: eine harte (`grenzeMs`: Ende der letzten Frage, erledigter Befehl) und
+eine weiche (`echoBisMs`: Himbi ist verstummt oder sein Echo hat geendet). Die
+nächste Frage beginnt hinter beiden; Befehle werden bis 3 s vor der weichen
+Grenze gesucht (`BEFEHL_RUECKBLICK_MS`), weil wer genau in Himbis Sprechpause
+beim Seitenwechsel „Stopp, zeig mir …“ sagt, vor dem Verstummen angefangen hat.
 
-**Stopp** geht auf drei Wegen: als Äußerung beim Zuhören, über den
-**Stoppwort-Wächter**, solange Himbi denkt oder spricht, und über Himbi, Leiste
-oder Escape. Der Wächter ist eine eigene Soniox-Live-Sitzung auf demselben
-Mikrofon (mit Echounterdrückung). Er reagiert nur auf endgültig erkannten Text,
-der ein reiner Stoppbefehl ist (`istStoppBefehl`: „Stopp“, „Stopp, stopp“,
-„Himbi, stopp“, „Stopp die Führung“, „Hör auf“, „Abbrechen“, in den vier
-Sprachen). Sagt Himbi das Wort gerade selbst, zählt es nicht. Bei offener
-Freigabekarte lehnt „Stopp“ nur die Karte ab, der Wächter hört danach weiter.
-Bis zum 25.09.2026 gab es den Wächter nicht: ein kurzes „Stopp“ erreichte die
-400 ms des Lautstärke-Wächters nie, beim Nachdenken hörte gar nichts zu. Stopp
-beendet die Stimme, die laufende Anfrage, wartende Handlungen, die
-Führungs-Warteschlange und den Rahmen und schließt den Sprachmodus.
+**Wortbefehle** (`domain/sprachmodus.ts`), nur am Anfang einer Äußerung, nie als
+Wort mittendrin („Was bedeutet Stopp bei einer Kühlkette?“ bleibt eine Frage):
 
-Einzelheiten des Wächters: Er wertet schon den vorläufigen Text aus, wenn er
-350 ms lang ein reiner Stoppbefehl bleibt (`STOPP_STABIL_MS`), sonst erst den
-endgültigen (im Test rund drei Sekunden später). Gezählt wird ein Stoppbefehl in
-jedem Satz und am Ende unpunktierten Textes (`stoppBefehlAmEnde`). Als Echo gilt
-nur ein Stoppwort, das im gerade klingenden oder im vorigen Satz steht. Bricht
-seine Sitzung ab (Verbindung, Zeitgrenze einer Sitzung), startet er höchstens
-dreimal je Antwort neu. Das Mikrofon hört damit während des ganzen Gesprächs mit,
-auch während Himbi spricht; das Handbuch sagt das offen.
+- **Unterbrechen** („Stopp“, „Halt“, „Moment“, „Warte“, „Nein“, „Hör auf“,
+  „Himbi“, in den vier Sprachen, `unterbrechungsBefehl`): nur während Himbi
+  denkt oder spricht. Himbi verstummt, das Gespräch bleibt offen. Was in
+  derselben Äußerung folgt, ist die nächste Frage („Stopp, zeig mir lieber die
+  Reklamationen“). Der Satz, bei dem er unterbrochen wurde, geht mit der
+  nächsten Frage als Hinweis ans Modell (`mitUnterbrechungsHinweis`), damit es
+  weiß, was angekommen ist. Bis zum 28.09.2026 beendete „Stopp“ den Sprachmodus.
+- **Beenden** („Sprachmodus beenden“, „Tschüss Himbi“, „Auf Wiedersehen“,
+  `istBeendenBefehl`): schließt den Sprachmodus in jeder Phase.
 
-**Unterbrechen** geht auf zwei Wegen:
+Während Himbi spricht, zählt ein Befehlswort nur, wenn er es nicht gerade selbst
+sagt (klingender oder voriger Satz). Endgültig erkannte Wörter lösen sofort aus,
+vorläufige erst, wenn sie 350 ms stabil bleiben (`STOPP_STABIL_MS`).
+
+**Nachsatz:** Spricht der Nutzer weiter, während Himbi schon nachschaut („Ja.“ …
+„und zeig mir die Lieferungen“), bricht die Anfrage ab, und am nächsten Endpunkt
+geht die zusammengefügte Frage hinaus (`fuegeZusammen`: „Ja, und zeig mir die
+Lieferungen“). Die vorige Frage und ihre angefangene Antwort nimmt der Chat aus
+dem Verlauf (`ersetztLetzte`).
+
+**Unterbrechen** ohne Wort geht auf zwei Wegen:
 
 1. **Dazwischenreden**, wie in einem Gespräch (`erzeugeUnterbrechungsWaechter`).
    Während Himbi spricht, vergleicht eine Bildschleife die Lautstärke am
@@ -149,10 +174,9 @@ auch während Himbi spricht; das Handbuch sagt das offen.
    Mindestpegel, das Grundrauschen (gemessen in den Ausgabepausen, wie beim
    Diktat) und das Echo selbst (das Mikrofon muss lauter sein als die Hälfte der
    nachhallenden Ausgabe). Erst durchgehende Sprache von 400 ms unterbricht.
-   Sobald es nach Sprache klingt, läuft schon eine Aufnahme mit, damit der
-   Anfang des Satzes nicht verloren geht. Verklingt es wieder, oder endet die
-   Antwort auf anderem Weg, wird diese Aufnahme verworfen, sonst hörte Himbi
-   das Echo der eigenen letzten Worte als Frage.
+   Was ab dem Einsatz der Stimme gesagt wurde (300 ms davor, der Einsatz
+   überdauert bis zu 1 s Stille, etwa die Kommapause nach „Stopp,“), gehört zur
+   nächsten Frage; ein Befehlswort am Anfang fällt dabei weg.
 2. **Tipp auf Himbi** oder die Leertaste: der sichere Weg in lauter
    Umgebung (Hof, Halle).
 
@@ -169,19 +193,37 @@ Lautsprecher. Geöffnet wird er mit Echounterdrückung
 (`GESPRAECH_AUFNAHME`), anders als beim Diktat: hier spricht Himbi, während
 das Mikrofon offen ist.
 
-Die **Aufnahme** (MediaRecorder) ist dagegen je Äußerung neu. Bis zum
-24.09.2026 lief ein einziger Recorder für den ganzen Sprachmodus, pausiert und
-fortgesetzt. Nur sein allererstes Stück trägt aber den Dateikopf (webm/mp4),
-jede weitere Äußerung begann für Soniox mitten in einer Datei ohne Kopf: die
-erste Frage ging, die zweite nicht mehr. Ein neuer Recorder auf demselben
-Strom berührt die Audiosession nicht.
+Seit dem 28.09.2026 laufen **eine Aufnahme und eine Live-Sitzung für das ganze
+Gespräch** (`starteOhr`, `components/ki/diktat-live.ts`, `zweck: "gespraech"`,
+Sitzung bis 30 Minuten, `GESPRAECH_SITZUNG_S`). Der Dateikopf steht damit nur
+einmal am Anfang, wie Soniox es erwartet. Vorher war beides je Äußerung neu:
+vor jeder Frage wurde auf das Ende der Sitzung gewartet, und was zwischen zwei
+Aufnahmen gesagt wurde, ging verloren (aus „Ja.“ … „und zeig mir die
+Lieferungen“ wurde „Ja.“). Am Endpunkt geht die Frage sofort hinaus
+(`TokenSammler.textAb`: alle Wörter ab der Grenze, mit ihrer Lage im Audio).
+Endpunkte: `GESPRAECH_ENDPUNKT` (Empfindlichkeit 0,2, Latenzsenkung Stufe 2,
+höchstens 1 s Verzögerung); setzt die Erkennung einmal zu früh ein Ende, fängt
+der Nachsatz es auf. Nach 120 s Stille beim Zuhören schaltet sich das Mikrofon
+stumm (`STILLE_BIS_STUMM_MS`).
 
-Jede Äußerung läuft über eine eigene Live-Sitzung
-(`components/ki/diktat-live.ts`, `zweck: "gespraech"`): schnellere, aber
-weiter semantische Endpunkterkennung (`GESPRAECH_ENDPUNKT` in
-`domain/diktat-live.ts`, Werte von Soniox selbst als Startpunkt genannt). Am
-Ende der Äußerung wird zuerst die Aufnahme geschlossen, damit ihr letztes Stück
-noch vor dem Ende-Zeichen bei Soniox ankommt.
+Gemessen gegen die Vorschau (28.09.2026, Funktionen in `dub1` nahe der
+Datenbank in eu-west-1, Prompt-Cache für den festen Teil): vom Sprechende bis
+zum ersten Ton 2,9 bis 4,3 s (vorher 5,1 bis 6,5 s).
+
+### Stimme je Textsprache
+
+Die Stimme folgt der Sprache des **Textes**, nicht der Oberfläche
+(`satzSprache`, `lib/text/sprache-erkennen.ts`, auch im Browser lauffähig): je
+Satz, zurückhaltend (Schriftwechsel ab 12 Buchstaben, innerhalb derselben
+Schrift nur bei langen, eindeutigen Abschnitten, ein kasachischer Ortsname
+macht einen russischen Satz nicht kasachisch), höchstens vier Wechsel je
+Antwort (jeder Wechsel kostet einen Strom und einen Schlüssel). Die
+Antwortsprache einer Folgeanfrage (nach `seiteLesen` oder einer Freigabe) und
+kurzer Antworten („Да“, „Mach weiter“) kommt aus dem Gespräch
+(`zugAusNachrichten`), nicht aus der Oberfläche, und der Sprachhinweis hängt
+immer an der letzten Nutzerfrage. Der Datei-Weg zerlegt gemischte Antworten in
+Sprachblöcke (`vorlesePlan`). Bei langsamer Verbindung (vom Browser gemeldet,
+oder nach zwei hörbaren Aussetzern) spricht der Strom mit 16 statt 24 kHz.
 
 **Scheitert eine Sitzung** (neu: `beiScheitern` in `diktat-live.ts`),
 entscheidet `nachSitzungsAbbruch()`:
