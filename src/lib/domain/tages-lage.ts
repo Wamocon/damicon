@@ -22,7 +22,13 @@ import { hasPermission, type Role } from "@/lib/rbac";
 import { kpisFuerRolle, type Kpi } from "@/lib/domain/kpis";
 import { nurAuffaellige, zielAuswerten, type Zielauswertung } from "@/lib/domain/zielstand";
 import { darfCeoBerichtLesen } from "@/lib/pruefung/rollen";
-import { brigadeBedingung, type BrigadeBedingung } from "@/lib/domain/pflueckaufgaben-liste";
+import {
+  brigadeBedingung,
+  faelligkeitZaehlt,
+  passtZuUebrigemFilter,
+  type BrigadeBedingung,
+  type FilterbareAufgabe,
+} from "@/lib/domain/pflueckaufgaben-liste";
 import { betriebsZeitzone, tagInZone } from "@/lib/domain/tageszeit";
 import { wandzeitZuUtc } from "@/lib/listen/zeitraum";
 
@@ -155,6 +161,64 @@ export function quellenFuerRolle(rolle: Role | null | undefined): TagesQuelle[] 
  */
 export function aufgabenBedingung(rolle: Role | null | undefined, profil: TagesLageProfil): BrigadeBedingung {
   return rolle === "brigade" ? brigadeBedingung("meine", rolle, profil.brigadeId) : { art: "alle" };
+}
+
+/** So viele faellige Aufgaben laedt die Tageslage hoechstens; der Rest zaehlt nur mit. */
+export const AUFGABEN_LIMIT = 50;
+
+/**
+ * Die faelligen Pflueckaufgaben fuer die Tageslage (Fund 7 der Pruefung vom
+ * 28.09.2026). Vorher kam Seite 1 der Aufgabenliste: 20 Zeilen, die JUENGSTEN
+ * zuerst, samt Belegpruefung - bei mehr als 20 offenen Aufgaben fehlten genau
+ * die aeltesten ueberfaelligen, und der Zaehler war hoechstens 20.
+ *
+ * Jetzt: nur Status, bei denen die Faelligkeit zaehlt (faelligkeitZaehltBei),
+ * faellig vor `vor` (Beginn des morgigen Almaty-Tages), aelteste zuerst, hoechstens
+ * `limit`. Dazu die Gesamtzahl und die Zahl der schon ueberfaelligen, damit der
+ * Zaehler auch ueber das Limit hinaus stimmt. Dieselbe Regel wie die Abfrage
+ * in lib/ai/tages-lage.ts - hier fuer den Demo-Modus und die Tests.
+ */
+export function waehleFaelligeAufgaben<T extends FilterbareAufgabe>(
+  aufgaben: readonly T[],
+  bedingung: { brigade: BrigadeBedingung; vor: string; jetzt: Date },
+  limit: number = AUFGABEN_LIMIT,
+): { zeilen: T[]; gesamt: number; ueberfaellig: number } {
+  const passend = aufgaben
+    .filter(
+      (a) =>
+        faelligkeitZaehlt(a.status) &&
+        a.faelligkeit !== null &&
+        passtZuUebrigemFilter(a, { suche: "", brigade: bedingung.brigade, grenzen: { vor: bedingung.vor } }),
+    )
+    .sort((a, b) => {
+      const d = Date.parse(a.faelligkeit!) - Date.parse(b.faelligkeit!);
+      return d !== 0 ? d : a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
+    });
+  const jetztZeit = bedingung.jetzt.getTime();
+  return {
+    zeilen: passend.slice(0, Math.max(0, limit)),
+    gesamt: passend.length,
+    ueberfaellig: passend.filter((a) => Date.parse(a.faelligkeit!) < jetztZeit).length,
+  };
+}
+
+/**
+ * Was jenseits des Limits nicht geladen wurde, aufgeteilt wie bewertePunkt()
+ * einstuft: ein Zeitpunkt vor jetzt ist ueberfaellig, alles andere vor morgen
+ * ist heute. Gesamt- und Ueberfaellig-Zahl kommen aus der Datenbank (count).
+ */
+export function nichtGeladeneAufgaben(
+  zahlen: { gesamt: number; ueberfaellig: number },
+  geladen: readonly { faelligkeit: string | null }[],
+  jetzt: Date,
+): TagesZaehler {
+  const geladenUeber = geladen.filter((a) => a.faelligkeit !== null && Date.parse(a.faelligkeit) < jetzt.getTime()).length;
+  const geladenHeute = geladen.filter((a) => a.faelligkeit !== null).length - geladenUeber;
+  return {
+    ueberfaellig: Math.max(0, zahlen.ueberfaellig - geladenUeber),
+    heute: Math.max(0, zahlen.gesamt - zahlen.ueberfaellig - geladenHeute),
+    bald: 0,
+  };
 }
 
 // ---- Punkte --------------------------------------------------------------------------------
@@ -314,11 +378,13 @@ export interface TagesAuswahl {
  * Aus allen Rohpunkten die Auswahl: einstufen, alles jenseits des Horizonts
  * weglassen (Hinweise ohne Termin bleiben), sortieren, auf maxPunkte kuerzen.
  * Der Zaehler zaehlt ueber alle Punkte im Horizont, nicht nur ueber die
- * gezeigten - "3 von 11 ueberfaelligen" soll sagbar bleiben.
+ * gezeigten - "3 von 11 ueberfaelligen" soll sagbar bleiben. Dazu gehoert,
+ * was eine Quelle wegen ihres Limits gar nicht erst geladen hat
+ * (nichtGeladen, seit 28.09.2026): es zaehlt mit und steht unter "weitere".
  */
 export function waehlePunkte(
   roh: TagesPunktRoh[],
-  optionen: { jetzt: Date; horizontTage: number; maxPunkte: number; zeitzone?: string },
+  optionen: { jetzt: Date; horizontTage: number; maxPunkte: number; zeitzone?: string; nichtGeladen?: TagesZaehler },
 ): TagesAuswahl {
   const zeitzone = optionen.zeitzone ?? betriebsZeitzone;
   const heute = tagInZone(optionen.jetzt, zeitzone);
@@ -336,7 +402,15 @@ export function waehlePunkte(
   }
   const sortiert = sortierePunkte(bewertet, zeitzone);
   const punkte = sortiert.slice(0, optionen.maxPunkte);
-  return { heute, zaehler: zaehlePunkte(sortiert), punkte, weitere: sortiert.length - punkte.length };
+  const gezaehlt = zaehlePunkte(sortiert);
+  const fehlend = optionen.nichtGeladen ?? { ueberfaellig: 0, heute: 0, bald: 0 };
+  const zaehler: TagesZaehler = {
+    ueberfaellig: gezaehlt.ueberfaellig + fehlend.ueberfaellig,
+    heute: gezaehlt.heute + fehlend.heute,
+    bald: gezaehlt.bald + fehlend.bald,
+  };
+  const nichtGeladen = fehlend.ueberfaellig + fehlend.heute + fehlend.bald;
+  return { heute, zaehler, punkte, weitere: sortiert.length - punkte.length + nichtGeladen };
 }
 
 // ---- Laufzeit ------------------------------------------------------------------------------
@@ -365,25 +439,55 @@ export function lueckeFuer(quelle: TagesQuelle, grund: unknown): string {
 }
 
 /**
+ * Was eine Quelle ausser ihren Punkten melden kann (seit 28.09.2026):
+ *   nichtGeladen  Punkte jenseits ihres Limits, nur gezaehlt (Pflueckaufgaben).
+ *   teilausfall   ein Teil der Quelle lieferte nur Beispieldaten und wurde
+ *                 weggelassen (Fristen: Datenschutz oder MwSt im Ausfall). Die
+ *                 echten Punkte kommen trotzdem, die Quelle steht aber unter
+ *                 luecken - sonst hiesse "keine Datenschutzfrist" auch "nichts
+ *                 zu tun", obwohl niemand nachsehen konnte.
+ */
+export interface QuellenErgebnis {
+  punkte: TagesPunktRoh[];
+  nichtGeladen?: Partial<TagesZaehler>;
+  teilausfall?: boolean;
+}
+
+export type QuellenLader = () => Promise<TagesPunktRoh[] | QuellenErgebnis>;
+
+/**
  * Laedt alle Quellen gleichzeitig, jede mit Zeitgrenze. Was ausfaellt, steht
  * unter luecken; die uebrigen Punkte kommen trotzdem.
  */
 export async function sammleQuellen(
-  lader: Partial<Record<TagesQuelle, () => Promise<TagesPunktRoh[]>>>,
+  lader: Partial<Record<TagesQuelle, QuellenLader>>,
   ms: number = QUELLE_ZEITGRENZE_MS,
-): Promise<{ roh: TagesPunktRoh[]; luecken: string[] }> {
-  const eintraege = Object.entries(lader) as [TagesQuelle, () => Promise<TagesPunktRoh[]>][];
+): Promise<{ roh: TagesPunktRoh[]; luecken: string[]; nichtGeladen: TagesZaehler }> {
+  const eintraege = Object.entries(lader) as [TagesQuelle, QuellenLader][];
   const ergebnisse = await Promise.allSettled(
     eintraege.map(([, laden]) => mitZeitgrenze(Promise.resolve().then(laden), ms)),
   );
   const roh: TagesPunktRoh[] = [];
   const luecken: string[] = [];
+  const nichtGeladen: TagesZaehler = { ueberfaellig: 0, heute: 0, bald: 0 };
   ergebnisse.forEach((ergebnis, i) => {
     const quelle = eintraege[i]![0];
-    if (ergebnis.status === "fulfilled") roh.push(...ergebnis.value);
-    else luecken.push(lueckeFuer(quelle, ergebnis.reason));
+    if (ergebnis.status === "rejected") {
+      luecken.push(lueckeFuer(quelle, ergebnis.reason));
+      return;
+    }
+    const wert = ergebnis.value;
+    if (Array.isArray(wert)) {
+      roh.push(...wert);
+      return;
+    }
+    roh.push(...wert.punkte);
+    nichtGeladen.ueberfaellig += wert.nichtGeladen?.ueberfaellig ?? 0;
+    nichtGeladen.heute += wert.nichtGeladen?.heute ?? 0;
+    nichtGeladen.bald += wert.nichtGeladen?.bald ?? 0;
+    if (wert.teilausfall) luecken.push(lueckeFuer(quelle, "fehler"));
   });
-  return { roh, luecken };
+  return { roh, luecken, nichtGeladen };
 }
 
 // ---- Kuehlkette ----------------------------------------------------------------------------
@@ -394,18 +498,139 @@ export const KUEHL_GRENZE_MINUTEN = 60;
 export const KUEHL_NAH_MINUTEN = 45;
 
 /**
+ * Wie weit die Tageslage bei der Kuehlkette zurueckblickt (Fund 8 der Pruefung
+ * vom 28.09.2026). Vorher hatte die Wartezeit keine Obergrenze: eine Charge vom
+ * 02.09., die nie vorgekuehlt wurde, stand als "37.590 min" ganz oben, und die
+ * heute noch rettbare Charge fiel aus Himbis drei Punkten.
+ *
+ * 24 Stunden statt "seit Tagesbeginn Almaty": dasselbe Fenster wie fuer die
+ * Messungs-Verstoesse, und kurz nach Mitternacht verschwaende eine um 23 Uhr
+ * gepflueckte Charge sonst, obwohl sie erst eine Stunde wartet. Was aelter ist,
+ * ist Datenpflege, keine Ware mehr, die sich heute retten laesst.
+ */
+export const KUEHL_FENSTER_STUNDEN = 24;
+
+export function kuehlFensterBeginn(jetzt: Date): Date {
+  return new Date(jetzt.getTime() - KUEHL_FENSTER_STUNDEN * 60 * 60_000);
+}
+
+/** Eine offene Charge, die aelter ist als das Fenster: eine Altlast, kein Punkt fuer heute. */
+export function kuehlAltlast(pflueckZeitpunkt: string, jetzt: Date): boolean {
+  const gepflueckt = Date.parse(pflueckZeitpunkt);
+  // Halboffen wie die Abfrage in lib/ai/tages-lage.ts: ab Fensterbeginn (gte) zaehlt mit, davor (lt) ist Altlast.
+  return Number.isFinite(gepflueckt) && gepflueckt < kuehlFensterBeginn(jetzt).getTime();
+}
+
+/**
  * Eine Charge ohne Vorkuehlung: wie lange sie schon wartet und wann die
- * Grenze reisst. null, solange sie noch nicht nahe an der Grenze ist.
+ * Grenze reisst. null, solange sie noch nicht nahe an der Grenze ist, und
+ * null fuer eine Altlast (kuehlAltlast).
  */
 export function kuehlTermin(
   pflueckZeitpunkt: string,
   jetzt: Date,
 ): { minuten: number; faelligAm: string } | null {
   const gepflueckt = Date.parse(pflueckZeitpunkt);
-  if (!Number.isFinite(gepflueckt)) return null;
+  if (!Number.isFinite(gepflueckt) || kuehlAltlast(pflueckZeitpunkt, jetzt)) return null;
   const minuten = Math.floor((jetzt.getTime() - gepflueckt) / 60_000);
   if (minuten < KUEHL_NAH_MINUTEN) return null;
   return { minuten, faelligAm: new Date(gepflueckt + KUEHL_GRENZE_MINUTEN * 60_000).toISOString() };
+}
+
+/** Auszug aus OffeneCharge (lib/data/kuehlkette.ts). */
+export interface WartendeCharge {
+  chargeId: string;
+  chargeCode: string;
+  reihenblockCode: string | null;
+  pflueckZeitpunkt: string;
+}
+
+/** Auszug aus AbgeschlosseneMessung (lib/data/kuehlkette.ts). */
+export interface KuehlMessung {
+  id: string;
+  chargeCode: string;
+  reihenblockCode: string | null;
+  gemessenAm: string;
+  temperaturC: number;
+  minutenSeitPfluecken: number | null;
+  ergebnis: string;
+}
+
+/**
+ * Die Kuehlketten-Punkte der Tageslage:
+ *   * Chargen im Fenster ohne Vorkuehlung ab 45 Minuten (ab 60 ein Verstoss),
+ *   * Messungs-Verstoesse im Fenster,
+ *   * alle Altlasten zusammen als EIN Hinweis (Stufe 4) mit Anzahl und der
+ *     aeltesten Charge als Titel - geladene (Demo-Modus) und die, die die
+ *     Datenbank nur gezaehlt hat (`aeltere`).
+ */
+export function kuehlkettenPunkte(
+  eingabe: { chargen: readonly WartendeCharge[]; aeltere: { anzahl: number; aeltesterCode: string | null }; messungen: readonly KuehlMessung[] },
+  jetzt: Date,
+  kuerze: (text: string) => string,
+  ziel: string | null,
+): TagesPunktRoh[] {
+  const verbinde = (...werte: (string | number | null | undefined)[]) =>
+    werte
+      .filter((w) => w !== null && w !== undefined && String(w).trim() !== "")
+      .map((w) => kuerze(String(w)))
+      .join(" · ") || null;
+
+  const wartend = eingabe.chargen.flatMap((c): TagesPunktRoh[] => {
+    const termin = kuehlTermin(c.pflueckZeitpunkt, jetzt);
+    if (!termin) return [];
+    return [
+      {
+        id: `kuehlkette-${c.chargeId}`,
+        art: "kuehlkette",
+        titel: kuerze(c.chargeCode),
+        detail: verbinde(c.reihenblockCode, `${termin.minuten} min`),
+        faelligAm: termin.faelligAm,
+        wer: "Betrieb",
+        ziel,
+      },
+    ];
+  });
+
+  const beginn = kuehlFensterBeginn(jetzt).getTime();
+  const verstoesse = eingabe.messungen
+    .filter((m) => m.ergebnis === "verstoss" && Date.parse(m.gemessenAm) >= beginn)
+    .map(
+      (m): TagesPunktRoh => ({
+        id: `kuehlmessung-${m.id}`,
+        art: "kuehlkette",
+        titel: kuerze(m.chargeCode),
+        detail: verbinde(m.reihenblockCode, m.minutenSeitPfluecken === null ? null : `${m.minutenSeitPfluecken} min`, `${m.temperaturC} °C`, m.ergebnis),
+        faelligAm: null,
+        verstoss: true,
+        wer: "Betrieb",
+        ziel,
+      }),
+    );
+
+  const altGeladen = eingabe.chargen
+    .filter((c) => kuehlAltlast(c.pflueckZeitpunkt, jetzt))
+    .sort((a, b) => Date.parse(a.pflueckZeitpunkt) - Date.parse(b.pflueckZeitpunkt));
+  const anzahl = altGeladen.length + Math.max(0, eingabe.aeltere.anzahl);
+  const aeltester = eingabe.aeltere.aeltesterCode ?? altGeladen[0]?.chargeCode ?? null;
+  const altlasten: TagesPunktRoh[] =
+    anzahl > 0
+      ? [
+          {
+            id: "kuehlkette-altlasten",
+            art: "kuehlkette",
+            titel: kuerze(aeltester ?? "chargen"),
+            detail: `ohne-vorkuehlung-aelter-${KUEHL_FENSTER_STUNDEN}h=${anzahl}`,
+            anzahl,
+            faelligAm: null,
+            hinweis: true,
+            wer: "Betrieb",
+            ziel,
+          },
+        ]
+      : [];
+
+  return [...wartend, ...verstoesse, ...altlasten];
 }
 
 // ---- Kennzahlen ----------------------------------------------------------------------------

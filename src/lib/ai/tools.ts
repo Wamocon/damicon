@@ -33,7 +33,8 @@ import { ladeMwstStatus } from "@/lib/data/mwst";
 import { ladeOffeneEsutdFristen } from "@/lib/data/esutd";
 import { ladeCompliance } from "@/lib/data/compliance";
 import { ladeKuehlkettenUebersicht } from "@/lib/data/kuehlkette";
-import { baueRisikoEintraege, risikoAufbereiten } from "@/lib/domain/risikoradar";
+import { baueRisikoEintraege, risikoAufbereiten, type RisikoRohdaten } from "@/lib/domain/risikoradar";
+import type { Datenquelle } from "@/lib/supabase/config";
 import { moduleHref, modules, sichtbareModule, zones } from "@/lib/modules";
 import { darfCeoBerichtLesen, PRUEFBEREICHE } from "@/lib/pruefung/rollen";
 import { startkarteFuer } from "@/lib/domain/startkarte";
@@ -146,48 +147,93 @@ const kuehlketteAbrufen = tool({
 // Das Laden steht seit dem 28.09.2026 in einer eigenen Funktion: die Tageslage
 // (tagesLageAbrufen, lib/ai/tages-lage.ts) nimmt dieselben Fristen auf, mit
 // derselben Rollenpruefung, statt sie ein zweites Mal zusammenzusuchen.
+/** Teilquellen des Radars, die ausfallen koennen - benannt wie die Kategorie ihrer Eintraege. */
+export type RadarAusfall = "steuer" | "datenschutz";
+
+/**
+ * Welche geladenen Daten ins Radar duerfen (Fund 9 der Pruefung vom
+ * 28.09.2026). ladeCompliance() und ladeMwstStatus() fallen bei einem
+ * Datenbankfehler auf Beispieldaten zurueck (quelle "fehler"). Das Radar
+ * uebernahm sie ungeprueft: die erfundenen Vorfaelle "demo-v1" und "demo-d1"
+ * standen dann als echte ueberfaellige Datenschutzfristen im Radar und ganz
+ * oben in der Tageslage. Jetzt faellt eine solche Teilquelle weg und steht
+ * unter "ausgefallen". Der gewollte Demo-Modus (quelle "demo", keine
+ * Datenbank) bleibt, wie er ist.
+ */
+export function radarRohdaten(geladen: {
+  mwst: { quelle?: Datenquelle; status: { registriert: boolean; meldefristAm: string | null } | null } | null;
+  esutdFristen: RisikoRohdaten["esutdFristen"];
+  cockpit: {
+    quelle: Datenquelle;
+    vorfaelle: (RisikoRohdaten["vorfaelleUeberfaellig"][number] & { ueberfaellig: boolean })[];
+    drittweitergaben: (RisikoRohdaten["drittweitergabenUeberfaellig"][number] & { ueberfaellig: boolean })[];
+  } | null;
+}): { rohdaten: RisikoRohdaten; ausgefallen: RadarAusfall[] } {
+  const ausgefallen: RadarAusfall[] = [];
+  const mwstAusfall = geladen.mwst?.quelle === "fehler";
+  const cockpitAusfall = geladen.cockpit?.quelle === "fehler";
+  if (mwstAusfall) ausgefallen.push("steuer");
+  if (cockpitAusfall) ausgefallen.push("datenschutz");
+  const mwst = mwstAusfall ? null : (geladen.mwst?.status ?? null);
+  const cockpit = cockpitAusfall ? null : geladen.cockpit;
+  return {
+    rohdaten: {
+      mwstMeldefristAm: mwst?.meldefristAm ?? null,
+      mwstRegistriert: mwst?.registriert ?? false,
+      esutdFristen: geladen.esutdFristen,
+      vorfaelleUeberfaellig: cockpit?.vorfaelle.filter((v) => v.ueberfaellig) ?? [],
+      drittweitergabenUeberfaellig: cockpit?.drittweitergaben.filter((d) => d.ueberfaellig) ?? [],
+    },
+    ausgefallen,
+  };
+}
+
 export async function ladeRadarEintraege(rolle: Role | null | undefined) {
   const darfMwst = hasPermission(rolle, "stammdaten", "view");
   const darfEsutd = hasPermission(rolle, "personal", "view");
   const darfCompliance = hasPermission(rolle, "compliance", "view");
-  const [mwstErgebnis, esutdFristen, cockpit] = await Promise.all([
-    darfMwst ? ladeMwstStatus() : Promise.resolve({ status: null }),
+  const [mwst, esutdFristen, cockpit] = await Promise.all([
+    darfMwst ? ladeMwstStatus() : Promise.resolve(null),
     darfEsutd ? ladeOffeneEsutdFristen() : Promise.resolve([]),
     darfCompliance ? ladeCompliance() : Promise.resolve(null),
   ]);
-  const mwst = mwstErgebnis.status;
-  const eintraege = await baueRisikoEintraege({
-    mwstMeldefristAm: mwst?.meldefristAm ?? null,
-    mwstRegistriert: mwst?.registriert ?? false,
-    esutdFristen,
-    vorfaelleUeberfaellig: cockpit?.vorfaelle.filter((v) => v.ueberfaellig) ?? [],
-    drittweitergabenUeberfaellig: cockpit?.drittweitergaben.filter((d) => d.ueberfaellig) ?? [],
-  });
-  return risikoAufbereiten(eintraege);
+  const { rohdaten, ausgefallen } = radarRohdaten({ mwst, esutdFristen, cockpit });
+  const eintraege = await baueRisikoEintraege(rohdaten);
+  return { ...risikoAufbereiten(eintraege), ausgefallen };
+}
+
+/**
+ * Die Antwort des Werkzeugs risikoRadarAbrufen. Ist eine Teilquelle
+ * ausgefallen, sagt das Ergebnis das ausdruecklich (fehler, ausgefallen) -
+ * die uebrigen, echten Fristen kommen trotzdem mit.
+ */
+export function radarAntwort(ergebnis: Awaited<ReturnType<typeof ladeRadarEintraege>>) {
+  const { sortiert, ueberfaelligAnzahl, ausgefallen } = ergebnis;
+  return {
+    ziel: ZIEL_RISIKO_RADAR,
+    ...(ausgefallen.length > 0 ? { fehler: "quelle-ausgefallen", ausgefallen } : {}),
+    ueberfaelligAnzahl,
+    offenGesamt: sortiert.length,
+    eintraege: sortiert.map((e) => ({
+      kategorie: e.kategorie,
+      label: e.label,
+      faelligkeit: e.faelligkeit,
+      ueberfaellig: e.ueberfaellig,
+      // Jeder Einzeleintrag traegt bereits sein eigenes, feineres Ziel
+      // (z. B. direkt zur ESUTD-Zeile) - das Werkzeug-weite "ziel" oben
+      // bleibt der Rueckfall fuer den Chip selbst.
+      ziel: e.ziel,
+    })),
+  };
 }
 
 function baueRadar(rolle: Role | null | undefined) {
   return tool({
     description:
-      "Ruft ALLE offenen gesetzlichen Fristen zusammen ab (Steuer, Arbeitsrecht, Datenschutz), nach Dringlichkeit sortiert - überfällige zuerst. Nutze dieses Werkzeug, wenn nach dem GESAMTEN Risikostand gefragt wird, nicht nur nach einem einzelnen Bereich.",
+      "Ruft ALLE offenen gesetzlichen Fristen zusammen ab (Steuer, Arbeitsrecht, Datenschutz), nach Dringlichkeit sortiert - überfällige zuerst. Nutze dieses Werkzeug, wenn nach dem GESAMTEN Risikostand gefragt wird, nicht nur nach einem einzelnen Bereich. Steht im Ergebnis fehler 'quelle-ausgefallen', konnten die Bereiche unter 'ausgefallen' nicht geladen werden: sage das, statt 'keine Fristen' zu melden.",
     inputSchema: leeresSchema,
     execute: async () => {
-      const { sortiert, ueberfaelligAnzahl } = await ladeRadarEintraege(rolle);
-      return {
-        ziel: ZIEL_RISIKO_RADAR,
-        ueberfaelligAnzahl,
-        offenGesamt: sortiert.length,
-        eintraege: sortiert.map((e) => ({
-          kategorie: e.kategorie,
-          label: e.label,
-          faelligkeit: e.faelligkeit,
-          ueberfaellig: e.ueberfaellig,
-          // Jeder Einzeleintrag traegt bereits sein eigenes, feineres Ziel
-          // (z. B. direkt zur ESUTD-Zeile) - das Werkzeug-weite "ziel" oben
-          // bleibt der Rueckfall fuer den Chip selbst.
-          ziel: e.ziel,
-        })),
-      };
+      return radarAntwort(await ladeRadarEintraege(rolle));
     },
   });
 }
