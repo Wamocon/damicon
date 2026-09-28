@@ -88,6 +88,7 @@ import {
   untertitelAusSpeicher,
   erzeugeUnterbrechungsWaechter,
   freigabeAntwort,
+  freigabeAntwortMitEcho,
   istAbsageBefehl,
   istBeendenBefehl,
   istNurAnhalten,
@@ -2485,8 +2486,8 @@ for (const [name, kaputteAntwort] of [
     pruefe("Freigabe: der Chat meldet Klick- UND Aktionskarte an den Bus", chat.includes("meldeFreigabeAnfrage(`${t(\"klick.titel\")}") && chat.includes("anstehendeAktion") && chat.includes("meldeFreigabeAnfrage(null, null)"));
     // Seit dem 28.09.2026 in JEDER Phase (Rueckmeldung: "wenn ich Ja sage, passiert nichts" - bei
     // offener Klickkarte blieb die Phase "spricht", und das Ja fiel als Echo weg), vor Echo und Frage.
-    pruefe("Freigabe: beiEndpunkt wertet Ja/Nein zu einer offenen Karte vor allem anderen aus, in jeder Phase", /const karte = leseFreigabeAnfrage\(\);\s*if \(karte && karte\.nr === freigabeNr\.current && freigabeAbMs\.current !== null\) \{[\s\S]{0,300}const art = freigabeAntwort\(antwort\.endgueltig \|\| antwort\.anzeige\);[\s\S]{0,400}entscheideFreigabe\(art === "zusage", karte\.nr\);[\s\S]{0,700}if \(phase === "spricht"\) \{/.test(modus));
-    pruefe("Freigabe: nur was nach dem Erscheinen der Karte gesagt wurde, zaehlt", modus.includes("const antwort = sitzung.textAb(Math.max(frageAb(), freigabeAbMs.current - FREIGABE_VORLAUF_MS));") && /freigabeAbMs\.current = karte \? audioJetzt\(\) : null;/.test(modus));
+    pruefe("Freigabe: beiEndpunkt wertet Ja/Nein zu einer offenen Karte vor allem anderen aus, in jeder Phase", /const karte = leseFreigabeAnfrage\(\);\s*if \(karte && karte\.nr === freigabeNr\.current && freigabeAbMs\.current !== null\) \{[\s\S]{0,1200}const art = freigabeAntwortMitEcho\(antwort\.woerter\.map\(\(w\) => w\.text\), gesagt\);[\s\S]{0,400}entscheideFreigabe\(art === "zusage", karte\.nr\);[\s\S]{0,700}if \(phase === "spricht"\) \{/.test(modus));
+    pruefe("Freigabe: nur was nach dem Erscheinen der Karte gesagt wurde, zaehlt", modus.includes("const antwort = sitzung.textAb(Math.max(grenzeMs.current, freigabeAbMs.current - FREIGABE_VORLAUF_MS));") && /freigabeAbMs\.current = karte \? audioJetzt\(\) : null;/.test(modus));
     pruefe("Freigabe: bei offener Karte lehnt 'Stopp' mitten in der Antwort nur die Karte ab, beendet nicht den Sprachmodus", /const karte = leseFreigabeAnfrage\(\);\s*if \(karte\) \{[\s\S]{0,120}entscheideFreigabe\(false, karte\.nr\);\s*grenzeMs\.current = /.test(modus) && istAbsageBefehl("Stopp") && !istBeendenBefehl("Stopp"));
     pruefe("Freigabe: waehrend eine Karte wartet, unterbricht der Lautstaerke-Waechter nicht", /if \(phaseRef\.current !== "spricht"\) return;[\s\S]{0,300}if \(leseFreigabeAnfrage\(\)\) \{\s*einsatz = null;/.test(modus));
     pruefe("Freigabe: die Anzeige sagt 'Ich warte auf Ihr Ja oder Nein', solange Himbi nicht spricht", modus.includes("wartetAufFreigabe ? t(\"status.freigabe\")") && ["de", "en", "ru", "kk"].every((sp) => typeof JSON.parse(readFileSync(new URL(`../../src/messages/${sp}.json`, import.meta.url), "utf8")).kiAssistentAnsicht.sprachmodus.status.freigabe === "string"));
@@ -2997,6 +2998,10 @@ for (const [name, kaputteAntwort] of [
   pruefe("Zusage: mit Satzzeichen, Bitte, Dank und festen Wendungen", ["Ja, bitte.", "Ja, bitte!", "Ja, mach das.", "Mach das.", "Ja, gib frei.", "Okay.", "OK, danke.", "Ja, Himbi, jetzt.", "Yes, please.", "Go ahead.", "Да, пожалуйста.", "Давай.", "Иә, өтінемін."].every((t) => istZusageBefehl(t)));
   pruefe("Absage: mit Satzzeichen, Dank und festen Wendungen", ["Nein, danke.", "Nein, bitte.", "Lass es.", "Nicht jetzt.", "No, thanks.", "Don't.", "Нет, спасибо.", "Не надо.", "Жоқ."].every((t) => istAbsageBefehl(t)));
   pruefe("Zusage/Absage: gemischte oder inhaltliche Aeusserungen sind keines von beiden", ["Ja, nein.", "Ja, aber in Kaskelen.", "Nein, leg lieber Kaskelen an.", "Das.", "Mach", "Ja ja ja ja ja ja ja ja"].every((t) => !istZusageBefehl(t) && !istAbsageBefehl(t)));
+  // Gemessen am 28.09.2026: Karte erscheint, der Nutzer sagt "Ja, bitte." waehrend Himbi noch
+  // "Jetzt klicke ich auf Anlegen" spricht; die Erkennung kann beides in einer Aeusserung liefern.
+  pruefe("Freigabe mit Echo: Himbis eigene Worte fallen weg, das Ja des Nutzers zaehlt", freigabeAntwortMitEcho(["Ja,", "bitte.", "Jetzt", "klicke", "ich", "auf", "Anlegen."], "Jetzt klicke ich auf Anlegen.") === "zusage" && freigabeAntwortMitEcho(["Ja,", "bitte."], "") === "zusage" && freigabeAntwortMitEcho(["Nein.", "Ich", "klicke", "jetzt"], "Ich klicke jetzt auf Anlegen.") === "absage");
+  pruefe("Freigabe mit Echo: nur Himbis Worte oder fremder Inhalt sind keine Antwort", freigabeAntwortMitEcho(["Jetzt", "klicke", "ich", "auf", "Anlegen."], "Jetzt klicke ich auf Anlegen.") === null && freigabeAntwortMitEcho(["Ja,", "aber", "in", "Kaskelen."], "Jetzt klicke ich auf Anlegen.") === null && freigabeAntwortMitEcho([], "x") === null);
   pruefe("Freigabe-Antwort: zusage, absage, beenden oder nichts", freigabeAntwort("Ja, bitte.") === "zusage" && freigabeAntwort("Nein.") === "absage" && freigabeAntwort("Sprachmodus beenden.") === "beenden" && freigabeAntwort("Was kostet das?") === null);
   {
     // Der Bus bindet eine Entscheidung an genau die Karte, zu der sie gehoert (Nummer).

@@ -375,6 +375,20 @@ export function freigabeAntwort(text: string): "zusage" | "absage" | "beenden" |
   return null;
 }
 
+/** Die Antwort auf eine Freigabekarte, auch wenn Himbi dabei noch spricht: zuerst der ganze
+ *  Text; hat die Erkennung Himbis eigene Worte mitgehoert ("Ja, bitte. Jetzt klicke ich auf
+ *  Anlegen"), dann ohne die Woerter aus dem, was er gerade gesagt hat. Gemessen am 28.09.2026:
+ *  die Karte erscheint oft, bevor Himbi den Satz davor gesprochen hat, und man antwortet
+ *  mitten hinein. */
+export function freigabeAntwortMitEcho(woerter: readonly string[], gesagt: string): "zusage" | "absage" | "beenden" | null {
+  const ganz = freigabeAntwort(woerter.join(" "));
+  if (ganz) return ganz;
+  const echo = new Set(woerterVon(gesagt));
+  if (echo.size === 0) return null;
+  const eigene = woerter.filter((w) => !woerterVon(w).every((x) => echo.has(x)));
+  return eigene.length > 0 && eigene.length < woerter.length ? freigabeAntwort(eigene.join(" ")) : null;
+}
+
 // --- 2. Rechteck eines hervorgehobenen Bereichs -------------------------------------
 //
 // Bis zum 25.09.2026 stand hier, wohin die Kugel rueckt, wenn ein Bereich

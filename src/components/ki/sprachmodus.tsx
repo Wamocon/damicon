@@ -31,7 +31,7 @@ import {
   UNTERTITEL_SCHLUESSEL,
   untertitelAusSpeicher,
   erzeugeUnterbrechungsWaechter,
-  freigabeAntwort,
+  freigabeAntwortMitEcho,
   fuegeZusammen,
   istBeendenBefehl,
   istGesprochen,
@@ -415,8 +415,15 @@ function SprachmodusInhalt() {
       // Es zaehlt nur, was nach dem Erscheinen der Karte gesagt wurde, und nur fuer genau diese.
       const karte = leseFreigabeAnfrage();
       if (karte && karte.nr === freigabeNr.current && freigabeAbMs.current !== null) {
-        const antwort = sitzung.textAb(Math.max(frageAb(), freigabeAbMs.current - FREIGABE_VORLAUF_MS));
-        const art = freigabeAntwort(antwort.endgueltig || antwort.anzeige);
+        // Ab der harten Grenze, NICHT ab frageAb(): die Karte erscheint oft, bevor Himbi den Satz
+        // vor dem Klick gesprochen hat, man antwortet mitten hinein, und sein Verstummen danach
+        // rueckte die weiche Echo-Grenze hinter das "Ja" (gemessen am 28.09.2026: "Ja, bitte."
+        // bei 1,6 s, Himbi still bei 4,2 s, das Ja war weg). Seine eigenen Worte filtert
+        // freigabeAntwortMitEcho heraus.
+        const antwort = sitzung.textAb(Math.max(grenzeMs.current, freigabeAbMs.current - FREIGABE_VORLAUF_MS));
+        const gerade = leseGerade();
+        const gesagt = gerade ? `${gerade.satz ?? ""} ${gerade.vorher ?? ""}` : leseChatStand().antwort.slice(-200);
+        const art = freigabeAntwortMitEcho(antwort.woerter.map((w) => w.text), gesagt);
         if (art) {
           grenzeMs.current = Math.max(grenzeMs.current, (antwort.endeMs ?? audioJetzt()) + 1);
           grenzeSteht.current = false;
