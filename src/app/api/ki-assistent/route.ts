@@ -47,6 +47,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ladeAnbieterKette, meldeAnbieterwechsel } from "@/lib/ai/anbieter-kette";
 import type { AusweichEreignis } from "@/lib/ai/ausfall-modell";
 import { baueWerkzeuge } from "@/lib/ai/tools";
+import { profilFuerTagesLage } from "@/lib/domain/tages-lage";
 import { naechsteBelegNummer } from "@/lib/wissen/belege";
 import { PRUEF_BEREICH_ANKER } from "@/components/pruefung/symbole";
 import { waehleSchritt } from "@/lib/ai/schritt-steuerung";
@@ -539,6 +540,9 @@ export async function POST(req: Request) {
   await wissenGesund;
   const werkzeugeOhneBericht = baueWerkzeuge(rolle, {
     vorschau,
+    // tagesLageAbrufen braucht Brigade, Kunde und Profil fuer "meine" Punkte
+    // (28.09.2026). In der Rollenvorschau bleiben sie leer, siehe profilFuerTagesLage.
+    profil: profilFuerTagesLage(profil, vorschau),
     // Sprachmodus zaehlt seit dem 25.09.2026 wie Agent-Modus - dieselben
     // Rechte wie der sichtbare Chat, dieselbe Freigabekarte fuer Aktionen,
     // nur zusaetzlich an sprachmodus-bus.ts gemeldet (siehe ui-werkzeuge.ts).

@@ -41,6 +41,8 @@ import { baueAktionen } from "@/lib/ai/aktionen";
 import { baueDatenWerkzeuge } from "@/lib/ai/daten-werkzeuge";
 import { baueUiWerkzeuge } from "@/lib/ai/ui-werkzeuge";
 import { baueWissenWerkzeug } from "@/lib/ai/wissen-werkzeug";
+import { baueTagesLageWerkzeug } from "@/lib/ai/tages-lage";
+import type { TagesLageProfil } from "@/lib/domain/tages-lage";
 import {
   ZIEL_COMPLIANCE,
   ZIEL_ESUTD,
@@ -140,29 +142,37 @@ const kuehlketteAbrufen = tool({
 // auch einzeln sehen darf (dieselben rbac.ts-Rechte wie die Einzelwerkzeuge).
 // Sonst liesse sich ueber die Zusammenfassung lesen, was die Rolle direkt nicht
 // abrufen kann.
-function baueRadar(rolle: Role | null | undefined) {
+//
+// Das Laden steht seit dem 28.09.2026 in einer eigenen Funktion: die Tageslage
+// (tagesLageAbrufen, lib/ai/tages-lage.ts) nimmt dieselben Fristen auf, mit
+// derselben Rollenpruefung, statt sie ein zweites Mal zusammenzusuchen.
+export async function ladeRadarEintraege(rolle: Role | null | undefined) {
   const darfMwst = hasPermission(rolle, "stammdaten", "view");
   const darfEsutd = hasPermission(rolle, "personal", "view");
   const darfCompliance = hasPermission(rolle, "compliance", "view");
+  const [mwstErgebnis, esutdFristen, cockpit] = await Promise.all([
+    darfMwst ? ladeMwstStatus() : Promise.resolve({ status: null }),
+    darfEsutd ? ladeOffeneEsutdFristen() : Promise.resolve([]),
+    darfCompliance ? ladeCompliance() : Promise.resolve(null),
+  ]);
+  const mwst = mwstErgebnis.status;
+  const eintraege = await baueRisikoEintraege({
+    mwstMeldefristAm: mwst?.meldefristAm ?? null,
+    mwstRegistriert: mwst?.registriert ?? false,
+    esutdFristen,
+    vorfaelleUeberfaellig: cockpit?.vorfaelle.filter((v) => v.ueberfaellig) ?? [],
+    drittweitergabenUeberfaellig: cockpit?.drittweitergaben.filter((d) => d.ueberfaellig) ?? [],
+  });
+  return risikoAufbereiten(eintraege);
+}
+
+function baueRadar(rolle: Role | null | undefined) {
   return tool({
     description:
       "Ruft ALLE offenen gesetzlichen Fristen zusammen ab (Steuer, Arbeitsrecht, Datenschutz), nach Dringlichkeit sortiert - überfällige zuerst. Nutze dieses Werkzeug, wenn nach dem GESAMTEN Risikostand gefragt wird, nicht nur nach einem einzelnen Bereich.",
     inputSchema: leeresSchema,
     execute: async () => {
-      const [mwstErgebnis, esutdFristen, cockpit] = await Promise.all([
-        darfMwst ? ladeMwstStatus() : Promise.resolve({ status: null }),
-        darfEsutd ? ladeOffeneEsutdFristen() : Promise.resolve([]),
-        darfCompliance ? ladeCompliance() : Promise.resolve(null),
-      ]);
-      const mwst = mwstErgebnis.status;
-      const eintraege = await baueRisikoEintraege({
-        mwstMeldefristAm: mwst?.meldefristAm ?? null,
-        mwstRegistriert: mwst?.registriert ?? false,
-        esutdFristen,
-        vorfaelleUeberfaellig: cockpit?.vorfaelle.filter((v) => v.ueberfaellig) ?? [],
-        drittweitergabenUeberfaellig: cockpit?.drittweitergaben.filter((d) => d.ueberfaellig) ?? [],
-      });
-      const { sortiert, ueberfaelligAnzahl } = risikoAufbereiten(eintraege);
+      const { sortiert, ueberfaelligAnzahl } = await ladeRadarEintraege(rolle);
       return {
         ziel: ZIEL_RISIKO_RADAR,
         ueberfaelligAnzahl,
@@ -306,11 +316,24 @@ export function baueWerkzeuge(
     oberflaeche?: "lesen" | "steuern";
     /** Erste freie Belegkennung der laufenden Antwort (siehe naechsteBelegNummer). */
     belegStart?: number;
+    /** Der angemeldete Nutzer fuer tagesLageAbrufen (Brigade, Kunde, eigene
+     *  Schulung). Ohne Angabe und in der Vorschau gilt die reine Rollensicht. */
+    profil?: TagesLageProfil;
   } = {},
 ) {
   const oeffneBereich = baueNavigationsWerkzeug(rolle);
   const risikoRadarAbrufen = baueRadar(rolle);
   const wissenSuchen = baueWissenWerkzeug(rolle, optionen.belegStart);
+  // Tageslage: nur lesen, deshalb auch im Weg ohne Aktionen (nurLesen). Die
+  // Fristen kommen aus derselben Funktion wie das Risiko-Radar.
+  const tagesLageAbrufen =
+    rolle && hasPermission(rolle, "ki_assistent", "create")
+      ? baueTagesLageWerkzeug(rolle, {
+          profil: optionen.profil,
+          vorschau: optionen.vorschau,
+          ladeFristen: () => ladeRadarEintraege(rolle),
+        })
+      : null;
   // Bedingtes Spreaden statt eines vorab getypten Record<string, ...>: der
   // generische Rueckgabetyp von tool() laesst sich ohne eine Aufrufstelle
   // nicht sauber annotieren (TypeScript faellt sonst auf Tool<never, never>
@@ -328,6 +351,7 @@ export function baueWerkzeuge(
     hasPermission(rolle, "compliance", "view")
       ? { risikoRadarAbrufen }
       : {}),
+    ...(tagesLageAbrufen ? { tagesLageAbrufen } : {}),
     ...(oeffneBereich ? { oeffneBereich } : {}),
     // Wissensbasis (Recht, Steuer, Compliance, Audit): nur mit Rollenrecht und vorhandenem Index.
     ...(wissenSuchen ? { wissenSuchen } : {}),
