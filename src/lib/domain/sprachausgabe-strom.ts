@@ -95,6 +95,35 @@ export function naechsterVorlauf(vorlauf: number): number {
   return Math.min(STROM_VORLAUF_MAX_S, vorlauf * 2);
 }
 
+/** Sparsame Abtastrate fuer langsame Verbindungen. PCM mit 24 kHz braucht als Base64 rund
+ *  0,5 Mbit/s; gemessen am 28.09.2026 mit 0,7 Mbit/s und 200 ms Latenz stockte die Stimme
+ *  trotz 2 s Vorlauf zwei- bis sechsmal je Antwort. 16 kHz braucht ein Drittel weniger und
+ *  bleibt gut verstaendlich; Standard bleiben 24 kHz ("Die Stimme ist gut"). */
+export const STROM_ABTASTRATE_SPARSAM = 16_000;
+/** Ab so vielen Aussetzern in einer Sitzung spricht Himbi sparsam - einer allein kann ein
+ *  kurzer Wackler sein. */
+export const AUSSETZER_BIS_SPARSAM = 2;
+
+/** Was der Browser ueber seine Verbindung weiss (Network Information API, nur Chromium). */
+export interface VerbindungsInfo {
+  downlink?: number;
+  effectiveType?: string;
+  saveData?: boolean;
+}
+
+/** Meldet der Browser eine langsame Verbindung (Datensparmodus, 3G oder langsamer, unter 1,5 Mbit/s)? */
+export function langsameVerbindung(v: VerbindungsInfo | null | undefined): boolean {
+  if (!v) return false;
+  if (v.saveData === true) return true;
+  if (v.effectiveType === "slow-2g" || v.effectiveType === "2g" || v.effectiveType === "3g") return true;
+  return typeof v.downlink === "number" && v.downlink > 0 && v.downlink < 1.5;
+}
+
+/** Abtastrate fuer den naechsten Strom: die Vorgabe des Servers, sparsam hoechstens 16 kHz. */
+export function abtastrateFuer(vorgabe: number, sparsam: boolean): number {
+  return sparsam ? Math.min(vorgabe, STROM_ABTASTRATE_SPARSAM) : vorgabe;
+}
+
 /** Adresse des TTS-WebSockets - wie sonioxLiveAdresse() in domain/
  *  diktat-live.ts aus SONIOX_API_URL abgeleitet (api.eu.soniox.com ->
  *  tts-rt.eu.soniox.com), oder ausdruecklich ueber SONIOX_TTS_WS_URL. Keine

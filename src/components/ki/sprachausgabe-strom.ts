@@ -28,17 +28,19 @@
 //      (alles andere).
 import { ausgangFuer } from "@/lib/ausgabe-pegel";
 import {
+  AUSSETZER_BIS_SPARSAM,
   KEEPALIVE_NACHRICHT,
-  STROM_ABTASTRATE,
   STROM_KEEPALIVE_MS,
   STROM_RUHE_MS,
   STROM_VORLAUF_S,
   ZEICHEN_JE_SEKUNDE,
   abbruchNachricht,
+  abtastrateFuer,
   base64ZuBytes,
   brauchtNeuenStrom,
   endeNachricht,
   folgeAufFehler,
+  langsameVerbindung,
   leseStromNachricht,
   naechsterStart,
   naechsterVorlauf,
@@ -49,6 +51,7 @@ import {
   ungesprocheneTexte,
   type StromKonfiguration,
   type StromNachweis,
+  type VerbindungsInfo,
 } from "@/lib/domain/sprachausgabe-strom";
 import { satzBeiPosition } from "@/lib/domain/sprachmodus-mitlesen";
 import type { GebundenesZiel } from "@/components/ki/sprach-mitlesen";
@@ -69,6 +72,13 @@ let verbindungsFehler = 0;
 const VERBINDUNGSFEHLER_GRENZE = 2;
 // Soniox hat reduce_silence abgelehnt: fuer diesen Tab ohne.
 let ohneStilleKuerzen = false;
+// Aussetzer in diesem Tab: ab AUSSETZER_BIS_SPARSAM spricht Himbi mit 16 kHz (langsames Netz).
+let aussetzerImTab = 0;
+
+function sparsamSprechen(): boolean {
+  const verbindung = typeof navigator === "undefined" ? null : (navigator as Navigator & { connection?: VerbindungsInfo }).connection;
+  return aussetzerImTab >= AUSSETZER_BIS_SPARSAM || langsameVerbindung(verbindung);
+}
 
 /** Kommt der Strom ueberhaupt in Frage? */
 export function stromMoeglich(): boolean {
@@ -166,6 +176,8 @@ type Strom = {
   audioSekunden: number;
   pcmRest: number | null;
   zuletzt: number;
+  /** Abtastrate dieses Stroms (24 kHz, bei langsamem Netz 16 kHz). */
+  abtastrate: number;
 };
 
 type Wartend = { text: string; sprache: string };
@@ -458,7 +470,7 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       return false;
     }
     if (meinDurchgang !== durchgang) return true;
-    const konfiguration: StromKonfiguration = { ...vorgabe };
+    const konfiguration: StromKonfiguration = { ...vorgabe, sample_rate: abtastrateFuer(vorgabe.sample_rate, sparsamSprechen()) };
     if (ohneStilleKuerzen) delete konfiguration.reduce_silence;
     const id = neueStromId();
     if (!sende(startNachricht(z.schluessel, id, konfiguration))) return false;
@@ -475,6 +487,7 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       audioSekunden: 0,
       pcmRest: null,
       zuletzt: Date.now(),
+      abtastrate: konfiguration.sample_rate,
     };
     beaufsichtige();
     return true;
@@ -544,11 +557,11 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
 
   // --- Ton ----------------------------------------------------------------------------
 
-  function spiele(werte: Float32Array, strom: string, nochText = false): void {
+  function spiele(werte: Float32Array, strom: string, abtastrate: number, nochText = false): void {
     const ctx = kontext();
     if (!ctx || werte.length === 0) return;
     if (ctx.state === "suspended" && !rueck.gehalten?.()) void ctx.resume().catch(() => {});
-    const puffer = ctx.createBuffer(1, werte.length, STROM_ABTASTRATE);
+    const puffer = ctx.createBuffer(1, werte.length, abtastrate);
     puffer.getChannelData(0).set(werte);
     const quelle = ctx.createBufferSource();
     quelle.buffer = puffer;
@@ -565,6 +578,8 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
     if (zeitEnde > 0 && luecke > 0 && strom === letzterStrom && (luecke < 0.8 || nochText)) {
       vorlauf = naechsterVorlauf(vorlauf);
       aussetzerInRunde = true;
+      // Der naechste Strom spricht dann sparsamer (16 kHz), siehe sparsamSprechen().
+      aussetzerImTab += 1;
     }
     letzterStrom = strom;
     stillSeit = null;
@@ -610,8 +625,8 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       // Hatte Soniox vor diesem Stueck noch Text offen, den es nicht zu Ende gesprochen hatte?
       // Dann ist eine Luecke davor ein Aussetzer (Netz zu langsam), keine Werkzeugpause.
       const nochText = ungesprocheneTexte(aktiv.texte, aktiv.audioSekunden, aktiv.tempo) > 0;
-      aktiv.audioSekunden += werte.length / STROM_ABTASTRATE;
-      spiele(werte, aktiv.id, nochText);
+      aktiv.audioSekunden += werte.length / aktiv.abtastrate;
+      spiele(werte, aktiv.id, aktiv.abtastrate, nochText);
     } else if (e.art === "beendet") {
       // Ganzer Strom gehoert: daraus die tatsaechliche Sprechgeschwindigkeit.
       if (aktiv.zeichen >= 60 && aktiv.audioSekunden >= 3) {
