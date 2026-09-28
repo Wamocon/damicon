@@ -28,6 +28,7 @@ import {
   formatAnweisung,
   mitSeitenkarte,
   mitSprachErinnerung,
+  mitUnterbrechungsHinweis,
   quellenAnweisung,
   SPRACHMODUS_FUEHRUNG,
   SPRACHMODUS_OBERFLAECHE,
@@ -352,6 +353,11 @@ function rollenKontext(rolle: Role, vorschau: boolean): string {
 }
 
 export async function POST(req: Request) {
+  const beginn = performance.now();
+  // Die Probe der Einbettung (Wissenssuche) laeuft parallel zu Anmeldung und Datenbank, statt
+  // danach: sie ist nur alle fuenf Minuten je Instanz faellig, kostet dann aber eine Anfrage
+  // an den Einbettungsdienst, und die Antwort wartete darauf (Messung vom 28.09.2026).
+  const wissenGesund = pruefeWissenGesundheit();
   const profil = await getSessionProfile();
   if (!profil) {
     return new Response("nicht angemeldet", { status: 401 });
@@ -371,7 +377,7 @@ export async function POST(req: Request) {
     return new Response("ratenlimit", { status: 429 });
   }
 
-  let body: { messages?: unknown; einwilligung?: boolean; modus?: unknown; pfad?: unknown; rolle?: unknown; sprache?: unknown; diktatSprachen?: unknown; pruefkontext?: unknown; vorleseWeg?: unknown; seitenkarte?: unknown };
+  let body: { messages?: unknown; einwilligung?: boolean; modus?: unknown; pfad?: unknown; rolle?: unknown; sprache?: unknown; diktatSprachen?: unknown; pruefkontext?: unknown; vorleseWeg?: unknown; seitenkarte?: unknown; unterbrochen?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -509,7 +515,7 @@ export async function POST(req: Request) {
   // Gespraech zu einem Prüfbericht: nur fuer Rollen, die Prüfungen ausloesen duerfen (sonst gibt es keinen Bericht), begrenzt und als Daten gekennzeichnet.
   const pruefKontext = pruefKontextAus(body.pruefkontext, profil.role);
 
-  await pruefeWissenGesundheit();
+  await wissenGesund;
   const werkzeugeOhneBericht = baueWerkzeuge(rolle, {
     vorschau,
     // Sprachmodus zaehlt seit dem 25.09.2026 wie Agent-Modus - dieselben
@@ -523,7 +529,12 @@ export async function POST(req: Request) {
   // verweisen koennte (siehe pruefGespraechAnweisung, dieselbe Bedingung).
   const werkzeuge = pruefKontext ? { ...werkzeugeOhneBericht, oeffnePruefBereich: bauePruefBereichWerkzeug() } : werkzeugeOhneBericht;
   const heute = `Heutiges Datum: ${new Date().toISOString().slice(0, 10)}`;
-  const systemPrompt = [
+  // Zwei Teile: vorn, was sich innerhalb eines Gespraechs nicht aendert (Auftrag, Rolle,
+  // Anweisungen), mit einer Cache-Marke fuer Anthropic - Werkzeuge und dieser Teil werden
+  // dann nicht bei jeder Frage neu gelesen, das verkuerzt die Zeit bis zum ersten Wort
+  // (Rueckmeldung vom 28.09.2026: "die Latenz ist zu hoch"). Dahinter, was je Anfrage
+  // wechselt; die Sprachanweisung bleibt bewusst ganz am Ende.
+  const festerTeil = [
     baueAssistentKernauftrag(baueGesamtWissenskontext(quellen, preislisten)),
     rollenKontext(rolle, vorschau),
     modus === "sprache" ? sprachmodusFormatAnweisung(antwortSprache) : formatAnweisung(antwortSprache),
@@ -535,9 +546,13 @@ export async function POST(req: Request) {
     AKTUALITAET_ANWEISUNG,
     AKTIONS_ANWEISUNG,
     ZUGENDE_ANWEISUNG,
-    pruefKontext ? pruefGespraechAnweisung(pruefKontext) : "",
     // Nur wenn die Wissenssuche fuer diese Rolle angeboten wird: sonst gaebe es nichts zu belegen.
     "wissenSuchen" in werkzeuge ? quellenAnweisung(antwortSprache) : OHNE_QUELLEN_ANWEISUNG,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+  const wechselnderTeil = [
+    pruefKontext ? pruefGespraechAnweisung(pruefKontext) : "",
     heute,
     ortHinweis,
     markenAn ? sprechmarkenAnweisung(Boolean(seitenkarte) && letzte.role === "user") : "",
@@ -546,24 +561,40 @@ export async function POST(req: Request) {
   ]
     .filter(Boolean)
     .join("\n\n");
+  const vorModell = performance.now();
+  let ersterText: number | null = null;
 
   const result = streamText({
     // Kette mit Ausweichanbieter (Guthaben, Ratenlimit, Ueberlastung): lib/ai/anbieter-kette.ts
     model: kette.modell,
-    system: systemPrompt,
+    system: [
+      { role: "system", content: festerTeil, providerOptions: { anthropic: { cacheControl: { type: "ephemeral" } } } },
+      { role: "system", content: wechselnderTeil },
+    ],
     // Unvollstaendige Werkzeugaufrufe (Stopp mitten im Aufruf, Abbruch) wuerden
     // sonst jede weitere Anfrage des Verlaufs scheitern lassen.
     // An der letzten Frage haengt ein Hinweis in der Antwortsprache - nur in dieser Kopie fuers Modell,
     // gespeichert und angezeigt wird die Frage unveraendert. Der Systemprompt ist deutsch, und die
     // Sprachanweisung darin verlor gegen die vielen deutschen Vorgaben (siehe domain/antwort-anweisungen.ts).
-    messages: await convertToModelMessages(mitSprachErinnerung(mitSeitenkarte(schnappschuesseKuerzen(nachrichten), markenAn ? seitenkarte : null), antwortSprache), { tools: werkzeuge, ignoreIncompleteToolCalls: true }),
+    // Im Sprachmodus nach einem "Stopp" zusaetzlich, bis wohin Himbi gesprochen hatte (Kontext bleibt).
+    messages: await convertToModelMessages(
+      mitSprachErinnerung(
+        mitSeitenkarte(mitUnterbrechungsHinweis(schnappschuesseKuerzen(nachrichten), modus === "sprache" ? (body.unterbrochen as string | undefined) : null), markenAn ? seitenkarte : null),
+        antwortSprache,
+      ),
+      { tools: werkzeuge, ignoreIncompleteToolCalls: true },
+    ),
     tools: werkzeuge,
     stopWhen: stepCountIs(ausserhalb ? 1 : MAX_SCHRITTE[modus]),
     // Eine Ablehnung braucht zwei Saetze, keine Seite.
     maxOutputTokens: ausserhalb ? 220 : undefined,
     // Text wortweise ausliefern: gleichmaessiger Fluss statt Bloecken, und das
-    // automatische Nachscrollen im Chat ruckelt weniger.
-    experimental_transform: smoothStream({ chunking: "word", delayInMs: 12 }),
+    // automatische Nachscrollen im Chat ruckelt weniger. Nicht im Sprachmodus: dort ist der
+    // Chat unsichtbar, und 12 ms je Wort hielten nur den ersten Satz fuer die Stimme zurueck.
+    experimental_transform: modus === "sprache" ? undefined : smoothStream({ chunking: "word", delayInMs: 12 }),
+    onChunk: ({ chunk }) => {
+      if (ersterText === null && chunk.type === "text-delta") ersterText = performance.now();
+    },
     // Agent-Modus, neue Nutzerfrage: der erste Schritt MUSS ein Werkzeug rufen.
     // Gemessen im echten Gespraech: bei einer wiederholten Frage kopierte das
     // Modell seine fruehere Antwort ohne Werkzeug - das Hauptfenster blieb
@@ -588,7 +619,16 @@ export async function POST(req: Request) {
     onError: (ereignis) => {
       console.error("[damicon] KI-Agent (Stream) fehlgeschlagen:", ereignis.error);
     },
-    onFinish: async ({ steps }) => {
+    onFinish: async ({ steps, totalUsage }) => {
+      if (modus === "sprache") {
+        // Messpunkte fuer die Latenz im Gespraech (Vercel-Protokoll): Vorbereitung bis zum
+        // Modellaufruf, erstes Wort des Modells, und ob der Prompt-Cache greift.
+        const cache = (totalUsage as { inputTokenDetails?: { cacheReadTokens?: number; cacheWriteTokens?: number } } | undefined)?.inputTokenDetails;
+        console.info(
+          `[damicon] KI-Zeiten (Sprache): Vorbereitung ${Math.round(vorModell - beginn)} ms, erstes Wort ${ersterText === null ? "-" : Math.round(ersterText - beginn)} ms, ` +
+            `Eingabe ${totalUsage?.inputTokens ?? "?"} Tokens, Cache gelesen ${cache?.cacheReadTokens ?? 0}, geschrieben ${cache?.cacheWriteTokens ?? 0}, Schritte ${steps.length}`,
+        );
+      }
       const werkzeugaufrufe = steps
         .flatMap((schritt) => schritt.toolCalls.map((aufruf) => aufruf?.toolName))
         .filter((name): name is string => Boolean(name));

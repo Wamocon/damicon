@@ -95,10 +95,13 @@ export function naechstePhase(phase: Phase, e: Ereignis): Phase {
   }
 }
 
-/** Nimmt das Mikrofon in dieser Phase auf? Nur beim Zuhoeren - nie, waehrend
- *  der Assistent dran ist (Echo) oder der Nutzer ihn angehalten hat. */
-export function nimmtAuf(phase: Phase): boolean {
-  return phase === "hoert";
+/** Hoert die Erkennung in dieser Phase mit? Seit dem 28.09.2026 durchgehend, auch waehrend
+ *  Himbi denkt und spricht (EINE Verbindung fuers ganze Gespraech, sprachmodus.tsx): nur so
+ *  gehen weder ein Nachsatz ("Ja." ... "und zeig mir die Lieferungen") noch ein "Stopp"
+ *  mitten in seiner Antwort verloren. Was dabei von Himbis eigener Stimme kommt, sortiert
+ *  sprachmodus.tsx aus (Grenze im Audio, Echo-Pruefung). Nie im Stumm- oder Fehlerzustand. */
+export function ohrOffen(phase: Phase): boolean {
+  return phase === "hoert" || phase === "versteht" || phase === "denkt" || phase === "spricht";
 }
 
 /** Ist der Assistent dran? Dann unterbricht ein Tipp auf Himbi. */
@@ -114,41 +117,73 @@ export function antwortFertig(stand: { beschaeftigt: boolean; spricht: boolean; 
   return !stand.beschaeftigt && !stand.spricht && !stand.laedt;
 }
 
-/** So lange muss alles still sein, bevor wieder zugehoert wird. Zwischen dem
- *  Ende des Streams und dem Anstoss des Vorlesens liegt ein Renderdurchlauf;
- *  ohne diese Gnadenfrist hoerte das Mikrofon mitten in diese Luecke hinein zu. */
-export const RUHE_VOR_ZUHOEREN_MS = 700;
+/** So lange muss alles still sein, bevor die Phase wieder "hoert" ist. Zwischen dem
+ *  Ende des Streams und dem Anstoss des Vorlesens liegt ein Renderdurchlauf; ohne diese
+ *  Gnadenfrist sprang die Anzeige mitten in diese Luecke auf "Ich hoere zu". Seit dem
+ *  28.09.2026 hoert die Erkennung ohnehin durchgehend mit (ohrOffen), die Frist verzoegert
+ *  also keine Antwort mehr; 300 statt 700 ms, damit ein schnelles "Ja" auf Himbis Frage
+ *  nicht in die alte Phase faellt. */
+export const RUHE_VOR_ZUHOEREN_MS = 300;
 
-// --- 1b. Wortbefehl "Stopp" ----------------------------------------------------
+/** So lange darf beim Zuhoeren niemand sprechen, dann schaltet sich das Mikrofon stumm
+ *  (vorher nach der 2-Minuten-Grenze einer Sitzung, die es im Gespraech nicht mehr gibt). */
+export const STILLE_BIS_STUMM_MS = 120_000;
+
+// --- 1b. Wortbefehle: unterbrechen und beenden ----------------------------------
 //
-// Sicherer Weg, das Gespraech zu beenden, als reine Aeusserung erkannt - kein
-// Knopf, keine Taste noetig (Rueckmeldung vom 25.09.2026: "ich muss ihn
-// stoppen koennen mit Stopp"). Nur die ganze Aeusserung zaehlt, nicht ein Wort
-// mittendrin ("Was bedeutet Stopp bei einer Kuehlkette?" bleibt eine Frage).
+// Bis zum 28.09.2026 beendete "Stopp" den ganzen Sprachmodus (Rueckmeldung vom 25.09.2026:
+// "ich muss ihn stoppen koennen mit Stopp"). Seit der Rueckmeldung vom 28.09.2026 ("Key-
+// Woerter, wo ich die AI unterbrechen und etwas anderes fragen kann, ohne dass sie den
+// Kontext verliert, wie wenn sie das Falsche vorliest") sind es zwei Arten:
+//
+//   - UNTERBRECHEN ("Stopp", "Halt", "Moment", "Warte", "Nein", "Himbi"): Himbi verstummt,
+//     das Gespraech bleibt offen und der Verlauf erhalten. Was in derselben Aeusserung
+//     danach kommt, ist die naechste Frage ("Stopp, zeig mir lieber die Reklamationen").
+//     Gilt nur, waehrend Himbi dran ist (denkt oder spricht) - beim Zuhoeren gibt es
+//     nichts zu unterbrechen.
+//   - BEENDEN ("Sprachmodus beenden", "Gespraech beenden", "Tschuess Himbi"): schliesst den
+//     Sprachmodus, in jeder Phase.
+//
+// Beides nur am Anfang bzw. als ganze Aeusserung, nie als Wort mittendrin ("Was bedeutet
+// Stopp bei einer Kuehlkette?" bleibt eine Frage).
 
-// Seit dem 25.09.2026 (zweite Fassung) etwas toleranter: "Stopp, stopp",
-// "Himbi, stopp", "Stopp die Fuehrung", "Nein, hoer auf" zaehlen auch - eine kurze
-// Aeusserung aus Stoppwort und Beiwoertern. Alles mit einem anderen Inhalt
-// ("Stopp den Bericht bitte") bleibt eine Frage.
-// Auch "Sprachmodus beenden", "Gespräch beenden", "Beende den Sprachmodus" (Rueckmeldung vom
-// 25.09.2026: "ich sage Sprachmodus beenden und der Sprachmodus wird beendet").
-const STOPP_KERN = new Set([
+const UNTERBRECHEN_KERN = new Set([
   // Deutsch
-  "stopp", "stop", "halt", "abbrechen", "aufhören", "aufhoeren", "beenden", "beende", "schließen", "schliessen", "verlassen", "aus",
+  "stopp", "stop", "halt", "moment", "warte", "wart", "warten", "pause", "ruhe", "still", "abbrechen", "aufhören", "aufhoeren", "nein", "falsch",
   // Englisch
-  "end", "exit", "quit", "close",
+  "wait", "hold", "no", "cancel",
   // Russisch
-  "стоп", "стой", "хватит", "остановись", "прекрати", "выключи", "выключить", "заверши", "завершить", "закончи", "закончить", "выйди", "выйти",
+  "стоп", "стой", "подожди", "погоди", "хватит", "минутку", "секунду", "нет", "отмена", "прекрати", "остановись",
   // Kasachisch
-  "тоқта", "тоқтат", "тоқтаңыз", "аяқта", "аяқтау", "өшір", "өшіру", "жап", "жабу",
+  "тоқта", "тоқтат", "тоқтаңыз", "күте", "күт", "жоқ",
+  // Der Name: wer Himbi anspricht, waehrend er redet, will ihn unterbrechen.
+  "himbi", "химби",
 ]);
-const STOPP_BEIWOERTER = new Set([
-  "bitte", "please", "пожалуйста", "өтінемін", "himbi", "химби", "jetzt", "sofort", "mal", "doch",
-  "ok", "okay", "hey", "nein", "die", "führung", "fuehrung", "danke", "einfach", "alles",
-  "den", "das", "sprachmodus", "gespräch", "gespraech", "modus",
+const BEENDEN_KERN = new Set([
+  // Deutsch
+  // Nicht "aus": "Das sieht gut aus", mitten in Himbis Antwort gesagt, beendete sonst alles.
+  "beenden", "beende", "schließen", "schliessen", "schließe", "verlassen", "tschüss", "tschüs", "tschuess", "wiedersehen",
+  // Englisch
+  "end", "exit", "quit", "close", "bye", "goodbye",
+  // Russisch
+  "выключи", "выключить", "заверши", "завершить", "закончи", "закончить", "выйди", "выйти", "пока", "свидания",
+  // Kasachisch
+  "аяқта", "аяқтау", "өшір", "өшіру", "жап", "жабу", "сау",
+]);
+/** Woerter, die einen Befehl begleiten, ohne ihm einen eigenen Inhalt zu geben. */
+const BEIWOERTER = new Set([
+  "bitte", "please", "пожалуйста", "өтінемін", "himbi", "химби", "jetzt", "sofort", "mal", "doch", "kurz", "eben",
+  "ok", "okay", "hey", "danke", "einfach", "alles", "auf", "on", "a", "second", "sec", "einen",
+  "den", "das", "die", "sprachmodus", "gespräch", "gespraech", "modus", "führung", "fuehrung",
   "the", "voice", "mode", "conversation",
-  "голосовой", "режим", "разговор",
-  "дауыс", "режимі", "режимін", "әңгіме", "әңгімені",
+  "голосовой", "режим", "режима", "разговор", "разговора", "из", "до", "ещё", "еще",
+  "дауыс", "режимі", "режимін", "әңгіме", "әңгімені", "тұр", "бол",
+]);
+/** Die Beiwoerter, die nie zum Inhalt danach gehoeren. Artikel und "Sprachmodus" zaehlen im
+ *  Befehl ("Stopp die Fuehrung"), aber vor einer Frage gehoeren sie zu ihr: aus "Nein, das ist
+ *  falsch" wird sonst "ist falsch". */
+const FUELLWOERTER = new Set([
+  "bitte", "please", "пожалуйста", "өтінемін", "himbi", "химби", "jetzt", "sofort", "mal", "doch", "kurz", "eben", "ok", "okay", "hey", "danke",
 ]);
 const HOEREN = new Set(["hör", "hoer", "hören", "hoeren"]);
 const HOEFLICHKEIT = /^(bitte|please|пожалуйста|өтінемін)[\s,]+|[\s,]+(bitte|please|пожалуйста|өтінемін)$/gi;
@@ -157,52 +192,107 @@ function woerterVon(text: string): string[] {
   return text.toLowerCase().replace(/[^\p{L}\s]/gu, " ").split(/\s+/).filter(Boolean);
 }
 
-/** Ist diese erkannte Aeusserung nur der Befehl anzuhalten: ein Stoppwort, dazu
- *  hoechstens Beiwoerter wie "bitte", "Himbi" oder "die Fuehrung"? */
-export function istStoppBefehl(text: string): boolean {
+/** Ist diese Aeusserung nur der Befehl, den Sprachmodus zu beenden: ein Beendenwort, dazu
+ *  hoechstens Beiwoerter ("Sprachmodus beenden", "Tschuess Himbi", "Auf Wiedersehen")? */
+export function istBeendenBefehl(text: string): boolean {
   const woerter = woerterVon(text);
   if (woerter.length === 0 || woerter.length > 6) return false;
   let kern = false;
-  for (let i = 0; i < woerter.length; i++) {
-    const w = woerter[i]!;
-    if (STOPP_KERN.has(w)) {
-      kern = true;
-      continue;
-    }
-    if (HOEREN.has(w) && woerter.includes("auf")) {
-      kern = true;
-      continue;
-    }
-    if (w === "auf" && woerter.some((x) => HOEREN.has(x))) continue;
-    if (!STOPP_BEIWOERTER.has(w)) return false;
+  for (const w of woerter) {
+    if (BEENDEN_KERN.has(w)) kern = true;
+    else if (!BEIWOERTER.has(w)) return false;
   }
   return kern;
 }
 
-/** Endet ein Text mit einem Stoppbefehl, auch wenn davor anderes steht, das kein
- *  Satzzeichen abtrennt ("... die Datenschutzmeldungen stopp")? Liefert den
- *  Befehl (die letzten Woerter aus Stopp- und Beiwoertern) oder null. Fuer den
- *  Stoppwort-Waechter: dort geht dem Befehl oft unpunktierter Resthall voraus. */
-export function stoppBefehlAmEnde(text: string): string | null {
-  const woerter = woerterVon(text);
-  const ende: string[] = [];
-  for (let i = woerter.length - 1; i >= 0 && ende.length < 6; i--) {
-    const w = woerter[i]!;
-    if (STOPP_KERN.has(w) || STOPP_BEIWOERTER.has(w) || HOEREN.has(w) || w === "auf") ende.unshift(w);
+/**
+ * Beginnt diese Aeusserung mit einem Unterbrechen-Befehl? Dann liefert sie, was danach
+ * kommt (`rest`, leer bei "Stopp" allein), sonst null. Ein Befehl ist eine Folge aus
+ * Unterbrechen- und Beiwoertern am Anfang, mit mindestens einem Unterbrechenwort:
+ * "Stopp", "Halt, halt", "Himbi, warte mal", "Nein, ich meinte die Lieferungen" (rest:
+ * "ich meinte die Lieferungen"). "Hoer auf" zaehlt als ein Wort.
+ */
+export function unterbrechungsBefehl(text: string): { rest: string } | null {
+  const woerter = [...text.matchAll(/[\p{L}]+/gu)];
+  let kern = false;
+  // Bis wohin der Befehl sicher reicht (Befehls- und Fuellwoerter); ein Artikel davor gehoert
+  // zur Frage, falls noch eine kommt.
+  let ende = 0;
+  let i = 0;
+  for (; i < woerter.length; i++) {
+    const w = woerter[i]![0].toLowerCase();
+    const naechstes = woerter[i + 1]?.[0].toLowerCase();
+    let fest = true;
+    if (UNTERBRECHEN_KERN.has(w)) kern = true;
+    else if (HOEREN.has(w) && naechstes === "auf") {
+      kern = true;
+      i += 1;
+    } else if (BEIWOERTER.has(w)) fest = FUELLWOERTER.has(w);
     else break;
+    const m = woerter[i]!;
+    if (fest) ende = m.index! + m[0].length;
   }
-  const befehl = ende.join(" ");
-  return ende.length > 0 && istStoppBefehl(befehl) ? befehl : null;
+  if (!kern) return null;
+  // "Nein" und "Himbi" zaehlen hier mit. Der Aufrufer fragt nur, waehrend Himbi dran ist: beim
+  // Zuhoeren sind "Nein danke" und "Himbi, was ist ein Reihenblock?" gewoehnliche Aeusserungen.
+  // Kein Inhalt nach dem Befehl ("Stopp die Fuehrung"): nichts bleibt uebrig.
+  const rest = i >= woerter.length ? "" : text.slice(ende).replace(/^[\s,.;:!?…-]+/, "").trim();
+  return { rest };
 }
 
-/** Das (erste) Stoppwort in einem Text, oder - mit `wort` - ob genau dieses Wort
- *  darin vorkommt. Fuer den Stoppwort-Waechter: sagt Himbi "Stopp" gerade selbst,
- *  ist ein erkanntes "Stopp" ihr eigenes Echo. */
-export function stoppWortIn(text: string, wort?: string): string | null {
-  for (const w of woerterVon(text)) {
-    if (wort ? w === wort : STOPP_KERN.has(w)) return w;
+/** Nur anhalten, ohne Inhalt ("Stopp", "Moment", "Hoer auf"): beim Zuhoeren gibt es nichts
+ *  anzuhalten, und als Frage an Himbi waere es sinnlos. "Nein" oder "Himbi" allein zaehlen hier
+ *  NICHT - "Nein" ist beim Zuhoeren oft die Antwort auf Himbis Frage. */
+const NUR_ANHALTEN = new Set([...UNTERBRECHEN_KERN].filter((w) => !["nein", "no", "нет", "жоқ", "himbi", "химби", "falsch"].includes(w)));
+export function istNurAnhalten(text: string): boolean {
+  const woerter = woerterVon(text);
+  if (woerter.length === 0 || woerter.length > 5) return false;
+  let kern = false;
+  for (let i = 0; i < woerter.length; i++) {
+    const w = woerter[i]!;
+    if (NUR_ANHALTEN.has(w) || (HOEREN.has(w) && woerter[i + 1] === "auf")) kern = true;
+    else if (!BEIWOERTER.has(w)) return false;
+  }
+  return kern;
+}
+
+/** Wo im Text ein Befehl beginnt (Index des Wortes), fuer Text, dem Himbis eigene Stimme
+ *  vorausgehen kann: waehrend er spricht, hoert die Erkennung sein Echo mit. `istEcho` sagt,
+ *  ob ein Wort gerade von Himbi selbst kam. Liefert den ersten Treffer, der kein Echo ist. */
+export function befehlsBeginn(woerter: readonly string[], istEcho: (wort: string) => boolean): number | null {
+  for (let i = 0; i < woerter.length; i++) {
+    const w = woerter[i]!.toLowerCase().replace(/[^\p{L}]/gu, "");
+    const kern = UNTERBRECHEN_KERN.has(w) || BEENDEN_KERN.has(w) || (HOEREN.has(w) && woerter[i + 1]?.toLowerCase().replace(/[^\p{L}]/gu, "") === "auf");
+    if (kern && !istEcho(w)) return i;
   }
   return null;
+}
+
+/** Das (erste) Befehlswort in einem Text, oder - mit `wort` - ob genau dieses Wort darin
+ *  vorkommt. Fuer die Echo-Pruefung: sagt Himbi "nein" oder "Moment" gerade selbst, ist ein
+ *  erkanntes "nein" ihr eigenes Echo aus dem Lautsprecher. */
+export function befehlsWortIn(text: string, wort?: string): string | null {
+  for (const w of woerterVon(text)) {
+    if (wort ? w === wort : UNTERBRECHEN_KERN.has(w) || BEENDEN_KERN.has(w)) return w;
+  }
+  return null;
+}
+
+/** Hat jemand nach einer Frage wirklich weitergesprochen (Nachsatz), oder war es nur ein
+ *  Geraeusch? Ein Wort aus mindestens zwei Buchstaben genuegt. */
+export function istGesprochen(text: string): boolean {
+  return woerterVon(text).some((w) => w.length >= 2);
+}
+
+/** "Ja." + "und zeig mir die Lieferungen." -> "Ja, und zeig mir die Lieferungen." Der Punkt des
+ *  ersten Teils kam nur, weil die Erkennung dort ein Ende vermutete. */
+export function fuegeZusammen(vorher: string, nachsatz: string): string {
+  const a = vorher.trim();
+  const b = nachsatz.trim();
+  if (!a) return b;
+  if (!b) return a;
+  const kleinAnfang = /^[\p{Ll}]/u.test(b);
+  return kleinAnfang ? `${a.replace(/[.!?…]+$/, ",")} ${b}` : `${a} ${b}`;
 }
 
 // --- 1c. Zusage/Absage bei einer offenen Freigabe -------------------------------
@@ -252,9 +342,8 @@ export function istZusageBefehl(text: string): boolean {
 
 /** Ist diese fertig erkannte Aeusserung eine reine Absage zu einer offenen
  *  Freigabe? "Stopp"/"Stop" zaehlen bewusst auch hier: waehrend eine Karte
- *  offen ist, soll damit die Aktion abgelehnt werden - nicht der ganze
- *  Sprachmodus enden (istStoppBefehl wird dafuer bei offener Freigabe nicht
- *  geprueft, siehe sprachmodus.tsx). */
+ *  offen ist, soll damit die Aktion abgelehnt werden (siehe nimmAeusserung in
+ *  sprachmodus.tsx). */
 export function istAbsageBefehl(text: string): boolean {
   return ABSAGE_WOERTER.has(bereinigteAeusserung(text));
 }

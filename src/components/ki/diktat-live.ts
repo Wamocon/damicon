@@ -11,7 +11,7 @@
 // ab, Dienst meldet einen Fehler), geht dieselbe Aufnahme als Datei ueber den
 // bisherigen Weg (transkribiereSprachnachricht). Wer diktiert, merkt davon
 // hoechstens, dass der Text erst am Ende erscheint.
-import { erzeugeTokenSammler, type LiveKonfiguration, type LiveZweck, type SammelStand } from "@/lib/domain/diktat-live";
+import { erzeugeTokenSammler, type LiveKonfiguration, type LiveZweck, type SammelStand, type TextAb } from "@/lib/domain/diktat-live";
 
 export type LiveErgebnis =
   /** `text` kann leer sein: dann hat das Modell zugehoert und nichts gehoert. */
@@ -33,6 +33,8 @@ export interface LiveSitzung {
   traegt(): boolean;
   /** Hat das Modell irgendetwas gehoert, auch vorlaeufig? */
   hatGehoert(): boolean;
+  /** Was ab abMs im Audio gesprochen wurde (Gespraech, siehe domain/diktat-live.ts). */
+  textAb(abMs: number): TextAb;
 }
 
 /** Wie lange der Aufbau (Schluessel + WebSocket) dauern darf. */
@@ -62,8 +64,9 @@ export function starteLiveSitzung({
   zweck?: LiveZweck;
   /** Neuer Zwischenstand - fuer die Anzeige im Eingabefeld. */
   beiStand: (stand: SammelStand) => void;
-  /** Das Modell hat das Ende der Aeusserung erkannt. */
-  beiEndpunkt: () => void;
+  /** Das Modell hat das Ende der Aeusserung erkannt. Beim Diktat nur einmal, im Gespraech
+   *  (zweck "gespraech") nach JEDER Aeusserung: dort hoert eine Sitzung durchgehend zu. */
+  beiEndpunkt: (stand: SammelStand) => void;
   /** Die Sitzung ist gescheitert, bevor beende() oder abbrechen() gerufen wurde
    *  (Schluessel, Verbindung, Dienst). Der Diktatknopf braucht das nicht - er
    *  faellt bei beende() auf den Datei-Weg zurueck. Der Sprachmodus schon: ohne
@@ -74,7 +77,7 @@ export function starteLiveSitzung({
   let ws: WebSocket | null = null;
   let gescheitert: string | null = null;
   let beendet = false;
-  let endpunktGemeldet = false;
+  let endpunkteGemeldet = 0;
   let fertigMelden: (() => void) | null = null;
   const fertig = new Promise<void>((r) => {
     fertigMelden = r;
@@ -162,9 +165,9 @@ export function starteLiveSitzung({
         return scheitere("dienst-fehler");
       }
       beiStand(stand);
-      if (stand.endpunkt && !endpunktGemeldet) {
-        endpunktGemeldet = true;
-        beiEndpunkt();
+      if (stand.endpunkte > endpunkteGemeldet && (zweck === "gespraech" || endpunkteGemeldet === 0)) {
+        endpunkteGemeldet = stand.endpunkte;
+        beiEndpunkt(stand);
       }
       if (stand.fertig) fertigMelden?.();
     };
@@ -221,5 +224,6 @@ export function starteLiveSitzung({
 
     traegt: () => !gescheitert,
     hatGehoert: () => sammler.hatGehoert(),
+    textAb: (abMs) => sammler.textAb(abMs),
   };
 }

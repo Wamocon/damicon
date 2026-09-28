@@ -87,7 +87,9 @@ export const STROM_SCHLUESSEL_RESERVE_MS = 10_000;
  *  also nicht von selbst. Nach jedem Aussetzer (das Netz war langsamer als die
  *  Stimme) wird er verdoppelt, bis STROM_VORLAUF_MAX_S (naechsterVorlauf). */
 export const STROM_VORLAUF_S = 0.25;
-export const STROM_VORLAUF_MAX_S = 1.0;
+/** Bis zum 28.09.2026 1,0 s: mit gedrosseltem Netz (0,7 Mbit/s, 200 ms Latenz) stockte es
+ *  danach trotzdem weiter, fuenf Aussetzer in 41 s. */
+export const STROM_VORLAUF_MAX_S = 2.0;
 
 export function naechsterVorlauf(vorlauf: number): number {
   return Math.min(STROM_VORLAUF_MAX_S, vorlauf * 2);

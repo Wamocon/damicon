@@ -97,6 +97,7 @@ import {
   formatAnweisung,
   KEINE_STELLE,
   mitSprachErinnerung,
+  mitUnterbrechungsHinweis,
   quellenAnweisung,
   SPRACHMODUS_FUEHRUNG,
   SPRACHMODUS_OBERFLAECHE,
@@ -111,13 +112,15 @@ import {
   untertitelAusSpeicher,
   erzeugeUnterbrechungsWaechter,
   istAbsageBefehl,
-  istStoppBefehl,
+  istBeendenBefehl,
+  istNurAnhalten,
   istZusageBefehl,
   LANGE_SITZUNG_MS,
   MAX_NEUVERSUCHE,
   nachSitzungsAbbruch,
   naechstePhase,
-  nimmtAuf,
+  ohrOffen,
+  unterbrechungsBefehl,
   UNTERBRECHEN_STANDARD,
 } from "../../src/lib/domain/sprachmodus.ts";
 import { waehleSchritt } from "../../src/lib/ai/schritt-steuerung.ts";
@@ -2279,7 +2282,7 @@ for (const [name, kaputteAntwort] of [
     const route = readFileSync(new URL("../../src/app/api/ki-assistent/route.ts", import.meta.url), "utf8");
     pruefe("Route: Format- und Quellenanweisung folgen der Antwortsprache", route.includes("formatAnweisung(antwortSprache)") && route.includes("quellenAnweisung(antwortSprache)"));
     pruefe("Route: keine feste deutsche Format- oder Quellenanweisung mehr", !route.includes("const FORMAT_ANWEISUNG") && !route.includes("const QUELLEN_ANWEISUNG"));
-    pruefe("Route: der Sprachhinweis geht an die letzte Frage (nur fuers Modell)", route.includes("mitSprachErinnerung(mitSeitenkarte(schnappschuesseKuerzen(nachrichten), markenAn ? seitenkarte : null), antwortSprache)"));
+    pruefe("Route: der Sprachhinweis geht an die letzte Frage (nur fuers Modell)", /mitSprachErinnerung\(\s*mitSeitenkarte\(mitUnterbrechungsHinweis\(schnappschuesseKuerzen\(nachrichten\), modus === "sprache" \? \(body\.unterbrochen as string \| undefined\) : null\), markenAn \? seitenkarte : null\),\s*antwortSprache,/.test(route));
     const agenten = readFileSync(new URL("../../src/lib/pruefung/agenten.ts", import.meta.url), "utf8");
     pruefe("Bericht: die Sprachvorgabe der Zusammenfassung steht zuletzt, auf Englisch, mit hoechster Prioritaet", agenten.includes("LANGUAGE (highest priority, overrides everything above): Write the zusammenfassung"));
     pruefe("Bericht: eine Zusammenfassung in falscher Sprache wird verworfen und neu erzeugt", agenten.includes("sprachePasst(anfrage.sprache, t, erkenner)") && agenten.includes("nicht in der verlangten Sprache"));
@@ -2350,7 +2353,8 @@ for (const [name, kaputteAntwort] of [
   // (a) Ablauf: halbduplex, das Mikrofon nimmt nur auf, waehrend zugehoert wird.
   pruefe("Sprachmodus: aus -> starten -> startet", naechstePhase("aus", { art: "starten" }) === "startet");
   pruefe("Sprachmodus: startet -> Mikrofon bereit -> hoert", naechstePhase("startet", { art: "mikrofon-bereit" }) === "hoert");
-  pruefe("Sprachmodus: hoert waehrend Aufnahme, sonst nicht", nimmtAuf("hoert") === true && nimmtAuf("denkt") === false && nimmtAuf("spricht") === false && nimmtAuf("startet") === false);
+  // Seit dem 28.09.2026 hoert das Ohr auch beim Nachdenken und Sprechen mit (Nachsatz, Befehle).
+  pruefe("Sprachmodus: das Ohr ist offen beim Zuhoeren, Verstehen, Nachdenken und Sprechen, sonst nicht", ["hoert", "versteht", "denkt", "spricht"].every(ohrOffen) && !["aus", "startet", "pausiert", "fehler"].some(ohrOffen));
   {
     let p = "hoert";
     for (const [ereignis, erwartet] of [
@@ -2457,8 +2461,8 @@ for (const [name, kaputteAntwort] of [
     pruefe("Freigabe-Bus: derselbe Text zaehlt nicht als neue Anfrage", /if \(text === \(freigabeAnfrage\?\.text \?\? null\)\) \{[\s\S]{0,120}return;/.test(bus));
     pruefe("Freigabe-Bus: Entscheidung geht an genau die gemeldete Karte", bus.includes("freigabeEntscheider?.(erlaubt)"));
     pruefe("Freigabe: der Chat meldet Klick- UND Aktionskarte an den Bus", chat.includes("meldeFreigabeAnfrage(`${t(\"klick.titel\")}") && chat.includes("anstehendeAktion") && chat.includes("meldeFreigabeAnfrage(null, null)"));
-    pruefe("Freigabe: der Sprachmodus wertet Ja/Nein VOR einer neuen Frage aus und stellt sie dann nicht", /leseFreigabeAnfrage\(\)\) \{[\s\S]{0,400}entscheideFreigabe\(istZusageBefehl\(ergebnis\.text\)\);[\s\S]{0,120}return;/.test(modus));
-    pruefe("Freigabe: bei offener Karte lehnt 'Stopp' nur die Karte ab, beendet nicht den Sprachmodus", /else if \(istStoppBefehl\(ergebnis\.text\)\)/.test(modus));
+    pruefe("Freigabe: der Sprachmodus wertet Ja/Nein VOR einer neuen Frage aus und stellt sie dann nicht", /leseFreigabeAnfrage\(\) && !vorsatz\.current\) \{[\s\S]{0,200}entscheideFreigabe\(istZusageBefehl\(text\)\);[\s\S]{0,160}return;/.test(modus));
+    pruefe("Freigabe: bei offener Karte lehnt 'Stopp' mitten in der Antwort nur die Karte ab, beendet nicht den Sprachmodus", /if \(leseFreigabeAnfrage\(\)\) \{[\s\S]{0,120}entscheideFreigabe\(false\);\s*grenzeMs\.current = /.test(modus) && istAbsageBefehl("Stopp") && !istBeendenBefehl("Stopp"));
     pruefe("Freigabe: die Karte im Sprachmodus geht ueber allem, auch ohne Untertitel", /const untertitel = freigabeAnfrage \? \(/.test(modus));
 
     // Sprachmodus-Layout: links, auch beim Zeigen auf ein Ziel - das Schriftbild darf nie fehlen.
@@ -2618,16 +2622,17 @@ for (const [name, kaputteAntwort] of [
   const modus = readFileSync(new URL("../../src/components/ki/sprachmodus.tsx", import.meta.url), "utf8");
   const live = readFileSync(new URL("../../src/components/ki/diktat-live.ts", import.meta.url), "utf8");
   const hoeren = readFileSync(new URL("../../src/lib/hoeren.ts", import.meta.url), "utf8");
-  pruefe("Aufnahme: je Aeusserung ein neuer MediaRecorder (erstes Stueck = Dateikopf)", modus.includes("const recorder = new MediaRecorder(strom);") && /const beginneAeusserung = useCallback\(\(\) => \{[\s\S]*?const aufnahme = starteAufnahme\(\);/.test(modus));
+  // Seit dem 28.09.2026 ein Recorder und eine Sitzung fuers ganze Gespraech (vorher je Aeusserung).
+  pruefe("Aufnahme: ein MediaRecorder und eine Sitzung fuers ganze Gespraech (erstes Stueck = Dateikopf)", (modus.match(/new MediaRecorder\(/g) ?? []).length === 1 && modus.includes("recorder.start(AUFNAHME_STUECK_MS);") && modus.includes("ohrRef.current = { recorder, sitzung: diese, startPerf };"));
   pruefe("Aufnahme: kein pause()/resume() eines Recorders fuer die ganze Sitzung mehr", !/recorder\.(pause|resume)\(\)/.test(modus));
-  pruefe("Aufnahme: das letzte Stueck geht vor dem Ende-Zeichen an die Sitzung", /schliesseAufnahme\(\)\s*\.then\([^)]*\): Promise<LiveErgebnis> \| LiveErgebnis => \(sitzung \? sitzung\.beende\(\)/.test(modus));
+  pruefe("Aufnahme: die Stuecke gehen nur an die Sitzung des aktuellen Ohrs", modus.includes("if (e.data.size > 0 && ohrRef.current?.sitzung === diese) diese.sende(e.data);"));
   pruefe("Aufnahme: Mikrofonstrom bleibt fuer die ganze Sitzung offen (iOS-Audiosession)", (modus.match(/getUserMedia\(/g) ?? []).length === 1 && modus.includes("stromRef.current?.getTracks().forEach((s) => s.stop());"));
   pruefe("Himbi: der Schein bekommt den Pegel der eigenen Stimme (starteHoeren) und gibt ihn wieder frei", modus.includes("starteHoeren(strom);") && modus.includes("stoppeHoeren();"));
   pruefe("Echo: im Gespraech mit Echounterdrueckung, sonst wie beim Diktat", modus.includes("const GESPRAECH_AUFNAHME: MediaTrackConstraints = { ...AUFNAHME_VORGABEN, echoCancellation: true };") && modus.includes("getUserMedia({ audio: GESPRAECH_AUFNAHME })"));
   pruefe("Abbruch: der Sprachmodus hoert auf das Scheitern der Sitzung", modus.includes("beiScheitern: (grund) => {") && modus.includes("nachSitzungsAbbruch({"));
   pruefe("Abbruch: diktat-live meldet ein Scheitern nur vor beende()/abbrechen()", live.includes("if (!beendet) beiScheitern?.(grund);") && /abbrechen\(\) \{\s*beendet = true;/.test(live));
   pruefe("Dazwischenreden: nur waehrend Himbi spricht, mit Mikrofon- und Ausgabepegel", /if \(phase !== "spricht"\) return;\s*const waechter = erzeugeUnterbrechungsWaechter\(\);/.test(modus) && modus.includes("waechter.melde(leseLautstaerke(), leseAusgabePegel(), performance.now())"));
-  pruefe("Dazwischenreden: Vorlauf ohne Unterbrechung wird verworfen (kein Echo als Frage)", modus.includes("if (!unterbrochen && aufnahmeRef.current && !aufnahmeRef.current.sitzung) verwirfAufnahme();"));
+  pruefe("Dazwischenreden: was ab dem Einsatz der Stimme gesagt wurde, gehoert zur naechsten Frage", modus.includes("grenzeMs.current = Math.max(grenzeMs.current, (einsatz ?? audioJetzt()) - 300);") && modus.includes("if (grenzeSteht.current) grenzeSteht.current = false;"));
   pruefe("Lautstaerke: RMS auf der Skala des Diktats (pegelAusZeitbereich)", hoeren.includes("lautstaerke = pegelAusZeitbereich(zeitRoh);") && hoeren.includes("export function leseLautstaerke(): number"));
   pruefe("Komponente: keine abgeschaltete Hook-Pruefung mehr", !modus.includes("eslint-disable"));
 
@@ -2678,7 +2683,8 @@ for (const [name, kaputteAntwort] of [
   }
   pruefe("Strom: naechstes Stueck direkt hinter dem vorigen", naechsterStart(5.2, 5.0) === 5.2);
   pruefe("Strom: Zeitachse abgelaufen -> Vorlauf ab jetzt (Voreinstellung 0,25 s)", Math.abs(naechsterStart(4.0, 5.0) - 5.25) < 1e-9 && Math.abs(naechsterStart(0, 0) - 0.25) < 1e-9 && Math.abs(naechsterStart(4.0, 5.0, 0.5) - 5.5) < 1e-9);
-  pruefe("Strom: nach jedem Aussetzer doppelter Vorlauf, hoechstens 1 s", naechsterVorlauf(0.25) === 0.5 && naechsterVorlauf(0.5) === 1 && naechsterVorlauf(1) === 1);
+  // 28.09.2026: hoechstens 2 s statt 1 s (Rueckmeldung "jede Sekunde Unterbrechungen", Messung bei schwachem Netz).
+  pruefe("Strom: nach jedem Aussetzer doppelter Vorlauf, hoechstens 2 s", naechsterVorlauf(0.25) === 0.5 && naechsterVorlauf(0.5) === 1 && naechsterVorlauf(1) === 2 && naechsterVorlauf(2) === 2);
   pruefe("Strom: Zeichengrenze folgt dem Tempo (2-Minuten-Grenze auch bei 0,7)", zeichenGrenze(1.1) === 1300 && zeichenGrenze(0.7) === 827 && zeichenGrenze(undefined) === 1300 && brauchtNeuenStrom(800, 50, 0.7) && !brauchtNeuenStrom(800, 50, 1.1));
   pruefe(
     "Strom: ungesprochene Texte aus der Tondauer geschaetzt (angefangene zaehlen als ungesprochen)",
@@ -2926,12 +2932,24 @@ for (const [name, kaputteAntwort] of [
   pruefe("Strom: stopp() schickt cancel und laesst die Verbindung offen", /stopp\(\) \{[\s\S]*?if \(aktiv\) sende\(abbruchNachricht\(aktiv\.id\)\);[\s\S]*?planeLeerlauf\(\);/.test(strom) && !/stopp\(\) \{[^}]*schliesseVerbindung\(\)/.test(strom));
   pruefe("Strom: ein gescheiterter Verbindungsaufbau bleibt nicht zwischengespeichert", strom.includes("if (ws === socket) {\n          ws = null;\n          wsOeffnet = null;") || /if \(ws === socket\) \{\s*ws = null;\s*wsOeffnet = null;/.test(strom));
 
-  // (f) Wortbefehl "Stopp": sicherer Weg, den Sprachmodus per Aeusserung zu
-  //     beenden, ohne Knopf oder Taste (Rueckmeldung vom 25.09.2026).
-  pruefe("Stopp-Befehl: die vier Sprachen, mit und ohne Ausrufezeichen", istStoppBefehl("Stopp") && istStoppBefehl("stopp!") && istStoppBefehl("Stop") && istStoppBefehl("Halt") && istStoppBefehl("Стоп") && istStoppBefehl("хватит!") && istStoppBefehl("Тоқта"));
-  pruefe("Stopp-Befehl: eine Bitte davor oder danach zaehlt weiterhin", istStoppBefehl("Bitte stopp") && istStoppBefehl("Stopp, bitte") && istStoppBefehl("please stop"));
-  pruefe("Stopp-Befehl: nur die ganze Aeusserung, nicht ein Wort mittendrin", !istStoppBefehl("Was bedeutet Stopp bei einer Kühlkette?") && !istStoppBefehl("Stopp den Bericht bitte") && !istStoppBefehl(""));
-  pruefe("Sprachmodus: der Wortbefehl beendet statt eine Frage zu stellen", /istStoppBefehl\(ergebnis\.text\)[\s\S]{0,260}beendenRef\.current\(\)/.test(lies2("components/ki/sprachmodus.tsx")));
+  // (f) Wortbefehle. Bis zum 28.09.2026 beendete "Stopp" den Sprachmodus (Rueckmeldung vom
+  //     25.09.2026). Seit der Rueckmeldung vom 28.09.2026 ("unterbrechen und etwas anderes
+  //     fragen, ohne dass sie den Kontext verliert") haelt "Stopp" nur Himbi an; beendet wird
+  //     mit "Sprachmodus beenden" oder "Tschuess Himbi".
+  pruefe("Unterbrechen: die vier Sprachen, mit und ohne Ausrufezeichen", ["Stopp", "stopp!", "Stop", "Halt", "Moment", "Warte mal", "Hör auf", "Wait", "Стоп", "хватит!", "Подожди", "Тоқта"].every((t) => unterbrechungsBefehl(t)?.rest === ""));
+  pruefe("Unterbrechen: eine Bitte, die Anrede oder eine Wiederholung zaehlen mit", ["Bitte stopp", "Stopp, bitte", "Himbi, stopp", "Stopp, stopp!", "Halt, halt", "Himbi, warte mal kurz"].every((t) => unterbrechungsBefehl(t)?.rest === ""));
+  pruefe("Unterbrechen: was danach kommt, ist die naechste Frage", unterbrechungsBefehl("Stopp, zeig mir lieber die Reklamationen.")?.rest === "zeig mir lieber die Reklamationen." && unterbrechungsBefehl("Nein, ich meinte die Lieferungen")?.rest === "ich meinte die Lieferungen" && unterbrechungsBefehl("Moment, wie hoch war der Umsatz?")?.rest === "wie hoch war der Umsatz?");
+  pruefe("Unterbrechen: ein Artikel vor der Frage gehoert zur Frage, nach dem Befehl allein nicht", unterbrechungsBefehl("Nein, das ist falsch.")?.rest === "das ist falsch." && unterbrechungsBefehl("Stopp, die Lieferungen von gestern")?.rest === "die Lieferungen von gestern" && unterbrechungsBefehl("Stopp die Führung")?.rest === "" && unterbrechungsBefehl("Himbi")?.rest === "");
+  pruefe("Unterbrechen: ein Befehlswort mittendrin ist keiner", unterbrechungsBefehl("Was bedeutet Stopp bei einer Kühlkette?") === null && unterbrechungsBefehl("Das ist halt so") === null && unterbrechungsBefehl("Zeig mir die Aufgaben") === null && unterbrechungsBefehl("") === null);
+  pruefe("Nur anhalten: 'Stopp' allein ja, 'Nein' oder 'Himbi' allein nicht (Antwort auf eine Frage, Anrede)", istNurAnhalten("Stopp!") && istNurAnhalten("Hör auf, bitte") && istNurAnhalten("Moment mal") && !istNurAnhalten("Nein") && !istNurAnhalten("Himbi") && !istNurAnhalten("Stopp, zeig mir die Aufgaben"));
+  pruefe("Beenden: 'Sprachmodus beenden', 'Tschuess Himbi' und die Gegenstuecke", ["Sprachmodus beenden", "Beende den Sprachmodus", "Gespräch beenden", "Tschüss Himbi", "Auf Wiedersehen", "End voice mode", "Bye", "Выключи голосовой режим", "Выйди из режима", "Пока", "Дауыс режимін аяқта", "Сау бол"].every(istBeendenBefehl));
+  pruefe("Beenden: 'Stopp' beendet nicht mehr, 'Beende die Aufgabe' und 'Das sieht gut aus' bleiben Fragen", !istBeendenBefehl("Stopp") && !istBeendenBefehl("Beende die Aufgabe") && !istBeendenBefehl("Das sieht gut aus") && !istBeendenBefehl("Was ist aus dem Bericht geworden?") && !istBeendenBefehl(""));
+  {
+    const modusQ = lies2("components/ki/sprachmodus.tsx");
+    pruefe("Sprachmodus: 'Sprachmodus beenden' beendet, 'Stopp' beim Zuhoeren stellt keine Frage", /if \(istBeendenBefehl\(text\)\) \{\s*beendenRef\.current\(\);\s*return;/.test(modusQ) && modusQ.includes("if (istNurAnhalten(text) && !vorsatz.current) return;"));
+    pruefe("Sprachmodus: nach einer Unterbrechung faellt das Befehlswort aus der naechsten Frage", /if \(nachUnterbrechung\.current\) \{[\s\S]{0,200}const befehl = unterbrechungsBefehl\(text\);\s*if \(befehl\) text = befehl\.rest;/.test(modusQ));
+    pruefe("Sprachmodus: Unterbrechen haelt nur Himbi an und merkt sich den Satz, bei dem er unterbrochen wurde", /const unterbrecheHimbi = useCallback\(\(\) => \{\s*const gerade = leseGerade\(\);\s*unterbrochenBei\.current = gerade\?\.satz \?\? gerade\?\.vorher \?\? null;\s*grenzeSteht\.current = true;\s*unterbrichChat\(\);\s*dispatch\(\{ art: "unterbrechen" \}\);/.test(modusQ));
+  }
 
   // (g) Zusage/Absage bei einer offenen Freigabe (Rueckmeldung vom 25.09.2026:
   //     "der Sprachmodus soll die gleichen Rechte haben wie der Chat").
@@ -3269,10 +3287,14 @@ for (const [name, kaputteAntwort] of [
   pruefe("Sprechmarken: ohneSprechmarken fuer gespeicherte und angezeigte Texte", sa.ohneSprechmarken("[[a3]] Im Radar [[e2]]. Und hier [[a4]] weiter [[a5") === "Im Radar. Und hier weiter");
   pruefe("Sprechmarken: werden nie gesprochen (textFuerSprachausgabe, auch der Platzhalter)", sa.textFuerSprachausgabe("Im [[a3]] Radar.") === "Im Radar." && !sa.textFuerSprachausgabe("A \uE000 B.").includes("\uE000"));
 
-  // Stopp: tolerant, aber nur fuer reine Stoppbefehle.
-  pruefe("Stopp: Wiederholung, Anrede und 'die Fuehrung' zaehlen", sm.istStoppBefehl("Stopp, stopp!") && sm.istStoppBefehl("Himbi, stopp") && sm.istStoppBefehl("Stopp die Führung") && sm.istStoppBefehl("Nein, hör auf!") && sm.istStoppBefehl("Abbrechen"));
-  pruefe("Stopp: mit anderem Inhalt bleibt es eine Frage", !sm.istStoppBefehl("Stopp den Bericht bitte") && !sm.istStoppBefehl("Was bedeutet Stopp bei einer Kühlkette?") && !sm.istStoppBefehl("Stopp, zeig mir lieber die Aufgaben"));
-  pruefe("Stopp: stoppWortIn findet das Wort (Echo-Pruefung des Waechters)", sm.stoppWortIn("Bitte stopp jetzt") === "stopp" && sm.stoppWortIn("Das ist halt so", "halt") === "halt" && sm.stoppWortIn("Keins davon") === null);
+  // Befehle mitten in Himbis Antwort: die Erkennung hoert sein Echo mit.
+  pruefe("Befehl: befehlsWortIn findet das Wort (Echo-Pruefung)", sm.befehlsWortIn("Bitte stopp jetzt") === "stopp" && sm.befehlsWortIn("Das ist halt so", "halt") === "halt" && sm.befehlsWortIn("Keins davon") === null);
+  {
+    const himbiSagt = "Moment, ich schaue kurz nach";
+    const echo = (w) => sm.befehlsWortIn(himbiSagt, w) !== null;
+    pruefe("Befehl: sein eigenes 'Moment' ist Echo, das 'Stopp' des Nutzers danach zaehlt", sm.befehlsBeginn(["Moment,", "ich", "schaue", "Stopp"], echo) === 3 && sm.befehlsBeginn(["Moment,", "ich", "schaue"], echo) === null);
+    pruefe("Befehl: 'Hoer auf' und Beendenwoerter zaehlen auch mitten im Echo", sm.befehlsBeginn(["die", "Lieferungen", "hör", "auf"], () => false) === 2 && sm.befehlsBeginn(["kommen", "morgen", "Tschüss"], () => false) === 2);
+  }
 
   // Zeige-Bitten erzwingen im Sprachmodus keine Wissenssuche.
   const frage = { stepNumber: 0, neueNutzerFrage: true, wissenAngeboten: true, modus: "sprache" };
@@ -3320,22 +3342,52 @@ for (const [name, kaputteAntwort] of [
   pruefe("Sprecher: ein Satz, der erst waehrend der Stille kommt, gilt NICHT als gesprochen", strom2.includes("const fertig = Math.min(saetzeBeiStille, anzahl);") && strom2.includes("return { index: fertig, anzahl, satz: null };"));
   pruefe("Sprecher: die Schaetzung setzt an jeder Sprechpause neu auf (kein aufsummierter Fehler)", strom2.includes("anker = { index: fertig, sekunden: fertigSekunden };") && strom2.includes("const position = vorAnker + Math.max(0, gespielt - anker.sekunden)"));
   pruefe("Mitlesen: nach einer Pause zeigt der Sprachmodus die Marke, wenn der Satz wirklich klingt", lies4("components/ki/sprachmodus.tsx").includes("const schluessel = jetzt ? `${jetzt.index}:${jetzt.satz === null ? 0 : 1}` : \"\";"));
-  pruefe("Sprecher: eine Werkzeugpause oder ein neuer Strom zaehlt nicht als Aussetzer (Vorlauf waechst nicht)", strom2.includes("luecke < 0.8 && strom === letzterStrom"));
+  pruefe("Sprecher: eine Werkzeugpause oder ein neuer Strom zaehlt nicht als Aussetzer, eine lange Luecke mitten im Text schon", strom2.includes("strom === letzterStrom && (luecke < 0.8 || nochText)") && strom2.includes("const nochText = ungesprocheneTexte(aktiv.texte, aktiv.audioSekunden, aktiv.tempo) > 0;"));
+  pruefe("Sprecher: nach einer Runde mit Aussetzer bleibt der Vorpuffer, sonst schrumpft er", strom2.includes("vorlauf = aussetzerInRunde ? vorlauf : Math.max(STROM_VORLAUF_S, vorlauf / 2);"));
   const takt2 = lies4("components/ki/sprach-takt.ts");
   pruefe("Takt: waehrend des Seitenwechsels haelt die Stimme an, mit Notbremse", takt2.includes("if (wechsel) halte.current?.(true);") && takt2.includes("const HALTEN_MAX_MS = 3_500;") && takt2.includes("window.setTimeout(() => halte.current?.(false), HALTEN_MAX_MS)"));
   pruefe("Takt: ein neuer Strom setzt eine angehaltene Stimme nicht von selbst fort", strom2.includes('if (ctx.state === "suspended" && !rueck.gehalten?.())') && lies4("components/ki/sprachausgabe-live.ts").includes('if (kontext.current.state === "suspended" && !gehaltenRef.current)'));
   const modus2 = lies4("components/ki/sprachmodus.tsx");
-  pruefe("Stopp-Waechter: eigene Live-Erkennung, solange Himbi denkt oder spricht", modus2.includes("const himbiDran = assistentIstDran(phase);") && modus2.includes("const neu = stand.endgueltig.slice(geprueftBis);") && modus2.includes("const endgueltig = stoppIn(neu);") && modus2.includes("if (endgueltig) return loeseAus(endgueltig);"));
-  pruefe("Stopp-Waechter: ein Stopp in jedem Satz und am Ende unpunktierten Textes zaehlt", modus2.includes("return stoppBefehlAmEnde(text);") && sm.stoppBefehlAmEnde("und die Datenschutzmeldungen stopp") === "stopp" && sm.stoppBefehlAmEnde("Himbi bitte hör auf") !== null && sm.stoppBefehlAmEnde("das ist gut so") === null);
-  pruefe("Stopp-Waechter: schon der vorlaeufige Text haelt an, wenn er 350 ms ein reiner Stoppbefehl bleibt", modus2.includes("const STOPP_STABIL_MS = 350;") && modus2.includes("const vorlaeufig = stoppIn(stand.anzeige.slice(geprueftBis));") && modus2.includes("if (kandidat === vorlaeufig && sitzung === diese) loeseAus(vorlaeufig);"));
-  pruefe("Stopp-Waechter: nach abgelehnter Karte hoert er weiter, bricht die Sitzung ab, startet er neu (hoechstens dreimal)", /if \(leseFreigabeAnfrage\(\)\) \{\s*entscheideFreigabe\(false\);\s*return;\s*\}\s*aus = true;/.test(modus2) && modus2.includes("if (versuche <= 3) neustartUhr = window.setTimeout(starte, 600);"));
-  pruefe("Stopp-Waechter: Himbis eigenes Stoppwort zaehlt nicht, bei offener Karte nur Absage", modus2.includes("if (wort && stoppWortIn(zuletztGesagt, wort)) return;") && modus2.includes('const zuletztGesagt = gerade ? `${gerade.satz ?? ""} ${gerade.vorher ?? ""}` : leseChatStand().antwort;') && /if \(leseFreigabeAnfrage\(\)\) \{\s*entscheideFreigabe\(false\);/.test(modus2));
+  // Seit dem 28.09.2026 ein durchgehendes Ohr statt eines eigenen Stopp-Waechters.
+  pruefe("Ohr: eine Live-Sitzung fuers ganze Gespraech, die Grenze im Audio trennt die Aeusserungen", modus2.includes("const t = sitzung.textAb(grenzeMs.current);") && modus2.includes("if (ohrOffen(phase)) starteOhr();") && !modus2.includes("stoppBefehlAmEnde"));
+  pruefe("Ohr: am Endpunkt wird die Frage sofort gestellt, ohne auf das Ende der Sitzung zu warten", /if \(phase === "hoert" \|\| phase === "versteht"\) nimmAeusserung\(t\);/.test(modus2) && modus2.includes("stelleSprachFrage(frage, sprachen, { ersetztLetzte: ersetzt, unterbrochen: unterbrochenBei.current });"));
+  pruefe("Ohr: ein Befehl mitten in der Antwort zaehlt nur, wenn Himbi ihn nicht gerade selbst sagt", modus2.includes('const gesagt = phase === "spricht" ? (gerade ? `${gerade.satz ?? ""} ${gerade.vorher ?? ""}` : leseChatStand().antwort) : "";') && modus2.includes("const istEcho = (wort: string) => phase === \"spricht\" && befehlsWortIn(gesagt, wort) !== null;"));
+  pruefe("Ohr: schon der vorlaeufige Text loest aus, wenn er 350 ms stabil bleibt, endgueltiger sofort", modus2.includes("const STOPP_STABIL_MS = 350;") && modus2.includes("if (beginn < endgueltigeWoerter) loeseAus();") && modus2.includes("else kandidatTimer.current = window.setTimeout(loeseAus, STOPP_STABIL_MS);"));
+  pruefe("Ohr: Nachsatz beim Nachdenken bricht die Anfrage ab und haengt die Worte an die Frage", /if \(phase === "denkt" && !leseFreigabeAnfrage\(\) && offeneFrage\.current\) \{[\s\S]{0,300}vorsatz\.current = offeneFrage\.current;[\s\S]{0,80}unterbrichChat\(\);/.test(modus2) && modus2.includes("const frage = vorsatz.current ? fuegeZusammen(vorsatz.current.text, text) : text;"));
   // Rueckmeldung vom 25.09.2026 (zweiter Teil): Figur weg, "Sprachmodus beenden", Endpunkt, Titel in der richtigen Sprache.
   pruefe("Sprachmodus: die Himbi-Figur ist ausgeblendet, solange er laeuft (nicht abgebaut)", lies4("components/haustier/haustier-dashboard.tsx").includes("verborgen={sprachmodus}") && lies4("components/haustier/haustier-huelle.tsx").includes("hidden={verborgen}") && lies4("components/haustier/haustier.css").includes(".haustier[hidden]"));
-  pruefe("Stopp: 'Sprachmodus beenden' und Gegenstuecke beenden, 'Beende die Aufgabe' bleibt eine Frage", ["Sprachmodus beenden", "Beende den Sprachmodus", "Gespräch beenden", "End voice mode", "Выключи голосовой режим", "Дауыс режимін аяқта"].every((t) => sm.istStoppBefehl(t)) && !sm.istStoppBefehl("Beende die Aufgabe") && !sm.istStoppBefehl("Was ist aus dem Bericht geworden?"));
-  pruefe("Stopp: 'Sprachmodus beenden' bei offener Karte lehnt ab und beendet", /if \(istStoppBefehl\(ergebnis\.text\)\) \{\s*entscheideFreigabe\(false\);\s*beendenRef\.current\(\);/.test(modus2));
+  pruefe("Beenden: 'Sprachmodus beenden' bei offener Karte lehnt ab und beendet", /if \(istBeendenBefehl\(text\)\) \{\s*entscheideFreigabe\(false\);\s*beendenRef\.current\(\);/.test(modus2));
   const diktat = await import("../../src/lib/domain/diktat-live.ts");
-  pruefe("Endpunkt im Gespraech: ruhiger eingestellt (Empfindlichkeit 0, Latenzsenkung Stufe 1), damit nicht mitten im Satz geschnitten wird", diktat.GESPRAECH_ENDPUNKT.endpoint_sensitivity === 0 && diktat.GESPRAECH_ENDPUNKT.endpoint_latency_adjustment_level === 1);
+  // 28.09.2026: schnellere Endpunkte (Latenz), der Nachsatz faengt ein zu frueh gesetztes Ende auf.
+  pruefe("Endpunkt im Gespraech: Empfindlichkeit 0,2, Latenzsenkung Stufe 2, hoechstens 1 s Verzoegerung", diktat.GESPRAECH_ENDPUNKT.endpoint_sensitivity === 0.2 && diktat.GESPRAECH_ENDPUNKT.endpoint_latency_adjustment_level === 2 && diktat.liveKonfiguration("de", "gespraech").max_endpoint_delay_ms === 1_000 && diktat.liveKonfiguration("de").max_endpoint_delay_ms === diktat.ENDPUNKT_VERZOEGERUNG_MS);
+  pruefe("Gespraech: eine Sitzung haelt 30 Minuten, das Diktat bleibt bei 2 Minuten", diktat.GESPRAECH_SITZUNG_S === 1_800 && diktat.SITZUNG_HOECHSTENS_S === 120 && lies4("app/api/ki-spracherkennung/route.ts").includes('sitzungS: zweck === "gespraech" ? GESPRAECH_SITZUNG_S : SITZUNG_HOECHSTENS_S'));
+  {
+    // textAb: nur Woerter ab der Grenze, Teilstuecke zu Woertern zusammengefasst.
+    const s = diktat.erzeugeTokenSammler();
+    s.nimm({ tokens: [
+      { text: "Ja", is_final: true, start_ms: 1000, end_ms: 1200, language: "de" }, { text: ".", is_final: true, start_ms: 1200, end_ms: 1210 }, { text: "<end>", is_final: true },
+      { text: " und", is_final: true, start_ms: 2000, end_ms: 2150, language: "de" }, { text: " Lie", is_final: true, start_ms: 2200, end_ms: 2400 }, { text: "ferungen", is_final: true, start_ms: 2400, end_ms: 2900 },
+      { text: " bitte", is_final: false, start_ms: 3000, end_ms: 3300 },
+    ] });
+    const ab = s.textAb(1211);
+    pruefe("textAb: nur was nach der Grenze gesagt wurde, vorlaeufiges dahinter", ab.endgueltig === "und Lieferungen" && ab.anzeige === "und Lieferungen bitte" && ab.endeMs === 3300, JSON.stringify(ab));
+    pruefe("textAb: Teilstuecke ergeben ein Wort mit Anfang und Ende", JSON.stringify(ab.woerter.map((w) => [w.text, w.startMs, w.endeMs])) === JSON.stringify([["und", 2000, 2150], ["Lieferungen", 2200, 2900], ["bitte", 3000, 3300]]), JSON.stringify(ab.woerter));
+    pruefe("textAb: der Endpunkt zaehlt mit (jede Aeusserung im Gespraech)", s.stand().endpunkte === 1 && s.textAb(0).endgueltig === "Ja. und Lieferungen");
+  }
+  pruefe("Nachsatz: 'Ja.' + 'und ...' wird ein Satz, Grossgeschriebenes bleibt ein eigener", sm.fuegeZusammen("Ja.", "und zeig mir die Lieferungen.") === "Ja, und zeig mir die Lieferungen." && sm.fuegeZusammen("Wie viele Steigen?", "Heute.") === "Wie viele Steigen? Heute." && sm.fuegeZusammen("", "Hallo") === "Hallo");
+  pruefe("Nachsatz: ein Geraeusch ist kein Nachsatz", !sm.istGesprochen("") && !sm.istGesprochen("a") && sm.istGesprochen("und"));
+  {
+    const verlauf = [{ id: "1", role: "user", parts: [{ type: "text", text: "Erkläre die Fristen" }] }, { id: "2", role: "assistant", parts: [{ type: "text", text: "Die erste Frist ..." }] }, { id: "3", role: "user", parts: [{ type: "text", text: "Nein, die Lieferungen" }] }];
+    const mit = mitUnterbrechungsHinweis(verlauf, 'Die erste Frist "läuft" am Freitag ab');
+    const letzte = mit.at(-1).parts.map((p) => p.text).join(" ");
+    pruefe("Unterbrechungshinweis: steht vor der letzten Frage, mit dem zuletzt gehoerten Satz", letzte.includes("unterbrochen") && letzte.includes("läuft") && letzte.includes("Nein, die Lieferungen") && mit[0] === verlauf[0] && verlauf[2].parts[0].text === "Nein, die Lieferungen", letzte);
+    pruefe("Unterbrechungshinweis: ohne Unterbrechung unveraendert", JSON.stringify(mitUnterbrechungsHinweis(verlauf, null)) === JSON.stringify(verlauf) && JSON.stringify(mitUnterbrechungsHinweis(verlauf, "  ")) === JSON.stringify(verlauf));
+  }
+  const routeQ = lies4("app/api/ki-assistent/route.ts");
+  pruefe("Route: fester Teil des Systemprompts mit Cache-Marke, der wechselnde dahinter", routeQ.includes('{ role: "system", content: festerTeil, providerOptions: { anthropic: { cacheControl: { type: "ephemeral" } } } },') && routeQ.includes('{ role: "system", content: wechselnderTeil },'));
+  pruefe("Route: im Sprachmodus keine kuenstliche Glaettung, die Wissenspruefung laeuft parallel", routeQ.includes('experimental_transform: modus === "sprache" ? undefined : smoothStream(') && routeQ.includes("const wissenGesund = pruefeWissenGesundheit();") && routeQ.includes("await wissenGesund;"));
+  pruefe("Region: die Funktionen laufen in Dublin, nahe der Datenbank (eu-west-1)", JSON.parse(readFileSync(new URL("../../vercel.json", import.meta.url), "utf8")).regions?.[0] === "dub1");
+  pruefe("Name: die KI heisst Himbi, im Kernauftrag und in allen vier Sprachen", lies4("lib/domain/ki-assistent.ts").includes("Du bist Himbi, der KI-Assistent von Damicon") && ["de", "en", "ru", "kk"].every((sp) => !readFileSync(new URL(`../../src/messages/${sp}.json`, import.meta.url), "utf8").includes("DamiAI")));
   const ft = await import("../../src/lib/pruefung/felder-titel.ts");
   pruefe("Befund-Titel: ein deutscher Titel im russischen Bericht wird durch den uebersetzten Feldtitel ersetzt", ft.titelInSprache("Überfällige Meldepflichten im Datenschutz und bei Statistik", "ri-fristen", "ru") === ft.feldTitel("ri-fristen", "ru", "x") && ft.titelInSprache("Санкции за нарушения", "ri-gesamt", "ru") === "Санкции за нарушения");
   pruefe("Befund-Titel: beim Erzeugen, in der Aenderungsliste und in der Befundkarte angewandt", lies4("lib/pruefung/agenten.ts").includes("titel: titelInSprache(schreibweise(b.titel), b.feld, anfrage.sprache),") && lies4("components/dashboard/tages-kopf.tsx").includes("titelInSprache(a.titel, a.befundId, useLocale())") && lies4("components/pruefung/pruefung-bericht.tsx").includes("titelInSprache(b.titel, b.feld, sprache)"));

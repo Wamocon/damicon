@@ -90,6 +90,7 @@ import {
   registriereEntsperren,
   registriereGerade,
   zaehlerServer,
+  type SprachFrage,
 } from "@/components/ki/sprachmodus-bus";
 import { KiChatAktionskarte } from "@/components/ki/ki-chat-aktionskarte";
 import { KiChatComposer } from "@/components/ki/ki-chat-composer";
@@ -301,7 +302,9 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
       new DefaultChatTransport({
         api: "/api/ki-assistent",
         prepareSendMessagesRequest: ({ id, messages: alle, trigger, messageId }) => {
-          const daten = anfrageDaten.current;
+          // Der Hinweis auf eine Unterbrechung gilt nur fuer die eine Frage danach.
+          const { unterbrochen, ...daten } = anfrageDaten.current;
+          if (unterbrochen !== undefined) anfrageDaten.current = daten;
           const imSprachmodus = daten.modus === "sprache";
           const start = sprachStart.current;
           let ab = imSprachmodus && start !== null ? Math.max(0, Math.min(start, alle.length - 1) - VOR_SPRACHMODUS) : 0;
@@ -310,6 +313,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
           return {
             body: {
               ...daten,
+              ...(imSprachmodus && typeof unterbrochen === "string" ? { unterbrochen } : {}),
               // Die Seitenkarte der Seite, die der Nutzer JETZT sieht (ui-steuerung.ts):
               // damit setzt das Modell Sprechmarken ohne vorheriges seiteLesen.
               ...(imSprachmodus ? { seitenkarte: seitenKarte() } : {}),
@@ -678,7 +682,7 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   // nicht im Modell: kein zweiter Aufruf, keine Wartezeit, und es funktioniert in jeder
   // der fuenf Sprachen der Oberflaeche.
   //
-  // Waehrend getippt wird, geht die eigene Nachricht vor: DamiAI reagiert direkt auf das,
+  // Waehrend getippt wird, geht die eigene Nachricht vor: Himbi reagiert direkt auf das,
   // was gerade im Feld steht, statt erst auf die Antwort zu warten - dieselbe Erkennung,
   // nur auf den eigenen statt den fertigen Text angewendet.
   const eingabeStimmung = useMemo(() => {
@@ -748,17 +752,41 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
   const letzterStopp = useRef(stoppZaehler);
   const letzteEinwilligung = useRef(einwilligungZaehler);
 
+  // Eine Frage, die kommt, waehrend die vorige Antwort noch abbricht (Unterbrechung,
+  // Nachsatz), wartet, bis der Chat frei ist. Vorher schluckte sende() sie stillschweigend,
+  // weil es waehrend einer laufenden Anfrage nichts abschickt.
+  const wartendeSprachFrage = useRef<SprachFrage | null>(null);
+  function schickeWartendeSprachFrage() {
+    const f = wartendeSprachFrage.current;
+    if (!f || beschaeftigt) return;
+    wartendeSprachFrage.current = null;
+    if (f.ersetztLetzte) {
+      // Nachsatz: die vorige Frage und ihre angefangene Antwort gehen, die zusammengefuegte kommt.
+      setMessages((alt) => {
+        let i = alt.length - 1;
+        while (i >= 0 && alt[i]!.role === "assistant") i -= 1;
+        return i >= 0 && alt[i]!.role === "user" ? alt.slice(0, i) : alt;
+      });
+    }
+    if (f.unterbrochen) anfrageDaten.current = { ...anfrageDaten.current, unterbrochen: f.unterbrochen };
+    // Gesprochen, also wie ein Diktat: die gehoerten Sprachen gehen mit und entscheiden
+    // ueber die Sprache der Antwort (domain/antwortsprache.ts).
+    merkeDiktatSprachen(f.sprachen);
+    sende(f.text, true);
+  }
   useEffect(() => {
     if (!sprachFrage || sprachFrage.nr === letzteSprachFrage.current) return;
     letzteSprachFrage.current = sprachFrage.nr;
     if (!sprachmodus) return;
-    // Gesprochen, also wie ein Diktat: die gehoerten Sprachen gehen mit und entscheiden
-    // ueber die Sprache der Antwort (domain/antwortsprache.ts).
-    merkeDiktatSprachen(sprachFrage.sprachen);
-    sende(sprachFrage.text, true);
-    // sende() ist pro Render neu; ausgeloest wird nur durch eine neue Frage.
+    wartendeSprachFrage.current = sprachFrage;
+    schickeWartendeSprachFrage();
+    // Die Funktion ist pro Render neu; ausgeloest wird nur durch eine neue Frage.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sprachFrage]);
+  useEffect(() => {
+    if (!beschaeftigt) schickeWartendeSprachFrage();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [beschaeftigt]);
 
   useEffect(() => {
     if (stoppZaehler === letzterStopp.current) return;

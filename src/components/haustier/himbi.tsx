@@ -418,7 +418,7 @@ export function Himbi({
                 className="hb-stern"
                 role="button"
                 tabIndex={0}
-                aria-label="DamiAI Abzeichen"
+                aria-label="Himbi Abzeichen"
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => {
                   e.stopPropagation();

@@ -1743,14 +1743,14 @@
   },
   "haustier": {
     "label": {
-      "ruhe": "DamiAI, dein Begleiter. Klicken öffnet den Chat.",
-      "denkt": "DamiAI arbeitet gerade. Klicken öffnet den Chat.",
-      "freigabe": "DamiAI braucht deine Freigabe. Klicken öffnet den Chat.",
-      "fertig": "DamiAI ist fertig. Klicken zeigt die Antwort.",
+      "ruhe": "Himbi, dein Begleiter. Klicken öffnet den Chat.",
+      "denkt": "Himbi arbeitet gerade. Klicken öffnet den Chat.",
+      "freigabe": "Himbi braucht deine Freigabe. Klicken öffnet den Chat.",
+      "fertig": "Himbi ist fertig. Klicken zeigt die Antwort.",
       "fehler": "Etwas ist schiefgelaufen. Klicken öffnet den Chat.",
-      "schlaeft": "DamiAI schläft. Klicken öffnet den Chat.",
-      "spricht": "DamiAI spricht.",
-      "tour": "DamiAI, dein Begleiter. Klicken öffnet die Tour.",
+      "schlaeft": "Himbi schläft. Klicken öffnet den Chat.",
+      "spricht": "Himbi spricht.",
+      "tour": "Himbi, dein Begleiter. Klicken öffnet die Tour.",
       "kurz": {
         "ruhe": "Ruhe",
         "denkt": "Arbeitet",
@@ -1773,7 +1773,7 @@
       "hinweis": "Halte mich gedrückt, um mich wegzuschicken."
     },
     "willkommen": "Da bin ich wieder!",
-    "zurueckholen": "DamiAI zurückholen",
+    "zurueckholen": "Himbi zurückholen",
     "befinden": {
       "frage": "Wie läuft dein Tag bisher?",
       "gut": "Läuft gut",
@@ -1808,14 +1808,14 @@
       "frageText": "Erkläre mir den Bereich „{bereich}“: Was kann ich hier tun?"
     },
     "einstellung": {
-      "titel": "DamiAI, dein Begleiter",
-      "text": "Zeigt in der Ecke, was der Agent gerade tut, auch wenn der Chat geschlossen ist. Zum Wegschicken auf DamiAI gedrückt halten, die Spitze am unteren Rand holt sie zurück. Hier ausgeschaltet bleibt DamiAI ganz weg.",
+      "titel": "Himbi, dein Begleiter",
+      "text": "Zeigt in der Ecke, was der Agent gerade tut, auch wenn der Chat geschlossen ist. Zum Wegschicken auf Himbi gedrückt halten, die Spitze am unteren Rand holt ihn zurück. Hier ausgeschaltet bleibt Himbi ganz weg.",
       "tourTitel": "Geführte Tour",
-      "tourText": "Aus heißt: DamiAI springt nach einer Prüfung nicht mehr selbst zu den Kacheln und hebt sie nicht mehr hervor, systemweit. Ist „Automatisch starten“ eingeschaltet, kommt die Zusammenfassung im Chat trotzdem weiter von selbst, nur ohne das Herumspringen auf der Seite.",
+      "tourText": "Aus heißt: Himbi springt nach einer Prüfung nicht mehr selbst zu den Kacheln und hebt sie nicht mehr hervor, systemweit. Ist „Automatisch starten“ eingeschaltet, kommt die Zusammenfassung im Chat trotzdem weiter von selbst, nur ohne das Herumspringen auf der Seite.",
       "autoTitel": "Automatisch starten",
-      "autoText": "Standardmäßig aus. Aus heißt: nach einer Prüfung startet weder die Tour noch die Zusammenfassung im Chat von selbst, und DamiAI fragt auch nicht mehr von sich aus nach. Die Knöpfe „Tour erneut starten“ und „Zusammenfassung im Chat“ in der Übersicht bleiben, damit startest du beides selbst.",
+      "autoText": "Standardmäßig aus. Aus heißt: nach einer Prüfung startet weder die Tour noch die Zusammenfassung im Chat von selbst, und Himbi fragt auch nicht mehr von sich aus nach. Die Knöpfe „Tour erneut starten“ und „Zusammenfassung im Chat“ in der Übersicht bleiben, damit startest du beides selbst.",
       "bewegungTitel": "Bewegung",
-      "bewegungText": "Aus heißt: DamiAI bleibt da, steht aber still. Wer das Betriebssystem schon auf weniger Bewegung gestellt hat, braucht diesen Schalter nicht.",
+      "bewegungText": "Aus heißt: Himbi bleibt da, steht aber still. Wer das Betriebssystem schon auf weniger Bewegung gestellt hat, braucht diesen Schalter nicht.",
       "zustandTitel": "Zustand",
       "stimmungTitel": "Miene",
       "trachtTitel": "Tracht",
@@ -1834,7 +1834,7 @@
       }
     },
     "tour": {
-      "gruss": "Hallo, ich bin DamiAI! Soll ich dir Damicon in einer Minute zeigen?",
+      "gruss": "Hallo, ich bin Himbi! Soll ich dir Damicon in einer Minute zeigen?",
       "autoStart": "Ich lege gleich von allein los. Klick oder scrolle, wenn du lieber selbst schaust.",
       "start": "Tour starten",
       "nein": "Nein danke",

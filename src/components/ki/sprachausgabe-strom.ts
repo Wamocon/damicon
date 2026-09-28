@@ -239,7 +239,11 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
   let anker = { index: 0, sekunden: 0 };
   let letzterStrom: string | null = null;
   let zeitEnde = 0;
+  // Der Vorlauf gilt ueber eine Antwort hinaus: wer ein langsames Netz hat, hat es auch bei
+  // der naechsten Antwort (bis zum 28.09.2026 begann jede Antwort wieder bei 0,25 s und
+  // stockte erneut). Nach einer Antwort ohne Aussetzer halbiert er sich wieder.
   let vorlauf = STROM_VORLAUF_S;
+  let aussetzerInRunde = false;
   let gemeldet: StromZustand = { laedt: false, spricht: false };
 
   function melde(): void {
@@ -540,7 +544,7 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
 
   // --- Ton ----------------------------------------------------------------------------
 
-  function spiele(werte: Float32Array, strom: string): void {
+  function spiele(werte: Float32Array, strom: string, nochText = false): void {
     const ctx = kontext();
     if (!ctx || werte.length === 0) return;
     if (ctx.state === "suspended" && !rueck.gehalten?.()) void ctx.resume().catch(() => {});
@@ -551,11 +555,17 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
     quelle.connect(ausgangFuer(ctx));
     // Aussetzer: die Zeitachse ist abgelaufen, bevor das naechste Stueck kam.
     // Dann mehr Vorlauf, damit es nicht bei jeder kleinen Schwankung stockt.
-    // Nur innerhalb desselben Stroms und bei einer kurzen Luecke: eine Pause fuer
-    // ein Werkzeug oder ein neuer Strom ist kein Aussetzer (bis zum 25.09.2026
-    // wuchs der Vorlauf nach jeder Werkzeugpause, jeder Satz kam spaeter).
+    // Nur innerhalb desselben Stroms: eine Pause fuer ein Werkzeug oder ein neuer Strom
+    // ist kein Aussetzer (bis zum 25.09.2026 wuchs der Vorlauf nach jeder Werkzeugpause,
+    // jeder Satz kam spaeter). Bis zum 28.09.2026 zaehlte dazu nur eine Luecke unter
+    // 0,8 s - gemessen mit gedrosseltem Netz waren die Aussetzer aber bis zu 1,1 s lang
+    // und liessen den Vorlauf unveraendert. Jetzt zaehlt auch eine laengere Luecke, wenn
+    // Soniox noch ungesprochenen Text hatte (dann war es das Netz, keine Pause).
     const luecke = ctx.currentTime - zeitEnde;
-    if (zeitEnde > 0 && luecke > 0 && luecke < 0.8 && strom === letzterStrom) vorlauf = naechsterVorlauf(vorlauf);
+    if (zeitEnde > 0 && luecke > 0 && strom === letzterStrom && (luecke < 0.8 || nochText)) {
+      vorlauf = naechsterVorlauf(vorlauf);
+      aussetzerInRunde = true;
+    }
     letzterStrom = strom;
     stillSeit = null;
     const start = naechsterStart(zeitEnde, ctx.currentTime, vorlauf);
@@ -597,8 +607,11 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       const { werte, rest } = pcmZuFloat(base64ZuBytes(e.audio), aktiv.pcmRest);
       aktiv.pcmRest = rest;
       aktiv.hatAudio = true;
+      // Hatte Soniox vor diesem Stueck noch Text offen, den es nicht zu Ende gesprochen hatte?
+      // Dann ist eine Luecke davor ein Aussetzer (Netz zu langsam), keine Werkzeugpause.
+      const nochText = ungesprocheneTexte(aktiv.texte, aktiv.audioSekunden, aktiv.tempo) > 0;
       aktiv.audioSekunden += werte.length / STROM_ABTASTRATE;
-      spiele(werte, aktiv.id);
+      spiele(werte, aktiv.id, nochText);
     } else if (e.art === "beendet") {
       // Ganzer Strom gehoert: daraus die tatsaechliche Sprechgeschwindigkeit.
       if (aktiv.zeichen >= 60 && aktiv.audioSekunden >= 3) {
@@ -681,7 +694,8 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       anker = { index: 0, sekunden: 0 };
       letzterStrom = null;
       zeitEnde = 0;
-      vorlauf = STROM_VORLAUF_S;
+      vorlauf = aussetzerInRunde ? vorlauf : Math.max(STROM_VORLAUF_S, vorlauf / 2);
+      aussetzerInRunde = false;
       melde();
       planeLeerlauf();
     },

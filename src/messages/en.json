@@ -1743,14 +1743,14 @@
   },
   "haustier": {
     "label": {
-      "ruhe": "DamiAI, your companion. Click to open the chat.",
-      "denkt": "DamiAI is working. Click to open the chat.",
-      "freigabe": "DamiAI needs your approval. Click to open the chat.",
-      "fertig": "DamiAI is done. Click to see the answer.",
+      "ruhe": "Himbi, your companion. Click to open the chat.",
+      "denkt": "Himbi is working. Click to open the chat.",
+      "freigabe": "Himbi needs your approval. Click to open the chat.",
+      "fertig": "Himbi is done. Click to see the answer.",
       "fehler": "Something went wrong. Click to open the chat.",
-      "schlaeft": "DamiAI is asleep. Click to open the chat.",
-      "spricht": "DamiAI is speaking.",
-      "tour": "DamiAI, your companion. Click to open the tour.",
+      "schlaeft": "Himbi is asleep. Click to open the chat.",
+      "spricht": "Himbi is speaking.",
+      "tour": "Himbi, your companion. Click to open the tour.",
       "kurz": {
         "ruhe": "Idle",
         "denkt": "Working",
@@ -1773,7 +1773,7 @@
       "hinweis": "Hold me down to send me away."
     },
     "willkommen": "I’m back!",
-    "zurueckholen": "Bring DamiAI back",
+    "zurueckholen": "Bring Himbi back",
     "befinden": {
       "frage": "How is your day going so far?",
       "gut": "Going well",
@@ -1808,14 +1808,14 @@
       "frageText": "Explain the area “{bereich}” to me: what can I do here?"
     },
     "einstellung": {
-      "titel": "DamiAI, your companion",
-      "text": "Shows in the corner what the agent is doing, even when the chat is closed. Hold DamiAI down to send it away, the tip at the bottom edge brings it back. Switched off here, DamiAI stays away completely.",
+      "titel": "Himbi, your companion",
+      "text": "Shows in the corner what the agent is doing, even when the chat is closed. Hold Himbi down to send him away, the tip at the bottom edge brings him back. Switched off here, Himbi stays away completely.",
       "tourTitel": "Guided tour",
-      "tourText": "Off means DamiAI stops jumping to the tiles and highlighting them by itself after a check, system-wide. With “Start automatically” switched on, the chat summary still runs by itself, just without the jumping around the page.",
+      "tourText": "Off means Himbi stops jumping to the tiles and highlighting them by himself after a check, system-wide. With “Start automatically” switched on, the chat summary still runs by itself, just without the jumping around the page.",
       "autoTitel": "Start automatically",
-      "autoText": "Off by default. Off means neither the tour nor the chat summary starts by itself after a check, and DamiAI no longer offers it on its own. The buttons “Restart tour” and “Summary in chat” stay on the overview, so you can start both yourself.",
+      "autoText": "Off by default. Off means neither the tour nor the chat summary starts by itself after a check, and Himbi no longer offers it on his own. The buttons “Restart tour” and “Summary in chat” stay on the overview, so you can start both yourself.",
       "bewegungTitel": "Motion",
-      "bewegungText": "Off means DamiAI stays, but holds still. If your system is already set to reduced motion, you do not need this switch.",
+      "bewegungText": "Off means Himbi stays, but holds still. If your system is already set to reduced motion, you do not need this switch.",
       "zustandTitel": "State",
       "stimmungTitel": "Expression",
       "trachtTitel": "Outfit",
@@ -1834,7 +1834,7 @@
       }
     },
     "tour": {
-      "gruss": "Hi, I am DamiAI! Shall I show you Damicon in one minute?",
+      "gruss": "Hi, I am Himbi! Shall I show you Damicon in one minute?",
       "autoStart": "I will start on my own in a moment. Click or scroll if you would rather look around yourself.",
       "start": "Start the tour",
       "nein": "No thanks",

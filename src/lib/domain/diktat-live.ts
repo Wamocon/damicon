@@ -42,6 +42,12 @@ export const SCHLUESSEL_GUELTIG_S = 60;
  *  Abschliessen. */
 export const SITZUNG_HOECHSTENS_S = 120;
 
+/** Im Gespraech hoert EINE Verbindung durchgehend zu (sprachmodus.tsx), auch waehrend
+ *  Himbi denkt und spricht: so geht kein Wort zwischen zwei Aeusserungen verloren, und
+ *  es gibt keinen Verbindungsaufbau vor jeder Frage. Nach dieser Zeit wird neu verbunden;
+ *  wer so lange schweigt, wird vorher schon stumm geschaltet. */
+export const GESPRAECH_SITZUNG_S = 1_800;
+
 const OBERFLAECHEN = ["de", "en", "ru", "kk"] as const;
 
 /** Sprachhinweise fuer Soniox. Sie GEWICHTEN nur, sie beschraenken nicht
@@ -66,8 +72,8 @@ export function sprachHinweise(oberflaeche: string | undefined): string[] {
  *  Woerter. Bewusst kurz: jeder Eintrag verschiebt die Erkennung ein wenig,
  *  und eine lange Liste wuerde auch da gewichten, wo es nicht passt. */
 export const FACHWOERTER: readonly string[] = [
-  // Namen der Anwendung
-  "Damicon", "DamiAI", "Himbi",
+  // Namen der Anwendung (die KI heisst Himbi)
+  "Damicon", "Himbi", "Химби",
   // Deutsch
   "Himbeere", "Himbeeren", "Reihenblock", "Reihenblöcke", "Feldparzelle", "Pflückaufgabe",
   "Pflückaufgaben", "Pflücker", "Brigade", "Steige", "Steigen", "Kühlkette", "Sortenkatalog",
@@ -127,10 +133,17 @@ export type LiveZweck = "diktat" | "gespraech";
 //
 // Seit dem 25.09.2026 ruhiger: mit 0,3 und Stufe 2 schnitt die Erkennung "sehr selten,
 // aber immer wieder" mitten in einer Aeusserung ab, bevor der Nutzer fertig war
-// (Rueckmeldung vom 25.09.2026). Empfindlichkeit wieder auf die Voreinstellung 0 (Werte
-// -1 bis 1, hoeher = frueher), Latenzsenkung nur noch Stufe 1 (0 bis 3). Kostet im
-// Schnitt einen Bruchteil einer Sekunde, dafuer bleibt eine Denkpause eine Pause.
-export const GESPRAECH_ENDPUNKT = { endpoint_sensitivity: 0, endpoint_latency_adjustment_level: 1 } as const;
+// (Rueckmeldung vom 25.09.2026).
+//
+// Seit dem 28.09.2026 wieder schneller, weil ein zu frueher Schnitt nichts mehr kostet:
+// die Verbindung hoert durchgehend weiter, und wer nach einem Endpunkt weiterspricht,
+// waehrend Himbi noch nachdenkt ("Ja." ... "und zeig mir die Lieferungen"), bekommt
+// seine Frage zusammengefuegt statt abgeschnitten (sprachmodus.tsx, Nachsatz). Gemessen
+// mit der Voreinstellung (Empfindlichkeit 0, Stufe 1, 1500 ms): 2,2 s vom letzten Wort
+// bis zum Endpunkt - der groesste Einzelposten bis zur Antwort.
+export const GESPRAECH_ENDPUNKT = { endpoint_sensitivity: 0.2, endpoint_latency_adjustment_level: 2 } as const;
+/** Laengste Wartezeit nach dem letzten Wort im Gespraech (Diktat: ENDPUNKT_VERZOEGERUNG_MS). */
+export const GESPRAECH_ENDPUNKT_VERZOEGERUNG_MS = 1_000;
 
 export function liveKonfiguration(oberflaeche: string | undefined, zweck: LiveZweck = "diktat"): LiveKonfiguration {
   return {
@@ -144,7 +157,7 @@ export function liveKonfiguration(oberflaeche: string | undefined, zweck: LiveZw
     // Sprache entscheidet ueber die Sprache der Antwort (antwortsprache.ts).
     enable_language_identification: true,
     enable_endpoint_detection: true,
-    max_endpoint_delay_ms: ENDPUNKT_VERZOEGERUNG_MS,
+    max_endpoint_delay_ms: zweck === "gespraech" ? GESPRAECH_ENDPUNKT_VERZOEGERUNG_MS : ENDPUNKT_VERZOEGERUNG_MS,
     context: diktatKontext(),
   };
 }
@@ -181,6 +194,9 @@ export interface SonioxToken {
   text?: unknown;
   is_final?: unknown;
   language?: unknown;
+  /** Lage im Audio, in ms ab dem ersten gesendeten Stueck der Sitzung. */
+  start_ms?: unknown;
+  end_ms?: unknown;
 }
 
 export interface SonioxPaket {
@@ -199,10 +215,27 @@ export interface SammelStand {
   anzeige: string;
   /** Das Modell hat ein Ende der Aeusserung erkannt. */
   endpunkt: boolean;
+  /** Wie viele Endpunkte bisher kamen - im Gespraech laeuft eine Sitzung ueber viele Aeusserungen. */
+  endpunkte: number;
   /** Die Sitzung ist abgeschlossen. */
   fertig: boolean;
   /** Fehlermeldung des Dienstes, falls eine kam. */
   fehler: string | null;
+}
+
+/** Text, der ab einer Stelle im Audio gehoert wurde (Gespraech: alles davor war eine
+ *  fruehere Aeusserung oder Himbis eigene Stimme). */
+export interface TextAb {
+  endgueltig: string;
+  vorlaeufig: string;
+  anzeige: string;
+  /** Sprachen der endgueltigen Token dieses Abschnitts. */
+  sprachen: string[];
+  /** Ende des letzten Wortes (ms im Audio), null ohne Wort. */
+  endeMs: number | null;
+  /** Die Woerter mit ihrer Lage im Audio (Soniox liefert Teilstuecke wie "W", "ie"; ein
+   *  neues Wort beginnt mit einem Leerzeichen). Endgueltige zuerst, dann vorlaeufige. */
+  woerter: Array<{ text: string; startMs: number | null; endeMs: number | null }>;
 }
 
 export interface TokenSammler {
@@ -213,7 +246,18 @@ export interface TokenSammler {
   sprachen(): string[];
   /** Hat das Modell ueberhaupt irgendetwas gehoert (auch vorlaeufig)? */
   hatGehoert(): boolean;
+  /** Alles, was ab abMs gesprochen wurde (Token, die dort oder spaeter beginnen). */
+  textAb(abMs: number): TextAb;
 }
+
+interface Wort {
+  text: string;
+  startMs: number | null;
+  endeMs: number | null;
+  sprache: string | null;
+}
+
+const zahl = (x: unknown): number | null => (typeof x === "number" && Number.isFinite(x) ? x : null);
 
 const STEUERZEICHEN = new Set(["<end>", "<fin>"]);
 
@@ -227,24 +271,55 @@ function saeubere(text: string): string {
 export function erzeugeTokenSammler(): TokenSammler {
   let endgueltig = "";
   let vorlaeufig = "";
-  let endpunkt = false;
+  let endpunkte = 0;
   let fertig = false;
   let fehler: string | null = null;
   let gehoert = false;
   const sprachen: string[] = [];
+  // Dieselben Token noch einmal mit ihrer Lage im Audio - fuers Gespraech (textAb).
+  const endgueltigeWoerter: Wort[] = [];
+  let vorlaeufigeWoerter: Wort[] = [];
 
   const stand = (): SammelStand => {
     const e = saeubere(endgueltig);
     const v = saeubere(vorlaeufig);
     // Das Leerzeichen zwischen beiden steckt schon im vorlaeufigen Token,
     // wenn es eines braucht - deshalb roh verbunden und erst dann gesaeubert.
-    return { endgueltig: e, vorlaeufig: v, anzeige: saeubere(endgueltig + vorlaeufig), endpunkt, fertig, fehler };
+    return { endgueltig: e, vorlaeufig: v, anzeige: saeubere(endgueltig + vorlaeufig), endpunkt: endpunkte > 0, endpunkte, fertig, fehler };
   };
 
   return {
     stand,
     sprachen: () => [...sprachen],
     hatGehoert: () => gehoert,
+    textAb(abMs) {
+      // Ein Token ohne Zeitangabe zaehlt mit - lieber ein Wort zu viel als eines verloren.
+      const ab = (w: Wort) => w.startMs === null || w.startMs >= abMs;
+      const e = endgueltigeWoerter.filter(ab);
+      const v = vorlaeufigeWoerter.filter(ab);
+      const roh = (liste: Wort[]) => liste.map((w) => w.text).join("");
+      const letztes = [...e, ...v].reverse().find((w) => w.endeMs !== null && w.text.trim());
+      const woerter: TextAb["woerter"] = [];
+      for (const w of [...e, ...v]) {
+        const neu = woerter.length === 0 || /^\s/.test(w.text);
+        const text = w.text.trim();
+        if (!text) continue;
+        if (neu) woerter.push({ text, startMs: w.startMs, endeMs: w.endeMs });
+        else {
+          const letzt = woerter[woerter.length - 1]!;
+          letzt.text += text;
+          letzt.endeMs = w.endeMs ?? letzt.endeMs;
+        }
+      }
+      return {
+        endgueltig: saeubere(roh(e)),
+        vorlaeufig: saeubere(roh(v)),
+        anzeige: saeubere(roh(e) + roh(v)),
+        sprachen: e.map((w) => w.sprache).filter((s): s is string => Boolean(s)),
+        endeMs: letztes?.endeMs ?? null,
+        woerter,
+      };
+    },
     nimm(paket) {
       if (typeof paket.error_message === "string" || typeof paket.error_code === "number") {
         fehler = `soniox-${typeof paket.error_code === "number" ? paket.error_code : "fehler"}: ${String(paket.error_message ?? "ohne Angabe").slice(0, 160)}`;
@@ -252,20 +327,29 @@ export function erzeugeTokenSammler(): TokenSammler {
         return stand();
       }
       vorlaeufig = "";
+      vorlaeufigeWoerter = [];
       const tokens = Array.isArray(paket.tokens) ? (paket.tokens as SonioxToken[]) : [];
       for (const t of tokens) {
         const text = typeof t?.text === "string" ? t.text : "";
         if (STEUERZEICHEN.has(text)) {
-          if (text === "<end>") endpunkt = true;
+          if (text === "<end>") endpunkte += 1;
           continue;
         }
         if (!text) continue;
         if (text.trim()) gehoert = true;
+        const wort: Wort = {
+          text,
+          startMs: zahl(t.start_ms),
+          endeMs: zahl(t.end_ms),
+          sprache: typeof t.language === "string" && t.language ? t.language : null,
+        };
         if (t.is_final === true) {
           endgueltig += text;
-          if (typeof t.language === "string" && t.language) sprachen.push(t.language);
+          endgueltigeWoerter.push(wort);
+          if (wort.sprache) sprachen.push(wort.sprache);
         } else {
           vorlaeufig += text;
+          vorlaeufigeWoerter.push(wort);
         }
       }
       if (paket.finished === true) fertig = true;

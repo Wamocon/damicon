@@ -78,6 +78,30 @@ export function mitSprachErinnerung<T extends { role: string; parts: unknown[] }
   return kopie;
 }
 
+/** Himbi wurde im Sprachmodus mitten in seiner Antwort unterbrochen ("Stopp", Rueckmeldung
+ *  vom 28.09.2026: "unterbrechen und etwas anderes fragen, ohne dass sie den Kontext
+ *  verliert"). Die angefangene Antwort bleibt im Verlauf; die naechste Frage bekommt dazu den
+ *  Satz, den er zuletzt gesprochen hat - sonst hielte das Modell die ganze vorige Antwort fuer
+ *  gehoert, und "nicht das, das andere" liefe ins Leere. Nur in dieser Kopie fuers Modell;
+ *  der Satz kommt aus dem Browser und ist deshalb gekuerzt und als Zitat gekennzeichnet. */
+export function mitUnterbrechungsHinweis<T extends { role: string; parts: unknown[] }>(
+  nachrichten: readonly T[],
+  gehoertBis: string | null | undefined,
+): T[] {
+  const kopie = [...nachrichten];
+  const letzte = kopie.at(-1);
+  const satz = typeof gehoertBis === "string" ? gehoertBis.replace(/\s+/g, " ").replace(/["„“]/g, "'").trim().slice(0, 300) : "";
+  if (!satz || !letzte || letzte.role !== "user") return kopie;
+  kopie[kopie.length - 1] = {
+    ...letzte,
+    parts: [
+      { type: "text", text: `(Hinweis: Der Nutzer hat deine vorige Antwort beim Vorlesen unterbrochen. Zuletzt gehört hat er: "${satz}". Was danach kam, hat er nicht gehört.)\n\n` },
+      ...letzte.parts,
+    ],
+  };
+  return kopie;
+}
+
 /** Haengt die Seitenkarte des Sprachmodus (ui-steuerung.ts, seitenKarte) an die
  *  letzte Nutzerfrage - als klar begrenzten Datenblock, nicht in den Systemprompt:
  *  sie kommt aus dem Browser und darf keine Anweisung mit Betreiber-Gewicht sein

@@ -5,7 +5,7 @@ import { Himbi } from "@/components/haustier/himbi";
 import "@/components/haustier/feld-lader.css";
 
 // Ladeanzeige fuer grosse Warteschritte (bisher nur der Einstieg ins Dashboard,
-// dashboard/loading.tsx): DamiAI geht ueber den Feldweg, die eigene kleine
+// dashboard/loading.tsx): Himbi geht ueber den Feldweg, die eigene kleine
 // Himbeerreihe zieht langsamer als der Pfad vorbei. Reines SVG und CSS, keine
 // Google Fonts, kein Bild aus dem Netz - lief bisher offline nur, weil nichts
 // nachgeladen werden musste (public/sw.js, offline.html), und das soll bei dieser

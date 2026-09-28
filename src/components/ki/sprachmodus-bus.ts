@@ -36,6 +36,13 @@ export interface SprachFrage {
   nr: number;
   text: string;
   sprachen: string[];
+  /** Nachsatz: diese Frage ersetzt die vorige, noch unbeantwortete ("Ja." ... "und zeig mir
+   *  die Lieferungen" wird EINE Frage). Der Chat nimmt die vorige samt angefangener Antwort
+   *  aus dem Verlauf, bevor er diese schickt. */
+  ersetztLetzte: boolean;
+  /** Himbi wurde mitten in seiner Antwort unterbrochen: der Satz, den er zuletzt gesprochen
+   *  hat. Geht nur ans Modell (nicht in den Verlauf), damit es weiss, was angekommen ist. */
+  unterbrochen: string | null;
 }
 
 const LEER: ChatStand = {
@@ -92,9 +99,14 @@ export function chatStandServer(): ChatStand {
 
 // --- Sprachmodus -> Chat ---------------------------------------------------------
 
-/** Stellt eine Frage. Der Chat schickt sie im Sprachmodus ab (modus "sprache"). */
-export function stelleSprachFrage(text: string, sprachen: string[]): void {
-  frage = { nr: ++frageNr, text, sprachen };
+/** Stellt eine Frage. Der Chat schickt sie im Sprachmodus ab (modus "sprache") - laeuft noch
+ *  eine Antwort (gerade unterbrochen), sobald sie beendet ist. */
+export function stelleSprachFrage(
+  text: string,
+  sprachen: string[],
+  optionen: { ersetztLetzte?: boolean; unterbrochen?: string | null } = {},
+): void {
+  frage = { nr: ++frageNr, text, sprachen, ersetztLetzte: optionen.ersetztLetzte ?? false, unterbrochen: optionen.unterbrochen ?? null };
   melde();
 }
 

@@ -17,7 +17,7 @@
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { diktatLiveAn } from "@/lib/domain/schalter";
-import { liveKonfiguration, SCHLUESSEL_GUELTIG_S, SITZUNG_HOECHSTENS_S, sonioxLiveAdresse, type LiveZweck } from "@/lib/domain/diktat-live";
+import { GESPRAECH_SITZUNG_S, liveKonfiguration, SCHLUESSEL_GUELTIG_S, SITZUNG_HOECHSTENS_S, sonioxLiveAdresse, type LiveZweck } from "@/lib/domain/diktat-live";
 import { holeSonioxSchluessel, sonioxBasisUrl } from "@/lib/ai/soniox-client";
 import { ladeRatenlimitGrenze, ratenlimitUeberschritten } from "@/lib/ai/ratenbegrenzung";
 import { createHash } from "node:crypto";
@@ -60,7 +60,8 @@ export async function POST(req: Request) {
 
   const schluessel = await holeSonioxSchluessel("transcribe_websocket", {
     gueltigS: SCHLUESSEL_GUELTIG_S,
-    sitzungS: SITZUNG_HOECHSTENS_S,
+    // Im Gespraech hoert eine Verbindung durchgehend zu (domain/diktat-live.ts).
+    sitzungS: zweck === "gespraech" ? GESPRAECH_SITZUNG_S : SITZUNG_HOECHSTENS_S,
     // Pseudonym statt Profil-ID: bei Soniox soll nichts stehen, was sich
     // ohne unsere Datenbank einer Person zuordnen liesse.
     referenz: createHash("sha256").update(`damicon-diktat:${profil.id}`).digest("hex").slice(0, 32),
