@@ -13,7 +13,7 @@ import {
 import { useRouter } from "@/i18n/navigation";
 import { setzeHervorhebung } from "@/components/ki/hervorhebung";
 import { klappeAuf, stelleZu } from "@/components/ki/ui-steuerung";
-import { leseChatStand, unterbrichChat } from "@/components/ki/sprachmodus-bus";
+import { entsperreTon, leseChatStand, unterbrichChat } from "@/components/ki/sprachmodus-bus";
 import { useScrollSperre } from "@/components/ui/scroll-sperre";
 import {
   ANFANG,
@@ -493,6 +493,10 @@ export function KiPaneProvider({
     // hinein, und die erste Frage im Sprachmodus ginge verloren (der Chat
     // nimmt keine neue an, solange er beschaeftigt ist).
     unterbrichChat();
+    // Der Start ist ein Tipp (Kopfzeile oder Chat-Knopf): hier den Ton entsperren, im selben
+    // Durchlauf. Seit dem 28.09.2026 spricht Himbi zuerst (Begruessung am Tagesbeginn), ohne
+    // dass vorher noch ein Tipp kommt; auf dem iPhone bliebe er sonst stumm.
+    entsperreTon();
     sprachmodusRef.current = true;
     panelVorSprachmodus.current = offen;
     if (offen) setOffen(false);

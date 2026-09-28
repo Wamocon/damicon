@@ -277,6 +277,14 @@ console.log("\n4. Texte in vier Sprachen, Handbuch");
   }
 }
 
+// --- 5. Ton beim Start ---------------------------------------------------------------
+// Himbi spricht zuerst (Begruessung), ohne weiteren Tipp: der Ton muss schon im Klick auf
+// "Gespraech" entsperrt werden (iPhone), nicht erst beim Tipp auf die Figur.
+{
+  const pane = lies("src/components/ki/ki-pane-kontext.tsx");
+  pruefe("Start: starteSprachmodus entsperrt den Ton im Klick, vor dem Umschalten", /const starteSprachmodus = useCallback\(\(\) => \{[\s\S]*?unterbrichChat\(\);[\s\S]{0,300}entsperreTon\(\);\s*sprachmodusRef\.current = true;/.test(pane));
+}
+
 console.log(`\nPruefungen: ${bestanden + fehlgeschlagen}   bestanden: ${bestanden}   fehlgeschlagen: ${fehlgeschlagen}`);
 if (fehlgeschlagen > 0) {
   process.exitCode = 1;

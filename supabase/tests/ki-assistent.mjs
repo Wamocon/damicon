@@ -2953,7 +2953,7 @@ for (const [name, kaputteAntwort] of [
   pruefe("Fassade: nach einer Freigabe wird nur der neue Teil gelesen (Position und Laenge)", fassade.includes("const schon = vorgelesenBis.current?.stelle === stelle ? vorgelesenBis.current.zeichen : 0;"));
   pruefe("Fassade: die Kennung der gelesenen Nachricht folgt Folgeanfragen", fassade.includes("folgeQuelle(letzte.id);"));
   pruefe("Fassade: Schalter und Regeln kennen 'nie eingestellt' und 'ausdruecklich aus'", fassade.includes("einstellung: sprachausgabe.einstellung") && lies2("components/ki/sprachausgabe.tsx").includes('setEinstellung(gespeichert === "an" ? true : gespeichert === "aus" ? false : null);'));
-  pruefe("Sprachmodus-Start unterbricht eine laufende Antwort (auch aus der Kopfzeile)", /if \(leseChatStand\(\)\.einwilligungFehlt\) \{[\s\S]*?\}\s*[\s\S]*?unterbrichChat\(\);\s*sprachmodusRef\.current = true;/.test(lies2("components/ki/ki-pane-kontext.tsx")));
+  pruefe("Sprachmodus-Start unterbricht eine laufende Antwort (auch aus der Kopfzeile)", /if \(leseChatStand\(\)\.einwilligungFehlt\) \{[\s\S]*?\}\s*[\s\S]*?unterbrichChat\(\);[\s\S]{0,300}entsperreTon\(\);\s*sprachmodusRef\.current = true;/.test(lies2("components/ki/ki-pane-kontext.tsx")));
   pruefe("Chat: meldet den Vorlese-Weg des Browsers mit (Stil des Zerlegers)", lies2("components/ki/ki-chat.tsx").includes('vorleseWeg: stromMoeglich() ? "strom" : "abschnitte"'));
   const strom = lies2("components/ki/sprachausgabe-strom.ts");
   pruefe("Strom: immer nur ein Strom - der naechste wartet, bis der laufende fertig ist", strom.includes("if (!nimmt) beendeAktiv();") && !strom.includes("stroeme.set("));
