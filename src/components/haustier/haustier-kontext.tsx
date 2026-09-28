@@ -7,9 +7,11 @@ import {
   leseBewegung,
   leseInventar,
   leseSichtbarkeit,
+  leseTagesbeginn,
   leseTourSchalter,
   schreibeAutoStart,
   schreibeInventar,
+  schreibeTagesbeginn,
   schreibeTourSchalter,
   type AgentPhase,
   type Inventar,
@@ -145,6 +147,30 @@ function abonniereAuto(b: () => void): () => void {
   };
 }
 
+// "Himbi beginnt den Tag mit mir" (lib/himbi-tagesbeginn.ts) liegt ebenso im Browser-Speicher,
+// nach demselben Muster. Gelesen von der Sprechblase (haustier-dashboard.tsx) UND vom
+// Sprachmodus (ki/sprachmodus.tsx), geschrieben von der Einstellung. Voreinstellung an.
+let tagesbeginnSitzungsWert: boolean | null = null;
+const tagesbeginnBeobachter = new Set<() => void>();
+function leseTagesbeginnSpeicher(): boolean {
+  if (tagesbeginnSitzungsWert !== null) return tagesbeginnSitzungsWert;
+  return leseTagesbeginn();
+}
+function schreibeTagesbeginnSpeicher(neu: boolean): void {
+  tagesbeginnSitzungsWert = neu;
+  schreibeTagesbeginn(neu);
+  tagesbeginnBeobachter.forEach((b) => b());
+}
+function abonniereTagesbeginn(b: () => void): () => void {
+  tagesbeginnBeobachter.add(b);
+  window.addEventListener("storage", b);
+  return () => {
+    tagesbeginnBeobachter.delete(b);
+    window.removeEventListener("storage", b);
+  };
+}
+const tagesbeginnServerWert = (): boolean => true;
+
 interface Status {
   phase: AgentPhase;
   /** Kurzer Text zur Phase, z. B. "Pruefe MwSt-Status ..." */
@@ -165,6 +191,9 @@ interface Status {
    *  einmaligen Angebot). Aus heisst: nichts startet von selbst, die Knoepfe in der Uebersicht
    *  bleiben. */
   autoStart: boolean;
+  /** Einstellung: Himbi fragt einmal am Tag von sich aus nach der Tageslage, im Gespraech und
+   *  als Sprechblase (lib/himbi-tagesbeginn.ts). Voreinstellung an. */
+  tagesbeginnAn: boolean;
 }
 interface Aktionen {
   melde: (phase: AgentPhase, text: string, stimmung?: Stimmung) => void;
@@ -177,6 +206,7 @@ interface Aktionen {
   setInventar: (inventar: Inventar) => void;
   setTourAn: (an: boolean) => void;
   setAutoStart: (an: boolean) => void;
+  setTagesbeginnAn: (an: boolean) => void;
 }
 export interface Vorgabe {
   id: number;
@@ -192,6 +222,7 @@ const StatusKontext = createContext<Status>({
   inventar: { tracht: 0, brille: true },
   tourAn: true,
   autoStart: false,
+  tagesbeginnAn: true,
 });
 const AktionenKontext = createContext<Aktionen>({
   melde: () => {},
@@ -202,6 +233,7 @@ const AktionenKontext = createContext<Aktionen>({
   setInventar: () => {},
   setTourAn: () => {},
   setAutoStart: () => {},
+  setTagesbeginnAn: () => {},
 });
 const VorgabeKontext = createContext<Vorgabe | null>(null);
 
@@ -224,6 +256,7 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
   const inventar = useSyncExternalStore(abonniereInventar, leseInventarSpeicher, serverInventarWert);
   const tourAn = useSyncExternalStore(abonniereTour, leseTourSpeicher, tourServerWert);
   const autoStart = useSyncExternalStore(abonniereAuto, leseAutoSpeicher, autoServerWert);
+  const tagesbeginnAn = useSyncExternalStore(abonniereTagesbeginn, leseTagesbeginnSpeicher, tagesbeginnServerWert);
   const [vorgabe, setVorgabe] = useState<Vorgabe | null>(null);
 
   const melde = useCallback((neuePhase: AgentPhase, neuerText: string, neueStimmung: Stimmung = "neutral") => {
@@ -238,6 +271,7 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
   const setInventar = useCallback((neu: Inventar) => schreibeInventarSpeicher(neu), []);
   const setTourAn = useCallback((neu: boolean) => schreibeTourSpeicher(neu), []);
   const setAutoStart = useCallback((neu: boolean) => schreibeAutoSpeicher(neu), []);
+  const setTagesbeginnAn = useCallback((neu: boolean) => schreibeTagesbeginnSpeicher(neu), []);
 
   const stelleFrage = useCallback(
     (frage: string) => {
@@ -248,12 +282,12 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
   );
 
   const status = useMemo(
-    () => ({ phase, text, an: sichtbarkeit === "an", weg: sichtbarkeit === "weg", stimmung, inventar, tourAn, autoStart }),
-    [phase, text, sichtbarkeit, stimmung, inventar, tourAn, autoStart],
+    () => ({ phase, text, an: sichtbarkeit === "an", weg: sichtbarkeit === "weg", stimmung, inventar, tourAn, autoStart, tagesbeginnAn }),
+    [phase, text, sichtbarkeit, stimmung, inventar, tourAn, autoStart, tagesbeginnAn],
   );
   const aktionen = useMemo(
-    () => ({ melde, stelleFrage, setAn, schickeWeg, holeZurueck, setInventar, setTourAn, setAutoStart }),
-    [melde, stelleFrage, setAn, schickeWeg, holeZurueck, setInventar, setTourAn, setAutoStart],
+    () => ({ melde, stelleFrage, setAn, schickeWeg, holeZurueck, setInventar, setTourAn, setAutoStart, setTagesbeginnAn }),
+    [melde, stelleFrage, setAn, schickeWeg, holeZurueck, setInventar, setTourAn, setAutoStart, setTagesbeginnAn],
   );
 
   return (

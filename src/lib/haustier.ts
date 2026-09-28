@@ -3,6 +3,7 @@
 // das tut, welchem Modul gehoert ein Pfad, wie sieht die Tour aus.
 
 import { bewegungReduziert } from "@/lib/bewegung";
+import { TAGESBEGINN_SCHALTER, tagesbeginnAusSpeicher } from "@/lib/himbi-tagesbeginn";
 
 export type AgentPhase = "ruhe" | "arbeitet" | "freigabe" | "fehler";
 
@@ -147,6 +148,25 @@ export function leseAutoStart(): boolean {
 export function schreibeAutoStart(an: boolean): void {
   try {
     window.localStorage.setItem(AUTO_SCHLUESSEL, an ? "an" : "aus");
+  } catch {
+    // Speicher gesperrt: gilt dann nur fuer diese Sitzung
+  }
+}
+
+// "Himbi beginnt den Tag mit mir" (lib/himbi-tagesbeginn.ts): einmal am Tag fragt Himbi von
+// sich aus nach der Tageslage, im Gespraech und als Sprechblase. Voreinstellung AN (Rueckmeldung
+// vom 28.09.2026: "Er soll mir Fragen stellen!"), anders als der automatische Start oben.
+export function leseTagesbeginn(): boolean {
+  try {
+    return tagesbeginnAusSpeicher(window.localStorage.getItem(TAGESBEGINN_SCHALTER));
+  } catch {
+    return true;
+  }
+}
+
+export function schreibeTagesbeginn(an: boolean): void {
+  try {
+    window.localStorage.setItem(TAGESBEGINN_SCHALTER, an ? "an" : "aus");
   } catch {
     // Speicher gesperrt: gilt dann nur fuer diese Sitzung
   }

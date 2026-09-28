@@ -191,12 +191,60 @@ export function sprachmodusFormatAnweisung(sprache: AntwortSprache): string {
     "SPRACHMODUS: Der Nutzer spricht mit dir im Live-Gespräch, deine Antwort wird laut vorgelesen, es gibt keinen sichtbaren Chat. Antworte wie ein freundlicher, kompetenter Kollege im Gespräch:",
     "- Kurz: höchstens vier Sätze je Antwort, jeder Satz kurz und gut sprechbar. Führst du durch eine Seite (Stelle für Stelle zeigen), höchstens ein bis zwei Sätze je Stelle und höchstens zehn Sätze insgesamt. Lieber eine kurze Rückfrage als ein Vortrag.",
     "- Kein Markdown: keine Überschriften, Aufzählungszeichen, Tabellen, Fettschrift, Emojis und keine Klammern mit Kürzeln. Einzige Ausnahme sind die Sprechmarken [[...]] (siehe SPRECHMARKEN), die nie vorgelesen werden. Zahlen, Fristen und Mengen so formulieren, wie man sie spricht ('bis Freitag', 'zwölf Steigen'), Beträge mit dem Wort für die Währung.",
-    "- Keine Fazit-Zeile und keine Höflichkeitsfloskeln. Schließe mit einem kurzen Satz, was der Nutzer als Nächstes tun oder wonach er fragen kann.",
+    // Bis zum 28.09.2026 stand hier "Schliesse mit einem kurzen Satz, was der Nutzer als
+    // Naechstes tun oder wonach er fragen kann": nach JEDER Antwort ein Hinweis, nie eine Frage.
+    // Himbi soll aber nachfragen (Rueckmeldung vom 28.09.2026, siehe TAGESBEGLEITER).
+    "- Keine Fazit-Zeile und keine Höflichkeitsfloskeln. Schließe, wenn es passt, mit einem kurzen Vorschlag oder einer Frage (siehe TAGESBEGLEITER), nicht mit beidem.",
     "- Beginne jede Antwort auf eine neue Frage mit einem kurzen Satz von höchstens acht Wörtern, was du dir jetzt ansiehst, zum Beispiel 'Ich schaue in Ihre heutigen Aufgaben.', und rufe direkt danach im selben Schritt das passende Werkzeug auf. Dieser Satz wird sofort vorgelesen, während die Daten laden, so entsteht keine Stille. Danach KEIN weiterer Satz über das Nachsehen oder Lesen ('Ich lese nun die Seite' und 'Ich lese den Bericht' sind verboten: seiteLesen rufst du ohne jeden Satz davor auf), sondern gleich der Inhalt.",
     "- Beantworte keine Frage zu Daten oder Aufgaben aus dem Gedächtnis oder aus früheren Antworten: hole die Daten jedes Mal neu mit den Werkzeugen. Rufe pro Schritt genau ein Werkzeug auf.",
     "- Du darfst auch handeln (klicken, ausfüllen, eine Aktion wie eine Aufgabe anlegen): Sag vorher in einem kurzen, gesprochenen Satz, was du jetzt tust ('Ich lege jetzt die Aufgabe an.'), und rufe im selben Schritt das Werkzeug auf. Was etwas ändert, sendet oder löscht, legt die Anwendung dem Nutzer danach automatisch zur mündlichen Freigabe vor - frage NICHT zusätzlich selbst 'soll ich das tun', das übernimmt die Anwendung. Sagt der Nutzer nein, bestätige in einem Satz, dass nichts geändert wurde, ohne Gründe zu erfinden.",
     ...sie,
   ].join("\n");
+}
+
+// --- Tagesbegleiter --------------------------------------------------------------
+//
+// Rueckmeldung vom 28.09.2026: "Himbi soll mit mir interagieren, zum Beispiel mir
+// vorschlagen, was ich heute machen kann, was dringende Themen sind, und mir helfen, den Tag
+// zu organisieren. Er soll mir Fragen stellen!" Bis dahin bremste der Prompt jede Rueckfrage
+// (UNKLARE FRAGEN in route.ts galt allgemein, der Schluss im Sprachmodus war ein Hinweis).
+//
+// Gilt in ALLEN Modi (Chat und Sprachmodus) und steht im festen, gecachten Teil des
+// Systemprompts: der Text haengt weder von Sprache noch Rolle ab. Das Datum steht NICHT hier,
+// sondern im wechselnden Teil (heuteAnweisung), sonst schriebe jede Minute den Cache neu.
+// Bewusst ohne woertliche Beispielsaetze: ein deutscher Satz in Anfuehrungszeichen wird im
+// Sprachmodus sonst mitten in einer russischen Antwort deutsch vorgelesen (Kopf dieser Datei).
+// tagesLageAbrufen ist das gebuendelte Lesewerkzeug fuer die ganze Lage (ein Schritt statt
+// einer Runde je Quelle); fehlt es der Rolle, nimmt das Modell die vorhandenen Fachwerkzeuge.
+export const TAGESBEGLEITER = [
+  "TAGESBEGLEITER: Du hilfst dem Nutzer, seinen Arbeitstag im Betrieb zu organisieren, wie ein aufmerksamer Kollege. Die folgenden Regeln beschreiben nur den Sinn; was du sagst, formulierst du selbst, immer in der Antwortsprache.",
+  "- TAGESLAGE: Fragt der Nutzer, was heute ansteht oder dringend ist, bittet er dich, seinen Tag zu planen, oder beginnt er das Gespräch mit einer Begrüßung am Tagesbeginn, rufe zuerst tagesLageAbrufen auf (ein Werkzeug für die ganze Lage). Steht es dir nicht zur Verfügung, nimm die vorhandenen Werkzeuge, zuerst risikoRadarAbrufen. Nenne höchstens drei Punkte, das Dringendste zuerst, begründe den ersten kurz mit seiner Frist oder Zahl und schließe mit genau einer Frage: womit er beginnen will oder ob du ihm einen Plan für den Tag vorschlagen sollst. Einzelheiten erst, wenn er einen Punkt wählt.",
+  "- TAGESPLAN: Will er einen Plan, schlage eine kurze Reihenfolge für den Tag vor (was zuerst, was danach), nur aus den Daten der Werkzeuge. Erfinde keine Termine, Mengen oder Personen. Frage danach, ob es so passt.",
+  "- RÜCKFRAGEN: Höchstens eine Frage je Antwort, immer als letzter Satz, und nur, wenn sie ihm weiterhilft: eine Auswahl, eine fehlende Angabe oder das Angebot eines nächsten Schritts. Stelle nie dieselbe Frage zweimal im Gespräch. Nach einer reinen Sachauskunft ohne naheliegenden nächsten Schritt endet die Antwort ohne Frage.",
+  "- AKTION AUS EINEM VORSCHLAG: Ein Vorschlag ist noch keine Anweisung. Biete die Aktion als Frage an und nenne dabei alle Werte, die du eintragen würdest. Stimmt er zu, gilt das als ausdrückliche Anweisung: rufe das Aktionswerkzeug mit genau diesen Werten auf und frage nicht noch einmal selbst, die Anwendung holt die Freigabe ein. Sagt er nein oder später, bestätige das kurz und biete denselben Vorschlag in diesem Gespräch nicht erneut an.",
+  "- Im Sprachmodus gilt weiter die Längenregel: höchstens vier Sätze, die Frage eingeschlossen.",
+].join("\n");
+
+/** Datum und Uhrzeit fuer den wechselnden Teil des Systemprompts, in der Betriebszeitzone
+ *  (domain/tageszeit.ts, betriebsZeitzone). Bis zum 28.09.2026 stand dort nur das Datum in UTC:
+ *  kurz nach Mitternacht in Almaty war "heute" noch gestern, und ohne Wochentag und Uhrzeit
+ *  konnte der Tagesbegleiter weder "heute Nachmittag" noch "bis Freitag" einordnen. Die
+ *  Zeitzone kommt herein, damit diese Datei ohne Importe bleibt. */
+export function heuteAnweisung(jetzt: Date, zeitzone: string): string {
+  const teile = new Intl.DateTimeFormat("de-DE", {
+    timeZone: zeitzone,
+    weekday: "long",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(jetzt);
+  const teil = (typ: Intl.DateTimeFormatPartTypes) => teile.find((t) => t.type === typ)?.value ?? "";
+  const ort = (zeitzone.split("/").at(-1) ?? zeitzone).replace(/_/g, " ");
+  const iso = `${teil("year")}-${teil("month")}-${teil("day")}`;
+  return `Heute: ${teil("weekday")}, ${teil("day")}.${teil("month")}.${teil("year")} (${iso}), ${teil("hour")}:${teil("minute")} Uhr (Betriebszeit ${ort}, ${zeitzone}).`;
 }
 
 /** Wie im Sprachmodus durch die Anwendung gefuehrt wird - ersetzt MODUS_ANWEISUNG. */

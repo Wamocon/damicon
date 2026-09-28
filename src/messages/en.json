@@ -1785,7 +1785,12 @@
         "viel": "Then let me take the tedious part. Just ask."
       },
       "hilfe": "Where do I start?",
-      "hilfeText": "What is on today? Name the three things I should deal with first."
+      "hilfeText": "What is on today? Name the three most urgent things and ask me what I should start with."
+    },
+    "tagesgruss": {
+      "frage": "{anrede}! Shall I tell you what is urgent today?",
+      "ja": "Yes, please",
+      "nein": "Not today"
     },
     "anstupser": {
       "neuHeute": {
@@ -1814,6 +1819,8 @@
       "tourText": "Off means Himbi stops jumping to the tiles and highlighting them by himself after a check, system-wide. With “Start automatically” switched on, the chat summary still runs by itself, just without the jumping around the page.",
       "autoTitel": "Start automatically",
       "autoText": "Off by default. Off means neither the tour nor the chat summary starts by itself after a check, and Himbi no longer offers it on his own. The buttons “Restart tour” and “Summary in chat” stay on the overview, so you can start both yourself.",
+      "tagesbeginnTitel": "Himbi starts my day with me",
+      "tagesbeginnText": "On by default. Once a day Himbi tells you on his own what is urgent and asks what you want to start with: right at the start of a conversation, otherwise with a short question in the corner. Off means Himbi waits until you ask.",
       "bewegungTitel": "Motion",
       "bewegungText": "Off means Himbi stays, but holds still. If your system is already set to reduced motion, you do not need this switch.",
       "zustandTitel": "State",
@@ -2203,6 +2210,11 @@
       "fortsetzen": "Unmute microphone",
       "untertitel": "Captions",
       "hoertZu": "Listening …",
+      "tagesbeginn": {
+        "morgen": "Good morning, Himbi. What is on today, and what is urgent?",
+        "tag": "Hi Himbi. What is still on today, and what is urgent?",
+        "abend": "Good evening, Himbi. What is still open today, and what is urgent?"
+      },
       "keinZugriff": "No microphone access. Please allow it in your browser settings.",
       "liveFehlt": "Live speech recognition is not available here. Voice mode needs it.",
       "verbindungFehlt": "The connection to speech recognition dropped. Tap Himbi to try again.",

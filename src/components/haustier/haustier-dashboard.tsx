@@ -14,7 +14,11 @@ import { useHaustierAktionen, useHaustierStatus } from "@/components/haustier/ha
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import { useIstHandy } from "@/components/ui/handy";
 import { usePathname } from "@/i18n/navigation";
+import { anredeName } from "@/components/dashboard/begruessung";
 import { bewegungReduziert } from "@/lib/bewegung";
+import { tageszeitBestimmen, type Tageszeit } from "@/lib/domain/tageszeit";
+import { merkeTagesbeginn, tagesbeginnFaellig } from "@/lib/himbi-tagesbeginn";
+import { browserAblage } from "@/lib/suche/zuletzt";
 import { haustierZustand, modulAusPfad, springeZuAnker, type Stimmung } from "@/lib/haustier";
 import { modules } from "@/lib/modules";
 import { hasPermission } from "@/lib/rbac";
@@ -41,6 +45,10 @@ const ANSTUPSER_DAUER_MS = 18_000;
 const ANSTUPSER_ABSAGEN_MAX = 2;
 const ANSTUPSER_SCHLUESSEL = "damicon-haustier-anstupser";
 const TIPP_DAUER_MS = 15000;
+// Tagesgruss (lib/himbi-tagesbeginn.ts): einmal am Tag je Nutzer, gleich nach dem Ankommen und
+// vor dem Modultipp - er ist der Anfang des Tages, nicht eine Frage unter vielen.
+const TAGESGRUSS_VERZOEGERUNG_MS = 2500;
+const TAGESGRUSS_DAUER_MS = 45_000;
 const FERTIG_BLASE_MS = 9000;
 const WILLKOMMEN_MS = 3200;
 // Live-Lauf-Hinweis: springt SOFORT (kein Warten wie beim Tour-Angebot) zur laufenden
@@ -52,11 +60,12 @@ export function HaustierDashboard() {
   const t = useTranslations("haustier");
   const moduleT = useTranslations("modules");
   const ceoT = useTranslations("ceoUebersicht");
-  const { verfuegbar, offen, umschalten, setOffen, darstellung, sprachmodus } = useKiPane();
-  const { phase, text, an, weg, stimmung, inventar } = useHaustierStatus();
+  const begruessungT = useTranslations("dashboard.begruessung");
+  const { verfuegbar, offen, umschalten, setOffen, darstellung, sprachmodus, nutzerId } = useKiPane();
+  const { phase, text, an, weg, stimmung, inventar, tagesbeginnAn } = useHaustierStatus();
   const { stelleFrage, schickeWeg, holeZurueck } = useHaustierAktionen();
   const pfad = usePathname();
-  const { role } = usePersona();
+  const { role, name } = usePersona();
   const tour = useComplianceTourAnzeige();
   const ceoStand = useCeoPruefung();
   // Auf dem Handy steht Himbi in der unteren Leiste (untere-leiste.tsx) und
@@ -162,6 +171,34 @@ export function HaustierDashboard() {
     const id = window.setTimeout(() => setEigeneMiene(null), BEFINDEN_MIENE_MS);
     return () => window.clearTimeout(id);
   }, [eigeneMiene]);
+
+  // Himbi beginnt den Tag (Rueckmeldung vom 28.09.2026: "Himbi soll mir vorschlagen, was ich
+  // heute machen kann, was dringende Themen sind ... Er soll mir Fragen stellen!"): einmal am
+  // Tag je Nutzer ein Gruss mit dem Angebot, zu sagen, was heute dringend ist. Kostet nichts,
+  // bis jemand "Ja" sagt, dann geht dieselbe Frage wie bei "Womit anfangen?" an den Chat.
+  // Dieselben Regeln wie fuer alle Blasen (nicht auf dem Handy, nicht wenn Himbi weg oder aus
+  // ist, nicht im Sprachmodus, nur bei Ruhe) und die Einstellung "Himbi beginnt den Tag mit
+  // mir". Gemerkt wird erst, wenn die Blase wirklich erscheint; wer heute schon im Sprachmodus
+  // begruesst wurde, bekommt keine mehr (lib/himbi-tagesbeginn.ts).
+  const [tagesGruss, setTagesGruss] = useState<Tageszeit | null>(null);
+  const grussMoeglich = verfuegbar && !handy && an && !weg && !sprachmodus && tagesbeginnAn && ruhigGenug;
+  useEffect(() => {
+    if (!grussMoeglich || tagesGruss) return;
+    const ablage = browserAblage();
+    if (!tagesbeginnFaellig(ablage, nutzerId, "blase")) return;
+    const zeigen = window.setTimeout(() => {
+      const jetzt = new Date();
+      if (!tagesbeginnFaellig(ablage, nutzerId, "blase", jetzt)) return;
+      merkeTagesbeginn(ablage, nutzerId, "blase", jetzt);
+      setTagesGruss(tageszeitBestimmen(jetzt));
+    }, TAGESGRUSS_VERZOEGERUNG_MS);
+    return () => window.clearTimeout(zeigen);
+  }, [grussMoeglich, tagesGruss, nutzerId]);
+  useEffect(() => {
+    if (!tagesGruss) return;
+    const id = window.setTimeout(() => setTagesGruss(null), TAGESGRUSS_DAUER_MS);
+    return () => window.clearTimeout(id);
+  }, [tagesGruss]);
 
   // Anstupser: die naechste noch nicht gestellte Frage, sobald lange nichts passiert.
   const [anstupser, setAnstupser] = useState<(typeof ANSTUPSER)[number] | null>(null);
@@ -271,6 +308,7 @@ export function HaustierDashboard() {
   const tippSichtbar = !!tipp && ruhigGenug && !befindenSichtbar;
   const anstupserSichtbar = !!anstupser && ruhigGenug && !befindenSichtbar && !tippSichtbar && !befindenBlase;
   const tourFrageSichtbar = tour.frageBereit && ruhigGenug && !tipp;
+  const tagesGrussSichtbar = !!tagesGruss && ruhigGenug && !sprachmodus && tagesbeginnAn;
 
   // Die Antwort des Menschen gewinnt fuer eine Weile vor der Miene aus dem Antworttext:
   // wer gerade gesagt hat, dass viel los ist, soll kein zufriedenes Gesicht sehen.
@@ -343,6 +381,35 @@ export function HaustierDashboard() {
     },
     { sichtbar: tourAktivSichtbar, blase: tour.tourBlase },
     { sichtbar: tourFrageSichtbar, blase: tour.frageBlase },
+    {
+      sichtbar: tagesGrussSichtbar,
+      // Wie bei befinden unten: nur mit echtem Wert bauen, sonst fragte next-intl bei jedem
+      // Rendern nach einem Schluessel "null".
+      blase: tagesGruss ? (
+        <>
+          <p className="hb-blase__text">
+            {t("tagesgruss.frage", {
+              anrede: name ? begruessungT(tagesGruss, { name: anredeName(name) }) : begruessungT(`${tagesGruss}OhneNamen`),
+            })}
+          </p>
+          <div className="hb-blase__knoepfe">
+            <button
+              type="button"
+              className="hb-knopf"
+              onClick={() => {
+                stelleFrage(t("befinden.hilfeText"));
+                setTagesGruss(null);
+              }}
+            >
+              {t("tagesgruss.ja")}
+            </button>
+            <button type="button" className="hb-knopf hb-knopf--leise" onClick={() => setTagesGruss(null)}>
+              {t("tagesgruss.nein")}
+            </button>
+          </div>
+        </>
+      ) : null,
+    },
     {
       sichtbar: befindenSichtbar,
       blase: (
@@ -470,6 +537,7 @@ export function HaustierDashboard() {
           setBefindenFrage(false);
           setBefindenBlase(false);
           setAnstupser(null);
+          setTagesGruss(null);
           setLiveHinweisAktiv(false);
           // Bis 22.09.2026 oeffnete ein Klick auf Himbi die Buehne (Mitte,
           // Seite dahinter unscharf) statt des angedockten Panels: das deckte

@@ -47,6 +47,10 @@ import {
   type Phase,
 } from "@/lib/domain/sprachmodus";
 import { AUFNAHME_STUECK_MS, AUFNAHME_VORGABEN } from "@/lib/domain/diktat";
+import { tageszeitBestimmen } from "@/lib/domain/tageszeit";
+import { merkeTagesbeginn, tagesbeginnFaellig } from "@/lib/himbi-tagesbeginn";
+import { browserAblage } from "@/lib/suche/zuletzt";
+import { useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import type { TextAb } from "@/lib/domain/diktat-live";
 import { Markdown } from "@/components/ki/ki-chat";
 import { starteLiveSitzung, type LiveSitzung } from "@/components/ki/diktat-live";
@@ -130,7 +134,8 @@ function SprachmodusInhalt() {
   const t = useTranslations("kiAssistentAnsicht.sprachmodus");
   const tAktion = useTranslations("aktionen");
   const sprache = useLocale();
-  const { beendeSprachmodus } = useKiPane();
+  const { beendeSprachmodus, nutzerId } = useKiPane();
+  const { tagesbeginnAn } = useHaustierStatus();
 
   const [phase, setPhase] = useState<Phase>("startet");
   const [zwischentext, setZwischentext] = useState("");
@@ -619,6 +624,42 @@ function SprachmodusInhalt() {
     };
     return abonniereSprachBus(reagiere);
   }, [audioJetzt, dispatch, t, tAktion]);
+
+  // --- Himbi beginnt den Tag (lib/himbi-tagesbeginn.ts) -----------------------------------
+  //
+  // Rueckmeldung vom 28.09.2026: "Himbi soll mit mir interagieren, zum Beispiel mir
+  // vorschlagen, was ich heute machen kann, was dringende Themen sind ... Er soll mir Fragen
+  // stellen!" Einmal am Tag je Nutzer stellt Himbi beim ERSTEN Zuhoeren dieser Sitzung selbst
+  // die Frage nach der Tageslage; die Antwort (TAGESBEGLEITER im Prompt) nennt hoechstens drei
+  // Punkte und endet mit einer Rueckfrage, auf die der Nutzer einfach antwortet.
+  //   - Die Frage geht wie jede andere an den Chat und steht danach im Verlauf. Das ist gewollt:
+  //     sichtbar, was gefragt wurde, und kein Sonderweg im Server.
+  //   - Nur beim ersten Uebergang nach "hoert": das Ref haelt, auch wenn "hoert" nach Pause,
+  //     Fehler oder Neuversuch wiederkommt, und auch beim probeweisen zweiten Einhaengen der
+  //     Effekte im Entwicklungsmodus (die Refs bleiben dabei erhalten).
+  //   - Die Einwilligung hat starteSprachmodus (ki-pane-kontext.tsx) schon geprueft. Ist der Chat
+  //     nicht bereit, beschaeftigt oder wartet eine Freigabe, entfaellt die Begruessung, ohne den
+  //     Tag zu verbrauchen: der Merker wird erst gesetzt, wenn die Frage wirklich gestellt ist.
+  //   - Danach wie in nimmAeusserung: offeneFrage gesetzt (spricht der Nutzer gleich hinein, wird
+  //     es ein Nachsatz zu dieser Frage) und die Phase ueber "versteht" nach "denkt". Bliebe sie
+  //     auf "hoert", naehme das Ohr Himbis eigene Antwort am naechsten Endpunkt als Frage.
+  const tagesbeginnGeprueft = useRef(false);
+  useEffect(() => {
+    if (phase !== "hoert" || tagesbeginnGeprueft.current) return;
+    tagesbeginnGeprueft.current = true;
+    if (!tagesbeginnAn) return;
+    const ablage = browserAblage();
+    const jetzt = new Date();
+    if (!tagesbeginnFaellig(ablage, nutzerId, "gespraech", jetzt)) return;
+    const stand = leseChatStand();
+    if (!stand.bereit || stand.beschaeftigt || stand.einwilligungFehlt || leseFreigabeAnfrage()) return;
+    const frage = t(`tagesbeginn.${tageszeitBestimmen(jetzt)}`);
+    offeneFrage.current = { text: frage, sprachen: [sprache] };
+    stelleSprachFrage(frage, [sprache]);
+    merkeTagesbeginn(ablage, nutzerId, "gespraech", jetzt);
+    dispatch({ art: "aeusserung-ende" });
+    dispatch({ art: "frage-gestellt" });
+  }, [phase, tagesbeginnAn, nutzerId, sprache, dispatch, t]);
 
   // Alles schliessen, wenn der Sprachmodus endet.
   useEffect(

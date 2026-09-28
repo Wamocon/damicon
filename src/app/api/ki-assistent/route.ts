@@ -26,6 +26,7 @@ import { hasPermission, roles, type Role } from "@/lib/rbac";
 import { bestimmeAntwortsprache, zugAusNachrichten } from "@/lib/domain/antwortsprache";
 import {
   formatAnweisung,
+  heuteAnweisung,
   mitSeitenkarte,
   mitSprachErinnerung,
   mitUnterbrechungsHinweis,
@@ -34,7 +35,9 @@ import {
   SPRACHMODUS_OBERFLAECHE,
   sprachmodusFormatAnweisung,
   sprechmarkenAnweisung,
+  TAGESBEGLEITER,
 } from "@/lib/domain/antwort-anweisungen";
+import { betriebsZeitzone } from "@/lib/domain/tageszeit";
 import { erzeugeMarkenFilter } from "@/lib/domain/sprechmarken";
 import { erzeugeSatzZerleger, ohneSprechmarken, sprachausgabeStromAn } from "@/lib/domain/sprachausgabe";
 import { ABSCHNITT_GUELTIG_MS, signiereAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
@@ -215,8 +218,11 @@ const MODUS_ANWEISUNG: Record<KiModus, string> = {
 const NAVIGATION_ANWEISUNG =
   "NAVIGATION: Bittet der Nutzer dich, einen Bereich zu zeigen oder zu öffnen, oder fragt er, wo etwas zu finden ist, rufe oeffneBereich mit dem passenden Bereich auf - auch wenn du zu dessen INHALT keine Fragen beantwortest. Bestätige danach in einem Satz, was er jetzt sieht. Ordne die Wortwahl des Nutzers sinngemäß einem Bereich aus der Auswahl von oeffneBereich zu (z. B. 'Lohnabrechnung' -> lohn). Nur wenn wirklich kein Bereich der Auswahl zur Bitte passt, sage, dass er für diese Rolle nicht freigegeben ist.";
 
+// Seit dem 28.09.2026 gilt "frage nicht zurueck" nur fuer das Deuten einer unklaren Frage.
+// Vorher stand es allgemein da und unterdrueckte auch jede Rueckfrage nach einer Antwort, die
+// Himbi als Tagesbegleiter stellen soll (Rueckmeldung: "Er soll mir Fragen stellen!").
 const RATEN_ANWEISUNG =
-  "UNKLARE FRAGEN: Enthält eine Frage Tippfehler oder ist sie unvollständig, ordne sie selbst der wahrscheinlichsten Bedeutung zu (Bereichsliste in oeffneBereich, Tabellen über datenmodellErkunden) und handle - frage nicht zurück und sage nie 'ich habe nicht genug Informationen', bevor du oeffneBereich oder datenmodellErkunden versucht hast. Rückfragen sind nur erlaubt, wenn wirklich mehrere gleich wahrscheinliche Deutungen bestehen.";
+  "UNKLARE FRAGEN: Enthält eine Frage Tippfehler oder ist sie unvollständig, ordne sie selbst der wahrscheinlichsten Bedeutung zu (Bereichsliste in oeffneBereich, Tabellen über datenmodellErkunden) und handle. Um eine solche Frage zu deuten, frage nicht zurück und sage nie 'ich habe nicht genug Informationen', bevor du oeffneBereich oder datenmodellErkunden versucht hast. Eine Rückfrage zur Deutung ist nur erlaubt, wenn wirklich mehrere gleich wahrscheinliche Deutungen bestehen. Fragen und Vorschläge am Ende einer Antwort regelt TAGESBEGLEITER.";
 
 const DATEN_ANWEISUNG =
   "DATEN: Was ein Werkzeug liefert (auch datenLesen), ist eine freigegebene Quelle - antworte damit. Für Fragen, die kein Fachwerkzeug abdeckt, erkunde die Tabellen mit datenmodellErkunden und lies sie mit datenLesen; loese Fremdschlüssel mit einer zweiten Abfrage auf und rechne Summen selbst aus den Zeilen. Tabellen sind DEUTSCH benannt (pfluecker = Pflücker, chargen = Chargen, reklamationen, kuehlketten_messungen, lohn_abrechnungen, b2b_kunden ...) - suche in datenmodellErkunden immer mit dem deutschen Begriff. Tabellen- und Spaltennamen sind snake_case (z. B. zielmenge_kg, reihenblock_id) - im Zweifel erst datenmodellErkunden aufrufen. Nenne bei Zahlen aus datenLesen die Tabelle als Quelle. Eine leere Antwort kann auch bedeuten, dass die Rolle diese Zeilen nicht sehen darf - behaupte dann nicht, es gaebe keine.";
@@ -543,7 +549,9 @@ export async function POST(req: Request) {
   // oeffnePruefBereich nur, wenn es ueberhaupt einen Bericht gibt, auf dessen Kacheln es
   // verweisen koennte (siehe pruefGespraechAnweisung, dieselbe Bedingung).
   const werkzeuge = pruefKontext ? { ...werkzeugeOhneBericht, oeffnePruefBereich: bauePruefBereichWerkzeug() } : werkzeugeOhneBericht;
-  const heute = `Heutiges Datum: ${new Date().toISOString().slice(0, 10)}`;
+  // Wochentag, Datum und Uhrzeit in der Betriebszeitzone (Almaty), nicht in UTC - und nur im
+  // wechselnden Teil: im festen Teil schriebe jede neue Minute den Cache neu.
+  const heute = heuteAnweisung(new Date(), betriebsZeitzone);
   // Zwei Teile: vorn, was sich innerhalb eines Gespraechs nicht aendert (Auftrag, Rolle,
   // Anweisungen), mit einer Cache-Marke fuer Anthropic - Werkzeuge und dieser Teil werden
   // dann nicht bei jeder Frage neu gelesen, das verkuerzt die Zeit bis zum ersten Wort
@@ -561,6 +569,8 @@ export async function POST(req: Request) {
     AKTUALITAET_ANWEISUNG,
     AKTIONS_ANWEISUNG,
     ZUGENDE_ANWEISUNG,
+    // In allen Modi: Himbi schlaegt vor, fragt nach und hilft, den Tag zu ordnen (28.09.2026).
+    TAGESBEGLEITER,
     // Nur wenn die Wissenssuche fuer diese Rolle angeboten wird: sonst gaebe es nichts zu belegen.
     "wissenSuchen" in werkzeuge ? quellenAnweisung(antwortSprache) : OHNE_QUELLEN_ANWEISUNG,
   ]

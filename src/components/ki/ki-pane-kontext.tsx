@@ -106,6 +106,9 @@ interface KiPaneWert {
   sprachmodus: boolean;
   starteSprachmodus: () => void;
   beendeSprachmodus: () => void;
+  /** Profil-ID der angemeldeten Person (null ohne Anmeldung). Fuer Merker je Nutzer im
+   *  Browser, etwa ob Himbi heute schon begruesst hat (lib/himbi-tagesbeginn.ts). */
+  nutzerId: string | null;
 }
 
 const MODUS_SCHLUESSEL = "damicon-ki-modus";
@@ -144,6 +147,7 @@ const Standard: KiPaneWert = {
   beendeSprachmodus: () => {},
   frageStellen: () => {},
   tourLaeuft: false,
+  nutzerId: null,
 };
 
 const KiPaneKontext = createContext<KiPaneWert>(Standard);
@@ -550,6 +554,7 @@ export function KiPaneProvider({
       beendeSprachmodus,
       frageStellen,
       tourLaeuft,
+      nutzerId: nutzerId ?? null,
     }),
     [
       verfuegbar,
@@ -576,6 +581,7 @@ export function KiPaneProvider({
       beendeSprachmodus,
       frageStellen,
       tourLaeuft,
+      nutzerId,
     ],
   );
 
