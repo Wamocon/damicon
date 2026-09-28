@@ -1,5 +1,6 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Card, Section, StatusPill, type Tone } from "@/components/ui/kit";
+import { Plus } from "lucide-react";
+import { Card, Section, StatusPill, knopfKlassen, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   LieferungAnlegenFormular,
@@ -18,6 +19,10 @@ import { kuehlketteGesamturteil } from "@/lib/domain/lieferungen";
 import { ladeLieferungenOhneTour, ladeTouren } from "@/lib/data/tourenplanung";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { LeererZustand } from "@/components/ui/liste";
+import { ZumFormular } from "@/components/ui/zum-formular";
+import { modulSymbol } from "@/lib/modules";
+import { formularZiel } from "@/lib/formular-ziele";
 
 const statusTon: Record<string, Tone> = {
   geplant: "neutral",
@@ -76,7 +81,19 @@ export async function LogistikAnsicht() {
         action={<DatenquelleBadge quelle={uebersicht.quelle} />}
       >
         {uebersicht.lieferungen.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keineLieferungen")}</Card>
+          <LeererZustand
+            titel={t("keineLieferungen")}
+            {...modulSymbol("logistik")}
+            bewegt={darfAnlegen}
+            aktion={
+              darfAnlegen ? (
+                <ZumFormular ziel={formularZiel.lieferung} className={knopfKlassen()}>
+                  <Plus className="h-4 w-4" aria-hidden="true" />
+                  {t("formular.anlegen.titel")}
+                </ZumFormular>
+              ) : undefined
+            }
+          />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {uebersicht.lieferungen.map((l) => {
@@ -180,7 +197,19 @@ export async function LogistikAnsicht() {
           action={<DatenquelleBadge quelle={touren.quelle} />}
         >
           {touren.touren.length === 0 ? (
-            <Card className="text-center text-xs text-muted-foreground">{tt("keineTouren")}</Card>
+            <LeererZustand
+              titel={tt("keineTouren")}
+              {...modulSymbol("logistik")}
+              bewegt={darfAnlegen}
+              aktion={
+                darfAnlegen ? (
+                  <ZumFormular ziel={formularZiel.tour} className={knopfKlassen()}>
+                    <Plus className="h-4 w-4" aria-hidden="true" />
+                    {tt("formular.erstellen.titel")}
+                  </ZumFormular>
+                ) : undefined
+              }
+            />
           ) : (
             <div className="space-y-4">
               {touren.touren.map((tour) => (

@@ -1,5 +1,6 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { DataTable, Section, StatusPill } from "@/components/ui/kit";
+import { Plus } from "lucide-react";
+import { DataTable, Section, StatusPill, knopfKlassen } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   EinladungErstellenFormular,
@@ -9,6 +10,10 @@ import { ladeEinladungen } from "@/lib/data/einladungen";
 import { anzeigeStatus, einladungStatusMeta } from "@/lib/domain/einladungen";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { LeererZustand } from "@/components/ui/liste";
+import { ZumFormular } from "@/components/ui/zum-formular";
+import { modulSymbol } from "@/lib/modules";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Einladungsverwaltung (Anforderung E.20). Bisher entstanden Kundenkonten
 // ausschliesslich ueber supabase/seed-auth.mjs mit dem service_role-Schluessel
@@ -64,9 +69,19 @@ export async function EinladungenAnsicht() {
       ) : null}
 
       {liste.einladungen.length === 0 ? (
-        <p className="rounded-xl border border-border bg-card p-6 text-center text-xs text-muted-foreground">
-          {t("leer")}
-        </p>
+        <LeererZustand
+          titel={t("leer")}
+          {...modulSymbol("rollen")}
+          bewegt={darfAusstellen}
+          aktion={
+            darfAusstellen ? (
+              <ZumFormular ziel={formularZiel.einladung} className={knopfKlassen()}>
+                <Plus className="h-4 w-4" aria-hidden="true" />
+                {t("formular.titel")}
+              </ZumFormular>
+            ) : undefined
+          }
+        />
       ) : (
         <DataTable
           head={[

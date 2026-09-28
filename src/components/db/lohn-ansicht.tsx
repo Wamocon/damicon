@@ -1,5 +1,6 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Card, DataTable, Section, Stat, StatusPill, type Tone } from "@/components/ui/kit";
+import { Plus } from "lucide-react";
+import { Card, DataTable, Section, Stat, StatusPill, knopfKlassen, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   LohnMonatAbzuegeBerechnenFormular,
@@ -11,6 +12,10 @@ import { ladeLohnUebersicht } from "@/lib/data/lohn";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { lohnStatusMeta } from "@/lib/domain/lohn";
+import { LeererZustand } from "@/components/ui/liste";
+import { ZumFormular } from "@/components/ui/zum-formular";
+import { modulSymbol } from "@/lib/modules";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Lohnabrechnung mit Qualitaetsfaktor (WMCNL-1444). Cockpit-Aufbau wie
 // compliance-ansicht.tsx: Kennzahlen oben, DataTables je Fachobjekt,
@@ -70,7 +75,20 @@ export async function LohnAnsicht() {
             />
           </div>
         ) : (
-          <Card className="text-center text-xs text-muted-foreground">{t("keinSatz")}</Card>
+          <LeererZustand
+            titel={t("keinSatz")}
+            text={t("keinSatzHinweis")}
+            {...modulSymbol("lohn")}
+            bewegt={darfBerechnen}
+            aktion={
+              darfBerechnen ? (
+                <ZumFormular ziel={formularZiel.lohnsatz} className={knopfKlassen()}>
+                  <Plus className="h-4 w-4" aria-hidden="true" />
+                  {t("formular.satz.titel")}
+                </ZumFormular>
+              ) : undefined
+            }
+          />
         )}
         {satz?.notiz ? (
           <p className="text-[11px] leading-4 text-muted-foreground">{satz.notiz}</p>

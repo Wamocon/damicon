@@ -6,6 +6,7 @@ import { kundeAdresseAktualisieren, tourErstellen, tourLoeschen } from "@/lib/ac
 import { leer } from "@/lib/actions/status";
 import { AktionsMeldung, Feld, FormularKarte, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
 import type { LieferungOhneTour } from "@/lib/domain/tourenplanung";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Formulare der Tourenplanung (Anforderung 3.5, Teil 1): Kundenadresse
 // pflegen (wird beim Speichern automatisch geokodiert), Tour aus mehreren
@@ -52,7 +53,7 @@ export function TourErstellenFormular({ lieferungen }: { lieferungen: LieferungO
   }
 
   return (
-    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+    <FormularKarte id={formularZiel.tour} titel={t("titel")} beschreibung={t("lead")}>
       {/* HTML erlaubt kein <form> im <form> - jede Lieferung ohne Adresse
           zeigt aber ihr eigenes KundeAdresseFormular (eigenes <form>) direkt
           in der Liste. Deshalb bleibt dieses <form> auf den Pfad-Hinweis

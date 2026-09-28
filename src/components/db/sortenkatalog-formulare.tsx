@@ -12,6 +12,7 @@ import { leer } from "@/lib/actions/status";
 import { AktionsMeldung, Auswahl, Feld, FormularKarte, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
 import { sorteTypen, type SorteZeile } from "@/lib/domain/sortenkatalog";
 import type { AuswahlZeile } from "@/lib/domain/vorbestellungen";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Formulare des Sorten- und Kontingentkatalogs: Sorte anlegen/bearbeiten,
 // Kontingent anlegen, vereinbarte Menge eines bestehenden Kontingents aendern.
@@ -26,7 +27,7 @@ export function SorteErstellenFormular() {
   const st = useTranslations("sorteTypen");
 
   return (
-    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+    <FormularKarte id={formularZiel.sorte} titel={t("titel")} beschreibung={t("lead")}>
       <form action={action} className="space-y-2.5">
         <PfadFeld />
         <Feld label={t("name")} name="name" required placeholder={t("namePlatzhalter")} />

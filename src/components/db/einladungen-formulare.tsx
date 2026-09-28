@@ -14,6 +14,7 @@ import {
   FormularKarte,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Formulare der Einladungsverwaltung (Anforderung E.20).
 
@@ -69,7 +70,7 @@ export function EinladungErstellenFormular({
   const t = useTranslations("einladungenAnsicht.formular");
 
   return (
-    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+    <FormularKarte id={formularZiel.einladung} titel={t("titel")} beschreibung={t("lead")}>
       <form action={action} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
         <PfadFeld />
         <Auswahl label={t("kunde")} name="kundeId" options={kunden} required />

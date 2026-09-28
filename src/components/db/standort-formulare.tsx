@@ -17,6 +17,7 @@ import {
   PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
+import { formularZiel } from "@/lib/formular-ziele";
 
 export interface AuswahlOption {
   wert: string;
@@ -32,7 +33,7 @@ export function PlantageFormular({ betriebId }: { betriebId: string }) {
 
   return (
     <FormularKarte
-      id="standort-anlegen-plantage"
+      id={formularZiel.plantage}
       titel={t("plantage.titel")}
       beschreibung={t("plantage.lead")}
     >
@@ -68,7 +69,7 @@ export function ParzelleFormular({
 
   return (
     <FormularKarte
-      id="standort-anlegen-parzelle"
+      id={formularZiel.parzelle}
       titel={t("parzelle.titel")}
       beschreibung={t("parzelle.lead")}
     >
@@ -109,7 +110,7 @@ export function ReihengruppeFormular({
 
   return (
     <FormularKarte
-      id="standort-anlegen-reihengruppe"
+      id={formularZiel.reihengruppe}
       titel={t("reihengruppe.titel")}
       beschreibung={t("reihengruppe.lead")}
     >

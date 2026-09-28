@@ -2,6 +2,7 @@ import { getFormatter, getTranslations } from "next-intl/server";
 import { Plus } from "lucide-react";
 import { Card, Section, StatusPill, knopfKlassen } from "@/components/ui/kit";
 import { LeererZustand } from "@/components/ui/liste";
+import { ZumFormular } from "@/components/ui/zum-formular";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   ParzelleFormular,
@@ -13,7 +14,8 @@ import {
 import { ladeSorten, ladeStandortBaum } from "@/lib/data/standort";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
-import { modules, zones } from "@/lib/modules";
+import { modulSymbol } from "@/lib/modules";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Standort-Hierarchie aus der Datenbank inklusive Verwaltungsoberflaeche
 // (Meilenstein B). Ersetzt die reine Anzeige-Demo aus Meilenstein A.
@@ -31,11 +33,6 @@ export async function StandortAnsicht() {
     baum.quelle === "db" &&
     Boolean(baum.betriebId) &&
     hasPermission(profil?.role, "standort", "create");
-
-  // Symbol und Farbe des Leerzustands wie im Menue: Modul aus modules.ts,
-  // Farbe seines Bereichs.
-  const modul = modules.find((m) => m.key === "standort");
-  const bereich = zones.find((z) => z.key === modul?.zone);
 
   const plantagenOptionen: AuswahlOption[] = baum.plantagen.map((p) => ({
     wert: p.id,
@@ -95,15 +92,14 @@ export async function StandortAnsicht() {
           <LeererZustand
             titel={v("leer.plantagen")}
             text={v("leer.plantagenText")}
-            symbol={modul?.icon}
-            akzent={bereich?.accent}
+            {...modulSymbol("standort")}
             bewegt={darfAnlegen}
             aktion={
               darfAnlegen ? (
-                <a href="#standort-anlegen-plantage" className={knopfKlassen()}>
+                <ZumFormular ziel={formularZiel.plantage} className={knopfKlassen()}>
                   <Plus className="h-4 w-4" aria-hidden="true" />
                   {v("leer.plantageAnlegen")}
-                </a>
+                </ZumFormular>
               ) : undefined
             }
           />
@@ -145,12 +141,12 @@ export async function StandortAnsicht() {
                           {darfAnlegen ? (
                             <>
                               {" "}
-                              <a
-                                href="#standort-anlegen-reihengruppe"
+                              <ZumFormular
+                                ziel={formularZiel.reihengruppe}
                                 className="font-semibold text-primary underline-offset-2 hover:underline"
                               >
                                 {v("leer.reihengruppeAnlegen")}
-                              </a>
+                              </ZumFormular>
                             </>
                           ) : null}
                         </span>
@@ -164,12 +160,12 @@ export async function StandortAnsicht() {
                     {darfAnlegen ? (
                       <>
                         {" "}
-                        <a
-                          href="#standort-anlegen-parzelle"
+                        <ZumFormular
+                          ziel={formularZiel.parzelle}
                           className="font-semibold text-primary underline-offset-2 hover:underline"
                         >
                           {v("leer.parzelleAnlegen")}
-                        </a>
+                        </ZumFormular>
                       </>
                     ) : null}
                   </p>

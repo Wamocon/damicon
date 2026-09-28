@@ -12,6 +12,7 @@ import {
 import { leer } from "@/lib/actions/status";
 import { AktionsMeldung, Auswahl, Feld, FormularKarte, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
 import { kundengruppen, type AuswahlZeile } from "@/lib/domain/vorbestellungen";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Formulare der Preisstaffelung (Anforderung 5.1/5.2): Preisliste anlegen,
 // Position hinzufuegen/entfernen, Preisliste aktiv/inaktiv schalten,
@@ -28,7 +29,7 @@ export function PreisListeErstellenFormular() {
   const kg = useTranslations("kundengruppen");
 
   return (
-    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+    <FormularKarte id={formularZiel.preisliste} titel={t("titel")} beschreibung={t("lead")}>
       <form action={action} className="space-y-2.5">
         <PfadFeld />
         <Feld label={t("name")} name="name" required placeholder={t("namePlatzhalter")} />

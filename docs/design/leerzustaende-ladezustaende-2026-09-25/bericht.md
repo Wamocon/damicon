@@ -274,3 +274,24 @@ Die Form C steht dort, wo der ganze Baum leer ist. Gab es noch keine Plantage, z
 Vorschau in Hell und Dunkel: `standort-vorschau.png` (mit Tailwind aus `globals.css` erzeugt, Schriften nicht aus `next/font`).
 
 Neue Texte zur Prüfung in `kk.json` und `ru.json`: `standortVerwaltung.leer.plantagen`, `plantagenText`, `plantageAnlegen`, `parzelleAnlegen`, `reihengruppeAnlegen`.
+
+## Umsetzung der übrigen Stellen mit Knopf
+
+Elf weitere Leerzustände zeigen jetzt Vorschlag C: Pflückaufgaben, Finanzen (Buchungen), Lohn (Lohnsatz), Zukauf, Lieferungen, Touren, B2B-Portal (Vorbestellungen), Preislisten, Sortenkatalog, Einladungen und Reklamationen. Der Knopf trägt den Titel des Formulars, zu dem er führt, etwa „Lieferung anlegen“ oder „Reklamation melden“. Diese Texte gibt es schon in allen vier Sprachen, neue Übersetzungen waren nicht nötig. Nur der Lohn-Hinweis ist jetzt in Titel und Satz geteilt, gebildet aus den vorhandenen Übersetzungen.
+
+Zwei Stellen aus der Liste mit Knopf bleiben Text:
+
+- Preisliste ohne Position: Der Hinweis steht innerhalb einer Preisliste direkt über deren Formular zum Hinzufügen. Ein Knopf dorthin wäre ein Sprung um eine Zeile.
+- Dokumente, „keine Datei“: Das ist eine Tabellenzelle, kein Leerzustand. Die Dokumentenliste hat bisher gar keinen Leerzustand. Das wäre ein eigener Punkt.
+
+Technik: Der Knopf ist `ZumFormular` (`src/components/ui/zum-formular.tsx`), ein Anker auf die Formularkarte mit der id aus `src/lib/formular-ziele.ts`. Mit JavaScript klappt er einen Aufklapper auf (Pflückaufgaben, Finanzen) und setzt den Fokus ins erste Feld. Symbol und Farbe kommen über `modulSymbol()` aus `src/lib/modules.ts`.
+
+Vorschau aller elf in Hell und Dunkel: `anlegen-vorschau.png`.
+
+Beobachtung zur Farbe: Der Bereich Markt hat als Farbe `--warning`. Im Leerzustand von Preislisten, Sortenkatalog, B2B-Portal, Reklamationen und Zukauf steht das Symbol deshalb in Warnfarbe. Im Menü fällt das weniger auf als hier, wo nur das eine Symbol auf der Fläche steht.
+
+## Offene Punkte
+
+- Standortbaum: Erwin Moretz hält eine bessere Gestaltung des Baums für später fest (28.09.2026).
+- Die 47 Leerzustände ohne Knopf (Formen A und B) folgen als nächste Stufe.
+- Lade- und Klickanimationen mit Haptik folgen danach.

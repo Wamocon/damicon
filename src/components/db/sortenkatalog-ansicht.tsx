@@ -1,5 +1,6 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Card, DataTable, Section, StatusPill, type Tone } from "@/components/ui/kit";
+import { Plus } from "lucide-react";
+import { Card, DataTable, Section, StatusPill, knopfKlassen, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   KontingentErstellenFormular,
@@ -15,6 +16,10 @@ import {
 } from "@/lib/data/vorbestellungen";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { LeererZustand } from "@/components/ui/liste";
+import { ZumFormular } from "@/components/ui/zum-formular";
+import { modulSymbol } from "@/lib/modules";
+import { formularZiel } from "@/lib/formular-ziele";
 
 const typTon: Record<string, Tone> = {
   remontierend: "info",
@@ -57,7 +62,19 @@ export async function SortenkatalogAnsicht() {
         action={<DatenquelleBadge quelle={sorten.quelle} />}
       >
         {sorten.sorten.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keineSorten")}</Card>
+          <LeererZustand
+            titel={t("keineSorten")}
+            {...modulSymbol("sortenkatalog")}
+            bewegt={darfAnlegen}
+            aktion={
+              darfAnlegen ? (
+                <ZumFormular ziel={formularZiel.sorte} className={knopfKlassen()}>
+                  <Plus className="h-4 w-4" aria-hidden="true" />
+                  {t("formular.sorteErstellen.titel")}
+                </ZumFormular>
+              ) : undefined
+            }
+          />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {sorten.sorten.map((s) => (

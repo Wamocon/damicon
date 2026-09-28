@@ -231,6 +231,7 @@ export function PageHeader({
  * aussieht (DESIGN.md Regel 2).
  */
 export function Aufklapper({
+  id,
   titel,
   beschreibung,
   symbol,
@@ -238,6 +239,8 @@ export function Aufklapper({
   ref,
   children,
 }: {
+  /** Sprungziel, etwa fuer den Knopf eines Leerzustands (ui/zum-formular.tsx). */
+  id?: string;
   titel: string;
   beschreibung?: string;
   /** Vor dem Titel, etwa ein Plus fuer "+ Neu ..." (DESIGN.md Abschnitt 14). */
@@ -249,7 +252,7 @@ export function Aufklapper({
   children: ReactNode;
 }) {
   return (
-    <details ref={ref} className="group rounded-xl border border-border bg-card">
+    <details id={id} ref={ref} className="group scroll-mt-20 rounded-xl border border-border bg-card">
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 transition duration-knapp hover:bg-muted/30 lg:min-h-9 [&::-webkit-details-marker]:hidden">
         <span>
           <span

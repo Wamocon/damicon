@@ -8,6 +8,7 @@ import { leerZukaufImport } from "@/lib/actions/zukauf-status";
 import { leer } from "@/lib/actions/status";
 import { AktionsMeldung, Feld, FormularKarte, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
 import type { ZukaufBefund } from "@/lib/import/zukauf-parser";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Formulare des Aggregator-Zukaufs (WMCNL-1453): CSV-Import mit Befundliste,
 // Preis nachtragen sobald die Rechnung des Nachbarbetriebs vorliegt.
@@ -67,7 +68,7 @@ export function ZukaufImportFormular({
   const at = useTranslations("aktionen");
 
   return (
-    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+    <FormularKarte id={formularZiel.zukauf} titel={t("titel")} beschreibung={t("lead")}>
       <form action={action} className="space-y-2.5">
         <PfadFeld />
 

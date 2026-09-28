@@ -1,5 +1,6 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Card, DataTable, Section, Stat, StatusPill } from "@/components/ui/kit";
+import { Plus } from "lucide-react";
+import { Card, DataTable, Section, Stat, StatusPill, knopfKlassen } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   NachbarbetriebFormular,
@@ -12,6 +13,10 @@ import { ladeAbrechnung } from "@/lib/data/abrechnung";
 import { ladeSorten } from "@/lib/data/standort";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { LeererZustand } from "@/components/ui/liste";
+import { ZumFormular } from "@/components/ui/zum-formular";
+import { modulSymbol } from "@/lib/modules";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Aggregator / Zukauf von Nachbarbetrieben (WMCNL-1453). Aufbau wie
 // lohn-ansicht.tsx: Kennzahlen oben, eine DataTable fuer die Positionen,
@@ -80,8 +85,20 @@ export async function ZukaufAnsicht() {
         >
           {liste.positionen.length === 0 ? (
             <tr>
-              <td colSpan={7} className="px-3 py-4 text-center text-xs text-muted-foreground">
-                {t("empty")}
+              <td colSpan={7} className="px-3 py-2">
+                <LeererZustand
+                  titel={t("empty")}
+                  {...modulSymbol("aggregator")}
+                  bewegt={darfImportieren}
+                  aktion={
+                    darfImportieren ? (
+                      <ZumFormular ziel={formularZiel.zukauf} className={knopfKlassen()}>
+                        <Plus className="h-4 w-4" aria-hidden="true" />
+                        {t("import.titel")}
+                      </ZumFormular>
+                    ) : undefined
+                  }
+                />
               </td>
             </tr>
           ) : (

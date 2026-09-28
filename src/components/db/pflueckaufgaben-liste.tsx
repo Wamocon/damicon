@@ -1,7 +1,7 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Camera } from "lucide-react";
+import { Camera, Plus } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { FilterPillen, Section, textVerweisKlassen, type Ziel } from "@/components/ui/kit";
+import { FilterPillen, Section, textVerweisKlassen, knopfKlassen, type Ziel } from "@/components/ui/kit";
 import { Blaettern, LeererZustand, ListenEintrag } from "@/components/ui/liste";
 import { Listenfilter, type FilterFeld } from "@/components/ui/listen-filter";
 import { LadeMelder, ListenInhalt } from "@/components/ui/lade-status";
@@ -25,6 +25,9 @@ import {
 import type { AufgabenSeite } from "@/lib/data/pflueckaufgaben-liste";
 import type { AufgabeZeile, BrigadeOption } from "@/lib/data/pflueckaufgaben";
 import type { Role } from "@/lib/rbac";
+import { ZumFormular } from "@/components/ui/zum-formular";
+import { modulSymbol } from "@/lib/modules";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Die Liste der Pflueckaufgaben mit Filterleiste und Neuanlage (WMCNL-2488).
 // Die Karten behalten ihre bisherige Form (Entscheidung vom 24.09.2026):
@@ -194,7 +197,20 @@ export async function PflueckaufgabenListe({
               }
             />
           ) : (
-            <LeererZustand titel={v("liste.leerTitel")} text={v("liste.leerText")} />
+            <LeererZustand
+              titel={v("liste.leerTitel")}
+              text={v("liste.leerText")}
+              {...modulSymbol("pflueckaufgaben")}
+              bewegt={neuanlage !== null}
+              aktion={
+                neuanlage ? (
+                  <ZumFormular ziel={formularZiel.pflueckaufgabe} className={knopfKlassen()}>
+                    <Plus className="h-4 w-4" aria-hidden="true" />
+                    {v("neu.titel")}
+                  </ZumFormular>
+                ) : undefined
+              }
+            />
           )}
 
           <Blaettern

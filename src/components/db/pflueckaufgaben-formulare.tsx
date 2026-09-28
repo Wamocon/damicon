@@ -26,6 +26,7 @@ import { eintragen } from "@/lib/offline/warteschlange";
 import { bildFuerWarteschlangeVerkleinern } from "@/lib/offline/bild";
 import type { AktionTyp } from "@/lib/offline/db";
 import type { AuswahlOption } from "@/components/db/standort-formulare";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Neue Pflueckaufgabe, aufklappbar direkt ueber der Liste (Entscheidung vom
 // 24.09.2026, WMCNL-2488; vorher ein Formular ganz unten auf der Seite).
@@ -73,6 +74,7 @@ export function AufgabeAnlegenFormular({
   return (
     <div className="space-y-2">
       <Aufklapper
+        id={formularZiel.pflueckaufgabe}
         ref={aufklapper}
         titel={t("neu.titel")}
         symbol={<Plus className="h-4 w-4" aria-hidden="true" />}
