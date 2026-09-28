@@ -19,6 +19,7 @@ import type { UIMessage } from "ai";
 import { istVorlesbar, useSprachausgabe } from "@/components/ki/sprachausgabe";
 import { useLiveSprachausgabe, type LiveAbschnitt, type ZugNachweis } from "@/components/ki/sprachausgabe-live";
 import { bindeSprechZiel } from "@/components/ki/sprach-mitlesen";
+import { vorleseSprache } from "@/lib/domain/antwortsprache";
 import {
   nachSchalterKlick,
   schalterZeigtAn,
@@ -192,7 +193,9 @@ export function useKiChatSprache({
     const neu = ganz.slice(schon).trim();
     vorgelesenBis.current = { stelle, zeichen: ganz.length };
     if (!neu) return;
-    const antwortSprache = antwortSpracheAus(letzte) ?? sprache;
+    // Fehlen die Metadaten, entscheidet der Text, erst zuletzt die Oberflaeche
+    // (vorleseSprache, seit 28.09.2026).
+    const antwortSprache = vorleseSprache(antwortSpracheAus(letzte), ganz, sprache);
     nachrichtSprache.current.set(letzte.id, antwortSprache);
     // Der Datei-Weg liest die gespeicherte Zeile dieser ID - die enthaelt nur
     // den Teil dieser Anfrage, also ebenfalls nur das Neue.
@@ -314,7 +317,11 @@ export function useKiChatSprache({
       // sonst spraechen zwei Stimmen.
       stoppeAlles();
       if (lasGerade) return;
-      const s = antwortSprache ?? sprache;
+      // Nachrichten aus dem geladenen Verlauf tragen keine Metadaten
+      // (verlaufZuNachrichten). Bis zum 28.09.2026 las dann die Stimme der
+      // Oberflaeche - nach jedem Neuladen jede russische Antwort mit deutscher
+      // Stimme. Jetzt entscheidet der Text, erst zuletzt die Oberflaeche.
+      const s = vorleseSprache(antwortSprache, text, sprache);
       nachrichtSprache.current.set(id, s);
       if (!live.sprichNachricht(id, text, s)) void spieleDatei(id, s);
     },

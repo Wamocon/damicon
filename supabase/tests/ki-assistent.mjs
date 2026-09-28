@@ -35,28 +35,6 @@ import {
   wissensQuellenFuerFaehigkeiten,
 } from "../../src/lib/domain/ki-assistent.ts";
 import {
-  MAX_SPRACHAUSGABE_ZEICHEN,
-  sprachausgabeSprachen,
-  stimmeFuerOberflaeche,
-  sprachausgabePfad,
-  STIMMEN,
-  textFuerSprachausgabe,
-  ABSCHNITT_ZEICHEN,
-  ERSTER_ABSCHNITT_ZEICHEN,
-  ZWEITER_ABSCHNITT_ZEICHEN,
-  erzeugeSatzZerleger,
-  sprechfassung,
-  stimmenFuer,
-  SONIOX_STIMME_STANDARD,
-  SONIOX_STIMME_STANDARD_JE_SPRACHE,
-  SONIOX_TEMPO_STANDARD,
-  VORLESETEXT_VERSION,
-  saetzeAusAntwort,
-  sprachausgabeStromAn,
-  sprechTempo,
-  stilleKuerzen,
-} from "../../src/lib/domain/sprachausgabe.ts";
-import {
   erzeugeSprachausgabe,
   erzeugeSprachausgabeMitRueckfall,
   SONIOX_TTS_MODELL,
@@ -90,7 +68,6 @@ import {
   pegelAusZeitbereich,
 } from "../../src/lib/domain/diktat.ts";
 import { erkenneMitRueckfall, GESAMTDECKEL_MS, GRUND_LEER, HEDGE_AB_MS } from "../../src/lib/domain/spracherkennung.ts";
-import { bestimmeAntwortsprache, mehrheitsSprache, sprachePasst, stimmenSprache } from "../../src/lib/domain/antwortsprache.ts";
 import {
   EMPFEHLUNG,
   ERINNERUNG,
@@ -103,7 +80,6 @@ import {
   SPRACHMODUS_OBERFLAECHE,
   sprachmodusFormatAnweisung,
 } from "../../src/lib/domain/antwort-anweisungen.ts";
-import { erkenneSprache, erkenneSpracheEindeutig } from "../../src/lib/wissen/chunker.ts";
 import { satzBeiPosition } from "../../src/lib/domain/sprachmodus-mitlesen.ts";
 import {
   antwortFertig,
@@ -159,6 +135,37 @@ import {
   transkribiereMitSoniox,
 } from "../../src/lib/ai/soniox-client.ts";
 import { readFileSync } from "node:fs";
+import { register } from "node:module";
+
+// Seit 28.09.2026 holen domain/sprachausgabe.ts, domain/antwortsprache.ts und
+// wissen/chunker.ts die Spracherkennung ueber den Alias (@/lib/text/sprache-erkennen,
+// browserfaehig). Statische Importe werden aufgeloest, bevor hier eine Zeile laeuft -
+// deshalb zuerst der Alias-Lader, dann diese drei Module.
+register(new URL("./hilfen/alias-lader.mjs", import.meta.url), { data: { src: new URL("../../src/", import.meta.url).href } });
+const {
+  MAX_SPRACHAUSGABE_ZEICHEN,
+  sprachausgabeSprachen,
+  stimmeFuerOberflaeche,
+  sprachausgabePfad,
+  STIMMEN,
+  textFuerSprachausgabe,
+  ABSCHNITT_ZEICHEN,
+  ERSTER_ABSCHNITT_ZEICHEN,
+  ZWEITER_ABSCHNITT_ZEICHEN,
+  erzeugeSatzZerleger,
+  sprechfassung,
+  stimmenFuer,
+  SONIOX_STIMME_STANDARD,
+  SONIOX_STIMME_STANDARD_JE_SPRACHE,
+  SONIOX_TEMPO_STANDARD,
+  VORLESETEXT_VERSION,
+  saetzeAusAntwort,
+  sprachausgabeStromAn,
+  sprechTempo,
+  stilleKuerzen,
+} = await import("../../src/lib/domain/sprachausgabe.ts");
+const { bestimmeAntwortsprache, mehrheitsSprache, sprachePasst, stimmenSprache } = await import("../../src/lib/domain/antwortsprache.ts");
+const { erkenneSprache, erkenneSpracheEindeutig } = await import("../../src/lib/wissen/chunker.ts");
 
 let bestanden = 0;
 let fehlgeschlagen = 0;
@@ -1242,9 +1249,11 @@ for (const [name, kaputteAntwort] of [
 
   // (e) Zu kurz zum Raten: dann gilt die Einstellung. Lieber die Sprache, die
   //     die Person selbst gewaehlt hat, als ein Muenzwurf.
+  //     Seit 28.09.2026 nur noch OHNE Verlauf: gibt es einen vorigen Zug, gilt
+  //     dessen Sprache (supabase/tests/stimme-sprache.mjs).
   {
     const kurz = bestimmeAntwortsprache({ frage: "?", oberflaeche: "kk" }, erkenner);
-    pruefe("Antwortsprache: zu kurze Frage -> Oberflaeche", kurz.sprache === "kk" && kurz.herkunft === "oberflaeche", `${kurz.sprache} (${kurz.herkunft})`);
+    pruefe("Antwortsprache: zu kurze Frage ohne Verlauf -> Oberflaeche", kurz.sprache === "kk" && kurz.herkunft === "oberflaeche", `${kurz.sprache} (${kurz.herkunft})`);
     const unbekannt = bestimmeAntwortsprache({ frage: "?", oberflaeche: "fr" }, erkenner);
     pruefe("Antwortsprache: unbekannte Oberflaeche -> Deutsch", unbekannt.sprache === "de");
   }
@@ -1257,7 +1266,7 @@ for (const [name, kaputteAntwort] of [
   {
     const kurzDiktat = bestimmeAntwortsprache({ frage: "Ja.", oberflaeche: "de", diktatSprachen: ["kk", "kk"] }, erkenner);
     pruefe(
-      "Diktat: zu wenig erkannter Text -> Diktatsprache zaehlt nicht, es gilt die Oberflaeche",
+      "Diktat: zu wenig erkannter Text -> Diktatsprache zaehlt nicht, ohne Verlauf gilt die Oberflaeche",
       kurzDiktat.sprache === "de" && kurzDiktat.herkunft === "oberflaeche",
       `${kurzDiktat.sprache} (${kurzDiktat.herkunft})`,
     );

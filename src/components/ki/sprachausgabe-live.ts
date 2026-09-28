@@ -29,6 +29,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { erzeugeWarteschlange, type Warteschlange } from "@/lib/domain/sprachausgabe-warteschlange";
 import { istSprachausgabeSprache, saetzeAusAntwort, sprechfassung } from "@/lib/domain/sprachausgabe";
 import { fuerSprache } from "@/lib/text/umlaute";
+import { satzSprache } from "@/lib/text/sprache-erkennen";
 import { ausgangFuer } from "@/lib/ausgabe-pegel";
 import type { VorlesePhase } from "@/lib/domain/vorlesen-zustand";
 import { erzeugeStromSprecher, stromMoeglich, type SprechStand, type StromSprecher, type StromZustand } from "@/components/ki/sprachausgabe-strom";
@@ -396,16 +397,24 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
       if (!hatWebAudio.current) return false;
       // Nur Saetze, die nach der Aufbereitung noch etwas zu sprechen haben -
       // sonst stimmte die Zahl fuer den Rueckfall nicht (beiAufgabe).
+      //
+      // Die Stimme je Satz (seit 28.09.2026): `sprache` ist die der Antwort, ein
+      // Satz in der anderen Schrift (das russische Zitat in einer deutschen
+      // Antwort) bekommt seine eigene - und zumSprechen dieselbe, sonst
+      // stellte es Umlaute in einem russischen Satz her.
       const texte = saetzeAusAntwort(markdown)
-        .map((satz) => zumSprechen(satz, sprache))
-        .filter((t) => t.trim());
+        .map((satz) => {
+          const s = satzSprache(satz, sprache);
+          return { text: zumSprechen(satz, s), sprache: s };
+        })
+        .filter((t) => t.text.trim());
       if (texte.length === 0) return false;
       nachricht.current = { id, saetze: texte.length };
       weg.current = "strom";
       setQuelle(id);
       const s = holeSprecher();
       s.setzeNachweis({ art: "nachricht", nachrichtId: id });
-      for (const t of texte) s.sprich(t, sprache);
+      for (const t of texte) s.sprich(t.text, t.sprache);
       s.ende();
       return true;
     },

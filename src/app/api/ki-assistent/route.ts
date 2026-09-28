@@ -23,7 +23,7 @@ import {
 import { z } from "zod";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission, roles, type Role } from "@/lib/rbac";
-import { bestimmeAntwortsprache } from "@/lib/domain/antwortsprache";
+import { bestimmeAntwortsprache, zugAusNachrichten } from "@/lib/domain/antwortsprache";
 import {
   formatAnweisung,
   mitSeitenkarte,
@@ -39,7 +39,7 @@ import { erzeugeMarkenFilter } from "@/lib/domain/sprechmarken";
 import { erzeugeSatzZerleger, ohneSprechmarken, sprachausgabeStromAn } from "@/lib/domain/sprachausgabe";
 import { ABSCHNITT_GUELTIG_MS, signiereAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
 import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
-import { erkenneSprache } from "@/lib/wissen/chunker";
+import { erkenneSprache, erkenneSpracheEindeutig, satzSprache } from "@/lib/text/sprache-erkennen";
 import { createClient } from "@/lib/supabase/server";
 import { ladeAnbieterKette, meldeAnbieterwechsel } from "@/lib/ai/anbieter-kette";
 import type { AusweichEreignis } from "@/lib/ai/ausfall-modell";
@@ -436,11 +436,26 @@ export async function POST(req: Request) {
   //
   // 10 statt der 40 Zeichen, die fuer Dokumente gelten: eine Chatfrage ist
   // kurz, und ein begruendeter Tipp ist dort besser als gar keiner.
+  //
+  // Seit 28.09.2026 zaehlt die letzte FRAGE, nicht die letzte Nachricht: eine
+  // Folgeanfrage (nach seiteLesen, zeigeAuf, einer Freigabe) endet mit der
+  // Antwort des Assistenten, und mit "" als Frage entschied hier die
+  // Oberflaeche - mitten in einem russischen Gespraech sprach dann die
+  // deutsche Stimme. Dazu die Sprache des vorigen Zuges (Metadaten der
+  // letzten Antwort, sonst ihr Text) fuer kurze Antworten wie "Да" oder "Ja".
   const diktatSprachen = Array.isArray(body.diktatSprachen)
     ? (body.diktatSprachen as unknown[]).filter((x): x is string => typeof x === "string")
     : null;
+  const sprachZug = zugAusNachrichten(
+    nachrichten.map((n) => ({
+      rolle: n.role,
+      text: textAusNachricht(n),
+      sprache: (n.metadata as { sprache?: unknown } | undefined)?.sprache,
+    })),
+    (t) => erkenneSpracheEindeutig(t, 40),
+  );
   const { sprache: antwortSprache, herkunft: sprachHerkunft } = bestimmeAntwortsprache(
-    { diktatSprachen, frage: neueNutzerNachricht, oberflaeche: gespraechsSprache },
+    { diktatSprachen, frage: sprachZug.frage, oberflaeche: gespraechsSprache, vorigeSprache: sprachZug.vorigeSprache },
     (t) => erkenneSprache(t, 10),
   );
   // Offensichtliche Zweckentfremdung (Code, Kreativtexte, Prompt-Injektion): ohne Werkzeuge nur ablehnen.
@@ -727,7 +742,11 @@ export async function POST(req: Request) {
             zug: antwortId,
             nr,
             text,
-            sprache: antwortSprache,
+            // Die Stimme je Satz (seit 28.09.2026): ein russisches Zitat in
+            // einer deutschen Antwort klingt russisch. Zurueckhaltend - nur
+            // ein Wechsel der Schrift schaltet um, siehe satzSprache. Die
+            // Signatur bindet die Sprache nicht, nur den Text.
+            sprache: satzSprache(text, antwortSprache),
             ablauf,
             // Ohne Signatur waere die Abschnitts-Route ein offener
             // Sprachgenerator - siehe domain/sprachausgabe-signatur.ts.

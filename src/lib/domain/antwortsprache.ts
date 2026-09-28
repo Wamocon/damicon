@@ -16,16 +16,30 @@
 //   b) getippt   -> die Sprache der Frage, wenn sie eindeutig ist
 //   c) sonst     -> die Oberflaechensprache
 //
-// Hier steht nur die Entscheidung, ohne Spracherkenner und ohne Next-Laufzeit:
-// so laesst sie sich fuer alle 16 Kombinationen pruefen. Der Erkenner wird
-// hereingereicht (erkenneSprache aus lib/wissen/chunker.ts).
+// Hier steht nur die Entscheidung, ohne Next-Laufzeit: so laesst sie sich fuer
+// alle 16 Kombinationen pruefen. Der Erkenner fuer die Frage wird
+// hereingereicht (erkenneSprache aus lib/text/sprache-erkennen.ts).
+//
+// Seit 28.09.2026 faellt die Entscheidung nicht mehr vorschnell auf die
+// Oberflaeche zurueck (Rueckmeldung vom 28.09.2026: Oberflaeche Deutsch,
+// russischer Text, deutsche Stimme "mit viel Akzent"). Zwei Luecken:
+//   - Folgeanfragen (nach seiteLesen, zeigeAuf, einer Freigabe) enden mit der
+//     Antwort des Assistenten. Als Frage galt dann "", und die Oberflaeche
+//     entschied - mitten in einem russischen Gespraech. Jetzt gilt die letzte
+//     Frage des Nutzers (zugAusNachrichten).
+//   - Kurze Antworten ("Да", "Иә", "Ja", "OK") liegen unter der
+//     Erkennungsschwelle. Ihre Schrift und die Sprache des vorigen Zuges sagen
+//     mehr als die Einstellung.
+
+import { erkenneSprache, erkenneSpracheEindeutig, zaehleSchrift } from "@/lib/text/sprache-erkennen";
 
 export const SPRACHEN = ["de", "en", "ru", "kk"] as const;
 export type Sprache = (typeof SPRACHEN)[number];
 
 /** Woher die Entscheidung kam - fuer Protokoll und Fehlersuche, nicht fuer
- *  die Anzeige. */
-export type Herkunft = "diktat" | "frage" | "oberflaeche";
+ *  die Anzeige. "schrift": eine kurze Antwort, entschieden an ihrer Schrift;
+ *  "verlauf": die Sprache des vorigen Zuges. */
+export type Herkunft = "diktat" | "frage" | "schrift" | "verlauf" | "oberflaeche";
 
 export type Erkenner = (text: string) => string | null;
 
@@ -72,6 +86,8 @@ export function bestimmeAntwortsprache(
     frage: string;
     /** Die eingestellte Oberflaechensprache. */
     oberflaeche: string;
+    /** Die Sprache des vorigen Zuges (zugAusNachrichten), wenn es einen gibt. */
+    vorigeSprache?: string | null;
   },
   erkenner: Erkenner,
 ): { sprache: Sprache; herkunft: Herkunft } {
@@ -88,9 +104,123 @@ export function bestimmeAntwortsprache(
   const ausFrage = erkenner(eingabe.frage ?? "");
   if (istSprache(ausFrage)) return { sprache: ausFrage, herkunft: "frage" };
 
-  // c) Sonst die Einstellung. Eine Frage aus zwei Woertern gibt nicht genug
-  //    her, um darauf eine Sprache zu gruenden.
+  // c) Zu kurz fuer den Erkenner ("Да", "Иә", "Ja", "OK"): die Schrift der
+  //    Antwort zusammen mit der Sprache des vorigen Zuges. Passt beides
+  //    zusammen, bleibt es beim vorigen Zug - ein "Иә" in einem russischen
+  //    Gespraech wechselt nicht nach Kasachisch, ein "OK" in einem englischen
+  //    nicht nach Deutsch. Kyrillisch ist dabei eindeutig: ein "Да" wird nie
+  //    deutsch beantwortet, auch nicht bei deutscher Oberflaeche.
+  const frage = eingabe.frage ?? "";
+  const vorige = istSprache(eingabe.vorigeSprache) ? eingabe.vorigeSprache : null;
+  const { kyrillisch, lateinisch } = zaehleSchrift(frage);
+  if (kyrillisch > lateinisch) {
+    if (vorige === "ru" || vorige === "kk") return { sprache: vorige, herkunft: "verlauf" };
+    // Kasachische Sonderbuchstaben ("Иә") entscheiden; sonst Russisch, ausser
+    // die Einstellung ist ohnehin Kasachisch ("Жоқ" hat einen, "Рахмет" keinen).
+    const ausSchrift = erkenneSprache(frage, 1);
+    if (ausSchrift === "kk" || eingabe.oberflaeche === "kk") return { sprache: "kk", herkunft: "schrift" };
+    return { sprache: "ru", herkunft: "schrift" };
+  }
+  if (lateinisch > kyrillisch) {
+    if (vorige === "de" || vorige === "en") return { sprache: vorige, herkunft: "verlauf" };
+    // Ein Umlaut oder ein unterscheidendes Wort ("Danke", "Thanks") reicht hier.
+    const ausWort = erkenneSpracheEindeutig(frage, 1);
+    if (ausWort === "de" || ausWort === "en") return { sprache: ausWort, herkunft: "schrift" };
+  }
+
+  // d) Ohne klare Schrift (Ziffern, "?", ein "OK" nach einem russischen Zug):
+  //    die Sprache des vorigen Zuges. Das Gespraech geht weiter, wie es lief.
+  if (vorige) return { sprache: vorige, herkunft: "verlauf" };
+
+  // e) Sonst die Einstellung. Eine Frage aus zwei Woertern gibt ohne Verlauf
+  //    nicht genug her, um darauf eine Sprache zu gruenden.
   return { sprache: istSprache(eingabe.oberflaeche) ? eingabe.oberflaeche : "de", herkunft: "oberflaeche" };
+}
+
+/** Eine Nachricht des Verlaufs, so weit die Sprachwahl sie braucht. */
+export interface VerlaufsNachricht {
+  rolle: string;
+  text: string;
+  /** metadata.sprache einer Antwort (api/ki-assistent schickt sie mit). */
+  sprache?: unknown;
+}
+
+/** So viele Nachrichten vor der Frage werden hoechstens nach ihrer Sprache
+ *  gefragt - der vorige Zug, nicht das Gespraech von gestern. */
+const VERLAUF_TIEFE = 6;
+
+/**
+ * Frage und Sprache des vorigen Zuges aus den Nachrichten einer Anfrage.
+ *
+ * Die Frage ist die LETZTE NUTZERNACHRICHT, auch wenn die Anfrage mit der
+ * Antwort des Assistenten endet (Folgeanfrage nach einem Client-Werkzeug oder
+ * einer Freigabe). Bis zum 28.09.2026 war die Frage dann "", und jede
+ * Folgeanfrage wurde in der Oberflaechensprache beantwortet und vorgelesen.
+ * Erste Anfrage und Folgeanfrage eines Zuges sehen so dieselbe Frage und
+ * denselben Verlauf - und kommen zur selben Sprache.
+ *
+ * Der vorige Zug ist alles vor dieser Frage: zuerst metadata.sprache der
+ * letzten Antwort (der Browser schickt die Nachrichten samt Metadaten zurueck),
+ * sonst - bei Nachrichten aus dem geladenen Verlauf, die keine Metadaten
+ * tragen - der Text der letzten Nachrichten, die genug hergeben.
+ */
+export function zugAusNachrichten(
+  nachrichten: ReadonlyArray<VerlaufsNachricht>,
+  verlaufsErkenner: Erkenner,
+): { frage: string; vorigeSprache: Sprache | null } {
+  let letzteFrage = -1;
+  for (let i = nachrichten.length - 1; i >= 0; i--) {
+    if (nachrichten[i]!.rolle === "user") {
+      letzteFrage = i;
+      break;
+    }
+  }
+  const frage = letzteFrage >= 0 ? (nachrichten[letzteFrage]!.text ?? "") : "";
+  const davor = nachrichten.slice(0, Math.max(0, letzteFrage));
+
+  let vorigeSprache: Sprache | null = null;
+  for (let i = davor.length - 1; i >= 0; i--) {
+    if (davor[i]!.rolle !== "assistant") continue;
+    if (istSprache(davor[i]!.sprache)) vorigeSprache = davor[i]!.sprache as Sprache;
+    break;
+  }
+  if (!vorigeSprache) {
+    for (const n of davor.slice(-VERLAUF_TIEFE).reverse()) {
+      const erkannt = verlaufsErkenner(n.text ?? "");
+      if (istSprache(erkannt)) {
+        vorigeSprache = erkannt;
+        break;
+      }
+    }
+  }
+  return { frage, vorigeSprache };
+}
+
+/** Ab so vielen Buchstaben entscheidet der Text einer Antwort ohne Metadaten. */
+const VORLESE_MINDEST_BUCHSTABEN = 40;
+
+/**
+ * Die Sprache, in der eine FERTIGE Antwort vorgelesen wird (Knopf an der
+ * Nachricht, Antwort ohne Live-Abschnitte). Die einzelnen Saetze koennen davon
+ * noch abweichen (satzSprache in lib/text/sprache-erkennen.ts).
+ *
+ *   1. metadata.sprache der Antwort, wenn sie mitkam,
+ *   2. sonst der Text selbst - Nachrichten aus dem geladenen Verlauf haben
+ *      keine Metadaten, und bis zum 28.09.2026 las dann die Stimme der
+ *      Oberflaeche jede russische Antwort nach einem Neuladen,
+ *   3. erst zuletzt die Oberflaeche.
+ */
+export function vorleseSprache(metaSprache: unknown, text: string, oberflaeche: string): Sprache {
+  if (istSprache(metaSprache)) return metaSprache;
+  const ober: Sprache = istSprache(oberflaeche) ? oberflaeche : "de";
+  const eindeutig = erkenneSpracheEindeutig(text ?? "", VORLESE_MINDEST_BUCHSTABEN);
+  if (istSprache(eindeutig)) return eindeutig;
+  // Lateinisch, aber ohne Merkmal: erkenneSprache sagt dann "en". Steht die
+  // Oberflaeche in derselben Schrift, ist sie der bessere Tipp.
+  const grob = erkenneSprache(text ?? "", VORLESE_MINDEST_BUCHSTABEN);
+  if (!istSprache(grob)) return ober;
+  const lateinisch = (s: Sprache) => s === "de" || s === "en";
+  return lateinisch(grob) === lateinisch(ober) ? ober : grob;
 }
 
 /**

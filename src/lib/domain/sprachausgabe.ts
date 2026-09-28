@@ -3,6 +3,8 @@
 // Der Aufruf selbst: lib/ai/sprachausgabe-client.ts, die Route:
 // app/api/ki-sprachausgabe/route.ts.
 
+import { ueberwiegendeSchrift, type Schrift } from "@/lib/text/sprache-erkennen";
+
 // --- Sprechmarken (domain/sprechmarken.ts) --------------------------------------
 
 /** Steht im Text für den Zerleger an der Stelle einer Sprechmarke ("[[a3]]"). Ein
@@ -801,6 +803,41 @@ export function erzeugeSatzZerleger(stil: ZerlegerStil = "abschnitte"): SatzZerl
     return glatt;
   }
 
+  /** Geht die Saetze im Puffer der Reihe nach durch: die erste Satzgrenze ab
+   *  `ziel` - oder, falls vorher ein Satz in der anderen Schrift beginnt, dessen
+   *  Anfang (siehe naechsteGrenze). -1, wenn beides nicht in Sicht ist.
+   *  `amEnde`: der Text ist vollstaendig, auch der letzte Satz zaehlt, selbst
+   *  ohne Satzzeichen. */
+  function grenzeMitSchrift(ziel: number, amEnde = false): number {
+    let satzAnfang = 0;
+    let schrift: Schrift | null = null;
+    const wechselt = (ende: number): boolean => {
+      const dieser = ueberwiegendeSchrift(puffer.slice(satzAnfang, ende));
+      const anders = dieser !== null && schrift !== null && dieser !== schrift;
+      schrift = dieser ?? schrift;
+      return anders;
+    };
+    for (let i = 0; i < puffer.length; i++) {
+      if (!(istSatzende(puffer, i, amEnde) || istZeilenende(puffer, i))) continue;
+      if (wechselt(i + 1)) return satzAnfang;
+      if (i + 1 >= ziel) return i + 1;
+      satzAnfang = i + 1;
+    }
+    if (amEnde && satzAnfang > 0 && satzAnfang < puffer.length && wechselt(puffer.length)) return satzAnfang;
+    return -1;
+  }
+
+  /** Am Ende eines Textteils oder der Antwort geht der Rest auf einmal hinaus -
+   *  vorher aber getrennt, wo die Schrift wechselt: der letzte Satz hatte bis
+   *  dahin kein erkennbares Ende (es fehlte das naechste Wort) und wurde nie
+   *  gegen den davor geprueft. */
+  function nachSchriftTrennen(raus: Abschnitt[]): void {
+    for (let s = grenzeMitSchrift(Infinity, true); s > 0 && !fertig; s = grenzeMitSchrift(Infinity, true)) {
+      const a = schneide(s);
+      if (a) raus.push(a);
+    }
+  }
+
   /** Wo endet der naechste Abschnitt im Puffer - oder -1, wenn noch keiner. */
   function naechsteGrenze(): number {
     const grenzeBei = (i: number) => istSatzende(puffer, i) || istZeilenende(puffer, i);
@@ -849,10 +886,16 @@ export function erzeugeSatzZerleger(stil: ZerlegerStil = "abschnitte"): SatzZerl
     // war - der Stream liefert Wort fuer Wort, und die Zielmarke wurde nie
     // erreicht. Jeder Satz war eine eigene Anfrage mit eigener Satzmelodie
     // und eigener Pause: abgehackt.
+    //
+    // Seit 28.09.2026 endet ein Abschnitt auch dort, wo die Schrift wechselt,
+    // unterhalb der Zielmarke: die Stimme wird je Abschnitt gewaehlt
+    // (satzSprache in lib/text/sprache-erkennen.ts), und ein kurzer deutscher
+    // Satz vor einem russischen Zitat landete sonst mit ihm in EINEM Abschnitt -
+    // eine Stimme fuer beide. Saetze ohne klare Schrift (kurz, Zahlen, gemischt)
+    // trennen nichts, einsprachige Antworten zerfallen genau wie vorher.
     const ziel = stil === "saetze" ? SATZ_ZIEL_ZEICHEN : nr <= 1 ? ZWEITER_ABSCHNITT_ZEICHEN : ABSCHNITT_ZEICHEN;
-    for (let i = 0; i < puffer.length; i++) {
-      if (i + 1 >= ziel && grenzeBei(i)) return i + 1;
-    }
+    const grenze = grenzeMitSchrift(ziel);
+    if (grenze > 0) return grenze;
 
     // Kein Satzende, aber viel zu lang: am letzten Satzende davor, sonst am
     // letzten Leerzeichen trennen, damit kein Wort zerrissen wird.
@@ -899,6 +942,8 @@ export function erzeugeSatzZerleger(stil: ZerlegerStil = "abschnitte"): SatzZerl
       if (fertig) return [];
       const raus = ernte();
       if (fertig) return raus;
+      nachSchriftTrennen(raus);
+      if (fertig) return raus;
       // Eine Marke ganz am Ende des Textteils ("Ich oeffne den Bericht. [[a2]]",
       // danach ein Werkzeug) gehoert zum Satz NACH dem Werkzeug, nicht zu diesem.
       const nachlauf = /\uE000[\s\uE000]*$/.exec(puffer);
@@ -913,6 +958,7 @@ export function erzeugeSatzZerleger(stil: ZerlegerStil = "abschnitte"): SatzZerl
     abschliessen(): Abschnitt[] {
       if (fertig) return [];
       const raus = ernte();
+      nachSchriftTrennen(raus);
       const rest = schneide(puffer.length, true);
       if (rest) raus.push(rest);
       return raus;

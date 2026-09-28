@@ -132,8 +132,11 @@ export async function POST(req: Request) {
       return fehler(403, "nicht-erlaubt");
     }
 
-    // Die Sprache kommt vom Zug, nicht aus der Oberflaeche und nicht je
-    // Abschnitt neu geraten: alle Abschnitte eines Zuges klingen gleich.
+    // Die Sprache kommt vom Zug, nicht aus der Oberflaeche und nicht hier
+    // neu geraten. Seit 28.09.2026 kann sie je Abschnitt abweichen: der Server
+    // gibt jedem data-satz die Sprache seines Satzes mit (satzSprache,
+    // api/ki-assistent), damit ein russisches Zitat in einer deutschen Antwort
+    // nicht mit deutscher Stimme klingt. Der Browser reicht sie hier durch.
     const zugSprache = istSprache(body.sprache) ? body.sprache : "de";
     const stimmenDesZuges = istSprachausgabeSprache(zugSprache) ? stimmenFuer(zugSprache) : [];
     if (!istSprachausgabeSprache(zugSprache) || stimmenDesZuges.length === 0) {
