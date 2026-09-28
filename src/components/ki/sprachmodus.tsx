@@ -166,8 +166,9 @@ function SprachmodusInhalt() {
   // ans Modell, damit es weiss, was angekommen ist (Kontext bleibt erhalten).
   const unterbrochenBei = useRef<string | null>(null);
   // Nach einem Unterbrechen per Stimme spricht der Nutzer schon weiter, wenn Himbi verstummt;
-  // die Grenze steht dann am Einsatz seiner Stimme und darf beim Verstummen nicht nach "jetzt"
-  // ruecken, sonst fiele "zeig mir lieber ..." aus der naechsten Frage.
+  // die Grenze steht dann am Einsatz seiner Stimme und darf bis zur naechsten Frage nicht nach
+  // "jetzt" ruecken (auch nicht bei einer zweiten Meldung des Chats), sonst fiele "zeig mir
+  // lieber ..." aus der naechsten Frage.
   const grenzeSteht = useRef(false);
   const zuletztGehoert = useRef(0);
   const phaseRef = useRef(phase);
@@ -266,6 +267,8 @@ function SprachmodusInhalt() {
     const gerade = leseGerade();
     unterbrochenBei.current = gerade?.satz ?? gerade?.vorher ?? null;
     grenzeSteht.current = true;
+    // Auch nach dem Lautstaerke-Waechter kann die naechste Aeusserung mit "Stopp" beginnen.
+    nachUnterbrechung.current = true;
     unterbrichChat();
     dispatch({ art: "unterbrechen" });
   }, [dispatch]);
@@ -278,9 +281,10 @@ function SprachmodusInhalt() {
       setZwischentext("");
       let text = t.endgueltig || t.anzeige;
       if (nachUnterbrechung.current) {
-        // "Stopp, zeig mir lieber die Reklamationen": das Befehlswort hat schon gewirkt.
+        // "Stopp, zeig mir lieber die Reklamationen": das Befehlswort hat schon gewirkt. Bei
+        // offener Freigabe bleibt "Nein" eine Absage.
         nachUnterbrechung.current = false;
-        const befehl = unterbrechungsBefehl(text);
+        const befehl = leseFreigabeAnfrage() ? null : unterbrechungsBefehl(text);
         if (befehl) text = befehl.rest;
       }
       if (!istGesprochen(text) && !vorsatz.current) return;
@@ -369,7 +373,6 @@ function SprachmodusInhalt() {
         }
         // Die naechste Aeusserung beginnt mit dem Befehlswort; das Echo davor faellt weg.
         grenzeMs.current = Math.max(grenzeMs.current, jetzt.woerter[b]!.startMs ?? grenzeMs.current);
-        nachUnterbrechung.current = true;
         offeneFrage.current = null;
         unterbrecheHimbi();
       };
@@ -526,6 +529,10 @@ function SprachmodusInhalt() {
     let bild = 0;
     let einsatz: number | null = null;
     const schritt = () => {
+      // Hat ein Befehlswort schon unterbrochen, laeuft dieser Takt bis zum Aufraeumen des
+      // Effekts noch einmal: kein zweites Unterbrechen, das die Grenze hinter die ersten Worte
+      // der neuen Frage schoebe (Messung vom 28.09.2026: aus "Stopp, zeig mir ..." wurde "mir ...").
+      if (phaseRef.current !== "spricht") return;
       const urteil = waechter.melde(leseLautstaerke(), leseAusgabePegel(), performance.now());
       if (urteil === "unterbrechen") {
         grenzeMs.current = Math.max(grenzeMs.current, (einsatz ?? audioJetzt()) - 300);
@@ -550,10 +557,7 @@ function SprachmodusInhalt() {
       const sprichtJetzt = stand.spricht || stand.laedt;
       // Himbi ist gerade verstummt: was die Erkennung ab jetzt hoert, ist nicht mehr sein Echo.
       // Ausser er wurde per Stimme unterbrochen: dann steht die Grenze schon am Einsatz des Nutzers.
-      if (sprachZuletzt.current && !sprichtJetzt) {
-        if (grenzeSteht.current) grenzeSteht.current = false;
-        else grenzeMs.current = Math.max(grenzeMs.current, audioJetzt() + 50);
-      }
+      if (sprachZuletzt.current && !sprichtJetzt && !grenzeSteht.current) grenzeMs.current = Math.max(grenzeMs.current, audioJetzt() + 50);
       sprachZuletzt.current = sprichtJetzt;
       window.clearTimeout(ruheTimer.current);
       if (phaseRef.current !== "denkt" && phaseRef.current !== "spricht") return;

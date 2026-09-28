@@ -284,13 +284,23 @@ export function istGesprochen(text: string): boolean {
   return woerterVon(text).some((w) => w.length >= 2);
 }
 
+/** Bindewoerter, mit denen ein Nachsatz typischerweise weitergeht. Die Erkennung schreibt sie
+ *  nach ihrem eigenen Punkt gross ("Ja. Und zeig mir ..."). */
+const BINDEWOERTER = new Set([
+  "und", "aber", "oder", "dann", "also", "sondern", "and", "but", "or", "then", "so",
+  "и", "а", "но", "или", "потом", "тогда", "және", "бірақ", "немесе", "сосын",
+]);
+
 /** "Ja." + "und zeig mir die Lieferungen." -> "Ja, und zeig mir die Lieferungen." Der Punkt des
- *  ersten Teils kam nur, weil die Erkennung dort ein Ende vermutete. */
+ *  ersten Teils kam nur, weil die Erkennung dort ein Ende vermutete. Beginnt der Nachsatz
+ *  klein oder mit einem Bindewort, wird es ein Satz; sonst bleiben es zwei. */
 export function fuegeZusammen(vorher: string, nachsatz: string): string {
   const a = vorher.trim();
   const b = nachsatz.trim();
   if (!a) return b;
   if (!b) return a;
+  const erstes = /^[\p{L}]+/u.exec(b)?.[0] ?? "";
+  if (BINDEWOERTER.has(erstes.toLowerCase())) return `${a.replace(/[.!?…]+$/, ",")} ${erstes.toLowerCase()}${b.slice(erstes.length)}`;
   const kleinAnfang = /^[\p{Ll}]/u.test(b);
   return kleinAnfang ? `${a.replace(/[.!?…]+$/, ",")} ${b}` : `${a} ${b}`;
 }

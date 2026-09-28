@@ -2632,7 +2632,7 @@ for (const [name, kaputteAntwort] of [
   pruefe("Abbruch: der Sprachmodus hoert auf das Scheitern der Sitzung", modus.includes("beiScheitern: (grund) => {") && modus.includes("nachSitzungsAbbruch({"));
   pruefe("Abbruch: diktat-live meldet ein Scheitern nur vor beende()/abbrechen()", live.includes("if (!beendet) beiScheitern?.(grund);") && /abbrechen\(\) \{\s*beendet = true;/.test(live));
   pruefe("Dazwischenreden: nur waehrend Himbi spricht, mit Mikrofon- und Ausgabepegel", /if \(phase !== "spricht"\) return;\s*const waechter = erzeugeUnterbrechungsWaechter\(\);/.test(modus) && modus.includes("waechter.melde(leseLautstaerke(), leseAusgabePegel(), performance.now())"));
-  pruefe("Dazwischenreden: was ab dem Einsatz der Stimme gesagt wurde, gehoert zur naechsten Frage", modus.includes("grenzeMs.current = Math.max(grenzeMs.current, (einsatz ?? audioJetzt()) - 300);") && modus.includes("if (grenzeSteht.current) grenzeSteht.current = false;"));
+  pruefe("Dazwischenreden: was ab dem Einsatz der Stimme gesagt wurde, gehoert zur naechsten Frage", modus.includes("grenzeMs.current = Math.max(grenzeMs.current, (einsatz ?? audioJetzt()) - 300);") && modus.includes("if (sprachZuletzt.current && !sprichtJetzt && !grenzeSteht.current) grenzeMs.current = Math.max(grenzeMs.current, audioJetzt() + 50);") && /const schritt = \(\) => \{[\s\S]{0,400}if \(phaseRef\.current !== "spricht"\) return;\s*const urteil = waechter\.melde/.test(modus));
   pruefe("Lautstaerke: RMS auf der Skala des Diktats (pegelAusZeitbereich)", hoeren.includes("lautstaerke = pegelAusZeitbereich(zeitRoh);") && hoeren.includes("export function leseLautstaerke(): number"));
   pruefe("Komponente: keine abgeschaltete Hook-Pruefung mehr", !modus.includes("eslint-disable"));
 
@@ -2947,8 +2947,8 @@ for (const [name, kaputteAntwort] of [
   {
     const modusQ = lies2("components/ki/sprachmodus.tsx");
     pruefe("Sprachmodus: 'Sprachmodus beenden' beendet, 'Stopp' beim Zuhoeren stellt keine Frage", /if \(istBeendenBefehl\(text\)\) \{\s*beendenRef\.current\(\);\s*return;/.test(modusQ) && modusQ.includes("if (istNurAnhalten(text) && !vorsatz.current) return;"));
-    pruefe("Sprachmodus: nach einer Unterbrechung faellt das Befehlswort aus der naechsten Frage", /if \(nachUnterbrechung\.current\) \{[\s\S]{0,200}const befehl = unterbrechungsBefehl\(text\);\s*if \(befehl\) text = befehl\.rest;/.test(modusQ));
-    pruefe("Sprachmodus: Unterbrechen haelt nur Himbi an und merkt sich den Satz, bei dem er unterbrochen wurde", /const unterbrecheHimbi = useCallback\(\(\) => \{\s*const gerade = leseGerade\(\);\s*unterbrochenBei\.current = gerade\?\.satz \?\? gerade\?\.vorher \?\? null;\s*grenzeSteht\.current = true;\s*unterbrichChat\(\);\s*dispatch\(\{ art: "unterbrechen" \}\);/.test(modusQ));
+    pruefe("Sprachmodus: nach einer Unterbrechung faellt das Befehlswort aus der naechsten Frage", /if \(nachUnterbrechung\.current\) \{[\s\S]{0,400}const befehl = leseFreigabeAnfrage\(\) \? null : unterbrechungsBefehl\(text\);\s*if \(befehl\) text = befehl\.rest;/.test(modusQ));
+    pruefe("Sprachmodus: Unterbrechen haelt nur Himbi an und merkt sich den Satz, bei dem er unterbrochen wurde", /const unterbrecheHimbi = useCallback\(\(\) => \{\s*const gerade = leseGerade\(\);\s*unterbrochenBei\.current = gerade\?\.satz \?\? gerade\?\.vorher \?\? null;\s*grenzeSteht\.current = true;[\s\S]{0,120}nachUnterbrechung\.current = true;\s*unterbrichChat\(\);\s*dispatch\(\{ art: "unterbrechen" \}\);/.test(modusQ));
   }
 
   // (g) Zusage/Absage bei einer offenen Freigabe (Rueckmeldung vom 25.09.2026:
@@ -3374,7 +3374,7 @@ for (const [name, kaputteAntwort] of [
     pruefe("textAb: Teilstuecke ergeben ein Wort mit Anfang und Ende", JSON.stringify(ab.woerter.map((w) => [w.text, w.startMs, w.endeMs])) === JSON.stringify([["und", 2000, 2150], ["Lieferungen", 2200, 2900], ["bitte", 3000, 3300]]), JSON.stringify(ab.woerter));
     pruefe("textAb: der Endpunkt zaehlt mit (jede Aeusserung im Gespraech)", s.stand().endpunkte === 1 && s.textAb(0).endgueltig === "Ja. und Lieferungen");
   }
-  pruefe("Nachsatz: 'Ja.' + 'und ...' wird ein Satz, Grossgeschriebenes bleibt ein eigener", sm.fuegeZusammen("Ja.", "und zeig mir die Lieferungen.") === "Ja, und zeig mir die Lieferungen." && sm.fuegeZusammen("Wie viele Steigen?", "Heute.") === "Wie viele Steigen? Heute." && sm.fuegeZusammen("", "Hallo") === "Hallo");
+  pruefe("Nachsatz: 'Ja.' + 'und ...' wird ein Satz, Grossgeschriebenes bleibt ein eigener", sm.fuegeZusammen("Ja.", "und zeig mir die Lieferungen.") === "Ja, und zeig mir die Lieferungen." && sm.fuegeZusammen("Ja.", "Und zeig mir bitte die Lieferungen.") === "Ja, und zeig mir bitte die Lieferungen." && sm.fuegeZusammen("Да.", "И покажи поставки.") === "Да, и покажи поставки." && sm.fuegeZusammen("Wie viele Steigen?", "Heute.") === "Wie viele Steigen? Heute." && sm.fuegeZusammen("", "Hallo") === "Hallo");
   pruefe("Nachsatz: ein Geraeusch ist kein Nachsatz", !sm.istGesprochen("") && !sm.istGesprochen("a") && sm.istGesprochen("und"));
   {
     const verlauf = [{ id: "1", role: "user", parts: [{ type: "text", text: "Erkläre die Fristen" }] }, { id: "2", role: "assistant", parts: [{ type: "text", text: "Die erste Frist ..." }] }, { id: "3", role: "user", parts: [{ type: "text", text: "Nein, die Lieferungen" }] }];
