@@ -517,6 +517,27 @@
   }
 }
 
+/* Leerzustand mit Aktion (ui/liste.tsx, LeererZustand mit symbol und aktion):
+   Das Abzeichen atmet, das Symbol darin wiegt sich. Beides laeuft nur dort,
+   wo ein Knopf zum naechsten Schritt fuehrt - reine Hinweise bleiben ruhig.
+   Die beiden Takte (2,6 s und 3,2 s) laufen bewusst nicht im Gleichschritt.
+   Anfang und Ende fehlen in den Keyframes absichtlich: dort gilt der
+   Ruhezustand, so springt beim Einsetzen nichts. Auswahl und Tempo:
+   docs/design/leerzustaende-ladezustaende-2026-09-25. */
+@keyframes leerzustand-atmen {
+  50% {
+    transform: scale(1.06);
+  }
+}
+@keyframes leerzustand-wiegen {
+  25% {
+    transform: rotate(-4deg);
+  }
+  75% {
+    transform: rotate(4deg);
+  }
+}
+
 /*
   Tabellen auf dem Handy: aus jeder Zeile wird eine Karte.
 

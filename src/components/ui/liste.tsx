@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { knopfKlassen, type Ziel } from "@/components/ui/kit";
 import { DetailpanelSteuerung } from "@/components/ui/detailpanel-steuerung";
 import { LadeMelder } from "@/components/ui/lade-status";
+import { Icon } from "@/components/icon";
 
 // Liste mit Detailansicht (DESIGN.md Abschnitt 14, WMCNL-2488). Eine Liste,
 // deren Eintraege per Klick rechts eine Detailansicht oeffnen. Zuerst gebaut
@@ -209,21 +210,80 @@ export function Blaettern({
   );
 }
 
-/** Leere Liste: sagt, warum, und bietet den naechsten Schritt an. */
+/**
+ * Leere Liste: sagt, warum, und bietet den naechsten Schritt an.
+ *
+ * Drei Formen (docs/design/leerzustaende-ladezustaende-2026-09-25):
+ *   ohne symbol       gestrichelter Rahmen, nur Text - fuer "alles erledigt",
+ *                     fehlende Freigabe und Fehlermeldungen;
+ *   mit symbol        das Symbol des Moduls in der Farbe seines Bereichs,
+ *                     ruhig - fuer berechnete Werte, Filter ohne Treffer und
+ *                     Daten von aussen; eine aktion ist hier etwa "Filter
+ *                     zuruecksetzen";
+ *   symbol + bewegt   mit dem Knopf zum Anlegen als aktion. Nur hier bewegt
+ *                     sich das Abzeichen: der Blick soll beim Knopf landen,
+ *                     und auf Seiten ohne naechsten Schritt soll nichts
+ *                     wackeln. Deshalb eine eigene Angabe und nicht aus
+ *                     aktion abgeleitet.
+ */
 export function LeererZustand({
   titel,
   text,
   aktion,
+  symbol,
+  akzent = "var(--primary)",
+  bewegt = false,
 }: {
   titel: string;
   text?: string;
   aktion?: ReactNode;
+  /** Symbolname wie in modules.ts, etwa "map" (components/icon.tsx). */
+  symbol?: string;
+  /** Farbe des Bereichs, etwa zones[...].accent. */
+  akzent?: string;
+  /** Nur zusammen mit einem Anlegen-Knopf: Abzeichen atmet, Symbol wiegt sich. */
+  bewegt?: boolean;
 }) {
+  if (!symbol) {
+    return (
+      <div className="rounded-xl border border-dashed border-border p-6 text-center">
+        <p className="text-sm font-semibold text-card-foreground">{titel}</p>
+        {text ? <p className="mt-1 schrift-dense text-muted-foreground">{text}</p> : null}
+        {aktion ? <div className="mt-3 flex justify-center">{aktion}</div> : null}
+      </div>
+    );
+  }
+
+  // Ohne eigenen Rahmen: der Leerzustand steht immer in einer Section, und
+  // die ist schon die Box (kit.tsx). Eine Karte darin waere Box in Box.
   return (
-    <div className="rounded-xl border border-dashed border-border p-6 text-center">
-      <p className="text-sm font-semibold text-card-foreground">{titel}</p>
-      {text ? <p className="mt-1 schrift-dense text-muted-foreground">{text}</p> : null}
-      {aktion ? <div className="mt-3 flex justify-center">{aktion}</div> : null}
+    <div className="px-6 py-8 text-center">
+      <span
+        aria-hidden="true"
+        className={cn(
+          "mx-auto grid h-14 w-14 place-items-center rounded-full",
+          bewegt &&
+            "motion-safe:animate-[leerzustand-atmen_2.6s_cubic-bezier(0.45,0,0.55,1)_infinite]",
+        )}
+        style={{
+          color: akzent,
+          backgroundColor: `color-mix(in oklab, ${akzent} 12%, transparent)`,
+        }}
+      >
+        <Icon
+          name={symbol}
+          className={cn(
+            "h-6 w-6",
+            bewegt &&
+              "origin-[50%_88%] motion-safe:animate-[leerzustand-wiegen_3.2s_ease-in-out_infinite]",
+          )}
+        />
+      </span>
+      <p className="mt-4 font-heading text-base font-black text-card-foreground">{titel}</p>
+      {text ? (
+        <p className="mx-auto mt-1.5 max-w-sm schrift-dense text-muted-foreground">{text}</p>
+      ) : null}
+      {aktion ? <div className="mt-5 flex justify-center">{aktion}</div> : null}
     </div>
   );
 }

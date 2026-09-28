@@ -1015,7 +1015,12 @@
     },
     "leer": {
       "parzellen": "No field plot created yet.",
-      "reihengruppen": "No row group created yet."
+      "reihengruppen": "No row group created yet.",
+      "plantagen": "No plantation created yet.",
+      "plantagenText": "Once a plantation has been created, the location tree with its plots, row groups and row blocks appears here.",
+      "plantageAnlegen": "Create plantation",
+      "parzelleAnlegen": "Create field plot",
+      "reihengruppeAnlegen": "Create row group"
     },
     "spalier": {
       "n_s": "N-S",

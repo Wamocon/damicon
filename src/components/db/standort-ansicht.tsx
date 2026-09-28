@@ -1,5 +1,7 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Card, Section, StatusPill } from "@/components/ui/kit";
+import { Plus } from "lucide-react";
+import { Card, Section, StatusPill, knopfKlassen } from "@/components/ui/kit";
+import { LeererZustand } from "@/components/ui/liste";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   ParzelleFormular,
@@ -11,6 +13,7 @@ import {
 import { ladeSorten, ladeStandortBaum } from "@/lib/data/standort";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { modules, zones } from "@/lib/modules";
 
 // Standort-Hierarchie aus der Datenbank inklusive Verwaltungsoberflaeche
 // (Meilenstein B). Ersetzt die reine Anzeige-Demo aus Meilenstein A.
@@ -28,6 +31,11 @@ export async function StandortAnsicht() {
     baum.quelle === "db" &&
     Boolean(baum.betriebId) &&
     hasPermission(profil?.role, "standort", "create");
+
+  // Symbol und Farbe des Leerzustands wie im Menue: Modul aus modules.ts,
+  // Farbe seines Bereichs.
+  const modul = modules.find((m) => m.key === "standort");
+  const bereich = zones.find((z) => z.key === modul?.zone);
 
   const plantagenOptionen: AuswahlOption[] = baum.plantagen.map((p) => ({
     wert: p.id,
@@ -83,6 +91,23 @@ export async function StandortAnsicht() {
       </Section>
 
       <Section title={t("treeTitle")} description={t("treeLead")}>
+        {baum.plantagen.length === 0 ? (
+          <LeererZustand
+            titel={v("leer.plantagen")}
+            text={v("leer.plantagenText")}
+            symbol={modul?.icon}
+            akzent={bereich?.accent}
+            bewegt={darfAnlegen}
+            aktion={
+              darfAnlegen ? (
+                <a href="#standort-anlegen-plantage" className={knopfKlassen()}>
+                  <Plus className="h-4 w-4" aria-hidden="true" />
+                  {v("leer.plantageAnlegen")}
+                </a>
+              ) : undefined
+            }
+          />
+        ) : null}
         <div className="space-y-3">
           {baum.plantagen.map((plantage) => (
             <Card key={plantage.id}>
@@ -117,6 +142,17 @@ export async function StandortAnsicht() {
                       {parzelle.reihengruppen.length === 0 ? (
                         <span className="text-[11px] text-muted-foreground">
                           {v("leer.reihengruppen")}
+                          {darfAnlegen ? (
+                            <>
+                              {" "}
+                              <a
+                                href="#standort-anlegen-reihengruppe"
+                                className="font-semibold text-primary underline-offset-2 hover:underline"
+                              >
+                                {v("leer.reihengruppeAnlegen")}
+                              </a>
+                            </>
+                          ) : null}
                         </span>
                       ) : null}
                     </div>
@@ -125,6 +161,17 @@ export async function StandortAnsicht() {
                 {plantage.parzellen.length === 0 ? (
                   <p className="text-[11px] text-muted-foreground">
                     {v("leer.parzellen")}
+                    {darfAnlegen ? (
+                      <>
+                        {" "}
+                        <a
+                          href="#standort-anlegen-parzelle"
+                          className="font-semibold text-primary underline-offset-2 hover:underline"
+                        >
+                          {v("leer.parzelleAnlegen")}
+                        </a>
+                      </>
+                    ) : null}
                   </p>
                 ) : null}
               </div>

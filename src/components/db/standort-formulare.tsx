@@ -31,7 +31,11 @@ export function PlantageFormular({ betriebId }: { betriebId: string }) {
   const t = useTranslations("standortVerwaltung");
 
   return (
-    <FormularKarte titel={t("plantage.titel")} beschreibung={t("plantage.lead")}>
+    <FormularKarte
+      id="standort-anlegen-plantage"
+      titel={t("plantage.titel")}
+      beschreibung={t("plantage.lead")}
+    >
       <form action={action} className="space-y-2.5">
         <PfadFeld />
         <input type="hidden" name="betrieb_id" value={betriebId} />
@@ -63,7 +67,11 @@ export function ParzelleFormular({
   const t = useTranslations("standortVerwaltung");
 
   return (
-    <FormularKarte titel={t("parzelle.titel")} beschreibung={t("parzelle.lead")}>
+    <FormularKarte
+      id="standort-anlegen-parzelle"
+      titel={t("parzelle.titel")}
+      beschreibung={t("parzelle.lead")}
+    >
       <form action={action} className="space-y-2.5">
         <PfadFeld />
         <Auswahl
@@ -101,6 +109,7 @@ export function ReihengruppeFormular({
 
   return (
     <FormularKarte
+      id="standort-anlegen-reihengruppe"
       titel={t("reihengruppe.titel")}
       beschreibung={t("reihengruppe.lead")}
     >

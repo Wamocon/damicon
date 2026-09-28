@@ -195,16 +195,24 @@ export function AktionsMeldung({ status }: { status: AktionsStatus }) {
 }
 
 export function FormularKarte({
+  id,
   titel,
   beschreibung,
   children,
 }: {
+  // Sprungziel fuer "... anlegen" aus einem Leerzustand (standort-ansicht.tsx).
+  // scroll-mt-20 haelt die Karte unter der fixierten Kopfzeile frei, wie bei
+  // Section; target: zeigt, bei welchem Formular man gelandet ist.
+  id?: string;
   titel: string;
   beschreibung?: string;
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-card p-4">
+    <div
+      id={id}
+      className="scroll-mt-20 rounded-xl border border-border bg-card p-4 target:border-primary/60 target:ring-2 target:ring-primary/20"
+    >
       <p className="schrift-dense font-black text-card-foreground">{titel}</p>
       {beschreibung ? (
         <p className="mt-0.5 schrift-label text-muted-foreground">

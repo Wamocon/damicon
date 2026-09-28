@@ -1015,7 +1015,12 @@
     },
     "leer": {
       "parzellen": "Noch keine Feldparzelle angelegt.",
-      "reihengruppen": "Noch keine Reihengruppe angelegt."
+      "reihengruppen": "Noch keine Reihengruppe angelegt.",
+      "plantagen": "Noch keine Plantage angelegt.",
+      "plantagenText": "Sobald eine Plantage angelegt ist, erscheint hier der Standortbaum mit Parzellen, Reihengruppen und Reihenblöcken.",
+      "plantageAnlegen": "Plantage anlegen",
+      "parzelleAnlegen": "Feldparzelle anlegen",
+      "reihengruppeAnlegen": "Reihengruppe anlegen"
     },
     "spalier": {
       "n_s": "N-S",
