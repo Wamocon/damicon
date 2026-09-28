@@ -186,7 +186,6 @@ const FUELLWOERTER = new Set([
   "bitte", "please", "пожалуйста", "өтінемін", "himbi", "химби", "jetzt", "sofort", "mal", "doch", "kurz", "eben", "ok", "okay", "hey", "danke",
 ]);
 const HOEREN = new Set(["hör", "hoer", "hören", "hoeren"]);
-const HOEFLICHKEIT = /^(bitte|please|пожалуйста|өтінемін)[\s,]+|[\s,]+(bitte|please|пожалуйста|өтінемін)$/gi;
 
 function woerterVon(text: string): string[] {
   return text.toLowerCase().replace(/[^\p{L}\s]/gu, " ").split(/\s+/).filter(Boolean);
@@ -314,48 +313,66 @@ export function fuegeZusammen(vorher: string, nachsatz: string): string {
 // Wort, nicht als Wort mittendrin ("Ja, aber was kostet das?" ist keine reine
 // Zusage und wird als Frage weitergereicht, nicht als Freigabe gewertet).
 
-const ZUSAGE_WOERTER = new Set([
+// Bis zum 28.09.2026 musste die ganze Aeusserung nach dem Entfernen einer Bitte am Rand genau
+// einem Eintrag gleichen. Soniox liefert aber Satzzeichen: "Ja, bitte." war damit keine Zusage
+// (die Bitte stand vor dem Punkt), und "Ja, mach das." ebenso wenig. Jetzt zaehlen Woerter:
+// Kernwoerter und feste Wendungen einer Seite, dazu Fuellwoerter, sonst nichts.
+const ZUSAGE_KERN = new Set([
   // Deutsch
-  "ja", "jawohl", "genau", "mach das", "bestätigen", "bestätige", "freigeben", "gib frei", "ok", "okay",
+  "ja", "jawohl", "genau", "bestätigen", "bestätige", "freigeben", "ok", "okay", "klar", "gerne", "gern", "natürlich",
   // Englisch
-  "yes", "yeah", "confirm", "approve", "do it",
+  "yes", "yeah", "yep", "confirm", "approve", "sure",
   // Russisch
-  "да", "давай", "подтверждаю", "подтвердить", "хорошо",
+  "да", "давай", "подтверждаю", "подтвердить", "хорошо", "ага",
   // Kasachisch
   "иә", "жарайды", "растаймын",
 ]);
-const ABSAGE_WOERTER = new Set([
+const ZUSAGE_WENDUNGEN = ["mach das", "mach es", "gib frei", "do it", "go ahead"];
+const ABSAGE_KERN = new Set([
   // Deutsch
-  "nein", "nicht", "abbrechen", "lass es", "stopp", "stop",
+  "nein", "nicht", "abbrechen", "stopp", "stop",
   // Englisch
-  "no", "cancel", "don't",
+  "no", "nope", "cancel",
   // Russisch
-  "нет", "отмена", "не надо",
+  "нет", "отмена",
   // Kasachisch
   "жоқ", "тоқтат",
 ]);
+// "don't" zerfaellt in woerterVon() in "don t".
+const ABSAGE_WENDUNGEN = ["lass es", "lass das", "don t", "не надо"];
+/** Begleiten eine Zusage oder Absage, ohne etwas daran zu aendern ("Ja, bitte, jetzt"). */
+const FREIGABE_FUELL = new Set(["bitte", "please", "пожалуйста", "өтінемін", "danke", "thanks", "спасибо", "рахмет", "himbi", "химби", "jetzt", "sofort"]);
 
-function bereinigteAeusserung(text: string): string {
-  return text
-    .trim()
-    .toLowerCase()
-    .replace(HOEFLICHKEIT, "")
-    .replace(/[.!?…]+$/, "")
-    .trim();
+function nurDieseSeite(text: string, kern: ReadonlySet<string>, wendungen: readonly string[]): boolean {
+  const woerter = woerterVon(text).filter((w) => !FREIGABE_FUELL.has(w));
+  if (woerter.length === 0 || woerter.length > 6) return false;
+  let rest = ` ${woerter.join(" ")} `;
+  for (const w of wendungen) rest = rest.split(` ${w} `).join(" ");
+  const uebrig = rest.split(" ").filter(Boolean);
+  return uebrig.every((w) => kern.has(w));
 }
 
 /** Ist diese fertig erkannte Aeusserung eine reine Zusage zu einer offenen
- *  Freigabe (Klick- oder Aktionskarte)? */
+ *  Freigabe (Klick- oder Aktionskarte)? "Ja, bitte.", "Ja, mach das." ja,
+ *  "Ja, aber was kostet das?" nein. */
 export function istZusageBefehl(text: string): boolean {
-  return ZUSAGE_WOERTER.has(bereinigteAeusserung(text));
+  return nurDieseSeite(text, ZUSAGE_KERN, ZUSAGE_WENDUNGEN);
 }
 
 /** Ist diese fertig erkannte Aeusserung eine reine Absage zu einer offenen
  *  Freigabe? "Stopp"/"Stop" zaehlen bewusst auch hier: waehrend eine Karte
- *  offen ist, soll damit die Aktion abgelehnt werden (siehe nimmAeusserung in
- *  sprachmodus.tsx). */
+ *  offen ist, soll damit die Aktion abgelehnt werden, nicht Himbi angehalten. */
 export function istAbsageBefehl(text: string): boolean {
-  return ABSAGE_WOERTER.has(bereinigteAeusserung(text));
+  return nurDieseSeite(text, ABSAGE_KERN, ABSAGE_WENDUNGEN);
+}
+
+/** Was eine ganze Aeusserung fuer eine offene Freigabekarte bedeutet: zusagen, ablehnen,
+ *  ablehnen und den Sprachmodus beenden ("Sprachmodus beenden"), oder nichts davon. */
+export function freigabeAntwort(text: string): "zusage" | "absage" | "beenden" | null {
+  if (istZusageBefehl(text)) return "zusage";
+  if (istAbsageBefehl(text)) return "absage";
+  if (istBeendenBefehl(text)) return "beenden";
+  return null;
 }
 
 // --- 2. Rechteck eines hervorgehobenen Bereichs -------------------------------------

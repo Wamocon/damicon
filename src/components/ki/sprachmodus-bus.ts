@@ -189,8 +189,11 @@ export function freigabeAnfrageServer(): null {
   return null;
 }
 
-/** Sprachmodus -> Chat: "Ja" oder "Nein" zur AKTUELLEN Anfrage. */
-export function entscheideFreigabe(erlaubt: boolean): void {
+/** Sprachmodus -> Chat: "Ja" oder "Nein" zur AKTUELLEN Anfrage. Mit `nr` nur, wenn die offene
+ *  Karte noch genau diese ist (seit dem 28.09.2026 wirklich geprueft, wie oben versprochen):
+ *  ein "Ja", das zu einer inzwischen ersetzten Karte gehoerte, gibt die neue nicht frei. */
+export function entscheideFreigabe(erlaubt: boolean, nr?: number): void {
+  if (nr !== undefined && freigabeAnfrage?.nr !== nr) return;
   freigabeEntscheider?.(erlaubt);
 }
 

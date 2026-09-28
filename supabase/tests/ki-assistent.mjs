@@ -87,6 +87,7 @@ import {
   ausweichPlatz,
   untertitelAusSpeicher,
   erzeugeUnterbrechungsWaechter,
+  freigabeAntwort,
   istAbsageBefehl,
   istBeendenBefehl,
   istNurAnhalten,
@@ -2482,8 +2483,13 @@ for (const [name, kaputteAntwort] of [
     pruefe("Freigabe-Bus: derselbe Text zaehlt nicht als neue Anfrage", /if \(text === \(freigabeAnfrage\?\.text \?\? null\)\) \{[\s\S]{0,120}return;/.test(bus));
     pruefe("Freigabe-Bus: Entscheidung geht an genau die gemeldete Karte", bus.includes("freigabeEntscheider?.(erlaubt)"));
     pruefe("Freigabe: der Chat meldet Klick- UND Aktionskarte an den Bus", chat.includes("meldeFreigabeAnfrage(`${t(\"klick.titel\")}") && chat.includes("anstehendeAktion") && chat.includes("meldeFreigabeAnfrage(null, null)"));
-    pruefe("Freigabe: der Sprachmodus wertet Ja/Nein VOR einer neuen Frage aus und stellt sie dann nicht", /leseFreigabeAnfrage\(\) && !vorsatz\.current\) \{[\s\S]{0,200}entscheideFreigabe\(istZusageBefehl\(text\)\);[\s\S]{0,160}return;/.test(modus));
-    pruefe("Freigabe: bei offener Karte lehnt 'Stopp' mitten in der Antwort nur die Karte ab, beendet nicht den Sprachmodus", /if \(leseFreigabeAnfrage\(\)\) \{[\s\S]{0,120}entscheideFreigabe\(false\);\s*grenzeMs\.current = /.test(modus) && istAbsageBefehl("Stopp") && !istBeendenBefehl("Stopp"));
+    // Seit dem 28.09.2026 in JEDER Phase (Rueckmeldung: "wenn ich Ja sage, passiert nichts" - bei
+    // offener Klickkarte blieb die Phase "spricht", und das Ja fiel als Echo weg), vor Echo und Frage.
+    pruefe("Freigabe: beiEndpunkt wertet Ja/Nein zu einer offenen Karte vor allem anderen aus, in jeder Phase", /const karte = leseFreigabeAnfrage\(\);\s*if \(karte && karte\.nr === freigabeNr\.current && freigabeAbMs\.current !== null\) \{[\s\S]{0,300}const art = freigabeAntwort\(antwort\.endgueltig \|\| antwort\.anzeige\);[\s\S]{0,400}entscheideFreigabe\(art === "zusage", karte\.nr\);[\s\S]{0,700}if \(phase === "spricht"\) \{/.test(modus));
+    pruefe("Freigabe: nur was nach dem Erscheinen der Karte gesagt wurde, zaehlt", modus.includes("const antwort = sitzung.textAb(Math.max(frageAb(), freigabeAbMs.current - FREIGABE_VORLAUF_MS));") && /freigabeAbMs\.current = karte \? audioJetzt\(\) : null;/.test(modus));
+    pruefe("Freigabe: bei offener Karte lehnt 'Stopp' mitten in der Antwort nur die Karte ab, beendet nicht den Sprachmodus", /const karte = leseFreigabeAnfrage\(\);\s*if \(karte\) \{[\s\S]{0,120}entscheideFreigabe\(false, karte\.nr\);\s*grenzeMs\.current = /.test(modus) && istAbsageBefehl("Stopp") && !istBeendenBefehl("Stopp"));
+    pruefe("Freigabe: waehrend eine Karte wartet, unterbricht der Lautstaerke-Waechter nicht", /if \(phaseRef\.current !== "spricht"\) return;[\s\S]{0,300}if \(leseFreigabeAnfrage\(\)\) \{\s*einsatz = null;/.test(modus));
+    pruefe("Freigabe: die Anzeige sagt 'Ich warte auf Ihr Ja oder Nein', solange Himbi nicht spricht", modus.includes("wartetAufFreigabe ? t(\"status.freigabe\")") && ["de", "en", "ru", "kk"].every((sp) => typeof JSON.parse(readFileSync(new URL(`../../src/messages/${sp}.json`, import.meta.url), "utf8")).kiAssistentAnsicht.sprachmodus.status.freigabe === "string"));
     pruefe("Freigabe: die Karte im Sprachmodus geht ueber allem, auch ohne Untertitel", /const untertitel = freigabeAnfrage \? \(/.test(modus));
 
     // Sprachmodus-Layout: links, auch beim Zeigen auf ein Ziel - das Schriftbild darf nie fehlen.
@@ -2653,7 +2659,7 @@ for (const [name, kaputteAntwort] of [
   pruefe("Abbruch: der Sprachmodus hoert auf das Scheitern der Sitzung", modus.includes("beiScheitern: (grund) => {") && modus.includes("nachSitzungsAbbruch({"));
   pruefe("Abbruch: diktat-live meldet ein Scheitern nur vor beende()/abbrechen()", live.includes("if (!beendet) beiScheitern?.(grund);") && /abbrechen\(\) \{\s*beendet = true;/.test(live));
   pruefe("Dazwischenreden: nur waehrend Himbi spricht, mit Mikrofon- und Ausgabepegel", /if \(phase !== "spricht"\) return;\s*const waechter = erzeugeUnterbrechungsWaechter\(\);/.test(modus) && modus.includes("waechter.melde(leseLautstaerke(), leseAusgabePegel(), performance.now())"));
-  pruefe("Dazwischenreden: was ab dem Einsatz der Stimme gesagt wurde, gehoert zur naechsten Frage", modus.includes("grenzeMs.current = Math.max(grenzeMs.current, (einsatz ?? audioJetzt()) - 300);") && modus.includes("if (sprachZuletzt.current && !sprichtJetzt && !grenzeSteht.current) echoBisMs.current = Math.max(echoBisMs.current, audioJetzt() + 50);") && /const schritt = \(\) => \{[\s\S]{0,400}if \(phaseRef\.current !== "spricht"\) return;\s*const urteil = waechter\.melde/.test(modus));
+  pruefe("Dazwischenreden: was ab dem Einsatz der Stimme gesagt wurde, gehoert zur naechsten Frage", modus.includes("grenzeMs.current = Math.max(grenzeMs.current, (einsatz ?? audioJetzt()) - 300);") && modus.includes("if (sprachZuletzt.current && !sprichtJetzt && !grenzeSteht.current) echoBisMs.current = Math.max(echoBisMs.current, audioJetzt() + 50);") && /const schritt = \(\) => \{[\s\S]{0,400}if \(phaseRef\.current !== "spricht"\) return;[\s\S]{0,400}const urteil = waechter\.melde/.test(modus));
   pruefe("Lautstaerke: RMS auf der Skala des Diktats (pegelAusZeitbereich)", hoeren.includes("lautstaerke = pegelAusZeitbereich(zeitRoh);") && hoeren.includes("export function leseLautstaerke(): number"));
   pruefe("Komponente: keine abgeschaltete Hook-Pruefung mehr", !modus.includes("eslint-disable"));
 
@@ -2987,6 +2993,25 @@ for (const [name, kaputteAntwort] of [
   pruefe("Absage: die vier Sprachen, auch 'Stopp' waehrend einer Freigabe", istAbsageBefehl("Nein") && istAbsageBefehl("nein!") && istAbsageBefehl("Abbrechen") && istAbsageBefehl("No") && istAbsageBefehl("Нет") && istAbsageBefehl("Жоқ") && istAbsageBefehl("Stopp"));
   pruefe("Zusage/Absage: nur die ganze Aeusserung, nicht ein Wort mittendrin", !istZusageBefehl("Ja, aber was kostet das?") && !istAbsageBefehl("Nein, warten Sie") && !istZusageBefehl("") && !istAbsageBefehl(""));
   pruefe("Zusage/Absage: eine Bitte davor oder danach zaehlt weiterhin", istZusageBefehl("Bitte ja") && istAbsageBefehl("Nein, bitte"));
+  // 28.09.2026: Soniox liefert Satzzeichen; "Ja, bitte." war vorher keine Zusage.
+  pruefe("Zusage: mit Satzzeichen, Bitte, Dank und festen Wendungen", ["Ja, bitte.", "Ja, bitte!", "Ja, mach das.", "Mach das.", "Ja, gib frei.", "Okay.", "OK, danke.", "Ja, Himbi, jetzt.", "Yes, please.", "Go ahead.", "Да, пожалуйста.", "Давай.", "Иә, өтінемін."].every((t) => istZusageBefehl(t)));
+  pruefe("Absage: mit Satzzeichen, Dank und festen Wendungen", ["Nein, danke.", "Nein, bitte.", "Lass es.", "Nicht jetzt.", "No, thanks.", "Don't.", "Нет, спасибо.", "Не надо.", "Жоқ."].every((t) => istAbsageBefehl(t)));
+  pruefe("Zusage/Absage: gemischte oder inhaltliche Aeusserungen sind keines von beiden", ["Ja, nein.", "Ja, aber in Kaskelen.", "Nein, leg lieber Kaskelen an.", "Das.", "Mach", "Ja ja ja ja ja ja ja ja"].every((t) => !istZusageBefehl(t) && !istAbsageBefehl(t)));
+  pruefe("Freigabe-Antwort: zusage, absage, beenden oder nichts", freigabeAntwort("Ja, bitte.") === "zusage" && freigabeAntwort("Nein.") === "absage" && freigabeAntwort("Sprachmodus beenden.") === "beenden" && freigabeAntwort("Was kostet das?") === null);
+  {
+    // Der Bus bindet eine Entscheidung an genau die Karte, zu der sie gehoert (Nummer).
+    const bus = await import("../../src/components/ki/sprachmodus-bus.ts");
+    const entscheidungen = [];
+    bus.meldeFreigabeAnfrage("Karte A", (erlaubt) => entscheidungen.push(["A", erlaubt]));
+    const nrA = bus.leseFreigabeAnfrage().nr;
+    bus.meldeFreigabeAnfrage("Karte B", (erlaubt) => entscheidungen.push(["B", erlaubt]));
+    const nrB = bus.leseFreigabeAnfrage().nr;
+    bus.entscheideFreigabe(true, nrA);
+    const nachA = entscheidungen.length;
+    bus.entscheideFreigabe(true, nrB);
+    bus.meldeFreigabeAnfrage(null, null);
+    pruefe("Freigabe-Bus: ein Ja zu einer ersetzten Karte gibt die neue nicht frei, das Ja zur offenen schon", nrB === nrA + 1 && nachA === 0 && JSON.stringify(entscheidungen) === JSON.stringify([["B", true]]) && bus.leseFreigabeAnfrage() === null);
+  }
 }
 
 // (e) Der Strom-Sprecher im Durchlauf: nachgebauter WebSocket und AudioContext, echter Code
@@ -3389,7 +3414,7 @@ for (const [name, kaputteAntwort] of [
   pruefe("Ohr: Nachsatz beim Nachdenken bricht die Anfrage ab und haengt die Worte an die Frage", /if \(phase === "denkt" && !leseFreigabeAnfrage\(\) && offeneFrage\.current && istGesprochen\(t\.anzeige\)\) \{[\s\S]{0,300}vorsatz\.current = offeneFrage\.current;[\s\S]{0,80}unterbrichChat\(\);/.test(modus2) && modus2.includes("const frage = vorsatz.current ? fuegeZusammen(vorsatz.current.text, text) : text;"));
   // Rueckmeldung vom 25.09.2026 (zweiter Teil): Figur weg, "Sprachmodus beenden", Endpunkt, Titel in der richtigen Sprache.
   pruefe("Sprachmodus: die Himbi-Figur ist ausgeblendet, solange er laeuft (nicht abgebaut)", lies4("components/haustier/haustier-dashboard.tsx").includes("verborgen={sprachmodus}") && lies4("components/haustier/haustier-huelle.tsx").includes("hidden={verborgen}") && lies4("components/haustier/haustier.css").includes(".haustier[hidden]"));
-  pruefe("Beenden: 'Sprachmodus beenden' bei offener Karte lehnt ab und beendet", /if \(istBeendenBefehl\(text\)\) \{\s*entscheideFreigabe\(false\);\s*beendenRef\.current\(\);/.test(modus2));
+  pruefe("Beenden: 'Sprachmodus beenden' bei offener Karte lehnt ab und beendet", sm.freigabeAntwort("Sprachmodus beenden.") === "beenden" && /entscheideFreigabe\(art === "zusage", karte\.nr\);\s*\/\/ [^\n]*\n\s*if \(art === "beenden"\) return beendenRef\.current\(\);/.test(modus2));
   const diktat = await import("../../src/lib/domain/diktat-live.ts");
   // 28.09.2026: schnellere Endpunkte (Latenz), der Nachsatz faengt ein zu frueh gesetztes Ende auf.
   pruefe("Endpunkt im Gespraech: Empfindlichkeit 0,2, Latenzsenkung Stufe 2, hoechstens 1 s Verzoegerung", diktat.GESPRAECH_ENDPUNKT.endpoint_sensitivity === 0.2 && diktat.GESPRAECH_ENDPUNKT.endpoint_latency_adjustment_level === 2 && diktat.liveKonfiguration("de", "gespraech").max_endpoint_delay_ms === 1_000 && diktat.liveKonfiguration("de").max_endpoint_delay_ms === diktat.ENDPUNKT_VERZOEGERUNG_MS);

@@ -31,12 +31,11 @@ import {
   UNTERTITEL_SCHLUESSEL,
   untertitelAusSpeicher,
   erzeugeUnterbrechungsWaechter,
+  freigabeAntwort,
   fuegeZusammen,
-  istAbsageBefehl,
   istBeendenBefehl,
   istGesprochen,
   istNurAnhalten,
-  istZusageBefehl,
   nachSitzungsAbbruch,
   naechstePhase,
   NEUVERSUCH_MS,
@@ -86,6 +85,9 @@ const STOPP_STABIL_MS = 350;
 const EINSATZ_HALTEN_MS = 1_000;
 /** So weit vor Himbis Verstummen wird noch nach einem Befehlswort gesucht. */
 const BEFEHL_RUECKBLICK_MS = 3_000;
+/** Spielraum zwischen dem Erscheinen einer Freigabekarte und dem Zeitstempel der Erkennung
+ *  (Uhr des Browsers und Audiozeit von Soniox laufen um einige Dutzend ms versetzt). */
+const FREIGABE_VORLAUF_MS = 200;
 
 /** Ein Symbol je Zustand, neben dem Zustandstext - der Ton haengt nie an
  *  der Farbe des Scheins hinter Himbi allein (Rueckmeldung vom 25.09.2026: die vier Farben
@@ -186,6 +188,10 @@ function SprachmodusInhalt() {
   // "jetzt" ruecken (auch nicht bei einer zweiten Meldung des Chats), sonst fiele "zeig mir
   // lieber ..." aus der naechsten Frage.
   const grenzeSteht = useRef(false);
+  // Seit wann (Audio-ms) die offene Freigabekarte steht, und welche es ist: nur was danach
+  // gesagt wurde, zaehlt als Antwort auf genau diese Karte.
+  const freigabeAbMs = useRef<number | null>(null);
+  const freigabeNr = useRef<number | null>(null);
   const zuletztGehoert = useRef(0);
   const phaseRef = useRef(phase);
 
@@ -307,23 +313,8 @@ function SprachmodusInhalt() {
         if (befehl) text = befehl.rest;
       }
       if (!istGesprochen(text) && !vorsatz.current) return;
-      // Seit dem 25.09.2026 hat der Sprachmodus dieselben Rechte wie der sichtbare Chat: eine
-      // Aktion, die etwas aendert, wartet auf eine Freigabe (sprachmodus-bus.ts). Ist eine
-      // offen, zaehlt die Aeusserung zuerst als Zusage oder Absage dazu, nicht als neue Frage.
-      if (leseFreigabeAnfrage() && !vorsatz.current) {
-        if (istZusageBefehl(text) || istAbsageBefehl(text)) {
-          entscheideFreigabe(istZusageBefehl(text));
-          dispatch({ art: "aeusserung-ende" });
-          dispatch({ art: "frage-gestellt" });
-          return;
-        }
-        // "Sprachmodus beenden" bei offener Karte: ablehnen UND beenden.
-        if (istBeendenBefehl(text)) {
-          entscheideFreigabe(false);
-          beendenRef.current();
-          return;
-        }
-      }
+      // Ja/Nein zu einer offenen Freigabekarte wertet beiEndpunkt vorher aus, in jeder Phase.
+      // Was hier ankommt, ist keine Antwort darauf: eine neue Frage, die die Karte ablehnt.
       if (istBeendenBefehl(text)) {
         beendenRef.current();
         return;
@@ -387,9 +378,10 @@ function SprachmodusInhalt() {
         if (b === null || ohrRef.current?.sitzung !== sitzung || !assistentIstDran(phaseRef.current)) return;
         const befehl = jetzt.woerter.slice(b).map((w) => w.text).join(" ");
         if (istBeendenBefehl(befehl)) return beendenRef.current();
-        if (leseFreigabeAnfrage()) {
+        const karte = leseFreigabeAnfrage();
+        if (karte) {
           // Bei offener Freigabekarte lehnt "Stopp" nur die Karte ab, wie beim Zuhoeren.
-          entscheideFreigabe(false);
+          entscheideFreigabe(false, karte.nr);
           grenzeMs.current = Math.max(grenzeMs.current, (jetzt.endeMs ?? audioJetzt()) + 1);
           return;
         }
@@ -416,6 +408,30 @@ function SprachmodusInhalt() {
       if (ohrRef.current?.sitzung !== sitzung) return;
       const phase = phaseRef.current;
       const t = sitzung.textAb(frageAb());
+      // Eine offene Freigabekarte wartet auf "Ja" oder "Nein", in JEDER Phase. Bis zum
+      // 28.09.2026 nur beim Zuhoeren: waehrend eine Klickkarte offen ist, gilt der Chat aber als
+      // beschaeftigt (die Ausfuehrung wartet ja auf die Entscheidung), die Phase blieb "spricht",
+      // und ein "Ja" fiel hier als Echo weg (Rueckmeldung: "wenn ich Ja sage, passiert nichts").
+      // Es zaehlt nur, was nach dem Erscheinen der Karte gesagt wurde, und nur fuer genau diese.
+      const karte = leseFreigabeAnfrage();
+      if (karte && karte.nr === freigabeNr.current && freigabeAbMs.current !== null) {
+        const antwort = sitzung.textAb(Math.max(frageAb(), freigabeAbMs.current - FREIGABE_VORLAUF_MS));
+        const art = freigabeAntwort(antwort.endgueltig || antwort.anzeige);
+        if (art) {
+          grenzeMs.current = Math.max(grenzeMs.current, (antwort.endeMs ?? audioJetzt()) + 1);
+          grenzeSteht.current = false;
+          nachUnterbrechung.current = false;
+          setZwischentext("");
+          entscheideFreigabe(art === "zusage", karte.nr);
+          // "Sprachmodus beenden" bei offener Karte: ablehnen UND beenden.
+          if (art === "beenden") return beendenRef.current();
+          if (phase === "hoert" || phase === "versteht") {
+            dispatch({ art: "aeusserung-ende" });
+            dispatch({ art: "frage-gestellt" });
+          }
+          return;
+        }
+      }
       if (phase === "spricht") {
         const stand = leseChatStand();
         if (!stand.spricht && !stand.laedt && !stand.beschaeftigt) {
@@ -433,7 +449,7 @@ function SprachmodusInhalt() {
       }
       if (phase === "hoert" || phase === "versteht") nimmAeusserung(t);
     },
-    [dispatch, frageAb, nimmAeusserung],
+    [audioJetzt, dispatch, frageAb, nimmAeusserung],
   );
 
   const beiScheitern = useCallback(
@@ -516,6 +532,8 @@ function SprachmodusInhalt() {
     grenzeMs.current = 0;
     echoBisMs.current = 0;
     grenzeSteht.current = false;
+    // Neue Sitzung, neue Audiozeit ab 0: eine offene Karte stand schon vorher.
+    if (freigabeAbMs.current !== null) freigabeAbMs.current = 0;
     zuletztGehoert.current = performance.now();
   }, [sprache, dispatch, t]);
   useEffect(() => {
@@ -560,6 +578,14 @@ function SprachmodusInhalt() {
       // Effekts noch einmal: kein zweites Unterbrechen, das die Grenze hinter die ersten Worte
       // der neuen Frage schoebe (Messung vom 28.09.2026: aus "Stopp, zeig mir ..." wurde "mir ...").
       if (phaseRef.current !== "spricht") return;
+      // Waehrend eine Freigabekarte wartet, ist lautes Sprechen die Antwort darauf ("Ja, bitte,
+      // mach das"), kein Dazwischenreden: Unterbrechen wuerde die Karte ablehnen.
+      if (leseFreigabeAnfrage()) {
+        einsatz = null;
+        stillSeit = null;
+        bild = window.requestAnimationFrame(schritt);
+        return;
+      }
       const urteil = waechter.melde(leseLautstaerke(), leseAusgabePegel(), performance.now());
       if (urteil === "unterbrechen") {
         grenzeMs.current = Math.max(grenzeMs.current, (einsatz ?? audioJetzt()) - 300);
@@ -590,6 +616,12 @@ function SprachmodusInhalt() {
   const sprachZuletzt = useRef(false);
   useEffect(() => {
     const reagiere = () => {
+      // Eine neue Freigabekarte: ab jetzt zaehlt, was der Nutzer sagt, als Antwort darauf.
+      const karte = leseFreigabeAnfrage();
+      if ((karte?.nr ?? null) !== freigabeNr.current) {
+        freigabeNr.current = karte?.nr ?? null;
+        freigabeAbMs.current = karte ? audioJetzt() : null;
+      }
       const stand = leseChatStand();
       const sprichtJetzt = stand.spricht || stand.laedt;
       // Himbi ist gerade verstummt: was die Erkennung ab jetzt hoert, ist nicht mehr sein Echo.
@@ -890,15 +922,20 @@ function SprachmodusInhalt() {
     return () => wurzel.removeAttribute("data-sprach-links");
   }, [angedockt]);
 
-  const sprachZustand: SprachZustand =
-    phase === "fehler" ? "fehler" : phase === "pausiert" ? "pausiert" : phase === "spricht" ? "spricht" : phase === "denkt" ? "denkt" : "hoert";
+  // Wartet eine Freigabekarte und Himbi spricht gerade nicht, hoert er auf "Ja" oder "Nein" -
+  // bis zum 28.09.2026 stand hier weiter "Himbi spricht", obwohl er auf den Nutzer wartete.
+  const wartetAufFreigabe = freigabeAnfrage !== null && !chatStand.spricht && (phase === "denkt" || phase === "spricht" || phase === "hoert");
+  const sprachZustand: SprachZustand = wartetAufFreigabe
+    ? "hoert"
+    : phase === "fehler" ? "fehler" : phase === "pausiert" ? "pausiert" : phase === "spricht" ? "spricht" : phase === "denkt" ? "denkt" : "hoert";
   // Der Zustand haengt nie an der Farbe allein (Rueckmeldung vom 25.09.2026:
   // "weiss anhand der Farbe nicht, ob die KI zuhoert, denkt oder spricht") -
   // dasselbe Symbol wie der Zustandstext daneben, unabhaengig vom Farbsehen.
   const StatusSymbol = STATUS_SYMBOL[sprachZustand];
 
   const statusText =
-    phase === "startet" ? t("status.startet")
+    wartetAufFreigabe ? t("status.freigabe")
+    : phase === "startet" ? t("status.startet")
     : phase === "hoert" ? t("status.hoert")
     : phase === "versteht" ? t("status.versteht")
     : phase === "denkt" ? t("status.denkt")
