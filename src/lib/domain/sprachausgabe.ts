@@ -3,7 +3,8 @@
 // Der Aufruf selbst: lib/ai/sprachausgabe-client.ts, die Route:
 // app/api/ki-sprachausgabe/route.ts.
 
-import { ueberwiegendeSchrift, type Schrift } from "@/lib/text/sprache-erkennen";
+import { klareAbweichung, lateinischeSpracheEindeutig, sprachenFuerSaetze, ueberwiegendeSchrift, type Schrift } from "@/lib/text/sprache-erkennen";
+import { istSprache, type Sprache } from "@/lib/domain/antwortsprache";
 
 // --- Sprechmarken (domain/sprechmarken.ts) --------------------------------------
 
@@ -230,11 +231,15 @@ export const VORLESETEXT_VERSION = 3;
  *  20261101000000). Anbieter, Stimme, Sprache, Tempo und Textstand stecken im
  *  Dateinamen: nach jedem Wechsel entsteht ein neuer Pfad, altes Audio wird
  *  nicht mehr gefunden. Der Text selbst kann sich nicht aendern - eine
- *  Antwort ist unveraenderlich. */
-export function sprachausgabePfad(nachrichtId: string, stimme: Stimme): string {
+ *  Antwort ist unveraenderlich.
+ *
+ *  `teil`: ein Sprachblock (vorlesePlan, seit 28.09.2026) - Saetze `von` bis
+ *  ausschliesslich `bis`. Die ganze Antwort behaelt ihren bisherigen Pfad. */
+export function sprachausgabePfad(nachrichtId: string, stimme: Stimme, teil?: { von: number; bis: number }): string {
   const kennung = (wert: string) => wert.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
   const tempo = stimme.tempo !== undefined ? `-t${Math.round(stimme.tempo * 100)}` : "";
-  return `${nachrichtId}/${kennung(stimme.anbieter)}-${kennung(stimme.stimme)}-${stimme.sprache}${tempo}-v${VORLESETEXT_VERSION}.mp3`;
+  const block = teil ? `-s${teil.von}-${teil.bis}` : "";
+  return `${nachrichtId}/${kennung(stimme.anbieter)}-${kennung(stimme.stimme)}-${stimme.sprache}${tempo}-v${VORLESETEXT_VERSION}${block}.mp3`;
 }
 
 export function istSprachausgabeSprache(wert: string | null | undefined): wert is SprachausgabeSprache {
@@ -811,9 +816,22 @@ export function erzeugeSatzZerleger(stil: ZerlegerStil = "abschnitte"): SatzZerl
   function grenzeMitSchrift(ziel: number, amEnde = false): number {
     let satzAnfang = 0;
     let schrift: Schrift | null = null;
+    // Seit 28.09.2026 auch innerhalb der lateinischen Schrift: folgt auf einen
+    // eindeutig englischen Satz ein eindeutig deutscher (die Rueckfrage nach
+    // einer englischen Mail), gehoeren sie nicht in einen Abschnitt - die
+    // Stimme wird je Abschnitt gewaehlt (erzeugeSprachFolge).
+    let lateinSprache: "de" | "en" | null = null;
     const wechselt = (ende: number): boolean => {
-      const dieser = ueberwiegendeSchrift(puffer.slice(satzAnfang, ende));
-      const anders = dieser !== null && schrift !== null && dieser !== schrift;
+      const satz = puffer.slice(satzAnfang, ende);
+      const dieser = ueberwiegendeSchrift(satz);
+      let anders = dieser !== null && schrift !== null && dieser !== schrift;
+      if (dieser === "lateinisch") {
+        const sprache = lateinischeSpracheEindeutig(satz);
+        if (!anders && sprache !== null && lateinSprache !== null && sprache !== lateinSprache) anders = true;
+        lateinSprache = sprache ?? (schrift === "lateinisch" ? lateinSprache : null);
+      } else if (dieser === "kyrillisch") {
+        lateinSprache = null;
+      }
       schrift = dieser ?? schrift;
       return anders;
     };
@@ -973,4 +991,59 @@ export function erzeugeSatzZerleger(stil: ZerlegerStil = "abschnitte"): SatzZerl
 export function saetzeAusAntwort(markdown: string): string[] {
   const zerleger = erzeugeSatzZerleger("saetze");
   return [...zerleger.fuettere(markdown), ...zerleger.abschliessen()].map((a) => a.text);
+}
+
+/** Ein Sprachblock einer fertigen Antwort: aufeinanderfolgende Saetze mit
+ *  derselben Stimme. `von`/`bis` zaehlen die Saetze von saetzeAusAntwort. */
+export interface VorleseBlock {
+  von: number;
+  bis: number;
+  sprache: SprachausgabeSprache;
+  text: string;
+}
+
+/**
+ * Wie eine GESPEICHERTE Antwort im Datei-Weg (api/ki-sprachausgabe) gelesen
+ * wird: in Sprachbloecken, jeder mit seiner Stimme. Bis zum 28.09.2026 las
+ * dieser Weg die ganze Antwort mit einer Stimme - eine deutsche Antwort mit
+ * russischem Paragrafen las die deutsche Stimme, obwohl der Strom-Weg dasselbe
+ * Zitat russisch las. Der Datei-Weg ist der Regelfall mit Sokrates und der
+ * Rueckfall, wenn der Strom nicht geht.
+ *
+ * Die Sprachen vergibt dieselbe Folge wie im Strom (sprachenFuerSaetze), also
+ * hoechstens HOECHSTENS_SPRACHWECHSEL + 1 Bloecke - jeder Block ist eine
+ * Anfrage an den Dienst und eine eigene Datei. Die Dateien werden NICHT
+ * aneinandergehaengt: zwei MP3 mit eigenem Info-Rahmen (LAME) oder aus
+ * verschiedenen Anbietern ergeben keine saubere Datei; der Browser spielt sie
+ * nacheinander.
+ *
+ * `rest`: nur die letzten so vielen Saetze (der Knopf-Weg, nachdem der Strom
+ * mittendrin aufgegeben hat). Gezaehlt vom ENDE, weil der Browser nach einer
+ * Folgeanfrage mehr Text zeigt, als in der gespeicherten Zeile steht - das Ende
+ * ist bei beiden dasselbe. Die Sprachen gelten wie im ganzen Plan.
+ */
+export function vorlesePlan(
+  markdown: string,
+  gemeldeteSprache: string,
+  { rest }: { rest?: number } = {},
+): { sprache: Sprache; abweichung: boolean; bloecke: VorleseBlock[] } {
+  const gewuenscht: Sprache = istSprache(gemeldeteSprache) ? gemeldeteSprache : "de";
+  // Die Gegenprobe am Text: dieselbe Regel wie am Knopf (vorleseSprache).
+  const ausText = klareAbweichung(textFuerSprachausgabe(markdown ?? ""), gewuenscht, { mindestBuchstaben: 40, ganzerText: true });
+  const sprache: Sprache = istSprache(ausText) ? ausText : gewuenscht;
+  const saetze = saetzeAusAntwort(markdown ?? "");
+  const sprachen = sprachenFuerSaetze(saetze, sprache);
+  const ab = rest === undefined ? 0 : Math.max(0, saetze.length - Math.max(0, Math.floor(rest)));
+  const bloecke: VorleseBlock[] = [];
+  for (let i = ab; i < saetze.length; i++) {
+    const s = sprachen[i]!;
+    const letzter = bloecke.at(-1);
+    if (letzter && letzter.sprache === s) {
+      letzter.bis = i + 1;
+      letzter.text += ` ${saetze[i]}`;
+    } else {
+      bloecke.push({ von: i, bis: i + 1, sprache: s, text: saetze[i]! });
+    }
+  }
+  return { sprache, abweichung: sprache !== gewuenscht, bloecke };
 }

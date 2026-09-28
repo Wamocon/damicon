@@ -87,99 +87,138 @@ export function useSprachausgabe(sprache: string) {
      *  in den Metadaten mitschickt (api/ki-assistent, messageMetadata). Bis
      *  zum 24.09.2026 ging hier immer die Oberflaechensprache mit, und die
      *  Route musste sie am Text erraten - bei kurzen oder gemischten
-     *  Antworten mit der falschen Stimme. */
-    async (id: string, antwortSprache?: string) => {
+     *  Antworten mit der falschen Stimme.
+     *
+     *  `rest`: nur die letzten so vielen Saetze - der Strom hat mittendrin
+     *  aufgegeben, und der Anfang hat schon geklungen (ki-chat-sprache.ts). */
+    async (id: string, antwortSprache?: string, rest?: number) => {
       if (!istVorlesbar(id)) return;
       const meine = ++generation.current;
       const nochDran = () => meine === generation.current;
       audioRef.current?.pause();
       setHinweis(null);
       const zielSprache = antwortSprache ?? sprache;
+      const adresse = `/api/ki-sprachausgabe?nachricht=${encodeURIComponent(id)}&sprache=${encodeURIComponent(zielSprache)}${rest === undefined ? "" : `&rest=${rest}`}`;
 
-      // Erster Weg: der Ton als Strom (GET, api/ki-sprachausgabe). Das
-      // <audio>-Element beginnt, sobald die ersten Sekunden geladen sind - bei
-      // einer langen Antwort ist das der Unterschied zwischen sofort und vielen
-      // Sekunden Stille. play() steht hier VOR jedem await: auf dem iPhone
-      // zaehlt der Ton dann noch zur Geste (Klick) und wird nicht verweigert.
-      if (!urls.current.has(id)) {
+      // Seit 28.09.2026 in Sprachbloecken (vorlesePlan in domain/
+      // sprachausgabe.ts): eine gemischte Antwort klingt je Block mit seiner
+      // Stimme, ein Block nach dem anderen - vorher las EINE Stimme alles, das
+      // russische Zitat in einer deutschen Antwort also deutsch. Die Bloecke
+      // bildet der Server aus der gespeicherten Nachricht, der Browser nennt
+      // nur ihre Nummer. Einsprachige Antworten sind ein Block wie bisher.
+      async function spieleBlock(block: number): Promise<void> {
+        const schluessel = `${id}|${rest ?? ""}|${block}`;
         const audio = audioRef.current ?? new Audio();
         audioRef.current = audio;
-        audio.src = `/api/ki-sprachausgabe?nachricht=${encodeURIComponent(id)}&sprache=${encodeURIComponent(zielSprache)}`;
-        audio.onended = () => setSpielt(null);
-        audio.onpause = () => setSpielt((aktuell) => (aktuell === id ? null : aktuell));
-        // Reisst der Strom mittendrin ab, kommt kein "ended" - ohne das hier
-        // bliebe der Knopf auf "Stopp" stehen.
-        audio.onerror = () => setSpielt((aktuell) => (aktuell === id ? null : aktuell));
-        setLaedt(id);
+        audio.onended = () => void weiter(block);
+        // Zwischen zwei Bloecken meldet das Element kurz "pause" (am Ende eines
+        // Blocks): dann bleibt der Knopf der Stopp.
+        audio.onpause = () => {
+          if (!audio.ended) setSpielt((aktuell) => (aktuell === id ? null : aktuell));
+        };
+
+        // Erster Weg: der Ton als Strom (GET, api/ki-sprachausgabe). Das
+        // <audio>-Element beginnt, sobald die ersten Sekunden geladen sind - bei
+        // einer langen Antwort ist das der Unterschied zwischen sofort und vielen
+        // Sekunden Stille. play() steht hier VOR jedem await: auf dem iPhone
+        // zaehlt der Ton dann noch zur Geste (Klick) und wird nicht verweigert.
+        if (!urls.current.has(schluessel)) {
+          audio.src = `${adresse}&block=${block}`;
+          // Reisst der Strom mittendrin ab, kommt kein "ended" - ohne das hier
+          // bliebe der Knopf auf "Stopp" stehen.
+          audio.onerror = () => setSpielt((aktuell) => (aktuell === id ? null : aktuell));
+          setLaedt(id);
+          try {
+            const gestartet = audio.play();
+            // Wie viele Bloecke es gibt, erst jetzt fragen - der Ton ist angestossen.
+            void bloecke();
+            await gestartet;
+            if (nochDran()) setSpielt(id);
+            return;
+          } catch (f) {
+            const name = (f as Error)?.name;
+            // Eine andere Antwort wurde inzwischen gestartet, oder der Browser
+            // verweigert Ton ohne Geste - beides kein Fall fuer den Rueckfall.
+            if (name === "AbortError" || !nochDran()) return;
+            if (name === "NotAllowedError") {
+              setSpielt(null);
+              return;
+            }
+            // Sonst (404 direkt nach dem Stream, Dienst weg): der Datei-Weg
+            // unten, mit zweitem Versuch und genauer Meldung.
+          } finally {
+            setLaedt((aktuell) => (aktuell === id ? null : aktuell));
+          }
+        }
+
+        let url = urls.current.get(schluessel);
+        if (!url) {
+          setLaedt(id);
+          try {
+            // Eine frisch gestreamte Antwort wird serverseitig erst am Ende des
+            // Streams gespeichert - ein 404 unmittelbar danach ist meist nur
+            // dieser Moment. Deshalb ein zweiter Versuch nach kurzer Pause.
+            let antwort: Response | null = null;
+            for (const pause of [0, 1200]) {
+              if (pause) await new Promise((r) => setTimeout(r, pause));
+              if (!nochDran()) return;
+              antwort = await fetch("/api/ki-sprachausgabe", {
+                method: "POST",
+                headers: { "content-type": "application/json" },
+                body: JSON.stringify({ nachrichtId: id, sprache: zielSprache, rest, block }),
+              });
+              if (antwort.status !== 404) break;
+            }
+            if (!nochDran()) return;
+            if (!antwort?.ok) {
+              const grund = await antwort?.json().then((j: { grund?: string }) => j.grund).catch(() => undefined);
+              setHinweis({ id, art: grund === "keine-stimme" ? "keineStimme" : "fehler" });
+              return;
+            }
+            const blob = await antwort.blob();
+            if (!nochDran()) return;
+            url = URL.createObjectURL(blob);
+            urls.current.set(schluessel, url);
+          } catch {
+            if (nochDran()) setHinweis({ id, art: "fehler" });
+            return;
+          } finally {
+            if (nochDran()) setLaedt(null);
+          }
+        }
+        if (!nochDran()) return;
+        audio.onerror = null;
+        audio.src = url;
         try {
           await audio.play();
           if (nochDran()) setSpielt(id);
-          return;
-        } catch (f) {
-          const name = (f as Error)?.name;
-          // Eine andere Antwort wurde inzwischen gestartet, oder der Browser
-          // verweigert Ton ohne Geste - beides kein Fall fuer den Rueckfall.
-          if (name === "AbortError" || !nochDran()) return;
-          if (name === "NotAllowedError") {
-            setSpielt(null);
-            return;
-          }
-          // Sonst (404 direkt nach dem Stream, Dienst weg): der Datei-Weg
-          // unten, mit zweitem Versuch und genauer Meldung.
-        } finally {
-          setLaedt((aktuell) => (aktuell === id ? null : aktuell));
+        } catch {
+          // Der Browser verweigert Autoplay ohne vorherige Nutzeraktion - dann
+          // bleibt der Knopf zum Selbst-Abspielen.
+          setSpielt(null);
         }
       }
 
-      let url = urls.current.get(id);
-      if (!url) {
-        setLaedt(id);
-        try {
-          // Eine frisch gestreamte Antwort wird serverseitig erst am Ende des
-          // Streams gespeichert - ein 404 unmittelbar danach ist meist nur
-          // dieser Moment. Deshalb ein zweiter Versuch nach kurzer Pause.
-          let antwort: Response | null = null;
-          for (const pause of [0, 1200]) {
-            if (pause) await new Promise((r) => setTimeout(r, pause));
-            if (!nochDran()) return;
-            antwort = await fetch("/api/ki-sprachausgabe", {
-              method: "POST",
-              headers: { "content-type": "application/json" },
-              body: JSON.stringify({ nachrichtId: id, sprache: zielSprache }),
-            });
-            if (antwort.status !== 404) break;
-          }
-          if (!nochDran()) return;
-          if (!antwort?.ok) {
-            const grund = await antwort?.json().then((j: { grund?: string }) => j.grund).catch(() => undefined);
-            setHinweis({ id, art: grund === "keine-stimme" ? "keineStimme" : "fehler" });
-            return;
-          }
-          const blob = await antwort.blob();
-          if (!nochDran()) return;
-          url = URL.createObjectURL(blob);
-          urls.current.set(id, url);
-        } catch {
-          if (nochDran()) setHinweis({ id, art: "fehler" });
-          return;
-        } finally {
-          if (nochDran()) setLaedt(null);
-        }
+      // Wie viele Sprachbloecke (plan=1, nur eine Zahl). Scheitert die Frage,
+      // bleibt es bei einem Block - wie vor dem 28.09.2026.
+      let plan: Promise<number> | null = null;
+      function bloecke(): Promise<number> {
+        plan ??= fetch(`${adresse}&plan=1`)
+          .then((r) => (r.ok ? (r.json() as Promise<{ bloecke?: unknown }>) : null))
+          .then((j) => Math.max(1, Number(j?.bloecke) || 1))
+          .catch(() => 1);
+        return plan;
       }
-      if (!nochDran()) return;
-      const audio = audioRef.current ?? new Audio();
-      audioRef.current = audio;
-      audio.src = url;
-      audio.onended = () => setSpielt(null);
-      audio.onpause = () => setSpielt((aktuell) => (aktuell === id ? null : aktuell));
-      try {
-        await audio.play();
-        if (nochDran()) setSpielt(id);
-      } catch {
-        // Der Browser verweigert Autoplay ohne vorherige Nutzeraktion - dann
-        // bleibt der Knopf zum Selbst-Abspielen.
-        setSpielt(null);
+
+      /** Ein Block ist zu Ende: der naechste, oder der Knopf ist wieder frei. */
+      async function weiter(block: number): Promise<void> {
+        const anzahl = await bloecke();
+        if (!nochDran()) return;
+        if (block + 1 < anzahl) await spieleBlock(block + 1);
+        else setSpielt(null);
       }
+
+      await spieleBlock(0);
     },
     [sprache],
   );

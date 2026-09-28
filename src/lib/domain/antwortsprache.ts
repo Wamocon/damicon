@@ -31,7 +31,7 @@
 //     Erkennungsschwelle. Ihre Schrift und die Sprache des vorigen Zuges sagen
 //     mehr als die Einstellung.
 
-import { erkenneSprache, erkenneSpracheEindeutig, zaehleSchrift } from "@/lib/text/sprache-erkennen";
+import { erkenneSprache, erkenneSpracheEindeutig, klareAbweichung, lateinischeSprache, zaehleSchrift } from "@/lib/text/sprache-erkennen";
 
 export const SPRACHEN = ["de", "en", "ru", "kk"] as const;
 export type Sprache = (typeof SPRACHEN)[number];
@@ -101,16 +101,28 @@ export function bestimmeAntwortsprache(
   if (ausDiktat) return { sprache: ausDiktat, herkunft: "diktat" };
 
   // b) Getippt: die Sprache der Frage, wenn sie eindeutig ist.
-  const ausFrage = erkenner(eingabe.frage ?? "");
-  if (istSprache(ausFrage)) return { sprache: ausFrage, herkunft: "frage" };
-
-  // c) Zu kurz fuer den Erkenner ("Да", "Иә", "Ja", "OK"): die Schrift der
-  //    Antwort zusammen mit der Sprache des vorigen Zuges. Passt beides
-  //    zusammen, bleibt es beim vorigen Zug - ein "Иә" in einem russischen
-  //    Gespraech wechselt nicht nach Kasachisch, ein "OK" in einem englischen
-  //    nicht nach Deutsch. Kyrillisch ist dabei eindeutig: ein "Да" wird nie
-  //    deutsch beantwortet, auch nicht bei deutscher Oberflaeche.
+  //
+  //    Lateinisch zaehlt seit 28.09.2026 nur ein EINDEUTIGES Ergebnis
+  //    (erkenneSpracheEindeutig: zwei Merkwoerter und ein klarer Abstand). Der
+  //    Erkenner der Route faellt bei lateinischem Text ohne Merkmal auf "en"
+  //    zurueck - "Mach weiter", "Brigade Nord zuerst" oder "Zeig Details"
+  //    mitten in einem deutschen Gespraech bekamen so eine englische Antwort und
+  //    eine englische Stimme. Seit Himbi als Tagesbegleiter Rueckfragen stellt,
+  //    sind solche kurzen Antworten der Normalfall. Nicht eindeutig: weiter mit
+  //    dem vorigen Zug (c, d) und erst dann der Oberflaeche (e).
   const frage = eingabe.frage ?? "";
+  const ausFrage = erkenner(frage);
+  const lateinischesErgebnis = ausFrage === "de" || ausFrage === "en";
+  if (istSprache(ausFrage) && (!lateinischesErgebnis || erkenneSpracheEindeutig(frage, 1) === ausFrage)) {
+    return { sprache: ausFrage, herkunft: "frage" };
+  }
+
+  // c) Zu kurz oder nicht eindeutig ("Да", "Иә", "Ja", "OK", "Zeig Details"):
+  //    die Schrift der Antwort zusammen mit der Sprache des vorigen Zuges.
+  //    Passt beides zusammen, bleibt es beim vorigen Zug - ein "Иә" in einem
+  //    russischen Gespraech wechselt nicht nach Kasachisch, ein "OK" in einem
+  //    englischen nicht nach Deutsch. Kyrillisch ist dabei eindeutig: ein "Да"
+  //    wird nie deutsch beantwortet, auch nicht bei deutscher Oberflaeche.
   const vorige = istSprache(eingabe.vorigeSprache) ? eingabe.vorigeSprache : null;
   const { kyrillisch, lateinisch } = zaehleSchrift(frage);
   if (kyrillisch > lateinisch) {
@@ -123,8 +135,9 @@ export function bestimmeAntwortsprache(
   }
   if (lateinisch > kyrillisch) {
     if (vorige === "de" || vorige === "en") return { sprache: vorige, herkunft: "verlauf" };
-    // Ein Umlaut oder ein unterscheidendes Wort ("Danke", "Thanks") reicht hier.
-    const ausWort = erkenneSpracheEindeutig(frage, 1);
+    // Ein Umlaut oder ein unterscheidendes Wort ("Danke", "Thanks") reicht hier:
+    // ohne lateinischen Verlauf ist es der beste Anhaltspunkt, den es gibt.
+    const ausWort = lateinischeSprache(frage);
     if (ausWort === "de" || ausWort === "en") return { sprache: ausWort, herkunft: "schrift" };
   }
 
@@ -204,14 +217,22 @@ const VORLESE_MINDEST_BUCHSTABEN = 40;
  * Nachricht, Antwort ohne Live-Abschnitte). Die einzelnen Saetze koennen davon
  * noch abweichen (satzSprache in lib/text/sprache-erkennen.ts).
  *
- *   1. metadata.sprache der Antwort, wenn sie mitkam,
+ *   1. metadata.sprache der Antwort, wenn sie mitkam - AUSSER der Text steht
+ *      lang und klar in einer anderen Sprache (klareAbweichung mit
+ *      `ganzerText`, seit 28.09.2026): "Schreib dem Lieferanten eine Mail auf
+ *      Englisch" hat die Zugsprache de, der Text ist englisch, und bis dahin
+ *      las ihn die deutsche Stimme. Eine deutsche Einleitung vor der Mail
+ *      laesst die Metadaten gelten, die Mail wechselt dann satzweise.
  *   2. sonst der Text selbst - Nachrichten aus dem geladenen Verlauf haben
  *      keine Metadaten, und bis zum 28.09.2026 las dann die Stimme der
  *      Oberflaeche jede russische Antwort nach einem Neuladen,
  *   3. erst zuletzt die Oberflaeche.
  */
 export function vorleseSprache(metaSprache: unknown, text: string, oberflaeche: string): Sprache {
-  if (istSprache(metaSprache)) return metaSprache;
+  if (istSprache(metaSprache)) {
+    const ausText = klareAbweichung(text ?? "", metaSprache, { mindestBuchstaben: VORLESE_MINDEST_BUCHSTABEN, ganzerText: true });
+    return istSprache(ausText) ? ausText : metaSprache;
+  }
   const ober: Sprache = istSprache(oberflaeche) ? oberflaeche : "de";
   const eindeutig = erkenneSpracheEindeutig(text ?? "", VORLESE_MINDEST_BUCHSTABEN);
   if (istSprache(eindeutig)) return eindeutig;

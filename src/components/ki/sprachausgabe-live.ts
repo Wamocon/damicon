@@ -29,7 +29,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { erzeugeWarteschlange, type Warteschlange } from "@/lib/domain/sprachausgabe-warteschlange";
 import { istSprachausgabeSprache, saetzeAusAntwort, sprechfassung } from "@/lib/domain/sprachausgabe";
 import { fuerSprache } from "@/lib/text/umlaute";
-import { satzSprache } from "@/lib/text/sprache-erkennen";
+import { sprachenFuerSaetze } from "@/lib/text/sprache-erkennen";
 import { ausgangFuer } from "@/lib/ausgabe-pegel";
 import type { VorlesePhase } from "@/lib/domain/vorlesen-zustand";
 import { erzeugeStromSprecher, stromMoeglich, type SprechStand, type StromSprecher, type StromZustand } from "@/components/ki/sprachausgabe-strom";
@@ -58,7 +58,7 @@ export function zumSprechen(text: string, sprache: string): string {
   return istSprachausgabeSprache(sprache) ? sprechfassung(fuerSprache(text, sprache), sprache) : text;
 }
 
-export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOhneStrom?: (id: string) => void } = {}) {
+export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOhneStrom?: (id: string, rest?: number) => void } = {}) {
   const [stromZustand, setStromZustand] = useState<StromZustand>({ laedt: false, spricht: false });
   const [abschnittSpricht, setAbschnittSpricht] = useState(false);
   const [abschnittLaedt, setAbschnittLaedt] = useState(false);
@@ -70,8 +70,14 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
   const weg = useRef<"strom" | "abschnitte" | null>(null);
   // Alles, was in dieser Runde an den Strom ging - fuer die Uebergabe an Weg 2.
   const anDenStrom = useRef<Array<{ a: LiveAbschnitt; sprache: string }>>([]);
-  // Knopf an einer Nachricht (sprichNachricht): welche, und wie viele Saetze.
-  const nachricht = useRef<{ id: string; saetze: number } | null>(null);
+  // Knopf an einer Nachricht (sprichNachricht): welche, wie viele Saetze an den
+  // Strom gingen, ihre Stelle unter allen Saetzen (saetzeAusAntwort) und wie
+  // viele das insgesamt waren - fuer den Rest im Datei-Weg (beiAufgabe).
+  const nachricht = useRef<{ id: string; saetze: number; stellen: number[]; gesamt: number } | null>(null);
+  // Der Datei-Weg fuer den Rest, sobald der eingeplante Ton des Stroms verklungen
+  // ist - sonst spraechen kurz zwei Stimmen.
+  const nachholen = useRef<(() => void) | null>(null);
+  const stromSpricht = useRef(false);
   const sprecher = useRef<StromSprecher | null>(null);
   const ohneStrom = useRef(beiNachrichtOhneStrom);
   useEffect(() => {
@@ -148,6 +154,9 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
   /** Alles anhalten. Muss unter 200 ms durch sein, deshalb zuerst der Ton und
    *  erst danach das Aufraeumen. */
   const stoppeAlles = useCallback(() => {
+    // Vor dem Stopp des Sprechers: der meldet danach "still", und ein
+    // wartender Rest setzte sonst genau jetzt ein.
+    nachholen.current = null;
     durchgang.current += 1;
     sprecher.current?.stopp();
     // Eine angehaltene Stimme (Seitenwechsel) nicht angehalten zuruecklassen.
@@ -320,15 +329,35 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
 
   const holeSprecher = useCallback((): StromSprecher => {
     sprecher.current ??= erzeugeStromSprecher(() => kontext.current, {
-      beiZustand: (z) => setStromZustand(z),
+      beiZustand: (z) => {
+        setStromZustand(z);
+        stromSpricht.current = z.spricht;
+        if (!z.spricht && nachholen.current) {
+          const lies = nachholen.current;
+          nachholen.current = null;
+          lies();
+        }
+      },
       gehalten: () => gehaltenRef.current,
       beiAufgabe: (grund, ungesprochen) => {
         console.warn("[damicon] Vorlese-Strom aufgegeben:", grund);
-        // Knopf an einer Nachricht: klang noch nichts, liest der bisherige Weg
-        // (ganze Antwort, api/ki-sprachausgabe) sie vor.
+        // Knopf an einer Nachricht: der Datei-Weg (api/ki-sprachausgabe, Text aus
+        // der gespeicherten Nachricht) liest, was noch nicht geklungen hat - klang
+        // nichts, die ganze Antwort. Bis zum 28.09.2026 gab es den Rueckfall nur
+        // ohne jeden Ton; gab der Strom mittendrin auf (etwa beim 13. Schluessel
+        // einer Minute), endete das Vorlesen still.
         const n = nachricht.current;
         if (n) {
-          if (ungesprochen >= n.saetze) ohneStrom.current?.(n.id);
+          if (ungesprochen <= 0) return;
+          // Die Saetze zaehlen vom Ende her: `rest` Saetze der ganzen Antwort,
+          // ab dem ersten, der nicht geklungen hat.
+          const rest = ungesprochen >= n.saetze ? undefined : n.gesamt - (n.stellen[n.saetze - ungesprochen] ?? 0);
+          const meinDurchgang = durchgang.current;
+          const lies = () => {
+            if (meinDurchgang === durchgang.current) ohneStrom.current?.(n.id, rest);
+          };
+          if (stromSpricht.current) nachholen.current = lies;
+          else lies();
           return;
         }
         // Live: der Rest der Runde als signierte Abschnitte.
@@ -399,17 +428,18 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
       // sonst stimmte die Zahl fuer den Rueckfall nicht (beiAufgabe).
       //
       // Die Stimme je Satz (seit 28.09.2026): `sprache` ist die der Antwort, ein
-      // Satz in der anderen Schrift (das russische Zitat in einer deutschen
+      // Satz in einer anderen Sprache (das russische Zitat in einer deutschen
       // Antwort) bekommt seine eigene - und zumSprechen dieselbe, sonst
-      // stellte es Umlaute in einem russischen Satz her.
-      const texte = saetzeAusAntwort(markdown)
-        .map((satz) => {
-          const s = satzSprache(satz, sprache);
-          return { text: zumSprechen(satz, s), sprache: s };
-        })
+      // stellte es Umlaute in einem russischen Satz her. Dieselbe Folge wie
+      // der Server (sprachenFuerSaetze): hoechstens vier Wechsel, denn jeder
+      // kostet einen Strom und einen Schluessel.
+      const saetze = saetzeAusAntwort(markdown);
+      const sprachen = sprachenFuerSaetze(saetze, sprache);
+      const texte = saetze
+        .map((satz, stelle) => ({ stelle, text: zumSprechen(satz, sprachen[stelle]!), sprache: sprachen[stelle]! }))
         .filter((t) => t.text.trim());
       if (texte.length === 0) return false;
-      nachricht.current = { id, saetze: texte.length };
+      nachricht.current = { id, saetze: texte.length, stellen: texte.map((t) => t.stelle), gesamt: saetze.length };
       weg.current = "strom";
       setQuelle(id);
       const s = holeSprecher();

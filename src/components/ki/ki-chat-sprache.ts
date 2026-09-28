@@ -78,10 +78,11 @@ export function useKiChatSprache({
   // Sprache je vorgelesener Nachricht - fuer den Rueckfall unten.
   const nachrichtSprache = useRef(new Map<string, string>());
   const beiNachrichtOhneStrom = useCallback(
-    (id: string) => {
-      // Der Strom hat fuer eine Nachricht aufgegeben, bevor etwas klang: dann
-      // der bisherige Weg, die ganze Antwort als Datei.
-      void spieleDatei(id, nachrichtSprache.current.get(id));
+    (id: string, rest?: number) => {
+      // Der Strom hat fuer eine Nachricht aufgegeben: dann der Datei-Weg - die
+      // ganze Antwort, wenn noch nichts klang, sonst seit 28.09.2026 die
+      // letzten `rest` Saetze (vorher endete das Vorlesen dann still).
+      void spieleDatei(id, nachrichtSprache.current.get(id), rest);
     },
     [spieleDatei],
   );

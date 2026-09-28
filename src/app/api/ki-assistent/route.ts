@@ -42,7 +42,7 @@ import { erzeugeMarkenFilter } from "@/lib/domain/sprechmarken";
 import { erzeugeSatzZerleger, ohneSprechmarken, sprachausgabeStromAn } from "@/lib/domain/sprachausgabe";
 import { ABSCHNITT_GUELTIG_MS, signiereAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
 import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
-import { erkenneSprache, erkenneSpracheEindeutig, satzSprache } from "@/lib/text/sprache-erkennen";
+import { erkenneSprache, erkenneSpracheEindeutig, erzeugeSprachFolge } from "@/lib/text/sprache-erkennen";
 import { createClient } from "@/lib/supabase/server";
 import { ladeAnbieterKette, meldeAnbieterwechsel } from "@/lib/ai/anbieter-kette";
 import type { AusweichEreignis } from "@/lib/ai/ausfall-modell";
@@ -749,6 +749,12 @@ export async function POST(req: Request) {
           sig: signiereAbschnitt({ nutzerId: profil.id, zug: antwortId, nr: 0, text: "", ablauf }, geheimnis),
         },
       });
+      // Die Stimme je Satz (seit 28.09.2026): ein russisches Zitat in einer
+      // deutschen Antwort klingt russisch. EINE Folge je Antwort
+      // (erzeugeSprachFolge, dieselbe Regel wie am Knopf): kurze Einschuebe
+      // behalten die Stimme, und nach vier Wechseln bleibt sie - jeder Wechsel
+      // kostet im Browser einen Strom-Schluessel.
+      const sprachFolge = erzeugeSprachFolge(antwortSprache);
       const schickeAbschnitt = (nr: number, text: string, ziele?: string[]) => {
         writer.write({
           type: "data-satz",
@@ -756,11 +762,8 @@ export async function POST(req: Request) {
             zug: antwortId,
             nr,
             text,
-            // Die Stimme je Satz (seit 28.09.2026): ein russisches Zitat in
-            // einer deutschen Antwort klingt russisch. Zurueckhaltend - nur
-            // ein Wechsel der Schrift schaltet um, siehe satzSprache. Die
-            // Signatur bindet die Sprache nicht, nur den Text.
-            sprache: satzSprache(text, antwortSprache),
+            // Die Signatur bindet die Sprache nicht, nur den Text.
+            sprache: sprachFolge.naechste(text),
             ablauf,
             // Ohne Signatur waere die Abschnitts-Route ein offener
             // Sprachgenerator - siehe domain/sprachausgabe-signatur.ts.

@@ -1296,7 +1296,8 @@ for (const [name, kaputteAntwort] of [
   //     aus der Oberflaeche kommen.
   {
     const tts = readFileSync(new URL("../../src/app/api/ki-sprachausgabe/route.ts", import.meta.url), "utf8");
-    pruefe("Stimme: die Route prueft den Antworttext gegen L", tts.includes("stimmenSprache("));
+    // Seit 28.09.2026 ueber vorlesePlan: dieselbe Gegenprobe am Text, dazu Sprachbloecke je Satz.
+    pruefe("Stimme: die Route prueft den Antworttext gegen L", tts.includes("vorlesePlan(nachricht.inhalt, gewuenscht"));
     pruefe("Stimme: sie leitet die Sprache nicht mehr allein aus der Oberflaeche ab", !/const sprache = istSprachausgabeSprache\(oberflaechenSprache\)/.test(tts));
   }
 
@@ -2129,17 +2130,19 @@ for (const [name, kaputteAntwort] of [
   const knopf = readFileSync(new URL("../../src/components/ki/sprachausgabe.tsx", import.meta.url), "utf8");
   pruefe("Strom: die Route hat GET mit denselben Pruefungen (zugang) wie POST", /export async function GET\(req: Request\) \{\s*const z = await zugang\(\);/.test(route) && /export async function POST\(req: Request\) \{\s*const z = await zugang\(\);/.test(route));
   pruefe("Strom: Zugang prueft Anmeldung, Berechtigung und Ratenbegrenzung", /async function zugang\(\)[\s\S]*?getSessionProfile\(\)[\s\S]*?hasPermission\(profil\.role, "ki_assistent", "create"\)[\s\S]*?ratenlimitUeberschritten\(/.test(route));
-  pruefe("Strom: GET liest die Antwort wie POST ueber RLS (fertigeAntwort, createClient)", route.includes('return fertigeAntwort(adresse.searchParams.get("nachricht") ?? "", adresse.searchParams.get("sprache") ?? "de", true);') && /async function fertigeAntwort[\s\S]*?(?:UUID\.test|istUuid)\(nachrichtId\)[\s\S]*?await createClient\(\)/.test(route));
+  pruefe("Strom: GET liest die Antwort wie POST ueber RLS (fertigeAntwort, createClient)", route.includes('return fertigeAntwort(adresse.searchParams.get("nachricht") ?? "", adresse.searchParams.get("sprache") ?? "de", art, auswahl);') && /async function fertigeAntwort[\s\S]*?(?:UUID\.test|istUuid)\(nachrichtId\)[\s\S]*?await createClient\(\)/.test(route));
   pruefe("Strom: GET nimmt nur Nachrichten-IDs, keinen freien Text", !/searchParams\.get\("text"\)/.test(route));
   pruefe("Strom: ein Zweig zum Hoerer, einer in den Zwischenspeicher (tee), nie im Browser behalten", route.includes("geoeffnet.strom.tee()") && route.includes('"cache-control": "no-store"'));
   pruefe("Strom: ein abgerissener Strom wird NICHT abgelegt", /catch \{\s*\/\/ Strom abgerissen[^\n]*\n\s*return;/.test(route));
   pruefe("Strom: Soniox und Sokrates teilen sich die Anfrage fuer Datei und Strom", (client.match(/await sonioxAnfrage\(/g) ?? []).length === 2 && (client.match(/await sokratesAnfrage\(/g) ?? []).length === 2);
   pruefe("Strom: Rueckfall auf den naechsten Anbieter nur, solange noch kein Ton floss", client.includes("export async function oeffneSprachausgabeStromMitRueckfall("));
-  pruefe("Strom: der Knopf spielt die GET-Adresse und faellt bei Fehler auf die Datei zurueck", knopf.includes("audio.src = `/api/ki-sprachausgabe?nachricht=${encodeURIComponent(id)}") && knopf.includes('body: JSON.stringify({ nachrichtId: id, sprache: zielSprache })'));
+  // Seit 28.09.2026 je Sprachblock (vorlesePlan): dieselbe GET-Adresse mit &block=, der Datei-Weg mit rest und block.
+  pruefe("Strom: der Knopf spielt die GET-Adresse und faellt bei Fehler auf die Datei zurueck", knopf.includes("const adresse = `/api/ki-sprachausgabe?nachricht=${encodeURIComponent(id)}") && knopf.includes("audio.src = `${adresse}&block=${block}`;") && knopf.includes('body: JSON.stringify({ nachrichtId: id, sprache: zielSprache, rest, block })'));
   {
-    const start = knopf.indexOf("async (id: string, antwortSprache?: string) => {");
+    const start = knopf.indexOf("async (id: string, antwortSprache?: string, rest?: number) => {");
     const erstesAwait = knopf.indexOf("await ", start);
-    pruefe("Strom: das erste await im Knopf ist play() - vor jedem fetch (iPhone: Ton gehoert zur Geste)", start > 0 && knopf.startsWith("await audio.play();", erstesAwait) && erstesAwait < knopf.indexOf("await fetch(", start));
+    const play = knopf.indexOf("const gestartet = audio.play();", start);
+    pruefe("Strom: das erste await im Knopf wartet auf play() - vor jedem fetch (iPhone: Ton gehoert zur Geste)", start > 0 && play > start && knopf.startsWith("await gestartet;", erstesAwait) && play < erstesAwait && erstesAwait < knopf.indexOf("await fetch(", start) && knopf.indexOf("await spieleBlock(0);", start) > knopf.indexOf("await fetch(", start));
   }
 }
 
@@ -2232,7 +2235,9 @@ for (const [name, kaputteAntwort] of [
       const fehlt = Object.keys(de).filter((k) => !(k in fremd));
       pruefe(`Oberflaeche ${ober}: kein Schluessel fehlt gegenueber Deutsch`, fehlt.length === 0, fehlt.slice(0, 3).join(", "));
       const deutsch = Object.entries(fremd).filter(
-        ([k, v]) => /^(ceoUebersicht|pruefung|haustier|pruefungAblauf|complianceBericht|kiAssistentAnsicht)\./.test(k) && erkenneSprache(v, 25) === "de",
+        // Platzhalter ({vorher}, {jetzt}) sind deutsche Bezeichner, kein Text: seit die Wortliste
+        // "jetzt" kennt (28.09.2026), machten sie "Severity changed: {vorher} → {jetzt}" deutsch.
+        ([k, v]) => /^(ceoUebersicht|pruefung|haustier|pruefungAblauf|complianceBericht|kiAssistentAnsicht)\./.test(k) && erkenneSprache(v.replace(/\{[^{}]*\}/g, " "), 25) === "de",
       );
       pruefe(`Oberflaeche ${ober}: in Tour, Bericht und Chat steht kein deutscher Text`, deutsch.length === 0, deutsch.slice(0, 2).map(([k]) => k).join(", "));
     }

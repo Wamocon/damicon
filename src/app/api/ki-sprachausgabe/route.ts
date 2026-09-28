@@ -17,12 +17,12 @@ import {
   sprechfassung,
   stimmenFuer,
   textFuerSprachausgabe,
+  vorlesePlan,
   type SprachausgabeSprache,
 } from "@/lib/domain/sprachausgabe";
 import { fuerSprache } from "@/lib/text/umlaute";
 import { after } from "next/server";
-import { istSprache, stimmenSprache } from "@/lib/domain/antwortsprache";
-import { erkenneSprache } from "@/lib/wissen/chunker";
+import { istSprache } from "@/lib/domain/antwortsprache";
 import { pruefeAbschnitt, sprachausgabeGeheimnis } from "@/lib/domain/sprachausgabe-signatur";
 import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
 import { ladeRatenlimitGrenze, ratenlimitUeberschritten, skaliereFuerSprachausgabe } from "@/lib/ai/ratenbegrenzung";
@@ -81,7 +81,31 @@ export async function GET(req: Request) {
   const z = await zugang();
   if (!z.ok) return z.antwort;
   const adresse = new URL(req.url);
-  return fertigeAntwort(adresse.searchParams.get("nachricht") ?? "", adresse.searchParams.get("sprache") ?? "de", true);
+  const auswahl = leseAuswahl(adresse.searchParams.get("rest"), adresse.searchParams.get("block"));
+  if (!auswahl) return fehler(400, "ungueltige-eingabe");
+  // plan=1: nur, wie viele Sprachbloecke es gibt (JSON, kein Ton). Der Knopf
+  // fragt das, WAEHREND der erste Block schon klingt - ein <audio>-Element
+  // kann die Kopfzeilen seiner Antwort nicht lesen.
+  const art = adresse.searchParams.get("plan") === "1" ? "plan" : "strom";
+  return fertigeAntwort(adresse.searchParams.get("nachricht") ?? "", adresse.searchParams.get("sprache") ?? "de", art, auswahl);
+}
+
+/** Welcher Teil einer fertigen Antwort (seit 28.09.2026, vorlesePlan):
+ *  `block` - der wievielte Sprachblock, `rest` - nur die letzten so vielen
+ *  Saetze. Beides nur Zahlen: der Text kommt IMMER aus der gespeicherten
+ *  Nachricht, nie aus dem Browser. Ohne `block` (alter Tab) die ganze Antwort. */
+type Auswahl = { rest?: number; block?: number };
+
+function leseAuswahl(rest: unknown, block: unknown): Auswahl | null {
+  const zahl = (wert: unknown): number | undefined | null => {
+    if (wert === null || wert === undefined || wert === "") return undefined;
+    const n = typeof wert === "number" ? wert : typeof wert === "string" && /^\d{1,4}$/.test(wert) ? Number(wert) : Number.NaN;
+    return Number.isInteger(n) && n >= 0 && n <= 9999 ? n : null;
+  };
+  const r = zahl(rest);
+  const b = zahl(block);
+  if (r === null || b === null) return null;
+  return { rest: r, block: b };
 }
 
 export async function POST(req: Request) {
@@ -89,7 +113,7 @@ export async function POST(req: Request) {
   if (!z.ok) return z.antwort;
   const { profil } = z;
 
-  let body: { nachrichtId?: unknown; sprache?: unknown; abschnitt?: unknown };
+  let body: { nachrichtId?: unknown; sprache?: unknown; abschnitt?: unknown; rest?: unknown; block?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -183,16 +207,21 @@ export async function POST(req: Request) {
   // "sprache" ist jetzt die Sprache DIESER ANTWORT (L), die der Chat-Stream
   // mitgeschickt hat - nicht mehr die Oberflaechensprache. Fehlt sie (alter
   // Browser-Tab, direkter Aufruf), faengt die Gegenprobe unten das auf.
+  const auswahl = leseAuswahl(body.rest, body.block);
+  if (!auswahl) return fehler(400, "ungueltige-eingabe");
   return fertigeAntwort(
     typeof body.nachrichtId === "string" ? body.nachrichtId : "",
     typeof body.sprache === "string" ? body.sprache : "de",
-    false,
+    "datei",
+    auswahl,
   );
 }
 
-/** Weg 1 fuer beide Methoden. `alsStrom`: der Ton geht weiter, waehrend er
- *  entsteht (GET), sonst als fertige Datei (POST, der bewaehrte Rueckfall). */
-async function fertigeAntwort(nachrichtId: string, gemeldeteSprache: string, alsStrom: boolean): Promise<Response> {
+/** Weg 1 fuer beide Methoden. `art`: "strom" - der Ton geht weiter, waehrend
+ *  er entsteht (GET), "datei" - als fertige Datei (POST, der bewaehrte
+ *  Rueckfall), "plan" - nur die Zahl der Sprachbloecke. */
+async function fertigeAntwort(nachrichtId: string, gemeldeteSprache: string, art: "strom" | "datei" | "plan", auswahl: Auswahl): Promise<Response> {
+  const alsStrom = art === "strom";
   if (!istUuid(nachrichtId)) return fehler(400, "ungueltige-eingabe");
 
   const supabase = await createClient();
@@ -206,8 +235,8 @@ async function fertigeAntwort(nachrichtId: string, gemeldeteSprache: string, als
   // die Route verraet nicht, ob eine fremde ID existiert.
   if (!nachricht || nachricht.rolle !== "assistent") return fehler(404, "nicht-gefunden");
 
-  const text = textFuerSprachausgabe(nachricht.inhalt);
-  if (!text) return fehler(422, "kein-text");
+  const ganzerText = textFuerSprachausgabe(nachricht.inhalt);
+  if (!ganzerText) return fehler(422, "kein-text");
 
   // Die Stimme folgt der Sprache DIESER ANTWORT, nicht der Einstellung.
   //
@@ -217,17 +246,36 @@ async function fertigeAntwort(nachrichtId: string, gemeldeteSprache: string, als
   //
   // Zwei Quellen, in dieser Reihenfolge:
   //   1. L, vom Chat-Stream mitgeschickt.
-  //   2. der fertige Text selbst - er ist der Beleg. Weicht er eindeutig ab,
+  //   2. der fertige Text selbst - er ist der Beleg. Weicht er klar ab,
   //      gewinnt er: lieber die richtige Stimme zum vorhandenen Text als
   //      beides falsch.
+  //
+  // Seit 28.09.2026 zusaetzlich je Satz (vorlesePlan): eine gemischte Antwort
+  // zerfaellt in Sprachbloecke, und der Browser holt sie einzeln (`block`).
+  // Gelesen wird immer die gespeicherte Nachricht; der Browser nennt nur Zahlen.
   const gewuenscht = istSprache(gemeldeteSprache) ? gemeldeteSprache : "de";
-  const gepruefte = stimmenSprache(gewuenscht, text, (t) => erkenneSprache(t, 10));
-  if (gepruefte.abweichung) {
+  const plan = vorlesePlan(nachricht.inhalt, gewuenscht, { rest: auswahl.rest });
+  if (plan.abweichung) {
     // Nur zaehlen, nie den Text: haeuft sich das, stimmt etwas mit der
     // Anweisung ans Modell nicht.
-    console.warn("[damicon] Sprachausgabe: Antworttext ist " + gepruefte.sprache + ", angekuendigt war " + gewuenscht);
+    console.warn("[damicon] Sprachausgabe: Antworttext ist " + plan.sprache + ", angekuendigt war " + gewuenscht);
   }
-  const sprache = istSprachausgabeSprache(gepruefte.sprache) ? gepruefte.sprache : "de";
+  if (art === "plan") return Response.json({ bloecke: plan.bloecke.length }, { headers: { "cache-control": "no-store" } });
+
+  // Die ganze Antwort wie bisher (derselbe Text, derselbe Ablagepfad): ohne
+  // `block` (alter Tab) oder wenn der Plan nur einen Block hat.
+  const ganz = auswahl.block === undefined || (auswahl.rest === undefined && plan.bloecke.length <= 1);
+  let text = ganzerText;
+  let teil: { von: number; bis: number } | undefined;
+  let spracheDesTextes: string = plan.bloecke.length === 1 ? plan.bloecke[0]!.sprache : plan.sprache;
+  if (!ganz || (auswahl.block ?? 0) > 0) {
+    const block = plan.bloecke[auswahl.block ?? 0];
+    if (!block) return fehler(422, "kein-block");
+    text = block.text;
+    teil = { von: block.von, bis: block.bis };
+    spracheDesTextes = block.sprache;
+  }
+  const sprache = istSprachausgabeSprache(spracheDesTextes) ? spracheDesTextes : "de";
   const stimmen = stimmenFuer(sprache);
   if (stimmen.length === 0) return fehler(422, "keine-stimme", { sprache });
 
@@ -235,7 +283,7 @@ async function fertigeAntwort(nachrichtId: string, gemeldeteSprache: string, als
   // Gesucht wird unter der BEVORZUGTEN Stimme. Hat beim letzten Mal der
   // Rueckfall gesprochen, liegt das Audio unter dessen Pfad - dann wird neu
   // erzeugt, und die bessere Stimme bekommt ihre Chance.
-  const pfad = sprachausgabePfad(nachrichtId, stimmen[0]);
+  const pfad = sprachausgabePfad(nachrichtId, stimmen[0], teil);
 
   // 1. Schon einmal vorgelesen? Dann ohne Dienst ausliefern.
   const { data: gespeichert } = await dienst.storage.from(BUCKET).download(pfad);
@@ -256,7 +304,7 @@ async function fertigeAntwort(nachrichtId: string, gemeldeteSprache: string, als
     // Hoerer ab (Stopp), laeuft der Ablage-Zweig trotzdem zu Ende, und das
     // naechste Vorlesen kommt aus dem Speicher.
     const [zumHoerer, zurAblage] = geoeffnet.strom.tee();
-    const ablagePfad = sprachausgabePfad(nachrichtId, geoeffnet.stimme);
+    const ablagePfad = sprachausgabePfad(nachrichtId, geoeffnet.stimme, teil);
     const typ = geoeffnet.typ || "audio/mpeg";
     after(async () => {
       const teile: Uint8Array[] = [];
@@ -306,7 +354,7 @@ async function fertigeAntwort(nachrichtId: string, gemeldeteSprache: string, als
   // 3. ... und ablegen, NACH der Antwort (after): wer zuhoert, wartet nicht
   // auf den Speicher. Ein Fehler beim Ablegen darf die fertige Antwort nicht
   // kaputtmachen - dann bleibt es beim naechsten Mal eben wieder langsam.
-  const ablagePfad = sprachausgabePfad(nachrichtId, ergebnis.stimme);
+  const ablagePfad = sprachausgabePfad(nachrichtId, ergebnis.stimme, teil);
   const audio = ergebnis.audio;
   after(async () => {
     const { error: ablageFehler } = await dienst.storage
