@@ -80,6 +80,8 @@ export function Sprachmodus() {
 const STOPP_STABIL_MS = 350;
 /** So lange darf beim Dazwischenreden Stille sein, ohne dass der Einsatz der Stimme verfaellt. */
 const EINSATZ_HALTEN_MS = 1_000;
+/** So weit vor Himbis Verstummen wird noch nach einem Befehlswort gesucht. */
+const BEFEHL_RUECKBLICK_MS = 3_000;
 
 /** Ein Symbol je Zustand, neben dem Zustandstext - der Ton haengt nie an
  *  der Farbe des Scheins hinter Himbi allein (Rueckmeldung vom 25.09.2026: die vier Farben
@@ -153,9 +155,16 @@ function SprachmodusInhalt() {
   const neuTimer = useRef<number | undefined>(undefined);
   const kandidatTimer = useRef<number | undefined>(undefined);
   const fehlversuche = useRef(0);
-  // Grenze im Audio (ms ab startPerf): was davor liegt, war eine fruehere Aeusserung oder
-  // Himbis eigene Stimme und gehoert nicht zur naechsten Frage.
+  // Grenzen im Audio (ms ab startPerf). Vor grenzeMs liegt sicher nichts fuer die naechste
+  // Frage (eine fruehere Frage, ein erledigter Befehl). Bis echoBisMs war vermutlich Himbis
+  // eigene Stimme - gesetzt, wenn er verstummt oder sein Echo endet. Die Frage beginnt hinter
+  // beiden; Befehle werden aber auch kurz vor echoBisMs gesucht: wer "Stopp, zeig mir ..." genau
+  // in eine Sprechpause von Himbi sagt (Seitenwechsel), hat vor dem Verstummen angefangen
+  // (Messung vom 28.09.2026: aus der Frage wurde "mir lieber die Reklamationen").
   const grenzeMs = useRef(0);
+  const echoBisMs = useRef(0);
+  const frageAb = useCallback(() => Math.max(grenzeMs.current, echoBisMs.current), []);
+  const befehlAb = useCallback(() => Math.max(grenzeMs.current, echoBisMs.current - BEFEHL_RUECKBLICK_MS), []);
   // Die zuletzt gestellte Frage - kommt waehrend des Nachdenkens noch etwas nach, wird
   // daraus EINE Frage (Nachsatz, Rueckmeldung vom 28.09.2026: "nach Ja hoert sie auf
   // zuzuhoeren und schaut nach").
@@ -335,25 +344,28 @@ function SprachmodusInhalt() {
     (sitzung: LiveSitzung) => {
       if (ohrRef.current?.sitzung !== sitzung) return;
       const phase = phaseRef.current;
-      const t = sitzung.textAb(grenzeMs.current);
+      const t = sitzung.textAb(frageAb());
       if (t.anzeige) zuletztGehoert.current = performance.now();
       if (phase === "hoert" || phase === "versteht") {
         window.clearTimeout(kandidatTimer.current);
         setZwischentext(vorsatz.current ? fuegeZusammen(vorsatz.current.text, t.anzeige) : t.anzeige);
         return;
       }
-      if ((phase !== "denkt" && phase !== "spricht") || !istGesprochen(t.anzeige)) return;
+      if (phase !== "denkt" && phase !== "spricht") return;
+      // Befehle auch kurz vor Himbis Verstummen (befehlAb), der Nachsatz erst dahinter.
+      const suche = sitzung.textAb(befehlAb());
+      if (!istGesprochen(suche.anzeige)) return;
       // Waehrend Himbi spricht, hoert die Erkennung sein Echo mit: ein Befehlswort zaehlt nur,
       // wenn er es nicht gerade selbst sagt (klingender oder voriger Satz, nicht die ganze
       // Antwort - ein "halt" irgendwo darin sperrte sonst jedes "Halt"). Beim Nachdenken ist er still.
       const gerade = leseGerade();
       const gesagt = phase === "spricht" ? (gerade ? `${gerade.satz ?? ""} ${gerade.vorher ?? ""}` : leseChatStand().antwort) : "";
       const istEcho = (wort: string) => phase === "spricht" && befehlsWortIn(gesagt, wort) !== null;
-      const beginn = befehlsBeginn(t.woerter.map((w) => w.text), istEcho);
+      const beginn = befehlsBeginn(suche.woerter.map((w) => w.text), istEcho);
       // Beim Nachdenken zaehlt ein Befehl nur am Anfang; alles andere ist ein Nachsatz.
       if (beginn === null || (phase === "denkt" && beginn > 0)) {
         window.clearTimeout(kandidatTimer.current);
-        if (phase === "denkt" && !leseFreigabeAnfrage() && offeneFrage.current) {
+        if (phase === "denkt" && !leseFreigabeAnfrage() && offeneFrage.current && istGesprochen(t.anzeige)) {
           // Nachsatz: weitergesprochen, bevor Himbi antwortet. Die Anfrage bricht ab, und am
           // naechsten Endpunkt geht die zusammengefuegte Frage an Stelle der alten hinaus.
           vorsatz.current = offeneFrage.current;
@@ -365,7 +377,7 @@ function SprachmodusInhalt() {
         return;
       }
       const loeseAus = () => {
-        const jetzt = sitzung.textAb(grenzeMs.current);
+        const jetzt = sitzung.textAb(befehlAb());
         const b = befehlsBeginn(jetzt.woerter.map((w) => w.text), istEcho);
         if (b === null || ohrRef.current?.sitzung !== sitzung || !assistentIstDran(phaseRef.current)) return;
         const befehl = jetzt.woerter.slice(b).map((w) => w.text).join(" ");
@@ -376,19 +388,21 @@ function SprachmodusInhalt() {
           grenzeMs.current = Math.max(grenzeMs.current, (jetzt.endeMs ?? audioJetzt()) + 1);
           return;
         }
-        // Die naechste Aeusserung beginnt mit dem Befehlswort; das Echo davor faellt weg.
+        // Die naechste Aeusserung beginnt mit dem Befehlswort; das Echo davor faellt weg, und
+        // die Frage beginnt dort, auch wenn Himbi erst danach verstummt ist.
         grenzeMs.current = Math.max(grenzeMs.current, jetzt.woerter[b]!.startMs ?? grenzeMs.current);
+        echoBisMs.current = grenzeMs.current;
         offeneFrage.current = null;
         unterbrecheHimbi();
       };
       // Endgueltig erkannt: sofort. Nur vorlaeufig: erst, wenn es STOPP_STABIL_MS so bleibt -
       // ein vorlaeufiges Wort, das die Erkennung gleich korrigiert, loest nichts aus.
-      const endgueltigeWoerter = t.endgueltig.split(/\s+/).filter(Boolean).length;
+      const endgueltigeWoerter = suche.endgueltig.split(/\s+/).filter(Boolean).length;
       window.clearTimeout(kandidatTimer.current);
       if (beginn < endgueltigeWoerter) loeseAus();
       else kandidatTimer.current = window.setTimeout(loeseAus, STOPP_STABIL_MS);
     },
-    [audioJetzt, dispatch, unterbrecheHimbi],
+    [audioJetzt, befehlAb, dispatch, frageAb, unterbrecheHimbi],
   );
 
   /** Die Erkennung meldet das Ende einer Aeusserung. */
@@ -396,7 +410,7 @@ function SprachmodusInhalt() {
     (sitzung: LiveSitzung) => {
       if (ohrRef.current?.sitzung !== sitzung) return;
       const phase = phaseRef.current;
-      const t = sitzung.textAb(grenzeMs.current);
+      const t = sitzung.textAb(frageAb());
       if (phase === "spricht") {
         const stand = leseChatStand();
         if (!stand.spricht && !stand.laedt && !stand.beschaeftigt) {
@@ -407,13 +421,14 @@ function SprachmodusInhalt() {
           nimmAeusserung(t);
           return;
         }
-        // Sonst Himbis Echo oder ein Nebengeraeusch - ein Befehl darin hat beiText schon ausgeloest.
-        grenzeMs.current = Math.max(grenzeMs.current, (t.endeMs ?? 0) + 1);
+        // Sonst Himbis Echo oder ein Nebengeraeusch - ein Befehl darin hat beiText schon
+        // ausgeloest. Nur die weiche Grenze: die Befehlssuche schaut noch kurz davor.
+        echoBisMs.current = Math.max(echoBisMs.current, (t.endeMs ?? 0) + 1);
         return;
       }
       if (phase === "hoert" || phase === "versteht") nimmAeusserung(t);
     },
-    [dispatch, nimmAeusserung],
+    [dispatch, frageAb, nimmAeusserung],
   );
 
   const beiScheitern = useCallback(
@@ -494,6 +509,7 @@ function SprachmodusInhalt() {
     recorder.start(AUFNAHME_STUECK_MS);
     ohrRef.current = { recorder, sitzung: diese, startPerf };
     grenzeMs.current = 0;
+    echoBisMs.current = 0;
     grenzeSteht.current = false;
     zuletztGehoert.current = performance.now();
   }, [sprache, dispatch, t]);
@@ -542,6 +558,7 @@ function SprachmodusInhalt() {
       const urteil = waechter.melde(leseLautstaerke(), leseAusgabePegel(), performance.now());
       if (urteil === "unterbrechen") {
         grenzeMs.current = Math.max(grenzeMs.current, (einsatz ?? audioJetzt()) - 300);
+        echoBisMs.current = grenzeMs.current;
         offeneFrage.current = null;
         unterbrecheHimbi();
         return;
@@ -572,7 +589,7 @@ function SprachmodusInhalt() {
       const sprichtJetzt = stand.spricht || stand.laedt;
       // Himbi ist gerade verstummt: was die Erkennung ab jetzt hoert, ist nicht mehr sein Echo.
       // Ausser er wurde per Stimme unterbrochen: dann steht die Grenze schon am Einsatz des Nutzers.
-      if (sprachZuletzt.current && !sprichtJetzt && !grenzeSteht.current) grenzeMs.current = Math.max(grenzeMs.current, audioJetzt() + 50);
+      if (sprachZuletzt.current && !sprichtJetzt && !grenzeSteht.current) echoBisMs.current = Math.max(echoBisMs.current, audioJetzt() + 50);
       sprachZuletzt.current = sprichtJetzt;
       window.clearTimeout(ruheTimer.current);
       if (phaseRef.current !== "denkt" && phaseRef.current !== "spricht") return;
