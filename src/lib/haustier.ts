@@ -240,6 +240,30 @@ export function haustierZustand(a: {
   return "ruhe";
 }
 
+/** Ein Anwaerter auf Himbis Sprechblase: welche Blase, und ob ihre eigene Bedingung erfuellt ist. */
+export interface BlasenKandidat<A extends string> {
+  art: A;
+  sichtbar: boolean;
+}
+
+/**
+ * Welche Sprechblase Himbi zeigt. Die Liste ist nach Dringlichkeit geordnet, die erste sichtbare
+ * gewinnt; bei offenem Panel gibt es keine Blase.
+ *
+ * gewaehlt: die Blase, die gezeichnet wird. gezeigt: dieselbe, aber nur, wenn ein Mensch sie
+ * auch sehen kann (Figur im Bild, Seite im Vordergrund). Merker ("heute schon begruesst", "Tipp
+ * fuer dieses Modul gezeigt") und Anzeigedauer haengen an gezeigt, nicht am Zeitpunkt, zu dem
+ * eine Blase bereitliegt (Befund vom 28.09.2026: der Tagesgruss wurde hinter der Tour-Frage und
+ * im Hintergrund-Tab als gezeigt gemerkt, der Modultipp lief hinter dem Tagesgruss ab).
+ */
+export function sichtbareBlase<A extends string>(
+  kandidaten: readonly BlasenKandidat<A>[],
+  lage: { paneOffen: boolean; figurImBild: boolean; seiteSichtbar: boolean },
+): { gewaehlt: A | null; gezeigt: A | null } {
+  const gewaehlt = lage.paneOffen ? null : (kandidaten.find((k) => k.sichtbar)?.art ?? null);
+  return { gewaehlt, gezeigt: lage.figurImBild && lage.seiteSichtbar ? gewaehlt : null };
+}
+
 /** Das Modul zu einem Pfad wie "/dashboard/buero/lohn" (ohne Sprachpraefix). */
 export function modulAusPfad<M extends { zone: string; slug: string }>(pfad: string, module: readonly M[]): M | null {
   const teile = pfad.split("?")[0]!.split("/").filter(Boolean);

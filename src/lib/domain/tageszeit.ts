@@ -25,12 +25,18 @@ export function tageszeitBestimmen(
   jetzt: Date = new Date(),
   zeitzone: string = betriebsZeitzone,
 ): Tageszeit {
+  // Die Stunde ueber formatToParts, nicht ueber format() (Befund vom 28.09.2026): das deutsche
+  // CLDR-Muster ist "HH 'Uhr'", format() liefert also "08 Uhr", Number("08 Uhr") ist NaN, und
+  // beide Vergleiche unten waren falsch - es hiess zu jeder Uhrzeit "Guten Abend". hourCycle
+  // "h23" statt hour12: false, damit Mitternacht 0 ist und nicht 24 (wie in heuteAnweisung).
   const stunde = Number(
     new Intl.DateTimeFormat("de-DE", {
       timeZone: zeitzone,
       hour: "numeric",
-      hour12: false,
-    }).format(jetzt),
+      hourCycle: "h23",
+    })
+      .formatToParts(jetzt)
+      .find((teil) => teil.type === "hour")?.value,
   );
   // Grenzen nach deutschem Sprachgebrauch. In der Erntesaison beginnt die
   // Schicht vor Sonnenaufgang, "Guten Morgen" gilt deshalb bis 11 Uhr.

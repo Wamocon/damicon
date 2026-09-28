@@ -9,7 +9,7 @@
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { agentPhase, haustierZustand, modulAusPfad, stimmungAusAntwort, tourDauer } from "../../src/lib/haustier";
+import { agentPhase, haustierZustand, modulAusPfad, sichtbareBlase, stimmungAusAntwort, tourDauer } from "../../src/lib/haustier";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Himbi } from "../../src/components/haustier/himbi";
@@ -173,6 +173,39 @@ pruefe("tourDauer: bleibt zwischen 5,5 und 9,5 Sekunden", () => {
   assert.equal(tourDauer("x".repeat(400)), 9500);
   const mittel = tourDauer("x".repeat(60));
   assert.ok(mittel > 5500 && mittel < 9500, `erwartet dazwischen, war ${mittel}`);
+});
+
+// ---- sichtbareBlase ------------------------------------------------------------------
+// Befund vom 28.09.2026: der Tagesgruss wurde als gezeigt gemerkt, waehrend die Tour-Frage,
+// die laufende Tour oder der Live-Hinweis vor ihm standen, und der Modultipp lief hinter dem
+// Tagesgruss ab. Merker und Anzeigedauer haengen jetzt an "gezeigt" aus dieser Funktion.
+
+const IM_BILD = { paneOffen: false, figurImBild: true, seiteSichtbar: true };
+
+pruefe("sichtbareBlase: die erste sichtbare Blase gewinnt, die Reihenfolge der Liste zaehlt", () => {
+  const liste = [
+    { art: "tourFrage", sichtbar: true },
+    { art: "tagesgruss", sichtbar: true },
+    { art: "tipp", sichtbar: true },
+  ] as const;
+  assert.deepEqual(sichtbareBlase(liste, IM_BILD), { gewaehlt: "tourFrage", gezeigt: "tourFrage" });
+  assert.deepEqual(sichtbareBlase(liste.slice(1), IM_BILD), { gewaehlt: "tagesgruss", gezeigt: "tagesgruss" });
+  assert.deepEqual(sichtbareBlase([{ art: "tagesgruss", sichtbar: false }, { art: "tipp", sichtbar: true }], IM_BILD), { gewaehlt: "tipp", gezeigt: "tipp" });
+});
+
+pruefe("sichtbareBlase: ohne sichtbaren Kandidaten keine Blase", () => {
+  assert.deepEqual(sichtbareBlase([{ art: "tipp", sichtbar: false }], IM_BILD), { gewaehlt: null, gezeigt: null });
+  assert.deepEqual(sichtbareBlase([], IM_BILD), { gewaehlt: null, gezeigt: null });
+});
+
+pruefe("sichtbareBlase: bei offenem Panel weder gewaehlt noch gezeigt", () => {
+  assert.deepEqual(sichtbareBlase([{ art: "tagesgruss", sichtbar: true }], { ...IM_BILD, paneOffen: true }), { gewaehlt: null, gezeigt: null });
+});
+
+pruefe("sichtbareBlase: im Hintergrund-Tab oder mit verborgener Figur gewaehlt, aber nicht gezeigt (kein Merker, keine Uhr)", () => {
+  const liste = [{ art: "tagesgruss", sichtbar: true }] as const;
+  assert.deepEqual(sichtbareBlase(liste, { ...IM_BILD, seiteSichtbar: false }), { gewaehlt: "tagesgruss", gezeigt: null });
+  assert.deepEqual(sichtbareBlase(liste, { ...IM_BILD, figurImBild: false }), { gewaehlt: "tagesgruss", gezeigt: null });
 });
 
 // ---- Lippen im Sprachmodus (src/lib/domain/lippen.ts) --------------------------------

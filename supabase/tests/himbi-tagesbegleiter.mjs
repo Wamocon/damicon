@@ -32,7 +32,7 @@ const {
   tagesbeginnAusSpeicher,
   tagesbeginnFaellig,
 } = await import("../../src/lib/himbi-tagesbeginn.ts");
-const { tagInZone } = await import("../../src/lib/domain/tageszeit.ts");
+const { spruchIndex, tagInZone, tageszeitBestimmen } = await import("../../src/lib/domain/tageszeit.ts");
 
 let bestanden = 0;
 let fehlgeschlagen = 0;
@@ -125,6 +125,42 @@ console.log("\n1. Tagesmerker (lib/himbi-tagesbeginn.ts)");
   pruefe("Einstellung: Voreinstellung an, nur ein gespeichertes 'aus' schaltet ab", tagesbeginnAusSpeicher(null) && tagesbeginnAusSpeicher(undefined) && tagesbeginnAusSpeicher("an") && tagesbeginnAusSpeicher("kaputt") && !tagesbeginnAusSpeicher("aus"));
 }
 
+// --- 1b. Tageszeit (lib/domain/tageszeit.ts) ---------------------------------------
+// Befund vom 28.09.2026: tageszeitBestimmen las die Stunde aus format(), das im deutschen
+// CLDR-Muster "08 Uhr" liefert; Number("08 Uhr") ist NaN, also kam immer "abend" heraus. Die
+// Tests davor prueften nur den Quelltext, deshalb hier echte Aufrufe mit festen UTC-Zeitpunkten.
+console.log("\n1b. Tageszeit (lib/domain/tageszeit.ts), echte Aufrufe");
+{
+  // Asia/Almaty ist UTC+5 (aeltere Zeitzonendaten +6): die Zeitpunkte liegen so, dass beide
+  // Versaetze in dieselbe Tageszeit fallen.
+  const faelle = [
+    ["2026-09-28T19:00:00Z", "morgen", "Mitternacht in Almaty (00:00 bzw. 01:00), nicht 24 Uhr"],
+    ["2026-09-28T02:00:00Z", "morgen", "07:00 bzw. 08:00 in Almaty"],
+    ["2026-09-28T08:00:00Z", "tag", "13:00 bzw. 14:00 in Almaty"],
+    ["2026-09-28T15:00:00Z", "abend", "20:00 bzw. 21:00 in Almaty"],
+  ];
+  for (const [utc, erwartet, wann] of faelle) {
+    const ist = tageszeitBestimmen(new Date(utc));
+    pruefe(`tageszeitBestimmen: ${wann} ist "${erwartet}"`, ist === erwartet, `ist: ${ist}`);
+  }
+  // Die Grenzen genau, mit festem Versatz UTC+5 (Etc/GMT-5 hat umgekehrtes Vorzeichen).
+  const grenzen = [
+    ["2026-09-28T05:59:00Z", "morgen", "10:59"],
+    ["2026-09-28T06:00:00Z", "tag", "11:00"],
+    ["2026-09-28T12:59:00Z", "tag", "17:59"],
+    ["2026-09-28T13:00:00Z", "abend", "18:00"],
+    ["2026-09-28T18:59:00Z", "abend", "23:59"],
+    ["2026-09-28T19:00:00Z", "morgen", "00:00"],
+  ];
+  for (const [utc, erwartet, uhr] of grenzen) {
+    const ist = tageszeitBestimmen(new Date(utc), "Etc/GMT-5");
+    pruefe(`tageszeitBestimmen: Grenze ${uhr} Uhr ist "${erwartet}"`, ist === erwartet, `ist: ${ist}`);
+  }
+  // Folge fuer den Tagesspruch: er wechselt dreimal am Tag, nicht nur einmal.
+  const spruecheHeute = new Set(["2026-09-28T02:00:00Z", "2026-09-28T08:00:00Z", "2026-09-28T15:00:00Z"].map((z) => spruchIndex(new Date(z))));
+  pruefe("spruchIndex: morgens, tagsueber und abends je ein anderer Satz", spruecheHeute.size === 3, [...spruecheHeute].join(","));
+}
+
 // --- 2. Anweisung und Systemprompt -----------------------------------------------
 console.log("\n2. TAGESBEGLEITER und 'heute' im Systemprompt");
 {
@@ -183,8 +219,21 @@ console.log("\n3. Begruessung im Sprachmodus, Sprechblase, Kontext");
 
   const dash = lies("src/components/haustier/haustier-dashboard.tsx");
   pruefe("Blase: nicht auf dem Handy, nicht wenn Himbi weg oder aus, nicht im Sprachmodus, nur bei Ruhe, nur mit Einstellung", dash.includes("const grussMoeglich = verfuegbar && !handy && an && !weg && !sprachmodus && tagesbeginnAn && ruhigGenug;") && dash.includes("const tagesGrussSichtbar = !!tagesGruss && ruhigGenug && !sprachmodus && tagesbeginnAn;"));
-  pruefe("Blase: einmal am Tag je Nutzer, gemerkt erst beim Zeigen", dash.includes('if (!tagesbeginnFaellig(ablage, nutzerId, "blase", jetzt)) return;\n      merkeTagesbeginn(ablage, nutzerId, "blase", jetzt);\n      setTagesGruss(tageszeitBestimmen(jetzt));'));
-  pruefe("Blase: ein Kandidat in blaseKandidaten, 'Ja' stellt befinden.hilfeText, 'Nein' schliesst", /sichtbar: tagesGrussSichtbar,[\s\S]{0,900}stelleFrage\(t\("befinden\.hilfeText"\)\);\s*setTagesGruss\(null\);[\s\S]{0,300}onClick=\{\(\) => setTagesGruss\(null\)\}/.test(dash));
+  // Befund vom 28.09.2026: der Timer merkte den Gruss, auch wenn Tour-Frage, laufende Tour oder
+  // Live-Hinweis vor ihm standen oder der Tab im Hintergrund lag; der Gruss verfiel dann
+  // ungesehen und war fuer den Tag verbraucht. Jetzt legt der Timer ihn nur bereit, gemerkt und
+  // die 45 s gestartet wird erst, wenn er die gezeigte Blase ist (lib/haustier.ts sichtbareBlase).
+  pruefe("Blase: der Timer legt den Gruss nur bereit (einmal am Tag je Nutzer), ohne ihn zu merken", dash.includes('if (!tagesbeginnFaellig(ablage, nutzerId, "blase", jetzt)) return;\n      setTagesGruss(tageszeitBestimmen(jetzt));'));
+  pruefe("Blase: gemerkt und die Anzeigedauer gestartet erst, wenn der Gruss die gezeigte Blase ist", /const tagesGrussGezeigt = blasen\.gezeigt === "tagesgruss";\s*useEffect\(\(\) => \{\s*if \(!tagesGrussGezeigt\) return;\s*merkeTagesbeginn\(browserAblage\(\), nutzerId, "blase"\);\s*const id = window\.setTimeout\(\(\) => setTagesGruss\(null\), TAGESGRUSS_DAUER_MS\);/.test(dash) && dash.split("merkeTagesbeginn(").length === 2);
+  pruefe("Blase: ein noch wartender Gruss faellt im Sprachmodus weg (dort beginnt das Gespraech den Tag)", dash.includes("if (sprachmodus && tagesGruss) setTagesGruss(null);"));
+  pruefe("Auswahl: eine reine Funktion waehlt die Blase; gezeigt heisst Figur im Bild und Seite sichtbar", dash.includes("const blasen = sichtbareBlase(blasenReihenfolge, {") && dash.includes("figurImBild: verfuegbar && !handy && an && !weg && !sprachmodus,") && dash.includes("seiteSichtbar,") && dash.includes("const blase = blasen.gewaehlt ? blasenInhalt[blasen.gewaehlt] : null;"));
+  const reihenfolgeBlock = /const blasenReihenfolge[^=]*= \[([\s\S]*?)\];/.exec(dash)?.[1] ?? "";
+  const reihenfolge = [...reihenfolgeBlock.matchAll(/art: "(\w+)"/g)].map((m) => m[1]).join(",");
+  pruefe("Auswahl: Rangfolge der Blasen unveraendert (dringendste zuerst, Tagesgruss vor Befinden, Anstupser und Tipp)", reihenfolge === "willkommen,freigabe,arbeitet,fehler,fertig,liveHinweis,tourAktiv,tourFrage,tagesgruss,befinden,befindenAntwort,anstupser,tipp", reihenfolge);
+  pruefe("Tipp: kommt erst nach Ruhe, Merker und 15 s erst, wenn er die gezeigte Blase ist (nicht hinter dem Tagesgruss verbraucht)", dash.includes("if (!ruhigGenug || tipp) return;") && !dash.includes('window.sessionStorage.setItem(merker, "1");') && /const tippGezeigt = blasen\.gezeigt === "tipp";\s*useEffect\(\(\) => \{\s*if \(!tippGezeigt \|\| !tipp\) return;\s*try \{\s*window\.sessionStorage\.setItem\(`damicon-haustier-tipp:\$\{tipp\.key\}`, "1"\);[\s\S]{0,120}const id = window\.setTimeout\(\(\) => setTipp\(null\), TIPP_DAUER_MS\);/.test(dash));
+  pruefe("Anstupser: gestellt, gemerkt und als Absage gezaehlt erst, wenn er die gezeigte Blase ist", dash.includes("const zeigen = window.setTimeout(() => setAnstupser(naechste), ANSTUPSER_VERZOEGERUNG_MS);") && /const anstupserGezeigt = blasen\.gezeigt === "anstupser";\s*useEffect\(\(\) => \{\s*if \(!anstupserGezeigt \|\| !anstupser\) return;\s*gestellt\.current\.add\(anstupser\);[\s\S]{0,300}absagen\.current \+= 1;\s*setAnstupser\(null\);\s*\}, ANSTUPSER_DAUER_MS\);/.test(dash));
+  pruefe("Befinden: Sitzungsmerker erst, wenn die Frage die gezeigte Blase ist", dash.includes("const zeigen = window.setTimeout(() => setBefindenFrage(true), BEFINDEN_VERZOEGERUNG_MS);") && /const befindenGezeigt = blasen\.gezeigt === "befinden";\s*useEffect\(\(\) => \{\s*if \(!befindenGezeigt\) return;\s*try \{\s*window\.sessionStorage\.setItem\(BEFINDEN_SCHLUESSEL, "1"\);/.test(dash));
+  pruefe("Blase: ein Eintrag in blasenInhalt, 'Ja' stellt befinden.hilfeText, 'Nein' schliesst", /tagesgruss: tagesGruss \? \([\s\S]{0,900}stelleFrage\(t\("befinden\.hilfeText"\)\);\s*setTagesGruss\(null\);[\s\S]{0,300}onClick=\{\(\) => setTagesGruss\(null\)\}/.test(dash));
   pruefe("Blase: Gruss mit Vornamen wie in der Begruessung, sonst ohne Namen", dash.includes("begruessungT(tagesGruss, { name: anredeName(name) })") && dash.includes("begruessungT(`${tagesGruss}OhneNamen`)"));
   pruefe("Blase: ein Klick auf Himbi schliesst auch den Gruss", /onKlick=\{\(\) => \{[\s\S]{0,300}setTagesGruss\(null\);/.test(dash));
 

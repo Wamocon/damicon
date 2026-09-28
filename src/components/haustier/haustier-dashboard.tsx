@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useCeoPruefung } from "@/components/dashboard/ceo-pruefung-kontext";
@@ -19,7 +19,7 @@ import { bewegungReduziert } from "@/lib/bewegung";
 import { tageszeitBestimmen, type Tageszeit } from "@/lib/domain/tageszeit";
 import { merkeTagesbeginn, tagesbeginnFaellig } from "@/lib/himbi-tagesbeginn";
 import { browserAblage } from "@/lib/suche/zuletzt";
-import { haustierZustand, modulAusPfad, springeZuAnker, type Stimmung } from "@/lib/haustier";
+import { haustierZustand, modulAusPfad, sichtbareBlase, springeZuAnker, type BlasenKandidat, type Stimmung } from "@/lib/haustier";
 import { modules } from "@/lib/modules";
 import { hasPermission } from "@/lib/rbac";
 
@@ -56,6 +56,31 @@ const WILLKOMMEN_MS = 3200;
 // lange es dauert, statt es zu erraten.
 const LIVE_HINWEIS_DAUER_MS = 14000;
 
+// Alle Sprechblasen, die Himbi zeigen kann. Die Rangfolge steht in blasenReihenfolge unten.
+type BlasenArt =
+  | "willkommen"
+  | "freigabe"
+  | "arbeitet"
+  | "fehler"
+  | "fertig"
+  | "liveHinweis"
+  | "tourAktiv"
+  | "tourFrage"
+  | "tagesgruss"
+  | "befinden"
+  | "befindenAntwort"
+  | "anstupser"
+  | "tipp";
+
+// Liegt der Tab im Hintergrund, sieht niemand eine Blase: dann wird nichts als gezeigt gemerkt
+// und keine Anzeigedauer verbraucht (Befund vom 28.09.2026, siehe sichtbareBlase).
+function abonniereSeitenSichtbarkeit(melde: () => void): () => void {
+  document.addEventListener("visibilitychange", melde);
+  return () => document.removeEventListener("visibilitychange", melde);
+}
+const seiteImVordergrund = () => document.visibilityState === "visible";
+const seiteAufDemServer = () => true;
+
 export function HaustierDashboard() {
   const t = useTranslations("haustier");
   const moduleT = useTranslations("modules");
@@ -73,6 +98,7 @@ export function HaustierDashboard() {
   // daneben trug die Leiste noch einmal dieselbe Himbeere als KI-Knopf -
   // zwei Zeichen fuer dieselbe Sache, eines davon im Weg.
   const handy = useIstHandy();
+  const seiteSichtbar = useSyncExternalStore(abonniereSeitenSichtbarkeit, seiteImVordergrund, seiteAufDemServer);
 
   // Nach dem Zurueckholen: kurz jubeln und "Da bin ich wieder" sagen.
   const [willkommen, setWillkommen] = useState(false);
@@ -151,14 +177,9 @@ export function HaustierDashboard() {
     } catch {
       // ohne Speicher: die Frage kommt einmal je Seitenaufruf, das ist verkraftbar
     }
-    const zeigen = window.setTimeout(() => {
-      try {
-        window.sessionStorage.setItem(BEFINDEN_SCHLUESSEL, "1");
-      } catch {
-        // egal
-      }
-      setBefindenFrage(true);
-    }, BEFINDEN_VERZOEGERUNG_MS);
+    // Gemerkt wird erst, wenn die Frage die gezeigte Blase ist (befindenGezeigt unten), sonst
+    // waere sie nach einem Neuladen verloren, ohne dass jemand sie gesehen hat (28.09.2026).
+    const zeigen = window.setTimeout(() => setBefindenFrage(true), BEFINDEN_VERZOEGERUNG_MS);
     return () => window.clearTimeout(zeigen);
   }, []);
   useEffect(() => {
@@ -178,9 +199,16 @@ export function HaustierDashboard() {
   // bis jemand "Ja" sagt, dann geht dieselbe Frage wie bei "Womit anfangen?" an den Chat.
   // Dieselben Regeln wie fuer alle Blasen (nicht auf dem Handy, nicht wenn Himbi weg oder aus
   // ist, nicht im Sprachmodus, nur bei Ruhe) und die Einstellung "Himbi beginnt den Tag mit
-  // mir". Gemerkt wird erst, wenn die Blase wirklich erscheint; wer heute schon im Sprachmodus
-  // begruesst wurde, bekommt keine mehr (lib/himbi-tagesbeginn.ts).
+  // mir". Wer heute schon im Sprachmodus begruesst wurde, bekommt keine mehr
+  // (lib/himbi-tagesbeginn.ts).
+  // Der Timer legt den Gruss nur bereit. Gemerkt und die Anzeigedauer gestartet wird erst, wenn
+  // er die gezeigte Blase ist (tagesGrussGezeigt unten, Befund vom 28.09.2026): vorher merkte
+  // der Timer ihn auch hinter Tour-Frage, laufender Tour oder Live-Hinweis und im
+  // Hintergrund-Tab, und der Gruss verfiel fuer den ganzen Tag, ohne dass ihn jemand sah.
   const [tagesGruss, setTagesGruss] = useState<Tageszeit | null>(null);
+  // Im Sprachmodus beginnt das Gespraech den Tag; ein Gruss, der noch wartet, faellt weg. Ist er
+  // danach noch faellig (die Begruessung im Gespraech kam nicht zustande), plant der Timer neu.
+  if (sprachmodus && tagesGruss) setTagesGruss(null);
   const grussMoeglich = verfuegbar && !handy && an && !weg && !sprachmodus && tagesbeginnAn && ruhigGenug;
   useEffect(() => {
     if (!grussMoeglich || tagesGruss) return;
@@ -189,16 +217,10 @@ export function HaustierDashboard() {
     const zeigen = window.setTimeout(() => {
       const jetzt = new Date();
       if (!tagesbeginnFaellig(ablage, nutzerId, "blase", jetzt)) return;
-      merkeTagesbeginn(ablage, nutzerId, "blase", jetzt);
       setTagesGruss(tageszeitBestimmen(jetzt));
     }, TAGESGRUSS_VERZOEGERUNG_MS);
     return () => window.clearTimeout(zeigen);
   }, [grussMoeglich, tagesGruss, nutzerId]);
-  useEffect(() => {
-    if (!tagesGruss) return;
-    const id = window.setTimeout(() => setTagesGruss(null), TAGESGRUSS_DAUER_MS);
-    return () => window.clearTimeout(id);
-  }, [tagesGruss]);
 
   // Anstupser: die naechste noch nicht gestellte Frage, sobald lange nichts passiert.
   const [anstupser, setAnstupser] = useState<(typeof ANSTUPSER)[number] | null>(null);
@@ -216,31 +238,23 @@ export function HaustierDashboard() {
     if (!ruhigGenug) return;
     const naechste = ANSTUPSER.find((a) => !gestellt.current.has(a));
     if (!naechste || absagen.current >= ANSTUPSER_ABSAGEN_MAX) return;
-    const zeigen = window.setTimeout(() => {
-      gestellt.current.add(naechste);
-      try {
-        window.sessionStorage.setItem(ANSTUPSER_SCHLUESSEL, [...gestellt.current].join(","));
-      } catch {
-        // egal
-      }
-      setAnstupser(naechste);
-    }, ANSTUPSER_VERZOEGERUNG_MS);
+    // Nur bereitlegen: als gestellt gemerkt, die 18 s gestartet und beim Ablauf als Absage
+    // gezaehlt wird erst, wenn er die gezeigte Blase ist (anstupserGezeigt unten, 28.09.2026).
+    // Vorher zaehlte ein Anstupser hinter der Tour-Frage oder im Hintergrund-Tab als Absage.
+    const zeigen = window.setTimeout(() => setAnstupser(naechste), ANSTUPSER_VERZOEGERUNG_MS);
     return () => window.clearTimeout(zeigen);
   }, [ruhigGenug]);
-  useEffect(() => {
-    if (!anstupser) return;
-    const id = window.setTimeout(() => {
-      absagen.current += 1;
-      setAnstupser(null);
-    }, ANSTUPSER_DAUER_MS);
-    return () => window.clearTimeout(id);
-  }, [anstupser]);
 
   // Tipp zum Modul: einmal pro Modul und Sitzung, erst nach einer Weile Ruhe.
   const [gemerkterTipp, setTipp] = useState<{ key: string; titel: string; pfad: string } | null>(null);
   // Ein Tipp gilt nur fuer die Seite, auf der er entstand.
   const tipp = gemerkterTipp && gemerkterTipp.pfad === pfad ? gemerkterTipp : null;
   useEffect(() => {
+    // Erst nach einer Weile Ruhe, und nicht noch einmal, solange einer bereitliegt. Der Merker
+    // wird erst gesetzt, wenn der Tipp die gezeigte Blase ist (tippGezeigt unten, Befund vom
+    // 28.09.2026): vorher lief der Tipp hinter dem Tagesgruss ab und kam fuer dieses Modul die
+    // ganze Sitzung nicht wieder.
+    if (!ruhigGenug || tipp) return;
     const modul = modulAusPfad(pfad, modules);
     if (!modul || !hasPermission(role, modul.resource, "view")) return;
     // Nicht auf den Platzhalterseiten. Dort stand "Soll ich dir zeigen, was
@@ -252,21 +266,102 @@ export function HaustierDashboard() {
     } catch {
       // ohne Speicher: Tipp erscheint bei jedem Besuch, das ist verkraftbar
     }
-    const zeigen = window.setTimeout(() => {
-      try {
-        window.sessionStorage.setItem(merker, "1");
-      } catch {
-        // egal
-      }
-      setTipp({ key: modul.key, titel: moduleT(`${modul.key}.title`), pfad });
-    }, TIPP_VERZOEGERUNG_MS);
+    const zeigen = window.setTimeout(
+      () => setTipp({ key: modul.key, titel: moduleT(`${modul.key}.title`), pfad }),
+      TIPP_VERZOEGERUNG_MS,
+    );
     return () => window.clearTimeout(zeigen);
-  }, [pfad, role, moduleT]);
+  }, [pfad, role, moduleT, ruhigGenug, tipp]);
+
+  // --- Welche Blase gerade zu sehen ist ------------------------------------------------------
+  // Die Bedingungen stehen hier oben (vor den fruehen return), weil die Effekte darunter auf die
+  // gezeigte Blase reagieren und Hooks nicht hinter einem return stehen duerfen.
+  // Echte Arbeit (Freigabe/Arbeitet/Fehler) und eine frisch angekommene Antwort gewinnen immer
+  // vor dem Live-Lauf-Hinweis und der Compliance-Tour: die Fuehrung wartet lieber kurz, als eine
+  // Meldung zu verdecken, die Aufmerksamkeit braucht.
+  const keineWichtigereMeldung = phase !== "freigabe" && phase !== "arbeitet" && phase !== "fehler" && !fertigBlase;
+  const liveHinweisSichtbar = !offen && keineWichtigereMeldung && liveHinweisAktiv;
+  const tourAktivSichtbar = !offen && keineWichtigereMeldung && !liveHinweisSichtbar && tour.aktiv;
+  const befindenSichtbar = befindenFrage && ruhigGenug && !tipp;
+  const tippSichtbar = !!tipp && ruhigGenug && !befindenSichtbar;
+  const anstupserSichtbar = !!anstupser && ruhigGenug && !befindenSichtbar && !tippSichtbar && !befindenBlase;
+  const tourFrageSichtbar = tour.frageBereit && ruhigGenug && !tipp;
+  const tagesGrussSichtbar = !!tagesGruss && ruhigGenug && !sprachmodus && tagesbeginnAn;
+
+  // Eine einzige, geordnete Liste (dringendste zuerst) statt zwoelf ineinander verschachtelter
+  // if/else-Zweige; der erste sichtbare Kandidat gewinnt (lib/haustier.ts sichtbareBlase). Der
+  // Inhalt jeder Blase steht weiter unten in blasenInhalt.
+  const blasenReihenfolge: BlasenKandidat<BlasenArt>[] = [
+    { art: "willkommen", sichtbar: willkommen },
+    { art: "freigabe", sichtbar: phase === "freigabe" },
+    { art: "arbeitet", sichtbar: phase === "arbeitet" },
+    { art: "fehler", sichtbar: phase === "fehler" },
+    { art: "fertig", sichtbar: fertigBlase },
+    { art: "liveHinweis", sichtbar: liveHinweisSichtbar },
+    { art: "tourAktiv", sichtbar: tourAktivSichtbar },
+    { art: "tourFrage", sichtbar: tourFrageSichtbar },
+    { art: "tagesgruss", sichtbar: tagesGrussSichtbar },
+    { art: "befinden", sichtbar: befindenSichtbar },
+    { art: "befindenAntwort", sichtbar: befindenBlase && !!befinden },
+    { art: "anstupser", sichtbar: anstupserSichtbar },
+    { art: "tipp", sichtbar: tippSichtbar },
+  ];
+  // gezeigt: Himbi steht im Bild (nicht auf dem Handy, nicht weg oder aus, im Sprachmodus ist die
+  // Figur verborgen) und die Seite liegt im Vordergrund.
+  const blasen = sichtbareBlase(blasenReihenfolge, {
+    paneOffen: offen,
+    figurImBild: verfuegbar && !handy && an && !weg && !sprachmodus,
+    seiteSichtbar,
+  });
+
+  // Merker und Anzeigedauer erst ab dem Moment, in dem die Blase die gezeigte ist. Verdeckt sie
+  // danach etwas Dringenderes, haelt ihre Uhr an und beginnt neu, sobald sie wieder dran ist:
+  // sonst liefe sie wie vorher hinter einer anderen Blase ab.
+  const tagesGrussGezeigt = blasen.gezeigt === "tagesgruss";
   useEffect(() => {
-    if (!tipp) return;
+    if (!tagesGrussGezeigt) return;
+    merkeTagesbeginn(browserAblage(), nutzerId, "blase");
+    const id = window.setTimeout(() => setTagesGruss(null), TAGESGRUSS_DAUER_MS);
+    return () => window.clearTimeout(id);
+  }, [tagesGrussGezeigt, nutzerId]);
+
+  const tippGezeigt = blasen.gezeigt === "tipp";
+  useEffect(() => {
+    if (!tippGezeigt || !tipp) return;
+    try {
+      window.sessionStorage.setItem(`damicon-haustier-tipp:${tipp.key}`, "1");
+    } catch {
+      // egal
+    }
     const id = window.setTimeout(() => setTipp(null), TIPP_DAUER_MS);
     return () => window.clearTimeout(id);
-  }, [tipp]);
+  }, [tippGezeigt, tipp]);
+
+  const anstupserGezeigt = blasen.gezeigt === "anstupser";
+  useEffect(() => {
+    if (!anstupserGezeigt || !anstupser) return;
+    gestellt.current.add(anstupser);
+    try {
+      window.sessionStorage.setItem(ANSTUPSER_SCHLUESSEL, [...gestellt.current].join(","));
+    } catch {
+      // egal
+    }
+    const id = window.setTimeout(() => {
+      absagen.current += 1;
+      setAnstupser(null);
+    }, ANSTUPSER_DAUER_MS);
+    return () => window.clearTimeout(id);
+  }, [anstupserGezeigt, anstupser]);
+
+  const befindenGezeigt = blasen.gezeigt === "befinden";
+  useEffect(() => {
+    if (!befindenGezeigt) return;
+    try {
+      window.sessionStorage.setItem(BEFINDEN_SCHLUESSEL, "1");
+    } catch {
+      // egal
+    }
+  }, [befindenGezeigt]);
 
   if (!verfuegbar || handy) return null;
   if (weg) {
@@ -290,12 +385,6 @@ export function HaustierDashboard() {
   // Kopfzeile oeffnet weiterhin das angedockte Panel.
   const aufBuehne = offen && darstellung === "buehne";
 
-  // Echte Arbeit (Freigabe/Arbeitet/Fehler) und eine frisch angekommene Antwort gewinnen immer
-  // vor dem Live-Lauf-Hinweis und der Compliance-Tour: die Fuehrung wartet lieber kurz, als eine
-  // Meldung zu verdecken, die Aufmerksamkeit braucht.
-  const keineWichtigereMeldung = phase !== "freigabe" && phase !== "arbeitet" && phase !== "fehler" && !fertigBlase;
-  const liveHinweisSichtbar = !offen && keineWichtigereMeldung && liveHinweisAktiv;
-  const tourAktivSichtbar = !offen && keineWichtigereMeldung && !liveHinweisSichtbar && tour.aktiv;
   const zustand = willkommen
     ? "fertig"
     : liveHinweisSichtbar
@@ -304,11 +393,6 @@ export function HaustierDashboard() {
         ? tour.tourZustand
         : haustierZustand({ phase, fertigUngelesen: fertig, schlaeft: false });
   const label = t(`label.${zustand}`);
-  const befindenSichtbar = befindenFrage && ruhigGenug && !tipp;
-  const tippSichtbar = !!tipp && ruhigGenug && !befindenSichtbar;
-  const anstupserSichtbar = !!anstupser && ruhigGenug && !befindenSichtbar && !tippSichtbar && !befindenBlase;
-  const tourFrageSichtbar = tour.frageBereit && ruhigGenug && !tipp;
-  const tagesGrussSichtbar = !!tagesGruss && ruhigGenug && !sprachmodus && tagesbeginnAn;
 
   // Die Antwort des Menschen gewinnt fuer eine Weile vor der Miene aus dem Antworttext:
   // wer gerade gesagt hat, dass viel los ist, soll kein zufriedenes Gesicht sehen.
@@ -321,195 +405,164 @@ export function HaustierDashboard() {
     setEigeneMiene(wahl === "gut" ? "gut" : wahl === "viel" ? "warnung" : "neutral");
   }
 
-  // Welche Sprechblase Himbi gerade zeigt: eine einzige, geordnete Kandidatenliste (dringendste
-  // zuerst) statt zwoelf ineinander verschachtelter if/else-Zweige. Jeder Kandidat traegt seine
-  // eigene "sichtbar"-Bedingung (unveraendert dieselben Ausdruecke wie zuvor, einige davon -
-  // liveHinweisSichtbar, tourAktivSichtbar, befindenSichtbar, tippSichtbar, anstupserSichtbar,
-  // tourFrageSichtbar - werden auch anderswo unten gebraucht, deshalb weiterhin eigene Variablen
-  // statt inline in der Liste). Der erste sichtbare Kandidat gewinnt, alle anderen werden zwar
-  // gebaut (reines JSX, ohne Seiteneffekt), aber nicht gezeigt.
-  const blaseKandidaten: { sichtbar: boolean; blase: ReactNode }[] = [
-    { sichtbar: willkommen, blase: <p className="hb-blase__text">{t("willkommen")}</p> },
-    {
-      sichtbar: phase === "freigabe",
-      blase: (
-        <>
-          <p className="hb-blase__text">{t("freigabe")}</p>
-          <div className="hb-blase__knoepfe">
-            <button type="button" className="hb-knopf" onClick={() => setOffen(true)}>
-              {t("ansehen")}
-            </button>
-          </div>
-        </>
-      ),
-    },
-    {
-      sichtbar: phase === "arbeitet",
-      blase: (
-        <>
-          <p className="hb-blase__text">{text || t("arbeitet")}</p>
-          <p className="hb-blase__klein">{t("imHintergrund")}</p>
-        </>
-      ),
-    },
-    { sichtbar: phase === "fehler", blase: <p className="hb-blase__text">{t("fehler")}</p> },
-    {
-      sichtbar: fertigBlase,
-      blase: (
-        <>
-          <p className="hb-blase__text">{t("fertig")}</p>
-          <div className="hb-blase__knoepfe">
-            <button type="button" className="hb-knopf" onClick={() => setOffen(true)}>
-              {t("ansehen")}
-            </button>
-          </div>
-        </>
-      ),
-    },
-    {
-      sichtbar: liveHinweisSichtbar,
-      blase: (
-        <>
-          <p className="hb-blase__text">{ceoT("liveHinweis")}</p>
-          <div className="hb-blase__knoepfe">
-            <button type="button" className="hb-knopf" onClick={() => setLiveHinweisAktiv(false)}>
-              {ceoT("liveHinweisKnopf")}
-            </button>
-          </div>
-        </>
-      ),
-    },
-    { sichtbar: tourAktivSichtbar, blase: tour.tourBlase },
-    { sichtbar: tourFrageSichtbar, blase: tour.frageBlase },
-    {
-      sichtbar: tagesGrussSichtbar,
-      // Wie bei befinden unten: nur mit echtem Wert bauen, sonst fragte next-intl bei jedem
-      // Rendern nach einem Schluessel "null".
-      blase: tagesGruss ? (
-        <>
-          <p className="hb-blase__text">
-            {t("tagesgruss.frage", {
-              anrede: name ? begruessungT(tagesGruss, { name: anredeName(name) }) : begruessungT(`${tagesGruss}OhneNamen`),
-            })}
-          </p>
+  // Der Inhalt jeder Sprechblase; welche davon gezeigt wird, entscheidet blasenReihenfolge oben
+  // (lib/haustier.ts sichtbareBlase). Alle werden gebaut (reines JSX, ohne Seiteneffekt), nur
+  // die gewaehlte wird gezeigt.
+  const blasenInhalt: Record<BlasenArt, ReactNode> = {
+    willkommen: <p className="hb-blase__text">{t("willkommen")}</p>,
+    freigabe: (
+      <>
+        <p className="hb-blase__text">{t("freigabe")}</p>
+        <div className="hb-blase__knoepfe">
+          <button type="button" className="hb-knopf" onClick={() => setOffen(true)}>
+            {t("ansehen")}
+          </button>
+        </div>
+      </>
+    ),
+    arbeitet: (
+      <>
+        <p className="hb-blase__text">{text || t("arbeitet")}</p>
+        <p className="hb-blase__klein">{t("imHintergrund")}</p>
+      </>
+    ),
+    fehler: <p className="hb-blase__text">{t("fehler")}</p>,
+    fertig: (
+      <>
+        <p className="hb-blase__text">{t("fertig")}</p>
+        <div className="hb-blase__knoepfe">
+          <button type="button" className="hb-knopf" onClick={() => setOffen(true)}>
+            {t("ansehen")}
+          </button>
+        </div>
+      </>
+    ),
+    liveHinweis: (
+      <>
+        <p className="hb-blase__text">{ceoT("liveHinweis")}</p>
+        <div className="hb-blase__knoepfe">
+          <button type="button" className="hb-knopf" onClick={() => setLiveHinweisAktiv(false)}>
+            {ceoT("liveHinweisKnopf")}
+          </button>
+        </div>
+      </>
+    ),
+    tourAktiv: tour.tourBlase,
+    tourFrage: tour.frageBlase,
+    // Wie bei befinden unten: nur mit echtem Wert bauen, sonst fragte next-intl bei jedem
+    // Rendern nach einem Schluessel "null".
+    tagesgruss: tagesGruss ? (
+      <>
+        <p className="hb-blase__text">
+          {t("tagesgruss.frage", {
+            anrede: name ? begruessungT(tagesGruss, { name: anredeName(name) }) : begruessungT(`${tagesGruss}OhneNamen`),
+          })}
+        </p>
+        <div className="hb-blase__knoepfe">
+          <button
+            type="button"
+            className="hb-knopf"
+            onClick={() => {
+              stelleFrage(t("befinden.hilfeText"));
+              setTagesGruss(null);
+            }}
+          >
+            {t("tagesgruss.ja")}
+          </button>
+          <button type="button" className="hb-knopf hb-knopf--leise" onClick={() => setTagesGruss(null)}>
+            {t("tagesgruss.nein")}
+          </button>
+        </div>
+      </>
+    ) : null,
+    befinden: (
+      <>
+        <p className="hb-blase__text">{t("befinden.frage")}</p>
+        <div className="hb-blase__knoepfe">
+          <button type="button" className="hb-knopf" onClick={() => antworteAufBefinden("gut")}>
+            {t("befinden.gut")}
+          </button>
+          <button type="button" className="hb-knopf hb-knopf--leise" onClick={() => antworteAufBefinden("mittel")}>
+            {t("befinden.mittel")}
+          </button>
+          <button type="button" className="hb-knopf hb-knopf--leise" onClick={() => antworteAufBefinden("viel")}>
+            {t("befinden.viel")}
+          </button>
+        </div>
+      </>
+    ),
+    // Wie bei anstupser/tipp unten: erst bei echtem Wert bauen, nicht nur bei echtem
+    // "sichtbar" pruefen - alle Kandidaten werden unabhaengig vom Gewinner konstruiert, ein
+    // befinden.antwort.null wuerde sonst bei jedem Rendern eine next-intl-Fehlermeldung
+    // auf der Konsole erzeugen (live verifiziert).
+    befindenAntwort: befinden ? (
+      <>
+        <p className="hb-blase__text">{t(`befinden.antwort.${befinden}`)}</p>
+        {befinden === "viel" ? (
           <div className="hb-blase__knoepfe">
             <button
               type="button"
               className="hb-knopf"
               onClick={() => {
                 stelleFrage(t("befinden.hilfeText"));
-                setTagesGruss(null);
+                setBefindenBlase(false);
               }}
             >
-              {t("tagesgruss.ja")}
-            </button>
-            <button type="button" className="hb-knopf hb-knopf--leise" onClick={() => setTagesGruss(null)}>
-              {t("tagesgruss.nein")}
+              {t("befinden.hilfe")}
             </button>
           </div>
-        </>
-      ) : null,
-    },
-    {
-      sichtbar: befindenSichtbar,
-      blase: (
-        <>
-          <p className="hb-blase__text">{t("befinden.frage")}</p>
-          <div className="hb-blase__knoepfe">
-            <button type="button" className="hb-knopf" onClick={() => antworteAufBefinden("gut")}>
-              {t("befinden.gut")}
-            </button>
-            <button type="button" className="hb-knopf hb-knopf--leise" onClick={() => antworteAufBefinden("mittel")}>
-              {t("befinden.mittel")}
-            </button>
-            <button type="button" className="hb-knopf hb-knopf--leise" onClick={() => antworteAufBefinden("viel")}>
-              {t("befinden.viel")}
-            </button>
-          </div>
-        </>
-      ),
-    },
-    {
-      sichtbar: befindenBlase && !!befinden,
-      // Wie bei anstupser/tipp unten: erst bei echtem Wert bauen, nicht nur bei echtem
-      // "sichtbar" pruefen - alle Kandidaten werden unabhaengig vom Gewinner konstruiert, ein
-      // befinden.antwort.null wuerde sonst bei jedem Rendern eine next-intl-Fehlermeldung
-      // auf der Konsole erzeugen (live verifiziert).
-      blase: befinden ? (
-        <>
-          <p className="hb-blase__text">{t(`befinden.antwort.${befinden}`)}</p>
-          {befinden === "viel" ? (
-            <div className="hb-blase__knoepfe">
-              <button
-                type="button"
-                className="hb-knopf"
-                onClick={() => {
-                  stelleFrage(t("befinden.hilfeText"));
-                  setBefindenBlase(false);
-                }}
-              >
-                {t("befinden.hilfe")}
-              </button>
-            </div>
-          ) : null}
-        </>
-      ) : null,
-    },
-    {
-      sichtbar: anstupserSichtbar && !!anstupser,
-      blase: anstupser ? (
-        <>
-          <p className="hb-blase__text">{t(`anstupser.${anstupser}.frage`)}</p>
-          <div className="hb-blase__knoepfe">
-            <button
-              type="button"
-              className="hb-knopf"
-              onClick={() => {
-                stelleFrage(t(`anstupser.${anstupser}.frageText`));
-                setAnstupser(null);
-              }}
-            >
-              {t("tipp.ja")}
-            </button>
-            <button
-              type="button"
-              className="hb-knopf hb-knopf--leise"
-              onClick={() => {
-                absagen.current += 1;
-                setAnstupser(null);
-              }}
-            >
-              {t("tipp.spaeter")}
-            </button>
-          </div>
-        </>
-      ) : null,
-    },
-    {
-      sichtbar: tippSichtbar && !!tipp,
-      blase: tipp ? (
-        <>
-          <p className="hb-blase__text">{t("tipp.frage", { bereich: tipp.titel })}</p>
-          <div className="hb-blase__knoepfe">
-            <button
-              type="button"
-              className="hb-knopf"
-              onClick={() => {
-                stelleFrage(t("tipp.frageText", { bereich: tipp.titel }));
-                setTipp(null);
-              }}
-            >
-              {t("tipp.ja")}
-            </button>
-            <button type="button" className="hb-knopf hb-knopf--leise" onClick={() => setTipp(null)}>
-              {t("tipp.spaeter")}
-            </button>
-          </div>
-        </>
-      ) : null,
-    },
-  ];
-  const blase = offen ? null : (blaseKandidaten.find((k) => k.sichtbar)?.blase ?? null);
+        ) : null}
+      </>
+    ) : null,
+    anstupser: anstupser ? (
+      <>
+        <p className="hb-blase__text">{t(`anstupser.${anstupser}.frage`)}</p>
+        <div className="hb-blase__knoepfe">
+          <button
+            type="button"
+            className="hb-knopf"
+            onClick={() => {
+              stelleFrage(t(`anstupser.${anstupser}.frageText`));
+              setAnstupser(null);
+            }}
+          >
+            {t("tipp.ja")}
+          </button>
+          <button
+            type="button"
+            className="hb-knopf hb-knopf--leise"
+            onClick={() => {
+              absagen.current += 1;
+              setAnstupser(null);
+            }}
+          >
+            {t("tipp.spaeter")}
+          </button>
+        </div>
+      </>
+    ) : null,
+    tipp: tipp ? (
+      <>
+        <p className="hb-blase__text">{t("tipp.frage", { bereich: tipp.titel })}</p>
+        <div className="hb-blase__knoepfe">
+          <button
+            type="button"
+            className="hb-knopf"
+            onClick={() => {
+              stelleFrage(t("tipp.frageText", { bereich: tipp.titel }));
+              setTipp(null);
+            }}
+          >
+            {t("tipp.ja")}
+          </button>
+          <button type="button" className="hb-knopf hb-knopf--leise" onClick={() => setTipp(null)}>
+            {t("tipp.spaeter")}
+          </button>
+        </div>
+      </>
+    ) : null,
+  };
+  const blase = blasen.gewaehlt ? blasenInhalt[blasen.gewaehlt] : null;
 
   return (
     <>
