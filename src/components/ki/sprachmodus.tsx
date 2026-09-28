@@ -78,6 +78,8 @@ export function Sprachmodus() {
  *  Stoppwort-Waechter anhaelt (kurz genug, um sofort zu wirken, lang genug, dass
  *  ein vorlaeufiges Wort, das die Erkennung gleich korrigiert, nichts ausloest). */
 const STOPP_STABIL_MS = 350;
+/** So lange darf beim Dazwischenreden Stille sein, ohne dass der Einsatz der Stimme verfaellt. */
+const EINSATZ_HALTEN_MS = 1_000;
 
 /** Ein Symbol je Zustand, neben dem Zustandstext - der Ton haengt nie an
  *  der Farbe des Scheins hinter Himbi allein (Rueckmeldung vom 25.09.2026: die vier Farben
@@ -284,7 +286,10 @@ function SprachmodusInhalt() {
         // "Stopp, zeig mir lieber die Reklamationen": das Befehlswort hat schon gewirkt. Bei
         // offener Freigabe bleibt "Nein" eine Absage.
         nachUnterbrechung.current = false;
-        const befehl = leseFreigabeAnfrage() ? null : unterbrechungsBefehl(text);
+        // Vor dem Befehl kann noch ein Rest von Himbis Echo stehen ("Hof. Stopp, zeig mir ...");
+        // gesucht wird deshalb in den ersten Woertern, nicht nur ganz am Anfang.
+        const b = befehlsBeginn(t.woerter.slice(0, 4).map((w) => w.text), () => false);
+        const befehl = leseFreigabeAnfrage() || b === null ? null : unterbrechungsBefehl(t.woerter.slice(b).map((w) => w.text).join(" "));
         if (befehl) text = befehl.rest;
       }
       if (!istGesprochen(text) && !vorsatz.current) return;
@@ -528,6 +533,7 @@ function SprachmodusInhalt() {
     const waechter = erzeugeUnterbrechungsWaechter();
     let bild = 0;
     let einsatz: number | null = null;
+    let stillSeit: number | null = null;
     const schritt = () => {
       // Hat ein Befehlswort schon unterbrochen, laeuft dieser Takt bis zum Aufraeumen des
       // Effekts noch einmal: kein zweites Unterbrechen, das die Grenze hinter die ersten Worte
@@ -540,7 +546,16 @@ function SprachmodusInhalt() {
         unterbrecheHimbi();
         return;
       }
-      einsatz = urteil === "vielleicht" ? (einsatz ?? audioJetzt()) : null;
+      // Der Einsatz ueberdauert kurze Pausen: in "Stopp, zeig mir ..." zaehlt der Waechter die
+      // Kommapause als Stille und hielte sonst erst "zeig" fuer den Anfang (Messung vom 28.09.2026).
+      const jetzt = audioJetzt();
+      if (urteil === "vielleicht") {
+        einsatz = einsatz ?? jetzt;
+        stillSeit = null;
+      } else {
+        stillSeit = stillSeit ?? jetzt;
+        if (jetzt - stillSeit > EINSATZ_HALTEN_MS) einsatz = null;
+      }
       bild = window.requestAnimationFrame(schritt);
     };
     bild = window.requestAnimationFrame(schritt);

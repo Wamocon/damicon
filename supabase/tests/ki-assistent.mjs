@@ -2947,7 +2947,8 @@ for (const [name, kaputteAntwort] of [
   {
     const modusQ = lies2("components/ki/sprachmodus.tsx");
     pruefe("Sprachmodus: 'Sprachmodus beenden' beendet, 'Stopp' beim Zuhoeren stellt keine Frage", /if \(istBeendenBefehl\(text\)\) \{\s*beendenRef\.current\(\);\s*return;/.test(modusQ) && modusQ.includes("if (istNurAnhalten(text) && !vorsatz.current) return;"));
-    pruefe("Sprachmodus: nach einer Unterbrechung faellt das Befehlswort aus der naechsten Frage", /if \(nachUnterbrechung\.current\) \{[\s\S]{0,400}const befehl = leseFreigabeAnfrage\(\) \? null : unterbrechungsBefehl\(text\);\s*if \(befehl\) text = befehl\.rest;/.test(modusQ));
+    pruefe("Sprachmodus: nach einer Unterbrechung faellt das Befehlswort aus der naechsten Frage", /if \(nachUnterbrechung\.current\) \{[\s\S]{0,600}const b = befehlsBeginn\(t\.woerter\.slice\(0, 4\)\.map\(\(w\) => w\.text\), \(\) => false\);\s*const befehl = leseFreigabeAnfrage\(\) \|\| b === null \? null : unterbrechungsBefehl\(t\.woerter\.slice\(b\)\.map\(\(w\) => w\.text\)\.join\(" "\)\);\s*if \(befehl\) text = befehl\.rest;/.test(modusQ));
+    pruefe("Sprachmodus: der Einsatz der Stimme ueberdauert die Kommapause nach 'Stopp,' (hoechstens 1 s Stille)", modusQ.includes("const EINSATZ_HALTEN_MS = 1_000;") && modusQ.includes("if (jetzt - stillSeit > EINSATZ_HALTEN_MS) einsatz = null;"));
     pruefe("Sprachmodus: Unterbrechen haelt nur Himbi an und merkt sich den Satz, bei dem er unterbrochen wurde", /const unterbrecheHimbi = useCallback\(\(\) => \{\s*const gerade = leseGerade\(\);\s*unterbrochenBei\.current = gerade\?\.satz \?\? gerade\?\.vorher \?\? null;\s*grenzeSteht\.current = true;[\s\S]{0,120}nachUnterbrechung\.current = true;\s*unterbrichChat\(\);\s*dispatch\(\{ art: "unterbrechen" \}\);/.test(modusQ));
   }
 
