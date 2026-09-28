@@ -156,7 +156,7 @@ export async function ReklamationenAnsicht({
 
         <div className="space-y-3">
           {!detail ? (
-            <Card className="text-center text-xs text-muted-foreground">{t("detailEmpty")}</Card>
+            <LeererZustand titel={t("detailEmpty")} {...modulSymbol("reklamationen")} />
           ) : (
             <>
               <Card>

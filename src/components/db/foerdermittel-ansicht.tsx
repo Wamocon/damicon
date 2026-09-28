@@ -1,6 +1,6 @@
-import { Download } from "lucide-react";
+import { Download, Plus } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Card, DataTable, Section, StatusPill, type Tone } from "@/components/ui/kit";
+import { Card, DataTable, Section, StatusPill, knopfKlassen, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   DossierAktualisierenFormular,
@@ -9,6 +9,10 @@ import {
 import { istFristUeberfaellig, ladeFoerdermittel } from "@/lib/data/foerdermittel";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { LeererZustand } from "@/components/ui/liste";
+import { ZumFormular } from "@/components/ui/zum-formular";
+import { modulSymbol } from "@/lib/modules";
+import { formularZiel } from "@/lib/formular-ziele";
 
 const statusTon: Record<string, Tone> = {
   entwurf: "neutral",
@@ -58,8 +62,20 @@ export async function FoerdermittelAnsicht() {
         >
           {uebersicht.dossiers.length === 0 ? (
             <tr>
-              <td colSpan={6} className="px-3 py-4 text-center text-xs text-muted-foreground">
-                {t("keineDossiers")}
+              <td colSpan={6} className="px-3 py-2">
+                <LeererZustand
+                  titel={t("keineDossiers")}
+                  {...modulSymbol("foerdermittel")}
+                  bewegt={darfAnlegen}
+                  aktion={
+                    darfAnlegen ? (
+                      <ZumFormular ziel={formularZiel.dossier} className={knopfKlassen()}>
+                        <Plus className="h-4 w-4" aria-hidden="true" />
+                        {t("formular.anlegen.titel")}
+                      </ZumFormular>
+                    ) : undefined
+                  }
+                />
               </td>
             </tr>
           ) : (

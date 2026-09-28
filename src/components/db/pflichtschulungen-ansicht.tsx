@@ -1,10 +1,12 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Card, DataTable, Section, StatusPill, type Tone } from "@/components/ui/kit";
+import { DataTable, Section, StatusPill, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import { TeilnahmeErfassenKnopf } from "@/components/db/pflichtschulungen-formulare";
 import { ladePflichtschulungen } from "@/lib/data/pflichtschulungen";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { LeererZustand } from "@/components/ui/liste";
+import { modulSymbol } from "@/lib/modules";
 
 const statusTon: Record<string, Tone> = {
   nie: "danger",
@@ -43,7 +45,7 @@ export async function PflichtschulungenAnsicht() {
       action={<DatenquelleBadge quelle={uebersicht.quelle} />}
     >
       {uebersicht.zeilen.length === 0 ? (
-        <Card className="text-center text-xs text-muted-foreground">{t("keineZeilen")}</Card>
+        <LeererZustand titel={t("keineZeilen")} {...modulSymbol("schulungen")} />
       ) : (
         <DataTable
           head={[

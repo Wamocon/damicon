@@ -13,6 +13,7 @@ import {
   PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Formulare des Foerdermitteldossiers (Anforderung 4.12). Wie bei
 // finanzen-formulare.tsx: "Anlegen" fuer ein neues Dossier, "Aktualisieren"
@@ -24,7 +25,7 @@ export function DossierAnlegenFormular() {
   const t = useTranslations("foerdermittelAnsicht.formular.anlegen");
 
   return (
-    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+    <FormularKarte id={formularZiel.dossier} titel={t("titel")} beschreibung={t("lead")}>
       <form action={action} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5">
         <PfadFeld />
         <Feld label={t("portal")} name="portal" required placeholder="gosagro.kz" />

@@ -123,7 +123,7 @@ export async function PreislistenAnsicht() {
 
       <Section title={t("kundengruppenTitel")} description={t("kundengruppenLead")}>
         {kunden.kunden.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keineKunden")}</Card>
+          <LeererZustand titel={t("keineKunden")} {...modulSymbol("preislisten")} />
         ) : (
           <div className="space-y-2.5">
             {kunden.kunden.map((k) => (

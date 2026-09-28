@@ -94,7 +94,7 @@ export function KontingentErstellenFormular({
   const t = useTranslations("sortenkatalogAnsicht.formular.kontingentErstellen");
 
   return (
-    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+    <FormularKarte id={formularZiel.kontingent} titel={t("titel")} beschreibung={t("lead")}>
       <form action={action} className="space-y-2.5">
         <PfadFeld />
         <div className="flex flex-wrap gap-2.5">

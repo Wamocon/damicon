@@ -107,7 +107,7 @@ export async function SortenkatalogAnsicht() {
 
       <Section title={t("verfuegbarkeitTitel")} description={t("verfuegbarkeitLead")}>
         {verfuegbarkeit.zeilen.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keineVerfuegbarkeit")}</Card>
+          <LeererZustand titel={t("keineVerfuegbarkeit")} {...modulSymbol("sortenkatalog")} />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {verfuegbarkeit.zeilen.map((z) => {
@@ -146,7 +146,19 @@ export async function SortenkatalogAnsicht() {
       {darfVerwalten && kontingente ? (
         <Section title={t("kontingenteTitel")} description={t("kontingenteLead")}>
           {kontingente.kontingente.length === 0 ? (
-            <Card className="text-center text-xs text-muted-foreground">{t("keineKontingente")}</Card>
+            <LeererZustand
+              titel={t("keineKontingente")}
+              {...modulSymbol("sortenkatalog")}
+              bewegt={darfVerwalten}
+              aktion={
+                darfVerwalten ? (
+                  <ZumFormular ziel={formularZiel.kontingent} className={knopfKlassen()}>
+                    <Plus className="h-4 w-4" aria-hidden="true" />
+                    {t("formular.kontingentErstellen.titel")}
+                  </ZumFormular>
+                ) : undefined
+              }
+            />
           ) : (
             <DataTable head={[t("col.kunde"), t("col.sorte"), t("col.saison"), t("col.menge"), t("col.reserviert"), ""]}>
               {kontingente.kontingente.map((k) => (

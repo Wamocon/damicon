@@ -171,8 +171,8 @@ export async function LohnAnsicht() {
         >
           {abrechnungen.length === 0 ? (
             <tr>
-              <td colSpan={11} className="px-3 py-4 text-center text-xs text-muted-foreground">
-                {t("keineAbrechnungen")}
+              <td colSpan={11} className="px-3 py-2">
+                <LeererZustand titel={t("keineAbrechnungen")} {...modulSymbol("lohn")} />
               </td>
             </tr>
           ) : (
@@ -248,8 +248,8 @@ export async function LohnAnsicht() {
         >
           {positionen.length === 0 ? (
             <tr>
-              <td colSpan={7} className="px-3 py-4 text-center text-xs text-muted-foreground">
-                {t("keinePositionen")}
+              <td colSpan={7} className="px-3 py-2">
+                <LeererZustand titel={t("keinePositionen")} {...modulSymbol("lohn")} />
               </td>
             </tr>
           ) : (
@@ -303,7 +303,7 @@ export async function LohnAnsicht() {
             />
           </div>
         ) : (
-          <Card className="text-center text-xs text-muted-foreground">{kzt("keinSatz")}</Card>
+          <LeererZustand titel={kzt("keinSatz")} {...modulSymbol("lohn")} />
         )}
         {steuersatzKz ? (
           <p className="text-[11px] leading-4 text-muted-foreground">
@@ -327,8 +327,8 @@ export async function LohnAnsicht() {
         >
           {monatsabzuege.length === 0 ? (
             <tr>
-              <td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground">
-                {kzt("keineAbzuege")}
+              <td colSpan={8} className="px-3 py-2">
+                <LeererZustand titel={kzt("keineAbzuege")} {...modulSymbol("lohn")} />
               </td>
             </tr>
           ) : (

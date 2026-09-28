@@ -106,7 +106,7 @@ export async function B2bPortalAnsicht() {
         action={<DatenquelleBadge quelle={uebersicht.quelle} />}
       >
         {uebersicht.lieferungen.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keineLieferungen")}</Card>
+          <LeererZustand titel={t("keineLieferungen")} {...modulSymbol("b2b_portal")} />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {uebersicht.lieferungen.map((l) => (
@@ -153,7 +153,7 @@ export async function B2bPortalAnsicht() {
 
       <Section title={t("rechnungenTitel")} description={t("rechnungenLead")}>
         {rechnungen.zeilen.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keineRechnungen")}</Card>
+          <LeererZustand titel={t("keineRechnungen")} {...modulSymbol("b2b_portal")} />
         ) : (
           <DataTable
             head={
@@ -184,7 +184,7 @@ export async function B2bPortalAnsicht() {
 
       <Section title={t("kontingenteTitel")} description={t("kontingenteLead")}>
         {kontingente.kontingente.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keineKontingente")}</Card>
+          <LeererZustand titel={t("keineKontingente")} {...modulSymbol("b2b_portal")} />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {kontingente.kontingente.map((k) => {
@@ -226,7 +226,7 @@ export async function B2bPortalAnsicht() {
 
       <Section title={t("preislisteTitel")} description={t("preislisteLead")}>
         {preislisten.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keinePreisliste")}</Card>
+          <LeererZustand titel={t("keinePreisliste")} />
         ) : (
           preislisten.map((p) => (
             <Card key={p.id} className="mb-3">

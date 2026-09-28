@@ -244,6 +244,7 @@ export async function FinanzenAnsicht({
           <div className="space-y-3">
             {darfBuchen ? (
               <Aufklapper
+                id={formularZiel.kostentraeger}
                 titel={t("formular.kostentraeger.titel")}
                 beschreibung={t("formular.kostentraeger.lead")}
               >
@@ -271,8 +272,20 @@ export async function FinanzenAnsicht({
               >
                 {deckungsbeitrag.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground">
-                      {t("keineKostentraeger")}
+                    <td colSpan={8} className="px-3 py-2">
+                      <LeererZustand
+                        titel={t("keineKostentraeger")}
+                        {...modulSymbol("finanzen")}
+                        bewegt={darfBuchen}
+                        aktion={
+                          darfBuchen ? (
+                            <ZumFormular ziel={formularZiel.kostentraeger} className={knopfKlassen()}>
+                              <Plus className="h-4 w-4" aria-hidden="true" />
+                              {t("formular.kostentraeger.titel")}
+                            </ZumFormular>
+                          ) : undefined
+                        }
+                      />
                     </td>
                   </tr>
                 ) : (
@@ -340,8 +353,8 @@ export async function FinanzenAnsicht({
                 // ist. Ein Reiter, der mal da ist und mal nicht, verwirrt mehr
                 // als eine Erklaerung, warum nichts drinsteht.
                 <tr>
-                  <td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground">
-                    {t("keineChargen")}
+                  <td colSpan={8} className="px-3 py-2">
+                    <LeererZustand titel={t("keineChargen")} {...modulSymbol("finanzen")} />
                   </td>
                 </tr>
               ) : (

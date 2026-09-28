@@ -290,8 +290,34 @@ Vorschau aller elf in Hell und Dunkel: `anlegen-vorschau.png`.
 
 Beobachtung zur Farbe: Der Bereich Markt hat als Farbe `--warning`. Im Leerzustand von Preislisten, Sortenkatalog, B2B-Portal, Reklamationen und Zukauf steht das Symbol deshalb in Warnfarbe. Im Menü fällt das weniger auf als hier, wo nur das eine Symbol auf der Fläche steht.
 
+## Stufe 3: Leerzustände ohne Knopf
+
+Ein Teil dieser Stufe lag beim Start schon im Arbeitsordner: 16 Dateien, am 28.09.2026 um 17:20 von einer unbekannten zweiten Sitzung geschrieben und nicht committet. Sie folgten der Einteilung oben, liefen fehlerfrei und wurden mit Erwins Zustimmung übernommen. Darin steckte auch ein Fund, der im Katalog fehlte: der Rotationsplan ohne Plan.
+
+Der Katalog vom 25.09. hatte nach „keine“, „leer“ und „nichts“ gesucht. Texte mit „kein“ („Noch kein Plan erzeugt.“) fielen dabei durch. Eine zweite Suche nach „Noch kein“, „Kein“, „Derzeit kein“ und „Aktuell kein“ hat weitere Stellen ergeben, sie sind unten mit „neu“ markiert.
+
+### Umgestellt
+
+| Form | Stellen |
+|---|---|
+| C, mit Knopf | Rotationsplan (neu), Finanzen/Kostenträger (neu), Fördermittel (neu), Kontaktkanäle (neu), Sortenkatalog/Kontingente (neu) |
+| B, Symbol ohne Knopf | Kühlkette (2), Wetter (2), Lohn: Abrechnungen, Positionen, Monatsabzüge, gesetzlicher Abzugssatz (neu); Personal: Bedarf, Einsatzplan; QR-Steigen: Etiketten, Ausweise; Pflichtschulungen; Compliance: Prüfprotokoll, MwSt-Satz (neu); Finanzen: Chargen im Zeitraum; Zukauf: Abrechnung Nachbarbetriebe; B2B-Portal: Lieferungen, Proforma, Kontingente (neu); Preislisten: Kundengruppen (neu); Sortenkatalog: Verfügbarkeit (neu); Pflückaufgaben mit Filter; Reklamation nicht ausgewählt |
+| A, nur Text | Zone ohne Kennzahl, Zone ohne Modul, B2B ohne gültige Preisliste, Reserveliste leer (neu) |
+
+### Bleibt wie heute
+
+Diese Texte stehen in Kacheln, Sätzen, Meldungen oder eigenen Oberflächen, wo ein Leerzustand mit Symbol nicht hinpasst:
+
+- Kacheln und Tagesübersicht: Kennzahl ohne Messung, Finanzvorschau (2), Startkarte Brigade, CEO-Tagesübersicht (5)
+- Eigene Oberflächen: Benachrichtigungen (Glocke), Synchronisierung, Suche, KI-Chat (Verlauf, Begrüßung, Diktat), KI-Anbieter und Ratenlimit im KI-Panel
+- Hinweise in Detailansichten: Reklamationsverlauf, Nachweiskette ohne Charge
+- Meldungen und Status: Risiko-Radar, Prüfung ohne offene Punkte, Zukauf-Import, Herkunftsauskunft (2), zweiter Faktor (MFA)
+- Einzelfelder: Suchfeld vor der Eingabe, Platzhalterbild, fehlender Fotobeleg
+
+Vorschau einer Auswahl in Hell und Dunkel: `stufe3-vorschau.png`.
+
 ## Offene Punkte
 
 - Standortbaum: Erwin Moretz hält eine bessere Gestaltung des Baums für später fest (28.09.2026).
-- Die 47 Leerzustände ohne Knopf (Formen A und B) folgen als nächste Stufe.
-- Lade- und Klickanimationen mit Haptik folgen danach.
+- Dokumentenliste ohne Leerzustand (siehe oben).
+- Lade- und Klickanimationen mit Haptik folgen als nächste Stufe.

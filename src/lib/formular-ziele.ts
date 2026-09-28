@@ -20,4 +20,9 @@ export const formularZiel = {
   sorte: "anlegen-sorte",
   einladung: "anlegen-einladung",
   reklamation: "anlegen-reklamation",
+  rotationsplan: "anlegen-rotationsplan",
+  kostentraeger: "anlegen-kostentraeger",
+  kanal: "anlegen-kanal",
+  dossier: "anlegen-dossier",
+  kontingent: "anlegen-kontingent",
 } as const;

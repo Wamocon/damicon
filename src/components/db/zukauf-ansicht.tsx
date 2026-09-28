@@ -134,7 +134,7 @@ export async function ZukaufAnsicht() {
           action={<DatenquelleBadge quelle={abrechnung.quelle} />}
         >
           {abrechnung.zeilen.length === 0 ? (
-            <Card className="text-center text-xs text-muted-foreground">{at("keineZeilen")}</Card>
+            <LeererZustand titel={at("keineZeilen")} {...modulSymbol("aggregator")} />
           ) : (
             <DataTable
               head={[at("col.nachbarbetrieb"), at("col.menge"), at("col.einkaufswert"), at("col.spanne"), at("col.auszahlung")]}

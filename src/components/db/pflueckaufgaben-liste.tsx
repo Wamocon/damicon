@@ -190,6 +190,7 @@ export async function PflueckaufgabenListe({
             <LeererZustand
               titel={v("liste.leerGefiltertTitel")}
               text={v("liste.leerGefiltert")}
+              {...modulSymbol("pflueckaufgaben")}
               aktion={
                 <Link href={{ pathname: pfad, query: ohneFilter }} scroll={false} className={textVerweisKlassen}>
                   {v("liste.filterZuruecksetzen")}
