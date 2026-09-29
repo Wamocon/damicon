@@ -5,7 +5,8 @@
 // Aufruf: node scripts/preview-abgleich.mjs --linked | --local | --db-url <url> [--nur-bei-gleichem-stand]
 //   --nur-bei-gleichem-stand: nur vergleichen, wenn public und public_preview dieselben Migrationen
 //   angewendet haben. Preview laeuft public voraus (Migrationen offener Pull Requests); dann werden
-//   nur die Unterschiede im Verlauf gemeldet.
+//   nur die Unterschiede im Verlauf gemeldet, in der CI als ::warning::. Den strengen Vergleich ohne
+//   diese Ausnahme macht die PR-Pipeline gegen die lokale Datenbank.
 // CLI wie in preview-migrationen.mjs (SUPABASE_CLI oder "supabase" aus dem PATH).
 
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
@@ -13,16 +14,17 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { abfrage, cli, zielAus } from "./preview-cli.mjs";
-import { HUELLE, PREVIEW_SCHEMA } from "./preview-umschreiben.mjs";
+import { HUELLE, PREVIEW_ENDUNG, PREVIEW_SCHEMA } from "./preview-umschreiben.mjs";
 
 const KOPF = /^-- Name: (.+); Type: (.+); Schema: (.*?); Owner: (.*)$/;
+// 'belege-preview' -> 'belege', 'kpi-verlauf-taeglich-preview' -> 'kpi-verlauf-taeglich'
+const PREVIEW_NAME = new RegExp(String.raw`([A-Za-z0-9_.]+(?:-[A-Za-z0-9_.]+)*)${PREVIEW_ENDUNG}'`, "g");
 
 export function objekte(dump) {
   const karte = new Map();
   let schluessel = null;
   // auf beiden Seiten, denn public.rls_auto_enable nennt public_preview ausdruecklich
-  const angleichen = (t) =>
-    t.replaceAll(PREVIEW_SCHEMA, "public").replace(/([A-Za-z0-9_.]+(?:-[A-Za-z0-9_.]+)*)-preview'/g, "$1'");
+  const angleichen = (t) => t.replaceAll(PREVIEW_SCHEMA, "public").replace(PREVIEW_NAME, "$1'");
   for (const zeile of dump.split("\n")) {
     const kopf = KOPF.exec(zeile);
     if (kopf) {
@@ -65,6 +67,28 @@ export function verlaufsUnterschied(publicVersionen, previewVersionen) {
   };
 }
 
+/**
+ * Fuer --nur-bei-gleichem-stand: vergleichen oder ueberspringen. Ein Dump laesst sich nicht auf die
+ * gemeinsamen Versionen beschraenken, deshalb bleibt es beim Ueberspringen. Das war aber nur im Log
+ * zu sehen und traf praktisch jeden Lauf, dauerhaft, sobald ein geschlossener Pull Request eine
+ * Migration in public_preview hinterlassen hatte (Fund 67, 28.09.2026). Jetzt als Warnung.
+ * @returns {{ vergleichen: boolean, zeilen: string[] }} zeilen: fertige Ausgabe
+ */
+export function abgleichEntscheiden(publicVersionen, previewVersionen, { imCi = false } = {}) {
+  const d = verlaufsUnterschied(publicVersionen, previewVersionen);
+  if (d.nurPreview.length === 0 && d.nurPublic.length === 0) return { vergleichen: true, zeilen: [] };
+  const zeilen = [
+    `${imCi ? "::warning::" : "WARNUNG: "}Strukturabgleich uebersprungen: public und ${PREVIEW_SCHEMA} haben einen anderen Migrationsstand ` +
+      `(nur ${PREVIEW_SCHEMA}: ${d.nurPreview.join(", ") || "-"}; nur public: ${d.nurPublic.join(", ") || "-"}).`,
+  ];
+  if (d.nurPreview.length > 0) {
+    zeilen.push(`  nur in ${PREVIEW_SCHEMA} (offene oder geschlossene Pull Requests): ${d.nurPreview.join(", ")}`);
+    zeilen.push("  Bleibt das nach dem Merge oder Schliessen aller Pull Requests so: node scripts/preview-migrationen.mjs neu-aufbauen --linked");
+  }
+  if (d.nurPublic.length > 0) zeilen.push(`  nur in public (Preview holt beim naechsten Lauf nach): ${d.nurPublic.join(", ")}`);
+  return { vergleichen: false, zeilen };
+}
+
 function main() {
   const args = process.argv.slice(2);
   const ziel = zielAus(args);
@@ -76,16 +100,13 @@ function main() {
   try {
     if (args.includes("--nur-bei-gleichem-stand")) {
       const versionen = (tabelle) => abfrage(ziel, `select version from ${tabelle}`).map((z) => z.version);
-      const d = verlaufsUnterschied(
+      const entscheidung = abgleichEntscheiden(
         versionen("supabase_migrations.schema_migrations"),
         versionen("supabase_migrations.preview_schema_migrations"),
+        { imCi: Boolean(process.env.GITHUB_ACTIONS) },
       );
-      if (d.nurPreview.length > 0 || d.nurPublic.length > 0) {
-        console.log(`Strukturabgleich uebersprungen: public und ${PREVIEW_SCHEMA} haben einen anderen Migrationsstand.`);
-        if (d.nurPreview.length > 0) console.log(`  nur in ${PREVIEW_SCHEMA} (offene Pull Requests): ${d.nurPreview.join(", ")}`);
-        if (d.nurPublic.length > 0) console.log(`  nur in public (Preview holt beim naechsten Pull Request nach): ${d.nurPublic.join(", ")}`);
-        return;
-      }
+      for (const zeile of entscheidung.zeilen) console.log(zeile);
+      if (!entscheidung.vergleichen) return;
     }
     const lade = (schema) => {
       const datei = join(ordner, `${schema}.sql`);

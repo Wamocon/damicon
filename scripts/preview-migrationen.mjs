@@ -19,18 +19,23 @@
 //       gemeinsamen Objekte (Auth-Trigger, Buckets, Storage-Policies, Cron) einmalig anlegen
 //   node scripts/preview-migrationen.mjs anwenden --linked [--nur-anzeigen]
 //       offene Migrationen der Reihe nach anwenden, jede in einer eigenen Transaktion
+//   node scripts/preview-migrationen.mjs neu-aufbauen --linked [--ausfuehren]
+//       public_preview verwerfen und aus public neu aufbauen, etwa nach geschlossenen Pull Requests
+//       (deren Migrationen und Zwillinge sonst dauerhaft bleiben) oder nach einer geaenderten, schon
+//       angewendeten Migration. Ohne --ausfuehren nur der Plan. Loescht alle Preview-Daten.
 
 import { createHash } from "node:crypto";
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { abfrage, zielAus } from "./preview-cli.mjs";
-import { bucketsAus, PREVIEW_SCHEMA, triggerFunktionenAus, umschreiben } from "./preview-umschreiben.mjs";
+import { bucketsAus, PREVIEW_ENDUNG, PREVIEW_SCHEMA, triggerFunktionenAus, umschreiben } from "./preview-umschreiben.mjs";
 
 const ORDNER = "supabase/migrations";
 const VERLAUF = "supabase_migrations.preview_schema_migrations";
 const NAME = /^(\d{14})_([a-z0-9_]+)\.sql$/;
 const PROBELAUF_MARKE = "preview-probelauf-ok";
+const NEU_AUFBAUEN = "node scripts/preview-migrationen.mjs neu-aufbauen --linked (HOWTO.md, Abschnitt Preview-Schema)";
 
 const q = (wert) => `'${String(wert).replace(/'/g, "''")}'`;
 const imCi = Boolean(process.env.GITHUB_ACTIONS);
@@ -111,7 +116,7 @@ function skript(ziel, text, { probelauf = false, nurWennOffen = null } = {}) {
     ? `if to_regclass('${VERLAUF}') is not null and exists (select 1 from ${VERLAUF} where version = ${q(nurWennOffen)}) then return; end if;`
     : "";
   try {
-    abfrage(ziel, `do $pv_aussen$ begin perform pg_advisory_xact_lock(hashtext('public_preview_migrationen')); ${pruefung} execute $pv_skript$\n${text}\n$pv_skript$; ${ende} end $pv_aussen$;`);
+    abfrage(ziel, `do $pv_aussen$ begin perform pg_advisory_xact_lock(hashtext('public_preview_migrationen')); ${pruefung} execute $pv_skript$\n${text}\n$pv_skript$; ${ende} end $pv_aussen$;`, { leerErlaubt: true });
   } catch (e) {
     if (probelauf && e.message.includes(PROBELAUF_MARKE)) return;
     throw e;
@@ -197,11 +202,14 @@ function anwenden(ziel, liste, { nurAnzeigen }) {
       `Diese Migrationen wurden geaendert, nachdem sie schon in ${PREVIEW_SCHEMA} angewendet waren:\n` +
         plan.geaendert.map((m) => `  - ${m.datei}`).join("\n") +
         `\n${PREVIEW_SCHEMA} enthaelt den alten Stand. Die Aenderung als neue Migration schreiben ` +
-        `(neue Versionsnummer) oder ${PREVIEW_SCHEMA} neu aus public aufbauen.`,
+        `(neue Versionsnummer) oder ${PREVIEW_SCHEMA} neu aus public aufbauen: ${NEU_AUFBAUEN}`,
     );
   }
   if (plan.fremd.length > 0) {
-    warnung(`${PREVIEW_SCHEMA} enthaelt Migrationen, die in diesem Stand fehlen (andere Pull Requests oder geloeschte Dateien): ${plan.fremd.join(", ")}`);
+    warnung(
+      `${PREVIEW_SCHEMA} enthaelt Migrationen, die in diesem Stand fehlen (andere Pull Requests oder geloeschte Dateien): ${plan.fremd.join(", ")}. ` +
+        `Stammen sie aus geschlossenen Pull Requests, bleiben sie samt Zwillingen, bis jemand ${PREVIEW_SCHEMA} neu aufbaut: ${NEU_AUFBAUEN}`,
+    );
   }
   for (const m of plan.ausserReihe) {
     warnung(`${m.datei} ist aelter als die neueste Migration in ${PREVIEW_SCHEMA} und laeuft dort ausser der Reihe.`);
@@ -247,11 +255,158 @@ function anwenden(ziel, liste, { nurAnzeigen }) {
   }
 }
 
+// ---- Neuaufbau (Fund 68, 28.09.2026) ----------------------------------------------------------
+// Ein geschlossener Pull Request hinterliess seine Migrationen in public_preview und seine Zwillinge
+// auf auth, storage und pg_cron, dauerhaft; die Fehlermeldung empfahl "neu aus public aufbauen", ohne
+// dass es dafuer ein Werkzeug gab. Der Neuaufbau nutzt dieselben Bausteine wie die PR-Pipeline
+// (leeres Schema, alle in public angewendeten Migrationen umgeschrieben) und kopiert danach die Daten.
+
+/**
+ * @param {{ version: string }[]} liste Migrationen im Branch
+ * @param {string[]} productionVersionen Verlauf von public
+ * @param {string[]} previewVersionen Verlauf von public_preview (leer, wenn es keinen gibt)
+ * @returns {{ migrationen: object[], verworfen: string[] }} migrationen: in public angewendet, in
+ *   Reihenfolge; verworfen: nur in public_preview (offene oder geschlossene Pull Requests)
+ */
+export function neuAufbauPlan(liste, productionVersionen, previewVersionen) {
+  const lokal = new Map(liste.map((m) => [m.version, m]));
+  const fehlend = productionVersionen.filter((v) => !lokal.has(v));
+  if (fehlend.length > 0) {
+    throw new Error(`In public angewendet, aber hier ohne Datei: ${fehlend.join(", ")}. Erst den Branch aktualisieren.`);
+  }
+  const production = new Set(productionVersionen);
+  return {
+    migrationen: [...production].sort().map((v) => lokal.get(v)),
+    verworfen: previewVersionen.filter((v) => !production.has(v)).sort(),
+  };
+}
+
+/**
+ * Entfernt public_preview, seinen Verlauf und die Preview-Zwillinge auf gemeinsamen Objekten
+ * (Trigger und Policies mit Endung _preview auf auth und storage, Cron-Jobs mit Endung -preview).
+ * Haengt danach noch ein Objekt ausserhalb von public_preview an public_preview, bricht alles ab,
+ * statt es per cascade still mitzuloeschen. Buckets mit Endung -preview bleiben samt Dateien stehen.
+ */
+export function abbauSql() {
+  const s = PREVIEW_SCHEMA;
+  return `do $pv_abbau$
+declare
+  z record;
+  fremd text;
+begin
+  for z in
+    select t.tgname, t.tgrelid::regclass::text as tabelle
+    from pg_trigger t join pg_class c on c.oid = t.tgrelid join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname in ('auth', 'storage') and not t.tgisinternal and t.tgname like '%\\_preview'
+  loop
+    execute format('drop trigger %I on %s', z.tgname, z.tabelle);
+  end loop;
+  for z in
+    select policyname, schemaname, tablename from pg_policies
+    where schemaname in ('auth', 'storage') and policyname like '%\\_preview'
+  loop
+    execute format('drop policy %I on %I.%I', z.policyname, z.schemaname, z.tablename);
+  end loop;
+  if to_regclass('cron.job') is not null then
+    perform cron.unschedule(jobname) from cron.job where jobname like ${q(`%${PREVIEW_ENDUNG}`)};
+  end if;
+  if to_regnamespace(${q(s)}) is not null then
+    select string_agg(distinct o.type || ' ' || o.identity, ', ') into fremd
+    from pg_depend d
+    cross join lateral pg_identify_object(d.classid, d.objid, d.objsubid) o
+    cross join lateral pg_identify_object(d.refclassid, d.refobjid, 0) r
+    where d.deptype = 'n' and r.schema = ${q(s)}
+      and coalesce(o.schema, substring(o.identity from '(?:^| )(?:on|for) "?([^".]+)')) is distinct from ${q(s)};
+    if fremd is not null then
+      raise exception 'Neuaufbau abgebrochen: diese Objekte ausserhalb von ${s} haengen daran: %', fremd;
+    end if;
+    execute 'drop schema ${s} cascade';
+  end if;
+  execute 'drop table if exists ${VERLAUF}';
+end $pv_abbau$;`;
+}
+
+/**
+ * Kopiert alle Tabellen von `von` nach `nach` (gleiche Struktur vorausgesetzt): erst alle leeren, dann
+ * fuellen, ohne Trigger (Unveraenderlichkeit, Protokoll, Fremdschluessel) und mit row_security off,
+ * das bei einer Rolle ohne RLS-Ausnahme abbricht, statt still weniger Zeilen zu kopieren. Danach
+ * Sequenzen wie in `von` und materialisierte Sichten neu berechnen.
+ */
+export function datenKopierenSql(von = "public", nach = PREVIEW_SCHEMA) {
+  return `do $pv_kopie$
+declare
+  z record;
+  spalten text;
+begin
+  perform set_config('session_replication_role', 'replica', true);
+  perform set_config('row_security', 'off', true);
+  for z in
+    select c.relname from pg_class c
+    where c.relnamespace = ${q(nach)}::regnamespace and c.relkind in ('r', 'p') and not c.relispartition
+      and to_regclass(format('%I.%I', ${q(von)}, c.relname)) is not null
+  loop
+    execute format('truncate table %I.%I cascade', ${q(nach)}, z.relname);
+  end loop;
+  for z in
+    select c.relname from pg_class c
+    where c.relnamespace = ${q(nach)}::regnamespace and c.relkind in ('r', 'p') and not c.relispartition
+      and to_regclass(format('%I.%I', ${q(von)}, c.relname)) is not null
+  loop
+    select string_agg(quote_ident(a.attname), ', ' order by a.attnum) into spalten
+    from pg_attribute a
+    where a.attrelid = format('%I.%I', ${q(nach)}, z.relname)::regclass
+      and a.attnum > 0 and not a.attisdropped and a.attgenerated = ''
+      and exists (
+        select 1 from pg_attribute b
+        where b.attrelid = format('%I.%I', ${q(von)}, z.relname)::regclass
+          and b.attname = a.attname and not b.attisdropped and b.attgenerated = ''
+      );
+    if spalten is not null then
+      execute format('insert into %I.%I (%s) overriding system value select %s from %I.%I',
+        ${q(nach)}, z.relname, spalten, spalten, ${q(von)}, z.relname);
+    end if;
+  end loop;
+  for z in
+    select q.sequencename, q.last_value, q.start_value from pg_sequences q
+    where q.schemaname = ${q(von)} and to_regclass(format('%I.%I', ${q(nach)}, q.sequencename)) is not null
+  loop
+    perform setval(format('%I.%I', ${q(nach)}, z.sequencename)::regclass, coalesce(z.last_value, z.start_value), z.last_value is not null);
+  end loop;
+  for z in select c.relname from pg_class c where c.relnamespace = ${q(nach)}::regnamespace and c.relkind = 'm' loop
+    execute format('refresh materialized view %I.%I', ${q(nach)}, z.relname);
+  end loop;
+end $pv_kopie$;`;
+}
+
+function neuAufbauen(ziel, liste, { ausfuehren }) {
+  const s = stand(ziel);
+  if (!s.production_da) throw new Error("supabase_migrations.schema_migrations fehlt, der Stand von public ist unbekannt.");
+  const production = abfrage(ziel, "select version from supabase_migrations.schema_migrations order by version").map((z) => z.version);
+  const preview = s.verlauf_da ? abfrage(ziel, `select version from ${VERLAUF} order by version`).map((z) => z.version) : [];
+  const plan = neuAufbauPlan(liste, production, preview);
+  console.log(`Neuaufbau ${PREVIEW_SCHEMA}: ${plan.migrationen.length} Migrationen (Stand von public), danach alle Daten aus public.`);
+  if (plan.verworfen.length > 0) {
+    console.log(`  verworfen (nur in ${PREVIEW_SCHEMA}): ${plan.verworfen.join(", ")}`);
+    console.log("  Offene Pull Requests bringen ihre Migrationen beim naechsten Push wieder mit.");
+  }
+  console.log("  entfernt werden: Schema, Verlauf, Trigger und Policies mit Endung _preview auf auth/storage, Cron-Jobs mit Endung -preview");
+  console.log("  bleiben: public, alle Production-Objekte, die Buckets mit Endung -preview samt Dateien");
+  if (!ausfuehren) {
+    console.log(`Nur angezeigt. Ausfuehren mit --ausfuehren; das loescht alle Daten in ${PREVIEW_SCHEMA}.`);
+    return;
+  }
+  skript(ziel, `${abbauSql()}\n${EINRICHTEN_LEER}`);
+  console.log(`${PREVIEW_SCHEMA} verworfen und leer angelegt.`);
+  anwenden(ziel, plan.migrationen, { nurAnzeigen: false });
+  skript(ziel, `${datenKopierenSql()}\nnotify pgrst, 'reload schema';`);
+  console.log(`${PREVIEW_SCHEMA} neu aufgebaut. Pruefen: node scripts/preview-abgleich.mjs ${ziel.join(" ")}`);
+}
+
 function main() {
   const args = process.argv.slice(2);
   const befehl = args[0];
-  if (!["pruefen", "einrichten", "anwenden"].includes(befehl)) {
-    console.error("Aufruf: node scripts/preview-migrationen.mjs pruefen|einrichten|anwenden [--linked|--local|--db-url <url>]");
+  if (!["pruefen", "einrichten", "anwenden", "neu-aufbauen"].includes(befehl)) {
+    console.error("Aufruf: node scripts/preview-migrationen.mjs pruefen|einrichten|anwenden|neu-aufbauen [--linked|--local|--db-url <url>]");
     process.exit(2);
   }
   try {
@@ -264,6 +419,7 @@ function main() {
     const ziel = zielAus(args);
     if (!ziel) throw new Error("Ziel fehlt: --linked, --local oder --db-url <url>");
     if (befehl === "einrichten") einrichten(ziel, liste, { klon: args.includes("--klon"), probelauf: args.includes("--probelauf") });
+    else if (befehl === "neu-aufbauen") neuAufbauen(ziel, liste, { ausfuehren: args.includes("--ausfuehren") });
     else anwenden(ziel, liste, { nurAnzeigen: args.includes("--nur-anzeigen") });
   } catch (e) {
     console.error(imCi ? `::error::${e.message.split("\n")[0]}\n${e.message}` : `FEHLER: ${e.message}`);

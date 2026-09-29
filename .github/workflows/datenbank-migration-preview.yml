@@ -4,6 +4,11 @@
 # Trigger : - Push in einen Pull Request auf main, der Migrationen oder die Preview-Skripte betrifft
 #           - Push auf main (Nachholen): wendet nur an, was in public_preview noch fehlt, z. B. nach
 #             einem direkten Push auf main oder einem abgebrochenen Lauf. public bleibt unberuehrt.
+#           - nach jedem erfolgreichen Lauf von "Datenbank-Migration" auf main (workflow_run): erst dann
+#             hat public den neuen Stand, und der Strukturabgleich kann greifen. Beim Push auf main
+#             liefen beide Workflows sonst nur parallel (Fund 67, 28.09.2026).
+#           - Pull Request ohne Merge geschlossen: meldet als Warnung, welche seiner Migrationen in
+#             public_preview zurueckbleiben (Neuaufbau siehe HOWTO.md, Fund 68, 28.09.2026).
 #           - von Hand: Actions -> "Datenbank-Migration Preview" -> Run workflow.
 #             Von Hand ist "nur_pruefen" standardmaessig AN: es zeigt nur, was angewendet WUERDE.
 #
@@ -12,7 +17,8 @@
 #           3. Trockenlauf: welche Migrationen in public_preview offen sind
 #           4. Offene Migrationen umgeschrieben auf public_preview anwenden
 #              (scripts/preview-migrationen.mjs, jede in einer eigenen Transaktion)
-#           5. Strukturabgleich mit public, sobald beide denselben Migrationsstand haben
+#           5. Strukturabgleich mit public, sobald beide denselben Migrationsstand haben; sonst
+#              ::warning:: mit den abweichenden Versionen
 #           6. PostgREST-Schema neu laden
 #
 # Wichtig : public_preview liegt in derselben Datenbank wie Production und enthaelt eine Kopie der
@@ -26,6 +32,9 @@
 #           - eine Migrationsdatei, die nach dem Anwenden geaendert wird, laesst den Lauf scheitern;
 #             die Aenderung gehoert in eine neue Migration
 #           - Migrationen anderer Pull Requests in public_preview werden als Warnung gemeldet
+#           - Migrationen geschlossener Pull Requests und ihre Zwillinge auf auth, storage und pg_cron
+#             bleiben, bis jemand public_preview neu aufbaut:
+#             node scripts/preview-migrationen.mjs neu-aufbauen --linked [--ausfuehren]
 #           Wer vor jedem Lauf freigeben will: Settings -> Environments -> Preview -> Required reviewers.
 #
 # Zugang  : SUPABASE_ACCESS_TOKEN (Organisations-Secret), wie in datenbank-migration.yml.
@@ -37,7 +46,7 @@ name: Datenbank-Migration Preview
 on:
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, closed]
     paths:
       - "supabase/migrations/**"
       - "scripts/preview-*.mjs"
@@ -46,6 +55,10 @@ on:
     paths:
       - "supabase/migrations/**"
       - "scripts/preview-*.mjs"
+  workflow_run:
+    workflows: ["Datenbank-Migration"]
+    types: [completed]
+    branches: [main]
   workflow_dispatch:
     inputs:
       nur_pruefen:
@@ -68,7 +81,10 @@ env:
 jobs:
   migrieren:
     name: public_preview ${{ (github.event_name != 'workflow_dispatch' || inputs.nur_pruefen == false) && 'migrieren' || 'pruefen' }}
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # workflow_run nur nach einem erfolgreichen, durch Push ausgeloesten Production-Lauf
+    if: >-
+      (github.event_name != 'pull_request' || (github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository)) &&
+      (github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'))
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: Preview
@@ -88,9 +104,12 @@ jobs:
         with:
           node-version: 22
 
+      # Fest gepinnt (Fund 75, 28.09.2026): preview-cli.mjs haengt an "db query --output-format json"
+      # und "--agent no"; ein neues Ausgabeformat hat die CI schon einmal still gebrochen (485dca8).
+      # Anheben nur zusammen mit einem Probelauf (anwenden --linked --nur-anzeigen).
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 2.118.0
 
       # Auf main gibt es keine Basis zum Vergleichen; dort genuegt die Umschreibpruefung.
       - name: Migrationsdateien pruefen
@@ -134,3 +153,33 @@ jobs:
             cat abgleich.txt 2>/dev/null | head -30 || true
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # Ein ohne Merge geschlossener Pull Request laesst seine Migrationen in public_preview zurueck, samt
+  # Zwillingen auf auth, storage und pg_cron. Aufraeumen ist ein bewusster Schritt (loescht alle
+  # Preview-Daten), deshalb hier nur die Warnung mit dem Befehl (Fund 68, 28.09.2026).
+  geschlossen:
+    name: Geschlossen ohne Merge, Migrationen bleiben in public_preview
+    if: >-
+      github.event_name == 'pull_request' && github.event.action == 'closed' && !github.event.pull_request.merged &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Zurueckbleibende Migrationen melden
+        env:
+          BASIS: ${{ github.event.pull_request.base.sha }}
+        run: |
+          versionen=$(git diff --name-only --diff-filter=A "$BASIS"...HEAD -- supabase/migrations \
+            | sed -n 's#^supabase/migrations/\([0-9]\{14\}\)_.*\.sql$#\1#p' | paste -sd, -)
+          if [ -z "$versionen" ]; then
+            echo "Keine neuen Migrationen in diesem Pull Request."
+            exit 0
+          fi
+          text="Dieser Pull Request wurde ohne Merge geschlossen. Seine Migrationen ($versionen) bleiben in public_preview, falls sie dort schon angewendet wurden. Neuaufbau, wenn keine anderen Preview-Laeufe offen sind: node scripts/preview-migrationen.mjs neu-aufbauen --linked (erst ohne, dann mit --ausfuehren)."
+          echo "::warning::$text"
+          echo "$text" >> "$GITHUB_STEP_SUMMARY"

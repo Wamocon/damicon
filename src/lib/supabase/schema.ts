@@ -1,17 +1,16 @@
 // Datenbankschema der App: public (Production) oder public_preview (Preview-Umgebungen, Kopie von
 // public in derselben Datenbank). Quelle ist SUPABASE_DB_SCHEMA; next.config.ts reicht den Wert beim
-// Build als NEXT_PUBLIC_DB_SCHEMA an Server, Proxy und Browser weiter. Node-Skripte (tsx) lesen
-// SUPABASE_DB_SCHEMA direkt; die .mjs-Skripte nutzen scripts/datenbank-schema.mjs mit derselben Regel.
-// Kein Code nennt ein Schema fest.
-const ERLAUBT = ["public", "public_preview"] as const;
-export type DatenbankSchema = (typeof ERLAUBT)[number];
+// Build als NEXT_PUBLIC_DB_SCHEMA an Server, Proxy und Browser weiter. Kein Code nennt ein Schema fest.
+//
+// Die Regel selbst (erlaubte Werte, Rueckfall auf public, Fehler bei allem anderen) steht nur in
+// scripts/datenbank-schema.mjs, das auch die .mjs-Skripte nutzen. Vorher stand sie hier ein zweites
+// Mal woertlich (Fund 74, 28.09.2026); die Richtung .mjs -> .ts geht, weil Node-Skripte ohne tsx
+// kein .ts laden koennen.
+import { DATENBANK_SCHEMA as SCHEMA_AUS_UMGEBUNG } from "../../../scripts/datenbank-schema.mjs";
 
-const wert = process.env.NEXT_PUBLIC_DB_SCHEMA || process.env.SUPABASE_DB_SCHEMA || "public";
-if (!(ERLAUBT as readonly string[]).includes(wert)) {
-  throw new Error(`NEXT_PUBLIC_DB_SCHEMA/SUPABASE_DB_SCHEMA "${wert}" ist ungueltig, erlaubt: ${ERLAUBT.join(", ")}.`);
-}
+export type DatenbankSchema = "public" | "public_preview";
 
-export const DATENBANK_SCHEMA = wert as DatenbankSchema;
+export const DATENBANK_SCHEMA = SCHEMA_AUS_UMGEBUNG as DatenbankSchema;
 
 // Fuer die Supabase-Clients. public_preview hat dieselbe Struktur wie public, deshalb gelten die
 // generierten Typen von public auch dort.

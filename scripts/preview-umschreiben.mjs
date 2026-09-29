@@ -9,17 +9,24 @@
 // Gemeinsam genutzte Objekte ausserhalb von public (gleiche Auth, gleicher Storage, gleiches
 // pg_cron) bekommen fuer Preview eigene Zwillinge:
 //   - Trigger auf auth.* und storage.*  -> Name mit Endung _preview; die aufgerufene Funktion
-//     faengt in Preview jeden Fehler ab, damit ungepruefter PR-Code nie eine Production-Anmeldung bricht
+//     faengt in Preview Fehler ab (exception when others), damit ein Fehler im ungeprueften PR-Code
+//     keine Production-Anmeldung bricht. Abbrueche (statement_timeout, Cancel) und ASSERT faengt
+//     OTHERS nicht ab, die treffen die Anmeldung weiterhin (Fund 69, 28.09.2026).
 //   - Policies auf auth.* und storage.* -> Name mit Endung _preview
-//   - Storage-Buckets                   -> Id mit Endung -preview (ausser GEMEINSAME_BUCKETS)
-//   - pg_cron-Jobs                       -> Name mit Endung -preview, Befehl mit search_path public_preview
-// Alles, was sich nicht sicher umschreiben laesst, wird abgelehnt. Einen Abschnitt, der fuer
-// Preview nicht laufen soll, rahmt man in der Migration so:
+//   - Storage-Buckets                   -> Id mit Endung -preview (ausser GEMEINSAME_BUCKETS),
+//     nur wo der Name als Bucket gemeint ist (bucket_id, Anweisungen auf storage.buckets)
+//   - pg_cron-Jobs                       -> Name mit Endung -preview (nur als Jobname), Befehl mit
+//     search_path public_preview
+// Was die Pruefung als nicht sicher umschreibbar erkennt (UNERLAUBT, auch clusterweite Objekte wie
+// Rollen oder Publikationen), wird abgelehnt. Einen Abschnitt, der fuer Preview nicht laufen soll,
+// rahmt man in der Migration so:
 //   -- preview:auslassen
 //   ...
 //   -- preview:ende
 
 export const PREVIEW_SCHEMA = "public_preview";
+// Endung der Preview-Zwillinge von Buckets und Cron-Jobs; src/lib/supabase/buckets.ts haengt dieselbe an.
+export const PREVIEW_ENDUNG = "-preview";
 export const GEMEINSAME_BUCKETS = ["ki-sprachausgabe"];
 export const HUELLE = "-- preview:huelle";
 
@@ -143,14 +150,49 @@ function gemeinsameSchemasEntquoten(sql) {
     .replace(new RegExp(`\\b(${liste})\\."([a-z_][a-z0-9_$]*)"`, "g"), "$1.$2");
 }
 
+const VERWEIS_AUF_PUBLIC = /(?<![\w$"])public\./i;
+const PLATZHALTER = /'\u0000(\d+)\u0000'/g;
+
+/**
+ * Die Texte von "comment on ... is '...'" durch Platzhalter ersetzen, damit sie ihr public. behalten:
+ * aus 'Erzeugt durch public.f()' wurde sonst 'Erzeugt durch public_preview.f()' (Fund 71, 28.09.2026).
+ * Bewusst NUR Kommentartexte, denn sie werden nie ausgefuehrt. Jede andere Zeichenkette kann Code
+ * sein, der in Preview laeuft: ein Funktionsrumpf in '...', do '...', ein Triggerargument oder
+ * gespeichertes SQL, das eine Funktion spaeter per execute ausfuehrt. Bliebe dort public. stehen,
+ * schriebe Preview in Production; ein unnoetig umbenannter Datentext trifft dagegen nur Preview.
+ * Eine erste Fassung, die alle Zeichenketten ausser erkannten dynamischen fuer Daten hielt, liess
+ * genau diese Faelle auf public zeigen (29.09.2026).
+ */
+function kommentartexteVerbergen(sql) {
+  const verborgen = [];
+  let anfang = ""; // laufende Anweisung bis hierher: Code, Kommentare als Leerzeichen, Inhalte geleert
+  const text = abschnitte(sql).map((t) => {
+    if (t.typ === "code") {
+      const ende = t.text.lastIndexOf(";");
+      anfang = ende < 0 ? anfang + t.text : t.text.slice(ende + 1);
+      return t.text;
+    }
+    anfang += t.typ === "kommentar" ? " " : t.typ === "zeichenkette" ? "''" : t.typ === "dollar" ? "$$ $$" : t.text;
+    if (t.typ !== "zeichenkette" || !/^\s*comment\s+on\b/i.test(anfang) || !VERWEIS_AUF_PUBLIC.test(t.text)) return t.text;
+    verborgen.push(t.text);
+    return `'\u0000${verborgen.length - 1}\u0000'`;
+  }).join("");
+  return { text, zurueck: (s) => s.replace(PLATZHALTER, (_, i) => verborgen[Number(i)]) };
+}
+
+// Ein Eintrag einer search_path-Liste; die Liste endet am ersten Wort ohne Komma davor (etwa "as")
+const PFAD_EINTRAG = String.raw`(?:"(?:[^"]|"")*"|'(?:[^']|'')*'|[\w$]+)`;
+const SEARCH_PATH = new RegExp(String.raw`(\bsearch_path"?\s*(?:=|\bto\b)\s*)(${PFAD_EINTRAG}(?:\s*,\s*${PFAD_EINTRAG})*)`, "gi");
+
 /** Ersetzt die Verweise auf das Schema public durch public_preview. Die Rolle PUBLIC ("to public", "from public") bleibt. */
 export function schemaUmbenennen(sql) {
   const s = PREVIEW_SCHEMA;
-  return sql
+  const { text, zurueck } = kommentartexteVerbergen(sql);
+  return zurueck(text
     .replace(/"public"\./g, `"${s}".`)
     // auch dynamisch gebaute Namen: format('public.%I', t) und 'public.' || t
     .replace(/(?<![\w$"])public\.(?=["A-Za-z_%'])/gi, `${s}.`)
-    .replace(/(\bsearch_path"?\s*(?:=|\bto\b)\s*)([^;\n]*)/gi, (_, kopf, liste) =>
+    .replace(SEARCH_PATH, (_, kopf, liste) =>
       kopf + liste.replace(/(^|[\s,])(["']?)public\2(?=[\s,]|$)/gi, `$1$2${s}$2`))
     .replace(/('search_path'\s*,\s*')([^']*)'/gi, (_, kopf, liste) =>
       `${kopf}${liste.replace(/(^|[\s,])public(?=[\s,]|$)/gi, `$1${s}`)}'`)
@@ -162,7 +204,7 @@ export function schemaUmbenennen(sql) {
     .replace(/(to_regnamespace\s*\(\s*)'public'/gi, `$1'${s}'`)
     // "if not exists (select 1 from pg_type where typname = 'x')" findet sonst das Objekt in public
     .replace(/(\b((?:\w+\.)?)(typ|rel|pro|con)name\s*=\s*'[^']*')(?!\s+and\s+(?:\w+\.)?\w+namespace\b)/gi, (_, vergleich, alias, art) =>
-      `${vergleich} and ${alias}${art}namespace = '${s}'::regnamespace`);
+      `${vergleich} and ${alias}${art}namespace = '${s}'::regnamespace`));
 }
 
 const R = (quelle, flags = "i") => new RegExp(quelle, flags);
@@ -193,6 +235,15 @@ const UNERLAUBT = [
   [R(String.raw`\balter\s+(?:role|user|database|system)\b`), "aendert Einstellungen fuer die ganze Datenbank oder eine Rolle"],
   [R(String.raw`\breset\s+(?:search_path|all)\b|\bset\s+(?:session\s+|local\s+)?search_path\s*(?:=|to)\s*default\b`), "setzt den search_path zurueck, unqualifizierte Namen trafen dann public"],
   [R(String.raw`\b(?:drop|alter)\s+extension\b`), "Erweiterungen gelten fuer die ganze Datenbank"],
+  // Clusterweite Objekte gibt es nur einmal. Preview laeuft vor public: es legte sie vor dem Review an,
+  // und die spaetere Migration auf public scheiterte etwa an "role already exists" (Fund 72, 28.09.2026).
+  [R(String.raw`\b(?:create|drop)\s+(?:role|user|group)\b`), "Rollen gelten fuer die ganze Datenbank"],
+  [R(String.raw`\bgrant\s+(?:(?!\bon\b)[^;])*?\bto\b|\brevoke\s+(?:(?!\bon\b)[^;])*?\bfrom\b`), "aendert Rollenmitgliedschaften, die fuer die ganze Datenbank gelten"],
+  [R(String.raw`\b(?:create|alter|drop)\s+publication\b`), "Publikationen (Realtime) gelten fuer die ganze Datenbank"],
+  [R(String.raw`\balter\s+default\s+privileges\b(?![^;]*\bin\s+schema\b)`), "Standardrechte ohne \"in schema\" gelten fuer alle Schemas, auch fuer public"],
+  [R(String.raw`\balter\s+default\s+privileges\b[^;]*\bin\s+schema\s+"?${GEMEINSAM}\b`), "vergibt Standardrechte in einem gemeinsamen Schema"],
+  [R(String.raw`\b(?:create|drop)\s+cast\b|\b(?:create|alter|drop)\s+(?:or\s+replace\s+)?(?:trusted\s+)?(?:procedural\s+)?language\b`), "Casts und Sprachen gelten fuer die ganze Datenbank"],
+  [R(String.raw`\b(?:create|alter|drop)\s+(?:database|tablespace|subscription|server|foreign\s+data\s+wrapper)\b`), "legt ein Objekt fuer die ganze Datenbank an oder aendert es"],
 ];
 
 function triggerUmbenennen(a) {
@@ -213,9 +264,6 @@ function policyUmbenennen(a) {
     .replace(R(String.raw`(\bcomment\s+on\s+policy\s+)${NAME}`, "gi"), (_, k, n) => k + mitEndung(n, "_preview"))
     .replace(R(String.raw`(\balter\s+policy\s+\S+\s+on\s+\S+\s+rename\s+to\s+)${NAME}`, "gi"), (_, k, n) => k + mitEndung(n, "_preview"));
 }
-
-const escape = (wert) => wert.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-const literal = (wert) => new RegExp(`'${escape(wert)}'`, "g");
 
 /** Argumente eines Aufrufs ab `start` (direkt hinter der oeffnenden Klammer): [{ von, bis }], null ohne schliessende Klammer. */
 function argumente(text, start) {
@@ -275,21 +323,50 @@ function cronUmschreiben(text) {
     }
     if (funktion === "unschedule" && name?.art !== "text") throw new Error("cron.unschedule nur mit dem Jobnamen als Literal, nicht mit ID oder Variable");
     if (name && name.art !== "text") throw new Error("Cron-Jobname muss ein Literal sein");
-    if (name) namen.add(name.wert.slice(1, -1));
+    if (name) {
+      const roh = name.wert.slice(1, -1);
+      namen.add(roh);
+      // nur das Namensargument selbst; derselbe Text als Datenwert im Befehl bleibt (Fund 70, 28.09.2026)
+      if (!roh.endsWith(PREVIEW_ENDUNG)) aenderungen.push({ pos: name.von, laenge: name.bis - name.von, einfuegen: `'${roh}${PREVIEW_ENDUNG}'` });
+    }
     if (befehl) {
       if (befehl.art === "sonst") throw new Error("Cron-Befehl muss ein Literal sein");
       const kopf = befehl.art === "text" ? 1 : /^\$[A-Za-z_]*\$/.exec(befehl.wert)[0].length;
-      aenderungen.push({ pos: befehl.von + kopf, einfuegen: befehl.art === "text" ? CRON_PFAD.replace(/'/g, "''") : CRON_PFAD });
+      aenderungen.push({ pos: befehl.von + kopf, laenge: 0, einfuegen: befehl.art === "text" ? CRON_PFAD.replace(/'/g, "''") : CRON_PFAD });
     }
   }
   let neu = text;
-  for (const a of aenderungen.sort((x, y) => y.pos - x.pos)) neu = neu.slice(0, a.pos) + a.einfuegen + neu.slice(a.pos);
-  for (const m of neu.matchAll(/\bjobname\s*(?:=|<>|!=)\s*'((?:[^']|'')*)'/gi)) namen.add(m[1]);
-  for (const n of namen) {
-    if (n.endsWith("-preview")) continue;
-    neu = neu.replace(literal(n), `'${n}-preview'`);
-  }
-  return neu;
+  for (const a of aenderungen.sort((x, y) => y.pos - x.pos)) neu = neu.slice(0, a.pos) + a.einfuegen + neu.slice(a.pos + a.laenge);
+  // Abfragen auf cron.job: jobname = 'x' bzw. jobname in ('x', 'y')
+  const umbenennen = (lit) => lit.replace(/'((?:[^']|'')*)'/g, (m, n) =>
+    n.endsWith(PREVIEW_ENDUNG) ? m : `'${n}${PREVIEW_ENDUNG}'`);
+  return neu
+    .replace(/(\bjobname"?\s*(?:=|<>|!=)\s*)('(?:[^']|'')*')/gi, (_, kopf, lit) => kopf + umbenennen(lit))
+    .replace(/(\bjobname"?\s+(?:not\s+)?in\s*\()([^)]*)\)/gi, (_, kopf, liste) => `${kopf}${umbenennen(liste)})`);
+}
+
+/**
+ * Benennt Bucket-Ids nur dort um, wo sie als Bucket gemeint sind: bucket_id = 'x', bucket_id in (...),
+ * Anweisungen auf storage.buckets. 'dokumente' ist zugleich Modulschluessel und Tabellenname, etwa in
+ * has_permission('dokumente', 'delete') (Fund 70, 28.09.2026).
+ * @returns {{ text: string, genannt: string[] }} genannt: alle bekannten Buckets, die als Bucket vorkommen
+ */
+function bucketsUmbenennen(text, buckets, umbenennen) {
+  const genannt = new Set();
+  const ersetze = (stueck) => stueck.replace(/'((?:[^']|'')*)'/g, (m, wert) => {
+    if (!buckets.includes(wert)) return m;
+    genannt.add(wert);
+    return umbenennen.includes(wert) ? `'${wert}${PREVIEW_ENDUNG}'` : m;
+  });
+  const vergleiche = (spalte, stueck) => stueck
+    .replace(R(String.raw`(\b${spalte}"?\s*(?:=|<>|!=)\s*)('(?:[^']|'')*')`, "gi"), (_, kopf, lit) => kopf + ersetze(lit))
+    .replace(R(String.raw`(\b${spalte}"?\s+(?:not\s+)?in\s*\()([^)]*)\)`, "gi"), (_, kopf, liste) => `${kopf}${ersetze(liste)})`);
+  const neu = vergleiche("bucket_id", text)
+    // insert/update/delete auf storage.buckets: dort ist jeder bekannte Name ein Bucket
+    .replace(/\b(?:insert\s+into|update|delete\s+from)\s+storage\.buckets\b[^;]*/gi, (m) => ersetze(m))
+    // Abfragen auf storage.buckets: nur die Spalten id und name
+    .replace(/\bfrom\s+storage\.buckets\b[^;]*/gi, (m) => vergleiche("(?:id|name)", m));
+  return { text: neu, genannt: [...genannt] };
 }
 
 /** Alle Bucket-Ids, die irgendeine Migration in storage.buckets anlegt. */
@@ -320,7 +397,12 @@ export function triggerFunktionenAus(inhalte) {
   return [...namen];
 }
 
-/** Legt um den plpgsql-Rumpf eine Huelle, die jeden Fehler abfaengt und den Datensatz durchlaesst. */
+/**
+ * Legt um den plpgsql-Rumpf eine Huelle, die Fehler abfaengt und den Datensatz durchlaesst.
+ * "when others" faengt laut PostgreSQL weder QUERY_CANCELED (statement_timeout, Cancel) noch
+ * ASSERT_FAILURE; ein solcher Abbruch im Preview-Rumpf bricht die Anmeldung in Production weiterhin
+ * ab (Fund 69, 28.09.2026). Die Huelle verspricht deshalb nur: Fehler im Preview-Code werden abgefangen.
+ */
 function mitFehlerhuelle(anweisung, funktion) {
   const teile = abschnitte(anweisung);
   const i = teile.findIndex((t) => t.typ === "dollar");
@@ -332,7 +414,7 @@ function mitFehlerhuelle(anweisung, funktion) {
     `begin ${HUELLE}`,
     rumpf,
     `exception when others then ${HUELLE}`,
-    `  raise warning 'Preview-Trigger % gescheitert, Production bleibt unberuehrt: %', '${funktion}', sqlerrm; ${HUELLE}`,
+    `  raise warning 'Preview-Trigger % gescheitert, Fehler abgefangen: %', '${funktion}', sqlerrm; ${HUELLE}`,
     `  return case when tg_op = 'DELETE' then old else new end; ${HUELLE}`,
     `end; ${HUELLE}`,
     "",
@@ -437,7 +519,7 @@ export function umschreiben(sql, { buckets = [], triggerFunktionen = [] } = {}) 
     }
 
     if (/\bstorage\./i.test(volltext)) {
-      const genannt = buckets.filter((b) => literal(b).test(volltext));
+      const { genannt } = bucketsUmbenennen(volltext, buckets, []);
       const geteilt = genannt.filter((b) => GEMEINSAME_BUCKETS.includes(b));
       if ((istBucket || istPolicy) && genannt.length > 0 && geteilt.length === genannt.length) {
         continue; // betrifft nur gemeinsame Buckets: fuer Preview gibt es nichts anzulegen
@@ -450,7 +532,7 @@ export function umschreiben(sql, { buckets = [], triggerFunktionen = [] } = {}) 
         fehler.push(`Storage-Policy ohne Bucket-Bezug, ihr Preview-Zwilling gaelte auch fuer die Production-Buckets: ${kurz}`);
         continue;
       }
-      for (const b of eigeneBuckets) neu = neu.replace(literal(b), `'${b}-preview'`);
+      neu = bucketsUmbenennen(neu, buckets, eigeneBuckets).text;
     }
 
     if (/'public'/.test(ohneKommentare(neu))) {

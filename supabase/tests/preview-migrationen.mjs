@@ -1,9 +1,16 @@
-// Tests fuer scripts/preview-umschreiben.mjs und den Objektvergleich aus scripts/preview-abgleich.mjs
-// (reine Logik, ohne Datenbank).
+// Tests fuer scripts/preview-umschreiben.mjs, den Objektvergleich aus scripts/preview-abgleich.mjs,
+// die Planung aus scripts/preview-migrationen.mjs und das Lesen der CLI-Antwort (scripts/preview-cli.mjs).
+// Fast alles ist reine Logik ohne Datenbank; nur der Neuaufbau von public_preview laeuft gegen PGlite,
+// weil dort SQL ausgefuehrt wird, das Production-Objekte nicht anfassen darf.
 import { readdirSync, readFileSync } from "node:fs";
-import { anweisungen, bucketsAus, neueMigrationPruefen, schemaUmbenennen, triggerFunktionenAus, umschreiben } from "../../scripts/preview-umschreiben.mjs";
-import { objekte, unterschiede, verlaufsUnterschied } from "../../scripts/preview-abgleich.mjs";
-import { planen, pruefsumme } from "../../scripts/preview-migrationen.mjs";
+import { PGlite } from "@electric-sql/pglite";
+import { abschnitte, anweisungen, bucketsAus, neueMigrationPruefen, schemaUmbenennen, triggerFunktionenAus, umschreiben } from "../../scripts/preview-umschreiben.mjs";
+import * as abgleich from "../../scripts/preview-abgleich.mjs";
+import * as previewCli from "../../scripts/preview-cli.mjs";
+import * as previewMigrationen from "../../scripts/preview-migrationen.mjs";
+
+const { objekte, unterschiede, verlaufsUnterschied } = abgleich;
+const { planen, pruefsumme } = previewMigrationen;
 
 let fehlgeschlagen = 0;
 let gesamt = 0;
@@ -15,6 +22,7 @@ function check(name, bedingung, detail = "") {
     console.log(`FAIL  ${name}${detail ? ` - ${detail}` : ""}`);
   }
 }
+const gleichJson = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
 const B = { buckets: ["belege", "dokumente", "ki-sprachausgabe"] };
 const um = (sql) => umschreiben(sql, B);
@@ -155,8 +163,21 @@ const buckets = bucketsAus(inhalte);
 check("Buckets aus den Migrationen", ["belege", "dokumente", "ki-sprachausgabe"].every((b) => buckets.includes(b)), buckets.join(","));
 const kaputt = dateien.filter((d, i) => umschreiben(inhalte[i], { buckets }).fehler.length > 0);
 check("alle Migrationen lassen sich umschreiben", kaputt.length === 0, kaputt.join(", "));
+// Kommentartexte (comment on ... is '...') sind Daten und behalten ihr public. (Fund 71, 28.09.2026)
+const ohneKommentartexte = (sql) => {
+  let imText = false; // nach "is": diese Zeichenkette und ihre Fortsetzungen 'a'\n'b'
+  return abschnitte(sql).map((t) => {
+    if (t.typ === "kommentar") return " ";
+    if (t.typ === "code") {
+      if (/\bis\s*$/i.test(t.text)) imText = true;
+      else if (t.text.trim()) imText = false;
+      return t.text;
+    }
+    return t.typ === "zeichenkette" && imText ? "''" : t.text;
+  }).join("");
+};
 const rest = dateien.filter((d, i) => {
-  const code = umschreiben(inhalte[i], { buckets }).sql.split("\n").filter((z) => !/^\s*--/.test(z)).join("\n");
+  const code = ohneKommentartexte(umschreiben(inhalte[i], { buckets }).sql);
   return /(?<![\w$"])public\.(?=["A-Za-z_%'])|"public"\./.test(code);
 });
 check("kein Verweis auf public. bleibt uebrig", rest.length === 0, rest.join(", "));
@@ -191,6 +212,182 @@ check("Verlaufsunterschied", (() => {
   const d = verlaufsUnterschied(["1", "2"], ["1", "3"]);
   return d.nurPreview.join() === "3" && d.nurPublic.join() === "2";
 })());
+
+// ---- Cleanup 28.09.2026 (Funde 67 bis 75) -----------------------------------------------------
+
+// Fund 70: Bucket- und Cron-Namen nur dort umbenennen, wo sie Bucket bzw. Job meinen. 'dokumente' ist
+// zugleich Modulschluessel und Tabellenname, ein Cron-Name kann als Datenwert im Befehl stehen.
+const dokPolicy = um("create policy dokumente_delete_recht on storage.objects for delete to authenticated using (bucket_id = 'dokumente' and public.has_permission('dokumente', 'delete'));");
+check("Fund 70: bucket_id bekommt den Preview-Bucket", dokPolicy.sql.includes("bucket_id = 'dokumente-preview'"), dokPolicy.sql);
+check("Fund 70: Modulschluessel 'dokumente' in has_permission bleibt", dokPolicy.sql.includes("has_permission('dokumente', 'delete')"), dokPolicy.sql);
+check("Fund 70: Storage-Policy, die den Bucketnamen nur als Modulschluessel nennt, gilt als ohne Bucket-Bezug",
+  um("create policy dok_lesen on storage.objects for select using (public.has_permission('dokumente', 'read'));").fehler.length === 1);
+const bucketListe = um("create policy b on storage.objects for select using (bucket_id in ('belege', 'dokumente') and public.has_permission('belege', 'read'));");
+check("Fund 70: bucket_id in (...) bekommt Preview-Buckets, has_permission nicht",
+  bucketListe.sql.includes("bucket_id in ('belege-preview', 'dokumente-preview')") && bucketListe.sql.includes("has_permission('belege', 'read')"), bucketListe.sql);
+const bucketUpdate = um("update storage.buckets set file_size_limit = 1 where id = 'belege';");
+check("Fund 70: update storage.buckets ... where id = 'x' trifft den Preview-Bucket", bucketUpdate.sql.includes("where id = 'belege-preview'") && bucketUpdate.fehler.length === 0, bucketUpdate.sql);
+const cronDaten = um("select cron.schedule('aufraeumen', '0 3 * * *', $c$ insert into public.log (art) values ('aufraeumen') $c$);");
+check("Fund 70: Cron-Name im Aufruf bekommt -preview", cronDaten.sql.includes("cron.schedule('aufraeumen-preview'"), cronDaten.sql);
+check("Fund 70: gleicher Text als Datenwert im Cron-Befehl bleibt", cronDaten.sql.includes("values ('aufraeumen')"), cronDaten.sql);
+
+// Fund 71: Kommentartexte sind Daten und behalten ihr public.; jede andere Zeichenkette kann
+// ausgefuehrter Code sein und wird weiter umbenannt (sicherere Richtung, 29.09.2026).
+check("Fund 71: Kommentartext bleibt unveraendert",
+  um("comment on table public.t is 'Erzeugt durch public.f()';").sql === "comment on table public_preview.t is 'Erzeugt durch public.f()';");
+check("Fund 71: fortgesetzter Kommentartext 'a'\\n'b' bleibt unveraendert",
+  um("comment on column public.t.x is\n  'Siehe public.a '\n  'und public.b';").sql === "comment on column public_preview.t.x is\n  'Siehe public.a '\n  'und public.b';");
+check("Fund 71: nach einem Kommentar wird die naechste Anweisung wieder umbenannt",
+  schemaUmbenennen("comment on table public.t is 'public.x'; select 'public.y'::regclass;") === "comment on table public_preview.t is 'public.x'; select 'public_preview.y'::regclass;");
+for (const [name, sql, erwartet] of [
+  ["Funktionsrumpf in einfachen Anfuehrungszeichen", "create function public.anzahl() returns bigint language sql as 'select count(*) from public.lieferungen';", "from public_preview.lieferungen'"],
+  ["plpgsql-Rumpf in einfachen Anfuehrungszeichen", "create function public.f() returns void language plpgsql as 'begin delete from public.log; end';", "delete from public_preview.log;"],
+  ["DO-Block in einfachen Anfuehrungszeichen", "do 'begin delete from public.log; end';", "delete from public_preview.log;"],
+  ["Triggerargument (Tabellenname fuer dynamisches SQL)", "create trigger t after insert on public.a for each row execute function public.protokoll('public.lieferungen');", "protokoll('public_preview.lieferungen')"],
+  ["gespeichertes SQL als Wert", "insert into public.abfragen (sql) values ('select * from public.lieferungen');", "values ('select * from public_preview.lieferungen')"],
+]) check(`Fund 71: ${name} zeigt in Preview nicht auf public`, um(sql).sql.includes(erwartet), um(sql).sql);
+check("Fund 71: search_path-Liste endet vor 'as', der Rumpf bleibt",
+  schemaUmbenennen("set search_path = public as $$ select 'public' $$") === "set search_path = public_preview as $$ select 'public' $$");
+check("Fund 71: 'public' als Wert im Rumpf wird auch mit search_path in derselben Zeile abgelehnt",
+  um("create function public.f() returns text language sql set search_path = public as $$ select 'public' $$;").fehler.length === 1);
+check("Fund 71: to_regclass('public.x') wird weiter umbenannt", schemaUmbenennen("select to_regclass('public.lieferungen');") === "select to_regclass('public_preview.lieferungen');");
+check("Fund 71: 'public.x'::regclass wird weiter umbenannt", schemaUmbenennen("select 'public.lieferungen'::regclass;") === "select 'public_preview.lieferungen'::regclass;");
+check("Fund 71: Cron-Befehl als Zeichenkette wird weiter umbenannt",
+  um("select cron.schedule('j', '0 3 * * *', 'delete from public.x where false');").sql.includes("delete from public_preview.x where false"));
+
+// Fund 72: clusterweite Objekte gibt es nur einmal; Preview laeuft vor public und wuerde sie vorzeitig anlegen.
+for (const [name, sql] of [
+  ["create role", "create role berichte_leser nologin;"],
+  ["drop role", "drop role if exists berichte_leser;"],
+  ["create user", "create user tester;"],
+  ["Rollenmitgliedschaft (grant rolle to)", "grant authenticated to anon;"],
+  ["Rollenmitgliedschaft (revoke rolle from)", "revoke authenticated from anon;"],
+  ["create publication", "create publication p for all tables;"],
+  ["alter publication", "alter publication supabase_realtime add table public.lieferungen;"],
+  ["alter default privileges ohne in schema", "alter default privileges for role postgres grant all on tables to anon;"],
+  ["alter default privileges in einem gemeinsamen Schema", "alter default privileges in schema storage grant select on tables to anon;"],
+  ["create cast", "create cast (text as int) with inout;"],
+  ["create language", "create language plperl;"],
+  ["create tablespace", "create tablespace t location '/tmp';"],
+]) check(`Fund 72: ${name} wird abgelehnt`, um(sql).fehler.length === 1, JSON.stringify(um(sql)));
+check("Fund 72: alter default privileges in schema public bleibt erlaubt und wird umbenannt",
+  um("alter default privileges in schema public grant select on tables to anon;").sql === "alter default privileges in schema public_preview grant select on tables to anon;");
+check("Fund 72: grant ... on ... to bleibt erlaubt", um("grant select on public.t to anon;").fehler.length === 0);
+
+// Fund 75: fehlt JSON in der CLI-Antwort, ist das ein Fehler und kein leeres Ergebnis.
+const { antwortLesen } = previewCli;
+const wirft = (f) => { try { f(); return false; } catch { return true; } };
+check("Fund 75: antwortLesen gibt es", typeof antwortLesen === "function");
+if (typeof antwortLesen === "function") {
+  check("Fund 75: JSON-Array wird gelesen", gleichJson(antwortLesen('Connecting...\n[{"version":"1"}]\n'), [{ version: "1" }]));
+  check("Fund 75: Objekt mit rows wird gelesen", gleichJson(antwortLesen('{"rows":[{"a":1}]}'), [{ a: 1 }]));
+  check("Fund 75: leeres Array bleibt leer", gleichJson(antwortLesen("[]"), []));
+  check("Fund 75: Antwort ohne JSON ist ein Fehler", wirft(() => antwortLesen("Error: unknown flag --agent")));
+  check("Fund 75: Objekt ohne rows ist ein Fehler", wirft(() => antwortLesen('{"message":"neu"}')));
+  check("Fund 75: fuer Anweisungen ohne Ergebnis (DO-Block) darf die Antwort leer sein", gleichJson(antwortLesen("", { leerErlaubt: true }), []));
+}
+
+// Fund 67: uebersprungener Strukturabgleich ist in der CI als Warnung sichtbar.
+const { abgleichEntscheiden } = abgleich;
+check("Fund 67: abgleichEntscheiden gibt es", typeof abgleichEntscheiden === "function");
+if (typeof abgleichEntscheiden === "function") {
+  const gleich = abgleichEntscheiden(["1", "2"], ["1", "2"], { imCi: true });
+  check("Fund 67: gleicher Stand wird verglichen, ohne Warnung", gleich.vergleichen === true && gleich.zeilen.length === 0);
+  const voraus = abgleichEntscheiden(["1", "2"], ["1", "2", "9"], { imCi: true });
+  check("Fund 67: anderer Stand wird uebersprungen und als ::warning:: gemeldet",
+    voraus.vergleichen === false && voraus.zeilen[0]?.startsWith("::warning::") && voraus.zeilen.join("\n").includes("9"), JSON.stringify(voraus));
+  check("Fund 67: ausserhalb der CI steht WARNUNG davor", abgleichEntscheiden(["1"], [], { imCi: false }).zeilen[0]?.startsWith("WARNUNG:"));
+}
+
+// Fund 68: Neuaufbau von public_preview nach geschlossenen Pull Requests.
+const { neuAufbauPlan, abbauSql, datenKopierenSql } = previewMigrationen;
+check("Fund 68: neuAufbauPlan, abbauSql und datenKopierenSql gibt es",
+  [neuAufbauPlan, abbauSql, datenKopierenSql].every((f) => typeof f === "function"));
+if ([neuAufbauPlan, abbauSql, datenKopierenSql].every((f) => typeof f === "function")) {
+  const plan = neuAufbauPlan([datei("1"), datei("2"), datei("3")], ["1", "2"], ["1", "2", "3", "8"]);
+  check("Fund 68: nur Migrationen, die in public angewendet sind, werden neu aufgebaut", plan.migrationen.map((m) => m.version).join() === "1,2");
+  check("Fund 68: Versionen offener oder geschlossener Pull Requests werden als verworfen gemeldet", plan.verworfen.join() === "3,8");
+  check("Fund 68: in public angewendet, aber ohne Datei, ist ein Fehler", wirft(() => neuAufbauPlan([datei("1")], ["1", "2"], [])));
+
+  // Abbau gegen PGlite: nur die Preview-Zwillinge verschwinden, Production-Objekte bleiben.
+  const db = new PGlite();
+  await db.exec(`
+    create schema auth; create table auth.users (id int);
+    create schema storage; create table storage.objects (bucket_id text); alter table storage.objects enable row level security;
+    create schema cron; create table cron.job (jobname text);
+    create function cron.unschedule(p text) returns boolean language sql as $$ delete from cron.job where jobname = p returning true $$;
+    create schema supabase_migrations; create table supabase_migrations.preview_schema_migrations (version text);
+    create schema public_preview;
+    create table public_preview.eltern (id serial primary key);
+    create table public_preview.kind (eltern_id int references public_preview.eltern (id));
+    create view public_preview.sicht as select * from public_preview.eltern;
+    create function public.f() returns trigger language plpgsql as $$ begin return new; end $$;
+    create function public_preview.f() returns trigger language plpgsql as $$ begin return new; end $$;
+    create trigger on_auth_user_created after insert on auth.users for each row execute function public.f();
+    create trigger on_auth_user_created_preview after insert on auth.users for each row execute function public_preview.f();
+    create policy belege_lesen on storage.objects for select using (bucket_id = 'belege');
+    create policy belege_lesen_preview on storage.objects for select using (bucket_id = 'belege-preview');
+    insert into cron.job values ('kpi-verlauf-taeglich'), ('kpi-verlauf-taeglich-preview');
+    create table public.t (id int); insert into public.t values (1);
+  `);
+  await db.exec(abbauSql());
+  const zeilen = async (sql) => (await db.query(sql)).rows;
+  check("Fund 68: Abbau entfernt den Auth-Trigger-Zwilling, der Production-Trigger bleibt",
+    gleichJson((await zeilen("select tgname from pg_trigger where tgrelid = 'auth.users'::regclass and not tgisinternal order by 1")).map((z) => z.tgname), ["on_auth_user_created"]));
+  check("Fund 68: Abbau entfernt die Storage-Policy-Zwillinge, die Production-Policy bleibt",
+    gleichJson((await zeilen("select policyname from pg_policies where schemaname = 'storage' order by 1")).map((z) => z.policyname), ["belege_lesen"]));
+  check("Fund 68: Abbau entfernt den Cron-Job-Zwilling, der Production-Job bleibt",
+    gleichJson((await zeilen("select jobname from cron.job order by 1")).map((z) => z.jobname), ["kpi-verlauf-taeglich"]));
+  check("Fund 68: Abbau entfernt public_preview und den Preview-Verlauf",
+    (await zeilen("select to_regnamespace('public_preview') is null as weg, to_regclass('supabase_migrations.preview_schema_migrations') is null as verlauf_weg"))[0]?.weg === true);
+  check("Fund 68: public bleibt unberuehrt", (await zeilen("select count(*)::int as n from public.t"))[0]?.n === 1 && (await zeilen("select to_regproc('public.f') is not null as da"))[0]?.da === true);
+  await db.close();
+
+  // Haengt ein Production-Objekt an public_preview, loescht cascade es nicht still mit: Abbruch, nichts geaendert.
+  const haengt = new PGlite();
+  await haengt.exec(`
+    create schema auth; create table auth.users (id int);
+    create schema storage; create table storage.objects (bucket_id text);
+    create schema public_preview; create table public_preview.t (id int);
+    create function public_preview.f() returns trigger language plpgsql as $$ begin return new; end $$;
+    create trigger on_auth_user_created_preview after insert on auth.users for each row execute function public_preview.f();
+    create view public.sicht as select * from public_preview.t;
+  `);
+  let meldung = "";
+  try { await haengt.exec(abbauSql()); } catch (e) { meldung = e.message; }
+  check("Fund 68: Abbau bricht ab, wenn ein Objekt ausserhalb an public_preview haengt", meldung.includes("public.sicht"), meldung);
+  check("Fund 68: nach dem Abbruch ist nichts geloescht",
+    (await haengt.query("select to_regclass('public.sicht') is not null as sicht, (select count(*)::int from pg_trigger where tgname = 'on_auth_user_created_preview') as n")).rows[0]?.n === 1);
+  await haengt.close();
+
+  // Datenkopie gegen PGlite: 1:1 aus public, ohne Trigger und Fremdschluesselpruefung, Sequenzen mitgezogen.
+  const kopie = new PGlite();
+  const tabellen = (s) => `
+    create table ${s}.kind (id serial primary key, eltern_id bigint, menge int, doppelt int generated always as (menge * 2) stored);
+    create table ${s}.eltern (id bigint generated always as identity primary key, name text);
+    alter table ${s}.kind add foreign key (eltern_id) references ${s}.eltern (id);`;
+  await kopie.exec(`
+    create schema public_preview;
+    ${tabellen("public")}
+    ${tabellen("public_preview")}
+    insert into public.eltern (name) values ('a'), ('b');
+    insert into public.kind (eltern_id, menge) values (2, 5);
+    insert into public_preview.eltern (name) values ('aus der Migration');
+    create function public.sperre() returns trigger language plpgsql as $$ begin raise exception 'unveraenderlich'; end $$;
+    create trigger sperre before insert or delete on public_preview.kind for each row execute function public.sperre();
+  `);
+  await kopie.exec(datenKopierenSql());
+  const k = async (sql) => (await kopie.query(sql)).rows;
+  check("Fund 68: Datenkopie uebernimmt die Zeilen aus public, die Daten der Migration sind weg",
+    gleichJson(await k("select id::int, name from public_preview.eltern order by id"), [{ id: 1, name: "a" }, { id: 2, name: "b" }]));
+  check("Fund 68: Datenkopie laeuft an Triggern vorbei und rechnet generierte Spalten neu",
+    gleichJson(await k("select id, eltern_id::int, menge, doppelt from public_preview.kind"), [{ id: 1, eltern_id: 2, menge: 5, doppelt: 10 }]));
+  check("Fund 68: Sequenzen stehen danach wie in public",
+    (await k("insert into public_preview.eltern (name) values ('neu') returning id::int"))[0]?.id === 3 &&
+      (await k("select nextval(pg_get_serial_sequence('public_preview.kind', 'id'))::int as n"))[0]?.n === 2);
+  check("Fund 68: Trigger laufen nach der Kopie wieder", (await k("show session_replication_role"))[0]?.session_replication_role === "origin");
+  await kopie.close();
+}
 
 console.log(`\nPruefungen: ${gesamt}   bestanden: ${gesamt - fehlgeschlagen}   fehlgeschlagen: ${fehlgeschlagen}`);
 if (fehlgeschlagen > 0) process.exit(1);

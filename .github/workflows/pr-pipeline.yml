@@ -102,9 +102,10 @@ jobs:
       - name: Wissensbasis in Postgres (pgvector, Rollen, Suche, Schreibschutz)
         run: npm run test:wissen-db
 
-      # Jede Migration laeuft nach dem Merge auch umgeschrieben im Schema public_preview (Preview-
-      # Umgebungen, siehe datenbank-migration.yml). Hier wird public_preview aus allen Migrationen neu
-      # aufgebaut und muss danach genauso aussehen wie public.
+      # Jede Migration laeuft schon bei jedem Push in den Pull Request, also vor dem Merge, auch
+      # umgeschrieben im Schema public_preview (Preview-Umgebungen, siehe datenbank-migration-preview.yml).
+      # Hier wird public_preview aus allen Migrationen neu aufgebaut und muss danach genauso aussehen
+      # wie public; anders als in der Cloud wird dieser Abgleich nie uebersprungen.
       - name: public_preview aus allen Migrationen aufbauen
         run: |
           node scripts/preview-migrationen.mjs einrichten --local

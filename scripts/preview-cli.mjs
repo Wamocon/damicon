@@ -30,24 +30,44 @@ export function cli(parameter) {
   }
 }
 
-/** Fuehrt eine einzelne SQL-Anweisung aus und liefert ihre Zeilen. */
-export function abfrage(ziel, sql) {
+/**
+ * Liest die Zeilen aus der Antwort von "supabase db query --output-format json": ein JSON-Array oder,
+ * bei erkanntem KI-Agenten, ein Objekt mit "rows". Eine Antwort ohne diese Form ist ein Fehler und
+ * kein leeres Ergebnis (Fund 75, 28.09.2026): die CLI ist in der CI schon einmal still auf ein anderes
+ * Format umgestiegen (485dca8), und aus "keine Zeilen" wird etwa "kein Unterschied im Verlauf".
+ * leerErlaubt: fuer Anweisungen ohne Ergebnis (DO-Bloecke), deren Antwort die CLI leer lassen darf.
+ */
+export function antwortLesen(aus, { leerErlaubt = false } = {}) {
+  const start = aus.search(/[[{]/);
+  if (start < 0) {
+    if (leerErlaubt) return [];
+    throw new Error(`Antwort der Supabase-CLI ohne JSON: ${aus.slice(0, 300) || "(leer)"}`);
+  }
+  const ende = Math.max(aus.lastIndexOf("]"), aus.lastIndexOf("}"));
+  let daten;
+  try {
+    daten = JSON.parse(aus.slice(start, ende + 1));
+  } catch {
+    throw new Error(`Antwort der Supabase-CLI nicht lesbar: ${aus.slice(0, 300)}`);
+  }
+  if (Array.isArray(daten)) return daten;
+  if (Array.isArray(daten?.rows)) return daten.rows;
+  if (leerErlaubt) return [];
+  throw new Error(`Antwort der Supabase-CLI ohne Zeilen: ${aus.slice(0, 300)}`);
+}
+
+/**
+ * Fuehrt eine einzelne SQL-Anweisung aus und liefert ihre Zeilen.
+ * @param {{ leerErlaubt?: boolean }} [optionen] siehe antwortLesen
+ */
+export function abfrage(ziel, sql, optionen = {}) {
   const ordner = mkdtempSync(join(tmpdir(), "preview-sql-"));
   try {
     const datei = join(ordner, "abfrage.sql");
     writeFileSync(datei, sql);
     // --agent no: sonst verpackt die CLI das Ergebnis anders, sobald sie einen KI-Agenten erkennt
     const aus = cli(["db", "query", ...ziel, "-f", datei, "--output-format", "json", "--agent", "no"]);
-    const start = aus.search(/[[{]/);
-    if (start < 0) return [];
-    const ende = Math.max(aus.lastIndexOf("]"), aus.lastIndexOf("}"));
-    let daten;
-    try {
-      daten = JSON.parse(aus.slice(start, ende + 1));
-    } catch {
-      throw new Error(`Antwort der Supabase-CLI nicht lesbar: ${aus.slice(0, 300)}`);
-    }
-    return Array.isArray(daten) ? daten : (daten.rows ?? []);
+    return antwortLesen(aus, optionen);
   } finally {
     rmSync(ordner, { recursive: true, force: true });
   }

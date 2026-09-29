@@ -5,7 +5,7 @@
 // Genau deshalb liegen sie in lib/domain und nicht in den Komponenten.
 // Aufruf: npm run test:uebersicht-reiter (ueber tsx, damit die @/-Pfade aufloesen).
 
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { kpis as alleKpis, kpisFuerRolle, type Kpi } from "@/lib/domain/kpis";
 import { STARTKARTEN, startkarteFuer } from "@/lib/domain/startkarte";
 import { auffaelligeZuerst, nurAuffaellige, zielAuswerten } from "@/lib/domain/zielstand";
@@ -133,23 +133,60 @@ pruefe(
 pruefe("Kein zweiter Neustart-Knopf neben 'Befunde'", !kacheln.includes('tc("tour.neustart")'));
 
 // ---- Kennzahlen-Verlauf: Datenbank und Anwendung ziehen dieselbe Grenze (28.09.2026) ----
-// public.kpi_sichtbar() in 20261112000000_kpi_verlauf_nach_rolle.sql spiegelt sichtbarFuer.
-// Laeuft beides auseinander, saehe eine Rolle ueber Himbis datenLesen einen Verlauf, den die
-// Uebersicht ihr nicht zeigt (oder umgekehrt fehlte ihr der Trendpfeil).
-{
-  const migration = readFileSync(new URL("./../migrations/20261112000000_kpi_verlauf_nach_rolle.sql", import.meta.url), "utf8");
+// public.kpi_sichtbar() spiegelt sichtbarFuer. Laeuft beides auseinander, saehe eine Rolle ueber
+// Himbis datenLesen einen Verlauf, den die Uebersicht ihr nicht zeigt (oder umgekehrt fehlte ihr
+// der Trendpfeil). Gelesen wird die NEUESTE Migration, die kpi_sichtbar definiert: Migrationen sind
+// unveraenderlich, eine neue Kennzahl kommt ueber ein neues "create or replace" (Funde 82 und 90,
+// 28.09.2026). Ob die Policy wirklich an kpi_sichtbar haengt, prueft pglite-fast.mjs am Verhalten
+// je Rolle und ohne Anmeldung; der fruehere Textvergleich der Policy entfaellt (Fund 76).
+/** Die zuletzt angelegte kpi_sichtbar: Datei und Funktion vom "create" bis zum Ende des $-Rumpfs. */
+function neuesteKpiSichtbar(dateien: { name: string; text: string }[]) {
+  const definition = /create\s+(?:or\s+replace\s+)?function\s+public\.kpi_sichtbar\s*\(/i;
+  // eine Erwaehnung im SQL-Kommentar ist keine Definition
+  const ohneKommentare = (sql: string) => sql.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/--[^\n]*/g, "");
+  const treffer = [...dateien].sort((a, b) => a.name.localeCompare(b.name))
+    .map((d) => ({ name: d.name, text: ohneKommentare(d.text) }))
+    .filter((d) => definition.test(d.text)).at(-1);
+  if (!treffer) return undefined;
+  const start = treffer.text.search(definition);
+  const marke = /\bas\s+(\$[A-Za-z_]*\$)/i.exec(treffer.text.slice(start));
+  if (!marke) return { datei: treffer.name, funktion: "" };
+  const rumpfStart = start + marke.index + marke[0].length;
+  return { datei: treffer.name, funktion: treffer.text.slice(start, treffer.text.indexOf(marke[1]!, rumpfStart)) };
+}
+function rollenJeKennzahl(funktion: string) {
   const inDb = new Map<string, string[]>();
-  for (const m of migration.matchAll(/when '([A-Za-z]+)'\s+then public\.has_role\(([^)]*)\)/g)) {
+  for (const m of funktion.matchAll(/when '([A-Za-z]+)'\s+then public\.has_role\(([^)]*)\)/g)) {
     inDb.set(m[1]!, [...m[2]!.matchAll(/'([a-z]+)'/g)].map((r) => r[1]!).sort());
   }
+  return inDb;
+}
+{
+  const def = (rollen: string) =>
+    `create or replace function public.kpi_sichtbar(p text) returns boolean language sql as $$\n  select case p\n    when 'verlustquote' then public.has_role(${rollen})\n    else public.has_role('admin')\n  end;\n$$;\n`;
+  const alt = { name: "20261112000000_a.sql", text: def("'admin'") };
+  const neu = { name: "20261201000000_b.sql", text: def("'admin', 'kunde'") + "create policy x on public.kpi_verlauf using (public.has_role('gast'));\n" };
+  const nurKommentar = { name: "20261301000000_c.sql", text: "-- ersetzt create or replace function public.kpi_sichtbar( aus b\nselect 1;\n" };
+  const gewaehlt = neuesteKpiSichtbar([neu, nurKommentar, alt]);
+  pruefe("Kennzahlen-Verlauf (Suche): die neueste Definition gilt, eine Erwaehnung im Kommentar nicht", gewaehlt?.datei === neu.name, gewaehlt?.datei);
+  pruefe("Kennzahlen-Verlauf (Suche): gelesen wird nur die Funktion, nicht was danach kommt",
+    gleich([...rollenJeKennzahl(gewaehlt?.funktion ?? "").entries()], [["verlustquote", ["admin", "kunde"]]]) && !gewaehlt?.funktion.includes("gast"));
+}
+{
+  const ordner = new URL("./../migrations/", import.meta.url);
+  const gefunden = neuesteKpiSichtbar(readdirSync(ordner).filter((f) => f.endsWith(".sql"))
+    .map((f) => ({ name: f, text: readFileSync(new URL(f, ordner), "utf8") })));
+  pruefe("Kennzahlen-Verlauf: eine Migration definiert kpi_sichtbar", gefunden !== undefined);
+  const datei = gefunden?.datei;
+  const funktion = gefunden?.funktion ?? "";
+  const inDb = rollenJeKennzahl(funktion);
   const inApp = new Map(alleKpis.map((k) => [k.key, [...k.sichtbarFuer].sort()]));
   const fehlend = [...inApp.keys()].filter((k) => !inDb.has(k));
   const ueberzaehlig = [...inDb.keys()].filter((k) => !inApp.has(k));
   const abweichend = [...inApp.entries()].filter(([k, r]) => inDb.has(k) && !gleich(inDb.get(k), r)).map(([k]) => k);
-  pruefe("Kennzahlen-Verlauf: jede Kennzahl der Anwendung steht in kpi_sichtbar, keine zusaetzliche", fehlend.length === 0 && ueberzaehlig.length === 0, `fehlt: ${fehlend.join(", ")} zusaetzlich: ${ueberzaehlig.join(", ")}`);
+  pruefe(`Kennzahlen-Verlauf: jede Kennzahl der Anwendung steht in kpi_sichtbar (${datei}), keine zusaetzliche`, fehlend.length === 0 && ueberzaehlig.length === 0, `fehlt: ${fehlend.join(", ")} zusaetzlich: ${ueberzaehlig.join(", ")}`);
   pruefe("Kennzahlen-Verlauf: die Rollen je Kennzahl sind in Datenbank und sichtbarFuer gleich", abweichend.length === 0, abweichend.join(", "));
-  pruefe("Kennzahlen-Verlauf: unbekannte Kennzahlen nur fuer admin (und damit ceo)", /else public\.has_role\('admin'\)\s*end;/.test(migration));
-  pruefe("Kennzahlen-Verlauf: die alte Lese-Policy fuer alle faellt weg, die neue haengt an kpi_sichtbar", migration.includes("drop policy if exists kpi_verlauf_select_intern on public.kpi_verlauf;") && /create policy kpi_verlauf_select_rolle on public\.kpi_verlauf\s+for select to authenticated\s+using \(public\.kpi_sichtbar\(schluessel\)\);/.test(migration));
+  pruefe("Kennzahlen-Verlauf: unbekannte Kennzahlen nur fuer admin (und damit ceo)", /else\s+public\.has_role\('admin'\)\s*end\b/i.test(funktion));
   // Dieselbe Regel fuer ceo wie in kpisFuerRolle: ceo sieht, was admin sieht.
   pruefe("Kennzahlen-Verlauf: ceo sieht in der Anwendung genau die Kennzahlen mit admin", gleich(kpisFuerRolle("ceo", alleKpis).kern.concat(kpisFuerRolle("ceo", alleKpis).erweitert).map((k) => k.key).sort(), alleKpis.filter((k) => k.sichtbarFuer.includes("admin")).map((k) => k.key).sort()));
 }
