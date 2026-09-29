@@ -10,6 +10,7 @@
 //   * Der Agent sieht nur, was auch der Nutzer sieht (sichtbare Elemente).
 
 import { setzeHervorhebung } from "@/components/ki/hervorhebung";
+import { kartenZeile, MAX_SEITEN_PFAD, MAX_SEITEN_TITEL, MAX_STELLEN_TITEL, seitenZeile } from "@/lib/ai/seitenkarte";
 
 export interface ElementInfo {
   ref: string;
@@ -291,7 +292,7 @@ export function stelleZu(el: HTMLElement): HTMLElement {
 function titelVon(el: HTMLElement): string {
   const kopf = el.matches(KOEPFE) ? el : el.querySelector<HTMLElement>(KOEPFE);
   const roh = kopf ? (kopf.getAttribute("aria-label") ?? kopf.textContent) : (el.getAttribute("aria-label") ?? el.textContent);
-  return bereinigt(roh, 60);
+  return bereinigt(roh, MAX_STELLEN_TITEL);
 }
 
 function istZugeklappt(stelle: HTMLElement): boolean {
@@ -330,13 +331,15 @@ function abschnitteDer(haupt: HTMLElement): AbschnittInfo[] {
 /** Die Seitenkarte fuer den Sprachmodus: jede Stelle der aktuellen Seite mit
  *  Referenz, kompakt als Text. Geht mit jeder Anfrage mit (ki-chat.tsx), damit
  *  das Modell auf der Seite, die der Nutzer gerade sieht, ohne vorheriges
- *  seiteLesen Sprechmarken setzen kann. */
+ *  seiteLesen Sprechmarken setzen kann. Format und Grenzen: lib/ai/seitenkarte.ts,
+ *  dieselbe Quelle, nach der der Server die Karte bereinigt (seit 28.09.2026,
+ *  vorher schnitt der Server " (zugeklappt)" ab, Fund 45). */
 export function seitenKarte(): string {
   const haupt = wurzel();
   if (!haupt) return "";
-  const titel = bereinigt(haupt.querySelector("h1")?.textContent ?? document.title, 80);
-  const zeilen = abschnitteDer(haupt).map((a) => `${a.ref} ${a.titel}${a.zugeklappt ? " (zugeklappt)" : ""}`);
-  return [`Seite: ${window.location.pathname} - ${titel}`, ...zeilen].join("\n");
+  const titel = bereinigt(haupt.querySelector("h1")?.textContent ?? document.title, MAX_SEITEN_TITEL);
+  const zeilen = abschnitteDer(haupt).map((a) => kartenZeile(a.ref, a.titel, a.zugeklappt));
+  return [seitenZeile(window.location.pathname.slice(0, MAX_SEITEN_PFAD), titel), ...zeilen].join("\n");
 }
 
 /** Die Stelle zu einem Sprechziel (domain/sprechmarken.ts) oder null. */

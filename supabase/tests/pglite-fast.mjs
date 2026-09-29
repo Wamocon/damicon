@@ -1440,6 +1440,116 @@ await mussScheitern(
   await db.query("select set_config('request.jwt.claim.sub', '', false);");
 }
 
+// --- 17. KI-Chat: Nutzer schreiben nur ihre eigene Frage (Cleanup-Fund 77) ------
+// Regression: ki_chat_nachrichten_insert_own (20260930000000) pruefte nur die
+// profil_id. Ein Konto mit Chat-Recht (auch kunde) legte damit per API eine
+// eigene Zeile mit rolle 'assistent' und freiem Text an und liess sie ueber
+// api/ki-sprachausgabe vorlesen, ein offener Vorlesegenerator. Dazu liessen
+// sich anbieter_name und werkzeugaufrufe im Protokoll faelschen. Seit
+// 20261113000000 schreibt authenticated nur noch rolle 'nutzer' ohne
+// Antwortfelder, Assistenten- und Systemzeilen schreibt der Server mit
+// service_role (api/ki-assistent/route.ts, actions/ki-assistent.ts).
+{
+  await alsAdmin(db);
+  const { rows: konto } = await db.query(
+    `insert into auth.users (email, raw_app_meta_data)
+     values ('it-kichat-kunde@damicon.demo', '{"role":"kunde"}'::jsonb) returning id;`,
+  );
+  const kundeAuthId = konto[0].id;
+  const { rows: profil } = await db.query("select id from public.profiles where auth_user_id = $1;", [kundeAuthId]);
+  const profilId = profil[0].id;
+
+  const fehlerCode = async (sql, params) => {
+    try {
+      await db.query(sql, params);
+      return null;
+    } catch (e) {
+      return e?.cause?.code ?? e?.code;
+    }
+  };
+  const eigeneZeilen = async () =>
+    (await db.query("select rolle from public.ki_chat_nachrichten where profil_id = $1 order by erstellt_am;", [profilId])).rows;
+
+  await alsRolle(db, "authenticated", kundeAuthId);
+  // Einwilligungs-Check (route.ts, kiNachrichtSenden): vor der ersten Frage ist der eigene Verlauf leer.
+  const vorher = await eigeneZeilen();
+  check("KI-Chat: der eigene Verlauf ist vor der ersten Frage leer (Einwilligungs-Check)", vorher.length === 0, `Zeilen: ${vorher.length}`);
+
+  const frage = await fehlerCode(
+    "insert into public.ki_chat_nachrichten (profil_id, rolle, inhalt) values ($1, 'nutzer', 'Welche Sorten gibt es?');",
+    [profilId],
+  );
+  check("KI-Chat: authenticated legt die eigene Frage an (rolle nutzer)", frage === null, `errcode: ${frage}`);
+
+  const assistent = await fehlerCode(
+    `insert into public.ki_chat_nachrichten (id, profil_id, rolle, inhalt, anbieter_name)
+     values ('11111111-2222-4333-8444-555555555555', $1, 'assistent', 'Beliebiger Werbetext zum Vorlesen', 'Claude (gefaelscht)');`,
+    [profilId],
+  );
+  check(
+    "KI-Chat: authenticated darf keine Assistenten-Zeile anlegen (kein offener Vorlesegenerator)",
+    assistent === "42501",
+    assistent ? `errcode: ${assistent}` : "die Assistenten-Zeile wurde angelegt",
+  );
+  const system = await fehlerCode(
+    "insert into public.ki_chat_nachrichten (profil_id, rolle, inhalt, eskaliert) values ($1, 'system', 'Eskalation', true);",
+    [profilId],
+  );
+  check("KI-Chat: authenticated darf keine System-Zeile anlegen", system === "42501", system ? `errcode: ${system}` : "die System-Zeile wurde angelegt");
+  const gefaelscht = await fehlerCode(
+    `insert into public.ki_chat_nachrichten (profil_id, rolle, inhalt, anbieter_name, werkzeugaufrufe)
+     values ($1, 'nutzer', 'Frage', 'Claude (gefaelscht)', '["datenLesen"]'::jsonb);`,
+    [profilId],
+  );
+  check(
+    "KI-Chat: eine Nutzerzeile traegt keine Antwortfelder (anbieter_name, werkzeugaufrufe)",
+    gefaelscht === "42501",
+    gefaelscht ? `errcode: ${gefaelscht}` : "die Zeile mit Antwortfeldern wurde angelegt",
+  );
+  // Den Zeitpunkt setzt die Datenbank: zurueckdatiert faelschte eine Frage das
+  // Protokoll, vordatiert stuende sie fuer immer am Ende des geladenen Verlaufs
+  // (ladeKiChatVerlauf sortiert nach erstellt_am).
+  for (const [art, ausdruck] of [["zurueckdatiert", "now() - interval '1 day'"], ["vordatiert", "now() + interval '1 year'"]]) {
+    const code = await fehlerCode(
+      `insert into public.ki_chat_nachrichten (profil_id, rolle, inhalt, erstellt_am) values ($1, 'nutzer', 'Frage', ${ausdruck});`,
+      [profilId],
+    );
+    check(
+      `KI-Chat: authenticated setzt erstellt_am nicht selbst (${art})`,
+      code === "42501",
+      code ? `errcode: ${code}` : `die ${art}e Zeile wurde angelegt`,
+    );
+  }
+  await alsAdmin(db);
+
+  // Der Server schreibt die Antwort mit service_role, so wie onFinish es tut (feste ID vorab).
+  await alsRolle(db, "service_role");
+  const antwort = await fehlerCode(
+    `insert into public.ki_chat_nachrichten (id, profil_id, rolle, inhalt, anbieter_name, fallback, werkzeugaufrufe)
+     values ('22222222-3333-4444-8555-666666666666', $1, 'assistent', 'Polka und Tulameen.', 'Claude', false, '["datenLesen"]'::jsonb);`,
+    [profilId],
+  );
+  check("KI-Chat: service_role schreibt die Assistenten-Zeile", antwort === null, `errcode: ${antwort}`);
+  const eskalation = await fehlerCode(
+    "insert into public.ki_chat_nachrichten (profil_id, rolle, inhalt, eskaliert) values ($1, 'system', 'Eskalation angefordert', true);",
+    [profilId],
+  );
+  check("KI-Chat: service_role schreibt die Eskalations-Zeile", eskalation === null, `errcode: ${eskalation}`);
+  await alsAdmin(db);
+
+  // Verlauf laden (ladeKiChatVerlauf): die Person sieht Frage, Antwort und Eskalation.
+  await alsRolle(db, "authenticated", kundeAuthId);
+  const nachher = (await eigeneZeilen()).map((z) => z.rolle);
+  check(
+    "KI-Chat: der eigene Verlauf laedt Frage, Antwort und Eskalation",
+    nachher.length === 3 && nachher.includes("nutzer") && nachher.includes("assistent") && nachher.includes("system"),
+    `Rollen: ${nachher.join(",")}`,
+  );
+  await alsAdmin(db);
+  await db.query("select set_config('request.jwt.claim.sub', '', false);");
+  await db.query("select set_config('request.jwt.claim.role', '', false);");
+}
+
 // --- Aufraeumen ---------------------------------------------------------------
 await db.query("delete from public.pflanzenschutz_behandlungen where id = $1;", [behandlungId]);
 await db.query("update public.reihenbloecke set status = 'ruhend' where id = $1;", [blockId]);

@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ladeAktivenStandardAnbieter } from "@/lib/ai/lade-anbieter";
 import { requirePermission, type SessionProfile } from "@/lib/auth";
 import { dbFehler, fehler, ok, zugriffsFehler, type AktionsStatus } from "@/lib/actions/status";
-import { ladeKiChatVerlauf, ladeWissensPreislisten } from "@/lib/data/ki-assistent";
+import { ladeKiChatVerlauf, ladeWissensPreislisten, speichereKiServerZeile } from "@/lib/data/ki-assistent";
 import {
   baueGesamtWissenskontext,
   baueSystemPrompt,
@@ -226,13 +226,15 @@ export async function kiNachrichtSenden(
     antwortText = t("antwort");
   }
 
-  const { error: assistentFehler } = await supabase.from("ki_chat_nachrichten").insert({
-    profil_id: profil.id,
+  // Antwort und Eskalation schreibt nur der Server (service_role), die Sitzung
+  // darf seit 28.09.2026 nur die eigene Frage anlegen: speichereKiServerZeile.
+  const { error: assistentFehler } = await speichereKiServerZeile({
+    profilId: profil.id,
     rolle: "assistent",
     inhalt: antwortText,
-    anbieter_name: anbieterName,
+    anbieterName,
     fallback,
-    werkzeugaufrufe: werkzeugaufrufe.length > 0 ? werkzeugaufrufe : null,
+    werkzeugaufrufe,
   });
   if (assistentFehler) return dbFehler(assistentFehler);
 
@@ -244,8 +246,8 @@ export async function kiNachrichtSenden(
     { rolle: "assistent" as const, fallback },
   ];
   if (fallback && sollteAutomatischEskalieren(aktuellerVerlauf)) {
-    await supabase.from("ki_chat_nachrichten").insert({
-      profil_id: profil.id,
+    await speichereKiServerZeile({
+      profilId: profil.id,
       rolle: "system",
       inhalt: await getTranslations("kiAssistentAnsicht").then((tt) => tt("eskalationAutomatisch")),
       eskaliert: true,
@@ -269,9 +271,9 @@ export async function kiEskalationAnfordern(
   }
 
   const t = await getTranslations("kiAssistentAnsicht");
-  const supabase = await createClient();
-  const { error } = await supabase.from("ki_chat_nachrichten").insert({
-    profil_id: profil.id,
+  // Systemzeile: nur ueber den Server (service_role), siehe speichereKiServerZeile.
+  const { error } = await speichereKiServerZeile({
+    profilId: profil.id,
     rolle: "system",
     inhalt: t("eskalationAngefordert"),
     eskaliert: true,

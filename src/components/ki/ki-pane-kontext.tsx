@@ -13,6 +13,7 @@ import {
 import { useRouter } from "@/i18n/navigation";
 import { setzeHervorhebung } from "@/components/ki/hervorhebung";
 import { klappeAuf, stelleZu } from "@/components/ki/ui-steuerung";
+import { erzeugeNavigationsMerker, stehtAufZiel } from "@/components/ki/fuehrung-ziel";
 import { entsperreTon, leseChatStand, unterbrichChat } from "@/components/ki/sprachmodus-bus";
 import { useScrollSperre } from "@/components/ui/scroll-sperre";
 import {
@@ -171,15 +172,20 @@ function hebeHervor(element: Element): void {
 // Jede Station bekommt eine Nummer; ein Suchlauf einer ueberholten Station
 // (neue Station, Fuehrung beendet, Sprachmodus beendet) setzt keinen Rahmen mehr.
 let stationsNr = 0;
-// Das zuletzt per router.push angesteuerte Ziel. Solange es noch nicht erreicht ist,
-// laeuft eine Navigation: dann zaehlt "steht schon auf dem Ziel" nicht, sonst
-// bliebe man auf der Zwischenseite stehen (Pruefung vom 25.09.2026).
-let letzterPush: string | null = null;
+// Das zuletzt per router.push angesteuerte Ziel (fuehrung-ziel.ts). Solange es
+// noch nicht erreicht ist, laeuft eine Navigation: dann zaehlt "steht schon auf
+// dem Ziel" nicht, sonst bliebe man auf der Zwischenseite stehen (Pruefung vom
+// 25.09.2026). Seit 28.09.2026 geleert, sobald das Ziel erreicht ist oder die
+// Fuehrung endet (Fund 46).
+const navigation = erzeugeNavigationsMerker();
+
+function aktuelleSeite(): string {
+  return `${window.location.pathname}${window.location.search}`;
+}
 
 /** Ist die Seite schon die des Ziels (Pfad und Abfrage, ohne Sprachpraefix)? */
 function stehtAuf(ziel: string): boolean {
-  const ohneAnker = ziel.split("#")[0];
-  return `${window.location.pathname}${window.location.search}`.endsWith(ohneAnker);
+  return stehtAufZiel(aktuelleSeite(), ziel);
 }
 
 function fokussiere(ziel: string): void {
@@ -192,6 +198,7 @@ function fokussiere(ziel: string): void {
     // Versuch noch die alte Seite, und der Rahmen verschwand mit dem Wechsel.
     const angekommen = stehtAuf(ziel) && document.querySelector("#main h1");
     if (angekommen) {
+      navigation.angekommen(aktuelleSeite());
       if (!anker) {
         // Ohne Anker (ganzes Modul, oder man ist schon dort): nach oben scrollen und
         // den Kopf der Seite hervorheben, nicht die ganze Seite.
@@ -432,11 +439,7 @@ export function KiPaneProvider({
       setFuehrung(naechste);
       // Steht die Seite schon da, nicht neu laden: ein zweites Oeffnen derselben
       // Seite scrollte sie nach oben, mitten in der Erklaerung weiter unten.
-      const navigationLaeuft = letzterPush !== null && !stehtAuf(letzterPush);
-      if (navigationLaeuft || !stehtAuf(naechste.ziel)) {
-        router.push(naechste.ziel);
-        letzterPush = naechste.ziel;
-      }
+      if (navigation.station(aktuelleSeite(), naechste.ziel)) router.push(naechste.ziel);
       fokussiere(naechste.ziel);
       timer.current = window.setTimeout(station, VERWEILZEIT_MS);
     },
@@ -462,6 +465,7 @@ export function KiPaneProvider({
     warteschlange.current = [];
     laeuft.current = false;
     stationsNr += 1;
+    navigation.beenden();
     setTourLaeuft(false);
     window.clearTimeout(timer.current);
     setFuehrung(null);

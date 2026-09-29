@@ -8,8 +8,10 @@
 // Persistenz/Protokoll/RBAC bleiben inhaltlich identisch zu kiNachrichtSenden
 // (dieselbe Tabelle, dieselbe Berechtigungspruefung, derselbe Consent-Zwang
 // vor der ersten Nachricht) - nur der Transport ist neu. Die Nutzer-Nachricht
-// wird beim Empfang gespeichert, die Assistenten-Nachricht in onFinish, nach
-// erfolgreichem Streamende.
+// wird beim Empfang gespeichert (Sitzung des Nutzers), die Assistenten-Nachricht
+// in onFinish, nach erfolgreichem Streamende, seit 28.09.2026 mit service_role
+// (speichereKiServerZeile, data/ki-assistent.ts): die Sitzung darf nur noch
+// die eigene Frage anlegen (Migration 20261113000000, Cleanup-Fund 77).
 import {
   createUIMessageStream,
   createUIMessageStreamResponse,
@@ -44,6 +46,15 @@ import { ABSCHNITT_GUELTIG_MS, signiereAbschnitt, sprachausgabeGeheimnis } from 
 import { sprachausgabeLiveAn } from "@/lib/domain/schalter";
 import { erkenneSprache, erkenneSpracheEindeutig, erzeugeSprachFolge } from "@/lib/text/sprache-erkennen";
 import { createClient } from "@/lib/supabase/server";
+import { bereinigteSeitenkarte } from "@/lib/ai/seitenkarte";
+import {
+  alteAusgabenKuerzen,
+  bekannteReferenzen,
+  bereinigterPfad,
+  MAX_VERLAUF_ZEICHEN,
+  schnappschuesseKuerzen,
+  verlaufAusAnfrage,
+} from "@/lib/ai/anfrage-eingaben";
 import { ladeAnbieterKette, meldeAnbieterwechsel } from "@/lib/ai/anbieter-kette";
 import type { AusweichEreignis } from "@/lib/ai/ausfall-modell";
 import { baueWerkzeuge } from "@/lib/ai/tools";
@@ -55,7 +66,7 @@ import { ABLEHNUNG_ANWEISUNG, zweckentfremdung } from "@/lib/ai/bereich-schutz";
 import { pruefeWissenGesundheit } from "@/lib/wissen/suche";
 import { MAX_KONTEXT_ZEICHEN } from "@/lib/pruefung/kontext";
 import { darfPruefen } from "@/lib/pruefung/rollen";
-import { ladeKiChatVerlauf, ladeWissensPreislisten } from "@/lib/data/ki-assistent";
+import { ladeKiChatVerlauf, ladeWissensPreislisten, speichereKiServerZeile } from "@/lib/data/ki-assistent";
 import {
   baueAssistentKernauftrag,
   baueGesamtWissenskontext,
@@ -74,11 +85,6 @@ export const maxDuration = 60;
 // Sprachmodus: kurze Gespraechsrunden - wer spricht, wartet auf die Antwort und will keine
 // Rundreise mit dreissig Schritten hoeren.
 const MAX_SCHRITTE: Record<"assistent" | "agent" | "sprache", number> = { assistent: 12, agent: 28, sprache: 12 };
-
-// Der Client schickt den ganzen Verlauf mit - begrenzt, damit ein manipulierter
-// Aufruf keine unbegrenzte Tokenrechnung erzeugt.
-const MAX_NACHRICHTEN = 40;
-const MAX_VERLAUF_ZEICHEN = 160_000;
 
 function textAusNachricht(nachricht: UIMessage): string {
   return nachricht.parts
@@ -105,87 +111,9 @@ function textAusNachricht(nachricht: UIMessage): string {
 // 22./23.09.2026 fuer je ihren Sendeweg gezielt nachgebessert (WMCNL-2415,
 // Fazit-Zeile), ein Zusammenlegen haette dieselben Fehlerbilder riskiert.
 
-// Seitenkarte des Sprachmodus (ui-steuerung.ts, seitenKarte): kommt vom Browser,
-// ist also Eingabe des Nutzers. Begrenzt, ohne Steuerzeichen, und im Prompt als
-// Daten gekennzeichnet.
-const MAX_SEITENKARTE_ZEICHEN = 4_000;
-function bereinigteSeitenkarte(roh: unknown): string | null {
-  if (typeof roh !== "string" || !roh.trim()) return null;
-  // Nur das erwartete Format: eine Zeile "Seite: ..." und Zeilen "a3 Titel" /
-  // "e12 Titel", Titel hoechstens 60 Zeichen. Alles andere faellt weg.
-  const zeilen = roh
-    .slice(0, MAX_SEITENKARTE_ZEICHEN)
-    .split("\n")
-    .map((z) => z.replace(/[\u0000-\u001f\u007f<>{}[\]`]/g, " ").replace(/\s+/g, " ").trim())
-    .map((z) => {
-      const seite = /^Seite: (.{1,120})$/.exec(z);
-      if (seite) return `Seite: ${seite[1]}`;
-      const eintrag = /^([ea]\d{1,5}) (.{1,})$/.exec(z);
-      return eintrag ? `${eintrag[1]} ${eintrag[2]!.slice(0, 60)}` : "";
-    })
-    .filter(Boolean);
-  return zeilen.length > 0 ? zeilen.join("\n") : null;
-}
-
-/** Die Referenzen, die das Modell kennt: aus der Seitenkarte dieser Anfrage und
- *  aus der juengsten seiteLesen-Antwort. Eine Sprechmarke auf eine andere, erfundene
- *  Referenz wird verworfen, bevor sie einen falschen Rahmen setzt. */
-function bekannteReferenzen(nachrichten: UIMessage[], seitenkarte: string | null): Set<string> {
-  const bekannt = new Set<string>();
-  for (const treffer of (seitenkarte ?? "").matchAll(/^([ea]\d{1,5}) /gm)) bekannt.add(treffer[1]!);
-  for (let i = nachrichten.length - 1; i >= 0; i--) {
-    for (const teil of [...nachrichten[i]!.parts].reverse()) {
-      const t = teil as unknown as { type: string; state?: string; output?: { elemente?: { ref?: unknown }[]; abschnitte?: { ref?: unknown }[] } };
-      if (t.type !== "tool-seiteLesen" || t.state !== "output-available") continue;
-      for (const e of [...(t.output?.elemente ?? []), ...(t.output?.abschnitte ?? [])]) {
-        if (typeof e.ref === "string") bekannt.add(e.ref);
-      }
-      return bekannt;
-    }
-  }
-  return bekannt;
-}
-
-/** Aeltere Seitenstaende aus dem Verlauf loeschen: nur der juengste seiteLesen-
- *  Schnappschuss ist noch gueltig, die anderen wuerden nur Tokens kosten und das
- *  Modell mit veralteten Referenzen verwirren. */
-function schnappschuesseKuerzen(nachrichten: UIMessage[]): UIMessage[] {
-  let gefunden = false;
-  const kopie = nachrichten.map((n) => ({ ...n, parts: [...n.parts] }));
-  for (let i = kopie.length - 1; i >= 0; i--) {
-    const teile = kopie[i]!.parts;
-    for (let j = teile.length - 1; j >= 0; j--) {
-      const teil = teile[j] as unknown as { type: string; state?: string };
-      if (teil.type !== "tool-seiteLesen" || teil.state !== "output-available") continue;
-      if (gefunden) {
-        teile[j] = { ...teil, output: { hinweis: "Aelterer Seitenstand, nicht mehr aktuell. Rufe seiteLesen erneut auf." } } as unknown as (typeof teile)[number];
-      } else {
-        gefunden = true;
-      }
-    }
-  }
-  return kopie;
-}
-
-// Alte Werkzeugausgaben (vor der letzten Nutzerfrage) auf einen Auszug kuerzen. Ein Agentenlauf sammelt
-// schnell Seitenschnappschuesse und Datenabfragen an (je 20 bis 30 KB): nach etwa acht Seiten lag der
-// Verlauf ueber der Grenze, und JEDE weitere Frage scheiterte mit 413 - im Chat als "KI nicht erreichbar",
-// bis man die Seite neu lud. Die Antworttexte bleiben vollstaendig, sie fassen die Ergebnisse zusammen.
-const ALTE_AUSGABE_MAX_ZEICHEN = 1500;
-function alteAusgabenKuerzen(nachrichten: UIMessage[]): UIMessage[] {
-  const letzterNutzer = nachrichten.map((n) => n.role).lastIndexOf("user");
-  return nachrichten.map((n, i) => {
-    if (i >= letzterNutzer || n.role !== "assistant") return n;
-    const teile = n.parts.map((teil) => {
-      const t = teil as unknown as { type: string; state?: string; output?: unknown };
-      if (!t.type.startsWith("tool-") || t.state !== "output-available") return teil;
-      const roh = JSON.stringify(t.output ?? null);
-      if (roh.length <= ALTE_AUSGABE_MAX_ZEICHEN) return teil;
-      return { ...t, output: { gekuerzt: true, auszug: roh.slice(0, ALTE_AUSGABE_MAX_ZEICHEN) } } as unknown as (typeof n.parts)[number];
-    });
-    return { ...n, parts: teile };
-  });
-}
+// Eingaben aus dem Browser (Seitenkarte, Verlauf, Pfad, bekannte Referenzen) und das
+// Kuerzen des Verlaufs: lib/ai/seitenkarte.ts und lib/ai/anfrage-eingaben.ts, seit
+// 28.09.2026 als reine, getestete Funktionen (supabase/tests/chat-eingaben.ts).
 
 // Formatregeln: formatAnweisung(antwortSprache) in domain/antwort-anweisungen.ts - die
 // Schlusszeile traegt die Beschriftung der Antwortsprache statt fest 'Empfehlung'.
@@ -270,14 +198,6 @@ const OHNE_QUELLEN_ANWEISUNG =
 // Belegpflicht: quellenAnweisung(antwortSprache) in domain/antwort-anweisungen.ts - Uebersetzung
 // und Festsaetze in der Antwortsprache statt fest auf Deutsch.
 
-/** Nur ein Pfad innerhalb der Anwendung, ohne Sprachpraefix - als Kontext fuer
- *  den Prompt, nie als Adresse, die irgendwohin aufgeloest wird. */
-function bereinigterPfad(roh: unknown): string | null {
-  if (typeof roh !== "string") return null;
-  const pfad = roh.split(/[?#]/)[0]?.replace(/^\/(de|en|ru|kk|tr)(?=\/)/, "") ?? "";
-  return /^\/[a-z0-9/_-]{0,120}$/i.test(pfad) ? pfad : null;
-}
-
 const SPRACHNAMEN: Record<string, string> = {
   de: "German",
   en: "English",
@@ -285,15 +205,6 @@ const SPRACHNAMEN: Record<string, string> = {
   kk: "Kazakh",
 };
 
-// Steht bewusst ZULETZT im Systemprompt und auf Englisch: der uebrige Prompt
-// und alle Werkzeugdaten sind deutsch, und ein einzelner deutscher Satz
-// "antworte in Sprache X" verliert dagegen (gemessen: russische/tuerkische
-// Oberflaeche bekam trotzdem deutsche Antworten).
-//
-// Uebergeben wird die Sprache der FRAGE, nicht die der Oberflaeche. Vorher
-// stand hier die Oberflaechensprache - wer auf einer deutschen Oberflaeche
-// russisch schrieb, bekam damit die ausdrueckliche Anweisung, deutsch zu
-// antworten. Genau das war der gemeldete Fehler.
 /** Der mitgeschickte Prüfbericht als Text: nur fuer Rollen mit Prüfrecht, auf die Obergrenze gekuerzt, ohne Steuerzeichen. */
 function pruefKontextAus(roh: unknown, rolle: Role): string | null {
   if (typeof roh !== "string" || !darfPruefen(rolle)) return null;
@@ -334,6 +245,17 @@ function bauePruefBereichWerkzeug() {
   });
 }
 
+// Die Sprachanweisung steht bewusst ZULETZT im Systemprompt und auf Englisch:
+// der uebrige Prompt und alle Werkzeugdaten sind deutsch, und ein einzelner
+// deutscher Satz "antworte in Sprache X" verliert dagegen (gemessen:
+// russische/tuerkische Oberflaeche bekam trotzdem deutsche Antworten).
+// (Bis 28.09.2026 stand dieser Absatz verwaist ueber pruefKontextAus, Fund 49.)
+//
+// Uebergeben wird die Sprache der FRAGE, nicht die der Oberflaeche. Vorher
+// stand hier die Oberflaechensprache - wer auf einer deutschen Oberflaeche
+// russisch schrieb, bekam damit die ausdrueckliche Anweisung, deutsch zu
+// antworten. Genau das war der gemeldete Fehler.
+//
 // Nachtrag zur Sprachanweisung (23.09.2026): eine russische Oberflaeche und
 // eine russisch getippte Frage ergaben die richtige antwortSprache "ru", die
 // Antwort begann trotzdem mit dem deutschen Fazit-Satz aus dem BERICHT-ANFANG-
@@ -390,19 +312,14 @@ export async function POST(req: Request) {
   } catch {
     return new Response("ungueltige eingabe", { status: 400 });
   }
-  if (!Array.isArray(body.messages)) {
+  // Der Verlauf aus dem Browser, schematisch geprueft (verlaufAusAnfrage): nur
+  // Nutzer- und Assistentennachrichten, Teile mit Typ. Seit 28.09.2026 endet ein
+  // kaputter Verlauf mit 400 statt mit einem TypeError und einer 500 (Fund 84).
+  const verlauf = verlaufAusAnfrage(body.messages);
+  if (!verlauf) {
     return new Response("ungueltige eingabe", { status: 400 });
   }
-  // Nur Nutzer- und Assistentennachrichten aus dem Client uebernehmen: eine
-  // eingeschmuggelte 'system'-Nachricht wuerde sonst wie eine Anweisung des
-  // Betreibers behandelt.
-  const nachrichten = alteAusgabenKuerzen(
-    schnappschuesseKuerzen(
-      (body.messages as UIMessage[])
-        .filter((n) => n && (n.role === "user" || n.role === "assistant") && Array.isArray(n.parts))
-        .slice(-MAX_NACHRICHTEN),
-    ),
-  );
+  const nachrichten = alteAusgabenKuerzen(schnappschuesseKuerzen(verlauf));
   if (JSON.stringify(nachrichten).length > MAX_VERLAUF_ZEICHEN) {
     return new Response("verlauf zu gross", { status: 413 });
   }
@@ -606,9 +523,11 @@ export async function POST(req: Request) {
     // gespeichert und angezeigt wird die Frage unveraendert. Der Systemprompt ist deutsch, und die
     // Sprachanweisung darin verlor gegen die vielen deutschen Vorgaben (siehe domain/antwort-anweisungen.ts).
     // Im Sprachmodus nach einem "Stopp" zusaetzlich, bis wohin Himbi gesprochen hatte (Kontext bleibt).
+    // nachrichten ist oben schon durch schnappschuesseKuerzen gelaufen; bis 28.09.2026 stand
+    // hier ein zweiter Aufruf, der nur eine weitere Kopie des Verlaufs anlegte (Fund 49).
     messages: await convertToModelMessages(
       mitSprachErinnerung(
-        mitSeitenkarte(mitUnterbrechungsHinweis(schnappschuesseKuerzen(nachrichten), modus === "sprache" ? (body.unterbrochen as string | undefined) : null), markenAn ? seitenkarte : null),
+        mitSeitenkarte(mitUnterbrechungsHinweis(nachrichten, modus === "sprache" ? (body.unterbrochen as string | undefined) : null), markenAn ? seitenkarte : null),
         antwortSprache,
       ),
       { tools: werkzeuge, ignoreIncompleteToolCalls: true },
@@ -674,17 +593,20 @@ export async function POST(req: Request) {
         // Ein Zug ohne Text (endet mit einem Client-Werkzeug, dessen Ergebnis der
         // Browser gleich nachliefert) ist keine Antwort - die folgende Runde speichert
         // den eigentlichen Text.
+        // Seit 28.09.2026 mit service_role (speichereKiServerZeile): die Sitzung
+        // darf nur noch die eigene Frage anlegen, sonst liesse sich eine
+        // "Antwort" mit freiem Text anlegen und vorlesen (Cleanup-Fund 77).
         if (gesamtText) {
-          const supabaseFinish = await createClient();
-          await supabaseFinish.from("ki_chat_nachrichten").insert({
+          const { error: antwortFehler } = await speichereKiServerZeile({
             id: antwortId,
-            profil_id: profil.id,
+            profilId: profil.id,
             rolle: "assistent",
             inhalt: gesamtText,
-            anbieter_name: anbieterwechsel.length > 0 ? `${anbieter.anzeige_name} (Ersatz: ${anbieterwechsel.at(-1)?.nach ?? "?"})` : anbieter.anzeige_name,
+            anbieterName: anbieterwechsel.length > 0 ? `${anbieter.anzeige_name} (Ersatz: ${anbieterwechsel.at(-1)?.nach ?? "?"})` : anbieter.anzeige_name,
             fallback: false,
-            werkzeugaufrufe: werkzeugaufrufe.length > 0 ? werkzeugaufrufe : null,
+            werkzeugaufrufe,
           });
+          if (antwortFehler) console.error("[damicon] KI-Agent: Antwort nicht gespeichert:", antwortFehler.message);
         }
         await protokolliereBasis(profil, "ki_chat.nachricht", "ki_chat_nachrichten", profil.id, {
           fallback: false,
@@ -704,9 +626,10 @@ export async function POST(req: Request) {
     },
   });
 
-  // L geht mit der Antwort mit: der Browser schickt sie beim Vorlesen
-  // zurueck, damit die Stimme dieselbe Sprache spricht wie der Text. Der
-  // Server prueft sie dort noch einmal gegen den fertigen Text.
+  // Die Antwortsprache geht als Metadatum mit der Antwort mit: der Browser
+  // schickt sie beim Vorlesen zurueck, damit die Stimme dieselbe Sprache
+  // spricht wie der Text. api/ki-sprachausgabe prueft sie dort noch einmal
+  // gegen den fertigen Text.
   const nachrichtenBeigabe = () => ({ sprache: antwortSprache, sprachHerkunft });
 
   if (!liveVorlesen || !geheimnis) {
