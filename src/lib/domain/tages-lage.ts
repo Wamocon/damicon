@@ -30,7 +30,7 @@ import {
   type FilterbareAufgabe,
 } from "@/lib/domain/pflueckaufgaben-liste";
 import { betriebsZeitzone, tagInZone } from "@/lib/domain/tageszeit";
-import { wandzeitZuUtc } from "@/lib/listen/zeitraum";
+import { tagePlus, wandzeitZuUtc } from "@/lib/listen/zeitraum";
 
 // ---- Eingaben ------------------------------------------------------------------------------
 
@@ -132,10 +132,7 @@ export const PERSOENLICHE_QUELLEN: Partial<Record<TagesQuelle, keyof TagesLagePr
 export function quellenFuerRolle(rolle: Role | null | undefined): TagesQuelle[] {
   if (!rolle) return [];
   const darf: Record<TagesQuelle, boolean> = {
-    frist:
-      hasPermission(rolle, "stammdaten", "view") ||
-      hasPermission(rolle, "personal", "view") ||
-      hasPermission(rolle, "compliance", "view"),
+    frist: darfRisikoRadar(rolle),
     aufgabe: hasPermission(rolle, "pflueckaufgaben", "update"),
     kuehlkette: hasPermission(rolle, "kuehlkette", "view"),
     reklamation: hasPermission(rolle, "reklamationen", "view"),
@@ -151,6 +148,22 @@ export function quellenFuerRolle(rolle: Role | null | undefined): TagesQuelle[] 
     })(),
   };
   return TAGES_QUELLEN.filter((q) => darf[q]);
+}
+
+/**
+ * Wer das Risiko-Radar bekommt: wer mindestens eine seiner drei Rechtsgrundlagen sieht
+ * (MwSt ueber stammdaten, ESUTD ueber personal, Datenschutz ueber compliance). Dieselbe
+ * Regel fuer das Werkzeug risikoRadarAbrufen (lib/ai/tools.ts) und die Frist-Quelle der
+ * Tageslage. Bis zum 28.09.2026 stand der Ausdruck an beiden Stellen (Fund 61); eine
+ * vierte Rechtsgrundlage haette nur eine von beiden erreicht. Welche Teilquelle wirklich
+ * geladen wird, prueft ladeRadarEintraege je Quelle selbst.
+ */
+export function darfRisikoRadar(rolle: Role | null | undefined): boolean {
+  return (
+    hasPermission(rolle, "stammdaten", "view") ||
+    hasPermission(rolle, "personal", "view") ||
+    hasPermission(rolle, "compliance", "view")
+  );
 }
 
 /**
@@ -206,6 +219,7 @@ export function waehleFaelligeAufgaben<T extends FilterbareAufgabe>(
  * Was jenseits des Limits nicht geladen wurde, aufgeteilt wie bewertePunkt()
  * einstuft: ein Zeitpunkt vor jetzt ist ueberfaellig, alles andere vor morgen
  * ist heute. Gesamt- und Ueberfaellig-Zahl kommen aus der Datenbank (count).
+ * Seit 28.09.2026 auch fuer die wartenden Chargen der Kuehlkette (Fund 63).
  */
 export function nichtGeladeneAufgaben(
   zahlen: { gesamt: number; ueberfaellig: number },
@@ -222,6 +236,20 @@ export function nichtGeladeneAufgaben(
 }
 
 // ---- Punkte --------------------------------------------------------------------------------
+
+/**
+ * Das Detail eines Punkts: die vorhandenen Werte, jeder gekuerzt, mit " · " verbunden;
+ * ohne Werte null. Eine Stelle fuer die Tageslage und ihre Lader (lib/ai/tages-lage.ts),
+ * vorher zweimal gleich geschrieben (Fund 60 vom 28.09.2026).
+ */
+export function verbindeDetail(kuerze: (text: string) => string, ...werte: (string | number | null | undefined)[]): string | null {
+  return (
+    werte
+      .filter((w) => w !== null && w !== undefined && String(w).trim() !== "")
+      .map((w) => kuerze(String(w)))
+      .join(" · ") || null
+  );
+}
 
 export type PunktArt =
   | "frist"
@@ -287,12 +315,6 @@ export function terminZeit(faelligAm: string | null, zeitzone: string = betriebs
   if (NUR_TAG.test(faelligAm)) return wandzeitZuUtc(faelligAm, zeitzone)?.getTime() ?? null;
   const zeit = Date.parse(faelligAm);
   return Number.isFinite(zeit) ? zeit : null;
-}
-
-/** Kalenderrechnung auf "JJJJ-MM-TT", unabhaengig von jeder Zeitzone. */
-export function tagPlus(tag: string, tage: number): string {
-  const [jahr, monat, t] = tag.split("-").map(Number);
-  return new Date(Date.UTC(jahr!, monat! - 1, t! + tage)).toISOString().slice(0, 10);
 }
 
 /**
@@ -388,7 +410,7 @@ export function waehlePunkte(
 ): TagesAuswahl {
   const zeitzone = optionen.zeitzone ?? betriebsZeitzone;
   const heute = tagInZone(optionen.jetzt, zeitzone);
-  const ende = tagPlus(heute, optionen.horizontTage);
+  const ende = tagePlus(heute, optionen.horizontTage);
   // Doppelte Kennungen (dieselbe Frist aus zwei Quellen) nur einmal.
   const gesehen = new Set<string>();
   const bewertet: TagesPunkt[] = [];
@@ -510,6 +532,15 @@ export const KUEHL_NAH_MINUTEN = 45;
  */
 export const KUEHL_FENSTER_STUNDEN = 24;
 
+/**
+ * So viele wartende Chargen (ab KUEHL_NAH_MINUTEN) und Messungs-Verstoesse im Fenster
+ * laedt die Tageslage hoechstens; der Rest zaehlt nur mit (Fund 63 vom 28.09.2026:
+ * vorher standen 50 und 15 unbenannt in der Abfrage, und was darueber lag, fehlte
+ * still im Zaehler). Dieselben Zahlen wie die Modulseite (lib/data/kuehlkette.ts).
+ */
+export const KUEHL_CHARGEN_LIMIT = 50;
+export const KUEHL_VERSTOSS_LIMIT = 15;
+
 export function kuehlFensterBeginn(jetzt: Date): Date {
   return new Date(jetzt.getTime() - KUEHL_FENSTER_STUNDEN * 60 * 60_000);
 }
@@ -570,11 +601,7 @@ export function kuehlkettenPunkte(
   kuerze: (text: string) => string,
   ziel: string | null,
 ): TagesPunktRoh[] {
-  const verbinde = (...werte: (string | number | null | undefined)[]) =>
-    werte
-      .filter((w) => w !== null && w !== undefined && String(w).trim() !== "")
-      .map((w) => kuerze(String(w)))
-      .join(" · ") || null;
+  const verbinde = (...werte: (string | number | null | undefined)[]) => verbindeDetail(kuerze, ...werte);
 
   const wartend = eingabe.chargen.flatMap((c): TagesPunktRoh[] => {
     const termin = kuehlTermin(c.pflueckZeitpunkt, jetzt);
@@ -665,7 +692,7 @@ export function massnahmeTermin(frist: string, erstelltAm: string, zeitzone: str
   const tag = terminTag(erstelltAm, zeitzone);
   if (!tag) return null;
   if (frist === "sofort") return tag;
-  if (frist === "7 Tage") return tagPlus(tag, 7);
+  if (frist === "7 Tage") return tagePlus(tag, 7);
   return null;
 }
 

@@ -2,6 +2,7 @@ import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { istUuid } from "@/lib/utils";
+import { tagInZone } from "@/lib/domain/tageszeit";
 
 // Die Zahlen fuer die rechte Haelfte der Begruessungskarte, je Rolle eine.
 //
@@ -93,28 +94,45 @@ export function naechsteLieferungAus(
   };
 }
 
+/** Der Client, mit dem die Abfrage laeuft (im Test eine Attrappe). */
+type Datenbank = Awaited<ReturnType<typeof createClient>>;
+
 /**
- * Der naechste zugesagte Liefertermin des angemeldeten B2B-Kunden, ab `abTag`.
- * Ohne Angabe gilt wie bisher der UTC-Tag (Startkarte). Die Tageslage gibt seit
- * dem 28.09.2026 den Almaty-Tag mit: zwischen 0 und 5 Uhr Ortszeit ist der
- * UTC-Tag noch gestern, und ein gestriger, noch bestaetigter Termin verdraengte
- * dort den naechsten echten.
+ * Der naechste zugesagte Termin des B2B-Kunden ab dem Tag von `jetzt` in Almaty
+ * (tagInZone), fuer Startkarte und Tageslage gleich. Bis zum 28.09.2026 fragte die
+ * Startkarte ab dem UTC-Tag: zwischen 0 und 5 Uhr Ortszeit ist der noch gestern, und
+ * ein gestriger, noch bestaetigter Termin stand als naechste Lieferung da (Fund 56).
+ *
+ * Wirft bei einem Lesefehler, statt null zu liefern: die Tageslage muss "kein Termin"
+ * von "nicht ladbar" unterscheiden (Fund 52).
  */
-export const ladeNaechsteLieferung = cache(
-  async (b2bKundeId: string | null, abTag: string = new Date().toISOString().slice(0, 10)): Promise<NaechsteLieferung | null> => {
-    if (!isSupabaseConfigured() || !b2bKundeId) return null;
-    const supabase = await createClient();
-    // Nur bestaetigte: eine angefragte Bestellung ist noch keine Zusage, und auf der
-    // Startseite soll kein Termin stehen, auf den sich niemand festgelegt hat.
-    const { data, error } = await supabase
-      .from("vorbestellungen")
-      .select("liefertermin, menge_kg")
-      .eq("b2b_kunde_id", b2bKundeId)
-      .eq("status", "bestaetigt")
-      .gte("liefertermin", abTag)
-      .not("liefertermin", "is", null)
-      .order("liefertermin", { ascending: true });
-    if (error || !data) return null;
-    return naechsteLieferungAus(data, abTag);
-  },
-);
+export async function naechsteLieferungLaden(
+  supabase: Datenbank,
+  b2bKundeId: string,
+  jetzt: Date,
+): Promise<NaechsteLieferung | null> {
+  const abTag = tagInZone(jetzt);
+  // Nur bestaetigte: eine angefragte Bestellung ist noch keine Zusage, und auf der
+  // Startseite soll kein Termin stehen, auf den sich niemand festgelegt hat.
+  const { data, error } = await supabase
+    .from("vorbestellungen")
+    .select("liefertermin, menge_kg")
+    .eq("b2b_kunde_id", b2bKundeId)
+    .eq("status", "bestaetigt")
+    .gte("liefertermin", abTag)
+    .not("liefertermin", "is", null)
+    .order("liefertermin", { ascending: true });
+  if (error) throw new Error(error.message);
+  return naechsteLieferungAus(data ?? [], abTag);
+}
+
+/** Der naechste zugesagte Liefertermin des angemeldeten B2B-Kunden, fuer die Startkarte.
+ *  Ein Lesefehler heisst hier null: die Karte laesst die rechte Haelfte weg (Kopf der Datei). */
+export const ladeNaechsteLieferung = cache(async (b2bKundeId: string | null): Promise<NaechsteLieferung | null> => {
+  if (!isSupabaseConfigured() || !b2bKundeId) return null;
+  try {
+    return await naechsteLieferungLaden(await createClient(), b2bKundeId, new Date());
+  } catch {
+    return null;
+  }
+});

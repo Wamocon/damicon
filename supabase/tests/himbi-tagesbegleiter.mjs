@@ -28,11 +28,15 @@ import {
 register(new URL("./hilfen/alias-lader.mjs", import.meta.url), { data: { src: new URL("../../src/", import.meta.url).href } });
 const {
   merkeTagesbeginn,
+  TAGESBEGINN_SCHALTER,
   TAGESBEGINN_SPEICHER,
-  tagesbeginnAusSpeicher,
+  TAGESBEGINN_STANDARD,
   tagesbeginnFaellig,
 } = await import("../../src/lib/himbi-tagesbeginn.ts");
 const { spruchIndex, tagInZone, tageszeitBestimmen } = await import("../../src/lib/domain/tageszeit.ts");
+// Einstellung und Blasenwahl laufen seit dem 29.09.2026 als echte Aufrufe statt als Quelltext-
+// pruefung (Fund 53 und 57 der Pruefung): Speicher und Rangfolge liegen in lib/haustier.ts.
+const { BLASEN_RANGFOLGE, blasenKandidaten, sichtbareBlase, tagesbeginnSpeicher } = await import("../../src/lib/haustier.ts");
 
 let bestanden = 0;
 let fehlgeschlagen = 0;
@@ -59,6 +63,27 @@ function neueAblage() {
     setItem: (k, v) => daten.set(k, String(v)),
     removeItem: (k) => daten.delete(k),
   };
+}
+
+/** Fuehrt fn mit einem nachgebauten window aus (der Einstellungs-Speicher liest window.localStorage). */
+function mitFenster(teile, fn) {
+  const vorher = globalThis.window;
+  globalThis.window = { addEventListener() {}, removeEventListener() {}, ...teile };
+  try {
+    return fn();
+  } finally {
+    globalThis.window = vorher;
+  }
+}
+
+/** Welche Blase Himbi zeigt, aus einer Lage wie im Dashboard: alles ruhig, dazu `lage`. */
+function blaseBei(lage) {
+  const ruhe = {
+    willkommen: false, phase: "ruhe", fertigBlase: false, liveHinweis: false, tourAktiv: false, ruhigGenug: true,
+    sprachmodus: false, tagesbeginnAn: true, tourFrage: false, tagesgruss: false, befindenAntwort: false, tipp: false,
+    befinden: false, anstupser: false,
+  };
+  return sichtbareBlase(blasenKandidaten({ ...ruhe, ...lage }), { paneOffen: false, figurImBild: true, seiteSichtbar: true }).gewaehlt;
 }
 
 // --- 1. Tagesmerker ------------------------------------------------------------
@@ -122,7 +147,16 @@ console.log("\n1. Tagesmerker (lib/himbi-tagesbeginn.ts)");
   pruefe("Gesperrter Speicher: nicht faellig (lieber keine Begruessung als eine bei jedem Aufruf), Merken wirft nicht", !tagesbeginnFaellig(gesperrt, "nutzer-1", "gespraech", morgens) && !geworfen);
   pruefe("Ohne Ablage oder ohne Nutzer: nicht faellig", !tagesbeginnFaellig(null, "nutzer-1", "gespraech", morgens) && !tagesbeginnFaellig(neueAblage(), null, "blase", morgens));
 
-  pruefe("Einstellung: Voreinstellung an, nur ein gespeichertes 'aus' schaltet ab", tagesbeginnAusSpeicher(null) && tagesbeginnAusSpeicher(undefined) && tagesbeginnAusSpeicher("an") && tagesbeginnAusSpeicher("kaputt") && !tagesbeginnAusSpeicher("aus"));
+  const ablage = neueAblage();
+  const werte = mitFenster({ localStorage: ablage }, () =>
+    [null, "an", "kaputt", "aus"].map((roh) => {
+      if (roh === null) ablage.removeItem(TAGESBEGINN_SCHALTER);
+      else ablage.setItem(TAGESBEGINN_SCHALTER, roh);
+      return tagesbeginnSpeicher.lese();
+    }),
+  );
+  pruefe("Einstellung: Voreinstellung an, nur ein gespeichertes 'aus' schaltet ab", JSON.stringify(werte) === "[true,true,true,false]" && TAGESBEGINN_STANDARD === true, JSON.stringify(werte));
+  pruefe("Einstellung: auch beim Hydrieren an (Serverwert), gesperrter Speicher heisst an", tagesbeginnSpeicher.serverWert() === true && mitFenster({ localStorage: gesperrt }, () => tagesbeginnSpeicher.lese()) === true);
 }
 
 // --- 1b. Tageszeit (lib/domain/tageszeit.ts) ---------------------------------------
@@ -218,7 +252,7 @@ console.log("\n3. Begruessung im Sprachmodus, Sprechblase, Kontext");
   pruefe("KI-Kontext: nutzerId steht im Kontextwert (nicht nur als Prop)", pane.includes("nutzerId: string | null;") && pane.includes("nutzerId: nutzerId ?? null,") && pane.includes("  nutzerId: null,\n"));
 
   const dash = lies("src/components/haustier/haustier-dashboard.tsx");
-  pruefe("Blase: nicht auf dem Handy, nicht wenn Himbi weg oder aus, nicht im Sprachmodus, nur bei Ruhe, nur mit Einstellung", dash.includes("const grussMoeglich = verfuegbar && !handy && an && !weg && !sprachmodus && tagesbeginnAn && ruhigGenug;") && dash.includes("const tagesGrussSichtbar = !!tagesGruss && ruhigGenug && !sprachmodus && tagesbeginnAn;"));
+  pruefe("Blase: nicht auf dem Handy, nicht wenn Himbi weg oder aus, nicht im Sprachmodus, nur bei Ruhe, nur mit Einstellung", dash.includes("const grussMoeglich = verfuegbar && !handy && an && !weg && !sprachmodus && tagesbeginnAn && ruhigGenug;") && blaseBei({ tagesgruss: true }) === "tagesgruss" && blaseBei({ tagesgruss: true, sprachmodus: true }) === null && blaseBei({ tagesgruss: true, ruhigGenug: false }) === null && blaseBei({ tagesgruss: true, tagesbeginnAn: false }) === null);
   // Befund vom 28.09.2026: der Timer merkte den Gruss, auch wenn Tour-Frage, laufende Tour oder
   // Live-Hinweis vor ihm standen oder der Tab im Hintergrund lag; der Gruss verfiel dann
   // ungesehen und war fuer den Tag verbraucht. Jetzt legt der Timer ihn nur bereit, gemerkt und
@@ -227,20 +261,26 @@ console.log("\n3. Begruessung im Sprachmodus, Sprechblase, Kontext");
   pruefe("Blase: gemerkt und die Anzeigedauer gestartet erst, wenn der Gruss die gezeigte Blase ist", /const tagesGrussGezeigt = blasen\.gezeigt === "tagesgruss";\s*useEffect\(\(\) => \{\s*if \(!tagesGrussGezeigt\) return;\s*merkeTagesbeginn\(browserAblage\(\), nutzerId, "blase"\);\s*const id = window\.setTimeout\(\(\) => setTagesGruss\(null\), TAGESGRUSS_DAUER_MS\);/.test(dash) && dash.split("merkeTagesbeginn(").length === 2);
   pruefe("Blase: ein noch wartender Gruss faellt im Sprachmodus weg (dort beginnt das Gespraech den Tag)", dash.includes("if (sprachmodus && tagesGruss) setTagesGruss(null);"));
   pruefe("Auswahl: eine reine Funktion waehlt die Blase; gezeigt heisst Figur im Bild und Seite sichtbar", dash.includes("const blasen = sichtbareBlase(blasenReihenfolge, {") && dash.includes("figurImBild: verfuegbar && !handy && an && !weg && !sprachmodus,") && dash.includes("seiteSichtbar,") && dash.includes("const blase = blasen.gewaehlt ? blasenInhalt[blasen.gewaehlt] : null;"));
-  const reihenfolgeBlock = /const blasenReihenfolge[^=]*= \[([\s\S]*?)\];/.exec(dash)?.[1] ?? "";
-  const reihenfolge = [...reihenfolgeBlock.matchAll(/art: "(\w+)"/g)].map((m) => m[1]).join(",");
-  pruefe("Auswahl: Rangfolge der Blasen unveraendert (dringendste zuerst, Tagesgruss vor Befinden, Anstupser und Tipp)", reihenfolge === "willkommen,freigabe,arbeitet,fehler,fertig,liveHinweis,tourAktiv,tourFrage,tagesgruss,befinden,befindenAntwort,anstupser,tipp", reihenfolge);
-  pruefe("Tipp: kommt erst nach Ruhe, Merker und 15 s erst, wenn er die gezeigte Blase ist (nicht hinter dem Tagesgruss verbraucht)", dash.includes("if (!ruhigGenug || tipp) return;") && !dash.includes('window.sessionStorage.setItem(merker, "1");') && /const tippGezeigt = blasen\.gezeigt === "tipp";\s*useEffect\(\(\) => \{\s*if \(!tippGezeigt \|\| !tipp\) return;\s*try \{\s*window\.sessionStorage\.setItem\(`damicon-haustier-tipp:\$\{tipp\.key\}`, "1"\);[\s\S]{0,120}const id = window\.setTimeout\(\(\) => setTipp\(null\), TIPP_DAUER_MS\);/.test(dash));
+  // Seit dem 29.09.2026 (Fund 53) die wirksame Rangfolge statt der Woerter im Quelltext: vorher
+  // stand sie hier gruen, obwohl eigene Ausschluesse den Tipp vor Befinden und Tour-Frage zogen.
+  const reihenfolge = BLASEN_RANGFOLGE.join(",");
+  pruefe(
+    "Auswahl: Rangfolge der Blasen (dringendste zuerst, Tour-Frage vor Tagesgruss, Tagesgruss vor Tipp, Befinden und Anstupser), wirksam",
+    reihenfolge === "willkommen,freigabe,arbeitet,fehler,fertig,liveHinweis,tourAktiv,tourFrage,tagesgruss,befindenAntwort,tipp,befinden,anstupser" &&
+      blaseBei({ tagesgruss: true, tipp: true, befinden: true, anstupser: true }) === "tagesgruss" &&
+      blaseBei({ tourFrage: true, tagesgruss: true, tipp: true }) === "tourFrage" &&
+      blaseBei({ tipp: true, befinden: true, anstupser: true }) === "tipp",
+    reihenfolge,
+  );
+  pruefe("Tipp: kommt erst nach Ruhe, Merker und 15 s erst, wenn er die gezeigte Blase ist (nicht hinter dem Tagesgruss verbraucht)", dash.includes("if (!ruhigGenug || tipp) return;") && dash.split("merkeTippGezeigt(").length === 2 && /const tippGezeigt = blasen\.gezeigt === "tipp";\s*useEffect\(\(\) => \{\s*if \(!tippGezeigt \|\| !tipp\) return;\s*merkeTippGezeigt\(sitzungsAblage\(\), tipp\.key\);\s*const id = window\.setTimeout\(\(\) => setTipp\(null\), TIPP_DAUER_MS\);/.test(dash));
   pruefe("Anstupser: gestellt, gemerkt und als Absage gezaehlt erst, wenn er die gezeigte Blase ist", dash.includes("const zeigen = window.setTimeout(() => setAnstupser(naechste), ANSTUPSER_VERZOEGERUNG_MS);") && /const anstupserGezeigt = blasen\.gezeigt === "anstupser";\s*useEffect\(\(\) => \{\s*if \(!anstupserGezeigt \|\| !anstupser\) return;\s*gestellt\.current\.add\(anstupser\);[\s\S]{0,300}absagen\.current \+= 1;\s*setAnstupser\(null\);\s*\}, ANSTUPSER_DAUER_MS\);/.test(dash));
   pruefe("Befinden: Sitzungsmerker erst, wenn die Frage die gezeigte Blase ist", dash.includes("const zeigen = window.setTimeout(() => setBefindenFrage(true), BEFINDEN_VERZOEGERUNG_MS);") && /const befindenGezeigt = blasen\.gezeigt === "befinden";\s*useEffect\(\(\) => \{\s*if \(!befindenGezeigt\) return;\s*try \{\s*window\.sessionStorage\.setItem\(BEFINDEN_SCHLUESSEL, "1"\);/.test(dash));
   pruefe("Blase: ein Eintrag in blasenInhalt, 'Ja' stellt befinden.hilfeText, 'Nein' schliesst", /tagesgruss: tagesGruss \? \([\s\S]{0,900}stelleFrage\(t\("befinden\.hilfeText"\)\);\s*setTagesGruss\(null\);[\s\S]{0,300}onClick=\{\(\) => setTagesGruss\(null\)\}/.test(dash));
   pruefe("Blase: Gruss mit Vornamen wie in der Begruessung, sonst ohne Namen", dash.includes("begruessungT(tagesGruss, { name: anredeName(name) })") && dash.includes("begruessungT(`${tagesGruss}OhneNamen`)"));
   pruefe("Blase: ein Klick auf Himbi schliesst auch den Gruss", /onKlick=\{\(\) => \{[\s\S]{0,300}setTagesGruss\(null\);/.test(dash));
 
-  const kontext = lies("src/components/haustier/haustier-kontext.tsx");
-  pruefe("Einstellung: Voreinstellung an (Serverwert und Standardkontext)", kontext.includes("const tagesbeginnServerWert = (): boolean => true;") && kontext.includes("  tagesbeginnAn: true,\n"));
-  const haustier = lies("src/lib/haustier.ts");
-  pruefe("Einstellung: Speicher in lib/haustier.ts, gesperrter Speicher heisst an", /export function leseTagesbeginn\(\): boolean \{\s*try \{\s*return tagesbeginnAusSpeicher\(window\.localStorage\.getItem\(TAGESBEGINN_SCHALTER\)\);\s*\} catch \{\s*return true;/.test(haustier));
+  // Voreinstellung, Serverwert und gesperrter Speicher prueft Abschnitt 1 am echten Speicher
+  // (tagesbeginnSpeicher, seit 29.09.2026 statt der Quelltextpruefungen an dieser Stelle).
   const einstellung = lies("src/components/haustier/haustier-einstellung.tsx");
   pruefe("Einstellung: Schalter mit Titel und Beschreibung wie die vorhandenen", einstellung.includes('aria-checked={tagesbeginnAn}') && einstellung.includes("onClick={() => setTagesbeginnAn(!tagesbeginnAn)}") && einstellung.includes('t("einstellung.tagesbeginnText")'));
 }

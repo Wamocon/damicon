@@ -3,7 +3,8 @@
 // das tut, welchem Modul gehoert ein Pfad, wie sieht die Tour aus.
 
 import { bewegungReduziert } from "@/lib/bewegung";
-import { TAGESBEGINN_SCHALTER, tagesbeginnAusSpeicher } from "@/lib/himbi-tagesbeginn";
+import { browserAblage, type Ablage } from "@/lib/browser-ablage";
+import { TAGESBEGINN_SCHALTER, TAGESBEGINN_STANDARD } from "@/lib/himbi-tagesbeginn";
 
 export type AgentPhase = "ruhe" | "arbeitet" | "freigabe" | "fehler";
 
@@ -61,20 +62,6 @@ export function stimmungAusAntwort(antwort: string): Stimmung {
  *  und dort erklaert er sich von selbst. */
 export const VORSCHAU_ZUSTAENDE = ["ruhe", "denkt", "spricht", "freigabe", "fertig", "fehler", "schlaeft"] as const;
 
-const BEWEGUNG_SCHLUESSEL = "damicon-haustier-bewegung";
-
-/** Bewegung der Figur: an, solange nichts anderes gespeichert ist. Das Betriebssystem
- *  kann sie ueber prefers-reduced-motion ohnehin abbestellen - dieser Schalter ist fuer
- *  alle, die die Figur moegen, aber nicht das Zappeln, und die dafuer nicht die
- *  Einstellung ihres ganzen Rechners aendern wollen. */
-export function leseBewegung(): boolean {
-  try {
-    return window.localStorage.getItem(BEWEGUNG_SCHLUESSEL) !== "aus";
-  } catch {
-    return true;
-  }
-}
-
 /** Soll Himbi still stehen? Die Systemeinstellung (prefers-reduced-motion) oder der eigene
  *  Schalter "Bewegung" (data-hb-still am Dokument, gesetzt von schreibeBewegung und beim
  *  Start in haustier-kontext.tsx). Das Attribut ist der aktuelle Stand, der Speicher nur
@@ -98,37 +85,13 @@ export function blickRichtung(dx: number, dy: number, max = AUGEN_MAX, nahPx = 1
   return { x: (dx / d) * max * staerke, y: (dy / d) * max * staerke };
 }
 
+/** Schreibt den Bewegungsschalter und setzt ihn sofort am Dokument (data-hb-still). */
 export function schreibeBewegung(an: boolean): void {
-  try {
-    window.localStorage.setItem(BEWEGUNG_SCHLUESSEL, an ? "an" : "aus");
-  } catch {
-    // Speicher gesperrt: gilt dann nur fuer diese Sitzung
-  }
+  bewegungSpeicher.schreibe(an);
   document.documentElement.toggleAttribute("data-hb-still", !an);
 }
 
 const TOUR_SCHLUESSEL = "damicon-haustier-tour";
-
-/** Die gefuehrte Compliance-Tour (use-compliance-tour.tsx): an, solange nichts anderes
- *  gespeichert ist. Wer sie abstellt, bekommt trotzdem weiter die automatische
- *  Zusammenfassung im Chat - nur das Herumspringen und Hervorheben auf der Seite
- *  entfaellt, systemweit, nicht nur auf der Seite, auf der man gerade abstellt (derselbe
- *  Speicher wie die Sichtbarkeit oben, siehe haustier-kontext.tsx). */
-export function leseTourSchalter(): boolean {
-  try {
-    return window.localStorage.getItem(TOUR_SCHLUESSEL) !== "aus";
-  } catch {
-    return true;
-  }
-}
-
-export function schreibeTourSchalter(an: boolean): void {
-  try {
-    window.localStorage.setItem(TOUR_SCHLUESSEL, an ? "an" : "aus");
-  } catch {
-    // Speicher gesperrt: gilt dann nur fuer diese Sitzung
-  }
-}
 
 // Automatischer Start von Tour UND Zusammenfassung nach einer Pruefung (und das einmalige
 // Angebot dazu). Aus heisst: nichts startet von selbst - die Knoepfe in der Uebersicht
@@ -136,41 +99,6 @@ export function schreibeTourSchalter(an: boolean): void {
 // 25.09.2026, Rueckmeldung: "per Default aus, wenn der User es braucht, schaltet er sie ein"):
 // nur ein ausdruecklich gespeichertes "an" startet von selbst.
 const AUTO_SCHLUESSEL = "damicon-haustier-auto";
-
-export function leseAutoStart(): boolean {
-  try {
-    return window.localStorage.getItem(AUTO_SCHLUESSEL) === "an";
-  } catch {
-    return false;
-  }
-}
-
-export function schreibeAutoStart(an: boolean): void {
-  try {
-    window.localStorage.setItem(AUTO_SCHLUESSEL, an ? "an" : "aus");
-  } catch {
-    // Speicher gesperrt: gilt dann nur fuer diese Sitzung
-  }
-}
-
-// "Himbi beginnt den Tag mit mir" (lib/himbi-tagesbeginn.ts): einmal am Tag fragt Himbi von
-// sich aus nach der Tageslage, im Gespraech und als Sprechblase. Voreinstellung AN (Rueckmeldung
-// vom 28.09.2026: "Er soll mir Fragen stellen!"), anders als der automatische Start oben.
-export function leseTagesbeginn(): boolean {
-  try {
-    return tagesbeginnAusSpeicher(window.localStorage.getItem(TAGESBEGINN_SCHALTER));
-  } catch {
-    return true;
-  }
-}
-
-export function schreibeTagesbeginn(an: boolean): void {
-  try {
-    window.localStorage.setItem(TAGESBEGINN_SCHALTER, an ? "an" : "aus");
-  } catch {
-    // Speicher gesperrt: gilt dann nur fuer diese Sitzung
-  }
-}
 
 export interface Inventar {
   /** Welche der drei Trachten (himbi.tsx, TRACHTEN) Chapan, Aermel, Kappe und Stiefel tragen. */
@@ -180,38 +108,176 @@ export interface Inventar {
 }
 
 const INVENTAR_SCHLUESSEL = "damicon-haustier-inventar";
+/** Die Standardtracht - dieselbe, mit der Himbi schon immer auftrat. */
 const INVENTAR_STANDARD: Inventar = { tracht: 0, brille: true };
-
-/** Liest die gespeicherte Tracht. Alles Unbekannte (leer, kaputt, alter Wert) heisst: die
- *  Standardtracht - dieselbe, mit der Himbi schon immer auftrat. */
-export function leseInventar(): Inventar {
-  try {
-    const roh = window.localStorage.getItem(INVENTAR_SCHLUESSEL);
-    if (!roh) return INVENTAR_STANDARD;
-    const wert = JSON.parse(roh) as Partial<Inventar>;
-    const tracht = wert.tracht === 1 || wert.tracht === 2 ? wert.tracht : 0;
-    const brille = typeof wert.brille === "boolean" ? wert.brille : true;
-    return { tracht, brille };
-  } catch {
-    return INVENTAR_STANDARD;
-  }
-}
-
-export function schreibeInventar(inventar: Inventar): void {
-  try {
-    window.localStorage.setItem(INVENTAR_SCHLUESSEL, JSON.stringify(inventar));
-  } catch {
-    // gesperrter Speicher: die Wahl gilt nur fuer diese Sitzung
-  }
-}
 
 /** an = Himbi ist da. weg = weggeschickt, nur die Blattspitze schaut am Rand heraus (ein Klick holt sie
  *  zurueck). aus = in den Einstellungen ganz abgeschaltet, auch die Spitze bleibt weg. */
 export type Sichtbarkeit = "an" | "weg" | "aus";
 
+const SICHTBARKEIT_STANDARD: Sichtbarkeit = "an";
+
 /** Liest den gespeicherten Wert. Alles Unbekannte (leer, kaputt, alter Wert) heisst: da. */
 export function leseSichtbarkeit(roh: string | null | undefined): Sichtbarkeit {
-  return roh === "weg" || roh === "aus" ? roh : "an";
+  return roh === "weg" || roh === "aus" ? roh : SICHTBARKEIT_STANDARD;
+}
+
+// ---- Einstellungen im Browser-Speicher -------------------------------------------------
+
+/**
+ * Ein Wert im Browser-Speicher, angebunden an useSyncExternalStore (haustier-kontext.tsx,
+ * haustier-einstellung.tsx): lese ist der Stand, serverWert der Wert beim Hydrieren (React nimmt
+ * erst ihn, dann den echten), abonniere meldet eigene Schreibvorgaenge und Aenderungen aus
+ * anderen Tabs (storage-Ereignis).
+ */
+export interface BrowserSpeicher<T> {
+  lese: () => T;
+  schreibe: (neu: T) => void;
+  abonniere: (melde: () => void) => () => void;
+  serverWert: () => T;
+}
+
+/**
+ * Baut einen solchen Speicher. Seit dem 28.09.2026 eine Fabrik statt sechs fast gleicher Kopien
+ * in haustier-kontext.tsx, haustier-einstellung.tsx und hier (Fund 57): die Voreinstellung steht
+ * genau einmal, als `standard`, und gilt fuer leeren, unbekannten oder gesperrten Speicher und
+ * als Serverwert. Der Zugang laeuft ueber browserAblage() wie beim Tagesmerker (Fund 66).
+ *
+ * Fuer denselben gespeicherten Text liefert lese dieselbe Referenz: useSyncExternalStore haelt
+ * ein neues Objekt bei jedem Aufruf sonst fuer eine Endlosschleife (die Tracht ist ein Objekt).
+ */
+export function erzeugeBrowserSpeicher<T>(
+  schluessel: string,
+  standard: T,
+  format: { lies: (roh: string) => T | null; schreib: (wert: T) => string },
+): BrowserSpeicher<T> {
+  const beobachter = new Set<() => void>();
+  // Nur, wenn der Speicher das Schreiben ablehnt (privates Fenster, voll): dann gilt der Wert
+  // fuer diese Sitzung. Bis zum 29.09.2026 wurde er bei JEDEM Schreiben gesetzt und danach
+  // vorrangig gelesen; eine Aenderung aus einem anderen Tab kam nach dem ersten eigenen Schreiben
+  // nicht mehr an, obwohl das storage-Ereignis neu lesen liess (Fund 58 der Pruefung vom 28.09.2026).
+  let nurSitzung: { wert: T } | null = null;
+  let zuletzt: { roh: string | null; wert: T } | null = null;
+  return {
+    lese() {
+      if (nurSitzung) return nurSitzung.wert;
+      let roh: string | null = null;
+      try {
+        roh = browserAblage()?.getItem(schluessel) ?? null;
+      } catch {
+        // Lesen gesperrt: wie leer, also die Voreinstellung
+      }
+      if (zuletzt && zuletzt.roh === roh) return zuletzt.wert;
+      const wert = roh === null ? standard : (format.lies(roh) ?? standard);
+      zuletzt = { roh, wert };
+      return wert;
+    },
+    schreibe(neu) {
+      try {
+        const ablage = browserAblage();
+        if (!ablage) throw new Error("kein Speicher");
+        ablage.setItem(schluessel, format.schreib(neu));
+        nurSitzung = null;
+      } catch {
+        nurSitzung = { wert: neu };
+      }
+      beobachter.forEach((b) => b());
+    },
+    abonniere(melde) {
+      beobachter.add(melde);
+      window.addEventListener("storage", melde);
+      return () => {
+        beobachter.delete(melde);
+        window.removeEventListener("storage", melde);
+      };
+    },
+    serverWert: () => standard,
+  };
+}
+
+/** Ein Schalter: gespeichert als "an" oder "aus", alles andere heisst `standard`. */
+export function erzeugeSchalterSpeicher(schluessel: string, standard: boolean): BrowserSpeicher<boolean> {
+  return erzeugeBrowserSpeicher(schluessel, standard, {
+    lies: (roh) => (roh === "an" ? true : roh === "aus" ? false : null),
+    schreib: (an) => (an ? "an" : "aus"),
+  });
+}
+
+/** Ob Himbi da, weggeschickt oder ganz aus ist. */
+export const sichtbarkeitSpeicher = erzeugeBrowserSpeicher<Sichtbarkeit>("damicon-haustier", SICHTBARKEIT_STANDARD, {
+  lies: leseSichtbarkeit,
+  schreib: (wert) => wert,
+});
+
+/** Bewegung der Figur: an, solange nichts anderes gespeichert ist. Das Betriebssystem kann sie
+ *  ueber prefers-reduced-motion ohnehin abbestellen - dieser Schalter ist fuer alle, die die Figur
+ *  moegen, aber nicht das Zappeln, und die dafuer nicht die Einstellung ihres ganzen Rechners
+ *  aendern wollen. Geschrieben wird ueber schreibeBewegung (setzt auch data-hb-still). */
+export const bewegungSpeicher = erzeugeSchalterSpeicher("damicon-haustier-bewegung", true);
+
+/** Die gefuehrte Compliance-Tour (use-compliance-tour.tsx): an, solange nichts anderes
+ *  gespeichert ist. Wer sie abstellt, bekommt trotzdem weiter die automatische Zusammenfassung
+ *  im Chat - nur das Herumspringen und Hervorheben auf der Seite entfaellt, systemweit. */
+export const tourSpeicher = erzeugeSchalterSpeicher(TOUR_SCHLUESSEL, true);
+
+/** Automatischer Start nach einer Pruefung, Voreinstellung aus (siehe AUTO_SCHLUESSEL oben). */
+export const autoStartSpeicher = erzeugeSchalterSpeicher(AUTO_SCHLUESSEL, false);
+
+/** "Himbi beginnt den Tag mit mir" (lib/himbi-tagesbeginn.ts): einmal am Tag fragt Himbi von sich
+ *  aus nach der Tageslage, im Gespraech und als Sprechblase. Voreinstellung AN (Rueckmeldung vom
+ *  28.09.2026), anders als der automatische Start. */
+export const tagesbeginnSpeicher = erzeugeSchalterSpeicher(TAGESBEGINN_SCHALTER, TAGESBEGINN_STANDARD);
+
+/** Die gespeicherte Tracht. Kaputtes oder Unbekanntes heisst die Standardtracht, ein fehlendes
+ *  Feld dessen Standard. */
+export const inventarSpeicher = erzeugeBrowserSpeicher<Inventar>(INVENTAR_SCHLUESSEL, INVENTAR_STANDARD, {
+  lies: (roh) => {
+    let wert: unknown;
+    try {
+      wert = JSON.parse(roh);
+    } catch {
+      return null;
+    }
+    if (typeof wert !== "object" || wert === null) return null;
+    const { tracht, brille } = wert as Partial<Inventar>;
+    return {
+      tracht: tracht === 1 || tracht === 2 ? tracht : INVENTAR_STANDARD.tracht,
+      brille: typeof brille === "boolean" ? brille : INVENTAR_STANDARD.brille,
+    };
+  },
+  schreib: (inventar) => JSON.stringify(inventar),
+});
+
+// ---- Tipp-Merker ------------------------------------------------------------------------
+
+/**
+ * Der Sitzungsmerker "Tipp fuer dieses Modul gezeigt" (haustier-dashboard.tsx). Bis zum
+ * 28.09.2026 stand der Schluessel dort zweimal als eigenes Literal, einmal beim Lesen und
+ * einmal beim Schreiben (Fund 65): aenderte jemand nur eines, kam der Tipp in jeder Sitzung
+ * wieder, ohne dass etwas auffiel.
+ */
+export function tippMerker(modulKey: string): string {
+  return `damicon-haustier-tipp:${modulKey}`;
+}
+
+/** Wurde der Tipp dieses Moduls in dieser Sitzung schon gezeigt? Ohne Speicher nein (dann kommt er
+ *  bei jedem Besuch, das ist verkraftbar). */
+export function tippSchonGezeigt(ablage: Ablage | null, modulKey: string): boolean {
+  if (!ablage) return false;
+  try {
+    return Boolean(ablage.getItem(tippMerker(modulKey)));
+  } catch {
+    return false;
+  }
+}
+
+export function merkeTippGezeigt(ablage: Ablage | null, modulKey: string): void {
+  if (!ablage) return;
+  try {
+    ablage.setItem(tippMerker(modulKey), "1");
+  } catch {
+    // gesperrter Speicher: siehe tippSchonGezeigt
+  }
 }
 
 /** Was der Chat gerade tut, in einer Zahl von Faellen. Eine offene Freigabe gewinnt vor allem
@@ -238,6 +304,91 @@ export function haustierZustand(a: {
   if (a.fertigUngelesen) return "fertig";
   if (a.schlaeft) return "schlaeft";
   return "ruhe";
+}
+
+/**
+ * Alle Sprechblasen im Dashboard (haustier-dashboard.tsx), dringendste zuerst. Diese Liste ist
+ * die EINZIGE Stelle fuer die Rangfolge (Fund 53 vom 28.09.2026): vorher trugen Befinden,
+ * Tour-Frage, Tipp und Anstupser eigene Ausschluesse (!tipp, !befindenSichtbar ...), und die
+ * wirksame Reihenfolge wich von der Liste ab. Liegen Tour-Frage, Tagesgruss und Tipp zugleich
+ * bereit, kam der Tagesgruss vor der Tour-Frage, sonst nicht. Heute:
+ *   - Meldungen des Agenten und die laufende Fuehrung vor allem, was Himbi von sich aus sagt,
+ *   - der Tagesgruss vor dem Modultipp (er ist der Anfang des Tages),
+ *   - die Antwort auf das Befinden vor dem Tipp (sie folgt direkt auf eine Eingabe),
+ *   - der Tipp vor der Befindens-Frage und den Anstupsern (so war es schon vorher gewollt).
+ * Die einzige Aenderung im Verhalten: ein wartender Tipp verdraengt die Tour-Frage nicht mehr,
+ * sie kommt vor ihm, wie sie auch vor dem Tagesgruss kommt. Warum so und nicht umgekehrt: die
+ * Tour-Frage folgt auf eine gerade abgeschlossene Pruefung, der Modultipp ist allgemein und
+ * wartet ohnehin, bis er gezeigt wurde (Merker erst dann), er geht also nicht verloren. Der
+ * Tipp vor der Tour-Frage haette dagegen den Tagesgruss vor den Tipp und die Tour-Frage vor den
+ * Tagesgruss gestellt, ein Kreis ohne feste Reihenfolge.
+ */
+export const BLASEN_RANGFOLGE = [
+  "willkommen",
+  "freigabe",
+  "arbeitet",
+  "fehler",
+  "fertig",
+  "liveHinweis",
+  "tourAktiv",
+  "tourFrage",
+  "tagesgruss",
+  "befindenAntwort",
+  "tipp",
+  "befinden",
+  "anstupser",
+] as const;
+export type BlasenArt = (typeof BLASEN_RANGFOLGE)[number];
+
+/** Was im Dashboard gerade ansteht (haustier-dashboard.tsx), als reine Daten. */
+export interface BlasenLage {
+  /** Himbi wurde gerade zurueckgeholt ("Da bin ich wieder"). */
+  willkommen: boolean;
+  phase: AgentPhase;
+  /** Eine Antwort kam bei geschlossenem Panel an und wurde noch nicht angesehen. */
+  fertigBlase: boolean;
+  /** Live-Lauf-Hinweis und laufende Compliance-Tour, schon mit ihren eigenen Bedingungen: sie
+   *  steuern in der Komponente auch Miene und Blick der Figur. */
+  liveHinweis: boolean;
+  tourAktiv: boolean;
+  /** Nichts los: kein Panel offen, keine laufende und keine ungelesene Antwort. */
+  ruhigGenug: boolean;
+  sprachmodus: boolean;
+  /** Die Einstellung "Himbi beginnt den Tag mit mir". */
+  tagesbeginnAn: boolean;
+  // Was bereitliegt, ohne Ruecksicht auf die anderen Blasen:
+  tourFrage: boolean;
+  tagesgruss: boolean;
+  befindenAntwort: boolean;
+  tipp: boolean;
+  befinden: boolean;
+  anstupser: boolean;
+}
+
+/**
+ * Die Kandidaten in der Rangfolge. Je Blase steht hier nur, ob SIE etwas zu sagen hat, nie, ob eine
+ * andere wichtiger ist: das entscheidet allein BLASEN_RANGFOLGE (Fund 53). Was Himbi von sich aus
+ * sagt, kommt nur bei Ruhe; der Tagesgruss zusaetzlich nicht im Sprachmodus (dort beginnt das
+ * Gespraech den Tag) und nur mit der Einstellung.
+ */
+export function blasenKandidaten(lage: BlasenLage): BlasenKandidat<BlasenArt>[] {
+  const vonSichAus = (liegtBereit: boolean) => liegtBereit && lage.ruhigGenug;
+  const bereit: Record<BlasenArt, boolean> = {
+    willkommen: lage.willkommen,
+    freigabe: lage.phase === "freigabe",
+    arbeitet: lage.phase === "arbeitet",
+    fehler: lage.phase === "fehler",
+    fertig: lage.fertigBlase,
+    liveHinweis: lage.liveHinweis,
+    tourAktiv: lage.tourAktiv,
+    tourFrage: vonSichAus(lage.tourFrage),
+    tagesgruss: vonSichAus(lage.tagesgruss) && !lage.sprachmodus && lage.tagesbeginnAn,
+    befindenAntwort: lage.befindenAntwort,
+    tipp: vonSichAus(lage.tipp),
+    befinden: vonSichAus(lage.befinden),
+    anstupser: vonSichAus(lage.anstupser),
+  };
+  return BLASEN_RANGFOLGE.map((art) => ({ art, sichtbar: bereit[art] }));
 }
 
 /** Ein Anwaerter auf Himbis Sprechblase: welche Blase, und ob ihre eigene Bedingung erfuellt ist. */

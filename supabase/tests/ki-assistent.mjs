@@ -167,6 +167,9 @@ const { erkenneSprache, erkenneSpracheEindeutig } = await import("../../src/lib/
 const { holeSonioxSchluessel, sonioxBasisUrl, sonioxZeitlimitMs, spracherkennungAnbieter, transkribiereMitSoniox } = await import(
   "../../src/lib/ai/soniox-client.ts"
 );
+// Der Auto-Start-Schalter liegt seit dem 28.09.2026 in einem Speicher aus lib/haustier.ts
+// (erzeugeSchalterSpeicher, Fund 57); geprueft wird sein Verhalten statt seines Quelltexts.
+const { autoStartSpeicher } = await import("../../src/lib/haustier.ts");
 
 let bestanden = 0;
 let fehlgeschlagen = 0;
@@ -2501,9 +2504,22 @@ for (const [name, kaputteAntwort] of [
     const tour = lies3("components/dashboard/use-compliance-tour.tsx");
     const kontext = lies3("components/haustier/haustier-kontext.tsx");
     const einst = lies3("components/haustier/haustier-einstellung.tsx");
-    const haustierLib = lies3("lib/haustier.ts");
-    pruefe("Auto-Start: Voreinstellung AUS, nur ein gespeichertes 'an' startet von selbst", haustierLib.includes('window.localStorage.getItem(AUTO_SCHLUESSEL) === "an"') && !haustierLib.includes('getItem(AUTO_SCHLUESSEL) !== "aus"'));
-    pruefe("Auto-Start: im Kontext als Status und Aktion, Serverwert und Vorgabe 'aus'", kontext.includes("autoStart") && kontext.includes("setAutoStart") && kontext.includes("useSyncExternalStore(abonniereAuto, leseAutoSpeicher, autoServerWert)") && kontext.includes("const autoServerWert = (): boolean => false;") && kontext.includes("autoStart: false,"));
+    const autoWerte = (() => {
+      const daten = new Map();
+      const vorher = globalThis.window;
+      globalThis.window = { localStorage: { getItem: (k) => daten.get(k) ?? null, setItem: (k, v) => daten.set(k, v), removeItem: (k) => daten.delete(k) }, addEventListener() {}, removeEventListener() {} };
+      try {
+        return [null, "an", "aus", "kaputt"].map((roh) => {
+          if (roh === null) daten.clear();
+          else daten.set("damicon-haustier-auto", roh);
+          return autoStartSpeicher.lese();
+        });
+      } finally {
+        globalThis.window = vorher;
+      }
+    })();
+    pruefe("Auto-Start: Voreinstellung AUS, nur ein gespeichertes 'an' startet von selbst", JSON.stringify(autoWerte) === "[false,true,false,false]", JSON.stringify(autoWerte));
+    pruefe("Auto-Start: im Kontext als Status und Aktion, Serverwert und Vorgabe 'aus'", kontext.includes("autoStart") && kontext.includes("setAutoStart") && autoStartSpeicher.serverWert() === false);
     pruefe("Auto-Start: Schalter in den Einstellungen", einst.includes("setAutoStart(!autoStart)") && einst.includes('t("einstellung.autoTitel")'));
     pruefe("Auto-Start: das einmalige Angebot kommt nur mit eingeschaltetem Auto-Start und nie im Sprachmodus", tour.includes('if (!autoStart || sprachmodus || !tourAn || !himbiSichtbar'));
     pruefe("Auto-Start: der automatische Lauf (Tour und Zusammenfassung) verfaellt bei ausgeschaltetem Auto-Start oder laufendem Sprachmodus", /if \(!autoStart \|\| sprachmodus\) \{[\s\S]{0,260}wartetAufAutostart\.current = false;[\s\S]{0,40}return;/.test(tour));

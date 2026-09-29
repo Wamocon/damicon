@@ -18,8 +18,18 @@ import { anredeName } from "@/components/dashboard/begruessung";
 import { bewegungReduziert } from "@/lib/bewegung";
 import { tageszeitBestimmen, type Tageszeit } from "@/lib/domain/tageszeit";
 import { merkeTagesbeginn, tagesbeginnFaellig } from "@/lib/himbi-tagesbeginn";
-import { browserAblage } from "@/lib/suche/zuletzt";
-import { haustierZustand, modulAusPfad, sichtbareBlase, springeZuAnker, type BlasenKandidat, type Stimmung } from "@/lib/haustier";
+import { browserAblage, sitzungsAblage } from "@/lib/browser-ablage";
+import {
+  blasenKandidaten,
+  haustierZustand,
+  merkeTippGezeigt,
+  modulAusPfad,
+  sichtbareBlase,
+  springeZuAnker,
+  tippSchonGezeigt,
+  type BlasenArt,
+  type Stimmung,
+} from "@/lib/haustier";
 import { modules } from "@/lib/modules";
 import { hasPermission } from "@/lib/rbac";
 
@@ -29,8 +39,8 @@ import { hasPermission } from "@/lib/rbac";
 // Tipps zum Modul, in dem man gerade ist.
 
 const TIPP_VERZOEGERUNG_MS = 7000;
-// Himbi fragt einmal je Sitzung, wie der Tag laeuft. Spaeter als der Modultipp, damit sie
-// nicht gleich zur Begruessung zwei Dinge auf einmal will.
+// Himbi fragt einmal je Sitzung, wie der Tag laeuft. Spaeter als der Modultipp: die Blasen
+// kommen nacheinander, nie zwei auf einmal (Rangfolge: BLASEN_RANGFOLGE in lib/haustier.ts).
 const BEFINDEN_VERZOEGERUNG_MS = 25000;
 const BEFINDEN_ANTWORT_MS = 8000;
 // Wie lange die Miene aus der Antwort des Menschen die aus dem Antworttext ueberstimmt.
@@ -55,22 +65,6 @@ const WILLKOMMEN_MS = 3200;
 // Pruefung, sobald sie beginnt - der CEO soll beim ersten Login gleich sehen, dass und wie
 // lange es dauert, statt es zu erraten.
 const LIVE_HINWEIS_DAUER_MS = 14000;
-
-// Alle Sprechblasen, die Himbi zeigen kann. Die Rangfolge steht in blasenReihenfolge unten.
-type BlasenArt =
-  | "willkommen"
-  | "freigabe"
-  | "arbeitet"
-  | "fehler"
-  | "fertig"
-  | "liveHinweis"
-  | "tourAktiv"
-  | "tourFrage"
-  | "tagesgruss"
-  | "befinden"
-  | "befindenAntwort"
-  | "anstupser"
-  | "tipp";
 
 // Liegt der Tab im Hintergrund, sieht niemand eine Blase: dann wird nichts als gezeigt gemerkt
 // und keine Anzeigedauer verbraucht (Befund vom 28.09.2026, siehe sichtbareBlase).
@@ -260,12 +254,7 @@ export function HaustierDashboard() {
     // Nicht auf den Platzhalterseiten. Dort stand "Soll ich dir zeigen, was
     // du hier tun kannst?" ueber einer Seite, auf der man nichts tun kann.
     if (modul.reifegrad === "in-entwicklung") return;
-    const merker = `damicon-haustier-tipp:${modul.key}`;
-    try {
-      if (window.sessionStorage.getItem(merker)) return;
-    } catch {
-      // ohne Speicher: Tipp erscheint bei jedem Besuch, das ist verkraftbar
-    }
+    if (tippSchonGezeigt(sitzungsAblage(), modul.key)) return;
     const zeigen = window.setTimeout(
       () => setTipp({ key: modul.key, titel: moduleT(`${modul.key}.title`), pfad }),
       TIPP_VERZOEGERUNG_MS,
@@ -279,33 +268,33 @@ export function HaustierDashboard() {
   // Echte Arbeit (Freigabe/Arbeitet/Fehler) und eine frisch angekommene Antwort gewinnen immer
   // vor dem Live-Lauf-Hinweis und der Compliance-Tour: die Fuehrung wartet lieber kurz, als eine
   // Meldung zu verdecken, die Aufmerksamkeit braucht.
+  // liveHinweisSichtbar und tourAktivSichtbar steuern auch Miene und Blick der Figur (unten),
+  // deshalb stehen hier die Meldungen, vor denen sie zuruecktreten.
   const keineWichtigereMeldung = phase !== "freigabe" && phase !== "arbeitet" && phase !== "fehler" && !fertigBlase;
   const liveHinweisSichtbar = !offen && keineWichtigereMeldung && liveHinweisAktiv;
   const tourAktivSichtbar = !offen && keineWichtigereMeldung && !liveHinweisSichtbar && tour.aktiv;
-  const befindenSichtbar = befindenFrage && ruhigGenug && !tipp;
-  const tippSichtbar = !!tipp && ruhigGenug && !befindenSichtbar;
-  const anstupserSichtbar = !!anstupser && ruhigGenug && !befindenSichtbar && !tippSichtbar && !befindenBlase;
-  const tourFrageSichtbar = tour.frageBereit && ruhigGenug && !tipp;
-  const tagesGrussSichtbar = !!tagesGruss && ruhigGenug && !sprachmodus && tagesbeginnAn;
 
-  // Eine einzige, geordnete Liste (dringendste zuerst) statt zwoelf ineinander verschachtelter
-  // if/else-Zweige; der erste sichtbare Kandidat gewinnt (lib/haustier.ts sichtbareBlase). Der
-  // Inhalt jeder Blase steht weiter unten in blasenInhalt.
-  const blasenReihenfolge: BlasenKandidat<BlasenArt>[] = [
-    { art: "willkommen", sichtbar: willkommen },
-    { art: "freigabe", sichtbar: phase === "freigabe" },
-    { art: "arbeitet", sichtbar: phase === "arbeitet" },
-    { art: "fehler", sichtbar: phase === "fehler" },
-    { art: "fertig", sichtbar: fertigBlase },
-    { art: "liveHinweis", sichtbar: liveHinweisSichtbar },
-    { art: "tourAktiv", sichtbar: tourAktivSichtbar },
-    { art: "tourFrage", sichtbar: tourFrageSichtbar },
-    { art: "tagesgruss", sichtbar: tagesGrussSichtbar },
-    { art: "befinden", sichtbar: befindenSichtbar },
-    { art: "befindenAntwort", sichtbar: befindenBlase && !!befinden },
-    { art: "anstupser", sichtbar: anstupserSichtbar },
-    { art: "tipp", sichtbar: tippSichtbar },
-  ];
+  // Hier steht nur, was bereitliegt. Wann eine Blase bereit ist und welche gewinnt, entscheiden
+  // blasenKandidaten und BLASEN_RANGFOLGE in lib/haustier.ts (Fund 53 vom 28.09.2026: vorher
+  // trugen Befinden, Tour-Frage, Tipp und Anstupser hier eigene Ausschluesse, und die Liste log).
+  // Der erste bereite Kandidat gewinnt (sichtbareBlase), der Inhalt jeder Blase steht unten in
+  // blasenInhalt.
+  const blasenReihenfolge = blasenKandidaten({
+    willkommen,
+    phase,
+    fertigBlase,
+    liveHinweis: liveHinweisSichtbar,
+    tourAktiv: tourAktivSichtbar,
+    ruhigGenug,
+    sprachmodus,
+    tagesbeginnAn,
+    tourFrage: tour.frageBereit,
+    tagesgruss: !!tagesGruss,
+    befindenAntwort: befindenBlase && !!befinden,
+    tipp: !!tipp,
+    befinden: befindenFrage,
+    anstupser: !!anstupser,
+  });
   // gezeigt: Himbi steht im Bild (nicht auf dem Handy, nicht weg oder aus, im Sprachmodus ist die
   // Figur verborgen) und die Seite liegt im Vordergrund.
   const blasen = sichtbareBlase(blasenReihenfolge, {
@@ -328,11 +317,7 @@ export function HaustierDashboard() {
   const tippGezeigt = blasen.gezeigt === "tipp";
   useEffect(() => {
     if (!tippGezeigt || !tipp) return;
-    try {
-      window.sessionStorage.setItem(`damicon-haustier-tipp:${tipp.key}`, "1");
-    } catch {
-      // egal
-    }
+    merkeTippGezeigt(sitzungsAblage(), tipp.key);
     const id = window.setTimeout(() => setTipp(null), TIPP_DAUER_MS);
     return () => window.clearTimeout(id);
   }, [tippGezeigt, tipp]);

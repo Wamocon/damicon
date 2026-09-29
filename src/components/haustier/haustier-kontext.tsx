@@ -3,19 +3,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import { useKiPane } from "@/components/ki/ki-pane-kontext";
 import {
-  leseAutoStart,
-  leseBewegung,
-  leseInventar,
-  leseSichtbarkeit,
-  leseTagesbeginn,
-  leseTourSchalter,
-  schreibeAutoStart,
-  schreibeInventar,
-  schreibeTagesbeginn,
-  schreibeTourSchalter,
+  autoStartSpeicher,
+  bewegungSpeicher,
+  inventarSpeicher,
+  sichtbarkeitSpeicher,
+  tagesbeginnSpeicher,
+  tourSpeicher,
   type AgentPhase,
   type Inventar,
-  type Sichtbarkeit,
   type Stimmung,
 } from "@/lib/haustier";
 
@@ -25,151 +20,13 @@ import {
 //   kein Neuzeichnen aus. Der Chat meldet darueber seinen Zustand, ohne selbst
 //   neu zu rendern, wenn sich der Status aendert.
 // - Vorgabe (Frage, die Himbi stellen will): liest nur der Chat.
-
-const AN_SCHLUESSEL = "damicon-haustier";
-
-// Die Sichtbarkeit liegt im Browser-Speicher. Als externer Speicher angebunden, damit React beim
-// Hydrieren erst den Serverwert ("an") nimmt und danach den echten. Ohne nutzbaren Speicher
-// (privates Fenster) gilt der Wert fuer die Sitzung im Arbeitsspeicher.
-let sitzungsWert: Sichtbarkeit | null = null;
-const beobachter = new Set<() => void>();
-function leseSpeicher(): Sichtbarkeit {
-  if (sitzungsWert) return sitzungsWert;
-  try {
-    return leseSichtbarkeit(window.localStorage.getItem(AN_SCHLUESSEL));
-  } catch {
-    return "an";
-  }
-}
-function schreibeSpeicher(neu: Sichtbarkeit): void {
-  sitzungsWert = neu;
-  try {
-    window.localStorage.setItem(AN_SCHLUESSEL, neu);
-  } catch {
-    // Speicher gesperrt: gilt dann nur fuer diese Sitzung
-  }
-  beobachter.forEach((b) => b());
-}
-function abonniere(b: () => void): () => void {
-  beobachter.add(b);
-  window.addEventListener("storage", b);
-  return () => {
-    beobachter.delete(b);
-    window.removeEventListener("storage", b);
-  };
-}
-const serverWert = (): Sichtbarkeit => "an";
-
-// Die Tracht liegt ebenso im Browser-Speicher, nach demselben Muster: Serverwert beim
-// Hydrieren, echter Wert danach. Einstellung (haustier-einstellung.tsx) und Figur
-// (haustier-dashboard.tsx) teilen sich so denselben Stand, ohne dass eine der beiden
-// die andere kennen muss.
-let inventarSitzungsWert: Inventar | null = null;
-const inventarBeobachter = new Set<() => void>();
-function leseInventarSpeicher(): Inventar {
-  // Erst beim ersten Aufruf lesen und dann als dieselbe Referenz behalten - sonst liefert
-  // useSyncExternalStore bei jedem Aufruf ein neues Objekt und haelt das fuer eine
-  // Endlosschleife.
-  if (!inventarSitzungsWert) inventarSitzungsWert = leseInventar();
-  return inventarSitzungsWert;
-}
-function schreibeInventarSpeicher(neu: Inventar): void {
-  inventarSitzungsWert = neu;
-  schreibeInventar(neu);
-  inventarBeobachter.forEach((b) => b());
-}
-function abonniereInventar(b: () => void): () => void {
-  inventarBeobachter.add(b);
-  window.addEventListener("storage", b);
-  return () => {
-    inventarBeobachter.delete(b);
-    window.removeEventListener("storage", b);
-  };
-}
-// Eine feste Referenz, aus demselben Grund wie leseInventarSpeicher oben.
-const INVENTAR_SERVERWERT: Inventar = { tracht: 0, brille: true };
-const serverInventarWert = (): Inventar => INVENTAR_SERVERWERT;
-
-// Die gefuehrte Tour liegt ebenso im Browser-Speicher, nach demselben Muster wie die
-// Sichtbarkeit oben: Einstellung (haustier-einstellung.tsx) und Tour-Hook
-// (use-compliance-tour.tsx) teilen sich so denselben Stand, systemweit, ohne dass einer
-// den anderen kennen muss.
-let tourSitzungsWert: boolean | null = null;
-const tourBeobachter = new Set<() => void>();
-function leseTourSpeicher(): boolean {
-  if (tourSitzungsWert !== null) return tourSitzungsWert;
-  try {
-    return leseTourSchalter();
-  } catch {
-    return true;
-  }
-}
-function schreibeTourSpeicher(neu: boolean): void {
-  tourSitzungsWert = neu;
-  schreibeTourSchalter(neu);
-  tourBeobachter.forEach((b) => b());
-}
-function abonniereTour(b: () => void): () => void {
-  tourBeobachter.add(b);
-  window.addEventListener("storage", b);
-  return () => {
-    tourBeobachter.delete(b);
-    window.removeEventListener("storage", b);
-  };
-}
-const tourServerWert = (): boolean => true;
-
-// Der automatische Start (Tour + Zusammenfassung) liegt ebenso im Browser-Speicher, nach
-// demselben Muster wie die Tour oben.
-let autoSitzungsWert: boolean | null = null;
-const autoBeobachter = new Set<() => void>();
-function leseAutoSpeicher(): boolean {
-  if (autoSitzungsWert !== null) return autoSitzungsWert;
-  try {
-    return leseAutoStart();
-  } catch {
-    return false;
-  }
-}
-function schreibeAutoSpeicher(neu: boolean): void {
-  autoSitzungsWert = neu;
-  schreibeAutoStart(neu);
-  autoBeobachter.forEach((b) => b());
-}
-// Voreinstellung aus: der Server rendert "aus", wie der Browser ohne gespeicherten Wert.
-const autoServerWert = (): boolean => false;
-function abonniereAuto(b: () => void): () => void {
-  autoBeobachter.add(b);
-  window.addEventListener("storage", b);
-  return () => {
-    autoBeobachter.delete(b);
-    window.removeEventListener("storage", b);
-  };
-}
-
-// "Himbi beginnt den Tag mit mir" (lib/himbi-tagesbeginn.ts) liegt ebenso im Browser-Speicher,
-// nach demselben Muster. Gelesen von der Sprechblase (haustier-dashboard.tsx) UND vom
-// Sprachmodus (ki/sprachmodus.tsx), geschrieben von der Einstellung. Voreinstellung an.
-let tagesbeginnSitzungsWert: boolean | null = null;
-const tagesbeginnBeobachter = new Set<() => void>();
-function leseTagesbeginnSpeicher(): boolean {
-  if (tagesbeginnSitzungsWert !== null) return tagesbeginnSitzungsWert;
-  return leseTagesbeginn();
-}
-function schreibeTagesbeginnSpeicher(neu: boolean): void {
-  tagesbeginnSitzungsWert = neu;
-  schreibeTagesbeginn(neu);
-  tagesbeginnBeobachter.forEach((b) => b());
-}
-function abonniereTagesbeginn(b: () => void): () => void {
-  tagesbeginnBeobachter.add(b);
-  window.addEventListener("storage", b);
-  return () => {
-    tagesbeginnBeobachter.delete(b);
-    window.removeEventListener("storage", b);
-  };
-}
-const tagesbeginnServerWert = (): boolean => true;
+//
+// Die Einstellungen (Sichtbarkeit, Tracht, Tour, automatischer Start, Tagesbeginn) liegen im
+// Browser-Speicher, je als externer Speicher aus lib/haustier.ts (erzeugeBrowserSpeicher): React
+// nimmt beim Hydrieren erst den Serverwert und danach den echten, Einstellung
+// (haustier-einstellung.tsx), Figur (haustier-dashboard.tsx), Tour-Hook (use-compliance-tour.tsx)
+// und Sprachmodus teilen sich so denselben Stand, auch ueber Tabs hinweg. Bis zum 28.09.2026
+// stand hier fuenfmal dasselbe Muster von Hand (Fund 57).
 
 interface Status {
   phase: AgentPhase;
@@ -213,16 +70,17 @@ export interface Vorgabe {
   text: string;
 }
 
+// Ohne Provider gelten die Voreinstellungen der Speicher, dieselben wie beim Hydrieren.
 const StatusKontext = createContext<Status>({
   phase: "ruhe",
   text: "",
-  an: true,
-  weg: false,
+  an: sichtbarkeitSpeicher.serverWert() === "an",
+  weg: sichtbarkeitSpeicher.serverWert() === "weg",
   stimmung: "neutral",
-  inventar: { tracht: 0, brille: true },
-  tourAn: true,
-  autoStart: false,
-  tagesbeginnAn: true,
+  inventar: inventarSpeicher.serverWert(),
+  tourAn: tourSpeicher.serverWert(),
+  autoStart: autoStartSpeicher.serverWert(),
+  tagesbeginnAn: tagesbeginnSpeicher.serverWert(),
 });
 const AktionenKontext = createContext<Aktionen>({
   melde: () => {},
@@ -250,13 +108,13 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
   // Der gespeicherte Bewegungsschalter gilt fuer das ganze Dokument. Einmal beim Start
   // setzen - danach schreibt ihn nur noch die Einstellung selbst.
   useEffect(() => {
-    document.documentElement.toggleAttribute("data-hb-still", !leseBewegung());
+    document.documentElement.toggleAttribute("data-hb-still", !bewegungSpeicher.lese());
   }, []);
-  const sichtbarkeit = useSyncExternalStore(abonniere, leseSpeicher, serverWert);
-  const inventar = useSyncExternalStore(abonniereInventar, leseInventarSpeicher, serverInventarWert);
-  const tourAn = useSyncExternalStore(abonniereTour, leseTourSpeicher, tourServerWert);
-  const autoStart = useSyncExternalStore(abonniereAuto, leseAutoSpeicher, autoServerWert);
-  const tagesbeginnAn = useSyncExternalStore(abonniereTagesbeginn, leseTagesbeginnSpeicher, tagesbeginnServerWert);
+  const sichtbarkeit = useSyncExternalStore(sichtbarkeitSpeicher.abonniere, sichtbarkeitSpeicher.lese, sichtbarkeitSpeicher.serverWert);
+  const inventar = useSyncExternalStore(inventarSpeicher.abonniere, inventarSpeicher.lese, inventarSpeicher.serverWert);
+  const tourAn = useSyncExternalStore(tourSpeicher.abonniere, tourSpeicher.lese, tourSpeicher.serverWert);
+  const autoStart = useSyncExternalStore(autoStartSpeicher.abonniere, autoStartSpeicher.lese, autoStartSpeicher.serverWert);
+  const tagesbeginnAn = useSyncExternalStore(tagesbeginnSpeicher.abonniere, tagesbeginnSpeicher.lese, tagesbeginnSpeicher.serverWert);
   const [vorgabe, setVorgabe] = useState<Vorgabe | null>(null);
 
   const melde = useCallback((neuePhase: AgentPhase, neuerText: string, neueStimmung: Stimmung = "neutral") => {
@@ -265,13 +123,13 @@ export function HaustierProvider({ children }: { children: ReactNode }) {
     setStimmung(neueStimmung);
   }, []);
 
-  const setAn = useCallback((an: boolean) => schreibeSpeicher(an ? "an" : "aus"), []);
-  const schickeWeg = useCallback(() => schreibeSpeicher("weg"), []);
-  const holeZurueck = useCallback(() => schreibeSpeicher("an"), []);
-  const setInventar = useCallback((neu: Inventar) => schreibeInventarSpeicher(neu), []);
-  const setTourAn = useCallback((neu: boolean) => schreibeTourSpeicher(neu), []);
-  const setAutoStart = useCallback((neu: boolean) => schreibeAutoSpeicher(neu), []);
-  const setTagesbeginnAn = useCallback((neu: boolean) => schreibeTagesbeginnSpeicher(neu), []);
+  const setAn = useCallback((an: boolean) => sichtbarkeitSpeicher.schreibe(an ? "an" : "aus"), []);
+  const schickeWeg = useCallback(() => sichtbarkeitSpeicher.schreibe("weg"), []);
+  const holeZurueck = useCallback(() => sichtbarkeitSpeicher.schreibe("an"), []);
+  const setInventar = useCallback((neu: Inventar) => inventarSpeicher.schreibe(neu), []);
+  const setTourAn = useCallback((neu: boolean) => tourSpeicher.schreibe(neu), []);
+  const setAutoStart = useCallback((neu: boolean) => autoStartSpeicher.schreibe(neu), []);
+  const setTagesbeginnAn = useCallback((neu: boolean) => tagesbeginnSpeicher.schreibe(neu), []);
 
   const stelleFrage = useCallback(
     (frage: string) => {

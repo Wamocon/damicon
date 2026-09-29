@@ -9,7 +9,30 @@
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { agentPhase, haustierZustand, modulAusPfad, sichtbareBlase, stimmungAusAntwort, tourDauer } from "../../src/lib/haustier";
+import {
+  agentPhase,
+  autoStartSpeicher,
+  BLASEN_RANGFOLGE,
+  blasenKandidaten,
+  type BlasenArt,
+  type BlasenLage,
+  bewegungSpeicher,
+  erzeugeBrowserSpeicher,
+  erzeugeSchalterSpeicher,
+  haustierZustand,
+  inventarSpeicher,
+  merkeTippGezeigt,
+  modulAusPfad,
+  sichtbareBlase,
+  sichtbarkeitSpeicher,
+  stimmungAusAntwort,
+  tagesbeginnSpeicher,
+  tippMerker,
+  tippSchonGezeigt,
+  tourDauer,
+  tourSpeicher,
+} from "../../src/lib/haustier";
+import { TAGESBEGINN_SCHALTER, TAGESBEGINN_STANDARD } from "../../src/lib/himbi-tagesbeginn";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { Himbi } from "../../src/components/haustier/himbi";
@@ -206,6 +229,250 @@ pruefe("sichtbareBlase: im Hintergrund-Tab oder mit verborgener Figur gewaehlt, 
   const liste = [{ art: "tagesgruss", sichtbar: true }] as const;
   assert.deepEqual(sichtbareBlase(liste, { ...IM_BILD, seiteSichtbar: false }), { gewaehlt: "tagesgruss", gezeigt: null });
   assert.deepEqual(sichtbareBlase(liste, { ...IM_BILD, figurImBild: false }), { gewaehlt: "tagesgruss", gezeigt: null });
+});
+
+// ---- Rangfolge der Blasen im Dashboard (Fund 53 vom 28.09.2026) ------------------------
+// Vorher trugen Befinden, Tour-Frage, Tipp und Anstupser in haustier-dashboard.tsx eigene
+// Ausschluesse (!tipp, !befindenSichtbar ...). Die wirksame Reihenfolge wich von der Liste ab:
+// lagen Befinden, Tour-Frage und Tipp bereit, gewann der Tipp, obwohl er zuletzt stand. Der
+// alte Test pruefte nur die Reihenfolge der Woerter im Quelltext. Hier laufen echte Zustaende
+// durch blasenKandidaten und sichtbareBlase.
+
+const RUHE: BlasenLage = {
+  willkommen: false,
+  phase: "ruhe",
+  fertigBlase: false,
+  liveHinweis: false,
+  tourAktiv: false,
+  ruhigGenug: true,
+  sprachmodus: false,
+  tagesbeginnAn: true,
+  tourFrage: false,
+  tagesgruss: false,
+  befindenAntwort: false,
+  tipp: false,
+  befinden: false,
+  anstupser: false,
+};
+const gewinner = (lage: Partial<BlasenLage>) => sichtbareBlase(blasenKandidaten({ ...RUHE, ...lage }), IM_BILD).gewaehlt;
+
+/** Was eine Blase bereit macht, als Ausschnitt einer Lage. */
+const BEREIT: Record<BlasenArt, Partial<BlasenLage>> = {
+  willkommen: { willkommen: true },
+  freigabe: { phase: "freigabe" },
+  arbeitet: { phase: "arbeitet" },
+  fehler: { phase: "fehler" },
+  fertig: { fertigBlase: true },
+  liveHinweis: { liveHinweis: true },
+  tourAktiv: { tourAktiv: true },
+  tourFrage: { tourFrage: true },
+  tagesgruss: { tagesgruss: true },
+  befindenAntwort: { befindenAntwort: true },
+  tipp: { tipp: true },
+  befinden: { befinden: true },
+  anstupser: { anstupser: true },
+};
+
+pruefe("Blasen: jede Blase allein kommt durch", () => {
+  for (const art of BLASEN_RANGFOLGE) assert.equal(gewinner(BEREIT[art]), art, art);
+  assert.equal(gewinner({}), null);
+});
+
+pruefe("Blasen: die wirksame Rangfolge ist genau BLASEN_RANGFOLGE, fuer jedes Paar", () => {
+  const phasen = new Set<BlasenArt>(["freigabe", "arbeitet", "fehler"]);
+  const falsch: string[] = [];
+  BLASEN_RANGFOLGE.forEach((vorn, i) =>
+    BLASEN_RANGFOLGE.slice(i + 1).forEach((hinten) => {
+      // Zwei Phasen zugleich gibt es nicht.
+      if (phasen.has(vorn) && phasen.has(hinten)) return;
+      const ist = gewinner({ ...BEREIT[hinten], ...BEREIT[vorn] });
+      if (ist !== vorn) falsch.push(`${vorn} vor ${hinten}, gewann ${ist}`);
+    }),
+  );
+  assert.deepEqual(falsch, []);
+});
+
+pruefe("Blasen: Befinden, Tour-Frage und Tipp bereit zeigt die Tour-Frage; danach der Tipp, dann das Befinden", () => {
+  assert.equal(gewinner({ befinden: true, tourFrage: true, tipp: true }), "tourFrage");
+  assert.equal(gewinner({ befinden: true, tipp: true }), "tipp");
+  assert.equal(gewinner({ befinden: true, anstupser: true }), "befinden");
+  assert.equal(gewinner({ tourFrage: true, tagesgruss: true, tipp: true }), "tourFrage");
+  assert.equal(gewinner({ tagesgruss: true, tipp: true, befinden: true, anstupser: true }), "tagesgruss");
+});
+
+pruefe("Blasen: was Himbi von sich aus sagt, nur bei Ruhe; Meldungen des Agenten immer", () => {
+  for (const art of ["tourFrage", "tagesgruss", "tipp", "befinden", "anstupser"] as const) {
+    assert.equal(gewinner({ ...BEREIT[art], ruhigGenug: false }), null, art);
+  }
+  assert.equal(gewinner({ phase: "freigabe", ruhigGenug: false, tagesgruss: true }), "freigabe");
+  assert.equal(gewinner({ befindenAntwort: true, ruhigGenug: false }), "befindenAntwort");
+});
+
+pruefe("Blasen: der Tagesgruss nicht im Sprachmodus und nicht mit abgeschalteter Einstellung", () => {
+  assert.equal(gewinner({ tagesgruss: true, sprachmodus: true }), null);
+  assert.equal(gewinner({ tagesgruss: true, tagesbeginnAn: false }), null);
+  assert.equal(gewinner({ tagesgruss: true, tipp: true, tagesbeginnAn: false }), "tipp");
+});
+
+// ---- Einstellungen im Browser-Speicher (Fund 57 und 58 vom 28.09.2026) ------------------
+// Sichtbarkeit, Tracht, Bewegung, Tour, Auto-Start und Tagesbeginn liegen je in einem Speicher
+// aus derselben Fabrik (erzeugeBrowserSpeicher). Geprueft wird mit einem nachgebauten
+// localStorage am globalen window, wie ihn browserAblage() im Browser findet.
+
+function nachgebauterSpeicher(sperre: { lesen?: boolean; schreiben?: boolean } = {}) {
+  const daten = new Map<string, string>();
+  return {
+    daten,
+    getItem(schluessel: string): string | null {
+      if (sperre.lesen) throw new Error("SecurityError");
+      return daten.get(schluessel) ?? null;
+    },
+    setItem(schluessel: string, wert: string): void {
+      if (sperre.schreiben) throw new Error("QuotaExceededError");
+      daten.set(schluessel, String(wert));
+    },
+    removeItem(schluessel: string): void {
+      daten.delete(schluessel);
+    },
+  };
+}
+
+/** Fuehrt fn mit einem window aus, dessen localStorage `speicher` ist; storage-Lauscher werden mitgezaehlt. */
+function imFenster(speicher: unknown, fn: (lauscher: Set<() => void>) => void): void {
+  const g = globalThis as { window?: unknown };
+  const vorher = g.window;
+  const lauscher = new Set<() => void>();
+  g.window = {
+    localStorage: speicher,
+    addEventListener: (_art: string, f: () => void) => lauscher.add(f),
+    removeEventListener: (_art: string, f: () => void) => lauscher.delete(f),
+  };
+  try {
+    fn(lauscher);
+  } finally {
+    g.window = vorher;
+  }
+}
+
+pruefe("Speicher: leer, unbekannt oder gesperrt heisst die Voreinstellung, gespeichert gilt", () => {
+  imFenster(nachgebauterSpeicher(), () => {
+    const an = erzeugeSchalterSpeicher("probe-an", true);
+    const aus = erzeugeSchalterSpeicher("probe-aus", false);
+    assert.equal(an.lese(), true);
+    assert.equal(aus.lese(), false);
+    (window.localStorage as unknown as { setItem(k: string, v: string): void }).setItem("probe-an", "kaputt");
+    assert.equal(an.lese(), true, "Unbekanntes heisst Voreinstellung");
+    an.schreibe(false);
+    assert.equal(an.lese(), false);
+    aus.schreibe(true);
+    assert.equal(aus.lese(), true);
+  });
+  imFenster(nachgebauterSpeicher({ lesen: true, schreiben: true }), () => {
+    assert.equal(erzeugeSchalterSpeicher("probe-gesperrt", true).lese(), true);
+    assert.equal(erzeugeSchalterSpeicher("probe-gesperrt", false).lese(), false);
+  });
+});
+
+pruefe("Speicher: die Voreinstellungen stehen je einmal und gelten auch als Serverwert (Hydrieren)", () => {
+  assert.equal(tagesbeginnSpeicher.serverWert(), true, "Himbi beginnt den Tag: an");
+  assert.equal(TAGESBEGINN_STANDARD, true);
+  assert.equal(autoStartSpeicher.serverWert(), false, "Auto-Start: aus (seit 25.09.2026)");
+  assert.equal(tourSpeicher.serverWert(), true);
+  assert.equal(bewegungSpeicher.serverWert(), true);
+  assert.equal(sichtbarkeitSpeicher.serverWert(), "an");
+  assert.deepEqual(inventarSpeicher.serverWert(), { tracht: 0, brille: true });
+  imFenster(nachgebauterSpeicher(), () => {
+    assert.equal(tagesbeginnSpeicher.lese(), tagesbeginnSpeicher.serverWert());
+    assert.equal(autoStartSpeicher.lese(), autoStartSpeicher.serverWert());
+  });
+});
+
+pruefe("Speicher: Tagesbeginn schaltet nur ein gespeichertes 'aus' ab, Auto-Start startet nur mit 'an'", () => {
+  const speicher = nachgebauterSpeicher();
+  imFenster(speicher, () => {
+    for (const [roh, tagesbeginn, auto] of [["an", true, true], ["aus", false, false], ["kaputt", true, false]] as const) {
+      speicher.setItem(TAGESBEGINN_SCHALTER, roh);
+      speicher.setItem("damicon-haustier-auto", roh);
+      assert.equal(tagesbeginnSpeicher.lese(), tagesbeginn, `Tagesbeginn bei "${roh}"`);
+      assert.equal(autoStartSpeicher.lese(), auto, `Auto-Start bei "${roh}"`);
+    }
+  });
+});
+
+pruefe("Speicher: die Tracht behaelt fuer denselben Text dieselbe Referenz (useSyncExternalStore)", () => {
+  const speicher = nachgebauterSpeicher();
+  imFenster(speicher, () => {
+    const t = erzeugeBrowserSpeicher("probe-tracht", { tracht: 0, brille: true }, { lies: (roh) => JSON.parse(roh) as { tracht: number; brille: boolean }, schreib: (w) => JSON.stringify(w) });
+    t.schreibe({ tracht: 2, brille: false });
+    assert.equal(t.lese(), t.lese());
+    assert.deepEqual(t.lese(), { tracht: 2, brille: false });
+    speicher.setItem("damicon-haustier-inventar", '{"tracht":1}');
+    assert.deepEqual(inventarSpeicher.lese(), { tracht: 1, brille: true }, "fehlendes Feld heisst dessen Standard");
+    speicher.setItem("damicon-haustier-inventar", "{kein json");
+    assert.deepEqual(inventarSpeicher.lese(), { tracht: 0, brille: true });
+  });
+});
+
+// Fund 58: der Sitzungswert wurde bei JEDEM Schreiben gesetzt und danach vorrangig gelesen. Ein
+// Wechsel in einem anderen Tab loeste zwar das storage-Ereignis aus, gelesen wurde aber der alte
+// Sitzungswert, bis zum Neuladen. Zwei Speicher mit demselben Schluessel auf demselben
+// localStorage sind hier die zwei Tabs.
+pruefe("Speicher: eine Aenderung aus einem anderen Tab kommt an, auch nach eigenem Schreiben (Fund 58)", () => {
+  imFenster(nachgebauterSpeicher(), (lauscher) => {
+    const tabA = erzeugeSchalterSpeicher("probe-tabs", true);
+    const tabB = erzeugeSchalterSpeicher("probe-tabs", true);
+    let gemeldet = 0;
+    const abmelden = tabA.abonniere(() => (gemeldet += 1));
+    assert.equal(lauscher.size, 1, "Tab A lauscht auf storage");
+    tabA.schreibe(false);
+    tabB.schreibe(true);
+    lauscher.forEach((f) => f());
+    assert.ok(gemeldet >= 2, "eigenes Schreiben und storage-Ereignis melden");
+    assert.equal(tabA.lese(), true, "Tab A sieht das 'an' aus Tab B");
+    abmelden();
+    assert.equal(lauscher.size, 0);
+  });
+  imFenster(nachgebauterSpeicher(), () => {
+    const tabA = sichtbarkeitSpeicher;
+    const tabB = erzeugeBrowserSpeicher("damicon-haustier", "an", { lies: (roh) => roh, schreib: (w) => w });
+    tabA.schreibe("weg");
+    tabB.schreibe("an");
+    assert.equal(tabA.lese(), "an", "auch die Sichtbarkeit");
+  });
+});
+
+pruefe("Speicher: nimmt der Speicher nichts an (privates Fenster), gilt der Wert fuer diese Sitzung", () => {
+  imFenster(nachgebauterSpeicher({ schreiben: true }), () => {
+    const s = erzeugeSchalterSpeicher("probe-privat", true);
+    s.schreibe(false);
+    assert.equal(s.lese(), false);
+  });
+  imFenster(nachgebauterSpeicher({ lesen: true, schreiben: true }), () => {
+    const s = erzeugeSchalterSpeicher("probe-ganz-gesperrt", true);
+    s.schreibe(false);
+    assert.equal(s.lese(), false);
+  });
+});
+
+// ---- Tipp-Merker (Fund 65 vom 28.09.2026) --------------------------------------------------
+// Vorher stand der Schluessel in haustier-dashboard.tsx zweimal als Literal, beim Lesen und beim
+// Schreiben. Jetzt gehen beide Wege ueber tippMerker().
+
+pruefe("Tipp-Merker: was merkeTippGezeigt schreibt, liest tippSchonGezeigt, je Modul", () => {
+  const ablage = nachgebauterSpeicher();
+  assert.equal(tippSchonGezeigt(ablage, "lohn"), false);
+  merkeTippGezeigt(ablage, "lohn");
+  assert.equal(tippSchonGezeigt(ablage, "lohn"), true);
+  assert.equal(tippSchonGezeigt(ablage, "kuehlkette"), false, "ein anderes Modul bleibt offen");
+  assert.deepEqual([...ablage.daten.keys()], [tippMerker("lohn")]);
+});
+
+pruefe("Tipp-Merker: ohne oder mit gesperrtem Speicher kein Wurf, der Tipp gilt als nicht gezeigt", () => {
+  assert.equal(tippSchonGezeigt(null, "lohn"), false);
+  merkeTippGezeigt(null, "lohn");
+  const gesperrt = nachgebauterSpeicher({ lesen: true, schreiben: true });
+  merkeTippGezeigt(gesperrt, "lohn");
+  assert.equal(tippSchonGezeigt(gesperrt, "lohn"), false);
 });
 
 // ---- Lippen im Sprachmodus (src/lib/domain/lippen.ts) --------------------------------

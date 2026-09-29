@@ -4,7 +4,7 @@ import { useState, useSyncExternalStore, type CSSProperties } from "react";
 import { useTranslations } from "next-intl";
 import { useHaustierAktionen, useHaustierStatus } from "@/components/haustier/haustier-kontext";
 import { Himbi, TRACHTEN } from "@/components/haustier/himbi";
-import { leseBewegung, schreibeBewegung, VORSCHAU_ZUSTAENDE, type HaustierZustand, type Stimmung } from "@/lib/haustier";
+import { bewegungSpeicher, schreibeBewegung, VORSCHAU_ZUSTAENDE, type HaustierZustand, type Stimmung } from "@/lib/haustier";
 
 // Die Einstellungen zum Begleiter, im Zahnradbereich des Assistenten (ki-pane.tsx).
 //
@@ -17,32 +17,19 @@ import { leseBewegung, schreibeBewegung, VORSCHAU_ZUSTAENDE, type HaustierZustan
 // Geaendert wird: ob die Figur ueberhaupt da ist, ob sie sich bewegt, Tour und automatischer
 // Start nach einer Pruefung, und ob Himbi den Tag von sich aus mit einer Frage beginnt.
 
-// Der Bewegungsschalter liegt im Browser-Speicher. Als externer Speicher angebunden -
-// dasselbe Vorgehen wie bei der Sichtbarkeit in haustier-kontext.tsx: React nimmt beim
-// Hydrieren erst den Serverwert und danach den echten, statt nach dem Mounten
-// nachzubessern.
-const beobachter = new Set<() => void>();
-function abonniere(melde: () => void): () => void {
-  beobachter.add(melde);
-  return () => {
-    beobachter.delete(melde);
-  };
-}
-const serverWert = (): boolean => true;
+// Der Bewegungsschalter liegt im Browser-Speicher, als externer Speicher angebunden wie die
+// uebrigen Einstellungen (bewegungSpeicher in lib/haustier.ts): React nimmt beim Hydrieren erst
+// den Serverwert und danach den echten, statt nach dem Mounten nachzubessern. Bis zum 28.09.2026
+// hatte er hier einen eigenen Beobachter-Satz ohne Abgleich zwischen Tabs (Fund 57).
 
 export function HaustierEinstellung() {
   const t = useTranslations("haustier");
   const { an, inventar, tourAn, autoStart, tagesbeginnAn } = useHaustierStatus();
   const { setAn, setInventar, setTourAn, setAutoStart, setTagesbeginnAn } = useHaustierAktionen();
 
-  const bewegung = useSyncExternalStore(abonniere, leseBewegung, serverWert);
+  const bewegung = useSyncExternalStore(bewegungSpeicher.abonniere, bewegungSpeicher.lese, bewegungSpeicher.serverWert);
   const [zustand, setZustand] = useState<HaustierZustand>("ruhe");
   const [stimmung, setStimmung] = useState<Stimmung>("neutral");
-
-  const setzeBewegung = (neu: boolean) => {
-    schreibeBewegung(neu);
-    beobachter.forEach((melde) => melde());
-  };
 
   return (
     <section className="ki-einstellung">
@@ -118,7 +105,7 @@ export function HaustierEinstellung() {
           role="switch"
           aria-checked={bewegung}
           aria-label={t("einstellung.bewegungTitel")}
-          onClick={() => setzeBewegung(!bewegung)}
+          onClick={() => schreibeBewegung(!bewegung)}
           className="ki-schalter"
         >
           <span className="ki-schalter__knopf" />

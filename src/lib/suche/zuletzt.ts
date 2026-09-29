@@ -1,4 +1,9 @@
 import type { SeitenZiel, ZielSchluessel } from "./seiten-ziele";
+import type { Ablage } from "../browser-ablage";
+
+// Ablage und browserAblage stehen seit dem 28.09.2026 in lib/browser-ablage.ts (Fund 66);
+// hier nur weitergereicht, damit die Such-Aufrufer bleiben, wie sie sind.
+export { browserAblage, type Ablage } from "../browser-ablage";
 
 // "Zuletzt geoeffnet" bei leerem Suchfeld: die Seiten, die jemand zuletzt
 // selbst aufgerufen hat, ueber Seitenleiste, Link oder Suche.
@@ -17,12 +22,6 @@ export const HOECHSTENS_ZULETZT = 5;
 /** Gemerkt werden mehr, weil beim Aufloesen welche wegfallen koennen: die
  *  offene Seite, und was die Ansichtsrolle gerade nicht sieht. */
 export const HOECHSTENS_GEMERKT = 10;
-
-export interface Ablage {
-  getItem(schluessel: string): string | null;
-  setItem(schluessel: string, wert: string): void;
-  removeItem(schluessel: string): void;
-}
 
 interface Gespeichert {
   nutzer: string | null;
@@ -114,13 +113,4 @@ export function zuletztAufloesen(
     if (ziel) ergebnis.push(ziel);
   }
   return ergebnis;
-}
-
-/** localStorage, oder null, wo schon der Zugriff wirft (privates Fenster). */
-export function browserAblage(): Ablage | null {
-  try {
-    return window.localStorage;
-  } catch {
-    return null;
-  }
 }

@@ -10,12 +10,17 @@
 //     (quellenFuerRolle). Gelesen wird mit der Sitzung des Nutzers, RLS
 //     grenzt zusaetzlich ein.
 //   * Alle Quellen gleichzeitig, jede mit Zeitgrenze. Faellt eine aus, steht
-//     sie unter luecken - der Rest kommt trotzdem.
+//     sie unter luecken - der Rest kommt trotzdem. Ein Lesefehler wirft deshalb
+//     immer, er darf nie wie "nichts da" aussehen (Fund 52 vom 28.09.2026).
 //   * Eine Ladefunktion, die bei einem Fehler auf Beispieldaten zurueckfaellt
 //     (quelle "fehler"), zaehlt als Ausfall: Beispieldaten sind keine Lage.
-//   * Titel und Details aus der Datenbank werden gekuerzt (kuerzeWert) und
-//     bleiben Daten. Fertige Saetze gibt es nicht, das Modell formuliert in
-//     der Antwortsprache.
+//   * Titel und Details sind Codes, Namen aus den Stammdaten (auch
+//     Schulungstitel), Zahlen, Status-Kennungen und die Saetze, die die
+//     Anwendung selbst erzeugt (Prioritaeten und Massnahmen des Pruefberichts),
+//     gekuerzt mit kuerzeWert. Das Kuerzen ist nur eine Laengengrenze, kein
+//     Schutz: Freitext, den andere Nutzer schreiben (etwa der Betreff einer
+//     Reklamation), kommt deshalb gar nicht erst hinein (Fund 62 vom
+//     28.09.2026). Das Modell formuliert selbst, in der Antwortsprache.
 //   * Nur lesen, keine Freigabe noetig - deshalb auch im Weg ohne Aktionen.
 
 import { tool } from "ai";
@@ -29,8 +34,7 @@ import { einsAus } from "@/lib/data/util";
 import { istUuid } from "@/lib/utils";
 import { ladeReklamationen } from "@/lib/data/reklamationen";
 import { ladeLieferungenOhneTour } from "@/lib/data/tourenplanung";
-import { ladeNaechsteLieferung } from "@/lib/data/startkarte";
-import { letzterCeoBericht } from "@/lib/data/compliance-ceo";
+import { naechsteLieferungLaden } from "@/lib/data/startkarte";
 import { ladeKpis } from "@/lib/data/kpis";
 import { faelligkeitZaehltBei, type BrigadeBedingung } from "@/lib/domain/pflueckaufgaben-liste";
 import { zeitraumGrenzen } from "@/lib/listen/zeitraum";
@@ -41,6 +45,10 @@ import {
   AUFGABEN_LIMIT,
   HORIZONT_MAX,
   HORIZONT_MIN,
+  KUEHL_CHARGEN_LIMIT,
+  KUEHL_GRENZE_MINUTEN,
+  KUEHL_NAH_MINUTEN,
+  KUEHL_VERSTOSS_LIMIT,
   LEERES_PROFIL,
   PERSOENLICHE_QUELLEN,
   PUNKTE_MAX,
@@ -55,6 +63,7 @@ import {
   pruefberichtPunkte,
   quellenFuerRolle,
   sammleQuellen,
+  verbindeDetail,
   waehleFaelligeAufgaben,
   waehlePunkte,
   type KuehlMessung,
@@ -63,6 +72,7 @@ import {
   type TagesLageProfil,
   type TagesPunktRoh,
   type TagesQuelle,
+  type TagesZaehler,
   type WartendeCharge,
 } from "@/lib/domain/tages-lage";
 
@@ -79,13 +89,24 @@ export interface FristEintrag {
 }
 
 const text = (wert: string) => String(kuerzeWert(wert));
-const teile = (...werte: (string | number | null | undefined)[]) =>
-  werte.filter((w) => w !== null && w !== undefined && String(w).trim() !== "").map((w) => text(String(w))).join(" · ") || null;
+const teile = (...werte: (string | number | null | undefined)[]) => verbindeDetail(text, ...werte);
 
 /** Eine Ladefunktion, die statt Daten ihren Rueckfall liefert, gilt als ausgefallen. */
 function pruefeQuelle(quelle: Datenquelle): void {
   if (quelle === "fehler") throw new Error("quelle-fehler");
 }
+
+/** Der Datenbankzugang der Lader: der Client mit der Sitzung des Nutzers. */
+export type TagesLageDatenbank = Awaited<ReturnType<typeof createClient>>;
+
+/**
+ * Liefert den Client, oder null ohne konfigurierte Datenbank (Demo-Modus). Seit dem
+ * 28.09.2026 hereingereicht statt in jedem Lader createClient() (Fund 89): so laufen die
+ * Abfragen im Test gegen eine Attrappe, die die Filter wirklich anwendet.
+ */
+export type DatenbankZugang = () => Promise<TagesLageDatenbank | null>;
+
+const sitzungsDatenbank: DatenbankZugang = async () => (isSupabaseConfigured() ? createClient() : null);
 
 interface Kontext {
   rolle: Role;
@@ -93,6 +114,7 @@ interface Kontext {
   jetzt: Date;
   heute: string;
   ladeFristen: () => Promise<FristErgebnis>;
+  db: DatenbankZugang;
 }
 
 /** Was ladeRadarEintraege (lib/ai/tools.ts) liefert; `ausgefallen` nennt Teilquellen im Ausfall. */
@@ -101,17 +123,17 @@ export interface FristErgebnis {
   ausgefallen?: readonly string[];
 }
 
-/** Die faelligen Aufgaben in der Form der Liste - in der Datenbank wie im Demo-Modus. */
-async function ladeFaelligeAufgaben(
+/** Die faelligen Aufgaben in der Form der Liste - in der Datenbank wie im Demo-Modus (supabase null). */
+export async function ladeFaelligeAufgaben(
+  supabase: TagesLageDatenbank | null,
   bedingung: { brigade: BrigadeBedingung; vor: string; jetzt: Date },
 ): Promise<{ quelle: Datenquelle; zeilen: AufgabeZeile[]; gesamt: number; ueberfaellig: number }> {
-  if (!isSupabaseConfigured()) return { quelle: "demo", ...waehleFaelligeAufgaben(demoAufgaben(), bedingung) };
+  if (!supabase) return { quelle: "demo", ...waehleFaelligeAufgaben(demoAufgaben(), bedingung) };
   const { brigade, vor, jetzt } = bedingung;
   // Eine Brigade-Kennung, die keine UUID ist, trifft nichts (wie in ladeAufgabenSeite).
   if ((brigade.art === "eine" || brigade.art === "eigeneUndOhne") && !istUuid(brigade.id)) {
     return { quelle: "db", zeilen: [], gesamt: 0, ueberfaellig: 0 };
   }
-  const supabase = await createClient();
   // faelligkeit ist timestamptz (initial_schema.sql); `vor` ist der Beginn des
   // morgigen Almaty-Tages als UTC-Zeitpunkt, der Vergleich also exakt.
   const abfrage = (nurZaehlen: boolean) => {
@@ -144,30 +166,52 @@ async function ladeFaelligeAufgaben(
   };
 }
 
-/** Die Kuehlkette im Fenster (kuehlFensterBeginn), die Altlasten nur gezaehlt. */
-async function ladeKuehlLage(jetzt: Date): Promise<{
+const OHNE_REST: TagesZaehler = { ueberfaellig: 0, heute: 0, bald: 0 };
+
+/**
+ * Die Kuehlkette im Fenster (kuehlFensterBeginn), die Altlasten nur gezaehlt.
+ *
+ * Seit dem 28.09.2026 (Fund 63) wie bei den Aufgaben mit Zaehlung: vorher schnitten
+ * .limit(50) und .limit(15) still ab, bei 20 Verstoessen meldete der Zaehler 15. Jetzt
+ * laedt die Abfrage nur Chargen ab KUEHL_NAH_MINUTEN (juengere wuerden ohnehin kein
+ * Punkt, kuehlTermin), zaehlt alle, und was jenseits der Limits liegt, steht unter
+ * `nichtGeladen`.
+ */
+export async function ladeKuehlLage(supabase: TagesLageDatenbank | null, jetzt: Date): Promise<{
   quelle: Datenquelle;
   chargen: WartendeCharge[];
   aeltere: { anzahl: number; aeltesterCode: string | null };
   messungen: KuehlMessung[];
+  nichtGeladen: TagesZaehler;
 }> {
   // Demo-Modus: die Beispieldaten sind ohnehin nur Minuten alt; das Fenster
   // setzt kuehlkettenPunkte() durch.
-  if (!isSupabaseConfigured()) {
+  if (!supabase) {
     const demo = await ladeKuehlkettenUebersicht();
-    return { quelle: demo.quelle, chargen: demo.offeneChargen, aeltere: { anzahl: 0, aeltesterCode: null }, messungen: demo.letzteMessungen };
+    return {
+      quelle: demo.quelle,
+      chargen: demo.offeneChargen,
+      aeltere: { anzahl: 0, aeltesterCode: null },
+      messungen: demo.letzteMessungen,
+      nichtGeladen: OHNE_REST,
+    };
   }
-  const supabase = await createClient();
   const ab = kuehlFensterBeginn(jetzt).toISOString();
-  const [frisch, aelter, messungen] = await Promise.all([
-    // Aelteste im Fenster zuerst: die sind der Grenze am naechsten.
+  const minutenVorher = (minuten: number) => new Date(jetzt.getTime() - minuten * 60_000).toISOString();
+  // Wartend seit mindestens KUEHL_NAH_MINUTEN, im Fenster: genau die Chargen, aus denen
+  // kuehlTermin() einen Punkt macht.
+  const wartend = (nurZaehlen: boolean) =>
     supabase
       .from("chargen")
-      .select("id, code, pflueck_zeitpunkt, reihenbloecke ( code )")
+      .select("id, code, pflueck_zeitpunkt, reihenbloecke ( code )", { count: "exact", head: nurZaehlen })
       .is("vorkuehlung_zeitpunkt", null)
       .gte("pflueck_zeitpunkt", ab)
-      .order("pflueck_zeitpunkt", { ascending: true })
-      .limit(50),
+      .lte("pflueck_zeitpunkt", minutenVorher(KUEHL_NAH_MINUTEN));
+  const [frisch, ueberGrenze, aelter, messungen] = await Promise.all([
+    // Aelteste im Fenster zuerst: die sind der Grenze am naechsten.
+    wartend(false).order("pflueck_zeitpunkt", { ascending: true }).limit(KUEHL_CHARGEN_LIMIT),
+    // Wie viele davon die 60-Minuten-Grenze schon gerissen haben (faelligAm vor jetzt).
+    wartend(true).lt("pflueck_zeitpunkt", minutenVorher(KUEHL_GRENZE_MINUTEN)),
     supabase
       .from("chargen")
       .select("code", { count: "exact" })
@@ -177,25 +221,36 @@ async function ladeKuehlLage(jetzt: Date): Promise<{
       .limit(1),
     supabase
       .from("kuehlketten_messungen")
-      .select("id, gemessen_am, temperatur_c, minuten_seit_pfluecken, ergebnis, chargen ( code, reihenbloecke ( code ) )")
+      .select("id, gemessen_am, temperatur_c, minuten_seit_pfluecken, ergebnis, chargen ( code, reihenbloecke ( code ) )", { count: "exact" })
       .eq("ergebnis", "verstoss")
       .gte("gemessen_am", ab)
       .order("gemessen_am", { ascending: false })
-      .limit(15),
+      .limit(KUEHL_VERSTOSS_LIMIT),
   ]);
-  if (frisch.error || aelter.error || messungen.error) {
-    console.error("[damicon] Tageslage: Kuehlkette nicht ladbar:", (frisch.error ?? aelter.error ?? messungen.error)?.message);
-    return { quelle: "fehler", chargen: [], aeltere: { anzahl: 0, aeltesterCode: null }, messungen: [] };
+  if (frisch.error || ueberGrenze.error || aelter.error || messungen.error) {
+    console.error("[damicon] Tageslage: Kuehlkette nicht ladbar:", (frisch.error ?? ueberGrenze.error ?? aelter.error ?? messungen.error)?.message);
+    return { quelle: "fehler", chargen: [], aeltere: { anzahl: 0, aeltesterCode: null }, messungen: [], nichtGeladen: OHNE_REST };
   }
+  const chargen: WartendeCharge[] = (frisch.data ?? []).flatMap((c) =>
+    c.pflueck_zeitpunkt
+      ? [{ chargeId: c.id, chargeCode: c.code, reihenblockCode: einsAus(c.reihenbloecke)?.code ?? null, pflueckZeitpunkt: c.pflueck_zeitpunkt }]
+      : [],
+  );
+  const geladeneMessungen = messungen.data ?? [];
+  // Dieselbe Aufteilung wie bei den Aufgaben: der Termin einer Charge ist Pfluecken plus
+  // KUEHL_GRENZE_MINUTEN, davor ist sie heute faellig, danach ueberfaellig.
+  const chargenRest = nichtGeladeneAufgaben(
+    { gesamt: frisch.count ?? chargen.length, ueberfaellig: ueberGrenze.count ?? 0 },
+    chargen.map((c) => ({ faelligkeit: new Date(Date.parse(c.pflueckZeitpunkt) + KUEHL_GRENZE_MINUTEN * 60_000).toISOString() })),
+    jetzt,
+  );
+  // Ein Verstoss ist immer Stufe 1.
+  const verstoesseRest = Math.max(0, (messungen.count ?? geladeneMessungen.length) - geladeneMessungen.length);
   return {
     quelle: "db",
-    chargen: (frisch.data ?? []).flatMap((c) =>
-      c.pflueck_zeitpunkt
-        ? [{ chargeId: c.id, chargeCode: c.code, reihenblockCode: einsAus(c.reihenbloecke)?.code ?? null, pflueckZeitpunkt: c.pflueck_zeitpunkt }]
-        : [],
-    ),
+    chargen,
     aeltere: { anzahl: aelter.count ?? 0, aeltesterCode: aelter.data?.[0]?.code ?? null },
-    messungen: (messungen.data ?? []).map((m) => {
+    messungen: geladeneMessungen.map((m) => {
       const charge = einsAus(m.chargen);
       return {
         id: m.id,
@@ -207,7 +262,31 @@ async function ladeKuehlLage(jetzt: Date): Promise<{
         ergebnis: m.ergebnis,
       };
     }),
+    nichtGeladen: { ...chargenRest, ueberfaellig: chargenRest.ueberfaellig + verstoesseRest },
   };
+}
+
+/** Offene oder in Pruefung befindliche Reklamationen mit Frist als Punkte der Tageslage. */
+export function reklamationsPunkte<R extends { id: string; code: string; kunde: string; status: string; fristAm: string | null }>(
+  reklamationen: readonly R[],
+  rolle: Role,
+  ziel: string | null,
+): TagesPunktRoh[] {
+  return reklamationen
+    .filter((r) => (r.status === "offen" || r.status === "in_pruefung") && r.fristAm)
+    .map((r) => ({
+      id: `reklamation-${r.id}`,
+      art: "reklamation",
+      titel: text(r.code),
+      // Ohne Betreff (Fund 62 vom 28.09.2026): den schreibt der Kunde selbst, und die
+      // Tageslage laeuft schon bei der Begruessung, ohne dass jemand nach Reklamationen
+      // gefragt hat. Code, Kunde (Stammdaten), Status und Frist reichen fuer "was ist
+      // dringend"; den Wortlaut liest datenLesen, wenn der Nutzer danach fragt.
+      detail: teile(rolle === "kunde" ? null : r.kunde, r.status),
+      faelligAm: r.fristAm,
+      wer: rolle === "kunde" ? "ich" : "meine Rolle",
+      ziel,
+    }));
 }
 
 // Je Quelle eine Ladefunktion. Welche davon laufen, entscheidet quellenFuerRolle().
@@ -236,8 +315,8 @@ const LADER: Record<TagesQuelle, (k: Kontext) => Promise<TagesPunktRoh[] | Quell
   // faellig vor dem Beginn von morgen (Almaty). Eigene Abfrage statt Seite 1
   // der Aufgabenliste (Fund 7 vom 28.09.2026): aelteste zuerst, hoechstens
   // AUFGABEN_LIMIT, der Rest zaehlt ueber count mit.
-  aufgabe: async ({ rolle, profil, jetzt }) => {
-    const faellig = await ladeFaelligeAufgaben({
+  aufgabe: async ({ rolle, profil, jetzt, db }) => {
+    const faellig = await ladeFaelligeAufgaben(await db(), {
       brigade: aufgabenBedingung(rolle, profil),
       vor: zeitraumGrenzen("heute", {}, jetzt).vor!,
       jetzt,
@@ -261,10 +340,10 @@ const LADER: Record<TagesQuelle, (k: Kontext) => Promise<TagesPunktRoh[] | Quell
   // Chargen der letzten 24 Stunden ohne Vorkuehlung ab 45 Minuten (ab 60 ein
   // Verstoss), Verstoesse der letzten 24 Stunden, aeltere offene Chargen als
   // ein Sammelhinweis (Fund 8 vom 28.09.2026, kuehlkettenPunkte).
-  kuehlkette: async ({ jetzt }) => {
-    const lage = await ladeKuehlLage(jetzt);
+  kuehlkette: async ({ jetzt, db }) => {
+    const lage = await ladeKuehlLage(await db(), jetzt);
     pruefeQuelle(lage.quelle);
-    return kuehlkettenPunkte(lage, jetzt, text, ZIEL_KUEHLKETTE);
+    return { punkte: kuehlkettenPunkte(lage, jetzt, text, ZIEL_KUEHLKETTE), nichtGeladen: lage.nichtGeladen };
   },
 
   // Offen oder in Pruefung, mit Frist. Welche Zeilen kommen, entscheidet RLS
@@ -272,26 +351,15 @@ const LADER: Record<TagesQuelle, (k: Kontext) => Promise<TagesPunktRoh[] | Quell
   reklamation: async ({ rolle }) => {
     const liste = await ladeReklamationen();
     pruefeQuelle(liste.quelle);
-    const ziel = zielFuerModul("reklamationen", rolle);
-    return liste.reklamationen
-      .filter((r) => (r.status === "offen" || r.status === "in_pruefung") && r.fristAm)
-      .map((r) => ({
-        id: `reklamation-${r.id}`,
-        art: "reklamation",
-        titel: text(r.code),
-        detail: teile(rolle === "kunde" ? null : r.kunde, r.betreff, r.status),
-        faelligAm: r.fristAm,
-        wer: rolle === "kunde" ? "ich" : "meine Rolle",
-        ziel,
-      }));
+    return reklamationsPunkte(liste.reklamationen, rolle, zielFuerModul("reklamationen", rolle));
   },
 
   // Bewusst eine eigene, schlanke Abfrage statt ladeTouren(): die laedt jede
   // Tour aller Saisons samt Routengeometrie, gebraucht werden nur die von heute
   // (dieselbe Abwaegung wie in lib/data/startkarte.ts).
-  tour: async ({ rolle, heute }) => {
-    if (!isSupabaseConfigured()) return [];
-    const supabase = await createClient();
+  tour: async ({ rolle, heute, db }) => {
+    const supabase = await db();
+    if (!supabase) return [];
     const { data, error } = await supabase
       .from("touren")
       .select("id, datum, status, lieferungen ( id )")
@@ -329,13 +397,14 @@ const LADER: Record<TagesQuelle, (k: Kontext) => Promise<TagesPunktRoh[] | Quell
       }));
   },
 
-  // Der naechste zugesagte Termin des Kunden, ab dem Almaty-Tag. Bis zum
-  // 28.09.2026 fragte ladeNaechsteLieferung ab dem UTC-Tag: zwischen 0 und 5 Uhr
-  // Almaty kam dann ein gestriger, noch bestaetigter Termin zurueck, der Lader
-  // verwarf ihn, und der naechste echte Termin fehlte (Fund 10). Die Startkarte
-  // ruft weiter ohne Tag auf und bleibt beim bisherigen Ergebnis.
-  naechsteLieferung: async ({ rolle, profil, heute }) => {
-    const naechste = await ladeNaechsteLieferung(profil.b2bKundeId, heute);
+  // Der naechste zugesagte Termin des Kunden, ab dem Almaty-Tag (Fund 10, seit
+  // Fund 56 vom 28.09.2026 auch auf der Startkarte). naechsteLieferungLaden wirft
+  // bei einem Lesefehler: der steht dann unter luecken, statt wie "kein Termin"
+  // auszusehen (Fund 52).
+  naechsteLieferung: async ({ rolle, profil, jetzt, db }) => {
+    const supabase = await db();
+    if (!supabase || !profil.b2bKundeId) return [];
+    const naechste = await naechsteLieferungLaden(supabase, profil.b2bKundeId, jetzt);
     if (!naechste) return [];
     return [
       {
@@ -353,9 +422,9 @@ const LADER: Record<TagesQuelle, (k: Kontext) => Promise<TagesPunktRoh[] | Quell
   // Nur die eigene Zeile (profil_id), auch fuer das Buero, das per RLS alle
   // saehe. "nie" heisst: eine Pflichtschulung, die noch nie gemacht wurde -
   // das ist so dringend wie eine ueberfaellige.
-  schulung: async ({ rolle, profil }) => {
-    if (!isSupabaseConfigured() || !profil.profilId) return [];
-    const supabase = await createClient();
+  schulung: async ({ rolle, profil, db }) => {
+    const supabase = profil.profilId ? await db() : null;
+    if (!supabase || !profil.profilId) return [];
     const { data, error } = await supabase
       .from("schulungsteilnahmen_status")
       .select("schulungsvideo_id, titel, faellig_am, status")
@@ -378,9 +447,9 @@ const LADER: Record<TagesQuelle, (k: Kontext) => Promise<TagesPunktRoh[] | Quell
   // Ein Sammelpunkt statt einer Zeile je Pfluecker: "N Abrechnungen warten",
   // mit dem aeltesten Zeitraum als Titel. Schlanke Zaehlung statt
   // ladeLohnUebersicht(), die sechs Tabellen fuer die Modulseite laedt.
-  lohn: async ({ rolle }) => {
-    if (!isSupabaseConfigured()) return [];
-    const supabase = await createClient();
+  lohn: async ({ rolle, db }) => {
+    const supabase = await db();
+    if (!supabase) return [];
     const { data, count, error } = await supabase
       .from("lohn_abrechnungen")
       .select("periode_start, periode_ende", { count: "exact" })
@@ -405,15 +474,23 @@ const LADER: Record<TagesQuelle, (k: Kontext) => Promise<TagesPunktRoh[] | Quell
     ];
   },
 
-  pruefbericht: async ({ rolle }) => {
-    const zeile = await letzterCeoBericht();
-    if (!zeile) return [];
-    return pruefberichtPunkte(
-      { id: zeile.id, erstelltAm: zeile.erstelltAm, bericht: zeile.bericht },
-      rolle,
-      text,
-      ZIEL_TAGESLAGE,
-    );
+  // Der juengste Pruefbericht. Eigene, schlanke Abfrage wie tour und lohn, nicht
+  // letzterCeoBericht() (lib/data/compliance-ceo.ts): der gibt bei einem Lesefehler
+  // null zurueck, fuer die Seite richtig, hier hiess ein Fehler aber "kein Bericht",
+  // und dem CEO fehlten still die "sofort"-Massnahmen (Fund 52 vom 28.09.2026).
+  // Welche Zeilen die Rolle lesen darf, entscheidet RLS (nur ceo und admin).
+  pruefbericht: async ({ rolle, db }) => {
+    const supabase = await db();
+    if (!supabase) return [];
+    const { data, error } = await supabase
+      .from("compliance_ceo_berichte")
+      .select("id, erstellt_am, bericht")
+      .order("erstellt_am", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!data) return [];
+    return pruefberichtPunkte({ id: data.id, erstelltAm: data.erstellt_am, bericht: data.bericht }, rolle, text, ZIEL_TAGESLAGE);
   },
 
   kennzahl: async ({ rolle }) => {
@@ -436,7 +513,12 @@ const LADER: Record<TagesQuelle, (k: Kontext) => Promise<TagesPunktRoh[] | Quell
   },
 };
 
-/** Die Tageslage laden und auswaehlen. Getrennt vom Werkzeug, damit andere Wege (Begruessung) sie ebenso nutzen koennen. */
+/**
+ * Die Tageslage laden und auswaehlen. Getrennt vom Werkzeug, damit der Test sie mit
+ * festem `jetzt`, eigenen Fristen und einer Datenbank-Attrappe aufrufen kann. Einen
+ * zweiten Aufrufer gibt es nicht: die Begruessung laeuft ueber eine Chatfrage, die das
+ * Werkzeug aufruft (Kommentar korrigiert am 28.09.2026, Fund 64).
+ */
 export async function ladeTagesLage(
   rolle: Role,
   optionen: {
@@ -446,6 +528,8 @@ export async function ladeTagesLage(
     maxPunkte?: number;
     ladeFristen: () => Promise<FristErgebnis>;
     jetzt?: Date;
+    /** Nur fuer Tests: ein anderer Datenbankzugang als die Sitzung des Nutzers. */
+    datenbank?: DatenbankZugang;
   },
 ) {
   const jetzt = optionen.jetzt ?? new Date();
@@ -453,7 +537,14 @@ export async function ladeTagesLage(
   // Doppelte Absicherung: auch wenn ein Aufrufer in der Vorschau ein Profil
   // mitgibt, bleibt die Sicht die der Rolle.
   const profil = optionen.vorschau ? LEERES_PROFIL : optionen.profil;
-  const kontext: Kontext = { rolle, profil, jetzt, heute: tagInZone(jetzt), ladeFristen: optionen.ladeFristen };
+  const kontext: Kontext = {
+    rolle,
+    profil,
+    jetzt,
+    heute: tagInZone(jetzt),
+    ladeFristen: optionen.ladeFristen,
+    db: optionen.datenbank ?? sitzungsDatenbank,
+  };
 
   const lader: Partial<Record<TagesQuelle, QuellenLader>> = {};
   const ohneProfil: string[] = [];

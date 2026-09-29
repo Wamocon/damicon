@@ -43,7 +43,7 @@ import { baueDatenWerkzeuge } from "@/lib/ai/daten-werkzeuge";
 import { baueUiWerkzeuge } from "@/lib/ai/ui-werkzeuge";
 import { baueWissenWerkzeug } from "@/lib/ai/wissen-werkzeug";
 import { baueTagesLageWerkzeug } from "@/lib/ai/tages-lage";
-import type { TagesLageProfil } from "@/lib/domain/tages-lage";
+import { darfRisikoRadar, type TagesLageProfil } from "@/lib/domain/tages-lage";
 import {
   ZIEL_COMPLIANCE,
   ZIEL_ESUTD,
@@ -391,12 +391,9 @@ export function baueWerkzeuge(
     ...(hasPermission(rolle, "compliance", "view") ? { complianceUebersichtAbrufen } : {}),
     ...(hasPermission(rolle, "kuehlkette", "view") ? { kuehlketteAbrufen } : {}),
     // Das zusammenfassende Werkzeug braucht mindestens eine der drei
-    // Rechtsgrundlagen - sonst haette es ohnehin nichts zu zeigen.
-    ...(hasPermission(rolle, "stammdaten", "view") ||
-    hasPermission(rolle, "personal", "view") ||
-    hasPermission(rolle, "compliance", "view")
-      ? { risikoRadarAbrufen }
-      : {}),
+    // Rechtsgrundlagen - sonst haette es ohnehin nichts zu zeigen. Dieselbe Regel
+    // wie die Frist-Quelle der Tageslage (darfRisikoRadar).
+    ...(darfRisikoRadar(rolle) ? { risikoRadarAbrufen } : {}),
     ...(tagesLageAbrufen ? { tagesLageAbrufen } : {}),
     ...(oeffneBereich ? { oeffneBereich } : {}),
     // Wissensbasis (Recht, Steuer, Compliance, Audit): nur mit Rollenrecht und vorhandenem Index.

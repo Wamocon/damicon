@@ -1,5 +1,5 @@
 import { tagInZone } from "@/lib/domain/tageszeit";
-import type { Ablage } from "@/lib/suche/zuletzt";
+import type { Ablage } from "@/lib/browser-ablage";
 
 // Himbi beginnt den Tag: einmal am Tag je Nutzer von sich aus nach der Tageslage fragen.
 // Rueckmeldung vom 28.09.2026: "Himbi soll mit mir interagieren, zum Beispiel mir
@@ -18,10 +18,12 @@ import type { Ablage } from "@/lib/suche/zuletzt";
 // Der Tag ist der Kalendertag in Almaty (tagInZone), nicht der des Rechners: sonst begruesste
 // Himbi auf einem Laptop mit deutscher Zeit ein zweites Mal um vier Uhr morgens in Almaty.
 //
-// Gebaut nach lib/suche/zuletzt.ts: eigener Schluessel (nicht der Marker des KI-Panels, zwei
-// Leser desselben Markers verpassen sich den Nutzerwechsel), JSON mit dem Nutzer, und die
-// Ablage wird hereingereicht, damit der Test mit einer nachgebauten rechnet und ein privates
-// Fenster, in dem schon der Zugriff wirft, nichts kaputt macht.
+// Gebaut wie die Zuletzt-Liste (lib/suche/zuletzt.ts): eigener Schluessel (nicht der Marker
+// des KI-Panels, zwei Leser desselben Markers verpassen sich den Nutzerwechsel), JSON mit dem
+// Nutzer, und die Ablage (lib/browser-ablage.ts) wird hereingereicht, damit der Test mit einer
+// nachgebauten rechnet und ein privates Fenster, in dem schon der Zugriff wirft, nichts kaputt
+// macht. Anders als dort bleibt ein fremder Eintrag stehen, bis der naechste Gruss ihn
+// ueberschreibt; ein gemeinsamer Leser braeuchte dafuer einen Schalter und lohnt nicht.
 
 export const TAGESBEGINN_SPEICHER = "damicon-himbi-tagesbeginn";
 
@@ -103,11 +105,10 @@ export function merkeTagesbeginn(
   }
 }
 
-// Die Einstellung "Himbi beginnt den Tag mit mir" (haustier-einstellung.tsx, gelesen ueber
-// lib/haustier.ts). Voreinstellung AN, der Nutzer hat es ausdruecklich gewuenscht: nur ein
-// gespeichertes "aus" schaltet ab.
+// Die Einstellung "Himbi beginnt den Tag mit mir" (haustier-einstellung.tsx, gespeichert ueber
+// tagesbeginnSpeicher in lib/haustier.ts). Voreinstellung AN, der Nutzer hat es ausdruecklich
+// gewuenscht: nur ein gespeichertes "aus" schaltet ab. Die Voreinstellung steht nur hier; der
+// Speicher, der Serverwert und der Standardkontext lesen sie daraus (Fund 57 vom 28.09.2026:
+// vorher stand sie an vier Stellen).
 export const TAGESBEGINN_SCHALTER = "damicon-himbi-tagesbeginn-an";
-
-export function tagesbeginnAusSpeicher(roh: string | null | undefined): boolean {
-  return roh !== "aus";
-}
+export const TAGESBEGINN_STANDARD = true;
