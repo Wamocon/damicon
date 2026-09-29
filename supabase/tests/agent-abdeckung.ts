@@ -370,7 +370,8 @@ pruefe("Doppelabsendung: Freigabekarte warnt, wenn dasselbe Formular kurz zuvor 
 // Lange Agentenlaeufe: die Route kuerzt alte Werkzeugausgaben, BEVOR sie die Grenze prueft (gemessen: nach
 // etwa acht Seitenschnappschuessen antwortete sie mit 413 und der Chat zeigte "KI nicht erreichbar").
 const kuerzenPos = routeQuelle2.indexOf("const nachrichten = alteAusgabenKuerzen(");
-const grenzePos = routeQuelle2.indexOf("JSON.stringify(nachrichten).length > MAX_VERLAUF_ZEICHEN");
+// Seit 29.09.2026 misst die Route die Laenge in einem try (tief verschachtelte Ausgaben warfen dort).
+const grenzePos = routeQuelle2.indexOf("verlaufZeichen = JSON.stringify(nachrichten).length;");
 pruefe("Route: Verlauf wird gekuerzt, DANN gegen die Grenze geprueft", kuerzenPos > 0 && grenzePos > kuerzenPos);
 pruefe("Chat: 'verlauf zu gross' (413) hat eine eigene Meldung, kein Fake-Ausfall", chatFehlerArt(new Error("verlauf zu gross")) === "zulang");
 pruefe("Chat: 'Neu beginnen' und Meldung in allen Sprachen", sprachen.every((sp) => typeof holen(texte[sp], "kiAssistentAnsicht.fehler.zuLang") === "string" && typeof holen(texte[sp], "kiAssistentAnsicht.fehler.neuBeginnen") === "string"));
