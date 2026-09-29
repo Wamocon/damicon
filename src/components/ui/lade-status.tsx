@@ -78,17 +78,29 @@ export function LadeMelder({
   );
 }
 
-/** Schmaler Balken unter dem Kopf der Detailansicht, solange sie laedt. */
+/**
+ * Schmaler Balken unter dem Kopf der Detailansicht, solange sie laedt. Darin
+ * laeuft ein Abschnitt von 40 % Breite durch (L6), das zeigt deutlicher als
+ * ein ruhender Strich, dass gearbeitet wird. Bei reduzierter Bewegung steht
+ * der Balken auf voller Breite still.
+ */
 export function PanelLadebalken() {
   const laedt = useLaedt("detailpanel");
   return (
     <span
       aria-hidden="true"
       className={cn(
-        "pointer-events-none absolute inset-x-0 bottom-0 h-0.5 bg-primary opacity-0",
+        "pointer-events-none absolute inset-x-0 bottom-0 h-0.5 overflow-hidden opacity-0",
         laedt && EINBLENDEN,
       )}
-    />
+    >
+      <span
+        className={cn(
+          "absolute inset-y-0 left-0 w-2/5 bg-primary motion-reduce:w-full",
+          laedt && "motion-safe:animate-ladebalken-lauf",
+        )}
+      />
+    </span>
   );
 }
 

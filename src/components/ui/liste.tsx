@@ -1,11 +1,15 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { knopfKlassen, type Ziel } from "@/components/ui/kit";
 import { DetailpanelSteuerung } from "@/components/ui/detailpanel-steuerung";
 import { LadeMelder } from "@/components/ui/lade-status";
+import { Icon } from "@/components/icon";
+import { ZumFormular } from "@/components/ui/zum-formular";
+import type { FormularZiel } from "@/lib/formular-ziele";
+import { modulSymbol } from "@/lib/modules";
 
 // Liste mit Detailansicht (DESIGN.md Abschnitt 14, WMCNL-2488). Eine Liste,
 // deren Eintraege per Klick rechts eine Detailansicht oeffnen. Zuerst gebaut
@@ -128,7 +132,8 @@ export function ListenEintrag({
       replace={ersetzen}
       aria-current={aktiv ? "true" : undefined}
       className={cn(
-        "relative block w-full scroll-mt-24 rounded-xl border p-4 text-left transition duration-knapp",
+        // active: der Druck beim Klick (K6), wie an den Modulkarten.
+        "relative block w-full scroll-mt-24 rounded-xl border p-4 text-left transition duration-knapp active:scale-[0.99]",
         aktiv
           ? "border-primary bg-primary/5"
           : "border-border bg-card hover:border-primary/40",
@@ -209,21 +214,103 @@ export function Blaettern({
   );
 }
 
-/** Leere Liste: sagt, warum, und bietet den naechsten Schritt an. */
+/**
+ * Leere Liste: sagt, warum, und bietet den naechsten Schritt an.
+ *
+ * Drei Formen (docs/design/leerzustaende-ladezustaende-2026-09-25):
+ *   ohne modul        gestrichelter Rahmen, nur Text - fuer "alles erledigt",
+ *                     fehlende Freigabe und Fehlermeldungen;
+ *   modul             das Symbol des Moduls in der Farbe seines Bereichs,
+ *                     ruhig - fuer berechnete Werte, Filter ohne Treffer und
+ *                     Daten von aussen; eine aktion ist hier etwa "Filter
+ *                     zuruecksetzen";
+ *   modul + anlegen   mit dem Knopf zum Anlegen-Formular derselben Seite.
+ *                     Nur hier bewegt sich das Abzeichen, damit der Blick
+ *                     beim Knopf landet - zwei Atemzuege lang, dann ist Ruhe
+ *                     (WCAG 2.2.2: Bewegung, die von selbst startet, endet
+ *                     nach spaetestens 5 s).
+ *
+ * Knopf und Bewegung haengen an einer einzigen Angabe. Vorher standen
+ * Bedingung, Knopf und Bewegung an 17 Stellen einzeln, und eine Stelle
+ * haette sich bewegen koennen, ohne einen Knopf zu zeigen.
+ */
 export function LeererZustand({
   titel,
   text,
   aktion,
+  modul,
+  anlegen,
 }: {
   titel: string;
   text?: string;
+  /** Weiterer Schritt ohne Bewegung, etwa "Filter zuruecksetzen". */
   aktion?: ReactNode;
+  /** Schluessel aus lib/modules.ts: Symbol und Bereichsfarbe wie im Menue. */
+  modul?: string;
+  /** Knopf zum Anlegen-Formular (Ziele in lib/formular-ziele.ts). */
+  anlegen?: { ziel: FormularZiel; label: string };
 }) {
+  const { symbol, akzent = "var(--primary)" }: { symbol?: string; akzent?: string } = modul
+    ? modulSymbol(modul)
+    : {};
+  const schritte =
+    anlegen || aktion ? (
+      <>
+        {anlegen ? (
+          <ZumFormular ziel={anlegen.ziel} className={knopfKlassen()}>
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            {anlegen.label}
+          </ZumFormular>
+        ) : null}
+        {aktion}
+      </>
+    ) : null;
+
+  if (!symbol) {
+    return (
+      <div className="rounded-xl border border-dashed border-border p-6 text-center">
+        <p className="text-sm font-semibold text-card-foreground">{titel}</p>
+        {text ? <p className="mt-1 schrift-dense text-muted-foreground">{text}</p> : null}
+        {schritte ? (
+          <div className="mt-3 flex flex-wrap justify-center gap-3">{schritte}</div>
+        ) : null}
+      </div>
+    );
+  }
+
+  const bewegt = Boolean(anlegen);
+
+  // Ohne eigenen Rahmen: der Leerzustand steht in einer Section oder in einer
+  // Tabellenzelle, und beide sind schon die Box (kit.tsx). Eine Karte darin
+  // waere Box in Box.
   return (
-    <div className="rounded-xl border border-dashed border-border p-6 text-center">
-      <p className="text-sm font-semibold text-card-foreground">{titel}</p>
-      {text ? <p className="mt-1 schrift-dense text-muted-foreground">{text}</p> : null}
-      {aktion ? <div className="mt-3 flex justify-center">{aktion}</div> : null}
+    <div className="px-6 py-8 text-center">
+      <span
+        aria-hidden="true"
+        className={cn(
+          "mx-auto grid h-14 w-14 place-items-center rounded-full",
+          bewegt && "motion-safe:animate-leerzustand-atmen",
+        )}
+        style={{
+          color: akzent,
+          backgroundColor: `color-mix(in oklab, ${akzent} 12%, transparent)`,
+        }}
+      >
+        <Icon
+          name={symbol}
+          className={cn(
+            "h-6 w-6",
+            bewegt && "origin-[50%_88%] motion-safe:animate-leerzustand-wiegen",
+          )}
+        />
+      </span>
+      <p className="mt-4 font-heading text-base font-black text-card-foreground">{titel}</p>
+      {text ? (
+        <p className="mx-auto mt-1.5 max-w-sm schrift-dense text-muted-foreground">{text}</p>
+      ) : null}
+      {schritte ? (
+        <div className="mt-5 flex flex-wrap justify-center gap-3">{schritte}</div>
+      ) : null}
     </div>
   );
 }

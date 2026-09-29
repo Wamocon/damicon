@@ -997,6 +997,11 @@ export function KiChat({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) {
                     absicht: laufenderSchritt.absicht,
                   })
                 : t(modus === "agent" ? "agentDenkt" : "assistentDenkt")}
+              <span className="ki-beeren" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </span>
             </div>
           ) : null}
 

@@ -9,6 +9,8 @@ import {
 import { istFristUeberfaellig, ladeFoerdermittel } from "@/lib/data/foerdermittel";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { LeererZustand } from "@/components/ui/liste";
+import { formularZiel } from "@/lib/formular-ziele";
 
 const statusTon: Record<string, Tone> = {
   entwurf: "neutral",
@@ -58,8 +60,16 @@ export async function FoerdermittelAnsicht() {
         >
           {uebersicht.dossiers.length === 0 ? (
             <tr>
-              <td colSpan={6} className="px-3 py-4 text-center text-xs text-muted-foreground">
-                {t("keineDossiers")}
+              <td colSpan={6} className="px-3 py-2">
+                <LeererZustand
+                  titel={t("keineDossiers")}
+                  modul="foerdermittel"
+                  anlegen={
+                    darfAnlegen
+                      ? { ziel: formularZiel.dossier, label: t("formular.anlegen.titel") }
+                      : undefined
+                  }
+                />
               </td>
             </tr>
           ) : (

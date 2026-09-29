@@ -10,13 +10,10 @@ import {
   steigeKontrollieren,
 } from "@/lib/actions/nachweiskette";
 import { leer } from "@/lib/actions/status";
-import { AktionsMeldung, Feld, PfadFeld } from "@/components/db/formular-kit";
+import { AktionsMeldung, Feld, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
 import { useOfflineFormular } from "@/components/db/use-offline-formular";
 import { AusweisScanFeld } from "@/components/db/ausweis-scan-feld";
 import type { PflueckerOption } from "@/lib/domain/ausweis-scan";
-
-const knopf =
-  "inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg border border-border bg-card text-sm font-bold text-foreground transition hover:bg-muted lg:h-9 lg:text-xs";
 
 // Steige mit Person: der Vorgang, an dem die Kette bis zum Pflücker reicht.
 export function SteigeFormular({
@@ -54,10 +51,13 @@ export function SteigeFormular({
         inputMode="decimal"
         defaultValue="2"
       />
-      <button type="submit" className={knopf}>
-        <Package className="h-4 w-4" />
-        {t("steige.knopf")}
-      </button>
+      <SubmitKnopf
+        label={t("steige.knopf")}
+        variante="leise"
+        breit
+        status={status}
+        symbol={<Package className="h-4 w-4" />}
+      />
       <AktionsMeldung status={status} />
     </form>
   );
@@ -91,10 +91,13 @@ export function ArbeitszeitFormular({
       <input type="hidden" name="geraet_zeitpunkt" />
       <AusweisScanFeld name="pfluecker_id" pfluecker={pfluecker} />
       <Feld label={t("feld.minuten")} name="minuten" inputMode="decimal" required placeholder="90" />
-      <button type="submit" className={knopf}>
-        <Timer className="h-4 w-4" />
-        {t("arbeitszeit.knopf")}
-      </button>
+      <SubmitKnopf
+        label={t("arbeitszeit.knopf")}
+        variante="leise"
+        breit
+        status={status}
+        symbol={<Timer className="h-4 w-4" />}
+      />
       <AktionsMeldung status={status} />
     </form>
   );
@@ -127,10 +130,13 @@ export function KuehlmessungFormular({ aufgabeId }: { aufgabeId: string }) {
         required
         placeholder="3,5"
       />
-      <button type="submit" className={knopf}>
-        <Snowflake className="h-4 w-4" />
-        {t("kuehlung.knopf")}
-      </button>
+      <SubmitKnopf
+        label={t("kuehlung.knopf")}
+        variante="leise"
+        breit
+        status={status}
+        symbol={<Snowflake className="h-4 w-4" />}
+      />
       <AktionsMeldung status={status} />
     </form>
   );

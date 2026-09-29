@@ -18,6 +18,8 @@ import { kuehlketteGesamturteil } from "@/lib/domain/lieferungen";
 import { ladeLieferungenOhneTour, ladeTouren } from "@/lib/data/tourenplanung";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { LeererZustand } from "@/components/ui/liste";
+import { formularZiel } from "@/lib/formular-ziele";
 
 const statusTon: Record<string, Tone> = {
   geplant: "neutral",
@@ -76,7 +78,15 @@ export async function LogistikAnsicht() {
         action={<DatenquelleBadge quelle={uebersicht.quelle} />}
       >
         {uebersicht.lieferungen.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keineLieferungen")}</Card>
+          <LeererZustand
+            titel={t("keineLieferungen")}
+            modul="logistik"
+            anlegen={
+              darfAnlegen
+                ? { ziel: formularZiel.lieferung, label: t("formular.anlegen.titel") }
+                : undefined
+            }
+          />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {uebersicht.lieferungen.map((l) => {
@@ -180,7 +190,15 @@ export async function LogistikAnsicht() {
           action={<DatenquelleBadge quelle={touren.quelle} />}
         >
           {touren.touren.length === 0 ? (
-            <Card className="text-center text-xs text-muted-foreground">{tt("keineTouren")}</Card>
+            <LeererZustand
+              titel={tt("keineTouren")}
+              modul="logistik"
+              anlegen={
+                darfAnlegen
+                  ? { ziel: formularZiel.tour, label: tt("formular.erstellen.titel") }
+                  : undefined
+              }
+            />
           ) : (
             <div className="space-y-4">
               {touren.touren.map((tour) => (

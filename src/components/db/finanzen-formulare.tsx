@@ -118,7 +118,7 @@ export function KostentraegerAnlegenFormular({
       />
       <Feld label={t("erntetag")} name="erntetag" type="date" />
       <div className="flex items-end">
-        <SubmitKnopf label={t("knopf")} />
+        <SubmitKnopf label={t("knopf")} status={status} />
       </div>
       <div className="sm:col-span-2 lg:col-span-5">
         <AktionsMeldung status={status} />
@@ -190,7 +190,7 @@ export function BuchungErfassenFormular({
       />
       <Feld label={t("beschreibung")} name="beschreibung" />
       <div className="flex items-end">
-        <SubmitKnopf label={t("knopf")} />
+        <SubmitKnopf label={t("knopf")} status={status} />
       </div>
       <div className="sm:col-span-2 lg:col-span-6">
         <AktionsMeldung status={status} />

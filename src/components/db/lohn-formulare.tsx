@@ -17,6 +17,7 @@ import {
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 import type { LohnStatus } from "@/lib/domain/lohn";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Formulare der Lohnabrechnung mit Qualitaetsfaktor (WMCNL-1444): Lohnsatz
 // anlegen, Periode berechnen, Status setzen (Freigeben/Auszahlen).
@@ -29,7 +30,7 @@ export function LohnSatzAnlegenFormular() {
   const heute = new Date().toISOString().slice(0, 10);
 
   return (
-    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+    <FormularKarte id={formularZiel.lohnsatz} titel={t("titel")} beschreibung={t("lead")}>
       <form action={action} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
         <PfadFeld />
         <Feld label={t("gueltigAb")} name="gueltig_ab" type="date" defaultValue={heute} required />
@@ -45,7 +46,7 @@ export function LohnSatzAnlegenFormular() {
         <Feld label={t("max")} name="qualitaetsfaktor_max" inputMode="decimal" defaultValue="1.10" />
         <Feld label={t("notiz")} name="notiz" />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2 lg:col-span-4">
           <AktionsMeldung status={status} />
@@ -69,7 +70,7 @@ export function LohnPeriodeBerechnenFormular() {
         <Feld label={t("periodeStart")} name="periode_start" type="date" required />
         <Feld label={t("periodeEnde")} name="periode_ende" type="date" required />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2 lg:col-span-4">
           <AktionsMeldung status={status} />
@@ -107,7 +108,7 @@ export function LohnMonatAbzuegeBerechnenFormular() {
           required
         />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2 lg:col-span-4">
           <AktionsMeldung status={status} />

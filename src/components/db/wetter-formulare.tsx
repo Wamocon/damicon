@@ -18,7 +18,7 @@ export function WetterAktualisierenFormular() {
     <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
       <form action={action} className="flex flex-wrap items-end gap-2.5">
         <PfadFeld />
-        <SubmitKnopf label={t("knopf")} />
+        <SubmitKnopf label={t("knopf")} status={status} />
         <div className="w-full">
           <AktionsMeldung status={status} />
         </div>

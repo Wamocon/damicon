@@ -477,7 +477,7 @@ function KiRatenlimitSetzenFormular() {
           placeholder={t("grenzePlatzhalter")}
         />
         <div className="flex items-end sm:col-span-2">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2">
           <AktionsMeldung status={status} />
@@ -516,7 +516,7 @@ function KiAnbieterAnlegenFormular() {
         <Feld label={t("basisUrl")} name="basis_url" required placeholder="https://api.beispiel.kz/v1" />
         <Feld label={t("apiKey")} name="api_key" type="password" required />
         <div className="flex items-end sm:col-span-2">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2">
           <AktionsMeldung status={status} />

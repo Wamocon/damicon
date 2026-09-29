@@ -17,6 +17,8 @@ import {
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { reklamationStatusMeta } from "@/lib/domain/reklamationen";
+import { LeererZustand } from "@/components/ui/liste";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Dieselbe Zuordnung wie nachweiskette-ansicht.tsx (dort nicht exportiert,
 // nur drei Zeilen - eine eigene kleine Kopie ist hier zumutbarer als eine
@@ -91,7 +93,15 @@ export async function ReklamationenAnsicht({
         >
           <div className="space-y-2">
             {liste.reklamationen.length === 0 ? (
-              <Card className="text-center text-xs text-muted-foreground">{t("empty")}</Card>
+              <LeererZustand
+                titel={t("empty")}
+                modul="reklamationen"
+                anlegen={
+                  darfAnlegen
+                    ? { ziel: formularZiel.reklamation, label: t("formular.anlegen.titel") }
+                    : undefined
+                }
+              />
             ) : (
               liste.reklamationen.map((r) => {
                 const aktiv = r.id === gewaehlt?.id;
@@ -139,7 +149,7 @@ export async function ReklamationenAnsicht({
 
         <div className="space-y-3">
           {!detail ? (
-            <Card className="text-center text-xs text-muted-foreground">{t("detailEmpty")}</Card>
+            <LeererZustand titel={t("detailEmpty")} modul="reklamationen" />
           ) : (
             <>
               <Card>

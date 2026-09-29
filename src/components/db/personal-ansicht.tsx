@@ -9,6 +9,7 @@ import {
 import { ladeBrigadeOptionen, ladePersonalUebersicht } from "@/lib/data/personal";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { LeererZustand } from "@/components/ui/liste";
 
 // Brigadenplanung (Anforderung 2.11): Brigaden/Pfluecker mit echten Daten
 // statt PersonalDemo, dazu Schicht-Konzept (Einsatzplan), Bedarfsrechnung
@@ -57,7 +58,7 @@ export async function PersonalAnsicht() {
 
       <Section title={t("bedarfTitel")} description={t("bedarfLead")}>
         {uebersicht.bedarf.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keinBedarf")}</Card>
+          <LeererZustand titel={t("keinBedarf")} modul="personal" />
         ) : (
           <DataTable head={[t("col.datum"), t("col.bloeckeGesamt"), t("col.bloeckeZugewiesen"), t("col.bloeckeOffen")]}>
             {uebersicht.bedarf.map((b) => (
@@ -96,7 +97,7 @@ export async function PersonalAnsicht() {
 
       <Section title={t("einsatzplanTitel")} description={t("einsatzplanLead")}>
         {uebersicht.einsatzplan.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keinEinsatzplan")}</Card>
+          <LeererZustand titel={t("keinEinsatzplan")} modul="personal" />
         ) : (
           <DataTable head={[t("col.datum"), t("col.brigade"), t("col.staerke"), t("col.bloeckeZugewiesen")]}>
             {uebersicht.einsatzplan.map((e) => (
@@ -148,7 +149,7 @@ export async function PersonalAnsicht() {
 
       <Section title={t("reservelisteTitel")} description={t("reservelisteLead")}>
         {uebersicht.reserveliste.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keineReserve")}</Card>
+          <LeererZustand titel={t("keineReserve")} />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {uebersicht.reserveliste.map((p) => (

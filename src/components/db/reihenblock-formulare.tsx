@@ -54,7 +54,7 @@ export function StatusWechsel({
             </option>
           ))}
         </select>
-        <SubmitKnopf label={a("speichern")} variante="leise" />
+        <SubmitKnopf label={a("speichern")} variante="leise" status={ergebnis} />
       </div>
       <AktionsMeldung status={ergebnis} />
     </form>
@@ -103,7 +103,7 @@ export function StammdatenBearbeiten({
             </option>
           ))}
         </select>
-        <SubmitKnopf label={a("bearbeiten")} variante="leise" />
+        <SubmitKnopf label={a("bearbeiten")} variante="leise" status={ergebnis} />
       </div>
       <AktionsMeldung status={ergebnis} />
     </form>
@@ -196,7 +196,7 @@ export function BehandlungFormular({
           required
         />
         <div className="flex items-end">
-          <SubmitKnopf label={t("erfassen")} />
+          <SubmitKnopf label={t("erfassen")} status={ergebnis} />
         </div>
         <div className="sm:col-span-2 lg:col-span-4">
           <AktionsMeldung status={ergebnis} />

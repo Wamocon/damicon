@@ -6,6 +6,7 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { ThemeScript } from "@/components/theme-toggle";
+import { KlickWelle } from "@/components/ui/klick-welle";
 import { ServiceWorkerRegistrierung } from "@/components/site/service-worker-registrierung";
 import { appVersion } from "@/lib/pwa-version";
 import "../globals.css";
@@ -126,6 +127,7 @@ export default async function LocaleLayout({
       <body className="min-h-svh bg-background font-sans text-foreground antialiased">
         <ThemeScript />
         <ServiceWorkerRegistrierung version={appVersion()} />
+        <KlickWelle />
         <NextIntlClientProvider>
           <a href="#main" className="skip-link">
             {t("skipToContent")}

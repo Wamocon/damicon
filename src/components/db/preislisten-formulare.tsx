@@ -12,6 +12,7 @@ import {
 import { leer } from "@/lib/actions/status";
 import { AktionsMeldung, Auswahl, Feld, FormularKarte, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
 import { kundengruppen, type AuswahlZeile } from "@/lib/domain/vorbestellungen";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Formulare der Preisstaffelung (Anforderung 5.1/5.2): Preisliste anlegen,
 // Position hinzufuegen/entfernen, Preisliste aktiv/inaktiv schalten,
@@ -28,7 +29,7 @@ export function PreisListeErstellenFormular() {
   const kg = useTranslations("kundengruppen");
 
   return (
-    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+    <FormularKarte id={formularZiel.preisliste} titel={t("titel")} beschreibung={t("lead")}>
       <form action={action} className="space-y-2.5">
         <PfadFeld />
         <Feld label={t("name")} name="name" required placeholder={t("namePlatzhalter")} />
@@ -43,7 +44,7 @@ export function PreisListeErstellenFormular() {
             <Auswahl label={t("kundengruppe")} name="kundengruppe" options={kundengruppenOptionen(kg, true)} />
           </div>
         </div>
-        <SubmitKnopf label={t("knopf")} />
+        <SubmitKnopf label={t("knopf")} status={status} />
         <AktionsMeldung status={status} />
       </form>
     </FormularKarte>
@@ -78,7 +79,7 @@ export function PreislistenPositionHinzufuegenFormular({
       <div className="w-32">
         <Feld label={t("mindestmenge")} name="min_menge_kg" inputMode="decimal" placeholder="0" />
       </div>
-      <SubmitKnopf label={t("knopf")} variante="leise" />
+      <SubmitKnopf label={t("knopf")} variante="leise" status={status} />
       <div className="w-full">
         <AktionsMeldung status={status} />
       </div>
@@ -142,7 +143,7 @@ export function KundeGruppeFormular({
           options={kundengruppenOptionen(kg, true)}
         />
       </div>
-      <SubmitKnopf label={t("knopf")} variante="leise" />
+      <SubmitKnopf label={t("knopf")} variante="leise" status={status} />
       <div className="w-full">
         <AktionsMeldung status={status} />
       </div>
