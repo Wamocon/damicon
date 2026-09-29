@@ -75,8 +75,13 @@ export function StatusPill({
  * unterschiedliche Elemente (Link mit und ohne Bild) und brauchen den
  * Gruppennamen `group` fuer ihre eigenen Hover-Regeln im Inneren.
  */
+// Druck (K6, docs/design/leerzustaende-ladezustaende-2026-09-25): beim Klick
+// setzt die Karte auf und gibt um 1 % nach, in 120 ms statt der 200 ms des
+// Anhebens - ein Druck soll sofort sichtbar sein. translate und scale sind in
+// Tailwind v4 eigene CSS-Eigenschaften, active: hebt das Anheben also auf,
+// ohne die Skalierung zu verlieren.
 export const kachelVerweis =
-  "group flex flex-col rounded-2xl border border-border bg-card shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40";
+  "group flex flex-col rounded-2xl border border-border bg-card shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40 active:translate-y-0 active:scale-[0.99] active:duration-knapp";
 
 /**
  * Die drei Ebenen des Boxensystems, so wie die Uebersichtsseite sie gesetzt
@@ -231,6 +236,7 @@ export function PageHeader({
  * aussieht (DESIGN.md Regel 2).
  */
 export function Aufklapper({
+  id,
   titel,
   beschreibung,
   symbol,
@@ -238,6 +244,8 @@ export function Aufklapper({
   ref,
   children,
 }: {
+  /** Sprungziel, etwa fuer den Knopf eines Leerzustands (ui/zum-formular.tsx). */
+  id?: string;
   titel: string;
   beschreibung?: string;
   /** Vor dem Titel, etwa ein Plus fuer "+ Neu ..." (DESIGN.md Abschnitt 14). */
@@ -249,7 +257,7 @@ export function Aufklapper({
   children: ReactNode;
 }) {
   return (
-    <details ref={ref} className="group rounded-xl border border-border bg-card">
+    <details id={id} ref={ref} className="group scroll-mt-20 rounded-xl border border-border bg-card">
       <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 transition duration-knapp hover:bg-muted/30 lg:min-h-9 [&::-webkit-details-marker]:hidden">
         <span>
           <span
@@ -426,13 +434,15 @@ export function DataTable({
 //
 // Hoehe und Breite bleiben beim Aufrufer: die haengen an dem Element, das der
 // Platzhalter vertritt, und sind deshalb nirgends zweimal dieselben.
+//
+// Lichtstreif (L2) statt Pulsieren: ein heller Streifen wandert ueber die
+// Flaeche und zeigt deutlicher als das gleichmaessige An und Ab, dass gerade
+// etwas passiert. Farbe und Takt stehen in globals.css (.lichtstreif), bei
+// reduzierter Bewegung steht die Flaeche still.
 export function Skeleton({ className }: { className?: string }) {
   return (
     <div
-      className={cn(
-        "animate-pulse rounded bg-muted motion-reduce:animate-none",
-        className,
-      )}
+      className={cn("lichtstreif rounded bg-muted", className)}
       aria-hidden="true"
     />
   );
@@ -441,10 +451,16 @@ export function Skeleton({ className }: { className?: string }) {
 // Platzhalter in Kartenform: gleicher Rahmen und Grund wie <Card>, damit beim
 // Einsetzen des Inhalts nichts springt. Den Radius gibt der Aufrufer mit, wo er
 // vom Standard abweicht - die Bereichsseite setzt ihre Kacheln runder.
+//
+// Auf dem Kartengrund ginge ein heller Streifen im hellen Modus unter; hier
+// laeuft deshalb ein Streifen in der Farbe der gedaempften Flaechen.
 export function SkeletonCard({ className }: { className?: string }) {
   return (
     <Skeleton
-      className={cn("rounded-xl border border-border bg-card", className)}
+      className={cn(
+        "rounded-xl border border-border bg-card lichtstreif-auf-karte",
+        className,
+      )}
     />
   );
 }
@@ -491,8 +507,22 @@ export type KnopfGroesse = "schlank" | "mittel" | "gross" | "formular";
 // duration-knapp (120 ms, globals.css) statt der 200 ms, die sonst gelten:
 // Ein Druck soll sofort sichtbar sein. Der Standardwert ist auf Wege
 // ausgelegt, die man verfolgt - hier geht es um eine Bestaetigung.
+//
+// klick-welle (K2): vom Beruehrungspunkt breitet sich ein Kreis aus. Hilft am
+// Tablet im Kuehlhaus und mit Handschuhen, weil sichtbar wird, wo der Finger
+// getroffen hat. Gezeichnet in globals.css, ausgeloest von einem einzigen
+// Zuhoerer fuer die ganze Seite (ui/klick-welle.tsx) - so gilt sie auch fuer
+// Links mit knopfKlassen() in Server-Komponenten.
 const knopfBasis =
-  "relative inline-flex items-center justify-center gap-2 text-sm font-bold transition duration-knapp active:scale-[0.97]";
+  "klick-welle relative inline-flex items-center justify-center gap-2 text-sm font-bold transition duration-knapp active:scale-[0.97]";
+
+// Nach dem Speichern (K3): gruener Grund, das Haekchen zeichnet sich. Die
+// Schrift bleibt die der Primaerflaeche - im hellen Modus weiss, im dunklen
+// fast schwarz, beides traegt auf dem jeweiligen Gruen.
+const knopfErledigt: Record<KnopfVariante, string> = {
+  primaer: "bg-success text-primary-foreground hover:brightness-100 duration-ruhig",
+  leise: "border-success text-success hover:border-success duration-ruhig",
+};
 
 const knopfVariante: Record<KnopfVariante, string> = {
   // active nach hover: Tailwind sortiert die Varianten in dieser Reihenfolge,
@@ -500,7 +530,7 @@ const knopfVariante: Record<KnopfVariante, string> = {
   primaer:
     "bg-primary text-primary-foreground hover:brightness-110 active:brightness-95",
   leise:
-    "border border-border bg-card text-foreground hover:border-primary active:bg-muted",
+    "border border-border bg-card text-foreground hover:border-primary active:bg-muted [--welle-farbe:var(--primary)]",
 };
 
 const knopfRundung: Record<KnopfRundung, string> = {
@@ -545,12 +575,34 @@ export function knopfKlassen({
   );
 }
 
+/**
+ * Das Haekchen im Knopf nach dem Speichern: zeichnet sich in 360 ms von links
+ * nach rechts (pathLength=1, damit der Strich unabhaengig von der Pfadlaenge
+ * genau einmal laeuft). Bei reduzierter Bewegung steht es sofort da.
+ */
+function Haekchen() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={3}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M5 12.5l4.5 4.5L19 7.5" pathLength={1} className="haekchen-zeichnen" />
+    </svg>
+  );
+}
+
 export function Button({
   variante = "primaer",
   rundung = "kante",
   groesse = "gross",
   breit,
   laedt,
+  erledigt,
   disabled,
   className,
   children,
@@ -562,7 +614,10 @@ export function Button({
   breit?: boolean;
   /** Laeuft gerade: Anzeige ueber dem Inhalt, Knopf gesperrt, Breite bleibt. */
   laedt?: boolean;
+  /** Gerade gespeichert: Haekchen ueber dem Inhalt, gruener Grund (K3). */
+  erledigt?: boolean;
 } & ButtonHTMLAttributes<HTMLButtonElement>) {
+  const ueberdeckt = laedt || erledigt;
   return (
     <button
       {...rest}
@@ -580,11 +635,12 @@ export function Button({
           laedt
             ? "cursor-wait"
             : "disabled:cursor-not-allowed disabled:opacity-60",
+          !laedt && erledigt && knopfErledigt[variante],
           className,
         ),
       })}
     >
-      <span className={cn("inline-flex items-center gap-2", laedt && "opacity-0")}>
+      <span className={cn("inline-flex items-center gap-2", ueberdeckt && "opacity-0")}>
         {children}
       </span>
       {laedt ? (
@@ -593,6 +649,13 @@ export function Button({
           aria-hidden="true"
         >
           <Loader2 className="h-4 w-4 animate-spin" />
+        </span>
+      ) : erledigt ? (
+        <span
+          className="absolute inset-0 inline-flex items-center justify-center"
+          aria-hidden="true"
+        >
+          <Haekchen />
         </span>
       ) : null}
     </button>

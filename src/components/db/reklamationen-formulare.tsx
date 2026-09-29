@@ -20,6 +20,7 @@ import {
 } from "@/components/db/formular-kit";
 import type { AuswahlOption } from "@/components/db/standort-formulare";
 import { reklamationGruende, type ReklamationStatus } from "@/lib/domain/reklamationen";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Formulare des Reklamationsmanagements (WMCNL-1455): Reklamation melden,
 // Status setzen inklusive Loesung/Gutschrift, Nachricht an den Verlauf.
@@ -42,7 +43,7 @@ export function ReklamationAnlegenFormular({
   const grundT = useTranslations("reklamationGrund");
 
   return (
-    <FormularKarte titel={t("titel")} beschreibung={istBuero ? t("leadBuero") : t("leadKunde")}>
+    <FormularKarte id={formularZiel.reklamation} titel={t("titel")} beschreibung={istBuero ? t("leadBuero") : t("leadKunde")}>
       <form action={action} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
         <PfadFeld />
         {istBuero ? (
@@ -63,7 +64,7 @@ export function ReklamationAnlegenFormular({
         <Feld label={f("menge")} name="betroffene_menge_kg" inputMode="decimal" />
         {istBuero ? <Feld label={f("frist")} name="frist_am" type="date" /> : null}
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2 lg:col-span-4">
           <AktionsMeldung status={status} />

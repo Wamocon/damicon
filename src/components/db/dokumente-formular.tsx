@@ -81,7 +81,7 @@ export function DokumentFormular({
           />
         </label>
         <div className="sm:col-span-2 lg:col-span-3 flex flex-wrap items-center gap-3">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
           <span className="text-[11px] text-muted-foreground">{t("dateiHinweis")}</span>
         </div>
         <div className="sm:col-span-2 lg:col-span-3">

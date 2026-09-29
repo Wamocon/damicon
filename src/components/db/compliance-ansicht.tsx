@@ -22,6 +22,7 @@ import { ladeOffeneEsutdFristen } from "@/lib/data/esutd";
 import { baueRisikoEintraege } from "@/lib/domain/risikoradar";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { LeererZustand } from "@/components/ui/liste";
 
 // Compliance-Cockpit aus der Datenbank (WMCNL-1446). Ersetzt die bisherige
 // rein statische ComplianceDemo-Ansicht durch die fuenf granularen
@@ -186,7 +187,7 @@ export async function ComplianceAnsicht() {
             </p>
           </>
         ) : (
-          <Card className="text-center text-xs text-muted-foreground">{mwstT("keinSatz")}</Card>
+          <LeererZustand titel={mwstT("keinSatz")} modul="compliance" />
         )}
       </Section>
 
@@ -214,7 +215,7 @@ export async function ComplianceAnsicht() {
 
       <Section id="pruefprotokoll" title={t("audit.titel")} description={t("audit.lead")}>
         {cockpit.auditEreignisse.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("audit.leer")}</Card>
+          <LeererZustand titel={t("audit.leer")} modul="compliance" />
         ) : (
           <DataTable
             head={[t("col.zeitpunkt"), t("col.urheber"), t("col.aktion"), t("col.ressource")]}

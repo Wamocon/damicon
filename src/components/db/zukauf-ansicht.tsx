@@ -12,6 +12,8 @@ import { ladeAbrechnung } from "@/lib/data/abrechnung";
 import { ladeSorten } from "@/lib/data/standort";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { LeererZustand } from "@/components/ui/liste";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Aggregator / Zukauf von Nachbarbetrieben (WMCNL-1453). Aufbau wie
 // lohn-ansicht.tsx: Kennzahlen oben, eine DataTable fuer die Positionen,
@@ -80,8 +82,16 @@ export async function ZukaufAnsicht() {
         >
           {liste.positionen.length === 0 ? (
             <tr>
-              <td colSpan={7} className="px-3 py-4 text-center text-xs text-muted-foreground">
-                {t("empty")}
+              <td colSpan={7} className="px-3 py-2">
+                <LeererZustand
+                  titel={t("empty")}
+                  modul="aggregator"
+                  anlegen={
+                    darfImportieren
+                      ? { ziel: formularZiel.zukauf, label: t("import.titel") }
+                      : undefined
+                  }
+                />
               </td>
             </tr>
           ) : (
@@ -117,7 +127,7 @@ export async function ZukaufAnsicht() {
           action={<DatenquelleBadge quelle={abrechnung.quelle} />}
         >
           {abrechnung.zeilen.length === 0 ? (
-            <Card className="text-center text-xs text-muted-foreground">{at("keineZeilen")}</Card>
+            <LeererZustand titel={at("keineZeilen")} modul="aggregator" />
           ) : (
             <DataTable
               head={[at("col.nachbarbetrieb"), at("col.menge"), at("col.einkaufswert"), at("col.spanne"), at("col.auszahlung")]}

@@ -125,7 +125,7 @@ export const en: HandbuchTexte = {
       },
       {
         titel: "Module page",
-        text: "Shows the module's view: tables, forms, figures. The top right states whether the data comes from the database or is sample data. Modules that have not been built yet state in one sentence what they will do.",
+        text: "Shows the module's view: tables, forms, figures. The top right states whether the data comes from the database or is sample data. An empty list usually shows the module's icon. Where entries can be created there and the role is allowed to, a button is added that jumps to the matching form, opens it and puts the cursor in the first field. After saving, the button briefly shows a green check mark. Android phones vibrate at that moment, with a different pattern on an error; on the iPhone the tap on the button itself ticks. Modules that have not been built yet state in one sentence what they will do.",
       },
       {
         titel: "List with detail view",

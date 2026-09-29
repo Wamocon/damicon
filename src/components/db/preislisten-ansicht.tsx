@@ -11,6 +11,8 @@ import {
 import { ladeB2bKundenMitGruppe, ladePreislistenVerwaltung, ladeSortenOptionenFuerPreisliste } from "@/lib/data/preislisten";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { LeererZustand } from "@/components/ui/liste";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Preisstaffelung je Kundengruppe (Anforderung 5.1/5.2, Migration
 // 20261011000000). Zwei Bausteine: die Preislisten selbst (mit optionaler
@@ -47,7 +49,15 @@ export async function PreislistenAnsicht() {
         action={<DatenquelleBadge quelle={preislisten.quelle} />}
       >
         {preislisten.preislisten.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keinePreislisten")}</Card>
+          <LeererZustand
+            titel={t("keinePreislisten")}
+            modul="preislisten"
+            anlegen={
+              darfAnlegen
+                ? { ziel: formularZiel.preisliste, label: t("formular.erstellen.titel") }
+                : undefined
+            }
+          />
         ) : (
           <div className="space-y-3">
             {preislisten.preislisten.map((p) => (
@@ -106,7 +116,7 @@ export async function PreislistenAnsicht() {
 
       <Section title={t("kundengruppenTitel")} description={t("kundengruppenLead")}>
         {kunden.kunden.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keineKunden")}</Card>
+          <LeererZustand titel={t("keineKunden")} modul="preislisten" />
         ) : (
           <div className="space-y-2.5">
             {kunden.kunden.map((k) => (

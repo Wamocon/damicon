@@ -17,6 +17,8 @@ import {
 import { ladeRechnungshistorie } from "@/lib/data/rechnungshistorie";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { LeererZustand } from "@/components/ui/liste";
+import { formularZiel } from "@/lib/formular-ziele";
 
 const statusTon: Record<string, Tone> = {
   geplant: "neutral",
@@ -101,7 +103,7 @@ export async function B2bPortalAnsicht() {
         action={<DatenquelleBadge quelle={uebersicht.quelle} />}
       >
         {uebersicht.lieferungen.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keineLieferungen")}</Card>
+          <LeererZustand titel={t("keineLieferungen")} modul="b2b_portal" />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {uebersicht.lieferungen.map((l) => (
@@ -148,7 +150,7 @@ export async function B2bPortalAnsicht() {
 
       <Section title={t("rechnungenTitel")} description={t("rechnungenLead")}>
         {rechnungen.zeilen.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keineRechnungen")}</Card>
+          <LeererZustand titel={t("keineRechnungen")} modul="b2b_portal" />
         ) : (
           <DataTable
             head={
@@ -179,7 +181,7 @@ export async function B2bPortalAnsicht() {
 
       <Section title={t("kontingenteTitel")} description={t("kontingenteLead")}>
         {kontingente.kontingente.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keineKontingente")}</Card>
+          <LeererZustand titel={t("keineKontingente")} modul="b2b_portal" />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {kontingente.kontingente.map((k) => {
@@ -221,7 +223,7 @@ export async function B2bPortalAnsicht() {
 
       <Section title={t("preislisteTitel")} description={t("preislisteLead")}>
         {preislisten.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keinePreisliste")}</Card>
+          <LeererZustand titel={t("keinePreisliste")} />
         ) : (
           preislisten.map((p) => (
             <Card key={p.id} className="mb-3">
@@ -257,7 +259,15 @@ export async function B2bPortalAnsicht() {
 
       <Section title={t("vorbestellungenTitel")} description={t("vorbestellungenLead")}>
         {vorbestellungen.vorbestellungen.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keineVorbestellungen")}</Card>
+          <LeererZustand
+            titel={t("keineVorbestellungen")}
+            modul="b2b_portal"
+            anlegen={
+              darfAnlegen
+                ? { ziel: formularZiel.vorbestellung, label: t("formular.anlegen.titel") }
+                : undefined
+            }
+          />
         ) : (
           <DataTable
             head={

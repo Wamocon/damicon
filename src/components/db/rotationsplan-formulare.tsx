@@ -15,6 +15,7 @@ import {
   PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Formulare des Rotationsplans (Anforderung 2.2, P1): Plan erzeugen/erweitern,
 // einzelnen Termin ueberspringen oder reaktivieren.
@@ -24,13 +25,13 @@ export function RotationsplanGenerierenFormular() {
   const t = useTranslations("rotationsplanAnsicht.formular.generieren");
 
   return (
-    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+    <FormularKarte id={formularZiel.rotationsplan} titel={t("titel")} beschreibung={t("lead")}>
       <form action={action} className="flex flex-wrap items-end gap-2.5">
         <PfadFeld />
         <div className="w-28">
           <Feld label={t("wochen")} name="wochen" inputMode="decimal" defaultValue="4" required />
         </div>
-        <SubmitKnopf label={t("knopf")} />
+        <SubmitKnopf label={t("knopf")} status={status} />
         <div className="w-full">
           <AktionsMeldung status={status} />
         </div>

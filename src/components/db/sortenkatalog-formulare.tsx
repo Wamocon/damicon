@@ -12,6 +12,7 @@ import { leer } from "@/lib/actions/status";
 import { AktionsMeldung, Auswahl, Feld, FormularKarte, PfadFeld, SubmitKnopf } from "@/components/db/formular-kit";
 import { sorteTypen, type SorteZeile } from "@/lib/domain/sortenkatalog";
 import type { AuswahlZeile } from "@/lib/domain/vorbestellungen";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Formulare des Sorten- und Kontingentkatalogs: Sorte anlegen/bearbeiten,
 // Kontingent anlegen, vereinbarte Menge eines bestehenden Kontingents aendern.
@@ -26,7 +27,7 @@ export function SorteErstellenFormular() {
   const st = useTranslations("sorteTypen");
 
   return (
-    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+    <FormularKarte id={formularZiel.sorte} titel={t("titel")} beschreibung={t("lead")}>
       <form action={action} className="space-y-2.5">
         <PfadFeld />
         <Feld label={t("name")} name="name" required placeholder={t("namePlatzhalter")} />
@@ -41,7 +42,7 @@ export function SorteErstellenFormular() {
             <Feld label={t("schaleG")} name="schale_g" inputMode="decimal" placeholder="125" />
           </div>
         </div>
-        <SubmitKnopf label={t("knopf")} />
+        <SubmitKnopf label={t("knopf")} status={status} />
         <AktionsMeldung status={status} />
       </form>
     </FormularKarte>
@@ -74,7 +75,7 @@ export function SorteBearbeitenFormular({ sorte }: { sorte: SorteZeile }) {
           defaultValue={sorte.schaleG?.toString() ?? ""}
         />
       </div>
-      <SubmitKnopf label={t("speichernKnopf")} variante="leise" />
+      <SubmitKnopf label={t("speichernKnopf")} variante="leise" status={status} />
       <div className="w-full">
         <AktionsMeldung status={status} />
       </div>
@@ -93,7 +94,7 @@ export function KontingentErstellenFormular({
   const t = useTranslations("sortenkatalogAnsicht.formular.kontingentErstellen");
 
   return (
-    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+    <FormularKarte id={formularZiel.kontingent} titel={t("titel")} beschreibung={t("lead")}>
       <form action={action} className="space-y-2.5">
         <PfadFeld />
         <div className="flex flex-wrap gap-2.5">
@@ -110,7 +111,7 @@ export function KontingentErstellenFormular({
             <Feld label={t("menge")} name="menge_kg" inputMode="decimal" required />
           </div>
         </div>
-        <SubmitKnopf label={t("knopf")} />
+        <SubmitKnopf label={t("knopf")} status={status} />
         <AktionsMeldung status={status} />
       </form>
     </FormularKarte>
@@ -128,7 +129,7 @@ export function KontingentMengeFormular({ kontingentId, mengeKg }: { kontingentI
       <div className="w-28">
         <Feld label={t("label")} name="menge_kg" inputMode="decimal" required defaultValue={mengeKg.toString()} />
       </div>
-      <SubmitKnopf label={t("knopf")} variante="leise" />
+      <SubmitKnopf label={t("knopf")} variante="leise" status={status} />
       <div className="w-full">
         <AktionsMeldung status={status} />
       </div>

@@ -18,6 +18,7 @@ import {
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 import type { AuswahlZeile } from "@/lib/domain/vorbestellungen";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Formulare fuer das B2B-Portal (Anforderung 5.1, Teil 2 von 2) - Anlegen wie
 // LieferungAnlegenFormular (lieferungen-formulare.tsx), Statuspflege getrennt
@@ -40,7 +41,7 @@ export function VorbestellungAnlegenFormular({
   const t = useTranslations("b2bPortalAnsicht.formular.anlegen");
 
   return (
-    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+    <FormularKarte id={formularZiel.vorbestellung} titel={t("titel")} beschreibung={t("lead")}>
       <form action={action} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
         <PfadFeld />
         {fuerBuero ? (
@@ -66,7 +67,7 @@ export function VorbestellungAnlegenFormular({
         <Feld label={t("menge")} name="menge_kg" inputMode="decimal" required />
         <Feld label={t("liefertermin")} name="liefertermin" type="date" />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2 lg:col-span-4">
           <AktionsMeldung status={status} />

@@ -1015,7 +1015,12 @@
     },
     "leer": {
       "parzellen": "No field plot created yet.",
-      "reihengruppen": "No row group created yet."
+      "reihengruppen": "No row group created yet.",
+      "plantagen": "No plantation created yet.",
+      "plantagenText": "Once a plantation has been created, the location tree with its plots, row groups and row blocks appears here.",
+      "plantageAnlegen": "Create plantation",
+      "parzelleAnlegen": "Create field plot",
+      "reihengruppeAnlegen": "Create row group"
     },
     "spalier": {
       "n_s": "N-S",
@@ -2468,7 +2473,8 @@
   "lohnAnsicht": {
     "satzTitel": "Pay rate",
     "satzLead": "Basis of the calculation: hourly rate, per-kg rate and the quality-factor corridor. Whoever is paid by it may see the basis.",
-    "keinSatz": "No pay rate on file yet - no period can be calculated without one.",
+    "keinSatz": "No pay rate on file yet.",
+    "keinSatzHinweis": "No period can be calculated without one.",
     "wirkungslos": "The quality factor does not move away from 1.00 across the settlements shown - it currently has no visible effect on pay here. This can be due to missing waste data, not necessarily the formula.",
     "abschlussLuecke": {
       "titel": "Completed tasks without crates - missing from the settlement",

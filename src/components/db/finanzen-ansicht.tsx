@@ -39,6 +39,8 @@ import { getPathname } from "@/i18n/navigation";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import type { ReactNode } from "react";
+import { LeererZustand } from "@/components/ui/liste";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Finanzen/Kostentraeger (Anforderung 4.2, P0).
 //
@@ -239,6 +241,7 @@ export async function FinanzenAnsicht({
           <div className="space-y-3">
             {darfBuchen ? (
               <Aufklapper
+                id={formularZiel.kostentraeger}
                 titel={t("formular.kostentraeger.titel")}
                 beschreibung={t("formular.kostentraeger.lead")}
               >
@@ -266,8 +269,16 @@ export async function FinanzenAnsicht({
               >
                 {deckungsbeitrag.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground">
-                      {t("keineKostentraeger")}
+                    <td colSpan={8} className="px-3 py-2">
+                      <LeererZustand
+                        titel={t("keineKostentraeger")}
+                        modul="finanzen"
+                        anlegen={
+                          darfBuchen
+                            ? { ziel: formularZiel.kostentraeger, label: t("formular.kostentraeger.titel") }
+                            : undefined
+                        }
+                      />
                     </td>
                   </tr>
                 ) : (
@@ -335,8 +346,8 @@ export async function FinanzenAnsicht({
                 // ist. Ein Reiter, der mal da ist und mal nicht, verwirrt mehr
                 // als eine Erklaerung, warum nichts drinsteht.
                 <tr>
-                  <td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground">
-                    {t("keineChargen")}
+                  <td colSpan={8} className="px-3 py-2">
+                    <LeererZustand titel={t("keineChargen")} modul="finanzen" />
                   </td>
                 </tr>
               ) : (
@@ -396,6 +407,7 @@ export async function FinanzenAnsicht({
 
             {darfBuchen ? (
               <Aufklapper
+                id={formularZiel.buchung}
                 titel={t("formular.buchung.titel")}
                 beschreibung={t("formular.buchung.lead")}
               >
@@ -418,8 +430,16 @@ export async function FinanzenAnsicht({
               >
                 {ledger.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="px-3 py-4 text-center text-xs text-muted-foreground">
-                      {t("keineBuchungen")}
+                    <td colSpan={5} className="px-3 py-2">
+                      <LeererZustand
+                        titel={t("keineBuchungen")}
+                        modul="finanzen"
+                        anlegen={
+                          darfBuchen
+                            ? { ziel: formularZiel.buchung, label: t("formular.buchung.titel") }
+                            : undefined
+                        }
+                      />
                     </td>
                   </tr>
                 ) : (

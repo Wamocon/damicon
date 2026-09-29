@@ -129,7 +129,7 @@ export const de: HandbuchTexte = {
       },
       {
         titel: "Modulseite",
-        text: "Zeigt die Ansicht des Moduls: Tabellen, Formulare, Kennzahlen. Oben rechts steht, ob die Daten aus der Datenbank kommen oder Beispieldaten sind. Module, die noch nicht gebaut sind, nennen in einem Satz, was sie können werden.",
+        text: "Zeigt die Ansicht des Moduls: Tabellen, Formulare, Kennzahlen. Oben rechts steht, ob die Daten aus der Datenbank kommen oder Beispieldaten sind. Ist eine Liste leer, steht dort meist das Symbol des Moduls. Lässt sich dort etwas anlegen und darf die Rolle das, kommt ein Knopf dazu, der zum passenden Formular springt, es aufklappt und den Cursor ins erste Feld setzt. Nach dem Speichern zeigt der Knopf kurz ein grünes Häkchen. Android-Telefone vibrieren dabei, bei einem Fehler mit einem anderen Muster; auf dem iPhone tickt schon der Tipp auf den Knopf. Module, die noch nicht gebaut sind, nennen in einem Satz, was sie können werden.",
       },
       {
         titel: "Liste mit Detailansicht",

@@ -17,6 +17,7 @@ import {
   PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
+import { formularZiel } from "@/lib/formular-ziele";
 
 export interface AuswahlOption {
   wert: string;
@@ -31,7 +32,11 @@ export function PlantageFormular({ betriebId }: { betriebId: string }) {
   const t = useTranslations("standortVerwaltung");
 
   return (
-    <FormularKarte titel={t("plantage.titel")} beschreibung={t("plantage.lead")}>
+    <FormularKarte
+      id={formularZiel.plantage}
+      titel={t("plantage.titel")}
+      beschreibung={t("plantage.lead")}
+    >
       <form action={action} className="space-y-2.5">
         <PfadFeld />
         <input type="hidden" name="betrieb_id" value={betriebId} />
@@ -45,7 +50,7 @@ export function PlantageFormular({ betriebId }: { betriebId: string }) {
             { wert: "nachbarbetrieb", text: t("typ.nachbarbetrieb") },
           ]}
         />
-        <SubmitKnopf />
+        <SubmitKnopf status={status} />
         <AktionsMeldung status={status} />
       </form>
     </FormularKarte>
@@ -63,7 +68,11 @@ export function ParzelleFormular({
   const t = useTranslations("standortVerwaltung");
 
   return (
-    <FormularKarte titel={t("parzelle.titel")} beschreibung={t("parzelle.lead")}>
+    <FormularKarte
+      id={formularZiel.parzelle}
+      titel={t("parzelle.titel")}
+      beschreibung={t("parzelle.lead")}
+    >
       <form action={action} className="space-y-2.5">
         <PfadFeld />
         <Auswahl
@@ -84,7 +93,7 @@ export function ParzelleFormular({
           name="sorte_id"
           options={[{ wert: "", text: t("feld.ohneSorte") }, ...sorten]}
         />
-        <SubmitKnopf />
+        <SubmitKnopf status={status} />
         <AktionsMeldung status={status} />
       </form>
     </FormularKarte>
@@ -101,6 +110,7 @@ export function ReihengruppeFormular({
 
   return (
     <FormularKarte
+      id={formularZiel.reihengruppe}
       titel={t("reihengruppe.titel")}
       beschreibung={t("reihengruppe.lead")}
     >
@@ -126,7 +136,7 @@ export function ReihengruppeFormular({
             { wert: "o_w", text: t("spalier.o_w") },
           ]}
         />
-        <SubmitKnopf />
+        <SubmitKnopf status={status} />
         <AktionsMeldung status={status} />
       </form>
     </FormularKarte>
@@ -168,7 +178,7 @@ export function ReihenblockFormular({
           name="sorte_id"
           options={[{ wert: "", text: t("feld.ohneSorte") }, ...sorten]}
         />
-        <SubmitKnopf />
+        <SubmitKnopf status={status} />
         <AktionsMeldung status={status} />
       </form>
     </FormularKarte>

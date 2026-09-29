@@ -19,6 +19,7 @@ import {
   SubmitKnopf,
 } from "@/components/db/formular-kit";
 import type { AuswahlZeile } from "@/lib/domain/lieferungen";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Formulare der Uebergabequittung (Anforderung 3.5 Teil 2). Anlegen einer
 // geplanten Lieferung wie finanzen-formulare.tsx, die Uebergabe selbst nach
@@ -52,7 +53,7 @@ export function LieferungAnlegenFormular({
   const t = useTranslations("lieferungenAnsicht.formular.anlegen");
 
   return (
-    <FormularKarte titel={t("titel")} beschreibung={t("lead")}>
+    <FormularKarte id={formularZiel.lieferung} titel={t("titel")} beschreibung={t("lead")}>
       <form action={action} className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
         <PfadFeld />
         <Auswahl
@@ -74,7 +75,7 @@ export function LieferungAnlegenFormular({
           ]}
         />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2 lg:col-span-4">
           <AktionsMeldung status={status} />

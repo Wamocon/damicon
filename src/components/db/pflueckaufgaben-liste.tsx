@@ -25,6 +25,7 @@ import {
 import type { AufgabenSeite } from "@/lib/data/pflueckaufgaben-liste";
 import type { AufgabeZeile, BrigadeOption } from "@/lib/data/pflueckaufgaben";
 import type { Role } from "@/lib/rbac";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Die Liste der Pflueckaufgaben mit Filterleiste und Neuanlage (WMCNL-2488).
 // Die Karten behalten ihre bisherige Form (Entscheidung vom 24.09.2026):
@@ -187,6 +188,7 @@ export async function PflueckaufgabenListe({
             <LeererZustand
               titel={v("liste.leerGefiltertTitel")}
               text={v("liste.leerGefiltert")}
+              modul="pflueckaufgaben"
               aktion={
                 <Link href={{ pathname: pfad, query: ohneFilter }} scroll={false} className={textVerweisKlassen}>
                   {v("liste.filterZuruecksetzen")}
@@ -194,7 +196,16 @@ export async function PflueckaufgabenListe({
               }
             />
           ) : (
-            <LeererZustand titel={v("liste.leerTitel")} text={v("liste.leerText")} />
+            <LeererZustand
+              titel={v("liste.leerTitel")}
+              text={v("liste.leerText")}
+              modul="pflueckaufgaben"
+              anlegen={
+                neuanlage !== null
+                  ? { ziel: formularZiel.pflueckaufgabe, label: v("neu.titel") }
+                  : undefined
+              }
+            />
           )}
 
           <Blaettern

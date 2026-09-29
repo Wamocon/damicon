@@ -26,6 +26,7 @@ import {
   kachelSpanne,
 } from "@/lib/domain/kachel-form";
 import type { Datenquelle } from "@/lib/supabase/config";
+import { LeererZustand } from "@/components/ui/liste";
 
 // Der Kennzahlenabschnitt der Zone. Dieselben Bausteine wie auf der
 // Uebersicht - Section, KennzahlBox, nachDringlichkeit -, nur ohne die
@@ -93,9 +94,7 @@ function Kennzahlen({
   if (kernSortiert.length === 0 && erweitertSortiert.length === 0) {
     return (
       <Section title={t("zoneKennzahlTitel")} description={t("zoneKennzahlLead")}>
-        <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          {t("zoneOhneKennzahl")}
-        </p>
+        <LeererZustand titel={t("zoneOhneKennzahl")} />
       </Section>
     );
   }
@@ -213,9 +212,7 @@ export function ZonePageBody({
 
       <Section title={t("zoneModuleTitel")} description={t("zoneModuleLead")}>
         {items.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-            {t("zoneEmpty")}
-          </p>
+          <LeererZustand titel={t("zoneEmpty")} />
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {items.map((module) => (

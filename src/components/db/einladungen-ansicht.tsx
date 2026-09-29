@@ -9,6 +9,8 @@ import { ladeEinladungen } from "@/lib/data/einladungen";
 import { anzeigeStatus, einladungStatusMeta } from "@/lib/domain/einladungen";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { LeererZustand } from "@/components/ui/liste";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Einladungsverwaltung (Anforderung E.20). Bisher entstanden Kundenkonten
 // ausschliesslich ueber supabase/seed-auth.mjs mit dem service_role-Schluessel
@@ -64,9 +66,15 @@ export async function EinladungenAnsicht() {
       ) : null}
 
       {liste.einladungen.length === 0 ? (
-        <p className="rounded-xl border border-border bg-card p-6 text-center text-xs text-muted-foreground">
-          {t("leer")}
-        </p>
+        <LeererZustand
+          titel={t("leer")}
+          modul="rollen"
+          anlegen={
+            darfAusstellen
+              ? { ziel: formularZiel.einladung, label: t("formular.titel") }
+              : undefined
+          }
+        />
       ) : (
         <DataTable
           head={[

@@ -15,6 +15,8 @@ import {
 } from "@/lib/data/vorbestellungen";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { LeererZustand } from "@/components/ui/liste";
+import { formularZiel } from "@/lib/formular-ziele";
 
 const typTon: Record<string, Tone> = {
   remontierend: "info",
@@ -57,7 +59,15 @@ export async function SortenkatalogAnsicht() {
         action={<DatenquelleBadge quelle={sorten.quelle} />}
       >
         {sorten.sorten.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keineSorten")}</Card>
+          <LeererZustand
+            titel={t("keineSorten")}
+            modul="sortenkatalog"
+            anlegen={
+              darfAnlegen
+                ? { ziel: formularZiel.sorte, label: t("formular.sorteErstellen.titel") }
+                : undefined
+            }
+          />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {sorten.sorten.map((s) => (
@@ -90,7 +100,7 @@ export async function SortenkatalogAnsicht() {
 
       <Section title={t("verfuegbarkeitTitel")} description={t("verfuegbarkeitLead")}>
         {verfuegbarkeit.zeilen.length === 0 ? (
-          <Card className="text-center text-xs text-muted-foreground">{t("keineVerfuegbarkeit")}</Card>
+          <LeererZustand titel={t("keineVerfuegbarkeit")} modul="sortenkatalog" />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {verfuegbarkeit.zeilen.map((z) => {
@@ -129,7 +139,14 @@ export async function SortenkatalogAnsicht() {
       {darfVerwalten && kontingente ? (
         <Section title={t("kontingenteTitel")} description={t("kontingenteLead")}>
           {kontingente.kontingente.length === 0 ? (
-            <Card className="text-center text-xs text-muted-foreground">{t("keineKontingente")}</Card>
+            <LeererZustand
+              titel={t("keineKontingente")}
+              modul="sortenkatalog"
+              anlegen={{
+                ziel: formularZiel.kontingent,
+                label: t("formular.kontingentErstellen.titel"),
+              }}
+            />
           ) : (
             <DataTable head={[t("col.kunde"), t("col.sorte"), t("col.saison"), t("col.menge"), t("col.reserviert"), ""]}>
               {kontingente.kontingente.map((k) => (

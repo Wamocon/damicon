@@ -35,7 +35,7 @@ export function TerminBrigadeZuweisenFormular({
           ...brigaden.map((b) => ({ wert: b.id, text: b.name })),
         ]}
       />
-      <SubmitKnopf label={t("zuweisen")} />
+      <SubmitKnopf label={t("zuweisen")} status={status} />
       <AktionsMeldung status={status} />
     </form>
   );
@@ -64,7 +64,7 @@ export function PfleuckerBrigadeZuweisenFormular({
           ...brigaden.map((b) => ({ wert: b.id, text: b.name })),
         ]}
       />
-      <SubmitKnopf label={t("zuweisen")} />
+      <SubmitKnopf label={t("zuweisen")} status={status} />
       <AktionsMeldung status={status} />
     </form>
   );

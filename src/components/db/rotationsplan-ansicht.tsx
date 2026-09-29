@@ -10,6 +10,8 @@ import { ladeRotationsplan } from "@/lib/data/rotationsplan";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { rotationsplanStatusMeta } from "@/lib/domain/rotationsplan";
+import { LeererZustand } from "@/components/ui/liste";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Rotationsplan (Anforderung 2.2, P1). Cockpit-Aufbau wie lohn-ansicht.tsx:
 // Kennzahlen oben, Erzeuger-Formular fuer berechtigte Rollen, eine Tabelle mit
@@ -71,8 +73,16 @@ export async function RotationsplanAnsicht() {
         >
           {eintraege.length === 0 ? (
             <tr>
-              <td colSpan={8} className="px-3 py-4 text-center text-xs text-muted-foreground">
-                {t("keineEintraege")}
+              <td colSpan={8} className="px-3 py-2">
+                <LeererZustand
+                  titel={t("keineEintraege")}
+                  modul="rotationsplan"
+                  anlegen={
+                    darfPlanen
+                      ? { ziel: formularZiel.rotationsplan, label: t("formular.generieren.knopf") }
+                      : undefined
+                  }
+                />
               </td>
             </tr>
           ) : (

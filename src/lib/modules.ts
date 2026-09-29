@@ -393,3 +393,13 @@ export function moduleByPath(zone: string, slug: string): ModuleDef | undefined 
 export function moduleHref(module: ModuleDef): string {
   return `/dashboard/${module.zone}/${module.slug}`;
 }
+
+// Symbol und Bereichsfarbe eines Moduls, wie im Menue. Fuer den Leerzustand
+// (ui/liste.tsx): der zeigt, in welchem Modul man ist, statt eines neutralen
+// Zeichens. Unbekannte Schluessel liefern nichts, der Leerzustand faellt dann
+// auf seine Voreinstellung zurueck.
+export function modulSymbol(key: string): { symbol?: string; akzent?: string } {
+  const modul = modules.find((m) => m.key === key);
+  const zone = zones.find((z) => z.key === modul?.zone);
+  return { symbol: modul?.icon, akzent: zone?.accent };
+}

@@ -1,5 +1,7 @@
 import { getFormatter, getTranslations } from "next-intl/server";
 import { Card, Section, StatusPill } from "@/components/ui/kit";
+import { LeererZustand } from "@/components/ui/liste";
+import { ZumFormular } from "@/components/ui/zum-formular";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   ParzelleFormular,
@@ -11,9 +13,16 @@ import {
 import { ladeSorten, ladeStandortBaum } from "@/lib/data/standort";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
+import { formularZiel } from "@/lib/formular-ziele";
+
+// Verweis mitten im Satz des Baums ("Noch keine Parzelle. Parzelle anlegen"):
+// Primaerfarbe, unterstrichen erst beim Zeigen. textVerweisKlassen aus kit.tsx
+// passt hier nicht, der bringt die Mindesthoehe eines eigenen Knopfes mit.
+const satzVerweis = "font-semibold text-primary underline-offset-2 hover:underline";
 
 // Standort-Hierarchie aus der Datenbank inklusive Verwaltungsoberflaeche
 // (Meilenstein B). Ersetzt die reine Anzeige-Demo aus Meilenstein A.
+
 export async function StandortAnsicht() {
   const [baum, sorten, profil, t] = await Promise.all([
     ladeStandortBaum(),
@@ -83,6 +92,18 @@ export async function StandortAnsicht() {
       </Section>
 
       <Section title={t("treeTitle")} description={t("treeLead")}>
+        {baum.plantagen.length === 0 ? (
+          <LeererZustand
+            titel={v("leer.plantagen")}
+            text={v("leer.plantagenText")}
+            modul="standort"
+            anlegen={
+              darfAnlegen
+                ? { ziel: formularZiel.plantage, label: v("leer.plantageAnlegen") }
+                : undefined
+            }
+          />
+        ) : null}
         <div className="space-y-3">
           {baum.plantagen.map((plantage) => (
             <Card key={plantage.id}>
@@ -117,6 +138,17 @@ export async function StandortAnsicht() {
                       {parzelle.reihengruppen.length === 0 ? (
                         <span className="text-[11px] text-muted-foreground">
                           {v("leer.reihengruppen")}
+                          {darfAnlegen ? (
+                            <>
+                              {" "}
+                              <ZumFormular
+                                ziel={formularZiel.reihengruppe}
+                                className={satzVerweis}
+                              >
+                                {v("leer.reihengruppeAnlegen")}
+                              </ZumFormular>
+                            </>
+                          ) : null}
                         </span>
                       ) : null}
                     </div>
@@ -125,6 +157,17 @@ export async function StandortAnsicht() {
                 {plantage.parzellen.length === 0 ? (
                   <p className="text-[11px] text-muted-foreground">
                     {v("leer.parzellen")}
+                    {darfAnlegen ? (
+                      <>
+                        {" "}
+                        <ZumFormular
+                          ziel={formularZiel.parzelle}
+                          className={satzVerweis}
+                        >
+                          {v("leer.parzelleAnlegen")}
+                        </ZumFormular>
+                      </>
+                    ) : null}
                   </p>
                 ) : null}
               </div>

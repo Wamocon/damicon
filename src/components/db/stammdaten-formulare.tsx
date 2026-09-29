@@ -54,7 +54,7 @@ export function StammdatenZeileFormular({ zeile }: { zeile: StammdatenZeile }) {
         inputMode="decimal"
       />
 
-      <SubmitKnopf label={t("speichern")} variante="leise" />
+      <SubmitKnopf label={t("speichern")} variante="leise" status={status} />
       <AktionsMeldung status={status} />
     </form>
   );

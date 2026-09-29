@@ -13,6 +13,7 @@ import {
   PfadFeld,
   SubmitKnopf,
 } from "@/components/db/formular-kit";
+import { formularZiel } from "@/lib/formular-ziele";
 
 // Verwaltung der Kontaktkanaele (Anforderung 5.6): ein Formular je Kanal fuer
 // Bezeichnung/Wert/aktiv, ein Anlegen-Formular fuer einen neuen Kanal.
@@ -34,7 +35,7 @@ export function KanalBearbeitenFormular({ kanal }: { kanal: KontaktkanalZeile })
           {t("aktivLabel")}
         </label>
         <div className="flex items-center gap-2">
-          <SubmitKnopf label={t("speichern")} variante="leise" />
+          <SubmitKnopf label={t("speichern")} variante="leise" status={status} />
         </div>
         <AktionsMeldung status={status} />
       </form>
@@ -58,7 +59,7 @@ export function KanalAnlegenFormular() {
   const t = useTranslations("kanaeleAnsicht");
 
   return (
-    <FormularKarte titel={t("anlegenTitel")} beschreibung={t("anlegenLead")}>
+    <FormularKarte id={formularZiel.kanal} titel={t("anlegenTitel")} beschreibung={t("anlegenLead")}>
       <form action={action} className="flex flex-wrap items-end gap-2.5">
         <PfadFeld />
         <div className="w-40">
@@ -75,7 +76,7 @@ export function KanalAnlegenFormular() {
         <div className="w-56">
           <Feld label={t("col.wert")} name="wert" placeholder={t("wertPlatzhalter")} />
         </div>
-        <SubmitKnopf label={t("anlegenKnopf")} />
+        <SubmitKnopf label={t("anlegenKnopf")} status={status} />
         <div className="w-full">
           <AktionsMeldung status={status} />
         </div>
