@@ -496,10 +496,22 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
     // Die Gegenrichtung bleibt: echtes Kasachisch wird kasachisch beantwortet.
     const kkFrage = bestimme([{ rolle: "user", text: "Алматыдан жеткізілім қашан келді?" }], "ru");
     pruefe("Fund 40: eine kasachische Frage (Sonderbuchstaben in mehreren Woertern) -> kk, auch bei russischer Oberflaeche", kkFrage.sprache === "kk" && kkFrage.herkunft === "frage", `${kkFrage.sprache} (${kkFrage.herkunft})`);
-    // Ein einziges Wort mit Sonderbuchstaben entscheidet nichts - weder fuer kk (der Ortsname) noch
-    // gegen kk: eine kurze kasachische Frage mit nur einem solchen Wort folgt dem Gespraech.
+    // Seit 29.09.2026 zaehlen Belegwoerter statt Buchstaben: "Бүгін" (Satzanfang) und "бар"
+    // (kasachisches Wort ohne Sonderbuchstaben) machen die Frage schon selbst kasachisch.
     const kurzKk = bestimme([...KK_VERLAUF, { rolle: "user", text: "Бүгін не бар?" }], "ru");
-    pruefe("Fund 40: eine kurze kasachische Frage mit nur einem Merkwort bleibt im kasachischen Gespraech kk", kurzKk.sprache === "kk" && kurzKk.herkunft === "verlauf", `${kurzKk.sprache} (${kurzKk.herkunft})`);
+    pruefe("Fund 40: eine kurze kasachische Frage mit nur einem Merkwort bleibt im kasachischen Gespraech kk", kurzKk.sprache === "kk", `${kurzKk.sprache} (${kurzKk.herkunft})`);
+    // Ohne Verlauf, bei russischer und deutscher Oberflaeche: kurze kasachische Fragen kk,
+    // russische Saetze mit kasachischem Ortsnamen ru (Probe vom 29.09.2026, vorher 5 von 9 falsch).
+    const KURZ_KK = ["Бүгін не бар?", "Бүгін не істеймін?", "Қандай тапсырмалар бар?", "Жеткізу қашан келеді?", "Шағымдар туралы айтшы.", "Бүгінгі жоспар қандай?", "Не істеу керек?", "Рахмет, жарайды.", "Маған көмектесші."];
+    const RU_MIT_ORT = ["Поставка прибыла в Қостанай вчера вечером.", "Сколько клубники отгрузили в Қостанай сегодня?", "Қостанай: какая там погода?", "Что нового в Өскемен?", "Доставка в Қостанайда задерживается."];
+    const falsch = [];
+    for (const [soll, liste] of [["kk", KURZ_KK], ["ru", RU_MIT_ORT]]) {
+      for (const text of liste) for (const ober of ["ru", "de"]) {
+        const e = bestimme([{ rolle: "user", text }], ober);
+        if (e.sprache !== soll) falsch.push(`${text} (${ober}) -> ${e.sprache}`);
+      }
+    }
+    pruefe("Kasachisch ohne Verlauf: kurze kasachische Fragen kk, russische Saetze mit Ortsnamen ru, bei jeder Oberflaeche", falsch.length === 0, falsch.join("; "));
     const ieOhne = bestimme([{ rolle: "user", text: "Жоқ" }], "de");
     pruefe("Fund 40: kurze Antworten unter der Entscheidungsschwelle ('Жоқ') bleiben ohne Verlauf kk", ieOhne.sprache === "kk" && ieOhne.herkunft === "schrift", `${ieOhne.sprache} (${ieOhne.herkunft})`);
     // Die Regel selbst, an ihrer einen Stelle.

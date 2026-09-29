@@ -123,13 +123,13 @@ export function bestimmeAntwortsprache(
   //    dem vorigen Zug (c, d) und erst dann der Oberflaeche (e).
   //
   //    Kyrillisch zaehlt seit 29.09.2026 ebenso nur mit Nachweis (Cleanup-Fund 40):
-  //    Kasachisch nur mit Sonderbuchstaben in mehreren Woertern, Russisch nur ganz
-  //    ohne (kasachischNachweis). Bis dahin galt hier die 1-%-Regel, und ein
-  //    einziger Ortsname entschied - "Сколько клубники отгрузили в Қостанай
-  //    сегодня?" bekam mitten in einem russischen Gespraech eine kasachische
-  //    Antwort, weil dieser Schritt vor dem Verlauf kommt. Ein einzelnes Wort mit
-  //    Sonderbuchstaben ("offen") entscheidet nichts - weder der Ortsname noch das
-  //    "Бүгін" in "Бүгін не бар?" -, dann entscheidet das Gespraech (c).
+  //    Kasachisch ab zwei Belegwoertern (Sonderbuchstaben ausserhalb von Namen, oder
+  //    kasachische Woerter wie "бар", "туралы", "керек"), Russisch ganz ohne
+  //    (kasachischNachweis in lib/text/sprache-erkennen.ts). Bis dahin galt hier die
+  //    1-%-Regel, und ein einziger Ortsname entschied - "Сколько клубники отгрузили в
+  //    Қостанай сегодня?" bekam mitten in einem russischen Gespraech eine kasachische
+  //    Antwort, weil dieser Schritt vor dem Verlauf kommt. Ein einzelner Beleg oder nur
+  //    Namen ("offen") entscheiden nichts, dann entscheidet das Gespraech (c).
   const frage = eingabe.frage ?? "";
   const ausFrage = erkenner(frage);
   const kurz = ausFrage === null;

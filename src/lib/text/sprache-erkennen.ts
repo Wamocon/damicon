@@ -30,16 +30,49 @@ export function zaehleSchrift(text: string): { kyrillisch: number; lateinisch: n
  *  und ein langes Dokument kostet sonst bei jedem Aufruf die volle Laenge. */
 const PROBE_ZEICHEN = 4000;
 
-/** So viele Woerter muessen kasachische Sonderbuchstaben haben ... */
+/** So viele Woerter muessen fuer Kasachisch sprechen (Belegwoerter, siehe unten) ... */
 export const KASACHISCH_MINDEST_WOERTER = 2;
-/** ... und so viel der kyrillischen Buchstaben muessen es sein. */
-export const KASACHISCH_MINDEST_ANTEIL = 0.03;
+/** ... und so viel aller kyrillischen Woerter muessen es sein (ein langer russischer
+ *  Text mit zwei kasachischen Woertern bleibt russisch). */
+export const KASACHISCH_MINDEST_ANTEIL = 0.1;
 
-function kasachischeMerkmale(text: string): { buchstaben: number; woerter: number } {
-  return {
-    buchstaben: (text.match(KASACHISCH) ?? []).length,
-    woerter: (text.match(KYRILLISCHES_WORT) ?? []).filter((wort) => HAT_KASACHISCH.test(wort)).length,
-  };
+// Belegwoerter statt Buchstaben (29.09.2026). Die Regel "Sonderbuchstaben in zwei Woertern und
+// 3 Prozent der Buchstaben" beantwortete kurze kasachische Fragen ohne Verlauf russisch: in
+// "Бүгін не бар?", "Шағымдар туралы айтшы.", "Не істеу керек?" oder "Рахмет, жарайды." hat
+// hoechstens ein Wort Sonderbuchstaben. Die alte 1-%-Regel hatte sie richtig, dafuer einen
+// russischen Satz mit Ortsnamen ("... в Қостанай ...") falsch. Jetzt:
+//  - ein Wort mit Sonderbuchstaben ist ein Beleg, ausser es ist erkennbar ein Name
+//    (grossgeschrieben mitten im Satz, oder ein bekannter Ortsname, auch mit Endung);
+//  - haeufige kasachische Woerter ohne Sonderbuchstaben, die es im Russischen nicht gibt,
+//    sind ebenfalls Belege.
+const KASACHISCHE_WOERTER = new Set([
+  "бар", "туралы", "керек", "рахмет", "жарайды", "айтшы", "мен", "сен", "осы", "мына", "бойынша",
+  "ма", "ме", "ба", "бе", "па", "пе", "тапсырма", "тапсырмалар", "жоспар", "жоспарлар",
+]);
+/** Kasachische Orts- und Landesnamen (Wortanfang, damit auch "Қостанайда" zaehlt). */
+const KASACHISCHE_NAMEN = [
+  "қазақстан", "қостанай", "қарағанды", "өскемен", "қызылорда", "ақтөбе", "ақтау", "қарасай", "талдықорған",
+  "түркістан", "көкшетау", "жезқазған", "екібастұз", "қаскелең", "талғар", "есік", "іле", "ұлытау",
+];
+
+function istName(wort: string, vorher: string): boolean {
+  const klein = wort.toLowerCase();
+  if (KASACHISCHE_NAMEN.some((name) => klein.startsWith(name))) return true;
+  // Grossgeschrieben, aber nicht am Satzanfang: ein Eigenname.
+  const amSatzanfang = /(^|[.!?…:;]\s*|\n\s*)$/.test(vorher);
+  return /^\p{Lu}/u.test(wort) && !amSatzanfang;
+}
+
+function kasachischeMerkmale(text: string): { buchstaben: number; belege: number; woerter: number } {
+  let belege = 0;
+  let woerter = 0;
+  for (const treffer of text.matchAll(KYRILLISCHES_WORT)) {
+    const wort = treffer[0];
+    woerter += 1;
+    const vorher = text.slice(Math.max(0, treffer.index - 3), treffer.index);
+    if (HAT_KASACHISCH.test(wort) ? !istName(wort, treffer.index === 0 ? "" : vorher) : KASACHISCHE_WOERTER.has(wort.toLowerCase())) belege += 1;
+  }
+  return { buchstaben: (text.match(KASACHISCH) ?? []).length, belege, woerter };
 }
 
 /** Was die Sonderbuchstaben ueber einen kyrillischen Text sagen: "kasachisch"
@@ -49,16 +82,20 @@ function kasachischeMerkmale(text: string): { buchstaben: number; woerter: numbe
 export type KasachischBefund = "kasachisch" | "russisch" | "offen";
 
 function befundAus(text: string, kyrillisch: number): KasachischBefund {
-  const { buchstaben, woerter } = kasachischeMerkmale(text);
-  if (kyrillisch <= 0 || buchstaben === 0) return "russisch";
-  return woerter >= KASACHISCH_MINDEST_WOERTER && buchstaben / kyrillisch >= KASACHISCH_MINDEST_ANTEIL ? "kasachisch" : "offen";
+  if (kyrillisch <= 0) return "russisch";
+  const { buchstaben, belege, woerter } = kasachischeMerkmale(text);
+  if (belege >= KASACHISCH_MINDEST_WOERTER && belege / Math.max(1, woerter) >= KASACHISCH_MINDEST_ANTEIL) return "kasachisch";
+  // Ein Beleg allein ("Иә", "Жоқ") oder nur Namen mit Sonderbuchstaben: offen, dann
+  // entscheidet der Aufrufer (fuer die Antwortsprache das Gespraech).
+  return belege > 0 || buchstaben > 0 ? "offen" : "russisch";
 }
 
 /**
  * DIE Kasachisch-Regel - seit 29.09.2026 die einzige (Cleanup-Funde 40/41). Kasachisch
- * und Russisch teilen die Schrift; unterscheiden koennen nur die Sonderbuchstaben
- * (ә, і, ң, ғ, ү, ұ, қ, ө, һ). Ein echter kasachischer Satz hat sie in mehreren
- * Woertern und meist zu 5 bis 10 %, ein Ortsname in einem russischen Satz nicht.
+ * und Russisch teilen die Schrift; unterscheiden koennen die Sonderbuchstaben
+ * (ә, і, ң, ғ, ү, ұ, қ, ө, һ) und einige kasachische Woerter ohne sie ("бар",
+ * "туралы", "керек"). Ein kasachischer Satz hat mindestens zwei solcher Belegwoerter,
+ * ein russischer Satz mit Ortsnamen keines (Namen zaehlen nicht, siehe istName).
  *
  * Bis dahin gab es daneben eine 1-%-Regel aus dem Chunker (fuer ganze Dokumente
  * gedacht): in einem Satz unter 100 Buchstaben reichte damit ein einziges "Қ". Die
