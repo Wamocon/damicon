@@ -162,14 +162,16 @@ async function main() {
     const status: number[] = [];
     for (let i = 0; i < 20; i++) status.push((await gibDiktatSchluessel(anfrage({}), u)).status);
     const erlaubt = status.filter((s) => s === 200).length;
-    pruefe("Diktat: ohne Admin-Grenze gilt trotzdem eine feste Obergrenze je Minute", typeof DIKTAT_SCHLUESSEL_JE_MINUTE === "number" && erlaubt === DIKTAT_SCHLUESSEL_JE_MINUTE && status.at(-1) === 429 && geholt.length === erlaubt, `erlaubt=${erlaubt} von 20, Grenze=${DIKTAT_SCHLUESSEL_JE_MINUTE}`);
+    // Der Wert als Zahl, nicht als Konstante: gegen die Konstante selbst blieb jede Grenze gruen
+    // (Mutation M1 der Gegenpruefung vom 29.09.2026, 12 auf 19).
+    pruefe("Diktat: ohne Admin-Grenze gilt trotzdem eine feste Obergrenze von 12 je Minute", DIKTAT_SCHLUESSEL_JE_MINUTE === 12 && erlaubt === 12 && status.at(-1) === 429 && geholt.length === erlaubt, `erlaubt=${erlaubt} von 20, Grenze=${DIKTAT_SCHLUESSEL_JE_MINUTE}`);
 
     // Das Gespraech (30 Minuten je Schluessel) hat einen eigenen, engeren Zaehler.
     const g = baue({ adminGrenze: null });
     const gStatus: number[] = [];
     for (let i = 0; i < 12; i++) gStatus.push((await gibDiktatSchluessel(anfrage({ zweck: "gespraech" }), g.u)).status);
     const gErlaubt = gStatus.filter((s) => s === 200).length;
-    pruefe("Gespraech: eigene, engere Obergrenze je Minute", typeof GESPRAECH_SCHLUESSEL_JE_MINUTE === "number" && GESPRAECH_SCHLUESSEL_JE_MINUTE < (DIKTAT_SCHLUESSEL_JE_MINUTE ?? 0) && gErlaubt === GESPRAECH_SCHLUESSEL_JE_MINUTE && gStatus.at(-1) === 429, `erlaubt=${gErlaubt} von 12, Grenze=${GESPRAECH_SCHLUESSEL_JE_MINUTE}`);
+    pruefe("Gespraech: eigene, engere Obergrenze von 6 je Minute", GESPRAECH_SCHLUESSEL_JE_MINUTE === 6 && gErlaubt === 6 && gStatus.at(-1) === 429, `erlaubt=${gErlaubt} von 12, Grenze=${GESPRAECH_SCHLUESSEL_JE_MINUTE}`);
     const danach = await gibDiktatSchluessel(anfrage({ zweck: "diktat" }), g.u);
     pruefe("Gespraech: ein ausgeschoepfter Gespraechszaehler sperrt das Diktat nicht", danach.status === 200, String(danach.status));
   }

@@ -56,6 +56,7 @@ import {
   startNachricht,
   textNachricht,
   ungesprocheneTexte,
+  nochNichtBegonnen,
   type StromKonfiguration,
   type StromNachweis,
   type VerbindungsInfo,
@@ -211,6 +212,10 @@ const VERBINDEN_MS = 4_000;
 /** So lange still nach dem letzten Ton: dann gilt alles Uebergebene als gesagt.
  *  Kuerzer als eine echte Satzpause des Stroms, laenger als ein Aussetzer. */
 const STILL_FERTIG_MS = 350;
+/** So lange still: dann gilt auch ein Satz als gesagt, dessen Ton laut Schaetzung noch nicht
+ *  begonnen hat (nochNichtBegonnen irrt dort nur bei sehr kurzen Saetzen, und dann soll eine
+ *  Handlung nicht bis zum Strom-Ende warten). Laenger als eine Soniox-Pause zwischen zwei Saetzen. */
+const STILL_SICHER_MS = 1_500;
 /** Kommt nach dem Ende eines Stroms so lange nichts mehr, gilt er als beendet -
  *  sonst hinge die Anzeige "laedt" an einem Strom, dessen Abschluss verloren ging. */
 const STROM_NACHLAUF_MS = 12_000;
@@ -272,6 +277,11 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
   // Freigabekarte stand da, bevor Himbi ihn sprach (Messung an der Preview vom
   // 28.09.2026: Karte bei 0 ms, Himbi spricht ab 1,5 bis 2,4 s).
   let saetzeBeiStille = 0;
+  // Dasselbe, aber vorsichtig: auch ohne die Saetze, deren Ton nach dem empfangenen Ton noch nicht
+  // begonnen haben kann (nochNichtBegonnen). Gegenpruefung vom 29.09.2026: gingen beide Saetze an
+  // Soniox, bevor der erste Ton kam, stand texteOhneTon nach dem ersten Ton wieder auf 0, und in der
+  // Pause nach dem ersten Satz erschien die Karte doch vor "Ich klicke jetzt auf Anlegen".
+  let saetzeBeiStilleSicher = 0;
   // Fester Punkt der Schaetzung: bis zu diesem Satz ist alles gesagt, und so viel
   // Ton war da schon gespielt. An jeder Sprechpause neu gesetzt - sonst summierte
   // sich der Fehler der Zeichenrate ueber viele Saetze, und das Mitlesen zeigte
@@ -649,6 +659,9 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
         // Warteschlange liegt, hat nicht geklungen, und einer, der nach dem letzten Ton
         // des Stroms hinausging, auch nicht.
         saetzeBeiStille = verlauf.length - ausstehend.length - (aktiv?.texteOhneTon ?? 0);
+        const rate = aktiv ? (gemesseneRaten.get(aktiv.sprache) ?? ZEICHEN_JE_SEKUNDE) * (aktiv.tempo && aktiv.tempo > 0 ? aktiv.tempo : 1) : 0;
+        const nichtBegonnen = aktiv ? nochNichtBegonnen(aktiv.texte, aktiv.audioSekunden, rate) : 0;
+        saetzeBeiStilleSicher = Math.min(saetzeBeiStille, verlauf.length - ausstehend.length - nichtBegonnen);
       }
       melde();
     };
@@ -737,6 +750,7 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
     verlauf = [];
     stillSeit = null;
     saetzeBeiStille = 0;
+    saetzeBeiStilleSicher = 0;
     anker = { index: 0, sekunden: 0 };
     letzterStrom = null;
     zeitEnde = 0;
@@ -796,8 +810,11 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       // uebergeben war, ist gesagt. Der naechste Satz (index) klingt noch nicht.
       if (geplant.size === 0 && stillSeit !== null && performance.now() - stillSeit >= STILL_FERTIG_MS) {
         const fertig = Math.min(saetzeBeiStille, anzahl);
+        // Der Anker (Mitlesen) bleibt bei der alten Zaehlung; nur, was als GESAGT gemeldet wird,
+        // ist in der ersten Zeit der Stille vorsichtig.
         anker = { index: fertig, sekunden: fertigSekunden };
-        return { index: fertig, anzahl, satz: null };
+        const sicher = performance.now() - stillSeit >= STILL_SICHER_MS ? fertig : Math.max(0, Math.min(saetzeBeiStilleSicher, anzahl));
+        return { index: sicher, anzahl, satz: null };
       }
       let gespielt = fertigSekunden;
       const erstes = geplant.values().next().value;

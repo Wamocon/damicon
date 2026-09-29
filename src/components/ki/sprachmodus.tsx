@@ -27,6 +27,9 @@ import {
   assistentIstDran,
   ausweichPlatz,
   befehlGeprueftBis,
+  aeusserungsBeginn,
+  beendetWirklich,
+  befehlBeiOffenerKarte,
   befehlOhneEcho,
   befehlsBeginn,
   befehlsWortIn,
@@ -364,6 +367,15 @@ function SprachmodusInhalt() {
       }
       // "Stopp" beim Zuhoeren: es gibt nichts anzuhalten, und als Frage waere es sinnlos.
       if (istNurAnhalten(text) && !vorsatz.current) return;
+      // Bei offener Karte: ein Fuellaut ("Äh", "Hm") ist weder Antwort noch Frage, und eine neue
+      // Frage lehnt die Karte erst ab. Bis zur Gegenpruefung vom 29.09.2026 ging die Frage bei
+      // offener Karte hinaus, die Karte verschwand aus dem Sprachmodus, und der Werkzeugaufruf
+      // blieb im Verlauf unbeantwortet stehen.
+      const karte = leseFreigabeAnfrage();
+      if (karte && !vorsatz.current) {
+        if (!istNachsatz(text)) return;
+        entscheideFreigabe(false, karte.nr);
+      }
       const frage = vorsatz.current ? fuegeZusammen(vorsatz.current.text, text) : text;
       const sprachen = vorsatz.current ? [...vorsatz.current.sprachen, ...t.sprachen] : t.sprachen;
       const ersetzt = vorsatz.current !== null;
@@ -420,20 +432,29 @@ function SprachmodusInhalt() {
       }
       const loeseAus = () => {
         const jetzt = sitzung.textAb(befehlAb());
-        const b = befehlsBeginn(jetzt.woerter.map((w) => w.text), istEcho);
+        const woerter = jetzt.woerter.map((w) => w.text);
+        const b = befehlsBeginn(woerter, istEcho);
         if (b === null || ohrRef.current?.sitzung !== sitzung || !assistentIstDran(phaseRef.current)) return;
         // Himbis Echo hinter dem Befehl zaehlt nicht mit ("Tschuess Himbi" mitten in die Antwort).
-        if (istBeendenBefehl(befehlOhneEcho(jetzt.woerter.map((w) => w.text), b, istEcho))) return beendenRef.current();
+        // Beenden nur, wenn die Aeusserung damit beginnt: "Kannst du die Schicht beenden?" ist eine Frage.
+        if (istBeendenBefehl(befehlOhneEcho(woerter, b, istEcho))) {
+          if (beendetWirklich(woerter, b, gesagt)) return beendenRef.current();
+          return;
+        }
         const karte = leseFreigabeAnfrage();
         if (karte) {
-          // Bei offener Freigabekarte lehnt "Stopp" nur die Karte ab, wie beim Zuhoeren.
+          // Bei offener Freigabekarte lehnt "Stopp" nur die Karte ab, wie beim Zuhoeren; "Himbi, ja,
+          // bitte" ist keine Ablehnung (die Zusage wertet beiEndpunkt aus).
+          if (befehlBeiOffenerKarte(woerter, b, istEcho) === "ignorieren") return;
           entscheideFreigabe(false, karte.nr);
           grenzeMs.current = Math.max(grenzeMs.current, (jetzt.endeMs ?? audioJetzt()) + 1);
           return;
         }
-        // Die naechste Aeusserung beginnt mit dem Befehlswort; das Echo davor faellt weg, und
-        // die Frage beginnt dort, auch wenn Himbi erst danach verstummt ist.
-        grenzeMs.current = Math.max(grenzeMs.current, jetzt.woerter[b]!.startMs ?? grenzeMs.current);
+        // Die naechste Aeusserung beginnt mit den eigenen Worten vor dem Befehl ("Wie sagt man Stopp
+        // auf Russisch?"), sonst mit dem Befehlswort; das Echo davor faellt weg, und die Frage
+        // beginnt dort, auch wenn Himbi erst danach verstummt ist.
+        const ab = aeusserungsBeginn(woerter, b, gesagt);
+        grenzeMs.current = Math.max(grenzeMs.current, jetzt.woerter[ab]!.startMs ?? jetzt.woerter[b]!.startMs ?? grenzeMs.current);
         echoBisMs.current = grenzeMs.current;
         offeneFrage.current = null;
         unterbrecheHimbi("wort");
@@ -467,7 +488,10 @@ function SprachmodusInhalt() {
         // freigabeAntwortMitEcho heraus.
         const antwort = sitzung.textAb(Math.max(grenzeMs.current, freigabeAbMs.current - FREIGABE_VORLAUF_MS));
         const gerade = leseGerade();
-        const gesagt = gerade ? `${gerade.satz ?? ""} ${gerade.vorher ?? ""}` : leseChatStand().antwort.slice(-200);
+        // Echo kann nur sein, was Himbi gerade sagt. Still (kein Satz, oder der Chat spricht nicht),
+        // gibt es keins - sonst waere ein "Хорошо" nie eine Zusage, sobald es in seiner Antwort stand.
+        const chat = leseChatStand();
+        const gesagt = gerade ? `${gerade.satz ?? ""} ${gerade.vorher ?? ""}` : chat.spricht ? chat.antwort.slice(-200) : "";
         const art = freigabeAntwortMitEcho(antwort.woerter.map((w) => w.text), gesagt);
         if (art) {
           grenzeMs.current = Math.max(grenzeMs.current, (antwort.endeMs ?? audioJetzt()) + 1);
@@ -481,6 +505,10 @@ function SprachmodusInhalt() {
           if (phase === "hoert") dispatch({ art: "frage-gestellt" });
           return;
         }
+        // Keine Antwort auf die Karte (ein "Äh", ein Huster, Himbis Echo): das Fenster rueckt hinter
+        // diese Aeusserung. Bis zur Gegenpruefung vom 29.09.2026 blieb sein Anfang stehen, jede
+        // spaetere Aeusserung wurde samt dem "Äh" davor geprueft, und kein "Ja" gab die Karte mehr frei.
+        freigabeAbMs.current = Math.max(freigabeAbMs.current, (antwort.endeMs ?? audioJetzt()) + 1 + FREIGABE_VORLAUF_MS);
       }
       if (phase === "spricht") {
         const stand = leseChatStand();

@@ -98,7 +98,10 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
   // Innerhalb einer Schrift nur bei langen, eindeutigen Saetzen (seit 28.09.2026,
   // Fund 3; vorher nie): ru -> kk mit robustem Nachweis, de <-> en ab 40 Buchstaben.
   pruefe("satzSprache: ru-Zug + kasachischer Satz (Sonderbuchstaben in mehreren Woertern) -> kk", satzSprache(KK, "ru") === "kk");
-  pruefe("satzSprache: kk-Zug + kurzer russischer Satz bleibt kk", satzSprache(RU, "kk") === "kk");
+  // Seit der Gegenpruefung vom 29.09.2026 holen zwei russische Gegenbelege ("до", "-ого",
+  // "-ается") einen Satz auch unter 60 Buchstaben zurueck; ohne Gegenbeleg bleibt es beim Zug.
+  pruefe("satzSprache: kk-Zug + kurzer russischer Satz mit Gegenbelegen -> ru", satzSprache(RU, "kk") === "ru", satzSprache(RU, "kk"));
+  pruefe("satzSprache: kk-Zug + kurzer russischer Satz ohne Gegenbeleg bleibt kk", satzSprache("Поставка прибыла.", "kk") === "kk");
   pruefe("satzSprache: ru-Zug + russischer Satz mit kasachischem Ortsnamen bleibt ru", satzSprache("Поставка из Қостанай прибыла сегодня утром.", "ru") === "ru");
   pruefe("satzSprache: de-Zug + langer, eindeutig englischer Satz -> en", satzSprache(EN, "de") === "en");
   pruefe("satzSprache: en-Zug + langer, eindeutig deutscher Satz -> de", satzSprache(DE, "en") === "de");
@@ -108,8 +111,11 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
   // 29.09.2026). Vorher lagen die kuerzesten Proben bei 7 und 16 Buchstaben: SATZ_MINDEST_BUCHSTABEN
   // liess sich zwischen 9 und 16, WECHSEL_LATEINISCH_BUCHSTABEN zwischen 17 und 45 verschieben,
   // ohne dass eine Pruefung anschlug.
-  pruefe("Schwelle 12: ein russischer Satz mit 11 Buchstaben im de-Zug bleibt de", zaehle("Да, спасибо, ок.") === 11 && satzSprache("Да, спасибо, ок.", "de") === "de");
-  pruefe("Schwelle 12: mit 12 Buchstaben wechselt er nach ru", zaehle("Верно, спасибо.") === 12 && satzSprache("Верно, спасибо.", "de") === "ru");
+  // Kyrillisch im lateinischen Zug wechselt seit 29.09.2026 in jeder Laenge (siehe unten); die
+  // Schwelle gilt fuer lateinischen Text im kyrillischen Zug.
+  pruefe("Schwelle 12: ein eindeutig deutscher Satz mit 11 Buchstaben im ru-Zug bleibt ru", zaehle("Das ist schon.") === 11 && satzSprache("Das ist schon.", "ru") === "ru");
+  pruefe("Schwelle 12: mit 12 Buchstaben wechselt er nach de", zaehle("Das sind schon.") === 12 && satzSprache("Das sind schon.", "ru") === "de", satzSprache("Das sind schon.", "ru"));
+  pruefe("Kyrillisch im de-Zug: auch mit 11 Buchstaben ru", zaehle("Да, спасибо, ок.") === 11 && satzSprache("Да, спасибо, ок.", "de") === "ru");
   pruefe("Schwelle 40: ein eindeutig englischer Satz mit 39 Buchstaben im de-Zug bleibt de", zaehle("Please send me all the new reports for this week.") === 39 && satzSprache("Please send me all the new reports for this week.", "de") === "de");
   pruefe("Schwelle 40: mit 40 Buchstaben wechselt er nach en", zaehle("Please send me all the new reports for this month.") === 40 && satzSprache("Please send me all the new reports for this month.", "de") === "en");
 
@@ -129,8 +135,10 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
   pruefe("satzSprache: nur Eigennamen im ru-Zug bleiben ru", satzSprache("Himbi, Damicon, Polka, Kweli.", "ru") === "ru");
   pruefe("satzSprache: Himbi in einem deutschen Satz im de-Zug bleibt de", satzSprache("Himbi hilft Ihnen heute beim Planen.", "de") === "de");
 
-  // Kurze Saetze entscheiden nichts.
-  pruefe("satzSprache: kurzer russischer Satz im de-Zug bleibt de (7 Buchstaben)", satzSprache("Да, верно.", "de") === "de");
+  // Kurze Saetze entscheiden nichts - ausser kyrillischer Text unter einer lateinischen Stimme:
+  // "Да, верно." las bis zur Gegenpruefung vom 29.09.2026 die deutsche Stimme mit Akzent.
+  pruefe("satzSprache: kurzer russischer Satz im de-Zug -> ru (7 Buchstaben)", satzSprache("Да, верно.", "de") === "ru");
+  pruefe("satzSprache: kurzer kasachischer Satz im en-Zug -> kk", satzSprache("Иә, рахмет.", "en") === "kk", satzSprache("Иә, рахмет.", "en"));
   pruefe("satzSprache: kurzer deutscher Satz im ru-Zug bleibt ru", satzSprache("Ja, genau.", "ru") === "ru");
   pruefe("satzSprache: leerer Text bleibt beim Zug", satzSprache("", "kk") === "kk");
 
@@ -278,7 +286,13 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
   pruefe("Knopf: ohne Metadaten, russischer Text, Oberflaeche de -> ru", vorleseSprache(undefined, RU, "de") === "ru");
   pruefe("Knopf: ohne Metadaten, kasachischer Text, Oberflaeche en -> kk", vorleseSprache(undefined, KK, "en") === "kk");
   pruefe("Knopf: ohne Metadaten, deutscher Text, Oberflaeche ru -> de", vorleseSprache(undefined, DE, "ru") === "de");
-  pruefe("Knopf: ohne Metadaten, zu kurzer Text -> Oberflaeche", vorleseSprache(undefined, "Erledigt.", "kk") === "kk");
+  // Kurzer Text ohne Metadaten: zuerst die Schrift (Gegenpruefung vom 29.09.2026), dann die Oberflaeche.
+  pruefe("Knopf: ohne Metadaten, kurzer lateinischer Text, lateinische Oberflaeche -> Oberflaeche", vorleseSprache(undefined, "Erledigt.", "de") === "de");
+  pruefe("Knopf: ohne Metadaten, kurzer lateinischer Text ohne Merkmal, kyrillische Oberflaeche -> en (nie eine kyrillische Stimme)", vorleseSprache(undefined, "Erledigt.", "kk") === "en");
+  pruefe("Knopf: ohne Metadaten, kurzer deutscher Text, Oberflaeche ru -> de", vorleseSprache(undefined, "Die Lieferung ist da.", "ru") === "de");
+  pruefe("Knopf: ohne Metadaten, kurzer russischer Text, Oberflaeche de -> ru", vorleseSprache(undefined, "Да, всё готово.", "de") === "ru");
+  pruefe("Knopf: ohne Metadaten, kurzer kasachischer Text, Oberflaeche de -> kk", vorleseSprache(undefined, "Иә, жеткізу ертең болады.", "de") === "kk");
+  pruefe("Knopf: ohne Metadaten, 'Иә' allein, Oberflaeche kk -> kk, Oberflaeche de -> ru", vorleseSprache(undefined, "Иә", "kk") === "kk" && vorleseSprache(undefined, "Иә", "de") === "ru");
   pruefe("Knopf: ohne Metadaten, lateinisch ohne Merkmal, Oberflaeche de -> de (nicht der Englisch-Standard)",
     vorleseSprache(undefined, "Lohnabrechnung Kassenbuch Umsatzsteuer Vorsteuer Quartalsmeldung Fristverlaengerung", "de") === "de");
   pruefe("Knopf: unbekannte Oberflaeche -> de", vorleseSprache(undefined, "", "fr") === "de");
@@ -385,7 +399,8 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
         }
       }
       const schluessel = abrufe.length - abrufeVorher;
-      pruefe("Fund 2: sieben Satzpaare de/ru im Strom kosten hoechstens 5 Schluessel (vorher 14)", schluessel <= 5 && schluessel >= 2, `${schluessel} Schluessel, ${beendet.size} Stroeme`);
+      // 4 Wechsel und ein Pflichtwechsel ins Kyrillische (seit 29.09.2026): hoechstens 6.
+      pruefe("Fund 2: sieben Satzpaare de/ru im Strom kosten hoechstens 6 Schluessel (vorher 14)", schluessel <= 6 && schluessel >= 2, `${schluessel} Schluessel, ${beendet.size} Stroeme`);
       pruefe("Fund 2: ... und der Strom gibt dabei nicht auf", aufgaben2.length === 0, JSON.stringify(aufgaben2));
       s2.stopp();
     }
@@ -450,7 +465,7 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
     pruefe("Fund 3: ru-Zug, kasachischer Satz mit robustem Nachweis -> kk", satzSprache("Салық айдың жиырма бесінші күніне дейін төленеді.", "ru") === "kk");
     const RU_LANG = "Налог уплачивается ежемесячно до двадцать пятого числа, отчёт подаётся вместе с платежом.";
     pruefe("Fund 3: kk-Zug, langer russischer Satz ganz ohne Sonderbuchstaben -> ru", satzSprache(RU_LANG, "kk") === "ru", satzSprache(RU_LANG, "kk"));
-    pruefe("Fund 3: kk-Zug, kurzer russischer Satz bleibt kk (unter 60 Buchstaben)", satzSprache("Налог уплачивается ежемесячно до двадцать пятого числа.", "kk") === "kk");
+    pruefe("Fund 3: kk-Zug, kurzer russischer Satz ohne Gegenbeleg bleibt kk (unter 60 Buchstaben)", satzSprache("Налог уплачен ежемесячно.", "kk") === "kk", satzSprache("Налог уплачен ежемесячно.", "kk"));
     const gemischt = "Gern, hier ist der Entwurf für die Mail:\n\nDear supplier, please confirm the delivery of 1100 kilograms of raspberries for tomorrow morning. We will pick them up at the gate.\n\nSoll ich die Mail so abschicken?";
     pruefe("Fund 3: gemischte Antwort (deutsche Einleitung, englische Mail) behaelt die Metadaten", vorleseSprache("de", gemischt, "de") === "de");
     const saetze = sa.saetzeAusAntwort(gemischt);
@@ -512,14 +527,64 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
       }
     }
     pruefe("Kasachisch ohne Verlauf: kurze kasachische Fragen kk, russische Saetze mit Ortsnamen ru, bei jeder Oberflaeche", falsch.length === 0, falsch.join("; "));
+
+    // Gegenpruefung vom 29.09.2026: 36 kurze kasachische Saetze aus dem Betrieb (vorher 26/36 bei
+    // Oberflaeche de und ru) und 36 russische Saetze mit Namen, Orten und Firmen (vorher 27/36; bei
+    // Oberflaeche kk 3/36). Kasachisch auch ohne Sonderbuchstaben ("Машина келе жатыр."), mit
+    // gebeugten Formen ("Тапсырмаларды көрсет.") und mit lateinischem i ("Бүгiн не бар?").
+    const KK_BETRIEB = [
+      "Бүгін не бар?", "Тапсырмалар бар ма?", "Жеткізу қашан болады?", "Ауа райы қандай?", "Шағым түсті ме?",
+      "Қанша жәшік жиналды?", "Жиналған жидек қанша?", "Ертең жаңбыр жауа ма?", "Бүгін кім жұмыста?", "Кім келді?",
+      "Жоспар бар ма?", "Жұмысшылар келді.", "Менің тапсырмаларым қандай?", "Қоймада қанша жидек қалды?",
+      "Шымкентке жеткізу қашан?", "Қарағандыға жүк жіберілді ме?", "Тоңазытқыш жұмыс істей ме?", "Тапсырма жаса.",
+      "Жоспар жаса.", "Жидек жинау басталды ма?", "Сапа жаман ба?", "Машина келе жатыр.", "Клиент шағымданды.",
+      "Тапсырмаларды көрсет.", "Жеткізуді тексер.", "Бригада келді ме?", "Сорттау аяқталды ма?", "Жидек сапасы қалай?",
+      "Есікті жап.", "Сәлеметсіз бе, жағдай қалай?", "Кеше неше жәшік жібердік?", "Жаңа тапсырма қос.",
+      "Бүгін 1200 кг жидек жиналды.", "Бүгiн не бар?", "Бугин не бар?", "Жаксы, рахмет.",
+    ];
+    const RU_NAMEN = [
+      "Какая погода в Талдыкоргане?", "Какая погода в Талдықорғане?", "Позвони Айгерим.", "Позвони Айгүл.",
+      "Нұрлан сказал, что поставка задерживается.", "Нұрлан и Әсел приедут завтра утром.", "Қарағанды ждёт поставку до пятницы.",
+      "Өскемен подтвердил заказ на двести ящиков.", "Жаңаөзен отменил заказ.", "Какая погода в Үштөбе?", "Қазпошта доставит документы завтра.",
+      "Передай Бауыржану, что Ерғали опоздает.", "Спасибо, Айгүл!", "Отчёт готов. Нұрлан проверит. Әсел подпишет.",
+      "Қайрат приехал. Ғалым тоже на месте.", "позвони айгүл и нұрлану по поводу ящиков", "скажи жәнібеку чтобы проверил холодильник",
+      "Бригада Ғалымжана начала сбор в седьмом ряду.", "Ерлан, Дәурен и Мәди работают в первой бригаде.",
+      "1. Үштөбе: 200 кг\n2. Сарыағаш: 150 кг", "Давление в системе полива 2 бар, вчера было 3 бар.",
+      "На малине осы, и осы кусают сборщиков.", "Сен-Жермен и Сен-Тропе закупают малину.", "Есік: поставка задерживается на день.",
+      "Заказ из Ақтау и Ақтөбе объединить?",
+    ];
+    const falschBetrieb = [];
+    for (const [soll, liste, oberflaechen] of [["kk", KK_BETRIEB, ["de", "ru", "kk"]], ["ru", RU_NAMEN, ["de", "ru"]]]) {
+      for (const text of liste) for (const ober of oberflaechen) {
+        const e = bestimme([{ rolle: "user", text }], ober);
+        if (e.sprache !== soll) falschBetrieb.push(`${text} (${ober}) -> ${e.sprache}`);
+      }
+    }
+    pruefe("Gegenpruefung 29.09.: 36 kurze kasachische Saetze kk, 25 russische Saetze mit Namen ru (ohne Verlauf)", falschBetrieb.length === 0, falschBetrieb.join("; "));
+    // Russisch mit klaren Gegenbelegen bleibt auch bei kasachischer Oberflaeche russisch (vorher kk).
+    const RU_BEI_KK = ["Кто пришёл?", "Как дела?", "Что нового?", "Нұрлан сказал, что поставка задерживается.", "Давление в системе полива 2 бар, вчера было 3 бар."];
+    const falschKk = RU_BEI_KK.filter((text) => bestimme([{ rolle: "user", text }], "kk").sprache !== "ru");
+    pruefe("Gegenpruefung 29.09.: russische Fragen mit Gegenbelegen bleiben bei Oberflaeche kk russisch", falschKk.length === 0, falschKk.join("; "));
+    // Die Schwelle von 10 % der Woerter (KASACHISCH_MINDEST_ANTEIL), knapp darunter und darueber:
+    // vorher blieb sie bei 3 % und bei 20 % gruen (Mutation M4 der Gegenpruefung vom 29.09.2026).
+    const neutral = (n) => Array.from({ length: n }, () => "малина").join(" ");
+    const unter = `Бүгін жидек ${neutral(23)}.`; // 2 Belege in 25 Woertern: 8 %
+    const ueber = `Бүгін жидек ${neutral(10)}.`; // 2 Belege in 12 Woertern: 17 %
+    pruefe("Kasachisch-Schwelle 10 %: 2 Belege in 25 Woertern entscheiden nichts, in 12 Woertern schon",
+      erk.kasachischNachweis(unter) === "offen" && erk.kasachischNachweis(ueber) === "kasachisch" && erk.KASACHISCH_MINDEST_ANTEIL === 0.1,
+      `${erk.kasachischNachweis(unter)} / ${erk.kasachischNachweis(ueber)}`);
+    // Die Stimme liest, was dasteht: eine russische Antwort mit Namen am Satzanfang nicht kasachisch.
+    pruefe("Gegenpruefung 29.09.: Knopf mit Metadaten ru, Namen an zwei Satzanfaengen -> ru",
+      vorleseSprache("ru", "Ғалым сообщил о жалобе клиента. Қайрат уже выехал на склад.", "de") === "ru");
     const ieOhne = bestimme([{ rolle: "user", text: "Жоқ" }], "de");
     pruefe("Fund 40: kurze Antworten unter der Entscheidungsschwelle ('Жоқ') bleiben ohne Verlauf kk", ieOhne.sprache === "kk" && ieOhne.herkunft === "schrift", `${ieOhne.sprache} (${ieOhne.herkunft})`);
     // Die Regel selbst, an ihrer einen Stelle.
     const { kasachischNachweis } = erk;
     pruefe(
-      "Fund 41: kasachischNachweis - Ortsname offen, mehrere Merkwoerter kasachisch, keine Sonderbuchstaben russisch",
+      "Fund 41: kasachischNachweis - Ortsname allein offen, mit russischen Woertern russisch, mehrere Merkwoerter kasachisch, keine Sonderbuchstaben russisch",
       typeof kasachischNachweis === "function" &&
-        kasachischNachweis("Поставка прибыла в Қостанай вчера вечером.") === "offen" &&
+        kasachischNachweis("Қостанай.") === "offen" &&
+        kasachischNachweis("Поставка прибыла в Қостанай вчера вечером.") === "russisch" &&
         kasachischNachweis("Алматыдан жеткізілім қашан келді?") === "kasachisch" &&
         kasachischNachweis("Когда прибыла поставка из Алматы?") === "russisch" &&
         kasachischNachweis("Иә") === "offen",
@@ -541,7 +606,9 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
   {
     const saetze = sa.saetzeAusAntwort(UEBERSETZUNG);
     const sprachen = sprachenFuerSaetze(saetze, "de");
-    pruefe("Fund 2: hoechstens 4 Sprachwechsel je Antwort (statt 14)", wechsel(sprachen) <= 4, `${wechsel(sprachen)} Wechsel: ${sprachen.join(",")}`);
+    pruefe("Fund 2: hoechstens 5 Sprachwechsel je Antwort (4 und ein Pflichtwechsel ins Kyrillische, statt 14)", wechsel(sprachen) <= 5, `${wechsel(sprachen)} Wechsel: ${sprachen.join(",")}`);
+    pruefe("Fund 2: nach der Grenze liest keine lateinische Stimme mehr einen russischen Satz",
+      saetze.every((s, i) => !(erk.schriftVonText(s) === "kyrillisch" && (sprachen[i] === "de" || sprachen[i] === "en"))), sprachen.join(","));
     pruefe("Fund 2: bis zur Grenze wechselt die Stimme mit der Schrift", sprachen.includes("ru") && sprachen[0] === "de");
     const folge = erzeugeSprachFolge("de");
     const schrittweise = saetze.map((s) => folge.naechste(s));
@@ -574,7 +641,7 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
     pruefe("Fund 6: 'rest' liest nur die letzten Saetze, mit derselben Sprache wie im ganzen Plan", rest.bloecke.length === 1 && rest.bloecke[0].von === 2 && rest.bloecke[0].sprache === "de");
     pruefe("Fund 6: ein zu grosser Rest liest alles", vorlesePlan(gemischt, "de", { rest: 99 }).bloecke.length === 3);
     const viele = vorlesePlan("Hier:\n\n" + Array.from({ length: 8 }, (_, i) => `Die Lieferung ${i + 1} kommt morgen früh an. Поставка ${i + 1} прибудет завтра утром.`).join("\n"), "de");
-    pruefe("Fund 6: hoechstens 5 Bloecke (4 Wechsel), also hoechstens 5 Anfragen je Nachricht", viele.bloecke.length <= 5, String(viele.bloecke.length));
+    pruefe("Fund 6: hoechstens 6 Bloecke (4 Wechsel und ein Pflichtwechsel), also hoechstens 6 Anfragen je Nachricht", viele.bloecke.length <= 6, String(viele.bloecke.length));
     pruefe("Fund 6: Metadaten de, ganz englischer Text -> ein englischer Block",
       vorlesePlan("Dear supplier, please confirm the delivery of 1100 kilograms of raspberries for tomorrow morning.", "de").bloecke.map((b) => b.sprache).join() === "en");
 

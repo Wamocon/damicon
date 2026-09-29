@@ -318,6 +318,34 @@ export function befehlsBeginn(woerter: readonly string[], istEcho: (wort: string
   return null;
 }
 
+/** Waehrend Himbi spricht: bei welchem Wort die Aeusserung des Nutzers beginnt, in der bei
+ *  `befehl` ein Befehlswort steht. Die eigenen Woerter direkt davor gehoeren dazu, Himbis Echo
+ *  (`gesagt`) nicht. Bis zur Gegenpruefung vom 29.09.2026 begann die Frage immer beim Befehlswort:
+ *  aus "Wie sagt man Stopp auf Russisch?" wurde "auf Russisch?", und "Kannst du die Schicht
+ *  beenden?" beendete den Sprachmodus. */
+export function aeusserungsBeginn(woerter: readonly string[], befehl: number, gesagt: string): number {
+  const himbi = new Set(woerterVon(gesagt));
+  let i = Math.min(Math.max(0, befehl), woerter.length);
+  while (i > 0 && !woerterVon(woerter[i - 1]!).every((x) => himbi.has(x))) i--;
+  return i;
+}
+
+/** Ein Beendenwort beendet den Sprachmodus nur, wenn die Aeusserung damit BEGINNT ("Tschuess
+ *  Himbi" in Himbis Satz hinein). Steht es am Ende eigener Worte ("Wie kann ich die Aufgabe
+ *  schliessen?"), ist es ein Verb in einer Frage. */
+export function beendetWirklich(woerter: readonly string[], befehl: number, gesagt: string): boolean {
+  return aeusserungsBeginn(woerter, befehl, gesagt) === befehl;
+}
+
+/** Ein Befehlswort, waehrend eine Freigabekarte offen ist: "Stopp", "Nein", "Warte" lehnen sie ab.
+ *  "Himbi" allein oder eine Zusage mit Anrede ("Himbi, ja, bitte") nicht - die entscheidet
+ *  beiEndpunkt. Bis zur Gegenpruefung vom 29.09.2026 lehnte "Himbi, ja, bitte." die Karte ab. */
+export function befehlBeiOffenerKarte(woerter: readonly string[], ab: number, istEcho: (wort: string) => boolean): "ablehnen" | "ignorieren" {
+  const wort = kernwort(woerter[ab] ?? "");
+  if (wort === "himbi" || wort === "химби") return "ignorieren";
+  return freigabeAntwort(befehlOhneEcho(woerter, ab, istEcho)) === "zusage" ? "ignorieren" : "ablehnen";
+}
+
 /** Das (erste) Befehlswort in einem Text, oder - mit `wort` - ob genau dieses Wort darin
  *  vorkommt. Fuer die Echo-Pruefung: sagt Himbi "nein" oder "Moment" gerade selbst, ist ein
  *  erkanntes "nein" ihr eigenes Echo aus dem Lautsprecher. */
@@ -436,15 +464,15 @@ export function fuegeZusammen(vorher: string, nachsatz: string): string {
 // Kernwoerter und feste Wendungen einer Seite, dazu Fuellwoerter, sonst nichts.
 const ZUSAGE_KERN = new Set([
   // Deutsch
-  "ja", "jawohl", "genau", "bestätigen", "bestätige", "freigeben", "ok", "okay", "klar", "gerne", "gern", "natürlich",
+  "ja", "jawohl", "genau", "bestätigen", "bestätige", "bestätigt", "freigeben", "ok", "okay", "klar", "gerne", "gern", "natürlich",
   // Englisch
-  "yes", "yeah", "yep", "confirm", "approve", "sure",
-  // Russisch
-  "да", "давай", "подтверждаю", "подтвердить", "хорошо", "ага",
+  "yes", "yeah", "yep", "yup", "confirm", "approve", "sure",
+  // Russisch ("Да, конечно", "Ладно" und "Угу" fehlten bis zur Gegenpruefung vom 29.09.2026)
+  "да", "давай", "подтверждаю", "подтвердить", "хорошо", "ага", "конечно", "ладно", "ок", "окей", "угу",
   // Kasachisch
-  "иә", "жарайды", "растаймын",
+  "иә", "жарайды", "растаймын", "әрине",
 ]);
-const ZUSAGE_WENDUNGEN = ["mach das", "mach es", "gib frei", "do it", "go ahead"];
+const ZUSAGE_WENDUNGEN = ["mach das", "mach es", "mach weiter", "gib frei", "do it", "go ahead"];
 const ABSAGE_KERN = new Set([
   // Deutsch
   "nein", "nicht", "abbrechen", "stopp", "stop",
@@ -457,8 +485,13 @@ const ABSAGE_KERN = new Set([
 ]);
 // "don't" zerfaellt in woerterVon() in "don t".
 const ABSAGE_WENDUNGEN = ["lass es", "lass das", "don t", "не надо"];
-/** Begleiten eine Zusage oder Absage, ohne etwas daran zu aendern ("Ja, bitte, jetzt"). */
-const FREIGABE_FUELL = new Set(["bitte", "please", "пожалуйста", "өтінемін", "danke", "thanks", "спасибо", "рахмет", "himbi", "химби", "jetzt", "sofort"]);
+/** Begleiten eine Zusage oder Absage, ohne etwas daran zu aendern ("Ja, bitte, jetzt", "Äh, ja").
+ *  Die Fuellaute ohne "ok"/"okay" (die sind hier eine Zusage): bis zur Gegenpruefung vom
+ *  29.09.2026 war "Äh, ja." keine Zusage. */
+const FREIGABE_FUELL = new Set([
+  "bitte", "please", "пожалуйста", "өтінемін", "danke", "thanks", "спасибо", "рахмет", "himbi", "химби", "jetzt", "sofort", "doch",
+  ...[...FUELLLAUTE].filter((w) => w !== "ok" && w !== "okay"),
+]);
 
 function nurDieseSeite(text: string, kern: ReadonlySet<string>, wendungen: readonly string[]): boolean {
   const woerter = woerterVon(text).filter((w) => !FREIGABE_FUELL.has(w));
@@ -469,11 +502,16 @@ function nurDieseSeite(text: string, kern: ReadonlySet<string>, wendungen: reado
   return uebrig.every((w) => kern.has(w));
 }
 
+/** Ein einzelnes Wort mit Fragezeichen ("Ja?", "Да?") ist eine Rueckfrage, keine Zusage. */
+function istRueckfrage(text: string): boolean {
+  return /\?\s*$/.test(text) && woerterVon(text).length === 1;
+}
+
 /** Ist diese fertig erkannte Aeusserung eine reine Zusage zu einer offenen
  *  Freigabe (Klick- oder Aktionskarte)? "Ja, bitte.", "Ja, mach das." ja,
- *  "Ja, aber was kostet das?" nein. */
+ *  "Ja, aber was kostet das?" nein, die Rueckfrage "Ja?" auch nicht. */
 export function istZusageBefehl(text: string): boolean {
-  return nurDieseSeite(text, ZUSAGE_KERN, ZUSAGE_WENDUNGEN);
+  return !istRueckfrage(text) && nurDieseSeite(text, ZUSAGE_KERN, ZUSAGE_WENDUNGEN);
 }
 
 /** Ist diese fertig erkannte Aeusserung eine reine Absage zu einer offenen
@@ -492,18 +530,20 @@ export function freigabeAntwort(text: string): "zusage" | "absage" | "beenden" |
   return null;
 }
 
-/** Die Antwort auf eine Freigabekarte, auch wenn Himbi dabei noch spricht: zuerst der ganze
- *  Text; hat die Erkennung Himbis eigene Worte mitgehoert ("Ja, bitte. Jetzt klicke ich auf
- *  Anlegen"), dann ohne die Woerter aus dem, was er gerade gesagt hat. Gemessen am 28.09.2026:
- *  die Karte erscheint oft, bevor Himbi den Satz davor gesprochen hat, und man antwortet
- *  mitten hinein. */
+/** Die Antwort auf eine Freigabekarte, auch wenn Himbi dabei noch spricht: ohne die Woerter aus
+ *  dem, was er gerade gesagt hat (`gesagt`), denn die Erkennung hoert ihn mit ("Ja, bitte. Jetzt
+ *  klicke ich auf Anlegen"). Gemessen am 28.09.2026: man antwortet oft mitten in seinen Satz.
+ *
+ *  Erst das Echo heraus, dann pruefen. Bis zur Gegenpruefung vom 29.09.2026 zaehlte zuerst der
+ *  ganze Text, und ein reines Echo ("Gerne." oder "Хорошо." am Anfang von Himbis Satz) gab die
+ *  Karte frei, ohne dass der Nutzer etwas gesagt hatte. Sagt der Nutzer genau ein Wort, das auch
+ *  Himbi gerade sagt, zaehlt es nicht - er wiederholt es, sobald Himbi still ist (dann ist
+ *  `gesagt` leer). Eine faelschliche Freigabe waere schlimmer als ein zweites "Ja". */
 export function freigabeAntwortMitEcho(woerter: readonly string[], gesagt: string): "zusage" | "absage" | "beenden" | null {
-  const ganz = freigabeAntwort(woerter.join(" "));
-  if (ganz) return ganz;
   const echo = new Set(woerterVon(gesagt));
-  if (echo.size === 0) return null;
+  if (echo.size === 0) return freigabeAntwort(woerter.join(" "));
   const eigene = woerter.filter((w) => !woerterVon(w).every((x) => echo.has(x)));
-  return eigene.length > 0 && eigene.length < woerter.length ? freigabeAntwort(eigene.join(" ")) : null;
+  return eigene.length > 0 ? freigabeAntwort(eigene.join(" ")) : null;
 }
 
 // --- 2. Rechteck eines hervorgehobenen Bereichs -------------------------------------

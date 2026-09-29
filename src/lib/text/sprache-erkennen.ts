@@ -35,60 +35,135 @@ export const KASACHISCH_MINDEST_WOERTER = 2;
 /** ... und so viel aller kyrillischen Woerter muessen es sein (ein langer russischer
  *  Text mit zwei kasachischen Woertern bleibt russisch). */
 export const KASACHISCH_MINDEST_ANTEIL = 0.1;
+/** Bis zu so vielen Woertern reicht EIN Belegwort ohne russischen Gegenbeleg ("Ауа райы
+ *  қандай?", "Клиент шағымданды."). */
+export const KASACHISCH_KURZ_WOERTER = 4;
 
 // Belegwoerter statt Buchstaben (29.09.2026). Die Regel "Sonderbuchstaben in zwei Woertern und
 // 3 Prozent der Buchstaben" beantwortete kurze kasachische Fragen ohne Verlauf russisch: in
 // "Бүгін не бар?", "Шағымдар туралы айтшы.", "Не істеу керек?" oder "Рахмет, жарайды." hat
 // hoechstens ein Wort Sonderbuchstaben. Die alte 1-%-Regel hatte sie richtig, dafuer einen
-// russischen Satz mit Ortsnamen ("... в Қостанай ...") falsch. Jetzt:
-//  - ein Wort mit Sonderbuchstaben ist ein Beleg, ausser es ist erkennbar ein Name
-//    (grossgeschrieben mitten im Satz, oder ein bekannter Ortsname, auch mit Endung);
-//  - haeufige kasachische Woerter ohne Sonderbuchstaben, die es im Russischen nicht gibt,
-//    sind ebenfalls Belege.
+// russischen Satz mit Ortsnamen ("... в Қостанай ...") falsch.
+//
+// Seit der Gegenpruefung vom 29.09.2026 zaehlt auch die Gegenseite: 10 von 36 kurzen kasachischen
+// Saetzen ("Ауа райы қандай?", "Машина келе жатыр.") gingen noch russisch hinaus, und russische
+// Saetze mit Namen am Satzanfang ("Отчёт готов. Нұрлан проверит. Әсел подпишет.") oder mit "бар"
+// als Druckeinheit wurden kasachisch. Jetzt:
+//  - Belegwort: ein Wort mit Sonderbuchstaben, das kein Name ist (grossgeschrieben mitten im Satz,
+//    oder ein bekannter Ortsname auch mit Endung), oder ein haeufiges kasachisches Wort ohne sie.
+//    Jedes Wort zaehlt einmal ("2 бар ... 3 бар" ist ein Beleg, nicht zwei).
+//  - Gegenbeleg: ein Wort, das es nur im Russischen gibt (Praepositionen, Fragewoerter,
+//    Pronomen), ein Wort mit "ё", "ъ" oder "ь", oder eine russische Endung ("-ться", "-ого").
+//  - Kasachisch: mindestens ein KLEINgeschriebenes Belegwort (ein Name am Satzanfang allein
+//    beweist nichts), mehr Belege als Gegenbelege, und zwei Belege oder ein kurzer Satz.
 const KASACHISCHE_WOERTER = new Set([
-  "бар", "туралы", "керек", "рахмет", "жарайды", "айтшы", "мен", "сен", "осы", "мына", "бойынша",
-  "ма", "ме", "ба", "бе", "па", "пе", "тапсырма", "тапсырмалар", "жоспар", "жоспарлар",
+  "бар", "керек", "мен", "сен", "осы", "мына", "ма", "ме", "ба", "бе", "па", "пе",
+  "келе", "бола", "жаман", "ауа", "райы", "жап",
+  // Haeufige Woerter, wie sie ohne kasachische Tastatur getippt werden (қ -> к, ү -> у, і -> и).
+  "кайда", "канша", "кашан", "кандай", "жаксы", "бугин", "бугін", "ертен", "корсет", "келди",
 ]);
-/** Kasachische Orts- und Landesnamen (Wortanfang, damit auch "Қостанайда" zaehlt). */
+/** Kasachische Wortstaemme ohne Sonderbuchstaben, auch mit Endung ("тапсырмаларды"). */
+const KASACHISCHE_STAEMME = [
+  "тапсырма", "жоспар", "жидек", "тексер", "жаса", "туралы", "рахмет", "жарайды", "бойынша", "айтшы",
+  "жатыр", "болады", "болды", "сапа", "жина", "жумыс",
+];
+/** Kasachische Orts- und Landesnamen (Wortanfang, damit auch "Қостанайда" zaehlt). Nicht
+ *  "Есік" und "Іле": "есік" ist auch die Tuer ("Есікті жап."). */
 const KASACHISCHE_NAMEN = [
   "қазақстан", "қостанай", "қарағанды", "өскемен", "қызылорда", "ақтөбе", "ақтау", "қарасай", "талдықорған",
-  "түркістан", "көкшетау", "жезқазған", "екібастұз", "қаскелең", "талғар", "есік", "іле", "ұлытау",
+  "түркістан", "көкшетау", "жезқазған", "екібастұз", "қаскелең", "талғар", "ұлытау",
 ];
+/** Woerter, die es nur im Russischen gibt. Nicht "не" und "да": beides ist auch kasachisch. */
+const RUSSISCHE_WOERTER = new Set([
+  "в", "во", "на", "по", "с", "со", "к", "ко", "у", "о", "об", "от", "до", "из", "за", "для", "при", "про", "без", "через",
+  "и", "или", "но", "а", "что", "чтобы", "как", "где", "когда", "кто", "почему", "зачем", "сколько", "какой", "какая", "какое", "какие",
+  "это", "этот", "эта", "эти", "тот", "та", "те", "уже", "тоже", "ещё", "еще", "очень", "можно", "нужно", "надо", "есть", "нет",
+  "я", "ты", "он", "она", "оно", "мы", "вы", "они", "мне", "меня", "нас", "вас", "его", "её", "ее", "их", "ему", "им",
+  "сегодня", "вчера", "завтра", "сейчас", "пожалуйста", "спасибо", "был", "была", "было", "были", "будет",
+  "позвони", "покажи", "скажи", "открой", "проверь", "создай", "добавь", "напиши", "отправь", "найди", "сделай", "дай", "расскажи",
+]);
+const RUSSISCHE_BUCHSTABEN = /[ёъь]/i;
+const RUSSISCHE_ENDUNG = /(ться|ть|ого|его|ому|ему|ами|ями|ешь|ишь|ется|ится|ются|ятся|ается|яет|ает|ует|ила|или|ил)$/;
 
-function istName(wort: string, vorher: string): boolean {
-  const klein = wort.toLowerCase();
-  if (KASACHISCHE_NAMEN.some((name) => klein.startsWith(name))) return true;
-  // Grossgeschrieben, aber nicht am Satzanfang: ein Eigenname.
-  const amSatzanfang = /(^|[.!?…:;]\s*|\n\s*)$/.test(vorher);
-  return /^\p{Lu}/u.test(wort) && !amSatzanfang;
+function amSatzanfang(text: string, stelle: number): boolean {
+  if (stelle === 0) return true;
+  // Auch nach einem Aufzaehlungszeichen ("- ", "1. ", "• ").
+  return /(^|[.!?…:;]\s*|\n[\s\-–•*\d.)]*)$/.test(text.slice(Math.max(0, stelle - 8), stelle));
 }
 
-function kasachischeMerkmale(text: string): { buchstaben: number; belege: number; woerter: number } {
-  let belege = 0;
+function istName(wort: string, grossMittenImSatz: boolean): boolean {
+  const klein = wort.toLowerCase();
+  if (KASACHISCHE_NAMEN.some((name) => klein.startsWith(name))) return true;
+  return grossMittenImSatz;
+}
+
+function istKasachischesWort(klein: string): boolean {
+  return KASACHISCHE_WOERTER.has(klein) || KASACHISCHE_STAEMME.some((stamm) => klein.startsWith(stamm));
+}
+
+function istRussischesWort(klein: string): boolean {
+  return RUSSISCHE_WOERTER.has(klein) || RUSSISCHE_BUCHSTABEN.test(klein) || (klein.length >= 4 && RUSSISCHE_ENDUNG.test(klein));
+}
+
+type KasachischMerkmale = {
+  /** Kasachische Sonderbuchstaben insgesamt. */
+  buchstaben: number;
+  /** Verschiedene Belegwoerter ... */
+  belege: number;
+  /** ... davon kleingeschrieben (kein Name, kein Satzanfang). */
+  kleineBelege: number;
+  /** Verschiedene russische Gegenbelege. */
+  russisch: number;
+  woerter: number;
+};
+
+/** Ein lateinisches "i" mitten in kyrillischen Woertern ist ein getipptes kasachisches "і"
+ *  ("Бiз келдiк"); sonst zerfaellt das Wort an ihm. */
+const LATEINISCHES_I_IM_WORT = /(?<=[Ѐ-ӿ])[iI]|[iI](?=[Ѐ-ӿ])/g;
+
+function kasachischeMerkmale(roh: string): KasachischMerkmale {
+  const text = roh.replace(LATEINISCHES_I_IM_WORT, (i) => (i === "i" ? "і" : "І"));
+  const belege = new Set<string>();
+  const kleineBelege = new Set<string>();
+  const russisch = new Set<string>();
   let woerter = 0;
   for (const treffer of text.matchAll(KYRILLISCHES_WORT)) {
     const wort = treffer[0];
+    const klein = wort.toLowerCase();
     woerter += 1;
-    const vorher = text.slice(Math.max(0, treffer.index - 3), treffer.index);
-    if (HAT_KASACHISCH.test(wort) ? !istName(wort, treffer.index === 0 ? "" : vorher) : KASACHISCHE_WOERTER.has(wort.toLowerCase())) belege += 1;
+    const gross = /^\p{Lu}/u.test(wort);
+    const grossMittenImSatz = gross && !amSatzanfang(text, treffer.index);
+    const beleg = HAT_KASACHISCH.test(wort) ? !istName(wort, grossMittenImSatz) : istKasachischesWort(klein) && !grossMittenImSatz;
+    if (beleg) {
+      belege.add(klein);
+      if (!gross) kleineBelege.add(klein);
+    } else if (!gross && istRussischesWort(klein)) russisch.add(klein);
   }
-  return { buchstaben: (text.match(KASACHISCH) ?? []).length, belege, woerter };
+  return { buchstaben: (text.match(KASACHISCH) ?? []).length, belege: belege.size, kleineBelege: kleineBelege.size, russisch: russisch.size, woerter };
 }
 
-/** Was die Sonderbuchstaben ueber einen kyrillischen Text sagen: "kasachisch"
- *  (robuster Nachweis), "russisch" (kein einziger) oder "offen" (einige, aber in
- *  einem Wort oder zu wenige - ein Ortsname wie "Қостанай", oder eine sehr kurze
- *  Antwort wie "Иә"). */
+/** Was die Woerter ueber einen kyrillischen Text sagen: "kasachisch" (Nachweis, siehe oben),
+ *  "russisch" (keine Belege, oder die russischen Gegenbelege ueberwiegen) oder "offen" (Belege,
+ *  aber zu wenige - ein Name am Satzanfang, oder eine sehr kurze Antwort wie "Иә"). */
 export type KasachischBefund = "kasachisch" | "russisch" | "offen";
+
+function befundAusMerkmalen({ buchstaben, belege, kleineBelege, russisch, woerter }: KasachischMerkmale): KasachischBefund {
+  const genug = belege >= KASACHISCH_MINDEST_WOERTER || woerter <= KASACHISCH_KURZ_WOERTER;
+  if (kleineBelege > 0 && belege > russisch && genug && belege / Math.max(1, woerter) >= KASACHISCH_MINDEST_ANTEIL) return "kasachisch";
+  if (russisch > 0 && russisch >= belege) return "russisch";
+  // Belege ohne Nachweis ("Иә", ein Name am Satzanfang): offen, dann entscheidet der Aufrufer
+  // (fuer die Antwortsprache das Gespraech).
+  return belege > 0 || buchstaben > 0 ? "offen" : "russisch";
+}
 
 function befundAus(text: string, kyrillisch: number): KasachischBefund {
   if (kyrillisch <= 0) return "russisch";
-  const { buchstaben, belege, woerter } = kasachischeMerkmale(text);
-  if (belege >= KASACHISCH_MINDEST_WOERTER && belege / Math.max(1, woerter) >= KASACHISCH_MINDEST_ANTEIL) return "kasachisch";
-  // Ein Beleg allein ("Иә", "Жоқ") oder nur Namen mit Sonderbuchstaben: offen, dann
-  // entscheidet der Aufrufer (fuer die Antwortsprache das Gespraech).
-  return belege > 0 || buchstaben > 0 ? "offen" : "russisch";
+  return befundAusMerkmalen(kasachischeMerkmale(text));
 }
+
+/** So viele russische Gegenbelege holen einen kasachischen Zug auch in einem kurzen Satz
+ *  zurueck ins Russische (klareAbweichung). */
+const WECHSEL_KK_RU_GEGENBELEGE = 2;
 
 /**
  * DIE Kasachisch-Regel - seit 29.09.2026 die einzige (Cleanup-Funde 40/41). Kasachisch
@@ -307,11 +382,17 @@ export function klareAbweichung(
   if (!schrift) return null;
   const { kyrillisch, lateinisch } = zaehleSchrift(probe);
   if (schrift === "kyrillisch") {
-    const befund = befundAus(probe, kyrillisch);
+    const merkmale = kasachischeMerkmale(probe);
+    const befund = befundAusMerkmalen(merkmale);
     if (erwartet === "ru") return befund === "kasachisch" ? "kk" : null;
-    // Zurueck nach Russisch braucht mehr als hin (gewollte Hysterese, siehe oben): ab 60
-    // Buchstaben ganz ohne Sonderbuchstaben.
-    if (erwartet === "kk") return kyrillisch >= WECHSEL_KK_RU_BUCHSTABEN && befund === "russisch" ? "ru" : null;
+    // Zurueck nach Russisch braucht mehr als hin (gewollte Hysterese, siehe oben): kein
+    // kleingeschriebenes Belegwort, und ab 60 Buchstaben oder mit zwei russischen Gegenbelegen.
+    // Bis zur Gegenpruefung vom 29.09.2026 nur ab 60 Buchstaben: "Поставка прибыла вчера вечером,
+    // всё проверено и подписано." (49) las die kasachische Stimme.
+    if (erwartet === "kk") {
+      const klarRussisch = befund === "russisch" && merkmale.kleineBelege === 0;
+      return klarRussisch && (kyrillisch >= WECHSEL_KK_RU_BUCHSTABEN || merkmale.russisch >= WECHSEL_KK_RU_GEGENBELEGE) ? "ru" : null;
+    }
     return befund === "kasachisch" ? "kk" : "ru";
   }
   const treffer = lateinischeTreffer(probe);
@@ -338,7 +419,10 @@ export function klareAbweichung(
  * die Zahl der Wechsel ist begrenzt.
  */
 export function satzSprache<S extends string>(text: string, zugSprache: S): S | ErkannteSprache {
-  return klareAbweichung(text ?? "", zugSprache) ?? zugSprache;
+  const t = text ?? "";
+  const sprache = klareAbweichung(t, zugSprache) ?? zugSprache;
+  // Kyrillischer Text nie mit einer lateinischen Stimme, auch unter der Mindestlaenge ("Да.").
+  return istLateinischeSprache(sprache) && schriftVonText(t) === "kyrillisch" ? kyrillischeStimme(t, zugSprache) : sprache;
 }
 
 /** Hat der Satz selbst eine Sprache (true), oder folgt er nur dem Zug (false)?
@@ -362,6 +446,21 @@ function reineSchrift(text: string): Schrift | null {
   if (kyrillisch > 0 && lateinisch === 0) return "kyrillisch";
   if (lateinisch > 0 && kyrillisch === 0) return "lateinisch";
   return null;
+}
+
+/** Die Schrift eines Textes jeder Laenge: die ueberwiegende, bei sehr kurzem Text die einzige. */
+export function schriftVonText(text: string): Schrift | null {
+  return ueberwiegendeSchrift(text ?? "", 1) ?? reineSchrift(text ?? "");
+}
+
+/** Die Stimme fuer kyrillischen Text, dem der Zug keine kyrillische Sprache vorgibt: Kasachisch
+ *  mit Nachweis, Russisch mit Gegenbelegen, sonst (offen, "Иә") die kyrillische Sprache des
+ *  Zuges oder der Oberflaeche, wenn es eine ist, und sonst Russisch. */
+export function kyrillischeStimme(text: string, bevorzugt?: string | null): "ru" | "kk" {
+  const befund = kasachischNachweis(text);
+  if (befund === "kasachisch") return "kk";
+  if (befund === "russisch") return "ru";
+  return bevorzugt === "kk" ? "kk" : "ru";
 }
 
 export interface SprachFolge<S extends string> {
@@ -399,8 +498,17 @@ export function erzeugeSprachFolge<S extends string>(zugSprache: S, hoechstensWe
         if (schrift === null || schrift === schriftVon(aktuell)) kandidat = aktuell;
         else if (schrift !== schriftVon(zugSprache)) kandidat = aktuell;
       }
+      // Kyrillischer Text nie mit einer lateinischen Stimme, auch ein kurzer nicht ("Да." nach
+      // "Ich prüfe das." las bis zur Gegenpruefung vom 29.09.2026 die deutsche Stimme - genau die
+      // Rueckmeldung vom 28.09.2026, "mit viel Akzent"). Umgekehrt darf eine kyrillische Stimme ein
+      // kurzes "OK." lesen.
+      const kyrillischerSatz = (ueberwiegendeSchrift(t) ?? reineSchrift(t)) === "kyrillisch";
+      if (kyrillischerSatz && istLateinischeSprache(kandidat)) kandidat = kyrillischeStimme(t, zugSprache);
       if (aktuell !== null && kandidat !== aktuell) {
-        if (wechsel >= hoechstensWechsel) kandidat = aktuell;
+        // Die Grenze gilt nicht fuer diesen einen Pflichtwechsel ins Kyrillische. Danach steht die
+        // Stimme kyrillisch und bleibt dort (hoechstens ein Wechsel mehr als die Grenze).
+        const pflicht = kyrillischerSatz && istLateinischeSprache(aktuell);
+        if (wechsel >= hoechstensWechsel && !pflicht) kandidat = aktuell;
         else wechsel++;
       }
       aktuell = kandidat;

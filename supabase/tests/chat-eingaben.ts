@@ -174,6 +174,12 @@ pruefe("Verlauf: Teile ohne Typ, Text ohne Zeichenkette, fremde Rollen und kaput
   for (const roh of kaputt) assert.equal(verlaufAusAnfrage(roh), null, JSON.stringify(roh));
 });
 
+pruefe("Verlauf: Dateiteile sind ungueltig (ohne url warf convertToModelMessages 'Invalid URL', Gegenpruefung 29.09.2026)", () => {
+  assert.equal(verlaufAusAnfrage([{ id: "u", role: "user", parts: [{ type: "file" }] }]), null);
+  assert.equal(verlaufAusAnfrage([{ id: "a", role: "assistant", parts: [{ type: "file", mediaType: "image/png" }] }]), null);
+  assert.notEqual(verlaufAusAnfrage([{ id: "u", role: "user", parts: [{ type: "text", text: "Hallo" }] }]), null);
+});
+
 pruefe("Verlauf: kein manipulierter Verlauf bringt die Aufbereitung der Route zum Absturz (Fund 84)", () => {
   // Dieselbe Reihenfolge wie POST in api/ki-assistent/route.ts: pruefen, kuerzen,
   // Referenzen sammeln. Bis zum 28.09.2026 warf hier ein Teil null einen TypeError

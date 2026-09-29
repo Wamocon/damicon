@@ -230,6 +230,19 @@ check("Fund 70: update storage.buckets ... where id = 'x' trifft den Preview-Buc
 const cronDaten = um("select cron.schedule('aufraeumen', '0 3 * * *', $c$ insert into public.log (art) values ('aufraeumen') $c$);");
 check("Fund 70: Cron-Name im Aufruf bekommt -preview", cronDaten.sql.includes("cron.schedule('aufraeumen-preview'"), cronDaten.sql);
 check("Fund 70: gleicher Text als Datenwert im Cron-Befehl bleibt", cronDaten.sql.includes("values ('aufraeumen')"), cronDaten.sql);
+// Gegenpruefung vom 29.09.2026: Bucket-Namen an Stellen, die Fund 70 nicht erkennt, blieben in
+// Funktionsruempfen still stehen - Preview-Code lief gegen den Production-Bucket. Jetzt: laut abgelehnt.
+for (const [art, sql] of [
+  ["insert into storage.objects values", "create function public.f(p text) returns void language sql as $$ insert into storage.objects (bucket_id, name) values ('belege', p) $$;"],
+  ["= any(array[...])", "create function public.f() returns bigint language sql as $$ select count(*) from storage.objects where bucket_id = any(array['belege']) $$;"],
+  ["'x' = bucket_id", "create function public.f() returns bigint language sql as $$ select count(*) from storage.objects where 'belege' = bucket_id $$;"],
+  ["bucket_id::text = 'x'", "create function public.f() returns bigint language sql as $$ select count(*) from storage.objects o where o.bucket_id::text = 'belege' $$;"],
+  ["Variable im Rumpf", "create function public.f() returns void language plpgsql as $$ declare v_bucket text := 'dokumente'; begin delete from storage.objects where bucket_id = v_bucket; end $$;"],
+]) {
+  const r = um(sql);
+  check(`Gegenpruefung: Bucket an unerkannter Stelle (${art}) wird abgelehnt statt still auf Production zu zeigen`, r.fehler.some((f) => f.includes("Bucket-Name an einer Stelle")), JSON.stringify(r.fehler));
+}
+check("Gegenpruefung: has_permission('dokumente', ...) neben einem erkannten Bucket bleibt erlaubt", dokPolicy.fehler.length === 0, JSON.stringify(dokPolicy.fehler));
 
 // Fund 71: Kommentartexte sind Daten und behalten ihr public.; jede andere Zeichenkette kann
 // ausgefuehrter Code sein und wird weiter umbenannt (sicherere Richtung, 29.09.2026).

@@ -1491,10 +1491,17 @@ await mussScheitern(
     assistent === "42501",
     assistent ? `errcode: ${assistent}` : "die Assistenten-Zeile wurde angelegt",
   );
+  // Genau der Angriff aus Fund 77: nur Rolle und Text, sonst nichts. Die Zeile oben scheitert auch an
+  // anbieter_name; ohne diese Pruefung blieb eine Policy ohne "rolle = 'nutzer'" gruen (Mutation M10
+  // der Gegenpruefung vom 29.09.2026).
+  const nackt = await fehlerCode("insert into public.ki_chat_nachrichten (profil_id, rolle, inhalt) values ($1, 'assistent', 'Beliebiger Text zum Vorlesen');", [profilId]);
+  check("KI-Chat: auch eine nackte Assistenten-Zeile (nur Rolle und Text) wird abgelehnt", nackt === "42501", nackt ? `errcode: ${nackt}` : "die Assistenten-Zeile wurde angelegt");
   const system = await fehlerCode(
     "insert into public.ki_chat_nachrichten (profil_id, rolle, inhalt, eskaliert) values ($1, 'system', 'Eskalation', true);",
     [profilId],
   );
+  const systemNackt = await fehlerCode("insert into public.ki_chat_nachrichten (profil_id, rolle, inhalt) values ($1, 'system', 'Hinweis');", [profilId]);
+  check("KI-Chat: auch eine nackte System-Zeile wird abgelehnt", systemNackt === "42501", systemNackt ? `errcode: ${systemNackt}` : "die System-Zeile wurde angelegt");
   check("KI-Chat: authenticated darf keine System-Zeile anlegen", system === "42501", system ? `errcode: ${system}` : "die System-Zeile wurde angelegt");
   const gefaelscht = await fehlerCode(
     `insert into public.ki_chat_nachrichten (profil_id, rolle, inhalt, anbieter_name, werkzeugaufrufe)
@@ -1520,6 +1527,17 @@ await mussScheitern(
       code ? `errcode: ${code}` : `die ${art}e Zeile wurde angelegt`,
     );
   }
+  // Gegenpruefung vom 29.09.2026 (20261114000000): hoechstens 2000 Zeichen, und die ID setzt die
+  // Datenbank (eine vorab belegte Antwort-ID liess das Speichern der Antwort scheitern).
+  const zuLang = await fehlerCode("insert into public.ki_chat_nachrichten (profil_id, rolle, inhalt) values ($1, 'nutzer', repeat('x', 2001));", [profilId]);
+  check("KI-Chat: eine Frage ueber 2000 Zeichen wird abgelehnt", zuLang === "42501", zuLang ? `errcode: ${zuLang}` : "die lange Zeile wurde angelegt");
+  const genau = await fehlerCode("insert into public.ki_chat_nachrichten (profil_id, rolle, inhalt) values ($1, 'nutzer', repeat('x', 2000));", [profilId]);
+  check("KI-Chat: eine Frage mit genau 2000 Zeichen geht durch", genau === null, `errcode: ${genau}`);
+  const eigeneId = await fehlerCode(
+    "insert into public.ki_chat_nachrichten (id, profil_id, rolle, inhalt) values ('33333333-4444-4555-8666-777777777777', $1, 'nutzer', 'Frage');",
+    [profilId],
+  );
+  check("KI-Chat: authenticated waehlt die ID nicht selbst (keine vorab belegte Antwort-ID)", eigeneId === "42501", eigeneId ? `errcode: ${eigeneId}` : "die Zeile mit eigener ID wurde angelegt");
   await alsAdmin(db);
 
   // Der Server schreibt die Antwort mit service_role, so wie onFinish es tut (feste ID vorab).
@@ -1542,7 +1560,7 @@ await mussScheitern(
   const nachher = (await eigeneZeilen()).map((z) => z.rolle);
   check(
     "KI-Chat: der eigene Verlauf laedt Frage, Antwort und Eskalation",
-    nachher.length === 3 && nachher.includes("nutzer") && nachher.includes("assistent") && nachher.includes("system"),
+    nachher.length === 4 && nachher.includes("nutzer") && nachher.includes("assistent") && nachher.includes("system"),
     `Rollen: ${nachher.join(",")}`,
   );
   await alsAdmin(db);

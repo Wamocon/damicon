@@ -369,6 +369,16 @@ function bucketsUmbenennen(text, buckets, umbenennen) {
   return { text: neu, genannt: [...genannt] };
 }
 
+/** Eigene Buckets, die nach bucketsUmbenennen noch unveraendert als Literal dastehen. Nicht
+ *  mitgezaehlt: Kommentare und das erste Argument von has_permission(...) - dort ist 'dokumente'
+ *  der Modulschluessel, kein Bucket (Fund 70). */
+export function unerkannteBuckets(text, eigeneBuckets) {
+  const ohne = ohneKommentare(text).replace(/\bhas_permission\s*\(\s*'(?:[^']|'')*'/gi, "has_permission(");
+  const uebrig = new Set();
+  for (const m of ohne.matchAll(/'((?:[^']|'')*)'/g)) if (eigeneBuckets.includes(m[1])) uebrig.add(m[1]);
+  return [...uebrig];
+}
+
 /** Alle Bucket-Ids, die irgendeine Migration in storage.buckets anlegt. */
 export function bucketsAus(inhalte) {
   const ids = new Set();
@@ -533,6 +543,15 @@ export function umschreiben(sql, { buckets = [], triggerFunktionen = [] } = {}) 
         continue;
       }
       neu = bucketsUmbenennen(neu, buckets, eigeneBuckets).text;
+      // Steht danach noch ein eigener Bucket als Literal da, war er an einer Stelle, die die Regeln
+      // nicht kennen ("values ('belege', ...)" in storage.objects, "= any(array['belege'])",
+      // "'belege' = bucket_id", eine Variable "v_bucket text := 'belege'"). Bis zur Gegenpruefung
+      // vom 29.09.2026 blieb er dort still stehen, und Preview-Code lief gegen den Production-Bucket.
+      const uebrig = unerkannteBuckets(neu, eigeneBuckets);
+      if (uebrig.length > 0) {
+        fehler.push(`Bucket-Name an einer Stelle, die sich nicht sicher umschreiben laesst (${uebrig.join(", ")}); bitte als bucket_id = '...' oder bucket_id in (...) schreiben: ${kurz}`);
+        continue;
+      }
     }
 
     if (/'public'/.test(ohneKommentare(neu))) {

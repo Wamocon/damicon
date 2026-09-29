@@ -87,7 +87,9 @@ function baueVerlaufFuerModell(
     ...bisherigerVerlauf
       .filter((n) => n.rolle !== "system")
       .slice(-MAX_VERLAUF_FUER_MODELL)
-      .map((n) => ({ rolle: n.rolle, inhalt: n.inhalt })),
+      // Fragen hoechstens so lang, wie sie gestellt werden duerfen: aeltere Zeilen stammen aus der
+      // Zeit vor der Grenze in der Datenbank (20261114000000, Gegenpruefung vom 29.09.2026).
+      .map((n) => ({ rolle: n.rolle, inhalt: n.rolle === "nutzer" ? n.inhalt.slice(0, MAX_NACHRICHT_LAENGE) : n.inhalt })),
     { rolle: "nutzer", inhalt: nachricht },
   ];
 }

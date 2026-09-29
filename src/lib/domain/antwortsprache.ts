@@ -37,7 +37,16 @@
 //     Erkennungsschwelle. Ihre Schrift und die Sprache des vorigen Zuges sagen
 //     mehr als die Einstellung.
 
-import { erkenneSprache, erkenneSpracheEindeutig, kasachischNachweis, klareAbweichung, lateinischeSprache, zaehleSchrift } from "@/lib/text/sprache-erkennen";
+import {
+  erkenneSprache,
+  erkenneSpracheEindeutig,
+  kasachischNachweis,
+  klareAbweichung,
+  kyrillischeStimme,
+  lateinischeSprache,
+  schriftVonText,
+  zaehleSchrift,
+} from "@/lib/text/sprache-erkennen";
 
 export const SPRACHEN = ["de", "en", "ru", "kk"] as const;
 export type Sprache = (typeof SPRACHEN)[number];
@@ -154,8 +163,11 @@ export function bestimmeAntwortsprache(
     // Sonderbuchstaben kasachisch ("Иә", "Жоқ"); eine laengere Frage mit nur einem
     // solchen Wort (dem Ortsnamen) nicht. Sonst Russisch, ausser die Einstellung ist
     // ohnehin Kasachisch ("Рахмет" hat keinen Sonderbuchstaben).
-    const kasachischeAntwort = kurz && kasachischNachweis(frage) !== "russisch";
-    if (kasachischeAntwort || eingabe.oberflaeche === "kk") return { sprache: "kk", herkunft: "schrift" };
+    // Russisch mit Gegenbelegen ("Кто пришёл?", "Как дела?") bleibt russisch, auch bei
+    // kasachischer Oberflaeche (Gegenpruefung vom 29.09.2026).
+    const befund = kasachischNachweis(frage);
+    const kasachischeAntwort = kurz && befund !== "russisch";
+    if (kasachischeAntwort || (eingabe.oberflaeche === "kk" && befund !== "russisch")) return { sprache: "kk", herkunft: "schrift" };
     return { sprache: "ru", herkunft: "schrift" };
   }
   if (lateinisch > kyrillisch) {
@@ -261,6 +273,16 @@ export function vorleseSprache(metaSprache: unknown, text: string, oberflaeche: 
   const ober: Sprache = istSprache(oberflaeche) ? oberflaeche : "de";
   const eindeutig = erkenneSpracheEindeutig(text ?? "", VORLESE_MINDEST_BUCHSTABEN);
   if (istSprache(eindeutig)) return eindeutig;
+  // Kurzer Text: zuerst die Schrift. Bis zur Gegenpruefung vom 29.09.2026 las nach einem Neuladen
+  // (keine Metadaten) die Stimme der Oberflaeche jede kurze Antwort - "Да, всё готово." bei
+  // deutscher Oberflaeche deutsch, "Die Lieferung ist da." bei russischer russisch.
+  const schrift = schriftVonText(text ?? "");
+  if (schrift === "kyrillisch") return kyrillischeStimme(text ?? "", ober);
+  if (schrift === "lateinisch") {
+    const ausWort = lateinischeSprache(text ?? "");
+    if (ausWort) return ausWort;
+    if (ober === "ru" || ober === "kk") return "en";
+  }
   // Lateinisch, aber ohne Merkmal: erkenneSprache sagt dann "en". Steht die
   // Oberflaeche in derselben Schrift, ist sie der bessere Tipp.
   const grob = erkenneSprache(text ?? "", VORLESE_MINDEST_BUCHSTABEN);

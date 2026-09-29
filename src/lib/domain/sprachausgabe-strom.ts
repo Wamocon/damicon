@@ -256,6 +256,25 @@ export function ungesprocheneTexte(texte: readonly string[], audioSekunden: numb
   return 0;
 }
 
+/** So vorsichtig schaetzt nochNichtBegonnen: Soniox spricht hoechstens so viel langsamer als
+ *  die Rate, mit der gerechnet wird, ohne dass ein Satz zu frueh als begonnen gilt. */
+export const BEGONNEN_SICHERHEIT = 0.8;
+
+/** Wie viele der Texte eines Stroms (vom Ende her) haben SICHER noch nicht angefangen zu klingen?
+ *  Gegenstueck zu ungesprocheneTexte fuer die Frage "was hat der Hoerer gehoert": ein Text, dessen
+ *  Anfang hinter dem liegt, was der empfangene Ton bei vorsichtiger Rate hergibt, hat nicht
+ *  begonnen. Zu vorsichtig heisst: eine Handlung (Freigabekarte) wartet etwas laenger - nie, dass
+ *  sie vor dem Satz davor kommt. `zeichenJeSekunde` ist die Rate samt Tempo. */
+export function nochNichtBegonnen(texte: readonly string[], audioSekunden: number, zeichenJeSekunde: number): number {
+  const gehoert = Math.max(0, audioSekunden) * Math.max(0, zeichenJeSekunde) * BEGONNEN_SICHERHEIT;
+  let anfang = 0;
+  for (let i = 0; i < texte.length; i++) {
+    if (anfang >= gehoert) return texte.length - i;
+    anfang += texte[i]!.length;
+  }
+  return 0;
+}
+
 /** Reicht der Schluessel noch fuer einen neuen Strom? */
 export function schluesselNochGut(gueltigBisMs: number, jetztMs: number): boolean {
   return gueltigBisMs - jetztMs > STROM_SCHLUESSEL_RESERVE_MS;

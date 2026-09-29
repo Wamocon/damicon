@@ -312,6 +312,10 @@ export async function POST(req: Request) {
   } catch {
     return new Response("ungueltige eingabe", { status: 400 });
   }
+  // Ein Body "null" oder eine Liste warf unten einen TypeError (Gegenpruefung vom 29.09.2026).
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return new Response("ungueltige eingabe", { status: 400 });
+  }
   // Der Verlauf aus dem Browser, schematisch geprueft (verlaufAusAnfrage): nur
   // Nutzer- und Assistentennachrichten, Teile mit Typ. Seit 28.09.2026 endet ein
   // kaputter Verlauf mit 400 statt mit einem TypeError und einer 500 (Fund 84).
@@ -320,7 +324,15 @@ export async function POST(req: Request) {
     return new Response("ungueltige eingabe", { status: 400 });
   }
   const nachrichten = alteAusgabenKuerzen(schnappschuesseKuerzen(verlauf));
-  if (JSON.stringify(nachrichten).length > MAX_VERLAUF_ZEICHEN) {
+  // Tausendfach verschachtelte Werkzeugausgaben liessen JSON.stringify mit "Maximum call stack
+  // size exceeded" scheitern: das ist dann ebenso zu gross.
+  let verlaufZeichen: number;
+  try {
+    verlaufZeichen = JSON.stringify(nachrichten).length;
+  } catch {
+    return new Response("verlauf zu gross", { status: 413 });
+  }
+  if (verlaufZeichen > MAX_VERLAUF_ZEICHEN) {
     return new Response("verlauf zu gross", { status: 413 });
   }
 
@@ -510,6 +522,28 @@ export async function POST(req: Request) {
   const vorModell = performance.now();
   let ersterText: number | null = null;
 
+  // An der letzten Frage haengt ein Hinweis in der Antwortsprache - nur in dieser Kopie fuers Modell,
+  // gespeichert und angezeigt wird die Frage unveraendert. Der Systemprompt ist deutsch, und die
+  // Sprachanweisung darin verlor gegen die vielen deutschen Vorgaben (siehe domain/antwort-anweisungen.ts).
+  // Im Sprachmodus nach einem "Stopp" zusaetzlich, bis wohin Himbi gesprochen hatte (Kontext bleibt).
+  // nachrichten ist oben schon durch schnappschuesseKuerzen gelaufen; bis 28.09.2026 stand
+  // hier ein zweiter Aufruf, der nur eine weitere Kopie des Verlaufs anlegte (Fund 49).
+  // Unvollstaendige Werkzeugaufrufe (Stopp mitten im Aufruf, Abbruch) wuerden sonst jede weitere
+  // Anfrage des Verlaufs scheitern lassen. Scheitert die Umwandlung an einer manipulierten Eingabe,
+  // ist das eine 400, keine 500 (Gegenpruefung vom 29.09.2026).
+  let modellNachrichten: Awaited<ReturnType<typeof convertToModelMessages>>;
+  try {
+    modellNachrichten = await convertToModelMessages(
+      mitSprachErinnerung(
+        mitSeitenkarte(mitUnterbrechungsHinweis(nachrichten, modus === "sprache" ? (body.unterbrochen as string | undefined) : null), markenAn ? seitenkarte : null),
+        antwortSprache,
+      ),
+      { tools: werkzeuge, ignoreIncompleteToolCalls: true },
+    );
+  } catch {
+    return new Response("ungueltige eingabe", { status: 400 });
+  }
+
   const result = streamText({
     // Kette mit Ausweichanbieter (Guthaben, Ratenlimit, Ueberlastung): lib/ai/anbieter-kette.ts
     model: kette.modell,
@@ -517,21 +551,7 @@ export async function POST(req: Request) {
       { role: "system", content: festerTeil, providerOptions: { anthropic: { cacheControl: { type: "ephemeral" } } } },
       { role: "system", content: wechselnderTeil },
     ],
-    // Unvollstaendige Werkzeugaufrufe (Stopp mitten im Aufruf, Abbruch) wuerden
-    // sonst jede weitere Anfrage des Verlaufs scheitern lassen.
-    // An der letzten Frage haengt ein Hinweis in der Antwortsprache - nur in dieser Kopie fuers Modell,
-    // gespeichert und angezeigt wird die Frage unveraendert. Der Systemprompt ist deutsch, und die
-    // Sprachanweisung darin verlor gegen die vielen deutschen Vorgaben (siehe domain/antwort-anweisungen.ts).
-    // Im Sprachmodus nach einem "Stopp" zusaetzlich, bis wohin Himbi gesprochen hatte (Kontext bleibt).
-    // nachrichten ist oben schon durch schnappschuesseKuerzen gelaufen; bis 28.09.2026 stand
-    // hier ein zweiter Aufruf, der nur eine weitere Kopie des Verlaufs anlegte (Fund 49).
-    messages: await convertToModelMessages(
-      mitSprachErinnerung(
-        mitSeitenkarte(mitUnterbrechungsHinweis(nachrichten, modus === "sprache" ? (body.unterbrochen as string | undefined) : null), markenAn ? seitenkarte : null),
-        antwortSprache,
-      ),
-      { tools: werkzeuge, ignoreIncompleteToolCalls: true },
-    ),
+    messages: modellNachrichten,
     tools: werkzeuge,
     stopWhen: stepCountIs(ausserhalb ? 1 : MAX_SCHRITTE[modus]),
     // Eine Ablehnung braucht zwei Saetze, keine Seite.

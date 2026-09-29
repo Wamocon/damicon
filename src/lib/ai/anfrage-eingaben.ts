@@ -26,9 +26,12 @@ export const MAX_TEILE_JE_NACHRICHT = 400;
 // Teile mit Typ, Text als Zeichenkette). Alles Uebrige (Werkzeugteile samt
 // Ein- und Ausgabe, Metadaten) reicht das Schema unveraendert durch; es wird
 // danach nur gekuerzt oder vom SDK in Modellnachrichten umgewandelt.
+// Dateiteile schickt die Anwendung nie; ein "file" ohne url warf in convertToModelMessages
+// "Invalid URL", also eine 500 (Gegenpruefung vom 29.09.2026).
 const teilSchema = z
   .looseObject({ type: z.string().min(1).max(100), text: z.unknown().optional() })
-  .refine((teil) => teil.type !== "text" || typeof teil.text === "string", { message: "text ohne Zeichenkette" });
+  .refine((teil) => teil.type !== "text" || typeof teil.text === "string", { message: "text ohne Zeichenkette" })
+  .refine((teil) => teil.type !== "file", { message: "Dateiteil" });
 const nachrichtSchema = z.looseObject({
   id: z.string().max(200),
   role: z.enum(["user", "assistant", "system"]),
