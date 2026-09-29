@@ -26,13 +26,9 @@ export function zaehleSchrift(text: string): { kyrillisch: number; lateinisch: n
   };
 }
 
-/** Hat der kyrillische Text kasachische Sonderbuchstaben (mehr als 1 %)? Die
- *  grosszuegige Regel fuer kurze Eingaben ("Иә", "Жоқ") und Dokumente - fuer
- *  die Stimme gilt kasachischRobust(). */
-function kasachischOderRussisch(text: string, kyrillisch: number): "kk" | "ru" {
-  const kasachisch = (text.match(KASACHISCH) ?? []).length;
-  return kyrillisch > 0 && kasachisch / kyrillisch > 0.01 ? "kk" : "ru";
-}
+/** So viel Text wird hoechstens angesehen - fuer die Sprache reicht der Anfang,
+ *  und ein langes Dokument kostet sonst bei jedem Aufruf die volle Laenge. */
+const PROBE_ZEICHEN = 4000;
 
 /** So viele Woerter muessen kasachische Sonderbuchstaben haben ... */
 export const KASACHISCH_MINDEST_WOERTER = 2;
@@ -46,32 +42,53 @@ function kasachischeMerkmale(text: string): { buchstaben: number; woerter: numbe
   };
 }
 
-/**
- * Ist der kyrillische Text WIRKLICH kasachisch? Seit 28.09.2026 fuer alles, was
- * eine Stimme waehlt. Die 1-%-Regel stammt aus dem Chunker und war fuer ganze
- * Dokumente gedacht; in einem Satz unter 100 Buchstaben reichte damit ein
- * einziges "Қ" - "Поставка прибыла в Қостанай вчера вечером." las die
- * kasachische Stimme. Ein echter kasachischer Satz hat Sonderbuchstaben in
- * mehreren Woertern und meist 5 bis 10 % davon, ein Ortsname nicht.
- */
-function kasachischRobust(text: string, kyrillisch: number): boolean {
-  if (kyrillisch <= 0) return false;
+/** Was die Sonderbuchstaben ueber einen kyrillischen Text sagen: "kasachisch"
+ *  (robuster Nachweis), "russisch" (kein einziger) oder "offen" (einige, aber in
+ *  einem Wort oder zu wenige - ein Ortsname wie "Қостанай", oder eine sehr kurze
+ *  Antwort wie "Иә"). */
+export type KasachischBefund = "kasachisch" | "russisch" | "offen";
+
+function befundAus(text: string, kyrillisch: number): KasachischBefund {
   const { buchstaben, woerter } = kasachischeMerkmale(text);
-  return woerter >= KASACHISCH_MINDEST_WOERTER && buchstaben / kyrillisch >= KASACHISCH_MINDEST_ANTEIL;
+  if (kyrillisch <= 0 || buchstaben === 0) return "russisch";
+  return woerter >= KASACHISCH_MINDEST_WOERTER && buchstaben / kyrillisch >= KASACHISCH_MINDEST_ANTEIL ? "kasachisch" : "offen";
+}
+
+/**
+ * DIE Kasachisch-Regel - seit 29.09.2026 die einzige (Cleanup-Funde 40/41). Kasachisch
+ * und Russisch teilen die Schrift; unterscheiden koennen nur die Sonderbuchstaben
+ * (ә, і, ң, ғ, ү, ұ, қ, ө, һ). Ein echter kasachischer Satz hat sie in mehreren
+ * Woertern und meist zu 5 bis 10 %, ein Ortsname in einem russischen Satz nicht.
+ *
+ * Bis dahin gab es daneben eine 1-%-Regel aus dem Chunker (fuer ganze Dokumente
+ * gedacht): in einem Satz unter 100 Buchstaben reichte damit ein einziges "Қ". Die
+ * Stimme hielt sich seit dem 28.09.2026 an diese Regel hier, die Antwortsprache
+ * nicht - "Поставка прибыла в Қостанай вчера вечером." bekam eine kasachische
+ * Antwort, auch mitten in einem russischen Gespraech.
+ *
+ * "offen" deutet jeder Aufrufer selbst, und zwar ausdruecklich: fuer die Stimme und
+ * die Erkenner ist es Russisch (ein Ortsname macht keinen Text kasachisch), fuer
+ * die Antwortsprache entscheidet dann das Gespraech (domain/antwortsprache.ts), und
+ * eine Antwort unter der Entscheidungsschwelle ("Иә", "Жоқ") ist damit kasachisch.
+ */
+export function kasachischNachweis(text: string): KasachischBefund {
+  const probe = (text ?? "").slice(0, PROBE_ZEICHEN);
+  return befundAus(probe, zaehleSchrift(probe).kyrillisch);
 }
 
 /** Grobe Spracherkennung fuer Dokumente ohne Frontmatter (Audit-Recherche, Notizen):
- *  kyrillisch oder lateinisch, bei Kyrillisch Kasachisch an den Sonderbuchstaben.
+ *  kyrillisch oder lateinisch, bei Kyrillisch Kasachisch nur mit robustem Nachweis
+ *  (kasachischNachweis).
  *
  *  @param mindestBuchstaben Ab wie vielen Buchstaben ueberhaupt geraten wird.
  *    Fuer Dokumente sind 40 richtig. Eine Chatfrage ist oft kuerzer ("Wie geht
  *    es?" hat 11), und dort ist ein begruendeter Tipp besser als gar keiner:
  *    der Aufrufer entscheidet. */
 export function erkenneSprache(text: string, mindestBuchstaben = 40): ErkannteSprache | null {
-  const probe = text.slice(0, 4000);
+  const probe = text.slice(0, PROBE_ZEICHEN);
   const { kyrillisch, lateinisch } = zaehleSchrift(probe);
   if (kyrillisch + lateinisch < mindestBuchstaben) return null;
-  if (kyrillisch > lateinisch) return kasachischOderRussisch(probe, kyrillisch);
+  if (kyrillisch > lateinisch) return befundAus(probe, kyrillisch) === "kasachisch" ? "kk" : "ru";
   // Ohne Anhaltspunkt bleibt es beim bisherigen Verhalten: lateinischer Text
   // ohne Hinweise gilt als Englisch. Wer "eindeutig oder gar nicht" braucht,
   // nimmt erkenneSpracheEindeutig().
@@ -85,10 +102,10 @@ export function erkenneSprache(text: string, mindestBuchstaben = 40): ErkannteSp
  *  deutscher Satz wie "Lohnabrechnung fristgerecht abgeben" darf dort nie als
  *  Englisch gelten, ein russischer Text mit "Қостанай" nie als Kasachisch. */
 export function erkenneSpracheEindeutig(text: string, mindestBuchstaben = 40): ErkannteSprache | null {
-  const probe = text.slice(0, 4000);
+  const probe = text.slice(0, PROBE_ZEICHEN);
   const { kyrillisch, lateinisch } = zaehleSchrift(probe);
   if (kyrillisch + lateinisch < mindestBuchstaben) return null;
-  if (kyrillisch > lateinisch) return kasachischRobust(probe, kyrillisch) ? "kk" : "ru";
+  if (kyrillisch > lateinisch) return befundAus(probe, kyrillisch) === "kasachisch" ? "kk" : "ru";
   return lateinischeSpracheEindeutig(probe);
 }
 
@@ -158,14 +175,19 @@ function mitAbstand(sieger: number, verlierer: number): boolean {
   return sieger >= 2 && sieger - verlierer >= 2 && sieger >= 2 * verlierer;
 }
 
+/** Die Entscheidung aus schon gezaehlten Treffern - lateinischeSpracheEindeutig und
+ *  klareAbweichung (die die Zahlen zusaetzlich braucht) zaehlen nur einmal. */
+function eindeutigAusTreffern({ deutsch, englisch }: { deutsch: number; englisch: number }): "de" | "en" | null {
+  if (mitAbstand(deutsch, englisch)) return "de";
+  if (mitAbstand(englisch, deutsch)) return "en";
+  return null;
+}
+
 /** Deutsch oder Englisch nur mit klarem Abstand (seit 28.09.2026) - sonst null.
  *  "Brigade Nord zuerst" (ein Treffer) entscheidet nichts, "Die Lieferung geht
  *  heute an Frische GmbH" (drei deutsche, kein englischer) schon. */
 export function lateinischeSpracheEindeutig(text: string): "de" | "en" | null {
-  const { deutsch, englisch } = lateinischeTreffer(text);
-  if (mitAbstand(deutsch, englisch)) return "de";
-  if (mitAbstand(englisch, deutsch)) return "en";
-  return null;
+  return eindeutigAusTreffern(lateinischeTreffer(text));
 }
 
 // --------------------------------------------------------- Sprache je Satz
@@ -181,7 +203,7 @@ export function lateinischeSpracheEindeutig(text: string): "de" | "en" | null {
 //     mit eindeutigem Ergebnis ("Please confirm the delivery ..." in einer
 //     deutschen Antwort, die auf Wunsch eine englische Mail enthaelt),
 //   - innerhalb der kyrillischen ru -> kk nur mit robustem Nachweis
-//     (kasachischRobust: ein Ortsname wie "Қостанай" reicht nicht), kk -> ru
+//     (kasachischNachweis: ein Ortsname wie "Қостанай" reicht nicht), kk -> ru
 //     nur ab 60 Buchstaben ganz ohne kasachische Sonderbuchstaben,
 //   - Zahlen, Eigennamen und gemischte Saetze ("Polka: 1100 kg, всего 1600 кг")
 //     behalten die Sprache, die gerade spricht.
@@ -243,20 +265,21 @@ export function klareAbweichung(
   erwartet: string,
   { mindestBuchstaben = SATZ_MINDEST_BUCHSTABEN, ganzerText = false }: { mindestBuchstaben?: number; ganzerText?: boolean } = {},
 ): ErkannteSprache | null {
-  const probe = (text ?? "").slice(0, 4000);
+  const probe = (text ?? "").slice(0, PROBE_ZEICHEN);
   const schrift = ueberwiegendeSchrift(probe, mindestBuchstaben);
   if (!schrift) return null;
   const { kyrillisch, lateinisch } = zaehleSchrift(probe);
   if (schrift === "kyrillisch") {
-    const robust = kasachischRobust(probe, kyrillisch);
-    if (erwartet === "ru") return robust ? "kk" : null;
-    if (erwartet === "kk") {
-      return kyrillisch >= WECHSEL_KK_RU_BUCHSTABEN && kasachischeMerkmale(probe).buchstaben === 0 ? "ru" : null;
-    }
-    return robust ? "kk" : "ru";
+    const befund = befundAus(probe, kyrillisch);
+    if (erwartet === "ru") return befund === "kasachisch" ? "kk" : null;
+    // Zurueck nach Russisch braucht mehr als hin (gewollte Hysterese, siehe oben): ab 60
+    // Buchstaben ganz ohne Sonderbuchstaben.
+    if (erwartet === "kk") return kyrillisch >= WECHSEL_KK_RU_BUCHSTABEN && befund === "russisch" ? "ru" : null;
+    return befund === "kasachisch" ? "kk" : "ru";
   }
-  const { deutsch, englisch } = lateinischeTreffer(probe);
-  const eindeutig = mitAbstand(deutsch, englisch) ? "de" : mitAbstand(englisch, deutsch) ? "en" : null;
+  const treffer = lateinischeTreffer(probe);
+  const { deutsch, englisch } = treffer;
+  const eindeutig = eindeutigAusTreffern(treffer);
   if (!eindeutig || eindeutig === erwartet) return null;
   if (!istLateinischeSprache(erwartet)) return eindeutig;
   if (lateinisch < WECHSEL_LATEINISCH_BUCHSTABEN) return null;
@@ -290,11 +313,10 @@ function entscheidetSelbst(text: string, zugSprache: string, sprache: string): b
   const schrift = ueberwiegendeSchrift(text);
   if (!schrift || schrift !== schriftVon(zugSprache)) return false;
   if (schrift === "lateinisch") return lateinischeSpracheEindeutig(text) === zugSprache;
-  const { kyrillisch } = zaehleSchrift(text);
   // Kyrillisch: ein Satz mit kasachischen Sonderbuchstaben bestaetigt kk, einer
   // ganz ohne bestaetigt ru.
-  const merkmale = kasachischeMerkmale(text).buchstaben;
-  return zugSprache === "kk" ? merkmale > 0 && kyrillisch > 0 : merkmale === 0;
+  const befund = befundAus(text, zaehleSchrift(text).kyrillisch);
+  return zugSprache === "kk" ? befund !== "russisch" : befund === "russisch";
 }
 
 /** Die Schrift eines kurzen Satzes, wenn er nur eine hat ("OK.", "Да.") - sonst null. */

@@ -213,9 +213,8 @@ export interface SammelStand {
   vorlaeufig: string;
   /** Beides zusammen: das, was im Eingabefeld stehen soll. */
   anzeige: string;
-  /** Das Modell hat ein Ende der Aeusserung erkannt. */
-  endpunkt: boolean;
-  /** Wie viele Endpunkte bisher kamen - im Gespraech laeuft eine Sitzung ueber viele Aeusserungen. */
+  /** Wie viele Endpunkte ("<end>", Ende einer Aeusserung) bisher kamen - im Gespraech
+   *  laeuft eine Sitzung ueber viele Aeusserungen, deshalb eine Zahl und kein Merker. */
   endpunkte: number;
   /** Die Sitzung ist abgeschlossen. */
   fertig: boolean;
@@ -255,37 +254,48 @@ interface Wort {
   startMs: number | null;
   endeMs: number | null;
   sprache: string | null;
+  /** Beginnt hier ein neues Wort? Ja bei fuehrendem Leerzeichen, beim ersten Token der
+   *  Sitzung und beim ersten nach einem Endpunkt - sonst ist es ein Teilstueck ("ferungen"). */
+  anfang: boolean;
 }
 
 const zahl = (x: unknown): number | null => (typeof x === "number" && Number.isFinite(x) ? x : null);
 
 const STEUERZEICHEN = new Set(["<end>", "<fin>"]);
 
-/** Soniox trennt Woerter durch fuehrende Leerzeichen IM Token. Der erste Token
- *  der Aufnahme kann trotzdem mit einem Leerzeichen beginnen - das faellt hier
- *  weg, sonst stuende im Feld " Hallo". */
-function saeubere(text: string): string {
-  return text.replace(/\s+/g, " ").trim();
-}
+// Soniox trennt Woerter durch fuehrende Leerzeichen IM Token. Der erste Token der
+// Aufnahme kann trotzdem mit einem Leerzeichen beginnen - das faellt beim Trimmen weg,
+// sonst stuende im Feld " Hallo".
+//
+// Seit 29.09.2026 Stueck fuer Stueck (Cleanup-Fund 17): der endgueltige Text wird beim
+// Eintreffen zusammengezogen (jeder Leerraum ein Leerzeichen, NICHT getrimmt) und nur
+// noch angehaengt. Vorher lief die Saeuberung bei jedem Paket ueber den ganzen Text der
+// Sitzung - im Gespraech bis zu 30 Minuten, gemessen 2,2 ms je Paket bei 30.000 Token.
+const kompakt = (text: string): string => text.replace(/\s+/g, " ");
+const saeubere = (text: string): string => kompakt(text).trim();
+/** kompakt(a + b) aus kompakt(a) und kompakt(b): ein Leerraum ueber die Naht bleibt EIN Leerzeichen. */
+const haengeAn = (a: string, b: string): string => (a.endsWith(" ") && b.startsWith(" ") ? a + b.slice(1) : a + b);
 
 export function erzeugeTokenSammler(): TokenSammler {
+  // Schon zusammengezogen (kompakt), nur noch getrimmt wird beim Ablesen.
   let endgueltig = "";
   let vorlaeufig = "";
   let endpunkte = 0;
   let fertig = false;
   let fehler: string | null = null;
   let gehoert = false;
+  // Das naechste Token beginnt ein neues Wort (Anfang der Sitzung, nach einem Endpunkt).
+  let neueAeusserung = true;
   const sprachen: string[] = [];
   // Dieselben Token noch einmal mit ihrer Lage im Audio - fuers Gespraech (textAb).
   const endgueltigeWoerter: Wort[] = [];
   let vorlaeufigeWoerter: Wort[] = [];
 
   const stand = (): SammelStand => {
-    const e = saeubere(endgueltig);
-    const v = saeubere(vorlaeufig);
+    const v = kompakt(vorlaeufig);
     // Das Leerzeichen zwischen beiden steckt schon im vorlaeufigen Token,
-    // wenn es eines braucht - deshalb roh verbunden und erst dann gesaeubert.
-    return { endgueltig: e, vorlaeufig: v, anzeige: saeubere(endgueltig + vorlaeufig), endpunkt: endpunkte > 0, endpunkte, fertig, fehler };
+    // wenn es eines braucht - deshalb roh verbunden und erst dann getrimmt.
+    return { endgueltig: endgueltig.trim(), vorlaeufig: v.trim(), anzeige: haengeAn(endgueltig, v).trim(), endpunkte, fertig, fehler };
   };
 
   return {
@@ -293,15 +303,38 @@ export function erzeugeTokenSammler(): TokenSammler {
     sprachen: () => [...sprachen],
     hatGehoert: () => gehoert,
     textAb(abMs) {
-      // Ein Token ohne Zeitangabe zaehlt mit - lieber ein Wort zu viel als eines verloren.
-      const ab = (w: Wort) => w.startMs === null || w.startMs >= abMs;
-      const e = endgueltigeWoerter.filter(ab);
+      // Ein Wort gehoert ganz auf die Seite, auf der es beginnt (Cleanup-Fund 22,
+      // 29.09.2026): Soniox liefert Teilstuecke ("Lie", "ferungen"), und die Grenze
+      // aus dem Einsatz der Stimme kann zwischen zwei davon liegen. Vorher blieb
+      // "ferungen" als eigenes Wort stehen und ging als Frageanfang ans Modell. Ein
+      // Teilstueck faellt deshalb mit weg, wenn sein Vorgaenger vor der Grenze lag.
+      // Endgueltige und vorlaeufige Token bilden dabei eine Folge - das erste
+      // vorlaeufige setzt das letzte endgueltige fort.
+      //
+      // Gesucht wird vom Ende her bis zum letzten Token, das vor der Grenze beginnt
+      // (Cleanup-Fund 17): Soniox liefert die Token in der Reihenfolge des Audios, und
+      // gebraucht wird nur der Teil dahinter, nicht die ganze Sitzung. Ein Token ohne
+      // Zeitangabe hinter dieser Stelle zaehlt mit - lieber ein Wort zu viel als eines
+      // verloren.
+      let erstes = endgueltigeWoerter.length;
+      while (erstes > 0) {
+        const w = endgueltigeWoerter[erstes - 1]!;
+        if (w.startMs !== null && w.startMs < abMs) break;
+        erstes -= 1;
+      }
+      let vorgaengerWeg = erstes > 0;
+      const ab = (w: Wort) => {
+        const drin = (w.startMs === null || w.startMs >= abMs) && (w.anfang || !vorgaengerWeg);
+        vorgaengerWeg = !drin;
+        return drin;
+      };
+      const e = endgueltigeWoerter.slice(erstes).filter(ab);
       const v = vorlaeufigeWoerter.filter(ab);
       const roh = (liste: Wort[]) => liste.map((w) => w.text).join("");
       const letztes = [...e, ...v].reverse().find((w) => w.endeMs !== null && w.text.trim());
       const woerter: TextAb["woerter"] = [];
       for (const w of [...e, ...v]) {
-        const neu = woerter.length === 0 || /^\s/.test(w.text);
+        const neu = woerter.length === 0 || w.anfang;
         const text = w.text.trim();
         if (!text) continue;
         if (neu) woerter.push({ text, startMs: w.startMs, endeMs: w.endeMs });
@@ -329,10 +362,15 @@ export function erzeugeTokenSammler(): TokenSammler {
       vorlaeufig = "";
       vorlaeufigeWoerter = [];
       const tokens = Array.isArray(paket.tokens) ? (paket.tokens as SonioxToken[]) : [];
+      let anfang = neueAeusserung;
       for (const t of tokens) {
         const text = typeof t?.text === "string" ? t.text : "";
         if (STEUERZEICHEN.has(text)) {
-          if (text === "<end>") endpunkte += 1;
+          if (text === "<end>") {
+            endpunkte += 1;
+            neueAeusserung = true;
+            anfang = true;
+          }
           continue;
         }
         if (!text) continue;
@@ -342,10 +380,13 @@ export function erzeugeTokenSammler(): TokenSammler {
           startMs: zahl(t.start_ms),
           endeMs: zahl(t.end_ms),
           sprache: typeof t.language === "string" && t.language ? t.language : null,
+          anfang: anfang || /^\s/.test(text),
         };
+        anfang = false;
         if (t.is_final === true) {
-          endgueltig += text;
+          endgueltig = haengeAn(endgueltig, kompakt(text));
           endgueltigeWoerter.push(wort);
+          neueAeusserung = false;
           if (wort.sprache) sprachen.push(wort.sprache);
         } else {
           vorlaeufig += text;

@@ -132,6 +132,7 @@ import { agentSeitenansichtAn, diktatLiveAn, schalterAn, sprachausgabeLiveAn } f
 import { ABSCHNITT_GUELTIG_MS, pruefeAbschnitt, signiereAbschnitt, sprachausgabeGeheimnis } from "../../src/lib/domain/sprachausgabe-signatur.ts";
 import { readFileSync } from "node:fs";
 import { register } from "node:module";
+import { beobachteZeitgeber, erzeugeAudioKontext, erzeugeFakeWS, pcm, warte, wortweise as wortweiseZerlegt } from "./hilfen/attrappen.mjs";
 
 // Seit 28.09.2026 holen domain/sprachausgabe.ts, domain/antwortsprache.ts und
 // wissen/chunker.ts die Spracherkennung ueber den Alias (@/lib/text/sprache-erkennen,
@@ -141,7 +142,7 @@ register(new URL("./hilfen/alias-lader.mjs", import.meta.url), { data: { src: ne
 const {
   MAX_SPRACHAUSGABE_ZEICHEN,
   sprachausgabeSprachen,
-  stimmeFuerOberflaeche,
+  hatStimme,
   sprachausgabePfad,
   STIMMEN,
   textFuerSprachausgabe,
@@ -437,22 +438,23 @@ for (const [name, kaputteAntwort] of [
 
 // --- 5. Sprachausgabe (domain/sprachausgabe.ts, ai/sprachausgabe-client.ts) --
 {
-  // Seit dem 21.09.2026 raet nichts mehr die Sprache: die Systemsprache
-  // bestimmt Stimme, Antwort und Beiwerk. Der Grund steht in
-  // api/ki-assistent/route.ts - bei einer DIKTIERTEN Frage kam die Erkennung
-  // auf den Text der Spracherkennung, und der stand bei falschem Sprachhinweis
-  // selbst schon in der falschen Sprache ("Sahlkentiz wird tollen, kurzat."
-  // fuer einen kasachischen Satz auf deutscher Oberflaeche). Eine Einstellung,
-  // die die Person selbst setzt, ist verlaesslicher als jede Erkennung.
+  // Welche Sprachen eine Stimme haben (hatStimme, seit 29.09.2026 ohne Umweg ueber die
+  // Umgebung - der Knopf im Browser kennt sie nicht). Welche Stimme spricht, folgt seit
+  // 28.09.2026 der Sprache des Textes (vorlesePlan, supabase/tests/stimme-sprache.mjs).
   for (const sprache of sprachausgabeSprachen) {
-    pruefe(
-      `Systemsprache: ${sprache} hat eine Stimme, die Oberflaeche bestimmt sie`,
-      stimmeFuerOberflaeche(sprache) !== null,
-      sprache,
-    );
+    pruefe(`Stimme: ${sprache} hat eine`, hatStimme(sprache), sprache);
   }
-  pruefe("Systemsprache: eine unbekannte Oberflaechensprache hat keine Stimme", stimmeFuerOberflaeche("fr") === null);
-  pruefe("Systemsprache: Tuerkisch ist entfernt und hat keine Stimme mehr", stimmeFuerOberflaeche("tr") === null);
+  pruefe("Stimme: eine unbekannte Sprache hat keine", !hatStimme("fr") && !hatStimme(""));
+  pruefe("Stimme: Tuerkisch ist entfernt und hat keine mehr", !hatStimme("tr"));
+  {
+    // Dasselbe Ergebnis mit und ohne Anbieter-Schalter: der Browser sieht KI_SPRACHAUSGABE_ANBIETER nie.
+    const bisher = process.env.KI_SPRACHAUSGABE_ANBIETER;
+    process.env.KI_SPRACHAUSGABE_ANBIETER = "soniox";
+    const mitSoniox = sprachausgabeSprachen.map((s) => hatStimme(s)).join();
+    if (bisher === undefined) delete process.env.KI_SPRACHAUSGABE_ANBIETER;
+    else process.env.KI_SPRACHAUSGABE_ANBIETER = bisher;
+    pruefe("Stimme: hatStimme haengt nicht von der Server-Umgebung ab", mitSoniox === sprachausgabeSprachen.map((s) => hatStimme(s)).join());
+  }
 
   const markdown = "## Stand\n\n- **Polka:** 1100 kg frei\n- `Kweli`: 500 kg\n\n| Sorte | kg |\n|---|---|\n| Polana | 1150 |\n\n[Zum Katalog](/dashboard/markt/sortenkatalog)";
   const vorlesbar = textFuerSprachausgabe(markdown);
@@ -520,6 +522,49 @@ for (const [name, kaputteAntwort] of [
     pfadDe.endsWith(`/sokrates-de-female-de-v${VORLESETEXT_VERSION}.mp3`) && !pfadDe.includes("piper"),
     pfadDe,
   );
+
+  // Cleanup-Fund 35 (29.09.2026): die Aufbereitung aenderte sich am 25.09.2026 dreimal,
+  // VORLESETEXT_VERSION blieb 3 - der Zwischenspeicher lieferte weiter Audio mit "Neun Frist"
+  // und "Charge ()". Jetzt haengt der Stand an einem Abdruck fester Proben: aendert sich die
+  // Ausgabe, schlaegt das hier fehl, bis die Version hochgezaehlt UND ihr Abdruck eingetragen ist.
+  {
+    const { createHash } = await import("node:crypto");
+    const { zumSprechen } = await import("../../src/lib/domain/sprachausgabe.ts");
+    const PROBEN = [
+      ["## Heute wichtig:\n\n⏰ Frist: Lohnabrechnung bis 25.09.2026.\n- Charge HB-2026-0925-A () zeigt Abweichungen\n- Pruefung der Kuehlkette: 1.100 kg, ca. 450.000 ₸ → Lager\n\n| Sorte | Menge |\n|---|---|\n| Polka | 1100 kg |\n| Kweli | 500 kg |\n\nQuelle [S1][S3]. Weiter mit [[a3]] der Tabelle.", "de"],
+      ["**Сегодня:** поставка 1 600 кг в Қостанай ✅, отчёт по ЕСУТД до пятницы.\n\n1. Проверить холодовую цепь\n2. Подписать ЭСФ", "ru"],
+      ["Please confirm the delivery of 1,100 kg (Batch AB-12-34-56-78) → warehouse 🚚 today.", "en"],
+      ["Бүгін 3 жеткізілім келді: Polka 1100 кг, Kweli 500 кг. ҚҚС есебі дайын.", "kk"],
+    ];
+    // Genau die Kette, die die Stimme bekommt (textFuerSprachausgabe, dann zumSprechen).
+    const ganz = PROBEN.map(([md, sp]) => zumSprechen(textFuerSprachausgabe(md), sp));
+    const abdruck = createHash("sha256").update(JSON.stringify(ganz)).digest("hex").slice(0, 16);
+    // Je Version der Abdruck, mit dem sie gilt. 3: Stand von Commit 539d1d0 (24.09.2026),
+    // nachgerechnet mit der damaligen domain/sprachausgabe.ts.
+    const ABDRUECKE = { 3: "3d0542062aaebc7a", 4: "0ffcdfc0749ee68c" };
+    pruefe(
+      "Fund 35: die Aufbereitung passt zu VORLESETEXT_VERSION (sonst liefert der Zwischenspeicher altes Audio)",
+      ABDRUECKE[VORLESETEXT_VERSION] === abdruck,
+      ABDRUECKE[VORLESETEXT_VERSION] === abdruck
+        ? `Version ${VORLESETEXT_VERSION}, Abdruck ${abdruck}`
+        : `Abdruck ${abdruck} passt nicht zu Version ${VORLESETEXT_VERSION}: Aufbereitung geaendert? Dann VORLESETEXT_VERSION hochzaehlen und den Abdruck hier eintragen.`,
+    );
+  }
+
+  // Cleanup-Fund 83 (29.09.2026): Preview und Produktion teilen den Bucket ki-sprachausgabe
+  // (scripts/preview-umschreiben.mjs, GEMEINSAME_BUCKETS). Ohne das Schema im Pfad legte eine
+  // Preview-Umgebung Audio unter der ID einer Produktionsantwort ab, und die Produktion
+  // lieferte es aus (upsert: false - die erste Ablage gilt).
+  {
+    const oeffentlich = sprachausgabePfad(id, STIMMEN.de, undefined, "public");
+    const vorschau = sprachausgabePfad(id, STIMMEN.de, undefined, "public_preview");
+    pruefe("Fund 83: Preview legt unter einem eigenen Pfad ab, nie unter dem der Produktion", vorschau !== oeffentlich && !vorschau.startsWith(`${id}/`), vorschau);
+    pruefe("Fund 83: die Produktion behaelt ihren bisherigen Pfad (vorhandenes Audio bleibt gueltig)", oeffentlich === pfadDe && sprachausgabePfad(id, STIMMEN.de) === pfadDe, oeffentlich);
+    pruefe(
+      "Fund 83: auch Sprachbloecke tragen das Schema",
+      sprachausgabePfad(id, STIMMEN.ru, { von: 1, bis: 2 }, "public_preview") !== sprachausgabePfad(id, STIMMEN.ru, { von: 1, bis: 2 }, "public"),
+    );
+  }
 }
 
 {
@@ -1113,6 +1158,24 @@ for (const [name, kaputteAntwort] of [
         });
       const e = await erkenneMitRueckfall(haengenderSoniox, langsam(200, "von whisper"), still);
       pruefe("Wettlauf: gewinnt Whisper, wird Soniox abgebrochen", e.ok && sonioxAbgebrochen, `abgebrochen=${sonioxAbgebrochen}`);
+    }
+
+    // 7. Cleanup-Fund 24 (29.09.2026): Soniox meldet "leer" erst NACH dem Start von Whisper.
+    //    Das Ergebnis steht trotzdem (nichts gehoert), und der laufende Whisper wird
+    //    abgebrochen - sonst gewaenne spaeter ein auf Stille erfundener Satz.
+    {
+      let whisperAbgebrochen = false;
+      const leerNachHedge = () => new Promise((fertig) => setTimeout(() => fertig({ ok: false, grund: GRUND_LEER }), HEDGE_AB_MS + 300));
+      const whisperErfindet = (abbruch) =>
+        new Promise((fertig) => {
+          const t = setTimeout(() => fertig({ ok: true, text: "Untertitel der Amara.org-Gemeinschaft" }), 30_000);
+          abbruch.addEventListener("abort", () => { clearTimeout(t); whisperAbgebrochen = true; fertig({ ok: false, grund: "abgebrochen" }); }, { once: true });
+        });
+      const begonnen = Date.now();
+      const e = await erkenneMitRueckfall(leerNachHedge, whisperErfindet, still);
+      const gedauert = Date.now() - begonnen;
+      pruefe("Wettlauf: 'leer' von Soniox nach dem Hedge-Start steht - kein erfundener Whisper-Text", !e.ok && e.grund === GRUND_LEER && gedauert < HEDGE_AB_MS + 3_000, `${JSON.stringify(e)}, ${gedauert} ms`);
+      pruefe("Wettlauf: ... und der laufende Whisper wird abgebrochen", whisperAbgebrochen);
     }
 
     void audio;
@@ -1853,7 +1916,7 @@ for (const [name, kaputteAntwort] of [
     st = s.nimm({ tokens: [{ text: "Hallo", is_final: true, language: "de" }, { text: " Wel", is_final: false }] });
     pruefe("Token: Endgueltiges bleibt, Vorlaeufiges wird ersetzt", st.endgueltig === "Hallo" && st.anzeige === "Hallo Wel", st.anzeige);
     st = s.nimm({ tokens: [{ text: " Welt", is_final: true, language: "de" }, { text: "<end>", is_final: true }] });
-    pruefe("Token: <end> meldet das Ende der Aeusserung, ohne im Text zu landen", st.endpunkt && st.endgueltig === "Hallo Welt" && !st.anzeige.includes("<"), st.anzeige);
+    pruefe("Token: <end> meldet das Ende der Aeusserung, ohne im Text zu landen", st.endpunkte === 1 && st.endgueltig === "Hallo Welt" && !st.anzeige.includes("<"), st.anzeige);
     st = s.nimm({ tokens: [{ text: "<fin>", is_final: true }], finished: true });
     pruefe("Token: finished schliesst ab", st.fertig && st.endgueltig === "Hallo Welt");
     pruefe("Token: gehoerte Sprachen je endgueltigem Token", JSON.stringify(s.sprachen()) === '["de","de"]', JSON.stringify(s.sprachen()));
@@ -2090,13 +2153,7 @@ for (const [name, kaputteAntwort] of [
   pruefe("Sprechfassung: Mehrdeutiges bleibt ('3.5', '20 000')", sprechfassung("3.5 und 20 000", "de") === "3.5 und 20 000");
 
   // (l) Zerleger Wort fuer Wort - so wie der Stream wirklich kommt.
-  const wortweise = (text) => {
-    const z = erzeugeSatzZerleger();
-    const raus = [];
-    for (const w of text.match(/\S+\s*/g)) raus.push(...z.fuettere(w));
-    raus.push(...z.abschliessen());
-    return raus.map((a) => a.text);
-  };
+  const wortweise = (text) => wortweiseZerlegt(erzeugeSatzZerleger, text);
   const de = wortweise(
     "**Fazit: Die Schwelle ist erreicht.**\n\nIhr Umsatz liegt über dem Grenzwert. Die Frist endet am 15. März 2026. Der Umsatz lag bei 1,2 Mio. Tenge. Bitte melden Sie sich bis dahin beim Finanzamt. Danach wird es teuer, z. B. durch Strafen. Wir prüfen das gern mit Ihnen gemeinsam in der nächsten Woche.",
   );
@@ -2561,7 +2618,6 @@ for (const [name, kaputteAntwort] of [
     }
     pruefe("Sprecher: stand() schaetzt den klingenden Satz aus der gespielten Tondauer, kalibriert an fertigen Stroemen", stromQuelle.includes("stand()") && stromQuelle.includes("fertigSekunden += puffer.duration") && stromQuelle.includes("gemesseneRate") && stromQuelle.includes("satzBeiPosition("));
     pruefe("Sprecher: der angezeigte Satz geht mit (Mitlesen braucht die Woerter der Seite, nicht die Sprechfassung)", stromQuelle.includes("anzeige?: string") && liveQuelle.includes("sprich(zumSprechen(a.text, sprache), sprache, a.text, a.gebunden ?? null)"));
-    pruefe("Sprecher: stopp() vergisst Verlauf und Zeiten", /stopp\(\) \{[\s\S]{0,900}startZeiten\.clear\(\);[\s\S]{0,120}verlauf = \[\];/.test(stromQuelle));
     pruefe("Mitlesen: der Chat meldet die Stimme an den Bus, der Sprachmodus zeigt das Ziel der Sprechmarke", bus.includes("registriereGerade") && chat.includes("registriereGerade(geradeSprechend)") && modus.includes("const jetzt = leseGerade();") && modus.includes("loeseSprechZiel(jetzt.ziel)") && modus.includes("zeigeSprechStelle(stelle)"));
     pruefe("Mitlesen: kein Wortvergleich mehr, ohne Marke nur eine woertlich genannte Ueberschrift, und nur solange keine Marke kam", !mitlesen.includes("bestesZiel") && mitlesen.includes("export function ueberschriftImSatz") && modus.includes("if (markeGesehen || !jetzt.satz) return;"));
     pruefe("Mitlesen: Ziele werden beim Eintreffen des Satzes gebunden, nicht erst beim Sprechen", lies3("components/ki/ki-chat-sprache.ts").includes("gebunden: bindeSprechZiel(roh.ziele)") && mitlesen.includes("if (g.el && g.el.isConnected) return g.el;"));
@@ -2670,7 +2726,6 @@ for (const [name, kaputteAntwort] of [
 
   // (d) Verdrahtung im Browser (Quelltext, die Bausteine laufen nur im Browser).
   const modus = readFileSync(new URL("../../src/components/ki/sprachmodus.tsx", import.meta.url), "utf8");
-  const live = readFileSync(new URL("../../src/components/ki/diktat-live.ts", import.meta.url), "utf8");
   const hoeren = readFileSync(new URL("../../src/lib/hoeren.ts", import.meta.url), "utf8");
   // Seit dem 28.09.2026 ein Recorder und eine Sitzung fuers ganze Gespraech (vorher je Aeusserung).
   pruefe("Aufnahme: ein MediaRecorder und eine Sitzung fuers ganze Gespraech (erstes Stueck = Dateikopf)", (modus.match(/new MediaRecorder\(/g) ?? []).length === 1 && modus.includes("recorder.start(AUFNAHME_STUECK_MS);") && modus.includes("ohrRef.current = { recorder, sitzung: diese, startPerf };"));
@@ -2680,11 +2735,106 @@ for (const [name, kaputteAntwort] of [
   pruefe("Himbi: der Schein bekommt den Pegel der eigenen Stimme (starteHoeren) und gibt ihn wieder frei", modus.includes("starteHoeren(strom);") && modus.includes("stoppeHoeren();"));
   pruefe("Echo: im Gespraech mit Echounterdrueckung, sonst wie beim Diktat", modus.includes("const GESPRAECH_AUFNAHME: MediaTrackConstraints = { ...AUFNAHME_VORGABEN, echoCancellation: true };") && modus.includes("getUserMedia({ audio: GESPRAECH_AUFNAHME })"));
   pruefe("Abbruch: der Sprachmodus hoert auf das Scheitern der Sitzung", modus.includes("beiScheitern: (grund) => {") && modus.includes("nachSitzungsAbbruch({"));
-  pruefe("Abbruch: diktat-live meldet ein Scheitern nur vor beende()/abbrechen()", live.includes("if (!beendet) beiScheitern?.(grund);") && /abbrechen\(\) \{\s*beendet = true;/.test(live));
   pruefe("Dazwischenreden: nur waehrend Himbi spricht, mit Mikrofon- und Ausgabepegel", /if \(phase !== "spricht"\) return;\s*const waechter = erzeugeUnterbrechungsWaechter\(\);/.test(modus) && modus.includes("waechter.melde(leseLautstaerke(), leseAusgabePegel(), performance.now())"));
   pruefe("Dazwischenreden: was ab dem Einsatz der Stimme gesagt wurde, gehoert zur naechsten Frage", modus.includes("grenzeMs.current = Math.max(grenzeMs.current, (beginn ?? audioJetzt()) - EINSATZ_VORLAUF_MS);") && modus.includes("const beginn = einsatz.melde(urteil, audioJetzt());") && modus.includes("if (sprachZuletzt.current && !sprichtJetzt && !grenzeSteht.current) echoBisMs.current = Math.max(echoBisMs.current, audioJetzt() + 50);") && /const schritt = \(\) => \{[\s\S]{0,400}if \(phaseRef\.current !== "spricht"\) return;[\s\S]{0,400}const urteil = waechter\.melde/.test(modus));
   pruefe("Lautstaerke: RMS auf der Skala des Diktats (pegelAusZeitbereich)", hoeren.includes("lautstaerke = pegelAusZeitbereich(zeitRoh);") && hoeren.includes("export function leseLautstaerke(): number"));
   pruefe("Komponente: keine abgeschaltete Hook-Pruefung mehr", !modus.includes("eslint-disable"));
+
+  // (d2) Die Live-Sitzung (components/ki/diktat-live.ts) im Durchlauf - Cleanup-Fund 16
+  //      (29.09.2026). Bis dahin sicherten sie nur Quelltext-Pins; ohne "zweck === gespraech"
+  //      in der Endpunktregel haette der Sprachmodus nur noch die erste Frage beantwortet, und
+  //      alle Pruefungen waeren gruen geblieben. Jetzt laeuft der echte Code gegen einen
+  //      nachgebauten WebSocket und eine nachgebaute Schluessel-Route. Jeder Fall bekommt eine
+  //      eigene Modul-Instanz (?fall=), weil "abgesagt" je Tab gilt.
+  {
+    const FakeWS = erzeugeFakeWS();
+    const alt = { ws: globalThis.WebSocket, fetch: globalThis.fetch };
+    let routeStatus = 200;
+    const anfragen = [];
+    globalThis.WebSocket = FakeWS;
+    globalThis.fetch = async (url, init) => {
+      if (String(url) !== "/api/ki-spracherkennung") throw new Error("unerwarteter fetch " + url);
+      anfragen.push(JSON.parse(init.body));
+      if (routeStatus !== 200) return new Response(JSON.stringify({ grund: "x" }), { status: routeStatus });
+      return Response.json({ schluessel: "tmp-stt", adresse: "wss://stt-rt.eu.soniox.com/transcribe-websocket", konfiguration: { model: "stt-rt-v5", audio_format: "auto" } });
+    };
+    const neueSitzung = async (fall, zweck) => {
+      const modul = await import(`../../src/components/ki/diktat-live.ts?fall=${fall}`);
+      const ereignisse = [];
+      const sitzung = modul.starteLiveSitzung({
+        sprache: "de",
+        zweck,
+        beiStand: () => {},
+        beiEndpunkt: (st) => ereignisse.push(`endpunkt:${st.endpunkte}`),
+        beiScheitern: (grund) => ereignisse.push(`scheitern:${grund}`),
+      });
+      await warte();
+      return { modul, sitzung, ereignisse, ws: FakeWS.alle.at(-1) };
+    };
+    const zweiAeusserungen = (ws) => {
+      ws.empfange({ tokens: [{ text: "Zeig", is_final: true, start_ms: 0, end_ms: 200 }, { text: " Aufgaben", is_final: true, start_ms: 200, end_ms: 600 }, { text: "<end>", is_final: true }] });
+      ws.empfange({ tokens: [{ text: " Und", is_final: true, start_ms: 3000, end_ms: 3200 }, { text: " Lieferungen", is_final: true, start_ms: 3200, end_ms: 3800 }, { text: "<end>", is_final: true }] });
+    };
+    try {
+      {
+        const { sitzung, ereignisse, ws } = await neueSitzung(1, "gespraech");
+        pruefe("Live-Sitzung: holt den Schluessel mit Sprache und Zweck und verbindet sich mit der Adresse der Route", anfragen.at(-1)?.zweck === "gespraech" && anfragen.at(-1)?.sprache === "de" && ws?.url === "wss://stt-rt.eu.soniox.com/transcribe-websocket" && ws.gesendet[0]?.api_key === "tmp-stt" && ws.gesendet[0]?.model === "stt-rt-v5", JSON.stringify(ws?.gesendet[0]));
+        zweiAeusserungen(ws);
+        pruefe("Live-Sitzung: im Gespraech meldet JEDER Endpunkt (sonst beantwortet der Sprachmodus nur die erste Frage)", ereignisse.join(",") === "endpunkt:1,endpunkt:2", ereignisse.join(","));
+        pruefe("Live-Sitzung: textAb trennt die Aeusserungen an der Grenze", sitzung.textAb(3000).anzeige === "Und Lieferungen" && sitzung.traegt());
+        sitzung.abbrechen();
+        pruefe("Live-Sitzung: abbrechen() schliesst, meldet aber KEIN Scheitern", ws.geschlossen === true && !sitzung.traegt() && !ereignisse.some((e) => e.startsWith("scheitern")), ereignisse.join(","));
+      }
+      {
+        const { sitzung, ereignisse, ws } = await neueSitzung(2, "diktat");
+        zweiAeusserungen(ws);
+        pruefe("Live-Sitzung: beim Diktat meldet nur der erste Endpunkt", ereignisse.join(",") === "endpunkt:1", ereignisse.join(","));
+        sitzung.abbrechen();
+      }
+      {
+        const { sitzung, ereignisse, ws } = await neueSitzung(3, "gespraech");
+        ws.empfange({ error_code: 413, error_message: "Audio is too long." });
+        pruefe("Live-Sitzung: ein Dienstfehler (413) meldet das Scheitern und traegt nicht mehr", ereignisse.join(",") === "scheitern:dienst-fehler" && !sitzung.traegt() && ws.geschlossen === true, ereignisse.join(","));
+        const ergebnis = await sitzung.beende();
+        pruefe("Live-Sitzung: beende() nach dem Scheitern liefert den Grund (Datei-Weg uebernimmt), ohne zweite Meldung", !ergebnis.ok && ergebnis.grund === "dienst-fehler" && ereignisse.length === 1, JSON.stringify(ergebnis));
+      }
+      {
+        // beende() VOR dem Aufbau: gepufferte Stuecke gehen in der Reihenfolge der Aufnahme,
+        // danach das Ende-Zeichen; das Ergebnis kommt aus dem letzten Paket.
+        const modul = await import("../../src/components/ki/diktat-live.ts?fall=4");
+        const ereignisse = [];
+        const sitzung = modul.starteLiveSitzung({ sprache: "de", beiStand: () => {}, beiEndpunkt: () => ereignisse.push("endpunkt"), beiScheitern: (g) => ereignisse.push(`scheitern:${g}`) });
+        sitzung.sende(new Blob([new Uint8Array([1])]));
+        sitzung.sende(new Blob([new Uint8Array([2, 2])]));
+        const ergebnisVersprechen = sitzung.beende();
+        sitzung.sende(new Blob([new Uint8Array([9])]));
+        await warte(30);
+        const ws = FakeWS.alle.at(-1);
+        const reihe = ws.gesendet.map((n) => (n instanceof ArrayBuffer ? `audio${n.byteLength}` : n === "" ? "ende" : n?.api_key ? "konfiguration" : "?"));
+        pruefe("Live-Sitzung: beende() vor dem Aufbau - Konfiguration, beide Stuecke in Reihenfolge, dann das Ende-Zeichen (nichts danach)", reihe.join(",") === "konfiguration,audio1,audio2,ende", reihe.join(","));
+        ws.empfange({ tokens: [{ text: "Hallo", is_final: true, language: "de" }, { text: " Welt", is_final: true, language: "de" }], finished: true });
+        const ergebnis = await ergebnisVersprechen;
+        pruefe("Live-Sitzung: ... und liefert den erkannten Text mit Sprachen", ergebnis.ok && ergebnis.text === "Hallo Welt" && JSON.stringify(ergebnis.sprachen) === '["de","de"]' && ereignisse.length === 0, JSON.stringify(ergebnis));
+      }
+      {
+        const { sitzung, ereignisse, ws } = await neueSitzung(5, "gespraech");
+        ws.schliesseVonDrueben();
+        pruefe("Live-Sitzung: schliesst der Dienst vor dem letzten Paket, ist das ein Scheitern", ereignisse.join(",") === "scheitern:websocket-geschlossen" && !sitzung.traegt(), ereignisse.join(","));
+      }
+      {
+        routeStatus = 503;
+        const { modul, sitzung, ereignisse } = await neueSitzung(6, "gespraech");
+        pruefe("Live-Sitzung: die Schluessel-Route sagt 503 -> Scheitern mit dem Status, der Tab fragt weiter", ereignisse.join(",") === "scheitern:schluessel-http-503" && !sitzung.traegt() && modul.liveDiktatMoeglich(), ereignisse.join(","));
+        routeStatus = 404;
+        const zweite = await neueSitzung(6, "gespraech");
+        pruefe("Live-Sitzung: sagt die Route 404 (nicht aktiv), fragt dieser Tab nicht wieder", zweite.ereignisse.join(",") === "scheitern:schluessel-http-404" && !zweite.modul.liveDiktatMoeglich());
+        routeStatus = 200;
+      }
+    } finally {
+      globalThis.WebSocket = alt.ws;
+      globalThis.fetch = alt.fetch;
+    }
+  }
 
   // (e) Texte in allen vier Sprachen.
   for (const sprache of ["de", "en", "ru", "kk"]) {
@@ -2791,13 +2941,7 @@ for (const [name, kaputteAntwort] of [
   pruefe("Sprechfassung: Zeilenumbrueche werden Leerzeichen (keine Absatzpausen)", sprechfassung("Erster Satz.\nZweiter Satz.", "de") === "Erster Satz. Zweiter Satz.");
   pruefe("Sprechfassung: ≈ und ~ vor Zahlen je Sprache", sprechfassung("≈ 3 Wochen", "de") === "etwa 3 Wochen" && sprechfassung("~5 dni", "ru") === "около 5 dni" && sprechfassung("≈3", "kk") === "шамамен 3" && sprechfassung("≈ 3", "en") === "about 3");
   {
-    const wortweiseZ = (text, stil) => {
-      const z = erzeugeSatzZerleger(stil);
-      const raus = [];
-      for (const w of text.match(/\S+\s*/g)) raus.push(...z.fuettere(w));
-      raus.push(...z.abschliessen());
-      return raus.map((a) => a.text);
-    };
+    const wortweiseZ = (text, stil) => wortweiseZerlegt(erzeugeSatzZerleger, text, stil);
     for (const [fall, text, zusammen] of [
       ["z. B. mitten im Satz", "Das gilt z. B. für die Kühlkette und die Lieferscheine der ganzen letzten Woche im Lager. Danach ist Schluss.", "z. B. für"],
       ["u. U. am Satzanfang", "Das Lager ist voll. U. U. muss die Ware heute raus, bevor die Kühlkette reisst. Das klären wir morgen.", "U. U. muss"],
@@ -2838,7 +2982,7 @@ for (const [name, kaputteAntwort] of [
   pruefe("Tempo: je Sprache, andere behalten die Voreinstellung", sprechTempo("de", "de:1.15,ru:1.05") === 1.15 && sprechTempo("ru", "de:1.15,ru:1.05") === 1.05 && sprechTempo("en", "de:1.15") === 1.1);
   pruefe("Tempo: begrenzt auf 0,7 bis 1,3 (Soniox lehnt sonst ab), Unsinn -> Voreinstellung der Sprache", sprechTempo("de", "2") === 1.3 && sprechTempo("de", "0.2") === 0.7 && sprechTempo("de", "schnell") === 1.2);
   pruefe("Pausen kuerzen: an, ausser ausdruecklich aus", stilleKuerzen(undefined) && stilleKuerzen("an") && !stilleKuerzen("aus") && !stilleKuerzen("false"));
-  pruefe("Ablagepfad: Tempo und Textstand v3 stecken drin (neues Tempo = neues Audio)", sprachausgabePfad("n1", { anbieter: "soniox", stimme: "Maya", sprache: "de", tempo: 1.1 }) === "n1/soniox-maya-de-t110-v3.mp3" && sprachausgabePfad("n1", { anbieter: "sokrates", stimme: "de-female", sprache: "de" }) === "n1/sokrates-de-female-de-v3.mp3");
+  pruefe("Ablagepfad: Tempo und Textstand (v4) stecken drin (neues Tempo = neues Audio)", sprachausgabePfad("n1", { anbieter: "soniox", stimme: "Maya", sprache: "de", tempo: 1.1 }) === "n1/soniox-maya-de-t110-v4.mp3" && sprachausgabePfad("n1", { anbieter: "sokrates", stimme: "de-female", sprache: "de" }) === "n1/sokrates-de-female-de-v4.mp3");
   {
     const alt = { a: process.env.KI_SPRACHAUSGABE_ANBIETER, s: process.env.KI_SPRACHAUSGABE_STROM, d: process.env.SONIOX_TTS_STIMME_DE };
     process.env.KI_SPRACHAUSGABE_ANBIETER = "soniox";
@@ -2905,13 +3049,7 @@ for (const [name, kaputteAntwort] of [
 // (d2) Befunde der Pruefung vom 24.09.2026 (37 Befunde, adversarial verifiziert): Text in allen
 //      vier Sprachen und Verdrahtung. Jeder Fall hier war ein hoerbarer oder sichtbarer Fehler.
 {
-  const wortweiseT = (text, stil = "saetze") => {
-    const z = erzeugeSatzZerleger(stil);
-    const raus = [];
-    for (const w of text.match(/\S+\s*/g)) raus.push(...z.fuettere(w));
-    raus.push(...z.abschliessen());
-    return raus.map((a) => a.text);
-  };
+  const wortweiseT = (text, stil = "saetze") => wortweiseZerlegt(erzeugeSatzZerleger, text, stil);
   const gesprochen = (text, sprache, stil) => wortweiseT(text, stil).map((t) => sprechfassung(t, sprache)).join(" ");
   // Telefonnummern bleiben (vorher verschluckt), in allen vier Sprachen.
   for (const [sprache, text, nummer] of [
@@ -2985,7 +3123,6 @@ for (const [name, kaputteAntwort] of [
   const strom = lies2("components/ki/sprachausgabe-strom.ts");
   pruefe("Strom: immer nur ein Strom - der naechste wartet, bis der laufende fertig ist", strom.includes("if (!nimmt) beendeAktiv();") && !strom.includes("stroeme.set("));
   pruefe("Strom: Nachrichten fremder Stroeme (auch Fehler) werden ignoriert", strom.includes("if (!aktiv || e.stream !== aktiv.id) return;") && strom.includes("if (!aktiv || e.stream !== aktiv.id) {"));
-  pruefe("Strom: stopp() schickt cancel und laesst die Verbindung offen", /stopp\(\) \{[\s\S]*?if \(aktiv\) sende\(abbruchNachricht\(aktiv\.id\)\);[\s\S]*?planeLeerlauf\(\);/.test(strom) && !/stopp\(\) \{[^}]*schliesseVerbindung\(\)/.test(strom));
   pruefe("Strom: ein gescheiterter Verbindungsaufbau bleibt nicht zwischengespeichert", strom.includes("if (ws === socket) {\n          ws = null;\n          wsOeffnet = null;") || /if \(ws === socket\) \{\s*ws = null;\s*wsOeffnet = null;/.test(strom));
 
   // (f) Wortbefehle. Bis zum 28.09.2026 beendete "Stopp" den Sprachmodus (Rueckmeldung vom
@@ -3058,62 +3195,15 @@ for (const [name, kaputteAntwort] of [
 //     aus components/ki/sprachausgabe-strom.ts (ueber den Alias-Lader). Jede Faelle mit
 //     eigener Modul-Instanz (?fall=N), weil der Sprecher je Tab Zustand haelt.
 {
-  const { register } = await import("node:module");
-  register(new URL("./hilfen/alias-lader.mjs", import.meta.url), { data: { src: new URL("../../src/", import.meta.url).href } });
-  const warte = (ms = 15) => new Promise((r) => setTimeout(r, ms));
-  class FakeWS {
-    static OPEN = 1;
-    static alle = [];
-    static oeffnet = true;
-    constructor(url) {
-      this.url = url;
-      this.readyState = 0;
-      this.gesendet = [];
-      FakeWS.alle.push(this);
-      setTimeout(() => {
-        if (!FakeWS.oeffnet) {
-          this.onerror?.();
-          this.onclose?.();
-          return;
-        }
-        this.readyState = 1;
-        this.onopen?.();
-      }, 1);
-    }
-    send(d) {
-      this.gesendet.push(JSON.parse(d));
-    }
-    close() {
-      this.readyState = 3;
-      this.geschlossen = true;
-    }
-    empfange(obj) {
-      this.onmessage?.({ data: JSON.stringify(obj) });
-    }
-    starts() {
-      return this.gesendet.filter((n) => n.api_key);
-    }
-  }
-  const quellen = [];
-  const ctx = {
-    currentTime: 0,
-    state: "running",
-    destination: {},
-    resume: async () => {},
-    createGain: () => ({ connect() {} }),
-    createAnalyser: () => ({ connect() {}, getByteTimeDomainData() {} }),
-    createBuffer: (_k, n, rate) => {
-      const d = new Float32Array(n);
-      return { duration: n / rate, getChannelData: () => d };
-    },
-    createBufferSource: () => {
-      const q = { connect() {}, start(t) { q.startZeit = t; }, stop() { q.gestoppt = true; } };
-      quellen.push(q);
-      return q;
-    },
-  };
+  // Der Alias-Lader ist oben schon registriert (Cleanup-Fund 94: hier stand er ein zweites Mal),
+  // die Attrappen kommen aus hilfen/attrappen.mjs (Cleanup-Fund 93).
+  const FakeWS = erzeugeFakeWS();
+  const { ctx, quellen } = erzeugeAudioKontext();
   const alt = { ws: globalThis.WebSocket, fetch: globalThis.fetch };
-  const konfigurationen = { de: { model: "tts-rt-v2", language: "de", voice: "Maya", audio_format: "pcm_s16le", sample_rate: 24000, speed: 1.1, reduce_silence: true } };
+  const konfigurationen = {
+    de: { model: "tts-rt-v2", language: "de", voice: "Maya", audio_format: "pcm_s16le", sample_rate: 24000, speed: 1.1, reduce_silence: true },
+    ru: { model: "tts-rt-v2", language: "ru", voice: "Maya", audio_format: "pcm_s16le", sample_rate: 24000, speed: 1.1 },
+  };
   let schluesselAbrufe = [];
   let schluesselStatus = 200;
   let schluesselNr = 0;
@@ -3128,7 +3218,6 @@ for (const [name, kaputteAntwort] of [
       headers: { "content-type": "application/json" },
     });
   };
-  const pcm = (n) => btoa(String.fromCharCode(...new Uint8Array(n * 2)));
   const nachweis = { art: "zug", zug: "z-1", ablauf: Date.now() + 60_000, sig: "ab12" };
   const neuerSprecher = async (fall) => {
     const modul = await import(`../../src/components/ki/sprachausgabe-strom.ts?fall=${fall}`);
@@ -3274,7 +3363,7 @@ for (const [name, kaputteAntwort] of [
       FakeWS.oeffnet = true;
     }
 
-    // --- Fall 7: der Satz vor einer Handlung gilt erst als gesagt, wenn sein Ton kam und
+    // --- Fall 11: der Satz vor einer Handlung gilt erst als gesagt, wenn sein Ton kam und
     //     verklungen ist. Messung an der Preview vom 28.09.2026: die Freigabekarte "Der Agent
     //     moechte klicken" stand bei 0 ms, Himbi sprach "Ich klicke jetzt auf Anlegen" erst ab 1,5
     //     bis 2,4 s. Der Text war schon an Soniox gegangen, als der Satz davor verklang, und
@@ -3282,7 +3371,7 @@ for (const [name, kaputteAntwort] of [
     {
       FakeWS.alle = [];
       quellen.length = 0;
-      const { s, zustaende } = await neuerSprecher(7);
+      const { s, zustaende } = await neuerSprecher(11);
       const taktDomain = await import("../../src/lib/domain/sprach-takt.ts");
       s.setzeNachweis(nachweis);
       s.sprich("Ich trage jetzt den Ort ein.", "de");
@@ -3314,6 +3403,122 @@ for (const [name, kaputteAntwort] of [
       pruefe("Takt mit Sprecher: die Handlung (Freigabekarte) wartet auf den Ton des Satzes davor, dann laeuft sie", vorDemTon === null && handlung?.ergebnis === "marke", JSON.stringify({ vorDemTon, handlung }));
       s.stopp();
     }
+
+    // --- Fall 7 bis 9: Freigabe (Cleanup-Fund 31, 29.09.2026) ---
+    // stopp() laesst die Verbindung bewusst offen (die naechste Frage kommt oft gleich). Beim Abbau
+    // des Chats lief deshalb alles weiter: Verbindung und Keepalive bis zum Leerlauf (20 s), die
+    // Aufsicht alle 2 s. Und nach einer Aufgabe im Live-Weg blieb die Runde offen - dann schloss
+    // nicht einmal der Leerlauf, bis zur naechsten Frage.
+    {
+      FakeWS.alle = [];
+      const uhr = beobachteZeitgeber();
+      try {
+        const { s } = await neuerSprecher(7);
+        s.setzeNachweis(nachweis);
+        s.sprich("Erster Satz.", "de");
+        await warte();
+        const ws = FakeWS.alle.at(-1);
+        ws.empfange({ stream_id: ws.starts().at(-1).stream_id, audio: pcm(2400) });
+        const vorher = uhr.intervalle();
+        s.schliesse?.();
+        pruefe(
+          "Fund 31: schliesse() gibt Verbindung, Keepalive, Aufsicht und alle Zeitgeber sofort frei (stopp() laesst die Verbindung offen)",
+          vorher >= 2 && ws.geschlossen === true && uhr.intervalle() === 0 && uhr.zeitgeber(1_000) === 0,
+          `Intervalle vorher ${vorher}, nachher ${uhr.intervalle()}, Zeitgeber ab 1 s: ${uhr.zeitgeber(1_000)}, Verbindung zu: ${ws.geschlossen === true}`,
+        );
+      } finally {
+        uhr.raeumeAuf();
+        uhr.stoppe();
+      }
+    }
+    {
+      FakeWS.alle = [];
+      FakeWS.haengt = true;
+      const uhr = beobachteZeitgeber();
+      try {
+        const { s, modul, aufgaben } = await neuerSprecher(8);
+        for (let runde = 0; runde < 2; runde++) {
+          s.setzeNachweis(nachweis);
+          s.sprich("Die Verbindung steht noch nicht.", "de");
+          await warte();
+          s.schliesse?.();
+          await warte();
+        }
+        pruefe(
+          "Fund 31: schliesse() mitten im Aufbau bricht ihn ab, ohne Frist und ohne als Verbindungsfehler zu zaehlen",
+          FakeWS.alle.length === 2 && FakeWS.alle.every((w) => w.geschlossen === true) && uhr.zeitgeber(1_000) === 0 && modul.stromMoeglich() && aufgaben.length === 0,
+          `Verbindungen ${FakeWS.alle.length}, Zeitgeber ab 1 s: ${uhr.zeitgeber(1_000)}, Strom moeglich: ${modul.stromMoeglich()}, Aufgaben: ${JSON.stringify(aufgaben)}`,
+        );
+      } finally {
+        FakeWS.haengt = false;
+        uhr.raeumeAuf();
+        uhr.stoppe();
+      }
+    }
+    {
+      FakeWS.alle = [];
+      const uhr = beobachteZeitgeber();
+      try {
+        const { s, aufgaben } = await neuerSprecher(9);
+        s.setzeNachweis(nachweis);
+        // Live: die Antwort wird noch geschrieben, ende() kommt nicht (der Hook ruft es nach der Aufgabe nicht mehr).
+        s.sprich("Ich schaue in Ihre Aufgaben.", "de");
+        await warte();
+        const ws = FakeWS.alle.at(-1);
+        const st = ws.starts().at(-1);
+        const n = quellen.length;
+        ws.empfange({ stream_id: st.stream_id, audio: pcm(2400) });
+        ws.empfange({ stream_id: st.stream_id, error_code: 500, error_type: "internal_error", error_message: "x" });
+        quellen.slice(n).forEach((q) => q.onended?.());
+        await warte();
+        pruefe(
+          "Fund 31: nach einer Aufgabe im Live-Weg wird die Verbindung zum Schliessen vorgemerkt (vorher hielt die offene Runde sie bis zur naechsten Frage)",
+          aufgaben.length === 1 && uhr.zeitgeber(20_000) === 1,
+          `Aufgaben ${aufgaben.length}, Leerlauf-Zeitgeber: ${uhr.zeitgeber(20_000)}`,
+        );
+        s.schliesse?.();
+      } finally {
+        uhr.raeumeAuf();
+        uhr.stoppe();
+      }
+    }
+
+    // --- Fall 10: die gemessene Sprechgeschwindigkeit gilt je Sprache (Cleanup-Fund 29, 29.09.2026) ---
+    // Das Mitlesen schaetzt aus der gespielten Tondauer, welcher Satz gerade klingt. Die gemessene
+    // Rate war ein Wert fuer den ganzen Tab, gemittelt ueber alle Stimmen und Sprachen - eine
+    // langsame deutsche Stimme zog das Mitlesen einer russischen Antwort einen Satz zurueck.
+    {
+      FakeWS.alle = [];
+      const { s } = await neuerSprecher(10);
+      s.setzeNachweis(nachweis);
+      s.sprich(`${"Sehr langsam gesprochen ".repeat(3)}ist dieser deutsche Satz.`, "de");
+      s.ende();
+      await warte();
+      const ws = FakeWS.alle.at(-1);
+      const de = ws.starts().at(-1);
+      // 96 Zeichen in 10 s Ton: gemessen rund 8,7 Zeichen je Sekunde bei Tempo 1 (fest: 14).
+      for (let i = 0; i < 10; i++) ws.empfange({ stream_id: de.stream_id, audio: pcm(24_000) });
+      ws.empfange({ stream_id: de.stream_id, audio_end: true });
+      ws.empfange({ stream_id: de.stream_id, terminated: true });
+      s.stopp();
+      ctx.currentTime = 100;
+      s.setzeNachweis(nachweis);
+      s.sprich("Поставка прибыла сегодня утром.", "ru");
+      s.sprich("Документы уже проверены на складе.", "ru");
+      s.ende();
+      await warte();
+      const ru = ws.starts().at(-1);
+      for (let i = 0; i < 5; i++) ws.empfange({ stream_id: ru.stream_id, audio: pcm(24_000) });
+      // 3 s gespielt, Tempo 1,1: mit der festen Rate rund 46 Zeichen (zweiter Satz), mit der
+      // deutschen Messung nur 29 (noch der erste).
+      ctx.currentTime = 100 + 0.25 + 3;
+      const stand = s.stand();
+      ctx.currentTime = 0;
+      pruefe("Fund 29: fuer Russisch gilt nicht die Rate der deutschen Stimme (Mitlesen beim richtigen Satz)", ru.language === "ru" && stand?.index === 1, JSON.stringify(stand));
+      s.stopp();
+      // Bis zum 29.09.2026 ein Quelltext-Pin auf den Rumpf von stopp(); jetzt am Verhalten.
+      pruefe("Strom-Durchlauf: stopp() vergisst Verlauf und Zeiten (danach kein Stand mehr)", s.stand() === null && !ws.geschlossen);
+    }
   } finally {
     globalThis.WebSocket = alt.ws;
     globalThis.fetch = alt.fetch;
@@ -3334,6 +3539,81 @@ for (const [name, kaputteAntwort] of [
   } finally {
     globalThis.WebSocket = alt.ws;
     globalThis.fetch = alt.fetch;
+  }
+}
+
+// (e2) Der Vorlese-Hook (components/ki/sprachausgabe-live.ts) im Durchlauf - seit 29.09.2026
+//      (Cleanup-Funde 30/31). React ersetzt eine Attrappe (hilfen/react-attrappe.mjs); der
+//      Strom-Sprecher und der Abschnitts-Weg laufen echt, gegen nachgebauten WebSocket,
+//      AudioContext und fetch. Bis dahin sicherten nur Quelltext-Pins diesen Hook.
+{
+  const { rendere } = await import("./hilfen/react-attrappe.mjs");
+  const FakeWS = erzeugeFakeWS();
+  const { ctx, quellen } = erzeugeAudioKontext();
+  const alt = { ws: globalThis.WebSocket, fetch: globalThis.fetch, audio: globalThis.AudioContext };
+  const geholt = [];
+  globalThis.WebSocket = FakeWS;
+  globalThis.AudioContext = class {
+    constructor() {
+      return ctx;
+    }
+  };
+  globalThis.fetch = async (url, init) => {
+    if (String(url) === "/api/ki-sprachausgabe/schluessel") {
+      const konfigurationen = { de: { model: "tts-rt-v2", language: "de", voice: "Lena", audio_format: "pcm_s16le", sample_rate: 24000, speed: 1.2 } };
+      return Response.json({ schluessel: "tmp-hook", adresse: "wss://tts-rt.eu.soniox.com/tts-websocket", konfigurationen, gueltigMs: 60_000 });
+    }
+    if (String(url) === "/api/ki-sprachausgabe") {
+      // Der Abschnitts-Weg: je Abschnitt eine Datei, hier so viele Bytes wie seine Nummer.
+      const nr = JSON.parse(init.body).abschnitt?.nr;
+      geholt.push(nr);
+      return new Response(new Uint8Array(nr), { status: 200, headers: { "content-type": "audio/mpeg" } });
+    }
+    throw new Error("unerwarteter fetch " + url);
+  };
+  const uhr = beobachteZeitgeber();
+  try {
+    const modul = await import("../../src/components/ki/sprachausgabe-live.ts?react=attrappe");
+    const { wert: vorlesen, abbauen } = rendere(() => modul.useLiveSprachausgabe());
+    const abschnitt = (nr, text) => ({ zug: "z-hook", nr, text, sig: `sig-${nr}`, ablauf: Date.now() + 60_000 });
+    vorlesen.nimmNachweis({ zug: "z-hook", ablauf: Date.now() + 60_000, sig: "gh78" });
+    await warte();
+    vorlesen.nimmAbschnitt(abschnitt(1, "Ich schaue in Ihre Aufgaben."), "de");
+    vorlesen.nimmAbschnitt(abschnitt(2, "Heute stehen drei Dinge an."), "de");
+    await warte();
+    const ws = FakeWS.alle.at(-1);
+    const st = ws?.starts().at(-1);
+    // Eine Sekunde Ton: der erste Satz klingt noch, beide gelten als ungesprochen.
+    ws.empfange({ stream_id: st.stream_id, audio: pcm(24_000) });
+    const stromTon = quellen.filter((q) => q.gestartet);
+    // Soniox gibt auf (Kontingent, 5xx): der Rest geht an den Abschnitts-Weg.
+    ws.empfange({ stream_id: st.stream_id, error_code: 500, error_type: "internal_error", error_message: "x" });
+    await warte(40);
+    const abschnittTon = () => quellen.filter((q) => q.gestartet && q.buffer?.dekodiert);
+    pruefe(
+      "Fund 30: gibt der Strom live auf, wird der Rest sofort geholt, aber erst gespielt, wenn der Strom-Ton verklungen ist (sonst zwei Stimmen)",
+      stromTon.length === 1 && JSON.stringify(geholt) === "[1,2]" && abschnittTon().length === 0,
+      `geholt ${JSON.stringify(geholt)}, gespielt ${abschnittTon().length}`,
+    );
+    stromTon.forEach((q) => q.onended?.());
+    await warte();
+    pruefe(
+      "Fund 30: ... sobald er verklungen ist, beginnt der erste ungesprochene Abschnitt",
+      abschnittTon().length === 1 && abschnittTon()[0].buffer.bytes === 1,
+      JSON.stringify(abschnittTon().map((q) => q.buffer.bytes)),
+    );
+    abbauen();
+    pruefe(
+      "Fund 31: beim Abbau schliesst der Hook den AudioContext und die Verbindung, Keepalive und Aufsicht laufen nicht weiter",
+      ctx.geschlossen === true && ws.geschlossen === true && uhr.intervalle() === 0,
+      `AudioContext zu: ${ctx.geschlossen}, Verbindung zu: ${ws.geschlossen === true}, Intervalle: ${uhr.intervalle()}`,
+    );
+  } finally {
+    uhr.raeumeAuf();
+    uhr.stoppe();
+    globalThis.WebSocket = alt.ws;
+    globalThis.fetch = alt.fetch;
+    globalThis.AudioContext = alt.audio;
   }
 }
 
@@ -3538,6 +3818,49 @@ for (const [name, kaputteAntwort] of [
     pruefe("textAb: nur was nach der Grenze gesagt wurde, vorlaeufiges dahinter", ab.endgueltig === "und Lieferungen" && ab.anzeige === "und Lieferungen bitte" && ab.endeMs === 3300, JSON.stringify(ab));
     pruefe("textAb: Teilstuecke ergeben ein Wort mit Anfang und Ende", JSON.stringify(ab.woerter.map((w) => [w.text, w.startMs, w.endeMs])) === JSON.stringify([["und", 2000, 2150], ["Lieferungen", 2200, 2900], ["bitte", 3000, 3300]]), JSON.stringify(ab.woerter));
     pruefe("textAb: der Endpunkt zaehlt mit (jede Aeusserung im Gespraech)", s.stand().endpunkte === 1 && s.textAb(0).endgueltig === "Ja. und Lieferungen");
+    // Cleanup-Fund 22 (29.09.2026): die Grenze aus dem Einsatz der Stimme (audioJetzt() - 300)
+    // kann mitten in einem Wort liegen. Vorher blieb "ferungen" als eigenes Wort stehen und ging
+    // als Frageanfang ans Modell. Ein Wort gehoert ganz zu der Seite, auf der es beginnt.
+    const mitten = s.textAb(2300);
+    pruefe("Fund 22: eine Grenze mitten im Wort laesst kein Bruchstueck stehen", mitten.anzeige === "bitte" && mitten.endgueltig === "" && JSON.stringify(mitten.woerter.map((w) => w.text)) === JSON.stringify(["bitte"]), JSON.stringify(mitten));
+    pruefe("Fund 22: eine Grenze am Wortanfang nimmt das ganze Wort", s.textAb(2200).endgueltig === "Lieferungen" && s.textAb(2200).woerter[0]?.startMs === 2200);
+    // ... aber nach einem Endpunkt beginnt die neue Aeusserung immer mit einem neuen Wort, auch
+    // wenn ihr erstes Token kein fuehrendes Leerzeichen traegt - sonst fiele das erste Wort der
+    // naechsten Frage weg, weil sein "Vorgaenger" (das Ende der vorigen) vor der Grenze lag.
+    const nachEnde = diktat.erzeugeTokenSammler();
+    nachEnde.nimm({ tokens: [{ text: "Stopp", is_final: true, start_ms: 500, end_ms: 800 }, { text: "<end>", is_final: true }] });
+    nachEnde.nimm({ tokens: [{ text: "Zeig", is_final: true, start_ms: 2000, end_ms: 2200 }, { text: " Aufgaben", is_final: true, start_ms: 2200, end_ms: 2700 }] });
+    pruefe("Fund 22: das erste Wort nach einem Endpunkt bleibt, auch ohne fuehrendes Leerzeichen", nachEnde.textAb(1000).endgueltig === "Zeig Aufgaben", JSON.stringify(nachEnde.textAb(1000)));
+  }
+  {
+    // Cleanup-Fund 17 (29.09.2026): im Gespraech laeuft EINE Sitzung bis zu 30 Minuten. Der Sammler
+    // saeuberte bei jedem Paket den ganzen bisherigen Text neu, und textAb ging jedes Mal alle Woerter
+    // der Sitzung durch - gemessen 2,2 ms je Paket bei 30.000 Token (300 Token: 0,015 ms), im
+    // Hauptthread neben Wiedergabe und Waechter. Ein Paket darf nicht mit der Sitzung teurer werden.
+    const jePaket = (anzahl) => {
+      const s = diktat.erzeugeTokenSammler();
+      for (let i = 0; i < anzahl; i += 5) {
+        s.nimm({ tokens: Array.from({ length: 5 }, (_, k) => ({ text: ` wort${i + k}`, is_final: true, start_ms: (i + k) * 200, end_ms: (i + k) * 200 + 150, language: "de" })) });
+      }
+      const ende = anzahl * 200;
+      const beginn = performance.now();
+      for (let r = 0; r < 200; r++) {
+        s.nimm({ tokens: [{ text: " neu", is_final: false, start_ms: ende, end_ms: ende + 100 }] });
+        s.textAb(ende - 3000);
+        s.textAb(ende - 1000);
+      }
+      return { ms: (performance.now() - beginn) / 200, s };
+    };
+    jePaket(300); // Aufwaermen (JIT)
+    const klein = jePaket(300);
+    const gross = jePaket(30_000);
+    pruefe(
+      "Fund 17: ein Paket (nimm plus zweimal textAb) kostet bei 30.000 Token nicht mehr als bei 300 (Faktor 10 Luft)",
+      gross.ms < 10 * klein.ms + 0.2,
+      `${gross.ms.toFixed(3)} ms gegen ${klein.ms.toFixed(3)} ms`,
+    );
+    const ab = gross.s.textAb(30_000 * 200 - 1000);
+    pruefe("Fund 17: ... und liefert dasselbe wie vorher (die letzten Woerter, der ganze Text)", ab.endgueltig === "wort29995 wort29996 wort29997 wort29998 wort29999" && ab.anzeige.endsWith("wort29999 neu") && gross.s.stand().endgueltig.startsWith("wort0 wort1 ") && gross.s.stand().anzeige.endsWith("wort29999 neu"), ab.endgueltig);
   }
   pruefe("Nachsatz: 'Ja.' + 'und ...' wird ein Satz, Grossgeschriebenes bleibt ein eigener", sm.fuegeZusammen("Ja.", "und zeig mir die Lieferungen.") === "Ja, und zeig mir die Lieferungen." && sm.fuegeZusammen("Ja.", "Und zeig mir bitte die Lieferungen.") === "Ja, und zeig mir bitte die Lieferungen." && sm.fuegeZusammen("Да.", "И покажи поставки.") === "Да, и покажи поставки." && sm.fuegeZusammen("Wie viele Steigen?", "Heute.") === "Wie viele Steigen? Heute." && sm.fuegeZusammen("", "Hallo") === "Hallo");
   pruefe("Nachsatz: ein Geraeusch ist kein Nachsatz", !sm.istGesprochen("") && !sm.istGesprochen("a") && sm.istGesprochen("und"));

@@ -3,8 +3,10 @@
 // Der Aufruf selbst: lib/ai/sprachausgabe-client.ts, die Route:
 // app/api/ki-sprachausgabe/route.ts.
 
-import { klareAbweichung, lateinischeSpracheEindeutig, sprachenFuerSaetze, ueberwiegendeSchrift, type Schrift } from "@/lib/text/sprache-erkennen";
-import { istSprache, type Sprache } from "@/lib/domain/antwortsprache";
+import { lateinischeSpracheEindeutig, sprachenFuerSaetze, ueberwiegendeSchrift, type Schrift } from "@/lib/text/sprache-erkennen";
+import { istSprache, vorleseSprache, type Sprache } from "@/lib/domain/antwortsprache";
+import { fuerSprache } from "@/lib/text/umlaute";
+import { DATENBANK_SCHEMA } from "@/lib/supabase/schema";
 
 // --- Sprechmarken (domain/sprechmarken.ts) --------------------------------------
 
@@ -224,8 +226,16 @@ export function stimmenFuer(sprache: string): Stimme[] {
  *
  *  3 (24.09.2026): Ueberschriften mit Doppelpunkt, Tabellen ohne Kopfzeile,
  *  Kennungen und Grossbuchstabenwoerter entschaerft, keine Zeilenumbrueche
- *  mehr an die Stimme, dazu Tempo und kuerzere Pausen bei Soniox. */
-export const VORLESETEXT_VERSION = 3;
+ *  mehr an die Stimme, dazu Tempo und kuerzere Pausen bei Soniox.
+ *
+ *  4 (29.09.2026, Cleanup-Fund 35): die Aenderungen vom 25.09.2026 (Uhren und
+ *  Sanduhren U+2300-23FF, Kennungen erst ab vier Bindestrichen, leere Klammern,
+ *  Sprechmarken vor den Tabellen) liefen ohne Versionssprung - Sokrates und
+ *  Soniox en/ru lieferten bis dahin Audio mit "Neun Frist" und "Charge ()"
+ *  aus dem Speicher. Seitdem prueft supabase/tests/ki-assistent.mjs einen
+ *  Abdruck fester Proben je Version: wer die Aufbereitung aendert, muss hier
+ *  hochzaehlen und den neuen Abdruck dort eintragen. */
+export const VORLESETEXT_VERSION = 4;
 
 /** Ablageort des erzeugten Audios im Bucket "ki-sprachausgabe" (Migration
  *  20261101000000). Anbieter, Stimme, Sprache, Tempo und Textstand stecken im
@@ -234,30 +244,43 @@ export const VORLESETEXT_VERSION = 3;
  *  Antwort ist unveraenderlich.
  *
  *  `teil`: ein Sprachblock (vorlesePlan, seit 28.09.2026) - Saetze `von` bis
- *  ausschliesslich `bis`. Die ganze Antwort behaelt ihren bisherigen Pfad. */
-export function sprachausgabePfad(nachrichtId: string, stimme: Stimme, teil?: { von: number; bis: number }): string {
+ *  ausschliesslich `bis`. Die ganze Antwort behaelt ihren bisherigen Pfad.
+ *
+ *  `schema` (seit 29.09.2026, Cleanup-Fund 83): Preview und Produktion teilen
+ *  sich den Bucket (scripts/preview-umschreiben.mjs, GEMEINSAME_BUCKETS), und
+ *  public_preview traegt Kopien der Produktionsnachrichten mit denselben IDs.
+ *  Ohne eigenes Verzeichnis legte eine Preview-Umgebung - mit geaenderter
+ *  Aufbereitung oder mit einer selbst angelegten Zeile - Audio unter dem Pfad
+ *  einer Produktionsantwort ab, und die Produktion lieferte es aus. Die
+ *  Produktion (public) behaelt ihre Pfade, die Preview liegt getrennt darunter. */
+export function sprachausgabePfad(
+  nachrichtId: string,
+  stimme: Stimme,
+  teil?: { von: number; bis: number },
+  schema: string = DATENBANK_SCHEMA,
+): string {
   const kennung = (wert: string) => wert.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
   const tempo = stimme.tempo !== undefined ? `-t${Math.round(stimme.tempo * 100)}` : "";
   const block = teil ? `-s${teil.von}-${teil.bis}` : "";
-  return `${nachrichtId}/${kennung(stimme.anbieter)}-${kennung(stimme.stimme)}-${stimme.sprache}${tempo}-v${VORLESETEXT_VERSION}${block}.mp3`;
+  const verzeichnis = schema === "public" ? "" : `${kennung(schema)}/`;
+  return `${verzeichnis}${nachrichtId}/${kennung(stimme.anbieter)}-${kennung(stimme.stimme)}-${stimme.sprache}${tempo}-v${VORLESETEXT_VERSION}${block}.mp3`;
 }
 
 export function istSprachausgabeSprache(wert: string | null | undefined): wert is SprachausgabeSprache {
   return (sprachausgabeSprachen as readonly string[]).includes(wert ?? "");
 }
 
-/** Die Stimme fuer eine Oberflaechensprache - oder null, wenn es fuer sie
- *  keine gibt. Die EINE Stelle, an der das entschieden wird: die Route
- *  (api/ki-sprachausgabe) und der Knopf im Chat fragen beide hier.
+/** Gibt es fuer diese Sprache eine Stimme? Sokrates ist bei jeder Anbieterwahl der
+ *  Rueckfall (stimmenFuer), deshalb entscheidet die Tabelle STIMMEN allein - ohne
+ *  Umgebungsvariablen, die der Browser gar nicht kennt.
  *
- *  Bis zum 21.09.2026 wurde die Sprache stattdessen aus dem Antworttext
- *  erraten. Das fiel um, sobald die Frage diktiert war: ein falscher
- *  Sprachhinweis an die Spracherkennung liess die Antwort selbst in der
- *  falschen Sprache entstehen, und die Erkennung bestaetigte den Fehler
- *  anschliessend. Die Systemsprache ist eine Einstellung, die die Person
- *  selbst setzt - verlaesslicher als jede Erkennung. */
-export function stimmeFuerOberflaeche(oberflaeche: string): Stimme | null {
-  return stimmenFuer(oberflaeche)[0] ?? null;
+ *  Bis zum 29.09.2026 hiess das stimmeFuerOberflaeche und lief ueber stimmenFuer
+ *  (Cleanup-Fund 36). Der Kommentar dort nannte es "die EINE Stelle" fuer Route und
+ *  Knopf und die Systemsprache "verlaesslicher als jede Erkennung". Beides stimmt
+ *  nicht mehr: die Route fragt nie hier, und die Stimme folgt seit 28.09.2026 der
+ *  Sprache des Textes, Satzblock fuer Satzblock (vorlesePlan). */
+export function hatStimme(sprache: string): boolean {
+  return istSprachausgabeSprache(sprache) && STIMMEN[sprache] !== null;
 }
 
 // Obergrenze fuer eine vorgelesene Antwort. Piper braucht fuer ~200 Zeichen
@@ -490,6 +513,18 @@ export function sprechfassung(text: string, sprache: SprachausgabeSprache): stri
     .replace(/[ \t]*\n+[ \t]*/g, " ")
     .replace(/[ \t]{2,}/g, " ")
     .trim();
+}
+
+/** Der Text, wie ihn die Stimme bekommt: Umlaute auf Deutsch (schreibt das Modell
+ *  "Pruefung", liest die Stimme sonst "Pru-efung"), Symbole und Tausendertrennung
+ *  als Worte (sprechfassung). Fuer eine unbekannte Sprache unveraendert.
+ *
+ *  Seit 29.09.2026 hier (Cleanup-Fund 33): vorher stand dieselbe Kette im Browser
+ *  (components/ki/sprachausgabe-live.ts, Strom) und in der Route (api/ki-sprachausgabe,
+ *  Datei und Abschnitte) je einmal - eine Aenderung an einer Stelle haette Strom und
+ *  Datei verschieden klingen lassen. */
+export function zumSprechen(text: string, sprache: string): string {
+  return istSprachausgabeSprache(sprache) ? sprechfassung(fuerSprache(text, sprache), sprache) : text;
 }
 
 // --- Live-Sprachausgabe: Abschnitte schon waehrend des Schreibens ----------
@@ -993,6 +1028,20 @@ export function saetzeAusAntwort(markdown: string): string[] {
   return [...zerleger.fuettere(markdown), ...zerleger.abschliessen()].map((a) => a.text);
 }
 
+/** So lang darf ein Block im Datei-Weg hoechstens werden, wenn Soniox spricht.
+ *
+ *  Soniox erzeugt ueber REST etwa in Sprechdauer, nicht "in einem Bruchteil davon":
+ *  gemessen in der Gegenpruefung vom 28.09.2026 41 bis 46 ms je Zeichen (Deutsch,
+ *  Tempo 1,2; 872 Zeichen in 39,9 s). Das Zeitlimit der Datei (SONIOX_ZEITLIMIT_MS,
+ *  30 s, lib/ai/sprachausgabe-client.ts) deckt die ganze Erzeugung, der GET-Strom
+ *  endet an maxDuration (60 s) der Route. 450 Zeichen sind rund 21 s - Luft fuer
+ *  langsamere Sprachen (Tempo 1,1) und das Netz. Bis zum 29.09.2026 ging ein Block
+ *  bis 3000 Zeichen in eine Anfrage und brach ab etwa 650 Zeichen ab (Cleanup-Fund 27).
+ *
+ *  Sokrates erzeugt in einem Bruchteil der Sprechdauer: dort bleibt ein Block eine
+ *  Datei, jede Teilung waere nur eine Pause mehr zwischen zwei Dateien. */
+export const VORLESE_BLOCK_ZEICHEN_SONIOX = 450;
+
 /** Ein Sprachblock einer fertigen Antwort: aufeinanderfolgende Saetze mit
  *  derselben Stimme. `von`/`bis` zaehlen die Saetze von saetzeAusAntwort. */
 export interface VorleseBlock {
@@ -1011,11 +1060,12 @@ export interface VorleseBlock {
  * Rueckfall, wenn der Strom nicht geht.
  *
  * Die Sprachen vergibt dieselbe Folge wie im Strom (sprachenFuerSaetze), also
- * hoechstens HOECHSTENS_SPRACHWECHSEL + 1 Bloecke - jeder Block ist eine
+ * hoechstens HOECHSTENS_SPRACHWECHSEL + 1 Sprachbloecke - jeder Block ist eine
  * Anfrage an den Dienst und eine eigene Datei. Die Dateien werden NICHT
  * aneinandergehaengt: zwei MP3 mit eigenem Info-Rahmen (LAME) oder aus
  * verschiedenen Anbietern ergeben keine saubere Datei; der Browser spielt sie
- * nacheinander.
+ * nacheinander. Spricht Soniox, wird ein langer Block zusaetzlich an
+ * Satzgrenzen geteilt (VORLESE_BLOCK_ZEICHEN_SONIOX).
  *
  * `rest`: nur die letzten so vielen Saetze (der Knopf-Weg, nachdem der Strom
  * mittendrin aufgegeben hat). Gezaehlt vom ENDE, weil der Browser nach einer
@@ -1028,17 +1078,20 @@ export function vorlesePlan(
   { rest }: { rest?: number } = {},
 ): { sprache: Sprache; abweichung: boolean; bloecke: VorleseBlock[] } {
   const gewuenscht: Sprache = istSprache(gemeldeteSprache) ? gemeldeteSprache : "de";
-  // Die Gegenprobe am Text: dieselbe Regel wie am Knopf (vorleseSprache).
-  const ausText = klareAbweichung(textFuerSprachausgabe(markdown ?? ""), gewuenscht, { mindestBuchstaben: 40, ganzerText: true });
-  const sprache: Sprache = istSprache(ausText) ? ausText : gewuenscht;
+  // Die Gegenprobe am Text: dieselbe Regel wie am Knopf. Bis zum 29.09.2026 hier mit
+  // eigener Schwelle (40) nachgebaut, nicht aufgerufen (Cleanup-Fund 50). Der Knopf
+  // (ki-chat-sprache.ts) gibt vorleseSprache noch den ROHEN Markdown, hier ist es der
+  // aufbereitete Text ohne Codebloecke und Adressen (Cleanup-Fund 37, offen).
+  const sprache = vorleseSprache(gewuenscht, textFuerSprachausgabe(markdown ?? ""), gewuenscht);
   const saetze = saetzeAusAntwort(markdown ?? "");
   const sprachen = sprachenFuerSaetze(saetze, sprache);
   const ab = rest === undefined ? 0 : Math.max(0, saetze.length - Math.max(0, Math.floor(rest)));
   const bloecke: VorleseBlock[] = [];
+  const grenze = (s: SprachausgabeSprache) => (stimmenFuer(s)[0]?.anbieter === "soniox" ? VORLESE_BLOCK_ZEICHEN_SONIOX : Number.POSITIVE_INFINITY);
   for (let i = ab; i < saetze.length; i++) {
     const s = sprachen[i]!;
     const letzter = bloecke.at(-1);
-    if (letzter && letzter.sprache === s) {
+    if (letzter && letzter.sprache === s && letzter.text.length + 1 + saetze[i]!.length <= grenze(s)) {
       letzter.bis = i + 1;
       letzter.text += ` ${saetze[i]}`;
     } else {

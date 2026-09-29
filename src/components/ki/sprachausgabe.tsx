@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Square, Volume2, VolumeX } from "lucide-react";
-import { stimmeFuerOberflaeche } from "@/lib/domain/sprachausgabe";
+import { hatStimme } from "@/lib/domain/sprachausgabe";
 import { cn, istUuid } from "@/lib/utils";
 import { meldeElementWiedergabe } from "@/lib/ausgabe-pegel";
 import type { Vorlesen } from "@/components/ki/ki-chat-sprache";
@@ -20,11 +20,12 @@ export function istVorlesbar(id: string): boolean {
   return istUuid(id);
 }
 
-/** Gibt es fuer die Systemsprache ueberhaupt eine Stimme? Dieselbe Tabelle
- *  wie auf dem Server (api/ki-sprachausgabe), nur vorab: fehlt eine Stimme,
- *  erscheint erst gar kein Knopf statt eines Fehlers nach dem Klick. */
-export function stimmeVorhanden(oberflaeche: string): boolean {
-  return stimmeFuerOberflaeche(oberflaeche) !== null;
+/** Gibt es fuer diese Sprache ueberhaupt eine Stimme? Fehlt eine, erscheint gar
+ *  kein Knopf statt eines Fehlers nach dem Klick. Der Chat fragt mit der
+ *  Oberflaechensprache, und fuer alle vier gibt es eine; gelesen wird dann in der
+ *  Sprache der Antwort (hatStimme, domain/sprachausgabe.ts). */
+export function stimmeVorhanden(sprache: string): boolean {
+  return hatStimme(sprache);
 }
 
 type Hinweis = { id: string; art: "keineStimme" | "fehler" } | null;

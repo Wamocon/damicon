@@ -10,15 +10,21 @@
 // der Einstellung - und las damit den falschen Text vor.
 //
 // Also wird einmal je Zug entschieden, auf dem Server, und beide richten sich
-// danach:
+// danach (bestimmeAntwortsprache, seit 28.09.2026 in fuenf Schritten):
 //
-//   a) diktiert  -> die Sprache, die Soniox erkannt hat (Mehrheit der Token)
-//   b) getippt   -> die Sprache der Frage, wenn sie eindeutig ist
-//   c) sonst     -> die Oberflaechensprache
+//   a) diktiert       -> die Sprache, die Soniox erkannt hat (Mehrheit der Token)
+//   b) getippt        -> die Sprache der Frage, wenn sie eindeutig ist
+//   c) nicht eindeutig -> die Schrift der Frage zusammen mit dem vorigen Zug
+//   d) ohne Schrift   -> der vorige Zug
+//   e) sonst          -> die Oberflaechensprache
 //
 // Hier steht nur die Entscheidung, ohne Next-Laufzeit: so laesst sie sich fuer
-// alle 16 Kombinationen pruefen. Der Erkenner fuer die Frage wird
-// hereingereicht (erkenneSprache aus lib/text/sprache-erkennen.ts).
+// alle 16 Kombinationen pruefen. Der hereingereichte Erkenner (die Route:
+// erkenneSprache(t, 10)) sagt nur, ob die Frage genug Buchstaben fuer eine
+// Entscheidung hat und welche Schrift sie traegt; OB sie eindeutig ist,
+// entscheiden die Regeln aus lib/text/sprache-erkennen.ts hier (29.09.2026,
+// Cleanup-Fund 42 - bis dahin wurde sein Ergebnis bei Kyrillisch ungeprueft
+// uebernommen, siehe Schritt b).
 //
 // Seit 28.09.2026 faellt die Entscheidung nicht mehr vorschnell auf die
 // Oberflaeche zurueck (Rueckmeldung vom 28.09.2026: Oberflaeche Deutsch,
@@ -31,7 +37,7 @@
 //     Erkennungsschwelle. Ihre Schrift und die Sprache des vorigen Zuges sagen
 //     mehr als die Einstellung.
 
-import { erkenneSprache, erkenneSpracheEindeutig, klareAbweichung, lateinischeSprache, zaehleSchrift } from "@/lib/text/sprache-erkennen";
+import { erkenneSprache, erkenneSpracheEindeutig, kasachischNachweis, klareAbweichung, lateinischeSprache, zaehleSchrift } from "@/lib/text/sprache-erkennen";
 
 export const SPRACHEN = ["de", "en", "ru", "kk"] as const;
 export type Sprache = (typeof SPRACHEN)[number];
@@ -66,10 +72,6 @@ export function mehrheitsSprache(tokenSprachen: ReadonlyArray<string | null | un
   return beste;
 }
 
-/**
- * Die Sprache dieses Zuges. Genau eine Stelle entscheidet das, und beide -
- * die Anweisung ans Modell und die Stimme - bekommen dasselbe Ergebnis.
- */
 /** Kuerzer als das traegt keine Sprachentscheidung - dieselbe Grenze wie bei
  *  einer getippten Frage (siehe unten, "zwei Woerter reichen nicht"). Ohne
  *  sie gewann ein einzelnes, falsch erkanntes Token unwidersprochen: der
@@ -78,6 +80,15 @@ export function mehrheitsSprache(tokenSprachen: ReadonlyArray<string | null | un
  *  und die ganze Antwort - obwohl deutsch gesprochen - kam auf Kasachisch. */
 const MIN_DIKTAT_ZEICHEN = 8;
 
+/**
+ * Die Sprache dieses Zuges. Genau eine Stelle entscheidet das, und beide -
+ * die Anweisung ans Modell und die Stimme - bekommen dasselbe Ergebnis.
+ * Die Schritte a bis e stehen oben im Kopf der Datei.
+ *
+ * @param erkenner Sagt, ob die Frage lang genug fuer eine Entscheidung ist
+ *   (null: nein) und in welcher Schrift sie steht. Die Route reicht
+ *   erkenneSprache(t, 10) herein.
+ */
 export function bestimmeAntwortsprache(
   eingabe: {
     /** Sprachen der Soniox-Token, wenn die Frage diktiert wurde. */
@@ -110,10 +121,22 @@ export function bestimmeAntwortsprache(
   //    eine englische Stimme. Seit Himbi als Tagesbegleiter Rueckfragen stellt,
   //    sind solche kurzen Antworten der Normalfall. Nicht eindeutig: weiter mit
   //    dem vorigen Zug (c, d) und erst dann der Oberflaeche (e).
+  //
+  //    Kyrillisch zaehlt seit 29.09.2026 ebenso nur mit Nachweis (Cleanup-Fund 40):
+  //    Kasachisch nur mit Sonderbuchstaben in mehreren Woertern, Russisch nur ganz
+  //    ohne (kasachischNachweis). Bis dahin galt hier die 1-%-Regel, und ein
+  //    einziger Ortsname entschied - "Сколько клубники отгрузили в Қостанай
+  //    сегодня?" bekam mitten in einem russischen Gespraech eine kasachische
+  //    Antwort, weil dieser Schritt vor dem Verlauf kommt. Ein einzelnes Wort mit
+  //    Sonderbuchstaben ("offen") entscheidet nichts - weder der Ortsname noch das
+  //    "Бүгін" in "Бүгін не бар?" -, dann entscheidet das Gespraech (c).
   const frage = eingabe.frage ?? "";
   const ausFrage = erkenner(frage);
-  const lateinischesErgebnis = ausFrage === "de" || ausFrage === "en";
-  if (istSprache(ausFrage) && (!lateinischesErgebnis || erkenneSpracheEindeutig(frage, 1) === ausFrage)) {
+  const kurz = ausFrage === null;
+  if (ausFrage === "ru" || ausFrage === "kk") {
+    const befund = kasachischNachweis(frage);
+    if (befund !== "offen") return { sprache: befund === "kasachisch" ? "kk" : "ru", herkunft: "frage" };
+  } else if (istSprache(ausFrage) && erkenneSpracheEindeutig(frage, 1) === ausFrage) {
     return { sprache: ausFrage, herkunft: "frage" };
   }
 
@@ -127,10 +150,12 @@ export function bestimmeAntwortsprache(
   const { kyrillisch, lateinisch } = zaehleSchrift(frage);
   if (kyrillisch > lateinisch) {
     if (vorige === "ru" || vorige === "kk") return { sprache: vorige, herkunft: "verlauf" };
-    // Kasachische Sonderbuchstaben ("Иә") entscheiden; sonst Russisch, ausser
-    // die Einstellung ist ohnehin Kasachisch ("Жоқ" hat einen, "Рахмет" keinen).
-    const ausSchrift = erkenneSprache(frage, 1);
-    if (ausSchrift === "kk" || eingabe.oberflaeche === "kk") return { sprache: "kk", herkunft: "schrift" };
+    // Ohne Verlauf: eine Antwort unter der Entscheidungsschwelle ist schon mit einem
+    // Sonderbuchstaben kasachisch ("Иә", "Жоқ"); eine laengere Frage mit nur einem
+    // solchen Wort (dem Ortsnamen) nicht. Sonst Russisch, ausser die Einstellung ist
+    // ohnehin Kasachisch ("Рахмет" hat keinen Sonderbuchstaben).
+    const kasachischeAntwort = kurz && kasachischNachweis(frage) !== "russisch";
+    if (kasachischeAntwort || eingabe.oberflaeche === "kk") return { sprache: "kk", herkunft: "schrift" };
     return { sprache: "ru", herkunft: "schrift" };
   }
   if (lateinisch > kyrillisch) {
@@ -281,12 +306,3 @@ export function sprachePasst(gewuenscht: string, text: string, erkenner: Erkenne
   const kyrillisch = (s: string) => s === "ru" || s === "kk";
   return kyrillisch(gewuenscht) && kyrillisch(erkannt);
 }
-
-/** Die Anweisung ans Modell. Steht hier, damit Test und Laufzeit denselben
- *  Satz sehen. */
-export const SPRACHNAME: Record<Sprache, string> = {
-  de: "Deutsch",
-  en: "English",
-  ru: "Russisch",
-  kk: "Kasachisch",
-};

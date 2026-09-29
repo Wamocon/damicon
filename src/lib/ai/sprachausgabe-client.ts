@@ -163,8 +163,12 @@ export async function oeffneSprachausgabeStromMitRueckfall(
 /** Aktuelles TTS-Modell (Standard im offiziellen SDK seit 11.08.2026). */
 export const SONIOX_TTS_MODELL = "tts-rt-v2";
 
-// Eine Antwort bis MAX_SPRACHAUSGABE_ZEICHEN braucht bei Soniox nur einen
-// Bruchteil ihrer Sprechdauer; 30 s wie bei Sokrates lassen Luft.
+// Deckt bei der Datei (erzeugeMitSoniox) die GANZE Erzeugung, beim Strom nur den
+// Weg bis zur Antwort. Soniox erzeugt ueber REST etwa in Sprechdauer - gemessen in
+// der Gegenpruefung vom 28.09.2026 41 bis 46 ms je Zeichen, nicht "einen Bruchteil",
+// wie es hier bis zum 29.09.2026 stand (Cleanup-Fund 27). 30 s reichen also fuer rund
+// 650 Zeichen; laengere Antworten teilt vorlesePlan (domain/sprachausgabe.ts,
+// VORLESE_BLOCK_ZEICHEN_SONIOX) in Bloecke, die Abschnitte des Live-Wegs sind kuerzer.
 const SONIOX_ZEITLIMIT_MS = 30_000;
 
 /** Adresse der Soniox-Sprachausgabe. Wie bei der Spracherkennung steht keine

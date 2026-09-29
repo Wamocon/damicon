@@ -14,14 +14,20 @@
 //      gleichzeitig; ihr Ton kaeme verschraenkt an und klaenge als Satzsalat
 //      (Pruefung vom 24.09.2026). Text, den der laufende Strom nicht mehr nimmt
 //      (2-Minuten-Grenze, andere Sprache, Strom nach einer Werkzeugpause
-//      beendet), wartet, bis dieser Strom fertig ist. Das haelt auch die
-//      Grenze von 3 gleichzeitigen Stroemen der ganzen Organisation ein.
+//      beendet), wartet, bis dieser Strom fertig ist. Das gilt je Sprecher,
+//      also je Chat und Tab - die Grenze von 3 gleichzeitigen Stroemen gilt
+//      dagegen fuer die ganze Soniox-Organisation, und die haelt diese Regel
+//      NICHT ein (bis zum 29.09.2026 stand hier das Gegenteil, Cleanup-Fund 28).
+//      Lassen mehr als drei Personen oder Tabs zugleich vorlesen, lehnt Soniox
+//      den vierten Strom ab, und dessen Rest geht an den Abschnitts-Weg (Regel 4).
+//      Eine bekannte Kapazitaetsgrenze, kein stiller Fehler.
 //   2. EIN SCHLUESSEL JE STROM, nur gegen Nachweis (api/ki-sprachausgabe/
 //      schluessel). Einer liegt auf Vorrat, damit kein Strom auf seinen
 //      Schluessel warten muss.
 //   3. SOFORT STILL: stopp() bricht den Strom ab (cancel) und stoppt jedes
 //      eingeplante Stueck. Die Verbindung bleibt offen - die naechste Frage
-//      kommt oft gleich und spart sich den Verbindungsaufbau.
+//      kommt oft gleich und spart sich den Verbindungsaufbau. Erst schliesse()
+//      (beim Abbau des Chats) gibt auch sie frei.
 //   4. FEHLER: was noch nicht geklungen hat (geschaetzt aus der Tondauer),
 //      geht in einen neuen Strom (Schluessel abgelaufen, Pausenkuerzung
 //      abgelehnt, 408/413) oder an den bisherigen Weg ueber Abschnitte
@@ -160,8 +166,11 @@ export interface StromSprecher {
   stand(): SprechStand | null;
   /** Kein Text mehr fuer diese Antwort: der laufende Strom wird beendet. */
   ende(): void;
-  /** Sofort still, alles verwerfen. */
+  /** Sofort still, alles verwerfen. Die Verbindung bleibt fuer die naechste Frage offen. */
   stopp(): void;
+  /** Wie stopp(), dazu Verbindung, Keepalive, Aufsicht und Vorrat sofort freigeben -
+   *  fuer den Abbau des Chats. Danach baut der naechste Satz neu auf. */
+  schliesse(): void;
   /** Hat dieser Durchgang aufgegeben? */
   aufgegeben(): boolean;
 }
@@ -188,8 +197,15 @@ type Wartend = { text: string; sprache: string };
 
 // Gemessene Sprechgeschwindigkeit (Zeichen je Sekunde bei Tempo 1), aus jedem
 // fertigen Strom nachgefuehrt und je Tab geteilt: die feste Schaetzung
-// (ZEICHEN_JE_SEKUNDE) trifft je Stimme und Sprache nur grob.
-let gemesseneRate: number | null = null;
+// (ZEICHEN_JE_SEKUNDE) trifft je Stimme und Sprache nur grob. Seit 29.09.2026 je
+// Sprache (Cleanup-Fund 29) - vorher ein Wert fuer alle, und die bedaechtige
+// deutsche Stimme zog das Mitlesen einer russischen Antwort einen Satz zurueck.
+//
+// Nur fuer stand() (was hat der Hoerer GEHOERT, aus dem gespielten Ton). Die
+// Uebergabe an einen Ersatzstrom oder den Rueckfall (ungesprocheneTexte) fragt
+// etwas anderes - wofuer kam schon Ton AN - und bleibt bewusst bei der festen,
+// vorsichtigen Rate: lieber einen Satz doppelt als einen verlieren.
+const gemesseneRaten = new Map<string, number>();
 
 const VERBINDEN_MS = 4_000;
 /** So lange still nach dem letzten Ton: dann gilt alles Uebergebene als gesagt.
@@ -220,6 +236,8 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
   let leerlauf: ReturnType<typeof setTimeout> | undefined;
   let ruhe: ReturnType<typeof setTimeout> | undefined;
   let aufsicht: ReturnType<typeof setInterval> | undefined;
+  // Bricht einen laufenden Verbindungsaufbau ab (verbinde), ohne ihn als Fehler zu zaehlen.
+  let aufbauAbbrechen: (() => void) | null = null;
 
   let nachweis: StromNachweis | null = null;
   let vorrat: Zugang | null = null;
@@ -239,6 +257,7 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
   let fertigSekunden = 0;
   let verlauf: Array<{ anzeige: string; zeichen: number; ziel: GebundenesZiel | null }> = [];
   let letztesTempo = 1;
+  let letzteSprache = "";
   // Seit wann nichts mehr klingt (null: es klingt, oder es hat noch nichts
   // geklungen). Bleibt die Stimme so lange still, ist alles Uebergebene gesagt -
   // auch wenn der Strom fuer den naechsten Satz noch offen ist. Ohne das meldete
@@ -313,6 +332,10 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
     clearInterval(keepalive);
     clearTimeout(leerlauf);
     keepalive = undefined;
+    // Ein Aufbau, der noch laeuft, endet jetzt - sonst lief seine Frist weiter und
+    // zaehlte nach 4 s einen Verbindungsfehler, obwohl hier absichtlich geschlossen wurde.
+    aufbauAbbrechen?.();
+    aufbauAbbrechen = null;
     const alt = ws;
     ws = null;
     wsOeffnet = null;
@@ -341,6 +364,8 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
 
   function planeLeerlauf(): void {
     clearTimeout(leerlauf);
+    // Ohne Verbindung gibt es nichts zu schliessen.
+    if (!ws && !wsOeffnet) return;
     if (aktiv || ausstehend.length > 0 || rundeOffen || arbeitet) return;
     leerlauf = setTimeout(() => {
       if (!aktiv && ausstehend.length === 0 && !rundeOffen && !arbeitet) schliesseVerbindung();
@@ -384,8 +409,16 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
         nein(new Error(grund));
       };
       const frist = setTimeout(() => scheitere("verbinden-zeitueberschreitung"), VERBINDEN_MS);
+      const abbrechen = () => {
+        if (offen || gescheitert) return;
+        gescheitert = true;
+        clearTimeout(frist);
+        nein(new Error("verbindung-geschlossen"));
+      };
+      aufbauAbbrechen = abbrechen;
       socket.onopen = () => {
         offen = true;
+        if (aufbauAbbrechen === abbrechen) aufbauAbbrechen = null;
         clearTimeout(frist);
         verbindungsFehler = 0;
         clearInterval(keepalive);
@@ -430,8 +463,13 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
     if (aktiv) sende(abbruchNachricht(aktiv.id));
     aktiv = null;
     ausstehend = [];
+    // Die Runde ist fuer diesen Sprecher zu Ende: nach der Aufgabe ruft niemand mehr
+    // ende() (live liest der Abschnitts-Weg weiter). Bis zum 29.09.2026 blieb sie offen,
+    // und Verbindung, Keepalive und Aufsicht liefen bis zur naechsten Frage (Cleanup-Fund 31).
+    rundeOffen = false;
     melde();
     rueck.beiAufgabe(grund, ungesprochen);
+    planeLeerlauf();
   }
 
   /** Den laufenden Strom ersetzen: was von ihm noch nicht geklungen hat, kommt
@@ -485,6 +523,7 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
     if (!sende(startNachricht(z.schluessel, id, konfiguration))) return false;
     clearTimeout(leerlauf);
     letztesTempo = konfiguration.speed && konfiguration.speed > 0 ? konfiguration.speed : 1;
+    letzteSprache = sprache;
     aktiv = {
       id,
       sprache,
@@ -647,7 +686,8 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       // Ganzer Strom gehoert: daraus die tatsaechliche Sprechgeschwindigkeit.
       if (aktiv.zeichen >= 60 && aktiv.audioSekunden >= 3) {
         const messwert = aktiv.zeichen / aktiv.audioSekunden / (aktiv.tempo && aktiv.tempo > 0 ? aktiv.tempo : 1);
-        gemesseneRate = gemesseneRate === null ? messwert : (gemesseneRate + messwert) / 2;
+        const bisher = gemesseneRaten.get(aktiv.sprache);
+        gemesseneRaten.set(aktiv.sprache, bisher === undefined ? messwert : (bisher + messwert) / 2);
       }
       aktiv = null;
       melde();
@@ -671,6 +711,39 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
     // Neuer Strom fuer den Rest: Schluessel abgelaufen, Pausenkuerzung
     // abgelehnt, zu lange kein Text (408) oder 2 Minuten erreicht (413).
     ersetzeAktiv(folge);
+  }
+
+  function stopp(): void {
+    durchgang += 1;
+    clearTimeout(ruhe);
+    if (aktiv) sende(abbruchNachricht(aktiv.id));
+    aktiv = null;
+    ausstehend = [];
+    rundeOffen = false;
+    arbeitet = false;
+    hatAufgegeben = false;
+    ersetzt = 0;
+    for (const q of geplant) {
+      q.onended = null;
+      try {
+        q.stop();
+      } catch {
+        // schon gestoppt
+      }
+    }
+    geplant.clear();
+    startZeiten.clear();
+    fertigSekunden = 0;
+    verlauf = [];
+    stillSeit = null;
+    saetzeBeiStille = 0;
+    anker = { index: 0, sekunden: 0 };
+    letzterStrom = null;
+    zeitEnde = 0;
+    vorlauf = aussetzerInRunde ? vorlauf : Math.max(STROM_VORLAUF_S, vorlauf / 2);
+    aussetzerInRunde = false;
+    melde();
+    planeLeerlauf();
   }
 
   return {
@@ -698,37 +771,19 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       planeLeerlauf();
     },
 
-    stopp() {
-      durchgang += 1;
-      clearTimeout(ruhe);
-      if (aktiv) sende(abbruchNachricht(aktiv.id));
-      aktiv = null;
-      ausstehend = [];
-      rundeOffen = false;
-      arbeitet = false;
-      hatAufgegeben = false;
-      ersetzt = 0;
-      for (const q of geplant) {
-        q.onended = null;
-        try {
-          q.stop();
-        } catch {
-          // schon gestoppt
-        }
-      }
-      geplant.clear();
-      startZeiten.clear();
-      fertigSekunden = 0;
-      verlauf = [];
-      stillSeit = null;
-      saetzeBeiStille = 0;
-      anker = { index: 0, sekunden: 0 };
-      letzterStrom = null;
-      zeitEnde = 0;
-      vorlauf = aussetzerInRunde ? vorlauf : Math.max(STROM_VORLAUF_S, vorlauf / 2);
-      aussetzerInRunde = false;
-      melde();
-      planeLeerlauf();
+    stopp,
+
+    // Seit 29.09.2026 (Cleanup-Fund 31): vorher gab es nur stopp(), und nach dem Abbau
+    // des Chats liefen Verbindung und Keepalive bis zum Leerlauf (20 s), die Aufsicht
+    // alle 2 s weiter.
+    schliesse() {
+      stopp();
+      clearInterval(aufsicht);
+      aufsicht = undefined;
+      schliesseVerbindung();
+      nachweis = null;
+      vorrat = null;
+      vorratUnterwegs = null;
     },
 
     stand() {
@@ -750,7 +805,8 @@ export function erzeugeStromSprecher(kontext: () => AudioContext | null, rueck: 
       // Ab dem letzten festen Punkt schaetzen, nicht vom Anfang der Runde.
       const laengen = verlauf.map((v) => v.zeichen);
       const vorAnker = laengen.slice(0, anker.index).reduce((summe, n) => summe + n, 0);
-      const position = vorAnker + Math.max(0, gespielt - anker.sekunden) * (gemesseneRate ?? ZEICHEN_JE_SEKUNDE) * letztesTempo;
+      const rate = gemesseneRaten.get(letzteSprache) ?? ZEICHEN_JE_SEKUNDE;
+      const position = vorAnker + Math.max(0, gespielt - anker.sekunden) * rate * letztesTempo;
       const index = Math.max(Math.min(anker.index, anzahl - 1), satzBeiPosition(laengen, position));
       return { index, anzahl, satz: verlauf[index]?.anzeige ?? null, ziel: verlauf[index]?.ziel ?? null, vorher: verlauf[index - 1]?.anzeige ?? null };
     },

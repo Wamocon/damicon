@@ -17,10 +17,15 @@
 // kurzen Hinweis in der Sprache der Antwort direkt an der Frage (siehe
 // spracheErinnerung), weil er dort am naechsten am Modell steht.
 //
-// Reine Funktionen ohne Importe, damit supabase/tests/ki-assistent.mjs sie mit
-// blossem Node pruefen kann.
+// Reine Funktionen ohne Laufzeit-Importe, damit supabase/tests/ki-assistent.mjs sie
+// mit blossem Node pruefen kann. Ein Typ-Import verschwindet beim Laden (Node
+// entfernt `import type` wie jede Typangabe).
 
-export type AntwortSprache = "de" | "en" | "ru" | "kk";
+import type { Sprache } from "@/lib/domain/antwortsprache";
+
+/** Dieselben vier Sprachen wie die Antwortsprache - bis zum 29.09.2026 hier noch
+ *  einmal von Hand aufgezaehlt (Cleanup-Fund 43). */
+export type AntwortSprache = Sprache;
 
 /** Name der Sprache, wie er im deutschen Prompt steht. */
 const NAME: Record<AntwortSprache, string> = {

@@ -27,8 +27,7 @@
 // nichts mehr (durchgang).
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { erzeugeWarteschlange, type Warteschlange } from "@/lib/domain/sprachausgabe-warteschlange";
-import { istSprachausgabeSprache, saetzeAusAntwort, sprechfassung } from "@/lib/domain/sprachausgabe";
-import { fuerSprache } from "@/lib/text/umlaute";
+import { saetzeAusAntwort, zumSprechen } from "@/lib/domain/sprachausgabe";
 import { sprachenFuerSaetze } from "@/lib/text/sprache-erkennen";
 import { ausgangFuer } from "@/lib/ausgabe-pegel";
 import type { VorlesePhase } from "@/lib/domain/vorlesen-zustand";
@@ -51,13 +50,6 @@ export type LiveAbschnitt = {
 export type ZugNachweis = { zug: string; ablauf: number; sig: string };
 export type { VorlesePhase };
 
-/** Der Text, wie ihn die Stimme bekommt - dieselbe Aufbereitung wie die Route
- *  (api/ki-sprachausgabe, zumSprechen): Umlaute auf Deutsch, Symbole und
- *  Tausendertrennung als Worte. Im Strom geschieht das hier im Browser. */
-export function zumSprechen(text: string, sprache: string): string {
-  return istSprachausgabeSprache(sprache) ? sprechfassung(fuerSprache(text, sprache), sprache) : text;
-}
-
 export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOhneStrom?: (id: string, rest?: number) => void } = {}) {
   const [stromZustand, setStromZustand] = useState<StromZustand>({ laedt: false, spricht: false });
   const [abschnittSpricht, setAbschnittSpricht] = useState(false);
@@ -74,8 +66,9 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
   // Strom gingen, ihre Stelle unter allen Saetzen (saetzeAusAntwort) und wie
   // viele das insgesamt waren - fuer den Rest im Datei-Weg (beiAufgabe).
   const nachricht = useRef<{ id: string; saetze: number; stellen: number[]; gesamt: number } | null>(null);
-  // Der Datei-Weg fuer den Rest, sobald der eingeplante Ton des Stroms verklungen
-  // ist - sonst spraechen kurz zwei Stimmen.
+  // Was nach einer Aufgabe des Stroms den Rest liest (am Knopf der Datei-Weg, live die
+  // Abschnitte), sobald der eingeplante Ton des Stroms verklungen ist - sonst spraechen
+  // zwei Stimmen gleichzeitig.
   const nachholen = useRef<(() => void) | null>(null);
   const stromSpricht = useRef(false);
   const sprecher = useRef<StromSprecher | null>(null);
@@ -194,12 +187,32 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
     setStromZustand({ laedt: false, spricht: false });
   }, []);
 
-  useEffect(() => () => stoppeAlles(), [stoppeAlles]);
+  // Beim Abbau alles freigeben: stoppeAlles() haelt nur an und laesst die Verbindung des
+  // Strom-Sprechers fuer die naechste Frage offen. Bis zum 29.09.2026 blieb deshalb nach dem
+  // Abbau die Verbindung samt Keepalive bis zum Leerlauf offen, die Aufsicht tickte, und der
+  // AudioContext wurde nie geschlossen (Cleanup-Fund 31). Die Refs werden geleert, damit ein
+  // erneutes Einhaengen (React StrictMode) neu aufbaut statt einen geschlossenen Kontext zu nutzen.
+  useEffect(
+    () => () => {
+      stoppeAlles();
+      sprecher.current?.schliesse();
+      sprecher.current = null;
+      const ctx = kontext.current;
+      kontext.current = null;
+      void ctx?.close().catch(() => {});
+    },
+    [stoppeAlles],
+  );
 
   /** Der naechste fertige Abschnitt, genau dann, wenn der vorige endet. */
   const spieleWeiter = useCallback(() => {
     const w = schlange();
     const meinDurchgang = durchgang.current;
+    // Klingt noch eingeplanter Ton des Stroms (er hat live aufgegeben, der Rest kam
+    // hierher), wartet der Abschnitt: beiAufgabe setzt dann nachholen, und es geht
+    // weiter, sobald der Strom verklungen ist. Bis zum 29.09.2026 sprachen beide Stimmen
+    // bis zu mehrere Sekunden gleichzeitig (Cleanup-Fund 30); der Knopf-Weg wartete schon.
+    if (stromSpricht.current) return aktualisiereAbschnitte();
 
     // Rueckfall: ein <audio>-Element, ein Abschnitt nach dem anderen.
     if (!hatWebAudio.current) {
@@ -360,15 +373,23 @@ export function useLiveSprachausgabe({ beiNachrichtOhneStrom }: { beiNachrichtOh
           else lies();
           return;
         }
-        // Live: der Rest der Runde als signierte Abschnitte.
+        // Live: der Rest der Runde als signierte Abschnitte. Sie werden sofort eingestellt
+        // (geholt wird gleich, und neue Abschnitte aus dem Stream reihen sich dahinter),
+        // gespielt aber erst, wenn der Strom verklungen ist (spieleWeiter).
         weg.current = "abschnitte";
         const rest = anDenStrom.current.slice(Math.max(0, anDenStrom.current.length - ungesprochen));
         anDenStrom.current = [];
         for (const { a, sprache } of rest) stelleAbschnittEin(a, sprache);
+        if (stromSpricht.current) {
+          const meinDurchgang = durchgang.current;
+          nachholen.current = () => {
+            if (meinDurchgang === durchgang.current) spieleWeiter();
+          };
+        }
       },
     });
     return sprecher.current;
-  }, [stelleAbschnittEin]);
+  }, [stelleAbschnittEin, spieleWeiter]);
 
   /** Eine neue Runde (neue Nutzerfrage): alles Alte verstummt. */
   const neueRunde = useCallback(() => {

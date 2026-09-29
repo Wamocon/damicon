@@ -26,6 +26,7 @@
 
 import { readFileSync } from "node:fs";
 import { register } from "node:module";
+import { erzeugeAudioKontext, erzeugeFakeWS, pcm, warte } from "./hilfen/attrappen.mjs";
 
 // Die Module importieren ihre Nachbarn ueber den Alias "@/..." (wie Next).
 register(new URL("./hilfen/alias-lader.mjs", import.meta.url), { data: { src: new URL("../../src/", import.meta.url).href } });
@@ -34,7 +35,20 @@ const erk = await import("../../src/lib/text/sprache-erkennen.ts");
 const chunker = await import("../../src/lib/wissen/chunker.ts");
 const { bestimmeAntwortsprache, vorleseSprache, zugAusNachrichten } = await import("../../src/lib/domain/antwortsprache.ts");
 const { erzeugeSatzZerleger, saetzeAusAntwort } = await import("../../src/lib/domain/sprachausgabe.ts");
-const { satzSprache, ueberwiegendeSchrift, erkenneSprache, erkenneSpracheEindeutig } = erk;
+const { satzSprache, ueberwiegendeSchrift, erkenneSprache, erkenneSpracheEindeutig, sprachenFuerSaetze, erzeugeSprachFolge } = erk;
+
+// Die Uebersetzungsliste aus Fund 2 (28.09.2026): sieben Satzpaare de/ru. Der Strom-Durchlauf (6)
+// und die Sprachfolge (7) pruefen dieselbe Liste - bis zum 29.09.2026 stand sie zweimal hier.
+const UEBERSETZUNG_PAARE = [
+  ["Die Lieferung kommt morgen früh an.", "Поставка прибудет завтра утром."],
+  ["Die Brigade beginnt um sieben Uhr.", "Бригада начинает работу в семь часов."],
+  ["Die Kühlkette wird heute geprüft.", "Холодовая цепь проверяется сегодня."],
+  ["Die Löhne werden am Freitag gezahlt.", "Зарплата выплачивается в пятницу."],
+  ["Der Bericht ist bis Montag fällig.", "Отчёт нужно сдать до понедельника."],
+  ["Die Pflücker bekommen neue Kisten.", "Сборщики получают новые ящики."],
+  ["Die Waage wird morgen geeicht.", "Весы будут поверены завтра."],
+];
+const UEBERSETZUNG = "Hier die Übersetzung:\n\n" + UEBERSETZUNG_PAARE.map(([d, r], i) => `${i + 1}. ${d} ${r}`).join("\n");
 
 let bestanden = 0;
 let fehlgeschlagen = 0;
@@ -66,6 +80,10 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
 
 // --- 1. satzSprache: die Stimme je Satz --------------------------------------
 {
+  const zaehle = (text) => {
+    const { kyrillisch, lateinisch } = erk.zaehleSchrift(text);
+    return kyrillisch + lateinisch;
+  };
   const RU = "Налог уплачивается ежемесячно до двадцать пятого числа.";
   const KK = "Салық айдың жиырма бесінші күніне дейін төленеді.";
   const DE = "Die Lieferung ist heute angekommen und wird gerade geprüft.";
@@ -84,8 +102,16 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
   pruefe("satzSprache: ru-Zug + russischer Satz mit kasachischem Ortsnamen bleibt ru", satzSprache("Поставка из Қостанай прибыла сегодня утром.", "ru") === "ru");
   pruefe("satzSprache: de-Zug + langer, eindeutig englischer Satz -> en", satzSprache(EN, "de") === "en");
   pruefe("satzSprache: en-Zug + langer, eindeutig deutscher Satz -> de", satzSprache(DE, "en") === "de");
-  pruefe("satzSprache: de-Zug + kurzer englischer Satz bleibt de", satzSprache("Please call me back.", "de") === "de");
   pruefe("satzSprache: de-Zug + 'Rufen Sie an.'-Fall bleibt de", satzSprache("Rufen Sie bitte heute noch den Lieferanten an.", "de") === "de");
+
+  // Die Schwellen selbst, je ein Satz knapp darunter und einer genau darauf (Cleanup-Fund 92,
+  // 29.09.2026). Vorher lagen die kuerzesten Proben bei 7 und 16 Buchstaben: SATZ_MINDEST_BUCHSTABEN
+  // liess sich zwischen 9 und 16, WECHSEL_LATEINISCH_BUCHSTABEN zwischen 17 und 45 verschieben,
+  // ohne dass eine Pruefung anschlug.
+  pruefe("Schwelle 12: ein russischer Satz mit 11 Buchstaben im de-Zug bleibt de", zaehle("Да, спасибо, ок.") === 11 && satzSprache("Да, спасибо, ок.", "de") === "de");
+  pruefe("Schwelle 12: mit 12 Buchstaben wechselt er nach ru", zaehle("Верно, спасибо.") === 12 && satzSprache("Верно, спасибо.", "de") === "ru");
+  pruefe("Schwelle 40: ein eindeutig englischer Satz mit 39 Buchstaben im de-Zug bleibt de", zaehle("Please send me all the new reports for this week.") === 39 && satzSprache("Please send me all the new reports for this week.", "de") === "de");
+  pruefe("Schwelle 40: mit 40 Buchstaben wechselt er nach en", zaehle("Please send me all the new reports for this month.") === 40 && satzSprache("Please send me all the new reports for this month.", "de") === "en");
 
   // ru-Zug + lateinischer Satz: nur bei sicherer Erkennung.
   pruefe("satzSprache: ru-Zug + eindeutig deutscher Satz -> de", satzSprache(DE, "ru") === "de", satzSprache(DE, "ru"));
@@ -104,7 +130,7 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
   pruefe("satzSprache: Himbi in einem deutschen Satz im de-Zug bleibt de", satzSprache("Himbi hilft Ihnen heute beim Planen.", "de") === "de");
 
   // Kurze Saetze entscheiden nichts.
-  pruefe("satzSprache: kurzer russischer Satz im de-Zug bleibt de (unter 12 Buchstaben)", satzSprache("Да, верно.", "de") === "de");
+  pruefe("satzSprache: kurzer russischer Satz im de-Zug bleibt de (7 Buchstaben)", satzSprache("Да, верно.", "de") === "de");
   pruefe("satzSprache: kurzer deutscher Satz im ru-Zug bleibt ru", satzSprache("Ja, genau.", "ru") === "ru");
   pruefe("satzSprache: leerer Text bleibt beim Zug", satzSprache("", "kk") === "kk");
 
@@ -278,56 +304,13 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
 }
 
 // --- 6. Der Strom wechselt die Sprache ---------------------------------------
-//     Nachgebauter WebSocket und AudioContext, wie der Strom-Durchlauf in
-//     ki-assistent.mjs. Der Sprecher selbst bleibt unveraendert: pumpe() beendet
-//     bei anderer Sprache den laufenden Strom und oeffnet nach terminated einen neuen.
+//     Nachgebauter WebSocket und AudioContext aus hilfen/attrappen.mjs, dieselben wie
+//     im Strom-Durchlauf von ki-assistent.mjs. Der Sprecher selbst bleibt unveraendert:
+//     pumpe() beendet bei anderer Sprache den laufenden Strom und oeffnet nach
+//     terminated einen neuen.
 {
-  const warte = (ms = 15) => new Promise((r) => setTimeout(r, ms));
-  class FakeWS {
-    static OPEN = 1;
-    static alle = [];
-    constructor(url) {
-      this.url = url;
-      this.readyState = 0;
-      this.gesendet = [];
-      FakeWS.alle.push(this);
-      setTimeout(() => {
-        this.readyState = 1;
-        this.onopen?.();
-      }, 1);
-    }
-    send(d) {
-      this.gesendet.push(JSON.parse(d));
-    }
-    close() {
-      this.readyState = 3;
-      this.geschlossen = true;
-    }
-    empfange(obj) {
-      this.onmessage?.({ data: JSON.stringify(obj) });
-    }
-    starts() {
-      return this.gesendet.filter((n) => n.api_key);
-    }
-  }
-  const quellen = [];
-  const ctx = {
-    currentTime: 0,
-    state: "running",
-    destination: {},
-    resume: async () => {},
-    createGain: () => ({ connect() {} }),
-    createAnalyser: () => ({ connect() {}, getByteTimeDomainData() {} }),
-    createBuffer: (_k, n, rate) => {
-      const d = new Float32Array(n);
-      return { duration: n / rate, getChannelData: () => d };
-    },
-    createBufferSource: () => {
-      const q = { connect() {}, start(t) { q.startZeit = t; }, stop() { q.gestoppt = true; } };
-      quellen.push(q);
-      return q;
-    },
-  };
+  const FakeWS = erzeugeFakeWS();
+  const { ctx } = erzeugeAudioKontext();
   const alt = { ws: globalThis.WebSocket, fetch: globalThis.fetch };
   const konfigurationen = {
     de: { model: "tts-rt-v2", language: "de", voice: "Lena", audio_format: "pcm_s16le", sample_rate: 24000, speed: 1.2 },
@@ -345,7 +328,6 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
       headers: { "content-type": "application/json" },
     });
   };
-  const pcm = (n) => btoa(String.fromCharCode(...new Uint8Array(n * 2)));
   try {
     const modul = await import("../../src/components/ki/sprachausgabe-strom.ts?fall=stimme-sprache");
     const aufgaben = [];
@@ -380,21 +362,9 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
     // Fund 2 (28.09.2026): eine Uebersetzungsliste mit sieben Satzpaaren kostete
     // 14 Stroeme und 14 Schluessel - die Grenze liegt bei 12 je Minute. Mit der
     // Folge (sprachenFuerSaetze) hoechstens 5.
-    if (typeof erk.sprachenFuerSaetze === "function") {
-      const { saetzeAusAntwort: zerlege } = await import("../../src/lib/domain/sprachausgabe.ts");
-      const liste =
-        "Hier die Übersetzung:\n\n" +
-        [
-          "Die Lieferung kommt morgen früh an. Поставка прибудет завтра утром.",
-          "Die Brigade beginnt um sieben Uhr. Бригада начинает работу в семь часов.",
-          "Die Kühlkette wird heute geprüft. Холодовая цепь проверяется сегодня.",
-          "Die Löhne werden am Freitag gezahlt. Зарплата выплачивается в пятницу.",
-          "Der Bericht ist bis Montag fällig. Отчёт нужно сдать до понедельника.",
-          "Die Pflücker bekommen neue Kisten. Сборщики получают новые ящики.",
-          "Die Waage wird morgen geeicht. Весы будут поверены завтра.",
-        ].map((z, i) => `${i + 1}. ${z}`).join("\n");
-      const saetze = zerlege(liste);
-      const sprachen = erk.sprachenFuerSaetze(saetze, "de");
+    {
+      const saetze = saetzeAusAntwort(UEBERSETZUNG);
+      const sprachen = sprachenFuerSaetze(saetze, "de");
       const aufgaben2 = [];
       const s2 = modul.erzeugeStromSprecher(() => ctx, { beiZustand: () => {}, beiAufgabe: (grund, n) => aufgaben2.push({ grund, n }) });
       const abrufeVorher = abrufe.length;
@@ -418,7 +388,7 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
       pruefe("Fund 2: sieben Satzpaare de/ru im Strom kosten hoechstens 5 Schluessel (vorher 14)", schluessel <= 5 && schluessel >= 2, `${schluessel} Schluessel, ${beendet.size} Stroeme`);
       pruefe("Fund 2: ... und der Strom gibt dabei nicht auf", aufgaben2.length === 0, JSON.stringify(aufgaben2));
       s2.stopp();
-    } else pruefe("Fund 2: sprachenFuerSaetze gibt es (Strom)", false);
+    }
   } finally {
     globalThis.WebSocket = alt.ws;
     globalThis.fetch = alt.fetch;
@@ -426,15 +396,10 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
 }
 
 // --- 7. Funde der Gegenpruefung vom 28.09.2026 ------------------------------
-//     Jeder Block zeigt einen bestaetigten Fund. Die neuen Funktionen werden nur
-//     aufgerufen, wenn es sie gibt: fehlen sie, schlaegt die Pruefung fehl, statt
-//     dass die ganze Datei abbricht.
+//     Jeder Block zeigt einen bestaetigten Fund.
 {
   const sa = await import("../../src/lib/domain/sprachausgabe.ts");
-  const fn = (modul, name) => (typeof modul[name] === "function" ? modul[name] : null);
-  const sprachenFuerSaetze = fn(erk, "sprachenFuerSaetze");
-  const erzeugeSprachFolge = fn(erk, "erzeugeSprachFolge");
-  const vorlesePlan = fn(sa, "vorlesePlan");
+  const { vorlesePlan } = sa;
   const wechsel = (sprachen) => sprachen.slice(1).filter((s, i) => s !== sprachen[i]).length;
   const erkenner = (t) => erkenneSprache(t, 10);
   const verlaufsErkenner = (t) => erkenneSpracheEindeutig(t, 40);
@@ -480,7 +445,7 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
     pruefe("Fund 3: Knopf, Metadaten ru, kurzer Text -> Metadaten", vorleseSprache("ru", "Erledigt, danke.", "de") === "ru");
     const EN_SATZ = "Please confirm the delivery of the raspberries for tomorrow morning.";
     pruefe("Fund 3: de-Zug, langer eindeutig englischer Satz -> en", satzSprache(EN_SATZ, "de") === "en", satzSprache(EN_SATZ, "de"));
-    pruefe("Fund 3: de-Zug, kurzer englischer Satz bleibt de (unter 40 Buchstaben)", satzSprache("Please call me back.", "de") === "de");
+    pruefe("Fund 3: de-Zug, kurzer englischer Satz bleibt de (16 Buchstaben, die Grenze selbst pruefen die Schwellen-Paare oben)", satzSprache("Please call me back.", "de") === "de");
     pruefe("Fund 3: en-Zug, langer eindeutig deutscher Satz -> de", satzSprache("Bitte bestätigen Sie die Lieferung der Himbeeren für morgen früh.", "en") === "de");
     pruefe("Fund 3: ru-Zug, kasachischer Satz mit robustem Nachweis -> kk", satzSprache("Салық айдың жиырма бесінші күніне дейін төленеді.", "ru") === "kk");
     const RU_LANG = "Налог уплачивается ежемесячно до двадцать пятого числа, отчёт подаётся вместе с платежом.";
@@ -488,11 +453,9 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
     pruefe("Fund 3: kk-Zug, kurzer russischer Satz bleibt kk (unter 60 Buchstaben)", satzSprache("Налог уплачивается ежемесячно до двадцать пятого числа.", "kk") === "kk");
     const gemischt = "Gern, hier ist der Entwurf für die Mail:\n\nDear supplier, please confirm the delivery of 1100 kilograms of raspberries for tomorrow morning. We will pick them up at the gate.\n\nSoll ich die Mail so abschicken?";
     pruefe("Fund 3: gemischte Antwort (deutsche Einleitung, englische Mail) behaelt die Metadaten", vorleseSprache("de", gemischt, "de") === "de");
-    if (sprachenFuerSaetze) {
-      const saetze = sa.saetzeAusAntwort(gemischt);
-      const sprachen = sprachenFuerSaetze(saetze, "de");
-      pruefe("Fund 3: ... und je Satz: Einleitung de, Mail en, Rueckfrage de", sprachen[0] === "de" && sprachen.includes("en") && sprachen.at(-1) === "de" && wechsel(sprachen) === 2, JSON.stringify(sprachen));
-    } else pruefe("Fund 3: sprachenFuerSaetze gibt es", false);
+    const saetze = sa.saetzeAusAntwort(gemischt);
+    const sprachen = sprachenFuerSaetze(saetze, "de");
+    pruefe("Fund 3: ... und je Satz: Einleitung de, Mail en, Rueckfrage de", sprachen[0] === "de" && sprachen.includes("en") && sprachen.at(-1) === "de" && wechsel(sprachen) === 2, JSON.stringify(sprachen));
   }
 
   // Fund 4: ein einzelner kasachischer Ortsname machte einen russischen Satz kasachisch.
@@ -507,6 +470,54 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
     pruefe("Fund 4: Erkennung eindeutig: ein Ortsname ist kein Kasachisch", erkenneSpracheEindeutig(RU_ANTWORT, 40) === "ru");
   }
 
+  // Cleanup-Funde 40/41 (29.09.2026): die Stimme hielt sich seit Fund 4 an die robuste Regel, die
+  // Antwortsprache nicht. Eine getippte russische Frage mit einem kasachischen Ortsnamen bekam eine
+  // kasachische Antwort - sogar mitten in einem russischen Gespraech, weil die Frage vor dem Verlauf
+  // entscheidet. Jetzt gilt EINE Regel (kasachischNachweis in lib/text/sprache-erkennen.ts).
+  {
+    const RU_VERLAUF = [
+      { rolle: "user", text: "Какие поставки пришли сегодня утром?" },
+      { rolle: "assistant", text: "Сегодня утром пришли две поставки, всего 1600 килограммов.", sprache: "ru" },
+    ];
+    const KK_VERLAUF = [
+      { rolle: "user", text: "Бүгін қандай жеткізілімдер келді?" },
+      { rolle: "assistant", text: "Бүгін таңертең екі жеткізілім келді, барлығы 1600 килограмм.", sprache: "kk" },
+    ];
+    for (const [frage, oberflaeche, verlauf] of [
+      ["Сколько клубники отгрузили в Қостанай сегодня?", "de", RU_VERLAUF],
+      ["Поставка прибыла в Қостанай вчера вечером.", "de", []],
+      ["Покажи задачи бригады Қызылжар на сегодня", "ru", []],
+      ["Отправьте отчёт в Өскемен до пятницы, пожалуйста.", "en", []],
+      ["Поставка прибыла в Қостанай вчера вечером.", "kk", RU_VERLAUF],
+    ]) {
+      const r = bestimme([...verlauf, { rolle: "user", text: frage }], oberflaeche);
+      pruefe(`Fund 40: russische Frage mit kasachischem Ortsnamen -> ru ('${frage.slice(0, 32)}...', Oberflaeche ${oberflaeche}, ${verlauf.length ? "mit" : "ohne"} Verlauf)`, r.sprache === "ru", `${r.sprache} (${r.herkunft})`);
+    }
+    // Die Gegenrichtung bleibt: echtes Kasachisch wird kasachisch beantwortet.
+    const kkFrage = bestimme([{ rolle: "user", text: "Алматыдан жеткізілім қашан келді?" }], "ru");
+    pruefe("Fund 40: eine kasachische Frage (Sonderbuchstaben in mehreren Woertern) -> kk, auch bei russischer Oberflaeche", kkFrage.sprache === "kk" && kkFrage.herkunft === "frage", `${kkFrage.sprache} (${kkFrage.herkunft})`);
+    // Ein einziges Wort mit Sonderbuchstaben entscheidet nichts - weder fuer kk (der Ortsname) noch
+    // gegen kk: eine kurze kasachische Frage mit nur einem solchen Wort folgt dem Gespraech.
+    const kurzKk = bestimme([...KK_VERLAUF, { rolle: "user", text: "Бүгін не бар?" }], "ru");
+    pruefe("Fund 40: eine kurze kasachische Frage mit nur einem Merkwort bleibt im kasachischen Gespraech kk", kurzKk.sprache === "kk" && kurzKk.herkunft === "verlauf", `${kurzKk.sprache} (${kurzKk.herkunft})`);
+    const ieOhne = bestimme([{ rolle: "user", text: "Жоқ" }], "de");
+    pruefe("Fund 40: kurze Antworten unter der Entscheidungsschwelle ('Жоқ') bleiben ohne Verlauf kk", ieOhne.sprache === "kk" && ieOhne.herkunft === "schrift", `${ieOhne.sprache} (${ieOhne.herkunft})`);
+    // Die Regel selbst, an ihrer einen Stelle.
+    const { kasachischNachweis } = erk;
+    pruefe(
+      "Fund 41: kasachischNachweis - Ortsname offen, mehrere Merkwoerter kasachisch, keine Sonderbuchstaben russisch",
+      typeof kasachischNachweis === "function" &&
+        kasachischNachweis("Поставка прибыла в Қостанай вчера вечером.") === "offen" &&
+        kasachischNachweis("Алматыдан жеткізілім қашан келді?") === "kasachisch" &&
+        kasachischNachweis("Когда прибыла поставка из Алматы?") === "russisch" &&
+        kasachischNachweis("Иә") === "offen",
+    );
+    pruefe(
+      "Fund 41: dieselbe Regel in allen Erkennern - ein Ortsname macht keinen Text kasachisch, auch nicht den groben",
+      erkenneSprache("Поставка прибыла в Қостанай вчера вечером.", 10) === "ru" && erkenneSpracheEindeutig("Поставка прибыла в Қостанай вчера вечером.", 10) === "ru",
+    );
+  }
+
   // Fund 5: lateinischer Satz im ru-Zug, "an" machte deutschen Text englisch, ein Umlaut Namenslisten deutsch.
   {
     pruefe("Fund 5: 'an' macht einen deutschen Satz nicht englisch", satzSprache("Сегодня: Lieferung Polka 1100 kg an Kunde Frische GmbH.", "ru") !== "en", satzSprache("Сегодня: Lieferung Polka 1100 kg an Kunde Frische GmbH.", "ru"));
@@ -516,30 +527,18 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
 
   // Fund 2: jeder Schriftwechsel kostete einen Strom und einen Schluessel (12 je Minute).
   {
-    const paare = [
-      ["Die Lieferung kommt morgen früh an.", "Поставка прибудет завтра утром."],
-      ["Die Brigade beginnt um sieben Uhr.", "Бригада начинает работу в семь часов."],
-      ["Die Kühlkette wird heute geprüft.", "Холодовая цепь проверяется сегодня."],
-      ["Die Löhne werden am Freitag gezahlt.", "Зарплата выплачивается в пятницу."],
-      ["Der Bericht ist bis Montag fällig.", "Отчёт нужно сдать до понедельника."],
-      ["Die Pflücker bekommen neue Kisten.", "Сборщики получают новые ящики."],
-      ["Die Waage wird morgen geeicht.", "Весы будут поверены завтра."],
-    ];
-    const text = "Hier die Übersetzung:\n\n" + paare.map(([d, r], i) => `${i + 1}. ${d} ${r}`).join("\n");
-    const saetze = sa.saetzeAusAntwort(text);
-    if (sprachenFuerSaetze && erzeugeSprachFolge) {
-      const sprachen = sprachenFuerSaetze(saetze, "de");
-      pruefe("Fund 2: hoechstens 4 Sprachwechsel je Antwort (statt 14)", wechsel(sprachen) <= 4, `${wechsel(sprachen)} Wechsel: ${sprachen.join(",")}`);
-      pruefe("Fund 2: bis zur Grenze wechselt die Stimme mit der Schrift", sprachen.includes("ru") && sprachen[0] === "de");
-      const folge = erzeugeSprachFolge("de");
-      const schrittweise = saetze.map((s) => folge.naechste(s));
-      pruefe("Fund 2: dieselbe Vergabe im Server-Weg (Satz fuer Satz) wie im Knopf-Weg (alle auf einmal)", JSON.stringify(schrittweise) === JSON.stringify(sprachen));
-      const einschub = sprachenFuerSaetze(["Налог уплачивается ежемесячно до двадцать пятого числа.", "1600 кг.", "Срок уплаты продлевается только в особых случаях."], "de");
-      pruefe("Fund 2: ein kurzer Einschub zwischen zwei russischen Saetzen wird russisch (kein Wechsel)", einschub.every((s) => s === "ru"), einschub.join(","));
-      const kurzLatein = sprachenFuerSaetze(["Налог уплачивается ежемесячно до двадцать пятого числа.", "OK.", "Срок уплаты продлевается только в особых случаях."], "ru");
-      pruefe("Fund 2: ein 'OK.' im ru-Zug schaltet nicht um", kurzLatein.every((s) => s === "ru"));
-      pruefe("Fund 2: satzSprache und die Folge sind sich fuer einen einzelnen Satz einig", sprachenFuerSaetze(["Поставка прибыла в Қостанай вчера вечером."], "de")[0] === satzSprache("Поставка прибыла в Қостанай вчера вечером.", "de"));
-    } else pruefe("Fund 2: sprachenFuerSaetze und erzeugeSprachFolge gibt es", false);
+    const saetze = sa.saetzeAusAntwort(UEBERSETZUNG);
+    const sprachen = sprachenFuerSaetze(saetze, "de");
+    pruefe("Fund 2: hoechstens 4 Sprachwechsel je Antwort (statt 14)", wechsel(sprachen) <= 4, `${wechsel(sprachen)} Wechsel: ${sprachen.join(",")}`);
+    pruefe("Fund 2: bis zur Grenze wechselt die Stimme mit der Schrift", sprachen.includes("ru") && sprachen[0] === "de");
+    const folge = erzeugeSprachFolge("de");
+    const schrittweise = saetze.map((s) => folge.naechste(s));
+    pruefe("Fund 2: dieselbe Vergabe im Server-Weg (Satz fuer Satz) wie im Knopf-Weg (alle auf einmal)", JSON.stringify(schrittweise) === JSON.stringify(sprachen));
+    const einschub = sprachenFuerSaetze(["Налог уплачивается ежемесячно до двадцать пятого числа.", "1600 кг.", "Срок уплаты продлевается только в особых случаях."], "de");
+    pruefe("Fund 2: ein kurzer Einschub zwischen zwei russischen Saetzen wird russisch (kein Wechsel)", einschub.every((s) => s === "ru"), einschub.join(","));
+    const kurzLatein = sprachenFuerSaetze(["Налог уплачивается ежемесячно до двадцать пятого числа.", "OK.", "Срок уплаты продлевается только в особых случаях."], "ru");
+    pruefe("Fund 2: ein 'OK.' im ru-Zug schaltet nicht um", kurzLatein.every((s) => s === "ru"));
+    pruefe("Fund 2: satzSprache und die Folge sind sich fuer einen einzelnen Satz einig", sprachenFuerSaetze(["Поставка прибыла в Қостанай вчера вечером."], "de")[0] === satzSprache("Поставка прибыла в Қостанай вчера вечером.", "de"));
     const route = quelle("src/app/api/ki-assistent/route.ts");
     pruefe("Fund 2: die Route vergibt die Sprache je data-satz ueber EINE Folge je Antwort", route.includes("erzeugeSprachFolge(antwortSprache)") && /type: "data-satz",[\s\S]{0,500}sprache: sprachFolge\.naechste\(text\),/.test(route));
     const live = quelle("src/components/ki/sprachausgabe-live.ts");
@@ -554,22 +553,49 @@ const quelle = (pfad) => readFileSync(new URL(`../../${pfad}`, import.meta.url),
   // Fund 6: der Datei-Weg las gemischte Antworten mit einer Stimme.
   {
     const gemischt = "Die Frist ist klar geregelt.\n\nНалог уплачивается ежемесячно до двадцать пятого числа.\n\nDanach prüfen wir die Belege gemeinsam.";
-    if (vorlesePlan) {
-      const plan = vorlesePlan(gemischt, "de");
-      pruefe("Fund 6: Plan zerlegt in Sprachbloecke (de, ru, de)", plan.bloecke.map((b) => b.sprache).join(",") === "de,ru,de", JSON.stringify(plan.bloecke));
-      pruefe("Fund 6: jeder Block traegt nur seinen Text", plan.bloecke[1]?.text === "Налог уплачивается ежемесячно до двадцать пятого числа." && plan.bloecke[0]?.von === 0 && plan.bloecke[2]?.bis === 3);
-      const einsprachig = vorlesePlan("Die Frist ist klar geregelt. Danach prüfen wir die Belege gemeinsam.", "de");
-      pruefe("Fund 6: eine einsprachige Antwort bleibt EIN Block", einsprachig.bloecke.length === 1 && einsprachig.bloecke[0].sprache === "de");
-      const rest = vorlesePlan(gemischt, "de", { rest: 1 });
-      pruefe("Fund 6: 'rest' liest nur die letzten Saetze, mit derselben Sprache wie im ganzen Plan", rest.bloecke.length === 1 && rest.bloecke[0].von === 2 && rest.bloecke[0].sprache === "de");
-      pruefe("Fund 6: ein zu grosser Rest liest alles", vorlesePlan(gemischt, "de", { rest: 99 }).bloecke.length === 3);
-      const viele = vorlesePlan("Hier:\n\n" + Array.from({ length: 8 }, (_, i) => `Die Lieferung ${i + 1} kommt morgen früh an. Поставка ${i + 1} прибудет завтра утром.`).join("\n"), "de");
-      pruefe("Fund 6: hoechstens 5 Bloecke (4 Wechsel), also hoechstens 5 Anfragen je Nachricht", viele.bloecke.length <= 5, String(viele.bloecke.length));
-      pruefe("Fund 6: Metadaten de, ganz englischer Text -> ein englischer Block",
-        vorlesePlan("Dear supplier, please confirm the delivery of 1100 kilograms of raspberries for tomorrow morning.", "de").bloecke.map((b) => b.sprache).join() === "en");
-    } else pruefe("Fund 6: vorlesePlan gibt es", false);
+    const plan = vorlesePlan(gemischt, "de");
+    pruefe("Fund 6: Plan zerlegt in Sprachbloecke (de, ru, de)", plan.bloecke.map((b) => b.sprache).join(",") === "de,ru,de", JSON.stringify(plan.bloecke));
+    pruefe("Fund 6: jeder Block traegt nur seinen Text", plan.bloecke[1]?.text === "Налог уплачивается ежемесячно до двадцать пятого числа." && plan.bloecke[0]?.von === 0 && plan.bloecke[2]?.bis === 3);
+    const einsprachig = vorlesePlan("Die Frist ist klar geregelt. Danach prüfen wir die Belege gemeinsam.", "de");
+    pruefe("Fund 6: eine einsprachige Antwort bleibt EIN Block", einsprachig.bloecke.length === 1 && einsprachig.bloecke[0].sprache === "de");
+    const rest = vorlesePlan(gemischt, "de", { rest: 1 });
+    pruefe("Fund 6: 'rest' liest nur die letzten Saetze, mit derselben Sprache wie im ganzen Plan", rest.bloecke.length === 1 && rest.bloecke[0].von === 2 && rest.bloecke[0].sprache === "de");
+    pruefe("Fund 6: ein zu grosser Rest liest alles", vorlesePlan(gemischt, "de", { rest: 99 }).bloecke.length === 3);
+    const viele = vorlesePlan("Hier:\n\n" + Array.from({ length: 8 }, (_, i) => `Die Lieferung ${i + 1} kommt morgen früh an. Поставка ${i + 1} прибудет завтра утром.`).join("\n"), "de");
+    pruefe("Fund 6: hoechstens 5 Bloecke (4 Wechsel), also hoechstens 5 Anfragen je Nachricht", viele.bloecke.length <= 5, String(viele.bloecke.length));
+    pruefe("Fund 6: Metadaten de, ganz englischer Text -> ein englischer Block",
+      vorlesePlan("Dear supplier, please confirm the delivery of 1100 kilograms of raspberries for tomorrow morning.", "de").bloecke.map((b) => b.sprache).join() === "en");
+
+    // Cleanup-Fund 27 (29.09.2026): Soniox erzeugt ueber REST etwa in Sprechdauer - gemessen in
+    // der Gegenpruefung vom 28.09.2026 41 bis 46 ms je Zeichen (872 Zeichen in 39,9 s). Der
+    // Datei-Weg gab trotzdem einen Block bis 3000 Zeichen in EINE Anfrage: nach 30 s brach das
+    // Zeitlimit ab (dann las Sokrates mit anderer Stimme, oder es kam 502), der GET-Strom endete an
+    // maxDuration (60 s) mitten in der Antwort. Mit Soniox teilt der Plan deshalb an Satzgrenzen.
+    {
+      const MS_JE_ZEICHEN = 46;
+      const saetze = Array.from({ length: 24 }, (_, i) => `Die Lieferung ${i + 1} kommt morgen früh mit dem ersten Wagen am Lager an.`);
+      const lang = saetze.join(" ");
+      const bisher = process.env.KI_SPRACHAUSGABE_ANBIETER;
+      try {
+        process.env.KI_SPRACHAUSGABE_ANBIETER = "soniox";
+        const plan = sa.vorlesePlan(lang, "de");
+        const dauer = plan.bloecke.map((b) => sa.zumSprechen(b.text, b.sprache).length * MS_JE_ZEICHEN);
+        const lueckenlos = plan.bloecke.every((b, i) => b.von === (i === 0 ? 0 : plan.bloecke[i - 1].bis)) && plan.bloecke.at(-1)?.bis === saetze.length;
+        pruefe(
+          "Fund 27: mit Soniox bleibt jeder Block des Datei-Wegs mit Luft unter dem Zeitlimit von 30 s (hier hoechstens 25 s)",
+          plan.bloecke.length > 1 && dauer.every((ms) => ms <= 25_000) && lueckenlos && plan.bloecke.every((b) => b.sprache === "de"),
+          `${plan.bloecke.length} Bloecke, ${dauer.map((ms) => (ms / 1000).toFixed(1)).join("/")} s`,
+        );
+        pruefe("Fund 27: ... eine kurze Antwort bleibt auch mit Soniox EIN Block (ihr Ablagepfad bleibt)", sa.vorlesePlan(saetze.slice(0, 3).join(" "), "de").bloecke.length === 1);
+        process.env.KI_SPRACHAUSGABE_ANBIETER = "sokrates";
+        pruefe("Fund 27: ... und mit Sokrates (schnell, eine Datei ohne Luecken) bleibt die lange Antwort ein Block", sa.vorlesePlan(lang, "de").bloecke.length === 1);
+      } finally {
+        if (bisher === undefined) delete process.env.KI_SPRACHAUSGABE_ANBIETER;
+        else process.env.KI_SPRACHAUSGABE_ANBIETER = bisher;
+      }
+    }
     const teilPfad = sa.sprachausgabePfad("n1", { anbieter: "sokrates", stimme: "ru-female", sprache: "ru" }, { von: 1, bis: 2 });
-    pruefe("Fund 6: ein Block hat einen eigenen Ablagepfad, der ganze Text den bisherigen", teilPfad === "n1/sokrates-ru-female-ru-v3-s1-2.mp3" && sa.sprachausgabePfad("n1", { anbieter: "sokrates", stimme: "de-female", sprache: "de" }) === "n1/sokrates-de-female-de-v3.mp3", teilPfad);
+    pruefe("Fund 6: ein Block hat einen eigenen Ablagepfad, der ganze Text den bisherigen", teilPfad === "n1/sokrates-ru-female-ru-v4-s1-2.mp3" && sa.sprachausgabePfad("n1", { anbieter: "sokrates", stimme: "de-female", sprache: "de" }) === "n1/sokrates-de-female-de-v4.mp3", teilPfad);
     const route = quelle("src/app/api/ki-sprachausgabe/route.ts");
     pruefe("Fund 6: die Route zerlegt die GESPEICHERTE Nachricht (vorlesePlan(nachricht.inhalt ...))", route.includes("vorlesePlan(nachricht.inhalt,"));
     pruefe("Fund 6: vom Browser kommen nur Zahlen (rest, block), nie Text", !/searchParams\.get\("text"\)/.test(route) && route.includes('adresse.searchParams.get("block")') && route.includes('adresse.searchParams.get("rest")') && !/body\.text\b/.test(route));

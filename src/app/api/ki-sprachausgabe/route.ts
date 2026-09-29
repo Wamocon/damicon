@@ -34,6 +34,11 @@ import { leseAuswahl, waehleVorleseTeil, type Auswahl } from "@/lib/domain/vorle
 // ANTWORT - deshalb wird der Bucket erst angefasst, NACHDEM die Zeile mit der
 // Sitzung des Nutzers gelesen wurde (RLS). Wer die Antwort nicht sehen darf,
 // kommt hier nie an, auch mit geratener ID nicht.
+//
+// Preview und Produktion teilen sich diesen Bucket (GEMEINSAME_BUCKETS in
+// scripts/preview-umschreiben.mjs). Getrennt sind sie seit 29.09.2026 ueber den
+// Ablagepfad: sprachausgabePfad() legt ausserhalb von public unter dem Schema ab
+// (Cleanup-Fund 83), sonst belegte eine Preview das Audio einer Produktionsantwort vor.
 const BUCKET = "ki-sprachausgabe";
 
 export const maxDuration = 60;
