@@ -1,6 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Plus } from "lucide-react";
-import { Card, DataTable, Section, Stat, StatusPill, knopfKlassen } from "@/components/ui/kit";
+import { Card, DataTable, Section, Stat, StatusPill } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   NachbarbetriebFormular,
@@ -14,8 +13,6 @@ import { ladeSorten } from "@/lib/data/standort";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { LeererZustand } from "@/components/ui/liste";
-import { ZumFormular } from "@/components/ui/zum-formular";
-import { modulSymbol } from "@/lib/modules";
 import { formularZiel } from "@/lib/formular-ziele";
 
 // Aggregator / Zukauf von Nachbarbetrieben (WMCNL-1453). Aufbau wie
@@ -88,15 +85,11 @@ export async function ZukaufAnsicht() {
               <td colSpan={7} className="px-3 py-2">
                 <LeererZustand
                   titel={t("empty")}
-                  {...modulSymbol("aggregator")}
-                  bewegt={darfImportieren}
-                  aktion={
-                    darfImportieren ? (
-                      <ZumFormular ziel={formularZiel.zukauf} className={knopfKlassen()}>
-                        <Plus className="h-4 w-4" aria-hidden="true" />
-                        {t("import.titel")}
-                      </ZumFormular>
-                    ) : undefined
+                  modul="aggregator"
+                  anlegen={
+                    darfImportieren
+                      ? { ziel: formularZiel.zukauf, label: t("import.titel") }
+                      : undefined
                   }
                 />
               </td>
@@ -134,7 +127,7 @@ export async function ZukaufAnsicht() {
           action={<DatenquelleBadge quelle={abrechnung.quelle} />}
         >
           {abrechnung.zeilen.length === 0 ? (
-            <LeererZustand titel={at("keineZeilen")} {...modulSymbol("aggregator")} />
+            <LeererZustand titel={at("keineZeilen")} modul="aggregator" />
           ) : (
             <DataTable
               head={[at("col.nachbarbetrieb"), at("col.menge"), at("col.einkaufswert"), at("col.spanne"), at("col.auszahlung")]}

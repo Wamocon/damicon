@@ -6,7 +6,6 @@ import { ladePflichtschulungen } from "@/lib/data/pflichtschulungen";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { LeererZustand } from "@/components/ui/liste";
-import { modulSymbol } from "@/lib/modules";
 
 const statusTon: Record<string, Tone> = {
   nie: "danger",
@@ -45,7 +44,7 @@ export async function PflichtschulungenAnsicht() {
       action={<DatenquelleBadge quelle={uebersicht.quelle} />}
     >
       {uebersicht.zeilen.length === 0 ? (
-        <LeererZustand titel={t("keineZeilen")} {...modulSymbol("schulungen")} />
+        <LeererZustand titel={t("keineZeilen")} modul="schulungen" />
       ) : (
         <DataTable
           head={[

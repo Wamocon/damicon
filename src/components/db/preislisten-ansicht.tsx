@@ -1,6 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Plus } from "lucide-react";
-import { Card, DataTable, Section, StatusPill, knopfKlassen, type Tone } from "@/components/ui/kit";
+import { Card, DataTable, Section, StatusPill, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   KundeGruppeFormular,
@@ -13,8 +12,6 @@ import { ladeB2bKundenMitGruppe, ladePreislistenVerwaltung, ladeSortenOptionenFu
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { LeererZustand } from "@/components/ui/liste";
-import { ZumFormular } from "@/components/ui/zum-formular";
-import { modulSymbol } from "@/lib/modules";
 import { formularZiel } from "@/lib/formular-ziele";
 
 // Preisstaffelung je Kundengruppe (Anforderung 5.1/5.2, Migration
@@ -54,15 +51,11 @@ export async function PreislistenAnsicht() {
         {preislisten.preislisten.length === 0 ? (
           <LeererZustand
             titel={t("keinePreislisten")}
-            {...modulSymbol("preislisten")}
-            bewegt={darfAnlegen}
-            aktion={
-              darfAnlegen ? (
-                <ZumFormular ziel={formularZiel.preisliste} className={knopfKlassen()}>
-                  <Plus className="h-4 w-4" aria-hidden="true" />
-                  {t("formular.erstellen.titel")}
-                </ZumFormular>
-              ) : undefined
+            modul="preislisten"
+            anlegen={
+              darfAnlegen
+                ? { ziel: formularZiel.preisliste, label: t("formular.erstellen.titel") }
+                : undefined
             }
           />
         ) : (
@@ -123,7 +116,7 @@ export async function PreislistenAnsicht() {
 
       <Section title={t("kundengruppenTitel")} description={t("kundengruppenLead")}>
         {kunden.kunden.length === 0 ? (
-          <LeererZustand titel={t("keineKunden")} {...modulSymbol("preislisten")} />
+          <LeererZustand titel={t("keineKunden")} modul="preislisten" />
         ) : (
           <div className="space-y-2.5">
             {kunden.kunden.map((k) => (

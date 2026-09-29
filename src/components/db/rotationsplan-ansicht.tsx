@@ -1,6 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Plus } from "lucide-react";
-import { Card, DataTable, Section, Stat, StatusPill, knopfKlassen } from "@/components/ui/kit";
+import { Card, DataTable, Section, Stat, StatusPill } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   RotationsplanGenerierenFormular,
@@ -12,8 +11,6 @@ import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { rotationsplanStatusMeta } from "@/lib/domain/rotationsplan";
 import { LeererZustand } from "@/components/ui/liste";
-import { modulSymbol } from "@/lib/modules";
-import { ZumFormular } from "@/components/ui/zum-formular";
 import { formularZiel } from "@/lib/formular-ziele";
 
 // Rotationsplan (Anforderung 2.2, P1). Cockpit-Aufbau wie lohn-ansicht.tsx:
@@ -79,15 +76,11 @@ export async function RotationsplanAnsicht() {
               <td colSpan={8} className="px-3 py-2">
                 <LeererZustand
                   titel={t("keineEintraege")}
-                  {...modulSymbol("rotationsplan")}
-                  bewegt={darfPlanen}
-                  aktion={
-                    darfPlanen ? (
-                      <ZumFormular ziel={formularZiel.rotationsplan} className={knopfKlassen()}>
-                        <Plus className="h-4 w-4" aria-hidden="true" />
-                        {t("formular.generieren.knopf")}
-                      </ZumFormular>
-                    ) : undefined
+                  modul="rotationsplan"
+                  anlegen={
+                    darfPlanen
+                      ? { ziel: formularZiel.rotationsplan, label: t("formular.generieren.knopf") }
+                      : undefined
                   }
                 />
               </td>

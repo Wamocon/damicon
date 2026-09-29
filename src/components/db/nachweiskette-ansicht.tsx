@@ -164,7 +164,8 @@ export async function NachweiskettenKarte({
               [
                 [t("menge"), kg(format, c.mengeKg)],
                 [t("ausschuss"), kg(format, c.ausschussKg)],
-                // Springt, sobald eine erfasste Steige dazukommt (K4).
+                // Springt, sobald eine erfasste Steige dazukommt (K4). Der key
+                // wirkt nicht, react/jsx-key verlangt ihn im Array-Literal.
                 [t("steigen"), <Zaehler key="steigen" wert={kette.steigen.length} />],
               ] satisfies [string, ReactNode][]
             ).map(([label, wert]) => (

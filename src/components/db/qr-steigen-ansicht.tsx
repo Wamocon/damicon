@@ -11,7 +11,6 @@ import { absoluteUrl, qrSvg } from "@/lib/qr";
 // Scan beim naechsten Umbenennen ins Leere laufen.
 import { STEIGE_PARAMETER } from "@/lib/domain/steige-scan";
 import { LeererZustand } from "@/components/ui/liste";
-import { modulSymbol } from "@/lib/modules";
 
 // QR-Steigenkennung (WMCNL-1439): QR-Etiketten fuer Steigen und
 // Pfluecker-Ausweise, beide serverseitig als SVG erzeugt (src/lib/qr.ts).
@@ -92,7 +91,7 @@ export async function QrSteigenAnsicht() {
         action={<DatenquelleBadge quelle={etikettenListe.quelle} />}
       >
         {etiketten.length === 0 ? (
-          <LeererZustand titel={t("etiketten.empty")} {...modulSymbol("qr_steigen")} />
+          <LeererZustand titel={t("etiketten.empty")} modul="qr_steigen" />
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 print:grid-cols-3 print:gap-2">
             {etiketten.map((etikett) => (
@@ -132,7 +131,7 @@ export async function QrSteigenAnsicht() {
         action={<DatenquelleBadge quelle={ausweisListe.quelle} />}
       >
         {ausweise.length === 0 ? (
-          <LeererZustand titel={t("ausweise.empty")} {...modulSymbol("qr_steigen")} />
+          <LeererZustand titel={t("ausweise.empty")} modul="qr_steigen" />
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 print:grid-cols-3 print:gap-2">
             {ausweise.map((pfluecker) => (

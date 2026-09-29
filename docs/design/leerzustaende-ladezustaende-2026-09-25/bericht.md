@@ -338,6 +338,14 @@ Geprüft: TypeScript, ESLint und die Tests schluessel, kit-bausteine, umlaute, n
 
 Vorschau in Hell und Dunkel, Animationen an einer aussagekräftigen Stelle angehalten: `stufe4-vorschau.png`.
 
+## Vibecode-Cleanup vom 29.09.2026
+
+Vor dem Merge nach WAMOCON-Standard geprüft, Befunde und Verdikte in `docs/cleanup-2026-09-29.md`. Für diesen Bericht wichtig:
+
+- Die Bewegung im Leerzustand endet nach zwei Atemzügen, knapp 5 Sekunden (WCAG 2.2.2, Entscheidung Erwin Moretz). Tempo 2,6 s und 3,2 s bleiben.
+- `LeererZustand` nimmt jetzt `modul` und `anlegen` statt `symbol`, `akzent`, `bewegt` und einem eigenen Knopf. Knopf und Bewegung hängen damit an einer Angabe.
+- Der Senden-Knopf im KI-Assistenten zeigt kein Häkchen mehr, weil Senden kein Speichern ist.
+
 ## Offene Punkte
 
 - Standortbaum: Erwin Moretz hält eine bessere Gestaltung des Baums für später fest (28.09.2026).
@@ -345,3 +353,4 @@ Vorschau in Hell und Dunkel, Animationen an einer aussagekräftigen Stelle angeh
 - „Neuen Kostenträger anlegen“ bricht in schmalen Karten auf zwei Zeilen um. Kürzer wäre „Kostenträger anlegen“.
 - Kleine Aktionsknöpfe in Tabellen- und Listenzeilen auf `Button` umstellen, dann bekommen auch sie Welle und Häkchen.
 - Haptik auf einem iPhone ab iOS 18 und einem Android-Gerät ausprobieren.
+- Sprung zum Formular: Die Hervorhebung per `:target` gibt es nur an Formularkarten, nicht an Formularen im Aufklapper, und sie bleibt stehen, solange der Hash in der Adresse steht.

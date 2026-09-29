@@ -26,3 +26,5 @@ export const formularZiel = {
   dossier: "anlegen-dossier",
   kontingent: "anlegen-kontingent",
 } as const;
+
+export type FormularZiel = (typeof formularZiel)[keyof typeof formularZiel];

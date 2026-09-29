@@ -187,6 +187,23 @@
   --transition-duration-knapp: 120ms;
   --transition-duration-ruhig: 200ms;
   --transition-duration-weit: 380ms;
+
+  /* Benannte Animationen der Leer-, Lade- und Klickzustaende, damit Takt
+     und Kurve an einer Stelle stehen statt in animate-[...] an jedem
+     Element. Die Keyframes stehen weiter unten bei ihrer Erklaerung.
+
+     leerzustand-* - zwei Atemzuege, dann Ruhe (WCAG 2.2.2: Bewegung, die
+                     von selbst startet, endet nach spaetestens 5 s).
+                     1,9 Durchlaeufe Atmen sind 4,9 s und enden fast im
+                     Ruhezustand, 1,5 Durchlaeufe Wiegen (4,8 s) enden genau
+                     in der Mitte. Tempo 2,6 s nach Entscheidung vom
+                     28.09.2026; die beiden Takte laufen bewusst nicht im
+                     Gleichschritt. */
+  --animate-leerzustand-atmen: leerzustand-atmen 2.6s cubic-bezier(0.45, 0, 0.55, 1) 1.9;
+  --animate-leerzustand-wiegen: leerzustand-wiegen 3.2s ease-in-out 1.5;
+  --animate-ladebalken-lauf: ladebalken-lauf 1.4s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  --animate-zaehler-sprung: zaehler-sprung 360ms var(--ease-schwung);
+  --animate-zaehler-plus: zaehler-plus 650ms var(--ease-weich);
 }
 
 :root {
@@ -517,10 +534,10 @@
   }
 }
 
-/* Leerzustand mit Aktion (ui/liste.tsx, LeererZustand mit symbol und aktion):
+/* Leerzustand mit Anlegen-Knopf (ui/liste.tsx, LeererZustand mit anlegen):
    Das Abzeichen atmet, das Symbol darin wiegt sich. Beides laeuft nur dort,
    wo ein Knopf zum naechsten Schritt fuehrt - reine Hinweise bleiben ruhig.
-   Die beiden Takte (2,6 s und 3,2 s) laufen bewusst nicht im Gleichschritt.
+   Takt, Kurve und Zahl der Durchlaeufe: --animate-leerzustand-* im @theme.
    Anfang und Ende fehlen in den Keyframes absichtlich: dort gilt der
    Ruhezustand, so springt beim Einsetzen nichts. Auswahl und Tempo:
    docs/design/leerzustaende-ladezustaende-2026-09-25. */
@@ -539,38 +556,91 @@
 }
 
 /* Lade- und Klickanimationen (Auswahl vom 28.09.2026, Kuerzel wie in
-   docs/design/leerzustaende-ladezustaende-2026-09-25). Alles hier steht bei
-   reduzierter Bewegung still; die Sternregel weiter unten setzt ohnehin jede
-   Animation auf ihren Endzustand, die Endzustaende sind deshalb so gewaehlt,
-   dass nichts Halbfertiges stehen bleibt. */
+   docs/design/leerzustaende-ladezustaende-2026-09-25). Takt und Kurve der
+   Tailwind-Animationen stehen im @theme-Block oben (--animate-*).
 
-/* L2 Lichtstreif (ui/kit.tsx, Skeleton): ein heller Streifen wandert ueber
-   den Platzhalter und steht die letzten 40 % des Takts still, damit es nicht
-   hetzt. Auf Kartengrund (SkeletonCard) ginge Weiss im hellen Modus unter,
-   dort laeuft er in der Farbe der gedaempften Flaechen. */
-.lichtstreif {
-  --lichtstreif-farbe: rgb(255 255 255 / 0.85);
-  position: relative;
-  overflow: hidden;
-}
-.lichtstreif-auf-karte {
-  --lichtstreif-farbe: var(--muted);
-}
-.dark .lichtstreif {
-  --lichtstreif-farbe: rgb(255 255 255 / 0.08);
-}
-.lichtstreif::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, var(--lichtstreif-farbe), transparent);
-}
-@media (prefers-reduced-motion: no-preference) {
+   Die Klassen liegen in @layer components: ungelayerte Regeln schlagen in
+   Tailwind v4 jede Utility, dann haette etwa ein overflow-visible an einem
+   Knopf nichts mehr bewirkt. So gewinnt, was am Element steht.
+
+   Bei reduzierter Bewegung laufen sie nicht. Die Sternregel weiter unten
+   laesst jede Animation einmal in 0,01 ms durchlaufen; danach gilt der
+   Grundzustand, ausser bei forwards. Die Grundzustaende sind deshalb so
+   gewaehlt, dass nichts Halbfertiges stehen bleibt. */
+@layer components {
+  /* L2 Lichtstreif (ui/kit.tsx, Skeleton): ein heller Streifen wandert ueber
+     den Platzhalter und steht die letzten 40 % des Takts still, damit es
+     nicht hetzt. Auf Kartengrund (SkeletonCard) ginge Weiss im hellen Modus
+     unter, dort laeuft er in der Farbe der gedaempften Flaechen. */
+  .lichtstreif {
+    --lichtstreif-farbe: rgb(255 255 255 / 0.85);
+    position: relative;
+    overflow: hidden;
+  }
+  .lichtstreif-auf-karte {
+    --lichtstreif-farbe: var(--muted);
+  }
+  .dark .lichtstreif {
+    --lichtstreif-farbe: rgb(255 255 255 / 0.08);
+  }
   .lichtstreif::after {
-    animation: lichtstreif 1.8s ease-in-out infinite;
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, var(--lichtstreif-farbe), transparent);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .lichtstreif::after {
+      animation: lichtstreif 1.8s ease-in-out infinite;
+    }
+  }
+
+  /* K2 Welle (ui/klick-welle.tsx, an jedem Knopf aus ui/kit.tsx): vom
+     Beruehrungspunkt breitet sich ein Kreis aus und blendet dabei aus.
+     isolation macht den Knopf zur eigenen Stapelebene - der Kreis mit
+     z-index -1 liegt dann ueber dem Knopfgrund, aber unter der Schrift.
+     Farbe: die Schrift des Knopfes, bei leisen Knoepfen die Primaerfarbe
+     (--welle-farbe in kit.tsx). */
+  .klick-welle {
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .klick-welle::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    left: var(--welle-x, 50%);
+    top: var(--welle-y, 50%);
+    width: var(--welle-d, 0px);
+    aspect-ratio: 1;
+    border-radius: 9999px;
+    background: var(--welle-farbe, currentColor);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .klick-welle[data-welle]::after {
+      animation: klick-welle 550ms var(--ease-weich);
+    }
+  }
+
+  /* K3 Speichern mit Haekchen (ui/kit.tsx, Button mit erledigt): der Strich
+     zeichnet sich in 360 ms, nachdem der Knopf 80 ms Zeit hatte, gruen zu
+     werden. */
+  .haekchen-zeichnen {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: haekchen-zeichnen 360ms var(--ease-weich) 80ms forwards;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .haekchen-zeichnen {
+      stroke-dashoffset: 0;
+    }
   }
 }
+
 @keyframes lichtstreif {
   60%,
   100% {
@@ -589,35 +659,6 @@
   }
 }
 
-/* K2 Welle (ui/klick-welle.tsx, an jedem Knopf aus ui/kit.tsx): vom
-   Beruehrungspunkt breitet sich ein Kreis aus und blendet dabei aus.
-   isolation macht den Knopf zur eigenen Stapelebene - der Kreis mit
-   z-index -1 liegt dann ueber dem Knopfgrund, aber unter der Schrift.
-   Farbe: die Schrift des Knopfes, bei leisen Knoepfen die Primaerfarbe
-   (--welle-farbe in kit.tsx). */
-.klick-welle {
-  isolation: isolate;
-  overflow: hidden;
-}
-.klick-welle::after {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  left: var(--welle-x, 50%);
-  top: var(--welle-y, 50%);
-  width: var(--welle-d, 0px);
-  aspect-ratio: 1;
-  border-radius: 9999px;
-  background: var(--welle-farbe, currentColor);
-  opacity: 0;
-  transform: translate(-50%, -50%) scale(0);
-  pointer-events: none;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .klick-welle[data-welle]::after {
-    animation: klick-welle 550ms var(--ease-weich);
-  }
-}
 @keyframes klick-welle {
   from {
     opacity: 0.35;
@@ -629,19 +670,6 @@
   }
 }
 
-/* K3 Speichern mit Haekchen (ui/kit.tsx, Button mit erledigt): der Strich
-   zeichnet sich in 360 ms, nachdem der Knopf 80 ms Zeit hatte, gruen zu
-   werden. */
-.haekchen-zeichnen {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: haekchen-zeichnen 360ms var(--ease-weich) 80ms forwards;
-}
-@media (prefers-reduced-motion: reduce) {
-  .haekchen-zeichnen {
-    stroke-dashoffset: 0;
-  }
-}
 @keyframes haekchen-zeichnen {
   to {
     stroke-dashoffset: 0;

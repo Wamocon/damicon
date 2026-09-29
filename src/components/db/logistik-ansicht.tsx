@@ -1,6 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Plus } from "lucide-react";
-import { Card, Section, StatusPill, knopfKlassen, type Tone } from "@/components/ui/kit";
+import { Card, Section, StatusPill, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   LieferungAnlegenFormular,
@@ -20,8 +19,6 @@ import { ladeLieferungenOhneTour, ladeTouren } from "@/lib/data/tourenplanung";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { LeererZustand } from "@/components/ui/liste";
-import { ZumFormular } from "@/components/ui/zum-formular";
-import { modulSymbol } from "@/lib/modules";
 import { formularZiel } from "@/lib/formular-ziele";
 
 const statusTon: Record<string, Tone> = {
@@ -83,15 +80,11 @@ export async function LogistikAnsicht() {
         {uebersicht.lieferungen.length === 0 ? (
           <LeererZustand
             titel={t("keineLieferungen")}
-            {...modulSymbol("logistik")}
-            bewegt={darfAnlegen}
-            aktion={
-              darfAnlegen ? (
-                <ZumFormular ziel={formularZiel.lieferung} className={knopfKlassen()}>
-                  <Plus className="h-4 w-4" aria-hidden="true" />
-                  {t("formular.anlegen.titel")}
-                </ZumFormular>
-              ) : undefined
+            modul="logistik"
+            anlegen={
+              darfAnlegen
+                ? { ziel: formularZiel.lieferung, label: t("formular.anlegen.titel") }
+                : undefined
             }
           />
         ) : (
@@ -199,15 +192,11 @@ export async function LogistikAnsicht() {
           {touren.touren.length === 0 ? (
             <LeererZustand
               titel={tt("keineTouren")}
-              {...modulSymbol("logistik")}
-              bewegt={darfAnlegen}
-              aktion={
-                darfAnlegen ? (
-                  <ZumFormular ziel={formularZiel.tour} className={knopfKlassen()}>
-                    <Plus className="h-4 w-4" aria-hidden="true" />
-                    {tt("formular.erstellen.titel")}
-                  </ZumFormular>
-                ) : undefined
+              modul="logistik"
+              anlegen={
+                darfAnlegen
+                  ? { ziel: formularZiel.tour, label: tt("formular.erstellen.titel") }
+                  : undefined
               }
             />
           ) : (

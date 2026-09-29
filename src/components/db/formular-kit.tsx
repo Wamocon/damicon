@@ -259,7 +259,8 @@ export function FormularKarte({
   beschreibung,
   children,
 }: {
-  // Sprungziel fuer "... anlegen" aus einem Leerzustand (standort-ansicht.tsx).
+  // Sprungziel fuer "... anlegen" aus einem Leerzustand (LeererZustand mit
+  // anlegen, Ziele in lib/formular-ziele.ts).
   // scroll-mt-20 haelt die Karte unter der fixierten Kopfzeile frei, wie bei
   // Section; target: zeigt, bei welchem Formular man gelandet ist.
   id?: string;

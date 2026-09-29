@@ -249,13 +249,15 @@ Noch offen: Zurück schließt das Blatt nicht, weil es keinen Verlaufseintrag an
 | KI-Antwort entsteht | `.ki-beeren`: drei Beeren in `--himbeere` hinter dem Statustext, 1,2 s, je 160 ms versetzt |
 | Welle | `.klick-welle` an jedem Knopf aus `kit.tsx`; ein Zuhörer für die ganze Seite (`ui/klick-welle.tsx`) setzt den Mittelpunkt, 550 ms |
 | Speichern mit Häkchen | `SubmitKnopf` mit `status`: nach Erfolg 1,4 s grüner Grund, das Häkchen zeichnet sich in 360 ms |
-| Zähler springt | `ui/zaehler.tsx`: steigt der Wert, springt die Zahl auf 128 % in `--himbeere`, darüber steigt „+1“ auf, 360 ms |
+| Zähler springt | `ui/zaehler.tsx`: steigt der Wert, springt die Zahl in 360 ms auf 128 % in `--himbeere`, darüber steigt in 650 ms „+1“ auf |
 | Karte drücken | `kachelVerweis` und Listeneinträge: beim Klick 99 %, 120 ms |
 | Weiches Scrollen | Lenis (`weiches-scrollen.tsx`) |
 | Kamerafahrt | scrollgetriebene CSS-Animation, Firefox zeigt das Bild ruhig |
 | Ladebild | `lkw-lader.tsx`: LKW steht, Fahrbahn und Laternen wandern um genau eine Periode, Raddrehung auf die Fahrbahngeschwindigkeit gerechnet; Himbi faehrt auf dem Kuehlkoffer mit |
 
 Unter `prefers-reduced-motion: reduce` sind alle Animationen und Übergänge auf 0,01 ms gesetzt, `[data-reveal]` steht sofort sichtbar, View Transitions entfallen, die Leseanzeige wird ausgeblendet.
+
+Takt und Kurve der Tailwind-Animationen stehen als `--animate-*` im `@theme`-Block von `globals.css`, nicht als Zahlen in `animate-[…]` am Element. Eigene Klassen wie `.lichtstreif` und `.klick-welle` liegen in `@layer components`: ungelayerte Regeln schlagen in Tailwind v4 jede Utility, dann hätte eine Klasse am Element nichts mehr bewirkt.
 
 Haptik (`lib/haptik.ts`) gibt es nur bei Ereignissen, ohne Schalter zum Abstellen. `haptikEreignis()` vibriert auf Android, sobald das Ergebnis da ist (Erfolg und Fehler mit eigenem Muster). Das iPhone kennt `navigator.vibrate` nicht; `haptikTipp()` lässt dort einen versteckten Schalter ticken, und das geht nur direkt im Klick-Handler. Neue Stellen mit Rückmeldung nutzen `SubmitKnopf` mit `status`, dann kommen Häkchen und Haptik mit.
 
@@ -379,7 +381,7 @@ KI-Chat und Detailansicht dürfen gleichzeitig offen sein, die Anordnung wechsel
 - Nach dem Speichern klappt es zu, und der neue Eintrag öffnet in der Detailansicht. Die Server-Aktion gibt dafür die ID zurück (`AktionsStatus.id`).
 - Die Meldung steht außerhalb des Aufklappers und bleibt sichtbar.
 
-**Leerzustand.** `LeererZustand` sagt, warum die Liste leer ist. Mit Filtern steht dort „Keine Treffer“ und ein Link zum Zurücksetzen, ohne Filter ein Hinweis, dass Einträge hier erscheinen werden. Lässt sich an der Stelle etwas anlegen, bekommt er über `symbol` und `akzent` das Symbol des Moduls aus `modules.ts` in der Farbe seines Bereichs und über `aktion` den Knopf dazu, mit `bewegt`. Der Knopf ist `ZumFormular` (`ui/zum-formular.tsx`): er springt zur Formularkarte mit der id aus `lib/formular-ziele.ts` und klappt einen Aufklapper dabei auf; Symbol und Farbe liefert `modulSymbol()` aus `modules.ts`. Nur in dieser Form bewegt sich das Abzeichen: es atmet in 2,6 s, das Symbol wiegt sich in 3,2 s, beides über `motion-safe`. Mit Symbol, aber ohne Knopf steht er ruhig, etwa bei berechneten Werten. Welche Leerzustände welche Form bekommen: `docs/design/leerzustaende-ladezustaende-2026-09-25/`.
+**Leerzustand.** `LeererZustand` sagt, warum die Liste leer ist. Mit Filtern steht dort „Keine Treffer“ und ein Link zum Zurücksetzen, ohne Filter ein Hinweis, dass Einträge hier erscheinen werden. Über `modul` (Schlüssel aus `modules.ts`) zeigt er das Symbol des Moduls in der Farbe seines Bereichs, ohne `modul` nur Text im gestrichelten Rahmen. Lässt sich an der Stelle etwas anlegen, kommt `anlegen` mit Ziel und Beschriftung dazu: der Knopf ist dann `ZumFormular` (`ui/zum-formular.tsx`), er springt zur Formularkarte mit der id aus `lib/formular-ziele.ts` und klappt einen Aufklapper dabei auf. Nur in dieser Form bewegt sich das Abzeichen: es atmet in 2,6 s, das Symbol wiegt sich in 3,2 s, beides über `motion-safe` und nur zwei Atemzüge lang, damit nach knapp 5 s Ruhe ist (WCAG 2.2.2). Mit Symbol, aber ohne Knopf steht er ruhig, etwa bei berechneten Werten. `aktion` nimmt einen weiteren Schritt ohne Bewegung auf, etwa „Filter zurücksetzen“. Welche Leerzustände welche Form bekommen: `docs/design/leerzustaende-ladezustaende-2026-09-25/`.
 
 **Himbi.** Er steht immer links von dem, was rechts andockt.
 - Neben der angedockten Detailansicht rückt er um ihre Breite nach links, mit angedocktem KI-Chat um beide.

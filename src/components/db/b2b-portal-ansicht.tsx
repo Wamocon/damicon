@@ -1,6 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Plus } from "lucide-react";
-import { Card, DataTable, Section, StatusPill, knopfKlassen, type Tone } from "@/components/ui/kit";
+import { Card, DataTable, Section, StatusPill, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   VorbestellungAnlegenFormular,
@@ -19,8 +18,6 @@ import { ladeRechnungshistorie } from "@/lib/data/rechnungshistorie";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { LeererZustand } from "@/components/ui/liste";
-import { ZumFormular } from "@/components/ui/zum-formular";
-import { modulSymbol } from "@/lib/modules";
 import { formularZiel } from "@/lib/formular-ziele";
 
 const statusTon: Record<string, Tone> = {
@@ -106,7 +103,7 @@ export async function B2bPortalAnsicht() {
         action={<DatenquelleBadge quelle={uebersicht.quelle} />}
       >
         {uebersicht.lieferungen.length === 0 ? (
-          <LeererZustand titel={t("keineLieferungen")} {...modulSymbol("b2b_portal")} />
+          <LeererZustand titel={t("keineLieferungen")} modul="b2b_portal" />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {uebersicht.lieferungen.map((l) => (
@@ -153,7 +150,7 @@ export async function B2bPortalAnsicht() {
 
       <Section title={t("rechnungenTitel")} description={t("rechnungenLead")}>
         {rechnungen.zeilen.length === 0 ? (
-          <LeererZustand titel={t("keineRechnungen")} {...modulSymbol("b2b_portal")} />
+          <LeererZustand titel={t("keineRechnungen")} modul="b2b_portal" />
         ) : (
           <DataTable
             head={
@@ -184,7 +181,7 @@ export async function B2bPortalAnsicht() {
 
       <Section title={t("kontingenteTitel")} description={t("kontingenteLead")}>
         {kontingente.kontingente.length === 0 ? (
-          <LeererZustand titel={t("keineKontingente")} {...modulSymbol("b2b_portal")} />
+          <LeererZustand titel={t("keineKontingente")} modul="b2b_portal" />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {kontingente.kontingente.map((k) => {
@@ -264,15 +261,11 @@ export async function B2bPortalAnsicht() {
         {vorbestellungen.vorbestellungen.length === 0 ? (
           <LeererZustand
             titel={t("keineVorbestellungen")}
-            {...modulSymbol("b2b_portal")}
-            bewegt={darfAnlegen}
-            aktion={
-              darfAnlegen ? (
-                <ZumFormular ziel={formularZiel.vorbestellung} className={knopfKlassen()}>
-                  <Plus className="h-4 w-4" aria-hidden="true" />
-                  {t("formular.anlegen.titel")}
-                </ZumFormular>
-              ) : undefined
+            modul="b2b_portal"
+            anlegen={
+              darfAnlegen
+                ? { ziel: formularZiel.vorbestellung, label: t("formular.anlegen.titel") }
+                : undefined
             }
           />
         ) : (

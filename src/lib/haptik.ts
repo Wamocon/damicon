@@ -1,8 +1,7 @@
 // Haptische Rueckmeldung (DESIGN.md Abschnitt 9, Entscheidung vom 28.09.2026).
 //
-// Nur bei Ereignissen, nicht bei jedem Tippen: gespeichert, abgelehnt,
-// gezaehlt. Einen Schalter zum Abstellen gibt es bewusst nicht - wer das
-// Vibrieren nicht will, stellt es am Geraet ab, und das gilt dann auch hier.
+// Nur bei Ereignissen, nicht bei jedem Tippen: gespeichert oder abgelehnt.
+// Einen Schalter zum Abstellen gibt es nach der Entscheidung bewusst nicht.
 //
 // Zwei Wege, weil die Browser zwei Welten sind:
 //
@@ -17,7 +16,10 @@
 //   unmittelbar in einer echten Beruehrung passiert. Ein Tick nach dem
 //   Speichern ist dort also nicht moeglich, nur einer beim Tippen selbst.
 //   haptikTipp() gehoert deshalb in den Klick-Handler des Knopfes, der das
-//   Ereignis ausloest, nicht in den Effekt danach.
+//   Ereignis ausloest, nicht in den Effekt danach. Dort tickt also jeder
+//   Tipp auf einen solchen Knopf, auch wenn die Eingabepruefung des
+//   Browsers das Absenden dann noch aufhaelt. Die Technik mit dem Schalter
+//   ist dieselbe wie im npm-Paket ios-haptics (MIT).
 //
 // Firefox hat navigator.vibrate mit Version 129 entfernt; dort bleibt es
 // still. Desktop-Browser ohne Vibrationsmotor ignorieren den Aufruf.
@@ -56,8 +58,13 @@ export function haptikTipp(): void {
   // Unsichtbar und ausserhalb jedes Formulars: der Schalter darf weder
   // Fokus nehmen noch in einem FormData auftauchen.
   const beschriftung = document.createElement("label");
-  beschriftung.ariaHidden = "true";
   beschriftung.style.display = "none";
+  // Der Klick auf die Beschriftung ist ein echtes click-Ereignis (dazu input
+  // und change am Schalter). Es endet hier, damit kein "Klick ausserhalb
+  // schliesst"-Zuhoerer am Dokument ein offenes Menue oder Blatt schliesst.
+  for (const art of ["click", "input", "change"]) {
+    beschriftung.addEventListener(art, (ereignis) => ereignis.stopPropagation());
+  }
   const schalter = document.createElement("input");
   schalter.type = "checkbox";
   schalter.setAttribute("switch", "");

@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import type { FormularZiel } from "@/lib/formular-ziele";
 
 /**
  * Knopf aus einem Leerzustand zum Anlegen-Formular derselben Seite
@@ -18,7 +19,7 @@ export function ZumFormular({
   className,
   children,
 }: {
-  ziel: string;
+  ziel: FormularZiel;
   className?: string;
   children: ReactNode;
 }) {
@@ -28,7 +29,15 @@ export function ZumFormular({
       className={className}
       onClick={() => {
         const karte = document.getElementById(ziel);
-        if (!karte) return;
+        if (!karte) {
+          // Knopf ohne Formular auf der Seite: der Sprung geht ins Leere.
+          // Passiert, wenn die Bedingung fuer den Knopf und die fuer das
+          // Formular auseinanderlaufen - in der Entwicklung sichtbar machen.
+          if (process.env.NODE_ENV !== "production") {
+            console.warn(`[ZumFormular] Kein Formular mit id="${ziel}" auf dieser Seite.`);
+          }
+          return;
+        }
         const aufklapper = karte instanceof HTMLDetailsElement ? karte : karte.closest("details");
         if (aufklapper) aufklapper.open = true;
         // Erst nach dem Sprung, den der Browser selbst ausfuehrt.

@@ -1,12 +1,9 @@
 import { getTranslations } from "next-intl/server";
-import { Plus } from "lucide-react";
-import { Card, Section, StatusPill, knopfKlassen } from "@/components/ui/kit";
+import { Card, Section, StatusPill } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import { KanalAnlegenFormular, KanalBearbeitenFormular } from "@/components/db/kanaele-formulare";
 import { ladeKanaele } from "@/lib/data/kanaele";
 import { LeererZustand } from "@/components/ui/liste";
-import { ZumFormular } from "@/components/ui/zum-formular";
-import { modulSymbol } from "@/lib/modules";
 import { formularZiel } from "@/lib/formular-ziele";
 
 // Verwaltung der lokalen Kontaktkanaele/Zahlungswege (Anforderung 5.6). Reine
@@ -24,14 +21,8 @@ export async function KanaeleAnsicht() {
         {uebersicht.kanaele.length === 0 ? (
           <LeererZustand
             titel={t("keineKanaele")}
-            {...modulSymbol("kanaele")}
-            bewegt
-            aktion={
-              <ZumFormular ziel={formularZiel.kanal} className={knopfKlassen()}>
-                <Plus className="h-4 w-4" aria-hidden="true" />
-                {t("anlegenTitel")}
-              </ZumFormular>
-            }
+            modul="kanaele"
+            anlegen={{ ziel: formularZiel.kanal, label: t("anlegenTitel") }}
           />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

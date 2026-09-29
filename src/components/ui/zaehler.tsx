@@ -16,32 +16,36 @@ import { cn } from "@/lib/utils";
 export function Zaehler({ wert }: { wert: number }) {
   // Vergleich mit dem letzten Wert waehrend des Renderns (React-Doku,
   // "Storing information from previous renders"). Die Nummer im Schluessel
-  // startet die Animation bei jedem Sprung neu.
+  // startet die Animation bei jedem Sprung neu. Nach dem Ende wird der
+  // Sprung verworfen: sonst liefe er erneut ab, sobald ein verborgener
+  // Vorfahr wieder sichtbar wird (display: none startet CSS-Animationen neu).
   const [gesehen, setGesehen] = useState(wert);
-  const [sprung, setSprung] = useState<{ nummer: number; plus: number } | null>(null);
+  const [nummer, setNummer] = useState(0);
+  const [plus, setPlus] = useState<number | null>(null);
   if (wert !== gesehen) {
     setGesehen(wert);
-    if (wert > gesehen) setSprung({ nummer: (sprung?.nummer ?? 0) + 1, plus: wert - gesehen });
+    if (wert > gesehen) {
+      setNummer(nummer + 1);
+      setPlus(wert - gesehen);
+    }
   }
 
   return (
     <span className="relative inline-block tabular-nums">
       <span
-        key={sprung?.nummer ?? 0}
-        className={cn(
-          "inline-block",
-          sprung && "motion-safe:animate-[zaehler-sprung_360ms_var(--ease-schwung)]",
-        )}
+        key={nummer}
+        className={cn("inline-block", plus !== null && "motion-safe:animate-zaehler-sprung")}
       >
         {wert}
       </span>
-      {sprung ? (
+      {plus !== null ? (
         <span
-          key={`plus-${sprung.nummer}`}
+          key={`plus-${nummer}`}
           aria-hidden="true"
-          className="pointer-events-none absolute left-full top-0 ml-1 text-xs font-bold text-himbeere opacity-0 motion-safe:animate-[zaehler-plus_650ms_var(--ease-weich)]"
+          onAnimationEnd={() => setPlus(null)}
+          className="pointer-events-none absolute left-full top-0 ml-1 text-xs font-bold text-himbeere opacity-0 motion-safe:animate-zaehler-plus"
         >
-          +{sprung.plus}
+          +{plus}
         </span>
       ) : null}
     </span>

@@ -1,7 +1,6 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Plus } from "lucide-react";
 import { Link } from "@/i18n/navigation";
-import { Card, Section, StatusPill, knopfKlassen, type Tone } from "@/components/ui/kit";
+import { Card, Section, StatusPill, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   ReklamationAnlegenFormular,
@@ -19,8 +18,6 @@ import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { reklamationStatusMeta } from "@/lib/domain/reklamationen";
 import { LeererZustand } from "@/components/ui/liste";
-import { ZumFormular } from "@/components/ui/zum-formular";
-import { modulSymbol } from "@/lib/modules";
 import { formularZiel } from "@/lib/formular-ziele";
 
 // Dieselbe Zuordnung wie nachweiskette-ansicht.tsx (dort nicht exportiert,
@@ -98,15 +95,11 @@ export async function ReklamationenAnsicht({
             {liste.reklamationen.length === 0 ? (
               <LeererZustand
                 titel={t("empty")}
-                {...modulSymbol("reklamationen")}
-                bewegt={darfAnlegen}
-                aktion={
-                  darfAnlegen ? (
-                    <ZumFormular ziel={formularZiel.reklamation} className={knopfKlassen()}>
-                      <Plus className="h-4 w-4" aria-hidden="true" />
-                      {t("formular.anlegen.titel")}
-                    </ZumFormular>
-                  ) : undefined
+                modul="reklamationen"
+                anlegen={
+                  darfAnlegen
+                    ? { ziel: formularZiel.reklamation, label: t("formular.anlegen.titel") }
+                    : undefined
                 }
               />
             ) : (
@@ -156,7 +149,7 @@ export async function ReklamationenAnsicht({
 
         <div className="space-y-3">
           {!detail ? (
-            <LeererZustand titel={t("detailEmpty")} {...modulSymbol("reklamationen")} />
+            <LeererZustand titel={t("detailEmpty")} modul="reklamationen" />
           ) : (
             <>
               <Card>

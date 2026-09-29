@@ -29,8 +29,19 @@ export function KlickWelle() {
       knopf.style.setProperty("--welle-d", `${durchmesser}px`);
       knopf.setAttribute("data-welle", "");
     }
+    // Nach dem Ablauf wieder weg: bliebe das Attribut stehen, liefe die Welle
+    // erneut ab, sobald ein verborgener Vorfahr (Aufklapper, Schublade)
+    // wieder sichtbar wird - display: none startet CSS-Animationen neu.
+    function beiEnde(ereignis: AnimationEvent) {
+      if (ereignis.animationName !== "klick-welle" || !(ereignis.target instanceof Element)) return;
+      ereignis.target.removeAttribute("data-welle");
+    }
     document.addEventListener("pointerdown", beiDruck, { passive: true });
-    return () => document.removeEventListener("pointerdown", beiDruck);
+    document.addEventListener("animationend", beiEnde);
+    return () => {
+      document.removeEventListener("pointerdown", beiDruck);
+      document.removeEventListener("animationend", beiEnde);
+    };
   }, []);
   return null;
 }

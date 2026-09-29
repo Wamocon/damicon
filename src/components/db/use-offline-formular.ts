@@ -41,13 +41,23 @@ export function useOfflineFormular(
 ) {
   const [status, dispatch] = useActionState(aktion, leer);
   const [lokalerStatus, setLokalerStatus] = useState<AktionsStatus | null>(null);
+  // Ein neues Ergebnis vom Server loest die Offline-Meldung ab. Frueher wurde
+  // sie schon beim Absenden geleert; dann stand fuer einen Moment wieder das
+  // alte Server-Ergebnis da, und der Speichern-Knopf hielt es fuer ein neues
+  // (Haekchen und Vibration, ohne dass gespeichert war). Vergleich waehrend
+  // des Renderns wie in der React-Doku ("Storing information from previous
+  // renders").
+  const [serverGesehen, setServerGesehen] = useState(status);
+  if (status !== serverGesehen) {
+    setServerGesehen(status);
+    setLokalerStatus(null);
+  }
   const zeitstempeln = geraetZeitpunktFeld ? mitGeraetZeitstempel(geraetZeitpunktFeld) : null;
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     // Zeitstempel immer setzen, online wie offline - der Trigger auf
     // Datenbankseite braucht ihn so oder so (Anforderung 2.6).
     zeitstempeln?.(event);
-    setLokalerStatus(null);
 
     // navigator.onLine direkt gelesen statt useOnlineStatus(): im
     // Submit-Handler zaehlt der Wert im exakten Moment des Absendens, nicht

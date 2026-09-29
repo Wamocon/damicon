@@ -1,12 +1,15 @@
 import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { knopfKlassen, type Ziel } from "@/components/ui/kit";
 import { DetailpanelSteuerung } from "@/components/ui/detailpanel-steuerung";
 import { LadeMelder } from "@/components/ui/lade-status";
 import { Icon } from "@/components/icon";
+import { ZumFormular } from "@/components/ui/zum-formular";
+import type { FormularZiel } from "@/lib/formular-ziele";
+import { modulSymbol } from "@/lib/modules";
 
 // Liste mit Detailansicht (DESIGN.md Abschnitt 14, WMCNL-2488). Eine Liste,
 // deren Eintraege per Klick rechts eine Detailansicht oeffnen. Zuerst gebaut
@@ -215,56 +218,78 @@ export function Blaettern({
  * Leere Liste: sagt, warum, und bietet den naechsten Schritt an.
  *
  * Drei Formen (docs/design/leerzustaende-ladezustaende-2026-09-25):
- *   ohne symbol       gestrichelter Rahmen, nur Text - fuer "alles erledigt",
+ *   ohne modul        gestrichelter Rahmen, nur Text - fuer "alles erledigt",
  *                     fehlende Freigabe und Fehlermeldungen;
- *   mit symbol        das Symbol des Moduls in der Farbe seines Bereichs,
+ *   modul             das Symbol des Moduls in der Farbe seines Bereichs,
  *                     ruhig - fuer berechnete Werte, Filter ohne Treffer und
  *                     Daten von aussen; eine aktion ist hier etwa "Filter
  *                     zuruecksetzen";
- *   symbol + bewegt   mit dem Knopf zum Anlegen als aktion. Nur hier bewegt
- *                     sich das Abzeichen: der Blick soll beim Knopf landen,
- *                     und auf Seiten ohne naechsten Schritt soll nichts
- *                     wackeln. Deshalb eine eigene Angabe und nicht aus
- *                     aktion abgeleitet.
+ *   modul + anlegen   mit dem Knopf zum Anlegen-Formular derselben Seite.
+ *                     Nur hier bewegt sich das Abzeichen, damit der Blick
+ *                     beim Knopf landet - zwei Atemzuege lang, dann ist Ruhe
+ *                     (WCAG 2.2.2: Bewegung, die von selbst startet, endet
+ *                     nach spaetestens 5 s).
+ *
+ * Knopf und Bewegung haengen an einer einzigen Angabe. Vorher standen
+ * Bedingung, Knopf und Bewegung an 17 Stellen einzeln, und eine Stelle
+ * haette sich bewegen koennen, ohne einen Knopf zu zeigen.
  */
 export function LeererZustand({
   titel,
   text,
   aktion,
-  symbol,
-  akzent = "var(--primary)",
-  bewegt = false,
+  modul,
+  anlegen,
 }: {
   titel: string;
   text?: string;
+  /** Weiterer Schritt ohne Bewegung, etwa "Filter zuruecksetzen". */
   aktion?: ReactNode;
-  /** Symbolname wie in modules.ts, etwa "map" (components/icon.tsx). */
-  symbol?: string;
-  /** Farbe des Bereichs, etwa zones[...].accent. */
-  akzent?: string;
-  /** Nur zusammen mit einem Anlegen-Knopf: Abzeichen atmet, Symbol wiegt sich. */
-  bewegt?: boolean;
+  /** Schluessel aus lib/modules.ts: Symbol und Bereichsfarbe wie im Menue. */
+  modul?: string;
+  /** Knopf zum Anlegen-Formular (Ziele in lib/formular-ziele.ts). */
+  anlegen?: { ziel: FormularZiel; label: string };
 }) {
+  const { symbol, akzent = "var(--primary)" }: { symbol?: string; akzent?: string } = modul
+    ? modulSymbol(modul)
+    : {};
+  const schritte =
+    anlegen || aktion ? (
+      <>
+        {anlegen ? (
+          <ZumFormular ziel={anlegen.ziel} className={knopfKlassen()}>
+            <Plus className="h-4 w-4" aria-hidden="true" />
+            {anlegen.label}
+          </ZumFormular>
+        ) : null}
+        {aktion}
+      </>
+    ) : null;
+
   if (!symbol) {
     return (
       <div className="rounded-xl border border-dashed border-border p-6 text-center">
         <p className="text-sm font-semibold text-card-foreground">{titel}</p>
         {text ? <p className="mt-1 schrift-dense text-muted-foreground">{text}</p> : null}
-        {aktion ? <div className="mt-3 flex justify-center">{aktion}</div> : null}
+        {schritte ? (
+          <div className="mt-3 flex flex-wrap justify-center gap-3">{schritte}</div>
+        ) : null}
       </div>
     );
   }
 
-  // Ohne eigenen Rahmen: der Leerzustand steht immer in einer Section, und
-  // die ist schon die Box (kit.tsx). Eine Karte darin waere Box in Box.
+  const bewegt = Boolean(anlegen);
+
+  // Ohne eigenen Rahmen: der Leerzustand steht in einer Section oder in einer
+  // Tabellenzelle, und beide sind schon die Box (kit.tsx). Eine Karte darin
+  // waere Box in Box.
   return (
     <div className="px-6 py-8 text-center">
       <span
         aria-hidden="true"
         className={cn(
           "mx-auto grid h-14 w-14 place-items-center rounded-full",
-          bewegt &&
-            "motion-safe:animate-[leerzustand-atmen_2.6s_cubic-bezier(0.45,0,0.55,1)_infinite]",
+          bewegt && "motion-safe:animate-leerzustand-atmen",
         )}
         style={{
           color: akzent,
@@ -275,8 +300,7 @@ export function LeererZustand({
           name={symbol}
           className={cn(
             "h-6 w-6",
-            bewegt &&
-              "origin-[50%_88%] motion-safe:animate-[leerzustand-wiegen_3.2s_ease-in-out_infinite]",
+            bewegt && "origin-[50%_88%] motion-safe:animate-leerzustand-wiegen",
           )}
         />
       </span>
@@ -284,7 +308,9 @@ export function LeererZustand({
       {text ? (
         <p className="mx-auto mt-1.5 max-w-sm schrift-dense text-muted-foreground">{text}</p>
       ) : null}
-      {aktion ? <div className="mt-5 flex justify-center">{aktion}</div> : null}
+      {schritte ? (
+        <div className="mt-5 flex flex-wrap justify-center gap-3">{schritte}</div>
+      ) : null}
     </div>
   );
 }

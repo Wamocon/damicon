@@ -1,6 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Plus } from "lucide-react";
-import { Card, DataTable, Section, StatusPill, knopfKlassen, type Tone } from "@/components/ui/kit";
+import { Card, DataTable, Section, StatusPill, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   KontingentErstellenFormular,
@@ -17,8 +16,6 @@ import {
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { LeererZustand } from "@/components/ui/liste";
-import { ZumFormular } from "@/components/ui/zum-formular";
-import { modulSymbol } from "@/lib/modules";
 import { formularZiel } from "@/lib/formular-ziele";
 
 const typTon: Record<string, Tone> = {
@@ -64,15 +61,11 @@ export async function SortenkatalogAnsicht() {
         {sorten.sorten.length === 0 ? (
           <LeererZustand
             titel={t("keineSorten")}
-            {...modulSymbol("sortenkatalog")}
-            bewegt={darfAnlegen}
-            aktion={
-              darfAnlegen ? (
-                <ZumFormular ziel={formularZiel.sorte} className={knopfKlassen()}>
-                  <Plus className="h-4 w-4" aria-hidden="true" />
-                  {t("formular.sorteErstellen.titel")}
-                </ZumFormular>
-              ) : undefined
+            modul="sortenkatalog"
+            anlegen={
+              darfAnlegen
+                ? { ziel: formularZiel.sorte, label: t("formular.sorteErstellen.titel") }
+                : undefined
             }
           />
         ) : (
@@ -107,7 +100,7 @@ export async function SortenkatalogAnsicht() {
 
       <Section title={t("verfuegbarkeitTitel")} description={t("verfuegbarkeitLead")}>
         {verfuegbarkeit.zeilen.length === 0 ? (
-          <LeererZustand titel={t("keineVerfuegbarkeit")} {...modulSymbol("sortenkatalog")} />
+          <LeererZustand titel={t("keineVerfuegbarkeit")} modul="sortenkatalog" />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {verfuegbarkeit.zeilen.map((z) => {
@@ -148,16 +141,11 @@ export async function SortenkatalogAnsicht() {
           {kontingente.kontingente.length === 0 ? (
             <LeererZustand
               titel={t("keineKontingente")}
-              {...modulSymbol("sortenkatalog")}
-              bewegt={darfVerwalten}
-              aktion={
-                darfVerwalten ? (
-                  <ZumFormular ziel={formularZiel.kontingent} className={knopfKlassen()}>
-                    <Plus className="h-4 w-4" aria-hidden="true" />
-                    {t("formular.kontingentErstellen.titel")}
-                  </ZumFormular>
-                ) : undefined
-              }
+              modul="sortenkatalog"
+              anlegen={{
+                ziel: formularZiel.kontingent,
+                label: t("formular.kontingentErstellen.titel"),
+              }}
             />
           ) : (
             <DataTable head={[t("col.kunde"), t("col.sorte"), t("col.saison"), t("col.menge"), t("col.reserviert"), ""]}>

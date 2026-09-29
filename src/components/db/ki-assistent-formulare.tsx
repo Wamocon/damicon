@@ -198,7 +198,7 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
               className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary"
             />
             <MikrofonKnopf eingabeRef={eingabeRef} />
-            <SubmitKnopf label={t("senden")} status={sendenStatus} />
+            <SubmitKnopf label={t("senden")} />
           </div>
           {istErsteNachricht ? (
             <label className="flex items-start gap-1.5 text-[11px] leading-4 text-muted-foreground">

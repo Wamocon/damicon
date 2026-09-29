@@ -4,7 +4,6 @@ import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import { KuehlkettenAlarm } from "@/components/db/kuehlketten-alarm";
 import { ladeKuehlkettenUebersicht } from "@/lib/data/kuehlkette";
 import { LeererZustand } from "@/components/ui/liste";
-import { modulSymbol } from "@/lib/modules";
 
 const ergebnisTon: Record<string, Tone> = {
   ok: "success",
@@ -33,7 +32,7 @@ export async function KuehletteAnsicht() {
         action={<DatenquelleBadge quelle={uebersicht.quelle} />}
       >
         {uebersicht.offeneChargen.length === 0 ? (
-          <LeererZustand titel={t("keineOffenen")} {...modulSymbol("kuehlkette")} />
+          <LeererZustand titel={t("keineOffenen")} modul="kuehlkette" />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {uebersicht.offeneChargen.map((c) => (
@@ -60,7 +59,7 @@ export async function KuehletteAnsicht() {
 
       <Section title={t("letzteTitel")} description={t("letzteLead")}>
         {uebersicht.letzteMessungen.length === 0 ? (
-          <LeererZustand titel={t("keineMessungen")} {...modulSymbol("kuehlkette")} />
+          <LeererZustand titel={t("keineMessungen")} modul="kuehlkette" />
         ) : (
           <div className="grid gap-2 sm:grid-cols-2">
             {uebersicht.letzteMessungen.map((m) => (

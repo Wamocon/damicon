@@ -1,6 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Plus } from "lucide-react";
-import { Card, Section, StatusPill, knopfKlassen } from "@/components/ui/kit";
+import { Card, Section, StatusPill } from "@/components/ui/kit";
 import { LeererZustand } from "@/components/ui/liste";
 import { ZumFormular } from "@/components/ui/zum-formular";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
@@ -14,11 +13,16 @@ import {
 import { ladeSorten, ladeStandortBaum } from "@/lib/data/standort";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
-import { modulSymbol } from "@/lib/modules";
 import { formularZiel } from "@/lib/formular-ziele";
+
+// Verweis mitten im Satz des Baums ("Noch keine Parzelle. Parzelle anlegen"):
+// Primaerfarbe, unterstrichen erst beim Zeigen. textVerweisKlassen aus kit.tsx
+// passt hier nicht, der bringt die Mindesthoehe eines eigenen Knopfes mit.
+const satzVerweis = "font-semibold text-primary underline-offset-2 hover:underline";
 
 // Standort-Hierarchie aus der Datenbank inklusive Verwaltungsoberflaeche
 // (Meilenstein B). Ersetzt die reine Anzeige-Demo aus Meilenstein A.
+
 export async function StandortAnsicht() {
   const [baum, sorten, profil, t] = await Promise.all([
     ladeStandortBaum(),
@@ -92,15 +96,11 @@ export async function StandortAnsicht() {
           <LeererZustand
             titel={v("leer.plantagen")}
             text={v("leer.plantagenText")}
-            {...modulSymbol("standort")}
-            bewegt={darfAnlegen}
-            aktion={
-              darfAnlegen ? (
-                <ZumFormular ziel={formularZiel.plantage} className={knopfKlassen()}>
-                  <Plus className="h-4 w-4" aria-hidden="true" />
-                  {v("leer.plantageAnlegen")}
-                </ZumFormular>
-              ) : undefined
+            modul="standort"
+            anlegen={
+              darfAnlegen
+                ? { ziel: formularZiel.plantage, label: v("leer.plantageAnlegen") }
+                : undefined
             }
           />
         ) : null}
@@ -143,7 +143,7 @@ export async function StandortAnsicht() {
                               {" "}
                               <ZumFormular
                                 ziel={formularZiel.reihengruppe}
-                                className="font-semibold text-primary underline-offset-2 hover:underline"
+                                className={satzVerweis}
                               >
                                 {v("leer.reihengruppeAnlegen")}
                               </ZumFormular>
@@ -162,7 +162,7 @@ export async function StandortAnsicht() {
                         {" "}
                         <ZumFormular
                           ziel={formularZiel.parzelle}
-                          className="font-semibold text-primary underline-offset-2 hover:underline"
+                          className={satzVerweis}
                         >
                           {v("leer.parzelleAnlegen")}
                         </ZumFormular>

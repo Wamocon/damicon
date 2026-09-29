@@ -11,7 +11,6 @@ import {
   TabellenFuss,
   knopfKlassen,
 } from "@/components/ui/kit";
-import { Plus } from "lucide-react";
 import { Auswahl } from "@/components/db/formular-kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
@@ -41,8 +40,6 @@ import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import type { ReactNode } from "react";
 import { LeererZustand } from "@/components/ui/liste";
-import { ZumFormular } from "@/components/ui/zum-formular";
-import { modulSymbol } from "@/lib/modules";
 import { formularZiel } from "@/lib/formular-ziele";
 
 // Finanzen/Kostentraeger (Anforderung 4.2, P0).
@@ -275,15 +272,11 @@ export async function FinanzenAnsicht({
                     <td colSpan={8} className="px-3 py-2">
                       <LeererZustand
                         titel={t("keineKostentraeger")}
-                        {...modulSymbol("finanzen")}
-                        bewegt={darfBuchen}
-                        aktion={
-                          darfBuchen ? (
-                            <ZumFormular ziel={formularZiel.kostentraeger} className={knopfKlassen()}>
-                              <Plus className="h-4 w-4" aria-hidden="true" />
-                              {t("formular.kostentraeger.titel")}
-                            </ZumFormular>
-                          ) : undefined
+                        modul="finanzen"
+                        anlegen={
+                          darfBuchen
+                            ? { ziel: formularZiel.kostentraeger, label: t("formular.kostentraeger.titel") }
+                            : undefined
                         }
                       />
                     </td>
@@ -354,7 +347,7 @@ export async function FinanzenAnsicht({
                 // als eine Erklaerung, warum nichts drinsteht.
                 <tr>
                   <td colSpan={8} className="px-3 py-2">
-                    <LeererZustand titel={t("keineChargen")} {...modulSymbol("finanzen")} />
+                    <LeererZustand titel={t("keineChargen")} modul="finanzen" />
                   </td>
                 </tr>
               ) : (
@@ -440,15 +433,11 @@ export async function FinanzenAnsicht({
                     <td colSpan={5} className="px-3 py-2">
                       <LeererZustand
                         titel={t("keineBuchungen")}
-                        {...modulSymbol("finanzen")}
-                        bewegt={darfBuchen}
-                        aktion={
-                          darfBuchen ? (
-                            <ZumFormular ziel={formularZiel.buchung} className={knopfKlassen()}>
-                              <Plus className="h-4 w-4" aria-hidden="true" />
-                              {t("formular.buchung.titel")}
-                            </ZumFormular>
-                          ) : undefined
+                        modul="finanzen"
+                        anlegen={
+                          darfBuchen
+                            ? { ziel: formularZiel.buchung, label: t("formular.buchung.titel") }
+                            : undefined
                         }
                       />
                     </td>

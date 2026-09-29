@@ -1,6 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Plus } from "lucide-react";
-import { Card, DataTable, Section, Stat, StatusPill, knopfKlassen, type Tone } from "@/components/ui/kit";
+import { Card, DataTable, Section, Stat, StatusPill, type Tone } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   LohnMonatAbzuegeBerechnenFormular,
@@ -13,8 +12,6 @@ import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { lohnStatusMeta } from "@/lib/domain/lohn";
 import { LeererZustand } from "@/components/ui/liste";
-import { ZumFormular } from "@/components/ui/zum-formular";
-import { modulSymbol } from "@/lib/modules";
 import { formularZiel } from "@/lib/formular-ziele";
 
 // Lohnabrechnung mit Qualitaetsfaktor (WMCNL-1444). Cockpit-Aufbau wie
@@ -78,15 +75,11 @@ export async function LohnAnsicht() {
           <LeererZustand
             titel={t("keinSatz")}
             text={t("keinSatzHinweis")}
-            {...modulSymbol("lohn")}
-            bewegt={darfBerechnen}
-            aktion={
-              darfBerechnen ? (
-                <ZumFormular ziel={formularZiel.lohnsatz} className={knopfKlassen()}>
-                  <Plus className="h-4 w-4" aria-hidden="true" />
-                  {t("formular.satz.titel")}
-                </ZumFormular>
-              ) : undefined
+            modul="lohn"
+            anlegen={
+              darfBerechnen
+                ? { ziel: formularZiel.lohnsatz, label: t("formular.satz.titel") }
+                : undefined
             }
           />
         )}
@@ -172,7 +165,7 @@ export async function LohnAnsicht() {
           {abrechnungen.length === 0 ? (
             <tr>
               <td colSpan={11} className="px-3 py-2">
-                <LeererZustand titel={t("keineAbrechnungen")} {...modulSymbol("lohn")} />
+                <LeererZustand titel={t("keineAbrechnungen")} modul="lohn" />
               </td>
             </tr>
           ) : (
@@ -249,7 +242,7 @@ export async function LohnAnsicht() {
           {positionen.length === 0 ? (
             <tr>
               <td colSpan={7} className="px-3 py-2">
-                <LeererZustand titel={t("keinePositionen")} {...modulSymbol("lohn")} />
+                <LeererZustand titel={t("keinePositionen")} modul="lohn" />
               </td>
             </tr>
           ) : (
@@ -303,7 +296,7 @@ export async function LohnAnsicht() {
             />
           </div>
         ) : (
-          <LeererZustand titel={kzt("keinSatz")} {...modulSymbol("lohn")} />
+          <LeererZustand titel={kzt("keinSatz")} modul="lohn" />
         )}
         {steuersatzKz ? (
           <p className="text-[11px] leading-4 text-muted-foreground">
@@ -328,7 +321,7 @@ export async function LohnAnsicht() {
           {monatsabzuege.length === 0 ? (
             <tr>
               <td colSpan={8} className="px-3 py-2">
-                <LeererZustand titel={kzt("keineAbzuege")} {...modulSymbol("lohn")} />
+                <LeererZustand titel={kzt("keineAbzuege")} modul="lohn" />
               </td>
             </tr>
           ) : (

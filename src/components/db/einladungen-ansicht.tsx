@@ -1,6 +1,5 @@
 import { getFormatter, getTranslations } from "next-intl/server";
-import { Plus } from "lucide-react";
-import { DataTable, Section, StatusPill, knopfKlassen } from "@/components/ui/kit";
+import { DataTable, Section, StatusPill } from "@/components/ui/kit";
 import { DatenquelleBadge } from "@/components/db/datenquelle-badge";
 import {
   EinladungErstellenFormular,
@@ -11,8 +10,6 @@ import { anzeigeStatus, einladungStatusMeta } from "@/lib/domain/einladungen";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { LeererZustand } from "@/components/ui/liste";
-import { ZumFormular } from "@/components/ui/zum-formular";
-import { modulSymbol } from "@/lib/modules";
 import { formularZiel } from "@/lib/formular-ziele";
 
 // Einladungsverwaltung (Anforderung E.20). Bisher entstanden Kundenkonten
@@ -71,15 +68,11 @@ export async function EinladungenAnsicht() {
       {liste.einladungen.length === 0 ? (
         <LeererZustand
           titel={t("leer")}
-          {...modulSymbol("rollen")}
-          bewegt={darfAusstellen}
-          aktion={
-            darfAusstellen ? (
-              <ZumFormular ziel={formularZiel.einladung} className={knopfKlassen()}>
-                <Plus className="h-4 w-4" aria-hidden="true" />
-                {t("formular.titel")}
-              </ZumFormular>
-            ) : undefined
+          modul="rollen"
+          anlegen={
+            darfAusstellen
+              ? { ziel: formularZiel.einladung, label: t("formular.titel") }
+              : undefined
           }
         />
       ) : (

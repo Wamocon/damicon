@@ -1,5 +1,13 @@
+import { readdirSync, readFileSync } from "node:fs";
+import path from "node:path";
 import { hasPermission, roles } from "../../src/lib/rbac";
-import { modules, modulesForZone, sichtbareModule, zones } from "../../src/lib/modules";
+import {
+  modules,
+  modulesForZone,
+  modulSymbol,
+  sichtbareModule,
+  zones,
+} from "../../src/lib/modules";
 
 // Die Rechtepruefung der Navigation (lib/modules.ts, sichtbareModule).
 //
@@ -83,6 +91,34 @@ pruefe(
   "Pfluecker sieht genau Buero und Markt",
   pickerBereiche === "buero,markt",
   pickerBereiche,
+);
+
+// 6. Leerzustaende (ui/liste.tsx): jeder Modulschluessel an einem
+//    LeererZustand loest ein Symbol auf, und jedes Anlegen-Ziel hat ein
+//    Formular mit dieser id. Ein Tippfehler fiele sonst still auf die reine
+//    Textform zurueck oder liesse den Knopf ins Leere springen.
+const komponenten = path.resolve(__dirname, "../../src/components");
+const quelltext = readdirSync(komponenten, { recursive: true, encoding: "utf8" })
+  .filter((datei) => datei.endsWith(".tsx"))
+  .map((datei) => readFileSync(path.join(komponenten, datei), "utf8"))
+  .join("\n");
+const leerModule = [...new Set([...quelltext.matchAll(/\bmodul="(\w+)"/g)].map((m) => m[1]))];
+const ohneSymbol = leerModule.filter((schl) => !modulSymbol(schl).symbol);
+pruefe(
+  "Leerzustaende nennen nur bekannte Module",
+  leerModule.length > 0 && ohneSymbol.length === 0,
+  ohneSymbol.length > 0 ? `unbekannt: ${ohneSymbol.join(", ")}` : `${leerModule.length} Module`,
+);
+const anlegeZiele = [
+  ...new Set([...quelltext.matchAll(/ziel(?:=\{|: )formularZiel\.(\w+)/g)].map((m) => m[1])),
+];
+const ohneFormular = anlegeZiele.filter(
+  (ziel) => !quelltext.includes(`id={formularZiel.${ziel}}`),
+);
+pruefe(
+  "Jedes Anlegen-Ziel hat ein Formular mit dieser id",
+  anlegeZiele.length > 0 && ohneFormular.length === 0,
+  ohneFormular.length > 0 ? `ohne Formular: ${ohneFormular.join(", ")}` : `${anlegeZiele.length} Ziele`,
 );
 
 console.log(

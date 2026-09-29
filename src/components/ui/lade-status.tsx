@@ -97,8 +97,7 @@ export function PanelLadebalken() {
       <span
         className={cn(
           "absolute inset-y-0 left-0 w-2/5 bg-primary motion-reduce:w-full",
-          laedt &&
-            "motion-safe:animate-[ladebalken-lauf_1.4s_cubic-bezier(0.65,0,0.35,1)_infinite]",
+          laedt && "motion-safe:animate-ladebalken-lauf",
         )}
       />
     </span>

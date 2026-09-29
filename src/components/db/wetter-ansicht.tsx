@@ -6,7 +6,6 @@ import { ladeWetterUebersicht } from "@/lib/data/wetter";
 import { getSessionProfile } from "@/lib/auth";
 import { hasPermission } from "@/lib/rbac";
 import { LeererZustand } from "@/components/ui/liste";
-import { modulSymbol } from "@/lib/modules";
 
 // Wetteranbindung mit Temperatursummen-Heuristik (Anforderung 2.13). Reine
 // Beobachtungsgroesse fuer die Mengenprognose, kein Prognosemodell - siehe
@@ -49,13 +48,13 @@ export async function WetterAnsicht() {
             <p className="max-w-sm text-[11px] leading-4 text-muted-foreground">{t("hinweis")}</p>
           </Card>
         ) : (
-          <LeererZustand titel={t("keineDaten")} {...modulSymbol("wetter")} />
+          <LeererZustand titel={t("keineDaten")} modul="wetter" />
         )}
       </Section>
 
       <Section title={t("tageTitel")} description={t("tageLead")}>
         {juengsteTage.length === 0 ? (
-          <LeererZustand titel={t("keineDaten")} {...modulSymbol("wetter")} />
+          <LeererZustand titel={t("keineDaten")} modul="wetter" />
         ) : (
           <DataTable
             head={[t("col.datum"), t("col.min"), t("col.max"), t("col.niederschlag"), t("col.summe")]}
