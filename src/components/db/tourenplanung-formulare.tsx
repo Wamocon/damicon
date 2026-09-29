@@ -29,7 +29,7 @@ export function KundeAdresseFormular({
       <div className="w-64">
         <Feld label={t("label")} name="adresse" defaultValue={adresse ?? ""} placeholder={t("platzhalter")} required />
       </div>
-      <SubmitKnopf label={t("knopf")} variante="leise" />
+      <SubmitKnopf label={t("knopf")} variante="leise" status={status} />
       <div className="w-full">
         <AktionsMeldung status={status} />
       </div>
@@ -92,7 +92,7 @@ export function TourErstellenFormular({ lieferungen }: { lieferungen: LieferungO
           </li>
         ))}
       </ul>
-      <SubmitKnopf label={t("knopf")} form={formularId} pending={pending} />
+      <SubmitKnopf label={t("knopf")} form={formularId} pending={pending} status={status} />
       <AktionsMeldung status={status} />
     </FormularKarte>
   );

@@ -77,7 +77,7 @@ export function EinladungErstellenFormular({
         <Feld label={t("name")} name="fullName" required />
         <Feld label={t("email")} name="email" type="email" required />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="space-y-2 sm:col-span-2 lg:col-span-4">
           {/* Die Erfolgsmeldung nennt den Code im Platzhalter; die Anzeige

@@ -198,7 +198,7 @@ export function KiChatFenster({ verlauf }: { verlauf: KiChatNachrichtZeile[] }) 
               className="h-10 flex-1 rounded-lg border border-border bg-background px-3 text-sm outline-none focus:border-primary"
             />
             <MikrofonKnopf eingabeRef={eingabeRef} />
-            <SubmitKnopf label={t("senden")} />
+            <SubmitKnopf label={t("senden")} status={sendenStatus} />
           </div>
           {istErsteNachricht ? (
             <label className="flex items-start gap-1.5 text-[11px] leading-4 text-muted-foreground">
@@ -467,7 +467,7 @@ function KiRatenlimitSetzenFormular() {
           placeholder={t("grenzePlatzhalter")}
         />
         <div className="flex items-end sm:col-span-2">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2">
           <AktionsMeldung status={status} />
@@ -506,7 +506,7 @@ function KiAnbieterAnlegenFormular() {
         <Feld label={t("basisUrl")} name="basis_url" required placeholder="https://api.beispiel.kz/v1" />
         <Feld label={t("apiKey")} name="api_key" type="password" required />
         <div className="flex items-end sm:col-span-2">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2">
           <AktionsMeldung status={status} />

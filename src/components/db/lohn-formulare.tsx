@@ -46,7 +46,7 @@ export function LohnSatzAnlegenFormular() {
         <Feld label={t("max")} name="qualitaetsfaktor_max" inputMode="decimal" defaultValue="1.10" />
         <Feld label={t("notiz")} name="notiz" />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2 lg:col-span-4">
           <AktionsMeldung status={status} />
@@ -70,7 +70,7 @@ export function LohnPeriodeBerechnenFormular() {
         <Feld label={t("periodeStart")} name="periode_start" type="date" required />
         <Feld label={t("periodeEnde")} name="periode_ende" type="date" required />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2 lg:col-span-4">
           <AktionsMeldung status={status} />
@@ -108,7 +108,7 @@ export function LohnMonatAbzuegeBerechnenFormular() {
           required
         />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2 lg:col-span-4">
           <AktionsMeldung status={status} />

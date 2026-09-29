@@ -42,7 +42,7 @@ export function SorteErstellenFormular() {
             <Feld label={t("schaleG")} name="schale_g" inputMode="decimal" placeholder="125" />
           </div>
         </div>
-        <SubmitKnopf label={t("knopf")} />
+        <SubmitKnopf label={t("knopf")} status={status} />
         <AktionsMeldung status={status} />
       </form>
     </FormularKarte>
@@ -75,7 +75,7 @@ export function SorteBearbeitenFormular({ sorte }: { sorte: SorteZeile }) {
           defaultValue={sorte.schaleG?.toString() ?? ""}
         />
       </div>
-      <SubmitKnopf label={t("speichernKnopf")} variante="leise" />
+      <SubmitKnopf label={t("speichernKnopf")} variante="leise" status={status} />
       <div className="w-full">
         <AktionsMeldung status={status} />
       </div>
@@ -111,7 +111,7 @@ export function KontingentErstellenFormular({
             <Feld label={t("menge")} name="menge_kg" inputMode="decimal" required />
           </div>
         </div>
-        <SubmitKnopf label={t("knopf")} />
+        <SubmitKnopf label={t("knopf")} status={status} />
         <AktionsMeldung status={status} />
       </form>
     </FormularKarte>
@@ -129,7 +129,7 @@ export function KontingentMengeFormular({ kontingentId, mengeKg }: { kontingentI
       <div className="w-28">
         <Feld label={t("label")} name="menge_kg" inputMode="decimal" required defaultValue={mengeKg.toString()} />
       </div>
-      <SubmitKnopf label={t("knopf")} variante="leise" />
+      <SubmitKnopf label={t("knopf")} variante="leise" status={status} />
       <div className="w-full">
         <AktionsMeldung status={status} />
       </div>

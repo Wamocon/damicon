@@ -75,7 +75,7 @@ export function LieferungAnlegenFormular({
           ]}
         />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2 lg:col-span-4">
           <AktionsMeldung status={status} />

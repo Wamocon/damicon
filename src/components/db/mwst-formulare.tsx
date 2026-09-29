@@ -18,7 +18,7 @@ export function MwstSchwellePruefenFormular() {
   return (
     <form action={action} className="flex flex-wrap items-center gap-2">
       <PfadFeld />
-      <SubmitKnopf label={t("knopf")} />
+      <SubmitKnopf label={t("knopf")} status={status} />
       <AktionsMeldung status={status} />
     </form>
   );
@@ -35,7 +35,7 @@ export function MwstRegistriertMarkierenFormular() {
         <PfadFeld />
         <Feld label={t("registriertAm")} name="registriert_am" type="date" defaultValue={heute} required />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2 lg:col-span-2">
           <AktionsMeldung status={status} />

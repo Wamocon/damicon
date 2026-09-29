@@ -1,12 +1,13 @@
 "use client";
 
-import { useId, type FormEvent, type ReactNode } from "react";
+import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react";
 import { useFormStatus } from "react-dom";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import type { AktionsStatus } from "@/lib/actions/status";
 import { Button, feldKlassen } from "@/components/ui/kit";
+import { haptikEreignis, haptikTipp } from "@/lib/haptik";
 
 // Kleine Bausteine fuer die Verwaltungsformulare der DB-gestuetzten Module.
 // Bewusst schlicht gehalten: gleiche Hoehe, gleiche Radien wie im uebrigen
@@ -138,11 +139,56 @@ export function Auswahl({
   );
 }
 
+// Was der Knopf vom Ergebnis wissen muss, ist nur der Stand. So passen auch
+// Rueckgabewerte, die mehr tragen als AktionsStatus (Zukauf-Import).
+type ErgebnisStand = Pick<AktionsStatus, "stand">;
+
+// Wie lange das Haekchen nach dem Speichern steht, bevor der Knopf wieder
+// seine Beschriftung zeigt.
+const HAEKCHEN_MS = 1400;
+
+/**
+ * Rueckmeldung nach dem Absenden: Haekchen im Knopf (K3) und Haptik.
+ *
+ * Jede Server Action liefert ein neues Objekt, auch bei gleichem Stand. Der
+ * Vergleich mit dem zuletzt gesehenen passiert deshalb waehrend des Renderns
+ * (React-Doku, "Storing information from previous renders"). Der erste Wert
+ * zaehlt nicht als Ergebnis - beim Oeffnen eines Formulars meldet sich nichts.
+ */
+function useAbsendeErgebnis(status: ErgebnisStand | undefined): boolean {
+  const [gesehen, setGesehen] = useState(status);
+  const [neu, setNeu] = useState<ErgebnisStand | null>(null);
+  const [haekchen, setHaekchen] = useState(false);
+  if (status !== gesehen) {
+    setGesehen(status);
+    setNeu(status ?? null);
+    setHaekchen(status?.stand === "ok");
+  }
+
+  useEffect(() => {
+    if (neu?.stand === "ok") haptikEreignis("erfolg");
+    if (neu?.stand === "fehler") haptikEreignis("fehler");
+  }, [neu]);
+
+  // neu in den Abhaengigkeiten: ein zweiter Erfolg kurz nach dem ersten
+  // startet die Uhr neu, statt das Haekchen zu frueh zu nehmen.
+  useEffect(() => {
+    if (!haekchen) return;
+    const uhr = window.setTimeout(() => setHaekchen(false), HAEKCHEN_MS);
+    return () => window.clearTimeout(uhr);
+  }, [haekchen, neu]);
+
+  return haekchen;
+}
+
 export function SubmitKnopf({
   label,
   variante = "primaer",
   form,
   pending: pendingProp,
+  status,
+  symbol,
+  breit,
 }: {
   label?: string;
   variante?: "primaer" | "leise";
@@ -152,9 +198,16 @@ export function SubmitKnopf({
   // per form="...". Ohne form-Prop bleibt das bisherige Verhalten unveraendert.
   form?: string;
   pending?: boolean;
+  // Ergebnis der Server Action (useActionState). Mit ihm zeigt der Knopf nach
+  // dem Speichern kurz das Haekchen, und das Geraet meldet sich (Haptik).
+  status?: ErgebnisStand;
+  /** Symbol vor der Beschriftung, etwa in der Nachweiskette. */
+  symbol?: ReactNode;
+  breit?: boolean;
 }) {
   const { pending: kontextPending } = useFormStatus();
   const pending = form ? (pendingProp ?? false) : kontextPending;
+  const erledigt = useAbsendeErgebnis(status);
   const t = useTranslations("aktionen");
   const text = label ?? t("anlegen");
 
@@ -163,10 +216,16 @@ export function SubmitKnopf({
       type="submit"
       form={form}
       laedt={pending}
+      erledigt={erledigt}
       variante={variante}
       rundung="schmal"
       groesse="formular"
+      breit={breit}
+      // iPhone: der Tick muss in der Beruehrung selbst passieren, nach dem
+      // Speichern ist es dafuer zu spaet (lib/haptik.ts).
+      onClick={haptikTipp}
     >
+      {symbol}
       {text}
     </Button>
   );

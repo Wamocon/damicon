@@ -1,6 +1,8 @@
+import type { ReactNode } from "react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { AlertTriangle, CheckCircle2, Snowflake } from "lucide-react";
 import { Card, StatusPill, type Tone } from "@/components/ui/kit";
+import { Zaehler } from "@/components/ui/zaehler";
 import {
   ArbeitszeitFormular,
   KuehlmessungFormular,
@@ -158,11 +160,14 @@ export async function NachweiskettenKarte({
 
           {/* Menge und Ausschuss */}
           <dl className="mt-4 grid grid-cols-1 gap-2 text-center @xs/kette:grid-cols-3">
-            {[
-              [t("menge"), kg(format, c.mengeKg)],
-              [t("ausschuss"), kg(format, c.ausschussKg)],
-              [t("steigen"), String(kette.steigen.length)],
-            ].map(([label, wert]) => (
+            {(
+              [
+                [t("menge"), kg(format, c.mengeKg)],
+                [t("ausschuss"), kg(format, c.ausschussKg)],
+                // Springt, sobald eine erfasste Steige dazukommt (K4).
+                [t("steigen"), <Zaehler key="steigen" wert={kette.steigen.length} />],
+              ] satisfies [string, ReactNode][]
+            ).map(([label, wert]) => (
               // dt vor dd, wie es eine Definitionsliste verlangt; sichtbar
               // steht der Wert trotzdem oben (flex-col-reverse).
               <div

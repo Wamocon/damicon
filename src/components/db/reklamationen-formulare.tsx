@@ -64,7 +64,7 @@ export function ReklamationAnlegenFormular({
         <Feld label={f("menge")} name="betroffene_menge_kg" inputMode="decimal" />
         {istBuero ? <Feld label={f("frist")} name="frist_am" type="date" /> : null}
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2 lg:col-span-4">
           <AktionsMeldung status={status} />

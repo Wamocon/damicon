@@ -115,7 +115,7 @@ export function AufgabeAnlegenFormular({
               placeholder="4"
             />
             <div className="flex items-end">
-              <SubmitKnopf label={t("neu.knopf")} />
+              <SubmitKnopf label={t("neu.knopf")} status={status} />
             </div>
           </form>
         </div>
@@ -179,7 +179,7 @@ export function MengeFormular({
           defaultValue={String(pflueckerAnzahl)}
         />
       </div>
-      <SubmitKnopf label={t("menge.knopf")} />
+      <SubmitKnopf label={t("menge.knopf")} status={status} />
       <AktionsMeldung status={status} />
     </form>
   );

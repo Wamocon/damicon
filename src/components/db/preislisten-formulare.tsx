@@ -44,7 +44,7 @@ export function PreisListeErstellenFormular() {
             <Auswahl label={t("kundengruppe")} name="kundengruppe" options={kundengruppenOptionen(kg, true)} />
           </div>
         </div>
-        <SubmitKnopf label={t("knopf")} />
+        <SubmitKnopf label={t("knopf")} status={status} />
         <AktionsMeldung status={status} />
       </form>
     </FormularKarte>
@@ -79,7 +79,7 @@ export function PreislistenPositionHinzufuegenFormular({
       <div className="w-32">
         <Feld label={t("mindestmenge")} name="min_menge_kg" inputMode="decimal" placeholder="0" />
       </div>
-      <SubmitKnopf label={t("knopf")} variante="leise" />
+      <SubmitKnopf label={t("knopf")} variante="leise" status={status} />
       <div className="w-full">
         <AktionsMeldung status={status} />
       </div>
@@ -143,7 +143,7 @@ export function KundeGruppeFormular({
           options={kundengruppenOptionen(kg, true)}
         />
       </div>
-      <SubmitKnopf label={t("knopf")} variante="leise" />
+      <SubmitKnopf label={t("knopf")} variante="leise" status={status} />
       <div className="w-full">
         <AktionsMeldung status={status} />
       </div>

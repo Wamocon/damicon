@@ -35,7 +35,7 @@ export function KanalBearbeitenFormular({ kanal }: { kanal: KontaktkanalZeile })
           {t("aktivLabel")}
         </label>
         <div className="flex items-center gap-2">
-          <SubmitKnopf label={t("speichern")} variante="leise" />
+          <SubmitKnopf label={t("speichern")} variante="leise" status={status} />
         </div>
         <AktionsMeldung status={status} />
       </form>
@@ -76,7 +76,7 @@ export function KanalAnlegenFormular() {
         <div className="w-56">
           <Feld label={t("col.wert")} name="wert" placeholder={t("wertPlatzhalter")} />
         </div>
-        <SubmitKnopf label={t("anlegenKnopf")} />
+        <SubmitKnopf label={t("anlegenKnopf")} status={status} />
         <div className="w-full">
           <AktionsMeldung status={status} />
         </div>

@@ -82,7 +82,7 @@ export function EinwilligungErfassenFormular({
           placeholder={t("nachweisPlatzhalter")}
         />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2 lg:col-span-3">
           <AktionsMeldung status={status} />
@@ -146,7 +146,7 @@ export function VorfallErfassenFormular({ profile }: { profile: AuswahlOption[] 
           required
         />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2 lg:col-span-4">
           <AktionsMeldung status={status} />

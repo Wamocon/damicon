@@ -33,7 +33,7 @@ export function DossierAnlegenFormular() {
         <Feld label={t("antragsnummer")} name="antragsnummer" />
         <Feld label={t("fristAm")} name="frist_am" type="date" />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2 lg:col-span-5">
           <AktionsMeldung status={status} />
@@ -71,7 +71,7 @@ export function DossierAktualisierenFormular({ dossiers }: { dossiers: Foerderdo
         <Feld label={t("fristAm")} name="frist_am" type="date" />
         <Feld label={t("notizen")} name="notizen" />
         <div className="flex items-end">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
         </div>
         <div className="sm:col-span-2 lg:col-span-5">
           <AktionsMeldung status={status} />

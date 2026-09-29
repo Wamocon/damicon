@@ -129,7 +129,8 @@ export function ListenEintrag({
       replace={ersetzen}
       aria-current={aktiv ? "true" : undefined}
       className={cn(
-        "relative block w-full scroll-mt-24 rounded-xl border p-4 text-left transition duration-knapp",
+        // active: der Druck beim Klick (K6), wie an den Modulkarten.
+        "relative block w-full scroll-mt-24 rounded-xl border p-4 text-left transition duration-knapp active:scale-[0.99]",
         aktiv
           ? "border-primary bg-primary/5"
           : "border-border bg-card hover:border-primary/40",

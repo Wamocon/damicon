@@ -24,7 +24,7 @@ export function SpanneFormular({ spanneProzent }: { spanneProzent: number }) {
           required
         />
       </div>
-      <SubmitKnopf label={t("knopf")} variante="leise" />
+      <SubmitKnopf label={t("knopf")} variante="leise" status={status} />
       <div className="w-full">
         <AktionsMeldung status={status} />
       </div>

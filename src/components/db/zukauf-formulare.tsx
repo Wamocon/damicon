@@ -99,7 +99,7 @@ export function ZukaufImportFormular({
           />
         </label>
 
-        <SubmitKnopf label={t("knopf")} />
+        <SubmitKnopf label={t("knopf")} status={status} />
 
         {status.stand !== "leer" && status.meldung ? (
           <p
@@ -181,7 +181,7 @@ export function NachbarbetriebFormular() {
         <Feld label={t("ort")} name="ort" placeholder="Kaskelen" />
         <Feld label={t("kontakt")} name="kontakt" placeholder="+7 ..." />
         <div className="sm:col-span-3 flex flex-wrap items-center gap-3">
-          <SubmitKnopf label={t("knopf")} />
+          <SubmitKnopf label={t("knopf")} status={status} />
           <AktionsMeldung status={status} />
         </div>
       </form>

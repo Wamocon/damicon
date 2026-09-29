@@ -31,7 +31,7 @@ export function RotationsplanGenerierenFormular() {
         <div className="w-28">
           <Feld label={t("wochen")} name="wochen" inputMode="decimal" defaultValue="4" required />
         </div>
-        <SubmitKnopf label={t("knopf")} />
+        <SubmitKnopf label={t("knopf")} status={status} />
         <div className="w-full">
           <AktionsMeldung status={status} />
         </div>

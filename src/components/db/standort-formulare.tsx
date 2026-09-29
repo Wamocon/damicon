@@ -50,7 +50,7 @@ export function PlantageFormular({ betriebId }: { betriebId: string }) {
             { wert: "nachbarbetrieb", text: t("typ.nachbarbetrieb") },
           ]}
         />
-        <SubmitKnopf />
+        <SubmitKnopf status={status} />
         <AktionsMeldung status={status} />
       </form>
     </FormularKarte>
@@ -93,7 +93,7 @@ export function ParzelleFormular({
           name="sorte_id"
           options={[{ wert: "", text: t("feld.ohneSorte") }, ...sorten]}
         />
-        <SubmitKnopf />
+        <SubmitKnopf status={status} />
         <AktionsMeldung status={status} />
       </form>
     </FormularKarte>
@@ -136,7 +136,7 @@ export function ReihengruppeFormular({
             { wert: "o_w", text: t("spalier.o_w") },
           ]}
         />
-        <SubmitKnopf />
+        <SubmitKnopf status={status} />
         <AktionsMeldung status={status} />
       </form>
     </FormularKarte>
@@ -178,7 +178,7 @@ export function ReihenblockFormular({
           name="sorte_id"
           options={[{ wert: "", text: t("feld.ohneSorte") }, ...sorten]}
         />
-        <SubmitKnopf />
+        <SubmitKnopf status={status} />
         <AktionsMeldung status={status} />
       </form>
     </FormularKarte>

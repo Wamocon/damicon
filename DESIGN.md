@@ -244,11 +244,20 @@ Noch offen: Zurück schließt das Blatt nicht, weil es keinen Verlaufseintrag an
 | Dauern | 0,25–0,6 s für Übergänge, bis 1,1 s für wachsende Balken |
 | Detailansicht als Schublade | `detailpanel-auf`: 1,5rem von rechts und einblenden, 200 ms, nur mit `motion-safe` |
 | Ladeanzeige an Links | `lade-einblenden`: Punkt oder Balken erst nach 150 ms, damit schnelle Antworten nicht flackern (`useLinkStatus`) |
+| Platzhalter | `.lichtstreif` an `Skeleton`: heller Streifen, 1,8 s; auf Kartengrund (`SkeletonCard`) in `--muted` |
+| Detailansicht lädt | `PanelLadebalken`: Abschnitt mit 40 % Breite läuft in 1,4 s durch, bei reduzierter Bewegung steht der volle Balken |
+| KI-Antwort entsteht | `.ki-beeren`: drei Beeren in `--himbeere` hinter dem Statustext, 1,2 s, je 160 ms versetzt |
+| Welle | `.klick-welle` an jedem Knopf aus `kit.tsx`; ein Zuhörer für die ganze Seite (`ui/klick-welle.tsx`) setzt den Mittelpunkt, 550 ms |
+| Speichern mit Häkchen | `SubmitKnopf` mit `status`: nach Erfolg 1,4 s grüner Grund, das Häkchen zeichnet sich in 360 ms |
+| Zähler springt | `ui/zaehler.tsx`: steigt der Wert, springt die Zahl auf 128 % in `--himbeere`, darüber steigt „+1“ auf, 360 ms |
+| Karte drücken | `kachelVerweis` und Listeneinträge: beim Klick 99 %, 120 ms |
 | Weiches Scrollen | Lenis (`weiches-scrollen.tsx`) |
 | Kamerafahrt | scrollgetriebene CSS-Animation, Firefox zeigt das Bild ruhig |
 | Ladebild | `lkw-lader.tsx`: LKW steht, Fahrbahn und Laternen wandern um genau eine Periode, Raddrehung auf die Fahrbahngeschwindigkeit gerechnet; Himbi faehrt auf dem Kuehlkoffer mit |
 
 Unter `prefers-reduced-motion: reduce` sind alle Animationen und Übergänge auf 0,01 ms gesetzt, `[data-reveal]` steht sofort sichtbar, View Transitions entfallen, die Leseanzeige wird ausgeblendet.
+
+Haptik (`lib/haptik.ts`) gibt es nur bei Ereignissen, ohne Schalter zum Abstellen. `haptikEreignis()` vibriert auf Android, sobald das Ergebnis da ist (Erfolg und Fehler mit eigenem Muster). Das iPhone kennt `navigator.vibrate` nicht; `haptikTipp()` lässt dort einen versteckten Schalter ticken, und das geht nur direkt im Klick-Handler. Neue Stellen mit Rückmeldung nutzen `SubmitKnopf` mit `status`, dann kommen Häkchen und Haptik mit.
 
 ## 10. Barrierefreiheit
 

@@ -316,8 +316,32 @@ Diese Texte stehen in Kacheln, Sätzen, Meldungen oder eigenen Oberflächen, wo 
 
 Vorschau einer Auswahl in Hell und Dunkel: `stufe3-vorschau.png`.
 
+## Stufe 4: Lade- und Klickanimationen mit Haptik
+
+Umgesetzt am 29.09.2026 nach der Auswahl vom 28.09. (L2, L4, L6, K2, K3, K4, K6). Zur Reichweite hat Erwin entschieden: Welle an allen Knöpfen, Häkchen an allen Formularen, die drei Beeren zusätzlich zur kleinen Himbeere.
+
+| Muster | Wo | Umsetzung |
+|---|---|---|
+| L2 Lichtstreif | alle Platzhalter (`Skeleton`, `SkeletonCard`) und damit alle `loading.tsx` | `.lichtstreif` in `globals.css`, 1,8 s; auf Kartengrund in der Farbe `--muted` |
+| L4 Drei Beeren | KI-Chat, Statuszeile „denkt nach …“ | `.ki-beeren` in `ki-pane.css`, 1,2 s, je 160 ms versetzt |
+| L6 Laufender Ladebalken | Kopf der Detailansicht (`PanelLadebalken`) | Abschnitt mit 40 % Breite, 1,4 s, weiter erst nach 150 ms sichtbar |
+| K2 Welle | jeder Knopf aus `kit.tsx` (`Button`, `knopfKlassen`) | ein Zuhörer für die ganze Seite (`ui/klick-welle.tsx`), 550 ms |
+| K3 Speichern mit Häkchen | 47 Formularknöpfe (`SubmitKnopf` mit `status`), dazu Steige, Arbeitszeit und Kühlmessung in der Nachweiskette | grüner Grund mit Häkchen, 1,4 s |
+| K4 Zähler springt | Steigenzahl in der Nachweiskette | `ui/zaehler.tsx`, 360 ms, darüber steigt „+1“ auf |
+| K6 Druck | Modulkarten (`kachelVerweis`) und Listeneinträge | 99 % beim Klick, 120 ms |
+
+Haptik (`lib/haptik.ts`): nur bei Ereignissen und ohne Schalter. Android vibriert, sobald das Ergebnis da ist, bei Erfolg kurz, Pause, etwas länger, bei einem Fehler dreimal gleich. Das iPhone kennt `navigator.vibrate` nicht. Dort tickt ab iOS 18 ein versteckter Schalter, allerdings nur direkt beim Tippen auf den Knopf und nicht erst nach dem Speichern. Firefox hat die Vibration entfernt und bleibt still. Die Steigenzahl vibriert nicht selbst, weil sich der Knopf, der sie auslöst, schon meldet.
+
+Die drei Erfassungsknöpfe der Nachweiskette hatten eine eigene Klassenkette und nutzen jetzt `SubmitKnopf`. Die kleinen Aktionsknöpfe in Tabellen- und Listenzeilen (Freigeben, Stornieren, Rückgängig und ähnliche) haben weiter ihre eigenen Klassen und zeigen deshalb weder Welle noch Häkchen. Ausgenommen sind außerdem die Einladungsseite und die Einrichtung des zweiten Faktors, weil dort nach dem Erfolg eine neue Ansicht das Formular ersetzt.
+
+Geprüft: TypeScript, ESLint und die Tests schluessel, kit-bausteine, umlaute, navigation und listen ohne Fehler. Auf echten Geräten ist die Haptik noch nicht ausprobiert.
+
+Vorschau in Hell und Dunkel, Animationen an einer aussagekräftigen Stelle angehalten: `stufe4-vorschau.png`.
+
 ## Offene Punkte
 
 - Standortbaum: Erwin Moretz hält eine bessere Gestaltung des Baums für später fest (28.09.2026).
 - Dokumentenliste ohne Leerzustand (siehe oben).
-- Lade- und Klickanimationen mit Haptik folgen als nächste Stufe.
+- „Neuen Kostenträger anlegen“ bricht in schmalen Karten auf zwei Zeilen um. Kürzer wäre „Kostenträger anlegen“.
+- Kleine Aktionsknöpfe in Tabellen- und Listenzeilen auf `Button` umstellen, dann bekommen auch sie Welle und Häkchen.
+- Haptik auf einem iPhone ab iOS 18 und einem Android-Gerät ausprobieren.
